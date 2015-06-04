@@ -1,100 +1,141 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFT v2 12/48] sh: intc: Use irq_desc_get_xxx() to avoid redundant lookup of irq_desc
-Date: Thu,  4 Jun 2015 12:13:22 +0800
-Message-ID: <1433391238-19471-13-git-send-email-jiang.liu@linux.intel.com>
+Subject: [RFT v2 15/48] genirq: Kill the parameter 'irq' of kstat_incr_irqs_this_cpu()
+Date: Thu,  4 Jun 2015 12:13:25 +0800
+Message-ID: <1433391238-19471-16-git-send-email-jiang.liu@linux.intel.com>
 References: <1433391238-19471-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1433391238-19471-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Simon Horman <horms@verge.net.au>, Magnus Damm <magnus.damm@gmail.com>, Kevin Cernekee <cernekee@gmail.com>, abdoulaye berthe <berthe.ab@gmail.com>, Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-sh@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Use irq_desc_get_xxx() to avoid redundant lookup of irq_desc while we
-already have a pointer to corresponding irq_desc.
-
-Also replace generic_handle_irq with generic_handle_irq_desc() to avoid
-looking up irq_desc again.
+The first parameter 'irq' is never used by kstat_incr_irqs_this_cpu(),
+so kill it. So one step further to kill the first parameter 'irq'
+of irq_flow_handler_t.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- arch/sh/boards/mach-se/7343/irq.c  |    2 +-
- arch/sh/boards/mach-x3proto/gpio.c |    2 +-
- drivers/sh/intc/core.c             |    2 +-
- drivers/sh/intc/virq.c             |   14 ++++++++------
- 4 files changed, 11 insertions(+), 9 deletions(-)
+ kernel/irq/chip.c      |   16 ++++++++--------
+ kernel/irq/handle.c    |    2 +-
+ kernel/irq/internals.h |    2 +-
+ kernel/irq/irqdesc.c   |    2 +-
+ 4 files changed, 11 insertions(+), 11 deletions(-)
 
-diff --git a/arch/sh/boards/mach-se/7343/irq.c b/arch/sh/boards/mach-se/7343/irq.c
-index 1087dba9b015..6f97a8f0d0d6 100644
---- a/arch/sh/boards/mach-se/7343/irq.c
-+++ b/arch/sh/boards/mach-se/7343/irq.c
-@@ -31,7 +31,7 @@ struct irq_domain *se7343_irq_domain;
+diff --git a/kernel/irq/chip.c b/kernel/irq/chip.c
+index da14c388b579..fc7545ca6bf7 100644
+--- a/kernel/irq/chip.c
++++ b/kernel/irq/chip.c
+@@ -315,7 +315,7 @@ void handle_nested_irq(unsigned int irq)
+ 	raw_spin_lock_irq(&desc->lock);
  
- static void se7343_irq_demux(unsigned int irq, struct irq_desc *desc)
- {
--	struct irq_data *data = irq_get_irq_data(irq);
-+	struct irq_data *data = irq_desc_get_irq_data(desc);
- 	struct irq_chip *chip = irq_data_get_irq_chip(data);
- 	unsigned long mask;
- 	int bit;
-diff --git a/arch/sh/boards/mach-x3proto/gpio.c b/arch/sh/boards/mach-x3proto/gpio.c
-index f035a7ac6456..24555c364d5b 100644
---- a/arch/sh/boards/mach-x3proto/gpio.c
-+++ b/arch/sh/boards/mach-x3proto/gpio.c
-@@ -62,7 +62,7 @@ static int x3proto_gpio_to_irq(struct gpio_chip *chip, unsigned gpio)
+ 	desc->istate &= ~(IRQS_REPLAY | IRQS_WAITING);
+-	kstat_incr_irqs_this_cpu(irq, desc);
++	kstat_incr_irqs_this_cpu(desc);
  
- static void x3proto_gpio_irq_handler(unsigned int irq, struct irq_desc *desc)
- {
--	struct irq_data *data = irq_get_irq_data(irq);
-+	struct irq_data *data = irq_desc_get_irq_data(desc);
- 	struct irq_chip *chip = irq_data_get_irq_chip(data);
- 	unsigned long mask;
- 	int pin;
-diff --git a/drivers/sh/intc/core.c b/drivers/sh/intc/core.c
-index 81f22980b2de..6dc0361aeeeb 100644
---- a/drivers/sh/intc/core.c
-+++ b/drivers/sh/intc/core.c
-@@ -67,7 +67,7 @@ void intc_set_prio_level(unsigned int irq, unsigned int level)
+ 	action = desc->action;
+ 	if (unlikely(!action || irqd_irq_disabled(&desc->irq_data))) {
+@@ -391,7 +391,7 @@ handle_simple_irq(unsigned int irq, struct irq_desc *desc)
+ 		goto out_unlock;
  
- static void intc_redirect_irq(unsigned int irq, struct irq_desc *desc)
- {
--	generic_handle_irq((unsigned int)irq_get_handler_data(irq));
-+	generic_handle_irq((unsigned int)irq_desc_get_handler_data(desc));
- }
+ 	desc->istate &= ~(IRQS_REPLAY | IRQS_WAITING);
+-	kstat_incr_irqs_this_cpu(irq, desc);
++	kstat_incr_irqs_this_cpu(desc);
  
- static void __init intc_register_irq(struct intc_desc *desc,
-diff --git a/drivers/sh/intc/virq.c b/drivers/sh/intc/virq.c
-index bc0601cf0f8f..bb7e745d4266 100644
---- a/drivers/sh/intc/virq.c
-+++ b/drivers/sh/intc/virq.c
-@@ -111,7 +111,7 @@ static int add_virq_to_pirq(unsigned int irq, unsigned int virq)
+ 	if (unlikely(!desc->action || irqd_irq_disabled(&desc->irq_data))) {
+ 		desc->istate |= IRQS_PENDING;
+@@ -443,7 +443,7 @@ handle_level_irq(unsigned int irq, struct irq_desc *desc)
+ 		goto out_unlock;
  
- static void intc_virq_handler(unsigned int irq, struct irq_desc *desc)
- {
--	struct irq_data *data = irq_get_irq_data(irq);
-+	struct irq_data *data = irq_desc_get_irq_data(desc);
- 	struct irq_chip *chip = irq_data_get_irq_chip(data);
- 	struct intc_virq_list *entry, *vlist = irq_data_get_irq_handler_data(data);
- 	struct intc_desc_int *d = get_intc_desc(irq);
-@@ -120,12 +120,14 @@ static void intc_virq_handler(unsigned int irq, struct irq_desc *desc)
+ 	desc->istate &= ~(IRQS_REPLAY | IRQS_WAITING);
+-	kstat_incr_irqs_this_cpu(irq, desc);
++	kstat_incr_irqs_this_cpu(desc);
  
- 	for_each_virq(entry, vlist) {
- 		unsigned long addr, handle;
-+		struct irq_desc *vdesc = irq_to_desc(entry->irq);
+ 	/*
+ 	 * If its disabled or no action available
+@@ -515,7 +515,7 @@ handle_fasteoi_irq(unsigned int irq, struct irq_desc *desc)
+ 		goto out;
  
--		handle = (unsigned long)irq_get_handler_data(entry->irq);
--		addr = INTC_REG(d, _INTC_ADDR_E(handle), 0);
--
--		if (intc_reg_fns[_INTC_FN(handle)](addr, handle, 0))
--			generic_handle_irq(entry->irq);
-+		if (vdesc) {
-+			handle = (unsigned long)irq_desc_get_handler_data(vdesc);
-+			addr = INTC_REG(d, _INTC_ADDR_E(handle), 0);
-+			if (intc_reg_fns[_INTC_FN(handle)](addr, handle, 0))
-+				generic_handle_irq_desc(entry->irq, vdesc);
-+		}
+ 	desc->istate &= ~(IRQS_REPLAY | IRQS_WAITING);
+-	kstat_incr_irqs_this_cpu(irq, desc);
++	kstat_incr_irqs_this_cpu(desc);
+ 
+ 	/*
+ 	 * If its disabled or no action available
+@@ -583,7 +583,7 @@ handle_edge_irq(unsigned int irq, struct irq_desc *desc)
+ 		goto out_unlock;
  	}
  
- 	chip->irq_unmask(data);
+-	kstat_incr_irqs_this_cpu(irq, desc);
++	kstat_incr_irqs_this_cpu(desc);
+ 
+ 	/* Start handling the irq */
+ 	desc->irq_data.chip->irq_ack(&desc->irq_data);
+@@ -646,7 +646,7 @@ void handle_edge_eoi_irq(unsigned int irq, struct irq_desc *desc)
+ 		goto out_eoi;
+ 	}
+ 
+-	kstat_incr_irqs_this_cpu(irq, desc);
++	kstat_incr_irqs_this_cpu(desc);
+ 
+ 	do {
+ 		if (unlikely(!desc->action))
+@@ -675,7 +675,7 @@ handle_percpu_irq(unsigned int irq, struct irq_desc *desc)
+ {
+ 	struct irq_chip *chip = irq_desc_get_chip(desc);
+ 
+-	kstat_incr_irqs_this_cpu(irq, desc);
++	kstat_incr_irqs_this_cpu(desc);
+ 
+ 	if (chip->irq_ack)
+ 		chip->irq_ack(&desc->irq_data);
+@@ -705,7 +705,7 @@ void handle_percpu_devid_irq(unsigned int irq, struct irq_desc *desc)
+ 	void *dev_id = raw_cpu_ptr(action->percpu_dev_id);
+ 	irqreturn_t res;
+ 
+-	kstat_incr_irqs_this_cpu(irq, desc);
++	kstat_incr_irqs_this_cpu(desc);
+ 
+ 	if (chip->irq_ack)
+ 		chip->irq_ack(&desc->irq_data);
+diff --git a/kernel/irq/handle.c b/kernel/irq/handle.c
+index 635480270858..4d37b96343e9 100644
+--- a/kernel/irq/handle.c
++++ b/kernel/irq/handle.c
+@@ -30,7 +30,7 @@
+ void handle_bad_irq(unsigned int irq, struct irq_desc *desc)
+ {
+ 	print_irq_desc(irq, desc);
+-	kstat_incr_irqs_this_cpu(irq, desc);
++	kstat_incr_irqs_this_cpu(desc);
+ 	ack_bad_irq(irq);
+ }
+ 
+diff --git a/kernel/irq/internals.h b/kernel/irq/internals.h
+index b117e4c243d8..d6f65336650c 100644
+--- a/kernel/irq/internals.h
++++ b/kernel/irq/internals.h
+@@ -191,7 +191,7 @@ static inline bool irqd_has_set(struct irq_data *d, unsigned int mask)
+ 	return __irqd_to_state(d) & mask;
+ }
+ 
+-static inline void kstat_incr_irqs_this_cpu(unsigned int irq, struct irq_desc *desc)
++static inline void kstat_incr_irqs_this_cpu(struct irq_desc *desc)
+ {
+ 	__this_cpu_inc(*desc->kstat_irqs);
+ 	__this_cpu_inc(kstat.irqs_sum);
+diff --git a/kernel/irq/irqdesc.c b/kernel/irq/irqdesc.c
+index 358f620c035a..500e6fd11d78 100644
+--- a/kernel/irq/irqdesc.c
++++ b/kernel/irq/irqdesc.c
+@@ -586,7 +586,7 @@ int irq_set_percpu_devid(unsigned int irq)
+ 
+ void kstat_incr_irq_this_cpu(unsigned int irq)
+ {
+-	kstat_incr_irqs_this_cpu(irq, irq_to_desc(irq));
++	kstat_incr_irqs_this_cpu(irq_to_desc(irq));
+ }
+ 
+ /**
 -- 
 1.7.10.4
