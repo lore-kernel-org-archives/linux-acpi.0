@@ -1,102 +1,53 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [Patch v4 0/8] Consolidate ACPI PCI root common code into ACPI
- core
-Date: Thu, 04 Jun 2015 14:41:47 +0800
-Message-ID: <556FF32B.9010900@linux.intel.com>
-References: <1433225576-8215-1-git-send-email-jiang.liu@linux.intel.com> <556F6332.2040501@redhat.com> <556FAFEF.6040802@linux.intel.com> <556FF0AD.6000901@linaro.org>
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Re: [RFT v2 00/48] Refine irq interfaces to reduce number of parameters
+Date: Thu, 4 Jun 2015 08:59:37 +0200
+Message-ID: <CAMuHMdUfGMU3m35xWD9vE1RNW80jjHx_KLM3a4GWq=JfuGcGBw@mail.gmail.com>
+References: <1433391238-19471-1-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:27015 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752115AbbFDGmK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 4 Jun 2015 02:42:10 -0400
-In-Reply-To: <556FF0AD.6000901@linaro.org>
+Received: from mail-ob0-f181.google.com ([209.85.214.181]:35429 "EHLO
+	mail-ob0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751459AbbFDG7i (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Jun 2015 02:59:38 -0400
+In-Reply-To: <1433391238-19471-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, Al Stone <ahs3@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Marc Zyngier <marc.zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Yijing Wang <wangyijing@huawei.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, "lenb @ kernel . org" <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>, linux-arm-kernel@lists.infradead.org, Mark Salter <msalter@redhat.com>
+To: Jiang Liu <jiang.liu@linux.intel.com>, Wu Fengguang <fengguang.wu@intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Matthias Brugger <matthias.bgg@gmail.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, the arch/x86 maintainers <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-pci <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-mediatek@lists.infradead.org
 
-On 2015/6/4 14:31, Hanjun Guo wrote:
-> Hi Jiang,
->=20
-> On 2015=E5=B9=B406=E6=9C=8804=E6=97=A5 09:54, Jiang Liu wrote:
->> On 2015/6/4 4:27, Al Stone wrote:
->>> On 06/02/2015 12:12 AM, Jiang Liu wrote:
->>>> This patch set consolidates common code to support ACPI PCI root o=
-n x86
->>>> and IA64 platforms into ACPI core, to reproduce duplicated code an=
-d
->>>> simplify maintenance. And a patch set based on this to support ACP=
-I
->>>> based
->>>> PCIe host bridge on ARM64 has been posted at:
->>>
->>> Link is missing (or it's a typo of some flavor).
->> HI Al,
->>     Sorry, I missed the link. It has been posted at:
->> https://lkml.org/lkml/2015/5/26/207
->=20
-> I failed to get io resources for PCI hostbridge  when I was testing P=
-CI
-> on ARM64 QEMU, I debugged this for quite a while, and finally found o=
-ut
-> that ACPI resource parsing for IO is not suitable for ARM64, because =
-io
-> space for x86 is 64K, but 16M for ARM64.
->=20
-> This issue is only found when the firmware representing the io resour=
-ce
-> using the type ACPI_RESOURCE_TYPE_ADDRESS32, so the io address will
-> greater than 64k.
->=20
-> In drivers/acpi/resource.c:
->=20
-> static void acpi_dev_ioresource_flags(struct resource *res, u64 len,
->                                       u8 io_decode, u8 translation_ty=
-pe)
-> {
->         res->flags =3D IORESOURCE_IO;
->=20
-> [...]
->=20
->         if (res->end >=3D 0x10003)
->                 res->flags |=3D IORESOURCE_DISABLED | IORESOURCE_UNSE=
-T;
->=20
-> [...]
-> }
->=20
-> so the code will filter out res->end >=3D 0x10003, and in my case, it=
- will
-> more than 64K, so we can't get the IO resources.
->=20
-> I got a question, why we use if (res->end >=3D 0x10003) here?
-> I mean 64k will be 0x10000, and in that case, we should use
-> if (res->end >=3D 0x10000) here, not 0x10003, any history behind that=
-?
+Hi Gerry,
 
-Hi Hanjun,
-This is a special tricky for x86. You may read a dword(four bytes) from
-IO port 0xffff, so the effective io port space is 0x10003 bytes.
+On Thu, Jun 4, 2015 at 6:13 AM, Jiang Liu <jiang.liu@linux.intel.com> wrote:
+> You may get the patch set from:
 
->=20
-> This is not the problem of this patch set, but need updating
-> the core ACPI resource parsing code, I'm working on that. I'm
-> just wondering there is no special IO space on IA64, how this works
-> on IA64?
-There is special handling for IO port on IA64. IA64 io ports are
-actually memory-mapped, and there may be multiple 64K IO port spaces.
-=46or example, each PCI domain may have its own 64k memory-mapped
-IO space.
+Missing link?
+
+> The patch set passes Fengguang's 0day test suites as below. And tests
+> with other platforms and configurations will be appreciated:)
+> ----------------------------------------------------------
+> configs tested: 95
+
+[...]
+
+> m68k                          amiga_defconfig
+> m68k                       m5475evb_defconfig
+> m68k                          multi_defconfig
+
+For Fengguang: amiga_defconfig is a subset of multi_defconfig.
+But sun3_defconfig is distinct, as Sun-3 has a different MMU and thus support
+for it cannot be included in multi-platform kernels.
+So I think you better replace amiga_defconfig by sun3_defconfig for build tests.
+
 Thanks!
-Gerry
->=20
-> Thanks
-> Hanjun
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
 --
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
