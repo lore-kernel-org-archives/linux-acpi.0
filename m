@@ -1,13 +1,13 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [RFT v2 26/48] powerpc, irq: Prepare for killing the first parameter 'irq' of irq_flow_handler_t
-Date: Thu,  4 Jun 2015 12:13:36 +0800
-Message-ID: <1433391238-19471-27-git-send-email-jiang.liu@linux.intel.com>
+Subject: [RFT v2 28/48] unicore32, irq: Prepare for killing the first parameter 'irq' of irq_flow_handler_t
+Date: Thu,  4 Jun 2015 12:13:38 +0800
+Message-ID: <1433391238-19471-29-git-send-email-jiang.liu@linux.intel.com>
 References: <1433391238-19471-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1433391238-19471-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Anatolij Gustschin <agust@denx.de>, Paul Mackerras <paulus@samba.org>, Michael Ellerman <mpe@ellerman.id.au>, Scott Wood <scottwood@freescale.com>, Kumar Gala <galak@kernel.crashing.org>, Arnd Bergmann <arnd@arndb.de>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linuxppc-dev@lists.ozlabs.org, cbe-oss-dev@lists.ozlabs.org
+To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Guan Xuetao <gxt@mprc.pku.edu.cn>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
 Change irq flow handler to prepare for killing the first parameter 'irq'
@@ -15,54 +15,35 @@ of irq_flow_handler_t.
 
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
 ---
- arch/powerpc/platforms/512x/mpc5121_ads_cpld.c  |    4 +++-
- arch/powerpc/platforms/85xx/socrates_fpga_pic.c |    2 +-
- arch/powerpc/platforms/cell/interrupt.c         |    3 ++-
- 3 files changed, 6 insertions(+), 3 deletions(-)
+ arch/unicore32/kernel/irq.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/arch/powerpc/platforms/512x/mpc5121_ads_cpld.c b/arch/powerpc/platforms/512x/mpc5121_ads_cpld.c
-index ca3a062ed1b9..4411ed51803e 100644
---- a/arch/powerpc/platforms/512x/mpc5121_ads_cpld.c
-+++ b/arch/powerpc/platforms/512x/mpc5121_ads_cpld.c
-@@ -105,8 +105,10 @@ cpld_pic_get_irq(int offset, u8 ignore, u8 __iomem *statusp,
- }
- 
+diff --git a/arch/unicore32/kernel/irq.c b/arch/unicore32/kernel/irq.c
+index 0be5ccd7ccd2..56fdd4dd2740 100644
+--- a/arch/unicore32/kernel/irq.c
++++ b/arch/unicore32/kernel/irq.c
+@@ -113,19 +113,20 @@ static struct irq_chip puv3_low_gpio_chip = {
+  * and call the handler.
+  */
  static void
--cpld_pic_cascade(unsigned int irq, struct irq_desc *desc)
-+cpld_pic_cascade(unsigned int __irq, struct irq_desc *desc)
+-puv3_gpio_handler(unsigned int irq, struct irq_desc *desc)
++puv3_gpio_handler(unsigned int __irq, struct irq_desc *desc)
  {
-+	unsigned int irq;
+ 	unsigned int mask;
+ 
+ 	mask = readl(GPIO_GEDR);
+ 	do {
++		unsigned int irq = IRQ_GPIO0;
 +
- 	irq = cpld_pic_get_irq(0, PCI_IGNORE, &cpld_regs->pci_status,
- 		&cpld_regs->pci_mask);
- 	if (irq != NO_IRQ) {
-diff --git a/arch/powerpc/platforms/85xx/socrates_fpga_pic.c b/arch/powerpc/platforms/85xx/socrates_fpga_pic.c
-index 55a9682b9529..5153e58654f7 100644
---- a/arch/powerpc/platforms/85xx/socrates_fpga_pic.c
-+++ b/arch/powerpc/platforms/85xx/socrates_fpga_pic.c
-@@ -100,7 +100,7 @@ void socrates_fpga_pic_cascade(unsigned int irq, struct irq_desc *desc)
- 	 * See if we actually have an interrupt, call generic handling code if
- 	 * we do.
- 	 */
--	cascade_irq = socrates_fpga_pic_get_irq(irq);
-+	cascade_irq = socrates_fpga_pic_get_irq(irq_desc_get_irq(desc));
+ 		/*
+ 		 * clear down all currently active IRQ sources.
+ 		 * We will be processing them all.
+ 		 */
+ 		writel(mask, GPIO_GEDR);
  
- 	if (cascade_irq != NO_IRQ)
- 		generic_handle_irq(cascade_irq);
-diff --git a/arch/powerpc/platforms/cell/interrupt.c b/arch/powerpc/platforms/cell/interrupt.c
-index 3af8324c122e..e2dd6c9d3a78 100644
---- a/arch/powerpc/platforms/cell/interrupt.c
-+++ b/arch/powerpc/platforms/cell/interrupt.c
-@@ -99,8 +99,9 @@ static void iic_ioexc_eoi(struct irq_data *d)
- {
- }
- 
--static void iic_ioexc_cascade(unsigned int irq, struct irq_desc *desc)
-+static void iic_ioexc_cascade(unsigned int __irq, struct irq_desc *desc)
- {
-+	unsigned int irq = irq_desc_get_irq(desc);
- 	struct irq_chip *chip = irq_desc_get_chip(desc);
- 	struct cbe_iic_regs __iomem *node_iic =
- 		(void __iomem *)irq_desc_get_handler_data(desc);
+-		irq = IRQ_GPIO0;
+ 		do {
+ 			if (mask & 1)
+ 				generic_handle_irq(irq);
 -- 
 1.7.10.4
