@@ -1,106 +1,102 @@
-From: Corentin Chary <corentin.chary@gmail.com>
-Subject: Re: [PATCH 3/3] samsung-laptop: Use acpi_video_unregister_backlight
- instead of acpi_video_unregister
-Date: Thu, 4 Jun 2015 15:43:06 +0100
-Message-ID: <CAHR064hhjGnk6AA2Fjq5KufrmA_Vspxs+k7LKPiEGWidio_xcw@mail.gmail.com>
-References: <1433150708-8498-1-git-send-email-hdegoede@redhat.com>
-	<1433150708-8498-4-git-send-email-hdegoede@redhat.com>
+From: Mark Salter <msalter@redhat.com>
+Subject: Re: [Patch v4 0/8] Consolidate ACPI PCI root common code into ACPI
+ core
+Date: Thu, 04 Jun 2015 11:51:45 -0400
+Message-ID: <1433433105.24429.30.camel@deneb.redhat.com>
+References: <1433225576-8215-1-git-send-email-jiang.liu@linux.intel.com>
+	 <556F6332.2040501@redhat.com> <556FAFEF.6040802@linux.intel.com>
+	 <556FF0AD.6000901@linaro.org> <556FF32B.9010900@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <1433150708-8498-4-git-send-email-hdegoede@redhat.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Darren Hart <dvhart@infradead.org>, Ben Skeggs <bskeggs@redhat.com>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, DRI <dri-devel@lists.freedesktop.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Aaron Lu <aaron.lu@intel.com>, linux acpi <linux-acpi@vger.kernel.org>
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:60817 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752650AbbFDPvs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 4 Jun 2015 11:51:48 -0400
+In-Reply-To: <556FF32B.9010900@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, Al Stone <ahs3@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Marc Zyngier <marc.zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Yijing Wang <wangyijing@huawei.com>, Lv Zheng <lv.zheng@intel.com>, "lenb @ kernel . org" <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>, linux-arm-kernel@lists.infradead.org
 
-On Mon, Jun 1, 2015 at 10:25 AM, Hans de Goede <hdegoede@redhat.com> wrote:
-> acpi_video_unregister() not only unregisters the acpi-video backlight
-> interface but also unregisters the acpi video bus event listener, causing
-> e.g. brightness hotkey presses to no longer generate keypress events.
->
-> The unregistering of the acpi video bus event listener usually is
-> undesirable, which by itself is a good reason to switch to
-> acpi_video_unregister_backlight().
->
-> Another problem with using acpi_video_unregister() rather then using
-> acpi_video_unregister_backlight() is that on systems with an intel video
-> opregion (most systems) and a broken_acpi_video quirk, whether or not
-> the acpi video bus event listener actually gets unregistered depends on
-> module load ordering:
->
-> Scenario a:
-> 1) acpi/video.ko gets loaded (*), does not do acpi_video_register as there
->    is an intel opregion.
-> 2) intel.ko gets loaded, calls acpi_video_register() which registers both
->    the listener and the acpi backlight interface
-> 3) samsung-laptop.ko gets loaded, calls acpi_video_unregister() causing
->    both the listener and the acpi backlight interface to unregister
->
-> Scenario b:
-> 1) acpi/video.ko gets loaded (*), does not do acpi_video_register as there
->    is an intel opregion.
-> 2) samsung-laptop.ko gets loaded, calls acpi_video_dmi_promote_vendor(),
->    calls acpi_video_unregister(), which is a nop since acpi_video_register
->    has not yet been called
-> 2) intel.ko gets loaded, calls acpi_video_register() which registers
->    the listener, but does not register the acpi backlight interface due to
->    the call to the preciding call to acpi_video_dmi_promote_vendor()
->
-> *) acpi/video.ko always loads first as both other modules depend on it.
->
-> So we end up with or without an acpi video bus event listener depending
-> on module load ordering, not good.
->
-> Switching to using acpi_video_unregister_backlight() means that independ
-> of ordering we will always have an acpi video bus event listener fixing
-> this.
->
-> Note that this commit means that systems without an intel video opregion,
-> and systems which were hitting scenario a wrt module load ordering, are
-> now getting an acpi video bus event listener while before they were not!
->
-> On some systems this may cause the brightness hotkeys to start generating
-> keypresses while before they were not (good), while on other systems this
-> may cause the brightness hotkeys to generate multiple keypress events for
-> a single press (not so good). Since on most systems the acpi video bus is
-> the canonical source for brightness events I believe that the latter case
-> will needs to be handled on a case by case basis by filtering out the
-> duplicate keypresses at the other source for them.
->
-> Cc: Corentin Chary <corentin.chary@gmail.com>
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> ---
->  drivers/platform/x86/samsung-laptop.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/platform/x86/samsung-laptop.c b/drivers/platform/x86/samsung-laptop.c
-> index 9e701b2..0df03e2 100644
-> --- a/drivers/platform/x86/samsung-laptop.c
-> +++ b/drivers/platform/x86/samsung-laptop.c
-> @@ -1730,14 +1730,14 @@ static int __init samsung_init(void)
->                 samsung->handle_backlight = false;
->         } else if (samsung->quirks->broken_acpi_video) {
->                 pr_info("Disabling ACPI video driver\n");
-> -               acpi_video_unregister();
-> +               acpi_video_unregister_backlight();
->         }
->
->         if (samsung->quirks->use_native_backlight) {
->                 pr_info("Using native backlight driver\n");
->                 /* Tell acpi-video to not handle the backlight */
->                 acpi_video_dmi_promote_vendor();
-> -               acpi_video_unregister();
-> +               acpi_video_unregister_backlight();
->                 /* And also do not handle it ourselves */
->                 samsung->handle_backlight = false;
->         }
-> --
-> 2.4.2
->
+On Thu, 2015-06-04 at 14:41 +0800, Jiang Liu wrote:
+> On 2015/6/4 14:31, Hanjun Guo wrote:
+> > Hi Jiang,
+> >=20
+> > On 2015=E5=B9=B406=E6=9C=8804=E6=97=A5 09:54, Jiang Liu wrote:
+> >> On 2015/6/4 4:27, Al Stone wrote:
+> >>> On 06/02/2015 12:12 AM, Jiang Liu wrote:
+> >>>> This patch set consolidates common code to support ACPI PCI root=
+ on x86
+> >>>> and IA64 platforms into ACPI core, to reproduce duplicated code =
+and
+> >>>> simplify maintenance. And a patch set based on this to support A=
+CPI
+> >>>> based
+> >>>> PCIe host bridge on ARM64 has been posted at:
+> >>>
+> >>> Link is missing (or it's a typo of some flavor).
+> >> HI Al,
+> >>     Sorry, I missed the link. It has been posted at:
+> >> https://lkml.org/lkml/2015/5/26/207
+> >=20
+> > I failed to get io resources for PCI hostbridge  when I was testing=
+ PCI
+> > on ARM64 QEMU, I debugged this for quite a while, and finally found=
+ out
+> > that ACPI resource parsing for IO is not suitable for ARM64, becaus=
+e io
+> > space for x86 is 64K, but 16M for ARM64.
+> >=20
+> > This issue is only found when the firmware representing the io reso=
+urce
+> > using the type ACPI_RESOURCE_TYPE_ADDRESS32, so the io address will
+> > greater than 64k.
+> >=20
+> > In drivers/acpi/resource.c:
+> >=20
+> > static void acpi_dev_ioresource_flags(struct resource *res, u64 len=
+,
+> >                                       u8 io_decode, u8 translation_=
+type)
+> > {
+> >         res->flags =3D IORESOURCE_IO;
+> >=20
+> > [...]
+> >=20
+> >         if (res->end >=3D 0x10003)
+> >                 res->flags |=3D IORESOURCE_DISABLED | IORESOURCE_UN=
+SET;
+> >=20
+> > [...]
+> > }
+> >=20
+> > so the code will filter out res->end >=3D 0x10003, and in my case, =
+it will
+> > more than 64K, so we can't get the IO resources.
+> >=20
+> > I got a question, why we use if (res->end >=3D 0x10003) here?
+> > I mean 64k will be 0x10000, and in that case, we should use
+> > if (res->end >=3D 0x10000) here, not 0x10003, any history behind th=
+at?
+>=20
+> Hi Hanjun,
+> This is a special tricky for x86. You may read a dword(four bytes) fr=
+om
+> IO port 0xffff, so the effective io port space is 0x10003 bytes.
+>=20
 
-Acked-by: Corentin Chary <corentin.chary@gmail.com)
+Is there something in ACPI spec which would limit PCI IO space to 64K?
+PCI itself allows 32-bit IO addresses and at least some arm64 platforms
+use PCI bus addresses above 64K for IO transactions. From a PCI view,
+the (res->end >=3D 0x10003) check doesn't make sense. Am I missing
+something?
 
--- 
-Corentin Chary
-http://xf.iksaif.net
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
