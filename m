@@ -1,46 +1,37 @@
-From: Tomasz Figa <tomasz.figa@gmail.com>
-Subject: Re: [RFT v2 06/48] pinctrl: Use irq_desc_get_xxx() to avoid redundant
- lookup of irq_desc
-Date: Fri, 5 Jun 2015 12:06:06 +0900
-Message-ID: <CA+Ln22Euot24co7qKLTej43j3Z2BS-p5WhjRq9WgRb-+U=Tyqw@mail.gmail.com>
+From: Fengguang Wu <fengguang.wu@intel.com>
+Subject: Re: [RFT v2 00/48] Refine irq interfaces to reduce number of
+ parameters
+Date: Fri, 5 Jun 2015 11:53:13 +0800
+Message-ID: <20150605035313.GA7707@wfg-t540p.sh.intel.com>
 References: <1433391238-19471-1-git-send-email-jiang.liu@linux.intel.com>
-	<1433391238-19471-7-git-send-email-jiang.liu@linux.intel.com>
+ <CAMuHMdUfGMU3m35xWD9vE1RNW80jjHx_KLM3a4GWq=JfuGcGBw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1433391238-19471-7-git-send-email-jiang.liu@linux.intel.com>
+Content-Disposition: inline
+In-Reply-To: <CAMuHMdUfGMU3m35xWD9vE1RNW80jjHx_KLM3a4GWq=JfuGcGBw@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Linus Walleij <linus.walleij@linaro.org>, Matthias Brugger <matthias.bgg@gmail.com>, Alessandro Rubini <rubini@unipv.it>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Heiko Stuebner <heiko@sntech.de>, Srinivas Kandagatla <srinivas.kandagatla@gmail.com>, Maxime Coquelin <maxime.coquelin@st.com>, Patrice Chotard <patrice.chotard@st.com>, Thomas Abraham <thomas.abraham@linaro.org>, Kukjin Kim <kgene@kernel.org>, Krzysztof Kozlowski <k.kozlowski@samsung.com>, Barry
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Matthias Brugger <matthias.bgg@gmail.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, the arch/x86 maintainers <x86@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-pci <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-mediatek@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi,
+> > The patch set passes Fengguang's 0day test suites as below. And tests
+> > with other platforms and configurations will be appreciated:)
+> > ----------------------------------------------------------
+> > configs tested: 95
+> 
+> [...]
+> 
+> > m68k                          amiga_defconfig
+> > m68k                       m5475evb_defconfig
+> > m68k                          multi_defconfig
+> 
+> For Fengguang: amiga_defconfig is a subset of multi_defconfig.
+> But sun3_defconfig is distinct, as Sun-3 has a different MMU and thus support
+> for it cannot be included in multi-platform kernels.
+> So I think you better replace amiga_defconfig by sun3_defconfig for build tests.
 
-2015-06-04 13:13 GMT+09:00 Jiang Liu <jiang.liu@linux.intel.com>:
-> Use irq_desc_get_xxx() to avoid redundant lookup of irq_desc while we
-> already have a pointer to corresponding irq_desc.
->
-> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-> Acked-by: Linus Walleij <linus.walleij@linaro.org>
-> ---
->  drivers/pinctrl/intel/pinctrl-cherryview.c    |    2 +-
->  drivers/pinctrl/intel/pinctrl-intel.c         |    2 +-
->  drivers/pinctrl/mediatek/pinctrl-mtk-common.c |    4 ++--
->  drivers/pinctrl/nomadik/pinctrl-nomadik.c     |   12 +++++-------
->  drivers/pinctrl/pinctrl-amd.c                 |    2 +-
->  drivers/pinctrl/pinctrl-at91.c                |    2 +-
->  drivers/pinctrl/pinctrl-coh901.c              |    4 ++--
->  drivers/pinctrl/pinctrl-rockchip.c            |    4 ++--
->  drivers/pinctrl/pinctrl-single.c              |    2 +-
->  drivers/pinctrl/pinctrl-st.c                  |    6 +++---
->  drivers/pinctrl/qcom/pinctrl-msm.c            |    2 +-
->  drivers/pinctrl/samsung/pinctrl-exynos.c      |    8 ++++----
->  drivers/pinctrl/samsung/pinctrl-s3c24xx.c     |   18 +++++++++---------
->  drivers/pinctrl/samsung/pinctrl-s3c64xx.c     |   22 ++++++++++------------
+Got it and changed the code accordingly, thank you for the suggestion!
 
-For Samsung stuff:
-
-Acked-by: Tomasz Figa <tomasz.figa@gmail.com>
-
-Best regards,
-Tomasz
+Thanks,
+Fengguang
