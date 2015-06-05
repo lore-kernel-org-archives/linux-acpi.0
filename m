@@ -1,56 +1,27 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH V2 3/3] acpi, apei: use EFI memmap to map GHES memory
-Date: Fri, 5 Jun 2015 12:25:56 +0200
-Message-ID: <20150605102556.GC3679@pd.tnic>
-References: <1433185940-24770-1-git-send-email-zjzhang@codeaurora.org>
- <1433185940-24770-4-git-send-email-zjzhang@codeaurora.org>
- <20150605095701.GA20042@codeblueprint.co.uk>
+From: Mark Salter <msalter@redhat.com>
+Subject: Re: [RFT v2 23/48] c6x, irq: Prepare for killing the first
+ parameter 'irq' of irq_flow_handler_t
+Date: Fri, 05 Jun 2015 10:14:53 -0400
+Message-ID: <1433513693.24429.55.camel@deneb.redhat.com>
+References: <1433391238-19471-1-git-send-email-jiang.liu@linux.intel.com>
+	 <1433391238-19471-24-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-arm-msm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150605095701.GA20042@codeblueprint.co.uk>
-Sender: linux-arm-msm-owner@vger.kernel.org
-To: Matt Fleming <matt@codeblueprint.co.uk>
-Cc: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, rjw@rjwysocki.net, lenb@kernel.org, ying.huang@intel.com, leif.lindholm@linaro.org, al.stone@linaro.org, fu.wei@linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org, linaro-acpi@lists.linaro.org, vgandhi@codeaurora.org, Tony Luck <tony.luck@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1433391238-19471-24-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Aurelien Jacquiot <a-jacquiot@ti.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-c6x-dev@linux-c6x.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Jun 05, 2015 at 10:57:01AM +0100, Matt Fleming wrote:
-> [ Cc'ing Boris and Tony. Folks original patch is here,
->   https://lkml.kernel.org/r/1433185940-24770-4-git-send-email-zjzhang@codeaurora.org ]
+On Thu, 2015-06-04 at 12:13 +0800, Jiang Liu wrote:
+> Change irq flow handler to prepare for killing the first parameter 'irq'
+> of irq_flow_handler_t.
 > 
-> On Mon, 01 Jun, at 12:12:20PM, Jonathan (Zhixiong) Zhang wrote:
-> > From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
-> > 
-> > With ACPI APEI firmware first handling, generic hardware error
-> > record is updated by firmware in GHES memory region. When firmware
-> > updated GHES memory region in DDR without going through cache,
+> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+> ---
+>  arch/c6x/platforms/megamod-pic.c |    7 ++-----
+>  1 file changed, 2 insertions(+), 5 deletions(-)
 
-What is DDR?
-
-I think this needs to be clarified first before we go any further.
-
-I picked up on the sidelines that this might be arm64-specific stuff. If
-so, your approach is wrong: you're merging efi_* facilities from x86 and
-ia64 into generic efi ones but then doing CONFIG_EFI ifdeffery in GHES.
-
-What you should do instead is have arch-specific:
-
-ghes_ioremap_pfn_irq()
-ghes_iounmap_irq()
-...
-
-and whatever else functionality which is different on your arch and
-which get called from the generic ghes.c driver.
-
-In the arch-specific ones you can go wild with the ifdeffery and whatnot
-is needed on that specific arch.
-
-Something like that, at least.
-
--- 
-Regards/Gruss,
-    Boris.
-
-ECO tip #101: Trim your mails when you reply.
---
+Acked-by: Mark Salter <msalter@redhat.com>
