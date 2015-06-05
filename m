@@ -1,32 +1,74 @@
-From: Ralf Baechle <ralf@linux-mips.org>
-Subject: Re: [Patch v3 35/36] genirq: Pass irq_data to helper function
- __irq_set_chip_handler_name_locked()
-Date: Fri, 5 Jun 2015 10:48:03 +0200
-Message-ID: <20150605084803.GY26432@linux-mips.org>
-References: <1433145945-789-1-git-send-email-jiang.liu@linux.intel.com>
- <1433145945-789-36-git-send-email-jiang.liu@linux.intel.com>
+From: Matt Fleming <matt@codeblueprint.co.uk>
+Subject: Re: [PATCH V2 3/3] acpi, apei: use EFI memmap to map GHES memory
+Date: Fri, 5 Jun 2015 10:57:01 +0100
+Message-ID: <20150605095701.GA20042@codeblueprint.co.uk>
+References: <1433185940-24770-1-git-send-email-zjzhang@codeaurora.org>
+ <1433185940-24770-4-git-send-email-zjzhang@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-mips-bounce@linux-mips.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wi0-f175.google.com ([209.85.212.175]:34285 "EHLO
+	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751149AbbFEJ5F (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 5 Jun 2015 05:57:05 -0400
+Received: by wibut5 with SMTP id ut5so15639582wib.1
+        for <linux-acpi@vger.kernel.org>; Fri, 05 Jun 2015 02:57:04 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <1433145945-789-36-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-mips-bounce@linux-mips.org
-Errors-to: linux-mips-bounce@linux-mips.org
-List-help: <mailto:ecartis@linux-mips.org?Subject=help>
-List-unsubscribe: <mailto:ecartis@linux-mips.org?subject=unsubscribe%20linux-mips>
-List-software: Ecartis version 1.0.0
-List-subscribe: <mailto:ecartis@linux-mips.org?subject=subscribe%20linux-mips>
-List-owner: <mailto:ralf@linux-mips.org>
-List-post: <mailto:linux-mips@linux-mips.org>
-List-archive: <http://www.linux-mips.org/archives/linux-mips/>
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Michal Simek <michal.simek@xilinx.com>, =?iso-8859-1?Q?S=F6ren?= Brinkmann <soren.brinkmann@xilinx.com>, James Hogan <james.hogan@imgtec.com>, Jason Cooper <jason@lakedaemon.net>, Manuel Lauss <manuel.lauss@gmail.com>, Marc Zyngier <marc.zyngier@arm.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+In-Reply-To: <1433185940-24770-4-git-send-email-zjzhang@codeaurora.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
+Cc: rjw@rjwysocki.net, lenb@kernel.org, ying.huang@intel.com, leif.lindholm@linaro.org, al.stone@linaro.org, fu.wei@linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org, linaro-acpi@lists.linaro.org, vgandhi@codeaurora.org, Tony Luck <tony.luck@gmail.com>, Borislav Petkov <bp@alien8.de>
 
-On Mon, Jun 01, 2015 at 04:05:44PM +0800, Jiang Liu wrote:
+[ Cc'ing Boris and Tony. Folks original patch is here,
+  https://lkml.kernel.org/r/1433185940-24770-4-git-send-email-zjzhang@codeaurora.org ]
 
-For arch/mips/alchemy/common/irq.c:
+On Mon, 01 Jun, at 12:12:20PM, Jonathan (Zhixiong) Zhang wrote:
+> From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
+> 
+> With ACPI APEI firmware first handling, generic hardware error
+> record is updated by firmware in GHES memory region. When firmware
+> updated GHES memory region in DDR without going through cache,
+> Linux reads stale data from cache.
+> 
+> GHES memory region should be mapped with cache attributes
+> according to EFI memory map when applicable. If firmware updates
+> DDR directly, EFI memory map has GHES memory region defined as
+> uncached; If firmware updates cache, EFI memory map has GHES
+> memory region defined as cached.
+> 
+> When EFI is configued, map IRQ page using efi_remap() provided by
+> EFI subsystem.
 
-Acked-by: Ralf Baechle <ralf@linux-mips.org>
+[...]
 
-  Ralf
+> @@ -159,6 +160,7 @@ static void __iomem *ghes_ioremap_pfn_nmi(u64 pfn)
+>  	return (void __iomem *)vaddr;
+>  }
+>  
+> +#ifndef CONFIG_EFI
+>  static void __iomem *ghes_ioremap_pfn_irq(u64 pfn)
+>  {
+>  	unsigned long vaddr;
+
+Sprinkling CONFIG_EFI like this is wrong. On x86 we run kernels built
+with CONFIG_EFI on machines with BIOS - you can't make the EFI vs.
+non-EFI decision at compile-time.
+
+So this patch looks like a potential regression to me since on x86
+ghes_ioremap_pfn_irq() would not be used anymore and instead we'd be
+using efi_remap() which will perform an ioremap_nocache() if it gets
+called after efi_free_boot_services().
+
+And based on the comments in the apei code, that's going to cause issues
+because ioremap() does not work in atomic context, not to mention the
+fact that we've gone from a cached mapping to an uncached one.
+
+Instead, I suggest you modify ghes_ioremap_* to query the EFI memmap (if
+it's available at runtime) to lookup the correct mapping attributes.
+
+But I've Cc'd some more people who have actually worked on this code,
+since I'm not one of them.
+
+-- 
+Matt Fleming, Intel Open Source Technology Center
