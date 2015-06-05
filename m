@@ -1,67 +1,66 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [Patch v2 0/4] Introduce a mechanism to allocate PCI IRQ on
- demand
-Date: Fri, 5 Jun 2015 16:24:17 -0500
-Message-ID: <20150605212417.GU3631@google.com>
-References: <1433213360-3700-1-git-send-email-jiang.liu@linux.intel.com>
+From: "Zhang, Jonathan Zhixiong" <zjzhang@codeaurora.org>
+Subject: Re: [PATCH V2 3/3] acpi, apei: use EFI memmap to map GHES memory
+Date: Fri, 05 Jun 2015 14:43:27 -0700
+Message-ID: <557217FF.9000508@codeaurora.org>
+References: <1433185940-24770-1-git-send-email-zjzhang@codeaurora.org> <1433185940-24770-4-git-send-email-zjzhang@codeaurora.org> <20150605095701.GA20042@codeblueprint.co.uk> <20150605102556.GC3679@pd.tnic> <5571D6C9.10903@codeaurora.org> <20150605171210.GM3679@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ig0-f178.google.com ([209.85.213.178]:37146 "EHLO
-	mail-ig0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754625AbbFEVYV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 5 Jun 2015 17:24:21 -0400
-Received: by igbsb11 with SMTP id sb11so23968532igb.0
-        for <linux-acpi@vger.kernel.org>; Fri, 05 Jun 2015 14:24:20 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <1433213360-3700-1-git-send-email-jiang.liu@linux.intel.com>
+Received: from smtp.codeaurora.org ([198.145.29.96]:45884 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751726AbbFEVna (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 5 Jun 2015 17:43:30 -0400
+In-Reply-To: <20150605171210.GM3679@pd.tnic>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>
+To: Borislav Petkov <bp@alien8.de>
+Cc: Matt Fleming <matt@codeblueprint.co.uk>, rjw@rjwysocki.net, lenb@kernel.org, ying.huang@intel.com, leif.lindholm@linaro.org, al.stone@linaro.org, fu.wei@linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org, linaro-acpi@lists.linaro.org, vgandhi@codeaurora.org, Tony Luck <tony.luck@gmail.com>
 
-On Tue, Jun 02, 2015 at 10:49:15AM +0800, Jiang Liu wrote:
-> This patch set introduces a mechanism to allocate PCI IRQ on demand and
-> free it when not used anymore by hooking pci_device_probe() and
-> pci_device_remove().
-> 
-> It will be used to track IOAPIC pin usage on x86 so we could support
-> IOAPIC hot-removal.
-> 
-> The patch set passes Fengguang's 0day test suite.
-> 
-> V1->V2:
-> 1) Refine pci_device_probe() to optimize for mainline code as suggested
->    by Bjorn
-> 2) Reorder patch set to put optional patch as the last (Patch 4)
-> 
-> Thanks!
-> Gerry
-> 
-> 
-> Jiang Liu (4):
->   PCI: Add hooks to allocate/free IRQ resources when binding/unbinding
->     driver
->   PCI, x86: Allocate PCI IRQ on demand and free it when not used
->     anymore
->   PCI: Introduce helpers to manage pci_dev->irq and
->     pci_dev->irq_managed
->   PCI, MSI: Optionally free legacy PCI IRQ when enabling MSI/MSI-X
-> 
->  arch/x86/include/asm/pci_x86.h |    2 --
->  arch/x86/pci/common.c          |   20 +++++++++-----------
->  arch/x86/pci/intel_mid_pci.c   |    9 ++++++---
->  arch/x86/pci/irq.c             |   23 ++++-------------------
->  drivers/acpi/pci_irq.c         |   17 ++++-------------
->  drivers/pci/msi.c              |    6 +++++-
->  drivers/pci/pci-driver.c       |   26 ++++++++++++++++++++------
->  include/linux/pci.h            |   19 +++++++++++++++++++
->  8 files changed, 67 insertions(+), 55 deletions(-)
 
-I'm fine with these patches, and I can merge them, but I would like an ack
-from Thomas.
 
-Or, if it makes more sense to route these along with other related patches
-through Thomas, here's my ack:
+On 6/5/2015 10:12 AM, Borislav Petkov wrote:
+> On Fri, Jun 05, 2015 at 10:05:13AM -0700, Zhang, Jonathan Zhixiong wrote:
+>>> What is DDR?
+>>>
+>>> I think this needs to be clarified first before we go any further.
+>> I thought the word "memory" might be confusing, because there are
+>
+> So you mean normal RAM here?
+Yes, exactly. I should use this word RAM instead.
+>
+>> memories on the system that is not accessible by Linux. In this
+>> context, the APEI error data is accessed (read and write) by both Linux
+>> and platform firmware; hence both sides should access the memory using
+>> same cache attribute. I wanted to emphasize the idea that even though
+>> normally DDR is cachable, but in this case when platform access it with
+>> un-cached attribute, Linux should do the same.
+>
+> Makes sense.
+>
+> Btw, do we need synchronization between firmware and Linux then? Does
+> Linux need to know when it is ok to touch that memory?
+Good question. Linux zeros out error status code in the error data
+after the data is consumed, this is good; but it alone does not solve
+the synchronization concern.
 
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+For interrupt notification type (SCI or NMI) error source, this may not
+be an issue since both sides can operate under the rule that the error
+data is only overwritten but never appended. But what about poll
+notification type? In this case, platform gathers error, updates the
+memory region as needed; Linux checks the same memory region
+periodically.
+
+An ACPI APEI proposal intended to solve this concern has been discussed
+in UEFI forum. The idea is to have OS to send platform a signal (through
+updating a designated register) after error data is consumed. Therefore,
+when OS is accessing the memory region, platform does not try to access
+the same memory region in the mean time.
+
+After this proposal is approved and published, I will submit a patch
+to implement it.
+
+-- 
+Jonathan (Zhixiong) Zhang
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project
