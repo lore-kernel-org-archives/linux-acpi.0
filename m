@@ -1,65 +1,78 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH] acpi: update struct acpi_table_tpm2
-Date: Mon, 8 Jun 2015 20:52:02 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37D2F28EC@ORSMSX112.amr.corp.intel.com>
-References: <1433770706-3332-1-git-send-email-jarkko.sakkinen@linux.intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v3 3/8] Driver core: wakeup the parent device before trying probe
+Date: Tue, 09 Jun 2015 01:42 +0200
+Message-ID: <6646339.jahMH2QKDR@vostro.rjw.lan>
+References: <1433170082-117462-1-git-send-email-andriy.shevchenko@linux.intel.com> <1433170082-117462-4-git-send-email-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:12613 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752239AbbFHUwH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Jun 2015 16:52:07 -0400
-In-Reply-To: <1433770706-3332-1-git-send-email-jarkko.sakkinen@linux.intel.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1433170082-117462-4-git-send-email-andriy.shevchenko@linux.intel.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Vinod Koul <vinod.koul@intel.com>, Lee Jones <lee.jones@linaro.org>, Andrew Morton <akpm@linux-foundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Mike Turquette <mturquette@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
-Cc: "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, "open list:ACPI COMPONENT AR..." <linux-acpi@vger.kernel.org>, "open list:ACPI COMPONENT AR..." <devel@acpica.org>, open list <linux-kernel@vger.kernel.org>
 
-It looks like there is a change to the TCPA table also.
-
-
-> -----Original Message-----
-> From: Jarkko Sakkinen [mailto:jarkko.sakkinen@linux.intel.com]
-> Sent: Monday, June 08, 2015 6:38 AM
-> To: Moore, Robert
-> Cc: Jarkko Sakkinen; Zheng, Lv; Wysocki, Rafael J; Len Brown; open
-> list:ACPI COMPONENT AR...; open list:ACPI COMPONENT AR...; open list
-> Subject: [PATCH] acpi: update struct acpi_table_tpm2
+On Monday, June 01, 2015 05:47:57 PM Andy Shevchenko wrote:
+> From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
 > 
-> Updated struct acpi_table_tpm2 to conform to the official TCG ACPI spec.
+> If the parent is still suspended when driver probe is
+> attempted, the result may be failure.
 > 
-> Signed-off-by: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+> For example, if the parent is a PCI MFD device that has been
+> suspended when we try to probe our device, any register
+> reads will return 0xffffffff.
+> 
+> To fix the problem, making sure the parent is always awake
+> before attempting driver probe.
+> 
+> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 > ---
->  include/acpi/actbl3.h | 5 +++--
->  1 file changed, 3 insertions(+), 2 deletions(-)
+>  drivers/base/dd.c | 8 ++++++++
+>  1 file changed, 8 insertions(+)
 > 
-> diff --git a/include/acpi/actbl3.h b/include/acpi/actbl3.h index
-> 440ca81..33df1dd 100644
-> --- a/include/acpi/actbl3.h
-> +++ b/include/acpi/actbl3.h
-> @@ -688,13 +688,14 @@ enum acpi_rasf_status {
->   * TPM2 - Trusted Platform Module (TPM) 2.0 Hardware Interface Table
->   *        Version 3
+> diff --git a/drivers/base/dd.c b/drivers/base/dd.c
+> index e843fdb..cfbeff3 100644
+> --- a/drivers/base/dd.c
+> +++ b/drivers/base/dd.c
+> @@ -399,6 +399,8 @@ EXPORT_SYMBOL_GPL(wait_for_device_probe);
 >   *
-> - * Conforms to "TPM 2.0 Hardware Interface Table (TPM2)" 29 November 2011
-> + * Conforms to "TCG ACPI Specification for Family 1.2 and 2.0" 19
-> + December 2014
->   *
-> 
-> **************************************************************************
-> ****/
-> 
->  struct acpi_table_tpm2 {
->  	struct acpi_table_header header;	/* Common ACPI table header */
-> -	u32 flags;
-> +	u16 platform_class;
-> +	u16 reserved;
->  	u64 control_address;
->  	u32 start_method;
->  };
-> --
-> 2.1.4
+>   * This function must be called with @dev lock held.  When called for a
+>   * USB interface, @dev->parent lock must be held as well.
+> + *
+> + * If device has a parent it will be powered on during device's probe().
+>   */
+>  int driver_probe_device(struct device_driver *drv, struct device *dev)
+>  {
+> @@ -410,10 +412,16 @@ int driver_probe_device(struct device_driver *drv, struct device *dev)
+>  	pr_debug("bus: '%s': %s: matched device %s with driver %s\n",
+>  		 drv->bus->name, __func__, dev_name(dev), drv->name);
+>  
+> +	if (dev->parent)
+> +		pm_runtime_get_sync(dev->parent);
+> +
 
+For some bus types that will resume and suspend the parent for many times in
+a row in device_attach() until an appropriate driver is found.  Would it be
+more efficient to call it once before the bus_for_each_drv() loop in there?
+
+>  	pm_runtime_barrier(dev);
+>  	ret = really_probe(dev, drv);
+>  	pm_request_idle(dev);
+>  
+> +	if (dev->parent)
+> +		pm_runtime_put_sync(dev->parent);
+
+Is there anything particularly wrong with calling pm_runtime_put() here
+instead?
+
+> +
+>  	return ret;
+>  }
+>  
+> 
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
