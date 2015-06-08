@@ -1,99 +1,77 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 1/6] ACPI / EC: Cleanup transaction state transition.
-Date: Mon,  8 Jun 2015 13:27:52 +0800
-Message-ID: <05a1d58724156959b448d831bb010a5d7ae0814b.1433734431.git.lv.zheng@intel.com>
-References: <cover.1433734431.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:11979 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751173AbbFHF2A (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 8 Jun 2015 01:28:00 -0400
-In-Reply-To: <cover.1433734431.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Vinod Koul <vinod.koul@intel.com>
+Subject: Re: [RFT v2 11/48] ipu: Use irq_desc_get_xxx() to avoid redundant
+ lookup of irq_desc
+Date: Mon, 8 Jun 2015 16:46:58 +0530
+Message-ID: <20150608111658.GL28601@localhost>
+References: <1433391238-19471-1-git-send-email-jiang.liu@linux.intel.com>
+ <1433391238-19471-12-git-send-email-jiang.liu@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1433391238-19471-12-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Dan Williams <dan.j.williams@intel.com>, Philipp Zabel <p.zabel@pengutronix.de>, Steve Longerbeam <slongerbeam@gmail.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, dmaengine@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-This patch collects transaction state transition code into one function. We
-then could have a single function to maintain transaction related
-behaviors. No functional changes.
+On Thu, Jun 04, 2015 at 12:13:21PM +0800, Jiang Liu wrote:
+> Use irq_desc_get_xxx() to avoid redundant lookup of irq_desc while we
+> already have a pointer to corresponding irq_desc.
+> 
+> Do the same thing to avoid pattern "irq_get_chip_data(data->irq)".
 
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-Tested-by: Gabriele Mazzotta <gabriele.mzt@gmail.com>
-Tested-by: Tigran Gabrielyan <tigrangab@gmail.com>
-Tested-by: Adrien D <ghbdtn@openmailbox.org>
----
- drivers/acpi/ec.c |   23 +++++++++++++++--------
- 1 file changed, 15 insertions(+), 8 deletions(-)
+And I am missing the context, it is a bad practice to send some part of the
+series without giving context. Is this dependent on something else...?
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 149b5e7..0ce8b6e8 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -391,7 +391,7 @@ static void acpi_ec_submit_query(struct acpi_ec *ec)
- 
- static void acpi_ec_complete_query(struct acpi_ec *ec)
- {
--	if (ec->curr->command == ACPI_EC_COMMAND_QUERY) {
-+	if (test_bit(EC_FLAGS_QUERY_PENDING, &ec->flags)) {
- 		clear_bit(EC_FLAGS_QUERY_PENDING, &ec->flags);
- 		ec_dbg_req("Event stopped");
- 	}
-@@ -421,6 +421,15 @@ static int ec_transaction_completed(struct acpi_ec *ec)
- 	return ret;
- }
- 
-+static inline void ec_transaction_transition(struct acpi_ec *ec, unsigned long flag)
-+{
-+	ec->curr->flags |= flag;
-+	if (ec->curr->command == ACPI_EC_COMMAND_QUERY) {
-+		if (flag == ACPI_EC_COMMAND_POLL)
-+			acpi_ec_complete_query(ec);
-+	}
-+}
-+
- static void advance_transaction(struct acpi_ec *ec)
- {
- 	struct transaction *t;
-@@ -449,7 +458,7 @@ static void advance_transaction(struct acpi_ec *ec)
- 			if ((status & ACPI_EC_FLAG_OBF) == 1) {
- 				t->rdata[t->ri++] = acpi_ec_read_data(ec);
- 				if (t->rlen == t->ri) {
--					t->flags |= ACPI_EC_COMMAND_COMPLETE;
-+					ec_transaction_transition(ec, ACPI_EC_COMMAND_COMPLETE);
- 					if (t->command == ACPI_EC_COMMAND_QUERY)
- 						ec_dbg_req("Command(%s) hardware completion",
- 							   acpi_ec_cmd_string(t->command));
-@@ -459,7 +468,7 @@ static void advance_transaction(struct acpi_ec *ec)
- 				goto err;
- 		} else if (t->wlen == t->wi &&
- 			   (status & ACPI_EC_FLAG_IBF) == 0) {
--			t->flags |= ACPI_EC_COMMAND_COMPLETE;
-+			ec_transaction_transition(ec, ACPI_EC_COMMAND_COMPLETE);
- 			wakeup = true;
- 		}
- 		goto out;
-@@ -467,17 +476,15 @@ static void advance_transaction(struct acpi_ec *ec)
- 		if (EC_FLAGS_QUERY_HANDSHAKE &&
- 		    !(status & ACPI_EC_FLAG_SCI) &&
- 		    (t->command == ACPI_EC_COMMAND_QUERY)) {
--			t->flags |= ACPI_EC_COMMAND_POLL;
--			acpi_ec_complete_query(ec);
-+			ec_transaction_transition(ec, ACPI_EC_COMMAND_POLL);
- 			t->rdata[t->ri++] = 0x00;
--			t->flags |= ACPI_EC_COMMAND_COMPLETE;
-+			ec_transaction_transition(ec, ACPI_EC_COMMAND_COMPLETE);
- 			ec_dbg_req("Command(%s) software completion",
- 				   acpi_ec_cmd_string(t->command));
- 			wakeup = true;
- 		} else if ((status & ACPI_EC_FLAG_IBF) == 0) {
- 			acpi_ec_write_cmd(ec, t->command);
--			t->flags |= ACPI_EC_COMMAND_POLL;
--			acpi_ec_complete_query(ec);
-+			ec_transaction_transition(ec, ACPI_EC_COMMAND_POLL);
- 		} else
- 			goto err;
- 		goto out;
 -- 
-1.7.10
+~Vinod
+> 
+> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+> ---
+>  drivers/dma/ipu/ipu_irq.c       |    2 +-
+>  drivers/gpu/ipu-v3/ipu-common.c |    4 ++--
+>  2 files changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/dma/ipu/ipu_irq.c b/drivers/dma/ipu/ipu_irq.c
+> index 2e284a4438bc..0e12af37fe2f 100644
+> --- a/drivers/dma/ipu/ipu_irq.c
+> +++ b/drivers/dma/ipu/ipu_irq.c
+> @@ -268,7 +268,7 @@ int ipu_irq_unmap(unsigned int source)
+>  /* Chained IRQ handler for IPU error interrupt */
+>  static void ipu_irq_err(unsigned int irq, struct irq_desc *desc)
+>  {
+> -	struct ipu *ipu = irq_get_handler_data(irq);
+> +	struct ipu *ipu = irq_desc_get_handler_data(desc);
+>  	u32 status;
+>  	int i, line;
+>  
+> diff --git a/drivers/gpu/ipu-v3/ipu-common.c b/drivers/gpu/ipu-v3/ipu-common.c
+> index 67bab5c36056..7022825b7a2c 100644
+> --- a/drivers/gpu/ipu-v3/ipu-common.c
+> +++ b/drivers/gpu/ipu-v3/ipu-common.c
+> @@ -915,8 +915,8 @@ static void ipu_irq_handle(struct ipu_soc *ipu, const int *regs, int num_regs)
+>  static void ipu_irq_handler(unsigned int irq, struct irq_desc *desc)
+>  {
+>  	struct ipu_soc *ipu = irq_desc_get_handler_data(desc);
+> +	struct irq_chip *chip = irq_desc_get_chip(desc);
+>  	const int int_reg[] = { 0, 1, 2, 3, 10, 11, 12, 13, 14};
+> -	struct irq_chip *chip = irq_get_chip(irq);
+>  
+>  	chained_irq_enter(chip, desc);
+>  
+> @@ -928,8 +928,8 @@ static void ipu_irq_handler(unsigned int irq, struct irq_desc *desc)
+>  static void ipu_err_irq_handler(unsigned int irq, struct irq_desc *desc)
+>  {
+>  	struct ipu_soc *ipu = irq_desc_get_handler_data(desc);
+> +	struct irq_chip *chip = irq_desc_get_chip(desc);
+>  	const int int_reg[] = { 4, 5, 8, 9};
+> -	struct irq_chip *chip = irq_get_chip(irq);
+>  
+>  	chained_irq_enter(chip, desc);
+>  
+> -- 
+> 1.7.10.4
+> 
 
+-- 
