@@ -1,97 +1,127 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 2/6] ACPI / EC: Cleanup _Qxx evaluation work item.
-Date: Mon,  8 Jun 2015 13:27:58 +0800
-Message-ID: <b22fecda477d8883bb7aa055ba35d46123756368.1433734431.git.lv.zheng@intel.com>
+Subject: [PATCH 3/6] ACPI / EC: Convert event handling work queue into loop style.
+Date: Mon,  8 Jun 2015 13:28:04 +0800
+Message-ID: <c3261a53f8d39eaed1087a5ca3fc37ee9839ed5b.1433734431.git.lv.zheng@intel.com>
 References: <cover.1433734431.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:58074 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752097AbbFHF2E (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 8 Jun 2015 01:28:04 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1433734431.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-The _Qxx evaluation work item can be eliminated and _Qxx can be evaluated
-right in the same work item as the QR_EC transaction. This patch cleans up
-the code to achieve this.
+During the period that a work queue is scheduled (queued up for run) but
+hasn't been run, second schedule_work() could fail. This may not lead to
+the loss of queries because QR_EC is always ensured to be submitted after
+the work queue has been in the running state.
 
-Originally, QR_EC transaction and _Qxx evaluation were all done in the same
-work queue flushed by acpi_os_wait_events_complete(). Though the QR_EC
-transaction (previous commit) and _Qxx evaluation (this commmit) are now
-moved to the work queue that is not covered by
-acpi_os_wait_events_complete(), there is no issue can be seen in the
-suspend/resume tests.
+Thus except the logging message changes, this patch is just a no-op. But
+the event handling work queue can be changed into the loop style to allow
+us to control the code in a more flexible way (for example, adding
+event=0x00 termination condition in the loop).
 
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Tested-by: Gabriele Mazzotta <gabriele.mzt@gmail.com>
+Tested-by: Tigran Gabrielyan <tigrangab@gmail.com>
+Tested-by: Adrien D <ghbdtn@openmailbox.org>
 ---
- drivers/acpi/ec.c |   35 ++++++++++++-----------------------
- 1 file changed, 12 insertions(+), 23 deletions(-)
+ drivers/acpi/ec.c       |   33 ++++++++++++++++++++++++---------
+ drivers/acpi/internal.h |    1 +
+ 2 files changed, 25 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 0ce8b6e8..b956dbc 100644
+index b956dbc..7a30f59 100644
 --- a/drivers/acpi/ec.c
 +++ b/drivers/acpi/ec.c
-@@ -904,27 +904,12 @@ void acpi_ec_remove_query_handler(struct acpi_ec *ec, u8 query_bit)
- }
- EXPORT_SYMBOL_GPL(acpi_ec_remove_query_handler);
- 
--static void acpi_ec_run(void *cxt)
--{
--	struct acpi_ec_query_handler *handler = cxt;
--
--	if (!handler)
--		return;
--	ec_dbg_evt("Query(0x%02x) started", handler->query_bit);
--	if (handler->func)
--		handler->func(handler->data);
--	else if (handler->handle)
--		acpi_evaluate_object(handler->handle, NULL, NULL, NULL);
--	ec_dbg_evt("Query(0x%02x) stopped", handler->query_bit);
--	acpi_ec_put_query_handler(handler);
--}
--
- static int acpi_ec_query(struct acpi_ec *ec, u8 *data)
+@@ -384,7 +384,9 @@ static bool acpi_ec_submit_flushable_request(struct acpi_ec *ec)
+ static void acpi_ec_submit_query(struct acpi_ec *ec)
  {
- 	u8 value = 0;
- 	int result;
--	acpi_status status;
- 	struct acpi_ec_query_handler *handler;
-+	bool handler_found = false;
- 	struct transaction t = {.command = ACPI_EC_COMMAND_QUERY,
- 				.wdata = NULL, .rdata = &value,
- 				.wlen = 0, .rlen = 1};
-@@ -947,17 +932,21 @@ static int acpi_ec_query(struct acpi_ec *ec, u8 *data)
- 		if (value == handler->query_bit) {
- 			/* have custom handler for this bit */
- 			handler = acpi_ec_get_query_handler(handler);
--			ec_dbg_evt("Query(0x%02x) scheduled",
--				   handler->query_bit);
--			status = acpi_os_execute((handler->func) ?
--				OSL_NOTIFY_HANDLER : OSL_GPE_HANDLER,
--				acpi_ec_run, handler);
--			if (ACPI_FAILURE(status))
--				result = -EBUSY;
-+			handler_found = true;
- 			break;
- 		}
+ 	if (!test_and_set_bit(EC_FLAGS_QUERY_PENDING, &ec->flags)) {
+-		ec_dbg_req("Event started");
++		ec_dbg_evt("Command(%s) submitted/blocked",
++			   acpi_ec_cmd_string(ACPI_EC_COMMAND_QUERY));
++		ec->nr_pending_queries++;
+ 		schedule_work(&ec->work);
  	}
- 	mutex_unlock(&ec->mutex);
-+
-+	if (handler_found) {
-+		ec_dbg_evt("Query(0x%02x) started", handler->query_bit);
-+		if (handler->func)
-+			handler->func(handler->data);
-+		else if (handler->handle)
-+			acpi_evaluate_object(handler->handle, NULL, NULL, NULL);
-+		ec_dbg_evt("Query(0x%02x) stopped", handler->query_bit);
-+		acpi_ec_put_query_handler(handler);
-+	}
+ }
+@@ -393,7 +395,8 @@ static void acpi_ec_complete_query(struct acpi_ec *ec)
+ {
+ 	if (test_bit(EC_FLAGS_QUERY_PENDING, &ec->flags)) {
+ 		clear_bit(EC_FLAGS_QUERY_PENDING, &ec->flags);
+-		ec_dbg_req("Event stopped");
++		ec_dbg_evt("Command(%s) unblocked",
++			   acpi_ec_cmd_string(ACPI_EC_COMMAND_QUERY));
+ 	}
+ }
+ 
+@@ -460,8 +463,8 @@ static void advance_transaction(struct acpi_ec *ec)
+ 				if (t->rlen == t->ri) {
+ 					ec_transaction_transition(ec, ACPI_EC_COMMAND_COMPLETE);
+ 					if (t->command == ACPI_EC_COMMAND_QUERY)
+-						ec_dbg_req("Command(%s) hardware completion",
+-							   acpi_ec_cmd_string(t->command));
++						ec_dbg_evt("Command(%s) completed by hardware",
++							   acpi_ec_cmd_string(ACPI_EC_COMMAND_QUERY));
+ 					wakeup = true;
+ 				}
+ 			} else
+@@ -479,8 +482,8 @@ static void advance_transaction(struct acpi_ec *ec)
+ 			ec_transaction_transition(ec, ACPI_EC_COMMAND_POLL);
+ 			t->rdata[t->ri++] = 0x00;
+ 			ec_transaction_transition(ec, ACPI_EC_COMMAND_COMPLETE);
+-			ec_dbg_req("Command(%s) software completion",
+-				   acpi_ec_cmd_string(t->command));
++			ec_dbg_evt("Command(%s) completed by software",
++				   acpi_ec_cmd_string(ACPI_EC_COMMAND_QUERY));
+ 			wakeup = true;
+ 		} else if ((status & ACPI_EC_FLAG_IBF) == 0) {
+ 			acpi_ec_write_cmd(ec, t->command);
+@@ -950,11 +953,23 @@ static int acpi_ec_query(struct acpi_ec *ec, u8 *data)
  	return result;
  }
  
+-static void acpi_ec_gpe_poller(struct work_struct *work)
++static void acpi_ec_event_handler(struct work_struct *work)
+ {
++	unsigned long flags;
+ 	struct acpi_ec *ec = container_of(work, struct acpi_ec, work);
+ 
+-	acpi_ec_query(ec, NULL);
++	ec_dbg_evt("Event started");
++
++	spin_lock_irqsave(&ec->lock, flags);
++	while (ec->nr_pending_queries) {
++		spin_unlock_irqrestore(&ec->lock, flags);
++		(void)acpi_ec_query(ec, NULL);
++		spin_lock_irqsave(&ec->lock, flags);
++		ec->nr_pending_queries--;
++	}
++	spin_unlock_irqrestore(&ec->lock, flags);
++
++	ec_dbg_evt("Event stopped");
+ }
+ 
+ static u32 acpi_ec_gpe_handler(acpi_handle gpe_device,
+@@ -1029,7 +1044,7 @@ static struct acpi_ec *make_acpi_ec(void)
+ 	init_waitqueue_head(&ec->wait);
+ 	INIT_LIST_HEAD(&ec->list);
+ 	spin_lock_init(&ec->lock);
+-	INIT_WORK(&ec->work, acpi_ec_gpe_poller);
++	INIT_WORK(&ec->work, acpi_ec_event_handler);
+ 	ec->timestamp = jiffies;
+ 	return ec;
+ }
+diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+index cf358d4..ae919b5 100644
+--- a/drivers/acpi/internal.h
++++ b/drivers/acpi/internal.h
+@@ -139,6 +139,7 @@ struct acpi_ec {
+ 	spinlock_t lock;
+ 	struct work_struct work;
+ 	unsigned long timestamp;
++	unsigned long nr_pending_queries;
+ };
+ 
+ extern struct acpi_ec *first_ec;
 -- 
 1.7.10
-
