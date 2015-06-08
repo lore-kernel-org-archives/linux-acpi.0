@@ -1,137 +1,38 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [Patch v4 0/8] Consolidate ACPI PCI root common code into ACPI
- core
-Date: Mon, 08 Jun 2015 11:59:46 +0800
-Message-ID: <55751332.50409@linaro.org>
-References: <1433225576-8215-1-git-send-email-jiang.liu@linux.intel.com>	 <556F6332.2040501@redhat.com> <556FAFEF.6040802@linux.intel.com>	 <556FF0AD.6000901@linaro.org> <556FF32B.9010900@linux.intel.com> <1433433105.24429.30.camel@deneb.redhat.com> <55707CF2.9070604@linux.intel.com>
+From: Darren Hart <dvhart@infradead.org>
+Subject: Re: [PATCH 0/3] Use acpi_video_unregister_backlight instead of
+ acpi_video_unregister in platfrom backlight drivers
+Date: Sun, 7 Jun 2015 21:54:35 -0700
+Message-ID: <20150608045435.GC34635@fury.dvhart.com>
+References: <1433150708-8498-1-git-send-email-hdegoede@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f53.google.com ([209.85.220.53]:36505 "EHLO
-	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751248AbbFHD76 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 7 Jun 2015 23:59:58 -0400
-Received: by pabqy3 with SMTP id qy3so86984819pab.3
-        for <linux-acpi@vger.kernel.org>; Sun, 07 Jun 2015 20:59:58 -0700 (PDT)
-In-Reply-To: <55707CF2.9070604@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1433150708-8498-1-git-send-email-hdegoede@redhat.com>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Ben Skeggs <bskeggs@redhat.com>, platform-driver-x86@vger.kernel.org, dri-devel@lists.freedesktop.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Aaron Lu <aaron.lu@intel.com>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>, Mark Salter <msalter@redhat.com>
-Cc: Al Stone <ahs3@redhat.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Marc Zyngier <marc.zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Yijing Wang <wangyijing@huawei.com>, Lv Zheng <lv.zheng@intel.com>, "lenb @ kernel . org" <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>, linux-arm-kernel@lists.infradead.org
 
-On 2015=E5=B9=B406=E6=9C=8805=E6=97=A5 00:29, Jiang Liu wrote:
-> On 2015/6/4 23:51, Mark Salter wrote:
->> On Thu, 2015-06-04 at 14:41 +0800, Jiang Liu wrote:
->>> On 2015/6/4 14:31, Hanjun Guo wrote:
->>>> Hi Jiang,
->>>>
->>>> On 2015=E5=B9=B406=E6=9C=8804=E6=97=A5 09:54, Jiang Liu wrote:
->>>>> On 2015/6/4 4:27, Al Stone wrote:
->>>>>> On 06/02/2015 12:12 AM, Jiang Liu wrote:
->>>>>>> This patch set consolidates common code to support ACPI PCI roo=
-t on x86
->>>>>>> and IA64 platforms into ACPI core, to reproduce duplicated code=
- and
->>>>>>> simplify maintenance. And a patch set based on this to support =
-ACPI
->>>>>>> based
->>>>>>> PCIe host bridge on ARM64 has been posted at:
->>>>>>
->>>>>> Link is missing (or it's a typo of some flavor).
->>>>> HI Al,
->>>>>      Sorry, I missed the link. It has been posted at:
->>>>> https://lkml.org/lkml/2015/5/26/207
->>>>
->>>> I failed to get io resources for PCI hostbridge  when I was testin=
-g PCI
->>>> on ARM64 QEMU, I debugged this for quite a while, and finally foun=
-d out
->>>> that ACPI resource parsing for IO is not suitable for ARM64, becau=
-se io
->>>> space for x86 is 64K, but 16M for ARM64.
->>>>
->>>> This issue is only found when the firmware representing the io res=
-ource
->>>> using the type ACPI_RESOURCE_TYPE_ADDRESS32, so the io address wil=
-l
->>>> greater than 64k.
->>>>
->>>> In drivers/acpi/resource.c:
->>>>
->>>> static void acpi_dev_ioresource_flags(struct resource *res, u64 le=
-n,
->>>>                                        u8 io_decode, u8 translatio=
-n_type)
->>>> {
->>>>          res->flags =3D IORESOURCE_IO;
->>>>
->>>> [...]
->>>>
->>>>          if (res->end >=3D 0x10003)
->>>>                  res->flags |=3D IORESOURCE_DISABLED | IORESOURCE_=
-UNSET;
->>>>
->>>> [...]
->>>> }
->>>>
->>>> so the code will filter out res->end >=3D 0x10003, and in my case,=
- it will
->>>> more than 64K, so we can't get the IO resources.
->>>>
->>>> I got a question, why we use if (res->end >=3D 0x10003) here?
->>>> I mean 64k will be 0x10000, and in that case, we should use
->>>> if (res->end >=3D 0x10000) here, not 0x10003, any history behind t=
-hat?
->>>
->>> Hi Hanjun,
->>> This is a special tricky for x86. You may read a dword(four bytes) =
-from
->>> IO port 0xffff, so the effective io port space is 0x10003 bytes.
->>>
->>
->> Is there something in ACPI spec which would limit PCI IO space to 64=
-K?
->> PCI itself allows 32-bit IO addresses and at least some arm64 platfo=
-rms
->> use PCI bus addresses above 64K for IO transactions. From a PCI view=
-,
->> the (res->end >=3D 0x10003) check doesn't make sense. Am I missing
->> something?
-> HI Mark,
-> 	Something interesting here. According to my understanding,
-> the actually limitations are
-> 1) the maximum size for each IO port space is 64k,
-> 2) each PCI segment may only have one IO port space assigned at most.
->
-> Other than those, it's flexible for system designer to:
-> 1) have multiple IO port spaces, each is 64K at most.
-> 2) CPU may use MMIO transactions to access PCI IO space, and PCI host
->     bridge will do the translation from CPU side MMIO address to PCI =
-side
->     IO port address.
->
-> For example, we may have following configuration on IA64 platforms:
-> 1) CPU side physical address [0x100000000-0x100010000] maps to IO spa=
-ce
->     [0x00000-0x10000] on PCI segment 0
-> 2) CPU side physical address [0x100010000-0x100020000] maps to IO spa=
-ce
->     [0x00000-0x10000] on PCI segment 1
-> And ACPI resource descriptor provides 'translation_offset' to support
-> such an usage case. Hope this helps:)
+On Mon, Jun 01, 2015 at 11:25:05AM +0200, Hans de Goede wrote:
+> Hi All,
+> 
+> I'm working on cleaning up the currently somewhat convoluted logic to
+> select which backlight interfaces to register on x86 systems, see:
+> http://lists.freedesktop.org/archives/dri-devel/2014-December/074687.html
+> 
+> For a rought outline (details will change in the actual patch-set).
+> 
+> These 3 patches are a preparation for that work, as the behavior of the
+> current code is not always consistent (it changes depending on module
+> loading order in some cases). These 3 patches remove this inconsistency
+> which in some cases may result in a behavior change.
+> 
+> This way the cleanup can have a consistent base to build upon, and I can
+> ensure that the cleanup itself does not cause any functional changes.
 
-Hi Jiang,
+These are now available in for-next.
 
-It seems the translation_offset for IA64 is assuming to zero in this
-patch set, which have regressions if we use DworldIO() with offset
-to report io port resources, am I missing something?
-
-Thanks
-Hanjun
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Darren Hart
+Intel Open Source Technology Center
