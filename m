@@ -1,127 +1,113 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 3/6] ACPI / EC: Convert event handling work queue into loop style.
-Date: Mon,  8 Jun 2015 13:28:04 +0800
-Message-ID: <c3261a53f8d39eaed1087a5ca3fc37ee9839ed5b.1433734431.git.lv.zheng@intel.com>
+Subject: [PATCH 5/6] ACPI / EC: Fix EC_FLAGS_QUERY_HANDSHAKE platforms using new event clearing timing.
+Date: Mon,  8 Jun 2015 13:28:15 +0800
+Message-ID: <ebee57860def2b2f74b449cbb5c82c1fd95799e3.1433734431.git.lv.zheng@intel.com>
 References: <cover.1433734431.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([134.134.136.65]:50485 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752214AbbFHF2U (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 8 Jun 2015 01:28:20 -0400
 In-Reply-To: <cover.1433734431.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
 
-During the period that a work queue is scheduled (queued up for run) but
-hasn't been run, second schedule_work() could fail. This may not lead to
-the loss of queries because QR_EC is always ensured to be submitted after
-the work queue has been in the running state.
+It is reported that on several platforms, EC firmware will not respond
+non-expected QR_EC (see EC_FLAGS_QUERY_HANDSHAKE, only write QR_EC when
+SCI_EVT is set).
 
-Thus except the logging message changes, this patch is just a no-op. But
-the event handling work queue can be changed into the loop style to allow
-us to control the code in a more flexible way (for example, adding
-event=0x00 termination condition in the loop).
+Unfortunately, ACPI specification doesn't define when the SCI_EVT should be
+cleared by the firmware, thus the original implementation queued up second
+QR_EC right after writing QR_EC command and before reading the returned
+event value as at that time the SCI_EVT is ensured not cleared. This
+behavior is also based on the assumption that the firmware should be able
+to return 0x00 to indicate "no outstanding event". This behavior did fix
+issues on Samsung platforms where the spurious query value of 0x00 is
+supported and didn't break platforms in my test queue.
 
+But recently, specific Acer, Asus, Lenovo platforms keep on blaming this
+change.
+
+This patch changes the behavior to re-check the SCI_EVT a bit later and
+removes EC_FLAGS_QUERY_HANDSHAKE quirks, hoping this is the Windows
+compliant EC driver behavior.
+
+This patch keeps old behavior for Samsung platforms.
+
+In order to be robust to the possible regressions, instead of removing the
+quirk directly, this patch keeps the quirk code and removes the quirk
+users.
+
+Cc: 3.16+ <stable@vger.kernel.org> # 3.16+
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=94411
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=97381
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=98111
+Reported-and-tested-by: Gabriele Mazzotta <gabriele.mzt@gmail.com>
+Reported-and-tested-by: Tigran Gabrielyan <tigrangab@gmail.com>
+Reported-and-tested-by: Adrien D <ghbdtn@openmailbox.org>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-Tested-by: Gabriele Mazzotta <gabriele.mzt@gmail.com>
-Tested-by: Tigran Gabrielyan <tigrangab@gmail.com>
-Tested-by: Adrien D <ghbdtn@openmailbox.org>
 ---
- drivers/acpi/ec.c       |   33 ++++++++++++++++++++++++---------
- drivers/acpi/internal.h |    1 +
- 2 files changed, 25 insertions(+), 9 deletions(-)
+ drivers/acpi/ec.c |   16 +++++++++-------
+ 1 file changed, 9 insertions(+), 7 deletions(-)
 
 diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index b956dbc..7a30f59 100644
+index 8477626..2f13880 100644
 --- a/drivers/acpi/ec.c
 +++ b/drivers/acpi/ec.c
-@@ -384,7 +384,9 @@ static bool acpi_ec_submit_flushable_request(struct acpi_ec *ec)
- static void acpi_ec_submit_query(struct acpi_ec *ec)
+@@ -144,7 +144,7 @@ static unsigned int ec_polling_guard __read_mostly = ACPI_EC_UDELAY_POLL;
+ module_param(ec_polling_guard, uint, 0644);
+ MODULE_PARM_DESC(ec_polling_guard, "Guard time(us) between EC accesses in polling modes");
+ 
+-static unsigned int ec_event_clearing __read_mostly = ACPI_EC_EVT_TIMING_STATUS;
++static unsigned int ec_event_clearing __read_mostly = ACPI_EC_EVT_TIMING_QUERY;
+ 
+ /*
+  * If the number of false interrupts per one transaction exceeds
+@@ -1385,10 +1385,13 @@ static int ec_validate_ecdt(const struct dmi_system_id *id)
+ 	return 0;
+ }
+ 
++#if 0
+ /*
+- * Acer EC firmware refuses to respond QR_EC when SCI_EVT is not set, for
+- * which case, we complete the QR_EC without issuing it to the firmware.
+- * https://bugzilla.kernel.org/show_bug.cgi?id=86211
++ * Some EC firmware variations refuses to respond QR_EC when SCI_EVT is not
++ * set, for which case, we complete the QR_EC without issuing it to the
++ * firmware.
++ * https://bugzilla.kernel.org/show_bug.cgi?id=82611
++ * https://bugzilla.kernel.org/show_bug.cgi?id=97381
+  */
+ static int ec_flag_query_handshake(const struct dmi_system_id *id)
  {
- 	if (!test_and_set_bit(EC_FLAGS_QUERY_PENDING, &ec->flags)) {
--		ec_dbg_req("Event started");
-+		ec_dbg_evt("Command(%s) submitted/blocked",
-+			   acpi_ec_cmd_string(ACPI_EC_COMMAND_QUERY));
-+		ec->nr_pending_queries++;
- 		schedule_work(&ec->work);
- 	}
+@@ -1396,6 +1399,7 @@ static int ec_flag_query_handshake(const struct dmi_system_id *id)
+ 	EC_FLAGS_QUERY_HANDSHAKE = 1;
+ 	return 0;
  }
-@@ -393,7 +395,8 @@ static void acpi_ec_complete_query(struct acpi_ec *ec)
++#endif
+ 
+ /*
+  * On some hardware it is necessary to clear events accumulated by the EC during
+@@ -1418,6 +1422,7 @@ static int ec_clear_on_resume(const struct dmi_system_id *id)
  {
- 	if (test_bit(EC_FLAGS_QUERY_PENDING, &ec->flags)) {
- 		clear_bit(EC_FLAGS_QUERY_PENDING, &ec->flags);
--		ec_dbg_req("Event stopped");
-+		ec_dbg_evt("Command(%s) unblocked",
-+			   acpi_ec_cmd_string(ACPI_EC_COMMAND_QUERY));
- 	}
+ 	pr_debug("Detected system needing EC poll on resume.\n");
+ 	EC_FLAGS_CLEAR_ON_RESUME = 1;
++	ec_event_clearing = ACPI_EC_EVT_TIMING_STATUS;
+ 	return 0;
  }
  
-@@ -460,8 +463,8 @@ static void advance_transaction(struct acpi_ec *ec)
- 				if (t->rlen == t->ri) {
- 					ec_transaction_transition(ec, ACPI_EC_COMMAND_COMPLETE);
- 					if (t->command == ACPI_EC_COMMAND_QUERY)
--						ec_dbg_req("Command(%s) hardware completion",
--							   acpi_ec_cmd_string(t->command));
-+						ec_dbg_evt("Command(%s) completed by hardware",
-+							   acpi_ec_cmd_string(ACPI_EC_COMMAND_QUERY));
- 					wakeup = true;
- 				}
- 			} else
-@@ -479,8 +482,8 @@ static void advance_transaction(struct acpi_ec *ec)
- 			ec_transaction_transition(ec, ACPI_EC_COMMAND_POLL);
- 			t->rdata[t->ri++] = 0x00;
- 			ec_transaction_transition(ec, ACPI_EC_COMMAND_COMPLETE);
--			ec_dbg_req("Command(%s) software completion",
--				   acpi_ec_cmd_string(t->command));
-+			ec_dbg_evt("Command(%s) completed by software",
-+				   acpi_ec_cmd_string(ACPI_EC_COMMAND_QUERY));
- 			wakeup = true;
- 		} else if ((status & ACPI_EC_FLAG_IBF) == 0) {
- 			acpi_ec_write_cmd(ec, t->command);
-@@ -950,11 +953,23 @@ static int acpi_ec_query(struct acpi_ec *ec, u8 *data)
- 	return result;
- }
- 
--static void acpi_ec_gpe_poller(struct work_struct *work)
-+static void acpi_ec_event_handler(struct work_struct *work)
- {
-+	unsigned long flags;
- 	struct acpi_ec *ec = container_of(work, struct acpi_ec, work);
- 
--	acpi_ec_query(ec, NULL);
-+	ec_dbg_evt("Event started");
-+
-+	spin_lock_irqsave(&ec->lock, flags);
-+	while (ec->nr_pending_queries) {
-+		spin_unlock_irqrestore(&ec->lock, flags);
-+		(void)acpi_ec_query(ec, NULL);
-+		spin_lock_irqsave(&ec->lock, flags);
-+		ec->nr_pending_queries--;
-+	}
-+	spin_unlock_irqrestore(&ec->lock, flags);
-+
-+	ec_dbg_evt("Event stopped");
- }
- 
- static u32 acpi_ec_gpe_handler(acpi_handle gpe_device,
-@@ -1029,7 +1044,7 @@ static struct acpi_ec *make_acpi_ec(void)
- 	init_waitqueue_head(&ec->wait);
- 	INIT_LIST_HEAD(&ec->list);
- 	spin_lock_init(&ec->lock);
--	INIT_WORK(&ec->work, acpi_ec_gpe_poller);
-+	INIT_WORK(&ec->work, acpi_ec_event_handler);
- 	ec->timestamp = jiffies;
- 	return ec;
- }
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index cf358d4..ae919b5 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -139,6 +139,7 @@ struct acpi_ec {
- 	spinlock_t lock;
- 	struct work_struct work;
- 	unsigned long timestamp;
-+	unsigned long nr_pending_queries;
+@@ -1447,9 +1452,6 @@ static struct dmi_system_id ec_dmi_table[] __initdata = {
+ 	{
+ 	ec_clear_on_resume, "Samsung hardware", {
+ 	DMI_MATCH(DMI_SYS_VENDOR, "SAMSUNG ELECTRONICS CO., LTD.")}, NULL},
+-	{
+-	ec_flag_query_handshake, "Acer hardware", {
+-	DMI_MATCH(DMI_SYS_VENDOR, "Acer"), }, NULL},
+ 	{},
  };
  
- extern struct acpi_ec *first_ec;
 -- 
 1.7.10
+
