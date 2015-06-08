@@ -1,46 +1,108 @@
-From: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
-Subject: [PATCH] acpi: update struct acpi_table_tpm2
-Date: Mon,  8 Jun 2015 16:38:26 +0300
-Message-ID: <1433770706-3332-1-git-send-email-jarkko.sakkinen@linux.intel.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH 05/11] x86, pci, acpi: Move arch-agnostic MMCONFIG (aka
+ ECAM) and ACPI code out of arch/x86/ directory
+Date: Mon, 8 Jun 2015 16:14:43 +0100
+Message-ID: <20150608151443.GA16151@red-moon>
+References: <1432644564-24746-1-git-send-email-hanjun.guo@linaro.org>
+ <1432644564-24746-6-git-send-email-hanjun.guo@linaro.org>
+ <20150526170817.GU1565@arm.com>
+ <55657B02.5090805@linaro.org>
+ <20150602133215.GC23650@red-moon>
+ <55701A31.808@linaro.org>
+ <20150604102253.GA31773@red-moon>
+ <5570447D.3020705@linaro.org>
+ <557504A2.3060203@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:10105 "EHLO mga14.intel.com"
+Received: from foss.arm.com ([217.140.101.70]:48670 "EHLO foss.arm.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932137AbbFHNlk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 8 Jun 2015 09:41:40 -0400
+	id S1753539AbbFHPOh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 8 Jun 2015 11:14:37 -0400
+Content-Disposition: inline
+In-Reply-To: <557504A2.3060203@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: robert.moore@intel.com
-Cc: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, "open list:ACPI COMPONENT AR..." <linux-acpi@vger.kernel.org>, "open list:ACPI COMPONENT AR..." <devel@acpica.org>, open list <linux-kernel@vger.kernel.org>
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Tomasz Nowicki <tomasz.nowicki@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Arnd Bergmann <arnd@arndb.de>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jiang Liu <jiang.liu@linux.intel.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Yijing Wang <wangyijing@huawei.com>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "msalter@redhat.com" <msalter@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 
-Updated struct acpi_table_tpm2 to conform to the official TCG ACPI
-spec.
+On Mon, Jun 08, 2015 at 03:57:38AM +0100, Hanjun Guo wrote:
 
-Signed-off-by: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
----
- include/acpi/actbl3.h | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+[...]
 
-diff --git a/include/acpi/actbl3.h b/include/acpi/actbl3.h
-index 440ca81..33df1dd 100644
---- a/include/acpi/actbl3.h
-+++ b/include/acpi/actbl3.h
-@@ -688,13 +688,14 @@ enum acpi_rasf_status {
-  * TPM2 - Trusted Platform Module (TPM) 2.0 Hardware Interface Table
-  *        Version 3
-  *
-- * Conforms to "TPM 2.0 Hardware Interface Table (TPM2)" 29 November 2011
-+ * Conforms to "TCG ACPI Specification for Family 1.2 and 2.0" 19 December 2014
-  *
-  ******************************************************************************/
- 
- struct acpi_table_tpm2 {
- 	struct acpi_table_header header;	/* Common ACPI table header */
--	u32 flags;
-+	u16 platform_class;
-+	u16 reserved;
- 	u64 control_address;
- 	u32 start_method;
- };
--- 
-2.1.4
+> >>>>>> Why can't we make use of the ECAM implementation used by
+> >>>>>> pci-host-generic
+> >>>>>> and drivers/pci/access.c?
+> >>>>>
+> >>>>> We had that question when I had posted MMCFG patch set separately,
+> >>>>> please see:
+> >>>>> https://lkml.org/lkml/2015/3/11/492
+> >>>>
+> >>>> Yes, but the real question is, why do we need to have PCI config space
+> >>>> up and running before a bus struct is even created ? I think the
+> >>>> reason is
+> >>>> the PCI configuration address space format (ACPI 6.0, Table 5-27, page
+> >>>> 108):
+> >>>>
+> >>>> "PCI Configuration space addresses must be confined to devices on
+> >>>> PCI Segment Group 0, bus 0. This restriction exists to accommodate
+> >>>> access to fixed hardware prior to PCI bus enumeration".
+> >>>>
+> >>>> On HW reduced platforms I do not even think this is required at all,
+> >>>> we have to look into this to avoid code duplication that might well
+> >>>> turn out useless.
+> >>>
+> >>> This is only for the fixed hardware, which will be not available for
+> >>> ARM64 (reduced hardware mode), but in Generic Hardware Programming
+> >>> Model, we using OEM-provided ACPI Machine Language (AML) code to access
+> >>> generic hardware registers, this will be available for reduced hardware
+> >>> too.
+> >>>
+> >>> So in ACPI spec, it says: (ACPI 6.0 page 66, last paragraph)
+> >>>
+> >>> ACPI defines eight address spaces that may be accessed by generic
+> >>> hardware implementations. These include:
+> >>> * System I/O space
+> >>> * System memory space
+> >>> * PCI configuration space
+> >>> * Embedded controller space
+> >>> * System Management Bus (SMBus) space
+> >>> * CMOS
+> >>> * PCI BAR Target
+> >>> * IPMI space
+> >>>
+> >>> So if any device using the PCI address space for control, such
+> >>> as a system reset control device, its address space can be reside
+> >>> in PCI configuration space (who can prevent a OEM do that crazy
+> >>> thing? :) ), and it should be accessible before the PCI bus is
+> >>> created.
+> >>
+> >> Us, by changing attitude and questioning features whose usefulness
+> >> is questionable. I will look into this and raise the point, I am not
+> >> thrilled by the idea of adding another set of PCI accessor functions
+> >> and drivers because we have to access a register through PCI before
+> >> enumerating the bus (and on arm64 this is totally useless since
+> >> we are not meant to support fixed HW anyway). Maybe we can make acpica
+> >> code use a "special" stub (ACPI specific, PCI configuration space address
+> >> space has restrictions anyway), I have to review this set in its
+> >> entirety to see how to do that (and I would kindly ask you to do
+> >> it too, before saying it is not possible to implement it).
+> >
+> > I'm willing to do that, actually, if we don't need a mechanism to
+> > access PCI config space before the bus is created, the code can be
+> > simplified a lot.
+> 
+> After more investigation on the spec and the ACPI core code, I'm
+> still not convinced that accessing to PCI config space before PCI
+> bus creating is impossible, also there is no enough ARM64 hardware
+> to prove that too. But I think we can go in this way, reuse the
+> ECAM implementation by pci-host-generic for now, and implement the PCI
+> accessor functions before enumerating PCI bus when needed in the
+> future, does it make sense?
 
+You mean we rewrite the patch to make sure we can use the PCI host generic
+driver with MCFG and we leave the acpica PCI config call empty stubs on
+arm64 (as they are now) ?
+
+Thanks,
+Lorenzo
