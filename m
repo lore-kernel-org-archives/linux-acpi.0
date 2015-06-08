@@ -1,52 +1,158 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH 1/3] acpi: Fix acpi_map_pxm_to_node() to handle numa_off
-Date: Fri, 05 Jun 2015 18:33:38 -0600
-Message-ID: <1433550818.23540.198.camel@misato.fc.hp.com>
-References: <1433291212-23367-1-git-send-email-toshi.kani@hp.com>
-	 <1433291212-23367-2-git-send-email-toshi.kani@hp.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH 05/11] x86, pci, acpi: Move arch-agnostic MMCONFIG (aka
+ ECAM) and ACPI code out of arch/x86/ directory
+Date: Mon, 08 Jun 2015 10:57:38 +0800
+Message-ID: <557504A2.3060203@linaro.org>
+References: <1432644564-24746-1-git-send-email-hanjun.guo@linaro.org> <1432644564-24746-6-git-send-email-hanjun.guo@linaro.org> <20150526170817.GU1565@arm.com> <55657B02.5090805@linaro.org> <20150602133215.GC23650@red-moon> <55701A31.808@linaro.org> <20150604102253.GA31773@red-moon> <5570447D.3020705@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1433291212-23367-2-git-send-email-toshi.kani@hp.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net
-Cc: dan.j.williams@intel.com, linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pd0-f171.google.com ([209.85.192.171]:35539 "EHLO
+	mail-pd0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751232AbbFHC5w (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 7 Jun 2015 22:57:52 -0400
+Received: by pdbnf5 with SMTP id nf5so92910395pdb.2
+        for <linux-acpi@vger.kernel.org>; Sun, 07 Jun 2015 19:57:52 -0700 (PDT)
+In-Reply-To: <5570447D.3020705@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Tomasz Nowicki <tomasz.nowicki@linaro.org>, Will Deacon <Will.Deacon@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Arnd Bergmann <arnd@arndb.de>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jiang Liu <jiang.liu@linux.intel.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Yijing Wang <wangyijing@huawei.com>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "msalter@redhat.com" <msalter@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 
-On Tue, 2015-06-02 at 18:26 -0600, Toshi Kani wrote:
-> When numa_off is set, NUMA is turned off and node 0 is the only
-> valid node on the system.  The kernel skips parsing ACPI SRAT
-> table in this case.
-> 
-> Change acpi_map_pxm_to_node() to always return 0 when numa_off
-> is set.  Also move the range check of a proximity ID from
-> acpi_get_node() to acpi_map_pxm_to_node() after the numa_off
-> check.  This keeps the interfaces to return 0 regardless of
-> proximity ID values.
-> 
-> Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-> ---
->  drivers/acpi/numa.c |   12 +++++++++---
->  1 file changed, 9 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
-> index 1333cbdc..4898082 100644
-> --- a/drivers/acpi/numa.c
-> +++ b/drivers/acpi/numa.c
-> @@ -70,7 +70,15 @@ static void __acpi_map_pxm_to_node(int pxm, int node)
->  
->  int acpi_map_pxm_to_node(int pxm)
->  {
-> -	int node = pxm_to_node_map[pxm];
-> +	int node;
-> +
-> +	if (numa_off)
-> +		return 0;
+On 2015=E5=B9=B406=E6=9C=8804=E6=97=A5 20:28, Hanjun Guo wrote:
+> On 2015=E5=B9=B406=E6=9C=8804=E6=97=A5 18:22, Lorenzo Pieralisi wrote=
+:
+>> Hi Hanjun,
+>>
+>> On Thu, Jun 04, 2015 at 10:28:17AM +0100, Hanjun Guo wrote:
+>>> Hi Lorenzo,
+>>>
+>>> On 2015???06???02??? 21:32, Lorenzo Pieralisi wrote:
+>>>> On Wed, May 27, 2015 at 09:06:26AM +0100, Tomasz Nowicki wrote:
+>>>>> On 26.05.2015 19:08, Will Deacon wrote:
+>>>>>> On Tue, May 26, 2015 at 01:49:18PM +0100, Hanjun Guo wrote:
+>>>>>>> From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+>>>>>>>
+>>>>>>> ECAM standard and MCFG table are architecture independent and i=
+t
+>>>>>>> makes
+>>>>>>> sense to share common code across all architectures. Both are
+>>>>>>> going to
+>>>>>>> corresponding files - ecam.c and mcfg.c
+>>>>>>>
+>>>>>>> While we are here, rename pci_parse_mcfg to acpi_parse_mcfg.
+>>>>>>> We already have acpi_parse_mcfg prototype which is used nowhere=
+=2E
+>>>>>>> At the same time, we need pci_parse_mcfg been global so
+>>>>>>> acpi_parse_mcfg
+>>>>>>> can be used perfectly here.
+>>>>>>>
+>>>>>>> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+>>>>>>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>>>>>>> Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com=
+>
+>>>>>>> ---
+>>>>>>>     arch/x86/Kconfig               |   3 +
+>>>>>>>     arch/x86/include/asm/pci_x86.h |  33 ------
+>>>>>>>     arch/x86/pci/acpi.c            |   1 +
+>>>>>>>     arch/x86/pci/mmconfig-shared.c | 244
+>>>>>>> +---------------------------------------
+>>>>>>>     arch/x86/pci/mmconfig_32.c     |   1 +
+>>>>>>>     arch/x86/pci/mmconfig_64.c     |   1 +
+>>>>>>>     arch/x86/pci/numachip.c        |   1 +
+>>>>>>>     drivers/acpi/Makefile          |   1 +
+>>>>>>>     drivers/acpi/mcfg.c            |  57 ++++++++++
+>>>>>>>     drivers/pci/Kconfig            |   7 ++
+>>>>>>>     drivers/pci/Makefile           |   5 +
+>>>>>>>     drivers/pci/ecam.c             | 245
+>>>>>>> +++++++++++++++++++++++++++++++++++++++++
+>>>>>>
+>>>>>> Why can't we make use of the ECAM implementation used by
+>>>>>> pci-host-generic
+>>>>>> and drivers/pci/access.c?
+>>>>>
+>>>>> We had that question when I had posted MMCFG patch set separately=
+,
+>>>>> please see:
+>>>>> https://lkml.org/lkml/2015/3/11/492
+>>>>
+>>>> Yes, but the real question is, why do we need to have PCI config s=
+pace
+>>>> up and running before a bus struct is even created ? I think the
+>>>> reason is
+>>>> the PCI configuration address space format (ACPI 6.0, Table 5-27, =
+page
+>>>> 108):
+>>>>
+>>>> "PCI Configuration space addresses must be confined to devices on
+>>>> PCI Segment Group 0, bus 0. This restriction exists to accommodate
+>>>> access to fixed hardware prior to PCI bus enumeration".
+>>>>
+>>>> On HW reduced platforms I do not even think this is required at al=
+l,
+>>>> we have to look into this to avoid code duplication that might wel=
+l
+>>>> turn out useless.
+>>>
+>>> This is only for the fixed hardware, which will be not available fo=
+r
+>>> ARM64 (reduced hardware mode), but in Generic Hardware Programming
+>>> Model, we using OEM-provided ACPI Machine Language (AML) code to ac=
+cess
+>>> generic hardware registers, this will be available for reduced hard=
+ware
+>>> too.
+>>>
+>>> So in ACPI spec, it says: (ACPI 6.0 page 66, last paragraph)
+>>>
+>>> ACPI defines eight address spaces that may be accessed by generic
+>>> hardware implementations. These include:
+>>> * System I/O space
+>>> * System memory space
+>>> * PCI configuration space
+>>> * Embedded controller space
+>>> * System Management Bus (SMBus) space
+>>> * CMOS
+>>> * PCI BAR Target
+>>> * IPMI space
+>>>
+>>> So if any device using the PCI address space for control, such
+>>> as a system reset control device, its address space can be reside
+>>> in PCI configuration space (who can prevent a OEM do that crazy
+>>> thing? :) ), and it should be accessible before the PCI bus is
+>>> created.
+>>
+>> Us, by changing attitude and questioning features whose usefulness
+>> is questionable. I will look into this and raise the point, I am not
+>> thrilled by the idea of adding another set of PCI accessor functions
+>> and drivers because we have to access a register through PCI before
+>> enumerating the bus (and on arm64 this is totally useless since
+>> we are not meant to support fixed HW anyway). Maybe we can make acpi=
+ca
+>> code use a "special" stub (ACPI specific, PCI configuration space ad=
+dress
+>> space has restrictions anyway), I have to review this set in its
+>> entirety to see how to do that (and I would kindly ask you to do
+>> it too, before saying it is not possible to implement it).
+>
+> I'm willing to do that, actually, if we don't need a mechanism to
+> access PCI config space before the bus is created, the code can be
+> simplified a lot.
 
-I found an issue in this patch.  numa_off is only defined in x86, but
-this numa.c (ACPI_NUMA) can be enabled on x86 and IA64.  I will fix or
-drop it in the next version.
+After more investigation on the spec and the ACPI core code, I'm
+still not convinced that accessing to PCI config space before PCI
+bus creating is impossible, also there is no enough ARM64 hardware
+to prove that too. But I think we can go in this way, reuse the
+ECAM implementation by pci-host-generic for now, and implement the PCI
+accessor functions before enumerating PCI bus when needed in the
+future, does it make sense?
 
-Thanks,
--Toshi
+Thanks
+Hanjun
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
