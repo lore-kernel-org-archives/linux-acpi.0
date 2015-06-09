@@ -1,159 +1,38 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: [PATCH v2] acpi-video: Add a parameter to not register the
- backlight sysfs interface
-Date: Tue, 9 Jun 2015 17:10:42 +0800
-Message-ID: <20150609091042.GA1280@aaronlu.sh.intel.com>
-References: <1433838745-8857-1-git-send-email-hdegoede@redhat.com>
+From: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+Subject: Re: [PATCH] acpi: update struct acpi_table_tpm2
+Date: Tue, 9 Jun 2015 12:17:57 +0300
+Message-ID: <20150609091757.GB4968@jsakkine-mobl1>
+References: <1433770706-3332-1-git-send-email-jarkko.sakkinen@linux.intel.com>
+ <94F2FBAB4432B54E8AACC7DFDE6C92E37D2F28EC@ORSMSX112.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:11999 "EHLO mga09.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:43948 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752228AbbFIJJe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 9 Jun 2015 05:09:34 -0400
+	id S1753283AbbFIJSH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 9 Jun 2015 05:18:07 -0400
 Content-Disposition: inline
-In-Reply-To: <1433838745-8857-1-git-send-email-hdegoede@redhat.com>
+In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37D2F28EC@ORSMSX112.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Ben Skeggs <bskeggs@redhat.com>, platform-driver-x86@vger.kernel.org, dri-devel@lists.freedesktop.org, Sylvain Pasche <sylvain.pasche@gmail.com>, linux-acpi@vger.kernel.org
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, "open list:ACPI COMPONENT AR..." <linux-acpi@vger.kernel.org>, "open list:ACPI COMPONENT AR..." <devel@acpica.org>, open list <linux-kernel@vger.kernel.org>
 
-On Tue, Jun 09, 2015 at 10:32:25AM +0200, Hans de Goede wrote:
-> On some systems acpi-video backlight is broken in the sense that it cannot
-> control the brightness of the backlight, but it must still be called on
-> resume to power-up the backlight after resume.
+On Mon, Jun 08, 2015 at 08:52:02PM +0000, Moore, Robert wrote:
+> It looks like there is a change to the TCPA table also.
 
-All the video module does on resume is a backlight set operation, it
-can't control backlight but can turn on the screen on resume? Hmm...
+Right. I'll update that too.
 
-I'll ask Sylvain to attach acpidump, let's see if there is anything
-special there.
+I strongly think that the struct acpi_tpm2_control should not be in
+actbl3.h. It is not defined in the TCG ACPI specification. It is
+defined in
 
-Regards,
-Aaron
+http://www.trustedcomputinggroup.org/resources/pc_client_platform_tpm_profile_ptp_specification
 
-> 
-> This commit allows these systems to work by going through all the usual
-> backlight control moves, while not registering a sysfs backlight
-> interface.
-> 
-> This commit also adds a quirk enabling this parameter on Toshiba Portege
-> R830 systems which are known to be affected by this.
-> 
-> I wish there was a better way to deal with this, but we've been unable to
-> find one.
-> 
-> Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=21012
-> Buglink: https://bugs.freedesktop.org/show_bug.cgi?id=82634
-> Reported-and-tested-by: Sylvain Pasche <sylvain.pasche@gmail.com>
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> ---
-> Changes in v2:
-> -Simplify check in acpi_video_switch_brightness()
-> -If backlight registration fails set device->backlight to NULL, rather
->  then leaving the PTR_ERR in there and trying to deref this later
->  (this fixes a pre-existing bug)
-> ---
->  drivers/acpi/video.c | 43 +++++++++++++++++++++++++++++++++++++++----
->  1 file changed, 39 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
-> index 518f0e1..3bc4c68 100644
-> --- a/drivers/acpi/video.c
-> +++ b/drivers/acpi/video.c
-> @@ -92,6 +92,9 @@ static int use_native_backlight_param = NATIVE_BACKLIGHT_NOT_SET;
->  module_param_named(use_native_backlight, use_native_backlight_param, int, 0444);
->  static int use_native_backlight_dmi = NATIVE_BACKLIGHT_NOT_SET;
->  
-> +static int disable_backlight_sysfs_if = -1;
-> +module_param(disable_backlight_sysfs_if, int, 0444);
-> +
->  static int register_count;
->  static struct mutex video_list_lock;
->  static struct list_head video_bus_head;
-> @@ -431,6 +434,14 @@ static int __init video_enable_native_backlight(const struct dmi_system_id *d)
->  	return 0;
->  }
->  
-> +static int __init video_disable_backlight_sysfs_if(
-> +	const struct dmi_system_id *d)
-> +{
-> +	if (disable_backlight_sysfs_if == -1)
-> +		disable_backlight_sysfs_if = 1;
-> +	return 0;
-> +}
-> +
->  static struct dmi_system_id video_dmi_table[] __initdata = {
->  	/*
->  	 * Broken _BQC workaround http://bugzilla.kernel.org/show_bug.cgi?id=13121
-> @@ -592,6 +603,23 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
->  		DMI_MATCH(DMI_PRODUCT_NAME, "MacBookPro12,1"),
->  		},
->  	},
-> +
-> +	/*
-> +	 * Some machines have a broken acpi-video interface for brightness
-> +	 * control, but still need an acpi_video_device_lcd_set_level() call
-> +	 * on resume to turn the backlight power on.  We Enable backlight
-> +	 * control on these systems, but do not register a backlight sysfs
-> +	 * as brightness control does not work.
-> +	 */
-> +	{
-> +	 /* https://bugs.freedesktop.org/show_bug.cgi?id=82634 */
-> +	 .callback = video_disable_backlight_sysfs_if,
-> +	 .ident = "Toshiba Portege R830",
-> +	 .matches = {
-> +		DMI_MATCH(DMI_SYS_VENDOR, "TOSHIBA"),
-> +		DMI_MATCH(DMI_PRODUCT_NAME, "PORTEGE R830"),
-> +		},
-> +	},
->  	{}
->  };
->  
-> @@ -1391,7 +1419,7 @@ acpi_video_switch_brightness(struct work_struct *work)
->  	int result = -EINVAL;
->  
->  	/* no warning message if acpi_backlight=vendor or a quirk is used */
-> -	if (!acpi_video_verify_backlight_support())
-> +	if (!device->backlight)
->  		return;
->  
->  	if (!device->brightness)
-> @@ -1666,8 +1694,9 @@ static int acpi_video_resume(struct notifier_block *nb,
->  
->  	for (i = 0; i < video->attached_count; i++) {
->  		video_device = video->attached_array[i].bind_info;
-> -		if (video_device && video_device->backlight)
-> -			acpi_video_set_brightness(video_device->backlight);
-> +		if (video_device && video_device->brightness)
-> +			acpi_video_device_lcd_set_level(video_device,
-> +					video_device->brightness->curr);
->  	}
->  
->  	return NOTIFY_OK;
-> @@ -1716,6 +1745,10 @@ static void acpi_video_dev_register_backlight(struct acpi_video_device *device)
->  	result = acpi_video_init_brightness(device);
->  	if (result)
->  		return;
-> +
-> +	if (disable_backlight_sysfs_if > 0)
-> +		return;
-> +
->  	name = kasprintf(GFP_KERNEL, "acpi_video%d", count);
->  	if (!name)
->  		return;
-> @@ -1738,8 +1771,10 @@ static void acpi_video_dev_register_backlight(struct acpi_video_device *device)
->  						      &acpi_backlight_ops,
->  						      &props);
->  	kfree(name);
-> -	if (IS_ERR(device->backlight))
-> +	if (IS_ERR(device->backlight)) {
-> +		device->backlight = NULL;
->  		return;
-> +	}
->  
->  	/*
->  	 * Save current brightness level in case we have to restore it
-> -- 
-> 2.4.2
-> 
+FIFO control structures are internal for to the TPM subsystem and so
+should be CRB control structures (and we have already inside tpm_crb.c).
+
+The structure ended up there probably because it was combined with the
+TPM2 table in that Microsoft specification.
+
+/Jarkko
