@@ -1,40 +1,62 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v5 02/21] libnvdimm, nfit: initial libnvdimm
- infrastructure and NFIT support
-Date: Tue, 9 Jun 2015 15:27:09 -0700
-Message-ID: <CAPcyv4jfy9Yg1u5Qj736X3n9muW-Jkt_Ka-zPFDEtn8bMXmqoA@mail.gmail.com>
-References: <20150602001134.4506.45867.stgit@dwillia2-desk3.amr.corp.intel.com>
-	<20150602001419.4506.41953.stgit@dwillia2-desk3.amr.corp.intel.com>
-	<20150603145704.GA22311@lst.de>
-	<1433359473.21035.27.camel@intel.com>
-	<20150609063312.GA9804@lst.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: [PATCH v2 0/3] Add NUMA support for NVDIMM devices
+Date: Tue,  9 Jun 2015 17:10:37 -0600
+Message-ID: <1433891440-3515-1-git-send-email-toshi.kani@hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f175.google.com ([209.85.212.175]:33567 "EHLO
-	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752009AbbFIW1K (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Jun 2015 18:27:10 -0400
-Received: by wiwd19 with SMTP id d19so30512430wiw.0
-        for <linux-acpi@vger.kernel.org>; Tue, 09 Jun 2015 15:27:09 -0700 (PDT)
-In-Reply-To: <20150609063312.GA9804@lst.de>
+Received: from g9t5008.houston.hp.com ([15.240.92.66]:53335 "EHLO
+	g9t5008.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753565AbbFIXKs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Jun 2015 19:10:48 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "hch@lst.de" <hch@lst.de>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "mingo@kernel.org" <mingo@kernel.org>, "neilb@suse.de" <neilb@suse.de>, "jmoyer@redhat.com" <jmoyer@redhat.com>, "linux-api@vger.kernel.org" <linux-api@vger.kernel.org>, "axboe@kernel.dk" <axboe@kernel.dk>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "sfr@canb.auug.org.au" <sfr@canb.auug.org.au>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "rafael@kernel.org" <rafael@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: rjw@rjwysocki.net, dan.j.williams@intel.com
+Cc: linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
 
-On Mon, Jun 8, 2015 at 11:33 PM, hch@lst.de <hch@lst.de> wrote:
-> On Wed, Jun 03, 2015 at 07:24:34PM +0000, Williams, Dan J wrote:
->> > > +static inline struct acpi_nfit_memory_map *__to_nfit_memdev(struct nfit_mem *nfit_mem)
->> >
->> > This line is over 80 characters.
->>
->> I generally don't see the point of fixing up occasional small incursions
->> over 80 characters if it makes the code more amenable to grep.
->
-> Just use shorter type names or add a line break before the symbol
-> names.  Too long lines are highly annoying.
+Since NVDIMMs are installed on memory slots, they expose the NUMA
+topology of a platform.  This patchset adds support of sysfs
+'numa_node' to I/O-related NVDIMM devices under /sys/bus/nd/devices.
+This enables numactl(8) to accept 'block:' and 'file:' paths of
+pmem and btt devices as shown in the examples below.
+  numactl --preferred block:pmem0 --show
+  numactl --preferred file:/dev/pmem0s --show
 
-Note that "acpi_nfit_memory_map" is the identifier chosen by ACPICA,
-I'm just a consumer.  That said I've gone and done a 80 column cleanup
-across all the patches.
+numactl can be used to bind an application to the locality of
+a target NVDIMM for better performance.  Here is a result of fio
+benchmark to ext4/dax on an HP DL380 with 2 sockets for local and
+remote settings.
+
+  Local [1] :  4098.3MB/s
+  Remote [2]:  3718.4MB/s
+
+[1] numactl --preferred block:pmem0 --cpunodebind block:pmem0 fio <fs-on-pmem0> 
+[2] numactl --preferred block:pmem1 --cpunodebind block:pmem1 fio <fs-on-pmem0>
+
+Patch 1/3 applies on top of the acpica branch of the pm tree.
+Patch 2/3-3/3 apply on top of Dan Williams's v5 patch series of 
+"libnvdimm: non-volatile memory devices".
+
+---
+v2:
+ - Add acpi_map_pxm_to_online_node(), which returns an online node.
+ - Manage visibility of sysfs numa_node with is_visible. (Dan Williams)
+ - Check ACPI_NFIT_PROXIMITY_VALID in spa->flags.
+
+---
+Toshi Kani (3):
+  1/3 acpi: Add acpi_map_pxm_to_online_node()
+  2/3 libnvdimm: Set numa_node to NVDIMM devices
+  3/3 libnvdimm: Add sysfs numa_node to NVDIMM devices
+
+---
+ drivers/acpi/nfit.c             |  7 +++++++
+ drivers/acpi/numa.c             | 40 +++++++++++++++++++++++++++++++++++++---
+ drivers/nvdimm/btt.c            |  2 ++
+ drivers/nvdimm/btt_devs.c       |  1 +
+ drivers/nvdimm/bus.c            | 30 ++++++++++++++++++++++++++++++
+ drivers/nvdimm/namespace_devs.c |  1 +
+ drivers/nvdimm/nd.h             |  1 +
+ drivers/nvdimm/region.c         |  1 +
+ drivers/nvdimm/region_devs.c    |  1 +
+ include/linux/acpi.h            |  5 +++++
+ include/linux/libnvdimm.h       |  2 ++
+ 11 files changed, 88 insertions(+), 3 deletions(-)
