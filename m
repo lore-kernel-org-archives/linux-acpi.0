@@ -1,101 +1,159 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v2] acpi-video: Add a parameter to not register the backlight
- sysfs interface
-Date: Tue,  9 Jun 2015 10:32:25 +0200
-Message-ID: <1433838745-8857-1-git-send-email-hdegoede@redhat.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH v2] acpi-video: Add a parameter to not register the
+ backlight sysfs interface
+Date: Tue, 9 Jun 2015 17:10:42 +0800
+Message-ID: <20150609091042.GA1280@aaronlu.sh.intel.com>
+References: <1433838745-8857-1-git-send-email-hdegoede@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Aaron Lu <aaron.lu@intel.com>, Sylvain Pasche <sylvain.pasche@gmail.com>, Hans de Goede <hdegoede@redhat.com>, dri-devel@lists.freedesktop.org, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, Ben Skeggs <bskeggs@redhat.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:11999 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752228AbbFIJJe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 9 Jun 2015 05:09:34 -0400
+Content-Disposition: inline
+In-Reply-To: <1433838745-8857-1-git-send-email-hdegoede@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Ben Skeggs <bskeggs@redhat.com>, platform-driver-x86@vger.kernel.org, dri-devel@lists.freedesktop.org, Sylvain Pasche <sylvain.pasche@gmail.com>, linux-acpi@vger.kernel.org
 
-T24gc29tZSBzeXN0ZW1zIGFjcGktdmlkZW8gYmFja2xpZ2h0IGlzIGJyb2tlbiBpbiB0aGUgc2Vu
-c2UgdGhhdCBpdCBjYW5ub3QKY29udHJvbCB0aGUgYnJpZ2h0bmVzcyBvZiB0aGUgYmFja2xpZ2h0
-LCBidXQgaXQgbXVzdCBzdGlsbCBiZSBjYWxsZWQgb24KcmVzdW1lIHRvIHBvd2VyLXVwIHRoZSBi
-YWNrbGlnaHQgYWZ0ZXIgcmVzdW1lLgoKVGhpcyBjb21taXQgYWxsb3dzIHRoZXNlIHN5c3RlbXMg
-dG8gd29yayBieSBnb2luZyB0aHJvdWdoIGFsbCB0aGUgdXN1YWwKYmFja2xpZ2h0IGNvbnRyb2wg
-bW92ZXMsIHdoaWxlIG5vdCByZWdpc3RlcmluZyBhIHN5c2ZzIGJhY2tsaWdodAppbnRlcmZhY2Uu
-CgpUaGlzIGNvbW1pdCBhbHNvIGFkZHMgYSBxdWlyayBlbmFibGluZyB0aGlzIHBhcmFtZXRlciBv
-biBUb3NoaWJhIFBvcnRlZ2UKUjgzMCBzeXN0ZW1zIHdoaWNoIGFyZSBrbm93biB0byBiZSBhZmZl
-Y3RlZCBieSB0aGlzLgoKSSB3aXNoIHRoZXJlIHdhcyBhIGJldHRlciB3YXkgdG8gZGVhbCB3aXRo
-IHRoaXMsIGJ1dCB3ZSd2ZSBiZWVuIHVuYWJsZSB0bwpmaW5kIG9uZS4KCkJ1Z2xpbms6IGh0dHBz
-Oi8vYnVnemlsbGEua2VybmVsLm9yZy9zaG93X2J1Zy5jZ2k/aWQ9MjEwMTIKQnVnbGluazogaHR0
-cHM6Ly9idWdzLmZyZWVkZXNrdG9wLm9yZy9zaG93X2J1Zy5jZ2k/aWQ9ODI2MzQKUmVwb3J0ZWQt
-YW5kLXRlc3RlZC1ieTogU3lsdmFpbiBQYXNjaGUgPHN5bHZhaW4ucGFzY2hlQGdtYWlsLmNvbT4K
-U2lnbmVkLW9mZi1ieTogSGFucyBkZSBHb2VkZSA8aGRlZ29lZGVAcmVkaGF0LmNvbT4KLS0tCkNo
-YW5nZXMgaW4gdjI6Ci1TaW1wbGlmeSBjaGVjayBpbiBhY3BpX3ZpZGVvX3N3aXRjaF9icmlnaHRu
-ZXNzKCkKLUlmIGJhY2tsaWdodCByZWdpc3RyYXRpb24gZmFpbHMgc2V0IGRldmljZS0+YmFja2xp
-Z2h0IHRvIE5VTEwsIHJhdGhlcgogdGhlbiBsZWF2aW5nIHRoZSBQVFJfRVJSIGluIHRoZXJlIGFu
-ZCB0cnlpbmcgdG8gZGVyZWYgdGhpcyBsYXRlcgogKHRoaXMgZml4ZXMgYSBwcmUtZXhpc3Rpbmcg
-YnVnKQotLS0KIGRyaXZlcnMvYWNwaS92aWRlby5jIHwgNDMgKysrKysrKysrKysrKysrKysrKysr
-KysrKysrKysrKysrKysrKysrLS0tLQogMSBmaWxlIGNoYW5nZWQsIDM5IGluc2VydGlvbnMoKyks
-IDQgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL3ZpZGVvLmMgYi9kcml2
-ZXJzL2FjcGkvdmlkZW8uYwppbmRleCA1MThmMGUxLi4zYmM0YzY4IDEwMDY0NAotLS0gYS9kcml2
-ZXJzL2FjcGkvdmlkZW8uYworKysgYi9kcml2ZXJzL2FjcGkvdmlkZW8uYwpAQCAtOTIsNiArOTIs
-OSBAQCBzdGF0aWMgaW50IHVzZV9uYXRpdmVfYmFja2xpZ2h0X3BhcmFtID0gTkFUSVZFX0JBQ0tM
-SUdIVF9OT1RfU0VUOwogbW9kdWxlX3BhcmFtX25hbWVkKHVzZV9uYXRpdmVfYmFja2xpZ2h0LCB1
-c2VfbmF0aXZlX2JhY2tsaWdodF9wYXJhbSwgaW50LCAwNDQ0KTsKIHN0YXRpYyBpbnQgdXNlX25h
-dGl2ZV9iYWNrbGlnaHRfZG1pID0gTkFUSVZFX0JBQ0tMSUdIVF9OT1RfU0VUOwogCitzdGF0aWMg
-aW50IGRpc2FibGVfYmFja2xpZ2h0X3N5c2ZzX2lmID0gLTE7Cittb2R1bGVfcGFyYW0oZGlzYWJs
-ZV9iYWNrbGlnaHRfc3lzZnNfaWYsIGludCwgMDQ0NCk7CisKIHN0YXRpYyBpbnQgcmVnaXN0ZXJf
-Y291bnQ7CiBzdGF0aWMgc3RydWN0IG11dGV4IHZpZGVvX2xpc3RfbG9jazsKIHN0YXRpYyBzdHJ1
-Y3QgbGlzdF9oZWFkIHZpZGVvX2J1c19oZWFkOwpAQCAtNDMxLDYgKzQzNCwxNCBAQCBzdGF0aWMg
-aW50IF9faW5pdCB2aWRlb19lbmFibGVfbmF0aXZlX2JhY2tsaWdodChjb25zdCBzdHJ1Y3QgZG1p
-X3N5c3RlbV9pZCAqZCkKIAlyZXR1cm4gMDsKIH0KIAorc3RhdGljIGludCBfX2luaXQgdmlkZW9f
-ZGlzYWJsZV9iYWNrbGlnaHRfc3lzZnNfaWYoCisJY29uc3Qgc3RydWN0IGRtaV9zeXN0ZW1faWQg
-KmQpCit7CisJaWYgKGRpc2FibGVfYmFja2xpZ2h0X3N5c2ZzX2lmID09IC0xKQorCQlkaXNhYmxl
-X2JhY2tsaWdodF9zeXNmc19pZiA9IDE7CisJcmV0dXJuIDA7Cit9CisKIHN0YXRpYyBzdHJ1Y3Qg
-ZG1pX3N5c3RlbV9pZCB2aWRlb19kbWlfdGFibGVbXSBfX2luaXRkYXRhID0gewogCS8qCiAJICog
-QnJva2VuIF9CUUMgd29ya2Fyb3VuZCBodHRwOi8vYnVnemlsbGEua2VybmVsLm9yZy9zaG93X2J1
-Zy5jZ2k/aWQ9MTMxMjEKQEAgLTU5Miw2ICs2MDMsMjMgQEAgc3RhdGljIHN0cnVjdCBkbWlfc3lz
-dGVtX2lkIHZpZGVvX2RtaV90YWJsZVtdIF9faW5pdGRhdGEgPSB7CiAJCURNSV9NQVRDSChETUlf
-UFJPRFVDVF9OQU1FLCAiTWFjQm9va1BybzEyLDEiKSwKIAkJfSwKIAl9LAorCisJLyoKKwkgKiBT
-b21lIG1hY2hpbmVzIGhhdmUgYSBicm9rZW4gYWNwaS12aWRlbyBpbnRlcmZhY2UgZm9yIGJyaWdo
-dG5lc3MKKwkgKiBjb250cm9sLCBidXQgc3RpbGwgbmVlZCBhbiBhY3BpX3ZpZGVvX2RldmljZV9s
-Y2Rfc2V0X2xldmVsKCkgY2FsbAorCSAqIG9uIHJlc3VtZSB0byB0dXJuIHRoZSBiYWNrbGlnaHQg
-cG93ZXIgb24uICBXZSBFbmFibGUgYmFja2xpZ2h0CisJICogY29udHJvbCBvbiB0aGVzZSBzeXN0
-ZW1zLCBidXQgZG8gbm90IHJlZ2lzdGVyIGEgYmFja2xpZ2h0IHN5c2ZzCisJICogYXMgYnJpZ2h0
-bmVzcyBjb250cm9sIGRvZXMgbm90IHdvcmsuCisJICovCisJeworCSAvKiBodHRwczovL2J1Z3Mu
-ZnJlZWRlc2t0b3Aub3JnL3Nob3dfYnVnLmNnaT9pZD04MjYzNCAqLworCSAuY2FsbGJhY2sgPSB2
-aWRlb19kaXNhYmxlX2JhY2tsaWdodF9zeXNmc19pZiwKKwkgLmlkZW50ID0gIlRvc2hpYmEgUG9y
-dGVnZSBSODMwIiwKKwkgLm1hdGNoZXMgPSB7CisJCURNSV9NQVRDSChETUlfU1lTX1ZFTkRPUiwg
-IlRPU0hJQkEiKSwKKwkJRE1JX01BVENIKERNSV9QUk9EVUNUX05BTUUsICJQT1JURUdFIFI4MzAi
-KSwKKwkJfSwKKwl9LAogCXt9CiB9OwogCkBAIC0xMzkxLDcgKzE0MTksNyBAQCBhY3BpX3ZpZGVv
-X3N3aXRjaF9icmlnaHRuZXNzKHN0cnVjdCB3b3JrX3N0cnVjdCAqd29yaykKIAlpbnQgcmVzdWx0
-ID0gLUVJTlZBTDsKIAogCS8qIG5vIHdhcm5pbmcgbWVzc2FnZSBpZiBhY3BpX2JhY2tsaWdodD12
-ZW5kb3Igb3IgYSBxdWlyayBpcyB1c2VkICovCi0JaWYgKCFhY3BpX3ZpZGVvX3ZlcmlmeV9iYWNr
-bGlnaHRfc3VwcG9ydCgpKQorCWlmICghZGV2aWNlLT5iYWNrbGlnaHQpCiAJCXJldHVybjsKIAog
-CWlmICghZGV2aWNlLT5icmlnaHRuZXNzKQpAQCAtMTY2Niw4ICsxNjk0LDkgQEAgc3RhdGljIGlu
-dCBhY3BpX3ZpZGVvX3Jlc3VtZShzdHJ1Y3Qgbm90aWZpZXJfYmxvY2sgKm5iLAogCiAJZm9yIChp
-ID0gMDsgaSA8IHZpZGVvLT5hdHRhY2hlZF9jb3VudDsgaSsrKSB7CiAJCXZpZGVvX2RldmljZSA9
-IHZpZGVvLT5hdHRhY2hlZF9hcnJheVtpXS5iaW5kX2luZm87Ci0JCWlmICh2aWRlb19kZXZpY2Ug
-JiYgdmlkZW9fZGV2aWNlLT5iYWNrbGlnaHQpCi0JCQlhY3BpX3ZpZGVvX3NldF9icmlnaHRuZXNz
-KHZpZGVvX2RldmljZS0+YmFja2xpZ2h0KTsKKwkJaWYgKHZpZGVvX2RldmljZSAmJiB2aWRlb19k
-ZXZpY2UtPmJyaWdodG5lc3MpCisJCQlhY3BpX3ZpZGVvX2RldmljZV9sY2Rfc2V0X2xldmVsKHZp
-ZGVvX2RldmljZSwKKwkJCQkJdmlkZW9fZGV2aWNlLT5icmlnaHRuZXNzLT5jdXJyKTsKIAl9CiAK
-IAlyZXR1cm4gTk9USUZZX09LOwpAQCAtMTcxNiw2ICsxNzQ1LDEwIEBAIHN0YXRpYyB2b2lkIGFj
-cGlfdmlkZW9fZGV2X3JlZ2lzdGVyX2JhY2tsaWdodChzdHJ1Y3QgYWNwaV92aWRlb19kZXZpY2Ug
-KmRldmljZSkKIAlyZXN1bHQgPSBhY3BpX3ZpZGVvX2luaXRfYnJpZ2h0bmVzcyhkZXZpY2UpOwog
-CWlmIChyZXN1bHQpCiAJCXJldHVybjsKKworCWlmIChkaXNhYmxlX2JhY2tsaWdodF9zeXNmc19p
-ZiA+IDApCisJCXJldHVybjsKKwogCW5hbWUgPSBrYXNwcmludGYoR0ZQX0tFUk5FTCwgImFjcGlf
-dmlkZW8lZCIsIGNvdW50KTsKIAlpZiAoIW5hbWUpCiAJCXJldHVybjsKQEAgLTE3MzgsOCArMTc3
-MSwxMCBAQCBzdGF0aWMgdm9pZCBhY3BpX3ZpZGVvX2Rldl9yZWdpc3Rlcl9iYWNrbGlnaHQoc3Ry
-dWN0IGFjcGlfdmlkZW9fZGV2aWNlICpkZXZpY2UpCiAJCQkJCQkgICAgICAmYWNwaV9iYWNrbGln
-aHRfb3BzLAogCQkJCQkJICAgICAgJnByb3BzKTsKIAlrZnJlZShuYW1lKTsKLQlpZiAoSVNfRVJS
-KGRldmljZS0+YmFja2xpZ2h0KSkKKwlpZiAoSVNfRVJSKGRldmljZS0+YmFja2xpZ2h0KSkgewor
-CQlkZXZpY2UtPmJhY2tsaWdodCA9IE5VTEw7CiAJCXJldHVybjsKKwl9CiAKIAkvKgogCSAqIFNh
-dmUgY3VycmVudCBicmlnaHRuZXNzIGxldmVsIGluIGNhc2Ugd2UgaGF2ZSB0byByZXN0b3JlIGl0
-Ci0tIAoyLjQuMgoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3Jn
-Cmh0dHA6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
+On Tue, Jun 09, 2015 at 10:32:25AM +0200, Hans de Goede wrote:
+> On some systems acpi-video backlight is broken in the sense that it cannot
+> control the brightness of the backlight, but it must still be called on
+> resume to power-up the backlight after resume.
+
+All the video module does on resume is a backlight set operation, it
+can't control backlight but can turn on the screen on resume? Hmm...
+
+I'll ask Sylvain to attach acpidump, let's see if there is anything
+special there.
+
+Regards,
+Aaron
+
+> 
+> This commit allows these systems to work by going through all the usual
+> backlight control moves, while not registering a sysfs backlight
+> interface.
+> 
+> This commit also adds a quirk enabling this parameter on Toshiba Portege
+> R830 systems which are known to be affected by this.
+> 
+> I wish there was a better way to deal with this, but we've been unable to
+> find one.
+> 
+> Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=21012
+> Buglink: https://bugs.freedesktop.org/show_bug.cgi?id=82634
+> Reported-and-tested-by: Sylvain Pasche <sylvain.pasche@gmail.com>
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> ---
+> Changes in v2:
+> -Simplify check in acpi_video_switch_brightness()
+> -If backlight registration fails set device->backlight to NULL, rather
+>  then leaving the PTR_ERR in there and trying to deref this later
+>  (this fixes a pre-existing bug)
+> ---
+>  drivers/acpi/video.c | 43 +++++++++++++++++++++++++++++++++++++++----
+>  1 file changed, 39 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/acpi/video.c b/drivers/acpi/video.c
+> index 518f0e1..3bc4c68 100644
+> --- a/drivers/acpi/video.c
+> +++ b/drivers/acpi/video.c
+> @@ -92,6 +92,9 @@ static int use_native_backlight_param = NATIVE_BACKLIGHT_NOT_SET;
+>  module_param_named(use_native_backlight, use_native_backlight_param, int, 0444);
+>  static int use_native_backlight_dmi = NATIVE_BACKLIGHT_NOT_SET;
+>  
+> +static int disable_backlight_sysfs_if = -1;
+> +module_param(disable_backlight_sysfs_if, int, 0444);
+> +
+>  static int register_count;
+>  static struct mutex video_list_lock;
+>  static struct list_head video_bus_head;
+> @@ -431,6 +434,14 @@ static int __init video_enable_native_backlight(const struct dmi_system_id *d)
+>  	return 0;
+>  }
+>  
+> +static int __init video_disable_backlight_sysfs_if(
+> +	const struct dmi_system_id *d)
+> +{
+> +	if (disable_backlight_sysfs_if == -1)
+> +		disable_backlight_sysfs_if = 1;
+> +	return 0;
+> +}
+> +
+>  static struct dmi_system_id video_dmi_table[] __initdata = {
+>  	/*
+>  	 * Broken _BQC workaround http://bugzilla.kernel.org/show_bug.cgi?id=13121
+> @@ -592,6 +603,23 @@ static struct dmi_system_id video_dmi_table[] __initdata = {
+>  		DMI_MATCH(DMI_PRODUCT_NAME, "MacBookPro12,1"),
+>  		},
+>  	},
+> +
+> +	/*
+> +	 * Some machines have a broken acpi-video interface for brightness
+> +	 * control, but still need an acpi_video_device_lcd_set_level() call
+> +	 * on resume to turn the backlight power on.  We Enable backlight
+> +	 * control on these systems, but do not register a backlight sysfs
+> +	 * as brightness control does not work.
+> +	 */
+> +	{
+> +	 /* https://bugs.freedesktop.org/show_bug.cgi?id=82634 */
+> +	 .callback = video_disable_backlight_sysfs_if,
+> +	 .ident = "Toshiba Portege R830",
+> +	 .matches = {
+> +		DMI_MATCH(DMI_SYS_VENDOR, "TOSHIBA"),
+> +		DMI_MATCH(DMI_PRODUCT_NAME, "PORTEGE R830"),
+> +		},
+> +	},
+>  	{}
+>  };
+>  
+> @@ -1391,7 +1419,7 @@ acpi_video_switch_brightness(struct work_struct *work)
+>  	int result = -EINVAL;
+>  
+>  	/* no warning message if acpi_backlight=vendor or a quirk is used */
+> -	if (!acpi_video_verify_backlight_support())
+> +	if (!device->backlight)
+>  		return;
+>  
+>  	if (!device->brightness)
+> @@ -1666,8 +1694,9 @@ static int acpi_video_resume(struct notifier_block *nb,
+>  
+>  	for (i = 0; i < video->attached_count; i++) {
+>  		video_device = video->attached_array[i].bind_info;
+> -		if (video_device && video_device->backlight)
+> -			acpi_video_set_brightness(video_device->backlight);
+> +		if (video_device && video_device->brightness)
+> +			acpi_video_device_lcd_set_level(video_device,
+> +					video_device->brightness->curr);
+>  	}
+>  
+>  	return NOTIFY_OK;
+> @@ -1716,6 +1745,10 @@ static void acpi_video_dev_register_backlight(struct acpi_video_device *device)
+>  	result = acpi_video_init_brightness(device);
+>  	if (result)
+>  		return;
+> +
+> +	if (disable_backlight_sysfs_if > 0)
+> +		return;
+> +
+>  	name = kasprintf(GFP_KERNEL, "acpi_video%d", count);
+>  	if (!name)
+>  		return;
+> @@ -1738,8 +1771,10 @@ static void acpi_video_dev_register_backlight(struct acpi_video_device *device)
+>  						      &acpi_backlight_ops,
+>  						      &props);
+>  	kfree(name);
+> -	if (IS_ERR(device->backlight))
+> +	if (IS_ERR(device->backlight)) {
+> +		device->backlight = NULL;
+>  		return;
+> +	}
+>  
+>  	/*
+>  	 * Save current brightness level in case we have to restore it
+> -- 
+> 2.4.2
+> 
