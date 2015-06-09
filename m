@@ -1,98 +1,79 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2] acpi: update ACPI tables to match TCG ACPI specification.
-Date: Wed, 10 Jun 2015 00:15:55 +0200
-Message-ID: <2072894.aM9r7alsAV@vostro.rjw.lan>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH v2] acpi: update ACPI tables to match TCG ACPI
+ specification.
+Date: Tue, 9 Jun 2015 21:52:43 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37D2F2E17@ORSMSX112.amr.corp.intel.com>
 References: <1433867125-13016-1-git-send-email-jarkko.sakkinen@linux.intel.com>
+ <2072894.aM9r7alsAV@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:44380 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752100AbbFIVuG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Jun 2015 17:50:06 -0400
-In-Reply-To: <1433867125-13016-1-git-send-email-jarkko.sakkinen@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <2072894.aM9r7alsAV@vostro.rjw.lan>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+Cc: "peterhuewe@gmx.de" <peterhuewe@gmx.de>, Len Brown <lenb@kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, "open list:ACPI" <linux-acpi@vger.kernel.org>, "open list:ACPI COMPONENT AR..." <devel@acpica.org>, open list <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, robert.moore@intel.com
-Cc: peterhuewe@gmx.de, Len Brown <lenb@kernel.org>, Lv Zheng <lv.zheng@intel.com>, "open list:ACPI" <linux-acpi@vger.kernel.org>, "open list:ACPI COMPONENT AR..." <devel@acpica.org>, open list <linux-kernel@vger.kernel.org>
 
-On Tuesday, June 09, 2015 07:25:25 PM Jarkko Sakkinen wrote:
-> Updated struct acpi_table_tpm2 and struct acpi_table_tcpa to match the
-> TCG ACPI specification.
-> 
-> v2:
-> 
-> - Do not remove struct acpi_tpm2_control
-> 
-> Signed-off-by: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
-
-Bob, I'm assuming that we'll be routing this one through upstream ACPICA.
-
-If that's not the case and I should apply it directly, please let me know.
-
-
-> ---
->  include/acpi/actbl2.h |  5 ++---
->  include/acpi/actbl3.h | 17 +++++++++++++----
->  2 files changed, 15 insertions(+), 7 deletions(-)
-> 
-> diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
-> index cafdeb5..2f2b8a6 100644
-> --- a/include/acpi/actbl2.h
-> +++ b/include/acpi/actbl2.h
-> @@ -1071,14 +1071,13 @@ enum acpi_spmi_interface_types {
->   * TCPA - Trusted Computing Platform Alliance table
->   *        Version 1
->   *
-> - * Conforms to "TCG PC Specific Implementation Specification",
-> - * Version 1.1, August 18, 2003
-> + * Conforms to "TCG ACPI Specification for Family 1.2 and 2.0" 19 December 2014
->   *
->   ******************************************************************************/
->  
->  struct acpi_table_tcpa {
->  	struct acpi_table_header header;	/* Common ACPI table header */
-> -	u16 reserved;
-> +	u16 platform_class;	/* 0 for client and 1 for server platforms. */
->  	u32 max_log_length;	/* Maximum length for the event log area */
->  	u64 log_address;	/* Address of the event log area */
->  };
-> diff --git a/include/acpi/actbl3.h b/include/acpi/actbl3.h
-> index 440ca81..8dd625c 100644
-> --- a/include/acpi/actbl3.h
-> +++ b/include/acpi/actbl3.h
-> @@ -688,15 +688,24 @@ enum acpi_rasf_status {
->   * TPM2 - Trusted Platform Module (TPM) 2.0 Hardware Interface Table
->   *        Version 3
->   *
-> - * Conforms to "TPM 2.0 Hardware Interface Table (TPM2)" 29 November 2011
-> + * Conforms to "TCG ACPI Specification for Family 1.2 and 2.0" 19 December 2014
->   *
->   ******************************************************************************/
->  
-> +/* How to notify that there is a command available for processing. */
-> +
-> +enum acpi_tpm2_start_method {
-> +	ACPI_TPM2_SM_ACPI = 2,
-> +	ACPI_TPM2_SM_CRB = 7,
-> +	ACPI_TPM2_SM_CRB_AND_ACPI = 8,
-> +};
-> +
->  struct acpi_table_tpm2 {
->  	struct acpi_table_header header;	/* Common ACPI table header */
-> -	u32 flags;
-> -	u64 control_address;
-> -	u32 start_method;
-> +	u16 platform_class;	/* 0 for client and 1 for server platforms */
-> +	u16 reserved;
-> +	u64 control_address;	/* Physical address of the control area */
-> +	u32 start_method;	/* Method to notify to start processing */
->  };
->  
->  /* Control area structure (not part of table, pointed to by control_address) */
-> 
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+WWVzLCB3ZSB3aWxsIGRvIGl0IGluIEFDUElDQSBmaXJzdC4NCg0KDQo+IC0tLS0tT3JpZ2luYWwg
+TWVzc2FnZS0tLS0tDQo+IEZyb206IFJhZmFlbCBKLiBXeXNvY2tpIFttYWlsdG86cmp3QHJqd3lz
+b2NraS5uZXRdDQo+IFNlbnQ6IFR1ZXNkYXksIEp1bmUgMDksIDIwMTUgMzoxNiBQTQ0KPiBUbzog
+SmFya2tvIFNha2tpbmVuOyBNb29yZSwgUm9iZXJ0DQo+IENjOiBwZXRlcmh1ZXdlQGdteC5kZTsg
+TGVuIEJyb3duOyBaaGVuZywgTHY7IG9wZW4gbGlzdDpBQ1BJOyBvcGVuDQo+IGxpc3Q6QUNQSSBD
+T01QT05FTlQgQVIuLi47IG9wZW4gbGlzdA0KPiBTdWJqZWN0OiBSZTogW1BBVENIIHYyXSBhY3Bp
+OiB1cGRhdGUgQUNQSSB0YWJsZXMgdG8gbWF0Y2ggVENHIEFDUEkNCj4gc3BlY2lmaWNhdGlvbi4N
+Cj4gDQo+IE9uIFR1ZXNkYXksIEp1bmUgMDksIDIwMTUgMDc6MjU6MjUgUE0gSmFya2tvIFNha2tp
+bmVuIHdyb3RlOg0KPiA+IFVwZGF0ZWQgc3RydWN0IGFjcGlfdGFibGVfdHBtMiBhbmQgc3RydWN0
+IGFjcGlfdGFibGVfdGNwYSB0byBtYXRjaCB0aGUNCj4gPiBUQ0cgQUNQSSBzcGVjaWZpY2F0aW9u
+Lg0KPiA+DQo+ID4gdjI6DQo+ID4NCj4gPiAtIERvIG5vdCByZW1vdmUgc3RydWN0IGFjcGlfdHBt
+Ml9jb250cm9sDQo+ID4NCj4gPiBTaWduZWQtb2ZmLWJ5OiBKYXJra28gU2Fra2luZW4gPGphcmtr
+by5zYWtraW5lbkBsaW51eC5pbnRlbC5jb20+DQo+IA0KPiBCb2IsIEknbSBhc3N1bWluZyB0aGF0
+IHdlJ2xsIGJlIHJvdXRpbmcgdGhpcyBvbmUgdGhyb3VnaCB1cHN0cmVhbSBBQ1BJQ0EuDQo+IA0K
+PiBJZiB0aGF0J3Mgbm90IHRoZSBjYXNlIGFuZCBJIHNob3VsZCBhcHBseSBpdCBkaXJlY3RseSwg
+cGxlYXNlIGxldCBtZSBrbm93Lg0KPiANCj4gDQo+ID4gLS0tDQo+ID4gIGluY2x1ZGUvYWNwaS9h
+Y3RibDIuaCB8ICA1ICsrLS0tDQo+ID4gIGluY2x1ZGUvYWNwaS9hY3RibDMuaCB8IDE3ICsrKysr
+KysrKysrKystLS0tDQo+ID4gIDIgZmlsZXMgY2hhbmdlZCwgMTUgaW5zZXJ0aW9ucygrKSwgNyBk
+ZWxldGlvbnMoLSkNCj4gPg0KPiA+IGRpZmYgLS1naXQgYS9pbmNsdWRlL2FjcGkvYWN0YmwyLmgg
+Yi9pbmNsdWRlL2FjcGkvYWN0YmwyLmggaW5kZXgNCj4gPiBjYWZkZWI1Li4yZjJiOGE2IDEwMDY0
+NA0KPiA+IC0tLSBhL2luY2x1ZGUvYWNwaS9hY3RibDIuaA0KPiA+ICsrKyBiL2luY2x1ZGUvYWNw
+aS9hY3RibDIuaA0KPiA+IEBAIC0xMDcxLDE0ICsxMDcxLDEzIEBAIGVudW0gYWNwaV9zcG1pX2lu
+dGVyZmFjZV90eXBlcyB7DQo+ID4gICAqIFRDUEEgLSBUcnVzdGVkIENvbXB1dGluZyBQbGF0Zm9y
+bSBBbGxpYW5jZSB0YWJsZQ0KPiA+ICAgKiAgICAgICAgVmVyc2lvbiAxDQo+ID4gICAqDQo+ID4g
+LSAqIENvbmZvcm1zIHRvICJUQ0cgUEMgU3BlY2lmaWMgSW1wbGVtZW50YXRpb24gU3BlY2lmaWNh
+dGlvbiIsDQo+ID4gLSAqIFZlcnNpb24gMS4xLCBBdWd1c3QgMTgsIDIwMDMNCj4gPiArICogQ29u
+Zm9ybXMgdG8gIlRDRyBBQ1BJIFNwZWNpZmljYXRpb24gZm9yIEZhbWlseSAxLjIgYW5kIDIuMCIg
+MTkNCj4gPiArIERlY2VtYmVyIDIwMTQNCj4gPiAgICoNCj4gPg0KPiA+ICoqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioN
+Cj4gPiAqKioqKioqKi8NCj4gPg0KPiA+ICBzdHJ1Y3QgYWNwaV90YWJsZV90Y3BhIHsNCj4gPiAg
+CXN0cnVjdCBhY3BpX3RhYmxlX2hlYWRlciBoZWFkZXI7CS8qIENvbW1vbiBBQ1BJIHRhYmxlIGhl
+YWRlciAqLw0KPiA+IC0JdTE2IHJlc2VydmVkOw0KPiA+ICsJdTE2IHBsYXRmb3JtX2NsYXNzOwkv
+KiAwIGZvciBjbGllbnQgYW5kIDEgZm9yIHNlcnZlciBwbGF0Zm9ybXMuDQo+ICovDQo+ID4gIAl1
+MzIgbWF4X2xvZ19sZW5ndGg7CS8qIE1heGltdW0gbGVuZ3RoIGZvciB0aGUgZXZlbnQgbG9nIGFy
+ZWEgKi8NCj4gPiAgCXU2NCBsb2dfYWRkcmVzczsJLyogQWRkcmVzcyBvZiB0aGUgZXZlbnQgbG9n
+IGFyZWEgKi8NCj4gPiAgfTsNCj4gPiBkaWZmIC0tZ2l0IGEvaW5jbHVkZS9hY3BpL2FjdGJsMy5o
+IGIvaW5jbHVkZS9hY3BpL2FjdGJsMy5oIGluZGV4DQo+ID4gNDQwY2E4MS4uOGRkNjI1YyAxMDA2
+NDQNCj4gPiAtLS0gYS9pbmNsdWRlL2FjcGkvYWN0YmwzLmgNCj4gPiArKysgYi9pbmNsdWRlL2Fj
+cGkvYWN0YmwzLmgNCj4gPiBAQCAtNjg4LDE1ICs2ODgsMjQgQEAgZW51bSBhY3BpX3Jhc2Zfc3Rh
+dHVzIHsNCj4gPiAgICogVFBNMiAtIFRydXN0ZWQgUGxhdGZvcm0gTW9kdWxlIChUUE0pIDIuMCBI
+YXJkd2FyZSBJbnRlcmZhY2UgVGFibGUNCj4gPiAgICogICAgICAgIFZlcnNpb24gMw0KPiA+ICAg
+Kg0KPiA+IC0gKiBDb25mb3JtcyB0byAiVFBNIDIuMCBIYXJkd2FyZSBJbnRlcmZhY2UgVGFibGUg
+KFRQTTIpIiAyOSBOb3ZlbWJlcg0KPiA+IDIwMTENCj4gPiArICogQ29uZm9ybXMgdG8gIlRDRyBB
+Q1BJIFNwZWNpZmljYXRpb24gZm9yIEZhbWlseSAxLjIgYW5kIDIuMCIgMTkNCj4gPiArIERlY2Vt
+YmVyIDIwMTQNCj4gPiAgICoNCj4gPg0KPiA+ICoqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioNCj4gPiAqKioqKioqKi8N
+Cj4gPg0KPiA+ICsvKiBIb3cgdG8gbm90aWZ5IHRoYXQgdGhlcmUgaXMgYSBjb21tYW5kIGF2YWls
+YWJsZSBmb3IgcHJvY2Vzc2luZy4gKi8NCj4gPiArDQo+ID4gK2VudW0gYWNwaV90cG0yX3N0YXJ0
+X21ldGhvZCB7DQo+ID4gKwlBQ1BJX1RQTTJfU01fQUNQSSA9IDIsDQo+ID4gKwlBQ1BJX1RQTTJf
+U01fQ1JCID0gNywNCj4gPiArCUFDUElfVFBNMl9TTV9DUkJfQU5EX0FDUEkgPSA4LA0KPiA+ICt9
+Ow0KPiA+ICsNCj4gPiAgc3RydWN0IGFjcGlfdGFibGVfdHBtMiB7DQo+ID4gIAlzdHJ1Y3QgYWNw
+aV90YWJsZV9oZWFkZXIgaGVhZGVyOwkvKiBDb21tb24gQUNQSSB0YWJsZSBoZWFkZXIgKi8NCj4g
+PiAtCXUzMiBmbGFnczsNCj4gPiAtCXU2NCBjb250cm9sX2FkZHJlc3M7DQo+ID4gLQl1MzIgc3Rh
+cnRfbWV0aG9kOw0KPiA+ICsJdTE2IHBsYXRmb3JtX2NsYXNzOwkvKiAwIGZvciBjbGllbnQgYW5k
+IDEgZm9yIHNlcnZlciBwbGF0Zm9ybXMNCj4gKi8NCj4gPiArCXUxNiByZXNlcnZlZDsNCj4gPiAr
+CXU2NCBjb250cm9sX2FkZHJlc3M7CS8qIFBoeXNpY2FsIGFkZHJlc3Mgb2YgdGhlIGNvbnRyb2wg
+YXJlYSAqLw0KPiA+ICsJdTMyIHN0YXJ0X21ldGhvZDsJLyogTWV0aG9kIHRvIG5vdGlmeSB0byBz
+dGFydCBwcm9jZXNzaW5nICovDQo+ID4gIH07DQo+ID4NCj4gPiAgLyogQ29udHJvbCBhcmVhIHN0
+cnVjdHVyZSAobm90IHBhcnQgb2YgdGFibGUsIHBvaW50ZWQgdG8gYnkNCj4gPiBjb250cm9sX2Fk
+ZHJlc3MpICovDQo+ID4NCj4gDQo+IC0tDQo+IEkgc3BlYWsgb25seSBmb3IgbXlzZWxmLg0KPiBS
+YWZhZWwgSi4gV3lzb2NraSwgSW50ZWwgT3BlbiBTb3VyY2UgVGVjaG5vbG9neSBDZW50ZXIuDQo=
