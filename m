@@ -1,79 +1,36 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH v2] acpi: update ACPI tables to match TCG ACPI
- specification.
-Date: Tue, 9 Jun 2015 21:52:43 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37D2F2E17@ORSMSX112.amr.corp.intel.com>
-References: <1433867125-13016-1-git-send-email-jarkko.sakkinen@linux.intel.com>
- <2072894.aM9r7alsAV@vostro.rjw.lan>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH v2] acpi-video: Add a parameter to not register the backlight
+ sysfs interface
+Date: Tue, 09 Jun 2015 23:54:45 +0200
+Message-ID: <557760A5.9000404@redhat.com>
+References: <1433838745-8857-1-git-send-email-hdegoede@redhat.com> <20150609091042.GA1280@aaronlu.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2072894.aM9r7alsAV@vostro.rjw.lan>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
-Cc: "peterhuewe@gmx.de" <peterhuewe@gmx.de>, Len Brown <lenb@kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, "open list:ACPI" <linux-acpi@vger.kernel.org>, "open list:ACPI COMPONENT AR..." <devel@acpica.org>, open list <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <20150609091042.GA1280@aaronlu.sh.intel.com>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Ben Skeggs <bskeggs@redhat.com>, platform-driver-x86@vger.kernel.org, dri-devel@lists.freedesktop.org, Sylvain Pasche <sylvain.pasche@gmail.com>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-WWVzLCB3ZSB3aWxsIGRvIGl0IGluIEFDUElDQSBmaXJzdC4NCg0KDQo+IC0tLS0tT3JpZ2luYWwg
-TWVzc2FnZS0tLS0tDQo+IEZyb206IFJhZmFlbCBKLiBXeXNvY2tpIFttYWlsdG86cmp3QHJqd3lz
-b2NraS5uZXRdDQo+IFNlbnQ6IFR1ZXNkYXksIEp1bmUgMDksIDIwMTUgMzoxNiBQTQ0KPiBUbzog
-SmFya2tvIFNha2tpbmVuOyBNb29yZSwgUm9iZXJ0DQo+IENjOiBwZXRlcmh1ZXdlQGdteC5kZTsg
-TGVuIEJyb3duOyBaaGVuZywgTHY7IG9wZW4gbGlzdDpBQ1BJOyBvcGVuDQo+IGxpc3Q6QUNQSSBD
-T01QT05FTlQgQVIuLi47IG9wZW4gbGlzdA0KPiBTdWJqZWN0OiBSZTogW1BBVENIIHYyXSBhY3Bp
-OiB1cGRhdGUgQUNQSSB0YWJsZXMgdG8gbWF0Y2ggVENHIEFDUEkNCj4gc3BlY2lmaWNhdGlvbi4N
-Cj4gDQo+IE9uIFR1ZXNkYXksIEp1bmUgMDksIDIwMTUgMDc6MjU6MjUgUE0gSmFya2tvIFNha2tp
-bmVuIHdyb3RlOg0KPiA+IFVwZGF0ZWQgc3RydWN0IGFjcGlfdGFibGVfdHBtMiBhbmQgc3RydWN0
-IGFjcGlfdGFibGVfdGNwYSB0byBtYXRjaCB0aGUNCj4gPiBUQ0cgQUNQSSBzcGVjaWZpY2F0aW9u
-Lg0KPiA+DQo+ID4gdjI6DQo+ID4NCj4gPiAtIERvIG5vdCByZW1vdmUgc3RydWN0IGFjcGlfdHBt
-Ml9jb250cm9sDQo+ID4NCj4gPiBTaWduZWQtb2ZmLWJ5OiBKYXJra28gU2Fra2luZW4gPGphcmtr
-by5zYWtraW5lbkBsaW51eC5pbnRlbC5jb20+DQo+IA0KPiBCb2IsIEknbSBhc3N1bWluZyB0aGF0
-IHdlJ2xsIGJlIHJvdXRpbmcgdGhpcyBvbmUgdGhyb3VnaCB1cHN0cmVhbSBBQ1BJQ0EuDQo+IA0K
-PiBJZiB0aGF0J3Mgbm90IHRoZSBjYXNlIGFuZCBJIHNob3VsZCBhcHBseSBpdCBkaXJlY3RseSwg
-cGxlYXNlIGxldCBtZSBrbm93Lg0KPiANCj4gDQo+ID4gLS0tDQo+ID4gIGluY2x1ZGUvYWNwaS9h
-Y3RibDIuaCB8ICA1ICsrLS0tDQo+ID4gIGluY2x1ZGUvYWNwaS9hY3RibDMuaCB8IDE3ICsrKysr
-KysrKysrKystLS0tDQo+ID4gIDIgZmlsZXMgY2hhbmdlZCwgMTUgaW5zZXJ0aW9ucygrKSwgNyBk
-ZWxldGlvbnMoLSkNCj4gPg0KPiA+IGRpZmYgLS1naXQgYS9pbmNsdWRlL2FjcGkvYWN0YmwyLmgg
-Yi9pbmNsdWRlL2FjcGkvYWN0YmwyLmggaW5kZXgNCj4gPiBjYWZkZWI1Li4yZjJiOGE2IDEwMDY0
-NA0KPiA+IC0tLSBhL2luY2x1ZGUvYWNwaS9hY3RibDIuaA0KPiA+ICsrKyBiL2luY2x1ZGUvYWNw
-aS9hY3RibDIuaA0KPiA+IEBAIC0xMDcxLDE0ICsxMDcxLDEzIEBAIGVudW0gYWNwaV9zcG1pX2lu
-dGVyZmFjZV90eXBlcyB7DQo+ID4gICAqIFRDUEEgLSBUcnVzdGVkIENvbXB1dGluZyBQbGF0Zm9y
-bSBBbGxpYW5jZSB0YWJsZQ0KPiA+ICAgKiAgICAgICAgVmVyc2lvbiAxDQo+ID4gICAqDQo+ID4g
-LSAqIENvbmZvcm1zIHRvICJUQ0cgUEMgU3BlY2lmaWMgSW1wbGVtZW50YXRpb24gU3BlY2lmaWNh
-dGlvbiIsDQo+ID4gLSAqIFZlcnNpb24gMS4xLCBBdWd1c3QgMTgsIDIwMDMNCj4gPiArICogQ29u
-Zm9ybXMgdG8gIlRDRyBBQ1BJIFNwZWNpZmljYXRpb24gZm9yIEZhbWlseSAxLjIgYW5kIDIuMCIg
-MTkNCj4gPiArIERlY2VtYmVyIDIwMTQNCj4gPiAgICoNCj4gPg0KPiA+ICoqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioN
-Cj4gPiAqKioqKioqKi8NCj4gPg0KPiA+ICBzdHJ1Y3QgYWNwaV90YWJsZV90Y3BhIHsNCj4gPiAg
-CXN0cnVjdCBhY3BpX3RhYmxlX2hlYWRlciBoZWFkZXI7CS8qIENvbW1vbiBBQ1BJIHRhYmxlIGhl
-YWRlciAqLw0KPiA+IC0JdTE2IHJlc2VydmVkOw0KPiA+ICsJdTE2IHBsYXRmb3JtX2NsYXNzOwkv
-KiAwIGZvciBjbGllbnQgYW5kIDEgZm9yIHNlcnZlciBwbGF0Zm9ybXMuDQo+ICovDQo+ID4gIAl1
-MzIgbWF4X2xvZ19sZW5ndGg7CS8qIE1heGltdW0gbGVuZ3RoIGZvciB0aGUgZXZlbnQgbG9nIGFy
-ZWEgKi8NCj4gPiAgCXU2NCBsb2dfYWRkcmVzczsJLyogQWRkcmVzcyBvZiB0aGUgZXZlbnQgbG9n
-IGFyZWEgKi8NCj4gPiAgfTsNCj4gPiBkaWZmIC0tZ2l0IGEvaW5jbHVkZS9hY3BpL2FjdGJsMy5o
-IGIvaW5jbHVkZS9hY3BpL2FjdGJsMy5oIGluZGV4DQo+ID4gNDQwY2E4MS4uOGRkNjI1YyAxMDA2
-NDQNCj4gPiAtLS0gYS9pbmNsdWRlL2FjcGkvYWN0YmwzLmgNCj4gPiArKysgYi9pbmNsdWRlL2Fj
-cGkvYWN0YmwzLmgNCj4gPiBAQCAtNjg4LDE1ICs2ODgsMjQgQEAgZW51bSBhY3BpX3Jhc2Zfc3Rh
-dHVzIHsNCj4gPiAgICogVFBNMiAtIFRydXN0ZWQgUGxhdGZvcm0gTW9kdWxlIChUUE0pIDIuMCBI
-YXJkd2FyZSBJbnRlcmZhY2UgVGFibGUNCj4gPiAgICogICAgICAgIFZlcnNpb24gMw0KPiA+ICAg
-Kg0KPiA+IC0gKiBDb25mb3JtcyB0byAiVFBNIDIuMCBIYXJkd2FyZSBJbnRlcmZhY2UgVGFibGUg
-KFRQTTIpIiAyOSBOb3ZlbWJlcg0KPiA+IDIwMTENCj4gPiArICogQ29uZm9ybXMgdG8gIlRDRyBB
-Q1BJIFNwZWNpZmljYXRpb24gZm9yIEZhbWlseSAxLjIgYW5kIDIuMCIgMTkNCj4gPiArIERlY2Vt
-YmVyIDIwMTQNCj4gPiAgICoNCj4gPg0KPiA+ICoqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioNCj4gPiAqKioqKioqKi8N
-Cj4gPg0KPiA+ICsvKiBIb3cgdG8gbm90aWZ5IHRoYXQgdGhlcmUgaXMgYSBjb21tYW5kIGF2YWls
-YWJsZSBmb3IgcHJvY2Vzc2luZy4gKi8NCj4gPiArDQo+ID4gK2VudW0gYWNwaV90cG0yX3N0YXJ0
-X21ldGhvZCB7DQo+ID4gKwlBQ1BJX1RQTTJfU01fQUNQSSA9IDIsDQo+ID4gKwlBQ1BJX1RQTTJf
-U01fQ1JCID0gNywNCj4gPiArCUFDUElfVFBNMl9TTV9DUkJfQU5EX0FDUEkgPSA4LA0KPiA+ICt9
-Ow0KPiA+ICsNCj4gPiAgc3RydWN0IGFjcGlfdGFibGVfdHBtMiB7DQo+ID4gIAlzdHJ1Y3QgYWNw
-aV90YWJsZV9oZWFkZXIgaGVhZGVyOwkvKiBDb21tb24gQUNQSSB0YWJsZSBoZWFkZXIgKi8NCj4g
-PiAtCXUzMiBmbGFnczsNCj4gPiAtCXU2NCBjb250cm9sX2FkZHJlc3M7DQo+ID4gLQl1MzIgc3Rh
-cnRfbWV0aG9kOw0KPiA+ICsJdTE2IHBsYXRmb3JtX2NsYXNzOwkvKiAwIGZvciBjbGllbnQgYW5k
-IDEgZm9yIHNlcnZlciBwbGF0Zm9ybXMNCj4gKi8NCj4gPiArCXUxNiByZXNlcnZlZDsNCj4gPiAr
-CXU2NCBjb250cm9sX2FkZHJlc3M7CS8qIFBoeXNpY2FsIGFkZHJlc3Mgb2YgdGhlIGNvbnRyb2wg
-YXJlYSAqLw0KPiA+ICsJdTMyIHN0YXJ0X21ldGhvZDsJLyogTWV0aG9kIHRvIG5vdGlmeSB0byBz
-dGFydCBwcm9jZXNzaW5nICovDQo+ID4gIH07DQo+ID4NCj4gPiAgLyogQ29udHJvbCBhcmVhIHN0
-cnVjdHVyZSAobm90IHBhcnQgb2YgdGFibGUsIHBvaW50ZWQgdG8gYnkNCj4gPiBjb250cm9sX2Fk
-ZHJlc3MpICovDQo+ID4NCj4gDQo+IC0tDQo+IEkgc3BlYWsgb25seSBmb3IgbXlzZWxmLg0KPiBS
-YWZhZWwgSi4gV3lzb2NraSwgSW50ZWwgT3BlbiBTb3VyY2UgVGVjaG5vbG9neSBDZW50ZXIuDQo=
+Hi,
+
+On 06/09/2015 11:10 AM, Aaron Lu wrote:
+> On Tue, Jun 09, 2015 at 10:32:25AM +0200, Hans de Goede wrote:
+>> On some systems acpi-video backlight is broken in the sense that it cannot
+>> control the brightness of the backlight, but it must still be called on
+>> resume to power-up the backlight after resume.
+>
+> All the video module does on resume is a backlight set operation, it
+> can't control backlight but can turn on the screen on resume? Hmm...
+>
+> I'll ask Sylvain to attach acpidump, let's see if there is anything
+> special there.
+
+Ok, lets see what comes out of that. Note in the mean time Sylvain has
+attached his acpidump.
+
+Regards,
+
+Hans
