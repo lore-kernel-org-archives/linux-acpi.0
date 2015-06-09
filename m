@@ -1,84 +1,105 @@
-From: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
-Subject: [PATCH v2] acpi: update ACPI tables to match TCG ACPI specification.
-Date: Tue,  9 Jun 2015 19:25:25 +0300
-Message-ID: <1433867125-13016-1-git-send-email-jarkko.sakkinen@linux.intel.com>
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: Re: [Patch v5 4/6] PCI/ACPI: Consolidate common PCI host bridge code
+ into ACPI core
+Date: Wed, 10 Jun 2015 00:58:15 +0800
+Message-ID: <55771B27.1060509@linux.intel.com>
+References: <1433780448-18636-1-git-send-email-jiang.liu@linux.intel.com> <1433780448-18636-5-git-send-email-jiang.liu@linux.intel.com> <20150609161230.GC8591@red-moon>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:62884 "EHLO mga14.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:39940 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753901AbbFIQop (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 9 Jun 2015 12:44:45 -0400
+	id S1753819AbbFIQ6X (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 9 Jun 2015 12:58:23 -0400
+In-Reply-To: <20150609161230.GC8591@red-moon>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: robert.moore@intel.com
-Cc: peterhuewe@gmx.de, Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Lv Zheng <lv.zheng@intel.com>, "open list:ACPI" <linux-acpi@vger.kernel.org>, "open list:ACPI COMPONENT AR..." <devel@acpica.org>, open list <linux-kernel@vger.kernel.org>
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Marc Zyngier <Marc.Zyngier@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, Yijing Wang <wangyijing@huawei.com>, Len Brown <lenb@kernel.org>, Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "x86 @ kernel . org" <x86@kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-Updated struct acpi_table_tpm2 and struct acpi_table_tcpa to match the
-TCG ACPI specification.
+On 2015/6/10 0:12, Lorenzo Pieralisi wrote:
+> On Mon, Jun 08, 2015 at 05:20:46PM +0100, Jiang Liu wrote:
+> 
+> [...]
+> 
+>> +static int acpi_pci_probe_root_resources(struct acpi_pci_root_info *info)
+>> +{
+>> +	int ret;
+>> +	struct list_head *list = &info->resources;
+>> +	struct acpi_device *device = info->bridge;
+>> +	struct resource_entry *entry, *tmp;
+>> +	unsigned long flags;
+>> +
+>> +	flags = IORESOURCE_IO | IORESOURCE_MEM | IORESOURCE_MEM_8AND16BIT;
+> 
+> Is IORESOURCE_MEM_8AND16BIT required because of some pending patches
+> that will change ACPI resource filtering ? It does not seem to make
+> a difference in the mainline code, AFAICT.
+Hi Lorenzo,
+	Sorry, the 'IORESOURCE_MEM_8AND16BIT' is leaked into this patch
+from another bugfix patch. It should be removed.
 
-v2:
+>> +static void acpi_pci_root_release_info(struct pci_host_bridge *bridge)
+>> +{
+>> +	struct resource *res;
+>> +	struct resource_entry *entry;
+>> +
+>> +	resource_list_for_each_entry(entry, &bridge->windows) {
+>> +		res = entry->res;
+>> +		if (res->parent &&
+>> +		    (res->flags & (IORESOURCE_MEM | IORESOURCE_IO)))
+>> +			release_resource(res);
+>> +	}
+> 
+> It is a question: is this loop necessary given that we are already
+> releasing resources in __acpi_pci_root_release_info() ?
+Function pci_create_root_bus() moves resources from info->resources list
+onto bridge->windows list, so an ACPI resource will be either on
+info->resources or bridge->windows. Thus we need to deal with both
+info->resources and bridge->windows.
 
-- Do not remove struct acpi_tpm2_control
+> 
+>> +	__acpi_pci_root_release_info(bridge->release_data);
+>> +}
+>> +
+>> +struct pci_bus *acpi_pci_root_create(struct acpi_pci_root *root,
+>> +				     struct acpi_pci_root_ops *ops,
+>> +				     struct acpi_pci_root_info *info,
+>> +				     void *sysdata, int segment, int node)
+> 
+> I do not think you need to pass segment and node, they clutter the
+> function signature when you can retrieve them from root, I would
+> make them local variables and use root->segment and acpi_get_node
+> in the function body to retrieve them.
+On x86, node and segment may be overridden under certain conditions.
+For example, segment will always be 0 if 'pci_ignore_seg' is set.
 
-Signed-off-by: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
----
- include/acpi/actbl2.h |  5 ++---
- include/acpi/actbl3.h | 17 +++++++++++++----
- 2 files changed, 15 insertions(+), 7 deletions(-)
-
-diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
-index cafdeb5..2f2b8a6 100644
---- a/include/acpi/actbl2.h
-+++ b/include/acpi/actbl2.h
-@@ -1071,14 +1071,13 @@ enum acpi_spmi_interface_types {
-  * TCPA - Trusted Computing Platform Alliance table
-  *        Version 1
-  *
-- * Conforms to "TCG PC Specific Implementation Specification",
-- * Version 1.1, August 18, 2003
-+ * Conforms to "TCG ACPI Specification for Family 1.2 and 2.0" 19 December 2014
-  *
-  ******************************************************************************/
- 
- struct acpi_table_tcpa {
- 	struct acpi_table_header header;	/* Common ACPI table header */
--	u16 reserved;
-+	u16 platform_class;	/* 0 for client and 1 for server platforms. */
- 	u32 max_log_length;	/* Maximum length for the event log area */
- 	u64 log_address;	/* Address of the event log area */
- };
-diff --git a/include/acpi/actbl3.h b/include/acpi/actbl3.h
-index 440ca81..8dd625c 100644
---- a/include/acpi/actbl3.h
-+++ b/include/acpi/actbl3.h
-@@ -688,15 +688,24 @@ enum acpi_rasf_status {
-  * TPM2 - Trusted Platform Module (TPM) 2.0 Hardware Interface Table
-  *        Version 3
-  *
-- * Conforms to "TPM 2.0 Hardware Interface Table (TPM2)" 29 November 2011
-+ * Conforms to "TCG ACPI Specification for Family 1.2 and 2.0" 19 December 2014
-  *
-  ******************************************************************************/
- 
-+/* How to notify that there is a command available for processing. */
-+
-+enum acpi_tpm2_start_method {
-+	ACPI_TPM2_SM_ACPI = 2,
-+	ACPI_TPM2_SM_CRB = 7,
-+	ACPI_TPM2_SM_CRB_AND_ACPI = 8,
-+};
-+
- struct acpi_table_tpm2 {
- 	struct acpi_table_header header;	/* Common ACPI table header */
--	u32 flags;
--	u64 control_address;
--	u32 start_method;
-+	u16 platform_class;	/* 0 for client and 1 for server platforms */
-+	u16 reserved;
-+	u64 control_address;	/* Physical address of the control area */
-+	u32 start_method;	/* Method to notify to start processing */
- };
- 
- /* Control area structure (not part of table, pointed to by control_address) */
--- 
-2.1.4
+>> +{
+>> +	int ret, busnum = root->secondary.start;
+>> +	struct acpi_device *device = root->device;
+>> +	struct pci_bus *bus;
+>> +
+>> +	info->root = root;
+>> +	info->bridge = device;
+>> +	info->ops = ops;
+>> +	INIT_LIST_HEAD(&info->resources);
+>> +	snprintf(info->name, sizeof(info->name), "PCI Bus %04x:%02x",
+>> +		 segment, busnum);
+>> +
+>> +	if (ops->init_info && ops->init_info(info))
+>> +		goto out_release_info;
+>> +	ret = acpi_pci_probe_root_resources(info);
+>> +	if (ops->prepare_resources)
+>> +		ret = ops->prepare_resources(info, ret);
+> 
+> You go through this ret passing song and dance because we may want to
+> call prepare_resources even if acpi_pci_probe_root_resource failed (on
+> x86), correct ? I will have a further look at x86 and ia64 if we
+> can consolidate these ops function hooks even further.
+Yes. X86 uses flag 'pci_use_crs' to choose ACPI parsed resources or
+other method parsed resources. This provides user a way to work
+around some bios issues.
+Thanks!
+Gerry
 
