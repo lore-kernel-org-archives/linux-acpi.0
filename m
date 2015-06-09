@@ -1,7 +1,7 @@
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH v2 3/3] libnvdimm: Add sysfs numa_node to NVDIMM devices
-Date: Tue,  9 Jun 2015 17:10:40 -0600
-Message-ID: <1433891440-3515-4-git-send-email-toshi.kani@hp.com>
+Subject: [PATCH v2 2/3] libnvdimm: Set numa_node to NVDIMM devices
+Date: Tue,  9 Jun 2015 17:10:39 -0600
+Message-ID: <1433891440-3515-3-git-send-email-toshi.kani@hp.com>
 References: <1433891440-3515-1-git-send-email-toshi.kani@hp.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1433891440-3515-1-git-send-email-toshi.kani@hp.com>
@@ -10,126 +10,103 @@ To: rjw@rjwysocki.net, dan.j.williams@intel.com
 Cc: linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hp.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Add support of sysfs 'numa_node' to I/O-related NVDIMM devices
-under /sys/bus/nd/devices, regionN, namespaceN.0, and bttN.
-When bttN is not set up, its numa_node returns -1 (NUMA_NO_NODE).
+ACPI NFIT table has System Physical Address Range Structure
+entries that describe a proximity ID of each range when
+ACPI_NFIT_PROXIMITY_VALID is set in the flags.
 
-Here is an example of numa_node values on a 2-socket system with
-a single NVDIMM range on each socket.
-  /sys/bus/nd/devices
-  |-- btt0/numa_node:-1
-  |-- btt1/numa_node:0
-  |-- namespace0.0/numa_node:0
-  |-- namespace1.0/numa_node:1
-  |-- region0/numa_node:0
-  |-- region1/numa_node:1
+Change acpi_nfit_register_region() to map a proximity ID to its
+node ID, and set it to a new numa_node field of nd_region_desc,
+which is then conveyed to nd_region.
 
-These numa_node files are then linked under the block class of
-their device names.
-  /sys/class/block/pmem0/device/numa_node:0
-  /sys/class/block/pmem0s/device/numa_node:0
-  /sys/class/block/pmem1/device/numa_node:1
-
-This enables numactl(8) to accept 'block:' and 'file:' paths of
-pmem and btt devices as shown in the examples below.
-  numactl --preferred block:pmem0 --show
-  numactl --preferred file:/dev/pmem0s --show
+nd_region_probe() and nd_btt_probe() set the numa_node of nd_region
+to their device object being probed.  A namespace device inherits
+the numa_node from the parent region device.
 
 Signed-off-by: Toshi Kani <toshi.kani@hp.com>
 ---
- drivers/acpi/nfit.c             |    1 +
- drivers/nvdimm/btt_devs.c       |    1 +
- drivers/nvdimm/bus.c            |   30 ++++++++++++++++++++++++++++++
- drivers/nvdimm/namespace_devs.c |    1 +
- include/linux/libnvdimm.h       |    1 +
- 5 files changed, 34 insertions(+)
+ drivers/acpi/nfit.c          |    6 ++++++
+ drivers/nvdimm/btt.c         |    2 ++
+ drivers/nvdimm/nd.h          |    1 +
+ drivers/nvdimm/region.c      |    1 +
+ drivers/nvdimm/region_devs.c |    1 +
+ include/linux/libnvdimm.h    |    1 +
+ 6 files changed, 12 insertions(+)
 
 diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index 69dc6e0..ebcaf2a 100644
+index 5731e4a..69dc6e0 100644
 --- a/drivers/acpi/nfit.c
 +++ b/drivers/acpi/nfit.c
-@@ -789,6 +789,7 @@ static const struct attribute_group *acpi_nfit_region_attribute_groups[] = {
- 	&nd_region_attribute_group,
- 	&nd_mapping_attribute_group,
- 	&nd_device_attribute_group,
-+	&nd_numa_attribute_group,
- 	&acpi_nfit_region_attribute_group,
- 	NULL,
- };
-diff --git a/drivers/nvdimm/btt_devs.c b/drivers/nvdimm/btt_devs.c
-index 740b560..4a053e9 100644
---- a/drivers/nvdimm/btt_devs.c
-+++ b/drivers/nvdimm/btt_devs.c
-@@ -295,6 +295,7 @@ static struct attribute_group nd_btt_attribute_group = {
- static const struct attribute_group *nd_btt_attribute_groups[] = {
- 	&nd_btt_attribute_group,
- 	&nd_device_attribute_group,
-+	&nd_numa_attribute_group,
- 	NULL,
- };
+@@ -1255,6 +1255,12 @@ static int acpi_nfit_register_region(struct acpi_nfit_desc *acpi_desc,
+ 	ndr_desc->res = &res;
+ 	ndr_desc->provider_data = nfit_spa;
+ 	ndr_desc->attr_groups = acpi_nfit_region_attribute_groups;
++	if (spa->flags & ACPI_NFIT_PROXIMITY_VALID)
++		ndr_desc->numa_node = acpi_map_pxm_to_online_node(
++						spa->proximity_domain);
++	else
++		ndr_desc->numa_node = NUMA_NO_NODE;
++
+ 	list_for_each_entry(nfit_memdev, &acpi_desc->memdevs, list) {
+ 		struct acpi_nfit_memory_map *memdev = nfit_memdev->memdev;
+ 		struct nd_mapping *nd_mapping;
+diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
+index 2d7ce9e..3b3e115 100644
+--- a/drivers/nvdimm/btt.c
++++ b/drivers/nvdimm/btt.c
+@@ -1369,6 +1369,8 @@ static int nd_btt_probe(struct device *dev)
+ 		rc = -ENOMEM;
+ 		goto err_btt;
+ 	}
++
++	set_dev_node(dev, nd_region->numa_node);
+ 	dev_set_drvdata(dev, btt);
  
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index d8a1794..20ffacc 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -353,6 +353,36 @@ struct attribute_group nd_device_attribute_group = {
- };
- EXPORT_SYMBOL_GPL(nd_device_attribute_group);
+ 	return 0;
+diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+index c807379..fefd8f6 100644
+--- a/drivers/nvdimm/nd.h
++++ b/drivers/nvdimm/nd.h
+@@ -108,6 +108,7 @@ struct nd_region {
+ 	u64 ndr_size;
+ 	u64 ndr_start;
+ 	int id, num_lanes;
++	int numa_node;
+ 	void *provider_data;
+ 	struct nd_interleave_set *nd_set;
+ 	struct nd_mapping mapping[0];
+diff --git a/drivers/nvdimm/region.c b/drivers/nvdimm/region.c
+index 373eab4..783220e 100644
+--- a/drivers/nvdimm/region.c
++++ b/drivers/nvdimm/region.c
+@@ -123,6 +123,7 @@ static int nd_region_probe(struct device *dev)
  
-+static ssize_t numa_node_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	return sprintf(buf, "%d\n", dev_to_node(dev));
-+}
-+static DEVICE_ATTR_RO(numa_node);
-+
-+static struct attribute *nd_numa_attributes[] = {
-+	&dev_attr_numa_node.attr,
-+	NULL,
-+};
-+
-+static umode_t nd_numa_attr_visible(struct kobject *kobj, struct attribute *a,
-+		int n)
-+{
-+	if (!IS_ENABLED(CONFIG_NUMA))
-+		return 0;
-+
-+	return a->mode;
-+}
-+
-+/**
-+ * nd_numa_attribute_group - NUMA attributes for all devices on an nd bus
-+ */
-+struct attribute_group nd_numa_attribute_group = {
-+	.attrs = nd_numa_attributes,
-+	.is_visible = nd_numa_attr_visible,
-+};
-+EXPORT_SYMBOL_GPL(nd_numa_attribute_group);
-+
- int nvdimm_bus_create_ndctl(struct nvdimm_bus *nvdimm_bus)
- {
- 	dev_t devt = MKDEV(nvdimm_bus_major, nvdimm_bus->id);
-diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
-index e89b019..26f877f 100644
---- a/drivers/nvdimm/namespace_devs.c
-+++ b/drivers/nvdimm/namespace_devs.c
-@@ -1123,6 +1123,7 @@ static struct attribute_group nd_namespace_attribute_group = {
- static const struct attribute_group *nd_namespace_attribute_groups[] = {
- 	&nd_device_attribute_group,
- 	&nd_namespace_attribute_group,
-+	&nd_numa_attribute_group,
- 	NULL,
- };
+ 	num_ns->active = rc;
+ 	num_ns->count = rc + err;
++	set_dev_node(dev, nd_region->numa_node);
+ 	dev_set_drvdata(dev, num_ns);
  
+ 	if (err == 0)
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index 86adbd8..352bc80 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -627,6 +627,7 @@ static noinline struct nd_region *nd_region_create(struct nvdimm_bus *nvdimm_bus
+ 	nd_region->provider_data = ndr_desc->provider_data;
+ 	nd_region->nd_set = ndr_desc->nd_set;
+ 	nd_region->num_lanes = ndr_desc->num_lanes;
++	nd_region->numa_node = ndr_desc->numa_node;
+ 	ida_init(&nd_region->ns_ida);
+ 	dev = &nd_region->dev;
+ 	dev_set_name(dev, "region%d", nd_region->id);
 diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index 5d0c75a..a85566b 100644
+index 96b9507..5d0c75a 100644
 --- a/include/linux/libnvdimm.h
 +++ b/include/linux/libnvdimm.h
-@@ -35,6 +35,7 @@ enum {
- extern struct attribute_group nvdimm_bus_attribute_group;
- extern struct attribute_group nvdimm_attribute_group;
- extern struct attribute_group nd_device_attribute_group;
-+extern struct attribute_group nd_numa_attribute_group;
- extern struct attribute_group nd_region_attribute_group;
- extern struct attribute_group nd_mapping_attribute_group;
+@@ -78,6 +78,7 @@ struct nd_region_desc {
+ 	struct nd_interleave_set *nd_set;
+ 	void *provider_data;
+ 	int num_lanes;
++	int numa_node;
+ };
  
+ struct nvdimm_bus;
