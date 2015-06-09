@@ -1,130 +1,135 @@
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH v2 1/3] acpi: Add acpi_map_pxm_to_online_node()
-Date: Tue,  9 Jun 2015 17:10:38 -0600
-Message-ID: <1433891440-3515-2-git-send-email-toshi.kani@hp.com>
+Subject: [PATCH v2 3/3] libnvdimm: Add sysfs numa_node to NVDIMM devices
+Date: Tue,  9 Jun 2015 17:10:40 -0600
+Message-ID: <1433891440-3515-4-git-send-email-toshi.kani@hp.com>
 References: <1433891440-3515-1-git-send-email-toshi.kani@hp.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t3426.houston.hp.com ([15.201.208.54]:37743 "EHLO
-	g4t3426.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932466AbbFIXKy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Jun 2015 19:10:54 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1433891440-3515-1-git-send-email-toshi.kani@hp.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: rjw@rjwysocki.net, dan.j.williams@intel.com
 Cc: linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hp.com>
+List-Id: linux-acpi@vger.kernel.org
 
-The kernel initializes CPU & memory's NUMA topology from ACPI
-SRAT table.  Some other ACPI tables, such as NFIT and DMAR,
-also contain proximity IDs for their device's NUMA topology.
-This information can be used to improve performance of these
-devices.
+Add support of sysfs 'numa_node' to I/O-related NVDIMM devices
+under /sys/bus/nd/devices, regionN, namespaceN.0, and bttN.
+When bttN is not set up, its numa_node returns -1 (NUMA_NO_NODE).
 
-This patch introduces acpi_map_pxm_to_online_node(), which maps
-a given pxm to an online node.  This allows ACPI device driver
-modules to obtain a node from a device proximity ID.  Unlike
-acpi_map_pxm_to_node(), this interface is guaranteed to return
-an online node so that the caller module can use the node without
-dealing with the node status.  A node may be offline when a device
-proximity ID is unique, SRAT memory entry does not exist, or
-NUMA is disabled (ex. numa_off on x86).
+Here is an example of numa_node values on a 2-socket system with
+a single NVDIMM range on each socket.
+  /sys/bus/nd/devices
+  |-- btt0/numa_node:-1
+  |-- btt1/numa_node:0
+  |-- namespace0.0/numa_node:0
+  |-- namespace1.0/numa_node:1
+  |-- region0/numa_node:0
+  |-- region1/numa_node:1
 
-This patch also moves the pxm range check from acpi_get_node()
-to acpi_map_pxm_to_node().
+These numa_node files are then linked under the block class of
+their device names.
+  /sys/class/block/pmem0/device/numa_node:0
+  /sys/class/block/pmem0s/device/numa_node:0
+  /sys/class/block/pmem1/device/numa_node:1
+
+This enables numactl(8) to accept 'block:' and 'file:' paths of
+pmem and btt devices as shown in the examples below.
+  numactl --preferred block:pmem0 --show
+  numactl --preferred file:/dev/pmem0s --show
 
 Signed-off-by: Toshi Kani <toshi.kani@hp.com>
 ---
- drivers/acpi/numa.c  |   40 +++++++++++++++++++++++++++++++++++++---
- include/linux/acpi.h |    5 +++++
- 2 files changed, 42 insertions(+), 3 deletions(-)
+ drivers/acpi/nfit.c             |    1 +
+ drivers/nvdimm/btt_devs.c       |    1 +
+ drivers/nvdimm/bus.c            |   30 ++++++++++++++++++++++++++++++
+ drivers/nvdimm/namespace_devs.c |    1 +
+ include/linux/libnvdimm.h       |    1 +
+ 5 files changed, 34 insertions(+)
 
-diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
-index 1333cbdc..a64947e 100644
---- a/drivers/acpi/numa.c
-+++ b/drivers/acpi/numa.c
-@@ -29,6 +29,8 @@
- #include <linux/errno.h>
- #include <linux/acpi.h>
- #include <linux/numa.h>
-+#include <linux/nodemask.h>
-+#include <linux/topology.h>
+diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+index 69dc6e0..ebcaf2a 100644
+--- a/drivers/acpi/nfit.c
++++ b/drivers/acpi/nfit.c
+@@ -789,6 +789,7 @@ static const struct attribute_group *acpi_nfit_region_attribute_groups[] = {
+ 	&nd_region_attribute_group,
+ 	&nd_mapping_attribute_group,
+ 	&nd_device_attribute_group,
++	&nd_numa_attribute_group,
+ 	&acpi_nfit_region_attribute_group,
+ 	NULL,
+ };
+diff --git a/drivers/nvdimm/btt_devs.c b/drivers/nvdimm/btt_devs.c
+index 740b560..4a053e9 100644
+--- a/drivers/nvdimm/btt_devs.c
++++ b/drivers/nvdimm/btt_devs.c
+@@ -295,6 +295,7 @@ static struct attribute_group nd_btt_attribute_group = {
+ static const struct attribute_group *nd_btt_attribute_groups[] = {
+ 	&nd_btt_attribute_group,
+ 	&nd_device_attribute_group,
++	&nd_numa_attribute_group,
+ 	NULL,
+ };
  
- #define PREFIX "ACPI: "
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index d8a1794..20ffacc 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -353,6 +353,36 @@ struct attribute_group nd_device_attribute_group = {
+ };
+ EXPORT_SYMBOL_GPL(nd_device_attribute_group);
  
-@@ -70,7 +72,12 @@ static void __acpi_map_pxm_to_node(int pxm, int node)
- 
- int acpi_map_pxm_to_node(int pxm)
- {
--	int node = pxm_to_node_map[pxm];
-+	int node;
++static ssize_t numa_node_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	return sprintf(buf, "%d\n", dev_to_node(dev));
++}
++static DEVICE_ATTR_RO(numa_node);
 +
-+	if (pxm < 0 || pxm >= MAX_PXM_DOMAINS)
-+		return NUMA_NO_NODE;
++static struct attribute *nd_numa_attributes[] = {
++	&dev_attr_numa_node.attr,
++	NULL,
++};
 +
-+	node = pxm_to_node_map[pxm];
- 
- 	if (node == NUMA_NO_NODE) {
- 		if (nodes_weight(nodes_found_map) >= MAX_NUMNODES)
-@@ -83,6 +90,35 @@ int acpi_map_pxm_to_node(int pxm)
- 	return node;
- }
- 
-+/*
-+ * Return an online node from a pxm.  This interface is intended for ACPI
-+ * device drivers that obtain device NUMA topology from ACPI table, but
-+ * do not initialize the node status.
++static umode_t nd_numa_attr_visible(struct kobject *kobj, struct attribute *a,
++		int n)
++{
++	if (!IS_ENABLED(CONFIG_NUMA))
++		return 0;
++
++	return a->mode;
++}
++
++/**
++ * nd_numa_attribute_group - NUMA attributes for all devices on an nd bus
 + */
-+int acpi_map_pxm_to_online_node(int pxm)
-+{
-+	int node, n, dist, min_dist;
++struct attribute_group nd_numa_attribute_group = {
++	.attrs = nd_numa_attributes,
++	.is_visible = nd_numa_attr_visible,
++};
++EXPORT_SYMBOL_GPL(nd_numa_attribute_group);
 +
-+	node = acpi_map_pxm_to_node(pxm);
-+
-+	if (node == NUMA_NO_NODE)
-+		node = 0;
-+
-+	if (!node_online(node)) {
-+		min_dist = INT_MAX;
-+		for_each_online_node(n) {
-+			dist = node_distance(node, n);
-+			if (dist < min_dist) {
-+				min_dist = dist;
-+				node = n;
-+			}
-+		}
-+	}
-+
-+	return node;
-+}
-+EXPORT_SYMBOL(acpi_map_pxm_to_online_node);
-+
- static void __init
- acpi_table_print_srat_entry(struct acpi_subtable_header *header)
+ int nvdimm_bus_create_ndctl(struct nvdimm_bus *nvdimm_bus)
  {
-@@ -328,8 +364,6 @@ int acpi_get_node(acpi_handle handle)
- 	int pxm;
+ 	dev_t devt = MKDEV(nvdimm_bus_major, nvdimm_bus->id);
+diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
+index e89b019..26f877f 100644
+--- a/drivers/nvdimm/namespace_devs.c
++++ b/drivers/nvdimm/namespace_devs.c
+@@ -1123,6 +1123,7 @@ static struct attribute_group nd_namespace_attribute_group = {
+ static const struct attribute_group *nd_namespace_attribute_groups[] = {
+ 	&nd_device_attribute_group,
+ 	&nd_namespace_attribute_group,
++	&nd_numa_attribute_group,
+ 	NULL,
+ };
  
- 	pxm = acpi_get_pxm(handle);
--	if (pxm < 0 || pxm >= MAX_PXM_DOMAINS)
--		return NUMA_NO_NODE;
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index 5d0c75a..a85566b 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -35,6 +35,7 @@ enum {
+ extern struct attribute_group nvdimm_bus_attribute_group;
+ extern struct attribute_group nvdimm_attribute_group;
+ extern struct attribute_group nd_device_attribute_group;
++extern struct attribute_group nd_numa_attribute_group;
+ extern struct attribute_group nd_region_attribute_group;
+ extern struct attribute_group nd_mapping_attribute_group;
  
- 	return acpi_map_pxm_to_node(pxm);
- }
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index e4da5e3..1b3bbb1 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -289,8 +289,13 @@ extern void acpi_dmi_osi_linux(int enable, const struct dmi_system_id *d);
- extern void acpi_osi_setup(char *str);
- 
- #ifdef CONFIG_ACPI_NUMA
-+int acpi_map_pxm_to_online_node(int pxm);
- int acpi_get_node(acpi_handle handle);
- #else
-+static inline int acpi_map_pxm_to_online_node(int pxm)
-+{
-+	return 0;
-+}
- static inline int acpi_get_node(acpi_handle handle)
- {
- 	return 0;
