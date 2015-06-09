@@ -1,36 +1,40 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH v2] acpi-video: Add a parameter to not register the backlight
- sysfs interface
-Date: Tue, 09 Jun 2015 23:54:45 +0200
-Message-ID: <557760A5.9000404@redhat.com>
-References: <1433838745-8857-1-git-send-email-hdegoede@redhat.com> <20150609091042.GA1280@aaronlu.sh.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH v5 02/21] libnvdimm, nfit: initial libnvdimm
+ infrastructure and NFIT support
+Date: Tue, 9 Jun 2015 15:27:09 -0700
+Message-ID: <CAPcyv4jfy9Yg1u5Qj736X3n9muW-Jkt_Ka-zPFDEtn8bMXmqoA@mail.gmail.com>
+References: <20150602001134.4506.45867.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<20150602001419.4506.41953.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<20150603145704.GA22311@lst.de>
+	<1433359473.21035.27.camel@intel.com>
+	<20150609063312.GA9804@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <20150609091042.GA1280@aaronlu.sh.intel.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Ben Skeggs <bskeggs@redhat.com>, platform-driver-x86@vger.kernel.org, dri-devel@lists.freedesktop.org, Sylvain Pasche <sylvain.pasche@gmail.com>, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wi0-f175.google.com ([209.85.212.175]:33567 "EHLO
+	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752009AbbFIW1K (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Jun 2015 18:27:10 -0400
+Received: by wiwd19 with SMTP id d19so30512430wiw.0
+        for <linux-acpi@vger.kernel.org>; Tue, 09 Jun 2015 15:27:09 -0700 (PDT)
+In-Reply-To: <20150609063312.GA9804@lst.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "hch@lst.de" <hch@lst.de>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "mingo@kernel.org" <mingo@kernel.org>, "neilb@suse.de" <neilb@suse.de>, "jmoyer@redhat.com" <jmoyer@redhat.com>, "linux-api@vger.kernel.org" <linux-api@vger.kernel.org>, "axboe@kernel.dk" <axboe@kernel.dk>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "sfr@canb.auug.org.au" <sfr@canb.auug.org.au>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "rafael@kernel.org" <rafael@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Hi,
-
-On 06/09/2015 11:10 AM, Aaron Lu wrote:
-> On Tue, Jun 09, 2015 at 10:32:25AM +0200, Hans de Goede wrote:
->> On some systems acpi-video backlight is broken in the sense that it cannot
->> control the brightness of the backlight, but it must still be called on
->> resume to power-up the backlight after resume.
+On Mon, Jun 8, 2015 at 11:33 PM, hch@lst.de <hch@lst.de> wrote:
+> On Wed, Jun 03, 2015 at 07:24:34PM +0000, Williams, Dan J wrote:
+>> > > +static inline struct acpi_nfit_memory_map *__to_nfit_memdev(struct nfit_mem *nfit_mem)
+>> >
+>> > This line is over 80 characters.
+>>
+>> I generally don't see the point of fixing up occasional small incursions
+>> over 80 characters if it makes the code more amenable to grep.
 >
-> All the video module does on resume is a backlight set operation, it
-> can't control backlight but can turn on the screen on resume? Hmm...
->
-> I'll ask Sylvain to attach acpidump, let's see if there is anything
-> special there.
+> Just use shorter type names or add a line break before the symbol
+> names.  Too long lines are highly annoying.
 
-Ok, lets see what comes out of that. Note in the mean time Sylvain has
-attached his acpidump.
-
-Regards,
-
-Hans
+Note that "acpi_nfit_memory_map" is the identifier chosen by ACPICA,
+I'm just a consumer.  That said I've gone and done a 80 column cleanup
+across all the patches.
