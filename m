@@ -1,36 +1,70 @@
-From: Matthew Wilcox <willy@linux.intel.com>
-Subject: Re: [PATCH v5 17/21] libnvdimm: infrastructure for btt devices
-Date: Wed, 10 Jun 2015 14:46:16 -0400
-Message-ID: <20150610184616.GL2729@linux.intel.com>
-References: <20150602001134.4506.45867.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20150602001541.4506.90125.stgit@dwillia2-desk3.amr.corp.intel.com>
- <20150609064200.GE9804@lst.de>
+From: Mattia Dongili <malattia@linux.it>
+Subject: Re: [PATCH 28/32] sony-laptop: Port to new backlight interface
+ selection API
+Date: Thu, 11 Jun 2015 06:30:38 +0900
+Message-ID: <20150610213037.GB7272@taihen.jp>
+References: <1433941292-21530-1-git-send-email-hdegoede@redhat.com>
+ <1433941292-21530-29-git-send-email-hdegoede@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:4076 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751516AbbFJSqT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 10 Jun 2015 14:46:19 -0400
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150609064200.GE9804@lst.de>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <1433941292-21530-29-git-send-email-hdegoede@redhat.com>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Darren Hart <dvhart@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Ben Skeggs <bskeggs@redhat.com>, Azael Avalos <coproscefalo@gmail.com>, Corentin Chary <corentin.chary@gmail.com>, Lee Chun-Yi <jlee@suse.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Ike Panhc <ike.pan@canonical.com>, Anisse Astier <anisse@astier.eu>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, platform-driver-x86@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, acpi4asus-user@lists.sourceforge.net, dri-devel@lists.freedesktop.org, Aaron Lu <aaron.lu@intel.com>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>
-Cc: Dan Williams <dan.j.williams@intel.com>, axboe@kernel.dk, sfr@canb.auug.org.au, rafael@kernel.org, neilb@suse.de, gregkh@linuxfoundation.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-api@vger.kernel.org, akpm@linux-foundation.org, mingo@kernel.org
 
-On Tue, Jun 09, 2015 at 08:42:00AM +0200, Christoph Hellwig wrote:
-> > The BTT driver is the initial first consumer of this mechanism to allow
-> > layering atomic sector update guarantees on top of nd_io capable
-> > libnvdimm-block-devices, or their partitions.
+On Wed, Jun 10, 2015 at 03:01:28PM +0200, Hans de Goede wrote:
+> Port the backlight selection logic to the new backlight interface
+> selection API.
 > 
-> As mentioned during the last time of the review the layering here
-> is complete broken.  If you expose additional capabilities from a block
-> device do it at the block device level.  That is enhance the rw_page
-> callback to allo byte sized access, add a capability flag on the queue,
-> etc.
+> This commit also removes various obsolete pr_xxx messages related to
+> backlight interface selection. These are obsolete because they assume
+> there is only a vendor or acpi backlight driver and no other choice.
+> Also they are not necessary, if the user wants to know which backlight
+> interfaces are registered a simple "ls /sys/class/backlight" suffices.
+> 
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 
-Don't screw up rw_page.  The point of rw_page is to read or write a page
-cache page.  It can sleep, and it indicates success by using the page
-flags.  Don't try and scqueeze rw_bytes into it.  If you want rw_bytes
-to be a queue operation, that's one thing, but don't mess with rw_page.
+Acked-by: Mattia Dongili <malattia@linux.it>
+
+> ---
+>  drivers/platform/x86/sony-laptop.c | 6 ++----
+>  1 file changed, 2 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/platform/x86/sony-laptop.c b/drivers/platform/x86/sony-laptop.c
+> index e51c1e7..6207be6 100644
+> --- a/drivers/platform/x86/sony-laptop.c
+> +++ b/drivers/platform/x86/sony-laptop.c
+> @@ -69,6 +69,7 @@
+>  #include <linux/miscdevice.h>
+>  #endif
+>  #include <asm/uaccess.h>
+> +#include <acpi/video.h>
+>  
+>  #define dprintk(fmt, ...)			\
+>  do {						\
+> @@ -3199,11 +3200,8 @@ static int sony_nc_add(struct acpi_device *device)
+>  	}
+>  
+>  	/* setup input devices and helper fifo */
+> -	if (acpi_video_backlight_support()) {
+
+The comment above is really misplaced. I wouldn'd mind if you got rid of
+that too.
+
+> -		pr_info("brightness ignored, must be controlled by ACPI video driver\n");
+> -	} else {
+> +	if (acpi_video_get_backlight_type() == acpi_backlight_vendor)
+>  		sony_nc_backlight_setup();
+> -	}
+>  
+>  	/* create sony_pf sysfs attributes related to the SNC device */
+>  	for (item = sony_nc_values; item->name; ++item) {
+> -- 
+> 2.4.2
+> 
+-- 
+mattia
+:wq!
