@@ -1,231 +1,92 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH 02/11] ACPI / irqchip: Add self-probe infrastructure to
- initialize IRQ controller
-Date: Wed, 10 Jun 2015 16:33:00 +0100
-Message-ID: <557858AC.6010701@arm.com>
-References: <1431953961-22706-1-git-send-email-hanjun.guo@linaro.org> <1431953961-22706-3-git-send-email-hanjun.guo@linaro.org>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH v2] acpi: update ACPI tables to match TCG ACPI
+ specification.
+Date: Wed, 10 Jun 2015 15:34:28 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37D2F31A6@ORSMSX112.amr.corp.intel.com>
+References: <1433867125-13016-1-git-send-email-jarkko.sakkinen@linux.intel.com>
+ <2072894.aM9r7alsAV@vostro.rjw.lan> <557829DF.4060904@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:54214 "EHLO foss.arm.com"
+Received: from mga01.intel.com ([192.55.52.88]:17215 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965041AbbFJPdH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 10 Jun 2015 11:33:07 -0400
-In-Reply-To: <1431953961-22706-3-git-send-email-hanjun.guo@linaro.org>
+	id S965093AbbFJPed (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 10 Jun 2015 11:34:33 -0400
+In-Reply-To: <557829DF.4060904@linux.intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Olof Johansson <olof@lixom.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
+To: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "peterhuewe@gmx.de" <peterhuewe@gmx.de>, Len Brown <lenb@kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, ACPI <linux-acpi@vger.kernel.org>, "open list:ACPI COMPONENT AR..." <devel@acpica.org>, open list <linux-kernel@vger.kernel.org>, "Box, David E" <david.e.box@intel.com>
 
-Hi Hanjun,
-
-On 18/05/15 13:59, Hanjun Guo wrote:
-> From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-> 
-> This self-probe infrastructure works in the similar way as OF,
-> but there is some different in the mechanism:
-> 
-> For OF, the init fn will be called once it finds comptiable strings
-> in DT,  but for ACPI, we init irqchips by static tables, and in
-> static ACPI tables, there are no comptiable strings to indicate
-> irqchips, so every init function with IRQCHIP_ACPI_DECLARE in the
-> same table will be called, but thanks to the GIC version presented
-> in ACPI table, we can init different GIC irqchips with this framework.
-
-This triggers an immediate question: If we can find out the GIC version
-in the ACPI tables, which can't we just call the irqchips that implement
-the support for this version?
-
-i.e: the GICv2 irqchip code would have a line like:
-
-IRQCHIP_ACPI_DECLARE(gic_v2, ACPI_MADT_GIC_VER_V2, gic_v2_acpi_init);
-
-and the probing code would simply call the drivers that have declared
-their interest for this version code.
-
-Having code that tests for the version in each driver is not an option
-(this is exactly what we're trying to avoid).
-
-Thanks,
-
-	M.
-
-> 
-> This mechanism can also be used for clock declare and may also works
-> on x86 for some table parsing too.
-> 
-> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-> [hj: introduce struct acpi_table_id instead of acpi_device_id]
-> [hj: rework it more generic to all ACPI tables and fix some issues]
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> ---
->  drivers/acpi/Makefile             |  1 +
->  drivers/acpi/irq.c                | 37 +++++++++++++++++++++++++++++++++++++
->  drivers/irqchip/irqchip.h         | 12 ++++++++++++
->  include/asm-generic/vmlinux.lds.h | 13 +++++++++++++
->  include/linux/acpi.h              | 14 ++++++++++++++
->  include/linux/mod_devicetable.h   |  7 +++++++
->  6 files changed, 84 insertions(+)
->  create mode 100644 drivers/acpi/irq.c
-> 
-> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-> index 8a063e2..3e4aec3 100644
-> --- a/drivers/acpi/Makefile
-> +++ b/drivers/acpi/Makefile
-> @@ -80,6 +80,7 @@ obj-$(CONFIG_ACPI_HED)		+= hed.o
->  obj-$(CONFIG_ACPI_EC_DEBUGFS)	+= ec_sys.o
->  obj-$(CONFIG_ACPI_CUSTOM_METHOD)+= custom_method.o
->  obj-$(CONFIG_ACPI_BGRT)		+= bgrt.o
-> +obj-$(CONFIG_IRQCHIP)		+= irq.o
->  
->  # processor has its own "processor." module_param namespace
->  processor-y			:= processor_driver.o processor_throttling.o
-> diff --git a/drivers/acpi/irq.c b/drivers/acpi/irq.c
-> new file mode 100644
-> index 0000000..65d6b93
-> --- /dev/null
-> +++ b/drivers/acpi/irq.c
-> @@ -0,0 +1,37 @@
-> +/*
-> + * Copyright (c) 2015, Linaro Ltd.
-> + * Author: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-> + *         Hanjun Guo <hanjun.guo@linaro.org>
-> + *
-> + * Inspired by drivers/irqchip/irqchip.c
-> + *
-> + * This program is free software; you can redistribute it and/or modify it
-> + * under the terms and conditions of the GNU General Public License,
-> + * version 2, as published by the Free Software Foundation.
-> + *
-> + */
-> +
-> +#include <linux/init.h>
-> +#include <linux/acpi.h>
-> +
-> +/*
-> + * This special acpi_table_id is the sentinel at the end of the
-> + * acpi_table_id[] array of all irqchips. It is automatically placed at
-> + * the end of the array by the linker, thanks to being part of a
-> + * special section.
-> + */
-> +static const struct acpi_table_id
-> +irqchip_acpi_match_end __used __section(__irqchip_acpi_table_end);
-> +
-> +extern struct acpi_table_id __irqchip_acpi_table[];
-> +
-> +void __init acpi_irqchip_init(void)
-> +{
-> +	struct acpi_table_id *id;
-> +
-> +	if (acpi_disabled)
-> +		return;
-> +
-> +	for (id = __irqchip_acpi_table; id->id[0]; id++)
-> +		acpi_table_parse(id->id, (acpi_tbl_table_handler)id->data);
-> +}
-> diff --git a/drivers/irqchip/irqchip.h b/drivers/irqchip/irqchip.h
-> index 0f6486d..1949546 100644
-> --- a/drivers/irqchip/irqchip.h
-> +++ b/drivers/irqchip/irqchip.h
-> @@ -11,6 +11,7 @@
->  #ifndef _IRQCHIP_H
->  #define _IRQCHIP_H
->  
-> +#include <linux/acpi.h>
->  #include <linux/of.h>
->  
->  /*
-> @@ -25,4 +26,15 @@
->   */
->  #define IRQCHIP_DECLARE(name, compat, fn) OF_DECLARE_2(irqchip, name, compat, fn)
->  
-> +/*
-> + * This macro must be used by the different irqchip drivers to declare
-> + * the association between their ACPI table and their initialization function.
-> + *
-> + * @name: name that must be unique accross all IRQCHIP_ACPI_DECLARE of the
-> + * same file.
-> + * @table_id: name of the ACPI table signature
-> + * @fn: initialization function
-> + */
-> +#define IRQCHIP_ACPI_DECLARE(name, table_id, fn)	\
-> +	ACPI_DECLARE(irqchip, name, table_id, fn)
->  #endif
-> diff --git a/include/asm-generic/vmlinux.lds.h b/include/asm-generic/vmlinux.lds.h
-> index 8bd374d..625776c 100644
-> --- a/include/asm-generic/vmlinux.lds.h
-> +++ b/include/asm-generic/vmlinux.lds.h
-> @@ -181,6 +181,18 @@
->  #define CPUIDLE_METHOD_OF_TABLES() OF_TABLE(CONFIG_CPU_IDLE, cpuidle_method)
->  #define EARLYCON_OF_TABLES()	OF_TABLE(CONFIG_SERIAL_EARLYCON, earlycon)
->  
-> +#ifdef CONFIG_ACPI
-> +#define ACPI_TABLE(name)						\
-> +	. = ALIGN(8);							\
-> +	VMLINUX_SYMBOL(__##name##_acpi_table) = .;			\
-> +	*(__##name##_acpi_table)					\
-> +	*(__##name##_acpi_table_end)
-> +
-> +#define IRQCHIP_ACPI_MATCH_TABLE()	ACPI_TABLE(irqchip)
-> +#else
-> +#define IRQCHIP_ACPI_MATCH_TABLE()
-> +#endif
-> +
->  #define KERNEL_DTB()							\
->  	STRUCT_ALIGN();							\
->  	VMLINUX_SYMBOL(__dtb_start) = .;				\
-> @@ -516,6 +528,7 @@
->  	CPUIDLE_METHOD_OF_TABLES()					\
->  	KERNEL_DTB()							\
->  	IRQCHIP_OF_MATCH_TABLE()					\
-> +	IRQCHIP_ACPI_MATCH_TABLE()					\
->  	EARLYCON_TABLE()						\
->  	EARLYCON_OF_TABLES()
->  
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 90e4ed1e..b904af3 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -820,4 +820,18 @@ static inline struct acpi_device *acpi_get_next_child(struct device *dev,
->  
->  #endif
->  
-> +#ifdef CONFIG_ACPI
-> +#define ACPI_DECLARE(table, name, table_id, fn)				\
-> +	static const struct acpi_table_id __acpi_table_##name		\
-> +		__used __section(__##table##_acpi_table)		\
-> +		 = { .id = table_id,					\
-> +		     .data = (void *)fn }
-> +#else
-> +#define ACPI_DECLARE(table, name, table_id, fn)				\
-> +	static const struct acpi_table_id __acpi_table_##name		\
-> +		__attribute__((unused))					\
-> +		 = { .id = table_id,					\
-> +		     .data = (void*)fn }
-> +#endif
-> +
->  #endif	/*_LINUX_ACPI_H*/
-> diff --git a/include/linux/mod_devicetable.h b/include/linux/mod_devicetable.h
-> index 3bfd567..47c1ea1 100644
-> --- a/include/linux/mod_devicetable.h
-> +++ b/include/linux/mod_devicetable.h
-> @@ -199,6 +199,13 @@ struct pnp_device_id {
->  	kernel_ulong_t driver_data;
->  };
->  
-> +#define ACPI_TABLE_ID_LEN	5
-> +
-> +struct acpi_table_id {
-> +	__u8 id[ACPI_TABLE_ID_LEN];
-> +	const void *data;
-> +};
-> +
->  struct pnp_card_device_id {
->  	__u8 id[PNP_ID_LEN];
->  	kernel_ulong_t driver_data;
-> 
-
-
--- 
-Jazz is not dead. It just smells funny...
+V2UgbWF5IGRvIGEgcXVpY2sgdXBkYXRlIGZvciB0aGUgVENQQSBhbmQgVFBNMiB0YWJsZXM7IGJ1
+dCBoYXZpbmcgdHdvIGRpZmZlcmVudCBBQ1BJIHRhYmxlcyB3aXRoIHRoZSBzYW1lIHNpZ25hdHVy
+ZSAoVENQQSBjbGllbnQgYW5kIFRDUEEgc2VydmVyKSB0aHJvd3MgYSBiaXQgb2YgYSBtb25rZXkg
+d3JlbmNoIGludG8gc29tZSBvZiB0aGUgQUNQSUNBIHN0dWZmLiBOb3Qgb25seSBkbyB3ZSBzdXBw
+b3J0IEFDUEkgdGFibGVzIGluIHRoZSBoZWFkZXJzLCBidXQgd2UgYWxzbyBzdXBwb3J0IHRoZW0g
+aW4gdGhlIHRhYmxlIGRpc2Fzc2VtYmxlciBhbmQgdGhlIHRhYmxlIHRlbXBsYXRlIGdlbmVyYXRv
+ci4NCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBKYXJra28gU2Fra2lu
+ZW4gW21haWx0bzpqYXJra28uc2Fra2luZW5AbGludXguaW50ZWwuY29tXQ0KPiBTZW50OiBXZWRu
+ZXNkYXksIEp1bmUgMTAsIDIwMTUgNToxMyBBTQ0KPiBUbzogUmFmYWVsIEouIFd5c29ja2k7IE1v
+b3JlLCBSb2JlcnQNCj4gQ2M6IHBldGVyaHVld2VAZ214LmRlOyBMZW4gQnJvd247IFpoZW5nLCBM
+djsgQUNQSTsgb3BlbiBsaXN0OkFDUEkNCj4gQ09NUE9ORU5UIEFSLi4uOyBvcGVuIGxpc3QNCj4g
+U3ViamVjdDogUmU6IFtQQVRDSCB2Ml0gYWNwaTogdXBkYXRlIEFDUEkgdGFibGVzIHRvIG1hdGNo
+IFRDRyBBQ1BJDQo+IHNwZWNpZmljYXRpb24uDQo+IA0KPiBPSywgdGhhbmsgeW91IGd1eXMuIFdl
+J2xsIHN0YXJ0IHRvIHVzZSBpdCBhcyBzb29uIGFzIHRoZSBjaGFuZ2VzIGdldCB0bw0KPiB0aGUg
+a2VybmVsIHRyZWUgZnJvbSBBQ1BJQ0EuDQo+IA0KPiAvSmFya2tvDQo+IA0KPiBPbiAwNi8xMC8y
+MDE1IDAxOjE1IEFNLCBSYWZhZWwgSi4gV3lzb2NraSB3cm90ZToNCj4gPiBPbiBUdWVzZGF5LCBK
+dW5lIDA5LCAyMDE1IDA3OjI1OjI1IFBNIEphcmtrbyBTYWtraW5lbiB3cm90ZToNCj4gPj4gVXBk
+YXRlZCBzdHJ1Y3QgYWNwaV90YWJsZV90cG0yIGFuZCBzdHJ1Y3QgYWNwaV90YWJsZV90Y3BhIHRv
+IG1hdGNoDQo+ID4+IHRoZSBUQ0cgQUNQSSBzcGVjaWZpY2F0aW9uLg0KPiA+Pg0KPiA+PiB2MjoN
+Cj4gPj4NCj4gPj4gLSBEbyBub3QgcmVtb3ZlIHN0cnVjdCBhY3BpX3RwbTJfY29udHJvbA0KPiA+
+Pg0KPiA+PiBTaWduZWQtb2ZmLWJ5OiBKYXJra28gU2Fra2luZW4gPGphcmtrby5zYWtraW5lbkBs
+aW51eC5pbnRlbC5jb20+DQo+ID4gQm9iLCBJJ20gYXNzdW1pbmcgdGhhdCB3ZSdsbCBiZSByb3V0
+aW5nIHRoaXMgb25lIHRocm91Z2ggdXBzdHJlYW0NCj4gQUNQSUNBLg0KPiA+DQo+ID4gSWYgdGhh
+dCdzIG5vdCB0aGUgY2FzZSBhbmQgSSBzaG91bGQgYXBwbHkgaXQgZGlyZWN0bHksIHBsZWFzZSBs
+ZXQgbWUNCj4ga25vdy4NCj4gPg0KPiA+DQo+ID4+IC0tLQ0KPiA+PiAgIGluY2x1ZGUvYWNwaS9h
+Y3RibDIuaCB8ICA1ICsrLS0tDQo+ID4+ICAgaW5jbHVkZS9hY3BpL2FjdGJsMy5oIHwgMTcgKysr
+KysrKysrKysrKy0tLS0NCj4gPj4gICAyIGZpbGVzIGNoYW5nZWQsIDE1IGluc2VydGlvbnMoKyks
+IDcgZGVsZXRpb25zKC0pDQo+ID4+DQo+ID4+IGRpZmYgLS1naXQgYS9pbmNsdWRlL2FjcGkvYWN0
+YmwyLmggYi9pbmNsdWRlL2FjcGkvYWN0YmwyLmggaW5kZXgNCj4gPj4gY2FmZGViNS4uMmYyYjhh
+NiAxMDA2NDQNCj4gPj4gLS0tIGEvaW5jbHVkZS9hY3BpL2FjdGJsMi5oDQo+ID4+ICsrKyBiL2lu
+Y2x1ZGUvYWNwaS9hY3RibDIuaA0KPiA+PiBAQCAtMTA3MSwxNCArMTA3MSwxMyBAQCBlbnVtIGFj
+cGlfc3BtaV9pbnRlcmZhY2VfdHlwZXMgew0KPiA+PiAgICAqIFRDUEEgLSBUcnVzdGVkIENvbXB1
+dGluZyBQbGF0Zm9ybSBBbGxpYW5jZSB0YWJsZQ0KPiA+PiAgICAqICAgICAgICBWZXJzaW9uIDEN
+Cj4gPj4gICAgKg0KPiA+PiAtICogQ29uZm9ybXMgdG8gIlRDRyBQQyBTcGVjaWZpYyBJbXBsZW1l
+bnRhdGlvbiBTcGVjaWZpY2F0aW9uIiwNCj4gPj4gLSAqIFZlcnNpb24gMS4xLCBBdWd1c3QgMTgs
+IDIwMDMNCj4gPj4gKyAqIENvbmZvcm1zIHRvICJUQ0cgQUNQSSBTcGVjaWZpY2F0aW9uIGZvciBG
+YW1pbHkgMS4yIGFuZCAyLjAiIDE5DQo+ID4+ICsgRGVjZW1iZXIgMjAxNA0KPiA+PiAgICAqDQo+
+ID4+DQo+ID4+ICoqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKg0KPiA+PiAqKioqKioqKiovDQo+ID4+DQo+ID4+ICAgc3Ry
+dWN0IGFjcGlfdGFibGVfdGNwYSB7DQo+ID4+ICAgCXN0cnVjdCBhY3BpX3RhYmxlX2hlYWRlciBo
+ZWFkZXI7CS8qIENvbW1vbiBBQ1BJIHRhYmxlIGhlYWRlciAqLw0KPiA+PiAtCXUxNiByZXNlcnZl
+ZDsNCj4gPj4gKwl1MTYgcGxhdGZvcm1fY2xhc3M7CS8qIDAgZm9yIGNsaWVudCBhbmQgMSBmb3Ig
+c2VydmVyIHBsYXRmb3Jtcy4NCj4gKi8NCj4gPj4gICAJdTMyIG1heF9sb2dfbGVuZ3RoOwkvKiBN
+YXhpbXVtIGxlbmd0aCBmb3IgdGhlIGV2ZW50IGxvZyBhcmVhICovDQo+ID4+ICAgCXU2NCBsb2df
+YWRkcmVzczsJLyogQWRkcmVzcyBvZiB0aGUgZXZlbnQgbG9nIGFyZWEgKi8NCj4gPj4gICB9Ow0K
+PiA+PiBkaWZmIC0tZ2l0IGEvaW5jbHVkZS9hY3BpL2FjdGJsMy5oIGIvaW5jbHVkZS9hY3BpL2Fj
+dGJsMy5oIGluZGV4DQo+ID4+IDQ0MGNhODEuLjhkZDYyNWMgMTAwNjQ0DQo+ID4+IC0tLSBhL2lu
+Y2x1ZGUvYWNwaS9hY3RibDMuaA0KPiA+PiArKysgYi9pbmNsdWRlL2FjcGkvYWN0YmwzLmgNCj4g
+Pj4gQEAgLTY4OCwxNSArNjg4LDI0IEBAIGVudW0gYWNwaV9yYXNmX3N0YXR1cyB7DQo+ID4+ICAg
+ICogVFBNMiAtIFRydXN0ZWQgUGxhdGZvcm0gTW9kdWxlIChUUE0pIDIuMCBIYXJkd2FyZSBJbnRl
+cmZhY2UgVGFibGUNCj4gPj4gICAgKiAgICAgICAgVmVyc2lvbiAzDQo+ID4+ICAgICoNCj4gPj4g
+LSAqIENvbmZvcm1zIHRvICJUUE0gMi4wIEhhcmR3YXJlIEludGVyZmFjZSBUYWJsZSAoVFBNMiki
+IDI5IE5vdmVtYmVyDQo+ID4+IDIwMTENCj4gPj4gKyAqIENvbmZvcm1zIHRvICJUQ0cgQUNQSSBT
+cGVjaWZpY2F0aW9uIGZvciBGYW1pbHkgMS4yIGFuZCAyLjAiIDE5DQo+ID4+ICsgRGVjZW1iZXIg
+MjAxNA0KPiA+PiAgICAqDQo+ID4+DQo+ID4+ICoqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKg0KPiA+PiAqKioqKioqKiov
+DQo+ID4+DQo+ID4+ICsvKiBIb3cgdG8gbm90aWZ5IHRoYXQgdGhlcmUgaXMgYSBjb21tYW5kIGF2
+YWlsYWJsZSBmb3IgcHJvY2Vzc2luZy4NCj4gPj4gKyovDQo+ID4+ICsNCj4gPj4gK2VudW0gYWNw
+aV90cG0yX3N0YXJ0X21ldGhvZCB7DQo+ID4+ICsJQUNQSV9UUE0yX1NNX0FDUEkgPSAyLA0KPiA+
+PiArCUFDUElfVFBNMl9TTV9DUkIgPSA3LA0KPiA+PiArCUFDUElfVFBNMl9TTV9DUkJfQU5EX0FD
+UEkgPSA4LA0KPiA+PiArfTsNCj4gPj4gKw0KPiA+PiAgIHN0cnVjdCBhY3BpX3RhYmxlX3RwbTIg
+ew0KPiA+PiAgIAlzdHJ1Y3QgYWNwaV90YWJsZV9oZWFkZXIgaGVhZGVyOwkvKiBDb21tb24gQUNQ
+SSB0YWJsZSBoZWFkZXIgKi8NCj4gPj4gLQl1MzIgZmxhZ3M7DQo+ID4+IC0JdTY0IGNvbnRyb2xf
+YWRkcmVzczsNCj4gPj4gLQl1MzIgc3RhcnRfbWV0aG9kOw0KPiA+PiArCXUxNiBwbGF0Zm9ybV9j
+bGFzczsJLyogMCBmb3IgY2xpZW50IGFuZCAxIGZvciBzZXJ2ZXIgcGxhdGZvcm1zDQo+ICovDQo+
+ID4+ICsJdTE2IHJlc2VydmVkOw0KPiA+PiArCXU2NCBjb250cm9sX2FkZHJlc3M7CS8qIFBoeXNp
+Y2FsIGFkZHJlc3Mgb2YgdGhlIGNvbnRyb2wgYXJlYSAqLw0KPiA+PiArCXUzMiBzdGFydF9tZXRo
+b2Q7CS8qIE1ldGhvZCB0byBub3RpZnkgdG8gc3RhcnQgcHJvY2Vzc2luZyAqLw0KPiA+PiAgIH07
+DQo+ID4+DQo+ID4+ICAgLyogQ29udHJvbCBhcmVhIHN0cnVjdHVyZSAobm90IHBhcnQgb2YgdGFi
+bGUsIHBvaW50ZWQgdG8gYnkNCj4gPj4gY29udHJvbF9hZGRyZXNzKSAqLw0KPiA+Pg0KDQo=
