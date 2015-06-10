@@ -1,59 +1,73 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 30/32] toshiba-acpi: Port to new backlight interface selection API
-Date: Wed, 10 Jun 2015 15:01:30 +0200
-Message-ID: <1433941292-21530-31-git-send-email-hdegoede@redhat.com>
+Subject: [PATCH 31/32] acpi-video-detect: Remove old API
+Date: Wed, 10 Jun 2015 15:01:31 +0200
+Message-ID: <1433941292-21530-32-git-send-email-hdegoede@redhat.com>
 References: <1433941292-21530-1-git-send-email-hdegoede@redhat.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:60073 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754136AbbFJNDg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 10 Jun 2015 09:03:36 -0400
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
 In-Reply-To: <1433941292-21530-1-git-send-email-hdegoede@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
 To: Darren Hart <dvhart@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Ben Skeggs <bskeggs@redhat.com>, Azael Avalos <coproscefalo@gmail.com>, Corentin Chary <corentin.chary@gmail.com>, Lee Chun-Yi <jlee@suse.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, Ike Panhc <ike.pan@canonical.com>, Anisse Astier <anisse@astier.eu>, Mattia Dongili <malattia@linux.it>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, platform-driver-x86@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, acpi4asus-user@lists.sourceforge.net, dri-devel@lists.freedesktop.org, Aaron Lu <aaron.lu@intel.com>, linux-acpi@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Hans de Goede <hdegoede@redhat.com>, Ike Panhc <ike.pan@canonical.com>, linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, acpi4asus-user@lists.sourceforge.net, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, dri-devel@lists.freedesktop.org, Azael Avalos <coproscefalo@gmail.com>, Lee Chun-Yi <jlee@suse.com>, Mattia Dongili <malattia@linux.it>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Ben Skeggs <bskeggs@redhat.com>, Corentin Chary <corentin.chary@gmail.com>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, platform-driver-x86@vger.kernel.org, Aaron Lu <aaron.lu@intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
-Port the backlight selection logic to the new backlight interface
-selection API.
-
-Also fix a compiler warning about bt_present not being initialized.
-
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/platform/x86/toshiba_acpi.c | 9 +++------
- 1 file changed, 3 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/platform/x86/toshiba_acpi.c b/drivers/platform/x86/toshiba_acpi.c
-index 9956b990..c484d47 100644
---- a/drivers/platform/x86/toshiba_acpi.c
-+++ b/drivers/platform/x86/toshiba_acpi.c
-@@ -2640,14 +2640,11 @@ static int toshiba_acpi_setup_backlight(struct toshiba_acpi_dev *dev)
- 	 */
- 	if (dev->tr_backlight_supported ||
- 	    dmi_check_system(toshiba_vendor_backlight_dmi))
--		acpi_video_dmi_promote_vendor();
-+		acpi_video_set_dmi_backlight_type(acpi_backlight_vendor);
- 
--	if (acpi_video_backlight_support())
-+	if (acpi_video_get_backlight_type() != acpi_backlight_vendor)
- 		return 0;
- 
--	/* acpi-video may have loaded before we called dmi_promote_vendor() */
--	acpi_video_unregister_backlight();
--
- 	memset(&props, 0, sizeof(props));
- 	props.type = BACKLIGHT_PLATFORM;
- 	props.max_brightness = HCI_LCD_BRIGHTNESS_LEVELS - 1;
-@@ -2733,7 +2730,7 @@ static int toshiba_acpi_add(struct acpi_device *acpi_dev)
- 	const char *hci_method;
- 	u32 special_functions;
- 	u32 dummy;
--	bool bt_present;
-+	bool bt_present = false;
- 	int ret = 0;
- 
- 	if (toshiba_acpi)
--- 
-2.4.2
-
+UmVtb3ZlIHRoZSBvbGQgYmFja2xpZ2h0IGludGVyZmFjZSBzZWxlY3Rpb24gQVBJIG5vdyB0aGF0
+IGFsbCBkcml2ZXJzCmhhdmUgYmVlbiBwb3J0ZWQgdG8gdGhlIG5ldyBBUEkuCgpTaWduZWQtb2Zm
+LWJ5OiBIYW5zIGRlIEdvZWRlIDxoZGVnb2VkZUByZWRoYXQuY29tPgotLS0KIGRyaXZlcnMvYWNw
+aS92aWRlb19kZXRlY3QuYyB8IDMxIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KIGlu
+Y2x1ZGUvbGludXgvYWNwaS5oICAgICAgICB8IDE5IC0tLS0tLS0tLS0tLS0tLS0tLS0KIDIgZmls
+ZXMgY2hhbmdlZCwgNTAgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL3Zp
+ZGVvX2RldGVjdC5jIGIvZHJpdmVycy9hY3BpL3ZpZGVvX2RldGVjdC5jCmluZGV4IDQ5ODliYTYu
+LmQ1ZTZmMWMgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvYWNwaS92aWRlb19kZXRlY3QuYworKysgYi9k
+cml2ZXJzL2FjcGkvdmlkZW9fZGV0ZWN0LmMKQEAgLTM0NCwzNyArMzQ0LDYgQEAgdm9pZCBhY3Bp
+X3ZpZGVvX3NldF9kbWlfYmFja2xpZ2h0X3R5cGUoZW51bSBhY3BpX2JhY2tsaWdodF90eXBlIHR5
+cGUpCiB9CiBFWFBPUlRfU1lNQk9MKGFjcGlfdmlkZW9fc2V0X2RtaV9iYWNrbGlnaHRfdHlwZSk7
+CiAKLS8qCi0gKiBDb21wYXRpYmxpdHkgZnVuY3Rpb24sIHRoaXMgaXMgZ29pbmcgYXdheSBhcyBz
+b29uIGFzIGFsbCBkcml2ZXJzIGFyZQotICogY29udmVydGVkIHRvIGFjcGlfdmlkZW9fc2V0X2Rt
+aV9iYWNrbGlnaHRfdHlwZSgpLgotICoKLSAqIFByb21vdGUgdGhlIHZlbmRvciBpbnRlcmZhY2Ug
+aW5zdGVhZCBvZiB0aGUgZ2VuZXJpYyB2aWRlbyBtb2R1bGUuCi0gKiBBZnRlciBjYWxsaW5nIHRo
+aXMgZnVuY3Rpb24geW91IHdpbGwgcHJvYmFibHkgd2FudCB0byBjYWxsCi0gKiBhY3BpX3ZpZGVv
+X3VucmVnaXN0ZXIoKSB0byBtYWtlIHN1cmUgdGhlIHZpZGVvIG1vZHVsZSBpcyBub3QgbG9hZGVk
+Ci0gKi8KLXZvaWQgYWNwaV92aWRlb19kbWlfcHJvbW90ZV92ZW5kb3Iodm9pZCkKLXsKLQlhY3Bp
+X3ZpZGVvX3NldF9kbWlfYmFja2xpZ2h0X3R5cGUoYWNwaV9iYWNrbGlnaHRfdmVuZG9yKTsKLX0K
+LUVYUE9SVF9TWU1CT0woYWNwaV92aWRlb19kbWlfcHJvbW90ZV92ZW5kb3IpOwotCi0vKgotICog
+Q29tcGF0aWJsaXR5IGZ1bmN0aW9uLCB0aGlzIGlzIGdvaW5nIGF3YXkgYXMgc29vbiBhcyBhbGwg
+ZHJpdmVycyBhcmUKLSAqIGNvbnZlcnRlZCB0byBhY3BpX3ZpZGVvX2dldF9iYWNrbGlnaHRfdHlw
+ZSgpLgotICoKLSAqIFJldHVybnMgdHJ1ZSBpZiB2aWRlby5rbyBjYW4gZG8gYmFja2xpZ2h0IHN3
+aXRjaGluZy4KLSAqLwotaW50IGFjcGlfdmlkZW9fYmFja2xpZ2h0X3N1cHBvcnQodm9pZCkKLXsK
+LQkvKgotCSAqIFRoaXMgaXMgZG9uZSB0aGlzIHdheSBzaW5jZSB2ZW5kb3IgZHJpdmVycyBjYWxs
+IHRoaXMgdG8gc2VlCi0JICogaWYgdGhleSBzaG91bGQgbG9hZCwgYW5kIHdlIGRvIG5vdCB3YW50
+IHRoZW0gdG8gbG9hZCBmb3IgYm90aAotCSAqIHRoZSBhY3BpX2JhY2tsaWdodF92aWRlbyBhbmQg
+YWNwaV9iYWNrbGlnaHRfbmF0aXZlIGNhc2VzLgotCSAqLwotCXJldHVybiBhY3BpX3ZpZGVvX2dl
+dF9iYWNrbGlnaHRfdHlwZSgpICE9IGFjcGlfYmFja2xpZ2h0X3ZlbmRvcjsKLX0KLUVYUE9SVF9T
+WU1CT0woYWNwaV92aWRlb19iYWNrbGlnaHRfc3VwcG9ydCk7Ci0KIHZvaWQgX19leGl0IGFjcGlf
+dmlkZW9fZGV0ZWN0X2V4aXQodm9pZCkKIHsKIAlpZiAoYmFja2xpZ2h0X25vdGlmaWVyX3JlZ2lz
+dGVyZWQpCmRpZmYgLS1naXQgYS9pbmNsdWRlL2xpbnV4L2FjcGkuaCBiL2luY2x1ZGUvbGludXgv
+YWNwaS5oCmluZGV4IDkxM2ExYzEuLjk0OGM4YTQgMTAwNjQ0Ci0tLSBhL2luY2x1ZGUvbGludXgv
+YWNwaS5oCisrKyBiL2luY2x1ZGUvbGludXgvYWNwaS5oCkBAIC0yNDQsMjUgKzI0NCw2IEBAIGV4
+dGVybiBib29sIHdtaV9oYXNfZ3VpZChjb25zdCBjaGFyICpndWlkKTsKICNkZWZpbmUgQUNQSV9W
+SURFT19PVVRQVVRfU1dJVENISU5HX0RNSV9WSURFTwkJMHgwODAwCiAKIGV4dGVybiBsb25nIGFj
+cGlfaXNfdmlkZW9fZGV2aWNlKGFjcGlfaGFuZGxlIGhhbmRsZSk7Ci0KLSNpZiBkZWZpbmVkKENP
+TkZJR19BQ1BJX1ZJREVPKSB8fCBkZWZpbmVkKENPTkZJR19BQ1BJX1ZJREVPX01PRFVMRSkKLQot
+ZXh0ZXJuIHZvaWQgYWNwaV92aWRlb19kbWlfcHJvbW90ZV92ZW5kb3Iodm9pZCk7Ci1leHRlcm4g
+aW50IGFjcGlfdmlkZW9fYmFja2xpZ2h0X3N1cHBvcnQodm9pZCk7Ci0KLSNlbHNlCi0KLXN0YXRp
+YyBpbmxpbmUgdm9pZCBhY3BpX3ZpZGVvX2RtaV9wcm9tb3RlX3ZlbmRvcih2b2lkKQotewotfQot
+Ci1zdGF0aWMgaW5saW5lIGludCBhY3BpX3ZpZGVvX2JhY2tsaWdodF9zdXBwb3J0KHZvaWQpCi17
+Ci0JcmV0dXJuIDA7Ci19Ci0KLSNlbmRpZiAvKiBkZWZpbmVkKENPTkZJR19BQ1BJX1ZJREVPKSB8
+fCBkZWZpbmVkKENPTkZJR19BQ1BJX1ZJREVPX01PRFVMRSkgKi8KLQogZXh0ZXJuIGludCBhY3Bp
+X2JsYWNrbGlzdGVkKHZvaWQpOwogZXh0ZXJuIHZvaWQgYWNwaV9kbWlfb3NpX2xpbnV4KGludCBl
+bmFibGUsIGNvbnN0IHN0cnVjdCBkbWlfc3lzdGVtX2lkICpkKTsKIGV4dGVybiB2b2lkIGFjcGlf
+b3NpX3NldHVwKGNoYXIgKnN0cik7Ci0tIAoyLjQuMgoKX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxA
+bGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHA6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1h
+bi9saXN0aW5mby9kcmktZGV2ZWwK
