@@ -1,52 +1,49 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 25/32] msi-laptop: Port to new backlight interface selection
- API
-Date: Wed, 10 Jun 2015 15:01:25 +0200
-Message-ID: <1433941292-21530-26-git-send-email-hdegoede@redhat.com>
+Subject: [PATCH 26/32] msi-wmi: Port to new backlight interface selection API
+Date: Wed, 10 Jun 2015 15:01:26 +0200
+Message-ID: <1433941292-21530-27-git-send-email-hdegoede@redhat.com>
 References: <1433941292-21530-1-git-send-email-hdegoede@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:53484 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S964810AbbFJNDU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 10 Jun 2015 09:03:20 -0400
 In-Reply-To: <1433941292-21530-1-git-send-email-hdegoede@redhat.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Darren Hart <dvhart@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Hans de Goede <hdegoede@redhat.com>, Ike Panhc <ike.pan@canonical.com>, linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, acpi4asus-user@lists.sourceforge.net, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, dri-devel@lists.freedesktop.org, Azael Avalos <coproscefalo@gmail.com>, Lee Chun-Yi <jlee@suse.com>, Mattia Dongili <malattia@linux.it>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Ben Skeggs <bskeggs@redhat.com>, Corentin Chary <corentin.chary@gmail.com>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, platform-driver-x86@vger.kernel.org, Aaron Lu <aaron.lu@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Darren Hart <dvhart@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Ben Skeggs <bskeggs@redhat.com>, Azael Avalos <coproscefalo@gmail.com>, Corentin Chary <corentin.chary@gmail.com>, Lee Chun-Yi <jlee@suse.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, Ike Panhc <ike.pan@canonical.com>, Anisse Astier <anisse@astier.eu>, Mattia Dongili <malattia@linux.it>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, platform-driver-x86@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, acpi4asus-user@lists.sourceforge.net, dri-devel@lists.freedesktop.org, Aaron Lu <aaron.lu@intel.com>, linux-acpi@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
 
-UG9ydCB0aGUgYmFja2xpZ2h0IHNlbGVjdGlvbiBsb2dpYyB0byB0aGUgbmV3IGJhY2tsaWdodCBp
-bnRlcmZhY2UKc2VsZWN0aW9uIEFQSS4KClRoaXMgY29tbWl0IGFsc28gcmVtb3ZlcyB2YXJpb3Vz
-IG9ic29sZXRlIHByX3h4eCBtZXNzYWdlcyByZWxhdGVkIHRvCmJhY2tsaWdodCBpbnRlcmZhY2Ug
-c2VsZWN0aW9uLiBUaGVzZSBhcmUgb2Jzb2xldGUgYmVjYXVzZSB0aGV5IGFzc3VtZQp0aGVyZSBp
-cyBvbmx5IGEgdmVuZG9yIG9yIGFjcGkgYmFja2xpZ2h0IGRyaXZlciBhbmQgbm8gb3RoZXIgY2hv
-aWNlLgpBbHNvIHRoZXkgYXJlIG5vdCBuZWNlc3NhcnksIGlmIHRoZSB1c2VyIHdhbnRzIHRvIGtu
-b3cgd2hpY2ggYmFja2xpZ2h0CmludGVyZmFjZXMgYXJlIHJlZ2lzdGVyZWQgYSBzaW1wbGUgImxz
-IC9zeXMvY2xhc3MvYmFja2xpZ2h0IiBzdWZmaWNlcy4KClNpZ25lZC1vZmYtYnk6IEhhbnMgZGUg
-R29lZGUgPGhkZWdvZWRlQHJlZGhhdC5jb20+Ci0tLQogZHJpdmVycy9wbGF0Zm9ybS94ODYvbXNp
-LWxhcHRvcC5jIHwgNiArKystLS0KIDEgZmlsZSBjaGFuZ2VkLCAzIGluc2VydGlvbnMoKyksIDMg
-ZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9wbGF0Zm9ybS94ODYvbXNpLWxhcHRv
-cC5jIGIvZHJpdmVycy9wbGF0Zm9ybS94ODYvbXNpLWxhcHRvcC5jCmluZGV4IDA4NTk4NzcuLjQy
-MzE3NzAgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvcGxhdGZvcm0veDg2L21zaS1sYXB0b3AuYworKysg
-Yi9kcml2ZXJzL3BsYXRmb3JtL3g4Ni9tc2ktbGFwdG9wLmMKQEAgLTY0LDYgKzY0LDcgQEAKICNp
-bmNsdWRlIDxsaW51eC9pODA0Mi5oPgogI2luY2x1ZGUgPGxpbnV4L2lucHV0Lmg+CiAjaW5jbHVk
-ZSA8bGludXgvaW5wdXQvc3BhcnNlLWtleW1hcC5oPgorI2luY2x1ZGUgPGFjcGkvdmlkZW8uaD4K
-IAogI2RlZmluZSBNU0lfRFJJVkVSX1ZFUlNJT04gIjAuNSIKIApAQCAtMTA2OSw5ICsxMDcwLDgg
-QEAgc3RhdGljIGludCBfX2luaXQgbXNpX2luaXQodm9pZCkKIAogCS8qIFJlZ2lzdGVyIGJhY2ts
-aWdodCBzdHVmZiAqLwogCi0JaWYgKCFxdWlya3MtPm9sZF9lY19tb2RlbCB8fCBhY3BpX3ZpZGVv
-X2JhY2tsaWdodF9zdXBwb3J0KCkpIHsKLQkJcHJfaW5mbygiQnJpZ2h0bmVzcyBpZ25vcmVkLCBt
-dXN0IGJlIGNvbnRyb2xsZWQgYnkgQUNQSSB2aWRlbyBkcml2ZXJcbiIpOwotCX0gZWxzZSB7CisJ
-aWYgKHF1aXJrcy0+b2xkX2VjX21vZGVsIHx8CisJICAgIGFjcGlfdmlkZW9fZ2V0X2JhY2tsaWdo
-dF90eXBlKCkgPT0gYWNwaV9iYWNrbGlnaHRfdmVuZG9yKSB7CiAJCXN0cnVjdCBiYWNrbGlnaHRf
-cHJvcGVydGllcyBwcm9wczsKIAkJbWVtc2V0KCZwcm9wcywgMCwgc2l6ZW9mKHN0cnVjdCBiYWNr
-bGlnaHRfcHJvcGVydGllcykpOwogCQlwcm9wcy50eXBlID0gQkFDS0xJR0hUX1BMQVRGT1JNOwot
-LSAKMi40LjIKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-CmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpo
-dHRwOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+Port the backlight selection logic to the new backlight interface
+selection API.
+
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/platform/x86/msi-wmi.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/platform/x86/msi-wmi.c b/drivers/platform/x86/msi-wmi.c
+index 6d2bac0..978e6d6 100644
+--- a/drivers/platform/x86/msi-wmi.c
++++ b/drivers/platform/x86/msi-wmi.c
+@@ -29,6 +29,7 @@
+ #include <linux/backlight.h>
+ #include <linux/slab.h>
+ #include <linux/module.h>
++#include <acpi/video.h>
+ 
+ MODULE_AUTHOR("Thomas Renninger <trenn@suse.de>");
+ MODULE_DESCRIPTION("MSI laptop WMI hotkeys driver");
+@@ -320,7 +321,8 @@ static int __init msi_wmi_init(void)
+ 		break;
+ 	}
+ 
+-	if (wmi_has_guid(MSIWMI_BIOS_GUID) && !acpi_video_backlight_support()) {
++	if (wmi_has_guid(MSIWMI_BIOS_GUID) &&
++	    acpi_video_get_backlight_type() == acpi_backlight_vendor) {
+ 		err = msi_wmi_backlight_setup();
+ 		if (err) {
+ 			pr_err("Unable to setup backlight device\n");
+-- 
+2.4.2
+
