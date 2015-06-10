@@ -1,43 +1,100 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: [PATCH v2 0/3] Add NUMA support for NVDIMM devices
-Date: Wed, 10 Jun 2015 11:54:38 -0400
-Message-ID: <x494mmfwoch.fsf@segfault.boston.devel.redhat.com>
-References: <1433891440-3515-1-git-send-email-toshi.kani@hp.com>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: [PATCH 06/11] ACPI / gsi: Add gsi_mutex to synchronize
+ acpi_register_gsi()/acpi_unregister_gsi()
+Date: Wed, 10 Jun 2015 16:58:05 +0100
+Message-ID: <55785E8D.1000909@arm.com>
+References: <1431953961-22706-1-git-send-email-hanjun.guo@linaro.org>
+ <1431953961-22706-7-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:34609 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964890AbbFJPyk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 10 Jun 2015 11:54:40 -0400
-In-Reply-To: <1433891440-3515-1-git-send-email-toshi.kani@hp.com> (Toshi
-	Kani's message of "Tue, 9 Jun 2015 17:10:37 -0600")
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1431953961-22706-7-git-send-email-hanjun.guo@linaro.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Hanjun Guo <hanjun.guo@linaro.org>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: rjw@rjwysocki.net, dan.j.williams@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@ml01.01.org
 
-Toshi Kani <toshi.kani@hp.com> writes:
+On 18/05/15 13:59, Hanjun Guo wrote:
+> Add a mutex for acpi_register_gsi()/acpi_unregister_gsi() to avoid
+> concurrency issues.
+> 
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> ---
+>  drivers/acpi/gsi.c | 17 +++++++++++++----
+>  1 file changed, 13 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/acpi/gsi.c b/drivers/acpi/gsi.c
+> index 55b5f31..ab0dcb4 100644
+> --- a/drivers/acpi/gsi.c
+> +++ b/drivers/acpi/gsi.c
+> @@ -16,6 +16,7 @@
+>  enum acpi_irq_model_id acpi_irq_model;
+>  /* ACPI core domian pointing to GICv2/3 core domain */
+>  struct irq_domain *acpi_irq_domain __read_mostly;
+> +static DEFINE_MUTEX(gsi_mutex);
+>  
+>  static unsigned int acpi_gsi_get_irq_type(int trigger, int polarity)
+>  {
+> @@ -73,20 +74,24 @@ int acpi_register_gsi(struct device *dev, u32 gsi, int trigger,
+>  	int irq;
+>  	unsigned int irq_type = acpi_gsi_get_irq_type(trigger, polarity);
+>  
+> +	mutex_lock(&gsi_mutex);
+>  	irq = irq_find_mapping(acpi_irq_domain, gsi);
+>  	if (irq > 0)
+> -		return irq;
+> +		goto out;
+>  
+>  	irq = irq_domain_alloc_irqs(acpi_irq_domain, 1, dev_to_node(dev),
+>  				    &gsi);
+>  	if (irq <= 0)
+> -		return -EINVAL;
+> +		goto out;
+>  
+>  	/* Set irq type if specified and different than the current one */
+>  	if (irq_type != IRQ_TYPE_NONE &&
+>  		irq_type != irq_get_trigger_type(irq))
+>  		irq_set_irq_type(irq, irq_type);
+> -	return irq;
+> +
+> +out:
+> +	mutex_unlock(&gsi_mutex);
+> +	return irq > 0 ? irq : -EINVAL;
+>  }
+>  EXPORT_SYMBOL_GPL(acpi_register_gsi);
+>  
+> @@ -96,8 +101,12 @@ EXPORT_SYMBOL_GPL(acpi_register_gsi);
+>   */
+>  void acpi_unregister_gsi(u32 gsi)
+>  {
+> -	int irq = irq_find_mapping(acpi_irq_domain, gsi);
+> +	int irq;
+> +
+> +	mutex_lock(&gsi_mutex);
+> +	irq = irq_find_mapping(acpi_irq_domain, gsi);
+>  
+>  	irq_dispose_mapping(irq);
+> +	mutex_unlock(&gsi_mutex);
+>  }
+>  EXPORT_SYMBOL_GPL(acpi_unregister_gsi);
+> 
 
-> Since NVDIMMs are installed on memory slots, they expose the NUMA
-> topology of a platform.  This patchset adds support of sysfs
-> 'numa_node' to I/O-related NVDIMM devices under /sys/bus/nd/devices.
-> This enables numactl(8) to accept 'block:' and 'file:' paths of
-> pmem and btt devices as shown in the examples below.
->   numactl --preferred block:pmem0 --show
->   numactl --preferred file:/dev/pmem0s --show
->
-> numactl can be used to bind an application to the locality of
-> a target NVDIMM for better performance.  Here is a result of fio
-> benchmark to ext4/dax on an HP DL380 with 2 sockets for local and
-> remote settings.
->
->   Local [1] :  4098.3MB/s
->   Remote [2]:  3718.4MB/s
->
-> [1] numactl --preferred block:pmem0 --cpunodebind block:pmem0 fio <fs-on-pmem0> 
-> [2] numactl --preferred block:pmem1 --cpunodebind block:pmem1 fio <fs-on-pmem0>
+Can you point out why we need this locking? The rest of the kernel seems
+to live without it pretty well. And if we really have an issue, I'd
+prefer seeing it fixed in the core code rather than in something that is
+very much firmware-specific.
 
-Did you post the patches to numactl somewhere?
+Thanks,
 
--Jeff
+	M.
+-- 
+Jazz is not dead. It just smells funny...
