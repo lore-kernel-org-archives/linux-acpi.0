@@ -1,65 +1,33 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 32/32] acpi-video: Make acpi_video_unregister_backlight()
- private
-Date: Wed, 10 Jun 2015 15:01:32 +0200
-Message-ID: <1433941292-21530-33-git-send-email-hdegoede@redhat.com>
-References: <1433941292-21530-1-git-send-email-hdegoede@redhat.com>
+From: Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [RFT v2 34/48] pinctrl: Prepare for killing the first parameter
+ 'irq' of irq_flow_handler_t
+Date: Wed, 10 Jun 2015 15:14:06 +0200
+Message-ID: <CACRpkdZUD3VQkrT1JReiKvM1SZf_nJiN-=JNZoyMJjK0MGefuQ@mail.gmail.com>
+References: <1433391238-19471-1-git-send-email-jiang.liu@linux.intel.com>
+	<1433391238-19471-35-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <1433941292-21530-1-git-send-email-hdegoede@redhat.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Darren Hart <dvhart@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Hans de Goede <hdegoede@redhat.com>, Ike Panhc <ike.pan@canonical.com>, linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, acpi4asus-user@lists.sourceforge.net, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, dri-devel@lists.freedesktop.org, Azael Avalos <coproscefalo@gmail.com>, Lee Chun-Yi <jlee@suse.com>, Mattia Dongili <malattia@linux.it>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Ben Skeggs <bskeggs@redhat.com>, Corentin Chary <corentin.chary@gmail.com>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, platform-driver-x86@vger.kernel.org, Aaron Lu <aaron.lu@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-oi0-f47.google.com ([209.85.218.47]:33817 "EHLO
+	mail-oi0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933438AbbFJNOI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Jun 2015 09:14:08 -0400
+Received: by oigz2 with SMTP id z2so31856277oig.1
+        for <linux-acpi@vger.kernel.org>; Wed, 10 Jun 2015 06:14:06 -0700 (PDT)
+In-Reply-To: <1433391238-19471-35-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Heiko Stuebner <heiko@sntech.de>, Barry Song <baohua@kernel.org>, Maxime Ripard <maxime.ripard@free-electrons.com>, Bin Shi <Bin.Shi@csr.com>, Fan Wu <fwu@marvell.com>, Hans de Goede <hdegoede@redhat.com>, Chen-Yu Tsai <wens@csie.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-pci <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Barry Song <Baohua.Song@csr.com>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>
 
-YWNwaV92aWRlb191bnJlZ2lzdGVyX2JhY2tsaWdodCgpIGlzIG5vdyBvbmx5IHVzZWQgYnkgdmlk
-ZW9fZGV0ZWN0LmMKd2hpY2ggaXMgcGFydCBvZiB0aGUgc2FtZSBhY3BpX3ZpZGVvIG1vZHVsZSBh
-cyB2aWRlby5jLCBtYWtlCmFjcGlfdmlkZW9fdW5yZWdpc3Rlcl9iYWNrbGlnaHQoKSBwcml2YXRl
-IHRvIHRoaXMgbW9kdWxlLgoKU2lnbmVkLW9mZi1ieTogSGFucyBkZSBHb2VkZSA8aGRlZ29lZGVA
-cmVkaGF0LmNvbT4KLS0tCiBkcml2ZXJzL2FjcGkvdmlkZW8uYyAgICAgICAgfCAxIC0KIGRyaXZl
-cnMvYWNwaS92aWRlb19kZXRlY3QuYyB8IDIgKysKIGluY2x1ZGUvYWNwaS92aWRlby5oICAgICAg
-ICB8IDIgLS0KIDMgZmlsZXMgY2hhbmdlZCwgMiBpbnNlcnRpb25zKCspLCAzIGRlbGV0aW9ucygt
-KQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS92aWRlby5jIGIvZHJpdmVycy9hY3BpL3ZpZGVv
-LmMKaW5kZXggZmNjN2MyZS4uNzkwNjJmZiAxMDA2NDQKLS0tIGEvZHJpdmVycy9hY3BpL3ZpZGVv
-LmMKKysrIGIvZHJpdmVycy9hY3BpL3ZpZGVvLmMKQEAgLTE5ODgsNyArMTk4OCw2IEBAIHZvaWQg
-YWNwaV92aWRlb191bnJlZ2lzdGVyX2JhY2tsaWdodCh2b2lkKQogCX0KIAltdXRleF91bmxvY2so
-JnJlZ2lzdGVyX2NvdW50X211dGV4KTsKIH0KLUVYUE9SVF9TWU1CT0woYWNwaV92aWRlb191bnJl
-Z2lzdGVyX2JhY2tsaWdodCk7CiAKIC8qCiAgKiBUaGlzIGlzIGtpbmQgb2YgbmFzdHkuIEhhcmR3
-YXJlIHVzaW5nIEludGVsIGNoaXBzZXRzIG1heSByZXF1aXJlCmRpZmYgLS1naXQgYS9kcml2ZXJz
-L2FjcGkvdmlkZW9fZGV0ZWN0LmMgYi9kcml2ZXJzL2FjcGkvdmlkZW9fZGV0ZWN0LmMKaW5kZXgg
-ZDVlNmYxYy4uMDAxZDhjMyAxMDA2NDQKLS0tIGEvZHJpdmVycy9hY3BpL3ZpZGVvX2RldGVjdC5j
-CisrKyBiL2RyaXZlcnMvYWNwaS92aWRlb19kZXRlY3QuYwpAQCAtMzYsNiArMzYsOCBAQAogQUNQ
-SV9NT0RVTEVfTkFNRSgidmlkZW8iKTsKICNkZWZpbmUgX0NPTVBPTkVOVAkJQUNQSV9WSURFT19D
-T01QT05FTlQKIAordm9pZCBhY3BpX3ZpZGVvX3VucmVnaXN0ZXJfYmFja2xpZ2h0KHZvaWQpOwor
-CiBzdGF0aWMgYm9vbCBiYWNrbGlnaHRfbm90aWZpZXJfcmVnaXN0ZXJlZDsKIHN0YXRpYyBzdHJ1
-Y3Qgbm90aWZpZXJfYmxvY2sgYmFja2xpZ2h0X25iOwogCmRpZmYgLS1naXQgYS9pbmNsdWRlL2Fj
-cGkvdmlkZW8uaCBiL2luY2x1ZGUvYWNwaS92aWRlby5oCmluZGV4IDQ3YzdhZDYuLmE3ZDdmMTAg
-MTAwNjQ0Ci0tLSBhL2luY2x1ZGUvYWNwaS92aWRlby5oCisrKyBiL2luY2x1ZGUvYWNwaS92aWRl
-by5oCkBAIC0yNyw3ICsyNyw2IEBAIGVudW0gYWNwaV9iYWNrbGlnaHRfdHlwZSB7CiAjaWYgKGRl
-ZmluZWQgQ09ORklHX0FDUElfVklERU8gfHwgZGVmaW5lZCBDT05GSUdfQUNQSV9WSURFT19NT0RV
-TEUpCiBleHRlcm4gaW50IGFjcGlfdmlkZW9fcmVnaXN0ZXIodm9pZCk7CiBleHRlcm4gdm9pZCBh
-Y3BpX3ZpZGVvX3VucmVnaXN0ZXIodm9pZCk7Ci1leHRlcm4gdm9pZCBhY3BpX3ZpZGVvX3VucmVn
-aXN0ZXJfYmFja2xpZ2h0KHZvaWQpOwogZXh0ZXJuIGludCBhY3BpX3ZpZGVvX2dldF9lZGlkKHN0
-cnVjdCBhY3BpX2RldmljZSAqZGV2aWNlLCBpbnQgdHlwZSwKIAkJCSAgICAgICBpbnQgZGV2aWNl
-X2lkLCB2b2lkICoqZWRpZCk7CiBleHRlcm4gZW51bSBhY3BpX2JhY2tsaWdodF90eXBlIGFjcGlf
-dmlkZW9fZ2V0X2JhY2tsaWdodF90eXBlKHZvaWQpOwpAQCAtMzUsNyArMzQsNiBAQCBleHRlcm4g
-dm9pZCBhY3BpX3ZpZGVvX3NldF9kbWlfYmFja2xpZ2h0X3R5cGUoZW51bSBhY3BpX2JhY2tsaWdo
-dF90eXBlIHR5cGUpOwogI2Vsc2UKIHN0YXRpYyBpbmxpbmUgaW50IGFjcGlfdmlkZW9fcmVnaXN0
-ZXIodm9pZCkgeyByZXR1cm4gMDsgfQogc3RhdGljIGlubGluZSB2b2lkIGFjcGlfdmlkZW9fdW5y
-ZWdpc3Rlcih2b2lkKSB7IHJldHVybjsgfQotc3RhdGljIGlubGluZSB2b2lkIGFjcGlfdmlkZW9f
-dW5yZWdpc3Rlcl9iYWNrbGlnaHQodm9pZCkgeyByZXR1cm47IH0KIHN0YXRpYyBpbmxpbmUgaW50
-IGFjcGlfdmlkZW9fZ2V0X2VkaWQoc3RydWN0IGFjcGlfZGV2aWNlICpkZXZpY2UsIGludCB0eXBl
-LAogCQkJCSAgICAgIGludCBkZXZpY2VfaWQsIHZvaWQgKiplZGlkKQogewotLSAKMi40LjIKCl9f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBt
-YWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwOi8vbGlzdHMu
-ZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+On Thu, Jun 4, 2015 at 6:13 AM, Jiang Liu <jiang.liu@linux.intel.com> wrote:
+
+> Change irq flow handler to prepare for killing the first parameter 'irq'
+> of irq_flow_handler_t.
+>
+> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+
+Acked-by: Linus Walleij <linus.walleij@linaro.org>
+
+Yours,
+Linus Walleij
