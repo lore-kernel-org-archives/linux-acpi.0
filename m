@@ -1,190 +1,88 @@
 From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH 05/11] irqchip / gic: Add stacked irqdomain support for
- ACPI based GICv2 init
-Date: Wed, 10 Jun 2015 17:27:02 +0100
-Message-ID: <55786556.1020404@arm.com>
-References: <1431953961-22706-1-git-send-email-hanjun.guo@linaro.org> <1431953961-22706-6-git-send-email-hanjun.guo@linaro.org>
+Subject: Re: [PATCH 10/11] irqchip / GICv2 / ACPI: Consolidate GICv2 ACPI
+ related init code
+Date: Wed, 10 Jun 2015 17:29:47 +0100
+Message-ID: <557865FB.1010502@arm.com>
+References: <1431953961-22706-1-git-send-email-hanjun.guo@linaro.org> <1431953961-22706-11-git-send-email-hanjun.guo@linaro.org> <555CF23B.1000002@linaro.org> <555DEB6A.8090404@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:54367 "EHLO foss.arm.com"
+Received: from foss.arm.com ([217.140.101.70]:54386 "EHLO foss.arm.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964946AbbFJQ1G (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 10 Jun 2015 12:27:06 -0400
-In-Reply-To: <1431953961-22706-6-git-send-email-hanjun.guo@linaro.org>
+	id S965184AbbFJQ3v (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 10 Jun 2015 12:29:51 -0400
+In-Reply-To: <555DEB6A.8090404@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Olof Johansson <olof@lixom.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
+To: Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Olof Johansson <olof@lixom.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 
-On 18/05/15 13:59, Hanjun Guo wrote:
-> Introduce acpi_irq_domain for GICv2 core domain instead of referring
-> to the irq_default_domain, based on that, pass gsi as the argument and
-> get the gsi in gic_irq_domain_alloc() to add stacked irqdomain support
-> for ACPI based GICv2 init.
-> 
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> ---
->  drivers/acpi/gsi.c                   | 28 +++++++++++++---------------
->  drivers/irqchip/irq-gic.c            | 32 +++++++++++++++++---------------
->  include/linux/irqchip/arm-gic-acpi.h |  2 ++
->  3 files changed, 32 insertions(+), 30 deletions(-)
-> 
-> diff --git a/drivers/acpi/gsi.c b/drivers/acpi/gsi.c
-> index 38208f2..55b5f31 100644
-> --- a/drivers/acpi/gsi.c
-> +++ b/drivers/acpi/gsi.c
-> @@ -3,6 +3,7 @@
->   *
->   * Copyright (C) 2015 ARM Ltd.
->   * Author: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> + *         Hanjun Guo <hanjun.guo@linaro.org> for stacked irqdomains support
->   *
->   * This program is free software; you can redistribute it and/or modify
->   * it under the terms of the GNU General Public License version 2 as
-> @@ -13,6 +14,8 @@
->  #include <linux/irqdomain.h>
->  
->  enum acpi_irq_model_id acpi_irq_model;
-> +/* ACPI core domian pointing to GICv2/3 core domain */
-> +struct irq_domain *acpi_irq_domain __read_mostly;
+On 21/05/15 15:27, Hanjun Guo wrote:
+> On 2015=E5=B9=B405=E6=9C=8821=E6=97=A5 04:44, Tomasz Nowicki wrote:
+>> Hi Hanjun,
+>>
+>> On 05/18/2015 02:59 PM, Hanjun Guo wrote:
+>>> Move GICv2 ACPI related init code in irq-gic.c to irq-gic-acpi.c,
+>>> this can make the ACPI related GIC init code slef-contained.
+>>>
+>>> Introduce set_acpi_core_irqdomain() to set acpi_irqdomain then
+>>> it will be no need to make gic_data[] as a global value, and
+>>> it will save the confilcts with GICv3's gic_data in the later
+>>> patch.
+>>>
+>>> acpi_gic_parse_distributor() have the same function as
+>>> gic_acpi_parse_madt_distributor() to get the GIC distributor
+>>> physical base address, so just remove the duplicate one, and
+>>> only get the GIC version when it is unknown.
+>>>
+>>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>>> ---
+>>>   drivers/irqchip/irq-gic-acpi.c       |  95
+>>> +++++++++++++++++++++++++++++++-
+>>>   drivers/irqchip/irq-gic.c            | 103
+>>> +----------------------------------
+>>>   include/linux/irqchip/arm-gic-acpi.h |   5 ++
+>>>   3 files changed, 101 insertions(+), 102 deletions(-)
+>>>
+>>> diff --git a/drivers/irqchip/irq-gic-acpi.c
+>>> b/drivers/irqchip/irq-gic-acpi.c
+>>> index 1388d9e..8463e48 100644
+>>> --- a/drivers/irqchip/irq-gic-acpi.c
+>>> +++ b/drivers/irqchip/irq-gic-acpi.c
+>>> @@ -13,12 +13,16 @@
+>>>
+>>>   #include <linux/acpi.h>
+>>>   #include <linux/init.h>
+>>> +#include <linux/irqchip/arm-gic.h>
+>>>   #include <linux/irqchip/arm-gic-acpi.h>
+>>>   #include <linux/irqchip/arm-gic-v3.h>
+>>
+>> arm-gic.h and arm-gic-v3.h describe register map for respective driv=
+ers
+>> and should be used separately within parent driver only.
+>=20
+> Seems that there is no duplicate macros in that two head
+> file, but yes, it will confuse people.
+>=20
+> Consolidating all ACPI GIC code is an improvement to make
+> ACPI related code self-contained, but also have some drawbacks,
+>=20
+> Marc, what do you think?
 
-How is a single domain pointer going to work when you will have several
-domains (GICv2m, ITS)? Crucially, how are you going to perform the
-matching of a device with its irq domain?
+What I think is "Over my dead body".
+
+These include files are private to the respective interrupt controller
+code, and the only reason they are in linux/irqchip is because the
+corresponding KVM support code uses them too.
+
+Thanks,
 
 	M.
-
->  
->  static unsigned int acpi_gsi_get_irq_type(int trigger, int polarity)
->  {
-> @@ -45,12 +48,7 @@ static unsigned int acpi_gsi_get_irq_type(int trigger, int polarity)
->   */
->  int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
->  {
-> -	/*
-> -	 * Only default domain is supported at present, always find
-> -	 * the mapping corresponding to default domain by passing NULL
-> -	 * as irq_domain parameter
-> -	 */
-> -	*irq = irq_find_mapping(NULL, gsi);
-> +	*irq = irq_find_mapping(acpi_irq_domain, gsi);
->  	/*
->  	 * *irq == 0 means no mapping, that should
->  	 * be reported as a failure
-> @@ -72,16 +70,16 @@ EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
->  int acpi_register_gsi(struct device *dev, u32 gsi, int trigger,
->  		      int polarity)
->  {
-> -	unsigned int irq;
-> +	int irq;
->  	unsigned int irq_type = acpi_gsi_get_irq_type(trigger, polarity);
->  
-> -	/*
-> -	 * There is no way at present to look-up the IRQ domain on ACPI,
-> -	 * hence always create mapping referring to the default domain
-> -	 * by passing NULL as irq_domain parameter
-> -	 */
-> -	irq = irq_create_mapping(NULL, gsi);
-> -	if (!irq)
-> +	irq = irq_find_mapping(acpi_irq_domain, gsi);
-> +	if (irq > 0)
-> +		return irq;
-> +
-> +	irq = irq_domain_alloc_irqs(acpi_irq_domain, 1, dev_to_node(dev),
-> +				    &gsi);
-> +	if (irq <= 0)
->  		return -EINVAL;
->  
->  	/* Set irq type if specified and different than the current one */
-> @@ -98,7 +96,7 @@ EXPORT_SYMBOL_GPL(acpi_register_gsi);
->   */
->  void acpi_unregister_gsi(u32 gsi)
->  {
-> -	int irq = irq_find_mapping(NULL, gsi);
-> +	int irq = irq_find_mapping(acpi_irq_domain, gsi);
->  
->  	irq_dispose_mapping(irq);
->  }
-> diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
-> index fefbcb5..869a69f 100644
-> --- a/drivers/irqchip/irq-gic.c
-> +++ b/drivers/irqchip/irq-gic.c
-> @@ -851,15 +851,22 @@ static struct notifier_block gic_cpu_notifier = {
->  static int gic_irq_domain_alloc(struct irq_domain *domain, unsigned int virq,
->  				unsigned int nr_irqs, void *arg)
->  {
-> -	int i, ret;
-> +	int i;
->  	irq_hw_number_t hwirq;
-> -	unsigned int type = IRQ_TYPE_NONE;
-> -	struct of_phandle_args *irq_data = arg;
->  
-> -	ret = gic_irq_domain_xlate(domain, irq_data->np, irq_data->args,
-> -				   irq_data->args_count, &hwirq, &type);
-> -	if (ret)
-> -		return ret;
-> +	if (domain->of_node) {	/* DT case */
-> +		int ret;
-> +		unsigned int type = IRQ_TYPE_NONE;
-> +		struct of_phandle_args *irq_data = arg;
-> +
-> +		ret = gic_irq_domain_xlate(domain, irq_data->np,
-> +					irq_data->args,
-> +					irq_data->args_count, &hwirq, &type);
-> +		if (ret)
-> +			return ret;
-> +	} else {	/* ACPI case */
-> +		hwirq = (irq_hw_number_t)*(u32 *)arg;
-> +	}
->  
->  	for (i = 0; i < nr_irqs; i++)
->  		gic_irq_domain_map(domain, virq + i, hwirq + i);
-> @@ -945,11 +952,11 @@ void __init gic_init_bases(unsigned int gic_nr, int irq_start,
->  		gic_irqs = 1020;
->  	gic->gic_irqs = gic_irqs;
->  
-> -	if (node) {		/* DT case */
-> +	if (node || !acpi_disabled) {		/* DT or ACPI case */
->  		gic->domain = irq_domain_add_linear(node, gic_irqs,
->  						    &gic_irq_domain_hierarchy_ops,
->  						    gic);
-> -	} else {		/* Non-DT case */
-> +	} else {		/* Non-DT and ACPI case */
->  		/*
->  		 * For primary GICs, skip over SGIs.
->  		 * For secondary GICs, skip over PPIs, too.
-> @@ -1133,13 +1140,8 @@ gic_v2_acpi_init(struct acpi_table_header *table)
->  		return -ENOMEM;
->  	}
->  
-> -	/*
-> -	 * Initialize zero GIC instance (no multi-GIC support). Also, set GIC
-> -	 * as default IRQ domain to allow for GSI registration and GSI to IRQ
-> -	 * number translation (see acpi_register_gsi() and acpi_gsi_to_irq()).
-> -	 */
->  	gic_init_bases(0, -1, dist_base, cpu_base, 0, NULL);
-> -	irq_set_default_host(gic_data[0].domain);
-> +	acpi_irq_domain = gic_data[0].domain;
->  
->  	acpi_irq_model = ACPI_IRQ_MODEL_GIC;
->  	return 0;
-> diff --git a/include/linux/irqchip/arm-gic-acpi.h b/include/linux/irqchip/arm-gic-acpi.h
-> index 021e8e8..245386d 100644
-> --- a/include/linux/irqchip/arm-gic-acpi.h
-> +++ b/include/linux/irqchip/arm-gic-acpi.h
-> @@ -21,6 +21,8 @@
->  #define ACPI_GIC_CPU_IF_MEM_SIZE	(SZ_8K)
->  #define ACPI_GICV3_DIST_MEM_SIZE	(SZ_64K)
->  
-> +extern struct irq_domain *acpi_irq_domain;
-> +
->  int acpi_gic_version_init(void);
->  u8 acpi_gic_version(void);
->  #endif /* CONFIG_ACPI */
-> 
-
-
--- 
+--=20
 Jazz is not dead. It just smells funny...
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
