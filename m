@@ -1,46 +1,71 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [Patch v5 4/6] PCI/ACPI: Consolidate common PCI host bridge code
- into ACPI core
-Date: Wed, 10 Jun 2015 17:48:22 +0100
-Message-ID: <20150610164821.GA18832@red-moon>
-References: <1433780448-18636-1-git-send-email-jiang.liu@linux.intel.com>
- <1433780448-18636-5-git-send-email-jiang.liu@linux.intel.com>
- <20150609161230.GC8591@red-moon>
- <55771B27.1060509@linux.intel.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH 1/1 linux-next] ACPICA: use swap() in acpi_ns_sort_list()
+Date: Wed, 10 Jun 2015 16:48:26 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37D2F327A@ORSMSX112.amr.corp.intel.com>
+References: <1433953975-24445-1-git-send-email-fabf@skynet.be>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <55771B27.1060509@linux.intel.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Marc Zyngier <Marc.Zyngier@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, Yijing Wang <wangyijing@huawei.com>, Len Brown <lenb@kernel.org>, Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "x86 @ kernel . org" <x86@kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:38705 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965430AbbFJQsa convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Jun 2015 12:48:30 -0400
+In-Reply-To: <1433953975-24445-1-git-send-email-fabf@skynet.be>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Fabian Frederick <fabf@skynet.be>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: Julia Lawall <Julia.Lawall@lip6.fr>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
 
-On Tue, Jun 09, 2015 at 05:58:15PM +0100, Jiang Liu wrote:
-> On 2015/6/10 0:12, Lorenzo Pieralisi wrote:
+I don't think this is portable across operating systems. Which is a requirement for ACPICA.
 
-[...]
 
-> >> +struct pci_bus *acpi_pci_root_create(struct acpi_pci_root *root,
-> >> +				     struct acpi_pci_root_ops *ops,
-> >> +				     struct acpi_pci_root_info *info,
-> >> +				     void *sysdata, int segment, int node)
-> > 
-> > I do not think you need to pass segment and node, they clutter the
-> > function signature when you can retrieve them from root, I would
-> > make them local variables and use root->segment and acpi_get_node
-> > in the function body to retrieve them.
-> On x86, node and segment may be overridden under certain conditions.
-> For example, segment will always be 0 if 'pci_ignore_seg' is set.
 
-Ok, so the question would be then why do you not override the value
-in root->segment then (actually, is it *correct* to leave the segment
-value in root-> unchanged even if it is overriden) ?
+> -----Original Message-----
+> From: Fabian Frederick [mailto:fabf@skynet.be]
+> Sent: Wednesday, June 10, 2015 9:33 AM
+> To: linux-kernel@vger.kernel.org
+> Cc: Julia Lawall; Fabian Frederick; Moore, Robert; Zheng, Lv; Wysocki,
+> Rafael J; Len Brown; linux-acpi@vger.kernel.org; devel@acpica.org
+> Subject: [PATCH 1/1 linux-next] ACPICA: use swap() in acpi_ns_sort_list()
+> 
+> Use kernel.h macro definition.
+> 
+> Thanks to Julia Lawall for Coccinelle scripting support.
+> 
+> Signed-off-by: Fabian Frederick <fabf@skynet.be>
+> ---
+>  drivers/acpi/acpica/nsrepair2.c | 8 ++------
+>  1 file changed, 2 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/acpi/acpica/nsrepair2.c
+> b/drivers/acpi/acpica/nsrepair2.c index c30672d..7513799 100644
+> --- a/drivers/acpi/acpica/nsrepair2.c
+> +++ b/drivers/acpi/acpica/nsrepair2.c
+> @@ -904,7 +904,6 @@ acpi_ns_sort_list(union acpi_operand_object
+> **elements,  {
+>  	union acpi_operand_object *obj_desc1;
+>  	union acpi_operand_object *obj_desc2;
+> -	union acpi_operand_object *temp_obj;
+>  	u32 i;
+>  	u32 j;
+> 
+> @@ -920,11 +919,8 @@ acpi_ns_sort_list(union acpi_operand_object
+> **elements,
+>  			      obj_desc2->integer.value))
+>  			    || ((sort_direction == ACPI_SORT_DESCENDING)
+>  				&& (obj_desc1->integer.value <
+> -				    obj_desc2->integer.value))) {
+> -				temp_obj = elements[j - 1];
+> -				elements[j - 1] = elements[j];
+> -				elements[j] = temp_obj;
+> -			}
+> +				    obj_desc2->integer.value)))
+> +				swap(elements[j - 1], elements[j]);
+>  		}
+>  	}
+>  }
+> --
+> 2.4.2
 
-Anyway, node is just used for a printk, why do not you add segment and
-node to acpi_pci_root_info ? Just cosmetic stuff, trying to help you
-simplify the code, it is not easy to parse.
-
-Thanks,
-Lorenzo
