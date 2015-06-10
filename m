@@ -1,154 +1,190 @@
-From: "Elliott, Robert (Server Storage)" <Elliott@hp.com>
-Subject: RE: [PATCH v2 0/3] Add NUMA support for NVDIMM devices
-Date: Wed, 10 Jun 2015 16:20:34 +0000
-Message-ID: <94D0CD8314A33A4D9D801C0FE68B40295A97B1CB@G9W0745.americas.hpqcorp.net>
-References: <1433891440-3515-1-git-send-email-toshi.kani@hp.com>
- <x494mmfwoch.fsf@segfault.boston.devel.redhat.com>
- <CAPcyv4h1ak0YUnS1=RZzKjgbpSAV5hrm0NCiwg_Nmp4zKob8kg@mail.gmail.com>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: [PATCH 05/11] irqchip / gic: Add stacked irqdomain support for
+ ACPI based GICv2 init
+Date: Wed, 10 Jun 2015 17:27:02 +0100
+Message-ID: <55786556.1020404@arm.com>
+References: <1431953961-22706-1-git-send-email-hanjun.guo@linaro.org> <1431953961-22706-6-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g9t5008.houston.hp.com ([15.240.92.66]:46303 "EHLO
-	g9t5008.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933521AbbFJQVr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Jun 2015 12:21:47 -0400
-In-Reply-To: <CAPcyv4h1ak0YUnS1=RZzKjgbpSAV5hrm0NCiwg_Nmp4zKob8kg@mail.gmail.com>
-Content-Language: en-US
+Received: from foss.arm.com ([217.140.101.70]:54367 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S964946AbbFJQ1G (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 10 Jun 2015 12:27:06 -0400
+In-Reply-To: <1431953961-22706-6-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>, Jeff Moyer <jmoyer@redhat.com>
-Cc: linux-nvdimm <linux-nvdimm@ml01.01.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
+To: Hanjun Guo <hanjun.guo@linaro.org>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Olof Johansson <olof@lixom.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 
-> -----Original Message-----
-> From: Linux-nvdimm [mailto:linux-nvdimm-bounces@lists.01.org] On Behalf Of
-> Dan Williams
-> Sent: Wednesday, June 10, 2015 9:58 AM
-> To: Jeff Moyer
-> Cc: linux-nvdimm; Rafael J. Wysocki; linux-kernel@vger.kernel.org; Linux
-> ACPI
-> Subject: Re: [PATCH v2 0/3] Add NUMA support for NVDIMM devices
+On 18/05/15 13:59, Hanjun Guo wrote:
+> Introduce acpi_irq_domain for GICv2 core domain instead of referring
+> to the irq_default_domain, based on that, pass gsi as the argument and
+> get the gsi in gic_irq_domain_alloc() to add stacked irqdomain support
+> for ACPI based GICv2 init.
 > 
-> On Wed, Jun 10, 2015 at 8:54 AM, Jeff Moyer <jmoyer@redhat.com> wrote:
-> > Toshi Kani <toshi.kani@hp.com> writes:
-> >
-> >> Since NVDIMMs are installed on memory slots, they expose the NUMA
-> >> topology of a platform.  This patchset adds support of sysfs
-> >> 'numa_node' to I/O-related NVDIMM devices under /sys/bus/nd/devices.
-> >> This enables numactl(8) to accept 'block:' and 'file:' paths of
-> >> pmem and btt devices as shown in the examples below.
-> >>   numactl --preferred block:pmem0 --show
-> >>   numactl --preferred file:/dev/pmem0s --show
-> >>
-> >> numactl can be used to bind an application to the locality of
-> >> a target NVDIMM for better performance.  Here is a result of fio
-> >> benchmark to ext4/dax on an HP DL380 with 2 sockets for local and
-> >> remote settings.
-> >>
-> >>   Local [1] :  4098.3MB/s
-> >>   Remote [2]:  3718.4MB/s
-> >>
-> >> [1] numactl --preferred block:pmem0 --cpunodebind block:pmem0 fio <fs-
-> on-pmem0>
-> >> [2] numactl --preferred block:pmem1 --cpunodebind block:pmem1 fio <fs-
-> on-pmem0>
-> >
-> > Did you post the patches to numactl somewhere?
-> >
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> ---
+>  drivers/acpi/gsi.c                   | 28 +++++++++++++---------------
+>  drivers/irqchip/irq-gic.c            | 32 +++++++++++++++++---------------
+>  include/linux/irqchip/arm-gic-acpi.h |  2 ++
+>  3 files changed, 32 insertions(+), 30 deletions(-)
 > 
-> numactl already supports this today.
+> diff --git a/drivers/acpi/gsi.c b/drivers/acpi/gsi.c
+> index 38208f2..55b5f31 100644
+> --- a/drivers/acpi/gsi.c
+> +++ b/drivers/acpi/gsi.c
+> @@ -3,6 +3,7 @@
+>   *
+>   * Copyright (C) 2015 ARM Ltd.
+>   * Author: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> + *         Hanjun Guo <hanjun.guo@linaro.org> for stacked irqdomains support
+>   *
+>   * This program is free software; you can redistribute it and/or modify
+>   * it under the terms of the GNU General Public License version 2 as
+> @@ -13,6 +14,8 @@
+>  #include <linux/irqdomain.h>
+>  
+>  enum acpi_irq_model_id acpi_irq_model;
+> +/* ACPI core domian pointing to GICv2/3 core domain */
+> +struct irq_domain *acpi_irq_domain __read_mostly;
 
-numactl does have a bug handling partitions under these devices,
-because it assumes all storage devices have "/devices/pci"
-in their path as it tries to find the parent device for the
-partition.  I think we'll propose a numactl patch for that;
-I don't think the drivers can fool it.
+How is a single domain pointer going to work when you will have several
+domains (GICv2m, ITS)? Crucially, how are you going to perform the
+matching of a device with its irq domain?
 
-Details (from an earlier version of the patch series
-in which btt devices were named /dev/nd1, etc.):
+	M.
 
-strace shows that numactl is trying to find numa_node in very
-different locations for /dev/nd1p1 vs. /dev/sda1.
+>  
+>  static unsigned int acpi_gsi_get_irq_type(int trigger, int polarity)
+>  {
+> @@ -45,12 +48,7 @@ static unsigned int acpi_gsi_get_irq_type(int trigger, int polarity)
+>   */
+>  int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
+>  {
+> -	/*
+> -	 * Only default domain is supported at present, always find
+> -	 * the mapping corresponding to default domain by passing NULL
+> -	 * as irq_domain parameter
+> -	 */
+> -	*irq = irq_find_mapping(NULL, gsi);
+> +	*irq = irq_find_mapping(acpi_irq_domain, gsi);
+>  	/*
+>  	 * *irq == 0 means no mapping, that should
+>  	 * be reported as a failure
+> @@ -72,16 +70,16 @@ EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
+>  int acpi_register_gsi(struct device *dev, u32 gsi, int trigger,
+>  		      int polarity)
+>  {
+> -	unsigned int irq;
+> +	int irq;
+>  	unsigned int irq_type = acpi_gsi_get_irq_type(trigger, polarity);
+>  
+> -	/*
+> -	 * There is no way at present to look-up the IRQ domain on ACPI,
+> -	 * hence always create mapping referring to the default domain
+> -	 * by passing NULL as irq_domain parameter
+> -	 */
+> -	irq = irq_create_mapping(NULL, gsi);
+> -	if (!irq)
+> +	irq = irq_find_mapping(acpi_irq_domain, gsi);
+> +	if (irq > 0)
+> +		return irq;
+> +
+> +	irq = irq_domain_alloc_irqs(acpi_irq_domain, 1, dev_to_node(dev),
+> +				    &gsi);
+> +	if (irq <= 0)
+>  		return -EINVAL;
+>  
+>  	/* Set irq type if specified and different than the current one */
+> @@ -98,7 +96,7 @@ EXPORT_SYMBOL_GPL(acpi_register_gsi);
+>   */
+>  void acpi_unregister_gsi(u32 gsi)
+>  {
+> -	int irq = irq_find_mapping(NULL, gsi);
+> +	int irq = irq_find_mapping(acpi_irq_domain, gsi);
+>  
+>  	irq_dispose_mapping(irq);
+>  }
+> diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
+> index fefbcb5..869a69f 100644
+> --- a/drivers/irqchip/irq-gic.c
+> +++ b/drivers/irqchip/irq-gic.c
+> @@ -851,15 +851,22 @@ static struct notifier_block gic_cpu_notifier = {
+>  static int gic_irq_domain_alloc(struct irq_domain *domain, unsigned int virq,
+>  				unsigned int nr_irqs, void *arg)
+>  {
+> -	int i, ret;
+> +	int i;
+>  	irq_hw_number_t hwirq;
+> -	unsigned int type = IRQ_TYPE_NONE;
+> -	struct of_phandle_args *irq_data = arg;
+>  
+> -	ret = gic_irq_domain_xlate(domain, irq_data->np, irq_data->args,
+> -				   irq_data->args_count, &hwirq, &type);
+> -	if (ret)
+> -		return ret;
+> +	if (domain->of_node) {	/* DT case */
+> +		int ret;
+> +		unsigned int type = IRQ_TYPE_NONE;
+> +		struct of_phandle_args *irq_data = arg;
+> +
+> +		ret = gic_irq_domain_xlate(domain, irq_data->np,
+> +					irq_data->args,
+> +					irq_data->args_count, &hwirq, &type);
+> +		if (ret)
+> +			return ret;
+> +	} else {	/* ACPI case */
+> +		hwirq = (irq_hw_number_t)*(u32 *)arg;
+> +	}
+>  
+>  	for (i = 0; i < nr_irqs; i++)
+>  		gic_irq_domain_map(domain, virq + i, hwirq + i);
+> @@ -945,11 +952,11 @@ void __init gic_init_bases(unsigned int gic_nr, int irq_start,
+>  		gic_irqs = 1020;
+>  	gic->gic_irqs = gic_irqs;
+>  
+> -	if (node) {		/* DT case */
+> +	if (node || !acpi_disabled) {		/* DT or ACPI case */
+>  		gic->domain = irq_domain_add_linear(node, gic_irqs,
+>  						    &gic_irq_domain_hierarchy_ops,
+>  						    gic);
+> -	} else {		/* Non-DT case */
+> +	} else {		/* Non-DT and ACPI case */
+>  		/*
+>  		 * For primary GICs, skip over SGIs.
+>  		 * For secondary GICs, skip over PPIs, too.
+> @@ -1133,13 +1140,8 @@ gic_v2_acpi_init(struct acpi_table_header *table)
+>  		return -ENOMEM;
+>  	}
+>  
+> -	/*
+> -	 * Initialize zero GIC instance (no multi-GIC support). Also, set GIC
+> -	 * as default IRQ domain to allow for GSI registration and GSI to IRQ
+> -	 * number translation (see acpi_register_gsi() and acpi_gsi_to_irq()).
+> -	 */
+>  	gic_init_bases(0, -1, dist_base, cpu_base, 0, NULL);
+> -	irq_set_default_host(gic_data[0].domain);
+> +	acpi_irq_domain = gic_data[0].domain;
+>  
+>  	acpi_irq_model = ACPI_IRQ_MODEL_GIC;
+>  	return 0;
+> diff --git a/include/linux/irqchip/arm-gic-acpi.h b/include/linux/irqchip/arm-gic-acpi.h
+> index 021e8e8..245386d 100644
+> --- a/include/linux/irqchip/arm-gic-acpi.h
+> +++ b/include/linux/irqchip/arm-gic-acpi.h
+> @@ -21,6 +21,8 @@
+>  #define ACPI_GIC_CPU_IF_MEM_SIZE	(SZ_8K)
+>  #define ACPI_GICV3_DIST_MEM_SIZE	(SZ_64K)
+>  
+> +extern struct irq_domain *acpi_irq_domain;
+> +
+>  int acpi_gic_version_init(void);
+>  u8 acpi_gic_version(void);
+>  #endif /* CONFIG_ACPI */
+> 
 
-strace for /dev/nd1p1
-=====================
-open("/sys/class/block/nd1p1/dev", O_RDONLY) = 4
-read(4, "259:1\n", 4095)                = 6
-close(4)                                = 0
-close(3)                                = 0
-readlink("/sys/class/block/nd1p1", "../../devices/LNXSYSTM:00/LNXSYB"..., 1024) = 77
-open("/sys/class/block/nd1p1/device/numa_node", O_RDONLY) = -1 ENOENT (No such file or directory)
 
-strace for /dev/sda1
-====================
-open("/sys/class/block/sda1/dev", O_RDONLY) = 4
-read(4, "8:1\n", 4095)                  = 4
-close(4)                                = 0
-close(3)                                = 0
-readlink("/sys/class/block/sda1", "../../devices/pci0000:00/0000:00"..., 1024) = 91
-open("/sys//devices/pci0000:00/0000:00:01.0//numa_node", O_RDONLY) = 3
-read(3, "0\n", 4095)                    = 2
-close(3)                                = 0
-
-The "sys/class/block/xxx" paths link to:
-lrwxrwxrwx. 1 root root 0 May 20 20:42 /sys/class/block/nd1p1 -> ../../devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/btt1/block/nd1/nd1p1
-lrwxrwxrwx. 1 root root 0 May 20 20:41 /sys/class/block/sda1 -> ../../devices/pci0000:00/0000:00:01.0/0000:03:00.0/host6/target6:0:0/6:0:0:0/block/sda/sda1
-
-
-For /dev/sda1, numactl recognizes "/devices/pci" as
-a special path, and strips off everything after the
-numbers.  Faced with:
-../../devices/pci0000:00/0000:00:01.0/0000:03:00.0/host6/target6:0:0/6:0:0:0/block/sda/sda1
-
-it ends up with this (leaving a sloppy "//" in the path):
-/sys/devices/pci0000:00/0000:00:01.0//numa_node
-
-It would also succeed if it ended up with this:
-/sys/devices/pci0000:00/0000:00:01.0/0000:03:00.0/numa_node
-
-For /dev/nd1p1 it does not see that string, so just
-tries to open "/sys/class/block/nd1p1/device/numa_node"
-
-There are no "device/" subdirectories in the tree for
-partition devices (for either sda1 or nd1p1), so this 
-fails.
-
-
->From http://oss.sgi.com/projects/libnuma/
-numactl affinity.c:
-        /* Somewhat hackish: extract device from symlink path.
-           Better would be a direct backlink. This knows slightly too
-           much about the actual sysfs layout. */
-        char path[1024];
-        char *fn = NULL;
-        if (asprintf(&fn, "/sys/class/%s/%s", cls, dev) > 0 &&
-            readlink(fn, path, sizeof path) > 0) {
-                regex_t re;
-                regmatch_t match[2];
-                char *p;
-
-                regcomp(&re, "(/devices/pci[0-9a-fA-F:/]+\\.[0-9]+)/",
-                        REG_EXTENDED);
-                ret = regexec(&re, path, 2, match, 0);
-                regfree(&re);
-                if (ret == 0) {
-                        free(fn);
-                        assert(match[0].rm_so > 0);
-                        assert(match[0].rm_eo > 0);
-                        path[match[1].rm_eo + 1] = 0;
-                        p = path + match[0].rm_so;
-                        ret = sysfs_node_read(mask, "/sys/%s/numa_node", p);
-                        if (ret < 0)
-                                return node_parse_failure(ret, NULL, p);
-                        return ret;
-                }
-        }
-        free(fn);
-
-        ret = sysfs_node_read(mask, "/sys/class/%s/%s/device/numa_node",
-                              cls, dev);
-
-
-
-
-
+-- 
+Jazz is not dead. It just smells funny...
