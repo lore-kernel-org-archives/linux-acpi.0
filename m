@@ -1,110 +1,64 @@
-From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Subject: [V6 PATCH 4/7] crypto: ccp - Unify coherency checking logic with device_dma_is_coherent()
-Date: Wed, 10 Jun 2015 11:08:55 -0500
-Message-ID: <1433952538-22455-5-git-send-email-Suravee.Suthikulpanit@amd.com>
-References: <1433952538-22455-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH v2 0/3] Add NUMA support for NVDIMM devices
+Date: Wed, 10 Jun 2015 10:20:36 -0600
+Message-ID: <1433953236.23540.236.camel@misato.fc.hp.com>
+References: <1433891440-3515-1-git-send-email-toshi.kani@hp.com>
+	 <x494mmfwoch.fsf@segfault.boston.devel.redhat.com>
+	 <CAPcyv4h1ak0YUnS1=RZzKjgbpSAV5hrm0NCiwg_Nmp4zKob8kg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-by2on0124.outbound.protection.outlook.com ([207.46.100.124]:42432
-	"EHLO na01-by2-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S965054AbbFJQJM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 10 Jun 2015 12:09:12 -0400
-In-Reply-To: <1433952538-22455-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+Received: from g9t5008.houston.hp.com ([15.240.92.66]:45310 "EHLO
+	g9t5008.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933797AbbFJQUn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Jun 2015 12:20:43 -0400
+In-Reply-To: <CAPcyv4h1ak0YUnS1=RZzKjgbpSAV5hrm0NCiwg_Nmp4zKob8kg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, thomas.lendacky@amd.com, herbert@gondor.apana.org.au, davem@davemloft.net, arnd@arndb.de, kashyap.desai@avagotech.com, sumit.saxena@avagotech.com, uday.lingala@avagotech.com, vinholikatti@gmail.com
-Cc: msalter@redhat.com, hanjun.guo@linaro.org, al.stone@linaro.org, grant.likely@linaro.org, leo.duran@amd.com, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, netdev@vger.kernel.org, linux-crypto@vger.kernel.org, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Jeff Moyer <jmoyer@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@ml01.01.org>
 
-Currently, the driver has separate logic to determine device coherency
-for DT vs ACPI.  This patch simplifies the code with a call to
-device_dma_is_coherent().
+On Wed, 2015-06-10 at 08:57 -0700, Dan Williams wrote:
+> On Wed, Jun 10, 2015 at 8:54 AM, Jeff Moyer <jmoyer@redhat.com> wrote:
+> > Toshi Kani <toshi.kani@hp.com> writes:
+> >
+> >> Since NVDIMMs are installed on memory slots, they expose the NUMA
+> >> topology of a platform.  This patchset adds support of sysfs
+> >> 'numa_node' to I/O-related NVDIMM devices under /sys/bus/nd/devices.
+> >> This enables numactl(8) to accept 'block:' and 'file:' paths of
+> >> pmem and btt devices as shown in the examples below.
+> >>   numactl --preferred block:pmem0 --show
+> >>   numactl --preferred file:/dev/pmem0s --show
+> >>
+> >> numactl can be used to bind an application to the locality of
+> >> a target NVDIMM for better performance.  Here is a result of fio
+> >> benchmark to ext4/dax on an HP DL380 with 2 sockets for local and
+> >> remote settings.
+> >>
+> >>   Local [1] :  4098.3MB/s
+> >>   Remote [2]:  3718.4MB/s
+> >>
+> >> [1] numactl --preferred block:pmem0 --cpunodebind block:pmem0 fio <fs-on-pmem0>
+> >> [2] numactl --preferred block:pmem1 --cpunodebind block:pmem1 fio <fs-on-pmem0>
+> >
+> > Did you post the patches to numactl somewhere?
+> >
+> 
+> numactl already supports this today.
 
-Signed-off-by: Tom Lendacky <thomas.lendacky@amd.com>
-Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
----
- drivers/crypto/ccp/ccp-platform.c | 60 +--------------------------------------
- 1 file changed, 1 insertion(+), 59 deletions(-)
+Yes, numactl supports the following sysfs class lookup for numa_node.
+This patchset adds numa_node for NVDIMM devices in the same sysfs format
+as described in patch 3/3.
 
-diff --git a/drivers/crypto/ccp/ccp-platform.c b/drivers/crypto/ccp/ccp-platform.c
-index b1c20b2..e446781 100644
---- a/drivers/crypto/ccp/ccp-platform.c
-+++ b/drivers/crypto/ccp/ccp-platform.c
-@@ -90,58 +90,6 @@ static struct resource *ccp_find_mmio_area(struct ccp_device *ccp)
- 	return NULL;
- }
- 
--#ifdef CONFIG_ACPI
--static int ccp_acpi_support(struct ccp_device *ccp)
--{
--	struct ccp_platform *ccp_platform = ccp->dev_specific;
--	struct acpi_device *adev = ACPI_COMPANION(ccp->dev);
--	acpi_handle handle;
--	acpi_status status;
--	unsigned long long data;
--	int cca;
--
--	/* Retrieve the device cache coherency value */
--	handle = adev->handle;
--	do {
--		status = acpi_evaluate_integer(handle, "_CCA", NULL, &data);
--		if (!ACPI_FAILURE(status)) {
--			cca = data;
--			break;
--		}
--	} while (!ACPI_FAILURE(status));
--
--	if (ACPI_FAILURE(status)) {
--		dev_err(ccp->dev, "error obtaining acpi coherency value\n");
--		return -EINVAL;
--	}
--
--	ccp_platform->coherent = !!cca;
--
--	return 0;
--}
--#else	/* CONFIG_ACPI */
--static int ccp_acpi_support(struct ccp_device *ccp)
--{
--	return -EINVAL;
--}
--#endif
--
--#ifdef CONFIG_OF
--static int ccp_of_support(struct ccp_device *ccp)
--{
--	struct ccp_platform *ccp_platform = ccp->dev_specific;
--
--	ccp_platform->coherent = of_dma_is_coherent(ccp->dev->of_node);
--
--	return 0;
--}
--#else
--static int ccp_of_support(struct ccp_device *ccp)
--{
--	return -EINVAL;
--}
--#endif
--
- static int ccp_platform_probe(struct platform_device *pdev)
- {
- 	struct ccp_device *ccp;
-@@ -182,13 +130,7 @@ static int ccp_platform_probe(struct platform_device *pdev)
- 		goto e_err;
- 	}
- 
--	if (ccp_platform->use_acpi)
--		ret = ccp_acpi_support(ccp);
--	else
--		ret = ccp_of_support(ccp);
--	if (ret)
--		goto e_err;
--
-+	ccp_platform->coherent = device_dma_is_coherent(ccp->dev);
- 	if (ccp_platform->coherent)
- 		ccp->axcache = CACHE_WB_NO_ALLOC;
- 	else
--- 
-2.1.0
+   /* Generic sysfs class lookup */
+   static int
+   affinity_class(struct bitmask *mask, char *cls, const char *dev)
+   {
+		:
+        ret = sysfs_node_read(mask, "/sys/class/%s/%s/device/numa_node",
+                              cls, dev);
+
+Thanks,
+-Toshi
 
