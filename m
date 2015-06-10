@@ -1,92 +1,31 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH v2] acpi: update ACPI tables to match TCG ACPI
- specification.
-Date: Wed, 10 Jun 2015 15:34:28 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37D2F31A6@ORSMSX112.amr.corp.intel.com>
-References: <1433867125-13016-1-git-send-email-jarkko.sakkinen@linux.intel.com>
- <2072894.aM9r7alsAV@vostro.rjw.lan> <557829DF.4060904@linux.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH v5 12/21] libnvdimm: namespace indices: read and validate
+Date: Wed, 10 Jun 2015 08:54:32 -0700
+Message-ID: <CAPcyv4jZe7K0CSLceXeUft0EzKUH1H_7EoGeVVX5FjWfES2n_Q@mail.gmail.com>
+References: <20150602001134.4506.45867.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<20150602001514.4506.13974.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<20150609063900.GD9804@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:17215 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965093AbbFJPed (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 10 Jun 2015 11:34:33 -0400
-In-Reply-To: <557829DF.4060904@linux.intel.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150609063900.GD9804@lst.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Christoph Hellwig <hch@lst.de>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Jens Axboe <axboe@kernel.dk>, Stephen Rothwell <sfr@canb.auug.org.au>, "Rafael J. Wysocki" <rafael@kernel.org>, Neil Brown <neilb@suse.de>, Greg KH <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, jmoyer <jmoyer@redhat.com>, linux-api@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "peterhuewe@gmx.de" <peterhuewe@gmx.de>, Len Brown <lenb@kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, ACPI <linux-acpi@vger.kernel.org>, "open list:ACPI COMPONENT AR..." <devel@acpica.org>, open list <linux-kernel@vger.kernel.org>, "Box, David E" <david.e.box@intel.com>
 
-V2UgbWF5IGRvIGEgcXVpY2sgdXBkYXRlIGZvciB0aGUgVENQQSBhbmQgVFBNMiB0YWJsZXM7IGJ1
-dCBoYXZpbmcgdHdvIGRpZmZlcmVudCBBQ1BJIHRhYmxlcyB3aXRoIHRoZSBzYW1lIHNpZ25hdHVy
-ZSAoVENQQSBjbGllbnQgYW5kIFRDUEEgc2VydmVyKSB0aHJvd3MgYSBiaXQgb2YgYSBtb25rZXkg
-d3JlbmNoIGludG8gc29tZSBvZiB0aGUgQUNQSUNBIHN0dWZmLiBOb3Qgb25seSBkbyB3ZSBzdXBw
-b3J0IEFDUEkgdGFibGVzIGluIHRoZSBoZWFkZXJzLCBidXQgd2UgYWxzbyBzdXBwb3J0IHRoZW0g
-aW4gdGhlIHRhYmxlIGRpc2Fzc2VtYmxlciBhbmQgdGhlIHRhYmxlIHRlbXBsYXRlIGdlbmVyYXRv
-ci4NCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBKYXJra28gU2Fra2lu
-ZW4gW21haWx0bzpqYXJra28uc2Fra2luZW5AbGludXguaW50ZWwuY29tXQ0KPiBTZW50OiBXZWRu
-ZXNkYXksIEp1bmUgMTAsIDIwMTUgNToxMyBBTQ0KPiBUbzogUmFmYWVsIEouIFd5c29ja2k7IE1v
-b3JlLCBSb2JlcnQNCj4gQ2M6IHBldGVyaHVld2VAZ214LmRlOyBMZW4gQnJvd247IFpoZW5nLCBM
-djsgQUNQSTsgb3BlbiBsaXN0OkFDUEkNCj4gQ09NUE9ORU5UIEFSLi4uOyBvcGVuIGxpc3QNCj4g
-U3ViamVjdDogUmU6IFtQQVRDSCB2Ml0gYWNwaTogdXBkYXRlIEFDUEkgdGFibGVzIHRvIG1hdGNo
-IFRDRyBBQ1BJDQo+IHNwZWNpZmljYXRpb24uDQo+IA0KPiBPSywgdGhhbmsgeW91IGd1eXMuIFdl
-J2xsIHN0YXJ0IHRvIHVzZSBpdCBhcyBzb29uIGFzIHRoZSBjaGFuZ2VzIGdldCB0bw0KPiB0aGUg
-a2VybmVsIHRyZWUgZnJvbSBBQ1BJQ0EuDQo+IA0KPiAvSmFya2tvDQo+IA0KPiBPbiAwNi8xMC8y
-MDE1IDAxOjE1IEFNLCBSYWZhZWwgSi4gV3lzb2NraSB3cm90ZToNCj4gPiBPbiBUdWVzZGF5LCBK
-dW5lIDA5LCAyMDE1IDA3OjI1OjI1IFBNIEphcmtrbyBTYWtraW5lbiB3cm90ZToNCj4gPj4gVXBk
-YXRlZCBzdHJ1Y3QgYWNwaV90YWJsZV90cG0yIGFuZCBzdHJ1Y3QgYWNwaV90YWJsZV90Y3BhIHRv
-IG1hdGNoDQo+ID4+IHRoZSBUQ0cgQUNQSSBzcGVjaWZpY2F0aW9uLg0KPiA+Pg0KPiA+PiB2MjoN
-Cj4gPj4NCj4gPj4gLSBEbyBub3QgcmVtb3ZlIHN0cnVjdCBhY3BpX3RwbTJfY29udHJvbA0KPiA+
-Pg0KPiA+PiBTaWduZWQtb2ZmLWJ5OiBKYXJra28gU2Fra2luZW4gPGphcmtrby5zYWtraW5lbkBs
-aW51eC5pbnRlbC5jb20+DQo+ID4gQm9iLCBJJ20gYXNzdW1pbmcgdGhhdCB3ZSdsbCBiZSByb3V0
-aW5nIHRoaXMgb25lIHRocm91Z2ggdXBzdHJlYW0NCj4gQUNQSUNBLg0KPiA+DQo+ID4gSWYgdGhh
-dCdzIG5vdCB0aGUgY2FzZSBhbmQgSSBzaG91bGQgYXBwbHkgaXQgZGlyZWN0bHksIHBsZWFzZSBs
-ZXQgbWUNCj4ga25vdy4NCj4gPg0KPiA+DQo+ID4+IC0tLQ0KPiA+PiAgIGluY2x1ZGUvYWNwaS9h
-Y3RibDIuaCB8ICA1ICsrLS0tDQo+ID4+ICAgaW5jbHVkZS9hY3BpL2FjdGJsMy5oIHwgMTcgKysr
-KysrKysrKysrKy0tLS0NCj4gPj4gICAyIGZpbGVzIGNoYW5nZWQsIDE1IGluc2VydGlvbnMoKyks
-IDcgZGVsZXRpb25zKC0pDQo+ID4+DQo+ID4+IGRpZmYgLS1naXQgYS9pbmNsdWRlL2FjcGkvYWN0
-YmwyLmggYi9pbmNsdWRlL2FjcGkvYWN0YmwyLmggaW5kZXgNCj4gPj4gY2FmZGViNS4uMmYyYjhh
-NiAxMDA2NDQNCj4gPj4gLS0tIGEvaW5jbHVkZS9hY3BpL2FjdGJsMi5oDQo+ID4+ICsrKyBiL2lu
-Y2x1ZGUvYWNwaS9hY3RibDIuaA0KPiA+PiBAQCAtMTA3MSwxNCArMTA3MSwxMyBAQCBlbnVtIGFj
-cGlfc3BtaV9pbnRlcmZhY2VfdHlwZXMgew0KPiA+PiAgICAqIFRDUEEgLSBUcnVzdGVkIENvbXB1
-dGluZyBQbGF0Zm9ybSBBbGxpYW5jZSB0YWJsZQ0KPiA+PiAgICAqICAgICAgICBWZXJzaW9uIDEN
-Cj4gPj4gICAgKg0KPiA+PiAtICogQ29uZm9ybXMgdG8gIlRDRyBQQyBTcGVjaWZpYyBJbXBsZW1l
-bnRhdGlvbiBTcGVjaWZpY2F0aW9uIiwNCj4gPj4gLSAqIFZlcnNpb24gMS4xLCBBdWd1c3QgMTgs
-IDIwMDMNCj4gPj4gKyAqIENvbmZvcm1zIHRvICJUQ0cgQUNQSSBTcGVjaWZpY2F0aW9uIGZvciBG
-YW1pbHkgMS4yIGFuZCAyLjAiIDE5DQo+ID4+ICsgRGVjZW1iZXIgMjAxNA0KPiA+PiAgICAqDQo+
-ID4+DQo+ID4+ICoqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKg0KPiA+PiAqKioqKioqKiovDQo+ID4+DQo+ID4+ICAgc3Ry
-dWN0IGFjcGlfdGFibGVfdGNwYSB7DQo+ID4+ICAgCXN0cnVjdCBhY3BpX3RhYmxlX2hlYWRlciBo
-ZWFkZXI7CS8qIENvbW1vbiBBQ1BJIHRhYmxlIGhlYWRlciAqLw0KPiA+PiAtCXUxNiByZXNlcnZl
-ZDsNCj4gPj4gKwl1MTYgcGxhdGZvcm1fY2xhc3M7CS8qIDAgZm9yIGNsaWVudCBhbmQgMSBmb3Ig
-c2VydmVyIHBsYXRmb3Jtcy4NCj4gKi8NCj4gPj4gICAJdTMyIG1heF9sb2dfbGVuZ3RoOwkvKiBN
-YXhpbXVtIGxlbmd0aCBmb3IgdGhlIGV2ZW50IGxvZyBhcmVhICovDQo+ID4+ICAgCXU2NCBsb2df
-YWRkcmVzczsJLyogQWRkcmVzcyBvZiB0aGUgZXZlbnQgbG9nIGFyZWEgKi8NCj4gPj4gICB9Ow0K
-PiA+PiBkaWZmIC0tZ2l0IGEvaW5jbHVkZS9hY3BpL2FjdGJsMy5oIGIvaW5jbHVkZS9hY3BpL2Fj
-dGJsMy5oIGluZGV4DQo+ID4+IDQ0MGNhODEuLjhkZDYyNWMgMTAwNjQ0DQo+ID4+IC0tLSBhL2lu
-Y2x1ZGUvYWNwaS9hY3RibDMuaA0KPiA+PiArKysgYi9pbmNsdWRlL2FjcGkvYWN0YmwzLmgNCj4g
-Pj4gQEAgLTY4OCwxNSArNjg4LDI0IEBAIGVudW0gYWNwaV9yYXNmX3N0YXR1cyB7DQo+ID4+ICAg
-ICogVFBNMiAtIFRydXN0ZWQgUGxhdGZvcm0gTW9kdWxlIChUUE0pIDIuMCBIYXJkd2FyZSBJbnRl
-cmZhY2UgVGFibGUNCj4gPj4gICAgKiAgICAgICAgVmVyc2lvbiAzDQo+ID4+ICAgICoNCj4gPj4g
-LSAqIENvbmZvcm1zIHRvICJUUE0gMi4wIEhhcmR3YXJlIEludGVyZmFjZSBUYWJsZSAoVFBNMiki
-IDI5IE5vdmVtYmVyDQo+ID4+IDIwMTENCj4gPj4gKyAqIENvbmZvcm1zIHRvICJUQ0cgQUNQSSBT
-cGVjaWZpY2F0aW9uIGZvciBGYW1pbHkgMS4yIGFuZCAyLjAiIDE5DQo+ID4+ICsgRGVjZW1iZXIg
-MjAxNA0KPiA+PiAgICAqDQo+ID4+DQo+ID4+ICoqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKg0KPiA+PiAqKioqKioqKiov
-DQo+ID4+DQo+ID4+ICsvKiBIb3cgdG8gbm90aWZ5IHRoYXQgdGhlcmUgaXMgYSBjb21tYW5kIGF2
-YWlsYWJsZSBmb3IgcHJvY2Vzc2luZy4NCj4gPj4gKyovDQo+ID4+ICsNCj4gPj4gK2VudW0gYWNw
-aV90cG0yX3N0YXJ0X21ldGhvZCB7DQo+ID4+ICsJQUNQSV9UUE0yX1NNX0FDUEkgPSAyLA0KPiA+
-PiArCUFDUElfVFBNMl9TTV9DUkIgPSA3LA0KPiA+PiArCUFDUElfVFBNMl9TTV9DUkJfQU5EX0FD
-UEkgPSA4LA0KPiA+PiArfTsNCj4gPj4gKw0KPiA+PiAgIHN0cnVjdCBhY3BpX3RhYmxlX3RwbTIg
-ew0KPiA+PiAgIAlzdHJ1Y3QgYWNwaV90YWJsZV9oZWFkZXIgaGVhZGVyOwkvKiBDb21tb24gQUNQ
-SSB0YWJsZSBoZWFkZXIgKi8NCj4gPj4gLQl1MzIgZmxhZ3M7DQo+ID4+IC0JdTY0IGNvbnRyb2xf
-YWRkcmVzczsNCj4gPj4gLQl1MzIgc3RhcnRfbWV0aG9kOw0KPiA+PiArCXUxNiBwbGF0Zm9ybV9j
-bGFzczsJLyogMCBmb3IgY2xpZW50IGFuZCAxIGZvciBzZXJ2ZXIgcGxhdGZvcm1zDQo+ICovDQo+
-ID4+ICsJdTE2IHJlc2VydmVkOw0KPiA+PiArCXU2NCBjb250cm9sX2FkZHJlc3M7CS8qIFBoeXNp
-Y2FsIGFkZHJlc3Mgb2YgdGhlIGNvbnRyb2wgYXJlYSAqLw0KPiA+PiArCXUzMiBzdGFydF9tZXRo
-b2Q7CS8qIE1ldGhvZCB0byBub3RpZnkgdG8gc3RhcnQgcHJvY2Vzc2luZyAqLw0KPiA+PiAgIH07
-DQo+ID4+DQo+ID4+ICAgLyogQ29udHJvbCBhcmVhIHN0cnVjdHVyZSAobm90IHBhcnQgb2YgdGFi
-bGUsIHBvaW50ZWQgdG8gYnkNCj4gPj4gY29udHJvbF9hZGRyZXNzKSAqLw0KPiA+Pg0KDQo=
+On Mon, Jun 8, 2015 at 11:39 PM, Christoph Hellwig <hch@lst.de> wrote:
+>> +#include <asm-generic/io-64-nonatomic-lo-hi.h>
+>> +
+>> +#ifndef __io_virt
+>> +#define __io_virt(x) ((void __force *) (x))
+>> +#endif
+>
+> NAK. driver code mus never include asm-generic headers directly,
+> and __io_virt isn't something that's up to a driver to redefine either.
+>
+> I think we really need the memremap series in first before trying to
+> do the things done in this patch.
+
+I was abusing read[wlq] and write[wlq].  All this patch needs is a
+conversion to use __leXXto_cpu and __cpu_to_leXX helpers.
