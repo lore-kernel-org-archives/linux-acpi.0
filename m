@@ -1,199 +1,184 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 04/32] acpi-video-detect: Move acpi_is_video_device() to acpi/scan.c
-Date: Wed, 10 Jun 2015 15:01:04 +0200
-Message-ID: <1433941292-21530-5-git-send-email-hdegoede@redhat.com>
+Subject: [PATCH 06/32] acpi-video-detect: video: Make video_detect code part
+ of the video module
+Date: Wed, 10 Jun 2015 15:01:06 +0200
+Message-ID: <1433941292-21530-7-git-send-email-hdegoede@redhat.com>
 References: <1433941292-21530-1-git-send-email-hdegoede@redhat.com>
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
 In-Reply-To: <1433941292-21530-1-git-send-email-hdegoede@redhat.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
 To: Darren Hart <dvhart@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Ben Skeggs <bskeggs@redhat.com>, Azael Avalos <coproscefalo@gmail.com>, Corentin Chary <corentin.chary@gmail.com>, Lee Chun-Yi <jlee@suse.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, Ike Panhc <ike.pan@canonical.com>, Anisse Astier <anisse@astier.eu>, Mattia Dongili <malattia@linux.it>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, platform-driver-x86@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, acpi4asus-user@lists.sourceforge.net, dri-devel@lists.freedesktop.org, Aaron Lu <aaron.lu@intel.com>, linux-acpi@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Hans de Goede <hdegoede@redhat.com>, Ike Panhc <ike.pan@canonical.com>, linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, acpi4asus-user@lists.sourceforge.net, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, dri-devel@lists.freedesktop.org, Azael Avalos <coproscefalo@gmail.com>, Lee Chun-Yi <jlee@suse.com>, Mattia Dongili <malattia@linux.it>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Ben Skeggs <bskeggs@redhat.com>, Corentin Chary <corentin.chary@gmail.com>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, platform-driver-x86@vger.kernel.org, Aaron Lu <aaron.lu@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-This allows video_detect.c to be build as a module, this is a preparation
-patch for the backlight interface selection logic cleanup.
-
-Note this commit also causes acpi_is_video_device() to always be build
-indepedent of CONFIG_ACPI_VIDEO, as there is no reason to make its
-building depend on CONFIG_ACPI_VIDEO.
-
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/acpi/scan.c         | 56 ++++++++++++++++++++++++++++++++++++++++++
- drivers/acpi/video_detect.c | 60 ---------------------------------------------
- include/linux/acpi.h        |  8 ++----
- 3 files changed, 58 insertions(+), 66 deletions(-)
-
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 03141aa..811b40d 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -1947,6 +1947,62 @@ bool acpi_dock_match(acpi_handle handle)
- 	return acpi_has_method(handle, "_DCK");
- }
- 
-+static acpi_status
-+acpi_backlight_cap_match(acpi_handle handle, u32 level, void *context,
-+			  void **return_value)
-+{
-+	long *cap = context;
-+
-+	if (acpi_has_method(handle, "_BCM") &&
-+	    acpi_has_method(handle, "_BCL")) {
-+		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found generic backlight "
-+				  "support\n"));
-+		*cap |= ACPI_VIDEO_BACKLIGHT;
-+		if (!acpi_has_method(handle, "_BQC"))
-+			printk(KERN_WARNING FW_BUG PREFIX "No _BQC method, "
-+				"cannot determine initial brightness\n");
-+		/* We have backlight support, no need to scan further */
-+		return AE_CTRL_TERMINATE;
-+	}
-+	return 0;
-+}
-+
-+/* Returns true if the ACPI object is a video device which can be
-+ * handled by video.ko.
-+ * The device will get a Linux specific CID added in scan.c to
-+ * identify the device as an ACPI graphics device
-+ * Be aware that the graphics device may not be physically present
-+ * Use acpi_video_get_capabilities() to detect general ACPI video
-+ * capabilities of present cards
-+ */
-+long acpi_is_video_device(acpi_handle handle)
-+{
-+	long video_caps = 0;
-+
-+	/* Is this device able to support video switching ? */
-+	if (acpi_has_method(handle, "_DOD") || acpi_has_method(handle, "_DOS"))
-+		video_caps |= ACPI_VIDEO_OUTPUT_SWITCHING;
-+
-+	/* Is this device able to retrieve a video ROM ? */
-+	if (acpi_has_method(handle, "_ROM"))
-+		video_caps |= ACPI_VIDEO_ROM_AVAILABLE;
-+
-+	/* Is this device able to configure which video head to be POSTed ? */
-+	if (acpi_has_method(handle, "_VPO") &&
-+	    acpi_has_method(handle, "_GPD") &&
-+	    acpi_has_method(handle, "_SPD"))
-+		video_caps |= ACPI_VIDEO_DEVICE_POSTING;
-+
-+	/* Only check for backlight functionality if one of the above hit. */
-+	if (video_caps)
-+		acpi_walk_namespace(ACPI_TYPE_DEVICE, handle,
-+				    ACPI_UINT32_MAX, acpi_backlight_cap_match, NULL,
-+				    &video_caps, NULL);
-+
-+	return video_caps;
-+}
-+EXPORT_SYMBOL(acpi_is_video_device);
-+
- const char *acpi_device_hid(struct acpi_device *device)
- {
- 	struct acpi_hardware_id *hid;
-diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-index 68c45c3..aad5cf4 100644
---- a/drivers/acpi/video_detect.c
-+++ b/drivers/acpi/video_detect.c
-@@ -5,10 +5,6 @@
-  *  May be copied or modified under the terms of the GNU General Public License
-  *
-  * video_detect.c:
-- * Provides acpi_is_video_device() for early scanning of ACPI devices in scan.c
-- * There a Linux specific (Spec does not provide a HID for video devices) is
-- * assigned
-- *
-  * After PCI devices are glued with ACPI devices
-  * acpi_get_pci_dev() can be called to identify ACPI graphics
-  * devices for which a real graphics card is plugged in
-@@ -47,62 +43,6 @@ static long acpi_video_support;
- static bool acpi_video_caps_checked;
- 
- static acpi_status
--acpi_backlight_cap_match(acpi_handle handle, u32 level, void *context,
--			  void **return_value)
--{
--	long *cap = context;
--
--	if (acpi_has_method(handle, "_BCM") &&
--	    acpi_has_method(handle, "_BCL")) {
--		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found generic backlight "
--				  "support\n"));
--		*cap |= ACPI_VIDEO_BACKLIGHT;
--		if (!acpi_has_method(handle, "_BQC"))
--			printk(KERN_WARNING FW_BUG PREFIX "No _BQC method, "
--				"cannot determine initial brightness\n");
--		/* We have backlight support, no need to scan further */
--		return AE_CTRL_TERMINATE;
--	}
--	return 0;
--}
--
--/* Returns true if the ACPI object is a video device which can be
-- * handled by video.ko.
-- * The device will get a Linux specific CID added in scan.c to
-- * identify the device as an ACPI graphics device
-- * Be aware that the graphics device may not be physically present
-- * Use acpi_video_get_capabilities() to detect general ACPI video
-- * capabilities of present cards
-- */
--long acpi_is_video_device(acpi_handle handle)
--{
--	long video_caps = 0;
--
--	/* Is this device able to support video switching ? */
--	if (acpi_has_method(handle, "_DOD") || acpi_has_method(handle, "_DOS"))
--		video_caps |= ACPI_VIDEO_OUTPUT_SWITCHING;
--
--	/* Is this device able to retrieve a video ROM ? */
--	if (acpi_has_method(handle, "_ROM"))
--		video_caps |= ACPI_VIDEO_ROM_AVAILABLE;
--
--	/* Is this device able to configure which video head to be POSTed ? */
--	if (acpi_has_method(handle, "_VPO") &&
--	    acpi_has_method(handle, "_GPD") &&
--	    acpi_has_method(handle, "_SPD"))
--		video_caps |= ACPI_VIDEO_DEVICE_POSTING;
--
--	/* Only check for backlight functionality if one of the above hit. */
--	if (video_caps)
--		acpi_walk_namespace(ACPI_TYPE_DEVICE, handle,
--				    ACPI_UINT32_MAX, acpi_backlight_cap_match, NULL,
--				    &video_caps, NULL);
--
--	return video_caps;
--}
--EXPORT_SYMBOL(acpi_is_video_device);
--
--static acpi_status
- find_video(acpi_handle handle, u32 lvl, void *context, void **rv)
- {
- 	long *cap = context;
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 88c92a03..7cb3b0b 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -243,19 +243,15 @@ extern bool wmi_has_guid(const char *guid);
- #define ACPI_VIDEO_OUTPUT_SWITCHING_DMI_VENDOR		0x0400
- #define ACPI_VIDEO_OUTPUT_SWITCHING_DMI_VIDEO		0x0800
- 
-+extern long acpi_is_video_device(acpi_handle handle);
-+
- #if defined(CONFIG_ACPI_VIDEO) || defined(CONFIG_ACPI_VIDEO_MODULE)
- 
--extern long acpi_is_video_device(acpi_handle handle);
- extern void acpi_video_dmi_promote_vendor(void);
- extern int acpi_video_backlight_support(void);
- 
- #else
- 
--static inline long acpi_is_video_device(acpi_handle handle)
--{
--	return 0;
--}
--
- static inline void acpi_video_dmi_promote_vendor(void)
- {
- }
--- 
-2.4.2
+VGhpcyBpcyBhIHByZXBhcmF0aW9uIHBhdGNoIGZvciB0aGUgYmFja2xpZ2h0IGludGVyZmFjZSBz
+ZWxlY3Rpb24gbG9naWMKY2xlYW51cCwgdGhlcmUgYXJlIDIgcmVhc29ucyB0byBub3QgYWx3YXlz
+IGJ1aWxkIHRoZSB2aWRlb19kZXRlY3QgY29kZQppbnRvIHRoZSBrZXJuZWw6CgoxKSBJbiBvcmRl
+ciBmb3IgdGhlIHZpZGVvX2RldGVjdC5jIHRvIGFsc28gZGVhbCB3aXRoIC8gc2VsZWN0IG5hdGl2
+ZQpiYWNrbGlnaHQgaW50ZXJmYWNlcyBvbiB3aW44IHN5c3RlbXMsIGluc3RlYWQgb2YgZG9pbmcg
+dGhpcyBpbiB2aWRlby5jCndoZXJlIGl0IGRvZXMgbm90IGJlbG9uZywgdmlkZW9fZGV0ZWN0LmMg
+bmVlZHMgdG8gY2FsbCBpbnRvIHRoZSBiYWNrbGlnaHQKY2xhc3MgY29kZS4gV2hpY2ggY2Fubm90
+IGJlIGRvbmUgaWYgaXQgaXMgYnVpbHRpbiBhbmQgdGhlIGJsYWNrbGlnaHQgY2xhc3MKaXMgbm90
+LgoKMikgQ3VycmVudGx5IGFsbCB0aGUgcGxhdGZvcm0veDg2IGRyaXZlcnMgd2hpY2ggaGF2ZSBx
+dWlya3MgdG8gcHJlZmVyCnRoZSB2ZW5kb3IgZHJpdmVyIG92ZXIgYWNwaS12aWRlbyBjYWxsIGFj
+cGlfdmlkZW9fdW5yZWdpc3Rlcl9iYWNrbGlnaHQoKQp0byByZW1vdmUgdGhlIGFjcGktdmlkZW8g
+YmFja2xpZ2h0IGludGVyZmFjZSwgdGhpcyBsb2dpYyByZWFsbHkgYmVsb25ncwppbiB2aWRlb19k
+ZXRlY3QuYywgd2hpY2ggd2lsbCBjYXVzZSB2aWRlb19kZXRlY3QuYyB0byBkZXBlbmQgb24gc3lt
+Ym9scyBvZgp2aWRlby5jIGFuZCB2aWRlby5jIGFscmVhZHkgZGVwZW5kcyBvbiB2aWRlb19kZXRl
+Y3QuYyBzeW1ib2xzLCBzbyB0aGV5CnJlYWxseSBuZWVkIHRvIGJlIGEgc2luZ2xlIG1vZHVsZS4K
+Ck5vdGUgdGhhdCBhcyBhIHNpZGUtZWZmZWN0IHRoaXMgY29tbWl0IGFsc28gY2hhbmdlcyB0aGUg
+YWNwaV9iYWNrbGlnaHQKY21kbGluZSBvcHRpb24gdG8gYWNwaV92aWRlby5iYWNrbGlnaHQgYW5k
+IHRoZSBwcmVmaXggZm9yIG90aGVyIGFjcGktdmlkZW8KbW9kdWxlIHBhcmFtZXRlcnMgZnJvbSB2
+aWRlby54eHggdG8gYWNwaV92aWRlby54eHgsIHdoaWNoIGFjdHVhbGx5IGlzIGEKYmV0dGVyIHBy
+ZWZpeC4gVGhpcyBtYXkgcmVxdWlyZSBwZW9wbGUgcmVseWluZyBvbiB0aGVzZSBvcHRpb25zIHRv
+IGNoYW5nZQp0aGVyZSBrZXJuZWwgY21kbGluZSwgd2hpY2ggaXMgdW5kZXNpcmFibGUsIE9UT0gg
+cGVvcGxlIHNob3VsZCByZWFsbHkgbm90CmJlIHJlbHlpbmcgb24gdGhlc2Ugb3B0aW9ucywgYW5k
+IGluc3RlYWQgcmVwb3J0IGJ1Z3MgZm9yIHVzIHRvIGZpeCB3aGVuCnRoZXkgbmVlZCB0aGVtLgoK
+VGhpcyBjb21taXQgYWxzbyBtYWtlcyBjaGFuZ2VzIHRvIGRyaXZlcnMvcGxhdGZvcm0veDg2L0tj
+b25maWcgdG8gZW5zdXJlCnRoYXQgZHJpdmVycyB3aGljaCB1c2UgYWNwaV92aWRlb19iYWNrbGln
+aHRfc3VwcG9ydCgpIGZyb20gdmlkZW9fZGV0ZWN0LmMsCndpbGwgbm90IGJlIGJ1aWx0LWluIHdo
+ZW4gYWNwaV92aWRlbyBpcyBub3QgYnVpbHQgaW4uIFRoaXMgYWxzbyBjaGFuZ2VzCnNvbWUgInNl
+bGVjdCIgdXNlcyB0byAiZGVwZW5kcyBvbiIgdG8gYXZvaWQgZGVwZW5kZW5jeSBsb29wcy4KClNp
+Z25lZC1vZmYtYnk6IEhhbnMgZGUgR29lZGUgPGhkZWdvZWRlQHJlZGhhdC5jb20+Ci0tLQogZHJp
+dmVycy9hY3BpL01ha2VmaWxlICAgICAgICB8ICA3ICsrKy0tLS0KIGRyaXZlcnMvYWNwaS92aWRl
+by5jICAgICAgICAgfCAgMiArLQogZHJpdmVycy9hY3BpL3ZpZGVvX2RldGVjdC5jICB8IDQwICsr
+KysrKysrKysrKysrKysrLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KIGRyaXZlcnMvcGxhdGZvcm0v
+eDg2L0tjb25maWcgfCAyMSArKysrKysrKysrKysrKysrLS0tLS0KIDQgZmlsZXMgY2hhbmdlZCwg
+MzcgaW5zZXJ0aW9ucygrKSwgMzMgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9h
+Y3BpL01ha2VmaWxlIGIvZHJpdmVycy9hY3BpL01ha2VmaWxlCmluZGV4IDhhMDYzZTIuLjEwMDhk
+OWQgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvYWNwaS9NYWtlZmlsZQorKysgYi9kcml2ZXJzL2FjcGkv
+TWFrZWZpbGUKQEAgLTUyLDkgKzUyLDYgQEAgYWNwaS0kKENPTkZJR19YODYpCQkrPSBhY3BpX2Nt
+b3NfcnRjLm8KIGFjcGktJChDT05GSUdfREVCVUdfRlMpCQkrPSBkZWJ1Z2ZzLm8KIGFjcGktJChD
+T05GSUdfQUNQSV9OVU1BKQkrPSBudW1hLm8KIGFjcGktJChDT05GSUdfQUNQSV9QUk9DRlNfUE9X
+RVIpICs9IGNtX3Nicy5vCi1pZmRlZiBDT05GSUdfQUNQSV9WSURFTwotYWNwaS15CQkJCSs9IHZp
+ZGVvX2RldGVjdC5vCi1lbmRpZgogYWNwaS15CQkJCSs9IGFjcGlfbHBhdC5vCiBhY3BpLSQoQ09O
+RklHX0FDUElfR0VORVJJQ19HU0kpICs9IGdzaS5vCiAKQEAgLTY2LDcgKzYzLDcgQEAgb2JqLSQo
+Q09ORklHX0FDUElfSVBNSSkJCSs9IGFjcGlfaXBtaS5vCiBvYmotJChDT05GSUdfQUNQSV9BQykg
+CQkrPSBhYy5vCiBvYmotJChDT05GSUdfQUNQSV9CVVRUT04pCSs9IGJ1dHRvbi5vCiBvYmotJChD
+T05GSUdfQUNQSV9GQU4pCQkrPSBmYW4ubwotb2JqLSQoQ09ORklHX0FDUElfVklERU8pCSs9IHZp
+ZGVvLm8KK29iai0kKENPTkZJR19BQ1BJX1ZJREVPKQkrPSBhY3BpX3ZpZGVvLm8KIG9iai0kKENP
+TkZJR19BQ1BJX1BDSV9TTE9UKQkrPSBwY2lfc2xvdC5vCiBvYmotJChDT05GSUdfQUNQSV9QUk9D
+RVNTT1IpCSs9IHByb2Nlc3Nvci5vCiBvYmoteQkJCQkrPSBjb250YWluZXIubwpAQCAtOTUsMyAr
+OTIsNSBAQCBvYmotJChDT05GSUdfQUNQSV9FWFRMT0cpCSs9IGFjcGlfZXh0bG9nLm8KIG9iai0k
+KENPTkZJR19QTUlDX09QUkVHSU9OKQkrPSBwbWljL2ludGVsX3BtaWMubwogb2JqLSQoQ09ORklH
+X0NSQ19QTUlDX09QUkVHSU9OKSArPSBwbWljL2ludGVsX3BtaWNfY3JjLm8KIG9iai0kKENPTkZJ
+R19YUE9XRVJfUE1JQ19PUFJFR0lPTikgKz0gcG1pYy9pbnRlbF9wbWljX3hwb3dlci5vCisKK2Fj
+cGlfdmlkZW8tb2JqcwkJCSs9IHZpZGVvX2RldGVjdC5vIHZpZGVvLm8KZGlmZiAtLWdpdCBhL2Ry
+aXZlcnMvYWNwaS92aWRlby5jIGIvZHJpdmVycy9hY3BpL3ZpZGVvLmMKaW5kZXggNTE4ZjBlMS4u
+NjI0OTk2OCAxMDA2NDQKLS0tIGEvZHJpdmVycy9hY3BpL3ZpZGVvLmMKKysrIGIvZHJpdmVycy9h
+Y3BpL3ZpZGVvLmMKQEAgLTQzLDcgKzQzLDcgQEAKICNpbmNsdWRlIDxhY3BpL3ZpZGVvLmg+CiAj
+aW5jbHVkZSA8YXNtL3VhY2Nlc3MuaD4KIAotI2luY2x1ZGUgImludGVybmFsLmgiCisjZGVmaW5l
+IFBSRUZJWCAiQUNQSTogIgogCiAjZGVmaW5lIEFDUElfVklERU9fQlVTX05BTUUJCSJWaWRlbyBC
+dXMiCiAjZGVmaW5lIEFDUElfVklERU9fREVWSUNFX05BTUUJCSJWaWRlbyBEZXZpY2UiCmRpZmYg
+LS1naXQgYS9kcml2ZXJzL2FjcGkvdmlkZW9fZGV0ZWN0LmMgYi9kcml2ZXJzL2FjcGkvdmlkZW9f
+ZGV0ZWN0LmMKaW5kZXggMDI2Mzc2ZC4uMGJjOGI5OCAxMDA2NDQKLS0tIGEvZHJpdmVycy9hY3Bp
+L3ZpZGVvX2RldGVjdC5jCisrKyBiL2RyaXZlcnMvYWNwaS92aWRlb19kZXRlY3QuYwpAQCAtMzIs
+MTYgKzMyLDI4IEBACiAjaW5jbHVkZSA8bGludXgvZXhwb3J0Lmg+CiAjaW5jbHVkZSA8bGludXgv
+YWNwaS5oPgogI2luY2x1ZGUgPGxpbnV4L2RtaS5oPgorI2luY2x1ZGUgPGxpbnV4L21vZHVsZS5o
+PgogI2luY2x1ZGUgPGxpbnV4L3BjaS5oPgogCi0jaW5jbHVkZSAiaW50ZXJuYWwuaCIKLQogQUNQ
+SV9NT0RVTEVfTkFNRSgidmlkZW8iKTsKICNkZWZpbmUgX0NPTVBPTkVOVAkJQUNQSV9WSURFT19D
+T01QT05FTlQKIAogc3RhdGljIGxvbmcgYWNwaV92aWRlb19zdXBwb3J0Owogc3RhdGljIGJvb2wg
+YWNwaV92aWRlb19jYXBzX2NoZWNrZWQ7CiAKK3N0YXRpYyBjaGFyIGFjcGlfYmFja2xpZ2h0X3N0
+clsxNl07Cittb2R1bGVfcGFyYW1fc3RyaW5nKGJhY2tsaWdodCwgYWNwaV9iYWNrbGlnaHRfc3Ry
+LCAxNiwgMDQ0NCk7CitNT0RVTEVfUEFSTV9ERVNDKGJhY2tsaWdodCwKKwkiU2VsZWN0IHdoaWNo
+IGJhY2tsaWdodCBpbnRlcmZhY2UgdG8gdXNlIFt2ZW5kb3J8dmlkZW9dIik7CisKK3N0YXRpYyB2
+b2lkIGFjcGlfdmlkZW9fcGFyc2VfY21kbGluZSh2b2lkKQoreworCWlmICghc3RyY21wKCJ2ZW5k
+b3IiLCBhY3BpX2JhY2tsaWdodF9zdHIpKQorCQlhY3BpX3ZpZGVvX3N1cHBvcnQgfD0gQUNQSV9W
+SURFT19CQUNLTElHSFRfRk9SQ0VfVkVORE9SOworCWlmICghc3RyY21wKCJ2aWRlbyIsIGFjcGlf
+YmFja2xpZ2h0X3N0cikpCisJCWFjcGlfdmlkZW9fc3VwcG9ydCB8PSBBQ1BJX1ZJREVPX0JBQ0tM
+SUdIVF9GT1JDRV9WSURFTzsKK30KKwogc3RhdGljIGFjcGlfc3RhdHVzCiBmaW5kX3ZpZGVvKGFj
+cGlfaGFuZGxlIGhhbmRsZSwgdTMyIGx2bCwgdm9pZCAqY29udGV4dCwgdm9pZCAqKnJ2KQogewpA
+QCAtMTc0LDggKzE4NiwxMCBAQCBzdGF0aWMgdm9pZCBhY3BpX3ZpZGVvX2NhcHNfY2hlY2sodm9p
+ZCkKIAkgKiBXZSBtdXN0IGNoZWNrIHdoZXRoZXIgdGhlIEFDUEkgZ3JhcGhpY3MgZGV2aWNlIGlz
+IHBoeXNpY2FsbHkgcGx1Z2dlZAogCSAqIGluLiBUaGVyZWZvcmUgdGhpcyBtdXN0IGJlIGNhbGxl
+ZCBhZnRlciBiaW5kaW5nIFBDSSBhbmQgQUNQSSBkZXZpY2VzCiAJICovCi0JaWYgKCFhY3BpX3Zp
+ZGVvX2NhcHNfY2hlY2tlZCkKKwlpZiAoIWFjcGlfdmlkZW9fY2Fwc19jaGVja2VkKSB7CisJCWFj
+cGlfdmlkZW9fcGFyc2VfY21kbGluZSgpOwogCQlhY3BpX3ZpZGVvX2dldF9jYXBhYmlsaXRpZXMo
+TlVMTCk7CisJfQogfQogCiAvKiBQcm9tb3RlIHRoZSB2ZW5kb3IgaW50ZXJmYWNlIGluc3RlYWQg
+b2YgdGhlIGdlbmVyaWMgdmlkZW8gbW9kdWxlLgpAQCAtMjEyLDIzICsyMjYsMyBAQCBpbnQgYWNw
+aV92aWRlb19iYWNrbGlnaHRfc3VwcG9ydCh2b2lkKQogCXJldHVybiBhY3BpX3ZpZGVvX3N1cHBv
+cnQgJiBBQ1BJX1ZJREVPX0JBQ0tMSUdIVDsKIH0KIEVYUE9SVF9TWU1CT0woYWNwaV92aWRlb19i
+YWNrbGlnaHRfc3VwcG9ydCk7Ci0KLS8qCi0gKiBVc2UgYWNwaV9iYWNrbGlnaHQ9dmVuZG9yL3Zp
+ZGVvIHRvIGZvcmNlIHRoYXQgYmFja2xpZ2h0IHN3aXRjaGluZwotICogaXMgcHJvY2Vzc2VkIGJ5
+IHZlbmRvciBzcGVjaWZpYyBhY3BpIGRyaXZlcnMgb3IgdmlkZW8ua28gZHJpdmVyLgotICovCi1z
+dGF0aWMgaW50IF9faW5pdCBhY3BpX2JhY2tsaWdodChjaGFyICpzdHIpCi17Ci0JaWYgKHN0ciA9
+PSBOVUxMIHx8ICpzdHIgPT0gJ1wwJykKLQkJcmV0dXJuIDE7Ci0JZWxzZSB7Ci0JCWlmICghc3Ry
+Y21wKCJ2ZW5kb3IiLCBzdHIpKQotCQkJYWNwaV92aWRlb19zdXBwb3J0IHw9Ci0JCQkJQUNQSV9W
+SURFT19CQUNLTElHSFRfRk9SQ0VfVkVORE9SOwotCQlpZiAoIXN0cmNtcCgidmlkZW8iLCBzdHIp
+KQotCQkJYWNwaV92aWRlb19zdXBwb3J0IHw9Ci0JCQkJQUNQSV9WSURFT19CQUNLTElHSFRfRk9S
+Q0VfVklERU87Ci0JfQotCXJldHVybiAxOwotfQotX19zZXR1cCgiYWNwaV9iYWNrbGlnaHQ9Iiwg
+YWNwaV9iYWNrbGlnaHQpOwpkaWZmIC0tZ2l0IGEvZHJpdmVycy9wbGF0Zm9ybS94ODYvS2NvbmZp
+ZyBiL2RyaXZlcnMvcGxhdGZvcm0veDg2L0tjb25maWcKaW5kZXggZjlmMjA1Yy4uOTA5MTMzYyAx
+MDA2NDQKLS0tIGEvZHJpdmVycy9wbGF0Zm9ybS94ODYvS2NvbmZpZworKysgYi9kcml2ZXJzL3Bs
+YXRmb3JtL3g4Ni9LY29uZmlnCkBAIC03MSw5ICs3MSwxMCBAQCBjb25maWcgQVNVU19MQVBUT1AK
+IAlkZXBlbmRzIG9uIEFDUEkKIAlzZWxlY3QgTEVEU19DTEFTUwogCXNlbGVjdCBORVdfTEVEUwot
+CXNlbGVjdCBCQUNLTElHSFRfQ0xBU1NfREVWSUNFCisJZGVwZW5kcyBvbiBCQUNLTElHSFRfQ0xB
+U1NfREVWSUNFCiAJZGVwZW5kcyBvbiBJTlBVVAogCWRlcGVuZHMgb24gUkZLSUxMIHx8IFJGS0lM
+TCA9IG4KKwlkZXBlbmRzIG9uIEFDUElfVklERU8gfHwgQUNQSV9WSURFTyA9IG4KIAlzZWxlY3Qg
+SU5QVVRfU1BBUlNFS01BUAogCXNlbGVjdCBJTlBVVF9QT0xMREVWCiAJLS0taGVscC0tLQpAQCAt
+OTUsNiArOTYsNyBAQCBjb25maWcgREVMTF9MQVBUT1AKIAlkZXBlbmRzIG9uIFg4NgogCWRlcGVu
+ZHMgb24gRENEQkFTCiAJZGVwZW5kcyBvbiBCQUNLTElHSFRfQ0xBU1NfREVWSUNFCisJZGVwZW5k
+cyBvbiBBQ1BJX1ZJREVPIHx8IEFDUElfVklERU8gPSBuCiAJZGVwZW5kcyBvbiBSRktJTEwgfHwg
+UkZLSUxMID0gbgogCWRlcGVuZHMgb24gU0VSSU9fSTgwNDIKIAlzZWxlY3QgUE9XRVJfU1VQUExZ
+CkBAIC0xMDksNiArMTExLDcgQEAgY29uZmlnIERFTExfV01JCiAJdHJpc3RhdGUgIkRlbGwgV01J
+IGV4dHJhcyIKIAlkZXBlbmRzIG9uIEFDUElfV01JCiAJZGVwZW5kcyBvbiBJTlBVVAorCWRlcGVu
+ZHMgb24gQUNQSV9WSURFTyB8fCBBQ1BJX1ZJREVPID0gbgogCXNlbGVjdCBJTlBVVF9TUEFSU0VL
+TUFQCiAJLS0taGVscC0tLQogCSAgU2F5IFkgaGVyZSBpZiB5b3Ugd2FudCB0byBzdXBwb3J0IFdN
+SS1iYXNlZCBob3RrZXlzIG9uIERlbGwgbGFwdG9wcy4KQEAgLTE0NCw2ICsxNDcsNyBAQCBjb25m
+aWcgRlVKSVRTVV9MQVBUT1AKIAlkZXBlbmRzIG9uIEFDUEkKIAlkZXBlbmRzIG9uIElOUFVUCiAJ
+ZGVwZW5kcyBvbiBCQUNLTElHSFRfQ0xBU1NfREVWSUNFCisJZGVwZW5kcyBvbiBBQ1BJX1ZJREVP
+IHx8IEFDUElfVklERU8gPSBuCiAJZGVwZW5kcyBvbiBMRURTX0NMQVNTIHx8IExFRFNfQ0xBU1M9
+bgogCS0tLWhlbHAtLS0KIAkgIFRoaXMgaXMgYSBkcml2ZXIgZm9yIGxhcHRvcHMgYnVpbHQgYnkg
+RnVqaXRzdToKQEAgLTI0Nyw2ICsyNTEsNyBAQCBjb25maWcgTVNJX0xBUFRPUAogCXRyaXN0YXRl
+ICJNU0kgTGFwdG9wIEV4dHJhcyIKIAlkZXBlbmRzIG9uIEFDUEkKIAlkZXBlbmRzIG9uIEJBQ0tM
+SUdIVF9DTEFTU19ERVZJQ0UKKwlkZXBlbmRzIG9uIEFDUElfVklERU8gfHwgQUNQSV9WSURFTyA9
+IG4KIAlkZXBlbmRzIG9uIFJGS0lMTAogCWRlcGVuZHMgb24gSU5QVVQgJiYgU0VSSU9fSTgwNDIK
+IAlzZWxlY3QgSU5QVVRfU1BBUlNFS01BUApAQCAtMjgwLDYgKzI4NSw3IEBAIGNvbmZpZyBDT01Q
+QUxfTEFQVE9QCiAJdHJpc3RhdGUgIkNvbXBhbCAoYW5kIG90aGVycykgTGFwdG9wIEV4dHJhcyIK
+IAlkZXBlbmRzIG9uIEFDUEkKIAlkZXBlbmRzIG9uIEJBQ0tMSUdIVF9DTEFTU19ERVZJQ0UKKwlk
+ZXBlbmRzIG9uIEFDUElfVklERU8gfHwgQUNQSV9WSURFTyA9IG4KIAlkZXBlbmRzIG9uIFJGS0lM
+TAogCWRlcGVuZHMgb24gSFdNT04KIAlkZXBlbmRzIG9uIFBPV0VSX1NVUFBMWQpAQCAtMjk2LDcg
+KzMwMiw4IEBAIGNvbmZpZyBDT01QQUxfTEFQVE9QCiBjb25maWcgU09OWV9MQVBUT1AKIAl0cmlz
+dGF0ZSAiU29ueSBMYXB0b3AgRXh0cmFzIgogCWRlcGVuZHMgb24gQUNQSQotCXNlbGVjdCBCQUNL
+TElHSFRfQ0xBU1NfREVWSUNFCisJZGVwZW5kcyBvbiBBQ1BJX1ZJREVPIHx8IEFDUElfVklERU8g
+PSBuCisJZGVwZW5kcyBvbiBCQUNLTElHSFRfQ0xBU1NfREVWSUNFCiAJZGVwZW5kcyBvbiBJTlBV
+VAogCWRlcGVuZHMgb24gUkZLSUxMCiAJICAtLS1oZWxwLS0tCkBAIC0zMjEsNiArMzI4LDcgQEAg
+Y29uZmlnIElERUFQQURfTEFQVE9QCiAJZGVwZW5kcyBvbiBSRktJTEwgJiYgSU5QVVQKIAlkZXBl
+bmRzIG9uIFNFUklPX0k4MDQyCiAJZGVwZW5kcyBvbiBCQUNLTElHSFRfQ0xBU1NfREVWSUNFCisJ
+ZGVwZW5kcyBvbiBBQ1BJX1ZJREVPIHx8IEFDUElfVklERU8gPSBuCiAJc2VsZWN0IElOUFVUX1NQ
+QVJTRUtNQVAKIAloZWxwCiAJICBUaGlzIGlzIGEgZHJpdmVyIGZvciBMZW5vdm8gSWRlYVBhZCBu
+ZXRib29rcyBjb250YWlucyBkcml2ZXJzIGZvcgpAQCAtMzMxLDggKzMzOSw4IEBAIGNvbmZpZyBU
+SElOS1BBRF9BQ1BJCiAJZGVwZW5kcyBvbiBBQ1BJCiAJZGVwZW5kcyBvbiBJTlBVVAogCWRlcGVu
+ZHMgb24gUkZLSUxMIHx8IFJGS0lMTCA9IG4KLQlzZWxlY3QgQkFDS0xJR0hUX0xDRF9TVVBQT1JU
+Ci0Jc2VsZWN0IEJBQ0tMSUdIVF9DTEFTU19ERVZJQ0UKKwlkZXBlbmRzIG9uIEFDUElfVklERU8g
+fHwgQUNQSV9WSURFTyA9IG4KKwlkZXBlbmRzIG9uIEJBQ0tMSUdIVF9DTEFTU19ERVZJQ0UKIAlz
+ZWxlY3QgSFdNT04KIAlzZWxlY3QgTlZSQU0KIAlzZWxlY3QgTkVXX0xFRFMKQEAgLTUwMCw4ICs1
+MDgsOSBAQCBjb25maWcgRUVFUENfTEFQVE9QCiAJZGVwZW5kcyBvbiBBQ1BJCiAJZGVwZW5kcyBv
+biBJTlBVVAogCWRlcGVuZHMgb24gUkZLSUxMIHx8IFJGS0lMTCA9IG4KKwlkZXBlbmRzIG9uIEFD
+UElfVklERU8gfHwgQUNQSV9WSURFTyA9IG4KIAlkZXBlbmRzIG9uIEhPVFBMVUdfUENJCi0Jc2Vs
+ZWN0IEJBQ0tMSUdIVF9DTEFTU19ERVZJQ0UKKwlkZXBlbmRzIG9uIEJBQ0tMSUdIVF9DTEFTU19E
+RVZJQ0UKIAlzZWxlY3QgSFdNT04KIAlzZWxlY3QgTEVEU19DTEFTUwogCXNlbGVjdCBORVdfTEVE
+UwpAQCAtNTg3LDYgKzU5Niw3IEBAIGNvbmZpZyBNU0lfV01JCiAJZGVwZW5kcyBvbiBBQ1BJX1dN
+SQogCWRlcGVuZHMgb24gSU5QVVQKIAlkZXBlbmRzIG9uIEJBQ0tMSUdIVF9DTEFTU19ERVZJQ0UK
+KwlkZXBlbmRzIG9uIEFDUElfVklERU8gfHwgQUNQSV9WSURFTyA9IG4KIAlzZWxlY3QgSU5QVVRf
+U1BBUlNFS01BUAogCWhlbHAKIAkgU2F5IFkgaGVyZSBpZiB5b3Ugd2FudCB0byBzdXBwb3J0IFdN
+SS1iYXNlZCBob3RrZXlzIG9uIE1TSSBsYXB0b3BzLgpAQCAtODI0LDYgKzgzNCw3IEBAIGNvbmZp
+ZyBNWE1fV01JCiBjb25maWcgSU5URUxfT0FLVFJBSUwKIAl0cmlzdGF0ZSAiSW50ZWwgT2FrdHJh
+aWwgUGxhdGZvcm0gRXh0cmFzIgogCWRlcGVuZHMgb24gQUNQSQorCWRlcGVuZHMgb24gQUNQSV9W
+SURFTyB8fCBBQ1BJX1ZJREVPID0gbgogCWRlcGVuZHMgb24gUkZLSUxMICYmIEJBQ0tMSUdIVF9D
+TEFTU19ERVZJQ0UgJiYgQUNQSQogCS0tLWhlbHAtLS0KIAkgIEludGVsIE9ha3RyYWlsIHBsYXRm
+b3JtIG5lZWQgdGhpcyBkcml2ZXIgdG8gcHJvdmlkZSBpbnRlcmZhY2VzIHRvCi0tIAoyLjQuMgoK
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
+IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHA6Ly9saXN0
+cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
