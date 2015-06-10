@@ -1,7 +1,7 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 28/32] sony-laptop: Port to new backlight interface selection API
-Date: Wed, 10 Jun 2015 15:01:28 +0200
-Message-ID: <1433941292-21530-29-git-send-email-hdegoede@redhat.com>
+Subject: [PATCH 27/32] samsung-laptop: Port to new backlight interface selection API
+Date: Wed, 10 Jun 2015 15:01:27 +0200
+Message-ID: <1433941292-21530-28-git-send-email-hdegoede@redhat.com>
 References: <1433941292-21530-1-git-send-email-hdegoede@redhat.com>
 Return-path: <platform-driver-x86-owner@vger.kernel.org>
 In-Reply-To: <1433941292-21530-1-git-send-email-hdegoede@redhat.com>
@@ -21,33 +21,57 @@ interfaces are registered a simple "ls /sys/class/backlight" suffices.
 
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/platform/x86/sony-laptop.c | 6 ++----
- 1 file changed, 2 insertions(+), 4 deletions(-)
+ drivers/platform/x86/samsung-laptop.c | 27 ++++-----------------------
+ 1 file changed, 4 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/platform/x86/sony-laptop.c b/drivers/platform/x86/sony-laptop.c
-index e51c1e7..6207be6 100644
---- a/drivers/platform/x86/sony-laptop.c
-+++ b/drivers/platform/x86/sony-laptop.c
-@@ -69,6 +69,7 @@
- #include <linux/miscdevice.h>
- #endif
- #include <asm/uaccess.h>
-+#include <acpi/video.h>
+diff --git a/drivers/platform/x86/samsung-laptop.c b/drivers/platform/x86/samsung-laptop.c
+index 0df03e2..8c146e2 100644
+--- a/drivers/platform/x86/samsung-laptop.c
++++ b/drivers/platform/x86/samsung-laptop.c
+@@ -1720,27 +1720,14 @@ static int __init samsung_init(void)
+ 	samsung->handle_backlight = true;
+ 	samsung->quirks = quirks;
  
- #define dprintk(fmt, ...)			\
- do {						\
-@@ -3199,11 +3200,8 @@ static int sony_nc_add(struct acpi_device *device)
- 	}
- 
- 	/* setup input devices and helper fifo */
+-
+ #ifdef CONFIG_ACPI
+ 	if (samsung->quirks->broken_acpi_video)
+-		acpi_video_dmi_promote_vendor();
+-
+-	/* Don't handle backlight here if the acpi video already handle it */
 -	if (acpi_video_backlight_support()) {
--		pr_info("brightness ignored, must be controlled by ACPI video driver\n");
--	} else {
-+	if (acpi_video_get_backlight_type() == acpi_backlight_vendor)
- 		sony_nc_backlight_setup();
+-		samsung->handle_backlight = false;
+-	} else if (samsung->quirks->broken_acpi_video) {
+-		pr_info("Disabling ACPI video driver\n");
+-		acpi_video_unregister_backlight();
 -	}
++		acpi_video_set_dmi_backlight_type(acpi_backlight_vendor);
++	if (samsung->quirks->use_native_backlight)
++		acpi_video_set_dmi_backlight_type(acpi_backlight_native);
  
- 	/* create sony_pf sysfs attributes related to the SNC device */
- 	for (item = sony_nc_values; item->name; ++item) {
+-	if (samsung->quirks->use_native_backlight) {
+-		pr_info("Using native backlight driver\n");
+-		/* Tell acpi-video to not handle the backlight */
+-		acpi_video_dmi_promote_vendor();
+-		acpi_video_unregister_backlight();
+-		/* And also do not handle it ourselves */
++	if (acpi_video_get_backlight_type() != acpi_backlight_vendor)
+ 		samsung->handle_backlight = false;
+-	}
+ #endif
+ 
+ 	ret = samsung_platform_init(samsung);
+@@ -1751,12 +1738,6 @@ static int __init samsung_init(void)
+ 	if (ret)
+ 		goto error_sabi;
+ 
+-#ifdef CONFIG_ACPI
+-	/* Only log that if we are really on a sabi platform */
+-	if (acpi_video_backlight_support())
+-		pr_info("Backlight controlled by ACPI video driver\n");
+-#endif
+-
+ 	ret = samsung_sysfs_init(samsung);
+ 	if (ret)
+ 		goto error_sysfs;
 -- 
 2.4.2
