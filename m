@@ -1,13 +1,13 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 29/32] thinkpad-acpi: Port to new backlight interface selection API
-Date: Wed, 10 Jun 2015 15:01:29 +0200
-Message-ID: <1433941292-21530-30-git-send-email-hdegoede@redhat.com>
+Subject: [PATCH 30/32] toshiba-acpi: Port to new backlight interface selection API
+Date: Wed, 10 Jun 2015 15:01:30 +0200
+Message-ID: <1433941292-21530-31-git-send-email-hdegoede@redhat.com>
 References: <1433941292-21530-1-git-send-email-hdegoede@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:53578 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:60073 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964815AbbFJNDc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 10 Jun 2015 09:03:32 -0400
+	id S1754136AbbFJNDg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 10 Jun 2015 09:03:36 -0400
 In-Reply-To: <1433941292-21530-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -17,41 +17,43 @@ Cc: Ben Skeggs <bskeggs@redhat.com>, Azael Avalos <coproscefalo@gmail.com>, Core
 Port the backlight selection logic to the new backlight interface
 selection API.
 
+Also fix a compiler warning about bt_present not being initialized.
+
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/platform/x86/thinkpad_acpi.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/platform/x86/toshiba_acpi.c | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
-index 28f3281..33e488c 100644
---- a/drivers/platform/x86/thinkpad_acpi.c
-+++ b/drivers/platform/x86/thinkpad_acpi.c
-@@ -83,6 +83,7 @@
- #include <sound/control.h>
- #include <sound/initval.h>
- #include <asm/uaccess.h>
-+#include <acpi/video.h>
+diff --git a/drivers/platform/x86/toshiba_acpi.c b/drivers/platform/x86/toshiba_acpi.c
+index 9956b990..c484d47 100644
+--- a/drivers/platform/x86/toshiba_acpi.c
++++ b/drivers/platform/x86/toshiba_acpi.c
+@@ -2640,14 +2640,11 @@ static int toshiba_acpi_setup_backlight(struct toshiba_acpi_dev *dev)
+ 	 */
+ 	if (dev->tr_backlight_supported ||
+ 	    dmi_check_system(toshiba_vendor_backlight_dmi))
+-		acpi_video_dmi_promote_vendor();
++		acpi_video_set_dmi_backlight_type(acpi_backlight_vendor);
  
- /* ThinkPad CMOS commands */
- #define TP_CMOS_VOLUME_DOWN	0
-@@ -3487,7 +3488,7 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
- 	/* Do not issue duplicate brightness change events to
- 	 * userspace. tpacpi_detect_brightness_capabilities() must have
- 	 * been called before this point  */
--	if (acpi_video_backlight_support()) {
-+	if (acpi_video_get_backlight_type() != acpi_backlight_vendor) {
- 		pr_info("This ThinkPad has standard ACPI backlight "
- 			"brightness control, supported by the ACPI "
- 			"video driver\n");
-@@ -6491,7 +6492,7 @@ static int __init brightness_init(struct ibm_init_struct *iibm)
- 		return 1;
- 	}
+-	if (acpi_video_backlight_support())
++	if (acpi_video_get_backlight_type() != acpi_backlight_vendor)
+ 		return 0;
  
--	if (acpi_video_backlight_support()) {
-+	if (acpi_video_get_backlight_type() != acpi_backlight_vendor) {
- 		if (brightness_enable > 1) {
- 			pr_info("Standard ACPI backlight interface "
- 				"available, not loading native one\n");
+-	/* acpi-video may have loaded before we called dmi_promote_vendor() */
+-	acpi_video_unregister_backlight();
+-
+ 	memset(&props, 0, sizeof(props));
+ 	props.type = BACKLIGHT_PLATFORM;
+ 	props.max_brightness = HCI_LCD_BRIGHTNESS_LEVELS - 1;
+@@ -2733,7 +2730,7 @@ static int toshiba_acpi_add(struct acpi_device *acpi_dev)
+ 	const char *hci_method;
+ 	u32 special_functions;
+ 	u32 dummy;
+-	bool bt_present;
++	bool bt_present = false;
+ 	int ret = 0;
+ 
+ 	if (toshiba_acpi)
 -- 
 2.4.2
 
