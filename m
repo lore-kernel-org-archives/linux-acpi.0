@@ -1,43 +1,78 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: Regression in 3.10.80 vs. 3.10.79
-Date: Thu, 11 Jun 2015 01:23:32 +0200
-Message-ID: <25627634.TOSvDFmF1a@vostro.rjw.lan>
-References: <CAL1RGDV6hr3_Oa6O-kPzx9EemtOWWtYq+-RkCzN7axNPLz5MJw@mail.gmail.com> <CAL1RGDWBd9Y_KLoT+DZX0Js+y9C8c4mTj9b3n+-8C=_vE0=pPw@mail.gmail.com>
+Subject: Re: [PATCH v3 3/8] Driver core: wakeup the parent device before trying probe
+Date: Thu, 11 Jun 2015 01:41:12 +0200
+Message-ID: <3084933.IUY5TMoHv9@vostro.rjw.lan>
+References: <1433170082-117462-1-git-send-email-andriy.shevchenko@linux.intel.com> <3252449.XN2pzxrAPQ@vostro.rjw.lan> <1433929395.26331.116.camel@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:55385 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752250AbbFJW5m (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Jun 2015 18:57:42 -0400
-In-Reply-To: <CAL1RGDWBd9Y_KLoT+DZX0Js+y9C8c4mTj9b3n+-8C=_vE0=pPw@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1433929395.26331.116.camel@linux.intel.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Vinod Koul <vinod.koul@intel.com>, Lee Jones <lee.jones@linaro.org>, Andrew Morton <akpm@linux-foundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Mike Turquette <mturquette@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Roland Dreier <roland@purestorage.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, George McCollister <george.mccollister@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>
 
-On Tuesday, June 09, 2015 04:51:35 PM Roland Dreier wrote:
-> On Tue, Jun 9, 2015 at 4:43 PM, Roland Dreier <roland@purestorage.com> wrote:
-> > I understand that the change here fixed another regression, but I'm
-> > wondering if there's a way to make everyone happy here?  I can provide
-> > debugging info from my system as required...
+On Wednesday, June 10, 2015 12:43:15 PM Andy Shevchenko wrote:
+> On Wed, 2015-06-10 at 02:08 +0200, Rafael J. Wysocki wrote:
+> > On Tuesday, June 09, 2015 01:42:00 AM Rafael J. Wysocki wrote:
+> > > On Monday, June 01, 2015 05:47:57 PM Andy Shevchenko wrote:
+> > > > From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+> > > > 
+> > > > If the parent is still suspended when driver probe is
+> > > > attempted, the result may be failure.
+> > > > 
+> > > > For example, if the parent is a PCI MFD device that has been
+> > > > suspended when we try to probe our device, any register
+> > > > reads will return 0xffffffff.
+> > > > 
+> > > > To fix the problem, making sure the parent is always awake
+> > > > before attempting driver probe.
+> > > > 
+> > > > Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+> > > > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> > > > ---
+> > > >  drivers/base/dd.c | 8 ++++++++
+> > > >  1 file changed, 8 insertions(+)
+> > > > 
+> > > > diff --git a/drivers/base/dd.c b/drivers/base/dd.c
+> > > > index e843fdb..cfbeff3 100644
+> > > > --- a/drivers/base/dd.c
+> > > > +++ b/drivers/base/dd.c
+> > > > @@ -399,6 +399,8 @@ EXPORT_SYMBOL_GPL(wait_for_device_probe);
+> > > >   *
+> > > >   * This function must be called with @dev lock held.  When called for a
+> > > >   * USB interface, @dev->parent lock must be held as well.
+> > > > + *
+> > > > + * If device has a parent it will be powered on during device's probe().
+> > > >   */
+> > > >  int driver_probe_device(struct device_driver *drv, struct device *dev)
+> > > >  {
+> > > > @@ -410,10 +412,16 @@ int driver_probe_device(struct device_driver *drv, struct device *dev)
+> > > >  	pr_debug("bus: '%s': %s: matched device %s with driver %s\n",
+> > > >  		 drv->bus->name, __func__, dev_name(dev), drv->name);
+> > > >  
+> > > > +	if (dev->parent)
+> > > > +		pm_runtime_get_sync(dev->parent);
+> > > > +
+> > > 
+> > > For some bus types that will resume and suspend the parent for many times in
+> > > a row in device_attach() until an appropriate driver is found.  Would it be
+> > > more efficient to call it once before the bus_for_each_drv() loop in there?
+> > 
+> > Actually, something like the below should work too (the bumping up of the
+> > parent's usage counter before the loop will keep it in the runtime-active
+> > state throughout the loop).
+> > 
 > 
-> Maybe sent my mail too quickly, as I have some thoughts after looking
-> at the code.
+> Thanks for the patch! We are going to test this soon.
 > 
-> From the link order, drivers/acpi init wll be called before
-> drivers/pnp init, right?  In my case, the acpi resources ("ACPI
-> PM1a_EVT_BLK") etc are under a pnp bus.  But if acpi requests the
-> resources first, then pnp can't request the enclosing range.
-> 
-> Is the right fix to make sure the pnp init happens before acpi
-> requests resources?
+> By the way, can you give your Ack for patches 1 and 2 if there is no
+> objection?
 
-I need to have a deeper look at things.
+OK
 
-Can you please file a bug at bugzilla.kernel.org to track this and attach
-the output of acpidump from the affected system in there?
 
-Rafael
-
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
