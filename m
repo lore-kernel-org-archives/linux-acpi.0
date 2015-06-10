@@ -1,55 +1,79 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 14/32] acer-wmi: Port to new backlight interface selection API
-Date: Wed, 10 Jun 2015 15:01:14 +0200
-Message-ID: <1433941292-21530-15-git-send-email-hdegoede@redhat.com>
+Subject: [PATCH 13/32] acpi-video: Fix acpi_video _register vs
+ _unregister_backlight race
+Date: Wed, 10 Jun 2015 15:01:13 +0200
+Message-ID: <1433941292-21530-14-git-send-email-hdegoede@redhat.com>
 References: <1433941292-21530-1-git-send-email-hdegoede@redhat.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:42974 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933244AbbFJNCe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 10 Jun 2015 09:02:34 -0400
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
 In-Reply-To: <1433941292-21530-1-git-send-email-hdegoede@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
 To: Darren Hart <dvhart@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Ben Skeggs <bskeggs@redhat.com>, Azael Avalos <coproscefalo@gmail.com>, Corentin Chary <corentin.chary@gmail.com>, Lee Chun-Yi <jlee@suse.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, Ike Panhc <ike.pan@canonical.com>, Anisse Astier <anisse@astier.eu>, Mattia Dongili <malattia@linux.it>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, platform-driver-x86@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, acpi4asus-user@lists.sourceforge.net, dri-devel@lists.freedesktop.org, Aaron Lu <aaron.lu@intel.com>, linux-acpi@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Hans de Goede <hdegoede@redhat.com>, Ike Panhc <ike.pan@canonical.com>, linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, acpi4asus-user@lists.sourceforge.net, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, dri-devel@lists.freedesktop.org, Azael Avalos <coproscefalo@gmail.com>, Lee Chun-Yi <jlee@suse.com>, Mattia Dongili <malattia@linux.it>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Ben Skeggs <bskeggs@redhat.com>, Corentin Chary <corentin.chary@gmail.com>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, platform-driver-x86@vger.kernel.org, Aaron Lu <aaron.lu@intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
-Port the backlight selection logic to the new backlight interface
-selection API.
-
-This commit also removes various obsolete pr_xxx messages related to
-backlight interface selection. These are obsolete because they assume
-there is only a vendor or acpi backlight driver and no other choice.
-Also they are not necessary, if the user wants to know which backlight
-interfaces are registered a simple "ls /sys/class/backlight" suffices.
-
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/platform/x86/acer-wmi.c | 10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/platform/x86/acer-wmi.c b/drivers/platform/x86/acer-wmi.c
-index 3ac29a1..f6b280d 100644
---- a/drivers/platform/x86/acer-wmi.c
-+++ b/drivers/platform/x86/acer-wmi.c
-@@ -2246,14 +2246,10 @@ static int __init acer_wmi_init(void)
- 	set_quirks();
- 
- 	if (dmi_check_system(video_vendor_dmi_table))
--		acpi_video_dmi_promote_vendor();
--	if (acpi_video_backlight_support()) {
-+		acpi_video_set_dmi_backlight_type(acpi_backlight_vendor);
-+
-+	if (acpi_video_get_backlight_type() != acpi_backlight_vendor)
- 		interface->capability &= ~ACER_CAP_BRIGHTNESS;
--		pr_info("Brightness must be controlled by acpi video driver\n");
--	} else {
--		pr_info("Disabling ACPI video driver\n");
--		acpi_video_unregister_backlight();
--	}
- 
- 	if (wmi_has_guid(WMID_GUID3)) {
- 		if (ec_raw_mode) {
--- 
-2.4.2
-
+SXQgaXMgcG9zc2libGUgZm9yIGEgbmF0aXZlIGJhY2tsaWdodCBkcml2ZXIgdG8gbG9hZCB3aGls
+ZQphY3BpX3ZpZGVvX3JlZ2lzdGVyIGlzIHJ1bm5pbmcsIHdoaWNoIG1heSBsZWFkIHRvCmFjcGlf
+dmlkZW9fdW5yZWdpc3Rlcl9iYWNrbGlnaHQgYmVpbmcgY2FsbGVkIHdoaWxlIGFjcGlfdmlkZW9f
+cmVnaXN0ZXIKaXMgcnVubmluZyBhbmQgdGhlIDIgcmFjaW5nIGFnYWluc3QgZWFjaG90aGVyLgoK
+VGhlIHJlZ2lzdGVyX2NvdW50IHZhcmlhYmxlIHByb3RlY3RzIGFnYWluc3QgdGhpcywgYnV0IG5v
+dCBpbiBhIHRocmVhZApzYWZlIG1hbm5lciwgdGhpcyBjb21taXQgYWRkcyBsb2NraW5nIHRvIG1h
+a2UgdGhpcyB0aHJlYWQgc2FmZS4KClNpZ25lZC1vZmYtYnk6IEhhbnMgZGUgR29lZGUgPGhkZWdv
+ZWRlQHJlZGhhdC5jb20+Ci0tLQogZHJpdmVycy9hY3BpL3ZpZGVvLmMgfCA0MyArKysrKysrKysr
+KysrKysrKysrKystLS0tLS0tLS0tLS0tLS0tLS0tLS0tCiAxIGZpbGUgY2hhbmdlZCwgMjEgaW5z
+ZXJ0aW9ucygrKSwgMjIgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL3Zp
+ZGVvLmMgYi9kcml2ZXJzL2FjcGkvdmlkZW8uYwppbmRleCBiODA1M2E4Li5mY2M3YzJlIDEwMDY0
+NAotLS0gYS9kcml2ZXJzL2FjcGkvdmlkZW8uYworKysgYi9kcml2ZXJzL2FjcGkvdmlkZW8uYwpA
+QCAtNzksNiArNzksNyBAQCBzdGF0aWMgYm9vbCBhbGxvd19kdXBsaWNhdGVzOwogbW9kdWxlX3Bh
+cmFtKGFsbG93X2R1cGxpY2F0ZXMsIGJvb2wsIDA2NDQpOwogCiBzdGF0aWMgaW50IHJlZ2lzdGVy
+X2NvdW50Oworc3RhdGljIERFRklORV9NVVRFWChyZWdpc3Rlcl9jb3VudF9tdXRleCk7CiBzdGF0
+aWMgc3RydWN0IG11dGV4IHZpZGVvX2xpc3RfbG9jazsKIHN0YXRpYyBzdHJ1Y3QgbGlzdF9oZWFk
+IHZpZGVvX2J1c19oZWFkOwogc3RhdGljIGludCBhY3BpX3ZpZGVvX2J1c19hZGQoc3RydWN0IGFj
+cGlfZGV2aWNlICpkZXZpY2UpOwpAQCAtMTkzMSwxNCArMTkzMiwxNSBAQCBzdGF0aWMgaW50IF9f
+aW5pdCBpbnRlbF9vcHJlZ2lvbl9wcmVzZW50KHZvaWQpCiAKIGludCBhY3BpX3ZpZGVvX3JlZ2lz
+dGVyKHZvaWQpCiB7Ci0JaW50IHJldDsKKwlpbnQgcmV0ID0gMDsKIAorCW11dGV4X2xvY2soJnJl
+Z2lzdGVyX2NvdW50X211dGV4KTsKIAlpZiAocmVnaXN0ZXJfY291bnQpIHsKIAkJLyoKIAkJICog
+aWYgdGhlIGZ1bmN0aW9uIG9mIGFjcGlfdmlkZW9fcmVnaXN0ZXIgaXMgYWxyZWFkeSBjYWxsZWQs
+CiAJCSAqIGRvbid0IHJlZ2lzdGVyIHRoZSBhY3BpX3ZpZGVfYnVzIGFnYWluIGFuZCByZXR1cm4g
+bm8gZXJyb3IuCiAJCSAqLwotCQlyZXR1cm4gMDsKKwkJZ290byBsZWF2ZTsKIAl9CiAKIAltdXRl
+eF9pbml0KCZ2aWRlb19saXN0X2xvY2spOwpAQCAtMTk0OCw3ICsxOTUwLDcgQEAgaW50IGFjcGlf
+dmlkZW9fcmVnaXN0ZXIodm9pZCkKIAogCXJldCA9IGFjcGlfYnVzX3JlZ2lzdGVyX2RyaXZlcigm
+YWNwaV92aWRlb19idXMpOwogCWlmIChyZXQpCi0JCXJldHVybiByZXQ7CisJCWdvdG8gbGVhdmU7
+CiAKIAkvKgogCSAqIFdoZW4gdGhlIGFjcGlfdmlkZW9fYnVzIGlzIGxvYWRlZCBzdWNjZXNzZnVs
+bHksIGluY3JlYXNlCkBAIC0xOTU2LDI0ICsxOTU4LDIwIEBAIGludCBhY3BpX3ZpZGVvX3JlZ2lz
+dGVyKHZvaWQpCiAJICovCiAJcmVnaXN0ZXJfY291bnQgPSAxOwogCi0JcmV0dXJuIDA7CitsZWF2
+ZToKKwltdXRleF91bmxvY2soJnJlZ2lzdGVyX2NvdW50X211dGV4KTsKKwlyZXR1cm4gcmV0Owog
+fQogRVhQT1JUX1NZTUJPTChhY3BpX3ZpZGVvX3JlZ2lzdGVyKTsKIAogdm9pZCBhY3BpX3ZpZGVv
+X3VucmVnaXN0ZXIodm9pZCkKIHsKLQlpZiAoIXJlZ2lzdGVyX2NvdW50KSB7Ci0JCS8qCi0JCSAq
+IElmIHRoZSBhY3BpIHZpZGVvIGJ1cyBpcyBhbHJlYWR5IHVubG9hZGVkLCBkb24ndAotCQkgKiB1
+bmxvYWQgaXQgYWdhaW4gYW5kIHJldHVybiBkaXJlY3RseS4KLQkJICovCi0JCXJldHVybjsKKwlt
+dXRleF9sb2NrKCZyZWdpc3Rlcl9jb3VudF9tdXRleCk7CisJaWYgKHJlZ2lzdGVyX2NvdW50KSB7
+CisJCWFjcGlfYnVzX3VucmVnaXN0ZXJfZHJpdmVyKCZhY3BpX3ZpZGVvX2J1cyk7CisJCXJlZ2lz
+dGVyX2NvdW50ID0gMDsKIAl9Ci0JYWNwaV9idXNfdW5yZWdpc3Rlcl9kcml2ZXIoJmFjcGlfdmlk
+ZW9fYnVzKTsKLQotCXJlZ2lzdGVyX2NvdW50ID0gMDsKLQotCXJldHVybjsKKwltdXRleF91bmxv
+Y2soJnJlZ2lzdGVyX2NvdW50X211dGV4KTsKIH0KIEVYUE9SVF9TWU1CT0woYWNwaV92aWRlb191
+bnJlZ2lzdGVyKTsKIApAQCAtMTk4MSwxMyArMTk3OSwxNCBAQCB2b2lkIGFjcGlfdmlkZW9fdW5y
+ZWdpc3Rlcl9iYWNrbGlnaHQodm9pZCkKIHsKIAlzdHJ1Y3QgYWNwaV92aWRlb19idXMgKnZpZGVv
+OwogCi0JaWYgKCFyZWdpc3Rlcl9jb3VudCkKLQkJcmV0dXJuOwotCi0JbXV0ZXhfbG9jaygmdmlk
+ZW9fbGlzdF9sb2NrKTsKLQlsaXN0X2Zvcl9lYWNoX2VudHJ5KHZpZGVvLCAmdmlkZW9fYnVzX2hl
+YWQsIGVudHJ5KQotCQlhY3BpX3ZpZGVvX2J1c191bnJlZ2lzdGVyX2JhY2tsaWdodCh2aWRlbyk7
+Ci0JbXV0ZXhfdW5sb2NrKCZ2aWRlb19saXN0X2xvY2spOworCW11dGV4X2xvY2soJnJlZ2lzdGVy
+X2NvdW50X211dGV4KTsKKwlpZiAocmVnaXN0ZXJfY291bnQpIHsKKwkJbXV0ZXhfbG9jaygmdmlk
+ZW9fbGlzdF9sb2NrKTsKKwkJbGlzdF9mb3JfZWFjaF9lbnRyeSh2aWRlbywgJnZpZGVvX2J1c19o
+ZWFkLCBlbnRyeSkKKwkJCWFjcGlfdmlkZW9fYnVzX3VucmVnaXN0ZXJfYmFja2xpZ2h0KHZpZGVv
+KTsKKwkJbXV0ZXhfdW5sb2NrKCZ2aWRlb19saXN0X2xvY2spOworCX0KKwltdXRleF91bmxvY2so
+JnJlZ2lzdGVyX2NvdW50X211dGV4KTsKIH0KIEVYUE9SVF9TWU1CT0woYWNwaV92aWRlb191bnJl
+Z2lzdGVyX2JhY2tsaWdodCk7CiAKLS0gCjIuNC4yCgpfX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBs
+aXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cDovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFu
+L2xpc3RpbmZvL2RyaS1kZXZlbAo=
