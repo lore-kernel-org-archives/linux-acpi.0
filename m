@@ -1,61 +1,50 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH 29/32] thinkpad-acpi: Port to new backlight interface
- selection API
-Date: Wed, 10 Jun 2015 10:59:04 -0300
-Message-ID: <1433944744.203111.291880497.150C6869@webmail.messagingengine.com>
-References: <1433941292-21530-1-git-send-email-hdegoede@redhat.com>
- <1433941292-21530-30-git-send-email-hdegoede@redhat.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH v3 3/8] Driver core: wakeup the parent device before
+ trying probe
+Date: Wed, 10 Jun 2015 17:02:21 +0300
+Message-ID: <1433944941.26331.119.camel@linux.intel.com>
+References: <1433170082-117462-1-git-send-email-andriy.shevchenko@linux.intel.com>
+	 <1433170082-117462-4-git-send-email-andriy.shevchenko@linux.intel.com>
+	 <6646339.jahMH2QKDR@vostro.rjw.lan> <3252449.XN2pzxrAPQ@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <1433941292-21530-30-git-send-email-hdegoede@redhat.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Hans de Goede <hdegoede@redhat.com>, Darren Hart <dvhart@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Ike Panhc <ike.pan@canonical.com>, linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, acpi4asus-user@lists.sourceforge.net, dri-devel@lists.freedesktop.org, Azael Avalos <coproscefalo@gmail.com>, Lee Chun-Yi <jlee@suse.com>, Mattia Dongili <malattia@linux.it>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Ben Skeggs <bskeggs@redhat.com>, Corentin Chary <corentin.chary@gmail.com>, =?ISO-8859-1?Q?Pali=20Roh=E1r?= <pali.rohar@gmail.com>, platform-driver-x86@vger.kernel.org, Aaron Lu <aaron.lu@intel.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:7579 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965153AbbFJOG2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 10 Jun 2015 10:06:28 -0400
+In-Reply-To: <3252449.XN2pzxrAPQ@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Vinod Koul <vinod.koul@intel.com>, Lee Jones <lee.jones@linaro.org>, Andrew Morton <akpm@linux-foundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Mike Turquette <mturquette@linaro.org>
 
-T24gV2VkLCBKdW4gMTAsIDIwMTUsIGF0IDEwOjAxLCBIYW5zIGRlIEdvZWRlIHdyb3RlOgo+IFBv
-cnQgdGhlIGJhY2tsaWdodCBzZWxlY3Rpb24gbG9naWMgdG8gdGhlIG5ldyBiYWNrbGlnaHQgaW50
-ZXJmYWNlCj4gc2VsZWN0aW9uIEFQSS4KPiAKPiBTaWduZWQtb2ZmLWJ5OiBIYW5zIGRlIEdvZWRl
-IDxoZGVnb2VkZUByZWRoYXQuY29tPgoKQWNrZWQtYnk6IEhlbnJpcXVlIGRlIE1vcmFlcyBIb2xz
-Y2h1aCA8aG1oQGhtaC5lbmcuYnI+Cgo+IC0tLQo+ICBkcml2ZXJzL3BsYXRmb3JtL3g4Ni90aGlu
-a3BhZF9hY3BpLmMgfCA1ICsrKy0tCj4gIDEgZmlsZSBjaGFuZ2VkLCAzIGluc2VydGlvbnMoKyks
-IDIgZGVsZXRpb25zKC0pCj4gCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvcGxhdGZvcm0veDg2L3Ro
-aW5rcGFkX2FjcGkuYwo+IGIvZHJpdmVycy9wbGF0Zm9ybS94ODYvdGhpbmtwYWRfYWNwaS5jCj4g
-aW5kZXggMjhmMzI4MS4uMzNlNDg4YyAxMDA2NDQKPiAtLS0gYS9kcml2ZXJzL3BsYXRmb3JtL3g4
-Ni90aGlua3BhZF9hY3BpLmMKPiArKysgYi9kcml2ZXJzL3BsYXRmb3JtL3g4Ni90aGlua3BhZF9h
-Y3BpLmMKPiBAQCAtODMsNiArODMsNyBAQAo+ICAjaW5jbHVkZSA8c291bmQvY29udHJvbC5oPgo+
-ICAjaW5jbHVkZSA8c291bmQvaW5pdHZhbC5oPgo+ICAjaW5jbHVkZSA8YXNtL3VhY2Nlc3MuaD4K
-PiArI2luY2x1ZGUgPGFjcGkvdmlkZW8uaD4KPiAgCj4gIC8qIFRoaW5rUGFkIENNT1MgY29tbWFu
-ZHMgKi8KPiAgI2RlZmluZSBUUF9DTU9TX1ZPTFVNRV9ET1dOICAgICAwCj4gQEAgLTM0ODcsNyAr
-MzQ4OCw3IEBAIHN0YXRpYyBpbnQgX19pbml0IGhvdGtleV9pbml0KHN0cnVjdAo+IGlibV9pbml0
-X3N0cnVjdCAqaWlibSkKPiAgCS8qIERvIG5vdCBpc3N1ZSBkdXBsaWNhdGUgYnJpZ2h0bmVzcyBj
-aGFuZ2UgZXZlbnRzIHRvCj4gIAkgKiB1c2Vyc3BhY2UuIHRwYWNwaV9kZXRlY3RfYnJpZ2h0bmVz
-c19jYXBhYmlsaXRpZXMoKSBtdXN0IGhhdmUKPiAgCSAqIGJlZW4gY2FsbGVkIGJlZm9yZSB0aGlz
-IHBvaW50ICAqLwo+IC0gICAgICAgaWYgKGFjcGlfdmlkZW9fYmFja2xpZ2h0X3N1cHBvcnQoKSkg
-ewo+ICsgICAgICAgaWYgKGFjcGlfdmlkZW9fZ2V0X2JhY2tsaWdodF90eXBlKCkgIT0gYWNwaV9i
-YWNrbGlnaHRfdmVuZG9yKSB7Cj4gIAkJcHJfaW5mbygiVGhpcyBUaGlua1BhZCBoYXMgc3RhbmRh
-cmQgQUNQSSBiYWNrbGlnaHQgIgo+ICAJCQkiYnJpZ2h0bmVzcyBjb250cm9sLCBzdXBwb3J0ZWQg
-YnkgdGhlIEFDUEkgIgo+ICAJCQkidmlkZW8gZHJpdmVyXG4iKTsKPiBAQCAtNjQ5MSw3ICs2NDky
-LDcgQEAgc3RhdGljIGludCBfX2luaXQgYnJpZ2h0bmVzc19pbml0KHN0cnVjdAo+IGlibV9pbml0
-X3N0cnVjdCAqaWlibSkKPiAgCQlyZXR1cm4gMTsKPiAgCX0KPiAgCj4gLSAgICAgICBpZiAoYWNw
-aV92aWRlb19iYWNrbGlnaHRfc3VwcG9ydCgpKSB7Cj4gKyAgICAgICBpZiAoYWNwaV92aWRlb19n
-ZXRfYmFja2xpZ2h0X3R5cGUoKSAhPSBhY3BpX2JhY2tsaWdodF92ZW5kb3IpIHsKPiAgCQlpZiAo
-YnJpZ2h0bmVzc19lbmFibGUgPiAxKSB7Cj4gIAkJCXByX2luZm8oIlN0YW5kYXJkIEFDUEkgYmFj
-a2xpZ2h0IGludGVyZmFjZSAiCj4gIAkJCQkiYXZhaWxhYmxlLCBub3QgbG9hZGluZyBuYXRpdmUg
-b25lXG4iKTsKPiAtLSAKPiAyLjQuMgoKLS0gCiAgIk9uZSBkaXNrIHRvIHJ1bGUgdGhlbSBhbGws
-IE9uZSBkaXNrIHRvIGZpbmQgdGhlbS4gT25lIGRpc2sgdG8gYnJpbmcKICB0aGVtIGFsbCBhbmQg
-aW4gdGhlIGRhcmtuZXNzIGdyaW5kIHRoZW0uIEluIHRoZSBMYW5kIG9mIFJlZG1vbmQKICB3aGVy
-ZSB0aGUgc2hhZG93cyBsaWUuIiAtLSBUaGUgU2lsaWNvbiBWYWxsZXkgVGFyb3QKICBIZW5yaXF1
-ZSBIb2xzY2h1aApfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-XwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcK
-aHR0cDovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
+On Wed, 2015-06-10 at 02:08 +0200, Rafael J. Wysocki wrote: 
+> On Tuesday, June 09, 2015 01:42:00 AM Rafael J. Wysocki wrote:
+> > On Monday, June 01, 2015 05:47:57 PM Andy Shevchenko wrote:
+> > > From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+> > > 
+> > > If the parent is still suspended when driver probe is
+> > > attempted, the result may be failure.
+> > > 
+> > > For example, if the parent is a PCI MFD device that has been
+> > > suspended when we try to probe our device, any register
+> > > reads will return 0xffffffff.
+> > > 
+> > > To fix the problem, making sure the parent is always awake
+> > > before attempting driver probe.
+
+[]
+
+> Actually, something like the below should work too (the bumping up of the
+> parent's usage counter before the loop will keep it in the runtime-active
+> state throughout the loop).
+
+It works. Thanks for the patch. We incorporate it instead of the
+previous Heikki's patch into v4.
+
+-- 
+Andy Shevchenko <andriy.shevchenko@intel.com>
+Intel Finland Oy
+
