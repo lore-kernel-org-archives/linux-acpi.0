@@ -1,76 +1,199 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 05/32] acpi-video-detect: Move acpi_osi_is_win8 to osl.c
-Date: Wed, 10 Jun 2015 15:01:05 +0200
-Message-ID: <1433941292-21530-6-git-send-email-hdegoede@redhat.com>
+Subject: [PATCH 04/32] acpi-video-detect: Move acpi_is_video_device() to acpi/scan.c
+Date: Wed, 10 Jun 2015 15:01:04 +0200
+Message-ID: <1433941292-21530-5-git-send-email-hdegoede@redhat.com>
 References: <1433941292-21530-1-git-send-email-hdegoede@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
 In-Reply-To: <1433941292-21530-1-git-send-email-hdegoede@redhat.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+Sender: platform-driver-x86-owner@vger.kernel.org
 To: Darren Hart <dvhart@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Hans de Goede <hdegoede@redhat.com>, Ike Panhc <ike.pan@canonical.com>, linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, acpi4asus-user@lists.sourceforge.net, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, dri-devel@lists.freedesktop.org, Azael Avalos <coproscefalo@gmail.com>, Lee Chun-Yi <jlee@suse.com>, Mattia Dongili <malattia@linux.it>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Ben Skeggs <bskeggs@redhat.com>, Corentin Chary <corentin.chary@gmail.com>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, platform-driver-x86@vger.kernel.org, Aaron Lu <aaron.lu@intel.com>
+Cc: Ben Skeggs <bskeggs@redhat.com>, Azael Avalos <coproscefalo@gmail.com>, Corentin Chary <corentin.chary@gmail.com>, Lee Chun-Yi <jlee@suse.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, Ike Panhc <ike.pan@canonical.com>, Anisse Astier <anisse@astier.eu>, Mattia Dongili <malattia@linux.it>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, platform-driver-x86@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, acpi4asus-user@lists.sourceforge.net, dri-devel@lists.freedesktop.org, Aaron Lu <aaron.lu@intel.com>, linux-acpi@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-YWNwaV9vc2lfaXNfd2luOCBuZWVkcyBhY2Nlc3MgdG8gYWNwaV9nYmxfb3NpX2RhdGEgd2hpY2gg
-aXMgbm90IGV4cG9ydGVkLApzbyBtb3ZlIGl0IHRvIG9zbC5jLiBBbHRlcm5hdGl2ZWx5IHdlIGNv
-dWxkIGV4cG9ydCBhY3BpX2dibF9vc2lfZGF0YSBidXQKdGhhdCBzZWVtcyB1bmRlc2lyYWJsZS4K
-ClRoaXMgYWxsb3dzIHZpZGVvX2RldGVjdC5jIHRvIGJlIGJ1aWxkIGFzIGEgbW9kdWxlLCBiZXNp
-ZGVzIHRoYXQKYWNwaV9vc2lfaXNfd2luOCgpIGlzIHNvbWV0aGluZyB3aGljaCBkb2VzIG5vdCBy
-ZWFsbHkgYmVsb25nIGluCnZpZGVvX2RldGVjdC5jIGluIHRoZSBmaXJzdCBwbGFjZS4KClNpZ25l
-ZC1vZmYtYnk6IEhhbnMgZGUgR29lZGUgPGhkZWdvZWRlQHJlZGhhdC5jb20+Ci0tLQogZHJpdmVy
-cy9hY3BpL2ludGVybmFsLmggICAgIHwgNyAtLS0tLS0tCiBkcml2ZXJzL2FjcGkvb3NsLmMgICAg
-ICAgICAgfCA2ICsrKysrKwogZHJpdmVycy9hY3BpL3ZpZGVvX2RldGVjdC5jIHwgNiAtLS0tLS0K
-IGluY2x1ZGUvbGludXgvYWNwaS5oICAgICAgICB8IDEgKwogNCBmaWxlcyBjaGFuZ2VkLCA3IGlu
-c2VydGlvbnMoKyksIDEzIGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9p
-bnRlcm5hbC5oIGIvZHJpdmVycy9hY3BpL2ludGVybmFsLmgKaW5kZXggYmE0YTYxZS4uYzM3MDY3
-NiAxMDA2NDQKLS0tIGEvZHJpdmVycy9hY3BpL2ludGVybmFsLmgKKysrIGIvZHJpdmVycy9hY3Bp
-L2ludGVybmFsLmgKQEAgLTE4MiwxMyArMTgyLDYgQEAgc3RhdGljIGlubGluZSB2b2lkIHN1c3Bl
-bmRfbnZzX3Jlc3RvcmUodm9pZCkge30KICNlbmRpZgogCiAvKi0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCi0J
-CQkJCVZpZGVvCi0gIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tICovCi0jaWYgZGVmaW5lZChDT05GSUdfQUNQ
-SV9WSURFTykgfHwgZGVmaW5lZChDT05GSUdfQUNQSV9WSURFT19NT0RVTEUpCi1ib29sIGFjcGlf
-b3NpX2lzX3dpbjgodm9pZCk7Ci0jZW5kaWYKLQotLyotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQogCQkJCURl
-dmljZSBwcm9wZXJ0aWVzCiAgIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tICovCiB2b2lkIGFjcGlfaW5pdF9w
-cm9wZXJ0aWVzKHN0cnVjdCBhY3BpX2RldmljZSAqYWRldik7CmRpZmYgLS1naXQgYS9kcml2ZXJz
-L2FjcGkvb3NsLmMgYi9kcml2ZXJzL2FjcGkvb3NsLmMKaW5kZXggN2NjYmEzOS4uYjkwNmRlYiAx
-MDA2NDQKLS0tIGEvZHJpdmVycy9hY3BpL29zbC5jCisrKyBiL2RyaXZlcnMvYWNwaS9vc2wuYwpA
-QCAtMTY4NCw2ICsxNjg0LDEyIEBAIGludCBhY3BpX3Jlc291cmNlc19hcmVfZW5mb3JjZWQodm9p
-ZCkKIH0KIEVYUE9SVF9TWU1CT0woYWNwaV9yZXNvdXJjZXNfYXJlX2VuZm9yY2VkKTsKIAorYm9v
-bCBhY3BpX29zaV9pc193aW44KHZvaWQpCit7CisJcmV0dXJuIGFjcGlfZ2JsX29zaV9kYXRhID49
-IEFDUElfT1NJX1dJTl84OworfQorRVhQT1JUX1NZTUJPTChhY3BpX29zaV9pc193aW44KTsKKwog
-LyoKICAqIERlYWxsb2NhdGUgdGhlIG1lbW9yeSBmb3IgYSBzcGlubG9jay4KICAqLwpkaWZmIC0t
-Z2l0IGEvZHJpdmVycy9hY3BpL3ZpZGVvX2RldGVjdC5jIGIvZHJpdmVycy9hY3BpL3ZpZGVvX2Rl
-dGVjdC5jCmluZGV4IGFhZDVjZjQuLjAyNjM3NmQgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvYWNwaS92
-aWRlb19kZXRlY3QuYworKysgYi9kcml2ZXJzL2FjcGkvdmlkZW9fZGV0ZWN0LmMKQEAgLTE3OCwx
-MiArMTc4LDYgQEAgc3RhdGljIHZvaWQgYWNwaV92aWRlb19jYXBzX2NoZWNrKHZvaWQpCiAJCWFj
-cGlfdmlkZW9fZ2V0X2NhcGFiaWxpdGllcyhOVUxMKTsKIH0KIAotYm9vbCBhY3BpX29zaV9pc193
-aW44KHZvaWQpCi17Ci0JcmV0dXJuIGFjcGlfZ2JsX29zaV9kYXRhID49IEFDUElfT1NJX1dJTl84
-OwotfQotRVhQT1JUX1NZTUJPTChhY3BpX29zaV9pc193aW44KTsKLQogLyogUHJvbW90ZSB0aGUg
-dmVuZG9yIGludGVyZmFjZSBpbnN0ZWFkIG9mIHRoZSBnZW5lcmljIHZpZGVvIG1vZHVsZS4KICAq
-IFRoaXMgZnVuY3Rpb24gYWxsb3cgRE1JIGJsYWNrbGlzdHMgdG8gYmUgaW1wbGVtZW50ZWQgYnkg
-ZXh0ZXJuYWxzCiAgKiBwbGF0Zm9ybSBkcml2ZXJzIGluc3RlYWQgb2YgcHV0dGluZyBhIGJpZyBi
-bGFja2xpc3QgaW4gdmlkZW9fZGV0ZWN0LmMKZGlmZiAtLWdpdCBhL2luY2x1ZGUvbGludXgvYWNw
-aS5oIGIvaW5jbHVkZS9saW51eC9hY3BpLmgKaW5kZXggN2NiM2IwYi4uOTEzYTFjMSAxMDA2NDQK
-LS0tIGEvaW5jbHVkZS9saW51eC9hY3BpLmgKKysrIGIvaW5jbHVkZS9saW51eC9hY3BpLmgKQEAg
-LTI2Niw2ICsyNjYsNyBAQCBzdGF0aWMgaW5saW5lIGludCBhY3BpX3ZpZGVvX2JhY2tsaWdodF9z
-dXBwb3J0KHZvaWQpCiBleHRlcm4gaW50IGFjcGlfYmxhY2tsaXN0ZWQodm9pZCk7CiBleHRlcm4g
-dm9pZCBhY3BpX2RtaV9vc2lfbGludXgoaW50IGVuYWJsZSwgY29uc3Qgc3RydWN0IGRtaV9zeXN0
-ZW1faWQgKmQpOwogZXh0ZXJuIHZvaWQgYWNwaV9vc2lfc2V0dXAoY2hhciAqc3RyKTsKK2V4dGVy
-biBib29sIGFjcGlfb3NpX2lzX3dpbjgodm9pZCk7CiAKICNpZmRlZiBDT05GSUdfQUNQSV9OVU1B
-CiBpbnQgYWNwaV9nZXRfbm9kZShhY3BpX2hhbmRsZSBoYW5kbGUpOwotLSAKMi40LjIKCl9fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWls
-aW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwOi8vbGlzdHMuZnJl
-ZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+This allows video_detect.c to be build as a module, this is a preparation
+patch for the backlight interface selection logic cleanup.
+
+Note this commit also causes acpi_is_video_device() to always be build
+indepedent of CONFIG_ACPI_VIDEO, as there is no reason to make its
+building depend on CONFIG_ACPI_VIDEO.
+
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/acpi/scan.c         | 56 ++++++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/video_detect.c | 60 ---------------------------------------------
+ include/linux/acpi.h        |  8 ++----
+ 3 files changed, 58 insertions(+), 66 deletions(-)
+
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 03141aa..811b40d 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -1947,6 +1947,62 @@ bool acpi_dock_match(acpi_handle handle)
+ 	return acpi_has_method(handle, "_DCK");
+ }
+ 
++static acpi_status
++acpi_backlight_cap_match(acpi_handle handle, u32 level, void *context,
++			  void **return_value)
++{
++	long *cap = context;
++
++	if (acpi_has_method(handle, "_BCM") &&
++	    acpi_has_method(handle, "_BCL")) {
++		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found generic backlight "
++				  "support\n"));
++		*cap |= ACPI_VIDEO_BACKLIGHT;
++		if (!acpi_has_method(handle, "_BQC"))
++			printk(KERN_WARNING FW_BUG PREFIX "No _BQC method, "
++				"cannot determine initial brightness\n");
++		/* We have backlight support, no need to scan further */
++		return AE_CTRL_TERMINATE;
++	}
++	return 0;
++}
++
++/* Returns true if the ACPI object is a video device which can be
++ * handled by video.ko.
++ * The device will get a Linux specific CID added in scan.c to
++ * identify the device as an ACPI graphics device
++ * Be aware that the graphics device may not be physically present
++ * Use acpi_video_get_capabilities() to detect general ACPI video
++ * capabilities of present cards
++ */
++long acpi_is_video_device(acpi_handle handle)
++{
++	long video_caps = 0;
++
++	/* Is this device able to support video switching ? */
++	if (acpi_has_method(handle, "_DOD") || acpi_has_method(handle, "_DOS"))
++		video_caps |= ACPI_VIDEO_OUTPUT_SWITCHING;
++
++	/* Is this device able to retrieve a video ROM ? */
++	if (acpi_has_method(handle, "_ROM"))
++		video_caps |= ACPI_VIDEO_ROM_AVAILABLE;
++
++	/* Is this device able to configure which video head to be POSTed ? */
++	if (acpi_has_method(handle, "_VPO") &&
++	    acpi_has_method(handle, "_GPD") &&
++	    acpi_has_method(handle, "_SPD"))
++		video_caps |= ACPI_VIDEO_DEVICE_POSTING;
++
++	/* Only check for backlight functionality if one of the above hit. */
++	if (video_caps)
++		acpi_walk_namespace(ACPI_TYPE_DEVICE, handle,
++				    ACPI_UINT32_MAX, acpi_backlight_cap_match, NULL,
++				    &video_caps, NULL);
++
++	return video_caps;
++}
++EXPORT_SYMBOL(acpi_is_video_device);
++
+ const char *acpi_device_hid(struct acpi_device *device)
+ {
+ 	struct acpi_hardware_id *hid;
+diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
+index 68c45c3..aad5cf4 100644
+--- a/drivers/acpi/video_detect.c
++++ b/drivers/acpi/video_detect.c
+@@ -5,10 +5,6 @@
+  *  May be copied or modified under the terms of the GNU General Public License
+  *
+  * video_detect.c:
+- * Provides acpi_is_video_device() for early scanning of ACPI devices in scan.c
+- * There a Linux specific (Spec does not provide a HID for video devices) is
+- * assigned
+- *
+  * After PCI devices are glued with ACPI devices
+  * acpi_get_pci_dev() can be called to identify ACPI graphics
+  * devices for which a real graphics card is plugged in
+@@ -47,62 +43,6 @@ static long acpi_video_support;
+ static bool acpi_video_caps_checked;
+ 
+ static acpi_status
+-acpi_backlight_cap_match(acpi_handle handle, u32 level, void *context,
+-			  void **return_value)
+-{
+-	long *cap = context;
+-
+-	if (acpi_has_method(handle, "_BCM") &&
+-	    acpi_has_method(handle, "_BCL")) {
+-		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found generic backlight "
+-				  "support\n"));
+-		*cap |= ACPI_VIDEO_BACKLIGHT;
+-		if (!acpi_has_method(handle, "_BQC"))
+-			printk(KERN_WARNING FW_BUG PREFIX "No _BQC method, "
+-				"cannot determine initial brightness\n");
+-		/* We have backlight support, no need to scan further */
+-		return AE_CTRL_TERMINATE;
+-	}
+-	return 0;
+-}
+-
+-/* Returns true if the ACPI object is a video device which can be
+- * handled by video.ko.
+- * The device will get a Linux specific CID added in scan.c to
+- * identify the device as an ACPI graphics device
+- * Be aware that the graphics device may not be physically present
+- * Use acpi_video_get_capabilities() to detect general ACPI video
+- * capabilities of present cards
+- */
+-long acpi_is_video_device(acpi_handle handle)
+-{
+-	long video_caps = 0;
+-
+-	/* Is this device able to support video switching ? */
+-	if (acpi_has_method(handle, "_DOD") || acpi_has_method(handle, "_DOS"))
+-		video_caps |= ACPI_VIDEO_OUTPUT_SWITCHING;
+-
+-	/* Is this device able to retrieve a video ROM ? */
+-	if (acpi_has_method(handle, "_ROM"))
+-		video_caps |= ACPI_VIDEO_ROM_AVAILABLE;
+-
+-	/* Is this device able to configure which video head to be POSTed ? */
+-	if (acpi_has_method(handle, "_VPO") &&
+-	    acpi_has_method(handle, "_GPD") &&
+-	    acpi_has_method(handle, "_SPD"))
+-		video_caps |= ACPI_VIDEO_DEVICE_POSTING;
+-
+-	/* Only check for backlight functionality if one of the above hit. */
+-	if (video_caps)
+-		acpi_walk_namespace(ACPI_TYPE_DEVICE, handle,
+-				    ACPI_UINT32_MAX, acpi_backlight_cap_match, NULL,
+-				    &video_caps, NULL);
+-
+-	return video_caps;
+-}
+-EXPORT_SYMBOL(acpi_is_video_device);
+-
+-static acpi_status
+ find_video(acpi_handle handle, u32 lvl, void *context, void **rv)
+ {
+ 	long *cap = context;
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 88c92a03..7cb3b0b 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -243,19 +243,15 @@ extern bool wmi_has_guid(const char *guid);
+ #define ACPI_VIDEO_OUTPUT_SWITCHING_DMI_VENDOR		0x0400
+ #define ACPI_VIDEO_OUTPUT_SWITCHING_DMI_VIDEO		0x0800
+ 
++extern long acpi_is_video_device(acpi_handle handle);
++
+ #if defined(CONFIG_ACPI_VIDEO) || defined(CONFIG_ACPI_VIDEO_MODULE)
+ 
+-extern long acpi_is_video_device(acpi_handle handle);
+ extern void acpi_video_dmi_promote_vendor(void);
+ extern int acpi_video_backlight_support(void);
+ 
+ #else
+ 
+-static inline long acpi_is_video_device(acpi_handle handle)
+-{
+-	return 0;
+-}
+-
+ static inline void acpi_video_dmi_promote_vendor(void)
+ {
+ }
+-- 
+2.4.2
