@@ -1,118 +1,119 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v3 3/8] Driver core: wakeup the parent device before trying probe
-Date: Wed, 10 Jun 2015 02:08:54 +0200
-Message-ID: <3252449.XN2pzxrAPQ@vostro.rjw.lan>
-References: <1433170082-117462-1-git-send-email-andriy.shevchenko@linux.intel.com> <1433170082-117462-4-git-send-email-andriy.shevchenko@linux.intel.com> <6646339.jahMH2QKDR@vostro.rjw.lan>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH] ACPI / init: Switch over platform to the ACPI mode later
+Date: Wed, 10 Jun 2015 10:06:40 +0800
+Message-ID: <55779BB0.6030900@linaro.org>
+References: <12578608.kKCTgirQ6f@vostro.rjw.lan> <1433351637.23540.170.camel@misato.fc.hp.com> <13170654.9h99FfQLut@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:52302 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751955AbbFIXnF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Jun 2015 19:43:05 -0400
-In-Reply-To: <6646339.jahMH2QKDR@vostro.rjw.lan>
+Received: from mail-pd0-f176.google.com ([209.85.192.176]:33229 "EHLO
+	mail-pd0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752183AbbFJCGs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Jun 2015 22:06:48 -0400
+Received: by pdjn11 with SMTP id n11so26582586pdj.0
+        for <linux-acpi@vger.kernel.org>; Tue, 09 Jun 2015 19:06:48 -0700 (PDT)
+In-Reply-To: <13170654.9h99FfQLut@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Vinod Koul <vinod.koul@intel.com>, Lee Jones <lee.jones@linaro.org>, Andrew Morton <akpm@linux-foundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Mike Turquette <mturquette@linaro.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Toshi Kani <toshi.kani@hp.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len Brown <len.brown@intel.com>, Marius Tolzmann <tolzmann@molgen.mpg.de>, Matt Fleming <matt@codeblueprint.co.uk>, Chun-Yi <jlee@suse.com>, Aaron Lu <aaron.lu@intel.com>, Lv Zheng <lv.zheng@intel.com>
 
-On Tuesday, June 09, 2015 01:42:00 AM Rafael J. Wysocki wrote:
-> On Monday, June 01, 2015 05:47:57 PM Andy Shevchenko wrote:
-> > From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-> > 
-> > If the parent is still suspended when driver probe is
-> > attempted, the result may be failure.
-> > 
-> > For example, if the parent is a PCI MFD device that has been
-> > suspended when we try to probe our device, any register
-> > reads will return 0xffffffff.
-> > 
-> > To fix the problem, making sure the parent is always awake
-> > before attempting driver probe.
-> > 
-> > Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-> > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> > ---
-> >  drivers/base/dd.c | 8 ++++++++
-> >  1 file changed, 8 insertions(+)
-> > 
-> > diff --git a/drivers/base/dd.c b/drivers/base/dd.c
-> > index e843fdb..cfbeff3 100644
-> > --- a/drivers/base/dd.c
-> > +++ b/drivers/base/dd.c
-> > @@ -399,6 +399,8 @@ EXPORT_SYMBOL_GPL(wait_for_device_probe);
-> >   *
-> >   * This function must be called with @dev lock held.  When called for a
-> >   * USB interface, @dev->parent lock must be held as well.
-> > + *
-> > + * If device has a parent it will be powered on during device's probe().
-> >   */
-> >  int driver_probe_device(struct device_driver *drv, struct device *dev)
-> >  {
-> > @@ -410,10 +412,16 @@ int driver_probe_device(struct device_driver *drv, struct device *dev)
-> >  	pr_debug("bus: '%s': %s: matched device %s with driver %s\n",
-> >  		 drv->bus->name, __func__, dev_name(dev), drv->name);
-> >  
-> > +	if (dev->parent)
-> > +		pm_runtime_get_sync(dev->parent);
-> > +
-> 
-> For some bus types that will resume and suspend the parent for many times in
-> a row in device_attach() until an appropriate driver is found.  Would it be
-> more efficient to call it once before the bus_for_each_drv() loop in there?
+On 06/10/2015 07:48 AM, Rafael J. Wysocki wrote:
+> On Wednesday, June 03, 2015 11:13:57 AM Toshi Kani wrote:
+>> On Sat, 2015-05-30 at 14:21 +0200, Rafael J. Wysocki wrote:
+>>> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>>>
+>>> Commit 73f7d1ca3263 "ACPI / init: Run acpi_early_init() before
+>>> timekeeping_init()" moved the ACPI subsystem initialization,
+>>> including the ACPI mode enabling, to an earlier point in the
+>>> initialization sequence, to allow the timekeeping subsystem
+>>> use ACPI early.  Unfortunately, that resulted in boot regressions
+>>> on some systems and the early ACPI initialization was moved toward
+>>> its original position in the kernel initialization code by commit
+>>> c4e1acbb35e4 "ACPI / init: Invoke early ACPI initialization later".
+>>>
+>>> However, that turns out to be insufficient, as boot is still broken
+>>> on the Tyan S8812 mainboard.
+>>>
+>>> To fix that issue, split the ACPI early initialization code into
+>>> two pieces so the majority of it still located in acpi_early_init()
+>>> and the part switching over the platform into the ACPI mode goes into
+>>> a new function, acpi_subsystem_init(), executed at the original early
+>>> ACPI initialization spot.
+>>>
+>>> That fixes the Tyan S8812 boot problem, but still allows ACPI
+>>> tables to be loaded earlier which is useful to the EFI code in
+>>> efi_enter_virtual_mode().
+>>>
+>>> Link: https://bugzilla.kernel.org/show_bug.cgi?id=97141
+>>> Reported-and-tested-by: Marius Tolzmann <tolzmann@molgen.mpg.de>
+>>> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>>
+>> Can you add comments to acpi_early_init() and acpi_subsystem_init() to
+>> clarify what ACPI features are enabled at each phase, and what
+>> dependency they have in the boot sequence?  (The same goes to
+>> early_acpi_boot_init() and acpi_boot_init().)
+>
+> OK, update follows.
+>
+> ---
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Subject: ACPI / init: Switch over platform to the ACPI mode later
+>
+> Commit 73f7d1ca3263 "ACPI / init: Run acpi_early_init() before
+> timekeeping_init()" moved the ACPI subsystem initialization,
+> including the ACPI mode enabling, to an earlier point in the
+> initialization sequence, to allow the timekeeping subsystem
+> use ACPI early.  Unfortunately, that resulted in boot regressions
+> on some systems and the early ACPI initialization was moved toward
+> its original position in the kernel initialization code by commit
+> c4e1acbb35e4 "ACPI / init: Invoke early ACPI initialization later".
+>
+> However, that turns out to be insufficient, as boot is still broken
+> on the Tyan S8812 mainboard.
+>
+> To fix that issue, split the ACPI early initialization code into
+> two pieces so the majority of it still located in acpi_early_init()
+> and the part switching over the platform into the ACPI mode goes into
+> a new function, acpi_subsystem_init(), executed at the original early
+> ACPI initialization spot.
+>
+> That fixes the Tyan S8812 boot problem, but still allows ACPI
+> tables to be loaded earlier which is useful to the EFI code in
+> efi_enter_virtual_mode().
+>
+> Link: https://bugzilla.kernel.org/show_bug.cgi?id=97141
+> Fixes: 73f7d1ca3263 "ACPI / init: Run acpi_early_init() before timekeeping_init()"
+> Reported-and-tested-by: Marius Tolzmann <tolzmann@molgen.mpg.de>
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Acked-by: Toshi Kani <toshi.kani@hp.com>
+> ---
+>   drivers/acpi/bus.c   |   56 +++++++++++++++++++++++++++++++++++++--------------
+>   include/linux/acpi.h |    2 +
+>   init/main.c          |    1
+>   3 files changed, 44 insertions(+), 15 deletions(-)
+>
+> Index: linux-pm/drivers/acpi/bus.c
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/bus.c
+> +++ linux-pm/drivers/acpi/bus.c
+> @@ -470,6 +470,16 @@ static int __init acpi_bus_init_irq(void
+>   	return 0;
+>   }
+>
+> +/**
+> + * acpi_early_init - Initialize ACPICA and populate the ACPI namespace.
+> + *
+> + * The ACPI tables are accessible after this, but the handling of events has not
 
-Actually, something like the below should work too (the bumping up of the
-parent's usage counter before the loop will keep it in the runtime-active
-state throughout the loop).
+Maybe we need to explicitly say that it's DSDT/SSDT, because static
+tables such as FADT and MADT are accessible in the very early stage
+of boot (in setup_arch()).
 
----
- drivers/base/dd.c |   14 ++++++++++++++
- 1 file changed, 14 insertions(+)
+Other than that,
 
-Index: linux-pm/drivers/base/dd.c
-===================================================================
---- linux-pm.orig/drivers/base/dd.c
-+++ linux-pm/drivers/base/dd.c
-@@ -399,6 +399,8 @@ EXPORT_SYMBOL_GPL(wait_for_device_probe)
-  *
-  * This function must be called with @dev lock held.  When called for a
-  * USB interface, @dev->parent lock must be held as well.
-+ *
-+ * If the device has a parent, runtime-resume the parent before driver probing.
-  */
- int driver_probe_device(struct device_driver *drv, struct device *dev)
- {
-@@ -410,10 +412,16 @@ int driver_probe_device(struct device_dr
- 	pr_debug("bus: '%s': %s: matched device %s with driver %s\n",
- 		 drv->bus->name, __func__, dev_name(dev), drv->name);
- 
-+	if (dev->parent)
-+		pm_runtime_get_sync(dev->parent);
-+
- 	pm_runtime_barrier(dev);
- 	ret = really_probe(dev, drv);
- 	pm_request_idle(dev);
- 
-+	if (dev->parent)
-+		pm_runtime_put(dev->parent);
-+
- 	return ret;
- }
- 
-@@ -459,8 +467,14 @@ int device_attach(struct device *dev)
- 			ret = 0;
- 		}
- 	} else {
-+		if (dev->parent)
-+			pm_runtime_get_sync(dev->parent);
-+
- 		ret = bus_for_each_drv(dev->bus, NULL, dev, __device_attach);
- 		pm_request_idle(dev);
-+
-+		if (dev->parent)
-+			pm_runtime_put(dev->parent);
- 	}
- out_unlock:
- 	device_unlock(dev);
+Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
 
+Thanks
+Hanjun
