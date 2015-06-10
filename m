@@ -1,119 +1,62 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH] ACPI / init: Switch over platform to the ACPI mode later
-Date: Wed, 10 Jun 2015 10:06:40 +0800
-Message-ID: <55779BB0.6030900@linaro.org>
-References: <12578608.kKCTgirQ6f@vostro.rjw.lan> <1433351637.23540.170.camel@misato.fc.hp.com> <13170654.9h99FfQLut@vostro.rjw.lan>
+Subject: Re: [PATCH 00/11] ARM64 PCI hostbridge init based on ACPI
+Date: Wed, 10 Jun 2015 10:47:51 +0800
+Message-ID: <5577A557.4030408@linaro.org>
+References: <1432644564-24746-1-git-send-email-hanjun.guo@linaro.org>	<1951882.p8DdrcurkC@vostro.rjw.lan>	<556540C7.6080301@linaro.org> <CAD6G_RQnm-y9eQdYGV89zzY-x90ESo6-APPVpY7eiJ=AJbg2rg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f176.google.com ([209.85.192.176]:33229 "EHLO
-	mail-pd0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752183AbbFJCGs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 9 Jun 2015 22:06:48 -0400
-Received: by pdjn11 with SMTP id n11so26582586pdj.0
-        for <linux-acpi@vger.kernel.org>; Tue, 09 Jun 2015 19:06:48 -0700 (PDT)
-In-Reply-To: <13170654.9h99FfQLut@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CAD6G_RQnm-y9eQdYGV89zzY-x90ESo6-APPVpY7eiJ=AJbg2rg@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jagan Teki <jteki@openedev.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, linux-acpi@vger.kernel.org, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, linaro-acpi@lists.linaro.org, Liviu Dudau <Liviu.Dudau@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Will Deacon <will.deacon@arm.com>, Yijing Wang <wangyijing@huawei.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Mark Salter <msalter@redhat.com>, Bjorn Helgaas <bhelgaas@google.com>, Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Toshi Kani <toshi.kani@hp.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len Brown <len.brown@intel.com>, Marius Tolzmann <tolzmann@molgen.mpg.de>, Matt Fleming <matt@codeblueprint.co.uk>, Chun-Yi <jlee@suse.com>, Aaron Lu <aaron.lu@intel.com>, Lv Zheng <lv.zheng@intel.com>
 
-On 06/10/2015 07:48 AM, Rafael J. Wysocki wrote:
-> On Wednesday, June 03, 2015 11:13:57 AM Toshi Kani wrote:
->> On Sat, 2015-05-30 at 14:21 +0200, Rafael J. Wysocki wrote:
->>> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Hi Jagan,
+
+On 06/08/2015 08:05 PM, Jagan Teki wrote:
+> On 27 May 2015 at 09:27, Hanjun Guo <hanjun.guo@linaro.org> wrote:
+>> On 2015=E5=B9=B405=E6=9C=8827=E6=97=A5 08:30, Rafael J. Wysocki wrot=
+e:
 >>>
->>> Commit 73f7d1ca3263 "ACPI / init: Run acpi_early_init() before
->>> timekeeping_init()" moved the ACPI subsystem initialization,
->>> including the ACPI mode enabling, to an earlier point in the
->>> initialization sequence, to allow the timekeeping subsystem
->>> use ACPI early.  Unfortunately, that resulted in boot regressions
->>> on some systems and the early ACPI initialization was moved toward
->>> its original position in the kernel initialization code by commit
->>> c4e1acbb35e4 "ACPI / init: Invoke early ACPI initialization later".
+>>> On Tuesday, May 26, 2015 08:49:13 PM Hanjun Guo wrote:
+>>>>
+>>>> This patch set is introducing ARM64 PCI hostbridge init based on A=
+CPI,
+>>>> which based on Jiang Liu's patch set "Consolidate ACPI PCI root co=
+mmon
+>>>> code into ACPI core":
+>>>>
+>>>> https://lkml.org/lkml/2015/5/14/98
 >>>
->>> However, that turns out to be insufficient, as boot is still broken
->>> on the Tyan S8812 mainboard.
 >>>
->>> To fix that issue, split the ACPI early initialization code into
->>> two pieces so the majority of it still located in acpi_early_init()
->>> and the part switching over the platform into the ACPI mode goes into
->>> a new function, acpi_subsystem_init(), executed at the original early
->>> ACPI initialization spot.
->>>
->>> That fixes the Tyan S8812 boot problem, but still allows ACPI
->>> tables to be loaded earlier which is useful to the EFI code in
->>> efi_enter_virtual_mode().
->>>
->>> Link: https://bugzilla.kernel.org/show_bug.cgi?id=97141
->>> Reported-and-tested-by: Marius Tolzmann <tolzmann@molgen.mpg.de>
->>> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>>> I'll be regarding this patchset as an RFC until the one from Jiang =
+Liu
+>>> goes in.
 >>
->> Can you add comments to acpi_early_init() and acpi_subsystem_init() to
->> clarify what ACPI features are enabled at each phase, and what
->> dependency they have in the boot sequence?  (The same goes to
->> early_acpi_boot_init() and acpi_boot_init().)
+>>
+>> Yes, please, Jiang Liu's patch set should go in first.
 >
-> OK, update follows.
->
-> ---
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Subject: ACPI / init: Switch over platform to the ACPI mode later
->
-> Commit 73f7d1ca3263 "ACPI / init: Run acpi_early_init() before
-> timekeeping_init()" moved the ACPI subsystem initialization,
-> including the ACPI mode enabling, to an earlier point in the
-> initialization sequence, to allow the timekeeping subsystem
-> use ACPI early.  Unfortunately, that resulted in boot regressions
-> on some systems and the early ACPI initialization was moved toward
-> its original position in the kernel initialization code by commit
-> c4e1acbb35e4 "ACPI / init: Invoke early ACPI initialization later".
->
-> However, that turns out to be insufficient, as boot is still broken
-> on the Tyan S8812 mainboard.
->
-> To fix that issue, split the ACPI early initialization code into
-> two pieces so the majority of it still located in acpi_early_init()
-> and the part switching over the platform into the ACPI mode goes into
-> a new function, acpi_subsystem_init(), executed at the original early
-> ACPI initialization spot.
->
-> That fixes the Tyan S8812 boot problem, but still allows ACPI
-> tables to be loaded earlier which is useful to the EFI code in
-> efi_enter_virtual_mode().
->
-> Link: https://bugzilla.kernel.org/show_bug.cgi?id=97141
-> Fixes: 73f7d1ca3263 "ACPI / init: Run acpi_early_init() before timekeeping_init()"
-> Reported-and-tested-by: Marius Tolzmann <tolzmann@molgen.mpg.de>
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Acked-by: Toshi Kani <toshi.kani@hp.com>
-> ---
->   drivers/acpi/bus.c   |   56 +++++++++++++++++++++++++++++++++++++--------------
->   include/linux/acpi.h |    2 +
->   init/main.c          |    1
->   3 files changed, 44 insertions(+), 15 deletions(-)
->
-> Index: linux-pm/drivers/acpi/bus.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/bus.c
-> +++ linux-pm/drivers/acpi/bus.c
-> @@ -470,6 +470,16 @@ static int __init acpi_bus_init_irq(void
->   	return 0;
->   }
->
-> +/**
-> + * acpi_early_init - Initialize ACPICA and populate the ACPI namespace.
-> + *
-> + * The ACPI tables are accessible after this, but the handling of events has not
+> Apart from picking all, I have skipped x86, ia64 changes from above
+> and Jiang Liu's
+> series with disabling MSI, but I'm observing my arm64 board isn't
+> booted from uefi.
 
-Maybe we need to explicitly say that it's DSDT/SSDT, because static
-tables such as FADT and MADT are accessible in the very early stage
-of boot (in setup_arch()).
+Do you boot with ACPI? There is no support for ACPI PCI for ARM64
+in mainline, which kernel do you use?
 
-Other than that,
+>
+> I'm suspecting pci-acpi changes were generic to specific pcie root
+> bridge controller,
+> but do I need to do any changes wrt pcie bridge? let me know if I mis=
+s
+> anything here.
 
-Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
+ARM64 need special handling for IO port resources based on Jiang's patc=
+h
+set, we still working on it.
 
 Thanks
 Hanjun
