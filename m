@@ -1,77 +1,57 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 27/32] samsung-laptop: Port to new backlight interface selection API
-Date: Wed, 10 Jun 2015 15:01:27 +0200
-Message-ID: <1433941292-21530-28-git-send-email-hdegoede@redhat.com>
+Subject: [PATCH 29/32] thinkpad-acpi: Port to new backlight interface selection API
+Date: Wed, 10 Jun 2015 15:01:29 +0200
+Message-ID: <1433941292-21530-30-git-send-email-hdegoede@redhat.com>
 References: <1433941292-21530-1-git-send-email-hdegoede@redhat.com>
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:53578 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S964815AbbFJNDc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 10 Jun 2015 09:03:32 -0400
 In-Reply-To: <1433941292-21530-1-git-send-email-hdegoede@redhat.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Darren Hart <dvhart@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: Ben Skeggs <bskeggs@redhat.com>, Azael Avalos <coproscefalo@gmail.com>, Corentin Chary <corentin.chary@gmail.com>, Lee Chun-Yi <jlee@suse.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, Ike Panhc <ike.pan@canonical.com>, Anisse Astier <anisse@astier.eu>, Mattia Dongili <malattia@linux.it>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, platform-driver-x86@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, acpi4asus-user@lists.sourceforge.net, dri-devel@lists.freedesktop.org, Aaron Lu <aaron.lu@intel.com>, linux-acpi@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
-List-Id: linux-acpi@vger.kernel.org
 
 Port the backlight selection logic to the new backlight interface
 selection API.
 
-This commit also removes various obsolete pr_xxx messages related to
-backlight interface selection. These are obsolete because they assume
-there is only a vendor or acpi backlight driver and no other choice.
-Also they are not necessary, if the user wants to know which backlight
-interfaces are registered a simple "ls /sys/class/backlight" suffices.
-
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/platform/x86/samsung-laptop.c | 27 ++++-----------------------
- 1 file changed, 4 insertions(+), 23 deletions(-)
+ drivers/platform/x86/thinkpad_acpi.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/platform/x86/samsung-laptop.c b/drivers/platform/x86/samsung-laptop.c
-index 0df03e2..8c146e2 100644
---- a/drivers/platform/x86/samsung-laptop.c
-+++ b/drivers/platform/x86/samsung-laptop.c
-@@ -1720,27 +1720,14 @@ static int __init samsung_init(void)
- 	samsung->handle_backlight = true;
- 	samsung->quirks = quirks;
+diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
+index 28f3281..33e488c 100644
+--- a/drivers/platform/x86/thinkpad_acpi.c
++++ b/drivers/platform/x86/thinkpad_acpi.c
+@@ -83,6 +83,7 @@
+ #include <sound/control.h>
+ #include <sound/initval.h>
+ #include <asm/uaccess.h>
++#include <acpi/video.h>
  
--
- #ifdef CONFIG_ACPI
- 	if (samsung->quirks->broken_acpi_video)
--		acpi_video_dmi_promote_vendor();
--
--	/* Don't handle backlight here if the acpi video already handle it */
+ /* ThinkPad CMOS commands */
+ #define TP_CMOS_VOLUME_DOWN	0
+@@ -3487,7 +3488,7 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
+ 	/* Do not issue duplicate brightness change events to
+ 	 * userspace. tpacpi_detect_brightness_capabilities() must have
+ 	 * been called before this point  */
 -	if (acpi_video_backlight_support()) {
--		samsung->handle_backlight = false;
--	} else if (samsung->quirks->broken_acpi_video) {
--		pr_info("Disabling ACPI video driver\n");
--		acpi_video_unregister_backlight();
--	}
-+		acpi_video_set_dmi_backlight_type(acpi_backlight_vendor);
-+	if (samsung->quirks->use_native_backlight)
-+		acpi_video_set_dmi_backlight_type(acpi_backlight_native);
++	if (acpi_video_get_backlight_type() != acpi_backlight_vendor) {
+ 		pr_info("This ThinkPad has standard ACPI backlight "
+ 			"brightness control, supported by the ACPI "
+ 			"video driver\n");
+@@ -6491,7 +6492,7 @@ static int __init brightness_init(struct ibm_init_struct *iibm)
+ 		return 1;
+ 	}
  
--	if (samsung->quirks->use_native_backlight) {
--		pr_info("Using native backlight driver\n");
--		/* Tell acpi-video to not handle the backlight */
--		acpi_video_dmi_promote_vendor();
--		acpi_video_unregister_backlight();
--		/* And also do not handle it ourselves */
-+	if (acpi_video_get_backlight_type() != acpi_backlight_vendor)
- 		samsung->handle_backlight = false;
--	}
- #endif
- 
- 	ret = samsung_platform_init(samsung);
-@@ -1751,12 +1738,6 @@ static int __init samsung_init(void)
- 	if (ret)
- 		goto error_sabi;
- 
--#ifdef CONFIG_ACPI
--	/* Only log that if we are really on a sabi platform */
--	if (acpi_video_backlight_support())
--		pr_info("Backlight controlled by ACPI video driver\n");
--#endif
--
- 	ret = samsung_sysfs_init(samsung);
- 	if (ret)
- 		goto error_sysfs;
+-	if (acpi_video_backlight_support()) {
++	if (acpi_video_get_backlight_type() != acpi_backlight_vendor) {
+ 		if (brightness_enable > 1) {
+ 			pr_info("Standard ACPI backlight interface "
+ 				"available, not loading native one\n");
 -- 
 2.4.2
+
