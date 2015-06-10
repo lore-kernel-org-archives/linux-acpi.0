@@ -1,70 +1,124 @@
-From: Mattia Dongili <malattia@linux.it>
-Subject: Re: [PATCH 28/32] sony-laptop: Port to new backlight interface
- selection API
-Date: Thu, 11 Jun 2015 06:30:38 +0900
-Message-ID: <20150610213037.GB7272@taihen.jp>
-References: <1433941292-21530-1-git-send-email-hdegoede@redhat.com>
- <1433941292-21530-29-git-send-email-hdegoede@redhat.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI / init: Switch over platform to the ACPI mode later
+Date: Thu, 11 Jun 2015 01:17:38 +0200
+Message-ID: <2586130.FMgQktF91L@vostro.rjw.lan>
+References: <12578608.kKCTgirQ6f@vostro.rjw.lan> <13170654.9h99FfQLut@vostro.rjw.lan> <55779BB0.6030900@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1433941292-21530-29-git-send-email-hdegoede@redhat.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Darren Hart <dvhart@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Ben Skeggs <bskeggs@redhat.com>, Azael Avalos <coproscefalo@gmail.com>, Corentin Chary <corentin.chary@gmail.com>, Lee Chun-Yi <jlee@suse.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Ike Panhc <ike.pan@canonical.com>, Anisse Astier <anisse@astier.eu>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, platform-driver-x86@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, acpi4asus-user@lists.sourceforge.net, dri-devel@lists.freedesktop.org, Aaron Lu <aaron.lu@intel.com>, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:58040 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S932488AbbFJWvt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Jun 2015 18:51:49 -0400
+In-Reply-To: <55779BB0.6030900@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Toshi Kani <toshi.kani@hp.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len Brown <len.brown@intel.com>, Marius Tolzmann <tolzmann@molgen.mpg.de>, Matt Fleming <matt@codeblueprint.co.uk>, Chun-Yi <jlee@suse.com>, Aaron Lu <aaron.lu@intel.com>, Lv Zheng <lv.zheng@intel.com>
 
-On Wed, Jun 10, 2015 at 03:01:28PM +0200, Hans de Goede wrote:
-> Port the backlight selection logic to the new backlight interface
-> selection API.
+On Wednesday, June 10, 2015 10:06:40 AM Hanjun Guo wrote:
+> On 06/10/2015 07:48 AM, Rafael J. Wysocki wrote:
+> > On Wednesday, June 03, 2015 11:13:57 AM Toshi Kani wrote:
+> >> On Sat, 2015-05-30 at 14:21 +0200, Rafael J. Wysocki wrote:
+> >>> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >>>
+> >>> Commit 73f7d1ca3263 "ACPI / init: Run acpi_early_init() before
+> >>> timekeeping_init()" moved the ACPI subsystem initialization,
+> >>> including the ACPI mode enabling, to an earlier point in the
+> >>> initialization sequence, to allow the timekeeping subsystem
+> >>> use ACPI early.  Unfortunately, that resulted in boot regressions
+> >>> on some systems and the early ACPI initialization was moved toward
+> >>> its original position in the kernel initialization code by commit
+> >>> c4e1acbb35e4 "ACPI / init: Invoke early ACPI initialization later".
+> >>>
+> >>> However, that turns out to be insufficient, as boot is still broken
+> >>> on the Tyan S8812 mainboard.
+> >>>
+> >>> To fix that issue, split the ACPI early initialization code into
+> >>> two pieces so the majority of it still located in acpi_early_init()
+> >>> and the part switching over the platform into the ACPI mode goes into
+> >>> a new function, acpi_subsystem_init(), executed at the original early
+> >>> ACPI initialization spot.
+> >>>
+> >>> That fixes the Tyan S8812 boot problem, but still allows ACPI
+> >>> tables to be loaded earlier which is useful to the EFI code in
+> >>> efi_enter_virtual_mode().
+> >>>
+> >>> Link: https://bugzilla.kernel.org/show_bug.cgi?id=97141
+> >>> Reported-and-tested-by: Marius Tolzmann <tolzmann@molgen.mpg.de>
+> >>> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> >>
+> >> Can you add comments to acpi_early_init() and acpi_subsystem_init() to
+> >> clarify what ACPI features are enabled at each phase, and what
+> >> dependency they have in the boot sequence?  (The same goes to
+> >> early_acpi_boot_init() and acpi_boot_init().)
+> >
+> > OK, update follows.
+> >
+> > ---
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > Subject: ACPI / init: Switch over platform to the ACPI mode later
+> >
+> > Commit 73f7d1ca3263 "ACPI / init: Run acpi_early_init() before
+> > timekeeping_init()" moved the ACPI subsystem initialization,
+> > including the ACPI mode enabling, to an earlier point in the
+> > initialization sequence, to allow the timekeeping subsystem
+> > use ACPI early.  Unfortunately, that resulted in boot regressions
+> > on some systems and the early ACPI initialization was moved toward
+> > its original position in the kernel initialization code by commit
+> > c4e1acbb35e4 "ACPI / init: Invoke early ACPI initialization later".
+> >
+> > However, that turns out to be insufficient, as boot is still broken
+> > on the Tyan S8812 mainboard.
+> >
+> > To fix that issue, split the ACPI early initialization code into
+> > two pieces so the majority of it still located in acpi_early_init()
+> > and the part switching over the platform into the ACPI mode goes into
+> > a new function, acpi_subsystem_init(), executed at the original early
+> > ACPI initialization spot.
+> >
+> > That fixes the Tyan S8812 boot problem, but still allows ACPI
+> > tables to be loaded earlier which is useful to the EFI code in
+> > efi_enter_virtual_mode().
+> >
+> > Link: https://bugzilla.kernel.org/show_bug.cgi?id=97141
+> > Fixes: 73f7d1ca3263 "ACPI / init: Run acpi_early_init() before timekeeping_init()"
+> > Reported-and-tested-by: Marius Tolzmann <tolzmann@molgen.mpg.de>
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > Acked-by: Toshi Kani <toshi.kani@hp.com>
+> > ---
+> >   drivers/acpi/bus.c   |   56 +++++++++++++++++++++++++++++++++++++--------------
+> >   include/linux/acpi.h |    2 +
+> >   init/main.c          |    1
+> >   3 files changed, 44 insertions(+), 15 deletions(-)
+> >
+> > Index: linux-pm/drivers/acpi/bus.c
+> > ===================================================================
+> > --- linux-pm.orig/drivers/acpi/bus.c
+> > +++ linux-pm/drivers/acpi/bus.c
+> > @@ -470,6 +470,16 @@ static int __init acpi_bus_init_irq(void
+> >   	return 0;
+> >   }
+> >
+> > +/**
+> > + * acpi_early_init - Initialize ACPICA and populate the ACPI namespace.
+> > + *
+> > + * The ACPI tables are accessible after this, but the handling of events has not
 > 
-> This commit also removes various obsolete pr_xxx messages related to
-> backlight interface selection. These are obsolete because they assume
-> there is only a vendor or acpi backlight driver and no other choice.
-> Also they are not necessary, if the user wants to know which backlight
-> interfaces are registered a simple "ls /sys/class/backlight" suffices.
+> Maybe we need to explicitly say that it's DSDT/SSDT, because static
+> tables such as FADT and MADT are accessible in the very early stage
+> of boot (in setup_arch()).
+
+Well, it never says that none of the tables are accessible earlier.
+
+> Other than that,
 > 
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
 
-Acked-by: Mattia Dongili <malattia@linux.it>
+Thanks!
 
-> ---
->  drivers/platform/x86/sony-laptop.c | 6 ++----
->  1 file changed, 2 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/platform/x86/sony-laptop.c b/drivers/platform/x86/sony-laptop.c
-> index e51c1e7..6207be6 100644
-> --- a/drivers/platform/x86/sony-laptop.c
-> +++ b/drivers/platform/x86/sony-laptop.c
-> @@ -69,6 +69,7 @@
->  #include <linux/miscdevice.h>
->  #endif
->  #include <asm/uaccess.h>
-> +#include <acpi/video.h>
->  
->  #define dprintk(fmt, ...)			\
->  do {						\
-> @@ -3199,11 +3200,8 @@ static int sony_nc_add(struct acpi_device *device)
->  	}
->  
->  	/* setup input devices and helper fifo */
-> -	if (acpi_video_backlight_support()) {
 
-The comment above is really misplaced. I wouldn'd mind if you got rid of
-that too.
-
-> -		pr_info("brightness ignored, must be controlled by ACPI video driver\n");
-> -	} else {
-> +	if (acpi_video_get_backlight_type() == acpi_backlight_vendor)
->  		sony_nc_backlight_setup();
-> -	}
->  
->  	/* create sony_pf sysfs attributes related to the SNC device */
->  	for (item = sony_nc_values; item->name; ++item) {
-> -- 
-> 2.4.2
-> 
 -- 
-mattia
-:wq!
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
