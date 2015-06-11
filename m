@@ -1,69 +1,138 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v2 5/5] ACPI / EC: Fix a code coverity issue when QR_EC transactions are failed.
-Date: Thu, 11 Jun 2015 13:21:51 +0800
-Message-ID: <401e7734e87c627d2d73030dbf2a0836bc869b01.1433999639.git.lv.zheng@intel.com>
+Subject: [PATCH v2 2/5] ACPI / EC: Convert event handling work queue into loop style.
+Date: Thu, 11 Jun 2015 13:21:32 +0800
+Message-ID: <e6b88a400dbfd7065a91e2929bd12b7ee8d9c6d3.1433999639.git.lv.zheng@intel.com>
 References: <cover.1433734431.git.lv.zheng@intel.com> <cover.1433999639.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:31175 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752554AbbFKFVj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 11 Jun 2015 01:21:39 -0400
 In-Reply-To: <cover.1433999639.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
 
-When the QR_EC transaction fails, the EC_FLAGS_QUERY_PENDING flag prevents
-the event handling work queue from being scheduled again.
+During the period that a work queue is scheduled (queued up for run) but
+hasn't been run, second schedule_work() could fail. This may not lead to
+the loss of queries because QR_EC is always ensured to be submitted after
+the work queue has been in the running state.
 
-Though there shouldn't be failed QR_EC transactions, and this gap was
-efficiently used for catching and learning the SCI_EVT clearing timing
-compliance issues, we need to fix this as we are not fully compatible
-with all platforms/Windows to handle SCI_EVT clearing timing correctly.
-Fixing this gives the EC driver the chances to recover from a state machine
-failure.
+The event handling work queue can be changed into the loop style to allow
+us to control the code in a more flexible way:
+1. Makes it possible to add event=0x00 termination condition in the loop.
+2. Increases the thoughput of the QR_EC transactions as the 2nd+ QR_EC
+   transactions may be handled in the same work item used for the 1st QR_EC
+   transaction, thus the delay caused by the 2nd+ work item scheduling can
+   be eliminated.
 
-So this patch fixes this issue. When nr_pending_queries drops to 0, it
-clears EC_FLAGS_QUERY_PENDING at the proper position for different modes in
-order to ensure that the SCI_EVT handling can proceed.
+Except the logging message changes and the throughput improvement, this
+patch is just a funcitonal no-op.
 
-In order to be clearer for future ec_event_clearing modes, all checks in
-this patch are written in the inclusive style, not the exclusive style.
-
-Cc: 3.16+ <stable@vger.kernel.org> # 3.16+
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Tested-by: Gabriele Mazzotta <gabriele.mzt@gmail.com>
+Tested-by: Tigran Gabrielyan <tigrangab@gmail.com>
+Tested-by: Adrien D <ghbdtn@openmailbox.org>
 ---
- drivers/acpi/ec.c |   14 +++++++++++++-
- 1 file changed, 13 insertions(+), 1 deletion(-)
+ drivers/acpi/ec.c       |   33 ++++++++++++++++++++++++---------
+ drivers/acpi/internal.h |    1 +
+ 2 files changed, 25 insertions(+), 9 deletions(-)
 
 diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 79817ce..9d4761d 100644
+index 0ce8b6e8..824f3e8 100644
 --- a/drivers/acpi/ec.c
 +++ b/drivers/acpi/ec.c
-@@ -512,7 +512,8 @@ static void advance_transaction(struct acpi_ec *ec)
- 	 */
- 	if (!t || !(t->flags & ACPI_EC_COMMAND_POLL)) {
- 		if (ec_event_clearing == ACPI_EC_EVT_TIMING_EVENT &&
--		    test_bit(EC_FLAGS_QUERY_GUARDING, &ec->flags)) {
-+		    (!ec->nr_pending_queries ||
-+		     test_bit(EC_FLAGS_QUERY_GUARDING, &ec->flags))) {
- 			clear_bit(EC_FLAGS_QUERY_GUARDING, &ec->flags);
- 			acpi_ec_complete_query(ec);
- 		}
-@@ -1065,6 +1066,17 @@ static void acpi_ec_event_handler(struct work_struct *work)
- 		(void)acpi_ec_query(ec, NULL);
- 		spin_lock_irqsave(&ec->lock, flags);
- 		ec->nr_pending_queries--;
-+		/*
-+		 * Before exit, make sure that this work item can be
-+		 * scheduled again. There might be QR_EC failures, leaving
-+		 * EC_FLAGS_QUERY_PENDING uncleared and preventing this work
-+		 * item from being scheduled again.
-+		 */
-+		if (!ec->nr_pending_queries) {
-+			if (ec_event_clearing == ACPI_EC_EVT_TIMING_STATUS ||
-+			    ec_event_clearing == ACPI_EC_EVT_TIMING_QUERY)
-+				acpi_ec_complete_query(ec);
-+		}
+@@ -384,7 +384,9 @@ static bool acpi_ec_submit_flushable_request(struct acpi_ec *ec)
+ static void acpi_ec_submit_query(struct acpi_ec *ec)
+ {
+ 	if (!test_and_set_bit(EC_FLAGS_QUERY_PENDING, &ec->flags)) {
+-		ec_dbg_req("Event started");
++		ec_dbg_evt("Command(%s) submitted/blocked",
++			   acpi_ec_cmd_string(ACPI_EC_COMMAND_QUERY));
++		ec->nr_pending_queries++;
+ 		schedule_work(&ec->work);
  	}
- 	spin_unlock_irqrestore(&ec->lock, flags);
+ }
+@@ -393,7 +395,8 @@ static void acpi_ec_complete_query(struct acpi_ec *ec)
+ {
+ 	if (test_bit(EC_FLAGS_QUERY_PENDING, &ec->flags)) {
+ 		clear_bit(EC_FLAGS_QUERY_PENDING, &ec->flags);
+-		ec_dbg_req("Event stopped");
++		ec_dbg_evt("Command(%s) unblocked",
++			   acpi_ec_cmd_string(ACPI_EC_COMMAND_QUERY));
+ 	}
+ }
  
+@@ -460,8 +463,8 @@ static void advance_transaction(struct acpi_ec *ec)
+ 				if (t->rlen == t->ri) {
+ 					ec_transaction_transition(ec, ACPI_EC_COMMAND_COMPLETE);
+ 					if (t->command == ACPI_EC_COMMAND_QUERY)
+-						ec_dbg_req("Command(%s) hardware completion",
+-							   acpi_ec_cmd_string(t->command));
++						ec_dbg_evt("Command(%s) completed by hardware",
++							   acpi_ec_cmd_string(ACPI_EC_COMMAND_QUERY));
+ 					wakeup = true;
+ 				}
+ 			} else
+@@ -479,8 +482,8 @@ static void advance_transaction(struct acpi_ec *ec)
+ 			ec_transaction_transition(ec, ACPI_EC_COMMAND_POLL);
+ 			t->rdata[t->ri++] = 0x00;
+ 			ec_transaction_transition(ec, ACPI_EC_COMMAND_COMPLETE);
+-			ec_dbg_req("Command(%s) software completion",
+-				   acpi_ec_cmd_string(t->command));
++			ec_dbg_evt("Command(%s) completed by software",
++				   acpi_ec_cmd_string(ACPI_EC_COMMAND_QUERY));
+ 			wakeup = true;
+ 		} else if ((status & ACPI_EC_FLAG_IBF) == 0) {
+ 			acpi_ec_write_cmd(ec, t->command);
+@@ -961,11 +964,23 @@ static int acpi_ec_query(struct acpi_ec *ec, u8 *data)
+ 	return result;
+ }
+ 
+-static void acpi_ec_gpe_poller(struct work_struct *work)
++static void acpi_ec_event_handler(struct work_struct *work)
+ {
++	unsigned long flags;
+ 	struct acpi_ec *ec = container_of(work, struct acpi_ec, work);
+ 
+-	acpi_ec_query(ec, NULL);
++	ec_dbg_evt("Event started");
++
++	spin_lock_irqsave(&ec->lock, flags);
++	while (ec->nr_pending_queries) {
++		spin_unlock_irqrestore(&ec->lock, flags);
++		(void)acpi_ec_query(ec, NULL);
++		spin_lock_irqsave(&ec->lock, flags);
++		ec->nr_pending_queries--;
++	}
++	spin_unlock_irqrestore(&ec->lock, flags);
++
++	ec_dbg_evt("Event stopped");
+ }
+ 
+ static u32 acpi_ec_gpe_handler(acpi_handle gpe_device,
+@@ -1040,7 +1055,7 @@ static struct acpi_ec *make_acpi_ec(void)
+ 	init_waitqueue_head(&ec->wait);
+ 	INIT_LIST_HEAD(&ec->list);
+ 	spin_lock_init(&ec->lock);
+-	INIT_WORK(&ec->work, acpi_ec_gpe_poller);
++	INIT_WORK(&ec->work, acpi_ec_event_handler);
+ 	ec->timestamp = jiffies;
+ 	return ec;
+ }
+diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+index cf358d4..ae919b5 100644
+--- a/drivers/acpi/internal.h
++++ b/drivers/acpi/internal.h
+@@ -139,6 +139,7 @@ struct acpi_ec {
+ 	spinlock_t lock;
+ 	struct work_struct work;
+ 	unsigned long timestamp;
++	unsigned long nr_pending_queries;
+ };
+ 
+ extern struct acpi_ec *first_ec;
 -- 
 1.7.10
+
