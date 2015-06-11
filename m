@@ -1,59 +1,72 @@
-From: al.stone@linaro.org
-Subject: [PATCH 2/3] ACPI: add BAD_MADT_GICC_ENTRY() macro
-Date: Thu, 11 Jun 2015 13:45:10 -0600
-Message-ID: <1434051911-14665-3-git-send-email-al.stone@linaro.org>
-References: <1434051911-14665-1-git-send-email-al.stone@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1434051911-14665-1-git-send-email-al.stone@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org
-Cc: linaro-acpi@lists.linaro.org, patches@linaro.org, linaro-kernel@lists.linaro.org
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH v5 20/21] tools/testing/nvdimm: manufactured NFITs for
+ interface development
+Date: Thu, 11 Jun 2015 13:12:32 -0700
+Message-ID: <CAPcyv4j8pTGZF_4vubPBTRDHwo=JSmq=mnZ5bhMpEhy7uYj7nw@mail.gmail.com>
+References: <20150602001134.4506.45867.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<20150602001557.4506.57136.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<20150609064811.GG9804@lst.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wi0-f181.google.com ([209.85.212.181]:36108 "EHLO
+	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752544AbbFKUMd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 11 Jun 2015 16:12:33 -0400
+Received: by wigg3 with SMTP id g3so83309794wig.1
+        for <linux-acpi@vger.kernel.org>; Thu, 11 Jun 2015 13:12:32 -0700 (PDT)
+In-Reply-To: <20150609064811.GG9804@lst.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Christoph Hellwig <hch@lst.de>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Jens Axboe <axboe@kernel.dk>, Stephen Rothwell <sfr@canb.auug.org.au>, "Rafael J. Wysocki" <rafael@kernel.org>, Neil Brown <neilb@suse.de>, Greg KH <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, jmoyer <jmoyer@redhat.com>, linux-api@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>
 
-From: Al Stone <al.stone@linaro.org>
+On Mon, Jun 8, 2015 at 11:48 PM, Christoph Hellwig <hch@lst.de> wrote:
+> The description fails to mention the hacks how this is archived.  I don't
+> think the include hackery and otherwise needed exports are acceptable
+> if with an explanation, though.
 
-The BAD_MADT_ENTRY() macro is designed to work for all of the subtables
-of the MADT.  In the ACPI 5.1 version of the spec, the struct for the
-GICC subtable (struct acpi_madt_generic_interrupt) is 76 bytes long; in
-ACPI 6.0, the struct is 80 bytes long.  But, there is only one definition
-in ACPICA for this struct -- and that is the 6.0 version.  Hence, when
-BAD_MADT_ENTRY() compares the struct size to the length in the GICC
-subtable, it fails if 5.1 structs are in use, and there are systems in
-the wild that have them.
+I've killed the include hackery.
 
-This patch adds the BAD_MADT_GICC_ENTRY() that checks the GICC subtable
-only, accounting for the difference in specification versions that are
-possible.  The BAD_MADT_ENTRY() will continue to work as is for all other
-MADT subtables.
+> Really - get your fake hardware into qemu right now and don't bother
+> with trying to hack the subsystem like this.
 
-Signed-off-by: Al Stone <al.stone@linaro.org>
-Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
-Reviewed-by: Graeme Gregory <graeme.gregory@linaro.org>
-
-CC: Rafael J. Wysocki <rjw@rjwysocki.net>
-CC: Len Brown <lenb@kernel.org>
+Rest assured that NFIT enabling for QEMU/KVM is well under way, but I
+disagree that QEMU is the right place to enable unit tests.  Here is
+the updated changelog that appears in "[PATCH v6 20/21]
+tools/testing/nvdimm: libnvdimm unit test infrastructure":
 
 ---
- include/linux/acpi.h | 7 +++++++
- 1 file changed, 7 insertions(+)
 
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 33ed313..8a83f91 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -127,6 +127,13 @@ static inline void acpi_initrd_override(void *data, size_t size)
- 		(!entry) || (unsigned long)entry + sizeof(*entry) > end ||  \
- 		((struct acpi_subtable_header *)entry)->length < sizeof(*entry))
- 
-+#define BAD_MADT_GICC_ENTRY(entry, end) (				    \
-+		(!entry) || (unsigned long)entry + sizeof(*entry) > end ||  \
-+		((ACPI_FADT_SPEC_VERSION == ACPI_SPEC_VERSION(5,1)) &&	    \
-+		 (entry->header.length != 76))				||  \
-+		((ACPI_FADT_SPEC_VERSION == ACPI_SPEC_VERSION(6,0)) &&	    \
-+		 (entry->header.length != 80)))
-+
- char * __acpi_map_table (unsigned long phys_addr, unsigned long size);
- void __acpi_unmap_table(char *map, unsigned long size);
- int early_acpi_boot_init(void);
--- 
-2.1.0
+tools/testing/nvdimm: libnvdimm unit test infrastructure
+
+'libnvdimm' is the first driver sub-system in the kernel to implement
+mocking for unit test coverage.  The nfit_test module gets built as an
+external module and arranges for external module replacements of nfit,
+libnvdimm, nd_pmem, and nd_blk.  These replacements use the linker
+--wrap option to redirect calls to ioremap() + request_mem_region() to
+custom defined unit test resources.  The end result is a fully
+functional nvdimm_bus, as far as userspace is concerned, but with the
+capability to perform otherwise destructive tests on emulated
+resources.
+
+Q: Why not use QEMU for this emulation?
+QEMU is not suitable for unit testing.  QEMU's role is to faithfully
+emulate the platform.  A unit test's role is to unfaithfully implement
+the platform with the goal of triggering bugs in the corners of the
+sub-system implementation.  As bugs are discovered in platforms, or
+the sub-system itself, the unit tests are extended to backstop a fix
+with a reproducer unit test.
+
+Another problem with QEMU is that it would require coordination of 3
+software projects instead of 2 (kernel + libndctl [1]) to maintain and
+execute the tests.  The chances for bit rot and the difficulty of
+getting the tests running goes up non-linearly the more components
+involved.
+
+Q: Why submit this to the kernel tree instead of external modules in libndctl?
+Simple, to alleviate the same risk that out-of-tree external modules
+face.  Updates to drivers/nvdimm/ can be immediately evaluated to see
+if they have any impact on tools/testing/nvdimm/.
+
+[1]: https://github.com/pmem/ndctl
