@@ -1,85 +1,69 @@
-From: Jani Nikula <jani.nikula@linux.intel.com>
-Subject: Re: [PATCH v2] acpi-video: Add a parameter to not register the backlight sysfs interface
-Date: Thu, 11 Jun 2015 14:10:39 +0300
-Message-ID: <87mw065wls.fsf@intel.com>
-References: <1433838745-8857-1-git-send-email-hdegoede@redhat.com> <20150609091042.GA1280@aaronlu.sh.intel.com> <557760A5.9000404@redhat.com> <20150611014315.GA26277@aaronlu.sh.intel.com> <55795F3B.4040506@redhat.com>
+From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH 20/32] dell-wmi: Port to new backlight interface
+ selection API
+Date: Thu, 11 Jun 2015 13:43:30 +0200
+Message-ID: <20150611114330.GC19820@pali>
+References: <1433941292-21530-1-git-send-email-hdegoede@redhat.com>
+ <1433941292-21530-21-git-send-email-hdegoede@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <55795F3B.4040506@redhat.com>
+Content-Disposition: inline
+In-Reply-To: <1433941292-21530-21-git-send-email-hdegoede@redhat.com>
 Sender: platform-driver-x86-owner@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>, Aaron Lu <aaron.lu@intel.com>
-Cc: Sylvain Pasche <sylvain.pasche@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, dri-devel@lists.freedesktop.org, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, Ben Skeggs <bskeggs@redhat.com>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Darren Hart <dvhart@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Ben Skeggs <bskeggs@redhat.com>, Azael Avalos <coproscefalo@gmail.com>, Corentin Chary <corentin.chary@gmail.com>, Lee Chun-Yi <jlee@suse.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Ike Panhc <ike.pan@canonical.com>, Anisse Astier <anisse@astier.eu>, Mattia Dongili <malattia@linux.it>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, platform-driver-x86@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, acpi4asus-user@lists.sourceforge.net, dri-devel@lists.freedesktop.org, Aaron Lu <aaron.lu@intel.com>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 11 Jun 2015, Hans de Goede <hdegoede@redhat.com> wrote:
-> Hi,
->
-> On 11-06-15 03:43, Aaron Lu wrote:
->> On Tue, Jun 09, 2015 at 11:54:45PM +0200, Hans de Goede wrote:
->>> Hi,
->>>
->>> On 06/09/2015 11:10 AM, Aaron Lu wrote:
->>>> On Tue, Jun 09, 2015 at 10:32:25AM +0200, Hans de Goede wrote:
->>>>> On some systems acpi-video backlight is broken in the sense that it cannot
->>>>> control the brightness of the backlight, but it must still be called on
->>>>> resume to power-up the backlight after resume.
->>>>
->>>> All the video module does on resume is a backlight set operation, it
->>>> can't control backlight but can turn on the screen on resume? Hmm...
->>>>
->>>> I'll ask Sylvain to attach acpidump, let's see if there is anything
->>>> special there.
->>>
->>> Ok, lets see what comes out of that. Note in the mean time Sylvain has
->>> attached his acpidump.
->>
->> Thanks.
->> According to the discussion in the bugzilla place, it doesn't seem we
->> have any other way to handle this at the moment.
->>
->> Acked-by: Aaron Lu <aaron.lu@intel.com>
->
-> Thanks. So that only leaves Jani's remark:
->
->  > Nitpick, I'd prefer positively named variables, like enable_foo to avoid
->  > the double negative !disable_foo. enable_foo and !enable_foo read much
->  > better. But up to Aaron and friends.
->
-> I personally believe that having the option named disable_backlight_sysfs_if
-> is better here since I believe that things which are always enabled except
-> on a few broken model laptops the option name should be disable_foo so
-> that people can clearly see in /proc/cmdline / dmesg that the user is passing
-> an option to disable something which is normally enabled.
+On Wednesday 10 June 2015 15:01:20 Hans de Goede wrote:
+> Port the backlight selection logic to the new backlight interface
+> selection API.
+>=20
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> ---
+>  drivers/platform/x86/dell-wmi.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+>=20
+> diff --git a/drivers/platform/x86/dell-wmi.c b/drivers/platform/x86/d=
+ell-wmi.c
+> index 6512a06..f2d77fe 100644
+> --- a/drivers/platform/x86/dell-wmi.c
+> +++ b/drivers/platform/x86/dell-wmi.c
+> @@ -35,6 +35,7 @@
+>  #include <linux/acpi.h>
+>  #include <linux/string.h>
+>  #include <linux/dmi.h>
+> +#include <acpi/video.h>
+> =20
+>  MODULE_AUTHOR("Matthew Garrett <mjg@redhat.com>");
+>  MODULE_DESCRIPTION("Dell laptop WMI hotkeys driver");
+> @@ -397,7 +398,7 @@ static int __init dell_wmi_init(void)
+>  	}
+> =20
+>  	dmi_walk(find_hk_type, NULL);
+> -	acpi_video =3D acpi_video_backlight_support();
+> +	acpi_video =3D acpi_video_get_backlight_type() !=3D acpi_backlight_=
+vendor;
+> =20
+>  	err =3D dell_wmi_input_setup();
+>  	if (err)
 
-Fair enough.
+Hello,
 
->
-> As for the (!disabled) argument, the code in question here actually is:
->
-> if (disabled)
-> 	return 0;
->
-> :)
->
-> Still if people want me to change the option to a default-on
-> enable_backlight_sysfs_if option I can do a v3...
+to make sure that nothing will be broken I will try to explain current
+code. Variable acpi_video is global boolean (for this module) and when
+is set to true it is expected that ACPI generate brightness up/down key
+events via ACPI input device. When is acpi_video boolean variable is se=
+t
+to false then ACPI input device should not send brightness up/down keys
+to userspace. And dell-wmi.ko driver send those two keys via dell-wmi
+input device.
 
-I'm not insisting.
+So please check that your change does not change above behaviour. Maybe
+it would make sense to rename "acpi_video" variable to something better=
+=2E
 
-BR,
-Jani.
-
-
->
-> Regards,
->
-> Hans
->
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> http://lists.freedesktop.org/mailman/listinfo/dri-devel
-
--- 
-Jani Nikula, Intel Open Source Technology Center
+--=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
