@@ -1,65 +1,151 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH v2] ACPICA: Add values for MADT GIC version field for ACPI 6.0
-Date: Thu, 11 Jun 2015 17:51:04 +0800
-Message-ID: <1434016264-4801-1-git-send-email-hanjun.guo@linaro.org>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH V2 RESEND] mailbox: add ACPI support for mailbox framework
+Date: Thu, 11 Jun 2015 12:59:23 +0300
+Message-ID: <20150611095923.GU1478@lahna.fi.intel.com>
+References: <1428537507-30561-1-git-send-email-fkan@apm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f177.google.com ([209.85.192.177]:32778 "EHLO
-	mail-pd0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751133AbbFKJvm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 11 Jun 2015 05:51:42 -0400
-Received: by pdjn11 with SMTP id n11so1521541pdj.0
-        for <linux-acpi@vger.kernel.org>; Thu, 11 Jun 2015 02:51:41 -0700 (PDT)
+Received: from mga01.intel.com ([192.55.52.88]:49836 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752191AbbFKJ7c (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 11 Jun 2015 05:59:32 -0400
+Content-Disposition: inline
+In-Reply-To: <1428537507-30561-1-git-send-email-fkan@apm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>
+To: Feng Kan <fkan@apm.com>
+Cc: patches@apm.com, jassisinghbrar@gmail.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-ACPI 6.0 specified MADT generic distributor version values, but
-the detail definition is missing in ACPICA version 20150515, add
-its support in this patch which is needed for ARM64 ACPI based
-GIC init.
+On Wed, Apr 08, 2015 at 04:58:27PM -0700, Feng Kan wrote:
+> This will add support for ACPI parsing of the mboxes attribute
+> when booting with ACPI table. The client will have a attribute
+> mimic the dts call "mboxes". In the ACPI case, the client will
+> mark "mboxes" with the ACPI reference of the mbox it wishes to
+> use.
+> 
+> 	Name (_DSD, Package () {
+> 		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+> 		Package () {
+> 			Package (2) {"mboxes", Package(){"^^MBOXREF, index"}}
 
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-Signed-off-by: Bob Moore <robert.moore@intel.com>
----
-Hi Lv, Rafael,
-   Could you help merge this patch for 4.2? It should be in the ACPICA
-release of 20150515, but we missed that chance. This patch will be needed
-for ARM64 GIC init and I prepare to upstream those patches in 4.3, so if
-this patch accpeted in 4.2, it will have less dedenpence for ACPICA core
-and ARM64 GIC code in next kernel version.
+This should be
 
-This patch was accepted by Bob and merged into ACPICA tree, I reworked
-it on top of linux ACPICA.
+ 			Package (2) {"mboxes", Package() {^^MBOXREF, index}}
 
-Thanks
-Hanjun
+without quotes I think.
 
- include/acpi/actbl1.h | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+> 		}
+> 	})
+> 
+> Signed-off-by: Feng Kan <fkan@apm.com>
+> ---
+>  V2 CHANGE:
+>         - change to use ACPI reference rather than use ACPI HID directly.
+> 	- consolidate to use one single xlate function
+> 	- fix code to accept use of index
+> 
+>  drivers/mailbox/mailbox.c          | 105 ++++++++++++++++++++++++++-----------
+>  include/linux/mailbox_controller.h |   6 +--
+>  2 files changed, 76 insertions(+), 35 deletions(-)
+> 
+> diff --git a/drivers/mailbox/mailbox.c b/drivers/mailbox/mailbox.c
+> index 19b491d..3bb981c 100644
+> --- a/drivers/mailbox/mailbox.c
+> +++ b/drivers/mailbox/mailbox.c
+> @@ -9,6 +9,7 @@
+>   * published by the Free Software Foundation.
+>   */
+>  
+> +#include <linux/acpi.h>
+>  #include <linux/interrupt.h>
+>  #include <linux/spinlock.h>
+>  #include <linux/mutex.h>
+> @@ -278,6 +279,70 @@ int mbox_send_message(struct mbox_chan *chan, void *mssg)
+>  }
+>  EXPORT_SYMBOL_GPL(mbox_send_message);
+>  
+> +#ifdef CONFIG_ACPI
+> +static struct mbox_chan *mbox_acpi_parse_chan(struct device *dev, int index)
+> +{
+> +	struct acpi_device *acpi_dev;
+> +	struct mbox_controller *mbox;
+> +	struct mbox_chan *chan;
+> +	int status;
+> +	struct acpi_reference_args args;
+> +
+> +	status = acpi_dev_get_property_reference(ACPI_COMPANION(dev), "mboxes",
+> +						 index, &args);
+> +	if (ACPI_FAILURE(status)) {
+> +		dev_dbg(dev, "mbox: no matching mbox found in ACPI table\n");
+> +		return ERR_PTR(-ENODEV);
+> +	}
+> +	acpi_dev = args.adev;
+> +
+> +	chan = NULL;
+> +	list_for_each_entry(mbox, &mbox_cons, node)
+> +		if (ACPI_COMPANION(mbox->dev) == acpi_dev) {
+> +			chan = mbox->chan_xlate(mbox, args.args[0]);
+> +			break;
+> +		}
+> +
+> +	return chan;
+> +}
 
-diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
-index cadf21c..d382de8 100644
---- a/include/acpi/actbl1.h
-+++ b/include/acpi/actbl1.h
-@@ -834,6 +834,17 @@ struct acpi_madt_generic_distributor {
- 	u8 reserved2[3];	/* reserved - must be zero */
- };
- 
-+/* Values for Version field above */
-+
-+enum acpi_madt_gic_version {
-+	ACPI_MADT_GIC_VERSION_NONE	= 0,
-+	ACPI_MADT_GIC_VERSION_V1	= 1,
-+	ACPI_MADT_GIC_VERSION_V2	= 2,
-+	ACPI_MADT_GIC_VERSION_V3	= 3,
-+	ACPI_MADT_GIC_VERSION_V4	= 4,
-+	ACPI_MADT_GIC_VERSION_RESERVED	= 5	/* 5 and greater are reserved */
-+};
-+
- /* 13: Generic MSI Frame (ACPI 5.1) */
- 
- struct acpi_madt_generic_msi_frame {
--- 
-1.9.1
+This looks nicer if you add
 
+#else
+
+static inline struct mbox_chan *mbox_acpi_parse_chan(struct device *dev, int index)
+{
+	return NULL;
+}
+
+and then ...
+
+> +#endif
+> +
+> +static struct mbox_chan *mbox_of_parse_chan(struct device *dev, int index)
+> +{
+> +	struct of_phandle_args spec;
+> +	struct mbox_controller *mbox;
+> +	struct mbox_chan *chan;
+> +
+> +	if (of_parse_phandle_with_args(dev->of_node, "mboxes",
+> +				       "#mbox-cells", index, &spec)) {
+> +		dev_dbg(dev, "%s: can't parse \"mboxes\" property\n", __func__);
+> +		return ERR_PTR(-ENODEV);
+> +	}
+> +
+> +	chan = NULL;
+> +	list_for_each_entry(mbox, &mbox_cons, node)
+> +		if (mbox->dev->of_node == spec.np) {
+> +			chan = mbox->chan_xlate(mbox, spec.args[0]);
+> +			break;
+> +		}
+> +
+> +	of_node_put(spec.np);
+> +	return chan;
+> +}
+> +
+> +static struct mbox_chan *mbox_parse_chan(struct device *dev, int index)
+> +{
+> +	if (!dev)
+> +		return ERR_PTR(-ENODEV);
+> +
+> +	if (dev->of_node)
+> +		return mbox_of_parse_chan(dev, index);
+> +#ifdef CONFIG_ACPI
+> +	else
+> +		return mbox_acpi_parse_chan(dev, index);
+> +#endif
+
+.. you can get rid of the ugly #ifdef here. Just make it:
+
+	if (dev->of_node)
+		return mbox_of_parse_chan(dev, index);
+	else
+		return mbox_acpi_parse_chan(dev, index);
+
+> +}
+> +
