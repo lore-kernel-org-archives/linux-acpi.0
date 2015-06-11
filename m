@@ -1,151 +1,68 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH V2 RESEND] mailbox: add ACPI support for mailbox framework
-Date: Thu, 11 Jun 2015 12:59:23 +0300
-Message-ID: <20150611095923.GU1478@lahna.fi.intel.com>
-References: <1428537507-30561-1-git-send-email-fkan@apm.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH v2] acpi-video: Add a parameter to not register the backlight
+ sysfs interface
+Date: Thu, 11 Jun 2015 12:13:15 +0200
+Message-ID: <55795F3B.4040506@redhat.com>
+References: <1433838745-8857-1-git-send-email-hdegoede@redhat.com> <20150609091042.GA1280@aaronlu.sh.intel.com> <557760A5.9000404@redhat.com> <20150611014315.GA26277@aaronlu.sh.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:49836 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752191AbbFKJ7c (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 11 Jun 2015 05:59:32 -0400
-Content-Disposition: inline
-In-Reply-To: <1428537507-30561-1-git-send-email-fkan@apm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <20150611014315.GA26277@aaronlu.sh.intel.com>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Ben Skeggs <bskeggs@redhat.com>, platform-driver-x86@vger.kernel.org, dri-devel@lists.freedesktop.org, Sylvain Pasche <sylvain.pasche@gmail.com>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Feng Kan <fkan@apm.com>
-Cc: patches@apm.com, jassisinghbrar@gmail.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
 
-On Wed, Apr 08, 2015 at 04:58:27PM -0700, Feng Kan wrote:
-> This will add support for ACPI parsing of the mboxes attribute
-> when booting with ACPI table. The client will have a attribute
-> mimic the dts call "mboxes". In the ACPI case, the client will
-> mark "mboxes" with the ACPI reference of the mbox it wishes to
-> use.
-> 
-> 	Name (_DSD, Package () {
-> 		ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-> 		Package () {
-> 			Package (2) {"mboxes", Package(){"^^MBOXREF, index"}}
+Hi,
 
-This should be
+On 11-06-15 03:43, Aaron Lu wrote:
+> On Tue, Jun 09, 2015 at 11:54:45PM +0200, Hans de Goede wrote:
+>> Hi,
+>>
+>> On 06/09/2015 11:10 AM, Aaron Lu wrote:
+>>> On Tue, Jun 09, 2015 at 10:32:25AM +0200, Hans de Goede wrote:
+>>>> On some systems acpi-video backlight is broken in the sense that it cannot
+>>>> control the brightness of the backlight, but it must still be called on
+>>>> resume to power-up the backlight after resume.
+>>>
+>>> All the video module does on resume is a backlight set operation, it
+>>> can't control backlight but can turn on the screen on resume? Hmm...
+>>>
+>>> I'll ask Sylvain to attach acpidump, let's see if there is anything
+>>> special there.
+>>
+>> Ok, lets see what comes out of that. Note in the mean time Sylvain has
+>> attached his acpidump.
+>
+> Thanks.
+> According to the discussion in the bugzilla place, it doesn't seem we
+> have any other way to handle this at the moment.
+>
+> Acked-by: Aaron Lu <aaron.lu@intel.com>
 
- 			Package (2) {"mboxes", Package() {^^MBOXREF, index}}
+Thanks. So that only leaves Jani's remark:
 
-without quotes I think.
+ > Nitpick, I'd prefer positively named variables, like enable_foo to avoid
+ > the double negative !disable_foo. enable_foo and !enable_foo read much
+ > better. But up to Aaron and friends.
 
-> 		}
-> 	})
-> 
-> Signed-off-by: Feng Kan <fkan@apm.com>
-> ---
->  V2 CHANGE:
->         - change to use ACPI reference rather than use ACPI HID directly.
-> 	- consolidate to use one single xlate function
-> 	- fix code to accept use of index
-> 
->  drivers/mailbox/mailbox.c          | 105 ++++++++++++++++++++++++++-----------
->  include/linux/mailbox_controller.h |   6 +--
->  2 files changed, 76 insertions(+), 35 deletions(-)
-> 
-> diff --git a/drivers/mailbox/mailbox.c b/drivers/mailbox/mailbox.c
-> index 19b491d..3bb981c 100644
-> --- a/drivers/mailbox/mailbox.c
-> +++ b/drivers/mailbox/mailbox.c
-> @@ -9,6 +9,7 @@
->   * published by the Free Software Foundation.
->   */
->  
-> +#include <linux/acpi.h>
->  #include <linux/interrupt.h>
->  #include <linux/spinlock.h>
->  #include <linux/mutex.h>
-> @@ -278,6 +279,70 @@ int mbox_send_message(struct mbox_chan *chan, void *mssg)
->  }
->  EXPORT_SYMBOL_GPL(mbox_send_message);
->  
-> +#ifdef CONFIG_ACPI
-> +static struct mbox_chan *mbox_acpi_parse_chan(struct device *dev, int index)
-> +{
-> +	struct acpi_device *acpi_dev;
-> +	struct mbox_controller *mbox;
-> +	struct mbox_chan *chan;
-> +	int status;
-> +	struct acpi_reference_args args;
-> +
-> +	status = acpi_dev_get_property_reference(ACPI_COMPANION(dev), "mboxes",
-> +						 index, &args);
-> +	if (ACPI_FAILURE(status)) {
-> +		dev_dbg(dev, "mbox: no matching mbox found in ACPI table\n");
-> +		return ERR_PTR(-ENODEV);
-> +	}
-> +	acpi_dev = args.adev;
-> +
-> +	chan = NULL;
-> +	list_for_each_entry(mbox, &mbox_cons, node)
-> +		if (ACPI_COMPANION(mbox->dev) == acpi_dev) {
-> +			chan = mbox->chan_xlate(mbox, args.args[0]);
-> +			break;
-> +		}
-> +
-> +	return chan;
-> +}
+I personally believe that having the option named disable_backlight_sysfs_if
+is better here since I believe that things which are always enabled except
+on a few broken model laptops the option name should be disable_foo so
+that people can clearly see in /proc/cmdline / dmesg that the user is passing
+an option to disable something which is normally enabled.
 
-This looks nicer if you add
+As for the (!disabled) argument, the code in question here actually is:
 
-#else
+if (disabled)
+	return 0;
 
-static inline struct mbox_chan *mbox_acpi_parse_chan(struct device *dev, int index)
-{
-	return NULL;
-}
+:)
 
-and then ...
+Still if people want me to change the option to a default-on
+enable_backlight_sysfs_if option I can do a v3...
 
-> +#endif
-> +
-> +static struct mbox_chan *mbox_of_parse_chan(struct device *dev, int index)
-> +{
-> +	struct of_phandle_args spec;
-> +	struct mbox_controller *mbox;
-> +	struct mbox_chan *chan;
-> +
-> +	if (of_parse_phandle_with_args(dev->of_node, "mboxes",
-> +				       "#mbox-cells", index, &spec)) {
-> +		dev_dbg(dev, "%s: can't parse \"mboxes\" property\n", __func__);
-> +		return ERR_PTR(-ENODEV);
-> +	}
-> +
-> +	chan = NULL;
-> +	list_for_each_entry(mbox, &mbox_cons, node)
-> +		if (mbox->dev->of_node == spec.np) {
-> +			chan = mbox->chan_xlate(mbox, spec.args[0]);
-> +			break;
-> +		}
-> +
-> +	of_node_put(spec.np);
-> +	return chan;
-> +}
-> +
-> +static struct mbox_chan *mbox_parse_chan(struct device *dev, int index)
-> +{
-> +	if (!dev)
-> +		return ERR_PTR(-ENODEV);
-> +
-> +	if (dev->of_node)
-> +		return mbox_of_parse_chan(dev, index);
-> +#ifdef CONFIG_ACPI
-> +	else
-> +		return mbox_acpi_parse_chan(dev, index);
-> +#endif
+Regards,
 
-.. you can get rid of the ugly #ifdef here. Just make it:
-
-	if (dev->of_node)
-		return mbox_of_parse_chan(dev, index);
-	else
-		return mbox_acpi_parse_chan(dev, index);
-
-> +}
-> +
+Hans
