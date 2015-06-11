@@ -1,58 +1,72 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH v2 0/3] Add NUMA support for NVDIMM devices
-Date: Thu, 11 Jun 2015 09:45:50 -0600
-Message-ID: <1434037550.11808.10.camel@misato.fc.hp.com>
-References: <1433891440-3515-1-git-send-email-toshi.kani@hp.com>
-	 <CAPcyv4jJv1df39W9YjP3FCeZDzZKOsV70xK9gbteykEUJVyDwQ@mail.gmail.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [Patch v5 4/6] PCI/ACPI: Consolidate common PCI host bridge code
+ into ACPI core
+Date: Thu, 11 Jun 2015 17:18:08 +0100
+Message-ID: <20150611161808.GE23914@red-moon>
+References: <1433780448-18636-1-git-send-email-jiang.liu@linux.intel.com>
+ <1433780448-18636-5-git-send-email-jiang.liu@linux.intel.com>
+ <20150609161230.GC8591@red-moon>
+ <55771B27.1060509@linux.intel.com>
+ <20150610164821.GA18832@red-moon>
+ <55787191.6060400@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAPcyv4jJv1df39W9YjP3FCeZDzZKOsV70xK9gbteykEUJVyDwQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Rafael J Wysocki <rafael.j.wysocki@intel.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <55787191.6060400@linux.intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Marc Zyngier <Marc.Zyngier@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, Yijing Wang <wangyijing@huawei.com>, Len Brown <lenb@kernel.org>, Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "x86 @ kernel . org" <x86@kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 2015-06-11 at 08:38 -0700, Dan Williams wrote:
-> On Tue, Jun 9, 2015 at 4:10 PM, Toshi Kani <toshi.kani@hp.com> wrote:
-> > Since NVDIMMs are installed on memory slots, they expose the NUMA
-> > topology of a platform.  This patchset adds support of sysfs
-> > 'numa_node' to I/O-related NVDIMM devices under /sys/bus/nd/devices.
-> > This enables numactl(8) to accept 'block:' and 'file:' paths of
-> > pmem and btt devices as shown in the examples below.
-> >   numactl --preferred block:pmem0 --show
-> >   numactl --preferred file:/dev/pmem0s --show
-> >
-> > numactl can be used to bind an application to the locality of
-> > a target NVDIMM for better performance.  Here is a result of fio
-> > benchmark to ext4/dax on an HP DL380 with 2 sockets for local and
-> > remote settings.
-> >
-> >   Local [1] :  4098.3MB/s
-> >   Remote [2]:  3718.4MB/s
-> >
-> > [1] numactl --preferred block:pmem0 --cpunodebind block:pmem0 fio <fs-on-pmem0>
-> > [2] numactl --preferred block:pmem1 --cpunodebind block:pmem1 fio <fs-on-pmem0>
-> >
-> > Patch 1/3 applies on top of the acpica branch of the pm tree.
-> > Patch 2/3-3/3 apply on top of Dan Williams's v5 patch series of
-> > "libnvdimm: non-volatile memory devices".
-> >
-> > ---
-> > v2:
-> >  - Add acpi_map_pxm_to_online_node(), which returns an online node.
-> >  - Manage visibility of sysfs numa_node with is_visible. (Dan Williams)
-> >  - Check ACPI_NFIT_PROXIMITY_VALID in spa->flags.
-> >
-> > ---
-> > Toshi Kani (3):
-> >   1/3 acpi: Add acpi_map_pxm_to_online_node()
-> >   2/3 libnvdimm: Set numa_node to NVDIMM devices
-> >   3/3 libnvdimm: Add sysfs numa_node to NVDIMM devices
-> 
-> Looks good to me.  Once Rafael acks the ACPI core changes I'll pull it
-> in to libnvdimm-for-next.
+Hi Gerry,
 
-Great!  Thanks Dan,
--Toshi
+On Wed, Jun 10, 2015 at 06:19:13PM +0100, Jiang Liu wrote:
+> On 2015/6/11 0:48, Lorenzo Pieralisi wrote:
+> > On Tue, Jun 09, 2015 at 05:58:15PM +0100, Jiang Liu wrote:
+> >> On 2015/6/10 0:12, Lorenzo Pieralisi wrote:
+> > 
+> > [...]
+> > 
+> >>>> +struct pci_bus *acpi_pci_root_create(struct acpi_pci_root *root,
+> >>>> +				     struct acpi_pci_root_ops *ops,
+> >>>> +				     struct acpi_pci_root_info *info,
+> >>>> +				     void *sysdata, int segment, int node)
+> >>>
+> >>> I do not think you need to pass segment and node, they clutter the
+> >>> function signature when you can retrieve them from root, I would
+> >>> make them local variables and use root->segment and acpi_get_node
+> >>> in the function body to retrieve them.
+> >> On x86, node and segment may be overridden under certain conditions.
+> >> For example, segment will always be 0 if 'pci_ignore_seg' is set.
+> > 
+> > Ok, so the question would be then why do you not override the value
+> > in root->segment then (actually, is it *correct* to leave the segment
+> > value in root-> unchanged even if it is overriden) ?
+> > 
+> > Anyway, node is just used for a printk, why do not you add segment and
+> > node to acpi_pci_root_info ? Just cosmetic stuff, trying to help you
+> > simplify the code, it is not easy to parse.
+> Hi Lorenzo,
+> 	I used the complex prototype to explicitly reminder callers
+> that you need to prepare all these information. If simpler interface
+> is preferred, we could pack all ops, sysdata, segment, node, root
+> into info, that there's will be only one parameter "info" left.
+> The drawback is that it will add several lines of code to each arch
+> using this interface. So prefer simpler interface or less lines of code?:)
+
+I was just referring to segment and node parameters, I think that having
+them in the parameters list is overkill and they can be encapsulated.
+
+With the changes discussed previously feel free to add my:
+
+Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+
+> Thanks!
+> Gerry
+> 
+> > 
+> > Thanks,
+> > Lorenzo
+> > 
+> 
