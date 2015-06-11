@@ -1,73 +1,107 @@
 From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH 20/32] dell-wmi: Port to new backlight interface
+Subject: Re: [PATCH 19/32] dell-laptop: Port to new backlight interface
  selection API
-Date: Thu, 11 Jun 2015 14:59:44 +0200
-Message-ID: <20150611125944.GF19820@pali>
+Date: Thu, 11 Jun 2015 15:06:31 +0200
+Message-ID: <20150611130631.GG19820@pali>
 References: <1433941292-21530-1-git-send-email-hdegoede@redhat.com>
- <1433941292-21530-21-git-send-email-hdegoede@redhat.com>
- <20150611114330.GC19820@pali> <55797CBF.8090301@redhat.com>
+ <1433941292-21530-20-git-send-email-hdegoede@redhat.com>
+ <20150611114709.GD19820@pali>
+ <55797F24.8060500@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <55797CBF.8090301@redhat.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <55797F24.8060500@redhat.com>
+Sender: platform-driver-x86-owner@vger.kernel.org
 To: Hans de Goede <hdegoede@redhat.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Ike Panhc <ike.pan@canonical.com>, linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, acpi4asus-user@lists.sourceforge.net, "Rafael J. Wysocki" <rjw@rjwysocki.net>, dri-devel@lists.freedesktop.org, Azael Avalos <coproscefalo@gmail.com>, Lee Chun-Yi <jlee@suse.com>, Mattia Dongili <malattia@linux.it>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Ben Skeggs <bskeggs@redhat.com>, Corentin Chary <corentin.chary@gmail.com>, Darren Hart <dvhart@infradead.org>, platform-driver-x86@vger.kernel.org, Aaron Lu <aaron.lu@intel.com>
+Cc: Darren Hart <dvhart@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Ben Skeggs <bskeggs@redhat.com>, Azael Avalos <coproscefalo@gmail.com>, Corentin Chary <corentin.chary@gmail.com>, Lee Chun-Yi <jlee@suse.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Ike Panhc <ike.pan@canonical.com>, Anisse Astier <anisse@astier.eu>, Mattia Dongili <malattia@linux.it>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, platform-driver-x86@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, acpi4asus-user@lists.sourceforge.net, dri-devel@lists.freedesktop.org, Aaron Lu <aaron.lu@intel.com>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-T24gVGh1cnNkYXkgMTEgSnVuZSAyMDE1IDE0OjE5OjExIEhhbnMgZGUgR29lZGUgd3JvdGU6Cj4g
-SGksCj4gCj4gT24gMTEtMDYtMTUgMTM6NDMsIFBhbGkgUm9ow6FyIHdyb3RlOgo+ID5PbiBXZWRu
-ZXNkYXkgMTAgSnVuZSAyMDE1IDE1OjAxOjIwIEhhbnMgZGUgR29lZGUgd3JvdGU6Cj4gPj5Qb3J0
-IHRoZSBiYWNrbGlnaHQgc2VsZWN0aW9uIGxvZ2ljIHRvIHRoZSBuZXcgYmFja2xpZ2h0IGludGVy
-ZmFjZQo+ID4+c2VsZWN0aW9uIEFQSS4KPiA+Pgo+ID4+U2lnbmVkLW9mZi1ieTogSGFucyBkZSBH
-b2VkZSA8aGRlZ29lZGVAcmVkaGF0LmNvbT4KPiA+Pi0tLQo+ID4+ICBkcml2ZXJzL3BsYXRmb3Jt
-L3g4Ni9kZWxsLXdtaS5jIHwgMyArKy0KPiA+PiAgMSBmaWxlIGNoYW5nZWQsIDIgaW5zZXJ0aW9u
-cygrKSwgMSBkZWxldGlvbigtKQo+ID4+Cj4gPj5kaWZmIC0tZ2l0IGEvZHJpdmVycy9wbGF0Zm9y
-bS94ODYvZGVsbC13bWkuYyBiL2RyaXZlcnMvcGxhdGZvcm0veDg2L2RlbGwtd21pLmMKPiA+Pmlu
-ZGV4IDY1MTJhMDYuLmYyZDc3ZmUgMTAwNjQ0Cj4gPj4tLS0gYS9kcml2ZXJzL3BsYXRmb3JtL3g4
-Ni9kZWxsLXdtaS5jCj4gPj4rKysgYi9kcml2ZXJzL3BsYXRmb3JtL3g4Ni9kZWxsLXdtaS5jCj4g
-Pj5AQCAtMzUsNiArMzUsNyBAQAo+ID4+ICAjaW5jbHVkZSA8bGludXgvYWNwaS5oPgo+ID4+ICAj
-aW5jbHVkZSA8bGludXgvc3RyaW5nLmg+Cj4gPj4gICNpbmNsdWRlIDxsaW51eC9kbWkuaD4KPiA+
-PisjaW5jbHVkZSA8YWNwaS92aWRlby5oPgo+ID4+Cj4gPj4gIE1PRFVMRV9BVVRIT1IoIk1hdHRo
-ZXcgR2FycmV0dCA8bWpnQHJlZGhhdC5jb20+Iik7Cj4gPj4gIE1PRFVMRV9ERVNDUklQVElPTigi
-RGVsbCBsYXB0b3AgV01JIGhvdGtleXMgZHJpdmVyIik7Cj4gPj5AQCAtMzk3LDcgKzM5OCw3IEBA
-IHN0YXRpYyBpbnQgX19pbml0IGRlbGxfd21pX2luaXQodm9pZCkKPiA+PiAgCX0KPiA+Pgo+ID4+
-ICAJZG1pX3dhbGsoZmluZF9oa190eXBlLCBOVUxMKTsKPiA+Pi0JYWNwaV92aWRlbyA9IGFjcGlf
-dmlkZW9fYmFja2xpZ2h0X3N1cHBvcnQoKTsKPiA+PisJYWNwaV92aWRlbyA9IGFjcGlfdmlkZW9f
-Z2V0X2JhY2tsaWdodF90eXBlKCkgIT0gYWNwaV9iYWNrbGlnaHRfdmVuZG9yOwo+ID4+Cj4gPj4g
-IAllcnIgPSBkZWxsX3dtaV9pbnB1dF9zZXR1cCgpOwo+ID4+ICAJaWYgKGVycikKPiA+Cj4gPkhl
-bGxvLAo+ID4KPiA+dG8gbWFrZSBzdXJlIHRoYXQgbm90aGluZyB3aWxsIGJlIGJyb2tlbiBJIHdp
-bGwgdHJ5IHRvIGV4cGxhaW4gY3VycmVudAo+ID5jb2RlLiBWYXJpYWJsZSBhY3BpX3ZpZGVvIGlz
-IGdsb2JhbCBib29sZWFuIChmb3IgdGhpcyBtb2R1bGUpIGFuZCB3aGVuCj4gPmlzIHNldCB0byB0
-cnVlIGl0IGlzIGV4cGVjdGVkIHRoYXQgQUNQSSBnZW5lcmF0ZSBicmlnaHRuZXNzIHVwL2Rvd24g
-a2V5Cj4gPmV2ZW50cyB2aWEgQUNQSSBpbnB1dCBkZXZpY2UuIFdoZW4gaXMgYWNwaV92aWRlbyBi
-b29sZWFuIHZhcmlhYmxlIGlzIHNldAo+ID50byBmYWxzZSB0aGVuIEFDUEkgaW5wdXQgZGV2aWNl
-IHNob3VsZCBub3Qgc2VuZCBicmlnaHRuZXNzIHVwL2Rvd24ga2V5cwo+ID50byB1c2Vyc3BhY2Uu
-IEFuZCBkZWxsLXdtaS5rbyBkcml2ZXIgc2VuZCB0aG9zZSB0d28ga2V5cyB2aWEgZGVsbC13bWkK
-PiA+aW5wdXQgZGV2aWNlLgo+IAo+IEkga25vdy4KPiAKPiA+U28gcGxlYXNlIGNoZWNrIHRoYXQg
-eW91ciBjaGFuZ2UgZG9lcyBub3QgY2hhbmdlIGFib3ZlIGJlaGF2aW91ci4KPiAKPiBJJ3ZlIGFs
-cmVhZHkgY2hlY2tlZCB0aGlzLgo+IAoKT2ssIHRoZW4gdGhpcyBwYXRjaCBpcyBmaW5lIGZvciBt
-ZS4gQWRkIG15IEFja2VkLWJ5IG9yIFJldmlld2VkLWJ5LgoKPiA+IE1heWJlIGl0IHdvdWxkIG1h
-a2Ugc2Vuc2UgdG8gcmVuYW1lICJhY3BpX3ZpZGVvIiB2YXJpYWJsZSB0byBzb21ldGhpbmcgYmV0
-dGVyLgo+IAo+IFRoZXJlIGlzIGFub3RoZXIgZHJpdmVyIHdoaWNoIGhhcyBhIHNpbWlsYXIgY29u
-c3RydWN0aW9uLiBJIGJlbGlldmUgdGhhdCBpdAo+IHdvdWxkIGJlIGdvb2QgdG8gYWRkIGFuIGFj
-cGlfdmlkZW9faGFuZGxlc19rZXlfcHJlc3NlcygpIGhlbHBlciB0byB0aGUKPiBhY3BpLXZpZGVv
-IGNvZGUgd2hpY2ggY2FuIGJlIHVzZWQgZm9yIHRoaXMgaW5zdGVhZCBvZiBhYnVzaW5nCj4gYWNw
-aV92aWRlb19nZXRfYmFja2xpZ2h0X3R5cGUoKSBmb3IgdGhpcy4gSSd2ZSBwdXQgdGhpcyBvbiBt
-eSB0b2RvIGxpc3QKPiB0byBkbyBhcyBhIGZ1cnRoZXIgY2xlYW51cCBvbmNlIHRoZSBpbml0aWFs
-IHNlcmllcyBpcyBtZXJnZWQuCj4gCj4gUmVnYXJkcywKPiAKPiBIYW5zCgpPaywgdGhhbmtzISBh
-Y3BpX3ZpZGVvX2hhbmRsZXNfa2V5X3ByZXNzZXMoKSBoYXMgcmVhbGx5IGJldHRlciBuYW1lLgoK
-LS0gClBhbGkgUm9ow6FyCnBhbGkucm9oYXJAZ21haWwuY29tCl9fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRl
-dmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21h
-aWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+On Thursday 11 June 2015 14:29:24 Hans de Goede wrote:
+> Hi,
+>=20
+> On 11-06-15 13:47, Pali Roh=C3=A1r wrote:
+> >On Wednesday 10 June 2015 15:01:19 Hans de Goede wrote:
+> >>Port the backlight selection logic to the new backlight interface
+> >>selection API.
+> >>
+> >>Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> >>---
+> >>  drivers/platform/x86/dell-laptop.c | 6 ++----
+> >>  1 file changed, 2 insertions(+), 4 deletions(-)
+> >>
+> >>diff --git a/drivers/platform/x86/dell-laptop.c b/drivers/platform/=
+x86/dell-laptop.c
+> >>index d688d80..db2e031 100644
+> >>--- a/drivers/platform/x86/dell-laptop.c
+> >>+++ b/drivers/platform/x86/dell-laptop.c
+> >>@@ -31,6 +31,7 @@
+> >>  #include <linux/slab.h>
+> >>  #include <linux/debugfs.h>
+> >>  #include <linux/seq_file.h>
+> >>+#include <acpi/video.h>
+> >>  #include "../../firmware/dcdbas.h"
+> >>
+> >>  #define BRIGHTNESS_TOKEN 0x7d
+> >>@@ -1921,10 +1922,7 @@ static int __init dell_init(void)
+> >>  				    &dell_debugfs_fops);
+> >>
+> >>  #ifdef CONFIG_ACPI
+> >>-	/* In the event of an ACPI backlight being available, don't
+> >>-	 * register the platform controller.
+> >>-	 */
+> >>-	if (acpi_video_backlight_support())
+> >>+	if (acpi_video_get_backlight_type() !=3D acpi_backlight_vendor)
+> >>  		return 0;
+> >>  #endif
+> >>
+> >
+> >Now I'm thinking... Is this correct condition? And do we need it? Th=
+is
+> >Dell backlight interface works even if ACPI or intel i915 driver
+> >controls backlight. Why we should prevent dell-laptop.ko to register
+> >Dell backlight interface if ACPI video already register one? And why=
+ not
+> >prevent when intel i915 driver register another?
+>=20
+> 3 things:
+>=20
+> 1) This is mostly a cleanup series, it does not make any behavioral
+> changes (other then renaming the kernelcmdline option and we've
+> already discussed fixing that).
+>=20
+> 2) All 3 drivers ultimately bit-bang the same hardware, we really sho=
+uld
+> have only one driver banging the hardware, so
+> 	if (acpi_video_get_backlight_type() !=3D acpi_backlight_vendor)
+> 		return 0;
+>=20
+> Definitely is the right thing todo here.
+>=20
+> 3) You're right that the intel_backlight still registering even if
+> acpi_video_get_backlight_type() !=3D acpi_backlight_native is weird, =
+but
+> that is how it was before this series, and userspace prefers firmware
+> type backlight sysfs entries over platform /raw ones so it will
+> automatically pick the right one.  We should consider not registering
+> the backlight sysfs class interface from the intel code when
+> acpi_video_get_backlight_type() !=3D acpi_backlight_native but that i=
+s
+> something for later...
+>=20
+> Regards,
+>=20
+> Hans
+
+Ok. This patch series is just refactor/cleanup which does not change
+functional behavior. I'm ok with this dell-laptop change, so you can ad=
+d
+my Acked-By.
+
+Once you will create new patches for backlight (maybe for intel i915),
+please CC me, so I can discuss about them too.
+
+--=20
+Pali Roh=C3=A1r
+pali.rohar@gmail.com
