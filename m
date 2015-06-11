@@ -1,152 +1,86 @@
-From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH 07/32] acpi-video-detect: Rewrite backlight interface
- selection logic
-Date: Thu, 11 Jun 2015 14:01:27 +0200
-Message-ID: <20150611120127.GE19820@pali>
-References: <1433941292-21530-1-git-send-email-hdegoede@redhat.com>
- <1433941292-21530-8-git-send-email-hdegoede@redhat.com>
- <20150611091922.GB19820@pali>
- <557954F4.3050709@redhat.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH v2] acpi-video: Add a parameter to not register the backlight
+ sysfs interface
+Date: Thu, 11 Jun 2015 14:13:55 +0200
+Message-ID: <55797B83.7010903@redhat.com>
+References: <1433838745-8857-1-git-send-email-hdegoede@redhat.com> <20150609091042.GA1280@aaronlu.sh.intel.com> <557760A5.9000404@redhat.com> <20150611014315.GA26277@aaronlu.sh.intel.com> <55795F3B.4040506@redhat.com> <87mw065wls.fsf@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <557954F4.3050709@redhat.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Darren Hart <dvhart@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Ben Skeggs <bskeggs@redhat.com>, Azael Avalos <coproscefalo@gmail.com>, Corentin Chary <corentin.chary@gmail.com>, Lee Chun-Yi <jlee@suse.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Ike Panhc <ike.pan@canonical.com>, Anisse Astier <anisse@astier.eu>, Mattia Dongili <malattia@linux.it>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, platform-driver-x86@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, acpi4asus-user@lists.sourceforge.net, dri-devel@lists.freedesktop.org, Aaron Lu <aaron.lu@intel.com>, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:42695 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754329AbbFKMN7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 11 Jun 2015 08:13:59 -0400
+In-Reply-To: <87mw065wls.fsf@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jani Nikula <jani.nikula@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>
+Cc: Sylvain Pasche <sylvain.pasche@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, dri-devel@lists.freedesktop.org, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, Ben Skeggs <bskeggs@redhat.com>
 
-On Thursday 11 June 2015 11:29:24 Hans de Goede wrote:
-> Hi,
->=20
-> On 11-06-15 11:19, Pali Roh=C3=A1r wrote:
-> >On Wednesday 10 June 2015 15:01:07 Hans de Goede wrote:
-> >>Currently we have 2 kernel commandline options + dmi-quirks in 3 pl=
-aces all
-> >>interacting (in interesting ways) to select which which backlight i=
-nterface
-> >>to use. On the commandline we've acpi_backlight=3D[video|vendor] an=
-d
-> >>video.use_native_backlight=3D[0|1]. DMI quirks we have in
-> >>acpi/video-detect.c, acpi/video.c and drivers/platform/x86/*.c .
-> >>
-> >>This commit is the first step to cleaning this up, replacing the 2 =
-cmdline
-> >>options with just acpi_video.backlight=3D[video|vendor|native|none]=
-, and
-> >>adding a new API to video_detect.c to reflect this.
-> >>
-> >>Follow up commits will also move other related code, like unregiste=
-ring the
-> >>acpi_video backlight interface if it was registered before other dr=
-ivers
-> >>which take priority over it are loaded, to video_detect.c where thi=
-s
-> >>logic really belongs.
-> >>
-> >>Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> >
-> >Hello,
-> >
-> >lot of people are using acpi_backlight parameter in kernel cmdline t=
-o
-> >fix some of problems. I would like to see this parameter still worki=
-ng
-> >and to not break existing configuration. E.g acpi_backlight=3Dvendor=
- to
-> >use dell-laptop.ko or thinkpad_acpi.ko backlight.
->=20
-> I would have like to keep acpi_backlight=3D for that exact same reaso=
-n,
-> but that is not possible while keeping acpi_video as a module.
->=20
-> Thinking more about this, this is not strictly true, we could make
-> some other (core) part of the acpi code use __setup to get the
-> acpi_backlight=3D value and have that part export the value for use
-> in the acpi_video module. This is not really pretty, but I think it
-> may be the best way to solve this.
->=20
+Hi,
 
-This solution should work. It is not nice, but current mess of backligh=
-t
-drivers, acpi, etc, is not nice too. It will help users who already kno=
-w
-(or read on internet/forums/discussions) acpi_backlight=3D parameter...
+On 11-06-15 13:10, Jani Nikula wrote:
+> On Thu, 11 Jun 2015, Hans de Goede <hdegoede@redhat.com> wrote:
+>> Hi,
+>>
+>> On 11-06-15 03:43, Aaron Lu wrote:
+>>> On Tue, Jun 09, 2015 at 11:54:45PM +0200, Hans de Goede wrote:
+>>>> Hi,
+>>>>
+>>>> On 06/09/2015 11:10 AM, Aaron Lu wrote:
+>>>>> On Tue, Jun 09, 2015 at 10:32:25AM +0200, Hans de Goede wrote:
+>>>>>> On some systems acpi-video backlight is broken in the sense that it cannot
+>>>>>> control the brightness of the backlight, but it must still be called on
+>>>>>> resume to power-up the backlight after resume.
+>>>>>
+>>>>> All the video module does on resume is a backlight set operation, it
+>>>>> can't control backlight but can turn on the screen on resume? Hmm...
+>>>>>
+>>>>> I'll ask Sylvain to attach acpidump, let's see if there is anything
+>>>>> special there.
+>>>>
+>>>> Ok, lets see what comes out of that. Note in the mean time Sylvain has
+>>>> attached his acpidump.
+>>>
+>>> Thanks.
+>>> According to the discussion in the bugzilla place, it doesn't seem we
+>>> have any other way to handle this at the moment.
+>>>
+>>> Acked-by: Aaron Lu <aaron.lu@intel.com>
+>>
+>> Thanks. So that only leaves Jani's remark:
+>>
+>>   > Nitpick, I'd prefer positively named variables, like enable_foo to avoid
+>>   > the double negative !disable_foo. enable_foo and !enable_foo read much
+>>   > better. But up to Aaron and friends.
+>>
+>> I personally believe that having the option named disable_backlight_sysfs_if
+>> is better here since I believe that things which are always enabled except
+>> on a few broken model laptops the option name should be disable_foo so
+>> that people can clearly see in /proc/cmdline / dmesg that the user is passing
+>> an option to disable something which is normally enabled.
+>
+> Fair enough.
+>
+>>
+>> As for the (!disabled) argument, the code in question here actually is:
+>>
+>> if (disabled)
+>> 	return 0;
+>>
+>> :)
+>>
+>> Still if people want me to change the option to a default-on
+>> enable_backlight_sysfs_if option I can do a v3...
+>
+> I'm not insisting.
 
-> >It is still nightmare to get laptop panel backlight working on diffe=
-rent
-> >(broken) laptops
->=20
-> Well one reason it is a nightmare is because there are too many
-> backlight drivers fighting for control and there is not an easy
-> way to tell the kernel only register this one, this is exactly
-> what this patch-set is trying to address :)  People may still
-> need to use a cmdline option but now there is only one option to
-> play with.
->=20
+Great, thanks :)
 
-It is not only that. Sometimes there are three possible ways how to
-control backlight (vendor driver, acpi driver, gpu driver). And all
-those driver can work, but some of them works "better".
+So I'm going to assume this v2 patch is ready for merging then, if anyone
+wants me to make any changes please let me know.
 
-E.g in my case on Dell Latitude E6440 all three drivers can register
-backlight interface and export it to userspace via sysfs.
+Regards,
 
-But the best option for *me* is to use one from dell-laptop.ko because
-it has good granularity of levels for controlling backlight. Intel one
-has too many levels and does not fit some linear distribution (which I
-would like to see). ACPI video.ko sometimes does not work correctly wit=
-h
-KDE4 setting -- sometimes I need to press brightness key more times to
-take effect. I do not know if this is problem of KDE or ACPI or
-whatever. For me for my current desktop & kernel setup is the best
-solution to use dell-laptop.ko with acpi_backlight=3Dvendor param. I do
-not have to debug or change anything, just add one param to cmdline.
-
-And I think other users (without programming knowledge) who need
-immediately working laptop will use same option as me.
-
-> > and people learnt to try to use acpi_backlight
-> > parameter for quit/hot fixing these problems.
->=20
-> People who need to pass a kernel commandline option really should
-> report a bug once they have figured out what option to use.
->=20
-
-This is good assumption, but do not forget that there are people who:
-
-1) do not have time to trying find out where to report bug and how
-2) do not know how to report bug
-3) even do not know that they can do something (like for MS systems)
-
-> Fedora users are getting pretty good at this as the Fedora kernel
-> maintainers punt all such bug reports to me and I properly deal
-> with them verifying the users solution is sane and then submitting
-> a patch with a dmi based quirk for the users laptop upstream.
->=20
-> > Upgrading kernel (if you
-> >remove acpi_backlight parameter) just break it again.
->=20
-> I think that is actually (partially) a good thing, as said people
-> who rely on cmdline workarounds should file bugs, so that we can
-> add a quirk. Had the users done so, the quirk would be long in
-> place and the changing of the cmdline option name would not be
-> an issue for them.
->=20
-> I realize that this knife cuts both ways, and that this will
-> cause unhappy users, as said if it had been possible to not change
-> the cmdline option name in a clean way I would have done so.
->=20
-> If everyone agrees with the solution I've outlined above, we
-> can actually make it so as to not break things for users
-> who's setup relies on acpi_backlight=3Dfoo
->=20
-> Regards,
->=20
-> Hans
-
---=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+Hans
