@@ -1,88 +1,115 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH 07/32] acpi-video-detect: Rewrite backlight interface
- selection logic
-Date: Thu, 11 Jun 2015 11:29:24 +0200
-Message-ID: <557954F4.3050709@redhat.com>
-References: <1433941292-21530-1-git-send-email-hdegoede@redhat.com>
- <1433941292-21530-8-git-send-email-hdegoede@redhat.com>
- <20150611091922.GB19820@pali>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH] ACPI / init: Switch over platform to the ACPI mode later
+Date: Thu, 11 Jun 2015 17:36:19 +0800
+Message-ID: <55795693.2060805@linaro.org>
+References: <12578608.kKCTgirQ6f@vostro.rjw.lan> <13170654.9h99FfQLut@vostro.rjw.lan> <55779BB0.6030900@linaro.org> <2586130.FMgQktF91L@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <20150611091922.GB19820@pali>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: =?UTF-8?B?UGFsaSBSb2jDoXI=?= <pali.rohar@gmail.com>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Ike Panhc <ike.pan@canonical.com>, linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, acpi4asus-user@lists.sourceforge.net, "Rafael J. Wysocki" <rjw@rjwysocki.net>, dri-devel@lists.freedesktop.org, Azael Avalos <coproscefalo@gmail.com>, Lee Chun-Yi <jlee@suse.com>, Mattia Dongili <malattia@linux.it>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Ben Skeggs <bskeggs@redhat.com>, Corentin Chary <corentin.chary@gmail.com>, Darren Hart <dvhart@infradead.org>, platform-driver-x86@vger.kernel.org, Aaron Lu <aaron.lu@intel.com>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <2586130.FMgQktF91L@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Toshi Kani <toshi.kani@hp.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len Brown <len.brown@intel.com>, Marius Tolzmann <tolzmann@molgen.mpg.de>, Matt Fleming <matt@codeblueprint.co.uk>, Chun-Yi <jlee@suse.com>, Aaron Lu <aaron.lu@intel.com>, Lv Zheng <lv.zheng@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-SGksCgpPbiAxMS0wNi0xNSAxMToxOSwgUGFsaSBSb2jDoXIgd3JvdGU6Cj4gT24gV2VkbmVzZGF5
-IDEwIEp1bmUgMjAxNSAxNTowMTowNyBIYW5zIGRlIEdvZWRlIHdyb3RlOgo+PiBDdXJyZW50bHkg
-d2UgaGF2ZSAyIGtlcm5lbCBjb21tYW5kbGluZSBvcHRpb25zICsgZG1pLXF1aXJrcyBpbiAzIHBs
-YWNlcyBhbGwKPj4gaW50ZXJhY3RpbmcgKGluIGludGVyZXN0aW5nIHdheXMpIHRvIHNlbGVjdCB3
-aGljaCB3aGljaCBiYWNrbGlnaHQgaW50ZXJmYWNlCj4+IHRvIHVzZS4gT24gdGhlIGNvbW1hbmRs
-aW5lIHdlJ3ZlIGFjcGlfYmFja2xpZ2h0PVt2aWRlb3x2ZW5kb3JdIGFuZAo+PiB2aWRlby51c2Vf
-bmF0aXZlX2JhY2tsaWdodD1bMHwxXS4gRE1JIHF1aXJrcyB3ZSBoYXZlIGluCj4+IGFjcGkvdmlk
-ZW8tZGV0ZWN0LmMsIGFjcGkvdmlkZW8uYyBhbmQgZHJpdmVycy9wbGF0Zm9ybS94ODYvKi5jIC4K
-Pj4KPj4gVGhpcyBjb21taXQgaXMgdGhlIGZpcnN0IHN0ZXAgdG8gY2xlYW5pbmcgdGhpcyB1cCwg
-cmVwbGFjaW5nIHRoZSAyIGNtZGxpbmUKPj4gb3B0aW9ucyB3aXRoIGp1c3QgYWNwaV92aWRlby5i
-YWNrbGlnaHQ9W3ZpZGVvfHZlbmRvcnxuYXRpdmV8bm9uZV0sIGFuZAo+PiBhZGRpbmcgYSBuZXcg
-QVBJIHRvIHZpZGVvX2RldGVjdC5jIHRvIHJlZmxlY3QgdGhpcy4KPj4KPj4gRm9sbG93IHVwIGNv
-bW1pdHMgd2lsbCBhbHNvIG1vdmUgb3RoZXIgcmVsYXRlZCBjb2RlLCBsaWtlIHVucmVnaXN0ZXJp
-bmcgdGhlCj4+IGFjcGlfdmlkZW8gYmFja2xpZ2h0IGludGVyZmFjZSBpZiBpdCB3YXMgcmVnaXN0
-ZXJlZCBiZWZvcmUgb3RoZXIgZHJpdmVycwo+PiB3aGljaCB0YWtlIHByaW9yaXR5IG92ZXIgaXQg
-YXJlIGxvYWRlZCwgdG8gdmlkZW9fZGV0ZWN0LmMgd2hlcmUgdGhpcwo+PiBsb2dpYyByZWFsbHkg
-YmVsb25ncy4KPj4KPj4gU2lnbmVkLW9mZi1ieTogSGFucyBkZSBHb2VkZSA8aGRlZ29lZGVAcmVk
-aGF0LmNvbT4KPgo+IEhlbGxvLAo+Cj4gbG90IG9mIHBlb3BsZSBhcmUgdXNpbmcgYWNwaV9iYWNr
-bGlnaHQgcGFyYW1ldGVyIGluIGtlcm5lbCBjbWRsaW5lIHRvCj4gZml4IHNvbWUgb2YgcHJvYmxl
-bXMuIEkgd291bGQgbGlrZSB0byBzZWUgdGhpcyBwYXJhbWV0ZXIgc3RpbGwgd29ya2luZwo+IGFu
-ZCB0byBub3QgYnJlYWsgZXhpc3RpbmcgY29uZmlndXJhdGlvbi4gRS5nIGFjcGlfYmFja2xpZ2h0
-PXZlbmRvciB0bwo+IHVzZSBkZWxsLWxhcHRvcC5rbyBvciB0aGlua3BhZF9hY3BpLmtvIGJhY2ts
-aWdodC4KCkkgd291bGQgaGF2ZSBsaWtlIHRvIGtlZXAgYWNwaV9iYWNrbGlnaHQ9IGZvciB0aGF0
-IGV4YWN0IHNhbWUgcmVhc29uLApidXQgdGhhdCBpcyBub3QgcG9zc2libGUgd2hpbGUga2VlcGlu
-ZyBhY3BpX3ZpZGVvIGFzIGEgbW9kdWxlLgoKVGhpbmtpbmcgbW9yZSBhYm91dCB0aGlzLCB0aGlz
-IGlzIG5vdCBzdHJpY3RseSB0cnVlLCB3ZSBjb3VsZCBtYWtlCnNvbWUgb3RoZXIgKGNvcmUpIHBh
-cnQgb2YgdGhlIGFjcGkgY29kZSB1c2UgX19zZXR1cCB0byBnZXQgdGhlCmFjcGlfYmFja2xpZ2h0
-PSB2YWx1ZSBhbmQgaGF2ZSB0aGF0IHBhcnQgZXhwb3J0IHRoZSB2YWx1ZSBmb3IgdXNlCmluIHRo
-ZSBhY3BpX3ZpZGVvIG1vZHVsZS4gVGhpcyBpcyBub3QgcmVhbGx5IHByZXR0eSwgYnV0IEkgdGhp
-bmsgaXQKbWF5IGJlIHRoZSBiZXN0IHdheSB0byBzb2x2ZSB0aGlzLgoKPiBJdCBpcyBzdGlsbCBu
-aWdodG1hcmUgdG8gZ2V0IGxhcHRvcCBwYW5lbCBiYWNrbGlnaHQgd29ya2luZyBvbiBkaWZmZXJl
-bnQKPiAoYnJva2VuKSBsYXB0b3BzCgpXZWxsIG9uZSByZWFzb24gaXQgaXMgYSBuaWdodG1hcmUg
-aXMgYmVjYXVzZSB0aGVyZSBhcmUgdG9vIG1hbnkKYmFja2xpZ2h0IGRyaXZlcnMgZmlnaHRpbmcg
-Zm9yIGNvbnRyb2wgYW5kIHRoZXJlIGlzIG5vdCBhbiBlYXN5CndheSB0byB0ZWxsIHRoZSBrZXJu
-ZWwgb25seSByZWdpc3RlciB0aGlzIG9uZSwgdGhpcyBpcyBleGFjdGx5CndoYXQgdGhpcyBwYXRj
-aC1zZXQgaXMgdHJ5aW5nIHRvIGFkZHJlc3MgOikgIFBlb3BsZSBtYXkgc3RpbGwKbmVlZCB0byB1
-c2UgYSBjbWRsaW5lIG9wdGlvbiBidXQgbm93IHRoZXJlIGlzIG9ubHkgb25lIG9wdGlvbiB0bwpw
-bGF5IHdpdGguCgogPiBhbmQgcGVvcGxlIGxlYXJudCB0byB0cnkgdG8gdXNlIGFjcGlfYmFja2xp
-Z2h0CiA+IHBhcmFtZXRlciBmb3IgcXVpdC9ob3QgZml4aW5nIHRoZXNlIHByb2JsZW1zLgoKUGVv
-cGxlIHdobyBuZWVkIHRvIHBhc3MgYSBrZXJuZWwgY29tbWFuZGxpbmUgb3B0aW9uIHJlYWxseSBz
-aG91bGQKcmVwb3J0IGEgYnVnIG9uY2UgdGhleSBoYXZlIGZpZ3VyZWQgb3V0IHdoYXQgb3B0aW9u
-IHRvIHVzZS4KCkZlZG9yYSB1c2VycyBhcmUgZ2V0dGluZyBwcmV0dHkgZ29vZCBhdCB0aGlzIGFz
-IHRoZSBGZWRvcmEga2VybmVsCm1haW50YWluZXJzIHB1bnQgYWxsIHN1Y2ggYnVnIHJlcG9ydHMg
-dG8gbWUgYW5kIEkgcHJvcGVybHkgZGVhbAp3aXRoIHRoZW0gdmVyaWZ5aW5nIHRoZSB1c2VycyBz
-b2x1dGlvbiBpcyBzYW5lIGFuZCB0aGVuIHN1Ym1pdHRpbmcKYSBwYXRjaCB3aXRoIGEgZG1pIGJh
-c2VkIHF1aXJrIGZvciB0aGUgdXNlcnMgbGFwdG9wIHVwc3RyZWFtLgoKID4gVXBncmFkaW5nIGtl
-cm5lbCAoaWYgeW91Cj4gcmVtb3ZlIGFjcGlfYmFja2xpZ2h0IHBhcmFtZXRlcikganVzdCBicmVh
-ayBpdCBhZ2Fpbi4KCkkgdGhpbmsgdGhhdCBpcyBhY3R1YWxseSAocGFydGlhbGx5KSBhIGdvb2Qg
-dGhpbmcsIGFzIHNhaWQgcGVvcGxlCndobyByZWx5IG9uIGNtZGxpbmUgd29ya2Fyb3VuZHMgc2hv
-dWxkIGZpbGUgYnVncywgc28gdGhhdCB3ZSBjYW4KYWRkIGEgcXVpcmsuIEhhZCB0aGUgdXNlcnMg
-ZG9uZSBzbywgdGhlIHF1aXJrIHdvdWxkIGJlIGxvbmcgaW4KcGxhY2UgYW5kIHRoZSBjaGFuZ2lu
-ZyBvZiB0aGUgY21kbGluZSBvcHRpb24gbmFtZSB3b3VsZCBub3QgYmUKYW4gaXNzdWUgZm9yIHRo
-ZW0uCgpJIHJlYWxpemUgdGhhdCB0aGlzIGtuaWZlIGN1dHMgYm90aCB3YXlzLCBhbmQgdGhhdCB0
-aGlzIHdpbGwKY2F1c2UgdW5oYXBweSB1c2VycywgYXMgc2FpZCBpZiBpdCBoYWQgYmVlbiBwb3Nz
-aWJsZSB0byBub3QgY2hhbmdlCnRoZSBjbWRsaW5lIG9wdGlvbiBuYW1lIGluIGEgY2xlYW4gd2F5
-IEkgd291bGQgaGF2ZSBkb25lIHNvLgoKSWYgZXZlcnlvbmUgYWdyZWVzIHdpdGggdGhlIHNvbHV0
-aW9uIEkndmUgb3V0bGluZWQgYWJvdmUsIHdlCmNhbiBhY3R1YWxseSBtYWtlIGl0IHNvIGFzIHRv
-IG5vdCBicmVhayB0aGluZ3MgZm9yIHVzZXJzCndobydzIHNldHVwIHJlbGllcyBvbiBhY3BpX2Jh
-Y2tsaWdodD1mb28KClJlZ2FyZHMsCgpIYW5zCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3Rz
-LmZyZWVkZXNrdG9wLm9yZwpodHRwOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlz
-dGluZm8vZHJpLWRldmVsCg==
+On 06/11/2015 07:17 AM, Rafael J. Wysocki wrote:
+> On Wednesday, June 10, 2015 10:06:40 AM Hanjun Guo wrote:
+>> On 06/10/2015 07:48 AM, Rafael J. Wysocki wrote:
+>>> On Wednesday, June 03, 2015 11:13:57 AM Toshi Kani wrote:
+>>>> On Sat, 2015-05-30 at 14:21 +0200, Rafael J. Wysocki wrote:
+>>>>> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>>>>>
+>>>>> Commit 73f7d1ca3263 "ACPI / init: Run acpi_early_init() before
+>>>>> timekeeping_init()" moved the ACPI subsystem initialization,
+>>>>> including the ACPI mode enabling, to an earlier point in the
+>>>>> initialization sequence, to allow the timekeeping subsystem
+>>>>> use ACPI early.  Unfortunately, that resulted in boot regressions
+>>>>> on some systems and the early ACPI initialization was moved toward
+>>>>> its original position in the kernel initialization code by commit
+>>>>> c4e1acbb35e4 "ACPI / init: Invoke early ACPI initialization later".
+>>>>>
+>>>>> However, that turns out to be insufficient, as boot is still broken
+>>>>> on the Tyan S8812 mainboard.
+>>>>>
+>>>>> To fix that issue, split the ACPI early initialization code into
+>>>>> two pieces so the majority of it still located in acpi_early_init()
+>>>>> and the part switching over the platform into the ACPI mode goes into
+>>>>> a new function, acpi_subsystem_init(), executed at the original early
+>>>>> ACPI initialization spot.
+>>>>>
+>>>>> That fixes the Tyan S8812 boot problem, but still allows ACPI
+>>>>> tables to be loaded earlier which is useful to the EFI code in
+>>>>> efi_enter_virtual_mode().
+>>>>>
+>>>>> Link: https://bugzilla.kernel.org/show_bug.cgi?id=97141
+>>>>> Reported-and-tested-by: Marius Tolzmann <tolzmann@molgen.mpg.de>
+>>>>> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>>>>
+>>>> Can you add comments to acpi_early_init() and acpi_subsystem_init() to
+>>>> clarify what ACPI features are enabled at each phase, and what
+>>>> dependency they have in the boot sequence?  (The same goes to
+>>>> early_acpi_boot_init() and acpi_boot_init().)
+>>>
+>>> OK, update follows.
+>>>
+>>> ---
+>>> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>>> Subject: ACPI / init: Switch over platform to the ACPI mode later
+>>>
+>>> Commit 73f7d1ca3263 "ACPI / init: Run acpi_early_init() before
+>>> timekeeping_init()" moved the ACPI subsystem initialization,
+>>> including the ACPI mode enabling, to an earlier point in the
+>>> initialization sequence, to allow the timekeeping subsystem
+>>> use ACPI early.  Unfortunately, that resulted in boot regressions
+>>> on some systems and the early ACPI initialization was moved toward
+>>> its original position in the kernel initialization code by commit
+>>> c4e1acbb35e4 "ACPI / init: Invoke early ACPI initialization later".
+>>>
+>>> However, that turns out to be insufficient, as boot is still broken
+>>> on the Tyan S8812 mainboard.
+>>>
+>>> To fix that issue, split the ACPI early initialization code into
+>>> two pieces so the majority of it still located in acpi_early_init()
+>>> and the part switching over the platform into the ACPI mode goes into
+>>> a new function, acpi_subsystem_init(), executed at the original early
+>>> ACPI initialization spot.
+>>>
+>>> That fixes the Tyan S8812 boot problem, but still allows ACPI
+>>> tables to be loaded earlier which is useful to the EFI code in
+>>> efi_enter_virtual_mode().
+>>>
+>>> Link: https://bugzilla.kernel.org/show_bug.cgi?id=97141
+>>> Fixes: 73f7d1ca3263 "ACPI / init: Run acpi_early_init() before timekeeping_init()"
+>>> Reported-and-tested-by: Marius Tolzmann <tolzmann@molgen.mpg.de>
+>>> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>>> Acked-by: Toshi Kani <toshi.kani@hp.com>
+>>> ---
+>>>    drivers/acpi/bus.c   |   56 +++++++++++++++++++++++++++++++++++++--------------
+>>>    include/linux/acpi.h |    2 +
+>>>    init/main.c          |    1
+>>>    3 files changed, 44 insertions(+), 15 deletions(-)
+>>>
+>>> Index: linux-pm/drivers/acpi/bus.c
+>>> ===================================================================
+>>> --- linux-pm.orig/drivers/acpi/bus.c
+>>> +++ linux-pm/drivers/acpi/bus.c
+>>> @@ -470,6 +470,16 @@ static int __init acpi_bus_init_irq(void
+>>>    	return 0;
+>>>    }
+>>>
+>>> +/**
+>>> + * acpi_early_init - Initialize ACPICA and populate the ACPI namespace.
+>>> + *
+>>> + * The ACPI tables are accessible after this, but the handling of events has not
+>>
+>> Maybe we need to explicitly say that it's DSDT/SSDT, because static
+>> tables such as FADT and MADT are accessible in the very early stage
+>> of boot (in setup_arch()).
+>
+> Well, it never says that none of the tables are accessible earlier.
+
+Ah, that makes sense :)
+
+Thanks
+Hanjun
