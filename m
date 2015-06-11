@@ -1,7 +1,7 @@
 From: al.stone@linaro.org
-Subject: [PATCH 1/3] ACPI: introduce macros for using the ACPI specification version
-Date: Thu, 11 Jun 2015 13:45:09 -0600
-Message-ID: <1434051911-14665-2-git-send-email-al.stone@linaro.org>
+Subject: [PATCH 3/3] ACPI / ARM64: use the new BAD_MADT_GICC_ENTRY macro
+Date: Thu, 11 Jun 2015 13:45:11 -0600
+Message-ID: <1434051911-14665-4-git-send-email-al.stone@linaro.org>
 References: <1434051911-14665-1-git-send-email-al.stone@linaro.org>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1434051911-14665-1-git-send-email-al.stone@linaro.org>
@@ -12,44 +12,51 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Al Stone <al.stone@linaro.org>
 
-Add the ACPI_SPEC_VERSION() macro to build a proper version number from
-a major and minor revision number.  Add also the ACPI_FADT_SPEC_VERSION
-that constructs a proper version number from the entries in the current
-FADT.
-
-These macros are added in order to simplify retrieving and comparing ACPI
-specification version numbers, since this is becoming a more frequent need.
-In particular, there are some architectures that require at least a certain
-version of the spec, and there are differences in some structure sizes that
-have changed with recent versions but can only be tracked by spec version
-number.
+For those parts of the arm64 ACPI code that need to check GICC subtables
+in the MADT, use the new BAD_MADT_GICC_ENTRY macro instead of the previous
+BAD_MADT_ENTRY.  The new macro takes into account differences in the size
+of the GICC subtable that the old macro did not; this caused failures even
+though the subtable entries are valid.
 
 Signed-off-by: Al Stone <al.stone@linaro.org>
 Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
 Reviewed-by: Graeme Gregory <graeme.gregory@linaro.org>
 
-CC: Rafael J. Wysocki <rjw@rjwysocki.net>
-CC: Len Brown <lenb@kernel.org>
+CC: Catalin Marinas <catalin.marinas@arm.com>
+CC: Will Deacon <will.deacon@arm.com>
+CC: Thomas Gleixner <tglx@linutronix.de>
+CC: Jason Cooper <jason@lakedaemon.net>
 
 ---
- include/linux/acpi.h | 5 +++++
- 1 file changed, 5 insertions(+)
+ arch/arm64/kernel/smp.c   | 2 +-
+ drivers/irqchip/irq-gic.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index a4acb55..33ed313 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -48,6 +48,11 @@
- #include <acpi/acpi_io.h>
- #include <asm/acpi.h>
+diff --git a/arch/arm64/kernel/smp.c b/arch/arm64/kernel/smp.c
+index 4b2121b..80d5984 100644
+--- a/arch/arm64/kernel/smp.c
++++ b/arch/arm64/kernel/smp.c
+@@ -438,7 +438,7 @@ acpi_parse_gic_cpu_interface(struct acpi_subtable_header *header,
+ 	struct acpi_madt_generic_interrupt *processor;
  
-+#define ACPI_SPEC_VERSION(major, minor)	((major<<8)|minor)
-+#define ACPI_FADT_SPEC_VERSION	\
-+	ACPI_SPEC_VERSION(acpi_gbl_FADT.header.revision, \
-+			  acpi_gbl_FADT.minor_revision)
-+
- static inline acpi_handle acpi_device_handle(struct acpi_device *adev)
- {
- 	return adev ? adev->handle : NULL;
+ 	processor = (struct acpi_madt_generic_interrupt *)header;
+-	if (BAD_MADT_ENTRY(processor, end))
++	if (BAD_MADT_GICC_ENTRY(processor, end))
+ 		return -EINVAL;
+ 
+ 	acpi_table_print_madt_entry(header);
+diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
+index 8d7e1c8..4dd8826 100644
+--- a/drivers/irqchip/irq-gic.c
++++ b/drivers/irqchip/irq-gic.c
+@@ -1055,7 +1055,7 @@ gic_acpi_parse_madt_cpu(struct acpi_subtable_header *header,
+ 
+ 	processor = (struct acpi_madt_generic_interrupt *)header;
+ 
+-	if (BAD_MADT_ENTRY(processor, end))
++	if (BAD_MADT_GICC_ENTRY(processor, end))
+ 		return -EINVAL;
+ 
+ 	/*
 -- 
 2.1.0
