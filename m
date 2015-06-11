@@ -1,81 +1,58 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH v2] ACPICA: Add values for MADT GIC version field for
- ACPI 6.0
-Date: Thu, 11 Jun 2015 17:28:34 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37D2F35A5@ORSMSX112.amr.corp.intel.com>
-References: <1434016264-4801-1-git-send-email-hanjun.guo@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:36258 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753426AbbFKR2z convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 11 Jun 2015 13:28:55 -0400
-In-Reply-To: <1434016264-4801-1-git-send-email-hanjun.guo@linaro.org>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
+Subject: [PATCH V3 0/4] map GHES memory region with EFI memory map
+Date: Thu, 11 Jun 2015 11:25:56 -0700
+Message-ID: <1434047160-23358-1-git-send-email-zjzhang@codeaurora.org>
+Return-path: <linux-arm-msm-owner@vger.kernel.org>
+Sender: linux-arm-msm-owner@vger.kernel.org
+To: Matt Fleming <matt.fleming@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, leif.lindholm@linaro.org, fu.wei@linaro.org, al.stone@linaro.org, bp@alien8.de, tony.luck@gmail.com, rjw@rjwysocki.net, lenb@kernel.org, ying.huang@intel.com
+Cc: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, linux-efi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-msm@vger.kernel.org, linaro-acpi@lists.linaro.org, vgandhi@codeaurora.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, "Zheng, Lv" <lv.zheng@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-It will make it into next weeks acpica release.
+From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
 
+On a platform with APEI (ACPI Platform Error Interface) enabled, firmware
+updates a memory region with hardware error record using nocache
+attribute. When OS reads the region, since it maps the region with
+cacahed attribute even though EFI memory map defines this region as
+uncached, OS gets stale data and errorneously reports there is no new
+HW error.
 
-> -----Original Message-----
-> From: Hanjun Guo [mailto:hanjun.guo@linaro.org]
-> Sent: Thursday, June 11, 2015 2:51 AM
-> To: Zheng, Lv; Rafael J. Wysocki
-> Cc: Moore, Robert; linux-acpi@vger.kernel.org; Hanjun Guo
-> Subject: [PATCH v2] ACPICA: Add values for MADT GIC version field for ACPI
-> 6.0
-> 
-> ACPI 6.0 specified MADT generic distributor version values, but the detail
-> definition is missing in ACPICA version 20150515, add its support in this
-> patch which is needed for ARM64 ACPI based GIC init.
-> 
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> Signed-off-by: Bob Moore <robert.moore@intel.com>
-> ---
-> Hi Lv, Rafael,
->    Could you help merge this patch for 4.2? It should be in the ACPICA
-> release of 20150515, but we missed that chance. This patch will be needed
-> for ARM64 GIC init and I prepare to upstream those patches in 4.3, so if
-> this patch accpeted in 4.2, it will have less dedenpence for ACPICA core
-> and ARM64 GIC code in next kernel version.
-> 
-> This patch was accepted by Bob and merged into ACPICA tree, I reworked it
-> on top of linux ACPICA.
-> 
-> Thanks
-> Hanjun
-> 
->  include/acpi/actbl1.h | 11 +++++++++++
->  1 file changed, 11 insertions(+)
-> 
-> diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h index
-> cadf21c..d382de8 100644
-> --- a/include/acpi/actbl1.h
-> +++ b/include/acpi/actbl1.h
-> @@ -834,6 +834,17 @@ struct acpi_madt_generic_distributor {
->  	u8 reserved2[3];	/* reserved - must be zero */
->  };
-> 
-> +/* Values for Version field above */
-> +
-> +enum acpi_madt_gic_version {
-> +	ACPI_MADT_GIC_VERSION_NONE	= 0,
-> +	ACPI_MADT_GIC_VERSION_V1	= 1,
-> +	ACPI_MADT_GIC_VERSION_V2	= 2,
-> +	ACPI_MADT_GIC_VERSION_V3	= 3,
-> +	ACPI_MADT_GIC_VERSION_V4	= 4,
-> +	ACPI_MADT_GIC_VERSION_RESERVED	= 5	/* 5 and greater are
-> reserved */
-> +};
-> +
->  /* 13: Generic MSI Frame (ACPI 5.1) */
-> 
->  struct acpi_madt_generic_msi_frame {
-> --
-> 1.9.1
+When ghes driver maps the memory region, it uses the cache attribute
+according to EFI memory map, if EFI memory map feature is enabled
+at runtime.
 
+Since both arch/x86 and arch/ia64 implemented architecture agnostic EFI
+memory map attribue lookup function efi_memattributes(), the code is
+moved from arch/x86 into EFI subsystem and is declared as __weak; archs
+other than ia64 should not override the default implementation. 
+
+V3:
+1. Rebased to v4.1-rc7.
+2. Moved efi_mem_attributes() from arch/x86 to drivers/firmware/efi
+   and declared it as __weak.
+3. Introduced ARCH_APEI_PAGE_KERNEL_UC to allow arch specific page
+   protection type for UC.
+4. Removed efi_ioremap(). It can not be used for GHES memory region
+   mapping purpose since ioremap can not be used in atomic context.
+
+V2:
+1. Rebased to v4.1-rc5.
+2. Split removal of efi_mem_attributes() and creation of efi_ioremap()
+into two patches.
+
+Jonathan (Zhixiong) Zhang (4):
+  x86: acpi: define uncached page flag
+  arm64: acpi: define uncached page flag
+  efi: x86: rearrange efi_mem_attributes()
+  acpi, apei: use EFI memmap to map GHES memory
+
+ arch/arm64/include/asm/acpi.h |  4 ++++
+ arch/x86/include/asm/acpi.h   |  4 ++++
+ arch/x86/platform/efi/efi.c   | 18 ------------------
+ drivers/acpi/apei/ghes.c      |  9 ++++++++-
+ drivers/firmware/efi/efi.c    | 18 ++++++++++++++++++
+ 5 files changed, 34 insertions(+), 19 deletions(-)
+
+-- 
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project
