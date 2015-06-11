@@ -1,85 +1,48 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH] ACPI / enumeration: Document the rules regarding the PRP0001 device ID
-Date: Thu, 11 Jun 2015 03:24:02 +0200
-Message-ID: <2849248.1anC4YaKJn@vostro.rjw.lan>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [PATCH v2] acpi-video: Add a parameter to not register the
+ backlight sysfs interface
+Date: Thu, 11 Jun 2015 09:43:15 +0800
+Message-ID: <20150611014315.GA26277@aaronlu.sh.intel.com>
+References: <1433838745-8857-1-git-send-email-hdegoede@redhat.com>
+ <20150609091042.GA1280@aaronlu.sh.intel.com>
+ <557760A5.9000404@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:64608 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751602AbbFKA6O (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 10 Jun 2015 20:58:14 -0400
+Received: from mga01.intel.com ([192.55.52.88]:18420 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751806AbbFKBmJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 10 Jun 2015 21:42:09 -0400
+Content-Disposition: inline
+In-Reply-To: <557760A5.9000404@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Darren Hart <darren.hart@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Darren Hart <dvhart@infradead.org>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Ben Skeggs <bskeggs@redhat.com>, platform-driver-x86@vger.kernel.org, dri-devel@lists.freedesktop.org, Sylvain Pasche <sylvain.pasche@gmail.com>, linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Tue, Jun 09, 2015 at 11:54:45PM +0200, Hans de Goede wrote:
+> Hi,
+> 
+> On 06/09/2015 11:10 AM, Aaron Lu wrote:
+> >On Tue, Jun 09, 2015 at 10:32:25AM +0200, Hans de Goede wrote:
+> >>On some systems acpi-video backlight is broken in the sense that it cannot
+> >>control the brightness of the backlight, but it must still be called on
+> >>resume to power-up the backlight after resume.
+> >
+> >All the video module does on resume is a backlight set operation, it
+> >can't control backlight but can turn on the screen on resume? Hmm...
+> >
+> >I'll ask Sylvain to attach acpidump, let's see if there is anything
+> >special there.
+> 
+> Ok, lets see what comes out of that. Note in the mean time Sylvain has
+> attached his acpidump.
 
-Document how the ACPI device enumeration code uses the special
-PRP0001 device ID.
+Thanks.
+According to the discussion in the bugzilla place, it doesn't seem we
+have any other way to handle this at the moment.
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- Documentation/acpi/enumeration.txt |   49 +++++++++++++++++++++++++++++++++++++
- 1 file changed, 49 insertions(+)
+Acked-by: Aaron Lu <aaron.lu@intel.com>
 
-Index: linux-pm/Documentation/acpi/enumeration.txt
-===================================================================
---- linux-pm.orig/Documentation/acpi/enumeration.txt
-+++ linux-pm/Documentation/acpi/enumeration.txt
-@@ -359,3 +359,52 @@ the id should be set like:
- The ACPI id "XYZ0001" is then used to lookup an ACPI device directly under
- the MFD device and if found, that ACPI companion device is bound to the
- resulting child platform device.
-+
-+Device Tree namespace link device ID
-+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+The Device Tree protocol uses device indentification based on the "compatible"
-+property whose value is a string or an array of strings recognized as device
-+identifiers by drivers and the driver core.  The set of all those strings may be
-+regarded as a device indentification namespace analogous to the ACPI/PNP device
-+ID namespace.  Consequently, in principle it should not be necessary to allocate
-+a new (and arguably redundant) ACPI/PNP device ID for a devices with an existing
-+identification string in the Device Tree (DT) namespace, especially if that ID
-+is only needed to indicate that a given device is compatible with another one,
-+presumably having a matching driver in the kernel already.
-+
-+In ACPI, the device identification object called _CID (Compatible ID) is used to
-+list the IDs of devices the given one is compatible with, but those IDs must
-+belong to one of the namespaces prescribed by the ACPI specification (see
-+Section 6.1.2 of ACPI 6.0 for details) and the DT namespace is not one of them.
-+Moreover, the specification mandates that either a _HID or an _ADR identificaion
-+object be present for all ACPI objects representing devices (Section 6.1 of ACPI
-+6.0).  For non-enumerable bus types that object must be _HID and its value must
-+be a device ID from one of the namespaces prescribed by the specification too.
-+
-+The special DT namespace link device ID, PRP0001, provides a means to use the
-+existing DT-compatible device identification in ACPI and to satisfy the above
-+requirements following from the ACPI specification at the same time.  Namely,
-+if PRP0001 is returned by _HID, the ACPI subsystem will look for the
-+"compatible" property in the device object's _DSD and will use the value of that
-+property to identify the corresponding device in analogy with the original DT
-+device identification algorithm.  If the "compatible" propoerty is not present
-+or its value is not valid, the device will not be enumerated by the ACPI
-+subsystem.  Otherwise, it will be enumerated automatically as a platform device
-+and the identification strings from the "compatible" property value will be used
-+to find a driver for the device along with the device IDs listed by _CID (if
-+present).
-+
-+Analogously, if PRP0001 is present in the list of device IDs returned by _CID,
-+the identification strings listed by the "compatible" property value (if present
-+and valid) will be used to look for a driver matching the device, but in that
-+case their relative priority with respect to the other device IDs listed by
-+_HID and _CID depends on the position of PRP0001 in the _CID return package.
-+Specifically, the device IDs returned by _HID and preceding PRP0001 in the _CID
-+return package will be checked first.  Also in that case the bus type the device
-+will be enumerated to depends on the device ID returned by _HID.
-+
-+It is valid to define device objects with a _HID returning PRP0001 and without
-+the "compatible" property in the _DSD or a _CID as long as one of their
-+ancestors provides a _DSD with a valid "compatible" property.  Such device
-+objects are then simply regarded as additional "blocks" providing hierarchical
-+configuration information to the driver of the composite ancestor device.
-
+Best wishes,
+Aaron
