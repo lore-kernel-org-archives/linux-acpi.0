@@ -1,81 +1,73 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH 02/11] ACPI / irqchip: Add self-probe infrastructure to
- initialize IRQ controller
-Date: Thu, 11 Jun 2015 20:55:09 +0800
-Message-ID: <5579852D.1010509@linaro.org>
-References: <1431953961-22706-1-git-send-email-hanjun.guo@linaro.org>
- <1431953961-22706-3-git-send-email-hanjun.guo@linaro.org>
- <557858AC.6010701@arm.com>
+From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
+Subject: Re: [PATCH 20/32] dell-wmi: Port to new backlight interface
+ selection API
+Date: Thu, 11 Jun 2015 14:59:44 +0200
+Message-ID: <20150611125944.GF19820@pali>
+References: <1433941292-21530-1-git-send-email-hdegoede@redhat.com>
+ <1433941292-21530-21-git-send-email-hdegoede@redhat.com>
+ <20150611114330.GC19820@pali> <55797CBF.8090301@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <557858AC.6010701@arm.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Marc Zyngier <marc.zyngier@arm.com>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <55797CBF.8090301@redhat.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Ike Panhc <ike.pan@canonical.com>, linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, acpi4asus-user@lists.sourceforge.net, "Rafael J. Wysocki" <rjw@rjwysocki.net>, dri-devel@lists.freedesktop.org, Azael Avalos <coproscefalo@gmail.com>, Lee Chun-Yi <jlee@suse.com>, Mattia Dongili <malattia@linux.it>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Ben Skeggs <bskeggs@redhat.com>, Corentin Chary <corentin.chary@gmail.com>, Darren Hart <dvhart@infradead.org>, platform-driver-x86@vger.kernel.org, Aaron Lu <aaron.lu@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Marc,
-
-On 06/10/2015 11:33 PM, Marc Zyngier wrote:
-> Hi Hanjun,
->
-> On 18/05/15 13:59, Hanjun Guo wrote:
->> From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
->>
->> This self-probe infrastructure works in the similar way as OF,
->> but there is some different in the mechanism:
->>
->> For OF, the init fn will be called once it finds comptiable strings
->> in DT,  but for ACPI, we init irqchips by static tables, and in
->> static ACPI tables, there are no comptiable strings to indicate
->> irqchips, so every init function with IRQCHIP_ACPI_DECLARE in the
->> same table will be called, but thanks to the GIC version presented
->> in ACPI table, we can init different GIC irqchips with this framework.
->
-> This triggers an immediate question: If we can find out the GIC version
-> in the ACPI tables, which can't we just call the irqchips that implement
-> the support for this version?
-
-This is really a good question and triggers me to rethink about
-the implementation.
-
->
-> i.e: the GICv2 irqchip code would have a line like:
->
-> IRQCHIP_ACPI_DECLARE(gic_v2, ACPI_MADT_GIC_VER_V2, gic_v2_acpi_init);
->
-> and the probing code would simply call the drivers that have declared
-> their interest for this version code.
-
-if we want to achieve this, we can redefine the strut for acpi_table_id:
-
-#define ACPI_TABLE_ID_LEN	5
-
-struct acpi_table_id {
-	__u8 id[ACPI_TABLE_ID_LEN];
-	const void *handler;
-	kernel_ulong_t driver_data;
-};
-
-then pass the ACPI_MADT_GIC_VER_V2 as the driver_data, it will
-work as you suggested.
-
->
-> Having code that tests for the version in each driver is not an option
-> (this is exactly what we're trying to avoid).
-
-I also think it's awkward to do that in each driver, thanks for the
-suggestion!
-
-Thanks
-Hanjun
+T24gVGh1cnNkYXkgMTEgSnVuZSAyMDE1IDE0OjE5OjExIEhhbnMgZGUgR29lZGUgd3JvdGU6Cj4g
+SGksCj4gCj4gT24gMTEtMDYtMTUgMTM6NDMsIFBhbGkgUm9ow6FyIHdyb3RlOgo+ID5PbiBXZWRu
+ZXNkYXkgMTAgSnVuZSAyMDE1IDE1OjAxOjIwIEhhbnMgZGUgR29lZGUgd3JvdGU6Cj4gPj5Qb3J0
+IHRoZSBiYWNrbGlnaHQgc2VsZWN0aW9uIGxvZ2ljIHRvIHRoZSBuZXcgYmFja2xpZ2h0IGludGVy
+ZmFjZQo+ID4+c2VsZWN0aW9uIEFQSS4KPiA+Pgo+ID4+U2lnbmVkLW9mZi1ieTogSGFucyBkZSBH
+b2VkZSA8aGRlZ29lZGVAcmVkaGF0LmNvbT4KPiA+Pi0tLQo+ID4+ICBkcml2ZXJzL3BsYXRmb3Jt
+L3g4Ni9kZWxsLXdtaS5jIHwgMyArKy0KPiA+PiAgMSBmaWxlIGNoYW5nZWQsIDIgaW5zZXJ0aW9u
+cygrKSwgMSBkZWxldGlvbigtKQo+ID4+Cj4gPj5kaWZmIC0tZ2l0IGEvZHJpdmVycy9wbGF0Zm9y
+bS94ODYvZGVsbC13bWkuYyBiL2RyaXZlcnMvcGxhdGZvcm0veDg2L2RlbGwtd21pLmMKPiA+Pmlu
+ZGV4IDY1MTJhMDYuLmYyZDc3ZmUgMTAwNjQ0Cj4gPj4tLS0gYS9kcml2ZXJzL3BsYXRmb3JtL3g4
+Ni9kZWxsLXdtaS5jCj4gPj4rKysgYi9kcml2ZXJzL3BsYXRmb3JtL3g4Ni9kZWxsLXdtaS5jCj4g
+Pj5AQCAtMzUsNiArMzUsNyBAQAo+ID4+ICAjaW5jbHVkZSA8bGludXgvYWNwaS5oPgo+ID4+ICAj
+aW5jbHVkZSA8bGludXgvc3RyaW5nLmg+Cj4gPj4gICNpbmNsdWRlIDxsaW51eC9kbWkuaD4KPiA+
+PisjaW5jbHVkZSA8YWNwaS92aWRlby5oPgo+ID4+Cj4gPj4gIE1PRFVMRV9BVVRIT1IoIk1hdHRo
+ZXcgR2FycmV0dCA8bWpnQHJlZGhhdC5jb20+Iik7Cj4gPj4gIE1PRFVMRV9ERVNDUklQVElPTigi
+RGVsbCBsYXB0b3AgV01JIGhvdGtleXMgZHJpdmVyIik7Cj4gPj5AQCAtMzk3LDcgKzM5OCw3IEBA
+IHN0YXRpYyBpbnQgX19pbml0IGRlbGxfd21pX2luaXQodm9pZCkKPiA+PiAgCX0KPiA+Pgo+ID4+
+ICAJZG1pX3dhbGsoZmluZF9oa190eXBlLCBOVUxMKTsKPiA+Pi0JYWNwaV92aWRlbyA9IGFjcGlf
+dmlkZW9fYmFja2xpZ2h0X3N1cHBvcnQoKTsKPiA+PisJYWNwaV92aWRlbyA9IGFjcGlfdmlkZW9f
+Z2V0X2JhY2tsaWdodF90eXBlKCkgIT0gYWNwaV9iYWNrbGlnaHRfdmVuZG9yOwo+ID4+Cj4gPj4g
+IAllcnIgPSBkZWxsX3dtaV9pbnB1dF9zZXR1cCgpOwo+ID4+ICAJaWYgKGVycikKPiA+Cj4gPkhl
+bGxvLAo+ID4KPiA+dG8gbWFrZSBzdXJlIHRoYXQgbm90aGluZyB3aWxsIGJlIGJyb2tlbiBJIHdp
+bGwgdHJ5IHRvIGV4cGxhaW4gY3VycmVudAo+ID5jb2RlLiBWYXJpYWJsZSBhY3BpX3ZpZGVvIGlz
+IGdsb2JhbCBib29sZWFuIChmb3IgdGhpcyBtb2R1bGUpIGFuZCB3aGVuCj4gPmlzIHNldCB0byB0
+cnVlIGl0IGlzIGV4cGVjdGVkIHRoYXQgQUNQSSBnZW5lcmF0ZSBicmlnaHRuZXNzIHVwL2Rvd24g
+a2V5Cj4gPmV2ZW50cyB2aWEgQUNQSSBpbnB1dCBkZXZpY2UuIFdoZW4gaXMgYWNwaV92aWRlbyBi
+b29sZWFuIHZhcmlhYmxlIGlzIHNldAo+ID50byBmYWxzZSB0aGVuIEFDUEkgaW5wdXQgZGV2aWNl
+IHNob3VsZCBub3Qgc2VuZCBicmlnaHRuZXNzIHVwL2Rvd24ga2V5cwo+ID50byB1c2Vyc3BhY2Uu
+IEFuZCBkZWxsLXdtaS5rbyBkcml2ZXIgc2VuZCB0aG9zZSB0d28ga2V5cyB2aWEgZGVsbC13bWkK
+PiA+aW5wdXQgZGV2aWNlLgo+IAo+IEkga25vdy4KPiAKPiA+U28gcGxlYXNlIGNoZWNrIHRoYXQg
+eW91ciBjaGFuZ2UgZG9lcyBub3QgY2hhbmdlIGFib3ZlIGJlaGF2aW91ci4KPiAKPiBJJ3ZlIGFs
+cmVhZHkgY2hlY2tlZCB0aGlzLgo+IAoKT2ssIHRoZW4gdGhpcyBwYXRjaCBpcyBmaW5lIGZvciBt
+ZS4gQWRkIG15IEFja2VkLWJ5IG9yIFJldmlld2VkLWJ5LgoKPiA+IE1heWJlIGl0IHdvdWxkIG1h
+a2Ugc2Vuc2UgdG8gcmVuYW1lICJhY3BpX3ZpZGVvIiB2YXJpYWJsZSB0byBzb21ldGhpbmcgYmV0
+dGVyLgo+IAo+IFRoZXJlIGlzIGFub3RoZXIgZHJpdmVyIHdoaWNoIGhhcyBhIHNpbWlsYXIgY29u
+c3RydWN0aW9uLiBJIGJlbGlldmUgdGhhdCBpdAo+IHdvdWxkIGJlIGdvb2QgdG8gYWRkIGFuIGFj
+cGlfdmlkZW9faGFuZGxlc19rZXlfcHJlc3NlcygpIGhlbHBlciB0byB0aGUKPiBhY3BpLXZpZGVv
+IGNvZGUgd2hpY2ggY2FuIGJlIHVzZWQgZm9yIHRoaXMgaW5zdGVhZCBvZiBhYnVzaW5nCj4gYWNw
+aV92aWRlb19nZXRfYmFja2xpZ2h0X3R5cGUoKSBmb3IgdGhpcy4gSSd2ZSBwdXQgdGhpcyBvbiBt
+eSB0b2RvIGxpc3QKPiB0byBkbyBhcyBhIGZ1cnRoZXIgY2xlYW51cCBvbmNlIHRoZSBpbml0aWFs
+IHNlcmllcyBpcyBtZXJnZWQuCj4gCj4gUmVnYXJkcywKPiAKPiBIYW5zCgpPaywgdGhhbmtzISBh
+Y3BpX3ZpZGVvX2hhbmRsZXNfa2V5X3ByZXNzZXMoKSBoYXMgcmVhbGx5IGJldHRlciBuYW1lLgoK
+LS0gClBhbGkgUm9ow6FyCnBhbGkucm9oYXJAZ21haWwuY29tCl9fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRl
+dmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21h
+aWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
