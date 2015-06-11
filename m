@@ -1,69 +1,81 @@
-From: Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: Re: [PATCH 07/32] acpi-video-detect: Rewrite
- backlight interface selection logic
-Date: Thu, 11 Jun 2015 14:32:52 +0200
-Message-ID: <55797FF4.5010404@redhat.com>
-References: <1433941292-21530-1-git-send-email-hdegoede@redhat.com>
-	<1433941292-21530-8-git-send-email-hdegoede@redhat.com>
-	<20150611091922.GB19820@pali> <557954F4.3050709@redhat.com>
-	<87bngm5szf.fsf@intel.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH 02/11] ACPI / irqchip: Add self-probe infrastructure to
+ initialize IRQ controller
+Date: Thu, 11 Jun 2015 20:55:09 +0800
+Message-ID: <5579852D.1010509@linaro.org>
+References: <1431953961-22706-1-git-send-email-hanjun.guo@linaro.org>
+ <1431953961-22706-3-git-send-email-hanjun.guo@linaro.org>
+ <557858AC.6010701@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <87bngm5szf.fsf-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: Jani Nikula <jani.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, =?UTF-8?B?UGFsaSBSb2jDoXI=?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>, Ike Panhc <ike.pan-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Henrique de Moraes Holschuh <ibm-acpi-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org, Azael Avalos <coproscefalo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lee Chun-Yi <jlee-IBi9RG/b67k@public.gmane.org>, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Cezary Jackiewicz <cezary.jackiewicz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Mattia Dongili <malattia-k2GhghHVRtY@public.gmane.org>, Ben Skeggs <bskeggs-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Corentin Chary <corentin.chary-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Darren Hart <dvhart-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, platform-driver-x86-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <557858AC.6010701@arm.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Marc Zyngier <marc.zyngier@arm.com>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Olof Johansson <olof@lixom.net>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-acpi@vger.kernel.org
 
-SGksCgpPbiAxMS0wNi0xNSAxNDoyOCwgSmFuaSBOaWt1bGEgd3JvdGU6Cj4gT24gVGh1LCAxMSBK
-dW4gMjAxNSwgSGFucyBkZSBHb2VkZSA8aGRlZ29lZGVAcmVkaGF0LmNvbT4gd3JvdGU6Cj4+IEhp
-LAo+Pgo+PiBPbiAxMS0wNi0xNSAxMToxOSwgUGFsaSBSb2jDoXIgd3JvdGU6Cj4+PiBPbiBXZWRu
-ZXNkYXkgMTAgSnVuZSAyMDE1IDE1OjAxOjA3IEhhbnMgZGUgR29lZGUgd3JvdGU6Cj4+Pj4gQ3Vy
-cmVudGx5IHdlIGhhdmUgMiBrZXJuZWwgY29tbWFuZGxpbmUgb3B0aW9ucyArIGRtaS1xdWlya3Mg
-aW4gMyBwbGFjZXMgYWxsCj4+Pj4gaW50ZXJhY3RpbmcgKGluIGludGVyZXN0aW5nIHdheXMpIHRv
-IHNlbGVjdCB3aGljaCB3aGljaCBiYWNrbGlnaHQgaW50ZXJmYWNlCj4+Pj4gdG8gdXNlLiBPbiB0
-aGUgY29tbWFuZGxpbmUgd2UndmUgYWNwaV9iYWNrbGlnaHQ9W3ZpZGVvfHZlbmRvcl0gYW5kCj4+
-Pj4gdmlkZW8udXNlX25hdGl2ZV9iYWNrbGlnaHQ9WzB8MV0uIERNSSBxdWlya3Mgd2UgaGF2ZSBp
-bgo+Pj4+IGFjcGkvdmlkZW8tZGV0ZWN0LmMsIGFjcGkvdmlkZW8uYyBhbmQgZHJpdmVycy9wbGF0
-Zm9ybS94ODYvKi5jIC4KPj4+Pgo+Pj4+IFRoaXMgY29tbWl0IGlzIHRoZSBmaXJzdCBzdGVwIHRv
-IGNsZWFuaW5nIHRoaXMgdXAsIHJlcGxhY2luZyB0aGUgMiBjbWRsaW5lCj4+Pj4gb3B0aW9ucyB3
-aXRoIGp1c3QgYWNwaV92aWRlby5iYWNrbGlnaHQ9W3ZpZGVvfHZlbmRvcnxuYXRpdmV8bm9uZV0s
-IGFuZAo+Pj4+IGFkZGluZyBhIG5ldyBBUEkgdG8gdmlkZW9fZGV0ZWN0LmMgdG8gcmVmbGVjdCB0
-aGlzLgo+Pj4+Cj4+Pj4gRm9sbG93IHVwIGNvbW1pdHMgd2lsbCBhbHNvIG1vdmUgb3RoZXIgcmVs
-YXRlZCBjb2RlLCBsaWtlIHVucmVnaXN0ZXJpbmcgdGhlCj4+Pj4gYWNwaV92aWRlbyBiYWNrbGln
-aHQgaW50ZXJmYWNlIGlmIGl0IHdhcyByZWdpc3RlcmVkIGJlZm9yZSBvdGhlciBkcml2ZXJzCj4+
-Pj4gd2hpY2ggdGFrZSBwcmlvcml0eSBvdmVyIGl0IGFyZSBsb2FkZWQsIHRvIHZpZGVvX2RldGVj
-dC5jIHdoZXJlIHRoaXMKPj4+PiBsb2dpYyByZWFsbHkgYmVsb25ncy4KPj4+Pgo+Pj4+IFNpZ25l
-ZC1vZmYtYnk6IEhhbnMgZGUgR29lZGUgPGhkZWdvZWRlQHJlZGhhdC5jb20+Cj4+Pgo+Pj4gSGVs
-bG8sCj4+Pgo+Pj4gbG90IG9mIHBlb3BsZSBhcmUgdXNpbmcgYWNwaV9iYWNrbGlnaHQgcGFyYW1l
-dGVyIGluIGtlcm5lbCBjbWRsaW5lIHRvCj4+PiBmaXggc29tZSBvZiBwcm9ibGVtcy4gSSB3b3Vs
-ZCBsaWtlIHRvIHNlZSB0aGlzIHBhcmFtZXRlciBzdGlsbCB3b3JraW5nCj4+PiBhbmQgdG8gbm90
-IGJyZWFrIGV4aXN0aW5nIGNvbmZpZ3VyYXRpb24uIEUuZyBhY3BpX2JhY2tsaWdodD12ZW5kb3Ig
-dG8KPj4+IHVzZSBkZWxsLWxhcHRvcC5rbyBvciB0aGlua3BhZF9hY3BpLmtvIGJhY2tsaWdodC4K
-Pj4KPj4gSSB3b3VsZCBoYXZlIGxpa2UgdG8ga2VlcCBhY3BpX2JhY2tsaWdodD0gZm9yIHRoYXQg
-ZXhhY3Qgc2FtZSByZWFzb24sCj4+IGJ1dCB0aGF0IGlzIG5vdCBwb3NzaWJsZSB3aGlsZSBrZWVw
-aW5nIGFjcGlfdmlkZW8gYXMgYSBtb2R1bGUuCj4+Cj4+IFRoaW5raW5nIG1vcmUgYWJvdXQgdGhp
-cywgdGhpcyBpcyBub3Qgc3RyaWN0bHkgdHJ1ZSwgd2UgY291bGQgbWFrZQo+PiBzb21lIG90aGVy
-IChjb3JlKSBwYXJ0IG9mIHRoZSBhY3BpIGNvZGUgdXNlIF9fc2V0dXAgdG8gZ2V0IHRoZQo+PiBh
-Y3BpX2JhY2tsaWdodD0gdmFsdWUgYW5kIGhhdmUgdGhhdCBwYXJ0IGV4cG9ydCB0aGUgdmFsdWUg
-Zm9yIHVzZQo+PiBpbiB0aGUgYWNwaV92aWRlbyBtb2R1bGUuIFRoaXMgaXMgbm90IHJlYWxseSBw
-cmV0dHksIGJ1dCBJIHRoaW5rIGl0Cj4+IG1heSBiZSB0aGUgYmVzdCB3YXkgdG8gc29sdmUgdGhp
-cy4KPgo+IEl0IGp1c3QgbWlnaHQgYmUgYSBnb29kIGlkZWEgdG8gdHJ5IHRvIG5vdCBjaGFuZ2Ug
-dGhlIGJhY2tsaWdodCByZWxhdGVkCj4gcGFyYW1ldGVycyBhbGwgdGhlIHRpbWUuLi4gU2VlIFsx
-XS4gSSBwcm9iYWJseSBmb3Jnb3QgYSBmZXcuCgpSaWdodCwgc28gYXMgc2FpZCBJJ20gZmluZSB3
-aXRoIGFkZGluZyB0aGUgYWJvdmUgd29yay1hcm91bmQgdG8gdGhlCm5leHQgdmVyc2lvbiBvZiB0
-aGUgcGF0Y2gtc2V0IHRvIGtlZXAgYWNwaV9iYWNrbGlnaHQ9W3ZlbmRvcnx2aWRlb10Kd29ya2lu
-ZyBhcyBiZWZvcmUuCgpSZWdhcmRzLAoKSGFucwoKLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCl9fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmlibS1hY3BpLWRldmVs
-IG1haWxpbmcgbGlzdAppYm0tYWNwaS1kZXZlbEBsaXN0cy5zb3VyY2Vmb3JnZS5uZXQKaHR0cHM6
-Ly9saXN0cy5zb3VyY2Vmb3JnZS5uZXQvbGlzdHMvbGlzdGluZm8vaWJtLWFjcGktZGV2ZWwK
+Hi Marc,
+
+On 06/10/2015 11:33 PM, Marc Zyngier wrote:
+> Hi Hanjun,
+>
+> On 18/05/15 13:59, Hanjun Guo wrote:
+>> From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+>>
+>> This self-probe infrastructure works in the similar way as OF,
+>> but there is some different in the mechanism:
+>>
+>> For OF, the init fn will be called once it finds comptiable strings
+>> in DT,  but for ACPI, we init irqchips by static tables, and in
+>> static ACPI tables, there are no comptiable strings to indicate
+>> irqchips, so every init function with IRQCHIP_ACPI_DECLARE in the
+>> same table will be called, but thanks to the GIC version presented
+>> in ACPI table, we can init different GIC irqchips with this framework.
+>
+> This triggers an immediate question: If we can find out the GIC version
+> in the ACPI tables, which can't we just call the irqchips that implement
+> the support for this version?
+
+This is really a good question and triggers me to rethink about
+the implementation.
+
+>
+> i.e: the GICv2 irqchip code would have a line like:
+>
+> IRQCHIP_ACPI_DECLARE(gic_v2, ACPI_MADT_GIC_VER_V2, gic_v2_acpi_init);
+>
+> and the probing code would simply call the drivers that have declared
+> their interest for this version code.
+
+if we want to achieve this, we can redefine the strut for acpi_table_id:
+
+#define ACPI_TABLE_ID_LEN	5
+
+struct acpi_table_id {
+	__u8 id[ACPI_TABLE_ID_LEN];
+	const void *handler;
+	kernel_ulong_t driver_data;
+};
+
+then pass the ACPI_MADT_GIC_VER_V2 as the driver_data, it will
+work as you suggested.
+
+>
+> Having code that tests for the version in each driver is not an option
+> (this is exactly what we're trying to avoid).
+
+I also think it's awkward to do that in each driver, thanks for the
+suggestion!
+
+Thanks
+Hanjun
