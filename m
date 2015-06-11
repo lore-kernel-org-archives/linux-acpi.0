@@ -1,25 +1,27 @@
-From: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Subject: Klientskie bazi tel +79133913837 Email: nonen22pp@gmail.com ICQ:6288862 Yznaite podrobnee!!!
-Date: Thu, 11 Jun 2015 05:55:25 +0400
-Message-ID: <F10B4800D6022C9F43460FB2C600F5C7@vger.kernel.org>
-Reply-To: "linux-acpi@vger.kernel.org" <nonen22pp@gmail.com>
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: [PATCH v5 17/21] libnvdimm: infrastructure for btt devices
+Date: Thu, 11 Jun 2015 09:28:12 +0200
+Message-ID: <20150611072812.GB1905@lst.de>
+References: <20150602001134.4506.45867.stgit@dwillia2-desk3.amr.corp.intel.com> <20150602001541.4506.90125.stgit@dwillia2-desk3.amr.corp.intel.com> <20150609064200.GE9804@lst.de> <20150610184616.GL2729@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	format=flowed;
-	charset="utf-8";
-	reply-type=original
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from [5.196.219.74] ([5.196.219.74]:59950 "EHLO
-	localhost.localdomain" rhost-flags-FAIL-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751047AbbFKG2u (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 11 Jun 2015 02:28:50 -0400
-Received: from 5.196.219.74 (localhost [IPv6:::1])
-	by localhost.localdomain (Postfix) with SMTP id 6E663206091
-	for <linux-acpi@vger.kernel.org>; Sun, 31 May 2015 12:58:41 -0400 (EDT)
+Received: from verein.lst.de ([213.95.11.211]:55550 "EHLO newverein.lst.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750872AbbFKH2P (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 11 Jun 2015 03:28:15 -0400
+Content-Disposition: inline
+In-Reply-To: <20150610184616.GL2729@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Matthew Wilcox <willy@linux.intel.com>
+Cc: Christoph Hellwig <hch@lst.de>, Dan Williams <dan.j.williams@intel.com>, axboe@kernel.dk, sfr@canb.auug.org.au, rafael@kernel.org, neilb@suse.de, gregkh@linuxfoundation.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-api@vger.kernel.org, akpm@linux-foundation.org, mingo@kernel.org
 
-Klientskie bazi tel +79133913837 Email: nonen22pp@gmail.com ICQ:6288862 Yznaite podrobnee!!!
+On Wed, Jun 10, 2015 at 02:46:16PM -0400, Matthew Wilcox wrote:
+> Don't screw up rw_page.  The point of rw_page is to read or write a page
+> cache page.  It can sleep, and it indicates success by using the page
+> flags.  Don't try and scqueeze rw_bytes into it.  If you want rw_bytes
+> to be a queue operation, that's one thing, but don't mess with rw_page.
+
+Oh, I forgot about the page manipulating nature.  Yes, we'll need a different
+operation in this case.
