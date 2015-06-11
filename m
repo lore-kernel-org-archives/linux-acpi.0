@@ -1,138 +1,81 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v2 2/5] ACPI / EC: Convert event handling work queue into loop style.
-Date: Thu, 11 Jun 2015 13:21:32 +0800
-Message-ID: <e6b88a400dbfd7065a91e2929bd12b7ee8d9c6d3.1433999639.git.lv.zheng@intel.com>
-References: <cover.1433734431.git.lv.zheng@intel.com> <cover.1433999639.git.lv.zheng@intel.com>
+Subject: [RFC PATCH] ACPI / EC: Fix an issue caused by the serialized _Qxx evaluations.
+Date: Thu, 11 Jun 2015 13:43:23 +0800
+Message-ID: <d2029b78c1e914d0c05b28c406a88057858b8a42.1434001323.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:31175 "EHLO mga01.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:24104 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752554AbbFKFVj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 11 Jun 2015 01:21:39 -0400
-In-Reply-To: <cover.1433999639.git.lv.zheng@intel.com>
+	id S1750750AbbFKFn5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 11 Jun 2015 01:43:57 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-During the period that a work queue is scheduled (queued up for run) but
-hasn't been run, second schedule_work() could fail. This may not lead to
-the loss of queries because QR_EC is always ensured to be submitted after
-the work queue has been in the running state.
+It is proven that Windows evaluates _Qxx handlers in a parallel way. This
+patch follows this fact, changes _Qxx evaluations to be queued up on the
+NOTIFY queue as its behavior is proven to be quite different from the
+_Lxx/_Exx handlers, and convert the NOTIFY queue into the parallel style.
 
-The event handling work queue can be changed into the loop style to allow
-us to control the code in a more flexible way:
-1. Makes it possible to add event=0x00 termination condition in the loop.
-2. Increases the thoughput of the QR_EC transactions as the 2nd+ QR_EC
-   transactions may be handled in the same work item used for the 1st QR_EC
-   transaction, thus the delay caused by the 2nd+ work item scheduling can
-   be eliminated.
-
-Except the logging message changes and the throughput improvement, this
-patch is just a funcitonal no-op.
-
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=94411
+Reported-and-tested-by: Gabriele Mazzotta <gabriele.mzt@gmail.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-Tested-by: Gabriele Mazzotta <gabriele.mzt@gmail.com>
-Tested-by: Tigran Gabrielyan <tigrangab@gmail.com>
-Tested-by: Adrien D <ghbdtn@openmailbox.org>
 ---
- drivers/acpi/ec.c       |   33 ++++++++++++++++++++++++---------
- drivers/acpi/internal.h |    1 +
- 2 files changed, 25 insertions(+), 9 deletions(-)
+ drivers/acpi/ec.c  |    5 ++---
+ drivers/acpi/osl.c |   20 ++++++++++----------
+ 2 files changed, 12 insertions(+), 13 deletions(-)
 
 diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 0ce8b6e8..824f3e8 100644
+index 9d4761d..30f582f 100644
 --- a/drivers/acpi/ec.c
 +++ b/drivers/acpi/ec.c
-@@ -384,7 +384,9 @@ static bool acpi_ec_submit_flushable_request(struct acpi_ec *ec)
- static void acpi_ec_submit_query(struct acpi_ec *ec)
- {
- 	if (!test_and_set_bit(EC_FLAGS_QUERY_PENDING, &ec->flags)) {
--		ec_dbg_req("Event started");
-+		ec_dbg_evt("Command(%s) submitted/blocked",
-+			   acpi_ec_cmd_string(ACPI_EC_COMMAND_QUERY));
-+		ec->nr_pending_queries++;
- 		schedule_work(&ec->work);
+@@ -1023,9 +1023,8 @@ static int acpi_ec_query(struct acpi_ec *ec, u8 *data)
+ 			handler = acpi_ec_get_query_handler(handler);
+ 			ec_dbg_evt("Query(0x%02x) scheduled",
+ 				   handler->query_bit);
+-			status = acpi_os_execute((handler->func) ?
+-				OSL_NOTIFY_HANDLER : OSL_GPE_HANDLER,
+-				acpi_ec_run, handler);
++			status = acpi_os_execute(OSL_NOTIFY_HANDLER,
++						 acpi_ec_run, handler);
+ 			if (ACPI_FAILURE(status))
+ 				result = -EBUSY;
+ 			break;
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index db14a66..c354754 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -1159,20 +1159,20 @@ acpi_status acpi_os_execute(acpi_execute_type type,
+ 	if (type == OSL_NOTIFY_HANDLER) {
+ 		queue = kacpi_notify_wq;
+ 		INIT_WORK(&dpc->work, acpi_os_execute_deferred);
++		ret = queue_work(queue, &dpc->work);
+ 	} else {
+ 		queue = kacpid_wq;
+ 		INIT_WORK(&dpc->work, acpi_os_execute_deferred);
++		/*
++		 * On some machines, a software-initiated SMI causes
++		 * corruption unless the SMI runs on CPU 0.  An SMI can be
++		 * initiated by any AML, but typically it's done in
++		 * GPE-related methods that are run via workqueues, so we
++		 * can avoid the known corruption cases by always queueing
++		 * on CPU 0.
++		 */
++		ret = queue_work_on(0, queue, &dpc->work);
  	}
- }
-@@ -393,7 +395,8 @@ static void acpi_ec_complete_query(struct acpi_ec *ec)
- {
- 	if (test_bit(EC_FLAGS_QUERY_PENDING, &ec->flags)) {
- 		clear_bit(EC_FLAGS_QUERY_PENDING, &ec->flags);
--		ec_dbg_req("Event stopped");
-+		ec_dbg_evt("Command(%s) unblocked",
-+			   acpi_ec_cmd_string(ACPI_EC_COMMAND_QUERY));
- 	}
- }
- 
-@@ -460,8 +463,8 @@ static void advance_transaction(struct acpi_ec *ec)
- 				if (t->rlen == t->ri) {
- 					ec_transaction_transition(ec, ACPI_EC_COMMAND_COMPLETE);
- 					if (t->command == ACPI_EC_COMMAND_QUERY)
--						ec_dbg_req("Command(%s) hardware completion",
--							   acpi_ec_cmd_string(t->command));
-+						ec_dbg_evt("Command(%s) completed by hardware",
-+							   acpi_ec_cmd_string(ACPI_EC_COMMAND_QUERY));
- 					wakeup = true;
- 				}
- 			} else
-@@ -479,8 +482,8 @@ static void advance_transaction(struct acpi_ec *ec)
- 			ec_transaction_transition(ec, ACPI_EC_COMMAND_POLL);
- 			t->rdata[t->ri++] = 0x00;
- 			ec_transaction_transition(ec, ACPI_EC_COMMAND_COMPLETE);
--			ec_dbg_req("Command(%s) software completion",
--				   acpi_ec_cmd_string(t->command));
-+			ec_dbg_evt("Command(%s) completed by software",
-+				   acpi_ec_cmd_string(ACPI_EC_COMMAND_QUERY));
- 			wakeup = true;
- 		} else if ((status & ACPI_EC_FLAG_IBF) == 0) {
- 			acpi_ec_write_cmd(ec, t->command);
-@@ -961,11 +964,23 @@ static int acpi_ec_query(struct acpi_ec *ec, u8 *data)
- 	return result;
- }
- 
--static void acpi_ec_gpe_poller(struct work_struct *work)
-+static void acpi_ec_event_handler(struct work_struct *work)
- {
-+	unsigned long flags;
- 	struct acpi_ec *ec = container_of(work, struct acpi_ec, work);
- 
--	acpi_ec_query(ec, NULL);
-+	ec_dbg_evt("Event started");
-+
-+	spin_lock_irqsave(&ec->lock, flags);
-+	while (ec->nr_pending_queries) {
-+		spin_unlock_irqrestore(&ec->lock, flags);
-+		(void)acpi_ec_query(ec, NULL);
-+		spin_lock_irqsave(&ec->lock, flags);
-+		ec->nr_pending_queries--;
-+	}
-+	spin_unlock_irqrestore(&ec->lock, flags);
-+
-+	ec_dbg_evt("Event stopped");
- }
- 
- static u32 acpi_ec_gpe_handler(acpi_handle gpe_device,
-@@ -1040,7 +1055,7 @@ static struct acpi_ec *make_acpi_ec(void)
- 	init_waitqueue_head(&ec->wait);
- 	INIT_LIST_HEAD(&ec->list);
- 	spin_lock_init(&ec->lock);
--	INIT_WORK(&ec->work, acpi_ec_gpe_poller);
-+	INIT_WORK(&ec->work, acpi_ec_event_handler);
- 	ec->timestamp = jiffies;
- 	return ec;
- }
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index cf358d4..ae919b5 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -139,6 +139,7 @@ struct acpi_ec {
- 	spinlock_t lock;
- 	struct work_struct work;
- 	unsigned long timestamp;
-+	unsigned long nr_pending_queries;
- };
- 
- extern struct acpi_ec *first_ec;
+-
+-	/*
+-	 * On some machines, a software-initiated SMI causes corruption unless
+-	 * the SMI runs on CPU 0.  An SMI can be initiated by any AML, but
+-	 * typically it's done in GPE-related methods that are run via
+-	 * workqueues, so we can avoid the known corruption cases by always
+-	 * queueing on CPU 0.
+-	 */
+-	ret = queue_work_on(0, queue, &dpc->work);
+-
+ 	if (!ret) {
+ 		printk(KERN_ERR PREFIX
+ 			  "Call to queue_work() failed.\n");
 -- 
 1.7.10
 
