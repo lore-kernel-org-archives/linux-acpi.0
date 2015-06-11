@@ -1,81 +1,99 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v2 0/5] ACPI / EC: Fix issues related to the event handling.
-Date: Thu, 11 Jun 2015 13:21:14 +0800
-Message-ID: <cover.1433999639.git.lv.zheng@intel.com>
-References: <cover.1433734431.git.lv.zheng@intel.com>
+Subject: [PATCH v2 1/5] ACPI / EC: Cleanup transaction state transition.
+Date: Thu, 11 Jun 2015 13:21:23 +0800
+Message-ID: <c727d05c1f727e2e90df86311eb9dc73e96719cd.1433999639.git.lv.zheng@intel.com>
+References: <cover.1433734431.git.lv.zheng@intel.com> <cover.1433999639.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:35616 "EHLO mga11.intel.com"
+Received: from mga03.intel.com ([134.134.136.65]:9622 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751108AbbFKFVY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 11 Jun 2015 01:21:24 -0400
-In-Reply-To: <cover.1433734431.git.lv.zheng@intel.com>
+	id S1752529AbbFKFVb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 11 Jun 2015 01:21:31 -0400
+In-Reply-To: <cover.1433999639.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-ACPI specification doesn't define the SCI_EVT clearing timing for the EC
-firmware. There could be 4 possible positions the firmware may use to clear
-the SCI_EVT indication:
- STATUS: After indicating SCI_EVT to the host via the status register
-         (EC_SC), the target can clear SCI_EVT at any time.
- QUERY: After seeing the query request (QR_EC) written to the command
-        register (EC_CMD) by the host and having prepared the responding
-        event value in the data register (EC_DATA), the target can safely
-        clear SCI_EVT.
- EVENT: After seeing the event response read from the data register
-        (EC_DATA) by the host, the target can clear SCI_EVT.
- METHOD: After the event has been handled via the host _Qxx evaluation,
-         the target can clear SCI_EVT.
+This patch collects transaction state transition code into one function. We
+then could have a single function to maintain transaction transition
+related behaviors. No functional changes.
 
-The old EC driver re-checked SCI_EVT using the 3rd position, while during
-the race fixes, the new EC driver was switched to re-check SCI_EVT using
-the 1st position. Using the earliest position may help to reduce issues
-when the other races are not fully fixed and there is an ACPI specification
-statement around an expected behavior:
- The query value of zero is reserved for a spurious query result and
- indicates "no outstanding events."
-This statement was the motivation of this choice.
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Tested-by: Gabriele Mazzotta <gabriele.mzt@gmail.com>
+Tested-by: Tigran Gabrielyan <tigrangab@gmail.com>
+Tested-by: Adrien D <ghbdtn@openmailbox.org>
+---
+ drivers/acpi/ec.c |   23 +++++++++++++++--------
+ 1 file changed, 15 insertions(+), 8 deletions(-)
 
-But there are platforms do not follow this definition, since there is also
-a coverity issue left in the new EC driver, the unmatched SCI_EVT clearing
-timing finally was trapped by this coverity issue, and users can see that
-the new EC driver stops processing further SCI_EVTs. The new EC driver then
-implemented EC_FLAGS_QUERY_HANDSHAKE quirk as a workaround for such
-platforms.
-Now more and more reports can be seen for this SCI_EVT clearing timing
-unmatched problem, we need to consider a better approach to fix all of them
-instead of adding new EC_FLAGS_QUERY_HANDSHAKE quirk users.
-
-This patchset thus finally implements 3 of 4 modes to handle the SCI_EVT
-clearing timing variations (1 was proven by 94411 not compliant to the
-Windows behavior). And according to the tests, chooses the next earlier
-position (the 2rd position) as the default behavior.
-
-This patchset also fixes the coverity problem so that even though the
-default behavior still cannot match the Windows behavior, it is possible
-for the new EC driver to proceed to handle further SCI_EVT indications.
-
-Related bug reports are as follows:
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=44161
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=82611
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=94411
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=97381
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=98111
-
-Lv Zheng (5):
-  ACPI / EC: Cleanup transaction state transition.
-  ACPI / EC: Convert event handling work queue into loop style.
-  ACPI / EC: Add event clearing variation support.
-  ACPI / EC: Fix EC_FLAGS_QUERY_HANDSHAKE platforms using new event
-    clearing timing.
-  ACPI / EC: Fix a code coverity issue when QR_EC transactions are
-    failed.
-
- drivers/acpi/ec.c       |  217 +++++++++++++++++++++++++++++++++++++++++------
- drivers/acpi/internal.h |    1 +
- 2 files changed, 191 insertions(+), 27 deletions(-)
-
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index 149b5e7..0ce8b6e8 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -391,7 +391,7 @@ static void acpi_ec_submit_query(struct acpi_ec *ec)
+ 
+ static void acpi_ec_complete_query(struct acpi_ec *ec)
+ {
+-	if (ec->curr->command == ACPI_EC_COMMAND_QUERY) {
++	if (test_bit(EC_FLAGS_QUERY_PENDING, &ec->flags)) {
+ 		clear_bit(EC_FLAGS_QUERY_PENDING, &ec->flags);
+ 		ec_dbg_req("Event stopped");
+ 	}
+@@ -421,6 +421,15 @@ static int ec_transaction_completed(struct acpi_ec *ec)
+ 	return ret;
+ }
+ 
++static inline void ec_transaction_transition(struct acpi_ec *ec, unsigned long flag)
++{
++	ec->curr->flags |= flag;
++	if (ec->curr->command == ACPI_EC_COMMAND_QUERY) {
++		if (flag == ACPI_EC_COMMAND_POLL)
++			acpi_ec_complete_query(ec);
++	}
++}
++
+ static void advance_transaction(struct acpi_ec *ec)
+ {
+ 	struct transaction *t;
+@@ -449,7 +458,7 @@ static void advance_transaction(struct acpi_ec *ec)
+ 			if ((status & ACPI_EC_FLAG_OBF) == 1) {
+ 				t->rdata[t->ri++] = acpi_ec_read_data(ec);
+ 				if (t->rlen == t->ri) {
+-					t->flags |= ACPI_EC_COMMAND_COMPLETE;
++					ec_transaction_transition(ec, ACPI_EC_COMMAND_COMPLETE);
+ 					if (t->command == ACPI_EC_COMMAND_QUERY)
+ 						ec_dbg_req("Command(%s) hardware completion",
+ 							   acpi_ec_cmd_string(t->command));
+@@ -459,7 +468,7 @@ static void advance_transaction(struct acpi_ec *ec)
+ 				goto err;
+ 		} else if (t->wlen == t->wi &&
+ 			   (status & ACPI_EC_FLAG_IBF) == 0) {
+-			t->flags |= ACPI_EC_COMMAND_COMPLETE;
++			ec_transaction_transition(ec, ACPI_EC_COMMAND_COMPLETE);
+ 			wakeup = true;
+ 		}
+ 		goto out;
+@@ -467,17 +476,15 @@ static void advance_transaction(struct acpi_ec *ec)
+ 		if (EC_FLAGS_QUERY_HANDSHAKE &&
+ 		    !(status & ACPI_EC_FLAG_SCI) &&
+ 		    (t->command == ACPI_EC_COMMAND_QUERY)) {
+-			t->flags |= ACPI_EC_COMMAND_POLL;
+-			acpi_ec_complete_query(ec);
++			ec_transaction_transition(ec, ACPI_EC_COMMAND_POLL);
+ 			t->rdata[t->ri++] = 0x00;
+-			t->flags |= ACPI_EC_COMMAND_COMPLETE;
++			ec_transaction_transition(ec, ACPI_EC_COMMAND_COMPLETE);
+ 			ec_dbg_req("Command(%s) software completion",
+ 				   acpi_ec_cmd_string(t->command));
+ 			wakeup = true;
+ 		} else if ((status & ACPI_EC_FLAG_IBF) == 0) {
+ 			acpi_ec_write_cmd(ec, t->command);
+-			t->flags |= ACPI_EC_COMMAND_POLL;
+-			acpi_ec_complete_query(ec);
++			ec_transaction_transition(ec, ACPI_EC_COMMAND_POLL);
+ 		} else
+ 			goto err;
+ 		goto out;
 -- 
 1.7.10
 
