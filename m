@@ -1,85 +1,86 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH v2] acpi-video: Add a parameter to not register the backlight
- sysfs interface
-Date: Thu, 11 Jun 2015 14:13:55 +0200
-Message-ID: <55797B83.7010903@redhat.com>
-References: <1433838745-8857-1-git-send-email-hdegoede@redhat.com> <20150609091042.GA1280@aaronlu.sh.intel.com> <557760A5.9000404@redhat.com> <20150611014315.GA26277@aaronlu.sh.intel.com> <55795F3B.4040506@redhat.com> <87mw065wls.fsf@intel.com>
+Subject: Re: [PATCH 20/32] dell-wmi: Port to new backlight interface selection
+ API
+Date: Thu, 11 Jun 2015 14:19:11 +0200
+Message-ID: <55797CBF.8090301@redhat.com>
+References: <1433941292-21530-1-git-send-email-hdegoede@redhat.com> <1433941292-21530-21-git-send-email-hdegoede@redhat.com> <20150611114330.GC19820@pali>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:42695 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754329AbbFKMN7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 11 Jun 2015 08:13:59 -0400
-In-Reply-To: <87mw065wls.fsf@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <20150611114330.GC19820@pali>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: =?UTF-8?B?UGFsaSBSb2jDoXI=?= <pali.rohar@gmail.com>
+Cc: Darren Hart <dvhart@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Ben Skeggs <bskeggs@redhat.com>, Azael Avalos <coproscefalo@gmail.com>, Corentin Chary <corentin.chary@gmail.com>, Lee Chun-Yi <jlee@suse.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Ike Panhc <ike.pan@canonical.com>, Anisse Astier <anisse@astier.eu>, Mattia Dongili <malattia@linux.it>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, platform-driver-x86@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, acpi4asus-user@lists.sourceforge.net, dri-devel@lists.freedesktop.org, Aaron Lu <aaron.lu@intel.com>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jani Nikula <jani.nikula@linux.intel.com>, Aaron Lu <aaron.lu@intel.com>
-Cc: Sylvain Pasche <sylvain.pasche@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, dri-devel@lists.freedesktop.org, platform-driver-x86@vger.kernel.org, linux-acpi@vger.kernel.org, Ben Skeggs <bskeggs@redhat.com>
 
 Hi,
 
-On 11-06-15 13:10, Jani Nikula wrote:
-> On Thu, 11 Jun 2015, Hans de Goede <hdegoede@redhat.com> wrote:
->> Hi,
+On 11-06-15 13:43, Pali Roh=C3=A1r wrote:
+> On Wednesday 10 June 2015 15:01:20 Hans de Goede wrote:
+>> Port the backlight selection logic to the new backlight interface
+>> selection API.
 >>
->> On 11-06-15 03:43, Aaron Lu wrote:
->>> On Tue, Jun 09, 2015 at 11:54:45PM +0200, Hans de Goede wrote:
->>>> Hi,
->>>>
->>>> On 06/09/2015 11:10 AM, Aaron Lu wrote:
->>>>> On Tue, Jun 09, 2015 at 10:32:25AM +0200, Hans de Goede wrote:
->>>>>> On some systems acpi-video backlight is broken in the sense that it cannot
->>>>>> control the brightness of the backlight, but it must still be called on
->>>>>> resume to power-up the backlight after resume.
->>>>>
->>>>> All the video module does on resume is a backlight set operation, it
->>>>> can't control backlight but can turn on the screen on resume? Hmm...
->>>>>
->>>>> I'll ask Sylvain to attach acpidump, let's see if there is anything
->>>>> special there.
->>>>
->>>> Ok, lets see what comes out of that. Note in the mean time Sylvain has
->>>> attached his acpidump.
->>>
->>> Thanks.
->>> According to the discussion in the bugzilla place, it doesn't seem we
->>> have any other way to handle this at the moment.
->>>
->>> Acked-by: Aaron Lu <aaron.lu@intel.com>
+>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+>> ---
+>>   drivers/platform/x86/dell-wmi.c | 3 ++-
+>>   1 file changed, 2 insertions(+), 1 deletion(-)
 >>
->> Thanks. So that only leaves Jani's remark:
+>> diff --git a/drivers/platform/x86/dell-wmi.c b/drivers/platform/x86/=
+dell-wmi.c
+>> index 6512a06..f2d77fe 100644
+>> --- a/drivers/platform/x86/dell-wmi.c
+>> +++ b/drivers/platform/x86/dell-wmi.c
+>> @@ -35,6 +35,7 @@
+>>   #include <linux/acpi.h>
+>>   #include <linux/string.h>
+>>   #include <linux/dmi.h>
+>> +#include <acpi/video.h>
 >>
->>   > Nitpick, I'd prefer positively named variables, like enable_foo to avoid
->>   > the double negative !disable_foo. enable_foo and !enable_foo read much
->>   > better. But up to Aaron and friends.
+>>   MODULE_AUTHOR("Matthew Garrett <mjg@redhat.com>");
+>>   MODULE_DESCRIPTION("Dell laptop WMI hotkeys driver");
+>> @@ -397,7 +398,7 @@ static int __init dell_wmi_init(void)
+>>   	}
 >>
->> I personally believe that having the option named disable_backlight_sysfs_if
->> is better here since I believe that things which are always enabled except
->> on a few broken model laptops the option name should be disable_foo so
->> that people can clearly see in /proc/cmdline / dmesg that the user is passing
->> an option to disable something which is normally enabled.
+>>   	dmi_walk(find_hk_type, NULL);
+>> -	acpi_video =3D acpi_video_backlight_support();
+>> +	acpi_video =3D acpi_video_get_backlight_type() !=3D acpi_backlight=
+_vendor;
+>>
+>>   	err =3D dell_wmi_input_setup();
+>>   	if (err)
 >
-> Fair enough.
+> Hello,
 >
->>
->> As for the (!disabled) argument, the code in question here actually is:
->>
->> if (disabled)
->> 	return 0;
->>
->> :)
->>
->> Still if people want me to change the option to a default-on
->> enable_backlight_sysfs_if option I can do a v3...
->
-> I'm not insisting.
+> to make sure that nothing will be broken I will try to explain curren=
+t
+> code. Variable acpi_video is global boolean (for this module) and whe=
+n
+> is set to true it is expected that ACPI generate brightness up/down k=
+ey
+> events via ACPI input device. When is acpi_video boolean variable is =
+set
+> to false then ACPI input device should not send brightness up/down ke=
+ys
+> to userspace. And dell-wmi.ko driver send those two keys via dell-wmi
+> input device.
 
-Great, thanks :)
+I know.
 
-So I'm going to assume this v2 patch is ready for merging then, if anyone
-wants me to make any changes please let me know.
+> So please check that your change does not change above behaviour.
+
+I've already checked this.
+
+ > Maybe it would make sense to rename "acpi_video" variable to somethi=
+ng better.
+
+There is another driver which has a similar construction. I believe tha=
+t it
+would be good to add an acpi_video_handles_key_presses() helper to the
+acpi-video code which can be used for this instead of abusing
+acpi_video_get_backlight_type() for this. I've put this on my todo list
+to do as a further cleanup once the initial series is merged.
 
 Regards,
 
