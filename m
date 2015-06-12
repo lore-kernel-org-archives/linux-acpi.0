@@ -1,7 +1,7 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v2 19/32] dell-laptop: Port to new backlight interface selection API
-Date: Fri, 12 Jun 2015 13:23:38 +0200
-Message-ID: <1434108231-12323-20-git-send-email-hdegoede@redhat.com>
+Subject: [PATCH v2 20/32] dell-wmi: Port to new backlight interface selection API
+Date: Fri, 12 Jun 2015 13:23:39 +0200
+Message-ID: <1434108231-12323-21-git-send-email-hdegoede@redhat.com>
 References: <1434108231-12323-1-git-send-email-hdegoede@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
@@ -17,38 +17,33 @@ Port the backlight selection logic to the new backlight interface
 selection API.
 
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-Acked-By: Pali Roh=C3=A1r <pali.rohar@gmail.com>
+Acked-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
 ---
- drivers/platform/x86/dell-laptop.c | 8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ drivers/platform/x86/dell-wmi.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/platform/x86/dell-laptop.c b/drivers/platform/x86/=
-dell-laptop.c
-index d688d80..01d0810 100644
---- a/drivers/platform/x86/dell-laptop.c
-+++ b/drivers/platform/x86/dell-laptop.c
-@@ -31,6 +31,7 @@
- #include <linux/slab.h>
- #include <linux/debugfs.h>
- #include <linux/seq_file.h>
+diff --git a/drivers/platform/x86/dell-wmi.c b/drivers/platform/x86/del=
+l-wmi.c
+index 6512a06..f2d77fe 100644
+--- a/drivers/platform/x86/dell-wmi.c
++++ b/drivers/platform/x86/dell-wmi.c
+@@ -35,6 +35,7 @@
+ #include <linux/acpi.h>
+ #include <linux/string.h>
+ #include <linux/dmi.h>
 +#include <acpi/video.h>
- #include "../../firmware/dcdbas.h"
 =20
- #define BRIGHTNESS_TOKEN 0x7d
-@@ -1920,13 +1921,8 @@ static int __init dell_init(void)
- 		debugfs_create_file("rfkill", 0444, dell_laptop_dir, NULL,
- 				    &dell_debugfs_fops);
+ MODULE_AUTHOR("Matthew Garrett <mjg@redhat.com>");
+ MODULE_DESCRIPTION("Dell laptop WMI hotkeys driver");
+@@ -397,7 +398,7 @@ static int __init dell_wmi_init(void)
+ 	}
 =20
--#ifdef CONFIG_ACPI
--	/* In the event of an ACPI backlight being available, don't
--	 * register the platform controller.
--	 */
--	if (acpi_video_backlight_support())
-+	if (acpi_video_get_backlight_type() !=3D acpi_backlight_vendor)
- 		return 0;
--#endif
+ 	dmi_walk(find_hk_type, NULL);
+-	acpi_video =3D acpi_video_backlight_support();
++	acpi_video =3D acpi_video_get_backlight_type() !=3D acpi_backlight_ve=
+ndor;
 =20
- 	get_buffer();
- 	buffer->input[0] =3D find_token_location(BRIGHTNESS_TOKEN);
+ 	err =3D dell_wmi_input_setup();
+ 	if (err)
 --=20
 2.4.2
