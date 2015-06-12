@@ -1,66 +1,86 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v2 32/32] acpi-video: Make acpi_video_unregister_backlight()
- private
-Date: Fri, 12 Jun 2015 13:23:51 +0200
-Message-ID: <1434108231-12323-33-git-send-email-hdegoede@redhat.com>
-References: <1434108231-12323-1-git-send-email-hdegoede@redhat.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH 2/3] ACPI: add BAD_MADT_GICC_ENTRY() macro
+Date: Fri, 12 Jun 2015 15:52:44 +0100
+Message-ID: <20150612145244.GB27385@red-moon>
+References: <1434051911-14665-1-git-send-email-al.stone@linaro.org>
+ <1434051911-14665-3-git-send-email-al.stone@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <1434108231-12323-1-git-send-email-hdegoede@redhat.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Darren Hart <dvhart@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Hans de Goede <hdegoede@redhat.com>, Ike Panhc <ike.pan@canonical.com>, linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, acpi4asus-user@lists.sourceforge.net, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, dri-devel@lists.freedesktop.org, Azael Avalos <coproscefalo@gmail.com>, Lee Chun-Yi <jlee@suse.com>, Mattia Dongili <malattia@linux.it>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Ben Skeggs <bskeggs@redhat.com>, Corentin Chary <corentin.chary@gmail.com>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, platform-driver-x86@vger.kernel.org, Aaron Lu <aaron.lu@intel.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1434051911-14665-3-git-send-email-al.stone@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "al.stone@linaro.org" <al.stone@linaro.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "patches@linaro.org" <patches@linaro.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-YWNwaV92aWRlb191bnJlZ2lzdGVyX2JhY2tsaWdodCgpIGlzIG5vdyBvbmx5IHVzZWQgYnkgdmlk
-ZW9fZGV0ZWN0LmMKd2hpY2ggaXMgcGFydCBvZiB0aGUgc2FtZSBhY3BpX3ZpZGVvIG1vZHVsZSBh
-cyB2aWRlby5jLCBtYWtlCmFjcGlfdmlkZW9fdW5yZWdpc3Rlcl9iYWNrbGlnaHQoKSBwcml2YXRl
-IHRvIHRoaXMgbW9kdWxlLgoKU2lnbmVkLW9mZi1ieTogSGFucyBkZSBHb2VkZSA8aGRlZ29lZGVA
-cmVkaGF0LmNvbT4KLS0tCiBkcml2ZXJzL2FjcGkvYWNwaV92aWRlby5jICAgfCAxIC0KIGRyaXZl
-cnMvYWNwaS92aWRlb19kZXRlY3QuYyB8IDIgKysKIGluY2x1ZGUvYWNwaS92aWRlby5oICAgICAg
-ICB8IDIgLS0KIDMgZmlsZXMgY2hhbmdlZCwgMiBpbnNlcnRpb25zKCspLCAzIGRlbGV0aW9ucygt
-KQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9hY3BpX3ZpZGVvLmMgYi9kcml2ZXJzL2FjcGkv
-YWNwaV92aWRlby5jCmluZGV4IGZjYzdjMmUuLjc5MDYyZmYgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMv
-YWNwaS9hY3BpX3ZpZGVvLmMKKysrIGIvZHJpdmVycy9hY3BpL2FjcGlfdmlkZW8uYwpAQCAtMTk4
-OCw3ICsxOTg4LDYgQEAgdm9pZCBhY3BpX3ZpZGVvX3VucmVnaXN0ZXJfYmFja2xpZ2h0KHZvaWQp
-CiAJfQogCW11dGV4X3VubG9jaygmcmVnaXN0ZXJfY291bnRfbXV0ZXgpOwogfQotRVhQT1JUX1NZ
-TUJPTChhY3BpX3ZpZGVvX3VucmVnaXN0ZXJfYmFja2xpZ2h0KTsKIAogLyoKICAqIFRoaXMgaXMg
-a2luZCBvZiBuYXN0eS4gSGFyZHdhcmUgdXNpbmcgSW50ZWwgY2hpcHNldHMgbWF5IHJlcXVpcmUK
-ZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS92aWRlb19kZXRlY3QuYyBiL2RyaXZlcnMvYWNwaS92
-aWRlb19kZXRlY3QuYwppbmRleCA3NGQ0YTE2Li5jYWNjOWViNiAxMDA2NDQKLS0tIGEvZHJpdmVy
-cy9hY3BpL3ZpZGVvX2RldGVjdC5jCisrKyBiL2RyaXZlcnMvYWNwaS92aWRlb19kZXRlY3QuYwpA
-QCAtMzcsNiArMzcsOCBAQAogQUNQSV9NT0RVTEVfTkFNRSgidmlkZW8iKTsKICNkZWZpbmUgX0NP
-TVBPTkVOVAkJQUNQSV9WSURFT19DT01QT05FTlQKIAordm9pZCBhY3BpX3ZpZGVvX3VucmVnaXN0
-ZXJfYmFja2xpZ2h0KHZvaWQpOworCiBzdGF0aWMgYm9vbCBiYWNrbGlnaHRfbm90aWZpZXJfcmVn
-aXN0ZXJlZDsKIHN0YXRpYyBzdHJ1Y3Qgbm90aWZpZXJfYmxvY2sgYmFja2xpZ2h0X25iOwogCmRp
-ZmYgLS1naXQgYS9pbmNsdWRlL2FjcGkvdmlkZW8uaCBiL2luY2x1ZGUvYWNwaS92aWRlby5oCmlu
-ZGV4IDQ3YzdhZDYuLmE3ZDdmMTAgMTAwNjQ0Ci0tLSBhL2luY2x1ZGUvYWNwaS92aWRlby5oCisr
-KyBiL2luY2x1ZGUvYWNwaS92aWRlby5oCkBAIC0yNyw3ICsyNyw2IEBAIGVudW0gYWNwaV9iYWNr
-bGlnaHRfdHlwZSB7CiAjaWYgKGRlZmluZWQgQ09ORklHX0FDUElfVklERU8gfHwgZGVmaW5lZCBD
-T05GSUdfQUNQSV9WSURFT19NT0RVTEUpCiBleHRlcm4gaW50IGFjcGlfdmlkZW9fcmVnaXN0ZXIo
-dm9pZCk7CiBleHRlcm4gdm9pZCBhY3BpX3ZpZGVvX3VucmVnaXN0ZXIodm9pZCk7Ci1leHRlcm4g
-dm9pZCBhY3BpX3ZpZGVvX3VucmVnaXN0ZXJfYmFja2xpZ2h0KHZvaWQpOwogZXh0ZXJuIGludCBh
-Y3BpX3ZpZGVvX2dldF9lZGlkKHN0cnVjdCBhY3BpX2RldmljZSAqZGV2aWNlLCBpbnQgdHlwZSwK
-IAkJCSAgICAgICBpbnQgZGV2aWNlX2lkLCB2b2lkICoqZWRpZCk7CiBleHRlcm4gZW51bSBhY3Bp
-X2JhY2tsaWdodF90eXBlIGFjcGlfdmlkZW9fZ2V0X2JhY2tsaWdodF90eXBlKHZvaWQpOwpAQCAt
-MzUsNyArMzQsNiBAQCBleHRlcm4gdm9pZCBhY3BpX3ZpZGVvX3NldF9kbWlfYmFja2xpZ2h0X3R5
-cGUoZW51bSBhY3BpX2JhY2tsaWdodF90eXBlIHR5cGUpOwogI2Vsc2UKIHN0YXRpYyBpbmxpbmUg
-aW50IGFjcGlfdmlkZW9fcmVnaXN0ZXIodm9pZCkgeyByZXR1cm4gMDsgfQogc3RhdGljIGlubGlu
-ZSB2b2lkIGFjcGlfdmlkZW9fdW5yZWdpc3Rlcih2b2lkKSB7IHJldHVybjsgfQotc3RhdGljIGlu
-bGluZSB2b2lkIGFjcGlfdmlkZW9fdW5yZWdpc3Rlcl9iYWNrbGlnaHQodm9pZCkgeyByZXR1cm47
-IH0KIHN0YXRpYyBpbmxpbmUgaW50IGFjcGlfdmlkZW9fZ2V0X2VkaWQoc3RydWN0IGFjcGlfZGV2
-aWNlICpkZXZpY2UsIGludCB0eXBlLAogCQkJCSAgICAgIGludCBkZXZpY2VfaWQsIHZvaWQgKipl
-ZGlkKQogewotLSAKMi40LjIKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNr
-dG9wLm9yZwpodHRwOi8vbGlzdHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJp
-LWRldmVsCg==
+On Thu, Jun 11, 2015 at 08:45:10PM +0100, al.stone@linaro.org wrote:
+> From: Al Stone <al.stone@linaro.org>
+> 
+> The BAD_MADT_ENTRY() macro is designed to work for all of the subtables
+> of the MADT.  In the ACPI 5.1 version of the spec, the struct for the
+> GICC subtable (struct acpi_madt_generic_interrupt) is 76 bytes long; in
+> ACPI 6.0, the struct is 80 bytes long.  But, there is only one definition
+> in ACPICA for this struct -- and that is the 6.0 version.  Hence, when
+> BAD_MADT_ENTRY() compares the struct size to the length in the GICC
+> subtable, it fails if 5.1 structs are in use, and there are systems in
+> the wild that have them.
+> 
+> This patch adds the BAD_MADT_GICC_ENTRY() that checks the GICC subtable
+> only, accounting for the difference in specification versions that are
+> possible.  The BAD_MADT_ENTRY() will continue to work as is for all other
+> MADT subtables.
+
+Unfortunately that's nothing new, it seems. ia64 put in place a quite
+nifty solution to that (I *guess* owing to ACPI 3.0 updates to Local
+sapic specs), have a look at:
+
+arch/ia64/kernel/acpi.c acpi_parse_lsacpi()
+
+/*Skip BAD_MADT_ENTRY check, as lsapic size could vary */
+
+We remove the check, job done ;-)
+
+> Signed-off-by: Al Stone <al.stone@linaro.org>
+> Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Reviewed-by: Graeme Gregory <graeme.gregory@linaro.org>
+> 
+> CC: Rafael J. Wysocki <rjw@rjwysocki.net>
+> CC: Len Brown <lenb@kernel.org>
+> 
+> ---
+>  include/linux/acpi.h | 7 +++++++
+>  1 file changed, 7 insertions(+)
+> 
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 33ed313..8a83f91 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -127,6 +127,13 @@ static inline void acpi_initrd_override(void *data, size_t size)
+>  		(!entry) || (unsigned long)entry + sizeof(*entry) > end ||  \
+>  		((struct acpi_subtable_header *)entry)->length < sizeof(*entry))
+>  
+> +#define BAD_MADT_GICC_ENTRY(entry, end) (				    \
+> +		(!entry) || (unsigned long)entry + sizeof(*entry) > end ||  \
+> +		((ACPI_FADT_SPEC_VERSION == ACPI_SPEC_VERSION(5,1)) &&	    \
+> +		 (entry->header.length != 76))				||  \
+> +		((ACPI_FADT_SPEC_VERSION == ACPI_SPEC_VERSION(6,0)) &&	    \
+> +		 (entry->header.length != 80)))
+
+I would make those length magic numbers ACPICA defines at least.
+
+It is not a GICC only issue, that's true for all MADT subtables that change
+size with versions so, maybe we can replace the sizeof(*entry) in
+BAD_MADT_ENTRY with a macro compound statement returning the subtable
+length (where you can add a switch case on entry->type and return
+sizeof(*entry) in the default case) ?
+
+Overkill ? Certainly ugly, but at least you do not need to patch anything
+else.
+
+I am inclined to relegate these checks to ACPICA tools (statically)
+altogether.
+
+It is better to check Len and Rafael opinion on this first before coding it.
+
+Lorenzo
