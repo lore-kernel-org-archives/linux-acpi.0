@@ -1,29 +1,65 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v2] ACPICA: Add values for MADT GIC version field for
- ACPI 6.0
-Date: Fri, 12 Jun 2015 10:09:23 +0800
-Message-ID: <557A3F53.8000008@linaro.org>
-References: <1434016264-4801-1-git-send-email-hanjun.guo@linaro.org> <94F2FBAB4432B54E8AACC7DFDE6C92E37D2F35A5@ORSMSX112.amr.corp.intel.com>
+From: Sumit Saxena <sumit.saxena@avagotech.com>
+Subject: RE: [V6 PATCH 6/7] megaraid_sas: fix TRUE and FALSE re-define build error
+Date: Fri, 12 Jun 2015 13:45:45 +0530
+Message-ID: <dc59149b1904c1164abfcc567741c4e6@mail.gmail.com>
+References: <1433952538-22455-1-git-send-email-Suravee.Suthikulpanit@amd.com> <1433952538-22455-7-git-send-email-Suravee.Suthikulpanit@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f169.google.com ([209.85.192.169]:33441 "EHLO
-	mail-pd0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750710AbbFLCJa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 11 Jun 2015 22:09:30 -0400
-Received: by pdjn11 with SMTP id n11so14197359pdj.0
-        for <linux-acpi@vger.kernel.org>; Thu, 11 Jun 2015 19:09:30 -0700 (PDT)
-In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37D2F35A5@ORSMSX112.amr.corp.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1433952538-22455-7-git-send-email-Suravee.Suthikulpanit@amd.com>
+Sender: netdev-owner@vger.kernel.org
+To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, thomas.lendacky@amd.com, herbert@gondor.apana.org.au, davem@davemloft.net, arnd@arndb.de, Kashyap Desai <kashyap.desai@avagotech.com>, Uday Lingala <uday.lingala@avagotech.com>, vinholikatti@gmail.com
+Cc: msalter@redhat.com, hanjun.guo@linaro.org, al.stone@linaro.org, grant.likely@linaro.org, leo.duran@amd.com, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, netdev@vger.kernel.org, linux-crypto@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On 06/12/2015 01:28 AM, Moore, Robert wrote:
-> It will make it into next weeks acpica release.
+>-----Original Message-----
+>From: Suravee Suthikulpanit [mailto:Suravee.Suthikulpanit@amd.com]
+>Sent: Wednesday, June 10, 2015 9:39 PM
+>To: rjw@rjwysocki.net; lenb@kernel.org; catalin.marinas@arm.com;
+>will.deacon@arm.com; thomas.lendacky@amd.com;
+>herbert@gondor.apana.org.au; davem@davemloft.net; arnd@arndb.de;
+>kashyap.desai@avagotech.com; sumit.saxena@avagotech.com;
+>uday.lingala@avagotech.com; vinholikatti@gmail.com
+>Cc: msalter@redhat.com; hanjun.guo@linaro.org; al.stone@linaro.org;
+>grant.likely@linaro.org; leo.duran@amd.com; linux-arm-
+>kernel@lists.infradead.org; linux-acpi@vger.kernel.org; linux-
+>kernel@vger.kernel.org; linaro-acpi@lists.linaro.org;
+netdev@vger.kernel.org;
+>linux-crypto@vger.kernel.org; Suravee Suthikulpanit
+>Subject: [V6 PATCH 6/7] megaraid_sas: fix TRUE and FALSE re-define build
+>error
+>
+>Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+>Cc: Kashyap Desai <kashyap.desai@avagotech.com>
+>Cc: Sumit Saxena <sumit.saxena@avagotech.com>
+>Cc: Uday Lingala <uday.lingala@avagotech.com>
+>---
+> drivers/scsi/megaraid/megaraid_sas_fp.c | 8 ++++++++
+> 1 file changed, 8 insertions(+)
+>
+>diff --git a/drivers/scsi/megaraid/megaraid_sas_fp.c
+>b/drivers/scsi/megaraid/megaraid_sas_fp.c
+>index 4f72287..e8b7a69 100644
+>--- a/drivers/scsi/megaraid/megaraid_sas_fp.c
+>+++ b/drivers/scsi/megaraid/megaraid_sas_fp.c
+>@@ -66,7 +66,15 @@ MODULE_PARM_DESC(lb_pending_cmds, "Change
+>raid-1 load balancing outstanding "
+>
+> #define ABS_DIFF(a, b)   (((a) > (b)) ? ((a) - (b)) : ((b) - (a)))
+> #define MR_LD_STATE_OPTIMAL 3
+>+
+>+#ifdef FALSE
+>+#undef FALSE
+>+#endif
+> #define FALSE 0
+>+
+>+#ifdef TRUE
+>+#undef TRUE
+>+#endif
+> #define TRUE 1
+>
+> #define SPAN_DEBUG 0
+Acked-by: Sumit Saxena <sumit.saxena@avagotech.com>
 
-Thanks!
-
-Regards
-Hanjun
+>--
+>2.1.0
