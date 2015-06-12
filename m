@@ -1,79 +1,51 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v2 13/32] acpi-video: Fix acpi_video _register vs
- _unregister_backlight race
-Date: Fri, 12 Jun 2015 13:23:32 +0200
-Message-ID: <1434108231-12323-14-git-send-email-hdegoede@redhat.com>
+Subject: [PATCH v2 14/32] acer-wmi: Port to new backlight interface selection API
+Date: Fri, 12 Jun 2015 13:23:33 +0200
+Message-ID: <1434108231-12323-15-git-send-email-hdegoede@redhat.com>
 References: <1434108231-12323-1-git-send-email-hdegoede@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
 In-Reply-To: <1434108231-12323-1-git-send-email-hdegoede@redhat.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+Sender: platform-driver-x86-owner@vger.kernel.org
 To: Darren Hart <dvhart@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Hans de Goede <hdegoede@redhat.com>, Ike Panhc <ike.pan@canonical.com>, linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, acpi4asus-user@lists.sourceforge.net, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, dri-devel@lists.freedesktop.org, Azael Avalos <coproscefalo@gmail.com>, Lee Chun-Yi <jlee@suse.com>, Mattia Dongili <malattia@linux.it>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Ben Skeggs <bskeggs@redhat.com>, Corentin Chary <corentin.chary@gmail.com>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, platform-driver-x86@vger.kernel.org, Aaron Lu <aaron.lu@intel.com>
+Cc: Ben Skeggs <bskeggs@redhat.com>, Azael Avalos <coproscefalo@gmail.com>, Corentin Chary <corentin.chary@gmail.com>, Lee Chun-Yi <jlee@suse.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, Ike Panhc <ike.pan@canonical.com>, Anisse Astier <anisse@astier.eu>, Mattia Dongili <malattia@linux.it>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, platform-driver-x86@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, acpi4asus-user@lists.sourceforge.net, dri-devel@lists.freedesktop.org, Aaron Lu <aaron.lu@intel.com>, linux-acpi@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-SXQgaXMgcG9zc2libGUgZm9yIGEgbmF0aXZlIGJhY2tsaWdodCBkcml2ZXIgdG8gbG9hZCB3aGls
-ZQphY3BpX3ZpZGVvX3JlZ2lzdGVyIGlzIHJ1bm5pbmcsIHdoaWNoIG1heSBsZWFkIHRvCmFjcGlf
-dmlkZW9fdW5yZWdpc3Rlcl9iYWNrbGlnaHQgYmVpbmcgY2FsbGVkIHdoaWxlIGFjcGlfdmlkZW9f
-cmVnaXN0ZXIKaXMgcnVubmluZyBhbmQgdGhlIDIgcmFjaW5nIGFnYWluc3QgZWFjaG90aGVyLgoK
-VGhlIHJlZ2lzdGVyX2NvdW50IHZhcmlhYmxlIHByb3RlY3RzIGFnYWluc3QgdGhpcywgYnV0IG5v
-dCBpbiBhIHRocmVhZApzYWZlIG1hbm5lciwgdGhpcyBjb21taXQgYWRkcyBsb2NraW5nIHRvIG1h
-a2UgdGhpcyB0aHJlYWQgc2FmZS4KClNpZ25lZC1vZmYtYnk6IEhhbnMgZGUgR29lZGUgPGhkZWdv
-ZWRlQHJlZGhhdC5jb20+Ci0tLQogZHJpdmVycy9hY3BpL2FjcGlfdmlkZW8uYyB8IDQzICsrKysr
-KysrKysrKysrKysrKysrKy0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KIDEgZmlsZSBjaGFuZ2VkLCAy
-MSBpbnNlcnRpb25zKCspLCAyMiBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL2Fj
-cGkvYWNwaV92aWRlby5jIGIvZHJpdmVycy9hY3BpL2FjcGlfdmlkZW8uYwppbmRleCBiODA1M2E4
-Li5mY2M3YzJlIDEwMDY0NAotLS0gYS9kcml2ZXJzL2FjcGkvYWNwaV92aWRlby5jCisrKyBiL2Ry
-aXZlcnMvYWNwaS9hY3BpX3ZpZGVvLmMKQEAgLTc5LDYgKzc5LDcgQEAgc3RhdGljIGJvb2wgYWxs
-b3dfZHVwbGljYXRlczsKIG1vZHVsZV9wYXJhbShhbGxvd19kdXBsaWNhdGVzLCBib29sLCAwNjQ0
-KTsKIAogc3RhdGljIGludCByZWdpc3Rlcl9jb3VudDsKK3N0YXRpYyBERUZJTkVfTVVURVgocmVn
-aXN0ZXJfY291bnRfbXV0ZXgpOwogc3RhdGljIHN0cnVjdCBtdXRleCB2aWRlb19saXN0X2xvY2s7
-CiBzdGF0aWMgc3RydWN0IGxpc3RfaGVhZCB2aWRlb19idXNfaGVhZDsKIHN0YXRpYyBpbnQgYWNw
-aV92aWRlb19idXNfYWRkKHN0cnVjdCBhY3BpX2RldmljZSAqZGV2aWNlKTsKQEAgLTE5MzEsMTQg
-KzE5MzIsMTUgQEAgc3RhdGljIGludCBfX2luaXQgaW50ZWxfb3ByZWdpb25fcHJlc2VudCh2b2lk
-KQogCiBpbnQgYWNwaV92aWRlb19yZWdpc3Rlcih2b2lkKQogewotCWludCByZXQ7CisJaW50IHJl
-dCA9IDA7CiAKKwltdXRleF9sb2NrKCZyZWdpc3Rlcl9jb3VudF9tdXRleCk7CiAJaWYgKHJlZ2lz
-dGVyX2NvdW50KSB7CiAJCS8qCiAJCSAqIGlmIHRoZSBmdW5jdGlvbiBvZiBhY3BpX3ZpZGVvX3Jl
-Z2lzdGVyIGlzIGFscmVhZHkgY2FsbGVkLAogCQkgKiBkb24ndCByZWdpc3RlciB0aGUgYWNwaV92
-aWRlX2J1cyBhZ2FpbiBhbmQgcmV0dXJuIG5vIGVycm9yLgogCQkgKi8KLQkJcmV0dXJuIDA7CisJ
-CWdvdG8gbGVhdmU7CiAJfQogCiAJbXV0ZXhfaW5pdCgmdmlkZW9fbGlzdF9sb2NrKTsKQEAgLTE5
-NDgsNyArMTk1MCw3IEBAIGludCBhY3BpX3ZpZGVvX3JlZ2lzdGVyKHZvaWQpCiAKIAlyZXQgPSBh
-Y3BpX2J1c19yZWdpc3Rlcl9kcml2ZXIoJmFjcGlfdmlkZW9fYnVzKTsKIAlpZiAocmV0KQotCQly
-ZXR1cm4gcmV0OworCQlnb3RvIGxlYXZlOwogCiAJLyoKIAkgKiBXaGVuIHRoZSBhY3BpX3ZpZGVv
-X2J1cyBpcyBsb2FkZWQgc3VjY2Vzc2Z1bGx5LCBpbmNyZWFzZQpAQCAtMTk1NiwyNCArMTk1OCwy
-MCBAQCBpbnQgYWNwaV92aWRlb19yZWdpc3Rlcih2b2lkKQogCSAqLwogCXJlZ2lzdGVyX2NvdW50
-ID0gMTsKIAotCXJldHVybiAwOworbGVhdmU6CisJbXV0ZXhfdW5sb2NrKCZyZWdpc3Rlcl9jb3Vu
-dF9tdXRleCk7CisJcmV0dXJuIHJldDsKIH0KIEVYUE9SVF9TWU1CT0woYWNwaV92aWRlb19yZWdp
-c3Rlcik7CiAKIHZvaWQgYWNwaV92aWRlb191bnJlZ2lzdGVyKHZvaWQpCiB7Ci0JaWYgKCFyZWdp
-c3Rlcl9jb3VudCkgewotCQkvKgotCQkgKiBJZiB0aGUgYWNwaSB2aWRlbyBidXMgaXMgYWxyZWFk
-eSB1bmxvYWRlZCwgZG9uJ3QKLQkJICogdW5sb2FkIGl0IGFnYWluIGFuZCByZXR1cm4gZGlyZWN0
-bHkuCi0JCSAqLwotCQlyZXR1cm47CisJbXV0ZXhfbG9jaygmcmVnaXN0ZXJfY291bnRfbXV0ZXgp
-OworCWlmIChyZWdpc3Rlcl9jb3VudCkgeworCQlhY3BpX2J1c191bnJlZ2lzdGVyX2RyaXZlcigm
-YWNwaV92aWRlb19idXMpOworCQlyZWdpc3Rlcl9jb3VudCA9IDA7CiAJfQotCWFjcGlfYnVzX3Vu
-cmVnaXN0ZXJfZHJpdmVyKCZhY3BpX3ZpZGVvX2J1cyk7Ci0KLQlyZWdpc3Rlcl9jb3VudCA9IDA7
-Ci0KLQlyZXR1cm47CisJbXV0ZXhfdW5sb2NrKCZyZWdpc3Rlcl9jb3VudF9tdXRleCk7CiB9CiBF
-WFBPUlRfU1lNQk9MKGFjcGlfdmlkZW9fdW5yZWdpc3Rlcik7CiAKQEAgLTE5ODEsMTMgKzE5Nzks
-MTQgQEAgdm9pZCBhY3BpX3ZpZGVvX3VucmVnaXN0ZXJfYmFja2xpZ2h0KHZvaWQpCiB7CiAJc3Ry
-dWN0IGFjcGlfdmlkZW9fYnVzICp2aWRlbzsKIAotCWlmICghcmVnaXN0ZXJfY291bnQpCi0JCXJl
-dHVybjsKLQotCW11dGV4X2xvY2soJnZpZGVvX2xpc3RfbG9jayk7Ci0JbGlzdF9mb3JfZWFjaF9l
-bnRyeSh2aWRlbywgJnZpZGVvX2J1c19oZWFkLCBlbnRyeSkKLQkJYWNwaV92aWRlb19idXNfdW5y
-ZWdpc3Rlcl9iYWNrbGlnaHQodmlkZW8pOwotCW11dGV4X3VubG9jaygmdmlkZW9fbGlzdF9sb2Nr
-KTsKKwltdXRleF9sb2NrKCZyZWdpc3Rlcl9jb3VudF9tdXRleCk7CisJaWYgKHJlZ2lzdGVyX2Nv
-dW50KSB7CisJCW11dGV4X2xvY2soJnZpZGVvX2xpc3RfbG9jayk7CisJCWxpc3RfZm9yX2VhY2hf
-ZW50cnkodmlkZW8sICZ2aWRlb19idXNfaGVhZCwgZW50cnkpCisJCQlhY3BpX3ZpZGVvX2J1c191
-bnJlZ2lzdGVyX2JhY2tsaWdodCh2aWRlbyk7CisJCW11dGV4X3VubG9jaygmdmlkZW9fbGlzdF9s
-b2NrKTsKKwl9CisJbXV0ZXhfdW5sb2NrKCZyZWdpc3Rlcl9jb3VudF9tdXRleCk7CiB9CiBFWFBP
-UlRfU1lNQk9MKGFjcGlfdmlkZW9fdW5yZWdpc3Rlcl9iYWNrbGlnaHQpOwogCi0tIAoyLjQuMgoK
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
-IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHA6Ly9saXN0
-cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
+Port the backlight selection logic to the new backlight interface
+selection API.
+
+This commit also removes various obsolete pr_xxx messages related to
+backlight interface selection. These are obsolete because they assume
+there is only a vendor or acpi backlight driver and no other choice.
+Also they are not necessary, if the user wants to know which backlight
+interfaces are registered a simple "ls /sys/class/backlight" suffices.
+
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Reviewed-by: Lee, Chun-Yi <jlee@suse.com>
+---
+ drivers/platform/x86/acer-wmi.c | 10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/platform/x86/acer-wmi.c b/drivers/platform/x86/acer-wmi.c
+index 3ac29a1..f6b280d 100644
+--- a/drivers/platform/x86/acer-wmi.c
++++ b/drivers/platform/x86/acer-wmi.c
+@@ -2246,14 +2246,10 @@ static int __init acer_wmi_init(void)
+ 	set_quirks();
+ 
+ 	if (dmi_check_system(video_vendor_dmi_table))
+-		acpi_video_dmi_promote_vendor();
+-	if (acpi_video_backlight_support()) {
++		acpi_video_set_dmi_backlight_type(acpi_backlight_vendor);
++
++	if (acpi_video_get_backlight_type() != acpi_backlight_vendor)
+ 		interface->capability &= ~ACER_CAP_BRIGHTNESS;
+-		pr_info("Brightness must be controlled by acpi video driver\n");
+-	} else {
+-		pr_info("Disabling ACPI video driver\n");
+-		acpi_video_unregister_backlight();
+-	}
+ 
+ 	if (wmi_has_guid(WMID_GUID3)) {
+ 		if (ec_raw_mode) {
+-- 
+2.4.2
