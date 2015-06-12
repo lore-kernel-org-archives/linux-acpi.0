@@ -1,7 +1,7 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v2 28/32] sony-laptop: Port to new backlight interface selection API
-Date: Fri, 12 Jun 2015 13:23:47 +0200
-Message-ID: <1434108231-12323-29-git-send-email-hdegoede@redhat.com>
+Subject: [PATCH v2 26/32] msi-wmi: Port to new backlight interface selection API
+Date: Fri, 12 Jun 2015 13:23:45 +0200
+Message-ID: <1434108231-12323-27-git-send-email-hdegoede@redhat.com>
 References: <1434108231-12323-1-git-send-email-hdegoede@redhat.com>
 Return-path: <platform-driver-x86-owner@vger.kernel.org>
 In-Reply-To: <1434108231-12323-1-git-send-email-hdegoede@redhat.com>
@@ -13,43 +13,32 @@ List-Id: linux-acpi@vger.kernel.org
 Port the backlight selection logic to the new backlight interface
 selection API.
 
-This commit also removes various obsolete pr_xxx messages related to
-backlight interface selection. These are obsolete because they assume
-there is only a vendor or acpi backlight driver and no other choice.
-Also they are not necessary, if the user wants to know which backlight
-interfaces are registered a simple "ls /sys/class/backlight" suffices.
-
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-Acked-by: Mattia Dongili <malattia@linux.it>
 ---
- drivers/platform/x86/sony-laptop.c | 7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ drivers/platform/x86/msi-wmi.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/platform/x86/sony-laptop.c b/drivers/platform/x86/sony-laptop.c
-index e51c1e7..aeb80d1 100644
---- a/drivers/platform/x86/sony-laptop.c
-+++ b/drivers/platform/x86/sony-laptop.c
-@@ -69,6 +69,7 @@
- #include <linux/miscdevice.h>
- #endif
- #include <asm/uaccess.h>
+diff --git a/drivers/platform/x86/msi-wmi.c b/drivers/platform/x86/msi-wmi.c
+index 6d2bac0..978e6d6 100644
+--- a/drivers/platform/x86/msi-wmi.c
++++ b/drivers/platform/x86/msi-wmi.c
+@@ -29,6 +29,7 @@
+ #include <linux/backlight.h>
+ #include <linux/slab.h>
+ #include <linux/module.h>
 +#include <acpi/video.h>
  
- #define dprintk(fmt, ...)			\
- do {						\
-@@ -3198,12 +3199,8 @@ static int sony_nc_add(struct acpi_device *device)
- 			sony_nc_function_setup(device, sony_pf_device);
+ MODULE_AUTHOR("Thomas Renninger <trenn@suse.de>");
+ MODULE_DESCRIPTION("MSI laptop WMI hotkeys driver");
+@@ -320,7 +321,8 @@ static int __init msi_wmi_init(void)
+ 		break;
  	}
  
--	/* setup input devices and helper fifo */
--	if (acpi_video_backlight_support()) {
--		pr_info("brightness ignored, must be controlled by ACPI video driver\n");
--	} else {
-+	if (acpi_video_get_backlight_type() == acpi_backlight_vendor)
- 		sony_nc_backlight_setup();
--	}
- 
- 	/* create sony_pf sysfs attributes related to the SNC device */
- 	for (item = sony_nc_values; item->name; ++item) {
+-	if (wmi_has_guid(MSIWMI_BIOS_GUID) && !acpi_video_backlight_support()) {
++	if (wmi_has_guid(MSIWMI_BIOS_GUID) &&
++	    acpi_video_get_backlight_type() == acpi_backlight_vendor) {
+ 		err = msi_wmi_backlight_setup();
+ 		if (err) {
+ 			pr_err("Unable to setup backlight device\n");
 -- 
 2.4.2
