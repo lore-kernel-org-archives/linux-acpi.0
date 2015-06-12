@@ -1,35 +1,55 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v2 00/32] acpi-video: Rewrite backlight interface selection logic
-Date: Fri, 12 Jun 2015 13:23:19 +0200
-Message-ID: <1434108231-12323-1-git-send-email-hdegoede@redhat.com>
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Darren Hart <dvhart@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Ben Skeggs <bskeggs@redhat.com>, Azael Avalos <coproscefalo@gmail.com>, Corentin Chary <corentin.chary@gmail.com>, Lee Chun-Yi <jlee@suse.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, Ike Panhc <ike.pan@canonical.com>, Anisse Astier <anisse@astier.eu>, Mattia Dongili <malattia@linux.it>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, platform-driver-x86@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, acpi4asus-user@lists.sourceforge.net, dri-devel@lists.freedesktop.org, Aaron Lu <aaron.lu@intel.com>, linux-acpi@vger.kernel.org
+Subject: [PATCH v2 01/32] apple-gmux: Stop using acpi_video_dmi_demote_vendor()
+Date: Fri, 12 Jun 2015 13:23:20 +0200
+Message-ID: <1434108231-12323-2-git-send-email-hdegoede@redhat.com>
+References: <1434108231-12323-1-git-send-email-hdegoede@redhat.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:57538 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752606AbbFLLYC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 12 Jun 2015 07:24:02 -0400
+In-Reply-To: <1434108231-12323-1-git-send-email-hdegoede@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Darren Hart <dvhart@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Ben Skeggs <bskeggs@redhat.com>, Azael Avalos <coproscefalo@gmail.com>, Corentin Chary <corentin.chary@gmail.com>, Lee Chun-Yi <jlee@suse.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, Ike Panhc <ike.pan@canonical.com>, Anisse Astier <anisse@astier.eu>, Mattia Dongili <malattia@linux.it>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, platform-driver-x86@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, acpi4asus-user@lists.sourceforge.net, dri-devel@lists.freedesktop.org, Aaron Lu <aaron.lu@intel.com>, linux-acpi@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
 
-Hi All,
+acpi_video_dmi_demote_vendor() is going away as part of the cleanup of
+the code for determinging which backlight class driver(s) to register.
 
-Here is v2 of my rewrite / cleanup of the acpi-video (and platform/x86)
-backlight interface selection logic.
+The call to acpi_video_dmi_demote_vendor() was meant to undo the call to
+acpi_video_dmi_promote_vendor() when the gmux device is removed, this is
+questionable though since the promote call sets a flag, not a counter, so
+the demote call may undo a promoto done elsewhere. Moreover in practice
+this is a nop since the gmux device is never removed, and the flag is only
+checked when acpi/video.ko gets loaded, so even if the user manually
+removes apple-gmux the demote call is still a nop as video.ko will already
+have loaded by this time.
 
-The major change in v2 of this set are 2 changes to the patch titled
-"acpi-video-detect: video: Make video_detect code part of the video module":
+Also note that none of the other users of acpi_video_dmi_promote_vendor()
+use acpi_video_dmi_demote_vendor().
 
-1) The __setup call for the acpi_backlight= handling is moved to
-   acpi/util.c as __setup may only be used by code which is always builtin
-2) video.c is renamed to acpi_video.c so that it can be combined with
-   video_detect.c into video.ko
+If we ever encounter a system with a gmux where the acpi-video interface
+should be used, then the proper fix would be to dmi-blacklist the gmux
+driver on that system.
 
-These 2 changes result in the backlight kernel commandline options after this
-patch-set being 100% compatible with the old options, with the exception of
-the removal of the video.use_native_backlight option as that now is folded
-into acpi_backlight=[video|vendor|native|none] rather then having 2 options
-which influence each other in interesting ways.
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/platform/x86/apple-gmux.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-Besides that there is a small change to the dell-laptop port to the new API
-removing an unnecessary #ifdef ACPI.
+diff --git a/drivers/platform/x86/apple-gmux.c b/drivers/platform/x86/apple-gmux.c
+index 45032ce..a7f6412 100644
+--- a/drivers/platform/x86/apple-gmux.c
++++ b/drivers/platform/x86/apple-gmux.c
+@@ -645,7 +645,6 @@ static void gmux_remove(struct pnp_dev *pnp)
+ 	apple_gmux_data = NULL;
+ 	kfree(gmux_data);
+ 
+-	acpi_video_dmi_demote_vendor();
+ 	acpi_video_register();
+ 	apple_bl_register();
+ }
+-- 
+2.4.2
 
-Regards,
-
-Hans
