@@ -1,7 +1,7 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v2 17/32] asus-wmi: Port to new backlight interface selection API
-Date: Fri, 12 Jun 2015 13:23:36 +0200
-Message-ID: <1434108231-12323-18-git-send-email-hdegoede@redhat.com>
+Subject: [PATCH v2 18/32] compal-laptop: Port to new backlight interface selection API
+Date: Fri, 12 Jun 2015 13:23:37 +0200
+Message-ID: <1434108231-12323-19-git-send-email-hdegoede@redhat.com>
 References: <1434108231-12323-1-git-send-email-hdegoede@redhat.com>
 Return-path: <platform-driver-x86-owner@vger.kernel.org>
 In-Reply-To: <1434108231-12323-1-git-send-email-hdegoede@redhat.com>
@@ -13,53 +13,32 @@ List-Id: linux-acpi@vger.kernel.org
 Port the backlight selection logic to the new backlight interface
 selection API.
 
-This commit also removes various obsolete pr_xxx messages related to
-backlight interface selection. These are obsolete because they assume
-there is only a vendor or acpi backlight driver and no other choice.
-Also they are not necessary, if the user wants to know which backlight
-interfaces are registered a simple "ls /sys/class/backlight" suffices.
-
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/platform/x86/asus-wmi.c | 15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
+ drivers/platform/x86/compal-laptop.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/platform/x86/asus-wmi.c b/drivers/platform/x86/asus-wmi.c
-index 945145d..6f8558f 100644
---- a/drivers/platform/x86/asus-wmi.c
-+++ b/drivers/platform/x86/asus-wmi.c
-@@ -1364,7 +1364,7 @@ static void asus_wmi_notify(u32 value, void *context)
- 		code = ASUS_WMI_BRN_DOWN;
+diff --git a/drivers/platform/x86/compal-laptop.c b/drivers/platform/x86/compal-laptop.c
+index b4e9447..f2706d2 100644
+--- a/drivers/platform/x86/compal-laptop.c
++++ b/drivers/platform/x86/compal-laptop.c
+@@ -82,7 +82,7 @@
+ #include <linux/hwmon-sysfs.h>
+ #include <linux/power_supply.h>
+ #include <linux/fb.h>
+-
++#include <acpi/video.h>
  
- 	if (code == ASUS_WMI_BRN_DOWN || code == ASUS_WMI_BRN_UP) {
--		if (!acpi_video_backlight_support()) {
-+		if (acpi_video_get_backlight_type() == acpi_backlight_vendor) {
- 			asus_wmi_backlight_notify(asus, orig_code);
- 			goto exit;
- 		}
-@@ -1772,17 +1772,16 @@ static int asus_wmi_add(struct platform_device *pdev)
- 	   stop this from showing up */
- 	chassis_type = dmi_get_system_info(DMI_CHASSIS_TYPE);
- 	if (chassis_type && !strcmp(chassis_type, "3"))
--		acpi_video_dmi_promote_vendor();
-+		acpi_video_set_dmi_backlight_type(acpi_backlight_vendor);
-+
- 	if (asus->driver->quirks->wmi_backlight_power)
--		acpi_video_dmi_promote_vendor();
+ /* ======= */
+ /* Defines */
+@@ -959,7 +959,7 @@ static int __init compal_init(void)
+ 		return -ENODEV;
+ 	}
+ 
 -	if (!acpi_video_backlight_support()) {
--		pr_info("Disabling ACPI video driver\n");
--		acpi_video_unregister_backlight();
-+		acpi_video_set_dmi_backlight_type(acpi_backlight_vendor);
-+
 +	if (acpi_video_get_backlight_type() == acpi_backlight_vendor) {
- 		err = asus_wmi_backlight_init(asus);
- 		if (err && err != -ENODEV)
- 			goto fail_backlight;
--	} else
--		pr_info("Backlight controlled by ACPI video driver\n");
-+	}
- 
- 	status = wmi_install_notify_handler(asus->driver->event_guid,
- 					    asus_wmi_notify, asus);
+ 		struct backlight_properties props;
+ 		memset(&props, 0, sizeof(struct backlight_properties));
+ 		props.type = BACKLIGHT_PLATFORM;
 -- 
 2.4.2
