@@ -1,7 +1,7 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v2 23/32] ideapad-laptop: Port to new backlight interface selection API
-Date: Fri, 12 Jun 2015 13:23:42 +0200
-Message-ID: <1434108231-12323-24-git-send-email-hdegoede@redhat.com>
+Subject: [PATCH v2 24/32] intel-oaktrail: Port to new backlight interface selection API
+Date: Fri, 12 Jun 2015 13:23:43 +0200
+Message-ID: <1434108231-12323-25-git-send-email-hdegoede@redhat.com>
 References: <1434108231-12323-1-git-send-email-hdegoede@redhat.com>
 Return-path: <platform-driver-x86-owner@vger.kernel.org>
 In-Reply-To: <1434108231-12323-1-git-send-email-hdegoede@redhat.com>
@@ -13,31 +13,44 @@ List-Id: linux-acpi@vger.kernel.org
 Port the backlight selection logic to the new backlight interface
 selection API.
 
+This commit also removes various obsolete pr_xxx messages related to
+backlight interface selection. These are obsolete because they assume
+there is only a vendor or acpi backlight driver and no other choice.
+Also they are not necessary, if the user wants to know which backlight
+interfaces are registered a simple "ls /sys/class/backlight" suffices.
+
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/platform/x86/ideapad-laptop.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+ drivers/platform/x86/intel_oaktrail.c | 7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/platform/x86/ideapad-laptop.c b/drivers/platform/x86/ideapad-laptop.c
-index b496db8..bea0228 100644
---- a/drivers/platform/x86/ideapad-laptop.c
-+++ b/drivers/platform/x86/ideapad-laptop.c
-@@ -38,6 +38,7 @@
- #include <linux/i8042.h>
+diff --git a/drivers/platform/x86/intel_oaktrail.c b/drivers/platform/x86/intel_oaktrail.c
+index 8037c8b..6aa33c4 100644
+--- a/drivers/platform/x86/intel_oaktrail.c
++++ b/drivers/platform/x86/intel_oaktrail.c
+@@ -50,6 +50,7 @@
+ #include <linux/platform_device.h>
  #include <linux/dmi.h>
- #include <linux/device.h>
+ #include <linux/rfkill.h>
 +#include <acpi/video.h>
  
- #define IDEAPAD_RFKILL_DEV_NUM	(3)
- 
-@@ -903,7 +904,7 @@ static int ideapad_acpi_add(struct platform_device *pdev)
- 	ideapad_sync_rfk_state(priv);
- 	ideapad_sync_touchpad_state(priv);
+ #define DRIVER_NAME	"intel_oaktrail"
+ #define DRIVER_VERSION	"0.4ac1"
+@@ -343,13 +344,11 @@ static int __init oaktrail_init(void)
+ 		goto err_device_add;
+ 	}
  
 -	if (!acpi_video_backlight_support()) {
 +	if (acpi_video_get_backlight_type() == acpi_backlight_vendor) {
- 		ret = ideapad_backlight_init(priv);
- 		if (ret && ret != -ENODEV)
- 			goto backlight_failed;
+ 		ret = oaktrail_backlight_init();
+ 		if (ret)
+ 			goto err_backlight;
+-
+-	} else
+-		pr_info("Backlight controlled by ACPI video driver\n");
++	}
+ 
+ 	ret = oaktrail_rfkill_init();
+ 	if (ret) {
 -- 
 2.4.2
