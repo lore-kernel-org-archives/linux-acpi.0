@@ -1,71 +1,79 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v2 12/32] acpi-video: Move dmi_check_system from module_init to acpi_video_register
-Date: Fri, 12 Jun 2015 13:23:31 +0200
-Message-ID: <1434108231-12323-13-git-send-email-hdegoede@redhat.com>
+Subject: [PATCH v2 13/32] acpi-video: Fix acpi_video _register vs
+ _unregister_backlight race
+Date: Fri, 12 Jun 2015 13:23:32 +0200
+Message-ID: <1434108231-12323-14-git-send-email-hdegoede@redhat.com>
 References: <1434108231-12323-1-git-send-email-hdegoede@redhat.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:56659 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754674AbbFLLYo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 12 Jun 2015 07:24:44 -0400
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
 In-Reply-To: <1434108231-12323-1-git-send-email-hdegoede@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
 To: Darren Hart <dvhart@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Ben Skeggs <bskeggs@redhat.com>, Azael Avalos <coproscefalo@gmail.com>, Corentin Chary <corentin.chary@gmail.com>, Lee Chun-Yi <jlee@suse.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, Ike Panhc <ike.pan@canonical.com>, Anisse Astier <anisse@astier.eu>, Mattia Dongili <malattia@linux.it>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, platform-driver-x86@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, acpi4asus-user@lists.sourceforge.net, dri-devel@lists.freedesktop.org, Aaron Lu <aaron.lu@intel.com>, linux-acpi@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Hans de Goede <hdegoede@redhat.com>, Ike Panhc <ike.pan@canonical.com>, linux-acpi@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, acpi4asus-user@lists.sourceforge.net, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, dri-devel@lists.freedesktop.org, Azael Avalos <coproscefalo@gmail.com>, Lee Chun-Yi <jlee@suse.com>, Mattia Dongili <malattia@linux.it>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Ben Skeggs <bskeggs@redhat.com>, Corentin Chary <corentin.chary@gmail.com>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, platform-driver-x86@vger.kernel.org, Aaron Lu <aaron.lu@intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
-When builtin there is no guarantee in which order module_init functions
-are run, so acpi_video_register() may get called from the i915 driver
-(if it is also builtin) before acpi_video_init() gets called, resulting
-in the dmi quirks not yet being parsed.
-
-This commit moves the dmi_check_system() call to acpi_video_register(),
-so that we can be sure the dmi quirks have always been applied before
-probing.
-
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/acpi/acpi_video.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/acpi/acpi_video.c b/drivers/acpi/acpi_video.c
-index f5ffac9..b8053a8 100644
---- a/drivers/acpi/acpi_video.c
-+++ b/drivers/acpi/acpi_video.c
-@@ -380,13 +380,13 @@ acpi_video_device_lcd_set_level(struct acpi_video_device *device, int level)
-  */
- 
- static int bqc_offset_aml_bug_workaround;
--static int __init video_set_bqc_offset(const struct dmi_system_id *d)
-+static int video_set_bqc_offset(const struct dmi_system_id *d)
- {
- 	bqc_offset_aml_bug_workaround = 9;
- 	return 0;
- }
- 
--static struct dmi_system_id video_dmi_table[] __initdata = {
-+static struct dmi_system_id video_dmi_table[] = {
- 	/*
- 	 * Broken _BQC workaround http://bugzilla.kernel.org/show_bug.cgi?id=13121
- 	 */
-@@ -1944,6 +1944,8 @@ int acpi_video_register(void)
- 	mutex_init(&video_list_lock);
- 	INIT_LIST_HEAD(&video_bus_head);
- 
-+	dmi_check_system(video_dmi_table);
-+
- 	ret = acpi_bus_register_driver(&acpi_video_bus);
- 	if (ret)
- 		return ret;
-@@ -2009,8 +2011,6 @@ static int __init acpi_video_init(void)
- 	if (acpi_disabled)
- 		return 0;
- 
--	dmi_check_system(video_dmi_table);
--
- 	if (intel_opregion_present())
- 		return 0;
- 
--- 
-2.4.2
-
+SXQgaXMgcG9zc2libGUgZm9yIGEgbmF0aXZlIGJhY2tsaWdodCBkcml2ZXIgdG8gbG9hZCB3aGls
+ZQphY3BpX3ZpZGVvX3JlZ2lzdGVyIGlzIHJ1bm5pbmcsIHdoaWNoIG1heSBsZWFkIHRvCmFjcGlf
+dmlkZW9fdW5yZWdpc3Rlcl9iYWNrbGlnaHQgYmVpbmcgY2FsbGVkIHdoaWxlIGFjcGlfdmlkZW9f
+cmVnaXN0ZXIKaXMgcnVubmluZyBhbmQgdGhlIDIgcmFjaW5nIGFnYWluc3QgZWFjaG90aGVyLgoK
+VGhlIHJlZ2lzdGVyX2NvdW50IHZhcmlhYmxlIHByb3RlY3RzIGFnYWluc3QgdGhpcywgYnV0IG5v
+dCBpbiBhIHRocmVhZApzYWZlIG1hbm5lciwgdGhpcyBjb21taXQgYWRkcyBsb2NraW5nIHRvIG1h
+a2UgdGhpcyB0aHJlYWQgc2FmZS4KClNpZ25lZC1vZmYtYnk6IEhhbnMgZGUgR29lZGUgPGhkZWdv
+ZWRlQHJlZGhhdC5jb20+Ci0tLQogZHJpdmVycy9hY3BpL2FjcGlfdmlkZW8uYyB8IDQzICsrKysr
+KysrKysrKysrKysrKysrKy0tLS0tLS0tLS0tLS0tLS0tLS0tLS0KIDEgZmlsZSBjaGFuZ2VkLCAy
+MSBpbnNlcnRpb25zKCspLCAyMiBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL2Fj
+cGkvYWNwaV92aWRlby5jIGIvZHJpdmVycy9hY3BpL2FjcGlfdmlkZW8uYwppbmRleCBiODA1M2E4
+Li5mY2M3YzJlIDEwMDY0NAotLS0gYS9kcml2ZXJzL2FjcGkvYWNwaV92aWRlby5jCisrKyBiL2Ry
+aXZlcnMvYWNwaS9hY3BpX3ZpZGVvLmMKQEAgLTc5LDYgKzc5LDcgQEAgc3RhdGljIGJvb2wgYWxs
+b3dfZHVwbGljYXRlczsKIG1vZHVsZV9wYXJhbShhbGxvd19kdXBsaWNhdGVzLCBib29sLCAwNjQ0
+KTsKIAogc3RhdGljIGludCByZWdpc3Rlcl9jb3VudDsKK3N0YXRpYyBERUZJTkVfTVVURVgocmVn
+aXN0ZXJfY291bnRfbXV0ZXgpOwogc3RhdGljIHN0cnVjdCBtdXRleCB2aWRlb19saXN0X2xvY2s7
+CiBzdGF0aWMgc3RydWN0IGxpc3RfaGVhZCB2aWRlb19idXNfaGVhZDsKIHN0YXRpYyBpbnQgYWNw
+aV92aWRlb19idXNfYWRkKHN0cnVjdCBhY3BpX2RldmljZSAqZGV2aWNlKTsKQEAgLTE5MzEsMTQg
+KzE5MzIsMTUgQEAgc3RhdGljIGludCBfX2luaXQgaW50ZWxfb3ByZWdpb25fcHJlc2VudCh2b2lk
+KQogCiBpbnQgYWNwaV92aWRlb19yZWdpc3Rlcih2b2lkKQogewotCWludCByZXQ7CisJaW50IHJl
+dCA9IDA7CiAKKwltdXRleF9sb2NrKCZyZWdpc3Rlcl9jb3VudF9tdXRleCk7CiAJaWYgKHJlZ2lz
+dGVyX2NvdW50KSB7CiAJCS8qCiAJCSAqIGlmIHRoZSBmdW5jdGlvbiBvZiBhY3BpX3ZpZGVvX3Jl
+Z2lzdGVyIGlzIGFscmVhZHkgY2FsbGVkLAogCQkgKiBkb24ndCByZWdpc3RlciB0aGUgYWNwaV92
+aWRlX2J1cyBhZ2FpbiBhbmQgcmV0dXJuIG5vIGVycm9yLgogCQkgKi8KLQkJcmV0dXJuIDA7CisJ
+CWdvdG8gbGVhdmU7CiAJfQogCiAJbXV0ZXhfaW5pdCgmdmlkZW9fbGlzdF9sb2NrKTsKQEAgLTE5
+NDgsNyArMTk1MCw3IEBAIGludCBhY3BpX3ZpZGVvX3JlZ2lzdGVyKHZvaWQpCiAKIAlyZXQgPSBh
+Y3BpX2J1c19yZWdpc3Rlcl9kcml2ZXIoJmFjcGlfdmlkZW9fYnVzKTsKIAlpZiAocmV0KQotCQly
+ZXR1cm4gcmV0OworCQlnb3RvIGxlYXZlOwogCiAJLyoKIAkgKiBXaGVuIHRoZSBhY3BpX3ZpZGVv
+X2J1cyBpcyBsb2FkZWQgc3VjY2Vzc2Z1bGx5LCBpbmNyZWFzZQpAQCAtMTk1NiwyNCArMTk1OCwy
+MCBAQCBpbnQgYWNwaV92aWRlb19yZWdpc3Rlcih2b2lkKQogCSAqLwogCXJlZ2lzdGVyX2NvdW50
+ID0gMTsKIAotCXJldHVybiAwOworbGVhdmU6CisJbXV0ZXhfdW5sb2NrKCZyZWdpc3Rlcl9jb3Vu
+dF9tdXRleCk7CisJcmV0dXJuIHJldDsKIH0KIEVYUE9SVF9TWU1CT0woYWNwaV92aWRlb19yZWdp
+c3Rlcik7CiAKIHZvaWQgYWNwaV92aWRlb191bnJlZ2lzdGVyKHZvaWQpCiB7Ci0JaWYgKCFyZWdp
+c3Rlcl9jb3VudCkgewotCQkvKgotCQkgKiBJZiB0aGUgYWNwaSB2aWRlbyBidXMgaXMgYWxyZWFk
+eSB1bmxvYWRlZCwgZG9uJ3QKLQkJICogdW5sb2FkIGl0IGFnYWluIGFuZCByZXR1cm4gZGlyZWN0
+bHkuCi0JCSAqLwotCQlyZXR1cm47CisJbXV0ZXhfbG9jaygmcmVnaXN0ZXJfY291bnRfbXV0ZXgp
+OworCWlmIChyZWdpc3Rlcl9jb3VudCkgeworCQlhY3BpX2J1c191bnJlZ2lzdGVyX2RyaXZlcigm
+YWNwaV92aWRlb19idXMpOworCQlyZWdpc3Rlcl9jb3VudCA9IDA7CiAJfQotCWFjcGlfYnVzX3Vu
+cmVnaXN0ZXJfZHJpdmVyKCZhY3BpX3ZpZGVvX2J1cyk7Ci0KLQlyZWdpc3Rlcl9jb3VudCA9IDA7
+Ci0KLQlyZXR1cm47CisJbXV0ZXhfdW5sb2NrKCZyZWdpc3Rlcl9jb3VudF9tdXRleCk7CiB9CiBF
+WFBPUlRfU1lNQk9MKGFjcGlfdmlkZW9fdW5yZWdpc3Rlcik7CiAKQEAgLTE5ODEsMTMgKzE5Nzks
+MTQgQEAgdm9pZCBhY3BpX3ZpZGVvX3VucmVnaXN0ZXJfYmFja2xpZ2h0KHZvaWQpCiB7CiAJc3Ry
+dWN0IGFjcGlfdmlkZW9fYnVzICp2aWRlbzsKIAotCWlmICghcmVnaXN0ZXJfY291bnQpCi0JCXJl
+dHVybjsKLQotCW11dGV4X2xvY2soJnZpZGVvX2xpc3RfbG9jayk7Ci0JbGlzdF9mb3JfZWFjaF9l
+bnRyeSh2aWRlbywgJnZpZGVvX2J1c19oZWFkLCBlbnRyeSkKLQkJYWNwaV92aWRlb19idXNfdW5y
+ZWdpc3Rlcl9iYWNrbGlnaHQodmlkZW8pOwotCW11dGV4X3VubG9jaygmdmlkZW9fbGlzdF9sb2Nr
+KTsKKwltdXRleF9sb2NrKCZyZWdpc3Rlcl9jb3VudF9tdXRleCk7CisJaWYgKHJlZ2lzdGVyX2Nv
+dW50KSB7CisJCW11dGV4X2xvY2soJnZpZGVvX2xpc3RfbG9jayk7CisJCWxpc3RfZm9yX2VhY2hf
+ZW50cnkodmlkZW8sICZ2aWRlb19idXNfaGVhZCwgZW50cnkpCisJCQlhY3BpX3ZpZGVvX2J1c191
+bnJlZ2lzdGVyX2JhY2tsaWdodCh2aWRlbyk7CisJCW11dGV4X3VubG9jaygmdmlkZW9fbGlzdF9s
+b2NrKTsKKwl9CisJbXV0ZXhfdW5sb2NrKCZyZWdpc3Rlcl9jb3VudF9tdXRleCk7CiB9CiBFWFBP
+UlRfU1lNQk9MKGFjcGlfdmlkZW9fdW5yZWdpc3Rlcl9iYWNrbGlnaHQpOwogCi0tIAoyLjQuMgoK
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVs
+IG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHA6Ly9saXN0
+cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
