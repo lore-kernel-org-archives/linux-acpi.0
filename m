@@ -1,7 +1,7 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v2 24/32] intel-oaktrail: Port to new backlight interface selection API
-Date: Fri, 12 Jun 2015 13:23:43 +0200
-Message-ID: <1434108231-12323-25-git-send-email-hdegoede@redhat.com>
+Subject: [PATCH v2 25/32] msi-laptop: Port to new backlight interface selection API
+Date: Fri, 12 Jun 2015 13:23:44 +0200
+Message-ID: <1434108231-12323-26-git-send-email-hdegoede@redhat.com>
 References: <1434108231-12323-1-git-send-email-hdegoede@redhat.com>
 Return-path: <platform-driver-x86-owner@vger.kernel.org>
 In-Reply-To: <1434108231-12323-1-git-send-email-hdegoede@redhat.com>
@@ -21,36 +21,32 @@ interfaces are registered a simple "ls /sys/class/backlight" suffices.
 
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/platform/x86/intel_oaktrail.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ drivers/platform/x86/msi-laptop.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/platform/x86/intel_oaktrail.c b/drivers/platform/x86/intel_oaktrail.c
-index 8037c8b..6aa33c4 100644
---- a/drivers/platform/x86/intel_oaktrail.c
-+++ b/drivers/platform/x86/intel_oaktrail.c
-@@ -50,6 +50,7 @@
- #include <linux/platform_device.h>
- #include <linux/dmi.h>
- #include <linux/rfkill.h>
+diff --git a/drivers/platform/x86/msi-laptop.c b/drivers/platform/x86/msi-laptop.c
+index 0859877..4231770 100644
+--- a/drivers/platform/x86/msi-laptop.c
++++ b/drivers/platform/x86/msi-laptop.c
+@@ -64,6 +64,7 @@
+ #include <linux/i8042.h>
+ #include <linux/input.h>
+ #include <linux/input/sparse-keymap.h>
 +#include <acpi/video.h>
  
- #define DRIVER_NAME	"intel_oaktrail"
- #define DRIVER_VERSION	"0.4ac1"
-@@ -343,13 +344,11 @@ static int __init oaktrail_init(void)
- 		goto err_device_add;
- 	}
+ #define MSI_DRIVER_VERSION "0.5"
  
--	if (!acpi_video_backlight_support()) {
-+	if (acpi_video_get_backlight_type() == acpi_backlight_vendor) {
- 		ret = oaktrail_backlight_init();
- 		if (ret)
- 			goto err_backlight;
--
--	} else
--		pr_info("Backlight controlled by ACPI video driver\n");
-+	}
+@@ -1069,9 +1070,8 @@ static int __init msi_init(void)
  
- 	ret = oaktrail_rfkill_init();
- 	if (ret) {
+ 	/* Register backlight stuff */
+ 
+-	if (!quirks->old_ec_model || acpi_video_backlight_support()) {
+-		pr_info("Brightness ignored, must be controlled by ACPI video driver\n");
+-	} else {
++	if (quirks->old_ec_model ||
++	    acpi_video_get_backlight_type() == acpi_backlight_vendor) {
+ 		struct backlight_properties props;
+ 		memset(&props, 0, sizeof(struct backlight_properties));
+ 		props.type = BACKLIGHT_PLATFORM;
 -- 
 2.4.2
