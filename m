@@ -1,55 +1,72 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v2 01/32] apple-gmux: Stop using acpi_video_dmi_demote_vendor()
-Date: Fri, 12 Jun 2015 13:23:20 +0200
-Message-ID: <1434108231-12323-2-git-send-email-hdegoede@redhat.com>
+Subject: [PATCH v2 02/32] acpi-video-detect: Remove the unused acpi_video_dmi_demote_vendor() function
+Date: Fri, 12 Jun 2015 13:23:21 +0200
+Message-ID: <1434108231-12323-3-git-send-email-hdegoede@redhat.com>
 References: <1434108231-12323-1-git-send-email-hdegoede@redhat.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:57538 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:43360 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752606AbbFLLYC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 12 Jun 2015 07:24:02 -0400
+	id S1753274AbbFLLYG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 12 Jun 2015 07:24:06 -0400
 In-Reply-To: <1434108231-12323-1-git-send-email-hdegoede@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Darren Hart <dvhart@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: Ben Skeggs <bskeggs@redhat.com>, Azael Avalos <coproscefalo@gmail.com>, Corentin Chary <corentin.chary@gmail.com>, Lee Chun-Yi <jlee@suse.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, Ike Panhc <ike.pan@canonical.com>, Anisse Astier <anisse@astier.eu>, Mattia Dongili <malattia@linux.it>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, platform-driver-x86@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, acpi4asus-user@lists.sourceforge.net, dri-devel@lists.freedesktop.org, Aaron Lu <aaron.lu@intel.com>, linux-acpi@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
 
-acpi_video_dmi_demote_vendor() is going away as part of the cleanup of
-the code for determinging which backlight class driver(s) to register.
-
-The call to acpi_video_dmi_demote_vendor() was meant to undo the call to
-acpi_video_dmi_promote_vendor() when the gmux device is removed, this is
-questionable though since the promote call sets a flag, not a counter, so
-the demote call may undo a promoto done elsewhere. Moreover in practice
-this is a nop since the gmux device is never removed, and the flag is only
-checked when acpi/video.ko gets loaded, so even if the user manually
-removes apple-gmux the demote call is still a nop as video.ko will already
-have loaded by this time.
-
-Also note that none of the other users of acpi_video_dmi_promote_vendor()
-use acpi_video_dmi_demote_vendor().
-
-If we ever encounter a system with a gmux where the acpi-video interface
-should be used, then the proper fix would be to dmi-blacklist the gmux
-driver on that system.
+Remove the now unused acpi_video_dmi_demote_vendor() function, this was
+never a proper counter part of acpi_video_dmi_promote_vendor() since
+the calls to acpi_video_dmi_promote_vendor() are not counted.
 
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/platform/x86/apple-gmux.c | 1 -
- 1 file changed, 1 deletion(-)
+ drivers/acpi/video_detect.c | 9 ---------
+ include/linux/acpi.h        | 5 -----
+ 2 files changed, 14 deletions(-)
 
-diff --git a/drivers/platform/x86/apple-gmux.c b/drivers/platform/x86/apple-gmux.c
-index 45032ce..a7f6412 100644
---- a/drivers/platform/x86/apple-gmux.c
-+++ b/drivers/platform/x86/apple-gmux.c
-@@ -645,7 +645,6 @@ static void gmux_remove(struct pnp_dev *pnp)
- 	apple_gmux_data = NULL;
- 	kfree(gmux_data);
- 
--	acpi_video_dmi_demote_vendor();
- 	acpi_video_register();
- 	apple_bl_register();
+diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
+index c42feb2..6ca1f27 100644
+--- a/drivers/acpi/video_detect.c
++++ b/drivers/acpi/video_detect.c
+@@ -258,15 +258,6 @@ void acpi_video_dmi_promote_vendor(void)
  }
+ EXPORT_SYMBOL(acpi_video_dmi_promote_vendor);
+ 
+-/* To be called when a driver who previously promoted the vendor
+- * interface */
+-void acpi_video_dmi_demote_vendor(void)
+-{
+-	acpi_video_caps_check();
+-	acpi_video_support &= ~ACPI_VIDEO_BACKLIGHT_DMI_VENDOR;
+-}
+-EXPORT_SYMBOL(acpi_video_dmi_demote_vendor);
+-
+ /* Returns true if video.ko can do backlight switching */
+ int acpi_video_backlight_support(void)
+ {
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index e4da5e3..01bffd3 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -248,7 +248,6 @@ extern bool wmi_has_guid(const char *guid);
+ extern long acpi_video_get_capabilities(acpi_handle graphics_dev_handle);
+ extern long acpi_is_video_device(acpi_handle handle);
+ extern void acpi_video_dmi_promote_vendor(void);
+-extern void acpi_video_dmi_demote_vendor(void);
+ extern int acpi_video_backlight_support(void);
+ extern int acpi_video_display_switch_support(void);
+ 
+@@ -268,10 +267,6 @@ static inline void acpi_video_dmi_promote_vendor(void)
+ {
+ }
+ 
+-static inline void acpi_video_dmi_demote_vendor(void)
+-{
+-}
+-
+ static inline int acpi_video_backlight_support(void)
+ {
+ 	return 0;
 -- 
 2.4.2
 
