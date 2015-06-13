@@ -1,98 +1,72 @@
-From: "Zhang, Jonathan Zhixiong" <zjzhang@codeaurora.org>
-Subject: Re: [PATCH V3 4/4] acpi, apei: use EFI memmap to map GHES memory
-Date: Fri, 12 Jun 2015 16:44:25 -0700
-Message-ID: <557B6ED9.3020706@codeaurora.org>
-References: <1434047160-23358-1-git-send-email-zjzhang@codeaurora.org> <1434047160-23358-5-git-send-email-zjzhang@codeaurora.org> <20150612162924.GH9084@pd.tnic>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150612162924.GH9084@pd.tnic>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: Matt Fleming <matt.fleming@intel.com>, Thomas Gleixner <tglx@linutronix.de>, fu.wei@linaro.org, al.stone@linaro.org, tony.luck@gmail.com, rjw@rjwysocki.net, lenb@kernel.org, ying.huang@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
+Subject: [PATCH V4 0/4] map GHES memory region according to EFI memory map
+Date: Fri, 12 Jun 2015 18:01:43 -0700
+Message-ID: <1434157307-32318-1-git-send-email-zjzhang@codeaurora.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:33132 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752436AbbFMBB4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 12 Jun 2015 21:01:56 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Matt Fleming <matt.fleming@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, leif.lindholm@linaro.org, fu.wei@linaro.org, al.stone@linaro.org, bp@alien8.de, tony.luck@gmail.com, rjw@rjwysocki.net, lenb@kernel.org, ying.huang@intel.com
+Cc: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, linux-efi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-msm@vger.kernel.org, linaro-acpi@lists.linaro.org, vgandhi@codeaurora.org
 
+From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
 
+On a platform with APEI (ACPI Platform Error Interface) enabled, firmware
+updates a memory region with hardware error record using nocache
+attribute. When OS reads the region, since it maps the region with
+cacahed attribute even though EFI memory map defines this region as
+uncached, OS gets stale data and errorneously reports there is no new
+HW error.
 
-On 6/12/2015 9:29 AM, Borislav Petkov wrote:
-> On Thu, Jun 11, 2015 at 11:26:00AM -0700, Jonathan (Zhixiong) Zhang wrote:
->> From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
->>
->> With ACPI APEI firmware first handling, generic hardware error
->> record is updated by firmware in GHES memory region. When firmware
->> updated GHES memory region with uncached access attribute, Linux
->> reads stale data from cache.
->>
->> GHES memory region should be mapped with cache attributes
->> according to EFI memory map when applicable. On such system, if
->> firmware updates RAM directly without going through cache,
->> EFI memory map has GHES memory region defined as uncached;
->> If firmware updates cache, EFI memory map has GHES memory region
->> defined as cached.
->>
->> On EFI system, if GHES memory region has EFI_MEMORY_UC attribute
->> defined, map the page with arch defined UC page protection type.
->>
->> Signed-off-by: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
->> ---
->>   drivers/acpi/apei/ghes.c | 9 ++++++++-
->>   1 file changed, 8 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
->> index e82d0976a5d0..5cfd951ebf67 100644
->> --- a/drivers/acpi/apei/ghes.c
->> +++ b/drivers/acpi/apei/ghes.c
->> @@ -48,6 +48,7 @@
->>   #include <linux/pci.h>
->>   #include <linux/aer.h>
->>   #include <linux/nmi.h>
->> +#include <linux/efi.h>
->>
->>   #include <acpi/ghes.h>
->>   #include <acpi/apei.h>
->> @@ -164,8 +165,14 @@ static void __iomem *ghes_ioremap_pfn_irq(u64 pfn)
->>   	unsigned long vaddr;
->>
->>   	vaddr = (unsigned long)GHES_IOREMAP_IRQ_PAGE(ghes_ioremap_area->addr);
->> -	ioremap_page_range(vaddr, vaddr + PAGE_SIZE,
->> +
->> +	if (efi_mem_attributes(pfn << PAGE_SHIFT) & EFI_MEMORY_UC) {
->> +		ioremap_page_range(vaddr, vaddr + PAGE_SIZE,
->> +				   pfn << PAGE_SHIFT, ARCH_APEI_PAGE_KERNEL_UC);
->> +	} else {
->> +		ioremap_page_range(vaddr, vaddr + PAGE_SIZE,
->>   			   pfn << PAGE_SHIFT, PAGE_KERNEL);
->> +	}
->>
->>   	return (void __iomem *)vaddr;
->
-> This is still hacky. All of a sudden, ghes code gets to know about EFI
-> which looks like a mishmash to me.
->
-> Maybe it would be cleaner if you added an arch-specific
->
-> 	arch_get_mem_attribute(phys_addr);
->
-> which returns a pgprot_t thing which you can use directly above, like
-> so:
->
->          ioremap_page_range(vaddr,
-> 			   vaddr + PAGE_SIZE,
->                             pfn << PAGE_SHIFT,
-> 			   arch_get_mem_attribute(pfn << PAGE_SHIFT));
->
-> Each arch can then return what it likes with arch_get_mem_attribute().
- >
-Thanks for the review, Borislav. I will do that. Since such function
-is only needed for APEI functionality, at least as of today, I will
-name it arch_apei_get_mem_attribute().
-I will add implementations for arm64 and x86 since those are the only
-archs having HAVE_ACPI_APEI defined in Kconfig. The upstream kernel
-today does not have HAVE_ACPI_APEI defined for arm64, but it needs to
-be and will be.
+When ghes driver maps the memory region, it uses the cache attribute
+according to EFI memory map, if EFI memory map feature is enabled
+at runtime.
+
+Since both arch/x86 and arch/ia64 implemented architecture agnostic EFI
+memory map attribue lookup function efi_memattributes(), the code is
+moved from arch/x86 into EFI subsystem and is declared as __weak; archs
+other than ia64 should not override the default implementation.
+
+V4:
+1. Introduced arch_apei_get_mem_attributes() to allow arch specific
+   implementation of getting pgprot_t appropriate for a physical
+   address.
+2. Implemented arch_apei_get_mem_attributes() for x86 and for arm64.
+
+V3:
+1. Rebased to v4.1-rc7.
+2. Moved efi_mem_attributes() from arch/x86 to drivers/firmware/efi
+   and declared it as __weak.
+3. Introduced ARCH_APEI_PAGE_KERNEL_UC to allow arch specific page
+   protection type for UC.
+4. Removed efi_ioremap(). It can not be used for GHES memory region
+   mapping purpose since ioremap can not be used in atomic context.
+
+V2:
+1. Rebased to v4.1-rc5.
+2. Split removal of efi_mem_attributes() and creation of efi_ioremap()
+into two patches.
+
+Jonathan (Zhixiong) Zhang (4):
+  efi: x86: rearrange efi_mem_attributes()
+  x86: acpi: add arch_apei_get_mem_attributes()
+  arm64: apei: implement arch_apei_get_mem_attributes()
+  acpi, apei: use appropriate pgprot_t to map GHES memory
+
+ arch/arm64/kernel/Makefile  |  1 +
+ arch/arm64/kernel/apei.c    | 27 +++++++++++++++++++++++++++
+ arch/x86/kernel/acpi/apei.c | 10 ++++++++++
+ arch/x86/platform/efi/efi.c | 18 ------------------
+ drivers/acpi/apei/ghes.c    |  6 ++++--
+ drivers/firmware/efi/efi.c  | 18 ++++++++++++++++++
+ include/acpi/apei.h         |  1 +
+ 7 files changed, 61 insertions(+), 20 deletions(-)
+ create mode 100644 arch/arm64/kernel/apei.c
 
 -- 
-Jonathan (Zhixiong) Zhang
 The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
 a Linux Foundation Collaborative Project
+
