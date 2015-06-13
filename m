@@ -1,110 +1,67 @@
 From: Mathias Krause <minipli@googlemail.com>
-Subject: [PATCH 02/12] ACPI / LPSS: constify device descriptors
-Date: Sat, 13 Jun 2015 14:26:50 +0200
-Message-ID: <1434198420-8519-3-git-send-email-minipli@googlemail.com>
+Subject: [PATCH 05/12] ACPI / battery: constify the offset tables
+Date: Sat, 13 Jun 2015 14:26:53 +0200
+Message-ID: <1434198420-8519-6-git-send-email-minipli@googlemail.com>
 References: <1434198420-8519-1-git-send-email-minipli@googlemail.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f175.google.com ([209.85.212.175]:38213 "EHLO
-	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751880AbbFMM1O (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 13 Jun 2015 08:27:14 -0400
-Received: by wibdq8 with SMTP id dq8so37102874wib.1
-        for <linux-acpi@vger.kernel.org>; Sat, 13 Jun 2015 05:27:13 -0700 (PDT)
+Received: from mail-wg0-f41.google.com ([74.125.82.41]:35377 "EHLO
+	mail-wg0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752509AbbFMM1R (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 13 Jun 2015 08:27:17 -0400
+Received: by wgbhy7 with SMTP id hy7so6006647wgb.2
+        for <linux-acpi@vger.kernel.org>; Sat, 13 Jun 2015 05:27:16 -0700 (PDT)
 In-Reply-To: <1434198420-8519-1-git-send-email-minipli@googlemail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
 Cc: linux-acpi@vger.kernel.org, Mathias Krause <minipli@googlemail.com>
 
-The device descriptors are never written to -- even pointed to as
-'const' from struct lpss_private_data. Make them r/o for real.
+The offset tables are only read, not modified. Make them const.
 
 Signed-off-by: Mathias Krause <minipli@googlemail.com>
 ---
- drivers/acpi/acpi_lpss.c |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ drivers/acpi/battery.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-index 37fb19047603..569ee090343f 100644
---- a/drivers/acpi/acpi_lpss.c
-+++ b/drivers/acpi/acpi_lpss.c
-@@ -129,50 +129,50 @@ static void byt_i2c_setup(struct lpss_private_data *pdata)
- 	writel(0, pdata->mmio_base + LPSS_I2C_ENABLE);
- }
- 
--static struct lpss_device_desc lpt_dev_desc = {
-+static const struct lpss_device_desc lpt_dev_desc = {
- 	.flags = LPSS_CLK | LPSS_CLK_GATE | LPSS_CLK_DIVIDER | LPSS_LTR,
- 	.prv_offset = 0x800,
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index 63d43677f644..8ec28e395fa1 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -354,14 +354,14 @@ struct acpi_offsets {
+ 	u8 mode;		/* int or string? */
  };
  
--static struct lpss_device_desc lpt_i2c_dev_desc = {
-+static const struct lpss_device_desc lpt_i2c_dev_desc = {
- 	.flags = LPSS_CLK | LPSS_CLK_GATE | LPSS_LTR,
- 	.prv_offset = 0x800,
+-static struct acpi_offsets state_offsets[] = {
++static const struct acpi_offsets state_offsets[] = {
+ 	{offsetof(struct acpi_battery, state), 0},
+ 	{offsetof(struct acpi_battery, rate_now), 0},
+ 	{offsetof(struct acpi_battery, capacity_now), 0},
+ 	{offsetof(struct acpi_battery, voltage_now), 0},
  };
  
--static struct lpss_device_desc lpt_uart_dev_desc = {
-+static const struct lpss_device_desc lpt_uart_dev_desc = {
- 	.flags = LPSS_CLK | LPSS_CLK_GATE | LPSS_CLK_DIVIDER | LPSS_LTR,
- 	.clk_con_id = "baudclk",
- 	.prv_offset = 0x800,
- 	.setup = lpss_uart_setup,
+-static struct acpi_offsets info_offsets[] = {
++static const struct acpi_offsets info_offsets[] = {
+ 	{offsetof(struct acpi_battery, power_unit), 0},
+ 	{offsetof(struct acpi_battery, design_capacity), 0},
+ 	{offsetof(struct acpi_battery, full_charge_capacity), 0},
+@@ -377,7 +377,7 @@ static struct acpi_offsets info_offsets[] = {
+ 	{offsetof(struct acpi_battery, oem_info), 1},
  };
  
--static struct lpss_device_desc lpt_sdio_dev_desc = {
-+static const struct lpss_device_desc lpt_sdio_dev_desc = {
- 	.flags = LPSS_LTR,
- 	.prv_offset = 0x1000,
- 	.prv_size_override = 0x1018,
- };
+-static struct acpi_offsets extended_info_offsets[] = {
++static const struct acpi_offsets extended_info_offsets[] = {
+ 	{offsetof(struct acpi_battery, revision), 0},
+ 	{offsetof(struct acpi_battery, power_unit), 0},
+ 	{offsetof(struct acpi_battery, design_capacity), 0},
+@@ -402,7 +402,7 @@ static struct acpi_offsets extended_info_offsets[] = {
  
--static struct lpss_device_desc byt_pwm_dev_desc = {
-+static const struct lpss_device_desc byt_pwm_dev_desc = {
- 	.flags = LPSS_SAVE_CTX,
- };
- 
--static struct lpss_device_desc byt_uart_dev_desc = {
-+static const struct lpss_device_desc byt_uart_dev_desc = {
- 	.flags = LPSS_CLK | LPSS_CLK_GATE | LPSS_CLK_DIVIDER | LPSS_SAVE_CTX,
- 	.clk_con_id = "baudclk",
- 	.prv_offset = 0x800,
- 	.setup = lpss_uart_setup,
- };
- 
--static struct lpss_device_desc byt_spi_dev_desc = {
-+static const struct lpss_device_desc byt_spi_dev_desc = {
- 	.flags = LPSS_CLK | LPSS_CLK_GATE | LPSS_CLK_DIVIDER | LPSS_SAVE_CTX,
- 	.prv_offset = 0x400,
- };
- 
--static struct lpss_device_desc byt_sdio_dev_desc = {
-+static const struct lpss_device_desc byt_sdio_dev_desc = {
- 	.flags = LPSS_CLK,
- };
- 
--static struct lpss_device_desc byt_i2c_dev_desc = {
-+static const struct lpss_device_desc byt_i2c_dev_desc = {
- 	.flags = LPSS_CLK | LPSS_SAVE_CTX,
- 	.prv_offset = 0x800,
- 	.setup = byt_i2c_setup,
-@@ -323,14 +323,14 @@ out:
- static int acpi_lpss_create_device(struct acpi_device *adev,
- 				   const struct acpi_device_id *id)
+ static int extract_package(struct acpi_battery *battery,
+ 			   union acpi_object *package,
+-			   struct acpi_offsets *offsets, int num)
++			   const struct acpi_offsets *offsets, int num)
  {
--	struct lpss_device_desc *dev_desc;
-+	const struct lpss_device_desc *dev_desc;
- 	struct lpss_private_data *pdata;
- 	struct resource_entry *rentry;
- 	struct list_head resource_list;
- 	struct platform_device *pdev;
- 	int ret;
- 
--	dev_desc = (struct lpss_device_desc *)id->driver_data;
-+	dev_desc = (const struct lpss_device_desc *)id->driver_data;
- 	if (!dev_desc) {
- 		pdev = acpi_create_platform_device(adev);
- 		return IS_ERR_OR_NULL(pdev) ? PTR_ERR(pdev) : 1;
+ 	int i;
+ 	union acpi_object *element;
 -- 
 1.7.10.4
 
