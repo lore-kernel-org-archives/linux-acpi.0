@@ -1,52 +1,61 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [RFC v1 14/25] genirq: Kill the first parameter 'irq' of
- irq_flow_handler_t
-Date: Sat, 13 Jun 2015 11:32:00 +0200 (CEST)
-Message-ID: <alpine.DEB.2.11.1506131130490.3786@nanos>
-References: <1432116013-25902-1-git-send-email-jiang.liu@linux.intel.com> <1432116013-25902-15-git-send-email-jiang.liu@linux.intel.com> <alpine.DEB.2.11.1505201724260.4225@nanos> <555CA834.7080807@linux.intel.com> <alpine.DEB.2.11.1505201750280.4225@nanos>
- <alpine.DEB.2.10.1506131059180.2486@hadrien>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.10.1506131059180.2486@hadrien>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Julia Lawall <julia.lawall@lip6.fr>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Jason Cooper <jason@lakedaemon.net>, Kevin Cernekee <cernekee@gmail.com>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+From: Mathias Krause <minipli@googlemail.com>
+Subject: [PATCH 00/12] ACPI: constify patches and other minor fixes
+Date: Sat, 13 Jun 2015 14:26:48 +0200
+Message-ID: <1434198420-8519-1-git-send-email-minipli@googlemail.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wi0-f180.google.com ([209.85.212.180]:36588 "EHLO
+	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751641AbbFMM1N (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 13 Jun 2015 08:27:13 -0400
+Received: by wigg3 with SMTP id g3so36841722wig.1
+        for <linux-acpi@vger.kernel.org>; Sat, 13 Jun 2015 05:27:11 -0700 (PDT)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, Mathias Krause <minipli@googlemail.com>
 
-On Sat, 13 Jun 2015, Julia Lawall wrote:
+Hi Rafael, Len,
 
-> >     unsigned irq = irq_desc_get_irq(desc);
-> 
-> Actually, it seems that this function doesn't exist in linux-next either.
-> What is the correct name of the function, or is there some other tree that
-> I should be working on?
+this series constifies a few variables in the ACPI code that are read
+only and therefore can be const. The main goal is to constify all users
+of struct acpi_device_id, but while digging through the code I found a
+few other places that could be improved too (constifying other variables
+in patches 1, 2, 4 and 9 as adding __init annotations where sensible in
+patch 7 or dropping bogus annotations in patch 3).
 
-That's a new helper function, which is introduced in that series.
+This series only handles the ACPI related bits for the constification of
+struct acpi_device_id but all other users have been changed too (you've
+been Cc'ed on the corresponding patches).
 
-Thanks,
+Please apply!
 
-	tglx
 
----
- include/linux/irqdesc.h |    5 +++++
- 1 file changed, 5 insertions(+)
+Mathias Krause (12):
+  ACPI / AC: constify DMI system id table
+  ACPI / LPSS: constify device descriptors
+  ACPI / processor: remove bogus __refdata annotation
+  ACPI / PNP: constify device IDs
+  ACPI / battery: constify the offset tables
+  ACPI / battery: minor tweaks to acpi_battery_units()
+  ACPI / battery: mark DMI table as __initconst
+  ACPI / HED: constify ACPI device ids
+  ACPI / processor: constify DMI system id table
+  ACPI / scan: constify ACPI device ids
+  ACPI / video: constify ACPI and DMI id tables
+  ACPI: Constify ACPI device IDs in documentation
 
-diff --git a/include/linux/irqdesc.h b/include/linux/irqdesc.h
-index 8c84a2513665..a7aaef44a10e 100644
---- a/include/linux/irqdesc.h
-+++ b/include/linux/irqdesc.h
-@@ -100,6 +100,11 @@ static inline struct irq_desc *irq_data_to_desc(struct irq_data *data)
- #endif
- }
- 
-+static inline unsigned int irq_desc_get_irq(struct irq_desc *desc)
-+{
-+	return desc->irq_data.irq;
-+}
-+
- static inline struct irq_data *irq_desc_get_irq_data(struct irq_desc *desc)
- {
- 	return &desc->irq_data;
+ Documentation/acpi/enumeration.txt |    6 +++---
+ drivers/acpi/ac.c                  |    2 +-
+ drivers/acpi/acpi_lpss.c           |   22 +++++++++++-----------
+ drivers/acpi/acpi_pnp.c            |    2 +-
+ drivers/acpi/acpi_processor.c      |    2 +-
+ drivers/acpi/battery.c             |   30 +++++++++++++++---------------
+ drivers/acpi/hed.c                 |    2 +-
+ drivers/acpi/processor_idle.c      |    2 +-
+ drivers/acpi/scan.c                |    2 +-
+ drivers/acpi/video_detect.c        |    4 ++--
+ 10 files changed, 37 insertions(+), 37 deletions(-)
+
 -- 
 1.7.10.4
+
