@@ -1,41 +1,29 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH V3 4/4] acpi, apei: use EFI memmap to map GHES memory
-Date: Sat, 13 Jun 2015 10:27:51 +0200
-Message-ID: <20150613082750.GA3470@pd.tnic>
-References: <1434047160-23358-1-git-send-email-zjzhang@codeaurora.org>
- <1434047160-23358-5-git-send-email-zjzhang@codeaurora.org>
- <20150612162924.GH9084@pd.tnic>
- <557B6ED9.3020706@codeaurora.org>
+From: Julia Lawall <julia.lawall@lip6.fr>
+Subject: Re: [RFC v1 14/25] genirq: Kill the first parameter 'irq' of
+ irq_flow_handler_t
+Date: Sat, 13 Jun 2015 11:00:08 +0200 (CEST)
+Message-ID: <alpine.DEB.2.10.1506131059180.2486@hadrien>
+References: <1432116013-25902-1-git-send-email-jiang.liu@linux.intel.com> <1432116013-25902-15-git-send-email-jiang.liu@linux.intel.com> <alpine.DEB.2.11.1505201724260.4225@nanos> <555CA834.7080807@linux.intel.com>
+ <alpine.DEB.2.11.1505201750280.4225@nanos>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:55735 "EHLO mail.skyhub.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751300AbbFMI1x (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 13 Jun 2015 04:27:53 -0400
-Content-Disposition: inline
-In-Reply-To: <557B6ED9.3020706@codeaurora.org>
+Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:5700 "EHLO
+	mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751295AbbFMJAW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 13 Jun 2015 05:00:22 -0400
+In-Reply-To: <alpine.DEB.2.11.1505201750280.4225@nanos>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhang, Jonathan Zhixiong" <zjzhang@codeaurora.org>
-Cc: Matt Fleming <matt.fleming@intel.com>, Thomas Gleixner <tglx@linutronix.de>, fu.wei@linaro.org, al.stone@linaro.org, tony.luck@gmail.com, rjw@rjwysocki.net, lenb@kernel.org, ying.huang@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Jason Cooper <jason@lakedaemon.net>, Kevin Cernekee <cernekee@gmail.com>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>
 
-On Fri, Jun 12, 2015 at 04:44:25PM -0700, Zhang, Jonathan Zhixiong wrote:
-> Since such function is only needed for APEI functionality, at least as
-> of today, I will name it arch_apei_get_mem_attribute().
+>     unsigned irq = irq_desc_get_irq(desc);
 
-Why?
+Actually, it seems that this function doesn't exist in linux-next either.
+What is the correct name of the function, or is there some other tree that
+I should be working on?
 
-It can be extended to be used generically too, no? Come to think of it,
-the different arches should already have a way to tell you with what mem
-attributes a physical address is mapped, no?
-
-IOW, such functionality should be already present, you'd only have to
-find it and use it.
-
--- 
-Regards/Gruss,
-    Boris.
-
-ECO tip #101: Trim your mails when you reply.
---
+thanks,
+julia
