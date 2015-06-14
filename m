@@ -1,115 +1,76 @@
-From: Julia Lawall <julia.lawall@lip6.fr>
-Subject: Re: [RFC v1 14/25] genirq: Kill the first parameter 'irq' of
- irq_flow_handler_t
-Date: Sat, 13 Jun 2015 23:42:45 +0200 (CEST)
-Message-ID: <alpine.DEB.2.02.1506132337110.2020@localhost6.localdomain6>
-References: <1432116013-25902-1-git-send-email-jiang.liu@linux.intel.com> <1432116013-25902-15-git-send-email-jiang.liu@linux.intel.com> <alpine.DEB.2.11.1505201724260.4225@nanos> <555CA834.7080807@linux.intel.com> <alpine.DEB.2.11.1505201750280.4225@nanos>
- <alpine.DEB.2.10.1506131059180.2486@hadrien> <alpine.DEB.2.11.1506131130490.3786@nanos> <alpine.DEB.2.10.1506131603151.2314@hadrien> <alpine.DEB.2.10.1506131652380.2314@hadrien> <557C5F29.7010301@linux.intel.com> <alpine.DEB.2.02.1506132214310.2020@localhost6.localdomain6>
- <alpine.DEB.2.11.1506132230450.3786@nanos>
+From: Azael Avalos <coproscefalo@gmail.com>
+Subject: Re: [PATCH v2 30/32] toshiba-acpi: Port to new backlight interface
+ selection API
+Date: Sat, 13 Jun 2015 21:15:34 -0600
+Message-ID: <CAGdLNWG02EY7P4A8sn+gGzgqDLWwBKPWg5aFM9LyemqiM4QNWg@mail.gmail.com>
+References: <1434108231-12323-1-git-send-email-hdegoede@redhat.com>
+	<1434108231-12323-31-git-send-email-hdegoede@redhat.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.11.1506132230450.3786@nanos>
-Sender: linux-pci-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Julia Lawall <julia.lawall@lip6.fr>, Jiang Liu <jiang.liu@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Jason Cooper <jason@lakedaemon.net>, Kevin Cernekee <cernekee@gmail.com>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <1434108231-12323-31-git-send-email-hdegoede@redhat.com>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Darren Hart <dvhart@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Ben Skeggs <bskeggs@redhat.com>, Corentin Chary <corentin.chary@gmail.com>, Lee Chun-Yi <jlee@suse.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, =?UTF-8?Q?Pali_Roh=C3=A1r?= <pali.rohar@gmail.com>, Ike Panhc <ike.pan@canonical.com>, Anisse Astier <anisse@astier.eu>, Mattia Dongili <malattia@linux.it>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, ibm-acpi-devel@lists.sourceforge.net, acpi4asus-user@lists.sourceforge.net, dri-devel@lists.freedesktop.org, Aaron Lu <aaron.lu@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-The semantic patch below considers the problem from another point of view, 
-to find functions that may have a handler as an argument.  The results 
-that are different than those considered already are as follows:
+Hi Hans,
 
-arch/x86/platform/uv/uv_irq.c:106 irq_domain_set_info
-	has a possible handler in argument 6
-arch/sparc/kernel/leon_pci_grpci2.c:815 leon_update_virq_handling
-	has a possible handler in argument 2
-arch/sparc/kernel/leon_kernel.c:79 leon_build_device_irq
-	has a possible handler in argument 2
-arch/arm/mach-omap2/prm_common.c:331 irq_alloc_generic_chip
-	has a possible handler in argument 5
-arch/mips/cavium-octeon/octeon-irq.c:1231 octeon_irq_set_ciu_mapping
-	has a possible handler in argument 6
-arch/blackfin/mach-common/ints-priority.c:805 bfin_set_irq_handler
-	has a possible handler in argument 2
-arch/m68k/q40/q40ints.c:84 m68k_setup_irq_controller
-	has a possible handler in argument 2
-drivers/gpio/gpio-pcf857x.c:362 gpiochip_irqchip_add
-	has a possible handler in argument 4
+Sorry for the late reply, I was out of town.
 
-The semantic patch looks for a function that has as argument a function 
-that has arguments of type (unsigned int irq, struct irq_desc *desc) and a 
-void return type.  It also looks for functions that have as argument a 
-bunch of known irq handlers.
+2015-06-12 5:23 GMT-06:00 Hans de Goede <hdegoede@redhat.com>:
+> Port the backlight selection logic to the new backlight interface
+> selection API.
+>
+> Also fix a compiler warning about bt_present not being initialized.
+>
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> ---
+>  drivers/platform/x86/toshiba_acpi.c | 9 +++------
+>  1 file changed, 3 insertions(+), 6 deletions(-)
+>
+> diff --git a/drivers/platform/x86/toshiba_acpi.c b/drivers/platform/x86/toshiba_acpi.c
+> index 9956b990..c484d47 100644
+> --- a/drivers/platform/x86/toshiba_acpi.c
+> +++ b/drivers/platform/x86/toshiba_acpi.c
+> @@ -2640,14 +2640,11 @@ static int toshiba_acpi_setup_backlight(struct toshiba_acpi_dev *dev)
+>          */
+>         if (dev->tr_backlight_supported ||
+>             dmi_check_system(toshiba_vendor_backlight_dmi))
+> -               acpi_video_dmi_promote_vendor();
+> +               acpi_video_set_dmi_backlight_type(acpi_backlight_vendor);
+>
+> -       if (acpi_video_backlight_support())
+> +       if (acpi_video_get_backlight_type() != acpi_backlight_vendor)
+>                 return 0;
+>
+> -       /* acpi-video may have loaded before we called dmi_promote_vendor() */
+> -       acpi_video_unregister_backlight();
+> -
+>         memset(&props, 0, sizeof(props));
+>         props.type = BACKLIGHT_PLATFORM;
+>         props.max_brightness = HCI_LCD_BRIGHTNESS_LEVELS - 1;
+> @@ -2733,7 +2730,7 @@ static int toshiba_acpi_add(struct acpi_device *acpi_dev)
+>         const char *hci_method;
+>         u32 special_functions;
+>         u32 dummy;
+> -       bool bt_present;
+> +       bool bt_present = false;
+>         int ret = 0;
+>
+>         if (toshiba_acpi)
+> --
+> 2.4.2
+>
 
-julia
+
+Please drop the last chunk of this patch as commit
+2b74103547b4dfaac10cd55464cd2bcc26022a66 removed that line,
+other than that:
+
+Acked-by: Azael Avalos <coproscefalo@gmail.com>
 
 
-@initialize:ocaml@
-@@
-let tbl = Hashtbl.create 101
-let ln = Str.regexp "linux-next/" (* update as appropriate *)
 
-let _ =
-  List.iter (function x -> Hashtbl.add tbl x ())
-    [("__irq_set_handler",2);("irq_set_handler",2);
-      ("irq_set_chained_handler",2);("irq_alloc_generic_chip",4);
-      ("irq_alloc_domain_generic_chips",5);("irq_set_chip_and_handler_name",3);
-      ("irq_set_chip_and_handler",3);("__irq_set_handler_locked",2);
-      ("__irq_set_chip_handler_name_locked",3);("__irq_set_preflow_handler",2);
-      ("gpiochip_set_chained_irqchip",4)]
-
-let update g f n p =
-  let n = n + 1 in
-  let entry = (g,n) in
-  try let _ = Hashtbl.find tbl entry in ()
-  with Not_found ->
-    begin
-      Hashtbl.add tbl entry ();
-      let p = List.hd p in
-      Printf.printf "%s:%d %s\n\thas a possible handler in argument %d\n"
-	(List.nth (Str.split ln p.file) 1) p.line g
-	n
-    end
-
-@possible_handler@
-identifier f,irq,desc;
-@@
-
-void f(unsigned int irq, struct irq_desc *desc) { ... }
-
-@call@
-identifier g,possible_handler.f;
-expression list[n] es;
-position p;
-@@
-
-g(es,f@p,...)
-
-@script:ocaml@
-p << call.p;
-f << possible_handler.f;
-g << call.g;
-n << call.n;
-@@
-
-update g f n p
-
-@call2@
-identifier g,f;
-expression list[n] es;
-position p;
-symbol handle_level_irq,handle_simple_irq,handle_edge_irq,
-       handle_fasteoi_irq,handle_percpu_irq;
-@@
-
-g(es,\(handle_level_irq@f@p\|handle_simple_irq@f@p\|handle_edge_irq@f@p\|
-       handle_fasteoi_irq@f@p\|handle_percpu_irq@f@p\),...)
-
-@script:ocaml@
-p << call2.p;
-f << call2.f;
-g << call2.g;
-n << call2.n;
-@@
-
-update g f n p
+-- 
+-- El mundo apesta y vosotros apestais tambien --
