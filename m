@@ -1,58 +1,122 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH V3 4/4] acpi, apei: use EFI memmap to map GHES memory
-Date: Mon, 15 Jun 2015 16:59:08 +0200
-Message-ID: <20150615145908.GK4255@pd.tnic>
-References: <1434047160-23358-1-git-send-email-zjzhang@codeaurora.org>
- <1434047160-23358-5-git-send-email-zjzhang@codeaurora.org>
- <20150612162924.GH9084@pd.tnic>
- <557B6ED9.3020706@codeaurora.org>
- <20150613082750.GA3470@pd.tnic>
- <20150615141533.GB17685@codeblueprint.co.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:56637 "EHLO mail.skyhub.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755373AbbFOO7P (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 15 Jun 2015 10:59:15 -0400
-Content-Disposition: inline
-In-Reply-To: <20150615141533.GB17685@codeblueprint.co.uk>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Subject: [PATCH v6 0/7] CPUFreq driver using CPPC methods
+Date: Mon, 15 Jun 2015 16:09:04 -0400
+Message-ID: <cover.1434398373.git.ashwin.chaugule@linaro.org>
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: rjw@rjwysocki.net, jaswinder.singh@linaro.org
+Cc: linux-pm@vger.kernel.org, linaro-acpi@lists.linaro.org, patches@linaro.org, linux-acpi@vger.kernel.org, viresh.kumar@linaro.org, sudeep.holla@arm.com, Ashwin Chaugule <ashwin.chaugule@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Matt Fleming <matt@codeblueprint.co.uk>
-Cc: "Zhang, Jonathan Zhixiong" <zjzhang@codeaurora.org>, Matt Fleming <matt.fleming@intel.com>, Thomas Gleixner <tglx@linutronix.de>, fu.wei@linaro.org, al.stone@linaro.org, tony.luck@gmail.com, rjw@rjwysocki.net, lenb@kernel.org, ying.huang@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Mon, Jun 15, 2015 at 03:15:33PM +0100, Matt Fleming wrote:
-> On Sat, 13 Jun, at 10:27:51AM, Borislav Petkov wrote:
-> > On Fri, Jun 12, 2015 at 04:44:25PM -0700, Zhang, Jonathan Zhixiong wrote:
-> > > Since such function is only needed for APEI functionality, at least as
-> > > of today, I will name it arch_apei_get_mem_attribute().
-> > 
-> > Why?
-> > 
-> > It can be extended to be used generically too, no? Come to think of it,
-> > the different arches should already have a way to tell you with what mem
-> > attributes a physical address is mapped, no?
-> > 
-> > IOW, such functionality should be already present, you'd only have to
-> > find it and use it.
-> 
-> I did think about this, but I don't think we have a generic way to ask
-> the firmware for its memory map.
+CPPC:
+====
 
-Not the firmware but the OS. Like on x86, for example, we have MTRRs
-and PAT and they cover the whole range. Basically what lookup_memtype()
-does. We already have that info, why not query it instead of growing
-more stuff ontop.
+CPPC (Collaborative Processor Performance Control) is a new way to control CPU
+performance using an abstract continous scale as against a discretized P-state scale
+which is tied to CPU frequency only. It is defined in the ACPI 5.0+ spec. In brief,
+the basic operation involves:
+- OS makes a CPU performance request. (Can provide min and max tolerable bounds)
 
-I mean, we do ioremap* which does reserve_memtype() and sticks the range
-in the rbtree which we query after. Can't be better than that...
+- Platform (such as BMC) is free to optimize request within requested bounds depending
+on power/thermal budgets etc.
 
-Hmmm.
+- Platform conveys its decision back to OS
+
+The communication between OS and platform occurs through another medium called (PCC)
+Platform communication Channel. This is a generic mailbox like mechanism which includes
+doorbell semantics to indicate register updates. See drivers/mailbox/pcc.c
+
+This patchset introduces a CPPC based CPUFreq driver that works with existing governors
+such as ondemand. The CPPC table parsing and the CPPC communication semantics are
+abstracted into separate files to allow future CPPC based drivers to implement their
+own governors if required.
+
+Initial patchsets included an adaptation of the PID governor from intel_pstate.c. However
+recent experiments led to extensive modifications of the algorithm to calculate CPU
+busyness. Until it is verified that these changes are worthwhile, the existing governors
+should provide for a good enough starting point for ARM64 servers.
+
+Finer details about the PCC and CPPC spec are available in the latest ACPI 5.1
+specification.[2]
+
+Testing:
+=======
+
+This was tested on an SBSA compatible ARMv8 server with CPPCv2
+firmware running on a remote processor. I verified that each CPUs
+performance limits were detected and that new performance requests
+were made by the on-demand governor proportional to the load on each
+CPU. I also verified that using the acpi_processor driver correctly
+maps the physical CPU ids to logical CPU ids, which helps in picking
+up the proper _CPC details from a processor object, in the case where
+CPU physical ids may not be contiguous.
+
+Changes since V5:
+- Checkpatch cleanups.
+- Change pss_init to pss_perf_init. Rec by Srinivas Pandruvada.
+- Explicit comment explaining why postcore_initcall to pcc mailbox.
+- Fold acpi_processor_syscore_init/exit into CONFIG_ACPI_CST.
+- Added patch with dummy functions used by ACPI_HOTPLUG_CPU.
+
+Changes since V4:
+- Misc cleanups. Addressed feedback from Rafael.
+- Made acpi_processor.c independent of C-states, P-states and others.
+- Per CPU scanning for _CPC is now made from acpi_processor.c
+- Added new Kconfig options for legacy C states and P states to enable future
+support for newer alternatives as defined in the ACPI spec 6.0.
+
+Changes since V3:
+- Split CPPC backend methods into separate files.
+- Add frontend driver which plugs into existing CPUfreq governors.
+- Simplify PCC driver by moving communication space mapping and read/write
+	into client drivers.
+
+Changes since V2:
+- Select driver if !X86, since intel_pstate will use HWP extensions instead.
+- Added more comments.
+- Added Freq domain awareness and PSD parsing.
+
+Changes since V1:
+- Create a new driver based on Dirks suggestion.
+- Fold in CPPC backend hooks into main driver.
+
+Changes since V0: [1]
+- Split intel_pstate.c into a generic PID governor and platform specific backend.
+- Add CPPC accessors as PID backend.
+
+[1] - http://lwn.net/Articles/608715/
+[2] - http://www.uefi.org/sites/default/files/resources/ACPI_5_1release.pdf
+[3] - https://patches.linaro.org/40705/
+
+
+Ashwin Chaugule (7):
+  PCC: Initialize PCC Mailbox earlier at boot
+  ACPI: Make ACPI processor driver more extensible
+  ACPI: Introduce CPU performance controls using CPPC
+  CPPC: Add a CPUFreq driver for use with CPPC
+  CPPC: Probe for CPPC tables for each ACPI Processor object
+  PCC: Enable PCC only when needed
+  ACPI: Add weak routines for ACPI CPU Hotplug
+
+ drivers/acpi/Kconfig            |  48 ++-
+ drivers/acpi/Makefile           |   8 +-
+ drivers/acpi/acpi_processor.c   |  18 +
+ drivers/acpi/cppc_acpi.c        | 812 ++++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/processor_driver.c |  90 +++--
+ drivers/cpufreq/Kconfig         |   2 +-
+ drivers/cpufreq/Kconfig.arm     |  16 +
+ drivers/cpufreq/Kconfig.x86     |   2 +
+ drivers/cpufreq/Makefile        |   2 +
+ drivers/cpufreq/cppc_cpufreq.c  | 197 ++++++++++
+ drivers/mailbox/Kconfig         |   2 +-
+ drivers/mailbox/pcc.c           |   8 +-
+ include/acpi/cppc_acpi.h        | 137 +++++++
+ include/acpi/processor.h        | 129 +++++--
+ 14 files changed, 1397 insertions(+), 74 deletions(-)
+ create mode 100644 drivers/acpi/cppc_acpi.c
+ create mode 100644 drivers/cpufreq/cppc_cpufreq.c
+ create mode 100644 include/acpi/cppc_acpi.h
 
 -- 
-Regards/Gruss,
-    Boris.
+1.9.1
 
-ECO tip #101: Trim your mails when you reply.
---
