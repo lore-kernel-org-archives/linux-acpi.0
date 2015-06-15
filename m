@@ -1,94 +1,48 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v4 3/8] Driver core: wakeup the parent device before
- trying probe
-Date: Mon, 15 Jun 2015 13:50:34 +0200
-Message-ID: <CAJZ5v0h4s4SVxFGcV-hce=UiSZXA2uMiuaRb09vfSLGkd0sKQQ@mail.gmail.com>
-References: <1434362256-239992-1-git-send-email-andriy.shevchenko@linux.intel.com>
-	<1434362256-239992-4-git-send-email-andriy.shevchenko@linux.intel.com>
+From: Matt Fleming <matt@codeblueprint.co.uk>
+Subject: Re: [PATCH V3 4/4] acpi, apei: use EFI memmap to map GHES memory
+Date: Mon, 15 Jun 2015 15:15:33 +0100
+Message-ID: <20150615141533.GB17685@codeblueprint.co.uk>
+References: <1434047160-23358-1-git-send-email-zjzhang@codeaurora.org>
+ <1434047160-23358-5-git-send-email-zjzhang@codeaurora.org>
+ <20150612162924.GH9084@pd.tnic>
+ <557B6ED9.3020706@codeaurora.org>
+ <20150613082750.GA3470@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1434362256-239992-4-git-send-email-andriy.shevchenko@linux.intel.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Vinod Koul <vinod.koul@intel.com>, Lee Jones <lee.jones@linaro.org>, Andrew Morton <akpm@linux-foundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, dmaengine@vger.kernel.org, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Mike Turquette <mturquette@linaro.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wi0-f176.google.com ([209.85.212.176]:36051 "EHLO
+	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750917AbbFOOPi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Jun 2015 10:15:38 -0400
+Received: by wigg3 with SMTP id g3so79168914wig.1
+        for <linux-acpi@vger.kernel.org>; Mon, 15 Jun 2015 07:15:37 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20150613082750.GA3470@pd.tnic>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: "Zhang, Jonathan Zhixiong" <zjzhang@codeaurora.org>, Matt Fleming <matt.fleming@intel.com>, Thomas Gleixner <tglx@linutronix.de>, fu.wei@linaro.org, al.stone@linaro.org, tony.luck@gmail.com, rjw@rjwysocki.net, lenb@kernel.org, ying.huang@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Mon, Jun 15, 2015 at 11:57 AM, Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
-> From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
->
-> If the parent is still suspended when driver probe is
-> attempted, the result may be failure.
->
-> For example, if the parent is a PCI MFD device that has been
-> suspended when we try to probe our device, any register
-> reads will return 0xffffffff.
->
-> To fix the problem, making sure the parent is always awake
-> before attempting driver probe.
->
-> Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-> Signed-off-by: Rafael J. Wysocki <rjw@rjwysocki.net>
+On Sat, 13 Jun, at 10:27:51AM, Borislav Petkov wrote:
+> On Fri, Jun 12, 2015 at 04:44:25PM -0700, Zhang, Jonathan Zhixiong wrote:
+> > Since such function is only needed for APEI functionality, at least as
+> > of today, I will name it arch_apei_get_mem_attribute().
+> 
+> Why?
+> 
+> It can be extended to be used generically too, no? Come to think of it,
+> the different arches should already have a way to tell you with what mem
+> attributes a physical address is mapped, no?
+> 
+> IOW, such functionality should be already present, you'd only have to
+> find it and use it.
 
-Please use my Intel sign-off with this one:
+I did think about this, but I don't think we have a generic way to ask
+the firmware for its memory map.
 
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+The problem on x86 of course is that we simply ignore what the firmware
+tells us most of the time because everything gets funneled through the
+e820 map and we eventually discard the EFI memmap.
 
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> ---
->  drivers/base/dd.c | 14 ++++++++++++++
->  1 file changed, 14 insertions(+)
->
-> diff --git a/drivers/base/dd.c b/drivers/base/dd.c
-> index e843fdb..c4c1eaf 100644
-> --- a/drivers/base/dd.c
-> +++ b/drivers/base/dd.c
-> @@ -399,6 +399,8 @@ EXPORT_SYMBOL_GPL(wait_for_device_probe);
->   *
->   * This function must be called with @dev lock held.  When called for a
->   * USB interface, @dev->parent lock must be held as well.
-> + *
-> + * If the device has a parent, runtime-resume the parent before driver probing.
->   */
->  int driver_probe_device(struct device_driver *drv, struct device *dev)
->  {
-> @@ -410,10 +412,16 @@ int driver_probe_device(struct device_driver *drv, struct device *dev)
->         pr_debug("bus: '%s': %s: matched device %s with driver %s\n",
->                  drv->bus->name, __func__, dev_name(dev), drv->name);
->
-> +       if (dev->parent)
-> +               pm_runtime_get_sync(dev->parent);
-> +
->         pm_runtime_barrier(dev);
->         ret = really_probe(dev, drv);
->         pm_request_idle(dev);
->
-> +       if (dev->parent)
-> +               pm_runtime_put(dev->parent);
-> +
->         return ret;
->  }
->
-> @@ -459,8 +467,14 @@ int device_attach(struct device *dev)
->                         ret = 0;
->                 }
->         } else {
-> +               if (dev->parent)
-> +                       pm_runtime_get_sync(dev->parent);
-> +
->                 ret = bus_for_each_drv(dev->bus, NULL, dev, __device_attach);
->                 pm_request_idle(dev);
-> +
-> +               if (dev->parent)
-> +                       pm_runtime_put(dev->parent);
->         }
->  out_unlock:
->         device_unlock(dev);
-> --
-> 2.1.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pm" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Matt Fleming, Intel Open Source Technology Center
