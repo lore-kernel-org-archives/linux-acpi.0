@@ -1,39 +1,46 @@
-From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Subject: [PATCH v6 6/7] PCC: Enable PCC only when needed
-Date: Mon, 15 Jun 2015 16:09:10 -0400
-Message-ID: <56fc29c35e139eaa1733c9c29073339fabf93956.1434398373.git.ashwin.chaugule@linaro.org>
-References: <cover.1434398373.git.ashwin.chaugule@linaro.org>
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <cover.1434398373.git.ashwin.chaugule@linaro.org>
-In-Reply-To: <cover.1434398373.git.ashwin.chaugule@linaro.org>
-References: <cover.1434398373.git.ashwin.chaugule@linaro.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: rjw@rjwysocki.net, jaswinder.singh@linaro.org
-Cc: linux-pm@vger.kernel.org, linaro-acpi@lists.linaro.org, patches@linaro.org, linux-acpi@vger.kernel.org, viresh.kumar@linaro.org, sudeep.holla@arm.com, Ashwin Chaugule <ashwin.chaugule@linaro.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 00/12] ACPI: constify patches and other minor fixes
+Date: Tue, 16 Jun 2015 00:49:45 +0200
+Message-ID: <1575178.P3pyudAmuh@vostro.rjw.lan>
+References: <1434198420-8519-1-git-send-email-minipli@googlemail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:61016 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1750918AbbFOWXs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Jun 2015 18:23:48 -0400
+In-Reply-To: <1434198420-8519-1-git-send-email-minipli@googlemail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mathias Krause <minipli@googlemail.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-CPPC is the first client to make use of the PCC Mailbox channel. So
-enable it only when CPPC is also enabled.
+On Saturday, June 13, 2015 02:26:48 PM Mathias Krause wrote:
+> Hi Rafael, Len,
+> 
+> this series constifies a few variables in the ACPI code that are read
+> only and therefore can be const. The main goal is to constify all users
+> of struct acpi_device_id, but while digging through the code I found a
+> few other places that could be improved too (constifying other variables
+> in patches 1, 2, 4 and 9 as adding __init annotations where sensible in
+> patch 7 or dropping bogus annotations in patch 3).
+> 
+> This series only handles the ACPI related bits for the constification of
+> struct acpi_device_id but all other users have been changed too (you've
+> been Cc'ed on the corresponding patches).
+> 
+> Please apply!
 
-Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Reviewed-by: Al Stone <al.stone@linaro.org>
----
- drivers/mailbox/Kconfig | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+I've queued up the series for 4.2 except for patches [3/12] and [4/12].
 
-diff --git a/drivers/mailbox/Kconfig b/drivers/mailbox/Kconfig
-index 84b0a2d..60c8da6 100644
---- a/drivers/mailbox/Kconfig
-+++ b/drivers/mailbox/Kconfig
-@@ -45,7 +45,7 @@ config OMAP_MBOX_KFIFO_SIZE
- 
- config PCC
- 	bool "Platform Communication Channel Driver"
--	depends on ACPI
-+	depends on ACPI && ACPI_CPPC
- 	help
- 	  ACPI 5.0+ spec defines a generic mode of communication
- 	  between the OS and a platform such as the BMC. This medium
+My recollection of the __refdata in the processor driver is that it was needed
+for some obscure reason, so that one requires some more thorough code inspection
+and the [4/12] gets in the way of something (I'll apply it later when I'm done
+with that other thing).
+
+
 -- 
-1.9.1
-
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
