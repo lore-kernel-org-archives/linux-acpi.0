@@ -1,33 +1,66 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH 2/2] apei/erst-dbg: Define pr_fmt macro to avoid the
- duplication of ERST_DBG_PFX
-Date: Mon, 15 Jun 2015 07:42:33 -0700
-Message-ID: <1434379353.2507.52.camel@perches.com>
-References: <1434362250-217135-1-git-send-email-long.wanglong@huawei.com>
-	 <1434362250-217135-2-git-send-email-long.wanglong@huawei.com>
+From: Roland Dreier <roland@purestorage.com>
+Subject: Re: Regression in 3.10.80 vs. 3.10.79
+Date: Mon, 15 Jun 2015 07:56:05 -0700
+Message-ID: <CAL1RGDV16N_TngC8gN9ZF9TR-oOu+QkhXp=7rwcM4E_X12BvQw@mail.gmail.com>
+References: <CAL1RGDV6hr3_Oa6O-kPzx9EemtOWWtYq+-RkCzN7axNPLz5MJw@mail.gmail.com>
+ <1903121.bsBlXHXLzb@vostro.rjw.lan> <CAL1RGDVMwmpB2Gap3HcWzUP6MAr83wtkZLic9dv8Ms6wLEX95A@mail.gmail.com>
+ <2035450.JLWirv5QXd@vostro.rjw.lan> <CAL1RGDXak7oCpOQeXqvDxHf2ihZD6jUopKPZMPCLdPfLO38qWg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1434362250-217135-2-git-send-email-long.wanglong@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Wang Long <long.wanglong@huawei.com>
-Cc: rjw@rjwysocki.net, lenb@kernel.org, ying.huang@intel.com, tony.luck@intel.com, bp@suse.de, gong.chen@linux.intel.com, tomasz.nowicki@linaro.org, lv.zheng@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, wanglong@laoqinren.net, peifeiyue@huawei.com
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from na3sys010aog108.obsmtp.com ([74.125.245.84]:37143 "EHLO
+	mail-la0-f52.google.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754109AbbFOO42 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Jun 2015 10:56:28 -0400
+Received: by laka10 with SMTP id a10so12033321lak.0
+        for <linux-acpi@vger.kernel.org>; Mon, 15 Jun 2015 07:56:26 -0700 (PDT)
+In-Reply-To: <CAL1RGDXak7oCpOQeXqvDxHf2ihZD6jUopKPZMPCLdPfLO38qWg@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: LKML <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, George McCollister <george.mccollister@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>
 
-On Mon, 2015-06-15 at 09:57 +0000, Wang Long wrote:
-> Define pr_fmt macro with {ERST DBG: } prefix, then remove all use
-> of ERST_DBG_PFXin the pr_* functions.
-[]
-> diff --git a/drivers/acpi/apei/erst-dbg.c b/drivers/acpi/apei/erst-dbg.c
-[]
-> @@ -31,7 +31,8 @@
->  
->  #include "apei-internal.h"
->  
-> -#define ERST_DBG_PFX			"ERST DBG: "
-> +#undef pr_fmt
-> +#define pr_fmt(fmt) "ERST DBG: " fmt
+On Sat, Jun 13, 2015 at 9:56 AM, Roland Dreier <roland@purestorage.com> wrote:
+> Below is a more sophisticated, so to speak, version of it with a changelog and
+> all.  It works for me, but more testing would be much appreciated.
 
-Moving this #define above the first #include is what's
-generally done and doesn't require an #undef
+Yes, the patch works as expected:
+
+Tested-by: Roland Dreier <roland@purestorage.com>
+
+
+It does change /proc/ioports heirarchy to
+
+  0400-0403 : ACPI PM1a_EVT_BLK
+  0404-0405 : ACPI PM1a_CNT_BLK
+  0406-0407 : pnp 00:06
+  0408-040b : ACPI PM_TMR
+  040c-041f : pnp 00:06
+    0410-0415 : ACPI CPU throttle
+  0420-042f : ACPI GPE0_BLK
+  0430-044f : pnp 00:06
+    0430-0433 : iTCO_wdt
+      0430-0433 : iTCO_wdt
+  0450-0450 : ACPI PM2_CNT_BLK
+  0451-047f : pnp 00:06
+    0460-047f : iTCO_wdt
+      0460-047f : iTCO_wdt
+
+where the old kernel had
+
+  0400-047f : pnp 00:06
+    0400-0403 : ACPI PM1a_EVT_BLK
+    0404-0405 : ACPI PM1a_CNT_BLK
+    0408-040b : ACPI PM_TMR
+    0410-0415 : ACPI CPU throttle
+    0420-042f : ACPI GPE0_BLK
+    0430-0433 : iTCO_wdt
+      0430-0433 : iTCO_wdt
+    0450-0450 : ACPI PM2_CNT_BLK
+    0460-047f : iTCO_wdt
+      0460-047f : iTCO_wdt
+
+but I don't think that matters.
+
+Thanks,
+ - R.
