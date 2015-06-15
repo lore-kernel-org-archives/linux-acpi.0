@@ -1,66 +1,42 @@
-From: Wang Long <long.wanglong@huawei.com>
-Subject: [PATCH 2/2] apei/erst-dbg: Define pr_fmt macro to avoid the duplication of ERST_DBG_PFX
-Date: Mon, 15 Jun 2015 09:57:30 +0000
-Message-ID: <1434362250-217135-2-git-send-email-long.wanglong@huawei.com>
-References: <1434362250-217135-1-git-send-email-long.wanglong@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1434362250-217135-1-git-send-email-long.wanglong@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org, ying.huang@intel.com
-Cc: tony.luck@intel.com, bp@suse.de, gong.chen@linux.intel.com, long.wanglong@huawei.com, tomasz.nowicki@linaro.org, lv.zheng@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, wanglong@laoqinren.net, peifeiyue@huawei.com
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v4 6/8] mfd: make mfd_remove_devices() iterate in reverse order
+Date: Mon, 15 Jun 2015 12:57:34 +0300
+Message-ID: <1434362256-239992-7-git-send-email-andriy.shevchenko@linux.intel.com>
+References: <1434362256-239992-1-git-send-email-andriy.shevchenko@linux.intel.com>
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1434362256-239992-1-git-send-email-andriy.shevchenko@linux.intel.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Vinod Koul <vinod.koul@intel.com>, Lee Jones <lee.jones@linaro.org>, Andrew Morton <akpm@linux-foundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Mike Turquette <mturquette@linaro.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Define pr_fmt macro with {ERST DBG: } prefix, then remove all use
-of ERST_DBG_PFXin the pr_* functions.
+The newly introduced device_for_each_child_reverse() would be used when MFD
+core removes the device.
 
-Signed-off-by: Wang Long <long.wanglong@huawei.com>
+After this patch applied the devices will be removed in a reversed order. This
+behaviour is useful when devices have implicit dependency on order, i.e.
+consider MFD device with serial bus controller, such as SPI, and DMA IP that is
+attached to serial bus controller: before remove the DMA driver we have to be
+ensured that no DMA transfers is ongoing and the requested channel are unused.
+
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- drivers/acpi/apei/erst-dbg.c | 10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/mfd/mfd-core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/apei/erst-dbg.c b/drivers/acpi/apei/erst-dbg.c
-index 3a57ffb..48e9490 100644
---- a/drivers/acpi/apei/erst-dbg.c
-+++ b/drivers/acpi/apei/erst-dbg.c
-@@ -31,7 +31,8 @@
- 
- #include "apei-internal.h"
- 
--#define ERST_DBG_PFX			"ERST DBG: "
-+#undef pr_fmt
-+#define pr_fmt(fmt) "ERST DBG: " fmt
- 
- #define ERST_DBG_RECORD_LEN_MAX		0x4000
- 
-@@ -130,8 +131,7 @@ retry:
- 	if (rc < 0)
- 		goto out;
- 	if (len > ERST_DBG_RECORD_LEN_MAX) {
--		pr_warn(ERST_DBG_PFX
--			   "Record (ID: 0x%llx) length is too long: %zd\n",
-+		pr_warn("Record (ID: 0x%llx) length is too long: %zd\n",
- 			   id, len);
- 		rc = -EIO;
- 		goto out;
-@@ -171,7 +171,7 @@ static ssize_t erst_dbg_write(struct file *filp, const char __user *ubuf,
- 		return -EPERM;
- 
- 	if (usize > ERST_DBG_RECORD_LEN_MAX) {
--		pr_err(ERST_DBG_PFX "Too long record to be written\n");
-+		pr_err("Too long record to be written\n");
- 		return -EINVAL;
- 	}
- 
-@@ -223,7 +223,7 @@ static struct miscdevice erst_dbg_dev = {
- static __init int erst_dbg_init(void)
+diff --git a/drivers/mfd/mfd-core.c b/drivers/mfd/mfd-core.c
+index 1aed3b7..79eeaa5 100644
+--- a/drivers/mfd/mfd-core.c
++++ b/drivers/mfd/mfd-core.c
+@@ -300,7 +300,7 @@ void mfd_remove_devices(struct device *parent)
  {
- 	if (erst_disable) {
--		pr_info(ERST_DBG_PFX "ERST support is disabled.\n");
-+		pr_info("ERST support is disabled.\n");
- 		return -ENODEV;
- 	}
- 	return misc_register(&erst_dbg_dev);
+ 	atomic_t *cnts = NULL;
+ 
+-	device_for_each_child(parent, &cnts, mfd_remove_devices_fn);
++	device_for_each_child_reverse(parent, &cnts, mfd_remove_devices_fn);
+ 	kfree(cnts);
+ }
+ EXPORT_SYMBOL(mfd_remove_devices);
 -- 
-1.8.3.4
+2.1.4
+
