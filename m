@@ -1,66 +1,58 @@
-From: Roland Dreier <roland@purestorage.com>
-Subject: Re: Regression in 3.10.80 vs. 3.10.79
-Date: Mon, 15 Jun 2015 07:56:05 -0700
-Message-ID: <CAL1RGDV16N_TngC8gN9ZF9TR-oOu+QkhXp=7rwcM4E_X12BvQw@mail.gmail.com>
-References: <CAL1RGDV6hr3_Oa6O-kPzx9EemtOWWtYq+-RkCzN7axNPLz5MJw@mail.gmail.com>
- <1903121.bsBlXHXLzb@vostro.rjw.lan> <CAL1RGDVMwmpB2Gap3HcWzUP6MAr83wtkZLic9dv8Ms6wLEX95A@mail.gmail.com>
- <2035450.JLWirv5QXd@vostro.rjw.lan> <CAL1RGDXak7oCpOQeXqvDxHf2ihZD6jUopKPZMPCLdPfLO38qWg@mail.gmail.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH V3 4/4] acpi, apei: use EFI memmap to map GHES memory
+Date: Mon, 15 Jun 2015 16:59:08 +0200
+Message-ID: <20150615145908.GK4255@pd.tnic>
+References: <1434047160-23358-1-git-send-email-zjzhang@codeaurora.org>
+ <1434047160-23358-5-git-send-email-zjzhang@codeaurora.org>
+ <20150612162924.GH9084@pd.tnic>
+ <557B6ED9.3020706@codeaurora.org>
+ <20150613082750.GA3470@pd.tnic>
+ <20150615141533.GB17685@codeblueprint.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from na3sys010aog108.obsmtp.com ([74.125.245.84]:37143 "EHLO
-	mail-la0-f52.google.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754109AbbFOO42 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 15 Jun 2015 10:56:28 -0400
-Received: by laka10 with SMTP id a10so12033321lak.0
-        for <linux-acpi@vger.kernel.org>; Mon, 15 Jun 2015 07:56:26 -0700 (PDT)
-In-Reply-To: <CAL1RGDXak7oCpOQeXqvDxHf2ihZD6jUopKPZMPCLdPfLO38qWg@mail.gmail.com>
+Received: from mail.skyhub.de ([78.46.96.112]:56637 "EHLO mail.skyhub.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755373AbbFOO7P (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 15 Jun 2015 10:59:15 -0400
+Content-Disposition: inline
+In-Reply-To: <20150615141533.GB17685@codeblueprint.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: LKML <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, George McCollister <george.mccollister@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>
+To: Matt Fleming <matt@codeblueprint.co.uk>
+Cc: "Zhang, Jonathan Zhixiong" <zjzhang@codeaurora.org>, Matt Fleming <matt.fleming@intel.com>, Thomas Gleixner <tglx@linutronix.de>, fu.wei@linaro.org, al.stone@linaro.org, tony.luck@gmail.com, rjw@rjwysocki.net, lenb@kernel.org, ying.huang@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Sat, Jun 13, 2015 at 9:56 AM, Roland Dreier <roland@purestorage.com> wrote:
-> Below is a more sophisticated, so to speak, version of it with a changelog and
-> all.  It works for me, but more testing would be much appreciated.
+On Mon, Jun 15, 2015 at 03:15:33PM +0100, Matt Fleming wrote:
+> On Sat, 13 Jun, at 10:27:51AM, Borislav Petkov wrote:
+> > On Fri, Jun 12, 2015 at 04:44:25PM -0700, Zhang, Jonathan Zhixiong wrote:
+> > > Since such function is only needed for APEI functionality, at least as
+> > > of today, I will name it arch_apei_get_mem_attribute().
+> > 
+> > Why?
+> > 
+> > It can be extended to be used generically too, no? Come to think of it,
+> > the different arches should already have a way to tell you with what mem
+> > attributes a physical address is mapped, no?
+> > 
+> > IOW, such functionality should be already present, you'd only have to
+> > find it and use it.
+> 
+> I did think about this, but I don't think we have a generic way to ask
+> the firmware for its memory map.
 
-Yes, the patch works as expected:
+Not the firmware but the OS. Like on x86, for example, we have MTRRs
+and PAT and they cover the whole range. Basically what lookup_memtype()
+does. We already have that info, why not query it instead of growing
+more stuff ontop.
 
-Tested-by: Roland Dreier <roland@purestorage.com>
+I mean, we do ioremap* which does reserve_memtype() and sticks the range
+in the rbtree which we query after. Can't be better than that...
 
+Hmmm.
 
-It does change /proc/ioports heirarchy to
+-- 
+Regards/Gruss,
+    Boris.
 
-  0400-0403 : ACPI PM1a_EVT_BLK
-  0404-0405 : ACPI PM1a_CNT_BLK
-  0406-0407 : pnp 00:06
-  0408-040b : ACPI PM_TMR
-  040c-041f : pnp 00:06
-    0410-0415 : ACPI CPU throttle
-  0420-042f : ACPI GPE0_BLK
-  0430-044f : pnp 00:06
-    0430-0433 : iTCO_wdt
-      0430-0433 : iTCO_wdt
-  0450-0450 : ACPI PM2_CNT_BLK
-  0451-047f : pnp 00:06
-    0460-047f : iTCO_wdt
-      0460-047f : iTCO_wdt
-
-where the old kernel had
-
-  0400-047f : pnp 00:06
-    0400-0403 : ACPI PM1a_EVT_BLK
-    0404-0405 : ACPI PM1a_CNT_BLK
-    0408-040b : ACPI PM_TMR
-    0410-0415 : ACPI CPU throttle
-    0420-042f : ACPI GPE0_BLK
-    0430-0433 : iTCO_wdt
-      0430-0433 : iTCO_wdt
-    0450-0450 : ACPI PM2_CNT_BLK
-    0460-047f : iTCO_wdt
-      0460-047f : iTCO_wdt
-
-but I don't think that matters.
-
-Thanks,
- - R.
+ECO tip #101: Trim your mails when you reply.
+--
