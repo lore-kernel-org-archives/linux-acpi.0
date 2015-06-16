@@ -1,75 +1,145 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v3 35/35] acpi-video: Make acpi_video_unregister_backlight() private
-Date: Tue, 16 Jun 2015 16:28:13 +0200
-Message-ID: <1434464893-3529-36-git-send-email-hdegoede@redhat.com>
-References: <1434464893-3529-1-git-send-email-hdegoede@redhat.com>
+From: Charles Keepax <ckeepax@opensource.wolfsonmicro.com>
+Subject: Re: Fwd: ASoC : WM5102 Audio Codec needs ACPI support and a
+	baytrail machine driver
+Date: Tue, 16 Jun 2015 15:47:33 +0100
+Message-ID: <20150616144732.GN32730@opensource.wolfsonmicro.com>
+References: <CAKor6TdbnLuJCsBPykPEmhGk-zBLggKxw4Z+=QuBb6Mz2ThD3g@mail.gmail.com> <CAKor6TeP2HfqpHiKK86GLYLpCNk87y66bdjye_mAqXuMXxPMWA@mail.gmail.com> <CAKor6Tdg5yHaLVrCrWFVuydVcYUUtYr=oSj+k37Yd9O64+tg6A@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:33909 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754399AbbFPOan (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 16 Jun 2015 10:30:43 -0400
-In-Reply-To: <1434464893-3529-1-git-send-email-hdegoede@redhat.com>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:49528 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756159AbbFPOrf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 16 Jun 2015 10:47:35 -0400
+Content-Disposition: inline
+In-Reply-To: <CAKor6Tdg5yHaLVrCrWFVuydVcYUUtYr=oSj+k37Yd9O64+tg6A@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Darren Hart <dvhart@infradead.org>
-Cc: Aaron Lu <aaron.lu@intel.com>, Ben Skeggs <bskeggs@redhat.com>, Lee Chun-Yi <jlee@suse.com>, Peter Feuerer <peter@piie.net>, Corentin Chary <corentin.chary@gmail.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, Jonathan Woithe <jwoithe@just42.net>, Ike Panhc <ike.pan@canonical.com>, Anisse Astier <anisse@astier.eu>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Azael Avalos <coproscefalo@gmail.com>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, acpi4asus-user@lists.sourceforge.net, ibm-acpi-devel@lists.sourceforge.net, Hans de Goede <hdegoede@redhat.com>
+To: Christian Hartmann <cornogle@googlemail.com>
+Cc: patches@opensource.wolfsonmicro.com, linux-acpi <linux-acpi@vger.kernel.org>
 
-acpi_video_unregister_backlight() is now only used by video_detect.c
-which is part of the same acpi_video module as video.c, make
-acpi_video_unregister_backlight() private to this module.
+On Tue, Jun 16, 2015 at 03:10:42PM +0200, Christian Hartmann wrote:
+> ---------- Forwarded message ----------
+> From: Christian Hartmann <cornogle@googlemail.com>
+> Date: 2015-06-16 14:27 GMT+02:00
+> Subject: Re: ASoC : WM5102 Audio Codec needs ACPI support and a
+> baytrail machine driver
+> To: alsa-devel@alsa-project.org
+> 
+> 
+> Hi again,
+> 
+> 
+> some notes to the NULL pointer dereference error
+> I have changed the function arizona_spi_probe in arizona-spi.c and
+> have looked into the code where the NULL is coming...
+> 
+> in drivers/spi/spi.c the function spi_get_device_id() returns NULL,
+> cause the called function spi_match_id() does never match an id string
+> (there is no modalias string available I think).
+> With the id = NULL the line
+> type = id->driver_data; will throw the described exception.
+> 
+> Going on further, it seems that "id" has no such structure element of
+> "->driver_data", or I cannot find it.
+> 
+> Can someone please explain me in some simple words where the element
+> driver_data is coming or will be set
+> in THIS function of arizona_spi_probe()
+> 
+> The id->driver_data is not working for the acpi case...
+> This tablet does not have openfirmware (OF) by the way. The code seems
+> to be optimized for the Openfirmware API, but not for the ACPI case.
+> 
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/acpi/acpi_video.c   | 1 -
- drivers/acpi/video_detect.c | 2 ++
- include/acpi/video.h        | 2 --
- 3 files changed, 2 insertions(+), 3 deletions(-)
+Alas you are correct this driver has no built in support for ACPI
+at the moment. So you are going to need to add that to get it
+working on an ACPI system.
 
-diff --git a/drivers/acpi/acpi_video.c b/drivers/acpi/acpi_video.c
-index 5b877a1..8c2fe2f 100644
---- a/drivers/acpi/acpi_video.c
-+++ b/drivers/acpi/acpi_video.c
-@@ -2021,7 +2021,6 @@ void acpi_video_unregister_backlight(void)
- 	}
- 	mutex_unlock(&register_count_mutex);
- }
--EXPORT_SYMBOL(acpi_video_unregister_backlight);
- 
- /*
-  * This is kind of nasty. Hardware using Intel chipsets may require
-diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-index c392579..815f75e 100644
---- a/drivers/acpi/video_detect.c
-+++ b/drivers/acpi/video_detect.c
-@@ -37,6 +37,8 @@
- ACPI_MODULE_NAME("video");
- #define _COMPONENT		ACPI_VIDEO_COMPONENT
- 
-+void acpi_video_unregister_backlight(void);
-+
- static bool backlight_notifier_registered;
- static struct notifier_block backlight_nb;
- 
-diff --git a/include/acpi/video.h b/include/acpi/video.h
-index 47c7ad6..a7d7f10 100644
---- a/include/acpi/video.h
-+++ b/include/acpi/video.h
-@@ -27,7 +27,6 @@ enum acpi_backlight_type {
- #if (defined CONFIG_ACPI_VIDEO || defined CONFIG_ACPI_VIDEO_MODULE)
- extern int acpi_video_register(void);
- extern void acpi_video_unregister(void);
--extern void acpi_video_unregister_backlight(void);
- extern int acpi_video_get_edid(struct acpi_device *device, int type,
- 			       int device_id, void **edid);
- extern enum acpi_backlight_type acpi_video_get_backlight_type(void);
-@@ -35,7 +34,6 @@ extern void acpi_video_set_dmi_backlight_type(enum acpi_backlight_type type);
- #else
- static inline int acpi_video_register(void) { return 0; }
- static inline void acpi_video_unregister(void) { return; }
--static inline void acpi_video_unregister_backlight(void) { return; }
- static inline int acpi_video_get_edid(struct acpi_device *device, int type,
- 				      int device_id, void **edid)
- {
--- 
-2.3.6
+I don't really have any experience with ACPI so can't really be of
+much assistance here. However, most of these device match functions
+OF or the SPI built in system contain two fields an ID and some
+driver data. As you can see in the code:
+
+	if (spi->dev.of_node)
+		type = arizona_of_get_type(&spi->dev);
+	else
+		type = id->driver_data;
+
+We extract the type in suitable ways for the SPI built in match
+and for the OF match up, I presume you need to do something
+similar that is specific to the ACPI case. I would suggest here
+looking up other ACPI drivers and seeing how they handle this
+situation.
+
+What I would expect to see is an extra else if in this statement
+that does something specific to the ACPI case.
+
+> 
+> 
+> this is the currently local changed code to test and find null pointer
+> inarizona-spi.c.
+> 
+> diff --git a/drivers/mfd/arizona-spi.c b/drivers/mfd/arizona-spi.c
+> index 1e845f6..de48cf6 100644
+> --- a/drivers/mfd/arizona-spi.c
+> +++ b/drivers/mfd/arizona-spi.c
+> @@ -25,16 +25,26 @@
+> 
+>  static int arizona_spi_probe(struct spi_device *spi)
+>  {
+> -       const struct spi_device_id *id = spi_get_device_id(spi);
+> +       const struct spi_device_id *id ;
+>         struct arizona *arizona;
+>         const struct regmap_config *regmap_config;
+>         unsigned long type;
+>         int ret;
+> 
+> -       if (spi->dev.of_node)
+> -               type = arizona_of_get_type(&spi->dev);
+> -       else
+> +       /*
+> +       id = spi_get_device_id(spi);
+> +
+> +       if (!id)
+> +               return -EINVAL;
+> +       type = id->driver_data;
+> +       */
+> +       id = WM5102;
+> +
+> +       if (id->driver_data)
+>                 type = id->driver_data;
+> +       else
+> +               type = WM5102;
+> +
+
+This just defaults to WM5102 whenever we arn't using the spi
+matching, which will probably get you running but clearly isn't
+going to be a suitable solution.
+
+> 
+>         switch (type) {
+>  #ifdef CONFIG_MFD_WM5102
+> @@ -90,11 +100,23 @@ static const struct spi_device_id arizona_spi_ids[] = {
+>  };
+>  MODULE_DEVICE_TABLE(spi, arizona_spi_ids);
+> 
+> +#ifdef CONFIG_ACPI
+> +static const struct acpi_device_id wm5102_acpi_match[] = {
+> +       { "WM510205", WM5102 },
+> +       {},
+> +};
+> +
+> +MODULE_DEVICE_TABLE(acpi, wm5102_acpi_match);
+> +#ifdef CONFIG_ACPI
+> +static const struct acpi_device_id wm5102_acpi_match[] = {
+> +       { "WM510205", WM5102 },
+
+The second entry here should be the driver_data, the ACPI id does
+look a bit odd but I guess this is what our Windows guys are
+using.
+
+Thanks,
+Charles
 
