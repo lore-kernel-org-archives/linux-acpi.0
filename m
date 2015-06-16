@@ -1,8 +1,11 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v3 21/35] compal-laptop: Port to new backlight interface selection API
-Date: Tue, 16 Jun 2015 16:27:59 +0200
-Message-ID: <1434464893-3529-22-git-send-email-hdegoede@redhat.com>
+Subject: [PATCH v3 22/35] dell-laptop: Port to new backlight interface selection API
+Date: Tue, 16 Jun 2015 16:28:00 +0200
+Message-ID: <1434464893-3529-23-git-send-email-hdegoede@redhat.com>
 References: <1434464893-3529-1-git-send-email-hdegoede@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <platform-driver-x86-owner@vger.kernel.org>
 In-Reply-To: <1434464893-3529-1-git-send-email-hdegoede@redhat.com>
 Sender: platform-driver-x86-owner@vger.kernel.org
@@ -14,31 +17,38 @@ Port the backlight selection logic to the new backlight interface
 selection API.
 
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Acked-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
 ---
- drivers/platform/x86/compal-laptop.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/platform/x86/dell-laptop.c | 8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/platform/x86/compal-laptop.c b/drivers/platform/x86/compal-laptop.c
-index b4e9447..f2706d2 100644
---- a/drivers/platform/x86/compal-laptop.c
-+++ b/drivers/platform/x86/compal-laptop.c
-@@ -82,7 +82,7 @@
- #include <linux/hwmon-sysfs.h>
- #include <linux/power_supply.h>
- #include <linux/fb.h>
--
+diff --git a/drivers/platform/x86/dell-laptop.c b/drivers/platform/x86/=
+dell-laptop.c
+index d688d80..01d0810 100644
+--- a/drivers/platform/x86/dell-laptop.c
++++ b/drivers/platform/x86/dell-laptop.c
+@@ -31,6 +31,7 @@
+ #include <linux/slab.h>
+ #include <linux/debugfs.h>
+ #include <linux/seq_file.h>
 +#include <acpi/video.h>
- 
- /* ======= */
- /* Defines */
-@@ -959,7 +959,7 @@ static int __init compal_init(void)
- 		return -ENODEV;
- 	}
- 
--	if (!acpi_video_backlight_support()) {
-+	if (acpi_video_get_backlight_type() == acpi_backlight_vendor) {
- 		struct backlight_properties props;
- 		memset(&props, 0, sizeof(struct backlight_properties));
- 		props.type = BACKLIGHT_PLATFORM;
--- 
+ #include "../../firmware/dcdbas.h"
+=20
+ #define BRIGHTNESS_TOKEN 0x7d
+@@ -1920,13 +1921,8 @@ static int __init dell_init(void)
+ 		debugfs_create_file("rfkill", 0444, dell_laptop_dir, NULL,
+ 				    &dell_debugfs_fops);
+=20
+-#ifdef CONFIG_ACPI
+-	/* In the event of an ACPI backlight being available, don't
+-	 * register the platform controller.
+-	 */
+-	if (acpi_video_backlight_support())
++	if (acpi_video_get_backlight_type() !=3D acpi_backlight_vendor)
+ 		return 0;
+-#endif
+=20
+ 	get_buffer();
+ 	buffer->input[0] =3D find_token_location(BRIGHTNESS_TOKEN);
+--=20
 2.3.6
