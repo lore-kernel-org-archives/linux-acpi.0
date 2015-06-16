@@ -1,80 +1,255 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH v2 30/32] toshiba-acpi: Port to new backlight interface
- selection API
-Date: Tue, 16 Jun 2015 14:53:42 +0200
-Message-ID: <55801C56.2070401@redhat.com>
-References: <1434108231-12323-1-git-send-email-hdegoede@redhat.com>	<1434108231-12323-31-git-send-email-hdegoede@redhat.com> <CAGdLNWG02EY7P4A8sn+gGzgqDLWwBKPWg5aFM9LyemqiM4QNWg@mail.gmail.com>
+From: Christian Hartmann <cornogle@googlemail.com>
+Subject: Fwd: ASoC : WM5102 Audio Codec needs ACPI support and a baytrail
+ machine driver
+Date: Tue, 16 Jun 2015 15:10:42 +0200
+Message-ID: <CAKor6Tdg5yHaLVrCrWFVuydVcYUUtYr=oSj+k37Yd9O64+tg6A@mail.gmail.com>
+References: <CAKor6TdbnLuJCsBPykPEmhGk-zBLggKxw4Z+=QuBb6Mz2ThD3g@mail.gmail.com>
+	<CAKor6TeP2HfqpHiKK86GLYLpCNk87y66bdjye_mAqXuMXxPMWA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <CAGdLNWG02EY7P4A8sn+gGzgqDLWwBKPWg5aFM9LyemqiM4QNWg@mail.gmail.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Azael Avalos <coproscefalo@gmail.com>
-Cc: Darren Hart <dvhart@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Ben Skeggs <bskeggs@redhat.com>, Corentin Chary <corentin.chary@gmail.com>, Lee Chun-Yi <jlee@suse.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, =?UTF-8?B?UGFsaSBSb2jDoXI=?= <pali.rohar@gmail.com>, Ike Panhc <ike.pan@canonical.com>, Anisse Astier <anisse@astier.eu>, Mattia Dongili <malattia@linux.it>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, ibm-acpi-devel@lists.sourceforge.net, acpi4asus-user@lists.sourceforge.net, dri-devel@lists.freedesktop.org, Aaron Lu <aaron.lu@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qg0-f48.google.com ([209.85.192.48]:36212 "EHLO
+	mail-qg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754670AbbFPNKn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Jun 2015 09:10:43 -0400
+Received: by qgal13 with SMTP id l13so4491844qga.3
+        for <linux-acpi@vger.kernel.org>; Tue, 16 Jun 2015 06:10:42 -0700 (PDT)
+In-Reply-To: <CAKor6TeP2HfqpHiKK86GLYLpCNk87y66bdjye_mAqXuMXxPMWA@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: patches@opensource.wolfsonmicro.com, linux-acpi <linux-acpi@vger.kernel.org>
 
-Hi,
+---------- Forwarded message ----------
+From: Christian Hartmann <cornogle@googlemail.com>
+Date: 2015-06-16 14:27 GMT+02:00
+Subject: Re: ASoC : WM5102 Audio Codec needs ACPI support and a
+baytrail machine driver
+To: alsa-devel@alsa-project.org
 
-On 06/14/2015 05:15 AM, Azael Avalos wrote:
-> Hi Hans,
+
+Hi again,
+
+
+some notes to the NULL pointer dereference error
+I have changed the function arizona_spi_probe in arizona-spi.c and
+have looked into the code where the NULL is coming...
+
+in drivers/spi/spi.c the function spi_get_device_id() returns NULL,
+cause the called function spi_match_id() does never match an id string
+(there is no modalias string available I think).
+With the id = NULL the line
+type = id->driver_data; will throw the described exception.
+
+Going on further, it seems that "id" has no such structure element of
+"->driver_data", or I cannot find it.
+
+Can someone please explain me in some simple words where the element
+driver_data is coming or will be set
+in THIS function of arizona_spi_probe()
+
+The id->driver_data is not working for the acpi case...
+This tablet does not have openfirmware (OF) by the way. The code seems
+to be optimized for the Openfirmware API, but not for the ACPI case.
+
+
+
+this is the currently local changed code to test and find null pointer
+inarizona-spi.c.
+
+diff --git a/drivers/mfd/arizona-spi.c b/drivers/mfd/arizona-spi.c
+index 1e845f6..de48cf6 100644
+--- a/drivers/mfd/arizona-spi.c
++++ b/drivers/mfd/arizona-spi.c
+@@ -25,16 +25,26 @@
+
+ static int arizona_spi_probe(struct spi_device *spi)
+ {
+-       const struct spi_device_id *id = spi_get_device_id(spi);
++       const struct spi_device_id *id ;
+        struct arizona *arizona;
+        const struct regmap_config *regmap_config;
+        unsigned long type;
+        int ret;
+
+-       if (spi->dev.of_node)
+-               type = arizona_of_get_type(&spi->dev);
+-       else
++       /*
++       id = spi_get_device_id(spi);
++
++       if (!id)
++               return -EINVAL;
++       type = id->driver_data;
++       */
++       id = WM5102;
++
++       if (id->driver_data)
+                type = id->driver_data;
++       else
++               type = WM5102;
++
+
+        switch (type) {
+ #ifdef CONFIG_MFD_WM5102
+@@ -90,11 +100,23 @@ static const struct spi_device_id arizona_spi_ids[] = {
+ };
+ MODULE_DEVICE_TABLE(spi, arizona_spi_ids);
+
++#ifdef CONFIG_ACPI
++static const struct acpi_device_id wm5102_acpi_match[] = {
++       { "WM510205", WM5102 },
++       {},
++};
++
++MODULE_DEVICE_TABLE(acpi, wm5102_acpi_match);
++#ifdef CONFIG_ACPI
++static const struct acpi_device_id wm5102_acpi_match[] = {
++       { "WM510205", WM5102 },
++       {},
++};
++
++MODULE_DEVICE_TABLE(acpi, wm5102_acpi_match);
++#endif
++
+ static struct spi_driver arizona_spi_driver = {
+        .driver = {
+                .name   = "arizona",
+                .owner  = THIS_MODULE,
+                .pm     = &arizona_pm_ops,
++#ifdef CONFIG_ACPI
++               .acpi_match_table = wm5102_acpi_match,
++#endif
+                .of_match_table = of_match_ptr(arizona_of_match),
+        },
+        .probe          = arizona_spi_probe,
+@@ -107,3 +129,4 @@ module_spi_driver(arizona_spi_driver);
+ MODULE_DESCRIPTION("Arizona SPI bus interface");
+ MODULE_AUTHOR("Mark Brown <broonie@opensource.wolfsonmicro.com>");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("spi:WM510205");
+
+
+
+cheers
+chris
+
+
+
+
+
+
+[    5.095808] pxa2xx-spi 80860F0E:00: no DMA channels available, using PIO
+[    5.095892] pxa2xx-spi 80860F0E:00: registered master spi32766 (dynamic)
+[    5.110575] spi spi-WM510205:00: 8333333 Hz actual, PIO
+[    5.110585] spi spi-WM510205:00: setup mode 0, 8 bits/w, 8000000 Hz max --> 0
+[    5.110664] pxa2xx-spi 80860F0E:00: registered child spi-WM510205:00
+[    5.245307] ACPI: Battery Slot [BATC] (battery present)
+[    5.246890] i2c i2c-4: Failed to register i2c client MAGN0001:00 at
+0x1d (-16)
+[    5.254246] i2c i2c-4: failed to add I2C device MAGN0001:00 from ACPI
+[    5.320349] arizona: probe of spi-WM510205:00 failed with error -22
+
+2015-06-16 12:00 GMT+02:00 Christian Hartmann <cornogle@googlemail.com>:
+> Hi list,
 >
-> Sorry for the late reply, I was out of town.
+> I have a device "Lenovo Yoga 851 F" which have a WM510205 Audio codec
+> on a Baytrail System.
 >
-> 2015-06-12 5:23 GMT-06:00 Hans de Goede <hdegoede@redhat.com>:
->> Port the backlight selection logic to the new backlight interface
->> selection API.
->>
->> Also fix a compiler warning about bt_present not being initialized.
->>
->> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
->> ---
->>   drivers/platform/x86/toshiba_acpi.c | 9 +++------
->>   1 file changed, 3 insertions(+), 6 deletions(-)
->>
->> diff --git a/drivers/platform/x86/toshiba_acpi.c b/drivers/platform/x86/toshiba_acpi.c
->> index 9956b990..c484d47 100644
->> --- a/drivers/platform/x86/toshiba_acpi.c
->> +++ b/drivers/platform/x86/toshiba_acpi.c
->> @@ -2640,14 +2640,11 @@ static int toshiba_acpi_setup_backlight(struct toshiba_acpi_dev *dev)
->>           */
->>          if (dev->tr_backlight_supported ||
->>              dmi_check_system(toshiba_vendor_backlight_dmi))
->> -               acpi_video_dmi_promote_vendor();
->> +               acpi_video_set_dmi_backlight_type(acpi_backlight_vendor);
->>
->> -       if (acpi_video_backlight_support())
->> +       if (acpi_video_get_backlight_type() != acpi_backlight_vendor)
->>                  return 0;
->>
->> -       /* acpi-video may have loaded before we called dmi_promote_vendor() */
->> -       acpi_video_unregister_backlight();
->> -
->>          memset(&props, 0, sizeof(props));
->>          props.type = BACKLIGHT_PLATFORM;
->>          props.max_brightness = HCI_LCD_BRIGHTNESS_LEVELS - 1;
->> @@ -2733,7 +2730,7 @@ static int toshiba_acpi_add(struct acpi_device *acpi_dev)
->>          const char *hci_method;
->>          u32 special_functions;
->>          u32 dummy;
->> -       bool bt_present;
->> +       bool bt_present = false;
->>          int ret = 0;
->>
->>          if (toshiba_acpi)
->> --
->> 2.4.2
->>
+> I have sent already one patch (spi-pxa2xx) raise num_chipselect by one, which
+> fixes to bind the arizona WM5102 codec as a spi slave attachted on a
+> pxa2xx spi master device.
 >
+> I have tried several times and added the ACPI id "WM510205"  to
+> the arizona-spi.c driver.
 >
-> Please drop the last chunk of this patch as commit
-> 2b74103547b4dfaac10cd55464cd2bcc26022a66 removed that line,
-> other than that:
+> The ACPI ID is extracted from the DSDT.dsl of this machine.
+>
+> But unfortunately it fails and I got only a NULL pointer deference error
+> in arizona_spi_probe().
+> I want to request ACPI support for this device and I cannot fix
+> currently the NULL pointer.
+>
+> I do not know yet, if I have to add this ACPI id to the arizona-spi
+> driver (sure,
+> thats what I am trying and failing) or to the NEW baytrail machine driver.
+>
+> In this case it should be the bytcr_wm5102.c and byt-wm5102.c, which
+> does not exists yet.
+>
+> I have a branched tovalds/master and added (my first attempt) the
+> above mentioned machine driver on a local branch. The result is only
+> a dsp boot timeout error.
+>
+> Any help, ideas, hints, patches to try would be appreciate
+>
+> sincerely yours
+> Christian Hartmann
+>
+> a snap of the dsdt
+>
+> Device (LPEA)
+>         {
+>             Name (_ADR, Zero)  // _ADR: Address
+>             Name (_HID, "80860F28" /* Intel SST Audio DSP */)  //
+> _HID: Hardware ID
+>             Name (_CID, "80860F28" /* Intel SST Audio DSP */)  //
+> _CID: Compatible ID
+>             Name (_DDN, "Intel(R) Low Power Audio Controller -
+> 80860F28")  // _DDN: DOS Device Name
+>             Name (_SUB, "17AA7004")  // _SUB: Subsystem ID
+>             Name (_UID, One)  // _UID: Unique ID
+>             Name (_DEP, Package (0x01)  // _DEP: Dependencies
+>             {
+>                 ^SPI1.AUDI
+>             })
+> ...
+> ...
+> Device (AUDI)
+>             {
+>                 Name (_HID, "WM510205")  // _HID: Hardware ID
+>                 Name (_CID, "WM510205")  // _CID: Compatible ID
+>                 Name (_DDN, "Wolfson Microelectronics Audio WM5102")
+> // _DDN: DOS Device Name
+>                 Method (_CRS, 0, NotSerialized)  // _CRS: Current
+> Resource Settings
+>                 {
+>                     Name (SBUF, ResourceTemplate ()
+>                     {
+>                         SpiSerialBus (0x0001, PolarityLow, FourWireMode, 0x08,
+>                             ControllerInitiated, 0x007A1200, ClockPolarityLow,
+>                             ClockPhaseFirst, "\\_SB.SPI1",
+>                             0x00, ResourceConsumer, ,
+>                             )
+>                         GpioInt (Edge, ActiveLow, ExclusiveAndWake,
+> PullNone, 0x0000,
+>                             "\\_SB.GPO2", 0x00, ResourceConsumer, ,
+>                             )
+>                             {   // Pin list
+>                                 0x0004
+>                             }
+>                         GpioIo (Exclusive, PullDefault, 0x0000,
+> 0x0000, IoRestrictionOutputOnly,
+>                             "\\_SB.I2C7.PMIC", 0x00, ResourceConsumer, ,
+>                             )
+>                             {   // Pin list
+>                                 0x0003
+>                             }
+>                         GpioIo (Exclusive, PullDefault, 0x0000,
+> 0x0000, IoRestrictionOutputOnly,
+>                             "\\_SB.GPO1", 0x00, ResourceConsumer, ,
+>                             )
+>                             {   // Pin list
+>                                 0x0017
+>                             }
+>                     })
 
-Done for v3 of the patch-set
 
-> Acked-by: Azael Avalos <coproscefalo@gmail.com>
-
-Thanks,
-
-Hans
+-- 
+--
+......oooO..............
+.....(....).....Oooo...
+......)../.....(....)....
+.....(_/.......)../.....
+...............(_/.......
+... I WAS ..............
+.......... HERE...... ;)
