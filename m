@@ -1,69 +1,95 @@
-From: Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Subject: [PATCH v3 31/35] sony-laptop: Port to new
-	backlight interface selection API
-Date: Tue, 16 Jun 2015 16:28:09 +0200
-Message-ID: <1434464893-3529-32-git-send-email-hdegoede@redhat.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH v3 34/35] acpi-video-detect: Remove old API
+Date: Tue, 16 Jun 2015 16:28:12 +0200
+Message-ID: <1434464893-3529-35-git-send-email-hdegoede@redhat.com>
 References: <1434464893-3529-1-git-send-email-hdegoede@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-In-Reply-To: <1434464893-3529-1-git-send-email-hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-List-Unsubscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://sourceforge.net/mailarchive/forum.php?forum_name=ibm-acpi-devel>
-List-Post: <mailto:ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org>
-List-Help: <mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.sourceforge.net/lists/listinfo/ibm-acpi-devel>,
-	<mailto:ibm-acpi-devel-request-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org?subject=subscribe>
-Errors-To: ibm-acpi-devel-bounces-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
-To: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Darren Hart <dvhart-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
-Cc: Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jonathan Woithe <jwoithe-sKdgaqNHyqqsTnJN9+BGXg@public.gmane.org>, Ike Panhc <ike.pan-Z7WLFzj8eWMS+FvcfC7Uqw@public.gmane.org>, Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>, Henrique de Moraes Holschuh <ibm-acpi-N3TV7GIv+o9fyO9Q7EP/yw@public.gmane.org>, acpi4asus-user-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, Peter Feuerer <peter-p08lbbvQ7EI@public.gmane.org>, Anisse Astier <anisse-fwwRqrJYcP2HXe+LvDLADg@public.gmane.org>, Azael Avalos <coproscefalo-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Lee Chun-Yi <jlee-IBi9RG/b67k@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Cezary Jackiewicz <cezary.jackiewicz-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Ben Skeggs <bskeggs-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Corentin Chary <corentin.chary-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, platform-driver-x86-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, ibm-acpi-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <1434464893-3529-1-git-send-email-hdegoede@redhat.com>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Darren Hart <dvhart@infradead.org>
+Cc: Aaron Lu <aaron.lu@intel.com>, Ben Skeggs <bskeggs@redhat.com>, Lee Chun-Yi <jlee@suse.com>, Peter Feuerer <peter@piie.net>, Corentin Chary <corentin.chary@gmail.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, Jonathan Woithe <jwoithe@just42.net>, Ike Panhc <ike.pan@canonical.com>, Anisse Astier <anisse@astier.eu>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Azael Avalos <coproscefalo@gmail.com>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, acpi4asus-user@lists.sourceforge.net, ibm-acpi-devel@lists.sourceforge.net, Hans de Goede <hdegoede@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Port the backlight selection logic to the new backlight interface
-selection API.
+Remove the old backlight interface selection API now that all drivers
+have been ported to the new API.
 
-This commit also removes various obsolete pr_xxx messages related to
-backlight interface selection. These are obsolete because they assume
-there is only a vendor or acpi backlight driver and no other choice.
-Also they are not necessary, if the user wants to know which backlight
-interfaces are registered a simple "ls /sys/class/backlight" suffices.
-
-Signed-off-by: Hans de Goede <hdegoede-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
-Acked-by: Mattia Dongili <malattia-k2GhghHVRtY@public.gmane.org>
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/platform/x86/sony-laptop.c | 7 ++-----
- 1 file changed, 2 insertions(+), 5 deletions(-)
+ drivers/acpi/video_detect.c | 31 -------------------------------
+ include/linux/acpi.h        | 19 -------------------
+ 2 files changed, 50 deletions(-)
 
-diff --git a/drivers/platform/x86/sony-laptop.c b/drivers/platform/x86/sony-laptop.c
-index e51c1e7..aeb80d1 100644
---- a/drivers/platform/x86/sony-laptop.c
-+++ b/drivers/platform/x86/sony-laptop.c
-@@ -69,6 +69,7 @@
- #include <linux/miscdevice.h>
- #endif
- #include <asm/uaccess.h>
-+#include <acpi/video.h>
+diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
+index 0df1567..c392579 100644
+--- a/drivers/acpi/video_detect.c
++++ b/drivers/acpi/video_detect.c
+@@ -340,37 +340,6 @@ void acpi_video_set_dmi_backlight_type(enum acpi_backlight_type type)
+ }
+ EXPORT_SYMBOL(acpi_video_set_dmi_backlight_type);
  
- #define dprintk(fmt, ...)			\
- do {						\
-@@ -3198,12 +3199,8 @@ static int sony_nc_add(struct acpi_device *device)
- 			sony_nc_function_setup(device, sony_pf_device);
- 	}
+-/*
+- * Compatiblity function, this is going away as soon as all drivers are
+- * converted to acpi_video_set_dmi_backlight_type().
+- *
+- * Promote the vendor interface instead of the generic video module.
+- * After calling this function you will probably want to call
+- * acpi_video_unregister() to make sure the video module is not loaded
+- */
+-void acpi_video_dmi_promote_vendor(void)
+-{
+-	acpi_video_set_dmi_backlight_type(acpi_backlight_vendor);
+-}
+-EXPORT_SYMBOL(acpi_video_dmi_promote_vendor);
+-
+-/*
+- * Compatiblity function, this is going away as soon as all drivers are
+- * converted to acpi_video_get_backlight_type().
+- *
+- * Returns true if video.ko can do backlight switching.
+- */
+-int acpi_video_backlight_support(void)
+-{
+-	/*
+-	 * This is done this way since vendor drivers call this to see
+-	 * if they should load, and we do not want them to load for both
+-	 * the acpi_backlight_video and acpi_backlight_native cases.
+-	 */
+-	return acpi_video_get_backlight_type() != acpi_backlight_vendor;
+-}
+-EXPORT_SYMBOL(acpi_video_backlight_support);
+-
+ void __exit acpi_video_detect_exit(void)
+ {
+ 	if (backlight_notifier_registered)
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index ca02a51..400b864 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -255,25 +255,6 @@ extern bool wmi_has_guid(const char *guid);
  
--	/* setup input devices and helper fifo */
--	if (acpi_video_backlight_support()) {
--		pr_info("brightness ignored, must be controlled by ACPI video driver\n");
--	} else {
-+	if (acpi_video_get_backlight_type() == acpi_backlight_vendor)
- 		sony_nc_backlight_setup();
--	}
- 
- 	/* create sony_pf sysfs attributes related to the SNC device */
- 	for (item = sony_nc_values; item->name; ++item) {
+ extern char acpi_video_backlight_string[];
+ extern long acpi_is_video_device(acpi_handle handle);
+-
+-#if defined(CONFIG_ACPI_VIDEO) || defined(CONFIG_ACPI_VIDEO_MODULE)
+-
+-extern void acpi_video_dmi_promote_vendor(void);
+-extern int acpi_video_backlight_support(void);
+-
+-#else
+-
+-static inline void acpi_video_dmi_promote_vendor(void)
+-{
+-}
+-
+-static inline int acpi_video_backlight_support(void)
+-{
+-	return 0;
+-}
+-
+-#endif /* defined(CONFIG_ACPI_VIDEO) || defined(CONFIG_ACPI_VIDEO_MODULE) */
+-
+ extern int acpi_blacklisted(void);
+ extern void acpi_dmi_osi_linux(int enable, const struct dmi_system_id *d);
+ extern void acpi_osi_setup(char *str);
 -- 
 2.3.6
-
-
-------------------------------------------------------------------------------
