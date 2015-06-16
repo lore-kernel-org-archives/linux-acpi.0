@@ -1,145 +1,78 @@
-From: Charles Keepax <ckeepax@opensource.wolfsonmicro.com>
-Subject: Re: Fwd: ASoC : WM5102 Audio Codec needs ACPI support and a
-	baytrail machine driver
-Date: Tue, 16 Jun 2015 15:47:33 +0100
-Message-ID: <20150616144732.GN32730@opensource.wolfsonmicro.com>
-References: <CAKor6TdbnLuJCsBPykPEmhGk-zBLggKxw4Z+=QuBb6Mz2ThD3g@mail.gmail.com> <CAKor6TeP2HfqpHiKK86GLYLpCNk87y66bdjye_mAqXuMXxPMWA@mail.gmail.com> <CAKor6Tdg5yHaLVrCrWFVuydVcYUUtYr=oSj+k37Yd9O64+tg6A@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Waiman Long <Waiman.Long@hp.com>
+Subject: [PATCH] GHES: Limit # of cpus in ghes_notify_nmi()
+Date: Tue, 16 Jun 2015 13:32:07 -0400
+Message-ID: <1434475927-26618-1-git-send-email-Waiman.Long@hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:49528 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756159AbbFPOrf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 16 Jun 2015 10:47:35 -0400
-Content-Disposition: inline
-In-Reply-To: <CAKor6Tdg5yHaLVrCrWFVuydVcYUUtYr=oSj+k37Yd9O64+tg6A@mail.gmail.com>
+Received: from g9t5009.houston.hp.com ([15.240.92.67]:34219 "EHLO
+	g9t5009.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755008AbbFPRc2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Jun 2015 13:32:28 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Christian Hartmann <cornogle@googlemail.com>
-Cc: patches@opensource.wolfsonmicro.com, linux-acpi <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Huang Ying <ying.huang@intel.com>, Scott J Norton <scott.norton@hp.com>, Douglas Hatch <doug.hatch@hp.com>, Waiman Long <Waiman.Long@hp.com>
 
-On Tue, Jun 16, 2015 at 03:10:42PM +0200, Christian Hartmann wrote:
-> ---------- Forwarded message ----------
-> From: Christian Hartmann <cornogle@googlemail.com>
-> Date: 2015-06-16 14:27 GMT+02:00
-> Subject: Re: ASoC : WM5102 Audio Codec needs ACPI support and a
-> baytrail machine driver
-> To: alsa-devel@alsa-project.org
-> 
-> 
-> Hi again,
-> 
-> 
-> some notes to the NULL pointer dereference error
-> I have changed the function arizona_spi_probe in arizona-spi.c and
-> have looked into the code where the NULL is coming...
-> 
-> in drivers/spi/spi.c the function spi_get_device_id() returns NULL,
-> cause the called function spi_match_id() does never match an id string
-> (there is no modalias string available I think).
-> With the id = NULL the line
-> type = id->driver_data; will throw the described exception.
-> 
-> Going on further, it seems that "id" has no such structure element of
-> "->driver_data", or I cannot find it.
-> 
-> Can someone please explain me in some simple words where the element
-> driver_data is coming or will be set
-> in THIS function of arizona_spi_probe()
-> 
-> The id->driver_data is not working for the acpi case...
-> This tablet does not have openfirmware (OF) by the way. The code seems
-> to be optimized for the Openfirmware API, but not for the ACPI case.
-> 
+It was found that when the perf-record command was running on large
+system with many cores and GHES enabled, the performance of the
+workload being monitored will slow down significantly. For example,
 
-Alas you are correct this driver has no built in support for ACPI
-at the moment. So you are going to need to add that to get it
-working on an ACPI system.
+  # ./hackbench
+  Time: 0.047
+  # perf record ./hackbench
+  Time: 21.392
 
-I don't really have any experience with ACPI so can't really be of
-much assistance here. However, most of these device match functions
-OF or the SPI built in system contain two fields an ID and some
-driver data. As you can see in the code:
+The big slowdown was traced to the fact that too much time (more
+than 1ms) was spent in each invocation of ghes_notify_nmi(). The
+perf-record command will cause NMI to be generated periodically at
+high frequency. If many cores are doing that, it will cause a long
+queue to form in the global ghes_nmi_lock lock.
 
-	if (spi->dev.of_node)
-		type = arizona_of_get_type(&spi->dev);
-	else
-		type = id->driver_data;
+This patch limits only up to 2 cpus to be working on ghes_notify_nmi()
+at any given instance. This will significantly reduce the time spent
+by each CPU in ghes_notify_nmi(). With that patch, the perf slowdown
+was significantly reduced.
 
-We extract the type in suitable ways for the SPI built in match
-and for the OF match up, I presume you need to do something
-similar that is specific to the ACPI case. I would suggest here
-looking up other ACPI drivers and seeing how they handle this
-situation.
+  # perf record ./hackbench
+  Time: 0.133
 
-What I would expect to see is an extra else if in this statement
-that does something specific to the ACPI case.
+Signed-off-by: Waiman Long <Waiman.Long@hp.com>
+---
+ drivers/acpi/apei/ghes.c |   15 +++++++++++++++
+ 1 files changed, 15 insertions(+), 0 deletions(-)
 
-> 
-> 
-> this is the currently local changed code to test and find null pointer
-> inarizona-spi.c.
-> 
-> diff --git a/drivers/mfd/arizona-spi.c b/drivers/mfd/arizona-spi.c
-> index 1e845f6..de48cf6 100644
-> --- a/drivers/mfd/arizona-spi.c
-> +++ b/drivers/mfd/arizona-spi.c
-> @@ -25,16 +25,26 @@
-> 
->  static int arizona_spi_probe(struct spi_device *spi)
->  {
-> -       const struct spi_device_id *id = spi_get_device_id(spi);
-> +       const struct spi_device_id *id ;
->         struct arizona *arizona;
->         const struct regmap_config *regmap_config;
->         unsigned long type;
->         int ret;
-> 
-> -       if (spi->dev.of_node)
-> -               type = arizona_of_get_type(&spi->dev);
-> -       else
-> +       /*
-> +       id = spi_get_device_id(spi);
-> +
-> +       if (!id)
-> +               return -EINVAL;
-> +       type = id->driver_data;
-> +       */
-> +       id = WM5102;
-> +
-> +       if (id->driver_data)
->                 type = id->driver_data;
-> +       else
-> +               type = WM5102;
-> +
-
-This just defaults to WM5102 whenever we arn't using the spi
-matching, which will probably get you running but clearly isn't
-going to be a suitable solution.
-
-> 
->         switch (type) {
->  #ifdef CONFIG_MFD_WM5102
-> @@ -90,11 +100,23 @@ static const struct spi_device_id arizona_spi_ids[] = {
->  };
->  MODULE_DEVICE_TABLE(spi, arizona_spi_ids);
-> 
-> +#ifdef CONFIG_ACPI
-> +static const struct acpi_device_id wm5102_acpi_match[] = {
-> +       { "WM510205", WM5102 },
-> +       {},
-> +};
-> +
-> +MODULE_DEVICE_TABLE(acpi, wm5102_acpi_match);
-> +#ifdef CONFIG_ACPI
-> +static const struct acpi_device_id wm5102_acpi_match[] = {
-> +       { "WM510205", WM5102 },
-
-The second entry here should be the driver_data, the ACPI id does
-look a bit odd but I guess this is what our Windows guys are
-using.
-
-Thanks,
-Charles
+diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+index e82d097..132a014 100644
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -803,6 +803,20 @@ static int ghes_notify_nmi(unsigned int cmd, struct pt_regs *regs)
+ 	int sev, sev_global = -1;
+ 	int ret = NMI_DONE;
+ 
++	/* # of CPUs processing NMI */
++	static atomic_t ghes_nmi_cnt = ATOMIC_INIT(0);
++
++	/*
++	 * Multiple CPUs may get NMI and come here to check GHES. If one has
++	 * gotten the lock and is doing the check, there is no point in having
++	 * more than one other CPU waiting just in case the active CPU has
++	 * past the point where the NMI was generated. So we set a limit of
++	 * only allowing 2 CPUs working here. The rests can just return.
++	 */
++	if (atomic_add_return(1, &ghes_nmi_cnt) > 2) {
++		atomic_dec(&ghes_nmi_cnt);
++		return ret;
++	}
+ 	raw_spin_lock(&ghes_nmi_lock);
+ 	list_for_each_entry_rcu(ghes, &ghes_nmi, list) {
+ 		if (ghes_read_estatus(ghes, 1)) {
+@@ -863,6 +877,7 @@ next:
+ #endif
+ 
+ out:
++	atomic_dec(&ghes_nmi_cnt);
+ 	raw_spin_unlock(&ghes_nmi_lock);
+ 	return ret;
+ }
+-- 
+1.7.1
 
