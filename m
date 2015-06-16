@@ -1,11 +1,8 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v3 23/35] dell-wmi: Port to new backlight interface selection API
-Date: Tue, 16 Jun 2015 16:28:01 +0200
-Message-ID: <1434464893-3529-24-git-send-email-hdegoede@redhat.com>
+Subject: [PATCH v3 24/35] eeepc-laptop: Port to new backlight interface selection API
+Date: Tue, 16 Jun 2015 16:28:02 +0200
+Message-ID: <1434464893-3529-25-git-send-email-hdegoede@redhat.com>
 References: <1434464893-3529-1-git-send-email-hdegoede@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <platform-driver-x86-owner@vger.kernel.org>
 In-Reply-To: <1434464893-3529-1-git-send-email-hdegoede@redhat.com>
 Sender: platform-driver-x86-owner@vger.kernel.org
@@ -16,34 +13,42 @@ List-Id: linux-acpi@vger.kernel.org
 Port the backlight selection logic to the new backlight interface
 selection API.
 
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-Acked-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
----
- drivers/platform/x86/dell-wmi.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+This commit also removes various obsolete pr_xxx messages related to
+backlight interface selection. These are obsolete because they assume
+there is only a vendor or acpi backlight driver and no other choice.
+Also they are not necessary, if the user wants to know which backlight
+interfaces are registered a simple "ls /sys/class/backlight" suffices.
 
-diff --git a/drivers/platform/x86/dell-wmi.c b/drivers/platform/x86/del=
-l-wmi.c
-index 6512a06..f2d77fe 100644
---- a/drivers/platform/x86/dell-wmi.c
-+++ b/drivers/platform/x86/dell-wmi.c
-@@ -35,6 +35,7 @@
- #include <linux/acpi.h>
- #include <linux/string.h>
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/platform/x86/eeepc-laptop.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/platform/x86/eeepc-laptop.c b/drivers/platform/x86/eeepc-laptop.c
+index 844c209..8cdf315 100644
+--- a/drivers/platform/x86/eeepc-laptop.c
++++ b/drivers/platform/x86/eeepc-laptop.c
+@@ -37,6 +37,7 @@
+ #include <linux/pci_hotplug.h>
+ #include <linux/leds.h>
  #include <linux/dmi.h>
 +#include <acpi/video.h>
-=20
- MODULE_AUTHOR("Matthew Garrett <mjg@redhat.com>");
- MODULE_DESCRIPTION("Dell laptop WMI hotkeys driver");
-@@ -397,7 +398,7 @@ static int __init dell_wmi_init(void)
+ 
+ #define EEEPC_LAPTOP_VERSION	"0.1"
+ #define EEEPC_LAPTOP_NAME	"Eee PC Hotkey Driver"
+@@ -1433,12 +1434,10 @@ static int eeepc_acpi_add(struct acpi_device *device)
+ 	if (result)
+ 		goto fail_platform;
+ 
+-	if (!acpi_video_backlight_support()) {
++	if (acpi_video_get_backlight_type() == acpi_backlight_vendor) {
+ 		result = eeepc_backlight_init(eeepc);
+ 		if (result)
+ 			goto fail_backlight;
+-	} else {
+-		pr_info("Backlight controlled by ACPI video driver\n");
  	}
-=20
- 	dmi_walk(find_hk_type, NULL);
--	acpi_video =3D acpi_video_backlight_support();
-+	acpi_video =3D acpi_video_get_backlight_type() !=3D acpi_backlight_ve=
-ndor;
-=20
- 	err =3D dell_wmi_input_setup();
- 	if (err)
---=20
+ 
+ 	result = eeepc_input_init(eeepc);
+-- 
 2.3.6
