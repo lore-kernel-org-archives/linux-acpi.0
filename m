@@ -1,99 +1,50 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v3 03/35] samsung-laptop: Use acpi_video_unregister_backlight instead of acpi_video_unregister
-Date: Tue, 16 Jun 2015 16:27:41 +0200
-Message-ID: <1434464893-3529-4-git-send-email-hdegoede@redhat.com>
+Subject: [PATCH v3 04/35] apple-gmux: Stop using acpi_video_dmi_demote_vendor()
+Date: Tue, 16 Jun 2015 16:27:42 +0200
+Message-ID: <1434464893-3529-5-git-send-email-hdegoede@redhat.com>
 References: <1434464893-3529-1-git-send-email-hdegoede@redhat.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:48904 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756554AbbFPO2h (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 16 Jun 2015 10:28:37 -0400
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
 In-Reply-To: <1434464893-3529-1-git-send-email-hdegoede@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: platform-driver-x86-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Darren Hart <dvhart@infradead.org>
 Cc: Aaron Lu <aaron.lu@intel.com>, Ben Skeggs <bskeggs@redhat.com>, Lee Chun-Yi <jlee@suse.com>, Peter Feuerer <peter@piie.net>, Corentin Chary <corentin.chary@gmail.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, Jonathan Woithe <jwoithe@just42.net>, Ike Panhc <ike.pan@canonical.com>, Anisse Astier <anisse@astier.eu>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Azael Avalos <coproscefalo@gmail.com>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, acpi4asus-user@lists.sourceforge.net, ibm-acpi-devel@lists.sourceforge.net, Hans de Goede <hdegoede@redhat.com>
+List-Id: linux-acpi@vger.kernel.org
 
-acpi_video_unregister() not only unregisters the acpi-video backlight
-interface but also unregisters the acpi video bus event listener, causing
-e.g. brightness hotkey presses to no longer generate keypress events.
+acpi_video_dmi_demote_vendor() is going away as part of the cleanup of
+the code for determinging which backlight class driver(s) to register.
 
-The unregistering of the acpi video bus event listener usually is
-undesirable, which by itself is a good reason to switch to
-acpi_video_unregister_backlight().
+The call to acpi_video_dmi_demote_vendor() was meant to undo the call to
+acpi_video_dmi_promote_vendor() when the gmux device is removed, this is
+questionable though since the promote call sets a flag, not a counter, so
+the demote call may undo a promoto done elsewhere. Moreover in practice
+this is a nop since the gmux device is never removed, and the flag is only
+checked when acpi/video.ko gets loaded, so even if the user manually
+removes apple-gmux the demote call is still a nop as video.ko will already
+have loaded by this time.
 
-Another problem with using acpi_video_unregister() rather then using
-acpi_video_unregister_backlight() is that on systems with an intel video
-opregion (most systems) and a broken_acpi_video quirk, whether or not
-the acpi video bus event listener actually gets unregistered depends on
-module load ordering:
+Also note that none of the other users of acpi_video_dmi_promote_vendor()
+use acpi_video_dmi_demote_vendor().
 
-Scenario a:
-1) acpi/video.ko gets loaded (*), does not do acpi_video_register as there
-   is an intel opregion.
-2) intel.ko gets loaded, calls acpi_video_register() which registers both
-   the listener and the acpi backlight interface
-3) samsung-laptop.ko gets loaded, calls acpi_video_unregister() causing
-   both the listener and the acpi backlight interface to unregister
+If we ever encounter a system with a gmux where the acpi-video interface
+should be used, then the proper fix would be to dmi-blacklist the gmux
+driver on that system.
 
-Scenario b:
-1) acpi/video.ko gets loaded (*), does not do acpi_video_register as there
-   is an intel opregion.
-2) samsung-laptop.ko gets loaded, calls acpi_video_dmi_promote_vendor(),
-   calls acpi_video_unregister(), which is a nop since acpi_video_register
-   has not yet been called
-2) intel.ko gets loaded, calls acpi_video_register() which registers
-   the listener, but does not register the acpi backlight interface due to
-   the call to the preciding call to acpi_video_dmi_promote_vendor()
-
-*) acpi/video.ko always loads first as both other modules depend on it.
-
-So we end up with or without an acpi video bus event listener depending
-on module load ordering, not good.
-
-Switching to using acpi_video_unregister_backlight() means that independ
-of ordering we will always have an acpi video bus event listener fixing
-this.
-
-Note that this commit means that systems without an intel video opregion,
-and systems which were hitting scenario a wrt module load ordering, are
-now getting an acpi video bus event listener while before they were not!
-
-On some systems this may cause the brightness hotkeys to start generating
-keypresses while before they were not (good), while on other systems this
-may cause the brightness hotkeys to generate multiple keypress events for
-a single press (not so good). Since on most systems the acpi video bus is
-the canonical source for brightness events I believe that the latter case
-will needs to be handled on a case by case basis by filtering out the
-duplicate keypresses at the other source for them.
-
-Cc: Corentin Chary <corentin.chary@gmail.com>
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/platform/x86/samsung-laptop.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/platform/x86/apple-gmux.c | 1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/drivers/platform/x86/samsung-laptop.c b/drivers/platform/x86/samsung-laptop.c
-index 9e701b2..0df03e2 100644
---- a/drivers/platform/x86/samsung-laptop.c
-+++ b/drivers/platform/x86/samsung-laptop.c
-@@ -1730,14 +1730,14 @@ static int __init samsung_init(void)
- 		samsung->handle_backlight = false;
- 	} else if (samsung->quirks->broken_acpi_video) {
- 		pr_info("Disabling ACPI video driver\n");
--		acpi_video_unregister();
-+		acpi_video_unregister_backlight();
- 	}
+diff --git a/drivers/platform/x86/apple-gmux.c b/drivers/platform/x86/apple-gmux.c
+index 45032ce..a7f6412 100644
+--- a/drivers/platform/x86/apple-gmux.c
++++ b/drivers/platform/x86/apple-gmux.c
+@@ -645,7 +645,6 @@ static void gmux_remove(struct pnp_dev *pnp)
+ 	apple_gmux_data = NULL;
+ 	kfree(gmux_data);
  
- 	if (samsung->quirks->use_native_backlight) {
- 		pr_info("Using native backlight driver\n");
- 		/* Tell acpi-video to not handle the backlight */
- 		acpi_video_dmi_promote_vendor();
--		acpi_video_unregister();
-+		acpi_video_unregister_backlight();
- 		/* And also do not handle it ourselves */
- 		samsung->handle_backlight = false;
- 	}
+-	acpi_video_dmi_demote_vendor();
+ 	acpi_video_register();
+ 	apple_bl_register();
+ }
 -- 
 2.3.6
-
