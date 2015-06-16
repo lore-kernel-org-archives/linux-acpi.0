@@ -1,7 +1,7 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v3 27/35] intel-oaktrail: Port to new backlight interface selection API
-Date: Tue, 16 Jun 2015 16:28:05 +0200
-Message-ID: <1434464893-3529-28-git-send-email-hdegoede@redhat.com>
+Subject: [PATCH v3 29/35] msi-wmi: Port to new backlight interface selection API
+Date: Tue, 16 Jun 2015 16:28:07 +0200
+Message-ID: <1434464893-3529-30-git-send-email-hdegoede@redhat.com>
 References: <1434464893-3529-1-git-send-email-hdegoede@redhat.com>
 Return-path: <platform-driver-x86-owner@vger.kernel.org>
 In-Reply-To: <1434464893-3529-1-git-send-email-hdegoede@redhat.com>
@@ -13,44 +13,32 @@ List-Id: linux-acpi@vger.kernel.org
 Port the backlight selection logic to the new backlight interface
 selection API.
 
-This commit also removes various obsolete pr_xxx messages related to
-backlight interface selection. These are obsolete because they assume
-there is only a vendor or acpi backlight driver and no other choice.
-Also they are not necessary, if the user wants to know which backlight
-interfaces are registered a simple "ls /sys/class/backlight" suffices.
-
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/platform/x86/intel_oaktrail.c | 7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+ drivers/platform/x86/msi-wmi.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/platform/x86/intel_oaktrail.c b/drivers/platform/x86/intel_oaktrail.c
-index 8037c8b..6aa33c4 100644
---- a/drivers/platform/x86/intel_oaktrail.c
-+++ b/drivers/platform/x86/intel_oaktrail.c
-@@ -50,6 +50,7 @@
- #include <linux/platform_device.h>
- #include <linux/dmi.h>
- #include <linux/rfkill.h>
+diff --git a/drivers/platform/x86/msi-wmi.c b/drivers/platform/x86/msi-wmi.c
+index 6d2bac0..978e6d6 100644
+--- a/drivers/platform/x86/msi-wmi.c
++++ b/drivers/platform/x86/msi-wmi.c
+@@ -29,6 +29,7 @@
+ #include <linux/backlight.h>
+ #include <linux/slab.h>
+ #include <linux/module.h>
 +#include <acpi/video.h>
  
- #define DRIVER_NAME	"intel_oaktrail"
- #define DRIVER_VERSION	"0.4ac1"
-@@ -343,13 +344,11 @@ static int __init oaktrail_init(void)
- 		goto err_device_add;
+ MODULE_AUTHOR("Thomas Renninger <trenn@suse.de>");
+ MODULE_DESCRIPTION("MSI laptop WMI hotkeys driver");
+@@ -320,7 +321,8 @@ static int __init msi_wmi_init(void)
+ 		break;
  	}
  
--	if (!acpi_video_backlight_support()) {
-+	if (acpi_video_get_backlight_type() == acpi_backlight_vendor) {
- 		ret = oaktrail_backlight_init();
- 		if (ret)
- 			goto err_backlight;
--
--	} else
--		pr_info("Backlight controlled by ACPI video driver\n");
-+	}
- 
- 	ret = oaktrail_rfkill_init();
- 	if (ret) {
+-	if (wmi_has_guid(MSIWMI_BIOS_GUID) && !acpi_video_backlight_support()) {
++	if (wmi_has_guid(MSIWMI_BIOS_GUID) &&
++	    acpi_video_get_backlight_type() == acpi_backlight_vendor) {
+ 		err = msi_wmi_backlight_setup();
+ 		if (err) {
+ 			pr_err("Unable to setup backlight device\n");
 -- 
 2.3.6
