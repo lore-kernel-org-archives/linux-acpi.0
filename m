@@ -1,8 +1,11 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v3 20/35] asus-wmi: Port to new backlight interface selection API
-Date: Tue, 16 Jun 2015 16:27:58 +0200
-Message-ID: <1434464893-3529-21-git-send-email-hdegoede@redhat.com>
+Subject: [PATCH v3 23/35] dell-wmi: Port to new backlight interface selection API
+Date: Tue, 16 Jun 2015 16:28:01 +0200
+Message-ID: <1434464893-3529-24-git-send-email-hdegoede@redhat.com>
 References: <1434464893-3529-1-git-send-email-hdegoede@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <platform-driver-x86-owner@vger.kernel.org>
 In-Reply-To: <1434464893-3529-1-git-send-email-hdegoede@redhat.com>
 Sender: platform-driver-x86-owner@vger.kernel.org
@@ -13,53 +16,34 @@ List-Id: linux-acpi@vger.kernel.org
 Port the backlight selection logic to the new backlight interface
 selection API.
 
-This commit also removes various obsolete pr_xxx messages related to
-backlight interface selection. These are obsolete because they assume
-there is only a vendor or acpi backlight driver and no other choice.
-Also they are not necessary, if the user wants to know which backlight
-interfaces are registered a simple "ls /sys/class/backlight" suffices.
-
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Acked-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
 ---
- drivers/platform/x86/asus-wmi.c | 15 +++++++--------
- 1 file changed, 7 insertions(+), 8 deletions(-)
+ drivers/platform/x86/dell-wmi.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/platform/x86/asus-wmi.c b/drivers/platform/x86/asus-wmi.c
-index 945145d..6f8558f 100644
---- a/drivers/platform/x86/asus-wmi.c
-+++ b/drivers/platform/x86/asus-wmi.c
-@@ -1364,7 +1364,7 @@ static void asus_wmi_notify(u32 value, void *context)
- 		code = ASUS_WMI_BRN_DOWN;
- 
- 	if (code == ASUS_WMI_BRN_DOWN || code == ASUS_WMI_BRN_UP) {
--		if (!acpi_video_backlight_support()) {
-+		if (acpi_video_get_backlight_type() == acpi_backlight_vendor) {
- 			asus_wmi_backlight_notify(asus, orig_code);
- 			goto exit;
- 		}
-@@ -1772,17 +1772,16 @@ static int asus_wmi_add(struct platform_device *pdev)
- 	   stop this from showing up */
- 	chassis_type = dmi_get_system_info(DMI_CHASSIS_TYPE);
- 	if (chassis_type && !strcmp(chassis_type, "3"))
--		acpi_video_dmi_promote_vendor();
-+		acpi_video_set_dmi_backlight_type(acpi_backlight_vendor);
-+
- 	if (asus->driver->quirks->wmi_backlight_power)
--		acpi_video_dmi_promote_vendor();
--	if (!acpi_video_backlight_support()) {
--		pr_info("Disabling ACPI video driver\n");
--		acpi_video_unregister_backlight();
-+		acpi_video_set_dmi_backlight_type(acpi_backlight_vendor);
-+
-+	if (acpi_video_get_backlight_type() == acpi_backlight_vendor) {
- 		err = asus_wmi_backlight_init(asus);
- 		if (err && err != -ENODEV)
- 			goto fail_backlight;
--	} else
--		pr_info("Backlight controlled by ACPI video driver\n");
-+	}
- 
- 	status = wmi_install_notify_handler(asus->driver->event_guid,
- 					    asus_wmi_notify, asus);
--- 
+diff --git a/drivers/platform/x86/dell-wmi.c b/drivers/platform/x86/del=
+l-wmi.c
+index 6512a06..f2d77fe 100644
+--- a/drivers/platform/x86/dell-wmi.c
++++ b/drivers/platform/x86/dell-wmi.c
+@@ -35,6 +35,7 @@
+ #include <linux/acpi.h>
+ #include <linux/string.h>
+ #include <linux/dmi.h>
++#include <acpi/video.h>
+=20
+ MODULE_AUTHOR("Matthew Garrett <mjg@redhat.com>");
+ MODULE_DESCRIPTION("Dell laptop WMI hotkeys driver");
+@@ -397,7 +398,7 @@ static int __init dell_wmi_init(void)
+ 	}
+=20
+ 	dmi_walk(find_hk_type, NULL);
+-	acpi_video =3D acpi_video_backlight_support();
++	acpi_video =3D acpi_video_get_backlight_type() !=3D acpi_backlight_ve=
+ndor;
+=20
+ 	err =3D dell_wmi_input_setup();
+ 	if (err)
+--=20
 2.3.6
