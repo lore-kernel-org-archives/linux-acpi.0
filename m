@@ -1,7 +1,7 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v3 19/35] asus-laptop: Port to new backlight interface selection API
-Date: Tue, 16 Jun 2015 16:27:57 +0200
-Message-ID: <1434464893-3529-20-git-send-email-hdegoede@redhat.com>
+Subject: [PATCH v3 21/35] compal-laptop: Port to new backlight interface selection API
+Date: Tue, 16 Jun 2015 16:27:59 +0200
+Message-ID: <1434464893-3529-22-git-send-email-hdegoede@redhat.com>
 References: <1434464893-3529-1-git-send-email-hdegoede@redhat.com>
 Return-path: <platform-driver-x86-owner@vger.kernel.org>
 In-Reply-To: <1434464893-3529-1-git-send-email-hdegoede@redhat.com>
@@ -13,43 +13,32 @@ List-Id: linux-acpi@vger.kernel.org
 Port the backlight selection logic to the new backlight interface
 selection API.
 
-This commit also removes various obsolete pr_xxx messages related to
-backlight interface selection. These are obsolete because they assume
-there is only a vendor or acpi backlight driver and no other choice.
-Also they are not necessary, if the user wants to know which backlight
-interfaces are registered a simple "ls /sys/class/backlight" suffices.
-
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/platform/x86/asus-laptop.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/platform/x86/compal-laptop.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/platform/x86/asus-laptop.c b/drivers/platform/x86/asus-laptop.c
-index 46b2746..58d29c4 100644
---- a/drivers/platform/x86/asus-laptop.c
-+++ b/drivers/platform/x86/asus-laptop.c
-@@ -54,6 +54,7 @@
- #include <linux/slab.h>
- #include <linux/dmi.h>
- #include <linux/acpi.h>
+diff --git a/drivers/platform/x86/compal-laptop.c b/drivers/platform/x86/compal-laptop.c
+index b4e9447..f2706d2 100644
+--- a/drivers/platform/x86/compal-laptop.c
++++ b/drivers/platform/x86/compal-laptop.c
+@@ -82,7 +82,7 @@
+ #include <linux/hwmon-sysfs.h>
+ #include <linux/power_supply.h>
+ #include <linux/fb.h>
+-
 +#include <acpi/video.h>
  
- #define ASUS_LAPTOP_VERSION	"0.42"
- 
-@@ -1884,12 +1885,11 @@ static int asus_acpi_add(struct acpi_device *device)
- 	if (result)
- 		goto fail_platform;
+ /* ======= */
+ /* Defines */
+@@ -959,7 +959,7 @@ static int __init compal_init(void)
+ 		return -ENODEV;
+ 	}
  
 -	if (!acpi_video_backlight_support()) {
 +	if (acpi_video_get_backlight_type() == acpi_backlight_vendor) {
- 		result = asus_backlight_init(asus);
- 		if (result)
- 			goto fail_backlight;
--	} else
--		pr_info("Backlight controlled by ACPI video driver\n");
-+	}
- 
- 	result = asus_input_init(asus);
- 	if (result)
+ 		struct backlight_properties props;
+ 		memset(&props, 0, sizeof(struct backlight_properties));
+ 		props.type = BACKLIGHT_PLATFORM;
 -- 
 2.3.6
