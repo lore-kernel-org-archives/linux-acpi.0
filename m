@@ -1,7 +1,7 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v3 17/35] acer-wmi: Port to new backlight interface selection API
-Date: Tue, 16 Jun 2015 16:27:55 +0200
-Message-ID: <1434464893-3529-18-git-send-email-hdegoede@redhat.com>
+Subject: [PATCH v3 18/35] apple-gmux: Port to new backlight interface selection API
+Date: Tue, 16 Jun 2015 16:27:56 +0200
+Message-ID: <1434464893-3529-19-git-send-email-hdegoede@redhat.com>
 References: <1434464893-3529-1-git-send-email-hdegoede@redhat.com>
 Return-path: <platform-driver-x86-owner@vger.kernel.org>
 In-Reply-To: <1434464893-3529-1-git-send-email-hdegoede@redhat.com>
@@ -13,39 +13,24 @@ List-Id: linux-acpi@vger.kernel.org
 Port the backlight selection logic to the new backlight interface
 selection API.
 
-This commit also removes various obsolete pr_xxx messages related to
-backlight interface selection. These are obsolete because they assume
-there is only a vendor or acpi backlight driver and no other choice.
-Also they are not necessary, if the user wants to know which backlight
-interfaces are registered a simple "ls /sys/class/backlight" suffices.
-
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-Reviewed-by: Lee, Chun-Yi <jlee@suse.com>
 ---
- drivers/platform/x86/acer-wmi.c | 10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
+ drivers/platform/x86/apple-gmux.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-diff --git a/drivers/platform/x86/acer-wmi.c b/drivers/platform/x86/acer-wmi.c
-index 3ac29a1..f6b280d 100644
---- a/drivers/platform/x86/acer-wmi.c
-+++ b/drivers/platform/x86/acer-wmi.c
-@@ -2246,14 +2246,10 @@ static int __init acer_wmi_init(void)
- 	set_quirks();
+diff --git a/drivers/platform/x86/apple-gmux.c b/drivers/platform/x86/apple-gmux.c
+index a7f6412..0dec3f5 100644
+--- a/drivers/platform/x86/apple-gmux.c
++++ b/drivers/platform/x86/apple-gmux.c
+@@ -550,8 +550,7 @@ static int gmux_probe(struct pnp_dev *pnp, const struct pnp_device_id *id)
+ 	 * backlight control and supports more levels than other options.
+ 	 * Disable the other backlight choices.
+ 	 */
+-	acpi_video_dmi_promote_vendor();
+-	acpi_video_unregister_backlight();
++	acpi_video_set_dmi_backlight_type(acpi_backlight_vendor);
+ 	apple_bl_unregister();
  
- 	if (dmi_check_system(video_vendor_dmi_table))
--		acpi_video_dmi_promote_vendor();
--	if (acpi_video_backlight_support()) {
-+		acpi_video_set_dmi_backlight_type(acpi_backlight_vendor);
-+
-+	if (acpi_video_get_backlight_type() != acpi_backlight_vendor)
- 		interface->capability &= ~ACER_CAP_BRIGHTNESS;
--		pr_info("Brightness must be controlled by acpi video driver\n");
--	} else {
--		pr_info("Disabling ACPI video driver\n");
--		acpi_video_unregister_backlight();
--	}
- 
- 	if (wmi_has_guid(WMID_GUID3)) {
- 		if (ec_raw_mode) {
+ 	gmux_data->power_state = VGA_SWITCHEROO_ON;
 -- 
 2.3.6
