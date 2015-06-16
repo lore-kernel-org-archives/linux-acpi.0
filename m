@@ -1,114 +1,80 @@
-From: Christian Hartmann <cornogle@googlemail.com>
-Subject: ASoC : WM5102 Audio Codec needs ACPI support and a
-	baytrail machine driver
-Date: Tue, 16 Jun 2015 12:00:04 +0200
-Message-ID: <CAKor6TdbnLuJCsBPykPEmhGk-zBLggKxw4Z+=QuBb6Mz2ThD3g@mail.gmail.com>
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH v2 30/32] toshiba-acpi: Port to new backlight interface
+ selection API
+Date: Tue, 16 Jun 2015 14:53:42 +0200
+Message-ID: <55801C56.2070401@redhat.com>
+References: <1434108231-12323-1-git-send-email-hdegoede@redhat.com>	<1434108231-12323-31-git-send-email-hdegoede@redhat.com> <CAGdLNWG02EY7P4A8sn+gGzgqDLWwBKPWg5aFM9LyemqiM4QNWg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <alsa-devel-bounces@alsa-project.org>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: alsa-devel@alsa-project.org
-Cc: linux-acpi <linux-acpi@vger.kernel.org>, patches@opensource.wolfsonmicro.com
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <CAGdLNWG02EY7P4A8sn+gGzgqDLWwBKPWg5aFM9LyemqiM4QNWg@mail.gmail.com>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Azael Avalos <coproscefalo@gmail.com>
+Cc: Darren Hart <dvhart@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Ben Skeggs <bskeggs@redhat.com>, Corentin Chary <corentin.chary@gmail.com>, Lee Chun-Yi <jlee@suse.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, =?UTF-8?B?UGFsaSBSb2jDoXI=?= <pali.rohar@gmail.com>, Ike Panhc <ike.pan@canonical.com>, Anisse Astier <anisse@astier.eu>, Mattia Dongili <malattia@linux.it>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, ibm-acpi-devel@lists.sourceforge.net, acpi4asus-user@lists.sourceforge.net, dri-devel@lists.freedesktop.org, Aaron Lu <aaron.lu@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi list,
+Hi,
 
-I have a device "Lenovo Yoga 851 F" which have a WM510205 Audio codec
-on a Baytrail System.
+On 06/14/2015 05:15 AM, Azael Avalos wrote:
+> Hi Hans,
+>
+> Sorry for the late reply, I was out of town.
+>
+> 2015-06-12 5:23 GMT-06:00 Hans de Goede <hdegoede@redhat.com>:
+>> Port the backlight selection logic to the new backlight interface
+>> selection API.
+>>
+>> Also fix a compiler warning about bt_present not being initialized.
+>>
+>> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+>> ---
+>>   drivers/platform/x86/toshiba_acpi.c | 9 +++------
+>>   1 file changed, 3 insertions(+), 6 deletions(-)
+>>
+>> diff --git a/drivers/platform/x86/toshiba_acpi.c b/drivers/platform/x86/toshiba_acpi.c
+>> index 9956b990..c484d47 100644
+>> --- a/drivers/platform/x86/toshiba_acpi.c
+>> +++ b/drivers/platform/x86/toshiba_acpi.c
+>> @@ -2640,14 +2640,11 @@ static int toshiba_acpi_setup_backlight(struct toshiba_acpi_dev *dev)
+>>           */
+>>          if (dev->tr_backlight_supported ||
+>>              dmi_check_system(toshiba_vendor_backlight_dmi))
+>> -               acpi_video_dmi_promote_vendor();
+>> +               acpi_video_set_dmi_backlight_type(acpi_backlight_vendor);
+>>
+>> -       if (acpi_video_backlight_support())
+>> +       if (acpi_video_get_backlight_type() != acpi_backlight_vendor)
+>>                  return 0;
+>>
+>> -       /* acpi-video may have loaded before we called dmi_promote_vendor() */
+>> -       acpi_video_unregister_backlight();
+>> -
+>>          memset(&props, 0, sizeof(props));
+>>          props.type = BACKLIGHT_PLATFORM;
+>>          props.max_brightness = HCI_LCD_BRIGHTNESS_LEVELS - 1;
+>> @@ -2733,7 +2730,7 @@ static int toshiba_acpi_add(struct acpi_device *acpi_dev)
+>>          const char *hci_method;
+>>          u32 special_functions;
+>>          u32 dummy;
+>> -       bool bt_present;
+>> +       bool bt_present = false;
+>>          int ret = 0;
+>>
+>>          if (toshiba_acpi)
+>> --
+>> 2.4.2
+>>
+>
+>
+> Please drop the last chunk of this patch as commit
+> 2b74103547b4dfaac10cd55464cd2bcc26022a66 removed that line,
+> other than that:
 
-I have sent already one patch (spi-pxa2xx) raise num_chipselect by one, which
-fixes to bind the arizona WM5102 codec as a spi slave attachted on a
-pxa2xx spi master device.
+Done for v3 of the patch-set
 
-I have tried several times and added the ACPI id "WM510205"  to
-the arizona-spi.c driver.
+> Acked-by: Azael Avalos <coproscefalo@gmail.com>
 
-The ACPI ID is extracted from the DSDT.dsl of this machine.
+Thanks,
 
-But unfortunately it fails and I got only a NULL pointer deference error
-in arizona_spi_probe().
-I want to request ACPI support for this device and I cannot fix
-currently the NULL pointer.
-
-I do not know yet, if I have to add this ACPI id to the arizona-spi
-driver (sure,
-thats what I am trying and failing) or to the NEW baytrail machine driver.
-
-In this case it should be the bytcr_wm5102.c and byt-wm5102.c, which
-does not exists yet.
-
-I have a branched tovalds/master and added (my first attempt) the
-above mentioned machine driver on a local branch. The result is only
-a dsp boot timeout error.
-
-Any help, ideas, hints, patches to try would be appreciate
-
-sincerely yours
-Christian Hartmann
-
-a snap of the dsdt
-
-Device (LPEA)
-        {
-            Name (_ADR, Zero)  // _ADR: Address
-            Name (_HID, "80860F28" /* Intel SST Audio DSP */)  //
-_HID: Hardware ID
-            Name (_CID, "80860F28" /* Intel SST Audio DSP */)  //
-_CID: Compatible ID
-            Name (_DDN, "Intel(R) Low Power Audio Controller -
-80860F28")  // _DDN: DOS Device Name
-            Name (_SUB, "17AA7004")  // _SUB: Subsystem ID
-            Name (_UID, One)  // _UID: Unique ID
-            Name (_DEP, Package (0x01)  // _DEP: Dependencies
-            {
-                ^SPI1.AUDI
-            })
-...
-...
-Device (AUDI)
-            {
-                Name (_HID, "WM510205")  // _HID: Hardware ID
-                Name (_CID, "WM510205")  // _CID: Compatible ID
-                Name (_DDN, "Wolfson Microelectronics Audio WM5102")
-// _DDN: DOS Device Name
-                Method (_CRS, 0, NotSerialized)  // _CRS: Current
-Resource Settings
-                {
-                    Name (SBUF, ResourceTemplate ()
-                    {
-                        SpiSerialBus (0x0001, PolarityLow, FourWireMode, 0x08,
-                            ControllerInitiated, 0x007A1200, ClockPolarityLow,
-                            ClockPhaseFirst, "\\_SB.SPI1",
-                            0x00, ResourceConsumer, ,
-                            )
-                        GpioInt (Edge, ActiveLow, ExclusiveAndWake,
-PullNone, 0x0000,
-                            "\\_SB.GPO2", 0x00, ResourceConsumer, ,
-                            )
-                            {   // Pin list
-                                0x0004
-                            }
-                        GpioIo (Exclusive, PullDefault, 0x0000,
-0x0000, IoRestrictionOutputOnly,
-                            "\\_SB.I2C7.PMIC", 0x00, ResourceConsumer, ,
-                            )
-                            {   // Pin list
-                                0x0003
-                            }
-                        GpioIo (Exclusive, PullDefault, 0x0000,
-0x0000, IoRestrictionOutputOnly,
-                            "\\_SB.GPO1", 0x00, ResourceConsumer, ,
-                            )
-                            {   // Pin list
-                                0x0017
-                            }
-                    })
+Hans
