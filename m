@@ -1,7 +1,7 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH v3 30/35] samsung-laptop: Port to new backlight interface selection API
-Date: Tue, 16 Jun 2015 16:28:08 +0200
-Message-ID: <1434464893-3529-31-git-send-email-hdegoede@redhat.com>
+Subject: [PATCH v3 28/35] msi-laptop: Port to new backlight interface selection API
+Date: Tue, 16 Jun 2015 16:28:06 +0200
+Message-ID: <1434464893-3529-29-git-send-email-hdegoede@redhat.com>
 References: <1434464893-3529-1-git-send-email-hdegoede@redhat.com>
 Return-path: <platform-driver-x86-owner@vger.kernel.org>
 In-Reply-To: <1434464893-3529-1-git-send-email-hdegoede@redhat.com>
@@ -21,57 +21,32 @@ interfaces are registered a simple "ls /sys/class/backlight" suffices.
 
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- drivers/platform/x86/samsung-laptop.c | 27 ++++-----------------------
- 1 file changed, 4 insertions(+), 23 deletions(-)
+ drivers/platform/x86/msi-laptop.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/platform/x86/samsung-laptop.c b/drivers/platform/x86/samsung-laptop.c
-index 0df03e2..8c146e2 100644
---- a/drivers/platform/x86/samsung-laptop.c
-+++ b/drivers/platform/x86/samsung-laptop.c
-@@ -1720,27 +1720,14 @@ static int __init samsung_init(void)
- 	samsung->handle_backlight = true;
- 	samsung->quirks = quirks;
+diff --git a/drivers/platform/x86/msi-laptop.c b/drivers/platform/x86/msi-laptop.c
+index 0859877..4231770 100644
+--- a/drivers/platform/x86/msi-laptop.c
++++ b/drivers/platform/x86/msi-laptop.c
+@@ -64,6 +64,7 @@
+ #include <linux/i8042.h>
+ #include <linux/input.h>
+ #include <linux/input/sparse-keymap.h>
++#include <acpi/video.h>
  
--
- #ifdef CONFIG_ACPI
- 	if (samsung->quirks->broken_acpi_video)
--		acpi_video_dmi_promote_vendor();
--
--	/* Don't handle backlight here if the acpi video already handle it */
--	if (acpi_video_backlight_support()) {
--		samsung->handle_backlight = false;
--	} else if (samsung->quirks->broken_acpi_video) {
--		pr_info("Disabling ACPI video driver\n");
--		acpi_video_unregister_backlight();
--	}
-+		acpi_video_set_dmi_backlight_type(acpi_backlight_vendor);
-+	if (samsung->quirks->use_native_backlight)
-+		acpi_video_set_dmi_backlight_type(acpi_backlight_native);
+ #define MSI_DRIVER_VERSION "0.5"
  
--	if (samsung->quirks->use_native_backlight) {
--		pr_info("Using native backlight driver\n");
--		/* Tell acpi-video to not handle the backlight */
--		acpi_video_dmi_promote_vendor();
--		acpi_video_unregister_backlight();
--		/* And also do not handle it ourselves */
-+	if (acpi_video_get_backlight_type() != acpi_backlight_vendor)
- 		samsung->handle_backlight = false;
--	}
- #endif
+@@ -1069,9 +1070,8 @@ static int __init msi_init(void)
  
- 	ret = samsung_platform_init(samsung);
-@@ -1751,12 +1738,6 @@ static int __init samsung_init(void)
- 	if (ret)
- 		goto error_sabi;
+ 	/* Register backlight stuff */
  
--#ifdef CONFIG_ACPI
--	/* Only log that if we are really on a sabi platform */
--	if (acpi_video_backlight_support())
--		pr_info("Backlight controlled by ACPI video driver\n");
--#endif
--
- 	ret = samsung_sysfs_init(samsung);
- 	if (ret)
- 		goto error_sysfs;
+-	if (!quirks->old_ec_model || acpi_video_backlight_support()) {
+-		pr_info("Brightness ignored, must be controlled by ACPI video driver\n");
+-	} else {
++	if (quirks->old_ec_model ||
++	    acpi_video_get_backlight_type() == acpi_backlight_vendor) {
+ 		struct backlight_properties props;
+ 		memset(&props, 0, sizeof(struct backlight_properties));
+ 		props.type = BACKLIGHT_PLATFORM;
 -- 
 2.3.6
