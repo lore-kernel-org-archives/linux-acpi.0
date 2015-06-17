@@ -1,123 +1,177 @@
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH 00/15] libnvdimm: ->rw_bytes(), BLK-mode, unit tests,
- and misc features
-Date: Wed, 17 Jun 2015 19:54:47 -0400
-Message-ID: <20150617235209.12943.24419.stgit@dwillia2-desk3.amr.corp.intel.com>
+Subject: [PATCH 01/15] block: introduce an ->rw_bytes() block device
+ operation
+Date: Wed, 17 Jun 2015 19:54:52 -0400
+Message-ID: <20150617235452.12943.27817.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20150617235209.12943.24419.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: axboe@kernel.dk, linux-nvdimm@lists.01.org
-Cc: boaz@plexistor.com, toshi.kani@hp.com, "Martin K. Petersen" <martin.petersen@oracle.com>, Vishal Verma <vishal.l.verma@linux.intel.com>, Neil Brown <neilb@suse.de>, Greg KH <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Dave Chinner <david@fromorbit.com>, Robert Moore <robert.moore@intel.com>, Andy Lutomirski <luto@amacapital.net>, Jens Axboe <axboe@fb.com>, linux-acpi@vger.kernel.org, Jeff Moyer <jmoyer@redhat.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, linux-fsdevel@vger.kernel.org, Ross Zwisler <ross.zwisler@linux.intel.com>, hch@lst.de, mingo@kernel.org, linux-kernel@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([134.134.136.65]:9201 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753559AbbFQX5p (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 17 Jun 2015 19:57:45 -0400
+In-Reply-To: <20150617235209.12943.24419.stgit@dwillia2-desk3.amr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: axboe@kernel.dk, linux-nvdimm@lists.01.org
+Cc: boaz@plexistor.com, toshi.kani@hp.com, linux-kernel@vger.kernel.org, Andy Lutomirski <luto@amacapital.net>, Jens Axboe <axboe@fb.com>, linux-acpi@vger.kernel.org, "H. Peter Anvin" <hpa@zytor.com>, linux-fsdevel@vger.kernel.org, Ross Zwisler <ross.zwisler@linux.intel.com>, hch@lst.de, mingo@kernel.org
 
-This patchset takes the position that a new block_device_operations op
-is needed for nvdimm devices.  Jens, see "[PATCH 01/15] block: introduce
-an ->rw_bytes() block device operation", it gates the rest of the series
-moving forward.
+Why do we need a new method in block_device_operations?
 
-Aside from adding a compile-time check to tools/testing/nvdimm/Kbuild
-for validating all libnvdimm objects are built as modules, patches 2 to
-6 are otherwise unchanged from the v6 libnvdimm posting [1].  The
-remaining patches are feature additions and other cleanups that were
-being held back while the base patchset was polished.
+The capacities of persistent memory make it too large to map as RAM (no
+struct page coverage by default), so Linux arranges for it to be managed
+as a block device. The bio interface to a block device enforces sector
+at a time i/o and has infrastructure for asynchronous completion of i/o.
+The ->rw_page() interface is closely tied to the page cache and also
+carries asynchronous i/o completion assumptions.  NVDIMM devices are
+fast enough to complete i/o's synchronously (memcpy) and some in kernel
+applications can take advantage of the byte-aligned (as opposed to
+sector-aligned) nature of the media.  The ->rw_bytes() operation is
+added to fill this role that does not fit into any existing access
+method.
 
-Patch 5 has an updated changelog speaking to the potential maintenance
-burden of carrying tools/testing/nvdimm/ in-tree.  The benefits still
-outweigh the risks in my opinion.
+It could be argued that a ->rw_bytes() method makes a struct
+block_device not a *block* device.  However, the applications for
+persistent memory as storage devices makes them more "block" devices
+than "character" devices.
 
-It should be noted that "[PATCH 14/15] libnvdimm: support read-only btt
-backing devices" was developed in direct repsonse to working through the
-implementation of unit tests for "[PATCH 15/15] libnvdimm, nfit: handle
-acpi_nfit_memory_map flags" and its new "read-only by default" policy.
-See the updates to the libndctl unit tests posted on the
-linux-nvdimm@01.org mailing list.
+The first consumer of the ->rw_bytes() capability is a stacked
+block_device driver (BTT - block translation table) that adds atomic
+sector update semantics on top of an nvdimm storage device.
 
-[PATCH 01/15] block: introduce an ->rw_bytes() block device operation
-[PATCH 02/15] libnvdimm: infrastructure for btt devices
-[PATCH 03/15] nd_btt: atomic sector updates
-[PATCH 04/15] libnvdimm, nfit, nd_blk: driver for BLK-mode access persistent memory
-[PATCH 05/15] tools/testing/nvdimm: libnvdimm unit test infrastructure
-[PATCH 06/15] libnvdimm: Non-Volatile Devices
-[PATCH 07/15] fs/block_dev.c: skip rw_page if bdev has integrity
-[PATCH 08/15] libnvdimm, btt: add support for blk integrity
-[PATCH 09/15] libnvdimm, blk: add support for blk integrity
-[PATCH 10/15] libnvdimm: fix up max_hw_sectors
-[PATCH 11/15] libnvdimm: pmem, blk, and btt make_request cleanups
-[PATCH 12/15] libnvdimm: enable iostat
-[PATCH 13/15] libnvdimm: flag libnvdimm block devices as non-rotational
-[PATCH 14/15] libnvdimm: support read-only btt backing devices
-[PATCH 15/15] libnvdimm, nfit: handle acpi_nfit_memory_map flags
+Why enable drivers like BTT on top of a new globally visibly
+block_device_operations op rather than an internal detail of nvdimm
+drivers?
 
-[1]: https://lists.01.org/pipermail/linux-nvdimm/2015-June/001166.html
+1/ We want ->rw_bytes() consumers to be enabled on either a per-disk or
+per-partition basis.  Consider the case of enabling DAX+XFS on a single
+persistent memory disk whereby the metadata needs atomic sector update
+guarantees, but the data would like to be DAX capable.  Solution is to
+create two partitions and enable BTT on the "metadata/XFS-logdev"
+partition.
 
+2/ We want this configuration topology to be visible to the sysfs device
+model, and not an internal detail of nvdimm drivers requiring special
+tooling.  For example if you ever wanted to "fsck" BTT metadata that
+could be carried out on the raw nvdimm device directly rather than
+require custom tooling / mechanisms to access the raw media.
+
+3/ It becomes trivial to add new BTT like drivers without touching the
+nvdimm drivers to add is_btt_mode(), is_foo_mode(), etc... checks in the
+fast path.
+
+Cc: Jens Axboe <axboe@fb.com>
+Cc: Andy Lutomirski <luto@amacapital.net>
+Cc: Boaz Harrosh <boaz@plexistor.com>
+Cc: H. Peter Anvin <hpa@zytor.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
+ drivers/nvdimm/pmem.c  |   19 +++++++++++++++++++
+ include/linux/blkdev.h |   44 ++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 63 insertions(+)
 
-Dan Williams (10):
-      block: introduce an ->rw_bytes() block device operation
-      libnvdimm: infrastructure for btt devices
-      tools/testing/nvdimm: libnvdimm unit test infrastructure
-      libnvdimm: Non-Volatile Devices
-      libnvdimm: fix up max_hw_sectors
-      libnvdimm: pmem, blk, and btt make_request cleanups
-      libnvdimm: enable iostat
-      libnvdimm: flag libnvdimm block devices as non-rotational
-      libnvdimm: support read-only btt backing devices
-      libnvdimm, nfit: handle acpi_nfit_memory_map flags
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 90902a142e35..efa2cde7f6b6 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -96,6 +96,24 @@ static int pmem_rw_page(struct block_device *bdev, sector_t sector,
+ 	return 0;
+ }
+ 
++static int pmem_rw_bytes(struct gendisk *disk, resource_size_t offset,
++			void *buf, size_t size, int rw)
++{
++	struct pmem_device *pmem = disk->private_data;
++
++	if (unlikely(offset + size > pmem->size)) {
++		dev_WARN_ONCE(disk_to_dev(disk), 1, "request out of range\n");
++		return -EFAULT;
++	}
++
++	if (rw == READ)
++		memcpy(buf, pmem->virt_addr + offset, size);
++	else
++		memcpy(pmem->virt_addr + offset, buf, size);
++
++	return 0;
++}
++
+ static long pmem_direct_access(struct block_device *bdev, sector_t sector,
+ 			      void **kaddr, unsigned long *pfn, long size)
+ {
+@@ -114,6 +132,7 @@ static long pmem_direct_access(struct block_device *bdev, sector_t sector,
+ static const struct block_device_operations pmem_fops = {
+ 	.owner =		THIS_MODULE,
+ 	.rw_page =		pmem_rw_page,
++	.rw_bytes =		pmem_rw_bytes,
+ 	.direct_access =	pmem_direct_access,
+ };
+ 
+diff --git a/include/linux/blkdev.h b/include/linux/blkdev.h
+index 7f9a516f24de..25d6034a2e62 100644
+--- a/include/linux/blkdev.h
++++ b/include/linux/blkdev.h
+@@ -1602,6 +1602,8 @@ struct block_device_operations {
+ 	int (*open) (struct block_device *, fmode_t);
+ 	void (*release) (struct gendisk *, fmode_t);
+ 	int (*rw_page)(struct block_device *, sector_t, struct page *, int rw);
++	int (*rw_bytes)(struct gendisk *, resource_size_t offset,
++			void *buf, size_t size, int rw);
+ 	int (*ioctl) (struct block_device *, fmode_t, unsigned, unsigned long);
+ 	int (*compat_ioctl) (struct block_device *, fmode_t, unsigned, unsigned long);
+ 	long (*direct_access)(struct block_device *, sector_t,
+@@ -1625,6 +1627,48 @@ extern int bdev_write_page(struct block_device *, sector_t, struct page *,
+ 						struct writeback_control *);
+ extern long bdev_direct_access(struct block_device *, sector_t, void **addr,
+ 						unsigned long *pfn, long size);
++
++/**
++ * bdev_read_bytes() - synchronously read bytes from a memory-backed block dev
++ * @bdev: device to read
++ * @offset: bdev-relative starting offset
++ * @buf: buffer to fill
++ * @size: transfer length
++ *
++ * RAM and PMEM disks do not implement sectors internally.  @buf is
++ * up-to-date upon return from this routine.
++ */
++static inline int bdev_read_bytes(struct block_device *bdev,
++		resource_size_t offset, void *buf, size_t size)
++{
++	struct gendisk *disk = bdev->bd_disk;
++	const struct block_device_operations *ops = disk->fops;
++
++	offset += get_start_sect(bdev) << 9;
++	return ops->rw_bytes(disk, offset, buf, size, READ);
++}
++
++/**
++ * bdev_write_bytes() - synchronously write bytes to a memory-backed block dev
++ * @bdev: device to read
++ * @offset: bdev-relative starting offset
++ * @buf: buffer to drain
++ * @size: transfer length
++ *
++ * RAM and PMEM disks do not implement sectors internally.  Depending on
++ * the @bdev, the contents of @buf may be in cpu cache, platform buffers,
++ * or on backing memory media upon return from this routine.  Flushing
++ * to media is handled internal to the @bdev driver, if at all.
++ */
++static inline int bdev_write_bytes(struct block_device *bdev,
++		resource_size_t offset, void *buf, size_t size)
++{
++	struct gendisk *disk = bdev->bd_disk;
++	const struct block_device_operations *ops = disk->fops;
++
++	offset += get_start_sect(bdev) << 9;
++	return ops->rw_bytes(disk, offset, buf, size, WRITE);
++}
+ #else /* CONFIG_BLOCK */
+ 
+ struct block_device;
 
-Ross Zwisler (1):
-      libnvdimm, nfit, nd_blk: driver for BLK-mode access persistent memory
-
-Vishal Verma (4):
-      nd_btt: atomic sector updates
-      fs/block_dev.c: skip rw_page if bdev has integrity
-      libnvdimm, btt: add support for blk integrity
-      libnvdimm, blk: add support for blk integrity
-
-
- Documentation/nvdimm/btt.txt          |  273 ++++++
- Documentation/nvdimm/nvdimm.txt       |  805 +++++++++++++++++
- MAINTAINERS                           |   39 +
- drivers/acpi/nfit.c                   |  491 ++++++++++
- drivers/acpi/nfit.h                   |   58 +
- drivers/nvdimm/Kconfig                |   54 +
- drivers/nvdimm/Makefile               |    7 
- drivers/nvdimm/blk.c                  |  368 ++++++++
- drivers/nvdimm/btt.c                  | 1569 +++++++++++++++++++++++++++++++++
- drivers/nvdimm/btt.h                  |  185 ++++
- drivers/nvdimm/btt_devs.c             |  473 ++++++++++
- drivers/nvdimm/bus.c                  |  176 ++++
- drivers/nvdimm/core.c                 |   99 ++
- drivers/nvdimm/dimm_devs.c            |    9 
- drivers/nvdimm/namespace_devs.c       |   63 +
- drivers/nvdimm/nd-core.h              |   48 +
- drivers/nvdimm/nd.h                   |   61 +
- drivers/nvdimm/pmem.c                 |   58 +
- drivers/nvdimm/region.c               |   97 ++
- drivers/nvdimm/region_devs.c          |  106 ++
- fs/block_dev.c                        |    4 
- include/linux/blkdev.h                |   44 +
- include/linux/libnvdimm.h             |   30 +
- include/uapi/linux/ndctl.h            |    2 
- tools/testing/nvdimm/Kbuild           |   40 +
- tools/testing/nvdimm/Makefile         |    7 
- tools/testing/nvdimm/config_check.c   |   15 
- tools/testing/nvdimm/test/Kbuild      |    8 
- tools/testing/nvdimm/test/iomap.c     |  151 +++
- tools/testing/nvdimm/test/nfit.c      | 1115 +++++++++++++++++++++++
- tools/testing/nvdimm/test/nfit_test.h |   29 +
- 31 files changed, 6422 insertions(+), 62 deletions(-)
- create mode 100644 Documentation/nvdimm/btt.txt
- create mode 100644 Documentation/nvdimm/nvdimm.txt
- create mode 100644 drivers/nvdimm/blk.c
- create mode 100644 drivers/nvdimm/btt.c
- create mode 100644 drivers/nvdimm/btt.h
- create mode 100644 drivers/nvdimm/btt_devs.c
- create mode 100644 tools/testing/nvdimm/Kbuild
- create mode 100644 tools/testing/nvdimm/Makefile
- create mode 100644 tools/testing/nvdimm/config_check.c
- create mode 100644 tools/testing/nvdimm/test/Kbuild
- create mode 100644 tools/testing/nvdimm/test/iomap.c
- create mode 100644 tools/testing/nvdimm/test/nfit.c
- create mode 100644 tools/testing/nvdimm/test/nfit_test.h
