@@ -1,373 +1,49 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: Regression in 3.10.80 vs. 3.10.79
-Date: Wed, 17 Jun 2015 23:53:15 +0200
-Message-ID: <1995713.rvSoYsxYQ5@vostro.rjw.lan>
-References: <CAL1RGDV6hr3_Oa6O-kPzx9EemtOWWtYq+-RkCzN7axNPLz5MJw@mail.gmail.com> <2054960.9BJU2lQTPg@vostro.rjw.lan> <1623864.KkKcV5nVxn@vostro.rjw.lan>
+Subject: Re: [PATCH v6 02/21] libnvdimm, nfit: initial libnvdimm infrastructure and NFIT support
+Date: Wed, 17 Jun 2015 23:59:29 +0200
+Message-ID: <1863642.qegEO3HtMW@vostro.rjw.lan>
+References: <20150611183830.25175.51256.stgit@dwillia2-desk3.amr.corp.intel.com> <20150611201018.25175.78715.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:45670 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753451AbbFQV1T (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Jun 2015 17:27:19 -0400
-In-Reply-To: <1623864.KkKcV5nVxn@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150611201018.25175.78715.stgit@dwillia2-desk3.amr.corp.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-nvdimm@lists.01.org, mingo@kernel.org, sfr@canb.auug.org.au, rafael@kernel.org, neilb@suse.de, gregkh@linuxfoundation.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-kernel@vger.kernel.org, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, jmoyer@redhat.com, Lv Zheng <lv.zheng@intel.com>, linux-api@vger.kernel.org, akpm@linux-foundation.org, axboe@kernel.dk, hch@lst.de
 List-Id: linux-acpi@vger.kernel.org
-To: Roland Dreier <roland@purestorage.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, George McCollister <george.mccollister@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>
 
-On Wednesday, June 17, 2015 02:42:40 PM Rafael J. Wysocki wrote:
-> On Tuesday, June 16, 2015 01:00:13 AM Rafael J. Wysocki wrote:
-> > On Monday, June 15, 2015 07:56:05 AM Roland Dreier wrote:
-> > > On Sat, Jun 13, 2015 at 9:56 AM, Roland Dreier <roland@purestorage.com> wrote:
-> > > > Below is a more sophisticated, so to speak, version of it with a changelog and
-> > > > all.  It works for me, but more testing would be much appreciated.
-> > > 
-> > > Yes, the patch works as expected:
-> > > 
-> > > Tested-by: Roland Dreier <roland@purestorage.com>
-> > 
-> > Awesome, thanks a lot for the confirmation!
+On Thursday, June 11, 2015 04:10:18 PM Dan Williams wrote:
+> A struct nvdimm_bus is the anchor device for registering nvdimm
+> resources and interfaces, for example, a character control device,
+> nvdimm devices, and I/O region devices.  The ACPI NFIT (NVDIMM Firmware
+> Interface Table) is one possible platform description for such
+> non-volatile memory resources in a system.  The nfit.ko driver attaches
+> to the "ACPI0012" device that indicates the presence of the NFIT and
+> parses the table to register a struct nvdimm_bus instance.
 > 
-> During the final review of the patch I noticed that it could be simplified
-> by dropping the acpi_add_region_after() routine and calling acpi_add_region()
-> directly instead of it.
-> 
-> I'll send an updated patch to you later today.
+> Cc: <linux-acpi@vger.kernel.org>
+> Cc: Lv Zheng <lv.zheng@intel.com>
+> Cc: Robert Moore <robert.moore@intel.com>
+> Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Acked-by: Jeff Moyer <jmoyer@redhat.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 
-OK, so the patch below achieves the same result in fewer lines of code.
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-I've tested it on the systems available to me, but please verify that it still
-works for you too.
+[cut]
 
-Thanks,
-Rafael
+> +
+> +static struct acpi_driver acpi_nfit_driver = {
+> +	.name = KBUILD_MODNAME,
+> +	.ids = acpi_nfit_ids,
+> +	.flags = ACPI_DRIVER_ALL_NOTIFY_EVENTS,
 
+But this flag is not needed for now IMO.
 
----
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Subject: ACPI / PNP: Avoid conflicting resource reservations
-
-Commit b9a5e5e18fbf "ACPI / init: Fix the ordering of
-acpi_reserve_resources()" overlooked the fact that the memory
-and/or I/O regions reserved by acpi_reserve_resources() may
-conflict with those reserved by the PNP "system" driver.
-
-If that conflict actually takes place, it causes the reservations
-made by the "system" driver to fail while before commit b9a5e5e18fbf
-all reservations made by it and by acpi_reserve_resources() would be
-successful.  In turn, that allows the resources that haven't been
-reserved by the "system" driver to be used by others (e.g. PCI) which
-sometimes leads to functional problems (up to and including boot
-failures).
-
-To fix that issue, introduce a common resource reservation routine,
-acpi_reserve_region(), to be used by both acpi_reserve_resources()
-and the "system" driver, that will track all resources reserved by
-it and avoid making conflicting requests.
-
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=99831
-Link: http://marc.info/?t=143389402600001&r=1&w=2
-Fixes: b9a5e5e18fbf "ACPI / init: Fix the ordering of acpi_reserve_resources()"
-Reported-by: Roland Dreier <roland@purestorage.com>
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/osl.c      |    6 -
- drivers/acpi/resource.c |  160 ++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/pnp/system.c    |   35 +++++++---
- include/linux/acpi.h    |   10 +++
- 4 files changed, 197 insertions(+), 14 deletions(-)
-
-Index: linux-pm/drivers/acpi/osl.c
-===================================================================
---- linux-pm.orig/drivers/acpi/osl.c
-+++ linux-pm/drivers/acpi/osl.c
-@@ -175,11 +175,7 @@ static void __init acpi_request_region (
- 	if (!addr || !length)
- 		return;
- 
--	/* Resources are never freed */
--	if (gas->space_id == ACPI_ADR_SPACE_SYSTEM_IO)
--		request_region(addr, length, desc);
--	else if (gas->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY)
--		request_mem_region(addr, length, desc);
-+	acpi_reserve_region(addr, length, gas->space_id, 0, desc);
- }
- 
- static void __init acpi_reserve_resources(void)
-Index: linux-pm/drivers/acpi/resource.c
-===================================================================
---- linux-pm.orig/drivers/acpi/resource.c
-+++ linux-pm/drivers/acpi/resource.c
-@@ -26,6 +26,7 @@
- #include <linux/device.h>
- #include <linux/export.h>
- #include <linux/ioport.h>
-+#include <linux/list.h>
- #include <linux/slab.h>
- 
- #ifdef CONFIG_X86
-@@ -621,3 +622,162 @@ int acpi_dev_filter_resource_type(struct
- 	return (type & types) ? 0 : 1;
- }
- EXPORT_SYMBOL_GPL(acpi_dev_filter_resource_type);
-+
-+struct reserved_region {
-+	struct list_head node;
-+	u64 start;
-+	u64 end;
-+};
-+
-+static LIST_HEAD(reserved_io_regions);
-+static LIST_HEAD(reserved_mem_regions);
-+
-+static int request_range(u64 start, u64 end, u8 space_id, unsigned long flags,
-+			 char *desc)
-+{
-+	unsigned int length = end - start + 1;
-+	struct resource *res;
-+
-+	res = space_id == ACPI_ADR_SPACE_SYSTEM_IO ?
-+		request_region(start, length, desc) :
-+		request_mem_region(start, length, desc);
-+	if (!res)
-+		return -EIO;
-+
-+	res->flags &= ~flags;
-+	return 0;
-+}
-+
-+static int add_region_before(u64 start, u64 end, u8 space_id,
-+			     unsigned long flags, char *desc,
-+			     struct list_head *head)
-+{
-+	struct reserved_region *reg;
-+	int error;
-+
-+	reg = kmalloc(sizeof(*reg), GFP_KERNEL);
-+	if (!reg)
-+		return -ENOMEM;
-+
-+	error = request_range(start, end, space_id, flags, desc);
-+	if (error)
-+		return error;
-+
-+	reg->start = start;
-+	reg->end = end;
-+	list_add_tail(&reg->node, head);
-+	return 0;
-+}
-+
-+/**
-+ * acpi_reserve_region - Reserve an I/O or memory region as a system resource.
-+ * @start: Starting address of the region.
-+ * @length: Length of the region.
-+ * @space_id: Identifier of address space to reserve the region from.
-+ * @flags: Resource flags to clear for the region after requesting it.
-+ * @desc: Region description (for messages).
-+ *
-+ * Reserve an I/O or memory region as a system resource to prevent others from
-+ * using it.  If the new region overlaps with one of the regions (in the given
-+ * address space) already reserved by this routine, only the non-overlapping
-+ * parts of it will be reserved.
-+ *
-+ * Returned is either 0 (success) or a negative error code indicating a resource
-+ * reservation problem.  It is the code of the first encountered error, but the
-+ * routine doesn't abort until it has attempted to request all of the parts of
-+ * the new region that don't overlap with other regions reserved previously.
-+ *
-+ * The resources requested by this routine are never released.
-+ */
-+int acpi_reserve_region(u64 start, unsigned int length, u8 space_id,
-+			unsigned long flags, char *desc)
-+{
-+	struct list_head *regions;
-+	struct reserved_region *reg;
-+	u64 end = start + length - 1;
-+	int ret = 0, error = 0;
-+
-+	if (space_id == ACPI_ADR_SPACE_SYSTEM_IO)
-+		regions = &reserved_io_regions;
-+	else if (space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY)
-+		regions = &reserved_mem_regions;
-+	else
-+		return -EINVAL;
-+
-+	if (list_empty(regions))
-+		return add_region_before(start, end, space_id, flags, desc, regions);
-+
-+	list_for_each_entry(reg, regions, node)
-+		if (reg->start == end + 1) {
-+			/* The new region can be prepended to this one. */
-+			ret = request_range(start, end, space_id, flags, desc);
-+			if (!ret)
-+				reg->start = start;
-+
-+			return ret;
-+		} else if (reg->start > end) {
-+			/* No overlap.  Add the new region here and get out. */
-+			return add_region_before(start, end, space_id, flags,
-+						 desc, &reg->node);
-+		} else if (reg->end == start - 1) {
-+			goto combine;
-+		} else if (reg->end >= start) {
-+			goto overlap;
-+		}
-+
-+	/* The new region goes after the last existing one. */
-+	return add_region_before(start, end, space_id, flags, desc, regions);
-+
-+ overlap:
-+	/*
-+	 * The new region overlaps an existing one.
-+	 *
-+	 * The head part of the new region immediately preceding the existing
-+	 * overlapping one can be combined with it right away.
-+	 */
-+	if (reg->start > start) {
-+		error = request_range(start, reg->start - 1, space_id, flags, desc);
-+		if (error)
-+			ret = error;
-+		else
-+			reg->start = start;
-+	}
-+
-+ combine:
-+	/*
-+	 * The new region is adjacent to an existing one.  If it extends beyond
-+	 * that region all the way to the next one, it is possible to combine
-+	 * all three of them.
-+	 */
-+	while (reg->end < end) {
-+		struct reserved_region *next = NULL;
-+		u64 a = reg->end + 1, b = end;
-+
-+		if (!list_is_last(&reg->node, regions)) {
-+			next = list_next_entry(reg, node);
-+			if (next->start <= end)
-+				b = next->start - 1;
-+		}
-+		error = request_range(a, b, space_id, flags, desc);
-+		if (!error) {
-+			if (next && next->start == b + 1) {
-+				reg->end = next->end;
-+				list_del(&next->node);
-+				kfree(next);
-+			} else {
-+				reg->end = end;
-+				break;
-+			}
-+		} else if (next) {
-+			if (!ret)
-+				ret = error;
-+
-+			reg = next;
-+		} else {
-+			break;
-+		}
-+	}
-+
-+	return ret ? ret : error;
-+}
-+EXPORT_SYMBOL_GPL(acpi_reserve_region);
-Index: linux-pm/include/linux/acpi.h
-===================================================================
---- linux-pm.orig/include/linux/acpi.h
-+++ linux-pm/include/linux/acpi.h
-@@ -332,6 +332,9 @@ int acpi_check_region(resource_size_t st
- 
- int acpi_resources_are_enforced(void);
- 
-+int acpi_reserve_region(u64 start, unsigned int length, u8 space_id,
-+			unsigned long flags, char *desc);
-+
- #ifdef CONFIG_HIBERNATION
- void __init acpi_no_s4_hw_signature(void);
- #endif
-@@ -525,6 +528,13 @@ static inline int acpi_check_region(reso
- 	return 0;
- }
- 
-+static inline int acpi_reserve_region(u64 start, unsigned int length,
-+				      u8 space_id, unsigned long flags,
-+				      char *desc)
-+{
-+	return -ENXIO;
-+}
-+
- struct acpi_table_header;
- static inline int acpi_table_parse(char *id,
- 				int (*handler)(struct acpi_table_header *))
-Index: linux-pm/drivers/pnp/system.c
-===================================================================
---- linux-pm.orig/drivers/pnp/system.c
-+++ linux-pm/drivers/pnp/system.c
-@@ -7,6 +7,7 @@
-  *	Bjorn Helgaas <bjorn.helgaas@hp.com>
-  */
- 
-+#include <linux/acpi.h>
- #include <linux/pnp.h>
- #include <linux/device.h>
- #include <linux/init.h>
-@@ -22,25 +23,41 @@ static const struct pnp_device_id pnp_de
- 	{"", 0}
- };
- 
-+#ifdef CONFIG_ACPI
-+static bool __reserve_range(u64 start, unsigned int length, bool io, char *desc)
-+{
-+	u8 space_id = io ? ACPI_ADR_SPACE_SYSTEM_IO : ACPI_ADR_SPACE_SYSTEM_MEMORY;
-+	return !acpi_reserve_region(start, length, space_id, IORESOURCE_BUSY, desc);
-+}
-+#else
-+static bool __reserve_range(u64 start, unsigned int length, bool io, char *desc)
-+{
-+	struct resource *res;
-+
-+	res = io ? request_region(start, length, desc) :
-+		request_mem_region(start, length, desc);
-+	if (res) {
-+		res->flags &= ~IORESOURCE_BUSY;
-+		return true;
-+	}
-+	return false;
-+}
-+#endif
-+
- static void reserve_range(struct pnp_dev *dev, struct resource *r, int port)
- {
- 	char *regionid;
- 	const char *pnpid = dev_name(&dev->dev);
- 	resource_size_t start = r->start, end = r->end;
--	struct resource *res;
-+	bool reserved;
- 
- 	regionid = kmalloc(16, GFP_KERNEL);
- 	if (!regionid)
- 		return;
- 
- 	snprintf(regionid, 16, "pnp %s", pnpid);
--	if (port)
--		res = request_region(start, end - start + 1, regionid);
--	else
--		res = request_mem_region(start, end - start + 1, regionid);
--	if (res)
--		res->flags &= ~IORESOURCE_BUSY;
--	else
-+	reserved = __reserve_range(start, end - start + 1, !!port, regionid);
-+	if (!reserved)
- 		kfree(regionid);
- 
- 	/*
-@@ -49,7 +66,7 @@ static void reserve_range(struct pnp_dev
- 	 * have double reservations.
- 	 */
- 	dev_info(&dev->dev, "%pR %s reserved\n", r,
--		 res ? "has been" : "could not be");
-+		 reserved ? "has been" : "could not be");
- }
- 
- static void reserve_resources_of_dev(struct pnp_dev *dev)
-
+> +	.ops = {
+> +		.add = acpi_nfit_add,
+> +		.remove = acpi_nfit_remove,
+> +	},
+> +};
+> +
