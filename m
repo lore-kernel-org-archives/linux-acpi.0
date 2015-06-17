@@ -1,24 +1,32 @@
-From: Christoph Hellwig <hch@lst.de>
-Subject: Re: [PATCH v6 00/21] libnvdimm: non-volatile memory devices
-Date: Wed, 17 Jun 2015 13:26:54 +0200
-Message-ID: <20150617112654.GA9246@lst.de>
-References: <20150611183830.25175.51256.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: 4.1-rc7, thinkpad X60: platform mode hibernation does very wrong
+ thing
+Date: Wed, 17 Jun 2015 14:13:52 +0200
+Message-ID: <20150617121352.GA20553@amd>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-pm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150611183830.25175.51256.stgit@dwillia2-desk3.amr.corp.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-nvdimm@lists.01.org, Boaz Harrosh <boaz@plexistor.com>, rafael@kernel.org, neilb@suse.de, Dave Chinner <david@fromorbit.com>, Lv Zheng <lv.zheng@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, hch@lst.de, sfr@canb.auug.org.au, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, mingo@kernel.org, linux-acpi@vger.kernel.org, jmoyer@redhat.com, Nicholas Moulin <nicholas.w.moulin@linux.intel.com>, Matthew Wilcox <willy@linux.intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Vishal Verma <vishal.l.verma@linux.intel.com>, Jens Axboe <axboe@fb.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>, axboe@kernel.dk, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, Andy Lutomirski <luto@amacapital.net>, linux-api@vger.kernel.org, akpm@linux-foundation.org, Linus Torvalds <torvalds@linux-foundation.or>
+Sender: linux-pm-owner@vger.kernel.org
+To: rjw@rjwysocki.net, lenb@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Still not a big fan of the spec, but I guess this is a mosly reasonable
-implementation now.
+Hi!
 
-So for patches 1-16:
+On thinkpad X60, if I hibernate in platform mode, it does not power
+down, but I get black screen, moon icon blinking, and CPU fan running
+(CPU probably too).
 
-Acked-by: Christoph Hellwig <hch@lst.de>
+I can hold the power button down to force powerdown... if I notice
+what is going on before the battery is empty.
 
-The btt integration still needs a proper patch split and review, and
-I still detest the mess with the test moduly by heart.
+Any ideas what could be wrong there?
+
+platform mode hibernation works ok on thinkpad T40p, and shutdown mode
+hibernation works ok on thinkpad X60 with the same kernel.
+
+Best regards,
+								Pavel
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
