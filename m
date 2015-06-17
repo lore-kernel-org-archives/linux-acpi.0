@@ -1,225 +1,327 @@
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH 12/15] libnvdimm: enable iostat
-Date: Wed, 17 Jun 2015 19:55:51 -0400
-Message-ID: <20150617235551.12943.76656.stgit@dwillia2-desk3.amr.corp.intel.com>
+Subject: [PATCH 14/15] libnvdimm: support read-only btt backing devices
+Date: Wed, 17 Jun 2015 19:56:02 -0400
+Message-ID: <20150617235602.12943.24958.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <20150617235209.12943.24419.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
 In-Reply-To: <20150617235209.12943.24419.stgit@dwillia2-desk3.amr.corp.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-fsdevel-owner@vger.kernel.org
 To: axboe@kernel.dk, linux-nvdimm@lists.01.org
-Cc: boaz@plexistor.com, toshi.kani@hp.com, Vishal Verma <vishal.l.verma@linux.intel.com>, linux-kernel@vger.kernel.org, hch@lst.de, linux-acpi@vger.kernel.org, linux-fsdevel@vger.kernel.org, mingo@kernel.org
+Cc: boaz@plexistor.com, toshi.kani@hp.com, linux-kernel@vger.kernel.org, hch@lst.de, linux-acpi@vger.kernel.org, linux-fsdevel@vger.kernel.org, mingo@kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is disabled by default as the overhead is prohibitive, but if the
-user takes the action to turn it on we'll oblige.
+Upon detection of a read-only backing device arrange for the btt to
+device to be read only.  Implement a catch for the BLKROSET ioctl and
+only allow a btt-instance to become read-write when the backing-device
+becomes read-write.  Conversely, if a backing-device becomes read-only
+arrange for its parent btt to be marked read-only.  Synchronize these
+changes under the bus lock.
 
-Reviewed-by: Vishal Verma <vishal.l.verma@linux.intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/nvdimm/Kconfig |   14 ++++++++++++++
- drivers/nvdimm/blk.c   |    7 ++++++-
- drivers/nvdimm/btt.c   |    7 ++++++-
- drivers/nvdimm/core.c  |   31 +++++++++++++++++++++++++++++++
- drivers/nvdimm/nd.h    |   13 +++++++++++++
- drivers/nvdimm/pmem.c  |    5 +++++
- 6 files changed, 75 insertions(+), 2 deletions(-)
+ drivers/nvdimm/blk.c      |    4 +++
+ drivers/nvdimm/btt.c      |   34 ++++++++++++++++++++++++++--
+ drivers/nvdimm/btt_devs.c |   42 ++++++++++++++++++++++++++++++++++
+ drivers/nvdimm/bus.c      |   55 +++++++++++++++++++++++++++++++++++++++++++++
+ drivers/nvdimm/nd-core.h  |   14 +++++++++++
+ drivers/nvdimm/nd.h       |    4 +++
+ drivers/nvdimm/pmem.c     |    4 +++
+ 7 files changed, 154 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/nvdimm/Kconfig b/drivers/nvdimm/Kconfig
-index 912cb36b8435..9d72085a67c9 100644
---- a/drivers/nvdimm/Kconfig
-+++ b/drivers/nvdimm/Kconfig
-@@ -73,4 +73,18 @@ config ND_MAX_REGIONS
- 
- 	  Leave the default of 64 if you are unsure.
- 
-+config ND_IOSTAT
-+	bool "Enable iostat by default"
-+	default n
-+	---help---
-+	  Persistent memory i/o has very low latency to the point
-+	  where the overhead to measure statistics can dramatically
-+	  impact the relative performance of the driver.  Say y here
-+	  to trade off performance for statistics gathering that is
-+	  enabled by default.  These statistics can always be
-+	  enabled/disabled at run time via the 'iostat' attribute of
-+	  the block device's queue in sysfs.
-+
-+	  If unsure, say N
-+
- endif
 diff --git a/drivers/nvdimm/blk.c b/drivers/nvdimm/blk.c
-index 9d609ef95266..8a65e5a500d8 100644
+index 8a65e5a500d8..adacc27f04f1 100644
 --- a/drivers/nvdimm/blk.c
 +++ b/drivers/nvdimm/blk.c
-@@ -168,8 +168,10 @@ static void nd_blk_make_request(struct request_queue *q, struct bio *bio)
- 	struct bio_integrity_payload *bip;
- 	struct nd_blk_device *blk_dev;
- 	struct bvec_iter iter;
-+	unsigned long start;
- 	struct bio_vec bvec;
- 	int err = 0, rw;
-+	bool do_acct;
+@@ -239,6 +239,10 @@ static int nd_blk_rw_bytes(struct gendisk *disk, resource_size_t offset,
+ static const struct block_device_operations nd_blk_fops = {
+ 	.owner = THIS_MODULE,
+ 	.rw_bytes = nd_blk_rw_bytes,
++	.ioctl = nvdimm_bdev_ioctl,
++#ifdef CONFIG_COMPAT
++	.compat_ioctl = nvdimm_bdev_compat_ioctl,
++#endif
+ };
  
- 	if (unlikely(bio_end_sector(bio) > get_capacity(disk))) {
- 		err = -EIO;
-@@ -191,6 +193,7 @@ static void nd_blk_make_request(struct request_queue *q, struct bio *bio)
- 	blk_dev = disk->private_data;
- 
- 	rw = bio_data_dir(bio);
-+	do_acct = nd_iostat_start(bio, &start);
- 	bio_for_each_segment(bvec, bio, iter) {
- 		unsigned int len = bvec.bv_len;
- 
-@@ -202,9 +205,11 @@ static void nd_blk_make_request(struct request_queue *q, struct bio *bio)
- 					"io error in %s sector %lld, len %d,\n",
- 					(rw == READ) ? "READ" : "WRITE",
- 					(unsigned long long) iter.bi_sector, len);
--			goto out;
-+			break;
- 		}
- 	}
-+	if (do_acct)
-+		nd_iostat_end(bio, start);
- 
-  out:
- 	bio_endio(bio, err);
+ static int nd_blk_probe(struct device *dev)
 diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-index 83b798dd2e68..67484633c322 100644
+index 67484633c322..57d3b271e451 100644
 --- a/drivers/nvdimm/btt.c
 +++ b/drivers/nvdimm/btt.c
-@@ -1178,8 +1178,10 @@ static void btt_make_request(struct request_queue *q, struct bio *bio)
- 	struct block_device *bdev = bio->bi_bdev;
- 	struct btt *btt = q->queuedata;
- 	struct bvec_iter iter;
-+	unsigned long start;
- 	struct bio_vec bvec;
- 	int err = 0, rw;
-+	bool do_acct;
+@@ -1248,10 +1248,29 @@ static int btt_getgeo(struct block_device *bd, struct hd_geometry *geo)
+ 	return 0;
+ }
  
- 	if (bio_end_sector(bio) > get_capacity(bdev->bd_disk)) {
- 		err = -EIO;
-@@ -1199,6 +1201,7 @@ static void btt_make_request(struct request_queue *q, struct bio *bio)
- 		goto out;
++static int btt_revalidate_disk(struct gendisk *disk)
++{
++	struct btt *btt = disk->private_data;
++	struct nd_btt *nd_btt = btt->nd_btt;
++	struct block_device *bdev = nd_btt->backing_dev;
++	char name[BDEVNAME_SIZE];
++
++	dev_dbg(&nd_btt->dev, "backing dev: %s read-%s", bdevname(bdev, name),
++			bdev_read_only(bdev) ? "only" : "write");
++	if (bdev_read_only(bdev))
++		set_disk_ro(disk, 1);
++	return 0;
++}
++
+ static const struct block_device_operations btt_fops = {
+ 	.owner =		THIS_MODULE,
+ 	.rw_page =		btt_rw_page,
+ 	.getgeo =		btt_getgeo,
++	.ioctl =		nvdimm_bdev_ioctl,
++#ifdef CONFIG_COMPAT
++	.compat_ioctl =		nvdimm_bdev_compat_ioctl,
++#endif
++	.revalidate_disk =	btt_revalidate_disk,
+ };
+ 
+ static int btt_blk_init(struct btt *btt)
+@@ -1296,6 +1315,7 @@ static int btt_blk_init(struct btt *btt)
  	}
  
-+	do_acct = nd_iostat_start(bio, &start);
- 	bio_for_each_segment(bvec, bio, iter) {
- 		unsigned int len = bvec.bv_len;
+ 	set_capacity(btt->btt_disk, btt->nlba * btt->sector_size >> 9);
++	revalidate_disk(btt->btt_disk);
  
-@@ -1215,9 +1218,11 @@ static void btt_make_request(struct request_queue *q, struct bio *bio)
- 					"io error in %s sector %lld, len %d,\n",
- 					(rw == READ) ? "READ" : "WRITE",
- 					(unsigned long long) iter.bi_sector, len);
--			goto out;
-+			break;
+ 	return 0;
+ 
+@@ -1335,6 +1355,7 @@ static struct btt *btt_init(struct nd_btt *nd_btt, unsigned long long rawsize,
+ 	int ret;
+ 	struct btt *btt;
+ 	struct device *dev = &nd_btt->dev;
++	struct block_device *bdev = nd_btt->backing_dev;
+ 
+ 	btt = kzalloc(sizeof(struct btt), GFP_KERNEL);
+ 	if (!btt)
+@@ -1354,7 +1375,13 @@ static struct btt *btt_init(struct nd_btt *nd_btt, unsigned long long rawsize,
+ 		goto out_free;
+ 	}
+ 
+-	if (btt->init_state != INIT_READY) {
++	if (btt->init_state != INIT_READY && bdev_read_only(bdev)) {
++		char name[BDEVNAME_SIZE];
++
++		dev_info(dev, "%s is read-only, unable to init btt metadata\n",
++				bdevname(bdev, name));
++		goto out_free;
++	} else if (btt->init_state != INIT_READY) {
+ 		btt->num_arenas = (rawsize / ARENA_MAX_SIZE) +
+ 			((rawsize % ARENA_MAX_SIZE) ? 1 : 0);
+ 		dev_dbg(dev, "init: %d arenas for %llu rawsize\n",
+@@ -1369,7 +1396,7 @@ static struct btt *btt_init(struct nd_btt *nd_btt, unsigned long long rawsize,
+ 		ret = btt_meta_init(btt);
+ 		if (ret) {
+ 			dev_err(dev, "init: error in meta_init: %d\n", ret);
+-			return NULL;
++			goto out_free;
  		}
  	}
-+	if (do_acct)
-+		nd_iostat_end(bio, start);
  
- out:
- 	bio_endio(bio, err);
-diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
-index d27b13357873..99cf95af5f24 100644
---- a/drivers/nvdimm/core.c
-+++ b/drivers/nvdimm/core.c
-@@ -218,9 +218,40 @@ void nd_blk_queue_init(struct request_queue *q)
- {
- 	blk_queue_max_hw_sectors(q, UINT_MAX);
- 	blk_queue_bounce_limit(q, BLK_BOUNCE_ANY);
-+	if (IS_ENABLED(CONFIG_ND_IOSTAT))
-+		queue_flag_set_unlocked(QUEUE_FLAG_IO_STAT, q);
+@@ -1481,7 +1508,10 @@ static int nd_btt_remove(struct device *dev)
+ 	struct nd_btt *nd_btt = to_nd_btt(dev);
+ 	struct btt *btt = dev_get_drvdata(dev);
+ 
++	nvdimm_bus_lock(dev);
+ 	btt_fini(btt);
++	nvdimm_bus_unlock(dev);
++
+ 	unlink_btt(nd_btt);
+ 
+ 	return 0;
+diff --git a/drivers/nvdimm/btt_devs.c b/drivers/nvdimm/btt_devs.c
+index 02e125b91e77..bcf77dca1532 100644
+--- a/drivers/nvdimm/btt_devs.c
++++ b/drivers/nvdimm/btt_devs.c
+@@ -122,7 +122,7 @@ static ssize_t backing_dev_show(struct device *dev,
+ 		return sprintf(buf, "\n");
  }
- EXPORT_SYMBOL(nd_blk_queue_init);
  
-+void __nd_iostat_start(struct bio *bio, unsigned long *start)
-+{
-+	struct gendisk *disk = bio->bi_bdev->bd_disk;
-+	const int rw = bio_data_dir(bio);
-+	int cpu = part_stat_lock();
-+
-+	*start = jiffies;
-+	part_round_stats(cpu, &disk->part0);
-+	part_stat_inc(cpu, &disk->part0, ios[rw]);
-+	part_stat_add(cpu, &disk->part0, sectors[rw], bio_sectors(bio));
-+	part_inc_in_flight(&disk->part0, rw);
-+	part_stat_unlock();
-+}
-+EXPORT_SYMBOL(__nd_iostat_start);
-+
-+void nd_iostat_end(struct bio *bio, unsigned long start)
-+{
-+	struct gendisk *disk = bio->bi_bdev->bd_disk;
-+	unsigned long duration = jiffies - start;
-+	const int rw = bio_data_dir(bio);
-+	int cpu = part_stat_lock();
-+
-+	part_stat_add(cpu, &disk->part0, ticks[rw], duration);
-+	part_round_stats(cpu, &disk->part0);
-+	part_dec_in_flight(&disk->part0, rw);
-+	part_stat_unlock();
-+}
-+EXPORT_SYMBOL(nd_iostat_end);
-+
- static ssize_t commands_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
+-static const fmode_t nd_btt_devs_mode = FMODE_READ | FMODE_WRITE | FMODE_EXCL;
++static const fmode_t nd_btt_devs_mode = FMODE_READ | FMODE_EXCL;
+ 
+ static void nd_btt_remove_bdev(struct nd_btt *nd_btt, const char *caller)
  {
+@@ -363,6 +363,46 @@ u64 nd_btt_sb_checksum(struct btt_sb *btt_sb)
+ }
+ EXPORT_SYMBOL(nd_btt_sb_checksum);
+ 
++int set_btt_ro(struct block_device *bdev, struct device *dev, int ro)
++{
++	struct nd_btt *nd_btt = to_nd_btt(dev);
++
++	if (!dev->driver)
++		return 0;
++
++	/* we can only mark a btt device rw if its backing device is rw */
++	if (bdev_read_only(nd_btt->backing_dev) && !ro)
++		return -EBUSY;
++
++	set_device_ro(bdev, ro);
++	return 0;
++}
++
++int set_btt_disk_ro(struct device *dev, void *data)
++{
++	struct block_device *bdev = data;
++	struct nd_btt *nd_btt;
++	struct btt *btt;
++
++	if (!is_nd_btt(dev))
++		return 0;
++
++	nd_btt = to_nd_btt(dev);
++	if (nd_btt->backing_dev != bdev)
++		return 0;
++
++	/*
++	 * We have the lock at this point and have flushed probing.  We
++	 * are guaranteed that the btt driver is unbound, or has
++	 * completed setup operations and is blocked from initiating
++	 * disk teardown until we are done walking these pointers.
++	 */
++	btt = dev_get_drvdata(dev);
++	if (btt && btt->btt_disk)
++		set_disk_ro(btt->btt_disk, 1);
++	return 0;
++}
++
+ static struct nd_btt *__nd_btt_autodetect(struct nvdimm_bus *nvdimm_bus,
+ 		struct block_device *bdev, struct btt_sb *btt_sb)
+ {
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index d4fbc48f5643..47260ca573e0 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -309,6 +309,61 @@ void nvdimm_bus_remove_disk(struct gendisk *disk)
+ }
+ EXPORT_SYMBOL(nvdimm_bus_remove_disk);
+ 
++static int set_namespace_ro(struct block_device *bdev,
++		struct nvdimm_bus *nvdimm_bus, int ro)
++{
++	set_device_ro(bdev, ro);
++
++	/*
++	 * It's possible to mark the backing device rw while leaving the
++	 * btt device read-only.  However, marking a backing device
++	 * read-only always marks the parent btt read-only.
++	 */
++	if (!ro)
++		return 0;
++	return device_for_each_child(&nvdimm_bus->dev, bdev, set_btt_disk_ro);
++}
++
++int nvdimm_bdev_ioctl(struct block_device *bdev, fmode_t mode,
++		unsigned int cmd, unsigned long arg)
++{
++	int rc, ro;
++	struct gendisk *disk = bdev->bd_disk;
++	struct device *dev = disk->driverfs_dev;
++	struct nvdimm_bus *nvdimm_bus = walk_to_nvdimm_bus(dev);
++
++	if (cmd != BLKROSET)
++		return -ENOTTY;
++
++	if (get_user(ro, (int __user *)(arg)))
++		return -EFAULT;
++
++	if (ro == 0 || ro == 1)
++		/* pass */;
++	else
++		return -EINVAL;
++
++	nvdimm_bus_lock(&nvdimm_bus->dev);
++	wait_nvdimm_bus_probe_idle(&nvdimm_bus->dev);
++	if (bdev_read_only(bdev) == ro)
++		rc = 0;
++	else if (is_nd_btt(dev))
++		rc = set_btt_ro(bdev, dev, ro);
++	else
++		rc = set_namespace_ro(bdev, nvdimm_bus, ro);
++	nvdimm_bus_unlock(&nvdimm_bus->dev);
++
++	return rc;
++}
++EXPORT_SYMBOL(nvdimm_bdev_ioctl);
++
++int nvdimm_bdev_compat_ioctl(struct block_device *bdev, fmode_t mode,
++		unsigned int cmd, unsigned long arg)
++{
++	return nvdimm_bdev_ioctl(bdev, mode, cmd, arg);
++}
++EXPORT_SYMBOL(nvdimm_bdev_compat_ioctl);
++
+ static ssize_t modalias_show(struct device *dev, struct device_attribute *attr,
+ 		char *buf)
+ {
+diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
+index 9a90915e6fd2..ba548d248b4e 100644
+--- a/drivers/nvdimm/nd-core.h
++++ b/drivers/nvdimm/nd-core.h
+@@ -49,11 +49,14 @@ bool is_nvdimm(struct device *dev);
+ bool is_nd_pmem(struct device *dev);
+ bool is_nd_blk(struct device *dev);
+ struct gendisk;
++struct block_device;
+ #if IS_ENABLED(CONFIG_ND_BTT_DEVS)
+ bool is_nd_btt(struct device *dev);
+ struct nd_btt *nd_btt_create(struct nvdimm_bus *nvdimm_bus);
+ void nd_btt_add_disk(struct nvdimm_bus *nvdimm_bus, struct gendisk *disk);
+ void nd_btt_remove_disk(struct nvdimm_bus *nvdimm_bus, struct gendisk *disk);
++int set_btt_ro(struct block_device *bdev, struct device *dev, int ro);
++int set_btt_disk_ro(struct device *dev, void *data);
+ #else
+ static inline bool is_nd_btt(struct device *dev)
+ {
+@@ -74,6 +77,17 @@ static inline void nd_btt_remove_disk(struct nvdimm_bus *nvdimm_bus,
+ 		struct gendisk *disk)
+ {
+ }
++
++static inline int set_btt_ro(struct block_device *bdev, struct device *dev,
++		int ro)
++{
++	return 0;
++}
++
++static inline int set_btt_disk_ro(struct device *dev, void *data)
++{
++	return 0;
++}
+ #endif
+ struct nvdimm_bus *walk_to_nvdimm_bus(struct device *nd_dev);
+ int __init nvdimm_bus_init(void);
 diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
-index 2f20d5dca028..3c4c8b6c64ec 100644
+index 3c4c8b6c64ec..2786eb8456ec 100644
 --- a/drivers/nvdimm/nd.h
 +++ b/drivers/nvdimm/nd.h
-@@ -13,6 +13,7 @@
- #ifndef __ND_H__
- #define __ND_H__
- #include <linux/libnvdimm.h>
-+#include <linux/blkdev.h>
- #include <linux/device.h>
- #include <linux/genhd.h>
- #include <linux/mutex.h>
-@@ -172,5 +173,17 @@ struct resource *nvdimm_allocate_dpa(struct nvdimm_drvdata *ndd,
- 		resource_size_t n);
- int nd_blk_region_init(struct nd_region *nd_region);
- void nd_blk_queue_init(struct request_queue *q);
-+void __nd_iostat_start(struct bio *bio, unsigned long *start);
-+static inline bool nd_iostat_start(struct bio *bio, unsigned long *start)
-+{
-+	struct gendisk *disk = bio->bi_bdev->bd_disk;
-+
-+	if (!blk_queue_io_stat(disk->queue))
-+		return false;
-+
-+	__nd_iostat_start(bio, start);
-+	return true;
-+}
-+void nd_iostat_end(struct bio *bio, unsigned long start);
- resource_size_t nd_namespace_blk_validate(struct nd_namespace_blk *nsblk);
- #endif /* __ND_H__ */
+@@ -164,6 +164,10 @@ int nvdimm_bus_add_disk(struct gendisk *disk);
+ int nvdimm_bus_add_integrity_disk(struct gendisk *disk, u32 lbasize,
+ 		sector_t size);
+ void nvdimm_bus_remove_disk(struct gendisk *disk);
++int nvdimm_bdev_ioctl(struct block_device *bdev, fmode_t mode,
++		unsigned int cmd, unsigned long arg);
++int nvdimm_bdev_compat_ioctl(struct block_device *bdev, fmode_t mode,
++		unsigned int cmd, unsigned long arg);
+ void nvdimm_drvdata_release(struct kref *kref);
+ void put_ndd(struct nvdimm_drvdata *ndd);
+ int nd_label_reserve_dpa(struct nvdimm_drvdata *ndd);
 diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 0337b00f5409..3fd854a78f09 100644
+index 3fd854a78f09..96964419b72d 100644
 --- a/drivers/nvdimm/pmem.c
 +++ b/drivers/nvdimm/pmem.c
-@@ -59,6 +59,8 @@ static void pmem_do_bvec(struct pmem_device *pmem, struct page *page,
- static void pmem_make_request(struct request_queue *q, struct bio *bio)
- {
- 	int err = 0;
-+	bool do_acct;
-+	unsigned long start;
- 	struct bio_vec bvec;
- 	struct bvec_iter iter;
- 	struct block_device *bdev = bio->bi_bdev;
-@@ -69,9 +71,12 @@ static void pmem_make_request(struct request_queue *q, struct bio *bio)
- 		goto out;
- 	}
+@@ -131,6 +131,10 @@ static const struct block_device_operations pmem_fops = {
+ 	.rw_page =		pmem_rw_page,
+ 	.rw_bytes =		pmem_rw_bytes,
+ 	.direct_access =	pmem_direct_access,
++	.ioctl =		nvdimm_bdev_ioctl,
++#ifdef CONFIG_COMPAT
++	.compat_ioctl =		nvdimm_bdev_ioctl,
++#endif
+ };
  
-+	do_acct = nd_iostat_start(bio, &start);
- 	bio_for_each_segment(bvec, bio, iter)
- 		pmem_do_bvec(pmem, bvec.bv_page, bvec.bv_len, bvec.bv_offset,
- 				bio_data_dir(bio), iter.bi_sector);
-+	if (do_acct)
-+		nd_iostat_end(bio, start);
- 
- out:
- 	bio_endio(bio, err);
+ static struct pmem_device *pmem_alloc(struct device *dev,
+
