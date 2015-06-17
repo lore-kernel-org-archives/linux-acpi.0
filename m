@@ -1,63 +1,88 @@
-From: =?windows-1252?Q?Christian_K=F6nig?= <christian.koenig@amd.com>
-Subject: Re: 4.1-rc7: Xorg broken after resume on thinkpad T40p,
- radeon problem?
-Date: Wed, 17 Jun 2015 15:31:34 +0200
-Message-ID: <558176B6.9010607@amd.com>
+From: Paul Bolle <pebolle@tiscali.nl>
+Subject: Re: 4.1-rc7: Xorg broken after resume on thinkpad T40p, radeon
+ problem?
+Date: Wed, 17 Jun 2015 15:50:17 +0200
+Message-ID: <1434549017.2400.3.camel@x220>
 References: <20150617124347.GA22879@amd> <20150617124949.GA22953@amd>
- <5581711D.6030707@amd.com> <20150617132121.GA24634@amd>
+	 <5581711D.6030707@amd.com> <20150617132121.GA24634@amd>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from lb3-smtp-cloud6.xs4all.net ([194.109.24.31]:44001 "EHLO
+	lb3-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754908AbbFQNuW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 17 Jun 2015 09:50:22 -0400
 In-Reply-To: <20150617132121.GA24634@amd>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Pavel Machek <pavel@ucw.cz>
-Cc: linux-pm@vger.kernel.org, rjw@rjwysocki.net, kernel list <linux-kernel@vger.kernel.org>, dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org, alexander.deucher@amd.com, lenb@kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Pavel Machek <pavel@ucw.cz>
+Cc: Christian =?ISO-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>, dri-devel@lists.freedesktop.org, alexander.deucher@amd.com, rjw@rjwysocki.net, lenb@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
 
-T24gMTcuMDYuMjAxNSAxNToyMSwgUGF2ZWwgTWFjaGVrIHdyb3RlOgo+IE9uIFdlZCAyMDE1LTA2
-LTE3IDE1OjA3OjQxLCBDaHJpc3RpYW4gS8O2bmlnIHdyb3RlOgo+PiBPbiAxNy4wNi4yMDE1IDE0
-OjQ5LCBQYXZlbCBNYWNoZWsgd3JvdGU6Cj4+PiBPbiBXZWQgMjAxNS0wNi0xNyAxNDo0Mzo0Nywg
-UGF2ZWwgTWFjaGVrIHdyb3RlOgo+Pj4+IEhpIQo+Pj4+Cj4+Pj4gVmlkZW8gaXMgYnJva2VuIG9u
-IHRoaW5rcGFkIFQ0MHAgYWZ0ZXIgcmVzdW1lIGZyb20gc3VzcGVuZC4gKEluIFgKPj4+PiBvbmx5
-LCB0ZXh0IGNvbnNvbGUgc3RpbGwgd29ya3MuKQo+Pj4+Cj4+Pj4gTWF5YmUgdGhpcyBpcyByZWxh
-dGVkPwo+Pj4+Cj4+Pj4gWyA1NDMwLjE5MzA3MV0gcmFkZW9uIDAwMDA6MDE6MDAuMDogcHV0dGlu
-ZyBBR1AgVjIgZGV2aWNlIGludG8gNHggbW9kZQo+Pj4+IFsgNTQzMC4xOTMxMDddIHJhZGVvbiAw
-MDAwOjAxOjAwLjA6IEdUVDogMjU2TSAweEQwMDAwMDAwIC0gMHhERkZGRkZGRgo+Pj4+IFsgNTQz
-MC4yMTQ2NzBdIHJhZGVvbiAwMDAwOjAxOjAwLjA6IFdCIGRpc2FibGVkCj4+Pj4gWyA1NDMwLjIx
-NDY3NV0gcmFkZW9uIDAwMDA6MDE6MDAuMDogZmVuY2UgZHJpdmVyIG9uIHJpbmcgMCB1c2UgZ3B1
-IGFkZHIgMHgwMDAwMDAwMGQwMDAwMDAwIGFuZCBjcHUgYWRkciAweGY4NDFhMDAwCj4+Pj4gWyA1
-NDMwLjIxNDcyMV0gW2RybV0gcmFkZW9uOiByaW5nIGF0IDB4MDAwMDAwMDBEMDAwMTAwMAo+Pj4+
-IFsgNTQzMC4zNzA4NjddIFtkcm06cjEwMF9yaW5nX3Rlc3RdICpFUlJPUiogcmFkZW9uOiByaW5n
-IHRlc3QgZmFpbGVkIChzY3JhdGNoKDB4MTVFOCk9MHhDQUZFREVBRCkKPj4+PiBbIDU0MzAuMzcw
-ODY5XSBbZHJtOnIxMDBfY3BfaW5pdF0gKkVSUk9SKiByYWRlb246IGNwIGlzbid0IHdvcmtpbmcg
-KC0yMikuCj4+Pj4gWyA1NDMwLjM3MDg3Ml0gcmFkZW9uIDAwMDA6MDE6MDAuMDogZmFpbGVkIGlu
-aXRpYWxpemluZyBDUCAoLTIyKS4KPj4+Pgo+Pj4+IEhpYmVybmF0aW9uIHdvcmtzIHdlbGwgaGVy
-ZSwgaW5jbHVkaW5nIFguIChXaGljaCBoYXMgc21hbGwgZ2xpdGNoIHdpdGgKPj4+PiBtb3VzZSBj
-dXJzb3IgYmVpbmcgY29ycnVwdGVkIHVudGlsIGl0IGlzIGNoYW5nZWQgYnkgYXBwbGljYXRpb24p
-Lgo+Pj4+Cj4+PiAzLjE2LjAtNC02ODYtcGFlIERlYmlhbiAzLjE2LjctY2t0dDExLTEga2VybmVs
-IHNlZW1zIHRvIGhhdmUgc2FtZQo+Pj4gcHJvYmxlbSwgd2l0aCBzYW1lIHNjcmF0Y2goMHgxNUU4
-KT0weENBRkVERUFEIG1lc3NhZ2UuLi4gc28gdGhpcyBpcwo+Pj4gbm90ICJuZXciIHByb2JsZW0u
-Li4KPj4+Cj4+IExvb2tzIGxpa2UgQ1AgaW5pdCBkb2Vzbid0IHdvcmsuIFdlbGwgaXMgdGhlcmUg
-YW55IGtlcm5lbCB3aGVyZSB0aGF0IGRpZAo+PiB3b3JrZWQ/Cj4gVW5mb3J0dW5hdGVseSwgbm90
-IGFzIGZhciBhcyBJIGtub3cuCgpJbiB0aGlzIGNhc2Ugd2UgcHJvYmFibHkgY2FuJ3QgaGVscCBp
-biBhbnkgd2F5LCBpdCdzIG1vc3QgbGlrZWx5IHNvbWUgCnNwZWNpYWwgaGFuZGxpbmcgcmVxdWly
-ZWQgZm9yIGV4YWN0bHkgdGhpcyBjb25maWd1cmF0aW9uIHRoYXQgaXNuJ3QgCmRvY3VtZW50IGFu
-eW1vcmUgYW55d2hlcmUgKFdlbGwsIHdlIGFyZSB0YWxraW5nIGFib3V0IGhhcmR3YXJlIHRoYXQg
-aXMgCm1vcmUgdGhhbiBhIGRlY2FkZSBvbGQpLgoKU29ycnkgdGhhdCBJIGRvbid0IGhhdmUgYW55
-IGJldHRlciBuZXdzLApDaHJpc3RpYW4uCgo+Cj4+IElmIHllcyBpdCBtaWdodCBiZSBhIGdvb2Qg
-aWRlYSB0byBiaXNlY3QgdG8gbmFycm93IGRvd24gdGhlIHByb2JsZW0uCj4gTm8gc3VjaCBsdWNr
-LiBJIG1heSB0cnkgc29tZXRoaW5nIGxpa2UgIjMuMCIgaWYgd2UgYXJlIHJlYWxseQo+IGRlc3Bl
-cmF0ZSAoMi42Llgga2VybmVscyBwcm9iYWJseSB3b24ndCB3b24ndCBib290IHdpdGggcmVjZW50
-Cj4gdXNlcmxhbmQpLCBidXQgSSBzdXNwZWN0IGl0IGp1c3QgbmV2ZXIgd29ya2VkLgo+Cj4gCQkJ
-CQkJCQlQYXZlbAoKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3Jn
-Cmh0dHA6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
+On Wed, 2015-06-17 at 15:21 +0200, Pavel Machek wrote:
+> On Wed 2015-06-17 15:07:41, Christian K=C3=B6nig wrote:
+> > On 17.06.2015 14:49, Pavel Machek wrote:
+> > >On Wed 2015-06-17 14:43:47, Pavel Machek wrote:
+> > >>Hi!
+> > >>
+> > >>Video is broken on thinkpad T40p after resume from suspend. (In X
+> > >>only, text console still works.)
+> > >>
+> > >>Maybe this is related?
+> > >>
+> > >>[ 5430.193071] radeon 0000:01:00.0: putting AGP V2 device into 4x=
+ mode
+> > >>[ 5430.193107] radeon 0000:01:00.0: GTT: 256M 0xD0000000 - 0xDFFF=
+=46FFF
+> > >>[ 5430.214670] radeon 0000:01:00.0: WB disabled
+> > >>[ 5430.214675] radeon 0000:01:00.0: fence driver on ring 0 use gp=
+u addr 0x00000000d0000000 and cpu addr 0xf841a000
+> > >>[ 5430.214721] [drm] radeon: ring at 0x00000000D0001000
+> > >>[ 5430.370867] [drm:r100_ring_test] *ERROR* radeon: ring test fai=
+led (scratch(0x15E8)=3D0xCAFEDEAD)
+> > >>[ 5430.370869] [drm:r100_cp_init] *ERROR* radeon: cp isn't workin=
+g (-22).
+> > >>[ 5430.370872] radeon 0000:01:00.0: failed initializing CP (-22).
+> > >>
+> > >>Hibernation works well here, including X. (Which has small glitch=
+ with
+> > >>mouse cursor being corrupted until it is changed by application).
+> > >>
+> > >3.16.0-4-686-pae Debian 3.16.7-cktt11-1 kernel seems to have same
+> > >problem, with same scratch(0x15E8)=3D0xCAFEDEAD message... so this=
+ is
+> > >not "new" problem...
+> > >
+>=20
+> > Looks like CP init doesn't work. Well is there any kernel where tha=
+t did
+> > worked?
+>=20
+> Unfortunately, not as far as I know.
+>=20
+> > If yes it might be a good idea to bisect to narrow down the problem=
+=2E
+>=20
+> No such luck. I may try something like "3.0" if we are really
+> desperate (2.6.X kernels probably won't won't boot with recent
+> userland), but I suspect it just never worked.
+
+The above looks very much like the issue that made me write commit
+45171002b01b ("radeon: add AGPMode 1 quirk for RV250"). See
+https://bugzilla.redhat.com/show_bug.cgi?id=3D531825 for a lot of
+background.
+
+Does booting with radeon.agpmode=3D1 survive a suspend and resume cycle=
+?
+
+Hope this helps,
+
+
+Paul Bolle
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
