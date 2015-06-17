@@ -1,79 +1,52 @@
-From: Wang Long <long.wanglong@huawei.com>
-Subject: [PATCH v2 2/2] apei/erst-dbg: Define pr_fmt macro to avoid the duplication of ERST_DBG_PFX
-Date: Wed, 17 Jun 2015 01:30:12 +0000
-Message-ID: <1434504612-40011-2-git-send-email-long.wanglong@huawei.com>
-References: <1434504612-40011-1-git-send-email-long.wanglong@huawei.com>
+From: Darren Hart <dvhart@infradead.org>
+Subject: Re: [PATCH v2 00/32] acpi-video: Rewrite backlight interface
+ selection logic
+Date: Tue, 16 Jun 2015 20:39:21 -0700
+Message-ID: <20150617033921.GA29788@vmdeb7>
+References: <1434108231-12323-1-git-send-email-hdegoede@redhat.com>
+ <4163515.a4pVZ0oOei@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([58.251.152.64]:16423 "EHLO
-	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757051AbbFQBeK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 16 Jun 2015 21:34:10 -0400
-In-Reply-To: <1434504612-40011-1-git-send-email-long.wanglong@huawei.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4163515.a4pVZ0oOei@vostro.rjw.lan>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Hans de Goede <hdegoede@redhat.com>, Ben Skeggs <bskeggs@redhat.com>, Azael Avalos <coproscefalo@gmail.com>, Corentin Chary <corentin.chary@gmail.com>, Lee Chun-Yi <jlee@suse.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Ike Panhc <ike.pan@canonical.com>, Anisse Astier <anisse@astier.eu>, Mattia Dongili <malattia@linux.it>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, platform-driver-x86@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, acpi4asus-user@lists.sourceforge.net, dri-devel@lists.freedesktop.org, Aaron Lu <aaron.lu@intel.com>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org, ying.huang@intel.com, joe@perches.com
-Cc: tony.luck@intel.com, bp@suse.de, gong.chen@linux.intel.com, long.wanglong@huawei.com, tomasz.nowicki@linaro.org, lv.zheng@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, wanglong@laoqinren.net, peifeiyue@huawei.com
 
-Define pr_fmt macro with {ERST DBG: } prefix, then remove all use
-of ERST_DBG_PFX in the pr_* functions.
+On Tue, Jun 16, 2015 at 01:22:40AM +0200, Rafael Wysocki wrote:
+> On Friday, June 12, 2015 01:23:19 PM Hans de Goede wrote:
+> > Hi All,
+> > 
+> > Here is v2 of my rewrite / cleanup of the acpi-video (and platform/x86)
+> > backlight interface selection logic.
+> > 
+> > The major change in v2 of this set are 2 changes to the patch titled
+> > "acpi-video-detect: video: Make video_detect code part of the video module":
+> > 
+> > 1) The __setup call for the acpi_backlight= handling is moved to
+> >    acpi/util.c as __setup may only be used by code which is always builtin
+> > 2) video.c is renamed to acpi_video.c so that it can be combined with
+> >    video_detect.c into video.ko
+> > 
+> > These 2 changes result in the backlight kernel commandline options after this
+> > patch-set being 100% compatible with the old options, with the exception of
+> > the removal of the video.use_native_backlight option as that now is folded
+> > into acpi_backlight=[video|vendor|native|none] rather then having 2 options
+> > which influence each other in interesting ways.
+> > 
+> > Besides that there is a small change to the dell-laptop port to the new API
+> > removing an unnecessary #ifdef ACPI.
+> 
+> I tried to queue this series up for 4.2, but patch [06/32] didn't apply for me,
+> so I decided to apply another patch I've got recently instead and which is now
+> in my linux-next branch.
+> 
+> Can you please rebase the series on top of linux-pm.git/linux-next and resend it?
 
-Signed-off-by: Wang Long <long.wanglong@huawei.com>
----
- drivers/acpi/apei/erst-dbg.c | 11 +++++------
- 1 file changed, 5 insertions(+), 6 deletions(-)
+Rafael, do you intent to carry this entire series and submit via linux-pm?
 
-diff --git a/drivers/acpi/apei/erst-dbg.c b/drivers/acpi/apei/erst-dbg.c
-index 3a57ffb..c38133a 100644
---- a/drivers/acpi/apei/erst-dbg.c
-+++ b/drivers/acpi/apei/erst-dbg.c
-@@ -23,6 +23,8 @@
-  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-  */
- 
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
- #include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/uaccess.h>
-@@ -31,8 +33,6 @@
- 
- #include "apei-internal.h"
- 
--#define ERST_DBG_PFX			"ERST DBG: "
--
- #define ERST_DBG_RECORD_LEN_MAX		0x4000
- 
- static void *erst_dbg_buf;
-@@ -130,8 +130,7 @@ retry:
- 	if (rc < 0)
- 		goto out;
- 	if (len > ERST_DBG_RECORD_LEN_MAX) {
--		pr_warn(ERST_DBG_PFX
--			   "Record (ID: 0x%llx) length is too long: %zd\n",
-+		pr_warn("Record (ID: 0x%llx) length is too long: %zd\n",
- 			   id, len);
- 		rc = -EIO;
- 		goto out;
-@@ -171,7 +170,7 @@ static ssize_t erst_dbg_write(struct file *filp, const char __user *ubuf,
- 		return -EPERM;
- 
- 	if (usize > ERST_DBG_RECORD_LEN_MAX) {
--		pr_err(ERST_DBG_PFX "Too long record to be written\n");
-+		pr_err("Too long record to be written\n");
- 		return -EINVAL;
- 	}
- 
-@@ -223,7 +222,7 @@ static struct miscdevice erst_dbg_dev = {
- static __init int erst_dbg_init(void)
- {
- 	if (erst_disable) {
--		pr_info(ERST_DBG_PFX "ERST support is disabled.\n");
-+		pr_info("ERST support is disabled.\n");
- 		return -ENODEV;
- 	}
- 	return misc_register(&erst_dbg_dev);
 -- 
-1.8.3.4
-
+Darren Hart
+Intel Open Source Technology Center
