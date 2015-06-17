@@ -1,197 +1,123 @@
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH v7 01/16] e820, efi: add ACPI 6.0 persistent memory types
-Date: Wed, 17 Jun 2015 19:13:25 -0400
-Message-ID: <20150617231325.11597.61542.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150617215027.11597.61414.stgit@dwillia2-desk3.amr.corp.intel.com>
+Subject: [PATCH 00/15] libnvdimm: ->rw_bytes(), BLK-mode, unit tests,
+ and misc features
+Date: Wed, 17 Jun 2015 19:54:47 -0400
+Message-ID: <20150617235209.12943.24419.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:8780 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752877AbbFQXQG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 17 Jun 2015 19:16:06 -0400
-In-Reply-To: <20150617215027.11597.61414.stgit@dwillia2-desk3.amr.corp.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: axboe@kernel.dk, linux-nvdimm@lists.01.org
+Cc: boaz@plexistor.com, toshi.kani@hp.com, "Martin K. Petersen" <martin.petersen@oracle.com>, Vishal Verma <vishal.l.verma@linux.intel.com>, Neil Brown <neilb@suse.de>, Greg KH <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Dave Chinner <david@fromorbit.com>, Robert Moore <robert.moore@intel.com>, Andy Lutomirski <luto@amacapital.net>, Jens Axboe <axboe@fb.com>, linux-acpi@vger.kernel.org, Jeff Moyer <jmoyer@redhat.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, linux-fsdevel@vger.kernel.org, Ross Zwisler <ross.zwisler@linux.intel.com>, hch@lst.de, mingo@kernel.org, linux-kernel@vger.kernel.org, Lv Zheng <lv.zheng@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: mingo@kernel.org, Boaz Harrosh <boaz@plexistor.com>, akpm@linux-foundation.org, sfr@canb.auug.org.au, neilb@suse.de, gregkh@linuxfoundation.org, rafael@kernel.org, linux-kernel@vger.kernel.org, linux-api@vger.kernel.org, hch@lst.de, Jens Axboe <axboe@fb.com>, linux-acpi@vger.kernel.org, jmoyer@redhat.com, Borislav Petkov <bp@alien8.de>, axboe@kernel.dk, "H. Peter Anvin" <hpa@zytor.com>, Matthew Wilcox <willy@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, Andy Lutomirski <luto@amacapital.net>, Linus Torvalds <torvalds@linux-foundation.org>, Ross Zwisler <ross.zwisler@linux.intel.com>
 
-ACPI 6.0 formalizes e820-type-7 and efi-type-14 as persistent memory.
-Mark it "reserved" and allow it to be claimed by a persistent memory
-device driver.
+This patchset takes the position that a new block_device_operations op
+is needed for nvdimm devices.  Jens, see "[PATCH 01/15] block: introduce
+an ->rw_bytes() block device operation", it gates the rest of the series
+moving forward.
 
-This definition is in addition to the Linux kernel's existing type-12
-definition that was recently added in support of shipping platforms with
-NVDIMM support that predate ACPI 6.0 (which now classifies type-12 as
-OEM reserved).
+Aside from adding a compile-time check to tools/testing/nvdimm/Kbuild
+for validating all libnvdimm objects are built as modules, patches 2 to
+6 are otherwise unchanged from the v6 libnvdimm posting [1].  The
+remaining patches are feature additions and other cleanups that were
+being held back while the base patchset was polished.
 
-Note, /proc/iomem can be consulted for differentiating legacy
-"Persistent Memory (legacy)" E820_PRAM vs standard "Persistent Memory"
-E820_PMEM.
+Patch 5 has an updated changelog speaking to the potential maintenance
+burden of carrying tools/testing/nvdimm/ in-tree.  The benefits still
+outweigh the risks in my opinion.
 
-Cc: Boaz Harrosh <boaz@plexistor.com>
-Cc: Ingo Molnar <mingo@kernel.org>
-Cc: Christoph Hellwig <hch@lst.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: H. Peter Anvin <hpa@zytor.com>
-Cc: Jens Axboe <axboe@fb.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Matthew Wilcox <willy@linux.intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Acked-by: Jeff Moyer <jmoyer@redhat.com>
-Acked-by: Andy Lutomirski <luto@amacapital.net>
-Reviewed-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Acked-by: Christoph Hellwig <hch@lst.de>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+It should be noted that "[PATCH 14/15] libnvdimm: support read-only btt
+backing devices" was developed in direct repsonse to working through the
+implementation of unit tests for "[PATCH 15/15] libnvdimm, nfit: handle
+acpi_nfit_memory_map flags" and its new "read-only by default" policy.
+See the updates to the libndctl unit tests posted on the
+linux-nvdimm@01.org mailing list.
+
+[PATCH 01/15] block: introduce an ->rw_bytes() block device operation
+[PATCH 02/15] libnvdimm: infrastructure for btt devices
+[PATCH 03/15] nd_btt: atomic sector updates
+[PATCH 04/15] libnvdimm, nfit, nd_blk: driver for BLK-mode access persistent memory
+[PATCH 05/15] tools/testing/nvdimm: libnvdimm unit test infrastructure
+[PATCH 06/15] libnvdimm: Non-Volatile Devices
+[PATCH 07/15] fs/block_dev.c: skip rw_page if bdev has integrity
+[PATCH 08/15] libnvdimm, btt: add support for blk integrity
+[PATCH 09/15] libnvdimm, blk: add support for blk integrity
+[PATCH 10/15] libnvdimm: fix up max_hw_sectors
+[PATCH 11/15] libnvdimm: pmem, blk, and btt make_request cleanups
+[PATCH 12/15] libnvdimm: enable iostat
+[PATCH 13/15] libnvdimm: flag libnvdimm block devices as non-rotational
+[PATCH 14/15] libnvdimm: support read-only btt backing devices
+[PATCH 15/15] libnvdimm, nfit: handle acpi_nfit_memory_map flags
+
+[1]: https://lists.01.org/pipermail/linux-nvdimm/2015-June/001166.html
+
 ---
- arch/arm64/kernel/efi.c          |    1 +
- arch/ia64/kernel/efi.c           |    4 ++++
- arch/x86/boot/compressed/eboot.c |    4 ++++
- arch/x86/include/uapi/asm/e820.h |    1 +
- arch/x86/kernel/e820.c           |   28 ++++++++++++++++++++++++----
- arch/x86/platform/efi/efi.c      |    3 +++
- include/linux/efi.h              |    3 ++-
- 7 files changed, 39 insertions(+), 5 deletions(-)
 
-diff --git a/arch/arm64/kernel/efi.c b/arch/arm64/kernel/efi.c
-index ab21e0d58278..9d4aa18f2a82 100644
---- a/arch/arm64/kernel/efi.c
-+++ b/arch/arm64/kernel/efi.c
-@@ -158,6 +158,7 @@ static __init int is_reserve_region(efi_memory_desc_t *md)
- 	case EFI_BOOT_SERVICES_CODE:
- 	case EFI_BOOT_SERVICES_DATA:
- 	case EFI_CONVENTIONAL_MEMORY:
-+	case EFI_PERSISTENT_MEMORY:
- 		return 0;
- 	default:
- 		break;
-diff --git a/arch/ia64/kernel/efi.c b/arch/ia64/kernel/efi.c
-index c52d7540dc05..5f6be9dd6968 100644
---- a/arch/ia64/kernel/efi.c
-+++ b/arch/ia64/kernel/efi.c
-@@ -1223,6 +1223,10 @@ efi_initialize_iomem_resources(struct resource *code_resource,
- 				flags |= IORESOURCE_DISABLED;
- 				break;
- 
-+			case EFI_PERSISTENT_MEMORY:
-+				name = "Persistent Memory";
-+				break;
-+
- 			case EFI_RESERVED_TYPE:
- 			case EFI_RUNTIME_SERVICES_CODE:
- 			case EFI_RUNTIME_SERVICES_DATA:
-diff --git a/arch/x86/boot/compressed/eboot.c b/arch/x86/boot/compressed/eboot.c
-index 48304b89b601..2c82bd150d43 100644
---- a/arch/x86/boot/compressed/eboot.c
-+++ b/arch/x86/boot/compressed/eboot.c
-@@ -1224,6 +1224,10 @@ static efi_status_t setup_e820(struct boot_params *params,
- 			e820_type = E820_NVS;
- 			break;
- 
-+		case EFI_PERSISTENT_MEMORY:
-+			e820_type = E820_PMEM;
-+			break;
-+
- 		default:
- 			continue;
- 		}
-diff --git a/arch/x86/include/uapi/asm/e820.h b/arch/x86/include/uapi/asm/e820.h
-index 960a8a9dc4ab..0f457e6eab18 100644
---- a/arch/x86/include/uapi/asm/e820.h
-+++ b/arch/x86/include/uapi/asm/e820.h
-@@ -32,6 +32,7 @@
- #define E820_ACPI	3
- #define E820_NVS	4
- #define E820_UNUSABLE	5
-+#define E820_PMEM	7
- 
- /*
-  * This is a non-standardized way to represent ADR or NVDIMM regions that
-diff --git a/arch/x86/kernel/e820.c b/arch/x86/kernel/e820.c
-index e2ce85db2283..c857d53269dd 100644
---- a/arch/x86/kernel/e820.c
-+++ b/arch/x86/kernel/e820.c
-@@ -149,6 +149,7 @@ static void __init e820_print_type(u32 type)
- 	case E820_UNUSABLE:
- 		printk(KERN_CONT "unusable");
- 		break;
-+	case E820_PMEM:
- 	case E820_PRAM:
- 		printk(KERN_CONT "persistent (type %u)", type);
- 		break;
-@@ -918,11 +919,32 @@ static inline const char *e820_type_to_string(int e820_type)
- 	case E820_ACPI:	return "ACPI Tables";
- 	case E820_NVS:	return "ACPI Non-volatile Storage";
- 	case E820_UNUSABLE:	return "Unusable memory";
--	case E820_PRAM: return "Persistent RAM";
-+	case E820_PRAM: return "Persistent Memory (legacy)";
-+	case E820_PMEM: return "Persistent Memory";
- 	default:	return "reserved";
- 	}
- }
- 
-+static bool do_mark_busy(u32 type, struct resource *res)
-+{
-+	/* this is the legacy bios/dos rom-shadow + mmio region */
-+	if (res->start < (1ULL<<20))
-+		return true;
-+
-+	/*
-+	 * Treat persistent memory like device memory, i.e. reserve it
-+	 * for exclusive use of a driver
-+	 */
-+	switch (type) {
-+	case E820_RESERVED:
-+	case E820_PRAM:
-+	case E820_PMEM:
-+		return false;
-+	default:
-+		return true;
-+	}
-+}
-+
- /*
-  * Mark e820 reserved areas as busy for the resource manager.
-  */
-@@ -952,9 +974,7 @@ void __init e820_reserve_resources(void)
- 		 * pci device BAR resource and insert them later in
- 		 * pcibios_resource_survey()
- 		 */
--		if (((e820.map[i].type != E820_RESERVED) &&
--		     (e820.map[i].type != E820_PRAM)) ||
--		     res->start < (1ULL<<20)) {
-+		if (do_mark_busy(e820.map[i].type, res)) {
- 			res->flags |= IORESOURCE_BUSY;
- 			insert_resource(&iomem_resource, res);
- 		}
-diff --git a/arch/x86/platform/efi/efi.c b/arch/x86/platform/efi/efi.c
-index 02744df576d5..fe01ae37a2a4 100644
---- a/arch/x86/platform/efi/efi.c
-+++ b/arch/x86/platform/efi/efi.c
-@@ -153,6 +153,9 @@ static void __init do_add_efi_memmap(void)
- 		case EFI_UNUSABLE_MEMORY:
- 			e820_type = E820_UNUSABLE;
- 			break;
-+		case EFI_PERSISTENT_MEMORY:
-+			e820_type = E820_PMEM;
-+			break;
- 		default:
- 			/*
- 			 * EFI_RESERVED_TYPE EFI_RUNTIME_SERVICES_CODE
-diff --git a/include/linux/efi.h b/include/linux/efi.h
-index af5be0368dec..825b6e3d69cb 100644
---- a/include/linux/efi.h
-+++ b/include/linux/efi.h
-@@ -85,7 +85,8 @@ typedef	struct {
- #define EFI_MEMORY_MAPPED_IO		11
- #define EFI_MEMORY_MAPPED_IO_PORT_SPACE	12
- #define EFI_PAL_CODE			13
--#define EFI_MAX_MEMORY_TYPE		14
-+#define EFI_PERSISTENT_MEMORY		14
-+#define EFI_MAX_MEMORY_TYPE		15
- 
- /* Attribute values: */
- #define EFI_MEMORY_UC		((u64)0x0000000000000001ULL)	/* uncached */
+Dan Williams (10):
+      block: introduce an ->rw_bytes() block device operation
+      libnvdimm: infrastructure for btt devices
+      tools/testing/nvdimm: libnvdimm unit test infrastructure
+      libnvdimm: Non-Volatile Devices
+      libnvdimm: fix up max_hw_sectors
+      libnvdimm: pmem, blk, and btt make_request cleanups
+      libnvdimm: enable iostat
+      libnvdimm: flag libnvdimm block devices as non-rotational
+      libnvdimm: support read-only btt backing devices
+      libnvdimm, nfit: handle acpi_nfit_memory_map flags
 
+Ross Zwisler (1):
+      libnvdimm, nfit, nd_blk: driver for BLK-mode access persistent memory
+
+Vishal Verma (4):
+      nd_btt: atomic sector updates
+      fs/block_dev.c: skip rw_page if bdev has integrity
+      libnvdimm, btt: add support for blk integrity
+      libnvdimm, blk: add support for blk integrity
+
+
+ Documentation/nvdimm/btt.txt          |  273 ++++++
+ Documentation/nvdimm/nvdimm.txt       |  805 +++++++++++++++++
+ MAINTAINERS                           |   39 +
+ drivers/acpi/nfit.c                   |  491 ++++++++++
+ drivers/acpi/nfit.h                   |   58 +
+ drivers/nvdimm/Kconfig                |   54 +
+ drivers/nvdimm/Makefile               |    7 
+ drivers/nvdimm/blk.c                  |  368 ++++++++
+ drivers/nvdimm/btt.c                  | 1569 +++++++++++++++++++++++++++++++++
+ drivers/nvdimm/btt.h                  |  185 ++++
+ drivers/nvdimm/btt_devs.c             |  473 ++++++++++
+ drivers/nvdimm/bus.c                  |  176 ++++
+ drivers/nvdimm/core.c                 |   99 ++
+ drivers/nvdimm/dimm_devs.c            |    9 
+ drivers/nvdimm/namespace_devs.c       |   63 +
+ drivers/nvdimm/nd-core.h              |   48 +
+ drivers/nvdimm/nd.h                   |   61 +
+ drivers/nvdimm/pmem.c                 |   58 +
+ drivers/nvdimm/region.c               |   97 ++
+ drivers/nvdimm/region_devs.c          |  106 ++
+ fs/block_dev.c                        |    4 
+ include/linux/blkdev.h                |   44 +
+ include/linux/libnvdimm.h             |   30 +
+ include/uapi/linux/ndctl.h            |    2 
+ tools/testing/nvdimm/Kbuild           |   40 +
+ tools/testing/nvdimm/Makefile         |    7 
+ tools/testing/nvdimm/config_check.c   |   15 
+ tools/testing/nvdimm/test/Kbuild      |    8 
+ tools/testing/nvdimm/test/iomap.c     |  151 +++
+ tools/testing/nvdimm/test/nfit.c      | 1115 +++++++++++++++++++++++
+ tools/testing/nvdimm/test/nfit_test.h |   29 +
+ 31 files changed, 6422 insertions(+), 62 deletions(-)
+ create mode 100644 Documentation/nvdimm/btt.txt
+ create mode 100644 Documentation/nvdimm/nvdimm.txt
+ create mode 100644 drivers/nvdimm/blk.c
+ create mode 100644 drivers/nvdimm/btt.c
+ create mode 100644 drivers/nvdimm/btt.h
+ create mode 100644 drivers/nvdimm/btt_devs.c
+ create mode 100644 tools/testing/nvdimm/Kbuild
+ create mode 100644 tools/testing/nvdimm/Makefile
+ create mode 100644 tools/testing/nvdimm/config_check.c
+ create mode 100644 tools/testing/nvdimm/test/Kbuild
+ create mode 100644 tools/testing/nvdimm/test/iomap.c
+ create mode 100644 tools/testing/nvdimm/test/nfit.c
+ create mode 100644 tools/testing/nvdimm/test/nfit_test.h
