@@ -1,77 +1,52 @@
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v5 17/21] libnvdimm: infrastructure for btt devices
-Date: Wed, 17 Jun 2015 10:09:53 -0700
-Message-ID: <CAPcyv4hMDo+V3ny340F68kvrFfpxtO+NTo4ZYacrSpK9t_g+Xw@mail.gmail.com>
-References: <20150602001134.4506.45867.stgit@dwillia2-desk3.amr.corp.intel.com>
-	<20150602001541.4506.90125.stgit@dwillia2-desk3.amr.corp.intel.com>
-	<20150609064200.GE9804@lst.de>
-	<20150610184616.GL2729@linux.intel.com>
-	<20150611072812.GB1905@lst.de>
-	<x49381qp9ic.fsf@segfault.boston.devel.redhat.com>
-	<CAPcyv4g0CVzhDDiUjc3=5=Bx1HUFjJ7XmCJfxPG1oQAoZ8yvug@mail.gmail.com>
-	<x49twu6nugs.fsf@segfault.boston.devel.redhat.com>
+Subject: Re: [PATCH v6 00/21] libnvdimm: non-volatile memory devices
+Date: Wed, 17 Jun 2015 10:28:07 -0700
+Message-ID: <CAPcyv4j-f+vSF5QXNy5RrqW-pXNg1dKeusGvcBFhz8ygLnSFig@mail.gmail.com>
+References: <20150611183830.25175.51256.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<20150617112654.GA9246@lst.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wg0-f50.google.com ([74.125.82.50]:36681 "EHLO
-	mail-wg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756276AbbFQRJz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Jun 2015 13:09:55 -0400
-Received: by wgzl5 with SMTP id l5so42476984wgz.3
-        for <linux-acpi@vger.kernel.org>; Wed, 17 Jun 2015 10:09:53 -0700 (PDT)
-In-Reply-To: <x49twu6nugs.fsf@segfault.boston.devel.redhat.com>
+Received: from mail-wi0-f179.google.com ([209.85.212.179]:38460 "EHLO
+	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756907AbbFQR2I (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Jun 2015 13:28:08 -0400
+Received: by wibdq8 with SMTP id dq8so61341009wib.1
+        for <linux-acpi@vger.kernel.org>; Wed, 17 Jun 2015 10:28:07 -0700 (PDT)
+In-Reply-To: <20150617112654.GA9246@lst.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jeff Moyer <jmoyer@redhat.com>
-Cc: Christoph Hellwig <hch@lst.de>, Matthew Wilcox <willy@linux.intel.com>, Jens Axboe <axboe@kernel.dk>, Stephen Rothwell <sfr@canb.auug.org.au>, Andrew Morton <akpm@linux-foundation.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Neil Brown <neilb@suse.de>, Greg KH <gregkh@linuxfoundation.org>, linux-nvdimm <linux-nvdimm@ml01.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, linux-api@vger.kernel.org
+To: Christoph Hellwig <hch@lst.de>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Boaz Harrosh <boaz@plexistor.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Neil Brown <neilb@suse.de>, Dave Chinner <david@fromorbit.com>, Lv Zheng <lv.zheng@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, Stephen Rothwell <sfr@canb.auug.org.au>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, Ingo Molnar <mingo@kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, jmoyer <jmoyer@redhat.com>, Nicholas Moulin <nicholas.w.moulin@linux.intel.com>, Matthew Wilcox <willy@linux.intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Vishal Verma <vishal.l.verma@linux.intel.com>, Jens Axboe <axboe@fb.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>, Jens Axboe <axboe@kernel.dk>, Greg KH <gregkh@linuxfoundation.org>"linux-kernel@vger.kernel.org" <l>
 
-On Wed, Jun 17, 2015 at 9:57 AM, Jeff Moyer <jmoyer@redhat.com> wrote:
-> Dan Williams <dan.j.williams@intel.com> writes:
+On Wed, Jun 17, 2015 at 4:26 AM, Christoph Hellwig <hch@lst.de> wrote:
+> Still not a big fan of the spec, but I guess this is a mosly reasonable
+> implementation now.
 >
->> On Wed, Jun 17, 2015 at 9:47 AM, Jeff Moyer <jmoyer@redhat.com> wrote:
->>> Christoph Hellwig <hch@lst.de> writes:
->>>
->>>> On Wed, Jun 10, 2015 at 02:46:16PM -0400, Matthew Wilcox wrote:
->>>>> Don't screw up rw_page.  The point of rw_page is to read or write a page
->>>>> cache page.  It can sleep, and it indicates success by using the page
->>>>> flags.  Don't try and scqueeze rw_bytes into it.  If you want rw_bytes
->>>>> to be a queue operation, that's one thing, but don't mess with rw_page.
->>>>
->>>> Oh, I forgot about the page manipulating nature.  Yes, we'll need a different
->>>> operation in this case.
->>>
->>> I didn't see this addressed in the new patch set.  I'm also concerned
->>> about the layering, but I haven't put enough time into it to really make
->>> a better suggestion.  I really dislike the idea of yet another device
->>> stacking model in the kernel and I'm worried the code will go in, and the
->>> sysfs interface will end up as a "user abi" and we won't be able to
->>> change it in the future.
->>>
->>> Dan, have you made any progress on this, or do you have plans to?
->>
->> ? in v6 ->rw_bytes() moved from libnvdimm local hackery to a top-level
->> block device operation.  Is that your concern or something else?
+> So for patches 1-16:
 >
-> Hmm, I guess I was conflating two things.  I see now that you did move
-> the rw_bytes into the block device operations, that looks good.  I'll
-> table my concerns over yet another stacking model until I can say
-> something intelligent about it.
+> Acked-by: Christoph Hellwig <hch@lst.de>
 
-MD and DM guys can jump in here if I mis-characterize, but I believe
-the libnvdimm stacking model:
+Thanks Christoph!
 
-1/ is warranted because ->rw_bytes() is unique to nvdimm devices and
-there are plans for other drivers btt-like drivers to stack on top, a
-"struct page" driver is an example
+> The btt integration still needs a proper patch split and review, and
 
-2/ avoids the mistakes of the MD and DM stacking implementations by
-having a device-model handle in existence *prior* to attaching a
-backing device.  MD requires the parent block device to be created
-first which causes the implementation to jump through hoops trying to
-determine when the MD device has lost its "last opener".  DM's model
-is mostly opaque to sysfs, it just pops into existence after a magic
-sequence of ioctls+netlink.
+Ok, I'll split all the patches that are dependent on ->rw_bytes() to
+their own series, and break out the introduction of ->rw_bytes() to be
+patch1 of that series.
 
-It also solves the "autodetect" problem of needing to scan every block
-device in the system, the scanning is asynchronous and contained to a
-given nvdimm bus.
+> I still detest the mess with the test moduly by heart.
+
+The only remaining risk I see of merging this is that it requires
+someone making changes to either the libnvdimm implementation or the
+routines being mocked (ioremap, __request_region, etc...) to think
+through the implications to the unit test.  That's a maintenance
+burden given that mocked interfaces are deliberately working around
+base assumptions.  At a minimum I need to document what rules the
+__wrap_* routines in tools/testing/nvdimm/test/iomap.c are violating
+and why.
+
+I'm not convinced that the maintenance burden overshadows the benefit
+of having this infrastructure readily available.  It is the primary
+reason we've been able to iterate the code with confidence at this
+velocity and magnitude of feedback.
