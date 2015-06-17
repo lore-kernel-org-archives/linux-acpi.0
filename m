@@ -1,60 +1,40 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: da2bc1b9db3351addd293e5b82757efe1f77ed1d breaks hibernation was Re:
- 4.1-rc7, thinkpad X60: platform mode hibernation does very wrongthing
-Date: Wed, 17 Jun 2015 17:18:00 +0200
-Message-ID: <20150617151800.GA12312@amd>
-References: <20150617121352.GA20553@amd>
- <7336539.OpACL0uN6J@vostro.rjw.lan>
- <20150617123333.GA21389@amd>
- <2490787.R6LzZId8tR@vostro.rjw.lan>
- <20150617131608.GA24030@amd>
- <1434549754.2400.5.camel@x220>
+From: Jeff Moyer <jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: Re: [PATCH v5 17/21] libnvdimm: infrastructure for btt devices
+Date: Wed, 17 Jun 2015 12:47:23 -0400
+Message-ID: <x49381qp9ic.fsf@segfault.boston.devel.redhat.com>
+References: <20150602001134.4506.45867.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<20150602001541.4506.90125.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<20150609064200.GE9804@lst.de> <20150610184616.GL2729@linux.intel.com>
+	<20150611072812.GB1905@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:43605 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754576AbbFQPSD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Jun 2015 11:18:03 -0400
-Content-Disposition: inline
-In-Reply-To: <1434549754.2400.5.camel@x220>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150611072812.GB1905-jcswGhMUV9g@public.gmane.org> (Christoph Hellwig's message of
+	"Thu, 11 Jun 2015 09:28:12 +0200")
+Sender: linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: Matthew Wilcox <willy-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org, sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, neilb-l3A5Bk7waGM@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-nvdimm-y27Ovi1pjclAfugRpC6u6w@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Paul Bolle <pebolle@tiscali.nl>, imre.deak@intel.com, ville.syrjala@linux.intel.com, daniel.vetter@ffwll.ch, Linus Torvalds <torvalds@linux-foundation.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linus <linus_torvalds@foxmail.com>, lenb <lenb@kernel.org>, kernel list <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, linux-pm <linux-pm@vger.kernel.org>
 
-Hi!
+Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org> writes:
 
-> And this all reminded me of https://lkml.org/lkml/2015/3/18/133 . So I
-> think that's another system not covered by commit ab3be73fa7b4
-> ("drm/i915: gen4: work around hang during hibernation").
+> On Wed, Jun 10, 2015 at 02:46:16PM -0400, Matthew Wilcox wrote:
+>> Don't screw up rw_page.  The point of rw_page is to read or write a page
+>> cache page.  It can sleep, and it indicates success by using the page
+>> flags.  Don't try and scqueeze rw_bytes into it.  If you want rw_bytes
+>> to be a queue operation, that's one thing, but don't mess with rw_page.
+>
+> Oh, I forgot about the page manipulating nature.  Yes, we'll need a different
+> operation in this case.
 
-Yes, another system broken by
+I didn't see this addressed in the new patch set.  I'm also concerned
+about the layering, but I haven't put enough time into it to really make
+a better suggestion.  I really dislike the idea of yet another device
+stacking model in the kernel and I'm worried the code will go in, and the
+sysfs interface will end up as a "user abi" and we won't be able to
+change it in the future.
 
-commit da2bc1b9db3351addd293e5b82757efe1f77ed1d
-Author: Imre Deak <imre.deak@intel.com>
-Date:   Thu Oct 23 19:23:26 2014 +0300
+Dan, have you made any progress on this, or do you have plans to?
 
-    drm/i915: add poweroff_late handler
-
-    The suspend_late handler saves some registers and powers off the
-    device,
-        so it doesn't have a big overhead. Calling it at S4
-    poweroff_late time
-        makes the power off handling identical to the S3 suspend and
-    S4 freeze
-        handling, so do this for consistency.
-	
-
-And no, adding another system to the "blacklist" is a not good idea,
-because we know there are other broken systems out there. Can we
-revert da2bc1b9db3351addd293e5b82757efe1f77ed1d, please? Consistency
-is nice, but not having regressions is even nicer.
-									Pavel
-									
-PS: Now I have real Linus and fake Linus on the Cc list. Or maybe two
-real Linuses, its hard to tell.
-
--- 
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
+Cheers,
+Jeff
