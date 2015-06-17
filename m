@@ -1,43 +1,60 @@
-From: Paul Bolle <pebolle@tiscali.nl>
-Subject: Re: 4.1-rc7: Xorg broken after resume on thinkpad T40p, radeon
- problem?
-Date: Wed, 17 Jun 2015 16:22:58 +0200
-Message-ID: <1434550978.2400.13.camel@x220>
-References: <20150617124347.GA22879@amd> <20150617124949.GA22953@amd>
-	 <5581711D.6030707@amd.com> <20150617132121.GA24634@amd>
-	 <1434549017.2400.3.camel@x220> <20150617141052.GA30910@amd>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: da2bc1b9db3351addd293e5b82757efe1f77ed1d breaks hibernation was Re:
+ 4.1-rc7, thinkpad X60: platform mode hibernation does very wrongthing
+Date: Wed, 17 Jun 2015 17:18:00 +0200
+Message-ID: <20150617151800.GA12312@amd>
+References: <20150617121352.GA20553@amd>
+ <7336539.OpACL0uN6J@vostro.rjw.lan>
+ <20150617123333.GA21389@amd>
+ <2490787.R6LzZId8tR@vostro.rjw.lan>
+ <20150617131608.GA24030@amd>
+ <1434549754.2400.5.camel@x220>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from lb1-smtp-cloud6.xs4all.net ([194.109.24.24]:48143 "EHLO
-	lb1-smtp-cloud6.xs4all.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755464AbbFQOXD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 17 Jun 2015 10:23:03 -0400
-In-Reply-To: <20150617141052.GA30910@amd>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:43605 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754576AbbFQPSD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Jun 2015 11:18:03 -0400
+Content-Disposition: inline
+In-Reply-To: <1434549754.2400.5.camel@x220>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pavel Machek <pavel@ucw.cz>
-Cc: Christian =?ISO-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>, dri-devel@lists.freedesktop.org, alexander.deucher@amd.com, rjw@rjwysocki.net, lenb@kernel.org, kernel list <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
+To: Paul Bolle <pebolle@tiscali.nl>, imre.deak@intel.com, ville.syrjala@linux.intel.com, daniel.vetter@ffwll.ch, Linus Torvalds <torvalds@linux-foundation.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linus <linus_torvalds@foxmail.com>, lenb <lenb@kernel.org>, kernel list <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, linux-pm <linux-pm@vger.kernel.org>
 
-On Wed, 2015-06-17 at 16:10 +0200, Pavel Machek wrote: 
-> > The above looks very much like the issue that made me write commit
-> > 45171002b01b ("radeon: add AGPMode 1 quirk for RV250"). See
-> > https://bugzilla.redhat.com/show_bug.cgi?id=531825 for a lot of
-> > background.
-> > 
-> > Does booting with radeon.agpmode=1 survive a suspend and resume cycle?
-> 
-> Yes, that option helps. Thanks!
+Hi!
 
-Then I suggest you add another quirk for your T40p (after testing
-agpmode 2 also). Because this all seems to be caused by a broken BIOS,
-and/or broken AGP thingy, and/or broken RV250 (or the interaction of
-these things or whatever). Maddening stuff, impossible to debug.
+> And this all reminded me of https://lkml.org/lkml/2015/3/18/133 . So I
+> think that's another system not covered by commit ab3be73fa7b4
+> ("drm/i915: gen4: work around hang during hibernation").
 
-Good luck,
+Yes, another system broken by
 
+commit da2bc1b9db3351addd293e5b82757efe1f77ed1d
+Author: Imre Deak <imre.deak@intel.com>
+Date:   Thu Oct 23 19:23:26 2014 +0300
 
-Paul Bolle
+    drm/i915: add poweroff_late handler
 
+    The suspend_late handler saves some registers and powers off the
+    device,
+        so it doesn't have a big overhead. Calling it at S4
+    poweroff_late time
+        makes the power off handling identical to the S3 suspend and
+    S4 freeze
+        handling, so do this for consistency.
+	
+
+And no, adding another system to the "blacklist" is a not good idea,
+because we know there are other broken systems out there. Can we
+revert da2bc1b9db3351addd293e5b82757efe1f77ed1d, please? Consistency
+is nice, but not having regressions is even nicer.
+									Pavel
+									
+PS: Now I have real Linus and fake Linus on the Cc list. Or maybe two
+real Linuses, its hard to tell.
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
