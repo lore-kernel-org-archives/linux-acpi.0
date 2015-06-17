@@ -1,40 +1,42 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: Regression in 3.10.80 vs. 3.10.79
-Date: Wed, 17 Jun 2015 14:42:40 +0200
-Message-ID: <1623864.KkKcV5nVxn@vostro.rjw.lan>
-References: <CAL1RGDV6hr3_Oa6O-kPzx9EemtOWWtYq+-RkCzN7axNPLz5MJw@mail.gmail.com> <CAL1RGDV16N_TngC8gN9ZF9TR-oOu+QkhXp=7rwcM4E_X12BvQw@mail.gmail.com> <2054960.9BJU2lQTPg@vostro.rjw.lan>
+Subject: Re: 4.1-rc7, thinkpad X60: platform mode hibernation does very wrongthing
+Date: Wed, 17 Jun 2015 14:48:59 +0200
+Message-ID: <7336539.OpACL0uN6J@vostro.rjw.lan>
+References: <20150617121352.GA20553@amd> <tencent_191436EF7F89540B416DB7A5@qq.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:53080 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752881AbbFQMQm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 17 Jun 2015 08:16:42 -0400
-In-Reply-To: <2054960.9BJU2lQTPg@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <tencent_191436EF7F89540B416DB7A5@qq.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: linus <linus_torvalds@foxmail.com>
+Cc: Pavel Machek <pavel@ucw.cz>, lenb <lenb@kernel.org>, kernel list <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, linux-pm <linux-pm@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Roland Dreier <roland@purestorage.com>
-Cc: LKML <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, George McCollister <george.mccollister@gmail.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>
 
-On Tuesday, June 16, 2015 01:00:13 AM Rafael J. Wysocki wrote:
-> On Monday, June 15, 2015 07:56:05 AM Roland Dreier wrote:
-> > On Sat, Jun 13, 2015 at 9:56 AM, Roland Dreier <roland@purestorage.com> wrote:
-> > > Below is a more sophisticated, so to speak, version of it with a changelog and
-> > > all.  It works for me, but more testing would be much appreciated.
-> > 
-> > Yes, the patch works as expected:
-> > 
-> > Tested-by: Roland Dreier <roland@purestorage.com>
+On Wednesday, June 17, 2015 08:19:37 PM linus wrote:
+> there might be something wrong with driver, can you provide serial log with no_console_suspend? or using rtctrace
 > 
-> Awesome, thanks a lot for the confirmation!
+> ---Original---
+> From: "Pavel Machek"<pavel@ucw.cz>
+> Date: 2015/06/17 20:15:28
+> To: "rjw"<rjw@rjwysocki.net>;"lenb"<lenb@kernel.org>;"kernel list"<linux-kernel@vger.kernel.org>;"linux-acpi"<linux-acpi@vger.kernel.org>;"linux-pm"<linux-pm@vger.kernel.org>;
+> Subject: 4.1-rc7, thinkpad X60: platform mode hibernation does very wrongthing
+> 
+> 
+> Hi!
+> 
+> On thinkpad X60, if I hibernate in platform mode, it does not power
+> down, but I get black screen, moon icon blinking, and CPU fan running
+> (CPU probably too).
+> 
+> I can hold the power button down to force powerdown... if I notice
+> what is going on before the battery is empty.
+> 
+> Any ideas what could be wrong there?
 
-During the final review of the patch I noticed that it could be simplified
-by dropping the acpi_add_region_after() routine and calling acpi_add_region()
-directly instead of it.
+Not right away.
 
-I'll send an updated patch to you later today.
+Have you tried any previous 4.1-rc kernels?
 
-Thanks,
 Rafael
 
