@@ -1,71 +1,64 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v2 0/3] Add NUMA support for NVDIMM devices
-Date: Thu, 18 Jun 2015 13:24:01 -0700
-Message-ID: <CAPcyv4i=wn+Nk_5HnyJrykZ4SaTTYAyc=aAajvSxXDpa+9aU0w@mail.gmail.com>
-References: <1433891440-3515-1-git-send-email-toshi.kani@hp.com>
+From: Darren Hart <dvhart@infradead.org>
+Subject: Re: [PATCH v2 00/32] acpi-video: Rewrite backlight interface
+ selection logic
+Date: Thu, 18 Jun 2015 14:05:47 -0700
+Message-ID: <20150618210547.GA70097@vmdeb7>
+References: <1434108231-12323-1-git-send-email-hdegoede@redhat.com>
+ <4163515.a4pVZ0oOei@vostro.rjw.lan>
+ <20150617033921.GA29788@vmdeb7>
+ <CAJZ5v0hyct5tSGAAjw=Gt1H60=jsQFgA+=baQqsWi4Hjvqk4mw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f173.google.com ([209.85.212.173]:37172 "EHLO
-	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755747AbbFRUYD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Jun 2015 16:24:03 -0400
-Received: by wicgi11 with SMTP id gi11so4436021wic.0
-        for <linux-acpi@vger.kernel.org>; Thu, 18 Jun 2015 13:24:01 -0700 (PDT)
-In-Reply-To: <1433891440-3515-1-git-send-email-toshi.kani@hp.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAJZ5v0hyct5tSGAAjw=Gt1H60=jsQFgA+=baQqsWi4Hjvqk4mw@mail.gmail.com>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Hans de Goede <hdegoede@redhat.com>, Ben Skeggs <bskeggs@redhat.com>, Azael Avalos <coproscefalo@gmail.com>, Corentin Chary <corentin.chary@gmail.com>, Lee Chun-Yi <jlee@suse.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Ike Panhc <ike.pan@canonical.com>, Anisse Astier <anisse@astier.eu>, Mattia Dongili <malattia@linux.it>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, platform-driver-x86@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, acpi4asus-user@lists.sourceforge.net, dri-devel@lists.freedesktop.org, Aaron Lu <aaron.lu@intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>, Rafael J Wysocki <rafael.j.wysocki@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Rafael, does patch1 look ok to you?
+On Wed, Jun 17, 2015 at 11:36:13AM +0200, Rafael J. Wysocki wrote:
+> On Wed, Jun 17, 2015 at 5:39 AM, Darren Hart <dvhart@infradead.org> wrote:
+> > On Tue, Jun 16, 2015 at 01:22:40AM +0200, Rafael Wysocki wrote:
+> >> On Friday, June 12, 2015 01:23:19 PM Hans de Goede wrote:
+> >> > Hi All,
+> >> >
+> >> > Here is v2 of my rewrite / cleanup of the acpi-video (and platform/x86)
+> >> > backlight interface selection logic.
+> >> >
+> >> > The major change in v2 of this set are 2 changes to the patch titled
+> >> > "acpi-video-detect: video: Make video_detect code part of the video module":
+> >> >
+> >> > 1) The __setup call for the acpi_backlight= handling is moved to
+> >> >    acpi/util.c as __setup may only be used by code which is always builtin
+> >> > 2) video.c is renamed to acpi_video.c so that it can be combined with
+> >> >    video_detect.c into video.ko
+> >> >
+> >> > These 2 changes result in the backlight kernel commandline options after this
+> >> > patch-set being 100% compatible with the old options, with the exception of
+> >> > the removal of the video.use_native_backlight option as that now is folded
+> >> > into acpi_backlight=[video|vendor|native|none] rather then having 2 options
+> >> > which influence each other in interesting ways.
+> >> >
+> >> > Besides that there is a small change to the dell-laptop port to the new API
+> >> > removing an unnecessary #ifdef ACPI.
+> >>
+> >> I tried to queue this series up for 4.2, but patch [06/32] didn't apply for me,
+> >> so I decided to apply another patch I've got recently instead and which is now
+> >> in my linux-next branch.
+> >>
+> >> Can you please rebase the series on top of linux-pm.git/linux-next and resend it?
+> >
+> > Rafael, do you intent to carry this entire series and submit via linux-pm?
+> 
+> Yes, I do.
 
-On Tue, Jun 9, 2015 at 4:10 PM, Toshi Kani <toshi.kani@hp.com> wrote:
-> Since NVDIMMs are installed on memory slots, they expose the NUMA
-> topology of a platform.  This patchset adds support of sysfs
-> 'numa_node' to I/O-related NVDIMM devices under /sys/bus/nd/devices.
-> This enables numactl(8) to accept 'block:' and 'file:' paths of
-> pmem and btt devices as shown in the examples below.
->   numactl --preferred block:pmem0 --show
->   numactl --preferred file:/dev/pmem0s --show
->
-> numactl can be used to bind an application to the locality of
-> a target NVDIMM for better performance.  Here is a result of fio
-> benchmark to ext4/dax on an HP DL380 with 2 sockets for local and
-> remote settings.
->
->   Local [1] :  4098.3MB/s
->   Remote [2]:  3718.4MB/s
->
-> [1] numactl --preferred block:pmem0 --cpunodebind block:pmem0 fio <fs-on-pmem0>
-> [2] numactl --preferred block:pmem1 --cpunodebind block:pmem1 fio <fs-on-pmem0>
->
-> Patch 1/3 applies on top of the acpica branch of the pm tree.
-> Patch 2/3-3/3 apply on top of Dan Williams's v5 patch series of
-> "libnvdimm: non-volatile memory devices".
->
-> ---
-> v2:
->  - Add acpi_map_pxm_to_online_node(), which returns an online node.
->  - Manage visibility of sysfs numa_node with is_visible. (Dan Williams)
->  - Check ACPI_NFIT_PROXIMITY_VALID in spa->flags.
->
-> ---
-> Toshi Kani (3):
->   1/3 acpi: Add acpi_map_pxm_to_online_node()
->   2/3 libnvdimm: Set numa_node to NVDIMM devices
->   3/3 libnvdimm: Add sysfs numa_node to NVDIMM devices
->
-> ---
->  drivers/acpi/nfit.c             |  7 +++++++
->  drivers/acpi/numa.c             | 40 +++++++++++++++++++++++++++++++++++++---
->  drivers/nvdimm/btt.c            |  2 ++
->  drivers/nvdimm/btt_devs.c       |  1 +
->  drivers/nvdimm/bus.c            | 30 ++++++++++++++++++++++++++++++
->  drivers/nvdimm/namespace_devs.c |  1 +
->  drivers/nvdimm/nd.h             |  1 +
->  drivers/nvdimm/region.c         |  1 +
->  drivers/nvdimm/region_devs.c    |  1 +
->  include/linux/acpi.h            |  5 +++++
->  include/linux/libnvdimm.h       |  2 ++
->  11 files changed, 88 insertions(+), 3 deletions(-)
+In that case,
+
+Acked-by: Darren Hart <dvhart@linux.intel.com>
+
+For the platform/drivers/x86 patches.
+
+-- 
+Darren Hart
+Intel Open Source Technology Center
