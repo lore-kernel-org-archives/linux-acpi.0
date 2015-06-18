@@ -1,38 +1,59 @@
-From: Stephen Boyd <sboyd@codeaurora.org>
-Subject: Re: [PATCH 01/44] kernel: Add support for poweroff handler call chain
-Date: Thu, 18 Jun 2015 14:40:18 -0700
-Message-ID: <55833AC2.5080700@codeaurora.org>
-References: <1412659726-29957-1-git-send-email-linux@roeck-us.net> <1412659726-29957-2-git-send-email-linux@roeck-us.net> <55821936.4040704@codeaurora.org> <20150618153003.GA19224@roeck-us.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-m68k-owner@vger.kernel.org>
-In-Reply-To: <20150618153003.GA19224@roeck-us.net>
-Sender: linux-m68k-owner@vger.kernel.org
-To: Guenter Roeck <linux@roeck-us.net>
-Cc: linux-kernel@vger.kernel.org, linux-m32r-ja@ml.linux-m32r.org, linux-mips@linux-mips.org, linux-efi@vger.kernel.org, linux-ia64@vger.kernel.org, Heiko Stuebner <heiko@sntech.de>, Len Brown <len.brown@intel.com>, linux-xtensa@linux-xtensa.org, Pavel Machek <pavel@ucw.cz>, devel@driverdev.osuosl.org, linux-s390@vger.kernel.org, lguest@lists.ozlabs.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-sh@vger.kernel.org, Alexander Graf <agraf@suse.de>, linux-acpi@vger.kernel.org, Geert Uytterhoeven <geert@linux-m68k.org>, xen-devel@lists.xenproject.org, devicetree@vger.kernel.org, user-mode-linux-devel@lists.sourceforge.net, linux-pm@vger.kernel.org, adi-buildroot-devel@lists.sourceforge.net, linux-m68k@lists.linux-m68k.org, linux-am33-list@redhat.com, linux-tegra@vger.kernel.org, openipmi-developer@lists.sourceforge.net, linux-metag@vger.kernel.orgli
+From: Al Stone <al.stone@linaro.org>
+Subject: [PATCH v2 3/3] ACPI / ARM64 : use the new BAD_MADT_GICC_ENTRY macro
+Date: Thu, 18 Jun 2015 16:36:08 -0600
+Message-ID: <1434666968-1543-4-git-send-email-al.stone@linaro.org>
+References: <1434666968-1543-1-git-send-email-al.stone@linaro.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ie0-f172.google.com ([209.85.223.172]:35036 "EHLO
+	mail-ie0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752596AbbFRWg0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Jun 2015 18:36:26 -0400
+Received: by iefd2 with SMTP id d2so7844056ief.2
+        for <linux-acpi@vger.kernel.org>; Thu, 18 Jun 2015 15:36:25 -0700 (PDT)
+In-Reply-To: <1434666968-1543-1-git-send-email-al.stone@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, tglx@linutronix.de, jason@lakedaemon.net, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, linaro-kernel@lists.linaro.org, patches@linaro.org
 
-On 06/18/2015 08:30 AM, Guenter Roeck wrote:
-> On Wed, Jun 17, 2015 at 06:04:54PM -0700, Stephen Boyd wrote:
-> [ ... ]
->> What happened to this series? I want to add shutdown support to my
->> platform and I need to write a register on the PMIC in one driver to
->> configure it for shutdown instead of restart and then write an MMIO
->> register to tell the PMIC to actually do the shutdown in another driver.
->> It seems that the notifier solves this case for me, albeit with the
->> slight complication that I need to order the two with some priority.
->>
-> Can you use the .shutdown driver callback instead ?
->
-> I see other drivers use that, and check for system_state == SYSTEM_POWER_OFF
-> to power off the hardware.
->
+For those parts of the arm64 ACPI code that need to check GICC subtables
+in the MADT, use the new BAD_MADT_GICC_ENTRY macro instead of the previous
+BAD_MADT_ENTRY.  The new macro takes into account differences in the size
+of the GICC subtable that the old macro did not; this caused failures even
+though the subtable entries are valid.
 
-Yes I think that will work. I'll still have to hook pm_power_off() for
-the mmio register, but I guess that's ok and I don't need to worry about
-this series then.
+Signed-off-by: Al Stone <al.stone@linaro.org>
+---
+ arch/arm64/kernel/smp.c   | 2 +-
+ drivers/irqchip/irq-gic.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
+diff --git a/arch/arm64/kernel/smp.c b/arch/arm64/kernel/smp.c
+index 4b2121b..80d5984 100644
+--- a/arch/arm64/kernel/smp.c
++++ b/arch/arm64/kernel/smp.c
+@@ -438,7 +438,7 @@ acpi_parse_gic_cpu_interface(struct acpi_subtable_header *header,
+ 	struct acpi_madt_generic_interrupt *processor;
+ 
+ 	processor = (struct acpi_madt_generic_interrupt *)header;
+-	if (BAD_MADT_ENTRY(processor, end))
++	if (BAD_MADT_GICC_ENTRY(processor, end))
+ 		return -EINVAL;
+ 
+ 	acpi_table_print_madt_entry(header);
+diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
+index 8d7e1c8..4dd8826 100644
+--- a/drivers/irqchip/irq-gic.c
++++ b/drivers/irqchip/irq-gic.c
+@@ -1055,7 +1055,7 @@ gic_acpi_parse_madt_cpu(struct acpi_subtable_header *header,
+ 
+ 	processor = (struct acpi_madt_generic_interrupt *)header;
+ 
+-	if (BAD_MADT_ENTRY(processor, end))
++	if (BAD_MADT_GICC_ENTRY(processor, end))
+ 		return -EINVAL;
+ 
+ 	/*
 -- 
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-a Linux Foundation Collaborative Project
+2.4.0
+
