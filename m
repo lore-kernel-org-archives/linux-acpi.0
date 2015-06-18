@@ -1,33 +1,71 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Subject: Re: [PATCH 01/44] kernel: Add support for poweroff handler call chain
-Date: Thu, 18 Jun 2015 08:30:03 -0700
-Message-ID: <20150618153003.GA19224@roeck-us.net>
-References: <1412659726-29957-1-git-send-email-linux@roeck-us.net>
- <1412659726-29957-2-git-send-email-linux@roeck-us.net>
- <55821936.4040704@codeaurora.org>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH 01/15] block: introduce an ->rw_bytes() block device operation
+Date: Thu, 18 Jun 2015 12:25:37 -0700
+Message-ID: <CAPcyv4jcc7oA5xZLB3Jh5bnvqiufjpxOCFH8_aOmBvA6vH3SWg@mail.gmail.com>
+References: <20150617235209.12943.24419.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<20150617235452.12943.27817.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-ia64-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <55821936.4040704@codeaurora.org>
-Sender: linux-ia64-owner@vger.kernel.org
-To: Stephen Boyd <sboyd@codeaurora.org>
-Cc: linux-kernel@vger.kernel.org, linux-m32r-ja@ml.linux-m32r.org, linux-mips@linux-mips.org, linux-efi@vger.kernel.org, linux-ia64@vger.kernel.org, Heiko Stuebner <heiko@sntech.de>, Len Brown <len.brown@intel.com>, linux-xtensa@linux-xtensa.org, Pavel Machek <pavel@ucw.cz>, devel@driverdev.osuosl.org, linux-s390@vger.kernel.org, lguest@lists.ozlabs.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-sh@vger.kernel.org, Alexander Graf <agraf@suse.de>, linux-acpi@vger.kernel.org, Geert Uytterhoeven <geert@linux-m68k.org>, xen-devel@lists.xenproject.org, devicetree@vger.kernel.org, user-mode-linux-devel@lists.sourceforge.net, linux-pm@vger.kernel.org, adi-buildroot-devel@lists.sourceforge.net, linux-m68k@lists.linux-m68k.org, linux-am33-list@redhat.com, linux-tegra@vger.kernel.org, openipmi-developer@lists.sourceforge.net, linux-metag@vger.kernel.orgli
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wi0-f169.google.com ([209.85.212.169]:37878 "EHLO
+	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755194AbbFRTZi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Jun 2015 15:25:38 -0400
+Received: by wicgi11 with SMTP id gi11so3163084wic.0
+        for <linux-acpi@vger.kernel.org>; Thu, 18 Jun 2015 12:25:37 -0700 (PDT)
+In-Reply-To: <20150617235452.12943.27817.stgit@dwillia2-desk3.amr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jens Axboe <axboe@kernel.dk>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+Cc: Ingo Molnar <mingo@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andy Lutomirski <luto@amacapital.net>, Jens Axboe <axboe@fb.com>, Linux ACPI <linux-acpi@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Christoph Hellwig <hch@lst.de>
 
-On Wed, Jun 17, 2015 at 06:04:54PM -0700, Stephen Boyd wrote:
-[ ... ]
-> 
-> What happened to this series? I want to add shutdown support to my
-> platform and I need to write a register on the PMIC in one driver to
-> configure it for shutdown instead of restart and then write an MMIO
-> register to tell the PMIC to actually do the shutdown in another driver.
-> It seems that the notifier solves this case for me, albeit with the
-> slight complication that I need to order the two with some priority.
-> 
-Can you use the .shutdown driver callback instead ?
+On Wed, Jun 17, 2015 at 4:54 PM, Dan Williams <dan.j.williams@intel.com> wrote:
+> Why do we need a new method in block_device_operations?
+>
+> The capacities of persistent memory make it too large to map as RAM (no
+> struct page coverage by default), so Linux arranges for it to be managed
+> as a block device. The bio interface to a block device enforces sector
+> at a time i/o and has infrastructure for asynchronous completion of i/o.
+> The ->rw_page() interface is closely tied to the page cache and also
+> carries asynchronous i/o completion assumptions.  NVDIMM devices are
+> fast enough to complete i/o's synchronously (memcpy) and some in kernel
+> applications can take advantage of the byte-aligned (as opposed to
+> sector-aligned) nature of the media.  The ->rw_bytes() operation is
+> added to fill this role that does not fit into any existing access
+> method.
+>
+> It could be argued that a ->rw_bytes() method makes a struct
+> block_device not a *block* device.  However, the applications for
+> persistent memory as storage devices makes them more "block" devices
+> than "character" devices.
+>
+> The first consumer of the ->rw_bytes() capability is a stacked
+> block_device driver (BTT - block translation table) that adds atomic
+> sector update semantics on top of an nvdimm storage device.
+>
+> Why enable drivers like BTT on top of a new globally visibly
+> block_device_operations op rather than an internal detail of nvdimm
+> drivers?
+>
+> 1/ We want ->rw_bytes() consumers to be enabled on either a per-disk or
+> per-partition basis.  Consider the case of enabling DAX+XFS on a single
+> persistent memory disk whereby the metadata needs atomic sector update
+> guarantees, but the data would like to be DAX capable.  Solution is to
+> create two partitions and enable BTT on the "metadata/XFS-logdev"
+> partition.
+>
+> 2/ We want this configuration topology to be visible to the sysfs device
+> model, and not an internal detail of nvdimm drivers requiring special
+> tooling.  For example if you ever wanted to "fsck" BTT metadata that
+> could be carried out on the raw nvdimm device directly rather than
+> require custom tooling / mechanisms to access the raw media.
+>
+> 3/ It becomes trivial to add new BTT like drivers without touching the
+> nvdimm drivers to add is_btt_mode(), is_foo_mode(), etc... checks in the
+> fast path.
+>
 
-I see other drivers use that, and check for system_state == SYSTEM_POWER_OFF
-to power off the hardware.
+Acked-by: Jens Axboe <axboe@fb.com> ...off list.
 
-Guenter
+Christoph, I assume that satisfies your primary concern with the BTT
+infrastructure and implementation?
