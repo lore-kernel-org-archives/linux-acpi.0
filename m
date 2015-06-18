@@ -1,232 +1,60 @@
-From: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Subject: [PATCH 18/22] fjes: unshare_watch_task
-Date: Thu, 18 Jun 2015 09:49:43 +0900
-Message-ID: <1434588587-25655-18-git-send-email-izumi.taku@jp.fujitsu.com>
-References: <1434588359-25589-1-git-send-email-izumi.taku@jp.fujitsu.com>
- <1434588587-25655-1-git-send-email-izumi.taku@jp.fujitsu.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1434588587-25655-1-git-send-email-izumi.taku@jp.fujitsu.com>
-Sender: netdev-owner@vger.kernel.org
-To: platform-driver-x86@vger.kernel.org, dvhart@infradead.org
-Cc: rkhan@redhat.com, alexander.h.duyck@redhat.com, netdev@vger.kernel.org, linux-acpi@vger.kernel.org, Taku Izumi <izumi.taku@jp.fujitsu.com>
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: Re: [PATCH 01/44] kernel: Add support for poweroff handler call chain
+Date: Wed, 17 Jun 2015 18:04:54 -0700
+Message-ID: <55821936.4040704@codeaurora.org>
+References: <1412659726-29957-1-git-send-email-linux@roeck-us.net> <1412659726-29957-2-git-send-email-linux@roeck-us.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-hexagon-owner@vger.kernel.org>
+In-Reply-To: <1412659726-29957-2-git-send-email-linux@roeck-us.net>
+Sender: linux-hexagon-owner@vger.kernel.org
+To: Guenter Roeck <linux@roeck-us.net>, linux-kernel@vger.kernel.org
+Cc: linux-m32r-ja@ml.linux-m32r.org, linux-mips@linux-mips.org, linux-efi@vger.kernel.org, linux-ia64@vger.kernel.org, Heiko Stuebner <heiko@sntech.de>, Len Brown <len.brown@intel.com>, linux-xtensa@linux-xtensa.org, Pavel Machek <pavel@ucw.cz>, devel@driverdev.osuosl.org, linux-s390@vger.kernel.org, lguest@lists.ozlabs.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-sh@vger.kernel.org, Alexander Graf <agraf@suse.de>, linux-acpi@vger.kernel.org, Geert Uytterhoeven <geert@linux-m68k.org>, xen-devel@lists.xenproject.org, devicetree@vger.kernel.org, user-mode-linux-devel@lists.sourceforge.net, linux-pm@vger.kernel.org, adi-buildroot-devel@lists.sourceforge.net, linux-m68k@lists.linux-m68k.org, linux-am33-list@redhat.com, linux-tegra@vger.kernel.org, openipmi-developer@lists.sourceforge.net, linux-metag@vger.kernel.org, linux-arm-kernel@lists.infradead
 List-Id: linux-acpi@vger.kernel.org
 
-This patch adds unshare_watch_task.
+On 10/06/2014 10:28 PM, Guenter Roeck wrote:
+> Various drivers implement architecture and/or device specific means to
+> remove power from the system.  For the most part, those drivers set the
+> global variable pm_power_off to point to a function within the driver.
+>
+> This mechanism has a number of drawbacks.  Typically only one scheme
+> to remove power is supported (at least if pm_power_off is used).
+> At least in theory there can be multiple means remove power, some of
+> which may be less desirable. For example, some mechanisms may only
+> power off the CPU or the CPU card, while another may power off the
+> entire system.  Others may really just execute a restart sequence
+> or drop into the ROM monitor. Using pm_power_off can also be racy
+> if the function pointer is set from a driver built as module, as the
+> driver may be in the process of being unloaded when pm_power_off is
+> called. If there are multiple poweroff handlers in the system, removing
+> a module with such a handler may inadvertently reset the pointer to
+> pm_power_off to NULL, leaving the system with no means to remove power.
+>
+> Introduce a system poweroff handler call chain to solve the described
+> problems.  This call chain is expected to be executed from the
+> architecture specific machine_power_off() function.  Drivers providing
+> system poweroff functionality are expected to register with this call chain.
+> By using the priority field in the notifier block, callers can control
+> poweroff handler execution sequence and thus ensure that the poweroff
+> handler with the optimal capabilities to remove power for a given system
+> is called first.
 
-Shared buffer's status can be changed into unshared.
-This task is used to monitor shared buffer's status.
+What happened to this series? I want to add shutdown support to my
+platform and I need to write a register on the PMIC in one driver to
+configure it for shutdown instead of restart and then write an MMIO
+register to tell the PMIC to actually do the shutdown in another driver.
+It seems that the notifier solves this case for me, albeit with the
+slight complication that I need to order the two with some priority.
 
-Signed-off-by: Taku Izumi <izumi.taku@jp.fujitsu.com>
----
- drivers/platform/x86/fjes/fjes.h      |   3 +
- drivers/platform/x86/fjes/fjes_main.c | 152 ++++++++++++++++++++++++++++++++++
- 2 files changed, 155 insertions(+)
+I'm also considering putting the PMIC configuration part into the reboot
+notifier chain, because it only does things to change the configuration
+and not actually any shutdown/restart itself. That removes any
+requirement to get the priority of notifiers right. This series will
+still be useful for the MMIO register that needs to be toggled though.
+Right now I have to assign pm_power_off or hook the reboot notifier with
+a different priority to make this work.
 
-diff --git a/drivers/platform/x86/fjes/fjes.h b/drivers/platform/x86/fjes/fjes.h
-index e50fd01..2e814bb 100644
---- a/drivers/platform/x86/fjes/fjes.h
-+++ b/drivers/platform/x86/fjes/fjes.h
-@@ -61,6 +61,9 @@ struct fjes_adapter {
- 	struct work_struct tx_stall_task;
- 	struct work_struct raise_intr_rxdata_task;
- 
-+	struct work_struct unshare_watch_task;
-+	unsigned long unshare_watch_bitmask;
-+
- 	struct delayed_work interrupt_watch_task;
- 	bool interrupt_watch_enable;
- 
-diff --git a/drivers/platform/x86/fjes/fjes_main.c b/drivers/platform/x86/fjes/fjes_main.c
-index 3931bcc..1bba967 100644
---- a/drivers/platform/x86/fjes/fjes_main.c
-+++ b/drivers/platform/x86/fjes/fjes_main.c
-@@ -75,6 +75,7 @@ static int fjes_remove(struct platform_device *);
- static int fjes_sw_init(struct fjes_adapter *);
- static void fjes_netdev_setup(struct net_device *);
- static void fjes_irq_watch_task(struct work_struct *);
-+static void fjes_watch_unshare_task(struct work_struct *);
- static void fjes_rx_irq(struct fjes_adapter *, int);
- static int fjes_poll(struct napi_struct *, int);
- 
-@@ -317,6 +318,8 @@ static int fjes_close(struct net_device *netdev)
- 	fjes_free_irq(adapter);
- 
- 	cancel_delayed_work_sync(&adapter->interrupt_watch_task);
-+	cancel_work_sync(&adapter->unshare_watch_task);
-+	adapter->unshare_watch_bitmask = 0;
- 	cancel_work_sync(&adapter->raise_intr_rxdata_task);
- 	cancel_work_sync(&adapter->tx_stall_task);
- 
-@@ -1075,6 +1078,8 @@ static int fjes_probe(struct platform_device *plat_dev)
- 	INIT_WORK(&adapter->tx_stall_task, fjes_tx_stall_task);
- 	INIT_WORK(&adapter->raise_intr_rxdata_task,
- 			fjes_raise_intr_rxdata_task);
-+	INIT_WORK(&adapter->unshare_watch_task, fjes_watch_unshare_task);
-+	adapter->unshare_watch_bitmask = 0;
- 
- 	INIT_DELAYED_WORK(&adapter->interrupt_watch_task, fjes_irq_watch_task);
- 	adapter->interrupt_watch_enable = false;
-@@ -1121,7 +1126,9 @@ static int fjes_remove(struct platform_device *plat_dev)
- 	struct fjes_adapter *adapter = netdev_priv(netdev);
- 	struct fjes_hw *hw = &adapter->hw;
- 
-+
- 	cancel_delayed_work_sync(&adapter->interrupt_watch_task);
-+	cancel_work_sync(&adapter->unshare_watch_task);
- 	cancel_work_sync(&adapter->raise_intr_rxdata_task);
- 	cancel_work_sync(&adapter->tx_stall_task);
- 	if (adapter->control_wq)
-@@ -1185,6 +1192,151 @@ static void fjes_irq_watch_task(struct work_struct *work)
- 
- }
- 
-+static void fjes_watch_unshare_task(struct work_struct *work)
-+{
-+	struct fjes_adapter *adapter = container_of(work,
-+			struct fjes_adapter, unshare_watch_task);
-+	struct fjes_hw *hw = &adapter->hw;
-+	struct net_device *netdev = adapter->netdev;
-+	int epidx;
-+	int max_epid, my_epid;
-+	unsigned long unshare_watch_bitmask;
-+	int wait_time = 0;
-+	int is_shared;
-+	int ret;
-+
-+	my_epid = hw->my_epid;
-+	max_epid = hw->max_epid;
-+
-+	unshare_watch_bitmask = adapter->unshare_watch_bitmask;
-+	adapter->unshare_watch_bitmask = 0;
-+
-+	while ((unshare_watch_bitmask || hw->txrx_stop_req_bit) &&
-+			(wait_time < 3000)) {
-+
-+		for (epidx = 0; epidx < hw->max_epid; epidx++) {
-+
-+			if (epidx == hw->my_epid)
-+				continue;
-+
-+			if (test_bit(epidx, &hw->txrx_stop_req_bit)) {
-+
-+				is_shared = fjes_hw_epid_is_shared(hw->hw_info.share, epidx);
-+				if (!is_shared ||
-+					(is_shared &&
-+					 (FJES_RX_STOP_REQ_DONE &
-+					  hw->ep_shm_info[epidx].rx.info->v1i.rx_status))) {
-+
-+					mutex_lock(&hw->hw_info.lock);
-+					ret = fjes_hw_unregister_buff_addr(hw, epidx);
-+					switch (ret) {
-+					case 0:
-+						break;
-+					case -ENOMSG:
-+					case -EBUSY:
-+					default:
-+
-+						if (!work_pending(&adapter->force_close_task)) {
-+							adapter->force_reset = true;
-+							schedule_work(&adapter->force_close_task);
-+						}
-+						break;
-+					}
-+					mutex_unlock(&hw->hw_info.lock);
-+
-+					fjes_hw_setup_epbuf(&hw->ep_shm_info[epidx].tx,
-+						netdev->dev_addr, netdev->mtu);
-+
-+					clear_bit(epidx, &hw->txrx_stop_req_bit);
-+					clear_bit(epidx, &unshare_watch_bitmask);
-+					clear_bit(epidx, &hw->hw_info.buffer_unshare_reserve_bit);
-+
-+				}
-+			}
-+
-+			is_shared = fjes_hw_epid_is_shared(hw->hw_info.share, epidx);
-+			if (!is_shared && test_bit(epidx, &unshare_watch_bitmask)) {
-+
-+				if (test_bit(epidx, &hw->hw_info.buffer_unshare_reserve_bit)) {
-+
-+					mutex_lock(&hw->hw_info.lock);
-+					ret = fjes_hw_unregister_buff_addr(hw, epidx);
-+					switch (ret) {
-+					case 0:
-+						break;
-+					case -ENOMSG:
-+					case -EBUSY:
-+					default:
-+
-+						if (!work_pending(&adapter->force_close_task)) {
-+							adapter->force_reset = true;
-+							schedule_work(&adapter->force_close_task);
-+						}
-+						break;
-+					}
-+					mutex_unlock(&hw->hw_info.lock);
-+
-+					fjes_hw_setup_epbuf(&hw->ep_shm_info[epidx].tx,
-+						netdev->dev_addr, netdev->mtu);
-+
-+					clear_bit(epidx, &hw->txrx_stop_req_bit);
-+					clear_bit(epidx, &unshare_watch_bitmask);
-+					clear_bit(epidx, &hw->hw_info.buffer_unshare_reserve_bit);
-+
-+				}
-+			}
-+
-+		}
-+		msleep(100);
-+		wait_time += 100;
-+	}
-+
-+	if (hw->hw_info.buffer_unshare_reserve_bit) {
-+
-+		for (epidx = 0; epidx < hw->max_epid; epidx++) {
-+
-+			if (epidx == hw->my_epid)
-+				continue;
-+
-+			if (test_bit(epidx, &hw->hw_info.buffer_unshare_reserve_bit)) {
-+
-+				mutex_lock(&hw->hw_info.lock);
-+
-+				ret = fjes_hw_unregister_buff_addr(hw, epidx);
-+				switch (ret) {
-+				case 0:
-+					break;
-+				case -ENOMSG:
-+				case -EBUSY:
-+				default:
-+
-+					if (!work_pending(&adapter->force_close_task)) {
-+						adapter->force_reset = true;
-+						schedule_work(&adapter->force_close_task);
-+					}
-+					break;
-+				}
-+				mutex_unlock(&hw->hw_info.lock);
-+
-+				fjes_hw_setup_epbuf(&hw->ep_shm_info[epidx].tx,
-+					netdev->dev_addr, netdev->mtu);
-+
-+				clear_bit(epidx, &hw->txrx_stop_req_bit);
-+				clear_bit(epidx, &unshare_watch_bitmask);
-+				clear_bit(epidx,
-+				  &hw->hw_info.buffer_unshare_reserve_bit);
-+			}
-+
-+			if (test_bit(epidx, &unshare_watch_bitmask)) {
-+				hw->ep_shm_info[epidx].tx.info->v1i.rx_status &=
-+						~FJES_RX_STOP_REQ_DONE;
-+			}
-+		}
-+
-+	}
-+
-+}
-+
- /*
-  *  fjes_init_module - Driver Registration Routine
-  *
 -- 
-1.8.3.1
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
