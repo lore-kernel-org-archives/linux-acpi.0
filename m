@@ -1,56 +1,65 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH 19/22] fjes: update_zone_task
-Date: Wed, 17 Jun 2015 19:25:07 -0700
-Message-ID: <1434594307.2689.102.camel@perches.com>
-References: <1434588359-25589-1-git-send-email-izumi.taku@jp.fujitsu.com>
-	 <1434588587-25655-1-git-send-email-izumi.taku@jp.fujitsu.com>
-	 <1434588587-25655-19-git-send-email-izumi.taku@jp.fujitsu.com>
+From: joeyli <jlee@suse.com>
+Subject: Re: [PATCH v3 28/35] msi-laptop: Port to new backlight interface
+ selection API
+Date: Thu, 18 Jun 2015 13:59:02 +0800
+Message-ID: <20150618055902.GB25082@linux-rxt1.site>
+References: <1434464893-3529-1-git-send-email-hdegoede@redhat.com>
+ <1434464893-3529-29-git-send-email-hdegoede@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <1434588587-25655-19-git-send-email-izumi.taku@jp.fujitsu.com>
+Content-Disposition: inline
+In-Reply-To: <1434464893-3529-29-git-send-email-hdegoede@redhat.com>
 Sender: platform-driver-x86-owner@vger.kernel.org
-To: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Cc: platform-driver-x86@vger.kernel.org, dvhart@infradead.org, rkhan@redhat.com, alexander.h.duyck@redhat.com, netdev@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Darren Hart <dvhart@infradead.org>, Aaron Lu <aaron.lu@intel.com>, Ben Skeggs <bskeggs@redhat.com>, Peter Feuerer <peter@piie.net>, Corentin Chary <corentin.chary@gmail.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Jonathan Woithe <jwoithe@just42.net>, Ike Panhc <ike.pan@canonical.com>, Anisse Astier <anisse@astier.eu>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Azael Avalos <coproscefalo@gmail.com>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, acpi4asus-user@lists.sourceforge.net, ibm-acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 2015-06-18 at 09:49 +0900, Taku Izumi wrote:
-> This patch adds update_zone_task.
+On Tue, Jun 16, 2015 at 04:28:06PM +0200, Hans de Goede wrote:
+> Port the backlight selection logic to the new backlight interface
+> selection API.
+> 
+> This commit also removes various obsolete pr_xxx messages related to
+> backlight interface selection. These are obsolete because they assume
+> there is only a vendor or acpi backlight driver and no other choice.
+> Also they are not necessary, if the user wants to know which backlight
+> interfaces are registered a simple "ls /sys/class/backlight" suffices.
+> 
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 
-> diff --git a/drivers/platform/x86/fjes/fjes_hw.c b/drivers/platform/x86/fjes/fjes_hw.c
-[]
-> +static void fjes_hw_update_zone_task(struct work_struct *work)
-> +{
+Reviewed-by: Lee, Chun-Yi <jlee@suse.com>
 
-Some of the line length can be removed here by using a
-temporary, but these would look a lot better if you went
-beyond 80 columns.
+Thanks for your patch!
+Joey Lee
 
-	info = &res_buf->info.info;
-[]
-> +				case EP_PARTNER_UNSHARE:
-> +				default:
-> +					if ((res_buf->info.info[epidx].zone !=
-> +						FJES_ZONING_ZONE_TYPE_NONE) &&
-> +					    (res_buf->info.info[epidx].es_status ==
-> +						FJES_ZONING_STATUS_ENABLE) &&
-> +					    (res_buf->info.info[epidx].zone ==
-> +						res_buf->info.info[hw->my_epid].zone))
-
-So these become
-					if ((info[epidx].zone != FJES_ZONING_ZONE_TYPE_NONE) &&
-					    (info[epidx].es_status == FJES_ZONING_STATUS_ENABLE) &&
-					    (info[epidx].zone == info[hw->my_epid.zone))
-
-> +				case EP_PARTNER_COMPLETE:
-> +				case EP_PARTNER_WAITING:
-> +					if ((res_buf->info.info[epidx].zone ==
-> +						FJES_ZONING_ZONE_TYPE_NONE) ||
-> +					    (res_buf->info.info[epidx].es_status !=
-> +						FJES_ZONING_STATUS_ENABLE) ||
-> +					    (res_buf->info.info[epidx].zone !=
-> +						res_buf->info.
-> +						  info[hw->my_epid].zone)) {
-
-etc...
+> ---
+>  drivers/platform/x86/msi-laptop.c | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/platform/x86/msi-laptop.c b/drivers/platform/x86/msi-laptop.c
+> index 0859877..4231770 100644
+> --- a/drivers/platform/x86/msi-laptop.c
+> +++ b/drivers/platform/x86/msi-laptop.c
+> @@ -64,6 +64,7 @@
+>  #include <linux/i8042.h>
+>  #include <linux/input.h>
+>  #include <linux/input/sparse-keymap.h>
+> +#include <acpi/video.h>
+>  
+>  #define MSI_DRIVER_VERSION "0.5"
+>  
+> @@ -1069,9 +1070,8 @@ static int __init msi_init(void)
+>  
+>  	/* Register backlight stuff */
+>  
+> -	if (!quirks->old_ec_model || acpi_video_backlight_support()) {
+> -		pr_info("Brightness ignored, must be controlled by ACPI video driver\n");
+> -	} else {
+> +	if (quirks->old_ec_model ||
+> +	    acpi_video_get_backlight_type() == acpi_backlight_vendor) {
+>  		struct backlight_properties props;
+>  		memset(&props, 0, sizeof(struct backlight_properties));
+>  		props.type = BACKLIGHT_PLATFORM;
+> -- 
+> 2.3.6
+> 
