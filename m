@@ -1,34 +1,50 @@
-From: Stephen Hemminger <stephen@networkplumber.org>
-Subject: Re: [PATCH 22/22] fjes: ethtool support
-Date: Wed, 17 Jun 2015 21:10:20 -0400
-Message-ID: <20150617211020.69cae194@uryu.home.lan>
+From: Joe Perches <joe@perches.com>
+Subject: Re: [PATCH 01/22] fjes: Introduce FUJITSU Extended Socket Network
+ Device driver
+Date: Wed, 17 Jun 2015 18:47:40 -0700
+Message-ID: <1434592060.2689.85.camel@perches.com>
 References: <1434588359-25589-1-git-send-email-izumi.taku@jp.fujitsu.com>
-	<1434588587-25655-1-git-send-email-izumi.taku@jp.fujitsu.com>
-	<1434588587-25655-22-git-send-email-izumi.taku@jp.fujitsu.com>
+	 <1434588587-25655-1-git-send-email-izumi.taku@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <1434588587-25655-22-git-send-email-izumi.taku@jp.fujitsu.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1434588587-25655-1-git-send-email-izumi.taku@jp.fujitsu.com>
+Sender: netdev-owner@vger.kernel.org
 To: Taku Izumi <izumi.taku@jp.fujitsu.com>
 Cc: platform-driver-x86@vger.kernel.org, dvhart@infradead.org, rkhan@redhat.com, alexander.h.duyck@redhat.com, netdev@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, 18 Jun 2015 09:49:47 +0900
-Taku Izumi <izumi.taku@jp.fujitsu.com> wrote:
-
-> +static void fjes_get_ethtool_stats(struct net_device *netdev,
-> +		struct ethtool_stats *stats, u64 *data)
+On Thu, 2015-06-18 at 09:49 +0900, Taku Izumi wrote:
+> This patch adds the basic code of FUJITSU Extended Socket
+> Network Device driver.
+[]
+> diff --git a/drivers/platform/x86/fjes/fjes_main.c b/drivers/platform/x86/fjes/fjes_main.c
+[]
+> +static acpi_status fjes_get_acpi_resource(struct acpi_resource *acpi_res,
+> +		void *data)
 > +{
-> +	struct fjes_adapter *adapter = netdev_priv(netdev);
-> +	int i;
-> +	char *p = NULL;
+> +	struct resource *res = data;
+> +	struct acpi_resource_address32 *addr;
+> +	struct acpi_resource_irq *irq;
+> +
+> +	switch (acpi_res->type) {
+> +	case ACPI_RESOURCE_TYPE_ADDRESS32:
+> +		addr = &acpi_res->data.address32;
+> +		res[0].start = addr->address.minimum;
+> +		res[0].end = addr->address.minimum +
+> +			addr->address.address_length;
 
-Although harmless, this initialization is unnecessary.
+Isn't this missing - 1?
+end = start + length - 1; ?
 
 
-> +	for (i = 0; i < ARRAY_SIZE(fjes_gstrings_stats); i++) {
-> +		p = (char *)adapter + fjes_gstrings_stats[i].stat_offset;
-> +		data[i] = (fjes_gstrings_stats[i].sizeof_stat == sizeof(u64))
-> +			? *(u64 *)p : *(u32 *)p;
+> +static int __init fjes_init_module(void)
+> +{
+> +	int result;
+> +
+> +	pr_info("%s - version %s\n",
+> +			fjes_driver_string, fjes_driver_version);
+> +	pr_info("%s\n", fjes_copyright);
+
+Maybe emit copyright on the same line as version?
