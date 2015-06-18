@@ -1,52 +1,33 @@
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH 12/22] fjes: net_device_ops.ndo_get_stats64
-Date: Thu, 18 Jun 2015 17:00:52 +0300
-Message-ID: <5582CF14.3040507@cogentembedded.com>
-References: <1434588359-25589-1-git-send-email-izumi.taku@jp.fujitsu.com> <1434588587-25655-1-git-send-email-izumi.taku@jp.fujitsu.com> <1434588587-25655-12-git-send-email-izumi.taku@jp.fujitsu.com>
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: Re: [PATCH 01/44] kernel: Add support for poweroff handler call chain
+Date: Thu, 18 Jun 2015 08:30:03 -0700
+Message-ID: <20150618153003.GA19224@roeck-us.net>
+References: <1412659726-29957-1-git-send-email-linux@roeck-us.net>
+ <1412659726-29957-2-git-send-email-linux@roeck-us.net>
+ <55821936.4040704@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <1434588587-25655-12-git-send-email-izumi.taku@jp.fujitsu.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Taku Izumi <izumi.taku@jp.fujitsu.com>, platform-driver-x86@vger.kernel.org, dvhart@infradead.org
-Cc: rkhan@redhat.com, alexander.h.duyck@redhat.com, netdev@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-ia64-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <55821936.4040704@codeaurora.org>
+Sender: linux-ia64-owner@vger.kernel.org
+To: Stephen Boyd <sboyd@codeaurora.org>
+Cc: linux-kernel@vger.kernel.org, linux-m32r-ja@ml.linux-m32r.org, linux-mips@linux-mips.org, linux-efi@vger.kernel.org, linux-ia64@vger.kernel.org, Heiko Stuebner <heiko@sntech.de>, Len Brown <len.brown@intel.com>, linux-xtensa@linux-xtensa.org, Pavel Machek <pavel@ucw.cz>, devel@driverdev.osuosl.org, linux-s390@vger.kernel.org, lguest@lists.ozlabs.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, linux-sh@vger.kernel.org, Alexander Graf <agraf@suse.de>, linux-acpi@vger.kernel.org, Geert Uytterhoeven <geert@linux-m68k.org>, xen-devel@lists.xenproject.org, devicetree@vger.kernel.org, user-mode-linux-devel@lists.sourceforge.net, linux-pm@vger.kernel.org, adi-buildroot-devel@lists.sourceforge.net, linux-m68k@lists.linux-m68k.org, linux-am33-list@redhat.com, linux-tegra@vger.kernel.org, openipmi-developer@lists.sourceforge.net, linux-metag@vger.kernel.orgli
 List-Id: linux-acpi@vger.kernel.org
 
-Hello.
+On Wed, Jun 17, 2015 at 06:04:54PM -0700, Stephen Boyd wrote:
+[ ... ]
+> 
+> What happened to this series? I want to add shutdown support to my
+> platform and I need to write a register on the PMIC in one driver to
+> configure it for shutdown instead of restart and then write an MMIO
+> register to tell the PMIC to actually do the shutdown in another driver.
+> It seems that the notifier solves this case for me, albeit with the
+> slight complication that I need to order the two with some priority.
+> 
+Can you use the .shutdown driver callback instead ?
 
-On 6/18/2015 3:49 AM, Taku Izumi wrote:
+I see other drivers use that, and check for system_state == SYSTEM_POWER_OFF
+to power off the hardware.
 
-> This patch adds net_device_ops.ndo_get_stats64 callback.
-
-> Signed-off-by: Taku Izumi <izumi.taku@jp.fujitsu.com>
-> ---
->   drivers/platform/x86/fjes/fjes_main.c | 14 ++++++++++++++
->   1 file changed, 14 insertions(+)
-
-> diff --git a/drivers/platform/x86/fjes/fjes_main.c b/drivers/platform/x86/fjes/fjes_main.c
-> index 97bf487..eeda824 100644
-> --- a/drivers/platform/x86/fjes/fjes_main.c
-> +++ b/drivers/platform/x86/fjes/fjes_main.c
-> @@ -57,6 +57,8 @@ static netdev_tx_t fjes_xmit_frame(struct sk_buff *,
->   static void fjes_raise_intr_rxdata_task(struct work_struct *);
->   static void fjes_tx_stall_task(struct work_struct *);
->   static irqreturn_t fjes_intr(int, void*);
-> +static struct rtnl_link_stats64
-> +*fjes_get_stats64(struct net_device *, struct rtnl_link_stats64 *);
-
-    I'd leave * on the first line, otherwise it looks quite ugly..
-
-[...]
-> @@ -734,6 +737,17 @@ static netdev_tx_t fjes_xmit_frame(struct sk_buff *skb,
->   	return ret;
->   }
->
-> +static struct rtnl_link_stats64
-> +*fjes_get_stats64(struct net_device *netdev,
-
-    Same here.
-
-[...]
-
-WBR, Sergei
+Guenter
