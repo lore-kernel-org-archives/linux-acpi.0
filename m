@@ -1,65 +1,67 @@
-From: joeyli <jlee@suse.com>
-Subject: Re: [PATCH v3 28/35] msi-laptop: Port to new backlight interface
- selection API
-Date: Thu, 18 Jun 2015 13:59:02 +0800
-Message-ID: <20150618055902.GB25082@linux-rxt1.site>
-References: <1434464893-3529-1-git-send-email-hdegoede@redhat.com>
- <1434464893-3529-29-git-send-email-hdegoede@redhat.com>
+From: Frans Klaver <fransklaver@gmail.com>
+Subject: Re: [PATCH 01/44] kernel: Add support for poweroff handler call chain
+Date: Thu, 18 Jun 2015 08:53:50 +0200
+Message-ID: <CAH6sp9P7rq2y_hiQPHKUP85CwnEmp87yC7Psh4=29h-pYnb_yw@mail.gmail.com>
+References: <1412659726-29957-1-git-send-email-linux@roeck-us.net>
+ <1412659726-29957-2-git-send-email-linux@roeck-us.net>
+ <55821936.4040704@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1434464893-3529-29-git-send-email-hdegoede@redhat.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Darren Hart <dvhart@infradead.org>, Aaron Lu <aaron.lu@intel.com>, Ben Skeggs <bskeggs@redhat.com>, Peter Feuerer <peter@piie.net>, Corentin Chary <corentin.chary@gmail.com>, Cezary Jackiewicz <cezary.jackiewicz@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Jonathan Woithe <jwoithe@just42.net>, Ike Panhc <ike.pan@canonical.com>, Anisse Astier <anisse@astier.eu>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, Azael Avalos <coproscefalo@gmail.com>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, acpi4asus-user@lists.sourceforge.net, ibm-acpi-devel@lists.sourceforge.net
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <driverdev-devel-bounces@linuxdriverproject.org>
+In-Reply-To: <55821936.4040704@codeaurora.org>
+List-Unsubscribe: <http://driverdev.linuxdriverproject.org/mailman/options/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=unsubscribe>
+List-Archive: <http://driverdev.linuxdriverproject.org/pipermail/driverdev-devel/>
+List-Post: <mailto:driverdev-devel@linuxdriverproject.org>
+List-Help: <mailto:driverdev-devel-request@linuxdriverproject.org?subject=help>
+List-Subscribe: <http://driverdev.linuxdriverproject.org/mailman/listinfo/driverdev-devel>,
+ <mailto:driverdev-devel-request@linuxdriverproject.org?subject=subscribe>
+Errors-To: driverdev-devel-bounces@linuxdriverproject.org
+Sender: "devel" <driverdev-devel-bounces@linuxdriverproject.org>
+To: Stephen Boyd <sboyd@codeaurora.org>
+Cc: linux-m32r-ja@ml.linux-m32r.org, linux-mips@linux-mips.org, linux-efi@vger.kernel.org, linux-ia64@vger.kernel.org, Heiko Stuebner <heiko@sntech.de>, linux-sh@vger.kernel.org, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, devel@driverdev.osuosl.org, linux-s390@vger.kernel.org, lguest@lists.ozlabs.org, linux-c6x-dev@linux-c6x.org, linux-hexagon@vger.kernel.org, Alexander Graf <agraf@suse.de>, linux-acpi <linux-acpi@vger.kernel.org>, Geert Uytterhoeven <geert@linux-m68k.org>, xen-devel@lists.xenproject.org, Guenter Roeck <linux@roeck-us.net>, Len Brown <len.brown@intel.com>, user-mode-linux-devel@lists.sourceforge.net, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, linux-xtensa@linux-xtensa.org, adi-buildroot-devel@lists.sourceforge.net, linux-m68k@lists.linux-m68k.org, linux-am33-list@redhat.com, linux-tegra@vger.kernel.or
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jun 16, 2015 at 04:28:06PM +0200, Hans de Goede wrote:
-> Port the backlight selection logic to the new backlight interface
-> selection API.
-> 
-> This commit also removes various obsolete pr_xxx messages related to
-> backlight interface selection. These are obsolete because they assume
-> there is only a vendor or acpi backlight driver and no other choice.
-> Also they are not necessary, if the user wants to know which backlight
-> interfaces are registered a simple "ls /sys/class/backlight" suffices.
-> 
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+On Thu, Jun 18, 2015 at 3:04 AM, Stephen Boyd <sboyd@codeaurora.org> wrote:
+> On 10/06/2014 10:28 PM, Guenter Roeck wrote:
+>> Various drivers implement architecture and/or device specific means to
+>> remove power from the system.  For the most part, those drivers set the
+>> global variable pm_power_off to point to a function within the driver.
+>>
+>> This mechanism has a number of drawbacks.  Typically only one scheme
+>> to remove power is supported (at least if pm_power_off is used).
+>> At least in theory there can be multiple means remove power, some of
+>> which may be less desirable. For example, some mechanisms may only
+>> power off the CPU or the CPU card, while another may power off the
+>> entire system.  Others may really just execute a restart sequence
+>> or drop into the ROM monitor. Using pm_power_off can also be racy
+>> if the function pointer is set from a driver built as module, as the
+>> driver may be in the process of being unloaded when pm_power_off is
+>> called. If there are multiple poweroff handlers in the system, removing
+>> a module with such a handler may inadvertently reset the pointer to
+>> pm_power_off to NULL, leaving the system with no means to remove power.
+>>
+>> Introduce a system poweroff handler call chain to solve the described
+>> problems.  This call chain is expected to be executed from the
+>> architecture specific machine_power_off() function.  Drivers providing
+>> system poweroff functionality are expected to register with this call chain.
+>> By using the priority field in the notifier block, callers can control
+>> poweroff handler execution sequence and thus ensure that the poweroff
+>> handler with the optimal capabilities to remove power for a given system
+>> is called first.
+>
+> What happened to this series? I want to add shutdown support to my
+> platform and I need to write a register on the PMIC in one driver to
+> configure it for shutdown instead of restart and then write an MMIO
+> register to tell the PMIC to actually do the shutdown in another driver.
+> It seems that the notifier solves this case for me, albeit with the
+> slight complication that I need to order the two with some priority.
 
-Reviewed-by: Lee, Chun-Yi <jlee@suse.com>
+I was wondering the same thing. I did find out that things kind of
+stalled after Linus cast doubt on the chosen path [1]. I'm not sure
+there's any consensus on what would be best to do instead.
 
-Thanks for your patch!
-Joey Lee
+Frans
 
-> ---
->  drivers/platform/x86/msi-laptop.c | 6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/platform/x86/msi-laptop.c b/drivers/platform/x86/msi-laptop.c
-> index 0859877..4231770 100644
-> --- a/drivers/platform/x86/msi-laptop.c
-> +++ b/drivers/platform/x86/msi-laptop.c
-> @@ -64,6 +64,7 @@
->  #include <linux/i8042.h>
->  #include <linux/input.h>
->  #include <linux/input/sparse-keymap.h>
-> +#include <acpi/video.h>
->  
->  #define MSI_DRIVER_VERSION "0.5"
->  
-> @@ -1069,9 +1070,8 @@ static int __init msi_init(void)
->  
->  	/* Register backlight stuff */
->  
-> -	if (!quirks->old_ec_model || acpi_video_backlight_support()) {
-> -		pr_info("Brightness ignored, must be controlled by ACPI video driver\n");
-> -	} else {
-> +	if (quirks->old_ec_model ||
-> +	    acpi_video_get_backlight_type() == acpi_backlight_vendor) {
->  		struct backlight_properties props;
->  		memset(&props, 0, sizeof(struct backlight_properties));
->  		props.type = BACKLIGHT_PLATFORM;
-> -- 
-> 2.3.6
-> 
+[1] https://lkml.org/lkml/2014/11/6/641
