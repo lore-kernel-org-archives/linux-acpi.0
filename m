@@ -1,33 +1,60 @@
 From: Darren Hart <dvhart@infradead.org>
-Subject: Re: [PATCH 00/22] FUJITSU Extended Socket network device driver
-Date: Thu, 18 Jun 2015 14:22:10 -0700
-Message-ID: <20150618212210.GA121898@vmdeb7>
-References: <1434588359-25589-1-git-send-email-izumi.taku@jp.fujitsu.com>
+Subject: Re: [PATCH] ACPI / enumeration: Document the rules regarding the
+ PRP0001 device ID
+Date: Thu, 18 Jun 2015 14:27:16 -0700
+Message-ID: <20150618212716.GB121898@vmdeb7>
+References: <2849248.1anC4YaKJn@vostro.rjw.lan>
+ <20150611094129.GT1478@lahna.fi.intel.com>
+ <2448906.OPRrQsay8x@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from bombadil.infradead.org ([198.137.202.9]:41810 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751966AbbFRV1R (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 18 Jun 2015 17:27:17 -0400
 Content-Disposition: inline
-In-Reply-To: <1434588359-25589-1-git-send-email-izumi.taku@jp.fujitsu.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Cc: platform-driver-x86@vger.kernel.org, rkhan@redhat.com, alexander.h.duyck@redhat.com, netdev@vger.kernel.org, linux-acpi@vger.kernel.org
+In-Reply-To: <2448906.OPRrQsay8x@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Darren Hart <darren.hart@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Thu, Jun 18, 2015 at 09:45:59AM +0900, Taku Izumi wrote:
-> This patchsets adds FUJITSU Extended Socket network device driver.
-> Extended Socket network device is a shared memory based high-speed network 
-> interface between Extended Partitions of PRIMEQUEST 2000 E2 series.
+On Fri, Jun 12, 2015 at 02:28:45AM +0200, Rafael Wysocki wrote:
+> On Thursday, June 11, 2015 12:41:29 PM Mika Westerberg wrote:
+> > On Thu, Jun 11, 2015 at 03:24:02AM +0200, Rafael J. Wysocki wrote:
+> > > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > > 
+> > > Document how the ACPI device enumeration code uses the special
+> > > PRP0001 device ID.
+> > > 
+> > > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> > 
+> > At last the long needed documentation regarding PRP0001 :-) Thank you
+> > for doing this,
+> > 
+> > Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> > 
+> > One typo found, see below.
 > 
-> You can get some information about Extended Partition and Extended
-> Socket by referring the following manual.
+> Thanks!
 > 
-> http://globalsp.ts.fujitsu.com/dmsp/Publications/public/CA92344-0537.pdf
->  3.2.1 Extended Partitioning
->  3.2.2 Extended Socket
+> I've fixed this one and added a clarification about enumerating I2C and SPI
+> clients with PRP0001 and "compatible".
 > 
+> Updated patch is below.
+> 
+> ---
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Subject: ACPI / enumeration: Document the rules regarding the PRP0001 device ID
+> 
+> Document how the ACPI device enumeration code uses the special
+> PRP0001 device ID.
+> 
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-As Alex mentioned earlier, I suspect this is more appropriate for drivers/net.
-If David objects, we can consider for platform/drivers/x86.
+Reviewed-by: Darren Hart <dvhart@linux.intel.com>
 
 -- 
 Darren Hart
