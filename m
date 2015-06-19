@@ -1,218 +1,143 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 05/32] ACPICA: Tables: Enable both 32-bit and 64-bit FACS.
-Date: Fri, 19 Jun 2015 11:43:20 +0800
-Message-ID: <dac1dbad24511d58f8e2a653e91f36054bb152ef.1434684719.git.lv.zheng@intel.com>
+Subject: [PATCH 17/32] ACPICA: Namespace: Add support to allow overriding objects.
+Date: Fri, 19 Jun 2015 11:40:09 +0800
+Message-ID: <c409ed36c1b05965618b29abf0bfcb522d7b8734.1434684720.git.lv.zheng@intel.com>
 References: <cover.1434684719.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:51224 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753390AbbFSDn1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 18 Jun 2015 23:43:27 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1434684719.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
-ACPICA commit f7b86f35416e3d1f71c3d816ff5075ddd33ed486
+ACPICA commit 6084e34e44565c6293f446c0202b5e59b055e351
 
-The root cause of the reported bug might be one of the followings:
-1. BIOS may favor the 64-bit firmware waking vector address when the
-   version of the FACS is greater than 0 and Linux currently only supports
-   resuming from the real mode, so the 64-bit firmware waking vector has
-   never been set and might be invalid to BIOS while the commit enables
-   higher version FACS.
-2. BIOS may favor the FACS reported via the "FIRMWARE_CTRL" field in the
-   FADT while the commit doesn't set the firmware waking vector address of
-   the FACS reported by "FIRMWARE_CTRL", it only sets the firware waking
-   vector address of the FACS reported by "X_FIRMWARE_CTRL".
+This patch adds an "NamespaceOverride" flag in struct acpi_walk_state, and allows
+namespace objects to be overridden when this flag is set. Lv Zheng.
 
-This patch excludes the cases that can trigger the bugs caused by the root
-cause 2.
-
-There is no handshaking mechanism can be used by OSPM to tell BIOS which
-FACS is currently used. Thus the FACS reported by "FIRMWARE_CTRL" may still
-be used by BIOS and the 0 value of the 32-bit firmware waking vector might
-trigger such failure.
-
-This patch tries to favor 32bit FACS address in another way where both the
-FACS reported by "FIRMWARE_CTRL" and the FACS reported by "X_FIRMWARE_CTRL"
-are loaded so that further commit can set firmware waking vector in the
-both tables to ensure we can exclude the cases that trigger the bugs caused
-by the root cause 2. The exclusion is split into 2 commits as this commit
-is also useful for dumping more ACPI tables, it won't get reverted when
-such exclusion is no longer necessary. Lv Zheng.
-
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=74021
-Link: https://github.com/acpica/acpica/commit/f7b86f35
-Reported-and-tested-by: Oswald Buddenhagen <ossi@kde.org>
+Link: https://github.com/acpica/acpica/commit/6084e34e
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/aclocal.h  |    1 +
- drivers/acpi/acpica/tbfadt.c   |   21 +++++++++++++--------
- drivers/acpi/acpica/tbutils.c  |   37 ++++++++++++++++++++++++++-----------
- drivers/acpi/acpica/tbxfload.c |    3 ++-
- include/acpi/acpixf.h          |    9 +++++++++
- 5 files changed, 51 insertions(+), 20 deletions(-)
+ drivers/acpi/acpica/acnamesp.h |    1 +
+ drivers/acpi/acpica/acstruct.h |    1 +
+ drivers/acpi/acpica/dswload.c  |   17 +++++++++++++----
+ drivers/acpi/acpica/nsaccess.c |   10 +++++++++-
+ drivers/acpi/acpica/nssearch.c |   22 ++++++++++++++++++++--
+ 5 files changed, 44 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/acpi/acpica/aclocal.h b/drivers/acpi/acpica/aclocal.h
-index ffdb956..bc60096 100644
---- a/drivers/acpi/acpica/aclocal.h
-+++ b/drivers/acpi/acpica/aclocal.h
-@@ -213,6 +213,7 @@ struct acpi_table_list {
+diff --git a/drivers/acpi/acpica/acnamesp.h b/drivers/acpi/acpica/acnamesp.h
+index 952fbe0..0dd0882 100644
+--- a/drivers/acpi/acpica/acnamesp.h
++++ b/drivers/acpi/acpica/acnamesp.h
+@@ -66,6 +66,7 @@
+ #define ACPI_NS_PREFIX_IS_SCOPE     0x10
+ #define ACPI_NS_EXTERNAL            0x20
+ #define ACPI_NS_TEMPORARY           0x40
++#define ACPI_NS_OVERRIDE_IF_FOUND   0x80
  
- #define ACPI_TABLE_INDEX_DSDT           (0)
- #define ACPI_TABLE_INDEX_FACS           (1)
-+#define ACPI_TABLE_INDEX_X_FACS         (2)
+ /* Flags for acpi_ns_walk_namespace */
  
- struct acpi_find_context {
- 	char *search_for;
-diff --git a/drivers/acpi/acpica/tbfadt.c b/drivers/acpi/acpica/tbfadt.c
-index 7d24860..05be59c 100644
---- a/drivers/acpi/acpica/tbfadt.c
-+++ b/drivers/acpi/acpica/tbfadt.c
-@@ -350,9 +350,18 @@ void acpi_tb_parse_fadt(u32 table_index)
- 	/* If Hardware Reduced flag is set, there is no FACS */
- 
- 	if (!acpi_gbl_reduced_hardware) {
--		acpi_tb_install_fixed_table((acpi_physical_address)
--					    acpi_gbl_FADT.Xfacs, ACPI_SIG_FACS,
--					    ACPI_TABLE_INDEX_FACS);
-+		if (acpi_gbl_FADT.facs) {
-+			acpi_tb_install_fixed_table((acpi_physical_address)
-+						    acpi_gbl_FADT.facs,
-+						    ACPI_SIG_FACS,
-+						    ACPI_TABLE_INDEX_FACS);
-+		}
-+		if (acpi_gbl_FADT.Xfacs) {
-+			acpi_tb_install_fixed_table((acpi_physical_address)
-+						    acpi_gbl_FADT.Xfacs,
-+						    ACPI_SIG_FACS,
-+						    ACPI_TABLE_INDEX_X_FACS);
-+		}
- 	}
- }
- 
-@@ -491,13 +500,9 @@ static void acpi_tb_convert_fadt(void)
- 	acpi_gbl_FADT.header.length = sizeof(struct acpi_table_fadt);
- 
- 	/*
--	 * Expand the 32-bit FACS and DSDT addresses to 64-bit as necessary.
-+	 * Expand the 32-bit DSDT addresses to 64-bit as necessary.
- 	 * Later ACPICA code will always use the X 64-bit field.
- 	 */
--	acpi_gbl_FADT.Xfacs = acpi_tb_select_address("FACS",
--						     acpi_gbl_FADT.facs,
--						     acpi_gbl_FADT.Xfacs);
--
- 	acpi_gbl_FADT.Xdsdt = acpi_tb_select_address("DSDT",
- 						     acpi_gbl_FADT.dsdt,
- 						     acpi_gbl_FADT.Xdsdt);
-diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
-index 6559a58..a4e6dab 100644
---- a/drivers/acpi/acpica/tbutils.c
-+++ b/drivers/acpi/acpica/tbutils.c
-@@ -68,7 +68,8 @@ acpi_tb_get_root_table_entry(u8 *table_entry, u32 table_entry_size);
- 
- acpi_status acpi_tb_initialize_facs(void)
- {
--	acpi_status status;
-+	struct acpi_table_facs *facs32;
-+	struct acpi_table_facs *facs64;
- 
- 	/* If Hardware Reduced flag is set, there is no FACS */
- 
-@@ -77,11 +78,25 @@ acpi_status acpi_tb_initialize_facs(void)
- 		return (AE_OK);
+diff --git a/drivers/acpi/acpica/acstruct.h b/drivers/acpi/acpica/acstruct.h
+index 87c7860..44997ca 100644
+--- a/drivers/acpi/acpica/acstruct.h
++++ b/drivers/acpi/acpica/acstruct.h
+@@ -82,6 +82,7 @@ struct acpi_walk_state {
+ 	u8 return_used;
+ 	u8 scope_depth;
+ 	u8 pass_number;		/* Parse pass during table load */
++	u8 namespace_override;	/* Override existing objects */
+ 	u8 result_size;		/* Total elements for the result stack */
+ 	u8 result_count;	/* Current number of occupied elements of result stack */
+ 	u32 aml_offset;
+diff --git a/drivers/acpi/acpica/dswload.c b/drivers/acpi/acpica/dswload.c
+index 843942f..845ff44 100644
+--- a/drivers/acpi/acpica/dswload.c
++++ b/drivers/acpi/acpica/dswload.c
+@@ -315,10 +315,19 @@ acpi_ds_load1_begin_op(struct acpi_walk_state * walk_state,
+ 		flags = ACPI_NS_NO_UPSEARCH;
+ 		if ((walk_state->opcode != AML_SCOPE_OP) &&
+ 		    (!(walk_state->parse_flags & ACPI_PARSE_DEFERRED_OP))) {
+-			flags |= ACPI_NS_ERROR_IF_FOUND;
+-			ACPI_DEBUG_PRINT((ACPI_DB_DISPATCH,
+-					  "[%s] Cannot already exist\n",
+-					  acpi_ut_get_type_name(object_type)));
++			if (walk_state->namespace_override) {
++				flags |= ACPI_NS_OVERRIDE_IF_FOUND;
++				ACPI_DEBUG_PRINT((ACPI_DB_DISPATCH,
++						  "[%s] Override allowed\n",
++						  acpi_ut_get_type_name
++						  (object_type)));
++			} else {
++				flags |= ACPI_NS_ERROR_IF_FOUND;
++				ACPI_DEBUG_PRINT((ACPI_DB_DISPATCH,
++						  "[%s] Cannot already exist\n",
++						  acpi_ut_get_type_name
++						  (object_type)));
++			}
+ 		} else {
+ 			ACPI_DEBUG_PRINT((ACPI_DB_DISPATCH,
+ 					  "[%s] Both Find or Create allowed\n",
+diff --git a/drivers/acpi/acpica/nsaccess.c b/drivers/acpi/acpica/nsaccess.c
+index 24fa19a..19ad0b5 100644
+--- a/drivers/acpi/acpica/nsaccess.c
++++ b/drivers/acpi/acpica/nsaccess.c
+@@ -304,7 +304,9 @@ acpi_ns_lookup(union acpi_generic_state *scope_info,
+ 		return_ACPI_STATUS(AE_BAD_PARAMETER);
  	}
  
--	status = acpi_get_table_by_index(ACPI_TABLE_INDEX_FACS,
--					 ACPI_CAST_INDIRECT_PTR(struct
--								acpi_table_header,
--								&acpi_gbl_FACS));
--	return (status);
-+	(void)acpi_get_table_by_index(ACPI_TABLE_INDEX_FACS,
-+				      ACPI_CAST_INDIRECT_PTR(struct
-+							     acpi_table_header,
-+							     &facs32));
-+	(void)acpi_get_table_by_index(ACPI_TABLE_INDEX_X_FACS,
-+				      ACPI_CAST_INDIRECT_PTR(struct
-+							     acpi_table_header,
-+							     &facs64));
-+	if (!facs32 && !facs64) {
-+		return (AE_NO_MEMORY);
-+	}
+-	local_flags = flags & ~(ACPI_NS_ERROR_IF_FOUND | ACPI_NS_SEARCH_PARENT);
++	local_flags = flags &
++	    ~(ACPI_NS_ERROR_IF_FOUND | ACPI_NS_OVERRIDE_IF_FOUND |
++	      ACPI_NS_SEARCH_PARENT);
+ 	*return_node = ACPI_ENTRY_NOT_FOUND;
+ 	acpi_gbl_ns_lookup_count++;
+ 
+@@ -547,6 +549,12 @@ acpi_ns_lookup(union acpi_generic_state *scope_info,
+ 			if (flags & ACPI_NS_ERROR_IF_FOUND) {
+ 				local_flags |= ACPI_NS_ERROR_IF_FOUND;
+ 			}
 +
-+	if (acpi_gbl_use32_bit_facs_addresses) {
-+		acpi_gbl_FACS = facs32 ? facs32 : facs64;
-+	} else {
-+		acpi_gbl_FACS = facs64 ? facs64 : facs32;
-+	}
++			/* Set override flag according to caller */
 +
-+	return (AE_OK);
- }
- #endif				/* !ACPI_REDUCED_HARDWARE */
++			if (flags & ACPI_NS_OVERRIDE_IF_FOUND) {
++				local_flags |= ACPI_NS_OVERRIDE_IF_FOUND;
++			}
+ 		}
  
-@@ -101,7 +116,7 @@ acpi_status acpi_tb_initialize_facs(void)
- u8 acpi_tb_tables_loaded(void)
- {
- 
--	if (acpi_gbl_root_table_list.current_table_count >= 3) {
-+	if (acpi_gbl_root_table_list.current_table_count >= 4) {
- 		return (TRUE);
- 	}
- 
-@@ -357,11 +372,11 @@ acpi_status __init acpi_tb_parse_root_table(acpi_physical_address rsdp_address)
- 	table_entry = ACPI_ADD_PTR(u8, table, sizeof(struct acpi_table_header));
- 
- 	/*
--	 * First two entries in the table array are reserved for the DSDT
--	 * and FACS, which are not actually present in the RSDT/XSDT - they
--	 * come from the FADT
-+	 * First three entries in the table array are reserved for the DSDT
-+	 * and 32bit/64bit FACS, which are not actually present in the
-+	 * RSDT/XSDT - they come from the FADT
- 	 */
--	acpi_gbl_root_table_list.current_table_count = 2;
-+	acpi_gbl_root_table_list.current_table_count = 3;
- 
- 	/* Initialize the root table array from the RSDT/XSDT */
- 
-diff --git a/drivers/acpi/acpica/tbxfload.c b/drivers/acpi/acpica/tbxfload.c
-index aadb300..b63e35d 100644
---- a/drivers/acpi/acpica/tbxfload.c
-+++ b/drivers/acpi/acpica/tbxfload.c
-@@ -166,7 +166,8 @@ static acpi_status acpi_tb_load_namespace(void)
- 
- 	(void)acpi_ut_acquire_mutex(ACPI_MTX_TABLES);
- 	for (i = 0; i < acpi_gbl_root_table_list.current_table_count; ++i) {
--		if ((!ACPI_COMPARE_NAME
-+		if (!acpi_gbl_root_table_list.tables[i].address ||
-+		    (!ACPI_COMPARE_NAME
- 		     (&(acpi_gbl_root_table_list.tables[i].signature),
- 		      ACPI_SIG_SSDT)
- 		     &&
-diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index a68e4b9..dec71ff 100644
---- a/include/acpi/acpixf.h
-+++ b/include/acpi/acpixf.h
-@@ -200,6 +200,15 @@ ACPI_INIT_GLOBAL(u8, acpi_gbl_do_not_use_xsdt, FALSE);
- ACPI_INIT_GLOBAL(u8, acpi_gbl_use32_bit_fadt_addresses, TRUE);
- 
- /*
-+ * Optionally use 32-bit FACS table addresses.
-+ * It is reported that some platforms fail to resume from system suspending
-+ * if 64-bit FACS table address is selected:
-+ * https://bugzilla.kernel.org/show_bug.cgi?id=74021
-+ * Default is TRUE, favor the 32-bit addresses.
-+ */
-+ACPI_INIT_GLOBAL(u8, acpi_gbl_use32_bit_facs_addresses, TRUE);
+ 		/* Extract one ACPI name from the front of the pathname */
+diff --git a/drivers/acpi/acpica/nssearch.c b/drivers/acpi/acpica/nssearch.c
+index 4a9d4a6..47fbe5b 100644
+--- a/drivers/acpi/acpica/nssearch.c
++++ b/drivers/acpi/acpica/nssearch.c
+@@ -325,8 +325,26 @@ acpi_ns_search_and_enter(u32 target_name,
+ 		 * If we found it AND the request specifies that a find is an error,
+ 		 * return the error
+ 		 */
+-		if ((status == AE_OK) && (flags & ACPI_NS_ERROR_IF_FOUND)) {
+-			status = AE_ALREADY_EXISTS;
++		if (status == AE_OK) {
 +
-+/*
-  * Optionally truncate I/O addresses to 16 bits. Provides compatibility
-  * with other ACPI implementations. NOTE: During ACPICA initialization,
-  * this value is set to TRUE if any Windows OSI strings have been
++			/* The node was found in the namespace */
++
++			/*
++			 * If the namespace override feature is enabled for this node,
++			 * delete any existing node. This can only happen during the
++			 * boot stage, thus it is safe to remove the node here.
++			 */
++			if (flags & ACPI_NS_OVERRIDE_IF_FOUND) {
++				acpi_ns_delete_children(*return_node);
++				acpi_ns_remove_node(*return_node);
++				*return_node = ACPI_ENTRY_NOT_FOUND;
++			}
++
++			/* Return an error if we don't expect to find the object */
++
++			else if (flags & ACPI_NS_ERROR_IF_FOUND) {
++				status = AE_ALREADY_EXISTS;
++			}
+ 		}
+ #ifdef ACPI_ASL_COMPILER
+ 		if (*return_node && (*return_node)->type == ACPI_TYPE_ANY) {
 -- 
 1.7.10
-
