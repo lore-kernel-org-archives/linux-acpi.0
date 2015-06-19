@@ -1,7 +1,7 @@
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH v3 1/3] acpi: Add acpi_map_pxm_to_online_node()
-Date: Fri, 19 Jun 2015 12:18:32 -0600
-Message-ID: <1434737914-18466-2-git-send-email-toshi.kani@hp.com>
+Subject: [PATCH v3 2/3] libnvdimm: Set numa_node to NVDIMM devices
+Date: Fri, 19 Jun 2015 12:18:33 -0600
+Message-ID: <1434737914-18466-3-git-send-email-toshi.kani@hp.com>
 References: <1434737914-18466-1-git-send-email-toshi.kani@hp.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1434737914-18466-1-git-send-email-toshi.kani@hp.com>
@@ -10,130 +10,103 @@ To: rjw@rjwysocki.net, dan.j.williams@intel.com
 Cc: linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hp.com>
 List-Id: linux-acpi@vger.kernel.org
 
-The kernel initializes CPU & memory's NUMA topology from ACPI
-SRAT table.  Some other ACPI tables, such as NFIT and DMAR, also
-contain proximity IDs for their device's NUMA topology.  This
-information can be used to improve performance of these devices.
+ACPI NFIT table has System Physical Address Range Structure
+entries that describe a proximity ID of each range when
+ACPI_NFIT_PROXIMITY_VALID is set in the flags.
 
-This patch introduces acpi_map_pxm_to_online_node(), which is
-similar to acpi_map_pxm_to_node(), but always returns an on-line
-node.  When the mapped node from a given proximity ID is off-line,
-it looks up the node distance table and returns the nearest
-on-line node.
+Change acpi_nfit_register_region() to map a proximity ID to its
+node ID, and set it to a new numa_node field of nd_region_desc,
+which is then conveyed to nd_region.
 
-ACPI device drivers, which are called after the NUMA initialization
-has completed in the kernel, can call this interface to obtain their
-device NUMA topology from ACPI tables.  Such drivers do not have to
-deal with off-line nodes.  A node may be off-line when a device
-proximity ID is unique, SRAT memory entry does not exist, or NUMA is
-disabled, ex. "numa=off" on x86.
-
-This patch also moves the pxm range check from acpi_get_node() to
-acpi_map_pxm_to_node().
+nd_region_probe() and nd_btt_probe() set the numa_node of nd_region
+to their device object being probed.  A namespace device inherits
+the numa_node from the parent region device.
 
 Signed-off-by: Toshi Kani <toshi.kani@hp.com>
 ---
- drivers/acpi/numa.c  |   50 +++++++++++++++++++++++++++++++++++++++++++++++---
- include/linux/acpi.h |    5 +++++
- 2 files changed, 52 insertions(+), 3 deletions(-)
+ drivers/acpi/nfit.c          |    6 ++++++
+ drivers/nvdimm/btt.c         |    2 ++
+ drivers/nvdimm/nd.h          |    1 +
+ drivers/nvdimm/region.c      |    1 +
+ drivers/nvdimm/region_devs.c |    1 +
+ include/linux/libnvdimm.h    |    1 +
+ 6 files changed, 12 insertions(+)
 
-diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
-index 1333cbdc..0b6e3a0 100644
---- a/drivers/acpi/numa.c
-+++ b/drivers/acpi/numa.c
-@@ -29,6 +29,8 @@
- #include <linux/errno.h>
- #include <linux/acpi.h>
- #include <linux/numa.h>
-+#include <linux/nodemask.h>
-+#include <linux/topology.h>
- 
- #define PREFIX "ACPI: "
- 
-@@ -70,7 +72,12 @@ static void __acpi_map_pxm_to_node(int pxm, int node)
- 
- int acpi_map_pxm_to_node(int pxm)
- {
--	int node = pxm_to_node_map[pxm];
-+	int node;
+diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+index 5f64582..5997753 100644
+--- a/drivers/acpi/nfit.c
++++ b/drivers/acpi/nfit.c
+@@ -1392,6 +1392,12 @@ static int acpi_nfit_register_region(struct acpi_nfit_desc *acpi_desc,
+ 	ndr_desc->res = &res;
+ 	ndr_desc->provider_data = nfit_spa;
+ 	ndr_desc->attr_groups = acpi_nfit_region_attribute_groups;
++	if (spa->flags & ACPI_NFIT_PROXIMITY_VALID)
++		ndr_desc->numa_node = acpi_map_pxm_to_online_node(
++						spa->proximity_domain);
++	else
++		ndr_desc->numa_node = NUMA_NO_NODE;
 +
-+	if (pxm < 0 || pxm >= MAX_PXM_DOMAINS)
-+		return NUMA_NO_NODE;
+ 	list_for_each_entry(nfit_memdev, &acpi_desc->memdevs, list) {
+ 		struct acpi_nfit_memory_map *memdev = nfit_memdev->memdev;
+ 		struct nd_mapping *nd_mapping;
+diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
+index 57d3b27..ab082e5 100644
+--- a/drivers/nvdimm/btt.c
++++ b/drivers/nvdimm/btt.c
+@@ -1495,6 +1495,8 @@ static int nd_btt_probe(struct device *dev)
+ 		rc = -ENOMEM;
+ 		goto err_btt;
+ 	}
 +
-+	node = pxm_to_node_map[pxm];
++	set_dev_node(dev, nd_region->numa_node);
+ 	dev_set_drvdata(dev, btt);
  
- 	if (node == NUMA_NO_NODE) {
- 		if (nodes_weight(nodes_found_map) >= MAX_NUMNODES)
-@@ -83,6 +90,45 @@ int acpi_map_pxm_to_node(int pxm)
- 	return node;
- }
- 
-+/**
-+ * acpi_map_pxm_to_online_node - Map proximity ID to on-line node
-+ * @pxm: ACPI proximity ID
-+ *
-+ * This is similar to acpi_map_pxm_to_node(), but always returns an on-line
-+ * node.  When the mapped node from a given proximity ID is off-line, it
-+ * looks up the node distance table and returns the nearest on-line node.
-+ *
-+ * ACPI device drivers, which are called after the NUMA initialization has
-+ * completed in the kernel, can call this interface to obtain their device
-+ * NUMA topology from ACPI tables.  Such drivers do not have to deal with
-+ * off-line nodes.  A node may be off-line when a device proximity ID is
-+ * unique, SRAT memory entry does not exist, or NUMA is disabled, ex.
-+ * "numa=off" on x86.
-+ */
-+int acpi_map_pxm_to_online_node(int pxm)
-+{
-+	int node, n, dist, min_dist;
-+
-+	node = acpi_map_pxm_to_node(pxm);
-+
-+	if (node == NUMA_NO_NODE)
-+		node = 0;
-+
-+	if (!node_online(node)) {
-+		min_dist = INT_MAX;
-+		for_each_online_node(n) {
-+			dist = node_distance(node, n);
-+			if (dist < min_dist) {
-+				min_dist = dist;
-+				node = n;
-+			}
-+		}
-+	}
-+
-+	return node;
-+}
-+EXPORT_SYMBOL(acpi_map_pxm_to_online_node);
-+
- static void __init
- acpi_table_print_srat_entry(struct acpi_subtable_header *header)
- {
-@@ -328,8 +374,6 @@ int acpi_get_node(acpi_handle handle)
- 	int pxm;
- 
- 	pxm = acpi_get_pxm(handle);
--	if (pxm < 0 || pxm >= MAX_PXM_DOMAINS)
--		return NUMA_NO_NODE;
- 
- 	return acpi_map_pxm_to_node(pxm);
- }
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index e4da5e3..1b3bbb1 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -289,8 +289,13 @@ extern void acpi_dmi_osi_linux(int enable, const struct dmi_system_id *d);
- extern void acpi_osi_setup(char *str);
- 
- #ifdef CONFIG_ACPI_NUMA
-+int acpi_map_pxm_to_online_node(int pxm);
- int acpi_get_node(acpi_handle handle);
- #else
-+static inline int acpi_map_pxm_to_online_node(int pxm)
-+{
-+	return 0;
-+}
- static inline int acpi_get_node(acpi_handle handle)
- {
  	return 0;
+diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+index 011d7c5..0bfd20a 100644
+--- a/drivers/nvdimm/nd.h
++++ b/drivers/nvdimm/nd.h
+@@ -93,6 +93,7 @@ struct nd_region {
+ 	u64 ndr_size;
+ 	u64 ndr_start;
+ 	int id, num_lanes;
++	int numa_node;
+ 	void *provider_data;
+ 	struct nd_interleave_set *nd_set;
+ 	struct nd_mapping mapping[0];
+diff --git a/drivers/nvdimm/region.c b/drivers/nvdimm/region.c
+index d9d82e7..a764ca6 100644
+--- a/drivers/nvdimm/region.c
++++ b/drivers/nvdimm/region.c
+@@ -123,6 +123,7 @@ static int nd_region_probe(struct device *dev)
+ 
+ 	num_ns->active = rc;
+ 	num_ns->count = rc + err;
++	set_dev_node(dev, nd_region->numa_node);
+ 	dev_set_drvdata(dev, num_ns);
+ 
+ 	if (err == 0)
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index bb9f329..703dfae 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -632,6 +632,7 @@ static struct nd_region *nd_region_create(struct nvdimm_bus *nvdimm_bus,
+ 	nd_region->provider_data = ndr_desc->provider_data;
+ 	nd_region->nd_set = ndr_desc->nd_set;
+ 	nd_region->num_lanes = ndr_desc->num_lanes;
++	nd_region->numa_node = ndr_desc->numa_node;
+ 	ida_init(&nd_region->ns_ida);
+ 	dev = &nd_region->dev;
+ 	dev_set_name(dev, "region%d", nd_region->id);
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index dc799a2..30b3dea 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -89,6 +89,7 @@ struct nd_region_desc {
+ 	struct nd_interleave_set *nd_set;
+ 	void *provider_data;
+ 	int num_lanes;
++	int numa_node;
+ };
+ 
+ struct nvdimm_bus;
