@@ -1,27 +1,69 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH 12/15] libnvdimm: enable iostat
-Date: Fri, 19 Jun 2015 02:02:39 -0700
-Message-ID: <CAPcyv4gHHYapu+sWoxmUsGx4Thf5SkA_0Hg9o2hniU1vuaDHyg@mail.gmail.com>
-References: <20150617235209.12943.24419.stgit@dwillia2-desk3.amr.corp.intel.com>
-	<20150617235551.12943.76656.stgit@dwillia2-desk3.amr.corp.intel.com>
-	<20150619083410.GA2885@lst.de>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH v2 3/3] ACPI / ARM64 : use the new BAD_MADT_GICC_ENTRY
+ macro
+Date: Fri, 19 Jun 2015 10:46:58 +0100
+Message-ID: <20150619094658.GB18017@arm.com>
+References: <1434666968-1543-1-git-send-email-al.stone@linaro.org>
+ <1434666968-1543-4-git-send-email-al.stone@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <20150619083410.GA2885@lst.de>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>
-Cc: Jens Axboe <axboe@kernel.dk>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Boaz Harrosh <boaz@plexistor.com>, "Kani, Toshimitsu" <toshi.kani@hp.com>, Vishal Verma <vishal.l.verma@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Ingo Molnar <mingo@kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:44406 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753246AbbFSJrC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 19 Jun 2015 05:47:02 -0400
+Content-Disposition: inline
+In-Reply-To: <1434666968-1543-4-git-send-email-al.stone@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Al Stone <al.stone@linaro.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "tglx@linutronix.de" <tglx@linutronix.de>, "jason@lakedaemon.net" <jason@lakedaemon.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, "patches@linaro.org" <patches@linaro.org>
 
-On Fri, Jun 19, 2015 at 1:34 AM, Christoph Hellwig <hch@lst.de> wrote:
-> On Wed, Jun 17, 2015 at 07:55:51PM -0400, Dan Williams wrote:
->> This is disabled by default as the overhead is prohibitive, but if the
->> user takes the action to turn it on we'll oblige.
->
-> If you care about users a compile time selection doesn't make sense,
-> why not always build it but require an opt-in?
+On Thu, Jun 18, 2015 at 11:36:08PM +0100, Al Stone wrote:
+> For those parts of the arm64 ACPI code that need to check GICC subtables
+> in the MADT, use the new BAD_MADT_GICC_ENTRY macro instead of the previous
+> BAD_MADT_ENTRY.  The new macro takes into account differences in the size
+> of the GICC subtable that the old macro did not; this caused failures even
+> though the subtable entries are valid.
+> 
+> Signed-off-by: Al Stone <al.stone@linaro.org>
+> ---
+>  arch/arm64/kernel/smp.c   | 2 +-
+>  drivers/irqchip/irq-gic.c | 2 +-
+>  2 files changed, 2 insertions(+), 2 deletions(-)
 
-It's always built the Kconfig just selects the default initial state
-of QUEUE_FLAG_IO_STAT.  They can always turn it on/off via block queue
-sysfs.
+Acked-by: Will Deacon <will.deacon@arm.com>
+
+Good to see this stuff is holding up so well...
+
+Will
+
+> diff --git a/arch/arm64/kernel/smp.c b/arch/arm64/kernel/smp.c
+> index 4b2121b..80d5984 100644
+> --- a/arch/arm64/kernel/smp.c
+> +++ b/arch/arm64/kernel/smp.c
+> @@ -438,7 +438,7 @@ acpi_parse_gic_cpu_interface(struct acpi_subtable_header *header,
+>  	struct acpi_madt_generic_interrupt *processor;
+>  
+>  	processor = (struct acpi_madt_generic_interrupt *)header;
+> -	if (BAD_MADT_ENTRY(processor, end))
+> +	if (BAD_MADT_GICC_ENTRY(processor, end))
+>  		return -EINVAL;
+>  
+>  	acpi_table_print_madt_entry(header);
+> diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
+> index 8d7e1c8..4dd8826 100644
+> --- a/drivers/irqchip/irq-gic.c
+> +++ b/drivers/irqchip/irq-gic.c
+> @@ -1055,7 +1055,7 @@ gic_acpi_parse_madt_cpu(struct acpi_subtable_header *header,
+>  
+>  	processor = (struct acpi_madt_generic_interrupt *)header;
+>  
+> -	if (BAD_MADT_ENTRY(processor, end))
+> +	if (BAD_MADT_GICC_ENTRY(processor, end))
+>  		return -EINVAL;
+>  
+>  	/*
+> -- 
+> 2.4.0
+> 
