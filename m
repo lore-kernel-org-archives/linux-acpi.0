@@ -1,61 +1,139 @@
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH v3 0/3] Add NUMA support for NVDIMM devices
-Date: Fri, 19 Jun 2015 12:18:31 -0600
-Message-ID: <1434737914-18466-1-git-send-email-toshi.kani@hp.com>
+Subject: [PATCH v3 1/3] acpi: Add acpi_map_pxm_to_online_node()
+Date: Fri, 19 Jun 2015 12:18:32 -0600
+Message-ID: <1434737914-18466-2-git-send-email-toshi.kani@hp.com>
+References: <1434737914-18466-1-git-send-email-toshi.kani@hp.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1434737914-18466-1-git-send-email-toshi.kani@hp.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: rjw@rjwysocki.net, dan.j.williams@intel.com
-Cc: linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hp.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Since NVDIMMs are installed on memory slots, they expose the NUMA
-topology of a platform.  This patchset adds support of sysfs
-'numa_node' to I/O-related NVDIMM devices under /sys/bus/nd/devices.
-This enables numactl(8) to accept 'block:' and 'file:' paths of pmem
-and btt devices as shown in the examples below.
-  numactl --preferred block:pmem0 --show
-  numactl --preferred file:/dev/pmem0s --show
+The kernel initializes CPU & memory's NUMA topology from ACPI
+SRAT table.  Some other ACPI tables, such as NFIT and DMAR, also
+contain proximity IDs for their device's NUMA topology.  This
+information can be used to improve performance of these devices.
 
-numactl can be used to bind an application to the locality of a target
-NVDIMM for better performance.  A result of fio benchmark to ext4/dax
-on an HP DL380 with 2 sockets for local & remote settings is shown
-below.
+This patch introduces acpi_map_pxm_to_online_node(), which is
+similar to acpi_map_pxm_to_node(), but always returns an on-line
+node.  When the mapped node from a given proximity ID is off-line,
+it looks up the node distance table and returns the nearest
+on-line node.
 
-  Local [1] :  4098.3MB/s
-  Remote [2]:  3718.4MB/s
+ACPI device drivers, which are called after the NUMA initialization
+has completed in the kernel, can call this interface to obtain their
+device NUMA topology from ACPI tables.  Such drivers do not have to
+deal with off-line nodes.  A node may be off-line when a device
+proximity ID is unique, SRAT memory entry does not exist, or NUMA is
+disabled, ex. "numa=off" on x86.
 
-[1] numactl --preferred block:pmem0 --cpunodebind block:pmem0 fio <fs-on-pmem0> 
-[2] numactl --preferred block:pmem1 --cpunodebind block:pmem1 fio <fs-on-pmem0>
+This patch also moves the pxm range check from acpi_get_node() to
+acpi_map_pxm_to_node().
 
-Patch 1/3 applies on top of the acpica branch of the pm tree.
-Patch 2/3-3/3 apply on top of Dan Williams's patch series
-"libnvdimm: ->rw_bytes(), BLK-mode, unit tests, and misc features".
-
+Signed-off-by: Toshi Kani <toshi.kani@hp.com>
 ---
-v3:
- - Update the comment of acpi_map_pxm_to_online_node(). (Rafael Wysocki)
+ drivers/acpi/numa.c  |   50 +++++++++++++++++++++++++++++++++++++++++++++++---
+ include/linux/acpi.h |    5 +++++
+ 2 files changed, 52 insertions(+), 3 deletions(-)
 
-v2:
- - Add acpi_map_pxm_to_online_node(), which returns an online node.
- - Manage visibility of sysfs numa_node with is_visible. (Dan Williams)
- - Check ACPI_NFIT_PROXIMITY_VALID in spa->flags.
-
----
-Toshi Kani (3):
-  1/3 acpi: Add acpi_map_pxm_to_online_node()
-  2/3 libnvdimm: Set numa_node to NVDIMM devices
-  3/3 libnvdimm: Add sysfs numa_node to NVDIMM devices
-
----
- drivers/acpi/nfit.c             |  7 ++++++
- drivers/acpi/numa.c             | 50 ++++++++++++++++++++++++++++++++++++++---
- drivers/nvdimm/btt.c            |  2 ++
- drivers/nvdimm/btt_devs.c       |  1 +
- drivers/nvdimm/bus.c            | 30 +++++++++++++++++++++++++
- drivers/nvdimm/namespace_devs.c |  1 +
- drivers/nvdimm/nd.h             |  1 +
- drivers/nvdimm/region.c         |  1 +
- drivers/nvdimm/region_devs.c    |  1 +
- include/linux/acpi.h            |  5 +++++
- include/linux/libnvdimm.h       |  2 ++
- 11 files changed, 98 insertions(+), 3 deletions(-)
+diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
+index 1333cbdc..0b6e3a0 100644
+--- a/drivers/acpi/numa.c
++++ b/drivers/acpi/numa.c
+@@ -29,6 +29,8 @@
+ #include <linux/errno.h>
+ #include <linux/acpi.h>
+ #include <linux/numa.h>
++#include <linux/nodemask.h>
++#include <linux/topology.h>
+ 
+ #define PREFIX "ACPI: "
+ 
+@@ -70,7 +72,12 @@ static void __acpi_map_pxm_to_node(int pxm, int node)
+ 
+ int acpi_map_pxm_to_node(int pxm)
+ {
+-	int node = pxm_to_node_map[pxm];
++	int node;
++
++	if (pxm < 0 || pxm >= MAX_PXM_DOMAINS)
++		return NUMA_NO_NODE;
++
++	node = pxm_to_node_map[pxm];
+ 
+ 	if (node == NUMA_NO_NODE) {
+ 		if (nodes_weight(nodes_found_map) >= MAX_NUMNODES)
+@@ -83,6 +90,45 @@ int acpi_map_pxm_to_node(int pxm)
+ 	return node;
+ }
+ 
++/**
++ * acpi_map_pxm_to_online_node - Map proximity ID to on-line node
++ * @pxm: ACPI proximity ID
++ *
++ * This is similar to acpi_map_pxm_to_node(), but always returns an on-line
++ * node.  When the mapped node from a given proximity ID is off-line, it
++ * looks up the node distance table and returns the nearest on-line node.
++ *
++ * ACPI device drivers, which are called after the NUMA initialization has
++ * completed in the kernel, can call this interface to obtain their device
++ * NUMA topology from ACPI tables.  Such drivers do not have to deal with
++ * off-line nodes.  A node may be off-line when a device proximity ID is
++ * unique, SRAT memory entry does not exist, or NUMA is disabled, ex.
++ * "numa=off" on x86.
++ */
++int acpi_map_pxm_to_online_node(int pxm)
++{
++	int node, n, dist, min_dist;
++
++	node = acpi_map_pxm_to_node(pxm);
++
++	if (node == NUMA_NO_NODE)
++		node = 0;
++
++	if (!node_online(node)) {
++		min_dist = INT_MAX;
++		for_each_online_node(n) {
++			dist = node_distance(node, n);
++			if (dist < min_dist) {
++				min_dist = dist;
++				node = n;
++			}
++		}
++	}
++
++	return node;
++}
++EXPORT_SYMBOL(acpi_map_pxm_to_online_node);
++
+ static void __init
+ acpi_table_print_srat_entry(struct acpi_subtable_header *header)
+ {
+@@ -328,8 +374,6 @@ int acpi_get_node(acpi_handle handle)
+ 	int pxm;
+ 
+ 	pxm = acpi_get_pxm(handle);
+-	if (pxm < 0 || pxm >= MAX_PXM_DOMAINS)
+-		return NUMA_NO_NODE;
+ 
+ 	return acpi_map_pxm_to_node(pxm);
+ }
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index e4da5e3..1b3bbb1 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -289,8 +289,13 @@ extern void acpi_dmi_osi_linux(int enable, const struct dmi_system_id *d);
+ extern void acpi_osi_setup(char *str);
+ 
+ #ifdef CONFIG_ACPI_NUMA
++int acpi_map_pxm_to_online_node(int pxm);
+ int acpi_get_node(acpi_handle handle);
+ #else
++static inline int acpi_map_pxm_to_online_node(int pxm)
++{
++	return 0;
++}
+ static inline int acpi_get_node(acpi_handle handle)
+ {
+ 	return 0;
