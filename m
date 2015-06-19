@@ -1,61 +1,62 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 08/32] ACPICA: Tables: Fix an issue that FACS initialization is performed twice.
-Date: Fri, 19 Jun 2015 11:39:06 +0800
-Message-ID: <fb95da9ca988caea3655b74ba70bad0c8960c1d1.1434684720.git.lv.zheng@intel.com>
+Subject: [PATCH 09/32] ACPICA: Tables: Fix an issue that ACPI initialization is blocked due to no FACS.
+Date: Fri, 19 Jun 2015 11:39:14 +0800
+Message-ID: <ea654e92978e26a6b3d53504e9de0caf9c8e8c7c.1434684720.git.lv.zheng@intel.com>
 References: <cover.1434684719.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:17280 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932119AbbFSDjT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 18 Jun 2015 23:39:19 -0400
 In-Reply-To: <cover.1434684719.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
-List-Id: linux-acpi@vger.kernel.org
 
-ACPICA commit 90f5332a15e9d9ba83831ca700b2b9f708274658
+ACPICA commit ebd544ed24c5a4faba11f265e228b7a821a729f5
 
-This patch adds a new FACS initialization flag for acpi_tb_initialize().
-acpi_enable_subsystem() might be invoked several times in OS bootup process,
-and we don't want FACS initialization to be invoked twice. Lv Zheng.
+This patch fixes an issue that when FACS tables do not exist, ACPI
+initialization cannot proceed. ACPICA BZ 1122. Lv Zheng.
 
-Link: https://github.com/acpica/acpica/commit/90f5332a
+Link: https://bugs.acpica.org/show_bug.cgi?id=1122
+Link: https://github.com/acpica/acpica/commit/ebd544ed
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/utxfinit.c |   10 ++++++----
- include/acpi/actypes.h         |    1 +
- 2 files changed, 7 insertions(+), 4 deletions(-)
+ drivers/acpi/acpica/tbutils.c |   16 +++++++---------
+ 1 file changed, 7 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/acpi/acpica/utxfinit.c b/drivers/acpi/acpica/utxfinit.c
-index 083a768..42a32a6 100644
---- a/drivers/acpi/acpica/utxfinit.c
-+++ b/drivers/acpi/acpica/utxfinit.c
-@@ -179,10 +179,12 @@ acpi_status __init acpi_enable_subsystem(u32 flags)
- 	 * Obtain a permanent mapping for the FACS. This is required for the
- 	 * Global Lock and the Firmware Waking Vector
- 	 */
--	status = acpi_tb_initialize_facs();
--	if (ACPI_FAILURE(status)) {
--		ACPI_WARNING((AE_INFO, "Could not map the FACS table"));
--		return_ACPI_STATUS(status);
-+	if (!(flags & ACPI_NO_FACS_INIT)) {
-+		status = acpi_tb_initialize_facs();
-+		if (ACPI_FAILURE(status)) {
-+			ACPI_WARNING((AE_INFO, "Could not map the FACS table"));
-+			return_ACPI_STATUS(status);
-+		}
+diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
+index 6a6c5be..2bb6a11 100644
+--- a/drivers/acpi/acpica/tbutils.c
++++ b/drivers/acpi/acpica/tbutils.c
+@@ -84,18 +84,16 @@ acpi_status acpi_tb_initialize_facs(void)
+ 				      ACPI_CAST_INDIRECT_PTR(struct
+ 							     acpi_table_header,
+ 							     &acpi_gbl_facs64));
+-	if (!acpi_gbl_facs32 && !acpi_gbl_facs64) {
+-		return (AE_NO_MEMORY);
+-	}
+ 
+-	if (acpi_gbl_use32_bit_facs_addresses) {
+-		acpi_gbl_FACS =
+-		    acpi_gbl_facs32 ? acpi_gbl_facs32 : acpi_gbl_facs64;
+-	} else {
+-		acpi_gbl_FACS =
+-		    acpi_gbl_facs64 ? acpi_gbl_facs64 : acpi_gbl_facs32;
++	if (acpi_gbl_facs64
++	    && (!acpi_gbl_facs32 || !acpi_gbl_use32_bit_facs_addresses)) {
++		acpi_gbl_FACS = acpi_gbl_facs64;
++	} else if (acpi_gbl_facs32) {
++		acpi_gbl_FACS = acpi_gbl_facs32;
  	}
+ 
++	/* If there is no FACS, just continue. There was already an error msg */
++
+ 	return (AE_OK);
+ }
  #endif				/* !ACPI_REDUCED_HARDWARE */
- 
-diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
-index 63fd7f5..ff0b53e 100644
---- a/include/acpi/actypes.h
-+++ b/include/acpi/actypes.h
-@@ -568,6 +568,7 @@ typedef u64 acpi_integer;
- #define ACPI_NO_ACPI_ENABLE             0x10
- #define ACPI_NO_DEVICE_INIT             0x20
- #define ACPI_NO_OBJECT_INIT             0x40
-+#define ACPI_NO_FACS_INIT               0x80
- 
- /*
-  * Initialization state
 -- 
 1.7.10
+
