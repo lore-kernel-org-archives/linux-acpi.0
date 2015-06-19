@@ -1,186 +1,171 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH v2 4/9] ACPI / irqchip: Add self-probe infrastructure to initialize IRQ controller
-Date: Fri, 19 Jun 2015 16:46:07 +0800
-Message-ID: <1434703572-26221-5-git-send-email-hanjun.guo@linaro.org>
+Subject: [PATCH v2 7/9] irqchip / GICv3: Refactor gic_of_init() for GICv3 driver
+Date: Fri, 19 Jun 2015 16:46:10 +0800
+Message-ID: <1434703572-26221-8-git-send-email-hanjun.guo@linaro.org>
 References: <1434703572-26221-1-git-send-email-hanjun.guo@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f43.google.com ([209.85.220.43]:35932 "EHLO
-	mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754657AbbFSIqr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Jun 2015 04:46:47 -0400
-Received: by paceq1 with SMTP id eq1so56385061pac.3
-        for <linux-acpi@vger.kernel.org>; Fri, 19 Jun 2015 01:46:47 -0700 (PDT)
+Received: from mail-pa0-f54.google.com ([209.85.220.54]:35540 "EHLO
+	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754704AbbFSIrA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Jun 2015 04:47:00 -0400
+Received: by pacyx8 with SMTP id yx8so81014694pac.2
+        for <linux-acpi@vger.kernel.org>; Fri, 19 Jun 2015 01:46:59 -0700 (PDT)
 In-Reply-To: <1434703572-26221-1-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Marc Zyngier <marc.zyngier@arm.com>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Grant Likely <grant.likely@linaro.org>, Olof Johansson <olof@lixom.net>, Wei Huang <wei@redhat.com>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
 
-This self-probe infrastructure works in the similar way as OF,
-but there is some different in the mechanism:
+From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
 
-For DT, the init fn will be called once it finds compatible strings
-in DT,  but for ACPI, we init irqchips by static tables, and in
-static ACPI tables, there are no compatible strings to indicate
-irqchips, but thanks to the GIC version presented in ACPI table,
-we can call the corresponding GIC drivers matching the GIC version
-with this framework.
+Isolate hardware abstraction (FDT) code to gic_of_init().
+Rest of the logic goes to gic_init_bases() and expects well
+defined data to initialize GIC properly. The same solution
+is used for GICv2 driver.
 
-This mechanism can also be used for clock declare and may also works
-on x86 for some table parsing too.
-
-Part of this patch is based on Tomasz Nowicki's work.
+This is needed for ACPI initialization later.
 
 Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- drivers/irqchip/irq-gic-acpi.c    | 29 +++++++++++++++++++++++++++++
- drivers/irqchip/irqchip.h         | 12 ++++++++++++
- include/asm-generic/vmlinux.lds.h | 13 +++++++++++++
- include/linux/acpi.h              | 16 ++++++++++++++++
- include/linux/mod_devicetable.h   |  8 ++++++++
- 5 files changed, 78 insertions(+)
+ drivers/irqchip/irq-gic-v3.c | 105 +++++++++++++++++++++++++------------------
+ 1 file changed, 61 insertions(+), 44 deletions(-)
 
-diff --git a/drivers/irqchip/irq-gic-acpi.c b/drivers/irqchip/irq-gic-acpi.c
-index 58f7831..f9f1fc7 100644
---- a/drivers/irqchip/irq-gic-acpi.c
-+++ b/drivers/irqchip/irq-gic-acpi.c
-@@ -110,3 +110,32 @@ static int __init acpi_gic_version_init(void)
- 
- 	return 0;
- }
-+
-+/*
-+ * This special acpi_table_id is the sentinel at the end of the
-+ * acpi_table_id[] array of all irqchips. It is automatically placed at
-+ * the end of the array by the linker, thanks to being part of a
-+ * special section.
-+ */
-+static const struct acpi_table_id
-+irqchip_acpi_match_end __used __section(__irqchip_acpi_table_end);
-+
-+extern struct acpi_table_id __irqchip_acpi_table[];
-+
-+void __init acpi_irqchip_init(void)
-+{
-+	struct acpi_table_id *id;
-+
-+	if (acpi_disabled)
-+		return;
-+
-+	if (acpi_gic_version_init())
-+		return;
-+
-+	/* scan the irqchip table to match the GIC version and its driver */
-+	for (id = __irqchip_acpi_table; id->id[0]; id++) {
-+		if (gic_version == (u8)id->driver_data)
-+			acpi_table_parse(id->id,
-+					 (acpi_tbl_table_handler)id->handler);
-+	}
-+}
-diff --git a/drivers/irqchip/irqchip.h b/drivers/irqchip/irqchip.h
-index 0f6486d..241d5f8 100644
---- a/drivers/irqchip/irqchip.h
-+++ b/drivers/irqchip/irqchip.h
-@@ -11,6 +11,7 @@
- #ifndef _IRQCHIP_H
- #define _IRQCHIP_H
- 
-+#include <linux/acpi.h>
- #include <linux/of.h>
- 
- /*
-@@ -25,4 +26,15 @@
-  */
- #define IRQCHIP_DECLARE(name, compat, fn) OF_DECLARE_2(irqchip, name, compat, fn)
- 
-+/*
-+ * This macro must be used by the different ARM GIC drivers to declare
-+ * the association between their version and their initialization function.
-+ *
-+ * @name: name that must be unique accross all IRQCHIP_ACPI_DECLARE of the
-+ * same file.
-+ * @gic_version: version of GIC
-+ * @fn: initialization function
-+ */
-+#define IRQCHIP_ACPI_DECLARE(name, gic_version, fn)	\
-+	ACPI_DECLARE(irqchip, name, ACPI_SIG_MADT, gic_version, fn)
- #endif
-diff --git a/include/asm-generic/vmlinux.lds.h b/include/asm-generic/vmlinux.lds.h
-index 8bd374d..625776c 100644
---- a/include/asm-generic/vmlinux.lds.h
-+++ b/include/asm-generic/vmlinux.lds.h
-@@ -181,6 +181,18 @@
- #define CPUIDLE_METHOD_OF_TABLES() OF_TABLE(CONFIG_CPU_IDLE, cpuidle_method)
- #define EARLYCON_OF_TABLES()	OF_TABLE(CONFIG_SERIAL_EARLYCON, earlycon)
- 
-+#ifdef CONFIG_ACPI
-+#define ACPI_TABLE(name)						\
-+	. = ALIGN(8);							\
-+	VMLINUX_SYMBOL(__##name##_acpi_table) = .;			\
-+	*(__##name##_acpi_table)					\
-+	*(__##name##_acpi_table_end)
-+
-+#define IRQCHIP_ACPI_MATCH_TABLE()	ACPI_TABLE(irqchip)
-+#else
-+#define IRQCHIP_ACPI_MATCH_TABLE()
-+#endif
-+
- #define KERNEL_DTB()							\
- 	STRUCT_ALIGN();							\
- 	VMLINUX_SYMBOL(__dtb_start) = .;				\
-@@ -516,6 +528,7 @@
- 	CPUIDLE_METHOD_OF_TABLES()					\
- 	KERNEL_DTB()							\
- 	IRQCHIP_OF_MATCH_TABLE()					\
-+	IRQCHIP_ACPI_MATCH_TABLE()					\
- 	EARLYCON_TABLE()						\
- 	EARLYCON_OF_TABLES()
- 
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index caead48..d383e12 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -825,4 +825,20 @@ static inline struct acpi_device *acpi_get_next_child(struct device *dev,
- 
- #endif
- 
-+#ifdef CONFIG_ACPI
-+#define ACPI_DECLARE(table, name, table_id, data, fn)			\
-+	static const struct acpi_table_id __acpi_table_##name		\
-+		__used __section(__##table##_acpi_table)		\
-+		 = { .id = table_id,					\
-+		     .handler = (void *)fn,				\
-+		     .driver_data = data }
-+#else
-+#define ACPI_DECLARE(table, name, table_id, data, fn)			\
-+	static const struct acpi_table_id __acpi_table_##name		\
-+		__attribute__((unused))					\
-+		 = { .id = table_id,					\
-+		     .handler = (void *)fn,				\
-+		     .driver_data = data }
-+#endif
-+
- #endif	/*_LINUX_ACPI_H*/
-diff --git a/include/linux/mod_devicetable.h b/include/linux/mod_devicetable.h
-index 3bfd567..c7fefc7 100644
---- a/include/linux/mod_devicetable.h
-+++ b/include/linux/mod_devicetable.h
-@@ -191,6 +191,14 @@ struct acpi_device_id {
- 	kernel_ulong_t driver_data;
+diff --git a/drivers/irqchip/irq-gic-v3.c b/drivers/irqchip/irq-gic-v3.c
+index 49875ad..87cf81b 100644
+--- a/drivers/irqchip/irq-gic-v3.c
++++ b/drivers/irqchip/irq-gic-v3.c
+@@ -765,17 +765,69 @@ static const struct irq_domain_ops gic_irq_domain_ops = {
+ 	.free = gic_irq_domain_free,
  };
  
-+#define ACPI_TABLE_ID_LEN	5
++static int __init gic_init_bases(void __iomem *dist_base,
++			    struct redist_region *rdist_regs,
++			    u32 nr_redist_regions,
++			    u64 redist_stride,
++			    struct device_node *node)
++{
++	u32 typer;
++	int gic_irqs;
++	int err;
 +
-+struct acpi_table_id {
-+	__u8 id[ACPI_TABLE_ID_LEN];
-+	const void *handler;
-+	kernel_ulong_t driver_data;
-+};
++	gic_data.dist_base = dist_base;
++	gic_data.redist_regions = rdist_regs;
++	gic_data.nr_redist_regions = nr_redist_regions;
++	gic_data.redist_stride = redist_stride;
 +
- #define PNP_ID_LEN	8
- #define PNP_MAX_DEVICES	8
++	/*
++	 * Find out how many interrupts are supported.
++	 * The GIC only supports up to 1020 interrupt sources (SGI+PPI+SPI)
++	 */
++	typer = readl_relaxed(gic_data.dist_base + GICD_TYPER);
++	gic_data.rdists.id_bits = GICD_TYPER_ID_BITS(typer);
++	gic_irqs = GICD_TYPER_IRQS(typer);
++	if (gic_irqs > 1020)
++		gic_irqs = 1020;
++	gic_data.irq_nr = gic_irqs;
++
++	gic_data.domain = irq_domain_add_tree(node, &gic_irq_domain_ops,
++					      &gic_data);
++	gic_data.rdists.rdist = alloc_percpu(typeof(*gic_data.rdists.rdist));
++
++	if (WARN_ON(!gic_data.domain) || WARN_ON(!gic_data.rdists.rdist)) {
++		err = -ENOMEM;
++		goto out_free;
++	}
++
++	set_handle_irq(gic_handle_irq);
++
++	if (IS_ENABLED(CONFIG_ARM_GIC_V3_ITS) && gic_dist_supports_lpis())
++		its_init(node, &gic_data.rdists, gic_data.domain);
++
++	gic_smp_init();
++	gic_dist_init();
++	gic_cpu_init();
++	gic_cpu_pm_init();
++
++	return 0;
++
++out_free:
++	if (gic_data.domain)
++		irq_domain_remove(gic_data.domain);
++	free_percpu(gic_data.rdists.rdist);
++	return err;
++}
++
++#ifdef CONFIG_OF
+ static int __init gic_of_init(struct device_node *node, struct device_node *parent)
+ {
+ 	void __iomem *dist_base;
+ 	struct redist_region *rdist_regs;
+ 	u64 redist_stride;
+ 	u32 nr_redist_regions;
+-	u32 typer;
+ 	u32 reg;
+-	int gic_irqs;
+-	int err;
+-	int i;
++	int err, i;
  
+ 	dist_base = of_iomap(node, 0);
+ 	if (!dist_base) {
+@@ -819,47 +871,11 @@ static int __init gic_of_init(struct device_node *node, struct device_node *pare
+ 	if (of_property_read_u64(node, "redistributor-stride", &redist_stride))
+ 		redist_stride = 0;
+ 
+-	gic_data.dist_base = dist_base;
+-	gic_data.redist_regions = rdist_regs;
+-	gic_data.nr_redist_regions = nr_redist_regions;
+-	gic_data.redist_stride = redist_stride;
+-
+-	/*
+-	 * Find out how many interrupts are supported.
+-	 * The GIC only supports up to 1020 interrupt sources (SGI+PPI+SPI)
+-	 */
+-	typer = readl_relaxed(gic_data.dist_base + GICD_TYPER);
+-	gic_data.rdists.id_bits = GICD_TYPER_ID_BITS(typer);
+-	gic_irqs = GICD_TYPER_IRQS(typer);
+-	if (gic_irqs > 1020)
+-		gic_irqs = 1020;
+-	gic_data.irq_nr = gic_irqs;
++	err = gic_init_bases(dist_base, rdist_regs, nr_redist_regions,
++			     redist_stride, node);
++	if (!err)
++		return 0;
+ 
+-	gic_data.domain = irq_domain_add_tree(node, &gic_irq_domain_ops,
+-					      &gic_data);
+-	gic_data.rdists.rdist = alloc_percpu(typeof(*gic_data.rdists.rdist));
+-
+-	if (WARN_ON(!gic_data.domain) || WARN_ON(!gic_data.rdists.rdist)) {
+-		err = -ENOMEM;
+-		goto out_free;
+-	}
+-
+-	set_handle_irq(gic_handle_irq);
+-
+-	if (IS_ENABLED(CONFIG_ARM_GIC_V3_ITS) && gic_dist_supports_lpis())
+-		its_init(node, &gic_data.rdists, gic_data.domain);
+-
+-	gic_smp_init();
+-	gic_dist_init();
+-	gic_cpu_init();
+-	gic_cpu_pm_init();
+-
+-	return 0;
+-
+-out_free:
+-	if (gic_data.domain)
+-		irq_domain_remove(gic_data.domain);
+-	free_percpu(gic_data.rdists.rdist);
+ out_unmap_rdist:
+ 	for (i = 0; i < nr_redist_regions; i++)
+ 		if (rdist_regs[i].redist_base)
+@@ -871,3 +887,4 @@ out_unmap_dist:
+ }
+ 
+ IRQCHIP_DECLARE(gic_v3, "arm,gic-v3", gic_of_init);
++#endif
 -- 
 1.9.1
 
