@@ -1,193 +1,193 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 00/32] ACPICA: 20150619 Release
-Date: Fri, 19 Jun 2015 11:38:08 +0800
-Message-ID: <cover.1434684719.git.lv.zheng@intel.com>
+Subject: [PATCH 03/32] ACPICA: Hardware: Enable 64-bit firmware waking vector for selected FACS.
+Date: Fri, 19 Jun 2015 11:38:28 +0800
+Message-ID: <261af597362906597365810a650c8e5c189e86da.1434684719.git.lv.zheng@intel.com>
+References: <cover.1434684719.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:12995 "EHLO mga14.intel.com"
+Received: from mga03.intel.com ([134.134.136.65]:63867 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752987AbbFSDi0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 18 Jun 2015 23:38:26 -0400
+	id S1751484AbbFSDic (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 18 Jun 2015 23:38:32 -0400
+In-Reply-To: <cover.1434684719.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-The 20150619 ACPICA kernel-resident subsystem updates are linuxized based
-on the linux-pm/linux-next branch.
+ACPICA commit 7aa598d711644ab0de5f70ad88f1e2de253115e4
 
-The patchset has passed the following build/boot tests.
-Build tests are performed as follows:
-1. i386 + default + COFNIG_ACPI=y
-2. i386 + allyes + CONFIG_ACPI=y
-3. i386 + default + COFNIG_ACPI=n
-4. i386 + allyes + CONFIG_ACPI=n
-5. x86_64 + default + COFNIG_ACPI=y
-6. x86_64 + allyes + CONFIG_ACPI=y
-7. x86_64 + default + COFNIG_ACPI=n
-8. x86_64 + allyes + CONFIG_ACPI=n
-Boot tests are performed as follows:
-1. i386 + default + COFNIG_ACPI=y
-2. x86_64 + default + COFNIG_ACPI=y
-Where:
-1. i386: machine named as "Dell Inspiron Mini 1010"
-2. x86_64: machine named as "HP Compaq 8200 Elite SFF PC"
-3. default: kernel configuration with following items enabled:
-   All hardware drivers related to the machines of i386/x86_64
-   All drivers/acpi configurations
-   All platform drivers
+The root cause of the reported bug might be one of the followings:
+1. BIOS may favor the 64-bit firmware waking vector address when the
+   version of the FACS is greater than 0 and Linux currently only supports
+   resuming from the real mode, so the 64-bit firmware waking vector has
+   never been set and might be invalid to BIOS while the commit enables
+   higher version FACS.
+2. BIOS may favor the FACS reported via the "FIRMWARE_CTRL" field in the
+   FADT while the commit doesn't set the firmware waking vector address of
+   the FACS reported by "FIRMWARE_CTRL", it only sets the firware waking
+   vector address of the FACS reported by "X_FIRMWARE_CTRL".
 
-The divergences checking result:
-Before applying (20150515 Release):
-  565 lines
-After applying (20150619 Release):
-  539 lines
+This patch excludes the cases that can trigger the bugs caused by the root
+cause 1.
 
-Bob Moore (10):
-  ACPICA: Remove a prototype for the reduced hardware case.
-  ACPICA: Namespace: Add support of OSDT table.
-  ACPICA: Namespace: Change namespace override to avoid node deletion.
-  ACPICA: Cleanup output for the ASL Debug object.
-  ACPICA: De-macroize calls to standard C library functions.
-  ACPICA: Finish C library name transition.
-  ACPICA: Split C library prototypes to new header.
-  ACPICA: Update definitions for the TCPA and TPM2 ACPI tables.
-  ACPICA: Update TPM2 ACPI table.
-  ACPICA: Update version to 20150619.
+ACPI specification says:
+A. 32-bit FACS address (FIRMWARE_CTRL field in FADT):
+   Physical memory address of the FACS, where OSPM and firmware exchange
+   control information.
+   If the X_FIRMWARE_CTRL field contains a non zero value then this field
+   must be zero.
+   A zero value indicates that no FACS is specified by this field.
+B. 64-bit FACS address (X_FIRMWARE_CTRL field in FADT):
+   64bit physical memory address of the FACS.
+   This field is used when the physical address of the FACS is above 4GB.
+   If the FIRMWARE_CTRL field contains a non zero value then this field
+   must be zero.
+   A zero value indicates that no FACS is specified by this field.
+Thus the 32bit and 64bit firmware waking vector should indicate completely
+different resuming environment - real mode (1MB addressable) and non real
+mode (4GB+ addressable) and currently Linux only supports resuming from
+real mode.
 
-Hanjun Guo (1):
-  ACPICA: ACPI 6.0: Add values for MADT GIC version field.
+This patch enables 64-bit firmware waking vector for selected FACS via
+acpi_set_firmware_waking_vector() so that it's up to OSPMs to determine which
+resuming mode should be used by BIOS and ACPICA changes won't trigger the
+bugs caused by the root cause 1. For example, Linux can pass
+physical_address64=0 as the parameter of acpi_set_firmware_waking_vector() to
+indicate no 64bit waking vector support. Lv Zheng.
 
-Lv Zheng (17):
-  ACPICA: Linuxize: Reduce divergences for 20150616 release.
-  ACPICA: Linuxize: Replace __FUNCTION__ with __func__.
-  ACPICA: Hardware: Enable 64-bit firmware waking vector for selected
-    FACS.
-  ACPI: sleep: Update acpi_set_firmware_waking_vector() invocations to
-    favor 32-bit firmware waking vector.
-  ACPICA: Tables: Enable both 32-bit and 64-bit FACS.
-  ACPICA: Hardware: Enable firmware waking vector for both 32-bit and
-    64-bit FACS.
-  ACPICA: Hardware: Cleanup the return values in
-    acpi_set_waking_vector().
-  ACPICA: Tables: Fix an issue that FACS initialization is performed
-    twice.
-  ACPICA: Tables: Fix an issue that ACPI initialization is blocked due
-    to no FACS.
-  ACPICA: Tables: Enable default 64-bit FADT addresses favor.
-  ACPICA: MSVC6: Fix build issue for variable argument macros.
-  ACPICA: EFI: Add EFI interface definitions to eliminate dependency of
-    GNU EFI.
-  ACPICA: Namespace: Add support to allow overriding objects.
-  ACPICA: acpidump: Allow customized tables to be dumped without
-    accessing /dev/mem.
-  ACPICA: acpidump: Convert the default behavior to dump from
-    /sys/firmware/acpi/tables.
-  ACPI / acpidump: Update acpidump manual.
-  ACPICA: Clib: Correct memset() declarations.
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=74021
+Link: https://github.com/acpica/acpica/commit/7aa598d7
+Reported-and-tested-by: Oswald Buddenhagen <ossi@kde.org>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+---
+ drivers/acpi/acpica/hwxfsleep.c |   61 ++++++++++++---------------------------
+ include/acpi/acpixf.h           |   11 +++----
+ 2 files changed, 23 insertions(+), 49 deletions(-)
 
-Sascha Wildner (1):
-  ACPICA: Add dragon_fly support to unix file mapping file.
-
-Suravee Suthikulpanit (1):
-  ACPICA: Utilities: Add _CLS processing
-
-Zhang Rui (1):
-  ACPICA: Update for acpi_install_table memory types.
-
-gongzg (1):
-  ACPICA: Comment update, no functional change.
-
- arch/ia64/include/asm/acpi.h                       |    3 +-
- arch/ia64/kernel/acpi.c                            |    2 -
- arch/x86/include/asm/acpi.h                        |    3 +-
- drivers/acpi/acpica/accommon.h                     |    3 +
- drivers/acpi/acpica/acglobal.h                     |    2 +
- drivers/acpi/acpica/acinterp.h                     |    2 +
- drivers/acpi/acpica/aclocal.h                      |    1 +
- drivers/acpi/acpica/acnamesp.h                     |    1 +
- drivers/acpi/acpica/acobject.h                     |    1 +
- drivers/acpi/acpica/acstruct.h                     |    1 +
- drivers/acpi/acpica/acutils.h                      |   64 +------------
- drivers/acpi/acpica/dsfield.c                      |    2 +-
- drivers/acpi/acpica/dsinit.c                       |    2 +-
- drivers/acpi/acpica/dsobject.c                     |    7 +-
- drivers/acpi/acpica/dsutils.c                      |    4 +-
- drivers/acpi/acpica/dswload.c                      |   17 +++-
- drivers/acpi/acpica/evgpeinit.c                    |    2 +-
- drivers/acpi/acpica/exconfig.c                     |    2 +-
- drivers/acpi/acpica/exconvrt.c                     |    9 +-
- drivers/acpi/acpica/exdebug.c                      |   42 +++++++-
- drivers/acpi/acpica/exdump.c                       |    9 +-
- drivers/acpi/acpica/exfield.c                      |    2 +-
- drivers/acpi/acpica/exfldio.c                      |   52 +++++-----
- drivers/acpi/acpica/exmisc.c                       |   36 +++----
- drivers/acpi/acpica/exnames.c                      |    2 +-
- drivers/acpi/acpica/exoparg2.c                     |    8 +-
- drivers/acpi/acpica/exoparg3.c                     |    4 +-
- drivers/acpi/acpica/exregion.c                     |    9 +-
- drivers/acpi/acpica/exstorob.c                     |   18 ++--
- drivers/acpi/acpica/exutils.c                      |   32 +++++++
- drivers/acpi/acpica/hwxfsleep.c                    |   85 +++++++++++------
- drivers/acpi/acpica/nsaccess.c                     |   16 +++-
- drivers/acpi/acpica/nsconvert.c                    |   10 +-
- drivers/acpi/acpica/nsdump.c                       |    2 +-
- drivers/acpi/acpica/nseval.c                       |    7 +-
- drivers/acpi/acpica/nsinit.c                       |    4 +-
- drivers/acpi/acpica/nsparse.c                      |    7 ++
- drivers/acpi/acpica/nsrepair2.c                    |    2 +-
- drivers/acpi/acpica/nssearch.c                     |   37 +++++++-
- drivers/acpi/acpica/nsutils.c                      |    3 +-
- drivers/acpi/acpica/nsxfeval.c                     |    5 +-
- drivers/acpi/acpica/nsxfname.c                     |   29 ++++--
- drivers/acpi/acpica/psutils.c                      |    7 +-
- drivers/acpi/acpica/rscreate.c                     |    6 +-
- drivers/acpi/acpica/rsmisc.c                       |    8 +-
- drivers/acpi/acpica/rsutils.c                      |   13 ++-
- drivers/acpi/acpica/rsxface.c                      |    8 +-
- drivers/acpi/acpica/tbdata.c                       |    8 +-
- drivers/acpi/acpica/tbfadt.c                       |   27 +++---
- drivers/acpi/acpica/tbfind.c                       |   21 ++--
- drivers/acpi/acpica/tbinstal.c                     |    7 +-
- drivers/acpi/acpica/tbprint.c                      |   10 +-
- drivers/acpi/acpica/tbutils.c                      |   37 +++++---
- drivers/acpi/acpica/tbxface.c                      |   17 ++--
- drivers/acpi/acpica/tbxfload.c                     |   17 ++--
- drivers/acpi/acpica/utalloc.c                      |    6 +-
- drivers/acpi/acpica/utbuffer.c                     |    4 +-
- drivers/acpi/acpica/utcache.c                      |    6 +-
- drivers/acpi/acpica/utcopy.c                       |   42 ++++----
- drivers/acpi/acpica/utdebug.c                      |    4 +-
- drivers/acpi/acpica/utids.c                        |  100 ++++++++++++++++++--
- drivers/acpi/acpica/utmisc.c                       |    9 +-
- drivers/acpi/acpica/utosi.c                        |    9 +-
- drivers/acpi/acpica/utpredef.c                     |    4 +-
- drivers/acpi/acpica/utprint.c                      |    6 +-
- drivers/acpi/acpica/utstring.c                     |   33 ++++---
- drivers/acpi/acpica/uttrack.c                      |    8 +-
- drivers/acpi/acpica/utxface.c                      |    8 +-
- drivers/acpi/acpica/utxfinit.c                     |   10 +-
- drivers/acpi/sleep.c                               |    8 +-
- include/acpi/acnames.h                             |    1 +
- include/acpi/acoutput.h                            |   13 ++-
- include/acpi/acpixf.h                              |   31 ++++--
- include/acpi/actbl.h                               |    1 +
- include/acpi/actbl1.h                              |   11 +++
- include/acpi/actbl2.h                              |   80 ++++++++++++++--
- include/acpi/actbl3.h                              |   34 +------
- include/acpi/actypes.h                             |   33 ++++---
- include/acpi/platform/acenv.h                      |   39 --------
- include/acpi/platform/acenvex.h                    |    6 ++
- include/acpi/platform/acgcc.h                      |    4 +
- tools/power/acpi/common/getopt.c                   |    4 +-
- tools/power/acpi/man/acpidump.8                    |   17 +++-
- .../acpi/os_specific/service_layers/oslinuxtbl.c   |   95 ++++++++++---------
- .../acpi/os_specific/service_layers/osunixmap.c    |    2 +-
- tools/power/acpi/tools/acpidump/acpidump.h         |    2 +-
- tools/power/acpi/tools/acpidump/apdump.c           |    8 +-
- tools/power/acpi/tools/acpidump/apfiles.c          |   12 +--
- tools/power/acpi/tools/acpidump/apmain.c           |   15 ++-
- 89 files changed, 851 insertions(+), 549 deletions(-)
-
+diff --git a/drivers/acpi/acpica/hwxfsleep.c b/drivers/acpi/acpica/hwxfsleep.c
+index 82e310b..c67cd32 100644
+--- a/drivers/acpi/acpica/hwxfsleep.c
++++ b/drivers/acpi/acpica/hwxfsleep.c
+@@ -73,7 +73,6 @@ static struct acpi_sleep_functions acpi_sleep_dispatch[] = {
+ /*
+  * These functions are removed for the ACPI_REDUCED_HARDWARE case:
+  *      acpi_set_firmware_waking_vector
+- *      acpi_set_firmware_waking_vector64
+  *      acpi_enter_sleep_state_s4bios
+  */
+ 
+@@ -83,15 +82,19 @@ static struct acpi_sleep_functions acpi_sleep_dispatch[] = {
+  * FUNCTION:    acpi_set_firmware_waking_vector
+  *
+  * PARAMETERS:  physical_address    - 32-bit physical address of ACPI real mode
+- *                                    entry point.
++ *                                    entry point
++ *              physical_address64  - 64-bit physical address of ACPI protected
++ *                                    entry point
+  *
+  * RETURN:      Status
+  *
+- * DESCRIPTION: Sets the 32-bit firmware_waking_vector field of the FACS
++ * DESCRIPTION: Sets the firmware_waking_vector fields of the FACS
+  *
+  ******************************************************************************/
+ 
+-acpi_status acpi_set_firmware_waking_vector(u32 physical_address)
++acpi_status
++acpi_set_firmware_waking_vector(acpi_physical_address physical_address,
++				acpi_physical_address physical_address64)
+ {
+ 	ACPI_FUNCTION_TRACE(acpi_set_firmware_waking_vector);
+ 
+@@ -106,53 +109,27 @@ acpi_status acpi_set_firmware_waking_vector(u32 physical_address)
+ 
+ 	/* Set the 32-bit vector */
+ 
+-	acpi_gbl_FACS->firmware_waking_vector = physical_address;
++	acpi_gbl_FACS->firmware_waking_vector = (u32)physical_address;
+ 
+-	/* Clear the 64-bit vector if it exists */
++	if (acpi_gbl_FACS->length > 32) {
++		if (acpi_gbl_FACS->version >= 1) {
+ 
+-	if ((acpi_gbl_FACS->length > 32) && (acpi_gbl_FACS->version >= 1)) {
+-		acpi_gbl_FACS->xfirmware_waking_vector = 0;
+-	}
+-
+-	return_ACPI_STATUS(AE_OK);
+-}
+-
+-ACPI_EXPORT_SYMBOL(acpi_set_firmware_waking_vector)
+-
+-#if ACPI_MACHINE_WIDTH == 64
+-/*******************************************************************************
+- *
+- * FUNCTION:    acpi_set_firmware_waking_vector64
+- *
+- * PARAMETERS:  physical_address    - 64-bit physical address of ACPI protected
+- *                                    mode entry point.
+- *
+- * RETURN:      Status
+- *
+- * DESCRIPTION: Sets the 64-bit X_firmware_waking_vector field of the FACS, if
+- *              it exists in the table. This function is intended for use with
+- *              64-bit host operating systems.
+- *
+- ******************************************************************************/
+-acpi_status acpi_set_firmware_waking_vector64(u64 physical_address)
+-{
+-	ACPI_FUNCTION_TRACE(acpi_set_firmware_waking_vector64);
++			/* Set the 64-bit vector */
+ 
+-	/* Determine if the 64-bit vector actually exists */
++			acpi_gbl_FACS->xfirmware_waking_vector =
++			    physical_address64;
++		} else {
++			/* Clear the 64-bit vector if it exists */
+ 
+-	if ((acpi_gbl_FACS->length <= 32) || (acpi_gbl_FACS->version < 1)) {
+-		return_ACPI_STATUS(AE_NOT_EXIST);
++			acpi_gbl_FACS->xfirmware_waking_vector = 0;
++		}
+ 	}
+ 
+-	/* Clear 32-bit vector, set the 64-bit X_ vector */
+-
+-	acpi_gbl_FACS->firmware_waking_vector = 0;
+-	acpi_gbl_FACS->xfirmware_waking_vector = physical_address;
+ 	return_ACPI_STATUS(AE_OK);
+ }
+ 
+-ACPI_EXPORT_SYMBOL(acpi_set_firmware_waking_vector64)
+-#endif
++ACPI_EXPORT_SYMBOL(acpi_set_firmware_waking_vector)
++
+ /*******************************************************************************
+  *
+  * FUNCTION:    acpi_enter_sleep_state_s4bios
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index d68f1cd..a68e4b9 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -814,13 +814,10 @@ ACPI_EXTERNAL_RETURN_STATUS(acpi_status
+ ACPI_EXTERNAL_RETURN_STATUS(acpi_status acpi_leave_sleep_state(u8 sleep_state))
+ 
+ ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status
+-				acpi_set_firmware_waking_vector(u32
+-								physical_address))
+-#if ACPI_MACHINE_WIDTH == 64
+-ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status
+-				acpi_set_firmware_waking_vector64(u64
+-								  physical_address))
+-#endif
++				acpi_set_firmware_waking_vector
++				(acpi_physical_address physical_address,
++				 acpi_physical_address physical_address64))
++
+ /*
+  * ACPI Timer interfaces
+  */
 -- 
 1.7.10
 
