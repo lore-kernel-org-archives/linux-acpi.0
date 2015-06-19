@@ -1,170 +1,87 @@
-From: Brice Goglin <brice.goglin@gmail.com>
-Subject: Re: [PATCH v3 3/3] libnvdimm: Add sysfs numa_node to NVDIMM devices
-Date: Fri, 19 Jun 2015 22:01:46 +0200
-Message-ID: <5584752A.6040706@gmail.com>
-References: <1434737914-18466-1-git-send-email-toshi.kani@hp.com> <1434737914-18466-4-git-send-email-toshi.kani@hp.com>
+From: Al Stone <ahs3@redhat.com>
+Subject: Re: [PATCH v2 1/3] ACPI : introduce macros for using the ACPI specification
+ version
+Date: Fri, 19 Jun 2015 14:01:45 -0600
+Message-ID: <55847529.10702@redhat.com>
+References: <1434666968-1543-1-git-send-email-al.stone@linaro.org> <1434666968-1543-2-git-send-email-al.stone@linaro.org> <5583F3A7.4020202@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:17926 "EHLO
-	mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752783AbbFSUBs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 19 Jun 2015 16:01:48 -0400
-In-Reply-To: <1434737914-18466-4-git-send-email-toshi.kani@hp.com>
+Received: from mx1.redhat.com ([209.132.183.28]:58419 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752627AbbFSUBt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 19 Jun 2015 16:01:49 -0400
+In-Reply-To: <5583F3A7.4020202@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>, rjw@rjwysocki.net, dan.j.williams@intel.com
-Cc: linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>, Al Stone <al.stone@linaro.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, tglx@linutronix.de, jason@lakedaemon.net, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, linaro-kernel@lists.linaro.org, patches@linaro.org
 
-Do you have local_cpus and local_cpulist attributes as well?
-User-space tools such as hwloc use those for binding near I/O devices,
-although I guess we could have some CPU-less NVDIMM NUMA nodes?
+On 06/19/2015 04:49 AM, Hanjun Guo wrote:
+> On 06/19/2015 06:36 AM, Al Stone wrote:
+>> Add the ACPI_SPEC_VERSION() macro to build a proper version number from
+>> a major and minor revision number.  Add also the ACPI_FADT_SPEC_VERSION
+>> that constructs a proper version number from the entries in the current
+>> FADT.
+>>
+>> These macros are added in order to simplify retrieving and comparing ACPI
+>> specification version numbers, since this is becoming a more frequent need.
+>> In particular, there are some architectures that require at least a certain
+>> version of the spec, and there are differences in some structure sizes that
+>> have changed with recent versions but can only be tracked by spec version
+>> number.
+>>
+>> Signed-off-by: Al Stone <al.stone@linaro.org>
+>> ---
+>>   include/linux/acpi.h | 5 +++++
+>>   1 file changed, 5 insertions(+)
+>>
+>> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+>> index a4acb55..33ed313 100644
+>> --- a/include/linux/acpi.h
+>> +++ b/include/linux/acpi.h
+>> @@ -48,6 +48,11 @@
+>>   #include <acpi/acpi_io.h>
+>>   #include <asm/acpi.h>
+>>
+>> +#define ACPI_SPEC_VERSION(major, minor)    ((major<<8)|minor)
+> 
+> and minor comments for code style
+> 
+> ((major<<8)|minor) - > ((major << 8) | minor)
 
-Brice
+Ah.  Yeah, good idea.  I can roll that into next version.
+
+> other than that:
+> 
+> Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
+
+Thanks.
+
+> Thanks
+> Hanjun
+> 
+>> +#define ACPI_FADT_SPEC_VERSION    \
+>> +    ACPI_SPEC_VERSION(acpi_gbl_FADT.header.revision, \
+>> +              acpi_gbl_FADT.minor_revision)
+>> +
+>>   static inline acpi_handle acpi_device_handle(struct acpi_device *adev)
+>>   {
+>>       return adev ? adev->handle : NULL;
+>>
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
 
 
-
-Le 19/06/2015 20:18, Toshi Kani a =E9crit :
-> Add support of sysfs 'numa_node' to I/O-related NVDIMM devices
-> under /sys/bus/nd/devices, regionN, namespaceN.0, and bttN.
-> When bttN is not set up, its numa_node returns -1 (NUMA_NO_NODE).
->=20
-> An example of numa_node values on a 2-socket system with a single
-> NVDIMM range on each socket is shown below.
->   /sys/bus/nd/devices
->   |-- btt0/numa_node:-1
->   |-- btt1/numa_node:0
->   |-- namespace0.0/numa_node:0
->   |-- namespace1.0/numa_node:1
->   |-- region0/numa_node:0
->   |-- region1/numa_node:1
->=20
-> These numa_node files are then linked under the block class of
-> their device names.
->   /sys/class/block/pmem0/device/numa_node:0
->   /sys/class/block/pmem0s/device/numa_node:0
->   /sys/class/block/pmem1/device/numa_node:1
->=20
-> This enables numactl(8) to accept 'block:' and 'file:' paths of
-> pmem and btt devices as shown in the examples below.
->   numactl --preferred block:pmem0 --show
->   numactl --preferred file:/dev/pmem0s --show
->=20
-> Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-> ---
->  drivers/acpi/nfit.c             |    1 +
->  drivers/nvdimm/btt_devs.c       |    1 +
->  drivers/nvdimm/bus.c            |   30 +++++++++++++++++++++++++++++=
-+
->  drivers/nvdimm/namespace_devs.c |    1 +
->  include/linux/libnvdimm.h       |    1 +
->  5 files changed, 34 insertions(+)
->=20
-> diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-> index 5997753..9cb63ac 100644
-> --- a/drivers/acpi/nfit.c
-> +++ b/drivers/acpi/nfit.c
-> @@ -873,6 +873,7 @@ static const struct attribute_group *acpi_nfit_re=
-gion_attribute_groups[] =3D {
->  	&nd_region_attribute_group,
->  	&nd_mapping_attribute_group,
->  	&nd_device_attribute_group,
-> +	&nd_numa_attribute_group,
->  	&acpi_nfit_region_attribute_group,
->  	NULL,
->  };
-> diff --git a/drivers/nvdimm/btt_devs.c b/drivers/nvdimm/btt_devs.c
-> index bcf77dc..a7b192f 100644
-> --- a/drivers/nvdimm/btt_devs.c
-> +++ b/drivers/nvdimm/btt_devs.c
-> @@ -308,6 +308,7 @@ static struct attribute_group nd_btt_attribute_gr=
-oup =3D {
->  static const struct attribute_group *nd_btt_attribute_groups[] =3D {
->  	&nd_btt_attribute_group,
->  	&nd_device_attribute_group,
-> +	&nd_numa_attribute_group,
->  	NULL,
->  };
-> =20
-> diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-> index 67525f9..03c0ee1 100644
-> --- a/drivers/nvdimm/bus.c
-> +++ b/drivers/nvdimm/bus.c
-> @@ -420,6 +420,36 @@ struct attribute_group nd_device_attribute_group=
- =3D {
->  };
->  EXPORT_SYMBOL_GPL(nd_device_attribute_group);
-> =20
-> +static ssize_t numa_node_show(struct device *dev,
-> +		struct device_attribute *attr, char *buf)
-> +{
-> +	return sprintf(buf, "%d\n", dev_to_node(dev));
-> +}
-> +static DEVICE_ATTR_RO(numa_node);
-> +
-> +static struct attribute *nd_numa_attributes[] =3D {
-> +	&dev_attr_numa_node.attr,
-> +	NULL,
-> +};
-> +
-> +static umode_t nd_numa_attr_visible(struct kobject *kobj, struct att=
-ribute *a,
-> +		int n)
-> +{
-> +	if (!IS_ENABLED(CONFIG_NUMA))
-> +		return 0;
-> +
-> +	return a->mode;
-> +}
-> +
-> +/**
-> + * nd_numa_attribute_group - NUMA attributes for all devices on an n=
-d bus
-> + */
-> +struct attribute_group nd_numa_attribute_group =3D {
-> +	.attrs =3D nd_numa_attributes,
-> +	.is_visible =3D nd_numa_attr_visible,
-> +};
-> +EXPORT_SYMBOL_GPL(nd_numa_attribute_group);
-> +
->  int nvdimm_bus_create_ndctl(struct nvdimm_bus *nvdimm_bus)
->  {
->  	dev_t devt =3D MKDEV(nvdimm_bus_major, nvdimm_bus->id);
-> diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespa=
-ce_devs.c
-> index 0fe541a..47f3f29 100644
-> --- a/drivers/nvdimm/namespace_devs.c
-> +++ b/drivers/nvdimm/namespace_devs.c
-> @@ -1141,6 +1141,7 @@ static struct attribute_group nd_namespace_attr=
-ibute_group =3D {
->  static const struct attribute_group *nd_namespace_attribute_groups[]=
- =3D {
->  	&nd_device_attribute_group,
->  	&nd_namespace_attribute_group,
-> +	&nd_numa_attribute_group,
->  	NULL,
->  };
-> =20
-> diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-> index 30b3dea..75e3af0 100644
-> --- a/include/linux/libnvdimm.h
-> +++ b/include/linux/libnvdimm.h
-> @@ -38,6 +38,7 @@ enum {
->  extern struct attribute_group nvdimm_bus_attribute_group;
->  extern struct attribute_group nvdimm_attribute_group;
->  extern struct attribute_group nd_device_attribute_group;
-> +extern struct attribute_group nd_numa_attribute_group;
->  extern struct attribute_group nd_region_attribute_group;
->  extern struct attribute_group nd_mapping_attribute_group;
-> =20
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kerne=
-l" in
-> Please read the FAQ at  http://www.tux.org/lkml/
->=20
-
+-- 
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Red Hat, Inc.
+ahs3@redhat.com
+-----------------------------------
 --
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
