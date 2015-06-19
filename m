@@ -1,90 +1,49 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 19/32] ACPICA: Namespace: Change namespace override to avoid node deletion.
-Date: Fri, 19 Jun 2015 11:40:22 +0800
-Message-ID: <c6cd5d56b87177d1cd1749e5774b0b6e3a798a86.1434684720.git.lv.zheng@intel.com>
+Subject: [PATCH 20/32] ACPICA: Update for acpi_install_table memory types.
+Date: Fri, 19 Jun 2015 11:40:29 +0800
+Message-ID: <699237c58aa232cde4c9bc60b5c288eec46287c6.1434684720.git.lv.zheng@intel.com>
 References: <cover.1434684719.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:10830 "EHLO mga02.intel.com"
+Received: from mga03.intel.com ([134.134.136.65]:42984 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754015AbbFSDk1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 18 Jun 2015 23:40:27 -0400
+	id S1753487AbbFSDke (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 18 Jun 2015 23:40:34 -0400
 In-Reply-To: <cover.1434684719.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Bob Moore <robert.moore@intel.com>
 
-From: Bob Moore <robert.moore@intel.com>
+From: Zhang Rui <rui.zhang@intel.com>
 
-ACPICA commit c0ce529e1fbb8ec47d2522a3aa10f3ab77e16e41
+ACPICA commit 3f78b7fb3f98f35d62f532c1891deb748ad196c9
 
-There is no reference counting implemented for struct acpi_namespace_node, so it
-is currently not removable during runtime.
-This patch changes the namespace override code to keep the old
-struct acpi_namespace_node undeleted so that the override mechanism can happen
-during runtime. Bob Moore.
+Physical/virtual address flags were reversed.
 
-Link: https://github.com/acpica/acpica/commit/c0ce529e
+Link: https://github.com/acpica/acpica/commit/3f78b7fb
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/nssearch.c |   23 +++++++++++++++++++----
- include/acpi/acpixf.h          |    5 +++++
- 2 files changed, 24 insertions(+), 4 deletions(-)
+ drivers/acpi/acpica/tbxfload.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/acpica/nssearch.c b/drivers/acpi/acpica/nssearch.c
-index 47fbe5b..d739040 100644
---- a/drivers/acpi/acpica/nssearch.c
-+++ b/drivers/acpi/acpica/nssearch.c
-@@ -331,13 +331,28 @@ acpi_ns_search_and_enter(u32 target_name,
+diff --git a/drivers/acpi/acpica/tbxfload.c b/drivers/acpi/acpica/tbxfload.c
+index 960bd99..cf56e18 100644
+--- a/drivers/acpi/acpica/tbxfload.c
++++ b/drivers/acpi/acpica/tbxfload.c
+@@ -224,9 +224,9 @@ acpi_install_table(acpi_physical_address address, u8 physical)
+ 	ACPI_FUNCTION_TRACE(acpi_install_table);
  
- 			/*
- 			 * If the namespace override feature is enabled for this node,
--			 * delete any existing node. This can only happen during the
--			 * boot stage, thus it is safe to remove the node here.
-+			 * delete any existing attached sub-object and make the node
-+			 * look like a new node that is owned by the override table.
- 			 */
- 			if (flags & ACPI_NS_OVERRIDE_IF_FOUND) {
-+				ACPI_DEBUG_PRINT((ACPI_DB_NAMES,
-+						  "Namespace override: %4.4s pass %u type %X Owner %X\n",
-+						  ACPI_CAST_PTR(char,
-+								&target_name),
-+						  interpreter_mode,
-+						  (*return_node)->type,
-+						  walk_state->owner_id));
-+
- 				acpi_ns_delete_children(*return_node);
--				acpi_ns_remove_node(*return_node);
--				*return_node = ACPI_ENTRY_NOT_FOUND;
-+				if (acpi_gbl_runtime_namespace_override) {
-+					acpi_ut_remove_reference((*return_node)->object);
-+					(*return_node)->object = NULL;
-+					(*return_node)->owner_id =
-+					    walk_state->owner_id;
-+				} else {
-+					acpi_ns_remove_node(*return_node);
-+					*return_node = ACPI_ENTRY_NOT_FOUND;
-+				}
- 			}
+ 	if (physical) {
+-		flags = ACPI_TABLE_ORIGIN_EXTERNAL_VIRTUAL;
+-	} else {
+ 		flags = ACPI_TABLE_ORIGIN_INTERNAL_PHYSICAL;
++	} else {
++		flags = ACPI_TABLE_ORIGIN_EXTERNAL_VIRTUAL;
+ 	}
  
- 			/* Return an error if we don't expect to find the object */
-diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index 00daa3c..33b4675 100644
---- a/include/acpi/acpixf.h
-+++ b/include/acpi/acpixf.h
-@@ -229,6 +229,11 @@ ACPI_INIT_GLOBAL(u8, acpi_gbl_disable_auto_repair, FALSE);
- ACPI_INIT_GLOBAL(u8, acpi_gbl_disable_ssdt_table_install, FALSE);
- 
- /*
-+ * Optionally enable runtime namespace override.
-+ */
-+ACPI_INIT_GLOBAL(u8, acpi_gbl_runtime_namespace_override, TRUE);
-+
-+/*
-  * We keep track of the latest version of Windows that has been requested by
-  * the BIOS. ACPI 5.0.
-  */
+ 	status = acpi_tb_install_standard_table(address, flags,
 -- 
 1.7.10
 
