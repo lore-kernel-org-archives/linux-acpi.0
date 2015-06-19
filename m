@@ -1,49 +1,93 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 20/32] ACPICA: Update for acpi_install_table memory types.
-Date: Fri, 19 Jun 2015 11:40:29 +0800
-Message-ID: <699237c58aa232cde4c9bc60b5c288eec46287c6.1434684720.git.lv.zheng@intel.com>
+Subject: [PATCH 18/32] ACPICA: Namespace: Add support of OSDT table.
+Date: Fri, 19 Jun 2015 11:40:16 +0800
+Message-ID: <a6855f345427dd7ababdc67d8f5ff5216b0ecc05.1434684720.git.lv.zheng@intel.com>
 References: <cover.1434684719.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:42984 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753487AbbFSDke (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 18 Jun 2015 23:40:34 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1434684719.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Bob Moore <robert.moore@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
-From: Zhang Rui <rui.zhang@intel.com>
+From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit 3f78b7fb3f98f35d62f532c1891deb748ad196c9
+ACPICA commit 27415c82fcecf467446f66d1007a0691cc5f3709
 
-Physical/virtual address flags were reversed.
+This patch adds OSDT (Override System Definition Table) support.
+When OSDT is loaded, conflict namespace objects will be overridden
+by the AML interpreter. Bob Moore, Lv Zheng.
 
-Link: https://github.com/acpica/acpica/commit/3f78b7fb
-Signed-off-by: Zhang Rui <rui.zhang@intel.com>
+Link: https://github.com/acpica/acpica/commit/27415c82
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/tbxfload.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/acpi/acpica/nsparse.c  |    7 +++++++
+ drivers/acpi/acpica/tbxfload.c |    6 +++++-
+ drivers/acpi/acpica/utmisc.c   |    3 ++-
+ include/acpi/actbl.h           |    1 +
+ 4 files changed, 15 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/acpica/tbxfload.c b/drivers/acpi/acpica/tbxfload.c
-index 960bd99..cf56e18 100644
---- a/drivers/acpi/acpica/tbxfload.c
-+++ b/drivers/acpi/acpica/tbxfload.c
-@@ -224,9 +224,9 @@ acpi_install_table(acpi_physical_address address, u8 physical)
- 	ACPI_FUNCTION_TRACE(acpi_install_table);
- 
- 	if (physical) {
--		flags = ACPI_TABLE_ORIGIN_EXTERNAL_VIRTUAL;
--	} else {
- 		flags = ACPI_TABLE_ORIGIN_INTERNAL_PHYSICAL;
-+	} else {
-+		flags = ACPI_TABLE_ORIGIN_EXTERNAL_VIRTUAL;
+diff --git a/drivers/acpi/acpica/nsparse.c b/drivers/acpi/acpica/nsparse.c
+index c95a119..57a4cfe 100644
+--- a/drivers/acpi/acpica/nsparse.c
++++ b/drivers/acpi/acpica/nsparse.c
+@@ -117,6 +117,13 @@ acpi_ns_one_complete_parse(u32 pass_number,
+ 					       (u8) pass_number);
  	}
  
- 	status = acpi_tb_install_standard_table(address, flags,
++	/* Found OSDT table, enable the namespace override feature */
++
++	if (ACPI_COMPARE_NAME(table->signature, ACPI_SIG_OSDT) &&
++	    pass_number == ACPI_IMODE_LOAD_PASS1) {
++		walk_state->namespace_override = TRUE;
++	}
++
+ 	if (ACPI_FAILURE(status)) {
+ 		acpi_ds_delete_walk_state(walk_state);
+ 		goto cleanup;
+diff --git a/drivers/acpi/acpica/tbxfload.c b/drivers/acpi/acpica/tbxfload.c
+index b63e35d..960bd99 100644
+--- a/drivers/acpi/acpica/tbxfload.c
++++ b/drivers/acpi/acpica/tbxfload.c
+@@ -173,7 +173,11 @@ static acpi_status acpi_tb_load_namespace(void)
+ 		     &&
+ 		     !ACPI_COMPARE_NAME(&
+ 					(acpi_gbl_root_table_list.tables[i].
+-					 signature), ACPI_SIG_PSDT))
++					 signature), ACPI_SIG_PSDT)
++		     &&
++		     !ACPI_COMPARE_NAME(&
++					(acpi_gbl_root_table_list.tables[i].
++					 signature), ACPI_SIG_OSDT))
+ 		    ||
+ 		    ACPI_FAILURE(acpi_tb_validate_table
+ 				 (&acpi_gbl_root_table_list.tables[i]))) {
+diff --git a/drivers/acpi/acpica/utmisc.c b/drivers/acpi/acpica/utmisc.c
+index cbb7034..28099e2 100644
+--- a/drivers/acpi/acpica/utmisc.c
++++ b/drivers/acpi/acpica/utmisc.c
+@@ -97,7 +97,8 @@ u8 acpi_ut_is_aml_table(struct acpi_table_header *table)
+ 
+ 	if (ACPI_COMPARE_NAME(table->signature, ACPI_SIG_DSDT) ||
+ 	    ACPI_COMPARE_NAME(table->signature, ACPI_SIG_PSDT) ||
+-	    ACPI_COMPARE_NAME(table->signature, ACPI_SIG_SSDT)) {
++	    ACPI_COMPARE_NAME(table->signature, ACPI_SIG_SSDT) ||
++	    ACPI_COMPARE_NAME(table->signature, ACPI_SIG_OSDT)) {
+ 		return (TRUE);
+ 	}
+ 
+diff --git a/include/acpi/actbl.h b/include/acpi/actbl.h
+index cb8a6b9..2d5faf5 100644
+--- a/include/acpi/actbl.h
++++ b/include/acpi/actbl.h
+@@ -65,6 +65,7 @@
+ #define ACPI_SIG_DSDT           "DSDT"	/* Differentiated System Description Table */
+ #define ACPI_SIG_FADT           "FACP"	/* Fixed ACPI Description Table */
+ #define ACPI_SIG_FACS           "FACS"	/* Firmware ACPI Control Structure */
++#define ACPI_SIG_OSDT           "OSDT"	/* Override System Description Table */
+ #define ACPI_SIG_PSDT           "PSDT"	/* Persistent System Description Table */
+ #define ACPI_SIG_RSDP           "RSD PTR "	/* Root System Description Pointer */
+ #define ACPI_SIG_RSDT           "RSDT"	/* Root System Description Table */
 -- 
 1.7.10
-
