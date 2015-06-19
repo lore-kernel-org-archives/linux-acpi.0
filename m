@@ -1,25 +1,114 @@
-From: Christoph Hellwig <hch@lst.de>
-Subject: Re: [PATCH 12/15] libnvdimm: enable iostat
-Date: Fri, 19 Jun 2015 10:34:10 +0200
-Message-ID: <20150619083410.GA2885@lst.de>
-References: <20150617235209.12943.24419.stgit@dwillia2-desk3.amr.corp.intel.com> <20150617235551.12943.76656.stgit@dwillia2-desk3.amr.corp.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: [PATCH v2 0/9] Add self-probe infrastructure and stacked irqdomain support for ACPI based GICv2/3 init
+Date: Fri, 19 Jun 2015 16:46:03 +0800
+Message-ID: <1434703572-26221-1-git-send-email-hanjun.guo@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from verein.lst.de ([213.95.11.211]:59882 "EHLO newverein.lst.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753147AbbFSIeM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 19 Jun 2015 04:34:12 -0400
-Content-Disposition: inline
-In-Reply-To: <20150617235551.12943.76656.stgit@dwillia2-desk3.amr.corp.intel.com>
+Received: from mail-pd0-f180.google.com ([209.85.192.180]:34225 "EHLO
+	mail-pd0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754364AbbFSIq1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Jun 2015 04:46:27 -0400
+Received: by pdbki1 with SMTP id ki1so86410086pdb.1
+        for <linux-acpi@vger.kernel.org>; Fri, 19 Jun 2015 01:46:27 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: axboe@kernel.dk, linux-nvdimm@lists.01.org, boaz@plexistor.com, toshi.kani@hp.com, Vishal Verma <vishal.l.verma@linux.intel.com>, linux-kernel@vger.kernel.org, hch@lst.de, linux-acpi@vger.kernel.org, linux-fsdevel@vger.kernel.org, mingo@kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Grant Likely <grant.likely@linaro.org>, Olof Johansson <olof@lixom.net>, Wei Huang <wei@redhat.com>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
 
-On Wed, Jun 17, 2015 at 07:55:51PM -0400, Dan Williams wrote:
-> This is disabled by default as the overhead is prohibitive, but if the
-> user takes the action to turn it on we'll oblige.
+This patch set introduce self-probe infrastructure to init IRQ
+controllers and stacked irqdomain support for ACPI based GICv2/3
+init.
 
-If you care about users a compile time selection doesn't make sense,
-why not always build it but require an opt-in?
+The self-probe infrastructure for ACPI GIC init is similar as
+IRQCHIP_DECLARE() and based on the GIC version support in ACPI
+MADT table. we match the GIC version and GIC driver and load
+it.
+
+We introduce acpi_irq_domain for GICv2/3 core domain to support
+stacked irqdomain, and pass the gsi (global system interrupt) as
+the agument (void *arg) for gic_irq_domain_alloc(), then we can
+alloc virqs via acpi_register_gsi() with stacked irqdomain.
+
+The stacked irq domain will be:
+
+    acpi_irq_domain == gicv2 or gicv3 core domain
+                   ^
+                   |   (parent)
+                   |
+       ITS domain or GIv2m domain
+                   ^
+                   |
+                   |
+           MSI chip irq domain
+
+Since there is one GICD supported for now, so there will be only
+one irqdomain created when GICv2/3 initialized, for all the wired
+hardware irqs for PPI, SGI and SPI, they will have unique hardware
+irq number (GSI), so we can match the device to the acpi_irq_domain
+with unique GSI and it will work. If there will be multi GICD in the
+future, this will still works to follow the solution for x86 of ACPI
+(mutil IOAPICs).
+
+
+Note: patch 1~2 already merged in ACPICA core, I just send them out
+for helping of better understanding later 7 patches.
+
+Any comments are warmly welcomed.
+
+update from RFC version:
+ - Consolidate all the GIC init code into drivers/irqchip/irq-gic-acpi.c
+
+v1->v2:
+ - Remove the gicv2/v3 related driver code in drivers/irqchip/irq-gic-acpi.c
+   which I was trying to consolidate them in one file, then arm-gic.h and
+   arm-gic-v3.h will be used separately within parent driver only
+
+ - Drop the gsi_mutex patch
+
+ - Use the GIC version to match the GIC driver, then no need to test
+   for the version in each driver
+
+ - Move acpi_irq_init() to drivers/irqchip/irq-gic-acpi.c instead of
+   in drivers/acpi/irq.c. maybe we need to rename acpi_irq_init() as
+   acpi_gic_init() but I keep that name to accommodate of_irq_init(),
+   any objections please let me know.
+
+Bob Moore (1):
+  ACPICA: ACPI 6.0: Add changes for MADT table.
+
+Hanjun Guo (6):
+  ACPICA: ACPI 6.0: Add values for MADT GIC version field.
+  irqchip / GIC: Add GIC version support in ACPI MADT
+  ACPI / irqchip: Add self-probe infrastructure to initialize IRQ
+    controller
+  irqchip / GIC / ACPI: Use IRQCHIP_ACPI_DECLARE to simplify GICv2 init
+    code
+  irqchip / gic: Add stacked irqdomain support for ACPI based GICv2 init
+  irqchip / GICv3: Add stacked irqdomain support for ACPI based init
+
+Tomasz Nowicki (2):
+  irqchip / GICv3: Refactor gic_of_init() for GICv3 driver
+  irqchip / GICv3: Add ACPI support for GICv3+ initialization
+
+ arch/arm64/Kconfig                   |   1 +
+ arch/arm64/include/asm/acpi.h        |   1 -
+ arch/arm64/include/asm/irq.h         |  13 --
+ arch/arm64/kernel/acpi.c             |  25 ----
+ drivers/acpi/gsi.c                   |  28 ++--
+ drivers/irqchip/Kconfig              |   3 +
+ drivers/irqchip/Makefile             |   1 +
+ drivers/irqchip/irq-gic-acpi.c       | 141 +++++++++++++++++++
+ drivers/irqchip/irq-gic-v3.c         | 264 ++++++++++++++++++++++++++++-------
+ drivers/irqchip/irq-gic.c            |  35 ++---
+ drivers/irqchip/irqchip.h            |  12 ++
+ include/acpi/actbl1.h                |  33 ++++-
+ include/asm-generic/vmlinux.lds.h    |  13 ++
+ include/linux/acpi.h                 |  16 +++
+ include/linux/acpi_irq.h             |   4 +-
+ include/linux/irqchip/arm-gic-acpi.h |  10 +-
+ include/linux/mod_devicetable.h      |   8 ++
+ 17 files changed, 473 insertions(+), 135 deletions(-)
+ create mode 100644 drivers/irqchip/irq-gic-acpi.c
+
+-- 
+1.9.1
+
