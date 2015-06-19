@@ -1,115 +1,71 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH 06/11] ACPI / gsi: Add gsi_mutex to synchronize acpi_register_gsi()/acpi_unregister_gsi()
-Date: Fri, 19 Jun 2015 10:49:39 +0100
-Message-ID: <5583E5B3.7000701@arm.com>
-References: <1431953961-22706-1-git-send-email-hanjun.guo@linaro.org> <1431953961-22706-7-git-send-email-hanjun.guo@linaro.org> <55785E8D.1000909@arm.com> <55798A28.3080000@linaro.org> <5583C536.1060201@linaro.org>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH v2 1/3] ACPI : introduce macros for using the ACPI specification
+ version
+Date: Fri, 19 Jun 2015 18:49:11 +0800
+Message-ID: <5583F3A7.4020202@linaro.org>
+References: <1434666968-1543-1-git-send-email-al.stone@linaro.org> <1434666968-1543-2-git-send-email-al.stone@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:44423 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753246AbbFSJtp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 19 Jun 2015 05:49:45 -0400
-In-Reply-To: <5583C536.1060201@linaro.org>
+Received: from mail-pa0-f52.google.com ([209.85.220.52]:34233 "EHLO
+	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932475AbbFSKtV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Jun 2015 06:49:21 -0400
+Received: by pabvl15 with SMTP id vl15so36851400pab.1
+        for <linux-acpi@vger.kernel.org>; Fri, 19 Jun 2015 03:49:20 -0700 (PDT)
+In-Reply-To: <1434666968-1543-2-git-send-email-al.stone@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Olof Johansson <olof@lixom.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
+To: Al Stone <al.stone@linaro.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, tglx@linutronix.de, jason@lakedaemon.net, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, linaro-kernel@lists.linaro.org, patches@linaro.org
 
-On 19/06/15 08:31, Hanjun Guo wrote:
-> On 06/11/2015 09:16 PM, Hanjun Guo wrote:
->> On 06/10/2015 11:58 PM, Marc Zyngier wrote:
->>> On 18/05/15 13:59, Hanjun Guo wrote:
->>>> Add a mutex for acpi_register_gsi()/acpi_unregister_gsi() to avoid
->>>> concurrency issues.
->>>>
->>>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->>>> ---
->>>>   drivers/acpi/gsi.c | 17 +++++++++++++----
->>>>   1 file changed, 13 insertions(+), 4 deletions(-)
->>>>
->>>> diff --git a/drivers/acpi/gsi.c b/drivers/acpi/gsi.c
->>>> index 55b5f31..ab0dcb4 100644
->>>> --- a/drivers/acpi/gsi.c
->>>> +++ b/drivers/acpi/gsi.c
->>>> @@ -16,6 +16,7 @@
->>>>   enum acpi_irq_model_id acpi_irq_model;
->>>>   /* ACPI core domian pointing to GICv2/3 core domain */
->>>>   struct irq_domain *acpi_irq_domain __read_mostly;
->>>> +static DEFINE_MUTEX(gsi_mutex);
->>>>
->>>>   static unsigned int acpi_gsi_get_irq_type(int trigger, int polarity)
->>>>   {
->>>> @@ -73,20 +74,24 @@ int acpi_register_gsi(struct device *dev, u32
->>>> gsi, int trigger,
->>>>       int irq;
->>>>       unsigned int irq_type = acpi_gsi_get_irq_type(trigger, polarity);
->>>>
->>>> +    mutex_lock(&gsi_mutex);
->>>>       irq = irq_find_mapping(acpi_irq_domain, gsi);
->>>>       if (irq > 0)
->>>> -        return irq;
->>>> +        goto out;
->>>>
->>>>       irq = irq_domain_alloc_irqs(acpi_irq_domain, 1, dev_to_node(dev),
->>>>                       &gsi);
->>>>       if (irq <= 0)
->>>> -        return -EINVAL;
->>>> +        goto out;
->>>>
->>>>       /* Set irq type if specified and different than the current one */
->>>>       if (irq_type != IRQ_TYPE_NONE &&
->>>>           irq_type != irq_get_trigger_type(irq))
->>>>           irq_set_irq_type(irq, irq_type);
->>>> -    return irq;
->>>> +
->>>> +out:
->>>> +    mutex_unlock(&gsi_mutex);
->>>> +    return irq > 0 ? irq : -EINVAL;
->>>>   }
->>>>   EXPORT_SYMBOL_GPL(acpi_register_gsi);
->>>>
->>>> @@ -96,8 +101,12 @@ EXPORT_SYMBOL_GPL(acpi_register_gsi);
->>>>    */
->>>>   void acpi_unregister_gsi(u32 gsi)
->>>>   {
->>>> -    int irq = irq_find_mapping(acpi_irq_domain, gsi);
->>>> +    int irq;
->>>> +
->>>> +    mutex_lock(&gsi_mutex);
->>>> +    irq = irq_find_mapping(acpi_irq_domain, gsi);
->>>>
->>>>       irq_dispose_mapping(irq);
->>>> +    mutex_unlock(&gsi_mutex);
->>>>   }
->>>>   EXPORT_SYMBOL_GPL(acpi_unregister_gsi);
->>>>
->>>
->>> Can you point out why we need this locking? The rest of the kernel seems
->>> to live without it pretty well. And if we really have an issue, I'd
->>
->> Hmm, I'm not so sure, I will look deep into that and come back later.
-> 
-> Sorry for the late reply, I finally recalled that why I introduced
-> the lock here.
-> 
-> The lock introduced here is because of I assume ACPI based container
-> (such as CPU socket) hotplug will be available on ARM64 in the future,
-> then we may online/offline a irqchip at the same time (similar way of
-> IOAPIC hotplug which introduced by Jiang Liu), it turns out that only
-> one GICD for now so it's not the case for ARM64 in the near future,
+On 06/19/2015 06:36 AM, Al Stone wrote:
+> Add the ACPI_SPEC_VERSION() macro to build a proper version number from
+> a major and minor revision number.  Add also the ACPI_FADT_SPEC_VERSION
+> that constructs a proper version number from the entries in the current
+> FADT.
+>
+> These macros are added in order to simplify retrieving and comparing ACPI
+> specification version numbers, since this is becoming a more frequent need.
+> In particular, there are some architectures that require at least a certain
+> version of the spec, and there are differences in some structure sizes that
+> have changed with recent versions but can only be tracked by spec version
+> number.
+>
+> Signed-off-by: Al Stone <al.stone@linaro.org>
+> ---
+>   include/linux/acpi.h | 5 +++++
+>   1 file changed, 5 insertions(+)
+>
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index a4acb55..33ed313 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -48,6 +48,11 @@
+>   #include <acpi/acpi_io.h>
+>   #include <asm/acpi.h>
+>
+> +#define ACPI_SPEC_VERSION(major, minor)	((major<<8)|minor)
 
-Well, there can only be one GICD, or at least only one that is visible.
-If the HW uses multiple GICDs (one per socket?), it must make ensure
-that they are all synchronized transparently. That's a strong
-requirement from the architecture. Otherwise, we enter the FrankeinGIC
-realm, and ACPI has no business with it.
+and minor comments for code style
 
-> I will drop this patch in next version.
+((major<<8)|minor) - > ((major << 8) | minor)
 
-Thanks,
+other than that:
 
-	M.
--- 
-Jazz is not dead. It just smells funny...
+Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
+
+Thanks
+Hanjun
+
+> +#define ACPI_FADT_SPEC_VERSION	\
+> +	ACPI_SPEC_VERSION(acpi_gbl_FADT.header.revision, \
+> +			  acpi_gbl_FADT.minor_revision)
+> +
+>   static inline acpi_handle acpi_device_handle(struct acpi_device *adev)
+>   {
+>   	return adev ? adev->handle : NULL;
+>
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
