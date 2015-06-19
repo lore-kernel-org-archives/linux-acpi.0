@@ -1,145 +1,44 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH v3-UPDATE 1/3] acpi: Add acpi_map_pxm_to_online_node()
-Date: Fri, 19 Jun 2015 17:14:15 -0600
-Message-ID: <1434755655-17272-1-git-send-email-toshi.kani@hp.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 03/32] ACPICA: Hardware: Enable 64-bit firmware waking vector for selected FACS.
+Date: Sat, 20 Jun 2015 01:40:57 +0200
+Message-ID: <2633375.qc8AYJl8H9@vostro.rjw.lan>
+References: <cover.1434684719.git.lv.zheng@intel.com> <261af597362906597365810a650c8e5c189e86da.1434684719.git.lv.zheng@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t3426.houston.hp.com ([15.201.208.54]:38327 "EHLO
-	g4t3426.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752049AbbFSXOh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Jun 2015 19:14:37 -0400
+Received: from v094114.home.net.pl ([79.96.170.134]:46948 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752049AbbFSXO4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Jun 2015 19:14:56 -0400
+In-Reply-To: <261af597362906597365810a650c8e5c189e86da.1434684719.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, dan.j.williams@intel.com
-Cc: linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hp.com>
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-The kernel initializes CPU & memory's NUMA topology from ACPI
-SRAT table.  Some other ACPI tables, such as NFIT and DMAR, also
-contain proximity IDs for their device's NUMA topology.  This
-information can be used to improve performance of these devices.
+On Friday, June 19, 2015 11:38:28 AM Lv Zheng wrote:
+> ACPICA commit 7aa598d711644ab0de5f70ad88f1e2de253115e4
+> 
+> The root cause of the reported bug might be one of the followings:
 
-This patch introduces acpi_map_pxm_to_online_node(), which is
-similar to acpi_map_pxm_to_node(), but always returns an online
-node.  When the mapped node from a given proximity ID is offline,
-it looks up the node distance table and returns the nearest
-online node.
+Care to describe the bug in the changelog too?  And in a few following
+changelogs as well?
 
-ACPI device drivers, which are called after the NUMA initialization
-has completed in the kernel, can call this interface to obtain their
-device NUMA topology from ACPI tables.  Such drivers do not have to
-deal with offline nodes.  A node may be offline when a device
-proximity ID is unique, SRAT memory entry does not exist, or NUMA is
-disabled, ex. "numa=off" on x86.
 
-This patch also moves the pxm range check from acpi_get_node() to
-acpi_map_pxm_to_node().
+> 1. BIOS may favor the 64-bit firmware waking vector address when the
+>    version of the FACS is greater than 0 and Linux currently only supports
+>    resuming from the real mode, so the 64-bit firmware waking vector has
+>    never been set and might be invalid to BIOS while the commit enables
+>    higher version FACS.
+> 2. BIOS may favor the FACS reported via the "FIRMWARE_CTRL" field in the
+>    FADT while the commit doesn't set the firmware waking vector address of
+>    the FACS reported by "FIRMWARE_CTRL", it only sets the firware waking
+>    vector address of the FACS reported by "X_FIRMWARE_CTRL".
 
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
----
-UPDATE: Remove "-" from "on-line" and "off-line".
----
- drivers/acpi/numa.c  |   50 +++++++++++++++++++++++++++++++++++++++++++++++---
- include/linux/acpi.h |    5 +++++
- 2 files changed, 52 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
-index 1333cbdc..acaa3b4 100644
---- a/drivers/acpi/numa.c
-+++ b/drivers/acpi/numa.c
-@@ -29,6 +29,8 @@
- #include <linux/errno.h>
- #include <linux/acpi.h>
- #include <linux/numa.h>
-+#include <linux/nodemask.h>
-+#include <linux/topology.h>
- 
- #define PREFIX "ACPI: "
- 
-@@ -70,7 +72,12 @@ static void __acpi_map_pxm_to_node(int pxm, int node)
- 
- int acpi_map_pxm_to_node(int pxm)
- {
--	int node = pxm_to_node_map[pxm];
-+	int node;
-+
-+	if (pxm < 0 || pxm >= MAX_PXM_DOMAINS)
-+		return NUMA_NO_NODE;
-+
-+	node = pxm_to_node_map[pxm];
- 
- 	if (node == NUMA_NO_NODE) {
- 		if (nodes_weight(nodes_found_map) >= MAX_NUMNODES)
-@@ -83,6 +90,45 @@ int acpi_map_pxm_to_node(int pxm)
- 	return node;
- }
- 
-+/**
-+ * acpi_map_pxm_to_online_node - Map proximity ID to online node
-+ * @pxm: ACPI proximity ID
-+ *
-+ * This is similar to acpi_map_pxm_to_node(), but always returns an online
-+ * node.  When the mapped node from a given proximity ID is offline, it
-+ * looks up the node distance table and returns the nearest online node.
-+ *
-+ * ACPI device drivers, which are called after the NUMA initialization has
-+ * completed in the kernel, can call this interface to obtain their device
-+ * NUMA topology from ACPI tables.  Such drivers do not have to deal with
-+ * offline nodes.  A node may be offline when a device proximity ID is
-+ * unique, SRAT memory entry does not exist, or NUMA is disabled, ex.
-+ * "numa=off" on x86.
-+ */
-+int acpi_map_pxm_to_online_node(int pxm)
-+{
-+	int node, n, dist, min_dist;
-+
-+	node = acpi_map_pxm_to_node(pxm);
-+
-+	if (node == NUMA_NO_NODE)
-+		node = 0;
-+
-+	if (!node_online(node)) {
-+		min_dist = INT_MAX;
-+		for_each_online_node(n) {
-+			dist = node_distance(node, n);
-+			if (dist < min_dist) {
-+				min_dist = dist;
-+				node = n;
-+			}
-+		}
-+	}
-+
-+	return node;
-+}
-+EXPORT_SYMBOL(acpi_map_pxm_to_online_node);
-+
- static void __init
- acpi_table_print_srat_entry(struct acpi_subtable_header *header)
- {
-@@ -328,8 +374,6 @@ int acpi_get_node(acpi_handle handle)
- 	int pxm;
- 
- 	pxm = acpi_get_pxm(handle);
--	if (pxm < 0 || pxm >= MAX_PXM_DOMAINS)
--		return NUMA_NO_NODE;
- 
- 	return acpi_map_pxm_to_node(pxm);
- }
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index e4da5e3..1b3bbb1 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -289,8 +289,13 @@ extern void acpi_dmi_osi_linux(int enable, const struct dmi_system_id *d);
- extern void acpi_osi_setup(char *str);
- 
- #ifdef CONFIG_ACPI_NUMA
-+int acpi_map_pxm_to_online_node(int pxm);
- int acpi_get_node(acpi_handle handle);
- #else
-+static inline int acpi_map_pxm_to_online_node(int pxm)
-+{
-+	return 0;
-+}
- static inline int acpi_get_node(acpi_handle handle)
- {
- 	return 0;
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
