@@ -1,71 +1,69 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v2 1/3] ACPI : introduce macros for using the ACPI specification
- version
-Date: Fri, 19 Jun 2015 18:49:11 +0800
-Message-ID: <5583F3A7.4020202@linaro.org>
-References: <1434666968-1543-1-git-send-email-al.stone@linaro.org> <1434666968-1543-2-git-send-email-al.stone@linaro.org>
+Subject: Re: [PATCH v2 2/3] ACPI: add BAD_MADT_GICC_ENTRY() macro
+Date: Fri, 19 Jun 2015 18:49:57 +0800
+Message-ID: <5583F3D5.2020004@linaro.org>
+References: <1434666968-1543-1-git-send-email-al.stone@linaro.org> <1434666968-1543-3-git-send-email-al.stone@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f52.google.com ([209.85.220.52]:34233 "EHLO
-	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932475AbbFSKtV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Jun 2015 06:49:21 -0400
-Received: by pabvl15 with SMTP id vl15so36851400pab.1
-        for <linux-acpi@vger.kernel.org>; Fri, 19 Jun 2015 03:49:20 -0700 (PDT)
-In-Reply-To: <1434666968-1543-2-git-send-email-al.stone@linaro.org>
+Received: from mail-pd0-f178.google.com ([209.85.192.178]:33019 "EHLO
+	mail-pd0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754507AbbFSKuH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Jun 2015 06:50:07 -0400
+Received: by pdjn11 with SMTP id n11so88559780pdj.0
+        for <linux-acpi@vger.kernel.org>; Fri, 19 Jun 2015 03:50:06 -0700 (PDT)
+In-Reply-To: <1434666968-1543-3-git-send-email-al.stone@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Al Stone <al.stone@linaro.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Cc: rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, tglx@linutronix.de, jason@lakedaemon.net, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, linaro-kernel@lists.linaro.org, patches@linaro.org
 
 On 06/19/2015 06:36 AM, Al Stone wrote:
-> Add the ACPI_SPEC_VERSION() macro to build a proper version number from
-> a major and minor revision number.  Add also the ACPI_FADT_SPEC_VERSION
-> that constructs a proper version number from the entries in the current
-> FADT.
+> The BAD_MADT_ENTRY() macro is designed to work for all of the subtables
+> of the MADT.  In the ACPI 5.1 version of the spec, the struct for the
+> GICC subtable (struct acpi_madt_generic_interrupt) is 76 bytes long; in
+> ACPI 6.0, the struct is 80 bytes long.  But, there is only one definition
+> in ACPICA for this struct -- and that is the 6.0 version.  Hence, when
+> BAD_MADT_ENTRY() compares the struct size to the length in the GICC
+> subtable, it fails if 5.1 structs are in use, and there are systems in
+> the wild that have them.
 >
-> These macros are added in order to simplify retrieving and comparing ACPI
-> specification version numbers, since this is becoming a more frequent need.
-> In particular, there are some architectures that require at least a certain
-> version of the spec, and there are differences in some structure sizes that
-> have changed with recent versions but can only be tracked by spec version
-> number.
+> This patch adds the BAD_MADT_GICC_ENTRY() that checks the GICC subtable
+> only, accounting for the difference in specification versions that are
+> possible.  The BAD_MADT_ENTRY() will continue to work as is for all other
+> MADT subtables.
 >
 > Signed-off-by: Al Stone <al.stone@linaro.org>
 > ---
->   include/linux/acpi.h | 5 +++++
->   1 file changed, 5 insertions(+)
+>   include/linux/acpi.h | 10 ++++++++++
+>   1 file changed, 10 insertions(+)
 >
 > diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index a4acb55..33ed313 100644
+> index 33ed313..d3a1758 100644
 > --- a/include/linux/acpi.h
 > +++ b/include/linux/acpi.h
-> @@ -48,6 +48,11 @@
->   #include <acpi/acpi_io.h>
->   #include <asm/acpi.h>
+> @@ -127,6 +127,16 @@ static inline void acpi_initrd_override(void *data, size_t size)
+>   		(!entry) || (unsigned long)entry + sizeof(*entry) > end ||  \
+>   		((struct acpi_subtable_header *)entry)->length < sizeof(*entry))
 >
-> +#define ACPI_SPEC_VERSION(major, minor)	((major<<8)|minor)
-
-and minor comments for code style
-
-((major<<8)|minor) - > ((major << 8) | minor)
-
-other than that:
+> +#define ACPI_MADT_GICC_51_LENGTH	76
+> +#define ACPI_MADT_GICC_60_LENGTH	80
+> +
+> +#define BAD_MADT_GICC_ENTRY(entry, end) (				    \
+> +		(!entry) || (unsigned long)entry + sizeof(*entry) > end ||  \
+> +		((ACPI_FADT_SPEC_VERSION == ACPI_SPEC_VERSION(5, 1)) &&	    \
+> +		 (entry->header.length != ACPI_MADT_GICC_51_LENGTH))	||  \
+> +		((ACPI_FADT_SPEC_VERSION == ACPI_SPEC_VERSION(6, 0)) &&	    \
+> +		 (entry->header.length != ACPI_MADT_GICC_60_LENGTH)))
+> +
+>   char * __acpi_map_table (unsigned long phys_addr, unsigned long size);
+>   void __acpi_unmap_table(char *map, unsigned long size);
+>   int early_acpi_boot_init(void);
 
 Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
 
 Thanks
 Hanjun
-
-> +#define ACPI_FADT_SPEC_VERSION	\
-> +	ACPI_SPEC_VERSION(acpi_gbl_FADT.header.revision, \
-> +			  acpi_gbl_FADT.minor_revision)
-> +
->   static inline acpi_handle acpi_device_handle(struct acpi_device *adev)
->   {
->   	return adev ? adev->handle : NULL;
->
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
