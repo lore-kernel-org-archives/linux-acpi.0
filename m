@@ -1,62 +1,47 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 09/32] ACPICA: Tables: Fix an issue that ACPI initialization is blocked due to no FACS.
-Date: Fri, 19 Jun 2015 11:39:14 +0800
-Message-ID: <ea654e92978e26a6b3d53504e9de0caf9c8e8c7c.1434684720.git.lv.zheng@intel.com>
+Subject: [PATCH 11/32] ACPICA: Tables: Enable default 64-bit FADT addresses favor.
+Date: Fri, 19 Jun 2015 11:39:28 +0800
+Message-ID: <e56913d351d4b23864f7bb491f8167a25ea00c40.1434684720.git.lv.zheng@intel.com>
 References: <cover.1434684719.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:17280 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932119AbbFSDjT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 18 Jun 2015 23:39:19 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1434684719.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
-ACPICA commit ebd544ed24c5a4faba11f265e228b7a821a729f5
+ACPICA commit 4da56eeae0749dfe8491285c1e1fad48f6efafd8
 
-This patch fixes an issue that when FACS tables do not exist, ACPI
-initialization cannot proceed. ACPICA BZ 1122. Lv Zheng.
+With enough protections, this patch re-enables 64-bit FADT addresses by
+default. If regressions are reported against such change, this patch should
+be bisected and reverted.
+Note that 64-bit FACS favor and 64-bit firmware waking vector favor are
+excluded by this commit in order not to break OSPMs. Lv Zheng.
 
-Link: https://bugs.acpica.org/show_bug.cgi?id=1122
-Link: https://github.com/acpica/acpica/commit/ebd544ed
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=74021
+Link: https://github.com/acpica/acpica/commit/4da56eea
+Reported-and-tested-by: Oswald Buddenhagen <ossi@kde.org>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/tbutils.c |   16 +++++++---------
- 1 file changed, 7 insertions(+), 9 deletions(-)
+ include/acpi/acpixf.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
-index 6a6c5be..2bb6a11 100644
---- a/drivers/acpi/acpica/tbutils.c
-+++ b/drivers/acpi/acpica/tbutils.c
-@@ -84,18 +84,16 @@ acpi_status acpi_tb_initialize_facs(void)
- 				      ACPI_CAST_INDIRECT_PTR(struct
- 							     acpi_table_header,
- 							     &acpi_gbl_facs64));
--	if (!acpi_gbl_facs32 && !acpi_gbl_facs64) {
--		return (AE_NO_MEMORY);
--	}
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index dec71ff..00daa3c 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -195,9 +195,9 @@ ACPI_INIT_GLOBAL(u8, acpi_gbl_do_not_use_xsdt, FALSE);
+  * address. Although ACPICA adheres to the ACPI specification which
+  * requires the use of the corresponding 64-bit address if it is non-zero,
+  * some machines have been found to have a corrupted non-zero 64-bit
+- * address. Default is TRUE, favor the 32-bit addresses.
++ * address. Default is FALSE, do not favor the 32-bit addresses.
+  */
+-ACPI_INIT_GLOBAL(u8, acpi_gbl_use32_bit_fadt_addresses, TRUE);
++ACPI_INIT_GLOBAL(u8, acpi_gbl_use32_bit_fadt_addresses, FALSE);
  
--	if (acpi_gbl_use32_bit_facs_addresses) {
--		acpi_gbl_FACS =
--		    acpi_gbl_facs32 ? acpi_gbl_facs32 : acpi_gbl_facs64;
--	} else {
--		acpi_gbl_FACS =
--		    acpi_gbl_facs64 ? acpi_gbl_facs64 : acpi_gbl_facs32;
-+	if (acpi_gbl_facs64
-+	    && (!acpi_gbl_facs32 || !acpi_gbl_use32_bit_facs_addresses)) {
-+		acpi_gbl_FACS = acpi_gbl_facs64;
-+	} else if (acpi_gbl_facs32) {
-+		acpi_gbl_FACS = acpi_gbl_facs32;
- 	}
- 
-+	/* If there is no FACS, just continue. There was already an error msg */
-+
- 	return (AE_OK);
- }
- #endif				/* !ACPI_REDUCED_HARDWARE */
+ /*
+  * Optionally use 32-bit FACS table addresses.
 -- 
 1.7.10
-
