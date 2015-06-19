@@ -1,123 +1,106 @@
-From: Ingo Molnar <mingo@kernel.org>
-Subject: Re: [PATCH 04/32] ACPI: sleep: Update
- acpi_set_firmware_waking_vector() invocations to favor 32-bit firmware
- waking vector.
-Date: Fri, 19 Jun 2015 08:26:31 +0200
-Message-ID: <20150619062631.GA9668@gmail.com>
-References: <cover.1434684719.git.lv.zheng@intel.com>
- <2f708d4ee4100bd1b64ca1ea00b678d5f5b2135a.1434684719.git.lv.zheng@intel.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH 06/11] ACPI / gsi: Add gsi_mutex to synchronize acpi_register_gsi()/acpi_unregister_gsi()
+Date: Fri, 19 Jun 2015 15:31:02 +0800
+Message-ID: <5583C536.1060201@linaro.org>
+References: <1431953961-22706-1-git-send-email-hanjun.guo@linaro.org> <1431953961-22706-7-git-send-email-hanjun.guo@linaro.org> <55785E8D.1000909@arm.com> <55798A28.3080000@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wg0-f46.google.com ([74.125.82.46]:35076 "EHLO
-	mail-wg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751021AbbFSG0h (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Jun 2015 02:26:37 -0400
-Content-Disposition: inline
-In-Reply-To: <2f708d4ee4100bd1b64ca1ea00b678d5f5b2135a.1434684719.git.lv.zheng@intel.com>
+Received: from mail-pa0-f50.google.com ([209.85.220.50]:36087 "EHLO
+	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753972AbbFSHbQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Jun 2015 03:31:16 -0400
+Received: by paceq1 with SMTP id eq1so55039877pac.3
+        for <linux-acpi@vger.kernel.org>; Fri, 19 Jun 2015 00:31:15 -0700 (PDT)
+In-Reply-To: <55798A28.3080000@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, linux-ia64@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Olof Johansson <olof@lixom.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 
+On 06/11/2015 09:16 PM, Hanjun Guo wrote:
+> On 06/10/2015 11:58 PM, Marc Zyngier wrote:
+>> On 18/05/15 13:59, Hanjun Guo wrote:
+>>> Add a mutex for acpi_register_gsi()/acpi_unregister_gsi() to avoid
+>>> concurrency issues.
+>>>
+>>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>>> ---
+>>>   drivers/acpi/gsi.c | 17 +++++++++++++----
+>>>   1 file changed, 13 insertions(+), 4 deletions(-)
+>>>
+>>> diff --git a/drivers/acpi/gsi.c b/drivers/acpi/gsi.c
+>>> index 55b5f31..ab0dcb4 100644
+>>> --- a/drivers/acpi/gsi.c
+>>> +++ b/drivers/acpi/gsi.c
+>>> @@ -16,6 +16,7 @@
+>>>   enum acpi_irq_model_id acpi_irq_model;
+>>>   /* ACPI core domian pointing to GICv2/3 core domain */
+>>>   struct irq_domain *acpi_irq_domain __read_mostly;
+>>> +static DEFINE_MUTEX(gsi_mutex);
+>>>
+>>>   static unsigned int acpi_gsi_get_irq_type(int trigger, int polarity)
+>>>   {
+>>> @@ -73,20 +74,24 @@ int acpi_register_gsi(struct device *dev, u32
+>>> gsi, int trigger,
+>>>       int irq;
+>>>       unsigned int irq_type = acpi_gsi_get_irq_type(trigger, polarity);
+>>>
+>>> +    mutex_lock(&gsi_mutex);
+>>>       irq = irq_find_mapping(acpi_irq_domain, gsi);
+>>>       if (irq > 0)
+>>> -        return irq;
+>>> +        goto out;
+>>>
+>>>       irq = irq_domain_alloc_irqs(acpi_irq_domain, 1, dev_to_node(dev),
+>>>                       &gsi);
+>>>       if (irq <= 0)
+>>> -        return -EINVAL;
+>>> +        goto out;
+>>>
+>>>       /* Set irq type if specified and different than the current one */
+>>>       if (irq_type != IRQ_TYPE_NONE &&
+>>>           irq_type != irq_get_trigger_type(irq))
+>>>           irq_set_irq_type(irq, irq_type);
+>>> -    return irq;
+>>> +
+>>> +out:
+>>> +    mutex_unlock(&gsi_mutex);
+>>> +    return irq > 0 ? irq : -EINVAL;
+>>>   }
+>>>   EXPORT_SYMBOL_GPL(acpi_register_gsi);
+>>>
+>>> @@ -96,8 +101,12 @@ EXPORT_SYMBOL_GPL(acpi_register_gsi);
+>>>    */
+>>>   void acpi_unregister_gsi(u32 gsi)
+>>>   {
+>>> -    int irq = irq_find_mapping(acpi_irq_domain, gsi);
+>>> +    int irq;
+>>> +
+>>> +    mutex_lock(&gsi_mutex);
+>>> +    irq = irq_find_mapping(acpi_irq_domain, gsi);
+>>>
+>>>       irq_dispose_mapping(irq);
+>>> +    mutex_unlock(&gsi_mutex);
+>>>   }
+>>>   EXPORT_SYMBOL_GPL(acpi_unregister_gsi);
+>>>
+>>
+>> Can you point out why we need this locking? The rest of the kernel seems
+>> to live without it pretty well. And if we really have an issue, I'd
+>
+> Hmm, I'm not so sure, I will look deep into that and come back later.
 
-* Lv Zheng <lv.zheng@intel.com> wrote:
+Sorry for the late reply, I finally recalled that why I introduced
+the lock here.
 
-> This patch updates acpi_set_firmware_waking_vector() invocations in order
-> to keep 32-bit firmware waking vector favor for Linux.
+The lock introduced here is because of I assume ACPI based container
+(such as CPU socket) hotplug will be available on ARM64 in the future,
+then we may online/offline a irqchip at the same time (similar way of
+IOAPIC hotplug which introduced by Jiang Liu), it turns out that only
+one GICD for now so it's not the case for ARM64 in the near future,
+I will drop this patch in next version.
 
-This sentence does not parse.
-
-> 64-bit firmware waking vector has never been enabled by Linux.  The
-> (acpi_physical_address)0 for 64-bit address can be used to force ACPICA to
-> set only 32-bit firmware waking vector for Linux.
-
-So this is a change that affects a lot of systems - what is the expected 
-compatibility of this? Does Windows enable the 64-bit address? Which versions of 
-Windows?
-
-> 
-> Reference: https://bugzilla.kernel.org/show_bug.cgi?id=74021
-> Reported-and-tested-by: Oswald Buddenhagen <ossi@kde.org>
-> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-> Cc: Thomas Gleixner <tglx@linutronix.de>
-> Cc: Ingo Molnar <mingo@redhat.com>
-> Cc: "H. Peter Anvin" <hpa@zytor.com>
-> Cc: x86@kernel.org
-> Cc: Tony Luck <tony.luck@intel.com>
-> Cc: Fenghua Yu <fenghua.yu@intel.com>
-> Cc: linux-ia64@vger.kernel.org
-> ---
->  arch/ia64/include/asm/acpi.h |    3 ++-
->  arch/ia64/kernel/acpi.c      |    2 --
->  arch/x86/include/asm/acpi.h  |    3 ++-
->  drivers/acpi/sleep.c         |    8 ++++++--
->  4 files changed, 10 insertions(+), 6 deletions(-)
-> 
-> diff --git a/arch/ia64/include/asm/acpi.h b/arch/ia64/include/asm/acpi.h
-> index aa0fdf1..0ac4fab 100644
-> --- a/arch/ia64/include/asm/acpi.h
-> +++ b/arch/ia64/include/asm/acpi.h
-> @@ -79,7 +79,8 @@ int acpi_gsi_to_irq (u32 gsi, unsigned int *irq);
->  /* Low-level suspend routine. */
->  extern int acpi_suspend_lowlevel(void);
->  
-> -extern unsigned long acpi_wakeup_address;
-> +#define acpi_wakeup_address	((acpi_physical_address)0)
-> +#define acpi_wakeup_address64	((acpi_physical_address)0)
->  
->  /*
->   * Record the cpei override flag and current logical cpu. This is
-> diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
-> index b1698bc..1b08d6f 100644
-> --- a/arch/ia64/kernel/acpi.c
-> +++ b/arch/ia64/kernel/acpi.c
-> @@ -60,8 +60,6 @@ int acpi_lapic;
->  unsigned int acpi_cpei_override;
->  unsigned int acpi_cpei_phys_cpuid;
->  
-> -unsigned long acpi_wakeup_address = 0;
-> -
->  #ifdef CONFIG_IA64_GENERIC
->  static unsigned long __init acpi_find_rsdp(void)
->  {
-> diff --git a/arch/x86/include/asm/acpi.h b/arch/x86/include/asm/acpi.h
-> index 3a45668..fc9608d 100644
-> --- a/arch/x86/include/asm/acpi.h
-> +++ b/arch/x86/include/asm/acpi.h
-> @@ -72,7 +72,8 @@ static inline void acpi_disable_pci(void)
->  extern int (*acpi_suspend_lowlevel)(void);
->  
->  /* Physical address to resume after wakeup */
-> -#define acpi_wakeup_address ((unsigned long)(real_mode_header->wakeup_start))
-> +#define acpi_wakeup_address	((acpi_physical_address)(real_mode_header->wakeup_start))
-> +#define acpi_wakeup_address64	((acpi_physical_address)(0))
-
-Btw., 'acpi_physical_address' is a mouthful, and despite being a data type, it 
-looks like a variable name. Please rename it to something more sensible, matching 
-existing physical address patterns, like 'acpi_phys_addr_t'.
-
-Also, is there any reason why it's not simply phys_addr_t? It's not like ACPI has 
-a different notion of physical addresses.
-
-> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-> index 2f0d4db..3a6a2eb 100644
-> --- a/drivers/acpi/sleep.c
-> +++ b/drivers/acpi/sleep.c
-> @@ -25,6 +25,8 @@
->  #include "internal.h"
->  #include "sleep.h"
->  
-> +#define ACPI_NO_WAKING_VECTOR		((acpi_physical_address)0)
-
-So in x86 speak, 'vectors' are the things that drive interrupts. They are not 
-addresses. So calling it a 'vector' is a misnomer - it's a wakeup entry address 
-point.
-
-Secondly, when the 64-bit entry point is configured, in what mode does the 
-firmware enter it - still real mode? Exactly what are the semantics when the 
-64-bit entry point is set?
-
-Thanks,
-
-	Ingo
+Thanks
+Hanjun
