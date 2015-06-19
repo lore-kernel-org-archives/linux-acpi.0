@@ -1,76 +1,68 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v2 0/3] Correct for ACPI 5.1->6.0 spec changes in MADT
- GICC entries
-Date: Fri, 19 Jun 2015 18:54:47 +0800
-Message-ID: <5583F4F7.1000002@linaro.org>
-References: <1434666968-1543-1-git-send-email-al.stone@linaro.org>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [Patch v3 0/4] Introduce a mechanism to allocate PCI IRQ on
+ demand
+Date: Fri, 19 Jun 2015 11:10:01 -0500
+Message-ID: <20150619161001.GJ7710@google.com>
+References: <1433926501-22956-1-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f172.google.com ([209.85.192.172]:35255 "EHLO
-	mail-pd0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750982AbbFSKy4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 19 Jun 2015 06:54:56 -0400
-Received: by pdbci14 with SMTP id ci14so29968262pdb.2
-        for <linux-acpi@vger.kernel.org>; Fri, 19 Jun 2015 03:54:55 -0700 (PDT)
-In-Reply-To: <1434666968-1543-1-git-send-email-al.stone@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1433926501-22956-1-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Al Stone <al.stone@linaro.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, tglx@linutronix.de, jason@lakedaemon.net, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, linaro-kernel@lists.linaro.org, patches@linaro.org
 
-On 06/19/2015 06:36 AM, Al Stone wrote:
-> In the ACPI 5.1 version of the spec, the struct for the GICC subtable
-> (struct acpi_madt_generic_interrupt) of the MADT is 76 bytes long; in
-> ACPI 6.0, the struct is 80 bytes long.  But, there is only one definition
-> in ACPICA for this struct -- and that is the 6.0 version.  Hence, when
-> BAD_MADT_ENTRY() compares the struct size to the length in the GICC
-> subtable, it fails if 5.1 structs are in use, and there are systems in
-> the wild that have them.
->
-> Note that this was found in linux-next and these patches apply against
-> that tree and the arm64 kernel tree; 4.1-rc8 does not appear to have this
-> problem since it still has the 5.1 struct definition.
->
-> Even though there is precendent in ia64 code for ignoring the changes in
-> size, this patch set instead tries to verify correctness.  The first patch
-> in the set adds macros for easily using the ACPI spec version.  The second
-> patch adds the BAD_MADT_GICC_ENTRY() macro that uses the version macros to
-> check the GICC subtable only, accounting for the difference in specification
-> versions that are possible.  The final patch replaces BAD_MADT_ENTRY usage
-> with the BAD_MADT_GICC_ENTRY macro in arm64 code, which is currently the
-> only architecture affected.  The BAD_MADT_ENTRY() will continue to work as
-> is for all other MADT subtables.
->
-> I have tested these patches on an APM Mustang with version 1.15 firmware,
-> where the problem was found, and they fix the problem.
+On Wed, Jun 10, 2015 at 04:54:57PM +0800, Jiang Liu wrote:
+> Hi Bjorn,
+> 	I have verified that this patch set could be applied to the
+> mainstream kernel without dependency on other patches, so could you
+> please help to merge it?
 
-I also tested on QEMU, it fixed the problem when I was using ACPICA 6.0
-updates for MADT table,
+I already acked these and said I was willing to merge them and that I was
+hoping for an ack from Thomas.
 
-Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
+Any thoughts, Thomas?
 
-Thanks
-Hanjun
-
->
-> Changes for v2:
->    -- Replace magic constants with proper defines (Lorenzo)
->    -- Minor syntax clean-up noted by checkpatch
->    -- Send out CCs properly this time
->    -- Minor clean-up of the paragraphs in this cover letter
->
->
-> Al Stone (3):
->    ACPI : introduce macros for using the ACPI specification version
->    ACPI: add BAD_MADT_GICC_ENTRY() macro
->    ACPI / ARM64 : use the new BAD_MADT_GICC_ENTRY macro
->
->   arch/arm64/kernel/smp.c   |  2 +-
->   drivers/irqchip/irq-gic.c |  2 +-
->   include/linux/acpi.h      | 15 +++++++++++++++
->   3 files changed, 17 insertions(+), 2 deletions(-)
->
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> This patch set introduces a mechanism to allocate PCI IRQ on demand and
+> free it when not used anymore by hooking pci_device_probe() and
+> pci_device_remove().
+> 
+> It will be used to track IOAPIC pin usage on x86 so we could support
+> IOAPIC hot-removal.
+> 
+> The patch set passes Fengguang's 0day test suite.
+> 
+> V2->V3:
+> 1) Change the default pcibios_alloc_irq() to always return 0, as
+>    suggested by Bjorn.
+> 2) Refine comments.
+> 
+> V1->V2:
+> 1) Refine pci_device_probe() to optimize for mainline code as suggested
+>    by Bjorn
+> 2) Reorder patch set to put optional patch as the last (Patch 4)
+> 
+> 
+> Jiang Liu (4):
+>   PCI: Add hooks to allocate/free IRQ resources when binding/unbinding
+>     driver
+>   PCI, x86: Allocate PCI IRQ on demand and free it when not used
+>     anymore
+>   PCI: Add helpers to manage pci_dev->irq and pci_dev->irq_managed
+>   PCI, MSI: Free legacy PCI IRQ when enabling MSI/MSI-X
+> 
+>  arch/x86/include/asm/pci_x86.h |    2 --
+>  arch/x86/pci/common.c          |   20 +++++++++-----------
+>  arch/x86/pci/intel_mid_pci.c   |    9 ++++++---
+>  arch/x86/pci/irq.c             |   23 ++++-------------------
+>  drivers/acpi/pci_irq.c         |   17 ++++-------------
+>  drivers/pci/msi.c              |    6 +++++-
+>  drivers/pci/pci-driver.c       |   26 ++++++++++++++++++++------
+>  include/linux/pci.h            |   19 +++++++++++++++++++
+>  8 files changed, 67 insertions(+), 55 deletions(-)
+> 
+> -- 
+> 1.7.10.4
+> 
