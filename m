@@ -1,39 +1,27 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 07/32] ACPICA: Hardware: Cleanup the return values in acpi_set_waking_vector().
-Date: Fri, 19 Jun 2015 11:38:59 +0800
-Message-ID: <e94084d299f3376d1035d825416f6259b81bc991.1434684720.git.lv.zheng@intel.com>
-References: <cover.1434684719.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1434684719.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
+From: "Izumi, Taku" <izumi.taku@jp.fujitsu.com>
+Subject: RE: [PATCH 00/22] FUJITSU Extended Socket network device driver
+Date: Fri, 19 Jun 2015 04:20:49 +0000
+Message-ID: <E86EADE93E2D054CBCD4E708C38D364A5424255E@G01JPEXMBYT01>
+References: <1434588359-25589-1-git-send-email-izumi.taku@jp.fujitsu.com>
+ <20150618212210.GA121898@vmdeb7>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="iso-2022-jp"
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20150618212210.GA121898@vmdeb7>
+Content-Language: ja-JP
+Sender: netdev-owner@vger.kernel.org
+To: Darren Hart <dvhart@infradead.org>, Joe Perches <joe@perches.com>, Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>, Stephen Hemminger <stephen@networkplumber.org>
+Cc: "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, "rkhan@redhat.com" <rkhan@redhat.com>, "alexander.h.duyck@redhat.com" <alexander.h.duyck@redhat.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-ACPICA commit a04dbfa308a48ab0b2d10519c54a6c533c5c8949
 
-The return statement in acpi_set_waking_vector() is wrong and this patch
-corrects it. Lv Zheng.
+ Thank you for reviewing.
 
-Link: https://github.com/acpica/acpica/commit/a04dbfa3
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-Signed-off-by: Bob Moore <robert.moore@intel.com>
----
- drivers/acpi/acpica/hwxfsleep.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> As Alex mentioned earlier, I suspect this is more appropriate for drivers/net.
+> If David objects, we can consider for platform/drivers/x86.
 
-diff --git a/drivers/acpi/acpica/hwxfsleep.c b/drivers/acpi/acpica/hwxfsleep.c
-index 9a438d2..5601fed 100644
---- a/drivers/acpi/acpica/hwxfsleep.c
-+++ b/drivers/acpi/acpica/hwxfsleep.c
-@@ -159,7 +159,7 @@ acpi_set_firmware_waking_vector(acpi_physical_address physical_address,
- 	/* If Hardware Reduced flag is set, there is no FACS */
- 
- 	if (acpi_gbl_reduced_hardware) {
--		return (AE_OK);
-+		return_ACPI_STATUS(AE_OK);
- 	}
- 
- 	if (acpi_gbl_facs32) {
--- 
-1.7.10
+ OK, I'll migrate the code from drivers/platform/x86 to drivers/net and also
+ incorporate comments. I'm going to resend one soon.
+
+ Sincerely,
+ Taku Izumi
