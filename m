@@ -1,76 +1,85 @@
-From: Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>
-Subject: Re: [PATCH v7 00/16] libnvdimm: non-volatile memory devices
-Date: Sat, 20 Jun 2015 22:40:26 +1000
-Message-ID: <20150620224026.582616fe@canb.auug.org.au>
-References: <20150617215027.11597.61414.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: Andreas Mohr <andi@lisas.de>
+Subject: Re: Debugging spurious wakeup
+Date: Sat, 20 Jun 2015 23:54:41 +0200
+Message-ID: <20150620215441.GA32242@rhlx01.hs-esslingen.de>
+References: <20150513065825.GA10680@sottospazio.it>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
- boundary="Sig_/cF97qF+0vI8J8kmt_K4.TyC"; protocol="application/pgp-signature"
-Return-path: <linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150617215027.11597.61414.stgit-p8uTFz9XbKj2zm6wflaqv1nYeNYlB/vhral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Sender: linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org, Boaz Harrosh <boaz-/8YdC2HfS5554TAoqtyWWQ@public.gmane.org>, rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, neilb-l3A5Bk7waGM@public.gmane.org, Lv Zheng <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, "Rafael J. Wysocki" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Robert Moore <robert.moore-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, hch-jcswGhMUV9g@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, Nicholas Moulin <nicholas.w.moulin-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Matthew Wilcox <willy-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Ross Zwisler <ross.zwisler-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Jens Axboe <axboe-b10kYP2dOMg@public.gmane.org>, Borislav Petkov <bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org, gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Andy Lutomirski <luto-kltTT9wpgjJwATOyAt5JVQ@public.gmane.org>, linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, Linus Torvalds <torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from rhlx01.hs-esslingen.de ([129.143.116.10]:32916 "EHLO
+	rhlx01.hs-esslingen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752327AbbFTVyn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 20 Jun 2015 17:54:43 -0400
+Content-Disposition: inline
+In-Reply-To: <20150513065825.GA10680@sottospazio.it>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: gianluca@sottospazio.it
+Cc: Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org
 
---Sig_/cF97qF+0vI8J8kmt_K4.TyC
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-Hi Dan,
+[managed to gather proper In-Reply-To from spinics.net
+rather than broken lkml.org]
 
-On Wed, 17 Jun 2015 19:13:19 -0400 Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> =
-wrote:
->
-> A new sub-system in support of non-volatile memory storage devices.
->=20
-> Stephen, please add libnvdimm-for-next to -next:
->=20
->   git://git.kernel.org/pub/scm/linux/kernel/git/djbw/nvdimm libnvdimm-for=
--next
+I'm having a very similar issue with my PCI FireWire card:
+whenever shutting down or even suspending,
+I'm getting immediate spurious wakeup; currently most strongly suspecting
+Firewire PHY-related IRQ event wakeups.
 
-Thanks for adding your subsystem tree as a participant of linux-next.  As
-you may know, this is not a judgment of your code.  The purpose of
-linux-next is for integration testing and to lower the impact of
-conflicts between subsystems in the next merge window.=20
+I collected the following items so far:
+- asked for help (having the system properly record / retain the actual
+  reason for system-global wakeup):
+    "pm: record / retain actual reason of last system wakeup??"
+      https://lkml.org/lkml/2015/6/2/625
+- figured out that it can be silenced with *general* (ouch)
+  BIOS PCI wakeup disable, yet that if not disabled
+  (which is *very* desirable, obviously, to retain WOL capability etc.)
+  it's actually already in a broken state directly post-BIOS-init,
+  at LILO prompt (i.e., **NOT** in Linux, NOT a Linux driver issue!
+  However perhaps we *might* be able to do something about it in Linux...):
+    "fw-ohci: ALi M52xx unsupported"
+      https://bugzilla.kernel.org/show_bug.cgi?id=10935
+    (contains reference to http://www.tonymacx86.com/general-help/65531-gigabyte-uefi-bios-startech-firewire-pcie-card-sleep-wake-shutdown-restart-issues-thread-8.html
+    where tons of people have issues with various FireWire cards -
+    so it seems that this is an issue that's pretty much inherent
+    to / associated with FireWire hardware behaviour)
+- found 074_GPE_Routing.doc which explains these GPE / PME things
+  (this *is* the stuff that's broken/problematic here, right??)
+  in pretty detailed form
+- "Re: PME# for add-on cards"
+    http://markmail.org/message/7uuzqbtrpswzrezz
+  mentions that probably BIOS forgot to do PME masking
+  directly prior to activating hardware shutdown
+  (well, at least in my case, where wakeup happens completely instantly,
+  as opposed to your case where it will wakeup after a couple seconds)
 
-You will need to ensure that the patches/commits in your tree/series have
-been:
-     * submitted under GPL v2 (or later) and include the Contributor's
-        Signed-off-by,
-     * posted to the relevant mailing list,
-     * reviewed by you (or another maintainer of your subsystem tree),
-     * successfully unit tested, and=20
-     * destined for the current or next Linux merge window.
+No amount of fumbling (~1 hour) with CAP_PM register range
+(PME_EN etc.; "setpci -v -s ${dst} CAP_PM+4.b=XX")
+or e.g. setting the "remove" sysfs attribute of PCI (sub) devices
+(this would then be a nicely controlled i.e. fine-grained manner)
+so far managed to disable this behaviour.
+I suspect that we might be talking
+of simple complete signal level mal-functioning of the card
+irrespective of how it's actually configured
+to generate or not generate events...
+(shutdown --> power change --> floating signals on PME# --> wakeup)
+I also tried to completely mask all FireWire event types in driver-side
+suspend handler, with no success (but given that this is a combo card
+with various USB host controllers FireWire may not be the sub device to
+be blamed after all - here we are again at dearly needing
+system-provided information about the *maximally precise* reason
+of last wakeup - PME ReqID [not available on my Conventional PCI system]
+seems to be a prime candidate). But given that the Mac forum reports issues
+with many FireWire cards, faulty USB sub device seems less likely.
 
-Basically, this should be just what you would send to Linus (or ask him
-to fetch).  It is allowed to be rebased if you deem it necessary.
+So, I'm still quite far from possibly(!) being able
+to create a device-specific PCI quirk entry (drivers/pci/quirks.c)
+or to create driver-side workarounds
+for FireWire cards which have this issue.
 
---=20
-Cheers,
-Stephen Rothwell=20
-sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org
+HTH,
 
---Sig_/cF97qF+0vI8J8kmt_K4.TyC
-Content-Type: application/pgp-signature
-Content-Description: OpenPGP digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJVhV9AAAoJEMDTa8Ir7ZwVjPUP/1cZUb9/UBIZ5ybxzgc2yro6
-5btwHuMB68JTMUUXHP5R/Ovla0RQHwaoHR3eJxF1X1kM+UKjFdX86in5HFGC7W5b
-pfXTc37hucTpbtYZguIKyEu78i02tL9z2tfiuSQ0kJCnTqQ5Ae/uHwaZrK6LTpy9
-x2AfF0XVcOi2oVdg+uc7WWiAMBylOsjrBMPBKZklfyaRPZ7Qo+volJDVTFIIXRnZ
-HCZoRSkxiE0fMHBqRqL/7OPlYqrFBvhIpFk0t+TKwsANaPKNlKVuvh27TD/mkXiI
-KIKatykIQsbr/iWBm/F81gcOjqPJFioGP0dm2TlVsMHKdbFv+Fi+WSHeufiBqBwY
-IZGiuY5kr4UQeeXQJN4sUgPmrYZr8508lr3CZwUWIRr3xB+rQGdbV2Y3+nvHMpAi
-q7unS8u/C4nxx+7lzlJWGHcURuejgVO/Lg1xZSZpb26kyIybKE68HBXfridnAej/
-DViONYHU/DcwptB9ucObXvp3nWQkJ0NpV+9CwVQWlrkoerE4nM6mK1FN9YZm2sHn
-je3ozE8Scsngw6KGqEFLxJUK+XogrGkMXAF/fxMKzYkr9CTr27hHcQyUpDx7/zlU
-xMlhmXT9IqqYu3tYls8t488N+qaTy3pkJgOKVXtpWcxgkWnSz3253Du/yqA2amKH
-4KLXIoSANioA6efVD5Vw
-=1qeW
------END PGP SIGNATURE-----
-
---Sig_/cF97qF+0vI8J8kmt_K4.TyC--
+Andreas Mohr
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
