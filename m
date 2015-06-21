@@ -1,48 +1,74 @@
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH 04/15] libnvdimm, nfit, nd_blk: driver for BLK-mode access
- persistent memory
-Date: Sun, 21 Jun 2015 07:39:58 -0700
-Message-ID: <CAPcyv4hYsq4C70C9+jTH-L38-uVbhwOWjr7SfZpzGnxw7nMoFQ@mail.gmail.com>
+Subject: Re: [PATCH 14/15] libnvdimm: support read-only btt backing devices
+Date: Sun, 21 Jun 2015 08:11:25 -0700
+Message-ID: <CAPcyv4iAkSaCOzpJHJLLtJG_9M=5Jp75Kc9tVeCr__OjEB=ajQ@mail.gmail.com>
 References: <20150617235209.12943.24419.stgit@dwillia2-desk3.amr.corp.intel.com>
-	<20150617235508.12943.25057.stgit@dwillia2-desk3.amr.corp.intel.com>
-	<20150621100535.GB5915@lst.de>
-	<CAPcyv4hBQy4syM=kAKX8ekNQRiAmCt3e+GbcHi=_Bht96f6FJw@mail.gmail.com>
-	<20150621135606.GB9572@lst.de>
+	<20150617235602.12943.24958.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<20150621101346.GF5915@lst.de>
+	<CAPcyv4jjTU8MA1zWnbRsyxcnxC+EJK9pJdLBkYeGtgHXeDkKVQ@mail.gmail.com>
+	<20150621135406.GA9572@lst.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f173.google.com ([209.85.212.173]:38396 "EHLO
-	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753380AbbFUOj7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 21 Jun 2015 10:39:59 -0400
-Received: by wibdq8 with SMTP id dq8so54196305wib.1
-        for <linux-acpi@vger.kernel.org>; Sun, 21 Jun 2015 07:39:58 -0700 (PDT)
-In-Reply-To: <20150621135606.GB9572@lst.de>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <20150621135406.GA9572@lst.de>
+Sender: linux-fsdevel-owner@vger.kernel.org
 To: Christoph Hellwig <hch@lst.de>
-Cc: Jens Axboe <axboe@kernel.dk>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Boaz Harrosh <boaz@plexistor.com>, "Kani, Toshimitsu" <toshi.kani@hp.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andy Lutomirski <luto@amacapital.net>, Jens Axboe <axboe@fb.com>, Linux ACPI <linux-acpi@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, Ingo Molnar <mingo@kernel.org>
+Cc: Jens Axboe <axboe@kernel.dk>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Boaz Harrosh <boaz@plexistor.com>, "Kani, Toshimitsu" <toshi.kani@hp.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Ingo Molnar <mingo@kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Jun 21, 2015 at 6:56 AM, Christoph Hellwig <hch@lst.de> wrote:
-> On Sun, Jun 21, 2015 at 06:31:38AM -0700, Dan Williams wrote:
->> > As mentioned last time only arch asm/ headers may include asm-generic
->> > headers.
->>
->> No, not in this case, there's no other way to define readq()/writeq()
->> on 32-bit builds.  See:
+On Sun, Jun 21, 2015 at 6:54 AM, Christoph Hellwig <hch@lst.de> wrote:
+> On Sun, Jun 21, 2015 at 06:21:50AM -0700, Dan Williams wrote:
+>> This question has come up before.  Making btt an internal property of
+>> a device makes some things cleaner and others more messy.  We lose the
+>> ability to place a btt instance on top of a partition, rather than a
+>> whole disk.
 >
-> Oh my god.  I think we're both right: no driver should use asm-generic,
-> but because someone totally messed this abstraction up you have no choice.
+> I thought the addition of nfit labels avoids the need for a partition
+> table now?
 >
-> We really should have a linux/*.h header for these that just does the
-> right thing.
->
-> Btw, what's the reason you're using the hi-lo ordering unlikely everyone
-> else?  IMHO that should be an arch and not a driver choice.
 
-If the hardware latches the register on writing the hi or lo bits
-first then it matters, otherwise it's arbitrary like it is in this
-case.  It's hard to have an arch default because different devices
-care about different orderings, so it must be a driver choice afaics.
+The labels only allow allocation of persistent media between pmem and
+blk.  For a given dimm you may access in either mode and the label
+records the decision.  We can have a btt on either the pmem or
+blk-mode disk type, or partition thereof.
+
+>> If we ever need to access the raw device we no longer
+>> have a direct block device to reference.  Linux has been doing stacked
+>> configurations to change the personality of block devices since
+>> forever (md, dm, bcache...), why invent something new to handle the
+>> btt-personality of ->rw_bytes() devices?
+>
+> Because the underlying abstraction really isn't a block device
+> anymore, it's a byte addressable device.  This is more similar to
+> for example how the mtd subsystem is structured.
+
+Yes, it's this hybrid thing that mostly fits into the existing block
+device model save for two new block_device_operations
+->direct_access() and ->rw_bytes().  We then use property of a
+block_device that allows it to be claimed for exclusive ownership by a
+filesystem or another block_device to layer storage semantics on top
+be it files+directories, raid, caching, or atomic sectors.  NVDIMM
+devices don't present the same complexity as MTD devices.  The only
+complexity they present is byte-address-ability, not erase-block-size,
+wear-leveling, etc...
+
+>> BTT precludes DAX, if you want both modes on one pmem disk placing BTT
+>> on a partition of the disk for fs metadata and DAX-capable data on the
+>> rest is our proposed solution.  We chose this architecture after a
+>> conversation with Dave Chinner about XFS's need to have atomic sector
+>> guarantees for its metadata and wanting to simultaneously enable
+>> XFS-DAX.
+>
+> I can't see why a v5 XFS filesystem with CRCs on all metadata would need
+> sector atomic updates any more.  But even in a case where it would it
+> seem like whatever label you use for partioning should sit above the
+> block layer.
+
+Yes, we use standard partition labels to sub-divide a namespace.  A
+namespace boundary is either set by a label internal to the dimm or
+the NFIT directly (for dimms that do not support internal labeling).
+Good to hear that we don't need BTT for XFS v5, can we make the
+guarantee for all filesystems that may want to support DAX?  I still
+think stacking is a natural fit for this problem.
 --
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+To unsubscribe from this list: send the line "unsubscribe linux-fsdevel" in
