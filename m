@@ -1,36 +1,25 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH 03/15] nd_btt: atomic sector updates
-Date: Sun, 21 Jun 2015 09:31:02 -0700
-Message-ID: <CAPcyv4iA96Khapnm54JZkgiduoqyWo1x45r7EX=OU8cs1dyhsw@mail.gmail.com>
-References: <20150617235209.12943.24419.stgit@dwillia2-desk3.amr.corp.intel.com>
-	<20150617235503.12943.76918.stgit@dwillia2-desk3.amr.corp.intel.com>
-	<20150621100329.GA5915@lst.de>
+From: 'LEUNG CHEUNG' <info@hotmail.com>
+Subject: Hello
+Date: Sun, 21 Jun 2015 22:35:18 +0530
+Message-ID: <20150621170553.5535A5F6B4D__30159.0079594918$1434907024$gmane$org@zmail.goiania.go.gov.br>
+Reply-To: mr.leungcheng30@foxmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <20150621100329.GA5915@lst.de>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>
-Cc: Jens Axboe <axboe@kernel.dk>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Boaz Harrosh <boaz@plexistor.com>, "Kani, Toshimitsu" <toshi.kani@hp.com>, Vishal Verma <vishal.l.verma@linux.intel.com>, Neil Brown <neilb@suse.de>, Greg KH <gregkh@linuxfoundation.org>, Dave Chinner <david@fromorbit.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Andy Lutomirski <luto@amacapital.net>, Jens Axboe <axboe@fb.com>, Linux ACPI <linux-acpi@vger.kernel.org>, Jeff Moyer <jmoyer@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Ingo Molnar <mingo@kernel.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from correio.turismo.goiania.go.gov.br ([200.199.226.132]:43480 "EHLO
+	zmail.goiania.go.gov.br" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752602AbbFURQr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 21 Jun 2015 13:16:47 -0400
+Content-Description: Mail message body
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Recipients <info@hotmail.com>
 
-On Sun, Jun 21, 2015 at 3:03 AM, Christoph Hellwig <hch@lst.de> wrote:
->> +config ND_MAX_REGIONS
->> +     int "Maximum number of regions supported by the sub-system"
->> +     default 64
->> +     ---help---
->> +       A 'region' corresponds to an individual DIMM or an interleave
->> +       set of DIMMs.  A typical maximally configured system may have
->> +       up to 32 DIMMs.
->> +
->> +       Leave the default of 64 if you are unsure.
->
-> Having static limits in Kconfig is a bad idea.  What prevents you
-> from handling any (reasonable) number dynamically?
 
-Hmm, yes, this was a bad holdover from before we were using percpu
-definitions for the lane locks.  Now that it's converted we can kill
-the static definition of nd_percpu_lane and just do an alloc_percpu()
-for each region dynamically.  Fixed in v2 and passing the test suite.
+
+
+
+I need your assistance to transfer $22,500,000.00 Dollars from Hong Kong 
 --
-To unsubscribe from this list: send the line "unsubscribe linux-fsdevel" in
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
