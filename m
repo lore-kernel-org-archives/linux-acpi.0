@@ -1,67 +1,55 @@
-From: Matt Fleming <matt@codeblueprint.co.uk>
-Subject: Re: [PATCH V3 4/4] acpi, apei: use EFI memmap to map GHES memory
-Date: Mon, 22 Jun 2015 06:11:31 +0100
-Message-ID: <20150622051131.GA2815@codeblueprint.co.uk>
-References: <1434047160-23358-1-git-send-email-zjzhang@codeaurora.org>
- <1434047160-23358-5-git-send-email-zjzhang@codeaurora.org>
- <20150612162924.GH9084@pd.tnic>
- <557B6ED9.3020706@codeaurora.org>
- <20150613082750.GA3470@pd.tnic>
- <20150615141533.GB17685@codeblueprint.co.uk>
- <20150615145908.GK4255@pd.tnic>
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: [PATCH 14/15] libnvdimm: support read-only btt backing devices
+Date: Mon, 22 Jun 2015 08:30:28 +0200
+Message-ID: <20150622063028.GA30434@lst.de>
+References: <20150617235209.12943.24419.stgit@dwillia2-desk3.amr.corp.intel.com> <20150617235602.12943.24958.stgit@dwillia2-desk3.amr.corp.intel.com> <20150621101346.GF5915@lst.de> <CAPcyv4jjTU8MA1zWnbRsyxcnxC+EJK9pJdLBkYeGtgHXeDkKVQ@mail.gmail.com> <20150621135406.GA9572@lst.de> <CAPcyv4iAkSaCOzpJHJLLtJG_9M=5Jp75Kc9tVeCr__OjEB=ajQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wg0-f43.google.com ([74.125.82.43]:33001 "EHLO
-	mail-wg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752819AbbFVFLf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Jun 2015 01:11:35 -0400
-Received: by wgck11 with SMTP id k11so3775994wgc.0
-        for <linux-acpi@vger.kernel.org>; Sun, 21 Jun 2015 22:11:34 -0700 (PDT)
+Received: from verein.lst.de ([213.95.11.211]:40802 "EHLO newverein.lst.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932606AbbFVGab (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 22 Jun 2015 02:30:31 -0400
 Content-Disposition: inline
-In-Reply-To: <20150615145908.GK4255@pd.tnic>
+In-Reply-To: <CAPcyv4iAkSaCOzpJHJLLtJG_9M=5Jp75Kc9tVeCr__OjEB=ajQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: "Zhang, Jonathan Zhixiong" <zjzhang@codeaurora.org>, Matt Fleming <matt.fleming@intel.com>, Thomas Gleixner <tglx@linutronix.de>, fu.wei@linaro.org, al.stone@linaro.org, tony.luck@gmail.com, rjw@rjwysocki.net, lenb@kernel.org, ying.huang@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Jens Axboe <axboe@kernel.dk>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Boaz Harrosh <boaz@plexistor.com>, "Kani, Toshimitsu" <toshi.kani@hp.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Ingo Molnar <mingo@kernel.org>
 
-On Mon, 15 Jun, at 04:59:08PM, Borislav Petkov wrote:
-> On Mon, Jun 15, 2015 at 03:15:33PM +0100, Matt Fleming wrote:
-> > On Sat, 13 Jun, at 10:27:51AM, Borislav Petkov wrote:
-> > > On Fri, Jun 12, 2015 at 04:44:25PM -0700, Zhang, Jonathan Zhixiong wrote:
-> > > > Since such function is only needed for APEI functionality, at least as
-> > > > of today, I will name it arch_apei_get_mem_attribute().
-> > > 
-> > > Why?
-> > > 
-> > > It can be extended to be used generically too, no? Come to think of it,
-> > > the different arches should already have a way to tell you with what mem
-> > > attributes a physical address is mapped, no?
-> > > 
-> > > IOW, such functionality should be already present, you'd only have to
-> > > find it and use it.
-> > 
-> > I did think about this, but I don't think we have a generic way to ask
-> > the firmware for its memory map.
-> 
-> Not the firmware but the OS. Like on x86, for example, we have MTRRs
-> and PAT and they cover the whole range. Basically what lookup_memtype()
-> does. We already have that info, why not query it instead of growing
-> more stuff ontop.
-> 
-> I mean, we do ioremap* which does reserve_memtype() and sticks the range
-> in the rbtree which we query after. Can't be better than that...
+On Sun, Jun 21, 2015 at 08:11:25AM -0700, Dan Williams wrote:
+> The labels only allow allocation of persistent media between pmem and
+> blk.  For a given dimm you may access in either mode and the label
+> records the decision.  We can have a btt on either the pmem or
+> blk-mode disk type, or partition thereof.
 
-Right, but see my previous comment about x86 discarding a bunch of
-attributes for memory regions because the kernel "knows better".
+Sounds like the spec should allow a btt type as well insteaad of
+requiring the OS to work around it, as that seems to be one of the few
+useful things to do with a run-time label.
 
-And in most places, yes, the kernel really does know better. But this
-APEI case is special because irrespective of what the kernel says we
-want to be compatible with the firmware's memory map.
+Either way, partitions are trivial things and we could add them to the
+nvdimm layer.
 
-And we don't have an API for that.
+> Yes, it's this hybrid thing that mostly fits into the existing block
+> device model save for two new block_device_operations
+> ->direct_access() and ->rw_bytes().  We then use property of a
+> block_device that allows it to be claimed for exclusive ownership by a
+> filesystem or another block_device to layer storage semantics on top
+> be it files+directories, raid, caching, or atomic sectors.  NVDIMM
+> devices don't present the same complexity as MTD devices.  The only
+> complexity they present is byte-address-ability, not erase-block-size,
+> wear-leveling, etc...
 
--- 
-Matt Fleming, Intel Open Source Technology Center
+I didn't say they show the same complexities, but the same layering.
+
+> Good to hear that we don't need BTT for XFS v5, can we make the
+> guarantee for all filesystems that may want to support DAX?  I still
+> think stacking is a natural fit for this problem.
+
+I can't make any guarantees, especially not without verification.  But
+if correctly implemented any filesystems that does out of place metadata
+writes (and that includes a traditional log) and uses checksum to ensure
+the integrity of these updates it should be fine.  You'd still have
+the issue of sector atomicy of file I/O though.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
