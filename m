@@ -1,91 +1,162 @@
-From: Charles Keepax <ckeepax@opensource.wolfsonmicro.com>
-Subject: Re: Fwd: ASoC : WM5102 Audio Codec needs ACPI support and a
-	baytrail machine driver
-Date: Mon, 22 Jun 2015 13:00:20 +0100
-Message-ID: <20150622120020.GB32730@opensource.wolfsonmicro.com>
-References: <CAKor6TdbnLuJCsBPykPEmhGk-zBLggKxw4Z+=QuBb6Mz2ThD3g@mail.gmail.com> <CAKor6TeP2HfqpHiKK86GLYLpCNk87y66bdjye_mAqXuMXxPMWA@mail.gmail.com> <CAKor6Tdg5yHaLVrCrWFVuydVcYUUtYr=oSj+k37Yd9O64+tg6A@mail.gmail.com> <20150616144732.GN32730@opensource.wolfsonmicro.com> <CAKor6TcfpAhzWeJdoyzwEG79BLvx-9jhunbaYdE5GUTH4k7qVg@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v3-UPDATE 1/3] acpi: Add acpi_map_pxm_to_online_node()
+Date: Mon, 22 Jun 2015 16:03:17 +0200
+Message-ID: <1755114.P62PKe0Htk@vostro.rjw.lan>
+References: <1434755655-17272-1-git-send-email-toshi.kani@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:33151 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932516AbbFVMAY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 22 Jun 2015 08:00:24 -0400
-Content-Disposition: inline
-In-Reply-To: <CAKor6TcfpAhzWeJdoyzwEG79BLvx-9jhunbaYdE5GUTH4k7qVg@mail.gmail.com>
+Received: from v094114.home.net.pl ([79.96.170.134]:60030 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S933459AbbFVNhN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Jun 2015 09:37:13 -0400
+In-Reply-To: <1434755655-17272-1-git-send-email-toshi.kani@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Christian Hartmann <cornogle@googlemail.com>
-Cc: patches@opensource.wolfsonmicro.com, linux-acpi <linux-acpi@vger.kernel.org>
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: dan.j.williams@intel.com, linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org, linux-kernel@vger.kernel.org
 
-On Mon, Jun 22, 2015 at 11:55:13AM +0200, Christian Hartmann wrote:
-> hi list,
+On Friday, June 19, 2015 05:14:15 PM Toshi Kani wrote:
+> The kernel initializes CPU & memory's NUMA topology from ACPI
+> SRAT table.  Some other ACPI tables, such as NFIT and DMAR, also
+> contain proximity IDs for their device's NUMA topology.  This
+> information can be used to improve performance of these devices.
 > 
-> FYI - I have some local patches (currently not ready to sent && merge) but
-> want to let you know about the new status:
+> This patch introduces acpi_map_pxm_to_online_node(), which is
+> similar to acpi_map_pxm_to_node(), but always returns an online
+> node.  When the mapped node from a given proximity ID is offline,
+> it looks up the node distance table and returns the nearest
+> online node.
 > 
-> the init messages I have now from the arizona-spi for the audio codec
-> WM5102  in dmesg of my local patched 4.1.0 (mainline aka
-> torvals/master) are:
+> ACPI device drivers, which are called after the NUMA initialization
+> has completed in the kernel, can call this interface to obtain their
+> device NUMA topology from ACPI tables.  Such drivers do not have to
+> deal with offline nodes.  A node may be offline when a device
+> proximity ID is unique, SRAT memory entry does not exist, or NUMA is
+> disabled, ex. "numa=off" on x86.
 > 
-> [    6.067993] pxa2xx-spi 80860F0E:00: no DMA channels available, using PIO
-> [    6.068072] pxa2xx-spi 80860F0E:00: registered master spi32766 (dynamic)
-> [    6.068216] spi spi-WM510205:00: 8333333 Hz actual, PIO
-> [    6.068224] spi spi-WM510205:00: setup mode 0, 8 bits/w, 8000000 Hz max --> 0
-> [    6.068284] spi spi-WM510205:00: checking WM510205 with wm8310
-> [    6.068290] spi spi-WM510205:00: checking WM510205 with wm8311
-> [    6.068295] spi spi-WM510205:00: checking WM510205 with wm8312
-> [    6.068299] spi spi-WM510205:00: checking WM510205 with wm8320
-> [    6.068304] spi spi-WM510205:00: checking WM510205 with wm8321
-> [    6.068308] spi spi-WM510205:00: checking WM510205 with wm8325
-> [    6.068312] spi spi-WM510205:00: checking WM510205 with wm8326
-> [    6.068316] spi spi-WM510205:00: modalias WM510205 in id_table not
-> found, returns NULL
-> [    6.068322] spi spi-WM510205:00: checking WM510205 with bmp180
-> [    6.068327] spi spi-WM510205:00: checking WM510205 with bmp181
-> [    6.068331] spi spi-WM510205:00: modalias WM510205 in id_table not
-> found, returns NULL
-> [    6.068337] pxa2xx-spi 80860F0E:00: registered child spi-WM510205:00
-> [    6.143633] arizona spi-WM510205:00: acpi_match_device() first,
-> than via spi_get_device_id().
-> [    6.143643] arizona spi-WM510205:00: matched ACPI ID and data
-> [    6.143648] arizona spi-WM510205:00: using 1 as type for arizona audio codec
-> [    6.143652] arizona spi-WM510205:00: regmap set to wm5102_spi
-> [    6.144461] arizona spi-WM510205:00: arizona_spi_probe done, call
-> and return of  arizona_dev_init
-> [    6.144576] spi-WM510205:00 supply AVDD not found, using dummy regulator
-> [    6.144761] spi-WM510205:00 supply DBVDD1 not found, using dummy regulator
-> [    6.144784] spi-WM510205:00 supply DCVDD not found, using dummy regulator
-> [    6.176047] arizona spi-WM510205:00: Unknown device ID: ffff
+> This patch also moves the pxm range check from acpi_get_node() to
+> acpi_map_pxm_to_node().
+> 
+> Signed-off-by: Toshi Kani <toshi.kani@hp.com>
 
-My guess here is that the GPIOs for the reset and LDOENA lines
-are not specified. I think the Windows guys specify very little
-through ACPI and hard-code most of it into the driver, so you are
-probably going to need to find a way to define some pdata for the
-CODEC to get things going here.
+Better now. :-)
 
-Also not finding DCVDD is a bit odd make sure you have the
-arizona-ldo1 driver built into your system.
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>>
 
-> [    6.194727] sst-acpi 80860F28:00: No matching ASoC machine driver found
+> ---
+> UPDATE: Remove "-" from "on-line" and "off-line".
+> ---
+>  drivers/acpi/numa.c  |   50 +++++++++++++++++++++++++++++++++++++++++++++++---
+>  include/linux/acpi.h |    5 +++++
+>  2 files changed, 52 insertions(+), 3 deletions(-)
 > 
-> Note : most of the messages here are by local dev_err() added into
-> some functions used to see whats going
-> on there...
-> 
-> It seems that I have to patch arizona_core again: the function
-> arizona_dev_init() to, so it will find and use the correct device
-> ID...
-> So going on and will report soon again
-> 
-> That all but not trivial...
-> 
-> 
-> cheers
-> Christian H.
+> diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
+> index 1333cbdc..acaa3b4 100644
+> --- a/drivers/acpi/numa.c
+> +++ b/drivers/acpi/numa.c
+> @@ -29,6 +29,8 @@
+>  #include <linux/errno.h>
+>  #include <linux/acpi.h>
+>  #include <linux/numa.h>
+> +#include <linux/nodemask.h>
+> +#include <linux/topology.h>
+>  
+>  #define PREFIX "ACPI: "
+>  
+> @@ -70,7 +72,12 @@ static void __acpi_map_pxm_to_node(int pxm, int node)
+>  
+>  int acpi_map_pxm_to_node(int pxm)
+>  {
+> -	int node = pxm_to_node_map[pxm];
+> +	int node;
+> +
+> +	if (pxm < 0 || pxm >= MAX_PXM_DOMAINS)
+> +		return NUMA_NO_NODE;
+> +
+> +	node = pxm_to_node_map[pxm];
+>  
+>  	if (node == NUMA_NO_NODE) {
+>  		if (nodes_weight(nodes_found_map) >= MAX_NUMNODES)
+> @@ -83,6 +90,45 @@ int acpi_map_pxm_to_node(int pxm)
+>  	return node;
+>  }
+>  
+> +/**
+> + * acpi_map_pxm_to_online_node - Map proximity ID to online node
+> + * @pxm: ACPI proximity ID
+> + *
+> + * This is similar to acpi_map_pxm_to_node(), but always returns an online
+> + * node.  When the mapped node from a given proximity ID is offline, it
+> + * looks up the node distance table and returns the nearest online node.
+> + *
+> + * ACPI device drivers, which are called after the NUMA initialization has
+> + * completed in the kernel, can call this interface to obtain their device
+> + * NUMA topology from ACPI tables.  Such drivers do not have to deal with
+> + * offline nodes.  A node may be offline when a device proximity ID is
+> + * unique, SRAT memory entry does not exist, or NUMA is disabled, ex.
+> + * "numa=off" on x86.
+> + */
+> +int acpi_map_pxm_to_online_node(int pxm)
+> +{
+> +	int node, n, dist, min_dist;
+> +
+> +	node = acpi_map_pxm_to_node(pxm);
+> +
+> +	if (node == NUMA_NO_NODE)
+> +		node = 0;
+> +
+> +	if (!node_online(node)) {
+> +		min_dist = INT_MAX;
+> +		for_each_online_node(n) {
+> +			dist = node_distance(node, n);
+> +			if (dist < min_dist) {
+> +				min_dist = dist;
+> +				node = n;
+> +			}
+> +		}
+> +	}
+> +
+> +	return node;
+> +}
+> +EXPORT_SYMBOL(acpi_map_pxm_to_online_node);
+> +
+>  static void __init
+>  acpi_table_print_srat_entry(struct acpi_subtable_header *header)
+>  {
+> @@ -328,8 +374,6 @@ int acpi_get_node(acpi_handle handle)
+>  	int pxm;
+>  
+>  	pxm = acpi_get_pxm(handle);
+> -	if (pxm < 0 || pxm >= MAX_PXM_DOMAINS)
+> -		return NUMA_NO_NODE;
+>  
+>  	return acpi_map_pxm_to_node(pxm);
+>  }
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index e4da5e3..1b3bbb1 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -289,8 +289,13 @@ extern void acpi_dmi_osi_linux(int enable, const struct dmi_system_id *d);
+>  extern void acpi_osi_setup(char *str);
+>  
+>  #ifdef CONFIG_ACPI_NUMA
+> +int acpi_map_pxm_to_online_node(int pxm);
+>  int acpi_get_node(acpi_handle handle);
+>  #else
+> +static inline int acpi_map_pxm_to_online_node(int pxm)
+> +{
+> +	return 0;
+> +}
+>  static inline int acpi_get_node(acpi_handle handle)
+>  {
+>  	return 0;
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
 
-Thanks,
-Charles
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
