@@ -1,194 +1,42 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v2 6/9] irqchip / gic: Add stacked irqdomain support for
- ACPI based GICv2 init
-Date: Mon, 22 Jun 2015 18:20:14 +0100
-Message-ID: <20150622172014.GB26129@red-moon>
-References: <1434703572-26221-1-git-send-email-hanjun.guo@linaro.org>
- <1434703572-26221-7-git-send-email-hanjun.guo@linaro.org>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: [PATCH 02/15] libnvdimm: infrastructure for btt devices
+Date: Mon, 22 Jun 2015 14:32:53 -0400
+Message-ID: <x49k2uvvbje.fsf@segfault.boston.devel.redhat.com>
+References: <20150617235209.12943.24419.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<20150617235458.12943.23425.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<20150622163453.GA9187@lst.de>
+	<CAPcyv4jAA0=aSUDazG5hS1FS0o+qg4SyMXicqF_0M0s7_cXBGw@mail.gmail.com>
+	<20150622164837.GB9393@lst.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:49269 "EHLO foss.arm.com"
+Received: from mx1.redhat.com ([209.132.183.28]:57325 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752550AbbFVRT4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 22 Jun 2015 13:19:56 -0400
-Content-Disposition: inline
-In-Reply-To: <1434703572-26221-7-git-send-email-hanjun.guo@linaro.org>
+	id S1750991AbbFVSc4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 22 Jun 2015 14:32:56 -0400
+In-Reply-To: <20150622164837.GB9393@lst.de> (Christoph Hellwig's message of
+	"Mon, 22 Jun 2015 18:48:37 +0200")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Marc Zyngier <Marc.Zyngier@arm.com>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Olof Johansson <olof@lixom.net>, Wei Huang <wei@redhat.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
+To: Christoph Hellwig <hch@lst.de>
+Cc: Dan Williams <dan.j.williams@intel.com>, Jens Axboe <axboe@kernel.dk>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, Neil Brown <neilb@suse.de>, Greg KH <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 
-On Fri, Jun 19, 2015 at 09:46:09AM +0100, Hanjun Guo wrote:
-> Introduce acpi_irq_domain for GICv2 core domain instead of referring
-> to the irq_default_domain, based on that, pass gsi as the argument and
-> get the gsi in gic_irq_domain_alloc() to add stacked irqdomain support
-> for ACPI based GICv2 init.
+Christoph Hellwig <hch@lst.de> writes:
 
-This commit log does not parse and we can read the code, there is no
-point in trying to rewrite it here.
+> On Mon, Jun 22, 2015 at 09:48:03AM -0700, Dan Williams wrote:
+>> Only if you abandon BTT on partitions, which at this point it seems
+>> you're boldly committed to doing.  It's unacceptable to drop BTT on
+>> the floor so I'll take a look at making BTT per-disk only for 4.2.
+>
+> If by partitions you mean block layer partitions: yes.  If by partitions
+> you mean subdivision of nvdimms: no.
 
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> ---
->  drivers/acpi/gsi.c                   | 28 +++++++++++++---------------
->  drivers/irqchip/irq-gic.c            | 32 +++++++++++++++++---------------
->  include/linux/irqchip/arm-gic-acpi.h |  2 ++
->  3 files changed, 32 insertions(+), 30 deletions(-)
-> 
-> diff --git a/drivers/acpi/gsi.c b/drivers/acpi/gsi.c
-> index 38208f2..55b5f31 100644
-> --- a/drivers/acpi/gsi.c
-> +++ b/drivers/acpi/gsi.c
-> @@ -3,6 +3,7 @@
->   *
->   * Copyright (C) 2015 ARM Ltd.
->   * Author: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> + *         Hanjun Guo <hanjun.guo@linaro.org> for stacked irqdomains support
->   *
->   * This program is free software; you can redistribute it and/or modify
->   * it under the terms of the GNU General Public License version 2 as
-> @@ -13,6 +14,8 @@
->  #include <linux/irqdomain.h>
->  
->  enum acpi_irq_model_id acpi_irq_model;
-> +/* ACPI core domian pointing to GICv2/3 core domain */
+How will this subdivision be recorded?  Not all NVDIMMs support the
+label specification.
 
-This code is not GIC specific and does not have to be.
+Sysadmins are already familiar with partitions;  I'm not sure why we'd
+deviate from that here.  What am I missing?
 
-> +struct irq_domain *acpi_irq_domain __read_mostly;
-
-Make it static and create helpers to set it.
-
->  static unsigned int acpi_gsi_get_irq_type(int trigger, int polarity)
->  {
-> @@ -45,12 +48,7 @@ static unsigned int acpi_gsi_get_irq_type(int trigger, int polarity)
->   */
->  int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
->  {
-> -	/*
-> -	 * Only default domain is supported at present, always find
-> -	 * the mapping corresponding to default domain by passing NULL
-> -	 * as irq_domain parameter
-> -	 */
-> -	*irq = irq_find_mapping(NULL, gsi);
-> +	*irq = irq_find_mapping(acpi_irq_domain, gsi);
->  	/*
->  	 * *irq == 0 means no mapping, that should
->  	 * be reported as a failure
-> @@ -72,16 +70,16 @@ EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
->  int acpi_register_gsi(struct device *dev, u32 gsi, int trigger,
->  		      int polarity)
->  {
-> -	unsigned int irq;
-> +	int irq;
->  	unsigned int irq_type = acpi_gsi_get_irq_type(trigger, polarity);
->  
-> -	/*
-> -	 * There is no way at present to look-up the IRQ domain on ACPI,
-> -	 * hence always create mapping referring to the default domain
-> -	 * by passing NULL as irq_domain parameter
-> -	 */
-> -	irq = irq_create_mapping(NULL, gsi);
-> -	if (!irq)
-> +	irq = irq_find_mapping(acpi_irq_domain, gsi);
-> +	if (irq > 0)
-> +		return irq;
-> +
-> +	irq = irq_domain_alloc_irqs(acpi_irq_domain, 1, dev_to_node(dev),
-> +				    &gsi);
-> +	if (irq <= 0)
->  		return -EINVAL;
->  
->  	/* Set irq type if specified and different than the current one */
-> @@ -98,7 +96,7 @@ EXPORT_SYMBOL_GPL(acpi_register_gsi);
->   */
->  void acpi_unregister_gsi(u32 gsi)
->  {
-> -	int irq = irq_find_mapping(NULL, gsi);
-> +	int irq = irq_find_mapping(acpi_irq_domain, gsi);
->  
->  	irq_dispose_mapping(irq);
->  }
-> diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
-> index 8fc67bc..d1b2131 100644
-> --- a/drivers/irqchip/irq-gic.c
-> +++ b/drivers/irqchip/irq-gic.c
-> @@ -851,15 +851,22 @@ static struct notifier_block gic_cpu_notifier = {
->  static int gic_irq_domain_alloc(struct irq_domain *domain, unsigned int virq,
->  				unsigned int nr_irqs, void *arg)
->  {
-> -	int i, ret;
-> +	int i;
->  	irq_hw_number_t hwirq;
-> -	unsigned int type = IRQ_TYPE_NONE;
-> -	struct of_phandle_args *irq_data = arg;
->  
-> -	ret = gic_irq_domain_xlate(domain, irq_data->np, irq_data->args,
-> -				   irq_data->args_count, &hwirq, &type);
-> -	if (ret)
-> -		return ret;
-> +	if (domain->of_node) {	/* DT case */
-> +		int ret;
-> +		unsigned int type = IRQ_TYPE_NONE;
-> +		struct of_phandle_args *irq_data = arg;
-> +
-> +		ret = gic_irq_domain_xlate(domain, irq_data->np,
-> +					irq_data->args,
-> +					irq_data->args_count, &hwirq, &type);
-> +		if (ret)
-> +			return ret;
-> +	} else {	/* ACPI case */
-> +		hwirq = (irq_hw_number_t)*(u32 *)arg;
-> +	}
-
-If domain->of_node is NULL and system booted with DT the code above
-does not fail (and if it fails almost certainly that won't be graceful)
-but it should.
-
->  	for (i = 0; i < nr_irqs; i++)
->  		gic_irq_domain_map(domain, virq + i, hwirq + i);
-> @@ -945,11 +952,11 @@ void __init gic_init_bases(unsigned int gic_nr, int irq_start,
->  		gic_irqs = 1020;
->  	gic->gic_irqs = gic_irqs;
->  
-> -	if (node) {		/* DT case */
-> +	if (node || !acpi_disabled) {		/* DT or ACPI case */
->  		gic->domain = irq_domain_add_linear(node, gic_irqs,
->  						    &gic_irq_domain_hierarchy_ops,
->  						    gic);
-> -	} else {		/* Non-DT case */
-> +	} else {		/* Non-DT and ACPI case */
->  		/*
->  		 * For primary GICs, skip over SGIs.
->  		 * For secondary GICs, skip over PPIs, too.
-> @@ -1130,13 +1137,8 @@ gic_v2_acpi_init(struct acpi_table_header *table)
->  		return -ENOMEM;
->  	}
->  
-> -	/*
-> -	 * Initialize zero GIC instance (no multi-GIC support). Also, set GIC
-> -	 * as default IRQ domain to allow for GSI registration and GSI to IRQ
-> -	 * number translation (see acpi_register_gsi() and acpi_gsi_to_irq()).
-> -	 */
->  	gic_init_bases(0, -1, dist_base, cpu_base, 0, NULL);
-> -	irq_set_default_host(gic_data[0].domain);
-> +	acpi_irq_domain = gic_data[0].domain;
->  
->  	acpi_irq_model = ACPI_IRQ_MODEL_GIC;
->  	return 0;
-> diff --git a/include/linux/irqchip/arm-gic-acpi.h b/include/linux/irqchip/arm-gic-acpi.h
-> index 56cd82c..a4a5edb 100644
-> --- a/include/linux/irqchip/arm-gic-acpi.h
-> +++ b/include/linux/irqchip/arm-gic-acpi.h
-> @@ -21,5 +21,7 @@
->  #define ACPI_GIC_CPU_IF_MEM_SIZE	(SZ_8K)
->  #define ACPI_GICV3_DIST_MEM_SIZE	(SZ_64K)
->  
-> +extern struct irq_domain *acpi_irq_domain;
-> +
-
-This declaration does not belong here, see above.
-
-Lorenzo
+-Jeff
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
