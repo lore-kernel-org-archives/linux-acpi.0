@@ -1,62 +1,194 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH 14/15] libnvdimm: support read-only btt backing devices
-Date: Mon, 22 Jun 2015 09:59:58 -0700
-Message-ID: <CAPcyv4isdr4JbOZUGDVt93Y3goA_f2yJm8tYZzPR0SejAE+XWA@mail.gmail.com>
-References: <20150621135406.GA9572@lst.de>
-	<CAPcyv4iAkSaCOzpJHJLLtJG_9M=5Jp75Kc9tVeCr__OjEB=ajQ@mail.gmail.com>
-	<20150622063028.GA30434@lst.de>
-	<CAPcyv4hmYiU5Gzmz8prPCESOYGn099-TffFTZH0E2OAx+JzkTQ@mail.gmail.com>
-	<20150622072844.GA31263@lst.de>
-	<CAPcyv4gUp6LtYVuzbQfzq6RbDyf=3nQ0509TPnNCJtVBazrUTg@mail.gmail.com>
-	<20150622154056.GB7952@lst.de>
-	<CAPcyv4hQ_r--8kmLZrkSZV5OBPAFt0VeRWN1r_OEhuxh96rxyw@mail.gmail.com>
-	<20150622164515.GA9281@lst.de>
-	<CAPcyv4gNLcw5ucb65RjRyuh=22vMDmrmyh5erQ50uJ45s-UMEQ@mail.gmail.com>
-	<20150622165717.GA9803@lst.de>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v2 6/9] irqchip / gic: Add stacked irqdomain support for
+ ACPI based GICv2 init
+Date: Mon, 22 Jun 2015 18:20:14 +0100
+Message-ID: <20150622172014.GB26129@red-moon>
+References: <1434703572-26221-1-git-send-email-hanjun.guo@linaro.org>
+ <1434703572-26221-7-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:38642 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754017AbbFVQ77 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Jun 2015 12:59:59 -0400
-Received: by wibdq8 with SMTP id dq8so81506258wib.1
-        for <linux-acpi@vger.kernel.org>; Mon, 22 Jun 2015 09:59:58 -0700 (PDT)
-In-Reply-To: <20150622165717.GA9803@lst.de>
+Received: from foss.arm.com ([217.140.101.70]:49269 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752550AbbFVRT4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 22 Jun 2015 13:19:56 -0400
+Content-Disposition: inline
+In-Reply-To: <1434703572-26221-7-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>
-Cc: Jens Axboe <axboe@kernel.dk>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Boaz Harrosh <boaz@plexistor.com>, "Kani, Toshimitsu" <toshi.kani@hp.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Ingo Molnar <mingo@kernel.org>
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Marc Zyngier <Marc.Zyngier@arm.com>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Olof Johansson <olof@lixom.net>, Wei Huang <wei@redhat.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 
-On Mon, Jun 22, 2015 at 9:57 AM, Christoph Hellwig <hch@lst.de> wrote:
-> On Mon, Jun 22, 2015 at 09:54:51AM -0700, Dan Williams wrote:
->> > I don't see why you're comparing with MD and DM here.  MD and DM
->> > sit cleanly ontop of any block device.  If btt was independent of
->> > libnvdimm and just used ->rw_bytes we could see it as this.
->> >
->> > But it's all a giant entangled mess, where btt for example is probed
->> > by libnvdimm.  At the same time pmem.c isn't really a true block
->> > driver, it's really just a trivial shim between the block API
->> > and pmem-style memcpy.  Especially with the proper pmem API btt
->> > would become cleaner just calling that directly.
->>
->> The pmem api does nothing to fix torn sectors, there's no extra
->> atomicity guarantees that come from those instructions.
->
-> Of course not.  And neither does pmem.c help with you in any way.
->
-> That's the point:  btt should be a peer to pmem.c, not on top of it
-> as there's no value add in pmem.c for it, and they are logically peers.
->
->> Well, let's start with per-disk btt and see where that gets us, we can
->> always ramp up complexity later.  I'd just as soon make the default
->> opt-in/out a Kconfig toggle with a sysfs override.
->
-> Kconfig or sysfs are both utterly horrible choices.  It's a disk format
-> choice so it needs to be persisted.
+On Fri, Jun 19, 2015 at 09:46:09AM +0100, Hanjun Guo wrote:
+> Introduce acpi_irq_domain for GICv2 core domain instead of referring
+> to the irq_default_domain, based on that, pass gsi as the argument and
+> get the gsi in gic_irq_domain_alloc() to add stacked irqdomain support
+> for ACPI based GICv2 init.
 
-Of course it will be persisted with an on disk BTT superblock.
-Establishing that superblock by default and deleting at on-demand are
-via Kconfig and sysfs.
+This commit log does not parse and we can read the code, there is no
+point in trying to rewrite it here.
+
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> ---
+>  drivers/acpi/gsi.c                   | 28 +++++++++++++---------------
+>  drivers/irqchip/irq-gic.c            | 32 +++++++++++++++++---------------
+>  include/linux/irqchip/arm-gic-acpi.h |  2 ++
+>  3 files changed, 32 insertions(+), 30 deletions(-)
+> 
+> diff --git a/drivers/acpi/gsi.c b/drivers/acpi/gsi.c
+> index 38208f2..55b5f31 100644
+> --- a/drivers/acpi/gsi.c
+> +++ b/drivers/acpi/gsi.c
+> @@ -3,6 +3,7 @@
+>   *
+>   * Copyright (C) 2015 ARM Ltd.
+>   * Author: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> + *         Hanjun Guo <hanjun.guo@linaro.org> for stacked irqdomains support
+>   *
+>   * This program is free software; you can redistribute it and/or modify
+>   * it under the terms of the GNU General Public License version 2 as
+> @@ -13,6 +14,8 @@
+>  #include <linux/irqdomain.h>
+>  
+>  enum acpi_irq_model_id acpi_irq_model;
+> +/* ACPI core domian pointing to GICv2/3 core domain */
+
+This code is not GIC specific and does not have to be.
+
+> +struct irq_domain *acpi_irq_domain __read_mostly;
+
+Make it static and create helpers to set it.
+
+>  static unsigned int acpi_gsi_get_irq_type(int trigger, int polarity)
+>  {
+> @@ -45,12 +48,7 @@ static unsigned int acpi_gsi_get_irq_type(int trigger, int polarity)
+>   */
+>  int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
+>  {
+> -	/*
+> -	 * Only default domain is supported at present, always find
+> -	 * the mapping corresponding to default domain by passing NULL
+> -	 * as irq_domain parameter
+> -	 */
+> -	*irq = irq_find_mapping(NULL, gsi);
+> +	*irq = irq_find_mapping(acpi_irq_domain, gsi);
+>  	/*
+>  	 * *irq == 0 means no mapping, that should
+>  	 * be reported as a failure
+> @@ -72,16 +70,16 @@ EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
+>  int acpi_register_gsi(struct device *dev, u32 gsi, int trigger,
+>  		      int polarity)
+>  {
+> -	unsigned int irq;
+> +	int irq;
+>  	unsigned int irq_type = acpi_gsi_get_irq_type(trigger, polarity);
+>  
+> -	/*
+> -	 * There is no way at present to look-up the IRQ domain on ACPI,
+> -	 * hence always create mapping referring to the default domain
+> -	 * by passing NULL as irq_domain parameter
+> -	 */
+> -	irq = irq_create_mapping(NULL, gsi);
+> -	if (!irq)
+> +	irq = irq_find_mapping(acpi_irq_domain, gsi);
+> +	if (irq > 0)
+> +		return irq;
+> +
+> +	irq = irq_domain_alloc_irqs(acpi_irq_domain, 1, dev_to_node(dev),
+> +				    &gsi);
+> +	if (irq <= 0)
+>  		return -EINVAL;
+>  
+>  	/* Set irq type if specified and different than the current one */
+> @@ -98,7 +96,7 @@ EXPORT_SYMBOL_GPL(acpi_register_gsi);
+>   */
+>  void acpi_unregister_gsi(u32 gsi)
+>  {
+> -	int irq = irq_find_mapping(NULL, gsi);
+> +	int irq = irq_find_mapping(acpi_irq_domain, gsi);
+>  
+>  	irq_dispose_mapping(irq);
+>  }
+> diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
+> index 8fc67bc..d1b2131 100644
+> --- a/drivers/irqchip/irq-gic.c
+> +++ b/drivers/irqchip/irq-gic.c
+> @@ -851,15 +851,22 @@ static struct notifier_block gic_cpu_notifier = {
+>  static int gic_irq_domain_alloc(struct irq_domain *domain, unsigned int virq,
+>  				unsigned int nr_irqs, void *arg)
+>  {
+> -	int i, ret;
+> +	int i;
+>  	irq_hw_number_t hwirq;
+> -	unsigned int type = IRQ_TYPE_NONE;
+> -	struct of_phandle_args *irq_data = arg;
+>  
+> -	ret = gic_irq_domain_xlate(domain, irq_data->np, irq_data->args,
+> -				   irq_data->args_count, &hwirq, &type);
+> -	if (ret)
+> -		return ret;
+> +	if (domain->of_node) {	/* DT case */
+> +		int ret;
+> +		unsigned int type = IRQ_TYPE_NONE;
+> +		struct of_phandle_args *irq_data = arg;
+> +
+> +		ret = gic_irq_domain_xlate(domain, irq_data->np,
+> +					irq_data->args,
+> +					irq_data->args_count, &hwirq, &type);
+> +		if (ret)
+> +			return ret;
+> +	} else {	/* ACPI case */
+> +		hwirq = (irq_hw_number_t)*(u32 *)arg;
+> +	}
+
+If domain->of_node is NULL and system booted with DT the code above
+does not fail (and if it fails almost certainly that won't be graceful)
+but it should.
+
+>  	for (i = 0; i < nr_irqs; i++)
+>  		gic_irq_domain_map(domain, virq + i, hwirq + i);
+> @@ -945,11 +952,11 @@ void __init gic_init_bases(unsigned int gic_nr, int irq_start,
+>  		gic_irqs = 1020;
+>  	gic->gic_irqs = gic_irqs;
+>  
+> -	if (node) {		/* DT case */
+> +	if (node || !acpi_disabled) {		/* DT or ACPI case */
+>  		gic->domain = irq_domain_add_linear(node, gic_irqs,
+>  						    &gic_irq_domain_hierarchy_ops,
+>  						    gic);
+> -	} else {		/* Non-DT case */
+> +	} else {		/* Non-DT and ACPI case */
+>  		/*
+>  		 * For primary GICs, skip over SGIs.
+>  		 * For secondary GICs, skip over PPIs, too.
+> @@ -1130,13 +1137,8 @@ gic_v2_acpi_init(struct acpi_table_header *table)
+>  		return -ENOMEM;
+>  	}
+>  
+> -	/*
+> -	 * Initialize zero GIC instance (no multi-GIC support). Also, set GIC
+> -	 * as default IRQ domain to allow for GSI registration and GSI to IRQ
+> -	 * number translation (see acpi_register_gsi() and acpi_gsi_to_irq()).
+> -	 */
+>  	gic_init_bases(0, -1, dist_base, cpu_base, 0, NULL);
+> -	irq_set_default_host(gic_data[0].domain);
+> +	acpi_irq_domain = gic_data[0].domain;
+>  
+>  	acpi_irq_model = ACPI_IRQ_MODEL_GIC;
+>  	return 0;
+> diff --git a/include/linux/irqchip/arm-gic-acpi.h b/include/linux/irqchip/arm-gic-acpi.h
+> index 56cd82c..a4a5edb 100644
+> --- a/include/linux/irqchip/arm-gic-acpi.h
+> +++ b/include/linux/irqchip/arm-gic-acpi.h
+> @@ -21,5 +21,7 @@
+>  #define ACPI_GIC_CPU_IF_MEM_SIZE	(SZ_8K)
+>  #define ACPI_GICV3_DIST_MEM_SIZE	(SZ_64K)
+>  
+> +extern struct irq_domain *acpi_irq_domain;
+> +
+
+This declaration does not belong here, see above.
+
+Lorenzo
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
