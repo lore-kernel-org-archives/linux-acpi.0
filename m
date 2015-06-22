@@ -1,82 +1,80 @@
-From: "County Court" <bernard.steiner@m2.sandu.beget.ru>
-Subject: Notice of appearance in Court #0000534122
-Date: Mon, 22 Jun 2015 11:47:01 +0300
-Message-ID: <7b2b7a6d74c8b4031fdfd8abd050c7fa@m2.sandu.beget.ru>
-Reply-To: "County Court" <bernard.steiner@m2.sandu.beget.ru>
+From: Christian Hartmann <cornogle@googlemail.com>
+Subject: Re: Fwd: ASoC : WM5102 Audio Codec needs ACPI support and a baytrail
+ machine driver
+Date: Mon, 22 Jun 2015 11:55:13 +0200
+Message-ID: <CAKor6TcfpAhzWeJdoyzwEG79BLvx-9jhunbaYdE5GUTH4k7qVg@mail.gmail.com>
+References: <CAKor6TdbnLuJCsBPykPEmhGk-zBLggKxw4Z+=QuBb6Mz2ThD3g@mail.gmail.com>
+	<CAKor6TeP2HfqpHiKK86GLYLpCNk87y66bdjye_mAqXuMXxPMWA@mail.gmail.com>
+	<CAKor6Tdg5yHaLVrCrWFVuydVcYUUtYr=oSj+k37Yd9O64+tg6A@mail.gmail.com>
+	<20150616144732.GN32730@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
-	boundary="b1_bbaa1f4d8e838495216d0cd306a30b51"
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from m2.sandu.beget.ru ([5.101.153.32]:46058 "EHLO m2.sandu.beget.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753401AbbFVIrF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 22 Jun 2015 04:47:05 -0400
-Received: from romanc0y (Authenticated sender romanc0y@sandu.beget.ru)
-	by sandu.beget.ru with local (Exim 4.76)
-	(envelope-from <romanc0y__lecfarm_com__gb@sandu.beget.ru>)
-	id 1Z6xNd-0002QZ-U1
-	for linux-acpi@vger.kernel.org; Mon, 22 Jun 2015 11:47:01 +0300
+Received: from mail-qg0-f54.google.com ([209.85.192.54]:32844 "EHLO
+	mail-qg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932176AbbFVJzO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Jun 2015 05:55:14 -0400
+Received: by qged89 with SMTP id d89so50803182qge.0
+        for <linux-acpi@vger.kernel.org>; Mon, 22 Jun 2015 02:55:13 -0700 (PDT)
+In-Reply-To: <20150616144732.GN32730@opensource.wolfsonmicro.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Charles Keepax <ckeepax@opensource.wolfsonmicro.com>
+Cc: patches@opensource.wolfsonmicro.com, linux-acpi <linux-acpi@vger.kernel.org>
 
---b1_bbaa1f4d8e838495216d0cd306a30b51
-Content-Type: text/plain; charset=us-ascii
+hi list,
 
-Notice to Appear,
+FYI - I have some local patches (currently not ready to sent && merge) but
+want to let you know about the new status:
 
-You have to appear in the Court on the June 28.
-Please, prepare all the documents relating to the case and bring them to Court on the specified date.
-Note: The case may be heard by the judge in your absence if you do not come.
+the init messages I have now from the arizona-spi for the audio codec
+WM5102  in dmesg of my local patched 4.1.0 (mainline aka
+torvals/master) are:
 
-You can find the Court Notice is in the attachment.
+[    6.067993] pxa2xx-spi 80860F0E:00: no DMA channels available, using PIO
+[    6.068072] pxa2xx-spi 80860F0E:00: registered master spi32766 (dynamic)
+[    6.068216] spi spi-WM510205:00: 8333333 Hz actual, PIO
+[    6.068224] spi spi-WM510205:00: setup mode 0, 8 bits/w, 8000000 Hz max --> 0
+[    6.068284] spi spi-WM510205:00: checking WM510205 with wm8310
+[    6.068290] spi spi-WM510205:00: checking WM510205 with wm8311
+[    6.068295] spi spi-WM510205:00: checking WM510205 with wm8312
+[    6.068299] spi spi-WM510205:00: checking WM510205 with wm8320
+[    6.068304] spi spi-WM510205:00: checking WM510205 with wm8321
+[    6.068308] spi spi-WM510205:00: checking WM510205 with wm8325
+[    6.068312] spi spi-WM510205:00: checking WM510205 with wm8326
+[    6.068316] spi spi-WM510205:00: modalias WM510205 in id_table not
+found, returns NULL
+[    6.068322] spi spi-WM510205:00: checking WM510205 with bmp180
+[    6.068327] spi spi-WM510205:00: checking WM510205 with bmp181
+[    6.068331] spi spi-WM510205:00: modalias WM510205 in id_table not
+found, returns NULL
+[    6.068337] pxa2xx-spi 80860F0E:00: registered child spi-WM510205:00
+[    6.143633] arizona spi-WM510205:00: acpi_match_device() first,
+than via spi_get_device_id().
+[    6.143643] arizona spi-WM510205:00: matched ACPI ID and data
+[    6.143648] arizona spi-WM510205:00: using 1 as type for arizona audio codec
+[    6.143652] arizona spi-WM510205:00: regmap set to wm5102_spi
+[    6.144461] arizona spi-WM510205:00: arizona_spi_probe done, call
+and return of  arizona_dev_init
+[    6.144576] spi-WM510205:00 supply AVDD not found, using dummy regulator
+[    6.144761] spi-WM510205:00 supply DBVDD1 not found, using dummy regulator
+[    6.144784] spi-WM510205:00 supply DCVDD not found, using dummy regulator
+[    6.176047] arizona spi-WM510205:00: Unknown device ID: ffff
+[    6.194727] sst-acpi 80860F28:00: No matching ASoC machine driver found
 
-Kind regards,
-Bernard Steiner,
-District Clerk.
+Note : most of the messages here are by local dev_err() added into
+some functions used to see whats going
+on there...
 
+It seems that I have to patch arizona_core again: the function
+arizona_dev_init() to, so it will find and use the correct device
+ID...
+So going on and will report soon again
 
---b1_bbaa1f4d8e838495216d0cd306a30b51
-Content-Type: application/zip; name="Court_Notification_0000534122.zip"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename=Court_Notification_0000534122.zip
-
-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
+That all but not trivial...
 
 
---b1_bbaa1f4d8e838495216d0cd306a30b51--
-
+cheers
+Christian H.
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
