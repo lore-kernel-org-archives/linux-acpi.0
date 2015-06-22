@@ -1,115 +1,209 @@
-From: Gianluca Anzolin <gianluca@sottospazio.it>
-Subject: Re: Debugging spurious wakeup
-Date: Mon, 22 Jun 2015 21:48:55 +0200
-Message-ID: <20150622194855.GA16269@sottospazio.it>
-References: <20150513065825.GA10680@sottospazio.it>
- <20150620215441.GA32242@rhlx01.hs-esslingen.de>
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from m-r2.th.seeweb.it ([5.144.164.171]:50619 "EHLO
-	m-r2.th.seeweb.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751370AbbFVT4K (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 22 Jun 2015 15:56:10 -0400
-Content-Disposition: inline
-In-Reply-To: <20150620215441.GA32242@rhlx01.hs-esslingen.de>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Alexander Sverdlin <alexander.sverdlin@gmail.com>
+Subject: [PATCH] of: acpi: Rename of_node() and acpi_node() to to_of_node()
+ and to_acpi_node()
+Date: Mon, 22 Jun 2015 22:38:53 +0200
+Message-ID: <5588725D.6000101@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Bryan Wu <cooloney@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Jacek Anaszewski <j.anaszewski@samsung.com>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, Grant Likely <grant.likely@linaro.org>, Rob Herring <robh+dt@kernel.org>, linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, linux-leds@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, devicetree@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andreas Mohr <andi@lisas.de>
-Cc: Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org
 
-Hello,
+Commit 8a0662d9 introduced of_node and acpi_node symbols in global namespace
+but there were already ~63 of_node local variables or function parameters
+(no single acpi_node though, but anyway).
 
-On Sat, Jun 20, 2015 at 11:54:41PM +0200, Andreas Mohr wrote:
-> Hi,
-> 
-> [managed to gather proper In-Reply-To from spinics.net
-> rather than broken lkml.org]
-> 
-> I'm having a very similar issue with my PCI FireWire card:
-> whenever shutting down or even suspending,
-> I'm getting immediate spurious wakeup; currently most strongly suspecting
-> Firewire PHY-related IRQ event wakeups.
+After debugging undefined but used of_node local varible (which turned out
+to reference static function of_node() instead) it became clear that the names
+for the functions are too short and too generic for global scope.
 
-I don't know if the issue is the same as mine. In that case it wouldn't
-be driver related. As explained before, for me the spontaneous wakeups
-occur after a Wake-on-Lan but not when powering up the system by other
-means (i.e. power button).
+Signed-off-by: Alexander Sverdlin <alexander.sverdlin@gmail.com>
+---
 
-As suggested I asked on netdev but got no reply at all, so I'm on my own
-right now.
+Compile-tested on x86_64 with ACPI and ARM with OF.
 
-Thank you for sharing your experience, the document about GPE and PME
-seems useful to pinpoint the issue: as explained in another email, I
-found a difference in lspci when the undesired wakeup occurs and it
-involves PME signals:
+ drivers/base/property.c  | 26 +++++++++++++-------------
+ drivers/gpio/gpiolib.c   |  4 ++--
+ drivers/leds/leds-gpio.c |  2 +-
+ include/acpi/acpi_bus.h  |  2 +-
+ include/linux/acpi.h     |  4 ++--
+ include/linux/of.h       |  4 ++--
+ 6 files changed, 21 insertions(+), 21 deletions(-)
 
--		RootSta: PME ReqID 0000, PMEStatus- PMEPending-
-+		RootSta: PME ReqID 0400, PMEStatus- PMEPending-
+diff --git a/drivers/base/property.c b/drivers/base/property.c
+index 1d0b116..dfd4de6 100644
+--- a/drivers/base/property.c
++++ b/drivers/base/property.c
+@@ -128,9 +128,9 @@ EXPORT_SYMBOL_GPL(device_property_present);
+ bool fwnode_property_present(struct fwnode_handle *fwnode, const char *propname)
+ {
+ 	if (is_of_node(fwnode))
+-		return of_property_read_bool(of_node(fwnode), propname);
++		return of_property_read_bool(to_of_node(fwnode), propname);
+ 	else if (is_acpi_node(fwnode))
+-		return !acpi_dev_prop_get(acpi_node(fwnode), propname, NULL);
++		return !acpi_dev_prop_get(to_acpi_node(fwnode), propname, NULL);
 
-The problem is, these difference is not related to the network PCI
-device but to the PCI bridge behind which the network device sits.
+ 	return !!pset_prop_get(to_pset(fwnode), propname);
+ }
+@@ -285,10 +285,10 @@ EXPORT_SYMBOL_GPL(device_property_read_string);
+ ({ \
+ 	int _ret_; \
+ 	if (is_of_node(_fwnode_)) \
+-		_ret_ = OF_DEV_PROP_READ_ARRAY(of_node(_fwnode_), _propname_, \
++		_ret_ = OF_DEV_PROP_READ_ARRAY(to_of_node(_fwnode_), _propname_, \
+ 					       _type_, _val_, _nval_); \
+ 	else if (is_acpi_node(_fwnode_)) \
+-		_ret_ = acpi_dev_prop_read(acpi_node(_fwnode_), _propname_, \
++		_ret_ = acpi_dev_prop_read(to_acpi_node(_fwnode_), _propname_, \
+ 					   _proptype_, _val_, _nval_); \
+ 	else \
+ 		_ret_ = pset_prop_read_array(to_pset(_fwnode_), _propname_, \
+@@ -424,11 +424,11 @@ int fwnode_property_read_string_array(struct fwnode_handle *fwnode,
+ {
+ 	if (is_of_node(fwnode))
+ 		return val ?
+-			of_property_read_string_array(of_node(fwnode), propname,
+-						      val, nval) :
+-			of_property_count_strings(of_node(fwnode), propname);
++			of_property_read_string_array(to_of_node(fwnode),
++						      propname, val, nval) :
++			of_property_count_strings(to_of_node(fwnode), propname);
+ 	else if (is_acpi_node(fwnode))
+-		return acpi_dev_prop_read(acpi_node(fwnode), propname,
++		return acpi_dev_prop_read(to_acpi_node(fwnode), propname,
+ 					  DEV_PROP_STRING, val, nval);
 
-If I find something useful (unlikely, but never lose the hope) I'll send
-an update :)
+ 	return pset_prop_read_array(to_pset(fwnode), propname,
+@@ -455,9 +455,9 @@ int fwnode_property_read_string(struct fwnode_handle *fwnode,
+ 				const char *propname, const char **val)
+ {
+ 	if (is_of_node(fwnode))
+-		return of_property_read_string(of_node(fwnode), propname, val);
++		return of_property_read_string(to_of_node(fwnode), propname, val);
+ 	else if (is_acpi_node(fwnode))
+-		return acpi_dev_prop_read(acpi_node(fwnode), propname,
++		return acpi_dev_prop_read(to_acpi_node(fwnode), propname,
+ 					  DEV_PROP_STRING, val, 1);
 
-Thank you,
+ 	return -ENXIO;
+@@ -475,13 +475,13 @@ struct fwnode_handle *device_get_next_child_node(struct device *dev,
+ 	if (IS_ENABLED(CONFIG_OF) && dev->of_node) {
+ 		struct device_node *node;
 
-Gianluca
+-		node = of_get_next_available_child(dev->of_node, of_node(child));
++		node = of_get_next_available_child(dev->of_node, to_of_node(child));
+ 		if (node)
+ 			return &node->fwnode;
+ 	} else if (IS_ENABLED(CONFIG_ACPI)) {
+ 		struct acpi_device *node;
 
-> 
-> I collected the following items so far:
-> - asked for help (having the system properly record / retain the actual
->   reason for system-global wakeup):
->     "pm: record / retain actual reason of last system wakeup??"
->       https://lkml.org/lkml/2015/6/2/625
-> - figured out that it can be silenced with *general* (ouch)
->   BIOS PCI wakeup disable, yet that if not disabled
->   (which is *very* desirable, obviously, to retain WOL capability etc.)
->   it's actually already in a broken state directly post-BIOS-init,
->   at LILO prompt (i.e., **NOT** in Linux, NOT a Linux driver issue!
->   However perhaps we *might* be able to do something about it in Linux...):
->     "fw-ohci: ALi M52xx unsupported"
->       https://bugzilla.kernel.org/show_bug.cgi?id=10935
->     (contains reference to http://www.tonymacx86.com/general-help/65531-gigabyte-uefi-bios-startech-firewire-pcie-card-sleep-wake-shutdown-restart-issues-thread-8.html
->     where tons of people have issues with various FireWire cards -
->     so it seems that this is an issue that's pretty much inherent
->     to / associated with FireWire hardware behaviour)
-> - found 074_GPE_Routing.doc which explains these GPE / PME things
->   (this *is* the stuff that's broken/problematic here, right??)
->   in pretty detailed form
-> - "Re: PME# for add-on cards"
->     http://markmail.org/message/7uuzqbtrpswzrezz
->   mentions that probably BIOS forgot to do PME masking
->   directly prior to activating hardware shutdown
->   (well, at least in my case, where wakeup happens completely instantly,
->   as opposed to your case where it will wakeup after a couple seconds)
-> 
-> No amount of fumbling (~1 hour) with CAP_PM register range
-> (PME_EN etc.; "setpci -v -s ${dst} CAP_PM+4.b=XX")
-> or e.g. setting the "remove" sysfs attribute of PCI (sub) devices
-> (this would then be a nicely controlled i.e. fine-grained manner)
-> so far managed to disable this behaviour.
-> I suspect that we might be talking
-> of simple complete signal level mal-functioning of the card
-> irrespective of how it's actually configured
-> to generate or not generate events...
-> (shutdown --> power change --> floating signals on PME# --> wakeup)
-> I also tried to completely mask all FireWire event types in driver-side
-> suspend handler, with no success (but given that this is a combo card
-> with various USB host controllers FireWire may not be the sub device to
-> be blamed after all - here we are again at dearly needing
-> system-provided information about the *maximally precise* reason
-> of last wakeup - PME ReqID [not available on my Conventional PCI system]
-> seems to be a prime candidate). But given that the Mac forum reports issues
-> with many FireWire cards, faulty USB sub device seems less likely.
-> 
-> So, I'm still quite far from possibly(!) being able
-> to create a device-specific PCI quirk entry (drivers/pci/quirks.c)
-> or to create driver-side workarounds
-> for FireWire cards which have this issue.
-> 
-> HTH,
-> 
-> Andreas Mohr
+-		node = acpi_get_next_child(dev, acpi_node(child));
++		node = acpi_get_next_child(dev, to_acpi_node(child));
+ 		if (node)
+ 			return acpi_fwnode_handle(node);
+ 	}
+@@ -500,7 +500,7 @@ EXPORT_SYMBOL_GPL(device_get_next_child_node);
+ void fwnode_handle_put(struct fwnode_handle *fwnode)
+ {
+ 	if (is_of_node(fwnode))
+-		of_node_put(of_node(fwnode));
++		of_node_put(to_of_node(fwnode));
+ }
+ EXPORT_SYMBOL_GPL(fwnode_handle_put);
+
+diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
+index 6bc612b..5d8b2b3 100644
+--- a/drivers/gpio/gpiolib.c
++++ b/drivers/gpio/gpiolib.c
+@@ -2040,14 +2040,14 @@ struct gpio_desc *fwnode_get_named_gpiod(struct fwnode_handle *fwnode,
+ 	if (is_of_node(fwnode)) {
+ 		enum of_gpio_flags flags;
+
+-		desc = of_get_named_gpiod_flags(of_node(fwnode), propname, 0,
++		desc = of_get_named_gpiod_flags(to_of_node(fwnode), propname, 0,
+ 						&flags);
+ 		if (!IS_ERR(desc))
+ 			active_low = flags & OF_GPIO_ACTIVE_LOW;
+ 	} else if (is_acpi_node(fwnode)) {
+ 		struct acpi_gpio_info info;
+
+-		desc = acpi_get_gpiod_by_index(acpi_node(fwnode), propname, 0,
++		desc = acpi_get_gpiod_by_index(to_acpi_node(fwnode), propname, 0,
+ 					       &info);
+ 		if (!IS_ERR(desc))
+ 			active_low = info.active_low;
+diff --git a/drivers/leds/leds-gpio.c b/drivers/leds/leds-gpio.c
+index 15eb3f8..d2d54d6 100644
+--- a/drivers/leds/leds-gpio.c
++++ b/drivers/leds/leds-gpio.c
+@@ -191,7 +191,7 @@ static struct gpio_leds_priv *gpio_leds_create(struct platform_device *pdev)
+ 			goto err;
+ 		}
+
+-		np = of_node(child);
++		np = to_of_node(child);
+
+ 		if (fwnode_property_present(child, "label")) {
+ 			fwnode_property_read_string(child, "label", &led.name);
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index 8de4fa9..1224be8 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -385,7 +385,7 @@ static inline bool is_acpi_node(struct fwnode_handle *fwnode)
+ 	return fwnode && fwnode->type == FWNODE_ACPI;
+ }
+
+-static inline struct acpi_device *acpi_node(struct fwnode_handle *fwnode)
++static inline struct acpi_device *to_acpi_node(struct fwnode_handle *fwnode)
+ {
+ 	return is_acpi_node(fwnode) ?
+ 		container_of(fwnode, struct acpi_device, fwnode) : NULL;
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index e4da5e3..ec3c98e 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -53,7 +53,7 @@ static inline acpi_handle acpi_device_handle(struct acpi_device *adev)
+ 	return adev ? adev->handle : NULL;
+ }
+
+-#define ACPI_COMPANION(dev)		acpi_node((dev)->fwnode)
++#define ACPI_COMPANION(dev)		to_acpi_node((dev)->fwnode)
+ #define ACPI_COMPANION_SET(dev, adev)	set_primary_fwnode(dev, (adev) ? \
+ 	acpi_fwnode_handle(adev) : NULL)
+ #define ACPI_HANDLE(dev)		acpi_device_handle(ACPI_COMPANION(dev))
+@@ -473,7 +473,7 @@ static inline bool is_acpi_node(struct fwnode_handle *fwnode)
+ 	return false;
+ }
+
+-static inline struct acpi_device *acpi_node(struct fwnode_handle *fwnode)
++static inline struct acpi_device *to_acpi_node(struct fwnode_handle *fwnode)
+ {
+ 	return NULL;
+ }
+diff --git a/include/linux/of.h b/include/linux/of.h
+index b871ff9..f05fdce 100644
+--- a/include/linux/of.h
++++ b/include/linux/of.h
+@@ -128,7 +128,7 @@ static inline bool is_of_node(struct fwnode_handle *fwnode)
+ 	return fwnode && fwnode->type == FWNODE_OF;
+ }
+
+-static inline struct device_node *of_node(struct fwnode_handle *fwnode)
++static inline struct device_node *to_of_node(struct fwnode_handle *fwnode)
+ {
+ 	return fwnode ? container_of(fwnode, struct device_node, fwnode) : NULL;
+ }
+@@ -387,7 +387,7 @@ static inline bool is_of_node(struct fwnode_handle *fwnode)
+ 	return false;
+ }
+
+-static inline struct device_node *of_node(struct fwnode_handle *fwnode)
++static inline struct device_node *to_of_node(struct fwnode_handle *fwnode)
+ {
+ 	return NULL;
+ }
 --
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+To unsubscribe from this list: send the line "unsubscribe linux-gpio" in
