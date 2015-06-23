@@ -1,95 +1,88 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v1] PCI, ACPI: Fix regressions caused by resource_size_t overflow with 32bit kernel
-Date: Tue, 23 Jun 2015 12:12:12 +0800
-Message-ID: <1435032732-26160-1-git-send-email-jiang.liu@linux.intel.com>
-References: <55871787.5080504@pr.hu>
+From: Gianluca Anzolin <gianluca@sottospazio.it>
+Subject: Re: Debugging spurious wakeup
+Date: Tue, 23 Jun 2015 08:36:12 +0200
+Message-ID: <20150623063612.GA27891@sottospazio.it>
+References: <20150513065825.GA10680@sottospazio.it>
+ <20150620215441.GA32242@rhlx01.hs-esslingen.de>
+ <20150622194855.GA16269@sottospazio.it>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:18589 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750711AbbFWEKV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 23 Jun 2015 00:10:21 -0400
-In-Reply-To: <55871787.5080504@pr.hu>
+Received: from m-r2.th.seeweb.it ([5.144.164.171]:36562 "EHLO
+	m-r2.th.seeweb.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751812AbbFWGgS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Jun 2015 02:36:18 -0400
+Content-Disposition: inline
+In-Reply-To: <20150622194855.GA16269@sottospazio.it>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Boszormenyi Zoltan <zboszor@pr.hu>, Len Brown <lenb@kernel.org>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>
+To: Andreas Mohr <andi@lisas.de>
+Cc: Zhang Rui <rui.zhang@intel.com>, linux-acpi@vger.kernel.org
 
-The data type resource_size_t may be 32 bits or 64 bits depending on
-CONFIG_PHYS_ADDR_T_64BIT. So reject ACPI resource descriptors which
-will cause resource_size_t overflow with 32bit kernel
+Hello,
 
-This issue was triggered on a platform running 32bit kernel with an
-ACPI resource descriptor with address range [0x400000000-0xfffffffff].
-Please refer to https://lkml.org/lkml/2015/6/19/277 for more information.
+Yesterday I took the time to read the document about GPE / PME handling and I
+compared the wakeup code of my BIOS with the examples in that document.
 
-Reported-by: Boszormenyi Zoltan <zboszor@pr.hu>
-Fixes: 593669c2ac0f ("x86/PCI/ACPI: Use common ACPI resource interfaces to simplify implementation")
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: stable@vger.kernel.org # 4.0
----
- drivers/acpi/resource.c |   24 +++++++++++++++---------
- 1 file changed, 15 insertions(+), 9 deletions(-)
+I noticed that some vital wakeup code was executed only when a variable (PMSX)
+was set. That variable was set by a global NPME() method and that method was
+called by _OSC().
 
-diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-index 8244f013f210..f1c966e05078 100644
---- a/drivers/acpi/resource.c
-+++ b/drivers/acpi/resource.c
-@@ -193,6 +193,7 @@ static bool acpi_decode_space(struct resource_win *win,
- 	u8 iodec = attr->granularity == 0xfff ? ACPI_DECODE_10 : ACPI_DECODE_16;
- 	bool wp = addr->info.mem.write_protect;
- 	u64 len = attr->address_length;
-+	u64 start, end, offset = 0;
- 	struct resource *res = &win->res;
- 
- 	/*
-@@ -204,9 +205,6 @@ static bool acpi_decode_space(struct resource_win *win,
- 		pr_debug("ACPI: Invalid address space min_addr_fix %d, max_addr_fix %d, len %llx\n",
- 			 addr->min_address_fixed, addr->max_address_fixed, len);
- 
--	res->start = attr->minimum;
--	res->end = attr->maximum;
--
- 	/*
- 	 * For bridges that translate addresses across the bridge,
- 	 * translation_offset is the offset that must be added to the
-@@ -214,12 +212,22 @@ static bool acpi_decode_space(struct resource_win *win,
- 	 * primary side. Non-bridge devices must list 0 for all Address
- 	 * Translation offset bits.
- 	 */
--	if (addr->producer_consumer == ACPI_PRODUCER) {
--		res->start += attr->translation_offset;
--		res->end += attr->translation_offset;
--	} else if (attr->translation_offset) {
-+	if (addr->producer_consumer == ACPI_PRODUCER)
-+		offset = attr->translation_offset;
-+	else if (attr->translation_offset)
- 		pr_debug("ACPI: translation_offset(%lld) is invalid for non-bridge device.\n",
- 			 attr->translation_offset);
-+	start = attr->minimum + offset;
-+	end = attr->maximum + offset;
-+
-+	win->offset = offset;
-+	res->start = start;
-+	res->end = end;
-+	if (sizeof(resource_size_t) < sizeof(u64) &&
-+	    (offset != win->offset || start != res->start || end != res->end)) {
-+		pr_warn("acpi resource window ([%#llx-%#llx] ignored, not CPU addressable)\n",
-+			attr->minimum, attr->maximum);
-+		return false;
- 	}
- 
- 	switch (addr->resource_type) {
-@@ -236,8 +244,6 @@ static bool acpi_decode_space(struct resource_win *win,
- 		return false;
- 	}
- 
--	win->offset = attr->translation_offset;
--
- 	if (addr->producer_consumer == ACPI_PRODUCER)
- 		res->flags |= IORESOURCE_WINDOW;
- 
--- 
-1.7.10.4
+And in my logs I had this message:
 
+giu 19 18:31:06 zanac kernel: acpi PNP0A08:00: _OSC: OS supports
+[ExtendedConfig ASPM ClockPM Segments MSI]
+giu 19 18:31:06 zanac kernel: \_SB_.PCI0:_OSC invalid UUID
+giu 19 18:31:06 zanac kernel: _OSC request data:1 1f 0
+giu 19 18:31:06 zanac kernel: acpi PNP0A08:00: _OSC failed (AE_ERROR);
+disabling ASPM
+
+A googled a bit and found the following bugzilla entry, that applies to my
+situation perfectly: the NEXP variable isn't set anywhere, yet in Windows it
+is.
+
+https://bugzilla.kernel.org/show_bug.cgi?id=36932
+
+So I disassembled the DSDT, I removed any test involving the NEXP variable in
+the code, I recompiled and replaced the table with GRUB.
+
+And then the _OSC() invocation completed successfully, giving me a working WOL
+without spontaneous wakeups!
+
+What puzzles me is that the location of the NEXP variables is marked as ACPI
+NVS and the kernel never touches that region of memory. What is Windows doing
+differently that makes it work?
+
+However I consider the issue solved now. I leave also the link to the Arch
+forum post where I describe in detail what I did for future reference.
+
+https://bbs.archlinux.org/viewtopic.php?pid=1538895#p1538895
+
+The document 074_GPE_Routing.doc proved very useful and I want to thank you for
+your hints and the help I got from people in this mailing list.
+
+Gianluca
+
+PS: the PME ReqID marks the source of the latest wakeup and was then a lead of
+the device responsible for the wakeup. But the problem was elsewhere...
+
+On Mon, Jun 22, 2015 at 09:48:55PM +0200, Gianluca Anzolin wrote:
+> Thank you for sharing your experience, the document about GPE and PME
+> seems useful to pinpoint the issue: as explained in another email, I
+> found a difference in lspci when the undesired wakeup occurs and it
+> involves PME signals:
+> 
+> -		RootSta: PME ReqID 0000, PMEStatus- PMEPending-
+> +		RootSta: PME ReqID 0400, PMEStatus- PMEPending-
+> 
+> The problem is, these difference is not related to the network PCI
+> device but to the PCI bridge behind which the network device sits.
+> 
+> If I find something useful (unlikely, but never lose the hope) I'll send
+> an update :)
+> 
+> Thank you,
+> 
+> Gianluca
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
