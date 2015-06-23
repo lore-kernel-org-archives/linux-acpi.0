@@ -1,100 +1,40 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v2 6/9] irqchip / gic: Add stacked irqdomain support for
- ACPI based GICv2 init
-Date: Tue, 23 Jun 2015 18:38:45 +0100
-Message-ID: <20150623173845.GC31466@red-moon>
-References: <1434703572-26221-1-git-send-email-hanjun.guo@linaro.org>
- <1434703572-26221-7-git-send-email-hanjun.guo@linaro.org>
- <20150622172014.GB26129@red-moon>
- <5589772A.8070708@linaro.org>
+From: Matthew Wilcox <willy@linux.intel.com>
+Subject: Re: [PATCH 14/15] libnvdimm: support read-only btt backing devices
+Date: Tue, 23 Jun 2015 15:30:43 -0400
+Message-ID: <20150623193043.GE1971@linux.intel.com>
+References: <20150617235209.12943.24419.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20150617235602.12943.24958.stgit@dwillia2-desk3.amr.corp.intel.com>
+ <20150621101346.GF5915@lst.de>
+ <CAPcyv4jjTU8MA1zWnbRsyxcnxC+EJK9pJdLBkYeGtgHXeDkKVQ@mail.gmail.com>
+ <20150621135406.GA9572@lst.de>
+ <CAPcyv4iAkSaCOzpJHJLLtJG_9M=5Jp75Kc9tVeCr__OjEB=ajQ@mail.gmail.com>
+ <20150622063028.GA30434@lst.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:52002 "EHLO foss.arm.com"
+Received: from mga11.intel.com ([192.55.52.93]:21109 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753479AbbFWRi0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 23 Jun 2015 13:38:26 -0400
+	id S932810AbbFWTar (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 23 Jun 2015 15:30:47 -0400
 Content-Disposition: inline
-In-Reply-To: <5589772A.8070708@linaro.org>
+In-Reply-To: <20150622063028.GA30434@lst.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Marc Zyngier <Marc.Zyngier@arm.com>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Olof Johansson <olof@lixom.net>, Wei Huang <wei@redhat.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
+To: Christoph Hellwig <hch@lst.de>
+Cc: Dan Williams <dan.j.williams@intel.com>, Jens Axboe <axboe@kernel.dk>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Ingo Molnar <mingo@kernel.org>
 
-On Tue, Jun 23, 2015 at 04:11:38PM +0100, Hanjun Guo wrote:
-
-[...]
-
-> >> diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
-> >> index 8fc67bc..d1b2131 100644
-> >> --- a/drivers/irqchip/irq-gic.c
-> >> +++ b/drivers/irqchip/irq-gic.c
-> >> @@ -851,15 +851,22 @@ static struct notifier_block gic_cpu_notifier = {
-> >>   static int gic_irq_domain_alloc(struct irq_domain *domain, unsigned int virq,
-> >>   				unsigned int nr_irqs, void *arg)
-> >>   {
-> >> -	int i, ret;
-> >> +	int i;
-> >>   	irq_hw_number_t hwirq;
-> >> -	unsigned int type = IRQ_TYPE_NONE;
-> >> -	struct of_phandle_args *irq_data = arg;
-> >>
-> >> -	ret = gic_irq_domain_xlate(domain, irq_data->np, irq_data->args,
-> >> -				   irq_data->args_count, &hwirq, &type);
-> >> -	if (ret)
-> >> -		return ret;
-> >> +	if (domain->of_node) {	/* DT case */
-> >> +		int ret;
-> >> +		unsigned int type = IRQ_TYPE_NONE;
-> >> +		struct of_phandle_args *irq_data = arg;
-> >> +
-> >> +		ret = gic_irq_domain_xlate(domain, irq_data->np,
-> >> +					irq_data->args,
-> >> +					irq_data->args_count, &hwirq, &type);
-> >> +		if (ret)
-> >> +			return ret;
-> >> +	} else {	/* ACPI case */
-> >> +		hwirq = (irq_hw_number_t)*(u32 *)arg;
-> >> +	}
-> >
-> > If domain->of_node is NULL and system booted with DT the code above
-> > does not fail (and if it fails almost certainly that won't be graceful)
-> > but it should.
+On Mon, Jun 22, 2015 at 08:30:28AM +0200, Christoph Hellwig wrote:
+> > Good to hear that we don't need BTT for XFS v5, can we make the
+> > guarantee for all filesystems that may want to support DAX?  I still
+> > think stacking is a natural fit for this problem.
 > 
-> how about the following logic?
-> 
-> if (!domain->of_node && acpi_disabled)
-> 	return -ENODEV;
-> else if (domain->of_node)
-> 	dt related code;
-> else
-> 	ACPI related code;
+> I can't make any guarantees, especially not without verification.  But
+> if correctly implemented any filesystems that does out of place metadata
+> writes (and that includes a traditional log) and uses checksum to ensure
+> the integrity of these updates it should be fine.  You'd still have
+> the issue of sector atomicy of file I/O though.
 
-Code is not checking the node at present so:
-
-if (acpi_disabled)
-	dt code;
-else
-	ACPI code;
-
-would do, but that's a nit.
-
-> >>   	for (i = 0; i < nr_irqs; i++)
-> >>   		gic_irq_domain_map(domain, virq + i, hwirq + i);
-> >> @@ -945,11 +952,11 @@ void __init gic_init_bases(unsigned int gic_nr, int irq_start,
-> >>   		gic_irqs = 1020;
-> >>   	gic->gic_irqs = gic_irqs;
-> >>
-> >> -	if (node) {		/* DT case */
-> >> +	if (node || !acpi_disabled) {		/* DT or ACPI case */
-> >>   		gic->domain = irq_domain_add_linear(node, gic_irqs,
-> >>   						    &gic_irq_domain_hierarchy_ops,
-> >>   						    gic);
-
-I think this is a bit more worrying, I mean passing a NULL node pointer to
-the irqdomain layer which basically means you are booting out of ACPI
-(for you, if that's true for the irq_domain_add_linear implementation
-that's another story), the node pointer should be optional but you
-need feedback from IRQ layer maintainers here.
-
-Lorenzo
+Is ext4 one of the filesystems that copes with torn updates to the log?
+I see there's a checksum in the tail of at least some blocks, but I'd
+like someone who understands ext4 to reassure me that it also doesn't
+need the ability to put its log on a BTT.
