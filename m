@@ -1,41 +1,100 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 03/32] ACPICA: Hardware: Enable 64-bit firmware waking
- vector for selected FACS.
-Date: Tue, 23 Jun 2015 17:20:51 +0200
-Message-ID: <CAJZ5v0gfdfJF_-wK26wjxY=ai+QoUtS3ZpLT4ORX-P_wPQiA-g@mail.gmail.com>
-References: <cover.1434684719.git.lv.zheng@intel.com>
-	<261af597362906597365810a650c8e5c189e86da.1434684719.git.lv.zheng@intel.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v2 6/9] irqchip / gic: Add stacked irqdomain support for
+ ACPI based GICv2 init
+Date: Tue, 23 Jun 2015 18:38:45 +0100
+Message-ID: <20150623173845.GC31466@red-moon>
+References: <1434703572-26221-1-git-send-email-hanjun.guo@linaro.org>
+ <1434703572-26221-7-git-send-email-hanjun.guo@linaro.org>
+ <20150622172014.GB26129@red-moon>
+ <5589772A.8070708@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f175.google.com ([209.85.212.175]:38305 "EHLO
-	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932328AbbFWPUx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Jun 2015 11:20:53 -0400
-In-Reply-To: <261af597362906597365810a650c8e5c189e86da.1434684719.git.lv.zheng@intel.com>
+Received: from foss.arm.com ([217.140.101.70]:52002 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753479AbbFWRi0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 23 Jun 2015 13:38:26 -0400
+Content-Disposition: inline
+In-Reply-To: <5589772A.8070708@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bob Moore <robert.moore@intel.com>
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Marc Zyngier <Marc.Zyngier@arm.com>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Olof Johansson <olof@lixom.net>, Wei Huang <wei@redhat.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 
-Hi Lv,
+On Tue, Jun 23, 2015 at 04:11:38PM +0100, Hanjun Guo wrote:
 
-On Fri, Jun 19, 2015 at 5:38 AM, Lv Zheng <lv.zheng@intel.com> wrote:
-> ACPICA commit 7aa598d711644ab0de5f70ad88f1e2de253115e4
->
-> The root cause of the reported bug might be one of the followings:
-> 1. BIOS may favor the 64-bit firmware waking vector address when the
->    version of the FACS is greater than 0 and Linux currently only supports
->    resuming from the real mode, so the 64-bit firmware waking vector has
->    never been set and might be invalid to BIOS while the commit enables
->    higher version FACS.
-> 2. BIOS may favor the FACS reported via the "FIRMWARE_CTRL" field in the
->    FADT while the commit doesn't set the firmware waking vector address of
+[...]
 
-Can you please tell me which commit this is about?
+> >> diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
+> >> index 8fc67bc..d1b2131 100644
+> >> --- a/drivers/irqchip/irq-gic.c
+> >> +++ b/drivers/irqchip/irq-gic.c
+> >> @@ -851,15 +851,22 @@ static struct notifier_block gic_cpu_notifier = {
+> >>   static int gic_irq_domain_alloc(struct irq_domain *domain, unsigned int virq,
+> >>   				unsigned int nr_irqs, void *arg)
+> >>   {
+> >> -	int i, ret;
+> >> +	int i;
+> >>   	irq_hw_number_t hwirq;
+> >> -	unsigned int type = IRQ_TYPE_NONE;
+> >> -	struct of_phandle_args *irq_data = arg;
+> >>
+> >> -	ret = gic_irq_domain_xlate(domain, irq_data->np, irq_data->args,
+> >> -				   irq_data->args_count, &hwirq, &type);
+> >> -	if (ret)
+> >> -		return ret;
+> >> +	if (domain->of_node) {	/* DT case */
+> >> +		int ret;
+> >> +		unsigned int type = IRQ_TYPE_NONE;
+> >> +		struct of_phandle_args *irq_data = arg;
+> >> +
+> >> +		ret = gic_irq_domain_xlate(domain, irq_data->np,
+> >> +					irq_data->args,
+> >> +					irq_data->args_count, &hwirq, &type);
+> >> +		if (ret)
+> >> +			return ret;
+> >> +	} else {	/* ACPI case */
+> >> +		hwirq = (irq_hw_number_t)*(u32 *)arg;
+> >> +	}
+> >
+> > If domain->of_node is NULL and system booted with DT the code above
+> > does not fail (and if it fails almost certainly that won't be graceful)
+> > but it should.
+> 
+> how about the following logic?
+> 
+> if (!domain->of_node && acpi_disabled)
+> 	return -ENODEV;
+> else if (domain->of_node)
+> 	dt related code;
+> else
+> 	ACPI related code;
 
->    the FACS reported by "FIRMWARE_CTRL", it only sets the firware waking
->    vector address of the FACS reported by "X_FIRMWARE_CTRL".
+Code is not checking the node at present so:
 
-Thanks,
-Rafael
+if (acpi_disabled)
+	dt code;
+else
+	ACPI code;
+
+would do, but that's a nit.
+
+> >>   	for (i = 0; i < nr_irqs; i++)
+> >>   		gic_irq_domain_map(domain, virq + i, hwirq + i);
+> >> @@ -945,11 +952,11 @@ void __init gic_init_bases(unsigned int gic_nr, int irq_start,
+> >>   		gic_irqs = 1020;
+> >>   	gic->gic_irqs = gic_irqs;
+> >>
+> >> -	if (node) {		/* DT case */
+> >> +	if (node || !acpi_disabled) {		/* DT or ACPI case */
+> >>   		gic->domain = irq_domain_add_linear(node, gic_irqs,
+> >>   						    &gic_irq_domain_hierarchy_ops,
+> >>   						    gic);
+
+I think this is a bit more worrying, I mean passing a NULL node pointer to
+the irqdomain layer which basically means you are booting out of ACPI
+(for you, if that's true for the irq_domain_add_linear implementation
+that's another story), the node pointer should be optional but you
+need feedback from IRQ layer maintainers here.
+
+Lorenzo
