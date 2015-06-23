@@ -1,26 +1,95 @@
-From: "Mr. Wang" <xx@yy.com>
-Subject: Hello
-Date: Tue, 23 Jun 2015 02:39:47 -0700
-Message-ID: <MAIL2VpHgLHVbxZXAoi000049f1@mail.besmhmr.dst.pa.us>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: [Patch v1] PCI, ACPI: Fix regressions caused by resource_size_t overflow with 32bit kernel
+Date: Tue, 23 Jun 2015 12:12:12 +0800
+Message-ID: <1435032732-26160-1-git-send-email-jiang.liu@linux.intel.com>
+References: <55871787.5080504@pr.hu>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 50-73-166-162-pennsylvania.hfc.comcastbusiness.net ([50.73.166.162]:37332
-	"EHLO mail.besmhmr.dst.pa.us" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751489AbbFWCjv convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 22 Jun 2015 22:39:51 -0400
-Content-Description: Mail message body
+Received: from mga02.intel.com ([134.134.136.20]:18589 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750711AbbFWEKV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 23 Jun 2015 00:10:21 -0400
+In-Reply-To: <55871787.5080504@pr.hu>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Recipients <xx@yy.com>
+To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Boszormenyi Zoltan <zboszor@pr.hu>, Len Brown <lenb@kernel.org>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>
 
-Hello and Goodday,
+The data type resource_size_t may be 32 bits or 64 bits depending on
+CONFIG_PHYS_ADDR_T_64BIT. So reject ACPI resource descriptors which
+will cause resource_size_t overflow with 32bit kernel
 
-How are you doing, family-wise and business-wise? I am Larry and i am contacting you on behalf of the former personal assistant to the former president of Taiwan ( Mr. Chen Shui-bian ), He humbly request your assistance on some  business matters. An investment was placed under his management 5 years ago by Mr. Chen Sui-bian, He needs assistance in investing these funds. Please get in touch with me on this email larrywang444@163.com for further details if you think you may be of any valuable assistance.
+This issue was triggered on a platform running 32bit kernel with an
+ACPI resource descriptor with address range [0x400000000-0xfffffffff].
+Please refer to https://lkml.org/lkml/2015/6/19/277 for more information.
 
-Regards,
-Larry Wang
+Reported-by: Boszormenyi Zoltan <zboszor@pr.hu>
+Fixes: 593669c2ac0f ("x86/PCI/ACPI: Use common ACPI resource interfaces to simplify implementation")
+Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: stable@vger.kernel.org # 4.0
+---
+ drivers/acpi/resource.c |   24 +++++++++++++++---------
+ 1 file changed, 15 insertions(+), 9 deletions(-)
+
+diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+index 8244f013f210..f1c966e05078 100644
+--- a/drivers/acpi/resource.c
++++ b/drivers/acpi/resource.c
+@@ -193,6 +193,7 @@ static bool acpi_decode_space(struct resource_win *win,
+ 	u8 iodec = attr->granularity == 0xfff ? ACPI_DECODE_10 : ACPI_DECODE_16;
+ 	bool wp = addr->info.mem.write_protect;
+ 	u64 len = attr->address_length;
++	u64 start, end, offset = 0;
+ 	struct resource *res = &win->res;
+ 
+ 	/*
+@@ -204,9 +205,6 @@ static bool acpi_decode_space(struct resource_win *win,
+ 		pr_debug("ACPI: Invalid address space min_addr_fix %d, max_addr_fix %d, len %llx\n",
+ 			 addr->min_address_fixed, addr->max_address_fixed, len);
+ 
+-	res->start = attr->minimum;
+-	res->end = attr->maximum;
+-
+ 	/*
+ 	 * For bridges that translate addresses across the bridge,
+ 	 * translation_offset is the offset that must be added to the
+@@ -214,12 +212,22 @@ static bool acpi_decode_space(struct resource_win *win,
+ 	 * primary side. Non-bridge devices must list 0 for all Address
+ 	 * Translation offset bits.
+ 	 */
+-	if (addr->producer_consumer == ACPI_PRODUCER) {
+-		res->start += attr->translation_offset;
+-		res->end += attr->translation_offset;
+-	} else if (attr->translation_offset) {
++	if (addr->producer_consumer == ACPI_PRODUCER)
++		offset = attr->translation_offset;
++	else if (attr->translation_offset)
+ 		pr_debug("ACPI: translation_offset(%lld) is invalid for non-bridge device.\n",
+ 			 attr->translation_offset);
++	start = attr->minimum + offset;
++	end = attr->maximum + offset;
++
++	win->offset = offset;
++	res->start = start;
++	res->end = end;
++	if (sizeof(resource_size_t) < sizeof(u64) &&
++	    (offset != win->offset || start != res->start || end != res->end)) {
++		pr_warn("acpi resource window ([%#llx-%#llx] ignored, not CPU addressable)\n",
++			attr->minimum, attr->maximum);
++		return false;
+ 	}
+ 
+ 	switch (addr->resource_type) {
+@@ -236,8 +244,6 @@ static bool acpi_decode_space(struct resource_win *win,
+ 		return false;
+ 	}
+ 
+-	win->offset = attr->translation_offset;
+-
+ 	if (addr->producer_consumer == ACPI_PRODUCER)
+ 		res->flags |= IORESOURCE_WINDOW;
+ 
+-- 
+1.7.10.4
+
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
