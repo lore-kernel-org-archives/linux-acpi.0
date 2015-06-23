@@ -1,79 +1,41 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH 02/15] libnvdimm: infrastructure for btt devices
-Date: Tue, 23 Jun 2015 08:19:57 -0700
-Message-ID: <CAPcyv4i8ciusz34UArM5MFFB8V-dz2JrCGKgkT3i5d6QT0-0xA@mail.gmail.com>
-References: <20150617235209.12943.24419.stgit@dwillia2-desk3.amr.corp.intel.com>
-	<20150617235458.12943.23425.stgit@dwillia2-desk3.amr.corp.intel.com>
-	<20150622163453.GA9187@lst.de>
-	<CAPcyv4jAA0=aSUDazG5hS1FS0o+qg4SyMXicqF_0M0s7_cXBGw@mail.gmail.com>
-	<20150622164837.GB9393@lst.de>
-	<x49k2uvvbje.fsf@segfault.boston.devel.redhat.com>
-	<CAPcyv4hSAPTRNLkfKGndUrxjzTp-FAW+4G8t926YZdVH2c-Q=g@mail.gmail.com>
-	<20150623101917.GG24894@lst.de>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH 03/32] ACPICA: Hardware: Enable 64-bit firmware waking
+ vector for selected FACS.
+Date: Tue, 23 Jun 2015 17:20:51 +0200
+Message-ID: <CAJZ5v0gfdfJF_-wK26wjxY=ai+QoUtS3ZpLT4ORX-P_wPQiA-g@mail.gmail.com>
+References: <cover.1434684719.git.lv.zheng@intel.com>
+	<261af597362906597365810a650c8e5c189e86da.1434684719.git.lv.zheng@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <20150623101917.GG24894@lst.de>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Christoph Hellwig <hch@lst.de>
-Cc: Jeff Moyer <jmoyer@redhat.com>, Jens Axboe <axboe@kernel.dk>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, Neil Brown <neilb@suse.de>, Greg KH <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wi0-f175.google.com ([209.85.212.175]:38305 "EHLO
+	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932328AbbFWPUx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Jun 2015 11:20:53 -0400
+In-Reply-To: <261af597362906597365810a650c8e5c189e86da.1434684719.git.lv.zheng@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Bob Moore <robert.moore@intel.com>
 
-On Tue, Jun 23, 2015 at 3:19 AM, Christoph Hellwig <hch@lst.de> wrote:
-> On Mon, Jun 22, 2015 at 12:02:54PM -0700, Dan Williams wrote:
->> I don't see the need to re-invent partitioning which is the path this
->> requested rework is putting us on...
->>
->> However, when the need arises for smaller granularity BTT we can have
->> the partition fight then.  To be clear, I believe that need is already
->> here today, but I'm not in a position to push that agenda at this late
->> date.
->
->
-> Instead of all this complaining and moaning let's figure out what
-> architecture you'd actually want.  The one I had in mind is:
->
-> +------------------------------+
-> |  block layer (& partitions)  |
-> +---------------+--------------+--------------------+
-> |  pmem driver  |  btt driver  |  other consumers   |
-> +---------------+--------------+--------------------+
-> |        pmem API through libnvdimm                 |
-> +---------------------------------------------------+
->
+Hi Lv,
 
-I've got this mostly coded up.  The nice property is that BTTs now
-become another flavor of the same namespace.
-
-> If you really want btt to stack on top of pmem it really
-> needs to be moved out entirely of libnvdimm and be a
-> generic block driver just using ->rw_bytes, e.g.:
+On Fri, Jun 19, 2015 at 5:38 AM, Lv Zheng <lv.zheng@intel.com> wrote:
+> ACPICA commit 7aa598d711644ab0de5f70ad88f1e2de253115e4
 >
->
-> +------------------------------+
-> |  btt driver                  |
-> +------------------------------+
-> |  block layer (& partitions)  |
-> +------------------------------+--------------------+
-> |  pmem driver                 | other consumers    |
-> +------------------------------+--------------------+
-> |        pmem API through libnvdimm                 |
-> +---------------------------------------------------+
->
-> Not the current mess where btt pretends to be a stacking block
-> driver but still ties into libnvdimm.
+> The root cause of the reported bug might be one of the followings:
+> 1. BIOS may favor the 64-bit firmware waking vector address when the
+>    version of the FACS is greater than 0 and Linux currently only supports
+>    resuming from the real mode, so the 64-bit firmware waking vector has
+>    never been set and might be invalid to BIOS while the commit enables
+>    higher version FACS.
+> 2. BIOS may favor the FACS reported via the "FIRMWARE_CTRL" field in the
+>    FADT while the commit doesn't set the firmware waking vector address of
 
-That tie was only to enable autodetect so that we don't need to run a
-BTT assembly step from an initramfs just to get an NVDIMM up and
-running.  It was a convenience, not a requirement.
+Can you please tell me which commit this is about?
 
-> Add blk mode access to all the schemes, but it's really just
-> another next to the pmem driver each time.  In fact while
-> looking over the code a bit more I start to wonder why
-> we need the blk driver at all - just hook into the nfit
-> do_io routines instead of the low-level API based on what
-> libnvdimm provides, and don't offer DAX for it.  It mostly
-> seems duplicate code.
+>    the FACS reported by "FIRMWARE_CTRL", it only sets the firware waking
+>    vector address of the FACS reported by "X_FIRMWARE_CTRL".
 
-Mostly, it does handle dis-contiguous dimm-physical-address ranges,
-but you're right we might be able to unify it in the coming cycle.
+Thanks,
+Rafael
