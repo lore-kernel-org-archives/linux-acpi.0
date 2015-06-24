@@ -1,163 +1,114 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH v2 16/28] ACPICA: Namespace: Add support of OSDT table.
-Date: Wed, 24 Jun 2015 20:02:12 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37D306A15@ORSMSX112.amr.corp.intel.com>
-References: <cover.1434684719.git.lv.zheng@intel.com>
- <cover.1435114811.git.lv.zheng@intel.com>
- <ef85374dcb02bbfebc81131d7a83f227b0f21a62.1435114811.git.lv.zheng@intel.com>
- <558B0047.8050102@redhat.com>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [RFC v1 14/25] genirq: Kill the first parameter 'irq' of
+ irq_flow_handler_t
+Date: Wed, 24 Jun 2015 23:10:42 +0200 (CEST)
+Message-ID: <alpine.DEB.2.11.1506242137070.4037@nanos>
+References: <1432116013-25902-1-git-send-email-jiang.liu@linux.intel.com> <1432116013-25902-15-git-send-email-jiang.liu@linux.intel.com> <alpine.DEB.2.11.1505201724260.4225@nanos> <555CA834.7080807@linux.intel.com> <alpine.DEB.2.11.1505201750280.4225@nanos>
+ <alpine.DEB.2.10.1506131059180.2486@hadrien> <alpine.DEB.2.11.1506131130490.3786@nanos> <alpine.DEB.2.10.1506131603151.2314@hadrien> <alpine.DEB.2.10.1506131652380.2314@hadrien> <557C5F29.7010301@linux.intel.com> <alpine.DEB.2.02.1506132214310.2020@localhost6.localdomain6>
+ <alpine.DEB.2.11.1506132230450.3786@nanos> <alpine.DEB.2.02.1506132240500.2020@localhost6.localdomain6>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:58427 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752950AbbFXUCQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Jun 2015 16:02:16 -0400
-In-Reply-To: <558B0047.8050102@redhat.com>
-Content-Language: en-US
+Received: from www.linutronix.de ([62.245.132.108]:46202 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750879AbbFXVMB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Jun 2015 17:12:01 -0400
+In-Reply-To: <alpine.DEB.2.02.1506132240500.2020@localhost6.localdomain6>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Al Stone <ahs3@redhat.com>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, "Box, David E" <david.e.box@intel.com>
-Cc: Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Julia Lawall <julia.lawall@lip6.fr>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Jason Cooper <jason@lakedaemon.net>, Kevin Cernekee <cernekee@gmail.com>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
 
-It is the current plan to add this to the next revision of the ACPI specification.
-
-In the meantime, the OSDT looks exactly like a DSDT or SSDT (hence the "SDT" suffix), with the only difference being the signature "OSDT":
-
-DefinitionBlock ("osdt.aml", "OSDT", 2, "Intel", "Template", 0x00000001)
-{
-
-The current iASL compiler will emit a template for you if you want:
-
-iasl -T OSDT
-
-
-We are working on the proposal/ECR for the ACPI spec.
-Bob
-
-
-> -----Original Message-----
-> From: Al Stone [mailto:ahs3@redhat.com]
-> Sent: Wednesday, June 24, 2015 12:09 PM
-> To: Zheng, Lv; Wysocki, Rafael J; Brown, Len
-> Cc: Lv Zheng; linux-kernel@vger.kernel.org; linux-acpi@vger.kernel.org;
-> Moore, Robert
-> Subject: Re: [PATCH v2 16/28] ACPICA: Namespace: Add support of OSDT
-> table.
+On Sat, 13 Jun 2015, Julia Lawall wrote:
+> On Sat, 13 Jun 2015, Thomas Gleixner wrote:
 > 
-> On 06/23/2015 09:04 PM, Lv Zheng wrote:
-> > From: Bob Moore <robert.moore@intel.com>
-> >
-> > ACPICA commit 27415c82fcecf467446f66d1007a0691cc5f3709
-> >
-> > This patch adds OSDT (Override System Definition Table) support.
-> > When OSDT is loaded, conflict namespace objects will be overridden by
-> > the AML interpreter. Bob Moore, Lv Zheng.
-> >
-> > Link: https://github.com/acpica/acpica/commit/27415c82
-> > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-> > Signed-off-by: Bob Moore <robert.moore@intel.com>
-> > ---
-> >  drivers/acpi/acpica/nsparse.c  |    7 +++++++
-> >  drivers/acpi/acpica/tbxfload.c |    6 +++++-
-> >  drivers/acpi/acpica/utmisc.c   |    3 ++-
-> >  include/acpi/actbl.h           |    1 +
-> >  4 files changed, 15 insertions(+), 2 deletions(-)
-> >
-> > diff --git a/drivers/acpi/acpica/nsparse.c
-> > b/drivers/acpi/acpica/nsparse.c index c95a119..57a4cfe 100644
-> > --- a/drivers/acpi/acpica/nsparse.c
-> > +++ b/drivers/acpi/acpica/nsparse.c
-> > @@ -117,6 +117,13 @@ acpi_ns_one_complete_parse(u32 pass_number,
-> >  					       (u8) pass_number);
-> >  	}
-> >
-> > +	/* Found OSDT table, enable the namespace override feature */
-> > +
-> > +	if (ACPI_COMPARE_NAME(table->signature, ACPI_SIG_OSDT) &&
-> > +	    pass_number == ACPI_IMODE_LOAD_PASS1) {
-> > +		walk_state->namespace_override = TRUE;
-> > +	}
-> > +
-> >  	if (ACPI_FAILURE(status)) {
-> >  		acpi_ds_delete_walk_state(walk_state);
-> >  		goto cleanup;
-> > diff --git a/drivers/acpi/acpica/tbxfload.c
-> > b/drivers/acpi/acpica/tbxfload.c index b63e35d..960bd99 100644
-> > --- a/drivers/acpi/acpica/tbxfload.c
-> > +++ b/drivers/acpi/acpica/tbxfload.c
-> > @@ -173,7 +173,11 @@ static acpi_status acpi_tb_load_namespace(void)
-> >  		     &&
-> >  		     !ACPI_COMPARE_NAME(&
-> >  					(acpi_gbl_root_table_list.tables[i].
-> > -					 signature), ACPI_SIG_PSDT))
-> > +					 signature), ACPI_SIG_PSDT)
-> > +		     &&
-> > +		     !ACPI_COMPARE_NAME(&
-> > +					(acpi_gbl_root_table_list.tables[i].
-> > +					 signature), ACPI_SIG_OSDT))
-> >  		    ||
-> >  		    ACPI_FAILURE(acpi_tb_validate_table
-> >  				 (&acpi_gbl_root_table_list.tables[i]))) { diff --
-> git
-> > a/drivers/acpi/acpica/utmisc.c b/drivers/acpi/acpica/utmisc.c index
-> > cbb7034..28099e2 100644
-> > --- a/drivers/acpi/acpica/utmisc.c
-> > +++ b/drivers/acpi/acpica/utmisc.c
-> > @@ -97,7 +97,8 @@ u8 acpi_ut_is_aml_table(struct acpi_table_header
-> > *table)
-> >
-> >  	if (ACPI_COMPARE_NAME(table->signature, ACPI_SIG_DSDT) ||
-> >  	    ACPI_COMPARE_NAME(table->signature, ACPI_SIG_PSDT) ||
-> > -	    ACPI_COMPARE_NAME(table->signature, ACPI_SIG_SSDT)) {
-> > +	    ACPI_COMPARE_NAME(table->signature, ACPI_SIG_SSDT) ||
-> > +	    ACPI_COMPARE_NAME(table->signature, ACPI_SIG_OSDT)) {
-> >  		return (TRUE);
-> >  	}
-> >
-> > diff --git a/include/acpi/actbl.h b/include/acpi/actbl.h index
-> > cb8a6b9..2d5faf5 100644
-> > --- a/include/acpi/actbl.h
-> > +++ b/include/acpi/actbl.h
-> > @@ -65,6 +65,7 @@
-> >  #define ACPI_SIG_DSDT           "DSDT"	/* Differentiated System
-> Description Table */
-> >  #define ACPI_SIG_FADT           "FACP"	/* Fixed ACPI Description Table
-> */
-> >  #define ACPI_SIG_FACS           "FACS"	/* Firmware ACPI Control
-> Structure */
-> > +#define ACPI_SIG_OSDT           "OSDT"	/* Override System Description
-> Table */
-> >  #define ACPI_SIG_PSDT           "PSDT"	/* Persistent System Description
-> Table */
-> >  #define ACPI_SIG_RSDP           "RSD PTR "	/* Root System Description
-> Pointer */
-> >  #define ACPI_SIG_RSDT           "RSDT"	/* Root System Description Table
-> */
-> >
+> > On Sat, 13 Jun 2015, Julia Lawall wrote:
+> > 
+> > > The following are the cases that require some manual attention, either 
+> > > because the handler is a local variable or because it is some other kind 
+> > > of expression.
+> > 
+> > yep, found it in the logs already and found a missing search expression:
+> > 
+> > |
+> > gpiochip_set_chained_irqchip@p(e1,e2,e3,\(lih\|ih\|eh\))
+> > 
+> > This is really impressive work!!!!
 > 
-> I'm a little puzzled by this patch and the previous one (15-16/28).  I see
-> no definition for OSDT in the ACPI spec nor at http://uefi.org/acpi.
-> Personally, I like the feature, but I really don't like the idea that I'm
-> now going to have to go dig around to figure out what this table looks
-> like and what its semantics are supposed to be.  Without doing that,
-> though, it is impossible for me to tell if these patches are doing the
-> right thing.
+> Thanks :)
 > 
-> So, can I get a URL to the OSDT definition?  And if this is going to be
-> part of ACPI, please submit it as a change request to the spec; I sit on
-> the committee but this table hasn't come up at all to date (I just
-> searched the issue data base a few minutes ago to make sure I hadn't
-> missed it somewhere).  If OSDT is not going to be part of standard ACPI,
-> why the divergence from the spec?
-> 
-> --
-> ciao,
-> al
-> -----------------------------------
-> Al Stone
-> Software Engineer
-> Red Hat, Inc.
-> ahs3@redhat.com
-> -----------------------------------
+> I'll add the above pattern, but I guess you already have the results for 
+> that case.
+
+Yes.
+
+I did some more experiments and analyzed all functions which have the
+signature
+
+[static] void f(T irq, struct irq_desc *desc)
+
+where T is either 'unsigned int' or 'u32'
+
+That throws up a handful of false positives, but those are functions
+which are called from a real handler function, so we want to look at
+those anyway.
+
+Now where my cocci foo ends is when I try to match both types in the
+same rule, i.e. 
+
+@ fun exists @
+identifier hf,irq,desc;
+typedef u32;
+@@
+
+(
+void hf(unsigned irq, struct irq_desc *desc) { ... }
+|
+void hf(u32 irq, struct irq_desc *desc) { ... }
+)
+
+results in:
+Fatal error: exception Failure("minus: parse error: 
+ = File "../cocci/find-pot-handler.cocci", line 7, column 5,  charpos = 63
+    around = 'hf', whole content = void hf(unsigned irq, struct irq_desc *desc) { ... }
+")
+
+I tried a couple of other variants, but finally gave up and ran a
+cocci script first which does s/u32/unsigned/ on those functions, but
+of course because I'm lazy I wanted to do everything in one go. :)
+
+Aside of that the ruleset you gave me works nicely except for that
+part:
+
+// no uses of the first parameter before the assignment
+@@
+identifier fun.hf,irq;
+expression e;
+type T;
+fresh identifier firq = "__" ## irq;
+position r.p,p1 != {s.p1,s1.p1};
+@@
+
+hf(T@p
+- irq
++ firq
+  ,...) {
+  ... when != irq
+      when strict
+? irq@p1 = e
+  ... when any
+}
+
+That lacks a:
+
++ unsigned int irq;
+
+and therefor missed to add the local variable 'unsigned int irq' in
+case the parameter is only used for local storage.
+
+That was simple enough to fix even for me :)
+
+Thanks,
+
+	tglx
+
