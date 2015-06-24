@@ -1,27 +1,33 @@
 From: Christoph Hellwig <hch@lst.de>
-Subject: Re: [PATCH 02/15] libnvdimm: infrastructure for btt devices
-Date: Wed, 24 Jun 2015 14:10:40 +0200
-Message-ID: <20150624121040.GB17542@lst.de>
-References: <20150617235209.12943.24419.stgit@dwillia2-desk3.amr.corp.intel.com> <20150617235458.12943.23425.stgit@dwillia2-desk3.amr.corp.intel.com> <20150622163453.GA9187@lst.de> <CAPcyv4jAA0=aSUDazG5hS1FS0o+qg4SyMXicqF_0M0s7_cXBGw@mail.gmail.com> <20150622164837.GB9393@lst.de> <x49k2uvvbje.fsf@segfault.boston.devel.redhat.com> <CAPcyv4hSAPTRNLkfKGndUrxjzTp-FAW+4G8t926YZdVH2c-Q=g@mail.gmail.com> <20150623101917.GG24894@lst.de> <CAPcyv4i8ciusz34UArM5MFFB8V-dz2JrCGKgkT3i5d6QT0-0xA@mail.gmail.com>
+Subject: Re: [PATCH 14/15] libnvdimm: support read-only btt backing devices
+Date: Wed, 24 Jun 2015 14:11:52 +0200
+Message-ID: <20150624121152.GD17542@lst.de>
+References: <20150617235209.12943.24419.stgit@dwillia2-desk3.amr.corp.intel.com> <20150617235602.12943.24958.stgit@dwillia2-desk3.amr.corp.intel.com> <20150621101346.GF5915@lst.de> <CAPcyv4jjTU8MA1zWnbRsyxcnxC+EJK9pJdLBkYeGtgHXeDkKVQ@mail.gmail.com> <20150621135406.GA9572@lst.de> <CAPcyv4iAkSaCOzpJHJLLtJG_9M=5Jp75Kc9tVeCr__OjEB=ajQ@mail.gmail.com> <20150622063028.GA30434@lst.de> <20150623193043.GE1971@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from verein.lst.de ([213.95.11.211]:50676 "EHLO newverein.lst.de"
+Received: from verein.lst.de ([213.95.11.211]:50686 "EHLO newverein.lst.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751493AbbFXMKm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 24 Jun 2015 08:10:42 -0400
+	id S1752662AbbFXMLx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 24 Jun 2015 08:11:53 -0400
 Content-Disposition: inline
-In-Reply-To: <CAPcyv4i8ciusz34UArM5MFFB8V-dz2JrCGKgkT3i5d6QT0-0xA@mail.gmail.com>
+In-Reply-To: <20150623193043.GE1971@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Christoph Hellwig <hch@lst.de>, Jeff Moyer <jmoyer@redhat.com>, Jens Axboe <axboe@kernel.dk>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, Neil Brown <neilb@suse.de>, Greg KH <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
+To: Matthew Wilcox <willy@linux.intel.com>
+Cc: Christoph Hellwig <hch@lst.de>, Dan Williams <dan.j.williams@intel.com>, Jens Axboe <axboe@kernel.dk>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Ingo Molnar <mingo@kernel.org>
 
-On Tue, Jun 23, 2015 at 08:19:57AM -0700, Dan Williams wrote:
-> That tie was only to enable autodetect so that we don't need to run a
-> BTT assembly step from an initramfs just to get an NVDIMM up and
-> running.  It was a convenience, not a requirement.
+On Tue, Jun 23, 2015 at 03:30:43PM -0400, Matthew Wilcox wrote:
+> > I can't make any guarantees, especially not without verification.  But
+> > if correctly implemented any filesystems that does out of place metadata
+> > writes (and that includes a traditional log) and uses checksum to ensure
+> > the integrity of these updates it should be fine.  You'd still have
+> > the issue of sector atomicy of file I/O though.
+> 
+> Is ext4 one of the filesystems that copes with torn updates to the log?
+> I see there's a checksum in the tail of at least some blocks, but I'd
+> like someone who understands ext4 to reassure me that it also doesn't
+> need the ability to put its log on a BTT.
 
-It's a very deep tying for that feature.  Look at what the raid code
-does just for scanning.  Although even that is officially deprecate
-because people don't like in-kernel scanning (which I tend to disagree with).
+In theory it should if the log checksums are enabled, but I wouldn't rely
+on it without without confirmation and validation from the ext4 folks.
