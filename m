@@ -1,318 +1,69 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 03/28] ACPICA: Hardware: Enable 64-bit firmware waking vector for selected FACS.
-Date: Wed, 24 Jun 2015 16:05:42 +0200
-Message-ID: <2100131.SXLpyPbXcH@vostro.rjw.lan>
-References: <cover.1434684719.git.lv.zheng@intel.com> <cover.1435114811.git.lv.zheng@intel.com> <7ca3239e4066d1a33c523b1ccb475bcbfa6448d3.1435114811.git.lv.zheng@intel.com>
+From: Jesper Dangaard Brouer <brouer@redhat.com>
+Subject: Re: [PATCH v2 00/22] FUJITSU Extended Socket network device driver
+Date: Wed, 24 Jun 2015 15:41:13 +0200
+Message-ID: <20150624154113.4b41db79@redhat.com>
+References: <1435114351-6961-1-git-send-email-izumi.taku@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <7ca3239e4066d1a33c523b1ccb475bcbfa6448d3.1435114811.git.lv.zheng@intel.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>, linux-ia64@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:39463 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752175AbbFXNlR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 24 Jun 2015 09:41:17 -0400
+In-Reply-To: <1435114351-6961-1-git-send-email-izumi.taku@jp.fujitsu.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Taku Izumi <izumi.taku@jp.fujitsu.com>
+Cc: brouer@redhat.com, netdev@vger.kernel.org, platform-driver-x86@vger.kernel.org, dvhart@infradead.org, rkhan@redhat.com, alexander.h.duyck@redhat.com, linux-acpi@vger.kernel.org, joe@perches.com, yasu.isimatu@gmail.com
 
-On Wednesday, June 24, 2015 11:02:10 AM Lv Zheng wrote:
-> ACPICA commit 7aa598d711644ab0de5f70ad88f1e2de253115e4
+On Wed, 24 Jun 2015 11:52:31 +0900
+Taku Izumi <izumi.taku@jp.fujitsu.com> wrote:
+
+> This patchsets adds FUJITSU Extended Socket network device driver.
+> Extended Socket network device is a shared memory based high-speed network
+> interface between Extended Partitions of PRIMEQUEST 2000 E2 series.
 > 
-> The following commit is reported to have broken s2ram on some platforms:
->  Commit: 0249ed2444d65d65fc3f3f64f398f1ad0b7e54cd
->  ACPICA: Add option to favor 32-bit FADT addresses.
-> The platform reports 2 FACS tables (which is not allowed by ACPI
-> specification) and the new 32-bit address favor rule forces OSPMs to use
-> the FACS table reported via FADT's X_FIRMWARE_CTRL field.
+> You can get some information about Extended Partition and Extended
+> Socket by referring the following manual.
 > 
-> The root cause of the reported bug might be one of the followings:
-> 1. BIOS may favor the 64-bit firmware waking vector address when the
->    version of the FACS is greater than 0 and Linux currently only supports
->    resuming from the real mode, so the 64-bit firmware waking vector has
->    never been set and might be invalid to BIOS while the commit enables
->    higher version FACS.
-> 2. BIOS may favor the FACS reported via the "FIRMWARE_CTRL" field in the
->    FADT while the commit doesn't set the firmware waking vector address of
->    the FACS reported by "FIRMWARE_CTRL", it only sets the firware waking
->    vector address of the FACS reported by "X_FIRMWARE_CTRL".
+> http://globalsp.ts.fujitsu.com/dmsp/Publications/public/CA92344-0537.pdf
+>   3.2.1 Extended Partitioning
+>   3.2.2 Extended Socket
 > 
-> This patch excludes the cases that can trigger the bugs caused by the root
-> cause 1.
+> v1 -> v2:
+>   - Location change
+>     drivers/platform/x86 => driver/net
+
+Could/should this driver be placed under driver/net/ethernet/fujitsu ??
+
+You are using Ethernet addresses but they are kind of special, always
+02:00:00:00:00:xx which is hard-coded... maybe I misunderstand the
+code/hw and it is not Ethernet?
+
+[...]
+>  drivers/net/fjes/Makefile       |   31 +
+>  drivers/net/fjes/fjes.h         |   77 +++
+>  drivers/net/fjes/fjes_ethtool.c |  135 ++++
+>  drivers/net/fjes/fjes_hw.c      | 1122 +++++++++++++++++++++++++++++++
+>  drivers/net/fjes/fjes_hw.h      |  333 ++++++++++
+>  drivers/net/fjes/fjes_main.c    | 1397 +++++++++++++++++++++++++++++++++++++++
+>  drivers/net/fjes/fjes_regs.h    |  142 ++++
+>  9 files changed, 3246 insertions(+)
+>  create mode 100644 drivers/net/fjes/Makefile
+>  create mode 100644 drivers/net/fjes/fjes.h
+>  create mode 100644 drivers/net/fjes/fjes_ethtool.c
+>  create mode 100644 drivers/net/fjes/fjes_hw.c
+>  create mode 100644 drivers/net/fjes/fjes_hw.h
+>  create mode 100644 drivers/net/fjes/fjes_main.c
+>  create mode 100644 drivers/net/fjes/fjes_regs.h
 > 
-> ACPI specification says:
-> A. 32-bit FACS address (FIRMWARE_CTRL field in FADT):
->    Physical memory address of the FACS, where OSPM and firmware exchange
->    control information.
->    If the X_FIRMWARE_CTRL field contains a non zero value then this field
->    must be zero.
->    A zero value indicates that no FACS is specified by this field.
-> B. 64-bit FACS address (X_FIRMWARE_CTRL field in FADT):
->    64bit physical memory address of the FACS.
->    This field is used when the physical address of the FACS is above 4GB.
->    If the FIRMWARE_CTRL field contains a non zero value then this field
->    must be zero.
->    A zero value indicates that no FACS is specified by this field.
-> Thus the 32bit and 64bit firmware waking vector should indicate completely
-> different resuming environment - real mode (1MB addressable) and non real
-> mode (4GB+ addressable) and currently Linux only supports resuming from
-> real mode.
-> 
-> This patch enables 64-bit firmware waking vector for selected FACS via
-> acpi_set_firmware_waking_vector() so that it's up to OSPMs to determine which
-> resuming mode should be used by BIOS and ACPICA changes won't trigger the
-> bugs caused by the root cause 1. For example, Linux can pass
-> physical_address64=0 as the parameter of acpi_set_firmware_waking_vector() to
-> indicate no 64bit waking vector support. Lv Zheng.
-> 
-> This patch also updates acpi_set_firmware_waking_vector() invocations in
-> order to keep 32-bit firmware waking vector favor for Linux. 64-bit
-> firmware waking vector has never been enabled by Linux.  The
-> (acpi_physical_address)0 for 64-bit address can be used to force ACPICA to
-> set only 32-bit firmware waking vector for Linux.
-> 
-> Link: https://bugzilla.kernel.org/show_bug.cgi?id=74021
-> Link: https://github.com/acpica/acpica/commit/7aa598d7
-> Cc: 3.14.1+ <stable@vger.kernel.org> # 3.14.1+
-> Reported-and-tested-by: Oswald Buddenhagen <ossi@kde.org>
-> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-> Signed-off-by: Bob Moore <robert.moore@intel.com>
-> Cc: Thomas Gleixner <tglx@linutronix.de>
-> Cc: Ingo Molnar <mingo@redhat.com>
-> Cc: "H. Peter Anvin" <hpa@zytor.com>
-> Cc: x86@kernel.org
-> Cc: Tony Luck <tony.luck@intel.com>
-> Cc: Fenghua Yu <fenghua.yu@intel.com>
-> Cc: linux-ia64@vger.kernel.org
-> ---
->  arch/ia64/include/asm/acpi.h    |    3 +-
->  arch/ia64/kernel/acpi.c         |    2 --
->  arch/x86/include/asm/acpi.h     |    3 +-
->  drivers/acpi/acpica/hwxfsleep.c |   61 ++++++++++++---------------------------
->  drivers/acpi/sleep.c            |    8 +++--
->  include/acpi/acpixf.h           |   11 +++----
->  6 files changed, 33 insertions(+), 55 deletions(-)
-> 
-> diff --git a/arch/ia64/include/asm/acpi.h b/arch/ia64/include/asm/acpi.h
-> index aa0fdf1..0ac4fab 100644
-> --- a/arch/ia64/include/asm/acpi.h
-> +++ b/arch/ia64/include/asm/acpi.h
-> @@ -79,7 +79,8 @@ int acpi_gsi_to_irq (u32 gsi, unsigned int *irq);
->  /* Low-level suspend routine. */
->  extern int acpi_suspend_lowlevel(void);
->  
-> -extern unsigned long acpi_wakeup_address;
-> +#define acpi_wakeup_address	((acpi_physical_address)0)
-> +#define acpi_wakeup_address64	((acpi_physical_address)0)
->  
->  /*
->   * Record the cpei override flag and current logical cpu. This is
-> diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
-> index b1698bc..1b08d6f 100644
-> --- a/arch/ia64/kernel/acpi.c
-> +++ b/arch/ia64/kernel/acpi.c
-> @@ -60,8 +60,6 @@ int acpi_lapic;
->  unsigned int acpi_cpei_override;
->  unsigned int acpi_cpei_phys_cpuid;
->  
-> -unsigned long acpi_wakeup_address = 0;
-> -
->  #ifdef CONFIG_IA64_GENERIC
->  static unsigned long __init acpi_find_rsdp(void)
->  {
-> diff --git a/arch/x86/include/asm/acpi.h b/arch/x86/include/asm/acpi.h
-> index 3a45668..fc9608d 100644
-> --- a/arch/x86/include/asm/acpi.h
-> +++ b/arch/x86/include/asm/acpi.h
-> @@ -72,7 +72,8 @@ static inline void acpi_disable_pci(void)
->  extern int (*acpi_suspend_lowlevel)(void);
->  
->  /* Physical address to resume after wakeup */
-> -#define acpi_wakeup_address ((unsigned long)(real_mode_header->wakeup_start))
-> +#define acpi_wakeup_address	((acpi_physical_address)(real_mode_header->wakeup_start))
-> +#define acpi_wakeup_address64	((acpi_physical_address)(0))
 
-Do we need this?
 
-Why don't we define
-
-static inline void acpi_set_wakeup_address(void)
-{
-	acpi_set_firmware_waking_vector((unsigned long)real_mode_header->wakeup_start, 0);
-}
-
-and
-
-static inline void acpi_clear_wakeup_address(void)
-{
-	acpi_set_firmware_waking_vector(0, 0);
-}
-
-instead?
-
-Which may be defined as empty stubs on ia64?
-
->  
->  /*
->   * Check if the CPU can handle C2 and deeper
-> diff --git a/drivers/acpi/acpica/hwxfsleep.c b/drivers/acpi/acpica/hwxfsleep.c
-> index 82e310b..c67cd32 100644
-> --- a/drivers/acpi/acpica/hwxfsleep.c
-> +++ b/drivers/acpi/acpica/hwxfsleep.c
-> @@ -73,7 +73,6 @@ static struct acpi_sleep_functions acpi_sleep_dispatch[] = {
->  /*
->   * These functions are removed for the ACPI_REDUCED_HARDWARE case:
->   *      acpi_set_firmware_waking_vector
-> - *      acpi_set_firmware_waking_vector64
->   *      acpi_enter_sleep_state_s4bios
->   */
->  
-> @@ -83,15 +82,19 @@ static struct acpi_sleep_functions acpi_sleep_dispatch[] = {
->   * FUNCTION:    acpi_set_firmware_waking_vector
->   *
->   * PARAMETERS:  physical_address    - 32-bit physical address of ACPI real mode
-> - *                                    entry point.
-> + *                                    entry point
-> + *              physical_address64  - 64-bit physical address of ACPI protected
-> + *                                    entry point
->   *
->   * RETURN:      Status
->   *
-> - * DESCRIPTION: Sets the 32-bit firmware_waking_vector field of the FACS
-> + * DESCRIPTION: Sets the firmware_waking_vector fields of the FACS
->   *
->   ******************************************************************************/
->  
-> -acpi_status acpi_set_firmware_waking_vector(u32 physical_address)
-> +acpi_status
-> +acpi_set_firmware_waking_vector(acpi_physical_address physical_address,
-> +				acpi_physical_address physical_address64)
->  {
->  	ACPI_FUNCTION_TRACE(acpi_set_firmware_waking_vector);
->  
-> @@ -106,53 +109,27 @@ acpi_status acpi_set_firmware_waking_vector(u32 physical_address)
->  
->  	/* Set the 32-bit vector */
->  
-> -	acpi_gbl_FACS->firmware_waking_vector = physical_address;
-> +	acpi_gbl_FACS->firmware_waking_vector = (u32)physical_address;
->  
-> -	/* Clear the 64-bit vector if it exists */
-> +	if (acpi_gbl_FACS->length > 32) {
-> +		if (acpi_gbl_FACS->version >= 1) {
->  
-> -	if ((acpi_gbl_FACS->length > 32) && (acpi_gbl_FACS->version >= 1)) {
-> -		acpi_gbl_FACS->xfirmware_waking_vector = 0;
-> -	}
-> -
-> -	return_ACPI_STATUS(AE_OK);
-> -}
-> -
-> -ACPI_EXPORT_SYMBOL(acpi_set_firmware_waking_vector)
-> -
-> -#if ACPI_MACHINE_WIDTH == 64
-> -/*******************************************************************************
-> - *
-> - * FUNCTION:    acpi_set_firmware_waking_vector64
-> - *
-> - * PARAMETERS:  physical_address    - 64-bit physical address of ACPI protected
-> - *                                    mode entry point.
-> - *
-> - * RETURN:      Status
-> - *
-> - * DESCRIPTION: Sets the 64-bit X_firmware_waking_vector field of the FACS, if
-> - *              it exists in the table. This function is intended for use with
-> - *              64-bit host operating systems.
-> - *
-> - ******************************************************************************/
-> -acpi_status acpi_set_firmware_waking_vector64(u64 physical_address)
-> -{
-> -	ACPI_FUNCTION_TRACE(acpi_set_firmware_waking_vector64);
-> +			/* Set the 64-bit vector */
->  
-> -	/* Determine if the 64-bit vector actually exists */
-> +			acpi_gbl_FACS->xfirmware_waking_vector =
-> +			    physical_address64;
-> +		} else {
-> +			/* Clear the 64-bit vector if it exists */
->  
-> -	if ((acpi_gbl_FACS->length <= 32) || (acpi_gbl_FACS->version < 1)) {
-> -		return_ACPI_STATUS(AE_NOT_EXIST);
-> +			acpi_gbl_FACS->xfirmware_waking_vector = 0;
-> +		}
->  	}
->  
-> -	/* Clear 32-bit vector, set the 64-bit X_ vector */
-> -
-> -	acpi_gbl_FACS->firmware_waking_vector = 0;
-> -	acpi_gbl_FACS->xfirmware_waking_vector = physical_address;
->  	return_ACPI_STATUS(AE_OK);
->  }
->  
-> -ACPI_EXPORT_SYMBOL(acpi_set_firmware_waking_vector64)
-> -#endif
-> +ACPI_EXPORT_SYMBOL(acpi_set_firmware_waking_vector)
-> +
->  /*******************************************************************************
->   *
->   * FUNCTION:    acpi_enter_sleep_state_s4bios
-> diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
-> index 2f0d4db..3a6a2eb 100644
-> --- a/drivers/acpi/sleep.c
-> +++ b/drivers/acpi/sleep.c
-> @@ -25,6 +25,8 @@
->  #include "internal.h"
->  #include "sleep.h"
->  
-> +#define ACPI_NO_WAKING_VECTOR		((acpi_physical_address)0)
-
-Do we need this too?
-
-> +
->  static u8 sleep_states[ACPI_S_STATE_COUNT];
->  
->  static void acpi_sleep_tts_switch(u32 acpi_state)
-> @@ -61,7 +63,8 @@ static int acpi_sleep_prepare(u32 acpi_state)
->  	if (acpi_state == ACPI_STATE_S3) {
->  		if (!acpi_wakeup_address)
->  			return -EFAULT;
-> -		acpi_set_firmware_waking_vector(acpi_wakeup_address);
-> +		acpi_set_firmware_waking_vector(acpi_wakeup_address,
-> +						acpi_wakeup_address64);
->  
->  	}
->  	ACPI_FLUSH_CPU_CACHE();
-> @@ -410,7 +413,8 @@ static void acpi_pm_finish(void)
->  	acpi_leave_sleep_state(acpi_state);
->  
->  	/* reset firmware waking vector */
-> -	acpi_set_firmware_waking_vector((acpi_physical_address) 0);
-> +	acpi_set_firmware_waking_vector(ACPI_NO_WAKING_VECTOR,
-> +					ACPI_NO_WAKING_VECTOR);
->  
->  	acpi_target_sleep_state = ACPI_STATE_S0;
->  
-> diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-> index d68f1cd..a68e4b9 100644
-> --- a/include/acpi/acpixf.h
-> +++ b/include/acpi/acpixf.h
-> @@ -814,13 +814,10 @@ ACPI_EXTERNAL_RETURN_STATUS(acpi_status
->  ACPI_EXTERNAL_RETURN_STATUS(acpi_status acpi_leave_sleep_state(u8 sleep_state))
->  
->  ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status
-> -				acpi_set_firmware_waking_vector(u32
-> -								physical_address))
-> -#if ACPI_MACHINE_WIDTH == 64
-> -ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status
-> -				acpi_set_firmware_waking_vector64(u64
-> -								  physical_address))
-> -#endif
-> +				acpi_set_firmware_waking_vector
-> +				(acpi_physical_address physical_address,
-> +				 acpi_physical_address physical_address64))
-> +
->  /*
->   * ACPI Timer interfaces
->   */
-> 
 
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Best regards,
+  Jesper Dangaard Brouer
+  MSc.CS, Sr. Network Kernel Developer at Red Hat
+  Author of http://www.iptv-analyzer.org
+  LinkedIn: http://www.linkedin.com/in/brouer
