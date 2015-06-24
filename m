@@ -1,72 +1,227 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] acpi/video: Inline acpi_video_set_dmi_backlight_type
-Date: Thu, 25 Jun 2015 00:18:07 +0200
-Message-ID: <1637885.IPfNDfCUxQ@vostro.rjw.lan>
-References: <1435140109-2241-1-git-send-email-bp@alien8.de>
+Subject: Re: [PATCH] of: acpi: Rename of_node() and acpi_node() to to_of_node() and to_acpi_node()
+Date: Thu, 25 Jun 2015 00:20:31 +0200
+Message-ID: <10569034.P3OFQNPcxE@vostro.rjw.lan>
+References: <5588725D.6000101@gmail.com> <2099562.7T915zWny0@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:50961 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750838AbbFXVv6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Jun 2015 17:51:58 -0400
-In-Reply-To: <1435140109-2241-1-git-send-email-bp@alien8.de>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <2099562.7T915zWny0@vostro.rjw.lan>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Alexander Sverdlin <alexander.sverdlin@gmail.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Bryan Wu <cooloney@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Jacek Anaszewski <j.anaszewski@samsung.com>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, Grant Likely <grant.likely@linaro.org>, Rob Herring <robh+dt@kernel.org>, linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, linux-leds@vger.kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org, devel@acpica.org
 
-On Wednesday, June 24, 2015 12:01:49 PM Borislav Petkov wrote:
-> From: Borislav Petkov <bp@suse.de>
->=20
-> ... and kill this:
->=20
->   In file included from drivers/gpu/drm/radeon/radeon_acpi.c:29:0:
->   include/acpi/video.h:46:13: warning: =E2=80=98acpi_video_set_dmi_ba=
-cklight_type=E2=80=99 defined but not used [-Wunused-function]
->    static void acpi_video_set_dmi_backlight_type(enum acpi_backlight_=
-type type)
->                ^
->=20
-> Signed-off-by: Borislav Petkov <bp@suse.de>
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: Robert Moore <robert.moore@intel.com>
-> Cc: Lv Zheng <lv.zheng@intel.com>
-> Cc: linux-acpi@vger.kernel.org
-> Cc: devel@acpica.org
-> Cc: linux-kernel@vger.kernel.org
+On Tuesday, June 23, 2015 01:45:00 AM Rafael J. Wysocki wrote:
+> On Monday, June 22, 2015 10:38:53 PM Alexander Sverdlin wrote:
+> > Commit 8a0662d9 introduced of_node and acpi_node symbols in global namespace
+> > but there were already ~63 of_node local variables or function parameters
+> > (no single acpi_node though, but anyway).
+> > 
+> > After debugging undefined but used of_node local varible (which turned out
+> > to reference static function of_node() instead) it became clear that the names
+> > for the functions are too short and too generic for global scope.
+> > 
+> > Signed-off-by: Alexander Sverdlin <alexander.sverdlin@gmail.com>
+> 
+> Putting the whole world into the To: field of your messages is not a good idea
+> in general.
+> 
+> I'm fine with this change, personally.
+> 
+> Does anyone in the CC list have any objections?
 
-Applied, thanks!
+No objections apparently.
 
-> ---
->  include/acpi/video.h | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->=20
-> diff --git a/include/acpi/video.h b/include/acpi/video.h
-> index a7d7f1043e9c..e840b294c6f5 100644
-> --- a/include/acpi/video.h
-> +++ b/include/acpi/video.h
-> @@ -43,7 +43,7 @@ static inline enum acpi_backlight_type acpi_video_g=
-et_backlight_type(void)
->  {
->  	return acpi_backlight_vendor;
->  }
-> -static void acpi_video_set_dmi_backlight_type(enum acpi_backlight_ty=
-pe type)
-> +static inline void acpi_video_set_dmi_backlight_type(enum acpi_backl=
-ight_type type)
->  {
->  }
->  #endif
->=20
+OK, I've queued this one up for the next PM+ACPI pull request, thanks!
 
---=20
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
+> > ---
+> > 
+> > Compile-tested on x86_64 with ACPI and ARM with OF.
+> > 
+> >  drivers/base/property.c  | 26 +++++++++++++-------------
+> >  drivers/gpio/gpiolib.c   |  4 ++--
+> >  drivers/leds/leds-gpio.c |  2 +-
+> >  include/acpi/acpi_bus.h  |  2 +-
+> >  include/linux/acpi.h     |  4 ++--
+> >  include/linux/of.h       |  4 ++--
+> >  6 files changed, 21 insertions(+), 21 deletions(-)
+> > 
+> > diff --git a/drivers/base/property.c b/drivers/base/property.c
+> > index 1d0b116..dfd4de6 100644
+> > --- a/drivers/base/property.c
+> > +++ b/drivers/base/property.c
+> > @@ -128,9 +128,9 @@ EXPORT_SYMBOL_GPL(device_property_present);
+> >  bool fwnode_property_present(struct fwnode_handle *fwnode, const char *propname)
+> >  {
+> >  	if (is_of_node(fwnode))
+> > -		return of_property_read_bool(of_node(fwnode), propname);
+> > +		return of_property_read_bool(to_of_node(fwnode), propname);
+> >  	else if (is_acpi_node(fwnode))
+> > -		return !acpi_dev_prop_get(acpi_node(fwnode), propname, NULL);
+> > +		return !acpi_dev_prop_get(to_acpi_node(fwnode), propname, NULL);
+> > 
+> >  	return !!pset_prop_get(to_pset(fwnode), propname);
+> >  }
+> > @@ -285,10 +285,10 @@ EXPORT_SYMBOL_GPL(device_property_read_string);
+> >  ({ \
+> >  	int _ret_; \
+> >  	if (is_of_node(_fwnode_)) \
+> > -		_ret_ = OF_DEV_PROP_READ_ARRAY(of_node(_fwnode_), _propname_, \
+> > +		_ret_ = OF_DEV_PROP_READ_ARRAY(to_of_node(_fwnode_), _propname_, \
+> >  					       _type_, _val_, _nval_); \
+> >  	else if (is_acpi_node(_fwnode_)) \
+> > -		_ret_ = acpi_dev_prop_read(acpi_node(_fwnode_), _propname_, \
+> > +		_ret_ = acpi_dev_prop_read(to_acpi_node(_fwnode_), _propname_, \
+> >  					   _proptype_, _val_, _nval_); \
+> >  	else \
+> >  		_ret_ = pset_prop_read_array(to_pset(_fwnode_), _propname_, \
+> > @@ -424,11 +424,11 @@ int fwnode_property_read_string_array(struct fwnode_handle *fwnode,
+> >  {
+> >  	if (is_of_node(fwnode))
+> >  		return val ?
+> > -			of_property_read_string_array(of_node(fwnode), propname,
+> > -						      val, nval) :
+> > -			of_property_count_strings(of_node(fwnode), propname);
+> > +			of_property_read_string_array(to_of_node(fwnode),
+> > +						      propname, val, nval) :
+> > +			of_property_count_strings(to_of_node(fwnode), propname);
+> >  	else if (is_acpi_node(fwnode))
+> > -		return acpi_dev_prop_read(acpi_node(fwnode), propname,
+> > +		return acpi_dev_prop_read(to_acpi_node(fwnode), propname,
+> >  					  DEV_PROP_STRING, val, nval);
+> > 
+> >  	return pset_prop_read_array(to_pset(fwnode), propname,
+> > @@ -455,9 +455,9 @@ int fwnode_property_read_string(struct fwnode_handle *fwnode,
+> >  				const char *propname, const char **val)
+> >  {
+> >  	if (is_of_node(fwnode))
+> > -		return of_property_read_string(of_node(fwnode), propname, val);
+> > +		return of_property_read_string(to_of_node(fwnode), propname, val);
+> >  	else if (is_acpi_node(fwnode))
+> > -		return acpi_dev_prop_read(acpi_node(fwnode), propname,
+> > +		return acpi_dev_prop_read(to_acpi_node(fwnode), propname,
+> >  					  DEV_PROP_STRING, val, 1);
+> > 
+> >  	return -ENXIO;
+> > @@ -475,13 +475,13 @@ struct fwnode_handle *device_get_next_child_node(struct device *dev,
+> >  	if (IS_ENABLED(CONFIG_OF) && dev->of_node) {
+> >  		struct device_node *node;
+> > 
+> > -		node = of_get_next_available_child(dev->of_node, of_node(child));
+> > +		node = of_get_next_available_child(dev->of_node, to_of_node(child));
+> >  		if (node)
+> >  			return &node->fwnode;
+> >  	} else if (IS_ENABLED(CONFIG_ACPI)) {
+> >  		struct acpi_device *node;
+> > 
+> > -		node = acpi_get_next_child(dev, acpi_node(child));
+> > +		node = acpi_get_next_child(dev, to_acpi_node(child));
+> >  		if (node)
+> >  			return acpi_fwnode_handle(node);
+> >  	}
+> > @@ -500,7 +500,7 @@ EXPORT_SYMBOL_GPL(device_get_next_child_node);
+> >  void fwnode_handle_put(struct fwnode_handle *fwnode)
+> >  {
+> >  	if (is_of_node(fwnode))
+> > -		of_node_put(of_node(fwnode));
+> > +		of_node_put(to_of_node(fwnode));
+> >  }
+> >  EXPORT_SYMBOL_GPL(fwnode_handle_put);
+> > 
+> > diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
+> > index 6bc612b..5d8b2b3 100644
+> > --- a/drivers/gpio/gpiolib.c
+> > +++ b/drivers/gpio/gpiolib.c
+> > @@ -2040,14 +2040,14 @@ struct gpio_desc *fwnode_get_named_gpiod(struct fwnode_handle *fwnode,
+> >  	if (is_of_node(fwnode)) {
+> >  		enum of_gpio_flags flags;
+> > 
+> > -		desc = of_get_named_gpiod_flags(of_node(fwnode), propname, 0,
+> > +		desc = of_get_named_gpiod_flags(to_of_node(fwnode), propname, 0,
+> >  						&flags);
+> >  		if (!IS_ERR(desc))
+> >  			active_low = flags & OF_GPIO_ACTIVE_LOW;
+> >  	} else if (is_acpi_node(fwnode)) {
+> >  		struct acpi_gpio_info info;
+> > 
+> > -		desc = acpi_get_gpiod_by_index(acpi_node(fwnode), propname, 0,
+> > +		desc = acpi_get_gpiod_by_index(to_acpi_node(fwnode), propname, 0,
+> >  					       &info);
+> >  		if (!IS_ERR(desc))
+> >  			active_low = info.active_low;
+> > diff --git a/drivers/leds/leds-gpio.c b/drivers/leds/leds-gpio.c
+> > index 15eb3f8..d2d54d6 100644
+> > --- a/drivers/leds/leds-gpio.c
+> > +++ b/drivers/leds/leds-gpio.c
+> > @@ -191,7 +191,7 @@ static struct gpio_leds_priv *gpio_leds_create(struct platform_device *pdev)
+> >  			goto err;
+> >  		}
+> > 
+> > -		np = of_node(child);
+> > +		np = to_of_node(child);
+> > 
+> >  		if (fwnode_property_present(child, "label")) {
+> >  			fwnode_property_read_string(child, "label", &led.name);
+> > diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> > index 8de4fa9..1224be8 100644
+> > --- a/include/acpi/acpi_bus.h
+> > +++ b/include/acpi/acpi_bus.h
+> > @@ -385,7 +385,7 @@ static inline bool is_acpi_node(struct fwnode_handle *fwnode)
+> >  	return fwnode && fwnode->type == FWNODE_ACPI;
+> >  }
+> > 
+> > -static inline struct acpi_device *acpi_node(struct fwnode_handle *fwnode)
+> > +static inline struct acpi_device *to_acpi_node(struct fwnode_handle *fwnode)
+> >  {
+> >  	return is_acpi_node(fwnode) ?
+> >  		container_of(fwnode, struct acpi_device, fwnode) : NULL;
+> > diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> > index e4da5e3..ec3c98e 100644
+> > --- a/include/linux/acpi.h
+> > +++ b/include/linux/acpi.h
+> > @@ -53,7 +53,7 @@ static inline acpi_handle acpi_device_handle(struct acpi_device *adev)
+> >  	return adev ? adev->handle : NULL;
+> >  }
+> > 
+> > -#define ACPI_COMPANION(dev)		acpi_node((dev)->fwnode)
+> > +#define ACPI_COMPANION(dev)		to_acpi_node((dev)->fwnode)
+> >  #define ACPI_COMPANION_SET(dev, adev)	set_primary_fwnode(dev, (adev) ? \
+> >  	acpi_fwnode_handle(adev) : NULL)
+> >  #define ACPI_HANDLE(dev)		acpi_device_handle(ACPI_COMPANION(dev))
+> > @@ -473,7 +473,7 @@ static inline bool is_acpi_node(struct fwnode_handle *fwnode)
+> >  	return false;
+> >  }
+> > 
+> > -static inline struct acpi_device *acpi_node(struct fwnode_handle *fwnode)
+> > +static inline struct acpi_device *to_acpi_node(struct fwnode_handle *fwnode)
+> >  {
+> >  	return NULL;
+> >  }
+> > diff --git a/include/linux/of.h b/include/linux/of.h
+> > index b871ff9..f05fdce 100644
+> > --- a/include/linux/of.h
+> > +++ b/include/linux/of.h
+> > @@ -128,7 +128,7 @@ static inline bool is_of_node(struct fwnode_handle *fwnode)
+> >  	return fwnode && fwnode->type == FWNODE_OF;
+> >  }
+> > 
+> > -static inline struct device_node *of_node(struct fwnode_handle *fwnode)
+> > +static inline struct device_node *to_of_node(struct fwnode_handle *fwnode)
+> >  {
+> >  	return fwnode ? container_of(fwnode, struct device_node, fwnode) : NULL;
+> >  }
+> > @@ -387,7 +387,7 @@ static inline bool is_of_node(struct fwnode_handle *fwnode)
+> >  	return false;
+> >  }
+> > 
+> > -static inline struct device_node *of_node(struct fwnode_handle *fwnode)
+> > +static inline struct device_node *to_of_node(struct fwnode_handle *fwnode)
+> >  {
+> >  	return NULL;
+> >  }
+> > --
+
