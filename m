@@ -1,131 +1,72 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Bugfix v3] PCI, ACPI: Fix regressions caused by resource_size_t overflow with 32-bit kernel
-Date: Wed, 24 Jun 2015 18:17:45 +0800
-Message-ID: <1435141065-28536-1-git-send-email-jiang.liu@linux.intel.com>
+From: Ingo Molnar <mingo@kernel.org>
+Subject: Re: [Bugfix v3] PCI, ACPI: Fix regressions caused by resource_size_t
+ overflow with 32-bit kernel
+Date: Wed, 24 Jun 2015 12:18:43 +0200
+Message-ID: <20150624101843.GA8924@gmail.com>
 References: <20150624094916.GA5696@gmail.com>
+ <1435141065-28536-1-git-send-email-jiang.liu@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:24936 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750966AbbFXKPv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 24 Jun 2015 06:15:51 -0400
-In-Reply-To: <20150624094916.GA5696@gmail.com>
+Received: from mail-wi0-f180.google.com ([209.85.212.180]:36235 "EHLO
+	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751061AbbFXKSt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Jun 2015 06:18:49 -0400
+Content-Disposition: inline
+In-Reply-To: <1435141065-28536-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Ingo Molnar <mingo@kernel.org>, Boszormenyi Zoltan <zboszor@pr.hu>, Len Brown <lenb@kernel.org>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Boszormenyi Zoltan <zboszor@pr.hu>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>
 
-A regression report from Boszormenyi Zoltan <zboszor@pr.hu>:
-There's a Realtek RTL8111/8168/8411 (PCI ID 10ec:8168, Subsystem ID 1565:230e)
-network chip on the mainboard. After the r8169 driver loaded, the IRQs in
-the machine went berserk. Keyboard keypressed arrived with considerable
-latency and duplicated, so no real work was possible. The machine responded
-to the power button but didn't actually power down. It just stuck at the
-powering down message. I had to press the power button for 4 seconds to power
-it down.
 
-The computer is a POS machine with a big battery inside. Because of this,
-either ACPI or the Realtek chip kept the bad state and after rebooting, the
-network chip didn't even show up in lspci. Not even the PXE ROM announced
-itself during boot. I had to disconnect the battery to beat some sense back
-to the computer.
+* Jiang Liu <jiang.liu@linux.intel.com> wrote:
 
-The regression happens with 4.0.5, 4.1.0-rc8 and 4.1.0-final. 3.18.16 was
-good.
+> A regression report from Boszormenyi Zoltan <zboszor@pr.hu>:
+> There's a Realtek RTL8111/8168/8411 (PCI ID 10ec:8168, Subsystem ID 1565:230e)
+> network chip on the mainboard. After the r8169 driver loaded, the IRQs in
+> the machine went berserk. Keyboard keypressed arrived with considerable
+> latency and duplicated, so no real work was possible. The machine responded
+> to the power button but didn't actually power down. It just stuck at the
+> powering down message. I had to press the power button for 4 seconds to power
+> it down.
+> 
+> The computer is a POS machine with a big battery inside. Because of this,
+> either ACPI or the Realtek chip kept the bad state and after rebooting, the
+> network chip didn't even show up in lspci. Not even the PXE ROM announced
+> itself during boot. I had to disconnect the battery to beat some sense back
+> to the computer.
+> 
+> The regression happens with 4.0.5, 4.1.0-rc8 and 4.1.0-final. 3.18.16 was
+> good.
 
-The regression is caused by commit 593669c2ac0f ("x86/PCI/ACPI: Use common
-ACPI resource interfaces to simplify implementation"). Since commit
-593669c2ac0f, x86 PCI ACPI host bridge driver validates ACPI resources by
-first converting an ACPI resource to a 'struct resource' structure and
-then applying checks against the converted resource structure. The 'start'
-and 'end' fields in 'struct resource' are defined to be type of
-resource_size_t, which may be 32 bits or 64 bits depending on
-CONFIG_PHYS_ADDR_T_64BIT.
+So please put this into quotes, like:
 
-This may cause incorrect resource validation results with 32-bit kernels
-because 64-bit ACPI resource descriptors may get truncated when converting
-to 32-bit 'start' and 'end' fields in 'struct resource'. It eventually
-affects PCI resource allocation subsystem and makes some PCI devices and
-the system behave abnormally due to incorrect resource assignment.
+===============
+Zoltan Boszormenyi reported this regression:
 
-So enhance the ACPI resource parsing interfaces to ignore ACPI resource
-descriptors with address/offset above 4G when running in 32-bit mode.
-
-With the fix applied, the behavior of the machine was restored to how
-3.18.16 worked, i.e. the memory range that is over 4GB is ignored again,
-and lspci -vvxxx shows that everything is at the same memory window as
-they were with 3.18.16.
-
-Reported-by: Boszormenyi Zoltan <zboszor@pr.hu>
-Fixes: 593669c2ac0f ("x86/PCI/ACPI: Use common ACPI resource interfaces to simplify implementation")
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: stable@vger.kernel.org # 4.0
----
-Thanks, Ingo and Zoltan!
-Will write bugfix commit messages for people who will backport them.
-Thanks!
-Gerry
----
- drivers/acpi/resource.c |   24 +++++++++++++++---------
- 1 file changed, 15 insertions(+), 9 deletions(-)
-
-diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-index 8244f013f210..f1c966e05078 100644
---- a/drivers/acpi/resource.c
-+++ b/drivers/acpi/resource.c
-@@ -193,6 +193,7 @@ static bool acpi_decode_space(struct resource_win *win,
- 	u8 iodec = attr->granularity == 0xfff ? ACPI_DECODE_10 : ACPI_DECODE_16;
- 	bool wp = addr->info.mem.write_protect;
- 	u64 len = attr->address_length;
-+	u64 start, end, offset = 0;
- 	struct resource *res = &win->res;
+  "There's a Realtek RTL8111/8168/8411 (PCI ID 10ec:8168, Subsystem ID 1565:230e)
+   network chip on the mainboard. After the r8169 driver loaded, the IRQs in
+   the machine went berserk. Keyboard keypressed arrived with considerable
+   latency and duplicated, so no real work was possible. The machine responded
+   to the power button but didn't actually power down. It just stuck at the
+   powering down message. I had to press the power button for 4 seconds to power
+   it down.
  
- 	/*
-@@ -204,9 +205,6 @@ static bool acpi_decode_space(struct resource_win *win,
- 		pr_debug("ACPI: Invalid address space min_addr_fix %d, max_addr_fix %d, len %llx\n",
- 			 addr->min_address_fixed, addr->max_address_fixed, len);
+   The computer is a POS machine with a big battery inside. Because of this,
+   either ACPI or the Realtek chip kept the bad state and after rebooting, the
+   network chip didn't even show up in lspci. Not even the PXE ROM announced
+   itself during boot. I had to disconnect the battery to beat some sense back
+   to the computer.
  
--	res->start = attr->minimum;
--	res->end = attr->maximum;
--
- 	/*
- 	 * For bridges that translate addresses across the bridge,
- 	 * translation_offset is the offset that must be added to the
-@@ -214,12 +212,22 @@ static bool acpi_decode_space(struct resource_win *win,
- 	 * primary side. Non-bridge devices must list 0 for all Address
- 	 * Translation offset bits.
- 	 */
--	if (addr->producer_consumer == ACPI_PRODUCER) {
--		res->start += attr->translation_offset;
--		res->end += attr->translation_offset;
--	} else if (attr->translation_offset) {
-+	if (addr->producer_consumer == ACPI_PRODUCER)
-+		offset = attr->translation_offset;
-+	else if (attr->translation_offset)
- 		pr_debug("ACPI: translation_offset(%lld) is invalid for non-bridge device.\n",
- 			 attr->translation_offset);
-+	start = attr->minimum + offset;
-+	end = attr->maximum + offset;
-+
-+	win->offset = offset;
-+	res->start = start;
-+	res->end = end;
-+	if (sizeof(resource_size_t) < sizeof(u64) &&
-+	    (offset != win->offset || start != res->start || end != res->end)) {
-+		pr_warn("acpi resource window ([%#llx-%#llx] ignored, not CPU addressable)\n",
-+			attr->minimum, attr->maximum);
-+		return false;
- 	}
- 
- 	switch (addr->resource_type) {
-@@ -236,8 +244,6 @@ static bool acpi_decode_space(struct resource_win *win,
- 		return false;
- 	}
- 
--	win->offset = attr->translation_offset;
--
- 	if (addr->producer_consumer == ACPI_PRODUCER)
- 		res->flags |= IORESOURCE_WINDOW;
- 
--- 
-1.7.10.4
+   The regression happens with 4.0.5, 4.1.0-rc8 and 4.1.0-final. 3.18.16 was
+   good."
 
+...
+===============
+
+Also note the indentation, that helps readability.
+
+Thanks,
+
+	Ingo
