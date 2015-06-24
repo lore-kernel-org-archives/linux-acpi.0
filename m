@@ -1,49 +1,86 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v2 12/28] ACPICA: Add dragon_fly support to unix file mapping file.
-Date: Wed, 24 Jun 2015 11:04:02 +0800
-Message-ID: <a3994f58dde3953b4583d2742fb1cf233736f4f9.1435114811.git.lv.zheng@intel.com>
-References: <cover.1434684719.git.lv.zheng@intel.com> <cover.1435114811.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:14122 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755158AbbFXDEI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 23 Jun 2015 23:04:08 -0400
-In-Reply-To: <cover.1435114811.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Joe Perches <joe@perches.com>
+Subject: Re: [PATCH v2 01/22] fjes: Introduce FUJITSU Extended Socket
+ Network Device driver
+Date: Tue, 23 Jun 2015 23:50:37 -0700
+Message-ID: <1435128637.2504.51.camel@perches.com>
+References: <1435114351-6961-1-git-send-email-izumi.taku@jp.fujitsu.com>
+	 <1435114554-7151-2-git-send-email-izumi.taku@jp.fujitsu.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <1435114554-7151-2-git-send-email-izumi.taku@jp.fujitsu.com>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Taku Izumi <izumi.taku@jp.fujitsu.com>
+Cc: netdev@vger.kernel.org, davem@davemloft.net, platform-driver-x86@vger.kernel.org, dvhart@infradead.org, rkhan@redhat.com, alexander.h.duyck@redhat.com, linux-acpi@vger.kernel.org, sergei.shtylyov@cogentembedded.com, stephen@networkplumber.org, yasu.isimatu@gmail.com
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Sascha Wildner <swildner@gmail.com>, Bob Moore <robert.moore@intel.com>
 
-From: Sascha Wildner <swildner@gmail.com>
+On Wed, 2015-06-24 at 11:55 +0900, Taku Izumi wrote:
+> This patch adds the basic code of FUJITSU Extended Socket
+> Network Device driver.
 
-ACPICA commit 795b215d6fd062386f0a1c23dff9ffa244683c4f
+trivial notes:
 
-ACPICA BZ 1130
+> diff --git a/drivers/net/fjes/fjes_main.c b/drivers/net/fjes/fjes_main.c
+[]
+> +static int fjes_acpi_add(struct acpi_device *device)
+> +{
+[]
+> +	result =
+> +	utf16s_to_utf8s((wchar_t *)str->string.pointer,
+> +			str->string.length, UTF16_LITTLE_ENDIAN,
+> +			str_buf, sizeof(str_buf) - 1);
 
-This patch doesn't affect Linux kernel.
+I dislike this style as it's not normally used in the kernel.
+Most would use another tab indent on the utf16s_to_utf8s line
+if the line didn't fit, but this would is more common:
 
-Link: https://bugs.acpica.org/show_bug.cgi?id=1130
-Link: https://github.com/acpica/acpica/commit/795b215d
-Signed-off-by: Sascha Wildner <swildner@gmail.com>
-Signed-off-by: Bob Moore <robert.moore@intel.com>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- tools/power/acpi/os_specific/service_layers/osunixmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+	result = utf16s_to_utf8s((wchar_t *)str->string.pointer,
+				 str->string.length, UTF16_LITTLE_ENDIAN,
+				 str_buf, sizeof(str_buf) - 1);
+> 
+> +	/* create platform_device */
+> +	plat_dev =
+> +	platform_device_register_simple(DRV_NAME, 0, fjes_resource,
+> +					ARRAY_SIZE(fjes_resource));
 
-diff --git a/tools/power/acpi/os_specific/service_layers/osunixmap.c b/tools/power/acpi/os_specific/service_layers/osunixmap.c
-index 0b1fa29..44ad488 100644
---- a/tools/power/acpi/os_specific/service_layers/osunixmap.c
-+++ b/tools/power/acpi/os_specific/service_layers/osunixmap.c
-@@ -54,7 +54,7 @@ ACPI_MODULE_NAME("osunixmap")
- #ifndef O_BINARY
- #define O_BINARY 0
- #endif
--#ifdef _free_BSD
-+#if defined(_dragon_fly) || defined(_free_BSD)
- #define MMAP_FLAGS          MAP_SHARED
- #else
- #define MMAP_FLAGS          MAP_PRIVATE
--- 
-1.7.10
+	plat_dev = platform_device_register_simple(DRV_NAME, 0, fjes_resource,
+						   ARRAY_SIZE(fjes_resource));
 
+etc...
+
+> +static acpi_status
+> +fjes_get_acpi_resource(struct acpi_resource *acpi_res, void *data)
+> +{
+> +	struct resource *res = data;
+> +	struct acpi_resource_address32 *addr;
+> +	struct acpi_resource_irq *irq;
+> +
+> +	switch (acpi_res->type) {
+> +	case ACPI_RESOURCE_TYPE_ADDRESS32:
+> +		addr = &acpi_res->data.address32;
+> +		res[0].start = addr->address.minimum;
+> +		res[0].end = addr->address.minimum +
+> +			addr->address.address_length - 1;
+> +		break;
+> +
+> +	case ACPI_RESOURCE_TYPE_IRQ:
+> +		irq = &acpi_res->data.irq;
+> +		if (irq->interrupt_count != 1)
+> +			return AE_ERROR;
+> +		res[1].start = irq->interrupts[0];
+> +		res[1].end = irq->interrupts[0];
+> +		break;
+> +
+> +	default:
+> +		break;
+> +	}
+> +
+> +	return AE_OK;
+> +}
+
+Is this function used in this compilation?
+If not, it's odd to add code that isn't used.
+
+Is it better to make the 2nd argument a
+struct resource * rather than a void * ?
