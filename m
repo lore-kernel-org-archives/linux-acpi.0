@@ -1,89 +1,72 @@
-From: Julia Lawall <julia.lawall@lip6.fr>
-Subject: Re: [RFC v1 14/25] genirq: Kill the first parameter 'irq' of
- irq_flow_handler_t
-Date: Wed, 24 Jun 2015 23:44:38 +0200 (CEST)
-Message-ID: <alpine.DEB.2.02.1506242342200.2176@localhost6.localdomain6>
-References: <1432116013-25902-1-git-send-email-jiang.liu@linux.intel.com> <1432116013-25902-15-git-send-email-jiang.liu@linux.intel.com> <alpine.DEB.2.11.1505201724260.4225@nanos> <555CA834.7080807@linux.intel.com> <alpine.DEB.2.11.1505201750280.4225@nanos>
- <alpine.DEB.2.10.1506131059180.2486@hadrien> <alpine.DEB.2.11.1506131130490.3786@nanos> <alpine.DEB.2.10.1506131603151.2314@hadrien> <alpine.DEB.2.10.1506131652380.2314@hadrien> <557C5F29.7010301@linux.intel.com> <alpine.DEB.2.02.1506132214310.2020@localhost6.localdomain6>
- <alpine.DEB.2.11.1506132230450.3786@nanos> <alpine.DEB.2.02.1506132240500.2020@localhost6.localdomain6> <alpine.DEB.2.11.1506242137070.4037@nanos>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] acpi/video: Inline acpi_video_set_dmi_backlight_type
+Date: Thu, 25 Jun 2015 00:18:07 +0200
+Message-ID: <1637885.IPfNDfCUxQ@vostro.rjw.lan>
+References: <1435140109-2241-1-git-send-email-bp@alien8.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail3-relais-sop.national.inria.fr ([192.134.164.104]:23114
-	"EHLO mail3-relais-sop.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750865AbbFXVon (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 24 Jun 2015 17:44:43 -0400
-In-Reply-To: <alpine.DEB.2.11.1506242137070.4037@nanos>
+Received: from v094114.home.net.pl ([79.96.170.134]:50961 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1750838AbbFXVv6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Jun 2015 17:51:58 -0400
+In-Reply-To: <1435140109-2241-1-git-send-email-bp@alien8.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Julia Lawall <julia.lawall@lip6.fr>, Jiang Liu <jiang.liu@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Randy Dunlap <rdunlap@infradead.org>, Yinghai Lu <yinghai@kernel.org>, Borislav Petkov <bp@alien8.de>, Jason Cooper <jason@lakedaemon.net>, Kevin Cernekee <cernekee@gmail.com>, Arnd Bergmann <arnd@arndb.de>, Marc Zyngier <marc.zyngier@arm.com>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Tony Luck <tony.luck@intel.com>, x86@kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: LKML <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org, devel@acpica.org
 
-> Now where my cocci foo ends is when I try to match both types in the
-> same rule, i.e. 
-> 
-> @ fun exists @
-> identifier hf,irq,desc;
-> typedef u32;
-> @@
-> 
-> (
-> void hf(unsigned irq, struct irq_desc *desc) { ... }
-> |
-> void hf(u32 irq, struct irq_desc *desc) { ... }
-> )
-> 
-> results in:
-> Fatal error: exception Failure("minus: parse error: 
->  = File "../cocci/find-pot-handler.cocci", line 7, column 5,  charpos = 63
->     around = 'hf', whole content = void hf(unsigned irq, struct irq_desc *desc) { ... }
-> ")
+On Wednesday, June 24, 2015 12:01:49 PM Borislav Petkov wrote:
+> From: Borislav Petkov <bp@suse.de>
+>=20
+> ... and kill this:
+>=20
+>   In file included from drivers/gpu/drm/radeon/radeon_acpi.c:29:0:
+>   include/acpi/video.h:46:13: warning: =E2=80=98acpi_video_set_dmi_ba=
+cklight_type=E2=80=99 defined but not used [-Wunused-function]
+>    static void acpi_video_set_dmi_backlight_type(enum acpi_backlight_=
+type type)
+>                ^
+>=20
+> Signed-off-by: Borislav Petkov <bp@suse.de>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: Robert Moore <robert.moore@intel.com>
+> Cc: Lv Zheng <lv.zheng@intel.com>
+> Cc: linux-acpi@vger.kernel.org
+> Cc: devel@acpica.org
+> Cc: linux-kernel@vger.kernel.org
 
-Yeah, sorry, it doesn't work.  There is no way to put a disjunction on
-a function definition or a parameter type.
+Applied, thanks!
 
-> I tried a couple of other variants, but finally gave up and ran a
-> cocci script first which does s/u32/unsigned/ on those functions, but
-> of course because I'm lazy I wanted to do everything in one go. :)
-> 
-> Aside of that the ruleset you gave me works nicely except for that
-> part:
-> 
-> // no uses of the first parameter before the assignment
-> @@
-> identifier fun.hf,irq;
-> expression e;
-> type T;
-> fresh identifier firq = "__" ## irq;
-> position r.p,p1 != {s.p1,s1.p1};
-> @@
-> 
-> hf(T@p
-> - irq
-> + firq
->   ,...) {
->   ... when != irq
->       when strict
-> ? irq@p1 = e
->   ... when any
-> }
-> 
-> That lacks a:
-> 
-> + unsigned int irq;
-> 
-> and therefor missed to add the local variable 'unsigned int irq' in
-> case the parameter is only used for local storage.
+> ---
+>  include/acpi/video.h | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>=20
+> diff --git a/include/acpi/video.h b/include/acpi/video.h
+> index a7d7f1043e9c..e840b294c6f5 100644
+> --- a/include/acpi/video.h
+> +++ b/include/acpi/video.h
+> @@ -43,7 +43,7 @@ static inline enum acpi_backlight_type acpi_video_g=
+et_backlight_type(void)
+>  {
+>  	return acpi_backlight_vendor;
+>  }
+> -static void acpi_video_set_dmi_backlight_type(enum acpi_backlight_ty=
+pe type)
+> +static inline void acpi_video_set_dmi_backlight_type(enum acpi_backl=
+ight_type type)
+>  {
+>  }
+>  #endif
+>=20
 
-Oops, thanks.
-
-julia
-
-> That was simple enough to fix even for me :)
-> 
-> Thanks,
-> 
-> 	tglx
-> 
-> 
+--=20
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
