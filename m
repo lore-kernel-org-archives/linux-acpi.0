@@ -1,76 +1,56 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v2 10/28] ACPICA: MSVC6: Fix build issue for variable argument macros.
-Date: Wed, 24 Jun 2015 11:03:48 +0800
-Message-ID: <267697937de003306c72e1a3b55f962ff855e6f3.1435114811.git.lv.zheng@intel.com>
+Subject: [PATCH v2 14/28] ACPICA: ACPI 6.0: Add values for MADT GIC version field.
+Date: Wed, 24 Jun 2015 11:04:19 +0800
+Message-ID: <dc87c54c042e140b9f4062b7876d9e718d6fea22.1435114811.git.lv.zheng@intel.com>
 References: <cover.1434684719.git.lv.zheng@intel.com> <cover.1435114811.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([192.55.52.115]:56508 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934135AbbFXDEZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 23 Jun 2015 23:04:25 -0400
 In-Reply-To: <cover.1435114811.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Bob Moore <robert.moore@intel.com>
 
-ACPICA commit 72f5a358f28c5d154ed613c142c7dca03192c5ee
+From: Hanjun Guo <hanjun.guo@linaro.org>
 
-This patch intoduces generic variable macro detection support and fixes
-build breakage issue with macros using __VA_ARGS__ feature defined in
-C99.
+ACPICA commit 4b100dc43e8baee8c8b4891b23bc7ad03eba6a28
 
-This patch fixes this build issue. Lv Zheng.
+Support for the new version field in the generic distributor
+subtable. Hanjun Guo <hanjun.guo@linaro.org>
 
-This patch doesn't affect Linux kernel.
-
-Link: https://github.com/acpica/acpica/commit/72f5a358
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Link: https://github.com/acpica/acpica/commit/4b100dc4
+Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- include/acpi/acoutput.h       |   13 +++++++++++--
- include/acpi/platform/acgcc.h |    4 ++++
- 2 files changed, 15 insertions(+), 2 deletions(-)
+ include/acpi/actbl1.h |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-diff --git a/include/acpi/acoutput.h b/include/acpi/acoutput.h
-index a8f3443..f56de8c 100644
---- a/include/acpi/acoutput.h
-+++ b/include/acpi/acoutput.h
-@@ -294,8 +294,12 @@
+diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
+index 06b61f0..fcd5709 100644
+--- a/include/acpi/actbl1.h
++++ b/include/acpi/actbl1.h
+@@ -835,6 +835,17 @@ struct acpi_madt_generic_distributor {
+ 	u8 reserved2[3];	/* reserved - must be zero */
+ };
  
- /* DEBUG_PRINT functions */
++/* Values for Version field above */
++
++enum acpi_madt_gic_version {
++	ACPI_MADT_GIC_VERSION_NONE = 0,
++	ACPI_MADT_GIC_VERSION_V1 = 1,
++	ACPI_MADT_GIC_VERSION_V2 = 2,
++	ACPI_MADT_GIC_VERSION_V3 = 3,
++	ACPI_MADT_GIC_VERSION_V4 = 4,
++	ACPI_MADT_GIC_VERSION_RESERVED = 5	/* 5 and greater are reserved */
++};
++
+ /* 13: Generic MSI Frame (ACPI 5.1) */
  
--#define ACPI_DEBUG_PRINT(plist)         ACPI_ACTUAL_DEBUG plist
--#define ACPI_DEBUG_PRINT_RAW(plist)     ACPI_ACTUAL_DEBUG_RAW plist
-+#ifndef COMPILER_VA_MACRO
-+
-+#define ACPI_DEBUG_PRINT(plist)         acpi_debug_print plist
-+#define ACPI_DEBUG_PRINT_RAW(plist)     acpi_debug_print_raw plist
-+
-+#else
- 
- /* Helper macros for DEBUG_PRINT */
- 
-@@ -315,6 +319,11 @@
- 	ACPI_DO_DEBUG_PRINT (acpi_debug_print_raw, level, line, \
- 		filename, modulename, component, __VA_ARGS__)
- 
-+#define ACPI_DEBUG_PRINT(plist)         ACPI_ACTUAL_DEBUG plist
-+#define ACPI_DEBUG_PRINT_RAW(plist)     ACPI_ACTUAL_DEBUG_RAW plist
-+
-+#endif
-+
- /*
-  * Function entry tracing
-  *
-diff --git a/include/acpi/platform/acgcc.h b/include/acpi/platform/acgcc.h
-index f54de0a..5457a06 100644
---- a/include/acpi/platform/acgcc.h
-+++ b/include/acpi/platform/acgcc.h
-@@ -75,4 +75,8 @@
- #undef strchr
- #endif
- 
-+/* GCC supports __VA_ARGS__ in macros */
-+
-+#define COMPILER_VA_MACRO               1
-+
- #endif				/* __ACGCC_H__ */
+ struct acpi_madt_generic_msi_frame {
 -- 
 1.7.10
+
