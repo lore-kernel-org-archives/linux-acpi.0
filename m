@@ -1,53 +1,27 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH] ACPICA: Delete an unnecessary check before the function call
- "acpi_ds_delete_walk_state"
-Date: Wed, 24 Jun 2015 13:45:40 +0200
-Message-ID: <558A9864.2020608@users.sourceforge.net>
-References: <5307CAA2.8060406@users.sourceforge.net> <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6> <530A086E.8010901@users.sourceforge.net> <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6> <530A72AA.3000601@users.sourceforge.net> <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6> <530B5FB6.6010207@users.sourceforge.net> <alpine.DEB.2.10.1402241710370.2074@hadrien> <530C5E18.1020800@users.sourceforge.net> <alpine.DEB.2.10.1402251014170.2080@hadrien> <530CD2C4.4050903@users.sourceforge.net> <alpine.DEB.2.10.1402251840450.7035@hadrien> <530CF8FF.8080600@users.sourceforge.net> <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6> <530DD06F.4090703@users.sourceforge.net> <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6> <5317A59D.4@users.so
- urceforge.net>
+From: Christoph Hellwig <hch@lst.de>
+Subject: Re: [PATCH 02/15] libnvdimm: infrastructure for btt devices
+Date: Wed, 24 Jun 2015 14:10:40 +0200
+Message-ID: <20150624121040.GB17542@lst.de>
+References: <20150617235209.12943.24419.stgit@dwillia2-desk3.amr.corp.intel.com> <20150617235458.12943.23425.stgit@dwillia2-desk3.amr.corp.intel.com> <20150622163453.GA9187@lst.de> <CAPcyv4jAA0=aSUDazG5hS1FS0o+qg4SyMXicqF_0M0s7_cXBGw@mail.gmail.com> <20150622164837.GB9393@lst.de> <x49k2uvvbje.fsf@segfault.boston.devel.redhat.com> <CAPcyv4hSAPTRNLkfKGndUrxjzTp-FAW+4G8t926YZdVH2c-Q=g@mail.gmail.com> <20150623101917.GG24894@lst.de> <CAPcyv4i8ciusz34UArM5MFFB8V-dz2JrCGKgkT3i5d6QT0-0xA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.14]:57933 "EHLO mout.web.de"
+Received: from verein.lst.de ([213.95.11.211]:50676 "EHLO newverein.lst.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751699AbbFXLpu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 24 Jun 2015 07:45:50 -0400
-In-Reply-To: <5317A59D.4@users.sourceforge.net>
+	id S1751493AbbFXMKm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 24 Jun 2015 08:10:42 -0400
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4i8ciusz34UArM5MFFB8V-dz2JrCGKgkT3i5d6QT0-0xA@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, devel@acpica.org
-Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Christoph Hellwig <hch@lst.de>, Jeff Moyer <jmoyer@redhat.com>, Jens Axboe <axboe@kernel.dk>, "linux-nvdimm@lists.01.org" <linux-nvdimm@ml01.01.org>, Neil Brown <neilb@suse.de>, Greg KH <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Ingo Molnar <mingo@kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Wed, 24 Jun 2015 13:33:47 +0200
+On Tue, Jun 23, 2015 at 08:19:57AM -0700, Dan Williams wrote:
+> That tie was only to enable autodetect so that we don't need to run a
+> BTT assembly step from an initramfs just to get an NVDIMM up and
+> running.  It was a convenience, not a requirement.
 
-The acpi_ds_delete_walk_state() function tests whether its argument is NULL
-and then returns immediately. Thus the test around the call is not needed.
-
-This issue was detected by using the Coccinelle software.
-
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/acpi/acpica/dsmethod.c | 5 +----
- 1 file changed, 1 insertion(+), 4 deletions(-)
-
-diff --git a/drivers/acpi/acpica/dsmethod.c b/drivers/acpi/acpica/dsmethod.c
-index 85bb951..188b254 100644
---- a/drivers/acpi/acpica/dsmethod.c
-+++ b/drivers/acpi/acpica/dsmethod.c
-@@ -574,10 +574,7 @@ cleanup:
- 	/* On error, we must terminate the method properly */
- 
- 	acpi_ds_terminate_control_method(obj_desc, next_walk_state);
--	if (next_walk_state) {
--		acpi_ds_delete_walk_state(next_walk_state);
--	}
--
-+	acpi_ds_delete_walk_state(next_walk_state);
- 	return_ACPI_STATUS(status);
- }
- 
--- 
-2.4.4
-
+It's a very deep tying for that feature.  Look at what the raid code
+does just for scanning.  Although even that is officially deprecate
+because people don't like in-kernel scanning (which I tend to disagree with).
