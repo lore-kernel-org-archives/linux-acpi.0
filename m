@@ -1,33 +1,33 @@
-From: Christoph Hellwig <hch@lst.de>
-Subject: Re: [PATCH 14/15] libnvdimm: support read-only btt backing devices
-Date: Wed, 24 Jun 2015 14:11:52 +0200
-Message-ID: <20150624121152.GD17542@lst.de>
-References: <20150617235209.12943.24419.stgit@dwillia2-desk3.amr.corp.intel.com> <20150617235602.12943.24958.stgit@dwillia2-desk3.amr.corp.intel.com> <20150621101346.GF5915@lst.de> <CAPcyv4jjTU8MA1zWnbRsyxcnxC+EJK9pJdLBkYeGtgHXeDkKVQ@mail.gmail.com> <20150621135406.GA9572@lst.de> <CAPcyv4iAkSaCOzpJHJLLtJG_9M=5Jp75Kc9tVeCr__OjEB=ajQ@mail.gmail.com> <20150622063028.GA30434@lst.de> <20150623193043.GE1971@linux.intel.com>
+From: Christoph Hellwig <hch@infradead.org>
+Subject: Re: [PATCH v2 02/28] ACPICA: Linuxize: Replace __FUNCTION__ with
+ __func__.
+Date: Wed, 24 Jun 2015 05:55:59 -0700
+Message-ID: <20150624125559.GA8144@infradead.org>
+References: <cover.1434684719.git.lv.zheng@intel.com>
+ <cover.1435114811.git.lv.zheng@intel.com>
+ <9572a1ad1d35f3c68979610a389063813fd2d2c5.1435114811.git.lv.zheng@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from verein.lst.de ([213.95.11.211]:50686 "EHLO newverein.lst.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752662AbbFXMLx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 24 Jun 2015 08:11:53 -0400
+Received: from bombadil.infradead.org ([198.137.202.9]:56946 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751973AbbFXM4A (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Jun 2015 08:56:00 -0400
 Content-Disposition: inline
-In-Reply-To: <20150623193043.GE1971@linux.intel.com>
+In-Reply-To: <9572a1ad1d35f3c68979610a389063813fd2d2c5.1435114811.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matthew Wilcox <willy@linux.intel.com>
-Cc: Christoph Hellwig <hch@lst.de>, Dan Williams <dan.j.williams@intel.com>, Jens Axboe <axboe@kernel.dk>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Ingo Molnar <mingo@kernel.org>
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Tue, Jun 23, 2015 at 03:30:43PM -0400, Matthew Wilcox wrote:
-> > I can't make any guarantees, especially not without verification.  But
-> > if correctly implemented any filesystems that does out of place metadata
-> > writes (and that includes a traditional log) and uses checksum to ensure
-> > the integrity of these updates it should be fine.  You'd still have
-> > the issue of sector atomicy of file I/O though.
+On Wed, Jun 24, 2015 at 11:02:03AM +0800, Lv Zheng wrote:
+> ACPICA commit cb3d1c79f862cd368d749c9b8d9dced40111b0d0
 > 
-> Is ext4 one of the filesystems that copes with torn updates to the log?
-> I see there's a checksum in the tail of at least some blocks, but I'd
-> like someone who understands ext4 to reassure me that it also doesn't
-> need the ability to put its log on a BTT.
+> __FUNCTION__ is MSVC only, in Linux, it is __func__. Lv Zheng.
+> 
+> In ACPICA, this is achieved by string replacement in release script and
+> this patch contains the source code difference between the Linux upstream
+> and ACPICA that is caused by the back porting.
 
-In theory it should if the log checksums are enabled, but I wouldn't rely
-on it without without confirmation and validation from the ext4 folks.
+__func__ is in C99 and never.  __FUNCTION__ is an old extension supported
+by various compilers.
