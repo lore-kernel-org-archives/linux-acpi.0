@@ -1,117 +1,50 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v2 24/28] ACPICA: Split C library prototypes to new header.
-Date: Wed, 24 Jun 2015 11:05:26 +0800
-Message-ID: <45e279c3f9b108becfad13900519ac6233a011f9.1435114812.git.lv.zheng@intel.com>
+Subject: [PATCH v2 27/28] ACPICA: Comment update, no functional change.
+Date: Wed, 24 Jun 2015 11:05:48 +0800
+Message-ID: <9250a5cb4d06dbbcfa57ac5b909411e577ea15b8.1435114812.git.lv.zheng@intel.com>
 References: <cover.1434684719.git.lv.zheng@intel.com> <cover.1435114811.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:39830 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934245AbbFXDFm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 23 Jun 2015 23:05:42 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1435114811.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, gongzg <gongzhaogang@inspur.com>, Bob Moore <robert.moore@intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
-From: Bob Moore <robert.moore@intel.com>
+From: gongzg <gongzhaogang@inspur.com>
 
-ACPICA commit f51bf8497889a94046820639537165bbd7ccdee6
+ACPICA commit 1a8ec7b83d55c7b957247d685bd1c73f6a012f1e
 
-Adds acclib.h
+Remove redundant comment in nseval.c
 
-This patch doesn't affect Linux kernel.
-
-Link: https://github.com/acpica/acpica/commit/f51bf849
+Link: https://github.com/acpica/acpica/commit/1a8ec7b8
+Signed-off-by: gongzg <gongzhaogang@inspur.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/accommon.h |    3 +++
- drivers/acpi/acpica/acutils.h  |   58 ----------------------------------------
- 2 files changed, 3 insertions(+), 58 deletions(-)
+ drivers/acpi/acpica/nseval.c |    5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/acpica/accommon.h b/drivers/acpi/acpica/accommon.h
-index 853aa2d..a8d8092 100644
---- a/drivers/acpi/acpica/accommon.h
-+++ b/drivers/acpi/acpica/accommon.h
-@@ -59,5 +59,8 @@
- #include "acglobal.h"		/* All global variables */
- #include "achware.h"		/* Hardware defines and interfaces */
- #include "acutils.h"		/* Utility interfaces */
-+#ifndef ACPI_USE_SYSTEM_CLIBRARY
-+#include "acclib.h"		/* C library interfaces */
-+#endif				/* !ACPI_USE_SYSTEM_CLIBRARY */
- 
- #endif				/* __ACCOMMON_H__ */
-diff --git a/drivers/acpi/acpica/acutils.h b/drivers/acpi/acpica/acutils.h
-index ef1e51d..6de0d35 100644
---- a/drivers/acpi/acpica/acutils.h
-+++ b/drivers/acpi/acpica/acutils.h
-@@ -205,64 +205,6 @@ acpi_status acpi_ut_hardware_initialize(void);
- 
- void acpi_ut_subsystem_shutdown(void);
- 
--/*
-- * utclib - Local implementations of C library functions
-- */
--#ifndef ACPI_USE_SYSTEM_CLIBRARY
--
--acpi_size strlen(const char *string);
--
--char *strchr(const char *string, int ch);
--
--char *strcpy(char *dst_string, const char *src_string);
--
--char *strncpy(char *dst_string, const char *src_string, acpi_size count);
--
--int strncmp(const char *string1, const char *string2, acpi_size count);
--
--int strcmp(const char *string1, const char *string2);
--
--char *strcat(char *dst_string, const char *src_string);
--
--char *strncat(char *dst_string, const char *src_string, acpi_size count);
--
--u32 strtoul(const char *string, char **terminator, u32 base);
--
--char *strstr(char *string1, char *string2);
--
--int memcmp(void *buffer1, void *buffer2, acpi_size count);
--
--void *memcpy(void *dest, const void *src, acpi_size count);
--
--void *memset(void *dest, int value, acpi_size count);
--
--int toupper(int c);
--
--int tolower(int c);
--
--extern const u8 _acpi_ctype[];
--
--#define _ACPI_XA     0x00	/* extra alphabetic - not supported */
--#define _ACPI_XS     0x40	/* extra space */
--#define _ACPI_BB     0x00	/* BEL, BS, etc. - not supported */
--#define _ACPI_CN     0x20	/* CR, FF, HT, NL, VT */
--#define _ACPI_DI     0x04	/* '0'-'9' */
--#define _ACPI_LO     0x02	/* 'a'-'z' */
--#define _ACPI_PU     0x10	/* punctuation */
--#define _ACPI_SP     0x08	/* space, tab, CR, LF, VT, FF */
--#define _ACPI_UP     0x01	/* 'A'-'Z' */
--#define _ACPI_XD     0x80	/* '0'-'9', 'A'-'F', 'a'-'f' */
--
--#define isdigit(c)  (_acpi_ctype[(unsigned char)(c)] & (_ACPI_DI))
--#define isspace(c)  (_acpi_ctype[(unsigned char)(c)] & (_ACPI_SP))
--#define isxdigit(c) (_acpi_ctype[(unsigned char)(c)] & (_ACPI_XD))
--#define isupper(c)  (_acpi_ctype[(unsigned char)(c)] & (_ACPI_UP))
--#define islower(c)  (_acpi_ctype[(unsigned char)(c)] & (_ACPI_LO))
--#define isprint(c)  (_acpi_ctype[(unsigned char)(c)] & (_ACPI_LO | _ACPI_UP | _ACPI_DI | _ACPI_XS | _ACPI_PU))
--#define isalpha(c)  (_acpi_ctype[(unsigned char)(c)] & (_ACPI_LO | _ACPI_UP))
--
--#endif				/* !ACPI_USE_SYSTEM_CLIBRARY */
--
- #define ACPI_IS_ASCII(c)  ((c) < 0x80)
- 
- /*
+diff --git a/drivers/acpi/acpica/nseval.c b/drivers/acpi/acpica/nseval.c
+index a725d88..80670cb 100644
+--- a/drivers/acpi/acpica/nseval.c
++++ b/drivers/acpi/acpica/nseval.c
+@@ -59,15 +59,14 @@ acpi_ns_exec_module_code(union acpi_operand_object *method_obj,
+  *
+  * FUNCTION:    acpi_ns_evaluate
+  *
+- * PARAMETERS:  info            - Evaluation info block, contains:
++ * PARAMETERS:  info            - Evaluation info block, contains these fields
++ *                                and more:
+  *                  prefix_node     - Prefix or Method/Object Node to execute
+  *                  relative_path   - Name of method to execute, If NULL, the
+  *                                    Node is the object to execute
+  *                  parameters      - List of parameters to pass to the method,
+  *                                    terminated by NULL. Params itself may be
+  *                                    NULL if no parameters are being passed.
+- *                  return_object   - Where to put method's return value (if
+- *                                    any). If NULL, no value is returned.
+  *                  parameter_type  - Type of Parameter list
+  *                  return_object   - Where to put method's return value (if
+  *                                    any). If NULL, no value is returned.
 -- 
 1.7.10
-
