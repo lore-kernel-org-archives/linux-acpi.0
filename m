@@ -1,123 +1,71 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v3 3/3] libnvdimm: Add sysfs numa_node to NVDIMM devices
-Date: Tue, 23 Jun 2015 17:36:45 -0700
-Message-ID: <CAPcyv4h+oiuERyPTDJHG-079okOCDe85XprRmLrHoGtt1cYuzA@mail.gmail.com>
-References: <1434737914-18466-1-git-send-email-toshi.kani@hp.com>
-	<1434737914-18466-4-git-send-email-toshi.kani@hp.com>
-	<CAPcyv4iBD0ON_M3rMC3bQz2dGWdt_QKGzfbuqtLSrL+PVu9VbA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f179.google.com ([209.85.212.179]:37609 "EHLO
-	mail-wi0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932375AbbFXAgr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 23 Jun 2015 20:36:47 -0400
-Received: by wicgi11 with SMTP id gi11so31670175wic.0
-        for <linux-acpi@vger.kernel.org>; Tue, 23 Jun 2015 17:36:45 -0700 (PDT)
-In-Reply-To: <CAPcyv4iBD0ON_M3rMC3bQz2dGWdt_QKGzfbuqtLSrL+PVu9VbA@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Taku Izumi <izumi.taku@jp.fujitsu.com>
+Subject: [PATCH v2 00/22] FUJITSU Extended Socket network device driver
+Date: Wed, 24 Jun 2015 11:52:31 +0900
+Message-ID: <1435114351-6961-1-git-send-email-izumi.taku@jp.fujitsu.com>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+To: netdev@vger.kernel.org, davem@davemloft.net
+Cc: platform-driver-x86@vger.kernel.org, dvhart@infradead.org, rkhan@redhat.com, alexander.h.duyck@redhat.com, linux-acpi@vger.kernel.org, joe@perches.com, sergei.shtylyov@cogentembedded.com, stephen@networkplumber.org, yasu.isimatu@gmail.com, Taku Izumi <izumi.taku@jp.fujitsu.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Tue, Jun 23, 2015 at 5:26 PM, Dan Williams <dan.j.williams@intel.com> wrote:
-> On Fri, Jun 19, 2015 at 11:18 AM, Toshi Kani <toshi.kani@hp.com> wrote:
->> Add support of sysfs 'numa_node' to I/O-related NVDIMM devices
->> under /sys/bus/nd/devices, regionN, namespaceN.0, and bttN.
->> When bttN is not set up, its numa_node returns -1 (NUMA_NO_NODE).
->>
->> An example of numa_node values on a 2-socket system with a single
->> NVDIMM range on each socket is shown below.
->>   /sys/bus/nd/devices
->>   |-- btt0/numa_node:-1
->>   |-- btt1/numa_node:0
->>   |-- namespace0.0/numa_node:0
->>   |-- namespace1.0/numa_node:1
->>   |-- region0/numa_node:0
->>   |-- region1/numa_node:1
->>
->> These numa_node files are then linked under the block class of
->> their device names.
->>   /sys/class/block/pmem0/device/numa_node:0
->>   /sys/class/block/pmem0s/device/numa_node:0
->>   /sys/class/block/pmem1/device/numa_node:1
->>
->> This enables numactl(8) to accept 'block:' and 'file:' paths of
->> pmem and btt devices as shown in the examples below.
->>   numactl --preferred block:pmem0 --show
->>   numactl --preferred file:/dev/pmem0s --show
->>
->> Signed-off-by: Toshi Kani <toshi.kani@hp.com>
->> ---
->>  drivers/acpi/nfit.c             |    1 +
->>  drivers/nvdimm/btt_devs.c       |    1 +
->>  drivers/nvdimm/bus.c            |   30 ++++++++++++++++++++++++++++++
->>  drivers/nvdimm/namespace_devs.c |    1 +
->>  include/linux/libnvdimm.h       |    1 +
->>  5 files changed, 34 insertions(+)
->>
->> diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
->> index 5997753..9cb63ac 100644
->> --- a/drivers/acpi/nfit.c
->> +++ b/drivers/acpi/nfit.c
->> @@ -873,6 +873,7 @@ static const struct attribute_group *acpi_nfit_region_attribute_groups[] = {
->>         &nd_region_attribute_group,
->>         &nd_mapping_attribute_group,
->>         &nd_device_attribute_group,
->> +       &nd_numa_attribute_group,
->>         &acpi_nfit_region_attribute_group,
->>         NULL,
->>  };
->> diff --git a/drivers/nvdimm/btt_devs.c b/drivers/nvdimm/btt_devs.c
->> index bcf77dc..a7b192f 100644
->> --- a/drivers/nvdimm/btt_devs.c
->> +++ b/drivers/nvdimm/btt_devs.c
->> @@ -308,6 +308,7 @@ static struct attribute_group nd_btt_attribute_group = {
->>  static const struct attribute_group *nd_btt_attribute_groups[] = {
->>         &nd_btt_attribute_group,
->>         &nd_device_attribute_group,
->> +       &nd_numa_attribute_group,
->>         NULL,
->>  };
->>
->> diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
->> index 67525f9..03c0ee1 100644
->> --- a/drivers/nvdimm/bus.c
->> +++ b/drivers/nvdimm/bus.c
->> @@ -420,6 +420,36 @@ struct attribute_group nd_device_attribute_group = {
->>  };
->>  EXPORT_SYMBOL_GPL(nd_device_attribute_group);
->>
->> +static ssize_t numa_node_show(struct device *dev,
->> +               struct device_attribute *attr, char *buf)
->> +{
->> +       return sprintf(buf, "%d\n", dev_to_node(dev));
->> +}
->
-> So patch 2 collided with the requested BTT stacking rework and
-> prompted me to take a closer look.  Shouldn't numa_node_show() be
-> changed like this?
->
-> @@ -273,7 +273,12 @@ EXPORT_SYMBOL_GPL(nd_device_attribute_group);
->  static ssize_t numa_node_show(struct device *dev,
->                 struct device_attribute *attr, char *buf)
->  {
-> -       return sprintf(buf, "%d\n", dev_to_node(dev));
-> +       if (is_nd_region(dev))
-> +               return sprintf(buf, "%d\n", dev_to_node(dev));
-> +       else if (is_nd_region(dev->parent))
-> +               return sprintf(buf, "%d\n", dev_to_node(dev->parent));
-> +       else
-> +               return sprintf(buf, "-1\n");
->  }
->  static DEVICE_ATTR_RO(numa_node);
+This patchsets adds FUJITSU Extended Socket network device driver.
+Extended Socket network device is a shared memory based high-speed network
+interface between Extended Partitions of PRIMEQUEST 2000 E2 series.
 
-Where is_nd_region() is:
+You can get some information about Extended Partition and Extended
+Socket by referring the following manual.
 
-+static bool is_nd_region(struct device *dev)
-+{
-+       if (is_nd_pmem(dev) || is_nd_blk(dev))
-+               return true;
-+       return false;
-+}
-+
+http://globalsp.ts.fujitsu.com/dmsp/Publications/public/CA92344-0537.pdf
+  3.2.1 Extended Partitioning
+  3.2.2 Extended Socket
+
+v1 -> v2:
+  - Location change
+    drivers/platform/x86 => driver/net
+  - Fix most of style problem
+  - Follow v1 feedback
+
+Taku Izumi (22):
+  fjes: Introduce FUJITSU Extended Socket Network Device driver
+  fjes: Hardware initialization routine
+  fjes: Hardware cleanup routine
+  fjes: platform_driver's .probe and .remove routine
+  fjes: ES information acquisition routine
+  fjes: buffer address regist/unregistration routine
+  fjes: net_device_ops.ndo_open and .ndo_stop
+  fjes: net_device_ops.ndo_start_xmit
+  fjes: raise_intr_rxdata_task
+  fjes: tx_stall_task
+  fjes: NAPI polling function
+  fjes: net_device_ops.ndo_get_stats64
+  fjes: net_device_ops.ndo_change_mtu
+  fjes: net_device_ops.ndo_tx_timeout
+  fjes: net_device_ops.ndo_vlan_rx_add/kill_vid
+  fjes: interrupt_watch_task
+  fjes: force_close_task
+  fjes: unshare_watch_task
+  fjes: update_zone_task
+  fjes: epstop_task
+  fjes: handle receive cancellation request interrupt
+  fjes: ethtool support
+
+ drivers/net/Kconfig             |    7 +
+ drivers/net/Makefile            |    2 +
+ drivers/net/fjes/Makefile       |   31 +
+ drivers/net/fjes/fjes.h         |   77 +++
+ drivers/net/fjes/fjes_ethtool.c |  135 ++++
+ drivers/net/fjes/fjes_hw.c      | 1122 +++++++++++++++++++++++++++++++
+ drivers/net/fjes/fjes_hw.h      |  333 ++++++++++
+ drivers/net/fjes/fjes_main.c    | 1397 +++++++++++++++++++++++++++++++++++++++
+ drivers/net/fjes/fjes_regs.h    |  142 ++++
+ 9 files changed, 3246 insertions(+)
+ create mode 100644 drivers/net/fjes/Makefile
+ create mode 100644 drivers/net/fjes/fjes.h
+ create mode 100644 drivers/net/fjes/fjes_ethtool.c
+ create mode 100644 drivers/net/fjes/fjes_hw.c
+ create mode 100644 drivers/net/fjes/fjes_hw.h
+ create mode 100644 drivers/net/fjes/fjes_main.c
+ create mode 100644 drivers/net/fjes/fjes_regs.h
+
+-- 
+1.8.3.1
