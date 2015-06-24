@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v2 19/28] ACPICA: Cleanup output for the ASL Debug object.
-Date: Wed, 24 Jun 2015 11:04:54 +0800
-Message-ID: <4dae2ad01d31ca517356b7d725bd679bab723e69.1435114811.git.lv.zheng@intel.com>
+Subject: [PATCH v2 21/28] ACPICA: acpidump: Convert the default behavior to dump from /sys/firmware/acpi/tables.
+Date: Wed, 24 Jun 2015 11:05:07 +0800
+Message-ID: <07218cb7cccc7d7831da952a02d65afbdb407b48.1435114811.git.lv.zheng@intel.com>
 References: <cover.1434684719.git.lv.zheng@intel.com> <cover.1435114811.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1435114811.git.lv.zheng@intel.com>
@@ -10,156 +10,80 @@ To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Bob Moore <robert.moore@intel.com>
+ACPICA commit 04c3bd7e9d6aeb2b3edebe99c90dc271ae4e6353
 
-ACPICA commit d4a53a396fe5d384425251b0257f8d125bbed617
+In order to work without any additional option to dump tables when /dev/mem
+doesn't exist, this patch switches the default behavior of acpidump to dump
+from /sys/firmware/acpi/tables. Reported by Al Stone, Fixed by Lv Zheng.
 
-Especially for use of the Index operator. For buffers and strings,
-only output the actual byte pointed to by the index. For packages,
-only print the package element decoded by the index.
-
-Link: https://github.com/acpica/acpica/commit/d4a53a39
-Signed-off-by: Bob Moore <robert.moore@intel.com>
+Link: https://github.com/acpica/acpica/commit/04c3bd7e
+Reported-by: Al Stone <ahs3@redhat.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/acobject.h |    1 +
- drivers/acpi/acpica/exdebug.c  |   42 ++++++++++++++++++++++++++++++++++++++--
- drivers/acpi/acpica/exdump.c   |    9 +++++----
- drivers/acpi/acpica/exoparg2.c |    4 ++++
- 4 files changed, 50 insertions(+), 6 deletions(-)
+ tools/power/acpi/tools/acpidump/acpidump.h |    2 +-
+ tools/power/acpi/tools/acpidump/apmain.c   |   15 ++++++++++++---
+ 2 files changed, 13 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/acpi/acpica/acobject.h b/drivers/acpi/acpica/acobject.h
-index 3e9720e..c81d98d 100644
---- a/drivers/acpi/acpica/acobject.h
-+++ b/drivers/acpi/acpica/acobject.h
-@@ -335,6 +335,7 @@ struct acpi_object_reference {
- 	void *object;		/* name_op=>HANDLE to obj, index_op=>union acpi_operand_object */
- 	struct acpi_namespace_node *node;	/* ref_of or Namepath */
- 	union acpi_operand_object **where;	/* Target of Index */
-+	u8 *index_pointer;	/* Used for Buffers and Strings */
- 	u32 value;		/* Used for Local/Arg/Index/ddb_handle */
- };
+diff --git a/tools/power/acpi/tools/acpidump/acpidump.h b/tools/power/acpi/tools/acpidump/acpidump.h
+index 84bdef0..eed5344 100644
+--- a/tools/power/acpi/tools/acpidump/acpidump.h
++++ b/tools/power/acpi/tools/acpidump/acpidump.h
+@@ -66,7 +66,7 @@
+ EXTERN u8 INIT_GLOBAL(gbl_summary_mode, FALSE);
+ EXTERN u8 INIT_GLOBAL(gbl_verbose_mode, FALSE);
+ EXTERN u8 INIT_GLOBAL(gbl_binary_mode, FALSE);
+-EXTERN u8 INIT_GLOBAL(gbl_dump_customized_tables, FALSE);
++EXTERN u8 INIT_GLOBAL(gbl_dump_customized_tables, TRUE);
+ EXTERN u8 INIT_GLOBAL(gbl_do_not_dump_xsdt, FALSE);
+ EXTERN ACPI_FILE INIT_GLOBAL(gbl_output_file, NULL);
+ EXTERN char INIT_GLOBAL(*gbl_output_filename, NULL);
+diff --git a/tools/power/acpi/tools/acpidump/apmain.c b/tools/power/acpi/tools/acpidump/apmain.c
+index d0ba653..57620f6 100644
+--- a/tools/power/acpi/tools/acpidump/apmain.c
++++ b/tools/power/acpi/tools/acpidump/apmain.c
+@@ -80,7 +80,7 @@ struct ap_dump_action action_table[AP_MAX_ACTIONS];
+ u32 current_action = 0;
  
-diff --git a/drivers/acpi/acpica/exdebug.c b/drivers/acpi/acpica/exdebug.c
-index e67d0ac..815442b 100644
---- a/drivers/acpi/acpica/exdebug.c
-+++ b/drivers/acpi/acpica/exdebug.c
-@@ -76,6 +76,8 @@ acpi_ex_do_debug_object(union acpi_operand_object *source_desc,
- {
- 	u32 i;
- 	u32 timer;
-+	union acpi_operand_object *object_desc;
-+	u32 value;
+ #define AP_UTILITY_NAME             "ACPI Binary Table Dump Utility"
+-#define AP_SUPPORTED_OPTIONS        "?a:bcf:hn:o:r:svxz"
++#define AP_SUPPORTED_OPTIONS        "?a:bc:f:hn:o:r:svxz"
  
- 	ACPI_FUNCTION_TRACE_PTR(ex_do_debug_object, source_desc);
+ /******************************************************************************
+  *
+@@ -96,7 +96,6 @@ static void ap_display_usage(void)
+ 	ACPI_USAGE_HEADER("acpidump [options]");
  
-@@ -254,8 +256,44 @@ acpi_ex_do_debug_object(union acpi_operand_object *source_desc,
- 							 object)->object,
- 							level + 4, 0);
- 			} else {
--				acpi_ex_do_debug_object(source_desc->reference.
--							object, level + 4, 0);
-+				object_desc = source_desc->reference.object;
-+				value = source_desc->reference.value;
-+
-+				switch (object_desc->common.type) {
-+				case ACPI_TYPE_BUFFER:
-+
-+					acpi_os_printf("Buffer[%u] = 0x%2.2X\n",
-+						       value,
-+						       *source_desc->reference.
-+						       index_pointer);
-+					break;
-+
-+				case ACPI_TYPE_STRING:
-+
-+					acpi_os_printf
-+					    ("String[%u] = \"%c\" (0x%2.2X)\n",
-+					     value,
-+					     *source_desc->reference.
-+					     index_pointer,
-+					     *source_desc->reference.
-+					     index_pointer);
-+					break;
-+
-+				case ACPI_TYPE_PACKAGE:
-+
-+					acpi_os_printf("Package[%u] = ", value);
-+					acpi_ex_do_debug_object(*source_desc->
-+								reference.where,
-+								level + 4, 0);
-+					break;
-+
-+				default:
-+
-+					acpi_os_printf
-+					    ("Unknown Reference object type %X\n",
-+					     object_desc->common.type);
-+					break;
-+				}
- 			}
- 		}
- 		break;
-diff --git a/drivers/acpi/acpica/exdump.c b/drivers/acpi/acpica/exdump.c
-index 1da52be..401e7ed 100644
---- a/drivers/acpi/acpica/exdump.c
-+++ b/drivers/acpi/acpica/exdump.c
-@@ -224,7 +224,7 @@ static struct acpi_exdump_info acpi_ex_dump_index_field[5] = {
- 	{ACPI_EXD_POINTER, ACPI_EXD_OFFSET(index_field.data_obj), "Data Object"}
- };
+ 	ACPI_OPTION("-b", "Dump tables to binary files");
+-	ACPI_OPTION("-c", "Dump customized tables");
+ 	ACPI_OPTION("-h -?", "This help message");
+ 	ACPI_OPTION("-o <File>", "Redirect output to file");
+ 	ACPI_OPTION("-r <Address>", "Dump tables from specified RSDP");
+@@ -107,6 +106,7 @@ static void ap_display_usage(void)
+ 	ACPI_USAGE_TEXT("\nTable Options:\n");
  
--static struct acpi_exdump_info acpi_ex_dump_reference[8] = {
-+static struct acpi_exdump_info acpi_ex_dump_reference[9] = {
- 	{ACPI_EXD_INIT, ACPI_EXD_TABLE_SIZE(acpi_ex_dump_reference), NULL},
- 	{ACPI_EXD_UINT8, ACPI_EXD_OFFSET(reference.class), "Class"},
- 	{ACPI_EXD_UINT8, ACPI_EXD_OFFSET(reference.target_type), "Target Type"},
-@@ -232,6 +232,8 @@ static struct acpi_exdump_info acpi_ex_dump_reference[8] = {
- 	{ACPI_EXD_POINTER, ACPI_EXD_OFFSET(reference.object), "Object Desc"},
- 	{ACPI_EXD_NODE, ACPI_EXD_OFFSET(reference.node), "Node"},
- 	{ACPI_EXD_POINTER, ACPI_EXD_OFFSET(reference.where), "Where"},
-+	{ACPI_EXD_POINTER, ACPI_EXD_OFFSET(reference.index_pointer),
-+	 "Index Pointer"},
- 	{ACPI_EXD_REFERENCE, 0, NULL}
- };
+ 	ACPI_OPTION("-a <Address>", "Get table via a physical address");
++	ACPI_OPTION("-c <on|off>", "Turning on/off customized table dumping");
+ 	ACPI_OPTION("-f <BinaryFile>", "Get table via a binary file");
+ 	ACPI_OPTION("-n <Signature>", "Get table via a name/signature");
+ 	ACPI_OPTION("-x", "Do not use but dump XSDT");
+@@ -181,7 +181,16 @@ static int ap_do_options(int argc, char **argv)
  
-@@ -1005,14 +1007,13 @@ static void acpi_ex_dump_reference_obj(union acpi_operand_object *obj_desc)
- 	} else if (obj_desc->reference.object) {
- 		if (ACPI_GET_DESCRIPTOR_TYPE(obj_desc) ==
- 		    ACPI_DESC_TYPE_OPERAND) {
--			acpi_os_printf(" Target: %p",
-+			acpi_os_printf("%22s %p", "Target :",
- 				       obj_desc->reference.object);
- 			if (obj_desc->reference.class == ACPI_REFCLASS_TABLE) {
- 				acpi_os_printf(" Table Index: %X\n",
- 					       obj_desc->reference.value);
- 			} else {
--				acpi_os_printf(" Target: %p [%s]\n",
--					       obj_desc->reference.object,
-+				acpi_os_printf(" [%s]\n",
- 					       acpi_ut_get_type_name(((union
- 								       acpi_operand_object
- 								       *)
-diff --git a/drivers/acpi/acpica/exoparg2.c b/drivers/acpi/acpica/exoparg2.c
-index fcc618a..6fac5e0 100644
---- a/drivers/acpi/acpica/exoparg2.c
-+++ b/drivers/acpi/acpica/exoparg2.c
-@@ -380,6 +380,8 @@ acpi_status acpi_ex_opcode_2A_1T_1R(struct acpi_walk_state *walk_state)
+ 		case 'c':	/* Dump customized tables */
  
- 			return_desc->reference.target_type =
- 			    ACPI_TYPE_BUFFER_FIELD;
-+			return_desc->reference.index_pointer =
-+			    &(operand[0]->buffer.pointer[index]);
- 			break;
+-			gbl_dump_customized_tables = TRUE;
++			if (!strcmp(acpi_gbl_optarg, "on")) {
++				gbl_dump_customized_tables = TRUE;
++			} else if (!strcmp(acpi_gbl_optarg, "off")) {
++				gbl_dump_customized_tables = FALSE;
++			} else {
++				acpi_log_error
++				    ("%s: Cannot handle this switch, please use on|off\n",
++				     acpi_gbl_optarg);
++				return (-1);
++			}
+ 			continue;
  
- 		case ACPI_TYPE_BUFFER:
-@@ -391,6 +393,8 @@ acpi_status acpi_ex_opcode_2A_1T_1R(struct acpi_walk_state *walk_state)
- 
- 			return_desc->reference.target_type =
- 			    ACPI_TYPE_BUFFER_FIELD;
-+			return_desc->reference.index_pointer =
-+			    &(operand[0]->buffer.pointer[index]);
- 			break;
- 
- 		case ACPI_TYPE_PACKAGE:
+ 		case 'h':
 -- 
 1.7.10
