@@ -1,62 +1,93 @@
-From: Ingo Molnar <mingo@kernel.org>
-Subject: Re: [Bugfix v2] PCI, ACPI: Fix regressions caused by resource_size_t
- overflow with 32bit kernel
-Date: Wed, 24 Jun 2015 10:30:19 +0200
-Message-ID: <20150624083019.GA26672@gmail.com>
-References: <1435131817-28167-1-git-send-email-jiang.liu@linux.intel.com>
+From: Charles Keepax <ckeepax@opensource.wolfsonmicro.com>
+Subject: Re: Fwd: ASoC : WM5102 Audio Codec needs ACPI support and a
+	baytrail machine driver
+Date: Wed, 24 Jun 2015 09:48:12 +0100
+Message-ID: <20150624084812.GC6321@opensource.wolfsonmicro.com>
+References: <CAKor6TdbnLuJCsBPykPEmhGk-zBLggKxw4Z+=QuBb6Mz2ThD3g@mail.gmail.com> <CAKor6TeP2HfqpHiKK86GLYLpCNk87y66bdjye_mAqXuMXxPMWA@mail.gmail.com> <CAKor6Tdg5yHaLVrCrWFVuydVcYUUtYr=oSj+k37Yd9O64+tg6A@mail.gmail.com> <20150616144732.GN32730@opensource.wolfsonmicro.com> <CAKor6TcfpAhzWeJdoyzwEG79BLvx-9jhunbaYdE5GUTH4k7qVg@mail.gmail.com> <20150622120020.GB32730@opensource.wolfsonmicro.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f172.google.com ([209.85.212.172]:35037 "EHLO
-	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751174AbbFXIaZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Jun 2015 04:30:25 -0400
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:38714 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752102AbbFXIsP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 24 Jun 2015 04:48:15 -0400
 Content-Disposition: inline
-In-Reply-To: <1435131817-28167-1-git-send-email-jiang.liu@linux.intel.com>
+In-Reply-To: <20150622120020.GB32730@opensource.wolfsonmicro.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Boszormenyi Zoltan <zboszor@pr.hu>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>
+To: Christian Hartmann <cornogle@googlemail.com>
+Cc: linux-acpi <linux-acpi@vger.kernel.org>, patches@opensource.wolfsonmicro.com
 
-
-* Jiang Liu <jiang.liu@linux.intel.com> wrote:
-
-> Since commit 593669c2ac0f ("x86/PCI/ACPI: Use common ACPI resource interfaces to 
-> simplify implementation"), x86 PCI ACPI host bridge driver validates ACPI 
-> resources by first converting an ACPI resource to a 'struct resource' structure 
-> and then applying checks against the converted resource structure. The 'start' 
-> and 'end' fields in 'struct resource' are defined to be type of resource_size_t, 
-> which may be 32 bits or 64 bits depending on CONFIG_PHYS_ADDR_T_64BIT.
+On Mon, Jun 22, 2015 at 01:00:20PM +0100, Charles Keepax wrote:
+> On Mon, Jun 22, 2015 at 11:55:13AM +0200, Christian Hartmann wrote:
+> > hi list,
+> > 
+> > FYI - I have some local patches (currently not ready to sent && merge) but
+> > want to let you know about the new status:
+> > 
+> > the init messages I have now from the arizona-spi for the audio codec
+> > WM5102  in dmesg of my local patched 4.1.0 (mainline aka
+> > torvals/master) are:
+> > 
+> > [    6.067993] pxa2xx-spi 80860F0E:00: no DMA channels available, using PIO
+> > [    6.068072] pxa2xx-spi 80860F0E:00: registered master spi32766 (dynamic)
+> > [    6.068216] spi spi-WM510205:00: 8333333 Hz actual, PIO
+> > [    6.068224] spi spi-WM510205:00: setup mode 0, 8 bits/w, 8000000 Hz max --> 0
+> > [    6.068284] spi spi-WM510205:00: checking WM510205 with wm8310
+> > [    6.068290] spi spi-WM510205:00: checking WM510205 with wm8311
+> > [    6.068295] spi spi-WM510205:00: checking WM510205 with wm8312
+> > [    6.068299] spi spi-WM510205:00: checking WM510205 with wm8320
+> > [    6.068304] spi spi-WM510205:00: checking WM510205 with wm8321
+> > [    6.068308] spi spi-WM510205:00: checking WM510205 with wm8325
+> > [    6.068312] spi spi-WM510205:00: checking WM510205 with wm8326
+> > [    6.068316] spi spi-WM510205:00: modalias WM510205 in id_table not
+> > found, returns NULL
+> > [    6.068322] spi spi-WM510205:00: checking WM510205 with bmp180
+> > [    6.068327] spi spi-WM510205:00: checking WM510205 with bmp181
+> > [    6.068331] spi spi-WM510205:00: modalias WM510205 in id_table not
+> > found, returns NULL
+> > [    6.068337] pxa2xx-spi 80860F0E:00: registered child spi-WM510205:00
+> > [    6.143633] arizona spi-WM510205:00: acpi_match_device() first,
+> > than via spi_get_device_id().
+> > [    6.143643] arizona spi-WM510205:00: matched ACPI ID and data
+> > [    6.143648] arizona spi-WM510205:00: using 1 as type for arizona audio codec
+> > [    6.143652] arizona spi-WM510205:00: regmap set to wm5102_spi
+> > [    6.144461] arizona spi-WM510205:00: arizona_spi_probe done, call
+> > and return of  arizona_dev_init
+> > [    6.144576] spi-WM510205:00 supply AVDD not found, using dummy regulator
+> > [    6.144761] spi-WM510205:00 supply DBVDD1 not found, using dummy regulator
+> > [    6.144784] spi-WM510205:00 supply DCVDD not found, using dummy regulator
+> > [    6.176047] arizona spi-WM510205:00: Unknown device ID: ffff
 > 
-> This may cause incorrect resource validation results with 32 bit kernels because 
-> 64bit ACPI resource descriptors may get truncated when converting to 32bit 
-> 'start' and 'end' fields in 'struct resource'. And eventually affects PCI 
-> resource allocation subsystem and causes some PCI devices unusable.
-
-s/causes some PCI devices unusuable.
-  makes some PCI devices unusuable.
-
-Also, this description is still pretty vague. What exactly happened? Did some PCI 
-devices not show up during bootup? Or did they hang? Or did something else happen?
-
-This is _by far_ the most important part of the changelog and determines whether a 
-patch gets backported or not. Why does a usable regression description have to be 
-coaxed out of you like pulling teeth??
-
-> So enhance the ACPI resource parsing interfaces to ignore ACPI resource 
-> descriptors with address/offset observe 4G when running in 32bit mode. This 
-> reverts to the behavior before commit 593669c2ac0f.
+> My guess here is that the GPIOs for the reset and LDOENA lines
+> are not specified. I think the Windows guys specify very little
+> through ACPI and hard-code most of it into the driver, so you are
+> probably going to need to find a way to define some pdata for the
+> CODEC to get things going here.
 > 
-> This issue was triggered on a platform running 32bit kernel with an ACPI 
-> resource descriptor with address range [0x400000000-0xfffffffff]. Please refer 
-> to https://lkml.org/lkml/2015/6/19/277 for more information.
+> Also not finding DCVDD is a bit odd make sure you have the
+> arizona-ldo1 driver built into your system.
+> 
 
-s/32bit/32-bit
-s/64bit/64-bit
-s/32 bit/32-bit
-s/64 bit/64-bit
+I had a bit of a chat with Mark last night about this seems like
+the best way to handle this is going to be to hard-code a pdata
+structure into the driver and have that selected when we see the
+appropriate ID.
+
+Probably the bear minimum you want to define are the reset and
+ldoena GPIOs as I said before. I also have a vague memory in the
+back of my head that the Intel processors only support edge
+driven IRQs so you probably want to add the irq_flag
+IRQF_TRIGGER_RISING/FALLING, and irq_gpio which is the GPIO pin
+that corresponds to the interrupt.
+
+static struct arizona_pdata wm5102_pdata = {
+	.reset = ????,
+	.ldoena = ????,
+	.irq_flags = ????,
+	.irq_gpio = ????,
+};
 
 Thanks,
-
-    Ingo
-
+Charles
