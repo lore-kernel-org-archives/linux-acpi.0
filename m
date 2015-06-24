@@ -1,134 +1,123 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH v3 2/3] libnvdimm: Set numa_node to NVDIMM devices
-Date: Wed, 24 Jun 2015 11:14:13 -0600
-Message-ID: <1435166053.11808.302.camel@misato.fc.hp.com>
-References: <1434737914-18466-1-git-send-email-toshi.kani@hp.com>
-	 <1434737914-18466-3-git-send-email-toshi.kani@hp.com>
-	 <CAPcyv4gC7fKq9ic7fuVO1vrNMMFwtxkwoBc6ABVFbBO1tRMF1A@mail.gmail.com>
-	 <1435165532.11808.300.camel@misato.fc.hp.com>
-	 <CAPcyv4joZNvmUF9s=honCAMXm8Wf__S+UdP6TwhwDdPjbXAzGw@mail.gmail.com>
+From: Al Stone <ahs3@redhat.com>
+Subject: Re: [PATCH v2 16/28] ACPICA: Namespace: Add support of OSDT table.
+Date: Wed, 24 Jun 2015 13:08:55 -0600
+Message-ID: <558B0047.8050102@redhat.com>
+References: <cover.1434684719.git.lv.zheng@intel.com> <cover.1435114811.git.lv.zheng@intel.com> <ef85374dcb02bbfebc81131d7a83f227b0f21a62.1435114811.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g2t2353.austin.hp.com ([15.217.128.52]:10812 "EHLO
-	g2t2353.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752956AbbFXROf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Jun 2015 13:14:35 -0400
-In-Reply-To: <CAPcyv4joZNvmUF9s=honCAMXm8Wf__S+UdP6TwhwDdPjbXAzGw@mail.gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:47983 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752418AbbFXTI4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 24 Jun 2015 15:08:56 -0400
+In-Reply-To: <ef85374dcb02bbfebc81131d7a83f227b0f21a62.1435114811.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-On Wed, 2015-06-24 at 10:08 -0700, Dan Williams wrote:
-> On Wed, Jun 24, 2015 at 10:05 AM, Toshi Kani <toshi.kani@hp.com> wrote:
-> > On Wed, 2015-06-24 at 09:50 -0700, Dan Williams wrote:
-> >> On Fri, Jun 19, 2015 at 11:18 AM, Toshi Kani <toshi.kani@hp.com> wrote:
-> >> > ACPI NFIT table has System Physical Address Range Structure
-> >> > entries that describe a proximity ID of each range when
-> >> > ACPI_NFIT_PROXIMITY_VALID is set in the flags.
-> >> >
-> >> > Change acpi_nfit_register_region() to map a proximity ID to its
-> >> > node ID, and set it to a new numa_node field of nd_region_desc,
-> >> > which is then conveyed to nd_region.
-> >> >
-> >> > nd_region_probe() and nd_btt_probe() set the numa_node of nd_region
-> >> > to their device object being probed.  A namespace device inherits
-> >> > the numa_node from the parent region device.
-> >> >
-> >> > Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-> >> > ---
-> >> >  drivers/acpi/nfit.c          |    6 ++++++
-> >> >  drivers/nvdimm/btt.c         |    2 ++
-> >> >  drivers/nvdimm/nd.h          |    1 +
-> >> >  drivers/nvdimm/region.c      |    1 +
-> >> >  drivers/nvdimm/region_devs.c |    1 +
-> >> >  include/linux/libnvdimm.h    |    1 +
-> >> >  6 files changed, 12 insertions(+)
-> >> >
-> >> > diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-> >> > index 5f64582..5997753 100644
-> >> > --- a/drivers/acpi/nfit.c
-> >> > +++ b/drivers/acpi/nfit.c
-> >> > @@ -1392,6 +1392,12 @@ static int acpi_nfit_register_region(struct acpi_nfit_desc *acpi_desc,
-> >> >         ndr_desc->res = &res;
-> >> >         ndr_desc->provider_data = nfit_spa;
-> >> >         ndr_desc->attr_groups = acpi_nfit_region_attribute_groups;
-> >> > +       if (spa->flags & ACPI_NFIT_PROXIMITY_VALID)
-> >> > +               ndr_desc->numa_node = acpi_map_pxm_to_online_node(
-> >> > +                                               spa->proximity_domain);
-> >> > +       else
-> >> > +               ndr_desc->numa_node = NUMA_NO_NODE;
-> >> > +
-> >> >         list_for_each_entry(nfit_memdev, &acpi_desc->memdevs, list) {
-> >> >                 struct acpi_nfit_memory_map *memdev = nfit_memdev->memdev;
-> >> >                 struct nd_mapping *nd_mapping;
-> >> > diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
-> >> > index 57d3b27..ab082e5 100644
-> >> > --- a/drivers/nvdimm/btt.c
-> >> > +++ b/drivers/nvdimm/btt.c
-> >> > @@ -1495,6 +1495,8 @@ static int nd_btt_probe(struct device *dev)
-> >> >                 rc = -ENOMEM;
-> >> >                 goto err_btt;
-> >> >         }
-> >> > +
-> >> > +       set_dev_node(dev, nd_region->numa_node);
-> >> >         dev_set_drvdata(dev, btt);
-> >> >
-> >> >         return 0;
-> >> > diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
-> >> > index 011d7c5..0bfd20a 100644
-> >> > --- a/drivers/nvdimm/nd.h
-> >> > +++ b/drivers/nvdimm/nd.h
-> >> > @@ -93,6 +93,7 @@ struct nd_region {
-> >> >         u64 ndr_size;
-> >> >         u64 ndr_start;
-> >> >         int id, num_lanes;
-> >> > +       int numa_node;
-> >> >         void *provider_data;
-> >> >         struct nd_interleave_set *nd_set;
-> >> >         struct nd_mapping mapping[0];
-> >> > diff --git a/drivers/nvdimm/region.c b/drivers/nvdimm/region.c
-> >> > index d9d82e7..a764ca6 100644
-> >> > --- a/drivers/nvdimm/region.c
-> >> > +++ b/drivers/nvdimm/region.c
-> >> > @@ -123,6 +123,7 @@ static int nd_region_probe(struct device *dev)
-> >> >
-> >> >         num_ns->active = rc;
-> >> >         num_ns->count = rc + err;
-> >> > +       set_dev_node(dev, nd_region->numa_node);
-> >> >         dev_set_drvdata(dev, num_ns);
-> >> >
-> >> >         if (err == 0)
-> >> > diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
-> >> > index bb9f329..703dfae 100644
-> >> > --- a/drivers/nvdimm/region_devs.c
-> >> > +++ b/drivers/nvdimm/region_devs.c
-> >> > @@ -632,6 +632,7 @@ static struct nd_region *nd_region_create(struct nvdimm_bus *nvdimm_bus,
-> >> >         nd_region->provider_data = ndr_desc->provider_data;
-> >> >         nd_region->nd_set = ndr_desc->nd_set;
-> >> >         nd_region->num_lanes = ndr_desc->num_lanes;
-> >> > +       nd_region->numa_node = ndr_desc->numa_node;
-> >>
-> >> Why introduce nd_region->numa_node?  Why not do set_dev_node() directly here?
-> >>
-> >> I can make this change locally if you agree, we don't need to wait
-> >> until probe to set these.
-> >
-> > dev->numa_node cannot be set here because nd_region_create() then calls
-> > nd_device_register() -> device_initialize() -> set_dev_node(dev, -1).
-> > So, it gets overwritten with -1.
+On 06/23/2015 09:04 PM, Lv Zheng wrote:
+> From: Bob Moore <robert.moore@intel.com>
 > 
-> Ah, ok.
+> ACPICA commit 27415c82fcecf467446f66d1007a0691cc5f3709
 > 
-> Still I'd rather set this permanent property of a device at create
-> time, so I'll re-work create to initialize the device and set the node
-> before registering.
+> This patch adds OSDT (Override System Definition Table) support.
+> When OSDT is loaded, conflict namespace objects will be overridden
+> by the AML interpreter. Bob Moore, Lv Zheng.
+> 
+> Link: https://github.com/acpica/acpica/commit/27415c82
+> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> Signed-off-by: Bob Moore <robert.moore@intel.com>
+> ---
+>  drivers/acpi/acpica/nsparse.c  |    7 +++++++
+>  drivers/acpi/acpica/tbxfload.c |    6 +++++-
+>  drivers/acpi/acpica/utmisc.c   |    3 ++-
+>  include/acpi/actbl.h           |    1 +
+>  4 files changed, 15 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/acpi/acpica/nsparse.c b/drivers/acpi/acpica/nsparse.c
+> index c95a119..57a4cfe 100644
+> --- a/drivers/acpi/acpica/nsparse.c
+> +++ b/drivers/acpi/acpica/nsparse.c
+> @@ -117,6 +117,13 @@ acpi_ns_one_complete_parse(u32 pass_number,
+>  					       (u8) pass_number);
+>  	}
+>  
+> +	/* Found OSDT table, enable the namespace override feature */
+> +
+> +	if (ACPI_COMPARE_NAME(table->signature, ACPI_SIG_OSDT) &&
+> +	    pass_number == ACPI_IMODE_LOAD_PASS1) {
+> +		walk_state->namespace_override = TRUE;
+> +	}
+> +
+>  	if (ACPI_FAILURE(status)) {
+>  		acpi_ds_delete_walk_state(walk_state);
+>  		goto cleanup;
+> diff --git a/drivers/acpi/acpica/tbxfload.c b/drivers/acpi/acpica/tbxfload.c
+> index b63e35d..960bd99 100644
+> --- a/drivers/acpi/acpica/tbxfload.c
+> +++ b/drivers/acpi/acpica/tbxfload.c
+> @@ -173,7 +173,11 @@ static acpi_status acpi_tb_load_namespace(void)
+>  		     &&
+>  		     !ACPI_COMPARE_NAME(&
+>  					(acpi_gbl_root_table_list.tables[i].
+> -					 signature), ACPI_SIG_PSDT))
+> +					 signature), ACPI_SIG_PSDT)
+> +		     &&
+> +		     !ACPI_COMPARE_NAME(&
+> +					(acpi_gbl_root_table_list.tables[i].
+> +					 signature), ACPI_SIG_OSDT))
+>  		    ||
+>  		    ACPI_FAILURE(acpi_tb_validate_table
+>  				 (&acpi_gbl_root_table_list.tables[i]))) {
+> diff --git a/drivers/acpi/acpica/utmisc.c b/drivers/acpi/acpica/utmisc.c
+> index cbb7034..28099e2 100644
+> --- a/drivers/acpi/acpica/utmisc.c
+> +++ b/drivers/acpi/acpica/utmisc.c
+> @@ -97,7 +97,8 @@ u8 acpi_ut_is_aml_table(struct acpi_table_header *table)
+>  
+>  	if (ACPI_COMPARE_NAME(table->signature, ACPI_SIG_DSDT) ||
+>  	    ACPI_COMPARE_NAME(table->signature, ACPI_SIG_PSDT) ||
+> -	    ACPI_COMPARE_NAME(table->signature, ACPI_SIG_SSDT)) {
+> +	    ACPI_COMPARE_NAME(table->signature, ACPI_SIG_SSDT) ||
+> +	    ACPI_COMPARE_NAME(table->signature, ACPI_SIG_OSDT)) {
+>  		return (TRUE);
+>  	}
+>  
+> diff --git a/include/acpi/actbl.h b/include/acpi/actbl.h
+> index cb8a6b9..2d5faf5 100644
+> --- a/include/acpi/actbl.h
+> +++ b/include/acpi/actbl.h
+> @@ -65,6 +65,7 @@
+>  #define ACPI_SIG_DSDT           "DSDT"	/* Differentiated System Description Table */
+>  #define ACPI_SIG_FADT           "FACP"	/* Fixed ACPI Description Table */
+>  #define ACPI_SIG_FACS           "FACS"	/* Firmware ACPI Control Structure */
+> +#define ACPI_SIG_OSDT           "OSDT"	/* Override System Description Table */
+>  #define ACPI_SIG_PSDT           "PSDT"	/* Persistent System Description Table */
+>  #define ACPI_SIG_RSDP           "RSD PTR "	/* Root System Description Pointer */
+>  #define ACPI_SIG_RSDT           "RSDT"	/* Root System Description Table */
+> 
 
-I agree, it is cleaner in that way.
+I'm a little puzzled by this patch and the previous one (15-16/28).  I see no
+definition for OSDT in the ACPI spec nor at http://uefi.org/acpi.  Personally,
+I like the feature, but I really don't like the idea that I'm now going to have
+to go dig around to figure out what this table looks like and what its semantics
+are supposed to be.  Without doing that, though, it is impossible for me to
+tell if these patches are doing the right thing.
 
-Thanks,
--Toshi
+So, can I get a URL to the OSDT definition?  And if this is going to be part of
+ACPI, please submit it as a change request to the spec; I sit on the committee
+but this table hasn't come up at all to date (I just searched the issue data
+base a few minutes ago to make sure I hadn't missed it somewhere).  If OSDT is
+not going to be part of standard ACPI, why the divergence from the spec?
 
-
+-- 
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Red Hat, Inc.
+ahs3@redhat.com
+-----------------------------------
