@@ -1,86 +1,112 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH v2 01/22] fjes: Introduce FUJITSU Extended Socket
- Network Device driver
-Date: Tue, 23 Jun 2015 23:50:37 -0700
-Message-ID: <1435128637.2504.51.camel@perches.com>
-References: <1435114351-6961-1-git-send-email-izumi.taku@jp.fujitsu.com>
-	 <1435114554-7151-2-git-send-email-izumi.taku@jp.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <1435114554-7151-2-git-send-email-izumi.taku@jp.fujitsu.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Cc: netdev@vger.kernel.org, davem@davemloft.net, platform-driver-x86@vger.kernel.org, dvhart@infradead.org, rkhan@redhat.com, alexander.h.duyck@redhat.com, linux-acpi@vger.kernel.org, sergei.shtylyov@cogentembedded.com, stephen@networkplumber.org, yasu.isimatu@gmail.com
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: [Bugfix v2] PCI, ACPI: Fix regressions caused by resource_size_t overflow with 32bit kernel
+Date: Wed, 24 Jun 2015 15:43:37 +0800
+Message-ID: <1435131817-28167-1-git-send-email-jiang.liu@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:55298 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750787AbbFXHmA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 24 Jun 2015 03:42:00 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Ingo Molnar <mingo@kernel.org>, Boszormenyi Zoltan <zboszor@pr.hu>, Len Brown <lenb@kernel.org>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>
 
-On Wed, 2015-06-24 at 11:55 +0900, Taku Izumi wrote:
-> This patch adds the basic code of FUJITSU Extended Socket
-> Network Device driver.
+Since commit 593669c2ac0f ("x86/PCI/ACPI: Use common ACPI resource
+interfaces to simplify implementation"), x86 PCI ACPI host bridge driver
+validates ACPI resources by first converting an ACPI resource to
+a 'struct resource' structure and then applying checks against the
+converted resource structure. The 'start' and 'end' fields in 'struct
+resource' are defined to be type of resource_size_t, which may be 32 bits
+or 64 bits depending on CONFIG_PHYS_ADDR_T_64BIT.
 
-trivial notes:
+This may cause incorrect resource validation results with 32 bit kernels
+because 64bit ACPI resource descriptors may get truncated when converting
+to 32bit 'start' and 'end' fields in 'struct resource'. And eventually
+affects PCI resource allocation subsystem and causes some PCI devices
+unusable.
 
-> diff --git a/drivers/net/fjes/fjes_main.c b/drivers/net/fjes/fjes_main.c
-[]
-> +static int fjes_acpi_add(struct acpi_device *device)
-> +{
-[]
-> +	result =
-> +	utf16s_to_utf8s((wchar_t *)str->string.pointer,
-> +			str->string.length, UTF16_LITTLE_ENDIAN,
-> +			str_buf, sizeof(str_buf) - 1);
+So enhance the ACPI resource parsing interfaces to ignore ACPI resource
+descriptors with address/offset observe 4G when running in 32bit mode.
+This reverts to the behavior before commit 593669c2ac0f.
 
-I dislike this style as it's not normally used in the kernel.
-Most would use another tab indent on the utf16s_to_utf8s line
-if the line didn't fit, but this would is more common:
+This issue was triggered on a platform running 32bit kernel with an
+ACPI resource descriptor with address range [0x400000000-0xfffffffff].
+Please refer to https://lkml.org/lkml/2015/6/19/277 for more information.
 
-	result = utf16s_to_utf8s((wchar_t *)str->string.pointer,
-				 str->string.length, UTF16_LITTLE_ENDIAN,
-				 str_buf, sizeof(str_buf) - 1);
-> 
-> +	/* create platform_device */
-> +	plat_dev =
-> +	platform_device_register_simple(DRV_NAME, 0, fjes_resource,
-> +					ARRAY_SIZE(fjes_resource));
+Reported-by: Boszormenyi Zoltan <zboszor@pr.hu>
+Fixes: 593669c2ac0f ("x86/PCI/ACPI: Use common ACPI resource interfaces to simplify implementation")
+Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: stable@vger.kernel.org # 4.0
+---
 
-	plat_dev = platform_device_register_simple(DRV_NAME, 0, fjes_resource,
-						   ARRAY_SIZE(fjes_resource));
+Hi Zoltan,
+	Could you please help to test this patch against the latest kernel?
+Thanks!
+Gerry
 
-etc...
+---
+ drivers/acpi/resource.c |   24 +++++++++++++++---------
+ 1 file changed, 15 insertions(+), 9 deletions(-)
 
-> +static acpi_status
-> +fjes_get_acpi_resource(struct acpi_resource *acpi_res, void *data)
-> +{
-> +	struct resource *res = data;
-> +	struct acpi_resource_address32 *addr;
-> +	struct acpi_resource_irq *irq;
-> +
-> +	switch (acpi_res->type) {
-> +	case ACPI_RESOURCE_TYPE_ADDRESS32:
-> +		addr = &acpi_res->data.address32;
-> +		res[0].start = addr->address.minimum;
-> +		res[0].end = addr->address.minimum +
-> +			addr->address.address_length - 1;
-> +		break;
-> +
-> +	case ACPI_RESOURCE_TYPE_IRQ:
-> +		irq = &acpi_res->data.irq;
-> +		if (irq->interrupt_count != 1)
-> +			return AE_ERROR;
-> +		res[1].start = irq->interrupts[0];
-> +		res[1].end = irq->interrupts[0];
-> +		break;
-> +
-> +	default:
-> +		break;
-> +	}
-> +
-> +	return AE_OK;
-> +}
+diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+index 8244f013f210..f1c966e05078 100644
+--- a/drivers/acpi/resource.c
++++ b/drivers/acpi/resource.c
+@@ -193,6 +193,7 @@ static bool acpi_decode_space(struct resource_win *win,
+ 	u8 iodec = attr->granularity == 0xfff ? ACPI_DECODE_10 : ACPI_DECODE_16;
+ 	bool wp = addr->info.mem.write_protect;
+ 	u64 len = attr->address_length;
++	u64 start, end, offset = 0;
+ 	struct resource *res = &win->res;
+ 
+ 	/*
+@@ -204,9 +205,6 @@ static bool acpi_decode_space(struct resource_win *win,
+ 		pr_debug("ACPI: Invalid address space min_addr_fix %d, max_addr_fix %d, len %llx\n",
+ 			 addr->min_address_fixed, addr->max_address_fixed, len);
+ 
+-	res->start = attr->minimum;
+-	res->end = attr->maximum;
+-
+ 	/*
+ 	 * For bridges that translate addresses across the bridge,
+ 	 * translation_offset is the offset that must be added to the
+@@ -214,12 +212,22 @@ static bool acpi_decode_space(struct resource_win *win,
+ 	 * primary side. Non-bridge devices must list 0 for all Address
+ 	 * Translation offset bits.
+ 	 */
+-	if (addr->producer_consumer == ACPI_PRODUCER) {
+-		res->start += attr->translation_offset;
+-		res->end += attr->translation_offset;
+-	} else if (attr->translation_offset) {
++	if (addr->producer_consumer == ACPI_PRODUCER)
++		offset = attr->translation_offset;
++	else if (attr->translation_offset)
+ 		pr_debug("ACPI: translation_offset(%lld) is invalid for non-bridge device.\n",
+ 			 attr->translation_offset);
++	start = attr->minimum + offset;
++	end = attr->maximum + offset;
++
++	win->offset = offset;
++	res->start = start;
++	res->end = end;
++	if (sizeof(resource_size_t) < sizeof(u64) &&
++	    (offset != win->offset || start != res->start || end != res->end)) {
++		pr_warn("acpi resource window ([%#llx-%#llx] ignored, not CPU addressable)\n",
++			attr->minimum, attr->maximum);
++		return false;
+ 	}
+ 
+ 	switch (addr->resource_type) {
+@@ -236,8 +244,6 @@ static bool acpi_decode_space(struct resource_win *win,
+ 		return false;
+ 	}
+ 
+-	win->offset = attr->translation_offset;
+-
+ 	if (addr->producer_consumer == ACPI_PRODUCER)
+ 		res->flags |= IORESOURCE_WINDOW;
+ 
+-- 
+1.7.10.4
 
-Is this function used in this compilation?
-If not, it's odd to add code that isn't used.
-
-Is it better to make the 2nd argument a
-struct resource * rather than a void * ?
