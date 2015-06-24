@@ -1,62 +1,53 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v2 11/28] ACPICA: EFI: Add EFI interface definitions to eliminate dependency of GNU EFI.
-Date: Wed, 24 Jun 2015 11:03:56 +0800
-Message-ID: <c06ccc88fd9aca970b72a1ce2abf12b8937ae465.1435114811.git.lv.zheng@intel.com>
+Subject: [PATCH v2 09/28] ACPICA: Tables: Enable default 64-bit FADT addresses favor.
+Date: Wed, 24 Jun 2015 11:03:37 +0800
+Message-ID: <b4fcdf4cebd18be907e5771044972e35008651a2.1435114811.git.lv.zheng@intel.com>
 References: <cover.1434684719.git.lv.zheng@intel.com> <cover.1435114811.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:8716 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934170AbbFXDEB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 23 Jun 2015 23:04:01 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1435114811.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
-ACPICA commit 5d00e67a74542d030f0a55e7a947a020ef0d9693
+ACPICA commit 4da56eeae0749dfe8491285c1e1fad48f6efafd8
 
-This patch copies EFI interface definitions to the ACPICA code base so that
-the EFI utility support can be ported to other EFI implementation.
+The following commit temporarily disables correct 64-bit FADT addresses
+favor during the period the root cause of the bug is not fixed:
+ Commit: 85dbd5801f62b66e2aa7826aaefcaebead44c8a6
+ ACPICA: Tables: Restore old behavor to favor 32-bit FADT addresses.
 
-Known issues:
-1. MS Builds of uefi_call_wrapper()
-   The uefi_call_wrapper() in GNU EFI is implemented in a the way to work
-   around the ABI difference between Unix and MS. While I don't have
-   environment to test the MS builds.
+With enough protections, this patch re-enables 64-bit FADT addresses by
+default. If regressions are reported against such change, this patch should
+be bisected and reverted.
+Note that 64-bit FACS favor and 64-bit firmware waking vector favor are
+excluded by this commit in order not to break OSPMs. Lv Zheng.
 
-In order to port the ACPICA utilities to other EFI implementation, all that
-need to be done is to impelement the 64-bit division support and the
-program entry point where the efi_main() is invoked. Code to impelement
-these is platform specific, and ACPICA currently choose to hide such
-platform specific code within the specific EFI impelementation. Lv Zheng.
-
-This patch doesn't affect Linux kernel.
-
-Link: https://github.com/acpica/acpica/commit/5d00e67a
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=74021
+Link: https://github.com/acpica/acpica/commit/4da56eea
+Cc: 3.15.1+ <stable@vger.kernel.org> # 3.15.1+
+Reported-and-tested-by: Oswald Buddenhagen <ossi@kde.org>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- include/acpi/platform/acenvex.h |    6 ++++++
- 1 file changed, 6 insertions(+)
+ include/acpi/acpixf.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/include/acpi/platform/acenvex.h b/include/acpi/platform/acenvex.h
-index 14dc6f6..0a7dc8e 100644
---- a/include/acpi/platform/acenvex.h
-+++ b/include/acpi/platform/acenvex.h
-@@ -56,6 +56,12 @@
- #if defined(_LINUX) || defined(__linux__)
- #include <acpi/platform/aclinuxex.h>
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index dec71ff..00daa3c 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -195,9 +195,9 @@ ACPI_INIT_GLOBAL(u8, acpi_gbl_do_not_use_xsdt, FALSE);
+  * address. Although ACPICA adheres to the ACPI specification which
+  * requires the use of the corresponding 64-bit address if it is non-zero,
+  * some machines have been found to have a corrupted non-zero 64-bit
+- * address. Default is TRUE, favor the 32-bit addresses.
++ * address. Default is FALSE, do not favor the 32-bit addresses.
+  */
+-ACPI_INIT_GLOBAL(u8, acpi_gbl_use32_bit_fadt_addresses, TRUE);
++ACPI_INIT_GLOBAL(u8, acpi_gbl_use32_bit_fadt_addresses, FALSE);
  
-+#elif defined(_AED_EFI)
-+#include "acefiex.h"
-+
-+#elif defined(_GNU_EFI)
-+#include "acefiex.h"
-+
- #elif defined(__DragonFly__)
- #include "acdragonflyex.h"
- 
+ /*
+  * Optionally use 32-bit FACS table addresses.
 -- 
 1.7.10
-
