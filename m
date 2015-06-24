@@ -1,120 +1,112 @@
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v3 3/3] libnvdimm: Add sysfs numa_node to NVDIMM devices
-Date: Wed, 24 Jun 2015 09:42:20 -0700
-Message-ID: <CAPcyv4g7Mei66STwDWCP=x+1OysBreWNDf3x4JO71PDDy+eSmA@mail.gmail.com>
+Subject: Re: [PATCH v3 2/3] libnvdimm: Set numa_node to NVDIMM devices
+Date: Wed, 24 Jun 2015 09:50:37 -0700
+Message-ID: <CAPcyv4gC7fKq9ic7fuVO1vrNMMFwtxkwoBc6ABVFbBO1tRMF1A@mail.gmail.com>
 References: <1434737914-18466-1-git-send-email-toshi.kani@hp.com>
-	<1434737914-18466-4-git-send-email-toshi.kani@hp.com>
-	<CAPcyv4iBD0ON_M3rMC3bQz2dGWdt_QKGzfbuqtLSrL+PVu9VbA@mail.gmail.com>
-	<1435163926.11808.295.camel@misato.fc.hp.com>
+	<1434737914-18466-3-git-send-email-toshi.kani@hp.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wg0-f46.google.com ([74.125.82.46]:36438 "EHLO
-	mail-wg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752983AbbFXQmV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Jun 2015 12:42:21 -0400
-Received: by wguu7 with SMTP id u7so41145218wgu.3
-        for <linux-acpi@vger.kernel.org>; Wed, 24 Jun 2015 09:42:20 -0700 (PDT)
-In-Reply-To: <1435163926.11808.295.camel@misato.fc.hp.com>
+Received: from mail-wi0-f169.google.com ([209.85.212.169]:33120 "EHLO
+	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752285AbbFXQuj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Jun 2015 12:50:39 -0400
+Received: by wiwl6 with SMTP id l6so100868692wiw.0
+        for <linux-acpi@vger.kernel.org>; Wed, 24 Jun 2015 09:50:38 -0700 (PDT)
+In-Reply-To: <1434737914-18466-3-git-send-email-toshi.kani@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Toshi Kani <toshi.kani@hp.com>
 Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Wed, Jun 24, 2015 at 9:38 AM, Toshi Kani <toshi.kani@hp.com> wrote:
-> On Tue, 2015-06-23 at 17:26 -0700, Dan Williams wrote:
->> On Fri, Jun 19, 2015 at 11:18 AM, Toshi Kani <toshi.kani@hp.com> wrote:
->> > Add support of sysfs 'numa_node' to I/O-related NVDIMM devices
->> > under /sys/bus/nd/devices, regionN, namespaceN.0, and bttN.
->> > When bttN is not set up, its numa_node returns -1 (NUMA_NO_NODE).
->> >
->> > An example of numa_node values on a 2-socket system with a single
->> > NVDIMM range on each socket is shown below.
->> >   /sys/bus/nd/devices
->> >   |-- btt0/numa_node:-1
->> >   |-- btt1/numa_node:0
->> >   |-- namespace0.0/numa_node:0
->> >   |-- namespace1.0/numa_node:1
->> >   |-- region0/numa_node:0
->> >   |-- region1/numa_node:1
->> >
->> > These numa_node files are then linked under the block class of
->> > their device names.
->> >   /sys/class/block/pmem0/device/numa_node:0
->> >   /sys/class/block/pmem0s/device/numa_node:0
->> >   /sys/class/block/pmem1/device/numa_node:1
->> >
->> > This enables numactl(8) to accept 'block:' and 'file:' paths of
->> > pmem and btt devices as shown in the examples below.
->> >   numactl --preferred block:pmem0 --show
->> >   numactl --preferred file:/dev/pmem0s --show
->> >
->> > Signed-off-by: Toshi Kani <toshi.kani@hp.com>
->> > ---
->> >  drivers/acpi/nfit.c             |    1 +
->> >  drivers/nvdimm/btt_devs.c       |    1 +
->> >  drivers/nvdimm/bus.c            |   30 ++++++++++++++++++++++++++++++
->> >  drivers/nvdimm/namespace_devs.c |    1 +
->> >  include/linux/libnvdimm.h       |    1 +
->> >  5 files changed, 34 insertions(+)
->> >
->> > diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
->> > index 5997753..9cb63ac 100644
->> > --- a/drivers/acpi/nfit.c
->> > +++ b/drivers/acpi/nfit.c
->> > @@ -873,6 +873,7 @@ static const struct attribute_group *acpi_nfit_region_attribute_groups[] = {
->> >         &nd_region_attribute_group,
->> >         &nd_mapping_attribute_group,
->> >         &nd_device_attribute_group,
->> > +       &nd_numa_attribute_group,
->> >         &acpi_nfit_region_attribute_group,
->> >         NULL,
->> >  };
->> > diff --git a/drivers/nvdimm/btt_devs.c b/drivers/nvdimm/btt_devs.c
->> > index bcf77dc..a7b192f 100644
->> > --- a/drivers/nvdimm/btt_devs.c
->> > +++ b/drivers/nvdimm/btt_devs.c
->> > @@ -308,6 +308,7 @@ static struct attribute_group nd_btt_attribute_group = {
->> >  static const struct attribute_group *nd_btt_attribute_groups[] = {
->> >         &nd_btt_attribute_group,
->> >         &nd_device_attribute_group,
->> > +       &nd_numa_attribute_group,
->> >         NULL,
->> >  };
->> >
->> > diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
->> > index 67525f9..03c0ee1 100644
->> > --- a/drivers/nvdimm/bus.c
->> > +++ b/drivers/nvdimm/bus.c
->> > @@ -420,6 +420,36 @@ struct attribute_group nd_device_attribute_group = {
->> >  };
->> >  EXPORT_SYMBOL_GPL(nd_device_attribute_group);
->> >
->> > +static ssize_t numa_node_show(struct device *dev,
->> > +               struct device_attribute *attr, char *buf)
->> > +{
->> > +       return sprintf(buf, "%d\n", dev_to_node(dev));
->> > +}
->>
->> So patch 2 collided with the requested BTT stacking rework and
->> prompted me to take a closer look.  Shouldn't numa_node_show() be
->> changed like this?
+On Fri, Jun 19, 2015 at 11:18 AM, Toshi Kani <toshi.kani@hp.com> wrote:
+> ACPI NFIT table has System Physical Address Range Structure
+> entries that describe a proximity ID of each range when
+> ACPI_NFIT_PROXIMITY_VALID is set in the flags.
 >
-> numa_node_show() is listed in its own nd_numa_attribute_group for using
-> is_visible.  This nd_numa_attribute_group is then listed by region
-> (acpi_nfit_region_attribute_groups), namespace
-> (nd_namespace_attribute_groups), and btt (nd_btt_attribute_groups).
-> Therefore, numa_node_show() is only called with these device objects.
-> So, I do not think we need such change.  Or are you suggesting to change
-> the way attribute group is set?
+> Change acpi_nfit_register_region() to map a proximity ID to its
+> node ID, and set it to a new numa_node field of nd_region_desc,
+> which is then conveyed to nd_region.
+>
+> nd_region_probe() and nd_btt_probe() set the numa_node of nd_region
+> to their device object being probed.  A namespace device inherits
+> the numa_node from the parent region device.
+>
+> Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+> ---
+>  drivers/acpi/nfit.c          |    6 ++++++
+>  drivers/nvdimm/btt.c         |    2 ++
+>  drivers/nvdimm/nd.h          |    1 +
+>  drivers/nvdimm/region.c      |    1 +
+>  drivers/nvdimm/region_devs.c |    1 +
+>  include/linux/libnvdimm.h    |    1 +
+>  6 files changed, 12 insertions(+)
+>
+> diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+> index 5f64582..5997753 100644
+> --- a/drivers/acpi/nfit.c
+> +++ b/drivers/acpi/nfit.c
+> @@ -1392,6 +1392,12 @@ static int acpi_nfit_register_region(struct acpi_nfit_desc *acpi_desc,
+>         ndr_desc->res = &res;
+>         ndr_desc->provider_data = nfit_spa;
+>         ndr_desc->attr_groups = acpi_nfit_region_attribute_groups;
+> +       if (spa->flags & ACPI_NFIT_PROXIMITY_VALID)
+> +               ndr_desc->numa_node = acpi_map_pxm_to_online_node(
+> +                                               spa->proximity_domain);
+> +       else
+> +               ndr_desc->numa_node = NUMA_NO_NODE;
+> +
+>         list_for_each_entry(nfit_memdev, &acpi_desc->memdevs, list) {
+>                 struct acpi_nfit_memory_map *memdev = nfit_memdev->memdev;
+>                 struct nd_mapping *nd_mapping;
+> diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
+> index 57d3b27..ab082e5 100644
+> --- a/drivers/nvdimm/btt.c
+> +++ b/drivers/nvdimm/btt.c
+> @@ -1495,6 +1495,8 @@ static int nd_btt_probe(struct device *dev)
+>                 rc = -ENOMEM;
+>                 goto err_btt;
+>         }
+> +
+> +       set_dev_node(dev, nd_region->numa_node);
+>         dev_set_drvdata(dev, btt);
+>
+>         return 0;
+> diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+> index 011d7c5..0bfd20a 100644
+> --- a/drivers/nvdimm/nd.h
+> +++ b/drivers/nvdimm/nd.h
+> @@ -93,6 +93,7 @@ struct nd_region {
+>         u64 ndr_size;
+>         u64 ndr_start;
+>         int id, num_lanes;
+> +       int numa_node;
+>         void *provider_data;
+>         struct nd_interleave_set *nd_set;
+>         struct nd_mapping mapping[0];
+> diff --git a/drivers/nvdimm/region.c b/drivers/nvdimm/region.c
+> index d9d82e7..a764ca6 100644
+> --- a/drivers/nvdimm/region.c
+> +++ b/drivers/nvdimm/region.c
+> @@ -123,6 +123,7 @@ static int nd_region_probe(struct device *dev)
+>
+>         num_ns->active = rc;
+>         num_ns->count = rc + err;
+> +       set_dev_node(dev, nd_region->numa_node);
+>         dev_set_drvdata(dev, num_ns);
+>
+>         if (err == 0)
+> diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+> index bb9f329..703dfae 100644
+> --- a/drivers/nvdimm/region_devs.c
+> +++ b/drivers/nvdimm/region_devs.c
+> @@ -632,6 +632,7 @@ static struct nd_region *nd_region_create(struct nvdimm_bus *nvdimm_bus,
+>         nd_region->provider_data = ndr_desc->provider_data;
+>         nd_region->nd_set = ndr_desc->nd_set;
+>         nd_region->num_lanes = ndr_desc->num_lanes;
+> +       nd_region->numa_node = ndr_desc->numa_node;
 
-No, my mistake I missed this hunk in drivers/nvdimm/region.c
+Why introduce nd_region->numa_node?  Why not do set_dev_node() directly here?
 
-@@ -47,6 +47,7 @@ static int nd_region_probe(struct device *dev)
-
-        num_ns->active = rc;
-        num_ns->count = rc + err;
-+       set_dev_node(dev, nd_region->numa_node);
-        dev_set_drvdata(dev, num_ns);
-
-        if (rc && err && rc == err)
+I can make this change locally if you agree, we don't need to wait
+until probe to set these.
