@@ -1,150 +1,190 @@
-From: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Subject: [PATCH v2 16/22] fjes: interrupt_watch_task
-Date: Wed, 24 Jun 2015 11:55:48 +0900
-Message-ID: <1435114554-7151-17-git-send-email-izumi.taku@jp.fujitsu.com>
-References: <1435114351-6961-1-git-send-email-izumi.taku@jp.fujitsu.com>
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <1435114351-6961-1-git-send-email-izumi.taku@jp.fujitsu.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: netdev@vger.kernel.org, davem@davemloft.net
-Cc: platform-driver-x86@vger.kernel.org, dvhart@infradead.org, rkhan@redhat.com, alexander.h.duyck@redhat.com, linux-acpi@vger.kernel.org, joe@perches.com, sergei.shtylyov@cogentembedded.com, stephen@networkplumber.org, yasu.isimatu@gmail.com, Taku Izumi <izumi.taku@jp.fujitsu.com>
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH v2 00/28] ACPICA: 20150619 Release
+Date: Wed, 24 Jun 2015 11:01:48 +0800
+Message-ID: <cover.1435114811.git.lv.zheng@intel.com>
+References: <cover.1434684719.git.lv.zheng@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([192.55.52.115]:14192 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751875AbbFXDB5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 23 Jun 2015 23:01:57 -0400
+In-Reply-To: <cover.1434684719.git.lv.zheng@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-This patch adds interrupt_watch_task.
-This task is used to prevent delay of interrupts.
+The 20150619 ACPICA kernel-resident subsystem updates are linuxized based
+on the linux-pm/linux-next branch.
 
-Signed-off-by: Taku Izumi <izumi.taku@jp.fujitsu.com>
----
- drivers/net/fjes/fjes.h      |  5 +++++
- drivers/net/fjes/fjes_main.c | 40 +++++++++++++++++++++++++++++++++++++++-
- 2 files changed, 44 insertions(+), 1 deletion(-)
+The patchset has passed the following build/boot tests.
+Build tests are performed as follows:
+1. i386 + default + COFNIG_ACPI=y
+2. i386 + allyes + CONFIG_ACPI=y
+3. i386 + default + COFNIG_ACPI=n
+4. i386 + allyes + CONFIG_ACPI=n
+5. x86_64 + default + COFNIG_ACPI=y
+6. x86_64 + allyes + CONFIG_ACPI=y
+7. x86_64 + default + COFNIG_ACPI=n
+8. x86_64 + allyes + CONFIG_ACPI=n
+Boot tests are performed as follows:
+1. i386 + default + COFNIG_ACPI=y
+2. x86_64 + default + COFNIG_ACPI=y
+Where:
+1. i386: machine named as "Dell Inspiron Mini 1010"
+2. x86_64: machine named as "HP Compaq 8200 Elite SFF PC"
+3. default: kernel configuration with following items enabled:
+   All hardware drivers related to the machines of i386/x86_64
+   All drivers/acpi configurations
+   All platform drivers
 
-diff --git a/drivers/net/fjes/fjes.h b/drivers/net/fjes/fjes.h
-index b04ea9d..1743dbb 100644
---- a/drivers/net/fjes/fjes.h
-+++ b/drivers/net/fjes/fjes.h
-@@ -32,6 +32,7 @@
- #define FJES_TX_RETRY_TIMEOUT	(100)
- #define FJES_TX_TX_STALL_TIMEOUT	(FJES_TX_RETRY_INTERVAL / 2)
- #define FJES_OPEN_ZONE_UPDATE_WAIT	(300) /* msec */
-+#define FJES_IRQ_WATCH_DELAY	(HZ)
- 
- /* board specific private data structure */
- struct fjes_adapter {
-@@ -52,10 +53,14 @@ struct fjes_adapter {
- 	bool irq_registered;
- 
- 	struct workqueue_struct *txrx_wq;
-+	struct workqueue_struct *control_wq;
- 
- 	struct work_struct tx_stall_task;
- 	struct work_struct raise_intr_rxdata_task;
- 
-+	struct delayed_work interrupt_watch_task;
-+	bool interrupt_watch_enable;
-+
- 	struct fjes_hw hw;
- };
- 
-diff --git a/drivers/net/fjes/fjes_main.c b/drivers/net/fjes/fjes_main.c
-index bb4c8e4..5c93c4e 100644
---- a/drivers/net/fjes/fjes_main.c
-+++ b/drivers/net/fjes/fjes_main.c
-@@ -71,7 +71,7 @@ static int fjes_remove(struct platform_device *);
- 
- static int fjes_sw_init(struct fjes_adapter *);
- static void fjes_netdev_setup(struct net_device *);
--
-+static void fjes_irq_watch_task(struct work_struct *);
- static void fjes_rx_irq(struct fjes_adapter *, int);
- static int fjes_poll(struct napi_struct *, int);
- 
-@@ -199,6 +199,13 @@ static int fjes_request_irq(struct fjes_adapter *adapter)
- 	struct net_device *netdev = adapter->netdev;
- 	int result = -1;
- 
-+	adapter->interrupt_watch_enable = true;
-+	if (!delayed_work_pending(&adapter->interrupt_watch_task)) {
-+		queue_delayed_work(adapter->control_wq,
-+				   &adapter->interrupt_watch_task,
-+				   FJES_IRQ_WATCH_DELAY);
-+	}
-+
- 	if (!adapter->irq_registered) {
- 		result =
- 		request_irq(adapter->hw.hw_res.irq, fjes_intr,
-@@ -216,6 +223,9 @@ static void fjes_free_irq(struct fjes_adapter *adapter)
- {
- 	struct fjes_hw *hw = &adapter->hw;
- 
-+	adapter->interrupt_watch_enable = false;
-+	cancel_delayed_work_sync(&adapter->interrupt_watch_task);
-+
- 	fjes_hw_set_irqmask(hw, REG_ICTL_MASK_ALL, true);
- 
- 	if (adapter->irq_registered) {
-@@ -300,6 +310,7 @@ static int fjes_close(struct net_device *netdev)
- 
- 	fjes_free_irq(adapter);
- 
-+	cancel_delayed_work_sync(&adapter->interrupt_watch_task);
- 	cancel_work_sync(&adapter->raise_intr_rxdata_task);
- 	cancel_work_sync(&adapter->tx_stall_task);
- 
-@@ -1003,11 +1014,15 @@ static int fjes_probe(struct platform_device *plat_dev)
- 	adapter->open_guard = false;
- 
- 	adapter->txrx_wq = create_workqueue(DRV_NAME "/txrx");
-+	adapter->control_wq = create_workqueue(DRV_NAME "/control");
- 
- 	INIT_WORK(&adapter->tx_stall_task, fjes_tx_stall_task);
- 	INIT_WORK(&adapter->raise_intr_rxdata_task,
- 		  fjes_raise_intr_rxdata_task);
- 
-+	INIT_DELAYED_WORK(&adapter->interrupt_watch_task, fjes_irq_watch_task);
-+	adapter->interrupt_watch_enable = false;
-+
- 	res = platform_get_resource(plat_dev, IORESOURCE_MEM, 0);
- 	hw->hw_res.start = res->start;
- 	hw->hw_res.size = res->end - res->start + 1;
-@@ -1048,8 +1063,11 @@ static int fjes_remove(struct platform_device *plat_dev)
- 	struct fjes_adapter *adapter = netdev_priv(netdev);
- 	struct fjes_hw *hw = &adapter->hw;
- 
-+	cancel_delayed_work_sync(&adapter->interrupt_watch_task);
- 	cancel_work_sync(&adapter->raise_intr_rxdata_task);
- 	cancel_work_sync(&adapter->tx_stall_task);
-+	if (adapter->control_wq)
-+		destroy_workqueue(adapter->control_wq);
- 	if (adapter->txrx_wq)
- 		destroy_workqueue(adapter->txrx_wq);
- 
-@@ -1085,6 +1103,26 @@ static void fjes_netdev_setup(struct net_device *netdev)
- 	netdev->features |= NETIF_F_HW_CSUM | NETIF_F_HW_VLAN_CTAG_FILTER;
- }
- 
-+static void fjes_irq_watch_task(struct work_struct *work)
-+{
-+	struct fjes_adapter *adapter = container_of(to_delayed_work(work),
-+			struct fjes_adapter, interrupt_watch_task);
-+
-+	local_irq_disable();
-+	fjes_intr(adapter->hw.hw_res.irq, adapter);
-+	local_irq_enable();
-+
-+	if (fjes_rxframe_search_exist(adapter, 0) >= 0)
-+		napi_schedule(&adapter->napi);
-+
-+	if (adapter->interrupt_watch_enable) {
-+		if (!delayed_work_pending(&adapter->interrupt_watch_task))
-+			queue_delayed_work(adapter->control_wq,
-+					   &adapter->interrupt_watch_task,
-+					   FJES_IRQ_WATCH_DELAY);
-+	}
-+}
-+
- /* fjes_init_module - Driver Registration Routine */
- static int __init fjes_init_module(void)
- {
+The divergences checking result:
+Before applying (20150515 Release):
+  565 lines
+After applying (20150619 Release):
+  539 lines
+
+Bob Moore (8):
+  ACPICA: Namespace: Add support of OSDT table.
+  ACPICA: Namespace: Change namespace override to avoid node deletion.
+  ACPICA: Cleanup output for the ASL Debug object.
+  ACPICA: De-macroize calls to standard C library functions.
+  ACPICA: Split C library prototypes to new header.
+  ACPICA: Update definitions for the TCPA and TPM2 ACPI tables.
+  ACPICA: Update TPM2 ACPI table.
+  ACPICA: Update version to 20150619.
+
+Hanjun Guo (1):
+  ACPICA: ACPI 6.0: Add values for MADT GIC version field.
+
+Lv Zheng (15):
+  ACPICA: Linuxize: Reduce divergences for 20150619 release.
+  ACPICA: Linuxize: Replace __FUNCTION__ with __func__.
+  ACPICA: Hardware: Enable 64-bit firmware waking vector for selected
+    FACS.
+  ACPICA: Tables: Enable both 32-bit and 64-bit FACS.
+  ACPICA: Hardware: Enable firmware waking vector for both 32-bit and
+    64-bit FACS.
+  ACPICA: Hardware: Cleanup the return values in
+    acpi_set_waking_vector().
+  ACPICA: Tables: Fix an issue that FACS initialization is performed
+    twice.
+  ACPICA: Tables: Fix an issue that ACPI initialization is blocked due
+    to no FACS.
+  ACPICA: Tables: Enable default 64-bit FADT addresses favor.
+  ACPICA: MSVC6: Fix build issue for variable argument macros.
+  ACPICA: EFI: Add EFI interface definitions to eliminate dependency of
+    GNU EFI.
+  ACPICA: Namespace: Add support to allow overriding objects.
+  ACPICA: acpidump: Allow customized tables to be dumped without
+    accessing /dev/mem.
+  ACPICA: acpidump: Convert the default behavior to dump from
+    /sys/firmware/acpi/tables.
+  ACPI / acpidump: Update acpidump manual.
+
+Sascha Wildner (1):
+  ACPICA: Add dragon_fly support to unix file mapping file.
+
+Suravee Suthikulpanit (1):
+  ACPICA: Utilities: Add _CLS processing
+
+Zhang Rui (1):
+  ACPICA: Update for acpi_install_table memory types.
+
+gongzg (1):
+  ACPICA: Comment update, no functional change.
+
+ arch/ia64/include/asm/acpi.h                       |    3 +-
+ arch/ia64/kernel/acpi.c                            |    2 -
+ arch/x86/include/asm/acpi.h                        |    3 +-
+ drivers/acpi/acpica/accommon.h                     |    3 +
+ drivers/acpi/acpica/acglobal.h                     |    2 +
+ drivers/acpi/acpica/acinterp.h                     |    2 +
+ drivers/acpi/acpica/aclocal.h                      |    1 +
+ drivers/acpi/acpica/acnamesp.h                     |    1 +
+ drivers/acpi/acpica/acobject.h                     |    1 +
+ drivers/acpi/acpica/acstruct.h                     |    1 +
+ drivers/acpi/acpica/acutils.h                      |   64 +------------
+ drivers/acpi/acpica/dsfield.c                      |    2 +-
+ drivers/acpi/acpica/dsinit.c                       |    2 +-
+ drivers/acpi/acpica/dsobject.c                     |    7 +-
+ drivers/acpi/acpica/dsutils.c                      |    4 +-
+ drivers/acpi/acpica/dswload.c                      |   17 +++-
+ drivers/acpi/acpica/evgpeinit.c                    |    2 +-
+ drivers/acpi/acpica/exconfig.c                     |    2 +-
+ drivers/acpi/acpica/exconvrt.c                     |    9 +-
+ drivers/acpi/acpica/exdebug.c                      |   42 +++++++-
+ drivers/acpi/acpica/exdump.c                       |    9 +-
+ drivers/acpi/acpica/exfield.c                      |    2 +-
+ drivers/acpi/acpica/exfldio.c                      |   52 +++++-----
+ drivers/acpi/acpica/exmisc.c                       |   36 +++----
+ drivers/acpi/acpica/exnames.c                      |    2 +-
+ drivers/acpi/acpica/exoparg2.c                     |    8 +-
+ drivers/acpi/acpica/exoparg3.c                     |    4 +-
+ drivers/acpi/acpica/exregion.c                     |    9 +-
+ drivers/acpi/acpica/exstorob.c                     |   18 ++--
+ drivers/acpi/acpica/exutils.c                      |   32 +++++++
+ drivers/acpi/acpica/hwxfsleep.c                    |   85 +++++++++++------
+ drivers/acpi/acpica/nsaccess.c                     |   16 +++-
+ drivers/acpi/acpica/nsconvert.c                    |   10 +-
+ drivers/acpi/acpica/nsdump.c                       |    2 +-
+ drivers/acpi/acpica/nseval.c                       |    7 +-
+ drivers/acpi/acpica/nsinit.c                       |    4 +-
+ drivers/acpi/acpica/nsparse.c                      |    7 ++
+ drivers/acpi/acpica/nsrepair2.c                    |    2 +-
+ drivers/acpi/acpica/nssearch.c                     |   37 +++++++-
+ drivers/acpi/acpica/nsutils.c                      |    3 +-
+ drivers/acpi/acpica/nsxfeval.c                     |    5 +-
+ drivers/acpi/acpica/nsxfname.c                     |   29 ++++--
+ drivers/acpi/acpica/psutils.c                      |    7 +-
+ drivers/acpi/acpica/rscreate.c                     |    6 +-
+ drivers/acpi/acpica/rsmisc.c                       |    8 +-
+ drivers/acpi/acpica/rsutils.c                      |   13 ++-
+ drivers/acpi/acpica/rsxface.c                      |    8 +-
+ drivers/acpi/acpica/tbdata.c                       |    8 +-
+ drivers/acpi/acpica/tbfadt.c                       |   27 +++---
+ drivers/acpi/acpica/tbfind.c                       |   21 ++--
+ drivers/acpi/acpica/tbinstal.c                     |    7 +-
+ drivers/acpi/acpica/tbprint.c                      |   10 +-
+ drivers/acpi/acpica/tbutils.c                      |   37 +++++---
+ drivers/acpi/acpica/tbxface.c                      |   17 ++--
+ drivers/acpi/acpica/tbxfload.c                     |   17 ++--
+ drivers/acpi/acpica/utalloc.c                      |    6 +-
+ drivers/acpi/acpica/utbuffer.c                     |    4 +-
+ drivers/acpi/acpica/utcache.c                      |    6 +-
+ drivers/acpi/acpica/utcopy.c                       |   42 ++++----
+ drivers/acpi/acpica/utdebug.c                      |    4 +-
+ drivers/acpi/acpica/utids.c                        |  100 ++++++++++++++++++--
+ drivers/acpi/acpica/utmisc.c                       |    9 +-
+ drivers/acpi/acpica/utosi.c                        |    9 +-
+ drivers/acpi/acpica/utpredef.c                     |    4 +-
+ drivers/acpi/acpica/utprint.c                      |    6 +-
+ drivers/acpi/acpica/utstring.c                     |   33 ++++---
+ drivers/acpi/acpica/uttrack.c                      |    8 +-
+ drivers/acpi/acpica/utxface.c                      |    8 +-
+ drivers/acpi/acpica/utxfinit.c                     |   10 +-
+ drivers/acpi/sleep.c                               |    8 +-
+ include/acpi/acnames.h                             |    1 +
+ include/acpi/acoutput.h                            |   13 ++-
+ include/acpi/acpixf.h                              |   31 ++++--
+ include/acpi/actbl.h                               |    1 +
+ include/acpi/actbl1.h                              |   11 +++
+ include/acpi/actbl2.h                              |   80 ++++++++++++++--
+ include/acpi/actbl3.h                              |   34 +------
+ include/acpi/actypes.h                             |   33 ++++---
+ include/acpi/platform/acenv.h                      |   39 --------
+ include/acpi/platform/acenvex.h                    |    6 ++
+ include/acpi/platform/acgcc.h                      |    4 +
+ tools/power/acpi/common/getopt.c                   |    4 +-
+ tools/power/acpi/man/acpidump.8                    |   17 +++-
+ .../acpi/os_specific/service_layers/oslinuxtbl.c   |   95 ++++++++++---------
+ .../acpi/os_specific/service_layers/osunixmap.c    |    2 +-
+ tools/power/acpi/tools/acpidump/acpidump.h         |    2 +-
+ tools/power/acpi/tools/acpidump/apdump.c           |    8 +-
+ tools/power/acpi/tools/acpidump/apfiles.c          |   12 +--
+ tools/power/acpi/tools/acpidump/apmain.c           |   15 ++-
+ 89 files changed, 851 insertions(+), 549 deletions(-)
+
 -- 
-1.8.3.1
+1.7.10
+
