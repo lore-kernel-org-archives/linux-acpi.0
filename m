@@ -1,198 +1,53 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 05/28] ACPICA: Hardware: Enable firmware waking vector for both 32-bit and 64-bit FACS.
-Date: Thu, 25 Jun 2015 01:57:03 +0200
-Message-ID: <24343352.3W7mrSPtdt@vostro.rjw.lan>
-References: <cover.1434684719.git.lv.zheng@intel.com> <cover.1435114811.git.lv.zheng@intel.com> <a618fa9001af107d725f2ce97a88bae99fbdcc2b.1435114811.git.lv.zheng@intel.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH v2 02/28] ACPICA: Linuxize: Replace __FUNCTION__ with
+ __func__.
+Date: Thu, 25 Jun 2015 00:24:50 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E8802733BFE@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1434684719.git.lv.zheng@intel.com>
+ <cover.1435114811.git.lv.zheng@intel.com>
+ <9572a1ad1d35f3c68979610a389063813fd2d2c5.1435114811.git.lv.zheng@intel.com>
+ <20150624125559.GA8144@infradead.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:43647 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751148AbbFXXaz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Jun 2015 19:30:55 -0400
-In-Reply-To: <a618fa9001af107d725f2ce97a88bae99fbdcc2b.1435114811.git.lv.zheng@intel.com>
+Received: from mga01.intel.com ([192.55.52.88]:29173 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753876AbbFYAYz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Jun 2015 20:24:55 -0400
+In-Reply-To: <20150624125559.GA8144@infradead.org>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
+To: Christoph Hellwig <hch@infradead.org>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Wednesday, June 24, 2015 11:02:54 AM Lv Zheng wrote:
-> ACPICA commit 368eb60778b27b6ae94d3658ddc902ca1342a963
-> ACPICA commit 70f62a80d65515e1285fdeeb50d94ee6f07df4bd
+Hi,
+
+> From: Christoph Hellwig [mailto:hch@infradead.org]
+> Sent: Wednesday, June 24, 2015 8:56 PM
 > 
-> The following commit is reported to have broken s2ram on some platforms:
->  Commit: 0249ed2444d65d65fc3f3f64f398f1ad0b7e54cd
->  ACPICA: Add option to favor 32-bit FADT addresses.
-> The platform reports 2 FACS tables (which is not allowed by ACPI
-> specification) and the new 32-bit address favor rule forces OSPMs to use
-> the FACS table reported via FADT's X_FIRMWARE_CTRL field.
+> On Wed, Jun 24, 2015 at 11:02:03AM +0800, Lv Zheng wrote:
+> > ACPICA commit cb3d1c79f862cd368d749c9b8d9dced40111b0d0
+> >
+> > __FUNCTION__ is MSVC only, in Linux, it is __func__. Lv Zheng.
+> >
+> > In ACPICA, this is achieved by string replacement in release script and
+> > this patch contains the source code difference between the Linux upstream
+> > and ACPICA that is caused by the back porting.
 > 
-> The root cause of the reported bug might be one of the followings:
-> 1. BIOS may favor the 64-bit firmware waking vector address when the
->    version of the FACS is greater than 0 and Linux currently only supports
->    resuming from the real mode, so the 64-bit firmware waking vector has
->    never been set and might be invalid to BIOS while the commit enables
->    higher version FACS.
-> 2. BIOS may favor the FACS reported via the "FIRMWARE_CTRL" field in the
->    FADT while the commit doesn't set the firmware waking vector address of
->    the FACS reported by "FIRMWARE_CTRL", it only sets the firware waking
->    vector address of the FACS reported by "X_FIRMWARE_CTRL".
-> 
-> This patch excludes the cases that can trigger the bugs caused by the root
-> cause 2.
-> 
-> There is no handshaking mechanism can be used by OSPM to tell BIOS which
-> FACS is currently used. Thus the FACS reported by "FIRMWARE_CTRL" may still
-> be used by BIOS and the 0 value of the 32-bit firmware waking vector might
-> trigger such failure.
-> 
-> This patch enables the firmware waking vectors for both 32bit/64bit FACS
-> tables in order to ensure we can exclude the cases that trigger the bugs
-> caused by the root cause 2. The exclusion is split into 2 commits so that
-> if it turns out not to be necessary, this single commit can be reverted
-> without affecting the useful one. Lv Zheng, Bob Moore.
-> 
-> Link: https://bugzilla.kernel.org/show_bug.cgi?id=74021
-> Link: https://github.com/acpica/acpica/commit/368eb607
-> Link: https://github.com/acpica/acpica/commit/70f62a80
-> Reported-and-tested-by: Oswald Buddenhagen <ossi@kde.org>
-> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-> Signed-off-by: Bob Moore <robert.moore@intel.com>
-> ---
->  drivers/acpi/acpica/acglobal.h  |    2 ++
->  drivers/acpi/acpica/hwxfsleep.c |   74 ++++++++++++++++++++++++++++++++-------
->  drivers/acpi/acpica/tbutils.c   |   14 ++++----
->  3 files changed, 71 insertions(+), 19 deletions(-)
-> 
-> diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
-> index a0c4787..53f96a3 100644
-> --- a/drivers/acpi/acpica/acglobal.h
-> +++ b/drivers/acpi/acpica/acglobal.h
-> @@ -61,6 +61,8 @@ ACPI_GLOBAL(struct acpi_table_header, acpi_gbl_original_dsdt_header);
->  
->  #if (!ACPI_REDUCED_HARDWARE)
->  ACPI_GLOBAL(struct acpi_table_facs *, acpi_gbl_FACS);
-> +ACPI_GLOBAL(struct acpi_table_facs *, acpi_gbl_facs32);
-> +ACPI_GLOBAL(struct acpi_table_facs *, acpi_gbl_facs64);
->  
->  #endif				/* !ACPI_REDUCED_HARDWARE */
->  
-> diff --git a/drivers/acpi/acpica/hwxfsleep.c b/drivers/acpi/acpica/hwxfsleep.c
-> index c67cd32..e273b2e 100644
-> --- a/drivers/acpi/acpica/hwxfsleep.c
-> +++ b/drivers/acpi/acpica/hwxfsleep.c
-> @@ -50,6 +50,13 @@
->  ACPI_MODULE_NAME("hwxfsleep")
->  
->  /* Local prototypes */
-> +#if (!ACPI_REDUCED_HARDWARE)
-> +static acpi_status
-> +acpi_hw_set_firmware_waking_vector(struct acpi_table_facs *facs,
-> +				   acpi_physical_address physical_address,
-> +				   acpi_physical_address physical_address64);
-> +#endif
-> +
->  static acpi_status acpi_hw_sleep_dispatch(u8 sleep_state, u32 function_id);
->  
->  /*
-> @@ -79,9 +86,10 @@ static struct acpi_sleep_functions acpi_sleep_dispatch[] = {
->  #if (!ACPI_REDUCED_HARDWARE)
->  /*******************************************************************************
->   *
-> - * FUNCTION:    acpi_set_firmware_waking_vector
-> + * FUNCTION:    acpi_hw_set_firmware_waking_vector
->   *
-> - * PARAMETERS:  physical_address    - 32-bit physical address of ACPI real mode
-> + * PARAMETERS:  facs                - Pointer to FACS table
-> + *              physical_address    - 32-bit physical address of ACPI real mode
->   *                                    entry point
->   *              physical_address64  - 64-bit physical address of ACPI protected
->   *                                    entry point
-> @@ -92,11 +100,12 @@ static struct acpi_sleep_functions acpi_sleep_dispatch[] = {
->   *
->   ******************************************************************************/
->  
-> -acpi_status
-> -acpi_set_firmware_waking_vector(acpi_physical_address physical_address,
-> -				acpi_physical_address physical_address64)
-> +static acpi_status
-> +acpi_hw_set_firmware_waking_vector(struct acpi_table_facs *facs,
-> +				   acpi_physical_address physical_address,
-> +				   acpi_physical_address physical_address64)
->  {
-> -	ACPI_FUNCTION_TRACE(acpi_set_firmware_waking_vector);
-> +	ACPI_FUNCTION_TRACE(acpi_hw_set_firmware_waking_vector);
->  
->  
->  	/*
-> @@ -109,25 +118,66 @@ acpi_set_firmware_waking_vector(acpi_physical_address physical_address,
->  
->  	/* Set the 32-bit vector */
->  
-> -	acpi_gbl_FACS->firmware_waking_vector = (u32)physical_address;
-> +	facs->firmware_waking_vector = (u32)physical_address;
->  
-> -	if (acpi_gbl_FACS->length > 32) {
-> -		if (acpi_gbl_FACS->version >= 1) {
-> +	if (facs->length > 32) {
-> +		if (facs->version >= 1) {
->  
->  			/* Set the 64-bit vector */
->  
-> -			acpi_gbl_FACS->xfirmware_waking_vector =
-> -			    physical_address64;
-> +			facs->xfirmware_waking_vector = physical_address64;
->  		} else {
->  			/* Clear the 64-bit vector if it exists */
->  
-> -			acpi_gbl_FACS->xfirmware_waking_vector = 0;
-> +			facs->xfirmware_waking_vector = 0;
->  		}
->  	}
->  
->  	return_ACPI_STATUS(AE_OK);
->  }
->  
-> +/*******************************************************************************
-> + *
-> + * FUNCTION:    acpi_set_firmware_waking_vector
-> + *
-> + * PARAMETERS:  physical_address    - 32-bit physical address of ACPI real mode
-> + *                                    entry point
-> + *              physical_address64  - 64-bit physical address of ACPI protected
-> + *                                    entry point
-> + *
-> + * RETURN:      Status
-> + *
-> + * DESCRIPTION: Sets the firmware_waking_vector fields of the FACS
-> + *
-> + ******************************************************************************/
-> +
-> +acpi_status
-> +acpi_set_firmware_waking_vector(acpi_physical_address physical_address,
-> +				acpi_physical_address physical_address64)
+> __func__ is in C99 and never.  __FUNCTION__ is an old extension supported
+> by various compilers.
 
-The question here is: Why does the host OS need to care about the second
-argument of this function that will always be 0?  Why didn't you keep the
-old header of acpi_set_firmware_waking_vector() as a one-argument function
-taking a u32 and why didn't you add something like
+This patch description is used in ACPICA upstream.
+For ACPICA code base, __FUNCTION__ is only used for its MSVC builds.
+And __func__ is converted from __FUNCTION__ by the linuxize release script.
 
-acpi_status acpi_set_firmware_waking_vector_full(u32 real_mode_address,
-					acpi_physical_address high_address)
+See the original commit here:
+https://github.com/acpica/acpica/commit/cb3d1c79
 
-and why didn't you redefine acpi_set_firmware_waking_vector() as
+So this is simply an automated release output.
+Without this merged, source code differences between Linux upstream and ACPICA upstream will hurt the automation.
 
-acpi_status acpi_set_firmware_waking_vector(u32 real_mode_address)
-{
-	return acpi_set_firmware_waking_vector_full(real_mode_address, 0);
-}
-
-?
-
-If you did that, there wouldn't be any need to touch the code in
-drivers/acpi/sleep.c and the arch headers, so can you please explain to me
-why *exactly* you didn't do that?
-
-Rafael
-
+Thanks and best regards
+-Lv
