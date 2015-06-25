@@ -1,341 +1,362 @@
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH v2 08/17] libnvdimm, blk: add support for blk integrity
-Date: Thu, 25 Jun 2015 05:37:01 -0400
-Message-ID: <20150625093701.40066.83284.stgit@dwillia2-desk3.jf.intel.com>
+Subject: [PATCH v2 13/17] libnvdimm, nfit: handle unarmed dimms,
+ mark namespaces read-only
+Date: Thu, 25 Jun 2015 05:37:28 -0400
+Message-ID: <20150625093728.40066.21539.stgit@dwillia2-desk3.jf.intel.com>
 References: <20150625090554.40066.69562.stgit@dwillia2-desk3.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:50897 "EHLO mga02.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:44704 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752132AbbFYJmp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 25 Jun 2015 05:42:45 -0400
+	id S1752189AbbFYJnM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 25 Jun 2015 05:43:12 -0400
 In-Reply-To: <20150625090554.40066.69562.stgit@dwillia2-desk3.jf.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-nvdimm@lists.01.org
-Cc: axboe@kernel.dk, boaz@plexistor.com, toshi.kani@hp.com, Vishal Verma <vishal.l.verma@linux.intel.com>, linux-kernel@vger.kernel.org, mingo@kernel.org, linux-acpi@vger.kernel.org, linux-fsdevel@vger.kernel.org, hch@lst.de
+Cc: axboe@kernel.dk, boaz@plexistor.com, toshi.kani@hp.com, linux-kernel@vger.kernel.org, hch@lst.de, linux-acpi@vger.kernel.org, linux-fsdevel@vger.kernel.org, mingo@kernel.org
 
-From: Vishal Verma <vishal.l.verma@intel.com>
+Upon detection of an unarmed dimm in a region, arrange for descendant
+BTT, PMEM, or BLK instances to be read-only.  A dimm is primarily marked
+"unarmed" via flags passed by platform firmware (NFIT).
 
-Support multiple block sizes (sector + metadata) for nd_blk in the
-same way as done for the BTT. Add the idea of an 'internal' lbasize,
-which is properly aligned and padded, and store metadata in this space.
+The flags in the NFIT memory device sub-structure indicate the state of
+the data on the nvdimm relative to its energy source or last "flush to
+persistence".  For the most part there is nothing the driver can do but
+advertise the state of these flags in sysfs and emit a message if
+firmware indicates that the contents of the device may be corrupted.
+However, for the case of ACPI_NFIT_MEM_ARMED, the driver can arrange for
+the block devices incorporating that nvdimm to be marked read-only.
+This is a safe default as the data is still available and new writes are
+held off until the administrator either forces read-write mode, or the
+energy source becomes armed.
 
-Signed-off-by: Vishal Verma <vishal.l.verma@linux.intel.com>
+A 'read_only' attribute is added to REGION devices to allow for
+overriding the default read-only policy of all descendant block devices.
+
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/nvdimm/blk.c            |  174 ++++++++++++++++++++++++++++++++++-----
- drivers/nvdimm/btt.h            |    1 
- drivers/nvdimm/core.c           |    3 +
- drivers/nvdimm/namespace_devs.c |    3 -
- drivers/nvdimm/nd.h             |    1 
- 5 files changed, 159 insertions(+), 23 deletions(-)
+ drivers/acpi/nfit.c              |   31 +++++++++++++++++++++++++++++++
+ drivers/acpi/nfit.h              |    3 +++
+ drivers/nvdimm/blk.c             |    2 ++
+ drivers/nvdimm/btt.c             |   10 ++++++++--
+ drivers/nvdimm/bus.c             |   18 ++++++++++++++++++
+ drivers/nvdimm/nd.h              |    3 ++-
+ drivers/nvdimm/pmem.c            |    2 ++
+ drivers/nvdimm/region_devs.c     |   29 +++++++++++++++++++++++++++++
+ include/linux/libnvdimm.h        |    2 ++
+ tools/testing/nvdimm/test/nfit.c |    3 +++
+ 10 files changed, 100 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/nvdimm/blk.c b/drivers/nvdimm/blk.c
-index 9ac0c266c15c..5c44e067652f 100644
---- a/drivers/nvdimm/blk.c
-+++ b/drivers/nvdimm/blk.c
-@@ -27,10 +27,17 @@ struct nd_blk_device {
- 	struct nd_namespace_blk *nsblk;
- 	struct nd_blk_region *ndbr;
- 	size_t disk_size;
-+	u32 sector_size;
-+	u32 internal_lbasize;
+diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+index 07d630e9f4ae..1f6f1b1a54f4 100644
+--- a/drivers/acpi/nfit.c
++++ b/drivers/acpi/nfit.c
+@@ -668,6 +668,20 @@ static ssize_t serial_show(struct device *dev,
+ }
+ static DEVICE_ATTR_RO(serial);
+ 
++static ssize_t flags_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	u16 flags = to_nfit_memdev(dev)->flags;
++
++	return sprintf(buf, "%s%s%s%s%s\n",
++			flags & ACPI_NFIT_MEM_SAVE_FAILED ? "save " : "",
++			flags & ACPI_NFIT_MEM_RESTORE_FAILED ? "restore " : "",
++			flags & ACPI_NFIT_MEM_FLUSH_FAILED ? "flush " : "",
++			flags & ACPI_NFIT_MEM_ARMED ? "arm " : "",
++			flags & ACPI_NFIT_MEM_HEALTH_OBSERVED ? "smart " : "");
++}
++static DEVICE_ATTR_RO(flags);
++
+ static struct attribute *acpi_nfit_dimm_attributes[] = {
+ 	&dev_attr_handle.attr,
+ 	&dev_attr_phys_id.attr,
+@@ -676,6 +690,7 @@ static struct attribute *acpi_nfit_dimm_attributes[] = {
+ 	&dev_attr_format.attr,
+ 	&dev_attr_serial.attr,
+ 	&dev_attr_rev_id.attr,
++	&dev_attr_flags.attr,
+ 	NULL,
  };
  
- static int nd_blk_major;
+@@ -768,6 +783,7 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
+ 		struct nvdimm *nvdimm;
+ 		unsigned long flags = 0;
+ 		u32 device_handle;
++		u16 mem_flags;
+ 		int rc;
  
-+static u32 nd_blk_meta_size(struct nd_blk_device *blk_dev)
-+{
-+	return blk_dev->nsblk->lbasize - blk_dev->sector_size;
-+}
-+
- static resource_size_t to_dev_offset(struct nd_namespace_blk *nsblk,
- 				resource_size_t ns_offset, unsigned int len)
- {
-@@ -52,41 +59,145 @@ static resource_size_t to_dev_offset(struct nd_namespace_blk *nsblk,
- 	return SIZE_MAX;
- }
+ 		device_handle = __to_nfit_memdev(nfit_mem)->device_handle;
+@@ -785,6 +801,10 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
+ 		if (nfit_mem->bdw && nfit_mem->memdev_pmem)
+ 			flags |= NDD_ALIASING;
  
-+#ifdef CONFIG_BLK_DEV_INTEGRITY
-+static int nd_blk_rw_integrity(struct nd_blk_device *blk_dev,
-+				struct bio_integrity_payload *bip, u64 lba,
-+				int rw)
-+{
-+	unsigned int len = nd_blk_meta_size(blk_dev);
-+	resource_size_t	dev_offset, ns_offset;
-+	struct nd_namespace_blk *nsblk;
-+	struct nd_blk_region *ndbr;
-+	int err = 0;
++		mem_flags = __to_nfit_memdev(nfit_mem)->flags;
++		if (mem_flags & ACPI_NFIT_MEM_ARMED)
++			flags |= NDD_UNARMED;
 +
-+	nsblk = blk_dev->nsblk;
-+	ndbr = blk_dev->ndbr;
-+	ns_offset = lba * blk_dev->internal_lbasize + blk_dev->sector_size;
-+	dev_offset = to_dev_offset(nsblk, ns_offset, len);
-+	if (dev_offset == SIZE_MAX)
-+		return -EIO;
-+
-+	while (len) {
-+		unsigned int cur_len;
-+		struct bio_vec bv;
-+		void *iobuf;
-+
-+		bv = bvec_iter_bvec(bip->bip_vec, bip->bip_iter);
-+		/*
-+		 * The 'bv' obtained from bvec_iter_bvec has its .bv_len and
-+		 * .bv_offset already adjusted for iter->bi_bvec_done, and we
-+		 * can use those directly
-+		 */
-+
-+		cur_len = min(len, bv.bv_len);
-+		iobuf = kmap_atomic(bv.bv_page);
-+		err = ndbr->do_io(ndbr, dev_offset, iobuf + bv.bv_offset,
-+				cur_len, rw);
-+		kunmap_atomic(iobuf);
-+		if (err)
-+			return err;
-+
-+		len -= cur_len;
-+		dev_offset += cur_len;
-+		bvec_iter_advance(bip->bip_vec, &bip->bip_iter, cur_len);
-+	}
-+
-+	return err;
-+}
-+
-+#else /* CONFIG_BLK_DEV_INTEGRITY */
-+static int nd_blk_rw_integrity(struct nd_blk_device *blk_dev,
-+				struct bio_integrity_payload *bip, u64 lba,
-+				int rw)
-+{
-+	return 0;
-+}
-+#endif
-+
-+static int nd_blk_do_bvec(struct nd_blk_device *blk_dev,
-+			struct bio_integrity_payload *bip, struct page *page,
-+			unsigned int len, unsigned int off, int rw,
-+			sector_t sector)
-+{
-+	struct nd_blk_region *ndbr = blk_dev->ndbr;
-+	resource_size_t	dev_offset, ns_offset;
-+	int err = 0;
-+	void *iobuf;
-+	u64 lba;
-+
-+	while (len) {
-+		unsigned int cur_len;
-+
-+		/*
-+		 * If we don't have an integrity payload, we don't have to
-+		 * split the bvec into sectors, as this would cause unnecessary
-+		 * Block Window setup/move steps. the do_io routine is capable
-+		 * of handling len <= PAGE_SIZE.
-+		 */
-+		cur_len = bip ? min(len, blk_dev->sector_size) : len;
-+
-+		lba = div_u64(sector << SECTOR_SHIFT, blk_dev->sector_size);
-+		ns_offset = lba * blk_dev->internal_lbasize;
-+		dev_offset = to_dev_offset(blk_dev->nsblk, ns_offset, cur_len);
-+		if (dev_offset == SIZE_MAX)
-+			return -EIO;
-+
-+		iobuf = kmap_atomic(page);
-+		err = ndbr->do_io(ndbr, dev_offset, iobuf + off, cur_len, rw);
-+		kunmap_atomic(iobuf);
-+		if (err)
-+			return err;
-+
-+		if (bip) {
-+			err = nd_blk_rw_integrity(blk_dev, bip, lba, rw);
-+			if (err)
-+				return err;
-+		}
-+		len -= cur_len;
-+		off += cur_len;
-+		sector += blk_dev->sector_size >> SECTOR_SHIFT;
-+	}
-+
-+	return err;
-+}
-+
- static void nd_blk_make_request(struct request_queue *q, struct bio *bio)
- {
- 	struct block_device *bdev = bio->bi_bdev;
- 	struct gendisk *disk = bdev->bd_disk;
--	struct nd_namespace_blk *nsblk;
-+	struct bio_integrity_payload *bip;
- 	struct nd_blk_device *blk_dev;
--	struct nd_blk_region *ndbr;
- 	struct bvec_iter iter;
- 	struct bio_vec bvec;
- 	int err = 0, rw;
+ 		rc = acpi_nfit_add_dimm(acpi_desc, nfit_mem, device_handle);
+ 		if (rc)
+ 			continue;
+@@ -797,6 +817,17 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
  
-+	/*
-+	 * bio_integrity_enabled also checks if the bio already has an
-+	 * integrity payload attached. If it does, we *don't* do a
-+	 * bio_integrity_prep here - the payload has been generated by
-+	 * another kernel subsystem, and we just pass it through.
-+	 */
-+	if (bio_integrity_enabled(bio) && bio_integrity_prep(bio)) {
-+		err = -EIO;
-+		goto out;
-+	}
+ 		nfit_mem->nvdimm = nvdimm;
+ 		dimm_count++;
 +
-+	bip = bio_integrity(bio);
- 	blk_dev = disk->private_data;
--	nsblk = blk_dev->nsblk;
--	ndbr = blk_dev->ndbr;
- 	rw = bio_data_dir(bio);
- 	bio_for_each_segment(bvec, bio, iter) {
- 		unsigned int len = bvec.bv_len;
--		resource_size_t	dev_offset;
--		void *iobuf;
- 
- 		BUG_ON(len > PAGE_SIZE);
--
--		dev_offset = to_dev_offset(nsblk,
--				iter.bi_sector << SECTOR_SHIFT, len);
--		if (dev_offset == SIZE_MAX) {
--			err = -EIO;
-+		err = nd_blk_do_bvec(blk_dev, bip, bvec.bv_page, len,
-+					bvec.bv_offset, rw, iter.bi_sector);
-+		if (err) {
-+			dev_info(&blk_dev->nsblk->common.dev,
-+					"io error in %s sector %lld, len %d,\n",
-+					(rw == READ) ? "READ" : "WRITE",
-+					(unsigned long long) iter.bi_sector, len);
- 			goto out;
- 		}
--
--		iobuf = kmap_atomic(bvec.bv_page);
--		err = ndbr->do_io(ndbr, dev_offset, iobuf + bvec.bv_offset,
--				len, rw);
--		kunmap_atomic(iobuf);
--		if (err)
--			goto out;
++		if ((mem_flags & ACPI_NFIT_MEM_FAILED_MASK) == 0)
++			continue;
++
++		dev_info(acpi_desc->dev, "%s: failed: %s%s%s%s\n",
++				nvdimm_name(nvdimm),
++			mem_flags & ACPI_NFIT_MEM_SAVE_FAILED ? "save " : "",
++			mem_flags & ACPI_NFIT_MEM_RESTORE_FAILED ? "restore " : "",
++			mem_flags & ACPI_NFIT_MEM_FLUSH_FAILED ? "flush " : "",
++			mem_flags & ACPI_NFIT_MEM_ARMED ? "arm " : "");
++
  	}
  
-  out:
-@@ -121,8 +232,12 @@ static const struct block_device_operations nd_blk_fops = {
+ 	return nvdimm_bus_check_dimm_count(acpi_desc->nvdimm_bus, dimm_count);
+diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
+index c62fffea8423..81f2e8c5a79c 100644
+--- a/drivers/acpi/nfit.h
++++ b/drivers/acpi/nfit.h
+@@ -22,6 +22,9 @@
+ 
+ #define UUID_NFIT_BUS "2f10e7a4-9e91-11e4-89d3-123b93f75cba"
+ #define UUID_NFIT_DIMM "4309ac30-0d11-11e4-9191-0800200c9a66"
++#define ACPI_NFIT_MEM_FAILED_MASK (ACPI_NFIT_MEM_SAVE_FAILED \
++		| ACPI_NFIT_MEM_RESTORE_FAILED | ACPI_NFIT_MEM_FLUSH_FAILED \
++		| ACPI_NFIT_MEM_ARMED)
+ 
+ enum nfit_uuids {
+ 	NFIT_SPA_VOLATILE,
+diff --git a/drivers/nvdimm/blk.c b/drivers/nvdimm/blk.c
+index 96ef38ceeceb..4f97b248c236 100644
+--- a/drivers/nvdimm/blk.c
++++ b/drivers/nvdimm/blk.c
+@@ -232,6 +232,7 @@ static int nd_blk_rw_bytes(struct nd_namespace_common *ndns,
+ 
+ static const struct block_device_operations nd_blk_fops = {
+ 	.owner = THIS_MODULE,
++	.revalidate_disk = nvdimm_revalidate_disk,
+ };
+ 
  static int nd_blk_attach_disk(struct nd_namespace_common *ndns,
- 		struct nd_blk_device *blk_dev)
- {
--	struct nd_namespace_blk *nsblk = to_nd_namespace_blk(&ndns->dev);
-+	resource_size_t available_disk_size;
- 	struct gendisk *disk;
-+	u64 internal_nlba;
-+
-+	internal_nlba = div_u64(blk_dev->disk_size, blk_dev->internal_lbasize);
-+	available_disk_size = internal_nlba * blk_dev->sector_size;
+@@ -283,6 +284,7 @@ static int nd_blk_attach_disk(struct nd_namespace_common *ndns,
+ 	}
  
- 	blk_dev->queue = blk_alloc_queue(GFP_KERNEL);
- 	if (!blk_dev->queue)
-@@ -131,7 +246,7 @@ static int nd_blk_attach_disk(struct nd_namespace_common *ndns,
- 	blk_queue_make_request(blk_dev->queue, nd_blk_make_request);
- 	blk_queue_max_hw_sectors(blk_dev->queue, UINT_MAX);
- 	blk_queue_bounce_limit(blk_dev->queue, BLK_BOUNCE_ANY);
--	blk_queue_logical_block_size(blk_dev->queue, nsblk->lbasize);
-+	blk_queue_logical_block_size(blk_dev->queue, blk_dev->sector_size);
- 	queue_flag_set_unlocked(QUEUE_FLAG_NONROT, blk_dev->queue);
- 
- 	disk = blk_dev->disk = alloc_disk(0);
-@@ -148,15 +263,28 @@ static int nd_blk_attach_disk(struct nd_namespace_common *ndns,
- 	disk->queue		= blk_dev->queue;
- 	disk->flags		= GENHD_FL_EXT_DEVT;
- 	nvdimm_namespace_disk_name(ndns, disk->disk_name);
--	set_capacity(disk, blk_dev->disk_size >> SECTOR_SHIFT);
-+	set_capacity(disk, 0);
- 	add_disk(disk);
- 
-+	if (nd_blk_meta_size(blk_dev)) {
-+		int rc = nd_integrity_init(disk, nd_blk_meta_size(blk_dev));
-+
-+		if (rc) {
-+			del_gendisk(disk);
-+			put_disk(disk);
-+			blk_cleanup_queue(blk_dev->queue);
-+			return rc;
-+		}
-+	}
-+
-+	set_capacity(disk, available_disk_size >> SECTOR_SHIFT);
+ 	set_capacity(disk, available_disk_size >> SECTOR_SHIFT);
++	revalidate_disk(disk);
  	return 0;
  }
  
- static int nd_blk_probe(struct device *dev)
- {
- 	struct nd_namespace_common *ndns;
-+	struct nd_namespace_blk *nsblk;
- 	struct nd_blk_device *blk_dev;
- 	int rc;
- 
-@@ -168,9 +296,13 @@ static int nd_blk_probe(struct device *dev)
- 	if (!blk_dev)
- 		return -ENOMEM;
- 
-+	nsblk = to_nd_namespace_blk(&ndns->dev);
- 	blk_dev->disk_size = nvdimm_namespace_capacity(ndns);
- 	blk_dev->ndbr = to_nd_blk_region(dev->parent);
- 	blk_dev->nsblk = to_nd_namespace_blk(&ndns->dev);
-+	blk_dev->internal_lbasize = roundup(nsblk->lbasize,
-+						INT_LBASIZE_ALIGNMENT);
-+	blk_dev->sector_size = ((nsblk->lbasize >= 4096) ? 4096 : 512);
- 	dev_set_drvdata(dev, blk_dev);
- 
- 	ndns->rw_bytes = nd_blk_rw_bytes;
-diff --git a/drivers/nvdimm/btt.h b/drivers/nvdimm/btt.h
-index 2caa0ef7e67a..75b0d80a6bd9 100644
---- a/drivers/nvdimm/btt.h
-+++ b/drivers/nvdimm/btt.h
-@@ -31,7 +31,6 @@
- #define ARENA_MAX_SIZE (1ULL << 39)	/* 512 GB */
- #define RTT_VALID (1UL << 31)
- #define RTT_INVALID 0
--#define INT_LBASIZE_ALIGNMENT 64
- #define BTT_PG_SIZE 4096
- #define BTT_DEFAULT_NFREE ND_MAX_LANES
- #define LOG_SEQ_INIT 1
-diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
-index 1d96b9a6e4cc..4288169432de 100644
---- a/drivers/nvdimm/core.c
-+++ b/drivers/nvdimm/core.c
-@@ -379,6 +379,9 @@ int nd_integrity_init(struct gendisk *disk, unsigned long meta_size)
- 	};
- 	int ret;
- 
-+	if (meta_size == 0)
-+		return 0;
-+
- 	ret = blk_integrity_register(disk, &integrity);
- 	if (ret)
- 		return ret;
-diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
-index 1ce1e70de44a..27d69bd3b4d6 100644
---- a/drivers/nvdimm/namespace_devs.c
-+++ b/drivers/nvdimm/namespace_devs.c
-@@ -1059,7 +1059,8 @@ static ssize_t resource_show(struct device *dev,
- }
- static DEVICE_ATTR_RO(resource);
- 
--static const unsigned long ns_lbasize_supported[] = { 512, 0 };
-+static const unsigned long ns_lbasize_supported[] = { 512, 520, 528,
-+	4096, 4104, 4160, 4224, 0 };
- 
- static ssize_t sector_size_show(struct device *dev,
- 		struct device_attribute *attr, char *buf)
-diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
-index 6a969a885d70..e73c34dcd935 100644
---- a/drivers/nvdimm/nd.h
-+++ b/drivers/nvdimm/nd.h
-@@ -27,6 +27,7 @@ enum {
- 	 */
- 	ND_MAX_LANES = 256,
- 	SECTOR_SHIFT = 9,
-+	INT_LBASIZE_ALIGNMENT = 64,
+diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
+index c02065aed03d..411c7b2bb37a 100644
+--- a/drivers/nvdimm/btt.c
++++ b/drivers/nvdimm/btt.c
+@@ -1245,6 +1245,7 @@ static const struct block_device_operations btt_fops = {
+ 	.owner =		THIS_MODULE,
+ 	.rw_page =		btt_rw_page,
+ 	.getgeo =		btt_getgeo,
++	.revalidate_disk =	nvdimm_revalidate_disk,
  };
  
- struct nvdimm_drvdata {
+ static int btt_blk_init(struct btt *btt)
+@@ -1292,6 +1293,7 @@ static int btt_blk_init(struct btt *btt)
+ 		}
+ 	}
+ 	set_capacity(btt->btt_disk, btt->nlba * btt->sector_size >> 9);
++	revalidate_disk(btt->btt_disk);
+ 
+ 	return 0;
+ }
+@@ -1346,7 +1348,11 @@ static struct btt *btt_init(struct nd_btt *nd_btt, unsigned long long rawsize,
+ 		goto out_free;
+ 	}
+ 
+-	if (btt->init_state != INIT_READY) {
++	if (btt->init_state != INIT_READY && nd_region->ro) {
++		dev_info(dev, "%s is read-only, unable to init btt metadata\n",
++				dev_name(&nd_region->dev));
++		goto out_free;
++	} else if (btt->init_state != INIT_READY) {
+ 		btt->num_arenas = (rawsize / ARENA_MAX_SIZE) +
+ 			((rawsize % ARENA_MAX_SIZE) ? 1 : 0);
+ 		dev_dbg(dev, "init: %d arenas for %llu rawsize\n",
+@@ -1361,7 +1367,7 @@ static struct btt *btt_init(struct nd_btt *nd_btt, unsigned long long rawsize,
+ 		ret = btt_meta_init(btt);
+ 		if (ret) {
+ 			dev_err(dev, "init: error in meta_init: %d\n", ret);
+-			return NULL;
++			goto out_free;
+ 		}
+ 	}
+ 
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index dd12f38397db..ec59f1f26d95 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -227,6 +227,24 @@ int __nd_driver_register(struct nd_device_driver *nd_drv, struct module *owner,
+ }
+ EXPORT_SYMBOL(__nd_driver_register);
+ 
++int nvdimm_revalidate_disk(struct gendisk *disk)
++{
++	struct device *dev = disk->driverfs_dev;
++	struct nd_region *nd_region = to_nd_region(dev->parent);
++	const char *pol = nd_region->ro ? "only" : "write";
++
++	if (nd_region->ro == get_disk_ro(disk))
++		return 0;
++
++	dev_info(dev, "%s read-%s, marking %s read-%s\n",
++			dev_name(&nd_region->dev), pol, disk->disk_name, pol);
++	set_disk_ro(disk, nd_region->ro);
++
++	return 0;
++
++}
++EXPORT_SYMBOL(nvdimm_revalidate_disk);
++
+ static ssize_t modalias_show(struct device *dev, struct device_attribute *attr,
+ 		char *buf)
+ {
+diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+index cf6849b72c4f..b870de9add79 100644
+--- a/drivers/nvdimm/nd.h
++++ b/drivers/nvdimm/nd.h
+@@ -96,7 +96,7 @@ struct nd_region {
+ 	u16 ndr_mappings;
+ 	u64 ndr_size;
+ 	u64 ndr_start;
+-	int id, num_lanes;
++	int id, num_lanes, ro;
+ 	void *provider_data;
+ 	struct nd_interleave_set *nd_set;
+ 	struct nd_percpu_lane __percpu *lane;
+@@ -188,6 +188,7 @@ u64 nd_region_interleave_set_cookie(struct nd_region *nd_region);
+ void nvdimm_bus_lock(struct device *dev);
+ void nvdimm_bus_unlock(struct device *dev);
+ bool is_nvdimm_bus_locked(struct device *dev);
++int nvdimm_revalidate_disk(struct gendisk *disk);
+ void nvdimm_drvdata_release(struct kref *kref);
+ void put_ndd(struct nvdimm_drvdata *ndd);
+ int nd_label_reserve_dpa(struct nvdimm_drvdata *ndd);
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index a9709db0704c..42b766f33e59 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -104,6 +104,7 @@ static const struct block_device_operations pmem_fops = {
+ 	.owner =		THIS_MODULE,
+ 	.rw_page =		pmem_rw_page,
+ 	.direct_access =	pmem_direct_access,
++	.revalidate_disk =	nvdimm_revalidate_disk,
+ };
+ 
+ static struct pmem_device *pmem_alloc(struct device *dev,
+@@ -178,6 +179,7 @@ static int pmem_attach_disk(struct nd_namespace_common *ndns,
+ 	pmem->pmem_disk = disk;
+ 
+ 	add_disk(disk);
++	revalidate_disk(disk);
+ 
+ 	return 0;
+ }
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index fb35d451016f..8f8c7ea485f1 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -345,11 +345,35 @@ static ssize_t btt_seed_show(struct device *dev,
+ }
+ static DEVICE_ATTR_RO(btt_seed);
+ 
++static ssize_t read_only_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct nd_region *nd_region = to_nd_region(dev);
++
++	return sprintf(buf, "%d\n", nd_region->ro);
++}
++
++static ssize_t read_only_store(struct device *dev,
++		struct device_attribute *attr, const char *buf, size_t len)
++{
++	bool ro;
++	int rc = strtobool(buf, &ro);
++	struct nd_region *nd_region = to_nd_region(dev);
++
++	if (rc)
++		return rc;
++
++	nd_region->ro = ro;
++	return len;
++}
++static DEVICE_ATTR_RW(read_only);
++
+ static struct attribute *nd_region_attributes[] = {
+ 	&dev_attr_size.attr,
+ 	&dev_attr_nstype.attr,
+ 	&dev_attr_mappings.attr,
+ 	&dev_attr_btt_seed.attr,
++	&dev_attr_read_only.attr,
+ 	&dev_attr_set_cookie.attr,
+ 	&dev_attr_available_size.attr,
+ 	&dev_attr_namespace_seed.attr,
+@@ -641,6 +665,7 @@ static struct nd_region *nd_region_create(struct nvdimm_bus *nvdimm_bus,
+ 	struct device *dev;
+ 	void *region_buf;
+ 	unsigned int i;
++	int ro = 0;
+ 
+ 	for (i = 0; i < ndr_desc->num_mappings; i++) {
+ 		struct nd_mapping *nd_mapping = &ndr_desc->nd_mapping[i];
+@@ -652,6 +677,9 @@ static struct nd_region *nd_region_create(struct nvdimm_bus *nvdimm_bus,
+ 
+ 			return NULL;
+ 		}
++
++		if (nvdimm->flags & NDD_UNARMED)
++			ro = 1;
+ 	}
+ 
+ 	if (dev_type == &nd_blk_device_type) {
+@@ -707,6 +735,7 @@ static struct nd_region *nd_region_create(struct nvdimm_bus *nvdimm_bus,
+ 	nd_region->provider_data = ndr_desc->provider_data;
+ 	nd_region->nd_set = ndr_desc->nd_set;
+ 	nd_region->num_lanes = ndr_desc->num_lanes;
++	nd_region->ro = ro;
+ 	ida_init(&nd_region->ns_ida);
+ 	dev = &nd_region->dev;
+ 	dev_set_name(dev, "region%d", nd_region->id);
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index 7fc1b25bdb5d..dc799a29ed1a 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -21,6 +21,8 @@
+ enum {
+ 	/* when a dimm supports both PMEM and BLK access a label is required */
+ 	NDD_ALIASING = 1 << 0,
++	/* unarmed memory devices may not persist writes */
++	NDD_UNARMED = 1 << 1,
+ 
+ 	/* need to set a limit somewhere, but yes, this is likely overkill */
+ 	ND_IOCTL_MAX_BUFLEN = SZ_4M,
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index 7a4a5a5edbe4..4b69b8368de0 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -874,6 +874,9 @@ static void nfit_test1_setup(struct nfit_test *t)
+ 	memdev->address = 0;
+ 	memdev->interleave_index = 0;
+ 	memdev->interleave_ways = 1;
++	memdev->flags = ACPI_NFIT_MEM_SAVE_FAILED | ACPI_NFIT_MEM_RESTORE_FAILED
++		| ACPI_NFIT_MEM_FLUSH_FAILED | ACPI_NFIT_MEM_HEALTH_OBSERVED
++		| ACPI_NFIT_MEM_ARMED;
+ 
+ 	offset += sizeof(*memdev);
+ 	/* dcr-descriptor0 */
 
