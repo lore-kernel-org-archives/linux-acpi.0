@@ -1,177 +1,1551 @@
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH v2 00/17] libnvdimm: ->rw_bytes(), BLK, BTT, PMEM api,
- and unit tests
-Date: Thu, 25 Jun 2015 05:36:17 -0400
-Message-ID: <20150625090554.40066.69562.stgit@dwillia2-desk3.jf.intel.com>
+Subject: [PATCH v2 01/17] libnvdimm: infrastructure for btt devices
+Date: Thu, 25 Jun 2015 05:36:23 -0400
+Message-ID: <20150625093623.40066.71387.stgit@dwillia2-desk3.jf.intel.com>
+References: <20150625090554.40066.69562.stgit@dwillia2-desk3.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-Sender: linux-fsdevel-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150625090554.40066.69562.stgit@dwillia2-desk3.jf.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-nvdimm@lists.01.org
-Cc: boaz@plexistor.com, Neil Brown <neilb@suse.de>, Dave Chinner <david@fromorbit.com>, Lv Zheng <lv.zheng@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, mingo@kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, hch@lst.de, linux-acpi@vger.kernel.org, Jeff Moyer <jmoyer@redhat.com>, Ingo Molnar <mingo@redhat.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Vishal Verma <vishal.l.verma@linux.intel.com>, Jens Axboe <axboe@fb.com>, Matthew Wilcox <matthew.r.wilcox@intel.com>, Thomas Gleixner <tglx@linutronix.de>, axboe@kernel.dk, toshi.kani@hp.com, "Martin K. Petersen" <martin.petersen@oracle.com>, Greg KH <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, Andy Lutomirski <luto@amacapital.net>, linux-fsdevel@vger.kernel.org
+Cc: axboe@kernel.dk, boaz@plexistor.com, toshi.kani@hp.com, Neil Brown <neilb@suse.de>, Greg KH <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, mingo@kernel.org, linux-acpi@vger.kernel.org, linux-fsdevel@vger.kernel.org, hch@lst.de
 List-Id: linux-acpi@vger.kernel.org
 
-->rw_bytes() is a byte-aligned interface for accessing persistent memory
-namespaces.  The primary consumer of the ->rw_bytes() interface is the
-BTT library.
+NVDIMM namespaces, in addition to accepting "struct bio" based requests,
+also have the capability to perform byte-aligned accesses.  By default
+only the bio/block interface is used.  However, if another driver can
+make effective use of the byte-aligned capability it can claim namespace
+interface and use the byte-aligned ->rw_bytes() interface.
 
-BTT is a library that converts a byte-accessible namespace into a disk
-with atomic sector update semantics (prevents sector tearing on crash or
-power loss).  The sinister aspect of sector tearing is that most
-applications do not know they have a atomic sector dependency.  At least
-today's disk's rarely ever tear sectors and if they do you almost
-certainly get a CRC error on access.  NVDIMMs will always tear and
-always silently.
+The BTT driver is the initial first consumer of this mechanism to allow
+adding atomic sector update semantics to a pmem or blk namespace.  This
+patch is the sysfs infrastructure to allow configuring a BTT instance
+for a namespace.  Enabling that BTT and performing i/o is in a
+subsequent patch.
 
-BLK is a driver for NVDIMMs that provide sliding mmio windows to access
-persistent memory.
-
-The PMEM api defines ensures writes have hit persistent media relative
-to the completion of an i/o.
-
-Changes since v1 [1]:
-
-1/ The ->rw_bytes() interface has been removed from struct
-block_device_operations and is now a common operation of NVDIMM
-namespace devices.  Accordingly a BTT instance is now a libnvdimm
-device-model peer of a namespace rather than a stacked block device
-driver.  The BTT is no longer a driver in its own right, instead it is a
-extension library used by a BLK or PMEM namespace.  This clarifies the
-device model and reduced the core implementation by a couple hundred
-lines of code.  (Christoph)
-
-2/ Kill ND_MAX_REGIONS and ND_IOSTAT Kconfig options. (Christoph)
-
-3/ Killed the access out of range check separately in PMEM, BLK, and BTT
-(Christoph)
-
-4/ Kill the central helper for blk queue properties (Christoph)
-
-5/ Added Toshi's numa patches with a change to set the numa info at
-device create time rather than driver probe time.
-
-6/ Cherry picked the PMEM api.  The wider arch cleanups in the full
-pmem-api series are too large / invasive to pick up at this late date.
-The keeps the pmem.c driver x86-only for one more cycle.
-
-[1]: https://lists.01.org/pipermail/linux-nvdimm/2015-June/001246.html
-
-Diffstat since v1:
-
- Documentation/nvdimm/btt.txt      |  24 ++-
- Documentation/nvdimm/nvdimm.txt   |  79 ++++----
- arch/x86/Kconfig                  |   1 +
- arch/x86/include/asm/cacheflush.h |  72 +++++++
- arch/x86/include/asm/io.h         |   6 +
- drivers/acpi/nfit.c               |  17 +-
- drivers/acpi/numa.c               |  50 ++++-
- drivers/nvdimm/Kconfig            |  56 ++----
- drivers/nvdimm/Makefile           |   2 +-
- drivers/nvdimm/blk.c              | 148 +++++++-------
- drivers/nvdimm/btt.c              | 166 ++++------------
- drivers/nvdimm/btt_devs.c         | 403 +++++++++++++++++---------------------
- drivers/nvdimm/bus.c              | 190 ++++--------------
- drivers/nvdimm/core.c             |  30 ---
- drivers/nvdimm/label.c            |   5 +-
- drivers/nvdimm/namespace_devs.c   | 252 +++++++++++++++++++-----
- drivers/nvdimm/nd-core.h          |  47 +----
- drivers/nvdimm/nd.h               |  51 +++--
- drivers/nvdimm/pmem.c             | 185 ++++++++---------
- drivers/nvdimm/region.c           |  85 +-------
- drivers/nvdimm/region_devs.c      | 182 +++++++++++++----
- include/linux/acpi.h              |   5 +
- include/linux/blkdev.h            |  44 -----
- include/linux/compiler.h          |   2 +
- include/linux/libnvdimm.h         |   2 +
- include/linux/nd.h                |  63 +++++-
- include/linux/pmem.h              | 153 +++++++++++++++
- include/uapi/linux/ndctl.h        |   2 -
- lib/Kconfig                       |   3 +
- tools/testing/nvdimm/Kbuild       |   2 +-
- tools/testing/nvdimm/test/nfit.c  |   1 +
- 31 files changed, 1272 insertions(+), 1056 deletions(-)
- create mode 100644 include/linux/pmem.h
-
+Cc: Greg KH <gregkh@linuxfoundation.org>
+Cc: Neil Brown <neilb@suse.de>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
-
-Dan Williams (8):
-      libnvdimm: infrastructure for btt devices
-      tools/testing/nvdimm: libnvdimm unit test infrastructure
-      libnvdimm: Non-Volatile Devices
-      libnvdimm, pmem: fix up max_hw_sectors
-      pmem: make_request cleanups
-      libnvdimm: enable iostat
-      pmem: flag pmem block devices as non-rotational
-      libnvdimm, nfit: handle unarmed dimms, mark namespaces read-only
-
-Ross Zwisler (2):
-      libnvdimm, nfit, nd_blk: driver for BLK-mode access persistent memory
-      arch, x86: pmem api for ensuring durability of persistent memory updates
-
-Toshi Kani (3):
-      acpi: Add acpi_map_pxm_to_online_node()
-      libnvdimm: Set numa_node to NVDIMM devices
-      libnvdimm: Add sysfs numa_node to NVDIMM devices
-
-Vishal Verma (4):
-      nd_btt: atomic sector updates
-      fs/block_dev.c: skip rw_page if bdev has integrity
-      libnvdimm, btt: add support for blk integrity
-      libnvdimm, blk: add support for blk integrity
-
-
- Documentation/nvdimm/btt.txt          |  283 ++++++
- Documentation/nvdimm/nvdimm.txt       |  808 ++++++++++++++++++
- MAINTAINERS                           |   39 +
- arch/x86/Kconfig                      |    1 
- arch/x86/include/asm/cacheflush.h     |   72 ++
- arch/x86/include/asm/io.h             |    6 
- drivers/acpi/nfit.c                   |  498 +++++++++++
- drivers/acpi/nfit.h                   |   58 +
- drivers/acpi/numa.c                   |   50 +
- drivers/nvdimm/Kconfig                |   42 +
- drivers/nvdimm/Makefile               |    7 
- drivers/nvdimm/blk.c                  |  384 +++++++++
- drivers/nvdimm/btt.c                  | 1479 +++++++++++++++++++++++++++++++++
- drivers/nvdimm/btt.h                  |  185 ++++
- drivers/nvdimm/btt_devs.c             |  426 ++++++++++
- drivers/nvdimm/bus.c                  |   60 +
- drivers/nvdimm/core.c                 |   69 ++
- drivers/nvdimm/dimm_devs.c            |    9 
- drivers/nvdimm/label.c                |    5 
- drivers/nvdimm/namespace_devs.c       |  295 ++++++-
- drivers/nvdimm/nd-core.h              |    5 
- drivers/nvdimm/nd.h                   |   86 ++
- drivers/nvdimm/pmem.c                 |  181 ++--
- drivers/nvdimm/region.c               |   28 +
- drivers/nvdimm/region_devs.c          |  238 +++++
- fs/block_dev.c                        |    4 
- include/linux/acpi.h                  |    5 
- include/linux/compiler.h              |    2 
- include/linux/libnvdimm.h             |   32 +
- include/linux/nd.h                    |   63 +
- include/linux/pmem.h                  |  153 +++
- lib/Kconfig                           |    3 
- tools/testing/nvdimm/Kbuild           |   40 +
- tools/testing/nvdimm/Makefile         |    7 
- tools/testing/nvdimm/config_check.c   |   15 
- tools/testing/nvdimm/test/Kbuild      |    8 
- tools/testing/nvdimm/test/iomap.c     |  151 +++
- tools/testing/nvdimm/test/nfit.c      | 1116 +++++++++++++++++++++++++
- tools/testing/nvdimm/test/nfit_test.h |   29 +
- 39 files changed, 6759 insertions(+), 183 deletions(-)
- create mode 100644 Documentation/nvdimm/btt.txt
- create mode 100644 Documentation/nvdimm/nvdimm.txt
- create mode 100644 drivers/nvdimm/blk.c
- create mode 100644 drivers/nvdimm/btt.c
+ drivers/nvdimm/Kconfig          |    3 
+ drivers/nvdimm/Makefile         |    1 
+ drivers/nvdimm/btt.h            |   45 ++++
+ drivers/nvdimm/btt_devs.c       |  423 +++++++++++++++++++++++++++++++++++++++
+ drivers/nvdimm/bus.c            |   12 +
+ drivers/nvdimm/label.c          |    5 
+ drivers/nvdimm/namespace_devs.c |  204 ++++++++++++++++---
+ drivers/nvdimm/nd-core.h        |    4 
+ drivers/nvdimm/nd.h             |   39 ++++
+ drivers/nvdimm/pmem.c           |  132 ++++++++----
+ drivers/nvdimm/region.c         |    8 -
+ drivers/nvdimm/region_devs.c    |   38 +++-
+ include/linux/nd.h              |   63 +++++-
+ 13 files changed, 878 insertions(+), 99 deletions(-)
  create mode 100644 drivers/nvdimm/btt.h
  create mode 100644 drivers/nvdimm/btt_devs.c
- create mode 100644 include/linux/pmem.h
- create mode 100644 tools/testing/nvdimm/Kbuild
- create mode 100644 tools/testing/nvdimm/Makefile
- create mode 100644 tools/testing/nvdimm/config_check.c
- create mode 100644 tools/testing/nvdimm/test/Kbuild
- create mode 100644 tools/testing/nvdimm/test/iomap.c
- create mode 100644 tools/testing/nvdimm/test/nfit.c
- create mode 100644 tools/testing/nvdimm/test/nfit_test.h
+
+diff --git a/drivers/nvdimm/Kconfig b/drivers/nvdimm/Kconfig
+index 07a29113b870..5680e8e7a7aa 100644
+--- a/drivers/nvdimm/Kconfig
++++ b/drivers/nvdimm/Kconfig
+@@ -33,4 +33,7 @@ config BLK_DEV_PMEM
+ 
+ 	  Say Y if you want to use an NVDIMM
+ 
++config BTT
++	def_bool y
++
+ endif
+diff --git a/drivers/nvdimm/Makefile b/drivers/nvdimm/Makefile
+index abce98f87f16..6085b4bd7312 100644
+--- a/drivers/nvdimm/Makefile
++++ b/drivers/nvdimm/Makefile
+@@ -11,3 +11,4 @@ libnvdimm-y += region_devs.o
+ libnvdimm-y += region.o
+ libnvdimm-y += namespace_devs.o
+ libnvdimm-y += label.o
++libnvdimm-$(CONFIG_BTT) += btt_devs.o
+diff --git a/drivers/nvdimm/btt.h b/drivers/nvdimm/btt.h
+new file mode 100644
+index 000000000000..e8f6d8e0ddd3
+--- /dev/null
++++ b/drivers/nvdimm/btt.h
+@@ -0,0 +1,45 @@
++/*
++ * Block Translation Table library
++ * Copyright (c) 2014-2015, Intel Corporation.
++ *
++ * This program is free software; you can redistribute it and/or modify it
++ * under the terms and conditions of the GNU General Public License,
++ * version 2, as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope it will be useful, but WITHOUT
++ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
++ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
++ * more details.
++ */
++
++#ifndef _LINUX_BTT_H
++#define _LINUX_BTT_H
++
++#include <linux/types.h>
++
++#define BTT_SIG_LEN 16
++#define BTT_SIG "BTT_ARENA_INFO\0"
++
++struct btt_sb {
++	u8 signature[BTT_SIG_LEN];
++	u8 uuid[16];
++	u8 parent_uuid[16];
++	__le32 flags;
++	__le16 version_major;
++	__le16 version_minor;
++	__le32 external_lbasize;
++	__le32 external_nlba;
++	__le32 internal_lbasize;
++	__le32 internal_nlba;
++	__le32 nfree;
++	__le32 infosize;
++	__le64 nextoff;
++	__le64 dataoff;
++	__le64 mapoff;
++	__le64 logoff;
++	__le64 info2off;
++	u8 padding[3968];
++	__le64 checksum;
++};
++
++#endif
+diff --git a/drivers/nvdimm/btt_devs.c b/drivers/nvdimm/btt_devs.c
+new file mode 100644
+index 000000000000..4636beb8b7ed
+--- /dev/null
++++ b/drivers/nvdimm/btt_devs.c
+@@ -0,0 +1,423 @@
++/*
++ * Copyright(c) 2013-2015 Intel Corporation. All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of version 2 of the GNU General Public License as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ */
++#include <linux/blkdev.h>
++#include <linux/device.h>
++#include <linux/genhd.h>
++#include <linux/sizes.h>
++#include <linux/slab.h>
++#include <linux/fs.h>
++#include <linux/mm.h>
++#include "nd-core.h"
++#include "btt.h"
++#include "nd.h"
++
++static DEFINE_IDA(btt_ida);
++
++static void __nd_btt_detach_ndns(struct nd_btt *nd_btt)
++{
++	struct nd_namespace_common *ndns = nd_btt->ndns;
++
++	dev_WARN_ONCE(&nd_btt->dev, !mutex_is_locked(&ndns->dev.mutex)
++			|| ndns->claim != &nd_btt->dev,
++			"%s: invalid claim\n", __func__);
++	ndns->claim = NULL;
++	nd_btt->ndns = NULL;
++	put_device(&ndns->dev);
++}
++
++static void nd_btt_detach_ndns(struct nd_btt *nd_btt)
++{
++	struct nd_namespace_common *ndns = nd_btt->ndns;
++
++	if (!ndns)
++		return;
++	get_device(&ndns->dev);
++	device_lock(&ndns->dev);
++	__nd_btt_detach_ndns(nd_btt);
++	device_unlock(&ndns->dev);
++	put_device(&ndns->dev);
++}
++
++static bool __nd_btt_attach_ndns(struct nd_btt *nd_btt,
++		struct nd_namespace_common *ndns)
++{
++	if (ndns->claim)
++		return false;
++	dev_WARN_ONCE(&nd_btt->dev, !mutex_is_locked(&ndns->dev.mutex)
++			|| nd_btt->ndns,
++			"%s: invalid claim\n", __func__);
++	ndns->claim = &nd_btt->dev;
++	nd_btt->ndns = ndns;
++	get_device(&ndns->dev);
++	return true;
++}
++
++static bool nd_btt_attach_ndns(struct nd_btt *nd_btt,
++		struct nd_namespace_common *ndns)
++{
++	bool claimed;
++
++	device_lock(&ndns->dev);
++	claimed = __nd_btt_attach_ndns(nd_btt, ndns);
++	device_unlock(&ndns->dev);
++	return claimed;
++}
++
++static void nd_btt_release(struct device *dev)
++{
++	struct nd_btt *nd_btt = to_nd_btt(dev);
++
++	dev_dbg(dev, "%s\n", __func__);
++	nd_btt_detach_ndns(nd_btt);
++	ida_simple_remove(&btt_ida, nd_btt->id);
++	kfree(nd_btt->uuid);
++	kfree(nd_btt);
++}
++
++static struct device_type nd_btt_device_type = {
++	.name = "nd_btt",
++	.release = nd_btt_release,
++};
++
++bool is_nd_btt(struct device *dev)
++{
++	return dev->type == &nd_btt_device_type;
++}
++EXPORT_SYMBOL(is_nd_btt);
++
++struct nd_btt *to_nd_btt(struct device *dev)
++{
++	struct nd_btt *nd_btt = container_of(dev, struct nd_btt, dev);
++
++	WARN_ON(!is_nd_btt(dev));
++	return nd_btt;
++}
++EXPORT_SYMBOL(to_nd_btt);
++
++static const unsigned long btt_lbasize_supported[] = { 512, 4096, 0 };
++
++static ssize_t sector_size_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct nd_btt *nd_btt = to_nd_btt(dev);
++
++	return nd_sector_size_show(nd_btt->lbasize, btt_lbasize_supported, buf);
++}
++
++static ssize_t sector_size_store(struct device *dev,
++		struct device_attribute *attr, const char *buf, size_t len)
++{
++	struct nd_btt *nd_btt = to_nd_btt(dev);
++	ssize_t rc;
++
++	device_lock(dev);
++	nvdimm_bus_lock(dev);
++	rc = nd_sector_size_store(dev, buf, &nd_btt->lbasize,
++			btt_lbasize_supported);
++	dev_dbg(dev, "%s: result: %zd wrote: %s%s", __func__,
++			rc, buf, buf[len - 1] == '\n' ? "" : "\n");
++	nvdimm_bus_unlock(dev);
++	device_unlock(dev);
++
++	return rc ? rc : len;
++}
++static DEVICE_ATTR_RW(sector_size);
++
++static ssize_t uuid_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct nd_btt *nd_btt = to_nd_btt(dev);
++
++	if (nd_btt->uuid)
++		return sprintf(buf, "%pUb\n", nd_btt->uuid);
++	return sprintf(buf, "\n");
++}
++
++static ssize_t uuid_store(struct device *dev,
++		struct device_attribute *attr, const char *buf, size_t len)
++{
++	struct nd_btt *nd_btt = to_nd_btt(dev);
++	ssize_t rc;
++
++	device_lock(dev);
++	rc = nd_uuid_store(dev, &nd_btt->uuid, buf, len);
++	dev_dbg(dev, "%s: result: %zd wrote: %s%s", __func__,
++			rc, buf, buf[len - 1] == '\n' ? "" : "\n");
++	device_unlock(dev);
++
++	return rc ? rc : len;
++}
++static DEVICE_ATTR_RW(uuid);
++
++static ssize_t namespace_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct nd_btt *nd_btt = to_nd_btt(dev);
++	ssize_t rc;
++
++	nvdimm_bus_lock(dev);
++	rc = sprintf(buf, "%s\n", nd_btt->ndns
++			? dev_name(&nd_btt->ndns->dev) : "");
++	nvdimm_bus_unlock(dev);
++	return rc;
++}
++
++static int namespace_match(struct device *dev, void *data)
++{
++	char *name = data;
++
++	return strcmp(name, dev_name(dev)) == 0;
++}
++
++static bool is_nd_btt_idle(struct device *dev)
++{
++	struct nd_region *nd_region = to_nd_region(dev->parent);
++	struct nd_btt *nd_btt = to_nd_btt(dev);
++
++	if (nd_region->btt_seed == dev || nd_btt->ndns || dev->driver)
++		return false;
++	return true;
++}
++
++static ssize_t __namespace_store(struct device *dev,
++		struct device_attribute *attr, const char *buf, size_t len)
++{
++	struct nd_btt *nd_btt = to_nd_btt(dev);
++	struct nd_namespace_common *ndns;
++	struct device *found;
++	char *name;
++
++	if (dev->driver) {
++		dev_dbg(dev, "%s: -EBUSY\n", __func__);
++		return -EBUSY;
++	}
++
++	name = kstrndup(buf, len, GFP_KERNEL);
++	if (!name)
++		return -ENOMEM;
++	strim(name);
++
++	if (strncmp(name, "namespace", 9) == 0 || strcmp(name, "") == 0)
++		/* pass */;
++	else {
++		len = -EINVAL;
++		goto out;
++	}
++
++	ndns = nd_btt->ndns;
++	if (strcmp(name, "") == 0) {
++		/* detach the namespace and destroy / reset the btt device */
++		nd_btt_detach_ndns(nd_btt);
++		if (is_nd_btt_idle(dev))
++			nd_device_unregister(dev, ND_ASYNC);
++		else {
++			nd_btt->lbasize = 0;
++			kfree(nd_btt->uuid);
++			nd_btt->uuid = NULL;
++		}
++		goto out;
++	} else if (ndns) {
++		dev_dbg(dev, "namespace already set to: %s\n",
++				dev_name(&ndns->dev));
++		len = -EBUSY;
++		goto out;
++	}
++
++	found = device_find_child(dev->parent, name, namespace_match);
++	if (!found) {
++		dev_dbg(dev, "'%s' not found under %s\n", name,
++				dev_name(dev->parent));
++		len = -ENODEV;
++		goto out;
++	}
++
++	ndns = to_ndns(found);
++	if (__nvdimm_namespace_capacity(ndns) < SZ_16M) {
++		dev_dbg(dev, "%s too small to host btt\n", name);
++		len = -ENXIO;
++		goto out_attach;
++	}
++
++	WARN_ON_ONCE(!is_nvdimm_bus_locked(&nd_btt->dev));
++	if (!nd_btt_attach_ndns(nd_btt, ndns)) {
++		dev_dbg(dev, "%s already claimed\n",
++				dev_name(&ndns->dev));
++		len = -EBUSY;
++	}
++
++ out_attach:
++	put_device(&ndns->dev); /* from device_find_child */
++ out:
++	kfree(name);
++	return len;
++}
++
++static ssize_t namespace_store(struct device *dev,
++		struct device_attribute *attr, const char *buf, size_t len)
++{
++	ssize_t rc;
++
++	nvdimm_bus_lock(dev);
++	device_lock(dev);
++	rc = __namespace_store(dev, attr, buf, len);
++	dev_dbg(dev, "%s: result: %zd wrote: %s%s", __func__,
++			rc, buf, buf[len - 1] == '\n' ? "" : "\n");
++	device_unlock(dev);
++	nvdimm_bus_unlock(dev);
++
++	return rc;
++}
++static DEVICE_ATTR_RW(namespace);
++
++static struct attribute *nd_btt_attributes[] = {
++	&dev_attr_sector_size.attr,
++	&dev_attr_namespace.attr,
++	&dev_attr_uuid.attr,
++	NULL,
++};
++
++static struct attribute_group nd_btt_attribute_group = {
++	.attrs = nd_btt_attributes,
++};
++
++static const struct attribute_group *nd_btt_attribute_groups[] = {
++	&nd_btt_attribute_group,
++	&nd_device_attribute_group,
++	NULL,
++};
++
++static struct device *__nd_btt_create(struct nd_region *nd_region,
++		unsigned long lbasize, u8 *uuid,
++		struct nd_namespace_common *ndns)
++{
++	struct nd_btt *nd_btt;
++	struct device *dev;
++
++	nd_btt = kzalloc(sizeof(*nd_btt), GFP_KERNEL);
++	if (!nd_btt)
++		return NULL;
++
++	nd_btt->id = ida_simple_get(&btt_ida, 0, 0, GFP_KERNEL);
++	if (nd_btt->id < 0) {
++		kfree(nd_btt);
++		return NULL;
++	}
++
++	nd_btt->lbasize = lbasize;
++	if (uuid)
++		uuid = kmemdup(uuid, 16, GFP_KERNEL);
++	nd_btt->uuid = uuid;
++	dev = &nd_btt->dev;
++	dev_set_name(dev, "btt%d", nd_btt->id);
++	dev->parent = &nd_region->dev;
++	dev->type = &nd_btt_device_type;
++	dev->groups = nd_btt_attribute_groups;
++	device_initialize(&nd_btt->dev);
++	if (ndns && !__nd_btt_attach_ndns(nd_btt, ndns)) {
++		dev_dbg(&ndns->dev, "%s failed, already claimed by %s\n",
++				__func__, dev_name(ndns->claim));
++		put_device(dev);
++		return NULL;
++	}
++	return dev;
++}
++
++struct device *nd_btt_create(struct nd_region *nd_region)
++{
++	struct device *dev = __nd_btt_create(nd_region, 0, NULL, NULL);
++
++	if (dev)
++		__nd_device_register(dev);
++	return dev;
++}
++
++/*
++ * nd_btt_sb_checksum: compute checksum for btt info block
++ *
++ * Returns a fletcher64 checksum of everything in the given info block
++ * except the last field (since that's where the checksum lives).
++ */
++u64 nd_btt_sb_checksum(struct btt_sb *btt_sb)
++{
++	u64 sum, sum_save;
++
++	sum_save = btt_sb->checksum;
++	btt_sb->checksum = 0;
++	sum = nd_fletcher64(btt_sb, sizeof(*btt_sb), 1);
++	btt_sb->checksum = sum_save;
++	return sum;
++}
++EXPORT_SYMBOL(nd_btt_sb_checksum);
++
++static int __nd_btt_probe(struct nd_btt *nd_btt,
++		struct nd_namespace_common *ndns, struct btt_sb *btt_sb)
++{
++	u64 checksum;
++
++	if (!btt_sb || !ndns || !nd_btt)
++		return -ENODEV;
++
++	if (nvdimm_read_bytes(ndns, SZ_4K, btt_sb, sizeof(*btt_sb)))
++		return -ENXIO;
++
++	if (nvdimm_namespace_capacity(ndns) < SZ_16M)
++		return -ENXIO;
++
++	if (memcmp(btt_sb->signature, BTT_SIG, BTT_SIG_LEN) != 0)
++		return -ENODEV;
++
++	checksum = le64_to_cpu(btt_sb->checksum);
++	btt_sb->checksum = 0;
++	if (checksum != nd_btt_sb_checksum(btt_sb))
++		return -ENODEV;
++	btt_sb->checksum = cpu_to_le64(checksum);
++
++	nd_btt->lbasize = le32_to_cpu(btt_sb->external_lbasize);
++	nd_btt->uuid = kmemdup(btt_sb->uuid, 16, GFP_KERNEL);
++	if (!nd_btt->uuid)
++		return -ENOMEM;
++
++	__nd_device_register(&nd_btt->dev);
++
++	return 0;
++}
++
++int nd_btt_probe(struct nd_namespace_common *ndns, void *drvdata)
++{
++	int rc;
++	struct device *dev;
++	struct btt_sb *btt_sb;
++	struct nd_region *nd_region = to_nd_region(ndns->dev.parent);
++
++	if (ndns->force_raw)
++		return -ENODEV;
++
++	nvdimm_bus_lock(&ndns->dev);
++	dev = __nd_btt_create(nd_region, 0, NULL, ndns);
++	nvdimm_bus_unlock(&ndns->dev);
++	if (!dev)
++		return -ENOMEM;
++	dev_set_drvdata(dev, drvdata);
++	btt_sb = kzalloc(sizeof(*btt_sb), GFP_KERNEL);
++	rc = __nd_btt_probe(to_nd_btt(dev), ndns, btt_sb);
++	kfree(btt_sb);
++	dev_dbg(&ndns->dev, "%s: btt: %s\n", __func__,
++			rc == 0 ? dev_name(dev) : "<none>");
++	if (rc < 0) {
++		__nd_btt_detach_ndns(to_nd_btt(dev));
++		put_device(dev);
++	}
++
++	return rc;
++}
++EXPORT_SYMBOL(nd_btt_probe);
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index ca802702440e..dd12f38397db 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -14,8 +14,10 @@
+ #include <linux/vmalloc.h>
+ #include <linux/uaccess.h>
+ #include <linux/module.h>
++#include <linux/blkdev.h>
+ #include <linux/fcntl.h>
+ #include <linux/async.h>
++#include <linux/genhd.h>
+ #include <linux/ndctl.h>
+ #include <linux/sched.h>
+ #include <linux/slab.h>
+@@ -103,6 +105,7 @@ static int nvdimm_bus_probe(struct device *dev)
+ 
+ 	dev_dbg(&nvdimm_bus->dev, "%s.probe(%s) = %d\n", dev->driver->name,
+ 			dev_name(dev), rc);
++
+ 	if (rc != 0)
+ 		module_put(provider);
+ 	return rc;
+@@ -163,14 +166,19 @@ static void nd_async_device_unregister(void *d, async_cookie_t cookie)
+ 	put_device(dev);
+ }
+ 
+-void nd_device_register(struct device *dev)
++void __nd_device_register(struct device *dev)
+ {
+ 	dev->bus = &nvdimm_bus_type;
+-	device_initialize(dev);
+ 	get_device(dev);
+ 	async_schedule_domain(nd_async_device_register, dev,
+ 			&nd_async_domain);
+ }
++
++void nd_device_register(struct device *dev)
++{
++	device_initialize(dev);
++	__nd_device_register(dev);
++}
+ EXPORT_SYMBOL(nd_device_register);
+ 
+ void nd_device_unregister(struct device *dev, enum nd_async_mode mode)
+diff --git a/drivers/nvdimm/label.c b/drivers/nvdimm/label.c
+index 34148003fc73..96526dcfdd37 100644
+--- a/drivers/nvdimm/label.c
++++ b/drivers/nvdimm/label.c
+@@ -666,7 +666,7 @@ static int __blk_label_update(struct nd_region *nd_region,
+ 
+ 	/* don't allow updates that consume the last label */
+ 	if (nfree - alloc < 0 || nfree - alloc + victims < 1) {
+-		dev_info(&nsblk->dev, "insufficient label space\n");
++		dev_info(&nsblk->common.dev, "insufficient label space\n");
+ 		kfree(victim_map);
+ 		return -ENOSPC;
+ 	}
+@@ -762,7 +762,8 @@ static int __blk_label_update(struct nd_region *nd_region,
+ 			continue;
+ 		res = to_resource(ndd, nd_label);
+ 		res->flags &= ~DPA_RESOURCE_ADJUSTED;
+-		dev_vdbg(&nsblk->dev, "assign label[%d] slot: %d\n", l, slot);
++		dev_vdbg(&nsblk->common.dev, "assign label[%d] slot: %d\n",
++				l, slot);
+ 		nd_mapping->labels[l++] = nd_label;
+ 	}
+ 	nd_mapping->labels[l] = NULL;
+diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
+index 50b502b1908e..2c50a0719f8d 100644
+--- a/drivers/nvdimm/namespace_devs.c
++++ b/drivers/nvdimm/namespace_devs.c
+@@ -102,7 +102,7 @@ static ssize_t __alt_name_store(struct device *dev, const char *buf,
+ 	} else
+ 		return -ENXIO;
+ 
+-	if (dev->driver)
++	if (dev->driver || to_ndns(dev)->claim)
+ 		return -EBUSY;
+ 
+ 	input = kmemdup(buf, len + 1, GFP_KERNEL);
+@@ -133,7 +133,7 @@ out:
+ 
+ static resource_size_t nd_namespace_blk_size(struct nd_namespace_blk *nsblk)
+ {
+-	struct nd_region *nd_region = to_nd_region(nsblk->dev.parent);
++	struct nd_region *nd_region = to_nd_region(nsblk->common.dev.parent);
+ 	struct nd_mapping *nd_mapping = &nd_region->mapping[0];
+ 	struct nvdimm_drvdata *ndd = to_ndd(nd_mapping);
+ 	struct nd_label_id label_id;
+@@ -152,9 +152,9 @@ static resource_size_t nd_namespace_blk_size(struct nd_namespace_blk *nsblk)
+ static int nd_namespace_label_update(struct nd_region *nd_region,
+ 		struct device *dev)
+ {
+-	dev_WARN_ONCE(dev, dev->driver,
++	dev_WARN_ONCE(dev, dev->driver || to_ndns(dev)->claim,
+ 			"namespace must be idle during label update\n");
+-	if (dev->driver)
++	if (dev->driver || to_ndns(dev)->claim)
+ 		return 0;
+ 
+ 	/*
+@@ -666,7 +666,7 @@ static ssize_t __size_store(struct device *dev, unsigned long long val)
+ 	u8 *uuid = NULL;
+ 	int rc, i;
+ 
+-	if (dev->driver)
++	if (dev->driver || to_ndns(dev)->claim)
+ 		return -EBUSY;
+ 
+ 	if (is_namespace_pmem(dev)) {
+@@ -733,12 +733,16 @@ static ssize_t __size_store(struct device *dev, unsigned long long val)
+ 		nd_namespace_pmem_set_size(nd_region, nspm,
+ 				val * nd_region->ndr_mappings);
+ 	} else if (is_namespace_blk(dev)) {
++		struct nd_namespace_blk *nsblk = to_nd_namespace_blk(dev);
++
+ 		/*
+ 		 * Try to delete the namespace if we deleted all of its
+-		 * allocation and this is not the seed device for the
+-		 * region.
++		 * allocation, this is not the seed device for the
++		 * region, and it is not actively claimed by a btt
++		 * instance.
+ 		 */
+-		if (val == 0 && nd_region->ns_seed != dev)
++		if (val == 0 && nd_region->ns_seed != dev
++				&& !nsblk->common.claim)
+ 			nd_device_unregister(dev, ND_ASYNC);
+ 	}
+ 
+@@ -789,26 +793,42 @@ static ssize_t size_store(struct device *dev,
+ 	return rc < 0 ? rc : len;
+ }
+ 
+-static ssize_t size_show(struct device *dev,
+-		struct device_attribute *attr, char *buf)
++resource_size_t __nvdimm_namespace_capacity(struct nd_namespace_common *ndns)
+ {
+-	unsigned long long size = 0;
++	struct device *dev = &ndns->dev;
+ 
+-	nvdimm_bus_lock(dev);
+ 	if (is_namespace_pmem(dev)) {
+ 		struct nd_namespace_pmem *nspm = to_nd_namespace_pmem(dev);
+ 
+-		size = resource_size(&nspm->nsio.res);
++		return resource_size(&nspm->nsio.res);
+ 	} else if (is_namespace_blk(dev)) {
+-		size = nd_namespace_blk_size(to_nd_namespace_blk(dev));
++		return nd_namespace_blk_size(to_nd_namespace_blk(dev));
+ 	} else if (is_namespace_io(dev)) {
+ 		struct nd_namespace_io *nsio = to_nd_namespace_io(dev);
+ 
+-		size = resource_size(&nsio->res);
+-	}
+-	nvdimm_bus_unlock(dev);
++		return resource_size(&nsio->res);
++	} else
++		WARN_ONCE(1, "unknown namespace type\n");
++	return 0;
++}
++
++resource_size_t nvdimm_namespace_capacity(struct nd_namespace_common *ndns)
++{
++	resource_size_t size;
+ 
+-	return sprintf(buf, "%llu\n", size);
++	nvdimm_bus_lock(&ndns->dev);
++	size = __nvdimm_namespace_capacity(ndns);
++	nvdimm_bus_unlock(&ndns->dev);
++
++	return size;
++}
++EXPORT_SYMBOL(nvdimm_namespace_capacity);
++
++static ssize_t size_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	return sprintf(buf, "%llu\n", (unsigned long long)
++			nvdimm_namespace_capacity(to_ndns(dev)));
+ }
+ static DEVICE_ATTR(size, S_IRUGO, size_show, size_store);
+ 
+@@ -897,8 +917,8 @@ static ssize_t uuid_store(struct device *dev,
+ {
+ 	struct nd_region *nd_region = to_nd_region(dev->parent);
+ 	u8 *uuid = NULL;
++	ssize_t rc = 0;
+ 	u8 **ns_uuid;
+-	ssize_t rc;
+ 
+ 	if (is_namespace_pmem(dev)) {
+ 		struct nd_namespace_pmem *nspm = to_nd_namespace_pmem(dev);
+@@ -914,7 +934,10 @@ static ssize_t uuid_store(struct device *dev,
+ 	device_lock(dev);
+ 	nvdimm_bus_lock(dev);
+ 	wait_nvdimm_bus_probe_idle(dev);
+-	rc = nd_uuid_store(dev, &uuid, buf, len);
++	if (to_ndns(dev)->claim)
++		rc = -EBUSY;
++	if (rc >= 0)
++		rc = nd_uuid_store(dev, &uuid, buf, len);
+ 	if (rc >= 0)
+ 		rc = namespace_update_uuid(nd_region, dev, uuid, ns_uuid);
+ 	if (rc >= 0)
+@@ -971,15 +994,18 @@ static ssize_t sector_size_store(struct device *dev,
+ {
+ 	struct nd_namespace_blk *nsblk = to_nd_namespace_blk(dev);
+ 	struct nd_region *nd_region = to_nd_region(dev->parent);
+-	ssize_t rc;
++	ssize_t rc = 0;
+ 
+ 	if (!is_namespace_blk(dev))
+ 		return -ENXIO;
+ 
+ 	device_lock(dev);
+ 	nvdimm_bus_lock(dev);
+-	rc = nd_sector_size_store(dev, buf, &nsblk->lbasize,
+-			ns_lbasize_supported);
++	if (to_ndns(dev)->claim)
++		rc = -EBUSY;
++	if (rc >= 0)
++		rc = nd_sector_size_store(dev, buf, &nsblk->lbasize,
++				ns_lbasize_supported);
+ 	if (rc >= 0)
+ 		rc = nd_namespace_label_update(nd_region, dev);
+ 	dev_dbg(dev, "%s: result: %zd %s: %s%s", __func__,
+@@ -1034,12 +1060,48 @@ static ssize_t dpa_extents_show(struct device *dev,
+ }
+ static DEVICE_ATTR_RO(dpa_extents);
+ 
++static ssize_t holder_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct nd_namespace_common *ndns = to_ndns(dev);
++	ssize_t rc;
++
++	device_lock(dev);
++	rc = sprintf(buf, "%s\n", ndns->claim ? dev_name(ndns->claim) : "");
++	device_unlock(dev);
++
++	return rc;
++}
++static DEVICE_ATTR_RO(holder);
++
++static ssize_t force_raw_store(struct device *dev,
++		struct device_attribute *attr, const char *buf, size_t len)
++{
++	bool force_raw;
++	int rc = strtobool(buf, &force_raw);
++
++	if (rc)
++		return rc;
++
++	to_ndns(dev)->force_raw = force_raw;
++	return len;
++}
++
++static ssize_t force_raw_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	return sprintf(buf, "%d\n", to_ndns(dev)->force_raw);
++}
++static DEVICE_ATTR_RW(force_raw);
++
+ static struct attribute *nd_namespace_attributes[] = {
+ 	&dev_attr_nstype.attr,
+ 	&dev_attr_size.attr,
+ 	&dev_attr_uuid.attr,
++	&dev_attr_holder.attr,
+ 	&dev_attr_resource.attr,
+ 	&dev_attr_alt_name.attr,
++	&dev_attr_force_raw.attr,
+ 	&dev_attr_sector_size.attr,
+ 	&dev_attr_dpa_extents.attr,
+ 	NULL,
+@@ -1066,7 +1128,9 @@ static umode_t namespace_visible(struct kobject *kobj,
+ 		return a->mode;
+ 	}
+ 
+-	if (a == &dev_attr_nstype.attr || a == &dev_attr_size.attr)
++	if (a == &dev_attr_nstype.attr || a == &dev_attr_size.attr
++			|| a == &dev_attr_holder.attr
++			|| a == &dev_attr_force_raw.attr)
+ 		return a->mode;
+ 
+ 	return 0;
+@@ -1083,6 +1147,66 @@ static const struct attribute_group *nd_namespace_attribute_groups[] = {
+ 	NULL,
+ };
+ 
++struct nd_namespace_common *nvdimm_namespace_common_probe(struct device *dev)
++{
++	struct nd_btt *nd_btt = is_nd_btt(dev) ? to_nd_btt(dev) : NULL;
++	struct nd_namespace_common *ndns;
++	resource_size_t size;
++
++	if (nd_btt) {
++		ndns = nd_btt->ndns;
++		if (!ndns)
++			return ERR_PTR(-ENODEV);
++
++		/*
++		 * Flush any in-progess probes / removals in the driver
++		 * for the raw personality of this namespace.
++		 */
++		device_lock(&ndns->dev);
++		device_unlock(&ndns->dev);
++		if (ndns->dev.driver) {
++			dev_dbg(&ndns->dev, "is active, can't bind %s\n",
++					dev_name(&nd_btt->dev));
++			return ERR_PTR(-EBUSY);
++		}
++		if (dev_WARN_ONCE(&ndns->dev, ndns->claim != &nd_btt->dev,
++					"host (%s) vs claim (%s) mismatch\n",
++					dev_name(&nd_btt->dev),
++					dev_name(ndns->claim)))
++			return ERR_PTR(-ENXIO);
++	} else {
++		ndns = to_ndns(dev);
++		if (ndns->claim) {
++			dev_dbg(dev, "claimed by %s, failing probe\n",
++				dev_name(ndns->claim));
++
++			return ERR_PTR(-ENXIO);
++		}
++	}
++
++	size = nvdimm_namespace_capacity(ndns);
++	if (size < ND_MIN_NAMESPACE_SIZE) {
++		dev_dbg(&ndns->dev, "%pa, too small must be at least %#x\n",
++				&size, ND_MIN_NAMESPACE_SIZE);
++		return ERR_PTR(-ENODEV);
++	}
++
++	if (is_namespace_pmem(&ndns->dev)) {
++		struct nd_namespace_pmem *nspm;
++
++		nspm = to_nd_namespace_pmem(&ndns->dev);
++		if (!nspm->uuid) {
++			dev_dbg(&ndns->dev, "%s: uuid not set\n", __func__);
++			return ERR_PTR(-ENODEV);
++		}
++	} else if (is_namespace_blk(&ndns->dev)) {
++		return ERR_PTR(-ENODEV); /* TODO */
++	}
++
++	return ndns;
++}
++EXPORT_SYMBOL(nvdimm_namespace_common_probe);
++
+ static struct device **create_namespace_io(struct nd_region *nd_region)
+ {
+ 	struct nd_namespace_io *nsio;
+@@ -1099,7 +1223,7 @@ static struct device **create_namespace_io(struct nd_region *nd_region)
+ 		return NULL;
+ 	}
+ 
+-	dev = &nsio->dev;
++	dev = &nsio->common.dev;
+ 	dev->type = &namespace_io_device_type;
+ 	dev->parent = &nd_region->dev;
+ 	res = &nsio->res;
+@@ -1313,7 +1437,7 @@ static struct device **create_namespace_pmem(struct nd_region *nd_region)
+ 	if (!nspm)
+ 		return NULL;
+ 
+-	dev = &nspm->nsio.dev;
++	dev = &nspm->nsio.common.dev;
+ 	dev->type = &namespace_pmem_device_type;
+ 	dev->parent = &nd_region->dev;
+ 	res = &nspm->nsio.res;
+@@ -1346,7 +1470,7 @@ static struct device **create_namespace_pmem(struct nd_region *nd_region)
+ 	return devs;
+ 
+  err:
+-	namespace_pmem_release(&nspm->nsio.dev);
++	namespace_pmem_release(&nspm->nsio.common.dev);
+ 	return NULL;
+ }
+ 
+@@ -1385,7 +1509,7 @@ static struct device *nd_namespace_blk_create(struct nd_region *nd_region)
+ 	if (!nsblk)
+ 		return NULL;
+ 
+-	dev = &nsblk->dev;
++	dev = &nsblk->common.dev;
+ 	dev->type = &namespace_blk_device_type;
+ 	nsblk->id = ida_simple_get(&nd_region->ns_ida, 0, 0, GFP_KERNEL);
+ 	if (nsblk->id < 0) {
+@@ -1396,7 +1520,7 @@ static struct device *nd_namespace_blk_create(struct nd_region *nd_region)
+ 	dev->parent = &nd_region->dev;
+ 	dev->groups = nd_namespace_attribute_groups;
+ 
+-	return &nsblk->dev;
++	return &nsblk->common.dev;
+ }
+ 
+ void nd_region_create_blk_seed(struct nd_region *nd_region)
+@@ -1413,6 +1537,18 @@ void nd_region_create_blk_seed(struct nd_region *nd_region)
+ 		nd_device_register(nd_region->ns_seed);
+ }
+ 
++void nd_region_create_btt_seed(struct nd_region *nd_region)
++{
++	WARN_ON(!is_nvdimm_bus_locked(&nd_region->dev));
++	nd_region->btt_seed = nd_btt_create(nd_region);
++	/*
++	 * Seed creation failures are not fatal, provisioning is simply
++	 * disabled until memory becomes available
++	 */
++	if (!nd_region->btt_seed)
++		dev_err(&nd_region->dev, "failed to create btt namespace\n");
++}
++
+ static struct device **create_namespace_blk(struct nd_region *nd_region)
+ {
+ 	struct nd_mapping *nd_mapping = &nd_region->mapping[0];
+@@ -1446,7 +1582,7 @@ static struct device **create_namespace_blk(struct nd_region *nd_region)
+ 				if (!res)
+ 					goto err;
+ 				nd_dbg_dpa(nd_region, ndd, res, "%s assign\n",
+-					dev_name(&nsblk->dev));
++					dev_name(&nsblk->common.dev));
+ 				break;
+ 			}
+ 		}
+@@ -1462,7 +1598,7 @@ static struct device **create_namespace_blk(struct nd_region *nd_region)
+ 		nsblk = kzalloc(sizeof(*nsblk), GFP_KERNEL);
+ 		if (!nsblk)
+ 			goto err;
+-		dev = &nsblk->dev;
++		dev = &nsblk->common.dev;
+ 		dev->type = &namespace_blk_device_type;
+ 		dev->parent = &nd_region->dev;
+ 		dev_set_name(dev, "namespace%d.%d", nd_region->id, count);
+@@ -1482,7 +1618,7 @@ static struct device **create_namespace_blk(struct nd_region *nd_region)
+ 		if (!res)
+ 			goto err;
+ 		nd_dbg_dpa(nd_region, ndd, res, "%s assign\n",
+-				dev_name(&nsblk->dev));
++				dev_name(&nsblk->common.dev));
+ 	}
+ 
+ 	dev_dbg(&nd_region->dev, "%s: discovered %d blk namespace%s\n",
+@@ -1503,7 +1639,7 @@ static struct device **create_namespace_blk(struct nd_region *nd_region)
+ 		nsblk = kzalloc(sizeof(*nsblk), GFP_KERNEL);
+ 		if (!nsblk)
+ 			goto err;
+-		dev = &nsblk->dev;
++		dev = &nsblk->common.dev;
+ 		dev->type = &namespace_blk_device_type;
+ 		dev->parent = &nd_region->dev;
+ 		devs[count++] = dev;
+@@ -1514,7 +1650,7 @@ static struct device **create_namespace_blk(struct nd_region *nd_region)
+ err:
+ 	for (i = 0; i < count; i++) {
+ 		nsblk = to_nd_namespace_blk(devs[i]);
+-		namespace_blk_release(&nsblk->dev);
++		namespace_blk_release(&nsblk->common.dev);
+ 	}
+ 	kfree(devs);
+ 	return NULL;
+diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
+index 78d6c51f4bac..5e6413964776 100644
+--- a/drivers/nvdimm/nd-core.h
++++ b/drivers/nvdimm/nd-core.h
+@@ -45,12 +45,14 @@ struct nvdimm {
+ bool is_nvdimm(struct device *dev);
+ bool is_nd_blk(struct device *dev);
+ bool is_nd_pmem(struct device *dev);
++struct nd_btt;
+ struct nvdimm_bus *walk_to_nvdimm_bus(struct device *nd_dev);
+ int __init nvdimm_bus_init(void);
+ void nvdimm_bus_exit(void);
+ void nd_region_probe_success(struct nvdimm_bus *nvdimm_bus, struct device *dev);
+ struct nd_region;
+ void nd_region_create_blk_seed(struct nd_region *nd_region);
++void nd_region_create_btt_seed(struct nd_region *nd_region);
+ void nd_region_disable(struct nvdimm_bus *nvdimm_bus, struct device *dev);
+ int nvdimm_bus_create_ndctl(struct nvdimm_bus *nvdimm_bus);
+ void nvdimm_bus_destroy_ndctl(struct nvdimm_bus *nvdimm_bus);
+@@ -58,6 +60,7 @@ void nd_synchronize(void);
+ int nvdimm_bus_register_dimms(struct nvdimm_bus *nvdimm_bus);
+ int nvdimm_bus_register_regions(struct nvdimm_bus *nvdimm_bus);
+ int nvdimm_bus_init_interleave_sets(struct nvdimm_bus *nvdimm_bus);
++void __nd_device_register(struct device *dev);
+ int nd_match_dimm(struct device *dev, void *data);
+ struct nd_label_id;
+ char *nd_label_gen_id(struct nd_label_id *label_id, u8 *uuid, u32 flags);
+@@ -77,4 +80,5 @@ struct resource *nsblk_add_resource(struct nd_region *nd_region,
+ 		resource_size_t start);
+ int nvdimm_num_label_slots(struct nvdimm_drvdata *ndd);
+ void get_ndd(struct nvdimm_drvdata *ndd);
++resource_size_t __nvdimm_namespace_capacity(struct nd_namespace_common *ndns);
+ #endif /* __ND_CORE_H__ */
+diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+index bfa849617358..329e4d54969f 100644
+--- a/drivers/nvdimm/nd.h
++++ b/drivers/nvdimm/nd.h
+@@ -19,6 +19,10 @@
+ #include <linux/types.h>
+ #include "label.h"
+ 
++enum {
++	SECTOR_SHIFT = 9,
++};
++
+ struct nvdimm_drvdata {
+ 	struct device *dev;
+ 	int nsindex_size;
+@@ -75,6 +79,7 @@ struct nd_region {
+ 	struct device dev;
+ 	struct ida ns_ida;
+ 	struct device *ns_seed;
++	struct device *btt_seed;
+ 	u16 ndr_mappings;
+ 	u64 ndr_size;
+ 	u64 ndr_start;
+@@ -94,6 +99,14 @@ static inline unsigned nd_inc_seq(unsigned seq)
+ 	return next[seq & 3];
+ }
+ 
++struct nd_btt {
++	struct device dev;
++	struct nd_namespace_common *ndns;
++	unsigned long lbasize;
++	u8 *uuid;
++	int id;
++};
++
+ enum nd_async_mode {
+ 	ND_SYNC,
+ 	ND_ASYNC,
+@@ -118,6 +131,30 @@ int nvdimm_init_nsarea(struct nvdimm_drvdata *ndd);
+ int nvdimm_init_config_data(struct nvdimm_drvdata *ndd);
+ int nvdimm_set_config_data(struct nvdimm_drvdata *ndd, size_t offset,
+ 		void *buf, size_t len);
++struct nd_btt *to_nd_btt(struct device *dev);
++struct btt_sb;
++u64 nd_btt_sb_checksum(struct btt_sb *btt_sb);
++#if IS_ENABLED(CONFIG_BTT)
++int nd_btt_probe(struct nd_namespace_common *ndns, void *drvdata);
++bool is_nd_btt(struct device *dev);
++struct device *nd_btt_create(struct nd_region *nd_region);
++#else
++static inline nd_btt_probe(struct nd_namespace_common *ndns, void *drvdata)
++{
++	return -ENODEV;
++}
++
++static inline bool is_nd_btt(struct device *dev)
++{
++	return false;
++}
++
++static inline struct device *nd_btt_create(struct nd_region *nd_region)
++{
++	return NULL;
++}
++
++#endif
+ struct nd_region *to_nd_region(struct device *dev);
+ int nd_region_to_nstype(struct nd_region *nd_region);
+ int nd_region_register_namespaces(struct nd_region *nd_region, int *err);
+@@ -132,4 +169,6 @@ void nvdimm_free_dpa(struct nvdimm_drvdata *ndd, struct resource *res);
+ struct resource *nvdimm_allocate_dpa(struct nvdimm_drvdata *ndd,
+ 		struct nd_label_id *label_id, resource_size_t start,
+ 		resource_size_t n);
++resource_size_t nvdimm_namespace_capacity(struct nd_namespace_common *ndns);
++struct nd_namespace_common *nvdimm_namespace_common_probe(struct device *dev);
+ #endif /* __ND_H__ */
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index 90902a142e35..d0c6b4bdba69 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -121,44 +121,61 @@ static struct pmem_device *pmem_alloc(struct device *dev,
+ 		struct resource *res, int id)
+ {
+ 	struct pmem_device *pmem;
+-	struct gendisk *disk;
+-	int err;
+ 
+-	err = -ENOMEM;
+ 	pmem = kzalloc(sizeof(*pmem), GFP_KERNEL);
+ 	if (!pmem)
+-		goto out;
++		return ERR_PTR(-ENOMEM);
+ 
+ 	pmem->phys_addr = res->start;
+ 	pmem->size = resource_size(res);
+ 
+-	err = -EINVAL;
+-	if (!request_mem_region(pmem->phys_addr, pmem->size, "pmem")) {
++	if (!request_mem_region(pmem->phys_addr, pmem->size, dev_name(dev))) {
+ 		dev_warn(dev, "could not reserve region [0x%pa:0x%zx]\n",
+ 				&pmem->phys_addr, pmem->size);
+-		goto out_free_dev;
++		kfree(pmem);
++		return ERR_PTR(-EBUSY);
+ 	}
+ 
+ 	/*
+ 	 * Map the memory as non-cachable, as we can't write back the contents
+ 	 * of the CPU caches in case of a crash.
+ 	 */
+-	err = -ENOMEM;
+ 	pmem->virt_addr = ioremap_nocache(pmem->phys_addr, pmem->size);
+-	if (!pmem->virt_addr)
+-		goto out_release_region;
++	if (!pmem->virt_addr) {
++		release_mem_region(pmem->phys_addr, pmem->size);
++		kfree(pmem);
++		return ERR_PTR(-ENXIO);
++	}
++
++	return pmem;
++}
++
++static void pmem_detach_disk(struct pmem_device *pmem)
++{
++	del_gendisk(pmem->pmem_disk);
++	put_disk(pmem->pmem_disk);
++	blk_cleanup_queue(pmem->pmem_queue);
++}
++
++static int pmem_attach_disk(struct nd_namespace_common *ndns,
++		struct pmem_device *pmem)
++{
++	struct nd_region *nd_region = to_nd_region(ndns->dev.parent);
++	struct gendisk *disk;
+ 
+ 	pmem->pmem_queue = blk_alloc_queue(GFP_KERNEL);
+ 	if (!pmem->pmem_queue)
+-		goto out_unmap;
++		return -ENOMEM;
+ 
+ 	blk_queue_make_request(pmem->pmem_queue, pmem_make_request);
+ 	blk_queue_max_hw_sectors(pmem->pmem_queue, 1024);
+ 	blk_queue_bounce_limit(pmem->pmem_queue, BLK_BOUNCE_ANY);
+ 
+ 	disk = alloc_disk(0);
+-	if (!disk)
+-		goto out_free_queue;
++	if (!disk) {
++		blk_cleanup_queue(pmem->pmem_queue);
++		return -ENOMEM;
++	}
+ 
+ 	disk->major		= pmem_major;
+ 	disk->first_minor	= 0;
+@@ -166,32 +183,47 @@ static struct pmem_device *pmem_alloc(struct device *dev,
+ 	disk->private_data	= pmem;
+ 	disk->queue		= pmem->pmem_queue;
+ 	disk->flags		= GENHD_FL_EXT_DEVT;
+-	sprintf(disk->disk_name, "pmem%d", id);
+-	disk->driverfs_dev = dev;
++	sprintf(disk->disk_name, "pmem%d", nd_region->id);
++	disk->driverfs_dev = &ndns->dev;
+ 	set_capacity(disk, pmem->size >> 9);
+ 	pmem->pmem_disk = disk;
+ 
+ 	add_disk(disk);
+ 
+-	return pmem;
++	return 0;
++}
+ 
+-out_free_queue:
+-	blk_cleanup_queue(pmem->pmem_queue);
+-out_unmap:
+-	iounmap(pmem->virt_addr);
+-out_release_region:
+-	release_mem_region(pmem->phys_addr, pmem->size);
+-out_free_dev:
+-	kfree(pmem);
+-out:
+-	return ERR_PTR(err);
++static int pmem_rw_bytes(struct nd_namespace_common *ndns,
++		resource_size_t offset, void *buf, size_t size, int rw)
++{
++	struct pmem_device *pmem = dev_get_drvdata(ndns->claim);
++
++	if (unlikely(offset + size > pmem->size)) {
++		dev_WARN_ONCE(&ndns->dev, 1, "request out of range\n");
++		return -EFAULT;
++	}
++
++	if (rw == READ)
++		memcpy(buf, pmem->virt_addr + offset, size);
++	else
++		memcpy(pmem->virt_addr + offset, buf, size);
++
++	return 0;
++}
++
++static int nvdimm_namespace_attach_btt(struct nd_namespace_common *ndns)
++{
++	/* TODO */
++	return -ENXIO;
++}
++
++static void nvdimm_namespace_detach_btt(struct nd_namespace_common *ndns)
++{
++	/* TODO */
+ }
+ 
+ static void pmem_free(struct pmem_device *pmem)
+ {
+-	del_gendisk(pmem->pmem_disk);
+-	put_disk(pmem->pmem_disk);
+-	blk_cleanup_queue(pmem->pmem_queue);
+ 	iounmap(pmem->virt_addr);
+ 	release_mem_region(pmem->phys_addr, pmem->size);
+ 	kfree(pmem);
+@@ -200,40 +232,44 @@ static void pmem_free(struct pmem_device *pmem)
+ static int nd_pmem_probe(struct device *dev)
+ {
+ 	struct nd_region *nd_region = to_nd_region(dev->parent);
+-	struct nd_namespace_io *nsio = to_nd_namespace_io(dev);
++	struct nd_namespace_common *ndns;
++	struct nd_namespace_io *nsio;
+ 	struct pmem_device *pmem;
++	int rc;
+ 
+-	if (resource_size(&nsio->res) < ND_MIN_NAMESPACE_SIZE) {
+-		resource_size_t size = resource_size(&nsio->res);
+-
+-		dev_dbg(dev, "%s: size: %pa, too small must be at least %#x\n",
+-				__func__, &size, ND_MIN_NAMESPACE_SIZE);
+-		return -ENODEV;
+-	}
+-
+-	if (nd_region_to_nstype(nd_region) == ND_DEVICE_NAMESPACE_PMEM) {
+-		struct nd_namespace_pmem *nspm = to_nd_namespace_pmem(dev);
+-
+-		if (!nspm->uuid) {
+-			dev_dbg(dev, "%s: uuid not set\n", __func__);
+-			return -ENODEV;
+-		}
+-	}
++	ndns = nvdimm_namespace_common_probe(dev);
++	if (IS_ERR(ndns))
++		return PTR_ERR(ndns);
+ 
++	nsio = to_nd_namespace_io(&ndns->dev);
+ 	pmem = pmem_alloc(dev, &nsio->res, nd_region->id);
+ 	if (IS_ERR(pmem))
+ 		return PTR_ERR(pmem);
+ 
+ 	dev_set_drvdata(dev, pmem);
+-
+-	return 0;
++	ndns->rw_bytes = pmem_rw_bytes;
++	if (is_nd_btt(dev))
++		rc = nvdimm_namespace_attach_btt(ndns);
++	else if (nd_btt_probe(ndns, pmem) == 0) {
++		/* we'll come back as btt-pmem */
++		rc = -ENXIO;
++	} else
++		rc = pmem_attach_disk(ndns, pmem);
++	if (rc)
++		pmem_free(pmem);
++	return rc;
+ }
+ 
+ static int nd_pmem_remove(struct device *dev)
+ {
+ 	struct pmem_device *pmem = dev_get_drvdata(dev);
+ 
++	if (is_nd_btt(dev))
++		nvdimm_namespace_detach_btt(to_nd_btt(dev)->ndns);
++	else
++		pmem_detach_disk(pmem);
+ 	pmem_free(pmem);
++
+ 	return 0;
+ }
+ 
+diff --git a/drivers/nvdimm/region.c b/drivers/nvdimm/region.c
+index 9aba44e483e0..2a5f3f53d79d 100644
+--- a/drivers/nvdimm/region.c
++++ b/drivers/nvdimm/region.c
+@@ -33,12 +33,13 @@ static int nd_region_probe(struct device *dev)
+ 	num_ns->count = rc + err;
+ 	dev_set_drvdata(dev, num_ns);
+ 
++	if (rc && err && rc == err)
++		return -ENODEV;
++
++	nd_region->btt_seed = nd_btt_create(nd_region);
+ 	if (err == 0)
+ 		return 0;
+ 
+-	if (rc == err)
+-		return -ENODEV;
+-
+ 	/*
+ 	 * Given multiple namespaces per region, we do not want to
+ 	 * disable all the successfully registered peer namespaces upon
+@@ -66,6 +67,7 @@ static int nd_region_remove(struct device *dev)
+ 	/* flush attribute readers and disable */
+ 	nvdimm_bus_lock(dev);
+ 	nd_region->ns_seed = NULL;
++	nd_region->btt_seed = NULL;
+ 	dev_set_drvdata(dev, NULL);
+ 	nvdimm_bus_unlock(dev);
+ 
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index ac21ce419beb..f4cc1d848156 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -296,10 +296,28 @@ static ssize_t namespace_seed_show(struct device *dev,
+ }
+ static DEVICE_ATTR_RO(namespace_seed);
+ 
++static ssize_t btt_seed_show(struct device *dev,
++		struct device_attribute *attr, char *buf)
++{
++	struct nd_region *nd_region = to_nd_region(dev);
++	ssize_t rc;
++
++	nvdimm_bus_lock(dev);
++	if (nd_region->btt_seed)
++		rc = sprintf(buf, "%s\n", dev_name(nd_region->btt_seed));
++	else
++		rc = sprintf(buf, "\n");
++	nvdimm_bus_unlock(dev);
++
++	return rc;
++}
++static DEVICE_ATTR_RO(btt_seed);
++
+ static struct attribute *nd_region_attributes[] = {
+ 	&dev_attr_size.attr,
+ 	&dev_attr_nstype.attr,
+ 	&dev_attr_mappings.attr,
++	&dev_attr_btt_seed.attr,
+ 	&dev_attr_set_cookie.attr,
+ 	&dev_attr_available_size.attr,
+ 	&dev_attr_namespace_seed.attr,
+@@ -345,15 +363,18 @@ u64 nd_region_interleave_set_cookie(struct nd_region *nd_region)
+ 
+ /*
+  * Upon successful probe/remove, take/release a reference on the
+- * associated interleave set (if present)
++ * associated interleave set (if present), and plant new btt + namespace
++ * seeds.
+  */
+ static void nd_region_notify_driver_action(struct nvdimm_bus *nvdimm_bus,
+ 		struct device *dev, bool probe)
+ {
++	struct nd_region *nd_region;
++
+ 	if (!probe && (is_nd_pmem(dev) || is_nd_blk(dev))) {
+-		struct nd_region *nd_region = to_nd_region(dev);
+ 		int i;
+ 
++		nd_region = to_nd_region(dev);
+ 		for (i = 0; i < nd_region->ndr_mappings; i++) {
+ 			struct nd_mapping *nd_mapping = &nd_region->mapping[i];
+ 			struct nvdimm_drvdata *ndd = nd_mapping->ndd;
+@@ -365,14 +386,21 @@ static void nd_region_notify_driver_action(struct nvdimm_bus *nvdimm_bus,
+ 			nd_mapping->ndd = NULL;
+ 			atomic_dec(&nvdimm->busy);
+ 		}
+-	} else if (dev->parent && is_nd_blk(dev->parent) && probe) {
+-		struct nd_region *nd_region = to_nd_region(dev->parent);
+-
++	}
++	if (dev->parent && is_nd_blk(dev->parent) && probe) {
++		nd_region = to_nd_region(dev->parent);
+ 		nvdimm_bus_lock(dev);
+ 		if (nd_region->ns_seed == dev)
+ 			nd_region_create_blk_seed(nd_region);
+ 		nvdimm_bus_unlock(dev);
+ 	}
++	if (is_nd_btt(dev) && probe) {
++		nd_region = to_nd_region(dev->parent);
++		nvdimm_bus_lock(dev);
++		if (nd_region->btt_seed == dev)
++			nd_region_create_btt_seed(nd_region);
++		nvdimm_bus_unlock(dev);
++	}
+ }
+ 
+ void nd_region_probe_success(struct nvdimm_bus *nvdimm_bus, struct device *dev)
+diff --git a/include/linux/nd.h b/include/linux/nd.h
+index 23276ea91690..507e47c86737 100644
+--- a/include/linux/nd.h
++++ b/include/linux/nd.h
+@@ -12,6 +12,7 @@
+  */
+ #ifndef __LINUX_ND_H__
+ #define __LINUX_ND_H__
++#include <linux/fs.h>
+ #include <linux/ndctl.h>
+ #include <linux/device.h>
+ 
+@@ -29,12 +30,32 @@ static inline struct nd_device_driver *to_nd_device_driver(
+ };
+ 
+ /**
++ * struct nd_namespace_common - core infrastructure of a namespace
++ * @force_raw: ignore other personalities for the namespace (e.g. btt)
++ * @dev: device model node
++ * @claim: when set a another personality has taken ownership of the namespace
++ * @rw_bytes: access the raw namespace capacity with byte-aligned transfers
++ */
++struct nd_namespace_common {
++	int force_raw;
++	struct device dev;
++	struct device *claim;
++	int (*rw_bytes)(struct nd_namespace_common *, resource_size_t offset,
++			void *buf, size_t size, int rw);
++};
++
++static inline struct nd_namespace_common *to_ndns(struct device *dev)
++{
++	return container_of(dev, struct nd_namespace_common, dev);
++}
++
++/**
+  * struct nd_namespace_io - infrastructure for loading an nd_pmem instance
+  * @dev: namespace device created by the nd region driver
+  * @res: struct resource conversion of a NFIT SPA table
+  */
+ struct nd_namespace_io {
+-	struct device dev;
++	struct nd_namespace_common common;
+ 	struct resource res;
+ };
+ 
+@@ -52,7 +73,6 @@ struct nd_namespace_pmem {
+ 
+ /**
+  * struct nd_namespace_blk - namespace for dimm-bounded persistent memory
+- * @dev: namespace device creation by the nd region driver
+  * @alt_name: namespace name supplied in the dimm label
+  * @uuid: namespace name supplied in the dimm label
+  * @id: ida allocated id
+@@ -61,7 +81,7 @@ struct nd_namespace_pmem {
+  * @res: discontiguous dpa extents for given dimm
+  */
+ struct nd_namespace_blk {
+-	struct device dev;
++	struct nd_namespace_common common;
+ 	char *alt_name;
+ 	u8 *uuid;
+ 	int id;
+@@ -72,7 +92,7 @@ struct nd_namespace_blk {
+ 
+ static inline struct nd_namespace_io *to_nd_namespace_io(struct device *dev)
+ {
+-	return container_of(dev, struct nd_namespace_io, dev);
++	return container_of(dev, struct nd_namespace_io, common.dev);
+ }
+ 
+ static inline struct nd_namespace_pmem *to_nd_namespace_pmem(struct device *dev)
+@@ -84,7 +104,40 @@ static inline struct nd_namespace_pmem *to_nd_namespace_pmem(struct device *dev)
+ 
+ static inline struct nd_namespace_blk *to_nd_namespace_blk(struct device *dev)
+ {
+-	return container_of(dev, struct nd_namespace_blk, dev);
++	return container_of(dev, struct nd_namespace_blk, common.dev);
++}
++
++/**
++ * nvdimm_read_bytes() - synchronously read bytes from an nvdimm namespace
++ * @ndns: device to read
++ * @offset: namespace-relative starting offset
++ * @buf: buffer to fill
++ * @size: transfer length
++ *
++ * @buf is up-to-date upon return from this routine.
++ */
++static inline int nvdimm_read_bytes(struct nd_namespace_common *ndns,
++		resource_size_t offset, void *buf, size_t size)
++{
++	return ndns->rw_bytes(ndns, offset, buf, size, READ);
++}
++
++/**
++ * nvdimm_write_bytes() - synchronously write bytes to an nvdimm namespace
++ * @ndns: device to read
++ * @offset: namespace-relative starting offset
++ * @buf: buffer to drain
++ * @size: transfer length
++ *
++ * NVDIMM Namepaces disks do not implement sectors internally.  Depending on
++ * the @ndns, the contents of @buf may be in cpu cache, platform buffers,
++ * or on backing memory media upon return from this routine.  Flushing
++ * to media is handled internal to the @ndns driver, if at all.
++ */
++static inline int nvdimm_write_bytes(struct nd_namespace_common *ndns,
++		resource_size_t offset, void *buf, size_t size)
++{
++	return ndns->rw_bytes(ndns, offset, buf, size, WRITE);
+ }
+ 
+ #define MODULE_ALIAS_ND_DEVICE(type) \
