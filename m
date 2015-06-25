@@ -1,141 +1,199 @@
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH v2 16/17] libnvdimm: Add sysfs numa_node to NVDIMM devices
-Date: Thu, 25 Jun 2015 05:37:43 -0400
-Message-ID: <20150625093743.40066.92148.stgit@dwillia2-desk3.jf.intel.com>
+Subject: [PATCH v2 11/17] libnvdimm: enable iostat
+Date: Thu, 25 Jun 2015 05:37:17 -0400
+Message-ID: <20150625093717.40066.87241.stgit@dwillia2-desk3.jf.intel.com>
 References: <20150625090554.40066.69562.stgit@dwillia2-desk3.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:63182 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752175AbbFYJnB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 25 Jun 2015 05:43:01 -0400
 In-Reply-To: <20150625090554.40066.69562.stgit@dwillia2-desk3.jf.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: axboe@kernel.dk, boaz@plexistor.com, toshi.kani@hp.com, linux-kernel@vger.kernel.org, hch@lst.de, linux-acpi@vger.kernel.org, linux-fsdevel@vger.kernel.org, mingo@kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: axboe@kernel.dk, boaz@plexistor.com, toshi.kani@hp.com, Vishal Verma <vishal.l.verma@linux.intel.com>, linux-kernel@vger.kernel.org, mingo@kernel.org, linux-acpi@vger.kernel.org, linux-fsdevel@vger.kernel.org, hch@lst.de
 
-From: Toshi Kani <toshi.kani@hp.com>
+This is disabled by default as the overhead is prohibitive, but if the
+user takes the action to turn it on we'll oblige.
 
-Add support of sysfs 'numa_node' to I/O-related NVDIMM devices
-under /sys/bus/nd/devices, regionN, namespaceN.0, and bttN.
-When bttN is not set up, its numa_node returns -1 (NUMA_NO_NODE).
-
-An example of numa_node values on a 2-socket system with a single
-NVDIMM range on each socket is shown below.
-  /sys/bus/nd/devices
-  |-- btt0/numa_node:-1
-  |-- btt1/numa_node:0
-  |-- namespace0.0/numa_node:0
-  |-- namespace1.0/numa_node:1
-  |-- region0/numa_node:0
-  |-- region1/numa_node:1
-
-These numa_node files are then linked under the block class of
-their device names.
-  /sys/class/block/pmem0/device/numa_node:0
-  /sys/class/block/pmem0s/device/numa_node:0
-  /sys/class/block/pmem1/device/numa_node:1
-
-This enables numactl(8) to accept 'block:' and 'file:' paths of
-pmem and btt devices as shown in the examples below.
-  numactl --preferred block:pmem0 --show
-  numactl --preferred file:/dev/pmem0s --show
-
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+Reviewed-by: Vishal Verma <vishal.l.verma@linux.intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/acpi/nfit.c             |    1 +
- drivers/nvdimm/btt_devs.c       |    1 +
- drivers/nvdimm/bus.c            |   30 ++++++++++++++++++++++++++++++
- drivers/nvdimm/namespace_devs.c |    1 +
- include/linux/libnvdimm.h       |    1 +
- 5 files changed, 34 insertions(+)
+ drivers/nvdimm/blk.c  |    7 ++++++-
+ drivers/nvdimm/btt.c  |    7 ++++++-
+ drivers/nvdimm/core.c |   29 +++++++++++++++++++++++++++++
+ drivers/nvdimm/nd.h   |   13 +++++++++++++
+ drivers/nvdimm/pmem.c |    5 +++++
+ 5 files changed, 59 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index d96c8fe974dd..2161fa178c8d 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -873,6 +873,7 @@ static const struct attribute_group *acpi_nfit_region_attribute_groups[] = {
- 	&nd_region_attribute_group,
- 	&nd_mapping_attribute_group,
- 	&nd_device_attribute_group,
-+	&nd_numa_attribute_group,
- 	&acpi_nfit_region_attribute_group,
- 	NULL,
- };
-diff --git a/drivers/nvdimm/btt_devs.c b/drivers/nvdimm/btt_devs.c
-index b6724cfbcfca..2dfb529f4d35 100644
---- a/drivers/nvdimm/btt_devs.c
-+++ b/drivers/nvdimm/btt_devs.c
-@@ -294,6 +294,7 @@ static struct attribute_group nd_btt_attribute_group = {
- static const struct attribute_group *nd_btt_attribute_groups[] = {
- 	&nd_btt_attribute_group,
- 	&nd_device_attribute_group,
-+	&nd_numa_attribute_group,
- 	NULL,
- };
+diff --git a/drivers/nvdimm/blk.c b/drivers/nvdimm/blk.c
+index 5c44e067652f..96ef38ceeceb 100644
+--- a/drivers/nvdimm/blk.c
++++ b/drivers/nvdimm/blk.c
+@@ -168,8 +168,10 @@ static void nd_blk_make_request(struct request_queue *q, struct bio *bio)
+ 	struct bio_integrity_payload *bip;
+ 	struct nd_blk_device *blk_dev;
+ 	struct bvec_iter iter;
++	unsigned long start;
+ 	struct bio_vec bvec;
+ 	int err = 0, rw;
++	bool do_acct;
  
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index ec59f1f26d95..1380954a6593 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -274,6 +274,36 @@ struct attribute_group nd_device_attribute_group = {
- };
- EXPORT_SYMBOL_GPL(nd_device_attribute_group);
+ 	/*
+ 	 * bio_integrity_enabled also checks if the bio already has an
+@@ -185,6 +187,7 @@ static void nd_blk_make_request(struct request_queue *q, struct bio *bio)
+ 	bip = bio_integrity(bio);
+ 	blk_dev = disk->private_data;
+ 	rw = bio_data_dir(bio);
++	do_acct = nd_iostat_start(bio, &start);
+ 	bio_for_each_segment(bvec, bio, iter) {
+ 		unsigned int len = bvec.bv_len;
  
-+static ssize_t numa_node_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
+@@ -196,9 +199,11 @@ static void nd_blk_make_request(struct request_queue *q, struct bio *bio)
+ 					"io error in %s sector %lld, len %d,\n",
+ 					(rw == READ) ? "READ" : "WRITE",
+ 					(unsigned long long) iter.bi_sector, len);
+-			goto out;
++			break;
+ 		}
+ 	}
++	if (do_acct)
++		nd_iostat_end(bio, start);
+ 
+  out:
+ 	bio_endio(bio, err);
+diff --git a/drivers/nvdimm/btt.c b/drivers/nvdimm/btt.c
+index 18a2463c2300..c02065aed03d 100644
+--- a/drivers/nvdimm/btt.c
++++ b/drivers/nvdimm/btt.c
+@@ -1177,8 +1177,10 @@ static void btt_make_request(struct request_queue *q, struct bio *bio)
+ 	struct bio_integrity_payload *bip = bio_integrity(bio);
+ 	struct btt *btt = q->queuedata;
+ 	struct bvec_iter iter;
++	unsigned long start;
+ 	struct bio_vec bvec;
+ 	int err = 0, rw;
++	bool do_acct;
+ 
+ 	/*
+ 	 * bio_integrity_enabled also checks if the bio already has an
+@@ -1191,6 +1193,7 @@ static void btt_make_request(struct request_queue *q, struct bio *bio)
+ 		goto out;
+ 	}
+ 
++	do_acct = nd_iostat_start(bio, &start);
+ 	rw = bio_data_dir(bio);
+ 	bio_for_each_segment(bvec, bio, iter) {
+ 		unsigned int len = bvec.bv_len;
+@@ -1208,9 +1211,11 @@ static void btt_make_request(struct request_queue *q, struct bio *bio)
+ 					"io error in %s sector %lld, len %d,\n",
+ 					(rw == READ) ? "READ" : "WRITE",
+ 					(unsigned long long) iter.bi_sector, len);
+-			goto out;
++			break;
+ 		}
+ 	}
++	if (do_acct)
++		nd_iostat_end(bio, start);
+ 
+ out:
+ 	bio_endio(bio, err);
+diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
+index 4288169432de..cb62ec6a12d0 100644
+--- a/drivers/nvdimm/core.c
++++ b/drivers/nvdimm/core.c
+@@ -214,6 +214,35 @@ ssize_t nd_sector_size_store(struct device *dev, const char *buf,
+ 	}
+ }
+ 
++void __nd_iostat_start(struct bio *bio, unsigned long *start)
 +{
-+	return sprintf(buf, "%d\n", dev_to_node(dev));
++	struct gendisk *disk = bio->bi_bdev->bd_disk;
++	const int rw = bio_data_dir(bio);
++	int cpu = part_stat_lock();
++
++	*start = jiffies;
++	part_round_stats(cpu, &disk->part0);
++	part_stat_inc(cpu, &disk->part0, ios[rw]);
++	part_stat_add(cpu, &disk->part0, sectors[rw], bio_sectors(bio));
++	part_inc_in_flight(&disk->part0, rw);
++	part_stat_unlock();
 +}
-+static DEVICE_ATTR_RO(numa_node);
++EXPORT_SYMBOL(__nd_iostat_start);
 +
-+static struct attribute *nd_numa_attributes[] = {
-+	&dev_attr_numa_node.attr,
-+	NULL,
-+};
-+
-+static umode_t nd_numa_attr_visible(struct kobject *kobj, struct attribute *a,
-+		int n)
++void nd_iostat_end(struct bio *bio, unsigned long start)
 +{
-+	if (!IS_ENABLED(CONFIG_NUMA))
-+		return 0;
++	struct gendisk *disk = bio->bi_bdev->bd_disk;
++	unsigned long duration = jiffies - start;
++	const int rw = bio_data_dir(bio);
++	int cpu = part_stat_lock();
 +
-+	return a->mode;
++	part_stat_add(cpu, &disk->part0, ticks[rw], duration);
++	part_round_stats(cpu, &disk->part0);
++	part_dec_in_flight(&disk->part0, rw);
++	part_stat_unlock();
 +}
++EXPORT_SYMBOL(nd_iostat_end);
 +
-+/**
-+ * nd_numa_attribute_group - NUMA attributes for all devices on an nd bus
-+ */
-+struct attribute_group nd_numa_attribute_group = {
-+	.attrs = nd_numa_attributes,
-+	.is_visible = nd_numa_attr_visible,
-+};
-+EXPORT_SYMBOL_GPL(nd_numa_attribute_group);
-+
- int nvdimm_bus_create_ndctl(struct nvdimm_bus *nvdimm_bus)
+ static ssize_t commands_show(struct device *dev,
+ 		struct device_attribute *attr, char *buf)
  {
- 	dev_t devt = MKDEV(nvdimm_bus_major, nvdimm_bus->id);
-diff --git a/drivers/nvdimm/namespace_devs.c b/drivers/nvdimm/namespace_devs.c
-index 27d69bd3b4d6..fef0dd80d4ad 100644
---- a/drivers/nvdimm/namespace_devs.c
-+++ b/drivers/nvdimm/namespace_devs.c
-@@ -1228,6 +1228,7 @@ static struct attribute_group nd_namespace_attribute_group = {
- static const struct attribute_group *nd_namespace_attribute_groups[] = {
- 	&nd_device_attribute_group,
- 	&nd_namespace_attribute_group,
-+	&nd_numa_attribute_group,
- 	NULL,
- };
+diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+index e73c34dcd935..cf6849b72c4f 100644
+--- a/drivers/nvdimm/nd.h
++++ b/drivers/nvdimm/nd.h
+@@ -13,6 +13,7 @@
+ #ifndef __ND_H__
+ #define __ND_H__
+ #include <linux/libnvdimm.h>
++#include <linux/blkdev.h>
+ #include <linux/device.h>
+ #include <linux/mutex.h>
+ #include <linux/ndctl.h>
+@@ -201,5 +202,17 @@ int nvdimm_namespace_detach_btt(struct nd_namespace_common *ndns);
+ const char *nvdimm_namespace_disk_name(struct nd_namespace_common *ndns,
+ 		char *name);
+ int nd_blk_region_init(struct nd_region *nd_region);
++void __nd_iostat_start(struct bio *bio, unsigned long *start);
++static inline bool nd_iostat_start(struct bio *bio, unsigned long *start)
++{
++	struct gendisk *disk = bio->bi_bdev->bd_disk;
++
++	if (!blk_queue_io_stat(disk->queue))
++		return false;
++
++	__nd_iostat_start(bio, start);
++	return true;
++}
++void nd_iostat_end(struct bio *bio, unsigned long start);
+ resource_size_t nd_namespace_blk_validate(struct nd_namespace_blk *nsblk);
+ #endif /* __ND_H__ */
+diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+index e846a627ebdf..09195e3b7453 100644
+--- a/drivers/nvdimm/pmem.c
++++ b/drivers/nvdimm/pmem.c
+@@ -58,14 +58,19 @@ static void pmem_do_bvec(struct pmem_device *pmem, struct page *page,
  
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index 30b3deaafd51..75e3af01ee32 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -38,6 +38,7 @@ enum {
- extern struct attribute_group nvdimm_bus_attribute_group;
- extern struct attribute_group nvdimm_attribute_group;
- extern struct attribute_group nd_device_attribute_group;
-+extern struct attribute_group nd_numa_attribute_group;
- extern struct attribute_group nd_region_attribute_group;
- extern struct attribute_group nd_mapping_attribute_group;
+ static void pmem_make_request(struct request_queue *q, struct bio *bio)
+ {
++	bool do_acct;
++	unsigned long start;
+ 	struct bio_vec bvec;
+ 	struct bvec_iter iter;
+ 	struct block_device *bdev = bio->bi_bdev;
+ 	struct pmem_device *pmem = bdev->bd_disk->private_data;
  
++	do_acct = nd_iostat_start(bio, &start);
+ 	bio_for_each_segment(bvec, bio, iter)
+ 		pmem_do_bvec(pmem, bvec.bv_page, bvec.bv_len, bvec.bv_offset,
+ 				bio_data_dir(bio), iter.bi_sector);
++	if (do_acct)
++		nd_iostat_end(bio, start);
+ 	bio_endio(bio, 0);
+ }
+ 
+
