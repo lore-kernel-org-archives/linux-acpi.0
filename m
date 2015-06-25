@@ -1,158 +1,125 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH v2 03/28] ACPICA: Hardware: Enable 64-bit firmware
- waking vector for selected FACS.
-Date: Thu, 25 Jun 2015 00:29:02 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E8802733C14@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1434684719.git.lv.zheng@intel.com>
- <7ca3239e4066d1a33c523b1ccb475bcbfa6448d3.1435114811.git.lv.zheng@intel.com>
- <2100131.SXLpyPbXcH@vostro.rjw.lan> <3959851.uJ0udqUY0b@vostro.rjw.lan>
+From: "Izumi, Taku" <izumi.taku@jp.fujitsu.com>
+Subject: RE: [PATCH v2 01/22] fjes: Introduce FUJITSU Extended Socket
+ Network Device driver
+Date: Thu, 25 Jun 2015 00:32:40 +0000
+Message-ID: <E86EADE93E2D054CBCD4E708C38D364A542440A2@G01JPEXMBYT01>
+References: <1435114351-6961-1-git-send-email-izumi.taku@jp.fujitsu.com>
+	 <1435114554-7151-2-git-send-email-izumi.taku@jp.fujitsu.com>
+ <1435128637.2504.51.camel@perches.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="iso-2022-jp"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:51273 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755285AbbFYA3J (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 24 Jun 2015 20:29:09 -0400
-In-Reply-To: <3959851.uJ0udqUY0b@vostro.rjw.lan>
-Content-Language: en-US
+Received: from mgwkm02.jp.fujitsu.com ([202.219.69.169]:25655 "EHLO
+	mgwkm02.jp.fujitsu.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754976AbbFYAcp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Jun 2015 20:32:45 -0400
+In-Reply-To: <1435128637.2504.51.camel@perches.com>
+Content-Language: ja-JP
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "x86@kernel.org" <x86@kernel.org>, "Luck, Tony" <tony.luck@intel.com>, "Yu, Fenghua" <fenghua.yu@intel.com>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>
+To: Joe Perches <joe@perches.com>
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "davem@davemloft.net" <davem@davemloft.net>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, "dvhart@infradead.org" <dvhart@infradead.org>, "rkhan@redhat.com" <rkhan@redhat.com>, "alexander.h.duyck@redhat.com" <alexander.h.duyck@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "sergei.shtylyov@cogentembedded.com" <sergei.shtylyov@cogentembedded.com>, "stephen@networkplumber.org" <stephen@networkplumber.org>, "yasu.isimatu@gmail.com" <yasu.isimatu@gmail.com>
 
-SGksIFJhZmFlbA0KDQo+IEZyb206IFJhZmFlbCBKLiBXeXNvY2tpIFttYWlsdG86cmp3QHJqd3lz
-b2NraS5uZXRdDQo+IFNlbnQ6IFRodXJzZGF5LCBKdW5lIDI1LCAyMDE1IDc6MjQgQU0NCj4gVG86
-IFpoZW5nLCBMdg0KPiANCj4gT24gV2VkbmVzZGF5LCBKdW5lIDI0LCAyMDE1IDA0OjA1OjQyIFBN
-IFJhZmFlbCBKLiBXeXNvY2tpIHdyb3RlOg0KPiA+IE9uIFdlZG5lc2RheSwgSnVuZSAyNCwgMjAx
-NSAxMTowMjoxMCBBTSBMdiBaaGVuZyB3cm90ZToNCj4gPiA+IEFDUElDQSBjb21taXQgN2FhNTk4
-ZDcxMTY0NGFiMGRlNWY3MGFkODhmMWUyZGUyNTMxMTVlNA0KPiA+ID4NCj4gPiA+IFRoZSBmb2xs
-b3dpbmcgY29tbWl0IGlzIHJlcG9ydGVkIHRvIGhhdmUgYnJva2VuIHMycmFtIG9uIHNvbWUgcGxh
-dGZvcm1zOg0KPiA+ID4gIENvbW1pdDogMDI0OWVkMjQ0NGQ2NWQ2NWZjM2YzZjY0ZjM5OGYxYWQw
-YjdlNTRjZA0KPiA+ID4gIEFDUElDQTogQWRkIG9wdGlvbiB0byBmYXZvciAzMi1iaXQgRkFEVCBh
-ZGRyZXNzZXMuDQo+ID4gPiBUaGUgcGxhdGZvcm0gcmVwb3J0cyAyIEZBQ1MgdGFibGVzICh3aGlj
-aCBpcyBub3QgYWxsb3dlZCBieSBBQ1BJDQo+ID4gPiBzcGVjaWZpY2F0aW9uKSBhbmQgdGhlIG5l
-dyAzMi1iaXQgYWRkcmVzcyBmYXZvciBydWxlIGZvcmNlcyBPU1BNcyB0byB1c2UNCj4gPiA+IHRo
-ZSBGQUNTIHRhYmxlIHJlcG9ydGVkIHZpYSBGQURUJ3MgWF9GSVJNV0FSRV9DVFJMIGZpZWxkLg0K
-PiA+ID4NCj4gPiA+IFRoZSByb290IGNhdXNlIG9mIHRoZSByZXBvcnRlZCBidWcgbWlnaHQgYmUg
-b25lIG9mIHRoZSBmb2xsb3dpbmdzOg0KPiA+ID4gMS4gQklPUyBtYXkgZmF2b3IgdGhlIDY0LWJp
-dCBmaXJtd2FyZSB3YWtpbmcgdmVjdG9yIGFkZHJlc3Mgd2hlbiB0aGUNCj4gPiA+ICAgIHZlcnNp
-b24gb2YgdGhlIEZBQ1MgaXMgZ3JlYXRlciB0aGFuIDAgYW5kIExpbnV4IGN1cnJlbnRseSBvbmx5
-IHN1cHBvcnRzDQo+ID4gPiAgICByZXN1bWluZyBmcm9tIHRoZSByZWFsIG1vZGUsIHNvIHRoZSA2
-NC1iaXQgZmlybXdhcmUgd2FraW5nIHZlY3RvciBoYXMNCj4gPiA+ICAgIG5ldmVyIGJlZW4gc2V0
-IGFuZCBtaWdodCBiZSBpbnZhbGlkIHRvIEJJT1Mgd2hpbGUgdGhlIGNvbW1pdCBlbmFibGVzDQo+
-ID4gPiAgICBoaWdoZXIgdmVyc2lvbiBGQUNTLg0KPiA+ID4gMi4gQklPUyBtYXkgZmF2b3IgdGhl
-IEZBQ1MgcmVwb3J0ZWQgdmlhIHRoZSAiRklSTVdBUkVfQ1RSTCIgZmllbGQgaW4gdGhlDQo+ID4g
-PiAgICBGQURUIHdoaWxlIHRoZSBjb21taXQgZG9lc24ndCBzZXQgdGhlIGZpcm13YXJlIHdha2lu
-ZyB2ZWN0b3IgYWRkcmVzcyBvZg0KPiA+ID4gICAgdGhlIEZBQ1MgcmVwb3J0ZWQgYnkgIkZJUk1X
-QVJFX0NUUkwiLCBpdCBvbmx5IHNldHMgdGhlIGZpcndhcmUgd2FraW5nDQo+ID4gPiAgICB2ZWN0
-b3IgYWRkcmVzcyBvZiB0aGUgRkFDUyByZXBvcnRlZCBieSAiWF9GSVJNV0FSRV9DVFJMIi4NCj4g
-PiA+DQo+ID4gPiBUaGlzIHBhdGNoIGV4Y2x1ZGVzIHRoZSBjYXNlcyB0aGF0IGNhbiB0cmlnZ2Vy
-IHRoZSBidWdzIGNhdXNlZCBieSB0aGUgcm9vdA0KPiA+ID4gY2F1c2UgMS4NCj4gPiA+DQo+ID4g
-PiBBQ1BJIHNwZWNpZmljYXRpb24gc2F5czoNCj4gPiA+IEEuIDMyLWJpdCBGQUNTIGFkZHJlc3Mg
-KEZJUk1XQVJFX0NUUkwgZmllbGQgaW4gRkFEVCk6DQo+ID4gPiAgICBQaHlzaWNhbCBtZW1vcnkg
-YWRkcmVzcyBvZiB0aGUgRkFDUywgd2hlcmUgT1NQTSBhbmQgZmlybXdhcmUgZXhjaGFuZ2UNCj4g
-PiA+ICAgIGNvbnRyb2wgaW5mb3JtYXRpb24uDQo+ID4gPiAgICBJZiB0aGUgWF9GSVJNV0FSRV9D
-VFJMIGZpZWxkIGNvbnRhaW5zIGEgbm9uIHplcm8gdmFsdWUgdGhlbiB0aGlzIGZpZWxkDQo+ID4g
-PiAgICBtdXN0IGJlIHplcm8uDQo+ID4gPiAgICBBIHplcm8gdmFsdWUgaW5kaWNhdGVzIHRoYXQg
-bm8gRkFDUyBpcyBzcGVjaWZpZWQgYnkgdGhpcyBmaWVsZC4NCj4gPiA+IEIuIDY0LWJpdCBGQUNT
-IGFkZHJlc3MgKFhfRklSTVdBUkVfQ1RSTCBmaWVsZCBpbiBGQURUKToNCj4gPiA+ICAgIDY0Yml0
-IHBoeXNpY2FsIG1lbW9yeSBhZGRyZXNzIG9mIHRoZSBGQUNTLg0KPiA+ID4gICAgVGhpcyBmaWVs
-ZCBpcyB1c2VkIHdoZW4gdGhlIHBoeXNpY2FsIGFkZHJlc3Mgb2YgdGhlIEZBQ1MgaXMgYWJvdmUg
-NEdCLg0KPiA+ID4gICAgSWYgdGhlIEZJUk1XQVJFX0NUUkwgZmllbGQgY29udGFpbnMgYSBub24g
-emVybyB2YWx1ZSB0aGVuIHRoaXMgZmllbGQNCj4gPiA+ICAgIG11c3QgYmUgemVyby4NCj4gPiA+
-ICAgIEEgemVybyB2YWx1ZSBpbmRpY2F0ZXMgdGhhdCBubyBGQUNTIGlzIHNwZWNpZmllZCBieSB0
-aGlzIGZpZWxkLg0KPiA+ID4gVGh1cyB0aGUgMzJiaXQgYW5kIDY0Yml0IGZpcm13YXJlIHdha2lu
-ZyB2ZWN0b3Igc2hvdWxkIGluZGljYXRlIGNvbXBsZXRlbHkNCj4gPiA+IGRpZmZlcmVudCByZXN1
-bWluZyBlbnZpcm9ubWVudCAtIHJlYWwgbW9kZSAoMU1CIGFkZHJlc3NhYmxlKSBhbmQgbm9uIHJl
-YWwNCj4gPiA+IG1vZGUgKDRHQisgYWRkcmVzc2FibGUpIGFuZCBjdXJyZW50bHkgTGludXggb25s
-eSBzdXBwb3J0cyByZXN1bWluZyBmcm9tDQo+ID4gPiByZWFsIG1vZGUuDQo+ID4gPg0KPiA+ID4g
-VGhpcyBwYXRjaCBlbmFibGVzIDY0LWJpdCBmaXJtd2FyZSB3YWtpbmcgdmVjdG9yIGZvciBzZWxl
-Y3RlZCBGQUNTIHZpYQ0KPiA+ID4gYWNwaV9zZXRfZmlybXdhcmVfd2FraW5nX3ZlY3RvcigpIHNv
-IHRoYXQgaXQncyB1cCB0byBPU1BNcyB0byBkZXRlcm1pbmUgd2hpY2gNCj4gPiA+IHJlc3VtaW5n
-IG1vZGUgc2hvdWxkIGJlIHVzZWQgYnkgQklPUyBhbmQgQUNQSUNBIGNoYW5nZXMgd29uJ3QgdHJp
-Z2dlciB0aGUNCj4gPiA+IGJ1Z3MgY2F1c2VkIGJ5IHRoZSByb290IGNhdXNlIDEuIEZvciBleGFt
-cGxlLCBMaW51eCBjYW4gcGFzcw0KPiA+ID4gcGh5c2ljYWxfYWRkcmVzczY0PTAgYXMgdGhlIHBh
-cmFtZXRlciBvZiBhY3BpX3NldF9maXJtd2FyZV93YWtpbmdfdmVjdG9yKCkgdG8NCj4gPiA+IGlu
-ZGljYXRlIG5vIDY0Yml0IHdha2luZyB2ZWN0b3Igc3VwcG9ydC4gTHYgWmhlbmcuDQo+ID4gPg0K
-PiA+ID4gVGhpcyBwYXRjaCBhbHNvIHVwZGF0ZXMgYWNwaV9zZXRfZmlybXdhcmVfd2FraW5nX3Zl
-Y3RvcigpIGludm9jYXRpb25zIGluDQo+ID4gPiBvcmRlciB0byBrZWVwIDMyLWJpdCBmaXJtd2Fy
-ZSB3YWtpbmcgdmVjdG9yIGZhdm9yIGZvciBMaW51eC4gNjQtYml0DQo+ID4gPiBmaXJtd2FyZSB3
-YWtpbmcgdmVjdG9yIGhhcyBuZXZlciBiZWVuIGVuYWJsZWQgYnkgTGludXguICBUaGUNCj4gPiA+
-IChhY3BpX3BoeXNpY2FsX2FkZHJlc3MpMCBmb3IgNjQtYml0IGFkZHJlc3MgY2FuIGJlIHVzZWQg
-dG8gZm9yY2UgQUNQSUNBIHRvDQo+ID4gPiBzZXQgb25seSAzMi1iaXQgZmlybXdhcmUgd2FraW5n
-IHZlY3RvciBmb3IgTGludXguDQo+ID4gPg0KPiA+ID4gTGluazogaHR0cHM6Ly9idWd6aWxsYS5r
-ZXJuZWwub3JnL3Nob3dfYnVnLmNnaT9pZD03NDAyMQ0KPiA+ID4gTGluazogaHR0cHM6Ly9naXRo
-dWIuY29tL2FjcGljYS9hY3BpY2EvY29tbWl0LzdhYTU5OGQ3DQo+ID4gPiBDYzogMy4xNC4xKyA8
-c3RhYmxlQHZnZXIua2VybmVsLm9yZz4gIyAzLjE0LjErDQo+ID4gPiBSZXBvcnRlZC1hbmQtdGVz
-dGVkLWJ5OiBPc3dhbGQgQnVkZGVuaGFnZW4gPG9zc2lAa2RlLm9yZz4NCj4gPiA+IFNpZ25lZC1v
-ZmYtYnk6IEx2IFpoZW5nIDxsdi56aGVuZ0BpbnRlbC5jb20+DQo+ID4gPiBTaWduZWQtb2ZmLWJ5
-OiBCb2IgTW9vcmUgPHJvYmVydC5tb29yZUBpbnRlbC5jb20+DQo+ID4gPiBDYzogVGhvbWFzIEds
-ZWl4bmVyIDx0Z2x4QGxpbnV0cm9uaXguZGU+DQo+ID4gPiBDYzogSW5nbyBNb2xuYXIgPG1pbmdv
-QHJlZGhhdC5jb20+DQo+ID4gPiBDYzogIkguIFBldGVyIEFudmluIiA8aHBhQHp5dG9yLmNvbT4N
-Cj4gPiA+IENjOiB4ODZAa2VybmVsLm9yZw0KPiA+ID4gQ2M6IFRvbnkgTHVjayA8dG9ueS5sdWNr
-QGludGVsLmNvbT4NCj4gPiA+IENjOiBGZW5naHVhIFl1IDxmZW5naHVhLnl1QGludGVsLmNvbT4N
-Cj4gPiA+IENjOiBsaW51eC1pYTY0QHZnZXIua2VybmVsLm9yZw0KPiA+ID4gLS0tDQo+ID4gPiAg
-YXJjaC9pYTY0L2luY2x1ZGUvYXNtL2FjcGkuaCAgICB8ICAgIDMgKy0NCj4gPiA+ICBhcmNoL2lh
-NjQva2VybmVsL2FjcGkuYyAgICAgICAgIHwgICAgMiAtLQ0KPiA+ID4gIGFyY2gveDg2L2luY2x1
-ZGUvYXNtL2FjcGkuaCAgICAgfCAgICAzICstDQo+ID4gPiAgZHJpdmVycy9hY3BpL2FjcGljYS9o
-d3hmc2xlZXAuYyB8ICAgNjEgKysrKysrKysrKysrLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-DQo+ID4gPiAgZHJpdmVycy9hY3BpL3NsZWVwLmMgICAgICAgICAgICB8ICAgIDggKysrLS0NCj4g
-PiA+ICBpbmNsdWRlL2FjcGkvYWNwaXhmLmggICAgICAgICAgIHwgICAxMSArKystLS0tDQo+ID4g
-PiAgNiBmaWxlcyBjaGFuZ2VkLCAzMyBpbnNlcnRpb25zKCspLCA1NSBkZWxldGlvbnMoLSkNCj4g
-PiA+DQo+ID4gPiBkaWZmIC0tZ2l0IGEvYXJjaC9pYTY0L2luY2x1ZGUvYXNtL2FjcGkuaCBiL2Fy
-Y2gvaWE2NC9pbmNsdWRlL2FzbS9hY3BpLmgNCj4gPiA+IGluZGV4IGFhMGZkZjEuLjBhYzRmYWIg
-MTAwNjQ0DQo+ID4gPiAtLS0gYS9hcmNoL2lhNjQvaW5jbHVkZS9hc20vYWNwaS5oDQo+ID4gPiAr
-KysgYi9hcmNoL2lhNjQvaW5jbHVkZS9hc20vYWNwaS5oDQo+ID4gPiBAQCAtNzksNyArNzksOCBA
-QCBpbnQgYWNwaV9nc2lfdG9faXJxICh1MzIgZ3NpLCB1bnNpZ25lZCBpbnQgKmlycSk7DQo+ID4g
-PiAgLyogTG93LWxldmVsIHN1c3BlbmQgcm91dGluZS4gKi8NCj4gPiA+ICBleHRlcm4gaW50IGFj
-cGlfc3VzcGVuZF9sb3dsZXZlbCh2b2lkKTsNCj4gPiA+DQo+ID4gPiAtZXh0ZXJuIHVuc2lnbmVk
-IGxvbmcgYWNwaV93YWtldXBfYWRkcmVzczsNCj4gPiA+ICsjZGVmaW5lIGFjcGlfd2FrZXVwX2Fk
-ZHJlc3MJKChhY3BpX3BoeXNpY2FsX2FkZHJlc3MpMCkNCj4gPiA+ICsjZGVmaW5lIGFjcGlfd2Fr
-ZXVwX2FkZHJlc3M2NAkoKGFjcGlfcGh5c2ljYWxfYWRkcmVzcykwKQ0KPiA+ID4NCj4gPiA+ICAv
-Kg0KPiA+ID4gICAqIFJlY29yZCB0aGUgY3BlaSBvdmVycmlkZSBmbGFnIGFuZCBjdXJyZW50IGxv
-Z2ljYWwgY3B1LiBUaGlzIGlzDQo+ID4gPiBkaWZmIC0tZ2l0IGEvYXJjaC9pYTY0L2tlcm5lbC9h
-Y3BpLmMgYi9hcmNoL2lhNjQva2VybmVsL2FjcGkuYw0KPiA+ID4gaW5kZXggYjE2OThiYy4uMWIw
-OGQ2ZiAxMDA2NDQNCj4gPiA+IC0tLSBhL2FyY2gvaWE2NC9rZXJuZWwvYWNwaS5jDQo+ID4gPiAr
-KysgYi9hcmNoL2lhNjQva2VybmVsL2FjcGkuYw0KPiA+ID4gQEAgLTYwLDggKzYwLDYgQEAgaW50
-IGFjcGlfbGFwaWM7DQo+ID4gPiAgdW5zaWduZWQgaW50IGFjcGlfY3BlaV9vdmVycmlkZTsNCj4g
-PiA+ICB1bnNpZ25lZCBpbnQgYWNwaV9jcGVpX3BoeXNfY3B1aWQ7DQo+ID4gPg0KPiA+ID4gLXVu
-c2lnbmVkIGxvbmcgYWNwaV93YWtldXBfYWRkcmVzcyA9IDA7DQo+ID4gPiAtDQo+ID4gPiAgI2lm
-ZGVmIENPTkZJR19JQTY0X0dFTkVSSUMNCj4gPiA+ICBzdGF0aWMgdW5zaWduZWQgbG9uZyBfX2lu
-aXQgYWNwaV9maW5kX3JzZHAodm9pZCkNCj4gPiA+ICB7DQo+ID4gPiBkaWZmIC0tZ2l0IGEvYXJj
-aC94ODYvaW5jbHVkZS9hc20vYWNwaS5oIGIvYXJjaC94ODYvaW5jbHVkZS9hc20vYWNwaS5oDQo+
-ID4gPiBpbmRleCAzYTQ1NjY4Li5mYzk2MDhkIDEwMDY0NA0KPiA+ID4gLS0tIGEvYXJjaC94ODYv
-aW5jbHVkZS9hc20vYWNwaS5oDQo+ID4gPiArKysgYi9hcmNoL3g4Ni9pbmNsdWRlL2FzbS9hY3Bp
-LmgNCj4gPiA+IEBAIC03Miw3ICs3Miw4IEBAIHN0YXRpYyBpbmxpbmUgdm9pZCBhY3BpX2Rpc2Fi
-bGVfcGNpKHZvaWQpDQo+ID4gPiAgZXh0ZXJuIGludCAoKmFjcGlfc3VzcGVuZF9sb3dsZXZlbCko
-dm9pZCk7DQo+ID4gPg0KPiA+ID4gIC8qIFBoeXNpY2FsIGFkZHJlc3MgdG8gcmVzdW1lIGFmdGVy
-IHdha2V1cCAqLw0KPiA+ID4gLSNkZWZpbmUgYWNwaV93YWtldXBfYWRkcmVzcyAoKHVuc2lnbmVk
-IGxvbmcpKHJlYWxfbW9kZV9oZWFkZXItPndha2V1cF9zdGFydCkpDQo+ID4gPiArI2RlZmluZSBh
-Y3BpX3dha2V1cF9hZGRyZXNzCSgoYWNwaV9waHlzaWNhbF9hZGRyZXNzKShyZWFsX21vZGVfaGVh
-ZGVyLT53YWtldXBfc3RhcnQpKQ0KPiA+ID4gKyNkZWZpbmUgYWNwaV93YWtldXBfYWRkcmVzczY0
-CSgoYWNwaV9waHlzaWNhbF9hZGRyZXNzKSgwKSkNCj4gPg0KPiA+IERvIHdlIG5lZWQgdGhpcz8N
-Cj4gDQo+IEluIGZhY3QsIEkgZG9uJ3Qgc2VlIHdoeSB3ZSBuZWVkIHRvIHJlZGVmaW5lIHRoZSBz
-eW1ib2xzIGF0IGFsbC4NCj4gDQo+IENvdWxkbid0IGFjcGlfc2V0X2Zpcm13YXJlX3dha2luZ192
-ZWN0b3IoKSBiZSBkZWZpbmVkIHRvIHRha2UgdTMyIGFuZCB1NjQgc28NCj4gd2UgY291bGQganVz
-dCBwYXNzIGFjcGlfd2FrZXVwX2FkZHJlc3MgKGFzIGFscmVhZHkgZGVmaW5lZCkgYXMgdGhlIGZp
-cnN0IGFyZ3VtZW50DQo+IGFuZCAwIGFzIHRoZSBzZWNvbmQgYXJndW1lbnQgdG8gaXQ/ICBUaGUg
-YmFjay1hbmQtZm9ydGggdHlwZSBjYXN0cyBmcm9tIGFuZA0KPiB0byBhY3BpX3BoeXNpY2FsX2Fk
-ZHJlc3MgZG9uJ3QgbG9vayBlbnRpcmVseSBjbGVhbiB0byBtZS4NCj4gDQo+IE1vcmVvdmVyLCBJ
-IGRvbid0IHJlYWxseSBzZWUgYSBmdW5jdGlvbmFsIGRpZmZlcmVuY2UgYmV0d2VlbiB0aGUgb2xk
-IGFuZCB0aGUNCj4gbmV3IGNvZGUuDQo+IA0KPiBUaGUgb2xkIGNvZGUgZG9lcyAic2V0IHRoZSAz
-Mi1iaXQgd2FraW5nIHZlY3RvciBhbmQgY2xlYXIgdGhlIDY0LWJpdCB3YWtpbmcNCj4gdmVjdG9y
-IGlmIHByZXNlbnQiLiAgVGhlIG5ldyBjb2RlIGRvZXMgInNldCB0aGUgMzItYml0IHdha2luZyB2
-ZWN0b3IgYW5kDQo+IGVpdGhlciBjbGVhciB0aGUgNjQtYml0IG9uZSBpZiBwcmVzZW50LCBvciBh
-c3NpZ24gdGhlIHNlY29uZCBmdW5jdGlvbiBhcmd1bWVudA0KPiB0byBpdCIsIGJ1dCB3ZSBhbHdh
-eXMgcGFzcyAwIGFzIHRoZSBzZWNvbmQgYXJndW1lbnQgKHdoaWNoIGlzICpleHRyZW1lbHkqDQo+
-IG9iZnVzY2F0ZWQgaW4geW91ciBwYXRjaCksIHNvIEkgcmVhbGx5IGRvbid0IHNlZSB0aGUgZGlm
-ZmVyZW5jZSBoZXJlLg0KPiANCj4gQW0gSSBtaXNzaW5nIGFueXRoaW5nPw0KDQpUaGUgc3Rvcnkg
-aXM6DQpBY2NvcmRpbmcgdG8gdGhlIHRlc3QsIGlmIGJvdGggMzItYml0IHdha2luZyB2ZWN0b3Ig
-YW5kIDY0LWJpdCB3YWtpbmcgdmVjdG9yIGlzIHNldCBieSB0aGUgT1NQTSwgQklPU2VzIG9ubHkg
-c3VwcG9ydCAzMi1iaXQgcmVzdW1lIGVudmlyb25tZW50IHdpbGwganVtcCB0byB0aGUgMzItYml0
-IHdha2luZyB2ZWN0b3IgYWRkcmVzcyBhbmQgQklPU2VzIHN1cHBvcnQgNjQtYml0IHJlc3VtZSBl
-bnZpcm9ubWVudCB3aWxsIGp1bXAgdG8gNjQtYml0IHdha2luZyB2ZWN0b3IuDQpTbyB0aGV5IGNh
-biBiZSBzZXQgYnkgdGhlIE9TUE1zIHNpbXVsdGFuZW91c2x5IHRvIGluZGljYXRlIHRoYXQgdGhl
-IE9TUE0gY2FuIHN1cHBvcnQgYm90aCByZXN1bWUgZW52aXJvbm1lbnRzLg0KVGhhdCdzIHdoeSBB
-Q1BJQ0EgaW50ZXJmYWNlIGlzIGNoYW5nZWQuDQoNClRoYW5rcyBhbmQgYmVzdCByZWdhcmRzDQot
-THYNCg==
+
+ Thanks for your help.
+
+> -----Original Message-----
+> From: platform-driver-x86-owner@vger.kernel.org [mailto:platform-driver-x86-owner@vger.kernel.org] On Behalf Of Joe
+> Perches
+> Sent: Wednesday, June 24, 2015 3:51 PM
+> To: Izumi, Taku/泉 拓
+> Cc: netdev@vger.kernel.org; davem@davemloft.net; platform-driver-x86@vger.kernel.org; dvhart@infradead.org;
+> rkhan@redhat.com; alexander.h.duyck@redhat.com; linux-acpi@vger.kernel.org; sergei.shtylyov@cogentembedded.com;
+> stephen@networkplumber.org; yasu.isimatu@gmail.com
+> Subject: Re: [PATCH v2 01/22] fjes: Introduce FUJITSU Extended Socket Network Device driver
+> 
+> On Wed, 2015-06-24 at 11:55 +0900, Taku Izumi wrote:
+> > This patch adds the basic code of FUJITSU Extended Socket
+> > Network Device driver.
+> 
+> trivial notes:
+> 
+> > diff --git a/drivers/net/fjes/fjes_main.c b/drivers/net/fjes/fjes_main.c
+> []
+> > +static int fjes_acpi_add(struct acpi_device *device)
+> > +{
+> []
+> > +	result =
+> > +	utf16s_to_utf8s((wchar_t *)str->string.pointer,
+> > +			str->string.length, UTF16_LITTLE_ENDIAN,
+> > +			str_buf, sizeof(str_buf) - 1);
+> 
+> I dislike this style as it's not normally used in the kernel.
+> Most would use another tab indent on the utf16s_to_utf8s line
+> if the line didn't fit, but this would is more common:
+
+ To tell the truth, I dislike this style too.... OK, I'll fix.
+ I reformatted to fix " CHECK: Alignment should match open parenthesis" 
+ style issue.
+ I thought the following style is easy to exceed 80 columns, I opted
+ the above style.
+
+
+> 	result = utf16s_to_utf8s((wchar_t *)str->string.pointer,
+> 				 str->string.length, UTF16_LITTLE_ENDIAN,
+> 				 str_buf, sizeof(str_buf) - 1);
+> >
+> > +	/* create platform_device */
+> > +	plat_dev =
+> > +	platform_device_register_simple(DRV_NAME, 0, fjes_resource,
+> > +					ARRAY_SIZE(fjes_resource));
+> 
+> 	plat_dev = platform_device_register_simple(DRV_NAME, 0, fjes_resource,
+> 						   ARRAY_SIZE(fjes_resource));
+> 
+> etc...
+> 
+> > +static acpi_status
+> > +fjes_get_acpi_resource(struct acpi_resource *acpi_res, void *data)
+> > +{
+> > +	struct resource *res = data;
+> > +	struct acpi_resource_address32 *addr;
+> > +	struct acpi_resource_irq *irq;
+> > +
+> > +	switch (acpi_res->type) {
+> > +	case ACPI_RESOURCE_TYPE_ADDRESS32:
+> > +		addr = &acpi_res->data.address32;
+> > +		res[0].start = addr->address.minimum;
+> > +		res[0].end = addr->address.minimum +
+> > +			addr->address.address_length - 1;
+> > +		break;
+> > +
+> > +	case ACPI_RESOURCE_TYPE_IRQ:
+> > +		irq = &acpi_res->data.irq;
+> > +		if (irq->interrupt_count != 1)
+> > +			return AE_ERROR;
+> > +		res[1].start = irq->interrupts[0];
+> > +		res[1].end = irq->interrupts[0];
+> > +		break;
+> > +
+> > +	default:
+> > +		break;
+> > +	}
+> > +
+> > +	return AE_OK;
+> > +}
+> 
+> Is this function used in this compilation?
+> If not, it's odd to add code that isn't used.
+> 
+> Is it better to make the 2nd argument a
+> struct resource * rather than a void * ?
+
+  This function is used as a callback function of "acpi_walk_resources".
+  Its signature is
+
+   acpi_status(*acpi_walk_resource_callback) (struct acpi_resource * resource, void *context);
+
+  Sincerely,
+  Taku Izumi
+
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe platform-driver-x86" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
