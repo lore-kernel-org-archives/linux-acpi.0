@@ -1,64 +1,134 @@
-From: Dan Williams <dan.j.williams@intel.com>
+From: Toshi Kani <toshi.kani@hp.com>
 Subject: Re: [PATCH v2 15/17] libnvdimm: Set numa_node to NVDIMM devices
-Date: Thu, 25 Jun 2015 14:31:21 -0700
-Message-ID: <CAPcyv4jhDc1+TGyo4J6vC7bRBaGbfAXyLP2qB9X5DAJRBhCRyQ@mail.gmail.com>
+Date: Thu, 25 Jun 2015 15:51:43 -0600
+Message-ID: <1435269103.11808.349.camel@misato.fc.hp.com>
 References: <20150625090554.40066.69562.stgit@dwillia2-desk3.jf.intel.com>
-	<20150625093738.40066.88750.stgit@dwillia2-desk3.jf.intel.com>
-	<1435254317.11808.327.camel@misato.fc.hp.com>
-	<1435257283.13411.4.camel@intel.com>
+	 <20150625093738.40066.88750.stgit@dwillia2-desk3.jf.intel.com>
+	 <1435254317.11808.327.camel@misato.fc.hp.com>
+	 <1435257283.13411.4.camel@intel.com>
+	 <CAPcyv4jhDc1+TGyo4J6vC7bRBaGbfAXyLP2qB9X5DAJRBhCRyQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1435257283.13411.4.camel@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "toshi.kani@hp.com" <toshi.kani@hp.com>
-Cc: "axboe@kernel.dk" <axboe@kernel.dk>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "mingo@kernel.org" <mingo@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "hch@lst.de" <hch@lst.de>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g4t3427.houston.hp.com ([15.201.208.55]:40319 "EHLO
+	g4t3427.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751561AbbFYVwI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Jun 2015 17:52:08 -0400
+In-Reply-To: <CAPcyv4jhDc1+TGyo4J6vC7bRBaGbfAXyLP2qB9X5DAJRBhCRyQ@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: "axboe@kernel.dk" <axboe@kernel.dk>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "mingo@kernel.org" <mingo@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "hch@lst.de" <hch@lst.de>
 
-On Thu, Jun 25, 2015 at 11:34 AM, Williams, Dan J
-<dan.j.williams@intel.com> wrote:
-> On Thu, 2015-06-25 at 11:45 -0600, Toshi Kani wrote:
->> On Thu, 2015-06-25 at 05:37 -0400, Dan Williams wrote:
->> > From: Toshi Kani <toshi.kani@hp.com>
->> >
->> > ACPI NFIT table has System Physical Address Range Structure entries that
->> > describe a proximity ID of each range when ACPI_NFIT_PROXIMITY_VALID is
->> > set in the flags.
->> >
->> > Change acpi_nfit_register_region() to map a proximity ID to its node ID,
->> > and set it to a new numa_node field of nd_region_desc, which is then
->> > conveyed to the nd_region device.
->> >
->> > The device core arranges for btt and namespace devices to inherit their
->> > node from their parent region.
->> >
->> > Signed-off-by: Toshi Kani <toshi.kani@hp.com>
->> > [djbw: move set_dev_node() from region 'probe' to 'create']
->>
->> Sorry, I failed to mention other issue, which led me call set_dev_node()
->> in probe.  nd_async_device_register() calls device_add(), which does:
->>
->>         /* use parent numa_node */
->>         if (parent)
->>                 set_dev_node(dev, dev_to_node(parent));
->>
->> and overwrites numa_node to -1.  Since region's parent is ndbusN, we
->> cannot set numa_node to the parent.  So, I had to set it in probe.
->
-> In general, I still don't like leaving it up to ->probe() which is
-> within its rights to fail and not set the node.  How about the following
-> that moves it to the bus uevent code?  Should get triggered before probe
-> so the numa_node is valid before userspace is ever notified about the
-> device.
->
-> device_add() does:
->
->         kobject_uevent(&dev->kobj, KOBJ_ADD);
->         bus_probe_device(dev);
->
-> ...so I think we're good, agree?  I also added a missing init of
-> ndr_desc.numa_node in arch/x86/kernel/pmem.c, see below.
+On Thu, 2015-06-25 at 14:31 -0700, Dan Williams wrote:
+> On Thu, Jun 25, 2015 at 11:34 AM, Williams, Dan J
+> <dan.j.williams@intel.com> wrote:
+> > On Thu, 2015-06-25 at 11:45 -0600, Toshi Kani wrote:
+> >> On Thu, 2015-06-25 at 05:37 -0400, Dan Williams wrote:
+> >> > From: Toshi Kani <toshi.kani@hp.com>
+> >> >
+> >> > ACPI NFIT table has System Physical Address Range Structure entries that
+> >> > describe a proximity ID of each range when ACPI_NFIT_PROXIMITY_VALID is
+> >> > set in the flags.
+> >> >
+> >> > Change acpi_nfit_register_region() to map a proximity ID to its node ID,
+> >> > and set it to a new numa_node field of nd_region_desc, which is then
+> >> > conveyed to the nd_region device.
+> >> >
+> >> > The device core arranges for btt and namespace devices to inherit their
+> >> > node from their parent region.
+> >> >
+> >> > Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+> >> > [djbw: move set_dev_node() from region 'probe' to 'create']
+> >>
+> >> Sorry, I failed to mention other issue, which led me call set_dev_node()
+> >> in probe.  nd_async_device_register() calls device_add(), which does:
+> >>
+> >>         /* use parent numa_node */
+> >>         if (parent)
+> >>                 set_dev_node(dev, dev_to_node(parent));
+> >>
+> >> and overwrites numa_node to -1.  Since region's parent is ndbusN, we
+> >> cannot set numa_node to the parent.  So, I had to set it in probe.
+> >
+> > In general, I still don't like leaving it up to ->probe() which is
+> > within its rights to fail and not set the node.  How about the following
+> > that moves it to the bus uevent code?  Should get triggered before probe
+> > so the numa_node is valid before userspace is ever notified about the
+> > device.
+> >
+> > device_add() does:
+> >
+> >         kobject_uevent(&dev->kobj, KOBJ_ADD);
+> >         bus_probe_device(dev);
+> >
+> > ...so I think we're good, agree?  I also added a missing init of
+> > ndr_desc.numa_node in arch/x86/kernel/pmem.c, see below.
+> 
+> This looks good in a quick manual test.  It's interesting/illustrative
+> that I inadvertently broke the one bit of the libnvdimm sysfs
+> interface that did not have unit test coverage.
 
-This looks good in a quick manual test.  It's interesting/illustrative
-that I inadvertently broke the one bit of the libnvdimm sysfs
-interface that did not have unit test coverage.
+Sorry I had some interrupt.  Yes, this works fine for region &
+namespace.  I'd like to check with you for btt since the attach logic
+has changed in v2.
+
+Previously, as described in patch 16/17, bttN bound to pmem had a valid
+numa_node value, and seeding btt0 had -1.
+
+  /sys/bus/nd/devices
+  |-- btt0/numa_node:-1
+  |-- btt1/numa_node:0
+
+In this version, there are unbound (seeding?) btt0-3 for every region
+(there are 4 regions) and btt4 & 5 bound to pmem0 & 3 on my system.
+
+btt0/numa_node:0
+btt1/numa_node:0
+btt2/numa_node:1
+btt3/numa_node:1
+btt4/numa_node:0
+btt5/numa_node:1
+
+btt0
+-> ../../../devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/region0/btt0
+btt1
+-> ../../../devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/region1/btt1
+btt2
+-> ../../../devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/region2/btt2
+btt3
+-> ../../../devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/region3/btt3
+btt4
+-> ../../../devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/region0/btt4
+btt5
+-> ../../../devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/region3/btt5
+
+And unbound bttNs attach to different regions across a reboot.
+
+btt0/numa_node:0
+btt1/numa_node:1
+btt2/numa_node:1
+btt3/numa_node:0
+btt4/numa_node:0
+btt5/numa_node:1
+
+btt0
+-> ../../../devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/region0/btt0
+btt1
+-> ../../../devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/region3/btt1
+btt2
+-> ../../../devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/region2/btt2
+btt3
+-> ../../../devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/region1/btt3
+btt4
+-> ../../../devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/region0/btt4
+btt5
+-> ../../../devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0012:00/ndbus0/region3/btt5
+
+Is this how you'd expect btt to work in this version?  (I have not
+looked at the btt changes yet)
+
+Thanks,
+-Toshi
+
