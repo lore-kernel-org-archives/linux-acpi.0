@@ -1,151 +1,88 @@
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH v2 14/17] acpi: Add acpi_map_pxm_to_online_node()
-Date: Thu, 25 Jun 2015 05:37:33 -0400
-Message-ID: <20150625093733.40066.13320.stgit@dwillia2-desk3.jf.intel.com>
+Subject: [PATCH v2 15/17] libnvdimm: Set numa_node to NVDIMM devices
+Date: Thu, 25 Jun 2015 05:37:38 -0400
+Message-ID: <20150625093738.40066.88750.stgit@dwillia2-desk3.jf.intel.com>
 References: <20150625090554.40066.69562.stgit@dwillia2-desk3.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:28488 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752315AbbFYJnR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 25 Jun 2015 05:43:17 -0400
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
 In-Reply-To: <20150625090554.40066.69562.stgit@dwillia2-desk3.jf.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-fsdevel-owner@vger.kernel.org
 To: linux-nvdimm@lists.01.org
-Cc: axboe@kernel.dk, boaz@plexistor.com, toshi.kani@hp.com, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-kernel@vger.kernel.org, mingo@kernel.org, linux-acpi@vger.kernel.org, linux-fsdevel@vger.kernel.org, hch@lst.de
+Cc: axboe@kernel.dk, boaz@plexistor.com, toshi.kani@hp.com, linux-kernel@vger.kernel.org, hch@lst.de, linux-acpi@vger.kernel.org, linux-fsdevel@vger.kernel.org, mingo@kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
 From: Toshi Kani <toshi.kani@hp.com>
 
-The kernel initializes CPU & memory's NUMA topology from ACPI
-SRAT table.  Some other ACPI tables, such as NFIT and DMAR, also
-contain proximity IDs for their device's NUMA topology.  This
-information can be used to improve performance of these devices.
+ACPI NFIT table has System Physical Address Range Structure entries that
+describe a proximity ID of each range when ACPI_NFIT_PROXIMITY_VALID is
+set in the flags.
 
-This patch introduces acpi_map_pxm_to_online_node(), which is
-similar to acpi_map_pxm_to_node(), but always returns an online
-node.  When the mapped node from a given proximity ID is offline,
-it looks up the node distance table and returns the nearest
-online node.
+Change acpi_nfit_register_region() to map a proximity ID to its node ID,
+and set it to a new numa_node field of nd_region_desc, which is then
+conveyed to the nd_region device.
 
-ACPI device drivers, which are called after the NUMA initialization
-has completed in the kernel, can call this interface to obtain their
-device NUMA topology from ACPI tables.  Such drivers do not have to
-deal with offline nodes.  A node may be offline when a device
-proximity ID is unique, SRAT memory entry does not exist, or NUMA is
-disabled, ex. "numa=off" on x86.
-
-This patch also moves the pxm range check from acpi_get_node() to
-acpi_map_pxm_to_node().
+The device core arranges for btt and namespace devices to inherit their
+node from their parent region.
 
 Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>>
+[djbw: move set_dev_node() from region 'probe' to 'create']
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/acpi/numa.c  |   50 +++++++++++++++++++++++++++++++++++++++++++++++---
- include/linux/acpi.h |    5 +++++
- 2 files changed, 52 insertions(+), 3 deletions(-)
+ drivers/acpi/nfit.c          |    6 ++++++
+ drivers/nvdimm/region_devs.c |    4 +++-
+ include/linux/libnvdimm.h    |    1 +
+ 3 files changed, 10 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
-index 1333cbdc3ea2..acaa3b4ea504 100644
---- a/drivers/acpi/numa.c
-+++ b/drivers/acpi/numa.c
-@@ -29,6 +29,8 @@
- #include <linux/errno.h>
- #include <linux/acpi.h>
- #include <linux/numa.h>
-+#include <linux/nodemask.h>
-+#include <linux/topology.h>
- 
- #define PREFIX "ACPI: "
- 
-@@ -70,7 +72,12 @@ static void __acpi_map_pxm_to_node(int pxm, int node)
- 
- int acpi_map_pxm_to_node(int pxm)
- {
--	int node = pxm_to_node_map[pxm];
-+	int node;
+diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+index 1f6f1b1a54f4..d96c8fe974dd 100644
+--- a/drivers/acpi/nfit.c
++++ b/drivers/acpi/nfit.c
+@@ -1392,6 +1392,12 @@ static int acpi_nfit_register_region(struct acpi_nfit_desc *acpi_desc,
+ 	ndr_desc->res = &res;
+ 	ndr_desc->provider_data = nfit_spa;
+ 	ndr_desc->attr_groups = acpi_nfit_region_attribute_groups;
++	if (spa->flags & ACPI_NFIT_PROXIMITY_VALID)
++		ndr_desc->numa_node = acpi_map_pxm_to_online_node(
++						spa->proximity_domain);
++	else
++		ndr_desc->numa_node = NUMA_NO_NODE;
 +
-+	if (pxm < 0 || pxm >= MAX_PXM_DOMAINS)
-+		return NUMA_NO_NODE;
-+
-+	node = pxm_to_node_map[pxm];
+ 	list_for_each_entry(nfit_memdev, &acpi_desc->memdevs, list) {
+ 		struct acpi_nfit_memory_map *memdev = nfit_memdev->memdev;
+ 		struct nd_mapping *nd_mapping;
+diff --git a/drivers/nvdimm/region_devs.c b/drivers/nvdimm/region_devs.c
+index 8f8c7ea485f1..b2ec5045f5a5 100644
+--- a/drivers/nvdimm/region_devs.c
++++ b/drivers/nvdimm/region_devs.c
+@@ -738,13 +738,15 @@ static struct nd_region *nd_region_create(struct nvdimm_bus *nvdimm_bus,
+ 	nd_region->ro = ro;
+ 	ida_init(&nd_region->ns_ida);
+ 	dev = &nd_region->dev;
++	device_initialize(dev);
+ 	dev_set_name(dev, "region%d", nd_region->id);
+ 	dev->parent = &nvdimm_bus->dev;
+ 	dev->type = dev_type;
+ 	dev->groups = ndr_desc->attr_groups;
++	set_dev_node(dev, ndr_desc->numa_node);
+ 	nd_region->ndr_size = resource_size(ndr_desc->res);
+ 	nd_region->ndr_start = ndr_desc->res->start;
+-	nd_device_register(dev);
++	__nd_device_register(dev);
  
- 	if (node == NUMA_NO_NODE) {
- 		if (nodes_weight(nodes_found_map) >= MAX_NUMNODES)
-@@ -83,6 +90,45 @@ int acpi_map_pxm_to_node(int pxm)
- 	return node;
- }
+ 	return nd_region;
  
-+/**
-+ * acpi_map_pxm_to_online_node - Map proximity ID to online node
-+ * @pxm: ACPI proximity ID
-+ *
-+ * This is similar to acpi_map_pxm_to_node(), but always returns an online
-+ * node.  When the mapped node from a given proximity ID is offline, it
-+ * looks up the node distance table and returns the nearest online node.
-+ *
-+ * ACPI device drivers, which are called after the NUMA initialization has
-+ * completed in the kernel, can call this interface to obtain their device
-+ * NUMA topology from ACPI tables.  Such drivers do not have to deal with
-+ * offline nodes.  A node may be offline when a device proximity ID is
-+ * unique, SRAT memory entry does not exist, or NUMA is disabled, ex.
-+ * "numa=off" on x86.
-+ */
-+int acpi_map_pxm_to_online_node(int pxm)
-+{
-+	int node, n, dist, min_dist;
-+
-+	node = acpi_map_pxm_to_node(pxm);
-+
-+	if (node == NUMA_NO_NODE)
-+		node = 0;
-+
-+	if (!node_online(node)) {
-+		min_dist = INT_MAX;
-+		for_each_online_node(n) {
-+			dist = node_distance(node, n);
-+			if (dist < min_dist) {
-+				min_dist = dist;
-+				node = n;
-+			}
-+		}
-+	}
-+
-+	return node;
-+}
-+EXPORT_SYMBOL(acpi_map_pxm_to_online_node);
-+
- static void __init
- acpi_table_print_srat_entry(struct acpi_subtable_header *header)
- {
-@@ -328,8 +374,6 @@ int acpi_get_node(acpi_handle handle)
- 	int pxm;
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index dc799a29ed1a..30b3deaafd51 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -89,6 +89,7 @@ struct nd_region_desc {
+ 	struct nd_interleave_set *nd_set;
+ 	void *provider_data;
+ 	int num_lanes;
++	int numa_node;
+ };
  
- 	pxm = acpi_get_pxm(handle);
--	if (pxm < 0 || pxm >= MAX_PXM_DOMAINS)
--		return NUMA_NO_NODE;
- 
- 	return acpi_map_pxm_to_node(pxm);
- }
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index e4da5e35e29c..1b3bbb11d11c 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -289,8 +289,13 @@ extern void acpi_dmi_osi_linux(int enable, const struct dmi_system_id *d);
- extern void acpi_osi_setup(char *str);
- 
- #ifdef CONFIG_ACPI_NUMA
-+int acpi_map_pxm_to_online_node(int pxm);
- int acpi_get_node(acpi_handle handle);
- #else
-+static inline int acpi_map_pxm_to_online_node(int pxm)
-+{
-+	return 0;
-+}
- static inline int acpi_get_node(acpi_handle handle)
- {
- 	return 0;
+ struct nvdimm_bus;
 
