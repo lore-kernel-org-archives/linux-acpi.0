@@ -1,172 +1,80 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH v2 05/28] ACPICA: Hardware: Enable firmware waking
- vector for both 32-bit and 64-bit FACS.
-Date: Thu, 25 Jun 2015 00:43:39 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E8802733CA6@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1434684719.git.lv.zheng@intel.com>
- <cover.1435114811.git.lv.zheng@intel.com>
- <a618fa9001af107d725f2ce97a88bae99fbdcc2b.1435114811.git.lv.zheng@intel.com>
- <24343352.3W7mrSPtdt@vostro.rjw.lan>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH v7 00/16] libnvdimm: non-volatile memory devices
+Date: Wed, 24 Jun 2015 18:59:09 -0600
+Message-ID: <1435193949.11808.319.camel@misato.fc.hp.com>
+References: <20150617215027.11597.61414.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:41832 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932222AbbFYAnr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 24 Jun 2015 20:43:47 -0400
-In-Reply-To: <24343352.3W7mrSPtdt@vostro.rjw.lan>
-Content-Language: en-US
+Received: from g1t5424.austin.hp.com ([15.216.225.54]:55609 "EHLO
+	g1t5424.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752429AbbFYA7k (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 24 Jun 2015 20:59:40 -0400
+In-Reply-To: <20150617215027.11597.61414.stgit@dwillia2-desk3.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-nvdimm@lists.01.org, rafael@kernel.org, neilb@suse.de, Lv Zheng <lv.zheng@intel.com>, "H. Peter Anvin" <hpa@zytor.com>, hch@lst.de, sfr@canb.auug.org.au, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, mingo@kernel.org, linux-acpi@vger.kernel.org, Jens Axboe <axboe@fb.com>, Borislav Petkov <bp@alien8.de>, Thomas Gleixner <tglx@linutronix.de>, axboe@kernel.dk, gregkh@linuxfoundation.org, linux-kernel@vger.kernel.org, Andy Lutomirski <luto@amacapital.net>, linux-api@vger.kernel.org, akpm@linux-foundation.org, Linus Torvalds <torvalds@linux-foundation.org>
 
-SGksIFJhZmFlbA0KDQo+IEZyb206IFJhZmFlbCBKLiBXeXNvY2tpIFttYWlsdG86cmp3QHJqd3lz
-b2NraS5uZXRdDQo+IFNlbnQ6IFRodXJzZGF5LCBKdW5lIDI1LCAyMDE1IDc6NTcgQU0NCj4gDQo+
-IE9uIFdlZG5lc2RheSwgSnVuZSAyNCwgMjAxNSAxMTowMjo1NCBBTSBMdiBaaGVuZyB3cm90ZToN
-Cj4gPiBBQ1BJQ0EgY29tbWl0IDM2OGViNjA3NzhiMjdiNmFlOTRkMzY1OGRkYzkwMmNhMTM0MmE5
-NjMNCj4gPiBBQ1BJQ0EgY29tbWl0IDcwZjYyYTgwZDY1NTE1ZTEyODVmZGVlYjUwZDk0ZWU2ZjA3
-ZGY0YmQNCj4gPg0KPiA+IFRoZSBmb2xsb3dpbmcgY29tbWl0IGlzIHJlcG9ydGVkIHRvIGhhdmUg
-YnJva2VuIHMycmFtIG9uIHNvbWUgcGxhdGZvcm1zOg0KPiA+ICBDb21taXQ6IDAyNDllZDI0NDRk
-NjVkNjVmYzNmM2Y2NGYzOThmMWFkMGI3ZTU0Y2QNCj4gPiAgQUNQSUNBOiBBZGQgb3B0aW9uIHRv
-IGZhdm9yIDMyLWJpdCBGQURUIGFkZHJlc3Nlcy4NCj4gPiBUaGUgcGxhdGZvcm0gcmVwb3J0cyAy
-IEZBQ1MgdGFibGVzICh3aGljaCBpcyBub3QgYWxsb3dlZCBieSBBQ1BJDQo+ID4gc3BlY2lmaWNh
-dGlvbikgYW5kIHRoZSBuZXcgMzItYml0IGFkZHJlc3MgZmF2b3IgcnVsZSBmb3JjZXMgT1NQTXMg
-dG8gdXNlDQo+ID4gdGhlIEZBQ1MgdGFibGUgcmVwb3J0ZWQgdmlhIEZBRFQncyBYX0ZJUk1XQVJF
-X0NUUkwgZmllbGQuDQo+ID4NCj4gPiBUaGUgcm9vdCBjYXVzZSBvZiB0aGUgcmVwb3J0ZWQgYnVn
-IG1pZ2h0IGJlIG9uZSBvZiB0aGUgZm9sbG93aW5nczoNCj4gPiAxLiBCSU9TIG1heSBmYXZvciB0
-aGUgNjQtYml0IGZpcm13YXJlIHdha2luZyB2ZWN0b3IgYWRkcmVzcyB3aGVuIHRoZQ0KPiA+ICAg
-IHZlcnNpb24gb2YgdGhlIEZBQ1MgaXMgZ3JlYXRlciB0aGFuIDAgYW5kIExpbnV4IGN1cnJlbnRs
-eSBvbmx5IHN1cHBvcnRzDQo+ID4gICAgcmVzdW1pbmcgZnJvbSB0aGUgcmVhbCBtb2RlLCBzbyB0
-aGUgNjQtYml0IGZpcm13YXJlIHdha2luZyB2ZWN0b3IgaGFzDQo+ID4gICAgbmV2ZXIgYmVlbiBz
-ZXQgYW5kIG1pZ2h0IGJlIGludmFsaWQgdG8gQklPUyB3aGlsZSB0aGUgY29tbWl0IGVuYWJsZXMN
-Cj4gPiAgICBoaWdoZXIgdmVyc2lvbiBGQUNTLg0KPiA+IDIuIEJJT1MgbWF5IGZhdm9yIHRoZSBG
-QUNTIHJlcG9ydGVkIHZpYSB0aGUgIkZJUk1XQVJFX0NUUkwiIGZpZWxkIGluIHRoZQ0KPiA+ICAg
-IEZBRFQgd2hpbGUgdGhlIGNvbW1pdCBkb2Vzbid0IHNldCB0aGUgZmlybXdhcmUgd2FraW5nIHZl
-Y3RvciBhZGRyZXNzIG9mDQo+ID4gICAgdGhlIEZBQ1MgcmVwb3J0ZWQgYnkgIkZJUk1XQVJFX0NU
-UkwiLCBpdCBvbmx5IHNldHMgdGhlIGZpcndhcmUgd2FraW5nDQo+ID4gICAgdmVjdG9yIGFkZHJl
-c3Mgb2YgdGhlIEZBQ1MgcmVwb3J0ZWQgYnkgIlhfRklSTVdBUkVfQ1RSTCIuDQo+ID4NCj4gPiBU
-aGlzIHBhdGNoIGV4Y2x1ZGVzIHRoZSBjYXNlcyB0aGF0IGNhbiB0cmlnZ2VyIHRoZSBidWdzIGNh
-dXNlZCBieSB0aGUgcm9vdA0KPiA+IGNhdXNlIDIuDQo+ID4NCj4gPiBUaGVyZSBpcyBubyBoYW5k
-c2hha2luZyBtZWNoYW5pc20gY2FuIGJlIHVzZWQgYnkgT1NQTSB0byB0ZWxsIEJJT1Mgd2hpY2gN
-Cj4gPiBGQUNTIGlzIGN1cnJlbnRseSB1c2VkLiBUaHVzIHRoZSBGQUNTIHJlcG9ydGVkIGJ5ICJG
-SVJNV0FSRV9DVFJMIiBtYXkgc3RpbGwNCj4gPiBiZSB1c2VkIGJ5IEJJT1MgYW5kIHRoZSAwIHZh
-bHVlIG9mIHRoZSAzMi1iaXQgZmlybXdhcmUgd2FraW5nIHZlY3RvciBtaWdodA0KPiA+IHRyaWdn
-ZXIgc3VjaCBmYWlsdXJlLg0KPiA+DQo+ID4gVGhpcyBwYXRjaCBlbmFibGVzIHRoZSBmaXJtd2Fy
-ZSB3YWtpbmcgdmVjdG9ycyBmb3IgYm90aCAzMmJpdC82NGJpdCBGQUNTDQo+ID4gdGFibGVzIGlu
-IG9yZGVyIHRvIGVuc3VyZSB3ZSBjYW4gZXhjbHVkZSB0aGUgY2FzZXMgdGhhdCB0cmlnZ2VyIHRo
-ZSBidWdzDQo+ID4gY2F1c2VkIGJ5IHRoZSByb290IGNhdXNlIDIuIFRoZSBleGNsdXNpb24gaXMg
-c3BsaXQgaW50byAyIGNvbW1pdHMgc28gdGhhdA0KPiA+IGlmIGl0IHR1cm5zIG91dCBub3QgdG8g
-YmUgbmVjZXNzYXJ5LCB0aGlzIHNpbmdsZSBjb21taXQgY2FuIGJlIHJldmVydGVkDQo+ID4gd2l0
-aG91dCBhZmZlY3RpbmcgdGhlIHVzZWZ1bCBvbmUuIEx2IFpoZW5nLCBCb2IgTW9vcmUuDQo+ID4N
-Cj4gPiBMaW5rOiBodHRwczovL2J1Z3ppbGxhLmtlcm5lbC5vcmcvc2hvd19idWcuY2dpP2lkPTc0
-MDIxDQo+ID4gTGluazogaHR0cHM6Ly9naXRodWIuY29tL2FjcGljYS9hY3BpY2EvY29tbWl0LzM2
-OGViNjA3DQo+ID4gTGluazogaHR0cHM6Ly9naXRodWIuY29tL2FjcGljYS9hY3BpY2EvY29tbWl0
-LzcwZjYyYTgwDQo+ID4gUmVwb3J0ZWQtYW5kLXRlc3RlZC1ieTogT3N3YWxkIEJ1ZGRlbmhhZ2Vu
-IDxvc3NpQGtkZS5vcmc+DQo+ID4gU2lnbmVkLW9mZi1ieTogTHYgWmhlbmcgPGx2LnpoZW5nQGlu
-dGVsLmNvbT4NCj4gPiBTaWduZWQtb2ZmLWJ5OiBCb2IgTW9vcmUgPHJvYmVydC5tb29yZUBpbnRl
-bC5jb20+DQo+ID4gLS0tDQo+ID4gIGRyaXZlcnMvYWNwaS9hY3BpY2EvYWNnbG9iYWwuaCAgfCAg
-ICAyICsrDQo+ID4gIGRyaXZlcnMvYWNwaS9hY3BpY2EvaHd4ZnNsZWVwLmMgfCAgIDc0ICsrKysr
-KysrKysrKysrKysrKysrKysrKysrKysrKysrLS0tLS0tLQ0KPiA+ICBkcml2ZXJzL2FjcGkvYWNw
-aWNhL3RidXRpbHMuYyAgIHwgICAxNCArKysrLS0tLQ0KPiA+ICAzIGZpbGVzIGNoYW5nZWQsIDcx
-IGluc2VydGlvbnMoKyksIDE5IGRlbGV0aW9ucygtKQ0KPiA+DQo+ID4gZGlmZiAtLWdpdCBhL2Ry
-aXZlcnMvYWNwaS9hY3BpY2EvYWNnbG9iYWwuaCBiL2RyaXZlcnMvYWNwaS9hY3BpY2EvYWNnbG9i
-YWwuaA0KPiA+IGluZGV4IGEwYzQ3ODcuLjUzZjk2YTMgMTAwNjQ0DQo+ID4gLS0tIGEvZHJpdmVy
-cy9hY3BpL2FjcGljYS9hY2dsb2JhbC5oDQo+ID4gKysrIGIvZHJpdmVycy9hY3BpL2FjcGljYS9h
-Y2dsb2JhbC5oDQo+ID4gQEAgLTYxLDYgKzYxLDggQEAgQUNQSV9HTE9CQUwoc3RydWN0IGFjcGlf
-dGFibGVfaGVhZGVyLCBhY3BpX2dibF9vcmlnaW5hbF9kc2R0X2hlYWRlcik7DQo+ID4NCj4gPiAg
-I2lmICghQUNQSV9SRURVQ0VEX0hBUkRXQVJFKQ0KPiA+ICBBQ1BJX0dMT0JBTChzdHJ1Y3QgYWNw
-aV90YWJsZV9mYWNzICosIGFjcGlfZ2JsX0ZBQ1MpOw0KPiA+ICtBQ1BJX0dMT0JBTChzdHJ1Y3Qg
-YWNwaV90YWJsZV9mYWNzICosIGFjcGlfZ2JsX2ZhY3MzMik7DQo+ID4gK0FDUElfR0xPQkFMKHN0
-cnVjdCBhY3BpX3RhYmxlX2ZhY3MgKiwgYWNwaV9nYmxfZmFjczY0KTsNCj4gPg0KPiA+ICAjZW5k
-aWYJCQkJLyogIUFDUElfUkVEVUNFRF9IQVJEV0FSRSAqLw0KPiA+DQo+ID4gZGlmZiAtLWdpdCBh
-L2RyaXZlcnMvYWNwaS9hY3BpY2EvaHd4ZnNsZWVwLmMgYi9kcml2ZXJzL2FjcGkvYWNwaWNhL2h3
-eGZzbGVlcC5jDQo+ID4gaW5kZXggYzY3Y2QzMi4uZTI3M2IyZSAxMDA2NDQNCj4gPiAtLS0gYS9k
-cml2ZXJzL2FjcGkvYWNwaWNhL2h3eGZzbGVlcC5jDQo+ID4gKysrIGIvZHJpdmVycy9hY3BpL2Fj
-cGljYS9od3hmc2xlZXAuYw0KPiA+IEBAIC01MCw2ICs1MCwxMyBAQA0KPiA+ICBBQ1BJX01PRFVM
-RV9OQU1FKCJod3hmc2xlZXAiKQ0KPiA+DQo+ID4gIC8qIExvY2FsIHByb3RvdHlwZXMgKi8NCj4g
-PiArI2lmICghQUNQSV9SRURVQ0VEX0hBUkRXQVJFKQ0KPiA+ICtzdGF0aWMgYWNwaV9zdGF0dXMN
-Cj4gPiArYWNwaV9od19zZXRfZmlybXdhcmVfd2FraW5nX3ZlY3RvcihzdHJ1Y3QgYWNwaV90YWJs
-ZV9mYWNzICpmYWNzLA0KPiA+ICsJCQkJICAgYWNwaV9waHlzaWNhbF9hZGRyZXNzIHBoeXNpY2Fs
-X2FkZHJlc3MsDQo+ID4gKwkJCQkgICBhY3BpX3BoeXNpY2FsX2FkZHJlc3MgcGh5c2ljYWxfYWRk
-cmVzczY0KTsNCj4gPiArI2VuZGlmDQo+ID4gKw0KPiA+ICBzdGF0aWMgYWNwaV9zdGF0dXMgYWNw
-aV9od19zbGVlcF9kaXNwYXRjaCh1OCBzbGVlcF9zdGF0ZSwgdTMyIGZ1bmN0aW9uX2lkKTsNCj4g
-Pg0KPiA+ICAvKg0KPiA+IEBAIC03OSw5ICs4NiwxMCBAQCBzdGF0aWMgc3RydWN0IGFjcGlfc2xl
-ZXBfZnVuY3Rpb25zIGFjcGlfc2xlZXBfZGlzcGF0Y2hbXSA9IHsNCj4gPiAgI2lmICghQUNQSV9S
-RURVQ0VEX0hBUkRXQVJFKQ0KPiA+ICAvKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKg0KPiA+ICAgKg0K
-PiA+IC0gKiBGVU5DVElPTjogICAgYWNwaV9zZXRfZmlybXdhcmVfd2FraW5nX3ZlY3Rvcg0KPiA+
-ICsgKiBGVU5DVElPTjogICAgYWNwaV9od19zZXRfZmlybXdhcmVfd2FraW5nX3ZlY3Rvcg0KPiA+
-ICAgKg0KPiA+IC0gKiBQQVJBTUVURVJTOiAgcGh5c2ljYWxfYWRkcmVzcyAgICAtIDMyLWJpdCBw
-aHlzaWNhbCBhZGRyZXNzIG9mIEFDUEkgcmVhbCBtb2RlDQo+ID4gKyAqIFBBUkFNRVRFUlM6ICBm
-YWNzICAgICAgICAgICAgICAgIC0gUG9pbnRlciB0byBGQUNTIHRhYmxlDQo+ID4gKyAqICAgICAg
-ICAgICAgICBwaHlzaWNhbF9hZGRyZXNzICAgIC0gMzItYml0IHBoeXNpY2FsIGFkZHJlc3Mgb2Yg
-QUNQSSByZWFsIG1vZGUNCj4gPiAgICogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICBlbnRyeSBwb2ludA0KPiA+ICAgKiAgICAgICAgICAgICAgcGh5c2ljYWxfYWRkcmVzczY0ICAt
-IDY0LWJpdCBwaHlzaWNhbCBhZGRyZXNzIG9mIEFDUEkgcHJvdGVjdGVkDQo+ID4gICAqICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgZW50cnkgcG9pbnQNCj4gPiBAQCAtOTIsMTEg
-KzEwMCwxMiBAQCBzdGF0aWMgc3RydWN0IGFjcGlfc2xlZXBfZnVuY3Rpb25zIGFjcGlfc2xlZXBf
-ZGlzcGF0Y2hbXSA9IHsNCj4gPiAgICoNCj4gPiAgICoqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKi8NCj4g
-Pg0KPiA+IC1hY3BpX3N0YXR1cw0KPiA+IC1hY3BpX3NldF9maXJtd2FyZV93YWtpbmdfdmVjdG9y
-KGFjcGlfcGh5c2ljYWxfYWRkcmVzcyBwaHlzaWNhbF9hZGRyZXNzLA0KPiA+IC0JCQkJYWNwaV9w
-aHlzaWNhbF9hZGRyZXNzIHBoeXNpY2FsX2FkZHJlc3M2NCkNCj4gPiArc3RhdGljIGFjcGlfc3Rh
-dHVzDQo+ID4gK2FjcGlfaHdfc2V0X2Zpcm13YXJlX3dha2luZ192ZWN0b3Ioc3RydWN0IGFjcGlf
-dGFibGVfZmFjcyAqZmFjcywNCj4gPiArCQkJCSAgIGFjcGlfcGh5c2ljYWxfYWRkcmVzcyBwaHlz
-aWNhbF9hZGRyZXNzLA0KPiA+ICsJCQkJICAgYWNwaV9waHlzaWNhbF9hZGRyZXNzIHBoeXNpY2Fs
-X2FkZHJlc3M2NCkNCj4gPiAgew0KPiA+IC0JQUNQSV9GVU5DVElPTl9UUkFDRShhY3BpX3NldF9m
-aXJtd2FyZV93YWtpbmdfdmVjdG9yKTsNCj4gPiArCUFDUElfRlVOQ1RJT05fVFJBQ0UoYWNwaV9o
-d19zZXRfZmlybXdhcmVfd2FraW5nX3ZlY3Rvcik7DQo+ID4NCj4gPg0KPiA+ICAJLyoNCj4gPiBA
-QCAtMTA5LDI1ICsxMTgsNjYgQEAgYWNwaV9zZXRfZmlybXdhcmVfd2FraW5nX3ZlY3RvcihhY3Bp
-X3BoeXNpY2FsX2FkZHJlc3MgcGh5c2ljYWxfYWRkcmVzcywNCj4gPg0KPiA+ICAJLyogU2V0IHRo
-ZSAzMi1iaXQgdmVjdG9yICovDQo+ID4NCj4gPiAtCWFjcGlfZ2JsX0ZBQ1MtPmZpcm13YXJlX3dh
-a2luZ192ZWN0b3IgPSAodTMyKXBoeXNpY2FsX2FkZHJlc3M7DQo+ID4gKwlmYWNzLT5maXJtd2Fy
-ZV93YWtpbmdfdmVjdG9yID0gKHUzMilwaHlzaWNhbF9hZGRyZXNzOw0KPiA+DQo+ID4gLQlpZiAo
-YWNwaV9nYmxfRkFDUy0+bGVuZ3RoID4gMzIpIHsNCj4gPiAtCQlpZiAoYWNwaV9nYmxfRkFDUy0+
-dmVyc2lvbiA+PSAxKSB7DQo+ID4gKwlpZiAoZmFjcy0+bGVuZ3RoID4gMzIpIHsNCj4gPiArCQlp
-ZiAoZmFjcy0+dmVyc2lvbiA+PSAxKSB7DQo+ID4NCj4gPiAgCQkJLyogU2V0IHRoZSA2NC1iaXQg
-dmVjdG9yICovDQo+ID4NCj4gPiAtCQkJYWNwaV9nYmxfRkFDUy0+eGZpcm13YXJlX3dha2luZ192
-ZWN0b3IgPQ0KPiA+IC0JCQkgICAgcGh5c2ljYWxfYWRkcmVzczY0Ow0KPiA+ICsJCQlmYWNzLT54
-ZmlybXdhcmVfd2FraW5nX3ZlY3RvciA9IHBoeXNpY2FsX2FkZHJlc3M2NDsNCj4gPiAgCQl9IGVs
-c2Ugew0KPiA+ICAJCQkvKiBDbGVhciB0aGUgNjQtYml0IHZlY3RvciBpZiBpdCBleGlzdHMgKi8N
-Cj4gPg0KPiA+IC0JCQlhY3BpX2dibF9GQUNTLT54ZmlybXdhcmVfd2FraW5nX3ZlY3RvciA9IDA7
-DQo+ID4gKwkJCWZhY3MtPnhmaXJtd2FyZV93YWtpbmdfdmVjdG9yID0gMDsNCj4gPiAgCQl9DQo+
-ID4gIAl9DQo+ID4NCj4gPiAgCXJldHVybl9BQ1BJX1NUQVRVUyhBRV9PSyk7DQo+ID4gIH0NCj4g
-Pg0KPiA+ICsvKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKg0KPiA+ICsgKg0KPiA+ICsgKiBGVU5DVElP
-TjogICAgYWNwaV9zZXRfZmlybXdhcmVfd2FraW5nX3ZlY3Rvcg0KPiA+ICsgKg0KPiA+ICsgKiBQ
-QVJBTUVURVJTOiAgcGh5c2ljYWxfYWRkcmVzcyAgICAtIDMyLWJpdCBwaHlzaWNhbCBhZGRyZXNz
-IG9mIEFDUEkgcmVhbCBtb2RlDQo+ID4gKyAqICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgZW50cnkgcG9pbnQNCj4gPiArICogICAgICAgICAgICAgIHBoeXNpY2FsX2FkZHJlc3M2
-NCAgLSA2NC1iaXQgcGh5c2ljYWwgYWRkcmVzcyBvZiBBQ1BJIHByb3RlY3RlZA0KPiA+ICsgKiAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIGVudHJ5IHBvaW50DQo+ID4gKyAqDQo+
-ID4gKyAqIFJFVFVSTjogICAgICBTdGF0dXMNCj4gPiArICoNCj4gPiArICogREVTQ1JJUFRJT046
-IFNldHMgdGhlIGZpcm13YXJlX3dha2luZ192ZWN0b3IgZmllbGRzIG9mIHRoZSBGQUNTDQo+ID4g
-KyAqDQo+ID4gKyAqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKiovDQo+ID4gKw0KPiA+ICthY3BpX3N0YXR1
-cw0KPiA+ICthY3BpX3NldF9maXJtd2FyZV93YWtpbmdfdmVjdG9yKGFjcGlfcGh5c2ljYWxfYWRk
-cmVzcyBwaHlzaWNhbF9hZGRyZXNzLA0KPiA+ICsJCQkJYWNwaV9waHlzaWNhbF9hZGRyZXNzIHBo
-eXNpY2FsX2FkZHJlc3M2NCkNCj4gDQo+IFRoZSBxdWVzdGlvbiBoZXJlIGlzOiBXaHkgZG9lcyB0
-aGUgaG9zdCBPUyBuZWVkIHRvIGNhcmUgYWJvdXQgdGhlIHNlY29uZA0KPiBhcmd1bWVudCBvZiB0
-aGlzIGZ1bmN0aW9uIHRoYXQgd2lsbCBhbHdheXMgYmUgMD8gIFdoeSBkaWRuJ3QgeW91IGtlZXAg
-dGhlDQo+IG9sZCBoZWFkZXIgb2YgYWNwaV9zZXRfZmlybXdhcmVfd2FraW5nX3ZlY3RvcigpIGFz
-IGEgb25lLWFyZ3VtZW50IGZ1bmN0aW9uDQo+IHRha2luZyBhIHUzMiBhbmQgd2h5IGRpZG4ndCB5
-b3UgYWRkIHNvbWV0aGluZyBsaWtlDQo+IA0KPiBhY3BpX3N0YXR1cyBhY3BpX3NldF9maXJtd2Fy
-ZV93YWtpbmdfdmVjdG9yX2Z1bGwodTMyIHJlYWxfbW9kZV9hZGRyZXNzLA0KPiAJCQkJCWFjcGlf
-cGh5c2ljYWxfYWRkcmVzcyBoaWdoX2FkZHJlc3MpDQo+IA0KPiBhbmQgd2h5IGRpZG4ndCB5b3Ug
-cmVkZWZpbmUgYWNwaV9zZXRfZmlybXdhcmVfd2FraW5nX3ZlY3RvcigpIGFzDQo+IA0KPiBhY3Bp
-X3N0YXR1cyBhY3BpX3NldF9maXJtd2FyZV93YWtpbmdfdmVjdG9yKHUzMiByZWFsX21vZGVfYWRk
-cmVzcykNCj4gew0KPiAJcmV0dXJuIGFjcGlfc2V0X2Zpcm13YXJlX3dha2luZ192ZWN0b3JfZnVs
-bChyZWFsX21vZGVfYWRkcmVzcywgMCk7DQo+IH0NCj4gDQo+ID8NCj4gDQo+IElmIHlvdSBkaWQg
-dGhhdCwgdGhlcmUgd291bGRuJ3QgYmUgYW55IG5lZWQgdG8gdG91Y2ggdGhlIGNvZGUgaW4NCj4g
-ZHJpdmVycy9hY3BpL3NsZWVwLmMgYW5kIHRoZSBhcmNoIGhlYWRlcnMsIHNvIGNhbiB5b3UgcGxl
-YXNlIGV4cGxhaW4gdG8gbWUNCj4gd2h5ICpleGFjdGx5KiB5b3UgZGlkbid0IGRvIHRoYXQ/DQoN
-Ckhvc3QgT1MgY2FuIHNldCBub24gMCBhZGRyZXNzIGZvciBib3RoICByZWFsX21vZGVfYWRkcmVz
-cyBhbmQgaGlnaF9hZGRyZXNzIHRvIGluZGljYXRlIHRoYXQgaXQgY2FuIHN1cHBvcnQgYm90aCAz
-Mi1iaXQgYW5kIDY0LWJpdCByZXN1bWUgZW52aXJvbm1lbnRzLg0KU28gaWYgYSBCSU9TIGZhdm9y
-cyAzMi1iaXQgcmVzdW1lIGVudmlyb25tZW50LCBpdCBjYW4gcmVzdW1lIGZyb20gaGVyZTsgaWYg
-YW5vdGhlciBCSU9TIGZhdm9ycyA2NC1iaXQgcmVzdW1lIGVudmlyb25tZW50LCBpdCBjYW4gcmVz
-dW1lIGZyb20gdGhlcmUuDQpBbmQgaG9zdCBPU2VzIGNhbiBiZSBpbXBsZW1lbnRlZCB1c2luZyBv
-bmx5IDEgYmluYXJ5IHRvIHdvcmsgd2l0aCBib3RoIEJJT1Nlcy4NCg0KVGhhbmtzIGFuZCBiZXN0
-IHJlZ2FyZHMNCi1Mdg0K
+On Wed, 2015-06-17 at 19:13 -0400, Dan Williams wrote:
+> A new sub-system in support of non-volatile memory storage devices.
+> 
+> Stephen, please add libnvdimm-for-next to -next:
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/djbw/nvdimm libnvdimm-for-next
+> 
+> Changes since v6 [1]:
+> 
+> 1/ Deferred the patches dependent on ->rw_bytes() (BTT - stacked block
+>    driver, BLK - mmio aperture windows driver, NFIT_TEST - unit test
+>    infrastructure for all libnvdimm + nfit components) to their own
+>    patchset. Make the ->rw_bytes() implementation the first patch in
+>    that series (Christoph)
+> 
+> 2/ Collected acks from Christoph and Rafael!
+> 
+> 3/ Add a HAS_IOMEM dependency to CONFIG_BLK_DEV_PMEM following commit
+>    b6f2098fb708 "block: pmem: Add dependency on HAS_IOMEM" in 4.1-rc8.
+> 
+> 4/ Move libnvdimm to subsys_initcall() and move arch/x86/kernel/pmem.c
+>    back to device_initcall().  This allows ACPI_NFIT to be built-in.
+>    (Linda)
+> 
+> 5/ Drop the ACPI_DRIVER_ALL_NOTIFY_EVENTS flag in the nfit driver.
+>    (Rafael)
+> 
+> 6/ Reference count the nvdimm_drvdata object.  This fixes a bug that was
+>    found when the unit tests were extended to test disabling an nvdimm
+>    while a region device still had references to label data.
+> 
+ :
+> Dan Williams (16):
+>       e820, efi: add ACPI 6.0 persistent memory types
+>       libnvdimm, nfit: initial libnvdimm infrastructure and NFIT support
+>       libnvdimm: control character device and nvdimm_bus sysfs attributes
+>       libnvdimm, nfit: dimm/memory-devices
+>       libnvdimm: control (ioctl) messages for nvdimm_bus and nvdimm devices
+>       libnvdimm, nvdimm: dimm driver and base libnvdimm device-driver infrastructure
+>       libnvdimm, nfit: regions (block-data-window, persistent memory, volatile memory)
+>       libnvdimm: support for legacy (non-aliasing) nvdimms
+>       libnvdimm, pmem: move pmem to drivers/nvdimm/
+>       libnvdimm, pmem: add libnvdimm support to the pmem driver
+>       libnvdimm, nfit: add interleave-set state-tracking infrastructure
+>       libnvdimm: namespace indices: read and validate
+>       libnvdimm: pmem label sets and namespace instantiation.
+>       libnvdimm: blk labels and namespace instantiation
+>       libnvdimm: write pmem label set
+>       libnvdimm: write blk label set
+
+We have been successfully running this patchset on our NFIT-enabled
+prototype systems with pmem.  (Intel example _DSM, label, blk are not
+available for testing.)
+
+So for patch 1/16 to 4/15, and 6/16 to 10/16. 
+
+Tested-by: Toshi Kani <toshi.kani@hp.com>
+
+Thanks,
+-Toshi
+
