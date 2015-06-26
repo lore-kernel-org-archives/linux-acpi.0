@@ -1,85 +1,79 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH v2 05/28] ACPICA: Hardware: Enable firmware waking
- vector for both 32-bit and 64-bit FACS.
-Date: Fri, 26 Jun 2015 00:51:39 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E8802734087@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1434684719.git.lv.zheng@intel.com>
- <24343352.3W7mrSPtdt@vostro.rjw.lan>
- <1AE640813FDE7649BE1B193DEA596E8802733CA6@SHSMSX101.ccr.corp.intel.com>
- <31220621.6TtT1kp1Fm@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v2 03/28] ACPICA: Hardware: Enable 64-bit firmware waking vector for selected FACS.
+Date: Fri, 26 Jun 2015 03:20:37 +0200
+Message-ID: <1649895.CEu8Ovje9D@vostro.rjw.lan>
+References: <cover.1434684719.git.lv.zheng@intel.com> <3959851.uJ0udqUY0b@vostro.rjw.lan> <1AE640813FDE7649BE1B193DEA596E8802733C14@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:44641 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750920AbbFZAv7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 25 Jun 2015 20:51:59 -0400
-In-Reply-To: <31220621.6TtT1kp1Fm@vostro.rjw.lan>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E8802733C14@SHSMSX101.ccr.corp.intel.com>
+Sender: linux-ia64-owner@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "x86@kernel.org" <x86@kernel.org>, "Luck, Tony" <tony.luck@intel.com>, "Yu, Fenghua" <fenghua.yu@intel.com>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-SGksIFJhZmFlbA0KDQo+IEZyb206IFJhZmFlbCBKLiBXeXNvY2tpIFttYWlsdG86cmp3QHJqd3lz
-b2NraS5uZXRdDQo+IFNlbnQ6IEZyaWRheSwgSnVuZSAyNiwgMjAxNSA4OjQ0IEFNDQo+IA0KPiBP
-biBUaHVyc2RheSwgSnVuZSAyNSwgMjAxNSAxMjo0MzozOSBBTSBaaGVuZywgTHYgd3JvdGU6DQo+
-ID4gSGksIFJhZmFlbA0KPiA+DQo+ID4gPiBGcm9tOiBSYWZhZWwgSi4gV3lzb2NraSBbbWFpbHRv
-OnJqd0Byand5c29ja2kubmV0XQ0KPiA+ID4gU2VudDogVGh1cnNkYXksIEp1bmUgMjUsIDIwMTUg
-Nzo1NyBBTQ0KPiA+ID4NCj4gDQo+IFtjdXRdDQo+IA0KPiA+ID4gPg0KPiA+ID4gPiArLyoqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioNCj4gPiA+ID4gKyAqDQo+ID4gPiA+ICsgKiBGVU5DVElPTjogICAg
-YWNwaV9zZXRfZmlybXdhcmVfd2FraW5nX3ZlY3Rvcg0KPiA+ID4gPiArICoNCj4gPiA+ID4gKyAq
-IFBBUkFNRVRFUlM6ICBwaHlzaWNhbF9hZGRyZXNzICAgIC0gMzItYml0IHBoeXNpY2FsIGFkZHJl
-c3Mgb2YgQUNQSSByZWFsIG1vZGUNCj4gPiA+ID4gKyAqICAgICAgICAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgZW50cnkgcG9pbnQNCj4gPiA+ID4gKyAqICAgICAgICAgICAgICBwaHlzaWNh
-bF9hZGRyZXNzNjQgIC0gNjQtYml0IHBoeXNpY2FsIGFkZHJlc3Mgb2YgQUNQSSBwcm90ZWN0ZWQN
-Cj4gPiA+ID4gKyAqICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgZW50cnkgcG9p
-bnQNCj4gPiA+ID4gKyAqDQo+ID4gPiA+ICsgKiBSRVRVUk46ICAgICAgU3RhdHVzDQo+ID4gPiA+
-ICsgKg0KPiA+ID4gPiArICogREVTQ1JJUFRJT046IFNldHMgdGhlIGZpcm13YXJlX3dha2luZ192
-ZWN0b3IgZmllbGRzIG9mIHRoZSBGQUNTDQo+ID4gPiA+ICsgKg0KPiA+ID4gPiArICoqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKi8NCj4gPiA+ID4gKw0KPiA+ID4gPiArYWNwaV9zdGF0dXMNCj4gPiA+ID4g
-K2FjcGlfc2V0X2Zpcm13YXJlX3dha2luZ192ZWN0b3IoYWNwaV9waHlzaWNhbF9hZGRyZXNzIHBo
-eXNpY2FsX2FkZHJlc3MsDQo+ID4gPiA+ICsJCQkJYWNwaV9waHlzaWNhbF9hZGRyZXNzIHBoeXNp
-Y2FsX2FkZHJlc3M2NCkNCj4gPiA+DQo+ID4gPiBUaGUgcXVlc3Rpb24gaGVyZSBpczogV2h5IGRv
-ZXMgdGhlIGhvc3QgT1MgbmVlZCB0byBjYXJlIGFib3V0IHRoZSBzZWNvbmQNCj4gPiA+IGFyZ3Vt
-ZW50IG9mIHRoaXMgZnVuY3Rpb24gdGhhdCB3aWxsIGFsd2F5cyBiZSAwPyAgV2h5IGRpZG4ndCB5
-b3Uga2VlcCB0aGUNCj4gPiA+IG9sZCBoZWFkZXIgb2YgYWNwaV9zZXRfZmlybXdhcmVfd2FraW5n
-X3ZlY3RvcigpIGFzIGEgb25lLWFyZ3VtZW50IGZ1bmN0aW9uDQo+ID4gPiB0YWtpbmcgYSB1MzIg
-YW5kIHdoeSBkaWRuJ3QgeW91IGFkZCBzb21ldGhpbmcgbGlrZQ0KPiA+ID4NCj4gPiA+IGFjcGlf
-c3RhdHVzIGFjcGlfc2V0X2Zpcm13YXJlX3dha2luZ192ZWN0b3JfZnVsbCh1MzIgcmVhbF9tb2Rl
-X2FkZHJlc3MsDQo+ID4gPiAJCQkJCWFjcGlfcGh5c2ljYWxfYWRkcmVzcyBoaWdoX2FkZHJlc3Mp
-DQo+ID4gPg0KPiA+ID4gYW5kIHdoeSBkaWRuJ3QgeW91IHJlZGVmaW5lIGFjcGlfc2V0X2Zpcm13
-YXJlX3dha2luZ192ZWN0b3IoKSBhcw0KPiA+ID4NCj4gPiA+IGFjcGlfc3RhdHVzIGFjcGlfc2V0
-X2Zpcm13YXJlX3dha2luZ192ZWN0b3IodTMyIHJlYWxfbW9kZV9hZGRyZXNzKQ0KPiA+ID4gew0K
-PiA+ID4gCXJldHVybiBhY3BpX3NldF9maXJtd2FyZV93YWtpbmdfdmVjdG9yX2Z1bGwocmVhbF9t
-b2RlX2FkZHJlc3MsIDApOw0KPiA+ID4gfQ0KPiA+ID4NCj4gPiA+ID8NCj4gPiA+DQo+ID4gPiBJ
-ZiB5b3UgZGlkIHRoYXQsIHRoZXJlIHdvdWxkbid0IGJlIGFueSBuZWVkIHRvIHRvdWNoIHRoZSBj
-b2RlIGluDQo+ID4gPiBkcml2ZXJzL2FjcGkvc2xlZXAuYyBhbmQgdGhlIGFyY2ggaGVhZGVycywg
-c28gY2FuIHlvdSBwbGVhc2UgZXhwbGFpbiB0byBtZQ0KPiA+ID4gd2h5ICpleGFjdGx5KiB5b3Ug
-ZGlkbid0IGRvIHRoYXQ/DQo+ID4NCj4gPiBIb3N0IE9TIGNhbiBzZXQgbm9uIDAgYWRkcmVzcyBm
-b3IgYm90aCAgcmVhbF9tb2RlX2FkZHJlc3MgYW5kIGhpZ2hfYWRkcmVzcyB0byBpbmRpY2F0ZSB0
-aGF0IGl0IGNhbiBzdXBwb3J0IGJvdGggMzItYml0IGFuZCA2NC1iaXQNCj4gcmVzdW1lIGVudmly
-b25tZW50cy4NCj4gPiBTbyBpZiBhIEJJT1MgZmF2b3JzIDMyLWJpdCByZXN1bWUgZW52aXJvbm1l
-bnQsIGl0IGNhbiByZXN1bWUgZnJvbSBoZXJlOyBpZiBhbm90aGVyIEJJT1MgZmF2b3JzIDY0LWJp
-dCByZXN1bWUgZW52aXJvbm1lbnQsIGl0IGNhbg0KPiByZXN1bWUgZnJvbSB0aGVyZS4NCj4gPiBB
-bmQgaG9zdCBPU2VzIGNhbiBiZSBpbXBsZW1lbnRlZCB1c2luZyBvbmx5IDEgYmluYXJ5IHRvIHdv
-cmsgd2l0aCBib3RoIEJJT1Nlcy4NCj4gDQo+IEknbSBub3QgdGFsa2luZyBhYm91dCB0aGF0Lg0K
-PiANCj4gSXQgaXMgZmluZSB0byBwcm92aWRlIGEgKm5ldyogaW50ZXJmYWNlIGZvciB0aGUgT1Nl
-cyB0aGF0IHdhbnQgdG8gZG8gdGhhdA0KPiAoaWYgYW55KSwgYnV0ICp3aHkqIGlzIHRoYXQgcmVn
-YXJkZWQgYXMgYSBnb29kIGVub3VnaCByZWFzb24gZm9yIGVzc2VudGlhbGx5DQo+ICpyZW1vdmlu
-ZyogdGhlIG9sZCBpbnRlcmZhY2UgdGhhdCBMaW51eCAoYW5kIHByZXN1bWFibHkgb3RoZXIgT1Nl
-cyB0b28pIGhhdmUNCj4gYmVlbiB1c2luZyBzbyBmYXI/DQoNCk1heWJlIHdlIHNob3VsZCBhc2sg
-Qm9iIGlmIHdlIHNoYWxsIGp1c3QgcHJvdmlkZSBhIG5ldyBpbnRlcmZhY2VzIGZvciB0aGlzIGFu
-ZCBrZWVwIHRoZSBvbGQgb25lcz8NCkFjY29yZGluZyB0byBteSB1bmRlcnN0YW5kaW5nLCB0aGVy
-ZSBpcyBubyBzdWNoIGV4YW1wbGUgaW4gdGhlIEFDUElDQSB1cHN0cmVhbS4NClNvbWUgeHh4eF9m
-dWxsIGZ1bmN0aW9ucyBhcmUgc3RpbGwgcGVuZGluZyBmb3IgYmVpbmcgbWVyZ2VkIGJ5IEFDUElD
-QSB1cHN0cmVhbSwgdGhleSBhcmUgZGl2ZXJnZW5jZXMgZm9yIG5vdy4NCg0KPiANCj4gV2UgZG9u
-J3Qgd2FudCB0byBwYXNzIG5vbnplcm8gYXMgaGlnaF9hZGRyZXNzIGFueXdheSwgc28gd2h5IGFy
-ZSB3ZSAqZm9yY2VkKiB0bw0KPiBtYWtlIHBvaW50bGVzcyBjaGFuZ2VzIHRvIG5vbi1BQ1BJQ0Eg
-Y29kZSBqdXN0IHRvIGJlIGFibGUgdG8gYWx3YXlzIHBhc3MgMA0KPiBhcyBoaWdoX2FkZHJlc3M/
-DQoNCklNTywgT1NQTXMgY2FuIGRvIHRoaXMgaWYgdGhlIGNvc3QgaXMgbm90IGhpZ2guDQpJdCBz
-ZWVtcyBieSBmb2xsb3dpbmcgeW91ciBzdWdnZXN0aW9uLCB3ZSBvbmx5IG5lZWQgdG8gZG8gc2xp
-Z2h0IGNoYW5nZXMgaW4gc2xlZXAuYy4NCg0KVGhhbmtzIGFuZCBiZXN0IHJlZ2FyZHMNCi1Mdg0K
+On Thursday, June 25, 2015 12:29:02 AM Zheng, Lv wrote:
+> Hi, Rafael
+> 
+> > From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
+> > Sent: Thursday, June 25, 2015 7:24 AM
+> > To: Zheng, Lv
+
+[cut]
+
+> > 
+> > In fact, I don't see why we need to redefine the symbols at all.
+> > 
+> > Couldn't acpi_set_firmware_waking_vector() be defined to take u32 and u64 so
+> > we could just pass acpi_wakeup_address (as already defined) as the first argument
+> > and 0 as the second argument to it?  The back-and-forth type casts from and
+> > to acpi_physical_address don't look entirely clean to me.
+> > 
+> > Moreover, I don't really see a functional difference between the old and the
+> > new code.
+> > 
+> > The old code does "set the 32-bit waking vector and clear the 64-bit waking
+> > vector if present".  The new code does "set the 32-bit waking vector and
+> > either clear the 64-bit one if present, or assign the second function argument
+> > to it", but we always pass 0 as the second argument (which is *extremely*
+> > obfuscated in your patch), so I really don't see the difference here.
+> > 
+> > Am I missing anything?
+> 
+> The story is:
+> According to the test, if both 32-bit waking vector and 64-bit waking vector is
+> set by the OSPM,
+
+The current code in Linux never does that.
+
+It never calls acpi_set_firmware_waking_vector64() and the acpi_set_firmware_waking_vector()
+(before your patch) explicitly clears the 64-bit vector address.
+
+> BIOSes only support 32-bit resume environment will jump to the 32-bit waking
+> vector address and BIOSes support 64-bit resume environment will jump to
+> 64-bit waking vector.
+
+Which doesn't matter for Linux one whit.
+
+> So they can be set by the OSPMs simultaneously to indicate that the OSPM can
+> support both resume environments.  That's why ACPICA interface is changed.
+
+It shouldn't.  It just forces host OSes to make pointless changes to their
+non-ACPICA code.
+
+As I said elsewhere, the old acpi_set_firmware_waking_vector() should still be
+available to the OSes that don't care about the 64-bit waking vector and a *new*
+interface should be added for those OSes that do care about it.  And *internally*
+acpi_set_firmware_waking_vector() can be defined in terms of the new interface,
+but there's no reason at all for a host OS to care about that.
+
+So the $subject patch is entirely poitless.  It doesn't fix anything and it
+doesn't even change the way the code works today in Linux.  It just adds
+complexity and pointlessly redefines some stuff.
+
+So I'm not going to apply it.
+
+Thanks,
+Rafael
+
