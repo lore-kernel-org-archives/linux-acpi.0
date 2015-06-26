@@ -1,123 +1,86 @@
-From: "Williams, Dan J" <dan.j.williams@intel.com>
-Subject: Re: [PATCH v2 15/17] libnvdimm: Set numa_node to NVDIMM devices
-Date: Thu, 25 Jun 2015 23:42:33 +0000
-Message-ID: <1435275750.18090.5.camel@intel.com>
-References: <20150625090554.40066.69562.stgit@dwillia2-desk3.jf.intel.com>
-	 <20150625093738.40066.88750.stgit@dwillia2-desk3.jf.intel.com>
-	 <1435254317.11808.327.camel@misato.fc.hp.com>
-	 <1435257283.13411.4.camel@intel.com>
-	 <CAPcyv4jhDc1+TGyo4J6vC7bRBaGbfAXyLP2qB9X5DAJRBhCRyQ@mail.gmail.com>
-	 <1435269103.11808.349.camel@misato.fc.hp.com>
-	 <CAPcyv4gqgbEVWDKR4e8=Uaz1As4FxY4-8VHWKZfQ-vtc2wOs3g@mail.gmail.com>
-	 <1435270287.11808.352.camel@misato.fc.hp.com>
-	 <CAPcyv4hzUA71G8bmUt7OLXx0GMX-36gqQ-WHOjA7sj9z4pudCA@mail.gmail.com>
-	 <1435272910.11808.356.camel@misato.fc.hp.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v2 05/28] ACPICA: Hardware: Enable firmware waking vector for both 32-bit and 64-bit FACS.
+Date: Fri, 26 Jun 2015 02:44:07 +0200
+Message-ID: <31220621.6TtT1kp1Fm@vostro.rjw.lan>
+References: <cover.1434684719.git.lv.zheng@intel.com> <24343352.3W7mrSPtdt@vostro.rjw.lan> <1AE640813FDE7649BE1B193DEA596E8802733CA6@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:5777 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751736AbbFYXmf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 25 Jun 2015 19:42:35 -0400
-In-Reply-To: <1435272910.11808.356.camel@misato.fc.hp.com>
-Content-Language: en-US
-Content-ID: <FEFFB7F888A9AA4CB18BD85A23AE72B2@intel.com>
+Received: from v094114.home.net.pl ([79.96.170.134]:42318 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751272AbbFZAR5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Jun 2015 20:17:57 -0400
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E8802733CA6@SHSMSX101.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "toshi.kani@hp.com" <toshi.kani@hp.com>
-Cc: "mingo@kernel.org" <mingo@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "hch@lst.de" <hch@lst.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "axboe@kernel.dk" <axboe@kernel.dk>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-T24gVGh1LCAyMDE1LTA2LTI1IGF0IDE2OjU1IC0wNjAwLCBUb3NoaSBLYW5pIHdyb3RlOg0KPiBP
-biBUaHUsIDIwMTUtMDYtMjUgYXQgMTU6MzQgLTA3MDAsIERhbiBXaWxsaWFtcyB3cm90ZToNCj4g
-PiBPbiBUaHUsIEp1biAyNSwgMjAxNSBhdCAzOjExIFBNLCBUb3NoaSBLYW5pIDx0b3NoaS5rYW5p
-QGhwLmNvbT4gd3JvdGU6DQo+ID4gPiBPbiBUaHUsIDIwMTUtMDYtMjUgYXQgMTU6MDAgLTA3MDAs
-IERhbiBXaWxsaWFtcyB3cm90ZToNCj4gPiA+IFllcywgSSBzZWUgbm8gcHJvYmxlbSB3aXRoIGJv
-dW5kIEJUVHMgYW5kIHRoZWlyIGRldmljZSBmaWxlcy4gIFNvLCBob3cNCj4gPiA+IGRvIHdlIGJp
-bmQgQlRUIHdpdGggdGhpcyBuZXcgdmVyc2lvbj8NCj4gPiA+DQo+ID4gDQo+ID4gIyBjZCAvc3lz
-L2J1cy9uZC9kZXZpY2VzDQo+ID4gIyB1dWlkZ2VuID4gYnR0Ni91dWlkDQo+ID4gIyBlY2hvIDQw
-OTYgPiBidHQ2L3NlY3Rvcl9zaXplDQo+ID4gIyBlY2hvIG5hbWVzcGFjZTYuMCA+IGJ0dDYvbmFt
-ZXNwYWNlDQo+ID4gIyBlY2hvIG5hbWVzcGFjZTYuMCA+IC4uL2RyaXZlcnMvbmRfcG1lbS91bmJp
-bmQNCj4gPiAjIGVjaG8gYnR0NiA+IC4uL2RyaXZlcnMvbmRfcG1lbS9iaW5kDQo+ID4gDQo+ID4g
-QWZ0ZXIgcmVib290LCB3aGVuIHRoZSBzeXN0ZW0gc2VlcyBuYW1lc3BhY2U2LjAgYWdhaW4gaXQg
-d2lsbCBub3RpY2UNCj4gPiB0aGUgYnR0IGluc3RhbmNlIGFuZCBhdHRhY2ggYnR0WCBpbnN0ZWFk
-LiAgVGhlIG5ldCBlZmZlY3QgaXMgdGhhdCBub3cNCj4gPiB5b3UnbGwgb25seSBldmVyIGhhdmUg
-L2Rldi9wbWVtNiBvciAvZGV2L3BtZW02cywgbmV2ZXIgYm90aCBhdCB0aGUNCj4gPiBzYW1lIHRp
-bWUgdGhhdCB3YXMgYSBzaWRlIGVmZmVjdCBvZiB0aGUgc3RhY2tpbmcgYXBwcm9hY2guDQo+ID4g
-DQo+ID4gSSdsbCBwb3N0IHRoZSBwYXRjaCB0aGF0IHVwZGF0ZXMgbGlibmRjdGwgYW5kIHRoZSB1
-bml0IHRlc3RzIHNob3J0bHkNCj4gDQo+IE1heWJlIEkgYW0gbWlzc2luZyBzb21ldGhpbmcsIGJ1
-dCBJIGFtIGdldHRpbmcgZXJyb3JzIG9uIG15IHN5c3RlbS4gIChJDQo+IHVzZWQgYnR0MCBzaW5j
-ZSB0aGVyZSBpcyBubyBidHQ2LikNCj4gDQo+ICMgY2F0IGJpbmQuc2gNCj4gc2V0IC14DQo+IGNk
-IC9zeXMvYnVzL25kL2RldmljZXMNCj4gdXVpZGdlbiA+IGJ0dDAvdXVpZA0KPiBlY2hvIDQwOTYg
-PiBidHQwL3NlY3Rvcl9zaXplDQo+IGVjaG8gbmFtZXNwYWNlMC4wID4gYnR0MC9uYW1lc3BhY2UN
-Cj4gZWNobyBuYW1lc3BhY2UwLjAgPiAuLi9kcml2ZXJzL25kX3BtZW0vdW5iaW5kDQo+IGVjaG8g
-YnR0MCA+IC4uL2RyaXZlcnMvbmRfcG1lbS9iaW5kDQo+IA0KPiAjIHNoIGJpbmQuc2gNCj4gKyBj
-ZCAvc3lzL2J1cy9uZC9kZXZpY2VzDQo+ICsgdXVpZGdlbg0KPiArIGVjaG8gNDA5Ng0KPiArIGVj
-aG8gbmFtZXNwYWNlMC4wDQo+IGJpbmQuc2g6IGxpbmUgNjogZWNobzogd3JpdGUgZXJyb3I6IERl
-dmljZSBvciByZXNvdXJjZSBidXN5DQo+ICsgZWNobyBuYW1lc3BhY2UwLjANCj4gYmluZC5zaDog
-bGluZSA3OiBlY2hvOiB3cml0ZSBlcnJvcjogTm8gc3VjaCBkZXZpY2UNCj4gKyBlY2hvIGJ0dDAN
-Cj4gYmluZC5zaDogbGluZSA4OiBlY2hvOiB3cml0ZSBlcnJvcjogTm8gc3VjaCBkZXZpY2UNCj4g
-DQo+ICMgZG1lc2cNCj4gIDoNCj4gWzEyNTEzLjgzOTE2Ml0gbmQgYnR0MDogdXVpZF9zdG9yZTog
-cmVzdWx0OiAwIHdyb3RlOg0KPiBiMzJjZDE5NS05YWFlLTRjNTQtYTVhYy00OWFkYjUwYThhOTgN
-Cj4gWzEyNTEzLjg4MDI4Nl0gbmQgYnR0MDogc2VjdG9yX3NpemVfc3RvcmU6IHJlc3VsdDogMCB3
-cm90ZTogNDA5Ng0KPiBbMTI1MTMuOTA5NDk0XSBuZCBidHQwOiBuYW1lc3BhY2UwLjAgYWxyZWFk
-eSBjbGFpbWVkDQo+IFsxMjUxMy45MzMzNjRdIG5kIGJ0dDA6IG5hbWVzcGFjZV9zdG9yZTogcmVz
-dWx0OiAtMTYgd3JvdGU6IG5hbWVzcGFjZTAuMA0KPiBbMTI1MTMuOTY2ODA4XSAgbmRidXMwOiBu
-ZF9wbWVtLnByb2JlKGJ0dDApID0gLTE5DQo+IA0KDQpTbyB0aGlzIHR1cm5lZCBvdXQgdG8gYmUg
-YSBwZXJmZWN0IGV4YW1wbGUgb2Ygd2h5IHdlIG1pZ2h0IHdhbnQgdG8gaGF2ZQ0KdGhlIHJlZ2lv
-bi1pZCBpbiB0aGUgYnR0IGRldmljZSBuYW1lIGp1c3QgbGlrZSBuYW1lc3BhY2VzLCBiZWNhdXNl
-IGJ0dDANCndhcyBhY3R1YWxseSBib3VuZCB0byBuYW1lc3BhY2U0LjAgb24gVG9zaGkncyBzeXN0
-ZW0uICBUaGUgZm9sbG93aW5nDQp1cGRhdGUsIHRoYXQgSSB3aWxsIGZvbGQgaW4gdG8gdGhlIHNl
-cmllcywgZml4ZXMgdGhpcy4gIE5vdGUgdGhhdCB0aGUNCmFzc29jaWF0aW9uIG9mIGJ0dCBpZCB0
-byB0byBuYW1lc3BhY2UgaXMgc3RpbGwgbm9uLWRldGVybWluaXN0aWMuICBJLmUuDQpidHQwLjEg
-Y291bGQgYmUgYXNzaWduZWQgYXMgdGhlIGJ0dCBmb3IgbmFtZXNwYWNlMC4wLCBidXQgYXQgbGVh
-c3Qgd2hlbg0KbG9va2luZyBhdCAvc3lzL2J1cy9uZC9kZXZpY2VzIGl0IHdpbGwgYmUgY2xlYXIg
-d2hpY2ggYnR0cyBiZWxvbmcgdG8NCndoaWNoIHJlZ2lvbnMuDQoNCiMgbHMgL3N5cy9idXMvbmQv
-ZGV2aWNlcw0KYnR0MC4wICBidHQzLjAgIGJ0dDYuMCAgICAgICAgbmFtZXNwYWNlMi4wICBuYW1l
-c3BhY2U1LjAgIG5tZW0xICBubWVtNCAgICByZWdpb24yICByZWdpb241DQpidHQxLjAgIGJ0dDQu
-MCAgbmFtZXNwYWNlMC4wICBuYW1lc3BhY2UzLjAgIG5hbWVzcGFjZTYuMCAgbm1lbTIgIHJlZ2lv
-bjAgIHJlZ2lvbjMgIHJlZ2lvbjYNCmJ0dDIuMCAgYnR0NS4wICBuYW1lc3BhY2UxLjAgIG5hbWVz
-cGFjZTQuMCAgbm1lbTAgICAgICAgICBubWVtMyAgcmVnaW9uMSAgcmVnaW9uNA0KDQoNCjg8LS0t
-LS0tLS0tLS0tDQpkaWZmIC0tZ2l0IGEvZHJpdmVycy9udmRpbW0vYnR0X2RldnMuYyBiL2RyaXZl
-cnMvbnZkaW1tL2J0dF9kZXZzLmMNCmluZGV4IDJkZmI1MjlmNGQzNS4uNmFjOGMwZmVhM2VjIDEw
-MDY0NA0KLS0tIGEvZHJpdmVycy9udmRpbW0vYnR0X2RldnMuYw0KKysrIGIvZHJpdmVycy9udmRp
-bW0vYnR0X2RldnMuYw0KQEAgLTIxLDggKzIxLDYgQEANCiAjaW5jbHVkZSAiYnR0LmgiDQogI2lu
-Y2x1ZGUgIm5kLmgiDQogDQotc3RhdGljIERFRklORV9JREEoYnR0X2lkYSk7DQotDQogc3RhdGlj
-IHZvaWQgX19uZF9idHRfZGV0YWNoX25kbnMoc3RydWN0IG5kX2J0dCAqbmRfYnR0KQ0KIHsNCiAJ
-c3RydWN0IG5kX25hbWVzcGFjZV9jb21tb24gKm5kbnMgPSBuZF9idHQtPm5kbnM7DQpAQCAtNzUs
-MTEgKzczLDEyIEBAIHN0YXRpYyBib29sIG5kX2J0dF9hdHRhY2hfbmRucyhzdHJ1Y3QgbmRfYnR0
-ICpuZF9idHQsDQogDQogc3RhdGljIHZvaWQgbmRfYnR0X3JlbGVhc2Uoc3RydWN0IGRldmljZSAq
-ZGV2KQ0KIHsNCisJc3RydWN0IG5kX3JlZ2lvbiAqbmRfcmVnaW9uID0gdG9fbmRfcmVnaW9uKGRl
-di0+cGFyZW50KTsNCiAJc3RydWN0IG5kX2J0dCAqbmRfYnR0ID0gdG9fbmRfYnR0KGRldik7DQog
-DQogCWRldl9kYmcoZGV2LCAiJXNcbiIsIF9fZnVuY19fKTsNCiAJbmRfYnR0X2RldGFjaF9uZG5z
-KG5kX2J0dCk7DQotCWlkYV9zaW1wbGVfcmVtb3ZlKCZidHRfaWRhLCBuZF9idHQtPmlkKTsNCisJ
-aWRhX3NpbXBsZV9yZW1vdmUoJm5kX3JlZ2lvbi0+YnR0X2lkYSwgbmRfYnR0LT5pZCk7DQogCWtm
-cmVlKG5kX2J0dC0+dXVpZCk7DQogCWtmcmVlKG5kX2J0dCk7DQogfQ0KQEAgLTMwOSw3ICszMDgs
-NyBAQCBzdGF0aWMgc3RydWN0IGRldmljZSAqX19uZF9idHRfY3JlYXRlKHN0cnVjdCBuZF9yZWdp
-b24gKm5kX3JlZ2lvbiwNCiAJaWYgKCFuZF9idHQpDQogCQlyZXR1cm4gTlVMTDsNCiANCi0JbmRf
-YnR0LT5pZCA9IGlkYV9zaW1wbGVfZ2V0KCZidHRfaWRhLCAwLCAwLCBHRlBfS0VSTkVMKTsNCisJ
-bmRfYnR0LT5pZCA9IGlkYV9zaW1wbGVfZ2V0KCZuZF9yZWdpb24tPmJ0dF9pZGEsIDAsIDAsIEdG
-UF9LRVJORUwpOw0KIAlpZiAobmRfYnR0LT5pZCA8IDApIHsNCiAJCWtmcmVlKG5kX2J0dCk7DQog
-CQlyZXR1cm4gTlVMTDsNCkBAIC0zMjAsNyArMzE5LDcgQEAgc3RhdGljIHN0cnVjdCBkZXZpY2Ug
-Kl9fbmRfYnR0X2NyZWF0ZShzdHJ1Y3QgbmRfcmVnaW9uICpuZF9yZWdpb24sDQogCQl1dWlkID0g
-a21lbWR1cCh1dWlkLCAxNiwgR0ZQX0tFUk5FTCk7DQogCW5kX2J0dC0+dXVpZCA9IHV1aWQ7DQog
-CWRldiA9ICZuZF9idHQtPmRldjsNCi0JZGV2X3NldF9uYW1lKGRldiwgImJ0dCVkIiwgbmRfYnR0
-LT5pZCk7DQorCWRldl9zZXRfbmFtZShkZXYsICJidHQlZC4lZCIsIG5kX3JlZ2lvbi0+aWQsIG5k
-X2J0dC0+aWQpOw0KIAlkZXYtPnBhcmVudCA9ICZuZF9yZWdpb24tPmRldjsNCiAJZGV2LT50eXBl
-ID0gJm5kX2J0dF9kZXZpY2VfdHlwZTsNCiAJZGV2LT5ncm91cHMgPSBuZF9idHRfYXR0cmlidXRl
-X2dyb3VwczsNCmRpZmYgLS1naXQgYS9kcml2ZXJzL252ZGltbS9uZC5oIGIvZHJpdmVycy9udmRp
-bW0vbmQuaA0KaW5kZXggNzJjMjY0NjE4MzVkLi5jNDFmNTNlNzQyNzcgMTAwNjQ0DQotLS0gYS9k
-cml2ZXJzL252ZGltbS9uZC5oDQorKysgYi9kcml2ZXJzL252ZGltbS9uZC5oDQpAQCAtOTEsNiAr
-OTEsNyBAQCBzdHJ1Y3QgbmRfcGVyY3B1X2xhbmUgew0KIHN0cnVjdCBuZF9yZWdpb24gew0KIAlz
-dHJ1Y3QgZGV2aWNlIGRldjsNCiAJc3RydWN0IGlkYSBuc19pZGE7DQorCXN0cnVjdCBpZGEgYnR0
-X2lkYTsNCiAJc3RydWN0IGRldmljZSAqbnNfc2VlZDsNCiAJc3RydWN0IGRldmljZSAqYnR0X3Nl
-ZWQ7DQogCXUxNiBuZHJfbWFwcGluZ3M7DQpkaWZmIC0tZ2l0IGEvZHJpdmVycy9udmRpbW0vcmVn
-aW9uX2RldnMuYyBiL2RyaXZlcnMvbnZkaW1tL3JlZ2lvbl9kZXZzLmMNCmluZGV4IDU1YjQyNGY2
-YmEwZC4uYTUyMzM0MjJmOWRjIDEwMDY0NA0KLS0tIGEvZHJpdmVycy9udmRpbW0vcmVnaW9uX2Rl
-dnMuYw0KKysrIGIvZHJpdmVycy9udmRpbW0vcmVnaW9uX2RldnMuYw0KQEAgLTczOCw2ICs3Mzgs
-NyBAQCBzdGF0aWMgc3RydWN0IG5kX3JlZ2lvbiAqbmRfcmVnaW9uX2NyZWF0ZShzdHJ1Y3QgbnZk
-aW1tX2J1cyAqbnZkaW1tX2J1cywNCiAJbmRfcmVnaW9uLT5ybyA9IHJvOw0KIAluZF9yZWdpb24t
-Pm51bWFfbm9kZSA9IG5kcl9kZXNjLT5udW1hX25vZGU7DQogCWlkYV9pbml0KCZuZF9yZWdpb24t
-Pm5zX2lkYSk7DQorCWlkYV9pbml0KCZuZF9yZWdpb24tPmJ0dF9pZGEpOw0KIAlkZXYgPSAmbmRf
-cmVnaW9uLT5kZXY7DQogCWRldl9zZXRfbmFtZShkZXYsICJyZWdpb24lZCIsIG5kX3JlZ2lvbi0+
-aWQpOw0KIAlkZXYtPnBhcmVudCA9ICZudmRpbW1fYnVzLT5kZXY7DQoNCg==
+On Thursday, June 25, 2015 12:43:39 AM Zheng, Lv wrote:
+> Hi, Rafael
+> 
+> > From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
+> > Sent: Thursday, June 25, 2015 7:57 AM
+> > 
+
+[cut]
+
+> > >
+> > > +/*******************************************************************************
+> > > + *
+> > > + * FUNCTION:    acpi_set_firmware_waking_vector
+> > > + *
+> > > + * PARAMETERS:  physical_address    - 32-bit physical address of ACPI real mode
+> > > + *                                    entry point
+> > > + *              physical_address64  - 64-bit physical address of ACPI protected
+> > > + *                                    entry point
+> > > + *
+> > > + * RETURN:      Status
+> > > + *
+> > > + * DESCRIPTION: Sets the firmware_waking_vector fields of the FACS
+> > > + *
+> > > + ******************************************************************************/
+> > > +
+> > > +acpi_status
+> > > +acpi_set_firmware_waking_vector(acpi_physical_address physical_address,
+> > > +				acpi_physical_address physical_address64)
+> > 
+> > The question here is: Why does the host OS need to care about the second
+> > argument of this function that will always be 0?  Why didn't you keep the
+> > old header of acpi_set_firmware_waking_vector() as a one-argument function
+> > taking a u32 and why didn't you add something like
+> > 
+> > acpi_status acpi_set_firmware_waking_vector_full(u32 real_mode_address,
+> > 					acpi_physical_address high_address)
+> > 
+> > and why didn't you redefine acpi_set_firmware_waking_vector() as
+> > 
+> > acpi_status acpi_set_firmware_waking_vector(u32 real_mode_address)
+> > {
+> > 	return acpi_set_firmware_waking_vector_full(real_mode_address, 0);
+> > }
+> > 
+> > ?
+> > 
+> > If you did that, there wouldn't be any need to touch the code in
+> > drivers/acpi/sleep.c and the arch headers, so can you please explain to me
+> > why *exactly* you didn't do that?
+> 
+> Host OS can set non 0 address for both  real_mode_address and high_address to indicate that it can support both 32-bit and 64-bit resume environments.
+> So if a BIOS favors 32-bit resume environment, it can resume from here; if another BIOS favors 64-bit resume environment, it can resume from there.
+> And host OSes can be implemented using only 1 binary to work with both BIOSes.
+
+I'm not talking about that.
+
+It is fine to provide a *new* interface for the OSes that want to do that
+(if any), but *why* is that regarded as a good enough reason for essentially
+*removing* the old interface that Linux (and presumably other OSes too) have
+been using so far?
+
+We don't want to pass nonzero as high_address anyway, so why are we *forced* to
+make pointless changes to non-ACPICA code just to be able to always pass 0
+as high_address?
+
+Rafael
+
