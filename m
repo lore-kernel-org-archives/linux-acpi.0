@@ -1,86 +1,85 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 05/28] ACPICA: Hardware: Enable firmware waking vector for both 32-bit and 64-bit FACS.
-Date: Fri, 26 Jun 2015 02:44:07 +0200
-Message-ID: <31220621.6TtT1kp1Fm@vostro.rjw.lan>
-References: <cover.1434684719.git.lv.zheng@intel.com> <24343352.3W7mrSPtdt@vostro.rjw.lan> <1AE640813FDE7649BE1B193DEA596E8802733CA6@SHSMSX101.ccr.corp.intel.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH v2 05/28] ACPICA: Hardware: Enable firmware waking
+ vector for both 32-bit and 64-bit FACS.
+Date: Fri, 26 Jun 2015 00:51:39 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E8802734087@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1434684719.git.lv.zheng@intel.com>
+ <24343352.3W7mrSPtdt@vostro.rjw.lan>
+ <1AE640813FDE7649BE1B193DEA596E8802733CA6@SHSMSX101.ccr.corp.intel.com>
+ <31220621.6TtT1kp1Fm@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:42318 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751272AbbFZAR5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Jun 2015 20:17:57 -0400
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E8802733CA6@SHSMSX101.ccr.corp.intel.com>
+Received: from mga02.intel.com ([134.134.136.20]:44641 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750920AbbFZAv7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 25 Jun 2015 20:51:59 -0400
+In-Reply-To: <31220621.6TtT1kp1Fm@vostro.rjw.lan>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-On Thursday, June 25, 2015 12:43:39 AM Zheng, Lv wrote:
-> Hi, Rafael
-> 
-> > From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
-> > Sent: Thursday, June 25, 2015 7:57 AM
-> > 
-
-[cut]
-
-> > >
-> > > +/*******************************************************************************
-> > > + *
-> > > + * FUNCTION:    acpi_set_firmware_waking_vector
-> > > + *
-> > > + * PARAMETERS:  physical_address    - 32-bit physical address of ACPI real mode
-> > > + *                                    entry point
-> > > + *              physical_address64  - 64-bit physical address of ACPI protected
-> > > + *                                    entry point
-> > > + *
-> > > + * RETURN:      Status
-> > > + *
-> > > + * DESCRIPTION: Sets the firmware_waking_vector fields of the FACS
-> > > + *
-> > > + ******************************************************************************/
-> > > +
-> > > +acpi_status
-> > > +acpi_set_firmware_waking_vector(acpi_physical_address physical_address,
-> > > +				acpi_physical_address physical_address64)
-> > 
-> > The question here is: Why does the host OS need to care about the second
-> > argument of this function that will always be 0?  Why didn't you keep the
-> > old header of acpi_set_firmware_waking_vector() as a one-argument function
-> > taking a u32 and why didn't you add something like
-> > 
-> > acpi_status acpi_set_firmware_waking_vector_full(u32 real_mode_address,
-> > 					acpi_physical_address high_address)
-> > 
-> > and why didn't you redefine acpi_set_firmware_waking_vector() as
-> > 
-> > acpi_status acpi_set_firmware_waking_vector(u32 real_mode_address)
-> > {
-> > 	return acpi_set_firmware_waking_vector_full(real_mode_address, 0);
-> > }
-> > 
-> > ?
-> > 
-> > If you did that, there wouldn't be any need to touch the code in
-> > drivers/acpi/sleep.c and the arch headers, so can you please explain to me
-> > why *exactly* you didn't do that?
-> 
-> Host OS can set non 0 address for both  real_mode_address and high_address to indicate that it can support both 32-bit and 64-bit resume environments.
-> So if a BIOS favors 32-bit resume environment, it can resume from here; if another BIOS favors 64-bit resume environment, it can resume from there.
-> And host OSes can be implemented using only 1 binary to work with both BIOSes.
-
-I'm not talking about that.
-
-It is fine to provide a *new* interface for the OSes that want to do that
-(if any), but *why* is that regarded as a good enough reason for essentially
-*removing* the old interface that Linux (and presumably other OSes too) have
-been using so far?
-
-We don't want to pass nonzero as high_address anyway, so why are we *forced* to
-make pointless changes to non-ACPICA code just to be able to always pass 0
-as high_address?
-
-Rafael
-
+SGksIFJhZmFlbA0KDQo+IEZyb206IFJhZmFlbCBKLiBXeXNvY2tpIFttYWlsdG86cmp3QHJqd3lz
+b2NraS5uZXRdDQo+IFNlbnQ6IEZyaWRheSwgSnVuZSAyNiwgMjAxNSA4OjQ0IEFNDQo+IA0KPiBP
+biBUaHVyc2RheSwgSnVuZSAyNSwgMjAxNSAxMjo0MzozOSBBTSBaaGVuZywgTHYgd3JvdGU6DQo+
+ID4gSGksIFJhZmFlbA0KPiA+DQo+ID4gPiBGcm9tOiBSYWZhZWwgSi4gV3lzb2NraSBbbWFpbHRv
+OnJqd0Byand5c29ja2kubmV0XQ0KPiA+ID4gU2VudDogVGh1cnNkYXksIEp1bmUgMjUsIDIwMTUg
+Nzo1NyBBTQ0KPiA+ID4NCj4gDQo+IFtjdXRdDQo+IA0KPiA+ID4gPg0KPiA+ID4gPiArLyoqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioNCj4gPiA+ID4gKyAqDQo+ID4gPiA+ICsgKiBGVU5DVElPTjogICAg
+YWNwaV9zZXRfZmlybXdhcmVfd2FraW5nX3ZlY3Rvcg0KPiA+ID4gPiArICoNCj4gPiA+ID4gKyAq
+IFBBUkFNRVRFUlM6ICBwaHlzaWNhbF9hZGRyZXNzICAgIC0gMzItYml0IHBoeXNpY2FsIGFkZHJl
+c3Mgb2YgQUNQSSByZWFsIG1vZGUNCj4gPiA+ID4gKyAqICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgZW50cnkgcG9pbnQNCj4gPiA+ID4gKyAqICAgICAgICAgICAgICBwaHlzaWNh
+bF9hZGRyZXNzNjQgIC0gNjQtYml0IHBoeXNpY2FsIGFkZHJlc3Mgb2YgQUNQSSBwcm90ZWN0ZWQN
+Cj4gPiA+ID4gKyAqICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgZW50cnkgcG9p
+bnQNCj4gPiA+ID4gKyAqDQo+ID4gPiA+ICsgKiBSRVRVUk46ICAgICAgU3RhdHVzDQo+ID4gPiA+
+ICsgKg0KPiA+ID4gPiArICogREVTQ1JJUFRJT046IFNldHMgdGhlIGZpcm13YXJlX3dha2luZ192
+ZWN0b3IgZmllbGRzIG9mIHRoZSBGQUNTDQo+ID4gPiA+ICsgKg0KPiA+ID4gPiArICoqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKi8NCj4gPiA+ID4gKw0KPiA+ID4gPiArYWNwaV9zdGF0dXMNCj4gPiA+ID4g
+K2FjcGlfc2V0X2Zpcm13YXJlX3dha2luZ192ZWN0b3IoYWNwaV9waHlzaWNhbF9hZGRyZXNzIHBo
+eXNpY2FsX2FkZHJlc3MsDQo+ID4gPiA+ICsJCQkJYWNwaV9waHlzaWNhbF9hZGRyZXNzIHBoeXNp
+Y2FsX2FkZHJlc3M2NCkNCj4gPiA+DQo+ID4gPiBUaGUgcXVlc3Rpb24gaGVyZSBpczogV2h5IGRv
+ZXMgdGhlIGhvc3QgT1MgbmVlZCB0byBjYXJlIGFib3V0IHRoZSBzZWNvbmQNCj4gPiA+IGFyZ3Vt
+ZW50IG9mIHRoaXMgZnVuY3Rpb24gdGhhdCB3aWxsIGFsd2F5cyBiZSAwPyAgV2h5IGRpZG4ndCB5
+b3Uga2VlcCB0aGUNCj4gPiA+IG9sZCBoZWFkZXIgb2YgYWNwaV9zZXRfZmlybXdhcmVfd2FraW5n
+X3ZlY3RvcigpIGFzIGEgb25lLWFyZ3VtZW50IGZ1bmN0aW9uDQo+ID4gPiB0YWtpbmcgYSB1MzIg
+YW5kIHdoeSBkaWRuJ3QgeW91IGFkZCBzb21ldGhpbmcgbGlrZQ0KPiA+ID4NCj4gPiA+IGFjcGlf
+c3RhdHVzIGFjcGlfc2V0X2Zpcm13YXJlX3dha2luZ192ZWN0b3JfZnVsbCh1MzIgcmVhbF9tb2Rl
+X2FkZHJlc3MsDQo+ID4gPiAJCQkJCWFjcGlfcGh5c2ljYWxfYWRkcmVzcyBoaWdoX2FkZHJlc3Mp
+DQo+ID4gPg0KPiA+ID4gYW5kIHdoeSBkaWRuJ3QgeW91IHJlZGVmaW5lIGFjcGlfc2V0X2Zpcm13
+YXJlX3dha2luZ192ZWN0b3IoKSBhcw0KPiA+ID4NCj4gPiA+IGFjcGlfc3RhdHVzIGFjcGlfc2V0
+X2Zpcm13YXJlX3dha2luZ192ZWN0b3IodTMyIHJlYWxfbW9kZV9hZGRyZXNzKQ0KPiA+ID4gew0K
+PiA+ID4gCXJldHVybiBhY3BpX3NldF9maXJtd2FyZV93YWtpbmdfdmVjdG9yX2Z1bGwocmVhbF9t
+b2RlX2FkZHJlc3MsIDApOw0KPiA+ID4gfQ0KPiA+ID4NCj4gPiA+ID8NCj4gPiA+DQo+ID4gPiBJ
+ZiB5b3UgZGlkIHRoYXQsIHRoZXJlIHdvdWxkbid0IGJlIGFueSBuZWVkIHRvIHRvdWNoIHRoZSBj
+b2RlIGluDQo+ID4gPiBkcml2ZXJzL2FjcGkvc2xlZXAuYyBhbmQgdGhlIGFyY2ggaGVhZGVycywg
+c28gY2FuIHlvdSBwbGVhc2UgZXhwbGFpbiB0byBtZQ0KPiA+ID4gd2h5ICpleGFjdGx5KiB5b3Ug
+ZGlkbid0IGRvIHRoYXQ/DQo+ID4NCj4gPiBIb3N0IE9TIGNhbiBzZXQgbm9uIDAgYWRkcmVzcyBm
+b3IgYm90aCAgcmVhbF9tb2RlX2FkZHJlc3MgYW5kIGhpZ2hfYWRkcmVzcyB0byBpbmRpY2F0ZSB0
+aGF0IGl0IGNhbiBzdXBwb3J0IGJvdGggMzItYml0IGFuZCA2NC1iaXQNCj4gcmVzdW1lIGVudmly
+b25tZW50cy4NCj4gPiBTbyBpZiBhIEJJT1MgZmF2b3JzIDMyLWJpdCByZXN1bWUgZW52aXJvbm1l
+bnQsIGl0IGNhbiByZXN1bWUgZnJvbSBoZXJlOyBpZiBhbm90aGVyIEJJT1MgZmF2b3JzIDY0LWJp
+dCByZXN1bWUgZW52aXJvbm1lbnQsIGl0IGNhbg0KPiByZXN1bWUgZnJvbSB0aGVyZS4NCj4gPiBB
+bmQgaG9zdCBPU2VzIGNhbiBiZSBpbXBsZW1lbnRlZCB1c2luZyBvbmx5IDEgYmluYXJ5IHRvIHdv
+cmsgd2l0aCBib3RoIEJJT1Nlcy4NCj4gDQo+IEknbSBub3QgdGFsa2luZyBhYm91dCB0aGF0Lg0K
+PiANCj4gSXQgaXMgZmluZSB0byBwcm92aWRlIGEgKm5ldyogaW50ZXJmYWNlIGZvciB0aGUgT1Nl
+cyB0aGF0IHdhbnQgdG8gZG8gdGhhdA0KPiAoaWYgYW55KSwgYnV0ICp3aHkqIGlzIHRoYXQgcmVn
+YXJkZWQgYXMgYSBnb29kIGVub3VnaCByZWFzb24gZm9yIGVzc2VudGlhbGx5DQo+ICpyZW1vdmlu
+ZyogdGhlIG9sZCBpbnRlcmZhY2UgdGhhdCBMaW51eCAoYW5kIHByZXN1bWFibHkgb3RoZXIgT1Nl
+cyB0b28pIGhhdmUNCj4gYmVlbiB1c2luZyBzbyBmYXI/DQoNCk1heWJlIHdlIHNob3VsZCBhc2sg
+Qm9iIGlmIHdlIHNoYWxsIGp1c3QgcHJvdmlkZSBhIG5ldyBpbnRlcmZhY2VzIGZvciB0aGlzIGFu
+ZCBrZWVwIHRoZSBvbGQgb25lcz8NCkFjY29yZGluZyB0byBteSB1bmRlcnN0YW5kaW5nLCB0aGVy
+ZSBpcyBubyBzdWNoIGV4YW1wbGUgaW4gdGhlIEFDUElDQSB1cHN0cmVhbS4NClNvbWUgeHh4eF9m
+dWxsIGZ1bmN0aW9ucyBhcmUgc3RpbGwgcGVuZGluZyBmb3IgYmVpbmcgbWVyZ2VkIGJ5IEFDUElD
+QSB1cHN0cmVhbSwgdGhleSBhcmUgZGl2ZXJnZW5jZXMgZm9yIG5vdy4NCg0KPiANCj4gV2UgZG9u
+J3Qgd2FudCB0byBwYXNzIG5vbnplcm8gYXMgaGlnaF9hZGRyZXNzIGFueXdheSwgc28gd2h5IGFy
+ZSB3ZSAqZm9yY2VkKiB0bw0KPiBtYWtlIHBvaW50bGVzcyBjaGFuZ2VzIHRvIG5vbi1BQ1BJQ0Eg
+Y29kZSBqdXN0IHRvIGJlIGFibGUgdG8gYWx3YXlzIHBhc3MgMA0KPiBhcyBoaWdoX2FkZHJlc3M/
+DQoNCklNTywgT1NQTXMgY2FuIGRvIHRoaXMgaWYgdGhlIGNvc3QgaXMgbm90IGhpZ2guDQpJdCBz
+ZWVtcyBieSBmb2xsb3dpbmcgeW91ciBzdWdnZXN0aW9uLCB3ZSBvbmx5IG5lZWQgdG8gZG8gc2xp
+Z2h0IGNoYW5nZXMgaW4gc2xlZXAuYy4NCg0KVGhhbmtzIGFuZCBiZXN0IHJlZ2FyZHMNCi1Mdg0K
