@@ -1,103 +1,88 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH v2 05/28] ACPICA: Hardware: Enable firmware waking
- vector for both 32-bit and 64-bit FACS.
-Date: Fri, 26 Jun 2015 01:41:51 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E88027340E7@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1434684719.git.lv.zheng@intel.com>
- <31220621.6TtT1kp1Fm@vostro.rjw.lan>
- <1AE640813FDE7649BE1B193DEA596E8802734087@SHSMSX101.ccr.corp.intel.com>
- <2265033.O0oIZqVsfD@vostro.rjw.lan>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH v2 16/17] libnvdimm: Add sysfs numa_node to NVDIMM
+ devices
+Date: Thu, 25 Jun 2015 20:21:41 -0600
+Message-ID: <1435285301.11808.381.camel@misato.fc.hp.com>
+References: <20150625090554.40066.69562.stgit@dwillia2-desk3.jf.intel.com>
+	 <20150625093743.40066.92148.stgit@dwillia2-desk3.jf.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:63157 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752005AbbFZBl5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 25 Jun 2015 21:41:57 -0400
-In-Reply-To: <2265033.O0oIZqVsfD@vostro.rjw.lan>
-Content-Language: en-US
+Received: from g4t3427.houston.hp.com ([15.201.208.55]:34602 "EHLO
+	g4t3427.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752980AbbFZCWE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Jun 2015 22:22:04 -0400
+In-Reply-To: <20150625093743.40066.92148.stgit@dwillia2-desk3.jf.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: linux-nvdimm@lists.01.org, axboe@kernel.dk, boaz@plexistor.com, linux-kernel@vger.kernel.org, hch@lst.de, linux-acpi@vger.kernel.org, linux-fsdevel@vger.kernel.org, mingo@kernel.org
 
-SGksIFJhZmFlbA0KDQo+IEZyb206IFJhZmFlbCBKLiBXeXNvY2tpIFttYWlsdG86cmp3QHJqd3lz
-b2NraS5uZXRdDQo+IFNlbnQ6IEZyaWRheSwgSnVuZSAyNiwgMjAxNSA5OjQxIEFNDQo+IA0KPiBP
-biBGcmlkYXksIEp1bmUgMjYsIDIwMTUgMTI6NTE6MzkgQU0gWmhlbmcsIEx2IHdyb3RlOg0KPiA+
-IEhpLCBSYWZhZWwNCj4gPg0KPiA+ID4gRnJvbTogUmFmYWVsIEouIFd5c29ja2kgW21haWx0bzpy
-andAcmp3eXNvY2tpLm5ldF0NCj4gPiA+IFNlbnQ6IEZyaWRheSwgSnVuZSAyNiwgMjAxNSA4OjQ0
-IEFNDQo+ID4gPg0KPiA+ID4gT24gVGh1cnNkYXksIEp1bmUgMjUsIDIwMTUgMTI6NDM6MzkgQU0g
-WmhlbmcsIEx2IHdyb3RlOg0KPiA+ID4gPiBIaSwgUmFmYWVsDQo+ID4gPiA+DQo+ID4gPiA+ID4g
-RnJvbTogUmFmYWVsIEouIFd5c29ja2kgW21haWx0bzpyandAcmp3eXNvY2tpLm5ldF0NCj4gPiA+
-ID4gPiBTZW50OiBUaHVyc2RheSwgSnVuZSAyNSwgMjAxNSA3OjU3IEFNDQo+ID4gPiA+ID4NCj4g
-PiA+DQo+ID4gPiBbY3V0XQ0KPiA+ID4NCj4gPiA+ID4gPiA+DQo+ID4gPiA+ID4gPiArLyoqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioNCj4gPiA+ID4gPiA+ICsgKg0KPiA+ID4gPiA+ID4gKyAqIEZVTkNU
-SU9OOiAgICBhY3BpX3NldF9maXJtd2FyZV93YWtpbmdfdmVjdG9yDQo+ID4gPiA+ID4gPiArICoN
-Cj4gPiA+ID4gPiA+ICsgKiBQQVJBTUVURVJTOiAgcGh5c2ljYWxfYWRkcmVzcyAgICAtIDMyLWJp
-dCBwaHlzaWNhbCBhZGRyZXNzIG9mIEFDUEkgcmVhbCBtb2RlDQo+ID4gPiA+ID4gPiArICogICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICBlbnRyeSBwb2ludA0KPiA+ID4gPiA+ID4g
-KyAqICAgICAgICAgICAgICBwaHlzaWNhbF9hZGRyZXNzNjQgIC0gNjQtYml0IHBoeXNpY2FsIGFk
-ZHJlc3Mgb2YgQUNQSSBwcm90ZWN0ZWQNCj4gPiA+ID4gPiA+ICsgKiAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgIGVudHJ5IHBvaW50DQo+ID4gPiA+ID4gPiArICoNCj4gPiA+ID4g
-PiA+ICsgKiBSRVRVUk46ICAgICAgU3RhdHVzDQo+ID4gPiA+ID4gPiArICoNCj4gPiA+ID4gPiA+
-ICsgKiBERVNDUklQVElPTjogU2V0cyB0aGUgZmlybXdhcmVfd2FraW5nX3ZlY3RvciBmaWVsZHMg
-b2YgdGhlIEZBQ1MNCj4gPiA+ID4gPiA+ICsgKg0KPiA+ID4gPiA+ID4gKyAqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKiovDQo+ID4gPiA+ID4gPiArDQo+ID4gPiA+ID4gPiArYWNwaV9zdGF0dXMNCj4gPiA+
-ID4gPiA+ICthY3BpX3NldF9maXJtd2FyZV93YWtpbmdfdmVjdG9yKGFjcGlfcGh5c2ljYWxfYWRk
-cmVzcyBwaHlzaWNhbF9hZGRyZXNzLA0KPiA+ID4gPiA+ID4gKwkJCQlhY3BpX3BoeXNpY2FsX2Fk
-ZHJlc3MgcGh5c2ljYWxfYWRkcmVzczY0KQ0KPiA+ID4gPiA+DQo+ID4gPiA+ID4gVGhlIHF1ZXN0
-aW9uIGhlcmUgaXM6IFdoeSBkb2VzIHRoZSBob3N0IE9TIG5lZWQgdG8gY2FyZSBhYm91dCB0aGUg
-c2Vjb25kDQo+ID4gPiA+ID4gYXJndW1lbnQgb2YgdGhpcyBmdW5jdGlvbiB0aGF0IHdpbGwgYWx3
-YXlzIGJlIDA/ICBXaHkgZGlkbid0IHlvdSBrZWVwIHRoZQ0KPiA+ID4gPiA+IG9sZCBoZWFkZXIg
-b2YgYWNwaV9zZXRfZmlybXdhcmVfd2FraW5nX3ZlY3RvcigpIGFzIGEgb25lLWFyZ3VtZW50IGZ1
-bmN0aW9uDQo+ID4gPiA+ID4gdGFraW5nIGEgdTMyIGFuZCB3aHkgZGlkbid0IHlvdSBhZGQgc29t
-ZXRoaW5nIGxpa2UNCj4gPiA+ID4gPg0KPiA+ID4gPiA+IGFjcGlfc3RhdHVzIGFjcGlfc2V0X2Zp
-cm13YXJlX3dha2luZ192ZWN0b3JfZnVsbCh1MzIgcmVhbF9tb2RlX2FkZHJlc3MsDQo+ID4gPiA+
-ID4gCQkJCQlhY3BpX3BoeXNpY2FsX2FkZHJlc3MgaGlnaF9hZGRyZXNzKQ0KPiA+ID4gPiA+DQo+
-ID4gPiA+ID4gYW5kIHdoeSBkaWRuJ3QgeW91IHJlZGVmaW5lIGFjcGlfc2V0X2Zpcm13YXJlX3dh
-a2luZ192ZWN0b3IoKSBhcw0KPiA+ID4gPiA+DQo+ID4gPiA+ID4gYWNwaV9zdGF0dXMgYWNwaV9z
-ZXRfZmlybXdhcmVfd2FraW5nX3ZlY3Rvcih1MzIgcmVhbF9tb2RlX2FkZHJlc3MpDQo+ID4gPiA+
-ID4gew0KPiA+ID4gPiA+IAlyZXR1cm4gYWNwaV9zZXRfZmlybXdhcmVfd2FraW5nX3ZlY3Rvcl9m
-dWxsKHJlYWxfbW9kZV9hZGRyZXNzLCAwKTsNCj4gPiA+ID4gPiB9DQo+ID4gPiA+ID4NCj4gPiA+
-ID4gPiA/DQo+ID4gPiA+ID4NCj4gPiA+ID4gPiBJZiB5b3UgZGlkIHRoYXQsIHRoZXJlIHdvdWxk
-bid0IGJlIGFueSBuZWVkIHRvIHRvdWNoIHRoZSBjb2RlIGluDQo+ID4gPiA+ID4gZHJpdmVycy9h
-Y3BpL3NsZWVwLmMgYW5kIHRoZSBhcmNoIGhlYWRlcnMsIHNvIGNhbiB5b3UgcGxlYXNlIGV4cGxh
-aW4gdG8gbWUNCj4gPiA+ID4gPiB3aHkgKmV4YWN0bHkqIHlvdSBkaWRuJ3QgZG8gdGhhdD8NCj4g
-PiA+ID4NCj4gPiA+ID4gSG9zdCBPUyBjYW4gc2V0IG5vbiAwIGFkZHJlc3MgZm9yIGJvdGggIHJl
-YWxfbW9kZV9hZGRyZXNzIGFuZCBoaWdoX2FkZHJlc3MgdG8gaW5kaWNhdGUgdGhhdCBpdCBjYW4g
-c3VwcG9ydCBib3RoIDMyLWJpdCBhbmQgNjQtDQo+IGJpdA0KPiA+ID4gcmVzdW1lIGVudmlyb25t
-ZW50cy4NCj4gPiA+ID4gU28gaWYgYSBCSU9TIGZhdm9ycyAzMi1iaXQgcmVzdW1lIGVudmlyb25t
-ZW50LCBpdCBjYW4gcmVzdW1lIGZyb20gaGVyZTsgaWYgYW5vdGhlciBCSU9TIGZhdm9ycyA2NC1i
-aXQgcmVzdW1lIGVudmlyb25tZW50LCBpdA0KPiBjYW4NCj4gPiA+IHJlc3VtZSBmcm9tIHRoZXJl
-Lg0KPiA+ID4gPiBBbmQgaG9zdCBPU2VzIGNhbiBiZSBpbXBsZW1lbnRlZCB1c2luZyBvbmx5IDEg
-YmluYXJ5IHRvIHdvcmsgd2l0aCBib3RoIEJJT1Nlcy4NCj4gPiA+DQo+ID4gPiBJJ20gbm90IHRh
-bGtpbmcgYWJvdXQgdGhhdC4NCj4gPiA+DQo+ID4gPiBJdCBpcyBmaW5lIHRvIHByb3ZpZGUgYSAq
-bmV3KiBpbnRlcmZhY2UgZm9yIHRoZSBPU2VzIHRoYXQgd2FudCB0byBkbyB0aGF0DQo+ID4gPiAo
-aWYgYW55KSwgYnV0ICp3aHkqIGlzIHRoYXQgcmVnYXJkZWQgYXMgYSBnb29kIGVub3VnaCByZWFz
-b24gZm9yIGVzc2VudGlhbGx5DQo+ID4gPiAqcmVtb3ZpbmcqIHRoZSBvbGQgaW50ZXJmYWNlIHRo
-YXQgTGludXggKGFuZCBwcmVzdW1hYmx5IG90aGVyIE9TZXMgdG9vKSBoYXZlDQo+ID4gPiBiZWVu
-IHVzaW5nIHNvIGZhcj8NCj4gPg0KPiA+IE1heWJlIHdlIHNob3VsZCBhc2sgQm9iIGlmIHdlIHNo
-YWxsIGp1c3QgcHJvdmlkZSBhIG5ldyBpbnRlcmZhY2VzIGZvciB0aGlzDQo+ID4gYW5kIGtlZXAg
-dGhlIG9sZCBvbmVzPw0KPiANCj4gU3VyZSwgd2UgY2FuIHRhbGsgdG8gQm9iIGFib3V0IHRoYXQu
-DQo+IA0KPiA+IEFjY29yZGluZyB0byBteSB1bmRlcnN0YW5kaW5nLCB0aGVyZSBpcyBubyBzdWNo
-IGV4YW1wbGUgaW4gdGhlIEFDUElDQSB1cHN0cmVhbS4NCj4gDQo+IEV2ZW4gc28sIHRoYXQgZG9l
-c24ndCBuZWNlc3NhcmlseSBtZWFuIGl0IGlzIGJlIGltcG9zc2libGUuDQoNClllcy4NCg0KPiAN
-Cj4gPiBTb21lIHh4eHhfZnVsbCBmdW5jdGlvbnMgYXJlIHN0aWxsIHBlbmRpbmcgZm9yIGJlaW5n
-IG1lcmdlZCBieSBBQ1BJQ0EgdXBzdHJlYW0sDQo+ID4gdGhleSBhcmUgZGl2ZXJnZW5jZXMgZm9y
-IG5vdy4NCj4gDQo+IEFuZCBpdCBsb29rcyBsaWtlIHRoaXMgcGFydGljdWxhciBjYXNlIHdpbGwg
-YmVjb21lIG9uZSBtb3JlIGRpdmVyZ2VuY2Ugb2YgdGhhdA0KPiBraW5kLg0KDQpPSy4NCkknbGwg
-cmVmaW5lIHRoZSBpbnRlcmZhY2UgY2hhbmdlIHRvIGVsaW1pbmF0ZSB0aGUgZGl2ZXJnZW5jZS4N
-Cg0KPiANCj4gPiA+DQo+ID4gPiBXZSBkb24ndCB3YW50IHRvIHBhc3Mgbm9uemVybyBhcyBoaWdo
-X2FkZHJlc3MgYW55d2F5LCBzbyB3aHkgYXJlIHdlICpmb3JjZWQqIHRvDQo+ID4gPiBtYWtlIHBv
-aW50bGVzcyBjaGFuZ2VzIHRvIG5vbi1BQ1BJQ0EgY29kZSBqdXN0IHRvIGJlIGFibGUgdG8gYWx3
-YXlzIHBhc3MgMA0KPiA+ID4gYXMgaGlnaF9hZGRyZXNzPw0KPiA+DQo+ID4gSU1PLCBPU1BNcyBj
-YW4gZG8gdGhpcyBpZiB0aGUgY29zdCBpcyBub3QgaGlnaC4NCj4gPiBJdCBzZWVtcyBieSBmb2xs
-b3dpbmcgeW91ciBzdWdnZXN0aW9uLCB3ZSBvbmx5IG5lZWQgdG8gZG8gc2xpZ2h0IGNoYW5nZXMg
-aW4gc2xlZXAuYy4NCj4gDQo+IFdoaWNoIGFyZW4ndCBuZWNlc3NhcnksIHJpZ2h0PyAgQW5kIHRo
-ZXkgZG9uJ3QgcmVhbGx5IG1ha2UgdGhpbmdzIGFueSBiZXR0ZXIuDQo+IA0KPiBTbyBJIGRvbid0
-IHNlZSBhIHJlYXNvbiB0byBtYWtlIHRoZW0uDQoNClllcy4NCklmIHRoaXMgaXMgZG9uZSBpbiBB
-Q1BJQ0EsIHNsZWVwLmMgbmVlZG4ndCBiZSBjaGFuZ2VkLg0KDQpUaGFua3MgYW5kIGJlc3QgcmVn
-YXJkcw0KLUx2DQo=
+On Thu, 2015-06-25 at 05:37 -0400, Dan Williams wrote:
+> From: Toshi Kani <toshi.kani@hp.com>
+> 
+> Add support of sysfs 'numa_node' to I/O-related NVDIMM devices
+> under /sys/bus/nd/devices, regionN, namespaceN.0, and bttN.
+> When bttN is not set up, its numa_node returns -1 (NUMA_NO_NODE).
+> 
+> An example of numa_node values on a 2-socket system with a single
+> NVDIMM range on each socket is shown below.
+>   /sys/bus/nd/devices
+>   |-- btt0/numa_node:-1
+>   |-- btt1/numa_node:0
+>   |-- namespace0.0/numa_node:0
+>   |-- namespace1.0/numa_node:1
+>   |-- region0/numa_node:0
+>   |-- region1/numa_node:1
+> 
+> These numa_node files are then linked under the block class of
+> their device names.
+>   /sys/class/block/pmem0/device/numa_node:0
+>   /sys/class/block/pmem0s/device/numa_node:0
+>   /sys/class/block/pmem1/device/numa_node:1
+> 
+> This enables numactl(8) to accept 'block:' and 'file:' paths of
+> pmem and btt devices as shown in the examples below.
+>   numactl --preferred block:pmem0 --show
+>   numactl --preferred file:/dev/pmem0s --show
+> 
+> Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+> Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+
+Can you please update the commit log with the following?  It reflects
+the changes in sysfs btt files.
+
+Thanks,
+-Toshi
+
+=====
+From: Toshi Kani <toshi.kani@hp.com>
+
+Add support of sysfs 'numa_node' to I/O-related NVDIMM devices
+under /sys/bus/nd/devices, regionN, namespaceN.0, and bttN.x.
+
+An example of numa_node values on a 2-socket system with a single
+NVDIMM range on each socket is shown below.
+  /sys/bus/nd/devices
+  |-- btt0.0/numa_node:0
+  |-- btt1.0/numa_node:1
+  |-- btt1.1/numa_node:1
+  |-- namespace0.0/numa_node:0
+  |-- namespace1.0/numa_node:1
+  |-- region0/numa_node:0
+  |-- region1/numa_node:1
+
+These numa_node files are then linked under the block class of
+their device names.
+  /sys/class/block/pmem0/device/numa_node:0
+  /sys/class/block/pmem1s/device/numa_node:1
+
+This enables numactl(8) to accept 'block:' and 'file:' paths of
+pmem and btt devices as shown in the examples below.
+  numactl --preferred block:pmem0 --show
+  numactl --preferred file:/dev/pmem1s --show
+
+Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
+
