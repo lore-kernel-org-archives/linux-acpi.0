@@ -1,79 +1,116 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 03/28] ACPICA: Hardware: Enable 64-bit firmware waking vector for selected FACS.
-Date: Fri, 26 Jun 2015 03:20:37 +0200
-Message-ID: <1649895.CEu8Ovje9D@vostro.rjw.lan>
-References: <cover.1434684719.git.lv.zheng@intel.com> <3959851.uJ0udqUY0b@vostro.rjw.lan> <1AE640813FDE7649BE1B193DEA596E8802733C14@SHSMSX101.ccr.corp.intel.com>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: Re: [PATCH v2 15/17] libnvdimm: Set numa_node to NVDIMM devices
+Date: Thu, 25 Jun 2015 18:55:15 -0600
+Message-ID: <1435280115.11808.374.camel@misato.fc.hp.com>
+References: <20150625090554.40066.69562.stgit@dwillia2-desk3.jf.intel.com>
+	 <20150625093738.40066.88750.stgit@dwillia2-desk3.jf.intel.com>
+	 <1435254317.11808.327.camel@misato.fc.hp.com>
+	 <1435257283.13411.4.camel@intel.com>
+	 <CAPcyv4jhDc1+TGyo4J6vC7bRBaGbfAXyLP2qB9X5DAJRBhCRyQ@mail.gmail.com>
+	 <1435269103.11808.349.camel@misato.fc.hp.com>
+	 <CAPcyv4gqgbEVWDKR4e8=Uaz1As4FxY4-8VHWKZfQ-vtc2wOs3g@mail.gmail.com>
+	 <1435270287.11808.352.camel@misato.fc.hp.com>
+	 <CAPcyv4hzUA71G8bmUt7OLXx0GMX-36gqQ-WHOjA7sj9z4pudCA@mail.gmail.com>
+	 <1435272910.11808.356.camel@misato.fc.hp.com>
+	 <1435275750.18090.5.camel@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E8802733C14@SHSMSX101.ccr.corp.intel.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "x86@kernel.org" <x86@kernel.org>, "Luck, Tony" <tony.luck@intel.com>, "Yu, Fenghua" <fenghua.yu@intel.com>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g4t3426.houston.hp.com ([15.201.208.54]:42510 "EHLO
+	g4t3426.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750792AbbFZAzj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 25 Jun 2015 20:55:39 -0400
+In-Reply-To: <1435275750.18090.5.camel@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Williams, Dan J" <dan.j.williams@intel.com>
+Cc: "mingo@kernel.org" <mingo@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "hch@lst.de" <hch@lst.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "axboe@kernel.dk" <axboe@kernel.dk>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
 
-On Thursday, June 25, 2015 12:29:02 AM Zheng, Lv wrote:
-> Hi, Rafael
+On Thu, 2015-06-25 at 23:42 +0000, Williams, Dan J wrote:
+> On Thu, 2015-06-25 at 16:55 -0600, Toshi Kani wrote:
+> > On Thu, 2015-06-25 at 15:34 -0700, Dan Williams wrote:
+> > > On Thu, Jun 25, 2015 at 3:11 PM, Toshi Kani <toshi.kani@hp.com> wrote:
+> > > > On Thu, 2015-06-25 at 15:00 -0700, Dan Williams wrote:
+> > > > Yes, I see no problem with bound BTTs and their device files.  So, how
+> > > > do we bind BTT with this new version?
+> > > >
+> > > 
+> > > # cd /sys/bus/nd/devices
+> > > # uuidgen > btt6/uuid
+> > > # echo 4096 > btt6/sector_size
+> > > # echo namespace6.0 > btt6/namespace
+> > > # echo namespace6.0 > ../drivers/nd_pmem/unbind
+> > > # echo btt6 > ../drivers/nd_pmem/bind
+> > > 
+> > > After reboot, when the system sees namespace6.0 again it will notice
+> > > the btt instance and attach bttX instead.  The net effect is that now
+> > > you'll only ever have /dev/pmem6 or /dev/pmem6s, never both at the
+> > > same time that was a side effect of the stacking approach.
+> > > 
+> > > I'll post the patch that updates libndctl and the unit tests shortly
+> > 
+> > Maybe I am missing something, but I am getting errors on my system.  (I
+> > used btt0 since there is no btt6.)
+> > 
+> > # cat bind.sh
+> > set -x
+> > cd /sys/bus/nd/devices
+> > uuidgen > btt0/uuid
+> > echo 4096 > btt0/sector_size
+> > echo namespace0.0 > btt0/namespace
+> > echo namespace0.0 > ../drivers/nd_pmem/unbind
+> > echo btt0 > ../drivers/nd_pmem/bind
+> > 
+> > # sh bind.sh
+> > + cd /sys/bus/nd/devices
+> > + uuidgen
+> > + echo 4096
+> > + echo namespace0.0
+> > bind.sh: line 6: echo: write error: Device or resource busy
+> > + echo namespace0.0
+> > bind.sh: line 7: echo: write error: No such device
+> > + echo btt0
+> > bind.sh: line 8: echo: write error: No such device
+> > 
+> > # dmesg
+> >  :
+> > [12513.839162] nd btt0: uuid_store: result: 0 wrote:
+> > b32cd195-9aae-4c54-a5ac-49adb50a8a98
+> > [12513.880286] nd btt0: sector_size_store: result: 0 wrote: 4096
+> > [12513.909494] nd btt0: namespace0.0 already claimed
+> > [12513.933364] nd btt0: namespace_store: result: -16 wrote: namespace0.0
+> > [12513.966808]  ndbus0: nd_pmem.probe(btt0) = -19
+> > 
 > 
-> > From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
-> > Sent: Thursday, June 25, 2015 7:24 AM
-> > To: Zheng, Lv
-
-[cut]
-
-> > 
-> > In fact, I don't see why we need to redefine the symbols at all.
-> > 
-> > Couldn't acpi_set_firmware_waking_vector() be defined to take u32 and u64 so
-> > we could just pass acpi_wakeup_address (as already defined) as the first argument
-> > and 0 as the second argument to it?  The back-and-forth type casts from and
-> > to acpi_physical_address don't look entirely clean to me.
-> > 
-> > Moreover, I don't really see a functional difference between the old and the
-> > new code.
-> > 
-> > The old code does "set the 32-bit waking vector and clear the 64-bit waking
-> > vector if present".  The new code does "set the 32-bit waking vector and
-> > either clear the 64-bit one if present, or assign the second function argument
-> > to it", but we always pass 0 as the second argument (which is *extremely*
-> > obfuscated in your patch), so I really don't see the difference here.
-> > 
-> > Am I missing anything?
+> So this turned out to be a perfect example of why we might want to have
+> the region-id in the btt device name just like namespaces, because btt0
+> was actually bound to namespace4.0 on Toshi's system.  The following
+> update, that I will fold in to the series, fixes this.  Note that the
+> association of btt id to to namespace is still non-deterministic.  I.e.
+> btt0.1 could be assigned as the btt for namespace0.0, but at least when
+> looking at /sys/bus/nd/devices it will be clear which btts belong to
+> which regions.
 > 
-> The story is:
-> According to the test, if both 32-bit waking vector and 64-bit waking vector is
-> set by the OSPM,
+> # ls /sys/bus/nd/devices
+> btt0.0  btt3.0  btt6.0        namespace2.0  namespace5.0  nmem1  nmem4    region2  region5
+> btt1.0  btt4.0  namespace0.0  namespace3.0  namespace6.0  nmem2  region0  region3  region6
+> btt2.0  btt5.0  namespace1.0  namespace4.0  nmem0         nmem3  region1  region4
 
-The current code in Linux never does that.
+Yes, this works nicely. :-)
 
-It never calls acpi_set_firmware_waking_vector64() and the acpi_set_firmware_waking_vector()
-(before your patch) explicitly clears the 64-bit vector address.
+Now, how do I unbind BTT?  I did the following as a guess, but BTT got
+reattached again before I have a chance to delete the metadata, which I
+need /dev/pmemN.  
 
-> BIOSes only support 32-bit resume environment will jump to the 32-bit waking
-> vector address and BIOSes support 64-bit resume environment will jump to
-> 64-bit waking vector.
-
-Which doesn't matter for Linux one whit.
-
-> So they can be set by the OSPMs simultaneously to indicate that the OSPM can
-> support both resume environments.  That's why ACPICA interface is changed.
-
-It shouldn't.  It just forces host OSes to make pointless changes to their
-non-ACPICA code.
-
-As I said elsewhere, the old acpi_set_firmware_waking_vector() should still be
-available to the OSes that don't care about the 64-bit waking vector and a *new*
-interface should be added for those OSes that do care about it.  And *internally*
-acpi_set_firmware_waking_vector() can be defined in terms of the new interface,
-but there's no reason at all for a host OS to care about that.
-
-So the $subject patch is entirely poitless.  It doesn't fix anything and it
-doesn't even change the way the code works today in Linux.  It just adds
-complexity and pointlessly redefines some stuff.
-
-So I'm not going to apply it.
+NUM=1 
+cd /sys/bus/nd/devices
+echo ""  > btt${NUM}.1/namespace
+echo btt${NUM}.1 > ../drivers/nd_pmem/unbind
+echo namespace${NUM}.0 > ../drivers/nd_pmem/bind
 
 Thanks,
-Rafael
+-Toshi
+
+
 
