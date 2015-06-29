@@ -1,122 +1,96 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH v2 6/9] irqchip / gic: Add stacked irqdomain support for
- ACPI based GICv2 init
-Date: Mon, 29 Jun 2015 09:39:28 +0100
-Message-ID: <55910440.8070702@arm.com>
-References: <1434703572-26221-1-git-send-email-hanjun.guo@linaro.org> <1434703572-26221-7-git-send-email-hanjun.guo@linaro.org> <20150622172014.GB26129@red-moon> <5589772A.8070708@linaro.org> <20150623173845.GC31466@red-moon> <558E1DEE.3090900@linaro.org>
+From: Boszormenyi Zoltan <zboszor@pr.hu>
+Subject: Re: [Bugfix v3] PCI, ACPI: Fix regressions caused by resource_size_t
+ overflow with 32-bit kernel
+Date: Mon, 29 Jun 2015 10:55:14 +0200
+Message-ID: <559107F2.3080701@pr.hu>
+References: <20150624094916.GA5696@gmail.com>
+ <1435141065-28536-1-git-send-email-jiang.liu@linux.intel.com>
+ <20150624101843.GA8924@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:37127 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751754AbbF2Ijd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 29 Jun 2015 04:39:33 -0400
-In-Reply-To: <558E1DEE.3090900@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150624101843.GA8924@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ingo Molnar <mingo@kernel.org>, Jiang Liu <jiang.liu@linux.intel.com>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>
-Cc: Jason Cooper <jason@lakedaemon.net>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Olof Johansson <olof@lixom.net>, Wei Huang <wei@redhat.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 
-On 27/06/15 04:52, Hanjun Guo wrote:
-> On 06/24/2015 01:38 AM, Lorenzo Pieralisi wrote:
->> On Tue, Jun 23, 2015 at 04:11:38PM +0100, Hanjun Guo wrote:
+2015-06-24 12:18 keltez=E9ssel, Ingo Molnar =EDrta:
+> * Jiang Liu <jiang.liu@linux.intel.com> wrote:
+>
+>> A regression report from Boszormenyi Zoltan <zboszor@pr.hu>:
+>> There's a Realtek RTL8111/8168/8411 (PCI ID 10ec:8168, Subsystem ID =
+1565:230e)
+>> network chip on the mainboard. After the r8169 driver loaded, the IR=
+Qs in
+>> the machine went berserk. Keyboard keypressed arrived with considera=
+ble
+>> latency and duplicated, so no real work was possible. The machine re=
+sponded
+>> to the power button but didn't actually power down. It just stuck at=
+ the
+>> powering down message. I had to press the power button for 4 seconds=
+ to power
+>> it down.
 >>
->> [...]
+>> The computer is a POS machine with a big battery inside. Because of =
+this,
+>> either ACPI or the Realtek chip kept the bad state and after rebooti=
+ng, the
+>> network chip didn't even show up in lspci. Not even the PXE ROM anno=
+unced
+>> itself during boot. I had to disconnect the battery to beat some sen=
+se back
+>> to the computer.
 >>
->>>>> diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
->>>>> index 8fc67bc..d1b2131 100644
->>>>> --- a/drivers/irqchip/irq-gic.c
->>>>> +++ b/drivers/irqchip/irq-gic.c
->>>>> @@ -851,15 +851,22 @@ static struct notifier_block gic_cpu_notifier = {
->>>>>    static int gic_irq_domain_alloc(struct irq_domain *domain, unsigned int virq,
->>>>>    				unsigned int nr_irqs, void *arg)
->>>>>    {
->>>>> -	int i, ret;
->>>>> +	int i;
->>>>>    	irq_hw_number_t hwirq;
->>>>> -	unsigned int type = IRQ_TYPE_NONE;
->>>>> -	struct of_phandle_args *irq_data = arg;
->>>>>
->>>>> -	ret = gic_irq_domain_xlate(domain, irq_data->np, irq_data->args,
->>>>> -				   irq_data->args_count, &hwirq, &type);
->>>>> -	if (ret)
->>>>> -		return ret;
->>>>> +	if (domain->of_node) {	/* DT case */
->>>>> +		int ret;
->>>>> +		unsigned int type = IRQ_TYPE_NONE;
->>>>> +		struct of_phandle_args *irq_data = arg;
->>>>> +
->>>>> +		ret = gic_irq_domain_xlate(domain, irq_data->np,
->>>>> +					irq_data->args,
->>>>> +					irq_data->args_count, &hwirq, &type);
->>>>> +		if (ret)
->>>>> +			return ret;
->>>>> +	} else {	/* ACPI case */
->>>>> +		hwirq = (irq_hw_number_t)*(u32 *)arg;
->>>>> +	}
->>>>
->>>> If domain->of_node is NULL and system booted with DT the code above
->>>> does not fail (and if it fails almost certainly that won't be graceful)
->>>> but it should.
->>>
->>> how about the following logic?
->>>
->>> if (!domain->of_node && acpi_disabled)
->>> 	return -ENODEV;
->>> else if (domain->of_node)
->>> 	dt related code;
->>> else
->>> 	ACPI related code;
->>
->> Code is not checking the node at present so:
->>
->> if (acpi_disabled)
->> 	dt code;
->> else
->> 	ACPI code;
->>
->> would do, but that's a nit.
->>
->>>>>    	for (i = 0; i < nr_irqs; i++)
->>>>>    		gic_irq_domain_map(domain, virq + i, hwirq + i);
->>>>> @@ -945,11 +952,11 @@ void __init gic_init_bases(unsigned int gic_nr, int irq_start,
->>>>>    		gic_irqs = 1020;
->>>>>    	gic->gic_irqs = gic_irqs;
->>>>>
->>>>> -	if (node) {		/* DT case */
->>>>> +	if (node || !acpi_disabled) {		/* DT or ACPI case */
->>>>>    		gic->domain = irq_domain_add_linear(node, gic_irqs,
->>>>>    						    &gic_irq_domain_hierarchy_ops,
->>>>>    						    gic);
->>
->> I think this is a bit more worrying, I mean passing a NULL node pointer to
->> the irqdomain layer which basically means you are booting out of ACPI
-> 
-> I'm little confused here, would you mind explaining more for your
-> worrying? To me, node pointer is optional and it's ok for ACPI
-> case.
-> 
->> (for you, if that's true for the irq_domain_add_linear implementation
->> that's another story), the node pointer should be optional but you
->> need feedback from IRQ layer maintainers here.
-> 
-> Sure.
+>> The regression happens with 4.0.5, 4.1.0-rc8 and 4.1.0-final. 3.18.1=
+6 was
+>> good.
+> So please put this into quotes, like:
+>
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> Zoltan Boszormenyi reported this regression:
+>
+>   "There's a Realtek RTL8111/8168/8411 (PCI ID 10ec:8168, Subsystem I=
+D 1565:230e)
+>    network chip on the mainboard. After the r8169 driver loaded, the =
+IRQs in
+>    the machine went berserk. Keyboard keypressed arrived with conside=
+rable
+>    latency and duplicated, so no real work was possible. The machine =
+responded
+>    to the power button but didn't actually power down. It just stuck =
+at the
+>    powering down message. I had to press the power button for 4 secon=
+ds to power
+>    it down.
+> =20
+>    The computer is a POS machine with a big battery inside. Because o=
+f this,
+>    either ACPI or the Realtek chip kept the bad state and after reboo=
+ting, the
+>    network chip didn't even show up in lspci. Not even the PXE ROM an=
+nounced
+>    itself during boot. I had to disconnect the battery to beat some s=
+ense back
+>    to the computer.
+> =20
+>    The regression happens with 4.0.5, 4.1.0-rc8 and 4.1.0-final. 3.18=
+=2E16 was
+>    good."
+>
+> ...
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+>
+> Also note the indentation, that helps readability.
+>
+> Thanks,
+>
+> 	Ingo
 
-Frankly, I'd really like to see ACPI using the "node" parameter for
-something useful. This would save having to cache pointers all over the
-place, will make find_irq_host() work as expected... etc.
+So, will there be a v4 with a commit message satisfactory to Ingo
+that will be part of 4.0.7/4.1.1 and 4.2?
 
-See the comment at the top of linux/irqdomain.h :
-
-"... This code could thus be used on other architectures by replacing
-those two by some sort of arch-specific void * "token" used to identify
-interrupt controllers."
-
-Maybe it is time to bite the bullet.
-
-Thanks,
-
-	M.
--- 
-Jazz is not dead. It just smells funny...
+Best regards,
+Zolt=E1n
