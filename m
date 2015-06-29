@@ -1,48 +1,122 @@
-From: Maninder Singh <maninder1.s@samsung.com>
-Subject: [PATCH v2] ACPI/resource.c: Fix memory leak reg
-Date: Mon, 29 Jun 2015 13:40:26 +0530
-Message-ID: <1435565426-42571-1-git-send-email-maninder1.s@samsung.com>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: [PATCH v2 6/9] irqchip / gic: Add stacked irqdomain support for
+ ACPI based GICv2 init
+Date: Mon, 29 Jun 2015 09:39:28 +0100
+Message-ID: <55910440.8070702@arm.com>
+References: <1434703572-26221-1-git-send-email-hanjun.guo@linaro.org> <1434703572-26221-7-git-send-email-hanjun.guo@linaro.org> <20150622172014.GB26129@red-moon> <5589772A.8070708@linaro.org> <20150623173845.GC31466@red-moon> <558E1DEE.3090900@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:54348 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752119AbbF2ILf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 29 Jun 2015 04:11:35 -0400
+Received: from foss.arm.com ([217.140.101.70]:37127 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751754AbbF2Ijd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 29 Jun 2015 04:39:33 -0400
+In-Reply-To: <558E1DEE.3090900@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: pankaj.m@samsung.com, jiang.liu@linux.intel.com, Maninder Singh <maninder1.s@samsung.com>
+To: Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>
+Cc: Jason Cooper <jason@lakedaemon.net>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Olof Johansson <olof@lixom.net>, Wei Huang <wei@redhat.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 
-static analysis gives memory leak error for reg:-
-[drivers/acpi/resource.c:663]: (error) Memory leak: reg
+On 27/06/15 04:52, Hanjun Guo wrote:
+> On 06/24/2015 01:38 AM, Lorenzo Pieralisi wrote:
+>> On Tue, Jun 23, 2015 at 04:11:38PM +0100, Hanjun Guo wrote:
+>>
+>> [...]
+>>
+>>>>> diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
+>>>>> index 8fc67bc..d1b2131 100644
+>>>>> --- a/drivers/irqchip/irq-gic.c
+>>>>> +++ b/drivers/irqchip/irq-gic.c
+>>>>> @@ -851,15 +851,22 @@ static struct notifier_block gic_cpu_notifier = {
+>>>>>    static int gic_irq_domain_alloc(struct irq_domain *domain, unsigned int virq,
+>>>>>    				unsigned int nr_irqs, void *arg)
+>>>>>    {
+>>>>> -	int i, ret;
+>>>>> +	int i;
+>>>>>    	irq_hw_number_t hwirq;
+>>>>> -	unsigned int type = IRQ_TYPE_NONE;
+>>>>> -	struct of_phandle_args *irq_data = arg;
+>>>>>
+>>>>> -	ret = gic_irq_domain_xlate(domain, irq_data->np, irq_data->args,
+>>>>> -				   irq_data->args_count, &hwirq, &type);
+>>>>> -	if (ret)
+>>>>> -		return ret;
+>>>>> +	if (domain->of_node) {	/* DT case */
+>>>>> +		int ret;
+>>>>> +		unsigned int type = IRQ_TYPE_NONE;
+>>>>> +		struct of_phandle_args *irq_data = arg;
+>>>>> +
+>>>>> +		ret = gic_irq_domain_xlate(domain, irq_data->np,
+>>>>> +					irq_data->args,
+>>>>> +					irq_data->args_count, &hwirq, &type);
+>>>>> +		if (ret)
+>>>>> +			return ret;
+>>>>> +	} else {	/* ACPI case */
+>>>>> +		hwirq = (irq_hw_number_t)*(u32 *)arg;
+>>>>> +	}
+>>>>
+>>>> If domain->of_node is NULL and system booted with DT the code above
+>>>> does not fail (and if it fails almost certainly that won't be graceful)
+>>>> but it should.
+>>>
+>>> how about the following logic?
+>>>
+>>> if (!domain->of_node && acpi_disabled)
+>>> 	return -ENODEV;
+>>> else if (domain->of_node)
+>>> 	dt related code;
+>>> else
+>>> 	ACPI related code;
+>>
+>> Code is not checking the node at present so:
+>>
+>> if (acpi_disabled)
+>> 	dt code;
+>> else
+>> 	ACPI code;
+>>
+>> would do, but that's a nit.
+>>
+>>>>>    	for (i = 0; i < nr_irqs; i++)
+>>>>>    		gic_irq_domain_map(domain, virq + i, hwirq + i);
+>>>>> @@ -945,11 +952,11 @@ void __init gic_init_bases(unsigned int gic_nr, int irq_start,
+>>>>>    		gic_irqs = 1020;
+>>>>>    	gic->gic_irqs = gic_irqs;
+>>>>>
+>>>>> -	if (node) {		/* DT case */
+>>>>> +	if (node || !acpi_disabled) {		/* DT or ACPI case */
+>>>>>    		gic->domain = irq_domain_add_linear(node, gic_irqs,
+>>>>>    						    &gic_irq_domain_hierarchy_ops,
+>>>>>    						    gic);
+>>
+>> I think this is a bit more worrying, I mean passing a NULL node pointer to
+>> the irqdomain layer which basically means you are booting out of ACPI
+> 
+> I'm little confused here, would you mind explaining more for your
+> worrying? To me, node pointer is optional and it's ok for ACPI
+> case.
+> 
+>> (for you, if that's true for the irq_domain_add_linear implementation
+>> that's another story), the node pointer should be optional but you
+>> need feedback from IRQ layer maintainers here.
+> 
+> Sure.
 
-free allocated memory for reg in case of error from request_range
+Frankly, I'd really like to see ACPI using the "node" parameter for
+something useful. This would save having to cache pointers all over the
+place, will make find_irq_host() work as expected... etc.
 
-Signed-off-by: Maninder Singh <maninder1.s@samsung.com>
-Reviewed-by: Akhilesh Kumar <akhilesh.k@samsung.com>
----
-v1: allocate memory after request_range error checking
-v2: free allocated memory in case of error as Suggested by
-	Jiang Liu <jiang.liu@linux.intel.com>
+See the comment at the top of linux/irqdomain.h :
 
- drivers/acpi/resource.c |    4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+"... This code could thus be used on other architectures by replacing
+those two by some sort of arch-specific void * "token" used to identify
+interrupt controllers."
 
-diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-index fcb7807..10561ce 100644
---- a/drivers/acpi/resource.c
-+++ b/drivers/acpi/resource.c
-@@ -660,8 +660,10 @@ static int add_region_before(u64 start, u64 end, u8 space_id,
- 		return -ENOMEM;
- 
- 	error = request_range(start, end, space_id, flags, desc);
--	if (error)
-+	if (error) {
-+		kfree(reg);
- 		return error;
-+	}
- 
- 	reg->start = start;
- 	reg->end = end;
+Maybe it is time to bite the bullet.
+
+Thanks,
+
+	M.
 -- 
-1.7.9.5
-
+Jazz is not dead. It just smells funny...
