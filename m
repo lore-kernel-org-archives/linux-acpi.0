@@ -1,39 +1,43 @@
-From: Borislav Petkov <bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org>
-Subject: Re: [PATCH] x86/efi-bgrt: Switch pr_err() to pr_debug() for invalid
- BGRT
-Date: Mon, 29 Jun 2015 16:17:24 +0200
-Message-ID: <20150629141724.GG12383@pd.tnic>
-References: <1435579602-6612-1-git-send-email-matt@codeblueprint.co.uk>
- <20150629131305.GB13113@pd.tnic>
- <20150629140022.GA22374@x>
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: Re: [Bugfix v3] PCI, ACPI: Fix regressions caused by resource_size_t
+ overflow with 32-bit kernel
+Date: Mon, 29 Jun 2015 22:28:26 +0800
+Message-ID: <5591560A.8080107@linux.intel.com>
+References: <20150624094916.GA5696@gmail.com> <1435141065-28536-1-git-send-email-jiang.liu@linux.intel.com> <20150624101843.GA8924@gmail.com> <559107F2.3080701@pr.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20150629140022.GA22374@x>
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Josh Triplett <josh-iaAMLnmF4UmaiuxdJuQwMA@public.gmane.org>
-Cc: Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>, Tom Yan <tom.ty89-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matt Fleming <matt.fleming-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([192.55.52.115]:23409 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753347AbbF2O2b (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 29 Jun 2015 10:28:31 -0400
+In-Reply-To: <559107F2.3080701@pr.hu>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Boszormenyi Zoltan <zboszor@pr.hu>, Ingo Molnar <mingo@kernel.org>
+Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>
 
-On Mon, Jun 29, 2015 at 07:00:22AM -0700, Josh Triplett wrote:
-> Definitely not FW_BUG.  The field is reserved *now*; it would be
-> legitimate for a new version of the BGRT spec to define one of those
-> bits for something else.
+On 2015/6/29 16:55, Boszormenyi Zoltan wrote:
+> 2015-06-24 12:18 keltez=E9ssel, Ingo Molnar =EDrta:
+>> * Jiang Liu <jiang.liu@linux.intel.com> wrote:
+>>
+>> Also note the indentation, that helps readability.
+>>
+>> Thanks,
+>>
+>> 	Ingo
+>=20
+> So, will there be a v4 with a commit message satisfactory to Ingo
+> that will be part of 4.0.7/4.1.1 and 4.2?
 
-Which would mean that booting old kernels on new FW which defines those
-reserved bits would cause that warning to fire erroneously.
-
-So then we probably don't need it at all or we need to check implemented
-BGRT version of the FW running to know which bits are defined by the
-spec and which are reserved...
-
-Also, does the spec really say that reserved bits must be zero? Or it
-doesn't specify their value?
-
--- 
-Regards/Gruss,
-    Boris.
-
-ECO tip #101: Trim your mails when you reply.
+Hi Zoltan,
+	I'm waiting for a few days to see if there will be other
+comments, and will send out v4 then.
+Thanks!
+Gerry
 --
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
