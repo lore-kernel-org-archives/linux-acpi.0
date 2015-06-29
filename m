@@ -1,96 +1,68 @@
-From: Boszormenyi Zoltan <zboszor@pr.hu>
-Subject: Re: [Bugfix v3] PCI, ACPI: Fix regressions caused by resource_size_t
- overflow with 32-bit kernel
-Date: Mon, 29 Jun 2015 10:55:14 +0200
-Message-ID: <559107F2.3080701@pr.hu>
-References: <20150624094916.GA5696@gmail.com>
- <1435141065-28536-1-git-send-email-jiang.liu@linux.intel.com>
- <20150624101843.GA8924@gmail.com>
+From: Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>
+Subject: Re: lower log level of efi-bgrt / handle status 0
+Date: Mon, 29 Jun 2015 10:17:40 +0100
+Message-ID: <20150629091740.GD28334@codeblueprint.co.uk>
+References: <CAGnHSEnBNr-HVaUMjRqPK104mV1r16uDsktob+9WADr84fBh0w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150624101843.GA8924@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ingo Molnar <mingo@kernel.org>, Jiang Liu <jiang.liu@linux.intel.com>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAGnHSEnBNr-HVaUMjRqPK104mV1r16uDsktob+9WADr84fBh0w-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tom Yan <tom.ty89-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Josh Triplett <josh-iaAMLnmF4UmaiuxdJuQwMA@public.gmane.org>, Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-2015-06-24 12:18 keltez=E9ssel, Ingo Molnar =EDrta:
-> * Jiang Liu <jiang.liu@linux.intel.com> wrote:
->
->> A regression report from Boszormenyi Zoltan <zboszor@pr.hu>:
->> There's a Realtek RTL8111/8168/8411 (PCI ID 10ec:8168, Subsystem ID =
-1565:230e)
->> network chip on the mainboard. After the r8169 driver loaded, the IR=
-Qs in
->> the machine went berserk. Keyboard keypressed arrived with considera=
-ble
->> latency and duplicated, so no real work was possible. The machine re=
-sponded
->> to the power button but didn't actually power down. It just stuck at=
- the
->> powering down message. I had to press the power button for 4 seconds=
- to power
->> it down.
->>
->> The computer is a POS machine with a big battery inside. Because of =
-this,
->> either ACPI or the Realtek chip kept the bad state and after rebooti=
-ng, the
->> network chip didn't even show up in lspci. Not even the PXE ROM anno=
-unced
->> itself during boot. I had to disconnect the battery to beat some sen=
-se back
->> to the computer.
->>
->> The regression happens with 4.0.5, 4.1.0-rc8 and 4.1.0-final. 3.18.1=
-6 was
->> good.
-> So please put this into quotes, like:
->
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> Zoltan Boszormenyi reported this regression:
->
->   "There's a Realtek RTL8111/8168/8411 (PCI ID 10ec:8168, Subsystem I=
-D 1565:230e)
->    network chip on the mainboard. After the r8169 driver loaded, the =
-IRQs in
->    the machine went berserk. Keyboard keypressed arrived with conside=
-rable
->    latency and duplicated, so no real work was possible. The machine =
-responded
->    to the power button but didn't actually power down. It just stuck =
-at the
->    powering down message. I had to press the power button for 4 secon=
-ds to power
->    it down.
-> =20
->    The computer is a POS machine with a big battery inside. Because o=
-f this,
->    either ACPI or the Realtek chip kept the bad state and after reboo=
-ting, the
->    network chip didn't even show up in lspci. Not even the PXE ROM an=
-nounced
->    itself during boot. I had to disconnect the battery to beat some s=
-ense back
->    to the computer.
-> =20
->    The regression happens with 4.0.5, 4.1.0-rc8 and 4.1.0-final. 3.18=
-=2E16 was
->    good."
->
-> ...
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
->
-> Also note the indentation, that helps readability.
->
-> Thanks,
->
-> 	Ingo
+On Mon, 29 Jun, at 01:10:52AM, Tom Yan wrote:
+> My motherboard is ASUS H87-PRO which has UEFI BIOS. The kernel gives
+> the following error on every boot:
+> 
+> Ignoring BGRT: invalid status 0 (expected 1)
+> 
+> This happens when the "Boot Logo" BIOS option is set to "Auto" (AND
+> using a PCI-E display card, IIRC). According to the mobo's manual,
+> "Auto" means:
+> 
+> "Automatically adjust the boot logo size according to Windows requirements."
+> 
+> while the error will be gone if I set it to "Full Screen" (which makes
+> the boot logo look huge and ugly) or "Disabled" instead.
+> 
+> The thing is nothing really goes wrong when I choose "Auto" except
+> from keep seeing that error. So could you make it accept/handle status
+> 0, or at least lower the log level of messages in efi-bgrt? I can see
+> that all of them make use of pr_err() and I wonder how important is
+> this BGRT thing.
 
-So, will there be a v4 with a commit message satisfactory to Ingo
-that will be part of 4.0.7/4.1.1 and 4.2?
+The rest of the error messages are quite important because they signal
+that the BGRT is somehow invalid, even though the firmware thinks it
+*is* valid. They are intended to catch buggy firmware and aid kernel
+developers in debugging.
 
-Best regards,
-Zolt=E1n
+However, it probably does make sense to drop the pr_err() for ->status
+being zero though, because the firmware is explicitly telling us "The
+BGRT image is not being displayed".
+
+Josh, Matthew? Can you think of a reason that something like this
+wouldn't make sense?
+
+---
+
+diff --git a/arch/x86/platform/efi/efi-bgrt.c b/arch/x86/platform/efi/efi-bgrt.c
+index d7f997f7c26d..480f3911228e 100644
+--- a/arch/x86/platform/efi/efi-bgrt.c
++++ b/arch/x86/platform/efi/efi-bgrt.c
+@@ -51,8 +51,8 @@ void __init efi_bgrt_init(void)
+ 		return;
+ 	}
+ 	if (bgrt_tab->status != 1) {
+-		pr_err("Ignoring BGRT: invalid status %u (expected 1)\n",
+-		       bgrt_tab->status);
++		pr_debug("Ignoring BGRT: invalid status %u (expected 1)\n",
++			 bgrt_tab->status);
+ 		return;
+ 	}
+ 	if (bgrt_tab->image_type != 0) {
+
+-- 
+Matt Fleming, Intel Open Source Technology Center
