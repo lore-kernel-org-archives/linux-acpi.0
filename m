@@ -1,39 +1,54 @@
-From: Matt Fleming <matt@codeblueprint.co.uk>
-Subject: Re: [PATCH] x86/efi-bgrt: Switch pr_err() to pr_debug() for invalid
- BGRT
-Date: Tue, 30 Jun 2015 11:00:46 +0100
-Message-ID: <20150630100046.GI28334@codeblueprint.co.uk>
-References: <1435579602-6612-1-git-send-email-matt@codeblueprint.co.uk>
- <CAGnHSEnO9BiCTgSOCJnJiwycpSMKtQzeYb1+S-2Cq7U_Xy+H1w@mail.gmail.com>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: Re: [PATCH v2 17/17] arch, x86: pmem api for ensuring durability of
+ persistent memory updates
+Date: Tue, 30 Jun 2015 13:21:37 +0300
+Message-ID: <20150630102137.GC12986@mwanda>
+References: <20150625090554.40066.69562.stgit@dwillia2-desk3.jf.intel.com>
+ <20150625093749.40066.25475.stgit@dwillia2-desk3.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wg0-f50.google.com ([74.125.82.50]:36661 "EHLO
-	mail-wg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750821AbbF3KAv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Jun 2015 06:00:51 -0400
-Received: by wguu7 with SMTP id u7so4927149wgu.3
-        for <linux-acpi@vger.kernel.org>; Tue, 30 Jun 2015 03:00:49 -0700 (PDT)
+Received: from userp1040.oracle.com ([156.151.31.81]:18906 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750821AbbF3KWR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Jun 2015 06:22:17 -0400
 Content-Disposition: inline
-In-Reply-To: <CAGnHSEnO9BiCTgSOCJnJiwycpSMKtQzeYb1+S-2Cq7U_Xy+H1w@mail.gmail.com>
+In-Reply-To: <20150625093749.40066.25475.stgit@dwillia2-desk3.jf.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tom Yan <tom.ty89@gmail.com>
-Cc: Josh Triplett <josh@joshtriplett.org>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-efi@vger.kernel.org, linux-acpi@vger.kernel.org, Matt Fleming <matt.fleming@intel.com>
+To: Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: linux-nvdimm@ml01.01.org, axboe@kernel.dk, boaz@plexistor.com, toshi.kani@hp.com, mingo@kernel.org, linux-kernel@vger.kernel.org, hch@lst.de, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, linux-fsdevel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>
 
-On Tue, 30 Jun, at 05:52:43AM, Tom Yan wrote:
-> Hi Matt!
-> 
-> The patch works for me against linux 4.0.6. I no longer see the
-> message in dmesg with the BIOS option set to "Auto". I assume this is
-> expected? It will only be displayed if I build it with a debug flag,
-> right?
-> https://www.kernel.org/doc/local/pr_debug.txt
+On Thu, Jun 25, 2015 at 05:37:49AM -0400, Dan Williams wrote:
+> diff --git a/include/linux/compiler.h b/include/linux/compiler.h
+> index 867722591be2..9a528d945498 100644
+> --- a/include/linux/compiler.h
+> +++ b/include/linux/compiler.h
+> @@ -21,6 +21,7 @@
+>  # define __rcu		__attribute__((noderef, address_space(4)))
 
-Right, that is the expected outcome but it's always good to check that I
-didn't somehow goof up the patch.
+On this side of the #ifdef CONFIG_SPARSE_RCU_POINTER statement then
+__pmem isn't defined so it leads to a build error running a CHECKER on
+today's linux-next.
 
-Thanks for testing!
+I would define __pmem away, but I don't understand why __pmem and
+CONFIG_SPARSE_RCU_POINTER are related at all.  Maybe it should be
+outside the if statement?
 
--- 
-Matt Fleming, Intel Open Source Technology Center
+>  #else
+>  # define __rcu
+> +# define __pmem		__attribute__((noderef, address_space(5)))
+>  #endif
+>  extern void __chk_user_ptr(const volatile void __user *);
+>  extern void __chk_io_ptr(const volatile void __iomem *);
+> @@ -42,6 +43,7 @@ extern void __chk_io_ptr(const volatile void __iomem *);
+>  # define __cond_lock(x,c) (c)
+>  # define __percpu
+>  # define __rcu
+> +# define __pmem
+>  #endif
+>  
+>  /* Indirect macros required for expanded argument pasting, eg. __LINE__. */
+
+regards,
+dan carpenter
