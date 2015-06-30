@@ -1,98 +1,61 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] Power management and ACPI fixes for v4.2-rc1
-Date: Tue, 30 Jun 2015 18:09:03 +0200
-Message-ID: <CAJZ5v0haq+JQumnW42neguDPZHJRqKd_9VJ+-UTpWetMEODQ2Q@mail.gmail.com>
+From: "Williams, Dan J" <dan.j.williams@intel.com>
+Subject: Re: [PATCH v2 17/17] arch, x86: pmem api for ensuring durability of
+ persistent memory updates
+Date: Tue, 30 Jun 2015 16:23:21 +0000
+Message-ID: <1435681397.18090.66.camel@intel.com>
+References: <20150625090554.40066.69562.stgit@dwillia2-desk3.jf.intel.com>
+	 <20150625093749.40066.25475.stgit@dwillia2-desk3.jf.intel.com>
+	 <20150630102137.GC12986@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f177.google.com ([209.85.212.177]:35001 "EHLO
-	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751804AbbF3QJF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Jun 2015 12:09:05 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <20150630102137.GC12986@mwanda>
+Content-Language: en-US
+Content-ID: <7DB1C2FDAF222E40BCD89185893F24D6@intel.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: "dan.carpenter@oracle.com" <dan.carpenter@oracle.com>
+Cc: "toshi.kani@hp.com" <toshi.kani@hp.com>, "mingo@kernel.org" <mingo@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@ml01.01.org" <linux-nvdimm@ml01.01.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "hch@lst.de" <hch@lst.de>, "axboe@kernel.dk" <axboe@kernel.dk>, "hpa@zytor.com" <hpa@zytor.com>, "mingo@redhat.com" <mingo@redhat.com>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "ross.zwisler@linux.intel.com" <ross.zwisler@linux.intel.com>, "boaz@plexistor.com" <boaz@plexistor.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Hi Linus,
-
-Please pull from
-
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- pm+acpi-4.2-rc1-2
-
-to receive power management and ACPI fixes for v4.2-rc1 with
-top-most commit 132c242d95063f0c362597e74ee6759403a3f700
-
- Merge branches 'acpi-video', 'device-properties', 'pm-sleep' and 'pm-cpuidle'
-
-on top of commit 43c9fad942b5afb9e03801c0721d83160fa5b0dd
-
- Merge tag 'pm+acpi-4.2-rc1' of
-git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm
-
-These are fixes that didn't make it to the previous PM+ACPI pull
-request or are fixing issues introduced by it.
-
-Specifics:
-
- - Fix a recently added memory leak in an error path in the ACPI
-   resources management code (Dan Carpenter).
-
- - Fix a build warning triggered by an ACPI video header function
-   that should be static inline (Borislav Petkov).
-
- - Change names of helper function converting struct fwnode_handle
-   pointers to either struct device_node or struct acpi_device
-   pointers so they don't conflict with local variable names
-   (Alexander Sverdlin).
-
- - Make the hibernate core re-enable nonboot CPUs on failures to
-   disable them as expected (Vitaly Kuznetsov).
-
- - Increase the default timeout of the device suspend watchdog to
-   prevent it from triggering too early on some systems (Takashi Iwai).
-
- - Prevent the cpuidle powernv driver from registering idle
-   states with CPUIDLE_FLAG_TIMER_STOP set if CONFIG_TICK_ONESHOT
-   is unset which leads to boot hangs (Preeti U Murthy).
-
-Thanks!
-
-
----------------
-
-Alexander Sverdlin (1):
-      ACPI / OF: Rename of_node() and acpi_node() to to_of_node() and
-to_acpi_node()
-
-Borislav Petkov (1):
-      ACPI / video: Inline acpi_video_set_dmi_backlight_type
-
-Dan Carpenter (1):
-      ACPI / resources: free memory on error in add_region_before()
-
-Preeti U Murthy (1):
-      tick/idle/powerpc: Do not register idle states with
-CPUIDLE_FLAG_TIMER_STOP set in periodic mode
-
-Takashi Iwai (1):
-      PM / sleep: Increase default DPM watchdog timeout to 60
-
-Vitaly Kuznetsov (1):
-      PM / hibernate: re-enable nonboot cpus on disable_nonboot_cpus() failure
-
----------------
-
- drivers/acpi/resource.c           |  4 +++-
- drivers/base/property.c           | 26 +++++++++++++-------------
- drivers/cpuidle/cpuidle-powernv.c | 15 ++++++++++++---
- drivers/gpio/gpiolib.c            |  4 ++--
- drivers/leds/leds-gpio.c          |  2 +-
- include/acpi/acpi_bus.h           |  2 +-
- include/acpi/video.h              |  2 +-
- include/linux/acpi.h              |  4 ++--
- include/linux/of.h                |  4 ++--
- kernel/power/Kconfig              |  2 +-
- kernel/power/hibernate.c          |  4 +++-
- 11 files changed, 41 insertions(+), 28 deletions(-)
+T24gVHVlLCAyMDE1LTA2LTMwIGF0IDEzOjIxICswMzAwLCBEYW4gQ2FycGVudGVyIHdyb3RlOg0K
+PiBPbiBUaHUsIEp1biAyNSwgMjAxNSBhdCAwNTozNzo0OUFNIC0wNDAwLCBEYW4gV2lsbGlhbXMg
+d3JvdGU6DQo+ID4gZGlmZiAtLWdpdCBhL2luY2x1ZGUvbGludXgvY29tcGlsZXIuaCBiL2luY2x1
+ZGUvbGludXgvY29tcGlsZXIuaA0KPiA+IGluZGV4IDg2NzcyMjU5MWJlMi4uOWE1MjhkOTQ1NDk4
+IDEwMDY0NA0KPiA+IC0tLSBhL2luY2x1ZGUvbGludXgvY29tcGlsZXIuaA0KPiA+ICsrKyBiL2lu
+Y2x1ZGUvbGludXgvY29tcGlsZXIuaA0KPiA+IEBAIC0yMSw2ICsyMSw3IEBADQo+ID4gICMgZGVm
+aW5lIF9fcmN1CQlfX2F0dHJpYnV0ZV9fKChub2RlcmVmLCBhZGRyZXNzX3NwYWNlKDQpKSkNCj4g
+DQo+IE9uIHRoaXMgc2lkZSBvZiB0aGUgI2lmZGVmIENPTkZJR19TUEFSU0VfUkNVX1BPSU5URVIg
+c3RhdGVtZW50IHRoZW4NCj4gX19wbWVtIGlzbid0IGRlZmluZWQgc28gaXQgbGVhZHMgdG8gYSBi
+dWlsZCBlcnJvciBydW5uaW5nIGEgQ0hFQ0tFUiBvbg0KPiB0b2RheSdzIGxpbnV4LW5leHQuDQo+
+IA0KPiBJIHdvdWxkIGRlZmluZSBfX3BtZW0gYXdheSwgYnV0IEkgZG9uJ3QgdW5kZXJzdGFuZCB3
+aHkgX19wbWVtIGFuZA0KPiBDT05GSUdfU1BBUlNFX1JDVV9QT0lOVEVSIGFyZSByZWxhdGVkIGF0
+IGFsbC4gIE1heWJlIGl0IHNob3VsZCBiZQ0KPiBvdXRzaWRlIHRoZSBpZiBzdGF0ZW1lbnQ/DQo+
+IA0KDQpZZXMgaXQgc2hvdWxkIGJlIG91dHNpZGUgdGhlIGlmLi4uDQoNCjg8LS0tLQ0KU3ViamVj
+dDogc3BhcnNlOiBmaXggbWlzcGxhY2VkIF9fcG1lbSBkZWZpbml0aW9uDQoNCkZyb206IERhbiBX
+aWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPg0KDQpNb3ZlIHRoZSBkZWZpbml0aW9u
+IG9mIF9fcG1lbSBvdXRzaWRlIG9mIENPTkZJR19TUEFSU0VfUkNVX1BPSU5URVIgdG8gZml4Og0K
+DQpkcml2ZXJzL252ZGltbS9wbWVtLmM6MTk4OjE3OiBzcGFyc2U6IHRvbyBtYW55IGFyZ3VtZW50
+cyBmb3IgZnVuY3Rpb24gX19idWlsdGluX2V4cGVjdA0KZHJpdmVycy9udmRpbW0vcG1lbS5jOjM2
+OjMzOiBzcGFyc2U6IGV4cGVjdGVkIDsgYXQgZW5kIG9mIGRlY2xhcmF0aW9uDQpkcml2ZXJzL252
+ZGltbS9wbWVtLmM6NDg6MjE6IHNwYXJzZTogdm9pZCBkZWNsYXJhdGlvbg0KDQouLi5kdWUgdG8g
+X19wbWVtIGZhaWxpbmcgdG8gYmUgZGVmaW5lZCBpbiBzb21lIGNvbmZpZ3VyYXRpb25zIHdoZW4N
+CkNPTkZJR19TUEFSU0VfUkNVX1BPSU5URVI9eS4NCg0KUmVwb3J0ZWQtYnk6IGtidWlsZCB0ZXN0
+IHJvYm90IDxmZW5nZ3Vhbmcud3VAaW50ZWwuY29tPg0KUmVwb3J0ZWQtYnk6IERhbiBDYXJwZW50
+ZXIgPGRhbi5jYXJwZW50ZXJAb3JhY2xlLmNvbT4NClNpZ25lZC1vZmYtYnk6IERhbiBXaWxsaWFt
+cyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPg0KLS0tDQogaW5jbHVkZS9saW51eC9jb21waWxl
+ci5oIHwgICAgMiArLQ0KIDEgZmlsZSBjaGFuZ2VkLCAxIGluc2VydGlvbigrKSwgMSBkZWxldGlv
+bigtKQ0KDQpkaWZmIC0tZ2l0IGEvaW5jbHVkZS9saW51eC9jb21waWxlci5oIGIvaW5jbHVkZS9s
+aW51eC9jb21waWxlci5oDQppbmRleCAyNmZjOGJjNzdmODUuLmQ4ZmJkNTAwMzMwZSAxMDA2NDQN
+Ci0tLSBhL2luY2x1ZGUvbGludXgvY29tcGlsZXIuaA0KKysrIGIvaW5jbHVkZS9saW51eC9jb21w
+aWxlci5oDQpAQCAtMTcsMTEgKzE3LDExIEBADQogIyBkZWZpbmUgX19yZWxlYXNlKHgpCV9fY29u
+dGV4dF9fKHgsLTEpDQogIyBkZWZpbmUgX19jb25kX2xvY2soeCxjKQkoKGMpID8gKHsgX19hY3F1
+aXJlKHgpOyAxOyB9KSA6IDApDQogIyBkZWZpbmUgX19wZXJjcHUJX19hdHRyaWJ1dGVfXygobm9k
+ZXJlZiwgYWRkcmVzc19zcGFjZSgzKSkpDQorIyBkZWZpbmUgX19wbWVtCQlfX2F0dHJpYnV0ZV9f
+KChub2RlcmVmLCBhZGRyZXNzX3NwYWNlKDUpKSkNCiAjaWZkZWYgQ09ORklHX1NQQVJTRV9SQ1Vf
+UE9JTlRFUg0KICMgZGVmaW5lIF9fcmN1CQlfX2F0dHJpYnV0ZV9fKChub2RlcmVmLCBhZGRyZXNz
+X3NwYWNlKDQpKSkNCiAjZWxzZQ0KICMgZGVmaW5lIF9fcmN1DQotIyBkZWZpbmUgX19wbWVtCQlf
+X2F0dHJpYnV0ZV9fKChub2RlcmVmLCBhZGRyZXNzX3NwYWNlKDUpKSkNCiAjZW5kaWYNCiBleHRl
+cm4gdm9pZCBfX2Noa191c2VyX3B0cihjb25zdCB2b2xhdGlsZSB2b2lkIF9fdXNlciAqKTsNCiBl
+eHRlcm4gdm9pZCBfX2Noa19pb19wdHIoY29uc3Qgdm9sYXRpbGUgdm9pZCBfX2lvbWVtICopOw0K
+DQo=
