@@ -1,233 +1,91 @@
-From: Grant Likely <grant.likely@linaro.org>
-Subject: Re: [PATCH] of: acpi: Rename of_node() and acpi_node() to
- to_of_node() and to_acpi_node()
-Date: Tue, 30 Jun 2015 18:26:39 +0100
-Message-ID: <20150630172639.F02C2C407A6@trevor.secretlab.ca>
-References: <5588725D.6000101@gmail.com>
-	<2099562.7T915zWny0@vostro.rjw.lan> <10569034.P3OFQNPcxE@vostro.rjw.lan>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <10569034.P3OFQNPcxE@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Alexander Sverdlin <alexander.sverdlin@gmail.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Bryan Wu <cooloney@gmail.com>, Richard Purdie <rpurdie@rpsys.net>, Jacek Anaszewski <j.anaszewski@samsung.com>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, Rob Herring <robh+dt@kernel.org>, linux-kernel@vger.kernel.org, linux-gpio@vger.kernel.org, linux-leds@vger.kernel.org, linux-acpi@vger.kernel.org, devicetree@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
+From: Al Stone <al.stone@linaro.org>
+Subject: Re: [PATCH v2 1/3] ACPI : introduce macros for using the ACPI specification
+ version
+Date: Tue, 30 Jun 2015 15:15:14 -0600
+Message-ID: <559306E2.7000901@linaro.org>
+References: <1434666968-1543-1-git-send-email-al.stone@linaro.org>	<1434666968-1543-2-git-send-email-al.stone@linaro.org> <CAJZ5v0hO_nmccyGR58CO3rEy55E3PNJXWSmGxtimVsZHfPzQnw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ie0-f169.google.com ([209.85.223.169]:33799 "EHLO
+	mail-ie0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753177AbbF3VPR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Jun 2015 17:15:17 -0400
+Received: by iebmu5 with SMTP id mu5so21582417ieb.1
+        for <linux-acpi@vger.kernel.org>; Tue, 30 Jun 2015 14:15:16 -0700 (PDT)
+In-Reply-To: <CAJZ5v0hO_nmccyGR58CO3rEy55E3PNJXWSmGxtimVsZHfPzQnw@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Lists linaro-kernel <linaro-kernel@lists.linaro.org>, "patches@linaro.org" <patches@linaro.org>
 
-On Thu, 25 Jun 2015 00:20:31 +0200
-, "Rafael J. Wysocki" <rjw@rjwysocki.net>
- wrote:
-> On Tuesday, June 23, 2015 01:45:00 AM Rafael J. Wysocki wrote:
-> > On Monday, June 22, 2015 10:38:53 PM Alexander Sverdlin wrote:
-> > > Commit 8a0662d9 introduced of_node and acpi_node symbols in global namespace
-> > > but there were already ~63 of_node local variables or function parameters
-> > > (no single acpi_node though, but anyway).
-> > > 
-> > > After debugging undefined but used of_node local varible (which turned out
-> > > to reference static function of_node() instead) it became clear that the names
-> > > for the functions are too short and too generic for global scope.
-> > > 
-> > > Signed-off-by: Alexander Sverdlin <alexander.sverdlin@gmail.com>
-> > 
-> > Putting the whole world into the To: field of your messages is not a good idea
-> > in general.
-> > 
-> > I'm fine with this change, personally.
-> > 
-> > Does anyone in the CC list have any objections?
+On 06/30/2015 02:12 PM, Rafael J. Wysocki wrote:
+> Hi Al,
 > 
-> No objections apparently.
+> On Fri, Jun 19, 2015 at 12:36 AM, Al Stone <al.stone@linaro.org> wrote:
+>> Add the ACPI_SPEC_VERSION() macro to build a proper version number from
+>> a major and minor revision number.  Add also the ACPI_FADT_SPEC_VERSION
+>> that constructs a proper version number from the entries in the current
+>> FADT.
+>>
+>> These macros are added in order to simplify retrieving and comparing ACPI
+>> specification version numbers, since this is becoming a more frequent need.
+>> In particular, there are some architectures that require at least a certain
+>> version of the spec, and there are differences in some structure sizes that
+>> have changed with recent versions but can only be tracked by spec version
+>> number.
+>>
+>> Signed-off-by: Al Stone <al.stone@linaro.org>
+>> ---
+>>  include/linux/acpi.h | 5 +++++
+>>  1 file changed, 5 insertions(+)
+>>
+>> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+>> index a4acb55..33ed313 100644
+>> --- a/include/linux/acpi.h
+>> +++ b/include/linux/acpi.h
+>> @@ -48,6 +48,11 @@
+>>  #include <acpi/acpi_io.h>
+>>  #include <asm/acpi.h>
+>>
+>> +#define ACPI_SPEC_VERSION(major, minor)        ((major<<8)|minor)
 > 
-> OK, I've queued this one up for the next PM+ACPI pull request, thanks!
+> One nit here.
+> 
+> acpi_gbl_FADT.header.revision is of type u8 originally, so shifting it
+> by 8 bit positions only works due to some implicit type casting I
+> suppose.
 
-Acked-by: Grant Likely <grant.likely@linaro.org>
+Bah.  That was being sloppy on my part.  Sorry about that.  Will fix.
 
-g.
+> Moreover, it is not entirely clear why the macro is specific to the
+> computation of the ACPI spec version.
+
+As far as I know, that's the only way to extract the spec version from
+tables; I don't recall there being any other table with that info.  Since
+I will likely use this again, it seemed to make sense at the time.
+
+> So I'd drop ACPI_SPEC_VERSION and only define ACPI_FADT_SPEC_VERSION
+> as something like
 > 
-> > 
-> > 
-> > > ---
-> > > 
-> > > Compile-tested on x86_64 with ACPI and ARM with OF.
-> > > 
-> > >  drivers/base/property.c  | 26 +++++++++++++-------------
-> > >  drivers/gpio/gpiolib.c   |  4 ++--
-> > >  drivers/leds/leds-gpio.c |  2 +-
-> > >  include/acpi/acpi_bus.h  |  2 +-
-> > >  include/linux/acpi.h     |  4 ++--
-> > >  include/linux/of.h       |  4 ++--
-> > >  6 files changed, 21 insertions(+), 21 deletions(-)
-> > > 
-> > > diff --git a/drivers/base/property.c b/drivers/base/property.c
-> > > index 1d0b116..dfd4de6 100644
-> > > --- a/drivers/base/property.c
-> > > +++ b/drivers/base/property.c
-> > > @@ -128,9 +128,9 @@ EXPORT_SYMBOL_GPL(device_property_present);
-> > >  bool fwnode_property_present(struct fwnode_handle *fwnode, const char *propname)
-> > >  {
-> > >  	if (is_of_node(fwnode))
-> > > -		return of_property_read_bool(of_node(fwnode), propname);
-> > > +		return of_property_read_bool(to_of_node(fwnode), propname);
-> > >  	else if (is_acpi_node(fwnode))
-> > > -		return !acpi_dev_prop_get(acpi_node(fwnode), propname, NULL);
-> > > +		return !acpi_dev_prop_get(to_acpi_node(fwnode), propname, NULL);
-> > > 
-> > >  	return !!pset_prop_get(to_pset(fwnode), propname);
-> > >  }
-> > > @@ -285,10 +285,10 @@ EXPORT_SYMBOL_GPL(device_property_read_string);
-> > >  ({ \
-> > >  	int _ret_; \
-> > >  	if (is_of_node(_fwnode_)) \
-> > > -		_ret_ = OF_DEV_PROP_READ_ARRAY(of_node(_fwnode_), _propname_, \
-> > > +		_ret_ = OF_DEV_PROP_READ_ARRAY(to_of_node(_fwnode_), _propname_, \
-> > >  					       _type_, _val_, _nval_); \
-> > >  	else if (is_acpi_node(_fwnode_)) \
-> > > -		_ret_ = acpi_dev_prop_read(acpi_node(_fwnode_), _propname_, \
-> > > +		_ret_ = acpi_dev_prop_read(to_acpi_node(_fwnode_), _propname_, \
-> > >  					   _proptype_, _val_, _nval_); \
-> > >  	else \
-> > >  		_ret_ = pset_prop_read_array(to_pset(_fwnode_), _propname_, \
-> > > @@ -424,11 +424,11 @@ int fwnode_property_read_string_array(struct fwnode_handle *fwnode,
-> > >  {
-> > >  	if (is_of_node(fwnode))
-> > >  		return val ?
-> > > -			of_property_read_string_array(of_node(fwnode), propname,
-> > > -						      val, nval) :
-> > > -			of_property_count_strings(of_node(fwnode), propname);
-> > > +			of_property_read_string_array(to_of_node(fwnode),
-> > > +						      propname, val, nval) :
-> > > +			of_property_count_strings(to_of_node(fwnode), propname);
-> > >  	else if (is_acpi_node(fwnode))
-> > > -		return acpi_dev_prop_read(acpi_node(fwnode), propname,
-> > > +		return acpi_dev_prop_read(to_acpi_node(fwnode), propname,
-> > >  					  DEV_PROP_STRING, val, nval);
-> > > 
-> > >  	return pset_prop_read_array(to_pset(fwnode), propname,
-> > > @@ -455,9 +455,9 @@ int fwnode_property_read_string(struct fwnode_handle *fwnode,
-> > >  				const char *propname, const char **val)
-> > >  {
-> > >  	if (is_of_node(fwnode))
-> > > -		return of_property_read_string(of_node(fwnode), propname, val);
-> > > +		return of_property_read_string(to_of_node(fwnode), propname, val);
-> > >  	else if (is_acpi_node(fwnode))
-> > > -		return acpi_dev_prop_read(acpi_node(fwnode), propname,
-> > > +		return acpi_dev_prop_read(to_acpi_node(fwnode), propname,
-> > >  					  DEV_PROP_STRING, val, 1);
-> > > 
-> > >  	return -ENXIO;
-> > > @@ -475,13 +475,13 @@ struct fwnode_handle *device_get_next_child_node(struct device *dev,
-> > >  	if (IS_ENABLED(CONFIG_OF) && dev->of_node) {
-> > >  		struct device_node *node;
-> > > 
-> > > -		node = of_get_next_available_child(dev->of_node, of_node(child));
-> > > +		node = of_get_next_available_child(dev->of_node, to_of_node(child));
-> > >  		if (node)
-> > >  			return &node->fwnode;
-> > >  	} else if (IS_ENABLED(CONFIG_ACPI)) {
-> > >  		struct acpi_device *node;
-> > > 
-> > > -		node = acpi_get_next_child(dev, acpi_node(child));
-> > > +		node = acpi_get_next_child(dev, to_acpi_node(child));
-> > >  		if (node)
-> > >  			return acpi_fwnode_handle(node);
-> > >  	}
-> > > @@ -500,7 +500,7 @@ EXPORT_SYMBOL_GPL(device_get_next_child_node);
-> > >  void fwnode_handle_put(struct fwnode_handle *fwnode)
-> > >  {
-> > >  	if (is_of_node(fwnode))
-> > > -		of_node_put(of_node(fwnode));
-> > > +		of_node_put(to_of_node(fwnode));
-> > >  }
-> > >  EXPORT_SYMBOL_GPL(fwnode_handle_put);
-> > > 
-> > > diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
-> > > index 6bc612b..5d8b2b3 100644
-> > > --- a/drivers/gpio/gpiolib.c
-> > > +++ b/drivers/gpio/gpiolib.c
-> > > @@ -2040,14 +2040,14 @@ struct gpio_desc *fwnode_get_named_gpiod(struct fwnode_handle *fwnode,
-> > >  	if (is_of_node(fwnode)) {
-> > >  		enum of_gpio_flags flags;
-> > > 
-> > > -		desc = of_get_named_gpiod_flags(of_node(fwnode), propname, 0,
-> > > +		desc = of_get_named_gpiod_flags(to_of_node(fwnode), propname, 0,
-> > >  						&flags);
-> > >  		if (!IS_ERR(desc))
-> > >  			active_low = flags & OF_GPIO_ACTIVE_LOW;
-> > >  	} else if (is_acpi_node(fwnode)) {
-> > >  		struct acpi_gpio_info info;
-> > > 
-> > > -		desc = acpi_get_gpiod_by_index(acpi_node(fwnode), propname, 0,
-> > > +		desc = acpi_get_gpiod_by_index(to_acpi_node(fwnode), propname, 0,
-> > >  					       &info);
-> > >  		if (!IS_ERR(desc))
-> > >  			active_low = info.active_low;
-> > > diff --git a/drivers/leds/leds-gpio.c b/drivers/leds/leds-gpio.c
-> > > index 15eb3f8..d2d54d6 100644
-> > > --- a/drivers/leds/leds-gpio.c
-> > > +++ b/drivers/leds/leds-gpio.c
-> > > @@ -191,7 +191,7 @@ static struct gpio_leds_priv *gpio_leds_create(struct platform_device *pdev)
-> > >  			goto err;
-> > >  		}
-> > > 
-> > > -		np = of_node(child);
-> > > +		np = to_of_node(child);
-> > > 
-> > >  		if (fwnode_property_present(child, "label")) {
-> > >  			fwnode_property_read_string(child, "label", &led.name);
-> > > diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-> > > index 8de4fa9..1224be8 100644
-> > > --- a/include/acpi/acpi_bus.h
-> > > +++ b/include/acpi/acpi_bus.h
-> > > @@ -385,7 +385,7 @@ static inline bool is_acpi_node(struct fwnode_handle *fwnode)
-> > >  	return fwnode && fwnode->type == FWNODE_ACPI;
-> > >  }
-> > > 
-> > > -static inline struct acpi_device *acpi_node(struct fwnode_handle *fwnode)
-> > > +static inline struct acpi_device *to_acpi_node(struct fwnode_handle *fwnode)
-> > >  {
-> > >  	return is_acpi_node(fwnode) ?
-> > >  		container_of(fwnode, struct acpi_device, fwnode) : NULL;
-> > > diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> > > index e4da5e3..ec3c98e 100644
-> > > --- a/include/linux/acpi.h
-> > > +++ b/include/linux/acpi.h
-> > > @@ -53,7 +53,7 @@ static inline acpi_handle acpi_device_handle(struct acpi_device *adev)
-> > >  	return adev ? adev->handle : NULL;
-> > >  }
-> > > 
-> > > -#define ACPI_COMPANION(dev)		acpi_node((dev)->fwnode)
-> > > +#define ACPI_COMPANION(dev)		to_acpi_node((dev)->fwnode)
-> > >  #define ACPI_COMPANION_SET(dev, adev)	set_primary_fwnode(dev, (adev) ? \
-> > >  	acpi_fwnode_handle(adev) : NULL)
-> > >  #define ACPI_HANDLE(dev)		acpi_device_handle(ACPI_COMPANION(dev))
-> > > @@ -473,7 +473,7 @@ static inline bool is_acpi_node(struct fwnode_handle *fwnode)
-> > >  	return false;
-> > >  }
-> > > 
-> > > -static inline struct acpi_device *acpi_node(struct fwnode_handle *fwnode)
-> > > +static inline struct acpi_device *to_acpi_node(struct fwnode_handle *fwnode)
-> > >  {
-> > >  	return NULL;
-> > >  }
-> > > diff --git a/include/linux/of.h b/include/linux/of.h
-> > > index b871ff9..f05fdce 100644
-> > > --- a/include/linux/of.h
-> > > +++ b/include/linux/of.h
-> > > @@ -128,7 +128,7 @@ static inline bool is_of_node(struct fwnode_handle *fwnode)
-> > >  	return fwnode && fwnode->type == FWNODE_OF;
-> > >  }
-> > > 
-> > > -static inline struct device_node *of_node(struct fwnode_handle *fwnode)
-> > > +static inline struct device_node *to_of_node(struct fwnode_handle *fwnode)
-> > >  {
-> > >  	return fwnode ? container_of(fwnode, struct device_node, fwnode) : NULL;
-> > >  }
-> > > @@ -387,7 +387,7 @@ static inline bool is_of_node(struct fwnode_handle *fwnode)
-> > >  	return false;
-> > >  }
-> > > 
-> > > -static inline struct device_node *of_node(struct fwnode_handle *fwnode)
-> > > +static inline struct device_node *to_of_node(struct fwnode_handle *fwnode)
-> > >  {
-> > >  	return NULL;
-> > >  }
-> > > --
+> #define ACPI_FADT_SPEC_VERSION (((unsigned
+> int)acpi_gbl_FADT.header.revision << 8) | (unsigned
+> int)acpi_gbl_FADT.minor_revision)
 > 
+> Thanks,
+> Rafael
+> 
+
+Sure.  That makes sense.  It makes it clearer that this is the version
+just from the FADT.  I'll do that.
+
+-- 
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Linaro Enterprise Group
+al.stone@linaro.org
+-----------------------------------
