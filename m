@@ -1,73 +1,55 @@
-From: Tom Yan <tom.ty89-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH] x86/efi-bgrt: Switch pr_err() to pr_debug() for invalid BGRT
-Date: Tue, 30 Jun 2015 05:52:43 +0800
-Message-ID: <CAGnHSEnO9BiCTgSOCJnJiwycpSMKtQzeYb1+S-2Cq7U_Xy+H1w@mail.gmail.com>
-References: <1435579602-6612-1-git-send-email-matt@codeblueprint.co.uk>
+From: "Qatar Foundation" <qatarfund@qf.org.qa>
+Subject: =?utf-8?q?Claim_=E2=82=AC950=2C000=2E00_EURO_?=
+Date: Tue, 30 Jun 2015 05:04:20 +0100
+Message-ID: <20150630035709.E877F2748C8E@mail.kaltimpost.net>
+Reply-To: qfoundation63@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1435579602-6612-1-git-send-email-matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>
-Cc: Josh Triplett <josh-iaAMLnmF4UmaiuxdJuQwMA@public.gmane.org>, Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Matt Fleming <matt.fleming-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from [119.47.88.6] ([119.47.88.6]:44959 "EHLO mail.kaltimpost.net"
+	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1751124AbbF3Hub convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Jun 2015 03:50:31 -0400
+Content-Description: Mail message body
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Recipients <qatarfund@qf.org.qa>
 
-Hi Matt!
+Lieber Beg=C3=BCnstigte,
 
-The patch works for me against linux 4.0.6. I no longer see the
-message in dmesg with the BIOS option set to "Auto". I assume this is
-expected? It will only be displayed if I build it with a debug flag,
-right?
-https://www.kernel.org/doc/local/pr_debug.txt
+Sie wurden ausgew=C3=A4hlt, um =E2=82=AC 950.000,00 EURO als Charity-Sp=
+enden / Hilfe der Qatar Foundation erhalten. Antworten zur=C3=BCck f=C3=
+=BCr weitere Informationen.
 
-On 29 June 2015 at 20:06, Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org> wrote:
-> From: Matt Fleming <matt.fleming-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
->
-> It's totally legitimate, per the ACPI spec, for the firmware to set the
-> BGRT 'status' field to zero to indicate that the BGRT image isn't being
-> displayed, and we shouldn't be printing an error message in that case
-> because it's just noise for users. So swap pr_err() for pr_debug().
->
-> However, Josh points that out it still makes sense to test the validity
-> of the upper 7 bits of the 'status' field, since they're marked as
-> "reserved" in the spec and must be zero. If firmware violates this it
-> really *is* an error.
->
-> Reported-by: Tom Yan <tom.ty89-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-> Cc: Josh Triplett <josh-iaAMLnmF4UmaiuxdJuQwMA@public.gmane.org>
-> Cc: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
-> Signed-off-by: Matt Fleming <matt.fleming-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-> ---
->
-> Tom, if you could test out this patch that would be really helpful. I'll
-> take this one through the EFI git repo.
->
->  arch/x86/platform/efi/efi-bgrt.c | 9 +++++++--
->  1 file changed, 7 insertions(+), 2 deletions(-)
->
-> diff --git a/arch/x86/platform/efi/efi-bgrt.c b/arch/x86/platform/efi/efi-bgrt.c
-> index d7f997f7c26d..ea48449b2e63 100644
-> --- a/arch/x86/platform/efi/efi-bgrt.c
-> +++ b/arch/x86/platform/efi/efi-bgrt.c
-> @@ -50,11 +50,16 @@ void __init efi_bgrt_init(void)
->                        bgrt_tab->version);
->                 return;
->         }
-> -       if (bgrt_tab->status != 1) {
-> -               pr_err("Ignoring BGRT: invalid status %u (expected 1)\n",
-> +       if (bgrt_tab->status & 0xfe) {
-> +               pr_err("Ignoring BGRT: reserved status bits are non-zero %u\n",
->                        bgrt_tab->status);
->                 return;
->         }
-> +       if (bgrt_tab->status != 1) {
-> +               pr_debug("Ignoring BGRT: invalid status %u (expected 1)\n",
-> +                        bgrt_tab->status);
-> +               return;
-> +       }
->         if (bgrt_tab->image_type != 0) {
->                 pr_err("Ignoring BGRT: invalid image type %u (expected 0)\n",
->                        bgrt_tab->image_type);
-> --
-> 2.1.0
->
+Mit freundlichen Gr=C3=BC=C3=9Fen,
+Ingenieur Saad Al Muhannadi.
+Beantworten: qfoundation63@gmail.com
+
+Pr=C3=A4sident der Qatar Foundation.
+
+
+Dear Beneficiary,
+
+You have been selected to receive =E2=82=AC950,000.00 EURO as charity d=
+onations / aid of the Qatar Foundation. Reply back for more information=
+=2E
+
+Yours sincerely,
+Engineer Saad Al Muhannadi.
+Reply to: qfoundation63@gmail.com
+
+President of the Qatar Foundation.
+
+
+
+
+---
+This email has been checked for viruses by Avast antivirus software.
+https://www.avast.com/antivirus
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
