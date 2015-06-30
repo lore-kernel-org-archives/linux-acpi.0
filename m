@@ -1,89 +1,95 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
+From: Marc Zyngier <marc.zyngier@arm.com>
 Subject: Re: [PATCH v2 6/9] irqchip / gic: Add stacked irqdomain support for
  ACPI based GICv2 init
-Date: Tue, 30 Jun 2015 19:50:56 +0800
-Message-ID: <559282A0.8090601@linaro.org>
-References: <1434703572-26221-1-git-send-email-hanjun.guo@linaro.org> <1434703572-26221-7-git-send-email-hanjun.guo@linaro.org> <20150622172014.GB26129@red-moon> <5589772A.8070708@linaro.org> <20150623173845.GC31466@red-moon> <558E1DEE.3090900@linaro.org> <55910440.8070702@arm.com>
+Date: Tue, 30 Jun 2015 13:17:14 +0100
+Message-ID: <559288CA.40605@arm.com>
+References: <1434703572-26221-1-git-send-email-hanjun.guo@linaro.org> <1434703572-26221-7-git-send-email-hanjun.guo@linaro.org> <20150622172014.GB26129@red-moon> <5589772A.8070708@linaro.org> <20150623173845.GC31466@red-moon> <558E1DEE.3090900@linaro.org> <55910440.8070702@arm.com> <559282A0.8090601@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f172.google.com ([209.85.192.172]:35031 "EHLO
-	mail-pd0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753067AbbF3LvK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Jun 2015 07:51:10 -0400
-Received: by pdbci14 with SMTP id ci14so5052968pdb.2
-        for <linux-acpi@vger.kernel.org>; Tue, 30 Jun 2015 04:51:09 -0700 (PDT)
-In-Reply-To: <55910440.8070702@arm.com>
+Received: from foss.arm.com ([217.140.101.70]:41298 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753195AbbF3MRU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 30 Jun 2015 08:17:20 -0400
+In-Reply-To: <559282A0.8090601@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>
+To: Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>
 Cc: Jason Cooper <jason@lakedaemon.net>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Olof Johansson <olof@lixom.net>, Wei Huang <wei@redhat.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 
-Hi Marc,
-
-On 06/29/2015 04:39 PM, Marc Zyngier wrote:
-> On 27/06/15 04:52, Hanjun Guo wrote:
->> On 06/24/2015 01:38 AM, Lorenzo Pieralisi wrote:
->>> On Tue, Jun 23, 2015 at 04:11:38PM +0100, Hanjun Guo wrote:
-[...]
+On 30/06/15 12:50, Hanjun Guo wrote:
+> Hi Marc,
+> 
+> On 06/29/2015 04:39 PM, Marc Zyngier wrote:
+>> On 27/06/15 04:52, Hanjun Guo wrote:
+>>> On 06/24/2015 01:38 AM, Lorenzo Pieralisi wrote:
+>>>> On Tue, Jun 23, 2015 at 04:11:38PM +0100, Hanjun Guo wrote:
+> [...]
+>>>>
+>>>>>>>     	for (i = 0; i < nr_irqs; i++)
+>>>>>>>     		gic_irq_domain_map(domain, virq + i, hwirq + i);
+>>>>>>> @@ -945,11 +952,11 @@ void __init gic_init_bases(unsigned int gic_nr, int irq_start,
+>>>>>>>     		gic_irqs = 1020;
+>>>>>>>     	gic->gic_irqs = gic_irqs;
+>>>>>>>
+>>>>>>> -	if (node) {		/* DT case */
+>>>>>>> +	if (node || !acpi_disabled) {		/* DT or ACPI case */
+>>>>>>>     		gic->domain = irq_domain_add_linear(node, gic_irqs,
+>>>>>>>     						    &gic_irq_domain_hierarchy_ops,
+>>>>>>>     						    gic);
+>>>>
+>>>> I think this is a bit more worrying, I mean passing a NULL node pointer to
+>>>> the irqdomain layer which basically means you are booting out of ACPI
 >>>
->>>>>>     	for (i = 0; i < nr_irqs; i++)
->>>>>>     		gic_irq_domain_map(domain, virq + i, hwirq + i);
->>>>>> @@ -945,11 +952,11 @@ void __init gic_init_bases(unsigned int gic_nr, int irq_start,
->>>>>>     		gic_irqs = 1020;
->>>>>>     	gic->gic_irqs = gic_irqs;
->>>>>>
->>>>>> -	if (node) {		/* DT case */
->>>>>> +	if (node || !acpi_disabled) {		/* DT or ACPI case */
->>>>>>     		gic->domain = irq_domain_add_linear(node, gic_irqs,
->>>>>>     						    &gic_irq_domain_hierarchy_ops,
->>>>>>     						    gic);
+>>> I'm little confused here, would you mind explaining more for your
+>>> worrying? To me, node pointer is optional and it's ok for ACPI
+>>> case.
 >>>
->>> I think this is a bit more worrying, I mean passing a NULL node pointer to
->>> the irqdomain layer which basically means you are booting out of ACPI
+>>>> (for you, if that's true for the irq_domain_add_linear implementation
+>>>> that's another story), the node pointer should be optional but you
+>>>> need feedback from IRQ layer maintainers here.
+>>>
+>>> Sure.
 >>
->> I'm little confused here, would you mind explaining more for your
->> worrying? To me, node pointer is optional and it's ok for ACPI
->> case.
+>> Frankly, I'd really like to see ACPI using the "node" parameter for
+>> something useful. This would save having to cache pointers all over the
+>> place, will make find_irq_host() work as expected... etc.
 >>
->>> (for you, if that's true for the irq_domain_add_linear implementation
->>> that's another story), the node pointer should be optional but you
->>> need feedback from IRQ layer maintainers here.
+>> See the comment at the top of linux/irqdomain.h :
 >>
->> Sure.
->
-> Frankly, I'd really like to see ACPI using the "node" parameter for
-> something useful. This would save having to cache pointers all over the
-> place, will make find_irq_host() work as expected... etc.
->
-> See the comment at the top of linux/irqdomain.h :
->
-> "... This code could thus be used on other architectures by replacing
-> those two by some sort of arch-specific void * "token" used to identify
-> interrupt controllers."
+>> "... This code could thus be used on other architectures by replacing
+>> those two by some sort of arch-specific void * "token" used to identify
+>> interrupt controllers."
+> 
+> To init GIC in ACPI, we can only use the table entry pointer as
+> the token, but the ACPI static tables are early mem/io remapped
+> memory at boot stage, and it will be not available after boot,
+> also we need muti types of MADT enties to init GIC (GICC and GICD
+> for GICv2, GICC or GICR and GICD for GICv3), not as DT, just
+> one single node to include all the information needed to init
+> the GIC.
 
-To init GIC in ACPI, we can only use the table entry pointer as
-the token, but the ACPI static tables are early mem/io remapped
-memory at boot stage, and it will be not available after boot,
-also we need muti types of MADT enties to init GIC (GICC and GICD
-for GICv2, GICC or GICR and GICD for GICv3), not as DT, just
-one single node to include all the information needed to init
-the GIC.
+A single pointer would be enough, you don't need all of them.
 
-We use ACPI handle for devices as node for DT when the namespace
-is available, but that's pretty late in the boot stage which GIC,
-SMP and timers were already initialized, so ACPI handle can not
-use as the token too.
+> We use ACPI handle for devices as node for DT when the namespace
+> is available, but that's pretty late in the boot stage which GIC,
+> SMP and timers were already initialized, so ACPI handle can not
+> use as the token too.
+> 
+> I see multi places just pass NULL as the pointer directly for
+> irq_domain_add_linear() which works fine, and for ACPI, we tested
+> this patch and also it works.
 
-I see multi places just pass NULL as the pointer directly for
-irq_domain_add_linear() which works fine, and for ACPI, we tested
-this patch and also it works.
+Yes it works. But you're reinventing the wheel by keeping references
+outside of the normal framework, which is simply going to make the code
+more difficult to maintain in the long run.
 
->
-> Maybe it is time to bite the bullet.
+Putting NULL as the device_node parameter really means "this is a domain
+I don't need to look up later". In your case, you will have to lookup
+that domain, all the time. You're just doing it in your own little
+corner, which is what bothers me.
 
-Hope comment above explains :)
-
-Thanks
-Hanjun
+	M.
+-- 
+Jazz is not dead. It just smells funny...
