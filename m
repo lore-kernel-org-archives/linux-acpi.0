@@ -1,61 +1,53 @@
-From: "Williams, Dan J" <dan.j.williams@intel.com>
-Subject: Re: [PATCH v2 17/17] arch, x86: pmem api for ensuring durability of
- persistent memory updates
-Date: Tue, 30 Jun 2015 16:23:21 +0000
-Message-ID: <1435681397.18090.66.camel@intel.com>
-References: <20150625090554.40066.69562.stgit@dwillia2-desk3.jf.intel.com>
-	 <20150625093749.40066.25475.stgit@dwillia2-desk3.jf.intel.com>
-	 <20150630102137.GC12986@mwanda>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [PATCH v2 0/3] Correct for ACPI 5.1->6.0 spec changes in MADT
+ GICC entries
+Date: Tue, 30 Jun 2015 18:07:50 +0100
+Message-ID: <5592CCE6.6040604@arm.com>
+References: <1434666968-1543-1-git-send-email-al.stone@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <20150630102137.GC12986@mwanda>
-Content-Language: en-US
-Content-ID: <7DB1C2FDAF222E40BCD89185893F24D6@intel.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: "dan.carpenter@oracle.com" <dan.carpenter@oracle.com>
-Cc: "toshi.kani@hp.com" <toshi.kani@hp.com>, "mingo@kernel.org" <mingo@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@ml01.01.org" <linux-nvdimm@ml01.01.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "hch@lst.de" <hch@lst.de>, "axboe@kernel.dk" <axboe@kernel.dk>, "hpa@zytor.com" <hpa@zytor.com>, "mingo@redhat.com" <mingo@redhat.com>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "ross.zwisler@linux.intel.com" <ross.zwisler@linux.intel.com>, "boaz@plexistor.com" <boaz@plexistor.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:42621 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751496AbbF3RHz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 30 Jun 2015 13:07:55 -0400
+In-Reply-To: <1434666968-1543-1-git-send-email-al.stone@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Al Stone <al.stone@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, "lenb@kernel.org" <lenb@kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, "tglx@linutronix.de" <tglx@linutronix.de>, "jason@lakedaemon.net" <jason@lakedaemon.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, "patches@linaro.org" <patches@linaro.org>
 
-T24gVHVlLCAyMDE1LTA2LTMwIGF0IDEzOjIxICswMzAwLCBEYW4gQ2FycGVudGVyIHdyb3RlOg0K
-PiBPbiBUaHUsIEp1biAyNSwgMjAxNSBhdCAwNTozNzo0OUFNIC0wNDAwLCBEYW4gV2lsbGlhbXMg
-d3JvdGU6DQo+ID4gZGlmZiAtLWdpdCBhL2luY2x1ZGUvbGludXgvY29tcGlsZXIuaCBiL2luY2x1
-ZGUvbGludXgvY29tcGlsZXIuaA0KPiA+IGluZGV4IDg2NzcyMjU5MWJlMi4uOWE1MjhkOTQ1NDk4
-IDEwMDY0NA0KPiA+IC0tLSBhL2luY2x1ZGUvbGludXgvY29tcGlsZXIuaA0KPiA+ICsrKyBiL2lu
-Y2x1ZGUvbGludXgvY29tcGlsZXIuaA0KPiA+IEBAIC0yMSw2ICsyMSw3IEBADQo+ID4gICMgZGVm
-aW5lIF9fcmN1CQlfX2F0dHJpYnV0ZV9fKChub2RlcmVmLCBhZGRyZXNzX3NwYWNlKDQpKSkNCj4g
-DQo+IE9uIHRoaXMgc2lkZSBvZiB0aGUgI2lmZGVmIENPTkZJR19TUEFSU0VfUkNVX1BPSU5URVIg
-c3RhdGVtZW50IHRoZW4NCj4gX19wbWVtIGlzbid0IGRlZmluZWQgc28gaXQgbGVhZHMgdG8gYSBi
-dWlsZCBlcnJvciBydW5uaW5nIGEgQ0hFQ0tFUiBvbg0KPiB0b2RheSdzIGxpbnV4LW5leHQuDQo+
-IA0KPiBJIHdvdWxkIGRlZmluZSBfX3BtZW0gYXdheSwgYnV0IEkgZG9uJ3QgdW5kZXJzdGFuZCB3
-aHkgX19wbWVtIGFuZA0KPiBDT05GSUdfU1BBUlNFX1JDVV9QT0lOVEVSIGFyZSByZWxhdGVkIGF0
-IGFsbC4gIE1heWJlIGl0IHNob3VsZCBiZQ0KPiBvdXRzaWRlIHRoZSBpZiBzdGF0ZW1lbnQ/DQo+
-IA0KDQpZZXMgaXQgc2hvdWxkIGJlIG91dHNpZGUgdGhlIGlmLi4uDQoNCjg8LS0tLQ0KU3ViamVj
-dDogc3BhcnNlOiBmaXggbWlzcGxhY2VkIF9fcG1lbSBkZWZpbml0aW9uDQoNCkZyb206IERhbiBX
-aWxsaWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPg0KDQpNb3ZlIHRoZSBkZWZpbml0aW9u
-IG9mIF9fcG1lbSBvdXRzaWRlIG9mIENPTkZJR19TUEFSU0VfUkNVX1BPSU5URVIgdG8gZml4Og0K
-DQpkcml2ZXJzL252ZGltbS9wbWVtLmM6MTk4OjE3OiBzcGFyc2U6IHRvbyBtYW55IGFyZ3VtZW50
-cyBmb3IgZnVuY3Rpb24gX19idWlsdGluX2V4cGVjdA0KZHJpdmVycy9udmRpbW0vcG1lbS5jOjM2
-OjMzOiBzcGFyc2U6IGV4cGVjdGVkIDsgYXQgZW5kIG9mIGRlY2xhcmF0aW9uDQpkcml2ZXJzL252
-ZGltbS9wbWVtLmM6NDg6MjE6IHNwYXJzZTogdm9pZCBkZWNsYXJhdGlvbg0KDQouLi5kdWUgdG8g
-X19wbWVtIGZhaWxpbmcgdG8gYmUgZGVmaW5lZCBpbiBzb21lIGNvbmZpZ3VyYXRpb25zIHdoZW4N
-CkNPTkZJR19TUEFSU0VfUkNVX1BPSU5URVI9eS4NCg0KUmVwb3J0ZWQtYnk6IGtidWlsZCB0ZXN0
-IHJvYm90IDxmZW5nZ3Vhbmcud3VAaW50ZWwuY29tPg0KUmVwb3J0ZWQtYnk6IERhbiBDYXJwZW50
-ZXIgPGRhbi5jYXJwZW50ZXJAb3JhY2xlLmNvbT4NClNpZ25lZC1vZmYtYnk6IERhbiBXaWxsaWFt
-cyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPg0KLS0tDQogaW5jbHVkZS9saW51eC9jb21waWxl
-ci5oIHwgICAgMiArLQ0KIDEgZmlsZSBjaGFuZ2VkLCAxIGluc2VydGlvbigrKSwgMSBkZWxldGlv
-bigtKQ0KDQpkaWZmIC0tZ2l0IGEvaW5jbHVkZS9saW51eC9jb21waWxlci5oIGIvaW5jbHVkZS9s
-aW51eC9jb21waWxlci5oDQppbmRleCAyNmZjOGJjNzdmODUuLmQ4ZmJkNTAwMzMwZSAxMDA2NDQN
-Ci0tLSBhL2luY2x1ZGUvbGludXgvY29tcGlsZXIuaA0KKysrIGIvaW5jbHVkZS9saW51eC9jb21w
-aWxlci5oDQpAQCAtMTcsMTEgKzE3LDExIEBADQogIyBkZWZpbmUgX19yZWxlYXNlKHgpCV9fY29u
-dGV4dF9fKHgsLTEpDQogIyBkZWZpbmUgX19jb25kX2xvY2soeCxjKQkoKGMpID8gKHsgX19hY3F1
-aXJlKHgpOyAxOyB9KSA6IDApDQogIyBkZWZpbmUgX19wZXJjcHUJX19hdHRyaWJ1dGVfXygobm9k
-ZXJlZiwgYWRkcmVzc19zcGFjZSgzKSkpDQorIyBkZWZpbmUgX19wbWVtCQlfX2F0dHJpYnV0ZV9f
-KChub2RlcmVmLCBhZGRyZXNzX3NwYWNlKDUpKSkNCiAjaWZkZWYgQ09ORklHX1NQQVJTRV9SQ1Vf
-UE9JTlRFUg0KICMgZGVmaW5lIF9fcmN1CQlfX2F0dHJpYnV0ZV9fKChub2RlcmVmLCBhZGRyZXNz
-X3NwYWNlKDQpKSkNCiAjZWxzZQ0KICMgZGVmaW5lIF9fcmN1DQotIyBkZWZpbmUgX19wbWVtCQlf
-X2F0dHJpYnV0ZV9fKChub2RlcmVmLCBhZGRyZXNzX3NwYWNlKDUpKSkNCiAjZW5kaWYNCiBleHRl
-cm4gdm9pZCBfX2Noa191c2VyX3B0cihjb25zdCB2b2xhdGlsZSB2b2lkIF9fdXNlciAqKTsNCiBl
-eHRlcm4gdm9pZCBfX2Noa19pb19wdHIoY29uc3Qgdm9sYXRpbGUgdm9pZCBfX2lvbWVtICopOw0K
-DQo=
+Hi Al,
+
+On 18/06/15 23:36, Al Stone wrote:
+> In the ACPI 5.1 version of the spec, the struct for the GICC subtable
+> (struct acpi_madt_generic_interrupt) of the MADT is 76 bytes long; in
+> ACPI 6.0, the struct is 80 bytes long.  But, there is only one definition
+> in ACPICA for this struct -- and that is the 6.0 version.  Hence, when
+> BAD_MADT_ENTRY() compares the struct size to the length in the GICC
+> subtable, it fails if 5.1 structs are in use, and there are systems in
+> the wild that have them.
+>
+> Note that this was found in linux-next and these patches apply against
+> that tree and the arm64 kernel tree; 4.1-rc8 does not appear to have this
+> problem since it still has the 5.1 struct definition.
+>
+> Even though there is precendent in ia64 code for ignoring the changes in
+> size, this patch set instead tries to verify correctness.  The first patch
+> in the set adds macros for easily using the ACPI spec version.  The second
+> patch adds the BAD_MADT_GICC_ENTRY() macro that uses the version macros to
+> check the GICC subtable only, accounting for the difference in specification
+> versions that are possible.  The final patch replaces BAD_MADT_ENTRY usage
+> with the BAD_MADT_GICC_ENTRY macro in arm64 code, which is currently the
+> only architecture affected.  The BAD_MADT_ENTRY() will continue to work as
+> is for all other MADT subtables.
+>
+
+We need to get this series or a patch to remove the check(similar to
+ia64) based on what Rafael prefers. Without that, platforms using ACPI
+on ARM64 fails to boot with latest mainline. This blocks any testing on
+ARM64/ACPI systems.
+
+Regards,
+Sudeep
