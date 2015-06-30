@@ -1,35 +1,114 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v1 0/10] Fixes and API additions for firmware nodes
-Date: Tue, 30 Jun 2015 17:32:56 +0200
-Message-ID: <1941489.kUW5F8q9QD@vostro.rjw.lan>
-References: <1435676108-20590-1-git-send-email-tomeu.vizoso@collabora.com>
+From: Graeme Gregory <gg@slimlogic.co.uk>
+Subject: Re: [PATCH v2 6/9] irqchip / gic: Add stacked irqdomain support for
+ ACPI based GICv2 init
+Date: Tue, 30 Jun 2015 16:07:19 +0100
+Message-ID: <20150630150719.GC12142@xora-haswell.xora.org.uk>
+References: <1434703572-26221-1-git-send-email-hanjun.guo@linaro.org>
+ <1434703572-26221-7-git-send-email-hanjun.guo@linaro.org>
+ <20150622172014.GB26129@red-moon>
+ <5589772A.8070708@linaro.org>
+ <20150623173845.GC31466@red-moon>
+ <558E1DEE.3090900@linaro.org>
+ <55910440.8070702@arm.com>
+ <559282A0.8090601@linaro.org>
+ <559288CA.40605@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:59209 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752134AbbF3PGk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Jun 2015 11:06:40 -0400
-In-Reply-To: <1435676108-20590-1-git-send-email-tomeu.vizoso@collabora.com>
+Received: from out4-smtp.messagingengine.com ([66.111.4.28]:51699 "EHLO
+	out4-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754117AbbF3PHX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 30 Jun 2015 11:07:23 -0400
+Received: from compute6.internal (compute6.nyi.internal [10.202.2.46])
+	by mailout.nyi.internal (Postfix) with ESMTP id CA95E21453
+	for <linux-acpi@vger.kernel.org>; Tue, 30 Jun 2015 11:07:21 -0400 (EDT)
+Content-Disposition: inline
+In-Reply-To: <559288CA.40605@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Cc: linux-kernel@vger.kernel.org, Mark Brown <broonie@kernel.org>, devicetree@vger.kernel.org, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Robert Moore <robert.moore@intel.com>, Lee Jones <lee.jones@linaro.org>, Wolfram Sang <wsa@the-dreams.de>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Rob Herring <robh+dt@kernel.org>, linux-i2c@vger.kernel.org, Samuel Ortiz <sameo@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Grant Likely <grant.likely@linaro.org>, devel@acpica.org
+To: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Olof Johansson <olof@lixom.net>, Wei Huang <wei@redhat.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 
-On Tuesday, June 30, 2015 04:54:58 PM Tomeu Vizoso wrote:
-> Hi,
+On Tue, Jun 30, 2015 at 01:17:14PM +0100, Marc Zyngier wrote:
+> On 30/06/15 12:50, Hanjun Guo wrote:
+> > Hi Marc,
+> > 
+> > On 06/29/2015 04:39 PM, Marc Zyngier wrote:
+> >> On 27/06/15 04:52, Hanjun Guo wrote:
+> >>> On 06/24/2015 01:38 AM, Lorenzo Pieralisi wrote:
+> >>>> On Tue, Jun 23, 2015 at 04:11:38PM +0100, Hanjun Guo wrote:
+> > [...]
+> >>>>
+> >>>>>>>     	for (i = 0; i < nr_irqs; i++)
+> >>>>>>>     		gic_irq_domain_map(domain, virq + i, hwirq + i);
+> >>>>>>> @@ -945,11 +952,11 @@ void __init gic_init_bases(unsigned int gic_nr, int irq_start,
+> >>>>>>>     		gic_irqs = 1020;
+> >>>>>>>     	gic->gic_irqs = gic_irqs;
+> >>>>>>>
+> >>>>>>> -	if (node) {		/* DT case */
+> >>>>>>> +	if (node || !acpi_disabled) {		/* DT or ACPI case */
+> >>>>>>>     		gic->domain = irq_domain_add_linear(node, gic_irqs,
+> >>>>>>>     						    &gic_irq_domain_hierarchy_ops,
+> >>>>>>>     						    gic);
+> >>>>
+> >>>> I think this is a bit more worrying, I mean passing a NULL node pointer to
+> >>>> the irqdomain layer which basically means you are booting out of ACPI
+> >>>
+> >>> I'm little confused here, would you mind explaining more for your
+> >>> worrying? To me, node pointer is optional and it's ok for ACPI
+> >>> case.
+> >>>
+> >>>> (for you, if that's true for the irq_domain_add_linear implementation
+> >>>> that's another story), the node pointer should be optional but you
+> >>>> need feedback from IRQ layer maintainers here.
+> >>>
+> >>> Sure.
+> >>
+> >> Frankly, I'd really like to see ACPI using the "node" parameter for
+> >> something useful. This would save having to cache pointers all over the
+> >> place, will make find_irq_host() work as expected... etc.
+> >>
+> >> See the comment at the top of linux/irqdomain.h :
+> >>
+> >> "... This code could thus be used on other architectures by replacing
+> >> those two by some sort of arch-specific void * "token" used to identify
+> >> interrupt controllers."
+> > 
+> > To init GIC in ACPI, we can only use the table entry pointer as
+> > the token, but the ACPI static tables are early mem/io remapped
+> > memory at boot stage, and it will be not available after boot,
+> > also we need muti types of MADT enties to init GIC (GICC and GICD
+> > for GICv2, GICC or GICR and GICD for GICv3), not as DT, just
+> > one single node to include all the information needed to init
+> > the GIC.
 > 
-> this series makes it possible to extract device dependencies from firmware data
-> with fwnode, thus not depending on the particular format of that data.
+> A single pointer would be enough, you don't need all of them.
 > 
-> The first patches are about making sure that we can reach the fwnode
-> handle of the firmware data associated with a given device, and the rest
-> add API that makes dependency extraction possible.
+> > We use ACPI handle for devices as node for DT when the namespace
+> > is available, but that's pretty late in the boot stage which GIC,
+> > SMP and timers were already initialized, so ACPI handle can not
+> > use as the token too.
+> > 
+> > I see multi places just pass NULL as the pointer directly for
+> > irq_domain_add_linear() which works fine, and for ACPI, we tested
+> > this patch and also it works.
+> 
+> Yes it works. But you're reinventing the wheel by keeping references
+> outside of the normal framework, which is simply going to make the code
+> more difficult to maintain in the long run.
+> 
+> Putting NULL as the device_node parameter really means "this is a domain
+> I don't need to look up later". In your case, you will have to lookup
+> that domain, all the time. You're just doing it in your own little
+> corner, which is what bothers me.
+> 
+Hanjun, I think it should be possible that instead of looking up the
+domains in our own bit of code. We can instead use a ptr to the
+appropriate information as the token instead.
 
-It would really help if you sent the whole series to linux-acpi.  People on
-that list would see the entire context then.
+I don't think we have to replicate the behaviour of node, in the DT
+case, but just do what is sensible for ACPI in this case.
 
-Thanks,
-Rafael
+Graeme
 
