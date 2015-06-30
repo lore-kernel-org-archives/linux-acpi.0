@@ -1,114 +1,98 @@
-From: Graeme Gregory <gg@slimlogic.co.uk>
-Subject: Re: [PATCH v2 6/9] irqchip / gic: Add stacked irqdomain support for
- ACPI based GICv2 init
-Date: Tue, 30 Jun 2015 16:07:19 +0100
-Message-ID: <20150630150719.GC12142@xora-haswell.xora.org.uk>
-References: <1434703572-26221-1-git-send-email-hanjun.guo@linaro.org>
- <1434703572-26221-7-git-send-email-hanjun.guo@linaro.org>
- <20150622172014.GB26129@red-moon>
- <5589772A.8070708@linaro.org>
- <20150623173845.GC31466@red-moon>
- <558E1DEE.3090900@linaro.org>
- <55910440.8070702@arm.com>
- <559282A0.8090601@linaro.org>
- <559288CA.40605@arm.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] Power management and ACPI fixes for v4.2-rc1
+Date: Tue, 30 Jun 2015 18:09:03 +0200
+Message-ID: <CAJZ5v0haq+JQumnW42neguDPZHJRqKd_9VJ+-UTpWetMEODQ2Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out4-smtp.messagingengine.com ([66.111.4.28]:51699 "EHLO
-	out4-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754117AbbF3PHX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 30 Jun 2015 11:07:23 -0400
-Received: from compute6.internal (compute6.nyi.internal [10.202.2.46])
-	by mailout.nyi.internal (Postfix) with ESMTP id CA95E21453
-	for <linux-acpi@vger.kernel.org>; Tue, 30 Jun 2015 11:07:21 -0400 (EDT)
-Content-Disposition: inline
-In-Reply-To: <559288CA.40605@arm.com>
+Received: from mail-wi0-f177.google.com ([209.85.212.177]:35001 "EHLO
+	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751804AbbF3QJF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Jun 2015 12:09:05 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Olof Johansson <olof@lixom.net>, Wei Huang <wei@redhat.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Tue, Jun 30, 2015 at 01:17:14PM +0100, Marc Zyngier wrote:
-> On 30/06/15 12:50, Hanjun Guo wrote:
-> > Hi Marc,
-> > 
-> > On 06/29/2015 04:39 PM, Marc Zyngier wrote:
-> >> On 27/06/15 04:52, Hanjun Guo wrote:
-> >>> On 06/24/2015 01:38 AM, Lorenzo Pieralisi wrote:
-> >>>> On Tue, Jun 23, 2015 at 04:11:38PM +0100, Hanjun Guo wrote:
-> > [...]
-> >>>>
-> >>>>>>>     	for (i = 0; i < nr_irqs; i++)
-> >>>>>>>     		gic_irq_domain_map(domain, virq + i, hwirq + i);
-> >>>>>>> @@ -945,11 +952,11 @@ void __init gic_init_bases(unsigned int gic_nr, int irq_start,
-> >>>>>>>     		gic_irqs = 1020;
-> >>>>>>>     	gic->gic_irqs = gic_irqs;
-> >>>>>>>
-> >>>>>>> -	if (node) {		/* DT case */
-> >>>>>>> +	if (node || !acpi_disabled) {		/* DT or ACPI case */
-> >>>>>>>     		gic->domain = irq_domain_add_linear(node, gic_irqs,
-> >>>>>>>     						    &gic_irq_domain_hierarchy_ops,
-> >>>>>>>     						    gic);
-> >>>>
-> >>>> I think this is a bit more worrying, I mean passing a NULL node pointer to
-> >>>> the irqdomain layer which basically means you are booting out of ACPI
-> >>>
-> >>> I'm little confused here, would you mind explaining more for your
-> >>> worrying? To me, node pointer is optional and it's ok for ACPI
-> >>> case.
-> >>>
-> >>>> (for you, if that's true for the irq_domain_add_linear implementation
-> >>>> that's another story), the node pointer should be optional but you
-> >>>> need feedback from IRQ layer maintainers here.
-> >>>
-> >>> Sure.
-> >>
-> >> Frankly, I'd really like to see ACPI using the "node" parameter for
-> >> something useful. This would save having to cache pointers all over the
-> >> place, will make find_irq_host() work as expected... etc.
-> >>
-> >> See the comment at the top of linux/irqdomain.h :
-> >>
-> >> "... This code could thus be used on other architectures by replacing
-> >> those two by some sort of arch-specific void * "token" used to identify
-> >> interrupt controllers."
-> > 
-> > To init GIC in ACPI, we can only use the table entry pointer as
-> > the token, but the ACPI static tables are early mem/io remapped
-> > memory at boot stage, and it will be not available after boot,
-> > also we need muti types of MADT enties to init GIC (GICC and GICD
-> > for GICv2, GICC or GICR and GICD for GICv3), not as DT, just
-> > one single node to include all the information needed to init
-> > the GIC.
-> 
-> A single pointer would be enough, you don't need all of them.
-> 
-> > We use ACPI handle for devices as node for DT when the namespace
-> > is available, but that's pretty late in the boot stage which GIC,
-> > SMP and timers were already initialized, so ACPI handle can not
-> > use as the token too.
-> > 
-> > I see multi places just pass NULL as the pointer directly for
-> > irq_domain_add_linear() which works fine, and for ACPI, we tested
-> > this patch and also it works.
-> 
-> Yes it works. But you're reinventing the wheel by keeping references
-> outside of the normal framework, which is simply going to make the code
-> more difficult to maintain in the long run.
-> 
-> Putting NULL as the device_node parameter really means "this is a domain
-> I don't need to look up later". In your case, you will have to lookup
-> that domain, all the time. You're just doing it in your own little
-> corner, which is what bothers me.
-> 
-Hanjun, I think it should be possible that instead of looking up the
-domains in our own bit of code. We can instead use a ptr to the
-appropriate information as the token instead.
+Hi Linus,
 
-I don't think we have to replicate the behaviour of node, in the DT
-case, but just do what is sensible for ACPI in this case.
+Please pull from
 
-Graeme
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ pm+acpi-4.2-rc1-2
 
+to receive power management and ACPI fixes for v4.2-rc1 with
+top-most commit 132c242d95063f0c362597e74ee6759403a3f700
+
+ Merge branches 'acpi-video', 'device-properties', 'pm-sleep' and 'pm-cpuidle'
+
+on top of commit 43c9fad942b5afb9e03801c0721d83160fa5b0dd
+
+ Merge tag 'pm+acpi-4.2-rc1' of
+git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm
+
+These are fixes that didn't make it to the previous PM+ACPI pull
+request or are fixing issues introduced by it.
+
+Specifics:
+
+ - Fix a recently added memory leak in an error path in the ACPI
+   resources management code (Dan Carpenter).
+
+ - Fix a build warning triggered by an ACPI video header function
+   that should be static inline (Borislav Petkov).
+
+ - Change names of helper function converting struct fwnode_handle
+   pointers to either struct device_node or struct acpi_device
+   pointers so they don't conflict with local variable names
+   (Alexander Sverdlin).
+
+ - Make the hibernate core re-enable nonboot CPUs on failures to
+   disable them as expected (Vitaly Kuznetsov).
+
+ - Increase the default timeout of the device suspend watchdog to
+   prevent it from triggering too early on some systems (Takashi Iwai).
+
+ - Prevent the cpuidle powernv driver from registering idle
+   states with CPUIDLE_FLAG_TIMER_STOP set if CONFIG_TICK_ONESHOT
+   is unset which leads to boot hangs (Preeti U Murthy).
+
+Thanks!
+
+
+---------------
+
+Alexander Sverdlin (1):
+      ACPI / OF: Rename of_node() and acpi_node() to to_of_node() and
+to_acpi_node()
+
+Borislav Petkov (1):
+      ACPI / video: Inline acpi_video_set_dmi_backlight_type
+
+Dan Carpenter (1):
+      ACPI / resources: free memory on error in add_region_before()
+
+Preeti U Murthy (1):
+      tick/idle/powerpc: Do not register idle states with
+CPUIDLE_FLAG_TIMER_STOP set in periodic mode
+
+Takashi Iwai (1):
+      PM / sleep: Increase default DPM watchdog timeout to 60
+
+Vitaly Kuznetsov (1):
+      PM / hibernate: re-enable nonboot cpus on disable_nonboot_cpus() failure
+
+---------------
+
+ drivers/acpi/resource.c           |  4 +++-
+ drivers/base/property.c           | 26 +++++++++++++-------------
+ drivers/cpuidle/cpuidle-powernv.c | 15 ++++++++++++---
+ drivers/gpio/gpiolib.c            |  4 ++--
+ drivers/leds/leds-gpio.c          |  2 +-
+ include/acpi/acpi_bus.h           |  2 +-
+ include/acpi/video.h              |  2 +-
+ include/linux/acpi.h              |  4 ++--
+ include/linux/of.h                |  4 ++--
+ kernel/power/Kconfig              |  2 +-
+ kernel/power/hibernate.c          |  4 +++-
+ 11 files changed, 41 insertions(+), 28 deletions(-)
