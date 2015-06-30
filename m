@@ -1,28 +1,22 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
+From: Al Stone <ahs3@redhat.com>
 Subject: Re: [PATCH v2 0/3] Correct for ACPI 5.1->6.0 spec changes in MADT
  GICC entries
-Date: Tue, 30 Jun 2015 20:35:59 +0200
-Message-ID: <CAJZ5v0hea5xJL3p1L=-Z1azP2wfx8Mu113JC8SgPwP06c58mQg@mail.gmail.com>
-References: <1434666968-1543-1-git-send-email-al.stone@linaro.org>
-	<5592CCE6.6040604@arm.com>
-	<5592D1FF.7040208@redhat.com>
-	<CAJZ5v0gF6JZ8uVNMnro0bdD0g+QMoTeEzB99j6RcKUt3LjmiXw@mail.gmail.com>
+Date: Tue, 30 Jun 2015 12:39:41 -0600
+Message-ID: <5592E26D.4070200@redhat.com>
+References: <1434666968-1543-1-git-send-email-al.stone@linaro.org>	<5592CCE6.6040604@arm.com>	<5592D1FF.7040208@redhat.com> <CAJZ5v0gF6JZ8uVNMnro0bdD0g+QMoTeEzB99j6RcKUt3LjmiXw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wg0-f42.google.com ([74.125.82.42]:34008 "EHLO
-	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752408AbbF3SgB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Jun 2015 14:36:01 -0400
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <CAJZ5v0gF6JZ8uVNMnro0bdD0g+QMoTeEzB99j6RcKUt3LjmiXw@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: Al Stone <ahs3@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
 Cc: Sudeep Holla <sudeep.holla@arm.com>, Al Stone <al.stone@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, "tglx@linutronix.de" <tglx@linutronix.de>, "jason@lakedaemon.net" <jason@lakedaemon.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, "patches@linaro.org" <patches@linaro.org>
+List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jun 30, 2015 at 8:25 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
+On 06/30/2015 12:25 PM, Rafael J. Wysocki wrote:
 > Hi Al,
->
+> 
 > On Tue, Jun 30, 2015 at 7:29 PM, Al Stone <ahs3@redhat.com> wrote:
 >> On 06/30/2015 11:07 AM, Sudeep Holla wrote:
 >>> Hi Al,
@@ -66,21 +60,35 @@ On Tue, Jun 30, 2015 at 8:25 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
 >> the ACPICA 20150515 patches which appear to have gone in with 4.2-rc1.
 >>
 >> Rafael?  Ping?
->
+> 
 > I overlooked the fact that this was needed to fix a recent regression,
 > sorry about that.
->
+> 
 > Actually, if your patch fixes an error introduced by a specific
 > commit, it is good to use the Fixes: tag to indicate that.  Which I
 > still would like to do, so which commit is fixed by this?
->
+> 
 >> Do we need these to go through your tree or the arm64
 >> tree?  Without this series (or an ia64-like solution), we have ACPI
 >> systems in the field that cannot boot.
->
+> 
 > I'm not quite sure why the definition of BAD_MADT_GICC_ENTRY has to go
 > into include/linux/acpi.h.  Why is it necessary in there?
 
-Like what about defining it in linux/irqchip/arm-gic-acpi.h for example?
+I only placed it there since it seemed to make sense, and the issue is
+generic to ACPI, not just ARM.  Granted ARM is the only arch using the
+GICC subtable in MADT, but this is fixing how ACPICA implemented the
+spec, which in turn was ambiguous (and an errata is forthcoming to fix
+that).
 
-Rafael
+That being said, though, I'm definitely open to other possibilities.
+
+-- 
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Red Hat, Inc.
+ahs3@redhat.com
+-----------------------------------
