@@ -1,91 +1,66 @@
-From: Al Stone <al.stone@linaro.org>
-Subject: Re: [PATCH v2 1/3] ACPI : introduce macros for using the ACPI specification
- version
-Date: Tue, 30 Jun 2015 15:15:14 -0600
-Message-ID: <559306E2.7000901@linaro.org>
-References: <1434666968-1543-1-git-send-email-al.stone@linaro.org>	<1434666968-1543-2-git-send-email-al.stone@linaro.org> <CAJZ5v0hO_nmccyGR58CO3rEy55E3PNJXWSmGxtimVsZHfPzQnw@mail.gmail.com>
+From: "Williams, Dan J" <dan.j.williams@intel.com>
+Subject: Re: libnvdimm, nfit, nd_blk: driver for BLK-mode access persistent
+ memory
+Date: Tue, 30 Jun 2015 23:07:37 +0000
+Message-ID: <1435705653.18090.69.camel@intel.com>
+References: <20150630174222.GA30796@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f169.google.com ([209.85.223.169]:33799 "EHLO
-	mail-ie0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753177AbbF3VPR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Jun 2015 17:15:17 -0400
-Received: by iebmu5 with SMTP id mu5so21582417ieb.1
-        for <linux-acpi@vger.kernel.org>; Tue, 30 Jun 2015 14:15:16 -0700 (PDT)
-In-Reply-To: <CAJZ5v0hO_nmccyGR58CO3rEy55E3PNJXWSmGxtimVsZHfPzQnw@mail.gmail.com>
+Received: from mga02.intel.com ([134.134.136.20]:51313 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751136AbbF3XHl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 30 Jun 2015 19:07:41 -0400
+In-Reply-To: <20150630174222.GA30796@mwanda>
+Content-Language: en-US
+Content-ID: <9382273C7D91B9489F613F54FC953B4A@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Lists linaro-kernel <linaro-kernel@lists.linaro.org>, "patches@linaro.org" <patches@linaro.org>
+To: "dan.carpenter@oracle.com" <dan.carpenter@oracle.com>
+Cc: "ross.zwisler@linux.intel.com" <ross.zwisler@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-nvdimm@ml01.01.org" <linux-nvdimm@ml01.01.org>
 
-On 06/30/2015 02:12 PM, Rafael J. Wysocki wrote:
-> Hi Al,
-> 
-> On Fri, Jun 19, 2015 at 12:36 AM, Al Stone <al.stone@linaro.org> wrote:
->> Add the ACPI_SPEC_VERSION() macro to build a proper version number from
->> a major and minor revision number.  Add also the ACPI_FADT_SPEC_VERSION
->> that constructs a proper version number from the entries in the current
->> FADT.
->>
->> These macros are added in order to simplify retrieving and comparing ACPI
->> specification version numbers, since this is becoming a more frequent need.
->> In particular, there are some architectures that require at least a certain
->> version of the spec, and there are differences in some structure sizes that
->> have changed with recent versions but can only be tracked by spec version
->> number.
->>
->> Signed-off-by: Al Stone <al.stone@linaro.org>
->> ---
->>  include/linux/acpi.h | 5 +++++
->>  1 file changed, 5 insertions(+)
->>
->> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
->> index a4acb55..33ed313 100644
->> --- a/include/linux/acpi.h
->> +++ b/include/linux/acpi.h
->> @@ -48,6 +48,11 @@
->>  #include <acpi/acpi_io.h>
->>  #include <asm/acpi.h>
->>
->> +#define ACPI_SPEC_VERSION(major, minor)        ((major<<8)|minor)
-> 
-> One nit here.
-> 
-> acpi_gbl_FADT.header.revision is of type u8 originally, so shifting it
-> by 8 bit positions only works due to some implicit type casting I
-> suppose.
-
-Bah.  That was being sloppy on my part.  Sorry about that.  Will fix.
-
-> Moreover, it is not entirely clear why the macro is specific to the
-> computation of the ACPI spec version.
-
-As far as I know, that's the only way to extract the spec version from
-tables; I don't recall there being any other table with that info.  Since
-I will likely use this again, it seemed to make sense at the time.
-
-> So I'd drop ACPI_SPEC_VERSION and only define ACPI_FADT_SPEC_VERSION
-> as something like
-> 
-> #define ACPI_FADT_SPEC_VERSION (((unsigned
-> int)acpi_gbl_FADT.header.revision << 8) | (unsigned
-> int)acpi_gbl_FADT.minor_revision)
-> 
-> Thanks,
-> Rafael
-> 
-
-Sure.  That makes sense.  It makes it clearer that this is the version
-just from the FADT.  I'll do that.
-
--- 
-ciao,
-al
------------------------------------
-Al Stone
-Software Engineer
-Linaro Enterprise Group
-al.stone@linaro.org
------------------------------------
+T24gVHVlLCAyMDE1LTA2LTMwIGF0IDIwOjQyICswMzAwLCBEYW4gQ2FycGVudGVyIHdyb3RlOg0K
+PiBIZWxsbyBSb3NzIFp3aXNsZXIsDQo+IA0KPiBUaGlzIGlzIGEgc2VtaS1hdXRvbWF0aWMgZW1h
+aWwgYWJvdXQgbmV3IHN0YXRpYyBjaGVja2VyIHdhcm5pbmdzLg0KPiANCj4gVGhlIHBhdGNoIDA0
+N2ZjOGExZjlhNjogImxpYm52ZGltbSwgbmZpdCwgbmRfYmxrOiBkcml2ZXIgZm9yIEJMSy1tb2Rl
+IA0KPiBhY2Nlc3MgcGVyc2lzdGVudCBtZW1vcnkiIGZyb20gSnVuIDI1LCAyMDE1LCBsZWFkcyB0
+byB0aGUgZm9sbG93aW5nIA0KPiBTbWF0Y2ggY29tcGxhaW50Og0KPiANCj4gZHJpdmVycy9hY3Bp
+L25maXQuYzoxMjI0IGFjcGlfbmZpdF9ibGtfcmVnaW9uX2VuYWJsZSgpDQo+IAkgZXJyb3I6IHdl
+IHByZXZpb3VzbHkgYXNzdW1lZCAnbmZpdF9tZW0nIGNvdWxkIGJlIG51bGwgKHNlZSBsaW5lIDEy
+MjMpDQo+IA0KPiBkcml2ZXJzL2FjcGkvbmZpdC5jDQo+ICAgMTIyMgkJbmZpdF9tZW0gPSBudmRp
+bW1fcHJvdmlkZXJfZGF0YShudmRpbW0pOw0KPiAgIDEyMjMJCWlmICghbmZpdF9tZW0gfHwgIW5m
+aXRfbWVtLT5kY3IgfHwgIW5maXRfbWVtLT5iZHcpIHsNCj4gICAgICAgICAgICAgICAgICAgICAg
+Xl5eXl5eXl4NCj4gQ2hlY2suDQo+IA0KPiAgIDEyMjQJCQlkZXZfZGJnKGRldiwgIiVzOiBtaXNz
+aW5nJXMlcyVzXG4iLCBfX2Z1bmNfXywNCj4gICAxMjI1CQkJCQluZml0X21lbSA/ICIiIDogIiBu
+Zml0X21lbSIsDQo+ICAgMTIyNgkJCQkJbmZpdF9tZW0tPmRjciA/ICIiIDogIiBkY3IiLA0KPiAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgXl5eXl5eXl5eXl5eXg0KPiBV
+bmNoZWNrZWQgZGVyZWZlcmVuY2UuDQoNClRoYW5rcyBEYW4hDQoNCjg8LS0tLS0NCm5maXQ6IGZp
+eCBzbWF0Y2ggInVzZSBhZnRlciBudWxsIGNoZWNrIiByZXBvcnQNCg0KRnJvbTogRGFuIFdpbGxp
+YW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+DQoNCmRyaXZlcnMvYWNwaS9uZml0LmM6MTIy
+NCBhY3BpX25maXRfYmxrX3JlZ2lvbl9lbmFibGUoKQ0KICAgICAgICAgZXJyb3I6IHdlIHByZXZp
+b3VzbHkgYXNzdW1lZCAnbmZpdF9tZW0nIGNvdWxkIGJlIG51bGwgKHNlZSBsaW5lIDEyMjMpDQoN
+CmRyaXZlcnMvYWNwaS9uZml0LmMNCiAgMTIyMiAgICAgICAgICBuZml0X21lbSA9IG52ZGltbV9w
+cm92aWRlcl9kYXRhKG52ZGltbSk7DQogIDEyMjMgICAgICAgICAgaWYgKCFuZml0X21lbSB8fCAh
+bmZpdF9tZW0tPmRjciB8fCAhbmZpdF9tZW0tPmJkdykgew0KICAgICAgICAgICAgICAgICAgICAg
+Xl5eXl5eXl4NCkNoZWNrLg0KDQogIDEyMjQgICAgICAgICAgICAgICAgICBkZXZfZGJnKGRldiwg
+IiVzOiBtaXNzaW5nJXMlcyVzXG4iLCBfX2Z1bmNfXywNCiAgMTIyNSAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICBuZml0X21lbSA/ICIiIDogIiBuZml0X21lbSIsDQogIDEyMjYgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgbmZpdF9tZW0tPmRjciA/ICIiIDogIiBkY3Ii
+LA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIF5eXl5eXl5eXl5eXl4N
+ClVuY2hlY2tlZCBkZXJlZmVyZW5jZS4NCg0KUmVwb3J0ZWQtYnk6IERhbiBDYXJwZW50ZXIgPGRh
+bi5jYXJwZW50ZXJAb3JhY2xlLmNvbT4NCkFja2VkLWJ5OiBSb3NzIFp3aXNsZXIgPHJvc3Muendp
+c2xlckBsaW51eC5pbnRlbC5jb20+DQpTaWduZWQtb2ZmLWJ5OiBEYW4gV2lsbGlhbXMgPGRhbi5q
+LndpbGxpYW1zQGludGVsLmNvbT4NCi0tLQ0KIGRyaXZlcnMvYWNwaS9uZml0LmMgfCAgICA0ICsr
+LS0NCiAxIGZpbGUgY2hhbmdlZCwgMiBpbnNlcnRpb25zKCspLCAyIGRlbGV0aW9ucygtKQ0KDQpk
+aWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL25maXQuYyBiL2RyaXZlcnMvYWNwaS9uZml0LmMNCmlu
+ZGV4IDIxNjFmYTE3OGM4ZC4uYTIwYjdjODgzY2EwIDEwMDY0NA0KLS0tIGEvZHJpdmVycy9hY3Bp
+L25maXQuYw0KKysrIGIvZHJpdmVycy9hY3BpL25maXQuYw0KQEAgLTEyMjMsOCArMTIyMyw4IEBA
+IHN0YXRpYyBpbnQgYWNwaV9uZml0X2Jsa19yZWdpb25fZW5hYmxlKHN0cnVjdCBudmRpbW1fYnVz
+ICpudmRpbW1fYnVzLA0KIAlpZiAoIW5maXRfbWVtIHx8ICFuZml0X21lbS0+ZGNyIHx8ICFuZml0
+X21lbS0+YmR3KSB7DQogCQlkZXZfZGJnKGRldiwgIiVzOiBtaXNzaW5nJXMlcyVzXG4iLCBfX2Z1
+bmNfXywNCiAJCQkJbmZpdF9tZW0gPyAiIiA6ICIgbmZpdF9tZW0iLA0KLQkJCQluZml0X21lbS0+
+ZGNyID8gIiIgOiAiIGRjciIsDQotCQkJCW5maXRfbWVtLT5iZHcgPyAiIiA6ICIgYmR3Iik7DQor
+CQkJCShuZml0X21lbSAmJiBuZml0X21lbS0+ZGNyKSA/ICIiIDogIiBkY3IiLA0KKwkJCQkobmZp
+dF9tZW0gJiYgbmZpdF9tZW0tPmJkdykgPyAiIiA6ICIgYmR3Iik7DQogCQlyZXR1cm4gLUVOWElP
+Ow0KIAl9DQogDQoNCg==
