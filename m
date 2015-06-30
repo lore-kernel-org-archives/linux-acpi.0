@@ -1,55 +1,66 @@
-From: "Qatar Foundation" <qatarfund@qf.org.qa>
-Subject: =?utf-8?q?Claim_=E2=82=AC950=2C000=2E00_EURO_?=
-Date: Tue, 30 Jun 2015 05:04:20 +0100
-Message-ID: <20150630035709.E877F2748C8E@mail.kaltimpost.net>
-Reply-To: qfoundation63@gmail.com
+From: Matt Fleming <matt@codeblueprint.co.uk>
+Subject: Re: [PATCH] x86/efi-bgrt: Switch pr_err() to pr_debug() for invalid
+ BGRT
+Date: Tue, 30 Jun 2015 10:31:59 +0100
+Message-ID: <20150630093159.GH28334@codeblueprint.co.uk>
+References: <1435579602-6612-1-git-send-email-matt@codeblueprint.co.uk>
+ <20150629131305.GB13113@pd.tnic>
+ <20150629140022.GA22374@x>
+ <20150629141724.GG12383@pd.tnic>
+ <20150629144940.GF28334@codeblueprint.co.uk>
+ <20150629154458.GH12383@pd.tnic>
+ <20150629163553.GB1348@cloud>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from [119.47.88.6] ([119.47.88.6]:44959 "EHLO mail.kaltimpost.net"
-	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1751124AbbF3Hub convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Jun 2015 03:50:31 -0400
-Content-Description: Mail message body
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:33734 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751643AbbF3JcD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Jun 2015 05:32:03 -0400
+Received: by wiwl6 with SMTP id l6so125497179wiw.0
+        for <linux-acpi@vger.kernel.org>; Tue, 30 Jun 2015 02:32:02 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20150629163553.GB1348@cloud>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Recipients <qatarfund@qf.org.qa>
+To: josh@joshtriplett.org
+Cc: Borislav Petkov <bp@alien8.de>, Tom Yan <tom.ty89@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-efi@vger.kernel.org, linux-acpi@vger.kernel.org, Matt Fleming <matt.fleming@intel.com>
 
-Lieber Beg=C3=BCnstigte,
+On Mon, 29 Jun, at 09:35:53AM, Josh Triplett wrote:
+> On Mon, Jun 29, 2015 at 05:44:58PM +0200, Borislav Petkov wrote:
+> > On Mon, Jun 29, 2015 at 03:49:40PM +0100, Matt Fleming wrote:
+> > > It still makes sense to have the error message because the kernel
+> > > literally does not know what the firmware is trying to achieve by
+> > > setting those bits.
+> > > 
+> > > But I agree with Josh that for the specific case of "reserved bits",
+> > > FW_BUG is wrong, because if in some future version of the spec those
+> > > bits get used, seeing,
+> > > 
+> > >   "[Firmware Bug]: Ignoring BGRT: reserved bits are non-zero 0x3"
+> > 
+> > I still don't see what that message brings if some kernel complains that
+> > some bits are !0 then. Are they valid bits which the kernel doesn't know
+> > about or are they erroneously set and reserved. This, IMHO, is confusing
+> > because the error message is not correct in all cases.
+> > 
+> > Thus my suggestion to either check the spec version before looking at
+> > the bits or find out in some other way which bits are defined and which
+> > are reserved and warn only about the reserved ones which are 1b.
+> 
+> The version is already checked *before* the status bits: if the version
+> is not 1, the kernel stops there and ignores the BGRT, before printing a
+> message about status.
 
-Sie wurden ausgew=C3=A4hlt, um =E2=82=AC 950.000,00 EURO als Charity-Sp=
-enden / Hilfe der Qatar Foundation erhalten. Antworten zur=C3=BCck f=C3=
-=BCr weitere Informationen.
+If we're performing version[1] checks then I think it's fair game to use
+FW_BUG, since these bits are reserved for that version.
 
-Mit freundlichen Gr=C3=BC=C3=9Fen,
-Ingenieur Saad Al Muhannadi.
-Beantworten: qfoundation63@gmail.com
+[1] Note the version of the BGRT table is checked, not the ACPI spec
+version, and it's not clear which would get a bump if new bits were
+defined for the 'status' field. Historically, new bits have been added
+to the EFI memory map without bumping the expected "memory descriptor"
+version - a spec version update was considered to be sufficient (see
+EFI_MEMORY_RO).
 
-Pr=C3=A4sident der Qatar Foundation.
-
-
-Dear Beneficiary,
-
-You have been selected to receive =E2=82=AC950,000.00 EURO as charity d=
-onations / aid of the Qatar Foundation. Reply back for more information=
-=2E
-
-Yours sincerely,
-Engineer Saad Al Muhannadi.
-Reply to: qfoundation63@gmail.com
-
-President of the Qatar Foundation.
-
-
-
-
----
-This email has been checked for viruses by Avast antivirus software.
-https://www.avast.com/antivirus
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Matt Fleming, Intel Open Source Technology Center
