@@ -1,111 +1,220 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v2 0/3] Correct for ACPI 5.1->6.0 spec changes in MADT
- GICC entries
-Date: Tue, 30 Jun 2015 21:05:49 +0200
-Message-ID: <CAJZ5v0hgpMWT312+qrzON4EM0+n23g8X-fCQgUugQKNwz+sLtw@mail.gmail.com>
-References: <1434666968-1543-1-git-send-email-al.stone@linaro.org>
-	<5592CCE6.6040604@arm.com>
-	<5592D1FF.7040208@redhat.com>
-	<CAJZ5v0gF6JZ8uVNMnro0bdD0g+QMoTeEzB99j6RcKUt3LjmiXw@mail.gmail.com>
-	<5592E26D.4070200@redhat.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 2/4] acpi: allow for an override to set _REV
+Date: Tue, 30 Jun 2015 22:11:28 +0200
+Message-ID: <5115175.tbCl1JQVaV@vostro.rjw.lan>
+References: <20150517174144.GA17503@light.dominikbrodowski.net> <DB6E482E89290547898851B8CC9D8110016A5EBC17@AUSX7MCPS302.AMER.DELL.COM> <23116293.JAxziy2cCE@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f182.google.com ([209.85.212.182]:33332 "EHLO
-	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750980AbbF3TFv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Jun 2015 15:05:51 -0400
-In-Reply-To: <5592E26D.4070200@redhat.com>
+Received: from v094114.home.net.pl ([79.96.170.134]:44619 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1750940AbbF3TpL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Jun 2015 15:45:11 -0400
+In-Reply-To: <23116293.JAxziy2cCE@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Al Stone <ahs3@redhat.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Sudeep Holla <sudeep.holla@arm.com>, Al Stone <al.stone@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, "tglx@linutronix.de" <tglx@linutronix.de>, "jason@lakedaemon.net" <jason@lakedaemon.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, "patches@linaro.org" <patches@linaro.org>
+To: Mario_Limonciello@dell.com, linux-acpi@vger.kernel.org
+Cc: matthew.garrett@coreos.com, linux@dominikbrodowski.net, broonie@kernel.org, alsa-devel@alsa-project.org
 
-Hi Al,
+On Saturday, May 23, 2015 12:15:54 AM Rafael J. Wysocki wrote:
+> On Friday, May 22, 2015 04:19:05 PM Mario_Limonciello@Dell.com wrote:
+> > > OK, so do we have any proof that anything in addition to the sound thing is broken by returning 2 from _REV?
+> > > 
+> > > If not, then we're probably spending too much time discussing this.
+> > 
+> > From a Dell perspective I'm not aware of anything else breaking, but I'll be sure to raise its attention and any associated details if I become privy to them.  I'm working with architecture to ensure that future products are not relying on _REV values as well.
+> > I know Matthew had mentioned that another OEM's product was using this as well, but I don't know what for.
+> 
+> OK, here's a deal.
+> 
+> I'll wait for the next few days for someone to tell me if there's any
+> known system in addition to the XPS 13 (2015) which breaks as a result
+> of the change to return 2 from _REV.  If none are reported before the
+> next Friday, I'll just apply the patch I posted some time ago.  If any
+> reports come in later, we'll still be able to rearrange things during
+> the 4.2 cycle or even later.
+> 
+> If *something* is reported next week, I'll reconsider the approach depending
+> on what that thing is.
 
-On Tue, Jun 30, 2015 at 8:39 PM, Al Stone <ahs3@redhat.com> wrote:
-> On 06/30/2015 12:25 PM, Rafael J. Wysocki wrote:
->> Hi Al,
->>
->> On Tue, Jun 30, 2015 at 7:29 PM, Al Stone <ahs3@redhat.com> wrote:
->>> On 06/30/2015 11:07 AM, Sudeep Holla wrote:
->>>> Hi Al,
->>>>
->>>> On 18/06/15 23:36, Al Stone wrote:
->>>>> In the ACPI 5.1 version of the spec, the struct for the GICC subtable
->>>>> (struct acpi_madt_generic_interrupt) of the MADT is 76 bytes long; in
->>>>> ACPI 6.0, the struct is 80 bytes long.  But, there is only one definition
->>>>> in ACPICA for this struct -- and that is the 6.0 version.  Hence, when
->>>>> BAD_MADT_ENTRY() compares the struct size to the length in the GICC
->>>>> subtable, it fails if 5.1 structs are in use, and there are systems in
->>>>> the wild that have them.
->>>>>
->>>>> Note that this was found in linux-next and these patches apply against
->>>>> that tree and the arm64 kernel tree; 4.1-rc8 does not appear to have this
->>>>> problem since it still has the 5.1 struct definition.
->>>>>
->>>>> Even though there is precendent in ia64 code for ignoring the changes in
->>>>> size, this patch set instead tries to verify correctness.  The first patch
->>>>> in the set adds macros for easily using the ACPI spec version.  The second
->>>>> patch adds the BAD_MADT_GICC_ENTRY() macro that uses the version macros to
->>>>> check the GICC subtable only, accounting for the difference in specification
->>>>> versions that are possible.  The final patch replaces BAD_MADT_ENTRY usage
->>>>> with the BAD_MADT_GICC_ENTRY macro in arm64 code, which is currently the
->>>>> only architecture affected.  The BAD_MADT_ENTRY() will continue to work as
->>>>> is for all other MADT subtables.
->>>>>
->>>>
->>>> We need to get this series or a patch to remove the check(similar to
->>>> ia64) based on what Rafael prefers. Without that, platforms using ACPI
->>>> on ARM64 fails to boot with latest mainline. This blocks any testing on
->>>> ARM64/ACPI systems.
->>>>
->>>> Regards,
->>>> Sudeep
->>>
->>> I have not received any other feedback than some Reviewed-bys from
->>> Hanjun and an ACK from Will for the arm64 patch.
->>>
->>> And absolutely agreed: this is a blocker for arm64/ACPI, starting with
->>> the ACPICA 20150515 patches which appear to have gone in with 4.2-rc1.
->>>
->>> Rafael?  Ping?
->>
->> I overlooked the fact that this was needed to fix a recent regression,
->> sorry about that.
->>
->> Actually, if your patch fixes an error introduced by a specific
->> commit, it is good to use the Fixes: tag to indicate that.  Which I
->> still would like to do, so which commit is fixed by this?
->>
->>> Do we need these to go through your tree or the arm64
->>> tree?  Without this series (or an ia64-like solution), we have ACPI
->>> systems in the field that cannot boot.
->>
->> I'm not quite sure why the definition of BAD_MADT_GICC_ENTRY has to go
->> into include/linux/acpi.h.  Why is it necessary in there?
->
-> I only placed it there since it seemed to make sense, and the issue is
-> generic to ACPI, not just ARM.  Granted ARM is the only arch using the
-> GICC subtable in MADT,
+OK, so nobody has reported anything and below is the patch I'm planning to
+apply (before restoring _REV=2).
 
-Precisely.
-
-> but this is fixing how ACPICA implemented the spec,
-
-So that should be fixed in ACPICA eventually and linux/acpi.h is not
-an ACPICA file even.
-
-It is possible to apply an ACPICA fix to Linux before it goes to
-upstream ACPICA if it fixes a real problem in Linux.  We've done
-things like that.
-
-> which in turn was ambiguous (and an errata is forthcoming to fix that).
->
-> That being said, though, I'm definitely open to other possibilities.
-
-So I'd prefer an ACPICA fix and if that's not viable, an ARM-specific
-fix to fill the gap while ACPICA is being updated.
+Please let me know if there are objections.
 
 Thanks,
 Rafael
+
+
+---
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Subject: ACPI / init: Make it possible to override _REV
+
+The platform firmware on some systems expects Linux to return "5" as
+the supported ACPI revision which makes it expose system configuration
+information in a special way.
+
+For example, based on what ACPI exports as the supported revision,
+Dell XPS 13 (2015) configures its audio device to either work in HDA
+mode or in I2S mode, where the former is supposed to be used on Linux
+until the latter is fully supported (in the kernel as well as in user
+space).
+
+Since ACPI 6 mandates that _REV should return "2" if ACPI 2 or later
+is supported by the OS, a subsequent change will make that happen, so
+make it possible to override that on systems where "5" is expected to
+be returned for Linux to work correctly one them (such as the Dell
+machine mentioned above).
+
+Original-by: Dominik Brodowski <linux@dominikbrodowski.net>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ Documentation/kernel-parameters.txt |    6 ++++++
+ drivers/acpi/Kconfig                |   20 ++++++++++++++++++++
+ drivers/acpi/blacklist.c            |   26 ++++++++++++++++++++++++++
+ drivers/acpi/internal.h             |    1 +
+ drivers/acpi/osl.c                  |   18 ++++++++++++++++++
+ 5 files changed, 71 insertions(+)
+
+Index: linux-pm/drivers/acpi/blacklist.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/blacklist.c
++++ linux-pm/drivers/acpi/blacklist.c
+@@ -162,6 +162,15 @@ static int __init dmi_disable_osi_win8(c
+ 	acpi_osi_setup("!Windows 2012");
+ 	return 0;
+ }
++#ifdef CONFIG_ACPI_REV_OVERRIDE_POSSIBLE
++static int __init dmi_enable_rev_override(const struct dmi_system_id *d)
++{
++	printk(KERN_NOTICE PREFIX "DMI detected: %s (force ACPI _REV to 5)\n",
++	       d->ident);
++	acpi_rev_override_setup(NULL);
++	return 0;
++}
++#endif
+ 
+ static struct dmi_system_id acpi_osi_dmi_table[] __initdata = {
+ 	{
+@@ -325,6 +334,23 @@ static struct dmi_system_id acpi_osi_dmi
+ 		     DMI_MATCH(DMI_PRODUCT_NAME, "1015PX"),
+ 		},
+ 	},
++
++#ifdef CONFIG_ACPI_REV_OVERRIDE_POSSIBLE
++	/*
++	 * DELL XPS 13 (2015) switches sound between HDA and I2S
++	 * depending on the ACPI _REV callback. If userspace supports
++	 * I2S sufficiently (or if you do not care about sound), you
++	 * can safely disable this quirk.
++	 */
++	{
++	 .callback = dmi_enable_rev_override,
++	 .ident = "DELL XPS 13 (2015)",
++	 .matches = {
++		      DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
++		      DMI_MATCH(DMI_PRODUCT_NAME, "XPS 13 9343"),
++		},
++	},
++#endif
+ 	{}
+ };
+ 
+Index: linux-pm/drivers/acpi/internal.h
+===================================================================
+--- linux-pm.orig/drivers/acpi/internal.h
++++ linux-pm/drivers/acpi/internal.h
+@@ -58,6 +58,7 @@ void acpi_cmos_rtc_init(void);
+ #else
+ static inline void acpi_cmos_rtc_init(void) {}
+ #endif
++int acpi_rev_override_setup(char *str);
+ 
+ extern bool acpi_force_hot_remove;
+ 
+Index: linux-pm/drivers/acpi/osl.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/osl.c
++++ linux-pm/drivers/acpi/osl.c
+@@ -530,6 +530,19 @@ acpi_os_get_physical_address(void *virt,
+ }
+ #endif
+ 
++#ifdef CONFIG_ACPI_REV_OVERRIDE_POSSIBLE
++static bool acpi_rev_override;
++
++int __init acpi_rev_override_setup(char *str)
++{
++	acpi_rev_override = true;
++	return 1;
++}
++__setup("acpi_rev_override", acpi_rev_override_setup);
++#else
++#define acpi_rev_override	false
++#endif
++
+ #define ACPI_MAX_OVERRIDE_LEN 100
+ 
+ static char acpi_os_name[ACPI_MAX_OVERRIDE_LEN];
+@@ -548,6 +561,11 @@ acpi_os_predefined_override(const struct
+ 		*new_val = acpi_os_name;
+ 	}
+ 
++	if (!memcmp(init_val->name, "_REV", 4) && acpi_rev_override) {
++		printk(KERN_INFO PREFIX "Overriding _REV return value to 5\n");
++		*new_val = (char *)5;
++	}
++
+ 	return AE_OK;
+ }
+ 
+Index: linux-pm/drivers/acpi/Kconfig
+===================================================================
+--- linux-pm.orig/drivers/acpi/Kconfig
++++ linux-pm/drivers/acpi/Kconfig
+@@ -431,6 +431,26 @@ config XPOWER_PMIC_OPREGION
+ 	help
+ 	  This config adds ACPI operation region support for XPower AXP288 PMIC.
+ 
+++config ACPI_REV_OVERRIDE_POSSIBLE
++	bool "Allow supported ACPI revision to be overriden"
++	depends on X86
++	default y
++	help
++	  The platform firmware on some systems expects Linux to return "5" as
++	  the supported ACPI revision which makes it expose system configuration
++	  information in a special way.
++
++	  For example, based on what ACPI exports as the supported revision,
++	  Dell XPS 13 (2015) configures its audio device to either work in HDA
++	  mode or in I2S mode, where the former is supposed to be used on Linux
++	  until the latter is fully supported (in the kernel as well as in user
++	  space).
++
++	  This option enables a DMI-based quirk for the above Dell machine (so
++	  that HDA audio is exposed by the platform firmware to the kernel) and
++	  makes it possible to force the kernel to return "5" as the supported
++	  ACPI revision via the "acpi_rev_override" command line switch.
++
+ endif
+ 
+ endif	# ACPI
+Index: linux-pm/Documentation/kernel-parameters.txt
+===================================================================
+--- linux-pm.orig/Documentation/kernel-parameters.txt
++++ linux-pm/Documentation/kernel-parameters.txt
+@@ -285,6 +285,12 @@ bytes respectively. Such letter suffixes
+ 			dynamic table installation which will install SSDT
+ 			tables to /sys/firmware/acpi/tables/dynamic.
+ 
++	acpi_rev_override [ACPI] Override the _REV object to return 5 (instead
++			of 2 which is mandated by ACPI 6) as the supported ACPI
++			specification revision (when using this switch, it may
++			be necessary to carry out a cold reboot _twice_ in a
++			row to make it take effect on the platform firmware).
++
+ 	acpi_rsdp=	[ACPI,EFI,KEXEC]
+ 			Pass the RSDP address to the kernel, mostly used
+ 			on machines running EFI runtime service to boot the
+
