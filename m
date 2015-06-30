@@ -1,54 +1,89 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: Re: [PATCH v2 17/17] arch, x86: pmem api for ensuring durability of
- persistent memory updates
-Date: Tue, 30 Jun 2015 13:21:37 +0300
-Message-ID: <20150630102137.GC12986@mwanda>
-References: <20150625090554.40066.69562.stgit@dwillia2-desk3.jf.intel.com>
- <20150625093749.40066.25475.stgit@dwillia2-desk3.jf.intel.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH v2 6/9] irqchip / gic: Add stacked irqdomain support for
+ ACPI based GICv2 init
+Date: Tue, 30 Jun 2015 19:50:56 +0800
+Message-ID: <559282A0.8090601@linaro.org>
+References: <1434703572-26221-1-git-send-email-hanjun.guo@linaro.org> <1434703572-26221-7-git-send-email-hanjun.guo@linaro.org> <20150622172014.GB26129@red-moon> <5589772A.8070708@linaro.org> <20150623173845.GC31466@red-moon> <558E1DEE.3090900@linaro.org> <55910440.8070702@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:18906 "EHLO
-	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750821AbbF3KWR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Jun 2015 06:22:17 -0400
-Content-Disposition: inline
-In-Reply-To: <20150625093749.40066.25475.stgit@dwillia2-desk3.jf.intel.com>
+Received: from mail-pd0-f172.google.com ([209.85.192.172]:35031 "EHLO
+	mail-pd0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753067AbbF3LvK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Jun 2015 07:51:10 -0400
+Received: by pdbci14 with SMTP id ci14so5052968pdb.2
+        for <linux-acpi@vger.kernel.org>; Tue, 30 Jun 2015 04:51:09 -0700 (PDT)
+In-Reply-To: <55910440.8070702@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: linux-nvdimm@ml01.01.org, axboe@kernel.dk, boaz@plexistor.com, toshi.kani@hp.com, mingo@kernel.org, linux-kernel@vger.kernel.org, hch@lst.de, linux-acpi@vger.kernel.org, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, linux-fsdevel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>
+To: Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>
+Cc: Jason Cooper <jason@lakedaemon.net>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Olof Johansson <olof@lixom.net>, Wei Huang <wei@redhat.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 
-On Thu, Jun 25, 2015 at 05:37:49AM -0400, Dan Williams wrote:
-> diff --git a/include/linux/compiler.h b/include/linux/compiler.h
-> index 867722591be2..9a528d945498 100644
-> --- a/include/linux/compiler.h
-> +++ b/include/linux/compiler.h
-> @@ -21,6 +21,7 @@
->  # define __rcu		__attribute__((noderef, address_space(4)))
+Hi Marc,
 
-On this side of the #ifdef CONFIG_SPARSE_RCU_POINTER statement then
-__pmem isn't defined so it leads to a build error running a CHECKER on
-today's linux-next.
+On 06/29/2015 04:39 PM, Marc Zyngier wrote:
+> On 27/06/15 04:52, Hanjun Guo wrote:
+>> On 06/24/2015 01:38 AM, Lorenzo Pieralisi wrote:
+>>> On Tue, Jun 23, 2015 at 04:11:38PM +0100, Hanjun Guo wrote:
+[...]
+>>>
+>>>>>>     	for (i = 0; i < nr_irqs; i++)
+>>>>>>     		gic_irq_domain_map(domain, virq + i, hwirq + i);
+>>>>>> @@ -945,11 +952,11 @@ void __init gic_init_bases(unsigned int gic_nr, int irq_start,
+>>>>>>     		gic_irqs = 1020;
+>>>>>>     	gic->gic_irqs = gic_irqs;
+>>>>>>
+>>>>>> -	if (node) {		/* DT case */
+>>>>>> +	if (node || !acpi_disabled) {		/* DT or ACPI case */
+>>>>>>     		gic->domain = irq_domain_add_linear(node, gic_irqs,
+>>>>>>     						    &gic_irq_domain_hierarchy_ops,
+>>>>>>     						    gic);
+>>>
+>>> I think this is a bit more worrying, I mean passing a NULL node pointer to
+>>> the irqdomain layer which basically means you are booting out of ACPI
+>>
+>> I'm little confused here, would you mind explaining more for your
+>> worrying? To me, node pointer is optional and it's ok for ACPI
+>> case.
+>>
+>>> (for you, if that's true for the irq_domain_add_linear implementation
+>>> that's another story), the node pointer should be optional but you
+>>> need feedback from IRQ layer maintainers here.
+>>
+>> Sure.
+>
+> Frankly, I'd really like to see ACPI using the "node" parameter for
+> something useful. This would save having to cache pointers all over the
+> place, will make find_irq_host() work as expected... etc.
+>
+> See the comment at the top of linux/irqdomain.h :
+>
+> "... This code could thus be used on other architectures by replacing
+> those two by some sort of arch-specific void * "token" used to identify
+> interrupt controllers."
 
-I would define __pmem away, but I don't understand why __pmem and
-CONFIG_SPARSE_RCU_POINTER are related at all.  Maybe it should be
-outside the if statement?
+To init GIC in ACPI, we can only use the table entry pointer as
+the token, but the ACPI static tables are early mem/io remapped
+memory at boot stage, and it will be not available after boot,
+also we need muti types of MADT enties to init GIC (GICC and GICD
+for GICv2, GICC or GICR and GICD for GICv3), not as DT, just
+one single node to include all the information needed to init
+the GIC.
 
->  #else
->  # define __rcu
-> +# define __pmem		__attribute__((noderef, address_space(5)))
->  #endif
->  extern void __chk_user_ptr(const volatile void __user *);
->  extern void __chk_io_ptr(const volatile void __iomem *);
-> @@ -42,6 +43,7 @@ extern void __chk_io_ptr(const volatile void __iomem *);
->  # define __cond_lock(x,c) (c)
->  # define __percpu
->  # define __rcu
-> +# define __pmem
->  #endif
->  
->  /* Indirect macros required for expanded argument pasting, eg. __LINE__. */
+We use ACPI handle for devices as node for DT when the namespace
+is available, but that's pretty late in the boot stage which GIC,
+SMP and timers were already initialized, so ACPI handle can not
+use as the token too.
 
-regards,
-dan carpenter
+I see multi places just pass NULL as the pointer directly for
+irq_domain_add_linear() which works fine, and for ACPI, we tested
+this patch and also it works.
+
+>
+> Maybe it is time to bite the bullet.
+
+Hope comment above explains :)
+
+Thanks
+Hanjun
