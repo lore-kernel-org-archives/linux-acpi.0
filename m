@@ -1,95 +1,62 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH v2 6/9] irqchip / gic: Add stacked irqdomain support for
- ACPI based GICv2 init
-Date: Tue, 30 Jun 2015 13:17:14 +0100
-Message-ID: <559288CA.40605@arm.com>
-References: <1434703572-26221-1-git-send-email-hanjun.guo@linaro.org> <1434703572-26221-7-git-send-email-hanjun.guo@linaro.org> <20150622172014.GB26129@red-moon> <5589772A.8070708@linaro.org> <20150623173845.GC31466@red-moon> <558E1DEE.3090900@linaro.org> <55910440.8070702@arm.com> <559282A0.8090601@linaro.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI / resources: fix memory leak on request_range fail path
+Date: Tue, 30 Jun 2015 17:09:03 +0200
+Message-ID: <6932093.x3Q0TXN2Zp@vostro.rjw.lan>
+References: <1435609020-18695-1-git-send-email-colin.king@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:41298 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753195AbbF3MRU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 30 Jun 2015 08:17:20 -0400
-In-Reply-To: <559282A0.8090601@linaro.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:65067 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752597AbbF3Oms (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Jun 2015 10:42:48 -0400
+In-Reply-To: <1435609020-18695-1-git-send-email-colin.king@canonical.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>
-Cc: Jason Cooper <jason@lakedaemon.net>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Olof Johansson <olof@lixom.net>, Wei Huang <wei@redhat.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
+To: Colin King <colin.king@canonical.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 30/06/15 12:50, Hanjun Guo wrote:
-> Hi Marc,
+On Monday, June 29, 2015 09:17:00 PM Colin King wrote:
+> From: Colin Ian King <colin.king@canonical.com>
 > 
-> On 06/29/2015 04:39 PM, Marc Zyngier wrote:
->> On 27/06/15 04:52, Hanjun Guo wrote:
->>> On 06/24/2015 01:38 AM, Lorenzo Pieralisi wrote:
->>>> On Tue, Jun 23, 2015 at 04:11:38PM +0100, Hanjun Guo wrote:
-> [...]
->>>>
->>>>>>>     	for (i = 0; i < nr_irqs; i++)
->>>>>>>     		gic_irq_domain_map(domain, virq + i, hwirq + i);
->>>>>>> @@ -945,11 +952,11 @@ void __init gic_init_bases(unsigned int gic_nr, int irq_start,
->>>>>>>     		gic_irqs = 1020;
->>>>>>>     	gic->gic_irqs = gic_irqs;
->>>>>>>
->>>>>>> -	if (node) {		/* DT case */
->>>>>>> +	if (node || !acpi_disabled) {		/* DT or ACPI case */
->>>>>>>     		gic->domain = irq_domain_add_linear(node, gic_irqs,
->>>>>>>     						    &gic_irq_domain_hierarchy_ops,
->>>>>>>     						    gic);
->>>>
->>>> I think this is a bit more worrying, I mean passing a NULL node pointer to
->>>> the irqdomain layer which basically means you are booting out of ACPI
->>>
->>> I'm little confused here, would you mind explaining more for your
->>> worrying? To me, node pointer is optional and it's ok for ACPI
->>> case.
->>>
->>>> (for you, if that's true for the irq_domain_add_linear implementation
->>>> that's another story), the node pointer should be optional but you
->>>> need feedback from IRQ layer maintainers here.
->>>
->>> Sure.
->>
->> Frankly, I'd really like to see ACPI using the "node" parameter for
->> something useful. This would save having to cache pointers all over the
->> place, will make find_irq_host() work as expected... etc.
->>
->> See the comment at the top of linux/irqdomain.h :
->>
->> "... This code could thus be used on other architectures by replacing
->> those two by some sort of arch-specific void * "token" used to identify
->> interrupt controllers."
+> static analysis from cppcheck detected a memory leak:
+>   [drivers/acpi/resource.c:664]: (error) Memory leak: reg
 > 
-> To init GIC in ACPI, we can only use the table entry pointer as
-> the token, but the ACPI static tables are early mem/io remapped
-> memory at boot stage, and it will be not available after boot,
-> also we need muti types of MADT enties to init GIC (GICC and GICD
-> for GICv2, GICC or GICR and GICD for GICv3), not as DT, just
-> one single node to include all the information needed to init
-> the GIC.
-
-A single pointer would be enough, you don't need all of them.
-
-> We use ACPI handle for devices as node for DT when the namespace
-> is available, but that's pretty late in the boot stage which GIC,
-> SMP and timers were already initialized, so ACPI handle can not
-> use as the token too.
+> the error path on a failed request_range call should free
+> reg before returning. Bug introduced in the recent commit
+> 0f1b414d190724617eb1cdd615592fa8cd9d0b50
+> ("ACPI / PNP: Avoid conflicting resource reservations")
 > 
-> I see multi places just pass NULL as the pointer directly for
-> irq_domain_add_linear() which works fine, and for ACPI, we tested
-> this patch and also it works.
+> Fixes: 0f1b414d19 ("ACPI / PNP: Avoid conflicting resource reservations")
+> Signed-off-by: Colin Ian King <colin.king@canonical.com>
 
-Yes it works. But you're reinventing the wheel by keeping references
-outside of the normal framework, which is simply going to make the code
-more difficult to maintain in the long run.
+I have this fix queued up already as:
 
-Putting NULL as the device_node parameter really means "this is a domain
-I don't need to look up later". In your case, you will have to lookup
-that domain, all the time. You're just doing it in your own little
-corner, which is what bothers me.
+http://git.kernel.org/cgit/linux/kernel/git/rafael/linux-pm.git/commit/?h=linux-next&id=7bc10388ccdd79b3d20463151a1f8e7a590a775b
 
-	M.
+> ---
+>  drivers/acpi/resource.c | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+> index fcb7807..10561ce 100644
+> --- a/drivers/acpi/resource.c
+> +++ b/drivers/acpi/resource.c
+> @@ -660,8 +660,10 @@ static int add_region_before(u64 start, u64 end, u8 space_id,
+>  		return -ENOMEM;
+>  
+>  	error = request_range(start, end, space_id, flags, desc);
+> -	if (error)
+> +	if (error) {
+> +		kfree(reg);
+>  		return error;
+> +	}
+>  
+>  	reg->start = start;
+>  	reg->end = end;
+> 
+
 -- 
-Jazz is not dead. It just smells funny...
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
