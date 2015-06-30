@@ -1,66 +1,66 @@
-From: Matt Fleming <matt@codeblueprint.co.uk>
-Subject: Re: [PATCH] x86/efi-bgrt: Switch pr_err() to pr_debug() for invalid
- BGRT
-Date: Tue, 30 Jun 2015 10:31:59 +0100
-Message-ID: <20150630093159.GH28334@codeblueprint.co.uk>
-References: <1435579602-6612-1-git-send-email-matt@codeblueprint.co.uk>
- <20150629131305.GB13113@pd.tnic>
- <20150629140022.GA22374@x>
- <20150629141724.GG12383@pd.tnic>
- <20150629144940.GF28334@codeblueprint.co.uk>
- <20150629154458.GH12383@pd.tnic>
- <20150629163553.GB1348@cloud>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: da2bc1b9db3351addd293e5b82757efe1f77ed1d breaks hibernation was
+ Re: 4.1-rc7, thinkpad X60: platform mode hibernation does very wrongthing
+Date: Tue, 30 Jun 2015 11:44:55 +0200
+Message-ID: <20150630094455.GA11558@amd>
+References: <20150617121352.GA20553@amd>
+ <7336539.OpACL0uN6J@vostro.rjw.lan>
+ <20150617123333.GA21389@amd>
+ <2490787.R6LzZId8tR@vostro.rjw.lan>
+ <20150617131608.GA24030@amd>
+ <1434549754.2400.5.camel@x220>
+ <20150617151800.GA12312@amd>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:33734 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751643AbbF3JcD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Jun 2015 05:32:03 -0400
-Received: by wiwl6 with SMTP id l6so125497179wiw.0
-        for <linux-acpi@vger.kernel.org>; Tue, 30 Jun 2015 02:32:02 -0700 (PDT)
+Return-path: <linux-pm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150629163553.GB1348@cloud>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <20150617151800.GA12312@amd>
+Sender: linux-pm-owner@vger.kernel.org
+To: Paul Bolle <pebolle@tiscali.nl>, imre.deak@intel.com, ville.syrjala@linux.intel.com, daniel.vetter@ffwll.ch, Linus Torvalds <torvalds@linux-foundation.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linus <linus_torvalds@foxmail.com>, lenb <lenb@kernel.org>, kernel list <linux-kernel@vger.kernel.org>, linux-acpi <linux-acpi@vger.kernel.org>, linux-pm <linux-pm@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: josh@joshtriplett.org
-Cc: Borislav Petkov <bp@alien8.de>, Tom Yan <tom.ty89@gmail.com>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-efi@vger.kernel.org, linux-acpi@vger.kernel.org, Matt Fleming <matt.fleming@intel.com>
 
-On Mon, 29 Jun, at 09:35:53AM, Josh Triplett wrote:
-> On Mon, Jun 29, 2015 at 05:44:58PM +0200, Borislav Petkov wrote:
-> > On Mon, Jun 29, 2015 at 03:49:40PM +0100, Matt Fleming wrote:
-> > > It still makes sense to have the error message because the kernel
-> > > literally does not know what the firmware is trying to achieve by
-> > > setting those bits.
-> > > 
-> > > But I agree with Josh that for the specific case of "reserved bits",
-> > > FW_BUG is wrong, because if in some future version of the spec those
-> > > bits get used, seeing,
-> > > 
-> > >   "[Firmware Bug]: Ignoring BGRT: reserved bits are non-zero 0x3"
-> > 
-> > I still don't see what that message brings if some kernel complains that
-> > some bits are !0 then. Are they valid bits which the kernel doesn't know
-> > about or are they erroneously set and reserved. This, IMHO, is confusing
-> > because the error message is not correct in all cases.
-> > 
-> > Thus my suggestion to either check the spec version before looking at
-> > the bits or find out in some other way which bits are defined and which
-> > are reserved and warn only about the reserved ones which are 1b.
+Hi!
+
+> > And this all reminded me of https://lkml.org/lkml/2015/3/18/133 . So I
+> > think that's another system not covered by commit ab3be73fa7b4
+> > ("drm/i915: gen4: work around hang during hibernation").
 > 
-> The version is already checked *before* the status bits: if the version
-> is not 1, the kernel stops there and ignores the BGRT, before printing a
-> message about status.
+> Yes, another system broken by
+> 
+> commit da2bc1b9db3351addd293e5b82757efe1f77ed1d
+> Author: Imre Deak <imre.deak@intel.com>
+> Date:   Thu Oct 23 19:23:26 2014 +0300
 
-If we're performing version[1] checks then I think it's fair game to use
-FW_BUG, since these bits are reserved for that version.
+Imre, your patch already broken 3 machines, and now we discovered it
+breakes another. Can you please revert it before it causes more
+damage?
 
-[1] Note the version of the BGRT table is checked, not the ACPI spec
-version, and it's not clear which would get a bump if new bits were
-defined for the 'status' field. Historically, new bits have been added
-to the EFI memory map without bumping the expected "memory descriptor"
-version - a spec version update was considered to be sufficient (see
-EFI_MEMORY_RO).
+Thanks,
+									Pavel
+
+
+>     drm/i915: add poweroff_late handler
+> 
+>     The suspend_late handler saves some registers and powers off the
+>     device,
+>         so it doesn't have a big overhead. Calling it at S4
+>     poweroff_late time
+>         makes the power off handling identical to the S3 suspend and
+>     S4 freeze
+>         handling, so do this for consistency.
+> 	
+> 
+> And no, adding another system to the "blacklist" is a not good idea,
+> because we know there are other broken systems out there. Can we
+> revert da2bc1b9db3351addd293e5b82757efe1f77ed1d, please? Consistency
+> is nice, but not having regressions is even nicer.
+> 									Pavel
+> 									
+> PS: Now I have real Linus and fake Linus on the Cc list. Or maybe two
+> real Linuses, its hard to tell.
+> 
 
 -- 
-Matt Fleming, Intel Open Source Technology Center
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
