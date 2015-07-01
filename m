@@ -1,103 +1,121 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 01/12] device: property: delay device-driver matches
-Date: Thu, 02 Jul 2015 01:29:59 +0200
-Message-ID: <17310138.6IxCgARibq@vostro.rjw.lan>
-References: <1435743667-11987-1-git-send-email-tomeu.vizoso@collabora.com> <1435743667-11987-2-git-send-email-tomeu.vizoso@collabora.com>
+Subject: Re: [PATCH v1 04/10] device property: add fwnode_get_parent()
+Date: Thu, 02 Jul 2015 01:38 +0200
+Message-ID: <2793969.faR48RUkvm@vostro.rjw.lan>
+References: <1435676108-20590-1-git-send-email-tomeu.vizoso@collabora.com> <1435676108-20590-5-git-send-email-tomeu.vizoso@collabora.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pwm-owner@vger.kernel.org>
-In-Reply-To: <1435743667-11987-2-git-send-email-tomeu.vizoso@collabora.com>
-Sender: linux-pwm-owner@vger.kernel.org
-To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Cc: linux-kernel@vger.kernel.org, Mark Brown <broonie@kernel.org>, linux-acpi@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org, linux-gpio@vger.kernel.org, devicetree@vger.kernel.org, linux-pwm@vger.kernel.org, alsa-devel@alsa-project.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:48898 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1750793AbbGAXLk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Jul 2015 19:11:40 -0400
+In-Reply-To: <1435676108-20590-5-git-send-email-tomeu.vizoso@collabora.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Cc: linux-kernel@vger.kernel.org, Mark Brown <broonie@kernel.org>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, devel@acpica.org
 
-On Wednesday, July 01, 2015 11:40:56 AM Tomeu Vizoso wrote:
-> Delay matches of platform devices until late_initcall, when we are sure
-> that all built-in drivers have been registered already. This is needed
-> to prevent deferred probes because of some dependencies' drivers not
-> having registered yet.
+On Tuesday, June 30, 2015 04:55:02 PM Tomeu Vizoso wrote:
+> So we can query the parent of a fwnode without having to resort to API
+> that is specific to a firmware data format.
 > 
-> This reduces the total amount of work that the kernel does during boot
-> because it won't try to match devices to drivers when built-in drivers
-> are still registering but also reduces some parallelism, so total boot
-> time might slightly increase or decrease depending on the platform and
-> kernel configuration.
+> Also adds a acpi_get_parent_dev() function to retrieve the parent
+> of an acpi_device. acpi_get_parent() already existed but it works with
+> acpi_handles.
 > 
-> This change will make make possible to prevent any deferred probes once
-> devices are probed in dependency order.
+> The interface covers both ACPI and Device Trees.
 > 
 > Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+
+This one looks good to me.
+
+
 > ---
 > 
-> Changes in v2:
-> - Instead of delaying all probes until late_initcall, only delay matches
->   of platform devices that have a firmware node attached.
-> 
->  drivers/base/property.c | 29 +++++++++++++++++++++++++++++
->  1 file changed, 29 insertions(+)
+>  drivers/base/property.c  | 23 +++++++++++++++++++++++
+>  include/acpi/acpi_bus.h  |  5 +++++
+>  include/linux/acpi.h     |  5 +++++
+>  include/linux/property.h |  2 ++
+>  4 files changed, 35 insertions(+)
 > 
 > diff --git a/drivers/base/property.c b/drivers/base/property.c
-> index 8528eb9..8ead1ba 100644
+> index f3f6d16..a7fb46b 100644
 > --- a/drivers/base/property.c
 > +++ b/drivers/base/property.c
-> @@ -16,8 +16,11 @@
->  #include <linux/of.h>
->  #include <linux/of_address.h>
->  #include <linux/of_device.h>
-> +#include <linux/platform_device.h>
->  #include <linux/property.h>
->  
-> +static bool fwnode_match_enable = false;
-> +
->  /**
->   * device_add_property_set - Add a collection of properties to a device object.
->   * @dev: Device to add properties to.
-> @@ -604,6 +607,15 @@ EXPORT_SYMBOL_GPL(fwnode_is_compatible);
->  bool fwnode_driver_match_device(struct device *dev,
->  				const struct device_driver *drv)
->  {
-> +	/*
-> +	 * Delay matches of platform devices until late_initcall, when we are
-> +	 * sure that all built-in drivers have been registered already. This
-> +	 * is needed to prevent deferred probes because of some drivers
-> +	 * not having registered yet.
-> +	 */
-> +	if(dev->bus == &platform_bus_type && !fwnode_match_enable)
-> +		return false;
-
-I'm not particularly enthusiastic about referring to specific bus types in
-generic code like that.
-
-What about having a special version of fwnode_driver_match_device() specifically
-for the platform bus type that will do the check?
-
-> +
->  	if (is_of_node(dev->fwnode))
->  		return of_driver_match_device(dev, drv);
->  	else if (is_acpi_node(dev->fwnode))
-> @@ -612,3 +624,20 @@ bool fwnode_driver_match_device(struct device *dev,
->  	return false;
+> @@ -533,3 +533,26 @@ bool device_dma_is_coherent(struct device *dev)
+>  	return coherent;
 >  }
->  EXPORT_SYMBOL_GPL(fwnode_driver_match_device);
+>  EXPORT_SYMBOL_GPL(device_dma_is_coherent);
 > +
-> +static int __device_attach(struct device *dev, void *data)
+> +/**
+> + * fwnode_get_parent - return the parent node of a device node
+> + * @fwnode: Device node to find the parent node of
+> + */
+> +struct fwnode_handle *fwnode_get_parent(struct fwnode_handle *fwnode)
 > +{
-> +	device_initial_probe(dev);
+> +	if (is_of_node(fwnode)) {
+> +		struct device_node *node = to_of_node(fwnode);
 > +
-> +	return 0;
+> +		if (node->parent)
+> +			return &node->parent->fwnode;
+> +	} else if (is_acpi_node(fwnode)) {
+> +		struct acpi_device *node;
+> +
+> +		node = acpi_get_parent_dev(to_acpi_node(fwnode));
+> +		if (node)
+> +			return acpi_fwnode_handle(node);
+> +	}
+> +
+> +	return NULL;
+> +}
+> +EXPORT_SYMBOL_GPL(fwnode_get_parent);
+> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> index 83061ca..93c42a6 100644
+> --- a/include/acpi/acpi_bus.h
+> +++ b/include/acpi/acpi_bus.h
+> @@ -436,6 +436,11 @@ static inline void *acpi_driver_data(struct acpi_device *d)
+>  	return d->driver_data;
+>  }
+>  
+> +static inline struct acpi_device *acpi_get_parent_dev(struct acpi_device *adev)
+> +{
+> +	return adev->parent;
 > +}
 > +
-> +static int fwnode_match_initcall(void)
+>  #define to_acpi_device(d)	container_of(d, struct acpi_device, dev)
+>  #define to_acpi_driver(d)	container_of(d, struct acpi_driver, drv)
+>  
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index ed79b06..fc84e42 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -804,6 +804,11 @@ static inline struct acpi_device *acpi_get_next_child(struct device *dev,
+>  	return NULL;
+>  }
+>  
+> +static inline struct acpi_device *acpi_get_parent_dev(struct acpi_device *adev)
 > +{
-> +	fwnode_match_enable = true;
-> +
-> +	bus_for_each_dev(&platform_bus_type, NULL, NULL, __device_attach);
-> +
-> +	return 0;
+> +	return NULL;
 > +}
-> +late_initcall(fwnode_match_initcall);
+> +
+>  #endif
+>  
+>  #endif	/*_LINUX_ACPI_H*/
+> diff --git a/include/linux/property.h b/include/linux/property.h
+> index 76ebde9..f47092d 100644
+> --- a/include/linux/property.h
+> +++ b/include/linux/property.h
+> @@ -63,6 +63,8 @@ int fwnode_property_read_string(struct fwnode_handle *fwnode,
+>  struct fwnode_handle *device_get_next_child_node(struct device *dev,
+>  						 struct fwnode_handle *child);
+>  
+> +struct fwnode_handle *fwnode_get_parent(struct fwnode_handle *fwnode);
+> +
+>  #define device_for_each_child_node(dev, child) \
+>  	for (child = device_get_next_child_node(dev, NULL); child; \
+>  	     child = device_get_next_child_node(dev, child))
 > 
 
 -- 
