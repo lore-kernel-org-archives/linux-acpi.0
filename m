@@ -1,13 +1,13 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v3 23/26] ACPICA: Update definitions for the TCPA and TPM2 ACPI tables.
-Date: Wed,  1 Jul 2015 14:45:25 +0800
-Message-ID: <7669b04226824fc8c3a9ebaa38fcbbbacbd59e6d.1435731597.git.lv.zheng@intel.com>
+Subject: [PATCH v3 22/26] ACPICA: Split C library prototypes to new header.
+Date: Wed,  1 Jul 2015 14:45:18 +0800
+Message-ID: <c311714784f666f46e254bb15e55a5f1b4d5c581.1435731597.git.lv.zheng@intel.com>
 References: <cover.1434684719.git.lv.zheng@intel.com> <cover.1435731597.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:51782 "EHLO mga01.intel.com"
+Received: from mga14.intel.com ([192.55.52.115]:28704 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753626AbbGAGpc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 1 Jul 2015 02:45:32 -0400
+	id S1753618AbbGAGp0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 1 Jul 2015 02:45:26 -0400
 In-Reply-To: <cover.1435731597.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -16,202 +16,102 @@ Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vg
 
 From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit 33140b4498666337dd33a00cf3c4797a53981a7b
+ACPICA commit f51bf8497889a94046820639537165bbd7ccdee6
 
-Changes for a new version of the 3rd party spec for these tables,
-the "TCG ACPI Specification", December 14, 2014. Also, moved the
-definition of TPM2 to actbl2.h, next to TCPA, since both should
-be together.
+Adds acclib.h
 
-Update the table compiler/disassembler code for the tables.
-However, the "Server" TCPA table is not supported at this time.
+This patch doesn't affect Linux kernel.
 
-Link: https://github.com/acpica/acpica/commit/33140b44
-Reported-by: Jarkko Sakkinen <jarkko.sakkinen@linux.intel.com>
+Link: https://github.com/acpica/acpica/commit/f51bf849
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- include/acpi/actbl2.h |   86 +++++++++++++++++++++++++++++++++++++++++++++----
- include/acpi/actbl3.h |   34 ++-----------------
- 2 files changed, 81 insertions(+), 39 deletions(-)
+ drivers/acpi/acpica/accommon.h |    3 +++
+ drivers/acpi/acpica/acutils.h  |   58 ----------------------------------------
+ 2 files changed, 3 insertions(+), 58 deletions(-)
 
-diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
-index 370d69d..2a9dcc1 100644
---- a/include/acpi/actbl2.h
-+++ b/include/acpi/actbl2.h
-@@ -51,8 +51,8 @@
-  * These tables are not consumed directly by the ACPICA subsystem, but are
-  * included here to support device drivers and the AML disassembler.
-  *
-- * The tables in this file are defined by third-party specifications, and are
-- * not defined directly by the ACPI specification itself.
-+ * Generally, the tables in this file are defined by third-party specifications,
-+ * and are not defined directly by the ACPI specification itself.
-  *
-  ******************************************************************************/
+diff --git a/drivers/acpi/acpica/accommon.h b/drivers/acpi/acpica/accommon.h
+index 853aa2d..a8d8092 100644
+--- a/drivers/acpi/acpica/accommon.h
++++ b/drivers/acpi/acpica/accommon.h
+@@ -59,5 +59,8 @@
+ #include "acglobal.h"		/* All global variables */
+ #include "achware.h"		/* Hardware defines and interfaces */
+ #include "acutils.h"		/* Utility interfaces */
++#ifndef ACPI_USE_SYSTEM_CLIBRARY
++#include "acclib.h"		/* C library interfaces */
++#endif				/* !ACPI_USE_SYSTEM_CLIBRARY */
  
-@@ -80,6 +80,7 @@
- #define ACPI_SIG_SPCR           "SPCR"	/* Serial Port Console Redirection table */
- #define ACPI_SIG_SPMI           "SPMI"	/* Server Platform Management Interface table */
- #define ACPI_SIG_TCPA           "TCPA"	/* Trusted Computing Platform Alliance table */
-+#define ACPI_SIG_TPM2           "TPM2"	/* Trusted Platform Module 2.0 H/W interface table */
- #define ACPI_SIG_UEFI           "UEFI"	/* Uefi Boot Optimization Table */
- #define ACPI_SIG_VRTC           "VRTC"	/* Virtual Real Time Clock Table */
- #define ACPI_SIG_WAET           "WAET"	/* Windows ACPI Emulated devices Table */
-@@ -1179,18 +1180,89 @@ enum acpi_spmi_interface_types {
- /*******************************************************************************
-  *
-  * TCPA - Trusted Computing Platform Alliance table
-- *        Version 1
-+ *        Version 2
-+ *
-+ * Conforms to "TCG ACPI Specification, Family 1.2 and 2.0",
-+ * December 19, 2014
-  *
-- * Conforms to "TCG PC Specific Implementation Specification",
-- * Version 1.1, August 18, 2003
-+ * NOTE: There are two versions of the table with the same signature --
-+ * the client version and the server version.
-  *
-  ******************************************************************************/
+ #endif				/* __ACCOMMON_H__ */
+diff --git a/drivers/acpi/acpica/acutils.h b/drivers/acpi/acpica/acutils.h
+index ef1e51d..6de0d35 100644
+--- a/drivers/acpi/acpica/acutils.h
++++ b/drivers/acpi/acpica/acutils.h
+@@ -205,64 +205,6 @@ acpi_status acpi_ut_hardware_initialize(void);
  
--struct acpi_table_tcpa {
-+struct acpi_table_tcpa_client {
-+	struct acpi_table_header header;	/* Common ACPI table header */
-+	u16 platform_class;
-+	u32 minimum_log_length;	/* Minimum length for the event log area */
-+	u64 log_address;	/* Address of the event log area */
-+};
-+
-+struct acpi_table_tcpa_server {
- 	struct acpi_table_header header;	/* Common ACPI table header */
-+	u16 platform_class;
- 	u16 reserved;
--	u32 max_log_length;	/* Maximum length for the event log area */
-+	u64 minimum_log_length;	/* Minimum length for the event log area */
- 	u64 log_address;	/* Address of the event log area */
-+	u16 spec_revision;
-+	u8 device_flags;
-+	u8 interrupt_flags;
-+	u8 gpe_number;
-+	u8 reserved2[3];
-+	u32 global_interrupt;
-+	struct acpi_generic_address address;
-+	u32 reserved3;
-+	struct acpi_generic_address config_address;
-+	u8 group;
-+	u8 bus;			/* PCI Bus/Segment/Function numbers */
-+	u8 device;
-+	u8 function;
-+};
-+
-+/* Values for device_flags above */
-+
-+#define ACPI_TCPA_PCI_DEVICE            (1)
-+#define ACPI_TCPA_BUS_PNP               (1<<1)
-+#define ACPI_TCPA_ADDRESS_VALID         (1<<2)
-+
-+/* Values for interrupt_flags above */
-+
-+#define ACPI_TCPA_INTERRUPT_MODE        (1)
-+#define ACPI_TCPA_INTERRUPT_POLARITY    (1<<1)
-+#define ACPI_TCPA_SCI_VIA_GPE           (1<<2)
-+#define ACPI_TCPA_GLOBAL_INTERRUPT      (1<<3)
-+
-+/*******************************************************************************
-+ *
-+ * TPM2 - Trusted Platform Module (TPM) 2.0 Hardware Interface Table
-+ *        Version 4
-+ *
-+ * Conforms to "TCG ACPI Specification, Family 1.2 and 2.0",
-+ * December 19, 2014
-+ *
-+ ******************************************************************************/
-+
-+struct acpi_table_tpm2 {
-+	struct acpi_table_header header;	/* Common ACPI table header */
-+	u16 platform_class;
-+	u16 reserved;
-+	u64 control_address;
-+	u32 start_method;
-+
-+	/* Platform-specific data follows */
-+};
-+
-+/* Control area structure (not part of table, pointed to by control_address) */
-+
-+struct acpi_tpm2_control {
-+	u32 reserved;
-+	u32 error;
-+	u32 cancel;
-+	u32 start;
-+	u64 interrupt_control;
-+	u32 command_size;
-+	u64 command_address;
-+	u32 response_size;
-+	u64 response_address;
- };
+ void acpi_ut_subsystem_shutdown(void);
  
- /*******************************************************************************
-diff --git a/include/acpi/actbl3.h b/include/acpi/actbl3.h
-index 4018986..1df8916 100644
---- a/include/acpi/actbl3.h
-+++ b/include/acpi/actbl3.h
-@@ -51,7 +51,8 @@
-  * These tables are not consumed directly by the ACPICA subsystem, but are
-  * included here to support device drivers and the AML disassembler.
-  *
-- * The tables in this file are fully defined within the ACPI specification.
-+ * In general, the tables in this file are fully defined within the ACPI
-+ * specification.
-  *
-  ******************************************************************************/
- 
-@@ -69,7 +70,6 @@
- #define ACPI_SIG_PMTT           "PMTT"	/* Platform Memory Topology Table */
- #define ACPI_SIG_RASF           "RASF"	/* RAS Feature table */
- #define ACPI_SIG_STAO           "STAO"	/* Status Override table */
--#define ACPI_SIG_TPM2           "TPM2"	/* Trusted Platform Module 2.0 H/W interface table */
- #define ACPI_SIG_WPBT           "WPBT"	/* Windows Platform Binary Table */
- #define ACPI_SIG_XENV           "XENV"	/* Xen Environment table */
- 
-@@ -722,36 +722,6 @@ struct acpi_table_stao {
- 
- /*******************************************************************************
-  *
-- * TPM2 - Trusted Platform Module (TPM) 2.0 Hardware Interface Table
-- *        Version 3
-- *
-- * Conforms to "TPM 2.0 Hardware Interface Table (TPM2)" 29 November 2011
-- *
-- ******************************************************************************/
+-/*
+- * utclib - Local implementations of C library functions
+- */
+-#ifndef ACPI_USE_SYSTEM_CLIBRARY
 -
--struct acpi_table_tpm2 {
--	struct acpi_table_header header;	/* Common ACPI table header */
--	u32 flags;
--	u64 control_address;
--	u32 start_method;
--};
+-acpi_size strlen(const char *string);
 -
--/* Control area structure (not part of table, pointed to by control_address) */
+-char *strchr(const char *string, int ch);
 -
--struct acpi_tpm2_control {
--	u32 reserved;
--	u32 error;
--	u32 cancel;
--	u32 start;
--	u64 interrupt_control;
--	u32 command_size;
--	u64 command_address;
--	u32 response_size;
--	u64 response_address;
--};
+-char *strcpy(char *dst_string, const char *src_string);
 -
--/*******************************************************************************
-- *
-  * WPBT - Windows Platform Environment Table (ACPI 6.0)
-  *        Version 1
-  *
+-char *strncpy(char *dst_string, const char *src_string, acpi_size count);
+-
+-int strncmp(const char *string1, const char *string2, acpi_size count);
+-
+-int strcmp(const char *string1, const char *string2);
+-
+-char *strcat(char *dst_string, const char *src_string);
+-
+-char *strncat(char *dst_string, const char *src_string, acpi_size count);
+-
+-u32 strtoul(const char *string, char **terminator, u32 base);
+-
+-char *strstr(char *string1, char *string2);
+-
+-int memcmp(void *buffer1, void *buffer2, acpi_size count);
+-
+-void *memcpy(void *dest, const void *src, acpi_size count);
+-
+-void *memset(void *dest, int value, acpi_size count);
+-
+-int toupper(int c);
+-
+-int tolower(int c);
+-
+-extern const u8 _acpi_ctype[];
+-
+-#define _ACPI_XA     0x00	/* extra alphabetic - not supported */
+-#define _ACPI_XS     0x40	/* extra space */
+-#define _ACPI_BB     0x00	/* BEL, BS, etc. - not supported */
+-#define _ACPI_CN     0x20	/* CR, FF, HT, NL, VT */
+-#define _ACPI_DI     0x04	/* '0'-'9' */
+-#define _ACPI_LO     0x02	/* 'a'-'z' */
+-#define _ACPI_PU     0x10	/* punctuation */
+-#define _ACPI_SP     0x08	/* space, tab, CR, LF, VT, FF */
+-#define _ACPI_UP     0x01	/* 'A'-'Z' */
+-#define _ACPI_XD     0x80	/* '0'-'9', 'A'-'F', 'a'-'f' */
+-
+-#define isdigit(c)  (_acpi_ctype[(unsigned char)(c)] & (_ACPI_DI))
+-#define isspace(c)  (_acpi_ctype[(unsigned char)(c)] & (_ACPI_SP))
+-#define isxdigit(c) (_acpi_ctype[(unsigned char)(c)] & (_ACPI_XD))
+-#define isupper(c)  (_acpi_ctype[(unsigned char)(c)] & (_ACPI_UP))
+-#define islower(c)  (_acpi_ctype[(unsigned char)(c)] & (_ACPI_LO))
+-#define isprint(c)  (_acpi_ctype[(unsigned char)(c)] & (_ACPI_LO | _ACPI_UP | _ACPI_DI | _ACPI_XS | _ACPI_PU))
+-#define isalpha(c)  (_acpi_ctype[(unsigned char)(c)] & (_ACPI_LO | _ACPI_UP))
+-
+-#endif				/* !ACPI_USE_SYSTEM_CLIBRARY */
+-
+ #define ACPI_IS_ASCII(c)  ((c) < 0x80)
+ 
+ /*
 -- 
 1.7.10
 
