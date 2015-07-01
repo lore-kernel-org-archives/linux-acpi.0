@@ -1,56 +1,44 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v3 12/26] ACPICA: ACPI 6.0: Add values for MADT GIC version field.
-Date: Wed,  1 Jul 2015 14:44:10 +0800
-Message-ID: <551c6e6c5a36225afee1a5e65d4932ed5a06a538.1435731597.git.lv.zheng@intel.com>
+Subject: [PATCH v3 16/26] ACPICA: Update for acpi_install_table memory types.
+Date: Wed,  1 Jul 2015 14:44:37 +0800
+Message-ID: <1110b0fd4d46750d1958d7410fe9172f17907976.1435731597.git.lv.zheng@intel.com>
 References: <cover.1434684719.git.lv.zheng@intel.com> <cover.1435731597.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:43606 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751092AbbGAGof (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 1 Jul 2015 02:44:35 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1435731597.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Bob Moore <robert.moore@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Bob Moore <robert.moore@intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
-From: Hanjun Guo <hanjun.guo@linaro.org>
+From: Zhang Rui <rui.zhang@intel.com>
 
-ACPICA commit 4b100dc43e8baee8c8b4891b23bc7ad03eba6a28
+ACPICA commit 3f78b7fb3f98f35d62f532c1891deb748ad196c9
 
-Support for the new version field in the generic distributor
-subtable. Hanjun Guo <hanjun.guo@linaro.org>
+Physical/virtual address flags were reversed.
 
-Link: https://github.com/acpica/acpica/commit/4b100dc4
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-Signed-off-by: Bob Moore <robert.moore@intel.com>
+Link: https://github.com/acpica/acpica/commit/3f78b7fb
+Signed-off-by: Zhang Rui <rui.zhang@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- include/acpi/actbl1.h |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+ drivers/acpi/acpica/tbxfload.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
-index 06b61f0..fcd5709 100644
---- a/include/acpi/actbl1.h
-+++ b/include/acpi/actbl1.h
-@@ -835,6 +835,17 @@ struct acpi_madt_generic_distributor {
- 	u8 reserved2[3];	/* reserved - must be zero */
- };
+diff --git a/drivers/acpi/acpica/tbxfload.c b/drivers/acpi/acpica/tbxfload.c
+index 960bd99..cf56e18 100644
+--- a/drivers/acpi/acpica/tbxfload.c
++++ b/drivers/acpi/acpica/tbxfload.c
+@@ -224,9 +224,9 @@ acpi_install_table(acpi_physical_address address, u8 physical)
+ 	ACPI_FUNCTION_TRACE(acpi_install_table);
  
-+/* Values for Version field above */
-+
-+enum acpi_madt_gic_version {
-+	ACPI_MADT_GIC_VERSION_NONE = 0,
-+	ACPI_MADT_GIC_VERSION_V1 = 1,
-+	ACPI_MADT_GIC_VERSION_V2 = 2,
-+	ACPI_MADT_GIC_VERSION_V3 = 3,
-+	ACPI_MADT_GIC_VERSION_V4 = 4,
-+	ACPI_MADT_GIC_VERSION_RESERVED = 5	/* 5 and greater are reserved */
-+};
-+
- /* 13: Generic MSI Frame (ACPI 5.1) */
+ 	if (physical) {
+-		flags = ACPI_TABLE_ORIGIN_EXTERNAL_VIRTUAL;
+-	} else {
+ 		flags = ACPI_TABLE_ORIGIN_INTERNAL_PHYSICAL;
++	} else {
++		flags = ACPI_TABLE_ORIGIN_EXTERNAL_VIRTUAL;
+ 	}
  
- struct acpi_madt_generic_msi_frame {
+ 	status = acpi_tb_install_standard_table(address, flags,
 -- 
 1.7.10
-
