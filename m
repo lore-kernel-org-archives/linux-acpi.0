@@ -1,66 +1,86 @@
-From: "Williams, Dan J" <dan.j.williams@intel.com>
-Subject: Re: libnvdimm, nfit, nd_blk: driver for BLK-mode access persistent
- memory
-Date: Tue, 30 Jun 2015 23:07:37 +0000
-Message-ID: <1435705653.18090.69.camel@intel.com>
-References: <20150630174222.GA30796@mwanda>
+From: Hanjun Guo <guohanjun@huawei.com>
+Subject: Re: [PATCH v2 0/3] Correct for ACPI 5.1->6.0 spec changes in MADT
+ GICC entries
+Date: Wed, 1 Jul 2015 10:06:53 +0800
+Message-ID: <55934B3D.6060106@huawei.com>
+References: <1434666968-1543-1-git-send-email-al.stone@linaro.org>	<5592CCE6.6040604@arm.com>	<5592D1FF.7040208@redhat.com>	<CAJZ5v0gF6JZ8uVNMnro0bdD0g+QMoTeEzB99j6RcKUt3LjmiXw@mail.gmail.com> <CAJZ5v0hea5xJL3p1L=-Z1azP2wfx8Mu113JC8SgPwP06c58mQg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:51313 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751136AbbF3XHl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 30 Jun 2015 19:07:41 -0400
-In-Reply-To: <20150630174222.GA30796@mwanda>
-Content-Language: en-US
-Content-ID: <9382273C7D91B9489F613F54FC953B4A@intel.com>
+Received: from szxga03-in.huawei.com ([119.145.14.66]:54288 "EHLO
+	szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752983AbbGACH1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 30 Jun 2015 22:07:27 -0400
+In-Reply-To: <CAJZ5v0hea5xJL3p1L=-Z1azP2wfx8Mu113JC8SgPwP06c58mQg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "dan.carpenter@oracle.com" <dan.carpenter@oracle.com>
-Cc: "ross.zwisler@linux.intel.com" <ross.zwisler@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-nvdimm@ml01.01.org" <linux-nvdimm@ml01.01.org>
+To: "Rafael J. Wysocki" <rafael@kernel.org>, Al Stone <ahs3@redhat.com>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, Al Stone <al.stone@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, "tglx@linutronix.de" <tglx@linutronix.de>, "jason@lakedaemon.net" <jason@lakedaemon.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, "patches@linaro.org" <patches@linaro.org>
 
-T24gVHVlLCAyMDE1LTA2LTMwIGF0IDIwOjQyICswMzAwLCBEYW4gQ2FycGVudGVyIHdyb3RlOg0K
-PiBIZWxsbyBSb3NzIFp3aXNsZXIsDQo+IA0KPiBUaGlzIGlzIGEgc2VtaS1hdXRvbWF0aWMgZW1h
-aWwgYWJvdXQgbmV3IHN0YXRpYyBjaGVja2VyIHdhcm5pbmdzLg0KPiANCj4gVGhlIHBhdGNoIDA0
-N2ZjOGExZjlhNjogImxpYm52ZGltbSwgbmZpdCwgbmRfYmxrOiBkcml2ZXIgZm9yIEJMSy1tb2Rl
-IA0KPiBhY2Nlc3MgcGVyc2lzdGVudCBtZW1vcnkiIGZyb20gSnVuIDI1LCAyMDE1LCBsZWFkcyB0
-byB0aGUgZm9sbG93aW5nIA0KPiBTbWF0Y2ggY29tcGxhaW50Og0KPiANCj4gZHJpdmVycy9hY3Bp
-L25maXQuYzoxMjI0IGFjcGlfbmZpdF9ibGtfcmVnaW9uX2VuYWJsZSgpDQo+IAkgZXJyb3I6IHdl
-IHByZXZpb3VzbHkgYXNzdW1lZCAnbmZpdF9tZW0nIGNvdWxkIGJlIG51bGwgKHNlZSBsaW5lIDEy
-MjMpDQo+IA0KPiBkcml2ZXJzL2FjcGkvbmZpdC5jDQo+ICAgMTIyMgkJbmZpdF9tZW0gPSBudmRp
-bW1fcHJvdmlkZXJfZGF0YShudmRpbW0pOw0KPiAgIDEyMjMJCWlmICghbmZpdF9tZW0gfHwgIW5m
-aXRfbWVtLT5kY3IgfHwgIW5maXRfbWVtLT5iZHcpIHsNCj4gICAgICAgICAgICAgICAgICAgICAg
-Xl5eXl5eXl4NCj4gQ2hlY2suDQo+IA0KPiAgIDEyMjQJCQlkZXZfZGJnKGRldiwgIiVzOiBtaXNz
-aW5nJXMlcyVzXG4iLCBfX2Z1bmNfXywNCj4gICAxMjI1CQkJCQluZml0X21lbSA/ICIiIDogIiBu
-Zml0X21lbSIsDQo+ICAgMTIyNgkJCQkJbmZpdF9tZW0tPmRjciA/ICIiIDogIiBkY3IiLA0KPiAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgXl5eXl5eXl5eXl5eXg0KPiBV
-bmNoZWNrZWQgZGVyZWZlcmVuY2UuDQoNClRoYW5rcyBEYW4hDQoNCjg8LS0tLS0NCm5maXQ6IGZp
-eCBzbWF0Y2ggInVzZSBhZnRlciBudWxsIGNoZWNrIiByZXBvcnQNCg0KRnJvbTogRGFuIFdpbGxp
-YW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+DQoNCmRyaXZlcnMvYWNwaS9uZml0LmM6MTIy
-NCBhY3BpX25maXRfYmxrX3JlZ2lvbl9lbmFibGUoKQ0KICAgICAgICAgZXJyb3I6IHdlIHByZXZp
-b3VzbHkgYXNzdW1lZCAnbmZpdF9tZW0nIGNvdWxkIGJlIG51bGwgKHNlZSBsaW5lIDEyMjMpDQoN
-CmRyaXZlcnMvYWNwaS9uZml0LmMNCiAgMTIyMiAgICAgICAgICBuZml0X21lbSA9IG52ZGltbV9w
-cm92aWRlcl9kYXRhKG52ZGltbSk7DQogIDEyMjMgICAgICAgICAgaWYgKCFuZml0X21lbSB8fCAh
-bmZpdF9tZW0tPmRjciB8fCAhbmZpdF9tZW0tPmJkdykgew0KICAgICAgICAgICAgICAgICAgICAg
-Xl5eXl5eXl4NCkNoZWNrLg0KDQogIDEyMjQgICAgICAgICAgICAgICAgICBkZXZfZGJnKGRldiwg
-IiVzOiBtaXNzaW5nJXMlcyVzXG4iLCBfX2Z1bmNfXywNCiAgMTIyNSAgICAgICAgICAgICAgICAg
-ICAgICAgICAgICAgICAgICBuZml0X21lbSA/ICIiIDogIiBuZml0X21lbSIsDQogIDEyMjYgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgbmZpdF9tZW0tPmRjciA/ICIiIDogIiBkY3Ii
-LA0KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIF5eXl5eXl5eXl5eXl4N
-ClVuY2hlY2tlZCBkZXJlZmVyZW5jZS4NCg0KUmVwb3J0ZWQtYnk6IERhbiBDYXJwZW50ZXIgPGRh
-bi5jYXJwZW50ZXJAb3JhY2xlLmNvbT4NCkFja2VkLWJ5OiBSb3NzIFp3aXNsZXIgPHJvc3Muendp
-c2xlckBsaW51eC5pbnRlbC5jb20+DQpTaWduZWQtb2ZmLWJ5OiBEYW4gV2lsbGlhbXMgPGRhbi5q
-LndpbGxpYW1zQGludGVsLmNvbT4NCi0tLQ0KIGRyaXZlcnMvYWNwaS9uZml0LmMgfCAgICA0ICsr
-LS0NCiAxIGZpbGUgY2hhbmdlZCwgMiBpbnNlcnRpb25zKCspLCAyIGRlbGV0aW9ucygtKQ0KDQpk
-aWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL25maXQuYyBiL2RyaXZlcnMvYWNwaS9uZml0LmMNCmlu
-ZGV4IDIxNjFmYTE3OGM4ZC4uYTIwYjdjODgzY2EwIDEwMDY0NA0KLS0tIGEvZHJpdmVycy9hY3Bp
-L25maXQuYw0KKysrIGIvZHJpdmVycy9hY3BpL25maXQuYw0KQEAgLTEyMjMsOCArMTIyMyw4IEBA
-IHN0YXRpYyBpbnQgYWNwaV9uZml0X2Jsa19yZWdpb25fZW5hYmxlKHN0cnVjdCBudmRpbW1fYnVz
-ICpudmRpbW1fYnVzLA0KIAlpZiAoIW5maXRfbWVtIHx8ICFuZml0X21lbS0+ZGNyIHx8ICFuZml0
-X21lbS0+YmR3KSB7DQogCQlkZXZfZGJnKGRldiwgIiVzOiBtaXNzaW5nJXMlcyVzXG4iLCBfX2Z1
-bmNfXywNCiAJCQkJbmZpdF9tZW0gPyAiIiA6ICIgbmZpdF9tZW0iLA0KLQkJCQluZml0X21lbS0+
-ZGNyID8gIiIgOiAiIGRjciIsDQotCQkJCW5maXRfbWVtLT5iZHcgPyAiIiA6ICIgYmR3Iik7DQor
-CQkJCShuZml0X21lbSAmJiBuZml0X21lbS0+ZGNyKSA/ICIiIDogIiBkY3IiLA0KKwkJCQkobmZp
-dF9tZW0gJiYgbmZpdF9tZW0tPmJkdykgPyAiIiA6ICIgYmR3Iik7DQogCQlyZXR1cm4gLUVOWElP
-Ow0KIAl9DQogDQoNCg==
+On 2015/7/1 2:35, Rafael J. Wysocki wrote:
+> On Tue, Jun 30, 2015 at 8:25 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
+>> Hi Al,
+>>
+>> On Tue, Jun 30, 2015 at 7:29 PM, Al Stone <ahs3@redhat.com> wrote:
+>>> On 06/30/2015 11:07 AM, Sudeep Holla wrote:
+>>>> Hi Al,
+>>>>
+>>>> On 18/06/15 23:36, Al Stone wrote:
+>>>>> In the ACPI 5.1 version of the spec, the struct for the GICC subtable
+>>>>> (struct acpi_madt_generic_interrupt) of the MADT is 76 bytes long; in
+>>>>> ACPI 6.0, the struct is 80 bytes long.  But, there is only one definition
+>>>>> in ACPICA for this struct -- and that is the 6.0 version.  Hence, when
+>>>>> BAD_MADT_ENTRY() compares the struct size to the length in the GICC
+>>>>> subtable, it fails if 5.1 structs are in use, and there are systems in
+>>>>> the wild that have them.
+>>>>>
+>>>>> Note that this was found in linux-next and these patches apply against
+>>>>> that tree and the arm64 kernel tree; 4.1-rc8 does not appear to have this
+>>>>> problem since it still has the 5.1 struct definition.
+>>>>>
+>>>>> Even though there is precendent in ia64 code for ignoring the changes in
+>>>>> size, this patch set instead tries to verify correctness.  The first patch
+>>>>> in the set adds macros for easily using the ACPI spec version.  The second
+>>>>> patch adds the BAD_MADT_GICC_ENTRY() macro that uses the version macros to
+>>>>> check the GICC subtable only, accounting for the difference in specification
+>>>>> versions that are possible.  The final patch replaces BAD_MADT_ENTRY usage
+>>>>> with the BAD_MADT_GICC_ENTRY macro in arm64 code, which is currently the
+>>>>> only architecture affected.  The BAD_MADT_ENTRY() will continue to work as
+>>>>> is for all other MADT subtables.
+>>>>>
+>>>> We need to get this series or a patch to remove the check(similar to
+>>>> ia64) based on what Rafael prefers. Without that, platforms using ACPI
+>>>> on ARM64 fails to boot with latest mainline. This blocks any testing on
+>>>> ARM64/ACPI systems.
+>>>>
+>>>> Regards,
+>>>> Sudeep
+>>> I have not received any other feedback than some Reviewed-bys from
+>>> Hanjun and an ACK from Will for the arm64 patch.
+>>>
+>>> And absolutely agreed: this is a blocker for arm64/ACPI, starting with
+>>> the ACPICA 20150515 patches which appear to have gone in with 4.2-rc1.
+>>>
+>>> Rafael?  Ping?
+>> I overlooked the fact that this was needed to fix a recent regression,
+>> sorry about that.
+>>
+>> Actually, if your patch fixes an error introduced by a specific
+>> commit, it is good to use the Fixes: tag to indicate that.  Which I
+>> still would like to do, so which commit is fixed by this?
+>>
+>>> Do we need these to go through your tree or the arm64
+>>> tree?  Without this series (or an ia64-like solution), we have ACPI
+>>> systems in the field that cannot boot.
+>> I'm not quite sure why the definition of BAD_MADT_GICC_ENTRY has to go
+>> into include/linux/acpi.h.  Why is it necessary in there?
+> Like what about defining it in linux/irqchip/arm-gic-acpi.h for example?
+>
+
+This BAD_MADT_GICC_ENTRY is both used by SMP init and GIC irqchip init for
+ARM64, would it be good to put BAD_MADT_GICC_ENTRY in arch/arm64/include/asm/acpi.h?
+
+Thanks
+Hanjun
+
