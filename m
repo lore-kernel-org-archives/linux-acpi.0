@@ -1,54 +1,105 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v2 11/12] ASoC: tegra: register dependency parser for
- firmware nodes
-Date: Wed, 1 Jul 2015 18:38:02 +0100
-Message-ID: <20150701173802.GW11162@sirena.org.uk>
-References: <1435743667-11987-1-git-send-email-tomeu.vizoso@collabora.com>
- <1435743667-11987-12-git-send-email-tomeu.vizoso@collabora.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v3 00/26] ACPICA: 20150619 Release
+Date: Thu, 02 Jul 2015 01:14:36 +0200
+Message-ID: <2361328.v5Zb2Dbn0O@vostro.rjw.lan>
+References: <cover.1434684719.git.lv.zheng@intel.com> <cover.1435731597.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="TcuvTDpCAASXpu1W"
-Return-path: <linux-gpio-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1435743667-11987-12-git-send-email-tomeu.vizoso@collabora.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org, linux-gpio@vger.kernel.org, devicetree@vger.kernel.org, linux-pwm@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, alsa-devel@alsa-project.org, Jaroslav Kysela <perex@perex.cz>, Thierry Reding <thierry.reding@gmail.com>, Takashi Iwai <tiwai@suse.de>, Stephen Warren <swarren@wwwdotorg.org>, Liam Girdwood <lgirdwood@gmail.com>, linux-tegra@vger.kernel.org, Alexandre Courbot <gnurou@gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:55707 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1750793AbbGAWsR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Jul 2015 18:48:17 -0400
+In-Reply-To: <cover.1435731597.git.lv.zheng@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
+On Wednesday, July 01, 2015 02:42:39 PM Lv Zheng wrote:
+> The 20150619 ACPICA kernel-resident subsystem updates are linuxized based
+> on the linux-pm/linux-next branch.
+> 
+> The patchset has passed the following build/boot tests.
+> Build tests are performed as follows:
+> 1. i386 + default + COFNIG_ACPI=y
+> 2. i386 + allyes + CONFIG_ACPI=y
+> 3. i386 + default + COFNIG_ACPI=n
+> 4. i386 + allyes + CONFIG_ACPI=n
+> 5. x86_64 + default + COFNIG_ACPI=y
+> 6. x86_64 + allyes + CONFIG_ACPI=y
+> 7. x86_64 + default + COFNIG_ACPI=n
+> 8. x86_64 + allyes + CONFIG_ACPI=n
+> Boot tests are performed as follows:
+> 1. i386 + default + COFNIG_ACPI=y
+> 2. x86_64 + default + COFNIG_ACPI=y
+> Where:
+> 1. i386: machine named as "Dell Inspiron Mini 1010"
+> 2. x86_64: machine named as "HP Compaq 8200 Elite SFF PC"
+> 3. default: kernel configuration with following items enabled:
+>    All hardware drivers related to the machines of i386/x86_64
+>    All drivers/acpi configurations
+>    All platform drivers
+> 
+> The divergences checking result:
+> Before applying (20150515 Release):
+>   565 lines
+> After applying (20150619 Release):
+>   539 lines
+> 
+> Bob Moore (8):
+>   ACPICA: Namespace: Add support of OSDT table.
+>   ACPICA: Namespace: Change namespace override to avoid node deletion.
+>   ACPICA: Cleanup output for the ASL Debug object.
+>   ACPICA: De-macroize calls to standard C library functions.
+>   ACPICA: Split C library prototypes to new header.
+>   ACPICA: Update definitions for the TCPA and TPM2 ACPI tables.
+>   ACPICA: Update TPM2 ACPI table.
+>   ACPICA: Update version to 20150619.
+> 
+> Hanjun Guo (1):
+>   ACPICA: ACPI 6.0: Add values for MADT GIC version field.
+> 
+> Lv Zheng (13):
+>   ACPICA: Linuxize: Reduce divergences for 20150619 release.
+>   ACPICA: Linuxize: Replace __FUNCTION__ with __func__.
+>   ACPICA: Hardware: Enable 64-bit firmware waking vector for selected
+>     FACS.
+>   ACPICA: Tables: Enable both 32-bit and 64-bit FACS.
+>   ACPICA: Hardware: Enable firmware waking vector for both 32-bit and
+>     64-bit FACS.
+>   ACPICA: Tables: Fix an issue that FACS initialization is performed
+>     twice.
+>   ACPICA: Tables: Enable default 64-bit FADT addresses favor.
+>   ACPICA: MSVC6: Fix build issue for variable argument macros.
+>   ACPICA: EFI: Add EFI interface definitions to eliminate dependency of
+>     GNU EFI.
+>   ACPICA: Namespace: Add support to allow overriding objects.
+>   ACPICA: acpidump: Allow customized tables to be dumped without
+>     accessing /dev/mem.
+>   ACPICA: acpidump: Convert the default behavior to dump from
+>     /sys/firmware/acpi/tables.
+>   ACPI / acpidump: Update acpidump manual.
+> 
+> Sascha Wildner (1):
+>   ACPICA: Add dragon_fly support to unix file mapping file.
+> 
+> Suravee Suthikulpanit (1):
+>   ACPICA: Utilities: Add _CLS processing
+> 
+> Zhang Rui (1):
+>   ACPICA: Update for acpi_install_table memory types.
+> 
+> gongzg (1):
+>   ACPICA: Comment update, no functional change.
 
---TcuvTDpCAASXpu1W
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Applied, thanks!
 
-On Wed, Jul 01, 2015 at 11:41:06AM +0200, Tomeu Vizoso wrote:
+I needed to fix up two patches manually (to remove an extra empty line
+that is not present in the kernel source), though, so please check if the
+result is correct in my linux-next branch.
 
-> +static void tegra_max98090_get_dependencies(struct fwnode_handle *fwnode,
-> +					    struct list_head *deps)
-> +{
-> +	add_dependency(fwnode, "nvidia,i2s-controller", deps);
-> +	add_dependency(fwnode, "nvidia,audio-codec", deps);
-> +}
+Thanks,
+Rafael
 
-Why is this all being open coded in an individual driver (we already
-know about and manage all these dependencies in the core...)?  If we're
-going to do this I'd expect the interface for specifying DT nodes to the
-core to be changed to support this.
-
---TcuvTDpCAASXpu1W
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJVlCV6AAoJECTWi3JdVIfQ9sQH/07qCQICx8rYy7I6jC+6lWam
-k0oQM1iJtoGIzxrnjZ3kPkumKA1N/p1bXAx3NVcmrD7KcOhALqe50qpheQ+CmVOZ
-LYAhUrbBYuPUBBqd9hsT7ZfLnAM9/jHCI04ch/Z8qo2khMwXmPPcm4tQeijJLLki
-dpvepRs8pRozlpKkQroJJQ1zleI/D64IxnqRbKauI+3MPBxyZeUe9ozjZI8VjxWq
-7N/AUIKachCgud0DNxjtdmsNMh6teCXQeV5YOGqcOsFHXQodpiRozw+2/As5N/Te
-fllk/BbgQInsWyI9MG0D69+KvSgNkBB+k4YODNzV7AKYE3IqKxJdDP+C+HKeubg=
-=TvF/
------END PGP SIGNATURE-----
-
---TcuvTDpCAASXpu1W--
