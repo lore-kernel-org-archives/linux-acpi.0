@@ -1,105 +1,105 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v3 00/26] ACPICA: 20150619 Release
-Date: Thu, 02 Jul 2015 01:14:36 +0200
-Message-ID: <2361328.v5Zb2Dbn0O@vostro.rjw.lan>
-References: <cover.1434684719.git.lv.zheng@intel.com> <cover.1435731597.git.lv.zheng@intel.com>
+Subject: Re: [PATCH v2 01/12] device: property: delay device-driver matches
+Date: Thu, 02 Jul 2015 01:29:59 +0200
+Message-ID: <17310138.6IxCgARibq@vostro.rjw.lan>
+References: <1435743667-11987-1-git-send-email-tomeu.vizoso@collabora.com> <1435743667-11987-2-git-send-email-tomeu.vizoso@collabora.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:55707 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750793AbbGAWsR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Jul 2015 18:48:17 -0400
-In-Reply-To: <cover.1435731597.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pwm-owner@vger.kernel.org>
+In-Reply-To: <1435743667-11987-2-git-send-email-tomeu.vizoso@collabora.com>
+Sender: linux-pwm-owner@vger.kernel.org
+To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Cc: linux-kernel@vger.kernel.org, Mark Brown <broonie@kernel.org>, linux-acpi@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org, linux-gpio@vger.kernel.org, devicetree@vger.kernel.org, linux-pwm@vger.kernel.org, alsa-devel@alsa-project.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Wednesday, July 01, 2015 02:42:39 PM Lv Zheng wrote:
-> The 20150619 ACPICA kernel-resident subsystem updates are linuxized based
-> on the linux-pm/linux-next branch.
+On Wednesday, July 01, 2015 11:40:56 AM Tomeu Vizoso wrote:
+> Delay matches of platform devices until late_initcall, when we are sure
+> that all built-in drivers have been registered already. This is needed
+> to prevent deferred probes because of some dependencies' drivers not
+> having registered yet.
 > 
-> The patchset has passed the following build/boot tests.
-> Build tests are performed as follows:
-> 1. i386 + default + COFNIG_ACPI=y
-> 2. i386 + allyes + CONFIG_ACPI=y
-> 3. i386 + default + COFNIG_ACPI=n
-> 4. i386 + allyes + CONFIG_ACPI=n
-> 5. x86_64 + default + COFNIG_ACPI=y
-> 6. x86_64 + allyes + CONFIG_ACPI=y
-> 7. x86_64 + default + COFNIG_ACPI=n
-> 8. x86_64 + allyes + CONFIG_ACPI=n
-> Boot tests are performed as follows:
-> 1. i386 + default + COFNIG_ACPI=y
-> 2. x86_64 + default + COFNIG_ACPI=y
-> Where:
-> 1. i386: machine named as "Dell Inspiron Mini 1010"
-> 2. x86_64: machine named as "HP Compaq 8200 Elite SFF PC"
-> 3. default: kernel configuration with following items enabled:
->    All hardware drivers related to the machines of i386/x86_64
->    All drivers/acpi configurations
->    All platform drivers
+> This reduces the total amount of work that the kernel does during boot
+> because it won't try to match devices to drivers when built-in drivers
+> are still registering but also reduces some parallelism, so total boot
+> time might slightly increase or decrease depending on the platform and
+> kernel configuration.
 > 
-> The divergences checking result:
-> Before applying (20150515 Release):
->   565 lines
-> After applying (20150619 Release):
->   539 lines
+> This change will make make possible to prevent any deferred probes once
+> devices are probed in dependency order.
 > 
-> Bob Moore (8):
->   ACPICA: Namespace: Add support of OSDT table.
->   ACPICA: Namespace: Change namespace override to avoid node deletion.
->   ACPICA: Cleanup output for the ASL Debug object.
->   ACPICA: De-macroize calls to standard C library functions.
->   ACPICA: Split C library prototypes to new header.
->   ACPICA: Update definitions for the TCPA and TPM2 ACPI tables.
->   ACPICA: Update TPM2 ACPI table.
->   ACPICA: Update version to 20150619.
+> Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+> ---
 > 
-> Hanjun Guo (1):
->   ACPICA: ACPI 6.0: Add values for MADT GIC version field.
+> Changes in v2:
+> - Instead of delaying all probes until late_initcall, only delay matches
+>   of platform devices that have a firmware node attached.
 > 
-> Lv Zheng (13):
->   ACPICA: Linuxize: Reduce divergences for 20150619 release.
->   ACPICA: Linuxize: Replace __FUNCTION__ with __func__.
->   ACPICA: Hardware: Enable 64-bit firmware waking vector for selected
->     FACS.
->   ACPICA: Tables: Enable both 32-bit and 64-bit FACS.
->   ACPICA: Hardware: Enable firmware waking vector for both 32-bit and
->     64-bit FACS.
->   ACPICA: Tables: Fix an issue that FACS initialization is performed
->     twice.
->   ACPICA: Tables: Enable default 64-bit FADT addresses favor.
->   ACPICA: MSVC6: Fix build issue for variable argument macros.
->   ACPICA: EFI: Add EFI interface definitions to eliminate dependency of
->     GNU EFI.
->   ACPICA: Namespace: Add support to allow overriding objects.
->   ACPICA: acpidump: Allow customized tables to be dumped without
->     accessing /dev/mem.
->   ACPICA: acpidump: Convert the default behavior to dump from
->     /sys/firmware/acpi/tables.
->   ACPI / acpidump: Update acpidump manual.
+>  drivers/base/property.c | 29 +++++++++++++++++++++++++++++
+>  1 file changed, 29 insertions(+)
 > 
-> Sascha Wildner (1):
->   ACPICA: Add dragon_fly support to unix file mapping file.
-> 
-> Suravee Suthikulpanit (1):
->   ACPICA: Utilities: Add _CLS processing
-> 
-> Zhang Rui (1):
->   ACPICA: Update for acpi_install_table memory types.
-> 
-> gongzg (1):
->   ACPICA: Comment update, no functional change.
+> diff --git a/drivers/base/property.c b/drivers/base/property.c
+> index 8528eb9..8ead1ba 100644
+> --- a/drivers/base/property.c
+> +++ b/drivers/base/property.c
+> @@ -16,8 +16,11 @@
+>  #include <linux/of.h>
+>  #include <linux/of_address.h>
+>  #include <linux/of_device.h>
+> +#include <linux/platform_device.h>
+>  #include <linux/property.h>
+>  
+> +static bool fwnode_match_enable = false;
+> +
+>  /**
+>   * device_add_property_set - Add a collection of properties to a device object.
+>   * @dev: Device to add properties to.
+> @@ -604,6 +607,15 @@ EXPORT_SYMBOL_GPL(fwnode_is_compatible);
+>  bool fwnode_driver_match_device(struct device *dev,
+>  				const struct device_driver *drv)
+>  {
+> +	/*
+> +	 * Delay matches of platform devices until late_initcall, when we are
+> +	 * sure that all built-in drivers have been registered already. This
+> +	 * is needed to prevent deferred probes because of some drivers
+> +	 * not having registered yet.
+> +	 */
+> +	if(dev->bus == &platform_bus_type && !fwnode_match_enable)
+> +		return false;
 
-Applied, thanks!
+I'm not particularly enthusiastic about referring to specific bus types in
+generic code like that.
 
-I needed to fix up two patches manually (to remove an extra empty line
-that is not present in the kernel source), though, so please check if the
-result is correct in my linux-next branch.
+What about having a special version of fwnode_driver_match_device() specifically
+for the platform bus type that will do the check?
 
-Thanks,
-Rafael
+> +
+>  	if (is_of_node(dev->fwnode))
+>  		return of_driver_match_device(dev, drv);
+>  	else if (is_acpi_node(dev->fwnode))
+> @@ -612,3 +624,20 @@ bool fwnode_driver_match_device(struct device *dev,
+>  	return false;
+>  }
+>  EXPORT_SYMBOL_GPL(fwnode_driver_match_device);
+> +
+> +static int __device_attach(struct device *dev, void *data)
+> +{
+> +	device_initial_probe(dev);
+> +
+> +	return 0;
+> +}
+> +
+> +static int fwnode_match_initcall(void)
+> +{
+> +	fwnode_match_enable = true;
+> +
+> +	bus_for_each_dev(&platform_bus_type, NULL, NULL, __device_attach);
+> +
+> +	return 0;
+> +}
+> +late_initcall(fwnode_match_initcall);
+> 
 
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
