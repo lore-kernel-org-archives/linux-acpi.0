@@ -1,66 +1,36 @@
-From: Al Stone <ahs3@redhat.com>
-Subject: Re: [PATCH] ARM64 / SMP: Switch pr_err() to pr_debug() for disabled
- GICC entry
-Date: Wed, 01 Jul 2015 11:02:25 -0600
-Message-ID: <55941D21.5030604@redhat.com>
-References: <1435757843-13236-1-git-send-email-hanjun.guo@linaro.org>
+From: Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v7 09/16] libnvdimm, pmem: move pmem to drivers/nvdimm/
+Date: Wed, 1 Jul 2015 10:24:53 -0700
+Message-ID: <CAPcyv4j-anyF1Tt3F5G7yoQpfik9SmhXEojUmSrPm+SMVN31Sw@mail.gmail.com>
+References: <20150617215027.11597.61414.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<20150617231408.11597.28725.stgit@dwillia2-desk3.amr.corp.intel.com>
+	<CAMuHMdVMxoJFmzBZ_qAx5gDfZxsGUo2wJzawgMxS5TER==VUWQ@mail.gmail.com>
+	<CAPcyv4jEhoYsW_M3SPG1_YVQCXtnytg6Wi+BfXU=idFSp-2wYg@mail.gmail.com>
+	<CAMuHMdU8z7iUVaUaGs3f1kUcDus5Qg1+EQQ5uu7uCWrHO_kBaw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:47175 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750893AbbGARCg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 1 Jul 2015 13:02:36 -0400
-In-Reply-To: <1435757843-13236-1-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAMuHMdU8z7iUVaUaGs3f1kUcDus5Qg1+EQQ5uu7uCWrHO_kBaw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-api-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
+Cc: "linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org" <linux-nvdimm-hn68Rpc1hR1g9hUCZPvPmw@public.gmane.org>, Jens Axboe <axboe-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>, Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>, "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Neil Brown <neilb-l3A5Bk7waGM@public.gmane.org>, Greg KH <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Ingo Molnar <mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Jeff Moyer <jmoyer-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-api-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>, Christoph Hellwig <hch-jcswGhMUV9g@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org
 
-On 07/01/2015 07:37 AM, Hanjun Guo wrote:
-> It is normal that firmware presents GICC entry or entries (processors)
-> with disabled flag in ACPI MADT, taking a system of 16 cpus for example,
-> ACPI firmware may present 8 enabled first with another 8 cpus disabled
-> in MADT, the disabled cpus can be hot-added later.
-> 
-> Firmware may also present more cpus than the hardware actually has, but
-> disabled the unused ones, and easily enable it when the hardware has such
-> cpus to make the firmware code scalable.
-> 
-> So that's not an error for disabled cpus in MADT, we can switch
-> pr_err() to pr_debug() instead.
-> 
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> ---
->  arch/arm64/kernel/smp.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/arch/arm64/kernel/smp.c b/arch/arm64/kernel/smp.c
-> index 4b2121b..5caf04a 100644
-> --- a/arch/arm64/kernel/smp.c
-> +++ b/arch/arm64/kernel/smp.c
-> @@ -402,7 +402,7 @@ acpi_map_gic_cpu_interface(struct acpi_madt_generic_interrupt *processor)
->  	}
->  
->  	if (!(processor->flags & ACPI_MADT_ENABLED)) {
-> -		pr_err("skipping disabled CPU entry with 0x%llx MPIDR\n", hwid);
-> +		pr_debug("skipping disabled CPU entry with 0x%llx MPIDR\n", hwid);
->  		return;
->  	}
->  
-> 
+On Wed, Jul 1, 2015 at 9:49 AM, Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org> wrote:
+> On Wed, Jul 1, 2015 at 6:41 PM, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+>> On Wed, Jul 1, 2015 at 6:13 AM, Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org> wrote:
+>>> On Thu, Jun 18, 2015 at 1:14 AM, Dan Williams <dan.j.williams-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org> wrote:
+>>>> Prepare the pmem driver to consume PMEM namespaces emitted by regions of
+>>>> an nvdimm_bus instance.  No functional change.
+>>>
+>>> As LIBNVDIMM depends on PHYS_ADDR_T_64BIT, the driver can no
+>>> longer be enabled on pure 32-bit platforms. Is that intended?
+>>
+>> Yes it was intentional.  It still allows 32-bit platforms with 64-bit
+>> resource_size_t to compile. Do you otherwise have a 32-bit use case
+>> for pmem?  I'm of course open to working through the changes to add
+>> wider architecture support.
+>
+> Nope, just wondering, as the original didn't depend on PHYS_ADDR_T_64BIT.
 
-Yeah, good point.  I'm all for making the boot a little quieter by default.
-
-Reviewed-by: Al Stone <ahs3@redhat.com>
-
--- 
-ciao,
-al
------------------------------------
-Al Stone
-Software Engineer
-Red Hat, Inc.
-ahs3@redhat.com
------------------------------------
+Not explicitly, but it did rely on X86_PMEM_LEGACY.
