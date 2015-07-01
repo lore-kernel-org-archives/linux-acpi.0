@@ -1,81 +1,57 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v3 08/26] ACPICA: MSVC6: Fix build issue for variable argument macros.
-Date: Wed,  1 Jul 2015 14:43:43 +0800
-Message-ID: <87569cc616fcd0bfa6a93df6490e2cfadb34bdab.1435731597.git.lv.zheng@intel.com>
+Subject: [PATCH v3 09/26] ACPICA: EFI: Add EFI interface definitions to eliminate dependency of GNU EFI.
+Date: Wed,  1 Jul 2015 14:43:50 +0800
+Message-ID: <c980664c768e03e1fdb4a1e2835564940bd24a95.1435731597.git.lv.zheng@intel.com>
 References: <cover.1434684719.git.lv.zheng@intel.com> <cover.1435731597.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:27673 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752649AbbGAGnu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 1 Jul 2015 02:43:50 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1435731597.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
-ACPICA commit 72f5a358f28c5d154ed613c142c7dca03192c5ee
+ACPICA commit 5d00e67a74542d030f0a55e7a947a020ef0d9693
 
-This patch intoduces generic variable macro detection support and fixes
-build breakage issue with macros using __VA_ARGS__ feature defined in
-C99.
+This patch copies EFI interface definitions to the ACPICA code base so that
+the EFI utility support can be ported to other EFI implementation.
 
-This patch fixes this build issue. Lv Zheng.
+Known issues:
+1. MS Builds of uefi_call_wrapper()
+   The uefi_call_wrapper() in GNU EFI is implemented in a the way to work
+   around the ABI difference between Unix and MS. While I don't have
+   environment to test the MS builds.
+
+In order to port the ACPICA utilities to other EFI implementation, all that
+need to be done is to impelement the 64-bit division support and the
+program entry point where the efi_main() is invoked. Code to impelement
+these is platform specific, and ACPICA currently choose to hide such
+platform specific code within the specific EFI impelementation. Lv Zheng.
 
 This patch doesn't affect Linux kernel.
 
-Link: https://github.com/acpica/acpica/commit/72f5a358
+Link: https://github.com/acpica/acpica/commit/5d00e67a
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- include/acpi/acoutput.h       |   13 +++++++++++--
- include/acpi/platform/acgcc.h |    4 ++++
- 2 files changed, 15 insertions(+), 2 deletions(-)
+ include/acpi/platform/acenvex.h |    6 ++++++
+ 1 file changed, 6 insertions(+)
 
-diff --git a/include/acpi/acoutput.h b/include/acpi/acoutput.h
-index a8f3443..f56de8c 100644
---- a/include/acpi/acoutput.h
-+++ b/include/acpi/acoutput.h
-@@ -294,8 +294,12 @@
+diff --git a/include/acpi/platform/acenvex.h b/include/acpi/platform/acenvex.h
+index 14dc6f6..0a7dc8e 100644
+--- a/include/acpi/platform/acenvex.h
++++ b/include/acpi/platform/acenvex.h
+@@ -56,6 +56,12 @@
+ #if defined(_LINUX) || defined(__linux__)
+ #include <acpi/platform/aclinuxex.h>
  
- /* DEBUG_PRINT functions */
++#elif defined(_AED_EFI)
++#include "acefiex.h"
++
++#elif defined(_GNU_EFI)
++#include "acefiex.h"
++
+ #elif defined(__DragonFly__)
+ #include "acdragonflyex.h"
  
--#define ACPI_DEBUG_PRINT(plist)         ACPI_ACTUAL_DEBUG plist
--#define ACPI_DEBUG_PRINT_RAW(plist)     ACPI_ACTUAL_DEBUG_RAW plist
-+#ifndef COMPILER_VA_MACRO
-+
-+#define ACPI_DEBUG_PRINT(plist)         acpi_debug_print plist
-+#define ACPI_DEBUG_PRINT_RAW(plist)     acpi_debug_print_raw plist
-+
-+#else
- 
- /* Helper macros for DEBUG_PRINT */
- 
-@@ -315,6 +319,11 @@
- 	ACPI_DO_DEBUG_PRINT (acpi_debug_print_raw, level, line, \
- 		filename, modulename, component, __VA_ARGS__)
- 
-+#define ACPI_DEBUG_PRINT(plist)         ACPI_ACTUAL_DEBUG plist
-+#define ACPI_DEBUG_PRINT_RAW(plist)     ACPI_ACTUAL_DEBUG_RAW plist
-+
-+#endif
-+
- /*
-  * Function entry tracing
-  *
-diff --git a/include/acpi/platform/acgcc.h b/include/acpi/platform/acgcc.h
-index f54de0a..5457a06 100644
---- a/include/acpi/platform/acgcc.h
-+++ b/include/acpi/platform/acgcc.h
-@@ -75,4 +75,8 @@
- #undef strchr
- #endif
- 
-+/* GCC supports __VA_ARGS__ in macros */
-+
-+#define COMPILER_VA_MACRO               1
-+
- #endif				/* __ACGCC_H__ */
 -- 
 1.7.10
-
