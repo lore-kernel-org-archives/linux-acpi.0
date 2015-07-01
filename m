@@ -1,119 +1,360 @@
-From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Subject: [PATCH v1 04/10] device property: add fwnode_get_parent()
-Date: Wed,  1 Jul 2015 08:47:57 +0200
-Message-ID: <1435733283-19244-5-git-send-email-tomeu.vizoso@collabora.com>
-References: <1435733283-19244-1-git-send-email-tomeu.vizoso@collabora.com>
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH v3 11/26] ACPICA: Utilities: Add _CLS processing
+Date: Wed,  1 Jul 2015 14:44:04 +0800
+Message-ID: <3a865599b89fa35c3da6df39514107edc182f3cb.1435731597.git.lv.zheng@intel.com>
+References: <cover.1434684719.git.lv.zheng@intel.com> <cover.1435731597.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f180.google.com ([209.85.212.180]:34631 "EHLO
-	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751170AbbGAGs2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 1 Jul 2015 02:48:28 -0400
-Received: by wiar9 with SMTP id r9so58524981wia.1
-        for <linux-acpi@vger.kernel.org>; Tue, 30 Jun 2015 23:48:26 -0700 (PDT)
-Received: from cizrna.lan ([109.72.12.160])
-        by mx.google.com with ESMTPSA id r9sm1319220wjo.26.2015.06.30.23.48.25
-        for <linux-acpi@vger.kernel.org>
-        (version=TLSv1.2 cipher=ECDHE-RSA-AES128-GCM-SHA256 bits=128/128);
-        Tue, 30 Jun 2015 23:48:25 -0700 (PDT)
-In-Reply-To: <1435733283-19244-1-git-send-email-tomeu.vizoso@collabora.com>
+Received: from mga11.intel.com ([192.55.52.93]:40500 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753317AbbGAGoM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 1 Jul 2015 02:44:12 -0400
+In-Reply-To: <cover.1435731597.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Bob Moore <robert.moore@intel.com>
 
-So we can query the parent of a fwnode without having to resort to API
-that is specific to a firmware data format.
+From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 
-Also adds a acpi_get_parent_dev() function to retrieve the parent
-of an acpi_device. acpi_get_parent() already existed but it works with
-acpi_handles.
+ACPICA commit 9a2b638acb3a7215209432e070c6bd0312374229
 
-The interface covers both ACPI and Device Trees.
+ACPI Device object often contains a _CLS object to supply PCI-defined class
+code for the device. This patch introduces logic to process the _CLS
+object. Suravee Suthikulpanit, Lv Zheng.
 
-Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Link: https://github.com/acpica/acpica/commit/9a2b638a
+Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
+Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
+ drivers/acpi/acpica/acinterp.h |    2 +
+ drivers/acpi/acpica/acutils.h  |    4 ++
+ drivers/acpi/acpica/exutils.c  |   32 ++++++++++++++
+ drivers/acpi/acpica/nsxfname.c |   23 ++++++++--
+ drivers/acpi/acpica/utids.c    |   91 +++++++++++++++++++++++++++++++++++++++-
+ include/acpi/acnames.h         |    1 +
+ include/acpi/actypes.h         |   24 +++++++----
+ 7 files changed, 164 insertions(+), 13 deletions(-)
 
- drivers/base/property.c  | 23 +++++++++++++++++++++++
- include/acpi/acpi_bus.h  |  5 +++++
- include/linux/acpi.h     |  5 +++++
- include/linux/property.h |  2 ++
- 4 files changed, 35 insertions(+)
-
-diff --git a/drivers/base/property.c b/drivers/base/property.c
-index f3f6d16..a7fb46b 100644
---- a/drivers/base/property.c
-+++ b/drivers/base/property.c
-@@ -533,3 +533,26 @@ bool device_dma_is_coherent(struct device *dev)
- 	return coherent;
- }
- EXPORT_SYMBOL_GPL(device_dma_is_coherent);
+diff --git a/drivers/acpi/acpica/acinterp.h b/drivers/acpi/acpica/acinterp.h
+index 1886bde..7ac9800 100644
+--- a/drivers/acpi/acpica/acinterp.h
++++ b/drivers/acpi/acpica/acinterp.h
+@@ -468,6 +468,8 @@ void acpi_ex_eisa_id_to_string(char *dest, u64 compressed_id);
+ 
+ void acpi_ex_integer_to_string(char *dest, u64 value);
+ 
++void acpi_ex_pci_cls_to_string(char *dest, u8 class_code[3]);
 +
-+/**
-+ * fwnode_get_parent - return the parent node of a device node
-+ * @fwnode: Device node to find the parent node of
-+ */
-+struct fwnode_handle *fwnode_get_parent(struct fwnode_handle *fwnode)
+ u8 acpi_is_valid_space_id(u8 space_id);
+ 
+ /*
+diff --git a/drivers/acpi/acpica/acutils.h b/drivers/acpi/acpica/acutils.h
+index d49f5c7..6391c97 100644
+--- a/drivers/acpi/acpica/acutils.h
++++ b/drivers/acpi/acpica/acutils.h
+@@ -430,6 +430,10 @@ acpi_status
+ acpi_ut_execute_CID(struct acpi_namespace_node *device_node,
+ 		    struct acpi_pnp_device_id_list ** return_cid_list);
+ 
++acpi_status
++acpi_ut_execute_CLS(struct acpi_namespace_node *device_node,
++		    struct acpi_pnp_device_id **return_id);
++
+ /*
+  * utlock - reader/writer locks
+  */
+diff --git a/drivers/acpi/acpica/exutils.c b/drivers/acpi/acpica/exutils.c
+index 3f4225e..30c3f46 100644
+--- a/drivers/acpi/acpica/exutils.c
++++ b/drivers/acpi/acpica/exutils.c
+@@ -380,6 +380,38 @@ void acpi_ex_integer_to_string(char *out_string, u64 value)
+ 
+ /*******************************************************************************
+  *
++ * FUNCTION:    acpi_ex_pci_cls_to_string
++ *
++ * PARAMETERS:  out_string      - Where to put the converted string (7 bytes)
++ * PARAMETERS:  class_code      - PCI class code to be converted (3 bytes)
++ *
++ * RETURN:      None
++ *
++ * DESCRIPTION: Convert 3-bytes PCI class code to string representation.
++ *              Return buffer must be large enough to hold the string. The
++ *              string returned is always exactly of length
++ *              ACPI_PCICLS_STRING_SIZE (includes null terminator).
++ *
++ ******************************************************************************/
++
++void acpi_ex_pci_cls_to_string(char *out_string, u8 class_code[3])
 +{
-+	if (is_of_node(fwnode)) {
-+		struct device_node *node = to_of_node(fwnode);
 +
-+		if (node->parent)
-+			return &node->parent->fwnode;
-+	} else if (is_acpi_node(fwnode)) {
-+		struct acpi_device *node;
++	ACPI_FUNCTION_ENTRY();
 +
-+		node = acpi_get_parent_dev(to_acpi_node(fwnode));
-+		if (node)
-+			return acpi_fwnode_handle(node);
++	/* All 3 bytes are hexadecimal */
++
++	out_string[0] = acpi_ut_hex_to_ascii_char((u64)class_code[0], 4);
++	out_string[1] = acpi_ut_hex_to_ascii_char((u64)class_code[0], 0);
++	out_string[2] = acpi_ut_hex_to_ascii_char((u64)class_code[1], 4);
++	out_string[3] = acpi_ut_hex_to_ascii_char((u64)class_code[1], 0);
++	out_string[4] = acpi_ut_hex_to_ascii_char((u64)class_code[2], 4);
++	out_string[5] = acpi_ut_hex_to_ascii_char((u64)class_code[2], 0);
++	out_string[6] = 0;
++}
++
++/*******************************************************************************
++ *
+  * FUNCTION:    acpi_is_valid_space_id
+  *
+  * PARAMETERS:  space_id            - ID to be validated
+diff --git a/drivers/acpi/acpica/nsxfname.c b/drivers/acpi/acpica/nsxfname.c
+index d66c326..dc0836a 100644
+--- a/drivers/acpi/acpica/nsxfname.c
++++ b/drivers/acpi/acpica/nsxfname.c
+@@ -260,7 +260,7 @@ static char *acpi_ns_copy_device_id(struct acpi_pnp_device_id *dest,
+  *              control methods (Such as in the case of a device.)
+  *
+  * For Device and Processor objects, run the Device _HID, _UID, _CID, _SUB,
+- * _STA, _ADR, _sx_w, and _sx_d methods.
++ * _CLS, _STA, _ADR, _sx_w, and _sx_d methods.
+  *
+  * Note: Allocates the return buffer, must be freed by the caller.
+  *
+@@ -276,11 +276,12 @@ acpi_get_object_info(acpi_handle handle,
+ 	struct acpi_pnp_device_id *hid = NULL;
+ 	struct acpi_pnp_device_id *uid = NULL;
+ 	struct acpi_pnp_device_id *sub = NULL;
++	struct acpi_pnp_device_id *cls = NULL;
+ 	char *next_id_string;
+ 	acpi_object_type type;
+ 	acpi_name name;
+ 	u8 param_count = 0;
+-	u8 valid = 0;
++	u16 valid = 0;
+ 	u32 info_size;
+ 	u32 i;
+ 	acpi_status status;
+@@ -320,7 +321,7 @@ acpi_get_object_info(acpi_handle handle,
+ 	if ((type == ACPI_TYPE_DEVICE) || (type == ACPI_TYPE_PROCESSOR)) {
+ 		/*
+ 		 * Get extra info for ACPI Device/Processor objects only:
+-		 * Run the Device _HID, _UID, _SUB, and _CID methods.
++		 * Run the Device _HID, _UID, _SUB, _CID, and _CLS methods.
+ 		 *
+ 		 * Note: none of these methods are required, so they may or may
+ 		 * not be present for this device. The Info->Valid bitfield is used
+@@ -363,6 +364,14 @@ acpi_get_object_info(acpi_handle handle,
+ 			     sizeof(struct acpi_pnp_device_id_list));
+ 			valid |= ACPI_VALID_CID;
+ 		}
++
++		/* Execute the Device._CLS method */
++
++		status = acpi_ut_execute_CLS(node, &cls);
++		if (ACPI_SUCCESS(status)) {
++			info_size += cls->length;
++			valid |= ACPI_VALID_CLS;
++		}
+ 	}
+ 
+ 	/*
+@@ -486,6 +495,11 @@ acpi_get_object_info(acpi_handle handle,
+ 		}
+ 	}
+ 
++	if (cls) {
++		next_id_string = acpi_ns_copy_device_id(&info->class_code,
++							cls, next_id_string);
 +	}
 +
-+	return NULL;
-+}
-+EXPORT_SYMBOL_GPL(fwnode_get_parent);
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index 83061ca..93c42a6 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -436,6 +436,11 @@ static inline void *acpi_driver_data(struct acpi_device *d)
- 	return d->driver_data;
+ 	/* Copy the fixed-length data */
+ 
+ 	info->info_size = info_size;
+@@ -510,6 +524,9 @@ cleanup:
+ 	if (cid_list) {
+ 		ACPI_FREE(cid_list);
+ 	}
++	if (cls) {
++		ACPI_FREE(cls);
++	}
+ 	return (status);
  }
  
-+static inline struct acpi_device *acpi_get_parent_dev(struct acpi_device *adev)
-+{
-+	return adev->parent;
-+}
-+
- #define to_acpi_device(d)	container_of(d, struct acpi_device, dev)
- #define to_acpi_driver(d)	container_of(d, struct acpi_driver, drv)
+diff --git a/drivers/acpi/acpica/utids.c b/drivers/acpi/acpica/utids.c
+index 27431cf..3afe07f 100644
+--- a/drivers/acpi/acpica/utids.c
++++ b/drivers/acpi/acpica/utids.c
+@@ -1,6 +1,6 @@
+ /******************************************************************************
+  *
+- * Module Name: utids - support for device Ids - HID, UID, CID
++ * Module Name: utids - support for device Ids - HID, UID, CID, SUB, CLS
+  *
+  *****************************************************************************/
  
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index ed79b06..fc84e42 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -804,6 +804,11 @@ static inline struct acpi_device *acpi_get_next_child(struct device *dev,
- 	return NULL;
+@@ -416,3 +416,92 @@ cleanup:
+ 	acpi_ut_remove_reference(obj_desc);
+ 	return_ACPI_STATUS(status);
  }
- 
-+static inline struct acpi_device *acpi_get_parent_dev(struct acpi_device *adev)
++
++/*******************************************************************************
++ *
++ * FUNCTION:    acpi_ut_execute_CLS
++ *
++ * PARAMETERS:  device_node         - Node for the device
++ *              return_id           - Where the _CLS is returned
++ *
++ * RETURN:      Status
++ *
++ * DESCRIPTION: Executes the _CLS control method that returns PCI-defined
++ *              class code of the device. The _CLS value is always a package
++ *              containing PCI class information as a list of integers.
++ *              The returned string has format "BBSSPP", where:
++ *                BB = Base-class code
++ *                SS = Sub-class code
++ *                PP = Programming Interface code
++ *
++ ******************************************************************************/
++
++acpi_status
++acpi_ut_execute_CLS(struct acpi_namespace_node *device_node,
++		    struct acpi_pnp_device_id **return_id)
 +{
-+	return NULL;
++	union acpi_operand_object *obj_desc;
++	union acpi_operand_object **cls_objects;
++	u32 count;
++	struct acpi_pnp_device_id *cls;
++	u32 length;
++	acpi_status status;
++	u8 class_code[3] = { 0, 0, 0 };
++
++	ACPI_FUNCTION_TRACE(ut_execute_CLS);
++
++	status = acpi_ut_evaluate_object(device_node, METHOD_NAME__CLS,
++					 ACPI_BTYPE_PACKAGE, &obj_desc);
++	if (ACPI_FAILURE(status)) {
++		return_ACPI_STATUS(status);
++	}
++
++	/* Get the size of the String to be returned, includes null terminator */
++
++	length = ACPI_PCICLS_STRING_SIZE;
++	cls_objects = obj_desc->package.elements;
++	count = obj_desc->package.count;
++
++	if (obj_desc->common.type == ACPI_TYPE_PACKAGE) {
++		if (count > 0
++		    && cls_objects[0]->common.type == ACPI_TYPE_INTEGER) {
++			class_code[0] = (u8)cls_objects[0]->integer.value;
++		}
++		if (count > 1
++		    && cls_objects[1]->common.type == ACPI_TYPE_INTEGER) {
++			class_code[1] = (u8)cls_objects[1]->integer.value;
++		}
++		if (count > 2
++		    && cls_objects[2]->common.type == ACPI_TYPE_INTEGER) {
++			class_code[2] = (u8)cls_objects[2]->integer.value;
++		}
++	}
++
++	/* Allocate a buffer for the CLS */
++
++	cls =
++	    ACPI_ALLOCATE_ZEROED(sizeof(struct acpi_pnp_device_id) +
++				 (acpi_size) length);
++	if (!cls) {
++		status = AE_NO_MEMORY;
++		goto cleanup;
++	}
++
++	/* Area for the string starts after PNP_DEVICE_ID struct */
++
++	cls->string =
++	    ACPI_ADD_PTR(char, cls, sizeof(struct acpi_pnp_device_id));
++
++	/* Simply copy existing string */
++
++	acpi_ex_pci_cls_to_string(cls->string, class_code);
++	cls->length = length;
++	*return_id = cls;
++
++cleanup:
++
++	/* On exit, we must delete the return object */
++
++	acpi_ut_remove_reference(obj_desc);
++	return_ACPI_STATUS(status);
 +}
-+
- #endif
+diff --git a/include/acpi/acnames.h b/include/acpi/acnames.h
+index 273de70..b52c0dc 100644
+--- a/include/acpi/acnames.h
++++ b/include/acpi/acnames.h
+@@ -51,6 +51,7 @@
+ #define METHOD_NAME__BBN        "_BBN"
+ #define METHOD_NAME__CBA        "_CBA"
+ #define METHOD_NAME__CID        "_CID"
++#define METHOD_NAME__CLS        "_CLS"
+ #define METHOD_NAME__CRS        "_CRS"
+ #define METHOD_NAME__DDN        "_DDN"
+ #define METHOD_NAME__HID        "_HID"
+diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
+index ff0b53e..d791b98 100644
+--- a/include/acpi/actypes.h
++++ b/include/acpi/actypes.h
+@@ -1141,6 +1141,10 @@ u32 (*acpi_interface_handler) (acpi_string interface_name, u32 supported);
  
- #endif	/*_LINUX_ACPI_H*/
-diff --git a/include/linux/property.h b/include/linux/property.h
-index 76ebde9..f47092d 100644
---- a/include/linux/property.h
-+++ b/include/linux/property.h
-@@ -63,6 +63,8 @@ int fwnode_property_read_string(struct fwnode_handle *fwnode,
- struct fwnode_handle *device_get_next_child_node(struct device *dev,
- 						 struct fwnode_handle *child);
+ #define ACPI_UUID_LENGTH                16
  
-+struct fwnode_handle *fwnode_get_parent(struct fwnode_handle *fwnode);
++/* Length of 3-byte PCI class code values when converted back to a string */
 +
- #define device_for_each_child_node(dev, child) \
- 	for (child = device_get_next_child_node(dev, NULL); child; \
- 	     child = device_get_next_child_node(dev, child))
++#define ACPI_PCICLS_STRING_SIZE         7	/* Includes null terminator */
++
+ /* Structures used for device/processor HID, UID, CID, and SUB */
+ 
+ struct acpi_pnp_device_id {
+@@ -1163,7 +1167,7 @@ struct acpi_device_info {
+ 	u32 name;		/* ACPI object Name */
+ 	acpi_object_type type;	/* ACPI object Type */
+ 	u8 param_count;		/* If a method, required parameter count */
+-	u8 valid;		/* Indicates which optional fields are valid */
++	u16 valid;		/* Indicates which optional fields are valid */
+ 	u8 flags;		/* Miscellaneous info */
+ 	u8 highest_dstates[4];	/* _sx_d values: 0xFF indicates not valid */
+ 	u8 lowest_dstates[5];	/* _sx_w values: 0xFF indicates not valid */
+@@ -1172,6 +1176,7 @@ struct acpi_device_info {
+ 	struct acpi_pnp_device_id hardware_id;	/* _HID value */
+ 	struct acpi_pnp_device_id unique_id;	/* _UID value */
+ 	struct acpi_pnp_device_id subsystem_id;	/* _SUB value */
++	struct acpi_pnp_device_id class_code;	/* _CLS value */
+ 	struct acpi_pnp_device_id_list compatible_id_list;	/* _CID list <must be last> */
+ };
+ 
+@@ -1181,14 +1186,15 @@ struct acpi_device_info {
+ 
+ /* Flags for Valid field above (acpi_get_object_info) */
+ 
+-#define ACPI_VALID_STA                  0x01
+-#define ACPI_VALID_ADR                  0x02
+-#define ACPI_VALID_HID                  0x04
+-#define ACPI_VALID_UID                  0x08
+-#define ACPI_VALID_SUB                  0x10
+-#define ACPI_VALID_CID                  0x20
+-#define ACPI_VALID_SXDS                 0x40
+-#define ACPI_VALID_SXWS                 0x80
++#define ACPI_VALID_STA                  0x0001
++#define ACPI_VALID_ADR                  0x0002
++#define ACPI_VALID_HID                  0x0004
++#define ACPI_VALID_UID                  0x0008
++#define ACPI_VALID_SUB                  0x0010
++#define ACPI_VALID_CID                  0x0020
++#define ACPI_VALID_CLS                  0x0040
++#define ACPI_VALID_SXDS                 0x0100
++#define ACPI_VALID_SXWS                 0x0200
+ 
+ /* Flags for _STA return value (current_status above) */
+ 
 -- 
-2.4.1
+1.7.10
 
