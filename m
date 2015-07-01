@@ -1,49 +1,148 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v3 10/26] ACPICA: Add dragon_fly support to unix file mapping file.
-Date: Wed,  1 Jul 2015 14:43:57 +0800
-Message-ID: <c14feaf015b6282182913768fe4cda89315ec0da.1435731597.git.lv.zheng@intel.com>
+Subject: [PATCH v3 13/26] ACPICA: Namespace: Add support to allow overriding objects.
+Date: Wed,  1 Jul 2015 14:44:17 +0800
+Message-ID: <0cd4de7d6c4401d8c3a4f213c73bb5b8ce29a506.1435731597.git.lv.zheng@intel.com>
 References: <cover.1434684719.git.lv.zheng@intel.com> <cover.1435731597.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:37780 "EHLO mga14.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:36514 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753270AbbGAGoF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 1 Jul 2015 02:44:05 -0400
+	id S1753379AbbGAGoY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 1 Jul 2015 02:44:24 -0400
 In-Reply-To: <cover.1435731597.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Sascha Wildner <swildner@gmail.com>, Bob Moore <robert.moore@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-From: Sascha Wildner <swildner@gmail.com>
+ACPICA commit 6084e34e44565c6293f446c0202b5e59b055e351
 
-ACPICA commit 795b215d6fd062386f0a1c23dff9ffa244683c4f
+This patch adds an "NamespaceOverride" flag in struct acpi_walk_state, and allows
+namespace objects to be overridden when this flag is set. Lv Zheng.
 
-ACPICA BZ 1130
-
-This patch doesn't affect Linux kernel.
-
-Link: https://bugs.acpica.org/show_bug.cgi?id=1130
-Link: https://github.com/acpica/acpica/commit/795b215d
-Signed-off-by: Sascha Wildner <swildner@gmail.com>
-Signed-off-by: Bob Moore <robert.moore@intel.com>
+Link: https://github.com/acpica/acpica/commit/6084e34e
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- tools/power/acpi/os_specific/service_layers/osunixmap.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/acpica/acnamesp.h |    1 +
+ drivers/acpi/acpica/acstruct.h |    1 +
+ drivers/acpi/acpica/dswload.c  |   17 +++++++++++++----
+ drivers/acpi/acpica/nsaccess.c |   10 +++++++++-
+ drivers/acpi/acpica/nssearch.c |   22 ++++++++++++++++++++--
+ 5 files changed, 44 insertions(+), 7 deletions(-)
 
-diff --git a/tools/power/acpi/os_specific/service_layers/osunixmap.c b/tools/power/acpi/os_specific/service_layers/osunixmap.c
-index 0b1fa29..44ad488 100644
---- a/tools/power/acpi/os_specific/service_layers/osunixmap.c
-+++ b/tools/power/acpi/os_specific/service_layers/osunixmap.c
-@@ -54,7 +54,7 @@ ACPI_MODULE_NAME("osunixmap")
- #ifndef O_BINARY
- #define O_BINARY 0
- #endif
--#ifdef _free_BSD
-+#if defined(_dragon_fly) || defined(_free_BSD)
- #define MMAP_FLAGS          MAP_SHARED
- #else
- #define MMAP_FLAGS          MAP_PRIVATE
+diff --git a/drivers/acpi/acpica/acnamesp.h b/drivers/acpi/acpica/acnamesp.h
+index 952fbe0..0dd0882 100644
+--- a/drivers/acpi/acpica/acnamesp.h
++++ b/drivers/acpi/acpica/acnamesp.h
+@@ -66,6 +66,7 @@
+ #define ACPI_NS_PREFIX_IS_SCOPE     0x10
+ #define ACPI_NS_EXTERNAL            0x20
+ #define ACPI_NS_TEMPORARY           0x40
++#define ACPI_NS_OVERRIDE_IF_FOUND   0x80
+ 
+ /* Flags for acpi_ns_walk_namespace */
+ 
+diff --git a/drivers/acpi/acpica/acstruct.h b/drivers/acpi/acpica/acstruct.h
+index 87c7860..44997ca 100644
+--- a/drivers/acpi/acpica/acstruct.h
++++ b/drivers/acpi/acpica/acstruct.h
+@@ -82,6 +82,7 @@ struct acpi_walk_state {
+ 	u8 return_used;
+ 	u8 scope_depth;
+ 	u8 pass_number;		/* Parse pass during table load */
++	u8 namespace_override;	/* Override existing objects */
+ 	u8 result_size;		/* Total elements for the result stack */
+ 	u8 result_count;	/* Current number of occupied elements of result stack */
+ 	u32 aml_offset;
+diff --git a/drivers/acpi/acpica/dswload.c b/drivers/acpi/acpica/dswload.c
+index 843942f..845ff44 100644
+--- a/drivers/acpi/acpica/dswload.c
++++ b/drivers/acpi/acpica/dswload.c
+@@ -315,10 +315,19 @@ acpi_ds_load1_begin_op(struct acpi_walk_state * walk_state,
+ 		flags = ACPI_NS_NO_UPSEARCH;
+ 		if ((walk_state->opcode != AML_SCOPE_OP) &&
+ 		    (!(walk_state->parse_flags & ACPI_PARSE_DEFERRED_OP))) {
+-			flags |= ACPI_NS_ERROR_IF_FOUND;
+-			ACPI_DEBUG_PRINT((ACPI_DB_DISPATCH,
+-					  "[%s] Cannot already exist\n",
+-					  acpi_ut_get_type_name(object_type)));
++			if (walk_state->namespace_override) {
++				flags |= ACPI_NS_OVERRIDE_IF_FOUND;
++				ACPI_DEBUG_PRINT((ACPI_DB_DISPATCH,
++						  "[%s] Override allowed\n",
++						  acpi_ut_get_type_name
++						  (object_type)));
++			} else {
++				flags |= ACPI_NS_ERROR_IF_FOUND;
++				ACPI_DEBUG_PRINT((ACPI_DB_DISPATCH,
++						  "[%s] Cannot already exist\n",
++						  acpi_ut_get_type_name
++						  (object_type)));
++			}
+ 		} else {
+ 			ACPI_DEBUG_PRINT((ACPI_DB_DISPATCH,
+ 					  "[%s] Both Find or Create allowed\n",
+diff --git a/drivers/acpi/acpica/nsaccess.c b/drivers/acpi/acpica/nsaccess.c
+index 24fa19a..19ad0b5 100644
+--- a/drivers/acpi/acpica/nsaccess.c
++++ b/drivers/acpi/acpica/nsaccess.c
+@@ -304,7 +304,9 @@ acpi_ns_lookup(union acpi_generic_state *scope_info,
+ 		return_ACPI_STATUS(AE_BAD_PARAMETER);
+ 	}
+ 
+-	local_flags = flags & ~(ACPI_NS_ERROR_IF_FOUND | ACPI_NS_SEARCH_PARENT);
++	local_flags = flags &
++	    ~(ACPI_NS_ERROR_IF_FOUND | ACPI_NS_OVERRIDE_IF_FOUND |
++	      ACPI_NS_SEARCH_PARENT);
+ 	*return_node = ACPI_ENTRY_NOT_FOUND;
+ 	acpi_gbl_ns_lookup_count++;
+ 
+@@ -547,6 +549,12 @@ acpi_ns_lookup(union acpi_generic_state *scope_info,
+ 			if (flags & ACPI_NS_ERROR_IF_FOUND) {
+ 				local_flags |= ACPI_NS_ERROR_IF_FOUND;
+ 			}
++
++			/* Set override flag according to caller */
++
++			if (flags & ACPI_NS_OVERRIDE_IF_FOUND) {
++				local_flags |= ACPI_NS_OVERRIDE_IF_FOUND;
++			}
+ 		}
+ 
+ 		/* Extract one ACPI name from the front of the pathname */
+diff --git a/drivers/acpi/acpica/nssearch.c b/drivers/acpi/acpica/nssearch.c
+index 4a9d4a6..47fbe5b 100644
+--- a/drivers/acpi/acpica/nssearch.c
++++ b/drivers/acpi/acpica/nssearch.c
+@@ -325,8 +325,26 @@ acpi_ns_search_and_enter(u32 target_name,
+ 		 * If we found it AND the request specifies that a find is an error,
+ 		 * return the error
+ 		 */
+-		if ((status == AE_OK) && (flags & ACPI_NS_ERROR_IF_FOUND)) {
+-			status = AE_ALREADY_EXISTS;
++		if (status == AE_OK) {
++
++			/* The node was found in the namespace */
++
++			/*
++			 * If the namespace override feature is enabled for this node,
++			 * delete any existing node. This can only happen during the
++			 * boot stage, thus it is safe to remove the node here.
++			 */
++			if (flags & ACPI_NS_OVERRIDE_IF_FOUND) {
++				acpi_ns_delete_children(*return_node);
++				acpi_ns_remove_node(*return_node);
++				*return_node = ACPI_ENTRY_NOT_FOUND;
++			}
++
++			/* Return an error if we don't expect to find the object */
++
++			else if (flags & ACPI_NS_ERROR_IF_FOUND) {
++				status = AE_ALREADY_EXISTS;
++			}
+ 		}
+ #ifdef ACPI_ASL_COMPILER
+ 		if (*return_node && (*return_node)->type == ACPI_TYPE_ANY) {
 -- 
 1.7.10
 
