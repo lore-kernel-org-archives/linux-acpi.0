@@ -1,213 +1,158 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v3 03/26] ACPICA: Hardware: Enable 64-bit firmware waking vector for selected FACS.
-Date: Wed,  1 Jul 2015 14:43:04 +0800
-Message-ID: <9faf7d9dc7a69f5e1911c31dbea959a259fad027.1435731597.git.lv.zheng@intel.com>
-References: <cover.1434684719.git.lv.zheng@intel.com> <cover.1435731597.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1435731597.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
+From: Sudarshan N Ramachandra <sudarshan.n.ramachandra@intel.com>
+Subject: [PATCH] Fix crash during platform suspend when CPUs are related to each other
+Date: Wed,  1 Jul 2015 14:41:16 +0530
+Message-ID: <1435741876-15388-1-git-send-email-sudarshan.n.ramachandra@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:6806 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752916AbbGAJWV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 1 Jul 2015 05:22:21 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: Sudarshan N Ramachandra <sudarshan.n.ramachandra@intel.com>
 
-ACPICA commit 7aa598d711644ab0de5f70ad88f1e2de253115e4
+When CPUs are related to each other, The policy structure is shared among all
+related CPUs. Similarly we need to take care of sharing/initializing/freeing
+of data in acpi-cpufreq.c This patch addresses the same.
 
-The following commit is reported to have broken s2ram on some platforms:
- Commit: 0249ed2444d65d65fc3f3f64f398f1ad0b7e54cd
- ACPICA: Add option to favor 32-bit FADT addresses.
-The platform reports 2 FACS tables (which is not allowed by ACPI
-specification) and the new 32-bit address favor rule forces OSPMs to use
-the FACS table reported via FADT's X_FIRMWARE_CTRL field.
+When acpi-cpufreq.c initializes CPUs specifying that they are related to each
+other (CPUFREQ_SHARED_TYPE_ALL), we will encounter a crash during suspend exit
+when acpi_processor_register_performance() is called. This is because
+acpi_processor_unregister_performance() would not have been called for that
+CPU during suspend entry
 
-The root cause of the reported bug might be one of the followings:
-1. BIOS may favor the 64-bit firmware waking vector address when the
-   version of the FACS is greater than 0 and Linux currently only supports
-   resuming from the real mode, so the 64-bit firmware waking vector has
-   never been set and might be invalid to BIOS while the commit enables
-   higher version FACS.
-2. BIOS may favor the FACS reported via the "FIRMWARE_CTRL" field in the
-   FADT while the commit doesn't set the firmware waking vector address of
-   the FACS reported by "FIRMWARE_CTRL", it only sets the firware waking
-   vector address of the FACS reported by "X_FIRMWARE_CTRL".
+When CPU 0, CPU1 are related and CPU2, CPU3 are related, During suspend
+exit, CPU2 fails to initialize since acpi_processor_register_performance()
+returns error.  Finally when CPU3 is added, below crash is seen:
 
-This patch excludes the cases that can trigger the bugs caused by the root
-cause 1.
+[ 92.712008] BUG: unable to handle kernel paging request at 0000000677ac20e8
+[ 92.712035] IP:
+[ 92.712036] [<ffffffff8177da22>] cpufreq_frequency_table_update_policy_cpu+0x42/0x90
+[ 92.712049] PGD 58fed067 PUD 0
+[ 92.712067] Oops: 0000 1 PREEMPT SMP
+[ 92.712149] CPU: 0 PID: 2945 Comm: system_server Tainted: G WC O 3.14.37-x86_64-L1-R443-g9a60c52-dirty #18
+[ 92.712166] task: ffff8800594003d0 ti: ffff880059402000 task.ti: ffff880059402000
+[ 92.712184] RIP: 0010:[<ffffffff8177da22>]
+[ 92.712184] [<ffffffff8177da22>] cpufreq_frequency_table_update_policy_cpu+0x42/0x90
+[ 92.712191] RSP: 0018:ffff880059403b28 EFLAGS: 00010282
+[ 92.712196] RAX: 00000000dead4ead RBX: ffff8800729e9c00 RCX: 000000000000c3c2
+[ 92.712202] RDX: 0000000000000001 RSI: 0000000000000096 RDI: ffffffff81fc77e3
+[ 92.712207] RBP: ffff880059403b38 R08: 00000000000142d8 R09: 0000000000000000
+[ 92.712211] R10: 0000000000000000 R11: 0000000000040000 R12: 000000000000eae0
+[ 92.712217] R13: ffff8800729e9d18 R14: ffffffff82385818 R15: 0000000000000003
+[ 92.712225] FS: 00007fd57be09b60(0000) GS:ffff880076c00000(0000) knlGS:00007fd58fc24000
+[ 92.712230] CS: 0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+[ 92.712236] CR2: 0000000677ac20e8 CR3: 0000000067f24000 CR4: 00000000001007f0
+[ 92.712247] Last Branch Records:
+[ 92.712263] to: [<ffffffff819fff40>] page_fault+0x0/0x80
+[ 92.712276] from: [<ffffffff8177da22>] cpufreq_frequency_table_update_policy_cpu+0x42/0x90
+[ 92.712289] to: [<ffffffff8177da18>] cpufreq_frequency_table_update_policy_cpu+0x38/0x90
+[ 92.712301] from: [<ffffffff819ee551>] printk+0x55/0x56
+[ 92.712310] to: [<ffffffff819ee550>] printk+0x54/0x56
+[ 92.712327] from: [<ffffffff810d9144>] vprintk_emit+0x184/0x540
+[ 92.712337] to: [<ffffffff810d912f>] vprintk_emit+0x16f/0x540
+[ 92.712353] from: [<ffffffff81133569>] trace_hardirqs_on+0x9/0xf0
+[ 92.712364] to: [<ffffffff81133560>] trace_hardirqs_on+0x0/0xf0
+[ 92.712375] from: [<ffffffff810d912a>] vprintk_emit+0x16a/0x540
+[ 92.712386] to: [<ffffffff810d911c>] vprintk_emit+0x15c/0x540
+[ 92.712402] from: [<ffffffff819ff205>] _raw_spin_unlock+0x25/0x40
+[ 92.712413] to: [<ffffffff819ff1f8>] _raw_spin_unlock+0x18/0x40
+[ 92.712426] from: [<ffffffff81a034bc>] preempt_count_sub+0x3c/0xb0
+[ 92.712437] to: [<ffffffff81a034b1>] preempt_count_sub+0x31/0xb0
+[ 92.712447] from: [<ffffffff81a034f4>] preempt_count_sub+0x74/0xb0
+[ 92.712449] Stack:
+[ 92.712469] ffff8800729e9c00 0000000000000003 ffff880059403b60 ffffffff8177a8f0
+[ 92.712482] ffff8800729e9c00 0000000000000202 0000000000000003 ffff880059403bc0
+[ 92.712496] ffffffff8177c8fe ffffffff81025af0 ffff880059403ba0 0000000000000003
+[ 92.712499] Call Trace:
+[ 92.712521] [<ffffffff8177a8f0>] update_policy_cpu+0x50/0xa0
+[ 92.712535] [<ffffffff8177c8fe>] __cpufreq_add_dev.isra.22+0x31e/0xa70
+[ 92.712550] [<ffffffff81025af0>] ? mce_device_create+0x160/0x200
+[ 92.712564] [<ffffffff8177d0c2>] cpufreq_cpu_callback+0x72/0xc0
+[ 92.712576] [<ffffffff81a032e3>] notifier_call_chain+0x53/0xa0
+[ 92.712594] [<ffffffff810afffe>] __raw_notifier_call_chain+0xe/0x10
+[ 92.712609] [<ffffffff81088af3>] cpu_notify+0x23/0x50
+[ 92.712619] [<ffffffff81088d98>] _cpu_up+0x168/0x180
+[ 92.712636] [<ffffffff819e98f3>] enable_nonboot_cpus+0xa3/0x1b0
+[ 92.712650] [<ffffffff810d5afc>] suspend_enter+0x17c/0x490
+[ 92.712663] [<ffffffff819ee550>] ? printk+0x54/0x56
+[ 92.712682] [<ffffffff8157dc42>] ? dpm_show_time+0x92/0xc0
+[ 92.712696] [<ffffffff81580c4e>] ? dpm_suspend+0x1ce/0x390
+[ 92.712710] [<ffffffff810d5eaa>] suspend_devices_and_enter+0x9a/0x150
+[ 92.712721] [<ffffffff810d6236>] pm_suspend+0x2d6/0x3a0
+[ 92.712732] [<ffffffff810d4db7>] state_store+0x87/0xa0
+[ 92.712749] [<ffffffff8137e12f>] kobj_attr_store+0xf/0x20
+[ 92.712764] [<ffffffff8122861d>] sysfs_kf_write+0x3d/0x50
+[ 92.712778] [<ffffffff8122c622>] kernfs_fop_write+0xd2/0x140
+[ 92.712795] [<ffffffff811b2f1a>] vfs_write+0xba/0x1e0
+[ 92.712808] [<ffffffff811b3919>] SyS_write+0x49/0xb0
+[ 92.712828] [<ffffffff81a07632>] system_call_fastpath+0x16/0x1b
+[ 92.712959] Code: fb 8b 77 14 8b 57 18 48 c7 c7 a8 5a 06 82 e8 f2 0a 27 00 48 c7 c7 d7 77 fc 81 31 c0 e8 e4 0a 27 00 8b 43 18 48 c7 c7 e3 77 fc 81 <48> 8b 04 c5 80 ab 41 82 49 8b 14 04 8b 43 14 48 8b 04 c5 80 ab
+[ 92.712974] RIP
+[ 92.712976] [<ffffffff8177da22>] cpufreq_frequency_table_update_policy_cpu+0x42/0x90
+[ 92.712980] RSP <ffff880059403b28>
+[ 92.712984] CR2: 0000000677ac20e8
+[ 92.713050] --[ end trace b17e2a918293dc7c ]--
+[ 92.713059] Kernel panic - not syncing: Fatal exception
+[ 93.338306] Kernel Offset: 0x0 from 0xffffffff81000000 (relocation range: 0xffffffff80000000-0xffffffff9fffffff)
+[ 93.376633] ACPI MEMORY or I/O RESET_REG.
 
-ACPI specification says:
-A. 32-bit FACS address (FIRMWARE_CTRL field in FADT):
-   Physical memory address of the FACS, where OSPM and firmware exchange
-   control information.
-   If the X_FIRMWARE_CTRL field contains a non zero value then this field
-   must be zero.
-   A zero value indicates that no FACS is specified by this field.
-B. 64-bit FACS address (X_FIRMWARE_CTRL field in FADT):
-   64bit physical memory address of the FACS.
-   This field is used when the physical address of the FACS is above 4GB.
-   If the FIRMWARE_CTRL field contains a non zero value then this field
-   must be zero.
-   A zero value indicates that no FACS is specified by this field.
-Thus the 32bit and 64bit firmware waking vector should indicate completely
-different resuming environment - real mode (1MB addressable) and non real
-mode (4GB+ addressable) and currently Linux only supports resuming from
-real mode.
-
-This patch enables 64-bit firmware waking vector for selected FACS via new
-acpi_set_firmware_waking_vectors() API so that it's up to OSPMs to
-determine which resuming mode should be used by BIOS and ACPICA changes
-won't trigger the bugs caused by the root cause 1. Lv Zheng.
-
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=74021
-Link: https://github.com/acpica/acpica/commit/7aa598d7
-Reported-and-tested-by: Oswald Buddenhagen <ossi@kde.org>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Sudarshan N Ramachandra <sudarshan.n.ramachandra@intel.com>
 ---
- drivers/acpi/acpica/hwxfsleep.c |   71 +++++++++++++++++++++++++++++----------
- include/acpi/acpixf.h           |    8 +++--
- 2 files changed, 59 insertions(+), 20 deletions(-)
+ drivers/cpufreq/acpi-cpufreq.c |   13 +++++++++++--
+ 1 file changed, 11 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/acpica/hwxfsleep.c b/drivers/acpi/acpica/hwxfsleep.c
-index 6f171c2..510bd326 100644
---- a/drivers/acpi/acpica/hwxfsleep.c
-+++ b/drivers/acpi/acpica/hwxfsleep.c
-@@ -72,6 +72,7 @@ static struct acpi_sleep_functions acpi_sleep_dispatch[] = {
+diff --git a/drivers/cpufreq/acpi-cpufreq.c b/drivers/cpufreq/acpi-cpufreq.c
+index b0c18ed..a479ece 100644
+--- a/drivers/cpufreq/acpi-cpufreq.c
++++ b/drivers/cpufreq/acpi-cpufreq.c
+@@ -70,6 +70,7 @@ struct acpi_cpufreq_data {
+ 	unsigned int resume;
+ 	unsigned int cpu_feature;
+ 	cpumask_var_t freqdomain_cpus;
++	unsigned int owner;
+ };
  
- /*
-  * These functions are removed for the ACPI_REDUCED_HARDWARE case:
-+ *      acpi_set_firmware_waking_vectors
-  *      acpi_set_firmware_waking_vector
-  *      acpi_set_firmware_waking_vector64
-  *      acpi_enter_sleep_state_s4bios
-@@ -80,21 +81,25 @@ static struct acpi_sleep_functions acpi_sleep_dispatch[] = {
- #if (!ACPI_REDUCED_HARDWARE)
- /*******************************************************************************
-  *
-- * FUNCTION:    acpi_set_firmware_waking_vector
-+ * FUNCTION:    acpi_set_firmware_waking_vectors
-  *
-  * PARAMETERS:  physical_address    - 32-bit physical address of ACPI real mode
-  *                                    entry point.
-+ *              physical_address64  - 64-bit physical address of ACPI protected
-+ *                                    mode entry point.
-  *
-  * RETURN:      Status
-  *
-- * DESCRIPTION: Sets the 32-bit firmware_waking_vector field of the FACS
-+ * DESCRIPTION: Sets the firmware_waking_vector fields of the FACS
-  *
-  ******************************************************************************/
- 
--acpi_status acpi_set_firmware_waking_vector(u32 physical_address)
-+acpi_status
-+acpi_set_firmware_waking_vectors(acpi_physical_address physical_address,
-+				 acpi_physical_address physical_address64)
- {
- 
--	ACPI_FUNCTION_TRACE(acpi_set_firmware_waking_vector);
-+	ACPI_FUNCTION_TRACE(acpi_set_firmware_waking_vectors);
- 
- 
- 	/*
-@@ -107,17 +112,51 @@ acpi_status acpi_set_firmware_waking_vector(u32 physical_address)
- 
- 	/* Set the 32-bit vector */
- 
--	acpi_gbl_FACS->firmware_waking_vector = physical_address;
-+	acpi_gbl_FACS->firmware_waking_vector = (u32)physical_address;
- 
--	/* Clear the 64-bit vector if it exists */
-+	if (acpi_gbl_FACS->length > 32) {
-+		if (acpi_gbl_FACS->version >= 1) {
- 
--	if ((acpi_gbl_FACS->length > 32) && (acpi_gbl_FACS->version >= 1)) {
--		acpi_gbl_FACS->xfirmware_waking_vector = 0;
-+			/* Set the 64-bit vector */
-+
-+			acpi_gbl_FACS->xfirmware_waking_vector =
-+			    physical_address64;
-+		} else {
-+			/* Clear the 64-bit vector if it exists */
-+
-+			acpi_gbl_FACS->xfirmware_waking_vector = 0;
-+		}
+ static DEFINE_PER_CPU(struct acpi_cpufreq_data *, acfreq_data);
+@@ -673,6 +674,7 @@ static int acpi_cpufreq_cpu_init(struct cpufreq_policy *policy)
  	}
  
- 	return_ACPI_STATUS(AE_OK);
- }
+ 	data->acpi_data = per_cpu_ptr(acpi_perf_data, cpu);
++	data->owner = cpu;
+ 	per_cpu(acfreq_data, cpu) = data;
  
-+ACPI_EXPORT_SYMBOL(acpi_set_firmware_waking_vectors)
-+
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_set_firmware_waking_vector
-+ *
-+ * PARAMETERS:  physical_address    - 32-bit physical address of ACPI real mode
-+ *                                    entry point.
-+ *
-+ * RETURN:      Status
-+ *
-+ * DESCRIPTION: Sets the 32-bit firmware_waking_vector field of the FACS
-+ *
-+ ******************************************************************************/
-+acpi_status acpi_set_firmware_waking_vector(u32 physical_address)
-+{
-+	acpi_status status;
-+
-+	ACPI_FUNCTION_TRACE(acpi_set_firmware_waking_vector);
-+
-+	status = acpi_set_firmware_waking_vectors((acpi_physical_address)
-+						  physical_address, 0);
-+
-+	return_ACPI_STATUS(status);
-+}
-+
- ACPI_EXPORT_SYMBOL(acpi_set_firmware_waking_vector)
+ 	if (cpu_has(c, X86_FEATURE_CONSTANT_TSC))
+@@ -711,6 +713,10 @@ static int acpi_cpufreq_cpu_init(struct cpufreq_policy *policy)
+ 	}
+ #endif
  
- #if ACPI_MACHINE_WIDTH == 64
-@@ -137,19 +176,15 @@ ACPI_EXPORT_SYMBOL(acpi_set_firmware_waking_vector)
-  ******************************************************************************/
- acpi_status acpi_set_firmware_waking_vector64(u64 physical_address)
++	/* All related CPUs will use same acfreq_data */
++	for_each_cpu(i, policy->cpus)
++		per_cpu(acfreq_data, i) = per_cpu(acfreq_data, cpu);
++
+ 	/* capability check */
+ 	if (perf->state_count <= 1) {
+ 		pr_debug("No P-States\n");
+@@ -850,13 +856,16 @@ err_free:
+ static int acpi_cpufreq_cpu_exit(struct cpufreq_policy *policy)
  {
--	ACPI_FUNCTION_TRACE(acpi_set_firmware_waking_vector64);
--
--	/* Determine if the 64-bit vector actually exists */
-+	acpi_status status;
+ 	struct acpi_cpufreq_data *data = per_cpu(acfreq_data, policy->cpu);
++	unsigned int i;
  
--	if ((acpi_gbl_FACS->length <= 32) || (acpi_gbl_FACS->version < 1)) {
--		return_ACPI_STATUS(AE_NOT_EXIST);
--	}
-+	ACPI_FUNCTION_TRACE(acpi_set_firmware_waking_vector64);
+ 	pr_debug("acpi_cpufreq_cpu_exit\n");
  
--	/* Clear 32-bit vector, set the 64-bit X_ vector */
-+	status = acpi_set_firmware_waking_vectors(0,
-+						  (acpi_physical_address)
-+						  physical_address);
- 
--	acpi_gbl_FACS->firmware_waking_vector = 0;
--	acpi_gbl_FACS->xfirmware_waking_vector = physical_address;
--	return_ACPI_STATUS(AE_OK);
-+	return_ACPI_STATUS(status);
- }
- 
- ACPI_EXPORT_SYMBOL(acpi_set_firmware_waking_vector64)
-diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index d68f1cd..821095c 100644
---- a/include/acpi/acpixf.h
-+++ b/include/acpi/acpixf.h
-@@ -814,8 +814,12 @@ ACPI_EXTERNAL_RETURN_STATUS(acpi_status
- ACPI_EXTERNAL_RETURN_STATUS(acpi_status acpi_leave_sleep_state(u8 sleep_state))
- 
- ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status
--				acpi_set_firmware_waking_vector(u32
--								physical_address))
-+				acpi_set_firmware_waking_vectors
-+				(acpi_physical_address physical_address,
-+				 acpi_physical_address physical_address64))
-+ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status
-+				 acpi_set_firmware_waking_vector(u32
-+								 physical_address))
- #if ACPI_MACHINE_WIDTH == 64
- ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status
- 				acpi_set_firmware_waking_vector64(u64
+ 	if (data) {
+-		per_cpu(acfreq_data, policy->cpu) = NULL;
++		/* Set NULL for all related CPUs (online + offline) */
++		for_each_cpu(i, policy->related_cpus)
++			per_cpu(acfreq_data, i) = NULL;
+ 		acpi_processor_unregister_performance(data->acpi_data,
+-						      policy->cpu);
++								data->owner);
+ 		free_cpumask_var(data->freqdomain_cpus);
+ 		kfree(data->freq_table);
+ 		kfree(data);
 -- 
-1.7.10
+1.7.9.5
+
