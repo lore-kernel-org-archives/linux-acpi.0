@@ -1,246 +1,62 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v3 05/26] ACPICA: Hardware: Enable firmware waking vector for both 32-bit and 64-bit FACS.
-Date: Wed,  1 Jul 2015 14:43:18 +0800
-Message-ID: <59af4ce9449e3f9349ff4a99b7c66ea4134805d3.1435731597.git.lv.zheng@intel.com>
+Subject: [PATCH v3 06/26] ACPICA: Tables: Fix an issue that FACS initialization is performed twice.
+Date: Wed,  1 Jul 2015 14:43:26 +0800
+Message-ID: <e1a2c96445e086dead5d0c552399db184d82334d.1435731597.git.lv.zheng@intel.com>
 References: <cover.1434684719.git.lv.zheng@intel.com> <cover.1435731597.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:44981 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753112AbbGAGn1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 1 Jul 2015 02:43:27 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1435731597.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
-ACPICA commit 368eb60778b27b6ae94d3658ddc902ca1342a963
-ACPICA commit 70f62a80d65515e1285fdeeb50d94ee6f07df4bd
-ACPICA commit a04dbfa308a48ab0b2d10519c54a6c533c5c8949
-ACPICA commit ebd544ed24c5a4faba11f265e228b7a821a729f5
+ACPICA commit 90f5332a15e9d9ba83831ca700b2b9f708274658
 
-The following commit is reported to have broken s2ram on some platforms:
- Commit: 0249ed2444d65d65fc3f3f64f398f1ad0b7e54cd
- ACPICA: Add option to favor 32-bit FADT addresses.
-The platform reports 2 FACS tables (which is not allowed by ACPI
-specification) and the new 32-bit address favor rule forces OSPMs to use
-the FACS table reported via FADT's X_FIRMWARE_CTRL field.
+This patch adds a new FACS initialization flag for acpi_tb_initialize().
+acpi_enable_subsystem() might be invoked several times in OS bootup process,
+and we don't want FACS initialization to be invoked twice. Lv Zheng.
 
-The root cause of the reported bug might be one of the followings:
-1. BIOS may favor the 64-bit firmware waking vector address when the
-   version of the FACS is greater than 0 and Linux currently only supports
-   resuming from the real mode, so the 64-bit firmware waking vector has
-   never been set and might be invalid to BIOS while the commit enables
-   higher version FACS.
-2. BIOS may favor the FACS reported via the "FIRMWARE_CTRL" field in the
-   FADT while the commit doesn't set the firmware waking vector address of
-   the FACS reported by "FIRMWARE_CTRL", it only sets the firware waking
-   vector address of the FACS reported by "X_FIRMWARE_CTRL".
-
-This patch excludes the cases that can trigger the bugs caused by the root
-cause 2.
-
-There is no handshaking mechanism can be used by OSPM to tell BIOS which
-FACS is currently used. Thus the FACS reported by "FIRMWARE_CTRL" may still
-be used by BIOS and the 0 value of the 32-bit firmware waking vector might
-trigger such failure.
-
-This patch enables the firmware waking vectors for both 32bit/64bit FACS
-tables in order to ensure we can exclude the cases that trigger the bugs
-caused by the root cause 2. The exclusion is split into 2 commits so that
-if it turns out not to be necessary, this single commit can be reverted
-without affecting the useful one. Lv Zheng, Bob Moore.
-
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=74021
-Link: https://github.com/acpica/acpica/commit/368eb607
-Link: https://github.com/acpica/acpica/commit/70f62a80
-Link: https://github.com/acpica/acpica/commit/a04dbfa3
-Link: https://github.com/acpica/acpica/commit/ebd544ed
-Reported-and-tested-by: Oswald Buddenhagen <ossi@kde.org>
+Link: https://github.com/acpica/acpica/commit/90f5332a
+Cc: All applicable <stable@vger.kernel.org> # All applicable
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/acglobal.h  |    2 ++
- drivers/acpi/acpica/hwxfsleep.c |   74 ++++++++++++++++++++++++++++++++-------
- drivers/acpi/acpica/tbutils.c   |   17 ++++-----
- 3 files changed, 73 insertions(+), 20 deletions(-)
+ drivers/acpi/acpica/utxfinit.c |   10 ++++++----
+ include/acpi/actypes.h         |    1 +
+ 2 files changed, 7 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
-index a0c4787..53f96a3 100644
---- a/drivers/acpi/acpica/acglobal.h
-+++ b/drivers/acpi/acpica/acglobal.h
-@@ -61,6 +61,8 @@ ACPI_GLOBAL(struct acpi_table_header, acpi_gbl_original_dsdt_header);
- 
- #if (!ACPI_REDUCED_HARDWARE)
- ACPI_GLOBAL(struct acpi_table_facs *, acpi_gbl_FACS);
-+ACPI_GLOBAL(struct acpi_table_facs *, acpi_gbl_facs32);
-+ACPI_GLOBAL(struct acpi_table_facs *, acpi_gbl_facs64);
- 
+diff --git a/drivers/acpi/acpica/utxfinit.c b/drivers/acpi/acpica/utxfinit.c
+index 083a768..42a32a6 100644
+--- a/drivers/acpi/acpica/utxfinit.c
++++ b/drivers/acpi/acpica/utxfinit.c
+@@ -179,10 +179,12 @@ acpi_status __init acpi_enable_subsystem(u32 flags)
+ 	 * Obtain a permanent mapping for the FACS. This is required for the
+ 	 * Global Lock and the Firmware Waking Vector
+ 	 */
+-	status = acpi_tb_initialize_facs();
+-	if (ACPI_FAILURE(status)) {
+-		ACPI_WARNING((AE_INFO, "Could not map the FACS table"));
+-		return_ACPI_STATUS(status);
++	if (!(flags & ACPI_NO_FACS_INIT)) {
++		status = acpi_tb_initialize_facs();
++		if (ACPI_FAILURE(status)) {
++			ACPI_WARNING((AE_INFO, "Could not map the FACS table"));
++			return_ACPI_STATUS(status);
++		}
+ 	}
  #endif				/* !ACPI_REDUCED_HARDWARE */
  
-diff --git a/drivers/acpi/acpica/hwxfsleep.c b/drivers/acpi/acpica/hwxfsleep.c
-index 510bd326..5bee455 100644
---- a/drivers/acpi/acpica/hwxfsleep.c
-+++ b/drivers/acpi/acpica/hwxfsleep.c
-@@ -50,6 +50,13 @@
- ACPI_MODULE_NAME("hwxfsleep")
- 
- /* Local prototypes */
-+#if (!ACPI_REDUCED_HARDWARE)
-+static acpi_status
-+acpi_hw_set_firmware_waking_vectors(struct acpi_table_facs *facs,
-+				    acpi_physical_address physical_address,
-+				    acpi_physical_address physical_address64);
-+#endif
-+
- static acpi_status acpi_hw_sleep_dispatch(u8 sleep_state, u32 function_id);
+diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
+index 63fd7f5..ff0b53e 100644
+--- a/include/acpi/actypes.h
++++ b/include/acpi/actypes.h
+@@ -568,6 +568,7 @@ typedef u64 acpi_integer;
+ #define ACPI_NO_ACPI_ENABLE             0x10
+ #define ACPI_NO_DEVICE_INIT             0x20
+ #define ACPI_NO_OBJECT_INIT             0x40
++#define ACPI_NO_FACS_INIT               0x80
  
  /*
-@@ -81,9 +88,10 @@ static struct acpi_sleep_functions acpi_sleep_dispatch[] = {
- #if (!ACPI_REDUCED_HARDWARE)
- /*******************************************************************************
-  *
-- * FUNCTION:    acpi_set_firmware_waking_vectors
-+ * FUNCTION:    acpi_hw_set_firmware_waking_vectors
-  *
-- * PARAMETERS:  physical_address    - 32-bit physical address of ACPI real mode
-+ * PARAMETERS:  facs                - Pointer to FACS table
-+ *              physical_address    - 32-bit physical address of ACPI real mode
-  *                                    entry point.
-  *              physical_address64  - 64-bit physical address of ACPI protected
-  *                                    mode entry point.
-@@ -94,12 +102,13 @@ static struct acpi_sleep_functions acpi_sleep_dispatch[] = {
-  *
-  ******************************************************************************/
- 
--acpi_status
--acpi_set_firmware_waking_vectors(acpi_physical_address physical_address,
--				 acpi_physical_address physical_address64)
-+static acpi_status
-+acpi_hw_set_firmware_waking_vectors(struct acpi_table_facs *facs,
-+				    acpi_physical_address physical_address,
-+				    acpi_physical_address physical_address64)
- {
- 
--	ACPI_FUNCTION_TRACE(acpi_set_firmware_waking_vectors);
-+	ACPI_FUNCTION_TRACE(acpi_hw_set_firmware_waking_vectors);
- 
- 
- 	/*
-@@ -112,25 +121,66 @@ acpi_set_firmware_waking_vectors(acpi_physical_address physical_address,
- 
- 	/* Set the 32-bit vector */
- 
--	acpi_gbl_FACS->firmware_waking_vector = (u32)physical_address;
-+	facs->firmware_waking_vector = (u32)physical_address;
- 
--	if (acpi_gbl_FACS->length > 32) {
--		if (acpi_gbl_FACS->version >= 1) {
-+	if (facs->length > 32) {
-+		if (facs->version >= 1) {
- 
- 			/* Set the 64-bit vector */
- 
--			acpi_gbl_FACS->xfirmware_waking_vector =
--			    physical_address64;
-+			facs->xfirmware_waking_vector = physical_address64;
- 		} else {
- 			/* Clear the 64-bit vector if it exists */
- 
--			acpi_gbl_FACS->xfirmware_waking_vector = 0;
-+			facs->xfirmware_waking_vector = 0;
- 		}
- 	}
- 
- 	return_ACPI_STATUS(AE_OK);
- }
- 
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_set_firmware_waking_vectors
-+ *
-+ * PARAMETERS:  physical_address    - 32-bit physical address of ACPI real mode
-+ *                                    entry point.
-+ *              physical_address64  - 64-bit physical address of ACPI protected
-+ *                                    mode entry point.
-+ *
-+ * RETURN:      Status
-+ *
-+ * DESCRIPTION: Sets the firmware_waking_vector fields of the FACS
-+ *
-+ ******************************************************************************/
-+
-+acpi_status
-+acpi_set_firmware_waking_vectors(acpi_physical_address physical_address,
-+				 acpi_physical_address physical_address64)
-+{
-+
-+	ACPI_FUNCTION_TRACE(acpi_set_firmware_waking_vectors);
-+
-+	/* If Hardware Reduced flag is set, there is no FACS */
-+
-+	if (acpi_gbl_reduced_hardware) {
-+		return_ACPI_STATUS (AE_OK);
-+	}
-+
-+	if (acpi_gbl_facs32) {
-+		(void)acpi_hw_set_firmware_waking_vectors(acpi_gbl_facs32,
-+							  physical_address,
-+							  physical_address64);
-+	}
-+	if (acpi_gbl_facs64) {
-+		(void)acpi_hw_set_firmware_waking_vectors(acpi_gbl_facs64,
-+							  physical_address,
-+							  physical_address64);
-+	}
-+
-+	return_ACPI_STATUS(AE_OK);
-+}
-+
- ACPI_EXPORT_SYMBOL(acpi_set_firmware_waking_vectors)
- 
- /*******************************************************************************
-diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
-index 2fb1afa..2bb6a11 100644
---- a/drivers/acpi/acpica/tbutils.c
-+++ b/drivers/acpi/acpica/tbutils.c
-@@ -68,8 +68,6 @@ acpi_tb_get_root_table_entry(u8 *table_entry, u32 table_entry_size);
- 
- acpi_status acpi_tb_initialize_facs(void)
- {
--	struct acpi_table_facs *facs32;
--	struct acpi_table_facs *facs64;
- 
- 	/* If Hardware Reduced flag is set, there is no FACS */
- 
-@@ -81,18 +79,21 @@ acpi_status acpi_tb_initialize_facs(void)
- 	(void)acpi_get_table_by_index(ACPI_TABLE_INDEX_FACS,
- 				      ACPI_CAST_INDIRECT_PTR(struct
- 							     acpi_table_header,
--							     &facs32));
-+							     &acpi_gbl_facs32));
- 	(void)acpi_get_table_by_index(ACPI_TABLE_INDEX_X_FACS,
- 				      ACPI_CAST_INDIRECT_PTR(struct
- 							     acpi_table_header,
--							     &facs64));
-+							     &acpi_gbl_facs64));
- 
--	if (acpi_gbl_use32_bit_facs_addresses) {
--		acpi_gbl_FACS = facs32 ? facs32 : facs64;
--	} else {
--		acpi_gbl_FACS = facs64 ? facs64 : facs32;
-+	if (acpi_gbl_facs64
-+	    && (!acpi_gbl_facs32 || !acpi_gbl_use32_bit_facs_addresses)) {
-+		acpi_gbl_FACS = acpi_gbl_facs64;
-+	} else if (acpi_gbl_facs32) {
-+		acpi_gbl_FACS = acpi_gbl_facs32;
- 	}
- 
-+	/* If there is no FACS, just continue. There was already an error msg */
-+
- 	return (AE_OK);
- }
- #endif				/* !ACPI_REDUCED_HARDWARE */
+  * Initialization state
 -- 
 1.7.10
-
