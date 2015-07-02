@@ -1,42 +1,84 @@
-From: "xiaofeng.yan" <yanxiaofeng@inspur.com>
-Subject: [PATCH] ACPI, Repair of outdated variable
-Date: Thu,  2 Jul 2015 11:05:44 +0800
-Message-ID: <1435806344-4060-1-git-send-email-yanxiaofeng@inspur.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH v3 00/26] ACPICA: 20150619 Release
+Date: Thu, 2 Jul 2015 06:10:28 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E880273517D@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1434684719.git.lv.zheng@intel.com>
+ <cover.1435731597.git.lv.zheng@intel.com> <2361328.v5Zb2Dbn0O@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from m50-110.126.com ([123.125.50.110]:47113 "EHLO m50-110.126.com"
+Received: from mga09.intel.com ([134.134.136.24]:42091 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751279AbbGBDGK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 1 Jul 2015 23:06:10 -0400
+	id S1750808AbbGBGKd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 2 Jul 2015 02:10:33 -0400
+In-Reply-To: <2361328.v5Zb2Dbn0O@vostro.rjw.lan>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: robert.moore@intel.com, lv.zheng@intel.com, rafael.j.wysocki@intel.com, lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.org, "xiaofeng.yan" <yanxiaofeng@inspur.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-variable "value" in struct acpi_pnp_device_id has been changed
-to "string".
-
-Signed-off-by: xiaofeng.yan <yanxiaofeng@inspur.com>
----
- drivers/acpi/acpica/nsdumpdv.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/acpi/acpica/nsdumpdv.c b/drivers/acpi/acpica/nsdumpdv.c
-index 7dc367e..1af1af7 100644
---- a/drivers/acpi/acpica/nsdumpdv.c
-+++ b/drivers/acpi/acpica/nsdumpdv.c
-@@ -89,7 +89,7 @@ acpi_ns_dump_one_device(acpi_handle obj_handle,
- 
- 		ACPI_DEBUG_PRINT_RAW((ACPI_DB_TABLES,
- 				      "    HID: %s, ADR: %8.8X%8.8X, Status: %X\n",
--				      info->hardware_id.value,
-+				      info->hardware_id.string,
- 				      ACPI_FORMAT_UINT64(info->address),
- 				      info->current_status));
- 		ACPI_FREE(info);
--- 
-1.9.1
-
-
+SGksDQoNCj4gRnJvbTogUmFmYWVsIEouIFd5c29ja2kgW21haWx0bzpyandAcmp3eXNvY2tpLm5l
+dF0NCj4gU2VudDogVGh1cnNkYXksIEp1bHkgMDIsIDIwMTUgNzoxNSBBTQ0KPiANCj4gT24gV2Vk
+bmVzZGF5LCBKdWx5IDAxLCAyMDE1IDAyOjQyOjM5IFBNIEx2IFpoZW5nIHdyb3RlOg0KPiA+IFRo
+ZSAyMDE1MDYxOSBBQ1BJQ0Ega2VybmVsLXJlc2lkZW50IHN1YnN5c3RlbSB1cGRhdGVzIGFyZSBs
+aW51eGl6ZWQgYmFzZWQNCj4gPiBvbiB0aGUgbGludXgtcG0vbGludXgtbmV4dCBicmFuY2guDQo+
+ID4NCj4gPiBUaGUgcGF0Y2hzZXQgaGFzIHBhc3NlZCB0aGUgZm9sbG93aW5nIGJ1aWxkL2Jvb3Qg
+dGVzdHMuDQo+ID4gQnVpbGQgdGVzdHMgYXJlIHBlcmZvcm1lZCBhcyBmb2xsb3dzOg0KPiA+IDEu
+IGkzODYgKyBkZWZhdWx0ICsgQ09GTklHX0FDUEk9eQ0KPiA+IDIuIGkzODYgKyBhbGx5ZXMgKyBD
+T05GSUdfQUNQST15DQo+ID4gMy4gaTM4NiArIGRlZmF1bHQgKyBDT0ZOSUdfQUNQST1uDQo+ID4g
+NC4gaTM4NiArIGFsbHllcyArIENPTkZJR19BQ1BJPW4NCj4gPiA1LiB4ODZfNjQgKyBkZWZhdWx0
+ICsgQ09GTklHX0FDUEk9eQ0KPiA+IDYuIHg4Nl82NCArIGFsbHllcyArIENPTkZJR19BQ1BJPXkN
+Cj4gPiA3LiB4ODZfNjQgKyBkZWZhdWx0ICsgQ09GTklHX0FDUEk9bg0KPiA+IDguIHg4Nl82NCAr
+IGFsbHllcyArIENPTkZJR19BQ1BJPW4NCj4gPiBCb290IHRlc3RzIGFyZSBwZXJmb3JtZWQgYXMg
+Zm9sbG93czoNCj4gPiAxLiBpMzg2ICsgZGVmYXVsdCArIENPRk5JR19BQ1BJPXkNCj4gPiAyLiB4
+ODZfNjQgKyBkZWZhdWx0ICsgQ09GTklHX0FDUEk9eQ0KPiA+IFdoZXJlOg0KPiA+IDEuIGkzODY6
+IG1hY2hpbmUgbmFtZWQgYXMgIkRlbGwgSW5zcGlyb24gTWluaSAxMDEwIg0KPiA+IDIuIHg4Nl82
+NDogbWFjaGluZSBuYW1lZCBhcyAiSFAgQ29tcGFxIDgyMDAgRWxpdGUgU0ZGIFBDIg0KPiA+IDMu
+IGRlZmF1bHQ6IGtlcm5lbCBjb25maWd1cmF0aW9uIHdpdGggZm9sbG93aW5nIGl0ZW1zIGVuYWJs
+ZWQ6DQo+ID4gICAgQWxsIGhhcmR3YXJlIGRyaXZlcnMgcmVsYXRlZCB0byB0aGUgbWFjaGluZXMg
+b2YgaTM4Ni94ODZfNjQNCj4gPiAgICBBbGwgZHJpdmVycy9hY3BpIGNvbmZpZ3VyYXRpb25zDQo+
+ID4gICAgQWxsIHBsYXRmb3JtIGRyaXZlcnMNCj4gPg0KPiA+IFRoZSBkaXZlcmdlbmNlcyBjaGVj
+a2luZyByZXN1bHQ6DQo+ID4gQmVmb3JlIGFwcGx5aW5nICgyMDE1MDUxNSBSZWxlYXNlKToNCj4g
+PiAgIDU2NSBsaW5lcw0KPiA+IEFmdGVyIGFwcGx5aW5nICgyMDE1MDYxOSBSZWxlYXNlKToNCj4g
+PiAgIDUzOSBsaW5lcw0KPiA+DQo+ID4gQm9iIE1vb3JlICg4KToNCj4gPiAgIEFDUElDQTogTmFt
+ZXNwYWNlOiBBZGQgc3VwcG9ydCBvZiBPU0RUIHRhYmxlLg0KPiA+ICAgQUNQSUNBOiBOYW1lc3Bh
+Y2U6IENoYW5nZSBuYW1lc3BhY2Ugb3ZlcnJpZGUgdG8gYXZvaWQgbm9kZSBkZWxldGlvbi4NCj4g
+PiAgIEFDUElDQTogQ2xlYW51cCBvdXRwdXQgZm9yIHRoZSBBU0wgRGVidWcgb2JqZWN0Lg0KPiA+
+ICAgQUNQSUNBOiBEZS1tYWNyb2l6ZSBjYWxscyB0byBzdGFuZGFyZCBDIGxpYnJhcnkgZnVuY3Rp
+b25zLg0KPiA+ICAgQUNQSUNBOiBTcGxpdCBDIGxpYnJhcnkgcHJvdG90eXBlcyB0byBuZXcgaGVh
+ZGVyLg0KPiA+ICAgQUNQSUNBOiBVcGRhdGUgZGVmaW5pdGlvbnMgZm9yIHRoZSBUQ1BBIGFuZCBU
+UE0yIEFDUEkgdGFibGVzLg0KPiA+ICAgQUNQSUNBOiBVcGRhdGUgVFBNMiBBQ1BJIHRhYmxlLg0K
+PiA+ICAgQUNQSUNBOiBVcGRhdGUgdmVyc2lvbiB0byAyMDE1MDYxOS4NCj4gPg0KPiA+IEhhbmp1
+biBHdW8gKDEpOg0KPiA+ICAgQUNQSUNBOiBBQ1BJIDYuMDogQWRkIHZhbHVlcyBmb3IgTUFEVCBH
+SUMgdmVyc2lvbiBmaWVsZC4NCj4gPg0KPiA+IEx2IFpoZW5nICgxMyk6DQo+ID4gICBBQ1BJQ0E6
+IExpbnV4aXplOiBSZWR1Y2UgZGl2ZXJnZW5jZXMgZm9yIDIwMTUwNjE5IHJlbGVhc2UuDQo+ID4g
+ICBBQ1BJQ0E6IExpbnV4aXplOiBSZXBsYWNlIF9fRlVOQ1RJT05fXyB3aXRoIF9fZnVuY19fLg0K
+PiA+ICAgQUNQSUNBOiBIYXJkd2FyZTogRW5hYmxlIDY0LWJpdCBmaXJtd2FyZSB3YWtpbmcgdmVj
+dG9yIGZvciBzZWxlY3RlZA0KPiA+ICAgICBGQUNTLg0KPiA+ICAgQUNQSUNBOiBUYWJsZXM6IEVu
+YWJsZSBib3RoIDMyLWJpdCBhbmQgNjQtYml0IEZBQ1MuDQo+ID4gICBBQ1BJQ0E6IEhhcmR3YXJl
+OiBFbmFibGUgZmlybXdhcmUgd2FraW5nIHZlY3RvciBmb3IgYm90aCAzMi1iaXQgYW5kDQo+ID4g
+ICAgIDY0LWJpdCBGQUNTLg0KPiA+ICAgQUNQSUNBOiBUYWJsZXM6IEZpeCBhbiBpc3N1ZSB0aGF0
+IEZBQ1MgaW5pdGlhbGl6YXRpb24gaXMgcGVyZm9ybWVkDQo+ID4gICAgIHR3aWNlLg0KPiA+ICAg
+QUNQSUNBOiBUYWJsZXM6IEVuYWJsZSBkZWZhdWx0IDY0LWJpdCBGQURUIGFkZHJlc3NlcyBmYXZv
+ci4NCj4gPiAgIEFDUElDQTogTVNWQzY6IEZpeCBidWlsZCBpc3N1ZSBmb3IgdmFyaWFibGUgYXJn
+dW1lbnQgbWFjcm9zLg0KPiA+ICAgQUNQSUNBOiBFRkk6IEFkZCBFRkkgaW50ZXJmYWNlIGRlZmlu
+aXRpb25zIHRvIGVsaW1pbmF0ZSBkZXBlbmRlbmN5IG9mDQo+ID4gICAgIEdOVSBFRkkuDQo+ID4g
+ICBBQ1BJQ0E6IE5hbWVzcGFjZTogQWRkIHN1cHBvcnQgdG8gYWxsb3cgb3ZlcnJpZGluZyBvYmpl
+Y3RzLg0KPiA+ICAgQUNQSUNBOiBhY3BpZHVtcDogQWxsb3cgY3VzdG9taXplZCB0YWJsZXMgdG8g
+YmUgZHVtcGVkIHdpdGhvdXQNCj4gPiAgICAgYWNjZXNzaW5nIC9kZXYvbWVtLg0KPiA+ICAgQUNQ
+SUNBOiBhY3BpZHVtcDogQ29udmVydCB0aGUgZGVmYXVsdCBiZWhhdmlvciB0byBkdW1wIGZyb20N
+Cj4gPiAgICAgL3N5cy9maXJtd2FyZS9hY3BpL3RhYmxlcy4NCj4gPiAgIEFDUEkgLyBhY3BpZHVt
+cDogVXBkYXRlIGFjcGlkdW1wIG1hbnVhbC4NCj4gPg0KPiA+IFNhc2NoYSBXaWxkbmVyICgxKToN
+Cj4gPiAgIEFDUElDQTogQWRkIGRyYWdvbl9mbHkgc3VwcG9ydCB0byB1bml4IGZpbGUgbWFwcGlu
+ZyBmaWxlLg0KPiA+DQo+ID4gU3VyYXZlZSBTdXRoaWt1bHBhbml0ICgxKToNCj4gPiAgIEFDUElD
+QTogVXRpbGl0aWVzOiBBZGQgX0NMUyBwcm9jZXNzaW5nDQo+ID4NCj4gPiBaaGFuZyBSdWkgKDEp
+Og0KPiA+ICAgQUNQSUNBOiBVcGRhdGUgZm9yIGFjcGlfaW5zdGFsbF90YWJsZSBtZW1vcnkgdHlw
+ZXMuDQo+ID4NCj4gPiBnb25nemcgKDEpOg0KPiA+ICAgQUNQSUNBOiBDb21tZW50IHVwZGF0ZSwg
+bm8gZnVuY3Rpb25hbCBjaGFuZ2UuDQo+IA0KPiBBcHBsaWVkLCB0aGFua3MhDQo+IA0KPiBJIG5l
+ZWRlZCB0byBmaXggdXAgdHdvIHBhdGNoZXMgbWFudWFsbHkgKHRvIHJlbW92ZSBhbiBleHRyYSBl
+bXB0eSBsaW5lDQo+IHRoYXQgaXMgbm90IHByZXNlbnQgaW4gdGhlIGtlcm5lbCBzb3VyY2UpLCB0
+aG91Z2gsIHNvIHBsZWFzZSBjaGVjayBpZiB0aGUNCj4gcmVzdWx0IGlzIGNvcnJlY3QgaW4gbXkg
+bGludXgtbmV4dCBicmFuY2guDQoNCkkgY2hlY2tlZCBhbmQgZGlkbid0IHNlZSBpc3N1ZXMuDQoN
+ClRoYW5rcyBhbmQgYmVzdCByZWdhcmRzDQotTHYNCg==
