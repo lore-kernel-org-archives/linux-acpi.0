@@ -1,99 +1,114 @@
-From: Al Stone <ahs3@redhat.com>
-Subject: Re: [PATCH v2 0/3] Correct for ACPI 5.1->6.0 spec changes in MADT
- GICC entries
-Date: Thu, 02 Jul 2015 12:25:21 -0600
-Message-ID: <55958211.5010607@redhat.com>
-References: <1434666968-1543-1-git-send-email-al.stone@linaro.org>	<5592CCE6.6040604@arm.com>	<5592D1FF.7040208@redhat.com>	<CAJZ5v0gF6JZ8uVNMnro0bdD0g+QMoTeEzB99j6RcKUt3LjmiXw@mail.gmail.com> <CAJZ5v0hea5xJL3p1L=-Z1azP2wfx8Mu113JC8SgPwP06c58mQg@mail.gmail.com> <55934B3D.6060106@huawei.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v3 00/26] ACPICA: 20150619 Release
+Date: Thu, 02 Jul 2015 22:00:01 +0200
+Message-ID: <3129114.ObelseX9CZ@vostro.rjw.lan>
+References: <cover.1434684719.git.lv.zheng@intel.com> <2361328.v5Zb2Dbn0O@vostro.rjw.lan> <1AE640813FDE7649BE1B193DEA596E880273517D@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:49020 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753874AbbGBSZY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 2 Jul 2015 14:25:24 -0400
-In-Reply-To: <55934B3D.6060106@huawei.com>
+Received: from v094114.home.net.pl ([79.96.170.134]:44363 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754580AbbGBTdk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Jul 2015 15:33:40 -0400
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E880273517D@SHSMSX101.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <guohanjun@huawei.com>, "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, Al Stone <al.stone@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, "tglx@linutronix.de" <tglx@linutronix.de>, "jason@lakedaemon.net" <jason@lakedaemon.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, "patches@linaro.org" <patches@linaro.org>
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On 06/30/2015 08:06 PM, Hanjun Guo wrote:
-> On 2015/7/1 2:35, Rafael J. Wysocki wrote:
->> On Tue, Jun 30, 2015 at 8:25 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
->>> Hi Al,
->>>
->>> On Tue, Jun 30, 2015 at 7:29 PM, Al Stone <ahs3@redhat.com> wrote:
->>>> On 06/30/2015 11:07 AM, Sudeep Holla wrote:
->>>>> Hi Al,
->>>>>
->>>>> On 18/06/15 23:36, Al Stone wrote:
->>>>>> In the ACPI 5.1 version of the spec, the struct for the GICC subtable
->>>>>> (struct acpi_madt_generic_interrupt) of the MADT is 76 bytes long; in
->>>>>> ACPI 6.0, the struct is 80 bytes long.  But, there is only one definition
->>>>>> in ACPICA for this struct -- and that is the 6.0 version.  Hence, when
->>>>>> BAD_MADT_ENTRY() compares the struct size to the length in the GICC
->>>>>> subtable, it fails if 5.1 structs are in use, and there are systems in
->>>>>> the wild that have them.
->>>>>>
->>>>>> Note that this was found in linux-next and these patches apply against
->>>>>> that tree and the arm64 kernel tree; 4.1-rc8 does not appear to have this
->>>>>> problem since it still has the 5.1 struct definition.
->>>>>>
->>>>>> Even though there is precendent in ia64 code for ignoring the changes in
->>>>>> size, this patch set instead tries to verify correctness.  The first patch
->>>>>> in the set adds macros for easily using the ACPI spec version.  The second
->>>>>> patch adds the BAD_MADT_GICC_ENTRY() macro that uses the version macros to
->>>>>> check the GICC subtable only, accounting for the difference in specification
->>>>>> versions that are possible.  The final patch replaces BAD_MADT_ENTRY usage
->>>>>> with the BAD_MADT_GICC_ENTRY macro in arm64 code, which is currently the
->>>>>> only architecture affected.  The BAD_MADT_ENTRY() will continue to work as
->>>>>> is for all other MADT subtables.
->>>>>>
->>>>> We need to get this series or a patch to remove the check(similar to
->>>>> ia64) based on what Rafael prefers. Without that, platforms using ACPI
->>>>> on ARM64 fails to boot with latest mainline. This blocks any testing on
->>>>> ARM64/ACPI systems.
->>>>>
->>>>> Regards,
->>>>> Sudeep
->>>> I have not received any other feedback than some Reviewed-bys from
->>>> Hanjun and an ACK from Will for the arm64 patch.
->>>>
->>>> And absolutely agreed: this is a blocker for arm64/ACPI, starting with
->>>> the ACPICA 20150515 patches which appear to have gone in with 4.2-rc1.
->>>>
->>>> Rafael?  Ping?
->>> I overlooked the fact that this was needed to fix a recent regression,
->>> sorry about that.
->>>
->>> Actually, if your patch fixes an error introduced by a specific
->>> commit, it is good to use the Fixes: tag to indicate that.  Which I
->>> still would like to do, so which commit is fixed by this?
->>>
->>>> Do we need these to go through your tree or the arm64
->>>> tree?  Without this series (or an ia64-like solution), we have ACPI
->>>> systems in the field that cannot boot.
->>> I'm not quite sure why the definition of BAD_MADT_GICC_ENTRY has to go
->>> into include/linux/acpi.h.  Why is it necessary in there?
->> Like what about defining it in linux/irqchip/arm-gic-acpi.h for example?
->>
+On Thursday, July 02, 2015 06:10:28 AM Zheng, Lv wrote:
+> Hi,
 > 
-> This BAD_MADT_GICC_ENTRY is both used by SMP init and GIC irqchip init for
-> ARM64, would it be good to put BAD_MADT_GICC_ENTRY in arch/arm64/include/asm/acpi.h?
+> > From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
+> > Sent: Thursday, July 02, 2015 7:15 AM
+> > 
+> > On Wednesday, July 01, 2015 02:42:39 PM Lv Zheng wrote:
+> > > The 20150619 ACPICA kernel-resident subsystem updates are linuxized based
+> > > on the linux-pm/linux-next branch.
+> > >
+> > > The patchset has passed the following build/boot tests.
+> > > Build tests are performed as follows:
+> > > 1. i386 + default + COFNIG_ACPI=y
+> > > 2. i386 + allyes + CONFIG_ACPI=y
+> > > 3. i386 + default + COFNIG_ACPI=n
+> > > 4. i386 + allyes + CONFIG_ACPI=n
+> > > 5. x86_64 + default + COFNIG_ACPI=y
+> > > 6. x86_64 + allyes + CONFIG_ACPI=y
+> > > 7. x86_64 + default + COFNIG_ACPI=n
+> > > 8. x86_64 + allyes + CONFIG_ACPI=n
+> > > Boot tests are performed as follows:
+> > > 1. i386 + default + COFNIG_ACPI=y
+> > > 2. x86_64 + default + COFNIG_ACPI=y
+> > > Where:
+> > > 1. i386: machine named as "Dell Inspiron Mini 1010"
+> > > 2. x86_64: machine named as "HP Compaq 8200 Elite SFF PC"
+> > > 3. default: kernel configuration with following items enabled:
+> > >    All hardware drivers related to the machines of i386/x86_64
+> > >    All drivers/acpi configurations
+> > >    All platform drivers
+> > >
+> > > The divergences checking result:
+> > > Before applying (20150515 Release):
+> > >   565 lines
+> > > After applying (20150619 Release):
+> > >   539 lines
+> > >
+> > > Bob Moore (8):
+> > >   ACPICA: Namespace: Add support of OSDT table.
+> > >   ACPICA: Namespace: Change namespace override to avoid node deletion.
+> > >   ACPICA: Cleanup output for the ASL Debug object.
+> > >   ACPICA: De-macroize calls to standard C library functions.
+> > >   ACPICA: Split C library prototypes to new header.
+> > >   ACPICA: Update definitions for the TCPA and TPM2 ACPI tables.
+> > >   ACPICA: Update TPM2 ACPI table.
+> > >   ACPICA: Update version to 20150619.
+> > >
+> > > Hanjun Guo (1):
+> > >   ACPICA: ACPI 6.0: Add values for MADT GIC version field.
+> > >
+> > > Lv Zheng (13):
+> > >   ACPICA: Linuxize: Reduce divergences for 20150619 release.
+> > >   ACPICA: Linuxize: Replace __FUNCTION__ with __func__.
+> > >   ACPICA: Hardware: Enable 64-bit firmware waking vector for selected
+> > >     FACS.
+> > >   ACPICA: Tables: Enable both 32-bit and 64-bit FACS.
+> > >   ACPICA: Hardware: Enable firmware waking vector for both 32-bit and
+> > >     64-bit FACS.
+> > >   ACPICA: Tables: Fix an issue that FACS initialization is performed
+> > >     twice.
+> > >   ACPICA: Tables: Enable default 64-bit FADT addresses favor.
+> > >   ACPICA: MSVC6: Fix build issue for variable argument macros.
+> > >   ACPICA: EFI: Add EFI interface definitions to eliminate dependency of
+> > >     GNU EFI.
+> > >   ACPICA: Namespace: Add support to allow overriding objects.
+> > >   ACPICA: acpidump: Allow customized tables to be dumped without
+> > >     accessing /dev/mem.
+> > >   ACPICA: acpidump: Convert the default behavior to dump from
+> > >     /sys/firmware/acpi/tables.
+> > >   ACPI / acpidump: Update acpidump manual.
+> > >
+> > > Sascha Wildner (1):
+> > >   ACPICA: Add dragon_fly support to unix file mapping file.
+> > >
+> > > Suravee Suthikulpanit (1):
+> > >   ACPICA: Utilities: Add _CLS processing
+> > >
+> > > Zhang Rui (1):
+> > >   ACPICA: Update for acpi_install_table memory types.
+> > >
+> > > gongzg (1):
+> > >   ACPICA: Comment update, no functional change.
+> > 
+> > Applied, thanks!
+> > 
+> > I needed to fix up two patches manually (to remove an extra empty line
+> > that is not present in the kernel source), though, so please check if the
+> > result is correct in my linux-next branch.
 > 
-> Thanks
-> Hanjun
+> I checked and didn't see issues.
 
-Ah, right.  Good point.  Let me try it in that file, then.  It is -- for the
-time being -- arm64 specific.
+Awesome, thanks!
 
--- 
-ciao,
-al
------------------------------------
-Al Stone
-Software Engineer
-Red Hat, Inc.
-ahs3@redhat.com
------------------------------------
+Rafael
+
