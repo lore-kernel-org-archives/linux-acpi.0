@@ -1,62 +1,99 @@
-From: Mark Salter <msalter@redhat.com>
-Subject: Re: [PATCH] ARM64 / SMP: Switch pr_err() to pr_debug() for disabled
- GICC entry
-Date: Thu, 02 Jul 2015 13:40:22 -0400
-Message-ID: <1435858822.24502.10.camel@redhat.com>
-References: <1435757843-13236-1-git-send-email-hanjun.guo@linaro.org>
-	 <20150702162940.GF1354@e104818-lin.cambridge.arm.com>
+From: Al Stone <ahs3@redhat.com>
+Subject: Re: [PATCH v2 0/3] Correct for ACPI 5.1->6.0 spec changes in MADT
+ GICC entries
+Date: Thu, 02 Jul 2015 12:25:21 -0600
+Message-ID: <55958211.5010607@redhat.com>
+References: <1434666968-1543-1-git-send-email-al.stone@linaro.org>	<5592CCE6.6040604@arm.com>	<5592D1FF.7040208@redhat.com>	<CAJZ5v0gF6JZ8uVNMnro0bdD0g+QMoTeEzB99j6RcKUt3LjmiXw@mail.gmail.com> <CAJZ5v0hea5xJL3p1L=-Z1azP2wfx8Mu113JC8SgPwP06c58mQg@mail.gmail.com> <55934B3D.6060106@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:38752 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:49020 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753348AbbGBRkX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 2 Jul 2015 13:40:23 -0400
-In-Reply-To: <20150702162940.GF1354@e104818-lin.cambridge.arm.com>
+	id S1753874AbbGBSZY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 2 Jul 2015 14:25:24 -0400
+In-Reply-To: <55934B3D.6060106@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Will Deacon <will.deacon@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-arm-kernel@lists.infradead.org
+To: Hanjun Guo <guohanjun@huawei.com>, "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, Al Stone <al.stone@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, "tglx@linutronix.de" <tglx@linutronix.de>, "jason@lakedaemon.net" <jason@lakedaemon.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, "patches@linaro.org" <patches@linaro.org>
 
-On Thu, 2015-07-02 at 17:29 +0100, Catalin Marinas wrote:
-
-> On Wed, Jul 01, 2015 at 09:37:23PM +0800, Hanjun Guo wrote:
-
-> > It is normal that firmware presents GICC entry or entries (processors)
-> > with disabled flag in ACPI MADT, taking a system of 16 cpus for example,
-> > ACPI firmware may present 8 enabled first with another 8 cpus disabled
-> > in MADT, the disabled cpus can be hot-added later.
-> > 
-> > Firmware may also present more cpus than the hardware actually has, but
-> > disabled the unused ones, and easily enable it when the hardware has such
-> > cpus to make the firmware code scalable.
-> > 
-> > So that's not an error for disabled cpus in MADT, we can switch
-> > pr_err() to pr_debug() instead.
-> > 
-> > Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> > ---
-> >  arch/arm64/kernel/smp.c | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > 
-> > diff --git a/arch/arm64/kernel/smp.c b/arch/arm64/kernel/smp.c
-> > index 4b2121b..5caf04a 100644
-> > --- a/arch/arm64/kernel/smp.c
-> > +++ b/arch/arm64/kernel/smp.c
-> > @@ -402,7 +402,7 @@ acpi_map_gic_cpu_interface(struct acpi_madt_generic_interrupt *processor)
-> >  	}
-> >  
-> >  	if (!(processor->flags & ACPI_MADT_ENABLED)) {
-> > -		pr_err("skipping disabled CPU entry with 0x%llx MPIDR\n", hwid);
-> > +		pr_debug("skipping disabled CPU entry with 0x%llx MPIDR\n", hwid);
+On 06/30/2015 08:06 PM, Hanjun Guo wrote:
+> On 2015/7/1 2:35, Rafael J. Wysocki wrote:
+>> On Tue, Jun 30, 2015 at 8:25 PM, Rafael J. Wysocki <rafael@kernel.org> wrote:
+>>> Hi Al,
+>>>
+>>> On Tue, Jun 30, 2015 at 7:29 PM, Al Stone <ahs3@redhat.com> wrote:
+>>>> On 06/30/2015 11:07 AM, Sudeep Holla wrote:
+>>>>> Hi Al,
+>>>>>
+>>>>> On 18/06/15 23:36, Al Stone wrote:
+>>>>>> In the ACPI 5.1 version of the spec, the struct for the GICC subtable
+>>>>>> (struct acpi_madt_generic_interrupt) of the MADT is 76 bytes long; in
+>>>>>> ACPI 6.0, the struct is 80 bytes long.  But, there is only one definition
+>>>>>> in ACPICA for this struct -- and that is the 6.0 version.  Hence, when
+>>>>>> BAD_MADT_ENTRY() compares the struct size to the length in the GICC
+>>>>>> subtable, it fails if 5.1 structs are in use, and there are systems in
+>>>>>> the wild that have them.
+>>>>>>
+>>>>>> Note that this was found in linux-next and these patches apply against
+>>>>>> that tree and the arm64 kernel tree; 4.1-rc8 does not appear to have this
+>>>>>> problem since it still has the 5.1 struct definition.
+>>>>>>
+>>>>>> Even though there is precendent in ia64 code for ignoring the changes in
+>>>>>> size, this patch set instead tries to verify correctness.  The first patch
+>>>>>> in the set adds macros for easily using the ACPI spec version.  The second
+>>>>>> patch adds the BAD_MADT_GICC_ENTRY() macro that uses the version macros to
+>>>>>> check the GICC subtable only, accounting for the difference in specification
+>>>>>> versions that are possible.  The final patch replaces BAD_MADT_ENTRY usage
+>>>>>> with the BAD_MADT_GICC_ENTRY macro in arm64 code, which is currently the
+>>>>>> only architecture affected.  The BAD_MADT_ENTRY() will continue to work as
+>>>>>> is for all other MADT subtables.
+>>>>>>
+>>>>> We need to get this series or a patch to remove the check(similar to
+>>>>> ia64) based on what Rafael prefers. Without that, platforms using ACPI
+>>>>> on ARM64 fails to boot with latest mainline. This blocks any testing on
+>>>>> ARM64/ACPI systems.
+>>>>>
+>>>>> Regards,
+>>>>> Sudeep
+>>>> I have not received any other feedback than some Reviewed-bys from
+>>>> Hanjun and an ACK from Will for the arm64 patch.
+>>>>
+>>>> And absolutely agreed: this is a blocker for arm64/ACPI, starting with
+>>>> the ACPICA 20150515 patches which appear to have gone in with 4.2-rc1.
+>>>>
+>>>> Rafael?  Ping?
+>>> I overlooked the fact that this was needed to fix a recent regression,
+>>> sorry about that.
+>>>
+>>> Actually, if your patch fixes an error introduced by a specific
+>>> commit, it is good to use the Fixes: tag to indicate that.  Which I
+>>> still would like to do, so which commit is fixed by this?
+>>>
+>>>> Do we need these to go through your tree or the arm64
+>>>> tree?  Without this series (or an ia64-like solution), we have ACPI
+>>>> systems in the field that cannot boot.
+>>> I'm not quite sure why the definition of BAD_MADT_GICC_ENTRY has to go
+>>> into include/linux/acpi.h.  Why is it necessary in there?
+>> Like what about defining it in linux/irqchip/arm-gic-acpi.h for example?
+>>
 > 
-> That's a pretty harmless change. But looking at the use-case, would we
-> expect the disabled entries to have a valid hwid? I guess such hwid is
-> not known, especially if we can hot-plug some CPU at a later time. If
-> that's the case, can we also move this check before the hwid one?
+> This BAD_MADT_GICC_ENTRY is both used by SMP init and GIC irqchip init for
+> ARM64, would it be good to put BAD_MADT_GICC_ENTRY in arch/arm64/include/asm/acpi.h?
 > 
+> Thanks
+> Hanjun
 
-Heh, I should have read ahead. I just made the same point in a
-mail I just sent.
+Ah, right.  Good point.  Let me try it in that file, then.  It is -- for the
+time being -- arm64 specific.
 
+-- 
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Red Hat, Inc.
+ahs3@redhat.com
+-----------------------------------
