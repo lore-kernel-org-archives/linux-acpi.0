@@ -1,67 +1,69 @@
-From: Al Stone <al.stone@linaro.org>
-Subject: [PATCH v3 2/3] ACPI / ARM64: add BAD_MADT_GICC_ENTRY() macro
-Date: Thu,  2 Jul 2015 17:48:35 -0600
-Message-ID: <1435880916-2153-3-git-send-email-al.stone@linaro.org>
-References: <1435880916-2153-1-git-send-email-al.stone@linaro.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v3 1/3] ACPI : introduce macros for using the ACPI specification version
+Date: Fri, 03 Jul 2015 02:21:02 +0200
+Message-ID: <2553932.NLQ9D78ybW@vostro.rjw.lan>
+References: <1435880916-2153-1-git-send-email-al.stone@linaro.org> <1435880916-2153-2-git-send-email-al.stone@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f169.google.com ([209.85.223.169]:34861 "EHLO
-	mail-ie0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753715AbbGBXsw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Jul 2015 19:48:52 -0400
-Received: by iecuq6 with SMTP id uq6so67055064iec.2
-        for <linux-acpi@vger.kernel.org>; Thu, 02 Jul 2015 16:48:51 -0700 (PDT)
-In-Reply-To: <1435880916-2153-1-git-send-email-al.stone@linaro.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:52207 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752326AbbGBXym (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Jul 2015 19:54:42 -0400
+In-Reply-To: <1435880916-2153-2-git-send-email-al.stone@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, tglx@linutronix.de, jason@lakedaemon.net, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, linaro-kernel@lists.linaro.org, patches@linaro.org
+To: Al Stone <al.stone@linaro.org>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, tglx@linutronix.de, jason@lakedaemon.net, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, linaro-kernel@lists.linaro.org, patches@linaro.org
 
-The BAD_MADT_ENTRY() macro is designed to work for all of the subtables
-of the MADT.  In the ACPI 5.1 version of the spec, the struct for the
-GICC subtable (struct acpi_madt_generic_interrupt) is 76 bytes long; in
-ACPI 6.0, the struct is 80 bytes long.  But, there is only one definition
-in ACPICA for this struct -- and that is the 6.0 version.  Hence, when
-BAD_MADT_ENTRY() compares the struct size to the length in the GICC
-subtable, it fails if 5.1 structs are in use, and there are systems in
-the wild that have them.
+On Thursday, July 02, 2015 05:48:34 PM Al Stone wrote:
+> Add the __ACPI_FADT_SPEC_VERSION() helper macro to build a proper version
+> number from a major and minor revision number.  Add also macros that use
+> the helper to construct the current version from the values in the FADT
+> (i.e., ACPI_FADT_SPEC_VERSION) and both the 5.1 and 6.0 versions.
+> 
+> These macros are added in order to simplify retrieving and comparing ACPI
+> specification version numbers, since this is becoming a more frequent need.
+> In particular, there are some architectures that require at least a certain
+> version of the spec, and there are differences in some structure sizes that
+> have changed with recent versions but can only be tracked by spec version
+> number.
+> 
+> Fixes: aeb823bbacc2 (ACPICA: ACPI 6.0: Add changes for FADT table.)
+> Signed-off-by: Al Stone <al.stone@linaro.org>
+> ---
+>  include/linux/acpi.h | 10 ++++++++++
+>  1 file changed, 10 insertions(+)
+> 
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index c471dfc..0e525e8 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -48,6 +48,16 @@
+>  #include <acpi/acpi_io.h>
+>  #include <asm/acpi.h>
+>  
+> +#define __ACPI_FADT_SPEC_VERSION(major, minor) \
+> +	((unsigned int)major << 8 | (unsigned int)minor)
+> +
+> +#define ACPI_FADT_SPEC_VERSION	\
+> +	__ACPI_FADT_SPEC_VERSION(acpi_gbl_FADT.header.revision, \
+> +				 acpi_gbl_FADT.minor_revision)
+> +
+> +#define ACPI_FADT_SPEC_VERSION_51 __ACPI_FADT_SPEC_VERSION(5, 1)
+> +#define ACPI_FADT_SPEC_VERSION_60 __ACPI_FADT_SPEC_VERSION(6, 0)
 
-This patch adds the BAD_MADT_GICC_ENTRY() that checks the GICC subtable
-only, accounting for the difference in specification versions that are
-possible.  The BAD_MADT_ENTRY() will continue to work as is for all other
-MADT subtables.
+I'd add underscores here, eg. ACPI_FADT_SPEC_VERSION_6_0
 
-This code is being added to an arm64 header file since that is currently
-the only architecture using the GICC subtable of the MADT.  As a GIC is
-specific to ARM, it is also unlikely the subtable will be used elsewhere.
+And what if there is 5.2 or even 5.3?
 
-Fixes: aeb823bbacc2 (ACPICA: ACPI 6.0: Add changes for FADT table.)
-Signed-off-by: Al Stone <al.stone@linaro.org>
----
- arch/arm64/include/asm/acpi.h | 11 +++++++++++
- 1 file changed, 11 insertions(+)
+> +
+>  static inline acpi_handle acpi_device_handle(struct acpi_device *adev)
+>  {
+>  	return adev ? adev->handle : NULL;
+> 
 
-diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-index 39248d3..a3c26a4 100644
---- a/arch/arm64/include/asm/acpi.h
-+++ b/arch/arm64/include/asm/acpi.h
-@@ -19,6 +19,17 @@
- #include <asm/psci.h>
- #include <asm/smp_plat.h>
- 
-+/* Macros for consistency checks of the GICC subtable of MADT */
-+#define ACPI_MADT_GICC_51_LENGTH       76
-+#define ACPI_MADT_GICC_60_LENGTH       80
-+
-+#define BAD_MADT_GICC_ENTRY(entry, end) (                                   \
-+		(!entry) || (unsigned long)entry + sizeof(*entry) > end ||  \
-+		((ACPI_FADT_SPEC_VERSION == ACPI_FADT_SPEC_VERSION_51) &&   \
-+		 (entry->header.length != ACPI_MADT_GICC_51_LENGTH))    ||  \
-+		((ACPI_FADT_SPEC_VERSION == ACPI_FADT_SPEC_VERSION_60) &&   \
-+		 (entry->header.length != ACPI_MADT_GICC_60_LENGTH)))
-+
- /* Basic configuration for ACPI */
- #ifdef	CONFIG_ACPI
- /* ACPI table mapping after acpi_gbl_permanent_mmap is set */
 -- 
-2.4.3
-
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
