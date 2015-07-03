@@ -1,61 +1,97 @@
 From: Al Stone <ahs3@redhat.com>
-Subject: Re: [PATCH v3 1/3] ACPI : introduce macros for using the ACPI specification
- version
-Date: Fri, 03 Jul 2015 13:32:33 -0600
-Message-ID: <5596E351.5090100@redhat.com>
-References: <1435880916-2153-1-git-send-email-al.stone@linaro.org> <1435880916-2153-2-git-send-email-al.stone@linaro.org> <55961AB3.70801@huawei.com>
+Subject: Re: [PATCH v3 2/3] ACPI / ARM64: add BAD_MADT_GICC_ENTRY() macro
+Date: Fri, 03 Jul 2015 13:51:36 -0600
+Message-ID: <5596E7C8.7040809@redhat.com>
+References: <1435880916-2153-1-git-send-email-al.stone@linaro.org> <1435880916-2153-3-git-send-email-al.stone@linaro.org> <20150703140601.GL25907@e104818-lin.cambridge.arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:48155 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:50969 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752211AbbGCTcf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 3 Jul 2015 15:32:35 -0400
-In-Reply-To: <55961AB3.70801@huawei.com>
+	id S1754953AbbGCTvi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 3 Jul 2015 15:51:38 -0400
+In-Reply-To: <20150703140601.GL25907@e104818-lin.cambridge.arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <guohanjun@huawei.com>, Al Stone <al.stone@linaro.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, tglx@linutronix.de, jason@lakedaemon.net, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, linaro-kernel@lists.linaro.org, patches@linaro.org
+To: Catalin Marinas <catalin.marinas@arm.com>, Al Stone <al.stone@linaro.org>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-kernel@lists.linaro.org, jason@lakedaemon.net, linaro-acpi@lists.linaro.org, patches@linaro.org, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, will.deacon@arm.com, tglx@linutronix.de, lenb@kernel.org
 
-On 07/02/2015 11:16 PM, Hanjun Guo wrote:
-> Hi Al,
+On 07/03/2015 08:06 AM, Catalin Marinas wrote:
+> On Thu, Jul 02, 2015 at 05:48:35PM -0600, Al Stone wrote:
+>> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+>> index 39248d3..a3c26a4 100644
+>> --- a/arch/arm64/include/asm/acpi.h
+>> +++ b/arch/arm64/include/asm/acpi.h
+>> @@ -19,6 +19,17 @@
+>>  #include <asm/psci.h>
+>>  #include <asm/smp_plat.h>
+>>  
+>> +/* Macros for consistency checks of the GICC subtable of MADT */
+>> +#define ACPI_MADT_GICC_51_LENGTH       76
+>> +#define ACPI_MADT_GICC_60_LENGTH       80
+>> +
+>> +#define BAD_MADT_GICC_ENTRY(entry, end) (                                   \
+>> +		(!entry) || (unsigned long)entry + sizeof(*entry) > end ||  \
+>> +		((ACPI_FADT_SPEC_VERSION == ACPI_FADT_SPEC_VERSION_51) &&   \
+>> +		 (entry->header.length != ACPI_MADT_GICC_51_LENGTH))    ||  \
+>> +		((ACPI_FADT_SPEC_VERSION == ACPI_FADT_SPEC_VERSION_60) &&   \
+>> +		 (entry->header.length != ACPI_MADT_GICC_60_LENGTH)))
 > 
-> On 2015/7/3 7:48, Al Stone wrote:
->> Add the __ACPI_FADT_SPEC_VERSION() helper macro to build a proper version
->> number from a major and minor revision number.  Add also macros that use
->> the helper to construct the current version from the values in the FADT
->> (i.e., ACPI_FADT_SPEC_VERSION) and both the 5.1 and 6.0 versions.
->>
->> These macros are added in order to simplify retrieving and comparing ACPI
->> specification version numbers, since this is becoming a more frequent need.
->> In particular, there are some architectures that require at least a certain
->> version of the spec, and there are differences in some structure sizes that
->> have changed with recent versions but can only be tracked by spec version
->> number.
->>
->> Fixes: aeb823bbacc2 (ACPICA: ACPI 6.0: Add changes for FADT table.)
+> This looks ugly but, well, we could live with this.
+
+Nod.  It's right at the hairy edge of becoming a function, I think.
+
+> However, I'd like to avoid having to extend this macro every time we get
+> a new spec released, like 6.1 defining another 80 or 84 etc. So, how
+> about we only update this when there is an actual change in the length?
+> Something like:
 > 
-> If I understand correctly, will it be (and for next two patches as well):
+> #define ACPI_MADT_GICC_LENGTH	({					\
+> 	u8 length;							\
+> 	if (ACPI_FADT_SPEC_VERSION < ACPI_FADT_SPEC_VERSION_6_0)	\
+> 		length = 76;						\
+> 	else								\
+> 		length = 80;						\
+> 	length;								\
+> })
 > 
-> 0cff8dc0099f (ACPICA: ACPI 6.0: Add changes for MADT table.)?
+> or just:
 > 
-> FADT table update was not introduce any regressions for ARM64
-> I think.
+> #define ACPI_MADT_GICC_LENGTH	\
+> 	(ACPI_FADT_SPEC_VERSION < ACPI_FADT_SPEC_VERSION_6_0 ? 76 : 80)
 > 
-> Thanks
-> Hanjun
+> (the latter is simpler but may not look nice if we change it again in
+> 6.1; though we could re-write this macro when needed, not a problem)
 > 
 
-Right.  As I noted in the discussion over v2 of these patches, the FADT
-change is correctly implementing a change for ACPI 6.0.  However, it is this
-change which adds eight bytes to the GICC subtable so that the struct length
-and the length field in the GICC subtable no longer match, which is what
-causes BAD_MADT_ENTRY to fail.
+Perhaps the sanity checking for the MADT subtables needs to be revisited
+and a more general solution provided -- this is not the only MADT subtable
+with this problem and it may occur again.
 
-So, while this commit is correct, the patches in this set are needed to work
-around the ambiguity this causes in the spec and the ACPICA implementation of
-it.
+Even the versions above are not technically compliant with the spec.  If
+we implement what the spec currently says, it might look something like
+this:
+
+#define ACPI_MADT_GICC_LENGTH ({					\
+	u8 length;							\
+	switch (ACPI_FADT_SPEC_VERSION) {				\
+	case ACPI_FADT_SPEC_VERSION_5_0:				\
+		length = 40;						\
+		break;							\
+	case ACPI_FADT_SPEC_VERSION_5_1:				\
+		length = 76;						\
+		break;							\
+	default:	/* use 6.0 size */				\
+		length = 80;						\
+	}								\
+	length;								\
+})
+
+So it's just messy and there will be a need for change.  Let me think about
+making this a function instead of a macro; it may make sense to really fix
+BAD_MADT_ENTRY in general instead of just dealing with the GICC subtable,
+but it could also be overkill.
 
 -- 
 ciao,
