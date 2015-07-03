@@ -1,77 +1,64 @@
-From: Hanjun Guo <guohanjun@huawei.com>
-Subject: Re: [PATCH v3 1/3] ACPI : introduce macros for using the ACPI specification
- version
-Date: Fri, 3 Jul 2015 13:23:06 +0800
-Message-ID: <55961C3A.8080907@huawei.com>
-References: <1435880916-2153-1-git-send-email-al.stone@linaro.org> <1435880916-2153-2-git-send-email-al.stone@linaro.org> <2553932.NLQ9D78ybW@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: [PATCH v2] ARM64 / SMP: Switch pr_err() to pr_debug() for disabled GICC entry
+Date: Fri,  3 Jul 2015 15:29:06 +0800
+Message-ID: <1435908546-11457-1-git-send-email-hanjun.guo@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga02-in.huawei.com ([119.145.14.65]:19641 "EHLO
-	szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752162AbbGCFXs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Jul 2015 01:23:48 -0400
-In-Reply-To: <2553932.NLQ9D78ybW@vostro.rjw.lan>
+Received: from mail-pd0-f178.google.com ([209.85.192.178]:32925 "EHLO
+	mail-pd0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754575AbbGCHcd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Jul 2015 03:32:33 -0400
+Received: by pdjd13 with SMTP id d13so59288568pdj.0
+        for <linux-acpi@vger.kernel.org>; Fri, 03 Jul 2015 00:32:32 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Al Stone <al.stone@linaro.org>
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, tglx@linutronix.de, jason@lakedaemon.net, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, linaro-kernel@lists.linaro.org, patches@linaro.org
+To: Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>
+Cc: Mark Salter <msalter@redhat.com>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>
 
-Hi Rafael,
+It is normal that firmware presents GICC entry or entries (processors)
+with disabled flag in ACPI MADT, taking a system of 16 cpus for example,
+ACPI firmware may present 8 ebabled first with another 8 cpus disabled
+in MADT, the disabled cpus can be hot-added later.
 
-On 2015/7/3 8:21, Rafael J. Wysocki wrote:
-> On Thursday, July 02, 2015 05:48:34 PM Al Stone wrote:
->> Add the __ACPI_FADT_SPEC_VERSION() helper macro to build a proper version
->> number from a major and minor revision number.  Add also macros that use
->> the helper to construct the current version from the values in the FADT
->> (i.e., ACPI_FADT_SPEC_VERSION) and both the 5.1 and 6.0 versions.
->>
->> These macros are added in order to simplify retrieving and comparing ACPI
->> specification version numbers, since this is becoming a more frequent need.
->> In particular, there are some architectures that require at least a certain
->> version of the spec, and there are differences in some structure sizes that
->> have changed with recent versions but can only be tracked by spec version
->> number.
->>
->> Fixes: aeb823bbacc2 (ACPICA: ACPI 6.0: Add changes for FADT table.)
->> Signed-off-by: Al Stone <al.stone@linaro.org>
->> ---
->>  include/linux/acpi.h | 10 ++++++++++
->>  1 file changed, 10 insertions(+)
->>
->> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
->> index c471dfc..0e525e8 100644
->> --- a/include/linux/acpi.h
->> +++ b/include/linux/acpi.h
->> @@ -48,6 +48,16 @@
->>  #include <acpi/acpi_io.h>
->>  #include <asm/acpi.h>
->>  
->> +#define __ACPI_FADT_SPEC_VERSION(major, minor) \
->> +	((unsigned int)major << 8 | (unsigned int)minor)
->> +
->> +#define ACPI_FADT_SPEC_VERSION	\
->> +	__ACPI_FADT_SPEC_VERSION(acpi_gbl_FADT.header.revision, \
->> +				 acpi_gbl_FADT.minor_revision)
->> +
->> +#define ACPI_FADT_SPEC_VERSION_51 __ACPI_FADT_SPEC_VERSION(5, 1)
->> +#define ACPI_FADT_SPEC_VERSION_60 __ACPI_FADT_SPEC_VERSION(6, 0)
-> I'd add underscores here, eg. ACPI_FADT_SPEC_VERSION_6_0
+Firmware may also present more cpus than the hardware actually has, but
+disabled the unused ones, and easily enable it when the hardware has such
+cpus to make the firmware code scalable.
 
-Agreed.
+So that's not an error for disabled cpus in MADT, we can switch pr_err()
+to pr_debug() to make the boot a little quieter by default.
 
->
-> And what if there is 5.2 or even 5.3?
+Since hwid for disabled cpus often are invalid, and we check invalid hwid
+fisrt in the code, for use case that hot add cpus later will be filtered
+out and will not be counted in possible cups, so move this check before
+the hwid one to prepare the code to count for disabeld cpus when cpu
+hot-plug is introduced.
 
-Hmm, do you mean in the future or just now? for both two cases,
-only 5.1 and 5.1 errata (still has the same ACPI version with 5.1)
-will be available, then jump to 6.0 and going forward if new versions
-in the future.
+Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+---
+ arch/arm64/kernel/smp.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-I'm not sure if I understand your question correctly, if
-not, please correct me :)
-
-Thanks
-Hanjun
+diff --git a/arch/arm64/kernel/smp.c b/arch/arm64/kernel/smp.c
+index 4b2121b..49d00da 100644
+--- a/arch/arm64/kernel/smp.c
++++ b/arch/arm64/kernel/smp.c
+@@ -396,13 +396,13 @@ acpi_map_gic_cpu_interface(struct acpi_madt_generic_interrupt *processor)
+ {
+ 	u64 hwid = processor->arm_mpidr;
+ 
+-	if (hwid & ~MPIDR_HWID_BITMASK || hwid == INVALID_HWID) {
+-		pr_err("skipping CPU entry with invalid MPIDR 0x%llx\n", hwid);
++	if (!(processor->flags & ACPI_MADT_ENABLED)) {
++		pr_debug("skipping disabled CPU entry with 0x%llx MPIDR\n", hwid);
+ 		return;
+ 	}
+ 
+-	if (!(processor->flags & ACPI_MADT_ENABLED)) {
+-		pr_err("skipping disabled CPU entry with 0x%llx MPIDR\n", hwid);
++	if (hwid & ~MPIDR_HWID_BITMASK || hwid == INVALID_HWID) {
++		pr_err("skipping CPU entry with invalid MPIDR 0x%llx\n", hwid);
+ 		return;
+ 	}
+ 
+-- 
+1.9.1
 
