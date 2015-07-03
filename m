@@ -1,69 +1,52 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v3 1/3] ACPI : introduce macros for using the ACPI specification version
-Date: Fri, 03 Jul 2015 02:21:02 +0200
-Message-ID: <2553932.NLQ9D78ybW@vostro.rjw.lan>
-References: <1435880916-2153-1-git-send-email-al.stone@linaro.org> <1435880916-2153-2-git-send-email-al.stone@linaro.org>
+From: Hanjun Guo <guohanjun@huawei.com>
+Subject: Re: [PATCH] ARM64 / SMP: Switch pr_err() to pr_debug() for disabled
+ GICC entry
+Date: Fri, 3 Jul 2015 09:18:42 +0800
+Message-ID: <5595E2F2.4070907@huawei.com>
+References: <1435757843-13236-1-git-send-email-hanjun.guo@linaro.org> <1435858716.24502.8.camel@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:52207 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752326AbbGBXym (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Jul 2015 19:54:42 -0400
-In-Reply-To: <1435880916-2153-2-git-send-email-al.stone@linaro.org>
+Received: from szxga01-in.huawei.com ([58.251.152.64]:30891 "EHLO
+	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751613AbbGCBT4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Jul 2015 21:19:56 -0400
+In-Reply-To: <1435858716.24502.8.camel@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Al Stone <al.stone@linaro.org>
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, tglx@linutronix.de, jason@lakedaemon.net, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, linaro-kernel@lists.linaro.org, patches@linaro.org
+To: Mark Salter <msalter@redhat.com>, Hanjun Guo <hanjun.guo@linaro.org>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org
 
-On Thursday, July 02, 2015 05:48:34 PM Al Stone wrote:
-> Add the __ACPI_FADT_SPEC_VERSION() helper macro to build a proper version
-> number from a major and minor revision number.  Add also macros that use
-> the helper to construct the current version from the values in the FADT
-> (i.e., ACPI_FADT_SPEC_VERSION) and both the 5.1 and 6.0 versions.
-> 
-> These macros are added in order to simplify retrieving and comparing ACPI
-> specification version numbers, since this is becoming a more frequent need.
-> In particular, there are some architectures that require at least a certain
-> version of the spec, and there are differences in some structure sizes that
-> have changed with recent versions but can only be tracked by spec version
-> number.
-> 
-> Fixes: aeb823bbacc2 (ACPICA: ACPI 6.0: Add changes for FADT table.)
-> Signed-off-by: Al Stone <al.stone@linaro.org>
-> ---
->  include/linux/acpi.h | 10 ++++++++++
->  1 file changed, 10 insertions(+)
-> 
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index c471dfc..0e525e8 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -48,6 +48,16 @@
->  #include <acpi/acpi_io.h>
->  #include <asm/acpi.h>
->  
-> +#define __ACPI_FADT_SPEC_VERSION(major, minor) \
-> +	((unsigned int)major << 8 | (unsigned int)minor)
-> +
-> +#define ACPI_FADT_SPEC_VERSION	\
-> +	__ACPI_FADT_SPEC_VERSION(acpi_gbl_FADT.header.revision, \
-> +				 acpi_gbl_FADT.minor_revision)
-> +
-> +#define ACPI_FADT_SPEC_VERSION_51 __ACPI_FADT_SPEC_VERSION(5, 1)
-> +#define ACPI_FADT_SPEC_VERSION_60 __ACPI_FADT_SPEC_VERSION(6, 0)
+On 2015/7/3 1:38, Mark Salter wrote:
+> On Wed, 2015-07-01 at 21:37 +0800, Hanjun Guo wrote:
+>
+>> It is normal that firmware presents GICC entry or entries (processors)
+>> with disabled flag in ACPI MADT, taking a system of 16 cpus for example,
+>> ACPI firmware may present 8 enabled first with another 8 cpus disabled
+>> in MADT, the disabled cpus can be hot-added later.
+>>
+>> Firmware may also present more cpus than the hardware actually has, but
+>> disabled the unused ones, and easily enable it when the hardware has such
+>> cpus to make the firmware code scalable.
+>>
+>> So that's not an error for disabled cpus in MADT, we can switch
+>> pr_err() to pr_debug() instead.
+>>
+> I agree with pr_debug instead of pr_err, but for hotplug to work
+> I think we need to continue to parse the MADT instead of bailing
+> out altogether, right? We need to know at init time how many
 
-I'd add underscores here, eg. ACPI_FADT_SPEC_VERSION_6_0
+Yes, agreed :)
 
-And what if there is 5.2 or even 5.3?
+> possible cpus there are and that number never changes as cpus
+> are plugged/unplugged. Right now, set_cpu_possible() only gets
+> called if smp_cpu_setup() gets called and smp_cpu_setup() only
+> gets called if the cpu is in the cpu_logical_map.
 
-> +
->  static inline acpi_handle acpi_device_handle(struct acpi_device *adev)
->  {
->  	return adev ? adev->handle : NULL;
-> 
+We need some extra work to make the physical CPU hotplug work
+on ARM64.
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Thanks
+Hanjun
+
