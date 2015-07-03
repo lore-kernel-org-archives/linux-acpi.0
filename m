@@ -1,51 +1,46 @@
 From: Hanjun Guo <guohanjun@huawei.com>
-Subject: Re: [PATCH] ARM64 / SMP: Switch pr_err() to pr_debug() for disabled
- GICC entry
-Date: Fri, 3 Jul 2015 09:18:42 +0800
-Message-ID: <5595E2F2.4070907@huawei.com>
-References: <1435757843-13236-1-git-send-email-hanjun.guo@linaro.org> <1435858716.24502.8.camel@redhat.com>
+Subject: Re: [PATCH v3 1/3] ACPI : introduce macros for using the ACPI specification
+ version
+Date: Fri, 3 Jul 2015 13:16:35 +0800
+Message-ID: <55961AB3.70801@huawei.com>
+References: <1435880916-2153-1-git-send-email-al.stone@linaro.org> <1435880916-2153-2-git-send-email-al.stone@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([58.251.152.64]:30891 "EHLO
+Received: from szxga01-in.huawei.com ([58.251.152.64]:61983 "EHLO
 	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751613AbbGCBT4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 2 Jul 2015 21:19:56 -0400
-In-Reply-To: <1435858716.24502.8.camel@redhat.com>
+	with ESMTP id S1752028AbbGCFQ7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Jul 2015 01:16:59 -0400
+In-Reply-To: <1435880916-2153-2-git-send-email-al.stone@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Salter <msalter@redhat.com>, Hanjun Guo <hanjun.guo@linaro.org>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org
+To: Al Stone <al.stone@linaro.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, tglx@linutronix.de, jason@lakedaemon.net, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, linaro-kernel@lists.linaro.org, patches@linaro.org
 
-On 2015/7/3 1:38, Mark Salter wrote:
-> On Wed, 2015-07-01 at 21:37 +0800, Hanjun Guo wrote:
+Hi Al,
+
+On 2015/7/3 7:48, Al Stone wrote:
+> Add the __ACPI_FADT_SPEC_VERSION() helper macro to build a proper version
+> number from a major and minor revision number.  Add also macros that use
+> the helper to construct the current version from the values in the FADT
+> (i.e., ACPI_FADT_SPEC_VERSION) and both the 5.1 and 6.0 versions.
 >
->> It is normal that firmware presents GICC entry or entries (processors)
->> with disabled flag in ACPI MADT, taking a system of 16 cpus for example,
->> ACPI firmware may present 8 enabled first with another 8 cpus disabled
->> in MADT, the disabled cpus can be hot-added later.
->>
->> Firmware may also present more cpus than the hardware actually has, but
->> disabled the unused ones, and easily enable it when the hardware has such
->> cpus to make the firmware code scalable.
->>
->> So that's not an error for disabled cpus in MADT, we can switch
->> pr_err() to pr_debug() instead.
->>
-> I agree with pr_debug instead of pr_err, but for hotplug to work
-> I think we need to continue to parse the MADT instead of bailing
-> out altogether, right? We need to know at init time how many
+> These macros are added in order to simplify retrieving and comparing ACPI
+> specification version numbers, since this is becoming a more frequent need.
+> In particular, there are some architectures that require at least a certain
+> version of the spec, and there are differences in some structure sizes that
+> have changed with recent versions but can only be tracked by spec version
+> number.
+>
+> Fixes: aeb823bbacc2 (ACPICA: ACPI 6.0: Add changes for FADT table.)
 
-Yes, agreed :)
+If I understand correctly, will it be (and for next two patches as well):
 
-> possible cpus there are and that number never changes as cpus
-> are plugged/unplugged. Right now, set_cpu_possible() only gets
-> called if smp_cpu_setup() gets called and smp_cpu_setup() only
-> gets called if the cpu is in the cpu_logical_map.
+0cff8dc0099f (ACPICA: ACPI 6.0: Add changes for MADT table.)?
 
-We need some extra work to make the physical CPU hotplug work
-on ARM64.
+FADT table update was not introduce any regressions for ARM64
+I think.
 
 Thanks
 Hanjun
