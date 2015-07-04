@@ -1,107 +1,392 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v3 2/3] ACPI / ARM64: add BAD_MADT_GICC_ENTRY() macro
-Date: Sat, 04 Jul 2015 01:54:15 +0200
-Message-ID: <15297999.EvgjakjXbx@vostro.rjw.lan>
-References: <1435880916-2153-1-git-send-email-al.stone@linaro.org> <20150703140601.GL25907@e104818-lin.cambridge.arm.com> <5596E7C8.7040809@redhat.com>
+Subject: [PATCH] ACPI / PNP: Reserve ACPI resources at the fs_initcall_sync stage
+Date: Sat, 04 Jul 2015 03:09:03 +0200
+Message-ID: <5042629.WJWA6bekh1@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:52537 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1755632AbbGCX1x (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 3 Jul 2015 19:27:53 -0400
-In-Reply-To: <5596E7C8.7040809@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, g5983969@trbvm.com, Roland Dreier <roland@purestorage.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Al Stone <ahs3@redhat.com>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, Al Stone <al.stone@linaro.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-kernel@lists.linaro.org, jason@lakedaemon.net, linaro-acpi@lists.linaro.org, patches@linaro.org, linux-kernel@vger.kernel.org, will.deacon@arm.com, tglx@linutronix.de, lenb@kernel.org
 
-On Friday, July 03, 2015 01:51:36 PM Al Stone wrote:
-> On 07/03/2015 08:06 AM, Catalin Marinas wrote:
-> > On Thu, Jul 02, 2015 at 05:48:35PM -0600, Al Stone wrote:
-> >> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-> >> index 39248d3..a3c26a4 100644
-> >> --- a/arch/arm64/include/asm/acpi.h
-> >> +++ b/arch/arm64/include/asm/acpi.h
-> >> @@ -19,6 +19,17 @@
-> >>  #include <asm/psci.h>
-> >>  #include <asm/smp_plat.h>
-> >>  
-> >> +/* Macros for consistency checks of the GICC subtable of MADT */
-> >> +#define ACPI_MADT_GICC_51_LENGTH       76
-> >> +#define ACPI_MADT_GICC_60_LENGTH       80
-> >> +
-> >> +#define BAD_MADT_GICC_ENTRY(entry, end) (                                   \
-> >> +		(!entry) || (unsigned long)entry + sizeof(*entry) > end ||  \
-> >> +		((ACPI_FADT_SPEC_VERSION == ACPI_FADT_SPEC_VERSION_51) &&   \
-> >> +		 (entry->header.length != ACPI_MADT_GICC_51_LENGTH))    ||  \
-> >> +		((ACPI_FADT_SPEC_VERSION == ACPI_FADT_SPEC_VERSION_60) &&   \
-> >> +		 (entry->header.length != ACPI_MADT_GICC_60_LENGTH)))
-> > 
-> > This looks ugly but, well, we could live with this.
-> 
-> Nod.  It's right at the hairy edge of becoming a function, I think.
-> 
-> > However, I'd like to avoid having to extend this macro every time we get
-> > a new spec released, like 6.1 defining another 80 or 84 etc. So, how
-> > about we only update this when there is an actual change in the length?
-> > Something like:
-> > 
-> > #define ACPI_MADT_GICC_LENGTH	({					\
-> > 	u8 length;							\
-> > 	if (ACPI_FADT_SPEC_VERSION < ACPI_FADT_SPEC_VERSION_6_0)	\
-> > 		length = 76;						\
-> > 	else								\
-> > 		length = 80;						\
-> > 	length;								\
-> > })
-> > 
-> > or just:
-> > 
-> > #define ACPI_MADT_GICC_LENGTH	\
-> > 	(ACPI_FADT_SPEC_VERSION < ACPI_FADT_SPEC_VERSION_6_0 ? 76 : 80)
-> > 
-> > (the latter is simpler but may not look nice if we change it again in
-> > 6.1; though we could re-write this macro when needed, not a problem)
-> > 
-> 
-> Perhaps the sanity checking for the MADT subtables needs to be revisited
-> and a more general solution provided -- this is not the only MADT subtable
-> with this problem and it may occur again.
-> 
-> Even the versions above are not technically compliant with the spec.  If
-> we implement what the spec currently says, it might look something like
-> this:
-> 
-> #define ACPI_MADT_GICC_LENGTH ({					\
-> 	u8 length;							\
-> 	switch (ACPI_FADT_SPEC_VERSION) {				\
-> 	case ACPI_FADT_SPEC_VERSION_5_0:				\
-> 		length = 40;						\
-> 		break;							\
-> 	case ACPI_FADT_SPEC_VERSION_5_1:				\
-> 		length = 76;						\
-> 		break;							\
-> 	default:	/* use 6.0 size */				\
-> 		length = 80;						\
-> 	}								\
-> 	length;								\
-> })
-> 
-> So it's just messy and there will be a need for change.  Let me think about
-> making this a function instead of a macro; it may make sense to really fix
-> BAD_MADT_ENTRY in general instead of just dealing with the GICC subtable,
-> but it could also be overkill.
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-So here's my suggestion.
+This effectively reverts the following three commits:
 
-First, make ARM64 boot with 4.2+ in the simplest way possible.
+ 7bc10388ccdd ACPI / resources: free memory on error in add_region_before()
+ 0f1b414d1907 ACPI / PNP: Avoid conflicting resource reservations
+ b9a5e5e18fbf ACPI / init: Fix the ordering of acpi_reserve_resources()
 
-Second, set out to fix BAD_MADT_ENTRY() etc.  Start with fixing ACPICA to
-distinguish between the different formats depending on the spec version and
-follow up from there.
+(commit b9a5e5e18fbf introduced regressions some of which, but not
+all, were addressed by commit 0f1b414d1907 and commit 7bc10388ccdd
+was a fixup on top of the latter) and causes ACPI fixed hardware
+resources to be reserved at the fs_initcall_sync stage of system
+initialization.
 
-Thanks,
-Rafael
+The story is as follows.  First, a boot regression was reported due
+to an apparent resource reservation ordering change after a commit
+that shouldn't lead to such changes.  Investigation led to the
+conclusion that the problem happened because acpi_reserve_resources()
+was executed at the device_initcall() stage of system initialization
+which wasn't strictly ordered with respect to driver initialization
+(and with respect to the initialization of the pcieport driver in
+particular), so a random change causing the device initcalls to be
+run in a different order might break things.
 
+The response to that was to attempt to run acpi_reserve_resources()
+as soon as we knew that ACPI would be in use (commit b9a5e5e18fbf).
+However, that turned out to be too early, because it caused resource
+reservations made by the PNP system driver to fail on at least one
+system and that failure was addressed by commit 0f1b414d1907.
+
+That fix still turned out to be insufficient, though, because
+calling acpi_reserve_resources() before the fs_initcall stage of
+system initialization caused a boot regression to happen on the
+eCAFE EC-800-H20G/S netbook.  That meant that we only could call
+acpi_reserve_resources() at the fs_initcall initialization stage
+or later, but then we might just as well call it after the PNP
+initalization in which case commit 0f1b414d1907 wouldn't be
+necessary any more.
+
+For this reason, the changes made by commit 0f1b414d1907 are reverted
+(along with a memory leak fixup on top of that commit), the changes
+made by commit b9a5e5e18fbf that went too far are reverted too and
+acpi_reserve_resources() is changed into fs_initcall_sync, which
+will cause it to be executed after the PNP subsystem initialization
+(which is an fs_initcall) and before device initcalls (including
+the pcieport driver initialization) which should avoid the initial
+issue.
+
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=100581
+Link: http://marc.info/?t=143092384600002&r=1&w=2
+Link: https://bugzilla.kernel.org/show_bug.cgi?id=99831
+Link: http://marc.info/?t=143389402600001&r=1&w=2
+Fixes: b9a5e5e18fbf "ACPI / init: Fix the ordering of acpi_reserve_resources()"
+Reported-by: Roland Dreier <roland@purestorage.com>
+Reported-by-and-tested-by: <g5983969@trbvm.com>
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/osl.c      |   12 ++-
+ drivers/acpi/resource.c |  162 ------------------------------------------------
+ drivers/pnp/system.c    |   35 ++--------
+ include/linux/acpi.h    |   10 --
+ 4 files changed, 18 insertions(+), 201 deletions(-)
+
+Index: linux-pm/drivers/acpi/resource.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/resource.c
++++ linux-pm/drivers/acpi/resource.c
+@@ -26,7 +26,6 @@
+ #include <linux/device.h>
+ #include <linux/export.h>
+ #include <linux/ioport.h>
+-#include <linux/list.h>
+ #include <linux/slab.h>
+ 
+ #ifdef CONFIG_X86
+@@ -622,164 +621,3 @@ int acpi_dev_filter_resource_type(struct
+ 	return (type & types) ? 0 : 1;
+ }
+ EXPORT_SYMBOL_GPL(acpi_dev_filter_resource_type);
+-
+-struct reserved_region {
+-	struct list_head node;
+-	u64 start;
+-	u64 end;
+-};
+-
+-static LIST_HEAD(reserved_io_regions);
+-static LIST_HEAD(reserved_mem_regions);
+-
+-static int request_range(u64 start, u64 end, u8 space_id, unsigned long flags,
+-			 char *desc)
+-{
+-	unsigned int length = end - start + 1;
+-	struct resource *res;
+-
+-	res = space_id == ACPI_ADR_SPACE_SYSTEM_IO ?
+-		request_region(start, length, desc) :
+-		request_mem_region(start, length, desc);
+-	if (!res)
+-		return -EIO;
+-
+-	res->flags &= ~flags;
+-	return 0;
+-}
+-
+-static int add_region_before(u64 start, u64 end, u8 space_id,
+-			     unsigned long flags, char *desc,
+-			     struct list_head *head)
+-{
+-	struct reserved_region *reg;
+-	int error;
+-
+-	reg = kmalloc(sizeof(*reg), GFP_KERNEL);
+-	if (!reg)
+-		return -ENOMEM;
+-
+-	error = request_range(start, end, space_id, flags, desc);
+-	if (error) {
+-		kfree(reg);
+-		return error;
+-	}
+-
+-	reg->start = start;
+-	reg->end = end;
+-	list_add_tail(&reg->node, head);
+-	return 0;
+-}
+-
+-/**
+- * acpi_reserve_region - Reserve an I/O or memory region as a system resource.
+- * @start: Starting address of the region.
+- * @length: Length of the region.
+- * @space_id: Identifier of address space to reserve the region from.
+- * @flags: Resource flags to clear for the region after requesting it.
+- * @desc: Region description (for messages).
+- *
+- * Reserve an I/O or memory region as a system resource to prevent others from
+- * using it.  If the new region overlaps with one of the regions (in the given
+- * address space) already reserved by this routine, only the non-overlapping
+- * parts of it will be reserved.
+- *
+- * Returned is either 0 (success) or a negative error code indicating a resource
+- * reservation problem.  It is the code of the first encountered error, but the
+- * routine doesn't abort until it has attempted to request all of the parts of
+- * the new region that don't overlap with other regions reserved previously.
+- *
+- * The resources requested by this routine are never released.
+- */
+-int acpi_reserve_region(u64 start, unsigned int length, u8 space_id,
+-			unsigned long flags, char *desc)
+-{
+-	struct list_head *regions;
+-	struct reserved_region *reg;
+-	u64 end = start + length - 1;
+-	int ret = 0, error = 0;
+-
+-	if (space_id == ACPI_ADR_SPACE_SYSTEM_IO)
+-		regions = &reserved_io_regions;
+-	else if (space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY)
+-		regions = &reserved_mem_regions;
+-	else
+-		return -EINVAL;
+-
+-	if (list_empty(regions))
+-		return add_region_before(start, end, space_id, flags, desc, regions);
+-
+-	list_for_each_entry(reg, regions, node)
+-		if (reg->start == end + 1) {
+-			/* The new region can be prepended to this one. */
+-			ret = request_range(start, end, space_id, flags, desc);
+-			if (!ret)
+-				reg->start = start;
+-
+-			return ret;
+-		} else if (reg->start > end) {
+-			/* No overlap.  Add the new region here and get out. */
+-			return add_region_before(start, end, space_id, flags,
+-						 desc, &reg->node);
+-		} else if (reg->end == start - 1) {
+-			goto combine;
+-		} else if (reg->end >= start) {
+-			goto overlap;
+-		}
+-
+-	/* The new region goes after the last existing one. */
+-	return add_region_before(start, end, space_id, flags, desc, regions);
+-
+- overlap:
+-	/*
+-	 * The new region overlaps an existing one.
+-	 *
+-	 * The head part of the new region immediately preceding the existing
+-	 * overlapping one can be combined with it right away.
+-	 */
+-	if (reg->start > start) {
+-		error = request_range(start, reg->start - 1, space_id, flags, desc);
+-		if (error)
+-			ret = error;
+-		else
+-			reg->start = start;
+-	}
+-
+- combine:
+-	/*
+-	 * The new region is adjacent to an existing one.  If it extends beyond
+-	 * that region all the way to the next one, it is possible to combine
+-	 * all three of them.
+-	 */
+-	while (reg->end < end) {
+-		struct reserved_region *next = NULL;
+-		u64 a = reg->end + 1, b = end;
+-
+-		if (!list_is_last(&reg->node, regions)) {
+-			next = list_next_entry(reg, node);
+-			if (next->start <= end)
+-				b = next->start - 1;
+-		}
+-		error = request_range(a, b, space_id, flags, desc);
+-		if (!error) {
+-			if (next && next->start == b + 1) {
+-				reg->end = next->end;
+-				list_del(&next->node);
+-				kfree(next);
+-			} else {
+-				reg->end = end;
+-				break;
+-			}
+-		} else if (next) {
+-			if (!ret)
+-				ret = error;
+-
+-			reg = next;
+-		} else {
+-			break;
+-		}
+-	}
+-
+-	return ret ? ret : error;
+-}
+-EXPORT_SYMBOL_GPL(acpi_reserve_region);
+Index: linux-pm/drivers/acpi/osl.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/osl.c
++++ linux-pm/drivers/acpi/osl.c
+@@ -175,10 +175,14 @@ static void __init acpi_request_region (
+ 	if (!addr || !length)
+ 		return;
+ 
+-	acpi_reserve_region(addr, length, gas->space_id, 0, desc);
++	/* Resources are never freed */
++	if (gas->space_id == ACPI_ADR_SPACE_SYSTEM_IO)
++		request_region(addr, length, desc);
++	else if (gas->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY)
++		request_mem_region(addr, length, desc);
+ }
+ 
+-static void __init acpi_reserve_resources(void)
++static int __init acpi_reserve_resources(void)
+ {
+ 	acpi_request_region(&acpi_gbl_FADT.xpm1a_event_block, acpi_gbl_FADT.pm1_event_length,
+ 		"ACPI PM1a_EVT_BLK");
+@@ -207,7 +211,10 @@ static void __init acpi_reserve_resource
+ 	if (!(acpi_gbl_FADT.gpe1_block_length & 0x1))
+ 		acpi_request_region(&acpi_gbl_FADT.xgpe1_block,
+ 			       acpi_gbl_FADT.gpe1_block_length, "ACPI GPE1_BLK");
++
++	return 0;
+ }
++fs_initcall_sync(acpi_reserve_resources);
+ 
+ void acpi_os_printf(const char *fmt, ...)
+ {
+@@ -1862,7 +1869,6 @@ acpi_status __init acpi_os_initialize(vo
+ 
+ acpi_status __init acpi_os_initialize1(void)
+ {
+-	acpi_reserve_resources();
+ 	kacpid_wq = alloc_workqueue("kacpid", 0, 1);
+ 	kacpi_notify_wq = alloc_workqueue("kacpi_notify", 0, 1);
+ 	kacpi_hotplug_wq = alloc_ordered_workqueue("kacpi_hotplug", 0);
+Index: linux-pm/drivers/pnp/system.c
+===================================================================
+--- linux-pm.orig/drivers/pnp/system.c
++++ linux-pm/drivers/pnp/system.c
+@@ -7,7 +7,6 @@
+  *	Bjorn Helgaas <bjorn.helgaas@hp.com>
+  */
+ 
+-#include <linux/acpi.h>
+ #include <linux/pnp.h>
+ #include <linux/device.h>
+ #include <linux/init.h>
+@@ -23,41 +22,25 @@ static const struct pnp_device_id pnp_de
+ 	{"", 0}
+ };
+ 
+-#ifdef CONFIG_ACPI
+-static bool __reserve_range(u64 start, unsigned int length, bool io, char *desc)
+-{
+-	u8 space_id = io ? ACPI_ADR_SPACE_SYSTEM_IO : ACPI_ADR_SPACE_SYSTEM_MEMORY;
+-	return !acpi_reserve_region(start, length, space_id, IORESOURCE_BUSY, desc);
+-}
+-#else
+-static bool __reserve_range(u64 start, unsigned int length, bool io, char *desc)
+-{
+-	struct resource *res;
+-
+-	res = io ? request_region(start, length, desc) :
+-		request_mem_region(start, length, desc);
+-	if (res) {
+-		res->flags &= ~IORESOURCE_BUSY;
+-		return true;
+-	}
+-	return false;
+-}
+-#endif
+-
+ static void reserve_range(struct pnp_dev *dev, struct resource *r, int port)
+ {
+ 	char *regionid;
+ 	const char *pnpid = dev_name(&dev->dev);
+ 	resource_size_t start = r->start, end = r->end;
+-	bool reserved;
++	struct resource *res;
+ 
+ 	regionid = kmalloc(16, GFP_KERNEL);
+ 	if (!regionid)
+ 		return;
+ 
+ 	snprintf(regionid, 16, "pnp %s", pnpid);
+-	reserved = __reserve_range(start, end - start + 1, !!port, regionid);
+-	if (!reserved)
++	if (port)
++		res = request_region(start, end - start + 1, regionid);
++	else
++		res = request_mem_region(start, end - start + 1, regionid);
++	if (res)
++		res->flags &= ~IORESOURCE_BUSY;
++	else
+ 		kfree(regionid);
+ 
+ 	/*
+@@ -66,7 +49,7 @@ static void reserve_range(struct pnp_dev
+ 	 * have double reservations.
+ 	 */
+ 	dev_info(&dev->dev, "%pR %s reserved\n", r,
+-		 reserved ? "has been" : "could not be");
++		 res ? "has been" : "could not be");
+ }
+ 
+ static void reserve_resources_of_dev(struct pnp_dev *dev)
+Index: linux-pm/include/linux/acpi.h
+===================================================================
+--- linux-pm.orig/include/linux/acpi.h
++++ linux-pm/include/linux/acpi.h
+@@ -309,9 +309,6 @@ int acpi_check_region(resource_size_t st
+ 
+ int acpi_resources_are_enforced(void);
+ 
+-int acpi_reserve_region(u64 start, unsigned int length, u8 space_id,
+-			unsigned long flags, char *desc);
+-
+ #ifdef CONFIG_HIBERNATION
+ void __init acpi_no_s4_hw_signature(void);
+ #endif
+@@ -507,13 +504,6 @@ static inline int acpi_check_region(reso
+ 	return 0;
+ }
+ 
+-static inline int acpi_reserve_region(u64 start, unsigned int length,
+-				      u8 space_id, unsigned long flags,
+-				      char *desc)
+-{
+-	return -ENXIO;
+-}
+-
+ struct acpi_table_header;
+ static inline int acpi_table_parse(char *id,
+ 				int (*handler)(struct acpi_table_header *))
