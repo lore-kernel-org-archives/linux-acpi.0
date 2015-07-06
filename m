@@ -1,65 +1,96 @@
-From: Al Stone <ahs3@redhat.com>
-Subject: Re: [PATCH v4 0/2] Correct for ACPI 5.1->6.0 spec changes in MADT
- GICC entries
-Date: Mon, 06 Jul 2015 17:45:40 -0600
-Message-ID: <559B1324.8000301@redhat.com>
-References: <1436224608-27754-1-git-send-email-al.stone@linaro.org> <CAJZ5v0j+iKhOX4hw2XQEdo9CjpP2sfdxGwCz_vN5OVqithEv0Q@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0j+iKhOX4hw2XQEdo9CjpP2sfdxGwCz_vN5OVqithEv0Q@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>, Al Stone <al.stone@linaro.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Lists linaro-kernel <linaro-kernel@lists.linaro.org>, "patches@linaro.org" <patches@linaro.org>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: [PATCH 12/36] PCI: Separate realloc list checking after allocation
+Date: Mon,  6 Jul 2015 16:39:02 -0700
+Message-ID: <1436225966-27247-13-git-send-email-yinghai@kernel.org>
+References: <1436225966-27247-1-git-send-email-yinghai@kernel.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1436225966-27247-1-git-send-email-yinghai@kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>, David Miller <davem@davemloft.net>, David Ahern <david.ahern@oracle.com>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Wei Yang <weiyang@linux.vnet.ibm.com>, TJ <linux@iam.tj>, Yijing Wang <wangyijing@huawei.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 07/06/2015 05:20 PM, Rafael J. Wysocki wrote:
-> Hi Al,
-> 
-> On Tue, Jul 7, 2015 at 1:16 AM, Al Stone <al.stone@linaro.org> wrote:
->> In the ACPI 5.1 version of the spec, the struct for the GICC subtable
->> (struct acpi_madt_generic_interrupt) of the MADT is 76 bytes long; in
->> ACPI 6.0, the struct is 80 bytes long.  But, there is only one definition
->> in ACPICA for this struct -- and that is the 6.0 version.  Hence, when
->> BAD_MADT_ENTRY() compares the struct size to the length in the GICC
->> subtable, it fails if 5.1 structs are in use, and there are systems in
->> the wild that have them.
->>
->> Note that this was found in linux-next and these patches apply against
->> that tree and the arm64 kernel tree; 4.1 does not appear to have this
->> problem since it still has the 5.1 struct definition.
->>
->> Though there is precedent in ia64 code for ignoring the changes in size,
->> this patch set instead verifies correctness.  The first patch adds the
->> BAD_MADT_GICC_ENTRY() macro to check the GICC subtable only, accounting
->> for the difference in specification versions that are possible.  The
->> second patch replaces BAD_MADT_ENTRY usage with the BAD_MADT_GICC_ENTRY
->> macro in arm64 code, which is currently the only architecture affected.
->> The BAD_MADT_ENTRY() will continue to work as is for all other MADT
->> subtables.
->>
->> I have tested these patches on an APM Mustang with version 1.15 firmware,
->> where the problem was found, and they fix the problem -- i.e., the system
->> will boot with either Linux 4.1 or linux-next kernels using the same ACPI
->> 5.1 compatible firmware.
-> 
-> ACK for the series, but I guess it's better to let it go via ARM64, right?
-> 
-> Rafael
+We check the realloc list, as list must be empty after allocation.
 
-Thanks, Rafael.  Yeah, probably so.  Will has ACKd the one patch
-(2/2); if he and/or Catalin ACK patch 1/2, then this seems like it
-would pretty cleanly fit into ARM64.  The only question would be if
-Will or Catalin would want an ACK from Thomas on the irq-gic.c part
-in 2/2.
+Separate the realloc list checking to another function.
 
+Add checking that is missed in acpiphp driver.
+
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
+---
+ drivers/pci/hotplug/acpiphp_glue.c |  1 +
+ drivers/pci/pci.h                  |  1 +
+ drivers/pci/setup-bus.c            | 11 ++++++++---
+ 3 files changed, 10 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
+index ff53856..134caee 100644
+--- a/drivers/pci/hotplug/acpiphp_glue.c
++++ b/drivers/pci/hotplug/acpiphp_glue.c
+@@ -507,6 +507,7 @@ static void enable_slot(struct acpiphp_slot *slot)
+ 		}
+ 	}
+ 	__pci_bus_assign_resources(bus, &add_list, NULL);
++	__pci_bus_check_realloc(&add_list);
+ 
+ 	acpiphp_sanitize_bus(bus);
+ 	pcie_bus_configure_settings(bus);
+diff --git a/drivers/pci/pci.h b/drivers/pci/pci.h
+index 4ff0ff1..2b83977 100644
+--- a/drivers/pci/pci.h
++++ b/drivers/pci/pci.h
+@@ -235,6 +235,7 @@ void __pci_bus_size_bridges(struct pci_bus *bus,
+ void __pci_bus_assign_resources(const struct pci_bus *bus,
+ 				struct list_head *realloc_head,
+ 				struct list_head *fail_head);
++void __pci_bus_check_realloc(struct list_head *realloc_head);
+ bool pci_bus_clip_resource(struct pci_dev *dev, int idx);
+ 
+ void pci_reassigndev_resource_alignment(struct pci_dev *dev);
+diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
+index 51085a8..ed5f632 100644
+--- a/drivers/pci/setup-bus.c
++++ b/drivers/pci/setup-bus.c
+@@ -345,6 +345,11 @@ out:
+ 	}
+ }
+ 
++void __pci_bus_check_realloc(struct list_head *realloc_head)
++{
++	BUG_ON(!list_empty(realloc_head));
++}
++
+ /**
+  * assign_requested_resources_sorted() - satisfy resource requests
+  *
+@@ -1856,7 +1861,7 @@ again:
+ 	/* Depth last, allocate resources and update the hardware. */
+ 	__pci_bus_assign_resources(bus, add_list, &fail_head);
+ 	if (add_list)
+-		BUG_ON(!list_empty(add_list));
++		__pci_bus_check_realloc(add_list);
+ 	tried_times++;
+ 
+ 	/* any device complain? */
+@@ -1931,7 +1936,7 @@ void pci_assign_unassigned_bridge_resources(struct pci_dev *bridge)
+ again:
+ 	__pci_bus_size_bridges(parent, &add_list);
+ 	__pci_bridge_assign_resources(bridge, &add_list, &fail_head);
+-	BUG_ON(!list_empty(&add_list));
++	__pci_bus_check_realloc(&add_list);
+ 	tried_times++;
+ 
+ 	if (list_empty(&fail_head))
+@@ -1990,6 +1995,6 @@ void pci_assign_unassigned_bus_resources(struct pci_bus *bus)
+ 							 &add_list);
+ 	up_read(&pci_bus_sem);
+ 	__pci_bus_assign_resources(bus, &add_list, NULL);
+-	BUG_ON(!list_empty(&add_list));
++	__pci_bus_check_realloc(&add_list);
+ }
+ EXPORT_SYMBOL_GPL(pci_assign_unassigned_bus_resources);
 -- 
-ciao,
-al
------------------------------------
-Al Stone
-Software Engineer
-Red Hat, Inc.
-ahs3@redhat.com
------------------------------------
+1.8.4.5
