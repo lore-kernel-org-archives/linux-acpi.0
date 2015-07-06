@@ -1,81 +1,115 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v4 6/8] mfd: make mfd_remove_devices() iterate in
- reverse order
-Date: Mon, 06 Jul 2015 12:30:18 +0300
-Message-ID: <1436175018.8279.4.camel@linux.intel.com>
-References: <1434362256-239992-1-git-send-email-andriy.shevchenko@linux.intel.com>
-	 <1434362256-239992-7-git-send-email-andriy.shevchenko@linux.intel.com>
-	 <20150624113144.GL15013@x1> <1436173803.8279.1.camel@linux.intel.com>
-	 <CAMuHMdUhuC-8vfXKNLmONexnQeokX4xFLNR=MVXFOSWE1O3Hsg@mail.gmail.com>
+From: Jean Delvare <jdelvare@suse.de>
+Subject: Re: [PATCH] thermal: consistently use int for temperatures
+Date: Mon, 6 Jul 2015 12:25:15 +0200
+Message-ID: <20150706122515.4580521c@endymion.delvare>
+References: <1436167189-29835-1-git-send-email-s.hauer@pengutronix.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:60129 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751263AbbGFJaZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 6 Jul 2015 05:30:25 -0400
-In-Reply-To: <CAMuHMdUhuC-8vfXKNLmONexnQeokX4xFLNR=MVXFOSWE1O3Hsg@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1436167189-29835-1-git-send-email-s.hauer@pengutronix.de>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: linux-pm@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Eduardo Valentin <edubezval@gmail.com>, linux-kernel@vger.kernel.org, Peter Feuerer <peter@piie.net>, Heiko Stuebner <heiko@sntech.de>, Lukasz Majewski <l.majewski@samsung.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Maxime Ripard <maxime.ripard@free-electrons.com>, Darren Hart <dvhart@infradead.org>, lm-sensors@lm-sensors.org
 List-Id: linux-acpi@vger.kernel.org
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-Cc: Lee Jones <lee.jones@linaro.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Vinod Koul <vinod.koul@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, dmaengine@vger.kernel.org, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Mike Turquette <mturquette@linaro.org>
 
-On Mon, 2015-07-06 at 11:24 +0200, Geert Uytterhoeven wrote:
-> On Mon, Jul 6, 2015 at 11:10 AM, Andy Shevchenko
-> <andriy.shevchenko@linux.intel.com> wrote:
-> > On Wed, 2015-06-24 at 12:31 +0100, Lee Jones wrote:
-> > > On Mon, 15 Jun 2015, Andy Shevchenko wrote:
-> > >=20
-> > > > The newly introduced device_for_each_child_reverse() would be=20
-> > > > used
-> > > > when MFD
-> > > > core removes the device.
-> > > >=20
-> > > > After this patch applied the devices will be removed in a=20
-> > > > reversed
-> > > > order. This
-> > > > behaviour is useful when devices have implicit dependency on=20
-> > > > order,
-> > > > i.e.
-> > > > consider MFD device with serial bus controller, such as SPI,=20
-> > > > and
-> > > > DMA IP that is
-> > > > attached to serial bus controller: before remove the DMA driver=
-=20
-> > > > we
-> > > > have to be
-> > > > ensured that no DMA transfers is ongoing and the requested=20
-> > > > channel
-> > > > are unused.
-> > > >=20
-> > > > Signed-off-by: Andy Shevchenko <
-> > > > andriy.shevchenko@linux.intel.com>
-> > > > ---
-> > > >  drivers/mfd/mfd-core.c | 2 +-
-> > > >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > >=20
-> > > Applied, thanks.
-> >=20
-> > Hmm=E2=80=A6 Seems kinda mistake. I can't see this applied (and req=
-uired
-> > previous patches 4 and 5) to any of your branch neither in=20
-> > (today's)
-> > linux-next.
+On Mon,  6 Jul 2015 09:19:49 +0200, Sascha Hauer wrote:
+> The thermal code uses int, long and unsigned long for temperatures
+> in different places.
 >=20
-> New stuff applied after v4.1 couldn't show up in -next before v4.2
-> -rc1 was
-> released (which just happened last night)?
+> Using an unsigned type limits the thermal framework to positive
+> temperatures without need. Also several drivers currently will report
+> temperatures near UINT_MAX for temperatures below 0=C2=B0C. This will=
+ probably
+> immediately shut the machine down due to overtemperature if started b=
+elow
+> 0=C2=B0C.
+>=20
+> 'long' is 64bit on several architectures. This is not needed since IN=
+T_MAX =C2=B0mC
+> is above the melting point of all known materials.
+>=20
+> Consistently use a plain 'int' for temperatures throughout the therma=
+l code and
+> the drivers. This only changes the places in the drivers where the te=
+mperature
+> is passed around as pointer, when drivers internally use another type=
+ this is
+> not changed.
+>=20
+> Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+> Cc: Zhang Rui <rui.zhang@intel.com>
+> Cc: Eduardo Valentin <edubezval@gmail.com>
+> Cc: linux-pm@vger.kernel.org
+> Cc: linux-kernel@vger.kernel.org
+> Cc: Jean Delvare <jdelvare@suse.de>
+> Cc: Peter Feuerer <peter@piie.net>
+> Cc: Heiko Stuebner <heiko@sntech.de>
+> Cc: Lukasz Majewski <l.majewski@samsung.com>
+> Cc: Stephen Warren <swarren@wwwdotorg.org>
+> Cc: Thierry Reding <thierry.reding@gmail.com>
+> Cc: linux-acpi@vger.kernel.org
+> Cc: platform-driver-x86@vger.kernel.org
+> Cc: linux-arm-kernel@lists.infradead.org
+> Cc: linux-omap@vger.kernel.org
+> Cc: linux-samsung-soc@vger.kernel.org
+> Cc: Guenter Roeck <linux@roeck-us.net>
+> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+> Cc: Maxime Ripard <maxime.ripard@free-electrons.com>
+> Cc: Darren Hart <dvhart@infradead.org>
+> Cc: lm-sensors@lm-sensors.org
+> ---
+>  drivers/acpi/thermal.c                             | 12 +++++-----
+>  drivers/hwmon/lm75.c                               |  2 +-
+>  drivers/hwmon/ntc_thermistor.c                     |  2 +-
+>  drivers/hwmon/tmp102.c                             |  2 +-
+>  drivers/input/touchscreen/sun4i-ts.c               |  8 +++----
+>  drivers/platform/x86/acerhdf.c                     |  9 ++++----
+>  drivers/platform/x86/intel_mid_thermal.c           |  9 ++++----
+>  drivers/power/power_supply_core.c                  |  2 +-
+>  drivers/thermal/armada_thermal.c                   |  2 +-
+>  drivers/thermal/db8500_thermal.c                   |  7 +++---
+>  drivers/thermal/dove_thermal.c                     |  2 +-
+>  drivers/thermal/fair_share.c                       |  2 +-
+>  drivers/thermal/gov_bang_bang.c                    |  5 ++--
+>  drivers/thermal/hisi_thermal.c                     |  4 ++--
+>  drivers/thermal/imx_thermal.c                      | 27 +++++++++++-=
+----------
+>  drivers/thermal/int340x_thermal/int3400_thermal.c  |  2 +-
+>  .../thermal/int340x_thermal/int340x_thermal_zone.c | 10 ++++----
+>  .../thermal/int340x_thermal/int340x_thermal_zone.h |  8 +++----
+>  .../int340x_thermal/processor_thermal_device.c     |  4 ++--
+>  drivers/thermal/intel_quark_dts_thermal.c          | 13 +++++------
+>  drivers/thermal/intel_soc_dts_iosf.c               |  8 +++----
+>  drivers/thermal/kirkwood_thermal.c                 |  2 +-
+>  drivers/thermal/of-thermal.c                       | 14 +++++------
+>  drivers/thermal/power_allocator.c                  | 16 ++++++------=
+-
+>  drivers/thermal/qcom-spmi-temp-alarm.c             |  2 +-
+>  drivers/thermal/rcar_thermal.c                     |  7 +++---
+>  drivers/thermal/rockchip_thermal.c                 | 10 ++++----
+>  drivers/thermal/samsung/exynos_tmu.c               | 23 +++++++++---=
+------
+>  drivers/thermal/spear_thermal.c                    |  2 +-
+>  drivers/thermal/st/st_thermal.c                    |  5 ++--
+>  drivers/thermal/step_wise.c                        |  4 ++--
+>  drivers/thermal/tegra_soctherm.c                   |  4 ++--
+>  drivers/thermal/thermal_core.c                     | 26 ++++++++++--=
+---------
+>  drivers/thermal/thermal_hwmon.c                    | 10 ++++----
+>  drivers/thermal/ti-soc-thermal/ti-thermal-common.c | 10 ++++----
+>  drivers/thermal/x86_pkg_temp_thermal.c             | 10 ++++----
+>  include/linux/thermal.h                            | 26 +++++++++---=
+---------
+>  37 files changed, 148 insertions(+), 163 deletions(-)
+> (...)
 
-Might be, I would like to resend new version of my series and that's
-why I would like to have a branch to check what is already applied. So,
-if I can't see it does it mean it is brewed in the private repository?
+No objection from me.
+
+=46or the hwmon parts:
+
+Reviewed-by: Jean Delvare <jdelvare@suse.de>
 
 --=20
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Jean Delvare
+SUSE L3 Support
