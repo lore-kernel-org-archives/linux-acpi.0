@@ -1,55 +1,61 @@
-From: Lukasz Majewski <l.majewski@samsung.com>
-Subject: Re: [PATCH] thermal: consistently use int for temperatures
-Date: Mon, 06 Jul 2015 12:26:40 +0200
-Message-ID: <20150706122640.2a61ca05@amdc2363>
-References: <1436167189-29835-1-git-send-email-s.hauer@pengutronix.de>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH v3 2/3] ACPI / ARM64: add BAD_MADT_GICC_ENTRY() macro
+Date: Mon, 6 Jul 2015 11:33:55 +0100
+Message-ID: <20150706103355.GC27723@e104818-lin.cambridge.arm.com>
+References: <1435880916-2153-1-git-send-email-al.stone@linaro.org>
+ <20150703140601.GL25907@e104818-lin.cambridge.arm.com>
+ <5596E7C8.7040809@redhat.com>
+ <15297999.EvgjakjXbx@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:39432 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750967AbbGFK0x convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Jul 2015 06:26:53 -0400
-In-reply-to: <1436167189-29835-1-git-send-email-s.hauer@pengutronix.de>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <15297999.EvgjakjXbx@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Al Stone <ahs3@redhat.com>, linaro-kernel@lists.linaro.org, jason@lakedaemon.net, Al Stone <al.stone@linaro.org>, linaro-acpi@lists.linaro.org, patches@linaro.org, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, tglx@linutronix.de, linux-arm-kernel@lists.infradead.org, lenb@kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: linux-pm@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Eduardo Valentin <edubezval@gmail.com>, linux-kernel@vger.kernel.org, Jean Delvare <jdelvare@suse.de>, Peter Feuerer <peter@piie.net>, Heiko Stuebner <heiko@sntech.de>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Maxime Ripard <maxime.ripard@free-electrons.com>, Darren Hart <dvhart@infradead.org>, lm-sensors@lm-sensors.org
 
-Hi Sascha,
+On Sat, Jul 04, 2015 at 01:54:15AM +0200, Rafael J. Wysocki wrote:
+> On Friday, July 03, 2015 01:51:36 PM Al Stone wrote:
+> > Perhaps the sanity checking for the MADT subtables needs to be revisited
+> > and a more general solution provided -- this is not the only MADT subtable
+> > with this problem and it may occur again.
+> > 
+> > Even the versions above are not technically compliant with the spec.  If
+> > we implement what the spec currently says, it might look something like
+> > this:
+> > 
+> > #define ACPI_MADT_GICC_LENGTH ({					\
+> > 	u8 length;							\
+> > 	switch (ACPI_FADT_SPEC_VERSION) {				\
+> > 	case ACPI_FADT_SPEC_VERSION_5_0:				\
+> > 		length = 40;						\
+> > 		break;							\
+> > 	case ACPI_FADT_SPEC_VERSION_5_1:				\
+> > 		length = 76;						\
+> > 		break;							\
+> > 	default:	/* use 6.0 size */				\
+> > 		length = 80;						\
+> > 	}								\
+> > 	length;								\
+> > })
+> > 
+> > So it's just messy and there will be a need for change.  Let me think about
+> > making this a function instead of a macro; it may make sense to really fix
+> > BAD_MADT_ENTRY in general instead of just dealing with the GICC subtable,
+> > but it could also be overkill.
+> 
+> So here's my suggestion.
+> 
+> First, make ARM64 boot with 4.2+ in the simplest way possible.
+> 
+> Second, set out to fix BAD_MADT_ENTRY() etc.  Start with fixing ACPICA to
+> distinguish between the different formats depending on the spec version and
+> follow up from there.
 
-> The thermal code uses int, long and unsigned long for temperatures
-> in different places.
->=20
-> Using an unsigned type limits the thermal framework to positive
-> temperatures without need. Also several drivers currently will report
-> temperatures near UINT_MAX for temperatures below 0=C2=B0C. This will
-> probably immediately shut the machine down due to overtemperature if
-> started below 0=C2=B0C.
->=20
-> 'long' is 64bit on several architectures. This is not needed since
-> INT_MAX =C2=B0mC is above the melting point of all known materials.
->=20
-> Consistently use a plain 'int' for temperatures throughout the
-> thermal code and the drivers. This only changes the places in the
-> drivers where the temperature is passed around as pointer, when
-> drivers internally use another type this is not changed.
->=20
-> Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+That's fine by me (as long as there is a plan to fix it properly,
+ideally in 4.3).
 
-Sascha, thanks for this cleanup work.=20
-
-Reviewed-by: Lukasz Majewski <l.majewski@samsung.com>
-
---=20
-Best regards,
-
-Lukasz Majewski
-
-Samsung R&D Institute Poland (SRPOL) | Linux Platform Group
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Catalin
