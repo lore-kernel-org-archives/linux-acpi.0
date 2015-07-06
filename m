@@ -1,120 +1,87 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v3 1/3] ACPI : introduce macros for using the ACPI specification version
-Date: Tue, 07 Jul 2015 00:44:13 +0200
-Message-ID: <2611041.XBiLskjUt3@vostro.rjw.lan>
-References: <1435880916-2153-1-git-send-email-al.stone@linaro.org> <2493292.PBLH7t7v9z@vostro.rjw.lan> <559AF8CA.4050009@redhat.com>
+Subject: Re: [patch] ACPI / LPSS: set an error code
+Date: Tue, 07 Jul 2015 00:56:21 +0200
+Message-ID: <1480350.L34Aud6LIR@vostro.rjw.lan>
+References: <20150703085653.GC11901@mwanda>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:59216 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:57967 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754652AbbGFWRs (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Jul 2015 18:17:48 -0400
-In-Reply-To: <559AF8CA.4050009@redhat.com>
+	with SMTP id S1751729AbbGFW3z (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Jul 2015 18:29:55 -0400
+In-Reply-To: <20150703085653.GC11901@mwanda>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Al Stone <ahs3@redhat.com>
-Cc: Hanjun Guo <guohanjun@huawei.com>, Al Stone <al.stone@linaro.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, tglx@linutronix.de, jason@lakedaemon.net, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, linaro-kernel@lists.linaro.org, patches@linaro.org
+To: Dan Carpenter <dan.carpenter@oracle.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, kernel-janitors@vger.kernel.org
 
-On Monday, July 06, 2015 03:53:14 PM Al Stone wrote:
-> On 07/03/2015 05:50 PM, Rafael J. Wysocki wrote:
-> > On Friday, July 03, 2015 01:22:13 PM Al Stone wrote:
-> >> On 07/02/2015 11:23 PM, Hanjun Guo wrote:
-> >>> Hi Rafael,
-> >>>
-> >>> On 2015/7/3 8:21, Rafael J. Wysocki wrote:
-> >>>> On Thursday, July 02, 2015 05:48:34 PM Al Stone wrote:
-> >>>>> Add the __ACPI_FADT_SPEC_VERSION() helper macro to build a proper version
-> >>>>> number from a major and minor revision number.  Add also macros that use
-> >>>>> the helper to construct the current version from the values in the FADT
-> >>>>> (i.e., ACPI_FADT_SPEC_VERSION) and both the 5.1 and 6.0 versions.
-> >>>>>
-> >>>>> These macros are added in order to simplify retrieving and comparing ACPI
-> >>>>> specification version numbers, since this is becoming a more frequent need.
-> >>>>> In particular, there are some architectures that require at least a certain
-> >>>>> version of the spec, and there are differences in some structure sizes that
-> >>>>> have changed with recent versions but can only be tracked by spec version
-> >>>>> number.
-> >>>>>
-> >>>>> Fixes: aeb823bbacc2 (ACPICA: ACPI 6.0: Add changes for FADT table.)
-> >>>>> Signed-off-by: Al Stone <al.stone@linaro.org>
-> >>>>> ---
-> >>>>>  include/linux/acpi.h | 10 ++++++++++
-> >>>>>  1 file changed, 10 insertions(+)
-> >>>>>
-> >>>>> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> >>>>> index c471dfc..0e525e8 100644
-> >>>>> --- a/include/linux/acpi.h
-> >>>>> +++ b/include/linux/acpi.h
-> >>>>> @@ -48,6 +48,16 @@
-> >>>>>  #include <acpi/acpi_io.h>
-> >>>>>  #include <asm/acpi.h>
-> >>>>>  
-> >>>>> +#define __ACPI_FADT_SPEC_VERSION(major, minor) \
-> >>>>> +	((unsigned int)major << 8 | (unsigned int)minor)
-> >>>>> +
-> >>>>> +#define ACPI_FADT_SPEC_VERSION	\
-> >>>>> +	__ACPI_FADT_SPEC_VERSION(acpi_gbl_FADT.header.revision, \
-> >>>>> +				 acpi_gbl_FADT.minor_revision)
-> >>>>> +
-> >>>>> +#define ACPI_FADT_SPEC_VERSION_51 __ACPI_FADT_SPEC_VERSION(5, 1)
-> >>>>> +#define ACPI_FADT_SPEC_VERSION_60 __ACPI_FADT_SPEC_VERSION(6, 0)
-> >>>> I'd add underscores here, eg. ACPI_FADT_SPEC_VERSION_6_0
-> >>>
-> >>> Agreed.
-> >>
-> >> Will do.  This was a flip of the coin, on my part.
-> >>
-> >>>> And what if there is 5.2 or even 5.3?
-> >>>
-> >>> Hmm, do you mean in the future or just now? for both two cases,
-> >>> only 5.1 and 5.1 errata (still has the same ACPI version with 5.1)
-> >>> will be available, then jump to 6.0 and going forward if new versions
-> >>> in the future.
-> >>>
-> >>> I'm not sure if I understand your question correctly, if
-> >>> not, please correct me :)
-> >>>
-> >>> Thanks
-> >>> Hanjun
-> >>
-> >> I'm not sure I understand the question, either.  Traditionally, the
-> >> spec versioning has been exclusively linear -- i.e., now that 6.0
-> >> has replaced 5.1, there will be no more 5.x.  There may be errata
-> >> published (e.g., there was a 5.1A, and a 6.0A is forthcoming) but
-> >> the errata are not encoded in tables anywhere since they are meant
-> >> only as corrections to the base version.  This is unlikely to change,
-> >> but not impossible, of course :).
-> >>
-> >> The only reason for putting in macros for 5.1 and 6.0 is that those
-> >> are the versions that I'm concerned with for this particular fix and
-> >> I know I will use them.  If others are needed, I'd have those that
-> >> need them add them.
-> > 
-> > It seems to me that you only need to compare acpi_gbl_FADT.header.revision
-> > with 6 for this fix, though (if less than 6, use the old way, or use the
-> > new way otherwise).
-> > 
-> > Isn't that the case?
-> > 
-> > Rafael
-> > 
+On Friday, July 03, 2015 11:56:53 AM Dan Carpenter wrote:
+> We should return -ENOMEM if ioremap() fails.
 > 
-> Ah, sorry for being a bit dense.  Yes, on arm64 we only support 5.1 or
-> later so for now, less than 6 is a sufficient test.  The 5.0 spec defines
-> yet a third size for the GICC subtable with the same MADT version number
-> (40 bytes) but we won't initialize ACPI if we have anything before 5.1.
+> Fixes: 4483d59e29fe ('ACPI / LPSS: check the result of ioremap()')
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> 
+> diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+> index 569ee09..10bf5c7 100644
+> --- a/drivers/acpi/acpi_lpss.c
+> +++ b/drivers/acpi/acpi_lpss.c
+> @@ -352,8 +352,10 @@ static int acpi_lpss_create_device(struct acpi_device *adev,
+>  				pdata->mmio_size = resource_size(rentry->res);
+>  			pdata->mmio_base = ioremap(rentry->res->start,
+>  						   pdata->mmio_size);
+> -			if (!pdata->mmio_base)
+> +			if (!pdata->mmio_base) {
+> +				ret = -ENOMEM;
+>  				goto err_out;
+> +			}
+>  			break;
+>  		}
 
-OK
+This looks insufficient to my eyes, as we leak memory here too.
 
-> So, I could take this patch out of the set and reduce patch 2/3 somewhat
-> by just comparing against acpi_gbl_FADT.header.revision.  I think that's
-> what I'll do unless you think these macros have intrinsic value for other
-> reasons.
+What about the following instead?
 
-That would be fine by me, so please do it.
+---
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Subject: ACPI / LPSS: Fix up acpi_lpss_create_device()
 
-Thanks,
-Rafael
+Fix a return value (which should be a negative error code) and a
+memory leak (the list allocated by acpi_dev_get_resources() needs
+to be freed on ioremap() errors too) in acpi_lpss_create_device()
+introduced by commit 4483d59e29fe 'ACPI / LPSS: check the result
+of ioremap()'.
+
+Fixes: 4483d59e29fe 'ACPI / LPSS: check the result of ioremap()'
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: 4.0+ <stable@vger.kernel.org> # 4.0+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/acpi_lpss.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
+
+Index: linux-pm/drivers/acpi/acpi_lpss.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/acpi_lpss.c
++++ linux-pm/drivers/acpi/acpi_lpss.c
+@@ -352,13 +352,16 @@ static int acpi_lpss_create_device(struc
+ 				pdata->mmio_size = resource_size(rentry->res);
+ 			pdata->mmio_base = ioremap(rentry->res->start,
+ 						   pdata->mmio_size);
+-			if (!pdata->mmio_base)
+-				goto err_out;
+ 			break;
+ 		}
+ 
+ 	acpi_dev_free_resource_list(&resource_list);
+ 
++	if (!pdata->mmio_base) {
++		ret = -ENOMEM;
++		goto err_out;
++	}
++
+ 	pdata->dev_desc = dev_desc;
+ 
+ 	if (dev_desc->setup)
 
