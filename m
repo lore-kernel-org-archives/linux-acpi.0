@@ -1,75 +1,39 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH v4 6/8] mfd: make mfd_remove_devices() iterate in reverse order
-Date: Mon, 6 Jul 2015 18:10:51 +0300
-Message-ID: <CAHp75VdGyfyfYV6q9vdqK5nYBMpPWFxr32eiXXn2ruUj4pg6BA@mail.gmail.com>
-References: <1434362256-239992-1-git-send-email-andriy.shevchenko@linux.intel.com>
-	<1434362256-239992-7-git-send-email-andriy.shevchenko@linux.intel.com>
-	<20150624113144.GL15013@x1>
-	<1436173803.8279.1.camel@linux.intel.com>
-	<CAMuHMdUhuC-8vfXKNLmONexnQeokX4xFLNR=MVXFOSWE1O3Hsg@mail.gmail.com>
-	<1436175018.8279.4.camel@linux.intel.com>
-	<20150706145039.GB3182@x1>
+From: Ingo Molnar <mingo@kernel.org>
+Subject: Re: [PATCH v3 4/5] x86: pmc_atom: Add Cherrytrail PMC interface
+Date: Mon, 6 Jul 2015 17:44:25 +0200
+Message-ID: <20150706154425.GA19665@gmail.com>
+References: <1436192944-56496-1-git-send-email-andriy.shevchenko@linux.intel.com>
+ <1436192944-56496-5-git-send-email-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yk0-f180.google.com ([209.85.160.180]:34655 "EHLO
-	mail-yk0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750800AbbGFPKx convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Jul 2015 11:10:53 -0400
-In-Reply-To: <20150706145039.GB3182@x1>
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:36916 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752798AbbGFPoa (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Jul 2015 11:44:30 -0400
+Content-Disposition: inline
+In-Reply-To: <1436192944-56496-5-git-send-email-andriy.shevchenko@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Geert Uytterhoeven <geert@linux-m68k.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Vinod Koul <vinod.koul@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, dmaengine <dmaengine@vger.kernel.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Mike Turquette <mturquette@linaro.org>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: x86@kernel.org, Aubrey Li <aubrey.li@linux.intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Kumar P, Mahesh" <mahesh.kumar.p@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Mon, Jul 6, 2015 at 5:50 PM, Lee Jones <lee.jones@linaro.org> wrote:
-> On Mon, 06 Jul 2015, Andy Shevchenko wrote:
->
->> On Mon, 2015-07-06 at 11:24 +0200, Geert Uytterhoeven wrote:
->> > On Mon, Jul 6, 2015 at 11:10 AM, Andy Shevchenko
->> > <andriy.shevchenko@linux.intel.com> wrote:
->> > > On Wed, 2015-06-24 at 12:31 +0100, Lee Jones wrote:
->> > > > On Mon, 15 Jun 2015, Andy Shevchenko wrote:
 
-[]
+* Andy Shevchenko <andriy.shevchenko@linux.intel.com> wrote:
 
->> > > > Applied, thanks.
->> > >
->> > > Hmm=E2=80=A6 Seems kinda mistake. I can't see this applied (and =
-required
->> > > previous patches 4 and 5) to any of your branch neither in
->> > > (today's)
->> > > linux-next.
->> >
->> > New stuff applied after v4.1 couldn't show up in -next before v4.2
->> > -rc1 was
->> > released (which just happened last night)?
->>
->> Might be, I would like to resend new version of my series and that's
->> why I would like to have a branch to check what is already applied. =
-So,
->> if I can't see it does it mean it is brewed in the private repositor=
-y?
->
-> If you have patches that depend on this, they either need to come
-> through my tree, or you have to wait until the next kernel version
-> (which you probably don't want, right?).
->
-> The alternative is that I unapply this patch and the whole lot can be
-> sucked up by the most appropriate subsystem.
+> The patch adds CHT PMC interface. This exposes all the South IP device power
+> states and S0ix states for CHT. The bit map of FUNC_DIS and D3_STS_0 registers
+> for SoCs are consistent. The D3_STS_1 and FUNC_DIS_2 registers, however, are
+> not aligned. This is fixed by splitting a common mapping on per register basis.
+> 
+> Signed-off-by: Kumar P Mahesh <mahesh.kumar.p@intel.com>
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-I resent a new version for other comments(still with all patches
-included). Meanwhile the patches 4-6 (from v4 or v5, where they are
-the same) could be applied in the first place. Can you clarify what
-exactly you have applied? The idea is to put the rest via your
-subsystem since it's most appropriate for this series.
+That's a weird signoff sequence. I changed it to:
 
---=20
-With Best Regards,
-Andy Shevchenko
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+ Acked-by: Kumar P Mahesh <mahesh.kumar.p@intel.com>
+
+Thanks,
+
+	Ingo
