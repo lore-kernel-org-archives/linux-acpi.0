@@ -1,64 +1,54 @@
-From: Ingo Molnar <mingo@kernel.org>
-Subject: Re: [PATCH v3 4/5] x86: pmc_atom: Add Cherrytrail PMC interface
-Date: Mon, 6 Jul 2015 18:39:50 +0200
-Message-ID: <20150706163950.GA22751@gmail.com>
-References: <1436192944-56496-1-git-send-email-andriy.shevchenko@linux.intel.com>
- <1436192944-56496-5-git-send-email-andriy.shevchenko@linux.intel.com>
- <20150706154425.GA19665@gmail.com>
- <alpine.DEB.2.11.1507061747100.3916@nanos>
- <20150706155008.GA3095@gmail.com>
- <CAHp75VfupS4FLu2jAmBL-Ja-ydb9+0-thD3pUbwrD+3StrE4dA@mail.gmail.com>
+From: Darren Hart <dvhart@infradead.org>
+Subject: Re: [PATCH] thermal: consistently use int for temperatures
+Date: Mon, 6 Jul 2015 11:18:14 -0700
+Message-ID: <20150706181814.GB40907@vmdeb7>
+References: <1436167189-29835-1-git-send-email-s.hauer@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wg0-f42.google.com ([74.125.82.42]:36617 "EHLO
-	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751644AbbGFQjz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Jul 2015 12:39:55 -0400
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-pm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAHp75VfupS4FLu2jAmBL-Ja-ydb9+0-thD3pUbwrD+3StrE4dA@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <1436167189-29835-1-git-send-email-s.hauer@pengutronix.de>
+Sender: linux-pm-owner@vger.kernel.org
+To: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: linux-pm@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Eduardo Valentin <edubezval@gmail.com>, linux-kernel@vger.kernel.org, Jean Delvare <jdelvare@suse.de>, Peter Feuerer <peter@piie.net>, Heiko Stuebner <heiko@sntech.de>, Lukasz Majewski <l.majewski@samsung.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Maxime Ripard <maxime.ripard@free-electrons.com>, lm-sensors@lm-sensors.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "x86@kernel.org" <x86@kernel.org>, Aubrey Li <aubrey.li@linux.intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, "Kumar P, Mahesh" <mahesh.kumar.p@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
+On Mon, Jul 06, 2015 at 09:19:49AM +0200, Sascha Hauer wrote:
+> The thermal code uses int, long and unsigned long for temperatures
+> in different places.
+>=20
+> Using an unsigned type limits the thermal framework to positive
+> temperatures without need. Also several drivers currently will report
+> temperatures near UINT_MAX for temperatures below 0=B0C. This will pr=
+obably
+> immediately shut the machine down due to overtemperature if started b=
+elow
+> 0=B0C.
+>=20
+> 'long' is 64bit on several architectures. This is not needed since IN=
+T_MAX =B0mC
+> is above the melting point of all known materials.
+>=20
+> Consistently use a plain 'int' for temperatures throughout the therma=
+l code and
+> the drivers. This only changes the places in the drivers where the te=
+mperature
+> is passed around as pointer, when drivers internally use another type=
+ this is
+> not changed.
+>=20
+> Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
 
-* Andy Shevchenko <andy.shevchenko@gmail.com> wrote:
+=2E..
 
-> On Mon, Jul 6, 2015 at 6:50 PM, Ingo Molnar <mingo@kernel.org> wrote:
-> >
-> > * Thomas Gleixner <tglx@linutronix.de> wrote:
-> >
-> >> On Mon, 6 Jul 2015, Ingo Molnar wrote:
-> >>
-> >> > * Andy Shevchenko <andriy.shevchenko@linux.intel.com> wrote:
-> >> >
-> >> > > The patch adds CHT PMC interface. This exposes all the South IP device power
-> >> > > states and S0ix states for CHT. The bit map of FUNC_DIS and D3_STS_0 registers
-> >> > > for SoCs are consistent. The D3_STS_1 and FUNC_DIS_2 registers, however, are
-> >> > > not aligned. This is fixed by splitting a common mapping on per register basis.
-> >> > >
-> >> > > Signed-off-by: Kumar P Mahesh <mahesh.kumar.p@intel.com>
-> >> > > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> >> >
-> >> > That's a weird signoff sequence. I changed it to:
-> >> >
-> >> >  Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> >> >  Acked-by: Kumar P Mahesh <mahesh.kumar.p@intel.com>
-> >>
-> >> It might lack a From: Kumar ...
-> >
-> > Yeah, and got lost due to a rebase. Will change it to that, to preserve
-> > authorship. Won't push it out before I hear back from Andy though.
-> 
-> To clarify: "It's based on the previous work done by Kumar P Mahesh."
-> and we can remove SoB. It's quite far from the code initially taken
-> from Kumar.
-> 
-> Would you like me to update the commit message accordingly?
+>  drivers/platform/x86/acerhdf.c                     |  9 ++++----
+>  drivers/platform/x86/intel_mid_thermal.c           |  9 ++++----
 
-Ok.
+=46or these two:
 
-Thanks,
+Reviewed-by: Darren Hart <dvhart@linux.intel.com>
 
-	Ingo
+--=20
+Darren Hart
+Intel Open Source Technology Center
