@@ -1,87 +1,77 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [patch] ACPI / LPSS: set an error code
-Date: Tue, 07 Jul 2015 00:56:21 +0200
-Message-ID: <1480350.L34Aud6LIR@vostro.rjw.lan>
-References: <20150703085653.GC11901@mwanda>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+From: Al Stone <al.stone@linaro.org>
+Subject: [PATCH v4 0/2] Correct for ACPI 5.1->6.0 spec changes in MADT GICC entries
+Date: Mon,  6 Jul 2015 17:16:46 -0600
+Message-ID: <1436224608-27754-1-git-send-email-al.stone@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:57967 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751729AbbGFW3z (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Jul 2015 18:29:55 -0400
-In-Reply-To: <20150703085653.GC11901@mwanda>
+Received: from mail-ie0-f180.google.com ([209.85.223.180]:35635 "EHLO
+	mail-ie0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751620AbbGFXQ7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 6 Jul 2015 19:16:59 -0400
+Received: by iecuq6 with SMTP id uq6so123554710iec.2
+        for <linux-acpi@vger.kernel.org>; Mon, 06 Jul 2015 16:16:58 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dan Carpenter <dan.carpenter@oracle.com>, Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, kernel-janitors@vger.kernel.org
+To: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, tglx@linutronix.de, jason@lakedaemon.net, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, linaro-kernel@lists.linaro.org, patches@linaro.org
 
-On Friday, July 03, 2015 11:56:53 AM Dan Carpenter wrote:
-> We should return -ENOMEM if ioremap() fails.
-> 
-> Fixes: 4483d59e29fe ('ACPI / LPSS: check the result of ioremap()')
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> 
-> diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-> index 569ee09..10bf5c7 100644
-> --- a/drivers/acpi/acpi_lpss.c
-> +++ b/drivers/acpi/acpi_lpss.c
-> @@ -352,8 +352,10 @@ static int acpi_lpss_create_device(struct acpi_device *adev,
->  				pdata->mmio_size = resource_size(rentry->res);
->  			pdata->mmio_base = ioremap(rentry->res->start,
->  						   pdata->mmio_size);
-> -			if (!pdata->mmio_base)
-> +			if (!pdata->mmio_base) {
-> +				ret = -ENOMEM;
->  				goto err_out;
-> +			}
->  			break;
->  		}
+In the ACPI 5.1 version of the spec, the struct for the GICC subtable
+(struct acpi_madt_generic_interrupt) of the MADT is 76 bytes long; in
+ACPI 6.0, the struct is 80 bytes long.  But, there is only one definition
+in ACPICA for this struct -- and that is the 6.0 version.  Hence, when
+BAD_MADT_ENTRY() compares the struct size to the length in the GICC
+subtable, it fails if 5.1 structs are in use, and there are systems in
+the wild that have them.
 
-This looks insufficient to my eyes, as we leak memory here too.
+Note that this was found in linux-next and these patches apply against
+that tree and the arm64 kernel tree; 4.1 does not appear to have this
+problem since it still has the 5.1 struct definition.
 
-What about the following instead?
+Though there is precedent in ia64 code for ignoring the changes in size,
+this patch set instead verifies correctness.  The first patch adds the
+BAD_MADT_GICC_ENTRY() macro to check the GICC subtable only, accounting
+for the difference in specification versions that are possible.  The
+second patch replaces BAD_MADT_ENTRY usage with the BAD_MADT_GICC_ENTRY
+macro in arm64 code, which is currently the only architecture affected.
+The BAD_MADT_ENTRY() will continue to work as is for all other MADT
+subtables.
 
----
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Subject: ACPI / LPSS: Fix up acpi_lpss_create_device()
+I have tested these patches on an APM Mustang with version 1.15 firmware,
+where the problem was found, and they fix the problem -- i.e., the system
+will boot with either Linux 4.1 or linux-next kernels using the same ACPI
+5.1 compatible firmware.
 
-Fix a return value (which should be a negative error code) and a
-memory leak (the list allocated by acpi_dev_get_resources() needs
-to be freed on ioremap() errors too) in acpi_lpss_create_device()
-introduced by commit 4483d59e29fe 'ACPI / LPSS: check the result
-of ioremap()'.
+Changes for v4:
+  -- Reword the cover letter to reflect smaller patch set
+  -- Simplify BAD_MADT_GICC_ENTRY to the minimum needed; this removed
+     the need for the first patch containing version number macros (Rafael)
+  -- Simplify determining the GICC subtable length (Catalin)
 
-Fixes: 4483d59e29fe 'ACPI / LPSS: check the result of ioremap()'
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: 4.0+ <stable@vger.kernel.org> # 4.0+
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/acpi_lpss.c |    7 +++++--
- 1 file changed, 5 insertions(+), 2 deletions(-)
+Changes for v3:                                                                 
+  -- Modified the macros for using spec version numbers in order                
+     to make them clearer (Rafael, Hanjun)                                      
+  -- Moved the definition of the BAD_MADT_GICC_ENTRY macro to an                
+     arm64-specific header file since only this architecture uses               
+     the GICC subtable (Rafael)                                                 
+  -- Added Reviewed-by (Hanjun) and Acked-by (Will) tags to 3/3, the            
+     only unchanged patch; other tags could be applied but the patches          
+     have changed.                                                              
+  -- Added Fixes: tag to patches
 
-Index: linux-pm/drivers/acpi/acpi_lpss.c
-===================================================================
---- linux-pm.orig/drivers/acpi/acpi_lpss.c
-+++ linux-pm/drivers/acpi/acpi_lpss.c
-@@ -352,13 +352,16 @@ static int acpi_lpss_create_device(struc
- 				pdata->mmio_size = resource_size(rentry->res);
- 			pdata->mmio_base = ioremap(rentry->res->start,
- 						   pdata->mmio_size);
--			if (!pdata->mmio_base)
--				goto err_out;
- 			break;
- 		}
- 
- 	acpi_dev_free_resource_list(&resource_list);
- 
-+	if (!pdata->mmio_base) {
-+		ret = -ENOMEM;
-+		goto err_out;
-+	}
-+
- 	pdata->dev_desc = dev_desc;
- 
- 	if (dev_desc->setup)
+Changes for v2:                                                                 
+  -- Replace magic constants with proper defines (Lorenzo)                      
+  -- Minor syntax clean-up noted by checkpatch                                  
+  -- Send out CCs properly this time                                            
+  -- Minor clean-up of the paragraphs in this cover letter
+
+Al Stone (2):
+  ACPI / ARM64: add BAD_MADT_GICC_ENTRY() macro
+  ACPI / ARM64 : use the new BAD_MADT_GICC_ENTRY macro
+
+ arch/arm64/include/asm/acpi.h | 8 ++++++++
+ arch/arm64/kernel/smp.c       | 2 +-
+ drivers/irqchip/irq-gic.c     | 2 +-
+ 3 files changed, 10 insertions(+), 2 deletions(-)
+
+-- 
+2.4.3
 
