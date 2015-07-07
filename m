@@ -1,65 +1,103 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [PATCH v4 0/2] Correct for ACPI 5.1->6.0 spec changes in MADT
- GICC entries
-Date: Tue, 7 Jul 2015 08:40:23 +0200 (CEST)
-Message-ID: <alpine.DEB.2.11.1507070839590.3916@nanos>
-References: <1436224608-27754-1-git-send-email-al.stone@linaro.org> <CAJZ5v0j+iKhOX4hw2XQEdo9CjpP2sfdxGwCz_vN5OVqithEv0Q@mail.gmail.com> <559B1324.8000301@redhat.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH v4 6/8] mfd: make mfd_remove_devices() iterate in reverse
+ order
+Date: Tue, 7 Jul 2015 07:51:17 +0100
+Message-ID: <20150707065117.GE3182@x1>
+References: <1434362256-239992-1-git-send-email-andriy.shevchenko@linux.intel.com>
+ <CAHp75VdGyfyfYV6q9vdqK5nYBMpPWFxr32eiXXn2ruUj4pg6BA@mail.gmail.com>
+ <20150706160529.GC3182@x1>
+ <3134535.L6At3I31FS@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from www.linutronix.de ([62.245.132.108]:58651 "EHLO
-	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751581AbbGGGkj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Jul 2015 02:40:39 -0400
-In-Reply-To: <559B1324.8000301@redhat.com>
+Received: from mail-wg0-f45.google.com ([74.125.82.45]:34351 "EHLO
+	mail-wg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754598AbbGGGvW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Jul 2015 02:51:22 -0400
+Received: by wgfr2 with SMTP id r2so3788117wgf.1
+        for <linux-acpi@vger.kernel.org>; Mon, 06 Jul 2015 23:51:21 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <3134535.L6At3I31FS@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Al Stone <ahs3@redhat.com>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Al Stone <al.stone@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Jason Cooper <jason@lakedaemon.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Lists linaro-kernel <linaro-kernel@lists.linaro.org>, "patches@linaro.org" <patches@linaro.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Geert Uytterhoeven <geert@linux-m68k.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Vinod Koul <vinod.koul@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, dmaengine <dmaengine@vger.kernel.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Mike Turquette <mturquette@linaro.org>, sboyd@codeaurora.org
 
-On Mon, 6 Jul 2015, Al Stone wrote:
-> On 07/06/2015 05:20 PM, Rafael J. Wysocki wrote:
-> > Hi Al,
-> > 
-> > On Tue, Jul 7, 2015 at 1:16 AM, Al Stone <al.stone@linaro.org> wrote:
-> >> In the ACPI 5.1 version of the spec, the struct for the GICC subtable
-> >> (struct acpi_madt_generic_interrupt) of the MADT is 76 bytes long; in
-> >> ACPI 6.0, the struct is 80 bytes long.  But, there is only one definition
-> >> in ACPICA for this struct -- and that is the 6.0 version.  Hence, when
-> >> BAD_MADT_ENTRY() compares the struct size to the length in the GICC
-> >> subtable, it fails if 5.1 structs are in use, and there are systems in
-> >> the wild that have them.
-> >>
-> >> Note that this was found in linux-next and these patches apply against
-> >> that tree and the arm64 kernel tree; 4.1 does not appear to have this
-> >> problem since it still has the 5.1 struct definition.
-> >>
-> >> Though there is precedent in ia64 code for ignoring the changes in size,
-> >> this patch set instead verifies correctness.  The first patch adds the
-> >> BAD_MADT_GICC_ENTRY() macro to check the GICC subtable only, accounting
-> >> for the difference in specification versions that are possible.  The
-> >> second patch replaces BAD_MADT_ENTRY usage with the BAD_MADT_GICC_ENTRY
-> >> macro in arm64 code, which is currently the only architecture affected.
-> >> The BAD_MADT_ENTRY() will continue to work as is for all other MADT
-> >> subtables.
-> >>
-> >> I have tested these patches on an APM Mustang with version 1.15 firmware,
-> >> where the problem was found, and they fix the problem -- i.e., the system
-> >> will boot with either Linux 4.1 or linux-next kernels using the same ACPI
-> >> 5.1 compatible firmware.
-> > 
-> > ACK for the series, but I guess it's better to let it go via ARM64, right?
-> > 
-> > Rafael
-> 
-> Thanks, Rafael.  Yeah, probably so.  Will has ACKd the one patch
-> (2/2); if he and/or Catalin ACK patch 1/2, then this seems like it
-> would pretty cleanly fit into ARM64.  The only question would be if
-> Will or Catalin would want an ACK from Thomas on the irq-gic.c part
-> in 2/2.
+On Tue, 07 Jul 2015, Rafael J. Wysocki wrote:
+> On Monday, July 06, 2015 05:05:29 PM Lee Jones wrote:
+> > On Mon, 06 Jul 2015, Andy Shevchenko wrote:
+> >=20
+> > > On Mon, Jul 6, 2015 at 5:50 PM, Lee Jones <lee.jones@linaro.org> =
+wrote:
+> > > > On Mon, 06 Jul 2015, Andy Shevchenko wrote:
+> > > >
+> > > >> On Mon, 2015-07-06 at 11:24 +0200, Geert Uytterhoeven wrote:
+> > > >> > On Mon, Jul 6, 2015 at 11:10 AM, Andy Shevchenko
+> > > >> > <andriy.shevchenko@linux.intel.com> wrote:
+> > > >> > > On Wed, 2015-06-24 at 12:31 +0100, Lee Jones wrote:
+> > > >> > > > On Mon, 15 Jun 2015, Andy Shevchenko wrote:
+> > >=20
+> > > []
+> > >=20
+> > > >> > > > Applied, thanks.
+> > > >> > >
+> > > >> > > Hmm=E2=80=A6 Seems kinda mistake. I can't see this applied=
+ (and required
+> > > >> > > previous patches 4 and 5) to any of your branch neither in
+> > > >> > > (today's)
+> > > >> > > linux-next.
+> > > >> >
+> > > >> > New stuff applied after v4.1 couldn't show up in -next befor=
+e v4.2
+> > > >> > -rc1 was
+> > > >> > released (which just happened last night)?
+> > > >>
+> > > >> Might be, I would like to resend new version of my series and =
+that's
+> > > >> why I would like to have a branch to check what is already app=
+lied. So,
+> > > >> if I can't see it does it mean it is brewed in the private rep=
+ository?
+> > > >
+> > > > If you have patches that depend on this, they either need to co=
+me
+> > > > through my tree, or you have to wait until the next kernel vers=
+ion
+> > > > (which you probably don't want, right?).
+> > > >
+> > > > The alternative is that I unapply this patch and the whole lot =
+can be
+> > > > sucked up by the most appropriate subsystem.
+> > >=20
+> > > I resent a new version for other comments(still with all patches
+> > > included). Meanwhile the patches 4-6 (from v4 or v5, where they a=
+re
+> > > the same) could be applied in the first place. Can you clarify wh=
+at
+> > > exactly you have applied? The idea is to put the rest via your
+> > > subsystem since it's most appropriate for this series.
+> >=20
+> > Easiest thing for me to do is unapply.
+> >=20
+> > We can take the whole series when all the Acks have been accrued.
+>=20
+> So are there any ACKs missing from the last series posted by Andy?
 
-No objections from my side.
+Yes, I have requested a Clk Ack, as there are some, lets say
+interesting code in the MFD driver which I am unsure about.  However,
+we have caught Mike at an awkward time, as he is in the middle of
+transitioning jobs.
 
-Thanks,
+Perhaps Stephen Boyd (now Cc'ed) might have a look.
 
-	tglx
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
