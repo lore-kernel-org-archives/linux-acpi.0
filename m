@@ -1,162 +1,57 @@
-From: =?UTF-8?Q?Mika_Penttil=C3=A4?= <mika.j.penttila@gmail.com>
-Subject: Re: [PATCH 3/5] x86, acpi, cpu-hotplug: Introduce apicid_to_cpuid[]
- array to store persistent cpuid <-> apicid mapping.
-Date: Tue, 7 Jul 2015 14:14:12 +0300
-Message-ID: <CAChTCPw6ZLs7XgApfN1exeB6TVcQji6ryq+HrK-admp=FGfiTA@mail.gmail.com>
-References: <1436261425-29881-1-git-send-email-tangchen@cn.fujitsu.com>
-	<1436261425-29881-4-git-send-email-tangchen@cn.fujitsu.com>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH v4 0/2] Correct for ACPI 5.1->6.0 spec changes in MADT
+ GICC entries
+Date: Tue, 7 Jul 2015 14:31:16 +0100
+Message-ID: <20150707133115.GB13228@e104818-lin.cambridge.arm.com>
+References: <1436224608-27754-1-git-send-email-al.stone@linaro.org>
+ <CAJZ5v0j+iKhOX4hw2XQEdo9CjpP2sfdxGwCz_vN5OVqithEv0Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qg0-f52.google.com ([209.85.192.52]:36694 "EHLO
-	mail-qg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757119AbbGGLON (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Jul 2015 07:14:13 -0400
-In-Reply-To: <1436261425-29881-4-git-send-email-tangchen@cn.fujitsu.com>
+Received: from foss.arm.com ([217.140.101.70]:35618 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753518AbbGGNbV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 7 Jul 2015 09:31:21 -0400
+Content-Disposition: inline
+In-Reply-To: <CAJZ5v0j+iKhOX4hw2XQEdo9CjpP2sfdxGwCz_vN5OVqithEv0Q@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: rjw@rjwysocki.net, gongzhaogang@inspur.com, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Al Stone <al.stone@linaro.org>, Lists linaro-kernel <linaro-kernel@lists.linaro.org>, Jason Cooper <jason@lakedaemon.net>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "patches@linaro.org" <patches@linaro.org>, Will Deacon <will.deacon@arm.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
 
-I think you forgot to reserve CPU 0 for BSP in cpuid mask.
+On Tue, Jul 07, 2015 at 01:20:51AM +0200, Rafael J. Wysocki wrote:
+> On Tue, Jul 7, 2015 at 1:16 AM, Al Stone <al.stone@linaro.org> wrote:
+> > In the ACPI 5.1 version of the spec, the struct for the GICC subtable
+> > (struct acpi_madt_generic_interrupt) of the MADT is 76 bytes long; in
+> > ACPI 6.0, the struct is 80 bytes long.  But, there is only one definition
+> > in ACPICA for this struct -- and that is the 6.0 version.  Hence, when
+> > BAD_MADT_ENTRY() compares the struct size to the length in the GICC
+> > subtable, it fails if 5.1 structs are in use, and there are systems in
+> > the wild that have them.
+> >
+> > Note that this was found in linux-next and these patches apply against
+> > that tree and the arm64 kernel tree; 4.1 does not appear to have this
+> > problem since it still has the 5.1 struct definition.
+> >
+> > Though there is precedent in ia64 code for ignoring the changes in size,
+> > this patch set instead verifies correctness.  The first patch adds the
+> > BAD_MADT_GICC_ENTRY() macro to check the GICC subtable only, accounting
+> > for the difference in specification versions that are possible.  The
+> > second patch replaces BAD_MADT_ENTRY usage with the BAD_MADT_GICC_ENTRY
+> > macro in arm64 code, which is currently the only architecture affected.
+> > The BAD_MADT_ENTRY() will continue to work as is for all other MADT
+> > subtables.
+> >
+> > I have tested these patches on an APM Mustang with version 1.15 firmware,
+> > where the problem was found, and they fix the problem -- i.e., the system
+> > will boot with either Linux 4.1 or linux-next kernels using the same ACPI
+> > 5.1 compatible firmware.
+> 
+> ACK for the series, but I guess it's better to let it go via ARM64, right?
 
---Mika
+Fine by me. I'll pick them up for 4.2-rc2.
 
-On Tue, Jul 7, 2015 at 12:30 PM, Tang Chen <tangchen@cn.fujitsu.com> wrote:
-> From: Gu Zheng <guz.fnst@cn.fujitsu.com>
->
-> In this patch, we introduce a new static array named apicid_to_cpuid[],
-> which is large enough to store info for all possible cpus.
->
-> And then, we modify the cpuid calculation. In generic_processor_info(),
-> it simply finds the next unused cpuid. And it is also why the cpuid <-> nodeid
-> mapping changes with node hotplug.
->
-> After this patch, we find the next unused cpuid, map it to an apicid,
-> and store the mapping in apicid_to_cpuid[], so that cpuid <-> apicid
-> mapping will be persistent.
->
-> And finally we will use this array to make cpuid <-> nodeid persistent.
->
-> cpuid <-> apicid mapping is established at local apic registeration time.
-> But non-present or disabled cpus are ignored.
->
-> In this patch, we establish all possible cpuid <-> apicid mapping when
-> registering local apic.
->
->
-> Signed-off-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
-> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
-> ---
->  arch/x86/include/asm/mpspec.h |  1 +
->  arch/x86/kernel/acpi/boot.c   |  6 ++----
->  arch/x86/kernel/apic/apic.c   | 47 ++++++++++++++++++++++++++++++++++++++++---
->  3 files changed, 47 insertions(+), 7 deletions(-)
->
-> diff --git a/arch/x86/include/asm/mpspec.h b/arch/x86/include/asm/mpspec.h
-> index b07233b..db902d8 100644
-> --- a/arch/x86/include/asm/mpspec.h
-> +++ b/arch/x86/include/asm/mpspec.h
-> @@ -86,6 +86,7 @@ static inline void early_reserve_e820_mpc_new(void) { }
->  #endif
->
->  int generic_processor_info(int apicid, int version);
-> +int __generic_processor_info(int apicid, int version, bool enabled);
->
->  #define PHYSID_ARRAY_SIZE      BITS_TO_LONGS(MAX_LOCAL_APIC)
->
-> diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-> index e49ee24..bcc85b2 100644
-> --- a/arch/x86/kernel/acpi/boot.c
-> +++ b/arch/x86/kernel/acpi/boot.c
-> @@ -174,15 +174,13 @@ static int acpi_register_lapic(int id, u8 enabled)
->                 return -EINVAL;
->         }
->
-> -       if (!enabled) {
-> +       if (!enabled)
->                 ++disabled_cpus;
-> -               return -EINVAL;
-> -       }
->
->         if (boot_cpu_physical_apicid != -1U)
->                 ver = apic_version[boot_cpu_physical_apicid];
->
-> -       return generic_processor_info(id, ver);
-> +       return __generic_processor_info(id, ver, enabled);
->  }
->
->  static int __init
-> diff --git a/arch/x86/kernel/apic/apic.c b/arch/x86/kernel/apic/apic.c
-> index a9c9830..c744ffb 100644
-> --- a/arch/x86/kernel/apic/apic.c
-> +++ b/arch/x86/kernel/apic/apic.c
-> @@ -1977,7 +1977,38 @@ void disconnect_bsp_APIC(int virt_wire_setup)
->         apic_write(APIC_LVT1, value);
->  }
->
-> -static int __generic_processor_info(int apicid, int version, bool enabled)
-> +/*
-> + * Logic cpu number(cpuid) to local APIC id persistent mappings.
-> + * Do not clear the mapping even if cpu is hot-removed.
-> + */
-> +static int apicid_to_cpuid[] = {
-> +       [0 ... NR_CPUS - 1] = -1,
-> +};
-> +
-> +/*
-> + * Internal cpu id bits, set the bit once cpu present, and never clear it.
-> + */
-> +static cpumask_t cpuid_mask = CPU_MASK_NONE;
-> +
-> +static int get_cpuid(int apicid)
-> +{
-> +       int free_id, i;
-> +
-> +       free_id = cpumask_next_zero(-1, &cpuid_mask);
-> +       if (free_id >= nr_cpu_ids)
-> +               return -1;
-> +
-> +       for (i = 0; i < free_id; i++)
-> +               if (apicid_to_cpuid[i] == apicid)
-> +                       return i;
-> +
-> +       apicid_to_cpuid[free_id] = apicid;
-> +       cpumask_set_cpu(free_id, &cpuid_mask);
-> +
-> +       return free_id;
-> +}
-> +
-> +int __generic_processor_info(int apicid, int version, bool enabled)
->  {
->         int cpu, max = nr_cpu_ids;
->         bool boot_cpu_detected = physid_isset(boot_cpu_physical_apicid,
-> @@ -2058,8 +2089,18 @@ static int __generic_processor_info(int apicid, int version, bool enabled)
->                  * for BSP.
->                  */
->                 cpu = 0;
-> -       } else
-> -               cpu = cpumask_next_zero(-1, cpu_present_mask);
-> +       } else {
-> +               cpu = get_cpuid(apicid);
-> +               if (cpu < 0) {
-> +                       int thiscpu = max + disabled_cpus;
-> +
-> +                       pr_warning("  Processor %d/0x%x ignored.\n",
-> +                                  thiscpu, apicid);
-> +                       if (enabled)
-> +                               disabled_cpus++;
-> +                       return -EINVAL;
-> +               }
-> +       }
->
->         /*
->          * Validate version
-> --
-> 1.9.3
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+Thanks.
+
+-- 
+Catalin
