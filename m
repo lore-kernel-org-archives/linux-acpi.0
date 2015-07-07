@@ -1,211 +1,162 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [PATCH 4/5] x86, acpi, cpu-hotplug: Enable MADT APIs to return disabled apicid.
-Date: Tue, 7 Jul 2015 17:30:24 +0800
-Message-ID: <1436261425-29881-5-git-send-email-tangchen@cn.fujitsu.com>
+From: =?UTF-8?Q?Mika_Penttil=C3=A4?= <mika.j.penttila@gmail.com>
+Subject: Re: [PATCH 3/5] x86, acpi, cpu-hotplug: Introduce apicid_to_cpuid[]
+ array to store persistent cpuid <-> apicid mapping.
+Date: Tue, 7 Jul 2015 14:14:12 +0300
+Message-ID: <CAChTCPw6ZLs7XgApfN1exeB6TVcQji6ryq+HrK-admp=FGfiTA@mail.gmail.com>
 References: <1436261425-29881-1-git-send-email-tangchen@cn.fujitsu.com>
+	<1436261425-29881-4-git-send-email-tangchen@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1436261425-29881-1-git-send-email-tangchen@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: tj@kernel.org, mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, laijs@cn.fujitsu.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, qiaonuohan@cn.fujitsu.com
-Cc: tangchen@cn.fujitsu.com, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Gu Zheng <guz.fnst@cn.fujitsu.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qg0-f52.google.com ([209.85.192.52]:36694 "EHLO
+	mail-qg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757119AbbGGLON (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Jul 2015 07:14:13 -0400
+In-Reply-To: <1436261425-29881-4-git-send-email-tangchen@cn.fujitsu.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: rjw@rjwysocki.net, gongzhaogang@inspur.com, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
 
-From: Gu Zheng <guz.fnst@cn.fujitsu.com>
+I think you forgot to reserve CPU 0 for BSP in cpuid mask.
 
-All processors' apicids can be obtained by _MAT method or from MADT in ACPI.
-The current code ignores disabled processors and returns -ENODEV.
+--Mika
 
-After this patch, a new parameter will be added to MADT APIs so that caller
-is able to control if disabled processors are ignored.
-
-
-Signed-off-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
-Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
----
- drivers/acpi/acpi_processor.c |  5 +++-
- drivers/acpi/processor_core.c | 57 +++++++++++++++++++++++++++----------------
- 2 files changed, 40 insertions(+), 22 deletions(-)
-
-diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
-index 92a5f73..338c71a 100644
---- a/drivers/acpi/acpi_processor.c
-+++ b/drivers/acpi/acpi_processor.c
-@@ -282,8 +282,11 @@ static int acpi_processor_get_info(struct acpi_device *device)
- 	 *  Extra Processor objects may be enumerated on MP systems with
- 	 *  less than the max # of CPUs. They should be ignored _iff
- 	 *  they are physically not present.
-+	 *
-+	 *  NOTE: Even if the processor has a cpuid, it may not present because
-+	 *  cpuid <-> apicid mapping is persistent now.
- 	 */
--	if (invalid_logical_cpuid(pr->id)) {
-+	if (invalid_logical_cpuid(pr->id) || !cpu_present(pr->id)) {
- 		int ret = acpi_processor_hotadd_init(pr);
- 		if (ret)
- 			return ret;
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index 33a38d6..824b98b 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -32,12 +32,12 @@ static struct acpi_table_madt *get_madt_table(void)
- }
- 
- static int map_lapic_id(struct acpi_subtable_header *entry,
--		 u32 acpi_id, phys_cpuid_t *apic_id)
-+		 u32 acpi_id, phys_cpuid_t *apic_id, bool ignore_disabled)
- {
- 	struct acpi_madt_local_apic *lapic =
- 		container_of(entry, struct acpi_madt_local_apic, header);
- 
--	if (!(lapic->lapic_flags & ACPI_MADT_ENABLED))
-+	if (ignore_disabled && !(lapic->lapic_flags & ACPI_MADT_ENABLED))
- 		return -ENODEV;
- 
- 	if (lapic->processor_id != acpi_id)
-@@ -48,12 +48,13 @@ static int map_lapic_id(struct acpi_subtable_header *entry,
- }
- 
- static int map_x2apic_id(struct acpi_subtable_header *entry,
--		int device_declaration, u32 acpi_id, phys_cpuid_t *apic_id)
-+		int device_declaration, u32 acpi_id, phys_cpuid_t *apic_id,
-+		bool ignore_disabled)
- {
- 	struct acpi_madt_local_x2apic *apic =
- 		container_of(entry, struct acpi_madt_local_x2apic, header);
- 
--	if (!(apic->lapic_flags & ACPI_MADT_ENABLED))
-+	if (ignore_disabled && !(apic->lapic_flags & ACPI_MADT_ENABLED))
- 		return -ENODEV;
- 
- 	if (device_declaration && (apic->uid == acpi_id)) {
-@@ -65,12 +66,13 @@ static int map_x2apic_id(struct acpi_subtable_header *entry,
- }
- 
- static int map_lsapic_id(struct acpi_subtable_header *entry,
--		int device_declaration, u32 acpi_id, phys_cpuid_t *apic_id)
-+		int device_declaration, u32 acpi_id, phys_cpuid_t *apic_id,
-+		bool ignore_disabled)
- {
- 	struct acpi_madt_local_sapic *lsapic =
- 		container_of(entry, struct acpi_madt_local_sapic, header);
- 
--	if (!(lsapic->lapic_flags & ACPI_MADT_ENABLED))
-+	if (ignore_disabled && !(lsapic->lapic_flags & ACPI_MADT_ENABLED))
- 		return -ENODEV;
- 
- 	if (device_declaration) {
-@@ -87,12 +89,13 @@ static int map_lsapic_id(struct acpi_subtable_header *entry,
-  * Retrieve the ARM CPU physical identifier (MPIDR)
-  */
- static int map_gicc_mpidr(struct acpi_subtable_header *entry,
--		int device_declaration, u32 acpi_id, phys_cpuid_t *mpidr)
-+		int device_declaration, u32 acpi_id, phys_cpuid_t *mpidr,
-+		bool ignore_disabled)
- {
- 	struct acpi_madt_generic_interrupt *gicc =
- 	    container_of(entry, struct acpi_madt_generic_interrupt, header);
- 
--	if (!(gicc->flags & ACPI_MADT_ENABLED))
-+	if (ignore_disabled && !(gicc->flags & ACPI_MADT_ENABLED))
- 		return -ENODEV;
- 
- 	/* device_declaration means Device object in DSDT, in the
-@@ -108,7 +111,7 @@ static int map_gicc_mpidr(struct acpi_subtable_header *entry,
- 	return -EINVAL;
- }
- 
--static phys_cpuid_t map_madt_entry(int type, u32 acpi_id)
-+static phys_cpuid_t map_madt_entry(int type, u32 acpi_id, bool ignore_disabled)
- {
- 	unsigned long madt_end, entry;
- 	phys_cpuid_t phys_id = PHYS_CPUID_INVALID;	/* CPU hardware ID */
-@@ -128,16 +131,20 @@ static phys_cpuid_t map_madt_entry(int type, u32 acpi_id)
- 		struct acpi_subtable_header *header =
- 			(struct acpi_subtable_header *)entry;
- 		if (header->type == ACPI_MADT_TYPE_LOCAL_APIC) {
--			if (!map_lapic_id(header, acpi_id, &phys_id))
-+			if (!map_lapic_id(header, acpi_id, &phys_id,
-+					  ignore_disabled))
- 				break;
- 		} else if (header->type == ACPI_MADT_TYPE_LOCAL_X2APIC) {
--			if (!map_x2apic_id(header, type, acpi_id, &phys_id))
-+			if (!map_x2apic_id(header, type, acpi_id, &phys_id,
-+					   ignore_disabled))
- 				break;
- 		} else if (header->type == ACPI_MADT_TYPE_LOCAL_SAPIC) {
--			if (!map_lsapic_id(header, type, acpi_id, &phys_id))
-+			if (!map_lsapic_id(header, type, acpi_id, &phys_id,
-+					   ignore_disabled))
- 				break;
- 		} else if (header->type == ACPI_MADT_TYPE_GENERIC_INTERRUPT) {
--			if (!map_gicc_mpidr(header, type, acpi_id, &phys_id))
-+			if (!map_gicc_mpidr(header, type, acpi_id, &phys_id,
-+					    ignore_disabled))
- 				break;
- 		}
- 		entry += header->length;
-@@ -145,7 +152,8 @@ static phys_cpuid_t map_madt_entry(int type, u32 acpi_id)
- 	return phys_id;
- }
- 
--static phys_cpuid_t map_mat_entry(acpi_handle handle, int type, u32 acpi_id)
-+static phys_cpuid_t map_mat_entry(acpi_handle handle, int type, u32 acpi_id,
-+				  bool ignore_disabled)
- {
- 	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
- 	union acpi_object *obj;
-@@ -166,30 +174,37 @@ static phys_cpuid_t map_mat_entry(acpi_handle handle, int type, u32 acpi_id)
- 
- 	header = (struct acpi_subtable_header *)obj->buffer.pointer;
- 	if (header->type == ACPI_MADT_TYPE_LOCAL_APIC)
--		map_lapic_id(header, acpi_id, &phys_id);
-+		map_lapic_id(header, acpi_id, &phys_id, ignore_disabled);
- 	else if (header->type == ACPI_MADT_TYPE_LOCAL_SAPIC)
--		map_lsapic_id(header, type, acpi_id, &phys_id);
-+		map_lsapic_id(header, type, acpi_id, &phys_id, ignore_disabled);
- 	else if (header->type == ACPI_MADT_TYPE_LOCAL_X2APIC)
--		map_x2apic_id(header, type, acpi_id, &phys_id);
-+		map_x2apic_id(header, type, acpi_id, &phys_id, ignore_disabled);
- 	else if (header->type == ACPI_MADT_TYPE_GENERIC_INTERRUPT)
--		map_gicc_mpidr(header, type, acpi_id, &phys_id);
-+		map_gicc_mpidr(header, type, acpi_id, &phys_id,
-+			       ignore_disabled);
- 
- exit:
- 	kfree(buffer.pointer);
- 	return phys_id;
- }
- 
--phys_cpuid_t acpi_get_phys_id(acpi_handle handle, int type, u32 acpi_id)
-+static phys_cpuid_t __acpi_get_phys_id(acpi_handle handle, int type,
-+				       u32 acpi_id, bool ignore_disabled)
- {
- 	phys_cpuid_t phys_id;
- 
--	phys_id = map_mat_entry(handle, type, acpi_id);
-+	phys_id = map_mat_entry(handle, type, acpi_id, ignore_disabled);
- 	if (invalid_phys_cpuid(phys_id))
--		phys_id = map_madt_entry(type, acpi_id);
-+		phys_id = map_madt_entry(type, acpi_id, ignore_disabled);
- 
- 	return phys_id;
- }
- 
-+phys_cpuid_t acpi_get_phys_id(acpi_handle handle, int type, u32 acpi_id)
-+{
-+	return __acpi_get_phys_id(handle, type, acpi_id, true);
-+}
-+
- int acpi_map_cpuid(phys_cpuid_t phys_id, u32 acpi_id)
- {
- #ifdef CONFIG_SMP
--- 
-1.9.3
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+On Tue, Jul 7, 2015 at 12:30 PM, Tang Chen <tangchen@cn.fujitsu.com> wrote:
+> From: Gu Zheng <guz.fnst@cn.fujitsu.com>
+>
+> In this patch, we introduce a new static array named apicid_to_cpuid[],
+> which is large enough to store info for all possible cpus.
+>
+> And then, we modify the cpuid calculation. In generic_processor_info(),
+> it simply finds the next unused cpuid. And it is also why the cpuid <-> nodeid
+> mapping changes with node hotplug.
+>
+> After this patch, we find the next unused cpuid, map it to an apicid,
+> and store the mapping in apicid_to_cpuid[], so that cpuid <-> apicid
+> mapping will be persistent.
+>
+> And finally we will use this array to make cpuid <-> nodeid persistent.
+>
+> cpuid <-> apicid mapping is established at local apic registeration time.
+> But non-present or disabled cpus are ignored.
+>
+> In this patch, we establish all possible cpuid <-> apicid mapping when
+> registering local apic.
+>
+>
+> Signed-off-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
+> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+> ---
+>  arch/x86/include/asm/mpspec.h |  1 +
+>  arch/x86/kernel/acpi/boot.c   |  6 ++----
+>  arch/x86/kernel/apic/apic.c   | 47 ++++++++++++++++++++++++++++++++++++++++---
+>  3 files changed, 47 insertions(+), 7 deletions(-)
+>
+> diff --git a/arch/x86/include/asm/mpspec.h b/arch/x86/include/asm/mpspec.h
+> index b07233b..db902d8 100644
+> --- a/arch/x86/include/asm/mpspec.h
+> +++ b/arch/x86/include/asm/mpspec.h
+> @@ -86,6 +86,7 @@ static inline void early_reserve_e820_mpc_new(void) { }
+>  #endif
+>
+>  int generic_processor_info(int apicid, int version);
+> +int __generic_processor_info(int apicid, int version, bool enabled);
+>
+>  #define PHYSID_ARRAY_SIZE      BITS_TO_LONGS(MAX_LOCAL_APIC)
+>
+> diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+> index e49ee24..bcc85b2 100644
+> --- a/arch/x86/kernel/acpi/boot.c
+> +++ b/arch/x86/kernel/acpi/boot.c
+> @@ -174,15 +174,13 @@ static int acpi_register_lapic(int id, u8 enabled)
+>                 return -EINVAL;
+>         }
+>
+> -       if (!enabled) {
+> +       if (!enabled)
+>                 ++disabled_cpus;
+> -               return -EINVAL;
+> -       }
+>
+>         if (boot_cpu_physical_apicid != -1U)
+>                 ver = apic_version[boot_cpu_physical_apicid];
+>
+> -       return generic_processor_info(id, ver);
+> +       return __generic_processor_info(id, ver, enabled);
+>  }
+>
+>  static int __init
+> diff --git a/arch/x86/kernel/apic/apic.c b/arch/x86/kernel/apic/apic.c
+> index a9c9830..c744ffb 100644
+> --- a/arch/x86/kernel/apic/apic.c
+> +++ b/arch/x86/kernel/apic/apic.c
+> @@ -1977,7 +1977,38 @@ void disconnect_bsp_APIC(int virt_wire_setup)
+>         apic_write(APIC_LVT1, value);
+>  }
+>
+> -static int __generic_processor_info(int apicid, int version, bool enabled)
+> +/*
+> + * Logic cpu number(cpuid) to local APIC id persistent mappings.
+> + * Do not clear the mapping even if cpu is hot-removed.
+> + */
+> +static int apicid_to_cpuid[] = {
+> +       [0 ... NR_CPUS - 1] = -1,
+> +};
+> +
+> +/*
+> + * Internal cpu id bits, set the bit once cpu present, and never clear it.
+> + */
+> +static cpumask_t cpuid_mask = CPU_MASK_NONE;
+> +
+> +static int get_cpuid(int apicid)
+> +{
+> +       int free_id, i;
+> +
+> +       free_id = cpumask_next_zero(-1, &cpuid_mask);
+> +       if (free_id >= nr_cpu_ids)
+> +               return -1;
+> +
+> +       for (i = 0; i < free_id; i++)
+> +               if (apicid_to_cpuid[i] == apicid)
+> +                       return i;
+> +
+> +       apicid_to_cpuid[free_id] = apicid;
+> +       cpumask_set_cpu(free_id, &cpuid_mask);
+> +
+> +       return free_id;
+> +}
+> +
+> +int __generic_processor_info(int apicid, int version, bool enabled)
+>  {
+>         int cpu, max = nr_cpu_ids;
+>         bool boot_cpu_detected = physid_isset(boot_cpu_physical_apicid,
+> @@ -2058,8 +2089,18 @@ static int __generic_processor_info(int apicid, int version, bool enabled)
+>                  * for BSP.
+>                  */
+>                 cpu = 0;
+> -       } else
+> -               cpu = cpumask_next_zero(-1, cpu_present_mask);
+> +       } else {
+> +               cpu = get_cpuid(apicid);
+> +               if (cpu < 0) {
+> +                       int thiscpu = max + disabled_cpus;
+> +
+> +                       pr_warning("  Processor %d/0x%x ignored.\n",
+> +                                  thiscpu, apicid);
+> +                       if (enabled)
+> +                               disabled_cpus++;
+> +                       return -EINVAL;
+> +               }
+> +       }
+>
+>         /*
+>          * Validate version
+> --
+> 1.9.3
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
