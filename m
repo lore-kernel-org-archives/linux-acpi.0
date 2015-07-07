@@ -1,60 +1,45 @@
-From: Julian Andres Klode <jak@jak-linux.org>
-Subject: sysfs charge thresholds for ThinkPads (and possibly others),
- preparation for second try
-Date: Tue, 7 Jul 2015 23:07:28 +0200
-Message-ID: <20150707210728.GA7524@jak-x230>
+From: Stephen Boyd <sboyd@codeaurora.org>
+Subject: Re: [PATCH v4 6/8] mfd: make mfd_remove_devices() iterate in reverse
+ order
+Date: Tue, 07 Jul 2015 15:26:09 -0700
+Message-ID: <559C5201.7080605@codeaurora.org>
+References: <1434362256-239992-1-git-send-email-andriy.shevchenko@linux.intel.com> <CAHp75VdGyfyfYV6q9vdqK5nYBMpPWFxr32eiXXn2ruUj4pg6BA@mail.gmail.com> <20150706160529.GC3182@x1> <3134535.L6At3I31FS@vostro.rjw.lan> <20150707065117.GE3182@x1>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:37753 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932745AbbGGVHc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Jul 2015 17:07:32 -0400
-Content-Disposition: inline
+Received: from smtp.codeaurora.org ([198.145.29.96]:55764 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932845AbbGGW0M (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Jul 2015 18:26:12 -0400
+In-Reply-To: <20150707065117.GE3182@x1>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, linux-pm@vger.kernel.org, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, ibm-acpi-devel@lists.sourceforge.net, platform-driver-x86@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
-Cc: evgeni@debian.org
+To: Lee Jones <lee.jones@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Geert Uytterhoeven <geert@linux-m68k.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Vinod Koul <vinod.koul@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, dmaengine <dmaengine@vger.kernel.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Mike Turquette <mturquette@baylibre.com>
 
-Hi everyone (Thinkpad-ACPI, ACPI, and Power supply maintainers),
+On 07/06/2015 11:51 PM, Lee Jones wrote:
+> On Tue, 07 Jul 2015, Rafael J. Wysocki wrote:
+>> So are there any ACKs missing from the last series posted by Andy?
+> Yes, I have requested a Clk Ack, as there are some, lets say
+> interesting code in the MFD driver which I am unsure about.  However,
+> we have caught Mike at an awkward time, as he is in the middle of
+> transitioning jobs.
+>
+> Perhaps Stephen Boyd (now Cc'ed) might have a look.
+>
 
-some might know that I presented a patch set adding support for
-charge thresholds to thinkpad_acpi about 1.5 years ago. 
+Context? I found the cover letter.
 
-Back then, one of the major rejections was that the functionality
-for setting charge thresholds should be integrated into the
-power supply stack somehow. I did not know who to contact back
-then, but know I re-read MAINTAINERS and found all your addresses,
-so I give it a second try.
+clkdev is maintained by Russell. You could get his ack for the usage of
+the clkdev_create() API, but I'm not sure why it's needed. The API was
+merged into Linus' tree so I think you have everything you need.
 
-One issue with just integrating it in the current battery
-directories would be that ThinkPads are able to set charge
-thresholds for batteries that are currently not inserted.
+$ git tag -l --contains 2568999835d7797afce3dcc3a3f368051ffcaf1f v4*
+v4.2-rc1
 
-Back then I wrote:
-> The next step is to integrate this properly with power supply
-> and/or acpi battery. One way would be to add additional power
-> supply properties and then add get/set_property() pointers to
-> the acpi battery which it can fall back to if it does not support
-> a requested property (and we would locate the ACPI battery and
-> set those pointers to new thinkpad_acpi functions).
-
-If you, the ACPI and power supply people, have any preferred
-way (or any idea at all how) to proceed, that would be useful,
-so I don't start working on it again, and then somebody does
-not like it.
-
-Regards,
-
-Julian
-
-CCing evgeni@debian.org who keeps pushing me to follow up
-on this - thanks :)
 
 -- 
-Julian Andres Klode  - Debian Developer, Ubuntu Member
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
 
-See http://wiki.debian.org/JulianAndresKlode and http://jak-linux.org/.
-
-Be friendly, do not top-post, and follow RFC 1855 "Netiquette".
-    - If you don't I might ignore you.
