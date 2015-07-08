@@ -1,60 +1,86 @@
-From: Peter Feuerer <peter@piie.net>
-Subject: Re: [PATCH] thermal: consistently use int for temperatures
-Date: Wed, 08 Jul 2015 10:11:24 +0200
-Message-ID: <cone.1436343084.787318.20214.1000@mups>
-References: <1436167189-29835-1-git-send-email-s.hauer@pengutronix.de>
+From: Julian Andres Klode <jak@jak-linux.org>
+Subject: Re: sysfs charge thresholds for ThinkPads (and possibly others),
+ preparation for second try
+Date: Wed, 8 Jul 2015 11:40:00 +0200
+Message-ID: <20150708113624.GA25015@debian.org>
+References: <20150707210728.GA7524@jak-x230>
+ <20150707235110.GA19748@earth>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wi0-f181.google.com ([209.85.212.181]:36539 "EHLO
+	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933620AbbGHJkE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Jul 2015 05:40:04 -0400
 Content-Disposition: inline
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: Lukasz Majewski <l.majewski@samsung.com>, linux-samsung-soc@vger.kernel.org, Heiko Stuebner <heiko@sntech.de>, linux-pm@vger.kernel.org, lm-sensors@lm-sensors.org, Stephen Warren <swarren@wwwdotorg.org>, Rafael =?UTF-8?B?Si4=?= Wysocki <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org, Eduardo Valentin <edubezval@gmail.com>, linux-acpi@vger.kernel.org, Thierry Reding <thierry.reding@gmail.com>, Guenter Roeck <linux@roeck-us.net>, linux-arm-kernel@lists.infradead.org, Darren Hart <dvhart@infradead.org>, Zhang Rui <rui.zhang@intel.com>, linux-omap@vger.kernel.org, Maxime Ripard <maxime.ripard@free-electrons.com>, Jean Delvare <jdelvare@suse.de>
+In-Reply-To: <20150707235110.GA19748@earth>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sebastian Reichel <sre@kernel.org>
+Cc: Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, linux-pm@vger.kernel.org, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, ibm-acpi-devel@lists.sourceforge.net, platform-driver-x86@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, evgeni@debian.org
 
-U2FzY2hhIEhhdWVyIHdyaXRlczoKCj4gVGhlIHRoZXJtYWwgY29kZSB1c2VzIGludCwgbG9uZyBh
-bmQgdW5zaWduZWQgbG9uZyBmb3IgdGVtcGVyYXR1cmVzCj4gaW4gZGlmZmVyZW50IHBsYWNlcy4K
-PiAKPiBVc2luZyBhbiB1bnNpZ25lZCB0eXBlIGxpbWl0cyB0aGUgdGhlcm1hbCBmcmFtZXdvcmsg
-dG8gcG9zaXRpdmUKPiB0ZW1wZXJhdHVyZXMgd2l0aG91dCBuZWVkLiBBbHNvIHNldmVyYWwgZHJp
-dmVycyBjdXJyZW50bHkgd2lsbCByZXBvcnQKPiB0ZW1wZXJhdHVyZXMgbmVhciBVSU5UX01BWCBm
-b3IgdGVtcGVyYXR1cmVzIGJlbG93IDDCsEMuIFRoaXMgd2lsbCBwcm9iYWJseQo+IGltbWVkaWF0
-ZWx5IHNodXQgdGhlIG1hY2hpbmUgZG93biBkdWUgdG8gb3ZlcnRlbXBlcmF0dXJlIGlmIHN0YXJ0
-ZWQgYmVsb3cKPiAwwrBDLgo+IAo+ICdsb25nJyBpcyA2NGJpdCBvbiBzZXZlcmFsIGFyY2hpdGVj
-dHVyZXMuIFRoaXMgaXMgbm90IG5lZWRlZCBzaW5jZSBJTlRfTUFYIMKwbUMKPiBpcyBhYm92ZSB0
-aGUgbWVsdGluZyBwb2ludCBvZiBhbGwga25vd24gbWF0ZXJpYWxzLgo+IAo+IENvbnNpc3RlbnRs
-eSB1c2UgYSBwbGFpbiAnaW50JyBmb3IgdGVtcGVyYXR1cmVzIHRocm91Z2hvdXQgdGhlIHRoZXJt
-YWwgY29kZSBhbmQKPiB0aGUgZHJpdmVycy4gVGhpcyBvbmx5IGNoYW5nZXMgdGhlIHBsYWNlcyBp
-biB0aGUgZHJpdmVycyB3aGVyZSB0aGUgdGVtcGVyYXR1cmUKPiBpcyBwYXNzZWQgYXJvdW5kIGFz
-IHBvaW50ZXIsIHdoZW4gZHJpdmVycyBpbnRlcm5hbGx5IHVzZSBhbm90aGVyIHR5cGUgdGhpcyBp
-cwo+IG5vdCBjaGFuZ2VkLgo+IAo+IFNpZ25lZC1vZmYtYnk6IFNhc2NoYSBIYXVlciA8cy5oYXVl
-ckBwZW5ndXRyb25peC5kZT4KPiBDYzogWmhhbmcgUnVpIDxydWkuemhhbmdAaW50ZWwuY29tPgo+
-IENjOiBFZHVhcmRvIFZhbGVudGluIDxlZHViZXp2YWxAZ21haWwuY29tPgo+IENjOiBsaW51eC1w
-bUB2Z2VyLmtlcm5lbC5vcmcKPiBDYzogbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZwo+IENj
-OiBKZWFuIERlbHZhcmUgPGpkZWx2YXJlQHN1c2UuZGU+Cj4gQ2M6IFBldGVyIEZldWVyZXIgPHBl
-dGVyQHBpaWUubmV0Pgo+IENjOiBIZWlrbyBTdHVlYm5lciA8aGVpa29Ac250ZWNoLmRlPgo+IENj
-OiBMdWthc3ogTWFqZXdza2kgPGwubWFqZXdza2lAc2Ftc3VuZy5jb20+Cj4gQ2M6IFN0ZXBoZW4g
-V2FycmVuIDxzd2FycmVuQHd3d2RvdG9yZy5vcmc+Cj4gQ2M6IFRoaWVycnkgUmVkaW5nIDx0aGll
-cnJ5LnJlZGluZ0BnbWFpbC5jb20+Cj4gQ2M6IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnCj4g
-Q2M6IHBsYXRmb3JtLWRyaXZlci14ODZAdmdlci5rZXJuZWwub3JnCj4gQ2M6IGxpbnV4LWFybS1r
-ZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwo+IENjOiBsaW51eC1vbWFwQHZnZXIua2VybmVsLm9y
-Zwo+IENjOiBsaW51eC1zYW1zdW5nLXNvY0B2Z2VyLmtlcm5lbC5vcmcKPiBDYzogR3VlbnRlciBS
-b2VjayA8bGludXhAcm9lY2stdXMubmV0Pgo+IENjOiBSYWZhZWwgSi4gV3lzb2NraSA8cmp3QHJq
-d3lzb2NraS5uZXQ+Cj4gQ2M6IE1heGltZSBSaXBhcmQgPG1heGltZS5yaXBhcmRAZnJlZS1lbGVj
-dHJvbnMuY29tPgo+IENjOiBEYXJyZW4gSGFydCA8ZHZoYXJ0QGluZnJhZGVhZC5vcmc+Cj4gQ2M6
-IGxtLXNlbnNvcnNAbG0tc2Vuc29ycy5vcmcKPiAtLS0KClsuLi5dCgpGb3I6Cgo+ICBkcml2ZXJz
-L3BsYXRmb3JtL3g4Ni9hY2VyaGRmLmMgICAgICAgICAgICAgICAgICAgICB8ICA5ICsrKystLS0t
-Cj4gIGRyaXZlcnMvdGhlcm1hbC9nb3ZfYmFuZ19iYW5nLmMgICAgICAgICAgICAgICAgICAgIHwg
-IDUgKystLQoKUmV2aWV3ZWQtYnk6IFBldGVyIEZldWVyZXIgPHBldGVyQHBpaWUubmV0PgoKWy4u
-Ll0KCgotLSAKLS1wZXRlcjsKCl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0CmxpbnV4LWFybS1rZXJuZWxA
-bGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFkZWFkLm9yZy9tYWlsbWFuL2xp
-c3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
+On Wed, Jul 08, 2015 at 01:51:10AM +0200, Sebastian Reichel wrote:
+> Hi,
+> 
+> On Tue, Jul 07, 2015 at 11:07:28PM +0200, Julian Andres Klode wrote:
+> > Hi everyone (Thinkpad-ACPI, ACPI, and Power supply maintainers),
+> > 
+> > some might know that I presented a patch set adding support for
+> > charge thresholds to thinkpad_acpi about 1.5 years ago. 
+> 
+> Can you provide a link to the patch set?
+
+Sure:
+http://thread.gmane.org/gmane.linux.acpi.ibm-acpi.devel/3175
+
+(it was not on the ACPI and Power MLs back then)
+
+> 
+> > Back then, one of the major rejections was that the functionality
+> > for setting charge thresholds should be integrated into the
+> > power supply stack somehow. I did not know who to contact back
+> > then, but know I re-read MAINTAINERS and found all your addresses,
+> > so I give it a second try.
+> > 
+> > One issue with just integrating it in the current battery
+> > directories would be that ThinkPads are able to set charge
+> > thresholds for batteries that are currently not inserted.
+> 
+> So the power supply device should be kept with
+> POWER_SUPPLY_PROP_PRESENT being disabled (and most properties
+> returning -ENODATA). The ACPI SBS driver seems to implement
+> POWER_SUPPLY_PROP_PRESENT, but I didn't test it.
+
+Yes, indeed.
+
+> 
+> > Back then I wrote:
+> > > The next step is to integrate this properly with power supply
+> > > and/or acpi battery. One way would be to add additional power
+> > > supply properties and then add get/set_property() pointers to
+> > > the acpi battery which it can fall back to if it does not support
+> > > a requested property (and we would locate the ACPI battery and
+> > > set those pointers to new thinkpad_acpi functions).
+> > 
+> > If you, the ACPI and power supply people, have any preferred
+> > way (or any idea at all how) to proceed, that would be useful,
+> > so I don't start working on it again, and then somebody does
+> > not like it.
+> 
+> Adding charging thresholds as power_supply_property sounds
+> fine to me.
+> 
+
+Right, it gets a bit more complicated though: Since the code is
+platform-specific, it should live in the platform driver, so a
+way is needed to extend the existing device with new properties
+from the platform driver.
+
+-- 
+Julian Andres Klode  - Debian Developer, Ubuntu Member
+
+See http://wiki.debian.org/JulianAndresKlode and http://jak-linux.org/.
+
+Be friendly, do not top-post, and follow RFC 1855 "Netiquette".
+    - If you don't I might ignore you.
