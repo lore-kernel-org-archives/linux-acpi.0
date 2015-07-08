@@ -1,36 +1,119 @@
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH 0/3] Correctness fixes for NFIT BLK I/O path
-Date: Wed,  8 Jul 2015 10:00:18 -0600
-Message-ID: <1436371221-30296-1-git-send-email-ross.zwisler@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:28527 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759021AbbGHQAe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 8 Jul 2015 12:00:34 -0400
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Subject: [PATCH 3/3] nfit: add support for NVDIMM "latch" flag
+Date: Wed,  8 Jul 2015 10:00:21 -0600
+Message-ID: <1436371221-30296-4-git-send-email-ross.zwisler@linux.intel.com>
+References: <1436371221-30296-1-git-send-email-ross.zwisler@linux.intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1436371221-30296-1-git-send-email-ross.zwisler@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Christoph Hellwig <hch@lst.de>, Dan Williams <dan.j.williams@intel.com>, Greg KH <gregkh@linuxfoundation.org>, Jeff Moyer <jmoyer@redhat.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Toshi Kani <toshi.kani@hp.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Dan Williams <dan.j.williams@intel.com>, Len Brown <lenb@kernel.org>, Christoph Hellwig <hch@lst.de>, Jeff Moyer <jmoyer@redhat.com>, Toshi Kani <toshi.kani@hp.com>
+List-Id: linux-acpi@vger.kernel.org
 
-Patch 1 is just a quick update to MAINTAINERS for include/linux/pmem.h.
+Add support in the NFIT BLK I/O path for the "latch" flag
+defined in the "Get Block NVDIMM Flags" _DSM function:
 
-Patches 2 and 3 in this series contain correctness fixes for the NFIT BLK I/O
-path, which in my opinion need to be pulled in for v4.2.  These fixes include
-making sure that the block control registers are properly flushed before the
-associated apertures are accessed, which is necessary for proper operation.
-This series also updates the I/O path to use non-temporal stores, and to
-respect the "latch" flag outlined in the DSM specification.
+http://pmem.io/documents/NVDIMM_DSM_Interface_Example.pdf
 
-Ross Zwisler (3):
-  pmem: add maintainer for include/linux/pmem.h
-  nfit: update block I/O path to use PMEM API
-  nfit: add support for NVDIMM "latch" flag
+This flag requires the driver to read back the command register after it
+is written in the block I/O path.  This ensures that the hardware has
+fully processed the new command and moved the aperture appropriately.
 
- MAINTAINERS         |   1 +
- drivers/acpi/nfit.c | 114 +++++++++++++++++++++++++++++++++++++++++++++++++---
- drivers/acpi/nfit.h |  16 +++++++-
- 3 files changed, 125 insertions(+), 6 deletions(-)
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: linux-nvdimm@lists.01.org
+Cc: linux-acpi@vger.kernel.org
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Len Brown <lenb@kernel.org>
+Cc: Christoph Hellwig <hch@lst.de>
+Cc: Jeff Moyer <jmoyer@redhat.com>
+Cc: Toshi Kani <toshi.kani@hp.com>
+---
+ drivers/acpi/nfit.c | 33 ++++++++++++++++++++++++++++++++-
+ drivers/acpi/nfit.h |  6 ++++++
+ 2 files changed, 38 insertions(+), 1 deletion(-)
 
+diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+index b3c446412f61..9062c11c1062 100644
+--- a/drivers/acpi/nfit.c
++++ b/drivers/acpi/nfit.c
+@@ -1059,7 +1059,9 @@ static void write_blk_ctl(struct nfit_blk *nfit_blk, unsigned int bw,
+ 
+ 	writeq(cmd, mmio->base + offset);
+ 	wmb_blk(nfit_blk);
+-	/* FIXME: conditionally perform read-back if mandated by firmware */
++
++	if (nfit_blk->dimm_flags & ND_BLK_DCR_LATCH)
++		readq(mmio->base + offset);
+ }
+ 
+ static int acpi_nfit_blk_single_io(struct nfit_blk *nfit_blk,
+@@ -1258,6 +1260,28 @@ static int nfit_blk_init_interleave(struct nfit_blk_mmio *mmio,
+ 	return 0;
+ }
+ 
++static int acpi_nfit_blk_get_flags(struct nvdimm_bus_descriptor *nd_desc,
++		struct nvdimm *nvdimm, struct nfit_blk *nfit_blk)
++{
++	struct nd_cmd_dimm_flags flags;
++	int rc;
++
++	memset(&flags, 0, sizeof(flags));
++	rc = nd_desc->ndctl(nd_desc, nvdimm, ND_CMD_DIMM_FLAGS, &flags,
++			sizeof(flags));
++
++	if (rc >= 0) {
++		if (!flags.status)
++			nfit_blk->dimm_flags = flags.flags;
++		else if (flags.status == ND_DSM_STATUS_NOT_SUPPORTED)
++			nfit_blk->dimm_flags = 0; /* as per the _DSM spec */
++		else
++			rc = -EINVAL;
++	}
++
++	return rc;
++}
++
+ static int acpi_nfit_blk_region_enable(struct nvdimm_bus *nvdimm_bus,
+ 		struct device *dev)
+ {
+@@ -1333,6 +1357,13 @@ static int acpi_nfit_blk_region_enable(struct nvdimm_bus *nvdimm_bus,
+ 		return rc;
+ 	}
+ 
++	rc = acpi_nfit_blk_get_flags(nd_desc, nvdimm, nfit_blk);
++	if (rc < 0) {
++		dev_dbg(dev, "%s: %s failed get DIMM flags\n",
++				__func__, nvdimm_name(nvdimm));
++		return rc;
++	}
++
+ 	nfit_flush = nfit_mem->nfit_flush;
+ 	if (nfit_flush && nfit_flush->flush->hint_count != 0) {
+ 		struct acpi_nfit_flush_address *flush = nfit_flush->flush;
+diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
+index d284729cc37c..98e36ca0dfc2 100644
+--- a/drivers/acpi/nfit.h
++++ b/drivers/acpi/nfit.h
+@@ -40,6 +40,11 @@ enum nfit_uuids {
+ 	NFIT_UUID_MAX,
+ };
+ 
++enum {
++	ND_BLK_DCR_LATCH = 2,
++	ND_DSM_STATUS_NOT_SUPPORTED = 1,
++};
++
+ struct nfit_spa {
+ 	struct acpi_nfit_system_address *spa;
+ 	struct list_head list;
+@@ -131,6 +136,7 @@ struct nfit_blk {
+ 	u64 stat_offset;
+ 	u64 cmd_offset;
+ 	void __iomem *nvdimm_flush;
++	u32 dimm_flags;
+ };
+ 
+ struct nfit_spa_mapping {
 -- 
 1.9.3
-
