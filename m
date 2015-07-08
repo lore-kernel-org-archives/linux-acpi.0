@@ -1,43 +1,72 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 0/3] Correctness fixes for NFIT BLK I/O path
-Date: Thu, 09 Jul 2015 00:24:14 +0200
-Message-ID: <1739070.jNKN61Jqzj@vostro.rjw.lan>
-References: <1436371221-30296-1-git-send-email-ross.zwisler@linux.intel.com>
+Subject: Re: [PATCH v6 2/7] ACPI: Make ACPI processor driver more extensible
+Date: Thu, 09 Jul 2015 01:29:21 +0200
+Message-ID: <1623587.PclZFH5dDd@vostro.rjw.lan>
+References: <cover.1434398373.git.ashwin.chaugule@linaro.org> <36832814.6sPr1fbHHF@vostro.rjw.lan> <CAJ5Y-eb00m6DE_4mHXnGha4j6PwTNeV8x0eroMe_JZy7NVowow@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:64686 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:44999 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751082AbbGHV5q (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Jul 2015 17:57:46 -0400
-In-Reply-To: <1436371221-30296-1-git-send-email-ross.zwisler@linux.intel.com>
+	with SMTP id S1751033AbbGHXCx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Jul 2015 19:02:53 -0400
+In-Reply-To: <CAJ5Y-eb00m6DE_4mHXnGha4j6PwTNeV8x0eroMe_JZy7NVowow@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: linux-kernel@vger.kernel.org, Christoph Hellwig <hch@lst.de>, Dan Williams <dan.j.williams@intel.com>, Greg KH <gregkh@linuxfoundation.org>, Jeff Moyer <jmoyer@redhat.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org, Toshi Kani <toshi.kani@hp.com>
+To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Jaswinder Singh <jaswinder.singh@linaro.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Patch Tracking <patches@linaro.org>, linux acpi <linux-acpi@vger.kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>
 
-On Wednesday, July 08, 2015 10:00:18 AM Ross Zwisler wrote:
-> Patch 1 is just a quick update to MAINTAINERS for include/linux/pmem.h.
+On Wednesday, July 08, 2015 05:57:11 PM Ashwin Chaugule wrote:
+> On 8 July 2015 at 18:21, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> > On Wednesday, July 08, 2015 05:46:45 PM Ashwin Chaugule wrote:
+> >> On 8 July 2015 at 16:46, Rafael J. Wysocki <rafael@kernel.org> wrote:
+> >> >>
+> >> >> Perhaps the confusion is coming from the introduction of ACPI_CST in
+> >> >> this file. I could leave it as it is and just separate out the
+> >> >> ACPI_PSS bits. But I figured, while I'm at it, I'd introduce ACPI_CST,
+> >> >> since we know the LPI stuff is coming up soon as a CST alternative
+> >> >> anyway. So if you prefer, I can drop the CST bits and maybe Sudeep can
+> >> >> address that as part of his LPI patchset?
+> >> >
+> >> > Yes, please.  That would be much less confusing.
+> >>
+> >> Deja Vu. :)
+> >>
+> >> When I let processor_driver and processor_idle compile on ARM64, I get
+> >> a bunch of errors because processor_idle.c contains a lot of X86
+> >> specific defines. That is why I'd created the ACPI_CST option which
+> >> we'd enable only on X86.
+> >>
+> >> I'm not entirely sure what these enums and functions should default
+> >> to, or what they should be on ARM specifically. Given that on ARM64
+> >> we're likely to use LPI as against CST, it seems the original approach
+> >> is better. Thoughts?
+> >
+> > Before we go anywhere deeper, have you checked what happens on ia64?
 > 
-> Patches 2 and 3 in this series contain correctness fixes for the NFIT BLK I/O
-> path, which in my opinion need to be pulled in for v4.2.  These fixes include
-> making sure that the block control registers are properly flushed before the
-> associated apertures are accessed, which is necessary for proper operation.
-> This series also updates the I/O path to use non-temporal stores, and to
-> respect the "latch" flag outlined in the DSM specification.
-> 
-> Ross Zwisler (3):
->   pmem: add maintainer for include/linux/pmem.h
->   nfit: update block I/O path to use PMEM API
->   nfit: add support for NVDIMM "latch" flag
-> 
->  MAINTAINERS         |   1 +
->  drivers/acpi/nfit.c | 114 +++++++++++++++++++++++++++++++++++++++++++++++++---
->  drivers/acpi/nfit.h |  16 +++++++-
->  3 files changed, 125 insertions(+), 6 deletions(-)
+> I dont have access, but I'm really not changing anything functionally.
 
-No objections from me and I'm assuming Dan to be taking these.
+I mean ia64 is a non-x86 architecture using ACPI.  It very well may be doing
+things that you want to be doing.
+
+It looks like the only reason you want ACPI_CST for is to avoid building
+processor_idle.c on ARM64.  Then add something like this to the ACPI Kconfig:
+
+config ACPI_PROCESSOR_IDLE
+	def_bool Y
+	depends on X86 || IA64
+
+and don't make it user-selectable *and* under the ACPI_PROCESSOR config do
+
+	select CPU_IDLE if ACPI_PROCESSOR_IDLE
+
+Then, make processor_idle.c conditional on ACPI_PROCESSOR_IDLE.  That should
+do the trick and it may be changed by the LPI series as needed.
+
+Also, I don't see a reason why the ACPI_PSS option should be user-selectable.
+I'd call it ACPI_CPU_FREQ_PSS, make it depend on CPU_FREQ and make architectures
+select it (or not) as appropriate.
 
 Thanks,
 Rafael
