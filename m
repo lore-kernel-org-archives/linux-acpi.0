@@ -1,121 +1,74 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Bugfix v4] PCI, ACPI: Fix regressions caused by resource_size_t overflow with 32-bit kernel
-Date: Wed,  8 Jul 2015 15:26:39 +0800
-Message-ID: <1436340399-19695-1-git-send-email-jiang.liu@linux.intel.com>
-References: <559107F2.3080701@pr.hu>
+Subject: Re: [Patch v3 0/4] Introduce a mechanism to allocate PCI IRQ on demand
+Date: Wed, 08 Jul 2015 15:31:27 +0800
+Message-ID: <559CD1CF.3030601@linux.intel.com>
+References: <1433926501-22956-1-git-send-email-jiang.liu@linux.intel.com> <20150619161001.GJ7710@google.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <559107F2.3080701@pr.hu>
+In-Reply-To: <20150619161001.GJ7710@google.com>
 Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Ingo Molnar <mingo@kernel.org>, Boszormenyi Zoltan <zboszor@pr.hu>, Len Brown <lenb@kernel.org>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Zoltan Boszormenyi reported this regression:
-  "There's a Realtek RTL8111/8168/8411 (PCI ID 10ec:8168, Subsystem ID
-   1565:230e) network chip on the mainboard. After the r8169 driver loaded
-   the IRQs in the machine went berserk. Keyboard keypressed arrived with
-   considerable latency and duplicated, so no real work was possible.
-   The machine responded to the power button but didn't actually power
-   down. It just stuck at the powering down message. I had to press the
-   power button for 4 seconds to power it down.
+On 2015/6/20 0:10, Bjorn Helgaas wrote:
+> On Wed, Jun 10, 2015 at 04:54:57PM +0800, Jiang Liu wrote:
+>> Hi Bjorn,
+>> 	I have verified that this patch set could be applied to the
+>> mainstream kernel without dependency on other patches, so could you
+>> please help to merge it?
+> 
+> I already acked these and said I was willing to merge them and that I was
+> hoping for an ack from Thomas.
+> 
+> Any thoughts, Thomas?
 
-   The computer is a POS machine with a big battery inside. Because of this,
-   either ACPI or the Realtek chip kept the bad state and after rebooting,
-   the network chip didn't even show up in lspci. Not even the PXE ROM
-   announced itself during boot. I had to disconnect the battery to beat
-   some sense back to the computer.
+Hi Thomas,
+	Any comments about this bugfix series?
+Thanks!
+Gerry
 
-   The regression happens with 4.0.5, 4.1.0-rc8 and 4.1.0-final. 3.18.16 was
-   good."
-
-The regression is caused by commit 593669c2ac0f ("x86/PCI/ACPI: Use common
-ACPI resource interfaces to simplify implementation"). Since commit
-593669c2ac0f, x86 PCI ACPI host bridge driver validates ACPI resources by
-first converting an ACPI resource to a 'struct resource' structure and
-then applying checks against the converted resource structure. The 'start'
-and 'end' fields in 'struct resource' are defined to be type of
-resource_size_t, which may be 32 bits or 64 bits depending on
-CONFIG_PHYS_ADDR_T_64BIT.
-
-This may cause incorrect resource validation results with 32-bit kernels
-because 64-bit ACPI resource descriptors may get truncated when converting
-to 32-bit 'start' and 'end' fields in 'struct resource'. It eventually
-affects PCI resource allocation subsystem and makes some PCI devices and
-the system behave abnormally due to incorrect resource assignment.
-
-So enhance the ACPI resource parsing interfaces to ignore ACPI resource
-descriptors with address/offset above 4G when running in 32-bit mode.
-
-With the fix applied, the behavior of the machine was restored to how
-3.18.16 worked, i.e. the memory range that is over 4GB is ignored again,
-and lspci -vvxxx shows that everything is at the same memory window as
-they were with 3.18.16.
-
-Reported-and-Tested-by: Boszormenyi Zoltan <zboszor@pr.hu>
-Fixes: 593669c2ac0f ("x86/PCI/ACPI: Use common ACPI resource interfaces to simplify implementation")
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: stable@vger.kernel.org # 4.0
----
- drivers/acpi/resource.c |   24 +++++++++++++++---------
- 1 file changed, 15 insertions(+), 9 deletions(-)
-
-diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-index 10561ce16ed1..e8d281739cbc 100644
---- a/drivers/acpi/resource.c
-+++ b/drivers/acpi/resource.c
-@@ -194,6 +194,7 @@ static bool acpi_decode_space(struct resource_win *win,
- 	u8 iodec = attr->granularity == 0xfff ? ACPI_DECODE_10 : ACPI_DECODE_16;
- 	bool wp = addr->info.mem.write_protect;
- 	u64 len = attr->address_length;
-+	u64 start, end, offset = 0;
- 	struct resource *res = &win->res;
- 
- 	/*
-@@ -205,9 +206,6 @@ static bool acpi_decode_space(struct resource_win *win,
- 		pr_debug("ACPI: Invalid address space min_addr_fix %d, max_addr_fix %d, len %llx\n",
- 			 addr->min_address_fixed, addr->max_address_fixed, len);
- 
--	res->start = attr->minimum;
--	res->end = attr->maximum;
--
- 	/*
- 	 * For bridges that translate addresses across the bridge,
- 	 * translation_offset is the offset that must be added to the
-@@ -215,12 +213,22 @@ static bool acpi_decode_space(struct resource_win *win,
- 	 * primary side. Non-bridge devices must list 0 for all Address
- 	 * Translation offset bits.
- 	 */
--	if (addr->producer_consumer == ACPI_PRODUCER) {
--		res->start += attr->translation_offset;
--		res->end += attr->translation_offset;
--	} else if (attr->translation_offset) {
-+	if (addr->producer_consumer == ACPI_PRODUCER)
-+		offset = attr->translation_offset;
-+	else if (attr->translation_offset)
- 		pr_debug("ACPI: translation_offset(%lld) is invalid for non-bridge device.\n",
- 			 attr->translation_offset);
-+	start = attr->minimum + offset;
-+	end = attr->maximum + offset;
-+
-+	win->offset = offset;
-+	res->start = start;
-+	res->end = end;
-+	if (sizeof(resource_size_t) < sizeof(u64) &&
-+	    (offset != win->offset || start != res->start || end != res->end)) {
-+		pr_warn("acpi resource window ([%#llx-%#llx] ignored, not CPU addressable)\n",
-+			attr->minimum, attr->maximum);
-+		return false;
- 	}
- 
- 	switch (addr->resource_type) {
-@@ -237,8 +245,6 @@ static bool acpi_decode_space(struct resource_win *win,
- 		return false;
- 	}
- 
--	win->offset = attr->translation_offset;
--
- 	if (addr->producer_consumer == ACPI_PRODUCER)
- 		res->flags |= IORESOURCE_WINDOW;
- 
--- 
-1.7.10.4
+> 
+>> This patch set introduces a mechanism to allocate PCI IRQ on demand and
+>> free it when not used anymore by hooking pci_device_probe() and
+>> pci_device_remove().
+>>
+>> It will be used to track IOAPIC pin usage on x86 so we could support
+>> IOAPIC hot-removal.
+>>
+>> The patch set passes Fengguang's 0day test suite.
+>>
+>> V2->V3:
+>> 1) Change the default pcibios_alloc_irq() to always return 0, as
+>>    suggested by Bjorn.
+>> 2) Refine comments.
+>>
+>> V1->V2:
+>> 1) Refine pci_device_probe() to optimize for mainline code as suggested
+>>    by Bjorn
+>> 2) Reorder patch set to put optional patch as the last (Patch 4)
+>>
+>>
+>> Jiang Liu (4):
+>>   PCI: Add hooks to allocate/free IRQ resources when binding/unbinding
+>>     driver
+>>   PCI, x86: Allocate PCI IRQ on demand and free it when not used
+>>     anymore
+>>   PCI: Add helpers to manage pci_dev->irq and pci_dev->irq_managed
+>>   PCI, MSI: Free legacy PCI IRQ when enabling MSI/MSI-X
+>>
+>>  arch/x86/include/asm/pci_x86.h |    2 --
+>>  arch/x86/pci/common.c          |   20 +++++++++-----------
+>>  arch/x86/pci/intel_mid_pci.c   |    9 ++++++---
+>>  arch/x86/pci/irq.c             |   23 ++++-------------------
+>>  drivers/acpi/pci_irq.c         |   17 ++++-------------
+>>  drivers/pci/msi.c              |    6 +++++-
+>>  drivers/pci/pci-driver.c       |   26 ++++++++++++++++++++------
+>>  include/linux/pci.h            |   19 +++++++++++++++++++
+>>  8 files changed, 67 insertions(+), 55 deletions(-)
+>>
+>> -- 
+>> 1.7.10.4
+>>
