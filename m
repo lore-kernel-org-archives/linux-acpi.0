@@ -1,68 +1,38 @@
-From: Lee Jones <lee.jones@linaro.org>
-Subject: Re: [PATCH v4 6/8] mfd: make mfd_remove_devices() iterate in reverse
- order
-Date: Wed, 8 Jul 2015 08:46:46 +0100
-Message-ID: <20150708074646.GN3182@x1>
-References: <1434362256-239992-1-git-send-email-andriy.shevchenko@linux.intel.com>
- <CAHp75VdGyfyfYV6q9vdqK5nYBMpPWFxr32eiXXn2ruUj4pg6BA@mail.gmail.com>
- <20150706160529.GC3182@x1>
- <3134535.L6At3I31FS@vostro.rjw.lan>
- <20150707065117.GE3182@x1>
- <559C5201.7080605@codeaurora.org>
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: Re: [Patch v3 0/4] Introduce a mechanism to allocate PCI IRQ on demand
+Date: Wed, 08 Jul 2015 15:55:15 +0800
+Message-ID: <559CD763.50601@linux.intel.com>
+References: <1433926501-22956-1-git-send-email-jiang.liu@linux.intel.com> <20150619161001.GJ7710@google.com> <559CD1CF.3030601@linux.intel.com> <alpine.DEB.2.11.1507080939430.3916@nanos>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wg0-f42.google.com ([74.125.82.42]:36409 "EHLO
-	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932368AbbGHHqx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Jul 2015 03:46:53 -0400
-Received: by wgxm20 with SMTP id m20so4532393wgx.3
-        for <linux-acpi@vger.kernel.org>; Wed, 08 Jul 2015 00:46:52 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <559C5201.7080605@codeaurora.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.11.1507080939430.3916@nanos>
+Sender: linux-pci-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Stephen Boyd <sboyd@codeaurora.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Shevchenko <andy.shevchenko@gmail.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Geert Uytterhoeven <geert@linux-m68k.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM list <linux-pm@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Vinod Koul <vinod.koul@intel.com>, Andrew Morton <akpm@linux-foundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, dmaengine <dmaengine@vger.kernel.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Mike Turquette <mturquette@baylibre.com>
 
-On Tue, 07 Jul 2015, Stephen Boyd wrote:
-> On 07/06/2015 11:51 PM, Lee Jones wrote:
-> > On Tue, 07 Jul 2015, Rafael J. Wysocki wrote:
-> >> So are there any ACKs missing from the last series posted by Andy?
-> > Yes, I have requested a Clk Ack, as there are some, lets say
-> > interesting code in the MFD driver which I am unsure about.  Howeve=
-r,
-> > we have caught Mike at an awkward time, as he is in the middle of
-> > transitioning jobs.
-> >
-> > Perhaps Stephen Boyd (now Cc'ed) might have a look.
-> >
->=20
-> Context? I found the cover letter.
->=20
-> clkdev is maintained by Russell. You could get his ack for the usage =
-of
-> the clkdev_create() API, but I'm not sure why it's needed. The API wa=
-s
-> merged into Linus' tree so I think you have everything you need.
->=20
-> $ git tag -l --contains 2568999835d7797afce3dcc3a3f368051ffcaf1f v4*
-> v4.2-rc1
-
-mfd: Add support for Intel Sunrisepoint LPSS devices
-
-I also just bounced the original patch submission to you.  I'm
-particularly concerned with the use of IDA to match clocks by name.
-
-
---=20
-Lee Jones
-Linaro STMicroelectronics Landing Team Lead
-Linaro.org =E2=94=82 Open source software for ARM SoCs
-=46ollow Linaro: Facebook | Twitter | Blog
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On 2015/7/8 15:40, Thomas Gleixner wrote:
+> On Wed, 8 Jul 2015, Jiang Liu wrote:
+>> On 2015/6/20 0:10, Bjorn Helgaas wrote:
+>>> On Wed, Jun 10, 2015 at 04:54:57PM +0800, Jiang Liu wrote:
+>>>> Hi Bjorn,
+>>>> 	I have verified that this patch set could be applied to the
+>>>> mainstream kernel without dependency on other patches, so could you
+>>>> please help to merge it?
+>>>
+>>> I already acked these and said I was willing to merge them and that I was
+>>> hoping for an ack from Thomas.
+>>>
+>>> Any thoughts, Thomas?
+>>
+>> Hi Thomas,
+>> 	Any comments about this bugfix series?
+> 
+> How is these a bugfix series? It looks like preparation for ioapic
+> hotplug.
+> 
+> But other than that, Acked-by-me.
+Thanks! The IOAPIC hotplug driver has been merged into mainstream
+kernel, so treat them as bugfix:)
