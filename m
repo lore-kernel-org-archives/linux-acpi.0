@@ -1,409 +1,121 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v2 6/9] irqchip / gic: Add stacked irqdomain support for
- ACPI based GICv2 init
-Date: Wed, 08 Jul 2015 11:40:36 +0800
-Message-ID: <559C9BB4.90103@linaro.org>
-References: <1434703572-26221-1-git-send-email-hanjun.guo@linaro.org> <1434703572-26221-7-git-send-email-hanjun.guo@linaro.org> <20150622172014.GB26129@red-moon> <5589772A.8070708@linaro.org> <20150623173845.GC31466@red-moon> <558E1DEE.3090900@linaro.org> <55910440.8070702@arm.com> <559282A0.8090601@linaro.org> <559288CA.40605@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f171.google.com ([209.85.192.171]:35454 "EHLO
-	mail-pd0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932252AbbGHDko (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 7 Jul 2015 23:40:44 -0400
-Received: by pdrg1 with SMTP id g1so5905560pdr.2
-        for <linux-acpi@vger.kernel.org>; Tue, 07 Jul 2015 20:40:43 -0700 (PDT)
-In-Reply-To: <559288CA.40605@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: [Bugfix v4] PCI, ACPI: Fix regressions caused by resource_size_t overflow with 32-bit kernel
+Date: Wed,  8 Jul 2015 15:26:39 +0800
+Message-ID: <1436340399-19695-1-git-send-email-jiang.liu@linux.intel.com>
+References: <559107F2.3080701@pr.hu>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <559107F2.3080701@pr.hu>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Ingo Molnar <mingo@kernel.org>, Boszormenyi Zoltan <zboszor@pr.hu>, Len Brown <lenb@kernel.org>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>
-Cc: Jason Cooper <jason@lakedaemon.net>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Olof Johansson <olof@lixom.net>, Wei Huang <wei@redhat.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 
-Hi Marc,
+Zoltan Boszormenyi reported this regression:
+  "There's a Realtek RTL8111/8168/8411 (PCI ID 10ec:8168, Subsystem ID
+   1565:230e) network chip on the mainboard. After the r8169 driver loaded
+   the IRQs in the machine went berserk. Keyboard keypressed arrived with
+   considerable latency and duplicated, so no real work was possible.
+   The machine responded to the power button but didn't actually power
+   down. It just stuck at the powering down message. I had to press the
+   power button for 4 seconds to power it down.
 
-On 06/30/2015 08:17 PM, Marc Zyngier wrote:
-> On 30/06/15 12:50, Hanjun Guo wrote:
->> Hi Marc,
->>
->> On 06/29/2015 04:39 PM, Marc Zyngier wrote:
->>> On 27/06/15 04:52, Hanjun Guo wrote:
->>>> On 06/24/2015 01:38 AM, Lorenzo Pieralisi wrote:
->>>>> On Tue, Jun 23, 2015 at 04:11:38PM +0100, Hanjun Guo wrote:
->> [...]
->>>>>
->>>>>>>>      	for (i =3D 0; i < nr_irqs; i++)
->>>>>>>>      		gic_irq_domain_map(domain, virq + i, hwirq + i);
->>>>>>>> @@ -945,11 +952,11 @@ void __init gic_init_bases(unsigned int =
-gic_nr, int irq_start,
->>>>>>>>      		gic_irqs =3D 1020;
->>>>>>>>      	gic->gic_irqs =3D gic_irqs;
->>>>>>>>
->>>>>>>> -	if (node) {		/* DT case */
->>>>>>>> +	if (node || !acpi_disabled) {		/* DT or ACPI case */
->>>>>>>>      		gic->domain =3D irq_domain_add_linear(node, gic_irqs,
->>>>>>>>      						    &gic_irq_domain_hierarchy_ops,
->>>>>>>>      						    gic);
->>>>>
->>>>> I think this is a bit more worrying, I mean passing a NULL node p=
-ointer to
->>>>> the irqdomain layer which basically means you are booting out of =
-ACPI
->>>>
->>>> I'm little confused here, would you mind explaining more for your
->>>> worrying? To me, node pointer is optional and it's ok for ACPI
->>>> case.
->>>>
->>>>> (for you, if that's true for the irq_domain_add_linear implementa=
-tion
->>>>> that's another story), the node pointer should be optional but yo=
-u
->>>>> need feedback from IRQ layer maintainers here.
->>>>
->>>> Sure.
->>>
->>> Frankly, I'd really like to see ACPI using the "node" parameter for
->>> something useful. This would save having to cache pointers all over=
- the
->>> place, will make find_irq_host() work as expected... etc.
->>>
->>> See the comment at the top of linux/irqdomain.h :
->>>
->>> "... This code could thus be used on other architectures by replaci=
-ng
->>> those two by some sort of arch-specific void * "token" used to iden=
-tify
->>> interrupt controllers."
+   The computer is a POS machine with a big battery inside. Because of this,
+   either ACPI or the Realtek chip kept the bad state and after rebooting,
+   the network chip didn't even show up in lspci. Not even the PXE ROM
+   announced itself during boot. I had to disconnect the battery to beat
+   some sense back to the computer.
 
-I'm stuck here, I think the token for now is tied to device tree as
-the device node pointer for now in the code if the pointer is not NULL,
-just see the of_node_get(of_node) in __irq_domain_add(), if dynamic
-dt is enabled:
+   The regression happens with 4.0.5, 4.1.0-rc8 and 4.1.0-final. 3.18.16 was
+   good."
 
-struct device_node *of_node_get(struct device_node *node)
-{
-         if (node)
-                 kobject_get(&node->kobj);
-         return node;
-}
-EXPORT_SYMBOL(of_node_get);
+The regression is caused by commit 593669c2ac0f ("x86/PCI/ACPI: Use common
+ACPI resource interfaces to simplify implementation"). Since commit
+593669c2ac0f, x86 PCI ACPI host bridge driver validates ACPI resources by
+first converting an ACPI resource to a 'struct resource' structure and
+then applying checks against the converted resource structure. The 'start'
+and 'end' fields in 'struct resource' are defined to be type of
+resource_size_t, which may be 32 bits or 64 bits depending on
+CONFIG_PHYS_ADDR_T_64BIT.
 
-so if the node is not NULL, it will be used to get the node's
-kobject, that will be a problem for acpi case if we pass a token
-as a parameter.
+This may cause incorrect resource validation results with 32-bit kernels
+because 64-bit ACPI resource descriptors may get truncated when converting
+to 32-bit 'start' and 'end' fields in 'struct resource'. It eventually
+affects PCI resource allocation subsystem and makes some PCI devices and
+the system behave abnormally due to incorrect resource assignment.
 
-I rethink for quite a while and have a discussion with Graeme,
-I come out another idea and we don't need the token at all
-for ACPI case.
+So enhance the ACPI resource parsing interfaces to ignore ACPI resource
+descriptors with address/offset above 4G when running in 32-bit mode.
 
->>
->> To init GIC in ACPI, we can only use the table entry pointer as
->> the token, but the ACPI static tables are early mem/io remapped
->> memory at boot stage, and it will be not available after boot,
->> also we need muti types of MADT enties to init GIC (GICC and GICD
->> for GICv2, GICC or GICR and GICD for GICv3), not as DT, just
->> one single node to include all the information needed to init
->> the GIC.
->
-> A single pointer would be enough, you don't need all of them.
->
->> We use ACPI handle for devices as node for DT when the namespace
->> is available, but that's pretty late in the boot stage which GIC,
->> SMP and timers were already initialized, so ACPI handle can not
->> use as the token too.
->>
->> I see multi places just pass NULL as the pointer directly for
->> irq_domain_add_linear() which works fine, and for ACPI, we tested
->> this patch and also it works.
->
-> Yes it works. But you're reinventing the wheel by keeping references
-> outside of the normal framework, which is simply going to make the co=
-de
+With the fix applied, the behavior of the machine was restored to how
+3.18.16 worked, i.e. the memory range that is over 4GB is ignored again,
+and lspci -vvxxx shows that everything is at the same memory window as
+they were with 3.18.16.
 
-That's the framework for DT not suitable for ACPI, just see the comment=
-s
-below.
-
-> more difficult to maintain in the long run.
->
-> Putting NULL as the device_node parameter really means "this is a dom=
-ain
-> I don't need to look up later". In your case, you will have to lookup
-
-I agree that we need to look up the domain not just using the
-global acpi_irq_domain pointer everywhere, which make the code not
-scalable, but I don't think it's not OK to put NULL as the device_node
-parameter in ACPI case.
-
-The reason is that we use different model of mapping interrupt with
-device in ACPI, for ACPI device in DSDT, it's using another mapping of
-device and hwirq number than DT, in DT, we using the interrupt parent
-property to get the device node of irqchip, that's why we need the
-matching function that match the device node with the one associated
-with the irqdomain. But for ACPI, we only can get the gsi which the
-device is using, no interrupt parent will be used, that because gsi is
-a flat hwirq number which is unique in the system, then we can get its
-associated irq domain by matching the gsi supported by this irqchip
-(see drawings below),  then we can be without the token pointer
-matching the interrupt controller.
-
-                   ------------      ---> gsi_base0
-                  |            |
-                  |            |
-   irqdomain <----| irqchip 0  |
-                  |            |
-                  |            |
-                  |____________|     ---> gsi_end0
-
-                  ------------      ---> gsi_base1 (probably gsi_end0+1=
-)
-                  |            |
-                  |            |
-   irqdomain <----| irqchip 1  |
-                  |            |
-                  |            |
-                  |____________|     ---> gsi_end1
-
-                   .....
-
-so if a device is using gsi number n, we can match it with the compare
-of if (n <=3D gsi_base && gsi_end), then find its associated irq domain=
-=2E
-
-> that domain, all the time. You're just doing it in your own little
-> corner, which is what bothers me.
-
-Not really the corner, that's because how ACPI works, I prepared a
-patch on top of this patch set following your suggestion to lookup
-the irqdomain to make the code scalable, could you please review it? I
-can squash it to this patch set if it's ok to you:
-
-  [RFC PATCH] ACPI / gsi: use gsi to find its irqdomain
-
-As we use the acpi_irq_domain as the global pointer to the acpi core
-irq domain, which lead to multi places referring it and the way is not
-scalable, so introduce a struct gsi_cfg_data to abstract the gsi data
-for the irqchips then match the irq domain with the gsi.
-
-=46or a ACPI based irqchip for example a GICD, it defines System Vector
-Base in the GICD entry, which means the global system interrupt number
-where this GIC Distributor=92s interrupt inputs start, then we can get
-the irq number supported by reading the register for this GICD, so we
-can explictly get the gsi's associated irqdomain if the gsi is within
-the range of gsi supported by this GICD.
-
-=46or ACPI device in DSDT, it using another mapping of device and hwirq
-number than DT, in DT, we using the interrupt parent property to get
-the device node of irqchip, that's why we need the matching function
-that match the device node with the one associated with the irqdomain.
-=46or ACPI, we only can get the gsi which the device is using, no inter=
-rupt
-parent will be used, that because gsi is a flat hwirq number which is
-unique in the system, then we can get its associated irq domain as I sa=
-id
-above, which can be without the token pointer matching the interrupt
-controller.
-
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+Reported-and-Tested-by: Boszormenyi Zoltan <zboszor@pr.hu>
+Fixes: 593669c2ac0f ("x86/PCI/ACPI: Use common ACPI resource interfaces to simplify implementation")
+Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: stable@vger.kernel.org # 4.0
 ---
-  drivers/acpi/gsi.c           | 58=20
-++++++++++++++++++++++++++++++++++++++------
-  drivers/irqchip/irq-gic-v3.c |  4 ++-
-  drivers/irqchip/irq-gic.c    |  7 +++++-
-  include/linux/acpi.h         |  2 +-
-  4 files changed, 61 insertions(+), 10 deletions(-)
+ drivers/acpi/resource.c |   24 +++++++++++++++---------
+ 1 file changed, 15 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/acpi/gsi.c b/drivers/acpi/gsi.c
-index 02c8408..85dee53 100644
---- a/drivers/acpi/gsi.c
-+++ b/drivers/acpi/gsi.c
-@@ -15,11 +15,51 @@
-
-  enum acpi_irq_model_id acpi_irq_model;
-
--static struct irq_domain *acpi_irq_domain __read_mostly;
-+struct gsi_cfg_data {
-+       struct list_head list;
-+       u32 gsi_base;
-+       u32 gsi_end;
-+       struct irq_domain *domain;
-+};
-
--void set_acpi_irq_domain(struct irq_domain *domain)
-+static LIST_HEAD(gsi_cfg_data_list);
-+static DEFINE_MUTEX(gsi_mutex);
+diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+index 10561ce16ed1..e8d281739cbc 100644
+--- a/drivers/acpi/resource.c
++++ b/drivers/acpi/resource.c
+@@ -194,6 +194,7 @@ static bool acpi_decode_space(struct resource_win *win,
+ 	u8 iodec = attr->granularity == 0xfff ? ACPI_DECODE_10 : ACPI_DECODE_16;
+ 	bool wp = addr->info.mem.write_protect;
+ 	u64 len = attr->address_length;
++	u64 start, end, offset = 0;
+ 	struct resource *res = &win->res;
+ 
+ 	/*
+@@ -205,9 +206,6 @@ static bool acpi_decode_space(struct resource_win *win,
+ 		pr_debug("ACPI: Invalid address space min_addr_fix %d, max_addr_fix %d, len %llx\n",
+ 			 addr->min_address_fixed, addr->max_address_fixed, len);
+ 
+-	res->start = attr->minimum;
+-	res->end = attr->maximum;
+-
+ 	/*
+ 	 * For bridges that translate addresses across the bridge,
+ 	 * translation_offset is the offset that must be added to the
+@@ -215,12 +213,22 @@ static bool acpi_decode_space(struct resource_win *win,
+ 	 * primary side. Non-bridge devices must list 0 for all Address
+ 	 * Translation offset bits.
+ 	 */
+-	if (addr->producer_consumer == ACPI_PRODUCER) {
+-		res->start += attr->translation_offset;
+-		res->end += attr->translation_offset;
+-	} else if (attr->translation_offset) {
++	if (addr->producer_consumer == ACPI_PRODUCER)
++		offset = attr->translation_offset;
++	else if (attr->translation_offset)
+ 		pr_debug("ACPI: translation_offset(%lld) is invalid for non-bridge device.\n",
+ 			 attr->translation_offset);
++	start = attr->minimum + offset;
++	end = attr->maximum + offset;
 +
-+int gsi_cfg_data_add(struct irq_domain *domain, u32 gsi_base, u32 gsi_=
-end)
-+{
-+       struct gsi_cfg_data *data;
-+
-+       data =3D kzalloc(sizeof(*data), GFP_KERNEL);
-+       if (!data)
-+               return -ENOMEM;
-+
-+       data->domain =3D domain;
-+       data->gsi_base =3D gsi_base;
-+       data->gsi_end =3D gsi_end;
-+
-+       mutex_lock(&gsi_mutex);
-+       list_add(&data->list, &gsi_cfg_data_list);
-+       mutex_unlock(&gsi_mutex);
-+
-+       return 0;
-+}
-+
-+/* Find irqdomain with GSI (hwirq number) */
-+static struct irq_domain *acpi_find_irqdomain(u32 gsi)
-  {
--       acpi_irq_domain =3D domain;
-+       struct gsi_cfg_data *data;
-+       struct irq_domain *domain =3D NULL;
-+
-+       mutex_lock(&gsi_mutex);
-+       list_for_each_entry(data, &gsi_cfg_data_list, list) {
-+               if (gsi >=3D data->gsi_base && gsi <=3D data->gsi_end) =
-{
-+                       domain =3D data->domain;
-+                       break;
-+               }
-+       }
-+       mutex_unlock(&gsi_mutex);
-+
-+       return domain;
-  }
-
-  static unsigned int acpi_gsi_get_irq_type(int trigger, int polarity)
-@@ -53,7 +93,9 @@ static unsigned int acpi_gsi_get_irq_type(int trigger=
-,=20
-int polarity)
-   */
-  int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
-  {
--       *irq =3D irq_find_mapping(acpi_irq_domain, gsi);
-+       struct irq_domain *domain =3D acpi_find_irqdomain(gsi);
-+
-+       *irq =3D irq_find_mapping(domain, gsi);
-         /*
-          * *irq =3D=3D 0 means no mapping, that should
-          * be reported as a failure
-@@ -77,12 +119,13 @@ int acpi_register_gsi(struct device *dev, u32 gsi,=
-=20
-int trigger,
-  {
-         int irq;
-         unsigned int irq_type =3D acpi_gsi_get_irq_type(trigger, polar=
-ity);
-+       struct irq_domain *domain =3D acpi_find_irqdomain(gsi);
-
--       irq =3D irq_find_mapping(acpi_irq_domain, gsi);
-+       irq =3D irq_find_mapping(domain, gsi);
-         if (irq > 0)
-                 return irq;
-
--       irq =3D irq_domain_alloc_irqs(acpi_irq_domain, 1, dev_to_node(d=
-ev),
-+       irq =3D irq_domain_alloc_irqs(domain, 1, dev_to_node(dev),
-                                     &gsi);
-         if (irq <=3D 0)
-                 return -EINVAL;
-@@ -101,7 +144,8 @@ EXPORT_SYMBOL_GPL(acpi_register_gsi);
-   */
-  void acpi_unregister_gsi(u32 gsi)
-  {
--       int irq =3D irq_find_mapping(acpi_irq_domain, gsi);
-+       struct irq_domain *domain =3D acpi_find_irqdomain(gsi);
-+       int irq =3D irq_find_mapping(domain, gsi);
-
-         irq_dispose_mapping(irq);
-  }
-diff --git a/drivers/irqchip/irq-gic-v3.c b/drivers/irqchip/irq-gic-v3.=
-c
-index a11c020..21a7404 100644
---- a/drivers/irqchip/irq-gic-v3.c
-+++ b/drivers/irqchip/irq-gic-v3.c
-@@ -947,6 +947,7 @@ static LIST_HEAD(redist_list);
-  static struct redist_region *redist_regs __initdata;
-  static u32 nr_redist_regions __initdata;
-  static phys_addr_t dist_phy_base __initdata;
-+static u32 gsi_base __initdata;
-
-  static int __init
-  gic_acpi_register_redist(u64 phys_base, u64 size)
-@@ -1014,6 +1015,7 @@ gic_acpi_parse_madt_distributor(struct=20
-acpi_subtable_header *header,
-         if (BAD_MADT_ENTRY(dist, end))
-                 return -EINVAL;
-
-+       gsi_base =3D dist->global_irq_base;
-         dist_phy_base =3D dist->base_address;
-         return 0;
-  }
-@@ -1168,7 +1170,7 @@ init_base:
-         if (err)
-                 goto out_release_redist;
-
--       set_acpi_irq_domain(gic_data.domain);
-+       gsi_cfg_data_add(gic_data.domain, gsi_base, gsi_base +=20
-gic_data.irq_nr);
-         return 0;
-
-  out_release_redist:
-diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
-index 7f943ef..15934fb 100644
---- a/drivers/irqchip/irq-gic.c
-+++ b/drivers/irqchip/irq-gic.c
-@@ -1051,6 +1051,7 @@ IRQCHIP_DECLARE(msm_qgic2, "qcom,msm-qgic2",=20
-gic_of_init);
-
-  #ifdef CONFIG_ACPI
-  static phys_addr_t dist_phy_base, cpu_phy_base __initdata;
-+static u32 gsi_base __initdata;
-
-  static int __init
-  gic_acpi_parse_madt_cpu(struct acpi_subtable_header *header,
-@@ -1089,6 +1090,7 @@ gic_acpi_parse_madt_distributor(struct=20
-acpi_subtable_header *header,
-         if (BAD_MADT_ENTRY(dist, end))
-                 return -EINVAL;
-
-+       gsi_base =3D dist->global_irq_base;
-         dist_phy_base =3D dist->base_address;
-         return 0;
-  }
-@@ -1139,7 +1141,10 @@ gic_v2_acpi_init(struct acpi_table_header *table=
-)
-         }
-
-         gic_init_bases(0, -1, dist_base, cpu_base, 0, NULL);
--       set_acpi_irq_domain(gic_data[0].domain);
-+
-+       /* since we have only one GICD, we can safely use gic_data[0]=20
-here */
-+       gsi_cfg_data_add(gic_data[0].domain, gsi_base,
-+                        gsi_base + gic_data[0].gic_irqs);
-
-         acpi_irq_model =3D ACPI_IRQ_MODEL_GIC;
-         return 0;
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 6de4b0e..8154359 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -223,7 +223,7 @@ void acpi_unregister_gsi (u32 gsi);
-
-  #ifdef CONFIG_ACPI_GENERIC_GSI
-  struct irq_domain;
--void set_acpi_irq_domain(struct irq_domain *domain);
-+int gsi_cfg_data_add(struct irq_domain *domain, u32 gsi_base, u32 gsi_=
-end);
-  #endif
-
-  struct pci_dev;
---=20
-1.9.1
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
++	win->offset = offset;
++	res->start = start;
++	res->end = end;
++	if (sizeof(resource_size_t) < sizeof(u64) &&
++	    (offset != win->offset || start != res->start || end != res->end)) {
++		pr_warn("acpi resource window ([%#llx-%#llx] ignored, not CPU addressable)\n",
++			attr->minimum, attr->maximum);
++		return false;
+ 	}
+ 
+ 	switch (addr->resource_type) {
+@@ -237,8 +245,6 @@ static bool acpi_decode_space(struct resource_win *win,
+ 		return false;
+ 	}
+ 
+-	win->offset = attr->translation_offset;
+-
+ 	if (addr->producer_consumer == ACPI_PRODUCER)
+ 		res->flags |= IORESOURCE_WINDOW;
+ 
+-- 
+1.7.10.4
