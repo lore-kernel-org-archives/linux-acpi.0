@@ -1,44 +1,54 @@
-From: Viresh Kumar <viresh.kumar@linaro.org>
-Subject: Re: [BUG] Kernel splat when taking CPUs offline
-Date: Thu, 9 Jul 2015 10:27:14 +0530
-Message-ID: <20150709045714.GH1805@linux>
-References: <20150708152456.4438d60f@gandalf.local.home>
- <1625417.XZkzNdoaJA@vostro.rjw.lan>
- <20150709040445.GG1805@linux>
- <20150709002552.32fa492c@grimm.local.home>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [PATCH v6 2/7] ACPI: Make ACPI processor driver more extensible
+Date: Thu, 09 Jul 2015 10:06:34 +0100
+Message-ID: <559E399A.7000003@arm.com>
+References: <cover.1434398373.git.ashwin.chaugule@linaro.org>	<9e352cbe2feac01158a21511bac5c544dc2f29e2.1434398373.git.ashwin.chaugule@linaro.org>	<2138469.Io9yItSdst@vostro.rjw.lan>	<CAJ5Y-eZBYb551T=kBdbjM4YQ1f_hwYBgkVk4wJsDHSib00XfrA@mail.gmail.com>	<CAJZ5v0gKW7bR66trxvuhd_Gb=ZMBbec++u+V+T4mroCZMtO+vg@mail.gmail.com>	<CAJ5Y-ebW3aCSSs4UQFLpLFSfo7d9zPVfigoROjN80uXzG1sZLw@mail.gmail.com>	<CAJZ5v0h24-YAeqW79Se8kRr+_+RknwNfLwS_74-sN+W0_wBaZg@mail.gmail.com>	<CAJ5Y-eYwnaDzyL78CyJDmo35CFTNoQrYfEcO3VYnpaZkSVPdcw@mail.gmail.com> <CAJ5Y-eaGmF6pRKuapzQo8ruMt0FX4kVrdyu-os6maVaS7WO-Pw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150709002552.32fa492c@grimm.local.home>
+In-Reply-To: <CAJ5Y-eaGmF6pRKuapzQo8ruMt0FX4kVrdyu-os6maVaS7WO-Pw@mail.gmail.com>
 Sender: linux-pm-owner@vger.kernel.org
-To: Steven Rostedt <rostedt@goodmis.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, LKML <linux-kernel@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Saravana Kannan <skannan@codeaurora.org>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Ashwin Chaugule <ashwin.chaugule@linaro.org>, "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jaswinder Singh <jaswinder.singh@linaro.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Patch Tracking <patches@linaro.org>, linux acpi <linux-acpi@vger.kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 09-07-15, 00:25, Steven Rostedt wrote:
-> On Thu, 9 Jul 2015 09:34:45 +0530
-> Viresh Kumar <viresh.kumar@linaro.org> wrote:
-> 
-> 
-> > I think it might be related to what I chased down yesterday:
-> > 
-> > http://marc.info/?l=linux-kernel&m=143633485824975&w=2
-> > 
-> > @Steven: Can you please give this a try ?
-> > 
-> 
-> Yes that seems to fix my issue as well.
-> 
-> Tested-by: Steven Rostedt <rostedt@goodmis.org>
+Hi,
 
-Awesome, so the problem was that cpufreq_set_policy() was failing
-because of the latest bug I planted :), and that caused ->exit() but
-didn't free the policy completely. (I have fixed that as well in a
-separate patch).
+On 08/07/15 21:28, Ashwin Chaugule wrote:
+> On 8 July 2015 at 16:05, Ashwin Chaugule <ashwin.chaugule@linaro.org> wrote:
+>> On 8 July 2015 at 15:55, Rafael J. Wysocki <rafael@kernel.org> wrote:
+>>> Hi Ashwin,
 
-And so you are hitting a policy which has already exited. Sorry about
-that :)
+[...]
 
--- 
-viresh
+>>>
+>>> Can you please just send the new version of the $subject patch alone for now?
+>>
+>> Attached below. (hope that worked.)
+>>
+>>>
+>>> Also I'm still unsure what the connection between _CST and CPPC is.
+>>>
+>>
+>> There isnt. But I'm missing where I've implied the dependency?
+>
+> Perhaps the confusion is coming from the introduction of ACPI_CST in
+> this file. I could leave it as it is and just separate out the
+> ACPI_PSS bits. But I figured, while I'm at it, I'd introduce ACPI_CST,
+> since we know the LPI stuff is coming up soon as a CST alternative
+> anyway. So if you prefer, I can drop the CST bits and maybe Sudeep can
+> address that as part of his LPI patchset?
+>
+
+Correct, I will handle it as a prerequisite for introducing _LPI
+support. I had posted an RFC long back, will revive those patches and
+repost them soon.
+
+It's better to enable ACPI_PROCESSOR on ARM64 only after we have all
+these dependencies resolved. Until then we need to carry some patches
+locally for testing.
+
+Regards,
+Sudeep
+
