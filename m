@@ -1,114 +1,155 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [BUG] Kernel splat when taking CPUs offline
-Date: Thu, 09 Jul 2015 02:13:45 +0200
-Message-ID: <1625417.XZkzNdoaJA@vostro.rjw.lan>
-References: <20150708152456.4438d60f@gandalf.local.home>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH 3/3] nfit: add support for NVDIMM "latch" flag
+Date: Wed, 8 Jul 2015 18:32:55 -0700
+Message-ID: <CAPcyv4hCvQv5zO9Tfnqq+wZ1djZM8-4N2nXqnLVzsPmP7ur1sw@mail.gmail.com>
+References: <1436371221-30296-1-git-send-email-ross.zwisler@linux.intel.com>
+	<1436371221-30296-4-git-send-email-ross.zwisler@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20150708152456.4438d60f@gandalf.local.home>
-Sender: linux-pm-owner@vger.kernel.org
-To: Steven Rostedt <rostedt@goodmis.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Viresh Kumar <viresh.kumar@linaro.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Saravana Kannan <skannan@codeaurora.org>, Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wi0-f180.google.com ([209.85.212.180]:37044 "EHLO
+	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752171AbbGIBc4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 8 Jul 2015 21:32:56 -0400
+Received: by wiclp1 with SMTP id lp1so95848431wic.0
+        for <linux-acpi@vger.kernel.org>; Wed, 08 Jul 2015 18:32:55 -0700 (PDT)
+In-Reply-To: <1436371221-30296-4-git-send-email-ross.zwisler@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Christoph Hellwig <hch@lst.de>, Jeff Moyer <jmoyer@redhat.com>, Toshi Kani <toshi.kani@hp.com>
 
-On Wednesday, July 08, 2015 03:24:56 PM Steven Rostedt wrote:
-> 
-> My tests for ftrace includes testing the mmiotracer, which to run
-> requires taking all CPUs offline but one of them. This test crashed
-> every so often, and I was able to bisect down to this commit:
-> 
-> commit 87549141d516 ("cpufreq: Stop migrating sysfs files on hotplug")
+On Wed, Jul 8, 2015 at 9:00 AM, Ross Zwisler
+<ross.zwisler@linux.intel.com> wrote:
+> Add support in the NFIT BLK I/O path for the "latch" flag
+> defined in the "Get Block NVDIMM Flags" _DSM function:
+>
+> http://pmem.io/documents/NVDIMM_DSM_Interface_Example.pdf
+>
+> This flag requires the driver to read back the command register after it
+> is written in the block I/O path.  This ensures that the hardware has
+> fully processed the new command and moved the aperture appropriately.
+>
+> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+> Cc: linux-nvdimm@lists.01.org
+> Cc: linux-acpi@vger.kernel.org
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: Christoph Hellwig <hch@lst.de>
+> Cc: Jeff Moyer <jmoyer@redhat.com>
+> Cc: Toshi Kani <toshi.kani@hp.com>
+> ---
+>  drivers/acpi/nfit.c | 33 ++++++++++++++++++++++++++++++++-
+>  drivers/acpi/nfit.h |  6 ++++++
+>  2 files changed, 38 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+> index b3c446412f61..9062c11c1062 100644
+> --- a/drivers/acpi/nfit.c
+> +++ b/drivers/acpi/nfit.c
+> @@ -1059,7 +1059,9 @@ static void write_blk_ctl(struct nfit_blk *nfit_blk, unsigned int bw,
+>
+>         writeq(cmd, mmio->base + offset);
+>         wmb_blk(nfit_blk);
+> -       /* FIXME: conditionally perform read-back if mandated by firmware */
+> +
+> +       if (nfit_blk->dimm_flags & ND_BLK_DCR_LATCH)
+> +               readq(mmio->base + offset);
+>  }
+>
+>  static int acpi_nfit_blk_single_io(struct nfit_blk *nfit_blk,
+> @@ -1258,6 +1260,28 @@ static int nfit_blk_init_interleave(struct nfit_blk_mmio *mmio,
+>         return 0;
+>  }
+>
+> +static int acpi_nfit_blk_get_flags(struct nvdimm_bus_descriptor *nd_desc,
+> +               struct nvdimm *nvdimm, struct nfit_blk *nfit_blk)
+> +{
+> +       struct nd_cmd_dimm_flags flags;
+> +       int rc;
+> +
+> +       memset(&flags, 0, sizeof(flags));
+> +       rc = nd_desc->ndctl(nd_desc, nvdimm, ND_CMD_DIMM_FLAGS, &flags,
+> +                       sizeof(flags));
+> +
+> +       if (rc >= 0) {
+> +               if (!flags.status)
+> +                       nfit_blk->dimm_flags = flags.flags;
 
-Thanks for the report, adding linux-pm and linux-acpi to the CC.
+Subjective nit, I tend to prefer the form (flags.status == 0) for
+positive cases.  (!flags.status) reads like an error handling case to
+me.
 
+> +               else if (flags.status == ND_DSM_STATUS_NOT_SUPPORTED)
+> +                       nfit_blk->dimm_flags = 0; /* as per the _DSM spec */
 
-> Just to make sure this wasn't just the mmiotracer causing the issue, I
-> was able to trigger this same bug by simply doing the following:
-> 
-> 
-> (on a 4 cpu machine)
-> 
-> 
->  # echo 0 > /sys/devices/system/cpu/cpu1/online 
->  # echo 0 > /sys/devices/system/cpu/cpu2/online 
->  # echo 0 > /sys/devices/system/cpu/cpu3/online 
->  # echo 1 > /sys/devices/system/cpu/cpu1/online 
->  # echo 1 > /sys/devices/system/cpu/cpu2/online 
->  # echo 1 > /sys/devices/system/cpu/cpu3/online 
->  # echo 0 > /sys/devices/system/cpu/cpu1/online 
->  # echo 0 > /sys/devices/system/cpu/cpu2/online 
->  # echo 0 > /sys/devices/system/cpu/cpu2/online 
->  # echo 0 > /sys/devices/system/cpu/cpu3/online 
->  # echo 1 > /sys/devices/system/cpu/cpu1/online 
->  # echo 1 > /sys/devices/system/cpu/cpu2/online 
->  # echo 1 > /sys/devices/system/cpu/cpu3/online 
-> 
-> It usually takes two or three tries (shutting down all but one CPU, and
-> starting them again) before it triggers.
-> 
-> Here's the splat:
-> 
-> Initializing CPU#1
-> ------------[ cut here ]------------
-> WARNING: CPU: 0 PID: 1609 at /home/rostedt/work/git/linux-trace.git/drivers/cpufreq/cpufreq.c:2350 cpufreq_update_policy+0xc8/0x139()
+The spec says if command is "not implemented", I would treat "not
+supported" like any other non-zero flags.status value and return a
+failure.
 
-So the cpufreq driver's ->get() callback returns 0 for the given CPU and
-that's what triggers the WARN_ON().  And it most likely returns 0, because
-its internal data structure for that CPU is not present.
+> +               else
+> +                       rc = -EINVAL;
 
-I *guess* that before the above commit policy was NULL in cpufreq_update_policy()
-and we didn't get to the point where ->get() was called.
+s/EINVAL/ENXIO/ as it is a failure to run the command, not necessarily
+bad parameters.
 
-There seems to be a couple of ways to address that, but I'd like Viresh to have
-a look at this too.
+> +       }
+> +
+> +       return rc;
 
+This ends up treating -ENOTTY as an error when it is really just an
+indication that the flags DSM is not implemented.  We should return
+zero in that case.
 
-> Modules linked in: ip6t_REJECT nf_reject_ipv6 nf_conntrack_ipv6 nf_defrag_ipv6 ip6table_filter ip6_tables ipv6 ppdev parport_pc r8169 parport microcode
-> CPU: 0 PID: 1609 Comm: bash Tainted: G        W       4.2.0-rc1-test #26
-> Hardware name: MSI MS-7823/CSM-H87M-G43 (MS-7823), BIOS V1.6 02/22/2014
->  00000000 00000000 ee47db9c c0cd04e6 c10d4463 ee47dbcc c0440fbe c1010460
->  00000000 00000649 c10d4463 0000092e c0a6dd28 c0a6dd28 f13fd600 00000000
->  ee47dda8 ee47dbdc c0440ff7 00000009 00000000 ee47ddb8 c0a6dd28 efb01bc0
-> Call Trace:
->  [<c0cd04e6>] dump_stack+0x41/0x52
->  [<c0440fbe>] warn_slowpath_common+0x9d/0xb4
->  [<c0a6dd28>] ? cpufreq_update_policy+0xc8/0x139
->  [<c0a6dd28>] ? cpufreq_update_policy+0xc8/0x139
->  [<c0440ff7>] warn_slowpath_null+0x22/0x24
->  [<c0a6dd28>] cpufreq_update_policy+0xc8/0x139
->  [<c0a6dd99>] ? cpufreq_update_policy+0x139/0x139
->  [<c0a6dc9b>] ? cpufreq_update_policy+0x3b/0x139
->  [<c0a6bef7>] ? cpufreq_freq_transition_begin+0x97/0xd9
->  [<c046ea90>] ? __wake_up+0x1a/0x47
->  [<c0772682>] acpi_processor_ppc_has_changed+0x54/0x5d
->  [<c076f6b9>] acpi_cpu_soft_notify+0xb0/0xf1
->  [<c06d2859>] ? compute_batch_value+0xd/0x22
->  [<c06d2a38>] ? percpu_counter_hotcpu_callback+0x11/0x80
->  [<c0458c35>] notifier_call_chain+0x68/0x91
->  [<c047007b>] ? sched_debug_header+0x15c/0x58e
->  [<c0458c7c>] __raw_notifier_call_chain+0x1e/0x23
->  [<c04410c2>] __cpu_notify+0x24/0x39
->  [<c04414d9>] _cpu_up+0xef/0x105
->  [<c044153d>] cpu_up+0x4e/0x5f
->  [<c0ccb642>] cpu_subsys_online+0x13/0x15
->  [<c09134b4>] device_online+0x45/0x6e
->  [<c091350f>] online_store+0x32/0x4f
->  [<c09134dd>] ? device_online+0x6e/0x6e
->  [<c0911570>] dev_attr_store+0x24/0x29
->  [<c0587f31>] sysfs_kf_write+0x3a/0x41
->  [<c0587ef7>] ? sysfs_file_ops+0x48/0x48
->  [<c0587244>] kernfs_fop_write+0xe2/0x11f
->  [<c0587162>] ? kernfs_vma_page_mkwrite+0x6c/0x6c
->  [<c0532e3a>] __vfs_write+0x24/0x9b
->  [<c0532d25>] ? file_start_write+0x27/0x29
->  [<c0533355>] ? rw_verify_area+0xce/0xef
->  [<c0533843>] vfs_write+0x7a/0xc4
->  [<c0533a09>] SyS_write+0x54/0x7f
->  [<c0cdae58>] sysenter_do_call+0x12/0x12
-> ---[ end trace e2c32eead4f4e541 ]---
-> 
-> I'll dig more into it, but wanted to give people a heads up.
+> +}
+> +
+>  static int acpi_nfit_blk_region_enable(struct nvdimm_bus *nvdimm_bus,
+>                 struct device *dev)
+>  {
+> @@ -1333,6 +1357,13 @@ static int acpi_nfit_blk_region_enable(struct nvdimm_bus *nvdimm_bus,
+>                 return rc;
+>         }
+>
+> +       rc = acpi_nfit_blk_get_flags(nd_desc, nvdimm, nfit_blk);
+> +       if (rc < 0) {
+> +               dev_dbg(dev, "%s: %s failed get DIMM flags\n",
+> +                               __func__, nvdimm_name(nvdimm));
+> +               return rc;
+> +       }
+> +
+>         nfit_flush = nfit_mem->nfit_flush;
+>         if (nfit_flush && nfit_flush->flush->hint_count != 0) {
+>                 struct acpi_nfit_flush_address *flush = nfit_flush->flush;
+> diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
+> index d284729cc37c..98e36ca0dfc2 100644
+> --- a/drivers/acpi/nfit.h
+> +++ b/drivers/acpi/nfit.h
+> @@ -40,6 +40,11 @@ enum nfit_uuids {
+>         NFIT_UUID_MAX,
+>  };
+>
+> +enum {
+> +       ND_BLK_DCR_LATCH = 2,
+> +       ND_DSM_STATUS_NOT_SUPPORTED = 1,
 
+Unless it becomes clear that we need this for debug I'd prefer to not
+implement the error status flags at this point and just treat non-zero
+status flags generically as -ENXIO.
 
+> +};
+> +
+>  struct nfit_spa {
+>         struct acpi_nfit_system_address *spa;
+>         struct list_head list;
+> @@ -131,6 +136,7 @@ struct nfit_blk {
+>         u64 stat_offset;
+>         u64 cmd_offset;
+>         void __iomem *nvdimm_flush;
+> +       u32 dimm_flags;
+>  };
+>
+>  struct nfit_spa_mapping {
+> --
+> 1.9.3
+>
