@@ -1,168 +1,103 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH v2 6/9] irqchip / gic: Add stacked irqdomain support for
- ACPI based GICv2 init
-Date: Fri, 10 Jul 2015 10:41:58 +0100
-Message-ID: <559F9366.2070900@arm.com>
-References: <1434703572-26221-1-git-send-email-hanjun.guo@linaro.org> <1434703572-26221-7-git-send-email-hanjun.guo@linaro.org> <20150622172014.GB26129@red-moon> <5589772A.8070708@linaro.org> <20150623173845.GC31466@red-moon> <558E1DEE.3090900@linaro.org> <55910440.8070702@arm.com> <559282A0.8090601@linaro.org> <559288CA.40605@arm.com> <559C9BB4.90103@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: [PATCH v3 0/8] Add self-probe infrastructure and stacked irqdomain support for ACPI based GICv2/3 init
+Date: Fri, 10 Jul 2015 18:45:06 +0800
+Message-ID: <1436525114-14425-1-git-send-email-hanjun.guo@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:50123 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752771AbbGJJmD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 10 Jul 2015 05:42:03 -0400
-In-Reply-To: <559C9BB4.90103@linaro.org>
+Received: from mail-pd0-f176.google.com ([209.85.192.176]:33302 "EHLO
+	mail-pd0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753105AbbGJKpZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Jul 2015 06:45:25 -0400
+Received: by pdbqm3 with SMTP id qm3so38644353pdb.0
+        for <linux-acpi@vger.kernel.org>; Fri, 10 Jul 2015 03:45:25 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>
-Cc: Jason Cooper <jason@lakedaemon.net>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Arnd Bergmann <arnd@arndb.de>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Olof Johansson <olof@lixom.net>, Wei Huang <wei@redhat.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
+To: Marc Zyngier <marc.zyngier@arm.com>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Grant Likely <grant.likely@linaro.org>, Mark Brown <broonie@kernel.org>, Wei Huang <wei@redhat.com>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
 
-On 08/07/15 04:40, Hanjun Guo wrote:
-> Hi Marc,
-> 
-> On 06/30/2015 08:17 PM, Marc Zyngier wrote:
->> On 30/06/15 12:50, Hanjun Guo wrote:
->>> Hi Marc,
->>>
->>> On 06/29/2015 04:39 PM, Marc Zyngier wrote:
->>>> On 27/06/15 04:52, Hanjun Guo wrote:
->>>>> On 06/24/2015 01:38 AM, Lorenzo Pieralisi wrote:
->>>>>> On Tue, Jun 23, 2015 at 04:11:38PM +0100, Hanjun Guo wrote:
->>> [...]
->>>>>>
->>>>>>>>>        for (i = 0; i < nr_irqs; i++)
->>>>>>>>>                gic_irq_domain_map(domain, virq + i, hwirq + i);
->>>>>>>>> @@ -945,11 +952,11 @@ void __init gic_init_bases(unsigned int gic_nr, int irq_start,
->>>>>>>>>                gic_irqs = 1020;
->>>>>>>>>        gic->gic_irqs = gic_irqs;
->>>>>>>>>
->>>>>>>>> -      if (node) {             /* DT case */
->>>>>>>>> +      if (node || !acpi_disabled) {           /* DT or ACPI case */
->>>>>>>>>                gic->domain = irq_domain_add_linear(node, gic_irqs,
->>>>>>>>>                                                    &gic_irq_domain_hierarchy_ops,
->>>>>>>>>                                                    gic);
->>>>>>
->>>>>> I think this is a bit more worrying, I mean passing a NULL node pointer to
->>>>>> the irqdomain layer which basically means you are booting out of ACPI
->>>>>
->>>>> I'm little confused here, would you mind explaining more for your
->>>>> worrying? To me, node pointer is optional and it's ok for ACPI
->>>>> case.
->>>>>
->>>>>> (for you, if that's true for the irq_domain_add_linear implementation
->>>>>> that's another story), the node pointer should be optional but you
->>>>>> need feedback from IRQ layer maintainers here.
->>>>>
->>>>> Sure.
->>>>
->>>> Frankly, I'd really like to see ACPI using the "node" parameter for
->>>> something useful. This would save having to cache pointers all over the
->>>> place, will make find_irq_host() work as expected... etc.
->>>>
->>>> See the comment at the top of linux/irqdomain.h :
->>>>
->>>> "... This code could thus be used on other architectures by replacing
->>>> those two by some sort of arch-specific void * "token" used to identify
->>>> interrupt controllers."
-> 
-> I'm stuck here, I think the token for now is tied to device tree as
-> the device node pointer for now in the code if the pointer is not NULL,
-> just see the of_node_get(of_node) in __irq_domain_add(), if dynamic
-> dt is enabled:
-> 
-> struct device_node *of_node_get(struct device_node *node)
-> {
->          if (node)
->                  kobject_get(&node->kobj);
->          return node;
-> }
-> EXPORT_SYMBOL(of_node_get);
-> 
-> so if the node is not NULL, it will be used to get the node's
-> kobject, that will be a problem for acpi case if we pass a token
-> as a parameter.
+This patch set introduce self-probe infrastructure to init IRQ
+controllers and stacked irqdomain support for ACPI based GICv2/3
+init.
 
-Well, I'm sure this could be worked around, and we could have different
-handling for different type of objects.
+This patch set add its support for GIC verion which is introduced
+in ACPI 6.0, based on that, we introduce the self-probe infrastructure,
+the self-probe infrastructure for ACPI GIC init is similar as
+IRQCHIP_DECLARE() and based on the GIC version support in ACPI
+MADT table. we match the GIC version and GIC driver and load
+it.
 
-> 
-> I rethink for quite a while and have a discussion with Graeme,
-> I come out another idea and we don't need the token at all
-> for ACPI case.
+After the self-probe infrastructure is ready, I cleanuped the GICv2
+code to use the framework.
 
->>>
->>> To init GIC in ACPI, we can only use the table entry pointer as
->>> the token, but the ACPI static tables are early mem/io remapped
->>> memory at boot stage, and it will be not available after boot,
->>> also we need muti types of MADT enties to init GIC (GICC and GICD
->>> for GICv2, GICC or GICR and GICD for GICv3), not as DT, just
->>> one single node to include all the information needed to init
->>> the GIC.
->>
->> A single pointer would be enough, you don't need all of them.
->>
->>> We use ACPI handle for devices as node for DT when the namespace
->>> is available, but that's pretty late in the boot stage which GIC,
->>> SMP and timers were already initialized, so ACPI handle can not
->>> use as the token too.
->>>
->>> I see multi places just pass NULL as the pointer directly for
->>> irq_domain_add_linear() which works fine, and for ACPI, we tested
->>> this patch and also it works.
->>
->> Yes it works. But you're reinventing the wheel by keeping references
->> outside of the normal framework, which is simply going to make the code
-> 
-> That's the framework for DT not suitable for ACPI, just see the comments
-> below.
-> 
->> more difficult to maintain in the long run.
->>
->> Putting NULL as the device_node parameter really means "this is a domain
->> I don't need to look up later". In your case, you will have to lookup
-> 
-> I agree that we need to look up the domain not just using the
-> global acpi_irq_domain pointer everywhere, which make the code not
-> scalable, but I don't think it's not OK to put NULL as the device_node
-> parameter in ACPI case.
-> 
-> The reason is that we use different model of mapping interrupt with
-> device in ACPI, for ACPI device in DSDT, it's using another mapping of
-> device and hwirq number than DT, in DT, we using the interrupt parent
-> property to get the device node of irqchip, that's why we need the
-> matching function that match the device node with the one associated
-> with the irqdomain. But for ACPI, we only can get the gsi which the
-> device is using, no interrupt parent will be used, that because gsi is
-> a flat hwirq number which is unique in the system, then we can get its
-> associated irq domain by matching the gsi supported by this irqchip
-> (see drawings below),  then we can be without the token pointer
-> matching the interrupt controller.
+Patch 4 implement the stacked irqdomain support for GICv2 based on
+the model of mapping interrupt and device in ACPI.
 
-But that's for only GSI. GSI are not the *real* problem. The real issue
-is when you have a system that composes domains. We're moving away from
-a model where you can store the various domains yourself. For example,
-have a look at this:
+Patch 5~8 are ACPI based GICv3 init.
 
-https://lwn.net/Articles/650418/
+Any comments are warmly welcomed.
 
-and specially patch 13. See how the PCI/MSI domain looks up the core ITS
-domain? This is where we're going. Various *independent* entities
-building a hierarchy based on a common repository.
+v2->v3:
+ - Introduced a mechanism to match the GSI with its irqdomain instead of
+   referring to the acpi_irq_domain in previous version
 
-So please stop saying that ACPI is different, because it really isn't.
-You create domains based on some global identifier, you look them up
-using this identifier. There is nothing more to it. The core code has
-some issues with that? Let's fix it.
+ - Add finding GICR base address in GICC structures in GICv3 code.
 
-Look at Suravee's patches introducing ACPI support for GICv2m. He seems
-to be doing a rather good job reusing the existing framework, and
-adapting it to fit the ACPI model. It doesn't mean I agree with
-everything in his series (I need to review it in more details), but this
-is the direction I'd like to see things taken.
+ - Address the comments from Lorenzo and Marc
 
-Thanks,
+ - Rebased on top of 4.2-rc1, since ACPICA patches were pushed to
+   4.2 by Rafael, I removed ACPICA patches in previous version.
 
-	M.
+v1->v2:
+ - Remove the gicv2/v3 related driver code in drivers/irqchip/irq-gic-acpi.c
+   which I was trying to consolidate them in one file, then arm-gic.h and
+   arm-gic-v3.h will be used separately within parent driver only
+
+ - Drop the gsi_mutex patch
+
+ - Use the GIC version to match the GIC driver, then no need to test
+   for the version in each driver
+
+ - Move acpi_irq_init() to drivers/irqchip/irq-gic-acpi.c instead of
+   in drivers/acpi/irq.c. maybe we need to rename acpi_irq_init() as
+   acpi_gic_init() but I keep that name to accommodate of_irq_init(),
+   any objections please let me know.
+
+update from RFC version:
+ - Consolidate all the GIC init code into drivers/irqchip/irq-gic-acpi.c
+
+
+Hanjun Guo (6):
+  irqchip / GIC: Add GIC version support in ACPI MADT
+  ACPI / irqchip: Add self-probe infrastructure to initialize IRQ
+    controller
+  irqchip / GIC / ACPI: Use IRQCHIP_ACPI_DECLARE to simplify GICv2 init
+    code
+  irqchip / gic: Add stacked irqdomain support for ACPI based GICv2 init
+  irqchip / GICv3: Add stacked irqdomain support for ACPI based init
+  irqchip / gicv3 / ACPI: Add GICR support via GICC structures
+
+Tomasz Nowicki (2):
+  irqchip / GICv3: Refactor gic_of_init() for GICv3 driver
+  irqchip / GICv3: Add ACPI support for GICv3+ initialization
+
+ arch/arm64/Kconfig                   |   1 +
+ arch/arm64/include/asm/acpi.h        |   1 -
+ arch/arm64/include/asm/irq.h         |  13 --
+ arch/arm64/kernel/acpi.c             |  25 --
+ drivers/acpi/gsi.c                   |  78 +++++--
+ drivers/irqchip/Kconfig              |   3 +
+ drivers/irqchip/Makefile             |   1 +
+ drivers/irqchip/irq-gic-acpi.c       | 171 ++++++++++++++
+ drivers/irqchip/irq-gic-v3.c         | 427 ++++++++++++++++++++++++++++++-----
+ drivers/irqchip/irq-gic.c            |  40 ++--
+ include/asm-generic/vmlinux.lds.h    |  13 ++
+ include/linux/acpi.h                 |  21 ++
+ include/linux/acpi_irq.h             |   4 +-
+ include/linux/irqchip.h              |  13 ++
+ include/linux/irqchip/arm-gic-acpi.h |  10 +-
+ include/linux/mod_devicetable.h      |   8 +
+ 16 files changed, 695 insertions(+), 134 deletions(-)
+ create mode 100644 drivers/irqchip/irq-gic-acpi.c
+
 -- 
-Jazz is not dead. It just smells funny...
+1.9.1
+
