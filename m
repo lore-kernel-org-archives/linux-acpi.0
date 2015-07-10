@@ -1,232 +1,93 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH v3 6/8] irqchip / GICv3: Add ACPI support for GICv3+ initialization
-Date: Fri, 10 Jul 2015 18:45:12 +0800
-Message-ID: <1436525114-14425-7-git-send-email-hanjun.guo@linaro.org>
-References: <1436525114-14425-1-git-send-email-hanjun.guo@linaro.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f178.google.com ([209.85.192.178]:36745 "EHLO
-	mail-pd0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754317AbbGJKqM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Jul 2015 06:46:12 -0400
-Received: by pdjr16 with SMTP id r16so21193024pdj.3
-        for <linux-acpi@vger.kernel.org>; Fri, 10 Jul 2015 03:46:11 -0700 (PDT)
-In-Reply-To: <1436525114-14425-1-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Subject: Re: [PATCH v2 01/12] device: property: delay device-driver matches
+Date: Fri, 10 Jul 2015 13:39:48 +0200
+Message-ID: <CAAObsKA_B38EaS4uNaFUmpQ+Kr0Jq3CqAegLpYX=vr9e6nNgBw@mail.gmail.com>
+References: <1435743667-11987-1-git-send-email-tomeu.vizoso@collabora.com>
+ <1435743667-11987-2-git-send-email-tomeu.vizoso@collabora.com>
+ <17310138.6IxCgARibq@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <17310138.6IxCgARibq@vostro.rjw.lan>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, linux-fbdev@vger.kernel.org, alsa-devel@alsa-project.org, linux-gpio@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, linux-acpi@vger.kernel.org, Mark Brown <broonie@kernel.org>, Linux PWM List <linux-pwm@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Grant Likely <grant.likely@linaro.org>, Mark Brown <broonie@kernel.org>, Wei Huang <wei@redhat.com>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
 
-From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-
-With the refator of gic_of_init(), GICv3/4 can be initialized
-by gic_init_bases() with gic distributor base address and gic
-redistributor region(s).
-
-So get the redistributor region base addresses from MADT GIC
-redistributor subtable, and the distributor base address from
-GICD subtable to init GICv3 irqchip in ACPI way.
-
-Note: GIC redistributor base address may also be provided in
-GICC structures on systems supporting GICv3 and above if the GIC
-Redistributors are not in the always-on power domain, this
-patch didn't implement such feature yet.
-
-Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-[hj: Rework this patch and fix multi issues]
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
----
- drivers/irqchip/irq-gic-v3.c | 144 +++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 140 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/irqchip/irq-gic-v3.c b/drivers/irqchip/irq-gic-v3.c
-index aeba1cc..7b5bde3 100644
---- a/drivers/irqchip/irq-gic-v3.c
-+++ b/drivers/irqchip/irq-gic-v3.c
-@@ -15,6 +15,7 @@
-  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  */
- 
-+#include <linux/acpi.h>
- #include <linux/cpu.h>
- #include <linux/cpu_pm.h>
- #include <linux/delay.h>
-@@ -25,6 +26,7 @@
- #include <linux/percpu.h>
- #include <linux/slab.h>
- 
-+#include <linux/irqchip/arm-gic-acpi.h>
- #include <linux/irqchip/arm-gic-v3.h>
- 
- #include <asm/cputype.h>
-@@ -820,6 +822,16 @@ out_free:
- 	return err;
- }
- 
-+static int __init detect_distributor(void __iomem *dist_base)
-+{
-+	u32 reg = readl_relaxed(dist_base + GICD_PIDR2) & GIC_PIDR2_ARCH_MASK;
-+
-+	if (reg != GIC_PIDR2_ARCH_GICv3 && reg != GIC_PIDR2_ARCH_GICv4)
-+		return -ENODEV;
-+
-+	return 0;
-+}
-+
- #ifdef CONFIG_OF
- static int __init gic_of_init(struct device_node *node, struct device_node *parent)
- {
-@@ -827,7 +839,6 @@ static int __init gic_of_init(struct device_node *node, struct device_node *pare
- 	struct redist_region *rdist_regs;
- 	u64 redist_stride;
- 	u32 nr_redist_regions;
--	u32 reg;
- 	int err, i;
- 
- 	dist_base = of_iomap(node, 0);
-@@ -837,11 +848,10 @@ static int __init gic_of_init(struct device_node *node, struct device_node *pare
- 		return -ENXIO;
- 	}
- 
--	reg = readl_relaxed(dist_base + GICD_PIDR2) & GIC_PIDR2_ARCH_MASK;
--	if (reg != GIC_PIDR2_ARCH_GICv3 && reg != GIC_PIDR2_ARCH_GICv4) {
-+	err = detect_distributor(dist_base);
-+	if (err) {
- 		pr_err("%s: no distributor detected, giving up\n",
- 			node->full_name);
--		err = -ENODEV;
- 		goto out_unmap_dist;
- 	}
- 
-@@ -889,3 +899,129 @@ out_unmap_dist:
- 
- IRQCHIP_DECLARE(gic_v3, "arm,gic-v3", gic_of_init);
- #endif
-+
-+#ifdef CONFIG_ACPI
-+static struct redist_region *redist_regs __initdata;
-+static u32 nr_redist_regions __initdata;
-+static phys_addr_t dist_phy_base __initdata;
-+
-+static int __init
-+gic_acpi_register_redist(u64 phys_base, u64 size)
-+{
-+	struct redist_region *redist_regs_new;
-+	void __iomem *redist_base;
-+
-+	redist_regs_new = krealloc(redist_regs,
-+				   sizeof(*redist_regs) * (nr_redist_regions + 1),
-+				   GFP_KERNEL);
-+	if (!redist_regs_new) {
-+		pr_err("Couldn't allocate resource for GICR region\n");
-+		return -ENOMEM;
-+	}
-+
-+	redist_regs = redist_regs_new;
-+
-+	redist_base = ioremap(phys_base, size);
-+	if (!redist_base) {
-+		pr_err("Couldn't map GICR region @%llx\n", phys_base);
-+		return -ENOMEM;
-+	}
-+
-+	redist_regs[nr_redist_regions].phys_base = phys_base;
-+	redist_regs[nr_redist_regions].redist_base = redist_base;
-+	nr_redist_regions++;
-+	return 0;
-+}
-+
-+static int __init
-+gic_acpi_parse_madt_redist(struct acpi_subtable_header *header,
-+			const unsigned long end)
-+{
-+	struct acpi_madt_generic_redistributor *redist;
-+
-+	if (BAD_MADT_ENTRY(header, end))
-+		return -EINVAL;
-+
-+	redist = (struct acpi_madt_generic_redistributor *)header;
-+	if (!redist->base_address)
-+		return -EINVAL;
-+
-+	return gic_acpi_register_redist(redist->base_address, redist->length);
-+}
-+
-+static int __init
-+gic_acpi_parse_madt_distributor(struct acpi_subtable_header *header,
-+				const unsigned long end)
-+{
-+	struct acpi_madt_generic_distributor *dist;
-+
-+	dist = (struct acpi_madt_generic_distributor *)header;
-+
-+	if (BAD_MADT_ENTRY(dist, end))
-+		return -EINVAL;
-+
-+	dist_phy_base = dist->base_address;
-+	return 0;
-+}
-+
-+static int __init
-+gic_acpi_init(struct acpi_table_header *table)
-+{
-+	int count, i, err = 0;
-+	void __iomem *dist_base;
-+
-+	/* Get distributor base address */
-+	count = acpi_parse_entries(ACPI_SIG_MADT,
-+				sizeof(struct acpi_table_madt),
-+				gic_acpi_parse_madt_distributor, table,
-+				ACPI_MADT_TYPE_GENERIC_DISTRIBUTOR, 0);
-+	if (count <= 0) {
-+		pr_err("No valid GICD entry exist\n");
-+		return -EINVAL;
-+	} else if (count > 1) {
-+		pr_err("More than one GICD entry detected\n");
-+		return -EINVAL;
-+	}
-+
-+	dist_base = ioremap(dist_phy_base, ACPI_GICV3_DIST_MEM_SIZE);
-+	if (!dist_base) {
-+		pr_err("Unable to map GICD registers\n");
-+		return -ENOMEM;
-+	}
-+
-+	err = detect_distributor(dist_base);
-+	if (err) {
-+		pr_err("No distributor detected at @%p, giving up", dist_base);
-+		goto out_dist_unmap;
-+	}
-+
-+	/* Collect redistributor base addresses */
-+	count = acpi_parse_entries(ACPI_SIG_MADT,
-+			sizeof(struct acpi_table_madt),
-+			gic_acpi_parse_madt_redist, table,
-+			ACPI_MADT_TYPE_GENERIC_REDISTRIBUTOR, 0);
-+	if (count <= 0) {
-+		pr_info("No valid GICR entries exist\n");
-+		err = -EINVAL;
-+		goto out_redist_unmap;
-+	}
-+
-+	err = gic_init_bases(dist_base, redist_regs, nr_redist_regions, 0, NULL);
-+	if (err)
-+		goto out_redist_unmap;
-+
-+	irq_set_default_host(gic_data.domain);
-+	return 0;
-+
-+out_redist_unmap:
-+	for (i = 0; i < nr_redist_regions; i++)
-+		if (redist_regs[i].redist_base)
-+			iounmap(redist_regs[i].redist_base);
-+	kfree(redist_regs);
-+out_dist_unmap:
-+	iounmap(dist_base);
-+	return err;
-+}
-+IRQCHIP_ACPI_DECLARE(gic_v3, ACPI_MADT_GIC_VERSION_V3, gic_acpi_init);
-+IRQCHIP_ACPI_DECLARE(gic_v4, ACPI_MADT_GIC_VERSION_V4, gic_acpi_init);
-+#endif
--- 
-1.9.1
-
+T24gMiBKdWx5IDIwMTUgYXQgMDE6MjksIFJhZmFlbCBKLiBXeXNvY2tpIDxyandAcmp3eXNvY2tp
+Lm5ldD4gd3JvdGU6Cj4gT24gV2VkbmVzZGF5LCBKdWx5IDAxLCAyMDE1IDExOjQwOjU2IEFNIFRv
+bWV1IFZpem9zbyB3cm90ZToKPj4gRGVsYXkgbWF0Y2hlcyBvZiBwbGF0Zm9ybSBkZXZpY2VzIHVu
+dGlsIGxhdGVfaW5pdGNhbGwsIHdoZW4gd2UgYXJlIHN1cmUKPj4gdGhhdCBhbGwgYnVpbHQtaW4g
+ZHJpdmVycyBoYXZlIGJlZW4gcmVnaXN0ZXJlZCBhbHJlYWR5LiBUaGlzIGlzIG5lZWRlZAo+PiB0
+byBwcmV2ZW50IGRlZmVycmVkIHByb2JlcyBiZWNhdXNlIG9mIHNvbWUgZGVwZW5kZW5jaWVzJyBk
+cml2ZXJzIG5vdAo+PiBoYXZpbmcgcmVnaXN0ZXJlZCB5ZXQuCj4+Cj4+IFRoaXMgcmVkdWNlcyB0
+aGUgdG90YWwgYW1vdW50IG9mIHdvcmsgdGhhdCB0aGUga2VybmVsIGRvZXMgZHVyaW5nIGJvb3QK
+Pj4gYmVjYXVzZSBpdCB3b24ndCB0cnkgdG8gbWF0Y2ggZGV2aWNlcyB0byBkcml2ZXJzIHdoZW4g
+YnVpbHQtaW4gZHJpdmVycwo+PiBhcmUgc3RpbGwgcmVnaXN0ZXJpbmcgYnV0IGFsc28gcmVkdWNl
+cyBzb21lIHBhcmFsbGVsaXNtLCBzbyB0b3RhbCBib290Cj4+IHRpbWUgbWlnaHQgc2xpZ2h0bHkg
+aW5jcmVhc2Ugb3IgZGVjcmVhc2UgZGVwZW5kaW5nIG9uIHRoZSBwbGF0Zm9ybSBhbmQKPj4ga2Vy
+bmVsIGNvbmZpZ3VyYXRpb24uCj4+Cj4+IFRoaXMgY2hhbmdlIHdpbGwgbWFrZSBtYWtlIHBvc3Np
+YmxlIHRvIHByZXZlbnQgYW55IGRlZmVycmVkIHByb2JlcyBvbmNlCj4+IGRldmljZXMgYXJlIHBy
+b2JlZCBpbiBkZXBlbmRlbmN5IG9yZGVyLgo+Pgo+PiBTaWduZWQtb2ZmLWJ5OiBUb21ldSBWaXpv
+c28gPHRvbWV1LnZpem9zb0Bjb2xsYWJvcmEuY29tPgo+PiAtLS0KPj4KPj4gQ2hhbmdlcyBpbiB2
+MjoKPj4gLSBJbnN0ZWFkIG9mIGRlbGF5aW5nIGFsbCBwcm9iZXMgdW50aWwgbGF0ZV9pbml0Y2Fs
+bCwgb25seSBkZWxheSBtYXRjaGVzCj4+ICAgb2YgcGxhdGZvcm0gZGV2aWNlcyB0aGF0IGhhdmUg
+YSBmaXJtd2FyZSBub2RlIGF0dGFjaGVkLgo+Pgo+PiAgZHJpdmVycy9iYXNlL3Byb3BlcnR5LmMg
+fCAyOSArKysrKysrKysrKysrKysrKysrKysrKysrKysrKwo+PiAgMSBmaWxlIGNoYW5nZWQsIDI5
+IGluc2VydGlvbnMoKykKPj4KPj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvYmFzZS9wcm9wZXJ0eS5j
+IGIvZHJpdmVycy9iYXNlL3Byb3BlcnR5LmMKPj4gaW5kZXggODUyOGViOS4uOGVhZDFiYSAxMDA2
+NDQKPj4gLS0tIGEvZHJpdmVycy9iYXNlL3Byb3BlcnR5LmMKPj4gKysrIGIvZHJpdmVycy9iYXNl
+L3Byb3BlcnR5LmMKPj4gQEAgLTE2LDggKzE2LDExIEBACj4+ICAjaW5jbHVkZSA8bGludXgvb2Yu
+aD4KPj4gICNpbmNsdWRlIDxsaW51eC9vZl9hZGRyZXNzLmg+Cj4+ICAjaW5jbHVkZSA8bGludXgv
+b2ZfZGV2aWNlLmg+Cj4+ICsjaW5jbHVkZSA8bGludXgvcGxhdGZvcm1fZGV2aWNlLmg+Cj4+ICAj
+aW5jbHVkZSA8bGludXgvcHJvcGVydHkuaD4KPj4KPj4gK3N0YXRpYyBib29sIGZ3bm9kZV9tYXRj
+aF9lbmFibGUgPSBmYWxzZTsKPj4gKwo+PiAgLyoqCj4+ICAgKiBkZXZpY2VfYWRkX3Byb3BlcnR5
+X3NldCAtIEFkZCBhIGNvbGxlY3Rpb24gb2YgcHJvcGVydGllcyB0byBhIGRldmljZSBvYmplY3Qu
+Cj4+ICAgKiBAZGV2OiBEZXZpY2UgdG8gYWRkIHByb3BlcnRpZXMgdG8uCj4+IEBAIC02MDQsNiAr
+NjA3LDE1IEBAIEVYUE9SVF9TWU1CT0xfR1BMKGZ3bm9kZV9pc19jb21wYXRpYmxlKTsKPj4gIGJv
+b2wgZndub2RlX2RyaXZlcl9tYXRjaF9kZXZpY2Uoc3RydWN0IGRldmljZSAqZGV2LAo+PiAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICBjb25zdCBzdHJ1Y3QgZGV2aWNlX2RyaXZlciAqZHJ2
+KQo+PiAgewo+PiArICAgICAvKgo+PiArICAgICAgKiBEZWxheSBtYXRjaGVzIG9mIHBsYXRmb3Jt
+IGRldmljZXMgdW50aWwgbGF0ZV9pbml0Y2FsbCwgd2hlbiB3ZSBhcmUKPj4gKyAgICAgICogc3Vy
+ZSB0aGF0IGFsbCBidWlsdC1pbiBkcml2ZXJzIGhhdmUgYmVlbiByZWdpc3RlcmVkIGFscmVhZHku
+IFRoaXMKPj4gKyAgICAgICogaXMgbmVlZGVkIHRvIHByZXZlbnQgZGVmZXJyZWQgcHJvYmVzIGJl
+Y2F1c2Ugb2Ygc29tZSBkcml2ZXJzCj4+ICsgICAgICAqIG5vdCBoYXZpbmcgcmVnaXN0ZXJlZCB5
+ZXQuCj4+ICsgICAgICAqLwo+PiArICAgICBpZihkZXYtPmJ1cyA9PSAmcGxhdGZvcm1fYnVzX3R5
+cGUgJiYgIWZ3bm9kZV9tYXRjaF9lbmFibGUpCj4+ICsgICAgICAgICAgICAgcmV0dXJuIGZhbHNl
+Owo+Cj4gSSdtIG5vdCBwYXJ0aWN1bGFybHkgZW50aHVzaWFzdGljIGFib3V0IHJlZmVycmluZyB0
+byBzcGVjaWZpYyBidXMgdHlwZXMgaW4KPiBnZW5lcmljIGNvZGUgbGlrZSB0aGF0LgoKQWdyZWVk
+LgoKPiBXaGF0IGFib3V0IGhhdmluZyBhIHNwZWNpYWwgdmVyc2lvbiBvZiBmd25vZGVfZHJpdmVy
+X21hdGNoX2RldmljZSgpIHNwZWNpZmljYWxseQo+IGZvciB0aGUgcGxhdGZvcm0gYnVzIHR5cGUg
+dGhhdCB3aWxsIGRvIHRoZSBjaGVjaz8KCkhhdmUgbW92ZWQgYWxsIHRoaXMgY29kZSB0byBiYXNl
+L3BsYXRmb3JtLmMgaW5zdGVhZCwgYXMgSSBkb24ndCBzZWUKYW55IHJlYXNvbiB0byBoYXZlIGl0
+IGluIHByb3BlcnR5LmMuCgpUaGFua3MsCgpUb21ldQoKPj4gKwo+PiAgICAgICBpZiAoaXNfb2Zf
+bm9kZShkZXYtPmZ3bm9kZSkpCj4+ICAgICAgICAgICAgICAgcmV0dXJuIG9mX2RyaXZlcl9tYXRj
+aF9kZXZpY2UoZGV2LCBkcnYpOwo+PiAgICAgICBlbHNlIGlmIChpc19hY3BpX25vZGUoZGV2LT5m
+d25vZGUpKQo+PiBAQCAtNjEyLDMgKzYyNCwyMCBAQCBib29sIGZ3bm9kZV9kcml2ZXJfbWF0Y2hf
+ZGV2aWNlKHN0cnVjdCBkZXZpY2UgKmRldiwKPj4gICAgICAgcmV0dXJuIGZhbHNlOwo+PiAgfQo+
+PiAgRVhQT1JUX1NZTUJPTF9HUEwoZndub2RlX2RyaXZlcl9tYXRjaF9kZXZpY2UpOwo+PiArCj4+
+ICtzdGF0aWMgaW50IF9fZGV2aWNlX2F0dGFjaChzdHJ1Y3QgZGV2aWNlICpkZXYsIHZvaWQgKmRh
+dGEpCj4+ICt7Cj4+ICsgICAgIGRldmljZV9pbml0aWFsX3Byb2JlKGRldik7Cj4+ICsKPj4gKyAg
+ICAgcmV0dXJuIDA7Cj4+ICt9Cj4+ICsKPj4gK3N0YXRpYyBpbnQgZndub2RlX21hdGNoX2luaXRj
+YWxsKHZvaWQpCj4+ICt7Cj4+ICsgICAgIGZ3bm9kZV9tYXRjaF9lbmFibGUgPSB0cnVlOwo+PiAr
+Cj4+ICsgICAgIGJ1c19mb3JfZWFjaF9kZXYoJnBsYXRmb3JtX2J1c190eXBlLCBOVUxMLCBOVUxM
+LCBfX2RldmljZV9hdHRhY2gpOwo+PiArCj4+ICsgICAgIHJldHVybiAwOwo+PiArfQo+PiArbGF0
+ZV9pbml0Y2FsbChmd25vZGVfbWF0Y2hfaW5pdGNhbGwpOwo+Pgo+Cj4gLS0KPiBJIHNwZWFrIG9u
+bHkgZm9yIG15c2VsZi4KPiBSYWZhZWwgSi4gV3lzb2NraSwgSW50ZWwgT3BlbiBTb3VyY2UgVGVj
+aG5vbG9neSBDZW50ZXIuCj4gLS0KPiBUbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2Vu
+ZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGludXgta2VybmVsIiBpbgo+IHRoZSBib2R5IG9mIGEg
+bWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnCj4gTW9yZSBtYWpvcmRvbW8gaW5m
+byBhdCAgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sCj4gUGxlYXNl
+IHJlYWQgdGhlIEZBUSBhdCAgaHR0cDovL3d3dy50dXgub3JnL2xrbWwvCl9fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QK
+ZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwOi8vbGlzdHMuZnJlZWRlc2t0b3Au
+b3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
