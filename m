@@ -1,35 +1,73 @@
-From: Randy Dunlap <rdunlap@infradead.org>
-Subject: Re: linux-next: Tree for Jul 9 (acpi_pad.ko)
-Date: Thu, 09 Jul 2015 11:56:49 -0700
-Message-ID: <559EC3F1.1070003@infradead.org>
-References: <20150709140925.4586cd10@canb.auug.org.au>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [Bugfix v4] PCI, ACPI: Fix regressions caused by resource_size_t overflow with 32-bit kernel
+Date: Fri, 10 Jul 2015 03:10:18 +0200
+Message-ID: <13188160.IHaZo5SNhD@vostro.rjw.lan>
+References: <559107F2.3080701@pr.hu> <1436340399-19695-1-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:35976 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751990AbbGIS45 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Jul 2015 14:56:57 -0400
-In-Reply-To: <20150709140925.4586cd10@canb.auug.org.au>
+Received: from v094114.home.net.pl ([79.96.170.134]:60305 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1750923AbbGJAnu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 9 Jul 2015 20:43:50 -0400
+In-Reply-To: <1436340399-19695-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Shaohua L <shaohua.li@intel.com>
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Ingo Molnar <mingo@kernel.org>, Boszormenyi Zoltan <zboszor@pr.hu>, Len Brown <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>
 
-On 07/08/15 21:09, Stephen Rothwell wrote:
-> Hi all,
+On Wednesday, July 08, 2015 03:26:39 PM Jiang Liu wrote:
+> Zoltan Boszormenyi reported this regression:
+>   "There's a Realtek RTL8111/8168/8411 (PCI ID 10ec:8168, Subsystem ID
+>    1565:230e) network chip on the mainboard. After the r8169 driver loaded
+>    the IRQs in the machine went berserk. Keyboard keypressed arrived with
+>    considerable latency and duplicated, so no real work was possible.
+>    The machine responded to the power button but didn't actually power
+>    down. It just stuck at the powering down message. I had to press the
+>    power button for 4 seconds to power it down.
 > 
-> Changes since 20150708:
+>    The computer is a POS machine with a big battery inside. Because of this,
+>    either ACPI or the Realtek chip kept the bad state and after rebooting,
+>    the network chip didn't even show up in lspci. Not even the PXE ROM
+>    announced itself during boot. I had to disconnect the battery to beat
+>    some sense back to the computer.
 > 
+>    The regression happens with 4.0.5, 4.1.0-rc8 and 4.1.0-final. 3.18.16 was
+>    good."
+> 
+> The regression is caused by commit 593669c2ac0f ("x86/PCI/ACPI: Use common
+> ACPI resource interfaces to simplify implementation"). Since commit
+> 593669c2ac0f, x86 PCI ACPI host bridge driver validates ACPI resources by
+> first converting an ACPI resource to a 'struct resource' structure and
+> then applying checks against the converted resource structure. The 'start'
+> and 'end' fields in 'struct resource' are defined to be type of
+> resource_size_t, which may be 32 bits or 64 bits depending on
+> CONFIG_PHYS_ADDR_T_64BIT.
+> 
+> This may cause incorrect resource validation results with 32-bit kernels
+> because 64-bit ACPI resource descriptors may get truncated when converting
+> to 32-bit 'start' and 'end' fields in 'struct resource'. It eventually
+> affects PCI resource allocation subsystem and makes some PCI devices and
+> the system behave abnormally due to incorrect resource assignment.
+> 
+> So enhance the ACPI resource parsing interfaces to ignore ACPI resource
+> descriptors with address/offset above 4G when running in 32-bit mode.
+> 
+> With the fix applied, the behavior of the machine was restored to how
+> 3.18.16 worked, i.e. the memory range that is over 4GB is ignored again,
+> and lspci -vvxxx shows that everything is at the same memory window as
+> they were with 3.18.16.
+> 
+> Reported-and-Tested-by: Boszormenyi Zoltan <zboszor@pr.hu>
+> Fixes: 593669c2ac0f ("x86/PCI/ACPI: Use common ACPI resource interfaces to simplify implementation")
+> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+> Cc: stable@vger.kernel.org # 4.0
 
-on x86_64:
+OK, I'm happy with the above changelog, so I'm going to apply the patch.
 
-ERROR: "tick_broadcast_oneshot_control" [drivers/acpi/acpi_pad.ko] undefined!
+If anyone has any objections, please let me know.
 
-when CONFIG_TICK_ONESHOT is not enabled.
+Thanks,
+Rafael
 
-
-
--- 
-~Randy
