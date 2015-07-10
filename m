@@ -1,182 +1,323 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH v3 2/8] ACPI / irqchip: Add self-probe infrastructure to initialize IRQ controller
-Date: Fri, 10 Jul 2015 18:45:08 +0800
-Message-ID: <1436525114-14425-3-git-send-email-hanjun.guo@linaro.org>
+Subject: [PATCH v3 4/8] irqchip / gic: Add stacked irqdomain support for ACPI based GICv2 init
+Date: Fri, 10 Jul 2015 18:45:10 +0800
+Message-ID: <1436525114-14425-5-git-send-email-hanjun.guo@linaro.org>
 References: <1436525114-14425-1-git-send-email-hanjun.guo@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pa0-f42.google.com ([209.85.220.42]:35278 "EHLO
+	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754193AbbGJKqA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 10 Jul 2015 06:46:00 -0400
+Received: by pactm7 with SMTP id tm7so166726939pac.2
+        for <linux-acpi@vger.kernel.org>; Fri, 10 Jul 2015 03:45:59 -0700 (PDT)
 In-Reply-To: <1436525114-14425-1-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Marc Zyngier <marc.zyngier@arm.com>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Grant Likely <grant.likely@linaro.org>, Mark Brown <broonie@kernel.org>, Wei Huang <wei@redhat.com>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
-List-Id: linux-acpi@vger.kernel.org
 
-This self-probe infrastructure works in the similar way as OF,
-but there is some different in the mechanism:
+=46or now, ACPI based GICv2 is using the irq_default_domain as the
+ACPI core domain which is not scalable, also we don't support
+stacked irq domains in ACPI, this patch is trying to implement that.
 
-For DT, the init fn will be called once it finds compatible strings
-in DT,  but for ACPI, we init irqchips by static tables, and in
-static ACPI tables, there are no compatible strings to indicate
-irqchips, but thanks to the GIC version presented in ACPI table,
-we can call the corresponding GIC drivers matching the GIC version
-with this framework.
+=46irstly, we need to find the irqdomain with GSI, because we use
+different model of mapping interrupt with device in ACPI than DT,
+in DT, we using the interrupt parent property to get the device
+node of irqchip for devices, that's why we need the matching function
+that match the device node with the one associated with the irqdomain.
+But for ACPI, we only can get the GSI which the device is using, no
+interrupt parent will be specified, then we need a mechanism to find
+GSI's (also the device's) irqdomain to make the code scalable.
 
-This mechanism can also be used for clock declare and may also works
-on x86 for some table parsing too.
+Thanks to the usage of GSI, it is a flat hwirq number which is unique
+in the system, then we can get its associated irq domain by matching
+the GSI supported by this irqchip (see drawings below), then we can
+live without the token pointer matching the interrupt controller as
+DT did.
 
-Part of this patch is based on Tomasz Nowicki's work.
+                  ------------      ---> gsi_base0
+                 |            |
+                 |            |
+  irqdomain <----| irqchip 0  |
+                 |            |
+                 |            |
+                 |____________|     ---> gsi_end0
 
-Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+                  ------------      ---> gsi_base1 (probably gsi_end0+1=
+)
+                 |            |
+                 |            |
+  irqdomain <----| irqchip 1  |
+                 |            |
+                 |            |
+                 |____________|     ---> gsi_end1
+
+                  .....
+
+if a device is using GSI n, then we can find GSI's irqdomain by matchin=
+g
+gsi_base <=3D n <=3D gsi_end.
+
+=46or GIC, we only have one GICD, but the above model still valid. GICD
+structure in ACPI MADT defines System Vector Base in the GICD entry,
+which means the global system interrupt number where this GIC
+Distributor=E2=80=99s interrupt inputs start, then we can get the hwirq=
+ numbers
+supported by reading the register, so we can explictly get the GSI's
+associated irqdomain if the GSI is within the range of hwirq supported
+by this GICD.
+
+Secondly, pass the GSI as the arg for domain's ops alloc() function
+when register the GSI, then we can take advantage of stacked irqdomains=
+=2E
+
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- drivers/irqchip/irq-gic-acpi.c    | 29 +++++++++++++++++++++++++++++
- include/asm-generic/vmlinux.lds.h | 13 +++++++++++++
- include/linux/acpi.h              | 16 ++++++++++++++++
- include/linux/irqchip.h           | 13 +++++++++++++
- include/linux/mod_devicetable.h   |  8 ++++++++
- 5 files changed, 79 insertions(+)
+ drivers/acpi/gsi.c        | 78 ++++++++++++++++++++++++++++++++++++++-=
+--------
+ drivers/irqchip/irq-gic.c | 37 +++++++++++++---------
+ include/linux/acpi.h      |  5 +++
+ 3 files changed, 90 insertions(+), 30 deletions(-)
 
-diff --git a/drivers/irqchip/irq-gic-acpi.c b/drivers/irqchip/irq-gic-acpi.c
-index 6537b43..e003a89 100644
---- a/drivers/irqchip/irq-gic-acpi.c
-+++ b/drivers/irqchip/irq-gic-acpi.c
-@@ -107,3 +107,32 @@ static int __init acpi_gic_version_init(void)
- 
- 	return 0;
- }
-+
-+/*
-+ * This special acpi_table_id is the sentinel at the end of the
-+ * acpi_table_id[] array of all irqchips. It is automatically placed at
-+ * the end of the array by the linker, thanks to being part of a
-+ * special section.
-+ */
-+static const struct acpi_table_id
-+irqchip_acpi_match_end __used __section(__irqchip_acpi_table_end);
-+
-+extern struct acpi_table_id __irqchip_acpi_table[];
-+
-+void __init acpi_irqchip_init(void)
-+{
-+	struct acpi_table_id *id;
-+
-+	if (acpi_disabled)
-+		return;
-+
-+	if (acpi_gic_version_init())
-+		return;
-+
-+	/* scan the irqchip table to match the GIC version and its driver */
-+	for (id = __irqchip_acpi_table; id->id[0]; id++) {
-+		if (gic_version == (u8)id->driver_data)
-+			acpi_table_parse(id->id,
-+					 (acpi_tbl_table_handler)id->handler);
-+	}
-+}
-diff --git a/include/asm-generic/vmlinux.lds.h b/include/asm-generic/vmlinux.lds.h
-index 8bd374d..625776c 100644
---- a/include/asm-generic/vmlinux.lds.h
-+++ b/include/asm-generic/vmlinux.lds.h
-@@ -181,6 +181,18 @@
- #define CPUIDLE_METHOD_OF_TABLES() OF_TABLE(CONFIG_CPU_IDLE, cpuidle_method)
- #define EARLYCON_OF_TABLES()	OF_TABLE(CONFIG_SERIAL_EARLYCON, earlycon)
- 
-+#ifdef CONFIG_ACPI
-+#define ACPI_TABLE(name)						\
-+	. = ALIGN(8);							\
-+	VMLINUX_SYMBOL(__##name##_acpi_table) = .;			\
-+	*(__##name##_acpi_table)					\
-+	*(__##name##_acpi_table_end)
-+
-+#define IRQCHIP_ACPI_MATCH_TABLE()	ACPI_TABLE(irqchip)
-+#else
-+#define IRQCHIP_ACPI_MATCH_TABLE()
-+#endif
-+
- #define KERNEL_DTB()							\
- 	STRUCT_ALIGN();							\
- 	VMLINUX_SYMBOL(__dtb_start) = .;				\
-@@ -516,6 +528,7 @@
- 	CPUIDLE_METHOD_OF_TABLES()					\
- 	KERNEL_DTB()							\
- 	IRQCHIP_OF_MATCH_TABLE()					\
-+	IRQCHIP_ACPI_MATCH_TABLE()					\
- 	EARLYCON_TABLE()						\
- 	EARLYCON_OF_TABLES()
- 
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index c471dfc..7b058f0 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -811,4 +811,20 @@ static inline struct acpi_device *acpi_get_next_child(struct device *dev,
- 
- #endif
- 
-+#ifdef CONFIG_ACPI
-+#define ACPI_DECLARE(table, name, table_id, data, fn)			\
-+	static const struct acpi_table_id __acpi_table_##name		\
-+		__used __section(__##table##_acpi_table)		\
-+		 = { .id = table_id,					\
-+		     .handler = (void *)fn,				\
-+		     .driver_data = data }
-+#else
-+#define ACPI_DECLARE(table, name, table_id, data, fn)			\
-+	static const struct acpi_table_id __acpi_table_##name		\
-+		__attribute__((unused))					\
-+		 = { .id = table_id,					\
-+		     .handler = (void *)fn,				\
-+		     .driver_data = data }
-+#endif
-+
- #endif	/*_LINUX_ACPI_H*/
-diff --git a/include/linux/irqchip.h b/include/linux/irqchip.h
-index 6388873..6b66d3e 100644
---- a/include/linux/irqchip.h
-+++ b/include/linux/irqchip.h
-@@ -11,6 +11,7 @@
- #ifndef _LINUX_IRQCHIP_H
- #define _LINUX_IRQCHIP_H
- 
-+#include <linux/acpi.h>
- #include <linux/of.h>
- 
- /*
-@@ -25,6 +26,18 @@
-  */
- #define IRQCHIP_DECLARE(name, compat, fn) OF_DECLARE_2(irqchip, name, compat, fn)
- 
-+/*
-+ * This macro must be used by the different ARM GIC drivers to declare
-+ * the association between their version and their initialization function.
-+ *
-+ * @name: name that must be unique accross all IRQCHIP_ACPI_DECLARE of the
-+ * same file.
-+ * @gic_version: version of GIC
-+ * @fn: initialization function
-+ */
-+#define IRQCHIP_ACPI_DECLARE(name, gic_version, fn)	\
-+	ACPI_DECLARE(irqchip, name, ACPI_SIG_MADT, gic_version, fn)
-+
- #ifdef CONFIG_IRQCHIP
- void irqchip_init(void);
- #else
-diff --git a/include/linux/mod_devicetable.h b/include/linux/mod_devicetable.h
-index 8183d66..c74855f 100644
---- a/include/linux/mod_devicetable.h
-+++ b/include/linux/mod_devicetable.h
-@@ -191,6 +191,14 @@ struct acpi_device_id {
- 	kernel_ulong_t driver_data;
- };
- 
-+#define ACPI_TABLE_ID_LEN	5
-+
-+struct acpi_table_id {
-+	__u8 id[ACPI_TABLE_ID_LEN];
-+	const void *handler;
-+	kernel_ulong_t driver_data;
+diff --git a/drivers/acpi/gsi.c b/drivers/acpi/gsi.c
+index 38208f2..ba7de7f 100644
+--- a/drivers/acpi/gsi.c
++++ b/drivers/acpi/gsi.c
+@@ -3,6 +3,7 @@
+  *
+  * Copyright (C) 2015 ARM Ltd.
+  * Author: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
++ *         Hanjun Guo <hanjun.guo@linaro.org> for stacked irqdomains s=
+upport
+  *
+  * This program is free software; you can redistribute it and/or modif=
+y
+  * it under the terms of the GNU General Public License version 2 as
+@@ -14,6 +15,54 @@
+=20
+ enum acpi_irq_model_id acpi_irq_model;
+=20
++struct gsi_cfg_data {
++	struct list_head list;
++	u32 gsi_base;
++	u32 gsi_end;
++	struct irq_domain *domain;
 +};
 +
- #define PNP_ID_LEN	8
- #define PNP_MAX_DEVICES	8
- 
--- 
++static LIST_HEAD(gsi_cfg_data_list);
++static DEFINE_MUTEX(gsi_mutex);
++
++/* Init the gsi cfg data which is called by irqchip drivers */
++int gsi_cfg_data_add(struct irq_domain *domain, u32 gsi_base, u32 gsi_=
+end)
++{
++	struct gsi_cfg_data *data;
++
++	data =3D kzalloc(sizeof(*data), GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
++
++	data->domain =3D domain;
++	data->gsi_base =3D gsi_base;
++	data->gsi_end =3D gsi_end;
++
++	mutex_lock(&gsi_mutex);
++	list_add(&data->list, &gsi_cfg_data_list);
++	mutex_unlock(&gsi_mutex);
++
++	return 0;
++}
++
++/* Find irqdomain with GSI (hwirq number) */
++static struct irq_domain *acpi_find_irqdomain(u32 gsi)
++{
++	struct gsi_cfg_data *data;
++	struct irq_domain *domain =3D NULL;
++
++	mutex_lock(&gsi_mutex);
++	list_for_each_entry(data, &gsi_cfg_data_list, list) {
++		if (gsi >=3D data->gsi_base && gsi <=3D data->gsi_end) {
++			domain =3D data->domain;
++			break;
++		}
++	}
++	mutex_unlock(&gsi_mutex);
++
++	return domain;
++}
++
+ static unsigned int acpi_gsi_get_irq_type(int trigger, int polarity)
+ {
+ 	switch (polarity) {
+@@ -45,12 +94,9 @@ static unsigned int acpi_gsi_get_irq_type(int trigge=
+r, int polarity)
+  */
+ int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
+ {
+-	/*
+-	 * Only default domain is supported at present, always find
+-	 * the mapping corresponding to default domain by passing NULL
+-	 * as irq_domain parameter
+-	 */
+-	*irq =3D irq_find_mapping(NULL, gsi);
++	struct irq_domain *domain =3D acpi_find_irqdomain(gsi);
++
++	*irq =3D irq_find_mapping(domain, gsi);
+ 	/*
+ 	 * *irq =3D=3D 0 means no mapping, that should
+ 	 * be reported as a failure
+@@ -72,16 +118,17 @@ EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
+ int acpi_register_gsi(struct device *dev, u32 gsi, int trigger,
+ 		      int polarity)
+ {
+-	unsigned int irq;
++	int irq;
+ 	unsigned int irq_type =3D acpi_gsi_get_irq_type(trigger, polarity);
++	struct irq_domain *domain =3D acpi_find_irqdomain(gsi);
+=20
+-	/*
+-	 * There is no way at present to look-up the IRQ domain on ACPI,
+-	 * hence always create mapping referring to the default domain
+-	 * by passing NULL as irq_domain parameter
+-	 */
+-	irq =3D irq_create_mapping(NULL, gsi);
+-	if (!irq)
++	irq =3D irq_find_mapping(domain, gsi);
++	if (irq > 0)
++		return irq;
++
++	/* pass gsi as the hwirq num and get it in the domain's alloc() ops *=
+/
++	irq =3D irq_domain_alloc_irqs(domain, 1, dev_to_node(dev), &gsi);
++	if (irq <=3D 0)
+ 		return -EINVAL;
+=20
+ 	/* Set irq type if specified and different than the current one */
+@@ -98,7 +145,8 @@ EXPORT_SYMBOL_GPL(acpi_register_gsi);
+  */
+ void acpi_unregister_gsi(u32 gsi)
+ {
+-	int irq =3D irq_find_mapping(NULL, gsi);
++	struct irq_domain *domain =3D acpi_find_irqdomain(gsi);
++	int irq =3D irq_find_mapping(domain, gsi);
+=20
+ 	irq_dispose_mapping(irq);
+ }
+diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
+index 58a7112..39c1b0d 100644
+--- a/drivers/irqchip/irq-gic.c
++++ b/drivers/irqchip/irq-gic.c
+@@ -852,15 +852,22 @@ static struct notifier_block gic_cpu_notifier =3D=
+ {
+ static int gic_irq_domain_alloc(struct irq_domain *domain, unsigned in=
+t virq,
+ 				unsigned int nr_irqs, void *arg)
+ {
+-	int i, ret;
++	int i;
+ 	irq_hw_number_t hwirq;
+-	unsigned int type =3D IRQ_TYPE_NONE;
+-	struct of_phandle_args *irq_data =3D arg;
+=20
+-	ret =3D gic_irq_domain_xlate(domain, irq_data->np, irq_data->args,
+-				   irq_data->args_count, &hwirq, &type);
+-	if (ret)
+-		return ret;
++	if (acpi_disabled) {	/* DT case */
++		int ret;
++		unsigned int type =3D IRQ_TYPE_NONE;
++		struct of_phandle_args *irq_data =3D arg;
++
++		ret =3D gic_irq_domain_xlate(domain, irq_data->np,
++					irq_data->args,
++					irq_data->args_count, &hwirq, &type);
++		if (ret)
++			return ret;
++	} else {	/* ACPI case */
++		hwirq =3D (irq_hw_number_t)*(u32 *)arg;
++	}
+=20
+ 	for (i =3D 0; i < nr_irqs; i++)
+ 		gic_irq_domain_map(domain, virq + i, hwirq + i);
+@@ -946,11 +953,11 @@ void __init gic_init_bases(unsigned int gic_nr, i=
+nt irq_start,
+ 		gic_irqs =3D 1020;
+ 	gic->gic_irqs =3D gic_irqs;
+=20
+-	if (node) {		/* DT case */
++	if (node || !acpi_disabled) {	/* DT or ACPI case */
+ 		gic->domain =3D irq_domain_add_linear(node, gic_irqs,
+ 						    &gic_irq_domain_hierarchy_ops,
+ 						    gic);
+-	} else {		/* Non-DT case */
++	} else {		/* Non-DT and Non-ACPI case */
+ 		/*
+ 		 * For primary GICs, skip over SGIs.
+ 		 * For secondary GICs, skip over PPIs, too.
+@@ -1044,6 +1051,7 @@ IRQCHIP_DECLARE(msm_qgic2, "qcom,msm-qgic2", gic_=
+of_init);
+=20
+ #ifdef CONFIG_ACPI
+ static phys_addr_t dist_phy_base, cpu_phy_base __initdata;
++static u32 gsi_base __initdata;
+=20
+ static int __init
+ gic_acpi_parse_madt_cpu(struct acpi_subtable_header *header,
+@@ -1082,6 +1090,7 @@ gic_acpi_parse_madt_distributor(struct acpi_subta=
+ble_header *header,
+ 	if (BAD_MADT_ENTRY(dist, end))
+ 		return -EINVAL;
+=20
++	gsi_base =3D dist->global_irq_base;
+ 	dist_phy_base =3D dist->base_address;
+ 	return 0;
+ }
+@@ -1131,13 +1140,11 @@ gic_v2_acpi_init(struct acpi_table_header *tabl=
+e)
+ 		return -ENOMEM;
+ 	}
+=20
+-	/*
+-	 * Initialize zero GIC instance (no multi-GIC support). Also, set GIC
+-	 * as default IRQ domain to allow for GSI registration and GSI to IRQ
+-	 * number translation (see acpi_register_gsi() and acpi_gsi_to_irq())=
+=2E
+-	 */
+ 	gic_init_bases(0, -1, dist_base, cpu_base, 0, NULL);
+-	irq_set_default_host(gic_data[0].domain);
++
++	/* since we have only one GICD, we can safely use gic_data[0] here */
++	gsi_cfg_data_add(gic_data[0].domain, gsi_base,
++			 gsi_base + gic_data[0].gic_irqs);
+=20
+ 	acpi_irq_model =3D ACPI_IRQ_MODEL_GIC;
+ 	return 0;
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 7b058f0..6e84714 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -204,6 +204,11 @@ extern int acpi_get_override_irq(u32 gsi, int *tri=
+gger, int *polarity);
+  */
+ void acpi_unregister_gsi (u32 gsi);
+=20
++#ifdef CONFIG_ACPI_GENERIC_GSI
++struct irq_domain;
++int gsi_cfg_data_add(struct irq_domain *domain, u32 gsi_base, u32 gsi_=
+end);
++#endif
++
+ struct pci_dev;
+=20
+ int acpi_pci_irq_enable (struct pci_dev *dev);
+--=20
 1.9.1
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
