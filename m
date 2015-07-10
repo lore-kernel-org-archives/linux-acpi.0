@@ -1,93 +1,73 @@
-From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Subject: Re: [PATCH v2 01/12] device: property: delay device-driver matches
-Date: Fri, 10 Jul 2015 13:39:48 +0200
-Message-ID: <CAAObsKA_B38EaS4uNaFUmpQ+Kr0Jq3CqAegLpYX=vr9e6nNgBw@mail.gmail.com>
-References: <1435743667-11987-1-git-send-email-tomeu.vizoso@collabora.com>
- <1435743667-11987-2-git-send-email-tomeu.vizoso@collabora.com>
- <17310138.6IxCgARibq@vostro.rjw.lan>
+From: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Subject: [PATCH] acpi/apei: free lists of resources in einj and erst
+Date: Fri, 10 Jul 2015 14:58:32 +0300
+Message-ID: <20150710115832.13167.20624.stgit@buzz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <17310138.6IxCgARibq@vostro.rjw.lan>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, linux-fbdev@vger.kernel.org, alsa-devel@alsa-project.org, linux-gpio@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, linux-acpi@vger.kernel.org, Mark Brown <broonie@kernel.org>, Linux PWM List <linux-pwm@vger.kernel.org>
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org, "Chen, Gong" <gong.chen@linux.intel.com>
+Cc: Tony Luck <tony.luck@intel.com>, linux-kernel@vger.kernel.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-T24gMiBKdWx5IDIwMTUgYXQgMDE6MjksIFJhZmFlbCBKLiBXeXNvY2tpIDxyandAcmp3eXNvY2tp
-Lm5ldD4gd3JvdGU6Cj4gT24gV2VkbmVzZGF5LCBKdWx5IDAxLCAyMDE1IDExOjQwOjU2IEFNIFRv
-bWV1IFZpem9zbyB3cm90ZToKPj4gRGVsYXkgbWF0Y2hlcyBvZiBwbGF0Zm9ybSBkZXZpY2VzIHVu
-dGlsIGxhdGVfaW5pdGNhbGwsIHdoZW4gd2UgYXJlIHN1cmUKPj4gdGhhdCBhbGwgYnVpbHQtaW4g
-ZHJpdmVycyBoYXZlIGJlZW4gcmVnaXN0ZXJlZCBhbHJlYWR5LiBUaGlzIGlzIG5lZWRlZAo+PiB0
-byBwcmV2ZW50IGRlZmVycmVkIHByb2JlcyBiZWNhdXNlIG9mIHNvbWUgZGVwZW5kZW5jaWVzJyBk
-cml2ZXJzIG5vdAo+PiBoYXZpbmcgcmVnaXN0ZXJlZCB5ZXQuCj4+Cj4+IFRoaXMgcmVkdWNlcyB0
-aGUgdG90YWwgYW1vdW50IG9mIHdvcmsgdGhhdCB0aGUga2VybmVsIGRvZXMgZHVyaW5nIGJvb3QK
-Pj4gYmVjYXVzZSBpdCB3b24ndCB0cnkgdG8gbWF0Y2ggZGV2aWNlcyB0byBkcml2ZXJzIHdoZW4g
-YnVpbHQtaW4gZHJpdmVycwo+PiBhcmUgc3RpbGwgcmVnaXN0ZXJpbmcgYnV0IGFsc28gcmVkdWNl
-cyBzb21lIHBhcmFsbGVsaXNtLCBzbyB0b3RhbCBib290Cj4+IHRpbWUgbWlnaHQgc2xpZ2h0bHkg
-aW5jcmVhc2Ugb3IgZGVjcmVhc2UgZGVwZW5kaW5nIG9uIHRoZSBwbGF0Zm9ybSBhbmQKPj4ga2Vy
-bmVsIGNvbmZpZ3VyYXRpb24uCj4+Cj4+IFRoaXMgY2hhbmdlIHdpbGwgbWFrZSBtYWtlIHBvc3Np
-YmxlIHRvIHByZXZlbnQgYW55IGRlZmVycmVkIHByb2JlcyBvbmNlCj4+IGRldmljZXMgYXJlIHBy
-b2JlZCBpbiBkZXBlbmRlbmN5IG9yZGVyLgo+Pgo+PiBTaWduZWQtb2ZmLWJ5OiBUb21ldSBWaXpv
-c28gPHRvbWV1LnZpem9zb0Bjb2xsYWJvcmEuY29tPgo+PiAtLS0KPj4KPj4gQ2hhbmdlcyBpbiB2
-MjoKPj4gLSBJbnN0ZWFkIG9mIGRlbGF5aW5nIGFsbCBwcm9iZXMgdW50aWwgbGF0ZV9pbml0Y2Fs
-bCwgb25seSBkZWxheSBtYXRjaGVzCj4+ICAgb2YgcGxhdGZvcm0gZGV2aWNlcyB0aGF0IGhhdmUg
-YSBmaXJtd2FyZSBub2RlIGF0dGFjaGVkLgo+Pgo+PiAgZHJpdmVycy9iYXNlL3Byb3BlcnR5LmMg
-fCAyOSArKysrKysrKysrKysrKysrKysrKysrKysrKysrKwo+PiAgMSBmaWxlIGNoYW5nZWQsIDI5
-IGluc2VydGlvbnMoKykKPj4KPj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvYmFzZS9wcm9wZXJ0eS5j
-IGIvZHJpdmVycy9iYXNlL3Byb3BlcnR5LmMKPj4gaW5kZXggODUyOGViOS4uOGVhZDFiYSAxMDA2
-NDQKPj4gLS0tIGEvZHJpdmVycy9iYXNlL3Byb3BlcnR5LmMKPj4gKysrIGIvZHJpdmVycy9iYXNl
-L3Byb3BlcnR5LmMKPj4gQEAgLTE2LDggKzE2LDExIEBACj4+ICAjaW5jbHVkZSA8bGludXgvb2Yu
-aD4KPj4gICNpbmNsdWRlIDxsaW51eC9vZl9hZGRyZXNzLmg+Cj4+ICAjaW5jbHVkZSA8bGludXgv
-b2ZfZGV2aWNlLmg+Cj4+ICsjaW5jbHVkZSA8bGludXgvcGxhdGZvcm1fZGV2aWNlLmg+Cj4+ICAj
-aW5jbHVkZSA8bGludXgvcHJvcGVydHkuaD4KPj4KPj4gK3N0YXRpYyBib29sIGZ3bm9kZV9tYXRj
-aF9lbmFibGUgPSBmYWxzZTsKPj4gKwo+PiAgLyoqCj4+ICAgKiBkZXZpY2VfYWRkX3Byb3BlcnR5
-X3NldCAtIEFkZCBhIGNvbGxlY3Rpb24gb2YgcHJvcGVydGllcyB0byBhIGRldmljZSBvYmplY3Qu
-Cj4+ICAgKiBAZGV2OiBEZXZpY2UgdG8gYWRkIHByb3BlcnRpZXMgdG8uCj4+IEBAIC02MDQsNiAr
-NjA3LDE1IEBAIEVYUE9SVF9TWU1CT0xfR1BMKGZ3bm9kZV9pc19jb21wYXRpYmxlKTsKPj4gIGJv
-b2wgZndub2RlX2RyaXZlcl9tYXRjaF9kZXZpY2Uoc3RydWN0IGRldmljZSAqZGV2LAo+PiAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICBjb25zdCBzdHJ1Y3QgZGV2aWNlX2RyaXZlciAqZHJ2
-KQo+PiAgewo+PiArICAgICAvKgo+PiArICAgICAgKiBEZWxheSBtYXRjaGVzIG9mIHBsYXRmb3Jt
-IGRldmljZXMgdW50aWwgbGF0ZV9pbml0Y2FsbCwgd2hlbiB3ZSBhcmUKPj4gKyAgICAgICogc3Vy
-ZSB0aGF0IGFsbCBidWlsdC1pbiBkcml2ZXJzIGhhdmUgYmVlbiByZWdpc3RlcmVkIGFscmVhZHku
-IFRoaXMKPj4gKyAgICAgICogaXMgbmVlZGVkIHRvIHByZXZlbnQgZGVmZXJyZWQgcHJvYmVzIGJl
-Y2F1c2Ugb2Ygc29tZSBkcml2ZXJzCj4+ICsgICAgICAqIG5vdCBoYXZpbmcgcmVnaXN0ZXJlZCB5
-ZXQuCj4+ICsgICAgICAqLwo+PiArICAgICBpZihkZXYtPmJ1cyA9PSAmcGxhdGZvcm1fYnVzX3R5
-cGUgJiYgIWZ3bm9kZV9tYXRjaF9lbmFibGUpCj4+ICsgICAgICAgICAgICAgcmV0dXJuIGZhbHNl
-Owo+Cj4gSSdtIG5vdCBwYXJ0aWN1bGFybHkgZW50aHVzaWFzdGljIGFib3V0IHJlZmVycmluZyB0
-byBzcGVjaWZpYyBidXMgdHlwZXMgaW4KPiBnZW5lcmljIGNvZGUgbGlrZSB0aGF0LgoKQWdyZWVk
-LgoKPiBXaGF0IGFib3V0IGhhdmluZyBhIHNwZWNpYWwgdmVyc2lvbiBvZiBmd25vZGVfZHJpdmVy
-X21hdGNoX2RldmljZSgpIHNwZWNpZmljYWxseQo+IGZvciB0aGUgcGxhdGZvcm0gYnVzIHR5cGUg
-dGhhdCB3aWxsIGRvIHRoZSBjaGVjaz8KCkhhdmUgbW92ZWQgYWxsIHRoaXMgY29kZSB0byBiYXNl
-L3BsYXRmb3JtLmMgaW5zdGVhZCwgYXMgSSBkb24ndCBzZWUKYW55IHJlYXNvbiB0byBoYXZlIGl0
-IGluIHByb3BlcnR5LmMuCgpUaGFua3MsCgpUb21ldQoKPj4gKwo+PiAgICAgICBpZiAoaXNfb2Zf
-bm9kZShkZXYtPmZ3bm9kZSkpCj4+ICAgICAgICAgICAgICAgcmV0dXJuIG9mX2RyaXZlcl9tYXRj
-aF9kZXZpY2UoZGV2LCBkcnYpOwo+PiAgICAgICBlbHNlIGlmIChpc19hY3BpX25vZGUoZGV2LT5m
-d25vZGUpKQo+PiBAQCAtNjEyLDMgKzYyNCwyMCBAQCBib29sIGZ3bm9kZV9kcml2ZXJfbWF0Y2hf
-ZGV2aWNlKHN0cnVjdCBkZXZpY2UgKmRldiwKPj4gICAgICAgcmV0dXJuIGZhbHNlOwo+PiAgfQo+
-PiAgRVhQT1JUX1NZTUJPTF9HUEwoZndub2RlX2RyaXZlcl9tYXRjaF9kZXZpY2UpOwo+PiArCj4+
-ICtzdGF0aWMgaW50IF9fZGV2aWNlX2F0dGFjaChzdHJ1Y3QgZGV2aWNlICpkZXYsIHZvaWQgKmRh
-dGEpCj4+ICt7Cj4+ICsgICAgIGRldmljZV9pbml0aWFsX3Byb2JlKGRldik7Cj4+ICsKPj4gKyAg
-ICAgcmV0dXJuIDA7Cj4+ICt9Cj4+ICsKPj4gK3N0YXRpYyBpbnQgZndub2RlX21hdGNoX2luaXRj
-YWxsKHZvaWQpCj4+ICt7Cj4+ICsgICAgIGZ3bm9kZV9tYXRjaF9lbmFibGUgPSB0cnVlOwo+PiAr
-Cj4+ICsgICAgIGJ1c19mb3JfZWFjaF9kZXYoJnBsYXRmb3JtX2J1c190eXBlLCBOVUxMLCBOVUxM
-LCBfX2RldmljZV9hdHRhY2gpOwo+PiArCj4+ICsgICAgIHJldHVybiAwOwo+PiArfQo+PiArbGF0
-ZV9pbml0Y2FsbChmd25vZGVfbWF0Y2hfaW5pdGNhbGwpOwo+Pgo+Cj4gLS0KPiBJIHNwZWFrIG9u
-bHkgZm9yIG15c2VsZi4KPiBSYWZhZWwgSi4gV3lzb2NraSwgSW50ZWwgT3BlbiBTb3VyY2UgVGVj
-aG5vbG9neSBDZW50ZXIuCj4gLS0KPiBUbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2Vu
-ZCB0aGUgbGluZSAidW5zdWJzY3JpYmUgbGludXgta2VybmVsIiBpbgo+IHRoZSBib2R5IG9mIGEg
-bWVzc2FnZSB0byBtYWpvcmRvbW9Admdlci5rZXJuZWwub3JnCj4gTW9yZSBtYWpvcmRvbW8gaW5m
-byBhdCAgaHR0cDovL3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sCj4gUGxlYXNl
-IHJlYWQgdGhlIEZBUSBhdCAgaHR0cDovL3d3dy50dXgub3JnL2xrbWwvCl9fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZlbCBtYWlsaW5nIGxpc3QK
-ZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwOi8vbGlzdHMuZnJlZWRlc2t0b3Au
-b3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
+This patch adds missing apei_resources_fini and
+plugs several tiny memory leaks.
+
+Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+---
+ drivers/acpi/apei/apei-base.c |    2 ++
+ drivers/acpi/apei/einj.c      |    7 +++----
+ drivers/acpi/apei/erst.c      |    1 +
+ 3 files changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
+index a85ac07f3da3..b9a5418e6938 100644
+--- a/drivers/acpi/apei/apei-base.c
++++ b/drivers/acpi/apei/apei-base.c
+@@ -497,6 +497,7 @@ int apei_resources_request(struct apei_resources *resources,
+ 	rc = apei_resources_sub(resources, &nvs_resources);
+ 	if (rc)
+ 		goto nvs_res_fini;
++	apei_resources_fini(&nvs_resources);
+ 
+ 	if (arch_apei_filter_addr) {
+ 		apei_resources_init(&arch_res);
+@@ -506,6 +507,7 @@ int apei_resources_request(struct apei_resources *resources,
+ 		rc = apei_resources_sub(resources, &arch_res);
+ 		if (rc)
+ 			goto arch_res_fini;
++		apei_resources_fini(&arch_res);
+ 	}
+ 
+ 	rc = -EINVAL;
+diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
+index a095d4f858da..ed02d9da4a3e 100644
+--- a/drivers/acpi/apei/einj.c
++++ b/drivers/acpi/apei/einj.c
+@@ -379,10 +379,9 @@ static int __einj_error_trigger(u64 trigger_paddr, u32 type,
+ 			rc = apei_resources_add(&addr_resources,
+ 				trigger_param_region->address,
+ 				trigger_param_region->bit_width/8, true);
+-			if (rc)
+-				goto out_fini;
+-			rc = apei_resources_sub(&trigger_resources,
+-					&addr_resources);
++			if (!rc)
++				rc = apei_resources_sub(&trigger_resources,
++							&addr_resources);
+ 		}
+ 		apei_resources_fini(&addr_resources);
+ 		if (rc)
+diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
+index 3670bbab57a3..41ceeae3f6aa 100644
+--- a/drivers/acpi/apei/erst.c
++++ b/drivers/acpi/apei/erst.c
+@@ -1190,6 +1190,7 @@ static int __init erst_init(void)
+ 	if (!erst_erange.vaddr)
+ 		goto err_release_erange;
+ 
++	apei_resources_fini(&erst_resources);
+ 	pr_info(
+ 	"Error Record Serialization Table (ERST) support is initialized.\n");
+ 
