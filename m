@@ -1,7 +1,7 @@
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH v2 1/6] pmem: add maintainer for include/linux/pmem.h
-Date: Sat, 11 Jul 2015 10:40:42 -0400
-Message-ID: <20150711144042.25013.64570.stgit@dwillia2-desk3.amr.corp.intel.com>
+Subject: [PATCH v2 2/6] tools/testing/nvdimm: mock ioremap_wt
+Date: Sat, 11 Jul 2015 10:40:48 -0400
+Message-ID: <20150711144047.25013.78168.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <20150711142806.25013.16924.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -13,27 +13,39 @@ To: linux-nvdimm@lists.01.org
 Cc: linux-acpi@vger.kernel.org, ross.zwisler@linux.intel.com, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
+In the 4.2-rc1 merge the default_memremap_pmem() implementation switched
+from ioremap_nocache() to ioremap_wt().  Add it to the list of mocked
+routines to restore the ability to run the unit tests.
 
-The file include/linux/pmem.h was recently created to hold the PMEM API,
-and is logically part of the PMEM driver.  Add an entry for this file to
-MAINTAINERS.
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- MAINTAINERS |    1 +
- 1 file changed, 1 insertion(+)
+ tools/testing/nvdimm/Kbuild       |    1 +
+ tools/testing/nvdimm/test/iomap.c |    6 ++++++
+ 2 files changed, 7 insertions(+)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 0e6b09150aad..a8306b25c13c 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -6134,6 +6134,7 @@ L:	linux-nvdimm@lists.01.org
- Q:	https://patchwork.kernel.org/project/linux-nvdimm/list/
- S:	Supported
- F:	drivers/nvdimm/pmem.c
-+F:	include/linux/pmem.h
+diff --git a/tools/testing/nvdimm/Kbuild b/tools/testing/nvdimm/Kbuild
+index 8e9b64520ec1..8e020601c773 100644
+--- a/tools/testing/nvdimm/Kbuild
++++ b/tools/testing/nvdimm/Kbuild
+@@ -1,3 +1,4 @@
++ldflags-y += --wrap=ioremap_wt
+ ldflags-y += --wrap=ioremap_cache
+ ldflags-y += --wrap=ioremap_nocache
+ ldflags-y += --wrap=iounmap
+diff --git a/tools/testing/nvdimm/test/iomap.c b/tools/testing/nvdimm/test/iomap.c
+index c85a6f6ba559..9f21b150396b 100644
+--- a/tools/testing/nvdimm/test/iomap.c
++++ b/tools/testing/nvdimm/test/iomap.c
+@@ -77,6 +77,12 @@ void __iomem *__wrap_ioremap_nocache(resource_size_t offset, unsigned long size)
+ }
+ EXPORT_SYMBOL(__wrap_ioremap_nocache);
  
- LINUX FOR IBM pSERIES (RS/6000)
- M:	Paul Mackerras <paulus@au.ibm.com>
++void __iomem *__wrap_ioremap_wt(resource_size_t offset, unsigned long size)
++{
++	return __nfit_test_ioremap(offset, size, ioremap_wt);
++}
++EXPORT_SYMBOL(__wrap_ioremap_wt);
++
+ void __wrap_iounmap(volatile void __iomem *addr)
+ {
+ 	struct nfit_test_resource *nfit_res;
