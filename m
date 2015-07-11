@@ -1,120 +1,330 @@
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH v2 6/6] nfit: add support for NVDIMM "latch" flag
-Date: Sat, 11 Jul 2015 10:41:09 -0400
-Message-ID: <20150711144109.25013.53374.stgit@dwillia2-desk3.amr.corp.intel.com>
+Subject: [PATCH v2 5/6] nfit: update block I/O path to use PMEM API
+Date: Sat, 11 Jul 2015 10:41:04 -0400
+Message-ID: <20150711144104.25013.28052.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <20150711142806.25013.16924.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:8139 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751703AbbGKOqw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sat, 11 Jul 2015 10:46:52 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <20150711142806.25013.16924.stgit@dwillia2-desk3.amr.corp.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-nvdimm@lists.01.org
 Cc: linux-acpi@vger.kernel.org, ross.zwisler@linux.intel.com, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-kernel@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
 
-Add support in the NFIT BLK I/O path for the "latch" flag
-defined in the "Get Block NVDIMM Flags" _DSM function:
+Update the nfit block I/O path to use the new PMEM API and to adhere to
+the read/write flows outlined in the "NVDIMM Block Window Driver
+Writer's Guide":
 
-http://pmem.io/documents/NVDIMM_DSM_Interface_Example.pdf
+http://pmem.io/documents/NVDIMM_Driver_Writers_Guide.pdf
 
-This flag requires the driver to read back the command register after it
-is written in the block I/O path.  This ensures that the hardware has
-fully processed the new command and moved the aperture appropriately.
+This includes adding support for targeted NVDIMM flushes called "flush
+hints" in the ACPI 6.0 specification:
+
+http://www.uefi.org/sites/default/files/resources/ACPI_6.0.pdf
+
+For performance and media durability the mapping for a BLK aperture is
+moved to a write-combining mapping which is consistent with
+memcpy_to_pmem() and wmb_blk().
 
 Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
 Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/acpi/nfit.c |   33 ++++++++++++++++++++++++++++++++-
- drivers/acpi/nfit.h |    5 +++++
- 2 files changed, 37 insertions(+), 1 deletion(-)
+ drivers/acpi/nfit.c |   97 +++++++++++++++++++++++++++++++++++++++++++++------
+ drivers/acpi/nfit.h |   15 +++++++-
+ 2 files changed, 100 insertions(+), 12 deletions(-)
 
 diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index 11aa513f2fda..628a42c41ab1 100644
+index a20b7c883ca0..11aa513f2fda 100644
 --- a/drivers/acpi/nfit.c
 +++ b/drivers/acpi/nfit.c
-@@ -1059,7 +1059,9 @@ static void write_blk_ctl(struct nfit_blk *nfit_blk, unsigned int bw,
+@@ -18,6 +18,7 @@
+ #include <linux/list.h>
+ #include <linux/acpi.h>
+ #include <linux/sort.h>
++#include <linux/pmem.h>
+ #include <linux/io.h>
+ #include "nfit.h"
  
- 	writeq(cmd, mmio->base + offset);
- 	wmb_blk(nfit_blk);
--	/* FIXME: conditionally perform read-back if mandated by firmware */
-+
-+	if (nfit_blk->dimm_flags & ND_BLK_DCR_LATCH)
-+		readq(mmio->base + offset);
+@@ -305,6 +306,23 @@ static bool add_idt(struct acpi_nfit_desc *acpi_desc,
+ 	return true;
  }
  
- static int acpi_nfit_blk_single_io(struct nfit_blk *nfit_blk,
-@@ -1266,6 +1268,28 @@ static int nfit_blk_init_interleave(struct nfit_blk_mmio *mmio,
- 	return 0;
- }
- 
-+static int acpi_nfit_blk_get_flags(struct nvdimm_bus_descriptor *nd_desc,
-+		struct nvdimm *nvdimm, struct nfit_blk *nfit_blk)
++static bool add_flush(struct acpi_nfit_desc *acpi_desc,
++		struct acpi_nfit_flush_address *flush)
 +{
-+	struct nd_cmd_dimm_flags flags;
-+	int rc;
++	struct device *dev = acpi_desc->dev;
++	struct nfit_flush *nfit_flush = devm_kzalloc(dev, sizeof(*nfit_flush),
++			GFP_KERNEL);
 +
-+	memset(&flags, 0, sizeof(flags));
-+	rc = nd_desc->ndctl(nd_desc, nvdimm, ND_CMD_DIMM_FLAGS, &flags,
-+			sizeof(flags));
-+
-+	if (rc >= 0 && flags.status == 0)
-+		nfit_blk->dimm_flags = flags.flags;
-+	else if (rc == -ENOTTY) {
-+		/* fall back to a conservative default */
-+		nfit_blk->dimm_flags = ND_BLK_DCR_LATCH;
-+		rc = 0;
-+	} else
-+		rc = -ENXIO;
-+
-+	return rc;
++	if (!nfit_flush)
++		return false;
++	INIT_LIST_HEAD(&nfit_flush->list);
++	nfit_flush->flush = flush;
++	list_add_tail(&nfit_flush->list, &acpi_desc->flushes);
++	dev_dbg(dev, "%s: nfit_flush handle: %d hint_count: %d\n", __func__,
++			flush->device_handle, flush->hint_count);
++	return true;
 +}
 +
- static int acpi_nfit_blk_region_enable(struct nvdimm_bus *nvdimm_bus,
- 		struct device *dev)
+ static void *add_table(struct acpi_nfit_desc *acpi_desc, void *table,
+ 		const void *end)
  {
-@@ -1340,6 +1364,13 @@ static int acpi_nfit_blk_region_enable(struct nvdimm_bus *nvdimm_bus,
+@@ -338,7 +356,8 @@ static void *add_table(struct acpi_nfit_desc *acpi_desc, void *table,
+ 			return err;
+ 		break;
+ 	case ACPI_NFIT_TYPE_FLUSH_ADDRESS:
+-		dev_dbg(dev, "%s: flush\n", __func__);
++		if (!add_flush(acpi_desc, table))
++			return err;
+ 		break;
+ 	case ACPI_NFIT_TYPE_SMBIOS:
+ 		dev_dbg(dev, "%s: smbios\n", __func__);
+@@ -389,6 +408,7 @@ static int nfit_mem_add(struct acpi_nfit_desc *acpi_desc,
+ {
+ 	u16 dcr = __to_nfit_memdev(nfit_mem)->region_index;
+ 	struct nfit_memdev *nfit_memdev;
++	struct nfit_flush *nfit_flush;
+ 	struct nfit_dcr *nfit_dcr;
+ 	struct nfit_bdw *nfit_bdw;
+ 	struct nfit_idt *nfit_idt;
+@@ -442,6 +462,14 @@ static int nfit_mem_add(struct acpi_nfit_desc *acpi_desc,
+ 			nfit_mem->idt_bdw = nfit_idt->idt;
+ 			break;
+ 		}
++
++		list_for_each_entry(nfit_flush, &acpi_desc->flushes, list) {
++			if (nfit_flush->flush->device_handle !=
++					nfit_memdev->memdev->device_handle)
++				continue;
++			nfit_mem->nfit_flush = nfit_flush;
++			break;
++		}
+ 		break;
+ 	}
+ 
+@@ -978,6 +1006,24 @@ static u64 to_interleave_offset(u64 offset, struct nfit_blk_mmio *mmio)
+ 	return mmio->base_offset + line_offset + table_offset + sub_line_offset;
+ }
+ 
++static void wmb_blk(struct nfit_blk *nfit_blk)
++{
++
++	if (nfit_blk->nvdimm_flush) {
++		/*
++		 * The first wmb() is needed to 'sfence' all previous writes
++		 * such that they are architecturally visible for the platform
++		 * buffer flush.  Note that we've already arranged for pmem
++		 * writes to avoid the cache via arch_memcpy_to_pmem().  The
++		 * final wmb() ensures ordering for the NVDIMM flush write.
++		 */
++		wmb();
++		writeq(1, nfit_blk->nvdimm_flush);
++		wmb();
++	} else
++		wmb_pmem();
++}
++
+ static u64 read_blk_stat(struct nfit_blk *nfit_blk, unsigned int bw)
+ {
+ 	struct nfit_blk_mmio *mmio = &nfit_blk->mmio[DCR];
+@@ -1012,6 +1058,7 @@ static void write_blk_ctl(struct nfit_blk *nfit_blk, unsigned int bw,
+ 		offset = to_interleave_offset(offset, mmio);
+ 
+ 	writeq(cmd, mmio->base + offset);
++	wmb_blk(nfit_blk);
+ 	/* FIXME: conditionally perform read-back if mandated by firmware */
+ }
+ 
+@@ -1026,7 +1073,6 @@ static int acpi_nfit_blk_single_io(struct nfit_blk *nfit_blk,
+ 
+ 	base_offset = nfit_blk->bdw_offset + dpa % L1_CACHE_BYTES
+ 		+ lane * mmio->size;
+-	/* TODO: non-temporal access, flush hints, cache management etc... */
+ 	write_blk_ctl(nfit_blk, lane, dpa, len, rw);
+ 	while (len) {
+ 		unsigned int c;
+@@ -1045,13 +1091,19 @@ static int acpi_nfit_blk_single_io(struct nfit_blk *nfit_blk,
+ 		}
+ 
+ 		if (rw)
+-			memcpy(mmio->aperture + offset, iobuf + copied, c);
++			memcpy_to_pmem(mmio->aperture + offset,
++					iobuf + copied, c);
+ 		else
+-			memcpy(iobuf + copied, mmio->aperture + offset, c);
++			memcpy_from_pmem(iobuf + copied,
++					mmio->aperture + offset, c);
+ 
+ 		copied += c;
+ 		len -= c;
+ 	}
++
++	if (rw)
++		wmb_blk(nfit_blk);
++
+ 	rc = read_blk_stat(nfit_blk, lane) ? -EIO : 0;
+ 	return rc;
+ }
+@@ -1124,7 +1176,7 @@ static void nfit_spa_unmap(struct acpi_nfit_desc *acpi_desc,
+ }
+ 
+ static void __iomem *__nfit_spa_map(struct acpi_nfit_desc *acpi_desc,
+-		struct acpi_nfit_system_address *spa)
++		struct acpi_nfit_system_address *spa, enum spa_map_type type)
+ {
+ 	resource_size_t start = spa->address;
+ 	resource_size_t n = spa->length;
+@@ -1152,8 +1204,15 @@ static void __iomem *__nfit_spa_map(struct acpi_nfit_desc *acpi_desc,
+ 	if (!res)
+ 		goto err_mem;
+ 
+-	/* TODO: cacheability based on the spa type */
+-	spa_map->iomem = ioremap_nocache(start, n);
++	if (type == SPA_MAP_APERTURE) {
++		/*
++		 * TODO: memremap_pmem() support, but that requires cache
++		 * flushing when the aperture is moved.
++		 */
++		spa_map->iomem = ioremap_wc(start, n);
++	} else
++		spa_map->iomem = ioremap_nocache(start, n);
++
+ 	if (!spa_map->iomem)
+ 		goto err_map;
+ 
+@@ -1171,6 +1230,7 @@ static void __iomem *__nfit_spa_map(struct acpi_nfit_desc *acpi_desc,
+  * nfit_spa_map - interleave-aware managed-mappings of acpi_nfit_system_address ranges
+  * @nvdimm_bus: NFIT-bus that provided the spa table entry
+  * @nfit_spa: spa table to map
++ * @type: aperture or control region
+  *
+  * In the case where block-data-window apertures and
+  * dimm-control-regions are interleaved they will end up sharing a
+@@ -1180,12 +1240,12 @@ static void __iomem *__nfit_spa_map(struct acpi_nfit_desc *acpi_desc,
+  * unbound.
+  */
+ static void __iomem *nfit_spa_map(struct acpi_nfit_desc *acpi_desc,
+-		struct acpi_nfit_system_address *spa)
++		struct acpi_nfit_system_address *spa, enum spa_map_type type)
+ {
+ 	void __iomem *iomem;
+ 
+ 	mutex_lock(&acpi_desc->spa_map_mutex);
+-	iomem = __nfit_spa_map(acpi_desc, spa);
++	iomem = __nfit_spa_map(acpi_desc, spa, type);
+ 	mutex_unlock(&acpi_desc->spa_map_mutex);
+ 
+ 	return iomem;
+@@ -1212,6 +1272,7 @@ static int acpi_nfit_blk_region_enable(struct nvdimm_bus *nvdimm_bus,
+ 	struct nvdimm_bus_descriptor *nd_desc = to_nd_desc(nvdimm_bus);
+ 	struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
+ 	struct nd_blk_region *ndbr = to_nd_blk_region(dev);
++	struct nfit_flush *nfit_flush;
+ 	struct nfit_blk_mmio *mmio;
+ 	struct nfit_blk *nfit_blk;
+ 	struct nfit_mem *nfit_mem;
+@@ -1237,7 +1298,8 @@ static int acpi_nfit_blk_region_enable(struct nvdimm_bus *nvdimm_bus,
+ 	/* map block aperture memory */
+ 	nfit_blk->bdw_offset = nfit_mem->bdw->offset;
+ 	mmio = &nfit_blk->mmio[BDW];
+-	mmio->base = nfit_spa_map(acpi_desc, nfit_mem->spa_bdw);
++	mmio->base = nfit_spa_map(acpi_desc, nfit_mem->spa_bdw,
++			SPA_MAP_APERTURE);
+ 	if (!mmio->base) {
+ 		dev_dbg(dev, "%s: %s failed to map bdw\n", __func__,
+ 				nvdimm_name(nvdimm));
+@@ -1259,7 +1321,8 @@ static int acpi_nfit_blk_region_enable(struct nvdimm_bus *nvdimm_bus,
+ 	nfit_blk->cmd_offset = nfit_mem->dcr->command_offset;
+ 	nfit_blk->stat_offset = nfit_mem->dcr->status_offset;
+ 	mmio = &nfit_blk->mmio[DCR];
+-	mmio->base = nfit_spa_map(acpi_desc, nfit_mem->spa_dcr);
++	mmio->base = nfit_spa_map(acpi_desc, nfit_mem->spa_dcr,
++			SPA_MAP_CONTROL);
+ 	if (!mmio->base) {
+ 		dev_dbg(dev, "%s: %s failed to map dcr\n", __func__,
+ 				nvdimm_name(nvdimm));
+@@ -1277,6 +1340,17 @@ static int acpi_nfit_blk_region_enable(struct nvdimm_bus *nvdimm_bus,
  		return rc;
  	}
  
-+	rc = acpi_nfit_blk_get_flags(nd_desc, nvdimm, nfit_blk);
-+	if (rc < 0) {
-+		dev_dbg(dev, "%s: %s failed get DIMM flags\n",
-+				__func__, nvdimm_name(nvdimm));
-+		return rc;
++	nfit_flush = nfit_mem->nfit_flush;
++	if (nfit_flush && nfit_flush->flush->hint_count != 0) {
++		nfit_blk->nvdimm_flush = devm_ioremap_nocache(dev,
++				nfit_flush->flush->hint_address[0], 8);
++		if (!nfit_blk->nvdimm_flush)
++			return -ENOMEM;
 +	}
 +
- 	nfit_flush = nfit_mem->nfit_flush;
- 	if (nfit_flush && nfit_flush->flush->hint_count != 0) {
- 		nfit_blk->nvdimm_flush = devm_ioremap_nocache(dev,
++	if (!arch_has_pmem_api() && !nfit_blk->nvdimm_flush)
++		dev_warn(dev, "unable to guarantee persistence of writes\n");
++
+ 	if (mmio->line_size == 0)
+ 		return 0;
+ 
+@@ -1459,6 +1533,7 @@ int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, acpi_size sz)
+ 	INIT_LIST_HEAD(&acpi_desc->dcrs);
+ 	INIT_LIST_HEAD(&acpi_desc->bdws);
+ 	INIT_LIST_HEAD(&acpi_desc->idts);
++	INIT_LIST_HEAD(&acpi_desc->flushes);
+ 	INIT_LIST_HEAD(&acpi_desc->memdevs);
+ 	INIT_LIST_HEAD(&acpi_desc->dimms);
+ 	mutex_init(&acpi_desc->spa_map_mutex);
 diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
-index 815cb561cdba..79b6d83875c1 100644
+index 81f2e8c5a79c..815cb561cdba 100644
 --- a/drivers/acpi/nfit.h
 +++ b/drivers/acpi/nfit.h
-@@ -40,6 +40,10 @@ enum nfit_uuids {
- 	NFIT_UUID_MAX,
+@@ -60,6 +60,11 @@ struct nfit_idt {
+ 	struct list_head list;
  };
  
-+enum {
-+	ND_BLK_DCR_LATCH = 2,
++struct nfit_flush {
++	struct acpi_nfit_flush_address *flush;
++	struct list_head list;
 +};
 +
- struct nfit_spa {
- 	struct acpi_nfit_system_address *spa;
+ struct nfit_memdev {
+ 	struct acpi_nfit_memory_map *memdev;
  	struct list_head list;
-@@ -131,6 +135,7 @@ struct nfit_blk {
+@@ -77,6 +82,7 @@ struct nfit_mem {
+ 	struct acpi_nfit_system_address *spa_bdw;
+ 	struct acpi_nfit_interleave *idt_dcr;
+ 	struct acpi_nfit_interleave *idt_bdw;
++	struct nfit_flush *nfit_flush;
+ 	struct list_head list;
+ 	struct acpi_device *adev;
+ 	unsigned long dsm_mask;
+@@ -88,6 +94,7 @@ struct acpi_nfit_desc {
+ 	struct mutex spa_map_mutex;
+ 	struct list_head spa_maps;
+ 	struct list_head memdevs;
++	struct list_head flushes;
+ 	struct list_head dimms;
+ 	struct list_head spas;
+ 	struct list_head dcrs;
+@@ -109,7 +116,7 @@ struct nfit_blk {
+ 	struct nfit_blk_mmio {
+ 		union {
+ 			void __iomem *base;
+-			void *aperture;
++			void __pmem  *aperture;
+ 		};
+ 		u64 size;
+ 		u64 base_offset;
+@@ -123,6 +130,12 @@ struct nfit_blk {
+ 	u64 bdw_offset; /* post interleave offset */
  	u64 stat_offset;
  	u64 cmd_offset;
- 	void __iomem *nvdimm_flush;
-+	u32 dimm_flags;
++	void __iomem *nvdimm_flush;
++};
++
++enum spa_map_type {
++	SPA_MAP_CONTROL,
++	SPA_MAP_APERTURE,
  };
  
- enum spa_map_type {
-
+ struct nfit_spa_mapping {
