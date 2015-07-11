@@ -1,182 +1,120 @@
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH v2 4/6] tools/testing/nvdimm: add mock
- acpi_nfit_flush_address entries to nfit_test
-Date: Sat, 11 Jul 2015 10:40:58 -0400
-Message-ID: <20150711144058.25013.94870.stgit@dwillia2-desk3.amr.corp.intel.com>
+Subject: [PATCH v2 6/6] nfit: add support for NVDIMM "latch" flag
+Date: Sat, 11 Jul 2015 10:41:09 -0400
+Message-ID: <20150711144109.25013.53374.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <20150711142806.25013.16924.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:8139 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751703AbbGKOqw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 11 Jul 2015 10:46:52 -0400
 In-Reply-To: <20150711142806.25013.16924.stgit@dwillia2-desk3.amr.corp.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org, ross.zwisler@linux.intel.com, linux-kernel@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: linux-acpi@vger.kernel.org, ross.zwisler@linux.intel.com, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-kernel@vger.kernel.org
 
-In preparation for fixing the BLK path to properly use "directed
-pcommit" enable the unit test infrastructure to emit mock "flush"
-tables.  Writes to these flush addresses trigger a memory controller to
-flush its internal buffers to persistent media, similar to the x86
-"pcommit" instruction.
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
 
+Add support in the NFIT BLK I/O path for the "latch" flag
+defined in the "Get Block NVDIMM Flags" _DSM function:
+
+http://pmem.io/documents/NVDIMM_DSM_Interface_Example.pdf
+
+This flag requires the driver to read back the command register after it
+is written in the block I/O path.  This ensures that the hardware has
+fully processed the new command and moved the aperture appropriately.
+
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- tools/testing/nvdimm/Kbuild       |    2 +
- tools/testing/nvdimm/test/iomap.c |   21 ++++++++++++++++
- tools/testing/nvdimm/test/nfit.c  |   50 ++++++++++++++++++++++++++++++++++++-
- 3 files changed, 71 insertions(+), 2 deletions(-)
+ drivers/acpi/nfit.c |   33 ++++++++++++++++++++++++++++++++-
+ drivers/acpi/nfit.h |    5 +++++
+ 2 files changed, 37 insertions(+), 1 deletion(-)
 
-diff --git a/tools/testing/nvdimm/Kbuild b/tools/testing/nvdimm/Kbuild
-index 8e020601c773..f56914c7929b 100644
---- a/tools/testing/nvdimm/Kbuild
-+++ b/tools/testing/nvdimm/Kbuild
-@@ -1,4 +1,6 @@
- ldflags-y += --wrap=ioremap_wt
-+ldflags-y += --wrap=ioremap_wc
-+ldflags-y += --wrap=devm_ioremap_nocache
- ldflags-y += --wrap=ioremap_cache
- ldflags-y += --wrap=ioremap_nocache
- ldflags-y += --wrap=iounmap
-diff --git a/tools/testing/nvdimm/test/iomap.c b/tools/testing/nvdimm/test/iomap.c
-index 9f21b150396b..64bfaa50831c 100644
---- a/tools/testing/nvdimm/test/iomap.c
-+++ b/tools/testing/nvdimm/test/iomap.c
-@@ -65,6 +65,21 @@ void __iomem *__nfit_test_ioremap(resource_size_t offset, unsigned long size,
- 	return fallback_fn(offset, size);
+diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+index 11aa513f2fda..628a42c41ab1 100644
+--- a/drivers/acpi/nfit.c
++++ b/drivers/acpi/nfit.c
+@@ -1059,7 +1059,9 @@ static void write_blk_ctl(struct nfit_blk *nfit_blk, unsigned int bw,
+ 
+ 	writeq(cmd, mmio->base + offset);
+ 	wmb_blk(nfit_blk);
+-	/* FIXME: conditionally perform read-back if mandated by firmware */
++
++	if (nfit_blk->dimm_flags & ND_BLK_DCR_LATCH)
++		readq(mmio->base + offset);
  }
  
-+void __iomem *__wrap_devm_ioremap_nocache(struct device *dev,
-+		resource_size_t offset, unsigned long size)
-+{
-+	struct nfit_test_resource *nfit_res;
-+
-+	rcu_read_lock();
-+	nfit_res = get_nfit_res(offset);
-+	rcu_read_unlock();
-+	if (nfit_res)
-+		return (void __iomem *) nfit_res->buf + offset
-+			- nfit_res->res->start;
-+	return devm_ioremap_nocache(dev, offset, size);
-+}
-+EXPORT_SYMBOL(__wrap_devm_ioremap_nocache);
-+
- void __iomem *__wrap_ioremap_cache(resource_size_t offset, unsigned long size)
- {
- 	return __nfit_test_ioremap(offset, size, ioremap_cache);
-@@ -83,6 +98,12 @@ void __iomem *__wrap_ioremap_wt(resource_size_t offset, unsigned long size)
+ static int acpi_nfit_blk_single_io(struct nfit_blk *nfit_blk,
+@@ -1266,6 +1268,28 @@ static int nfit_blk_init_interleave(struct nfit_blk_mmio *mmio,
+ 	return 0;
  }
- EXPORT_SYMBOL(__wrap_ioremap_wt);
  
-+void __iomem *__wrap_ioremap_wc(resource_size_t offset, unsigned long size)
++static int acpi_nfit_blk_get_flags(struct nvdimm_bus_descriptor *nd_desc,
++		struct nvdimm *nvdimm, struct nfit_blk *nfit_blk)
 +{
-+	return __nfit_test_ioremap(offset, size, ioremap_wc);
++	struct nd_cmd_dimm_flags flags;
++	int rc;
++
++	memset(&flags, 0, sizeof(flags));
++	rc = nd_desc->ndctl(nd_desc, nvdimm, ND_CMD_DIMM_FLAGS, &flags,
++			sizeof(flags));
++
++	if (rc >= 0 && flags.status == 0)
++		nfit_blk->dimm_flags = flags.flags;
++	else if (rc == -ENOTTY) {
++		/* fall back to a conservative default */
++		nfit_blk->dimm_flags = ND_BLK_DCR_LATCH;
++		rc = 0;
++	} else
++		rc = -ENXIO;
++
++	return rc;
 +}
-+EXPORT_SYMBOL(__wrap_ioremap_wc);
 +
- void __wrap_iounmap(volatile void __iomem *addr)
+ static int acpi_nfit_blk_region_enable(struct nvdimm_bus *nvdimm_bus,
+ 		struct device *dev)
  {
- 	struct nfit_test_resource *nfit_res;
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 092d4724fe16..d0bdae40ccc9 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -128,6 +128,8 @@ struct nfit_test {
- 	int num_pm;
- 	void **dimm;
- 	dma_addr_t *dimm_dma;
-+	void **flush;
-+	dma_addr_t *flush_dma;
- 	void **label;
- 	dma_addr_t *label_dma;
- 	void **spa_set;
-@@ -331,7 +333,8 @@ static int nfit_test0_alloc(struct nfit_test *t)
- 			+ sizeof(struct acpi_nfit_system_address) * NUM_SPA
- 			+ sizeof(struct acpi_nfit_memory_map) * NUM_MEM
- 			+ sizeof(struct acpi_nfit_control_region) * NUM_DCR
--			+ sizeof(struct acpi_nfit_data_region) * NUM_BDW;
-+			+ sizeof(struct acpi_nfit_data_region) * NUM_BDW
-+			+ sizeof(struct acpi_nfit_flush_address) * NUM_DCR;
- 	int i;
- 
- 	t->nfit_buf = test_alloc(t, nfit_size, &t->nfit_dma);
-@@ -356,6 +359,10 @@ static int nfit_test0_alloc(struct nfit_test *t)
- 		if (!t->label[i])
- 			return -ENOMEM;
- 		sprintf(t->label[i], "label%d", i);
-+
-+		t->flush[i] = test_alloc(t, 8, &t->flush_dma[i]);
-+		if (!t->flush[i])
-+			return -ENOMEM;
+@@ -1340,6 +1364,13 @@ static int acpi_nfit_blk_region_enable(struct nvdimm_bus *nvdimm_bus,
+ 		return rc;
  	}
  
- 	for (i = 0; i < NUM_DCR; i++) {
-@@ -408,6 +415,7 @@ static void nfit_test0_setup(struct nfit_test *t)
++	rc = acpi_nfit_blk_get_flags(nd_desc, nvdimm, nfit_blk);
++	if (rc < 0) {
++		dev_dbg(dev, "%s: %s failed get DIMM flags\n",
++				__func__, nvdimm_name(nvdimm));
++		return rc;
++	}
++
+ 	nfit_flush = nfit_mem->nfit_flush;
+ 	if (nfit_flush && nfit_flush->flush->hint_count != 0) {
+ 		nfit_blk->nvdimm_flush = devm_ioremap_nocache(dev,
+diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
+index 815cb561cdba..79b6d83875c1 100644
+--- a/drivers/acpi/nfit.h
++++ b/drivers/acpi/nfit.h
+@@ -40,6 +40,10 @@ enum nfit_uuids {
+ 	NFIT_UUID_MAX,
+ };
+ 
++enum {
++	ND_BLK_DCR_LATCH = 2,
++};
++
+ struct nfit_spa {
  	struct acpi_nfit_system_address *spa;
- 	struct acpi_nfit_control_region *dcr;
- 	struct acpi_nfit_data_region *bdw;
-+	struct acpi_nfit_flush_address *flush;
- 	unsigned int offset;
+ 	struct list_head list;
+@@ -131,6 +135,7 @@ struct nfit_blk {
+ 	u64 stat_offset;
+ 	u64 cmd_offset;
+ 	void __iomem *nvdimm_flush;
++	u32 dimm_flags;
+ };
  
- 	nfit_test_init_header(nfit_buf, size);
-@@ -831,6 +839,39 @@ static void nfit_test0_setup(struct nfit_test *t)
- 	bdw->capacity = DIMM_SIZE;
- 	bdw->start_address = 0;
- 
-+	offset = offset + sizeof(struct acpi_nfit_data_region) * 4;
-+	/* flush0 (dimm0) */
-+	flush = nfit_buf + offset;
-+	flush->header.type = ACPI_NFIT_TYPE_FLUSH_ADDRESS;
-+	flush->header.length = sizeof(struct acpi_nfit_flush_address);
-+	flush->device_handle = handle[0];
-+	flush->hint_count = 1;
-+	flush->hint_address[0] = t->flush_dma[0];
-+
-+	/* flush1 (dimm1) */
-+	flush = nfit_buf + offset + sizeof(struct acpi_nfit_flush_address) * 1;
-+	flush->header.type = ACPI_NFIT_TYPE_FLUSH_ADDRESS;
-+	flush->header.length = sizeof(struct acpi_nfit_flush_address);
-+	flush->device_handle = handle[1];
-+	flush->hint_count = 1;
-+	flush->hint_address[0] = t->flush_dma[1];
-+
-+	/* flush2 (dimm2) */
-+	flush = nfit_buf + offset + sizeof(struct acpi_nfit_flush_address) * 2;
-+	flush->header.type = ACPI_NFIT_TYPE_FLUSH_ADDRESS;
-+	flush->header.length = sizeof(struct acpi_nfit_flush_address);
-+	flush->device_handle = handle[2];
-+	flush->hint_count = 1;
-+	flush->hint_address[0] = t->flush_dma[2];
-+
-+	/* flush3 (dimm3) */
-+	flush = nfit_buf + offset + sizeof(struct acpi_nfit_flush_address) * 3;
-+	flush->header.type = ACPI_NFIT_TYPE_FLUSH_ADDRESS;
-+	flush->header.length = sizeof(struct acpi_nfit_flush_address);
-+	flush->device_handle = handle[3];
-+	flush->hint_count = 1;
-+	flush->hint_address[0] = t->flush_dma[3];
-+
- 	acpi_desc = &t->acpi_desc;
- 	set_bit(ND_CMD_GET_CONFIG_SIZE, &acpi_desc->dimm_dsm_force_en);
- 	set_bit(ND_CMD_GET_CONFIG_DATA, &acpi_desc->dimm_dsm_force_en);
-@@ -933,6 +974,10 @@ static int nfit_test_probe(struct platform_device *pdev)
- 				GFP_KERNEL);
- 		nfit_test->dimm_dma = devm_kcalloc(dev, num, sizeof(dma_addr_t),
- 				GFP_KERNEL);
-+		nfit_test->flush = devm_kcalloc(dev, num, sizeof(void *),
-+				GFP_KERNEL);
-+		nfit_test->flush_dma = devm_kcalloc(dev, num, sizeof(dma_addr_t),
-+				GFP_KERNEL);
- 		nfit_test->label = devm_kcalloc(dev, num, sizeof(void *),
- 				GFP_KERNEL);
- 		nfit_test->label_dma = devm_kcalloc(dev, num,
-@@ -943,7 +988,8 @@ static int nfit_test_probe(struct platform_device *pdev)
- 				sizeof(dma_addr_t), GFP_KERNEL);
- 		if (nfit_test->dimm && nfit_test->dimm_dma && nfit_test->label
- 				&& nfit_test->label_dma && nfit_test->dcr
--				&& nfit_test->dcr_dma)
-+				&& nfit_test->dcr_dma && nfit_test->flush
-+				&& nfit_test->flush_dma)
- 			/* pass */;
- 		else
- 			return -ENOMEM;
+ enum spa_map_type {
+
