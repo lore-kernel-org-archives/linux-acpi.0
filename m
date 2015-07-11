@@ -1,51 +1,44 @@
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH v2 2/6] tools/testing/nvdimm: mock ioremap_wt
-Date: Sat, 11 Jul 2015 10:40:48 -0400
-Message-ID: <20150711144047.25013.78168.stgit@dwillia2-desk3.amr.corp.intel.com>
+Subject: [PATCH v2 3/6] tools/testing/nvdimm: fix return code for
+ unimplemented commands
+Date: Sat, 11 Jul 2015 10:40:53 -0400
+Message-ID: <20150711144053.25013.48187.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <20150711142806.25013.16924.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([134.134.136.65]:56636 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751522AbbGKOqf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 11 Jul 2015 10:46:35 -0400
 In-Reply-To: <20150711142806.25013.16924.stgit@dwillia2-desk3.amr.corp.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: linux-nvdimm@lists.01.org
 Cc: linux-acpi@vger.kernel.org, ross.zwisler@linux.intel.com, linux-kernel@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
 
-In the 4.2-rc1 merge the default_memremap_pmem() implementation switched
-from ioremap_nocache() to ioremap_wt().  Add it to the list of mocked
-routines to restore the ability to run the unit tests.
+The implementation for the new "DIMM Flags" DSM relies on the -ENOTTY
+return code to indicate that the flags are unimplimented and to fall
+back to a safe default.  As is the -ENXIO error code erroneoously
+indicates to fail enabling a BLK region.
 
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- tools/testing/nvdimm/Kbuild       |    1 +
- tools/testing/nvdimm/test/iomap.c |    6 ++++++
- 2 files changed, 7 insertions(+)
+ tools/testing/nvdimm/test/nfit.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/tools/testing/nvdimm/Kbuild b/tools/testing/nvdimm/Kbuild
-index 8e9b64520ec1..8e020601c773 100644
---- a/tools/testing/nvdimm/Kbuild
-+++ b/tools/testing/nvdimm/Kbuild
-@@ -1,3 +1,4 @@
-+ldflags-y += --wrap=ioremap_wt
- ldflags-y += --wrap=ioremap_cache
- ldflags-y += --wrap=ioremap_nocache
- ldflags-y += --wrap=iounmap
-diff --git a/tools/testing/nvdimm/test/iomap.c b/tools/testing/nvdimm/test/iomap.c
-index c85a6f6ba559..9f21b150396b 100644
---- a/tools/testing/nvdimm/test/iomap.c
-+++ b/tools/testing/nvdimm/test/iomap.c
-@@ -77,6 +77,12 @@ void __iomem *__wrap_ioremap_nocache(resource_size_t offset, unsigned long size)
- }
- EXPORT_SYMBOL(__wrap_ioremap_nocache);
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index 4b69b8368de0..092d4724fe16 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -155,7 +155,7 @@ static int nfit_test_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 	int i, rc;
  
-+void __iomem *__wrap_ioremap_wt(resource_size_t offset, unsigned long size)
-+{
-+	return __nfit_test_ioremap(offset, size, ioremap_wt);
-+}
-+EXPORT_SYMBOL(__wrap_ioremap_wt);
-+
- void __wrap_iounmap(volatile void __iomem *addr)
- {
- 	struct nfit_test_resource *nfit_res;
+ 	if (!nfit_mem || !test_bit(cmd, &nfit_mem->dsm_mask))
+-		return -ENXIO;
++		return -ENOTTY;
+ 
+ 	/* lookup label space for the given dimm */
+ 	for (i = 0; i < ARRAY_SIZE(handle); i++)
+
