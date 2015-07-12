@@ -1,330 +1,197 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH v2 5/6] nfit: update block I/O path to use PMEM API
-Date: Sat, 11 Jul 2015 10:41:04 -0400
-Message-ID: <20150711144104.25013.28052.stgit@dwillia2-desk3.amr.corp.intel.com>
-References: <20150711142806.25013.16924.stgit@dwillia2-desk3.amr.corp.intel.com>
+From: "Williams, Dan J" <dan.j.williams@intel.com>
+Subject: [GIT PULL] libnvdimm fixes for 4.2-rc2
+Date: Sun, 12 Jul 2015 01:09:32 +0000
+Message-ID: <1436663369.11451.5.camel@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150711142806.25013.16924.stgit@dwillia2-desk3.amr.corp.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org, ross.zwisler@linux.intel.com, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-kernel@vger.kernel.org
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:21696 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751859AbbGLBJf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 11 Jul 2015 21:09:35 -0400
+Content-Language: en-US
+Content-ID: <41C6774BEF13054CBA71B45EFAA56FE2@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "ross.zwisler@linux.intel.com" <ross.zwisler@linux.intel.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>
 
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-
-Update the nfit block I/O path to use the new PMEM API and to adhere to
-the read/write flows outlined in the "NVDIMM Block Window Driver
-Writer's Guide":
-
-http://pmem.io/documents/NVDIMM_Driver_Writers_Guide.pdf
-
-This includes adding support for targeted NVDIMM flushes called "flush
-hints" in the ACPI 6.0 specification:
-
-http://www.uefi.org/sites/default/files/resources/ACPI_6.0.pdf
-
-For performance and media durability the mapping for a BLK aperture is
-moved to a write-combining mapping which is consistent with
-memcpy_to_pmem() and wmb_blk().
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Signed-off-by: Dan Williams <dan.j.williams@intel.com>
----
- drivers/acpi/nfit.c |   97 +++++++++++++++++++++++++++++++++++++++++++++------
- drivers/acpi/nfit.h |   15 +++++++-
- 2 files changed, 100 insertions(+), 12 deletions(-)
-
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index a20b7c883ca0..11aa513f2fda 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -18,6 +18,7 @@
- #include <linux/list.h>
- #include <linux/acpi.h>
- #include <linux/sort.h>
-+#include <linux/pmem.h>
- #include <linux/io.h>
- #include "nfit.h"
- 
-@@ -305,6 +306,23 @@ static bool add_idt(struct acpi_nfit_desc *acpi_desc,
- 	return true;
- }
- 
-+static bool add_flush(struct acpi_nfit_desc *acpi_desc,
-+		struct acpi_nfit_flush_address *flush)
-+{
-+	struct device *dev = acpi_desc->dev;
-+	struct nfit_flush *nfit_flush = devm_kzalloc(dev, sizeof(*nfit_flush),
-+			GFP_KERNEL);
-+
-+	if (!nfit_flush)
-+		return false;
-+	INIT_LIST_HEAD(&nfit_flush->list);
-+	nfit_flush->flush = flush;
-+	list_add_tail(&nfit_flush->list, &acpi_desc->flushes);
-+	dev_dbg(dev, "%s: nfit_flush handle: %d hint_count: %d\n", __func__,
-+			flush->device_handle, flush->hint_count);
-+	return true;
-+}
-+
- static void *add_table(struct acpi_nfit_desc *acpi_desc, void *table,
- 		const void *end)
- {
-@@ -338,7 +356,8 @@ static void *add_table(struct acpi_nfit_desc *acpi_desc, void *table,
- 			return err;
- 		break;
- 	case ACPI_NFIT_TYPE_FLUSH_ADDRESS:
--		dev_dbg(dev, "%s: flush\n", __func__);
-+		if (!add_flush(acpi_desc, table))
-+			return err;
- 		break;
- 	case ACPI_NFIT_TYPE_SMBIOS:
- 		dev_dbg(dev, "%s: smbios\n", __func__);
-@@ -389,6 +408,7 @@ static int nfit_mem_add(struct acpi_nfit_desc *acpi_desc,
- {
- 	u16 dcr = __to_nfit_memdev(nfit_mem)->region_index;
- 	struct nfit_memdev *nfit_memdev;
-+	struct nfit_flush *nfit_flush;
- 	struct nfit_dcr *nfit_dcr;
- 	struct nfit_bdw *nfit_bdw;
- 	struct nfit_idt *nfit_idt;
-@@ -442,6 +462,14 @@ static int nfit_mem_add(struct acpi_nfit_desc *acpi_desc,
- 			nfit_mem->idt_bdw = nfit_idt->idt;
- 			break;
- 		}
-+
-+		list_for_each_entry(nfit_flush, &acpi_desc->flushes, list) {
-+			if (nfit_flush->flush->device_handle !=
-+					nfit_memdev->memdev->device_handle)
-+				continue;
-+			nfit_mem->nfit_flush = nfit_flush;
-+			break;
-+		}
- 		break;
- 	}
- 
-@@ -978,6 +1006,24 @@ static u64 to_interleave_offset(u64 offset, struct nfit_blk_mmio *mmio)
- 	return mmio->base_offset + line_offset + table_offset + sub_line_offset;
- }
- 
-+static void wmb_blk(struct nfit_blk *nfit_blk)
-+{
-+
-+	if (nfit_blk->nvdimm_flush) {
-+		/*
-+		 * The first wmb() is needed to 'sfence' all previous writes
-+		 * such that they are architecturally visible for the platform
-+		 * buffer flush.  Note that we've already arranged for pmem
-+		 * writes to avoid the cache via arch_memcpy_to_pmem().  The
-+		 * final wmb() ensures ordering for the NVDIMM flush write.
-+		 */
-+		wmb();
-+		writeq(1, nfit_blk->nvdimm_flush);
-+		wmb();
-+	} else
-+		wmb_pmem();
-+}
-+
- static u64 read_blk_stat(struct nfit_blk *nfit_blk, unsigned int bw)
- {
- 	struct nfit_blk_mmio *mmio = &nfit_blk->mmio[DCR];
-@@ -1012,6 +1058,7 @@ static void write_blk_ctl(struct nfit_blk *nfit_blk, unsigned int bw,
- 		offset = to_interleave_offset(offset, mmio);
- 
- 	writeq(cmd, mmio->base + offset);
-+	wmb_blk(nfit_blk);
- 	/* FIXME: conditionally perform read-back if mandated by firmware */
- }
- 
-@@ -1026,7 +1073,6 @@ static int acpi_nfit_blk_single_io(struct nfit_blk *nfit_blk,
- 
- 	base_offset = nfit_blk->bdw_offset + dpa % L1_CACHE_BYTES
- 		+ lane * mmio->size;
--	/* TODO: non-temporal access, flush hints, cache management etc... */
- 	write_blk_ctl(nfit_blk, lane, dpa, len, rw);
- 	while (len) {
- 		unsigned int c;
-@@ -1045,13 +1091,19 @@ static int acpi_nfit_blk_single_io(struct nfit_blk *nfit_blk,
- 		}
- 
- 		if (rw)
--			memcpy(mmio->aperture + offset, iobuf + copied, c);
-+			memcpy_to_pmem(mmio->aperture + offset,
-+					iobuf + copied, c);
- 		else
--			memcpy(iobuf + copied, mmio->aperture + offset, c);
-+			memcpy_from_pmem(iobuf + copied,
-+					mmio->aperture + offset, c);
- 
- 		copied += c;
- 		len -= c;
- 	}
-+
-+	if (rw)
-+		wmb_blk(nfit_blk);
-+
- 	rc = read_blk_stat(nfit_blk, lane) ? -EIO : 0;
- 	return rc;
- }
-@@ -1124,7 +1176,7 @@ static void nfit_spa_unmap(struct acpi_nfit_desc *acpi_desc,
- }
- 
- static void __iomem *__nfit_spa_map(struct acpi_nfit_desc *acpi_desc,
--		struct acpi_nfit_system_address *spa)
-+		struct acpi_nfit_system_address *spa, enum spa_map_type type)
- {
- 	resource_size_t start = spa->address;
- 	resource_size_t n = spa->length;
-@@ -1152,8 +1204,15 @@ static void __iomem *__nfit_spa_map(struct acpi_nfit_desc *acpi_desc,
- 	if (!res)
- 		goto err_mem;
- 
--	/* TODO: cacheability based on the spa type */
--	spa_map->iomem = ioremap_nocache(start, n);
-+	if (type == SPA_MAP_APERTURE) {
-+		/*
-+		 * TODO: memremap_pmem() support, but that requires cache
-+		 * flushing when the aperture is moved.
-+		 */
-+		spa_map->iomem = ioremap_wc(start, n);
-+	} else
-+		spa_map->iomem = ioremap_nocache(start, n);
-+
- 	if (!spa_map->iomem)
- 		goto err_map;
- 
-@@ -1171,6 +1230,7 @@ static void __iomem *__nfit_spa_map(struct acpi_nfit_desc *acpi_desc,
-  * nfit_spa_map - interleave-aware managed-mappings of acpi_nfit_system_address ranges
-  * @nvdimm_bus: NFIT-bus that provided the spa table entry
-  * @nfit_spa: spa table to map
-+ * @type: aperture or control region
-  *
-  * In the case where block-data-window apertures and
-  * dimm-control-regions are interleaved they will end up sharing a
-@@ -1180,12 +1240,12 @@ static void __iomem *__nfit_spa_map(struct acpi_nfit_desc *acpi_desc,
-  * unbound.
-  */
- static void __iomem *nfit_spa_map(struct acpi_nfit_desc *acpi_desc,
--		struct acpi_nfit_system_address *spa)
-+		struct acpi_nfit_system_address *spa, enum spa_map_type type)
- {
- 	void __iomem *iomem;
- 
- 	mutex_lock(&acpi_desc->spa_map_mutex);
--	iomem = __nfit_spa_map(acpi_desc, spa);
-+	iomem = __nfit_spa_map(acpi_desc, spa, type);
- 	mutex_unlock(&acpi_desc->spa_map_mutex);
- 
- 	return iomem;
-@@ -1212,6 +1272,7 @@ static int acpi_nfit_blk_region_enable(struct nvdimm_bus *nvdimm_bus,
- 	struct nvdimm_bus_descriptor *nd_desc = to_nd_desc(nvdimm_bus);
- 	struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
- 	struct nd_blk_region *ndbr = to_nd_blk_region(dev);
-+	struct nfit_flush *nfit_flush;
- 	struct nfit_blk_mmio *mmio;
- 	struct nfit_blk *nfit_blk;
- 	struct nfit_mem *nfit_mem;
-@@ -1237,7 +1298,8 @@ static int acpi_nfit_blk_region_enable(struct nvdimm_bus *nvdimm_bus,
- 	/* map block aperture memory */
- 	nfit_blk->bdw_offset = nfit_mem->bdw->offset;
- 	mmio = &nfit_blk->mmio[BDW];
--	mmio->base = nfit_spa_map(acpi_desc, nfit_mem->spa_bdw);
-+	mmio->base = nfit_spa_map(acpi_desc, nfit_mem->spa_bdw,
-+			SPA_MAP_APERTURE);
- 	if (!mmio->base) {
- 		dev_dbg(dev, "%s: %s failed to map bdw\n", __func__,
- 				nvdimm_name(nvdimm));
-@@ -1259,7 +1321,8 @@ static int acpi_nfit_blk_region_enable(struct nvdimm_bus *nvdimm_bus,
- 	nfit_blk->cmd_offset = nfit_mem->dcr->command_offset;
- 	nfit_blk->stat_offset = nfit_mem->dcr->status_offset;
- 	mmio = &nfit_blk->mmio[DCR];
--	mmio->base = nfit_spa_map(acpi_desc, nfit_mem->spa_dcr);
-+	mmio->base = nfit_spa_map(acpi_desc, nfit_mem->spa_dcr,
-+			SPA_MAP_CONTROL);
- 	if (!mmio->base) {
- 		dev_dbg(dev, "%s: %s failed to map dcr\n", __func__,
- 				nvdimm_name(nvdimm));
-@@ -1277,6 +1340,17 @@ static int acpi_nfit_blk_region_enable(struct nvdimm_bus *nvdimm_bus,
- 		return rc;
- 	}
- 
-+	nfit_flush = nfit_mem->nfit_flush;
-+	if (nfit_flush && nfit_flush->flush->hint_count != 0) {
-+		nfit_blk->nvdimm_flush = devm_ioremap_nocache(dev,
-+				nfit_flush->flush->hint_address[0], 8);
-+		if (!nfit_blk->nvdimm_flush)
-+			return -ENOMEM;
-+	}
-+
-+	if (!arch_has_pmem_api() && !nfit_blk->nvdimm_flush)
-+		dev_warn(dev, "unable to guarantee persistence of writes\n");
-+
- 	if (mmio->line_size == 0)
- 		return 0;
- 
-@@ -1459,6 +1533,7 @@ int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, acpi_size sz)
- 	INIT_LIST_HEAD(&acpi_desc->dcrs);
- 	INIT_LIST_HEAD(&acpi_desc->bdws);
- 	INIT_LIST_HEAD(&acpi_desc->idts);
-+	INIT_LIST_HEAD(&acpi_desc->flushes);
- 	INIT_LIST_HEAD(&acpi_desc->memdevs);
- 	INIT_LIST_HEAD(&acpi_desc->dimms);
- 	mutex_init(&acpi_desc->spa_map_mutex);
-diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
-index 81f2e8c5a79c..815cb561cdba 100644
---- a/drivers/acpi/nfit.h
-+++ b/drivers/acpi/nfit.h
-@@ -60,6 +60,11 @@ struct nfit_idt {
- 	struct list_head list;
- };
- 
-+struct nfit_flush {
-+	struct acpi_nfit_flush_address *flush;
-+	struct list_head list;
-+};
-+
- struct nfit_memdev {
- 	struct acpi_nfit_memory_map *memdev;
- 	struct list_head list;
-@@ -77,6 +82,7 @@ struct nfit_mem {
- 	struct acpi_nfit_system_address *spa_bdw;
- 	struct acpi_nfit_interleave *idt_dcr;
- 	struct acpi_nfit_interleave *idt_bdw;
-+	struct nfit_flush *nfit_flush;
- 	struct list_head list;
- 	struct acpi_device *adev;
- 	unsigned long dsm_mask;
-@@ -88,6 +94,7 @@ struct acpi_nfit_desc {
- 	struct mutex spa_map_mutex;
- 	struct list_head spa_maps;
- 	struct list_head memdevs;
-+	struct list_head flushes;
- 	struct list_head dimms;
- 	struct list_head spas;
- 	struct list_head dcrs;
-@@ -109,7 +116,7 @@ struct nfit_blk {
- 	struct nfit_blk_mmio {
- 		union {
- 			void __iomem *base;
--			void *aperture;
-+			void __pmem  *aperture;
- 		};
- 		u64 size;
- 		u64 base_offset;
-@@ -123,6 +130,12 @@ struct nfit_blk {
- 	u64 bdw_offset; /* post interleave offset */
- 	u64 stat_offset;
- 	u64 cmd_offset;
-+	void __iomem *nvdimm_flush;
-+};
-+
-+enum spa_map_type {
-+	SPA_MAP_CONTROL,
-+	SPA_MAP_APERTURE,
- };
- 
- struct nfit_spa_mapping {
+SGkgTGludXMsIHBsZWFzZSBwdWxsIGZyb206DQoNCiAgZ2l0Oi8vZ2l0Lmtlcm5lbC5vcmcvcHVi
+L3NjbS9saW51eC9rZXJuZWwvZ2l0L2RqYncvbnZkaW1tIGxpYm52ZGltbS1maXhlcw0KDQouLi50
+byByZWNlaXZlOg0KDQoxLyBGaXhlcyBmb3IgYSBoYW5kZnVsIG9mIHNtYXRjaCByZXBvcnRzIChU
+aGFua3MgRGFuIEMuISkgYW5kIG1pbm9yDQogICBidWcgZml4ZXMgKHBhdGNoZXMgMS02KQ0KDQoy
+LyBDb3JyZWN0bmVzcyBmaXhlcyB0byB0aGUgQkxLLW1vZGUgbnZkaW1tIGRyaXZlciAocGF0Y2hl
+cyA3LTEwKS4NCiAgIEdyYW50ZWQgdGhlc2UgYXJlIHNsaWdodGx5IGxhcmdlIGZvciBhIC1yYyB1
+cGRhdGUuICBUaGV5IGhhdmUgYmVlbg0KICAgb3V0IGZvciByZXZpZXcgaW4gb25lIGZvcm0gb3Ig
+YW5vdGhlciBzaW5jZSB0aGUgZW5kIG9mIE1heSBhbmQgd2VyZQ0KICAgZGVmZXJyZWQgZnJvbSB0
+aGUgbWVyZ2Ugd2luZG93IHdoaWxlIHdlIHNldHRsZWQgb24gdGhlICJQTUVNIEFQSSIgZm9yDQog
+ICB0aGUgUE1FTS1tb2RlIG52ZGltbSBkcml2ZXIgKGkuZS4gbWVtcmVtYXBfcG1lbSwgbWVtY3B5
+X3RvX3BtZW0sIGFuZA0KICAgd21iX3BtZW0pLiAgTm93IHRoYXQgdGhvc2UgYXBpcyBhcmUgbWVy
+Z2VkIHdlIGltcGxlbWVudCB0aGVtIGluIHRoZQ0KICAgQkxLIGRyaXZlciB0byBndWFyYW50ZWUg
+dGhhdCBtbWlvIGFwZXJ0dXJlIG1vdmVzIHN0YXkgb3JkZXJlZCB3aXRoDQogICByZXNwZWN0IHRv
+IGluY29taW5nIHJlYWQvd3JpdGUgcmVxdWVzdHMsIGFuZCB0aGF0IHdyaXRlcyBhcmUgZmx1c2hl
+ZA0KICAgdGhyb3VnaCB0aG9zZSBtbWlvLXdpbmRvd3MgYW5kIHBsYXRmb3JtLWJ1ZmZlcnMgdG8g
+YmUgcGVyc2lzdGVudCBvbg0KICAgbWVkaWEuDQoNClRoZXNlIHBhc3MgdGhlIHN1Yi1zeXN0ZW0g
+dW5pdCB0ZXN0cyB3aXRoIHRoZSB1cGRhdGVzIHRvDQp0b29scy90ZXN0aW5nL252ZGltbSwgYW5k
+IGhhdmUgcmVjZWl2ZWQgYSBzdWNjZXNzZnVsIGJ1aWxkLXJlcG9ydCBmcm9tDQp0aGUga2J1aWxk
+IHJvYm90ICg0NjggY29uZmlncykuICBGdWxsIGdpdCBsb2cgYmVsb3cgd2l0aCBhY2tzIGZyb20N
+ClJhZmFlbCBmb3IgdGhlIHRvdWNoZXMgdG8gZHJpdmVycy9hY3BpLy4NCg0KW1BBVENIIDAxLzEw
+XSBzcGFyc2U6IGZpeCBtaXNwbGFjZWQgX19wbWVtIGRlZmluaXRpb24NCltQQVRDSCAwMi8xMF0g
+bGlibnZkaW1tOiBzbWF0Y2ggY2xlYW51cHMgaW4gX19uZF9pb2N0bA0KW1BBVENIIDAzLzEwXSBu
+dmRpbW06IEZpeCByZXR1cm4gdmFsdWUgb2YgbnZkaW1tX2J1c19pbml0KCkgaWYgY2xhc3NfY3Jl
+YXRlKCkgZmFpbHMNCltQQVRDSCAwNC8xMF0gbmZpdDogZml4IHNtYXRjaCAidXNlIGFmdGVyIG51
+bGwgY2hlY2siIHJlcG9ydA0KW1BBVENIIDA1LzEwXSBwbWVtOiBhZGQgbWFpbnRhaW5lciBmb3Ig
+aW5jbHVkZS9saW51eC9wbWVtLmgNCltQQVRDSCAwNi8xMF0gdG9vbHMvdGVzdGluZy9udmRpbW06
+IG1vY2sgaW9yZW1hcF93dA0KW1BBVENIIDA3LzEwXSB0b29scy90ZXN0aW5nL252ZGltbTogZml4
+IHJldHVybiBjb2RlIGZvciB1bmltcGxlbWVudGVkIGNvbW1hbmRzDQpbUEFUQ0ggMDgvMTBdIHRv
+b2xzL3Rlc3RpbmcvbnZkaW1tOiBhZGQgbW9jayBhY3BpX25maXRfZmx1c2hfYWRkcmVzcyBlbnRy
+aWVzIHRvIG5maXRfdGVzdA0KW1BBVENIIDA5LzEwXSBuZml0OiB1cGRhdGUgYmxvY2sgSS9PIHBh
+dGggdG8gdXNlIFBNRU0gQVBJDQpbUEFUQ0ggMTAvMTBdIG5maXQ6IGFkZCBzdXBwb3J0IGZvciBO
+VkRJTU0gImxhdGNoIiBmbGFnDQoNClRoZSBmb2xsb3dpbmcgY2hhbmdlcyBzaW5jZSBjb21taXQg
+ODg3OTNlNWM3NzRlYzY5MzUxZWY2YjUyMDBiYjU5ZjUzMmU0MWJjYToNCg0KICBNZXJnZSB0YWcg
+J2xpYm52ZGltbS1mb3ItNC4yJyBvZiBnaXQ6Ly9naXQua2VybmVsLm9yZy9wdWIvc2NtL2xpbnV4
+L2tlcm5lbC9naXQvZGpidy9udmRpbW0gKDIwMTUtMDYtMjkgMTA6MzQ6NDIgLTA3MDApDQoNCmFy
+ZSBhdmFpbGFibGUgaW4gdGhlIGdpdCByZXBvc2l0b3J5IGF0Og0KDQogIGdpdDovL2dpdC5rZXJu
+ZWwub3JnL3B1Yi9zY20vbGludXgva2VybmVsL2dpdC9kamJ3L252ZGltbSBsaWJudmRpbW0tZml4
+ZXMNCg0KZm9yIHlvdSB0byBmZXRjaCBjaGFuZ2VzIHVwIHRvIGYwZjJjMDcyY2Y1MzBkNWI4ODkw
+YmU1MDUxY2M4YjM2YjBjNTRjY2U6DQoNCiAgbmZpdDogYWRkIHN1cHBvcnQgZm9yIE5WRElNTSAi
+bGF0Y2giIGZsYWcgKDIwMTUtMDctMTAgMTQ6NDM6NTAgLTA0MDApDQoNCi0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0NCkF4ZWwg
+TGluICgxKToNCiAgICAgIG52ZGltbTogRml4IHJldHVybiB2YWx1ZSBvZiBudmRpbW1fYnVzX2lu
+aXQoKSBpZiBjbGFzc19jcmVhdGUoKSBmYWlscw0KDQpEYW4gV2lsbGlhbXMgKDYpOg0KICAgICAg
+c3BhcnNlOiBmaXggbWlzcGxhY2VkIF9fcG1lbSBkZWZpbml0aW9uDQogICAgICBsaWJudmRpbW06
+IHNtYXRjaCBjbGVhbnVwcyBpbiBfX25kX2lvY3RsDQogICAgICBuZml0OiBmaXggc21hdGNoICJ1
+c2UgYWZ0ZXIgbnVsbCBjaGVjayIgcmVwb3J0DQogICAgICB0b29scy90ZXN0aW5nL252ZGltbTog
+bW9jayBpb3JlbWFwX3d0DQogICAgICB0b29scy90ZXN0aW5nL252ZGltbTogZml4IHJldHVybiBj
+b2RlIGZvciB1bmltcGxlbWVudGVkIGNvbW1hbmRzDQogICAgICB0b29scy90ZXN0aW5nL252ZGlt
+bTogYWRkIG1vY2sgYWNwaV9uZml0X2ZsdXNoX2FkZHJlc3MgZW50cmllcyB0byBuZml0X3Rlc3QN
+Cg0KUm9zcyBad2lzbGVyICgzKToNCiAgICAgIHBtZW06IGFkZCBtYWludGFpbmVyIGZvciBpbmNs
+dWRlL2xpbnV4L3BtZW0uaA0KICAgICAgbmZpdDogdXBkYXRlIGJsb2NrIEkvTyBwYXRoIHRvIHVz
+ZSBQTUVNIEFQSQ0KICAgICAgbmZpdDogYWRkIHN1cHBvcnQgZm9yIE5WRElNTSAibGF0Y2giIGZs
+YWcNCg0KIE1BSU5UQUlORVJTICAgICAgICAgICAgICAgICAgICAgICB8ICAgMSArDQogZHJpdmVy
+cy9hY3BpL25maXQuYyAgICAgICAgICAgICAgIHwgMTM0ICsrKysrKysrKysrKysrKysrKysrKysr
+KysrKysrKysrKystLS0tDQogZHJpdmVycy9hY3BpL25maXQuaCAgICAgICAgICAgICAgIHwgIDIw
+ICsrKysrLQ0KIGRyaXZlcnMvbnZkaW1tL2J1cy5jICAgICAgICAgICAgICB8ICAxMSArLS0tDQog
+aW5jbHVkZS9saW51eC9jb21waWxlci5oICAgICAgICAgIHwgICAyICstDQogdG9vbHMvdGVzdGlu
+Zy9udmRpbW0vS2J1aWxkICAgICAgIHwgICAzICsNCiB0b29scy90ZXN0aW5nL252ZGltbS90ZXN0
+L2lvbWFwLmMgfCAgMjcgKysrKysrKysNCiB0b29scy90ZXN0aW5nL252ZGltbS90ZXN0L25maXQu
+YyAgfCAgNTIgKysrKysrKysrKysrKystDQogOCBmaWxlcyBjaGFuZ2VkLCAyMjMgaW5zZXJ0aW9u
+cygrKSwgMjcgZGVsZXRpb25zKC0pDQoNCg0KY29tbWl0IDMxZjAyNDU1NDU1ZDQwNTMyMGUyZjc0
+OTY5NmJlZjRlMDI5MDNiMzUNCkF1dGhvcjogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0Bp
+bnRlbC5jb20+DQpEYXRlOiAgIFR1ZSBKdW4gMzAgMTI6MDc6MTcgMjAxNSAtMDQwMA0KDQogICAg
+c3BhcnNlOiBmaXggbWlzcGxhY2VkIF9fcG1lbSBkZWZpbml0aW9uDQogICAgDQogICAgTW92ZSB0
+aGUgZGVmaW5pdGlvbiBvZiBfX3BtZW0gb3V0c2lkZSBvZiBDT05GSUdfU1BBUlNFX1JDVV9QT0lO
+VEVSIHRvIGZpeDoNCiAgICANCiAgICBkcml2ZXJzL252ZGltbS9wbWVtLmM6MTk4OjE3OiBzcGFy
+c2U6IHRvbyBtYW55IGFyZ3VtZW50cyBmb3IgZnVuY3Rpb24gX19idWlsdGluX2V4cGVjdA0KICAg
+IGRyaXZlcnMvbnZkaW1tL3BtZW0uYzozNjozMzogc3BhcnNlOiBleHBlY3RlZCA7IGF0IGVuZCBv
+ZiBkZWNsYXJhdGlvbg0KICAgIGRyaXZlcnMvbnZkaW1tL3BtZW0uYzo0ODoyMTogc3BhcnNlOiB2
+b2lkIGRlY2xhcmF0aW9uDQogICAgDQogICAgLi4uZHVlIHRvIF9fcG1lbSBmYWlsaW5nIHRvIGJl
+IGRlZmluZWQgaW4gc29tZSBjb25maWd1cmF0aW9ucyB3aGVuDQogICAgQ09ORklHX1NQQVJTRV9S
+Q1VfUE9JTlRFUj15Lg0KICAgIA0KICAgIFJlcG9ydGVkLWJ5OiBrYnVpbGQgdGVzdCByb2JvdCA8
+ZmVuZ2d1YW5nLnd1QGludGVsLmNvbT4NCiAgICBSZXBvcnRlZC1ieTogRGFuIENhcnBlbnRlciA8
+ZGFuLmNhcnBlbnRlckBvcmFjbGUuY29tPg0KICAgIFNpZ25lZC1vZmYtYnk6IERhbiBXaWxsaWFt
+cyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPg0KDQpjb21taXQgYWY4MzRkNDU3ZDllZDY5ZTE0
+ODM2YjYzZDBkYTE5OGZkZDJlYzcwNg0KQXV0aG9yOiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxp
+YW1zQGludGVsLmNvbT4NCkRhdGU6ICAgVHVlIEp1biAzMCAxNDoxMDowOSAyMDE1IC0wNDAwDQoN
+CiAgICBsaWJudmRpbW06IHNtYXRjaCBjbGVhbnVwcyBpbiBfX25kX2lvY3RsDQogICAgDQogICAg
+RHJvcCB1c2Ugb2YgYWNjZXNzX29rKCkgc2luY2Ugd2UgYXJlIGFscmVhZHkgdXNpbmcgY29weV97
+dG98ZnJvbX1fdXNlcigpDQogICAgd2hpY2ggZG8gdGhlaXIgb3duIGFjY2Vzc19vaygpLg0KICAg
+IA0KICAgIFJlcG9ydGVkLWJ5OiBEYW4gQ2FycGVudGVyIDxkYW4uY2FycGVudGVyQG9yYWNsZS5j
+b20+DQogICAgU2lnbmVkLW9mZi1ieTogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRl
+bC5jb20+DQoNCmNvbW1pdCBkYWExZGVlNDA1ZDdkM2QzZTgxNmI4NGE2OTJlODM4YTU2NDdhMDJh
+DQpBdXRob3I6IEF4ZWwgTGluIDxheGVsLmxpbkBpbmdpY3MuY29tPg0KRGF0ZTogICBTdW4gSnVu
+IDI4IDE3OjAwOjU3IDIwMTUgKzA4MDANCg0KICAgIG52ZGltbTogRml4IHJldHVybiB2YWx1ZSBv
+ZiBudmRpbW1fYnVzX2luaXQoKSBpZiBjbGFzc19jcmVhdGUoKSBmYWlscw0KICAgIA0KICAgIFJl
+dHVybiBwcm9wZXIgZXJyb3IgaWYgY2xhc3NfY3JlYXRlKCkgZmFpbHMuDQogICAgDQogICAgU2ln
+bmVkLW9mZi1ieTogQXhlbCBMaW4gPGF4ZWwubGluQGluZ2ljcy5jb20+DQogICAgU2lnbmVkLW9m
+Zi1ieTogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+DQoNCmNvbW1pdCAx
+OTNjY2NhNDM4NTBkMjM1NWU3NjkwYTkzYWI5ZDdkNzhkMzhmOTA1DQpBdXRob3I6IERhbiBXaWxs
+aWFtcyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPg0KRGF0ZTogICBUdWUgSnVuIDMwIDE2OjA5
+OjM5IDIwMTUgLTA0MDANCg0KICAgIG5maXQ6IGZpeCBzbWF0Y2ggInVzZSBhZnRlciBudWxsIGNo
+ZWNrIiByZXBvcnQNCiAgICANCiAgICBkcml2ZXJzL2FjcGkvbmZpdC5jOjEyMjQgYWNwaV9uZml0
+X2Jsa19yZWdpb25fZW5hYmxlKCkNCiAgICAgICAgICAgICBlcnJvcjogd2UgcHJldmlvdXNseSBh
+c3N1bWVkICduZml0X21lbScgY291bGQgYmUgbnVsbCAoc2VlIGxpbmUgMTIyMykNCiAgICANCiAg
+ICBkcml2ZXJzL2FjcGkvbmZpdC5jDQogICAgICAxMjIyICAgICAgICAgIG5maXRfbWVtID0gbnZk
+aW1tX3Byb3ZpZGVyX2RhdGEobnZkaW1tKTsNCiAgICAgIDEyMjMgICAgICAgICAgaWYgKCFuZml0
+X21lbSB8fCAhbmZpdF9tZW0tPmRjciB8fCAhbmZpdF9tZW0tPmJkdykgew0KICAgICAgICAgICAg
+ICAgICAgICAgICAgIF5eXl5eXl5eDQogICAgQ2hlY2suDQogICAgDQogICAgICAxMjI0ICAgICAg
+ICAgICAgICAgICAgZGV2X2RiZyhkZXYsICIlczogbWlzc2luZyVzJXMlc1xuIiwgX19mdW5jX18s
+DQogICAgICAxMjI1ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIG5maXRfbWVtID8g
+IiIgOiAiIG5maXRfbWVtIiwNCiAgICAgIDEyMjYgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgbmZpdF9tZW0tPmRjciA/ICIiIDogIiBkY3IiLA0KICAgICAgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICBeXl5eXl5eXl5eXl5eDQogICAgVW5jaGVja2VkIGRlcmVm
+ZXJlbmNlLg0KICAgIA0KICAgIFJlcG9ydGVkLWJ5OiBEYW4gQ2FycGVudGVyIDxkYW4uY2FycGVu
+dGVyQG9yYWNsZS5jb20+DQogICAgQWNrZWQtYnk6IFJvc3MgWndpc2xlciA8cm9zcy56d2lzbGVy
+QGxpbnV4LmludGVsLmNvbT4NCiAgICBTaWduZWQtb2ZmLWJ5OiBEYW4gV2lsbGlhbXMgPGRhbi5q
+LndpbGxpYW1zQGludGVsLmNvbT4NCg0KY29tbWl0IGI4NjRiYzE3ZjFjMzI2NzgzZjIzODgwNTdl
+MTVkM2UxNTMxMjVhYjkNCkF1dGhvcjogUm9zcyBad2lzbGVyIDxyb3NzLnp3aXNsZXJAbGludXgu
+aW50ZWwuY29tPg0KRGF0ZTogICBGcmkgSnVsIDEwIDExOjA2OjEwIDIwMTUgLTA2MDANCg0KICAg
+IHBtZW06IGFkZCBtYWludGFpbmVyIGZvciBpbmNsdWRlL2xpbnV4L3BtZW0uaA0KICAgIA0KICAg
+IFRoZSBmaWxlIGluY2x1ZGUvbGludXgvcG1lbS5oIHdhcyByZWNlbnRseSBjcmVhdGVkIHRvIGhv
+bGQgdGhlIFBNRU0gQVBJLA0KICAgIGFuZCBpcyBsb2dpY2FsbHkgcGFydCBvZiB0aGUgUE1FTSBk
+cml2ZXIuICBBZGQgYW4gZW50cnkgZm9yIHRoaXMgZmlsZSB0bw0KICAgIE1BSU5UQUlORVJTLg0K
+ICAgIA0KICAgIFNpZ25lZC1vZmYtYnk6IFJvc3MgWndpc2xlciA8cm9zcy56d2lzbGVyQGxpbnV4
+LmludGVsLmNvbT4NCiAgICBTaWduZWQtb2ZmLWJ5OiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxp
+YW1zQGludGVsLmNvbT4NCg0KY29tbWl0IGIxYjJlNjIzNWE0NDE3NDE1MWZhM2JiMjI2NTdmNzQ5
+NzI2MzU2MTgNCkF1dGhvcjogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+
+DQpEYXRlOiAgIEZyaSBKdWwgMTAgMTE6MDY6MTEgMjAxNSAtMDYwMA0KDQogICAgdG9vbHMvdGVz
+dGluZy9udmRpbW06IG1vY2sgaW9yZW1hcF93dA0KICAgIA0KICAgIEluIHRoZSA0LjItcmMxIG1l
+cmdlIHRoZSBkZWZhdWx0X21lbXJlbWFwX3BtZW0oKSBpbXBsZW1lbnRhdGlvbiBzd2l0Y2hlZA0K
+ICAgIGZyb20gaW9yZW1hcF9ub2NhY2hlKCkgdG8gaW9yZW1hcF93dCgpLiAgQWRkIGl0IHRvIHRo
+ZSBsaXN0IG9mIG1vY2tlZA0KICAgIHJvdXRpbmVzIHRvIHJlc3RvcmUgdGhlIGFiaWxpdHkgdG8g
+cnVuIHRoZSB1bml0IHRlc3RzLg0KICAgIA0KICAgIFNpZ25lZC1vZmYtYnk6IERhbiBXaWxsaWFt
+cyA8ZGFuLmoud2lsbGlhbXNAaW50ZWwuY29tPg0KDQpjb21taXQgZjdlYzgzNjg0YWYwMjBjOTYx
+ZDdmYWI4MDFmOGUzZWY3Y2U1ZGUzMw0KQXV0aG9yOiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxp
+YW1zQGludGVsLmNvbT4NCkRhdGU6ICAgRnJpIEp1bCAxMCAxMTowNjoxMiAyMDE1IC0wNjAwDQoN
+CiAgICB0b29scy90ZXN0aW5nL252ZGltbTogZml4IHJldHVybiBjb2RlIGZvciB1bmltcGxlbWVu
+dGVkIGNvbW1hbmRzDQogICAgDQogICAgVGhlIGltcGxlbWVudGF0aW9uIGZvciB0aGUgbmV3ICJE
+SU1NIEZsYWdzIiBEU00gcmVsaWVzIG9uIHRoZSAtRU5PVFRZDQogICAgcmV0dXJuIGNvZGUgdG8g
+aW5kaWNhdGUgdGhhdCB0aGUgZmxhZ3MgYXJlIHVuaW1wbGltZW50ZWQgYW5kIHRvIGZhbGwNCiAg
+ICBiYWNrIHRvIGEgc2FmZSBkZWZhdWx0LiAgQXMgaXMgdGhlIC1FTlhJTyBlcnJvciBjb2RlIGVy
+cm9uZW9vdXNseQ0KICAgIGluZGljYXRlcyB0byBmYWlsIGVuYWJsaW5nIGEgQkxLIHJlZ2lvbi4N
+CiAgICANCiAgICBTaWduZWQtb2ZmLWJ5OiBEYW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGlu
+dGVsLmNvbT4NCg0KY29tbWl0IDlkMjdhODdlYzllMTMxN2QzNjhiMWU1ZTNmNDgwODA3OGJhYThj
+NGMNCkF1dGhvcjogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+DQpEYXRl
+OiAgIEZyaSBKdWwgMTAgMTQ6MDc6MDMgMjAxNSAtMDQwMA0KDQogICAgdG9vbHMvdGVzdGluZy9u
+dmRpbW06IGFkZCBtb2NrIGFjcGlfbmZpdF9mbHVzaF9hZGRyZXNzIGVudHJpZXMgdG8gbmZpdF90
+ZXN0DQogICAgDQogICAgSW4gcHJlcGFyYXRpb24gZm9yIGZpeGluZyB0aGUgQkxLIHBhdGggdG8g
+cHJvcGVybHkgdXNlICJkaXJlY3RlZA0KICAgIHBjb21taXQiIGVuYWJsZSB0aGUgdW5pdCB0ZXN0
+IGluZnJhc3RydWN0dXJlIHRvIGVtaXQgbW9jayAiZmx1c2giDQogICAgdGFibGVzLiAgV3JpdGVz
+IHRvIHRoZXNlIGZsdXNoIGFkZHJlc3NlcyB0cmlnZ2VyIGEgbWVtb3J5IGNvbnRyb2xsZXIgdG8N
+CiAgICBmbHVzaCBpdHMgaW50ZXJuYWwgYnVmZmVycyB0byBwZXJzaXN0ZW50IG1lZGlhLCBzaW1p
+bGFyIHRvIHRoZSB4ODYNCiAgICAicGNvbW1pdCIgaW5zdHJ1Y3Rpb24uDQogICAgDQogICAgU2ln
+bmVkLW9mZi1ieTogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+DQoNCmNv
+bW1pdCBjMmFkMjk1NDBjYjkxM2JkOWU1MjZmYWU3N2MzNWM3ZmI0NWYyNGEzDQpBdXRob3I6IFJv
+c3MgWndpc2xlciA8cm9zcy56d2lzbGVyQGxpbnV4LmludGVsLmNvbT4NCkRhdGU6ICAgRnJpIEp1
+bCAxMCAxMTowNjoxMyAyMDE1IC0wNjAwDQoNCiAgICBuZml0OiB1cGRhdGUgYmxvY2sgSS9PIHBh
+dGggdG8gdXNlIFBNRU0gQVBJDQogICAgDQogICAgVXBkYXRlIHRoZSBuZml0IGJsb2NrIEkvTyBw
+YXRoIHRvIHVzZSB0aGUgbmV3IFBNRU0gQVBJIGFuZCB0byBhZGhlcmUgdG8NCiAgICB0aGUgcmVh
+ZC93cml0ZSBmbG93cyBvdXRsaW5lZCBpbiB0aGUgIk5WRElNTSBCbG9jayBXaW5kb3cgRHJpdmVy
+DQogICAgV3JpdGVyJ3MgR3VpZGUiOg0KICAgIA0KICAgIGh0dHA6Ly9wbWVtLmlvL2RvY3VtZW50
+cy9OVkRJTU1fRHJpdmVyX1dyaXRlcnNfR3VpZGUucGRmDQogICAgDQogICAgVGhpcyBpbmNsdWRl
+cyBhZGRpbmcgc3VwcG9ydCBmb3IgdGFyZ2V0ZWQgTlZESU1NIGZsdXNoZXMgY2FsbGVkICJmbHVz
+aA0KICAgIGhpbnRzIiBpbiB0aGUgQUNQSSA2LjAgc3BlY2lmaWNhdGlvbjoNCiAgICANCiAgICBo
+dHRwOi8vd3d3LnVlZmkub3JnL3NpdGVzL2RlZmF1bHQvZmlsZXMvcmVzb3VyY2VzL0FDUElfNi4w
+LnBkZg0KICAgIA0KICAgIEZvciBwZXJmb3JtYW5jZSBhbmQgbWVkaWEgZHVyYWJpbGl0eSB0aGUg
+bWFwcGluZyBmb3IgYSBCTEsgYXBlcnR1cmUgaXMNCiAgICBtb3ZlZCB0byBhIHdyaXRlLWNvbWJp
+bmluZyBtYXBwaW5nIHdoaWNoIGlzIGNvbnNpc3RlbnQgd2l0aA0KICAgIG1lbWNweV90b19wbWVt
+KCkgYW5kIHdtYl9ibGsoKS4NCiAgICANCiAgICBTaWduZWQtb2ZmLWJ5OiBSb3NzIFp3aXNsZXIg
+PHJvc3Muendpc2xlckBsaW51eC5pbnRlbC5jb20+DQogICAgQWNrZWQtYnk6IFJhZmFlbCBKLiBX
+eXNvY2tpIDxyYWZhZWwuai53eXNvY2tpQGludGVsLmNvbT4NCiAgICBTaWduZWQtb2ZmLWJ5OiBE
+YW4gV2lsbGlhbXMgPGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4NCg0KY29tbWl0IGYwZjJjMDcy
+Y2Y1MzBkNWI4ODkwYmU1MDUxY2M4YjM2YjBjNTRjY2UNCkF1dGhvcjogUm9zcyBad2lzbGVyIDxy
+b3NzLnp3aXNsZXJAbGludXguaW50ZWwuY29tPg0KRGF0ZTogICBGcmkgSnVsIDEwIDExOjA2OjE0
+IDIwMTUgLTA2MDANCg0KICAgIG5maXQ6IGFkZCBzdXBwb3J0IGZvciBOVkRJTU0gImxhdGNoIiBm
+bGFnDQogICAgDQogICAgQWRkIHN1cHBvcnQgaW4gdGhlIE5GSVQgQkxLIEkvTyBwYXRoIGZvciB0
+aGUgImxhdGNoIiBmbGFnDQogICAgZGVmaW5lZCBpbiB0aGUgIkdldCBCbG9jayBOVkRJTU0gRmxh
+Z3MiIF9EU00gZnVuY3Rpb246DQogICAgDQogICAgaHR0cDovL3BtZW0uaW8vZG9jdW1lbnRzL05W
+RElNTV9EU01fSW50ZXJmYWNlX0V4YW1wbGUucGRmDQogICAgDQogICAgVGhpcyBmbGFnIHJlcXVp
+cmVzIHRoZSBkcml2ZXIgdG8gcmVhZCBiYWNrIHRoZSBjb21tYW5kIHJlZ2lzdGVyIGFmdGVyIGl0
+DQogICAgaXMgd3JpdHRlbiBpbiB0aGUgYmxvY2sgSS9PIHBhdGguICBUaGlzIGVuc3VyZXMgdGhh
+dCB0aGUgaGFyZHdhcmUgaGFzDQogICAgZnVsbHkgcHJvY2Vzc2VkIHRoZSBuZXcgY29tbWFuZCBh
+bmQgbW92ZWQgdGhlIGFwZXJ0dXJlIGFwcHJvcHJpYXRlbHkuDQogICAgDQogICAgU2lnbmVkLW9m
+Zi1ieTogUm9zcyBad2lzbGVyIDxyb3NzLnp3aXNsZXJAbGludXguaW50ZWwuY29tPg0KICAgIEFj
+a2VkLWJ5OiBSYWZhZWwgSi4gV3lzb2NraSA8cmFmYWVsLmoud3lzb2NraUBpbnRlbC5jb20+DQog
+ICAgU2lnbmVkLW9mZi1ieTogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+
+DQoNCg0K
