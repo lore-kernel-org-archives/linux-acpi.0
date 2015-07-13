@@ -1,7 +1,7 @@
 From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Subject: [RFCv2 PATCH 6/8] gic: acpi: Introduce GIC MSI frame handle and helper functions
-Date: Mon, 13 Jul 2015 16:14:22 +0700
-Message-ID: <1436778864-17645-7-git-send-email-Suravee.Suthikulpanit@amd.com>
+Subject: [RFCv2 PATCH 8/8] pci: acpi: Bind GICv2m MSI frame to PCI host bridge
+Date: Mon, 13 Jul 2015 16:14:24 +0700
+Message-ID: <1436778864-17645-9-git-send-email-Suravee.Suthikulpanit@amd.com>
 References: <1436778864-17645-1-git-send-email-Suravee.Suthikulpanit@amd.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,126 +12,108 @@ To: tglx@linutronix.de, marc.zyngier@arm.com, lorenzo.pieralisi@arm.com, hanjun.
 Cc: rjw@rjwysocki.net, al.stone@linaro.org, catalin.marinas@arm.com, will.deacon@arm.com, msalter@redhat.com, grant.likely@linaro.org, leo.duran@amd.com, sherry.hurwitz@amd.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 List-Id: linux-acpi@vger.kernel.org
 
-This patch introdues struct gic_msi_frame_handle, which can be used
-as a reference to GIC MSI frame in MADT. It also provides helper
-functions to help parsing and getting reference to each MSI frame.
-This avoids having to map and parse MADT multiple times.
+This patch introduces pci_set_phb_acpi_msi_domain(), which looks for
+GIC MSI frame and bind the corresponded GICv2m irq_domain to the
+PCI host-bridge.
 
 Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 ---
- drivers/irqchip/irq-gic-acpi.c       | 78 ++++++++++++++++++++++++++++++++++++
- include/linux/irqchip/arm-gic-acpi.h |  3 ++
- 2 files changed, 81 insertions(+)
+ drivers/pci/pci-acpi.c   | 35 +++++++++++++++++++++++++++++++++++
+ drivers/pci/probe.c      |  2 ++
+ include/linux/pci-acpi.h |  1 +
+ 3 files changed, 38 insertions(+)
 
-diff --git a/drivers/irqchip/irq-gic-acpi.c b/drivers/irqchip/irq-gic-acpi.c
-index f0772d9..6684a8f 100644
---- a/drivers/irqchip/irq-gic-acpi.c
-+++ b/drivers/irqchip/irq-gic-acpi.c
-@@ -16,6 +16,15 @@
- #include <linux/irqchip/arm-gic-acpi.h>
- #include <linux/irqchip/arm-gic-v3.h>
+diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+index 314a625..0da6b90 100644
+--- a/drivers/pci/pci-acpi.c
++++ b/drivers/pci/pci-acpi.c
+@@ -9,6 +9,7 @@
  
-+struct gic_msi_frame_handle {
-+	struct list_head list;
-+	struct acpi_madt_generic_msi_frame *frame;
-+};
-+
-+static LIST_HEAD(msi_frame_list);
-+
-+static int acpi_num_msi_frame;
-+
- /* GIC version presented in MADT GIC distributor structure */
- static u8 gic_version __initdata = ACPI_MADT_GIC_VERSION_NONE;
+ #include <linux/delay.h>
+ #include <linux/init.h>
++#include <linux/irqdomain.h>
+ #include <linux/pci.h>
+ #include <linux/pci_hotplug.h>
+ #include <linux/module.h>
+@@ -18,6 +19,10 @@
+ #include <linux/pm_qos.h>
+ #include "pci.h"
  
-@@ -141,6 +150,75 @@ static int __init acpi_gic_version_init(void)
- 	return 0;
- }
- 
-+static int __init
-+acpi_parse_madt_msi(struct acpi_subtable_header *header,
-+			const unsigned long end)
-+{
-+	struct gic_msi_frame_handle *ms;
-+	struct acpi_madt_generic_msi_frame *frame;
-+
-+	frame = (struct acpi_madt_generic_msi_frame *)header;
-+	if (BAD_MADT_ENTRY(frame, end))
-+		return -EINVAL;
-+
-+	ms = kzalloc(sizeof(struct gic_msi_frame_handle *), GFP_KERNEL);
-+	if (!ms)
-+		return -ENOMEM;
-+
-+	ms->frame = frame;
-+
-+	list_add(&ms->list, &msi_frame_list);
-+
-+	return 0;
-+}
-+
-+inline int acpi_get_num_msi_frames(void)
-+{
-+	return acpi_num_msi_frame;
-+}
-+
-+int __init acpi_madt_msi_frame_init(struct acpi_table_header *table)
-+{
-+	int ret = 0;
-+
-+	if (acpi_num_msi_frame > 0)
-+		return ret;
-+
-+	ret = acpi_parse_entries(ACPI_SIG_MADT,
-+				 sizeof(struct acpi_table_madt),
-+				 acpi_parse_madt_msi, table,
-+				 ACPI_MADT_TYPE_GENERIC_MSI_FRAME, 0);
-+	if (ret == 0) {
-+		pr_debug("No valid ACPI GIC MSI FRAME exist\n");
-+		return ret;
-+	}
-+
-+	acpi_num_msi_frame = ret;
-+	return 0;
-+}
-+
-+int acpi_get_msi_frame(int index, struct acpi_madt_generic_msi_frame **p)
-+{
-+	int i = 0;
-+	struct gic_msi_frame_handle *m;
-+
-+	if (index >= acpi_num_msi_frame)
-+		return -EINVAL;
-+
-+	list_for_each_entry(m, &msi_frame_list, list) {
-+		if (i == index)
-+			break;
-+		i++;
-+	}
-+
-+	if (i == acpi_num_msi_frame)
-+		return -EINVAL;
-+
-+	*p = m->frame;
-+	return  0;
-+}
-+
++#ifdef CONFIG_ARM_GIC_ACPI
++#include <linux/irqchip/arm-gic-acpi.h>
++#endif
 +
  /*
-  * This special acpi_table_id is the sentinel at the end of the
-  * acpi_table_id[] array of all irqchips. It is automatically placed at
-diff --git a/include/linux/irqchip/arm-gic-acpi.h b/include/linux/irqchip/arm-gic-acpi.h
-index 0d43f515..9fb3577 100644
---- a/include/linux/irqchip/arm-gic-acpi.h
-+++ b/include/linux/irqchip/arm-gic-acpi.h
-@@ -22,6 +22,9 @@
- #define ACPI_GICV3_DIST_MEM_SIZE	(SZ_64K)
+  * The UUID is defined in the PCI Firmware Specification available here:
+  * https://www.pcisig.com/members/downloads/pcifw_r3_1_13Dec10.pdf
+@@ -681,6 +686,36 @@ static bool pci_acpi_bus_match(struct device *dev)
+ 	return dev_is_pci(dev);
+ }
  
- u8 acpi_gic_version(void);
-+int acpi_madt_msi_frame_init(struct acpi_table_header *table);
-+int acpi_get_msi_frame(int index, struct acpi_madt_generic_msi_frame **p);
-+int acpi_get_num_msi_frames(void);
++#ifdef CONFIG_PCI_MSI
++void pci_set_phb_acpi_msi_domain(struct pci_bus *bus)
++{
++	int err;
++	struct irq_domain *d;
++	struct acpi_madt_generic_msi_frame *msi_frame;
++
++	/**
++	* Since ACPI 5.1 currently does not define
++	* a way to associate MSI frame ID to a device,
++	* we can only support single MSI frame (index 0)
++	* at the moment.
++	*/
++	err = acpi_get_msi_frame(0, &msi_frame);
++	if (err)
++		return;
++
++#ifdef CONFIG_GENERIC_MSI_IRQ_DOMAIN
++	d = irq_find_matching_host((struct device_node *)msi_frame,
++					DOMAIN_BUS_PCI_MSI);
++	if (!d) {
++		pr_debug("Fail to find domain for MSI\n");
++		return;
++	}
++
++	dev_set_msi_domain(&bus->dev, d);
++#endif /* CONFIG_GENERIC_MSI_IRQ_DOMAIN */
++}
++#endif /* CONFIG_PCI_MSI */
++
+ static struct acpi_bus_type acpi_pci_bus = {
+ 	.name = "PCI",
+ 	.match = pci_acpi_bus_match,
+diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+index f305b78..c93474f 100644
+--- a/drivers/pci/probe.c
++++ b/drivers/pci/probe.c
+@@ -12,6 +12,7 @@
+ #include <linux/module.h>
+ #include <linux/cpumask.h>
+ #include <linux/pci-aspm.h>
++#include <linux/pci-acpi.h>
+ #include <linux/acpi.h>
+ #include <linux/property.h>
+ #include <asm-generic/pci-bridge.h>
+@@ -683,6 +684,7 @@ static void pci_set_bus_speed(struct pci_bus *bus)
+ void __weak pcibios_set_host_bridge_msi_domain(struct pci_bus *bus)
+ {
+ 	pci_set_phb_of_msi_domain(bus);
++	pci_set_phb_acpi_msi_domain(bus);
+ }
  
- #endif /* CONFIG_ACPI */
- #endif /* ARM_GIC_ACPI_H_ */
+ static void pci_set_bus_msi_domain(struct pci_bus *bus)
+diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
+index a76cb6f..96a19c7 100644
+--- a/include/linux/pci-acpi.h
++++ b/include/linux/pci-acpi.h
+@@ -99,6 +99,7 @@ static inline void acpiphp_enumerate_slots(struct pci_bus *bus) { }
+ static inline void acpiphp_remove_slots(struct pci_bus *bus) { }
+ static inline void acpiphp_check_host_bridge(struct acpi_device *adev) { }
+ #endif
++void pci_set_phb_acpi_msi_domain(struct pci_bus *bus);
+ 
+ extern const u8 pci_acpi_dsm_uuid[];
+ #define DEVICE_LABEL_DSM	0x07
 -- 
 2.1.0
