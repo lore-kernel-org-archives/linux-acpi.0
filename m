@@ -1,50 +1,49 @@
-From: Konstantin Khlebnikov <koct9i@gmail.com>
-Subject: Re: [PATCH] acpi/apei: free lists of resources in einj and erst
-Date: Mon, 13 Jul 2015 12:43:17 +0300
-Message-ID: <CALYGNiPMAPRgYLe18bePGvXuWCcGf+wCeJGW9QABCjCwXmNSEg@mail.gmail.com>
-References: <20150710115832.13167.20624.stgit@buzz>
-	<3908561D78D1C84285E8C5FCA982C28F32AA5A72@ORSMSX114.amr.corp.intel.com>
+From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Subject: Re: [alsa-devel] [PATCH v2 11/12] ASoC: tegra: register dependency
+ parser for firmware nodes
+Date: Mon, 13 Jul 2015 14:10:45 +0200
+Message-ID: <CAAObsKDsEuDS46rW9CMuviDEDV-OVXe5q-kiWmw0D_n2D3Tf5A@mail.gmail.com>
+References: <1435743667-11987-1-git-send-email-tomeu.vizoso@collabora.com>
+ <1435743667-11987-12-git-send-email-tomeu.vizoso@collabora.com>
+ <20150701173802.GW11162@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-la0-f54.google.com ([209.85.215.54]:33690 "EHLO
-	mail-la0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751214AbbGMJnS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Jul 2015 05:43:18 -0400
-In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F32AA5A72@ORSMSX114.amr.corp.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20150701173802.GW11162@sirena.org.uk>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Mark Brown <broonie@kernel.org>
+Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, linux-fbdev@vger.kernel.org, linux-acpi@vger.kernel.org, alsa-devel@alsa-project.org, Stephen Warren <swarren@wwwdotorg.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Liam Girdwood <lgirdwood@gmail.com>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-gpio@vger.kernel.org, Linux PWM List <linux-pwm@vger.kernel.org>, "linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>, Alexandre Courbot <gnurou@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Luck, Tony" <tony.luck@intel.com>
-Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Chen, Gong" <gong.chen@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>
 
-On Fri, Jul 10, 2015 at 9:14 PM, Luck, Tony <tony.luck@intel.com> wrote:
-> --- a/drivers/acpi/apei/einj.c
-> +++ b/drivers/acpi/apei/einj.c
-> @@ -379,10 +379,9 @@ static int __einj_error_trigger(u64 trigger_paddr, u32 type,
->                         rc = apei_resources_add(&addr_resources,
->                                 trigger_param_region->address,
->                                 trigger_param_region->bit_width/8, true);
-> -                       if (rc)
-> -                               goto out_fini;
-> -                       rc = apei_resources_sub(&trigger_resources,
-> -                                       &addr_resources);
-> +                       if (!rc)
-> +                               rc = apei_resources_sub(&trigger_resources,
-> +                                                       &addr_resources);
->                 }
->                 apei_resources_fini(&addr_resources);
->                 if (rc)
->
-> This bit looks wrong ... the line right after the this diff ends is
->                         goto out_fini;
->
-> so we'll call apei_resources_fini() twice in the rc!=0 case.
-
-As I see it frees different struct apei_resources: here addr_resources and
-trigger_resources at the out_fini.
-
-Anyway calling apei_resources_fini twice is safe: it removes and frees ranges
-from lists. If these lists are empty apei_resources_fini does nothing.
-
->
-> -Tony
+T24gMSBKdWx5IDIwMTUgYXQgMTk6MzgsIE1hcmsgQnJvd24gPGJyb29uaWVAa2VybmVsLm9yZz4g
+d3JvdGU6Cj4gT24gV2VkLCBKdWwgMDEsIDIwMTUgYXQgMTE6NDE6MDZBTSArMDIwMCwgVG9tZXUg
+Vml6b3NvIHdyb3RlOgo+Cj4+ICtzdGF0aWMgdm9pZCB0ZWdyYV9tYXg5ODA5MF9nZXRfZGVwZW5k
+ZW5jaWVzKHN0cnVjdCBmd25vZGVfaGFuZGxlICpmd25vZGUsCj4+ICsgICAgICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgIHN0cnVjdCBsaXN0X2hlYWQgKmRlcHMpCj4+ICt7Cj4+
+ICsgICAgIGFkZF9kZXBlbmRlbmN5KGZ3bm9kZSwgIm52aWRpYSxpMnMtY29udHJvbGxlciIsIGRl
+cHMpOwo+PiArICAgICBhZGRfZGVwZW5kZW5jeShmd25vZGUsICJudmlkaWEsYXVkaW8tY29kZWMi
+LCBkZXBzKTsKPj4gK30KPgo+IFdoeSBpcyB0aGlzIGFsbCBiZWluZyBvcGVuIGNvZGVkIGluIGFu
+IGluZGl2aWR1YWwgZHJpdmVyICh3ZSBhbHJlYWR5Cj4ga25vdyBhYm91dCBhbmQgbWFuYWdlIGFs
+bCB0aGVzZSBkZXBlbmRlbmNpZXMgaW4gdGhlIGNvcmUuLi4pPyAgSWYgd2UncmUKPiBnb2luZyB0
+byBkbyB0aGlzIEknZCBleHBlY3QgdGhlIGludGVyZmFjZSBmb3Igc3BlY2lmeWluZyBEVCBub2Rl
+cyB0byB0aGUKPiBjb3JlIHRvIGJlIGNoYW5nZWQgdG8gc3VwcG9ydCB0aGlzLgoKQXJlIHlvdSB0
+aGlua2luZyBvZiBjaGFuZ2luZyBkcml2ZXJzIHRvIGFjcXVpcmUgdGhlaXIgcmVzb3VyY2VzCnRo
+cm91Z2ggQXJuZCdzIGRldm1fcHJvYmUgKG9ubHkgdGhhdCB0aGUgcmVzb3VyY2UgdGFibGUgd291
+bGQgaGF2ZSB0bwpiZSBpbiBzdHJ1Y3QgZGV2aWNlX2RyaXZlcik/CgpodHRwczovL2xrbWwua2Vy
+bmVsLm9yZy9nLzQ3NDIyNTguVEJpdEMzaFZ1T0B3dWVyZmVsCgpTb3VuZHMgbGlrZSBsb3RzIG9m
+IGZ1biwgYnV0IHRoYXQgbWVhbnMgdGhhdCBhbnkgZ2l2ZW4gbWFjaGluZSB3aWxsCmdldCBvcmRl
+cmVkIHByb2JlIG9ubHkgYWZ0ZXIgYWxsIHRoZSBkcml2ZXJzIGl0IHVzZXMgaGF2ZSBiZWVuIG1v
+dmVkCnRvIHRoZSBuZXcgZGVjbGFyYXRpdmUgQVBJLgoKVEJILCB0aGF0IHNlZW1zIHJlYWxseSBm
+YXIgYXdheS4KClJlZ2FyZHMsCgpUb21ldQpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5m
+cmVlZGVza3RvcC5vcmcKaHR0cDovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3Rp
+bmZvL2RyaS1kZXZlbAo=
