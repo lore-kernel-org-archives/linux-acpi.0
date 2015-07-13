@@ -1,90 +1,75 @@
 From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Subject: [RFCv2 PATCH 4/8] acpi: gsi: Adding acpi_init_irq_alloc_info() hook
-Date: Mon, 13 Jul 2015 16:14:20 +0700
-Message-ID: <1436778864-17645-5-git-send-email-Suravee.Suthikulpanit@amd.com>
+Subject: [RFCv2 PATCH 3/8] gicv2m: Convert to use GIC irq_domain_ops.init_alloc_info
+Date: Mon, 13 Jul 2015 16:14:19 +0700
+Message-ID: <1436778864-17645-4-git-send-email-Suravee.Suthikulpanit@amd.com>
 References: <1436778864-17645-1-git-send-email-Suravee.Suthikulpanit@amd.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-bl2on0120.outbound.protection.outlook.com ([65.55.169.120]:10176
+	"EHLO na01-bl2-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751892AbbGMJPa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 13 Jul 2015 05:15:30 -0400
 In-Reply-To: <1436778864-17645-1-git-send-email-Suravee.Suthikulpanit@amd.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: tglx@linutronix.de, marc.zyngier@arm.com, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, tomasz.nowicki@linaro.org
 Cc: rjw@rjwysocki.net, al.stone@linaro.org, catalin.marinas@arm.com, will.deacon@arm.com, msalter@redhat.com, grant.likely@linaro.org, leo.duran@amd.com, sherry.hurwitz@amd.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-List-Id: linux-acpi@vger.kernel.org
 
-This patch adds acpi_init_irq_alloc_info(), which is declared as
-a weak symbol. This would allow arch-specific code to hook into
-acpi_register_gsi().
+This patch converts the current call to irq_domain_alloc_irqs_parent()
+to use structure initilized by irq_domain_ops.init_alloc_info()
+instead of of_phandle_args.
 
 Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 ---
- drivers/acpi/gsi.c | 36 +++++++++++++++++++++++++++++++-----
- 1 file changed, 31 insertions(+), 5 deletions(-)
+ drivers/irqchip/irq-gic-v2m.c | 23 +++++++++++++++--------
+ 1 file changed, 15 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/acpi/gsi.c b/drivers/acpi/gsi.c
-index 02c8408..01a14c5 100644
---- a/drivers/acpi/gsi.c
-+++ b/drivers/acpi/gsi.c
-@@ -62,6 +62,13 @@ int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
- }
- EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
+diff --git a/drivers/irqchip/irq-gic-v2m.c b/drivers/irqchip/irq-gic-v2m.c
+index bf5082d..e4e2a92 100644
+--- a/drivers/irqchip/irq-gic-v2m.c
++++ b/drivers/irqchip/irq-gic-v2m.c
+@@ -22,6 +22,10 @@
+ #include <linux/of_pci.h>
+ #include <linux/slab.h>
+ #include <linux/spinlock.h>
++#include <linux/irqchip/arm-gic.h>
++#ifdef CONFIG_ARM_GIC_ACPI
++#include <linux/irqchip/arm-gic-acpi.h>
++#endif
  
-+int __weak
-+acpi_init_irq_alloc_info(struct irq_domain *domain, u32 gsi,
-+			 unsigned int irq_type, void **info)
-+{
-+	return 0;
-+}
-+
- /**
-  * acpi_register_gsi() - Map a GSI to a linux IRQ number
-  * @dev: device for which IRQ has to be mapped
-@@ -75,22 +82,41 @@ EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
- int acpi_register_gsi(struct device *dev, u32 gsi, int trigger,
- 		      int polarity)
+ /*
+ * MSI_TYPER:
+@@ -114,17 +118,20 @@ static int gicv2m_irq_gic_domain_alloc(struct irq_domain *domain,
+ 				       unsigned int virq,
+ 				       irq_hw_number_t hwirq)
  {
--	int irq;
-+	unsigned int irq;
- 	unsigned int irq_type = acpi_gsi_get_irq_type(trigger, polarity);
-+	struct irq_data *d = NULL;
-+	void *info = NULL;
-+	int err;
- 
- 	irq = irq_find_mapping(acpi_irq_domain, gsi);
- 	if (irq > 0)
- 		return irq;
- 
--	irq = irq_domain_alloc_irqs(acpi_irq_domain, 1, dev_to_node(dev),
--				    &gsi);
-+	err = acpi_init_irq_alloc_info(acpi_irq_domain, gsi, irq_type, &info);
-+	if (err)
-+		return err;
+-	struct of_phandle_args args;
+ 	struct irq_data *d;
+ 	int err;
++	void *info;
++	struct irq_domain *parent = domain->parent;
++	uint32_t data[3] = {GIC_INT_TYPE_GSI, hwirq, IRQ_TYPE_EDGE_RISING};
 +
-+	if (!info)
-+		/* Default to pass gsi directly to allocate irq */
-+		info = &gsi;
-+
-+	irq = irq_domain_alloc_irqs(acpi_irq_domain, 1, dev_to_node(dev), info);
- 	if (irq <= 0)
- 		return -EINVAL;
- 
-+	d = irq_domain_get_irq_data(acpi_irq_domain, irq);
-+	if (!d)
-+		return -EFAULT;
-+
- 	/* Set irq type if specified and different than the current one */
- 	if (irq_type != IRQ_TYPE_NONE &&
--		irq_type != irq_get_trigger_type(irq))
--		irq_set_irq_type(irq, irq_type);
-+	    irq_type != irq_get_trigger_type(irq)) {
-+		if (d)
-+			d->chip->irq_set_type(d, irq_type);
-+		else
-+			irq_set_irq_type(irq, irq_type);
++	if (parent->ops->init_alloc_info) {
++		err = parent->ops->init_alloc_info(data, 3, parent->of_node,
++						   &info);
++		if (err)
++			return err;
 +	}
-+
- 	return irq;
- }
- EXPORT_SYMBOL_GPL(acpi_register_gsi);
+ 
+-	args.np = domain->parent->of_node;
+-	args.args_count = 3;
+-	args.args[0] = 0;
+-	args.args[1] = hwirq - 32;
+-	args.args[2] = IRQ_TYPE_EDGE_RISING;
+-
+-	err = irq_domain_alloc_irqs_parent(domain, virq, 1, &args);
++	err = irq_domain_alloc_irqs_parent(domain, virq, 1, info);
+ 	if (err)
+ 		return err;
+ 
 -- 
 2.1.0
+
