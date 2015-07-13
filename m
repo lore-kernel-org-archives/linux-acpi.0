@@ -1,229 +1,57 @@
-From: Yasuaki Ishimatsu <yasu.isimatu@gmail.com>
-Subject: Re: [PATCH v2 18/22] fjes: unshare_watch_task
-Date: Mon, 13 Jul 2015 11:35:49 -0700 (PDT)
-Message-ID: <55a40505.95968c0a.5c2e.73b1@mx.google.com>
-References: <1435114351-6961-1-git-send-email-izumi.taku@jp.fujitsu.com>
-	<1435114554-7151-19-git-send-email-izumi.taku@jp.fujitsu.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [PATCH] ACPI / PM: Update the copyright notice and description of power.c
+Date: Tue, 14 Jul 2015 01:10:46 +0200
+Message-ID: <27649054.dqKQ91UE5a@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qg0-f42.google.com ([209.85.192.42]:36477 "EHLO
-	mail-qg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752465AbbGMSfu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Jul 2015 14:35:50 -0400
-In-Reply-To: <1435114554-7151-19-git-send-email-izumi.taku@jp.fujitsu.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Cc: netdev@vger.kernel.org, davem@davemloft.net, platform-driver-x86@vger.kernel.org, dvhart@infradead.org, rkhan@redhat.com, alexander.h.duyck@redhat.com, linux-acpi@vger.kernel.org, joe@perches.com, sergei.shtylyov@cogentembedded.com, stephen@networkplumber.org, Yasuaki Ishimatsu <yasu.isimatu@gmail.com>
 
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Hi Izumi-san,
+The description and copyright notice of drivers/acpi/power.c is out
+of date, so update it as appropriate.
 
-On Wed, 24 Jun 2015 11:55:50 +0900
-Taku Izumi <izumi.taku@jp.fujitsu.com> wrote:
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/acpi/power.c |   15 +++++++++------
+ 1 file changed, 9 insertions(+), 6 deletions(-)
 
-> This patch adds unshare_watch_task.
-> Shared buffer's status can be changed into unshared.
-> This task is used to monitor shared buffer's status.
-> 
-> Signed-off-by: Taku Izumi <izumi.taku@jp.fujitsu.com>
-> ---
->  drivers/net/fjes/fjes.h      |   3 +
->  drivers/net/fjes/fjes_main.c | 130 +++++++++++++++++++++++++++++++++++++++++++
->  2 files changed, 133 insertions(+)
-> 
-> diff --git a/drivers/net/fjes/fjes.h b/drivers/net/fjes/fjes.h
-> index d31d4c3..57feee8 100644
-> --- a/drivers/net/fjes/fjes.h
-> +++ b/drivers/net/fjes/fjes.h
-> @@ -59,6 +59,9 @@ struct fjes_adapter {
->  	struct work_struct tx_stall_task;
->  	struct work_struct raise_intr_rxdata_task;
->  
-> +	struct work_struct unshare_watch_task;
-> +	unsigned long unshare_watch_bitmask;
-> +
->  	struct delayed_work interrupt_watch_task;
->  	bool interrupt_watch_enable;
->  
-> diff --git a/drivers/net/fjes/fjes_main.c b/drivers/net/fjes/fjes_main.c
-> index 1ddb9d3..69a238c 100644
-> --- a/drivers/net/fjes/fjes_main.c
-> +++ b/drivers/net/fjes/fjes_main.c
-> @@ -73,6 +73,7 @@ static int fjes_remove(struct platform_device *);
->  static int fjes_sw_init(struct fjes_adapter *);
->  static void fjes_netdev_setup(struct net_device *);
->  static void fjes_irq_watch_task(struct work_struct *);
-> +static void fjes_watch_unshare_task(struct work_struct *);
->  static void fjes_rx_irq(struct fjes_adapter *, int);
->  static int fjes_poll(struct napi_struct *, int);
->  
-> @@ -312,6 +313,8 @@ static int fjes_close(struct net_device *netdev)
->  	fjes_free_irq(adapter);
->  
->  	cancel_delayed_work_sync(&adapter->interrupt_watch_task);
-> +	cancel_work_sync(&adapter->unshare_watch_task);
-> +	adapter->unshare_watch_bitmask = 0;
->  	cancel_work_sync(&adapter->raise_intr_rxdata_task);
->  	cancel_work_sync(&adapter->tx_stall_task);
->  
-> @@ -1032,6 +1035,8 @@ static int fjes_probe(struct platform_device *plat_dev)
->  	INIT_WORK(&adapter->tx_stall_task, fjes_tx_stall_task);
->  	INIT_WORK(&adapter->raise_intr_rxdata_task,
->  		  fjes_raise_intr_rxdata_task);
-> +	INIT_WORK(&adapter->unshare_watch_task, fjes_watch_unshare_task);
-> +	adapter->unshare_watch_bitmask = 0;
->  
->  	INIT_DELAYED_WORK(&adapter->interrupt_watch_task, fjes_irq_watch_task);
->  	adapter->interrupt_watch_enable = false;
-> @@ -1077,6 +1082,7 @@ static int fjes_remove(struct platform_device *plat_dev)
->  	struct fjes_hw *hw = &adapter->hw;
->  
->  	cancel_delayed_work_sync(&adapter->interrupt_watch_task);
-> +	cancel_work_sync(&adapter->unshare_watch_task);
->  	cancel_work_sync(&adapter->raise_intr_rxdata_task);
->  	cancel_work_sync(&adapter->tx_stall_task);
->  	if (adapter->control_wq)
-> @@ -1136,6 +1142,130 @@ static void fjes_irq_watch_task(struct work_struct *work)
->  	}
->  }
->  
-> +static void fjes_watch_unshare_task(struct work_struct *work)
-> +{
-> +	struct fjes_adapter *adapter =
-> +	container_of(work, struct fjes_adapter, unshare_watch_task);
-> +
-> +	struct fjes_hw *hw = &adapter->hw;
-> +	struct net_device *netdev = adapter->netdev;
-> +	int epidx;
-> +	int max_epid, my_epid;
-> +	unsigned long unshare_watch_bitmask;
-> +	int wait_time = 0;
-> +	int is_shared;
-> +	int stop_req, stop_req_done;
-> +	int unshare_watch, unshare_reserve;
-> +	int ret;
-> +
-> +	my_epid = hw->my_epid;
-> +	max_epid = hw->max_epid;
-> +
-> +	unshare_watch_bitmask = adapter->unshare_watch_bitmask;
-> +	adapter->unshare_watch_bitmask = 0;
-> +
-> +	while ((unshare_watch_bitmask || hw->txrx_stop_req_bit) &&
-> +	       (wait_time < 3000)) {
-> +		for (epidx = 0; epidx < hw->max_epid; epidx++) {
-> +			if (epidx == hw->my_epid)
-> +				continue;
-> +
-> +			is_shared =
-> +			fjes_hw_epid_is_shared(hw->hw_info.share, epidx);
-> +
-> +			stop_req =
-> +			test_bit(epidx, &hw->txrx_stop_req_bit);
-> +
-> +			stop_req_done =
-> +			hw->ep_shm_info[epidx].rx.info->v1i.rx_status &
-> +			FJES_RX_STOP_REQ_DONE;
-> +
-> +			unshare_watch =
-> +			test_bit(epidx, &unshare_watch_bitmask);
-> +
-> +			unshare_reserve =
-> +			test_bit(epidx,
-> +				 &hw->hw_info.buffer_unshare_reserve_bit);
-> +
-> +			if ((!stop_req ||
-> +			     (is_shared && (!is_shared || !stop_req_done))) &&
-> +			    (is_shared || !unshare_watch || !unshare_reserve))
-> +				continue;
-> +
+Index: linux-pm/drivers/acpi/power.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/power.c
++++ linux-pm/drivers/acpi/power.c
+@@ -1,8 +1,10 @@
+ /*
+- *  acpi_power.c - ACPI Bus Power Management ($Revision: 39 $)
++ * drivers/acpi/power.c - ACPI Power Resources management.
+  *
+- *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
+- *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
++ * Copyright (C) 2001 - 2015 Intel Corp.
++ * Author: Andy Grover <andrew.grover@intel.com>
++ * Author: Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
++ * Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+  *
+  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  *
+@@ -23,10 +25,11 @@
+  * ACPI power-managed devices may be controlled in two ways:
+  * 1. via "Device Specific (D-State) Control"
+  * 2. via "Power Resource Control".
+- * This module is used to manage devices relying on Power Resource Control.
++ * The code below deals with ACPI Power Resources control.
+  * 
+- * An ACPI "power resource object" describes a software controllable power
+- * plane, clock plane, or other resource used by a power managed device.
++ * An ACPI "power resource object" represents a software controllable power
++ * plane, clock plane, or other resource depended on by a device.
++ *
+  * A device may rely on multiple power resources, and a power resource
+  * may be shared by multiple devices.
+  */
 
-> +			mutex_lock(&hw->hw_info.lock);
-> +			ret = fjes_hw_unregister_buff_addr(hw, epidx);
-> +			switch (ret) {
-> +			case 0:
-> +				break;
-> +			case -ENOMSG:
-> +			case -EBUSY:
-> +			default:
-> +				if (!work_pending(
-> +					&adapter->force_close_task)) {
-> +					adapter->force_reset = true;
-> +					schedule_work(
-> +						&adapter->force_close_task);
-> +				}
-> +				break;
-> +			}
-> +			mutex_unlock(&hw->hw_info.lock);
-> +
-> +			fjes_hw_setup_epbuf(&hw->ep_shm_info[epidx].tx,
-> +					    netdev->dev_addr, netdev->mtu);
-> +
-> +			clear_bit(epidx, &hw->txrx_stop_req_bit);
-> +			clear_bit(epidx, &unshare_watch_bitmask);
-> +			clear_bit(epidx,
-> +				  &hw->hw_info.buffer_unshare_reserve_bit);
-
-How about creating a new function? There are the same codes below.
-
-Thanks,
-Yasuaki Ishimatsu
-
-> +		}
-> +
-> +		msleep(100);
-> +		wait_time += 100;
-> +	}
-> +
-> +	if (hw->hw_info.buffer_unshare_reserve_bit) {
-> +		for (epidx = 0; epidx < hw->max_epid; epidx++) {
-> +			if (epidx == hw->my_epid)
-> +				continue;
-> +
-> +			if (test_bit(epidx,
-> +				     &hw->hw_info.buffer_unshare_reserve_bit)) {
-> +				mutex_lock(&hw->hw_info.lock);
-> +
-> +				ret = fjes_hw_unregister_buff_addr(hw, epidx);
-> +				switch (ret) {
-> +				case 0:
-> +					break;
-> +				case -ENOMSG:
-> +				case -EBUSY:
-> +				default:
-> +					if (!work_pending(
-> +						&adapter->force_close_task)) {
-> +						adapter->force_reset = true;
-> +						schedule_work(
-> +							&adapter->force_close_task);
-> +					}
-> +					break;
-> +				}
-> +				mutex_unlock(&hw->hw_info.lock);
-> +
-> +				fjes_hw_setup_epbuf(
-> +					&hw->ep_shm_info[epidx].tx,
-> +					netdev->dev_addr, netdev->mtu);
-> +
-> +				clear_bit(epidx, &hw->txrx_stop_req_bit);
-> +				clear_bit(epidx, &unshare_watch_bitmask);
-> +				clear_bit(epidx, &hw->hw_info.buffer_unshare_reserve_bit);
-> +			}
-> +
-> +			if (test_bit(epidx, &unshare_watch_bitmask)) {
-> +				hw->ep_shm_info[epidx].tx.info->v1i.rx_status &=
-> +						~FJES_RX_STOP_REQ_DONE;
-> +			}
-> +		}
-> +	}
-> +}
-> +
->  /* fjes_init_module - Driver Registration Routine */
->  static int __init fjes_init_module(void)
->  {
-> -- 
-> 1.8.3.1
-> 
