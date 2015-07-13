@@ -1,166 +1,229 @@
 From: Yasuaki Ishimatsu <yasu.isimatu@gmail.com>
-Subject: Re: [PATCH v2 15/22] fjes: net_device_ops.ndo_vlan_rx_add/kill_vid
-Date: Mon, 13 Jul 2015 09:54:20 -0700 (PDT)
-Message-ID: <55a3ed3c.24658c0a.695c.6f9f@mx.google.com>
+Subject: Re: [PATCH v2 18/22] fjes: unshare_watch_task
+Date: Mon, 13 Jul 2015 11:35:49 -0700 (PDT)
+Message-ID: <55a40505.95968c0a.5c2e.73b1@mx.google.com>
 References: <1435114351-6961-1-git-send-email-izumi.taku@jp.fujitsu.com>
-	<1435114554-7151-16-git-send-email-izumi.taku@jp.fujitsu.com>
+	<1435114554-7151-19-git-send-email-izumi.taku@jp.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <1435114554-7151-16-git-send-email-izumi.taku@jp.fujitsu.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qg0-f42.google.com ([209.85.192.42]:36477 "EHLO
+	mail-qg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752465AbbGMSfu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 13 Jul 2015 14:35:50 -0400
+In-Reply-To: <1435114554-7151-19-git-send-email-izumi.taku@jp.fujitsu.com>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Taku Izumi <izumi.taku@jp.fujitsu.com>
 Cc: netdev@vger.kernel.org, davem@davemloft.net, platform-driver-x86@vger.kernel.org, dvhart@infradead.org, rkhan@redhat.com, alexander.h.duyck@redhat.com, linux-acpi@vger.kernel.org, joe@perches.com, sergei.shtylyov@cogentembedded.com, stephen@networkplumber.org, Yasuaki Ishimatsu <yasu.isimatu@gmail.com>
-List-Id: linux-acpi@vger.kernel.org
+
 
 Hi Izumi-san,
 
-On Wed, 24 Jun 2015 11:55:47 +0900
+On Wed, 24 Jun 2015 11:55:50 +0900
 Taku Izumi <izumi.taku@jp.fujitsu.com> wrote:
 
-> This patch adds net_device_ops.ndo_vlan_rx_add_vid and
-> net_device_ops.ndo_vlan_rx_kill_vid callback.
+> This patch adds unshare_watch_task.
+> Shared buffer's status can be changed into unshared.
+> This task is used to monitor shared buffer's status.
 > 
 > Signed-off-by: Taku Izumi <izumi.taku@jp.fujitsu.com>
 > ---
->  drivers/net/fjes/fjes_hw.c   | 27 +++++++++++++++++++++++++++
->  drivers/net/fjes/fjes_hw.h   |  2 ++
->  drivers/net/fjes/fjes_main.c | 40 ++++++++++++++++++++++++++++++++++++++++
->  3 files changed, 69 insertions(+)
+>  drivers/net/fjes/fjes.h      |   3 +
+>  drivers/net/fjes/fjes_main.c | 130 +++++++++++++++++++++++++++++++++++++++++++
+>  2 files changed, 133 insertions(+)
 > 
-> diff --git a/drivers/net/fjes/fjes_hw.c b/drivers/net/fjes/fjes_hw.c
-> index 5e3f847..8363e22 100644
-> --- a/drivers/net/fjes/fjes_hw.c
-> +++ b/drivers/net/fjes/fjes_hw.c
-> @@ -827,6 +827,33 @@ bool fjes_hw_check_vlan_id(struct epbuf_handler *epbh, u16 vlan_id)
->  	return ret;
->  }
+> diff --git a/drivers/net/fjes/fjes.h b/drivers/net/fjes/fjes.h
+> index d31d4c3..57feee8 100644
+> --- a/drivers/net/fjes/fjes.h
+> +++ b/drivers/net/fjes/fjes.h
+> @@ -59,6 +59,9 @@ struct fjes_adapter {
+>  	struct work_struct tx_stall_task;
+>  	struct work_struct raise_intr_rxdata_task;
 >  
-> +bool fjes_hw_set_vlan_id(struct epbuf_handler *epbh, u16 vlan_id)
-> +{
-> +	union ep_buffer_info *info = epbh->info;
-> +	int i;
+> +	struct work_struct unshare_watch_task;
+> +	unsigned long unshare_watch_bitmask;
 > +
-> +	for (i = 0; i < EP_BUFFER_SUPPORT_VLAN_MAX; i++) {
-> +		if (info->v1i.vlan_id[i] == 0) {
-> +			info->v1i.vlan_id[i] = vlan_id;
-> +			return true;
-> +		}
-> +	}
-> +	return false;
-> +}
-> +
-> +void fjes_hw_del_vlan_id(struct epbuf_handler *epbh, u16 vlan_id)
-> +{
-> +	union ep_buffer_info *info = epbh->info;
-> +	int i;
-> +
-
-> +	if (0 != vlan_id) {
-
-How about using the following if statement so than you can delete
-indent?
-
-	if (vlan_id == 0)
-		return;
-
-> +		for (i = 0; i < EP_BUFFER_SUPPORT_VLAN_MAX; i++) {
-> +			if (vlan_id == info->v1i.vlan_id[i])
-> +				info->v1i.vlan_id[i] = 0;
-> +		}
-> +	}
-> +}
-> +
->  bool fjes_hw_epbuf_rx_is_empty(struct epbuf_handler *epbh)
->  {
->  	union ep_buffer_info *info = epbh->info;
-> diff --git a/drivers/net/fjes/fjes_hw.h b/drivers/net/fjes/fjes_hw.h
-> index ea30aeb..afad03e 100644
-> --- a/drivers/net/fjes/fjes_hw.h
-> +++ b/drivers/net/fjes/fjes_hw.h
-> @@ -321,6 +321,8 @@ int fjes_hw_epid_is_shared(struct fjes_device_shared_info *, int);
->  bool fjes_hw_check_epbuf_version(struct epbuf_handler *, u32);
->  bool fjes_hw_check_mtu(struct epbuf_handler *, u32);
->  bool fjes_hw_check_vlan_id(struct epbuf_handler *, u16);
-> +bool fjes_hw_set_vlan_id(struct epbuf_handler *, u16);
-> +void fjes_hw_del_vlan_id(struct epbuf_handler *, u16);
->  bool fjes_hw_epbuf_rx_is_empty(struct epbuf_handler *);
->  void *fjes_hw_epbuf_rx_curpkt_get_addr(struct epbuf_handler *, size_t *);
->  void fjes_hw_epbuf_rx_curpkt_drop(struct epbuf_handler *);
+>  	struct delayed_work interrupt_watch_task;
+>  	bool interrupt_watch_enable;
+>  
 > diff --git a/drivers/net/fjes/fjes_main.c b/drivers/net/fjes/fjes_main.c
-> index e2e69e0..bb4c8e4 100644
+> index 1ddb9d3..69a238c 100644
 > --- a/drivers/net/fjes/fjes_main.c
 > +++ b/drivers/net/fjes/fjes_main.c
-> @@ -58,6 +58,8 @@ static irqreturn_t fjes_intr(int, void*);
->  static struct rtnl_link_stats64 *
->  fjes_get_stats64(struct net_device *, struct rtnl_link_stats64 *);
->  static int fjes_change_mtu(struct net_device *, int);
-> +static int fjes_vlan_rx_add_vid(struct net_device *, __be16 proto, u16);
-> +static int fjes_vlan_rx_kill_vid(struct net_device *, __be16 proto, u16);
->  static void fjes_tx_retry(struct net_device *);
+> @@ -73,6 +73,7 @@ static int fjes_remove(struct platform_device *);
+>  static int fjes_sw_init(struct fjes_adapter *);
+>  static void fjes_netdev_setup(struct net_device *);
+>  static void fjes_irq_watch_task(struct work_struct *);
+> +static void fjes_watch_unshare_task(struct work_struct *);
+>  static void fjes_rx_irq(struct fjes_adapter *, int);
+>  static int fjes_poll(struct napi_struct *, int);
 >  
->  static int fjes_acpi_add(struct acpi_device *);
-> @@ -229,6 +231,8 @@ static const struct net_device_ops fjes_netdev_ops = {
->  	.ndo_get_stats64	= fjes_get_stats64,
->  	.ndo_change_mtu		= fjes_change_mtu,
->  	.ndo_tx_timeout		= fjes_tx_retry,
-> +	.ndo_vlan_rx_add_vid	= fjes_vlan_rx_add_vid,
-> +	.ndo_vlan_rx_kill_vid = fjes_vlan_rx_kill_vid,
->  };
+> @@ -312,6 +313,8 @@ static int fjes_close(struct net_device *netdev)
+>  	fjes_free_irq(adapter);
 >  
->  /* fjes_open - Called when a network interface is made active */
-> @@ -757,6 +761,42 @@ static int fjes_change_mtu(struct net_device *netdev, int new_mtu)
->  	return -EINVAL;
+>  	cancel_delayed_work_sync(&adapter->interrupt_watch_task);
+> +	cancel_work_sync(&adapter->unshare_watch_task);
+> +	adapter->unshare_watch_bitmask = 0;
+>  	cancel_work_sync(&adapter->raise_intr_rxdata_task);
+>  	cancel_work_sync(&adapter->tx_stall_task);
+>  
+> @@ -1032,6 +1035,8 @@ static int fjes_probe(struct platform_device *plat_dev)
+>  	INIT_WORK(&adapter->tx_stall_task, fjes_tx_stall_task);
+>  	INIT_WORK(&adapter->raise_intr_rxdata_task,
+>  		  fjes_raise_intr_rxdata_task);
+> +	INIT_WORK(&adapter->unshare_watch_task, fjes_watch_unshare_task);
+> +	adapter->unshare_watch_bitmask = 0;
+>  
+>  	INIT_DELAYED_WORK(&adapter->interrupt_watch_task, fjes_irq_watch_task);
+>  	adapter->interrupt_watch_enable = false;
+> @@ -1077,6 +1082,7 @@ static int fjes_remove(struct platform_device *plat_dev)
+>  	struct fjes_hw *hw = &adapter->hw;
+>  
+>  	cancel_delayed_work_sync(&adapter->interrupt_watch_task);
+> +	cancel_work_sync(&adapter->unshare_watch_task);
+>  	cancel_work_sync(&adapter->raise_intr_rxdata_task);
+>  	cancel_work_sync(&adapter->tx_stall_task);
+>  	if (adapter->control_wq)
+> @@ -1136,6 +1142,130 @@ static void fjes_irq_watch_task(struct work_struct *work)
+>  	}
 >  }
 >  
-> +static int fjes_vlan_rx_add_vid(struct net_device *netdev,
-> +				__be16 proto, u16 vid)
+> +static void fjes_watch_unshare_task(struct work_struct *work)
 > +{
-> +	struct fjes_adapter *adapter = netdev_priv(netdev);
-> +	bool ret = true;
-> +	int epid;
+> +	struct fjes_adapter *adapter =
+> +	container_of(work, struct fjes_adapter, unshare_watch_task);
 > +
-> +	for (epid = 0; epid < adapter->hw.max_epid; epid++) {
-> +		if (epid == adapter->hw.my_epid)
-> +			continue;
+> +	struct fjes_hw *hw = &adapter->hw;
+> +	struct net_device *netdev = adapter->netdev;
+> +	int epidx;
+> +	int max_epid, my_epid;
+> +	unsigned long unshare_watch_bitmask;
+> +	int wait_time = 0;
+> +	int is_shared;
+> +	int stop_req, stop_req_done;
+> +	int unshare_watch, unshare_reserve;
+> +	int ret;
 > +
-> +		if (!fjes_hw_check_vlan_id(
-> +			&adapter->hw.ep_shm_info[epid].tx, vid))
-> +			ret = fjes_hw_set_vlan_id(
-> +				&adapter->hw.ep_shm_info[epid].tx, vid);
-> +	}
+> +	my_epid = hw->my_epid;
+> +	max_epid = hw->max_epid;
 > +
-> +	return ret ? 0 : -ENOSPC;
-> +}
+> +	unshare_watch_bitmask = adapter->unshare_watch_bitmask;
+> +	adapter->unshare_watch_bitmask = 0;
+> +
+> +	while ((unshare_watch_bitmask || hw->txrx_stop_req_bit) &&
+> +	       (wait_time < 3000)) {
+> +		for (epidx = 0; epidx < hw->max_epid; epidx++) {
+> +			if (epidx == hw->my_epid)
+> +				continue;
+> +
+> +			is_shared =
+> +			fjes_hw_epid_is_shared(hw->hw_info.share, epidx);
+> +
+> +			stop_req =
+> +			test_bit(epidx, &hw->txrx_stop_req_bit);
+> +
+> +			stop_req_done =
+> +			hw->ep_shm_info[epidx].rx.info->v1i.rx_status &
+> +			FJES_RX_STOP_REQ_DONE;
+> +
+> +			unshare_watch =
+> +			test_bit(epidx, &unshare_watch_bitmask);
+> +
+> +			unshare_reserve =
+> +			test_bit(epidx,
+> +				 &hw->hw_info.buffer_unshare_reserve_bit);
+> +
+> +			if ((!stop_req ||
+> +			     (is_shared && (!is_shared || !stop_req_done))) &&
+> +			    (is_shared || !unshare_watch || !unshare_reserve))
+> +				continue;
 > +
 
-> +static int fjes_vlan_rx_kill_vid(struct net_device *netdev,
-> +				 __be16 proto, u16 vid)
+> +			mutex_lock(&hw->hw_info.lock);
+> +			ret = fjes_hw_unregister_buff_addr(hw, epidx);
+> +			switch (ret) {
+> +			case 0:
+> +				break;
+> +			case -ENOMSG:
+> +			case -EBUSY:
+> +			default:
+> +				if (!work_pending(
+> +					&adapter->force_close_task)) {
+> +					adapter->force_reset = true;
+> +					schedule_work(
+> +						&adapter->force_close_task);
+> +				}
+> +				break;
+> +			}
+> +			mutex_unlock(&hw->hw_info.lock);
+> +
+> +			fjes_hw_setup_epbuf(&hw->ep_shm_info[epidx].tx,
+> +					    netdev->dev_addr, netdev->mtu);
+> +
+> +			clear_bit(epidx, &hw->txrx_stop_req_bit);
+> +			clear_bit(epidx, &unshare_watch_bitmask);
+> +			clear_bit(epidx,
+> +				  &hw->hw_info.buffer_unshare_reserve_bit);
 
-The function always returns 0. So how about defining the function
-as void?
+How about creating a new function? There are the same codes below.
 
 Thanks,
-Ysauaki Ishimatsu
+Yasuaki Ishimatsu
 
-> +{
-> +	struct fjes_adapter *adapter = netdev_priv(netdev);
-> +	int epid;
+> +		}
 > +
-> +	for (epid = 0; epid < adapter->hw.max_epid; epid++) {
-> +		if (epid == adapter->hw.my_epid)
-> +			continue;
-> +
-> +		fjes_hw_del_vlan_id(&adapter->hw.ep_shm_info[epid].tx, vid);
+> +		msleep(100);
+> +		wait_time += 100;
 > +	}
 > +
-> +	return 0;
+> +	if (hw->hw_info.buffer_unshare_reserve_bit) {
+> +		for (epidx = 0; epidx < hw->max_epid; epidx++) {
+> +			if (epidx == hw->my_epid)
+> +				continue;
+> +
+> +			if (test_bit(epidx,
+> +				     &hw->hw_info.buffer_unshare_reserve_bit)) {
+> +				mutex_lock(&hw->hw_info.lock);
+> +
+> +				ret = fjes_hw_unregister_buff_addr(hw, epidx);
+> +				switch (ret) {
+> +				case 0:
+> +					break;
+> +				case -ENOMSG:
+> +				case -EBUSY:
+> +				default:
+> +					if (!work_pending(
+> +						&adapter->force_close_task)) {
+> +						adapter->force_reset = true;
+> +						schedule_work(
+> +							&adapter->force_close_task);
+> +					}
+> +					break;
+> +				}
+> +				mutex_unlock(&hw->hw_info.lock);
+> +
+> +				fjes_hw_setup_epbuf(
+> +					&hw->ep_shm_info[epidx].tx,
+> +					netdev->dev_addr, netdev->mtu);
+> +
+> +				clear_bit(epidx, &hw->txrx_stop_req_bit);
+> +				clear_bit(epidx, &unshare_watch_bitmask);
+> +				clear_bit(epidx, &hw->hw_info.buffer_unshare_reserve_bit);
+> +			}
+> +
+> +			if (test_bit(epidx, &unshare_watch_bitmask)) {
+> +				hw->ep_shm_info[epidx].tx.info->v1i.rx_status &=
+> +						~FJES_RX_STOP_REQ_DONE;
+> +			}
+> +		}
+> +	}
 > +}
 > +
->  static irqreturn_t fjes_intr(int irq, void *data)
+>  /* fjes_init_module - Driver Registration Routine */
+>  static int __init fjes_init_module(void)
 >  {
->  	struct fjes_adapter *adapter = data;
 > -- 
 > 1.8.3.1
 > 
