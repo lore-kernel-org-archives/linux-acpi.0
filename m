@@ -1,57 +1,97 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [PATCH] x86, acpi: Handle xapic/x2apic entries in MADT
-Date: Tue, 14 Jul 2015 16:26:26 +0800
-Message-ID: <55A4C7B2.7040707@linux.intel.com>
-References: <55A3D7A3.90609@linaro.org> <1436861209-4047-1-git-send-email-lukasz.anaczkowski@intel.com> <1436861209-4047-2-git-send-email-lukasz.anaczkowski@intel.com>
+From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [alsa-devel] [PATCH v2 11/12] ASoC: tegra: register dependency
+ parser for firmware nodes
+Date: Tue, 14 Jul 2015 12:07:13 +0100
+Message-ID: <20150714110713.GT11162@sirena.org.uk>
+References: <1435743667-11987-1-git-send-email-tomeu.vizoso@collabora.com>
+ <1435743667-11987-12-git-send-email-tomeu.vizoso@collabora.com>
+ <20150701173802.GW11162@sirena.org.uk>
+ <CAAObsKDsEuDS46rW9CMuviDEDV-OVXe5q-kiWmw0D_n2D3Tf5A@mail.gmail.com>
+ <20150713154254.GH11162@sirena.org.uk>
+ <CAAObsKAVY7-QpcRyT4juc2RyB+vqibvzKO7wFCT2VsL9R8bzPw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1436861209-4047-2-git-send-email-lukasz.anaczkowski@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lukasz Anaczkowski <lukasz.anaczkowski@intel.com>, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, jason@lakedaemon.net
-Cc: rjw@rjwysocki.net, len.brown@intel.com, pavel@ucw.cz, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="W8iFDApEu++Vn+WX"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAAObsKAVY7-QpcRyT4juc2RyB+vqibvzKO7wFCT2VsL9R8bzPw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tomeu Vizoso <tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
+Cc: "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Takashi Iwai <tiwai-l3A5Bk7waGM@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linux PWM List <linux-pwm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 2015/7/14 16:06, Lukasz Anaczkowski wrote:
-> This patch is based on work of "Yinghai Lu <yinghai@kernel.org>"
-> previously published at https://lkml.org/lkml/2013/1/21/563.
-> 
-> In case when BIOS is populating MADT wiht both x2apic and local apic
-> entries (as per ACPI spec), e.g. for Xeon Phi Knights Landing,
-> kernel builds it's processor table in the following order:
-> BSP, X2APIC, local APIC, resulting in processors on the same core
-> are not separated by core count, i.e.
-> 
-> Core LCpu   ApicId    LCpu    ApicId     LCpu    ApicId    LCpu    ApicId
-> 0    0 (  0 [0000]),   97 (  1 [0001]),  145 (  2 [0002]),  193 (  3 [0003])
-> 1   50 (  4 [0004]),   98 (  5 [0005]),  146 (  6 [0006]),  194 (  7 [0007])
-> 2   51 ( 16 [0010]),   99 ( 17 [0011]),  147 ( 18 [0012]),  195 ( 19 [0013])
-> 3   52 ( 20 [0014]),  100 ( 21 [0015]),  148 ( 22 [0016]),  196 ( 23 [0017])
-> 4   53 ( 24 [0018]),  101 ( 25 [0019]),  149 ( 26 [001a]),  197 ( 27 [001b])
-> 5   54 ( 28 [001c]),  102 ( 29 [001d]),  150 ( 30 [001e]),  198 ( 31 [001f])
-> ...
-> 
-> Please note, how LCpu are mixed for physical cores (Core).
-> 
-> This patch fixes this behavior and resulting assignment is
-> consistent with other Xeon processors, i.e.
-> 
-> Core LCpu   ApicId    LCpu    ApicId     LCpu    ApicId    LCpu    ApicId
-> 0    0 (  0 [0000]),   72 (  1 [0001]),  144 (  2 [0002]),  216 (  3 [0003])
-> 1    1 (  4 [0004]),   73 (  5 [0005]),  145 (  6 [0006]),  217 (  7 [0007])
-> 2    2 (  8 [0008]),   74 (  9 [0009]),  146 ( 10 [000a]),  218 ( 11 [000b])
-> 3    3 ( 12 [000c]),   75 ( 13 [000d]),  147 ( 14 [000e]),  219 ( 15 [000f])
-> 4    4 ( 16 [0010]),   76 ( 17 [0011]),  148 ( 18 [0012]),  220 ( 19 [0013])
-> 5    5 ( 20 [0014]),   77 ( 21 [0015]),  149 ( 22 [0016]),  221 ( 23 [0017])
-> ...
-> 
-> Signed-off-by: Lukasz Anaczkowski <lukasz.anaczkowski@intel.com>
-Hi Lukasz,
-	I have some concerns here about "maxcpus" and "nox2apic" kernel
-parameters. Say "maxcpus=72 nox2apic" is specified, user may get
-less than 72 CPUs with you patch applied. Original code will try to
-only all xapic CPUs before trying x2apic CPUs, so "maxcpus" doesn't
-conflict with "nox2apic".
-Thanks!
-Gerry
+
+--W8iFDApEu++Vn+WX
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Tue, Jul 14, 2015 at 09:34:22AM +0200, Tomeu Vizoso wrote:
+> On 13 July 2015 at 17:42, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+
+> > No, I'm looking at how we already have all the "did all my dependencies
+> > appear" logic in the core based on data provided by the drivers.
+
+> Sorry, but I still don't get what you mean.
+
+I'm not sure how I can be clearer here...  you're replacing something
+that is currently pure data with open coding in each device.  That seems
+like a step back in terms of ease of use.
+
+> Information about dependencies is currently available only after
+> probe() starts executing, and used to decide whether we want to defer
+> the probe.
+
+> The goal of this series is to eliminate most or all of the deferred
+> probes by checking that all dependencies are available before probe()
+> is called.
+
+Right, but the way it does this is by moving code out of the core into
+the drivers - currently drivers just tell the core what resources to
+look up and the core then makes sure that they're all present.
+
+> I thought you were pointing out that the property names would be
+> duplicated, once in the probe() implementation and also in the
+> implementation of the get_dependencies callback.
+
+Yes, that is another part of issue with this approach - drivers now have
+to specify things twice, once for this new interface and once for
+actually looking things up.  That doesn't seem awesome and adding the
+code into the individual drivers and then having to pull it out again
+when the redundancy is removed is going to be an enormous amount of
+churn.
+
+> A way to consolidate the code and remove that duplication would be
+> having a declarative API for expressing dependencies, which could be
+> used for both fetching dependencies and for preventing deferred
+> probes. That's why I mentioned devm_probe.
+
+Part of what I'm saying here is that in ASoC we already have (at least
+as far as the individual drivers are concerned) a declarative way of
+specifying dependencies.  This new code should be able to make use of
+that, if it can't and especially if none of the code can be shared
+between drivers then that seems like the interface needs another spin.
+
+I've not seen this devm_probe() code but the name sounds worryingly like
+it might be fixing the wrong problem :/
+
+--W8iFDApEu++Vn+WX
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJVpO1gAAoJECTWi3JdVIfQnSAH+wT+w5R81fdOFtEt0wy01yaj
+GshHYfsA3FUBcLolXKBfwdFn3xRd0MjjOaTZ3pcrPGoKZDNNUF+X41SNSxoeyFoc
+biuYRxw7xpCeT1u7g7aAu/IHyFSXLH/UmW21mckH6JtmLh1wLNKDTNQTI2OFwFLY
+tJKsMXHhAzJ1+nLWxXHpuVN7U+dtNstl+BjGMfXbJqaz8OmvEPkzusI+w5bVlUhL
++q0+AKvuqOYo2gDVlWL1ou2NTJfoubdWrmgquEG351VimQopSAR6feYiORUkwhVp
+176VGZHUTgwpzQo4L2Y1nQkX8D47pHng85WnMEHUnMAYq87XhASkmmuaLaKQfg0=
+=tRqQ
+-----END PGP SIGNATURE-----
+
+--W8iFDApEu++Vn+WX--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
