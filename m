@@ -1,56 +1,96 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH] x86, acpi: Handle xapic/x2apic entries in MADT
-Date: Tue, 14 Jul 2015 22:24:10 +0800
-Message-ID: <55A51B8A.4050702@linaro.org>
-References: <55A3D7A3.90609@linaro.org> <1436861209-4047-1-git-send-email-lukasz.anaczkowski@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f179.google.com ([209.85.192.179]:33497 "EHLO
-	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752630AbbGNOYX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 14 Jul 2015 10:24:23 -0400
-Received: by pdbqm3 with SMTP id qm3so6844804pdb.0
-        for <linux-acpi@vger.kernel.org>; Tue, 14 Jul 2015 07:24:22 -0700 (PDT)
-In-Reply-To: <1436861209-4047-1-git-send-email-lukasz.anaczkowski@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: [PATCH v2 13/49] PCI: Separate realloc list checking after allocation
+Date: Tue, 14 Jul 2015 15:46:44 -0700
+Message-ID: <1436914040-13206-14-git-send-email-yinghai@kernel.org>
+References: <1436914040-13206-1-git-send-email-yinghai@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1436914040-13206-1-git-send-email-yinghai@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>, David Miller <davem@davemloft.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Wei Yang <weiyang@linux.vnet.ibm.com>, TJ <linux@iam.tj>, Yijing Wang <wangyijing@huawei.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lukasz Anaczkowski <lukasz.anaczkowski@intel.com>, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, jason@lakedaemon.net
-Cc: rjw@rjwysocki.net, len.brown@intel.com, pavel@ucw.cz, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On 07/14/2015 04:06 PM, Lukasz Anaczkowski wrote:
-> On 07/13/2015 23:22 PM, Hanjun Guo wrote:
->>> In case when BIOS is populating MADT wiht both x2apic and local apic
->>> entries (as per ACPI spec), kernel builds it's processor table
->>> in the following order: BSP, X2APIC, local APIC, resulting in
->>> processors on the same core are not separated by core count.
->>
->> I'm confused here, I can't figure out where is the problem, could you
->> explain it in detail?
->>
->> For me, logical CPU IDs allocated by OS will have mappings to physical
->> CPU IDs, what you are saying seems CPU topology problem to me.
->
-> Sorry for confusion, I'll send another patch with updated commit message
-> where I'll try to put some more details and explanation. Hope that one will
-> be less confusing.
->
->>>    arch/x86/kernel/acpi/boot.c | 29 +++++++++++++-----
->>>    drivers/acpi/numa.c         | 28 ++++++++++++-----
->>>    drivers/acpi/tables.c       | 75 ++++++++++++++++++++++++++++-----------------
->>>    drivers/irqchip/irq-gic.c   | 15 ++++++---
->>
->> Anyway, You also miss the SMP boot for ARM64 in ACPI way, which will
->> cause compile error on ARM64.
->
-> The only symbol that's changed is acpi_parse_entries and I don't see
-> any calls to it in ARM64. I also tried compilation of arm64/defconfig
-> and it compiles fine. Could yoy point me to place where it might failing?
+We check the realloc list, as list must be empty after allocation.
 
-Sorry, I misread your patch that you modified acpi_table_parse_madt()
-also, but it turns out that you keep it as before, sorry for the noise.
+Separate the realloc list checking to another function.
 
-Thanks
-Hanjun
+Add checking that is missed in acpiphp driver.
 
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
+---
+ drivers/pci/hotplug/acpiphp_glue.c |  1 +
+ drivers/pci/pci.h                  |  1 +
+ drivers/pci/setup-bus.c            | 11 ++++++++---
+ 3 files changed, 10 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
+index ff53856..134caee 100644
+--- a/drivers/pci/hotplug/acpiphp_glue.c
++++ b/drivers/pci/hotplug/acpiphp_glue.c
+@@ -507,6 +507,7 @@ static void enable_slot(struct acpiphp_slot *slot)
+ 		}
+ 	}
+ 	__pci_bus_assign_resources(bus, &add_list, NULL);
++	__pci_bus_check_realloc(&add_list);
+ 
+ 	acpiphp_sanitize_bus(bus);
+ 	pcie_bus_configure_settings(bus);
+diff --git a/drivers/pci/pci.h b/drivers/pci/pci.h
+index 4ff0ff1..2b83977 100644
+--- a/drivers/pci/pci.h
++++ b/drivers/pci/pci.h
+@@ -235,6 +235,7 @@ void __pci_bus_size_bridges(struct pci_bus *bus,
+ void __pci_bus_assign_resources(const struct pci_bus *bus,
+ 				struct list_head *realloc_head,
+ 				struct list_head *fail_head);
++void __pci_bus_check_realloc(struct list_head *realloc_head);
+ bool pci_bus_clip_resource(struct pci_dev *dev, int idx);
+ 
+ void pci_reassigndev_resource_alignment(struct pci_dev *dev);
+diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
+index 06664db..f30225c 100644
+--- a/drivers/pci/setup-bus.c
++++ b/drivers/pci/setup-bus.c
+@@ -350,6 +350,11 @@ out:
+ 	}
+ }
+ 
++void __pci_bus_check_realloc(struct list_head *realloc_head)
++{
++	BUG_ON(!list_empty(realloc_head));
++}
++
+ /**
+  * assign_requested_resources_sorted() - satisfy resource requests
+  *
+@@ -1861,7 +1866,7 @@ again:
+ 	/* Depth last, allocate resources and update the hardware. */
+ 	__pci_bus_assign_resources(bus, add_list, &fail_head);
+ 	if (add_list)
+-		BUG_ON(!list_empty(add_list));
++		__pci_bus_check_realloc(add_list);
+ 	tried_times++;
+ 
+ 	/* any device complain? */
+@@ -1936,7 +1941,7 @@ void pci_assign_unassigned_bridge_resources(struct pci_dev *bridge)
+ again:
+ 	__pci_bus_size_bridges(parent, &add_list);
+ 	__pci_bridge_assign_resources(bridge, &add_list, &fail_head);
+-	BUG_ON(!list_empty(&add_list));
++	__pci_bus_check_realloc(&add_list);
+ 	tried_times++;
+ 
+ 	if (list_empty(&fail_head))
+@@ -1995,6 +2000,6 @@ void pci_assign_unassigned_bus_resources(struct pci_bus *bus)
+ 							 &add_list);
+ 	up_read(&pci_bus_sem);
+ 	__pci_bus_assign_resources(bus, &add_list, NULL);
+-	BUG_ON(!list_empty(&add_list));
++	__pci_bus_check_realloc(&add_list);
+ }
+ EXPORT_SYMBOL_GPL(pci_assign_unassigned_bus_resources);
+-- 
+1.8.4.5
