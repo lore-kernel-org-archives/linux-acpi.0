@@ -1,438 +1,72 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [PATCH 2/4] ACPI / scan: Mode device matching code to bus.c
-Date: Tue, 14 Jul 2015 01:18:08 +0200
-Message-ID: <2512222.BGWXue9984@vostro.rjw.lan>
-References: <4521894.N8pXmo8fxI@vostro.rjw.lan>
+From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Subject: Re: [alsa-devel] [PATCH v2 11/12] ASoC: tegra: register dependency
+ parser for firmware nodes
+Date: Tue, 14 Jul 2015 09:34:22 +0200
+Message-ID: <CAAObsKAVY7-QpcRyT4juc2RyB+vqibvzKO7wFCT2VsL9R8bzPw@mail.gmail.com>
+References: <1435743667-11987-1-git-send-email-tomeu.vizoso@collabora.com>
+ <1435743667-11987-12-git-send-email-tomeu.vizoso@collabora.com>
+ <20150701173802.GW11162@sirena.org.uk>
+ <CAAObsKDsEuDS46rW9CMuviDEDV-OVXe5q-kiWmw0D_n2D3Tf5A@mail.gmail.com>
+ <20150713154254.GH11162@sirena.org.uk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4521894.N8pXmo8fxI@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <20150713154254.GH11162@sirena.org.uk>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Mark Brown <broonie@kernel.org>
+Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, linux-fbdev@vger.kernel.org, Stephen Warren <swarren@wwwdotorg.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-gpio@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, alsa-devel@alsa-project.org, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, Liam Girdwood <lgirdwood@gmail.com>, linux-acpi@vger.kernel.org, Linux PWM List <linux-pwm@vger.kernel.org>, "linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>, Alexandre Courbot <gnurou@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-
-To reduce the size of scan.c and improve the readability of it, move
-code related device matching into drivers/acpi/bus.c.
-
-Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
----
- drivers/acpi/bus.c  |  194 ++++++++++++++++++++++++++++++++++++++++++++++++++++
- drivers/acpi/scan.c |  189 --------------------------------------------------
- 2 files changed, 194 insertions(+), 189 deletions(-)
-
-Index: linux-pm/drivers/acpi/bus.c
-===================================================================
---- linux-pm.orig/drivers/acpi/bus.c
-+++ linux-pm/drivers/acpi/bus.c
-@@ -420,6 +420,200 @@ static void acpi_bus_notify(acpi_handle
- }
- 
- /* --------------------------------------------------------------------------
-+                             Device Matching
-+   -------------------------------------------------------------------------- */
-+
-+/*
-+ * acpi_companion_match() - Can we match via ACPI companion device
-+ * @dev: Device in question
-+ *
-+ * Check if the given device has an ACPI companion and if that companion has
-+ * a valid list of PNP IDs, and if the device is the first (primary) physical
-+ * device associated with it.  Return the companion pointer if that's the case
-+ * or NULL otherwise.
-+ *
-+ * If multiple physical devices are attached to a single ACPI companion, we need
-+ * to be careful.  The usage scenario for this kind of relationship is that all
-+ * of the physical devices in question use resources provided by the ACPI
-+ * companion.  A typical case is an MFD device where all the sub-devices share
-+ * the parent's ACPI companion.  In such cases we can only allow the primary
-+ * (first) physical device to be matched with the help of the companion's PNP
-+ * IDs.
-+ *
-+ * Additional physical devices sharing the ACPI companion can still use
-+ * resources available from it but they will be matched normally using functions
-+ * provided by their bus types (and analogously for their modalias).
-+ */
-+struct acpi_device *acpi_companion_match(const struct device *dev)
-+{
-+	struct acpi_device *adev;
-+	struct mutex *physical_node_lock;
-+
-+	adev = ACPI_COMPANION(dev);
-+	if (!adev)
-+		return NULL;
-+
-+	if (list_empty(&adev->pnp.ids))
-+		return NULL;
-+
-+	physical_node_lock = &adev->physical_node_lock;
-+	mutex_lock(physical_node_lock);
-+	if (list_empty(&adev->physical_node_list)) {
-+		adev = NULL;
-+	} else {
-+		const struct acpi_device_physical_node *node;
-+
-+		node = list_first_entry(&adev->physical_node_list,
-+					struct acpi_device_physical_node, node);
-+		if (node->dev != dev)
-+			adev = NULL;
-+	}
-+	mutex_unlock(physical_node_lock);
-+
-+	return adev;
-+}
-+
-+/**
-+ * acpi_of_match_device - Match device object using the "compatible" property.
-+ * @adev: ACPI device object to match.
-+ * @of_match_table: List of device IDs to match against.
-+ *
-+ * If @dev has an ACPI companion which has ACPI_DT_NAMESPACE_HID in its list of
-+ * identifiers and a _DSD object with the "compatible" property, use that
-+ * property to match against the given list of identifiers.
-+ */
-+static bool acpi_of_match_device(struct acpi_device *adev,
-+				 const struct of_device_id *of_match_table)
-+{
-+	const union acpi_object *of_compatible, *obj;
-+	int i, nval;
-+
-+	if (!adev)
-+		return false;
-+
-+	of_compatible = adev->data.of_compatible;
-+	if (!of_match_table || !of_compatible)
-+		return false;
-+
-+	if (of_compatible->type == ACPI_TYPE_PACKAGE) {
-+		nval = of_compatible->package.count;
-+		obj = of_compatible->package.elements;
-+	} else { /* Must be ACPI_TYPE_STRING. */
-+		nval = 1;
-+		obj = of_compatible;
-+	}
-+	/* Now we can look for the driver DT compatible strings */
-+	for (i = 0; i < nval; i++, obj++) {
-+		const struct of_device_id *id;
-+
-+		for (id = of_match_table; id->compatible[0]; id++)
-+			if (!strcasecmp(obj->string.pointer, id->compatible))
-+				return true;
-+	}
-+
-+	return false;
-+}
-+
-+static bool __acpi_match_device_cls(const struct acpi_device_id *id,
-+				    struct acpi_hardware_id *hwid)
-+{
-+	int i, msk, byte_shift;
-+	char buf[3];
-+
-+	if (!id->cls)
-+		return false;
-+
-+	/* Apply class-code bitmask, before checking each class-code byte */
-+	for (i = 1; i <= 3; i++) {
-+		byte_shift = 8 * (3 - i);
-+		msk = (id->cls_msk >> byte_shift) & 0xFF;
-+		if (!msk)
-+			continue;
-+
-+		sprintf(buf, "%02x", (id->cls >> byte_shift) & msk);
-+		if (strncmp(buf, &hwid->id[(i - 1) * 2], 2))
-+			return false;
-+	}
-+	return true;
-+}
-+
-+static const struct acpi_device_id *__acpi_match_device(
-+	struct acpi_device *device,
-+	const struct acpi_device_id *ids,
-+	const struct of_device_id *of_ids)
-+{
-+	const struct acpi_device_id *id;
-+	struct acpi_hardware_id *hwid;
-+
-+	/*
-+	 * If the device is not present, it is unnecessary to load device
-+	 * driver for it.
-+	 */
-+	if (!device || !device->status.present)
-+		return NULL;
-+
-+	list_for_each_entry(hwid, &device->pnp.ids, list) {
-+		/* First, check the ACPI/PNP IDs provided by the caller. */
-+		for (id = ids; id->id[0] || id->cls; id++) {
-+			if (id->id[0] && !strcmp((char *) id->id, hwid->id))
-+				return id;
-+			else if (id->cls && __acpi_match_device_cls(id, hwid))
-+				return id;
-+		}
-+
-+		/*
-+		 * Next, check ACPI_DT_NAMESPACE_HID and try to match the
-+		 * "compatible" property if found.
-+		 *
-+		 * The id returned by the below is not valid, but the only
-+		 * caller passing non-NULL of_ids here is only interested in
-+		 * whether or not the return value is NULL.
-+		 */
-+		if (!strcmp(ACPI_DT_NAMESPACE_HID, hwid->id)
-+		    && acpi_of_match_device(device, of_ids))
-+			return id;
-+	}
-+	return NULL;
-+}
-+
-+/**
-+ * acpi_match_device - Match a struct device against a given list of ACPI IDs
-+ * @ids: Array of struct acpi_device_id object to match against.
-+ * @dev: The device structure to match.
-+ *
-+ * Check if @dev has a valid ACPI handle and if there is a struct acpi_device
-+ * object for that handle and use that object to match against a given list of
-+ * device IDs.
-+ *
-+ * Return a pointer to the first matching ID on success or %NULL on failure.
-+ */
-+const struct acpi_device_id *acpi_match_device(const struct acpi_device_id *ids,
-+					       const struct device *dev)
-+{
-+	return __acpi_match_device(acpi_companion_match(dev), ids, NULL);
-+}
-+EXPORT_SYMBOL_GPL(acpi_match_device);
-+
-+int acpi_match_device_ids(struct acpi_device *device,
-+			  const struct acpi_device_id *ids)
-+{
-+	return __acpi_match_device(device, ids, NULL) ? 0 : -ENOENT;
-+}
-+EXPORT_SYMBOL(acpi_match_device_ids);
-+
-+bool acpi_driver_match_device(struct device *dev,
-+			      const struct device_driver *drv)
-+{
-+	if (!drv->acpi_match_table)
-+		return acpi_of_match_device(ACPI_COMPANION(dev),
-+					    drv->of_match_table);
-+
-+	return !!__acpi_match_device(acpi_companion_match(dev),
-+				     drv->acpi_match_table, drv->of_match_table);
-+}
-+EXPORT_SYMBOL_GPL(acpi_driver_match_device);
-+
-+/* --------------------------------------------------------------------------
-                              Initialization/Cleanup
-    -------------------------------------------------------------------------- */
- 
-Index: linux-pm/drivers/acpi/scan.c
-===================================================================
---- linux-pm.orig/drivers/acpi/scan.c
-+++ linux-pm/drivers/acpi/scan.c
-@@ -115,55 +115,6 @@ int acpi_scan_add_handler_with_hotplug(s
- 	return 0;
- }
- 
--/*
-- * acpi_companion_match() - Can we match via ACPI companion device
-- * @dev: Device in question
-- *
-- * Check if the given device has an ACPI companion and if that companion has
-- * a valid list of PNP IDs, and if the device is the first (primary) physical
-- * device associated with it.  Return the companion pointer if that's the case
-- * or NULL otherwise.
-- *
-- * If multiple physical devices are attached to a single ACPI companion, we need
-- * to be careful.  The usage scenario for this kind of relationship is that all
-- * of the physical devices in question use resources provided by the ACPI
-- * companion.  A typical case is an MFD device where all the sub-devices share
-- * the parent's ACPI companion.  In such cases we can only allow the primary
-- * (first) physical device to be matched with the help of the companion's PNP
-- * IDs.
-- *
-- * Additional physical devices sharing the ACPI companion can still use
-- * resources available from it but they will be matched normally using functions
-- * provided by their bus types (and analogously for their modalias).
-- */
--struct acpi_device *acpi_companion_match(const struct device *dev)
--{
--	struct acpi_device *adev;
--	struct mutex *physical_node_lock;
--
--	adev = ACPI_COMPANION(dev);
--	if (!adev)
--		return NULL;
--
--	if (list_empty(&adev->pnp.ids))
--		return NULL;
--
--	physical_node_lock = &adev->physical_node_lock;
--	mutex_lock(physical_node_lock);
--	if (list_empty(&adev->physical_node_list)) {
--		adev = NULL;
--	} else {
--		const struct acpi_device_physical_node *node;
--
--		node = list_first_entry(&adev->physical_node_list,
--					struct acpi_device_physical_node, node);
--		if (node->dev != dev)
--			adev = NULL;
--	}
--	mutex_unlock(physical_node_lock);
--
--	return adev;
--}
- 
- bool acpi_scan_is_offline(struct acpi_device *adev, bool uevent)
- {
-@@ -497,146 +448,6 @@ void acpi_device_hotplug(struct acpi_dev
- 			ACPI Bus operations
-    -------------------------------------------------------------------------- */
- 
--/**
-- * acpi_of_match_device - Match device object using the "compatible" property.
-- * @adev: ACPI device object to match.
-- * @of_match_table: List of device IDs to match against.
-- *
-- * If @dev has an ACPI companion which has ACPI_DT_NAMESPACE_HID in its list of
-- * identifiers and a _DSD object with the "compatible" property, use that
-- * property to match against the given list of identifiers.
-- */
--static bool acpi_of_match_device(struct acpi_device *adev,
--				 const struct of_device_id *of_match_table)
--{
--	const union acpi_object *of_compatible, *obj;
--	int i, nval;
--
--	if (!adev)
--		return false;
--
--	of_compatible = adev->data.of_compatible;
--	if (!of_match_table || !of_compatible)
--		return false;
--
--	if (of_compatible->type == ACPI_TYPE_PACKAGE) {
--		nval = of_compatible->package.count;
--		obj = of_compatible->package.elements;
--	} else { /* Must be ACPI_TYPE_STRING. */
--		nval = 1;
--		obj = of_compatible;
--	}
--	/* Now we can look for the driver DT compatible strings */
--	for (i = 0; i < nval; i++, obj++) {
--		const struct of_device_id *id;
--
--		for (id = of_match_table; id->compatible[0]; id++)
--			if (!strcasecmp(obj->string.pointer, id->compatible))
--				return true;
--	}
--
--	return false;
--}
--
--static bool __acpi_match_device_cls(const struct acpi_device_id *id,
--				    struct acpi_hardware_id *hwid)
--{
--	int i, msk, byte_shift;
--	char buf[3];
--
--	if (!id->cls)
--		return false;
--
--	/* Apply class-code bitmask, before checking each class-code byte */
--	for (i = 1; i <= 3; i++) {
--		byte_shift = 8 * (3 - i);
--		msk = (id->cls_msk >> byte_shift) & 0xFF;
--		if (!msk)
--			continue;
--
--		sprintf(buf, "%02x", (id->cls >> byte_shift) & msk);
--		if (strncmp(buf, &hwid->id[(i - 1) * 2], 2))
--			return false;
--	}
--	return true;
--}
--
--static const struct acpi_device_id *__acpi_match_device(
--	struct acpi_device *device,
--	const struct acpi_device_id *ids,
--	const struct of_device_id *of_ids)
--{
--	const struct acpi_device_id *id;
--	struct acpi_hardware_id *hwid;
--
--	/*
--	 * If the device is not present, it is unnecessary to load device
--	 * driver for it.
--	 */
--	if (!device || !device->status.present)
--		return NULL;
--
--	list_for_each_entry(hwid, &device->pnp.ids, list) {
--		/* First, check the ACPI/PNP IDs provided by the caller. */
--		for (id = ids; id->id[0] || id->cls; id++) {
--			if (id->id[0] && !strcmp((char *) id->id, hwid->id))
--				return id;
--			else if (id->cls && __acpi_match_device_cls(id, hwid))
--				return id;
--		}
--
--		/*
--		 * Next, check ACPI_DT_NAMESPACE_HID and try to match the
--		 * "compatible" property if found.
--		 *
--		 * The id returned by the below is not valid, but the only
--		 * caller passing non-NULL of_ids here is only interested in
--		 * whether or not the return value is NULL.
--		 */
--		if (!strcmp(ACPI_DT_NAMESPACE_HID, hwid->id)
--		    && acpi_of_match_device(device, of_ids))
--			return id;
--	}
--	return NULL;
--}
--
--/**
-- * acpi_match_device - Match a struct device against a given list of ACPI IDs
-- * @ids: Array of struct acpi_device_id object to match against.
-- * @dev: The device structure to match.
-- *
-- * Check if @dev has a valid ACPI handle and if there is a struct acpi_device
-- * object for that handle and use that object to match against a given list of
-- * device IDs.
-- *
-- * Return a pointer to the first matching ID on success or %NULL on failure.
-- */
--const struct acpi_device_id *acpi_match_device(const struct acpi_device_id *ids,
--					       const struct device *dev)
--{
--	return __acpi_match_device(acpi_companion_match(dev), ids, NULL);
--}
--EXPORT_SYMBOL_GPL(acpi_match_device);
--
--int acpi_match_device_ids(struct acpi_device *device,
--			  const struct acpi_device_id *ids)
--{
--	return __acpi_match_device(device, ids, NULL) ? 0 : -ENOENT;
--}
--EXPORT_SYMBOL(acpi_match_device_ids);
--
--bool acpi_driver_match_device(struct device *dev,
--			      const struct device_driver *drv)
--{
--	if (!drv->acpi_match_table)
--		return acpi_of_match_device(ACPI_COMPANION(dev),
--					    drv->of_match_table);
--
--	return !!__acpi_match_device(acpi_companion_match(dev),
--				     drv->acpi_match_table, drv->of_match_table);
--}
--EXPORT_SYMBOL_GPL(acpi_driver_match_device);
--
- static void acpi_free_power_resources_lists(struct acpi_device *device)
- {
- 	int i;
+T24gMTMgSnVseSAyMDE1IGF0IDE3OjQyLCBNYXJrIEJyb3duIDxicm9vbmllQGtlcm5lbC5vcmc+
+IHdyb3RlOgo+IE9uIE1vbiwgSnVsIDEzLCAyMDE1IGF0IDAyOjEwOjQ1UE0gKzAyMDAsIFRvbWV1
+IFZpem9zbyB3cm90ZToKPj4gT24gMSBKdWx5IDIwMTUgYXQgMTk6MzgsIE1hcmsgQnJvd24gPGJy
+b29uaWVAa2VybmVsLm9yZz4gd3JvdGU6Cj4+ID4gT24gV2VkLCBKdWwgMDEsIDIwMTUgYXQgMTE6
+NDE6MDZBTSArMDIwMCwgVG9tZXUgVml6b3NvIHdyb3RlOgo+Cj4+ID4+ICtzdGF0aWMgdm9pZCB0
+ZWdyYV9tYXg5ODA5MF9nZXRfZGVwZW5kZW5jaWVzKHN0cnVjdCBmd25vZGVfaGFuZGxlICpmd25v
+ZGUsCj4+ID4+ICsgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIHN0cnVj
+dCBsaXN0X2hlYWQgKmRlcHMpCj4+ID4+ICt7Cj4+ID4+ICsgICAgIGFkZF9kZXBlbmRlbmN5KGZ3
+bm9kZSwgIm52aWRpYSxpMnMtY29udHJvbGxlciIsIGRlcHMpOwo+PiA+PiArICAgICBhZGRfZGVw
+ZW5kZW5jeShmd25vZGUsICJudmlkaWEsYXVkaW8tY29kZWMiLCBkZXBzKTsKPj4gPj4gK30KPgo+
+PiA+IFdoeSBpcyB0aGlzIGFsbCBiZWluZyBvcGVuIGNvZGVkIGluIGFuIGluZGl2aWR1YWwgZHJp
+dmVyICh3ZSBhbHJlYWR5Cj4+ID4ga25vdyBhYm91dCBhbmQgbWFuYWdlIGFsbCB0aGVzZSBkZXBl
+bmRlbmNpZXMgaW4gdGhlIGNvcmUuLi4pPyAgSWYgd2UncmUKPj4gPiBnb2luZyB0byBkbyB0aGlz
+IEknZCBleHBlY3QgdGhlIGludGVyZmFjZSBmb3Igc3BlY2lmeWluZyBEVCBub2RlcyB0byB0aGUK
+Pj4gPiBjb3JlIHRvIGJlIGNoYW5nZWQgdG8gc3VwcG9ydCB0aGlzLgo+Cj4+IEFyZSB5b3UgdGhp
+bmtpbmcgb2YgY2hhbmdpbmcgZHJpdmVycyB0byBhY3F1aXJlIHRoZWlyIHJlc291cmNlcwo+PiB0
+aHJvdWdoIEFybmQncyBkZXZtX3Byb2JlIChvbmx5IHRoYXQgdGhlIHJlc291cmNlIHRhYmxlIHdv
+dWxkIGhhdmUgdG8KPj4gYmUgaW4gc3RydWN0IGRldmljZV9kcml2ZXIpPwo+Cj4+IGh0dHBzOi8v
+bGttbC5rZXJuZWwub3JnL2cvNDc0MjI1OC5UQml0QzNoVnVPQHd1ZXJmZWwKPgo+IE5vLCBJJ20g
+bG9va2luZyBhdCBob3cgd2UgYWxyZWFkeSBoYXZlIGFsbCB0aGUgImRpZCBhbGwgbXkgZGVwZW5k
+ZW5jaWVzCj4gYXBwZWFyIiBsb2dpYyBpbiB0aGUgY29yZSBiYXNlZCBvbiBkYXRhIHByb3ZpZGVk
+IGJ5IHRoZSBkcml2ZXJzLgoKU29ycnksIGJ1dCBJIHN0aWxsIGRvbid0IGdldCB3aGF0IHlvdSBt
+ZWFuLgoKSW5mb3JtYXRpb24gYWJvdXQgZGVwZW5kZW5jaWVzIGlzIGN1cnJlbnRseSBhdmFpbGFi
+bGUgb25seSBhZnRlcgpwcm9iZSgpIHN0YXJ0cyBleGVjdXRpbmcsIGFuZCB1c2VkIHRvIGRlY2lk
+ZSB3aGV0aGVyIHdlIHdhbnQgdG8gZGVmZXIKdGhlIHByb2JlLgoKVGhlIGdvYWwgb2YgdGhpcyBz
+ZXJpZXMgaXMgdG8gZWxpbWluYXRlIG1vc3Qgb3IgYWxsIG9mIHRoZSBkZWZlcnJlZApwcm9iZXMg
+YnkgY2hlY2tpbmcgdGhhdCBhbGwgZGVwZW5kZW5jaWVzIGFyZSBhdmFpbGFibGUgYmVmb3JlIHBy
+b2JlKCkKaXMgY2FsbGVkLgoKQmVjYXVzZSBjdXJyZW50bHkgd2Ugb25seSBoYXZlIGRlcGVuZGVu
+Y3kgaW5mb3JtYXRpb24gYWZ0ZXIgcHJvYmUoKQpzdGFydHMgZXhlY3V0aW5nLCB3ZSBoYXZlIHRv
+IG1ha2UgaXQgYXZhaWxhYmxlIGVhcmxpZXIuIEluIHRoaXMKcGFydGljdWxhciB2ZXJzaW9uLCBp
+biBjYWxsYmFja3MgdGhhdCBhcmUgcmVnaXN0ZXJlZCBmcm9tIHRoZQppbml0Y2FsbHMgdGhhdCBy
+ZWdpc3RlciBzdWJzeXN0ZW1zLCBjbGFzc2VzLCBkcml2ZXJzLCBldGMuIFdoYXRldmVyCmtub3dz
+IGhvdyB0aGVzZSBkZXBlbmRlbmNpZXMgYXJlIGV4cHJlc3NlZCBpbiB0aGUgZmlybXdhcmUgZGF0
+YS4KCkkgdGhvdWdodCB5b3Ugd2VyZSBwb2ludGluZyBvdXQgdGhhdCB0aGUgcHJvcGVydHkgbmFt
+ZXMgd291bGQgYmUKZHVwbGljYXRlZCwgb25jZSBpbiB0aGUgcHJvYmUoKSBpbXBsZW1lbnRhdGlv
+biBhbmQgYWxzbyBpbiB0aGUKaW1wbGVtZW50YXRpb24gb2YgdGhlIGdldF9kZXBlbmRlbmNpZXMg
+Y2FsbGJhY2suCgpBIHdheSB0byBjb25zb2xpZGF0ZSB0aGUgY29kZSBhbmQgcmVtb3ZlIHRoYXQg
+ZHVwbGljYXRpb24gd291bGQgYmUKaGF2aW5nIGEgZGVjbGFyYXRpdmUgQVBJIGZvciBleHByZXNz
+aW5nIGRlcGVuZGVuY2llcywgd2hpY2ggY291bGQgYmUKdXNlZCBmb3IgYm90aCBmZXRjaGluZyBk
+ZXBlbmRlbmNpZXMgYW5kIGZvciBwcmV2ZW50aW5nIGRlZmVycmVkCnByb2Jlcy4gVGhhdCdzIHdo
+eSBJIG1lbnRpb25lZCBkZXZtX3Byb2JlLgoKVGhhbmtzLAoKVG9tZXUKX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApk
+cmktZGV2ZWxAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHA6Ly9saXN0cy5mcmVlZGVza3RvcC5v
+cmcvbWFpbG1hbi9saXN0aW5mby9kcmktZGV2ZWwK
