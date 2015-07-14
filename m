@@ -1,97 +1,56 @@
-From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [alsa-devel] [PATCH v2 11/12] ASoC: tegra: register dependency
- parser for firmware nodes
-Date: Tue, 14 Jul 2015 12:07:13 +0100
-Message-ID: <20150714110713.GT11162@sirena.org.uk>
-References: <1435743667-11987-1-git-send-email-tomeu.vizoso@collabora.com>
- <1435743667-11987-12-git-send-email-tomeu.vizoso@collabora.com>
- <20150701173802.GW11162@sirena.org.uk>
- <CAAObsKDsEuDS46rW9CMuviDEDV-OVXe5q-kiWmw0D_n2D3Tf5A@mail.gmail.com>
- <20150713154254.GH11162@sirena.org.uk>
- <CAAObsKAVY7-QpcRyT4juc2RyB+vqibvzKO7wFCT2VsL9R8bzPw@mail.gmail.com>
+From: "Anaczkowski, Lukasz" <lukasz.anaczkowski@intel.com>
+Subject: RE: [PATCH] x86, acpi: Handle xapic/x2apic entries in MADT
+Date: Tue, 14 Jul 2015 11:17:36 +0000
+Message-ID: <C1C2579D7BE026428F81F41198ADB1723780EB27@irsmsx110.ger.corp.intel.com>
+References: <55A3D7A3.90609@linaro.org>
+ <1436861209-4047-1-git-send-email-lukasz.anaczkowski@intel.com>
+ <1436861209-4047-2-git-send-email-lukasz.anaczkowski@intel.com>
+ <55A4C7B2.7040707@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="W8iFDApEu++Vn+WX"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAAObsKAVY7-QpcRyT4juc2RyB+vqibvzKO7wFCT2VsL9R8bzPw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tomeu Vizoso <tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
-Cc: "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-fbdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Takashi Iwai <tiwai-l3A5Bk7waGM@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org" <dri-devel-PD4FTy7X32lNgt0PjOBp9y5qC8QIuHrW@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Linux PWM List <linux-pwm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-tegra-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:18981 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751751AbbGNLRm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 14 Jul 2015 07:17:42 -0400
+In-Reply-To: <55A4C7B2.7040707@linux.intel.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>, "tglx@linutronix.de" <tglx@linutronix.de>, "mingo@redhat.com" <mingo@redhat.com>, "hpa@zytor.com" <hpa@zytor.com>, "x86@kernel.org" <x86@kernel.org>, "jason@lakedaemon.net" <jason@lakedaemon.net>
+Cc: "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, "pavel@ucw.cz" <pavel@ucw.cz>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
+> I have some concerns here about "maxcpus" and "nox2apic" kernel parameters. Say "maxcpus=72 nox2apic" is specified, user may get less than 72 CPUs with you patch applied. Original code will try to only all xapic CPUs before trying x2apic CPUs, so "maxcpus" doesn't conflict with "nox2apic".
 
---W8iFDApEu++Vn+WX
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+HI Gerry,
 
-On Tue, Jul 14, 2015 at 09:34:22AM +0200, Tomeu Vizoso wrote:
-> On 13 July 2015 at 17:42, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
+'nox2apic' is causing kernel panics with and w/o my patch.
+Here's the stack trace:
 
-> > No, I'm looking at how we already have all the "did all my dependencies
-> > appear" logic in the core based on data provided by the drivers.
+#0  panic (fmt=0xffffffff818043c8 "timer doesn't work through Interrupt-remapped IO-APIC") at kernel/panic.c:72
+#1  0xffffffff813df48c in panic_if_irq_remap (msg=<optimized out>) at drivers/iommu/irq_remapping.c:152
+#2  0xffffffff81b5a705 in check_timer () at arch/x86/kernel/apic/io_apic.c:2124
+#3  0xffffffff81b5afa3 in setup_IO_APIC () at arch/x86/kernel/apic/io_apic.c:2278
+#4  0xffffffff81b59655 in apic_bsp_setup (upmode=<optimized out>) at arch/x86/kernel/apic/apic.c:2184
+#5  0xffffffff81b57370 in native_smp_prepare_cpus (max_cpus=<optimized out>) at arch/x86/kernel/smpboot.c:1201
+#6  0xffffffff81b49182 in smp_prepare_cpus (max_cpus=<optimized out>) at ./arch/x86/include/asm/smp.h:99
+#7  kernel_init_freeable () at init/main.c:999
+#8  0xffffffff8155c64e in kernel_init (unused=<optimized out>) at init/main.c:937
+#9  0xffffffff8156f51f in ret_from_fork () at arch/x86/entry/entry_64.S:526
+#10 0x0000000000000000 in ?? ()
 
-> Sorry, but I still don't get what you mean.
+On HSW i7-4770, I'm getting 8 CPUs booted, regardless of the 'nox2apic' setting w/ my patch.
 
-I'm not sure how I can be clearer here...  you're replacing something
-that is currently pure data with open coding in each device.  That seems
-like a step back in terms of ease of use.
+Cheers,
+Lukasz
+--------------------------------------------------------------------
 
-> Information about dependencies is currently available only after
-> probe() starts executing, and used to decide whether we want to defer
-> the probe.
+Intel Technology Poland sp. z o.o.
+ul. Slowackiego 173 | 80-298 Gdansk | Sad Rejonowy Gdansk Polnoc | VII Wydzial Gospodarczy Krajowego Rejestru Sadowego - KRS 101882 | NIP 957-07-52-316 | Kapital zakladowy 200.000 PLN.
 
-> The goal of this series is to eliminate most or all of the deferred
-> probes by checking that all dependencies are available before probe()
-> is called.
+Ta wiadomosc wraz z zalacznikami jest przeznaczona dla okreslonego adresata i moze zawierac informacje poufne. W razie przypadkowego otrzymania tej wiadomosci, prosimy o powiadomienie nadawcy oraz trwale jej usuniecie; jakiekolwiek
+przegladanie lub rozpowszechnianie jest zabronione.
+This e-mail and any attachments may contain confidential material for the sole use of the intended recipient(s). If you are not the intended recipient, please contact the sender and delete all copies; any review or distribution by
+others is strictly prohibited.
 
-Right, but the way it does this is by moving code out of the core into
-the drivers - currently drivers just tell the core what resources to
-look up and the core then makes sure that they're all present.
-
-> I thought you were pointing out that the property names would be
-> duplicated, once in the probe() implementation and also in the
-> implementation of the get_dependencies callback.
-
-Yes, that is another part of issue with this approach - drivers now have
-to specify things twice, once for this new interface and once for
-actually looking things up.  That doesn't seem awesome and adding the
-code into the individual drivers and then having to pull it out again
-when the redundancy is removed is going to be an enormous amount of
-churn.
-
-> A way to consolidate the code and remove that duplication would be
-> having a declarative API for expressing dependencies, which could be
-> used for both fetching dependencies and for preventing deferred
-> probes. That's why I mentioned devm_probe.
-
-Part of what I'm saying here is that in ASoC we already have (at least
-as far as the individual drivers are concerned) a declarative way of
-specifying dependencies.  This new code should be able to make use of
-that, if it can't and especially if none of the code can be shared
-between drivers then that seems like the interface needs another spin.
-
-I've not seen this devm_probe() code but the name sounds worryingly like
-it might be fixing the wrong problem :/
-
---W8iFDApEu++Vn+WX
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJVpO1gAAoJECTWi3JdVIfQnSAH+wT+w5R81fdOFtEt0wy01yaj
-GshHYfsA3FUBcLolXKBfwdFn3xRd0MjjOaTZ3pcrPGoKZDNNUF+X41SNSxoeyFoc
-biuYRxw7xpCeT1u7g7aAu/IHyFSXLH/UmW21mckH6JtmLh1wLNKDTNQTI2OFwFLY
-tJKsMXHhAzJ1+nLWxXHpuVN7U+dtNstl+BjGMfXbJqaz8OmvEPkzusI+w5bVlUhL
-+q0+AKvuqOYo2gDVlWL1ou2NTJfoubdWrmgquEG351VimQopSAR6feYiORUkwhVp
-176VGZHUTgwpzQo4L2Y1nQkX8D47pHng85WnMEHUnMAYq87XhASkmmuaLaKQfg0=
-=tRqQ
------END PGP SIGNATURE-----
-
---W8iFDApEu++Vn+WX--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
