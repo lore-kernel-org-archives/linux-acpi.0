@@ -1,45 +1,194 @@
-From: "Zhouyi Zhou" <yizhouzhou@ict.ac.cn>
-Subject: [PATCH] ACPI: Fix indent for variable declaration
-Date: Wed, 15 Jul 2015 10:43:12 +0800 (GMT+08:00)
-Message-ID: <1a28a1e.5e0e.14e8f982ecf.Coremail.yizhouzhou@ict.ac.cn>
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: Re: [PATCH 3/5] x86, acpi, cpu-hotplug: Introduce apicid_to_cpuid[]
+ array to store persistent cpuid <-> apicid mapping.
+Date: Wed, 15 Jul 2015 11:33:57 +0800
+Message-ID: <55A5D4A5.8040806@cn.fujitsu.com>
+References: <1436261425-29881-1-git-send-email-tangchen@cn.fujitsu.com>	<1436261425-29881-4-git-send-email-tangchen@cn.fujitsu.com> <CAChTCPw6ZLs7XgApfN1exeB6TVcQji6ryq+HrK-admp=FGfiTA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=GBK
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp37.cstnet.cn ([159.226.251.37]:46817 "EHLO cstnet.cn"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751924AbbGOCsn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 14 Jul 2015 22:48:43 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAChTCPw6ZLs7XgApfN1exeB6TVcQji6ryq+HrK-admp=FGfiTA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: =?UTF-8?B?TWlrYSBQZW50dGlsw6Q=?= <mika.j.penttila@gmail.com>
+Cc: rjw@rjwysocki.net, gongzhaogang@inspur.com, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
 List-Id: linux-acpi@vger.kernel.org
-To: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-In function acpi_ns_one_complete_parse, the variable declaration
-aml_length is not correctly indented.
+Hi Mika,
 
-Signed-off-by: Zhouyi Zhou <yizhouzhou@ict.ac.cn>
----
- drivers/acpi/acpica/nsparse.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On 07/07/2015 07:14 PM, Mika Penttil=C3=A4 wrote:
+> I think you forgot to reserve CPU 0 for BSP in cpuid mask.
 
-diff --git a/drivers/acpi/acpica/nsparse.c b/drivers/acpi/acpica/nsparse.c
-index 57a4cfe..802afdc 100644
---- a/drivers/acpi/acpica/nsparse.c
-+++ b/drivers/acpi/acpica/nsparse.c
-@@ -70,7 +70,7 @@ acpi_ns_one_complete_parse(u32 pass_number,
- {
-        union acpi_parse_object *parse_root;
-        acpi_status status;
--       u32 aml_length;
-+       u32 aml_length;
-        u8 *aml_start;
-        struct acpi_walk_state *walk_state;
-        struct acpi_table_header *table;
---
-2.4.5
+Sorry for the late reply.
 
+I'm not familiar with BSP.  Do you mean in get_cpuid(),
+I should reserve 0 for physical cpu0 in BSP ?
 
+Would you please share more detail ?
 
+Thanks.
 
-
-
+>
+> --Mika
+>
+> On Tue, Jul 7, 2015 at 12:30 PM, Tang Chen <tangchen@cn.fujitsu.com> =
+wrote:
+>> From: Gu Zheng <guz.fnst@cn.fujitsu.com>
+>>
+>> In this patch, we introduce a new static array named apicid_to_cpuid=
+[],
+>> which is large enough to store info for all possible cpus.
+>>
+>> And then, we modify the cpuid calculation. In generic_processor_info=
+(),
+>> it simply finds the next unused cpuid. And it is also why the cpuid =
+<-> nodeid
+>> mapping changes with node hotplug.
+>>
+>> After this patch, we find the next unused cpuid, map it to an apicid=
+,
+>> and store the mapping in apicid_to_cpuid[], so that cpuid <-> apicid
+>> mapping will be persistent.
+>>
+>> And finally we will use this array to make cpuid <-> nodeid persiste=
+nt.
+>>
+>> cpuid <-> apicid mapping is established at local apic registeration =
+time.
+>> But non-present or disabled cpus are ignored.
+>>
+>> In this patch, we establish all possible cpuid <-> apicid mapping wh=
+en
+>> registering local apic.
+>>
+>>
+>> Signed-off-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
+>> Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+>> ---
+>>   arch/x86/include/asm/mpspec.h |  1 +
+>>   arch/x86/kernel/acpi/boot.c   |  6 ++----
+>>   arch/x86/kernel/apic/apic.c   | 47 +++++++++++++++++++++++++++++++=
++++++++++---
+>>   3 files changed, 47 insertions(+), 7 deletions(-)
+>>
+>> diff --git a/arch/x86/include/asm/mpspec.h b/arch/x86/include/asm/mp=
+spec.h
+>> index b07233b..db902d8 100644
+>> --- a/arch/x86/include/asm/mpspec.h
+>> +++ b/arch/x86/include/asm/mpspec.h
+>> @@ -86,6 +86,7 @@ static inline void early_reserve_e820_mpc_new(void=
+) { }
+>>   #endif
+>>
+>>   int generic_processor_info(int apicid, int version);
+>> +int __generic_processor_info(int apicid, int version, bool enabled)=
+;
+>>
+>>   #define PHYSID_ARRAY_SIZE      BITS_TO_LONGS(MAX_LOCAL_APIC)
+>>
+>> diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot=
+=2Ec
+>> index e49ee24..bcc85b2 100644
+>> --- a/arch/x86/kernel/acpi/boot.c
+>> +++ b/arch/x86/kernel/acpi/boot.c
+>> @@ -174,15 +174,13 @@ static int acpi_register_lapic(int id, u8 enab=
+led)
+>>                  return -EINVAL;
+>>          }
+>>
+>> -       if (!enabled) {
+>> +       if (!enabled)
+>>                  ++disabled_cpus;
+>> -               return -EINVAL;
+>> -       }
+>>
+>>          if (boot_cpu_physical_apicid !=3D -1U)
+>>                  ver =3D apic_version[boot_cpu_physical_apicid];
+>>
+>> -       return generic_processor_info(id, ver);
+>> +       return __generic_processor_info(id, ver, enabled);
+>>   }
+>>
+>>   static int __init
+>> diff --git a/arch/x86/kernel/apic/apic.c b/arch/x86/kernel/apic/apic=
+=2Ec
+>> index a9c9830..c744ffb 100644
+>> --- a/arch/x86/kernel/apic/apic.c
+>> +++ b/arch/x86/kernel/apic/apic.c
+>> @@ -1977,7 +1977,38 @@ void disconnect_bsp_APIC(int virt_wire_setup)
+>>          apic_write(APIC_LVT1, value);
+>>   }
+>>
+>> -static int __generic_processor_info(int apicid, int version, bool e=
+nabled)
+>> +/*
+>> + * Logic cpu number(cpuid) to local APIC id persistent mappings.
+>> + * Do not clear the mapping even if cpu is hot-removed.
+>> + */
+>> +static int apicid_to_cpuid[] =3D {
+>> +       [0 ... NR_CPUS - 1] =3D -1,
+>> +};
+>> +
+>> +/*
+>> + * Internal cpu id bits, set the bit once cpu present, and never cl=
+ear it.
+>> + */
+>> +static cpumask_t cpuid_mask =3D CPU_MASK_NONE;
+>> +
+>> +static int get_cpuid(int apicid)
+>> +{
+>> +       int free_id, i;
+>> +
+>> +       free_id =3D cpumask_next_zero(-1, &cpuid_mask);
+>> +       if (free_id >=3D nr_cpu_ids)
+>> +               return -1;
+>> +
+>> +       for (i =3D 0; i < free_id; i++)
+>> +               if (apicid_to_cpuid[i] =3D=3D apicid)
+>> +                       return i;
+>> +
+>> +       apicid_to_cpuid[free_id] =3D apicid;
+>> +       cpumask_set_cpu(free_id, &cpuid_mask);
+>> +
+>> +       return free_id;
+>> +}
+>> +
+>> +int __generic_processor_info(int apicid, int version, bool enabled)
+>>   {
+>>          int cpu, max =3D nr_cpu_ids;
+>>          bool boot_cpu_detected =3D physid_isset(boot_cpu_physical_a=
+picid,
+>> @@ -2058,8 +2089,18 @@ static int __generic_processor_info(int apici=
+d, int version, bool enabled)
+>>                   * for BSP.
+>>                   */
+>>                  cpu =3D 0;
+>> -       } else
+>> -               cpu =3D cpumask_next_zero(-1, cpu_present_mask);
+>> +       } else {
+>> +               cpu =3D get_cpuid(apicid);
+>> +               if (cpu < 0) {
+>> +                       int thiscpu =3D max + disabled_cpus;
+>> +
+>> +                       pr_warning("  Processor %d/0x%x ignored.\n",
+>> +                                  thiscpu, apicid);
+>> +                       if (enabled)
+>> +                               disabled_cpus++;
+>> +                       return -EINVAL;
+>> +               }
+>> +       }
+>>
+>>          /*
+>>           * Validate version
+>> --
+>> 1.9.3
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-kern=
+el" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> Please read the FAQ at  http://www.tux.org/lkml/
+> .
+>
