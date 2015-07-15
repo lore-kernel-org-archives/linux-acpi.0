@@ -1,53 +1,143 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: Re: [PATCH 3/5] x86, acpi, cpu-hotplug: Introduce apicid_to_cpuid[]
- array to store persistent cpuid <-> apicid mapping.
-Date: Wed, 15 Jul 2015 14:26:12 +0800
-Message-ID: <55A5FD04.1090003@cn.fujitsu.com>
-References: <1436261425-29881-1-git-send-email-tangchen@cn.fujitsu.com>	<1436261425-29881-4-git-send-email-tangchen@cn.fujitsu.com> <CAChTCPw6ZLs7XgApfN1exeB6TVcQji6ryq+HrK-admp=FGfiTA@mail.gmail.com> <55A5D4A5.8040806@cn.fujitsu.com> <55A5F109.3020705@linux.intel.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH v5 0/8] mfd: introduce a driver for LPSS devices on SPT
+Date: Wed, 15 Jul 2015 15:15:31 +0300
+Message-ID: <1436962531.10819.135.camel@linux.intel.com>
+References: <1436185334-34275-1-git-send-email-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([59.151.112.132]:48894 "EHLO
-	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750772AbbGOGZb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 15 Jul 2015 02:25:31 -0400
-In-Reply-To: <55A5F109.3020705@linux.intel.com>
+Received: from mga01.intel.com ([192.55.52.88]:28055 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752306AbbGOMWi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 15 Jul 2015 08:22:38 -0400
+In-Reply-To: <1436185334-34275-1-git-send-email-andriy.shevchenko@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>, =?UTF-8?B?TWlrYSBQZW50dGlsw6Q=?= <mika.j.penttila@gmail.com>
-Cc: rjw@rjwysocki.net, gongzhaogang@inspur.com, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
+To: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Vinod Koul <vinod.koul@intel.com>, Lee Jones <lee.jones@linaro.org>, Andrew Morton <akpm@linux-foundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, mturquette@baylibre.com
 
+On Mon, 2015-07-06 at 15:22 +0300, Andy Shevchenko wrote:
+> The new coming Intel platforms such as Skylake will contain 
+> Sunrisepoint PCH.
+> 
+> The driver is based on MFD framework since the main device, i.e. 
+> serial bus
+> controller, contains register space for itself, DMA part, and an 
+> additional
+> address space (convergence layer). 
+> 
+> The public specification of the register map is avaiable in [1].
+> 
+> This is fifth generation of the patch series to bring support LPSS 
+> devices
+> found on Intel Sunrisepoint (Intel Skylake PCH). Previous one can be 
+> found here
+> [2].
+> 
+> The series has few logical parts:
+> - patches 1-3 prepares PM core, ACPI, and driver core (PM) to handle 
+> our case
+> - patches 4-6 introduce unregistering platform devices in MFD in 
+> reversed
+>   order
+> - patch 7 implements iDMA 64-bit driver
+> - patch 8 introduces an MFD driver for LPSS devices
+> 
+> The patch 7 can be applied independently, though it's better if it 
+> goes before
+> patch 8.
+> 
+> The driver has been tested with SPI and UART on Intel Skylake PCH.
+> 
+> [1] https://download.01.org/future-platform-configuration
+> -hub/skylake/register-definitions/332219-002.pdf
+> [2] http://www.spinics.net/lists/linux-acpi/msg58622.html
 
-On 07/15/2015 01:35 PM, Jiang Liu wrote:
-> On 2015/7/15 11:33, Tang Chen wrote:
->> Hi Mika,
->>
->> On 07/07/2015 07:14 PM, Mika Penttil=C3=A4 wrote:
->>> I think you forgot to reserve CPU 0 for BSP in cpuid mask.
->> Sorry for the late reply.
->>
->> I'm not familiar with BSP.  Do you mean in get_cpuid(),
->> I should reserve 0 for physical cpu0 in BSP ?
->>
->> Would you please share more detail ?
-> BSP stands for "Bootstrapping Processor". In other word,
-> BSP is CPU0.
-> .
->
+Gentle ping on this.
 
-Ha, how foolish I am.
+Vinod, can you Ack the DMA driver?
 
-And yes, cpu0 is not reserved when apicid =3D=3D boot_cpu_physical_apic=
-id
-comes true.
+> 
+> Changelog v5:
+>   - rebase on top of v4.2-rc1
+>   - patch 3 is modified accordingly to new changes in 
+> drivers/base/dd.c
+>   - correct Rafael's email in patch 3
+> 
+> Changelog v4:
+>   - replace patch 3 by Rafael's suggession
+>   - append ACKs from Rafael
+>   - rebase on top of v4.1-rc8
+> 
+> Changelog v3:
+>   - rework patch 3 to be used for all kind of devices (address Alan 
+> comment)
+>   - iDMA 64-bit driver improvements:
+>     - fix burst-to-register conversion
+>     - remove excessive locking
+>   - do not expose core part to the user (Kconfig)
+>   - address most of Lee's comments
+>   - append ACKs
+>   - rebase on top of v4.1-rc6
+> 
+> Changelog v2:
+>   - new DMA driver to fully support iDMA 64-bit IP
+>   - patch 3 is added to wake up parent devices when ->probe(), 
+> ->remove(), or
+>     ->shutdown()
+>   - MFD core is unregistering devices in reversed order
+>   - address few Lee's comments on v1
+>   - address Russel's comment, therefore use clkdev_create() helper
+>   - intel-lpss{,-acpi,-pci} are modified regarding to above changes
+> 
+> Andy Shevchenko (5):
+>   klist: implement klist_prev()
+>   driver core: implement device_for_each_child_reverse()
+>   mfd: make mfd_remove_devices() iterate in reverse order
+>   dmaengine: add a driver for Intel integrated DMA 64-bit
+>   mfd: Add support for Intel Sunrisepoint LPSS devices
+> 
+> Mika Westerberg (2):
+>   PM / QoS: Make it possible to expose device latency tolerance to
+>     userspace
+>   ACPI / PM: Attach ACPI power domain only once
+> 
+> Rafael J. Wysocki (1):
+>   Driver core: wakeup the parent device before trying probe
+> 
+>  drivers/acpi/device_pm.c      |   8 +
+>  drivers/acpi/internal.h       |   2 +
+>  drivers/acpi/scan.c           |  46 ++-
+>  drivers/base/core.c           |  43 +++
+>  drivers/base/dd.c             |  20 ++
+>  drivers/base/power/power.h    |   2 +
+>  drivers/base/power/qos.c      |  37 +++
+>  drivers/base/power/sysfs.c    |  11 +
+>  drivers/dma/Kconfig           |   5 +
+>  drivers/dma/Makefile          |   1 +
+>  drivers/dma/idma64.c          | 724 
+> ++++++++++++++++++++++++++++++++++++++++++
+>  drivers/dma/idma64.h          | 232 ++++++++++++++
+>  drivers/mfd/Kconfig           |  23 ++
+>  drivers/mfd/Makefile          |   3 +
+>  drivers/mfd/intel-lpss-acpi.c |  84 +++++
+>  drivers/mfd/intel-lpss-pci.c  | 113 +++++++
+>  drivers/mfd/intel-lpss.c      | 524 ++++++++++++++++++++++++++++++
+>  drivers/mfd/intel-lpss.h      |  62 ++++
+>  drivers/mfd/mfd-core.c        |   2 +-
+>  include/linux/device.h        |   2 +
+>  include/linux/klist.h         |   1 +
+>  include/linux/pm_qos.h        |   5 +
+>  lib/klist.c                   |  41 +++
+>  23 files changed, 1974 insertions(+), 17 deletions(-)
+>  create mode 100644 drivers/dma/idma64.c
+>  create mode 100644 drivers/dma/idma64.h
+>  create mode 100644 drivers/mfd/intel-lpss-acpi.c
+>  create mode 100644 drivers/mfd/intel-lpss-pci.c
+>  create mode 100644 drivers/mfd/intel-lpss.c
+>  create mode 100644 drivers/mfd/intel-lpss.h
+> 
 
-Will update the patch.
-
-Thanks. :)
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
