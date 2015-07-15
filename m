@@ -1,143 +1,139 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v5 0/8] mfd: introduce a driver for LPSS devices on SPT
-Date: Wed, 15 Jul 2015 15:15:31 +0300
-Message-ID: <1436962531.10819.135.camel@linux.intel.com>
-References: <1436185334-34275-1-git-send-email-andriy.shevchenko@linux.intel.com>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCH 1/5] x86, gfp: Cache best near node for memory allocation.
+Date: Wed, 15 Jul 2015 17:48:02 -0400
+Message-ID: <20150715214802.GL15934@mtj.duckdns.org>
+References: <1436261425-29881-1-git-send-email-tangchen@cn.fujitsu.com>
+ <1436261425-29881-2-git-send-email-tangchen@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:28055 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752306AbbGOMWi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 15 Jul 2015 08:22:38 -0400
-In-Reply-To: <1436185334-34275-1-git-send-email-andriy.shevchenko@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <1436261425-29881-2-git-send-email-tangchen@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, laijs@cn.fujitsu.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, qiaonuohan@cn.fujitsu.com, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Gu Zheng <guz.fnst@cn.fujitsu.com>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Vinod Koul <vinod.koul@intel.com>, Lee Jones <lee.jones@linaro.org>, Andrew Morton <akpm@linux-foundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, mturquette@baylibre.com
 
-On Mon, 2015-07-06 at 15:22 +0300, Andy Shevchenko wrote:
-> The new coming Intel platforms such as Skylake will contain 
-> Sunrisepoint PCH.
-> 
-> The driver is based on MFD framework since the main device, i.e. 
-> serial bus
-> controller, contains register space for itself, DMA part, and an 
-> additional
-> address space (convergence layer). 
-> 
-> The public specification of the register map is avaiable in [1].
-> 
-> This is fifth generation of the patch series to bring support LPSS 
-> devices
-> found on Intel Sunrisepoint (Intel Skylake PCH). Previous one can be 
-> found here
-> [2].
-> 
-> The series has few logical parts:
-> - patches 1-3 prepares PM core, ACPI, and driver core (PM) to handle 
-> our case
-> - patches 4-6 introduce unregistering platform devices in MFD in 
-> reversed
->   order
-> - patch 7 implements iDMA 64-bit driver
-> - patch 8 introduces an MFD driver for LPSS devices
-> 
-> The patch 7 can be applied independently, though it's better if it 
-> goes before
-> patch 8.
-> 
-> The driver has been tested with SPI and UART on Intel Skylake PCH.
-> 
-> [1] https://download.01.org/future-platform-configuration
-> -hub/skylake/register-definitions/332219-002.pdf
-> [2] http://www.spinics.net/lists/linux-acpi/msg58622.html
+Hello,
 
-Gentle ping on this.
+On Tue, Jul 07, 2015 at 05:30:21PM +0800, Tang Chen wrote:
+...
+> Why doing this is to prevent memory allocation failure if the cpu is
 
-Vinod, can you Ack the DMA driver?
+"The reason for doing this ..."
 
+> online but there is no memory on that node.
 > 
-> Changelog v5:
->   - rebase on top of v4.2-rc1
->   - patch 3 is modified accordingly to new changes in 
-> drivers/base/dd.c
->   - correct Rafael's email in patch 3
-> 
-> Changelog v4:
->   - replace patch 3 by Rafael's suggession
->   - append ACKs from Rafael
->   - rebase on top of v4.1-rc8
-> 
-> Changelog v3:
->   - rework patch 3 to be used for all kind of devices (address Alan 
-> comment)
->   - iDMA 64-bit driver improvements:
->     - fix burst-to-register conversion
->     - remove excessive locking
->   - do not expose core part to the user (Kconfig)
->   - address most of Lee's comments
->   - append ACKs
->   - rebase on top of v4.1-rc6
-> 
-> Changelog v2:
->   - new DMA driver to fully support iDMA 64-bit IP
->   - patch 3 is added to wake up parent devices when ->probe(), 
-> ->remove(), or
->     ->shutdown()
->   - MFD core is unregistering devices in reversed order
->   - address few Lee's comments on v1
->   - address Russel's comment, therefore use clkdev_create() helper
->   - intel-lpss{,-acpi,-pci} are modified regarding to above changes
-> 
-> Andy Shevchenko (5):
->   klist: implement klist_prev()
->   driver core: implement device_for_each_child_reverse()
->   mfd: make mfd_remove_devices() iterate in reverse order
->   dmaengine: add a driver for Intel integrated DMA 64-bit
->   mfd: Add support for Intel Sunrisepoint LPSS devices
-> 
-> Mika Westerberg (2):
->   PM / QoS: Make it possible to expose device latency tolerance to
->     userspace
->   ACPI / PM: Attach ACPI power domain only once
-> 
-> Rafael J. Wysocki (1):
->   Driver core: wakeup the parent device before trying probe
-> 
->  drivers/acpi/device_pm.c      |   8 +
->  drivers/acpi/internal.h       |   2 +
->  drivers/acpi/scan.c           |  46 ++-
->  drivers/base/core.c           |  43 +++
->  drivers/base/dd.c             |  20 ++
->  drivers/base/power/power.h    |   2 +
->  drivers/base/power/qos.c      |  37 +++
->  drivers/base/power/sysfs.c    |  11 +
->  drivers/dma/Kconfig           |   5 +
->  drivers/dma/Makefile          |   1 +
->  drivers/dma/idma64.c          | 724 
-> ++++++++++++++++++++++++++++++++++++++++++
->  drivers/dma/idma64.h          | 232 ++++++++++++++
->  drivers/mfd/Kconfig           |  23 ++
->  drivers/mfd/Makefile          |   3 +
->  drivers/mfd/intel-lpss-acpi.c |  84 +++++
->  drivers/mfd/intel-lpss-pci.c  | 113 +++++++
->  drivers/mfd/intel-lpss.c      | 524 ++++++++++++++++++++++++++++++
->  drivers/mfd/intel-lpss.h      |  62 ++++
->  drivers/mfd/mfd-core.c        |   2 +-
->  include/linux/device.h        |   2 +
->  include/linux/klist.h         |   1 +
->  include/linux/pm_qos.h        |   5 +
->  lib/klist.c                   |  41 +++
->  23 files changed, 1974 insertions(+), 17 deletions(-)
->  create mode 100644 drivers/dma/idma64.c
->  create mode 100644 drivers/dma/idma64.h
->  create mode 100644 drivers/mfd/intel-lpss-acpi.c
->  create mode 100644 drivers/mfd/intel-lpss-pci.c
->  create mode 100644 drivers/mfd/intel-lpss.c
->  create mode 100644 drivers/mfd/intel-lpss.h
-> 
+> But since cpuid <-> nodeid mapping will fix after this patch-set, doing
+
+"But since cpuid <-> nodeid mapping is planned to be made static, ..."
+
+> so in initialization pharse makes no sense any more. The best near online
+> node for each cpu should be cached somewhere.
+
+I'm not really following.  Is this because the now offline node can
+later come online and we'd have to break the constant mapping
+invariant if we update the mapping later?  If so, it'd be nice to
+spell that out.
+
+>  void numa_set_node(int cpu, int node)
+>  {
+>  	int *cpu_to_node_map = early_per_cpu_ptr(x86_cpu_to_node_map);
+> @@ -95,7 +121,11 @@ void numa_set_node(int cpu, int node)
+>  		return;
+>  	}
+>  #endif
+> +
+> +	per_cpu(x86_cpu_to_near_online_node, cpu) =
+> +			find_near_online_node(numa_cpu_node(cpu));
+>  	per_cpu(x86_cpu_to_node_map, cpu) = node;
+> +	cpumask_set_cpu(cpu, &node_to_cpuid_mask_map[numa_cpu_node(cpu)]);
+>  
+>  	set_cpu_numa_node(cpu, node);
+>  }
+> @@ -105,6 +135,13 @@ void numa_clear_node(int cpu)
+>  	numa_set_node(cpu, NUMA_NO_NODE);
+>  }
+>  
+> +int get_near_online_node(int node)
+> +{
+> +	return per_cpu(x86_cpu_to_near_online_node,
+> +		       cpumask_first(&node_to_cpuid_mask_map[node]));
+> +}
+> +EXPORT_SYMBOL(get_near_online_node);
+
+Umm... this function is sitting on a fairly hot path and scanning a
+cpumask each time.  Why not just build a numa node -> numa node array?
+
+> @@ -702,24 +739,6 @@ void __init x86_numa_init(void)
+>  	numa_init(dummy_numa_init);
+>  }
+>  
+> -static __init int find_near_online_node(int node)
+> -{
+> -	int n, val;
+> -	int min_val = INT_MAX;
+> -	int best_node = -1;
+> -
+> -	for_each_online_node(n) {
+> -		val = node_distance(node, n);
+> -
+> -		if (val < min_val) {
+> -			min_val = val;
+> -			best_node = n;
+> -		}
+> -	}
+> -
+> -	return best_node;
+> -}
+
+It's usually better to not mix code movement with actual changes.
+
+> diff --git a/include/linux/gfp.h b/include/linux/gfp.h
+> index 6ba7cf2..4a18b21 100644
+> --- a/include/linux/gfp.h
+> +++ b/include/linux/gfp.h
+> @@ -307,13 +307,23 @@ static inline struct page *alloc_pages_node(int nid, gfp_t gfp_mask,
+>  	if (nid < 0)
+>  		nid = numa_node_id();
+>  
+> +#if IS_ENABLED(CONFIG_X86) && IS_ENABLED(CONFIG_NUMA)
+> +	if (!node_online(nid))
+> +		nid = get_near_online_node(nid);
+> +#endif
+
+Can you please introduce a wrapper function to do the above so that we
+don't open code ifdefs?
+
+> +
+>  	return __alloc_pages(gfp_mask, order, node_zonelist(nid, gfp_mask));
+>  }
+>  
+>  static inline struct page *alloc_pages_exact_node(int nid, gfp_t gfp_mask,
+>  						unsigned int order)
+>  {
+> -	VM_BUG_ON(nid < 0 || nid >= MAX_NUMNODES || !node_online(nid));
+> +	VM_BUG_ON(nid < 0 || nid >= MAX_NUMNODES);
+> +
+> +#if IS_ENABLED(CONFIG_X86) && IS_ENABLED(CONFIG_NUMA)
+> +	if (!node_online(nid))
+> +		nid = get_near_online_node(nid);
+> +#endif
+>  
+>  	return __alloc_pages(gfp_mask, order, node_zonelist(nid, gfp_mask));
+>  }
+
+Ditto.  Also, what's the synchronization rules for NUMA node
+on/offlining.  If you end up updating the mapping later, how would
+that be synchronized against the above usages?
+
+Thanks.
 
 -- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+tejun
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
