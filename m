@@ -1,96 +1,71 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH v2 13/49] PCI: Separate realloc list checking after allocation
-Date: Tue, 14 Jul 2015 15:46:44 -0700
-Message-ID: <1436914040-13206-14-git-send-email-yinghai@kernel.org>
-References: <1436914040-13206-1-git-send-email-yinghai@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1436914040-13206-1-git-send-email-yinghai@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, David Miller <davem@davemloft.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Wei Yang <weiyang@linux.vnet.ibm.com>, TJ <linux@iam.tj>, Yijing Wang <wangyijing@huawei.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
+Subject: [PATCH V5 0/4] map GHES memory region according to EFI memory map
+Date: Tue, 14 Jul 2015 17:31:52 -0700
+Message-ID: <1436920316-18127-1-git-send-email-zjzhang@codeaurora.org>
+Return-path: <linux-arm-msm-owner@vger.kernel.org>
+Sender: linux-arm-msm-owner@vger.kernel.org
+To: Matt Fleming <matt.fleming@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, tony.luck@gmail.com, fu.wei@linaro.org, al.stone@linaro.org, bp@alien8.de, rjw@rjwysocki.net, lenb@kernel.org, ying.huang@intel.com, catalin.marinas@arm.com, will.deacon@arm.com
+Cc: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, linux-efi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-msm@vger.kernel.org, linaro-acpi@lists.linaro.org, vgandhi@codeaurora.org
 List-Id: linux-acpi@vger.kernel.org
 
-We check the realloc list, as list must be empty after allocation.
+From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
 
-Separate the realloc list checking to another function.
+On a platform with APEI (ACPI Platform Error Interface) enabled, firmware
+updates a memory region with hardware error record using nocache
+attribute. When OS reads the region, since it maps the region with
+cacahed attribute even though EFI memory map defines this region as
+uncached, OS gets stale data and errorneously reports there is no new
+HW error.
 
-Add checking that is missed in acpiphp driver.
+When ghes driver maps the memory region, it uses the cache attribute
+according to EFI memory map, if EFI memory map feature is enabled
+at runtime.
 
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
----
- drivers/pci/hotplug/acpiphp_glue.c |  1 +
- drivers/pci/pci.h                  |  1 +
- drivers/pci/setup-bus.c            | 11 ++++++++---
- 3 files changed, 10 insertions(+), 3 deletions(-)
+Since both arch/x86 and arch/ia64 implemented architecture agnostic EFI
+memory map attribue lookup function efi_memattributes(), the code is
+moved from arch/x86 into EFI subsystem and is declared as __weak; archs
+other than ia64 should not override the default implementation.
 
-diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
-index ff53856..134caee 100644
---- a/drivers/pci/hotplug/acpiphp_glue.c
-+++ b/drivers/pci/hotplug/acpiphp_glue.c
-@@ -507,6 +507,7 @@ static void enable_slot(struct acpiphp_slot *slot)
- 		}
- 	}
- 	__pci_bus_assign_resources(bus, &add_list, NULL);
-+	__pci_bus_check_realloc(&add_list);
- 
- 	acpiphp_sanitize_bus(bus);
- 	pcie_bus_configure_settings(bus);
-diff --git a/drivers/pci/pci.h b/drivers/pci/pci.h
-index 4ff0ff1..2b83977 100644
---- a/drivers/pci/pci.h
-+++ b/drivers/pci/pci.h
-@@ -235,6 +235,7 @@ void __pci_bus_size_bridges(struct pci_bus *bus,
- void __pci_bus_assign_resources(const struct pci_bus *bus,
- 				struct list_head *realloc_head,
- 				struct list_head *fail_head);
-+void __pci_bus_check_realloc(struct list_head *realloc_head);
- bool pci_bus_clip_resource(struct pci_dev *dev, int idx);
- 
- void pci_reassigndev_resource_alignment(struct pci_dev *dev);
-diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
-index 06664db..f30225c 100644
---- a/drivers/pci/setup-bus.c
-+++ b/drivers/pci/setup-bus.c
-@@ -350,6 +350,11 @@ out:
- 	}
- }
- 
-+void __pci_bus_check_realloc(struct list_head *realloc_head)
-+{
-+	BUG_ON(!list_empty(realloc_head));
-+}
-+
- /**
-  * assign_requested_resources_sorted() - satisfy resource requests
-  *
-@@ -1861,7 +1866,7 @@ again:
- 	/* Depth last, allocate resources and update the hardware. */
- 	__pci_bus_assign_resources(bus, add_list, &fail_head);
- 	if (add_list)
--		BUG_ON(!list_empty(add_list));
-+		__pci_bus_check_realloc(add_list);
- 	tried_times++;
- 
- 	/* any device complain? */
-@@ -1936,7 +1941,7 @@ void pci_assign_unassigned_bridge_resources(struct pci_dev *bridge)
- again:
- 	__pci_bus_size_bridges(parent, &add_list);
- 	__pci_bridge_assign_resources(bridge, &add_list, &fail_head);
--	BUG_ON(!list_empty(&add_list));
-+	__pci_bus_check_realloc(&add_list);
- 	tried_times++;
- 
- 	if (list_empty(&fail_head))
-@@ -1995,6 +2000,6 @@ void pci_assign_unassigned_bus_resources(struct pci_bus *bus)
- 							 &add_list);
- 	up_read(&pci_bus_sem);
- 	__pci_bus_assign_resources(bus, &add_list, NULL);
--	BUG_ON(!list_empty(&add_list));
-+	__pci_bus_check_realloc(&add_list);
- }
- EXPORT_SYMBOL_GPL(pci_assign_unassigned_bus_resources);
+V5:
+1. Rebased to next-20150713 of linux-next/master, efi-next-14359 of
+   efi/next, pm+acpi-4.2-rc2 of linux-pm/master,
+   arm64-fixes-1215 of arm64/master.
+2. Added comment for efi_mem_attributes(), explained why it is marked
+   as __weak at the function definition site.
+V4:
+1. Introduced arch_apei_get_mem_attributes() to allow arch specific
+   implementation of getting pgprot_t appropriate for a physical
+   address.
+2. Implemented arch_apei_get_mem_attributes() for x86 and for arm64.
+
+V3:
+1. Rebased to v4.1-rc7.
+2. Moved efi_mem_attributes() from arch/x86 to drivers/firmware/efi
+   and declared it as __weak.
+3. Introduced ARCH_APEI_PAGE_KERNEL_UC to allow arch specific page
+   protection type for UC.
+4. Removed efi_ioremap(). It can not be used for GHES memory region
+   mapping purpose since ioremap can not be used in atomic context.
+
+V2:
+1. Rebased to v4.1-rc5.
+2. Split removal of efi_mem_attributes() and creation of efi_ioremap()
+into two patches.
+
+Jonathan (Zhixiong) Zhang (4):
+  efi: x86: rearrange efi_mem_attributes()
+  x86: acpi: implement arch_apei_get_mem_attributes()
+  arm64: apei: implement arch_apei_get_mem_attributes()
+  acpi, apei: use appropriate pgprot_t to map GHES memory
+
+ arch/arm64/kernel/apei.c    | 11 +++++++++++
+ arch/x86/kernel/acpi/apei.c | 10 ++++++++++
+ arch/x86/platform/efi/efi.c | 18 ------------------
+ drivers/acpi/apei/ghes.c    |  6 ++++--
+ drivers/firmware/efi/efi.c  | 31 +++++++++++++++++++++++++++++++
+ include/acpi/apei.h         |  1 +
+ 6 files changed, 57 insertions(+), 20 deletions(-)
+
 -- 
-1.8.4.5
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project
