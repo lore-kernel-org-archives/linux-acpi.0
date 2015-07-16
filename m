@@ -1,186 +1,89 @@
-From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Subject: Re: [PATCH RFC] intel_pstate: play well with frequency limits set
- by acpi
-Date: Thu, 16 Jul 2015 15:08:56 -0700
-Message-ID: <1437084536.2377.117.camel@spandruv-DESK3.jf.intel.com>
-References: <20150716181706.6500.64386.stgit@buzz>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [alsa-devel] [PATCH v2 11/12] ASoC: tegra: register dependency
+ parser for firmware nodes
+Date: Fri, 17 Jul 2015 00:04:09 +0100
+Message-ID: <20150716230409.GG1602@sirena.org.uk>
+References: <1435743667-11987-1-git-send-email-tomeu.vizoso@collabora.com>
+ <1435743667-11987-12-git-send-email-tomeu.vizoso@collabora.com>
+ <20150701173802.GW11162@sirena.org.uk>
+ <CAAObsKDsEuDS46rW9CMuviDEDV-OVXe5q-kiWmw0D_n2D3Tf5A@mail.gmail.com>
+ <20150713154254.GH11162@sirena.org.uk>
+ <CAAObsKAVY7-QpcRyT4juc2RyB+vqibvzKO7wFCT2VsL9R8bzPw@mail.gmail.com>
+ <20150714110713.GT11162@sirena.org.uk>
+ <CAAObsKAHviKKTrEBhuge-KQ115p-kOf69miNnmpR+7knOeg+qg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:37475 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751232AbbGPWLT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 16 Jul 2015 18:11:19 -0400
-In-Reply-To: <20150716181706.6500.64386.stgit@buzz>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="gvF4niNJ+uBMJnEh"
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <CAAObsKAHviKKTrEBhuge-KQ115p-kOf69miNnmpR+7knOeg+qg@mail.gmail.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Cc: "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, linux-fbdev@vger.kernel.org, linux-acpi@vger.kernel.org, alsa-devel@alsa-project.org, Stephen Warren <swarren@wwwdotorg.org>, Takashi Iwai <tiwai@suse.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Liam Girdwood <lgirdwood@gmail.com>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-gpio@vger.kernel.org, Thierry Reding <thierry.reding@gmail.com>, Linux PWM List <linux-pwm@vger.kernel.org>, "linux-tegra@vger.kernel.org" <linux-tegra@vger.kernel.org>, Alexandre Courbot <gnurou@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Cc: linux-pm@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Kristen Carlson Accardi <kristen@linux.intel.com>, Len Brown <lenb@kernel.org>, Ethan Zhao <ethan.zhao@oracle.com>
-
-On Thu, 2015-07-16 at 21:17 +0300, Konstantin Khlebnikov wrote:
-> IPMI can control CPU P-states remotely: configuration is reported via
-> common ACPI interface (_PPC/_PSS/etc). This patch adds required minimal
-> support in intel_pstate to receive and use these P-state limits.
-> 
-> * ignore limit of top state in _PPC: it lower than turbo boost frequency
-> * register intel_pstate in acpi-processor to get states from _PSS
-> * link acpi_processor_get_bios_limit: this adds attribute "bios_limit"
-> 
-> Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-> ---
->  drivers/acpi/processor_perflib.c |    3 +-
->  drivers/cpufreq/intel_pstate.c   |   57 ++++++++++++++++++++++++++++++++++++++
->  2 files changed, 59 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
-> index cfc8aba72f86..781e328c9d5f 100644
-> --- a/drivers/acpi/processor_perflib.c
-> +++ b/drivers/acpi/processor_perflib.c
-> @@ -98,7 +98,8 @@ static int acpi_processor_ppc_notifier(struct notifier_block *nb,
->  
->  	ppc = (unsigned int)pr->performance_platform_limit;
->  
-> -	if (ppc >= pr->performance->state_count)
-> +	/* Ignore limit of top state: it lower than turbo boost frequency */
-> +	if (!ppc || ppc >= pr->performance->state_count)
-Why? Isn't the previous check enough?
->  		goto out;
->  
->  	cpufreq_verify_within_limits(policy, 0,
-> diff --git a/drivers/cpufreq/intel_pstate.c b/drivers/cpufreq/intel_pstate.c
-> index 15ada47bb720..4a34ddf4fa73 100644
-> --- a/drivers/cpufreq/intel_pstate.c
-> +++ b/drivers/cpufreq/intel_pstate.c
-> @@ -26,6 +26,7 @@
->  #include <linux/fs.h>
->  #include <linux/debugfs.h>
->  #include <linux/acpi.h>
-> +#include <acpi/processor.h>
->  #include <linux/vmalloc.h>
->  #include <trace/events/power.h>
->  
-> @@ -113,6 +114,9 @@ struct cpudata {
->  	u64	prev_mperf;
->  	u64	prev_tsc;
->  	struct sample sample;
-> +#ifdef CONFIG_ACPI_PROCESSOR
-> +	struct acpi_processor_performance acpi_data;
-> +#endif
->  };
->  
->  static struct cpudata **all_cpu_data;
-> @@ -145,6 +149,7 @@ static int hwp_active;
->  
->  struct perf_limits {
->  	int no_turbo;
-> +	int no_acpi;
->  	int turbo_disabled;
->  	int max_perf_pct;
->  	int min_perf_pct;
-> @@ -158,6 +163,7 @@ struct perf_limits {
->  
->  static struct perf_limits limits = {
->  	.no_turbo = 0,
-> +	.no_acpi = !IS_ENABLED(CONFIG_ACPI_PROCESSOR),
->  	.turbo_disabled = 0,
->  	.max_perf_pct = 100,
->  	.max_perf = int_tofp(1),
-> @@ -449,6 +455,18 @@ static ssize_t store_min_perf_pct(struct kobject *a, struct attribute *b,
->  	return count;
->  }
->  
-> +static ssize_t store_no_acpi(struct kobject *a, struct attribute *b,
-> +			     const char *buf, size_t count)
-> +{
-> +#ifdef CONFIG_ACPI_PROCESSOR
-> +	return kstrtouint(buf, 0, &limits.no_acpi) ?: count;
-> +#else
-> +	return -ENODEV;
-> +#endif
-> +}
-> +show_one(no_acpi, no_acpi);
-> +define_one_global_rw(no_acpi);
-> +
->  show_one(max_perf_pct, max_perf_pct);
->  show_one(min_perf_pct, min_perf_pct);
->  
-> @@ -460,6 +478,7 @@ define_one_global_ro(num_pstates);
->  
->  static struct attribute *intel_pstate_attributes[] = {
->  	&no_turbo.attr,
-> +	&no_acpi.attr,
->  	&max_perf_pct.attr,
->  	&min_perf_pct.attr,
->  	&turbo_pct.attr,
-> @@ -1049,6 +1068,38 @@ static int intel_pstate_cpu_init(struct cpufreq_policy *policy)
->  	policy->cpuinfo.transition_latency = CPUFREQ_ETERNAL;
->  	cpumask_set_cpu(policy->cpu, policy->cpus);
->  
-> +#ifdef CONFIG_ACPI_PROCESSOR
-> +	if (!limits.no_acpi) {
-> +		/*
-> +		 * Minimum necessary to get acpi_processor_ppc_notifier() and
-> +		 * acpi_processor_get_bios_limit() working.
-> +		 */
-> +		if (!zalloc_cpumask_var(&cpu->acpi_data.shared_cpu_map,
-> +					GFP_KERNEL))
-> +			rc = -ENOMEM;
-> +		else
-> +			rc = acpi_processor_register_performance(
-> +					&cpu->acpi_data, policy->cpu);
-> +		if (rc) {
-> +			pr_err("intel_pstate: acpi init failed: %d\n", rc);
-> +			free_cpumask_var(cpu->acpi_data.shared_cpu_map);
-> +			limits.no_acpi = 1;
-> +		}
-> +	}
-> +#endif
-> +	return 0;
-> +}
-> +
-> +static int intel_pstate_cpu_exit(struct cpufreq_policy *policy)
-> +{
-> +#ifdef CONFIG_ACPI_PROCESSOR
-> +	struct cpudata *cpu = all_cpu_data[policy->cpu];
-> +
-> +	if (cpu->acpi_data.state_count)
-> +		acpi_processor_unregister_performance(&cpu->acpi_data,
-> +						      policy->cpu);
-> +	free_cpumask_var(cpu->acpi_data.shared_cpu_map);
-> +#endif
->  	return 0;
->  }
->  
-> @@ -1057,7 +1108,11 @@ static struct cpufreq_driver intel_pstate_driver = {
->  	.verify		= intel_pstate_verify_policy,
->  	.setpolicy	= intel_pstate_set_policy,
->  	.get		= intel_pstate_get,
-> +#ifdef CONFIG_ACPI_PROCESSOR
-> +	.bios_limit	= acpi_processor_get_bios_limit,
-> +#endif
->  	.init		= intel_pstate_cpu_init,
-> +	.exit		= intel_pstate_cpu_exit,
->  	.stop_cpu	= intel_pstate_stop_cpu,
->  	.name		= "intel_pstate",
->  };
-> @@ -1286,6 +1341,8 @@ static int __init intel_pstate_setup(char *str)
->  		force_load = 1;
->  	if (!strcmp(str, "hwp_only"))
->  		hwp_only = 1;
-> +	if (!strcmp(str, "no_acpi"))
-> +		limits.no_acpi = 1;
->  	return 0;
->  }
->  early_param("intel_pstate", intel_pstate_setup);
-> 
-_PPC is index into _PSS. Since intel P state doesn't follow _PSS, the
-states may not be 1:1 matching. So we have to harmonize them.
 
 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pm" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--gvF4niNJ+uBMJnEh
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
+On Tue, Jul 14, 2015 at 02:47:04PM +0200, Tomeu Vizoso wrote:
+> On 14 July 2015 at 13:07, Mark Brown <broonie@kernel.org> wrote:
 
+> > I'm not sure how I can be clearer here...  you're replacing something
+> > that is currently pure data with open coding in each device.  That seems
+> > like a step back in terms of ease of use.
+
+> I could understand that if snd_soc_dai_link had a field with the
+> property name, and the core called of_parse_phandle on it, but
+> currently what I'm duplicating is:
+
+>     tegra_max98090_dai.cpu_of_node = of_parse_phandle(np,
+>             "nvidia,i2s-controller", 0);
+
+> with:
+
+>     add_dependency(fwnode, "nvidia,i2s-controller", deps);
+
+> Admittedly, we could add a cpu_fw_property field to snd_soc_dai_link
+> and have the core call of_parse_phandle itself.
+
+Yes, we could - that's really what should be happening here.  The other
+bit of this is that we're doing it twice which isn't success.
+
+> But even then, the core doesn't know about a device's snd_soc_dai_link
+> until probe() is called and then it's too late for the purposes of
+> this series.
+
+That's not a good reason to encourage bad patterns in drivers.  At the
+very least the drivers should be able to pass the same struct into both
+places, having to open code the same thing in two places is going to be
+error prone.
+
+> That's why I mentioned devm_probe, as it would add a common way to
+> specify the data needed to acquire resources in each driver, which
+> could be made available before probe() is called.
+
+That does avoid the duplication.  However there are issues with the
+interface for enumerable buses, it doesn't solve the problem where
+embedded systems need you to power up the device manually prior to the
+device actually enumerating.  If we're doing early resource acquisition
+we probably want to solve that too.
+
+--gvF4niNJ+uBMJnEh
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJVqDhpAAoJECTWi3JdVIfQ0EcH/1fH3N1Z4hr24sux74G4zKsC
+226sv+YaCN1XJp+07CR6SX4FE6HgYtkP2FQ+DX469pB4ITIg15cQW4XAZBQOUG3Q
+ZH5tzEU5b+pbcBsGGKII6CBwRRrWDwU0lDzNcSxdIhCbwIN0z1BIEQVlrnpnzFz9
+IBsrOFjlxCKDfxHat20DG1A1jysmzL/qEIpmmuNFU8uDT9OTV0Qx0XTDjp4XKkz4
+ZHv23T/xwtgo12y+fDfv+6fn9vbClThG8b+SZP7By/0qJ1JYGUEe6wG5WtBNYEo0
+4FbOWTGDwVnKLbo1ksYK9DVkcPiJwDbTcCoxHHRdF53Ixz1xrjRCaRKkliC+AcM=
+=j1su
+-----END PGP SIGNATURE-----
+
+--gvF4niNJ+uBMJnEh--
