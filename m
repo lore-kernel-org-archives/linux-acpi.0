@@ -1,74 +1,108 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] Power management and ACPI fixes for v4.2-rc3
-Date: Fri, 17 Jul 2015 02:32:55 +0200
-Message-ID: <CAJZ5v0h+Nbh8SwS1xzHFw=cBZ1U0scBdSFrZaAAdH6cB+vXnbQ@mail.gmail.com>
+From: Vinod Koul <vinod.koul@intel.com>
+Subject: Re: [PATCH v5 7/8] dmaengine: add a driver for Intel integrated DMA
+ 64-bit
+Date: Fri, 17 Jul 2015 10:08:03 +0530
+Message-ID: <20150717043803.GE5086@localhost>
+References: <1436185334-34275-1-git-send-email-andriy.shevchenko@linux.intel.com>
+ <1436185334-34275-8-git-send-email-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1436185334-34275-8-git-send-email-andriy.shevchenko@linux.intel.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Lee Jones <lee.jones@linaro.org>, Andrew Morton <akpm@linux-foundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, mturquette@baylibre.com
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Linus,
+On Mon, Jul 06, 2015 at 03:22:13PM +0300, Andy Shevchenko wrote:
+> +config IDMA64
+> +	tristate "Intel integrated DMA 64-bit support"
+> +	select DMA_ENGINE
+> +	select DMA_VIRTUAL_CHANNELS
+no help text?
 
-Please pull from
+> +static void idma64_chan_init(struct idma64 *idma64, struct idma64_chan *idma64c)
+> +{
+> +	u32 cfghi = IDMA64C_CFGH_SRC_PER(1) | IDMA64C_CFGH_DST_PER(0);
+> +	u32 cfglo = 0;
+> +
+> +	/* Enforce FIFO drain when channel is suspended */
+> +	cfglo |= IDMA64C_CFGL_CH_DRAIN;
+> +
+> +	/* Set default burst alignment */
+> +	cfglo |= IDMA64C_CFGL_DST_BURST_ALIGN | IDMA64C_CFGL_SRC_BURST_ALIGN;
+> +
+> +	channel_writel(idma64c, CFG_LO, cfglo);
+> +	channel_writel(idma64c, CFG_HI, cfghi);
+> +
+> +	/* Enable interrupts */
+> +	channel_set_bit(idma64, MASK(XFER), idma64c->mask);
+> +	channel_set_bit(idma64, MASK(ERROR), idma64c->mask);
+> +
+> +	/*
+> +	 * Enforce the controller to be turned on.
+> +	 *
+> +	 * The iDMA is turned off in ->probe() and looses context during system
+> +	 * suspend / resume cycle. That's why we have to enable it each time we
+> +	 * use it.
+> +	 */
+> +	idma64_on(idma64);
+would it be better that you do this in resume and runtime_resume cycle. That
+way it need not be called for every channel init
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- pm+acpi-4.2-rc3
+> +static size_t idma64_desc_size(struct idma64_desc *desc, unsigned int active)
+> +{
+> +	size_t bytes = 0;
+> +	unsigned int i;
+> +
+> +	for (i = active; i < desc->ndesc; i++)
+> +		bytes += desc->hw[i].len;
+it can help for the non active case to have this size stored in desc while
+preparing, that gets rid of runtime calculation for that case
+> +
+> +	return bytes;
+> +}
+> +
+> +static size_t idma64_pending_desc_size(struct idma64_desc *desc)
+> +{
+> +	return idma64_desc_size(desc, 0);
+> +}
+why not invoke with 0 arg from caller?
 
-to receive power management and ACPI fixes for v4.2-rc3 with
-top-most commit 17ffc8b083ac299ff798419d1887b7cdcd4ae4d2
+> +static int idma64_terminate_all(struct dma_chan *chan)
+> +{
+> +	struct idma64_chan *idma64c = to_idma64_chan(chan);
+> +	unsigned long flags;
+> +	LIST_HEAD(head);
+> +
+> +	spin_lock_irqsave(&idma64c->vchan.lock, flags);
+> +	idma64_stop_transfer(idma64c);
+I dont think this is the right method for terminate. Can you check, it
+might be that we have to suspend the channel before terminating an active
+one. For non active case this should be okay
 
- Merge branches 'pm-cpuidle', 'pm-cpufreq' and 'acpi-resources'
+> +static int idma64_alloc_chan_resources(struct dma_chan *chan)
+> +{
+> +	struct idma64_chan *idma64c = to_idma64_chan(chan);
+> +
+> +	/* Create a pool of consistent memory blocks for hardware descriptors */
+> +	idma64c->pool = dma_pool_create(dev_name(chan2dev(chan)),
+> +					chan->device->dev,
+> +					sizeof(struct idma64_lli), 8, 0);
+> +	if (!idma64c->pool) {
+> +		dev_err(chan2dev(chan), "No memory for descriptors\n");
+> +		return -ENOMEM;
+> +	}
+> +
+> +	return 0;
+this should return the number descriptors you allocated for the pool
 
-on top of commit bc0195aad0daa2ad5b0d76cce22b167bc3435590
+> +
+> +static const struct dev_pm_ops idma64_dev_pm_ops = {
+> +	SET_LATE_SYSTEM_SLEEP_PM_OPS(idma64_suspend_late, idma64_resume_early)
+any reason why late ops?
 
- Linux 4.2-rc2
+-- 
+~Vinod
 
-These fix two bugs in the cpufreq core (including one recent
-regression), fix a 4.0 PCI regression related to the ACPI resources
-management and quieten an RCU-related lockdep complaint about a
-tracepoint in the suspend-to-idle code.
-
-Specifics:
-
- - Fix a recently introduced issue in the cpufreq policy object
-   reinitialization that leads to CPU offline/online breakage
-   (Viresh Kumar).
-
- - Make it possible to access frequency tables of offline CPUs
-   which is needed by thermal management code among other things
-   (Viresh Kumar).
-
- - Fix an ACPI resource management regression introduced during
-   the 4.0 cycle that may cause incorrect resource validation
-   results to appear in 32-bit x86 kernels due to silent truncation
-   of 64-bit values to 32-bit (Jiang Liu).
-
- - Fix up an RCU-related lockdep complaint about suspicious RCU
-   usage in idle caused by using a suspend tracepoint in the
-   core suspend-to-idle code (Rafael J Wysocki).
-
-Thanks!
-
----------------
-
-Jiang Liu (1):
-      ACPI / PCI: Fix regressions caused by resource_size_t overflow
-with 32-bit kernel
-
-Rafael J. Wysocki (1):
-      suspend-to-idle: Prevent RCU from complaining about tick_freeze()
-
-Viresh Kumar (2):
-      cpufreq: Initialize the governor again while restoring policy
-      cpufreq: Allow freq_table to be obtained for offline CPUs
-
----------------
-
- drivers/acpi/resource.c      | 24 +++++++++++++++---------
- drivers/cpufreq/cpufreq.c    | 10 ++++++++++
- drivers/cpufreq/freq_table.c |  9 ---------
- drivers/cpuidle/cpuidle.c    |  9 +++++++--
- 4 files changed, 32 insertions(+), 20 deletions(-)
