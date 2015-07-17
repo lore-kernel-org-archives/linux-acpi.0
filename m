@@ -1,218 +1,111 @@
-From: Konstantin Khlebnikov <koct9i@gmail.com>
-Subject: Re: [PATCH RFC] intel_pstate: play well with frequency limits set by acpi
-Date: Fri, 17 Jul 2015 10:10:54 +0300
-Message-ID: <CALYGNiP1-=Rk85Ek1LXkiP8X5eC0kgbhNZYYFLimYx-k+Gcukg@mail.gmail.com>
-References: <20150716181706.6500.64386.stgit@buzz>
-	<55A899E4.4030708@oracle.com>
+From: Punit Agrawal <punit.agrawal@arm.com>
+Subject: Re: [PATCH] thermal: consistently use int for temperatures
+Date: Fri, 17 Jul 2015 12:14:36 +0100
+Message-ID: <9hhd1zrc9yb.fsf@e105922-lin.cambridge.arm.com>
+References: <1436167189-29835-1-git-send-email-s.hauer@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <55A899E4.4030708@oracle.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: ethan zhao <ethan.zhao@oracle.com>
-Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>, linux-pm@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Kristen Carlson Accardi <kristen@linux.intel.com>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1436167189-29835-1-git-send-email-s.hauer@pengutronix.de>
+ (Sascha Hauer's message of "Mon, 6 Jul 2015 09:19:49 +0200")
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: Lukasz Majewski <l.majewski@samsung.com>, linux-samsung-soc@vger.kernel.org, Heiko Stuebner <heiko@sntech.de>, linux-pm@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, lm-sensors@lm-sensors.org, Stephen Warren <swarren@wwwdotorg.org>, Peter Feuerer <peter@piie.net>, linux-kernel@vger.kernel.org, platform-driver-x86@vger.kernel.org, Eduardo Valentin <edubezval@gmail.com>, linux-acpi@vger.kernel.org, Thierry Reding <thierry.reding@gmail.com>, Guenter Roeck <linux@roeck-us.net>, linux-arm-kernel@lists.infradead.org, Darren Hart <dvhart@infradead.org>, Zhang Rui <rui.zhang@intel.com>, linux-omap@vger.kernel.org, Maxime Ripard <maxime.ripard@free-electrons.com>, Jean Delvare <jdelvare@suse.de>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Jul 17, 2015 at 9:00 AM, ethan zhao <ethan.zhao@oracle.com> wro=
-te:
->
-> On 2015/7/17 2:17, Konstantin Khlebnikov wrote:
->>
->> IPMI can control CPU P-states remotely: configuration is reported vi=
-a
->> common ACPI interface (_PPC/_PSS/etc). This patch adds required mini=
-mal
->> support in intel_pstate to receive and use these P-state limits.
->>
->> * ignore limit of top state in _PPC: it lower than turbo boost frequ=
-ency
->> * register intel_pstate in acpi-processor to get states from _PSS
->> * link acpi_processor_get_bios_limit: this adds attribute "bios_limi=
-t"
->>
->> Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
->> ---
->>   drivers/acpi/processor_perflib.c |    3 +-
->>   drivers/cpufreq/intel_pstate.c   |   57
->> ++++++++++++++++++++++++++++++++++++++
->>   2 files changed, 59 insertions(+), 1 deletion(-)
->>
->> diff --git a/drivers/acpi/processor_perflib.c
->> b/drivers/acpi/processor_perflib.c
->> index cfc8aba72f86..781e328c9d5f 100644
->> --- a/drivers/acpi/processor_perflib.c
->> +++ b/drivers/acpi/processor_perflib.c
->> @@ -98,7 +98,8 @@ static int acpi_processor_ppc_notifier(struct
->> notifier_block *nb,
->>         ppc =3D (unsigned int)pr->performance_platform_limit;
->>   -     if (ppc >=3D pr->performance->state_count)
->> +       /* Ignore limit of top state: it lower than turbo boost freq=
-uency
->> */
->> +       if (!ppc || ppc >=3D pr->performance->state_count)
->
->  Perhaps the !ppc is wrong if we check it against ACPI spec.
->  Zero value of ppc means:
->
->  "0 =E2=80=93 States 0 through Nth state are available (all states av=
-ailable)"
-
-Yep, also states are ordered by power - state0 must must have highest
-performance.
-This code below clamps range of available frequences to 0.._PSS[_PPC].f=
-requency.
-So if _PPC =3D 0 then there should be no limit but then turbo is enable=
-d frequency
-of state0 is actually could be lower than effective turbo frequency:
-for hardware I have it's _PSS[0] =3D 2601 Mhz, PSS[1] =3D 2600 Mhz whil=
-e turbo
-state is 3400 Mhz.
-
->
->
->>                 goto out;
->>         cpufreq_verify_within_limits(policy, 0,
->> diff --git a/drivers/cpufreq/intel_pstate.c
->> b/drivers/cpufreq/intel_pstate.c
->> index 15ada47bb720..4a34ddf4fa73 100644
->> --- a/drivers/cpufreq/intel_pstate.c
->> +++ b/drivers/cpufreq/intel_pstate.c
->> @@ -26,6 +26,7 @@
->>   #include <linux/fs.h>
->>   #include <linux/debugfs.h>
->>   #include <linux/acpi.h>
->> +#include <acpi/processor.h>
->>   #include <linux/vmalloc.h>
->>   #include <trace/events/power.h>
->>   @@ -113,6 +114,9 @@ struct cpudata {
->>         u64     prev_mperf;
->>         u64     prev_tsc;
->>         struct sample sample;
->> +#ifdef CONFIG_ACPI_PROCESSOR
->> +       struct acpi_processor_performance acpi_data;
->> +#endif
->>   };
->>     static struct cpudata **all_cpu_data;
->> @@ -145,6 +149,7 @@ static int hwp_active;
->>     struct perf_limits {
->>         int no_turbo;
->> +       int no_acpi;
->>         int turbo_disabled;
->>         int max_perf_pct;
->>         int min_perf_pct;
->> @@ -158,6 +163,7 @@ struct perf_limits {
->>     static struct perf_limits limits =3D {
->>         .no_turbo =3D 0,
->> +       .no_acpi =3D !IS_ENABLED(CONFIG_ACPI_PROCESSOR),
->>         .turbo_disabled =3D 0,
->>         .max_perf_pct =3D 100,
->>         .max_perf =3D int_tofp(1),
->> @@ -449,6 +455,18 @@ static ssize_t store_min_perf_pct(struct kobjec=
-t *a,
->> struct attribute *b,
->>         return count;
->>   }
->>   +static ssize_t store_no_acpi(struct kobject *a, struct attribute =
-*b,
->> +                            const char *buf, size_t count)
->> +{
->> +#ifdef CONFIG_ACPI_PROCESSOR
->> +       return kstrtouint(buf, 0, &limits.no_acpi) ?: count;
->> +#else
->> +       return -ENODEV;
->> +#endif
->> +}
->> +show_one(no_acpi, no_acpi);
->> +define_one_global_rw(no_acpi);
->> +
->>   show_one(max_perf_pct, max_perf_pct);
->>   show_one(min_perf_pct, min_perf_pct);
->>   @@ -460,6 +478,7 @@ define_one_global_ro(num_pstates);
->>     static struct attribute *intel_pstate_attributes[] =3D {
->>         &no_turbo.attr,
->> +       &no_acpi.attr,
->>         &max_perf_pct.attr,
->>         &min_perf_pct.attr,
->>         &turbo_pct.attr,
->> @@ -1049,6 +1068,38 @@ static int intel_pstate_cpu_init(struct
->> cpufreq_policy *policy)
->>         policy->cpuinfo.transition_latency =3D CPUFREQ_ETERNAL;
->>         cpumask_set_cpu(policy->cpu, policy->cpus);
->>   +#ifdef CONFIG_ACPI_PROCESSOR
->> +       if (!limits.no_acpi) {
->> +               /*
->> +                * Minimum necessary to get acpi_processor_ppc_notif=
-ier()
->> and
->> +                * acpi_processor_get_bios_limit() working.
->> +                */
->> +               if (!zalloc_cpumask_var(&cpu->acpi_data.shared_cpu_m=
-ap,
->> +                                       GFP_KERNEL))
->> +                       rc =3D -ENOMEM;
->> +               else
->> +                       rc =3D acpi_processor_register_performance(
->> +                                       &cpu->acpi_data, policy->cpu=
-);
->> +               if (rc) {
->> +                       pr_err("intel_pstate: acpi init failed: %d\n=
-",
->> rc);
->> +                       free_cpumask_var(cpu->acpi_data.shared_cpu_m=
-ap);
->> +                       limits.no_acpi =3D 1;
->> +               }
->> +       }
->> +#endif
->> +       return 0;
->> +}
->> +
->> +static int intel_pstate_cpu_exit(struct cpufreq_policy *policy)
->> +{
->> +#ifdef CONFIG_ACPI_PROCESSOR
->> +       struct cpudata *cpu =3D all_cpu_data[policy->cpu];
->> +
->> +       if (cpu->acpi_data.state_count)
->> +               acpi_processor_unregister_performance(&cpu->acpi_dat=
-a,
->> +                                                     policy->cpu);
->> +       free_cpumask_var(cpu->acpi_data.shared_cpu_map);
->> +#endif
->>         return 0;
->>   }
->>   @@ -1057,7 +1108,11 @@ static struct cpufreq_driver intel_pstate_d=
-river
->> =3D {
->>         .verify         =3D intel_pstate_verify_policy,
->>         .setpolicy      =3D intel_pstate_set_policy,
->>         .get            =3D intel_pstate_get,
->> +#ifdef CONFIG_ACPI_PROCESSOR
->> +       .bios_limit     =3D acpi_processor_get_bios_limit,
->> +#endif
->>         .init           =3D intel_pstate_cpu_init,
->> +       .exit           =3D intel_pstate_cpu_exit,
->>         .stop_cpu       =3D intel_pstate_stop_cpu,
->>         .name           =3D "intel_pstate",
->>   };
->> @@ -1286,6 +1341,8 @@ static int __init intel_pstate_setup(char *str=
-)
->>                 force_load =3D 1;
->>         if (!strcmp(str, "hwp_only"))
->>                 hwp_only =3D 1;
->> +       if (!strcmp(str, "no_acpi"))
->> +               limits.no_acpi =3D 1;
->>         return 0;
->>   }
->>   early_param("intel_pstate", intel_pstate_setup);
->>
->
->
->  Thanks,
->  Ethan
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kerne=
-l" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+SGkgU2FzY2hhLAoKU2FzY2hhIEhhdWVyIDxzLmhhdWVyQHBlbmd1dHJvbml4LmRlPiB3cml0ZXM6
+Cgo+IFRoZSB0aGVybWFsIGNvZGUgdXNlcyBpbnQsIGxvbmcgYW5kIHVuc2lnbmVkIGxvbmcgZm9y
+IHRlbXBlcmF0dXJlcwo+IGluIGRpZmZlcmVudCBwbGFjZXMuCj4KPiBVc2luZyBhbiB1bnNpZ25l
+ZCB0eXBlIGxpbWl0cyB0aGUgdGhlcm1hbCBmcmFtZXdvcmsgdG8gcG9zaXRpdmUKPiB0ZW1wZXJh
+dHVyZXMgd2l0aG91dCBuZWVkLiBBbHNvIHNldmVyYWwgZHJpdmVycyBjdXJyZW50bHkgd2lsbCBy
+ZXBvcnQKPiB0ZW1wZXJhdHVyZXMgbmVhciBVSU5UX01BWCBmb3IgdGVtcGVyYXR1cmVzIGJlbG93
+IDDCsEMuIFRoaXMgd2lsbCBwcm9iYWJseQo+IGltbWVkaWF0ZWx5IHNodXQgdGhlIG1hY2hpbmUg
+ZG93biBkdWUgdG8gb3ZlcnRlbXBlcmF0dXJlIGlmIHN0YXJ0ZWQgYmVsb3cKPiAwwrBDLgo+Cj4g
+J2xvbmcnIGlzIDY0Yml0IG9uIHNldmVyYWwgYXJjaGl0ZWN0dXJlcy4gVGhpcyBpcyBub3QgbmVl
+ZGVkIHNpbmNlIElOVF9NQVggwrBtQwo+IGlzIGFib3ZlIHRoZSBtZWx0aW5nIHBvaW50IG9mIGFs
+bCBrbm93biBtYXRlcmlhbHMuCj4KPiBDb25zaXN0ZW50bHkgdXNlIGEgcGxhaW4gJ2ludCcgZm9y
+IHRlbXBlcmF0dXJlcyB0aHJvdWdob3V0IHRoZSB0aGVybWFsIGNvZGUgYW5kCj4gdGhlIGRyaXZl
+cnMuIFRoaXMgb25seSBjaGFuZ2VzIHRoZSBwbGFjZXMgaW4gdGhlIGRyaXZlcnMgd2hlcmUgdGhl
+IHRlbXBlcmF0dXJlCj4gaXMgcGFzc2VkIGFyb3VuZCBhcyBwb2ludGVyLCB3aGVuIGRyaXZlcnMg
+aW50ZXJuYWxseSB1c2UgYW5vdGhlciB0eXBlIHRoaXMgaXMKPiBub3QgY2hhbmdlZC4KPgo+IFNp
+Z25lZC1vZmYtYnk6IFNhc2NoYSBIYXVlciA8cy5oYXVlckBwZW5ndXRyb25peC5kZT4KClRoYW5r
+cyBmb3IgbW92aW5nIG92ZXIgdGhlIHRoZXJtYWwgc3ViLXN5c3RlbSBpbiBMaW51eCB0byBjb25z
+aXN0ZW50bHkKdXNlIGEgc2luZ2xlIHR5cGUuCgpJbiB5b3VyIHBhdGNoLCB5b3UgbWlzc2VkIG1p
+Z3JhdGluZyBvdmVyIHBvd2VyX2FsbG9jYXRvciBnb3Zlcm5vciBhbmQKaXQncyBhc3NvY2lhdGVk
+IHRyYWNlIGV2ZW50cy4gSXQgZ290IG1lcmdlZCBmb3IgdjQuMi4KCkNvdWxkIHlvdSBpbmNvcnBv
+cmF0ZSBzb21ldGhpbmcgbGlrZSBiZWxvdyBpbiB5b3VyIG5leHQgdmVyc2lvbj8KClRoYW5rcywK
+UHVuaXQKClsuLi5dCgotLS0tLS0tLS0tLS0tLS0+OC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tClN1
+YmplY3Q6IFtQQVRDSF0gVXNlIGludCBmb3IgdGVtcGVyYXR1cmUgaW4gcG93ZXJfYWxsb2NhdG9y
+IGdvdmVybm9yCgotLS0KIGRyaXZlcnMvdGhlcm1hbC9wb3dlcl9hbGxvY2F0b3IuYyAgICAgICAg
+ICAgICAgfCAxMCArKysrLS0tLS0tCiBpbmNsdWRlL3RyYWNlL2V2ZW50cy90aGVybWFsX3Bvd2Vy
+X2FsbG9jYXRvci5oIHwgIDYgKysrLS0tCiAyIGZpbGVzIGNoYW5nZWQsIDcgaW5zZXJ0aW9ucygr
+KSwgOSBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL3RoZXJtYWwvcG93ZXJfYWxs
+b2NhdG9yLmMgYi9kcml2ZXJzL3RoZXJtYWwvcG93ZXJfYWxsb2NhdG9yLmMKaW5kZXggNDY3MjI1
+MC4uMWJiN2Q3ZiAxMDA2NDQKLS0tIGEvZHJpdmVycy90aGVybWFsL3Bvd2VyX2FsbG9jYXRvci5j
+CisrKyBiL2RyaXZlcnMvdGhlcm1hbC9wb3dlcl9hbGxvY2F0b3IuYwpAQCAtOTIsOCArOTIsNyBA
+QCBzdHJ1Y3QgcG93ZXJfYWxsb2NhdG9yX3BhcmFtcyB7CiAgKiBSZXR1cm46IFRoZSBwb3dlciBi
+dWRnZXQgZm9yIHRoZSBuZXh0IHBlcmlvZC4KICAqLwogc3RhdGljIHUzMiBwaWRfY29udHJvbGxl
+cihzdHJ1Y3QgdGhlcm1hbF96b25lX2RldmljZSAqdHosCi0JCQkgIHVuc2lnbmVkIGxvbmcgY3Vy
+cmVudF90ZW1wLAotCQkJICB1bnNpZ25lZCBsb25nIGNvbnRyb2xfdGVtcCwKKwkJCSAgaW50IGN1
+cnJlbnRfdGVtcCwgaW50IGNvbnRyb2xfdGVtcCwKIAkJCSAgdTMyIG1heF9hbGxvY2F0YWJsZV9w
+b3dlcikKIHsKIAlzNjQgcCwgaSwgZCwgcG93ZXJfcmFuZ2U7CkBAIC0yMjMsOCArMjIyLDcgQEAg
+c3RhdGljIHZvaWQgZGl2dnlfdXBfcG93ZXIodTMyICpyZXFfcG93ZXIsIHUzMiAqbWF4X3Bvd2Vy
+LCBpbnQgbnVtX2FjdG9ycywKIH0KIAogc3RhdGljIGludCBhbGxvY2F0ZV9wb3dlcihzdHJ1Y3Qg
+dGhlcm1hbF96b25lX2RldmljZSAqdHosCi0JCQkgIHVuc2lnbmVkIGxvbmcgY3VycmVudF90ZW1w
+LAotCQkJICB1bnNpZ25lZCBsb25nIGNvbnRyb2xfdGVtcCkKKwkJCSAgaW50IGN1cnJlbnRfdGVt
+cCwgaW50IGNvbnRyb2xfdGVtcCkKIHsKIAlzdHJ1Y3QgdGhlcm1hbF9pbnN0YW5jZSAqaW5zdGFu
+Y2U7CiAJc3RydWN0IHBvd2VyX2FsbG9jYXRvcl9wYXJhbXMgKnBhcmFtcyA9IHR6LT5nb3Zlcm5v
+cl9kYXRhOwpAQCAtNDExLDcgKzQwOSw3IEBAIHN0YXRpYyBpbnQgcG93ZXJfYWxsb2NhdG9yX2Jp
+bmQoc3RydWN0IHRoZXJtYWxfem9uZV9kZXZpY2UgKnR6KQogewogCWludCByZXQ7CiAJc3RydWN0
+IHBvd2VyX2FsbG9jYXRvcl9wYXJhbXMgKnBhcmFtczsKLQl1bnNpZ25lZCBsb25nIHN3aXRjaF9v
+bl90ZW1wLCBjb250cm9sX3RlbXA7CisJaW50IHN3aXRjaF9vbl90ZW1wLCBjb250cm9sX3RlbXA7
+CiAJdTMyIHRlbXBlcmF0dXJlX3RocmVzaG9sZDsKIAogCWlmICghdHotPnR6cCB8fCAhdHotPnR6
+cC0+c3VzdGFpbmFibGVfcG93ZXIpIHsKQEAgLTQ3Niw3ICs0NzQsNyBAQCBzdGF0aWMgdm9pZCBw
+b3dlcl9hbGxvY2F0b3JfdW5iaW5kKHN0cnVjdCB0aGVybWFsX3pvbmVfZGV2aWNlICp0eikKIHN0
+YXRpYyBpbnQgcG93ZXJfYWxsb2NhdG9yX3Rocm90dGxlKHN0cnVjdCB0aGVybWFsX3pvbmVfZGV2
+aWNlICp0eiwgaW50IHRyaXApCiB7CiAJaW50IHJldDsKLQl1bnNpZ25lZCBsb25nIHN3aXRjaF9v
+bl90ZW1wLCBjb250cm9sX3RlbXAsIGN1cnJlbnRfdGVtcDsKKwlpbnQgc3dpdGNoX29uX3RlbXAs
+IGNvbnRyb2xfdGVtcCwgY3VycmVudF90ZW1wOwogCXN0cnVjdCBwb3dlcl9hbGxvY2F0b3JfcGFy
+YW1zICpwYXJhbXMgPSB0ei0+Z292ZXJub3JfZGF0YTsKIAogCS8qCmRpZmYgLS1naXQgYS9pbmNs
+dWRlL3RyYWNlL2V2ZW50cy90aGVybWFsX3Bvd2VyX2FsbG9jYXRvci5oIGIvaW5jbHVkZS90cmFj
+ZS9ldmVudHMvdGhlcm1hbF9wb3dlcl9hbGxvY2F0b3IuaAppbmRleCAxMmUxMzIxLi41YWZhZThm
+IDEwMDY0NAotLS0gYS9pbmNsdWRlL3RyYWNlL2V2ZW50cy90aGVybWFsX3Bvd2VyX2FsbG9jYXRv
+ci5oCisrKyBiL2luY2x1ZGUvdHJhY2UvZXZlbnRzL3RoZXJtYWxfcG93ZXJfYWxsb2NhdG9yLmgK
+QEAgLTExLDcgKzExLDcgQEAgVFJBQ0VfRVZFTlQodGhlcm1hbF9wb3dlcl9hbGxvY2F0b3IsCiAJ
+CSB1MzIgdG90YWxfcmVxX3Bvd2VyLCB1MzIgKmdyYW50ZWRfcG93ZXIsCiAJCSB1MzIgdG90YWxf
+Z3JhbnRlZF9wb3dlciwgc2l6ZV90IG51bV9hY3RvcnMsCiAJCSB1MzIgcG93ZXJfcmFuZ2UsIHUz
+MiBtYXhfYWxsb2NhdGFibGVfcG93ZXIsCi0JCSB1bnNpZ25lZCBsb25nIGN1cnJlbnRfdGVtcCwg
+czMyIGRlbHRhX3RlbXApLAorCQkgaW50IGN1cnJlbnRfdGVtcCwgczMyIGRlbHRhX3RlbXApLAog
+CVRQX0FSR1ModHosIHJlcV9wb3dlciwgdG90YWxfcmVxX3Bvd2VyLCBncmFudGVkX3Bvd2VyLAog
+CQl0b3RhbF9ncmFudGVkX3Bvd2VyLCBudW1fYWN0b3JzLCBwb3dlcl9yYW5nZSwKIAkJbWF4X2Fs
+bG9jYXRhYmxlX3Bvd2VyLCBjdXJyZW50X3RlbXAsIGRlbHRhX3RlbXApLApAQCAtMjQsNyArMjQs
+NyBAQCBUUkFDRV9FVkVOVCh0aGVybWFsX3Bvd2VyX2FsbG9jYXRvciwKIAkJX19maWVsZChzaXpl
+X3QsICAgICAgICBudW1fYWN0b3JzICAgICAgICAgICAgICAgKQogCQlfX2ZpZWxkKHUzMiwgICAg
+ICAgICAgIHBvd2VyX3JhbmdlICAgICAgICAgICAgICApCiAJCV9fZmllbGQodTMyLCAgICAgICAg
+ICAgbWF4X2FsbG9jYXRhYmxlX3Bvd2VyICAgICkKLQkJX19maWVsZCh1bnNpZ25lZCBsb25nLCBj
+dXJyZW50X3RlbXAgICAgICAgICAgICAgKQorCQlfX2ZpZWxkKGludCwgICAgICAgICAgIGN1cnJl
+bnRfdGVtcCAgICAgICAgICAgICApCiAJCV9fZmllbGQoczMyLCAgICAgICAgICAgZGVsdGFfdGVt
+cCAgICAgICAgICAgICAgICkKIAkpLAogCVRQX2Zhc3RfYXNzaWduKApAQCAtNDIsNyArNDIsNyBA
+QCBUUkFDRV9FVkVOVCh0aGVybWFsX3Bvd2VyX2FsbG9jYXRvciwKIAkJX19lbnRyeS0+ZGVsdGFf
+dGVtcCA9IGRlbHRhX3RlbXA7CiAJKSwKIAotCVRQX3ByaW50aygidGhlcm1hbF96b25lX2lkPSVk
+IHJlcV9wb3dlcj17JXN9IHRvdGFsX3JlcV9wb3dlcj0ldSBncmFudGVkX3Bvd2VyPXslc30gdG90
+YWxfZ3JhbnRlZF9wb3dlcj0ldSBwb3dlcl9yYW5nZT0ldSBtYXhfYWxsb2NhdGFibGVfcG93ZXI9
+JXUgY3VycmVudF90ZW1wZXJhdHVyZT0lbHUgZGVsdGFfdGVtcGVyYXR1cmU9JWQiLAorCVRQX3By
+aW50aygidGhlcm1hbF96b25lX2lkPSVkIHJlcV9wb3dlcj17JXN9IHRvdGFsX3JlcV9wb3dlcj0l
+dSBncmFudGVkX3Bvd2VyPXslc30gdG90YWxfZ3JhbnRlZF9wb3dlcj0ldSBwb3dlcl9yYW5nZT0l
+dSBtYXhfYWxsb2NhdGFibGVfcG93ZXI9JXUgY3VycmVudF90ZW1wZXJhdHVyZT0lZCBkZWx0YV90
+ZW1wZXJhdHVyZT0lZCIsCiAJCV9fZW50cnktPnR6X2lkLAogCQlfX3ByaW50X2FycmF5KF9fZ2V0
+X2R5bmFtaWNfYXJyYXkocmVxX3Bvd2VyKSwKICAgICAgICAgICAgICAgICAgICAgICAgICAgICAg
+IF9fZW50cnktPm51bV9hY3RvcnMsIDQpLAotLSAKMi4xLjIKCl9fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fCmxpbnV4LWFybS1rZXJuZWwgbWFpbGluZyBsaXN0
+CmxpbnV4LWFybS1rZXJuZWxAbGlzdHMuaW5mcmFkZWFkLm9yZwpodHRwOi8vbGlzdHMuaW5mcmFk
+ZWFkLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2xpbnV4LWFybS1rZXJuZWwK
