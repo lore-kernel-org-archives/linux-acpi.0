@@ -1,72 +1,74 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v2 01/12] device: property: delay device-driver matches
-Date: Fri, 17 Jul 2015 01:06:22 +0100
-Message-ID: <20150717000622.GH1602@sirena.org.uk>
-References: <1435743667-11987-1-git-send-email-tomeu.vizoso@collabora.com>
- <1435743667-11987-2-git-send-email-tomeu.vizoso@collabora.com>
- <20150716202312.GD11162@sirena.org.uk>
- <CAJZ5v0gMx=DA0f8i9wdMvkYTyOhr0WKh-T6L7rjcxeaAjNMW3g@mail.gmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] Power management and ACPI fixes for v4.2-rc3
+Date: Fri, 17 Jul 2015 02:32:55 +0200
+Message-ID: <CAJZ5v0h+Nbh8SwS1xzHFw=cBZ1U0scBdSFrZaAAdH6cB+vXnbQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="CNfT9TXqV7nd4cfk"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:54906 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751528AbbGQAGf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 16 Jul 2015 20:06:35 -0400
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0gMx=DA0f8i9wdMvkYTyOhr0WKh-T6L7rjcxeaAjNMW3g@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org, linux-gpio@vger.kernel.org, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, linux-pwm@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, alsa-devel@alsa-project.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
+Hi Linus,
 
---CNfT9TXqV7nd4cfk
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Please pull from
 
-On Fri, Jul 17, 2015 at 01:41:16AM +0200, Rafael J. Wysocki wrote:
-> On Thu, Jul 16, 2015 at 10:23 PM, Mark Brown <broonie@kernel.org> wrote:
-> > On Wed, Jul 01, 2015 at 11:40:56AM +0200, Tomeu Vizoso wrote:
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ pm+acpi-4.2-rc3
 
-> > I have to say I'm still not 100% clear that special casing platform
-> > devices makes sense here - I can see that platform devices are usually
-> > the first devices to instantiate but there are other kinds of devices
-> > and it's not obvious what the benefit of specifically picking out
-> > platform devices as opposed to just deferring all devices is.
+to receive power management and ACPI fixes for v4.2-rc3 with
+top-most commit 17ffc8b083ac299ff798419d1887b7cdcd4ae4d2
 
-> Some existing devices cannot be deferred without redesigning things quite a bit.
+ Merge branches 'pm-cpuidle', 'pm-cpufreq' and 'acpi-resources'
 
-OK, that should go in the changelog then - right now it's just a bit
-obtuse why we're doing this (and as you say it's a bit awkward).  Now
-you mention this I'm thinking that some of the affected devices might be
-platform devices on some systems, IOMMUs spring to mind for example...
-they're one of the main bits of the system I'm aware of that still rely
-on probe ordering and they do tend to be platform devices.
+on top of commit bc0195aad0daa2ad5b0d76cce22b167bc3435590
 
-> What I was talking about, though, was to use an opt-in mechanism for
-> that which could be set for all platform devices, for example, by
-> default, but it might be set for other bus types too if that's useful.
+ Linux 4.2-rc2
 
-Sure, I got that and do agree with you that a mechanism like you suggest
-would be good.  I just wasn't clear why we were targetting platform
-devices in the first place.
+These fix two bugs in the cpufreq core (including one recent
+regression), fix a 4.0 PCI regression related to the ACPI resources
+management and quieten an RCU-related lockdep complaint about a
+tracepoint in the suspend-to-idle code.
 
---CNfT9TXqV7nd4cfk
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Specifics:
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+ - Fix a recently introduced issue in the cpufreq policy object
+   reinitialization that leads to CPU offline/online breakage
+   (Viresh Kumar).
 
-iQEcBAEBCAAGBQJVqEb6AAoJECTWi3JdVIfQ6igH/1lfzgngw+QMPD3PzShllj57
-i/HPqcOa7NFybef7ZM2t00i3/PCAPOhg2EsaPaV34euzZ57FZX0DvS89+1K1q3sw
-h+u95jS4c8GMJnO9gAnQZ1u5S6OM40j/livOl/HaVb0qUSIFwEeRHbJfW3uJ/wZf
-3phgAXmVjPQRqJS054a/CGEyU2lwZW+4enxtBs49TbY1EHE8TbQIG9EM5kqAu23I
-t4Y5+RDaft1SNXacAjjc0cwYIFY9xh5UnYDLDhNc1mabklu9selE0PKhgS8PUkl5
-X+D87P00jPDUd99qbILBZhRqIw+72BKECQ/ddJCQXIW2u0pjJc1W81iYl/LF2bw=
-=w0V2
------END PGP SIGNATURE-----
+ - Make it possible to access frequency tables of offline CPUs
+   which is needed by thermal management code among other things
+   (Viresh Kumar).
 
---CNfT9TXqV7nd4cfk--
+ - Fix an ACPI resource management regression introduced during
+   the 4.0 cycle that may cause incorrect resource validation
+   results to appear in 32-bit x86 kernels due to silent truncation
+   of 64-bit values to 32-bit (Jiang Liu).
+
+ - Fix up an RCU-related lockdep complaint about suspicious RCU
+   usage in idle caused by using a suspend tracepoint in the
+   core suspend-to-idle code (Rafael J Wysocki).
+
+Thanks!
+
+---------------
+
+Jiang Liu (1):
+      ACPI / PCI: Fix regressions caused by resource_size_t overflow
+with 32-bit kernel
+
+Rafael J. Wysocki (1):
+      suspend-to-idle: Prevent RCU from complaining about tick_freeze()
+
+Viresh Kumar (2):
+      cpufreq: Initialize the governor again while restoring policy
+      cpufreq: Allow freq_table to be obtained for offline CPUs
+
+---------------
+
+ drivers/acpi/resource.c      | 24 +++++++++++++++---------
+ drivers/cpufreq/cpufreq.c    | 10 ++++++++++
+ drivers/cpufreq/freq_table.c |  9 ---------
+ drivers/cpuidle/cpuidle.c    |  9 +++++++--
+ 4 files changed, 32 insertions(+), 20 deletions(-)
