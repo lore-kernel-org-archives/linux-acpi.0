@@ -1,65 +1,139 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v7 2/8] ACPI: Split out ACPI PSS from ACPI Processor driver
-Date: Sat, 18 Jul 2015 02:03:47 +0200
-Message-ID: <2977324.30XrlQvi3H@vostro.rjw.lan>
-References: <cover.1436464513.git.ashwin.chaugule@linaro.org> <09d1b5cf25ed3117b9e1b8feeb40ddf801557039.1436464513.git.ashwin.chaugule@linaro.org> <3655608.oFpclyKJ6p@vostro.rjw.lan>
+Subject: [PATCH 2/2] cpufreq: acpi-cpufreq: Drop acpi_data from struct acpi_cpufreq_data
+Date: Sat, 18 Jul 2015 03:16:23 +0200
+Message-ID: <6540595.sJ2Fvrp64t@vostro.rjw.lan>
+References: <10273534.kyzK8rhvUz@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:56228 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753242AbbGQXhG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Jul 2015 19:37:06 -0400
-In-Reply-To: <3655608.oFpclyKJ6p@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <10273534.kyzK8rhvUz@vostro.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
+To: Linux PM list <linux-pm@vger.kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>, Pan Xinhui <xinhuix.pan@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Cc: jaswinder.singh@linaro.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, patches@linaro.org, viresh.kumar@linaro.org, sudeep.holla@arm.com
 
-On Saturday, July 18, 2015 02:01:40 AM Rafael J. Wysocki wrote:
-> On Thursday, July 09, 2015 02:04:18 PM Ashwin Chaugule wrote:
-> > The ACPI processor driver is currently tied too closely
-> > to the ACPI P-states (PSS) and other related constructs
-> > for controlling CPU performance.
-> > 
-> > The newer ACPI specification (v5.1 onwards) introduces
-> > alternative methods to PSS. These new mechanisms are
-> > described within each ACPI Processor object and so they
-> > need to be scanned whenever a new Processor object is detected.
-> > This patch introduces a new Kconfig symbol to allow for
-> > finer configurability among the two options for controlling
-> > performance states. There is no change in functionality and
-> > the option is auto-selected by the architecture Kconfig files.
-> > 
-> > The following patchwork introduces CPPC: A newer method of
-> > controlling CPU performance. The OS is not expected to support
-> > CPPC and PSS at runtime. So the kconfig option lets us make
-> > these two mutually exclusive at compile time.
-> > 
-> > Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-> > ---
-> >  arch/x86/Kconfig                |  1 +
-> >  drivers/acpi/Kconfig            | 19 ++++++---
-> >  drivers/acpi/Makefile           |  6 +--
-> >  drivers/acpi/processor_driver.c | 86 +++++++++++++++++++++++++------------
-> >  drivers/cpufreq/Kconfig         |  2 +-
-> >  drivers/cpufreq/Kconfig.x86     |  2 +
-> >  include/acpi/processor.h        | 94 +++++++++++++++++++++++++++--------------
-> >  7 files changed, 142 insertions(+), 68 deletions(-)
-> > 
-> > diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-> > index 226d569..93d150d 100644
-> > --- a/arch/x86/Kconfig
-> > +++ b/arch/x86/Kconfig
-> > @@ -143,6 +143,7 @@ config X86
-> >  	select ACPI_LEGACY_TABLES_LOOKUP if ACPI
-> >  	select X86_FEATURE_NAMES if PROC_FS
-> >  	select SRCU
-> > +	select ACPI_CPU_FREQ_PSS if ACPI
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Also, does ia64 not use _PSS-based cpufreq?
+After commit 8cfcfd39000d (acpi-cpufreq: Fix an ACPI perf unregister
+issue) we store both a pointer to per-CPU data of the first policy
+CPU and the number of that CPU which are redundant.
 
-Thanks,
-Rafael
+Since the CPU number has to be stored anyway for the unregistration,
+the pointer to the CPU's per-CPU data may be dropped and we can
+access the data in question via per_cpu_ptr().
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/cpufreq/acpi-cpufreq.c |   26 +++++++++++++-------------
+ 1 file changed, 13 insertions(+), 13 deletions(-)
+
+Index: linux-pm/drivers/cpufreq/acpi-cpufreq.c
+===================================================================
+--- linux-pm.orig/drivers/cpufreq/acpi-cpufreq.c
++++ linux-pm/drivers/cpufreq/acpi-cpufreq.c
+@@ -65,7 +65,6 @@ enum {
+ #define MSR_K7_HWCR_CPB_DIS	(1ULL << 25)
+ 
+ struct acpi_cpufreq_data {
+-	struct acpi_processor_performance *acpi_data;
+ 	struct cpufreq_frequency_table *freq_table;
+ 	unsigned int resume;
+ 	unsigned int cpu_feature;
+@@ -201,7 +200,7 @@ static unsigned extract_io(u32 value, st
+ 	struct acpi_processor_performance *perf;
+ 	int i;
+ 
+-	perf = data->acpi_data;
++	perf = per_cpu_ptr(acpi_perf_data, data->acpi_perf_cpu);
+ 
+ 	for (i = 0; i < perf->state_count; i++) {
+ 		if (value == perf->states[i].status)
+@@ -220,7 +219,7 @@ static unsigned extract_msr(u32 msr, str
+ 	else
+ 		msr &= INTEL_MSR_RANGE;
+ 
+-	perf = data->acpi_data;
++	perf = per_cpu_ptr(acpi_perf_data, data->acpi_perf_cpu);
+ 
+ 	cpufreq_for_each_entry(pos, data->freq_table)
+ 		if (msr == perf->states[pos->driver_data].status)
+@@ -346,7 +345,7 @@ get_cur_val(const struct cpumask *mask,
+ 		break;
+ 	case SYSTEM_IO_CAPABLE:
+ 		cmd.type = SYSTEM_IO_CAPABLE;
+-		perf = data->acpi_data;
++		perf = per_cpu_ptr(acpi_perf_data, data->acpi_perf_cpu);
+ 		cmd.addr.io.port = perf->control_register.address;
+ 		cmd.addr.io.bit_width = perf->control_register.bit_width;
+ 		break;
+@@ -364,6 +363,7 @@ get_cur_val(const struct cpumask *mask,
+ 
+ static unsigned int get_cur_freq_on_cpu(unsigned int cpu)
+ {
++	struct acpi_processor_performance *perf;
+ 	struct acpi_cpufreq_data *data;
+ 	struct cpufreq_policy *policy;
+ 	unsigned int freq;
+@@ -377,10 +377,11 @@ static unsigned int get_cur_freq_on_cpu(
+ 
+ 	data = policy->driver_data;
+ 	cpufreq_cpu_put(policy);
+-	if (unlikely(!data || !data->acpi_data || !data->freq_table))
++	if (unlikely(!data || !data->freq_table))
+ 		return 0;
+ 
+-	cached_freq = data->freq_table[data->acpi_data->state].frequency;
++	perf = per_cpu_ptr(acpi_perf_data, data->acpi_perf_cpu);
++	cached_freq = data->freq_table[perf->state].frequency;
+ 	freq = extract_freq(get_cur_val(cpumask_of(cpu), data), data);
+ 	if (freq != cached_freq) {
+ 		/*
+@@ -419,12 +420,11 @@ static int acpi_cpufreq_target(struct cp
+ 	unsigned int next_perf_state = 0; /* Index into perf table */
+ 	int result = 0;
+ 
+-	if (unlikely(data == NULL ||
+-	     data->acpi_data == NULL || data->freq_table == NULL)) {
++	if (unlikely(data == NULL || data->freq_table == NULL)) {
+ 		return -ENODEV;
+ 	}
+ 
+-	perf = data->acpi_data;
++	perf = per_cpu_ptr(acpi_perf_data, data->acpi_perf_cpu);
+ 	next_perf_state = data->freq_table[index].driver_data;
+ 	if (perf->state == next_perf_state) {
+ 		if (unlikely(data->resume)) {
+@@ -487,8 +487,9 @@ out:
+ static unsigned long
+ acpi_cpufreq_guess_freq(struct acpi_cpufreq_data *data, unsigned int cpu)
+ {
+-	struct acpi_processor_performance *perf = data->acpi_data;
++	struct acpi_processor_performance *perf;
+ 
++	perf = per_cpu_ptr(acpi_perf_data, data->acpi_perf_cpu);
+ 	if (cpu_khz) {
+ 		/* search the closest match to cpu_khz */
+ 		unsigned int i;
+@@ -677,18 +678,17 @@ static int acpi_cpufreq_cpu_init(struct
+ 		goto err_free;
+ 	}
+ 
+-	data->acpi_data = per_cpu_ptr(acpi_perf_data, cpu);
++	perf = per_cpu_ptr(acpi_perf_data, cpu);
+ 	data->acpi_perf_cpu = cpu;
+ 	policy->driver_data = data;
+ 
+ 	if (cpu_has(c, X86_FEATURE_CONSTANT_TSC))
+ 		acpi_cpufreq_driver.flags |= CPUFREQ_CONST_LOOPS;
+ 
+-	result = acpi_processor_register_performance(data->acpi_data, cpu);
++	result = acpi_processor_register_performance(perf, cpu);
+ 	if (result)
+ 		goto err_free_mask;
+ 
+-	perf = data->acpi_data;
+ 	policy->shared_type = perf->shared_type;
+ 
+ 	/*
 
