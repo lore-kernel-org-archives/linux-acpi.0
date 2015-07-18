@@ -1,42 +1,85 @@
-From: Timur Tabi <timur@codeaurora.org>
-Subject: Re: [PATCH v3 2/8] ACPI / irqchip: Add self-probe infrastructure to
- initialize IRQ controller
-Date: Fri, 17 Jul 2015 18:15:00 -0500
-Message-ID: <CAOZdJXWB71tzc=OMm_UH23jc+_wsA5=pC5W9arrEM-URm_sywg@mail.gmail.com>
-References: <1436525114-14425-1-git-send-email-hanjun.guo@linaro.org>
-	<1436525114-14425-3-git-send-email-hanjun.guo@linaro.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v7 2/8] ACPI: Split out ACPI PSS from ACPI Processor driver
+Date: Sat, 18 Jul 2015 02:01:40 +0200
+Message-ID: <3655608.oFpclyKJ6p@vostro.rjw.lan>
+References: <cover.1436464513.git.ashwin.chaugule@linaro.org> <09d1b5cf25ed3117b9e1b8feeb40ddf801557039.1436464513.git.ashwin.chaugule@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:33943 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750863AbbGQXPC (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 17 Jul 2015 19:15:02 -0400
-In-Reply-To: <1436525114-14425-3-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <09d1b5cf25ed3117b9e1b8feeb40ddf801557039.1436464513.git.ashwin.chaugule@linaro.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Cc: jaswinder.singh@linaro.org, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, patches@linaro.org, viresh.kumar@linaro.org, sudeep.holla@arm.com
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Marc Zyngier <marc.zyngier@arm.com>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Wei Huang <wei@redhat.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, linaro-acpi@lists.linaro.org, lkml <linux-kernel@vger.kernel.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, linux-acpi@vger.kernel.org, Mark Brown <broonie@kernel.org>, Grant Likely <grant.likely@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On Fri, Jul 10, 2015 at 5:45 AM, Hanjun Guo <hanjun.guo@linaro.org> wrote:
+On Thursday, July 09, 2015 02:04:18 PM Ashwin Chaugule wrote:
+> The ACPI processor driver is currently tied too closely
+> to the ACPI P-states (PSS) and other related constructs
+> for controlling CPU performance.
+> 
+> The newer ACPI specification (v5.1 onwards) introduces
+> alternative methods to PSS. These new mechanisms are
+> described within each ACPI Processor object and so they
+> need to be scanned whenever a new Processor object is detected.
+> This patch introduces a new Kconfig symbol to allow for
+> finer configurability among the two options for controlling
+> performance states. There is no change in functionality and
+> the option is auto-selected by the architecture Kconfig files.
+> 
+> The following patchwork introduces CPPC: A newer method of
+> controlling CPU performance. The OS is not expected to support
+> CPPC and PSS at runtime. So the kconfig option lets us make
+> these two mutually exclusive at compile time.
+> 
+> Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+> ---
+>  arch/x86/Kconfig                |  1 +
+>  drivers/acpi/Kconfig            | 19 ++++++---
+>  drivers/acpi/Makefile           |  6 +--
+>  drivers/acpi/processor_driver.c | 86 +++++++++++++++++++++++++------------
+>  drivers/cpufreq/Kconfig         |  2 +-
+>  drivers/cpufreq/Kconfig.x86     |  2 +
+>  include/acpi/processor.h        | 94 +++++++++++++++++++++++++++--------------
+>  7 files changed, 142 insertions(+), 68 deletions(-)
+> 
+> diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+> index 226d569..93d150d 100644
+> --- a/arch/x86/Kconfig
+> +++ b/arch/x86/Kconfig
+> @@ -143,6 +143,7 @@ config X86
+>  	select ACPI_LEGACY_TABLES_LOOKUP if ACPI
+>  	select X86_FEATURE_NAMES if PROC_FS
+>  	select SRCU
+> +	select ACPI_CPU_FREQ_PSS if ACPI
+>  
+>  config INSTRUCTION_DECODER
+>  	def_bool y
+> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> index ab2cbb5..00748dc 100644
+> --- a/drivers/acpi/Kconfig
+> +++ b/drivers/acpi/Kconfig
+> @@ -166,17 +166,26 @@ config ACPI_DOCK
+>  	  This driver supports ACPI-controlled docking stations and removable
+>  	  drive bays such as the IBM Ultrabay and the Dell Module Bay.
+>  
+> +config ACPI_CPU_FREQ_PSS
+> +	bool
+> +	depends on ACPI_PROCESSOR && CPU_FREQ
+> +	select THERMAL
+> +	help
+> +	  This driver implements ACPI methods for controlling CPU performance
+> +	  using PSS methods as described in the ACPI spec. It also enables support
+> +	  for ACPI based performance throttling (TSS) and ACPI based thermal
+> +	  monitoring. It is required by several flavors of cpufreq
+> +	  performance-state drivers.
 
-> +void __init acpi_irqchip_init(void)
-> +{
-> +       struct acpi_table_id *id;
-> +
-> +       if (acpi_disabled)
-> +               return;
-> +
-> +       if (acpi_gic_version_init())
-> +               return;
-> +
-> +       /* scan the irqchip table to match the GIC version and its driver */
-> +       for (id = __irqchip_acpi_table; id->id[0]; id++) {
-> +               if (gic_version == (u8)id->driver_data)
-> +                       acpi_table_parse(id->id,
-> +                                        (acpi_tbl_table_handler)id->handler);
-> +       }
+So are you not agreeing with what I've said for a few times already or are you
+just not listening?
 
-Should we display an error message if we don't find a matching table?
-That can happen if the ACPI tables shows a GIC version number that is
-not listed in __irqchip_acpi_table[]?
+This option should *not* be user-selectable.  So please drop the help part
+and make it look like ACPI_SLEEP, for example.
+
+Thanks,
+Rafael
+
