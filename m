@@ -1,35 +1,41 @@
-From: Bastien Nocera <hadess@hadess.net>
-Subject: Ghost Lid switch on Baytrail tablet
-Date: Sun, 19 Jul 2015 02:42:48 +0200
-Message-ID: <1437266568.3512.10.camel@hadess.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Mathias Krause <minipli@googlemail.com>
+Subject: [PATCH 0/2] ACPI: __refdata cleanups
+Date: Sun, 19 Jul 2015 18:50:37 +0200
+Message-ID: <1437324639-18118-1-git-send-email-minipli@googlemail.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from slow1-d.mail.gandi.net ([217.70.178.86]:40118 "EHLO
-	slow1-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752319AbbGSBIn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 18 Jul 2015 21:08:43 -0400
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:37640 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752822AbbGSQur (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 19 Jul 2015 12:50:47 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: "dev@mgautier.fr" <dev@mgautier.fr>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Mathias Krause <minipli@googlemail.com>, Paul Gortmaker <paul.gortmaker@windriver.com>
 
-Hey,
+This series is a respin of patch "03/12"[1] with slightly more coverage.
 
-This tablet:
-http://www.amazon.com/WinBook-10-1-Inch-Windows-full-size-Display/dp/B00N9ZG5U2/
-doesn't have a physical lid switch unless you plug the keyboard accessory to it.
+[1] http://marc.info/?l=linux-acpi&m=143419843716724&w=4
 
-But it thinks that there is a lid, and that it's closed, making logind
-suspend the machine after about 30 seconds.
+The __refdata annotations used to be needed in __cpuinit times but those
+are long gone (since v3.11). Now those annotations may serve as an
+additional error source, hiding legitimate section mismatches.
 
-I'm currently testing this on a 4.0 kernel, as there have been
-regressions on Baytrail with 4.1 and 4.2rcs.
+This series drops the unneeded annotations and adds a comment to the
+last legitimate remaining one below drivers/acpi/.
 
-The DSDT for that tablet:
-https://people.gnome.org/~hadess/Winbook%20TW100%20DSDT.dsl
+Please apply.
 
-Any ideas how to handle this sort of device?
 
-Cheers
+Mathias Krause (2):
+  ACPI / processor: remove bogus __refdata annotations
+  ACPI / OSL: add comment for the __ref annotation of
+    acpi_os_unmap_iomem()
+
+ drivers/acpi/acpi_processor.c   |    2 +-
+ drivers/acpi/osl.c              |    3 +++
+ drivers/acpi/processor_driver.c |    2 +-
+ 3 files changed, 5 insertions(+), 2 deletions(-)
+
+-- 
+1.7.10.4
+
