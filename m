@@ -1,41 +1,59 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v3 2/8] ACPI / irqchip: Add self-probe infrastructure
- to initialize IRQ controller
-Date: Mon, 20 Jul 2015 20:48:45 +0800
-Message-ID: <55ACEE2D.3000503@linaro.org>
-References: <1436525114-14425-1-git-send-email-hanjun.guo@linaro.org>	<1436525114-14425-3-git-send-email-hanjun.guo@linaro.org> <CAOZdJXWB71tzc=OMm_UH23jc+_wsA5=pC5W9arrEM-URm_sywg@mail.gmail.com> <55ACC022.1000800@linaro.org> <55ACE596.10709@codeaurora.org>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [PATCH v7 1/8] PCC: Initialize PCC Mailbox earlier at boot
+Date: Mon, 20 Jul 2015 15:20:01 +0100
+Message-ID: <55AD0391.2040504@arm.com>
+References: <cover.1436464513.git.ashwin.chaugule@linaro.org> <e5f53a07775cfb896688051b31acb2261ec1d3a2.1436464513.git.ashwin.chaugule@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f178.google.com ([209.85.192.178]:32893 "EHLO
-	mail-pd0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752108AbbGTMs4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Jul 2015 08:48:56 -0400
-Received: by pdbnt7 with SMTP id nt7so30587901pdb.0
-        for <linux-acpi@vger.kernel.org>; Mon, 20 Jul 2015 05:48:55 -0700 (PDT)
-In-Reply-To: <55ACE596.10709@codeaurora.org>
+Received: from foss.arm.com ([217.140.101.70]:55935 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754225AbbGTOUF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 20 Jul 2015 10:20:05 -0400
+In-Reply-To: <e5f53a07775cfb896688051b31acb2261ec1d3a2.1436464513.git.ashwin.chaugule@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Timur Tabi <timur@codeaurora.org>
-Cc: Marc Zyngier <marc.zyngier@arm.com>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Wei Huang <wei@redhat.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, linaro-acpi@lists.linaro.org, lkml <linux-kernel@vger.kernel.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, linux-acpi@vger.kernel.org, Mark Brown <broonie@kernel.org>, Grant Likely <grant.likely@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Cc: "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "jaswinder.singh@linaro.org" <jaswinder.singh@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "patches@linaro.org" <patches@linaro.org>, "viresh.kumar@linaro.org" <viresh.kumar@linaro.org>
 
-On 07/20/2015 08:12 PM, Timur Tabi wrote:
-> Hanjun Guo wrote:
->>> Should we display an error message if we don't find a matching table?
->>> That can happen if the ACPI tables shows a GIC version number that is
->>> not listed in __irqchip_acpi_table[]?
->>
->> Hmm, did you get the error message like: "Invalid GIC version 5 in
->> MADT"? or just use ACPI_MADT_GIC_VERSION_V1 as the gic_version? if
->> the later one, it will show everything is fine, but failed to probe
->> the GIC.
+
+
+On 09/07/15 19:04, Ashwin Chaugule wrote:
+> This change initializes the PCC Mailbox earlier than
+> the ACPI processor driver. This enables drivers introduced
+> in follow up patches (e.g. CPPC) to be probed via the ACPI
+> processor driver interface. The CPPC probe requires the PCC
+> channel to be initialized for it to query each CPUs performance
+> capabilities.
 >
-> We had a bug in our ACPI tables that listed the GIC version as 1, and it
-> failed to probe and then the kernel panicked.  It took me a while to
-> figure out what was wrong, so I think it should print an error message
-> that says that version X is unsupported.
+> Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+> Reviewed-by: Al Stone <al.stone@linaro.org>
+> ---
+>   drivers/mailbox/pcc.c | 8 +++++++-
+>   1 file changed, 7 insertions(+), 1 deletion(-)
+>
+> diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
+> index 7e91d68..fcda63e 100644
+> --- a/drivers/mailbox/pcc.c
+> +++ b/drivers/mailbox/pcc.c
+> @@ -352,4 +352,10 @@ static int __init pcc_init(void)
+>
+>   	return 0;
+>   }
+> -device_initcall(pcc_init);
+> +
+> +/*
+> + * Make pcc init postcore so that users of this mailbox
+> + * such as the ACPI Processor driver have it available
+> + * at their init.
+> + */
+> +postcore_initcall(pcc_init);
+>
 
-OK, will do in next version, thanks for testing those patches!
+I assumed you have explored other options like deferred probe and
+finally resorted to this as they are not feasible ? Because setting up
+these kind of dependency are prone to create issues later on.
 
-Hanjun
+Regards,
+Sudeep
