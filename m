@@ -1,30 +1,88 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v7 8/8] PCC: Enable PCC only when needed
-Date: Mon, 20 Jul 2015 15:22:37 +0100
-Message-ID: <55AD042D.9040204@arm.com>
-References: <cover.1436464513.git.ashwin.chaugule@linaro.org> <f88f374b4e09f23d5601a2081d1d3d9322e3caf5.1436464513.git.ashwin.chaugule@linaro.org>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: [PATCH v3 4/8] irqchip / gic: Add stacked irqdomain support for
+ ACPI based GICv2 init
+Date: Mon, 20 Jul 2015 18:45:42 +0100
+Message-ID: <55AD33C6.3000809@arm.com>
+References: <1436525114-14425-1-git-send-email-hanjun.guo@linaro.org> <1436525114-14425-5-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:55975 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932677AbbGTOWl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 20 Jul 2015 10:22:41 -0400
-In-Reply-To: <f88f374b4e09f23d5601a2081d1d3d9322e3caf5.1436464513.git.ashwin.chaugule@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1436525114-14425-5-git-send-email-hanjun.guo@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Mark Brown <broonie@kernel.org>, Wei Huang <wei@redhat.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Cc: "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "jaswinder.singh@linaro.org" <jaswinder.singh@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "patches@linaro.org" <patches@linaro.org>, "viresh.kumar@linaro.org" <viresh.kumar@linaro.org>
 
+On 10/07/15 11:45, Hanjun Guo wrote:
+> For now, ACPI based GICv2 is using the irq_default_domain as the
+> ACPI core domain which is not scalable, also we don't support
+> stacked irq domains in ACPI, this patch is trying to implement that.
+>=20
+> Firstly, we need to find the irqdomain with GSI, because we use
+> different model of mapping interrupt with device in ACPI than DT,
+> in DT, we using the interrupt parent property to get the device
+> node of irqchip for devices, that's why we need the matching function
+> that match the device node with the one associated with the irqdomain=
+=2E
+> But for ACPI, we only can get the GSI which the device is using, no
+> interrupt parent will be specified, then we need a mechanism to find
+> GSI's (also the device's) irqdomain to make the code scalable.
+>=20
+> Thanks to the usage of GSI, it is a flat hwirq number which is unique
+> in the system, then we can get its associated irq domain by matching
+> the GSI supported by this irqchip (see drawings below), then we can
+> live without the token pointer matching the interrupt controller as
+> DT did.
+>=20
+>                   ------------      ---> gsi_base0
+>                  |            |
+>                  |            |
+>   irqdomain <----| irqchip 0  |
+>                  |            |
+>                  |            |
+>                  |____________|     ---> gsi_end0
+>=20
+>                   ------------      ---> gsi_base1 (probably gsi_end0=
++1)
+>                  |            |
+>                  |            |
+>   irqdomain <----| irqchip 1  |
+>                  |            |
+>                  |            |
+>                  |____________|     ---> gsi_end1
+>=20
+>                   .....
+>=20
+> if a device is using GSI n, then we can find GSI's irqdomain by match=
+ing
+> gsi_base <=3D n <=3D gsi_end.
+>=20
+> For GIC, we only have one GICD, but the above model still valid. GICD
+> structure in ACPI MADT defines System Vector Base in the GICD entry,
+> which means the global system interrupt number where this GIC
+> Distributor=E2=80=99s interrupt inputs start, then we can get the hwi=
+rq numbers
+> supported by reading the register, so we can explictly get the GSI's
+> associated irqdomain if the GSI is within the range of hwirq supporte=
+d
+> by this GICD.
+>=20
+> Secondly, pass the GSI as the arg for domain's ops alloc() function
+> when register the GSI, then we can take advantage of stacked irqdomai=
+ns.
 
+I'm sorry, but this doesn't make much sense to me.
 
-On 09/07/15 19:04, Ashwin Chaugule wrote:
-> CPPC is the first client to make use of the PCC Mailbox channel. So
-> enable it only when CPPC is also enabled.
->
-This sounds like a reverse dependency to me. So if there's some client
-unrelated to CPPC using PCC, CPPC_LIB needs to be selected to enable PCC ?
+This patch doesn't only convert GICv2 ACPI support to stacked domains,
+it adds a whole new concept of "banks of wired interrupts".
 
-Regards,
-Sudeep
+Why do we need this? How relevant is that to making the ACPI code
+stacked-domain aware? As far as I understand, only SPIs provided by the
+GIC can be expressed as a GSI. And you can only have one GIC.
+
+I'm more and more puzzled by this series.
+
+	M.
+--=20
+Jazz is not dead. It just smells funny...
