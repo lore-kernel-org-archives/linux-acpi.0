@@ -1,88 +1,217 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH v3 4/8] irqchip / gic: Add stacked irqdomain support for
- ACPI based GICv2 init
-Date: Mon, 20 Jul 2015 18:45:42 +0100
-Message-ID: <55AD33C6.3000809@arm.com>
-References: <1436525114-14425-1-git-send-email-hanjun.guo@linaro.org> <1436525114-14425-5-git-send-email-hanjun.guo@linaro.org>
+From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Subject: Re: [PATCH RFC] intel_pstate: play well with frequency limits set
+ by acpi
+Date: Mon, 20 Jul 2015 14:08:24 -0700
+Message-ID: <1437426504.2377.162.camel@spandruv-DESK3.jf.intel.com>
+References: <20150716181706.6500.64386.stgit@buzz>
+	 <1437084536.2377.117.camel@spandruv-DESK3.jf.intel.com>
+	 <CALYGNiMOMWY2Ng9yLQ04Ghr6fKnO_6BRLCRE2b-rnvoPJmauqQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1436525114-14425-5-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Mark Brown <broonie@kernel.org>, Wei Huang <wei@redhat.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([134.134.136.65]:3539 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752000AbbGTVKp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 20 Jul 2015 17:10:45 -0400
+In-Reply-To: <CALYGNiMOMWY2Ng9yLQ04Ghr6fKnO_6BRLCRE2b-rnvoPJmauqQ@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Konstantin Khlebnikov <koct9i@gmail.com>
+Cc: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>, linux-pm@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Kristen Carlson Accardi <kristen@linux.intel.com>, Len Brown <lenb@kernel.org>, Ethan Zhao <ethan.zhao@oracle.com>
 
-On 10/07/15 11:45, Hanjun Guo wrote:
-> For now, ACPI based GICv2 is using the irq_default_domain as the
-> ACPI core domain which is not scalable, also we don't support
-> stacked irq domains in ACPI, this patch is trying to implement that.
->=20
-> Firstly, we need to find the irqdomain with GSI, because we use
-> different model of mapping interrupt with device in ACPI than DT,
-> in DT, we using the interrupt parent property to get the device
-> node of irqchip for devices, that's why we need the matching function
-> that match the device node with the one associated with the irqdomain=
-=2E
-> But for ACPI, we only can get the GSI which the device is using, no
-> interrupt parent will be specified, then we need a mechanism to find
-> GSI's (also the device's) irqdomain to make the code scalable.
->=20
-> Thanks to the usage of GSI, it is a flat hwirq number which is unique
-> in the system, then we can get its associated irq domain by matching
-> the GSI supported by this irqchip (see drawings below), then we can
-> live without the token pointer matching the interrupt controller as
-> DT did.
->=20
->                   ------------      ---> gsi_base0
->                  |            |
->                  |            |
->   irqdomain <----| irqchip 0  |
->                  |            |
->                  |            |
->                  |____________|     ---> gsi_end0
->=20
->                   ------------      ---> gsi_base1 (probably gsi_end0=
-+1)
->                  |            |
->                  |            |
->   irqdomain <----| irqchip 1  |
->                  |            |
->                  |            |
->                  |____________|     ---> gsi_end1
->=20
->                   .....
->=20
-> if a device is using GSI n, then we can find GSI's irqdomain by match=
-ing
-> gsi_base <=3D n <=3D gsi_end.
->=20
-> For GIC, we only have one GICD, but the above model still valid. GICD
-> structure in ACPI MADT defines System Vector Base in the GICD entry,
-> which means the global system interrupt number where this GIC
-> Distributor=E2=80=99s interrupt inputs start, then we can get the hwi=
-rq numbers
-> supported by reading the register, so we can explictly get the GSI's
-> associated irqdomain if the GSI is within the range of hwirq supporte=
-d
-> by this GICD.
->=20
-> Secondly, pass the GSI as the arg for domain's ops alloc() function
-> when register the GSI, then we can take advantage of stacked irqdomai=
-ns.
+On Fri, 2015-07-17 at 07:36 +0300, Konstantin Khlebnikov wrote:
+> On Fri, Jul 17, 2015 at 1:08 AM, Srinivas Pandruvada
+> <srinivas.pandruvada@linux.intel.com> wrote:
+> > On Thu, 2015-07-16 at 21:17 +0300, Konstantin Khlebnikov wrote:
+> >> IPMI can control CPU P-states remotely: configuration is reported via
+> >> common ACPI interface (_PPC/_PSS/etc). This patch adds required minimal
+> >> support in intel_pstate to receive and use these P-state limits.
+> >>
+> >> * ignore limit of top state in _PPC: it lower than turbo boost frequency
+> >> * register intel_pstate in acpi-processor to get states from _PSS
+> >> * link acpi_processor_get_bios_limit: this adds attribute "bios_limit"
+> >>
+> >> Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+> >> ---
+> >>  drivers/acpi/processor_perflib.c |    3 +-
+> >>  drivers/cpufreq/intel_pstate.c   |   57 ++++++++++++++++++++++++++++++++++++++
+> >>  2 files changed, 59 insertions(+), 1 deletion(-)
+> >>
+> >> diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
+> >> index cfc8aba72f86..781e328c9d5f 100644
+> >> --- a/drivers/acpi/processor_perflib.c
+> >> +++ b/drivers/acpi/processor_perflib.c
+> >> @@ -98,7 +98,8 @@ static int acpi_processor_ppc_notifier(struct notifier_block *nb,
+> >>
+> >>       ppc = (unsigned int)pr->performance_platform_limit;
+> >>
+> >> -     if (ppc >= pr->performance->state_count)
+> >> +     /* Ignore limit of top state: it lower than turbo boost frequency */
+> >> +     if (!ppc || ppc >= pr->performance->state_count)
+> > Why? Isn't the previous check enough?
+> 
+> Zero _PPC state must be top performance state but as I see frequency in
+> _PSS is lower than maximum possible turbo frequency. So, in this case
+> intel_pstate cannnot get "100%"  for max bound even it there is no limit set.
+> 
+> For example: I saw _PSS[0] = 2601 Mhz, PSS[1] = 2600 Mhz while turbo
+> state is 3400 Mhz.
+> 
+Have you tested dynamic _PPC modification with acpi cpufreq with this
+change (after boot)? Suppose _PPC is changed from 3 to 0, then
+cpufreq_verify_within_limits will not be called to change to new max
+turbo performance state.
 
-I'm sorry, but this doesn't make much sense to me.
+Thanks,
+Srinivas
+> >>               goto out;
+> >>
+> >>       cpufreq_verify_within_limits(policy, 0,
+> >> diff --git a/drivers/cpufreq/intel_pstate.c b/drivers/cpufreq/intel_pstate.c
+> >> index 15ada47bb720..4a34ddf4fa73 100644
+> >> --- a/drivers/cpufreq/intel_pstate.c
+> >> +++ b/drivers/cpufreq/intel_pstate.c
+> >> @@ -26,6 +26,7 @@
+> >>  #include <linux/fs.h>
+> >>  #include <linux/debugfs.h>
+> >>  #include <linux/acpi.h>
+> >> +#include <acpi/processor.h>
+> >>  #include <linux/vmalloc.h>
+> >>  #include <trace/events/power.h>
+> >>
+> >> @@ -113,6 +114,9 @@ struct cpudata {
+> >>       u64     prev_mperf;
+> >>       u64     prev_tsc;
+> >>       struct sample sample;
+> >> +#ifdef CONFIG_ACPI_PROCESSOR
+> >> +     struct acpi_processor_performance acpi_data;
+> >> +#endif
+> >>  };
+> >>
+> >>  static struct cpudata **all_cpu_data;
+> >> @@ -145,6 +149,7 @@ static int hwp_active;
+> >>
+> >>  struct perf_limits {
+> >>       int no_turbo;
+> >> +     int no_acpi;
+> >>       int turbo_disabled;
+> >>       int max_perf_pct;
+> >>       int min_perf_pct;
+> >> @@ -158,6 +163,7 @@ struct perf_limits {
+> >>
+> >>  static struct perf_limits limits = {
+> >>       .no_turbo = 0,
+> >> +     .no_acpi = !IS_ENABLED(CONFIG_ACPI_PROCESSOR),
+> >>       .turbo_disabled = 0,
+> >>       .max_perf_pct = 100,
+> >>       .max_perf = int_tofp(1),
+> >> @@ -449,6 +455,18 @@ static ssize_t store_min_perf_pct(struct kobject *a, struct attribute *b,
+> >>       return count;
+> >>  }
+> >>
+> >> +static ssize_t store_no_acpi(struct kobject *a, struct attribute *b,
+> >> +                          const char *buf, size_t count)
+> >> +{
+> >> +#ifdef CONFIG_ACPI_PROCESSOR
+> >> +     return kstrtouint(buf, 0, &limits.no_acpi) ?: count;
+> >> +#else
+> >> +     return -ENODEV;
+> >> +#endif
+> >> +}
+> >> +show_one(no_acpi, no_acpi);
+> >> +define_one_global_rw(no_acpi);
+> >> +
+> >>  show_one(max_perf_pct, max_perf_pct);
+> >>  show_one(min_perf_pct, min_perf_pct);
+> >>
+> >> @@ -460,6 +478,7 @@ define_one_global_ro(num_pstates);
+> >>
+> >>  static struct attribute *intel_pstate_attributes[] = {
+> >>       &no_turbo.attr,
+> >> +     &no_acpi.attr,
+> >>       &max_perf_pct.attr,
+> >>       &min_perf_pct.attr,
+> >>       &turbo_pct.attr,
+> >> @@ -1049,6 +1068,38 @@ static int intel_pstate_cpu_init(struct cpufreq_policy *policy)
+> >>       policy->cpuinfo.transition_latency = CPUFREQ_ETERNAL;
+> >>       cpumask_set_cpu(policy->cpu, policy->cpus);
+> >>
+> >> +#ifdef CONFIG_ACPI_PROCESSOR
+> >> +     if (!limits.no_acpi) {
+> >> +             /*
+> >> +              * Minimum necessary to get acpi_processor_ppc_notifier() and
+> >> +              * acpi_processor_get_bios_limit() working.
+> >> +              */
+> >> +             if (!zalloc_cpumask_var(&cpu->acpi_data.shared_cpu_map,
+> >> +                                     GFP_KERNEL))
+> >> +                     rc = -ENOMEM;
+> >> +             else
+> >> +                     rc = acpi_processor_register_performance(
+> >> +                                     &cpu->acpi_data, policy->cpu);
+> >> +             if (rc) {
+> >> +                     pr_err("intel_pstate: acpi init failed: %d\n", rc);
+> >> +                     free_cpumask_var(cpu->acpi_data.shared_cpu_map);
+> >> +                     limits.no_acpi = 1;
+> >> +             }
+> >> +     }
+> >> +#endif
+> >> +     return 0;
+> >> +}
+> >> +
+> >> +static int intel_pstate_cpu_exit(struct cpufreq_policy *policy)
+> >> +{
+> >> +#ifdef CONFIG_ACPI_PROCESSOR
+> >> +     struct cpudata *cpu = all_cpu_data[policy->cpu];
+> >> +
+> >> +     if (cpu->acpi_data.state_count)
+> >> +             acpi_processor_unregister_performance(&cpu->acpi_data,
+> >> +                                                   policy->cpu);
+> >> +     free_cpumask_var(cpu->acpi_data.shared_cpu_map);
+> >> +#endif
+> >>       return 0;
+> >>  }
+> >>
+> >> @@ -1057,7 +1108,11 @@ static struct cpufreq_driver intel_pstate_driver = {
+> >>       .verify         = intel_pstate_verify_policy,
+> >>       .setpolicy      = intel_pstate_set_policy,
+> >>       .get            = intel_pstate_get,
+> >> +#ifdef CONFIG_ACPI_PROCESSOR
+> >> +     .bios_limit     = acpi_processor_get_bios_limit,
+> >> +#endif
+> >>       .init           = intel_pstate_cpu_init,
+> >> +     .exit           = intel_pstate_cpu_exit,
+> >>       .stop_cpu       = intel_pstate_stop_cpu,
+> >>       .name           = "intel_pstate",
+> >>  };
+> >> @@ -1286,6 +1341,8 @@ static int __init intel_pstate_setup(char *str)
+> >>               force_load = 1;
+> >>       if (!strcmp(str, "hwp_only"))
+> >>               hwp_only = 1;
+> >> +     if (!strcmp(str, "no_acpi"))
+> >> +             limits.no_acpi = 1;
+> >>       return 0;
+> >>  }
+> >>  early_param("intel_pstate", intel_pstate_setup);
+> >>
+> > _PPC is index into _PSS. Since intel P state doesn't follow _PSS, the
+> > states may not be 1:1 matching. So we have to harmonize them.
+> >
+> >
+> >> --
+> >> To unsubscribe from this list: send the line "unsubscribe linux-pm" in
+> >> the body of a message to majordomo@vger.kernel.org
+> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > Please read the FAQ at  http://www.tux.org/lkml/
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-pm" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-This patch doesn't only convert GICv2 ACPI support to stacked domains,
-it adds a whole new concept of "banks of wired interrupts".
 
-Why do we need this? How relevant is that to making the ACPI code
-stacked-domain aware? As far as I understand, only SPIs provided by the
-GIC can be expressed as a GSI. And you can only have one GIC.
-
-I'm more and more puzzled by this series.
-
-	M.
---=20
-Jazz is not dead. It just smells funny...
