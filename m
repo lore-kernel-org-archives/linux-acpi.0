@@ -1,61 +1,92 @@
-From: Mathias Krause <minipli@googlemail.com>
-Subject: [PATCH 1/2] ACPI / processor: remove bogus __refdata annotations
-Date: Sun, 19 Jul 2015 18:50:38 +0200
-Message-ID: <1437324639-18118-2-git-send-email-minipli@googlemail.com>
-References: <1437324639-18118-1-git-send-email-minipli@googlemail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1437324639-18118-1-git-send-email-minipli@googlemail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Mathias Krause <minipli@googlemail.com>, Paul Gortmaker <paul.gortmaker@windriver.com>
+From: Pan Xinhui <xinhuix.pan@intel.com>
+Subject: Re: [PATCH 1/2] ACPI / processor: Drop an unused argument of a cleanup
+ routine
+Date: Mon, 20 Jul 2015 09:45:30 +0800
+Message-ID: <55AC52BA.8070205@intel.com>
+References: <10273534.kyzK8rhvUz@vostro.rjw.lan> <15976638.8lfDjd5ol2@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([192.55.52.115]:13904 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753729AbbGTBsP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 19 Jul 2015 21:48:15 -0400
+In-Reply-To: <15976638.8lfDjd5ol2@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux PM list <linux-pm@vger.kernel.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>, "yanmin_zhang@linux.intel.com" <yanmin_zhang@linux.intel.com>
 
-The processor_handler structure does not reference any __init / __exit
-code or data. Therefore the __refdata annotation is not needed. It used
-to be prior to commit fe7bf106ebc2 ("acpi: delete __cpuinit usage from
-all acpi files") due to the __cpuinit annotation of acpi_processor_add().
-But with that commit in place that requirement has gone.
+hi, Rafael
+	thanks for your nice work :)
+On 2015=E5=B9=B407=E6=9C=8818=E6=97=A5 09:14, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>=20
+> acpi_processor_unregister_performance() actually doesn't use its
+> first argument, so drop it and update the callers accordingly.
+>=20
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>  drivers/acpi/processor_perflib.c    |    4 +---
+>  drivers/cpufreq/acpi-cpufreq.c      |    5 ++---
+>  drivers/cpufreq/e_powersaver.c      |    2 +-
+>  drivers/cpufreq/ia64-acpi-cpufreq.c |    5 ++---
+>  drivers/cpufreq/powernow-k7.c       |    4 ++--
+>  drivers/cpufreq/powernow-k8.c       |    5 ++---
+>  drivers/xen/xen-acpi-processor.c    |    4 ++--
+>  include/acpi/processor.h            |    5 +----
+>  8 files changed, 13 insertions(+), 21 deletions(-)
+>=20
 
-The same is true for the acpi_cpu_notifier notifier block.
-acpi_cpu_soft_notify() used to be marked __cpuinit but lost its
-annotation in the above mentioned commit as well. Therefore the __refdata
-annotation isn't needed there either.
+I wish I can test this patch. However I only have x86 hardware, not all=
+ codes can be tested on my side.
 
-Just drop the unneded __refdata annotations to be able to catch future
-section mismatches.
+> Index: linux-pm/drivers/xen/xen-acpi-processor.c
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> --- linux-pm.orig/drivers/xen/xen-acpi-processor.c
+> +++ linux-pm/drivers/xen/xen-acpi-processor.c
+> @@ -563,7 +563,7 @@ err_unregister:
+>  	for_each_possible_cpu(i) {
+>  		struct acpi_processor_performance *perf;
+>  		perf =3D per_cpu_ptr(acpi_perf_data, i);
+> -		acpi_processor_unregister_performance(perf, i);
+> +		acpi_processor_unregister_performance(i);
+>  	}
+>  err_out:
+>  	/* Freeing a NULL pointer is OK: alloc_percpu zeroes. */
+> @@ -582,7 +582,7 @@ static void __exit xen_acpi_processor_ex
+>  	for_each_possible_cpu(i) {
+>  		struct acpi_processor_performance *perf;
+>  		perf =3D per_cpu_ptr(acpi_perf_data, i);
+> -		acpi_processor_unregister_performance(perf, i);
+> +		acpi_processor_unregister_performance(i);
 
-Signed-off-by: Mathias Krause <minipli@googlemail.com>
-Cc: Paul Gortmaker <paul.gortmaker@windriver.com>
----
- drivers/acpi/acpi_processor.c   |    2 +-
- drivers/acpi/processor_driver.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
-index 92a5f738e370..985b8a83184e 100644
---- a/drivers/acpi/acpi_processor.c
-+++ b/drivers/acpi/acpi_processor.c
-@@ -485,7 +485,7 @@ static const struct acpi_device_id processor_device_ids[] = {
- 	{ }
- };
- 
--static struct acpi_scan_handler __refdata processor_handler = {
-+static struct acpi_scan_handler processor_handler = {
- 	.ids = processor_device_ids,
- 	.attach = acpi_processor_add,
- #ifdef CONFIG_ACPI_HOTPLUG_CPU
-diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
-index d9f71581b79b..cc820d840c61 100644
---- a/drivers/acpi/processor_driver.c
-+++ b/drivers/acpi/processor_driver.c
-@@ -159,7 +159,7 @@ static int acpi_cpu_soft_notify(struct notifier_block *nfb,
- 	return NOTIFY_OK;
- }
- 
--static struct notifier_block __refdata acpi_cpu_notifier = {
-+static struct notifier_block acpi_cpu_notifier = {
- 	    .notifier_call = acpi_cpu_soft_notify,
- };
- 
--- 
-1.7.10.4
+>  	}
+>  	free_acpi_perf_data();
+>  }
+>=20
+
+After a simple review, in functions above *perf* is not used anymore, c=
+an we just change the codes like below
+	@@ -580,9 +580,7 @@ static void __exit xen_acpi_processor_exit(void)
+        kfree(acpi_id_present);
+        kfree(acpi_id_cst_present);
+        for_each_possible_cpu(i) {
+-               struct acpi_processor_performance *perf;
+-               perf =3D per_cpu_ptr(acpi_perf_data, i);
+-               acpi_processor_unregister_performance(perf, i);
++               acpi_processor_unregister_performance(i);
+        }
+        free_acpi_perf_data();
+
+thanks
+xinhui
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
