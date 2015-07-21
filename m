@@ -1,61 +1,82 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: Ghost Lid switch on Baytrail tablet
-Date: Tue, 21 Jul 2015 00:22:42 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E8802738629@SHSMSX101.ccr.corp.intel.com>
-References: <1437266568.3512.10.camel@hadess.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
+Subject: [PATCH V6 0/4] map GHES memory region according to EFI memory map
+Date: Mon, 20 Jul 2015 17:32:35 -0700
+Message-ID: <1437438759-3686-1-git-send-email-zjzhang@codeaurora.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:57992 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932178AbbGUAWr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 20 Jul 2015 20:22:47 -0400
-In-Reply-To: <1437266568.3512.10.camel@hadess.net>
-Content-Language: en-US
+Received: from smtp.codeaurora.org ([198.145.29.96]:42895 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757371AbbGUAcv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Jul 2015 20:32:51 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bastien Nocera <hadess@hadess.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Cc: "dev@mgautier.fr" <dev@mgautier.fr>
+To: Matt Fleming <matt.fleming@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, tony.luck@gmail.com, fu.wei@linaro.org, al.stone@linaro.org, bp@alien8.de, rjw@rjwysocki.net, lenb@kernel.org, ying.huang@intel.com, catalin.marinas@arm.com, will.deacon@arm.com
+Cc: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, linux-efi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-msm@vger.kernel.org, linaro-acpi@lists.linaro.org, vgandhi@codeaurora.org
 
-SGksDQoNClRoZSBfTElEIHJldHVybnMgTElEUzoNCiAgICAgICAgRGV2aWNlIChMSUQpDQogICAg
-ICAgIHsNCiAgICAgICAgICAgIE5hbWUgKF9ISUQsIEVpc2FJZCAoIlBOUDBDMEQiKSAvKiBMaWQg
-RGV2aWNlICovKSAgLy8gX0hJRDogSGFyZHdhcmUgSUQNCiAgICAgICAgICAgIE5hbWUgKExJRFMs
-IFplcm8pDQogICAgICAgICAgICBNZXRob2QgKF9MSUQsIDAsIE5vdFNlcmlhbGl6ZWQpICAvLyBf
-TElEOiBMaWQgU3RhdHVzDQogICAgICAgICAgICB7DQogICAgICAgICAgICAgICAgUmV0dXJuIChM
-SURTKSAvKiBcX1NCXy5MSURfLkxJRFMgKi8NCiAgICAgICAgICAgIH0NCiAgICAgICAgfQ0KQWxs
-IExJRFMgcmVsYXRlZCBjb2RlIGNhbiBiZSBmb3VuZDoNCglMaW5lIDEzMjogICAgICAgICBMSURT
-LCAgIDgsIA0KCUxpbmUgNTQwMDogICAgICAgICAgICAgICAgICAgICAgICAgUEFSTSB8PSAoTElE
-UyA8PCAweDEwKQ0KCUxpbmUgNTU2NjogICAgICAgICAgICAgICAgICAgICAgICAgUEFSTSA9IChM
-SURTIDw8IDB4MDgpDQoJTGluZSAxMTc5MjogICAgICAgICAgICAgXl5MSUQuTElEUyA9IFplcm8N
-CioJTGluZSAxMTgwMjogICAgICAgICAgICAgXl5MSUQuTElEUyA9IE9uZQ0KCUxpbmUgMTE5MDY6
-ICAgICAgICAgICAgIE5hbWUgKExJRFMsIFplcm8pDQoJTGluZSAxMTkwOTogICAgICAgICAgICAg
-ICAgIFJldHVybiAoTElEUykgLyogXF9TQl8uTElEXy5MSURTICovDQpUaGUgdmFsdWUgaXMgb25s
-eSBzZXQgYnkgUTE0IChtYXJrZWQgYnkgKiBhYm92ZSk6DQogICAgICAgIE1ldGhvZCAoUTE0LCAw
-LCBOb3RTZXJpYWxpemVkKQ0KICAgICAgICB7DQogICAgICAgICAgICBQOFhIIChPbmUsIDB4QkIp
-DQogICAgICAgICAgICBQOFhIIChaZXJvLCAweDE0KQ0KICAgICAgICAgICAgXl5MSUQuTElEUyA9
-IE9uZQ0KICAgICAgICAgICAgTm90aWZ5IChMSUQsIDB4ODApIC8vIFN0YXR1cyBDaGFuZ2UNCiAg
-ICAgICAgICAgIFA4WEggKE9uZSwgMHhCQikNCiAgICAgICAgICAgIFA4WEggKFplcm8sIDB4QTQp
-DQogICAgICAgIH0NCklmIFFSX0VDKDB4MTQpIGNhbm5vdCBhcnJpdmUgdG8gdGhlIE9TUE1zIGFz
-IGVhcmx5IGFzIHBvc3NpYmxlLCB0aGVuIHRoZSBkZWZhdWx0IExJRFM9MCB2YWx1ZSBtYXkgY2F1
-c2UgcHJvYmxlbS4NCldlIG5lZWQgRUMgZGVidWcgbG9nIHRvIHRyYWNrIGlmIFFSX0VDKDB4MTQp
-IGNhbiBhcnJpdmUgZWFybGllci4NCg0KWW91IGNhbiB1bmNvbW1lbnQgdGhlIGZvbGxvd2luZyBs
-aW5lIGZyb20gZHJpdmVycy9hY3BpL2VjLmMgYW5kIHJlYnVpbGQgdGhlIGtlcm5lbDoNCi8qICNk
-ZWZpbmUgREVCVUcgKi8NCg0KU2VuZCB0aGUgZG1lc2cgb3V0cHV0IChiZWZvcmUgc3VzcGVuZGlu
-ZykgdG8gdXMuDQoNClRoYW5rcyBhbmQgYmVzdCByZWdhcmRzDQotTHYNCg0KPiAtLS0tLU9yaWdp
-bmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBCYXN0aWVuIE5vY2VyYSBbbWFpbHRvOmhhZGVzc0Bo
-YWRlc3MubmV0XQ0KPiBTZW50OiBTdW5kYXksIEp1bHkgMTksIDIwMTUgODo0MyBBTQ0KPiBUbzog
-UmFmYWVsIEouIFd5c29ja2k7IExlbiBCcm93bjsgbGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmc7
-IGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmcNCj4gQ2M6IGRldkBtZ2F1dGllci5mcg0KPiBT
-dWJqZWN0OiBHaG9zdCBMaWQgc3dpdGNoIG9uIEJheXRyYWlsIHRhYmxldA0KPiANCj4gSGV5LA0K
-PiANCj4gVGhpcyB0YWJsZXQ6DQo+IGh0dHA6Ly93d3cuYW1hem9uLmNvbS9XaW5Cb29rLTEwLTEt
-SW5jaC1XaW5kb3dzLWZ1bGwtc2l6ZS1EaXNwbGF5L2RwL0IwME45Wkc1VTIvDQo+IGRvZXNuJ3Qg
-aGF2ZSBhIHBoeXNpY2FsIGxpZCBzd2l0Y2ggdW5sZXNzIHlvdSBwbHVnIHRoZSBrZXlib2FyZCBh
-Y2Nlc3NvcnkgdG8gaXQuDQo+IA0KPiBCdXQgaXQgdGhpbmtzIHRoYXQgdGhlcmUgaXMgYSBsaWQs
-IGFuZCB0aGF0IGl0J3MgY2xvc2VkLCBtYWtpbmcgbG9naW5kDQo+IHN1c3BlbmQgdGhlIG1hY2hp
-bmUgYWZ0ZXIgYWJvdXQgMzAgc2Vjb25kcy4NCj4gDQo+IEknbSBjdXJyZW50bHkgdGVzdGluZyB0
-aGlzIG9uIGEgNC4wIGtlcm5lbCwgYXMgdGhlcmUgaGF2ZSBiZWVuDQo+IHJlZ3Jlc3Npb25zIG9u
-IEJheXRyYWlsIHdpdGggNC4xIGFuZCA0LjJyY3MuDQo+IA0KPiBUaGUgRFNEVCBmb3IgdGhhdCB0
-YWJsZXQ6DQo+IGh0dHBzOi8vcGVvcGxlLmdub21lLm9yZy9+aGFkZXNzL1dpbmJvb2slMjBUVzEw
-MCUyMERTRFQuZHNsDQo+IA0KPiBBbnkgaWRlYXMgaG93IHRvIGhhbmRsZSB0aGlzIHNvcnQgb2Yg
-ZGV2aWNlPw0KPiANCj4gQ2hlZXJzDQo=
+From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
+
+On a platform with APEI (ACPI Platform Error Interface) enabled, firmware
+updates a memory region with hardware error record using nocache
+attribute. When OS reads the region, since it maps the region with
+cacahed attribute even though EFI memory map defines this region as
+uncached, OS gets stale data and errorneously reports there is no new
+HW error.
+
+When ghes driver maps the memory region, it uses the cache attribute
+according to EFI memory map, if EFI memory map feature is enabled
+at runtime.
+
+Since both arch/x86 and arch/ia64 implemented architecture agnostic EFI
+memory map attribue lookup function efi_memattributes(), the code is
+moved from arch/x86 into EFI subsystem and is declared as __weak; archs
+other than ia64 should not override the default implementation.
+
+V6:
+1. Implemented arch_apei_get_mem_attributes() for arm64 as inline
+   function.
+2. Rebased to efi-next-14364 of efi/next, pm+acpi-4.2-rc3 of
+   linux-pm/master, arm64-upstream-13521 of arm64/master,
+   next-20150720 of linux-next/master.
+V5:
+1. Rebased to next-20150713 of linux-next/master, efi-next-14359 of
+   efi/next, pm+acpi-4.2-rc2 of linux-pm/master,
+   arm64-fixes-1215 of arm64/master.
+2. Added comment for efi_mem_attributes(), explained why it is marked
+   as __weak at the function definition site.
+V4:
+1. Introduced arch_apei_get_mem_attributes() to allow arch specific
+   implementation of getting pgprot_t appropriate for a physical
+   address.
+2. Implemented arch_apei_get_mem_attributes() for x86 and for arm64.
+
+V3:
+1. Rebased to v4.1-rc7.
+2. Moved efi_mem_attributes() from arch/x86 to drivers/firmware/efi
+   and declared it as __weak.
+3. Introduced ARCH_APEI_PAGE_KERNEL_UC to allow arch specific page
+   protection type for UC.
+4. Removed efi_ioremap(). It can not be used for GHES memory region
+   mapping purpose since ioremap can not be used in atomic context.
+
+V2:
+1. Rebased to v4.1-rc5.
+2. Split removal of efi_mem_attributes() and creation of efi_ioremap()
+into two patches.
+
+Jonathan (Zhixiong) Zhang (4):
+  efi: x86: rearrange efi_mem_attributes()
+  x86: acpi: implement arch_apei_get_mem_attributes()
+  arm64: apei: implement arch_apei_get_mem_attributes()
+  acpi, apei: use appropriate pgprot_t to map GHES memory
+
+ arch/arm64/include/asm/acpi.h | 15 +++++++++++++++
+ arch/x86/kernel/acpi/apei.c   | 10 ++++++++++
+ arch/x86/platform/efi/efi.c   | 18 ------------------
+ drivers/acpi/apei/ghes.c      |  6 ++++--
+ drivers/firmware/efi/efi.c    | 31 +++++++++++++++++++++++++++++++
+ include/acpi/apei.h           |  1 +
+ 6 files changed, 61 insertions(+), 20 deletions(-)
+
+-- 
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project
+
