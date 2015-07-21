@@ -1,48 +1,34 @@
-From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
-Subject: [PATCH V7 5/5] acpi, apei: use appropriate pgprot_t to map GHES memory
-Date: Tue, 21 Jul 2015 14:59:20 -0700
-Message-ID: <1437515960-16812-6-git-send-email-zjzhang@codeaurora.org>
-References: <1437515960-16812-1-git-send-email-zjzhang@codeaurora.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1437515960-16812-1-git-send-email-zjzhang@codeaurora.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Matt Fleming <matt.fleming@intel.com>, Thomas Gleixner <tglx@linutronix.de>, fu.wei@linaro.org, al.stone@linaro.org, bp@alien8.de, tony.luck@gmail.com, rjw@rjwysocki.net, lenb@kernel.org, ying.huang@intel.com, catalin.marinas@arm.com, will.deacon@arm.com
-Cc: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
+From: "Jonathan (Zhixiong) Zhang" <zjzhang-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Subject: [PATCH 0/2] process vendor proprietary CPER error section
+Date: Tue, 21 Jul 2015 16:36:45 -0700
+Message-ID: <1437521807-27571-1-git-send-email-zjzhang@codeaurora.org>
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Matt Fleming <matt.fleming-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, mchehab-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org
+Cc: "Jonathan (Zhixiong) Zhang" <zjzhang-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, vgandhi-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
+From: "Jonathan (Zhixiong) Zhang" <zjzhang-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
 
-With ACPI APEI firmware first handling, generic hardware error
-record is updated by firmware in GHES memory region. When firmware
-updated GHES memory region with uncached access attribute, Linux
-reads stale data from cache.
+UEFI spec allows for non-standard (eg. vendor proprietary) error
+section in CPER (COmmon Platform Error Record), as defined in section
+N2.3 of UEFI version 2.5.
 
-GHES memory region should be mapped with page protection type
-according to what is returned from arch_apei_get_mem_attribute(),
-instead of always with PAGE_KERNEL (eg. cached attribute).
+If section Type field of Generic Error Data Entry matches with one
+of the GUID as defined in include/linux/cper.h, print out the raw data
+in dmesg buffer, and also add a tracepoint for reporting such error.
 
-Signed-off-by: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
----
- drivers/acpi/apei/ghes.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+Jonathan (Zhixiong) Zhang (2):
+  efi: parse vendor proprietary CPER section
+  ras: acpi/apei: trace event for vendor proprietary CPER section
 
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index b979b5dbe5bc..98609b404dae 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -173,8 +173,10 @@ static void __iomem *ghes_ioremap_pfn_irq(u64 pfn)
- 	unsigned long vaddr;
- 
- 	vaddr = (unsigned long)GHES_IOREMAP_IRQ_PAGE(ghes_ioremap_area->addr);
--	ioremap_page_range(vaddr, vaddr + PAGE_SIZE,
--			   pfn << PAGE_SHIFT, PAGE_KERNEL);
-+	ioremap_page_range(vaddr,
-+			   vaddr + PAGE_SIZE,
-+			   pfn << PAGE_SHIFT,
-+			   arch_apei_get_mem_attribute(pfn << PAGE_SHIFT));
- 
- 	return (void __iomem *)vaddr;
- }
+ drivers/firmware/efi/cper.c | 61 +++++++++++++++++++++++++++++++++++++++++++--
+ include/linux/cper.h        |  4 +++
+ drivers/acpi/apei/ghes.c | 29 +++++++++++++++++++++++++++--
+ drivers/ras/ras.c        |  1 +
+ include/ras/ras_event.h  | 30 ++++++++++++++++++++++++++++++
+ 5 files changed, 121 insertions(+), 4 deletions(-)
+
 -- 
 The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
 a Linux Foundation Collaborative Project
