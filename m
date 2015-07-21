@@ -1,105 +1,79 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v7 5/8] CPPC: Add a CPUFreq driver for use with CPPC
-Date: Tue, 21 Jul 2015 16:32:33 +0100
-Message-ID: <55AE6611.9020808@arm.com>
-References: <cover.1436464513.git.ashwin.chaugule@linaro.org>	<e8464849d98e4a4f64e9b23501d84b1f843aa994.1436464513.git.ashwin.chaugule@linaro.org>	<55AD0411.4000603@arm.com>	<3774934.MfIr66XDWO@vostro.rjw.lan>	<55AE083E.80303@arm.com> <CAJZ5v0j8UHFhW+ncvHbif_bdZoxNW-NivEgXhn9DaQxMPf_94Q@mail.gmail.com>
+From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Subject: Re: [PATCH RFC] intel_pstate: play well with frequency limits set
+ by acpi
+Date: Tue, 21 Jul 2015 08:37:31 -0700
+Message-ID: <1437493051.2377.170.camel@spandruv-DESK3.jf.intel.com>
+References: <20150716181706.6500.64386.stgit@buzz>
+	 <1437084536.2377.117.camel@spandruv-DESK3.jf.intel.com>
+	 <CALYGNiMOMWY2Ng9yLQ04Ghr6fKnO_6BRLCRE2b-rnvoPJmauqQ@mail.gmail.com>
+	 <1437426504.2377.162.camel@spandruv-DESK3.jf.intel.com>
+	 <55AE1DFC.3090209@yandex-team.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:60527 "EHLO foss.arm.com"
+Received: from mga14.intel.com ([192.55.52.115]:30473 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753084AbbGUPch (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 21 Jul 2015 11:32:37 -0400
-In-Reply-To: <CAJZ5v0j8UHFhW+ncvHbif_bdZoxNW-NivEgXhn9DaQxMPf_94Q@mail.gmail.com>
+	id S1754768AbbGUPkH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 21 Jul 2015 11:40:07 -0400
+In-Reply-To: <55AE1DFC.3090209@yandex-team.ru>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, "jaswinder.singh@linaro.org" <jaswinder.singh@linaro.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "patches@linaro.org" <patches@linaro.org>, "viresh.kumar@linaro.org" <viresh.kumar@linaro.org>
+To: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>, linux-pm@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Kristen Carlson Accardi <kristen@linux.intel.com>, Len Brown <lenb@kernel.org>, Ethan Zhao <ethan.zhao@oracle.com>
 
-Hi Rafael,
+On Tue, 2015-07-21 at 13:25 +0300, Konstantin Khlebnikov wrote:
+> On 21.07.2015 00:08, Srinivas Pandruvada wrote:
+> > On Fri, 2015-07-17 at 07:36 +0300, Konstantin Khlebnikov wrote:
+> >> On Fri, Jul 17, 2015 at 1:08 AM, Srinivas Pandruvada
+> >> <srinivas.pandruvada@linux.intel.com> wrote:
+> >>> On Thu, 2015-07-16 at 21:17 +0300, Konstantin Khlebnikov wrote:
+> >>>> IPMI can control CPU P-states remotely: configuration is reported via
+> >>>> common ACPI interface (_PPC/_PSS/etc). This patch adds required minimal
+> >>>> support in intel_pstate to receive and use these P-state limits.
+> >>>>
+> >>>> * ignore limit of top state in _PPC: it lower than turbo boost frequency
+> >>>> * register intel_pstate in acpi-processor to get states from _PSS
+> >>>> * link acpi_processor_get_bios_limit: this adds attribute "bios_limit"
+> >>>>
+> >>>> Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+> >>>> ---
+> >>>>   drivers/acpi/processor_perflib.c |    3 +-
+> >>>>   drivers/cpufreq/intel_pstate.c   |   57 ++++++++++++++++++++++++++++++++++++++
+> >>>>   2 files changed, 59 insertions(+), 1 deletion(-)
+> >>>>
+> >>>> diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
+> >>>> index cfc8aba72f86..781e328c9d5f 100644
+> >>>> --- a/drivers/acpi/processor_perflib.c
+> >>>> +++ b/drivers/acpi/processor_perflib.c
+> >>>> @@ -98,7 +98,8 @@ static int acpi_processor_ppc_notifier(struct notifier_block *nb,
+> >>>>
+> >>>>        ppc = (unsigned int)pr->performance_platform_limit;
+> >>>>
+> >>>> -     if (ppc >= pr->performance->state_count)
+> >>>> +     /* Ignore limit of top state: it lower than turbo boost frequency */
+> >>>> +     if (!ppc || ppc >= pr->performance->state_count)
+> >>> Why? Isn't the previous check enough?
+> >>
+> >> Zero _PPC state must be top performance state but as I see frequency in
+> >> _PSS is lower than maximum possible turbo frequency. So, in this case
+> >> intel_pstate cannnot get "100%"  for max bound even it there is no limit set.
+> >>
+> >> For example: I saw _PSS[0] = 2601 Mhz, PSS[1] = 2600 Mhz while turbo
+> >> state is 3400 Mhz.
+> >>
+> > Have you tested dynamic _PPC modification with acpi cpufreq with this
+> > change (after boot)? Suppose _PPC is changed from 3 to 0, then
+> > cpufreq_verify_within_limits will not be called to change to new max
+> > turbo performance state.
+> >
+> 
+> I haven't checked that but as I see acpi_processor_ppc_notifier()
+> can only reduce maximum frequency. So, there should be no problem
+> in this case.
+No, it can also be used in both ways. Once reduced, it can increase as
+well. _PPC can be dynamically modified by BIOS to reduce and also to
+increase.
 
-On 21/07/15 15:27, Rafael J. Wysocki wrote:
-> Hi Sudeep,
->
-> On Tue, Jul 21, 2015 at 10:52 AM, Sudeep Holla <sudeep.holla@arm.com> wrote:
->>
->>
->> On 20/07/15 23:07, Rafael J. Wysocki wrote:
->>>
->>> On Monday, July 20, 2015 03:22:09 PM Sudeep Holla wrote:
->>>>
->>>>
->>>> On 09/07/15 19:04, Ashwin Chaugule wrote:
->>>>>
->>>>> This driver utilizes the methods introduced in the previous
->>>>> patch - "ACPI: Introduce CPU performance controls using CPPC"
->>>>> and enables usage with existing CPUFreq governors.
->>>>>
->>>>> Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
->>>>> Reviewed-by: Al Stone <al.stone@linaro.org>
->>>>>
->>>>> ---
->>>>>     drivers/cpufreq/Kconfig.arm    |  16 ++++
->>>>>     drivers/cpufreq/Makefile       |   2 +
->>>>>     drivers/cpufreq/cppc_cpufreq.c | 197
->>>>> +++++++++++++++++++++++++++++++++++++++++
->>>>>     3 files changed, 215 insertions(+)
->>>>>     create mode 100644 drivers/cpufreq/cppc_cpufreq.c
->>>>>
->>>>> diff --git a/drivers/cpufreq/Kconfig.arm b/drivers/cpufreq/Kconfig.arm
->>>>> index 4f3dbc8..578384d 100644
->>>>> --- a/drivers/cpufreq/Kconfig.arm
->>>>> +++ b/drivers/cpufreq/Kconfig.arm
->>>>> @@ -272,3 +272,19 @@ config ARM_PXA2xx_CPUFREQ
->>>>>            This add the CPUFreq driver support for Intel PXA2xx SOCs.
->>>>>
->>>>>            If in doubt, say N.
->>>>> +
->>>>> +config ACPI_CPPC_CPUFREQ
->>>>> +       tristate "CPUFreq driver based on the ACPI CPPC spec"
->>>>> +       depends on ACPI_CPPC_LIB
->>>>> +       default n
->>>>> +       help
->>>>> +         This adds a CPUFreq driver which uses CPPC methods
->>>>> +         as described in the ACPIv5.1 spec. CPPC stands for
->>>>> +         Collaborative Processor Performance Controls. It
->>>>> +         is based on an abstract continuous scale of CPU
->>>>> +         performance values which allows the remote power
->>>>> +         processor to flexibly optimize for power and
->>>>> +         performance. CPPC relies on power management firmware
->>>>> +         for its operation.
->>>>
->>>>
->>>> Why is this ARM specific ? It might be used only on ARM but doesn't mean
->>>> it should be visible only on ARM ACPI systems.
->>>
->>>
->>> Why bother people with considering Kconfig options that are useless to
->>> them?
->>>
->>
->> I agree to some extent, but main worry is that we are then making these
->> features architecture specific while ACPI is supposed to be architecture
->> agnostic. I was just trying to avoid doing so.
->
-> Problem is, there are no plans to support CPPC on x86 in Linux I'm
-> aware of and so we should not use it even if it is exposed by the
-> firmware (Windows may be using it, though).
->
 
-Ah that makes sense.
 
-> I'm also not aware of plans to support _PSS on ARM.
-
-Agreed, but you never know what ARM vendors can do :)
-
->
-> So, even though on the spec level they are arch-independent, the way
-> we use those interfaces in the kernel isn't.
->
-
-Understood.
-
-Regards,
-Sudeep
