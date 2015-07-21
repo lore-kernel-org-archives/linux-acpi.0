@@ -1,91 +1,82 @@
-From: Sylvain Munaut <246tnt@gmail.com>
-Subject: Discrete Nvidia GPU shutdown with recent kernel / BIOS (on T440s
- laptop) - Should be automatic with runtime pm now ?
-Date: Tue, 21 Jul 2015 11:57:38 +0200
-Message-ID: <CAHL+j0-Nf4rgCrUHbtZ0d2bpW3hX57Mz5jUwhckv8endScA29g@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: [PATCH 0/5] Making the generic ACPI GSI layer irqdomain aware
+Date: Tue, 21 Jul 2015 11:07:55 +0100
+Message-ID: <1437473280-11431-1-git-send-email-marc.zyngier@arm.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-la0-f47.google.com ([209.85.215.47]:36056 "EHLO
-	mail-la0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754384AbbGUJ5k (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Jul 2015 05:57:40 -0400
+Received: from foss.arm.com ([217.140.101.70]:58996 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752963AbbGUKIK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 21 Jul 2015 06:08:10 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 
-Hi,
+The irqdomain code is not entierely really ACPI friendly, as it has
+some built-in knowledge of the device-tree. Nothing too harmful, but
+enough to scare the ARM ACPI developpers which end up with their own
+version of the square wheel.
 
+This small patch series adapt the irqdomain code to remove the hurdles
+that prevent the full blown irqdomain subsystem to be used on ACPI,
+creates an interface between the GSI layer and the irqdomain, and as
+an example, convert the ARM GIC ACPI support to use irqdomains as
+originally intended.
 
-tl;dr : Should device allowed to do runtime pm that have no driver go
-to D3 on their own ?  And should pci root bridge go to D3 when all the
-device on them are on D3 ?
+Overall, this gives us a way to use irqdomains on both DT and ACPI
+enabled platforms, having very little changes made to the actual
+drivers (other than the probing infrastructure). Because we keep the
+flow of information between the various layers identical between ACPI
+and DT, we immediately benefit from the existing infrastructure.
 
+I'd really like to hear what people think of that approach, as it
+looks to me a lot simpler than the other approaches currently put on
+the list. The "convert the GSI information to be DT friendly" is
+admitedly not very pretty, but I see it as a stepping stone towards
+unifying the two structures.
 
-The whole story:
+This has been test-booted on Juno, and is based on my irq/ncpi-msi-2
+branch.
 
-Modern kernel ( > 3.15 ) report "Windows 2013" as an OSI string, even
-newer ones report "Windows 2015" as well. This triggers some changes
-in the ACPI code of the T440s laptop (and in others as well, but this
-is the one I'm using as reference here).
+Marc Zyngier (5):
+  genirq: irqdomain: Use an accessor for the of_node field
+  genirq: irqdomain: Remove irqdomain dependency on struct device_node
+  genirq: irqdomain: Add irq_create_acpi_mappings
+  acpi: gsi: Use acpi_gsi_descriptor to allocate interrupts
+  irqchip: GIC: Switch ACPI support to stacked domains
 
-This changes breaks the method used by Bumbblebee's bbswitch module
-and by the nouveau driver to shutdown the card (to save power). No
-error is reported, and some power is saved, but not as much as
-previously (hence users might not notice at all).
+ arch/mips/cavium-octeon/octeon-irq.c          |  4 +-
+ arch/powerpc/platforms/cell/axon_msi.c        |  2 +-
+ arch/powerpc/platforms/cell/spider-pic.c      |  9 ++-
+ arch/powerpc/platforms/powernv/opal-irqchip.c |  2 +-
+ arch/powerpc/sysdev/ehv_pic.c                 |  3 +-
+ arch/powerpc/sysdev/fsl_msi.c                 |  2 +-
+ arch/powerpc/sysdev/i8259.c                   |  3 +-
+ arch/powerpc/sysdev/ipic.c                    |  3 +-
+ arch/powerpc/sysdev/mpic.c                    |  3 +-
+ arch/powerpc/sysdev/mpic_msi.c                |  2 +-
+ arch/powerpc/sysdev/qe_lib/qe_ic.c            |  3 +-
+ drivers/acpi/gsi.c                            | 54 ++++++++++-----
+ drivers/gpio/gpio-sodaville.c                 |  2 +-
+ drivers/irqchip/exynos-combiner.c             |  2 +-
+ drivers/irqchip/irq-atmel-aic-common.c        |  2 +-
+ drivers/irqchip/irq-crossbar.c                |  4 +-
+ drivers/irqchip/irq-gic-v2m.c                 |  2 +-
+ drivers/irqchip/irq-gic-v3-its.c              |  2 +-
+ drivers/irqchip/irq-gic-v3.c                  |  2 +-
+ drivers/irqchip/irq-gic.c                     | 17 ++---
+ drivers/irqchip/irq-hip04.c                   |  2 +-
+ drivers/irqchip/irq-mtk-sysirq.c              |  2 +-
+ drivers/irqchip/irq-s3c24xx.c                 |  4 +-
+ drivers/irqchip/irq-tegra.c                   |  4 +-
+ drivers/irqchip/irq-vf610-mscm-ir.c           |  5 +-
+ drivers/spmi/spmi-pmic-arb.c                  |  2 +-
+ include/linux/acpi.h                          |  9 +++
+ include/linux/irqchip/arm-gic.h               |  2 +-
+ include/linux/irqdomain.h                     | 67 +++++++++++--------
+ kernel/irq/irqdomain.c                        | 95 +++++++++++++++++++++------
+ 30 files changed, 206 insertions(+), 109 deletions(-)
 
-The usual "solution" given to users is to use acpi_osi="!Windows 2013"
- (and now they'll have to add acpi_osi="!Windows 2015" as well), but I
-was interested to find out exactly what was causing that behavior and
-whathttps://bugs.freedesktop.org/attachment.cgi?id=117267 new method
-Win 8.1 and Win 10 were using to shutdown the card.
+-- 
+2.1.4
 
-The DSDT of the T440s running the latest 2.33 bios can be found here :
-https://bugs.freedesktop.org/attachment.cgi?id=117267
-
-The current method used to shutdown the card relies on two actions :
- - Making a _DSM call to the video acpi node, this will prepare the
-shutdown and instructs ACPI to do the actual power down on the next
-device state transition to D3. This is just preparaton and just sets
-some variable but doesn't actually do the power off.
- - Actually make the device go to D3 with pci_set_power_state. This
-then executes the _PS3 method in ACPI and if the proper variable have
-been set by the DSM above, this will call the GPOF method which will
-turn off power.
-
-I looked at what changed when "Windows 2013" was present vs "Windows
-2012". And here's what's triggered :
- - OSYS is set to 0x07DD.
- - This in turn cause VMSH to be set to 1.
- - This in turn causes _SB_.PCI0.PEG_.VID_.PS3 to _NOT call GPOF when
-the device is set to D3.
- - and so the card is never really turned off completely
-
-Now I looked at what other path could be taken to reach the GPOF method.
-And if you look at the table you can see that it can be called as part
-of the NVP3 power resource which is PR3 ... but on the node
-_SB.PCI0.PEG_ and not _SB.PCI0.PEG_.VID_ !
-
-So the GPU gets turned off when the PCIe bridge/port it's connected to
-gets transitionned to D3hot. I did confirm this by manually patching
-bbswitch to put the pci_upstream_bridge(...) of the device to D3hot
-after putting the card itself in D3cold. Power saving measured matches
-what's expected, but I have no idea if it's the "right" thing to do.
-
-The DSM call doesn't seem to be required now, so everything is done
-with pure PM state which I guess is good.
-
-What I expected is that now that everything is purely PM, then linux
-should be able to do all of this automatically without the need for
-bbswitch at all.
-If no driver is loaded for the card (so obviously no users), then
-doing an "echo auto > .../power/control" on both the card node and the
-bridge port node it's attached to should allow runtime PM. And shince
-they're unused, everything should go to D3 on its own.
-
-But that doesn't seem to happen ? Are my expectations wrong ?
-
-
-Cheers,
-
-    Sylvain
