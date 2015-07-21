@@ -1,69 +1,40 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: Ghost Lid switch on Baytrail tablet
-Date: Tue, 21 Jul 2015 01:30:21 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E8802738695@SHSMSX101.ccr.corp.intel.com>
-References: <1437266568.3512.10.camel@hadess.net>
+From: Viresh Kumar <viresh.kumar@linaro.org>
+Subject: Re: [PATCH v2 0/3] ACPI / cpufreq: ACPI processor driver and ACPI
+ cpufreq driver cleanups
+Date: Tue, 21 Jul 2015 08:03:30 +0530
+Message-ID: <20150721023330.GE4994@linux>
+References: <10273534.kyzK8rhvUz@vostro.rjw.lan>
+ <1504169.B7TvYS4CS0@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:55870 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757239AbbGUBac (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 20 Jul 2015 21:30:32 -0400
-Content-Language: en-US
+Received: from mail-pa0-f47.google.com ([209.85.220.47]:33986 "EHLO
+	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754424AbbGUCde (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Jul 2015 22:33:34 -0400
+Received: by pacan13 with SMTP id an13so111791981pac.1
+        for <linux-acpi@vger.kernel.org>; Mon, 20 Jul 2015 19:33:34 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <1504169.B7TvYS4CS0@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bastien Nocera <hadess@hadess.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Cc: "dev@mgautier.fr" <dev@mgautier.fr>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Pan Xinhui <xinhuix.pan@intel.com>
 
-SGksDQoNCklmIHRoZSBpc3N1ZSBpcyBhbHJlYWR5IGlkZW50aWZpZWQgYW5kIGNvbmZpcm1lZDoN
-CkZvciBleGFtcGxlLCB5b3UndmUgY29uZmlybWVkIHRoZSBRUl9FQygweDE0KSBjYW4gb25seSBh
-cnJpdmUgd2hlbiB0aGUga2V5Ym9hcmQgYWNjZXNzb3J5IGlzIHBsdWdnZWQgaW4uDQpUaGVuIHBs
-ZWFzZSBpZ25vcmUgbXkgcHJldmlvdXMgcmVwbHkuDQpJIGRvbid0IGhhdmUgaWRlYSBhYm91dCBo
-YW5kbGluZyBhIExJRCB0aGF0IGFsd2F5cyByZXR1cm5zICJjbG9zZWQiIHdoZW4gdGhlIGtleWJv
-YXJkIGFjY2Vzc29yeSBpcyBub3QgcGx1Z2dlZCBpbi4NCg0KVGhhbmtzDQotTHYNCg0KPiBGcm9t
-OiBaaGVuZywgTHYNCj4gU2VudDogVHVlc2RheSwgSnVseSAyMSwgMjAxNSA4OjIzIEFNDQo+IA0K
-PiBIaSwNCj4gDQo+IFRoZSBfTElEIHJldHVybnMgTElEUzoNCj4gICAgICAgICBEZXZpY2UgKExJ
-RCkNCj4gICAgICAgICB7DQo+ICAgICAgICAgICAgIE5hbWUgKF9ISUQsIEVpc2FJZCAoIlBOUDBD
-MEQiKSAvKiBMaWQgRGV2aWNlICovKSAgLy8gX0hJRDogSGFyZHdhcmUgSUQNCj4gICAgICAgICAg
-ICAgTmFtZSAoTElEUywgWmVybykNCj4gICAgICAgICAgICAgTWV0aG9kIChfTElELCAwLCBOb3RT
-ZXJpYWxpemVkKSAgLy8gX0xJRDogTGlkIFN0YXR1cw0KPiAgICAgICAgICAgICB7DQo+ICAgICAg
-ICAgICAgICAgICBSZXR1cm4gKExJRFMpIC8qIFxfU0JfLkxJRF8uTElEUyAqLw0KPiAgICAgICAg
-ICAgICB9DQo+ICAgICAgICAgfQ0KPiBBbGwgTElEUyByZWxhdGVkIGNvZGUgY2FuIGJlIGZvdW5k
-Og0KPiAJTGluZSAxMzI6ICAgICAgICAgTElEUywgICA4LA0KPiAJTGluZSA1NDAwOiAgICAgICAg
-ICAgICAgICAgICAgICAgICBQQVJNIHw9IChMSURTIDw8IDB4MTApDQo+IAlMaW5lIDU1NjY6ICAg
-ICAgICAgICAgICAgICAgICAgICAgIFBBUk0gPSAoTElEUyA8PCAweDA4KQ0KPiAJTGluZSAxMTc5
-MjogICAgICAgICAgICAgXl5MSUQuTElEUyA9IFplcm8NCj4gKglMaW5lIDExODAyOiAgICAgICAg
-ICAgICBeXkxJRC5MSURTID0gT25lDQo+IAlMaW5lIDExOTA2OiAgICAgICAgICAgICBOYW1lIChM
-SURTLCBaZXJvKQ0KPiAJTGluZSAxMTkwOTogICAgICAgICAgICAgICAgIFJldHVybiAoTElEUykg
-LyogXF9TQl8uTElEXy5MSURTICovDQo+IFRoZSB2YWx1ZSBpcyBvbmx5IHNldCBieSBRMTQgKG1h
-cmtlZCBieSAqIGFib3ZlKToNCj4gICAgICAgICBNZXRob2QgKFExNCwgMCwgTm90U2VyaWFsaXpl
-ZCkNCj4gICAgICAgICB7DQo+ICAgICAgICAgICAgIFA4WEggKE9uZSwgMHhCQikNCj4gICAgICAg
-ICAgICAgUDhYSCAoWmVybywgMHgxNCkNCj4gICAgICAgICAgICAgXl5MSUQuTElEUyA9IE9uZQ0K
-PiAgICAgICAgICAgICBOb3RpZnkgKExJRCwgMHg4MCkgLy8gU3RhdHVzIENoYW5nZQ0KPiAgICAg
-ICAgICAgICBQOFhIIChPbmUsIDB4QkIpDQo+ICAgICAgICAgICAgIFA4WEggKFplcm8sIDB4QTQp
-DQo+ICAgICAgICAgfQ0KPiBJZiBRUl9FQygweDE0KSBjYW5ub3QgYXJyaXZlIHRvIHRoZSBPU1BN
-cyBhcyBlYXJseSBhcyBwb3NzaWJsZSwgdGhlbiB0aGUgZGVmYXVsdCBMSURTPTAgdmFsdWUgbWF5
-IGNhdXNlIHByb2JsZW0uDQo+IFdlIG5lZWQgRUMgZGVidWcgbG9nIHRvIHRyYWNrIGlmIFFSX0VD
-KDB4MTQpIGNhbiBhcnJpdmUgZWFybGllci4NCj4gDQo+IFlvdSBjYW4gdW5jb21tZW50IHRoZSBm
-b2xsb3dpbmcgbGluZSBmcm9tIGRyaXZlcnMvYWNwaS9lYy5jIGFuZCByZWJ1aWxkIHRoZSBrZXJu
-ZWw6DQo+IC8qICNkZWZpbmUgREVCVUcgKi8NCj4gDQo+IFNlbmQgdGhlIGRtZXNnIG91dHB1dCAo
-YmVmb3JlIHN1c3BlbmRpbmcpIHRvIHVzLg0KPiANCj4gVGhhbmtzIGFuZCBiZXN0IHJlZ2FyZHMN
-Cj4gLUx2DQo+IA0KPiA+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+ID4gRnJvbTogQmFz
-dGllbiBOb2NlcmEgW21haWx0bzpoYWRlc3NAaGFkZXNzLm5ldF0NCj4gPiBTZW50OiBTdW5kYXks
-IEp1bHkgMTksIDIwMTUgODo0MyBBTQ0KPiA+IFRvOiBSYWZhZWwgSi4gV3lzb2NraTsgTGVuIEJy
-b3duOyBsaW51eC1hY3BpQHZnZXIua2VybmVsLm9yZzsgbGludXgta2VybmVsQHZnZXIua2VybmVs
-Lm9yZw0KPiA+IENjOiBkZXZAbWdhdXRpZXIuZnINCj4gPiBTdWJqZWN0OiBHaG9zdCBMaWQgc3dp
-dGNoIG9uIEJheXRyYWlsIHRhYmxldA0KPiA+DQo+ID4gSGV5LA0KPiA+DQo+ID4gVGhpcyB0YWJs
-ZXQ6DQo+ID4gaHR0cDovL3d3dy5hbWF6b24uY29tL1dpbkJvb2stMTAtMS1JbmNoLVdpbmRvd3Mt
-ZnVsbC1zaXplLURpc3BsYXkvZHAvQjAwTjlaRzVVMi8NCj4gPiBkb2Vzbid0IGhhdmUgYSBwaHlz
-aWNhbCBsaWQgc3dpdGNoIHVubGVzcyB5b3UgcGx1ZyB0aGUga2V5Ym9hcmQgYWNjZXNzb3J5IHRv
-IGl0Lg0KPiA+DQo+ID4gQnV0IGl0IHRoaW5rcyB0aGF0IHRoZXJlIGlzIGEgbGlkLCBhbmQgdGhh
-dCBpdCdzIGNsb3NlZCwgbWFraW5nIGxvZ2luZA0KPiA+IHN1c3BlbmQgdGhlIG1hY2hpbmUgYWZ0
-ZXIgYWJvdXQgMzAgc2Vjb25kcy4NCj4gPg0KPiA+IEknbSBjdXJyZW50bHkgdGVzdGluZyB0aGlz
-IG9uIGEgNC4wIGtlcm5lbCwgYXMgdGhlcmUgaGF2ZSBiZWVuDQo+ID4gcmVncmVzc2lvbnMgb24g
-QmF5dHJhaWwgd2l0aCA0LjEgYW5kIDQuMnJjcy4NCj4gPg0KPiA+IFRoZSBEU0RUIGZvciB0aGF0
-IHRhYmxldDoNCj4gPiBodHRwczovL3Blb3BsZS5nbm9tZS5vcmcvfmhhZGVzcy9XaW5ib29rJTIw
-VFcxMDAlMjBEU0RULmRzbA0KPiA+DQo+ID4gQW55IGlkZWFzIGhvdyB0byBoYW5kbGUgdGhpcyBz
-b3J0IG9mIGRldmljZT8NCj4gPg0KPiA+IENoZWVycw0K
+On 21-07-15, 00:12, Rafael J. Wysocki wrote:
+> On Saturday, July 18, 2015 03:13:41 AM Rafael J. Wysocki wrote:
+> > Hi,
+> > 
+> > The following two patches clean up a couple of things in the ACPI processor
+> > driver and the ACPI cpufreq driver:
+> > 
+> > [1/2] Drop the unused first argument of acpi_processor_unregister_performance().
+> > [2/2] Drop the now redundant acpi_data pointer from acpi_cpufreq_data.
+> 
+> New versios of the two above (as [2/3] and [3/3], respectively) plus one
+> more ACPI cpufreq driver cleanup (discussed on linux-pm previously).
+
+Acked-by: Viresh Kumar <viresh.kumar@linaro.org>
+
+-- 
+viresh
