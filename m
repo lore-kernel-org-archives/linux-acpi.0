@@ -1,81 +1,52 @@
 From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
-Subject: [PATCH V6 0/4] map GHES memory region according to EFI memory map
-Date: Mon, 20 Jul 2015 17:32:35 -0700
-Message-ID: <1437438759-3686-1-git-send-email-zjzhang@codeaurora.org>
+Subject: [PATCH V6 4/4] acpi, apei: use appropriate pgprot_t to map GHES memory
+Date: Mon, 20 Jul 2015 17:32:39 -0700
+Message-ID: <1437438759-3686-5-git-send-email-zjzhang@codeaurora.org>
+References: <1437438759-3686-1-git-send-email-zjzhang@codeaurora.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:42895 "EHLO
+Received: from smtp.codeaurora.org ([198.145.29.96]:42954 "EHLO
 	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757371AbbGUAcv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Jul 2015 20:32:51 -0400
+	with ESMTP id S932259AbbGUAdG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 20 Jul 2015 20:33:06 -0400
+In-Reply-To: <1437438759-3686-1-git-send-email-zjzhang@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matt Fleming <matt.fleming@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, tony.luck@gmail.com, fu.wei@linaro.org, al.stone@linaro.org, bp@alien8.de, rjw@rjwysocki.net, lenb@kernel.org, ying.huang@intel.com, catalin.marinas@arm.com, will.deacon@arm.com
-Cc: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, linux-efi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-msm@vger.kernel.org, linaro-acpi@lists.linaro.org, vgandhi@codeaurora.org
+To: Matt Fleming <matt.fleming@intel.com>, Thomas Gleixner <tglx@linutronix.de>, fu.wei@linaro.org, al.stone@linaro.org, bp@alien8.de, tony.luck@gmail.com, rjw@rjwysocki.net, lenb@kernel.org, ying.huang@intel.com, catalin.marinas@arm.com, will.deacon@arm.com
+Cc: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 
 From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
 
-On a platform with APEI (ACPI Platform Error Interface) enabled, firmware
-updates a memory region with hardware error record using nocache
-attribute. When OS reads the region, since it maps the region with
-cacahed attribute even though EFI memory map defines this region as
-uncached, OS gets stale data and errorneously reports there is no new
-HW error.
+With ACPI APEI firmware first handling, generic hardware error
+record is updated by firmware in GHES memory region. When firmware
+updated GHES memory region with uncached access attribute, Linux
+reads stale data from cache.
 
-When ghes driver maps the memory region, it uses the cache attribute
-according to EFI memory map, if EFI memory map feature is enabled
-at runtime.
+GHES memory region should be mapped with page protection type
+according to what is returned from arch_apei_get_mem_attribute(),
+instead of always with PAGE_KERNEL (eg. cached attribute).
 
-Since both arch/x86 and arch/ia64 implemented architecture agnostic EFI
-memory map attribue lookup function efi_memattributes(), the code is
-moved from arch/x86 into EFI subsystem and is declared as __weak; archs
-other than ia64 should not override the default implementation.
+Signed-off-by: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
+---
+ drivers/acpi/apei/ghes.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-V6:
-1. Implemented arch_apei_get_mem_attributes() for arm64 as inline
-   function.
-2. Rebased to efi-next-14364 of efi/next, pm+acpi-4.2-rc3 of
-   linux-pm/master, arm64-upstream-13521 of arm64/master,
-   next-20150720 of linux-next/master.
-V5:
-1. Rebased to next-20150713 of linux-next/master, efi-next-14359 of
-   efi/next, pm+acpi-4.2-rc2 of linux-pm/master,
-   arm64-fixes-1215 of arm64/master.
-2. Added comment for efi_mem_attributes(), explained why it is marked
-   as __weak at the function definition site.
-V4:
-1. Introduced arch_apei_get_mem_attributes() to allow arch specific
-   implementation of getting pgprot_t appropriate for a physical
-   address.
-2. Implemented arch_apei_get_mem_attributes() for x86 and for arm64.
-
-V3:
-1. Rebased to v4.1-rc7.
-2. Moved efi_mem_attributes() from arch/x86 to drivers/firmware/efi
-   and declared it as __weak.
-3. Introduced ARCH_APEI_PAGE_KERNEL_UC to allow arch specific page
-   protection type for UC.
-4. Removed efi_ioremap(). It can not be used for GHES memory region
-   mapping purpose since ioremap can not be used in atomic context.
-
-V2:
-1. Rebased to v4.1-rc5.
-2. Split removal of efi_mem_attributes() and creation of efi_ioremap()
-into two patches.
-
-Jonathan (Zhixiong) Zhang (4):
-  efi: x86: rearrange efi_mem_attributes()
-  x86: acpi: implement arch_apei_get_mem_attributes()
-  arm64: apei: implement arch_apei_get_mem_attributes()
-  acpi, apei: use appropriate pgprot_t to map GHES memory
-
- arch/arm64/include/asm/acpi.h | 15 +++++++++++++++
- arch/x86/kernel/acpi/apei.c   | 10 ++++++++++
- arch/x86/platform/efi/efi.c   | 18 ------------------
- drivers/acpi/apei/ghes.c      |  6 ++++--
- drivers/firmware/efi/efi.c    | 31 +++++++++++++++++++++++++++++++
- include/acpi/apei.h           |  1 +
- 6 files changed, 61 insertions(+), 20 deletions(-)
-
+diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+index b979b5dbe5bc..98609b404dae 100644
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -173,8 +173,10 @@ static void __iomem *ghes_ioremap_pfn_irq(u64 pfn)
+ 	unsigned long vaddr;
+ 
+ 	vaddr = (unsigned long)GHES_IOREMAP_IRQ_PAGE(ghes_ioremap_area->addr);
+-	ioremap_page_range(vaddr, vaddr + PAGE_SIZE,
+-			   pfn << PAGE_SHIFT, PAGE_KERNEL);
++	ioremap_page_range(vaddr,
++			   vaddr + PAGE_SIZE,
++			   pfn << PAGE_SHIFT,
++			   arch_apei_get_mem_attribute(pfn << PAGE_SHIFT));
+ 
+ 	return (void __iomem *)vaddr;
+ }
 -- 
 The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
 a Linux Foundation Collaborative Project
