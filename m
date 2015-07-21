@@ -1,93 +1,87 @@
-From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
-Subject: Re: [PATCH RFC] intel_pstate: play well with frequency limits set
- by acpi
-Date: Tue, 21 Jul 2015 11:53:42 -0700
-Message-ID: <1437504822.2377.181.camel@spandruv-DESK3.jf.intel.com>
-References: <20150716181706.6500.64386.stgit@buzz>
-	 <1437084536.2377.117.camel@spandruv-DESK3.jf.intel.com>
-	 <CALYGNiMOMWY2Ng9yLQ04Ghr6fKnO_6BRLCRE2b-rnvoPJmauqQ@mail.gmail.com>
-	 <1437426504.2377.162.camel@spandruv-DESK3.jf.intel.com>
-	 <55AE1DFC.3090209@yandex-team.ru>
-	 <1437493051.2377.170.camel@spandruv-DESK3.jf.intel.com>
-	 <55AE7557.5010605@yandex-team.ru>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
+Subject: [PATCH V7 0/5] map GHES memory region according to EFI memory map
+Date: Tue, 21 Jul 2015 14:59:15 -0700
+Message-ID: <1437515960-16812-1-git-send-email-zjzhang@codeaurora.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:44633 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933338AbbGUS4F (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 21 Jul 2015 14:56:05 -0400
-In-Reply-To: <55AE7557.5010605@yandex-team.ru>
+Received: from smtp.codeaurora.org ([198.145.29.96]:37170 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932148AbbGUV7Z (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Jul 2015 17:59:25 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-Cc: Konstantin Khlebnikov <koct9i@gmail.com>, linux-pm@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Kristen Carlson Accardi <kristen@linux.intel.com>, Len Brown <lenb@kernel.org>, Ethan Zhao <ethan.zhao@oracle.com>
+To: Matt Fleming <matt.fleming@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, tony.luck@gmail.com, fu.wei@linaro.org, al.stone@linaro.org, bp@alien8.de, rjw@rjwysocki.net, lenb@kernel.org, ying.huang@intel.com, catalin.marinas@arm.com, will.deacon@arm.com
+Cc: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, linux-efi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-msm@vger.kernel.org, linaro-acpi@lists.linaro.org, vgandhi@codeaurora.org
 
-On Tue, 2015-07-21 at 19:37 +0300, Konstantin Khlebnikov wrote:
-> On 21.07.2015 18:37, Srinivas Pandruvada wrote:
-> > On Tue, 2015-07-21 at 13:25 +0300, Konstantin Khlebnikov wrote:
-> >> On 21.07.2015 00:08, Srinivas Pandruvada wrote:
-> >>> On Fri, 2015-07-17 at 07:36 +0300, Konstantin Khlebnikov wrote:
-> >>>> On Fri, Jul 17, 2015 at 1:08 AM, Srinivas Pandruvada
-> >>>> <srinivas.pandruvada@linux.intel.com> wrote:
-> >>>>> On Thu, 2015-07-16 at 21:17 +0300, Konstantin Khlebnikov wrote:
-> >>>>>> IPMI can control CPU P-states remotely: configuration is reported via
-> >>>>>> common ACPI interface (_PPC/_PSS/etc). This patch adds required minimal
-> >>>>>> support in intel_pstate to receive and use these P-state limits.
-> >>>>>>
-> >>>>>> * ignore limit of top state in _PPC: it lower than turbo boost frequency
-> >>>>>> * register intel_pstate in acpi-processor to get states from _PSS
-> >>>>>> * link acpi_processor_get_bios_limit: this adds attribute "bios_limit"
-> >>>>>>
-> >>>>>> Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
-> >>>>>> ---
-> >>>>>>    drivers/acpi/processor_perflib.c |    3 +-
-> >>>>>>    drivers/cpufreq/intel_pstate.c   |   57 ++++++++++++++++++++++++++++++++++++++
-> >>>>>>    2 files changed, 59 insertions(+), 1 deletion(-)
-> >>>>>>
-> >>>>>> diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
-> >>>>>> index cfc8aba72f86..781e328c9d5f 100644
-> >>>>>> --- a/drivers/acpi/processor_perflib.c
-> >>>>>> +++ b/drivers/acpi/processor_perflib.c
-> >>>>>> @@ -98,7 +98,8 @@ static int acpi_processor_ppc_notifier(struct notifier_block *nb,
-> >>>>>>
-> >>>>>>         ppc = (unsigned int)pr->performance_platform_limit;
-> >>>>>>
-> >>>>>> -     if (ppc >= pr->performance->state_count)
-> >>>>>> +     /* Ignore limit of top state: it lower than turbo boost frequency */
-> >>>>>> +     if (!ppc || ppc >= pr->performance->state_count)
-> >>>>> Why? Isn't the previous check enough?
-> >>>>
-> >>>> Zero _PPC state must be top performance state but as I see frequency in
-> >>>> _PSS is lower than maximum possible turbo frequency. So, in this case
-> >>>> intel_pstate cannnot get "100%"  for max bound even it there is no limit set.
-> >>>>
-> >>>> For example: I saw _PSS[0] = 2601 Mhz, PSS[1] = 2600 Mhz while turbo
-> >>>> state is 3400 Mhz.
-> >>>>
-> >>> Have you tested dynamic _PPC modification with acpi cpufreq with this
-> >>> change (after boot)? Suppose _PPC is changed from 3 to 0, then
-> >>> cpufreq_verify_within_limits will not be called to change to new max
-> >>> turbo performance state.
-> >>>
-> >>
-> >> I haven't checked that but as I see acpi_processor_ppc_notifier()
-> >> can only reduce maximum frequency. So, there should be no problem
-> >> in this case.
-> > No, it can also be used in both ways. Once reduced, it can increase as
-> > well. _PPC can be dynamically modified by BIOS to reduce and also to
-> > increase.
-> 
-> Well, in this case BIOS will trigger ACPI_PROCESSOR_NOTIFY_PERFORMANCE:
-> kernel evaluate new _PPC and call cpufreq_update_policy()
-> which set initial frequency min/max range according to user setup and
-> apply all limits after that. Initial policy->user_policy.min/max stay
-> unchanged. So, that dynamic modification works in both ways.
-> 
-Fair enough. We need to take account for _PSS. We have some changes for
-this, but not gone through test cycle. I will post them as RFC, please
-check. Thanks for your patience.
+From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
 
-- Srinivas
+On a platform with APEI (ACPI Platform Error Interface) enabled, firmware
+updates a memory region with hardware error record using nocache
+attribute. When OS reads the region, since it maps the region with
+cacahed attribute even though EFI memory map defines this region as
+uncached, OS gets stale data and errorneously reports there is no new
+HW error.
+
+When ghes driver maps the memory region, it uses the cache attribute
+according to EFI memory map, if EFI memory map feature is enabled
+at runtime.
+
+Since both arch/x86 and arch/ia64 implemented architecture agnostic EFI
+memory map attribue lookup function efi_memattributes(), the code is
+moved from arch/x86 into EFI subsystem and is declared as __weak; archs
+other than ia64 should not override the default implementation. 
+
+V7:
+1. Added PROT_DEVICE_nGnRnE and PROT_NORMAL_WT to support all
+   possible UEFI memory types for arm64.
+V6:
+1. Implemented arch_apei_get_mem_attributes() for arm64 as inline
+   function.
+2. Rebased to efi-next-14364 of efi/next, pm+acpi-4.2-rc3 of
+   linux-pm/master, arm64-upstream-13521 of arm64/master,
+   next-20150720 of linux-next/master.
+V5:
+1. Rebased to next-20150713 of linux-next/master, efi-next-14359 of
+   efi/next, pm+acpi-4.2-rc2 of linux-pm/master,
+   arm64-fixes-1215 of arm64/master.
+2. Added comment for efi_mem_attributes(), explained why it is marked
+   as __weak at the function definition site.
+V4:
+1. Introduced arch_apei_get_mem_attributes() to allow arch specific
+   implementation of getting pgprot_t appropriate for a physical
+   address.
+2. Implemented arch_apei_get_mem_attributes() for x86 and for arm64.
+V3:
+1. Rebased to v4.1-rc7.
+2. Moved efi_mem_attributes() from arch/x86 to drivers/firmware/efi
+   and declared it as __weak.
+3. Introduced ARCH_APEI_PAGE_KERNEL_UC to allow arch specific page
+   protection type for UC.
+4. Removed efi_ioremap(). It can not be used for GHES memory region
+   mapping purpose since ioremap can not be used in atomic context.
+V2:
+1. Rebased to v4.1-rc5.
+2. Split removal of efi_mem_attributes() and creation of efi_ioremap()
+into two patches.
+
+Jonathan (Zhixiong) Zhang (5):
+  efi: x86: rearrange efi_mem_attributes()
+  x86: acpi: implement arch_apei_get_mem_attributes()
+  arm64: mm: add PROT_DEVICE_nGnRnE and PROT_NORMAL_WT
+  arm64: apei: implement arch_apei_get_mem_attributes()
+  acpi, apei: use appropriate pgprot_t to map GHES memory
+
+ arch/arm64/include/asm/acpi.h    | 26 ++++++++++++++++++++++++++
+ arch/arm64/include/asm/memory.h  |  1 +
+ arch/arm64/include/asm/pgtable.h |  2 ++
+ arch/arm64/mm/proc.S             |  6 ++++--
+ arch/x86/kernel/acpi/apei.c      | 10 ++++++++++
+ arch/x86/platform/efi/efi.c      | 18 ------------------
+ drivers/acpi/apei/ghes.c         |  6 ++++--
+ drivers/firmware/efi/efi.c       | 31 +++++++++++++++++++++++++++++++
+ include/acpi/apei.h              |  1 +
+ 9 files changed, 79 insertions(+), 22 deletions(-)
+
+-- 
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project
 
