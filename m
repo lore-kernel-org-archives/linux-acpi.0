@@ -1,131 +1,93 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH 4/5] acpi: gsi: Use acpi_gsi_descriptor to allocate
- interrupts
-Date: Tue, 21 Jul 2015 19:16:46 +0100
-Message-ID: <20150721181646.GC32187@red-moon>
-References: <1437473280-11431-1-git-send-email-marc.zyngier@arm.com>
- <1437473280-11431-5-git-send-email-marc.zyngier@arm.com>
+From: Srinivas Pandruvada <srinivas.pandruvada@linux.intel.com>
+Subject: Re: [PATCH RFC] intel_pstate: play well with frequency limits set
+ by acpi
+Date: Tue, 21 Jul 2015 11:53:42 -0700
+Message-ID: <1437504822.2377.181.camel@spandruv-DESK3.jf.intel.com>
+References: <20150716181706.6500.64386.stgit@buzz>
+	 <1437084536.2377.117.camel@spandruv-DESK3.jf.intel.com>
+	 <CALYGNiMOMWY2Ng9yLQ04Ghr6fKnO_6BRLCRE2b-rnvoPJmauqQ@mail.gmail.com>
+	 <1437426504.2377.162.camel@spandruv-DESK3.jf.intel.com>
+	 <55AE1DFC.3090209@yandex-team.ru>
+	 <1437493051.2377.170.camel@spandruv-DESK3.jf.intel.com>
+	 <55AE7557.5010605@yandex-team.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1437473280-11431-5-git-send-email-marc.zyngier@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:44633 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933338AbbGUS4F (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 21 Jul 2015 14:56:05 -0400
+In-Reply-To: <55AE7557.5010605@yandex-team.ru>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+Cc: Konstantin Khlebnikov <koct9i@gmail.com>, linux-pm@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Kristen Carlson Accardi <kristen@linux.intel.com>, Len Brown <lenb@kernel.org>, Ethan Zhao <ethan.zhao@oracle.com>
 
-On Tue, Jul 21, 2015 at 11:07:59AM +0100, Marc Zyngier wrote:
-> Now that the irqdomain layer is a bit more ACPI friendly, add the
-> mapping code that allows irq_create_acpi_mapping to be called.
+On Tue, 2015-07-21 at 19:37 +0300, Konstantin Khlebnikov wrote:
+> On 21.07.2015 18:37, Srinivas Pandruvada wrote:
+> > On Tue, 2015-07-21 at 13:25 +0300, Konstantin Khlebnikov wrote:
+> >> On 21.07.2015 00:08, Srinivas Pandruvada wrote:
+> >>> On Fri, 2015-07-17 at 07:36 +0300, Konstantin Khlebnikov wrote:
+> >>>> On Fri, Jul 17, 2015 at 1:08 AM, Srinivas Pandruvada
+> >>>> <srinivas.pandruvada@linux.intel.com> wrote:
+> >>>>> On Thu, 2015-07-16 at 21:17 +0300, Konstantin Khlebnikov wrote:
+> >>>>>> IPMI can control CPU P-states remotely: configuration is reported via
+> >>>>>> common ACPI interface (_PPC/_PSS/etc). This patch adds required minimal
+> >>>>>> support in intel_pstate to receive and use these P-state limits.
+> >>>>>>
+> >>>>>> * ignore limit of top state in _PPC: it lower than turbo boost frequency
+> >>>>>> * register intel_pstate in acpi-processor to get states from _PSS
+> >>>>>> * link acpi_processor_get_bios_limit: this adds attribute "bios_limit"
+> >>>>>>
+> >>>>>> Signed-off-by: Konstantin Khlebnikov <khlebnikov@yandex-team.ru>
+> >>>>>> ---
+> >>>>>>    drivers/acpi/processor_perflib.c |    3 +-
+> >>>>>>    drivers/cpufreq/intel_pstate.c   |   57 ++++++++++++++++++++++++++++++++++++++
+> >>>>>>    2 files changed, 59 insertions(+), 1 deletion(-)
+> >>>>>>
+> >>>>>> diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
+> >>>>>> index cfc8aba72f86..781e328c9d5f 100644
+> >>>>>> --- a/drivers/acpi/processor_perflib.c
+> >>>>>> +++ b/drivers/acpi/processor_perflib.c
+> >>>>>> @@ -98,7 +98,8 @@ static int acpi_processor_ppc_notifier(struct notifier_block *nb,
+> >>>>>>
+> >>>>>>         ppc = (unsigned int)pr->performance_platform_limit;
+> >>>>>>
+> >>>>>> -     if (ppc >= pr->performance->state_count)
+> >>>>>> +     /* Ignore limit of top state: it lower than turbo boost frequency */
+> >>>>>> +     if (!ppc || ppc >= pr->performance->state_count)
+> >>>>> Why? Isn't the previous check enough?
+> >>>>
+> >>>> Zero _PPC state must be top performance state but as I see frequency in
+> >>>> _PSS is lower than maximum possible turbo frequency. So, in this case
+> >>>> intel_pstate cannnot get "100%"  for max bound even it there is no limit set.
+> >>>>
+> >>>> For example: I saw _PSS[0] = 2601 Mhz, PSS[1] = 2600 Mhz while turbo
+> >>>> state is 3400 Mhz.
+> >>>>
+> >>> Have you tested dynamic _PPC modification with acpi cpufreq with this
+> >>> change (after boot)? Suppose _PPC is changed from 3 to 0, then
+> >>> cpufreq_verify_within_limits will not be called to change to new max
+> >>> turbo performance state.
+> >>>
+> >>
+> >> I haven't checked that but as I see acpi_processor_ppc_notifier()
+> >> can only reduce maximum frequency. So, there should be no problem
+> >> in this case.
+> > No, it can also be used in both ways. Once reduced, it can increase as
+> > well. _PPC can be dynamically modified by BIOS to reduce and also to
+> > increase.
 > 
-> As we only support the GIC so far, support is pretty limited.
+> Well, in this case BIOS will trigger ACPI_PROCESSOR_NOTIFY_PERFORMANCE:
+> kernel evaluate new _PPC and call cpufreq_update_policy()
+> which set initial frequency min/max range according to user setup and
+> apply all limits after that. Initial policy->user_policy.min/max stay
+> unchanged. So, that dynamic modification works in both ways.
 > 
-> Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
-> ---
->  drivers/acpi/gsi.c | 54 ++++++++++++++++++++++++++++++++++++------------------
->  1 file changed, 36 insertions(+), 18 deletions(-)
-> 
-> diff --git a/drivers/acpi/gsi.c b/drivers/acpi/gsi.c
-> index 38208f2..005d843 100644
-> --- a/drivers/acpi/gsi.c
-> +++ b/drivers/acpi/gsi.c
-> @@ -33,6 +33,12 @@ static unsigned int acpi_gsi_get_irq_type(int trigger, int polarity)
->  	}
->  }
->  
-> +static struct irq_domain *irq_find_acpi_domain(enum acpi_irq_model_id id,
-> +					       enum irq_domain_bus_token bus_token)
-> +{
-> +	return irq_find_matching_host((void *)id, bus_token);
-> +}
-> +
->  /**
->   * acpi_gsi_to_irq() - Retrieve the linux irq number for a given GSI
->   * @gsi: GSI IRQ number to map
-> @@ -45,12 +51,10 @@ static unsigned int acpi_gsi_get_irq_type(int trigger, int polarity)
->   */
->  int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
->  {
-> -	/*
-> -	 * Only default domain is supported at present, always find
-> -	 * the mapping corresponding to default domain by passing NULL
-> -	 * as irq_domain parameter
-> -	 */
-> -	*irq = irq_find_mapping(NULL, gsi);
-> +	struct irq_domain *d = irq_find_acpi_domain(acpi_irq_model,
-> +						    DOMAIN_BUS_ANY);
-> +
-> +	*irq = irq_find_mapping(d, gsi);
->  	/*
->  	 * *irq == 0 means no mapping, that should
->  	 * be reported as a failure
-> @@ -72,23 +76,35 @@ EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
->  int acpi_register_gsi(struct device *dev, u32 gsi, int trigger,
->  		      int polarity)
->  {
-> -	unsigned int irq;
-> +	struct acpi_gsi_descriptor data;
->  	unsigned int irq_type = acpi_gsi_get_irq_type(trigger, polarity);
-> +	struct irq_domain *d = irq_find_acpi_domain(acpi_irq_model,
-> +						    DOMAIN_BUS_ANY);
->  
->  	/*
-> -	 * There is no way at present to look-up the IRQ domain on ACPI,
-> -	 * hence always create mapping referring to the default domain
-> -	 * by passing NULL as irq_domain parameter
-> +	 * Populate the GSI descriptor in a way that matches the way
-> +	 * the driver expects its of_phandle_args.
->  	 */
-> -	irq = irq_create_mapping(NULL, gsi);
-> -	if (!irq)
-> +	switch (acpi_irq_model) {
-> +	case ACPI_IRQ_MODEL_GIC:
-> +		if (gsi >= 32) {
-> +			data.param[0] = 0;
-> +			data.param[1] = gsi - 32;
-> +			data.param[2] = irq_type;
-> +		} else {
-> +			data.param[0] = 1;
-> +			data.param[1] = gsi - 16;
-> +			data.param[2] = 0xff << 4 | irq_type;
-> +		}
-> +
-> +		data.param_count = 3;
-> +		break;
-> +	default:
-> +		pr_warn("Unknown acpi_irq_model = %d\n", acpi_irq_model);
->  		return -EINVAL;
-> +	}
+Fair enough. We need to take account for _PSS. We have some changes for
+this, but not gone through test cycle. I will post them as RFC, please
+check. Thanks for your patience.
 
-Nit: you could move the switch in a function (in this file) so that
-code that is irq model specific is self-contained and in a function
-on its own, if we ever have to add other irq models later I think it
-is easier to parse.
+- Srinivas
 
-Lorenzo
-
->  
-> -	/* Set irq type if specified and different than the current one */
-> -	if (irq_type != IRQ_TYPE_NONE &&
-> -		irq_type != irq_get_trigger_type(irq))
-> -		irq_set_irq_type(irq, irq_type);
-> -	return irq;
-> +	return irq_create_acpi_mapping(d, &data);
->  }
->  EXPORT_SYMBOL_GPL(acpi_register_gsi);
->  
-> @@ -98,7 +114,9 @@ EXPORT_SYMBOL_GPL(acpi_register_gsi);
->   */
->  void acpi_unregister_gsi(u32 gsi)
->  {
-> -	int irq = irq_find_mapping(NULL, gsi);
-> +	struct irq_domain *d = irq_find_acpi_domain(acpi_irq_model,
-> +						    DOMAIN_BUS_ANY);
-> +	int irq = irq_find_mapping(d, gsi);
->  
->  	irq_dispose_mapping(irq);
->  }
-> -- 
-> 2.1.4
-> 
