@@ -1,68 +1,69 @@
-From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
-Subject: [PATCH V6 2/4] x86: acpi: implement arch_apei_get_mem_attributes()
-Date: Mon, 20 Jul 2015 17:32:37 -0700
-Message-ID: <1437438759-3686-3-git-send-email-zjzhang@codeaurora.org>
-References: <1437438759-3686-1-git-send-email-zjzhang@codeaurora.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1437438759-3686-1-git-send-email-zjzhang@codeaurora.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Matt Fleming <matt.fleming@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, ying.huang@intel.com, fu.wei@linaro.org, al.stone@linaro.org, bp@alien8.de, rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com
-Cc: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, linux-efi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: Ghost Lid switch on Baytrail tablet
+Date: Tue, 21 Jul 2015 01:30:21 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E8802738695@SHSMSX101.ccr.corp.intel.com>
+References: <1437266568.3512.10.camel@hadess.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([134.134.136.65]:55870 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757239AbbGUBac (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 20 Jul 2015 21:30:32 -0400
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bastien Nocera <hadess@hadess.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: "dev@mgautier.fr" <dev@mgautier.fr>
 
-From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
-
-... to allow arch specific implementation of getting page
-protection type associated with a physical address.
-
-If the physical address has memory attributes defined by EFI
-memmap as EFI_MEMORY_UC, the page protection type is
-PAGE_KENERL_NOCACHE. Otherwise, the page protection type is
-PAGE_KERNEL.
-
-Signed-off-by: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
----
- arch/x86/kernel/acpi/apei.c | 10 ++++++++++
- include/acpi/apei.h         |  1 +
- 2 files changed, 11 insertions(+)
-
-diff --git a/arch/x86/kernel/acpi/apei.c b/arch/x86/kernel/acpi/apei.c
-index c280df6b2aa2..9c6b3c8d81e4 100644
---- a/arch/x86/kernel/acpi/apei.c
-+++ b/arch/x86/kernel/acpi/apei.c
-@@ -14,6 +14,8 @@
- 
- #include <acpi/apei.h>
- 
-+#include <linux/efi.h>
-+
- #include <asm/mce.h>
- #include <asm/tlbflush.h>
- 
-@@ -60,3 +62,11 @@ void arch_apei_flush_tlb_one(unsigned long addr)
- {
- 	__flush_tlb_one(addr);
- }
-+
-+pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr)
-+{
-+	if (efi_mem_attributes(addr) & EFI_MEMORY_UC)
-+		return PAGE_KERNEL_NOCACHE;
-+
-+	return PAGE_KERNEL;
-+}
-diff --git a/include/acpi/apei.h b/include/acpi/apei.h
-index 284801ac7042..64a12ce9880b 100644
---- a/include/acpi/apei.h
-+++ b/include/acpi/apei.h
-@@ -46,6 +46,7 @@ int erst_clear(u64 record_id);
- int arch_apei_enable_cmcff(struct acpi_hest_header *hest_hdr, void *data);
- void arch_apei_report_mem_error(int sev, struct cper_sec_mem_err *mem_err);
- void arch_apei_flush_tlb_one(unsigned long addr);
-+pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr);
- 
- #endif
- #endif
--- 
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project
+SGksDQoNCklmIHRoZSBpc3N1ZSBpcyBhbHJlYWR5IGlkZW50aWZpZWQgYW5kIGNvbmZpcm1lZDoN
+CkZvciBleGFtcGxlLCB5b3UndmUgY29uZmlybWVkIHRoZSBRUl9FQygweDE0KSBjYW4gb25seSBh
+cnJpdmUgd2hlbiB0aGUga2V5Ym9hcmQgYWNjZXNzb3J5IGlzIHBsdWdnZWQgaW4uDQpUaGVuIHBs
+ZWFzZSBpZ25vcmUgbXkgcHJldmlvdXMgcmVwbHkuDQpJIGRvbid0IGhhdmUgaWRlYSBhYm91dCBo
+YW5kbGluZyBhIExJRCB0aGF0IGFsd2F5cyByZXR1cm5zICJjbG9zZWQiIHdoZW4gdGhlIGtleWJv
+YXJkIGFjY2Vzc29yeSBpcyBub3QgcGx1Z2dlZCBpbi4NCg0KVGhhbmtzDQotTHYNCg0KPiBGcm9t
+OiBaaGVuZywgTHYNCj4gU2VudDogVHVlc2RheSwgSnVseSAyMSwgMjAxNSA4OjIzIEFNDQo+IA0K
+PiBIaSwNCj4gDQo+IFRoZSBfTElEIHJldHVybnMgTElEUzoNCj4gICAgICAgICBEZXZpY2UgKExJ
+RCkNCj4gICAgICAgICB7DQo+ICAgICAgICAgICAgIE5hbWUgKF9ISUQsIEVpc2FJZCAoIlBOUDBD
+MEQiKSAvKiBMaWQgRGV2aWNlICovKSAgLy8gX0hJRDogSGFyZHdhcmUgSUQNCj4gICAgICAgICAg
+ICAgTmFtZSAoTElEUywgWmVybykNCj4gICAgICAgICAgICAgTWV0aG9kIChfTElELCAwLCBOb3RT
+ZXJpYWxpemVkKSAgLy8gX0xJRDogTGlkIFN0YXR1cw0KPiAgICAgICAgICAgICB7DQo+ICAgICAg
+ICAgICAgICAgICBSZXR1cm4gKExJRFMpIC8qIFxfU0JfLkxJRF8uTElEUyAqLw0KPiAgICAgICAg
+ICAgICB9DQo+ICAgICAgICAgfQ0KPiBBbGwgTElEUyByZWxhdGVkIGNvZGUgY2FuIGJlIGZvdW5k
+Og0KPiAJTGluZSAxMzI6ICAgICAgICAgTElEUywgICA4LA0KPiAJTGluZSA1NDAwOiAgICAgICAg
+ICAgICAgICAgICAgICAgICBQQVJNIHw9IChMSURTIDw8IDB4MTApDQo+IAlMaW5lIDU1NjY6ICAg
+ICAgICAgICAgICAgICAgICAgICAgIFBBUk0gPSAoTElEUyA8PCAweDA4KQ0KPiAJTGluZSAxMTc5
+MjogICAgICAgICAgICAgXl5MSUQuTElEUyA9IFplcm8NCj4gKglMaW5lIDExODAyOiAgICAgICAg
+ICAgICBeXkxJRC5MSURTID0gT25lDQo+IAlMaW5lIDExOTA2OiAgICAgICAgICAgICBOYW1lIChM
+SURTLCBaZXJvKQ0KPiAJTGluZSAxMTkwOTogICAgICAgICAgICAgICAgIFJldHVybiAoTElEUykg
+LyogXF9TQl8uTElEXy5MSURTICovDQo+IFRoZSB2YWx1ZSBpcyBvbmx5IHNldCBieSBRMTQgKG1h
+cmtlZCBieSAqIGFib3ZlKToNCj4gICAgICAgICBNZXRob2QgKFExNCwgMCwgTm90U2VyaWFsaXpl
+ZCkNCj4gICAgICAgICB7DQo+ICAgICAgICAgICAgIFA4WEggKE9uZSwgMHhCQikNCj4gICAgICAg
+ICAgICAgUDhYSCAoWmVybywgMHgxNCkNCj4gICAgICAgICAgICAgXl5MSUQuTElEUyA9IE9uZQ0K
+PiAgICAgICAgICAgICBOb3RpZnkgKExJRCwgMHg4MCkgLy8gU3RhdHVzIENoYW5nZQ0KPiAgICAg
+ICAgICAgICBQOFhIIChPbmUsIDB4QkIpDQo+ICAgICAgICAgICAgIFA4WEggKFplcm8sIDB4QTQp
+DQo+ICAgICAgICAgfQ0KPiBJZiBRUl9FQygweDE0KSBjYW5ub3QgYXJyaXZlIHRvIHRoZSBPU1BN
+cyBhcyBlYXJseSBhcyBwb3NzaWJsZSwgdGhlbiB0aGUgZGVmYXVsdCBMSURTPTAgdmFsdWUgbWF5
+IGNhdXNlIHByb2JsZW0uDQo+IFdlIG5lZWQgRUMgZGVidWcgbG9nIHRvIHRyYWNrIGlmIFFSX0VD
+KDB4MTQpIGNhbiBhcnJpdmUgZWFybGllci4NCj4gDQo+IFlvdSBjYW4gdW5jb21tZW50IHRoZSBm
+b2xsb3dpbmcgbGluZSBmcm9tIGRyaXZlcnMvYWNwaS9lYy5jIGFuZCByZWJ1aWxkIHRoZSBrZXJu
+ZWw6DQo+IC8qICNkZWZpbmUgREVCVUcgKi8NCj4gDQo+IFNlbmQgdGhlIGRtZXNnIG91dHB1dCAo
+YmVmb3JlIHN1c3BlbmRpbmcpIHRvIHVzLg0KPiANCj4gVGhhbmtzIGFuZCBiZXN0IHJlZ2FyZHMN
+Cj4gLUx2DQo+IA0KPiA+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+ID4gRnJvbTogQmFz
+dGllbiBOb2NlcmEgW21haWx0bzpoYWRlc3NAaGFkZXNzLm5ldF0NCj4gPiBTZW50OiBTdW5kYXks
+IEp1bHkgMTksIDIwMTUgODo0MyBBTQ0KPiA+IFRvOiBSYWZhZWwgSi4gV3lzb2NraTsgTGVuIEJy
+b3duOyBsaW51eC1hY3BpQHZnZXIua2VybmVsLm9yZzsgbGludXgta2VybmVsQHZnZXIua2VybmVs
+Lm9yZw0KPiA+IENjOiBkZXZAbWdhdXRpZXIuZnINCj4gPiBTdWJqZWN0OiBHaG9zdCBMaWQgc3dp
+dGNoIG9uIEJheXRyYWlsIHRhYmxldA0KPiA+DQo+ID4gSGV5LA0KPiA+DQo+ID4gVGhpcyB0YWJs
+ZXQ6DQo+ID4gaHR0cDovL3d3dy5hbWF6b24uY29tL1dpbkJvb2stMTAtMS1JbmNoLVdpbmRvd3Mt
+ZnVsbC1zaXplLURpc3BsYXkvZHAvQjAwTjlaRzVVMi8NCj4gPiBkb2Vzbid0IGhhdmUgYSBwaHlz
+aWNhbCBsaWQgc3dpdGNoIHVubGVzcyB5b3UgcGx1ZyB0aGUga2V5Ym9hcmQgYWNjZXNzb3J5IHRv
+IGl0Lg0KPiA+DQo+ID4gQnV0IGl0IHRoaW5rcyB0aGF0IHRoZXJlIGlzIGEgbGlkLCBhbmQgdGhh
+dCBpdCdzIGNsb3NlZCwgbWFraW5nIGxvZ2luZA0KPiA+IHN1c3BlbmQgdGhlIG1hY2hpbmUgYWZ0
+ZXIgYWJvdXQgMzAgc2Vjb25kcy4NCj4gPg0KPiA+IEknbSBjdXJyZW50bHkgdGVzdGluZyB0aGlz
+IG9uIGEgNC4wIGtlcm5lbCwgYXMgdGhlcmUgaGF2ZSBiZWVuDQo+ID4gcmVncmVzc2lvbnMgb24g
+QmF5dHJhaWwgd2l0aCA0LjEgYW5kIDQuMnJjcy4NCj4gPg0KPiA+IFRoZSBEU0RUIGZvciB0aGF0
+IHRhYmxldDoNCj4gPiBodHRwczovL3Blb3BsZS5nbm9tZS5vcmcvfmhhZGVzcy9XaW5ib29rJTIw
+VFcxMDAlMjBEU0RULmRzbA0KPiA+DQo+ID4gQW55IGlkZWFzIGhvdyB0byBoYW5kbGUgdGhpcyBz
+b3J0IG9mIGRldmljZT8NCj4gPg0KPiA+IENoZWVycw0K
