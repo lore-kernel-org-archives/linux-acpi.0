@@ -1,61 +1,91 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v7 8/8] PCC: Enable PCC only when needed
-Date: Tue, 21 Jul 2015 10:23:07 +0100
-Message-ID: <55AE0F7B.8010804@arm.com>
-References: <cover.1436464513.git.ashwin.chaugule@linaro.org> <f88f374b4e09f23d5601a2081d1d3d9322e3caf5.1436464513.git.ashwin.chaugule@linaro.org> <55AD042D.9040204@arm.com> <4609299.WWrJ4WHTsa@vostro.rjw.lan>
+From: Sylvain Munaut <246tnt@gmail.com>
+Subject: Discrete Nvidia GPU shutdown with recent kernel / BIOS (on T440s
+ laptop) - Should be automatic with runtime pm now ?
+Date: Tue, 21 Jul 2015 11:57:38 +0200
+Message-ID: <CAHL+j0-Nf4rgCrUHbtZ0d2bpW3hX57Mz5jUwhckv8endScA29g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:58758 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752485AbbGUJXL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 21 Jul 2015 05:23:11 -0400
-In-Reply-To: <4609299.WWrJ4WHTsa@vostro.rjw.lan>
+Received: from mail-la0-f47.google.com ([209.85.215.47]:36056 "EHLO
+	mail-la0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754384AbbGUJ5k (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Jul 2015 05:57:40 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, "jaswinder.singh@linaro.org" <jaswinder.singh@linaro.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "patches@linaro.org" <patches@linaro.org>, "viresh.kumar@linaro.org" <viresh.kumar@linaro.org>
+To: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
+
+Hi,
 
 
+tl;dr : Should device allowed to do runtime pm that have no driver go
+to D3 on their own ?  And should pci root bridge go to D3 when all the
+device on them are on D3 ?
 
-On 20/07/15 23:04, Rafael J. Wysocki wrote:
-> On Monday, July 20, 2015 03:22:37 PM Sudeep Holla wrote:
->>
->> On 09/07/15 19:04, Ashwin Chaugule wrote:
->>> CPPC is the first client to make use of the PCC Mailbox channel. So
->>> enable it only when CPPC is also enabled.
->>>
->> This sounds like a reverse dependency to me. So if there's some client
->> unrelated to CPPC using PCC, CPPC_LIB needs to be selected to enable PCC ?
->
-> No.  The other client will need to select PCC too.
 
-Yes the PCC users/clients selecting PCC is fine and that's already
-done(i.e. ACPI_CPPC_LIB selects PCC). I still don't understand the need
-for this change, also how will other clients possibly select PCC which
-now depends on CPPC_LIB ? e.g. if we have
+The whole story:
 
-config ACPI_XYZ_LIB
-	select PCC
+Modern kernel ( > 3.15 ) report "Windows 2013" as an OSI string, even
+newer ones report "Windows 2015" as well. This triggers some changes
+in the ACPI code of the T440s laptop (and in others as well, but this
+is the one I'm using as reference here).
 
-config ACPI_XYZ
-	select ACPI_XYZ_LIB
+This changes breaks the method used by Bumbblebee's bbswitch module
+and by the nouveau driver to shutdown the card (to save power). No
+error is reported, and some power is saved, but not as much as
+previously (hence users might not notice at all).
 
-Won't this shout warning: (ACPI_XYZ_LIB && ACPI_CPPC_LIB) selects PCC
-which has unmet direct dependencies (MAILBOX && ACPI && ACPI_CPPC_LIB)
-if ACPI_CPPC_LIB is not selected ?
+The usual "solution" given to users is to use acpi_osi="!Windows 2013"
+ (and now they'll have to add acpi_osi="!Windows 2015" as well), but I
+was interested to find out exactly what was causing that behavior and
+whathttps://bugs.freedesktop.org/attachment.cgi?id=117267 new method
+Win 8.1 and Win 10 were using to shutdown the card.
 
-OK, for now we enable ACPI_CPPC_LIB on ARM64 and not on x86. When x86
-has a PCC client how will that select PCC without ACPI_CPPC_LIB. Sorry
-if I am missing to understand something.
+The DSDT of the T440s running the latest 2.33 bios can be found here :
+https://bugs.freedesktop.org/attachment.cgi?id=117267
 
->
-> I requested that change, because I'm slightly bothered by the fact that we
-> build code used by no one by default.
->
+The current method used to shutdown the card relies on two actions :
+ - Making a _DSM call to the video acpi node, this will prepare the
+shutdown and instructs ACPI to do the actual power down on the next
+device state transition to D3. This is just preparaton and just sets
+some variable but doesn't actually do the power off.
+ - Actually make the device go to D3 with pci_set_power_state. This
+then executes the _PS3 method in ACPI and if the proper variable have
+been set by the DSM above, this will call the GPOF method which will
+turn off power.
 
-I understand, but will keeping them default off should suffice ? No ?
+I looked at what changed when "Windows 2013" was present vs "Windows
+2012". And here's what's triggered :
+ - OSYS is set to 0x07DD.
+ - This in turn cause VMSH to be set to 1.
+ - This in turn causes _SB_.PCI0.PEG_.VID_.PS3 to _NOT call GPOF when
+the device is set to D3.
+ - and so the card is never really turned off completely
 
-Regards,
-Sudeep
+Now I looked at what other path could be taken to reach the GPOF method.
+And if you look at the table you can see that it can be called as part
+of the NVP3 power resource which is PR3 ... but on the node
+_SB.PCI0.PEG_ and not _SB.PCI0.PEG_.VID_ !
+
+So the GPU gets turned off when the PCIe bridge/port it's connected to
+gets transitionned to D3hot. I did confirm this by manually patching
+bbswitch to put the pci_upstream_bridge(...) of the device to D3hot
+after putting the card itself in D3cold. Power saving measured matches
+what's expected, but I have no idea if it's the "right" thing to do.
+
+The DSM call doesn't seem to be required now, so everything is done
+with pure PM state which I guess is good.
+
+What I expected is that now that everything is purely PM, then linux
+should be able to do all of this automatically without the need for
+bbswitch at all.
+If no driver is loaded for the card (so obviously no users), then
+doing an "echo auto > .../power/control" on both the card node and the
+bridge port node it's attached to should allow runtime PM. And shince
+they're unused, everything should go to D3 on its own.
+
+But that doesn't seem to happen ? Are my expectations wrong ?
+
+
+Cheers,
+
+    Sylvain
