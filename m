@@ -1,113 +1,140 @@
-From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: [PATCH v5 7/8] dmaengine: add a driver for Intel integrated DMA
- 64-bit
-Date: Tue, 21 Jul 2015 10:20:55 +0530
-Message-ID: <20150721045055.GG23525@localhost>
-References: <1436185334-34275-1-git-send-email-andriy.shevchenko@linux.intel.com>
- <1436185334-34275-8-git-send-email-andriy.shevchenko@linux.intel.com>
- <20150717043803.GE5086@localhost>
- <CAHp75VcMej=a0pLT61hbnHmTvY7Mn_aBrrk0Rq0nYbU7e_C67A@mail.gmail.com>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: Ghost Lid switch on Baytrail tablet
+Date: Tue, 21 Jul 2015 13:55:37 +0800
+Message-ID: <55ADDED9.8060901@intel.com>
+References: <1437266568.3512.10.camel@hadess.net>
+ <1AE640813FDE7649BE1B193DEA596E8802738695@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAHp75VcMej=a0pLT61hbnHmTvY7Mn_aBrrk0Rq0nYbU7e_C67A@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Lee Jones <lee.jones@linaro.org>, Andrew Morton <akpm@linux-foundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, dmaengine <dmaengine@vger.kernel.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, mturquette@baylibre.com
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([134.134.136.65]:60088 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751211AbbGUFy3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 21 Jul 2015 01:54:29 -0400
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E8802738695@SHSMSX101.ccr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>, Bastien Nocera <hadess@hadess.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Cc: "dev@mgautier.fr" <dev@mgautier.fr>
 
-On Mon, Jul 20, 2015 at 11:46:28AM +0300, Andy Shevchenko wrote:
-> >> +static void idma64_chan_init(struct idma64 *idma64, struct idma64_chan *idma64c)
-> >> +{
-> >> +     u32 cfghi = IDMA64C_CFGH_SRC_PER(1) | IDMA64C_CFGH_DST_PER(0);
-> >> +     u32 cfglo = 0;
-> >> +
-> >> +     /* Enforce FIFO drain when channel is suspended */
-> >> +     cfglo |= IDMA64C_CFGL_CH_DRAIN;
-> >> +
-> >> +     /* Set default burst alignment */
-> >> +     cfglo |= IDMA64C_CFGL_DST_BURST_ALIGN | IDMA64C_CFGL_SRC_BURST_ALIGN;
-> >> +
-> >> +     channel_writel(idma64c, CFG_LO, cfglo);
-> >> +     channel_writel(idma64c, CFG_HI, cfghi);
-> >> +
-> >> +     /* Enable interrupts */
-> >> +     channel_set_bit(idma64, MASK(XFER), idma64c->mask);
-> >> +     channel_set_bit(idma64, MASK(ERROR), idma64c->mask);
-> >> +
-> >> +     /*
-> >> +      * Enforce the controller to be turned on.
-> >> +      *
-> >> +      * The iDMA is turned off in ->probe() and looses context during system
-> >> +      * suspend / resume cycle. That's why we have to enable it each time we
-> >> +      * use it.
-> >> +      */
-> >> +     idma64_on(idma64);
-> > would it be better that you do this in resume and runtime_resume cycle. That
-> > way it need not be called for every channel init
-> 
-> Mika, I don't remember details here, but this piece came from you. Can
-> you shed a light?
-> 
-> My understanding that DMA IP is private to the host controller and has
-> the same power rail. Thus, there is no need to do separate power
-> management for it, which makes things more complicated for no profit.
-> It is also needed for time period from probe till first transfer
-> (otherwise we have to check the status of DMA anyway and enable it if
-> required), which currently remains DMA off.
-so who does runtime management of this power rail and whosoever does that
-how do they ensure the dma is not active at that time?
+On 07/21/2015 09:30 AM, Zheng, Lv wrote:
+> Hi,
+>=20
+> If the issue is already identified and confirmed:
+> For example, you've confirmed the QR_EC(0x14) can only arrive when th=
+e keyboard accessory is plugged in.
+> Then please ignore my previous reply.
+> I don't have idea about handling a LID that always returns "closed" w=
+hen the keyboard accessory is not plugged in.
 
-> 
-> >
-> >> +static size_t idma64_desc_size(struct idma64_desc *desc, unsigned int active)
-> >> +{
-> >> +     size_t bytes = 0;
-> >> +     unsigned int i;
-> >> +
-> >> +     for (i = active; i < desc->ndesc; i++)
-> >> +             bytes += desc->hw[i].len;
-> > it can help for the non active case to have this size stored in desc while
-> > preparing, that gets rid of runtime calculation for that case
-> 
-> I don't see much improvement, since it's a rare cases, but waste of
-> memory. If you consider that should be done I can implement it.
-The users of timing information will invoke this in non sleeping context so
-it will help in using one more variable, maybe a good trade off. Also if
-this is a rare case do you have use of this calculation and code?
+Perhaps the LID status should be ignored when the device is in tablet
+mode?
 
-> >> +static int idma64_terminate_all(struct dma_chan *chan)
-> >> +{
-> >> +     struct idma64_chan *idma64c = to_idma64_chan(chan);
-> >> +     unsigned long flags;
-> >> +     LIST_HEAD(head);
-> >> +
-> >> +     spin_lock_irqsave(&idma64c->vchan.lock, flags);
-> >> +     idma64_stop_transfer(idma64c);
-> > I dont think this is the right method for terminate. Can you check, it
-> > might be that we have to suspend the channel before terminating an active
-> > one. For non active case this should be okay
-> 
-> Do you mean hardware can become into wrong state?
-Yes at least that was true for 32bit version of this IP
+In the meantime, I took a look at two tablets here: ASUS T100 and Onda
+V975W, both are baytrail-T tablet while the T100 has a keyboard dock.
+=46or T100, its _LID return the value of GPO2.LIDZ, which has an initia=
+l
+value of 1: "Name(LIDZ, One)" and on LID events, LIDZ will be assigned
+proper value; and for Onda V975W, it doesn't define the LID acpi device=
+=2E
+So these two devices don't have this problem.
 
-> Only what can actually happen is the data loss which is in DMA FIFO,
-> but we already know we would like to terminate the transfer we don't
-> care about any data loss since that.
-The terminate flow expect you to suspend the channel first and then terminate
+-Aaron
 
-> >> +static const struct dev_pm_ops idma64_dev_pm_ops = {
-> >> +     SET_LATE_SYSTEM_SLEEP_PM_OPS(idma64_suspend_late, idma64_resume_early)
-> > any reason why late ops?
-> 
-> We already discussed this several times. There is no dependency
-> between DMA and its users during PM cycles. We have to be sure that
-> device (host controller) is quiescent before we stop DMA.
-And the realities change! you should be looking at deferred probing for this
-rather than using late ops. Clients should be suspended first which means
-they should be probed last and in the probe ensure all the resources (dma)
-are available if not defer the probe.
+>=20
+> Thanks
+> -Lv
+>=20
+>> From: Zheng, Lv
+>> Sent: Tuesday, July 21, 2015 8:23 AM
+>>
+>> Hi,
+>>
+>> The _LID returns LIDS:
+>>         Device (LID)
+>>         {
+>>             Name (_HID, EisaId ("PNP0C0D") /* Lid Device */)  // _HI=
+D: Hardware ID
+>>             Name (LIDS, Zero)
+>>             Method (_LID, 0, NotSerialized)  // _LID: Lid Status
+>>             {
+>>                 Return (LIDS) /* \_SB_.LID_.LIDS */
+>>             }
+>>         }
+>> All LIDS related code can be found:
+>> 	Line 132:         LIDS,   8,
+>> 	Line 5400:                         PARM |=3D (LIDS << 0x10)
+>> 	Line 5566:                         PARM =3D (LIDS << 0x08)
+>> 	Line 11792:             ^^LID.LIDS =3D Zero
+>> *	Line 11802:             ^^LID.LIDS =3D One
+>> 	Line 11906:             Name (LIDS, Zero)
+>> 	Line 11909:                 Return (LIDS) /* \_SB_.LID_.LIDS */
+>> The value is only set by Q14 (marked by * above):
+>>         Method (Q14, 0, NotSerialized)
+>>         {
+>>             P8XH (One, 0xBB)
+>>             P8XH (Zero, 0x14)
+>>             ^^LID.LIDS =3D One
+>>             Notify (LID, 0x80) // Status Change
+>>             P8XH (One, 0xBB)
+>>             P8XH (Zero, 0xA4)
+>>         }
+>> If QR_EC(0x14) cannot arrive to the OSPMs as early as possible, then=
+ the default LIDS=3D0 value may cause problem.
+>> We need EC debug log to track if QR_EC(0x14) can arrive earlier.
+>>
+>> You can uncomment the following line from drivers/acpi/ec.c and rebu=
+ild the kernel:
+>> /* #define DEBUG */
+>>
+>> Send the dmesg output (before suspending) to us.
+>>
+>> Thanks and best regards
+>> -Lv
+>>
+>>> -----Original Message-----
+>>> From: Bastien Nocera [mailto:hadess@hadess.net]
+>>> Sent: Sunday, July 19, 2015 8:43 AM
+>>> To: Rafael J. Wysocki; Len Brown; linux-acpi@vger.kernel.org; linux=
+-kernel@vger.kernel.org
+>>> Cc: dev@mgautier.fr
+>>> Subject: Ghost Lid switch on Baytrail tablet
+>>>
+>>> Hey,
+>>>
+>>> This tablet:
+>>> http://www.amazon.com/WinBook-10-1-Inch-Windows-full-size-Display/d=
+p/B00N9ZG5U2/
+>>> doesn't have a physical lid switch unless you plug the keyboard acc=
+essory to it.
+>>>
+>>> But it thinks that there is a lid, and that it's closed, making log=
+ind
+>>> suspend the machine after about 30 seconds.
+>>>
+>>> I'm currently testing this on a 4.0 kernel, as there have been
+>>> regressions on Baytrail with 4.1 and 4.2rcs.
+>>>
+>>> The DSDT for that tablet:
+>>> https://people.gnome.org/~hadess/Winbook%20TW100%20DSDT.dsl
+>>>
+>>> Any ideas how to handle this sort of device?
+>>>
+>>> Cheers
+> N=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BDr=EF=BF=BD=EF=BF=BDy=EF=
+=BF=BD=EF=BF=BD=EF=BF=BDb=EF=BF=BDX=EF=BF=BD=EF=BF=BD=C7=A7v=EF=BF=BD^=EF=
+=BF=BD)=DE=BA{.n=EF=BF=BD+=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD{=EF=BF=BD=
+i=EF=BF=BDb=EF=BF=BD{ay=EF=BF=BD=1D=CA=87=DA=99=EF=BF=BD,j=07=EF=BF=BD=EF=
+=BF=BDf=EF=BF=BD=EF=BF=BD=EF=BF=BDh=EF=BF=BD=EF=BF=BD=EF=BF=BDz=EF=BF=BD=
+=1E=EF=BF=BDw=EF=BF=BD=EF=BF=BD=EF=BF=BD=0C=EF=BF=BD=EF=BF=BD=EF=BF=BDj=
+:+v=EF=BF=BD=EF=BF=BD=EF=BF=BDw=EF=BF=BDj=EF=BF=BDm=EF=BF=BD=EF=BF=BD=EF=
+=BF=BD=EF=BF=BD=07=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BDzZ+=EF=BF=BD=EF=BF=
+=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD=DD=A2j"=EF=BF=BD=EF=BF=BD!=EF=BF=BDi
+>=20
 
--- 
-~Vinod
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
