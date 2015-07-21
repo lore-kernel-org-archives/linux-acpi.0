@@ -1,17 +1,17 @@
 From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v7 5/8] CPPC: Add a CPUFreq driver for use with CPPC
-Date: Tue, 21 Jul 2015 09:52:14 +0100
-Message-ID: <55AE083E.80303@arm.com>
-References: <cover.1436464513.git.ashwin.chaugule@linaro.org> <e8464849d98e4a4f64e9b23501d84b1f843aa994.1436464513.git.ashwin.chaugule@linaro.org> <55AD0411.4000603@arm.com> <3774934.MfIr66XDWO@vostro.rjw.lan>
+Subject: Re: [PATCH v7 8/8] PCC: Enable PCC only when needed
+Date: Tue, 21 Jul 2015 10:23:07 +0100
+Message-ID: <55AE0F7B.8010804@arm.com>
+References: <cover.1436464513.git.ashwin.chaugule@linaro.org> <f88f374b4e09f23d5601a2081d1d3d9322e3caf5.1436464513.git.ashwin.chaugule@linaro.org> <55AD042D.9040204@arm.com> <4609299.WWrJ4WHTsa@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:58674 "EHLO foss.arm.com"
+Received: from foss.arm.com ([217.140.101.70]:58758 "EHLO foss.arm.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752485AbbGUIwS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 21 Jul 2015 04:52:18 -0400
-In-Reply-To: <3774934.MfIr66XDWO@vostro.rjw.lan>
+	id S1752485AbbGUJXL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 21 Jul 2015 05:23:11 -0400
+In-Reply-To: <4609299.WWrJ4WHTsa@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
@@ -19,55 +19,43 @@ Cc: Sudeep Holla <sudeep.holla@arm.com>, Ashwin Chaugule <ashwin.chaugule@linaro
 
 
 
-On 20/07/15 23:07, Rafael J. Wysocki wrote:
-> On Monday, July 20, 2015 03:22:09 PM Sudeep Holla wrote:
+On 20/07/15 23:04, Rafael J. Wysocki wrote:
+> On Monday, July 20, 2015 03:22:37 PM Sudeep Holla wrote:
 >>
 >> On 09/07/15 19:04, Ashwin Chaugule wrote:
->>> This driver utilizes the methods introduced in the previous
->>> patch - "ACPI: Introduce CPU performance controls using CPPC"
->>> and enables usage with existing CPUFreq governors.
+>>> CPPC is the first client to make use of the PCC Mailbox channel. So
+>>> enable it only when CPPC is also enabled.
 >>>
->>> Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
->>> Reviewed-by: Al Stone <al.stone@linaro.org>
->>> ---
->>>    drivers/cpufreq/Kconfig.arm    |  16 ++++
->>>    drivers/cpufreq/Makefile       |   2 +
->>>    drivers/cpufreq/cppc_cpufreq.c | 197 +++++++++++++++++++++++++++++++++++++++++
->>>    3 files changed, 215 insertions(+)
->>>    create mode 100644 drivers/cpufreq/cppc_cpufreq.c
->>>
->>> diff --git a/drivers/cpufreq/Kconfig.arm b/drivers/cpufreq/Kconfig.arm
->>> index 4f3dbc8..578384d 100644
->>> --- a/drivers/cpufreq/Kconfig.arm
->>> +++ b/drivers/cpufreq/Kconfig.arm
->>> @@ -272,3 +272,19 @@ config ARM_PXA2xx_CPUFREQ
->>>    	  This add the CPUFreq driver support for Intel PXA2xx SOCs.
->>>
->>>    	  If in doubt, say N.
->>> +
->>> +config ACPI_CPPC_CPUFREQ
->>> +	tristate "CPUFreq driver based on the ACPI CPPC spec"
->>> +	depends on ACPI_CPPC_LIB
->>> +	default n
->>> +	help
->>> +	  This adds a CPUFreq driver which uses CPPC methods
->>> +	  as described in the ACPIv5.1 spec. CPPC stands for
->>> +	  Collaborative Processor Performance Controls. It
->>> +	  is based on an abstract continuous scale of CPU
->>> +	  performance values which allows the remote power
->>> +	  processor to flexibly optimize for power and
->>> +	  performance. CPPC relies on power management firmware
->>> +	  for its operation.
->>
->> Why is this ARM specific ? It might be used only on ARM but doesn't mean
->> it should be visible only on ARM ACPI systems.
+>> This sounds like a reverse dependency to me. So if there's some client
+>> unrelated to CPPC using PCC, CPPC_LIB needs to be selected to enable PCC ?
 >
-> Why bother people with considering Kconfig options that are useless to them?
+> No.  The other client will need to select PCC too.
+
+Yes the PCC users/clients selecting PCC is fine and that's already
+done(i.e. ACPI_CPPC_LIB selects PCC). I still don't understand the need
+for this change, also how will other clients possibly select PCC which
+now depends on CPPC_LIB ? e.g. if we have
+
+config ACPI_XYZ_LIB
+	select PCC
+
+config ACPI_XYZ
+	select ACPI_XYZ_LIB
+
+Won't this shout warning: (ACPI_XYZ_LIB && ACPI_CPPC_LIB) selects PCC
+which has unmet direct dependencies (MAILBOX && ACPI && ACPI_CPPC_LIB)
+if ACPI_CPPC_LIB is not selected ?
+
+OK, for now we enable ACPI_CPPC_LIB on ARM64 and not on x86. When x86
+has a PCC client how will that select PCC without ACPI_CPPC_LIB. Sorry
+if I am missing to understand something.
+
+>
+> I requested that change, because I'm slightly bothered by the fact that we
+> build code used by no one by default.
 >
 
-I agree to some extent, but main worry is that we are then making these
-features architecture specific while ACPI is supposed to be architecture
-agnostic. I was just trying to avoid doing so.
+I understand, but will keeping them default off should suffice ? No ?
 
 Regards,
 Sudeep
