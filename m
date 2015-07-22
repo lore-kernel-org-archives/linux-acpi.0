@@ -1,164 +1,72 @@
-From: Borislav Petkov <bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org>
-Subject: Re: [PATCH 1/2] efi: parse vendor proprietary CPER section
-Date: Wed, 22 Jul 2015 09:30:21 +0200
-Message-ID: <20150722073021.GB7979@nazgul.tnic>
-References: <1437521807-27571-1-git-send-email-zjzhang@codeaurora.org>
- <1437521807-27571-2-git-send-email-zjzhang@codeaurora.org>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH 1/5] genirq: irqdomain: Use an accessor for the of_node
+ field
+Date: Wed, 22 Jul 2015 15:35:51 +0800
+Message-ID: <55AF47D7.8010304@linaro.org>
+References: <1437473280-11431-1-git-send-email-marc.zyngier@arm.com> <1437473280-11431-2-git-send-email-marc.zyngier@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1437521807-27571-2-git-send-email-zjzhang-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Jonathan (Zhixiong) Zhang" <zjzhang-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-Cc: Matt Fleming <matt.fleming-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, tony.luck-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, mchehab-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, vgandhi-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pa0-f45.google.com ([209.85.220.45]:34769 "EHLO
+	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755903AbbGVHf7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Jul 2015 03:35:59 -0400
+Received: by pacan13 with SMTP id an13so135538215pac.1
+        for <linux-acpi@vger.kernel.org>; Wed, 22 Jul 2015 00:35:58 -0700 (PDT)
+In-Reply-To: <1437473280-11431-2-git-send-email-marc.zyngier@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 
-On Tue, Jul 21, 2015 at 04:36:46PM -0700, Jonathan (Zhixiong) Zhang wrote:
-> From: "Jonathan (Zhixiong) Zhang" <zjzhang-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-> 
-> UEFI spec allows for non-standard section in Common Platform Error
-> Record. This is defined in section N.2.3 of UEFI version 2.5.
-> 
-> If Section Type field of Generic Error Data Entry indicates a
-> non-standard section (eg. matchs a vendor proprietary GUID as defined
-> in include/linux/cper.h), print out the raw data in hex in dmesg
-> buffer. Data length is taken from Error Data length field of
-> Generic Error Data Entry.
-> 
-> Following is a sample output from dmesg:
-> {1}[Hardware Error]: Hardware error from APEI Generic Hardware Error Source: 2
-> {1}[Hardware Error]: It has been corrected by h/w and requires no further action
-> {1}[Hardware Error]: event severity: corrected
-> {1}[Hardware Error]:  Error 0, type: corrected
-> {1}[Hardware Error]:  fru_id: 00000000-0000-0000-0000-000000000000
-> {1}[Hardware Error]:  fru_text:
-> {1}[Hardware Error]:   section_type: Qualcomm Technologies Inc. proprietary error
-> {1}[Hardware Error]:   section length: 88
-> {1}[Hardware Error]:   00000000: 01002011 20150416 01000001 00000002
-> {1}[Hardware Error]:   00000010: 5f434345 525f4543 0000574d 00000000
-> {1}[Hardware Error]:   00000020: 00000000 00000000 00000000 00000000
-> {1}[Hardware Error]:   00000030: 00000000 00000000 00000000 00000000
-> {1}[Hardware Error]:   00000040: 00000000 00000000 fe800000 00000000
-> {1}[Hardware Error]:   00000050: 00000004 5f434345
-> 
+On 07/21/2015 06:07 PM, Marc Zyngier wrote:
+> The struct irq_domain contains a "struct device_node *" field
+> (of_node) that is almost the only link between the irqdomain
+> and the device tree infrastructure.
+>
+> In order to prepare for the removal of that field, convert all
+> users outside of kernel/irq/irqdomain.c to use an accessor.
+>
+> Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
 > ---
-> checkpatch.pl gives following warnings on this patch:
->     WARNING: printk() should include KERN_ facility level
-> This is a false warning as pfx parameter includes KERN_ facility
-> level. Also such practice is consistent with the rest of the file.
-> ---
-> 
-> Change-Id: I9a5bb6039beef1c0a36097765268b382e6a28498
-> Signed-off-by: Jonathan (Zhixiong) Zhang <zjzhang-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
-> ---
->  drivers/firmware/efi/cper.c | 61 +++++++++++++++++++++++++++++++++++++++++++--
->  include/linux/cper.h        |  4 +++
->  2 files changed, 63 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/firmware/efi/cper.c b/drivers/firmware/efi/cper.c
-> index 4fd9961d552e..29af8846ffd1 100644
-> --- a/drivers/firmware/efi/cper.c
-> +++ b/drivers/firmware/efi/cper.c
-> @@ -32,12 +32,50 @@
->  #include <linux/acpi.h>
->  #include <linux/pci.h>
->  #include <linux/aer.h>
-> +#include <linux/printk.h>
->  
->  #define INDENT_SP	" "
->  
-> +#define ROW_SIZE 16
-> +#define GROUP_SIZE 4
-> +
-> +struct sec_vendor {
-> +	uuid_le         guid;
-> +	const char      *name;
-> +};
-> +
-> +static struct sec_vendor sec_vendors[] = {
-> +	{CPER_SEC_QTI_ERR, "Qualcomm Technologies Inc. proprietary error"},
-> +	{NULL_UUID_LE, NULL},
-> +};
+>   arch/mips/cavium-octeon/octeon-irq.c          | 4 ++--
+>   arch/powerpc/platforms/cell/axon_msi.c        | 2 +-
+>   arch/powerpc/platforms/cell/spider-pic.c      | 9 ++++++---
+>   arch/powerpc/platforms/powernv/opal-irqchip.c | 2 +-
+>   arch/powerpc/sysdev/ehv_pic.c                 | 3 ++-
+>   arch/powerpc/sysdev/fsl_msi.c                 | 2 +-
+>   arch/powerpc/sysdev/i8259.c                   | 3 ++-
+>   arch/powerpc/sysdev/ipic.c                    | 3 ++-
+>   arch/powerpc/sysdev/mpic.c                    | 3 ++-
+>   arch/powerpc/sysdev/mpic_msi.c                | 2 +-
+>   arch/powerpc/sysdev/qe_lib/qe_ic.c            | 3 ++-
+>   drivers/gpio/gpio-sodaville.c                 | 2 +-
+>   drivers/irqchip/exynos-combiner.c             | 2 +-
+>   drivers/irqchip/irq-atmel-aic-common.c        | 2 +-
+>   drivers/irqchip/irq-crossbar.c                | 4 ++--
+>   drivers/irqchip/irq-gic-v2m.c                 | 2 +-
+>   drivers/irqchip/irq-gic-v3-its.c              | 2 +-
+>   drivers/irqchip/irq-gic-v3.c                  | 2 +-
+>   drivers/irqchip/irq-gic.c                     | 2 +-
+>   drivers/irqchip/irq-hip04.c                   | 2 +-
+>   drivers/irqchip/irq-mtk-sysirq.c              | 2 +-
+>   drivers/irqchip/irq-s3c24xx.c                 | 4 ++--
+>   drivers/irqchip/irq-tegra.c                   | 4 ++--
+>   drivers/irqchip/irq-vf610-mscm-ir.c           | 5 +++--
+>   drivers/spmi/spmi-pmic-arb.c                  | 2 +-
+>   include/linux/irqdomain.h                     | 5 +++++
+>   26 files changed, 46 insertions(+), 32 deletions(-)
 
-No, no vendor-specific stuff like that. This becomes a nightmare to
-maintain...
+It seems to me that some other files missed,
+in arch/powerpc/platforms/pasemi/msi.c:
 
-> +
->  static char rcd_decode_str[CPER_REC_LEN];
->  
->  /*
-> + * In case of CPER error record, there should be only two message
-> + * levels: KERN_ERR and KERN_WARNING
-> + */
-> +static const char *cper_kern_level(const char *pfx)
-> +{
-> +	switch (printk_get_level(pfx)) {
-> +	case '3': return KERN_ERR;
-> +	case '4': return KERN_WARNING;
-> +	default:  return KERN_DEFAULT;
-> +	}
+         if (!mpic->irqhost->of_node ||
+             !of_device_is_compatible(mpic->irqhost->of_node,
+                                      "pasemi,pwrficient-openpic"))
+                 return -ENODEV;
 
+If you need more eyes to find all of them, please count me in :)
 
-We already pass down const char *pfx - no need for retranslation.
-
-> +
-> +/*
-> + * cper_print_hex - print hex from a binary buffer
-> + * @pfx: prefix for each line, including log level and prefix string
-> + * @buf: buffer pointer
-> + * @len: size of buffer
-> + */
-> +#define cper_print_hex(pfx, buf, len)					\
-> +	print_hex_dump(cper_kern_level(pfx), printk_skip_level(pfx),	\
-> +		DUMP_PREFIX_OFFSET, ROW_SIZE, GROUP_SIZE,		\
-> +		buf, len, 0)
-> +
-> +/*
->   * CPER record ID need to be unique even after reboot, because record
->   * ID is used as index for ERST storage, while CPER records from
->   * multiple boot may co-exist in ERST.
-> @@ -379,6 +417,12 @@ static void cper_print_pcie(const char *pfx, const struct cper_sec_pcie *pcie,
->  	pfx, pcie->bridge.secondary_status, pcie->bridge.control);
->  }
->  
-> +static void cper_print_vendor(const char *pfx, __u8 *vendor_err, __u32 len)
-> +{
-> +	printk("%ssection length: %d\n", pfx, len);
-> +	cper_print_hex(pfx, vendor_err, len);
-> +}
-> +
->  static void cper_estatus_print_section(
->  	const char *pfx, const struct acpi_hest_generic_data *gdata, int sec_no)
->  {
-> @@ -416,9 +460,22 @@ static void cper_estatus_print_section(
->  			cper_print_pcie(newpfx, pcie, gdata);
->  		else
->  			goto err_section_too_small;
-> -	} else
-> +	} else {
-> +		int i;
-> +		__u8 *vendor_err = (void *)(gdata + 1);
-> +
-> +		for (i = 0; uuid_le_cmp(sec_vendors[i].guid,
-> +		     NULL_UUID_LE); i++) {
-> +			if (!uuid_le_cmp(*sec_type, sec_vendors[i].guid)) {
-> +				printk("%ssection_type: %s", newpfx,
-> +					sec_vendors[i].name);
-> +				cper_print_vendor(newpfx, vendor_err,
-> +					gdata->error_data_length);
-> +				return;
-> +			}
-> +		}
->  		printk("%s""section type: unknown, %pUl\n", newpfx, sec_type);
-
-... you simply dump the section in binary if none of the standard
-UUIDs match. And you can then turn the "unknown" message into a
-vendor-specific one.
-
--- 
-Regards/Gruss,
-    Boris.
-
-ECO tip #101: Trim your mails when you reply.
---
+Thanks
+Hanjun
