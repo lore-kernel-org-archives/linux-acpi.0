@@ -1,76 +1,49 @@
-From: Sylvain Munaut <246tnt@gmail.com>
-Subject: Re: Discrete Nvidia GPU shutdown with recent kernel / BIOS (on T440s
- laptop) - Should be automatic with runtime pm now ?
-Date: Wed, 22 Jul 2015 08:15:20 +0200
-Message-ID: <CAHL+j09=tc4ytFmzuhw5K_AvQ6aDsViREkwCY6re4A-iJTnTUw@mail.gmail.com>
-References: <CAHL+j0-Nf4rgCrUHbtZ0d2bpW3hX57Mz5jUwhckv8endScA29g@mail.gmail.com>
-	<Pine.LNX.4.44L0.1507211313560.3123-100000@netrider.rowland.org>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH 0/5] Making the generic ACPI GSI layer irqdomain aware
+Date: Wed, 22 Jul 2015 14:45:52 +0800
+Message-ID: <55AF3C20.2060103@linaro.org>
+References: <1437473280-11431-1-git-send-email-marc.zyngier@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f173.google.com ([209.85.217.173]:36149 "EHLO
-	mail-lb0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751589AbbGVGPW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Jul 2015 02:15:22 -0400
-In-Reply-To: <Pine.LNX.4.44L0.1507211313560.3123-100000@netrider.rowland.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1437473280-11431-1-git-send-email-marc.zyngier@arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
 
-Hi Alan,
+Hi Marc,
 
-
-Thanks for the details.
-
-
->> tl;dr : Should device allowed to do runtime pm that have no driver go
->> to D3 on their own ?
+On 07/21/2015 06:07 PM, Marc Zyngier wrote:
+> The irqdomain code is not entierely really ACPI friendly, as it has
+> some built-in knowledge of the device-tree. Nothing too harmful, but
+> enough to scare the ARM ACPI developpers which end up with their own
+> version of the square wheel.
 >
-> Quick answer: See the comments at the start of local_pci_probe() in
-> drivers/pci/pci-driver.c.  PCI devices without a kernel driver are
-> always left in D0, regardless of the runtime PM status.  This is
-> because userspace may try to use the device, and the kernel wouldn't
-> know to take the device out of D3 when that happens.
-
-Does linux expose some way for userspace to transition the device to
-another power state without the need for a driver ?
-
-I looked at the docs and tried poking some of the sysfs files, but
-except enabling/disabling the runtme pm, I couldn't really change
-anything, but maybe I missed something.
-
-
->>  And should pci root bridge go to D3 when all the
->> device on them are on D3 ?
+> This small patch series adapt the irqdomain code to remove the hurdles
+> that prevent the full blown irqdomain subsystem to be used on ACPI,
+> creates an interface between the GSI layer and the irqdomain, and as
+> an example, convert the ARM GIC ACPI support to use irqdomains as
+> originally intended.
 >
-> I don't know the answer to that.  It's probably closely related to the
-> issue of whether PCI bridges need to have a kernel driver.
+> Overall, this gives us a way to use irqdomains on both DT and ACPI
+> enabled platforms, having very little changes made to the actual
+> drivers (other than the probing infrastructure). Because we keep the
+> flow of information between the various layers identical between ACPI
+> and DT, we immediately benefit from the existing infrastructure.
+>
+> I'd really like to hear what people think of that approach, as it
+> looks to me a lot simpler than the other approaches currently put on
+> the list. The "convert the GSI information to be DT friendly" is
+> admitedly not very pretty, but I see it as a stepping stone towards
+> unifying the two structures.
+>
+> This has been test-booted on Juno, and is based on my irq/ncpi-msi-2
+> branch.
 
-OK.
+Thank you very much for putting them together, really appreciated. I
+will comment on each patch and test them.
 
-Do you know if there could be any adverse effect of transitioning it myself ?
-
-Basically I'm doing this when turning off the card :
-
-struct pci_dev *port_dev = pci_upstream_bridge(pdev);
-
-pci_save_state(port_dev);
-pci_clear_master(port_dev);
-pci_disable_device(port_dev);
-pci_set_power_state(port_dev, PCI_D3hot);
-
-
-And this when waking it up :
-
-pci_set_power_state(port_dev, PCI_D0);
-pci_restore_state(port_dev);
-pci_enable_device(port_dev);
-pci_set_master(port_dev);
-
-(I removed the return value checking to make the code more concise here).
-
-
-Cheers,
-
-   Sylvain
+Thanks
+Hanjun
