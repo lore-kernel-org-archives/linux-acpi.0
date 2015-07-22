@@ -1,158 +1,85 @@
-From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
-Subject: [PATCH 2/2] ras: acpi/apei: trace event for vendor proprietary CPER section
-Date: Tue, 21 Jul 2015 16:36:47 -0700
-Message-ID: <1437521807-27571-3-git-send-email-zjzhang@codeaurora.org>
-References: <1437521807-27571-1-git-send-email-zjzhang@codeaurora.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1437521807-27571-1-git-send-email-zjzhang@codeaurora.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Matt Fleming <matt.fleming@intel.com>, tony.luck@intel.com, fu.wei@linaro.org, al.stone@linaro.org, rjw@rjwysocki.net, mchehab@redhat.com, mingo@redhat.com, bp@alien8.de
-Cc: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, linux-efi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, vgandhi@codeaurora.org, linux-acpi@vger.kernel.org
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v7 8/8] PCC: Enable PCC only when needed
+Date: Wed, 22 Jul 2015 03:28:04 +0200
+Message-ID: <1583446.GxfV2z2IW5@vostro.rjw.lan>
+References: <cover.1436464513.git.ashwin.chaugule@linaro.org> <CAJZ5v0j-_QB1U-A0F2YSoDa_71nyEGR=yn8Kb5qe-FSqDPevOA@mail.gmail.com> <55AE652B.7030409@arm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:43018 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S934008AbbGVBBS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 21 Jul 2015 21:01:18 -0400
+In-Reply-To: <55AE652B.7030409@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sudeep Holla <sudeep.holla@arm.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, "jaswinder.singh@linaro.org" <jaswinder.singh@linaro.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "patches@linaro.org" <patches@linaro.org>, "viresh.kumar@linaro.org" <viresh.kumar@linaro.org>
 
-From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
+On Tuesday, July 21, 2015 04:28:43 PM Sudeep Holla wrote:
+> Hi Rafael,
+> 
+> On 21/07/15 15:34, Rafael J. Wysocki wrote:
+> > Hi Sudeep,
+> >
+> > On Tue, Jul 21, 2015 at 11:23 AM, Sudeep Holla <sudeep.holla@arm.com> wrote:
+> >>
+> >>
+> >> On 20/07/15 23:04, Rafael J. Wysocki wrote:
+> >>>
+> >>> On Monday, July 20, 2015 03:22:37 PM Sudeep Holla wrote:
+> >>>>
+> >>>>
+> >>>> On 09/07/15 19:04, Ashwin Chaugule wrote:
+> >>>>>
+> >>>>> CPPC is the first client to make use of the PCC Mailbox channel. So
+> >>>>> enable it only when CPPC is also enabled.
+> >>>>>
+> >>>> This sounds like a reverse dependency to me. So if there's some client
+> >>>> unrelated to CPPC using PCC, CPPC_LIB needs to be selected to enable PCC
+> >>>> ?
+> >>>
+> >>>
+> >>> No.  The other client will need to select PCC too.
+> >>
+> >>
+> >> Yes the PCC users/clients selecting PCC is fine and that's already
+> >> done(i.e. ACPI_CPPC_LIB selects PCC). I still don't understand the need
+> >> for this change, also how will other clients possibly select PCC which
+> >> now depends on CPPC_LIB ? e.g. if we have
+> >>
+> >> config ACPI_XYZ_LIB
+> >>          select PCC
+> >>
+> >> config ACPI_XYZ
+> >>          select ACPI_XYZ_LIB
+> >>
+> >> Won't this shout warning: (ACPI_XYZ_LIB && ACPI_CPPC_LIB) selects PCC
+> >> which has unmet direct dependencies (MAILBOX && ACPI && ACPI_CPPC_LIB)
+> >> if ACPI_CPPC_LIB is not selected ?
+> >
+> > That depends on the "depends on" clauses used.  Selecting itself
+> > doesn't cause any dependencies to appear.
+> >
+> 
+> Agreed and I am absolutely fine with that. But if you look at this 
+> patch, it does
+> 
+> config PCC
+> 	bool "Platform Communication Channel Driver"
+> 	depends on ACPI && ACPI_CPPC_LIB
 
-Trace event is generated when hardware detected a hardware error
-event, which is of non-standard section as defined in UEFI
-spec appendix "Common Platform Error Record" (section N.2.3 of
-UEFI version 2.5).
+My bad, I've evidently overlooked that.
 
-The trace buffer contains length of error data and raw error data
-in hex.
+If PPC is selected from ACPI_CPPC_LIB, the "depends on" above is
+obviously not needed.
 
-Following is a sample output of "perf script":
-_________swapper_____0_[000]___133.521441:_ras:vendor_event:_len=88_raw=11_20_0
-0_01_16_04_15_20_01_00_00_01_02_00_00_00_45_43_43_5f_43_45_5f_52_4d_57_00_00_00
-_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00
-00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_80_fe_00_00_00_00_04_0
-0_00_00_45_43_43_5f
+> I am fine with ACPI_CPPC_LIB selecting PCC which is already done in
+> earlier patch. I am against making PCC depend on ACPI_CPPC_LIB.
 
-Change-Id: Ic8661310133b0ae51f6b299cdde3cd0fa5517464
-Signed-off-by: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
----
- drivers/acpi/apei/ghes.c | 29 +++++++++++++++++++++++++++--
- drivers/ras/ras.c        |  1 +
- include/ras/ras_event.h  | 30 ++++++++++++++++++++++++++++++
- 3 files changed, 58 insertions(+), 2 deletions(-)
+OK, makes sense.  Sorry for the misunderstanding.
 
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index 67fc948da17a..03114d27d218 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -53,9 +53,15 @@
- #include <acpi/ghes.h>
- #include <acpi/apei.h>
- #include <asm/tlbflush.h>
-+#include <ras/ras_event.h>
- 
- #include "apei-internal.h"
- 
-+static uuid_le sec_vendor_uuids[] = {
-+	CPER_SEC_QTI_ERR,
-+	NULL_UUID_LE,
-+};
-+
- #define GHES_PFX	"GHES: "
- 
- #define GHES_ESTATUS_MAX_SIZE		65536
-@@ -440,11 +446,14 @@ static void ghes_do_proc(struct ghes *ghes,
- {
- 	int sev, sec_sev;
- 	struct acpi_hest_generic_data *gdata;
-+	uuid_le sec_type;
- 
- 	sev = ghes_severity(estatus->error_severity);
- 	apei_estatus_for_each_section(estatus, gdata) {
- 		sec_sev = ghes_severity(gdata->error_severity);
--		if (!uuid_le_cmp(*(uuid_le *)gdata->section_type,
-+		sec_type = *(uuid_le *)gdata->section_type;
-+
-+		if (!uuid_le_cmp(sec_type,
- 				 CPER_SEC_PLATFORM_MEM)) {
- 			struct cper_sec_mem_err *mem_err;
- 			mem_err = (struct cper_sec_mem_err *)(gdata+1);
-@@ -454,7 +463,7 @@ static void ghes_do_proc(struct ghes *ghes,
- 			ghes_handle_memory_failure(gdata, sev);
- 		}
- #ifdef CONFIG_ACPI_APEI_PCIEAER
--		else if (!uuid_le_cmp(*(uuid_le *)gdata->section_type,
-+		else if (!uuid_le_cmp(sec_type,
- 				      CPER_SEC_PCIE)) {
- 			struct cper_sec_pcie *pcie_err;
- 			pcie_err = (struct cper_sec_pcie *)(gdata+1);
-@@ -486,6 +495,22 @@ static void ghes_do_proc(struct ghes *ghes,
- 
- 		}
- #endif
-+		else {
-+			int i;
-+
-+			for (i = 0; uuid_le_cmp(sec_vendor_uuids[i],
-+			     NULL_UUID_LE); i++) {
-+				if (!uuid_le_cmp(sec_type,
-+				    sec_vendor_uuids[i])) {
-+					const void *vendor_err;
-+
-+					vendor_err = gdata + 1;
-+					trace_vendor_event(vendor_err,
-+						gdata->error_data_length);
-+					break;
-+				}
-+			}
-+		}
- 	}
- }
- 
-diff --git a/drivers/ras/ras.c b/drivers/ras/ras.c
-index b67dd362b7b6..a656ff131249 100644
---- a/drivers/ras/ras.c
-+++ b/drivers/ras/ras.c
-@@ -27,3 +27,4 @@ subsys_initcall(ras_init);
- EXPORT_TRACEPOINT_SYMBOL_GPL(extlog_mem_event);
- #endif
- EXPORT_TRACEPOINT_SYMBOL_GPL(mc_event);
-+EXPORT_TRACEPOINT_SYMBOL_GPL(vendor_event);
-diff --git a/include/ras/ras_event.h b/include/ras/ras_event.h
-index 79abb9c71772..a3038653f72d 100644
---- a/include/ras/ras_event.h
-+++ b/include/ras/ras_event.h
-@@ -161,6 +161,36 @@ TRACE_EVENT(mc_event,
- );
- 
- /*
-+ * Vendor Proprietary Events Report
-+ *
-+ * Those event is generated when hardware detected a hardware
-+ * error event, which is of non-standard section as defined
-+ * in UEFI spec appendix "Common Platform Error Record".
-+ *
-+ */
-+TRACE_EVENT(vendor_event,
-+
-+	TP_PROTO(const u8 *err,
-+		 const u32 len),
-+
-+	TP_ARGS(err, len),
-+
-+	TP_STRUCT__entry(
-+		__field(u32, len)
-+		__dynamic_array(u8, buf, len)
-+	),
-+
-+	TP_fast_assign(
-+		__entry->len = len;
-+		memcpy(__get_dynamic_array(buf), err, len);
-+	),
-+
-+	TP_printk("len=%d raw=%s",
-+		  __entry->len,
-+		  __print_hex(__get_dynamic_array(buf), __entry->len))
-+);
-+
-+/*
-  * PCIe AER Trace event
-  *
-  * These events are generated when hardware detects a corrected or
--- 
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project
+Thanks,
+Rafael
+
