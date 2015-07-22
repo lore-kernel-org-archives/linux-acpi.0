@@ -1,109 +1,74 @@
-From: Matt Fleming <matt@codeblueprint.co.uk>
-Subject: Re: [PATCH V6 2/4] x86: acpi: implement
- arch_apei_get_mem_attributes()
-Date: Wed, 22 Jul 2015 13:09:26 +0100
-Message-ID: <20150722120926.GD2734@codeblueprint.co.uk>
-References: <1437438759-3686-1-git-send-email-zjzhang@codeaurora.org>
- <1437438759-3686-3-git-send-email-zjzhang@codeaurora.org>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: [PATCH 1/5] genirq: irqdomain: Use an accessor for the of_node
+ field
+Date: Wed, 22 Jul 2015 13:43:34 +0100
+Message-ID: <55AF8FF6.3080901@arm.com>
+References: <1437473280-11431-1-git-send-email-marc.zyngier@arm.com> <1437473280-11431-2-git-send-email-marc.zyngier@arm.com> <55AF47D7.8010304@linaro.org> <55AF4BBA.5030209@arm.com> <alpine.DEB.2.11.1507220958090.18576@nanos>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:34642 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934084AbbGVMJc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Jul 2015 08:09:32 -0400
-Received: by wibud3 with SMTP id ud3so151182497wib.1
-        for <linux-acpi@vger.kernel.org>; Wed, 22 Jul 2015 05:09:31 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <1437438759-3686-3-git-send-email-zjzhang@codeaurora.org>
+Received: from foss.arm.com ([217.140.101.70]:35660 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752413AbbGVMni (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 22 Jul 2015 08:43:38 -0400
+In-Reply-To: <alpine.DEB.2.11.1507220958090.18576@nanos>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
-Cc: Matt Fleming <matt.fleming@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, ying.huang@intel.com, fu.wei@linaro.org, al.stone@linaro.org, bp@alien8.de, rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, linux-efi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>
 
-On Mon, 20 Jul, at 05:32:37PM, Jonathan (Zhixiong) Zhang wrote:
-> From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
+On 22/07/15 08:58, Thomas Gleixner wrote:
+> On Wed, 22 Jul 2015, Marc Zyngier wrote:
+>>
+>> Looks like my coccinelle foo is still lacking a bit... Oh well.
 > 
-> ... to allow arch specific implementation of getting page
-> protection type associated with a physical address.
+> Please post your semantic patch and don't forget to Cc Julia Lawall :)
 > 
-> If the physical address has memory attributes defined by EFI
-> memmap as EFI_MEMORY_UC, the page protection type is
-> PAGE_KENERL_NOCACHE. Otherwise, the page protection type is
-> PAGE_KERNEL.
-> 
-> Signed-off-by: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
-> ---
->  arch/x86/kernel/acpi/apei.c | 10 ++++++++++
->  include/acpi/apei.h         |  1 +
->  2 files changed, 11 insertions(+)
-> 
-> diff --git a/arch/x86/kernel/acpi/apei.c b/arch/x86/kernel/acpi/apei.c
-> index c280df6b2aa2..9c6b3c8d81e4 100644
-> --- a/arch/x86/kernel/acpi/apei.c
-> +++ b/arch/x86/kernel/acpi/apei.c
-> @@ -14,6 +14,8 @@
->  
->  #include <acpi/apei.h>
->  
-> +#include <linux/efi.h>
-> +
->  #include <asm/mce.h>
->  #include <asm/tlbflush.h>
->  
-> @@ -60,3 +62,11 @@ void arch_apei_flush_tlb_one(unsigned long addr)
->  {
->  	__flush_tlb_one(addr);
->  }
-> +
-> +pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr)
-> +{
-> +	if (efi_mem_attributes(addr) & EFI_MEMORY_UC)
-> +		return PAGE_KERNEL_NOCACHE;
-> +
-> +	return PAGE_KERNEL;
-> +}
 
-Like I mentioned before, this is theoretically racey because depending
-on when you call arch_apei_get_mem_attribute() during boot, you'll
-potentially return a different protection for the *same* memory region.
-This is because on x86 we discard the EFI memory map in
-efi_free_boot_services(), after which time efi_mem_attributes() will
-always return 0.
+Bah, found the problem. My semantic patch is extremely simple:
 
-Now, hitting that race would depend on a number of things but most
-importantly it would require the region of RAM containing the Hardware
-Error data to have EFI_MEMORY_UC set in the EFI memmap. For x86 I think
-it's fair to say that's extremely unlikely given our cache coherency
-architecture.
+@init@
+struct irq_domain *ptr;
+position pos;
+@@
 
-Also, as Will noted for arm64, this really wants to be static inline.
-I'm still hoping the x86/ACPI folks will chime in on this patch.
+(
+ptr@pos->of_node
+)
 
-For x86 we don't need to perform this lookup today for GHES so I would
-just always return PAGE_KERNEL but include a comment explaining that
-doing anything else is unneeded. Something like this?
 
----
+@ script:python @
+p1 << init.pos;
+@@
 
-static inline pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr)
-{
+for p in p1:
+    print "%s:%s" % (p.file,p.line)
 
-	/*
-	 * We currently have no way to lookup the EFI memory map
-	 * attributes for a region in a consistent way because the memap
-	 * is discarded after efi_free_boot_services(). So if you call
-	 * efi_mem_attributes() during boot and at runtime you could
-	 * theoretically see different attributes.
-	 *
-	 * Since we've yet to see any x86 platforms that require
-	 * anything other than PAGE_KERNEL (some arm64 platforms require
-	 * the equivalent of PAGE_KERNEL_NOCACHE), return that until we
-	 * know different.
-	 */
+as I'm just grepping through the tree (I don't feel confident enough to
+do the patching, and some cases are a bit more complicated).
 
-	return PAGE_KERNEL;
-}
+But I forgot to add arch/$ARCH/include/asm as an include search path for
+spatch. That had the side effect of spatch being unable to identify
+constructs like:
 
+arch/$ARCH/include/asm/foo.h:
+
+	struct foo {
+		struct irq_domain *bar;
+	};
+
+arch/$ARCH/.../foo.c:
+
+	struct foo foo;
+	if (foo->bar->of_node) { ... }
+
+Since spatch knows nothing about struct foo, it cannot identify bar as a
+struct irq_domain, hence missing this occurrence.
+
+Once I fixed the include path, I found an additional couple of victims.
+I really love this thing! :-)
+
+	M.
 -- 
-Matt Fleming, Intel Open Source Technology Center
+Jazz is not dead. It just smells funny...
