@@ -1,165 +1,109 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH 5/5] irqchip: GIC: Switch ACPI support to stacked domains
-Date: Wed, 22 Jul 2015 17:33:07 +0800
-Message-ID: <55AF6353.1080204@linaro.org>
-References: <1437473280-11431-1-git-send-email-marc.zyngier@arm.com> <1437473280-11431-6-git-send-email-marc.zyngier@arm.com> <20150721180542.GB32187@red-moon> <55AE8B8D.8050002@arm.com> <55AF55C2.4060807@linaro.org> <55AF5A10.5000106@arm.com>
+From: Matt Fleming <matt@codeblueprint.co.uk>
+Subject: Re: [PATCH V6 2/4] x86: acpi: implement
+ arch_apei_get_mem_attributes()
+Date: Wed, 22 Jul 2015 13:09:26 +0100
+Message-ID: <20150722120926.GD2734@codeblueprint.co.uk>
+References: <1437438759-3686-1-git-send-email-zjzhang@codeaurora.org>
+ <1437438759-3686-3-git-send-email-zjzhang@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f44.google.com ([209.85.220.44]:34677 "EHLO
-	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756143AbbGVJdR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Jul 2015 05:33:17 -0400
-Received: by pacan13 with SMTP id an13so137164701pac.1
-        for <linux-acpi@vger.kernel.org>; Wed, 22 Jul 2015 02:33:16 -0700 (PDT)
-In-Reply-To: <55AF5A10.5000106@arm.com>
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:34642 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934084AbbGVMJc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Jul 2015 08:09:32 -0400
+Received: by wibud3 with SMTP id ud3so151182497wib.1
+        for <linux-acpi@vger.kernel.org>; Wed, 22 Jul 2015 05:09:31 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <1437438759-3686-3-git-send-email-zjzhang@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>
+To: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
+Cc: Matt Fleming <matt.fleming@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, ying.huang@intel.com, fu.wei@linaro.org, al.stone@linaro.org, bp@alien8.de, rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, linux-efi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-On 07/22/2015 04:53 PM, Marc Zyngier wrote:
-> On 22/07/15 09:35, Hanjun Guo wrote:
->> On 07/22/2015 02:12 AM, Marc Zyngier wrote:
->>> On 21/07/15 19:05, Lorenzo Pieralisi wrote:
->>>> On Tue, Jul 21, 2015 at 11:08:00AM +0100, Marc Zyngier wrote:
->>>>> Now that the basic ACPI GSI code is irq domain aware, make sure
->>>>> that the ACPI support in the GIC doesn't pointlessly deviate from
->>>>> the DT path.
->>>>>
->>>>> Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
->>>>> ---
->>>>>    drivers/irqchip/irq-gic.c       | 17 ++++++-----------
->>>>>    include/linux/irqchip/arm-gic.h |  2 +-
->>>>>    2 files changed, 7 insertions(+), 12 deletions(-)
->>>>>
->>>>> diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.=
-c
->>>>> index b41ccf5..f5d365d 100644
->>>>> --- a/drivers/irqchip/irq-gic.c
->>>>> +++ b/drivers/irqchip/irq-gic.c
->>>>> @@ -813,8 +813,6 @@ static int gic_irq_domain_xlate(struct irq_do=
-main *d,
->>>>>    {
->>>>>    	unsigned long ret =3D 0;
->>>>>
->>>>> -	if (irq_domain_get_of_node(d) !=3D controller)
->>>>> -		return -EINVAL;
->>>>>    	if (intsize < 3)
->>>>>    		return -EINVAL;
->>>>>
->>>>> @@ -887,7 +885,7 @@ void gic_set_irqchip_flags(unsigned long flag=
-s)
->>>>>
->>>>>    void __init gic_init_bases(unsigned int gic_nr, int irq_start,
->>>>>    			   void __iomem *dist_base, void __iomem *cpu_base,
->>>>> -			   u32 percpu_offset, struct device_node *node)
->>>>> +			   u32 percpu_offset, void *domain_token)
->>>>>    {
->>>>>    	irq_hw_number_t hwirq_base;
->>>>>    	struct gic_chip_data *gic;
->>>>> @@ -946,8 +944,8 @@ void __init gic_init_bases(unsigned int gic_n=
-r, int irq_start,
->>>>>    		gic_irqs =3D 1020;
->>>>>    	gic->gic_irqs =3D gic_irqs;
->>>>>
->>>>> -	if (node) {		/* DT case */
->>>>> -		gic->domain =3D irq_domain_add_linear(node, gic_irqs,
->>>>> +	if (domain_token) {		/* DT/ACPI case */
->>>>> +		gic->domain =3D irq_domain_add_linear(domain_token, gic_irqs,
->>>>>    						    &gic_irq_domain_hierarchy_ops,
->>>>>    						    gic);
->>>>>    	} else {		/* Non-DT case */
->>>>> @@ -973,7 +971,7 @@ void __init gic_init_bases(unsigned int gic_n=
-r, int irq_start,
->>>>>    			irq_base =3D irq_start;
->>>>>    		}
->>>>>
->>>>> -		gic->domain =3D irq_domain_add_legacy(node, gic_irqs, irq_base=
-,
->>>>> +		gic->domain =3D irq_domain_add_legacy(NULL, gic_irqs, irq_base=
-,
->>>>>    					hwirq_base, &gic_irq_domain_ops, gic);
->>>>>    	}
->>>>>
->>>>> @@ -1132,12 +1130,9 @@ gic_v2_acpi_init(struct acpi_table_header =
-*table)
->>>>>    	}
->>>>>
->>>>>    	/*
->>>>> -	 * Initialize zero GIC instance (no multi-GIC support). Also, s=
-et GIC
->>>>> -	 * as default IRQ domain to allow for GSI registration and GSI =
-to IRQ
->>>>> -	 * number translation (see acpi_register_gsi() and acpi_gsi_to_=
-irq()).
->>>>> +	 * Initialize zero GIC instance (no multi-GIC support).
->>>>>    	 */
->>>>> -	gic_init_bases(0, -1, dist_base, cpu_base, 0, NULL);
->>>>> -	irq_set_default_host(gic_data[0].domain);
->>>>> +	gic_init_bases(0, -1, dist_base, cpu_base, 0, (void *)ACPI_IRQ_=
-MODEL_GIC);
->>>>
->>>> Nit: the acpi_irq_model_id enum starts from 0, I do not think we w=
-ill
->>>> use the IRQ domain look-up for the ACPI_IRQ_MODEL_PIC but we have
->>>> to be careful anyway.
->>>
->>> Yeah, I noticed that one too, but couldn't imagine the PIC being
->>> migrated to that model just yet. It looks like it would be pretty
->>> harmless to set ACPI_IRQ_MODEL_PIC to 1, and introduce
->>> ACPI_IRQ_MODEL_ILLEGAL as zero.
->>
->> I think this will be a problem, because acpi_irq_model_id enum actua=
-lly
->> is defined by the ACPI spec, and the value is used to report to BIOS
->> the current interrupt model used by OS, see section 5.8.1 _PIC Metho=
-d
->> in ACPI 6.0:
->>
->> 0 =96 PIC mode
->> 1 =96 APIC mode
->> 2 =96 SAPIC mode
->> Other values =96Reserved
->
-> Ah, right.
->
->> so we can't set ACPI_IRQ_MODEL_PIC to 1 as it may break the firmware=
-,
->> also _PIC method actually is not needed for ARM platform at all, we
->> don't need to report to firmware the interrupt model used by OS on
->> ARM, it only used by legacy IA platforms, actually I'm planning to
->> remove acpi_irq_model_id on ARM64.
->
-> Remove? I don't get it. Either ACPI_IRQ_MODEL_GIC is a leval value, a=
-nd
-> you can't remove it, or it is not, and I wonder how it ended up here =
-the
-> first place.
+On Mon, 20 Jul, at 05:32:37PM, Jonathan (Zhixiong) Zhang wrote:
+> From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
+> 
+> ... to allow arch specific implementation of getting page
+> protection type associated with a physical address.
+> 
+> If the physical address has memory attributes defined by EFI
+> memmap as EFI_MEMORY_UC, the page protection type is
+> PAGE_KENERL_NOCACHE. Otherwise, the page protection type is
+> PAGE_KERNEL.
+> 
+> Signed-off-by: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
+> ---
+>  arch/x86/kernel/acpi/apei.c | 10 ++++++++++
+>  include/acpi/apei.h         |  1 +
+>  2 files changed, 11 insertions(+)
+> 
+> diff --git a/arch/x86/kernel/acpi/apei.c b/arch/x86/kernel/acpi/apei.c
+> index c280df6b2aa2..9c6b3c8d81e4 100644
+> --- a/arch/x86/kernel/acpi/apei.c
+> +++ b/arch/x86/kernel/acpi/apei.c
+> @@ -14,6 +14,8 @@
+>  
+>  #include <acpi/apei.h>
+>  
+> +#include <linux/efi.h>
+> +
+>  #include <asm/mce.h>
+>  #include <asm/tlbflush.h>
+>  
+> @@ -60,3 +62,11 @@ void arch_apei_flush_tlb_one(unsigned long addr)
+>  {
+>  	__flush_tlb_one(addr);
+>  }
+> +
+> +pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr)
+> +{
+> +	if (efi_mem_attributes(addr) & EFI_MEMORY_UC)
+> +		return PAGE_KERNEL_NOCACHE;
+> +
+> +	return PAGE_KERNEL;
+> +}
 
-The best solution is that we don't call _PIC method on ARM at all
-(acpi_irq_model is used for _PIC method), but we can live with it since
-there is no harm if ARM firmware don't care about the value or ARM
-firmware don't define _PIC method in DSDT.
+Like I mentioned before, this is theoretically racey because depending
+on when you call arch_apei_get_mem_attribute() during boot, you'll
+potentially return a different protection for the *same* memory region.
+This is because on x86 we discard the EFI memory map in
+efi_free_boot_services(), after which time efi_mem_attributes() will
+always return 0.
 
->
->> So to me acpi_irq_model_id is suitable for the token, can we use
->                               is *not* ?
->> another one as the token? how about the GIC ID in the MADT table?
->> and this also can be used for x86 (IOAPIC IDs) too.
->
-> You can use whatever you want, just not a pointer. I'll add a token
-> parameter to the acpi_set_irq_model function that I mentioned in my
-> reply to Lorenzo.
+Now, hitting that race would depend on a number of things but most
+importantly it would require the region of RAM containing the Hardware
+Error data to have EFI_MEMORY_UC set in the EFI memmap. For x86 I think
+it's fair to say that's extremely unlikely given our cache coherency
+architecture.
 
-Thank you, I will wait for the v2 to rebase my ACPI GICv3 patches.
+Also, as Will noted for arm64, this really wants to be static inline.
+I'm still hoping the x86/ACPI folks will chime in on this patch.
 
-Thanks
-Hanjun
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+For x86 we don't need to perform this lookup today for GHES so I would
+just always return PAGE_KERNEL but include a comment explaining that
+doing anything else is unneeded. Something like this?
+
+---
+
+static inline pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr)
+{
+
+	/*
+	 * We currently have no way to lookup the EFI memory map
+	 * attributes for a region in a consistent way because the memap
+	 * is discarded after efi_free_boot_services(). So if you call
+	 * efi_mem_attributes() during boot and at runtime you could
+	 * theoretically see different attributes.
+	 *
+	 * Since we've yet to see any x86 platforms that require
+	 * anything other than PAGE_KERNEL (some arm64 platforms require
+	 * the equivalent of PAGE_KERNEL_NOCACHE), return that until we
+	 * know different.
+	 */
+
+	return PAGE_KERNEL;
+}
+
+-- 
+Matt Fleming, Intel Open Source Technology Center
