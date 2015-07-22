@@ -1,26 +1,23 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
+From: Marc Zyngier <marc.zyngier@arm.com>
 Subject: Re: [PATCH 5/5] irqchip: GIC: Switch ACPI support to stacked domains
-Date: Wed, 22 Jul 2015 16:45:19 +0800
-Message-ID: <55AF581F.1020202@linaro.org>
+Date: Wed, 22 Jul 2015 09:53:36 +0100
+Message-ID: <55AF5A10.5000106@arm.com>
 References: <1437473280-11431-1-git-send-email-marc.zyngier@arm.com> <1437473280-11431-6-git-send-email-marc.zyngier@arm.com> <20150721180542.GB32187@red-moon> <55AE8B8D.8050002@arm.com> <55AF55C2.4060807@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252;
-	format=flowed
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f49.google.com ([209.85.220.49]:36378 "EHLO
-	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932539AbbGVIp3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Jul 2015 04:45:29 -0400
-Received: by pachj5 with SMTP id hj5so135150083pac.3
-        for <linux-acpi@vger.kernel.org>; Wed, 22 Jul 2015 01:45:28 -0700 (PDT)
+Received: from foss.arm.com ([217.140.101.70]:34852 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756130AbbGVIxk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 22 Jul 2015 04:53:40 -0400
 In-Reply-To: <55AF55C2.4060807@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+To: Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>
 
-On 07/22/2015 04:35 PM, Hanjun Guo wrote:
+On 22/07/15 09:35, Hanjun Guo wrote:
 > On 07/22/2015 02:12 AM, Marc Zyngier wrote:
 >> On 21/07/15 19:05, Lorenzo Pieralisi wrote:
 >>> On Tue, Jul 21, 2015 at 11:08:00AM +0100, Marc Zyngier wrote:
@@ -38,71 +35,65 @@ On 07/22/2015 04:35 PM, Hanjun Guo wrote:
 >>>> index b41ccf5..f5d365d 100644
 >>>> --- a/drivers/irqchip/irq-gic.c
 >>>> +++ b/drivers/irqchip/irq-gic.c
->>>> @@ -813,8 +813,6 @@ static int gic_irq_domain_xlate(struct
->>>> irq_domain *d,
+>>>> @@ -813,8 +813,6 @@ static int gic_irq_domain_xlate(struct irq_dom=
+ain *d,
 >>>>   {
->>>>       unsigned long ret =3D 0;
+>>>>   	unsigned long ret =3D 0;
 >>>>
->>>> -    if (irq_domain_get_of_node(d) !=3D controller)
->>>> -        return -EINVAL;
->>>>       if (intsize < 3)
->>>>           return -EINVAL;
+>>>> -	if (irq_domain_get_of_node(d) !=3D controller)
+>>>> -		return -EINVAL;
+>>>>   	if (intsize < 3)
+>>>>   		return -EINVAL;
 >>>>
 >>>> @@ -887,7 +885,7 @@ void gic_set_irqchip_flags(unsigned long flags=
 )
 >>>>
 >>>>   void __init gic_init_bases(unsigned int gic_nr, int irq_start,
->>>>                  void __iomem *dist_base, void __iomem *cpu_base,
->>>> -               u32 percpu_offset, struct device_node *node)
->>>> +               u32 percpu_offset, void *domain_token)
+>>>>   			   void __iomem *dist_base, void __iomem *cpu_base,
+>>>> -			   u32 percpu_offset, struct device_node *node)
+>>>> +			   u32 percpu_offset, void *domain_token)
 >>>>   {
->>>>       irq_hw_number_t hwirq_base;
->>>>       struct gic_chip_data *gic;
+>>>>   	irq_hw_number_t hwirq_base;
+>>>>   	struct gic_chip_data *gic;
 >>>> @@ -946,8 +944,8 @@ void __init gic_init_bases(unsigned int gic_nr=
-,
->>>> int irq_start,
->>>>           gic_irqs =3D 1020;
->>>>       gic->gic_irqs =3D gic_irqs;
+, int irq_start,
+>>>>   		gic_irqs =3D 1020;
+>>>>   	gic->gic_irqs =3D gic_irqs;
 >>>>
->>>> -    if (node) {        /* DT case */
->>>> -        gic->domain =3D irq_domain_add_linear(node, gic_irqs,
->>>> +    if (domain_token) {        /* DT/ACPI case */
->>>> +        gic->domain =3D irq_domain_add_linear(domain_token, gic_i=
-rqs,
->>>>                               &gic_irq_domain_hierarchy_ops,
->>>>                               gic);
->>>>       } else {        /* Non-DT case */
+>>>> -	if (node) {		/* DT case */
+>>>> -		gic->domain =3D irq_domain_add_linear(node, gic_irqs,
+>>>> +	if (domain_token) {		/* DT/ACPI case */
+>>>> +		gic->domain =3D irq_domain_add_linear(domain_token, gic_irqs,
+>>>>   						    &gic_irq_domain_hierarchy_ops,
+>>>>   						    gic);
+>>>>   	} else {		/* Non-DT case */
 >>>> @@ -973,7 +971,7 @@ void __init gic_init_bases(unsigned int gic_nr=
-,
->>>> int irq_start,
->>>>               irq_base =3D irq_start;
->>>>           }
+, int irq_start,
+>>>>   			irq_base =3D irq_start;
+>>>>   		}
 >>>>
->>>> -        gic->domain =3D irq_domain_add_legacy(node, gic_irqs, irq=
-_base,
->>>> +        gic->domain =3D irq_domain_add_legacy(NULL, gic_irqs, irq=
-_base,
->>>>                       hwirq_base, &gic_irq_domain_ops, gic);
->>>>       }
+>>>> -		gic->domain =3D irq_domain_add_legacy(node, gic_irqs, irq_base,
+>>>> +		gic->domain =3D irq_domain_add_legacy(NULL, gic_irqs, irq_base,
+>>>>   					hwirq_base, &gic_irq_domain_ops, gic);
+>>>>   	}
 >>>>
->>>> @@ -1132,12 +1130,9 @@ gic_v2_acpi_init(struct acpi_table_header
->>>> *table)
->>>>       }
+>>>> @@ -1132,12 +1130,9 @@ gic_v2_acpi_init(struct acpi_table_header *=
+table)
+>>>>   	}
 >>>>
->>>>       /*
->>>> -     * Initialize zero GIC instance (no multi-GIC support). Also,
->>>> set GIC
->>>> -     * as default IRQ domain to allow for GSI registration and GS=
-I
->>>> to IRQ
->>>> -     * number translation (see acpi_register_gsi() and
->>>> acpi_gsi_to_irq()).
->>>> +     * Initialize zero GIC instance (no multi-GIC support).
->>>>        */
->>>> -    gic_init_bases(0, -1, dist_base, cpu_base, 0, NULL);
->>>> -    irq_set_default_host(gic_data[0].domain);
->>>> +    gic_init_bases(0, -1, dist_base, cpu_base, 0, (void
->>>> *)ACPI_IRQ_MODEL_GIC);
+>>>>   	/*
+>>>> -	 * Initialize zero GIC instance (no multi-GIC support). Also, se=
+t GIC
+>>>> -	 * as default IRQ domain to allow for GSI registration and GSI t=
+o IRQ
+>>>> -	 * number translation (see acpi_register_gsi() and acpi_gsi_to_i=
+rq()).
+>>>> +	 * Initialize zero GIC instance (no multi-GIC support).
+>>>>   	 */
+>>>> -	gic_init_bases(0, -1, dist_base, cpu_base, 0, NULL);
+>>>> -	irq_set_default_host(gic_data[0].domain);
+>>>> +	gic_init_bases(0, -1, dist_base, cpu_base, 0, (void *)ACPI_IRQ_M=
+ODEL_GIC);
 >>>
 >>> Nit: the acpi_irq_model_id enum starts from 0, I do not think we wi=
 ll
@@ -113,33 +104,45 @@ ll
 >> migrated to that model just yet. It looks like it would be pretty
 >> harmless to set ACPI_IRQ_MODEL_PIC to 1, and introduce
 >> ACPI_IRQ_MODEL_ILLEGAL as zero.
->
+>=20
 > I think this will be a problem, because acpi_irq_model_id enum actual=
 ly
 > is defined by the ACPI spec, and the value is used to report to BIOS
 > the current interrupt model used by OS, see section 5.8.1 _PIC Method
 > in ACPI 6.0:
->
+>=20
 > 0 =96 PIC mode
 > 1 =96 APIC mode
 > 2 =96 SAPIC mode
 > Other values =96Reserved
->
+
+Ah, right.
+
 > so we can't set ACPI_IRQ_MODEL_PIC to 1 as it may break the firmware,
 > also _PIC method actually is not needed for ARM platform at all, we
 > don't need to report to firmware the interrupt model used by OS on
 > ARM, it only used by legacy IA platforms, actually I'm planning to
 > remove acpi_irq_model_id on ARM64.
->
+
+Remove? I don't get it. Either ACPI_IRQ_MODEL_GIC is a leval value, and
+you can't remove it, or it is not, and I wonder how it ended up here th=
+e
+first place.
+
 > So to me acpi_irq_model_id is suitable for the token, can we use
+                             is *not* ?
 > another one as the token? how about the GIC ID in the MADT table?
 > and this also can be used for x86 (IOAPIC IDs) too.
 
-or just introduce a similar enum as acpi_irq_model for this purpose,
-as acpi_irq_model is for _PIC method.
+You can use whatever you want, just not a pointer. I'll add a token
+parameter to the acpi_set_irq_model function that I mentioned in my
+reply to Lorenzo.
 
-Thanks
-Hanjun
+Thanks,
+
+	M.
+--=20
+Jazz is not dead. It just smells funny...
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
