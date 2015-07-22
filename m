@@ -1,165 +1,154 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH 2/2] ras: acpi/apei: trace event for vendor proprietary
- CPER section
-Date: Wed, 22 Jul 2015 09:36:26 +0200
-Message-ID: <20150722073626.GC7979@nazgul.tnic>
-References: <1437521807-27571-1-git-send-email-zjzhang@codeaurora.org>
- <1437521807-27571-3-git-send-email-zjzhang@codeaurora.org>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: [PATCH 4/5] acpi: gsi: Use acpi_gsi_descriptor to allocate interrupts
+Date: Wed, 22 Jul 2015 08:46:04 +0100
+Message-ID: <55AF4A3C.1010608@arm.com>
+References: <1437473280-11431-1-git-send-email-marc.zyngier@arm.com> <1437473280-11431-5-git-send-email-marc.zyngier@arm.com> <20150721181646.GC32187@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:44639 "EHLO mail.skyhub.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932106AbbGVHge (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 22 Jul 2015 03:36:34 -0400
-Content-Disposition: inline
-In-Reply-To: <1437521807-27571-3-git-send-email-zjzhang@codeaurora.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150721181646.GC32187@red-moon>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
-Cc: Matt Fleming <matt.fleming@intel.com>, tony.luck@intel.com, fu.wei@linaro.org, al.stone@linaro.org, rjw@rjwysocki.net, mchehab@redhat.com, mingo@redhat.com, linux-efi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, vgandhi@codeaurora.org, linux-acpi@vger.kernel.org
 
-On Tue, Jul 21, 2015 at 04:36:47PM -0700, Jonathan (Zhixiong) Zhang wrote:
-> From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
+On 21/07/15 19:16, Lorenzo Pieralisi wrote:
+> On Tue, Jul 21, 2015 at 11:07:59AM +0100, Marc Zyngier wrote:
+>> Now that the irqdomain layer is a bit more ACPI friendly, add the
+>> mapping code that allows irq_create_acpi_mapping to be called.
+>>
+>> As we only support the GIC so far, support is pretty limited.
+>>
+>> Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
+>> ---
+>>  drivers/acpi/gsi.c | 54 ++++++++++++++++++++++++++++++++++++------------------
+>>  1 file changed, 36 insertions(+), 18 deletions(-)
+>>
+>> diff --git a/drivers/acpi/gsi.c b/drivers/acpi/gsi.c
+>> index 38208f2..005d843 100644
+>> --- a/drivers/acpi/gsi.c
+>> +++ b/drivers/acpi/gsi.c
+>> @@ -33,6 +33,12 @@ static unsigned int acpi_gsi_get_irq_type(int trigger, int polarity)
+>>  	}
+>>  }
+>>  
+>> +static struct irq_domain *irq_find_acpi_domain(enum acpi_irq_model_id id,
+>> +					       enum irq_domain_bus_token bus_token)
+>> +{
+>> +	return irq_find_matching_host((void *)id, bus_token);
+>> +}
+>> +
+>>  /**
+>>   * acpi_gsi_to_irq() - Retrieve the linux irq number for a given GSI
+>>   * @gsi: GSI IRQ number to map
+>> @@ -45,12 +51,10 @@ static unsigned int acpi_gsi_get_irq_type(int trigger, int polarity)
+>>   */
+>>  int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
+>>  {
+>> -	/*
+>> -	 * Only default domain is supported at present, always find
+>> -	 * the mapping corresponding to default domain by passing NULL
+>> -	 * as irq_domain parameter
+>> -	 */
+>> -	*irq = irq_find_mapping(NULL, gsi);
+>> +	struct irq_domain *d = irq_find_acpi_domain(acpi_irq_model,
+>> +						    DOMAIN_BUS_ANY);
+>> +
+>> +	*irq = irq_find_mapping(d, gsi);
+>>  	/*
+>>  	 * *irq == 0 means no mapping, that should
+>>  	 * be reported as a failure
+>> @@ -72,23 +76,35 @@ EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
+>>  int acpi_register_gsi(struct device *dev, u32 gsi, int trigger,
+>>  		      int polarity)
+>>  {
+>> -	unsigned int irq;
+>> +	struct acpi_gsi_descriptor data;
+>>  	unsigned int irq_type = acpi_gsi_get_irq_type(trigger, polarity);
+>> +	struct irq_domain *d = irq_find_acpi_domain(acpi_irq_model,
+>> +						    DOMAIN_BUS_ANY);
+>>  
+>>  	/*
+>> -	 * There is no way at present to look-up the IRQ domain on ACPI,
+>> -	 * hence always create mapping referring to the default domain
+>> -	 * by passing NULL as irq_domain parameter
+>> +	 * Populate the GSI descriptor in a way that matches the way
+>> +	 * the driver expects its of_phandle_args.
+>>  	 */
+>> -	irq = irq_create_mapping(NULL, gsi);
+>> -	if (!irq)
+>> +	switch (acpi_irq_model) {
+>> +	case ACPI_IRQ_MODEL_GIC:
+>> +		if (gsi >= 32) {
+>> +			data.param[0] = 0;
+>> +			data.param[1] = gsi - 32;
+>> +			data.param[2] = irq_type;
+>> +		} else {
+>> +			data.param[0] = 1;
+>> +			data.param[1] = gsi - 16;
+>> +			data.param[2] = 0xff << 4 | irq_type;
+>> +		}
+>> +
+>> +		data.param_count = 3;
+>> +		break;
+>> +	default:
+>> +		pr_warn("Unknown acpi_irq_model = %d\n", acpi_irq_model);
+>>  		return -EINVAL;
+>> +	}
 > 
-> Trace event is generated when hardware detected a hardware error
-> event, which is of non-standard section as defined in UEFI
-> spec appendix "Common Platform Error Record" (section N.2.3 of
-> UEFI version 2.5).
+> Nit: you could move the switch in a function (in this file) so that
+> code that is irq model specific is self-contained and in a function
+> on its own, if we ever have to add other irq models later I think it
+> is easier to parse.
+
+Yup, makes sense.
+
+Actually, having given it a bit more thoughts, there is not reason why
+this translation function should be located in this file. The interrupt
+controller driver, instead of doing a
+
+acpi_irq_model = ACPI_IRQ_MODEL_BLAH;
+
+could as well be doing
+
+acpi_set_irq_model(ACPI_IRQ_MODEL_BLAH, blah_acpi_gsi_desc_populate);
+
+making the whole thing completely interrupt-controller agnostic.
+
+Thanks,
+
+	M.
+
 > 
-> The trace buffer contains length of error data and raw error data
-> in hex.
+> Lorenzo
 > 
-> Following is a sample output of "perf script":
-> _________swapper_____0_[000]___133.521441:_ras:vendor_event:_len=88_raw=11_20_0
-> 0_01_16_04_15_20_01_00_00_01_02_00_00_00_45_43_43_5f_43_45_5f_52_4d_57_00_00_00
-> _00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00
-> 00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_00_80_fe_00_00_00_00_04_0
-> 0_00_00_45_43_43_5f
+>>  
+>> -	/* Set irq type if specified and different than the current one */
+>> -	if (irq_type != IRQ_TYPE_NONE &&
+>> -		irq_type != irq_get_trigger_type(irq))
+>> -		irq_set_irq_type(irq, irq_type);
+>> -	return irq;
+>> +	return irq_create_acpi_mapping(d, &data);
+>>  }
+>>  EXPORT_SYMBOL_GPL(acpi_register_gsi);
+>>  
+>> @@ -98,7 +114,9 @@ EXPORT_SYMBOL_GPL(acpi_register_gsi);
+>>   */
+>>  void acpi_unregister_gsi(u32 gsi)
+>>  {
+>> -	int irq = irq_find_mapping(NULL, gsi);
+>> +	struct irq_domain *d = irq_find_acpi_domain(acpi_irq_model,
+>> +						    DOMAIN_BUS_ANY);
+>> +	int irq = irq_find_mapping(d, gsi);
+>>  
+>>  	irq_dispose_mapping(irq);
+>>  }
+>> -- 
+>> 2.1.4
+>>
 > 
-> Change-Id: Ic8661310133b0ae51f6b299cdde3cd0fa5517464
-> Signed-off-by: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
-> ---
->  drivers/acpi/apei/ghes.c | 29 +++++++++++++++++++++++++++--
->  drivers/ras/ras.c        |  1 +
->  include/ras/ras_event.h  | 30 ++++++++++++++++++++++++++++++
->  3 files changed, 58 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-> index 67fc948da17a..03114d27d218 100644
-> --- a/drivers/acpi/apei/ghes.c
-> +++ b/drivers/acpi/apei/ghes.c
-> @@ -53,9 +53,15 @@
->  #include <acpi/ghes.h>
->  #include <acpi/apei.h>
->  #include <asm/tlbflush.h>
-> +#include <ras/ras_event.h>
->  
->  #include "apei-internal.h"
->  
-> +static uuid_le sec_vendor_uuids[] = {
-> +	CPER_SEC_QTI_ERR,
-> +	NULL_UUID_LE,
-> +};
-> +
->  #define GHES_PFX	"GHES: "
->  
->  #define GHES_ESTATUS_MAX_SIZE		65536
-> @@ -440,11 +446,14 @@ static void ghes_do_proc(struct ghes *ghes,
->  {
->  	int sev, sec_sev;
->  	struct acpi_hest_generic_data *gdata;
-> +	uuid_le sec_type;
->  
->  	sev = ghes_severity(estatus->error_severity);
->  	apei_estatus_for_each_section(estatus, gdata) {
->  		sec_sev = ghes_severity(gdata->error_severity);
-> -		if (!uuid_le_cmp(*(uuid_le *)gdata->section_type,
-> +		sec_type = *(uuid_le *)gdata->section_type;
-> +
-> +		if (!uuid_le_cmp(sec_type,
->  				 CPER_SEC_PLATFORM_MEM)) {
 
-No need to break lines like that - 80 cols rule is superceded by common
-sense.
-
->  			struct cper_sec_mem_err *mem_err;
->  			mem_err = (struct cper_sec_mem_err *)(gdata+1);
-> @@ -454,7 +463,7 @@ static void ghes_do_proc(struct ghes *ghes,
->  			ghes_handle_memory_failure(gdata, sev);
->  		}
->  #ifdef CONFIG_ACPI_APEI_PCIEAER
-> -		else if (!uuid_le_cmp(*(uuid_le *)gdata->section_type,
-> +		else if (!uuid_le_cmp(sec_type,
->  				      CPER_SEC_PCIE)) {
->  			struct cper_sec_pcie *pcie_err;
->  			pcie_err = (struct cper_sec_pcie *)(gdata+1);
-> @@ -486,6 +495,22 @@ static void ghes_do_proc(struct ghes *ghes,
->  
->  		}
->  #endif
-> +		else {
-
-If you return in the cases above, you can save yourself this last else
-and an intentation level...
-
-> +			int i;
-> +
-> +			for (i = 0; uuid_le_cmp(sec_vendor_uuids[i],
-> +			     NULL_UUID_LE); i++) {
-
-... and not break statements like that...
-
-> +				if (!uuid_le_cmp(sec_type,
-> +				    sec_vendor_uuids[i])) {
-
-... and like that.
-
-> +					const void *vendor_err;
-> +
-> +					vendor_err = gdata + 1;
-> +					trace_vendor_event(vendor_err,
-> +						gdata->error_data_length);
-> +					break;
-> +				}
-> +			}
-> +		}
->  	}
->  }
->  
-> diff --git a/drivers/ras/ras.c b/drivers/ras/ras.c
-> index b67dd362b7b6..a656ff131249 100644
-> --- a/drivers/ras/ras.c
-> +++ b/drivers/ras/ras.c
-> @@ -27,3 +27,4 @@ subsys_initcall(ras_init);
->  EXPORT_TRACEPOINT_SYMBOL_GPL(extlog_mem_event);
->  #endif
->  EXPORT_TRACEPOINT_SYMBOL_GPL(mc_event);
-> +EXPORT_TRACEPOINT_SYMBOL_GPL(vendor_event);
-> diff --git a/include/ras/ras_event.h b/include/ras/ras_event.h
-> index 79abb9c71772..a3038653f72d 100644
-> --- a/include/ras/ras_event.h
-> +++ b/include/ras/ras_event.h
-> @@ -161,6 +161,36 @@ TRACE_EVENT(mc_event,
->  );
->  
->  /*
-> + * Vendor Proprietary Events Report
-> + *
-> + * Those event is generated when hardware detected a hardware
-> + * error event, which is of non-standard section as defined
-> + * in UEFI spec appendix "Common Platform Error Record".
-> + *
-> + */
-> +TRACE_EVENT(vendor_event,
-
-This should be something more generic like "data_event" or
-"raw_data_event" which can be used as a catch-all for all non-standard
-formats the UEFI insanity spec will come up with in the future.
 
 -- 
-Regards/Gruss,
-    Boris.
-
-ECO tip #101: Trim your mails when you reply.
---
+Jazz is not dead. It just smells funny...
