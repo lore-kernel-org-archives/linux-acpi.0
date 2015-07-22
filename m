@@ -1,150 +1,85 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH 5/5] irqchip: GIC: Switch ACPI support to stacked domains
-Date: Wed, 22 Jul 2015 09:53:36 +0100
-Message-ID: <55AF5A10.5000106@arm.com>
-References: <1437473280-11431-1-git-send-email-marc.zyngier@arm.com> <1437473280-11431-6-git-send-email-marc.zyngier@arm.com> <20150721180542.GB32187@red-moon> <55AE8B8D.8050002@arm.com> <55AF55C2.4060807@linaro.org>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [PATCH v7 8/8] PCC: Enable PCC only when needed
+Date: Wed, 22 Jul 2015 09:59:19 +0100
+Message-ID: <55AF5B67.4030101@arm.com>
+References: <cover.1436464513.git.ashwin.chaugule@linaro.org> <CAJZ5v0j-_QB1U-A0F2YSoDa_71nyEGR=yn8Kb5qe-FSqDPevOA@mail.gmail.com> <55AE652B.7030409@arm.com> <1583446.GxfV2z2IW5@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:34852 "EHLO foss.arm.com"
+Received: from foss.arm.com ([217.140.101.70]:34874 "EHLO foss.arm.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756130AbbGVIxk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 22 Jul 2015 04:53:40 -0400
-In-Reply-To: <55AF55C2.4060807@linaro.org>
+	id S932424AbbGVI7X (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 22 Jul 2015 04:59:23 -0400
+In-Reply-To: <1583446.GxfV2z2IW5@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, "jaswinder.singh@linaro.org" <jaswinder.singh@linaro.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "patches@linaro.org" <patches@linaro.org>, "viresh.kumar@linaro.org" <viresh.kumar@linaro.org>
 
-On 22/07/15 09:35, Hanjun Guo wrote:
-> On 07/22/2015 02:12 AM, Marc Zyngier wrote:
->> On 21/07/15 19:05, Lorenzo Pieralisi wrote:
->>> On Tue, Jul 21, 2015 at 11:08:00AM +0100, Marc Zyngier wrote:
->>>> Now that the basic ACPI GSI code is irq domain aware, make sure
->>>> that the ACPI support in the GIC doesn't pointlessly deviate from
->>>> the DT path.
->>>>
->>>> Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
->>>> ---
->>>>   drivers/irqchip/irq-gic.c       | 17 ++++++-----------
->>>>   include/linux/irqchip/arm-gic.h |  2 +-
->>>>   2 files changed, 7 insertions(+), 12 deletions(-)
->>>>
->>>> diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
->>>> index b41ccf5..f5d365d 100644
->>>> --- a/drivers/irqchip/irq-gic.c
->>>> +++ b/drivers/irqchip/irq-gic.c
->>>> @@ -813,8 +813,6 @@ static int gic_irq_domain_xlate(struct irq_dom=
-ain *d,
->>>>   {
->>>>   	unsigned long ret =3D 0;
->>>>
->>>> -	if (irq_domain_get_of_node(d) !=3D controller)
->>>> -		return -EINVAL;
->>>>   	if (intsize < 3)
->>>>   		return -EINVAL;
->>>>
->>>> @@ -887,7 +885,7 @@ void gic_set_irqchip_flags(unsigned long flags=
-)
->>>>
->>>>   void __init gic_init_bases(unsigned int gic_nr, int irq_start,
->>>>   			   void __iomem *dist_base, void __iomem *cpu_base,
->>>> -			   u32 percpu_offset, struct device_node *node)
->>>> +			   u32 percpu_offset, void *domain_token)
->>>>   {
->>>>   	irq_hw_number_t hwirq_base;
->>>>   	struct gic_chip_data *gic;
->>>> @@ -946,8 +944,8 @@ void __init gic_init_bases(unsigned int gic_nr=
-, int irq_start,
->>>>   		gic_irqs =3D 1020;
->>>>   	gic->gic_irqs =3D gic_irqs;
->>>>
->>>> -	if (node) {		/* DT case */
->>>> -		gic->domain =3D irq_domain_add_linear(node, gic_irqs,
->>>> +	if (domain_token) {		/* DT/ACPI case */
->>>> +		gic->domain =3D irq_domain_add_linear(domain_token, gic_irqs,
->>>>   						    &gic_irq_domain_hierarchy_ops,
->>>>   						    gic);
->>>>   	} else {		/* Non-DT case */
->>>> @@ -973,7 +971,7 @@ void __init gic_init_bases(unsigned int gic_nr=
-, int irq_start,
->>>>   			irq_base =3D irq_start;
->>>>   		}
->>>>
->>>> -		gic->domain =3D irq_domain_add_legacy(node, gic_irqs, irq_base,
->>>> +		gic->domain =3D irq_domain_add_legacy(NULL, gic_irqs, irq_base,
->>>>   					hwirq_base, &gic_irq_domain_ops, gic);
->>>>   	}
->>>>
->>>> @@ -1132,12 +1130,9 @@ gic_v2_acpi_init(struct acpi_table_header *=
-table)
->>>>   	}
->>>>
->>>>   	/*
->>>> -	 * Initialize zero GIC instance (no multi-GIC support). Also, se=
-t GIC
->>>> -	 * as default IRQ domain to allow for GSI registration and GSI t=
-o IRQ
->>>> -	 * number translation (see acpi_register_gsi() and acpi_gsi_to_i=
-rq()).
->>>> +	 * Initialize zero GIC instance (no multi-GIC support).
->>>>   	 */
->>>> -	gic_init_bases(0, -1, dist_base, cpu_base, 0, NULL);
->>>> -	irq_set_default_host(gic_data[0].domain);
->>>> +	gic_init_bases(0, -1, dist_base, cpu_base, 0, (void *)ACPI_IRQ_M=
-ODEL_GIC);
->>>
->>> Nit: the acpi_irq_model_id enum starts from 0, I do not think we wi=
-ll
->>> use the IRQ domain look-up for the ACPI_IRQ_MODEL_PIC but we have
->>> to be careful anyway.
+
+
+On 22/07/15 02:28, Rafael J. Wysocki wrote:
+> On Tuesday, July 21, 2015 04:28:43 PM Sudeep Holla wrote:
+>> Hi Rafael,
 >>
->> Yeah, I noticed that one too, but couldn't imagine the PIC being
->> migrated to that model just yet. It looks like it would be pretty
->> harmless to set ACPI_IRQ_MODEL_PIC to 1, and introduce
->> ACPI_IRQ_MODEL_ILLEGAL as zero.
->=20
-> I think this will be a problem, because acpi_irq_model_id enum actual=
-ly
-> is defined by the ACPI spec, and the value is used to report to BIOS
-> the current interrupt model used by OS, see section 5.8.1 _PIC Method
-> in ACPI 6.0:
->=20
-> 0 =96 PIC mode
-> 1 =96 APIC mode
-> 2 =96 SAPIC mode
-> Other values =96Reserved
+>> On 21/07/15 15:34, Rafael J. Wysocki wrote:
+>>> Hi Sudeep,
+>>>
+>>> On Tue, Jul 21, 2015 at 11:23 AM, Sudeep Holla <sudeep.holla@arm.com> wrote:
+>>>>
+>>>>
+>>>> On 20/07/15 23:04, Rafael J. Wysocki wrote:
 
-Ah, right.
+[..]
 
-> so we can't set ACPI_IRQ_MODEL_PIC to 1 as it may break the firmware,
-> also _PIC method actually is not needed for ARM platform at all, we
-> don't need to report to firmware the interrupt model used by OS on
-> ARM, it only used by legacy IA platforms, actually I'm planning to
-> remove acpi_irq_model_id on ARM64.
+>>>>>
+>>>>>
+>>>>> No.  The other client will need to select PCC too.
+>>>>
+>>>>
+>>>> Yes the PCC users/clients selecting PCC is fine and that's already
+>>>> done(i.e. ACPI_CPPC_LIB selects PCC). I still don't understand the need
+>>>> for this change, also how will other clients possibly select PCC which
+>>>> now depends on CPPC_LIB ? e.g. if we have
+>>>>
+>>>> config ACPI_XYZ_LIB
+>>>>           select PCC
+>>>>
+>>>> config ACPI_XYZ
+>>>>           select ACPI_XYZ_LIB
+>>>>
+>>>> Won't this shout warning: (ACPI_XYZ_LIB && ACPI_CPPC_LIB) selects PCC
+>>>> which has unmet direct dependencies (MAILBOX && ACPI && ACPI_CPPC_LIB)
+>>>> if ACPI_CPPC_LIB is not selected ?
+>>>
+>>> That depends on the "depends on" clauses used.  Selecting itself
+>>> doesn't cause any dependencies to appear.
+>>>
+>>
+>> Agreed and I am absolutely fine with that. But if you look at this
+>> patch, it does
+>>
+>> config PCC
+>> 	bool "Platform Communication Channel Driver"
+>> 	depends on ACPI && ACPI_CPPC_LIB
+>
+> My bad, I've evidently overlooked that.
+>
+> If PPC is selected from ACPI_CPPC_LIB, the "depends on" above is
+> obviously not needed.
+>
 
-Remove? I don't get it. Either ACPI_IRQ_MODEL_GIC is a leval value, and
-you can't remove it, or it is not, and I wonder how it ended up here th=
-e
-first place.
+Thanks for the confirmation.
 
-> So to me acpi_irq_model_id is suitable for the token, can we use
-                             is *not* ?
-> another one as the token? how about the GIC ID in the MADT table?
-> and this also can be used for x86 (IOAPIC IDs) too.
+>> I am fine with ACPI_CPPC_LIB selecting PCC which is already done in
+>> earlier patch. I am against making PCC depend on ACPI_CPPC_LIB.
+>
+> OK, makes sense.  Sorry for the misunderstanding.
+>
 
-You can use whatever you want, just not a pointer. I'll add a token
-parameter to the acpi_set_irq_model function that I mentioned in my
-reply to Lorenzo.
+It's okay, I just wanted to make sure that I am not missing to
+understand some kind of dependency.
 
-Thanks,
-
-	M.
---=20
-Jazz is not dead. It just smells funny...
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Sudeep
