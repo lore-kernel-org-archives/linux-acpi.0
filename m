@@ -1,512 +1,219 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 06/22] ACPICA: Namespace: Add function to directly return normalized full path.
-Date: Thu, 23 Jul 2015 12:52:39 +0800
-Message-ID: <2425d642ddffc30e7265dbb276212bd61f9d3683.1437627016.git.lv.zheng@intel.com>
+Subject: [PATCH 08/22] ACPICA: Dispatcher: Add trace support for interpreter.
+Date: Thu, 23 Jul 2015 12:52:53 +0800
+Message-ID: <4bdc6169e3b12ae7702163b080671031bccb2122.1437627016.git.lv.zheng@intel.com>
 References: <cover.1437627016.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:24795 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752630AbbGWEwr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 23 Jul 2015 00:52:47 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1437627016.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
-ACPICA commit 6e0229bb156d71675f2e07dc7960adb7ec0a60ea
+ACPICA commit 71299ec8b49054daace0df50268e8e055654ca37
 
-This patch adds functions to return normalized full path instead of
-"external path". The external path contains trailing "_" for each
-name segment while the normalized full path doesn't contain the
-trailing "_".
+This patch adds trace point at the following point:
+1. Begin/end of a control method execution;
+2. Begin/end of an opcode execution.
 
-Currently this function is used by the method tracing users to specify a
-none trailing "_" attached name path. Lv Zheng.
+The trace point feature can be enabled by defining ACPI_DEBUG_OUTPUT
+and specifying a debug level that includes ACPI_LV_TRACDE_POINT and the
+debug layers that include ACPI_PARSER and ACPI_DISPACTCHER.
 
-Note that we need to validate and switch all Linux kernel acpi_get_name()
-users to use the new name type before removing the old name type from
-ACPICA.
+In order to make aml_op_name of union acpi_parse_object usable for tracer, it is
+enabled for ACPI_DEBUG_OUTPUT in this patch. Lv Zheng.
 
-Link: https://github.com/acpica/acpica/commit/6e0229bb
+Link: https://github.com/acpica/acpica/commit/71299ec8
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-Reviewed-by: Ruiyi Zhang <ruiyi_zhang@hotmail.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/acnamesp.h |   13 +-
- drivers/acpi/acpica/exdump.c   |    5 +-
- drivers/acpi/acpica/nsnames.c  |  275 +++++++++++++++++++++++-----------------
- drivers/acpi/acpica/nsutils.c  |    2 +-
- drivers/acpi/acpica/nsxfname.c |    8 +-
- drivers/acpi/acpica/rscreate.c |    3 +-
- drivers/acpi/acpica/utmisc.c   |    2 +-
- include/acpi/actypes.h         |    3 +-
- 8 files changed, 178 insertions(+), 133 deletions(-)
+ drivers/acpi/acpica/aclocal.h  |    2 +-
+ drivers/acpi/acpica/dsdebug.c  |   24 ++++++++++++++++++++++++
+ drivers/acpi/acpica/dsmethod.c |   31 +++++++++++++++++++++++++++++++
+ drivers/acpi/acpica/psloop.c   |   15 +++++++++++++++
+ drivers/acpi/acpica/psparse.c  |    4 ++++
+ include/acpi/acoutput.h        |    4 +++-
+ 6 files changed, 78 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/acpica/acnamesp.h b/drivers/acpi/acpica/acnamesp.h
-index 0dd0882..ea0d907 100644
---- a/drivers/acpi/acpica/acnamesp.h
-+++ b/drivers/acpi/acpica/acnamesp.h
-@@ -272,17 +272,20 @@ acpi_ns_check_package(struct acpi_evaluate_info *info,
-  */
- u32 acpi_ns_opens_scope(acpi_object_type type);
+diff --git a/drivers/acpi/acpica/aclocal.h b/drivers/acpi/acpica/aclocal.h
+index 607e628..610d001 100644
+--- a/drivers/acpi/acpica/aclocal.h
++++ b/drivers/acpi/acpica/aclocal.h
+@@ -715,7 +715,7 @@ union acpi_parse_value {
+ 	union acpi_parse_object *arg;	/* arguments and contained ops */
+ };
  
--acpi_status
--acpi_ns_build_external_path(struct acpi_namespace_node *node,
--			    acpi_size size, char *name_buffer);
--
- char *acpi_ns_get_external_pathname(struct acpi_namespace_node *node);
+-#ifdef ACPI_DISASSEMBLER
++#if defined(ACPI_DISASSEMBLER) || defined(ACPI_DEBUG_OUTPUT)
+ #define ACPI_DISASM_ONLY_MEMBERS(a)     a;
+ #else
+ #define ACPI_DISASM_ONLY_MEMBERS(a)
+diff --git a/drivers/acpi/acpica/dsdebug.c b/drivers/acpi/acpica/dsdebug.c
+index 21c6cef..7df9b50e 100644
+--- a/drivers/acpi/acpica/dsdebug.c
++++ b/drivers/acpi/acpica/dsdebug.c
+@@ -127,6 +127,8 @@ acpi_ds_dump_method_stack(acpi_status status,
+ 	struct acpi_thread_state *thread;
+ 	struct acpi_walk_state *next_walk_state;
+ 	struct acpi_namespace_node *previous_method = NULL;
++	union acpi_operand_object *method_desc;
++	char *pathname = NULL;
  
-+u32
-+acpi_ns_build_normalized_path(struct acpi_namespace_node *node,
-+			      char *full_path, u32 path_size, u8 no_trailing);
-+
-+char *acpi_ns_get_normalized_pathname(struct acpi_namespace_node *node,
-+				      u8 no_trailing);
-+
- char *acpi_ns_name_of_current_scope(struct acpi_walk_state *walk_state);
+ 	ACPI_FUNCTION_TRACE(ds_dump_method_stack);
  
- acpi_status
- acpi_ns_handle_to_pathname(acpi_handle target_handle,
--			   struct acpi_buffer *buffer);
-+			   struct acpi_buffer *buffer, u8 no_trailing);
+@@ -170,6 +172,28 @@ acpi_ds_dump_method_stack(acpi_status status,
+ 	/* Walk list of linked walk states */
  
- u8
- acpi_ns_pattern_match(struct acpi_namespace_node *obj_node, char *search_for);
-diff --git a/drivers/acpi/acpica/exdump.c b/drivers/acpi/acpica/exdump.c
-index 401e7ed..b6495fb 100644
---- a/drivers/acpi/acpica/exdump.c
-+++ b/drivers/acpi/acpica/exdump.c
-@@ -995,9 +995,8 @@ static void acpi_ex_dump_reference_obj(union acpi_operand_object *obj_desc)
- 	if (obj_desc->reference.class == ACPI_REFCLASS_NAME) {
- 		acpi_os_printf(" %p ", obj_desc->reference.node);
- 
--		status =
--		    acpi_ns_handle_to_pathname(obj_desc->reference.node,
--					       &ret_buf);
-+		status = acpi_ns_handle_to_pathname(obj_desc->reference.node,
-+						    &ret_buf, FALSE);
- 		if (ACPI_FAILURE(status)) {
- 			acpi_os_printf(" Could not convert name to pathname\n");
- 		} else {
-diff --git a/drivers/acpi/acpica/nsnames.c b/drivers/acpi/acpica/nsnames.c
-index 2e37888..8934b4e 100644
---- a/drivers/acpi/acpica/nsnames.c
-+++ b/drivers/acpi/acpica/nsnames.c
-@@ -51,73 +51,6 @@ ACPI_MODULE_NAME("nsnames")
- 
- /*******************************************************************************
-  *
-- * FUNCTION:    acpi_ns_build_external_path
-- *
-- * PARAMETERS:  node            - NS node whose pathname is needed
-- *              size            - Size of the pathname
-- *              *name_buffer    - Where to return the pathname
-- *
-- * RETURN:      Status
-- *              Places the pathname into the name_buffer, in external format
-- *              (name segments separated by path separators)
-- *
-- * DESCRIPTION: Generate a full pathaname
-- *
-- ******************************************************************************/
--acpi_status
--acpi_ns_build_external_path(struct acpi_namespace_node *node,
--			    acpi_size size, char *name_buffer)
--{
--	acpi_size index;
--	struct acpi_namespace_node *parent_node;
--
--	ACPI_FUNCTION_ENTRY();
--
--	/* Special case for root */
--
--	index = size - 1;
--	if (index < ACPI_NAME_SIZE) {
--		name_buffer[0] = AML_ROOT_PREFIX;
--		name_buffer[1] = 0;
--		return (AE_OK);
--	}
--
--	/* Store terminator byte, then build name backwards */
--
--	parent_node = node;
--	name_buffer[index] = 0;
--
--	while ((index > ACPI_NAME_SIZE) && (parent_node != acpi_gbl_root_node)) {
--		index -= ACPI_NAME_SIZE;
--
--		/* Put the name into the buffer */
--
--		ACPI_MOVE_32_TO_32((name_buffer + index), &parent_node->name);
--		parent_node = parent_node->parent;
--
--		/* Prefix name with the path separator */
--
--		index--;
--		name_buffer[index] = ACPI_PATH_SEPARATOR;
--	}
--
--	/* Overwrite final separator with the root prefix character */
--
--	name_buffer[index] = AML_ROOT_PREFIX;
--
--	if (index != 0) {
--		ACPI_ERROR((AE_INFO,
--			    "Could not construct external pathname; index=%u, size=%u, Path=%s",
--			    (u32)index, (u32)size, &name_buffer[size]));
--
--		return (AE_BAD_PARAMETER);
--	}
--
--	return (AE_OK);
--}
--
--/*******************************************************************************
-- *
-  * FUNCTION:    acpi_ns_get_external_pathname
-  *
-  * PARAMETERS:  node            - Namespace node whose pathname is needed
-@@ -130,37 +63,13 @@ acpi_ns_build_external_path(struct acpi_namespace_node *node,
-  *              for error and debug statements.
-  *
-  ******************************************************************************/
--
- char *acpi_ns_get_external_pathname(struct acpi_namespace_node *node)
- {
--	acpi_status status;
- 	char *name_buffer;
--	acpi_size size;
- 
- 	ACPI_FUNCTION_TRACE_PTR(ns_get_external_pathname, node);
- 
--	/* Calculate required buffer size based on depth below root */
--
--	size = acpi_ns_get_pathname_length(node);
--	if (!size) {
--		return_PTR(NULL);
--	}
--
--	/* Allocate a buffer to be returned to caller */
--
--	name_buffer = ACPI_ALLOCATE_ZEROED(size);
--	if (!name_buffer) {
--		ACPI_ERROR((AE_INFO, "Could not allocate %u bytes", (u32)size));
--		return_PTR(NULL);
--	}
--
--	/* Build the path in the allocated buffer */
--
--	status = acpi_ns_build_external_path(node, size, name_buffer);
--	if (ACPI_FAILURE(status)) {
--		ACPI_FREE(name_buffer);
--		return_PTR(NULL);
--	}
-+	name_buffer = acpi_ns_get_normalized_pathname(node, FALSE);
- 
- 	return_PTR(name_buffer);
- }
-@@ -180,33 +89,12 @@ char *acpi_ns_get_external_pathname(struct acpi_namespace_node *node)
- acpi_size acpi_ns_get_pathname_length(struct acpi_namespace_node *node)
- {
- 	acpi_size size;
--	struct acpi_namespace_node *next_node;
- 
- 	ACPI_FUNCTION_ENTRY();
- 
--	/*
--	 * Compute length of pathname as 5 * number of name segments.
--	 * Go back up the parent tree to the root
--	 */
--	size = 0;
--	next_node = node;
-+	size = acpi_ns_build_normalized_path(node, NULL, 0, FALSE);
- 
--	while (next_node && (next_node != acpi_gbl_root_node)) {
--		if (ACPI_GET_DESCRIPTOR_TYPE(next_node) != ACPI_DESC_TYPE_NAMED) {
--			ACPI_ERROR((AE_INFO,
--				    "Invalid Namespace Node (%p) while traversing namespace",
--				    next_node));
--			return (0);
--		}
--		size += ACPI_PATH_SEGMENT_LENGTH;
--		next_node = next_node->parent;
--	}
--
--	if (!size) {
--		size = 1;	/* Root node case */
--	}
--
--	return (size + 1);	/* +1 for null string terminator */
-+	return (size);
- }
- 
- /*******************************************************************************
-@@ -216,6 +104,8 @@ acpi_size acpi_ns_get_pathname_length(struct acpi_namespace_node *node)
-  * PARAMETERS:  target_handle           - Handle of named object whose name is
-  *                                        to be found
-  *              buffer                  - Where the pathname is returned
-+ *              no_trailing             - Remove trailing '_' for each name
-+ *                                        segment
-  *
-  * RETURN:      Status, Buffer is filled with pathname if status is AE_OK
-  *
-@@ -225,7 +115,7 @@ acpi_size acpi_ns_get_pathname_length(struct acpi_namespace_node *node)
- 
- acpi_status
- acpi_ns_handle_to_pathname(acpi_handle target_handle,
--			   struct acpi_buffer * buffer)
-+			   struct acpi_buffer * buffer, u8 no_trailing)
- {
- 	acpi_status status;
- 	struct acpi_namespace_node *node;
-@@ -240,7 +130,8 @@ acpi_ns_handle_to_pathname(acpi_handle target_handle,
- 
- 	/* Determine size required for the caller buffer */
- 
--	required_size = acpi_ns_get_pathname_length(node);
-+	required_size =
-+	    acpi_ns_build_normalized_path(node, NULL, 0, no_trailing);
- 	if (!required_size) {
- 		return_ACPI_STATUS(AE_BAD_PARAMETER);
- 	}
-@@ -254,8 +145,8 @@ acpi_ns_handle_to_pathname(acpi_handle target_handle,
- 
- 	/* Build the path in the caller buffer */
- 
--	status =
--	    acpi_ns_build_external_path(node, required_size, buffer->pointer);
-+	(void)acpi_ns_build_normalized_path(node, buffer->pointer,
-+					    required_size, no_trailing);
- 	if (ACPI_FAILURE(status)) {
- 		return_ACPI_STATUS(status);
- 	}
-@@ -264,3 +155,149 @@ acpi_ns_handle_to_pathname(acpi_handle target_handle,
- 			  (char *)buffer->pointer, (u32) required_size));
- 	return_ACPI_STATUS(AE_OK);
- }
-+
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_ns_build_normalized_path
-+ *
-+ * PARAMETERS:  node        - Namespace node
-+ *              full_path   - Where the path name is returned
-+ *              path_size   - Size of returned path name buffer
-+ *              no_trailing - Remove trailing '_' from each name segment
-+ *
-+ * RETURN:      Return 1 if the AML path is empty, otherwise returning (length
-+ *              of pathname + 1) which means the 'FullPath' contains a trailing
-+ *              null.
-+ *
-+ * DESCRIPTION: Build and return a full namespace pathname.
-+ *              Note that if the size of 'FullPath' isn't large enough to
-+ *              contain the namespace node's path name, the actual required
-+ *              buffer length is returned, and it should be greater than
-+ *              'PathSize'. So callers are able to check the returning value
-+ *              to determine the buffer size of 'FullPath'.
-+ *
-+ ******************************************************************************/
-+
-+u32
-+acpi_ns_build_normalized_path(struct acpi_namespace_node *node,
-+			      char *full_path, u32 path_size, u8 no_trailing)
-+{
-+	u32 length = 0, i;
-+	char name[ACPI_NAME_SIZE];
-+	u8 do_no_trailing;
-+	char c, *left, *right;
-+	struct acpi_namespace_node *next_node;
-+
-+	ACPI_FUNCTION_TRACE_PTR(ns_build_normalized_path, node);
-+
-+#define ACPI_PATH_PUT8(path, size, byte, length)    \
-+	do {                                            \
-+		if ((length) < (size))                      \
-+		{                                           \
-+			(path)[(length)] = (byte);              \
-+		}                                           \
-+		(length)++;                                 \
-+	} while (0)
-+
-+	/*
-+	 * Make sure the path_size is correct, so that we don't need to
-+	 * validate both full_path and path_size.
-+	 */
-+	if (!full_path) {
-+		path_size = 0;
-+	}
-+
-+	if (!node) {
-+		goto build_trailing_null;
-+	}
-+
-+	next_node = node;
-+	while (next_node && next_node != acpi_gbl_root_node) {
-+		if (next_node != node) {
-+			ACPI_PATH_PUT8(full_path, path_size,
-+				       AML_DUAL_NAME_PREFIX, length);
+ 	while (next_walk_state) {
++		method_desc = next_walk_state->method_desc;
++		if (method_desc && method_desc->method.node) {
++			pathname = acpi_ns_get_normalized_pathname((struct
++								    acpi_namespace_node
++								    *)
++								   method_desc->
++								   method.node,
++								   TRUE);
 +		}
-+		ACPI_MOVE_32_TO_32(name, &next_node->name);
-+		do_no_trailing = no_trailing;
-+		for (i = 0; i < 4; i++) {
-+			c = name[4 - i - 1];
-+			if (do_no_trailing && c != '_') {
-+				do_no_trailing = FALSE;
++		if (pathname) {
++			ACPI_DEBUG_PRINT((ACPI_DB_TRACE_POINT,
++					  "End method [0x%p:%s] execution.\n",
++					  method_desc->method.aml_start,
++					  pathname));
++			ACPI_FREE(pathname);
++			pathname = NULL;
++		} else {
++			ACPI_DEBUG_PRINT((ACPI_DB_TRACE_POINT,
++					  "End method [0x%p] execution.\n",
++					  method_desc->method.aml_start));
++		}
++
+ 		ACPI_DEBUG_PRINT((ACPI_DB_DISPATCH,
+ 				  "    Method [%4.4s] executing: ",
+ 				  acpi_ut_get_node_name(next_walk_state->
+diff --git a/drivers/acpi/acpica/dsmethod.c b/drivers/acpi/acpica/dsmethod.c
+index e0ae8f4..0fa6f19 100644
+--- a/drivers/acpi/acpica/dsmethod.c
++++ b/drivers/acpi/acpica/dsmethod.c
+@@ -327,6 +327,7 @@ acpi_ds_begin_method_execution(struct acpi_namespace_node *method_node,
+ 			       struct acpi_walk_state *walk_state)
+ {
+ 	acpi_status status = AE_OK;
++	char *pathname = NULL;
+ 
+ 	ACPI_FUNCTION_TRACE_PTR(ds_begin_method_execution, method_node);
+ 
+@@ -334,6 +335,18 @@ acpi_ds_begin_method_execution(struct acpi_namespace_node *method_node,
+ 		return_ACPI_STATUS(AE_NULL_ENTRY);
+ 	}
+ 
++	pathname = acpi_ns_get_normalized_pathname(method_node, TRUE);
++	if (pathname) {
++		ACPI_DEBUG_PRINT((ACPI_DB_TRACE_POINT,
++				  "Begin method [0x%p:%s] execution.\n",
++				  obj_desc->method.aml_start, pathname));
++		ACPI_FREE(pathname);
++	} else {
++		ACPI_DEBUG_PRINT((ACPI_DB_TRACE_POINT,
++				  "Begin method [0x%p] execution.\n",
++				  obj_desc->method.aml_start));
++	}
++
+ 	/* Prevent wraparound of thread count */
+ 
+ 	if (obj_desc->method.thread_count == ACPI_UINT8_MAX) {
+@@ -695,6 +708,7 @@ void
+ acpi_ds_terminate_control_method(union acpi_operand_object *method_desc,
+ 				 struct acpi_walk_state *walk_state)
+ {
++	char *pathname = NULL;
+ 
+ 	ACPI_FUNCTION_TRACE_PTR(ds_terminate_control_method, walk_state);
+ 
+@@ -832,5 +846,22 @@ acpi_ds_terminate_control_method(union acpi_operand_object *method_desc,
+ 		}
+ 	}
+ 
++	if (method_desc->method.node) {
++		pathname = acpi_ns_get_normalized_pathname((struct
++							    acpi_namespace_node
++							    *)method_desc->
++							   method.node, TRUE);
++	}
++	if (pathname) {
++		ACPI_DEBUG_PRINT((ACPI_DB_TRACE_POINT,
++				  "End method [0x%p:%s] execution.\n",
++				  method_desc->method.aml_start, pathname));
++		ACPI_FREE(pathname);
++	} else {
++		ACPI_DEBUG_PRINT((ACPI_DB_TRACE_POINT,
++				  "End method [0x%p] execution.\n",
++				  method_desc->method.aml_start));
++	}
++
+ 	return_VOID;
+ }
+diff --git a/drivers/acpi/acpica/psloop.c b/drivers/acpi/acpica/psloop.c
+index 49c60c2..80339ba 100644
+--- a/drivers/acpi/acpica/psloop.c
++++ b/drivers/acpi/acpica/psloop.c
+@@ -497,6 +497,21 @@ acpi_status acpi_ps_parse_loop(struct acpi_walk_state *walk_state)
+ 						  walk_state->op_info->name, op,
+ 						  op->common.aml));
+ 			}
++
++			if (walk_state->op_info) {
++				ACPI_DEBUG_PRINT((ACPI_DB_TRACE_POINT,
++						  "Begin opcode: %s[0x%p] Class=0x%02x, Type=0x%02x, Flags=0x%04x.\n",
++						  op->common.aml_op_name,
++						  op->common.aml,
++						  walk_state->op_info->class,
++						  walk_state->op_info->type,
++						  walk_state->op_info->flags));
++			} else {
++				ACPI_DEBUG_PRINT((ACPI_DB_TRACE_POINT,
++						  "Begin opcode: %s[0x%p].\n",
++						  op->common.aml_op_name,
++						  op->common.aml));
 +			}
-+			if (!do_no_trailing) {
-+				ACPI_PATH_PUT8(full_path, path_size, c, length);
-+			}
-+		}
-+		next_node = next_node->parent;
-+	}
-+	ACPI_PATH_PUT8(full_path, path_size, AML_ROOT_PREFIX, length);
-+
-+	/* Reverse the path string */
-+
-+	if (length <= path_size) {
-+		left = full_path;
-+		right = full_path + length - 1;
-+		while (left < right) {
-+			c = *left;
-+			*left++ = *right;
-+			*right-- = c;
-+		}
-+	}
-+
-+	/* Append the trailing null */
-+
-+build_trailing_null:
-+	ACPI_PATH_PUT8(full_path, path_size, '\0', length);
-+
-+#undef ACPI_PATH_PUT8
-+
-+	return_UINT32(length);
-+}
-+
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_ns_get_normalized_pathname
-+ *
-+ * PARAMETERS:  node            - Namespace node whose pathname is needed
-+ *              no_trailing     - Remove trailing '_' from each name segment
-+ *
-+ * RETURN:      Pointer to storage containing the fully qualified name of
-+ *              the node, In external format (name segments separated by path
-+ *              separators.)
-+ *
-+ * DESCRIPTION: Used to obtain the full pathname to a namespace node, usually
-+ *              for error and debug statements. All trailing '_' will be
-+ *              removed from the full pathname if 'NoTrailing' is specified..
-+ *
-+ ******************************************************************************/
-+
-+char *acpi_ns_get_normalized_pathname(struct acpi_namespace_node *node,
-+				      u8 no_trailing)
-+{
-+	char *name_buffer;
-+	acpi_size size;
-+
-+	ACPI_FUNCTION_TRACE_PTR(ns_get_normalized_pathname, node);
-+
-+	/* Calculate required buffer size based on depth below root */
-+
-+	size = acpi_ns_build_normalized_path(node, NULL, 0, no_trailing);
-+	if (!size) {
-+		return_PTR(NULL);
-+	}
-+
-+	/* Allocate a buffer to be returned to caller */
-+
-+	name_buffer = ACPI_ALLOCATE_ZEROED(size);
-+	if (!name_buffer) {
-+		ACPI_ERROR((AE_INFO, "Could not allocate %u bytes", (u32)size));
-+		return_PTR(NULL);
-+	}
-+
-+	/* Build the path in the allocated buffer */
-+
-+	(void)acpi_ns_build_normalized_path(node, name_buffer, size,
-+					    no_trailing);
-+
-+	return_PTR(name_buffer);
-+}
-diff --git a/drivers/acpi/acpica/nsutils.c b/drivers/acpi/acpica/nsutils.c
-index 8d8104b..9a34c5f 100644
---- a/drivers/acpi/acpica/nsutils.c
-+++ b/drivers/acpi/acpica/nsutils.c
-@@ -83,7 +83,7 @@ acpi_ns_print_node_pathname(struct acpi_namespace_node *node,
+ 		}
  
- 	buffer.length = ACPI_ALLOCATE_LOCAL_BUFFER;
- 
--	status = acpi_ns_handle_to_pathname(node, &buffer);
-+	status = acpi_ns_handle_to_pathname(node, &buffer, FALSE);
- 	if (ACPI_SUCCESS(status)) {
- 		if (message) {
- 			acpi_os_printf("%s ", message);
-diff --git a/drivers/acpi/acpica/nsxfname.c b/drivers/acpi/acpica/nsxfname.c
-index 9ff643b..4b4d2f4 100644
---- a/drivers/acpi/acpica/nsxfname.c
-+++ b/drivers/acpi/acpica/nsxfname.c
-@@ -172,11 +172,15 @@ acpi_get_name(acpi_handle handle, u32 name_type, struct acpi_buffer * buffer)
- 		return (status);
+ 		/*
+diff --git a/drivers/acpi/acpica/psparse.c b/drivers/acpi/acpica/psparse.c
+index b857ad5..97ea0e5 100644
+--- a/drivers/acpi/acpica/psparse.c
++++ b/drivers/acpi/acpica/psparse.c
+@@ -147,6 +147,10 @@ acpi_ps_complete_this_op(struct acpi_walk_state * walk_state,
+ 		return_ACPI_STATUS(AE_OK);	/* OK for now */
  	}
  
--	if (name_type == ACPI_FULL_PATHNAME) {
-+	if (name_type == ACPI_FULL_PATHNAME ||
-+	    name_type == ACPI_FULL_PATHNAME_NO_TRAILING) {
++	ACPI_DEBUG_PRINT((ACPI_DB_TRACE_POINT,
++			  "End opcode: %s[0x%p].\n",
++			  op->common.aml_op_name, op->common.aml));
++
+ 	/* Delete this op and the subtree below it if asked to */
  
- 		/* Get the full pathname (From the namespace root) */
+ 	if (((walk_state->parse_flags & ACPI_PARSE_TREE_MASK) !=
+diff --git a/include/acpi/acoutput.h b/include/acpi/acoutput.h
+index f56de8c..8f89df9 100644
+--- a/include/acpi/acoutput.h
++++ b/include/acpi/acoutput.h
+@@ -88,7 +88,8 @@
+ #define ACPI_LV_DEBUG_OBJECT        0x00000002
+ #define ACPI_LV_INFO                0x00000004
+ #define ACPI_LV_REPAIR              0x00000008
+-#define ACPI_LV_ALL_EXCEPTIONS      0x0000000F
++#define ACPI_LV_TRACE_POINT         0x00000010
++#define ACPI_LV_ALL_EXCEPTIONS      0x0000001F
  
--		status = acpi_ns_handle_to_pathname(handle, buffer);
-+		status = acpi_ns_handle_to_pathname(handle, buffer,
-+						    name_type ==
-+						    ACPI_FULL_PATHNAME ? FALSE :
-+						    TRUE);
- 		return (status);
- 	}
+ /* Trace verbosity level 1 [Standard Trace Level] */
  
-diff --git a/drivers/acpi/acpica/rscreate.c b/drivers/acpi/acpica/rscreate.c
-index 3fa829e..a534442 100644
---- a/drivers/acpi/acpica/rscreate.c
-+++ b/drivers/acpi/acpica/rscreate.c
-@@ -348,7 +348,8 @@ acpi_rs_create_pci_routing_table(union acpi_operand_object *package_object,
- 				status =
- 				    acpi_ns_handle_to_pathname((acpi_handle)
- 							       node,
--							       &path_buffer);
-+							       &path_buffer,
-+							       FALSE);
+@@ -147,6 +148,7 @@
+ #define ACPI_DB_DEBUG_OBJECT        ACPI_DEBUG_LEVEL (ACPI_LV_DEBUG_OBJECT)
+ #define ACPI_DB_INFO                ACPI_DEBUG_LEVEL (ACPI_LV_INFO)
+ #define ACPI_DB_REPAIR              ACPI_DEBUG_LEVEL (ACPI_LV_REPAIR)
++#define ACPI_DB_TRACE_POINT         ACPI_DEBUG_LEVEL (ACPI_LV_TRACE_POINT)
+ #define ACPI_DB_ALL_EXCEPTIONS      ACPI_DEBUG_LEVEL (ACPI_LV_ALL_EXCEPTIONS)
  
- 				/* +1 to include null terminator */
- 
-diff --git a/drivers/acpi/acpica/utmisc.c b/drivers/acpi/acpica/utmisc.c
-index 71b6653..98087ea 100644
---- a/drivers/acpi/acpica/utmisc.c
-+++ b/drivers/acpi/acpica/utmisc.c
-@@ -376,7 +376,7 @@ acpi_ut_display_init_pathname(u8 type,
- 	/* Get the full pathname to the node */
- 
- 	buffer.length = ACPI_ALLOCATE_LOCAL_BUFFER;
--	status = acpi_ns_handle_to_pathname(obj_handle, &buffer);
-+	status = acpi_ns_handle_to_pathname(obj_handle, &buffer, FALSE);
- 	if (ACPI_FAILURE(status)) {
- 		return;
- 	}
-diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
-index c2a41d2..0f3913f 100644
---- a/include/acpi/actypes.h
-+++ b/include/acpi/actypes.h
-@@ -985,7 +985,8 @@ struct acpi_buffer {
-  */
- #define ACPI_FULL_PATHNAME              0
- #define ACPI_SINGLE_NAME                1
--#define ACPI_NAME_TYPE_MAX              1
-+#define ACPI_FULL_PATHNAME_NO_TRAILING  2
-+#define ACPI_NAME_TYPE_MAX              2
- 
- /*
-  * Predefined Namespace items
+ /* Trace level -- also used in the global "DebugLevel" */
 -- 
 1.7.10
-
