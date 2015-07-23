@@ -1,219 +1,813 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 08/22] ACPICA: Dispatcher: Add trace support for interpreter.
-Date: Thu, 23 Jul 2015 12:52:53 +0800
-Message-ID: <4bdc6169e3b12ae7702163b080671031bccb2122.1437627016.git.lv.zheng@intel.com>
+Subject: [PATCH 09/22] ACPICA: Executer: Add interpreter tracing mode for method tracing facility.
+Date: Thu, 23 Jul 2015 12:52:59 +0800
+Message-ID: <3f8670e842db94fc24cca28b2bc7dcae3ea00f37.1437627016.git.lv.zheng@intel.com>
 References: <cover.1437627016.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:3848 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752917AbbGWExG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 23 Jul 2015 00:53:06 -0400
 In-Reply-To: <cover.1437627016.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
-List-Id: linux-acpi@vger.kernel.org
 
-ACPICA commit 71299ec8b49054daace0df50268e8e055654ca37
+ACPICA commit 07fffd02607685b655ed92ee15c160e6a810b60b
 
-This patch adds trace point at the following point:
-1. Begin/end of a control method execution;
-2. Begin/end of an opcode execution.
+The acpi_debug_trace() is the mechanism known as ACPI method tracing that is
+used by Linux as ACPICA debugging message reducer. This facility can be
+controlled through Linux ACPI subsystem - /sys/module/acpi/parameters.
+This facility requires CONFIG_ACPI_DEBUG to be enabled to see ACPICA trace
+logs in the kernel dmesg output.
 
-The trace point feature can be enabled by defining ACPI_DEBUG_OUTPUT
-and specifying a debug level that includes ACPI_LV_TRACDE_POINT and the
-debug layers that include ACPI_PARSER and ACPI_DISPACTCHER.
+This patch enhances acpi_debug_trace() to make it not only a message reducer,
+but a real tracer to trace AML interpreter execution. Note that in addition
+to the AML tracer enabling, this patch also updates the facility with the
+following enhancements:
+1. Allow a full path to be specified by the acpi_debug_trace() API.
+2. Allow any method rather than just the entrance of acpi_evaluate_object()
+   to be traced.
+3. All interpreter ACPI_LV_TRACE_POINT messages are collected for
+   ACPI_EXECUTER layer.
 
-In order to make aml_op_name of union acpi_parse_object usable for tracer, it is
-enabled for ACPI_DEBUG_OUTPUT in this patch. Lv Zheng.
+The Makefile of drivers/acpi/acpica is also updated to include exdebug.o
+and the duplicated stubs are removed after that.
 
-Link: https://github.com/acpica/acpica/commit/71299ec8
+Note that since this patch has enhanced the method tracing facility, Linux
+need also be updated after applying this patch. Lv Zheng.
+
+Link: https://github.com/acpica/acpica/commit/07fffd02
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/aclocal.h  |    2 +-
- drivers/acpi/acpica/dsdebug.c  |   24 ++++++++++++++++++++++++
- drivers/acpi/acpica/dsmethod.c |   31 +++++++++++++++++++++++++++++++
- drivers/acpi/acpica/psloop.c   |   15 +++++++++++++++
- drivers/acpi/acpica/psparse.c  |    4 ++++
- include/acpi/acoutput.h        |    4 +++-
- 6 files changed, 78 insertions(+), 2 deletions(-)
+ drivers/acpi/acpica/acdebug.h  |    2 +
+ drivers/acpi/acpica/acglobal.h |    2 -
+ drivers/acpi/acpica/acinterp.h |   18 +++
+ drivers/acpi/acpica/dsdebug.c  |   25 +---
+ drivers/acpi/acpica/dsmethod.c |   32 +----
+ drivers/acpi/acpica/exdebug.c  |  271 ++++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/acpica/psloop.c   |   16 +--
+ drivers/acpi/acpica/psparse.c  |    4 +-
+ drivers/acpi/acpica/psxface.c  |  121 ++----------------
+ drivers/acpi/acpica/utinit.c   |    2 -
+ include/acpi/acoutput.h        |   13 ++
+ include/acpi/acpixf.h          |    6 +-
+ 12 files changed, 327 insertions(+), 185 deletions(-)
 
-diff --git a/drivers/acpi/acpica/aclocal.h b/drivers/acpi/acpica/aclocal.h
-index 607e628..610d001 100644
---- a/drivers/acpi/acpica/aclocal.h
-+++ b/drivers/acpi/acpica/aclocal.h
-@@ -715,7 +715,7 @@ union acpi_parse_value {
- 	union acpi_parse_object *arg;	/* arguments and contained ops */
- };
+diff --git a/drivers/acpi/acpica/acdebug.h b/drivers/acpi/acpica/acdebug.h
+index 43685dd..88482f7 100644
+--- a/drivers/acpi/acpica/acdebug.h
++++ b/drivers/acpi/acpica/acdebug.h
+@@ -102,6 +102,8 @@ void acpi_db_display_interfaces(char *action_arg, char *interface_name_arg);
  
--#ifdef ACPI_DISASSEMBLER
-+#if defined(ACPI_DISASSEMBLER) || defined(ACPI_DEBUG_OUTPUT)
- #define ACPI_DISASM_ONLY_MEMBERS(a)     a;
- #else
- #define ACPI_DISASM_ONLY_MEMBERS(a)
+ acpi_status acpi_db_sleep(char *object_arg);
+ 
++void acpi_db_trace(char *enable_arg, char *method_arg, char *once_arg);
++
+ void acpi_db_display_locks(void);
+ 
+ void acpi_db_display_resources(char *object_arg);
+diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
+index 53f96a3..5342300 100644
+--- a/drivers/acpi/acpica/acglobal.h
++++ b/drivers/acpi/acpica/acglobal.h
+@@ -290,8 +290,6 @@ ACPI_GLOBAL(u32, acpi_fixed_event_count[ACPI_NUM_FIXED_EVENTS]);
+ 
+ ACPI_GLOBAL(u32, acpi_gbl_original_dbg_level);
+ ACPI_GLOBAL(u32, acpi_gbl_original_dbg_layer);
+-ACPI_GLOBAL(u32, acpi_gbl_trace_dbg_level);
+-ACPI_GLOBAL(u32, acpi_gbl_trace_dbg_layer);
+ 
+ /*****************************************************************************
+  *
+diff --git a/drivers/acpi/acpica/acinterp.h b/drivers/acpi/acpica/acinterp.h
+index 7ac9800..a3c6e2a 100644
+--- a/drivers/acpi/acpica/acinterp.h
++++ b/drivers/acpi/acpica/acinterp.h
+@@ -131,6 +131,24 @@ void
+ acpi_ex_do_debug_object(union acpi_operand_object *source_desc,
+ 			u32 level, u32 index);
+ 
++void
++acpi_ex_start_trace_method(struct acpi_namespace_node *method_node,
++			   union acpi_operand_object *obj_desc,
++			   struct acpi_walk_state *walk_state);
++
++void
++acpi_ex_stop_trace_method(struct acpi_namespace_node *method_node,
++			  union acpi_operand_object *obj_desc,
++			  struct acpi_walk_state *walk_state);
++
++void
++acpi_ex_start_trace_opcode(union acpi_parse_object *op,
++			   struct acpi_walk_state *walk_state);
++
++void
++acpi_ex_stop_trace_opcode(union acpi_parse_object *op,
++			  struct acpi_walk_state *walk_state);
++
+ /*
+  * exfield - ACPI AML (p-code) execution - field manipulation
+  */
 diff --git a/drivers/acpi/acpica/dsdebug.c b/drivers/acpi/acpica/dsdebug.c
-index 21c6cef..7df9b50e 100644
+index 7df9b50e..a651d30 100644
 --- a/drivers/acpi/acpica/dsdebug.c
 +++ b/drivers/acpi/acpica/dsdebug.c
-@@ -127,6 +127,8 @@ acpi_ds_dump_method_stack(acpi_status status,
- 	struct acpi_thread_state *thread;
+@@ -48,6 +48,7 @@
+ #ifdef ACPI_DISASSEMBLER
+ #include "acdisasm.h"
+ #endif
++#include "acinterp.h"
+ 
+ #define _COMPONENT          ACPI_DISPATCHER
+ ACPI_MODULE_NAME("dsdebug")
+@@ -128,7 +129,6 @@ acpi_ds_dump_method_stack(acpi_status status,
  	struct acpi_walk_state *next_walk_state;
  	struct acpi_namespace_node *previous_method = NULL;
-+	union acpi_operand_object *method_desc;
-+	char *pathname = NULL;
+ 	union acpi_operand_object *method_desc;
+-	char *pathname = NULL;
  
  	ACPI_FUNCTION_TRACE(ds_dump_method_stack);
  
-@@ -170,6 +172,28 @@ acpi_ds_dump_method_stack(acpi_status status,
- 	/* Walk list of linked walk states */
+@@ -173,25 +173,10 @@ acpi_ds_dump_method_stack(acpi_status status,
  
  	while (next_walk_state) {
-+		method_desc = next_walk_state->method_desc;
-+		if (method_desc && method_desc->method.node) {
-+			pathname = acpi_ns_get_normalized_pathname((struct
-+								    acpi_namespace_node
-+								    *)
-+								   method_desc->
-+								   method.node,
-+								   TRUE);
-+		}
-+		if (pathname) {
-+			ACPI_DEBUG_PRINT((ACPI_DB_TRACE_POINT,
-+					  "End method [0x%p:%s] execution.\n",
-+					  method_desc->method.aml_start,
-+					  pathname));
-+			ACPI_FREE(pathname);
-+			pathname = NULL;
-+		} else {
-+			ACPI_DEBUG_PRINT((ACPI_DB_TRACE_POINT,
-+					  "End method [0x%p] execution.\n",
-+					  method_desc->method.aml_start));
-+		}
-+
+ 		method_desc = next_walk_state->method_desc;
+-		if (method_desc && method_desc->method.node) {
+-			pathname = acpi_ns_get_normalized_pathname((struct
+-								    acpi_namespace_node
+-								    *)
+-								   method_desc->
+-								   method.node,
+-								   TRUE);
+-		}
+-		if (pathname) {
+-			ACPI_DEBUG_PRINT((ACPI_DB_TRACE_POINT,
+-					  "End method [0x%p:%s] execution.\n",
+-					  method_desc->method.aml_start,
+-					  pathname));
+-			ACPI_FREE(pathname);
+-			pathname = NULL;
+-		} else {
+-			ACPI_DEBUG_PRINT((ACPI_DB_TRACE_POINT,
+-					  "End method [0x%p] execution.\n",
+-					  method_desc->method.aml_start));
++		if (method_desc) {
++			acpi_ex_stop_trace_method((struct acpi_namespace_node *)
++						  method_desc->method.node,
++						  method_desc, walk_state);
+ 		}
+ 
  		ACPI_DEBUG_PRINT((ACPI_DB_DISPATCH,
- 				  "    Method [%4.4s] executing: ",
- 				  acpi_ut_get_node_name(next_walk_state->
 diff --git a/drivers/acpi/acpica/dsmethod.c b/drivers/acpi/acpica/dsmethod.c
-index e0ae8f4..0fa6f19 100644
+index 0fa6f19..ea2bdde 100644
 --- a/drivers/acpi/acpica/dsmethod.c
 +++ b/drivers/acpi/acpica/dsmethod.c
-@@ -327,6 +327,7 @@ acpi_ds_begin_method_execution(struct acpi_namespace_node *method_node,
+@@ -327,7 +327,6 @@ acpi_ds_begin_method_execution(struct acpi_namespace_node *method_node,
  			       struct acpi_walk_state *walk_state)
  {
  	acpi_status status = AE_OK;
-+	char *pathname = NULL;
+-	char *pathname = NULL;
  
  	ACPI_FUNCTION_TRACE_PTR(ds_begin_method_execution, method_node);
  
-@@ -334,6 +335,18 @@ acpi_ds_begin_method_execution(struct acpi_namespace_node *method_node,
+@@ -335,17 +334,7 @@ acpi_ds_begin_method_execution(struct acpi_namespace_node *method_node,
  		return_ACPI_STATUS(AE_NULL_ENTRY);
  	}
  
-+	pathname = acpi_ns_get_normalized_pathname(method_node, TRUE);
-+	if (pathname) {
-+		ACPI_DEBUG_PRINT((ACPI_DB_TRACE_POINT,
-+				  "Begin method [0x%p:%s] execution.\n",
-+				  obj_desc->method.aml_start, pathname));
-+		ACPI_FREE(pathname);
-+	} else {
-+		ACPI_DEBUG_PRINT((ACPI_DB_TRACE_POINT,
-+				  "Begin method [0x%p] execution.\n",
-+				  obj_desc->method.aml_start));
-+	}
-+
+-	pathname = acpi_ns_get_normalized_pathname(method_node, TRUE);
+-	if (pathname) {
+-		ACPI_DEBUG_PRINT((ACPI_DB_TRACE_POINT,
+-				  "Begin method [0x%p:%s] execution.\n",
+-				  obj_desc->method.aml_start, pathname));
+-		ACPI_FREE(pathname);
+-	} else {
+-		ACPI_DEBUG_PRINT((ACPI_DB_TRACE_POINT,
+-				  "Begin method [0x%p] execution.\n",
+-				  obj_desc->method.aml_start));
+-	}
++	acpi_ex_start_trace_method(method_node, obj_desc, walk_state);
+ 
  	/* Prevent wraparound of thread count */
  
- 	if (obj_desc->method.thread_count == ACPI_UINT8_MAX) {
-@@ -695,6 +708,7 @@ void
+@@ -708,7 +697,6 @@ void
  acpi_ds_terminate_control_method(union acpi_operand_object *method_desc,
  				 struct acpi_walk_state *walk_state)
  {
-+	char *pathname = NULL;
+-	char *pathname = NULL;
  
  	ACPI_FUNCTION_TRACE_PTR(ds_terminate_control_method, walk_state);
  
-@@ -832,5 +846,22 @@ acpi_ds_terminate_control_method(union acpi_operand_object *method_desc,
+@@ -846,22 +834,8 @@ acpi_ds_terminate_control_method(union acpi_operand_object *method_desc,
  		}
  	}
  
-+	if (method_desc->method.node) {
-+		pathname = acpi_ns_get_normalized_pathname((struct
-+							    acpi_namespace_node
-+							    *)method_desc->
-+							   method.node, TRUE);
-+	}
-+	if (pathname) {
-+		ACPI_DEBUG_PRINT((ACPI_DB_TRACE_POINT,
-+				  "End method [0x%p:%s] execution.\n",
-+				  method_desc->method.aml_start, pathname));
-+		ACPI_FREE(pathname);
-+	} else {
-+		ACPI_DEBUG_PRINT((ACPI_DB_TRACE_POINT,
-+				  "End method [0x%p] execution.\n",
-+				  method_desc->method.aml_start));
-+	}
-+
+-	if (method_desc->method.node) {
+-		pathname = acpi_ns_get_normalized_pathname((struct
+-							    acpi_namespace_node
+-							    *)method_desc->
+-							   method.node, TRUE);
+-	}
+-	if (pathname) {
+-		ACPI_DEBUG_PRINT((ACPI_DB_TRACE_POINT,
+-				  "End method [0x%p:%s] execution.\n",
+-				  method_desc->method.aml_start, pathname));
+-		ACPI_FREE(pathname);
+-	} else {
+-		ACPI_DEBUG_PRINT((ACPI_DB_TRACE_POINT,
+-				  "End method [0x%p] execution.\n",
+-				  method_desc->method.aml_start));
+-	}
++	acpi_ex_stop_trace_method((struct acpi_namespace_node *)method_desc->
++				  method.node, method_desc, walk_state);
+ 
  	return_VOID;
  }
+diff --git a/drivers/acpi/acpica/exdebug.c b/drivers/acpi/acpica/exdebug.c
+index 815442b..00ba9fc 100644
+--- a/drivers/acpi/acpica/exdebug.c
++++ b/drivers/acpi/acpica/exdebug.c
+@@ -43,11 +43,15 @@
+ 
+ #include <acpi/acpi.h>
+ #include "accommon.h"
++#include "acnamesp.h"
+ #include "acinterp.h"
++#include "acparser.h"
+ 
+ #define _COMPONENT          ACPI_EXECUTER
+ ACPI_MODULE_NAME("exdebug")
+ 
++static union acpi_operand_object *acpi_gbl_trace_method_object = NULL;
++
+ #ifndef ACPI_NO_ERROR_MESSAGES
+ /*******************************************************************************
+  *
+@@ -70,6 +74,7 @@ ACPI_MODULE_NAME("exdebug")
+  * enabled if necessary.
+  *
+  ******************************************************************************/
++
+ void
+ acpi_ex_do_debug_object(union acpi_operand_object *source_desc,
+ 			u32 level, u32 index)
+@@ -308,3 +313,269 @@ acpi_ex_do_debug_object(union acpi_operand_object *source_desc,
+ 	return_VOID;
+ }
+ #endif
++
++/*******************************************************************************
++ *
++ * FUNCTION:    acpi_ex_interpreter_trace_enabled
++ *
++ * PARAMETERS:  name                - Whether method name should be matched,
++ *                                    this should be checked before starting
++ *                                    the tracer
++ *
++ * RETURN:      TRUE if interpreter trace is enabled.
++ *
++ * DESCRIPTION: Check whether interpreter trace is enabled
++ *
++ ******************************************************************************/
++
++static u8 acpi_ex_interpreter_trace_enabled(char *name)
++{
++
++	/* Check if tracing is enabled */
++
++	if (!(acpi_gbl_trace_flags & ACPI_TRACE_ENABLED)) {
++		return (FALSE);
++	}
++
++	/*
++	 * Check if tracing is filtered:
++	 *
++	 * 1. If the tracer is started, acpi_gbl_trace_method_object should have
++	 *    been filled by the trace starter
++	 * 2. If the tracer is not started, acpi_gbl_trace_method_name should be
++	 *    matched if it is specified
++	 * 3. If the tracer is oneshot style, acpi_gbl_trace_method_name should
++	 *    not be cleared by the trace stopper during the first match
++	 */
++	if (acpi_gbl_trace_method_object) {
++		return (TRUE);
++	}
++	if (name &&
++	    (acpi_gbl_trace_method_name &&
++	     strcmp(acpi_gbl_trace_method_name, name))) {
++		return (FALSE);
++	}
++	if ((acpi_gbl_trace_flags & ACPI_TRACE_ONESHOT) &&
++	    !acpi_gbl_trace_method_name) {
++		return (FALSE);
++	}
++
++	return (TRUE);
++}
++
++/*******************************************************************************
++ *
++ * FUNCTION:    acpi_ex_start_trace_method
++ *
++ * PARAMETERS:  method_node         - Node of the method
++ *              obj_desc            - The method object
++ *              walk_state          - current state, NULL if not yet executing
++ *                                    a method.
++ *
++ * RETURN:      None
++ *
++ * DESCRIPTION: Start control method execution trace
++ *
++ ******************************************************************************/
++
++void
++acpi_ex_start_trace_method(struct acpi_namespace_node *method_node,
++			   union acpi_operand_object *obj_desc,
++			   struct acpi_walk_state *walk_state)
++{
++	acpi_status status;
++	char *pathname = NULL;
++	u8 enabled = FALSE;
++
++	ACPI_FUNCTION_NAME(ex_start_trace_method);
++
++	if (method_node) {
++		pathname = acpi_ns_get_normalized_pathname(method_node, TRUE);
++	}
++
++	status = acpi_ut_acquire_mutex(ACPI_MTX_NAMESPACE);
++	if (ACPI_FAILURE(status)) {
++		goto exit;
++	}
++
++	enabled = acpi_ex_interpreter_trace_enabled(pathname);
++	if (enabled && !acpi_gbl_trace_method_object) {
++		acpi_gbl_trace_method_object = obj_desc;
++		acpi_gbl_original_dbg_level = acpi_dbg_level;
++		acpi_gbl_original_dbg_layer = acpi_dbg_layer;
++		acpi_dbg_level = ACPI_TRACE_LEVEL_ALL;
++		acpi_dbg_layer = ACPI_TRACE_LAYER_ALL;
++
++		if (acpi_gbl_trace_dbg_level) {
++			acpi_dbg_level = acpi_gbl_trace_dbg_level;
++		}
++		if (acpi_gbl_trace_dbg_layer) {
++			acpi_dbg_layer = acpi_gbl_trace_dbg_layer;
++		}
++	}
++	(void)acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
++
++exit:
++	if (enabled) {
++		if (pathname) {
++			ACPI_DEBUG_PRINT((ACPI_DB_TRACE_POINT,
++					  "Begin method [0x%p:%s] execution.\n",
++					  obj_desc->method.aml_start,
++					  pathname));
++		} else {
++			ACPI_DEBUG_PRINT((ACPI_DB_TRACE_POINT,
++					  "Begin method [0x%p] execution.\n",
++					  obj_desc->method.aml_start));
++		}
++	}
++	if (pathname) {
++		ACPI_FREE(pathname);
++	}
++}
++
++/*******************************************************************************
++ *
++ * FUNCTION:    acpi_ex_stop_trace_method
++ *
++ * PARAMETERS:  method_node         - Node of the method
++ *              obj_desc            - The method object
++ *              walk_state          - current state, NULL if not yet executing
++ *                                    a method.
++ *
++ * RETURN:      None
++ *
++ * DESCRIPTION: Stop control method execution trace
++ *
++ ******************************************************************************/
++
++void
++acpi_ex_stop_trace_method(struct acpi_namespace_node *method_node,
++			  union acpi_operand_object *obj_desc,
++			  struct acpi_walk_state *walk_state)
++{
++	acpi_status status;
++	char *pathname = NULL;
++	u8 enabled;
++
++	ACPI_FUNCTION_NAME(ex_stop_trace_method);
++
++	if (method_node) {
++		pathname = acpi_ns_get_normalized_pathname(method_node, TRUE);
++	}
++
++	status = acpi_ut_acquire_mutex(ACPI_MTX_NAMESPACE);
++	if (ACPI_FAILURE(status)) {
++		goto exit_path;
++	}
++
++	enabled = acpi_ex_interpreter_trace_enabled(NULL);
++
++	(void)acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
++
++	if (enabled) {
++		if (pathname) {
++			ACPI_DEBUG_PRINT((ACPI_DB_TRACE_POINT,
++					  "End method [0x%p:%s] execution.\n",
++					  obj_desc->method.aml_start,
++					  pathname));
++		} else {
++			ACPI_DEBUG_PRINT((ACPI_DB_TRACE_POINT,
++					  "End method [0x%p] execution.\n",
++					  obj_desc->method.aml_start));
++		}
++	}
++
++	status = acpi_ut_acquire_mutex(ACPI_MTX_NAMESPACE);
++	if (ACPI_FAILURE(status)) {
++		goto exit_path;
++	}
++
++	/* Check whether the tracer should be stopped */
++
++	if (acpi_gbl_trace_method_object == obj_desc) {
++
++		/* Disable further tracing if type is one-shot */
++
++		if (acpi_gbl_trace_flags & ACPI_TRACE_ONESHOT) {
++			acpi_gbl_trace_method_name = NULL;
++		}
++
++		acpi_dbg_level = acpi_gbl_original_dbg_level;
++		acpi_dbg_layer = acpi_gbl_original_dbg_layer;
++		acpi_gbl_trace_method_object = NULL;
++	}
++
++	(void)acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
++
++exit_path:
++	if (pathname) {
++		ACPI_FREE(pathname);
++	}
++}
++
++/*******************************************************************************
++ *
++ * FUNCTION:    acpi_ex_start_trace_opcode
++ *
++ * PARAMETERS:  op                  - The parser opcode object
++ *              walk_state          - current state, NULL if not yet executing
++ *                                    a method.
++ *
++ * RETURN:      None
++ *
++ * DESCRIPTION: Start opcode execution trace
++ *
++ ******************************************************************************/
++
++void
++acpi_ex_start_trace_opcode(union acpi_parse_object *op,
++			   struct acpi_walk_state *walk_state)
++{
++
++	ACPI_FUNCTION_NAME(ex_start_trace_opcode);
++
++	if (acpi_ex_interpreter_trace_enabled(NULL)) {
++		if (walk_state->op_info) {
++			ACPI_DEBUG_PRINT((ACPI_DB_TRACE_POINT,
++					  "Begin opcode: %s[0x%p] Class=0x%02x, Type=0x%02x, Flags=0x%04x.\n",
++					  op->common.aml_op_name,
++					  op->common.aml,
++					  walk_state->op_info->class,
++					  walk_state->op_info->type,
++					  walk_state->op_info->flags));
++		} else {
++			ACPI_DEBUG_PRINT((ACPI_DB_TRACE_POINT,
++					  "Begin opcode: %s[0x%p].\n",
++					  op->common.aml_op_name,
++					  op->common.aml));
++		}
++	}
++}
++
++/*******************************************************************************
++ *
++ * FUNCTION:    acpi_ex_stop_trace_opcode
++ *
++ * PARAMETERS:  op                  - The parser opcode object
++ *              walk_state          - current state, NULL if not yet executing
++ *                                    a method.
++ *
++ * RETURN:      None
++ *
++ * DESCRIPTION: Stop opcode execution trace
++ *
++ ******************************************************************************/
++
++void
++acpi_ex_stop_trace_opcode(union acpi_parse_object *op,
++			  struct acpi_walk_state *walk_state)
++{
++
++	ACPI_FUNCTION_NAME(ex_stop_trace_opcode);
++
++	if (acpi_ex_interpreter_trace_enabled(NULL)) {
++		ACPI_DEBUG_PRINT((ACPI_DB_TRACE_POINT,
++				  "End opcode: %s[0x%p].\n",
++				  op->common.aml_op_name, op->common.aml));
++	}
++}
 diff --git a/drivers/acpi/acpica/psloop.c b/drivers/acpi/acpica/psloop.c
-index 49c60c2..80339ba 100644
+index 80339ba..a7de52e 100644
 --- a/drivers/acpi/acpica/psloop.c
 +++ b/drivers/acpi/acpica/psloop.c
-@@ -497,6 +497,21 @@ acpi_status acpi_ps_parse_loop(struct acpi_walk_state *walk_state)
- 						  walk_state->op_info->name, op,
+@@ -51,6 +51,7 @@
+ 
+ #include <acpi/acpi.h>
+ #include "accommon.h"
++#include "acinterp.h"
+ #include "acparser.h"
+ #include "acdispat.h"
+ #include "amlcode.h"
+@@ -498,20 +499,7 @@ acpi_status acpi_ps_parse_loop(struct acpi_walk_state *walk_state)
  						  op->common.aml));
  			}
-+
-+			if (walk_state->op_info) {
-+				ACPI_DEBUG_PRINT((ACPI_DB_TRACE_POINT,
-+						  "Begin opcode: %s[0x%p] Class=0x%02x, Type=0x%02x, Flags=0x%04x.\n",
-+						  op->common.aml_op_name,
-+						  op->common.aml,
-+						  walk_state->op_info->class,
-+						  walk_state->op_info->type,
-+						  walk_state->op_info->flags));
-+			} else {
-+				ACPI_DEBUG_PRINT((ACPI_DB_TRACE_POINT,
-+						  "Begin opcode: %s[0x%p].\n",
-+						  op->common.aml_op_name,
-+						  op->common.aml));
-+			}
+ 
+-			if (walk_state->op_info) {
+-				ACPI_DEBUG_PRINT((ACPI_DB_TRACE_POINT,
+-						  "Begin opcode: %s[0x%p] Class=0x%02x, Type=0x%02x, Flags=0x%04x.\n",
+-						  op->common.aml_op_name,
+-						  op->common.aml,
+-						  walk_state->op_info->class,
+-						  walk_state->op_info->type,
+-						  walk_state->op_info->flags));
+-			} else {
+-				ACPI_DEBUG_PRINT((ACPI_DB_TRACE_POINT,
+-						  "Begin opcode: %s[0x%p].\n",
+-						  op->common.aml_op_name,
+-						  op->common.aml));
+-			}
++			acpi_ex_start_trace_opcode(op, walk_state);
  		}
  
  		/*
 diff --git a/drivers/acpi/acpica/psparse.c b/drivers/acpi/acpica/psparse.c
-index b857ad5..97ea0e5 100644
+index 97ea0e5..98001d7 100644
 --- a/drivers/acpi/acpica/psparse.c
 +++ b/drivers/acpi/acpica/psparse.c
-@@ -147,6 +147,10 @@ acpi_ps_complete_this_op(struct acpi_walk_state * walk_state,
+@@ -147,9 +147,7 @@ acpi_ps_complete_this_op(struct acpi_walk_state * walk_state,
  		return_ACPI_STATUS(AE_OK);	/* OK for now */
  	}
  
-+	ACPI_DEBUG_PRINT((ACPI_DB_TRACE_POINT,
-+			  "End opcode: %s[0x%p].\n",
-+			  op->common.aml_op_name, op->common.aml));
-+
+-	ACPI_DEBUG_PRINT((ACPI_DB_TRACE_POINT,
+-			  "End opcode: %s[0x%p].\n",
+-			  op->common.aml_op_name, op->common.aml));
++	acpi_ex_stop_trace_opcode(op, walk_state);
+ 
  	/* Delete this op and the subtree below it if asked to */
  
- 	if (((walk_state->parse_flags & ACPI_PARSE_TREE_MASK) !=
+diff --git a/drivers/acpi/acpica/psxface.c b/drivers/acpi/acpica/psxface.c
+index 1f3f46d..4254805 100644
+--- a/drivers/acpi/acpica/psxface.c
++++ b/drivers/acpi/acpica/psxface.c
+@@ -47,15 +47,12 @@
+ #include "acdispat.h"
+ #include "acinterp.h"
+ #include "actables.h"
++#include "acnamesp.h"
+ 
+ #define _COMPONENT          ACPI_PARSER
+ ACPI_MODULE_NAME("psxface")
+ 
+ /* Local Prototypes */
+-static void acpi_ps_start_trace(struct acpi_evaluate_info *info);
+-
+-static void acpi_ps_stop_trace(struct acpi_evaluate_info *info);
+-
+ static void
+ acpi_ps_update_parameter_list(struct acpi_evaluate_info *info, u16 action);
+ 
+@@ -76,7 +73,7 @@ acpi_ps_update_parameter_list(struct acpi_evaluate_info *info, u16 action);
+  ******************************************************************************/
+ 
+ acpi_status
+-acpi_debug_trace(char *name, u32 debug_level, u32 debug_layer, u32 flags)
++acpi_debug_trace(const char *name, u32 debug_level, u32 debug_layer, u32 flags)
+ {
+ 	acpi_status status;
+ 
+@@ -85,108 +82,14 @@ acpi_debug_trace(char *name, u32 debug_level, u32 debug_layer, u32 flags)
+ 		return (status);
+ 	}
+ 
+-	/* TBDs: Validate name, allow full path or just nameseg */
+-
+-	acpi_gbl_trace_method_name = *ACPI_CAST_PTR(u32, name);
++	acpi_gbl_trace_method_name = name;
+ 	acpi_gbl_trace_flags = flags;
+-
+-	if (debug_level) {
+-		acpi_gbl_trace_dbg_level = debug_level;
+-	}
+-	if (debug_layer) {
+-		acpi_gbl_trace_dbg_layer = debug_layer;
+-	}
++	acpi_gbl_trace_dbg_level = debug_level;
++	acpi_gbl_trace_dbg_layer = debug_layer;
++	status = AE_OK;
+ 
+ 	(void)acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
+-	return (AE_OK);
+-}
+-
+-/*******************************************************************************
+- *
+- * FUNCTION:    acpi_ps_start_trace
+- *
+- * PARAMETERS:  info        - Method info struct
+- *
+- * RETURN:      None
+- *
+- * DESCRIPTION: Start control method execution trace
+- *
+- ******************************************************************************/
+-
+-static void acpi_ps_start_trace(struct acpi_evaluate_info *info)
+-{
+-	acpi_status status;
+-
+-	ACPI_FUNCTION_ENTRY();
+-
+-	status = acpi_ut_acquire_mutex(ACPI_MTX_NAMESPACE);
+-	if (ACPI_FAILURE(status)) {
+-		return;
+-	}
+-
+-	if ((!acpi_gbl_trace_method_name) ||
+-	    (acpi_gbl_trace_method_name != info->node->name.integer)) {
+-		goto exit;
+-	}
+-
+-	acpi_gbl_original_dbg_level = acpi_dbg_level;
+-	acpi_gbl_original_dbg_layer = acpi_dbg_layer;
+-
+-	acpi_dbg_level = 0x00FFFFFF;
+-	acpi_dbg_layer = ACPI_UINT32_MAX;
+-
+-	if (acpi_gbl_trace_dbg_level) {
+-		acpi_dbg_level = acpi_gbl_trace_dbg_level;
+-	}
+-	if (acpi_gbl_trace_dbg_layer) {
+-		acpi_dbg_layer = acpi_gbl_trace_dbg_layer;
+-	}
+-
+-exit:
+-	(void)acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
+-}
+-
+-/*******************************************************************************
+- *
+- * FUNCTION:    acpi_ps_stop_trace
+- *
+- * PARAMETERS:  info        - Method info struct
+- *
+- * RETURN:      None
+- *
+- * DESCRIPTION: Stop control method execution trace
+- *
+- ******************************************************************************/
+-
+-static void acpi_ps_stop_trace(struct acpi_evaluate_info *info)
+-{
+-	acpi_status status;
+-
+-	ACPI_FUNCTION_ENTRY();
+-
+-	status = acpi_ut_acquire_mutex(ACPI_MTX_NAMESPACE);
+-	if (ACPI_FAILURE(status)) {
+-		return;
+-	}
+-
+-	if ((!acpi_gbl_trace_method_name) ||
+-	    (acpi_gbl_trace_method_name != info->node->name.integer)) {
+-		goto exit;
+-	}
+-
+-	/* Disable further tracing if type is one-shot */
+-
+-	if (acpi_gbl_trace_flags & 1) {
+-		acpi_gbl_trace_method_name = 0;
+-		acpi_gbl_trace_dbg_level = 0;
+-		acpi_gbl_trace_dbg_layer = 0;
+-	}
+-
+-	acpi_dbg_level = acpi_gbl_original_dbg_level;
+-	acpi_dbg_layer = acpi_gbl_original_dbg_layer;
+-
+-exit:
+-	(void)acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
++	return (status);
+ }
+ 
+ /*******************************************************************************
+@@ -212,7 +115,7 @@ exit:
+  *
+  ******************************************************************************/
+ 
+-acpi_status acpi_ps_execute_method(struct acpi_evaluate_info *info)
++acpi_status acpi_ps_execute_method(struct acpi_evaluate_info * info)
+ {
+ 	acpi_status status;
+ 	union acpi_parse_object *op;
+@@ -243,10 +146,6 @@ acpi_status acpi_ps_execute_method(struct acpi_evaluate_info *info)
+ 	 */
+ 	acpi_ps_update_parameter_list(info, REF_INCREMENT);
+ 
+-	/* Begin tracing if requested */
+-
+-	acpi_ps_start_trace(info);
+-
+ 	/*
+ 	 * Execute the method. Performs parse simultaneously
+ 	 */
+@@ -326,10 +225,6 @@ acpi_status acpi_ps_execute_method(struct acpi_evaluate_info *info)
+ cleanup:
+ 	acpi_ps_delete_parse_tree(op);
+ 
+-	/* End optional tracing */
+-
+-	acpi_ps_stop_trace(info);
+-
+ 	/* Take away the extra reference that we gave the parameters above */
+ 
+ 	acpi_ps_update_parameter_list(info, REF_DECREMENT);
+diff --git a/drivers/acpi/acpica/utinit.c b/drivers/acpi/acpica/utinit.c
+index e402e07..7f897c6 100644
+--- a/drivers/acpi/acpica/utinit.c
++++ b/drivers/acpi/acpica/utinit.c
+@@ -204,8 +204,6 @@ acpi_status acpi_ut_init_globals(void)
+ 	acpi_gbl_acpi_hardware_present = TRUE;
+ 	acpi_gbl_last_owner_id_index = 0;
+ 	acpi_gbl_next_owner_id_offset = 0;
+-	acpi_gbl_trace_dbg_level = 0;
+-	acpi_gbl_trace_dbg_layer = 0;
+ 	acpi_gbl_debugger_configuration = DEBUGGER_THREADING;
+ 	acpi_gbl_osi_mutex = NULL;
+ 	acpi_gbl_reg_methods_executed = FALSE;
 diff --git a/include/acpi/acoutput.h b/include/acpi/acoutput.h
-index f56de8c..8f89df9 100644
+index 8f89df9..37f46d4 100644
 --- a/include/acpi/acoutput.h
 +++ b/include/acpi/acoutput.h
-@@ -88,7 +88,8 @@
- #define ACPI_LV_DEBUG_OBJECT        0x00000002
- #define ACPI_LV_INFO                0x00000004
- #define ACPI_LV_REPAIR              0x00000008
--#define ACPI_LV_ALL_EXCEPTIONS      0x0000000F
-+#define ACPI_LV_TRACE_POINT         0x00000010
-+#define ACPI_LV_ALL_EXCEPTIONS      0x0000001F
+@@ -184,6 +184,19 @@
+ #define ACPI_NORMAL_DEFAULT         (ACPI_LV_INIT | ACPI_LV_DEBUG_OBJECT | ACPI_LV_REPAIR)
+ #define ACPI_DEBUG_ALL              (ACPI_LV_AML_DISASSEMBLE | ACPI_LV_ALL_EXCEPTIONS | ACPI_LV_ALL)
  
- /* Trace verbosity level 1 [Standard Trace Level] */
++/*
++ * Global trace flags
++ */
++#define ACPI_TRACE_ENABLED          ((u32) 2)
++#define ACPI_TRACE_ONESHOT          ((u32) 1)
++
++/* Defaults for trace debugging level/layer */
++
++#define ACPI_TRACE_LEVEL_ALL        ACPI_LV_ALL
++#define ACPI_TRACE_LAYER_ALL        0x000001FF
++#define ACPI_TRACE_LEVEL_DEFAULT    ACPI_LV_TRACE_POINT
++#define ACPI_TRACE_LAYER_DEFAULT    ACPI_EXECUTER
++
+ #if defined (ACPI_DEBUG_OUTPUT) || !defined (ACPI_NO_ERROR_MESSAGES)
+ /*
+  * The module name is used primarily for error and debug messages.
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index e8ec18a..9c362cf 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -251,7 +251,9 @@ ACPI_INIT_GLOBAL(u8, acpi_gbl_reduced_hardware, FALSE);
+  * traced each time it is executed.
+  */
+ ACPI_INIT_GLOBAL(u32, acpi_gbl_trace_flags, 0);
+-ACPI_INIT_GLOBAL(acpi_name, acpi_gbl_trace_method_name, 0);
++ACPI_INIT_GLOBAL(const char *, acpi_gbl_trace_method_name, NULL);
++ACPI_INIT_GLOBAL(u32, acpi_gbl_trace_dbg_level, ACPI_TRACE_LEVEL_DEFAULT);
++ACPI_INIT_GLOBAL(u32, acpi_gbl_trace_dbg_layer, ACPI_TRACE_LAYER_DEFAULT);
  
-@@ -147,6 +148,7 @@
- #define ACPI_DB_DEBUG_OBJECT        ACPI_DEBUG_LEVEL (ACPI_LV_DEBUG_OBJECT)
- #define ACPI_DB_INFO                ACPI_DEBUG_LEVEL (ACPI_LV_INFO)
- #define ACPI_DB_REPAIR              ACPI_DEBUG_LEVEL (ACPI_LV_REPAIR)
-+#define ACPI_DB_TRACE_POINT         ACPI_DEBUG_LEVEL (ACPI_LV_TRACE_POINT)
- #define ACPI_DB_ALL_EXCEPTIONS      ACPI_DEBUG_LEVEL (ACPI_LV_ALL_EXCEPTIONS)
+ /*
+  * Runtime configuration of debug output control masks. We want the debug
+@@ -504,7 +506,7 @@ ACPI_EXTERNAL_RETURN_STATUS(acpi_status
+ 					   acpi_object_handler handler,
+ 					   void **data))
+ ACPI_EXTERNAL_RETURN_STATUS(acpi_status
+-			     acpi_debug_trace(char *name, u32 debug_level,
++			     acpi_debug_trace(const char *name, u32 debug_level,
+ 					      u32 debug_layer, u32 flags))
  
- /* Trace level -- also used in the global "DebugLevel" */
+ /*
 -- 
 1.7.10
+
