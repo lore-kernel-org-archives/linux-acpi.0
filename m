@@ -1,136 +1,187 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 00/22] ACPICA: 20150717 Release
-Date: Thu, 23 Jul 2015 12:51:58 +0800
-Message-ID: <cover.1437627016.git.lv.zheng@intel.com>
+Subject: [PATCH 02/22] ACPICA: Parser: Cleanup aml_offset in struct acpi_walk_state.
+Date: Thu, 23 Jul 2015 12:52:11 +0800
+Message-ID: <daaa7193bfcf2eca2bd2f74a51ef363944ad747c.1437627016.git.lv.zheng@intel.com>
+References: <cover.1437627016.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:5123 "EHLO mga09.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:24834 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751042AbbGWEwI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 23 Jul 2015 00:52:08 -0400
+	id S1752152AbbGWEwS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 23 Jul 2015 00:52:18 -0400
+In-Reply-To: <cover.1437627016.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-The 20150717 ACPICA kernel-resident subsystem updates are linuxized based
-on the linux-pm/linux-next branch.
+ACPICA commit d254405814495058276c0c2f9d96794d15a6c91c
 
-The patchset has passed the following build/boot tests.
-Build tests are performed as follows:
-1. i386 + default + COFNIG_ACPI=y
-2. i386 + allyes + CONFIG_ACPI=y
-3. i386 + default + COFNIG_ACPI=n
-4. i386 + allyes + CONFIG_ACPI=n
-5. x86_64 + default + COFNIG_ACPI=y
-6. x86_64 + allyes + CONFIG_ACPI=y
-7. x86_64 + default + COFNIG_ACPI=n
-8. x86_64 + allyes + CONFIG_ACPI=n
-Boot tests are performed as follows:
-1. i386 + default + COFNIG_ACPI=y
-2. x86_64 + default + COFNIG_ACPI=y
-Where:
-1. i386: machine named as "Dell Inspiron Mini 1010"
-2. x86_64: machine named as "HP Compaq 8200 Elite SFF PC"
-3. default: kernel configuration with following items enabled:
-   All hardware drivers related to the machines of i386/x86_64
-   All "drivers/acpi" configurations
-   All "drivers/platform" drivers
-   All other drivers that link the APIs provided by ACPICA subsystem
+This patch converts aml_offset in struct acpi_walk_state to AML address.
 
-The divergences checking result:
-Before applying (20150619 Release):
-  539 lines
-After applying (20150717 Release):
-  518 lines
-Note that the reduction is due to:
-1. The FACS related divergences are not counted;
-2. Some debugger related divergences are merged in this release as the
-   configurability of the debugger code has improved.
+AML offset is actually only used by the debugger, using AML address is more
+direct and efficient during the parsing stage so that we don't need to
+calculate it during the parsing stage.
 
-Bob Moore (6):
-  ACPICA: iASL: Add new warnings for method local_x and arg_x
-    variables.
-  ACPICA: Cleanup use of all non-ANSI local C library functions.
-  ACPICA: Cleanup use of NEGATIVE and POSITIVE defines.
-  ACPICA: iASL: Add support for TCPA Server Table.
-  ACPICA: iASL/Disassembler: Add prototype verbose mode.
-  ACPICA: Update version to 20150717.
+On the other hand, we can see several issues in the current parser logic
+around the aml_offset:
+1. union acpi_operand_object.Common.aml_offset is redundantly assigned in
+   acpi_ps_parse_loop().
+2. aml_offset is not an indication of the offset from the table header but
+   the offset from the entry of a list of objects. Sometimes, it indicates
+   an entry for a Method/Package/Buffer, which makes it difficult to be
+   reversely calculated to a table header offset.
+3. When being used with method tracers (for example, Linux function trace),
+   it's better to have AML address logged instead of the AML offset because
+   the address is the only attribute that can uniquely identify the opcode.
+This patch is required to solve the above issues. Lv Zheng.
 
-Lv Zheng (15):
-  ACPICA: Parser: Reduce parser/namespace divergences for tracer
-    support.
-  ACPICA: Parser: Cleanup aml_offset in struct acpi_walk_state.
-  ACPICA: Parser: Cleanup aml_offset in union acpi_operand_object.
-  ACPICA: Dispatcher: Cleanup union acpi_operand_object's AML address
-    assignments.
-  ACPICA: Executer: Add back pointing reference of method operand.
-  ACPICA: Namespace: Add function to directly return normalized full
-    path.
-  ACPICA: Dispatcher: Move stack traversal code to dispatcher.
-  ACPICA: Dispatcher: Add trace support for interpreter.
-  ACPICA: Executer: Add interpreter tracing mode for method tracing
-    facility.
-  ACPICA: Executer: Add OSL trace hook support.
-  ACPICA: Executer: Add option to bypass opcode tracing.
-  ACPICA: Parser: Remove redundant opcode execution debugging output.
-  ACPICA: MSVC: Fix inclusion order issue of <crtdbg.h>.
-  ACPICA: Debugger: Reduce structure size for debugger.
-  ACPICA: Debugger: Move debugger specific APIs to debugger component.
+Link: https://github.com/acpica/acpica/commit/d2544058
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
+---
+ drivers/acpi/acpica/acstruct.h |    2 +-
+ drivers/acpi/acpica/dsmethod.c |    9 +++++++--
+ drivers/acpi/acpica/psloop.c   |   15 +++++++++------
+ drivers/acpi/acpica/psobject.c |   15 +++++++++------
+ 4 files changed, 26 insertions(+), 15 deletions(-)
 
-Markus Elfring (1):
-  ACPICA: Remove extraneous check for null walk_state.
-
- drivers/acpi/acpica/Makefile     |    2 +
- drivers/acpi/acpica/acdebug.h    |   19 ++
- drivers/acpi/acpica/acdispat.h   |    8 +
- drivers/acpi/acpica/acglobal.h   |    3 +-
- drivers/acpi/acpica/acinterp.h   |   22 +++
- drivers/acpi/acpica/aclocal.h    |   11 +-
- drivers/acpi/acpica/acmacros.h   |    9 +
- drivers/acpi/acpica/acnamesp.h   |   13 +-
- drivers/acpi/acpica/acobject.h   |    1 +
- drivers/acpi/acpica/acparser.h   |    4 +-
- drivers/acpi/acpica/acstruct.h   |    2 +-
- drivers/acpi/acpica/acutils.h    |   23 ++-
- drivers/acpi/acpica/dsargs.c     |    4 +-
- drivers/acpi/acpica/dsdebug.c    |  231 +++++++++++++++++++++++
- drivers/acpi/acpica/dsmethod.c   |   35 ++--
- drivers/acpi/acpica/dswload.c    |    2 +-
- drivers/acpi/acpica/dswload2.c   |    2 +-
- drivers/acpi/acpica/excreate.c   |    1 +
- drivers/acpi/acpica/exdebug.c    |  324 ++++++++++++++++++++++++++++++++
- drivers/acpi/acpica/exdump.c     |    5 +-
- drivers/acpi/acpica/nsnames.c    |  275 +++++++++++++++------------
- drivers/acpi/acpica/nsparse.c    |   42 ++---
- drivers/acpi/acpica/nsutils.c    |    2 +-
- drivers/acpi/acpica/nsxfname.c   |    8 +-
- drivers/acpi/acpica/psargs.c     |   26 +--
- drivers/acpi/acpica/psloop.c     |   18 +-
- drivers/acpi/acpica/psobject.c   |   17 +-
- drivers/acpi/acpica/psparse.c    |   14 +-
- drivers/acpi/acpica/psutils.c    |    8 +-
- drivers/acpi/acpica/psxface.c    |  123 +-----------
- drivers/acpi/acpica/rscreate.c   |    3 +-
- drivers/acpi/acpica/utdebug.c    |   31 +++-
- drivers/acpi/acpica/utdelete.c   |    3 +
- drivers/acpi/acpica/utinit.c     |    2 -
- drivers/acpi/acpica/utmisc.c     |    2 +-
- drivers/acpi/acpica/utnonansi.c  |  380 ++++++++++++++++++++++++++++++++++++++
- drivers/acpi/acpica/utstring.c   |  342 ----------------------------------
- include/acpi/acoutput.h          |   21 ++-
- include/acpi/acpiosxf.h          |    6 +
- include/acpi/acpixf.h            |   13 +-
- include/acpi/actbl2.h            |   17 +-
- include/acpi/actypes.h           |   11 +-
- include/acpi/platform/acenvex.h  |    3 +
- include/acpi/platform/acmsvcex.h |   54 ++++++
- include/acpi/platform/acwinex.h  |   49 +++++
- 45 files changed, 1491 insertions(+), 700 deletions(-)
- create mode 100644 drivers/acpi/acpica/dsdebug.c
- create mode 100644 drivers/acpi/acpica/utnonansi.c
- create mode 100644 include/acpi/platform/acmsvcex.h
- create mode 100644 include/acpi/platform/acwinex.h
-
+diff --git a/drivers/acpi/acpica/acstruct.h b/drivers/acpi/acpica/acstruct.h
+index 44997ca..f9992dc 100644
+--- a/drivers/acpi/acpica/acstruct.h
++++ b/drivers/acpi/acpica/acstruct.h
+@@ -85,7 +85,7 @@ struct acpi_walk_state {
+ 	u8 namespace_override;	/* Override existing objects */
+ 	u8 result_size;		/* Total elements for the result stack */
+ 	u8 result_count;	/* Current number of occupied elements of result stack */
+-	u32 aml_offset;
++	u8 *aml;
+ 	u32 arg_types;
+ 	u32 method_breakpoint;	/* For single stepping */
+ 	u32 user_breakpoint;	/* User AML breakpoint */
+diff --git a/drivers/acpi/acpica/dsmethod.c b/drivers/acpi/acpica/dsmethod.c
+index 85bb951..bf8c16e 100644
+--- a/drivers/acpi/acpica/dsmethod.c
++++ b/drivers/acpi/acpica/dsmethod.c
+@@ -214,6 +214,8 @@ acpi_ds_detect_named_opcodes(struct acpi_walk_state *walk_state,
+ acpi_status
+ acpi_ds_method_error(acpi_status status, struct acpi_walk_state * walk_state)
+ {
++	u32 aml_offset;
++
+ 	ACPI_FUNCTION_ENTRY();
+ 
+ 	/* Ignore AE_OK and control exception codes */
+@@ -234,13 +236,16 @@ acpi_ds_method_error(acpi_status status, struct acpi_walk_state * walk_state)
+ 		 * Handler can map the exception code to anything it wants, including
+ 		 * AE_OK, in which case the executing method will not be aborted.
+ 		 */
++		aml_offset = (u32)ACPI_PTR_DIFF(walk_state->aml,
++						walk_state->parser_state.
++						aml_start);
++
+ 		status = acpi_gbl_exception_handler(status,
+ 						    walk_state->method_node ?
+ 						    walk_state->method_node->
+ 						    name.integer : 0,
+ 						    walk_state->opcode,
+-						    walk_state->aml_offset,
+-						    NULL);
++						    aml_offset, NULL);
+ 		acpi_ex_enter_interpreter();
+ 	}
+ 
+diff --git a/drivers/acpi/acpica/psloop.c b/drivers/acpi/acpica/psloop.c
+index 6136458..ce66e73 100644
+--- a/drivers/acpi/acpica/psloop.c
++++ b/drivers/acpi/acpica/psloop.c
+@@ -125,10 +125,7 @@ acpi_ps_get_arguments(struct acpi_walk_state *walk_state,
+ 		 */
+ 		while (GET_CURRENT_ARG_TYPE(walk_state->arg_types)
+ 		       && !walk_state->arg_count) {
+-			walk_state->aml_offset =
+-			    (u32)ACPI_PTR_DIFF(walk_state->parser_state.aml,
+-					       walk_state->parser_state.
+-					       aml_start);
++			walk_state->aml = walk_state->parser_state.aml;
+ 
+ 			status =
+ 			    acpi_ps_get_next_arg(walk_state,
+@@ -140,7 +137,10 @@ acpi_ps_get_arguments(struct acpi_walk_state *walk_state,
+ 			}
+ 
+ 			if (arg) {
+-				arg->common.aml_offset = walk_state->aml_offset;
++				arg->common.aml_offset =
++				    (u32)ACPI_PTR_DIFF(walk_state->aml,
++						       walk_state->parser_state.
++						       aml_start);
+ 				acpi_ps_append_arg(op, arg);
+ 			}
+ 
+@@ -494,7 +494,10 @@ acpi_status acpi_ps_parse_loop(struct acpi_walk_state *walk_state)
+ 				continue;
+ 			}
+ 
+-			op->common.aml_offset = walk_state->aml_offset;
++			op->common.aml_offset =
++			    (u32)ACPI_PTR_DIFF(walk_state->aml,
++					       walk_state->parser_state.
++					       aml_start);
+ 
+ 			if (walk_state->op_info) {
+ 				ACPI_DEBUG_PRINT((ACPI_DB_PARSE,
+diff --git a/drivers/acpi/acpica/psobject.c b/drivers/acpi/acpica/psobject.c
+index 2f5ddd8..6ba3bb7 100644
+--- a/drivers/acpi/acpica/psobject.c
++++ b/drivers/acpi/acpica/psobject.c
+@@ -66,12 +66,11 @@ static acpi_status acpi_ps_get_aml_opcode(struct acpi_walk_state *walk_state);
+ 
+ static acpi_status acpi_ps_get_aml_opcode(struct acpi_walk_state *walk_state)
+ {
++	u32 aml_offset;
+ 
+ 	ACPI_FUNCTION_TRACE_PTR(ps_get_aml_opcode, walk_state);
+ 
+-	walk_state->aml_offset =
+-	    (u32)ACPI_PTR_DIFF(walk_state->parser_state.aml,
+-			       walk_state->parser_state.aml_start);
++	walk_state->aml = walk_state->parser_state.aml;
+ 	walk_state->opcode = acpi_ps_peek_opcode(&(walk_state->parser_state));
+ 
+ 	/*
+@@ -98,10 +97,14 @@ static acpi_status acpi_ps_get_aml_opcode(struct acpi_walk_state *walk_state)
+ 		/* The opcode is unrecognized. Complain and skip unknown opcodes */
+ 
+ 		if (walk_state->pass_number == 2) {
++			aml_offset = (u32)ACPI_PTR_DIFF(walk_state->aml,
++							walk_state->
++							parser_state.aml_start);
++
+ 			ACPI_ERROR((AE_INFO,
+ 				    "Unknown opcode 0x%.2X at table offset 0x%.4X, ignoring",
+ 				    walk_state->opcode,
+-				    (u32)(walk_state->aml_offset +
++				    (u32)(aml_offset +
+ 					  sizeof(struct acpi_table_header))));
+ 
+ 			ACPI_DUMP_BUFFER((walk_state->parser_state.aml - 16),
+@@ -115,14 +118,14 @@ static acpi_status acpi_ps_get_aml_opcode(struct acpi_walk_state *walk_state)
+ 			acpi_os_printf
+ 			    ("/*\nError: Unknown opcode 0x%.2X at table offset 0x%.4X, context:\n",
+ 			     walk_state->opcode,
+-			     (u32)(walk_state->aml_offset +
++			     (u32)(aml_offset +
+ 				   sizeof(struct acpi_table_header)));
+ 
+ 			/* Dump the context surrounding the invalid opcode */
+ 
+ 			acpi_ut_dump_buffer(((u8 *)walk_state->parser_state.
+ 					     aml - 16), 48, DB_BYTE_DISPLAY,
+-					    (walk_state->aml_offset +
++					    (aml_offset +
+ 					     sizeof(struct acpi_table_header) -
+ 					     16));
+ 			acpi_os_printf(" */\n");
 -- 
 1.7.10
 
