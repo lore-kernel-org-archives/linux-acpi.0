@@ -1,77 +1,72 @@
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH v2.1 21/22] fjes: handle receive cancellation request
- interrupt
-Date: Thu, 23 Jul 2015 16:06:01 +0300
-Message-ID: <55B0E6B9.3070301@cogentembedded.com>
-References: <1437610142-12439-1-git-send-email-izumi.taku@jp.fujitsu.com>
- <1437610236-12490-1-git-send-email-izumi.taku@jp.fujitsu.com>
- <1437610236-12490-21-git-send-email-izumi.taku@jp.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <1437610236-12490-21-git-send-email-izumi.taku@jp.fujitsu.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Taku Izumi <izumi.taku@jp.fujitsu.com>, netdev@vger.kernel.org, davem@davemloft.net
-Cc: platform-driver-x86@vger.kernel.org, dvhart@infradead.org, rkhan@redhat.com, alexander.h.duyck@redhat.com, linux-acpi@vger.kernel.org, joe@perches.com, stephen@networkplumber.org, yasu.isimatu@gmail.com
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: [PATCH v2 7/7] acpi: gsi: Cleanup acpi_register_gsi
+Date: Thu, 23 Jul 2015 14:05:13 +0100
+Message-ID: <1437656713-9677-8-git-send-email-marc.zyngier@arm.com>
+References: <1437656713-9677-1-git-send-email-marc.zyngier@arm.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:40333 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753261AbbGWNFg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 23 Jul 2015 09:05:36 -0400
+In-Reply-To: <1437656713-9677-1-git-send-email-marc.zyngier@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Graeme Gregory <graeme@xora.org.uk>
 
-Hello.
+As the only user of drivers/acpi/gsi.c is now using acpi_set_irq_model
+to set acpi_gsi_descriptor_populate to something meaningful, we can
+always rely on that information to be present (its absence is an error),
+and guarantee that new interrupt controllers will use this API.
 
-On 7/23/2015 3:10 AM, Taku Izumi wrote:
+Take this opportunity to cleanup acpi_register_gsi.
 
-> This patch adds implementation of handling IRQ
-> of other receiver's receive cancellation request.
+Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
+---
+ drivers/acpi/gsi.c | 24 ++++++++----------------
+ 1 file changed, 8 insertions(+), 16 deletions(-)
 
-> Signed-off-by: Taku Izumi <izumi.taku@jp.fujitsu.com>
-> ---
->   drivers/net/fjes/fjes_main.c | 79 ++++++++++++++++++++++++++++++++++++++++++++
->   1 file changed, 79 insertions(+)
->
-> diff --git a/drivers/net/fjes/fjes_main.c b/drivers/net/fjes/fjes_main.c
-> index faaf2ed..b21ad68 100644
-> --- a/drivers/net/fjes/fjes_main.c
-> +++ b/drivers/net/fjes/fjes_main.c
-> @@ -822,6 +822,75 @@ static int fjes_vlan_rx_kill_vid(struct net_device *netdev,
->   	return 0;
->   }
->
-> +static void fjes_txrx_stop_req_irq(struct fjes_adapter *adapter,
-> +				   int src_epid)
-> +{
-> +	struct fjes_hw *hw = &adapter->hw;
-> +	enum ep_partner_status status;
-> +
-> +	status = fjes_hw_get_partner_ep_status(hw, src_epid);
-> +	switch (status) {
-> +	case EP_PARTNER_UNSHARE:
-> +	default:
-> +		break;
-> +	case EP_PARTNER_COMPLETE:
-> +		break;
+diff --git a/drivers/acpi/gsi.c b/drivers/acpi/gsi.c
+index e6f4a0c..85aa831 100644
+--- a/drivers/acpi/gsi.c
++++ b/drivers/acpi/gsi.c
+@@ -75,28 +75,20 @@ int acpi_register_gsi(struct device *dev, u32 gsi, int trigger,
+ 		      int polarity)
+ {
+ 	int err;
+-	unsigned int irq;
++	struct acpi_gsi_descriptor data;
+ 	unsigned int irq_type = acpi_gsi_get_irq_type(trigger, polarity);
+ 	struct irq_domain *d = irq_find_host(acpi_gsi_domain_token);
+ 
+-	if (acpi_gsi_descriptor_populate) {
+-		struct acpi_gsi_descriptor data;
+-		err = acpi_gsi_descriptor_populate(&data, gsi, irq_type);
+-		if (err)
+-			return err;
+-
+-		return irq_create_acpi_mapping(d, &data);
++	if (WARN_ON(!acpi_gsi_descriptor_populate)) {
++		pr_warn("GSI: No registered irqchip, giving up\n");
++		return -EINVAL;
+ 	}
+ 
+-	irq = irq_create_mapping(d, gsi);
+-	if (!irq)
+-		return -EINVAL;
++	err = acpi_gsi_descriptor_populate(&data, gsi, irq_type);
++	if (err)
++		return err;
+ 
+-	/* Set irq type if specified and different than the current one */
+-	if (irq_type != IRQ_TYPE_NONE &&
+-		irq_type != irq_get_trigger_type(irq))
+-		irq_set_irq_type(irq, irq_type);
+-	return irq;
++	return irq_create_acpi_mapping(d, &data);
+ }
+ EXPORT_SYMBOL_GPL(acpi_register_gsi);
+ 
+-- 
+2.1.4
 
-    Why this *case* isn't merged with the above ones?
-
-> +	case EP_PARTNER_WAITING:
-> +		if (src_epid < hw->my_epid) {
-> +			hw->ep_shm_info[src_epid].tx.info->v1i.rx_status |=
-> +				FJES_RX_STOP_REQ_DONE;
-> +
-> +			clear_bit(src_epid, &hw->txrx_stop_req_bit);
-> +			set_bit(src_epid, &adapter->unshare_watch_bitmask);
-> +
-> +			if (!work_pending(&adapter->unshare_watch_task))
-> +				queue_work(adapter->control_wq,
-> +					   &adapter->unshare_watch_task);
-> +		}
-> +		break;
-> +	case EP_PARTNER_SHARED:
-> +		if (hw->ep_shm_info[src_epid].rx.info->v1i.rx_status
-> +				& FJES_RX_STOP_REQ_REQUEST) {
-
-    Please leave the & operator on the first line and start the second line 
-right under 'hw' on the first.
-
-[...]
-
-MBR, Sergei
