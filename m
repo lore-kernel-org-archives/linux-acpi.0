@@ -1,85 +1,41 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: Discrete Nvidia GPU shutdown with recent kernel / BIOS (on T440s
- laptop) - Should be automatic with runtime pm now ?
-Date: Wed, 22 Jul 2015 21:21:36 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1507222116430.12068-100000@netrider.rowland.org>
-References: <CAHL+j09=tc4ytFmzuhw5K_AvQ6aDsViREkwCY6re4A-iJTnTUw@mail.gmail.com>
+From: "Lu, Aaron" <aaron.lu@intel.com>
+Subject: Re: [PATCH] acpi-video: Fix brightness keys for Thinkpad X240
+Date: Thu, 23 Jul 2015 01:40:18 +0000
+Message-ID: <1437615709.11064.2.camel@intel.com>
+References: <1437544346-32285-1-git-send-email-m.othacehe@gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from netrider.rowland.org ([192.131.102.5]:42993 "HELO
-	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752125AbbGWBVh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Jul 2015 21:21:37 -0400
-In-Reply-To: <CAHL+j09=tc4ytFmzuhw5K_AvQ6aDsViREkwCY6re4A-iJTnTUw@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1437544346-32285-1-git-send-email-m.othacehe@gmail.com>
+Content-Language: en-US
+Content-ID: <C0439E657327EC488DBFE40B431A059A@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "m.othacehe@gmail.com" <m.othacehe@gmail.com>, "lenb@kernel.org" <lenb@kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Sylvain Munaut <246tnt@gmail.com>
-Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
 
-On Wed, 22 Jul 2015, Sylvain Munaut wrote:
-
-> Hi Alan,
-> 
-> 
-> Thanks for the details.
-> 
-> 
-> >> tl;dr : Should device allowed to do runtime pm that have no driver go
-> >> to D3 on their own ?
-> >
-> > Quick answer: See the comments at the start of local_pci_probe() in
-> > drivers/pci/pci-driver.c.  PCI devices without a kernel driver are
-> > always left in D0, regardless of the runtime PM status.  This is
-> > because userspace may try to use the device, and the kernel wouldn't
-> > know to take the device out of D3 when that happens.
-> 
-> Does linux expose some way for userspace to transition the device to
-> another power state without the need for a driver ?
-
-I don't think so.  Of course, such a thing could be added.  One simple 
-way to do it would be to create a "do-nothing" driver that would allow 
-userspace to access the device directly and would include runtime PM 
-suport.
-
-> I looked at the docs and tried poking some of the sysfs files, but
-> except enabling/disabling the runtme pm, I couldn't really change
-> anything, but maybe I missed something.
-
-You probably didn't miss anything.
-
-> >>  And should pci root bridge go to D3 when all the
-> >> device on them are on D3 ?
-> >
-> > I don't know the answer to that.  It's probably closely related to the
-> > issue of whether PCI bridges need to have a kernel driver.
-> 
-> OK.
-> 
-> Do you know if there could be any adverse effect of transitioning it myself ?
-> 
-> Basically I'm doing this when turning off the card :
-> 
-> struct pci_dev *port_dev = pci_upstream_bridge(pdev);
-> 
-> pci_save_state(port_dev);
-> pci_clear_master(port_dev);
-> pci_disable_device(port_dev);
-> pci_set_power_state(port_dev, PCI_D3hot);
-> 
-> 
-> And this when waking it up :
-> 
-> pci_set_power_state(port_dev, PCI_D0);
-> pci_restore_state(port_dev);
-> pci_enable_device(port_dev);
-> pci_set_master(port_dev);
-> 
-> (I removed the return value checking to make the code more concise here).
-
-That seems reasonable.  But I am far from an expert on PCI or Linux's
-PCI subsystem.  You really should address this sort of question to the
-linux-pci mailing list.
-
-Alan Stern
-
+T24gV2VkLCAyMDE1LTA3LTIyIGF0IDA3OjUyICswMjAwLCBNYXRoaWV1IE9USEFDRUhFIHdyb3Rl
+Og0KPiBUaGlua3BhZCBYMjQwIGxhcHRvcCBoYXMgYSB3b3JraW5nIGFjcGlfdmlkZW8gYmFja2xp
+Z2h0IGNvbnRyb2wgYnV0DQo+IHVzaW5nIHRoZSBkZWZhdWx0IG5hdGl2ZSBiYWNrbGlnaHQgY29u
+dHJvbCwgYnJpZ2h0bmVzcyBrZXlzIGRvZXMgbm90IA0KPiB3b3JrLg0KDQpJcyBpdCBiZWNhdXNl
+IHRoZSBldmVudHMgYXJlIG5vdCBzZW50IHRvIHVzZXIgc3BhY2U/DQoNCkNhbiB5b3UgcGxlYXNl
+IGZpbGUgYSBidWcgaW4gaHR0cHM6Ly9idWd6aWxsYS5rZXJuZWwub3JnLyB1bmRlciB0aGUNCkFD
+UEkvUG93ZXItVmlkZW8gY2F0ZWdvcnkgYW5kIGF0dGFjaCBpdHMgYWNwaWR1bXAvZG1lc2cgdGhl
+cmU/IFRoYW5rcy4NCg0KUmVnYXJkcywNCkFhcm9uDQoNCj4gDQo+IFRoaXMgcGF0Y2ggZm9yY2Ug
+YWNwaV92aWRlbyB1c2UgZm9yIHRoaXMgbGFwdG9wIGJ5IGFkZGluZyBhbiANCj4gZXhjZXB0aW9u
+IGluDQo+IHZpZGVvX2RldGVjdF9kbWlfdGFibGUuDQo+IA0KPiBTaWduZWQtb2ZmLWJ5OiBNYXRo
+aWV1IE9USEFDRUhFIDxtLm90aGFjZWhlQGdtYWlsLmNvbT4NCj4gLS0tDQo+ICBkcml2ZXJzL2Fj
+cGkvdmlkZW9fZGV0ZWN0LmMgfCA4ICsrKysrKysrDQo+ICAxIGZpbGUgY2hhbmdlZCwgOCBpbnNl
+cnRpb25zKCspDQo+IA0KPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL3ZpZGVvX2RldGVjdC5j
+IA0KPiBiL2RyaXZlcnMvYWNwaS92aWRlb19kZXRlY3QuYw0KPiBpbmRleCA4MTVmNzVlLi5jNGJj
+NWYyIDEwMDY0NA0KPiAtLS0gYS9kcml2ZXJzL2FjcGkvdmlkZW9fZGV0ZWN0LmMNCj4gKysrIGIv
+ZHJpdmVycy9hY3BpL3ZpZGVvX2RldGVjdC5jDQo+IEBAIC0xNzMsNiArMTczLDE0IEBAIHN0YXRp
+YyBjb25zdCBzdHJ1Y3QgZG1pX3N5c3RlbV9pZCANCj4gdmlkZW9fZGV0ZWN0X2RtaV90YWJsZVtd
+ID0gew0KPiAgCQlETUlfTUFUQ0goRE1JX1BST0RVQ1RfVkVSU0lPTiwgIlRoaW5rUGFkIFgyMDFz
+IiksDQo+ICAJCX0sDQo+ICAJfSwNCj4gKwl7DQo+ICsJIC5jYWxsYmFjayA9IHZpZGVvX2RldGVj
+dF9mb3JjZV92aWRlbywNCj4gKwkgLmlkZW50ID0gIlRoaW5rUGFkIFgyNDAiLA0KPiArCSAubWF0
+Y2hlcyA9IHsNCj4gKwkJRE1JX01BVENIKERNSV9TWVNfVkVORE9SLCAiTEVOT1ZPIiksDQo+ICsJ
+CURNSV9NQVRDSChETUlfUFJPRFVDVF9WRVJTSU9OLCAiVGhpbmtQYWQgWDI0MCIpLA0KPiArCQl9
+LA0KPiArCX0sDQo+ICANCj4gIAkvKiBUaGUgbmF0aXZlIGJhY2tsaWdodCBjb250cm9scyBkbyBu
+b3Qgd29yayBvbiBzb21lIG9sZGVyIA0KPiBtYWNoaW5lcyAqLw0KPiAgCXs=
