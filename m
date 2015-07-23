@@ -1,41 +1,71 @@
-From: "Lu, Aaron" <aaron.lu@intel.com>
-Subject: Re: [PATCH] acpi-video: Fix brightness keys for Thinkpad X240
-Date: Thu, 23 Jul 2015 01:40:18 +0000
-Message-ID: <1437615709.11064.2.camel@intel.com>
-References: <1437544346-32285-1-git-send-email-m.othacehe@gmail.com>
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: Re: [PATCH 0/5] Make cpuid <-> nodeid mapping persistent.
+Date: Thu, 23 Jul 2015 12:44:53 +0800
+Message-ID: <55B07145.5010404@cn.fujitsu.com>
+References: <1436261425-29881-1-git-send-email-tangchen@cn.fujitsu.com> <20150715221345.GO15934@mtj.duckdns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1437544346-32285-1-git-send-email-m.othacehe@gmail.com>
-Content-Language: en-US
-Content-ID: <C0439E657327EC488DBFE40B431A059A@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "m.othacehe@gmail.com" <m.othacehe@gmail.com>, "lenb@kernel.org" <lenb@kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cn.fujitsu.com ([59.151.112.132]:44441 "EHLO
+	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750702AbbGWEn4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Jul 2015 00:43:56 -0400
+In-Reply-To: <20150715221345.GO15934@mtj.duckdns.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tejun Heo <tj@kernel.org>
+Cc: mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, laijs@cn.fujitsu.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, qiaonuohan@cn.fujitsu.com, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
 
-T24gV2VkLCAyMDE1LTA3LTIyIGF0IDA3OjUyICswMjAwLCBNYXRoaWV1IE9USEFDRUhFIHdyb3Rl
-Og0KPiBUaGlua3BhZCBYMjQwIGxhcHRvcCBoYXMgYSB3b3JraW5nIGFjcGlfdmlkZW8gYmFja2xp
-Z2h0IGNvbnRyb2wgYnV0DQo+IHVzaW5nIHRoZSBkZWZhdWx0IG5hdGl2ZSBiYWNrbGlnaHQgY29u
-dHJvbCwgYnJpZ2h0bmVzcyBrZXlzIGRvZXMgbm90IA0KPiB3b3JrLg0KDQpJcyBpdCBiZWNhdXNl
-IHRoZSBldmVudHMgYXJlIG5vdCBzZW50IHRvIHVzZXIgc3BhY2U/DQoNCkNhbiB5b3UgcGxlYXNl
-IGZpbGUgYSBidWcgaW4gaHR0cHM6Ly9idWd6aWxsYS5rZXJuZWwub3JnLyB1bmRlciB0aGUNCkFD
-UEkvUG93ZXItVmlkZW8gY2F0ZWdvcnkgYW5kIGF0dGFjaCBpdHMgYWNwaWR1bXAvZG1lc2cgdGhl
-cmU/IFRoYW5rcy4NCg0KUmVnYXJkcywNCkFhcm9uDQoNCj4gDQo+IFRoaXMgcGF0Y2ggZm9yY2Ug
-YWNwaV92aWRlbyB1c2UgZm9yIHRoaXMgbGFwdG9wIGJ5IGFkZGluZyBhbiANCj4gZXhjZXB0aW9u
-IGluDQo+IHZpZGVvX2RldGVjdF9kbWlfdGFibGUuDQo+IA0KPiBTaWduZWQtb2ZmLWJ5OiBNYXRo
-aWV1IE9USEFDRUhFIDxtLm90aGFjZWhlQGdtYWlsLmNvbT4NCj4gLS0tDQo+ICBkcml2ZXJzL2Fj
-cGkvdmlkZW9fZGV0ZWN0LmMgfCA4ICsrKysrKysrDQo+ICAxIGZpbGUgY2hhbmdlZCwgOCBpbnNl
-cnRpb25zKCspDQo+IA0KPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL3ZpZGVvX2RldGVjdC5j
-IA0KPiBiL2RyaXZlcnMvYWNwaS92aWRlb19kZXRlY3QuYw0KPiBpbmRleCA4MTVmNzVlLi5jNGJj
-NWYyIDEwMDY0NA0KPiAtLS0gYS9kcml2ZXJzL2FjcGkvdmlkZW9fZGV0ZWN0LmMNCj4gKysrIGIv
-ZHJpdmVycy9hY3BpL3ZpZGVvX2RldGVjdC5jDQo+IEBAIC0xNzMsNiArMTczLDE0IEBAIHN0YXRp
-YyBjb25zdCBzdHJ1Y3QgZG1pX3N5c3RlbV9pZCANCj4gdmlkZW9fZGV0ZWN0X2RtaV90YWJsZVtd
-ID0gew0KPiAgCQlETUlfTUFUQ0goRE1JX1BST0RVQ1RfVkVSU0lPTiwgIlRoaW5rUGFkIFgyMDFz
-IiksDQo+ICAJCX0sDQo+ICAJfSwNCj4gKwl7DQo+ICsJIC5jYWxsYmFjayA9IHZpZGVvX2RldGVj
-dF9mb3JjZV92aWRlbywNCj4gKwkgLmlkZW50ID0gIlRoaW5rUGFkIFgyNDAiLA0KPiArCSAubWF0
-Y2hlcyA9IHsNCj4gKwkJRE1JX01BVENIKERNSV9TWVNfVkVORE9SLCAiTEVOT1ZPIiksDQo+ICsJ
-CURNSV9NQVRDSChETUlfUFJPRFVDVF9WRVJTSU9OLCAiVGhpbmtQYWQgWDI0MCIpLA0KPiArCQl9
-LA0KPiArCX0sDQo+ICANCj4gIAkvKiBUaGUgbmF0aXZlIGJhY2tsaWdodCBjb250cm9scyBkbyBu
-b3Qgd29yayBvbiBzb21lIG9sZGVyIA0KPiBtYWNoaW5lcyAqLw0KPiAgCXs=
+
+On 07/16/2015 06:13 AM, Tejun Heo wrote:
+> Hello,
+>
+> On Tue, Jul 07, 2015 at 05:30:20PM +0800, Tang Chen wrote:
+>> [Solution]
+>>
+>> To fix this problem, we establish cpuid <-> nodeid mapping for all the possible
+>> cpus at boot time, and make it invariable. And according to init_cpu_to_node(),
+>> cpuid <-> nodeid mapping is based on apicid <-> nodeid mapping and cpuid <-> apicid
+>> mapping. So the key point is obtaining all cpus' apicid.
+>>
+>> apicid can be obtained by _MAT (Multiple APIC Table Entry) method or found in
+>> MADT (Multiple APIC Description Table). So we finish the job in the following steps:
+>>
+>> 1. Enable apic registeration flow to handle both enabled and disabled cpus.
+>>     This is done by introducing an extra parameter to generic_processor_info to let the
+>>     caller control if disabled cpus are ignored.
+>>
+>> 2. Introduce a new array storing all possible cpuid <-> apicid mapping. And also modify
+>>     the way cpuid is calculated. Establish all possible cpuid <-> apicid mapping when
+>>     registering local apic. Store the mapping in the array introduced above.
+>>
+>> 4. Enable _MAT and MADT relative apis to return non-presnet or disabled cpus' apicid.
+>>     This is also done by introducing an extra parameter to these apis to let the caller
+>>     control if disabled cpus are ignored.
+>>
+>> 5. Establish all possible cpuid <-> nodeid mapping.
+>>     This is done via an additional acpi namespace walk for processors.
+> Hmmm... given that we probably want to allocate lower ids to the
+> online cpus, as otherwise we can end up failing to bring existing cpus
+> online because NR_CPUS is lower than the number of possible cpus, I
+> wonder whether doing this lazily could be better / easier.  e.g. just
+> remember the mapping as cpus come online.  When a new cpu comes up,
+> look up whether it came up before.  If so, use the ids from the last
+> time.  If not, allocate new ones.  I think that would be less amount
+> of change but does require updating the mapping dynamically.
+
+Hi TJ,
+
+Allocating cpuid when a new cpu comes up and reusing the cpuid when it
+comes up again is possible. But I'm not quite sure if it will be less 
+modification
+because we still need an array or bit map or something to keep the mapping,
+and select backup nodes for cpus on memory-less nodes when allocating 
+memory.
+
+I can post a set of patches for this idea. And then we can see which one 
+is better.
+
+Thanks. :)
+
