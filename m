@@ -1,91 +1,59 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 3/4] ACPI / Documentation: Update method tracing documentation.
-Date: Thu, 23 Jul 2015 13:06:58 +0800
-Message-ID: <c9282393fad0766263c10e3a7e74df828f8479b7.1437627661.git.lv.zheng@intel.com>
-References: <cover.1437627016.git.lv.zheng@intel.com> <cover.1437627661.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1437627661.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Subject: Re: [RFCv2 PATCH 1/8] irqdomain: Introduce
+ irq_domain_ops.init_alloc_info
+Date: Thu, 23 Jul 2015 13:50:42 +0700
+Message-ID: <55B08EC2.4000204@amd.com>
+References: <1436778864-17645-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+ <1436778864-17645-2-git-send-email-Suravee.Suthikulpanit@amd.com>
+ <alpine.DEB.2.11.1507202326450.18576@nanos>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-bl2on0125.outbound.protection.outlook.com ([65.55.169.125]:52112
+	"EHLO na01-bl2-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750859AbbGWHGY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 23 Jul 2015 03:06:24 -0400
+In-Reply-To: <alpine.DEB.2.11.1507202326450.18576@nanos>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: marc.zyngier@arm.com, lorenzo.pieralisi@arm.com, hanjun.guo@linaro.org, tomasz.nowicki@linaro.org, rjw@rjwysocki.net, al.stone@linaro.org, catalin.marinas@arm.com, will.deacon@arm.com, msalter@redhat.com, grant.likely@linaro.org, leo.duran@amd.com, sherry.hurwitz@amd.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-This patch updates method tracing documentation.
 
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- Documentation/acpi/method-tracing.txt |   53 ++++++++++++++++++++++++---------
- 1 file changed, 39 insertions(+), 14 deletions(-)
 
-diff --git a/Documentation/acpi/method-tracing.txt b/Documentation/acpi/method-tracing.txt
-index f6efb1e..c77f91c 100644
---- a/Documentation/acpi/method-tracing.txt
-+++ b/Documentation/acpi/method-tracing.txt
-@@ -1,26 +1,51 @@
- /sys/module/acpi/parameters/:
- 
- trace_method_name
--	The AML method name that the user wants to trace
-+	The full path of the AML method that the user wants to use with the
-+	"method"/"method-once" tracing mode.
-+	Note that the full path shouldn't contain the trailing "_"s in its
-+	name segments but should contain "\" to form an absolute path.
- 
- trace_debug_layer
--	The temporary debug_layer used when tracing the method.
--	Using 0xffffffff by default if it is 0.
-+	The temporary debug_layer used when the tracing feature is enabled.
-+	Using ACPI_EXECUTER (0x80) by default.
- 
- trace_debug_level
--	The temporary debug_level used when tracing the method.
--	Using 0x00ffffff by default if it is 0.
-+	The temporary debug_level used when the tracing feature is enabled.
-+	Using ACPI_LV_TRACE_POINT (0x10) by default.
- 
- trace_state
- 	The status of the tracing feature.
- 
--	"enabled" means this feature is enabled
--	and the AML method is traced every time it's executed.
-+	Users can enable/disable this debug tracing feature by executing
-+	the following command:
-+	    # echo string > /sys/module/acpi/parameters/trace_state
-+	Where "string" should be one of the followings:
-+	"disable"
-+	    Disable the tracing feature.
-+	"enable"
-+	    Enable the tracing feature.
-+	    ACPICA debugging messages matching
-+	    "trace_debug_layer/trace_debug_level" during any method
-+	    execution will be logged.
-+	"method"
-+	    Enable the tracing feature.
-+	    ACPICA debugging messages matching
-+	    "trace_debug_layer/trace_debug_level" during method execution
-+	    of "trace_method_name" will be logged.
-+	"method-once"
-+	    Enable the tracing feature.
-+	    ACPICA debugging messages matching
-+	    "trace_debug_layer/trace_debug_level" during method execution
-+	    of "trace_method_name" will be logged only once.
-+	"opcode"
-+	    Enable the tracing feature.
-+	    ACPICA debugging messages matching
-+	    "trace_debug_layer/trace_debug_level" during method/opcode
-+	    execution of "trace_method_name" will be logged.
-+	"opcode-once"
-+	    Enable the tracing feature.
-+	    ACPICA debugging messages matching
-+	    "trace_debug_layer/trace_debug_level" during method/opcode
-+	    execution of "trace_method_name" will be logged only once.
- 
--	"1" means this feature is enabled and the AML method
--	will only be traced during the next execution.
--
--	"disabled" means this feature is disabled.
--	Users can enable/disable this debug tracing feature by
--	"echo string > /sys/module/acpi/parameters/trace_state".
--	"string" should be one of "enable", "disable" and "1".
--- 
-1.7.10
+On 7/21/15 04:28, Thomas Gleixner wrote:
+> On Mon, 13 Jul 2015, Suravee Suthikulpanit wrote:
+>
+>> Currently, when calling irq_domain_alloc_irqs() on ARM64, it uses
+>> struct of_phandle_args to pass irq information. However, this is not
+>> appropriate for ACPI since of_phandle_args is specific to DT.
+>>
+>> Therefore, this patch introduces a new function pointer,
+>> irq_domain_ops.init_alloc_info, which can be used by irqchips to provide
+>> a way to initialize irqchip-specific data-structure for allocating IRQ.
+>>
+>> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+>> ---
+>> NOTE:
+>> Similarly, x86 is currently using struct irq_alloc_info
+>> (see arch/x86/include/asm/hw_irq.h) and each irq_domain has different
+>> way of initializing this structure.
+>
+> And why don't you use the same mechanism on ARM and have a private
+> irq_alloc_info implementation which can carry either DT or ACPI
+> information?
+
+Let me look further into this. I would like to take a similar approach here.
+
+Suravee
+
+> Thanks,
+>
+> 	tglx
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
