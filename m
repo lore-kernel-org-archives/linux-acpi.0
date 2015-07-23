@@ -1,61 +1,100 @@
-From: Pavel Machek <pavel@ucw.cz>
-Subject: Re: [PATCH v2] thermal: consistently use int for temperatures
-Date: Thu, 23 Jul 2015 14:07:59 +0200
-Message-ID: <20150723120759.GA17690@amd>
-References: <1437463292-24844-1-git-send-email-s.hauer@pengutronix.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: [PATCH v2 0/7] Making the generic ACPI GSI layer irqdomain aware
+Date: Thu, 23 Jul 2015 14:05:06 +0100
+Message-ID: <1437656713-9677-1-git-send-email-marc.zyngier@arm.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:33004 "EHLO
-	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751844AbbGWMIC (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 23 Jul 2015 08:08:02 -0400
-Content-Disposition: inline
-In-Reply-To: <1437463292-24844-1-git-send-email-s.hauer@pengutronix.de>
+Received: from foss.arm.com ([217.140.101.70]:40261 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752454AbbGWNFU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 23 Jul 2015 09:05:20 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: linux-pm@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Eduardo Valentin <edubezval@gmail.com>, linux-kernel@vger.kernel.org, Punit Agrawal <punit.agrawal@arm.com>, Jean Delvare <jdelvare@suse.de>, Peter Feuerer <peter@piie.net>, Heiko Stuebner <heiko@sntech.de>, Lukasz Majewski <l.majewski@samsung.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, Guenter Roeck <linux@roeck-us.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Maxime Ripard <maxime.ripard@free-electrons.com>, Darren Hart <dvhart@infradead.org>, lm-sensors@lm-sensors.org
+To: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Graeme Gregory <graeme@xora.org.uk>
 
-On Tue 2015-07-21 09:21:32, Sascha Hauer wrote:
-> The thermal code uses int, long and unsigned long for temperatures
-> in different places.
->=20
-> Using an unsigned type limits the thermal framework to positive
-> temperatures without need. Also several drivers currently will report
-> temperatures near UINT_MAX for temperatures below 0=B0C. This will pr=
-obably
-> immediately shut the machine down due to overtemperature if started b=
-elow
-> 0=B0C.
->=20
-> 'long' is 64bit on several architectures. This is not needed since IN=
-T_MAX =B0mC
-> is above the melting point of all known materials.
+The irqdomain code is not entierely really ACPI friendly, as it has
+some built-in knowledge of the device-tree. Nothing too harmful, but
+enough to scare the ARM ACPI developpers which end up with their own
+version of the square wheel.
 
-Can we do something like
+This small patch series adapt the irqdomain code to remove the hurdles
+that prevent the full blown irqdomain subsystem to be used on ACPI,
+creates an interface between the GSI layer and the irqdomain, and as
+an example, convert the ARM GIC ACPI support to use irqdomains as
+originally intended.
 
-typedef millicelsius_t int;
+Overall, this gives us a way to use irqdomains on both DT and ACPI
+enabled platforms, having very little changes made to the actual
+drivers (other than the probing infrastructure). Because we keep the
+flow of information between the various layers identical between ACPI
+and DT, we immediately benefit from the existing infrastructure.
 
-=2E..to document the units?
+I'd really like to hear what people think of that approach, as it
+looks to me a lot simpler than the other approaches currently put on
+the list. The "convert the GSI information to be DT friendly" is
+admitedly not very pretty, but I see it as a stepping stone towards
+unifying the two structures.
 
-> Consistently use a plain 'int' for temperatures throughout the therma=
-l code and
-> the drivers. This only changes the places in the drivers where the te=
-mperature
-> is passed around as pointer, when drivers internally use another type=
- this is
-> not changed.
+This has been test-booted on Juno, is based on my irq/ncpi-msi-v3
+branch, and available at:
 
-									Pavel
+git://git.kernel.org/pub/scm/linux/kernel/git/maz/arm-platforms.git irq/gsi-irq-domain-v2
 
---=20
-(english) http://www.livejournal.com/~pavelmachek
-(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses=
-/blog.html
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+* From v1:
+  - Improved my Coccinelle foo and hopefully caught all the
+    irq_domain.of_node users this time
+  - Decoupled acpi_irq_model from domain_token. These are now two
+    separate values that can be set independently
+  - Moved the duty of populating acpi_gsi_descriptor to the interrupt
+    controller, as it keeps the knowledge of the mapping with
+    of_phandle_args in a single location
+  - Generic accessor to set acpi_irq_model, domain_token and the
+    populate function all in one go from the interrupt controller
+  - General cleanup
+
+Marc Zyngier (7):
+  genirq: irqdomain: Use an accessor for the of_node field
+  genirq: irqdomain: Remove irqdomain dependency on struct device_node
+  genirq: irqdomain: Add irq_create_acpi_mapping
+  acpi: gsi: Always perform an irq domain lookup
+  acpi: gsi: Add acpi_set_irq_model to initialize the GSI layer
+  irqchip: GIC: Switch ACPI support to stacked domains
+  acpi: gsi: Cleanup acpi_register_gsi
+
+ arch/c6x/platforms/megamod-pic.c              |  2 +-
+ arch/mips/cavium-octeon/octeon-irq.c          |  4 +-
+ arch/powerpc/platforms/cell/axon_msi.c        |  2 +-
+ arch/powerpc/platforms/cell/spider-pic.c      |  9 ++-
+ arch/powerpc/platforms/pasemi/msi.c           |  6 +-
+ arch/powerpc/platforms/powernv/opal-irqchip.c |  2 +-
+ arch/powerpc/sysdev/ehv_pic.c                 |  3 +-
+ arch/powerpc/sysdev/fsl_msi.c                 |  2 +-
+ arch/powerpc/sysdev/i8259.c                   |  3 +-
+ arch/powerpc/sysdev/ipic.c                    |  3 +-
+ arch/powerpc/sysdev/mpic.c                    |  3 +-
+ arch/powerpc/sysdev/mpic_msi.c                |  2 +-
+ arch/powerpc/sysdev/qe_lib/qe_ic.c            |  3 +-
+ drivers/acpi/gsi.c                            | 60 +++++++++++------
+ drivers/gpio/gpio-sodaville.c                 |  2 +-
+ drivers/irqchip/exynos-combiner.c             |  2 +-
+ drivers/irqchip/irq-atmel-aic-common.c        |  2 +-
+ drivers/irqchip/irq-crossbar.c                |  4 +-
+ drivers/irqchip/irq-gic-v2m.c                 |  2 +-
+ drivers/irqchip/irq-gic-v3-its.c              |  2 +-
+ drivers/irqchip/irq-gic-v3.c                  |  2 +-
+ drivers/irqchip/irq-gic.c                     | 45 +++++++++----
+ drivers/irqchip/irq-hip04.c                   |  2 +-
+ drivers/irqchip/irq-mtk-sysirq.c              |  2 +-
+ drivers/irqchip/irq-s3c24xx.c                 |  4 +-
+ drivers/irqchip/irq-tegra.c                   |  4 +-
+ drivers/irqchip/irq-vf610-mscm-ir.c           |  5 +-
+ drivers/spmi/spmi-pmic-arb.c                  |  2 +-
+ include/linux/acpi.h                          | 14 ++++
+ include/linux/irqchip/arm-gic.h               |  2 +-
+ include/linux/irqdomain.h                     | 67 +++++++++++--------
+ kernel/irq/irqdomain.c                        | 95 +++++++++++++++++++++------
+ 32 files changed, 247 insertions(+), 115 deletions(-)
+
+-- 
+2.1.4
+
