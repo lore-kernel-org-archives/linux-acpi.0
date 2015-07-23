@@ -1,97 +1,34 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 01/22] ACPICA: Parser: Reduce parser/namespace divergences for tracer support.
-Date: Thu, 23 Jul 2015 12:52:05 +0800
-Message-ID: <2a960f9359aa003f69f44f89b8a1e4f630001c7c.1437627016.git.lv.zheng@intel.com>
+Subject: [PATCH 0/4] ACPI: Update method tracing facility.
+Date: Thu, 23 Jul 2015 13:06:37 +0800
+Message-ID: <cover.1437627661.git.lv.zheng@intel.com>
 References: <cover.1437627016.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:5750 "EHLO mga03.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:32171 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751124AbbGWEwL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 23 Jul 2015 00:52:11 -0400
+	id S1750702AbbGWFGq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 23 Jul 2015 01:06:46 -0400
 In-Reply-To: <cover.1437627016.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Zhouyi Zhou <yizhouzhou@ict.ac.cn>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-This patch reduces divergences in parser/namespace components so that the
-follow-up linuxized ACPICA upstream commits can be directly merged.
-Including the fix to an indent issue reported and fixed by Zhouyi Zhou.
+This patch updates method tracing facility according to ACPICA 20150717
+release changes.
 
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-Signed-off-by: Zhouyi Zhou <yizhouzhou@ict.ac.cn>
----
- drivers/acpi/acpica/nsnames.c |    2 +-
- drivers/acpi/acpica/nsparse.c |    6 +++---
- drivers/acpi/acpica/psloop.c  |    8 ++++----
- 3 files changed, 8 insertions(+), 8 deletions(-)
+Lv Zheng (4):
+  ACPI / sysfs: Add ACPI_LV_REPAIR debug level.
+  ACPI / sysfs: Update method tracing facility.
+  ACPI / Documentation: Update method tracing documentation.
+  ACPI / sysfs: Add support to allow suppress leading "\" in
+    trace_method_name.
 
-diff --git a/drivers/acpi/acpica/nsnames.c b/drivers/acpi/acpica/nsnames.c
-index d293d97..2e37888 100644
---- a/drivers/acpi/acpica/nsnames.c
-+++ b/drivers/acpi/acpica/nsnames.c
-@@ -108,7 +108,7 @@ acpi_ns_build_external_path(struct acpi_namespace_node *node,
- 	if (index != 0) {
- 		ACPI_ERROR((AE_INFO,
- 			    "Could not construct external pathname; index=%u, size=%u, Path=%s",
--			    (u32) index, (u32) size, &name_buffer[size]));
-+			    (u32)index, (u32)size, &name_buffer[size]));
- 
- 		return (AE_BAD_PARAMETER);
- 	}
-diff --git a/drivers/acpi/acpica/nsparse.c b/drivers/acpi/acpica/nsparse.c
-index 57a4cfe..9926a67c 100644
---- a/drivers/acpi/acpica/nsparse.c
-+++ b/drivers/acpi/acpica/nsparse.c
-@@ -70,7 +70,7 @@ acpi_ns_one_complete_parse(u32 pass_number,
- {
- 	union acpi_parse_object *parse_root;
- 	acpi_status status;
--       u32 aml_length;
-+	u32 aml_length;
- 	u8 *aml_start;
- 	struct acpi_walk_state *walk_state;
- 	struct acpi_table_header *table;
-@@ -110,11 +110,11 @@ acpi_ns_one_complete_parse(u32 pass_number,
- 	if (table->length < sizeof(struct acpi_table_header)) {
- 		status = AE_BAD_HEADER;
- 	} else {
--		aml_start = (u8 *) table + sizeof(struct acpi_table_header);
-+		aml_start = (u8 *)table + sizeof(struct acpi_table_header);
- 		aml_length = table->length - sizeof(struct acpi_table_header);
- 		status = acpi_ds_init_aml_walk(walk_state, parse_root, NULL,
- 					       aml_start, aml_length, NULL,
--					       (u8) pass_number);
-+					       (u8)pass_number);
- 	}
- 
- 	/* Found OSDT table, enable the namespace override feature */
-diff --git a/drivers/acpi/acpica/psloop.c b/drivers/acpi/acpica/psloop.c
-index 9043722..6136458 100644
---- a/drivers/acpi/acpica/psloop.c
-+++ b/drivers/acpi/acpica/psloop.c
-@@ -126,9 +126,9 @@ acpi_ps_get_arguments(struct acpi_walk_state *walk_state,
- 		while (GET_CURRENT_ARG_TYPE(walk_state->arg_types)
- 		       && !walk_state->arg_count) {
- 			walk_state->aml_offset =
--			    (u32) ACPI_PTR_DIFF(walk_state->parser_state.aml,
--						walk_state->parser_state.
--						aml_start);
-+			    (u32)ACPI_PTR_DIFF(walk_state->parser_state.aml,
-+					       walk_state->parser_state.
-+					       aml_start);
- 
- 			status =
- 			    acpi_ps_get_next_arg(walk_state,
-@@ -499,7 +499,7 @@ acpi_status acpi_ps_parse_loop(struct acpi_walk_state *walk_state)
- 			if (walk_state->op_info) {
- 				ACPI_DEBUG_PRINT((ACPI_DB_PARSE,
- 						  "Opcode %4.4X [%s] Op %p Aml %p AmlOffset %5.5X\n",
--						  (u32) op->common.aml_opcode,
-+						  (u32)op->common.aml_opcode,
- 						  walk_state->op_info->name, op,
- 						  parser_state->aml,
- 						  op->common.aml_offset));
+ Documentation/acpi/method-tracing.txt |   53 +++++++++----
+ drivers/acpi/osl.c                    |    8 ++
+ drivers/acpi/sysfs.c                  |  133 ++++++++++++++++++++++++---------
+ 3 files changed, 145 insertions(+), 49 deletions(-)
+
 -- 
 1.7.10
 
