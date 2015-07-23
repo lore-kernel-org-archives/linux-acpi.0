@@ -1,323 +1,445 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 07/22] ACPICA: Dispatcher: Move stack traversal code to dispatcher.
-Date: Thu, 23 Jul 2015 12:52:46 +0800
-Message-ID: <3b9f4f72440dc7a19fbf2ee7009612a8d96178cc.1437627016.git.lv.zheng@intel.com>
+Subject: [PATCH 04/22] ACPICA: Dispatcher: Cleanup union acpi_operand_object's AML address assignments.
+Date: Thu, 23 Jul 2015 12:52:24 +0800
+Message-ID: <9dbaf45ae7f11cf6dd597e8f89757d32b8c81501.1437627016.git.lv.zheng@intel.com>
 References: <cover.1437627016.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:24795 "EHLO mga14.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:46049 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752585AbbGWEwy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 23 Jul 2015 00:52:54 -0400
+	id S1752419AbbGWEwb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 23 Jul 2015 00:52:31 -0400
 In-Reply-To: <cover.1437627016.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-ACPICA commit c8275e243b58fd4adfc0362bd704af41ed14bc75
+ACPICA commit afb52611dbe7403551f93504d3798534f5c343f4
 
-This patch moves parts of acpi_dm_dump_method_info() to the dispatcher
-component.
-This patch also makes the new function dependent on ACPI_DEBUG_OUTPUT
-compile-stage definition so that it can be used by the trace facility.
+This patch cleans up the code of assigning the AML address to the
+union acpi_operand_object.
 
-acpi_dm_dump_method_info() traverses method stack when an exception is
-encountered. Such traversal is needed to support method tracing for the
-exceptions. When an exception is encountered, the end indications of the
-aborted methods should be logged in order not to break the user space
-analysis tool. Lv Zheng.
+The idea behind this cleanup is:
+The AML address of the union acpi_operand_object should always be determined at
+the point where the object is encountered. It should be started from the
+first byte of the object. For example, the opcode of the object, the name
+string of the user_term object, or the first byte of the packaged object
+(where a pkg_length is prefixed). So it's not cleaner to have it assigned
+here and there in the entire ACPICA source tree.
 
-Link: https://github.com/acpica/acpica/commit/c8275e24
+There are some special cases for the internal opcodes, before cleaning up
+the internal opcodes, we should also determine the rules for the AML
+addresses of the internal opcodes:
+1. INT_NAMEPATH_OP: the address of the first byte for the name_string.
+2. INT_METHODCALL_OP: the address of the first byte for the name_string.
+3. INT_BYTELIST_OP: the address of the first byte for the byte_data list.
+4. INT_EVAL_SUBTREE_OP: the address of the first byte for the
+                        Region/Package/Buffer/bank_field/Field arguments.
+5. INT_NAMEDFIELD_OP: the address to the name_seg.
+6. INT_RESERVEDFIELD_OP: the address to the 0x00 prefix.
+7. INT_ACCESSFIELD_OP: the address to the 0x01 prefix.
+8. INT_CONNECTION_OP: the address to the 0x02 prefix.
+9: INT_EXTACCESSFIELD_OP: the address to the 0x03 prefix.
+10.INT_RETURN_VALUE_OP: the address of the replaced operand.
+11.computational_data: the address to the
+                      Byte/Word/Dword/Qword/string_prefix.
+
+Before cleaning up the internal root scope of the aml_walk, turning it into
+the term_list, we need to remember the aml_start address as the "Aml"
+attribute for the union acpi_operand_object created by acpi_ps_create_scope_op().
+
+Finally, we can delete some redundant AML address assignment in psloop.c.
+
+Link: https://github.com/acpica/acpica/commit/afb52611
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/Makefile   |    1 +
- drivers/acpi/acpica/acdispat.h |    8 ++
- drivers/acpi/acpica/dsdebug.c  |  222 ++++++++++++++++++++++++++++++++++++++++
- drivers/acpi/acpica/dsmethod.c |    7 +-
- 4 files changed, 235 insertions(+), 3 deletions(-)
- create mode 100644 drivers/acpi/acpica/dsdebug.c
+ drivers/acpi/acpica/acparser.h |    4 ++--
+ drivers/acpi/acpica/dsargs.c   |    4 ++--
+ drivers/acpi/acpica/dsmethod.c |    2 +-
+ drivers/acpi/acpica/dswload.c  |    2 +-
+ drivers/acpi/acpica/dswload2.c |    2 +-
+ drivers/acpi/acpica/nsparse.c  |   40 +++++++++++++++++++---------------------
+ drivers/acpi/acpica/psargs.c   |   21 ++++++++++++---------
+ drivers/acpi/acpica/psloop.c   |    3 ---
+ drivers/acpi/acpica/psobject.c |    2 +-
+ drivers/acpi/acpica/psparse.c  |   12 ++++++++----
+ drivers/acpi/acpica/psutils.c  |    8 +++++---
+ drivers/acpi/acpica/psxface.c  |    2 +-
+ 12 files changed, 53 insertions(+), 49 deletions(-)
 
-diff --git a/drivers/acpi/acpica/Makefile b/drivers/acpi/acpica/Makefile
-index c1a9635..9f30ed7 100644
---- a/drivers/acpi/acpica/Makefile
-+++ b/drivers/acpi/acpica/Makefile
-@@ -11,6 +11,7 @@ obj-y	+= acpi.o
- acpi-y :=		\
- 	dsargs.o	\
- 	dscontrol.o	\
-+	dsdebug.o	\
- 	dsfield.o	\
- 	dsinit.o	\
- 	dsmethod.o	\
-diff --git a/drivers/acpi/acpica/acdispat.h b/drivers/acpi/acpica/acdispat.h
-index 408f04b..7094dc8 100644
---- a/drivers/acpi/acpica/acdispat.h
-+++ b/drivers/acpi/acpica/acdispat.h
-@@ -354,4 +354,12 @@ acpi_status
- acpi_ds_result_push(union acpi_operand_object *object,
- 		    struct acpi_walk_state *walk_state);
+diff --git a/drivers/acpi/acpica/acparser.h b/drivers/acpi/acpica/acparser.h
+index 0cdd2fc..6021ccf 100644
+--- a/drivers/acpi/acpica/acparser.h
++++ b/drivers/acpi/acpica/acparser.h
+@@ -225,11 +225,11 @@ void acpi_ps_delete_parse_tree(union acpi_parse_object *root);
+ /*
+  * psutils - parser utilities
+  */
+-union acpi_parse_object *acpi_ps_create_scope_op(void);
++union acpi_parse_object *acpi_ps_create_scope_op(u8 *aml);
  
-+/*
-+ * dsdebug - parser debugging routines
-+ */
-+void
-+acpi_ds_dump_method_stack(acpi_status status,
-+			  struct acpi_walk_state *walk_state,
-+			  union acpi_parse_object *op);
-+
- #endif				/* _ACDISPAT_H_ */
-diff --git a/drivers/acpi/acpica/dsdebug.c b/drivers/acpi/acpica/dsdebug.c
-new file mode 100644
-index 0000000..21c6cef
---- /dev/null
-+++ b/drivers/acpi/acpica/dsdebug.c
-@@ -0,0 +1,222 @@
-+/******************************************************************************
-+ *
-+ * Module Name: dsdebug - Parser/Interpreter interface - debugging
-+ *
-+ *****************************************************************************/
-+
-+/*
-+ * Copyright (C) 2000 - 2015, Intel Corp.
-+ * All rights reserved.
-+ *
-+ * Redistribution and use in source and binary forms, with or without
-+ * modification, are permitted provided that the following conditions
-+ * are met:
-+ * 1. Redistributions of source code must retain the above copyright
-+ *    notice, this list of conditions, and the following disclaimer,
-+ *    without modification.
-+ * 2. Redistributions in binary form must reproduce at minimum a disclaimer
-+ *    substantially similar to the "NO WARRANTY" disclaimer below
-+ *    ("Disclaimer") and any redistribution must be conditioned upon
-+ *    including a substantially similar Disclaimer requirement for further
-+ *    binary redistribution.
-+ * 3. Neither the names of the above-listed copyright holders nor the names
-+ *    of any contributors may be used to endorse or promote products derived
-+ *    from this software without specific prior written permission.
-+ *
-+ * Alternatively, this software may be distributed under the terms of the
-+ * GNU General Public License ("GPL") version 2 as published by the Free
-+ * Software Foundation.
-+ *
-+ * NO WARRANTY
-+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR
-+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-+ * HOLDERS OR CONTRIBUTORS BE LIABLE FOR SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT,
-+ * STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING
-+ * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
-+ * POSSIBILITY OF SUCH DAMAGES.
-+ */
-+
-+#include <acpi/acpi.h>
-+#include "accommon.h"
-+#include "acdispat.h"
-+#include "acnamesp.h"
-+#ifdef ACPI_DISASSEMBLER
-+#include "acdisasm.h"
-+#endif
-+
-+#define _COMPONENT          ACPI_DISPATCHER
-+ACPI_MODULE_NAME("dsdebug")
-+
-+#if defined(ACPI_DEBUG_OUTPUT) || defined(ACPI_DEBUGGER)
-+/* Local prototypes */
-+static void
-+acpi_ds_print_node_pathname(struct acpi_namespace_node *node,
-+			    const char *message);
-+
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_ds_print_node_pathname
-+ *
-+ * PARAMETERS:  node            - Object
-+ *              message         - Prefix message
-+ *
-+ * DESCRIPTION: Print an object's full namespace pathname
-+ *              Manages allocation/freeing of a pathname buffer
-+ *
-+ ******************************************************************************/
-+
-+static void
-+acpi_ds_print_node_pathname(struct acpi_namespace_node *node,
-+			    const char *message)
-+{
-+	struct acpi_buffer buffer;
-+	acpi_status status;
-+
-+	ACPI_FUNCTION_TRACE(ds_print_node_pathname);
-+
-+	if (!node) {
-+		ACPI_DEBUG_PRINT_RAW((ACPI_DB_DISPATCH, "[NULL NAME]"));
-+		return_VOID;
-+	}
-+
-+	/* Convert handle to full pathname and print it (with supplied message) */
-+
-+	buffer.length = ACPI_ALLOCATE_LOCAL_BUFFER;
-+
-+	status = acpi_ns_handle_to_pathname(node, &buffer, FALSE);
-+	if (ACPI_SUCCESS(status)) {
-+		if (message) {
-+			ACPI_DEBUG_PRINT_RAW((ACPI_DB_DISPATCH, "%s ",
-+					      message));
-+		}
-+
-+		ACPI_DEBUG_PRINT_RAW((ACPI_DB_DISPATCH, "[%s] (Node %p)",
-+				      (char *)buffer.pointer, node));
-+		ACPI_FREE(buffer.pointer);
-+	}
-+
-+	return_VOID;
-+}
-+
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_ds_dump_method_stack
-+ *
-+ * PARAMETERS:  status          - Method execution status
-+ *              walk_state      - Current state of the parse tree walk
-+ *              op              - Executing parse op
-+ *
-+ * RETURN:      None
-+ *
-+ * DESCRIPTION: Called when a method has been aborted because of an error.
-+ *              Dumps the method execution stack.
-+ *
-+ ******************************************************************************/
-+
-+void
-+acpi_ds_dump_method_stack(acpi_status status,
-+			  struct acpi_walk_state *walk_state,
-+			  union acpi_parse_object *op)
-+{
-+	union acpi_parse_object *next;
-+	struct acpi_thread_state *thread;
-+	struct acpi_walk_state *next_walk_state;
-+	struct acpi_namespace_node *previous_method = NULL;
-+
-+	ACPI_FUNCTION_TRACE(ds_dump_method_stack);
-+
-+	/* Ignore control codes, they are not errors */
-+
-+	if ((status & AE_CODE_MASK) == AE_CODE_CONTROL) {
-+		return_VOID;
-+	}
-+
-+	/* We may be executing a deferred opcode */
-+
-+	if (walk_state->deferred_node) {
-+		ACPI_DEBUG_PRINT((ACPI_DB_DISPATCH,
-+				  "Executing subtree for Buffer/Package/Region\n"));
-+		return_VOID;
-+	}
-+
-+	/*
-+	 * If there is no Thread, we are not actually executing a method.
-+	 * This can happen when the iASL compiler calls the interpreter
-+	 * to perform constant folding.
-+	 */
-+	thread = walk_state->thread;
-+	if (!thread) {
-+		return_VOID;
-+	}
-+
-+	/* Display exception and method name */
-+
-+	ACPI_DEBUG_PRINT((ACPI_DB_DISPATCH,
-+			  "\n**** Exception %s during execution of method ",
-+			  acpi_format_exception(status)));
-+	acpi_ds_print_node_pathname(walk_state->method_node, NULL);
-+
-+	/* Display stack of executing methods */
-+
-+	ACPI_DEBUG_PRINT_RAW((ACPI_DB_DISPATCH,
-+			      "\n\nMethod Execution Stack:\n"));
-+	next_walk_state = thread->walk_state_list;
-+
-+	/* Walk list of linked walk states */
-+
-+	while (next_walk_state) {
-+		ACPI_DEBUG_PRINT((ACPI_DB_DISPATCH,
-+				  "    Method [%4.4s] executing: ",
-+				  acpi_ut_get_node_name(next_walk_state->
-+							method_node)));
-+
-+		/* First method is the currently executing method */
-+
-+		if (next_walk_state == walk_state) {
-+			if (op) {
-+
-+				/* Display currently executing ASL statement */
-+
-+				next = op->common.next;
-+				op->common.next = NULL;
-+
-+#ifdef ACPI_DISASSEMBLER
-+				acpi_dm_disassemble(next_walk_state, op,
-+						    ACPI_UINT32_MAX);
-+#endif
-+				op->common.next = next;
-+			}
-+		} else {
-+			/*
-+			 * This method has called another method
-+			 * NOTE: the method call parse subtree is already deleted at this
-+			 * point, so we cannot disassemble the method invocation.
-+			 */
-+			ACPI_DEBUG_PRINT_RAW((ACPI_DB_DISPATCH,
-+					      "Call to method "));
-+			acpi_ds_print_node_pathname(previous_method, NULL);
-+		}
-+
-+		previous_method = next_walk_state->method_node;
-+		next_walk_state = next_walk_state->next;
-+		ACPI_DEBUG_PRINT_RAW((ACPI_DB_DISPATCH, "\n"));
-+	}
-+
-+	return_VOID;
-+}
-+
-+#else
-+void
-+acpi_ds_dump_method_stack(acpi_status status,
-+			  struct acpi_walk_state *walk_state,
-+			  union acpi_parse_object *op)
-+{
-+	return;
-+}
-+
-+#endif
+ void acpi_ps_init_op(union acpi_parse_object *op, u16 opcode);
+ 
+-union acpi_parse_object *acpi_ps_alloc_op(u16 opcode);
++union acpi_parse_object *acpi_ps_alloc_op(u16 opcode, u8 *aml);
+ 
+ void acpi_ps_free_op(union acpi_parse_object *op);
+ 
+diff --git a/drivers/acpi/acpica/dsargs.c b/drivers/acpi/acpica/dsargs.c
+index 3e69897..e2ab59e 100644
+--- a/drivers/acpi/acpica/dsargs.c
++++ b/drivers/acpi/acpica/dsargs.c
+@@ -86,7 +86,7 @@ acpi_ds_execute_arguments(struct acpi_namespace_node *node,
+ 
+ 	/* Allocate a new parser op to be the root of the parsed tree */
+ 
+-	op = acpi_ps_alloc_op(AML_INT_EVAL_SUBTREE_OP);
++	op = acpi_ps_alloc_op(AML_INT_EVAL_SUBTREE_OP, aml_start);
+ 	if (!op) {
+ 		return_ACPI_STATUS(AE_NO_MEMORY);
+ 	}
+@@ -129,7 +129,7 @@ acpi_ds_execute_arguments(struct acpi_namespace_node *node,
+ 
+ 	/* Evaluate the deferred arguments */
+ 
+-	op = acpi_ps_alloc_op(AML_INT_EVAL_SUBTREE_OP);
++	op = acpi_ps_alloc_op(AML_INT_EVAL_SUBTREE_OP, aml_start);
+ 	if (!op) {
+ 		return_ACPI_STATUS(AE_NO_MEMORY);
+ 	}
 diff --git a/drivers/acpi/acpica/dsmethod.c b/drivers/acpi/acpica/dsmethod.c
-index 4abc242..e0ae8f4 100644
+index bf8c16e..4abc242 100644
 --- a/drivers/acpi/acpica/dsmethod.c
 +++ b/drivers/acpi/acpica/dsmethod.c
-@@ -251,14 +251,15 @@ acpi_ds_method_error(acpi_status status, struct acpi_walk_state * walk_state)
+@@ -103,7 +103,7 @@ acpi_ds_auto_serialize_method(struct acpi_namespace_node *node,
  
- 	acpi_ds_clear_implicit_return(walk_state);
+ 	/* Create/Init a root op for the method parse tree */
  
--#ifdef ACPI_DISASSEMBLER
- 	if (ACPI_FAILURE(status)) {
-+		acpi_ds_dump_method_stack(status, walk_state, walk_state->op);
+-	op = acpi_ps_alloc_op(AML_METHOD_OP);
++	op = acpi_ps_alloc_op(AML_METHOD_OP, obj_desc->method.aml_start);
+ 	if (!op) {
+ 		return_ACPI_STATUS(AE_NO_MEMORY);
+ 	}
+diff --git a/drivers/acpi/acpica/dswload.c b/drivers/acpi/acpica/dswload.c
+index 845ff44..097188a 100644
+--- a/drivers/acpi/acpica/dswload.c
++++ b/drivers/acpi/acpica/dswload.c
+@@ -388,7 +388,7 @@ acpi_ds_load1_begin_op(struct acpi_walk_state * walk_state,
  
- 		/* Display method locals/args if disassembler is present */
+ 		/* Create a new op */
  
--		acpi_dm_dump_method_info(status, walk_state, walk_state->op);
--	}
-+#ifdef ACPI_DISASSEMBLER
-+		acpi_dm_dump_method_info(status, walk_state);
- #endif
+-		op = acpi_ps_alloc_op(walk_state->opcode);
++		op = acpi_ps_alloc_op(walk_state->opcode, walk_state->aml);
+ 		if (!op) {
+ 			return_ACPI_STATUS(AE_NO_MEMORY);
+ 		}
+diff --git a/drivers/acpi/acpica/dswload2.c b/drivers/acpi/acpica/dswload2.c
+index fcaa30c..e2c08cd 100644
+--- a/drivers/acpi/acpica/dswload2.c
++++ b/drivers/acpi/acpica/dswload2.c
+@@ -335,7 +335,7 @@ acpi_ds_load2_begin_op(struct acpi_walk_state *walk_state,
+ 
+ 		/* Create a new op */
+ 
+-		op = acpi_ps_alloc_op(walk_state->opcode);
++		op = acpi_ps_alloc_op(walk_state->opcode, walk_state->aml);
+ 		if (!op) {
+ 			return_ACPI_STATUS(AE_NO_MEMORY);
+ 		}
+diff --git a/drivers/acpi/acpica/nsparse.c b/drivers/acpi/acpica/nsparse.c
+index 9926a67c..3736d43b 100644
+--- a/drivers/acpi/acpica/nsparse.c
++++ b/drivers/acpi/acpica/nsparse.c
+@@ -78,6 +78,20 @@ acpi_ns_one_complete_parse(u32 pass_number,
+ 
+ 	ACPI_FUNCTION_TRACE(ns_one_complete_parse);
+ 
++	status = acpi_get_table_by_index(table_index, &table);
++	if (ACPI_FAILURE(status)) {
++		return_ACPI_STATUS(status);
 +	}
++
++	/* Table must consist of at least a complete header */
++
++	if (table->length < sizeof(struct acpi_table_header)) {
++		return_ACPI_STATUS(AE_BAD_HEADER);
++	}
++
++	aml_start = (u8 *)table + sizeof(struct acpi_table_header);
++	aml_length = table->length - sizeof(struct acpi_table_header);
++
+ 	status = acpi_tb_get_owner_id(table_index, &owner_id);
+ 	if (ACPI_FAILURE(status)) {
+ 		return_ACPI_STATUS(status);
+@@ -85,7 +99,7 @@ acpi_ns_one_complete_parse(u32 pass_number,
  
- 	return (status);
- }
+ 	/* Create and init a Root Node */
+ 
+-	parse_root = acpi_ps_create_scope_op();
++	parse_root = acpi_ps_create_scope_op(aml_start);
+ 	if (!parse_root) {
+ 		return_ACPI_STATUS(AE_NO_MEMORY);
+ 	}
+@@ -98,23 +112,12 @@ acpi_ns_one_complete_parse(u32 pass_number,
+ 		return_ACPI_STATUS(AE_NO_MEMORY);
+ 	}
+ 
+-	status = acpi_get_table_by_index(table_index, &table);
++	status = acpi_ds_init_aml_walk(walk_state, parse_root, NULL,
++				       aml_start, aml_length, NULL,
++				       (u8)pass_number);
+ 	if (ACPI_FAILURE(status)) {
+ 		acpi_ds_delete_walk_state(walk_state);
+-		acpi_ps_free_op(parse_root);
+-		return_ACPI_STATUS(status);
+-	}
+-
+-	/* Table must consist of at least a complete header */
+-
+-	if (table->length < sizeof(struct acpi_table_header)) {
+-		status = AE_BAD_HEADER;
+-	} else {
+-		aml_start = (u8 *)table + sizeof(struct acpi_table_header);
+-		aml_length = table->length - sizeof(struct acpi_table_header);
+-		status = acpi_ds_init_aml_walk(walk_state, parse_root, NULL,
+-					       aml_start, aml_length, NULL,
+-					       (u8)pass_number);
++		goto cleanup;
+ 	}
+ 
+ 	/* Found OSDT table, enable the namespace override feature */
+@@ -124,11 +127,6 @@ acpi_ns_one_complete_parse(u32 pass_number,
+ 		walk_state->namespace_override = TRUE;
+ 	}
+ 
+-	if (ACPI_FAILURE(status)) {
+-		acpi_ds_delete_walk_state(walk_state);
+-		goto cleanup;
+-	}
+-
+ 	/* start_node is the default location to load the table */
+ 
+ 	if (start_node && start_node != acpi_gbl_root_node) {
+diff --git a/drivers/acpi/acpica/psargs.c b/drivers/acpi/acpica/psargs.c
+index 0bee946..29d8b7b 100644
+--- a/drivers/acpi/acpica/psargs.c
++++ b/drivers/acpi/acpica/psargs.c
+@@ -287,7 +287,7 @@ acpi_ps_get_next_namepath(struct acpi_walk_state *walk_state,
+ 				  "Control Method - %p Desc %p Path=%p\n", node,
+ 				  method_desc, path));
+ 
+-		name_op = acpi_ps_alloc_op(AML_INT_NAMEPATH_OP);
++		name_op = acpi_ps_alloc_op(AML_INT_NAMEPATH_OP, start);
+ 		if (!name_op) {
+ 			return_ACPI_STATUS(AE_NO_MEMORY);
+ 		}
+@@ -535,13 +535,11 @@ static union acpi_parse_object *acpi_ps_get_next_field(struct acpi_parse_state
+ 
+ 	/* Allocate a new field op */
+ 
+-	field = acpi_ps_alloc_op(opcode);
++	field = acpi_ps_alloc_op(opcode, aml);
+ 	if (!field) {
+ 		return_PTR(NULL);
+ 	}
+ 
+-	field->common.aml = aml;
+-
+ 	/* Decode the field type */
+ 
+ 	switch (opcode) {
+@@ -603,6 +601,7 @@ static union acpi_parse_object *acpi_ps_get_next_field(struct acpi_parse_state
+ 		 * Argument for Connection operator can be either a Buffer
+ 		 * (resource descriptor), or a name_string.
+ 		 */
++		aml = parser_state->aml;
+ 		if (ACPI_GET8(parser_state->aml) == AML_BUFFER_OP) {
+ 			parser_state->aml++;
+ 
+@@ -615,7 +614,8 @@ static union acpi_parse_object *acpi_ps_get_next_field(struct acpi_parse_state
+ 
+ 				/* Non-empty list */
+ 
+-				arg = acpi_ps_alloc_op(AML_INT_BYTELIST_OP);
++				arg =
++				    acpi_ps_alloc_op(AML_INT_BYTELIST_OP, aml);
+ 				if (!arg) {
+ 					acpi_ps_free_op(field);
+ 					return_PTR(NULL);
+@@ -664,7 +664,7 @@ static union acpi_parse_object *acpi_ps_get_next_field(struct acpi_parse_state
+ 
+ 			parser_state->aml = pkg_end;
+ 		} else {
+-			arg = acpi_ps_alloc_op(AML_INT_NAMEPATH_OP);
++			arg = acpi_ps_alloc_op(AML_INT_NAMEPATH_OP, aml);
+ 			if (!arg) {
+ 				acpi_ps_free_op(field);
+ 				return_PTR(NULL);
+@@ -729,7 +729,7 @@ acpi_ps_get_next_arg(struct acpi_walk_state *walk_state,
+ 
+ 		/* Constants, strings, and namestrings are all the same size */
+ 
+-		arg = acpi_ps_alloc_op(AML_BYTE_OP);
++		arg = acpi_ps_alloc_op(AML_BYTE_OP, parser_state->aml);
+ 		if (!arg) {
+ 			return_ACPI_STATUS(AE_NO_MEMORY);
+ 		}
+@@ -776,7 +776,8 @@ acpi_ps_get_next_arg(struct acpi_walk_state *walk_state,
+ 
+ 			/* Non-empty list */
+ 
+-			arg = acpi_ps_alloc_op(AML_INT_BYTELIST_OP);
++			arg = acpi_ps_alloc_op(AML_INT_BYTELIST_OP,
++					       parser_state->aml);
+ 			if (!arg) {
+ 				return_ACPI_STATUS(AE_NO_MEMORY);
+ 			}
+@@ -806,7 +807,9 @@ acpi_ps_get_next_arg(struct acpi_walk_state *walk_state,
+ 
+ 			/* null_name or name_string */
+ 
+-			arg = acpi_ps_alloc_op(AML_INT_NAMEPATH_OP);
++			arg =
++			    acpi_ps_alloc_op(AML_INT_NAMEPATH_OP,
++					     parser_state->aml);
+ 			if (!arg) {
+ 				return_ACPI_STATUS(AE_NO_MEMORY);
+ 			}
+diff --git a/drivers/acpi/acpica/psloop.c b/drivers/acpi/acpica/psloop.c
+index d584383..49c60c2 100644
+--- a/drivers/acpi/acpica/psloop.c
++++ b/drivers/acpi/acpica/psloop.c
+@@ -137,7 +137,6 @@ acpi_ps_get_arguments(struct acpi_walk_state *walk_state,
+ 			}
+ 
+ 			if (arg) {
+-				arg->common.aml = walk_state->aml;
+ 				acpi_ps_append_arg(op, arg);
+ 			}
+ 
+@@ -491,8 +490,6 @@ acpi_status acpi_ps_parse_loop(struct acpi_walk_state *walk_state)
+ 				continue;
+ 			}
+ 
+-			op->common.aml = walk_state->aml;
+-
+ 			if (walk_state->op_info) {
+ 				ACPI_DEBUG_PRINT((ACPI_DB_PARSE,
+ 						  "Opcode %4.4X [%s] Op %p Aml %p\n",
+diff --git a/drivers/acpi/acpica/psobject.c b/drivers/acpi/acpica/psobject.c
+index 6ba3bb7..e54bc2a 100644
+--- a/drivers/acpi/acpica/psobject.c
++++ b/drivers/acpi/acpica/psobject.c
+@@ -297,7 +297,7 @@ acpi_ps_create_op(struct acpi_walk_state *walk_state,
+ 	/* Create Op structure and append to parent's argument list */
+ 
+ 	walk_state->op_info = acpi_ps_get_opcode_info(walk_state->opcode);
+-	op = acpi_ps_alloc_op(walk_state->opcode);
++	op = acpi_ps_alloc_op(walk_state->opcode, aml_op_start);
+ 	if (!op) {
+ 		return_ACPI_STATUS(AE_NO_MEMORY);
+ 	}
+diff --git a/drivers/acpi/acpica/psparse.c b/drivers/acpi/acpica/psparse.c
+index a555f7f..b857ad5 100644
+--- a/drivers/acpi/acpica/psparse.c
++++ b/drivers/acpi/acpica/psparse.c
+@@ -185,7 +185,8 @@ acpi_ps_complete_this_op(struct acpi_walk_state * walk_state,
+ 			 * op must be replaced by a placeholder return op
+ 			 */
+ 			replacement_op =
+-			    acpi_ps_alloc_op(AML_INT_RETURN_VALUE_OP);
++			    acpi_ps_alloc_op(AML_INT_RETURN_VALUE_OP,
++					     op->common.aml);
+ 			if (!replacement_op) {
+ 				status = AE_NO_MEMORY;
+ 			}
+@@ -209,7 +210,8 @@ acpi_ps_complete_this_op(struct acpi_walk_state * walk_state,
+ 			    || (op->common.parent->common.aml_opcode ==
+ 				AML_VAR_PACKAGE_OP)) {
+ 				replacement_op =
+-				    acpi_ps_alloc_op(AML_INT_RETURN_VALUE_OP);
++				    acpi_ps_alloc_op(AML_INT_RETURN_VALUE_OP,
++						     op->common.aml);
+ 				if (!replacement_op) {
+ 					status = AE_NO_MEMORY;
+ 				}
+@@ -224,7 +226,8 @@ acpi_ps_complete_this_op(struct acpi_walk_state * walk_state,
+ 					AML_VAR_PACKAGE_OP)) {
+ 					replacement_op =
+ 					    acpi_ps_alloc_op(op->common.
+-							     aml_opcode);
++							     aml_opcode,
++							     op->common.aml);
+ 					if (!replacement_op) {
+ 						status = AE_NO_MEMORY;
+ 					} else {
+@@ -240,7 +243,8 @@ acpi_ps_complete_this_op(struct acpi_walk_state * walk_state,
+ 		default:
+ 
+ 			replacement_op =
+-			    acpi_ps_alloc_op(AML_INT_RETURN_VALUE_OP);
++			    acpi_ps_alloc_op(AML_INT_RETURN_VALUE_OP,
++					     op->common.aml);
+ 			if (!replacement_op) {
+ 				status = AE_NO_MEMORY;
+ 			}
+diff --git a/drivers/acpi/acpica/psutils.c b/drivers/acpi/acpica/psutils.c
+index 3244091..183cc1e 100644
+--- a/drivers/acpi/acpica/psutils.c
++++ b/drivers/acpi/acpica/psutils.c
+@@ -60,11 +60,11 @@ ACPI_MODULE_NAME("psutils")
+  * DESCRIPTION: Create a Scope and associated namepath op with the root name
+  *
+  ******************************************************************************/
+-union acpi_parse_object *acpi_ps_create_scope_op(void)
++union acpi_parse_object *acpi_ps_create_scope_op(u8 *aml)
+ {
+ 	union acpi_parse_object *scope_op;
+ 
+-	scope_op = acpi_ps_alloc_op(AML_SCOPE_OP);
++	scope_op = acpi_ps_alloc_op(AML_SCOPE_OP, aml);
+ 	if (!scope_op) {
+ 		return (NULL);
+ 	}
+@@ -103,6 +103,7 @@ void acpi_ps_init_op(union acpi_parse_object *op, u16 opcode)
+  * FUNCTION:    acpi_ps_alloc_op
+  *
+  * PARAMETERS:  opcode          - Opcode that will be stored in the new Op
++ *              aml             - Address of the opcode
+  *
+  * RETURN:      Pointer to the new Op, null on failure
+  *
+@@ -112,7 +113,7 @@ void acpi_ps_init_op(union acpi_parse_object *op, u16 opcode)
+  *
+  ******************************************************************************/
+ 
+-union acpi_parse_object *acpi_ps_alloc_op(u16 opcode)
++union acpi_parse_object *acpi_ps_alloc_op(u16 opcode, u8 *aml)
+ {
+ 	union acpi_parse_object *op;
+ 	const struct acpi_opcode_info *op_info;
+@@ -149,6 +150,7 @@ union acpi_parse_object *acpi_ps_alloc_op(u16 opcode)
+ 
+ 	if (op) {
+ 		acpi_ps_init_op(op, opcode);
++		op->common.aml = aml;
+ 		op->common.flags = flags;
+ 	}
+ 
+diff --git a/drivers/acpi/acpica/psxface.c b/drivers/acpi/acpica/psxface.c
+index 841a5ea..1f3f46d 100644
+--- a/drivers/acpi/acpica/psxface.c
++++ b/drivers/acpi/acpica/psxface.c
+@@ -256,7 +256,7 @@ acpi_status acpi_ps_execute_method(struct acpi_evaluate_info *info)
+ 
+ 	/* Create and init a Root Node */
+ 
+-	op = acpi_ps_create_scope_op();
++	op = acpi_ps_create_scope_op(info->obj_desc->method.aml_start);
+ 	if (!op) {
+ 		status = AE_NO_MEMORY;
+ 		goto cleanup;
 -- 
 1.7.10
 
