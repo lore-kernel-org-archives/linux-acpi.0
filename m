@@ -1,38 +1,255 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 1/4] ACPI / sysfs: Add ACPI_LV_REPAIR debug level.
-Date: Thu, 23 Jul 2015 13:06:46 +0800
-Message-ID: <78ebeac0d1dfc138192fc104dba2f7f13d842745.1437627661.git.lv.zheng@intel.com>
+Subject: [PATCH 2/4] ACPI / sysfs: Update method tracing facility.
+Date: Thu, 23 Jul 2015 13:06:52 +0800
+Message-ID: <c29ae3ff6a7e3e5845273b107822cc4cf3cabe5e.1437627661.git.lv.zheng@intel.com>
 References: <cover.1437627016.git.lv.zheng@intel.com> <cover.1437627661.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:45958 "EHLO mga03.intel.com"
+Received: from mga14.intel.com ([192.55.52.115]:2875 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751497AbbGWFGw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 23 Jul 2015 01:06:52 -0400
+	id S1751846AbbGWFG6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 23 Jul 2015 01:06:58 -0400
 In-Reply-To: <cover.1437627661.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-This patch updates debug_level file, adding ACPI_LV_REPAIR.
+This patch updates the method tracing facility as the acpi_debug_trace()
+API has been updated to allow it to trace AML interpreter execution, the
+meanings and the usages of the API parameters are changed due to the
+updates.
+
+The new API:
+1. Uses ACPI_TRACE_ENABLED flag to indicate the enabling of the tracer;
+2. Allows tracer still can be enabled when method name is not specified so
+   that the AML interpreter execution can be traced without knowing the
+   method name, which is useful for kernel boot tracing;
+3. Supports arbitrary full path name, it doesn't need to be a name related
+   to an entrance of acpi_evaluate_object().
+
+Note that the sysfs parameters are also updated so that when reading the
+attribute files, ACPICA internal settings are returned.
+
+In order to make the sysfs parameters (acpi.trace_state) available during
+boot, this patch adds code to bypass ACPICA semaphore/mutex invocations
+when acpi mutex utilities haven't been initialized.
+
+This patch doesn't update documentation of method tracing facility, it will
+be updated by further patches.
 
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/sysfs.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/acpi/osl.c   |    8 +++
+ drivers/acpi/sysfs.c |  136 +++++++++++++++++++++++++++++++++++++-------------
+ 2 files changed, 108 insertions(+), 36 deletions(-)
 
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 1925f1a..21c1e71 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -79,6 +79,7 @@ static void *acpi_irq_context;
+ static struct workqueue_struct *kacpid_wq;
+ static struct workqueue_struct *kacpi_notify_wq;
+ static struct workqueue_struct *kacpi_hotplug_wq;
++static bool acpi_os_initialized;
+ 
+ /*
+  * This list of permanent mappings is for memory that may be accessed from
+@@ -1312,6 +1313,9 @@ acpi_status acpi_os_wait_semaphore(acpi_handle handle, u32 units, u16 timeout)
+ 	long jiffies;
+ 	int ret = 0;
+ 
++	if (!acpi_os_initialized)
++		return AE_OK;
++
+ 	if (!sem || (units < 1))
+ 		return AE_BAD_PARAMETER;
+ 
+@@ -1351,6 +1355,9 @@ acpi_status acpi_os_signal_semaphore(acpi_handle handle, u32 units)
+ {
+ 	struct semaphore *sem = (struct semaphore *)handle;
+ 
++	if (!acpi_os_initialized)
++		return AE_OK;
++
+ 	if (!sem || (units < 1))
+ 		return AE_BAD_PARAMETER;
+ 
+@@ -1859,6 +1866,7 @@ acpi_status __init acpi_os_initialize(void)
+ 		rv = acpi_os_map_generic_address(&acpi_gbl_FADT.reset_register);
+ 		pr_debug(PREFIX "%s: map reset_reg status %d\n", __func__, rv);
+ 	}
++	acpi_os_initialized = true;
+ 
+ 	return AE_OK;
+ }
 diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
-index 0876d77b..7ab6ba4 100644
+index 7ab6ba4..8979e4a 100644
 --- a/drivers/acpi/sysfs.c
 +++ b/drivers/acpi/sysfs.c
-@@ -69,6 +69,7 @@ static const struct acpi_dlevel acpi_debug_levels[] = {
- 	ACPI_DEBUG_INIT(ACPI_LV_INIT),
+@@ -70,6 +70,7 @@ static const struct acpi_dlevel acpi_debug_levels[] = {
  	ACPI_DEBUG_INIT(ACPI_LV_DEBUG_OBJECT),
  	ACPI_DEBUG_INIT(ACPI_LV_INFO),
-+	ACPI_DEBUG_INIT(ACPI_LV_REPAIR),
+ 	ACPI_DEBUG_INIT(ACPI_LV_REPAIR),
++	ACPI_DEBUG_INIT(ACPI_LV_TRACE_POINT),
  
  	ACPI_DEBUG_INIT(ACPI_LV_INIT_NAMES),
  	ACPI_DEBUG_INIT(ACPI_LV_PARSE),
+@@ -163,55 +164,118 @@ static const struct kernel_param_ops param_ops_debug_level = {
+ module_param_cb(debug_layer, &param_ops_debug_layer, &acpi_dbg_layer, 0644);
+ module_param_cb(debug_level, &param_ops_debug_level, &acpi_dbg_level, 0644);
+ 
+-static char trace_method_name[6];
+-module_param_string(trace_method_name, trace_method_name, 6, 0644);
+-static unsigned int trace_debug_layer;
+-module_param(trace_debug_layer, uint, 0644);
+-static unsigned int trace_debug_level;
+-module_param(trace_debug_level, uint, 0644);
++static char* trace_method_name;
++static bool trace_method_kmalloced;
+ 
+-static int param_set_trace_state(const char *val, struct kernel_param *kp)
++int param_set_trace_method_name(const char *val, const struct kernel_param *kp)
+ {
+-	int result = 0;
++	u32 saved_flags = 0;
+ 
+-	if (!strncmp(val, "enable", sizeof("enable") - 1)) {
+-		result = acpi_debug_trace(trace_method_name, trace_debug_level,
+-					  trace_debug_layer, 0);
+-		if (result)
+-			result = -EBUSY;
+-		goto exit;
++	if (strlen(val) > 1024) {
++		pr_err("%s: string parameter too long\n", kp->name);
++		return -ENOSPC;
+ 	}
+ 
+-	if (!strncmp(val, "disable", sizeof("disable") - 1)) {
+-		int name = 0;
+-		result = acpi_debug_trace((char *)&name, trace_debug_level,
+-					  trace_debug_layer, 0);
+-		if (result)
+-			result = -EBUSY;
+-		goto exit;
+-	}
++	/*
++	 * It's not safe to update acpi_gbl_trace_method_name without
++	 * having the tracer stopped, so we save the original tracer
++	 * state and disable it.
++	 */
++	saved_flags = acpi_gbl_trace_flags;
++	(void)acpi_debug_trace(NULL,
++			       acpi_gbl_trace_dbg_level,
++			       acpi_gbl_trace_dbg_layer,
++			       0);
++
++	if (trace_method_kmalloced)
++		kfree(trace_method_name);
++	trace_method_name = NULL;
++	trace_method_kmalloced = false;
++
++	/* This is a hack.  We can't kmalloc in early boot. */
++	if (slab_is_available()) {
++		trace_method_name = kstrdup(val, GFP_KERNEL);
++		if (!trace_method_name)
++			return -ENOMEM;
++		trace_method_kmalloced = true;
++	} else
++		trace_method_name = (char *)val;
+ 
+-	if (!strncmp(val, "1", 1)) {
+-		result = acpi_debug_trace(trace_method_name, trace_debug_level,
+-					  trace_debug_layer, 1);
+-		if (result)
+-			result = -EBUSY;
+-		goto exit;
+-	}
++	/* Restore the original tracer state */
++	(void)acpi_debug_trace(trace_method_name,
++			       acpi_gbl_trace_dbg_level,
++			       acpi_gbl_trace_dbg_layer,
++			       saved_flags);
+ 
+-	result = -EINVAL;
+-exit:
+-	return result;
++	return 0;
++}
++
++static int param_get_trace_method_name(char *buffer, const struct kernel_param *kp)
++{
++	return scnprintf(buffer, PAGE_SIZE, "%s", acpi_gbl_trace_method_name);
++}
++
++static const struct kernel_param_ops param_ops_trace_method = {
++	.set = param_set_trace_method_name,
++	.get = param_get_trace_method_name,
++};
++
++static const struct kernel_param_ops param_ops_trace_attrib = {
++	.set = param_set_uint,
++	.get = param_get_uint,
++};
++
++module_param_cb(trace_method_name, &param_ops_trace_method, &trace_method_name, 0644);
++module_param_cb(trace_debug_layer, &param_ops_trace_attrib, &acpi_gbl_trace_dbg_layer, 0644);
++module_param_cb(trace_debug_level, &param_ops_trace_attrib, &acpi_gbl_trace_dbg_level, 0644);
++
++static int param_set_trace_state(const char *val, struct kernel_param *kp)
++{
++	acpi_status status;
++	const char *method = trace_method_name;
++	u32 flags = 0;
++
++/* So "xxx-once" comparison should go prior than "xxx" comparison */
++#define acpi_compare_param(val, key)	\
++	strncmp((val), (key), sizeof(key) - 1)
++
++	if (!acpi_compare_param(val, "enable")) {
++		method = NULL;
++		flags = ACPI_TRACE_ENABLED;
++	} else if (!acpi_compare_param(val, "disable"))
++		method = NULL;
++	else if (!acpi_compare_param(val, "method-once"))
++		flags = ACPI_TRACE_ENABLED | ACPI_TRACE_ONESHOT;
++	else if (!acpi_compare_param(val, "method"))
++		flags = ACPI_TRACE_ENABLED;
++	else if (!acpi_compare_param(val, "opcode-once"))
++		flags = ACPI_TRACE_ENABLED | ACPI_TRACE_ONESHOT | ACPI_TRACE_OPCODE;
++	else if (!acpi_compare_param(val, "opcode"))
++		flags = ACPI_TRACE_ENABLED | ACPI_TRACE_OPCODE;
++	else
++		return -EINVAL;
++
++	status = acpi_debug_trace(method,
++				  acpi_gbl_trace_dbg_level,
++				  acpi_gbl_trace_dbg_layer,
++				  flags);
++	if (ACPI_FAILURE(status))
++		return -EBUSY;
++
++	return 0;
+ }
+ 
+ static int param_get_trace_state(char *buffer, struct kernel_param *kp)
+ {
+-	if (!acpi_gbl_trace_method_name)
++	if (!(acpi_gbl_trace_flags & ACPI_TRACE_ENABLED))
+ 		return sprintf(buffer, "disable");
+ 	else {
+-		if (acpi_gbl_trace_flags & 1)
+-			return sprintf(buffer, "1");
+-		else
++		if (acpi_gbl_trace_method_name) {
++			if (acpi_gbl_trace_flags & ACPI_TRACE_ONESHOT)
++				return sprintf(buffer, "method-once");
++			else
++				return sprintf(buffer, "method");
++		} else
+ 			return sprintf(buffer, "enable");
+ 	}
+ 	return 0;
 -- 
 1.7.10
 
