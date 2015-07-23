@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 21/22] ACPICA: iASL/Disassembler: Add prototype verbose mode.
-Date: Thu, 23 Jul 2015 12:54:23 +0800
-Message-ID: <62269b571989786372fd89fa12bb07acd4c48eff.1437627016.git.lv.zheng@intel.com>
+Subject: [PATCH 20/22] ACPICA: Debugger: Move debugger specific APIs to debugger component.
+Date: Thu, 23 Jul 2015 12:54:17 +0800
+Message-ID: <e4bbd42d5262882deb88834d37068e9af24aea25.1437627016.git.lv.zheng@intel.com>
 References: <cover.1437627016.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1437627016.git.lv.zheng@intel.com>
@@ -10,34 +10,89 @@ To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Bob Moore <robert.moore@intel.com>
+ACPICA commit 2164923d60429eea7cd5a4a8629b607af7325afa
 
-ACPICA commit add72dca18ab5d02f1bf9b08027570e58da520e8
+Some disassembler APIs should rather be debugger APIs. This patch moves
+them to the debugger folder to be ready for debugger porting.
 
-This mode will emit AML byte code after each ASL statement.
-This is a prototype only and requires additional development.
+Since there is no in-kernel ACPICA debugger in the kernel source tree, this
+patch doesn't affect the Linux kernel.
 
-This patch only affects ACPICA disassembler which is not in the kernel
-source tree.
-
-Link: https://github.com/acpica/acpica/commit/add72dca
-Signed-off-by: Bob Moore <robert.moore@intel.com>
+Link: https://github.com/acpica/acpica/commit/2164923d
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/acglobal.h |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/acpi/acpica/acdebug.h  |   17 +++++++++++++++++
+ drivers/acpi/acpica/dsmethod.c |   12 +++++-------
+ 2 files changed, 22 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
-index 5342300..79eb35d 100644
---- a/drivers/acpi/acpica/acglobal.h
-+++ b/drivers/acpi/acpica/acglobal.h
-@@ -307,6 +307,7 @@ ACPI_INIT_GLOBAL(u8, acpi_gbl_no_resource_disassembly, FALSE);
- ACPI_INIT_GLOBAL(u8, acpi_gbl_ignore_noop_operator, FALSE);
- ACPI_INIT_GLOBAL(u8, acpi_gbl_cstyle_disassembly, TRUE);
- ACPI_INIT_GLOBAL(u8, acpi_gbl_force_aml_disassembly, FALSE);
-+ACPI_INIT_GLOBAL(union acpi_parse_object *, acpi_gbl_previous_op, NULL);
+diff --git a/drivers/acpi/acpica/acdebug.h b/drivers/acpi/acpica/acdebug.h
+index 88482f7..b5a9c51 100644
+--- a/drivers/acpi/acpica/acdebug.h
++++ b/drivers/acpi/acpica/acdebug.h
+@@ -264,6 +264,23 @@ char *acpi_db_get_next_token(char *string,
+ 			     char **next, acpi_object_type * return_type);
  
- ACPI_GLOBAL(u8, acpi_gbl_db_opt_disasm);
- ACPI_GLOBAL(u8, acpi_gbl_db_opt_verbose);
+ /*
++ * dbobject
++ */
++void acpi_db_decode_internal_object(union acpi_operand_object *obj_desc);
++
++void
++acpi_db_display_internal_object(union acpi_operand_object *obj_desc,
++				struct acpi_walk_state *walk_state);
++
++void acpi_db_decode_arguments(struct acpi_walk_state *walk_state);
++
++void acpi_db_decode_locals(struct acpi_walk_state *walk_state);
++
++void
++acpi_db_dump_method_info(acpi_status status,
++			 struct acpi_walk_state *walk_state);
++
++/*
+  * dbstats - Generation and display of ACPI table statistics
+  */
+ void acpi_db_generate_statistics(union acpi_parse_object *root, u8 is_method);
+diff --git a/drivers/acpi/acpica/dsmethod.c b/drivers/acpi/acpica/dsmethod.c
+index cb53c44..bc32f31 100644
+--- a/drivers/acpi/acpica/dsmethod.c
++++ b/drivers/acpi/acpica/dsmethod.c
+@@ -46,11 +46,9 @@
+ #include "acdispat.h"
+ #include "acinterp.h"
+ #include "acnamesp.h"
+-#ifdef	ACPI_DISASSEMBLER
+-#include "acdisasm.h"
+-#endif
+ #include "acparser.h"
+ #include "amlcode.h"
++#include "acdebug.h"
+ 
+ #define _COMPONENT          ACPI_DISPATCHER
+ ACPI_MODULE_NAME("dsmethod")
+@@ -205,7 +203,7 @@ acpi_ds_detect_named_opcodes(struct acpi_walk_state *walk_state,
+  * RETURN:      Status
+  *
+  * DESCRIPTION: Called on method error. Invoke the global exception handler if
+- *              present, dump the method data if the disassembler is configured
++ *              present, dump the method data if the debugger is configured
+  *
+  *              Note: Allows the exception handler to change the status code
+  *
+@@ -254,10 +252,10 @@ acpi_ds_method_error(acpi_status status, struct acpi_walk_state * walk_state)
+ 	if (ACPI_FAILURE(status)) {
+ 		acpi_ds_dump_method_stack(status, walk_state, walk_state->op);
+ 
+-		/* Display method locals/args if disassembler is present */
++		/* Display method locals/args if debugger is present */
+ 
+-#ifdef ACPI_DISASSEMBLER
+-		acpi_dm_dump_method_info(status, walk_state);
++#ifdef ACPI_DEBUGGER
++		acpi_db_dump_method_info(status, walk_state);
+ #endif
+ 	}
+ 
 -- 
 1.7.10
