@@ -1,93 +1,152 @@
-From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Subject: Re: [RFCv2 PATCH 0/8] Introducing ACPI support for GICv2m
-Date: Thu, 23 Jul 2015 13:49:08 +0700
-Message-ID: <55B08E64.1020005@amd.com>
-References: <1436778864-17645-1-git-send-email-Suravee.Suthikulpanit@amd.com>
- <55A9235A.6010505@arm.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH v5 7/8] dmaengine: add a driver for Intel integrated DMA
+ 64-bit
+Date: Thu, 23 Jul 2015 11:50:19 +0300
+Message-ID: <1437641419.29746.16.camel@linux.intel.com>
+References: <1436185334-34275-1-git-send-email-andriy.shevchenko@linux.intel.com>
+	 <1436185334-34275-8-git-send-email-andriy.shevchenko@linux.intel.com>
+	 <20150717043803.GE5086@localhost>
+	 <CAHp75VcMej=a0pLT61hbnHmTvY7Mn_aBrrk0Rq0nYbU7e_C67A@mail.gmail.com>
+	 <20150721045055.GG23525@localhost>
+	 <CAHp75VeC=LzvZ0UbZ_uagW8M80aFoXD5h8v3kQEC2vKX3AjNww@mail.gmail.com>
+	 <20150722045700.GO23525@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bn1bon0116.outbound.protection.outlook.com ([157.56.111.116]:47374
-	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750859AbbGWHGi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 23 Jul 2015 03:06:38 -0400
-In-Reply-To: <55A9235A.6010505@arm.com>
+Received: from mga14.intel.com ([192.55.52.115]:40260 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752059AbbGWIuZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 23 Jul 2015 04:50:25 -0400
+In-Reply-To: <20150722045700.GO23525@localhost>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>, "tglx@linutronix.de" <tglx@linutronix.de>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "tomasz.nowicki@linaro.org" <tomasz.nowicki@linaro.org>
-Cc: "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "al.stone@linaro.org" <al.stone@linaro.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>, "msalter@redhat.com" <msalter@redhat.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "leo.duran@amd.com" <leo.duran@amd.com>, "sherry.hurwitz@amd.com" <sherry.hurwitz@amd.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Vinod Koul <vinod.koul@intel.com>, Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Lee Jones <lee.jones@linaro.org>, Andrew Morton <akpm@linux-foundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, dmaengine <dmaengine@vger.kernel.org>, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Michael Turquette <mturquette@baylibre.com>
 
-Hi Marc,
+On Wed, 2015-07-22 at 10:27 +0530, Vinod Koul wrote:
+> On Tue, Jul 21, 2015 at 10:08:28AM +0300, Andy Shevchenko wrote:
+> > On Tue, Jul 21, 2015 at 7:50 AM, Vinod Koul <vinod.koul@intel.com> 
+> > wrote:
+> > > On Mon, Jul 20, 2015 at 11:46:28AM +0300, Andy Shevchenko wrote:
+> > > > > > +static void idma64_chan_init(struct idma64 *idma64, struct 
+> > > > > > idma64_chan *idma64c)
+> > > > > > +{
+> > > > > > +     u32 cfghi = IDMA64C_CFGH_SRC_PER(1) | 
+> > > > > > IDMA64C_CFGH_DST_PER(0);
+> > > > > > +     u32 cfglo = 0;
+> > > > > > +
+> > > > > > +     /* Enforce FIFO drain when channel is suspended */
+> > > > > > +     cfglo |= IDMA64C_CFGL_CH_DRAIN;
+> > > > > > +
+> > > > > > +     /* Set default burst alignment */
+> > > > > > +     cfglo |= IDMA64C_CFGL_DST_BURST_ALIGN | 
+> > > > > > IDMA64C_CFGL_SRC_BURST_ALIGN;
+> > > > > > +
+> > > > > > +     channel_writel(idma64c, CFG_LO, cfglo);
+> > > > > > +     channel_writel(idma64c, CFG_HI, cfghi);
+> > > > > > +
+> > > > > > +     /* Enable interrupts */
+> > > > > > +     channel_set_bit(idma64, MASK(XFER), idma64c->mask);
+> > > > > > +     channel_set_bit(idma64, MASK(ERROR), idma64c->mask);
+> > > > > > +
+> > > > > > +     /*
+> > > > > > +      * Enforce the controller to be turned on.
+> > > > > > +      *
+> > > > > > +      * The iDMA is turned off in ->probe() and looses 
+> > > > > > context during system
+> > > > > > +      * suspend / resume cycle. That's why we have to 
+> > > > > > enable it each time we
+> > > > > > +      * use it.
+> > > > > > +      */
+> > > > > > +     idma64_on(idma64);
+> > > > > would it be better that you do this in resume and 
+> > > > > runtime_resume cycle. That
+> > > > > way it need not be called for every channel init
+> > > > 
+> > > > Mika, I don't remember details here, but this piece came from 
+> > > > you. Can
+> > > > you shed a light?
+> > > > 
+> > > > My understanding that DMA IP is private to the host controller 
+> > > > and has
+> > > > the same power rail. Thus, there is no need to do separate 
+> > > > power
+> > > > management for it, which makes things more complicated for no 
+> > > > profit.
+> > > > It is also needed for time period from probe till first 
+> > > > transfer
+> > > > (otherwise we have to check the status of DMA anyway and enable 
+> > > > it if
+> > > > required), which currently remains DMA off.
+> > > so who does runtime management of this power rail and whosoever 
+> > > does that
+> > > how do they ensure the dma is not active at that time?
+> > 
+> > The host controller driver knows this and it makes it so.
+> > Anyway, even if we introduce PM callbacks in this driver how to 
+> > solve
+> > the issue to run very first transfer in a neat way?
+> 
+> And how does it know?
 
-Sorry for delay reply. Please see my comments below.
+It should not start any transfer when system goes suspend (and
+terminates on going ones). It might be that not all drivers currently
+implement the described work flow.
 
-On 7/17/15 22:46, Marc Zyngier wrote:
-> Hi Suravee,
->
-> On 13/07/15 10:14, Suravee Suthikulpanit wrote:
->> ACPI core patches for ARM64 are now upstreamed in 4.1. The PCI support
->> patches for ARM64 ACPI are also in progress. I am sending out this RFC to
->> introduce ACPI support for GICv2m. This would allow MSI to work when
->> booting ACPI.
->>
->> There are some modifications to the irq_domain and acpi/gsi code.
->>
->> Due to a large number of prerequisite patches, I have put together a branch
->> on GitHub for review and testing:
->>
->> 	https://github.com/ssuthiku/linux.git acpi-pci-msi-rfc2
->>
->> This branch has been tested on AMD Seattle Platform. Any feedback and
->> comments are appreciated.
->
-> I've had a look at this, and mostly the init_alloc_info method you
-> introduce. I have a few issues with the concept:
->
-> - The first thing that annoys me a tiny bit is that the bottom irqchip
-> (the GIC in your case) is allocating memory on the behalf of all the
-> others in the stack, while the actual users are sitting on top. It feels
-> really backward. Why can't this allocation be performed at the top of
-> the stack? The order of the request goes from top to bottom anyway, so
-> what am I missing?
+> 
+> In PM callback case, your runtime resume should enable the controller
 
-The reason I am allocating struct gic_irq_alloc_info in 
-gic_init_irq_alloc_info() is because this structure is specific to GIC, 
-and GIC have control of what information it would need to store in this 
-structure. The upper levels (ACPI, DT, and GICv2m domains) should not 
-need to know about the detail of this structure. They mainly just need 
-to keep track of the handle for this structure, and pass it into the 
-irq_domain_alloc_irqs().
+PM runtime is an overkill here because it's not exactly turning power
+rail off on the device, though reference counting would makes sense.
 
-> - This gic_irq_alloc_info structure is completely GIC specific, and
-> contains things that don't make much sense to most domains.
+> 
+> > > > > > +static int idma64_terminate_all(struct dma_chan *chan)
+> > > > > > +{
+> > > > > > +     struct idma64_chan *idma64c = to_idma64_chan(chan);
+> > > > > > +     unsigned long flags;
+> > > > > > +     LIST_HEAD(head);
+> > > > > > +
+> > > > > > +     spin_lock_irqsave(&idma64c->vchan.lock, flags);
+> > > > > > +     idma64_stop_transfer(idma64c);
+> > > > > I dont think this is the right method for terminate. Can you 
+> > > > > check, it
+> > > > > might be that we have to suspend the channel before 
+> > > > > terminating an active
+> > > > > one. For non active case this should be okay
+> > > > 
+> > > > Do you mean hardware can become into wrong state?
+> > > Yes at least that was true for 32bit version of this IP
+> > 
+> > Can you elaborate what exactly is happening? We can do a test then 
+> > and
+> > check. For now on we experienced no problems.
+> 
+> While you are doing transfers, try terminating. After that doesnt 
+> next
+> transaction on same channel work well, if not then please try 
+> suspending
+> first before terminating
 
-Exactly. Also, I think another benefits is to consolidate the different 
-mapping that GIC supports (e.g. SPI, PPI, GSI) used in different places. 
-Please refer to patch 2.
+I will think how to test this. Meanwhile do you think it's a show
+stopper for driver right now?
 
-> Here, it is
-> only useful to the GICv2m driver, but not to the top MSI layer. So why
-> should this structure be passed around across domains that don't care?
+> 
+> > > > Only what can actually happen is the data loss which is in DMA 
+> > > > FIFO,
+> > > > but we already know we would like to terminate the transfer we 
+> > > > don't
+> > > > care about any data loss since that.
+> > > The terminate flow expect you to suspend the channel first and 
+> > > then terminate
+> > 
+> > Hm... I didn't see anything in the specification. Can you point out
+> > where it's described?
+> 
+> I dont have specs to point, but we did see this issue on 32bit BYT
+> iDMA and designer told us to follow this flow
 
-Actually, this structure is not used just by the GICv2m driver. It's 
-also used by the ACPI acpi_register_gsi(), which is also allocating 
-interrupts with GSI mapping.
 
-> So I'd like to get back to the intent: why do you need to turn the logic
-> around? I understand that of_phandle_args is not ideal for ACPI, and I'm
-> happy to find ways around its limitations. But why do we need to reverse
-> the allocation logic and make this structure global along the stack,
-> rather than keeping it for local interaction at the frontier of two domains?
-
-Please see the explanation above. Let me know if you have other ideas or 
-if I am missing your point on the reverse allocation.
-
-Thanks,
-Suravee
-
-> Thanks,
->
-> 	M.
->
+-- 
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
