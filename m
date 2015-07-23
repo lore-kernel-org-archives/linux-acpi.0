@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 20/22] ACPICA: Debugger: Move debugger specific APIs to debugger component.
-Date: Thu, 23 Jul 2015 12:54:17 +0800
-Message-ID: <e4bbd42d5262882deb88834d37068e9af24aea25.1437627016.git.lv.zheng@intel.com>
+Subject: [PATCH 18/22] ACPICA: iASL: Add support for TCPA Server Table.
+Date: Thu, 23 Jul 2015 12:54:04 +0800
+Message-ID: <f5aa5df595c95826fee7dfbe3114e77324be6292.1437627016.git.lv.zheng@intel.com>
 References: <cover.1437627016.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1437627016.git.lv.zheng@intel.com>
@@ -10,89 +10,56 @@ To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-ACPICA commit 2164923d60429eea7cd5a4a8629b607af7325afa
+From: Bob Moore <robert.moore@intel.com>
 
-Some disassembler APIs should rather be debugger APIs. This patch moves
-them to the debugger folder to be ready for debugger porting.
+ACPICA commit 55fa9555c71eaa99daebed4cd82cfde3875e8c45
 
-Since there is no in-kernel ACPICA debugger in the kernel source tree, this
-patch doesn't affect the Linux kernel.
+In addition to the existing support for the client table.
 
-Link: https://github.com/acpica/acpica/commit/2164923d
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Link: https://github.com/acpica/acpica/commit/55fa9555
 Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/acdebug.h  |   17 +++++++++++++++++
- drivers/acpi/acpica/dsmethod.c |   12 +++++-------
- 2 files changed, 22 insertions(+), 7 deletions(-)
+ include/acpi/actbl2.h |   17 +++++++++++++----
+ 1 file changed, 13 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/acpi/acpica/acdebug.h b/drivers/acpi/acpica/acdebug.h
-index 88482f7..b5a9c51 100644
---- a/drivers/acpi/acpica/acdebug.h
-+++ b/drivers/acpi/acpica/acdebug.h
-@@ -264,6 +264,23 @@ char *acpi_db_get_next_token(char *string,
- 			     char **next, acpi_object_type * return_type);
+diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
+index a948fc5..6e28f54 100644
+--- a/include/acpi/actbl2.h
++++ b/include/acpi/actbl2.h
+@@ -1186,20 +1186,29 @@ enum acpi_spmi_interface_types {
+  * December 19, 2014
+  *
+  * NOTE: There are two versions of the table with the same signature --
+- * the client version and the server version.
++ * the client version and the server version. The common platform_class
++ * field is used to differentiate the two types of tables.
+  *
+  ******************************************************************************/
  
- /*
-+ * dbobject
-+ */
-+void acpi_db_decode_internal_object(union acpi_operand_object *obj_desc);
-+
-+void
-+acpi_db_display_internal_object(union acpi_operand_object *obj_desc,
-+				struct acpi_walk_state *walk_state);
-+
-+void acpi_db_decode_arguments(struct acpi_walk_state *walk_state);
-+
-+void acpi_db_decode_locals(struct acpi_walk_state *walk_state);
-+
-+void
-+acpi_db_dump_method_info(acpi_status status,
-+			 struct acpi_walk_state *walk_state);
+-struct acpi_table_tcpa_client {
++struct acpi_table_tcpa_hdr {
+ 	struct acpi_table_header header;	/* Common ACPI table header */
+ 	u16 platform_class;
++};
 +
 +/*
-  * dbstats - Generation and display of ACPI table statistics
-  */
- void acpi_db_generate_statistics(union acpi_parse_object *root, u8 is_method);
-diff --git a/drivers/acpi/acpica/dsmethod.c b/drivers/acpi/acpica/dsmethod.c
-index cb53c44..bc32f31 100644
---- a/drivers/acpi/acpica/dsmethod.c
-+++ b/drivers/acpi/acpica/dsmethod.c
-@@ -46,11 +46,9 @@
- #include "acdispat.h"
- #include "acinterp.h"
- #include "acnamesp.h"
--#ifdef	ACPI_DISASSEMBLER
--#include "acdisasm.h"
--#endif
- #include "acparser.h"
- #include "amlcode.h"
-+#include "acdebug.h"
++ * Values for platform_class above.
++ * This is how the client and server subtables are differentiated
++ */
++#define ACPI_TCPA_CLIENT_TABLE          0
++#define ACPI_TCPA_SERVER_TABLE          1
++
++struct acpi_table_tcpa_client {
+ 	u32 minimum_log_length;	/* Minimum length for the event log area */
+ 	u64 log_address;	/* Address of the event log area */
+ };
  
- #define _COMPONENT          ACPI_DISPATCHER
- ACPI_MODULE_NAME("dsmethod")
-@@ -205,7 +203,7 @@ acpi_ds_detect_named_opcodes(struct acpi_walk_state *walk_state,
-  * RETURN:      Status
-  *
-  * DESCRIPTION: Called on method error. Invoke the global exception handler if
-- *              present, dump the method data if the disassembler is configured
-+ *              present, dump the method data if the debugger is configured
-  *
-  *              Note: Allows the exception handler to change the status code
-  *
-@@ -254,10 +252,10 @@ acpi_ds_method_error(acpi_status status, struct acpi_walk_state * walk_state)
- 	if (ACPI_FAILURE(status)) {
- 		acpi_ds_dump_method_stack(status, walk_state, walk_state->op);
- 
--		/* Display method locals/args if disassembler is present */
-+		/* Display method locals/args if debugger is present */
- 
--#ifdef ACPI_DISASSEMBLER
--		acpi_dm_dump_method_info(status, walk_state);
-+#ifdef ACPI_DEBUGGER
-+		acpi_db_dump_method_info(status, walk_state);
- #endif
- 	}
- 
+ struct acpi_table_tcpa_server {
+-	struct acpi_table_header header;	/* Common ACPI table header */
+-	u16 platform_class;
+ 	u16 reserved;
+ 	u64 minimum_log_length;	/* Minimum length for the event log area */
+ 	u64 log_address;	/* Address of the event log area */
 -- 
 1.7.10
