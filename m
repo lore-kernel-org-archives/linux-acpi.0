@@ -1,135 +1,46 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: [PATCH v2 6/7] irqchip: GIC: Switch ACPI support to stacked domains
-Date: Thu, 23 Jul 2015 14:05:12 +0100
-Message-ID: <1437656713-9677-7-git-send-email-marc.zyngier@arm.com>
-References: <1437656713-9677-1-git-send-email-marc.zyngier@arm.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:40326 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752454AbbGWNFe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 23 Jul 2015 09:05:34 -0400
-In-Reply-To: <1437656713-9677-1-git-send-email-marc.zyngier@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCH 0/5] Make cpuid <-> nodeid mapping persistent.
+Date: Thu, 23 Jul 2015 14:32:28 -0400
+Message-ID: <20150723183228.GR15934@mtj.duckdns.org>
+References: <1436261425-29881-1-git-send-email-tangchen@cn.fujitsu.com>
+ <20150715221345.GO15934@mtj.duckdns.org>
+ <55B07145.5010404@cn.fujitsu.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <55B07145.5010404@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, laijs@cn.fujitsu.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, qiaonuohan@cn.fujitsu.com, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Graeme Gregory <graeme@xora.org.uk>
 
-Now that the basic ACPI GSI code is irq domain aware, make sure
-that the ACPI support in the GIC doesn't pointlessly deviate from
-the DT path.
+Hello, Tang.
 
-Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
----
- drivers/irqchip/irq-gic.c       | 45 ++++++++++++++++++++++++++++++-----------
- include/linux/irqchip/arm-gic.h |  2 +-
- 2 files changed, 34 insertions(+), 13 deletions(-)
+On Thu, Jul 23, 2015 at 12:44:53PM +0800, Tang Chen wrote:
+> Allocating cpuid when a new cpu comes up and reusing the cpuid when it
+> comes up again is possible. But I'm not quite sure if it will be less
+> modification
+> because we still need an array or bit map or something to keep the mapping,
+> and select backup nodes for cpus on memory-less nodes when allocating
+> memory.
+> 
+> I can post a set of patches for this idea. And then we can see which one is
+> better.
 
-diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
-index b41ccf5..ce531e6 100644
---- a/drivers/irqchip/irq-gic.c
-+++ b/drivers/irqchip/irq-gic.c
-@@ -813,8 +813,6 @@ static int gic_irq_domain_xlate(struct irq_domain *d,
- {
- 	unsigned long ret = 0;
- 
--	if (irq_domain_get_of_node(d) != controller)
--		return -EINVAL;
- 	if (intsize < 3)
- 		return -EINVAL;
- 
-@@ -887,7 +885,7 @@ void gic_set_irqchip_flags(unsigned long flags)
- 
- void __init gic_init_bases(unsigned int gic_nr, int irq_start,
- 			   void __iomem *dist_base, void __iomem *cpu_base,
--			   u32 percpu_offset, struct device_node *node)
-+			   u32 percpu_offset, void *domain_token)
- {
- 	irq_hw_number_t hwirq_base;
- 	struct gic_chip_data *gic;
-@@ -946,8 +944,8 @@ void __init gic_init_bases(unsigned int gic_nr, int irq_start,
- 		gic_irqs = 1020;
- 	gic->gic_irqs = gic_irqs;
- 
--	if (node) {		/* DT case */
--		gic->domain = irq_domain_add_linear(node, gic_irqs,
-+	if (domain_token) {		/* DT/ACPI case */
-+		gic->domain = irq_domain_add_linear(domain_token, gic_irqs,
- 						    &gic_irq_domain_hierarchy_ops,
- 						    gic);
- 	} else {		/* Non-DT case */
-@@ -973,7 +971,7 @@ void __init gic_init_bases(unsigned int gic_nr, int irq_start,
- 			irq_base = irq_start;
- 		}
- 
--		gic->domain = irq_domain_add_legacy(node, gic_irqs, irq_base,
-+		gic->domain = irq_domain_add_legacy(NULL, gic_irqs, irq_base,
- 					hwirq_base, &gic_irq_domain_ops, gic);
- 	}
- 
-@@ -1086,6 +1084,31 @@ gic_acpi_parse_madt_distributor(struct acpi_subtable_header *header,
- 	return 0;
- }
- 
-+static int gic_acpi_gsi_desc_populate(struct acpi_gsi_descriptor *data,
-+				      u32 gsi, unsigned int irq_type)
-+{
-+	/*
-+	 * Encode GSI and triggering information the way the GIC likes
-+	 * them.
-+	 */
-+	if (WARN_ON(gsi < 16))
-+		return -EINVAL;
-+
-+	if (gsi >= 32) {
-+		data->param[0] = 0;		/* SPI */
-+		data->param[1] = gsi - 32;
-+		data->param[2] = irq_type;
-+	} else {
-+		data->param[0] = 1; 		/* PPI */
-+		data->param[1] = gsi - 16;
-+		data->param[2] = 0xff << 4 | irq_type;
-+	}
-+
-+	data->param_count = 3;
-+
-+	return 0;
-+}
-+
- int __init
- gic_v2_acpi_init(struct acpi_table_header *table)
- {
-@@ -1132,14 +1155,12 @@ gic_v2_acpi_init(struct acpi_table_header *table)
- 	}
- 
- 	/*
--	 * Initialize zero GIC instance (no multi-GIC support). Also, set GIC
--	 * as default IRQ domain to allow for GSI registration and GSI to IRQ
--	 * number translation (see acpi_register_gsi() and acpi_gsi_to_irq()).
-+	 * Initialize zero GIC instance (no multi-GIC support).
- 	 */
--	gic_init_bases(0, -1, dist_base, cpu_base, 0, NULL);
--	irq_set_default_host(gic_data[0].domain);
-+	gic_init_bases(0, -1, dist_base, cpu_base, 0, (void *)ACPI_IRQ_MODEL_GIC);
- 
--	acpi_irq_model = ACPI_IRQ_MODEL_GIC;
-+	acpi_set_irq_model(ACPI_IRQ_MODEL_GIC, ACPI_IRQ_MODEL_GIC,
-+			   gic_acpi_gsi_desc_populate);
- 	return 0;
- }
- #endif
-diff --git a/include/linux/irqchip/arm-gic.h b/include/linux/irqchip/arm-gic.h
-index 9de976b..97799b7 100644
---- a/include/linux/irqchip/arm-gic.h
-+++ b/include/linux/irqchip/arm-gic.h
-@@ -97,7 +97,7 @@ struct device_node;
- 
- void gic_set_irqchip_flags(unsigned long flags);
- void gic_init_bases(unsigned int, int, void __iomem *, void __iomem *,
--		    u32 offset, struct device_node *);
-+		    u32 offset, void *);
- void gic_cascade_irq(unsigned int gic_nr, unsigned int irq);
- void gic_cpu_if_down(void);
- 
+I suspect the difference could be that in the current code the users
+(workqueue) can remain the same while if we do it lazily there
+probably needs to be a way to poke it.  As long as the IDs are
+allocated to the online CPUs first, I think pre-allocating everything
+should be fine too.
+
+Thanks.
+
 -- 
-2.1.4
+tejun
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
