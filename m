@@ -1,263 +1,85 @@
-From: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Subject: [PATCH v2.1 06/22] fjes: buffer address regist/unregistration routine
-Date: Thu, 23 Jul 2015 09:10:20 +0900
-Message-ID: <1437610236-12490-6-git-send-email-izumi.taku@jp.fujitsu.com>
-References: <1437610142-12439-1-git-send-email-izumi.taku@jp.fujitsu.com>
- <1437610236-12490-1-git-send-email-izumi.taku@jp.fujitsu.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1437610236-12490-1-git-send-email-izumi.taku@jp.fujitsu.com>
-Sender: netdev-owner@vger.kernel.org
-To: netdev@vger.kernel.org, davem@davemloft.net
-Cc: platform-driver-x86@vger.kernel.org, dvhart@infradead.org, rkhan@redhat.com, alexander.h.duyck@redhat.com, linux-acpi@vger.kernel.org, joe@perches.com, sergei.shtylyov@cogentembedded.com, stephen@networkplumber.org, yasu.isimatu@gmail.com, Taku Izumi <izumi.taku@jp.fujitsu.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: Discrete Nvidia GPU shutdown with recent kernel / BIOS (on T440s
+ laptop) - Should be automatic with runtime pm now ?
+Date: Wed, 22 Jul 2015 21:21:36 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1507222116430.12068-100000@netrider.rowland.org>
+References: <CAHL+j09=tc4ytFmzuhw5K_AvQ6aDsViREkwCY6re4A-iJTnTUw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from netrider.rowland.org ([192.131.102.5]:42993 "HELO
+	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752125AbbGWBVh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 22 Jul 2015 21:21:37 -0400
+In-Reply-To: <CAHL+j09=tc4ytFmzuhw5K_AvQ6aDsViREkwCY6re4A-iJTnTUw@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sylvain Munaut <246tnt@gmail.com>
+Cc: linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org
 
-This patch adds buffer address regist/unregistration routine.
+On Wed, 22 Jul 2015, Sylvain Munaut wrote:
 
-This function is mainly invoked when network device's
-activation (open) and deactivation (close)
-in order to retist/unregist shared buffer address.
+> Hi Alan,
+> 
+> 
+> Thanks for the details.
+> 
+> 
+> >> tl;dr : Should device allowed to do runtime pm that have no driver go
+> >> to D3 on their own ?
+> >
+> > Quick answer: See the comments at the start of local_pci_probe() in
+> > drivers/pci/pci-driver.c.  PCI devices without a kernel driver are
+> > always left in D0, regardless of the runtime PM status.  This is
+> > because userspace may try to use the device, and the kernel wouldn't
+> > know to take the device out of D3 when that happens.
+> 
+> Does linux expose some way for userspace to transition the device to
+> another power state without the need for a driver ?
 
-Signed-off-by: Taku Izumi <izumi.taku@jp.fujitsu.com>
----
- drivers/net/fjes/fjes_hw.c | 186 +++++++++++++++++++++++++++++++++++++++++++++
- drivers/net/fjes/fjes_hw.h |   9 ++-
- 2 files changed, 194 insertions(+), 1 deletion(-)
+I don't think so.  Of course, such a thing could be added.  One simple 
+way to do it would be to create a "do-nothing" driver that would allow 
+userspace to access the device directly and would include runtime PM 
+suport.
 
-diff --git a/drivers/net/fjes/fjes_hw.c b/drivers/net/fjes/fjes_hw.c
-index 3fbe68e..5f43957 100644
---- a/drivers/net/fjes/fjes_hw.c
-+++ b/drivers/net/fjes/fjes_hw.c
-@@ -452,6 +452,192 @@ int fjes_hw_request_info(struct fjes_hw *hw)
- 	return result;
- }
- 
-+int fjes_hw_register_buff_addr(struct fjes_hw *hw, int dest_epid,
-+			       struct ep_share_mem_info *buf_pair)
-+{
-+	union fjes_device_command_req *req_buf = hw->hw_info.req_buf;
-+	union fjes_device_command_res *res_buf = hw->hw_info.res_buf;
-+	enum fjes_dev_command_response_e ret;
-+	int i, idx;
-+	int page_count;
-+	void *addr;
-+	int timeout;
-+	int result;
-+
-+	if (test_bit(dest_epid, &hw->hw_info.buffer_share_bit))
-+		return 0;
-+
-+	memset(req_buf, 0, hw->hw_info.req_buf_size);
-+	memset(res_buf, 0, hw->hw_info.res_buf_size);
-+
-+	req_buf->share_buffer.length = FJES_DEV_COMMAND_SHARE_BUFFER_REQ_LEN(
-+						buf_pair->tx.size,
-+						buf_pair->rx.size);
-+	req_buf->share_buffer.epid = dest_epid;
-+
-+	idx = 0;
-+	req_buf->share_buffer.buffer[idx++] = buf_pair->tx.size;
-+	page_count = buf_pair->tx.size / EP_BUFFER_INFO_SIZE;
-+	for (i = 0; i < page_count; i++) {
-+		addr = ((u8 *)(buf_pair->tx.buffer)) +
-+				(i * EP_BUFFER_INFO_SIZE);
-+		req_buf->share_buffer.buffer[idx++] =
-+				(__le64)(page_to_phys(vmalloc_to_page(addr)) +
-+						offset_in_page(addr));
-+	}
-+
-+	req_buf->share_buffer.buffer[idx++] = buf_pair->rx.size;
-+	page_count = buf_pair->rx.size / EP_BUFFER_INFO_SIZE;
-+	for (i = 0; i < page_count; i++) {
-+		addr = ((u8 *)(buf_pair->rx.buffer)) +
-+				(i * EP_BUFFER_INFO_SIZE);
-+		req_buf->share_buffer.buffer[idx++] =
-+				(__le64)(page_to_phys(vmalloc_to_page(addr)) +
-+						offset_in_page(addr));
-+	}
-+
-+	res_buf->share_buffer.length = 0;
-+	res_buf->share_buffer.code = 0;
-+
-+	ret = fjes_hw_issue_request_command(hw, FJES_CMD_REQ_SHARE_BUFFER);
-+
-+	timeout = FJES_COMMAND_REQ_BUFF_TIMEOUT * 1000;
-+	while ((ret == FJES_CMD_STATUS_NORMAL) &&
-+	       (res_buf->share_buffer.length ==
-+		FJES_DEV_COMMAND_SHARE_BUFFER_RES_LEN) &&
-+	       (res_buf->share_buffer.code == FJES_CMD_REQ_RES_CODE_BUSY) &&
-+	       (timeout > 0)) {
-+			msleep(200 + hw->my_epid * 20);
-+			timeout -= (200 + hw->my_epid * 20);
-+
-+			res_buf->share_buffer.length = 0;
-+			res_buf->share_buffer.code = 0;
-+
-+			ret = fjes_hw_issue_request_command(
-+					hw, FJES_CMD_REQ_SHARE_BUFFER);
-+	}
-+
-+	result = 0;
-+
-+	if (res_buf->share_buffer.length !=
-+			FJES_DEV_COMMAND_SHARE_BUFFER_RES_LEN)
-+		result = -ENOMSG;
-+	else if (ret == FJES_CMD_STATUS_NORMAL) {
-+		switch (res_buf->share_buffer.code) {
-+		case FJES_CMD_REQ_RES_CODE_NORMAL:
-+			result = 0;
-+			set_bit(dest_epid, &hw->hw_info.buffer_share_bit);
-+			break;
-+		case FJES_CMD_REQ_RES_CODE_BUSY:
-+			result = -EBUSY;
-+			break;
-+		default:
-+			result = -EPERM;
-+			break;
-+		}
-+	} else {
-+		switch (ret) {
-+		case FJES_CMD_STATUS_UNKNOWN:
-+			result = -EPERM;
-+			break;
-+		case FJES_CMD_STATUS_TIMEOUT:
-+			result = -EBUSY;
-+			break;
-+		case FJES_CMD_STATUS_ERROR_PARAM:
-+		case FJES_CMD_STATUS_ERROR_STATUS:
-+		default:
-+			result = -EPERM;
-+			break;
-+		}
-+	}
-+
-+	return result;
-+}
-+
-+int fjes_hw_unregister_buff_addr(struct fjes_hw *hw, int dest_epid)
-+{
-+	union fjes_device_command_req *req_buf = hw->hw_info.req_buf;
-+	union fjes_device_command_res *res_buf = hw->hw_info.res_buf;
-+	struct fjes_device_shared_info *share = hw->hw_info.share;
-+	enum fjes_dev_command_response_e ret;
-+	int result;
-+	int timeout;
-+
-+	if (!hw->base)
-+		return -EPERM;
-+
-+	if (!req_buf || !res_buf || !share)
-+		return -EPERM;
-+
-+	if (!test_bit(dest_epid, &hw->hw_info.buffer_share_bit))
-+		return 0;
-+
-+	memset(req_buf, 0, hw->hw_info.req_buf_size);
-+	memset(res_buf, 0, hw->hw_info.res_buf_size);
-+
-+	req_buf->unshare_buffer.length =
-+			FJES_DEV_COMMAND_UNSHARE_BUFFER_REQ_LEN;
-+	req_buf->unshare_buffer.epid = dest_epid;
-+
-+	res_buf->unshare_buffer.length = 0;
-+	res_buf->unshare_buffer.code = 0;
-+
-+	ret = fjes_hw_issue_request_command(hw, FJES_CMD_REQ_UNSHARE_BUFFER);
-+
-+	timeout = FJES_COMMAND_REQ_BUFF_TIMEOUT * 1000;
-+	while ((ret == FJES_CMD_STATUS_NORMAL) &&
-+	       (res_buf->unshare_buffer.length ==
-+		FJES_DEV_COMMAND_UNSHARE_BUFFER_RES_LEN) &&
-+	       (res_buf->unshare_buffer.code ==
-+		FJES_CMD_REQ_RES_CODE_BUSY) &&
-+	       (timeout > 0)) {
-+		msleep(200 + hw->my_epid * 20);
-+			timeout -= (200 + hw->my_epid * 20);
-+
-+		res_buf->unshare_buffer.length = 0;
-+		res_buf->unshare_buffer.code = 0;
-+
-+		ret =
-+		fjes_hw_issue_request_command(hw, FJES_CMD_REQ_UNSHARE_BUFFER);
-+	}
-+
-+	result = 0;
-+
-+	if (res_buf->unshare_buffer.length !=
-+			FJES_DEV_COMMAND_UNSHARE_BUFFER_RES_LEN) {
-+		result = -ENOMSG;
-+	} else if (ret == FJES_CMD_STATUS_NORMAL) {
-+		switch (res_buf->unshare_buffer.code) {
-+		case FJES_CMD_REQ_RES_CODE_NORMAL:
-+			result = 0;
-+			clear_bit(dest_epid, &hw->hw_info.buffer_share_bit);
-+			break;
-+		case FJES_CMD_REQ_RES_CODE_BUSY:
-+			result = -EBUSY;
-+			break;
-+		default:
-+			result = -EPERM;
-+			break;
-+		}
-+	} else {
-+		switch (ret) {
-+		case FJES_CMD_STATUS_UNKNOWN:
-+			result = -EPERM;
-+			break;
-+		case FJES_CMD_STATUS_TIMEOUT:
-+			result = -EBUSY;
-+			break;
-+		case FJES_CMD_STATUS_ERROR_PARAM:
-+		case FJES_CMD_STATUS_ERROR_STATUS:
-+		default:
-+			result = -EPERM;
-+			break;
-+		}
-+	}
-+
-+	return result;
-+}
-+
- void fjes_hw_set_irqmask(struct fjes_hw *hw,
- 			 enum REG_ICTL_MASK intr_mask, bool mask)
- {
-diff --git a/drivers/net/fjes/fjes_hw.h b/drivers/net/fjes/fjes_hw.h
-index df30d3d..5fb175c 100644
---- a/drivers/net/fjes/fjes_hw.h
-+++ b/drivers/net/fjes/fjes_hw.h
-@@ -35,11 +35,13 @@ struct fjes_hw;
- 
- #define FJES_DEVICE_RESET_TIMEOUT  ((17 + 1) * 3) /* sec */
- #define FJES_COMMAND_REQ_TIMEOUT  (5 + 1) /* sec */
-+#define FJES_COMMAND_REQ_BUFF_TIMEOUT	(8 * 3) /* sec */
- 
- #define FJES_CMD_REQ_ERR_INFO_PARAM  (0x0001)
- #define FJES_CMD_REQ_ERR_INFO_STATUS (0x0002)
- 
- #define FJES_CMD_REQ_RES_CODE_NORMAL (0)
-+#define FJES_CMD_REQ_RES_CODE_BUSY   (1)
- 
- #define EP_BUFFER_SIZE \
- 	(((sizeof(union ep_buffer_info) + (128 * (64 * 1024))) \
-@@ -60,6 +62,9 @@ struct fjes_hw;
- #define FJES_DEV_COMMAND_INFO_RES_LEN(epnum) (8 + 2 * (epnum))
- #define FJES_DEV_COMMAND_SHARE_BUFFER_REQ_LEN(txb, rxb) \
- 	(24 + (8 * ((txb) / EP_BUFFER_INFO_SIZE + (rxb) / EP_BUFFER_INFO_SIZE)))
-+#define FJES_DEV_COMMAND_SHARE_BUFFER_RES_LEN	(8)
-+#define FJES_DEV_COMMAND_UNSHARE_BUFFER_REQ_LEN	(8)
-+#define FJES_DEV_COMMAND_UNSHARE_BUFFER_RES_LEN	(8)
- 
- #define FJES_DEV_REQ_BUF_SIZE(maxep) \
- 	FJES_DEV_COMMAND_SHARE_BUFFER_REQ_LEN(EP_BUFFER_SIZE, EP_BUFFER_SIZE)
-@@ -267,7 +272,9 @@ int fjes_hw_init(struct fjes_hw *);
- void fjes_hw_exit(struct fjes_hw *);
- int fjes_hw_reset(struct fjes_hw *);
- int fjes_hw_request_info(struct fjes_hw *);
--
-+int fjes_hw_register_buff_addr(struct fjes_hw *, int,
-+			       struct ep_share_mem_info *);
-+int fjes_hw_unregister_buff_addr(struct fjes_hw *, int);
- void fjes_hw_init_command_registers(struct fjes_hw *,
- 				    struct fjes_device_command_param *);
- void fjes_hw_setup_epbuf(struct epbuf_handler *, u8 *, u32);
--- 
-1.8.3.1
+> I looked at the docs and tried poking some of the sysfs files, but
+> except enabling/disabling the runtme pm, I couldn't really change
+> anything, but maybe I missed something.
+
+You probably didn't miss anything.
+
+> >>  And should pci root bridge go to D3 when all the
+> >> device on them are on D3 ?
+> >
+> > I don't know the answer to that.  It's probably closely related to the
+> > issue of whether PCI bridges need to have a kernel driver.
+> 
+> OK.
+> 
+> Do you know if there could be any adverse effect of transitioning it myself ?
+> 
+> Basically I'm doing this when turning off the card :
+> 
+> struct pci_dev *port_dev = pci_upstream_bridge(pdev);
+> 
+> pci_save_state(port_dev);
+> pci_clear_master(port_dev);
+> pci_disable_device(port_dev);
+> pci_set_power_state(port_dev, PCI_D3hot);
+> 
+> 
+> And this when waking it up :
+> 
+> pci_set_power_state(port_dev, PCI_D0);
+> pci_restore_state(port_dev);
+> pci_enable_device(port_dev);
+> pci_set_master(port_dev);
+> 
+> (I removed the return value checking to make the code more concise here).
+
+That seems reasonable.  But I am far from an expert on PCI or Linux's
+PCI subsystem.  You really should address this sort of question to the
+linux-pci mailing list.
+
+Alan Stern
+
