@@ -1,53 +1,43 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 14/22] ACPICA: iASL: Add new warnings for method local_x and arg_x variables.
-Date: Thu, 23 Jul 2015 12:53:35 +0800
-Message-ID: <ff9ae809237964320577367b8e0ea304f35699f4.1437627016.git.lv.zheng@intel.com>
+Subject: [PATCH 13/22] ACPICA: Remove extraneous check for null walk_state.
+Date: Thu, 23 Jul 2015 12:53:28 +0800
+Message-ID: <42d95cd3853a04fe3010b8c6126bab243bbd3b75.1437627016.git.lv.zheng@intel.com>
 References: <cover.1437627016.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:61456 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753202AbbGWExm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 23 Jul 2015 00:53:42 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1437627016.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Markus Elfring <elfring@users.sourceforge.net>, Bob Moore <robert.moore@intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
-From: Bob Moore <robert.moore@intel.com>
+From: Markus Elfring <elfring@users.sourceforge.net>
 
-ACPICA commit eb9f8cb9fd65f1149dd335d05944c31cbca41af3
+ACPICA commit f9fd6e8bad0f16ce2b436c5cda36ced0c2d85302
 
-1) Warn if a Local is set but never used
-2) Warn if a arg_x is never used (for non-predefined method names)
-3) Warn if a arg_x that is used as a local is never used
+Reported by Markus Elfring.
 
-This patch only affects iASL which is not in the kernel source tree.
-
-Link: https://github.com/acpica/acpica/commit/eb9f8cb9
+Link: https://github.com/acpica/acpica/commit/f9fd6e8b
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/aclocal.h |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/acpi/acpica/dsmethod.c |    4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/acpica/aclocal.h b/drivers/acpi/acpica/aclocal.h
-index 610d001..4758185 100644
---- a/drivers/acpi/acpica/aclocal.h
-+++ b/drivers/acpi/acpica/aclocal.h
-@@ -174,8 +174,12 @@ struct acpi_namespace_node {
- 	 */
- #ifdef ACPI_LARGE_NAMESPACE_NODE
- 	union acpi_parse_object *op;
-+	void *method_locals;
-+	void *method_args;
- 	u32 value;
- 	u32 length;
-+	u8 arg_count;
-+
- #endif
- };
+diff --git a/drivers/acpi/acpica/dsmethod.c b/drivers/acpi/acpica/dsmethod.c
+index ea2bdde..cb53c44 100644
+--- a/drivers/acpi/acpica/dsmethod.c
++++ b/drivers/acpi/acpica/dsmethod.c
+@@ -582,9 +582,7 @@ cleanup:
+ 	/* On error, we must terminate the method properly */
  
+ 	acpi_ds_terminate_control_method(obj_desc, next_walk_state);
+-	if (next_walk_state) {
+-		acpi_ds_delete_walk_state(next_walk_state);
+-	}
++	acpi_ds_delete_walk_state(next_walk_state);
+ 
+ 	return_ACPI_STATUS(status);
+ }
 -- 
 1.7.10
-
