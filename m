@@ -1,56 +1,143 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH v2 1/7] genirq: irqdomain: Use an accessor for the of_node
- field
-Date: Fri, 24 Jul 2015 18:06:39 +0100
-Message-ID: <55B2709F.4080707@arm.com>
-References: <1437656713-9677-1-git-send-email-marc.zyngier@arm.com> <1437656713-9677-2-git-send-email-marc.zyngier@arm.com> <55B1FD45.4060706@linaro.org>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v2 6/7] irqchip: GIC: Switch ACPI support to stacked
+ domains
+Date: Fri, 24 Jul 2015 18:16:36 +0100
+Message-ID: <20150724171636.GC8207@red-moon>
+References: <1437656713-9677-1-git-send-email-marc.zyngier@arm.com>
+ <1437656713-9677-7-git-send-email-marc.zyngier@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:46318 "EHLO foss.arm.com"
+Received: from foss.arm.com ([217.140.101.70]:46358 "EHLO foss.arm.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753566AbbGXRGo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 24 Jul 2015 13:06:44 -0400
-In-Reply-To: <55B1FD45.4060706@linaro.org>
+	id S1752638AbbGXRPy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 24 Jul 2015 13:15:54 -0400
+Content-Disposition: inline
+In-Reply-To: <1437656713-9677-7-git-send-email-marc.zyngier@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, Graeme Gregory <graeme@xora.org.uk>
+To: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, Graeme Gregory <graeme@xora.org.uk>
 
-On 24/07/15 09:54, Hanjun Guo wrote:
-> On 07/23/2015 09:05 PM, Marc Zyngier wrote:
->> The struct irq_domain contains a "struct device_node *" field
->> (of_node) that is almost the only link between the irqdomain
->> and the device tree infrastructure.
->>
->> In order to prepare for the removal of that field, convert all
->> users outside of kernel/irq/irqdomain.c to use an accessor.
->>
->> Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
->> ---
->>   arch/c6x/platforms/megamod-pic.c              | 2 +-
->>   arch/mips/cavium-octeon/octeon-irq.c          | 4 ++--
->>   arch/powerpc/platforms/cell/axon_msi.c        | 2 +-
->>   arch/powerpc/platforms/cell/spider-pic.c      | 9 ++++++---
->>   arch/powerpc/platforms/pasemi/msi.c           | 6 ++++--
->>   arch/powerpc/platforms/powernv/opal-irqchip.c | 2 +-
->>   arch/powerpc/sysdev/ehv_pic.c                 | 3 ++-
->>   arch/powerpc/sysdev/fsl_msi.c                 | 2 +-
->>   arch/powerpc/sysdev/i8259.c                   | 3 ++-
->>   arch/powerpc/sysdev/ipic.c                    | 3 ++-
->>   arch/powerpc/sysdev/mpic.c                    | 3 ++-
->>   arch/powerpc/sysdev/mpic_msi.c                | 2 +-
->>   arch/powerpc/sysdev/qe_lib/qe_ic.c            | 3 ++-
+On Thu, Jul 23, 2015 at 02:05:12PM +0100, Marc Zyngier wrote:
+> Now that the basic ACPI GSI code is irq domain aware, make sure
+> that the ACPI support in the GIC doesn't pointlessly deviate from
+> the DT path.
 > 
-> Hmm, no arch/arm/, and there are several domain->of_node
-> or similar in those files, or did I miss something?
+> Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
+> ---
+>  drivers/irqchip/irq-gic.c       | 45 ++++++++++++++++++++++++++++++-----------
+>  include/linux/irqchip/arm-gic.h |  2 +-
+>  2 files changed, 34 insertions(+), 13 deletions(-)
 
-No, I was missing some more -I on my spatch command line... I pushed out
-a fixup.
+Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 
-Thanks,
-
-	M.
--- 
-Jazz is not dead. It just smells funny...
+> diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
+> index b41ccf5..ce531e6 100644
+> --- a/drivers/irqchip/irq-gic.c
+> +++ b/drivers/irqchip/irq-gic.c
+> @@ -813,8 +813,6 @@ static int gic_irq_domain_xlate(struct irq_domain *d,
+>  {
+>  	unsigned long ret = 0;
+>  
+> -	if (irq_domain_get_of_node(d) != controller)
+> -		return -EINVAL;
+>  	if (intsize < 3)
+>  		return -EINVAL;
+>  
+> @@ -887,7 +885,7 @@ void gic_set_irqchip_flags(unsigned long flags)
+>  
+>  void __init gic_init_bases(unsigned int gic_nr, int irq_start,
+>  			   void __iomem *dist_base, void __iomem *cpu_base,
+> -			   u32 percpu_offset, struct device_node *node)
+> +			   u32 percpu_offset, void *domain_token)
+>  {
+>  	irq_hw_number_t hwirq_base;
+>  	struct gic_chip_data *gic;
+> @@ -946,8 +944,8 @@ void __init gic_init_bases(unsigned int gic_nr, int irq_start,
+>  		gic_irqs = 1020;
+>  	gic->gic_irqs = gic_irqs;
+>  
+> -	if (node) {		/* DT case */
+> -		gic->domain = irq_domain_add_linear(node, gic_irqs,
+> +	if (domain_token) {		/* DT/ACPI case */
+> +		gic->domain = irq_domain_add_linear(domain_token, gic_irqs,
+>  						    &gic_irq_domain_hierarchy_ops,
+>  						    gic);
+>  	} else {		/* Non-DT case */
+> @@ -973,7 +971,7 @@ void __init gic_init_bases(unsigned int gic_nr, int irq_start,
+>  			irq_base = irq_start;
+>  		}
+>  
+> -		gic->domain = irq_domain_add_legacy(node, gic_irqs, irq_base,
+> +		gic->domain = irq_domain_add_legacy(NULL, gic_irqs, irq_base,
+>  					hwirq_base, &gic_irq_domain_ops, gic);
+>  	}
+>  
+> @@ -1086,6 +1084,31 @@ gic_acpi_parse_madt_distributor(struct acpi_subtable_header *header,
+>  	return 0;
+>  }
+>  
+> +static int gic_acpi_gsi_desc_populate(struct acpi_gsi_descriptor *data,
+> +				      u32 gsi, unsigned int irq_type)
+> +{
+> +	/*
+> +	 * Encode GSI and triggering information the way the GIC likes
+> +	 * them.
+> +	 */
+> +	if (WARN_ON(gsi < 16))
+> +		return -EINVAL;
+> +
+> +	if (gsi >= 32) {
+> +		data->param[0] = 0;		/* SPI */
+> +		data->param[1] = gsi - 32;
+> +		data->param[2] = irq_type;
+> +	} else {
+> +		data->param[0] = 1; 		/* PPI */
+> +		data->param[1] = gsi - 16;
+> +		data->param[2] = 0xff << 4 | irq_type;
+> +	}
+> +
+> +	data->param_count = 3;
+> +
+> +	return 0;
+> +}
+> +
+>  int __init
+>  gic_v2_acpi_init(struct acpi_table_header *table)
+>  {
+> @@ -1132,14 +1155,12 @@ gic_v2_acpi_init(struct acpi_table_header *table)
+>  	}
+>  
+>  	/*
+> -	 * Initialize zero GIC instance (no multi-GIC support). Also, set GIC
+> -	 * as default IRQ domain to allow for GSI registration and GSI to IRQ
+> -	 * number translation (see acpi_register_gsi() and acpi_gsi_to_irq()).
+> +	 * Initialize zero GIC instance (no multi-GIC support).
+>  	 */
+> -	gic_init_bases(0, -1, dist_base, cpu_base, 0, NULL);
+> -	irq_set_default_host(gic_data[0].domain);
+> +	gic_init_bases(0, -1, dist_base, cpu_base, 0, (void *)ACPI_IRQ_MODEL_GIC);
+>  
+> -	acpi_irq_model = ACPI_IRQ_MODEL_GIC;
+> +	acpi_set_irq_model(ACPI_IRQ_MODEL_GIC, ACPI_IRQ_MODEL_GIC,
+> +			   gic_acpi_gsi_desc_populate);
+>  	return 0;
+>  }
+>  #endif
+> diff --git a/include/linux/irqchip/arm-gic.h b/include/linux/irqchip/arm-gic.h
+> index 9de976b..97799b7 100644
+> --- a/include/linux/irqchip/arm-gic.h
+> +++ b/include/linux/irqchip/arm-gic.h
+> @@ -97,7 +97,7 @@ struct device_node;
+>  
+>  void gic_set_irqchip_flags(unsigned long flags);
+>  void gic_init_bases(unsigned int, int, void __iomem *, void __iomem *,
+> -		    u32 offset, struct device_node *);
+> +		    u32 offset, void *);
+>  void gic_cascade_irq(unsigned int gic_nr, unsigned int irq);
+>  void gic_cpu_if_down(void);
+>  
+> -- 
+> 2.1.4
+> 
