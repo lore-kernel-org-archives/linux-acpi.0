@@ -1,73 +1,105 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v2 7/7] acpi: gsi: Cleanup acpi_register_gsi
-Date: Fri, 24 Jul 2015 18:06:52 +0800
-Message-ID: <55B20E3C.1010809@linaro.org>
-References: <1437656713-9677-1-git-send-email-marc.zyngier@arm.com> <1437656713-9677-8-git-send-email-marc.zyngier@arm.com>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: [PATCH v2 3/7] genirq: irqdomain: Add irq_create_acpi_mapping
+Date: Fri, 24 Jul 2015 13:22:05 +0100
+Message-ID: <55B22DED.1000505@arm.com>
+References: <1437656713-9677-1-git-send-email-marc.zyngier@arm.com> <1437656713-9677-4-git-send-email-marc.zyngier@arm.com> <55B201E4.7060704@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1437656713-9677-8-git-send-email-marc.zyngier@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Graeme Gregory <graeme@xora.org.uk>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:44789 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752366AbbGXMWL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 24 Jul 2015 08:22:11 -0400
+In-Reply-To: <55B201E4.7060704@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, Graeme Gregory <graeme@xora.org.uk>
 
-On 07/23/2015 09:05 PM, Marc Zyngier wrote:
-> As the only user of drivers/acpi/gsi.c is now using acpi_set_irq_model
-> to set acpi_gsi_descriptor_populate to something meaningful, we can
-> always rely on that information to be present (its absence is an error),
-> and guarantee that new interrupt controllers will use this API.
->
-> Take this opportunity to cleanup acpi_register_gsi.
->
-> Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
-> ---
->   drivers/acpi/gsi.c | 24 ++++++++----------------
->   1 file changed, 8 insertions(+), 16 deletions(-)
->
-> diff --git a/drivers/acpi/gsi.c b/drivers/acpi/gsi.c
-> index e6f4a0c..85aa831 100644
-> --- a/drivers/acpi/gsi.c
-> +++ b/drivers/acpi/gsi.c
-> @@ -75,28 +75,20 @@ int acpi_register_gsi(struct device *dev, u32 gsi, int trigger,
->   		      int polarity)
->   {
->   	int err;
-> -	unsigned int irq;
-> +	struct acpi_gsi_descriptor data;
->   	unsigned int irq_type = acpi_gsi_get_irq_type(trigger, polarity);
->   	struct irq_domain *d = irq_find_host(acpi_gsi_domain_token);
->
-> -	if (acpi_gsi_descriptor_populate) {
-> -		struct acpi_gsi_descriptor data;
-> -		err = acpi_gsi_descriptor_populate(&data, gsi, irq_type);
-> -		if (err)
-> -			return err;
-> -
-> -		return irq_create_acpi_mapping(d, &data);
-> +	if (WARN_ON(!acpi_gsi_descriptor_populate)) {
-> +		pr_warn("GSI: No registered irqchip, giving up\n");
-> +		return -EINVAL;
->   	}
->
-> -	irq = irq_create_mapping(d, gsi);
-> -	if (!irq)
-> -		return -EINVAL;
-> +	err = acpi_gsi_descriptor_populate(&data, gsi, irq_type);
-> +	if (err)
-> +		return err;
->
-> -	/* Set irq type if specified and different than the current one */
-> -	if (irq_type != IRQ_TYPE_NONE &&
-> -		irq_type != irq_get_trigger_type(irq))
-> -		irq_set_irq_type(irq, irq_type);
-> -	return irq;
-> +	return irq_create_acpi_mapping(d, &data);
+On 24/07/15 10:14, Hanjun Guo wrote:
+> On 07/23/2015 09:05 PM, Marc Zyngier wrote:
+>> In order to help ACPI on arm64 to make use of most of the irqdomain
+>> goodies, add a new entry point (irq_create_acpi_mapping) which
+>> mimics irq_create_of_mapping, except that it takes a new
+>> struct acpi_gsi_descriptor, which is the pendent of of_phandle_args
+>> in the OF world.
+>>
+>> We assume that the way the acpi_gsi_descriptor is populated matches
+>> that of of_phandle_args, as the latter is still the building block
+>> for interrupt descriptor in the whole kernel.
+>>
+>> Eventually, these two representations should be merged in a single
+>> structure, but that's probably for another day.
+> 
+> ...
+> 
+>>
+>> Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
+>> ---
+>>   include/linux/acpi.h   |  9 +++++++++
+>>   kernel/irq/irqdomain.c | 18 ++++++++++++++++++
+>>   2 files changed, 27 insertions(+)
+>>
+>> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+>> index d2445fa..2f23ab0 100644
+>> --- a/include/linux/acpi.h
+>> +++ b/include/linux/acpi.h
+>> @@ -205,6 +205,15 @@ int acpi_register_gsi (struct device *dev, u32 gsi, int triggering, int polarity
+>>   int acpi_gsi_to_irq (u32 gsi, unsigned int *irq);
+>>   int acpi_isa_irq_to_gsi (unsigned isa_irq, u32 *gsi);
+>>
+>> +#define MAX_GSI_DESC_PARAMS 16
+>> +struct acpi_gsi_descriptor {
+>> +	int param_count;
+>> +	u32 param[MAX_GSI_DESC_PARAMS];
+>> +};
+>> +
+>> +unsigned int irq_create_acpi_mapping(struct irq_domain *d,
+>> +				     struct acpi_gsi_descriptor *irq_data);
+>> +
+>>   #ifdef CONFIG_X86_IO_APIC
+>>   extern int acpi_get_override_irq(u32 gsi, int *trigger, int *polarity);
+>>   #else
+>> diff --git a/kernel/irq/irqdomain.c b/kernel/irq/irqdomain.c
+>> index 27f4ec7..542cda3 100644
+>> --- a/kernel/irq/irqdomain.c
+>> +++ b/kernel/irq/irqdomain.c
+>> @@ -1,5 +1,6 @@
+>>   #define pr_fmt(fmt)  "irq: " fmt
+>>
+>> +#include <linux/acpi.h>
+>>   #include <linux/debugfs.h>
+>>   #include <linux/hardirq.h>
+>>   #include <linux/interrupt.h>
+>> @@ -557,6 +558,23 @@ unsigned int irq_create_of_mapping(struct of_phandle_args *irq_data)
+>>   }
+>>   EXPORT_SYMBOL_GPL(irq_create_of_mapping);
+>>
+>> +#ifdef CONFIG_ACPI
+>> +unsigned int irq_create_acpi_mapping(struct irq_domain *d,
+>> +				     struct acpi_gsi_descriptor *irq_data)
+>> +{
+>> +	struct of_phandle_args args;
+>> +	int i;
+>> +
+>> +	for (i = 0; i < min(irq_data->param_count, MAX_PHANDLE_ARGS); i++)
+>> +		args.args[i] = irq_data->param[i];
+>> +
+>> +	args.np = d ? d->domain_token : NULL;
+>> +	args.args_count = i;
+>> +
+>> +	return irq_create_of_mapping(&args);
+>> +}
+> 
+> A little bit of hack to me :) , but I agree it's the first step to
+> merge them in a single structure,
 
-For ARM64,
+If you have a more elegant solution that doesn't end up duplicating most
+of the kernel infrastructure, I'm really all ears.
 
-Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
+Thanks,
 
-Thanks
-Hanjun
+	M.
+-- 
+Jazz is not dead. It just smells funny...
