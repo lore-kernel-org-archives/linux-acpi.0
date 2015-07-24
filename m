@@ -1,112 +1,145 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v2 5/7] acpi: gsi: Add acpi_set_irq_model to initialize
- the GSI layer
-Date: Fri, 24 Jul 2015 18:00:56 +0800
-Message-ID: <55B20CD8.60309@linaro.org>
-References: <1437656713-9677-1-git-send-email-marc.zyngier@arm.com> <1437656713-9677-6-git-send-email-marc.zyngier@arm.com>
+Subject: Re: [PATCH v2 6/7] irqchip: GIC: Switch ACPI support to stacked domains
+Date: Fri, 24 Jul 2015 18:03:43 +0800
+Message-ID: <55B20D7F.2050704@linaro.org>
+References: <1437656713-9677-1-git-send-email-marc.zyngier@arm.com> <1437656713-9677-7-git-send-email-marc.zyngier@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f173.google.com ([209.85.192.173]:35435 "EHLO
-	mail-pd0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751052AbbGXKBH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Jul 2015 06:01:07 -0400
-Received: by pdrg1 with SMTP id g1so11575323pdr.2
-        for <linux-acpi@vger.kernel.org>; Fri, 24 Jul 2015 03:01:07 -0700 (PDT)
-In-Reply-To: <1437656713-9677-6-git-send-email-marc.zyngier@arm.com>
+Received: from mail-pa0-f44.google.com ([209.85.220.44]:33543 "EHLO
+	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750898AbbGXKDv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Jul 2015 06:03:51 -0400
+Received: by padck2 with SMTP id ck2so12221782pad.0
+        for <linux-acpi@vger.kernel.org>; Fri, 24 Jul 2015 03:03:50 -0700 (PDT)
+In-Reply-To: <1437656713-9677-7-git-send-email-marc.zyngier@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Marc Zyngier <marc.zyngier@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>
 Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Graeme Gregory <graeme@xora.org.uk>
 
 On 07/23/2015 09:05 PM, Marc Zyngier wrote:
-> In order to start embrassing irqdomains at the GSI level, introduce
-> a new initializer:
->
-> void acpi_set_irq_model(enum acpi_irq_model_id model,
-> 			unsigned long domain_token,
-> 			int (*populate)(struct acpi_gsi_descriptor *,
-> 					u32, unsigned int));
->
-> where:
-> - model is the value assigned to acpi_irq_model
-> - domain_token is the identifier for the irqdomain mapping
->    GSI interrupts
-> - populate is a function provided by the interrupt controller,
->    populating a struct acpi_gsi_descriptor based on a GSI and
->    the interrupt trigger information
->
-> As nobody calls this code yet, the current code is left in place.
+> Now that the basic ACPI GSI code is irq domain aware, make sure
+> that the ACPI support in the GIC doesn't pointlessly deviate from
+> the DT path.
 >
 > Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
-> ---
->   drivers/acpi/gsi.c   | 32 ++++++++++++++++++++++++++++++++
->   include/linux/acpi.h |  5 +++++
->   2 files changed, 37 insertions(+)
->
-> diff --git a/drivers/acpi/gsi.c b/drivers/acpi/gsi.c
-> index a745880..e6f4a0c 100644
-> --- a/drivers/acpi/gsi.c
-> +++ b/drivers/acpi/gsi.c
-> @@ -16,6 +16,9 @@ enum acpi_irq_model_id acpi_irq_model;
->
->   static void *acpi_gsi_domain_token;
->
-> +static int (*acpi_gsi_descriptor_populate)(struct acpi_gsi_descriptor *data,
-> +					   u32 gsi, unsigned int irq_type);
-> +
->   static unsigned int acpi_gsi_get_irq_type(int trigger, int polarity)
->   {
->   	switch (polarity) {
-> @@ -71,10 +74,20 @@ EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
->   int acpi_register_gsi(struct device *dev, u32 gsi, int trigger,
->   		      int polarity)
->   {
-> +	int err;
->   	unsigned int irq;
->   	unsigned int irq_type = acpi_gsi_get_irq_type(trigger, polarity);
->   	struct irq_domain *d = irq_find_host(acpi_gsi_domain_token);
->
-> +	if (acpi_gsi_descriptor_populate) {
-> +		struct acpi_gsi_descriptor data;
-> +		err = acpi_gsi_descriptor_populate(&data, gsi, irq_type);
-> +		if (err)
-> +			return err;
-> +
-> +		return irq_create_acpi_mapping(d, &data);
-> +	}
-> +
->   	irq = irq_create_mapping(d, gsi);
->   	if (!irq)
->   		return -EINVAL;
-> @@ -99,3 +112,22 @@ void acpi_unregister_gsi(u32 gsi)
->   	irq_dispose_mapping(irq);
->   }
->   EXPORT_SYMBOL_GPL(acpi_unregister_gsi);
-> +
-> +/**
-> + * acpi_set_irq_model - Setup the GSI irqdomain information
-> + * @model: the value assigned to acpi_irq_model
-> + * @domain_token: the irq_domain identifier for mapping and looking up
-> + *                GSI interrupts
-> + * @populate: provided by the interrupt controller, populating a
-> + *            struct acpi_gsi_descriptor based on a GSI and
-> + *            the interrupt trigger information
-> + */
-> +void acpi_set_irq_model(enum acpi_irq_model_id model,
-> +			unsigned long domain_token,
-> +			int (*populate)(struct acpi_gsi_descriptor *,
-> +					u32, unsigned int))
-> +{
-> +	acpi_irq_model = model;
-> +	acpi_gsi_domain_token = (void *)domain_token;
 
-This will work perfectly fine with ARM as it has single GICD and
-one irq domain, I'm not sure x86 is ok with it because x86 has
-multi ioapics and each ioapic has a irqdomain if I understand
-correctly, but x86 don't use functions in this file at all for now,
-I think I'm over worried :)
+Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
 
 Thanks
 Hanjun
+
+> ---
+>   drivers/irqchip/irq-gic.c       | 45 ++++++++++++++++++++++++++++++-----------
+>   include/linux/irqchip/arm-gic.h |  2 +-
+>   2 files changed, 34 insertions(+), 13 deletions(-)
+>
+> diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
+> index b41ccf5..ce531e6 100644
+> --- a/drivers/irqchip/irq-gic.c
+> +++ b/drivers/irqchip/irq-gic.c
+> @@ -813,8 +813,6 @@ static int gic_irq_domain_xlate(struct irq_domain *d,
+>   {
+>   	unsigned long ret = 0;
+>
+> -	if (irq_domain_get_of_node(d) != controller)
+> -		return -EINVAL;
+>   	if (intsize < 3)
+>   		return -EINVAL;
+>
+> @@ -887,7 +885,7 @@ void gic_set_irqchip_flags(unsigned long flags)
+>
+>   void __init gic_init_bases(unsigned int gic_nr, int irq_start,
+>   			   void __iomem *dist_base, void __iomem *cpu_base,
+> -			   u32 percpu_offset, struct device_node *node)
+> +			   u32 percpu_offset, void *domain_token)
+>   {
+>   	irq_hw_number_t hwirq_base;
+>   	struct gic_chip_data *gic;
+> @@ -946,8 +944,8 @@ void __init gic_init_bases(unsigned int gic_nr, int irq_start,
+>   		gic_irqs = 1020;
+>   	gic->gic_irqs = gic_irqs;
+>
+> -	if (node) {		/* DT case */
+> -		gic->domain = irq_domain_add_linear(node, gic_irqs,
+> +	if (domain_token) {		/* DT/ACPI case */
+> +		gic->domain = irq_domain_add_linear(domain_token, gic_irqs,
+>   						    &gic_irq_domain_hierarchy_ops,
+>   						    gic);
+>   	} else {		/* Non-DT case */
+> @@ -973,7 +971,7 @@ void __init gic_init_bases(unsigned int gic_nr, int irq_start,
+>   			irq_base = irq_start;
+>   		}
+>
+> -		gic->domain = irq_domain_add_legacy(node, gic_irqs, irq_base,
+> +		gic->domain = irq_domain_add_legacy(NULL, gic_irqs, irq_base,
+>   					hwirq_base, &gic_irq_domain_ops, gic);
+>   	}
+>
+> @@ -1086,6 +1084,31 @@ gic_acpi_parse_madt_distributor(struct acpi_subtable_header *header,
+>   	return 0;
+>   }
+>
+> +static int gic_acpi_gsi_desc_populate(struct acpi_gsi_descriptor *data,
+> +				      u32 gsi, unsigned int irq_type)
+> +{
+> +	/*
+> +	 * Encode GSI and triggering information the way the GIC likes
+> +	 * them.
+> +	 */
+> +	if (WARN_ON(gsi < 16))
+> +		return -EINVAL;
+> +
+> +	if (gsi >= 32) {
+> +		data->param[0] = 0;		/* SPI */
+> +		data->param[1] = gsi - 32;
+> +		data->param[2] = irq_type;
+> +	} else {
+> +		data->param[0] = 1; 		/* PPI */
+> +		data->param[1] = gsi - 16;
+> +		data->param[2] = 0xff << 4 | irq_type;
+> +	}
+> +
+> +	data->param_count = 3;
+> +
+> +	return 0;
+> +}
+> +
+>   int __init
+>   gic_v2_acpi_init(struct acpi_table_header *table)
+>   {
+> @@ -1132,14 +1155,12 @@ gic_v2_acpi_init(struct acpi_table_header *table)
+>   	}
+>
+>   	/*
+> -	 * Initialize zero GIC instance (no multi-GIC support). Also, set GIC
+> -	 * as default IRQ domain to allow for GSI registration and GSI to IRQ
+> -	 * number translation (see acpi_register_gsi() and acpi_gsi_to_irq()).
+> +	 * Initialize zero GIC instance (no multi-GIC support).
+>   	 */
+> -	gic_init_bases(0, -1, dist_base, cpu_base, 0, NULL);
+> -	irq_set_default_host(gic_data[0].domain);
+> +	gic_init_bases(0, -1, dist_base, cpu_base, 0, (void *)ACPI_IRQ_MODEL_GIC);
+>
+> -	acpi_irq_model = ACPI_IRQ_MODEL_GIC;
+> +	acpi_set_irq_model(ACPI_IRQ_MODEL_GIC, ACPI_IRQ_MODEL_GIC,
+> +			   gic_acpi_gsi_desc_populate);
+>   	return 0;
+>   }
+>   #endif
+> diff --git a/include/linux/irqchip/arm-gic.h b/include/linux/irqchip/arm-gic.h
+> index 9de976b..97799b7 100644
+> --- a/include/linux/irqchip/arm-gic.h
+> +++ b/include/linux/irqchip/arm-gic.h
+> @@ -97,7 +97,7 @@ struct device_node;
+>
+>   void gic_set_irqchip_flags(unsigned long flags);
+>   void gic_init_bases(unsigned int, int, void __iomem *, void __iomem *,
+> -		    u32 offset, struct device_node *);
+> +		    u32 offset, void *);
+>   void gic_cascade_irq(unsigned int gic_nr, unsigned int irq);
+>   void gic_cpu_if_down(void);
+>
+>
