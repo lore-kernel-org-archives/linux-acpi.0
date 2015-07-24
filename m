@@ -1,91 +1,62 @@
-From: Kees Cook <keescook@chromium.org>
-Subject: Re: [PATCH 2756/2756] Staging: acpi: Merge lines for immediate return
-Date: Fri, 24 Jul 2015 15:07:00 -0700
-Message-ID: <CAGXu5jJAWcfA63CtZULYTzTUu2Gyx1pMbV0g45PhfDq+k9PtSQ@mail.gmail.com>
-References: <1437757256-10228-1-git-send-email-shraddha.6596@gmail.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH v2] thermal: consistently use int for temperatures
+Date: Sat, 25 Jul 2015 00:11:02 +0200
+Message-ID: <20150724221102.GA31517@amd>
+References: <1437463292-24844-1-git-send-email-s.hauer@pengutronix.de>
+ <20150723120759.GA17690@amd>
+ <20150724062948.GK18700@pengutronix.de>
+ <55B244BE.1060203@roeck-us.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ie0-f172.google.com ([209.85.223.172]:34356 "EHLO
-	mail-ie0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753030AbbGXWHB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Jul 2015 18:07:01 -0400
-Received: by iecrl10 with SMTP id rl10so24574358iec.1
-        for <linux-acpi@vger.kernel.org>; Fri, 24 Jul 2015 15:07:00 -0700 (PDT)
-In-Reply-To: <1437757256-10228-1-git-send-email-shraddha.6596@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-pm-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <55B244BE.1060203@roeck-us.net>
+Sender: linux-pm-owner@vger.kernel.org
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: Sascha Hauer <s.hauer@pengutronix.de>, linux-pm@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Eduardo Valentin <edubezval@gmail.com>, linux-kernel@vger.kernel.org, Punit Agrawal <punit.agrawal@arm.com>, Jean Delvare <jdelvare@suse.de>, Peter Feuerer <peter@piie.net>, Heiko Stuebner <heiko@sntech.de>, Lukasz Majewski <l.majewski@samsung.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Maxime Ripard <maxime.ripard@free-electrons.com>, Darren Hart <dvhart@infradead.org>, lm-sensors@lm-sensors.org
 List-Id: linux-acpi@vger.kernel.org
-To: Shraddha Barke <shraddha.6596@gmail.com>
-Cc: Anton Vorontsov <anton@enomsg.org>, Colin Cross <ccross@android.com>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>
 
-On Fri, Jul 24, 2015 at 10:00 AM, Shraddha Barke
-<shraddha.6596@gmail.com> wrote:
-> This patch merges two lines in a single line if immediate return is found.
-> This is done using Coccinelle.Semantic patch used for this is as follows:
->
-> @@
-> expression ret;
-> identifier f;
-> @@
->
-> -ret =
-> +return
->      f(...);
-> -return ret;
->
-> Signed-off-by: Shraddha Barke <shraddha.6596@gmail.com>
-> ---
->  drivers/acpi/apei/erst.c | 10 +++-------
->  1 file changed, 3 insertions(+), 7 deletions(-)
->
-> diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
-> index 3670bba..58e1bdd 100644
-> --- a/drivers/acpi/apei/erst.c
-> +++ b/drivers/acpi/apei/erst.c
-> @@ -162,8 +162,7 @@ static int erst_exec_add_value(struct apei_exec_context *ctx,
->         if (rc)
->                 return rc;
->         val += ctx->value;
-> -       rc = __apei_exec_write_register(entry, val);
-> -       return rc;
-> +       return __apei_exec_write_register(entry, val);
->  }
->
->  static int erst_exec_subtract_value(struct apei_exec_context *ctx,
-> @@ -176,8 +175,7 @@ static int erst_exec_subtract_value(struct apei_exec_context *ctx,
->         if (rc)
->                 return rc;
->         val -= ctx->value;
-> -       rc = __apei_exec_write_register(entry, val);
-> -       return rc;
-> +       return __apei_exec_write_register(entry, val);
->  }
->
->  static int erst_exec_stall(struct apei_exec_context *ctx,
-> @@ -979,9 +977,7 @@ static int erst_open_pstore(struct pstore_info *psi)
->         if (erst_disable)
->                 return -ENODEV;
->
-> -       rc = erst_get_record_id_begin(&reader_pos);
-> -
-> -       return rc;
-> +       return erst_get_record_id_begin(&reader_pos);
->  }
->
->  static int erst_close_pstore(struct pstore_info *psi)
-> --
-> 2.1.0
->
+On Fri 2015-07-24 06:59:26, Guenter Roeck wrote:
+> On 07/23/2015 11:29 PM, Sascha Hauer wrote:
+> >On Thu, Jul 23, 2015 at 02:07:59PM +0200, Pavel Machek wrote:
+> >>On Tue 2015-07-21 09:21:32, Sascha Hauer wrote:
+> >>>The thermal code uses int, long and unsigned long for temperatures
+> >>>in different places.
+> >>>
+> >>>Using an unsigned type limits the thermal framework to positive
+> >>>temperatures without need. Also several drivers currently will rep=
+ort
+> >>>temperatures near UINT_MAX for temperatures below 0=B0C. This will=
+ probably
+> >>>immediately shut the machine down due to overtemperature if starte=
+d below
+> >>>0=B0C.
+> >>>
+> >>>'long' is 64bit on several architectures. This is not needed since=
+ INT_MAX =B0mC
+> >>>is above the melting point of all known materials.
+> >>
+> >>Can we do something like
+> >>
+> >>typedef millicelsius_t int;
+> >>
+> >>...to document the units?
+> >
+> >I am not very fond of typedefs and I am not sure this adds any value=
+=2E I
+> >could change it when more people ask for it, but I just sent the new
+> >version without this.
+> >
+>=20
+> I thought we are supposed to not introduce new typedefs anyway.
 
-Personally I prefer the readability of continuing to use the rest of a
-function's rc = ..., if (rc) ... semantics. If "rc" could be entirely
-removed from the function, then switching to immediate returns seems
-like a reasonable cleanup. Otherwise, I think it reduces readability
-for no effect (the compiler, for example, is already optimizing these
-kinds of things at build-time).
-
--Kees
-
--- 
-Kees Cook
-Chrome OS Security
+You are not supposed to typedef struct, but typedef for millicelsius_t
+would be ok. And it is your only chance if you want people to pay
+attention. If you make it int, someone will pass it to long or
+something else..
+									Pavel
+--=20
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses=
+/blog.html
