@@ -1,70 +1,56 @@
-From: Shraddha Barke <shraddha.6596@gmail.com>
-Subject: [PATCH 2756/2756] Staging: acpi: Merge lines for immediate return
-Date: Fri, 24 Jul 2015 22:30:56 +0530
-Message-ID: <1437757256-10228-1-git-send-email-shraddha.6596@gmail.com>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: [PATCH v2 1/7] genirq: irqdomain: Use an accessor for the of_node
+ field
+Date: Fri, 24 Jul 2015 18:06:39 +0100
+Message-ID: <55B2709F.4080707@arm.com>
+References: <1437656713-9677-1-git-send-email-marc.zyngier@arm.com> <1437656713-9677-2-git-send-email-marc.zyngier@arm.com> <55B1FD45.4060706@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f43.google.com ([209.85.220.43]:33621 "EHLO
-	mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753102AbbGXRCK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Jul 2015 13:02:10 -0400
+Received: from foss.arm.com ([217.140.101.70]:46318 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753566AbbGXRGo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 24 Jul 2015 13:06:44 -0400
+In-Reply-To: <55B1FD45.4060706@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Anton Vorontsov <anton@enomsg.org>, Colin Cross <ccross@android.com>, Kees Cook <keescook@chromium.org>, Tony Luck <tony.luck@intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Shraddha Barke <shraddha.6596@gmail.com>
+To: Hanjun Guo <hanjun.guo@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, Graeme Gregory <graeme@xora.org.uk>
 
-This patch merges two lines in a single line if immediate return is found.
-This is done using Coccinelle.Semantic patch used for this is as follows:
+On 24/07/15 09:54, Hanjun Guo wrote:
+> On 07/23/2015 09:05 PM, Marc Zyngier wrote:
+>> The struct irq_domain contains a "struct device_node *" field
+>> (of_node) that is almost the only link between the irqdomain
+>> and the device tree infrastructure.
+>>
+>> In order to prepare for the removal of that field, convert all
+>> users outside of kernel/irq/irqdomain.c to use an accessor.
+>>
+>> Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
+>> ---
+>>   arch/c6x/platforms/megamod-pic.c              | 2 +-
+>>   arch/mips/cavium-octeon/octeon-irq.c          | 4 ++--
+>>   arch/powerpc/platforms/cell/axon_msi.c        | 2 +-
+>>   arch/powerpc/platforms/cell/spider-pic.c      | 9 ++++++---
+>>   arch/powerpc/platforms/pasemi/msi.c           | 6 ++++--
+>>   arch/powerpc/platforms/powernv/opal-irqchip.c | 2 +-
+>>   arch/powerpc/sysdev/ehv_pic.c                 | 3 ++-
+>>   arch/powerpc/sysdev/fsl_msi.c                 | 2 +-
+>>   arch/powerpc/sysdev/i8259.c                   | 3 ++-
+>>   arch/powerpc/sysdev/ipic.c                    | 3 ++-
+>>   arch/powerpc/sysdev/mpic.c                    | 3 ++-
+>>   arch/powerpc/sysdev/mpic_msi.c                | 2 +-
+>>   arch/powerpc/sysdev/qe_lib/qe_ic.c            | 3 ++-
+> 
+> Hmm, no arch/arm/, and there are several domain->of_node
+> or similar in those files, or did I miss something?
 
-@@
-expression ret;
-identifier f;
-@@
+No, I was missing some more -I on my spatch command line... I pushed out
+a fixup.
 
--ret =
-+return
-     f(...);
--return ret;
+Thanks,
 
-Signed-off-by: Shraddha Barke <shraddha.6596@gmail.com>
----
- drivers/acpi/apei/erst.c | 10 +++-------
- 1 file changed, 3 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
-index 3670bba..58e1bdd 100644
---- a/drivers/acpi/apei/erst.c
-+++ b/drivers/acpi/apei/erst.c
-@@ -162,8 +162,7 @@ static int erst_exec_add_value(struct apei_exec_context *ctx,
- 	if (rc)
- 		return rc;
- 	val += ctx->value;
--	rc = __apei_exec_write_register(entry, val);
--	return rc;
-+	return __apei_exec_write_register(entry, val);
- }
- 
- static int erst_exec_subtract_value(struct apei_exec_context *ctx,
-@@ -176,8 +175,7 @@ static int erst_exec_subtract_value(struct apei_exec_context *ctx,
- 	if (rc)
- 		return rc;
- 	val -= ctx->value;
--	rc = __apei_exec_write_register(entry, val);
--	return rc;
-+	return __apei_exec_write_register(entry, val);
- }
- 
- static int erst_exec_stall(struct apei_exec_context *ctx,
-@@ -979,9 +977,7 @@ static int erst_open_pstore(struct pstore_info *psi)
- 	if (erst_disable)
- 		return -ENODEV;
- 
--	rc = erst_get_record_id_begin(&reader_pos);
--
--	return rc;
-+	return erst_get_record_id_begin(&reader_pos);
- }
- 
- static int erst_close_pstore(struct pstore_info *psi)
+	M.
 -- 
-2.1.0
-
+Jazz is not dead. It just smells funny...
