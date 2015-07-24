@@ -1,60 +1,70 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Subject: [PATCH] acpi: Use kstrtoul() instead of strtoul()/simple_strtoul()
-Date: Fri, 24 Jul 2015 09:51:57 -0700
-Message-ID: <1437756717-11730-1-git-send-email-linux@roeck-us.net>
+From: Shraddha Barke <shraddha.6596@gmail.com>
+Subject: [PATCH 2756/2756] Staging: acpi: Merge lines for immediate return
+Date: Fri, 24 Jul 2015 22:30:56 +0530
+Message-ID: <1437757256-10228-1-git-send-email-shraddha.6596@gmail.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bh-25.webhostbox.net ([208.91.199.152]:48954 "EHLO
-	bh-25.webhostbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752476AbbGXQwC (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Jul 2015 12:52:02 -0400
+Received: from mail-pa0-f43.google.com ([209.85.220.43]:33621 "EHLO
+	mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753102AbbGXRCK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 24 Jul 2015 13:02:10 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, devel@acpica.org, Guenter Roeck <linux@roeck-us.net>
+To: Anton Vorontsov <anton@enomsg.org>, Colin Cross <ccross@android.com>, Kees Cook <keescook@chromium.org>, Tony Luck <tony.luck@intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Shraddha Barke <shraddha.6596@gmail.com>
 
-simple_strtoul() is deprecated; replace with kstrtoul().
-Return an error if the value passed to the sysfs attribute
-is not a number.
+This patch merges two lines in a single line if immediate return is found.
+This is done using Coccinelle.Semantic patch used for this is as follows:
 
-Drop the definition of strtoul() since it is no longer needed.
+@@
+expression ret;
+identifier f;
+@@
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+-ret =
++return
+     f(...);
+-return ret;
+
+Signed-off-by: Shraddha Barke <shraddha.6596@gmail.com>
 ---
- drivers/acpi/sysfs.c            | 8 ++++++--
- include/acpi/platform/aclinux.h | 1 -
- 2 files changed, 6 insertions(+), 3 deletions(-)
+ drivers/acpi/apei/erst.c | 10 +++-------
+ 1 file changed, 3 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
-index 0876d77b3206..d6ea5712ec57 100644
---- a/drivers/acpi/sysfs.c
-+++ b/drivers/acpi/sysfs.c
-@@ -616,8 +616,12 @@ static ssize_t counter_set(struct kobject *kobj,
- 			all_counters[index].count = tmp;
- 		else
- 			result = -EINVAL;
--	} else
--		all_counters[index].count = strtoul(buf, NULL, 0);
-+	} else {
-+		if (!kstrtoul(buf, 0, &tmp))
-+			all_counters[index].count = tmp;
-+		else
-+			result = -EINVAL;
-+	}
+diff --git a/drivers/acpi/apei/erst.c b/drivers/acpi/apei/erst.c
+index 3670bba..58e1bdd 100644
+--- a/drivers/acpi/apei/erst.c
++++ b/drivers/acpi/apei/erst.c
+@@ -162,8 +162,7 @@ static int erst_exec_add_value(struct apei_exec_context *ctx,
+ 	if (rc)
+ 		return rc;
+ 	val += ctx->value;
+-	rc = __apei_exec_write_register(entry, val);
+-	return rc;
++	return __apei_exec_write_register(entry, val);
+ }
  
- 	if (ACPI_FAILURE(result))
- 		result = -EINVAL;
-diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
-index 74ba46c8157a..9925c1d5d58f 100644
---- a/include/acpi/platform/aclinux.h
-+++ b/include/acpi/platform/aclinux.h
-@@ -119,7 +119,6 @@
+ static int erst_exec_subtract_value(struct apei_exec_context *ctx,
+@@ -176,8 +175,7 @@ static int erst_exec_subtract_value(struct apei_exec_context *ctx,
+ 	if (rc)
+ 		return rc;
+ 	val -= ctx->value;
+-	rc = __apei_exec_write_register(entry, val);
+-	return rc;
++	return __apei_exec_write_register(entry, val);
+ }
  
- #define ACPI_MACHINE_WIDTH          BITS_PER_LONG
- #define ACPI_EXPORT_SYMBOL(symbol)  EXPORT_SYMBOL(symbol);
--#define strtoul                     simple_strtoul
+ static int erst_exec_stall(struct apei_exec_context *ctx,
+@@ -979,9 +977,7 @@ static int erst_open_pstore(struct pstore_info *psi)
+ 	if (erst_disable)
+ 		return -ENODEV;
  
- #define acpi_cache_t                        struct kmem_cache
- #define acpi_spinlock                       spinlock_t *
+-	rc = erst_get_record_id_begin(&reader_pos);
+-
+-	return rc;
++	return erst_get_record_id_begin(&reader_pos);
+ }
+ 
+ static int erst_close_pstore(struct pstore_info *psi)
 -- 
 2.1.0
 
