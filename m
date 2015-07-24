@@ -1,120 +1,52 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH v2 5/7] acpi: gsi: Add acpi_set_irq_model to initialize
- the GSI layer
-Date: Fri, 24 Jul 2015 13:27:02 +0100
-Message-ID: <55B22F16.3040206@arm.com>
-References: <1437656713-9677-1-git-send-email-marc.zyngier@arm.com> <1437656713-9677-6-git-send-email-marc.zyngier@arm.com> <55B20CD8.60309@linaro.org>
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: Re: [PATCH v2] thermal: consistently use int for temperatures
+Date: Fri, 24 Jul 2015 06:59:26 -0700
+Message-ID: <55B244BE.1060203@roeck-us.net>
+References: <1437463292-24844-1-git-send-email-s.hauer@pengutronix.de> <20150723120759.GA17690@amd> <20150724062948.GK18700@pengutronix.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:44810 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752532AbbGXM1G (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 24 Jul 2015 08:27:06 -0400
-In-Reply-To: <55B20CD8.60309@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-15;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20150724062948.GK18700@pengutronix.de>
+Sender: linux-pm-owner@vger.kernel.org
+To: Sascha Hauer <s.hauer@pengutronix.de>, Pavel Machek <pavel@ucw.cz>
+Cc: linux-pm@vger.kernel.org, Zhang Rui <rui.zhang@intel.com>, Eduardo Valentin <edubezval@gmail.com>, linux-kernel@vger.kernel.org, Punit Agrawal <punit.agrawal@arm.com>, Jean Delvare <jdelvare@suse.de>, Peter Feuerer <peter@piie.net>, Heiko Stuebner <heiko@sntech.de>, Lukasz Majewski <l.majewski@samsung.com>, Stephen Warren <swarren@wwwdotorg.org>, Thierry Reding <thierry.reding@gmail.com>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-omap@vger.kernel.org, linux-samsung-soc@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Maxime Ripard <maxime.ripard@free-electrons.com>, Darren Hart <dvhart@infradead.org>, lm-sensors@lm-sensors.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, Graeme Gregory <graeme@xora.org.uk>
 
-On 24/07/15 11:00, Hanjun Guo wrote:
-> On 07/23/2015 09:05 PM, Marc Zyngier wrote:
->> In order to start embrassing irqdomains at the GSI level, introduce
->> a new initializer:
+On 07/23/2015 11:29 PM, Sascha Hauer wrote:
+> On Thu, Jul 23, 2015 at 02:07:59PM +0200, Pavel Machek wrote:
+>> On Tue 2015-07-21 09:21:32, Sascha Hauer wrote:
+>>> The thermal code uses int, long and unsigned long for temperatures
+>>> in different places.
+>>>
+>>> Using an unsigned type limits the thermal framework to positive
+>>> temperatures without need. Also several drivers currently will repo=
+rt
+>>> temperatures near UINT_MAX for temperatures below 0=B0C. This will =
+probably
+>>> immediately shut the machine down due to overtemperature if started=
+ below
+>>> 0=B0C.
+>>>
+>>> 'long' is 64bit on several architectures. This is not needed since =
+INT_MAX =B0mC
+>>> is above the melting point of all known materials.
 >>
->> void acpi_set_irq_model(enum acpi_irq_model_id model,
->> 			unsigned long domain_token,
->> 			int (*populate)(struct acpi_gsi_descriptor *,
->> 					u32, unsigned int));
+>> Can we do something like
 >>
->> where:
->> - model is the value assigned to acpi_irq_model
->> - domain_token is the identifier for the irqdomain mapping
->>    GSI interrupts
->> - populate is a function provided by the interrupt controller,
->>    populating a struct acpi_gsi_descriptor based on a GSI and
->>    the interrupt trigger information
+>> typedef millicelsius_t int;
 >>
->> As nobody calls this code yet, the current code is left in place.
->>
->> Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
->> ---
->>   drivers/acpi/gsi.c   | 32 ++++++++++++++++++++++++++++++++
->>   include/linux/acpi.h |  5 +++++
->>   2 files changed, 37 insertions(+)
->>
->> diff --git a/drivers/acpi/gsi.c b/drivers/acpi/gsi.c
->> index a745880..e6f4a0c 100644
->> --- a/drivers/acpi/gsi.c
->> +++ b/drivers/acpi/gsi.c
->> @@ -16,6 +16,9 @@ enum acpi_irq_model_id acpi_irq_model;
->>
->>   static void *acpi_gsi_domain_token;
->>
->> +static int (*acpi_gsi_descriptor_populate)(struct acpi_gsi_descriptor *data,
->> +					   u32 gsi, unsigned int irq_type);
->> +
->>   static unsigned int acpi_gsi_get_irq_type(int trigger, int polarity)
->>   {
->>   	switch (polarity) {
->> @@ -71,10 +74,20 @@ EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
->>   int acpi_register_gsi(struct device *dev, u32 gsi, int trigger,
->>   		      int polarity)
->>   {
->> +	int err;
->>   	unsigned int irq;
->>   	unsigned int irq_type = acpi_gsi_get_irq_type(trigger, polarity);
->>   	struct irq_domain *d = irq_find_host(acpi_gsi_domain_token);
->>
->> +	if (acpi_gsi_descriptor_populate) {
->> +		struct acpi_gsi_descriptor data;
->> +		err = acpi_gsi_descriptor_populate(&data, gsi, irq_type);
->> +		if (err)
->> +			return err;
->> +
->> +		return irq_create_acpi_mapping(d, &data);
->> +	}
->> +
->>   	irq = irq_create_mapping(d, gsi);
->>   	if (!irq)
->>   		return -EINVAL;
->> @@ -99,3 +112,22 @@ void acpi_unregister_gsi(u32 gsi)
->>   	irq_dispose_mapping(irq);
->>   }
->>   EXPORT_SYMBOL_GPL(acpi_unregister_gsi);
->> +
->> +/**
->> + * acpi_set_irq_model - Setup the GSI irqdomain information
->> + * @model: the value assigned to acpi_irq_model
->> + * @domain_token: the irq_domain identifier for mapping and looking up
->> + *                GSI interrupts
->> + * @populate: provided by the interrupt controller, populating a
->> + *            struct acpi_gsi_descriptor based on a GSI and
->> + *            the interrupt trigger information
->> + */
->> +void acpi_set_irq_model(enum acpi_irq_model_id model,
->> +			unsigned long domain_token,
->> +			int (*populate)(struct acpi_gsi_descriptor *,
->> +					u32, unsigned int))
->> +{
->> +	acpi_irq_model = model;
->> +	acpi_gsi_domain_token = (void *)domain_token;
-> 
-> This will work perfectly fine with ARM as it has single GICD and
-> one irq domain, I'm not sure x86 is ok with it because x86 has
-> multi ioapics and each ioapic has a irqdomain if I understand
-> correctly, but x86 don't use functions in this file at all for now,
-> I think I'm over worried :)
+>> ...to document the units?
+>
+> I am not very fond of typedefs and I am not sure this adds any value.=
+ I
+> could change it when more people ask for it, but I just sent the new
+> version without this.
+>
 
-When (and if) that day comes, we'll have to either contextualize
-acpi_register_gsi to take a domain token, or have a lookup table that
-maps GSI ranges to domain tokens.
+I thought we are supposed to not introduce new typedefs anyway.
 
-Either way, this doesn't invalidate what is being done here.
+Guenter
 
-Thanks,
 
-	M.
--- 
-Jazz is not dead. It just smells funny...
