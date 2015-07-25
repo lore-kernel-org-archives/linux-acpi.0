@@ -1,49 +1,125 @@
-From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
-Subject: [PATCH V8 5/5] acpi, apei: use appropriate pgprot_t to map GHES memory
-Date: Fri, 24 Jul 2015 16:51:09 -0700
-Message-ID: <1437781869-29721-6-git-send-email-zjzhang@codeaurora.org>
-References: <1437781869-29721-1-git-send-email-zjzhang@codeaurora.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1437781869-29721-1-git-send-email-zjzhang@codeaurora.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Matt Fleming <matt.fleming@intel.com>, Thomas Gleixner <tglx@linutronix.de>, fu.wei@linaro.org, al.stone@linaro.org, bp@alien8.de, tony.luck@gmail.com, hanjun.guo@linaro.org, rjw@rjwysocki.net, lenb@kernel.org, ying.huang@intel.com, catalin.marinas@arm.com, will.deacon@arm.com
-Cc: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, timur@codeaurora.org
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH v2 5/7] acpi: gsi: Add acpi_set_irq_model to initialize
+ the GSI layer
+Date: Sat, 25 Jul 2015 14:57:12 +0800
+Message-ID: <55B33348.2040402@linaro.org>
+References: <1437656713-9677-1-git-send-email-marc.zyngier@arm.com> <1437656713-9677-6-git-send-email-marc.zyngier@arm.com> <55B20CD8.60309@linaro.org> <55B22F16.3040206@arm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pd0-f172.google.com ([209.85.192.172]:33590 "EHLO
+	mail-pd0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750870AbbGYG5W (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 25 Jul 2015 02:57:22 -0400
+Received: by pdbnt7 with SMTP id nt7so24091414pdb.0
+        for <linux-acpi@vger.kernel.org>; Fri, 24 Jul 2015 23:57:22 -0700 (PDT)
+In-Reply-To: <55B22F16.3040206@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, Graeme Gregory <graeme@xora.org.uk>
 
-From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
+On 07/24/2015 08:27 PM, Marc Zyngier wrote:
+> On 24/07/15 11:00, Hanjun Guo wrote:
+>> On 07/23/2015 09:05 PM, Marc Zyngier wrote:
+>>> In order to start embrassing irqdomains at the GSI level, introduce
+>>> a new initializer:
+>>>
+>>> void acpi_set_irq_model(enum acpi_irq_model_id model,
+>>> 			unsigned long domain_token,
+>>> 			int (*populate)(struct acpi_gsi_descriptor *,
+>>> 					u32, unsigned int));
+>>>
+>>> where:
+>>> - model is the value assigned to acpi_irq_model
+>>> - domain_token is the identifier for the irqdomain mapping
+>>>     GSI interrupts
+>>> - populate is a function provided by the interrupt controller,
+>>>     populating a struct acpi_gsi_descriptor based on a GSI and
+>>>     the interrupt trigger information
+>>>
+>>> As nobody calls this code yet, the current code is left in place.
+>>>
+>>> Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
+>>> ---
+>>>    drivers/acpi/gsi.c   | 32 ++++++++++++++++++++++++++++++++
+>>>    include/linux/acpi.h |  5 +++++
+>>>    2 files changed, 37 insertions(+)
+>>>
+>>> diff --git a/drivers/acpi/gsi.c b/drivers/acpi/gsi.c
+>>> index a745880..e6f4a0c 100644
+>>> --- a/drivers/acpi/gsi.c
+>>> +++ b/drivers/acpi/gsi.c
+>>> @@ -16,6 +16,9 @@ enum acpi_irq_model_id acpi_irq_model;
+>>>
+>>>    static void *acpi_gsi_domain_token;
+>>>
+>>> +static int (*acpi_gsi_descriptor_populate)(struct acpi_gsi_descriptor *data,
+>>> +					   u32 gsi, unsigned int irq_type);
+>>> +
+>>>    static unsigned int acpi_gsi_get_irq_type(int trigger, int polarity)
+>>>    {
+>>>    	switch (polarity) {
+>>> @@ -71,10 +74,20 @@ EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
+>>>    int acpi_register_gsi(struct device *dev, u32 gsi, int trigger,
+>>>    		      int polarity)
+>>>    {
+>>> +	int err;
+>>>    	unsigned int irq;
+>>>    	unsigned int irq_type = acpi_gsi_get_irq_type(trigger, polarity);
+>>>    	struct irq_domain *d = irq_find_host(acpi_gsi_domain_token);
+>>>
+>>> +	if (acpi_gsi_descriptor_populate) {
+>>> +		struct acpi_gsi_descriptor data;
+>>> +		err = acpi_gsi_descriptor_populate(&data, gsi, irq_type);
+>>> +		if (err)
+>>> +			return err;
+>>> +
+>>> +		return irq_create_acpi_mapping(d, &data);
+>>> +	}
+>>> +
+>>>    	irq = irq_create_mapping(d, gsi);
+>>>    	if (!irq)
+>>>    		return -EINVAL;
+>>> @@ -99,3 +112,22 @@ void acpi_unregister_gsi(u32 gsi)
+>>>    	irq_dispose_mapping(irq);
+>>>    }
+>>>    EXPORT_SYMBOL_GPL(acpi_unregister_gsi);
+>>> +
+>>> +/**
+>>> + * acpi_set_irq_model - Setup the GSI irqdomain information
+>>> + * @model: the value assigned to acpi_irq_model
+>>> + * @domain_token: the irq_domain identifier for mapping and looking up
+>>> + *                GSI interrupts
+>>> + * @populate: provided by the interrupt controller, populating a
+>>> + *            struct acpi_gsi_descriptor based on a GSI and
+>>> + *            the interrupt trigger information
+>>> + */
+>>> +void acpi_set_irq_model(enum acpi_irq_model_id model,
+>>> +			unsigned long domain_token,
+>>> +			int (*populate)(struct acpi_gsi_descriptor *,
+>>> +					u32, unsigned int))
+>>> +{
+>>> +	acpi_irq_model = model;
+>>> +	acpi_gsi_domain_token = (void *)domain_token;
+>>
+>> This will work perfectly fine with ARM as it has single GICD and
+>> one irq domain, I'm not sure x86 is ok with it because x86 has
+>> multi ioapics and each ioapic has a irqdomain if I understand
+>> correctly, but x86 don't use functions in this file at all for now,
+>> I think I'm over worried :)
+>
+> When (and if) that day comes, we'll have to either contextualize
+> acpi_register_gsi to take a domain token, or have a lookup table that
+> maps GSI ranges to domain tokens.
+>
+> Either way, this doesn't invalidate what is being done here.
 
-With ACPI APEI firmware first handling, generic hardware error
-record is updated by firmware in GHES memory region. On an arm64
-platform, firmware updates GHES memory region with uncached
-access attribute, and then Linux reads stale data from cache.
+Agreed,
 
-GHES memory region should be mapped with page protection type
-according to what is returned from arch_apei_get_mem_attribute(),
-instead of always with PAGE_KERNEL (eg. cached attribute).
+Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
 
-Change-Id: Ie63440381e0f68100d4387e268058a2e2f9d63c6
-Signed-off-by: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
----
- drivers/acpi/apei/ghes.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+Thanks
+Hanjun
 
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index b979b5dbe5bc..98609b404dae 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -173,8 +173,10 @@ static void __iomem *ghes_ioremap_pfn_irq(u64 pfn)
- 	unsigned long vaddr;
- 
- 	vaddr = (unsigned long)GHES_IOREMAP_IRQ_PAGE(ghes_ioremap_area->addr);
--	ioremap_page_range(vaddr, vaddr + PAGE_SIZE,
--			   pfn << PAGE_SHIFT, PAGE_KERNEL);
-+	ioremap_page_range(vaddr,
-+			   vaddr + PAGE_SIZE,
-+			   pfn << PAGE_SHIFT,
-+			   arch_apei_get_mem_attribute(pfn << PAGE_SHIFT));
- 
- 	return (void __iomem *)vaddr;
- }
--- 
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project
