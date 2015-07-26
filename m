@@ -1,16 +1,16 @@
 From: Zhang Rui <rui.zhang@intel.com>
 Subject: [PATCH 0/2] ACPI: boot time AML overlay support
-Date: Sun, 26 Jul 2015 21:52:50 +0800
-Message-ID: <1437918770-3458-1-git-send-email-rui.zhang@intel.com>
+Date: Sun, 26 Jul 2015 21:54:21 +0800
+Message-ID: <1437918863-3582-1-git-send-email-rui.zhang@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:43410 "EHLO mga14.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:51022 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755194AbbGZNwz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 26 Jul 2015 09:52:55 -0400
+	id S1754202AbbGZNy1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 26 Jul 2015 09:54:27 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
-Cc: rjw@sisk.pl, lenb@kernel.org, lv.zheng@intel.com
+Cc: rjw@rjwysocki.net, lenb@kernel.org, lv.zheng@intel.com
 
 Hi, all,
 
