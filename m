@@ -1,88 +1,96 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v6 0/8] mfd: introduce a driver for LPSS devices on SPT
-Date: Tue, 28 Jul 2015 00:03:37 +0200
-Message-ID: <2258476.9C4JjWNs6u@vostro.rjw.lan>
-References: <1438009443-55317-1-git-send-email-andriy.shevchenko@linux.intel.com> <20150727212748.GF21114@x1> <20150727212934.GH21114@x1>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:43452 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753954AbbG0Vgo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Jul 2015 17:36:44 -0400
-In-Reply-To: <20150727212934.GH21114@x1>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: [PATCH v3 13/51] PCI: Separate realloc list checking after allocation
+Date: Mon, 27 Jul 2015 16:29:31 -0700
+Message-ID: <1438039809-24957-14-git-send-email-yinghai@kernel.org>
+References: <1438039809-24957-1-git-send-email-yinghai@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1438039809-24957-1-git-send-email-yinghai@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>, David Miller <davem@davemloft.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Wei Yang <weiyang@linux.vnet.ibm.com>, TJ <linux@iam.tj>, Yijing Wang <wangyijing@huawei.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Vinod Koul <vinod.koul@intel.com>, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, mturquette@baylibre.com, sboyd@codeaurora.org
 
-On Monday, July 27, 2015 10:29:34 PM Lee Jones wrote:
-> On Mon, 27 Jul 2015, Lee Jones wrote:
-> 
-> > On Mon, 27 Jul 2015, Rafael J. Wysocki wrote:
-> > 
-> > > On Monday, July 27, 2015 05:24:13 PM Lee Jones wrote:
-> > > > On Mon, 27 Jul 2015, Mika Westerberg wrote:
-> > > > 
-> > > > > On Mon, Jul 27, 2015 at 04:27:33PM +0100, Lee Jones wrote:
-> > > > > > FAO Stephen Boyd,
-> > > > > > 
-> > > > > > > Stephen, can you, please, have a look into patch 8 regarding to clock name
-> > > > > > > matching and other stuff Lee asked?
-> > > > > > 
-> > > > > > Patch 8:
-> > > > > > 
-> > > > > >       "Can you review the clock implementation please?  It looks
-> > > > > >       fragile to me as it relies heavily on device names constructed
-> > > > > >       of MFD cell names and IDA numbers cat'ed together!"
-> > > > > 
-> > > > > Lee, can you suggest an alternative then?
-> > > > > 
-> > > > > Why we are doing it like this is that number of different LPSS devices
-> > > > > changes from SoC to SoC. In addition to that the device (called "slice")
-> > > > > might have iDMA block or not.
-> > > > > 
-> > > > > Since the drivers in question (pxa2xx-spi, i2c-designware and 8250_dw)
-> > > > > use standard clk framework to request their clocks the Linux device must
-> > > > > have clock registered which matches the device in advance.
-> > > > > 
-> > > > > Because we add the host controller device dynamically (from the MFD
-> > > > > driver) based on how many devices are actually present, we need somehow
-> > > > > predict what would be the correct name and instance number for that
-> > > > > device to get the clock for it. That's the reason we use IDA here along
-> > > > > with the cell name (or driver name).
-> > > > 
-> > > > I'm sure there are perfectly viable reasons for you doing this.  And I
-> > > > don't know the CCF well enough to know whether it's the best idea or
-> > > > not, or else I would have made a suggestion rather than waiting all
-> > > > this time.
-> > > > 
-> > > > It's for this reason that I needed Mike (now Stephen) to take a look
-> > > > and give me either an Ack, to say it's the best solution, or to
-> > > > provide a better alternative.
-> > > > 
-> > > > Until that happens, I'm stuck!
-> > > 
-> > > Well, what if we had no one at hand to review that code?  Would that mean it
-> > > would not be applicable forever?
-> > 
-> > No, but that's not the case is it?
-> > 
-> > I don't understand why Mike and Stephen aren't helping!
-> 
-> I'll wait until tomorrow and if we haven't heard anything I'll make a
-> decision.
+We check the realloc list, as list must be empty after allocation.
 
-OK, thanks!
+Separate the realloc list checking to another function.
 
-BTW, I don't have the time to review every single patch using ACPI
-or one of the PM frameworks.  If people who use them make mistakes,
-it is their burden to fix those mistakes when they show up in testing.
+Add checking that is missed in acpiphp driver.
 
-What's happening here is that Andy and Mika are taking the responsibility
-for fixing the new code if it turns out to be buggy and so it's their
-problem if it happens to be broken.
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
+---
+ drivers/pci/hotplug/acpiphp_glue.c |  1 +
+ drivers/pci/pci.h                  |  1 +
+ drivers/pci/setup-bus.c            | 11 ++++++++---
+ 3 files changed, 10 insertions(+), 3 deletions(-)
 
-And you can still revert commits that introduce bugs as a last resort.
-
+diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
+index ff53856..134caee 100644
+--- a/drivers/pci/hotplug/acpiphp_glue.c
++++ b/drivers/pci/hotplug/acpiphp_glue.c
+@@ -507,6 +507,7 @@ static void enable_slot(struct acpiphp_slot *slot)
+ 		}
+ 	}
+ 	__pci_bus_assign_resources(bus, &add_list, NULL);
++	__pci_bus_check_realloc(&add_list);
+ 
+ 	acpiphp_sanitize_bus(bus);
+ 	pcie_bus_configure_settings(bus);
+diff --git a/drivers/pci/pci.h b/drivers/pci/pci.h
+index 4ff0ff1..2b83977 100644
+--- a/drivers/pci/pci.h
++++ b/drivers/pci/pci.h
+@@ -235,6 +235,7 @@ void __pci_bus_size_bridges(struct pci_bus *bus,
+ void __pci_bus_assign_resources(const struct pci_bus *bus,
+ 				struct list_head *realloc_head,
+ 				struct list_head *fail_head);
++void __pci_bus_check_realloc(struct list_head *realloc_head);
+ bool pci_bus_clip_resource(struct pci_dev *dev, int idx);
+ 
+ void pci_reassigndev_resource_alignment(struct pci_dev *dev);
+diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
+index 06664db..f30225c 100644
+--- a/drivers/pci/setup-bus.c
++++ b/drivers/pci/setup-bus.c
+@@ -350,6 +350,11 @@ out:
+ 	}
+ }
+ 
++void __pci_bus_check_realloc(struct list_head *realloc_head)
++{
++	BUG_ON(!list_empty(realloc_head));
++}
++
+ /**
+  * assign_requested_resources_sorted() - satisfy resource requests
+  *
+@@ -1861,7 +1866,7 @@ again:
+ 	/* Depth last, allocate resources and update the hardware. */
+ 	__pci_bus_assign_resources(bus, add_list, &fail_head);
+ 	if (add_list)
+-		BUG_ON(!list_empty(add_list));
++		__pci_bus_check_realloc(add_list);
+ 	tried_times++;
+ 
+ 	/* any device complain? */
+@@ -1936,7 +1941,7 @@ void pci_assign_unassigned_bridge_resources(struct pci_dev *bridge)
+ again:
+ 	__pci_bus_size_bridges(parent, &add_list);
+ 	__pci_bridge_assign_resources(bridge, &add_list, &fail_head);
+-	BUG_ON(!list_empty(&add_list));
++	__pci_bus_check_realloc(&add_list);
+ 	tried_times++;
+ 
+ 	if (list_empty(&fail_head))
+@@ -1995,6 +2000,6 @@ void pci_assign_unassigned_bus_resources(struct pci_bus *bus)
+ 							 &add_list);
+ 	up_read(&pci_bus_sem);
+ 	__pci_bus_assign_resources(bus, &add_list, NULL);
+-	BUG_ON(!list_empty(&add_list));
++	__pci_bus_check_realloc(&add_list);
+ }
+ EXPORT_SYMBOL_GPL(pci_assign_unassigned_bus_resources);
+-- 
+1.8.4.5
