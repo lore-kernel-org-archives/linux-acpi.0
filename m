@@ -1,114 +1,98 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 0/4] ACPI: Update method tracing facility.
-Date: Mon, 27 Jul 2015 00:42:16 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E881EF14695@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1437627016.git.lv.zheng@intel.com>
- <34244569.GOGYy9Zd5r@vostro.rjw.lan>
- <1AE640813FDE7649BE1B193DEA596E881EF10D85@SHSMSX101.ccr.corp.intel.com>
- <1562441.fPJgJEEk7h@vostro.rjw.lan>
+From: "Izumi, Taku" <izumi.taku@jp.fujitsu.com>
+Subject: RE: [PATCH v2.1 21/22] fjes: handle receive cancellation request
+ interrupt
+Date: Mon, 27 Jul 2015 01:59:12 +0000
+Message-ID: <E86EADE93E2D054CBCD4E708C38D364A54263FA5@G01JPEXMBYT01>
+References: <1437610142-12439-1-git-send-email-izumi.taku@jp.fujitsu.com>
+ <1437610236-12490-1-git-send-email-izumi.taku@jp.fujitsu.com>
+ <1437610236-12490-21-git-send-email-izumi.taku@jp.fujitsu.com>
+ <55B0E6B9.3070301@cogentembedded.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:49115 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754448AbbG0Amz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 26 Jul 2015 20:42:55 -0400
-In-Reply-To: <1562441.fPJgJEEk7h@vostro.rjw.lan>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-2022-jp"
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <55B0E6B9.3070301@cogentembedded.com>
+Content-Language: ja-JP
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Cc: "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, "dvhart@infradead.org" <dvhart@infradead.org>, "rkhan@redhat.com" <rkhan@redhat.com>, "alexander.h.duyck@redhat.com" <alexander.h.duyck@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "joe@perches.com" <joe@perches.com>, "stephen@networkplumber.org" <stephen@networkplumber.org>, "yasu.isimatu@gmail.com" <yasu.isimatu@gmail.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "davem@davemloft.net" <davem@davemloft.net>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-SGksIFJhZmFlbA0KDQo+IEZyb206IGxpbnV4LWFjcGktb3duZXJAdmdlci5rZXJuZWwub3JnIFtt
-YWlsdG86bGludXgtYWNwaS1vd25lckB2Z2VyLmtlcm5lbC5vcmddIE9uIEJlaGFsZiBPZiBSYWZh
-ZWwgSi4gV3lzb2NraQ0KPiBTZW50OiBTYXR1cmRheSwgSnVseSAyNSwgMjAxNSAzOjU2IEFNDQo+
-IA0KPiBPbiBGcmlkYXksIEp1bHkgMjQsIDIwMTUgMDI6MDI6MzMgQU0gWmhlbmcsIEx2IHdyb3Rl
-Og0KPiA+IEhpLCBSYWZhZWwNCj4gDQo+IEhpLA0KPiANCj4gPiBBQ1BJQ0EgbG9ncyBjb250YWlu
-IGRldGFpbHMgKHRyYWNlIGxvZ3MpIHRoYXQgbWF5IGJlIHVzZWZ1bCBmb3IgZGV2ZWxvcG1lbnQu
-DQo+ID4gQnV0IHRoZSBxdWFudGl0eSBvZiB0aGUgdHJhY2UgbG9ncyBhcmUgaHVnZSB0byBiZSBw
-dXQgaW50byB0aGUga2VybmVsIGxvZyBidWZmZXIuDQo+ID4gT3JpZ2luYWxseSwgd2UgaGF2ZSBh
-ICJ0cmFjZSBsb2cgcmVkdWNlciIgaW4gL3N5cy9tb2R1bGVzL2FjcGkvcGFyYW1ldGVyLCBpdCBp
-cyB0aGUgbWV0aG9kIHRyYWNpbmcgZmFjaWxpdHkuDQo+ID4gV2UgY2FuIHNwZWNpZnkgYSBtZXRo
-b2QgbmFtZSwgZm9yIGV4YW1wbGUsICJfUFMwIiwgYW5kIGNvcnJlc3BvbmRpbmcgZGVidWcgbGF5
-ZXIvbGV2ZWwgZm9yIHRoZSAidHJhY2UgbG9nIHJlZHVjZXIiLg0KPiA+IFdoZW4gdGhlIEFNTCBp
-bnRlcnByZXRlciBzdGFydHMgdG8gZXhlY3V0ZSB0aGUgbWV0aG9kLCB0aGUgdHJhY2luZyBkZWJ1
-ZyBsZXZlbC9sYXllciB3aWxsIGJlIGFwcGxpZWQuDQo+ID4gV2hlbiB0aGUgQU1MIGludGVycHJl
-dGVyIHN0b3BzIHRvIGV4ZWN1dGUgdGhlIG1ldGhvZCwgdGhlIG9yaWdpbmFsIGRlYnVnIGxldmVs
-L2xheWVyIGlzIHJlc3RvcmVkLg0KPiA+IFRodXMgdGhlIEFDUElDQSB0cmFjZSBsb2dzIGNhbiBv
-bmx5IGJlIGVuYWJsZWQgZHVyaW5nIHRoZSBwZXJpb2QgdGhlIHNwZWNpZmllZCBtZXRob2QgaXMg
-ZXhlY3V0ZWQgYW5kIGl0cyBvdXRwdXQgdGh1cyBjYW4gYmUNCj4gcmVkdWNlZC4NCj4gPiBUaGUg
-ZmFjaWxpdHkgaW52b2tlcyBhY3BpX2RlYnVnX3RyYWNlKCkgdG8gZG8gdGhlIGZsZXhpYmxlIHNl
-dHRpbmdzLg0KPiA+IFNlZSBEb2N1bWVudGF0aW9uL2FjcGkvbWV0aG9kLXRyYWNpbmcudHh0IGZv
-ciByZWZlcmVuY2UuDQo+ID4NCj4gPiBBY3R1YWxseSwgdGhlICJ0cmFjZSBsb2cgcmVkdWNlciIg
-ZmFjaWxpdHkgaXMgYnVnZ3kgYW5kIHNvbWUgb2YgdGhlIHNob3J0Y29taW5ncyBwdXQgdXMgaW50
-byB0aGUgdHJvdWJsZSBpbiB1c2luZyBpdC4NCj4gPiAxLiBXZSBjYW5ub3Qgc3BlY2lmeSBhIGZ1
-bGwgcGF0aCBmb3IgdGhlIHRyYWNpbmcgbWV0aG9kLiBGb3IgZXhhbXBsZSwgdGhvdWdoIHdlIG9u
-bHkgd2FudCB0byB0cmFjayBcX1NCLFBDSTAuSTJDMC5fUFMwLCB3ZSBjYW4gb25seQ0KPiBzcGVj
-aWZ5ICJfUFMwIiBhbmQgYWxsIF9QUzAgbWV0aG9kIGV4ZWN1dGlvbiBsb2dzIHdpbGwgYmUgZHVt
-cGVkLCB0aGUgdW53YW50ZWQgX1BTMCBleGVjdXRpb24gdHJhY2UgbG9ncyBtYXkgc3RpbGwgYmxv
-dyB0aGUga2VybmVsDQo+IGxvZyBidWZmZXIgdXAuDQo+ID4gMi4gV2UgY2FuIG9ubHkgc3BlY2lm
-eSBhIG1ldGhvZCB0aGF0IGlzIHBhc3NlZCB0byBhY3BpX2V2YWx1YXRlX29iamVjdCgpLiBGb3Ig
-ZXhhbXBsZSwgaWYgXF9TQi5MSUQwLl9MSUQgaW52b2tlcw0KPiBcX1NCLlBDSTAuTFBDQi5IX0VD
-LkVDUkQsIHNpbmNlIExpbnV4IG5ldmVyIHBhc3NlcyBcX1NCLlBDSTAuTFBDQi5IX0VDLkVDUkQg
-dG8gYWNwaV9ldmFsdWF0ZV9vYmplY3QoKSwgc3BlY2lmeWluZyAiRUNSRCIgY2Fubm90DQo+IG1h
-dGNoIHRoZSBzdGFydCBvZiB0aGUgZXhlY3V0aW9uIHRvIGVuYWJsZSB0aGUgInRyYWNlIGxvZyBy
-ZWR1Y2VyIi4NCj4gPg0KPiA+IFNvIGR1cmluZyB0aGlzIEFDUElDQSByZWxlYXNlLCB3ZSByZS1p
-bXBsZW1lbnQgdGhlIGZhY2lsaXR5IGluIHRoZSBBQ1BJQ0EgZGlzcGF0Y2hlciByYXRoZXIgdGhh
-biBpbXBsZW1lbnRpbmcgaXQgaW4NCj4gYWNwaV9ldmFsdWF0ZV9vYmplY3QgYW5kIGFsbG93cyB0
-aGUgZnVsbCBwYXRoIHRvIGJlIHNwZWNpZmllZCB0byBwcmVjaXNlbHkgbG9jayBvbiBhIHNwZWNp
-ZmljIGNvbnRyb2wgbWV0aG9kLg0KPiA+IEl0IGlzIGFjaGlldmVkIGJ5IGRvaW5nIHRoZSBmb2xs
-b3dpbmcgaW1wcm92ZW1lbnRzOg0KPiA+IDEuIFJlLWltcGxlbWVudHMgdGhlIGZhY2lsaXR5IGlu
-IHRoZSBBQ1BJQ0EgZGlzcGF0Y2hlciBjb21wb25lbnQuDQo+ID4gMS4gSW50cm9kdWNlIGEgbmV3
-IEFNTCBwYXRoIC0+IEFTTCBwYXRoIGRlY29kaW5nIGZhY2lsaXR5IHRvIHphcCB0aGUgdHJhaWxp
-bmcgdW5kZXJzY29yZS4gT3JpZ2luYWxseSBBQ1BJQ0EgZGVjb2RlcyBBTUwgcGF0aCBpbnRvDQo+
-IHN1Y2ggYSBmb3JtYXQgdGhhdCB0aGUgdXNlciBtdXN0IGV4cGxpY2l0bHkgc3BlY2lmeSB0aGUg
-dHJhaWxpbmcuIEFuZCB1c2VycyBhcmUgbGlrZWx5IHRvIGZvcmdldCB0byBwdXQgdGhlIHVuZGVy
-c2NvcmVzIGFuZCBsZWF2ZSB1cyB3aXRoDQo+IHVzZWxlc3MgdHJhY2UgbG9ncy4NCj4gPiAyLiBN
-b3ZlIHRoZSBleGNlcHRpb24gc3RhY2sgd2Fsa2VyIGZyb20gdGhlIEFDUElDQSBkZWJ1Z2dlciBj
-b21wb25lbnQgdG8gdGhlIEFDUElDQSBkaXNwYXRjaGVyIGNvbXBvbmVudC4gV2hlbiBhbg0KPiBl
-eGNlcHRpb24gaXMgZW5jb3VudGVyZWQsIEFNTCBpbnRlcnByZXRlciBqdXN0IGp1bXBzIHRvIHRo
-ZSB0b3Agb2YgdGhlIHN0YWNrLiBUaHVzIHdlIG5lZWQgYSBmYWNpbGl0eSB0byB3YWxrIHRoZSBz
-dGFjayBzbyB0aGF0IHRoZQ0KPiBtZXRob2QgY2FuIGJlIG1hdGNoZWQgdG8gaW1wbGVtZW50IHRo
-ZSAiZW5kIG9mIHRoZSB0cmFjaW5nIi4NCj4gPg0KPiA+IEFuZCB3aXRoIHRoZSBpbXByb3ZlbWVu
-dHMsIHdlIG5vdyBjYW4gZG8gYW4gZXhjaXRpbmcgdHJhY2luZzoNCj4gPiAxLiBXaGVuIHRoZSB0
-cmFjZSBpcyBlbmFibGVkLCB3ZSBhZGQgbmV3IGxvZyBlbnRyaWVzIGZvciB0aGUgYmVnaW4vZW5k
-IG9mIGVhY2ggY29udHJvbCBtZXRob2QgdGhhdCBpcyBleGVjdXRlZCBieSB0aGUgaW50ZXJwcmV0
-ZXIuDQo+ID4gMi4gV2hlbiB0aGUgdHJhY2UgaXMgZW5hYmxlZCwgd2UgYWRkIG5ldyBsb2cgZW50
-cmllcyBmb3IgdGhlIGJlZ2luL2VuZCBvZiBlYWNoIG9wY29kZSB0aGF0IGlzIGV4ZWN1dGVkIGJ5
-IHRoZSBpbnRlcnByZXRlci4NCj4gPiAzLiBXZSBhbGxvdyB0aGUgbWV0aG9kIHZpcnR1YWwgYWRk
-cmVzcyBhbmQgdGhlIG9wY29kZSB2aXJ0dWFsIGFkZHJlc3MgdG8gYmUgZHVtcGVkIGFsb25nIHdp
-dGggdGhlIGJlZ2luL2VuZCBsb2dzLg0KPiA+IFRoaXMgbWFrZXMgaXQgcG9zc2libGUgdG8gZHJh
-dyBhIEFNTCBjYWxsIGdyYXBoIHVzaW5nIHRoZSBkdW1wZWQgbG9nIGFuZCB3ZSBjYW4gY2FsY3Vs
-YXRlIHRoZSBleGVjdXRpb24gdGltZSBvZiBhIGNvbnRyb2wNCj4gbWV0aG9kL29wY29kZS4NCj4g
-PiBXZSBjYW4gdXNlIGl0IGVpdGhlciBmb3IgcGVyZm9ybWFuY2UgdHVuaW5nIG9yIHJlbW90ZSBk
-ZWJ1Z2dpbmcuDQo+ID4gVGhlIG5ldyBmZWF0dXJlIGlzIGtub3duIGFzICJBTUwgZXhlY3V0aW9u
-IHRyYWNlciIuDQo+ID4NCj4gPiBBbGwgb2YgYWJvdmUgaW1wcm92ZW1lbnRzIGFyZSBkb25lIHRv
-IHRoZSBhY3BpX2RlYnVnX3RyYWNlKCksIG5ldyBmZWF0dXJlcy9wYXJhbWV0ZXJzIGFyZSBhZGRl
-ZCB0byB0aGlzIEFDUElDQSBpbnRlcmZhY2UuDQo+ID4gTm93IGFjcGlfZGVidWdfdHJhY2UoKSBj
-YW4gYmUgdXNlZCBub3Qgb25seSBhcyB0aGUgInRyYWNlIGxvZyByZWR1Y2VyIiBidXQgYWxzbyB0
-aGUgIkFNTCBleGVjdXRpb24gdHJhY2VyIi4NCj4gPiBBcyBpdHMgdXNlciwgL3N5cy9tb2R1bGVz
-L2FjcGkvcGFyYW1ldGVycy90cmFjZV94eHggZmlsZXMgbmVlZCB0byBiZSB1cGRhdGVkIHNvIHRo
-YXQgd2UgY2FuIHVzZSB0aGUgZml4ZWQvaW1wcm92ZWQgb2xkIGZlYXR1cmUNCj4gYW5kIHRoZSBu
-ZXcgZmVhdHVyZSBpbiB0aGUgTGludXgga2VybmVsLg0KPiA+DQo+ID4gVGhlcmUgaXMgYW4gdXNl
-ciBleHBlcmllbmNlIGV4YW1wbGUgb2YgdGhlIG5ldyBmZWF0dXJlIChBTUwgZXhlY3V0aW9uIHRy
-YWNlcikgb24gdGhlIGtlcm5lbCBCdWd6aWxsYToNCj4gPiBodHRwczovL2J1Z3ppbGxhLmtlcm5l
-bC5vcmcvc2hvd19idWcuY2dpP2lkPTcwODkxDQo+ID4gVGhlIHVzZXIgcmVwb3J0ZWQgYSBkZWxh
-eSB0byB0aGUgQUNQSUNBIGRldmVsb3BlcnMgbWFpbGluZyBsaXN0IGFuZCBJIGhlbHBlZCB0byBm
-aWxlIGEgYnVnIHRoZXJlLg0KPiA+IFdpdGggdGhlIGFzc2lzdGFuY2Ugb2YgdGhpcyBkZWJ1Z2dp
-bmcgZmFjaWxpdHkgKHNlZSBjb21tZW50IDI5LCAzMCwgMzEpLCBJIGZvdW5kIHRoZSBkZWxheSB3
-YXMgY2F1c2VkIGJ5IHRoZSBFQyBkcml2ZXIgKHNvIHRoaXMgaXMgcmVhbGx5DQo+IGFuIGVmZmVj
-dGl2ZSBkZWJ1Z2dpbmcgZmFjaWxpdHkpLg0KPiA+IFRoaXMgYnVnIChlcnJvbmVvdXNseSByZXBv
-cnRlZCBhcyBhbiBBQ1BJQ0EgaXNzdWUpIG1vdGl2YXRlZCBtZSB0byBsb29rIGF0IHRoZSBMaW51
-eCBFQyBkcml2ZXIgYW5kIG9mZmVyZWQgdGhlIGZpeGVzIHRvIGhlbHAgdG8NCj4gaW1wcm92ZSB0
-aGUgcXVhbGl0eSBvZiB0aGUgRUMvR1BFIGltcGxlbWVudGF0aW9ucy4NCj4gPg0KPiA+IEhvcGUg
-dGhpcyBleHBsYW5hdGlvbiBjYW4gaGVscC4NCj4gDQo+IEFsbCBvZiB0aGF0IGlzIGdvb2QgaW5m
-b3JtYXRpb24sIHNvIHdoYXQgYWJvdXQgc2VuZGluZyBhIGRvY3VtZW50YXRpb24gcGF0Y2gNCj4g
-d2l0aCBpdD8NCg0KT0ssIEknbGwgcmUtc2VuZCB0aGlzIHBhdGNoc2V0IHRvIGluY2x1ZGUgdGhl
-IGFib3ZlIGluZm9ybWF0aW9uIGluIERvY3VtZW50YXRpb24vYWNwaS9tZXRob2QtdHJhY2luZy50
-eHQuDQoNClRoYW5rcyBhbmQgYmVzdCByZWdhcmRzDQotTHYNCg0KPiANCj4gUmFmYWVsDQo+IA0K
-PiAtLQ0KPiBUbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAidW5z
-dWJzY3JpYmUgbGludXgtYWNwaSIgaW4NCj4gdGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRvIG1ham9y
-ZG9tb0B2Z2VyLmtlcm5lbC5vcmcNCj4gTW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAgaHR0cDovL3Zn
-ZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sDQo=
+Hi Sergei,
+
+ Thanks for revewing.
+
+> -----Original Message-----
+> From: Sergei Shtylyov [mailto:sergei.shtylyov@cogentembedded.com]
+> Sent: Thursday, July 23, 2015 10:06 PM
+> To: Izumi, Taku/泉 拓; netdev@vger.kernel.org; davem@davemloft.net
+> Cc: platform-driver-x86@vger.kernel.org; dvhart@infradead.org; rkhan@redhat.com; alexander.h.duyck@redhat.com;
+> linux-acpi@vger.kernel.org; joe@perches.com; stephen@networkplumber.org; yasu.isimatu@gmail.com
+> Subject: Re: [PATCH v2.1 21/22] fjes: handle receive cancellation request interrupt
+> 
+> Hello.
+> 
+> On 7/23/2015 3:10 AM, Taku Izumi wrote:
+> 
+> > This patch adds implementation of handling IRQ
+> > of other receiver's receive cancellation request.
+> 
+> > Signed-off-by: Taku Izumi <izumi.taku@jp.fujitsu.com>
+> > ---
+> >   drivers/net/fjes/fjes_main.c | 79 ++++++++++++++++++++++++++++++++++++++++++++
+> >   1 file changed, 79 insertions(+)
+> >
+> > diff --git a/drivers/net/fjes/fjes_main.c b/drivers/net/fjes/fjes_main.c
+> > index faaf2ed..b21ad68 100644
+> > --- a/drivers/net/fjes/fjes_main.c
+> > +++ b/drivers/net/fjes/fjes_main.c
+> > @@ -822,6 +822,75 @@ static int fjes_vlan_rx_kill_vid(struct net_device *netdev,
+> >   	return 0;
+> >   }
+> >
+> > +static void fjes_txrx_stop_req_irq(struct fjes_adapter *adapter,
+> > +				   int src_epid)
+> > +{
+> > +	struct fjes_hw *hw = &adapter->hw;
+> > +	enum ep_partner_status status;
+> > +
+> > +	status = fjes_hw_get_partner_ep_status(hw, src_epid);
+> > +	switch (status) {
+> > +	case EP_PARTNER_UNSHARE:
+> > +	default:
+> > +		break;
+> > +	case EP_PARTNER_COMPLETE:
+> > +		break;
+> 
+>     Why this *case* isn't merged with the above ones?
+
+  Oh... You are right.
+
+> 
+> > +	case EP_PARTNER_WAITING:
+> > +		if (src_epid < hw->my_epid) {
+> > +			hw->ep_shm_info[src_epid].tx.info->v1i.rx_status |=
+> > +				FJES_RX_STOP_REQ_DONE;
+> > +
+> > +			clear_bit(src_epid, &hw->txrx_stop_req_bit);
+> > +			set_bit(src_epid, &adapter->unshare_watch_bitmask);
+> > +
+> > +			if (!work_pending(&adapter->unshare_watch_task))
+> > +				queue_work(adapter->control_wq,
+> > +					   &adapter->unshare_watch_task);
+> > +		}
+> > +		break;
+> > +	case EP_PARTNER_SHARED:
+> > +		if (hw->ep_shm_info[src_epid].rx.info->v1i.rx_status
+> > +				& FJES_RX_STOP_REQ_REQUEST) {
+> 
+>     Please leave the & operator on the first line and start the second line
+> right under 'hw' on the first.
+
+   OK.
+> 
+> [...]
+> 
+> MBR, Sergei
+
+ Sincerely,
+ Taku Izumi
