@@ -1,42 +1,52 @@
 From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Subject: [PATCH v2 21/22] power-supply: Probe power supplies on demand
-Date: Tue, 28 Jul 2015 15:19:52 +0200
-Message-ID: <1438089593-7696-22-git-send-email-tomeu.vizoso@collabora.com>
+Subject: [PATCH v2 02/22] of/platform: Set fwnode field for new devices
+Date: Tue, 28 Jul 2015 15:19:33 +0200
+Message-ID: <1438089593-7696-3-git-send-email-tomeu.vizoso@collabora.com>
 References: <1438089593-7696-1-git-send-email-tomeu.vizoso@collabora.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1438089593-7696-1-git-send-email-tomeu.vizoso@collabora.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-kernel@vger.kernel.org
-Cc: Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-arm-kernel@lists.infradead.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, Sebastian Reichel <sre@kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, David Woodhouse <dwmw2@infradead.org>, linux-pm@vger.kernel.org
+Cc: devicetree@vger.kernel.org, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@wwwdotorg.org>, Linus Walleij <linus.walleij@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, Javier Martinez Canillas <javier@osg.samsung.com>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Rob Herring <robh+dt@kernel.org>, linux-arm-kernel@lists.infradead.org, Grant Likely <grant.likely@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-When looking up a power supply through its firmware node, probe it if it
-hasn't already.
+When allocating a new platform device, set the fwnode field in the
+struct device to point to the device_node.
 
-The goal is to reduce deferred probes to a minimum, as it makes it very
-cumbersome to find out why a device failed to probe, and can introduce
-very big delays in when a critical device is probed.
+This is needed by platform-independent code that needs to do something
+with devices based on the data provided by the firmware.
 
 Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
 ---
 
-Changes in v2: None
+Changes in v2:
+- Use set_primary_fwnode()
 
- drivers/power/power_supply_core.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/of/platform.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/power/power_supply_core.c b/drivers/power/power_supply_core.c
-index 456987c88baa..b51b0b850a17 100644
---- a/drivers/power/power_supply_core.c
-+++ b/drivers/power/power_supply_core.c
-@@ -206,6 +206,8 @@ static int power_supply_find_supply_from_node(struct device_node *supply_node)
- {
- 	int error;
+diff --git a/drivers/of/platform.c b/drivers/of/platform.c
+index ddf8e42c9367..ff27494cda8c 100644
+--- a/drivers/of/platform.c
++++ b/drivers/of/platform.c
+@@ -139,6 +139,7 @@ struct platform_device *of_device_alloc(struct device_node *np,
+ 	}
  
-+	fwnode_ensure_device(&supply_node->fwnode);
-+
- 	/*
- 	 * class_for_each_device() either returns its own errors or values
- 	 * returned by __power_supply_find_supply_from_node().
+ 	dev->dev.of_node = of_node_get(np);
++	set_primary_fwnode(&dev->dev, &dev->dev.of_node->fwnode);
+ 	dev->dev.parent = parent ? : &platform_bus;
+ 
+ 	if (bus_id)
 -- 
 2.4.3
