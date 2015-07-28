@@ -1,54 +1,68 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v6 0/8] mfd: introduce a driver for LPSS devices on SPT
-Date: Tue, 28 Jul 2015 12:02:27 +0300
-Message-ID: <20150728090227.GP1577@lahna.fi.intel.com>
-References: <1438009443-55317-1-git-send-email-andriy.shevchenko@linux.intel.com>
- <20150728085930.GR14943@x1>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Subject: [PATCH] ACPI / PM: Use target_state to set the device power state
+Date: Tue, 28 Jul 2015 13:51:21 +0300
+Message-ID: <1438080681-3364-1-git-send-email-mika.westerberg@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:54378 "EHLO mga11.intel.com"
+Received: from mga03.intel.com ([134.134.136.65]:6176 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753924AbbG1JEk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 28 Jul 2015 05:04:40 -0400
-Content-Disposition: inline
-In-Reply-To: <20150728085930.GR14943@x1>
+	id S1751173AbbG1Kv0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 28 Jul 2015 06:51:26 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lee Jones <lee.jones@linaro.org>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Vinod Koul <vinod.koul@intel.com>, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, mturquette@baylibre.com, sboyd@codeaurora.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tue, Jul 28, 2015 at 09:59:30AM +0100, Lee Jones wrote:
-> Enjoy,
-> 
-> The following changes since commit bc0195aad0daa2ad5b0d76cce22b167bc3435590:
-> 
->   Linux 4.2-rc2 (2015-07-12 15:10:30 -0700)
-> 
-> are available in the git repository at:
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/lee/mfd.git tags/ib-mfd-base-acpi-dma-v4.3
-> 
-> for you to fetch changes up to 4b45efe8526359a11ca60a299bef3aebf413fd77:
-> 
->   mfd: Add support for Intel Sunrisepoint LPSS devices (2015-07-28 09:56:47 +0100)
-> 
-> ----------------------------------------------------------------
-> Immutable branch between MFD, Base, ACPI and DMA due for v4.3
-> 
-> ----------------------------------------------------------------
-> Andy Shevchenko (5):
->       klist: implement klist_prev()
->       driver core: implement device_for_each_child_reverse()
->       mfd: make mfd_remove_devices() iterate in reverse order
->       dmaengine: add a driver for Intel integrated DMA 64-bit
->       mfd: Add support for Intel Sunrisepoint LPSS devices
-> 
-> Mika Westerberg (2):
->       PM / QoS: Make it possible to expose device latency tolerance to userspace
->       ACPI / PM: Attach ACPI power domain only once
-> 
-> Rafael J. Wysocki (1):
->       Driver core: wakeup the parent device before trying probe
+Commit 20dacb71ad28 ("ACPI / PM: Rework device power management to follow
+ACPI 6") changed the device power management to use D3hot if the device
+in question does not have _PR3 method even if D3cold was requested by the
+caller.
 
-Thank you :-)
+However, if the device has _PR3 device->power.state is also set to D3hot
+instead of D3Cold after power resources have been turned off because
+device->power.state will be assigned from "state" instead of
+"target_state".
+
+Next time the device is transitioned to D0, acpi_power_transition() will
+find that the current power state of the device is D3hot instead of D3cold
+which causes it to power down all resources required for the current
+(wrong) state D3hot.
+
+Below is a simplified ASL example of a real touch panel device which
+triggers the problem:
+
+  Scope (TPL1)
+  {
+      Name (_PR0, Package (1) { \_SB.PCI0.I2C1.PXTC })
+      Name (_PR3, Package (1) { \_SB.PCI0.I2C1.PXTC })
+      ...
+  }
+
+In both D0 and D3hot the same power resource is required. However, when
+acpi_power_transition() turns off power resources required for D3hot (as
+the device is transitioned to D0) it powers down PXTC which then makes the
+device to lose its power.
+
+Fix this by assigning "target_state" to the device power state instead of
+"state" that is always D3hot even for devices with valid _PR3.
+
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+---
+ drivers/acpi/device_pm.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/device_pm.c b/drivers/acpi/device_pm.c
+index 08dc3ec7e892..337e8118836d 100644
+--- a/drivers/acpi/device_pm.c
++++ b/drivers/acpi/device_pm.c
+@@ -231,7 +231,7 @@ int acpi_device_set_power(struct acpi_device *device, int state)
+ 		dev_warn(&device->dev, "Failed to change power state to %s\n",
+ 			 acpi_power_state_string(state));
+ 	} else {
+-		device->power.state = state;
++		device->power.state = target_state;
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 				  "Device [%s] transitioned to %s\n",
+ 				  device->pnp.bus_id,
+-- 
+2.4.6
+
