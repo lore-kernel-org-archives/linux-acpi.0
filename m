@@ -1,407 +1,123 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 1/2] tools/power/acpi: Add descend support in ACPI tools Makefile.
-Date: Tue, 28 Jul 2015 13:25:25 +0800
-Message-ID: <f2f8da0058d49ef530f5401d3361bd19af662b4f.1438060971.git.lv.zheng@intel.com>
-References: <cover.1438060971.git.lv.zheng@intel.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH v6 0/8] mfd: introduce a driver for LPSS devices on SPT
+Date: Tue, 28 Jul 2015 08:46:25 +0100
+Message-ID: <20150728074625.GN21114@x1>
+References: <1438009443-55317-1-git-send-email-andriy.shevchenko@linux.intel.com>
+ <20150727212748.GF21114@x1>
+ <20150727212934.GH21114@x1>
+ <2258476.9C4JjWNs6u@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1438060971.git.lv.zheng@intel.com>
+Content-Disposition: inline
+In-Reply-To: <2258476.9C4JjWNs6u@vostro.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Vinod Koul <vinod.koul@intel.com>, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, mturquette@baylibre.com, sboyd@codeaurora.org
 List-Id: linux-acpi@vger.kernel.org
 
-This patch splits tools/power/acpi/Makefile to support descend compling for
-ACPI tools. In this patch tools/ec related stuff is removed as it is
-originally not enabled.
+On Tue, 28 Jul 2015, Rafael J. Wysocki wrote:
 
-Also a missing .o (utnonansi.o) is added to the acpidump/Makefile.
+> On Monday, July 27, 2015 10:29:34 PM Lee Jones wrote:
+> > On Mon, 27 Jul 2015, Lee Jones wrote:
+> >=20
+> > > On Mon, 27 Jul 2015, Rafael J. Wysocki wrote:
+> > >=20
+> > > > On Monday, July 27, 2015 05:24:13 PM Lee Jones wrote:
+> > > > > On Mon, 27 Jul 2015, Mika Westerberg wrote:
+> > > > >=20
+> > > > > > On Mon, Jul 27, 2015 at 04:27:33PM +0100, Lee Jones wrote:
+> > > > > > > FAO Stephen Boyd,
+> > > > > > >=20
+> > > > > > > > Stephen, can you, please, have a look into patch 8 rega=
+rding to clock name
+> > > > > > > > matching and other stuff Lee asked?
+> > > > > > >=20
+> > > > > > > Patch 8:
+> > > > > > >=20
+> > > > > > >       "Can you review the clock implementation please?  I=
+t looks
+> > > > > > >       fragile to me as it relies heavily on device names =
+constructed
+> > > > > > >       of MFD cell names and IDA numbers cat'ed together!"
+> > > > > >=20
+> > > > > > Lee, can you suggest an alternative then?
+> > > > > >=20
+> > > > > > Why we are doing it like this is that number of different L=
+PSS devices
+> > > > > > changes from SoC to SoC. In addition to that the device (ca=
+lled "slice")
+> > > > > > might have iDMA block or not.
+> > > > > >=20
+> > > > > > Since the drivers in question (pxa2xx-spi, i2c-designware a=
+nd 8250_dw)
+> > > > > > use standard clk framework to request their clocks the Linu=
+x device must
+> > > > > > have clock registered which matches the device in advance.
+> > > > > >=20
+> > > > > > Because we add the host controller device dynamically (from=
+ the MFD
+> > > > > > driver) based on how many devices are actually present, we =
+need somehow
+> > > > > > predict what would be the correct name and instance number =
+for that
+> > > > > > device to get the clock for it. That's the reason we use ID=
+A here along
+> > > > > > with the cell name (or driver name).
+> > > > >=20
+> > > > > I'm sure there are perfectly viable reasons for you doing thi=
+s.  And I
+> > > > > don't know the CCF well enough to know whether it's the best =
+idea or
+> > > > > not, or else I would have made a suggestion rather than waiti=
+ng all
+> > > > > this time.
+> > > > >=20
+> > > > > It's for this reason that I needed Mike (now Stephen) to take=
+ a look
+> > > > > and give me either an Ack, to say it's the best solution, or =
+to
+> > > > > provide a better alternative.
+> > > > >=20
+> > > > > Until that happens, I'm stuck!
+> > > >=20
+> > > > Well, what if we had no one at hand to review that code?  Would=
+ that mean it
+> > > > would not be applicable forever?
+> > >=20
+> > > No, but that's not the case is it?
+> > >=20
+> > > I don't understand why Mike and Stephen aren't helping!
+> >=20
+> > I'll wait until tomorrow and if we haven't heard anything I'll make=
+ a
+> > decision.
+>=20
+> OK, thanks!
+>=20
+> BTW, I don't have the time to review every single patch using ACPI
+> or one of the PM frameworks.  If people who use them make mistakes,
+> it is their burden to fix those mistakes when they show up in testing=
+=2E
+>=20
+> What's happening here is that Andy and Mika are taking the responsibi=
+lity
+> for fixing the new code if it turns out to be buggy and so it's their
+> problem if it happens to be broken.
+>=20
+> And you can still revert commits that introduce bugs as a last resort=
+=2E
 
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- tools/power/acpi/Makefile                |  168 +++---------------------------
- tools/power/acpi/Makefile.config         |   92 ++++++++++++++++
- tools/power/acpi/Makefile.rules          |   37 +++++++
- tools/power/acpi/tools/acpidump/Makefile |   53 ++++++++++
- 4 files changed, 199 insertions(+), 151 deletions(-)
- create mode 100644 tools/power/acpi/Makefile.config
- create mode 100644 tools/power/acpi/Makefile.rules
- create mode 100644 tools/power/acpi/tools/acpidump/Makefile
+I'm fine with that in principle.  My issue here was that it looks
+wrong to me.  I just don't know enough about the inner workings of the
+CCF to be able to say that for sure, or to provide a suitable
+alternative.  I think, probably the correct thing to do is to have an
+accompanying clock driver, but who knows (I guess Stephen and Mike to,
+but are seemingly unwilling to help).
 
-diff --git a/tools/power/acpi/Makefile b/tools/power/acpi/Makefile
-index 3d1537b..3d05237 100644
---- a/tools/power/acpi/Makefile
-+++ b/tools/power/acpi/Makefile
-@@ -8,154 +8,20 @@
- # as published by the Free Software Foundation; version 2
- # of the License.
- 
--OUTPUT=./
--ifeq ("$(origin O)", "command line")
--	OUTPUT := $(O)/
--endif
--
--ifneq ($(OUTPUT),)
--# check that the output directory actually exists
--OUTDIR := $(shell cd $(OUTPUT) && /bin/pwd)
--$(if $(OUTDIR),, $(error output directory "$(OUTPUT)" does not exist))
--endif
--
--SUBDIRS = tools/ec
--
--# --- CONFIGURATION BEGIN ---
--
--# Set the following to `true' to make a unstripped, unoptimized
--# binary. Leave this set to `false' for production use.
--DEBUG ?=	true
--
--# make the build silent. Set this to something else to make it noisy again.
--V ?=		false
--
--# Prefix to the directories we're installing to
--DESTDIR ?=
--
--# --- CONFIGURATION END ---
--
--# Directory definitions. These are default and most probably
--# do not need to be changed. Please note that DESTDIR is
--# added in front of any of them
--
--bindir ?=	/usr/bin
--sbindir ?=	/usr/sbin
--mandir ?=	/usr/man
--
--# Toolchain: what tools do we use, and what options do they need:
--
--INSTALL = /usr/bin/install -c
--INSTALL_PROGRAM = ${INSTALL}
--INSTALL_DATA  = ${INSTALL} -m 644
--INSTALL_SCRIPT = ${INSTALL_PROGRAM}
--
--# If you are running a cross compiler, you may want to set this
--# to something more interesting, like "arm-linux-".  If you want
--# to compile vs uClibc, that can be done here as well.
--CROSS = #/usr/i386-linux-uclibc/usr/bin/i386-uclibc-
--CC = $(CROSS)gcc
--LD = $(CROSS)gcc
--STRIP = $(CROSS)strip
--HOSTCC = gcc
--
--# check if compiler option is supported
--cc-supports = ${shell if $(CC) ${1} -S -o /dev/null -x c /dev/null > /dev/null 2>&1; then echo "$(1)"; fi;}
--
--# use '-Os' optimization if available, else use -O2
--OPTIMIZATION := $(call cc-supports,-Os,-O2)
--
--WARNINGS := -Wall
--WARNINGS += $(call cc-supports,-Wstrict-prototypes)
--WARNINGS += $(call cc-supports,-Wdeclaration-after-statement)
--
--KERNEL_INCLUDE := ../../../include
--ACPICA_INCLUDE := ../../../drivers/acpi/acpica
--CFLAGS += -D_LINUX -I$(KERNEL_INCLUDE) -I$(ACPICA_INCLUDE)
--CFLAGS += $(WARNINGS)
--
--ifeq ($(strip $(V)),false)
--	QUIET=@
--	ECHO=@echo
--else
--	QUIET=
--	ECHO=@\#
--endif
--export QUIET ECHO
--
--# if DEBUG is enabled, then we do not strip or optimize
--ifeq ($(strip $(DEBUG)),true)
--	CFLAGS += -O1 -g -DDEBUG
--	STRIPCMD = /bin/true -Since_we_are_debugging
--else
--	CFLAGS += $(OPTIMIZATION) -fomit-frame-pointer
--	STRIPCMD = $(STRIP) -s --remove-section=.note --remove-section=.comment
--endif
--
--# --- ACPIDUMP BEGIN ---
--
--vpath %.c \
--	../../../drivers/acpi/acpica\
--	tools/acpidump\
--	common\
--	os_specific/service_layers
--
--CFLAGS += -DACPI_DUMP_APP -Itools/acpidump
--
--DUMP_OBJS = \
--	apdump.o\
--	apfiles.o\
--	apmain.o\
--	osunixdir.o\
--	osunixmap.o\
--	osunixxf.o\
--	tbprint.o\
--	tbxfroot.o\
--	utbuffer.o\
--	utdebug.o\
--	utexcep.o\
--	utglobal.o\
--	utmath.o\
--	utprint.o\
--	utstring.o\
--	utxferror.o\
--	oslibcfs.o\
--	oslinuxtbl.o\
--	cmfsize.o\
--	getopt.o
--
--DUMP_OBJS := $(addprefix $(OUTPUT)tools/acpidump/,$(DUMP_OBJS))
--
--$(OUTPUT)acpidump: $(DUMP_OBJS)
--	$(ECHO) "  LD      " $@
--	$(QUIET) $(LD) $(CFLAGS) $(LDFLAGS) $(DUMP_OBJS) -L$(OUTPUT) -o $@
--	$(QUIET) $(STRIPCMD) $@
--
--$(OUTPUT)tools/acpidump/%.o: %.c
--	$(ECHO) "  CC      " $@
--	$(QUIET) $(CC) -c $(CFLAGS) -o $@ $<
--
--# --- ACPIDUMP END ---
--
--all: $(OUTPUT)acpidump
--	echo $(OUTPUT)
--
--clean:
--	-find $(OUTPUT) \( -not -type d \) -and \( -name '*~' -o -name '*.[oas]' \) -type f -print \
--	 | xargs rm -f
--	-rm -f $(OUTPUT)acpidump
--
--install-tools:
--	$(INSTALL) -d $(DESTDIR)${sbindir}
--	$(INSTALL_PROGRAM) $(OUTPUT)acpidump $(DESTDIR)${sbindir}
--
--install-man:
--	$(INSTALL_DATA) -D man/acpidump.8 $(DESTDIR)${mandir}/man8/acpidump.8
--
--install: all install-tools install-man
--
--uninstall:
--	- rm -f $(DESTDIR)${sbindir}/acpidump
--	- rm -f $(DESTDIR)${mandir}/man8/acpidump.8
--
--.PHONY: all utils install-tools install-man install uninstall clean
-+include ../../scripts/Makefile.include
-+
-+all: acpidump
-+clean: acpidump_clean
-+install: acpidump_install
-+uninstall: acpidump_uninstall
-+
-+acpidump: FORCE
-+	$(call descend,tools/$@,all)
-+acpidump_clean:
-+	$(call descend,tools/$(@:_clean=),clean)
-+acpidump_install:
-+	$(call descend,tools/$(@:_install=),install)
-+acpidump_uninstall:
-+	$(call descend,tools/$(@:_uninstall=),uninstall)
-+
-+.PHONY: FORCE
-diff --git a/tools/power/acpi/Makefile.config b/tools/power/acpi/Makefile.config
-new file mode 100644
-index 0000000..552af68
---- /dev/null
-+++ b/tools/power/acpi/Makefile.config
-@@ -0,0 +1,92 @@
-+# tools/power/acpi/Makefile.config - ACPI tool Makefile
-+#
-+# Copyright (c) 2015, Intel Corporation
-+#   Author: Lv Zheng <lv.zheng@intel.com>
-+#
-+# This program is free software; you can redistribute it and/or
-+# modify it under the terms of the GNU General Public License
-+# as published by the Free Software Foundation; version 2
-+# of the License.
-+
-+include ../../../../scripts/Makefile.include
-+
-+OUTPUT=./
-+ifeq ("$(origin O)", "command line")
-+	OUTPUT := $(O)/
-+endif
-+
-+ifneq ($(OUTPUT),)
-+# check that the output directory actually exists
-+OUTDIR := $(shell cd $(OUTPUT) && /bin/pwd)
-+$(if $(OUTDIR),, $(error output directory "$(OUTPUT)" does not exist))
-+endif
-+
-+# --- CONFIGURATION BEGIN ---
-+
-+# Set the following to `true' to make a unstripped, unoptimized
-+# binary. Leave this set to `false' for production use.
-+DEBUG ?=	true
-+
-+# make the build silent. Set this to something else to make it noisy again.
-+V ?=		false
-+
-+# Prefix to the directories we're installing to
-+DESTDIR ?=
-+
-+# --- CONFIGURATION END ---
-+
-+# Directory definitions. These are default and most probably
-+# do not need to be changed. Please note that DESTDIR is
-+# added in front of any of them
-+
-+bindir ?=	/usr/bin
-+sbindir ?=	/usr/sbin
-+mandir ?=	/usr/man
-+
-+# Toolchain: what tools do we use, and what options do they need:
-+
-+INSTALL = /usr/bin/install -c
-+INSTALL_PROGRAM = ${INSTALL}
-+INSTALL_DATA  = ${INSTALL} -m 644
-+INSTALL_SCRIPT = ${INSTALL_PROGRAM}
-+
-+# If you are running a cross compiler, you may want to set this
-+# to something more interesting, like "arm-linux-".  If you want
-+# to compile vs uClibc, that can be done here as well.
-+CROSS = #/usr/i386-linux-uclibc/usr/bin/i386-uclibc-
-+CC = $(CROSS)gcc
-+LD = $(CROSS)gcc
-+STRIP = $(CROSS)strip
-+HOSTCC = gcc
-+
-+# check if compiler option is supported
-+cc-supports = ${shell if $(CC) ${1} -S -o /dev/null -x c /dev/null > /dev/null 2>&1; then echo "$(1)"; fi;}
-+
-+# use '-Os' optimization if available, else use -O2
-+OPTIMIZATION := $(call cc-supports,-Os,-O2)
-+
-+WARNINGS := -Wall
-+WARNINGS += $(call cc-supports,-Wstrict-prototypes)
-+WARNINGS += $(call cc-supports,-Wdeclaration-after-statement)
-+
-+KERNEL_INCLUDE := ../../../include
-+ACPICA_INCLUDE := ../../../drivers/acpi/acpica
-+CFLAGS += -D_LINUX -I$(KERNEL_INCLUDE) -I$(ACPICA_INCLUDE)
-+CFLAGS += $(WARNINGS)
-+
-+ifeq ($(strip $(V)),false)
-+	QUIET=@
-+	ECHO=@echo
-+else
-+	QUIET=
-+	ECHO=@\#
-+endif
-+
-+# if DEBUG is enabled, then we do not strip or optimize
-+ifeq ($(strip $(DEBUG)),true)
-+	CFLAGS += -O1 -g -DDEBUG
-+	STRIPCMD = /bin/true -Since_we_are_debugging
-+else
-+	CFLAGS += $(OPTIMIZATION) -fomit-frame-pointer
-+	STRIPCMD = $(STRIP) -s --remove-section=.note --remove-section=.comment
-+endif
-diff --git a/tools/power/acpi/Makefile.rules b/tools/power/acpi/Makefile.rules
-new file mode 100644
-index 0000000..ec87a9e
---- /dev/null
-+++ b/tools/power/acpi/Makefile.rules
-@@ -0,0 +1,37 @@
-+# tools/power/acpi/Makefile.rules - ACPI tool Makefile
-+#
-+# Copyright (c) 2015, Intel Corporation
-+#   Author: Lv Zheng <lv.zheng@intel.com>
-+#
-+# This program is free software; you can redistribute it and/or
-+# modify it under the terms of the GNU General Public License
-+# as published by the Free Software Foundation; version 2
-+# of the License.
-+
-+$(OUTPUT)$(TOOL): $(TOOL_OBJS) FORCE
-+	$(ECHO) "  LD      " $@
-+	$(QUIET) $(LD) $(CFLAGS) $(LDFLAGS) $(TOOL_OBJS) -L$(OUTPUT) -o $@
-+	$(QUIET) $(STRIPCMD) $@
-+
-+$(OUTPUT)%.o: %.c
-+	$(ECHO) "  CC      " $@
-+	$(QUIET) $(CC) -c $(CFLAGS) -o $@ $<
-+
-+all: $(OUTPUT)$(TOOL)
-+clean:
-+	-find $(OUTPUT) \( -not -type d \) \
-+	-and \( -name '*~' -o -name '*.[oas]' \) \
-+	-type f -print \
-+	 | xargs rm -f
-+	-rm -f $(OUTPUT)$(TOOL)
-+
-+install-tools:
-+	$(INSTALL) -d $(DESTDIR)${sbindir}
-+	$(INSTALL_PROGRAM) $(OUTPUT)$(TOOL) $(DESTDIR)${sbindir}
-+uninstall-tools:
-+	- rm -f $(DESTDIR)${sbindir}/$(TOOL)
-+
-+install: all install-tools $(EXTRA_INSTALL)
-+uninstall: uninstall-tools $(EXTRA_UNINSTALL)
-+
-+.PHONY: FORCE
-diff --git a/tools/power/acpi/tools/acpidump/Makefile b/tools/power/acpi/tools/acpidump/Makefile
-new file mode 100644
-index 0000000..8d76157
---- /dev/null
-+++ b/tools/power/acpi/tools/acpidump/Makefile
-@@ -0,0 +1,53 @@
-+# tools/power/acpi/tools/acpidump/Makefile - ACPI tool Makefile
-+#
-+# Copyright (c) 2015, Intel Corporation
-+#   Author: Lv Zheng <lv.zheng@intel.com>
-+#
-+# This program is free software; you can redistribute it and/or
-+# modify it under the terms of the GNU General Public License
-+# as published by the Free Software Foundation; version 2
-+# of the License.
-+
-+include ../../Makefile.config
-+
-+TOOL = acpidump
-+EXTRA_INSTALL = install-man
-+EXTRA_UNINSTALL = uninstall-man
-+
-+vpath %.c \
-+	../../../../../drivers/acpi/acpica\
-+	./\
-+	../../common\
-+	../../os_specific/service_layers
-+CFLAGS += -DACPI_DUMP_APP -I.\
-+	-I../../../../../drivers/acpi/acpica\
-+	-I../../../../../include
-+TOOL_OBJS = \
-+	apdump.o\
-+	apfiles.o\
-+	apmain.o\
-+	osunixdir.o\
-+	osunixmap.o\
-+	osunixxf.o\
-+	tbprint.o\
-+	tbxfroot.o\
-+	utbuffer.o\
-+	utdebug.o\
-+	utexcep.o\
-+	utglobal.o\
-+	utmath.o\
-+	utnonansi.o\
-+	utprint.o\
-+	utstring.o\
-+	utxferror.o\
-+	oslibcfs.o\
-+	oslinuxtbl.o\
-+	cmfsize.o\
-+	getopt.o
-+
-+include ../../Makefile.rules
-+
-+install-man: ../../man/acpidump.8
-+	$(INSTALL_DATA) -D $< $(DESTDIR)${mandir}/man8/acpidump.8
-+uninstall-man:
-+	- rm -f $(DESTDIR)${mandir}/man8/acpidump.8
--- 
-1.7.10
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
