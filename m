@@ -1,130 +1,54 @@
-From: Rob Herring <robherring2@gmail.com>
-Subject: Re: [PATCH v2 04/22] of/platform: add of_platform_device_find()
-Date: Tue, 28 Jul 2015 10:31:02 -0500
-Message-ID: <CAL_Jsq+RqGAxHE5-ocD-htddBHckG24oZNqfgmMF3Jak6wDXBQ@mail.gmail.com>
-References: <1438089593-7696-1-git-send-email-tomeu.vizoso@collabora.com>
- <1438089593-7696-5-git-send-email-tomeu.vizoso@collabora.com>
- <CAL_JsqJGhFXDKuayuKc2E58X5A7ZGN=uYCVDLnXw_t3_auBg+w@mail.gmail.com> <CAAObsKBfRLdPc0gs55ARfa+qZJAOEyEgRyTf8krZnQMb6-j03g@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI / PM: Use target_state to set the device power state
+Date: Tue, 28 Jul 2015 17:59:38 +0200
+Message-ID: <6917556.GA7pjcvNI8@vostro.rjw.lan>
+References: <1438080681-3364-1-git-send-email-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yk0-f177.google.com ([209.85.160.177]:34145 "EHLO
-	mail-yk0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750858AbbG1PbW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Jul 2015 11:31:22 -0400
-In-Reply-To: <CAAObsKBfRLdPc0gs55ARfa+qZJAOEyEgRyTf8krZnQMb6-j03g@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1438080681-3364-1-git-send-email-mika.westerberg@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Rob Herring <robh+dt@kernel.org>, Grant Likely <grant.likely@linaro.org>
 
-On Tue, Jul 28, 2015 at 8:54 AM, Tomeu Vizoso
-<tomeu.vizoso@collabora.com> wrote:
-> On 28 July 2015 at 15:39, Rob Herring <robherring2@gmail.com> wrote:
->> On Tue, Jul 28, 2015 at 8:19 AM, Tomeu Vizoso
->> <tomeu.vizoso@collabora.com> wrote:
->>> From an arbitrary node in the tree, find the enclosing node that
->>> corresponds to a platform device, as registered by
->>> of_platform_populate().
->>>
->>> This can be used to find out what device needs to be probed so the
->>> dependency described by a given node is made available.
->>>
->>> Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
->>> ---
->>>
->>> Changes in v2:
->>> - Move the logic for finding a platform device from its firmware node to
->>>   of/platform.c as it's not needed for ACPI nodes.
->>>
->>>  drivers/of/platform.c       | 60 +++++++++++++++++++++++++++++++++++++++++++++
->>>  include/linux/of_platform.h |  1 +
->>>  2 files changed, 61 insertions(+)
->>>
->>> diff --git a/drivers/of/platform.c b/drivers/of/platform.c
->>> index ff27494cda8c..89c5cd513027 100644
->>> --- a/drivers/of/platform.c
->>> +++ b/drivers/of/platform.c
->>> @@ -501,6 +501,66 @@ void of_platform_depopulate(struct device *parent)
->>>  }
->>>  EXPORT_SYMBOL_GPL(of_platform_depopulate);
->>>
->>> +static bool of_is_platform(struct device_node *np)
->>> +{
->>> +       int count;
->>> +
->>> +       count = of_property_count_strings(np, "compatible");
->>> +
->>> +       /* The node has to have a compatible string */
->>> +       if (!count)
->>> +               return false;
->>> +
->>> +       /* But it cannot be just a simple memory-mapped bus */
->>> +       if (count == 1 && of_match_node(of_default_bus_match_table, np))
->>> +               return false;
->>> +
->>> +       /* But AMBA devices aren't platform devices */
->>> +       if (of_device_is_compatible(np, "arm,primecell"))
->>> +               return false;
->>> +
->>> +       /* Node is immediately below root */
->>> +       if (!np->parent || !np->parent->parent)
->>> +               return true;
->>> +
->>> +       /* If it's a node in a simple memory-mapped bus */
->>> +       if (of_match_node(of_default_bus_match_table, np->parent))
->>> +               return true;
->>
->> This seems really fragile.
->
-> I think this finding logic matches the logic for registering platform
-> devices in of_platform_populate and also what is documented in
-> Documentation/devicetree/usage-model.txt.
+On Tuesday, July 28, 2015 01:51:21 PM Mika Westerberg wrote:
+> Commit 20dacb71ad28 ("ACPI / PM: Rework device power management to follow
+> ACPI 6") changed the device power management to use D3hot if the device
+> in question does not have _PR3 method even if D3cold was requested by the
+> caller.
+> 
+> However, if the device has _PR3 device->power.state is also set to D3hot
+> instead of D3Cold after power resources have been turned off because
+> device->power.state will be assigned from "state" instead of
+> "target_state".
+> 
+> Next time the device is transitioned to D0, acpi_power_transition() will
+> find that the current power state of the device is D3hot instead of D3cold
+> which causes it to power down all resources required for the current
+> (wrong) state D3hot.
+> 
+> Below is a simplified ASL example of a real touch panel device which
+> triggers the problem:
+> 
+>   Scope (TPL1)
+>   {
+>       Name (_PR0, Package (1) { \_SB.PCI0.I2C1.PXTC })
+>       Name (_PR3, Package (1) { \_SB.PCI0.I2C1.PXTC })
+>       ...
+>   }
+> 
+> In both D0 and D3hot the same power resource is required. However, when
+> acpi_power_transition() turns off power resources required for D3hot (as
+> the device is transitioned to D0) it powers down PXTC which then makes the
+> device to lose its power.
+> 
+> Fix this by assigning "target_state" to the device power state instead of
+> "state" that is always D3hot even for devices with valid _PR3.
+> 
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Right. So now we have that logic in 2 places. One is descending from
-the root and one is walking up from the child. That's an opportunity
-for some mismatch.
+Applied, thanks!
 
->> What about platform devices which are
->> children of MFDs but are not "simple-mfd"?
->
-> This code should deal fine with those (the boards I tested with do
-> have them). It probes the mfd master, and that in turn will call
-> mfd_add_devices causing the target device to be probed.
-
-I don't see how this function would ever return true in this case
-unless you put the MFD at the root level. The only other way to return
-true is matching on of_default_bus_match_table for the parent (i.e.
-the MFD).
-
-
->> Does of_find_device_by_node not work for you?
->
-> Well, the dependencies aren't always platform devices, that's why I
-> need to go up the tree until I find a node that corresponds to a
-> platform device that I can query and probe.
->
-> If I had a way to get, say, a i2c device from its fwnode then I would
-> just need to make sure that a device's parent is probed before probing
-> it and everything would be cleaner in the OF case.
-
-If you have the struct device from the device_node, then you should be
-able to do this, right?
-
->> That is probably not the
->> most efficient search, but we could fix that. We could add struct
->> device ptr to struct device_node and check without searching for
->> example.
->
-> That would be great, but I thought there was an issue with a OF node
-> being able to be related to more than one struct device (but I haven't
-> found this myself yet).
-
-I think it pretty much should be one to one. I'm not aware of any
-examples where that is not the case. This function would already be
-broken if you could have more than one struct device.
-
-There is an issue where you could have 2 drivers match the same node,
-but on different compatible strings. But that's a different issue.
-
-Rob
+Rafael
