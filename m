@@ -1,87 +1,69 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Subject: [PATCH v2] acpi: Use kstrtoul() instead of strtoul()/simple_strtoul()
-Date: Mon, 27 Jul 2015 17:32:22 -0700
-Message-ID: <1438043542-2960-1-git-send-email-linux@roeck-us.net>
+From: Pan Xinhui <xinhuix.pan@intel.com>
+Subject: [PATCH] cpufreq: Correct a freq check in cpufreq_set_policy
+Date: Tue, 28 Jul 2015 11:34:21 +0800
+Message-ID: <55B6F83D.3040901@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bh-25.webhostbox.net ([208.91.199.152]:50698 "EHLO
-	bh-25.webhostbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754629AbbG1Ac2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Jul 2015 20:32:28 -0400
+Received: from mga01.intel.com ([192.55.52.88]:18412 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754446AbbG1Dgu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 27 Jul 2015 23:36:50 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net
-Cc: lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, devel@acpica.org, Guenter Roeck <linux@roeck-us.net>
+To: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Cc: "rjw@rjwysocki.net" <rjw@rjwysocki.net>, Viresh Kumar <viresh.kumar@linaro.org>, "mnipxh@163.com" <mnipxh@163.com>, "yanmin_zhang@linux.intel.com" <yanmin_zhang@linux.intel.com>
 
-simple_strtoul() is deprecated; replace with kstrtoul() and kstrtouint().
-Return an error if the value passed to the sysfs attribute is not
-a number.
+From: Pan Xinhui <xinhuix.pan@intel.com>
 
-Drop the definition of strtoul() since it is no longer needed.
+This check was originally added by commit 9c9a43ed2734 ("[CPUFREQ]
+return error when failing to set minfreq").It attempt to return an error
+on obviously incorrect limits when we echo xxx >.../scaling_max,min_freq
+Actually we just need check if new_policy->min > new_policy->max.
+Because at least one of max/min is copied from cpufreq_get_policy().
 
-Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+For example, when we echo xxx > .../scaling_min_freq, new_policy is
+copied from policy in cpufreq_get_policy. new_policy->max is same with
+policy->max. new_policy->min is set to a new value.
+
+Let me explain it in deduction method, first statment in if ():
+new_policy->min > policy->max
+policy->max == new_policy->max
+==> new_policy->min > new_policy->max
+
+second statment in if():
+new_policy->max < policy->min
+policy->max < policy->min
+==>new_policy->min > new_policy->max (induction method)
+
+So we have proved that we only need check if new_policy->min >
+new_policy->max.
+
+After apply this patch, we can also modify ->min and ->max in same time
+if new freq range is very much different from current freq range. For
+example, if current freq range is 480000-960000, then we want to set
+this range to 1120000-2240000, we would fail in the past because
+new_policy->min > policy->max. As long as the cpufreq range is valid, we
+has no reason to reject the user. So correct the check.
+
+Signed-off-by: Pan Xinhui <xinhuix.pan@intel.com>
 ---
-v2: An additional use of strtoul() was introduced with commit 4fa4616e.
-    Replace it as well.
+ drivers/cpufreq/cpufreq.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
- drivers/acpi/acpica/evgpeinit.c | 5 +++--
- drivers/acpi/sysfs.c            | 8 ++++++--
- include/acpi/platform/aclinux.h | 1 -
- 3 files changed, 9 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/acpi/acpica/evgpeinit.c b/drivers/acpi/acpica/evgpeinit.c
-index ea4c0d3fca2d..aa1e8c1f2d4a 100644
---- a/drivers/acpi/acpica/evgpeinit.c
-+++ b/drivers/acpi/acpica/evgpeinit.c
-@@ -326,6 +326,7 @@ acpi_ev_match_gpe_method(acpi_handle obj_handle,
- 	u32 gpe_number;
- 	char name[ACPI_NAME_SIZE + 1];
- 	u8 type;
-+	int err;
+diff --git a/drivers/cpufreq/cpufreq.c b/drivers/cpufreq/cpufreq.c
+index 6424e05..8772346 100644
+--- a/drivers/cpufreq/cpufreq.c
++++ b/drivers/cpufreq/cpufreq.c
+@@ -2276,7 +2276,7 @@ static int cpufreq_set_policy(struct cpufreq_policy *policy,
  
- 	ACPI_FUNCTION_TRACE(ev_match_gpe_method);
+ 	memcpy(&new_policy->cpuinfo, &policy->cpuinfo, sizeof(policy->cpuinfo));
  
-@@ -377,8 +378,8 @@ acpi_ev_match_gpe_method(acpi_handle obj_handle,
+-	if (new_policy->min > policy->max || new_policy->max < policy->min)
++	if (new_policy->min > new_policy->max)
+ 		return -EINVAL;
  
- 	/* 4) The last two characters of the name are the hex GPE Number */
- 
--	gpe_number = strtoul(&name[2], NULL, 16);
--	if (gpe_number == ACPI_UINT32_MAX) {
-+	er = kstrtouint(&name[2], 16, &gpe_number);
-+	if (err < 0 || gpe_number == ACPI_UINT32_MAX) {
- 
- 		/* Conversion failed; invalid method, just ignore it */
- 
-diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
-index 0876d77b3206..d6ea5712ec57 100644
---- a/drivers/acpi/sysfs.c
-+++ b/drivers/acpi/sysfs.c
-@@ -616,8 +616,12 @@ static ssize_t counter_set(struct kobject *kobj,
- 			all_counters[index].count = tmp;
- 		else
- 			result = -EINVAL;
--	} else
--		all_counters[index].count = strtoul(buf, NULL, 0);
-+	} else {
-+		if (!kstrtoul(buf, 0, &tmp))
-+			all_counters[index].count = tmp;
-+		else
-+			result = -EINVAL;
-+	}
- 
- 	if (ACPI_FAILURE(result))
- 		result = -EINVAL;
-diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
-index 74ba46c8157a..9925c1d5d58f 100644
---- a/include/acpi/platform/aclinux.h
-+++ b/include/acpi/platform/aclinux.h
-@@ -119,7 +119,6 @@
- 
- #define ACPI_MACHINE_WIDTH          BITS_PER_LONG
- #define ACPI_EXPORT_SYMBOL(symbol)  EXPORT_SYMBOL(symbol);
--#define strtoul                     simple_strtoul
- 
- #define acpi_cache_t                        struct kmem_cache
- #define acpi_spinlock                       spinlock_t *
+ 	/* verify the cpu speed can be set within this limit */
 -- 
-2.1.0
-
+1.9.1
