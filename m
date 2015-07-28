@@ -1,54 +1,41 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / PM: Use target_state to set the device power state
-Date: Tue, 28 Jul 2015 17:59:38 +0200
-Message-ID: <6917556.GA7pjcvNI8@vostro.rjw.lan>
-References: <1438080681-3364-1-git-send-email-mika.westerberg@linux.intel.com>
+From: Brice Adams <abbala202@gmail.com>
+Subject: Please can I trust you?
+Date: Tue, 28 Jul 2015 16:57:36 +0000
+Message-ID: <CAOCEB2PdRF_mFVdE1tYaWUwdsXoNoGYCj9mavir0o+Cpw_x8AA__16274.1874730729$1438102687$gmane$org@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1438080681-3364-1-git-send-email-mika.westerberg@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lb0-f194.google.com ([209.85.217.194]:34736 "EHLO
+	mail-lb0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753069AbbG1Q5i (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Jul 2015 12:57:38 -0400
+Received: by lbcjj5 with SMTP id jj5so5648358lbc.1
+        for <linux-acpi@vger.kernel.org>; Tue, 28 Jul 2015 09:57:36 -0700 (PDT)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday, July 28, 2015 01:51:21 PM Mika Westerberg wrote:
-> Commit 20dacb71ad28 ("ACPI / PM: Rework device power management to follow
-> ACPI 6") changed the device power management to use D3hot if the device
-> in question does not have _PR3 method even if D3cold was requested by the
-> caller.
-> 
-> However, if the device has _PR3 device->power.state is also set to D3hot
-> instead of D3Cold after power resources have been turned off because
-> device->power.state will be assigned from "state" instead of
-> "target_state".
-> 
-> Next time the device is transitioned to D0, acpi_power_transition() will
-> find that the current power state of the device is D3hot instead of D3cold
-> which causes it to power down all resources required for the current
-> (wrong) state D3hot.
-> 
-> Below is a simplified ASL example of a real touch panel device which
-> triggers the problem:
-> 
->   Scope (TPL1)
->   {
->       Name (_PR0, Package (1) { \_SB.PCI0.I2C1.PXTC })
->       Name (_PR3, Package (1) { \_SB.PCI0.I2C1.PXTC })
->       ...
->   }
-> 
-> In both D0 and D3hot the same power resource is required. However, when
-> acpi_power_transition() turns off power resources required for D3hot (as
-> the device is transitioned to D0) it powers down PXTC which then makes the
-> device to lose its power.
-> 
-> Fix this by assigning "target_state" to the device power state instead of
-> "state" that is always D3hot even for devices with valid _PR3.
-> 
-> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+My Dear Friend,
 
-Applied, thanks!
+I am Mr. Brice Adams, staff and auditor of a Bank in Lome, Togo
+Republic. I am the Account Officer to (Late Mr. Daniel I. Glade) whose
+account is presently dormant, I advise you to keep this as a "top
+secret" as I am still in service and intend to retire from service
+after I conclude this deal with you. I have an important
+Message/discussion with you about his death and his funds, the sum of
+(6.5 Million Euros) left without a heir. If you can be of an
+assistance to me, I will be pleased to offer to you 25% of the total
+fund. Please I got your email contact through internet email directory
+when I was searching for a trust worthy partner. If you are willing to
+help me, I need the following information below from you;
 
-Rafael
+Your full name.............
+Nationality................
+Telephone number..............
+Profession.................
+Age.........
+
+I will be humbly waiting your soonest response. Please contact direct
+to my email address (brice2adams@yahoo.fr) for more information.
+
+With Respect,
+Mr. Brice Adams.
