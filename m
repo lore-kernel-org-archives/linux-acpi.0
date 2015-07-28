@@ -1,28 +1,17 @@
 From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Subject: [PATCH v2 08/22] gpio: Probe pinctrl devices on demand
-Date: Tue, 28 Jul 2015 15:19:39 +0200
-Message-ID: <1438089593-7696-9-git-send-email-tomeu.vizoso@collabora.com>
+Subject: [PATCH v2 16/22] usb: phy: Probe phy devices on demand
+Date: Tue, 28 Jul 2015 15:19:47 +0200
+Message-ID: <1438089593-7696-17-git-send-email-tomeu.vizoso@collabora.com>
 References: <1438089593-7696-1-git-send-email-tomeu.vizoso@collabora.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1438089593-7696-1-git-send-email-tomeu.vizoso@collabora.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
-Cc: devicetree@vger.kernel.org, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@wwwdotorg.org>, Linus Walleij <linus.walleij@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, Javier Martinez Canillas <javier@osg.samsung.com>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, linux-gpio@vger.kernel.org, Alexandre Courbot <gnurou@gmail.com>, linux-arm-kernel@lists.infradead.org
+Cc: Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-arm-kernel@lists.infradead.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, Felipe Balbi <balbi@ti.com>
 List-Id: linux-acpi@vger.kernel.org
 
-When looking up a pin controller through its firmware node, probe it if
-it hasn't already.
+When looking up a phy through its firmware node, probe it if it hasn't
+already.
 
 The goal is to reduce deferred probes to a minimum, as it makes it very
 cumbersome to find out why a device failed to probe, and can introduce
@@ -33,21 +22,21 @@ Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
 
 Changes in v2: None
 
- drivers/gpio/gpiolib-of.c | 2 ++
+ drivers/usb/phy/phy.c | 2 ++
  1 file changed, 2 insertions(+)
 
-diff --git a/drivers/gpio/gpiolib-of.c b/drivers/gpio/gpiolib-of.c
-index 31a6b18a6542..2a6379c1fea7 100644
---- a/drivers/gpio/gpiolib-of.c
-+++ b/drivers/gpio/gpiolib-of.c
-@@ -358,6 +358,8 @@ static int of_gpiochip_add_pin_range(struct gpio_chip *chip)
- 		if (ret)
- 			break;
+diff --git a/drivers/usb/phy/phy.c b/drivers/usb/phy/phy.c
+index 98f75d2842b7..2d51c12d0726 100644
+--- a/drivers/usb/phy/phy.c
++++ b/drivers/usb/phy/phy.c
+@@ -196,6 +196,8 @@ struct  usb_phy *devm_usb_get_phy_by_node(struct device *dev,
+ 		goto err0;
+ 	}
  
-+		fwnode_ensure_device(&pinspec.np->fwnode);
++	fwnode_ensure_device(&node->fwnode);
 +
- 		pctldev = of_pinctrl_get(pinspec.np);
- 		if (!pctldev)
- 			return -EPROBE_DEFER;
+ 	spin_lock_irqsave(&phy_lock, flags);
+ 
+ 	phy = __of_usb_find_phy(node);
 -- 
 2.4.3
