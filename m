@@ -1,21 +1,17 @@
 From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Subject: [PATCH v2 19/22] phy: core: Probe phy providers on demand
-Date: Tue, 28 Jul 2015 15:19:50 +0200
-Message-ID: <1438089593-7696-20-git-send-email-tomeu.vizoso@collabora.com>
+Subject: [PATCH v2 17/22] clk: Probe clk providers on demand
+Date: Tue, 28 Jul 2015 15:19:48 +0200
+Message-ID: <1438089593-7696-18-git-send-email-tomeu.vizoso@collabora.com>
 References: <1438089593-7696-1-git-send-email-tomeu.vizoso@collabora.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f182.google.com ([209.85.212.182]:37117 "EHLO
-	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932102AbbG1NVR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Jul 2015 09:21:17 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1438089593-7696-1-git-send-email-tomeu.vizoso@collabora.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
-Cc: Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-arm-kernel@lists.infradead.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-arm-kernel@lists.infradead.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, Stephen Boyd <sboyd@codeaurora.org>, Michael Turquette <mturquette@baylibre.com>, linux-clk@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-When looking up a phy provider through its firmware node, probe it if it
-hasn't already.
+When looking up a clock through its firmware node, probe it if it hasn't
+already.
 
 The goal is to reduce deferred probes to a minimum, as it makes it very
 cumbersome to find out why a device failed to probe, and can introduce
@@ -26,22 +22,22 @@ Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
 
 Changes in v2: None
 
- drivers/phy/phy-core.c | 2 ++
- 1 file changed, 2 insertions(+)
+ drivers/clk/clk.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/phy/phy-core.c b/drivers/phy/phy-core.c
-index fc48fac003a6..c27e7d3d86ee 100644
---- a/drivers/phy/phy-core.c
-+++ b/drivers/phy/phy-core.c
-@@ -363,6 +363,8 @@ static struct phy *_of_phy_get(struct device_node *np, int index)
- 	if (ret)
- 		return ERR_PTR(-ENODEV);
+diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
+index 7bb975747a2c..3cc951989a12 100644
+--- a/drivers/clk/clk.c
++++ b/drivers/clk/clk.c
+@@ -2979,6 +2979,9 @@ struct clk *__of_clk_get_from_provider(struct of_phandle_args *clkspec,
+ 	if (!clkspec)
+ 		return ERR_PTR(-EINVAL);
  
-+	fwnode_ensure_device(&args.np->fwnode);
++	if (clkspec->np)
++		fwnode_ensure_device(&clkspec->np->fwnode);
 +
- 	mutex_lock(&phy_provider_mutex);
- 	phy_provider = of_phy_provider_lookup(args.np);
- 	if (IS_ERR(phy_provider) || !try_module_get(phy_provider->owner)) {
+ 	/* Check if we have such a provider in our array */
+ 	mutex_lock(&of_clk_mutex);
+ 	list_for_each_entry(provider, &of_clk_providers, link) {
 -- 
 2.4.3
-
