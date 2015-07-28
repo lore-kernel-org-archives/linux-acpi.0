@@ -1,96 +1,87 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH v3 13/51] PCI: Separate realloc list checking after allocation
-Date: Mon, 27 Jul 2015 16:29:31 -0700
-Message-ID: <1438039809-24957-14-git-send-email-yinghai@kernel.org>
-References: <1438039809-24957-1-git-send-email-yinghai@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1438039809-24957-1-git-send-email-yinghai@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, David Miller <davem@davemloft.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Wei Yang <weiyang@linux.vnet.ibm.com>, TJ <linux@iam.tj>, Yijing Wang <wangyijing@huawei.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: [PATCH v2] acpi: Use kstrtoul() instead of strtoul()/simple_strtoul()
+Date: Mon, 27 Jul 2015 17:32:22 -0700
+Message-ID: <1438043542-2960-1-git-send-email-linux@roeck-us.net>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from bh-25.webhostbox.net ([208.91.199.152]:50698 "EHLO
+	bh-25.webhostbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754629AbbG1Ac2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 27 Jul 2015 20:32:28 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: rjw@rjwysocki.net
+Cc: lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, devel@acpica.org, Guenter Roeck <linux@roeck-us.net>
 
-We check the realloc list, as list must be empty after allocation.
+simple_strtoul() is deprecated; replace with kstrtoul() and kstrtouint().
+Return an error if the value passed to the sysfs attribute is not
+a number.
 
-Separate the realloc list checking to another function.
+Drop the definition of strtoul() since it is no longer needed.
 
-Add checking that is missed in acpiphp driver.
-
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
+Signed-off-by: Guenter Roeck <linux@roeck-us.net>
 ---
- drivers/pci/hotplug/acpiphp_glue.c |  1 +
- drivers/pci/pci.h                  |  1 +
- drivers/pci/setup-bus.c            | 11 ++++++++---
- 3 files changed, 10 insertions(+), 3 deletions(-)
+v2: An additional use of strtoul() was introduced with commit 4fa4616e.
+    Replace it as well.
 
-diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
-index ff53856..134caee 100644
---- a/drivers/pci/hotplug/acpiphp_glue.c
-+++ b/drivers/pci/hotplug/acpiphp_glue.c
-@@ -507,6 +507,7 @@ static void enable_slot(struct acpiphp_slot *slot)
- 		}
- 	}
- 	__pci_bus_assign_resources(bus, &add_list, NULL);
-+	__pci_bus_check_realloc(&add_list);
+ drivers/acpi/acpica/evgpeinit.c | 5 +++--
+ drivers/acpi/sysfs.c            | 8 ++++++--
+ include/acpi/platform/aclinux.h | 1 -
+ 3 files changed, 9 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/acpi/acpica/evgpeinit.c b/drivers/acpi/acpica/evgpeinit.c
+index ea4c0d3fca2d..aa1e8c1f2d4a 100644
+--- a/drivers/acpi/acpica/evgpeinit.c
++++ b/drivers/acpi/acpica/evgpeinit.c
+@@ -326,6 +326,7 @@ acpi_ev_match_gpe_method(acpi_handle obj_handle,
+ 	u32 gpe_number;
+ 	char name[ACPI_NAME_SIZE + 1];
+ 	u8 type;
++	int err;
  
- 	acpiphp_sanitize_bus(bus);
- 	pcie_bus_configure_settings(bus);
-diff --git a/drivers/pci/pci.h b/drivers/pci/pci.h
-index 4ff0ff1..2b83977 100644
---- a/drivers/pci/pci.h
-+++ b/drivers/pci/pci.h
-@@ -235,6 +235,7 @@ void __pci_bus_size_bridges(struct pci_bus *bus,
- void __pci_bus_assign_resources(const struct pci_bus *bus,
- 				struct list_head *realloc_head,
- 				struct list_head *fail_head);
-+void __pci_bus_check_realloc(struct list_head *realloc_head);
- bool pci_bus_clip_resource(struct pci_dev *dev, int idx);
+ 	ACPI_FUNCTION_TRACE(ev_match_gpe_method);
  
- void pci_reassigndev_resource_alignment(struct pci_dev *dev);
-diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
-index 06664db..f30225c 100644
---- a/drivers/pci/setup-bus.c
-+++ b/drivers/pci/setup-bus.c
-@@ -350,6 +350,11 @@ out:
- 	}
- }
+@@ -377,8 +378,8 @@ acpi_ev_match_gpe_method(acpi_handle obj_handle,
  
-+void __pci_bus_check_realloc(struct list_head *realloc_head)
-+{
-+	BUG_ON(!list_empty(realloc_head));
-+}
-+
- /**
-  * assign_requested_resources_sorted() - satisfy resource requests
-  *
-@@ -1861,7 +1866,7 @@ again:
- 	/* Depth last, allocate resources and update the hardware. */
- 	__pci_bus_assign_resources(bus, add_list, &fail_head);
- 	if (add_list)
--		BUG_ON(!list_empty(add_list));
-+		__pci_bus_check_realloc(add_list);
- 	tried_times++;
+ 	/* 4) The last two characters of the name are the hex GPE Number */
  
- 	/* any device complain? */
-@@ -1936,7 +1941,7 @@ void pci_assign_unassigned_bridge_resources(struct pci_dev *bridge)
- again:
- 	__pci_bus_size_bridges(parent, &add_list);
- 	__pci_bridge_assign_resources(bridge, &add_list, &fail_head);
--	BUG_ON(!list_empty(&add_list));
-+	__pci_bus_check_realloc(&add_list);
- 	tried_times++;
+-	gpe_number = strtoul(&name[2], NULL, 16);
+-	if (gpe_number == ACPI_UINT32_MAX) {
++	er = kstrtouint(&name[2], 16, &gpe_number);
++	if (err < 0 || gpe_number == ACPI_UINT32_MAX) {
  
- 	if (list_empty(&fail_head))
-@@ -1995,6 +2000,6 @@ void pci_assign_unassigned_bus_resources(struct pci_bus *bus)
- 							 &add_list);
- 	up_read(&pci_bus_sem);
- 	__pci_bus_assign_resources(bus, &add_list, NULL);
--	BUG_ON(!list_empty(&add_list));
-+	__pci_bus_check_realloc(&add_list);
- }
- EXPORT_SYMBOL_GPL(pci_assign_unassigned_bus_resources);
+ 		/* Conversion failed; invalid method, just ignore it */
+ 
+diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
+index 0876d77b3206..d6ea5712ec57 100644
+--- a/drivers/acpi/sysfs.c
++++ b/drivers/acpi/sysfs.c
+@@ -616,8 +616,12 @@ static ssize_t counter_set(struct kobject *kobj,
+ 			all_counters[index].count = tmp;
+ 		else
+ 			result = -EINVAL;
+-	} else
+-		all_counters[index].count = strtoul(buf, NULL, 0);
++	} else {
++		if (!kstrtoul(buf, 0, &tmp))
++			all_counters[index].count = tmp;
++		else
++			result = -EINVAL;
++	}
+ 
+ 	if (ACPI_FAILURE(result))
+ 		result = -EINVAL;
+diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
+index 74ba46c8157a..9925c1d5d58f 100644
+--- a/include/acpi/platform/aclinux.h
++++ b/include/acpi/platform/aclinux.h
+@@ -119,7 +119,6 @@
+ 
+ #define ACPI_MACHINE_WIDTH          BITS_PER_LONG
+ #define ACPI_EXPORT_SYMBOL(symbol)  EXPORT_SYMBOL(symbol);
+-#define strtoul                     simple_strtoul
+ 
+ #define acpi_cache_t                        struct kmem_cache
+ #define acpi_spinlock                       spinlock_t *
 -- 
-1.8.4.5
+2.1.0
+
