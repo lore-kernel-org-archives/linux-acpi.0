@@ -1,74 +1,47 @@
 From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Subject: [PATCH v2 03/22] device property: add fwnode_get_name()
-Date: Tue, 28 Jul 2015 15:19:34 +0200
-Message-ID: <1438089593-7696-4-git-send-email-tomeu.vizoso@collabora.com>
+Subject: [PATCH v2 19/22] phy: core: Probe phy providers on demand
+Date: Tue, 28 Jul 2015 15:19:50 +0200
+Message-ID: <1438089593-7696-20-git-send-email-tomeu.vizoso@collabora.com>
 References: <1438089593-7696-1-git-send-email-tomeu.vizoso@collabora.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wi0-f182.google.com ([209.85.212.182]:37117 "EHLO
+	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932102AbbG1NVR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Jul 2015 09:21:17 -0400
 In-Reply-To: <1438089593-7696-1-git-send-email-tomeu.vizoso@collabora.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-kernel@vger.kernel.org
-Cc: devicetree@vger.kernel.org, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@wwwdotorg.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, Javier Martinez Canillas <javier@osg.samsung.com>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, linux-arm-kernel@lists.infradead.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-arm-kernel@lists.infradead.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, Kishon Vijay Abraham I <kishon@ti.com>
 
-Getting a textual representation of a device node can be very useful for
-debugging.
+When looking up a phy provider through its firmware node, probe it if it
+hasn't already.
+
+The goal is to reduce deferred probes to a minimum, as it makes it very
+cumbersome to find out why a device failed to probe, and can introduce
+very big delays in when a critical device is probed.
 
 Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
 ---
 
-Changes in v2:
-- Use of_node_full_name()
+Changes in v2: None
 
- drivers/base/property.c  | 15 +++++++++++++++
- include/linux/property.h |  2 ++
- 2 files changed, 17 insertions(+)
+ drivers/phy/phy-core.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/base/property.c b/drivers/base/property.c
-index f3f6d167f3f1..efa74803af30 100644
---- a/drivers/base/property.c
-+++ b/drivers/base/property.c
-@@ -533,3 +533,18 @@ bool device_dma_is_coherent(struct device *dev)
- 	return coherent;
- }
- EXPORT_SYMBOL_GPL(device_dma_is_coherent);
-+
-+/**
-+ * fwnode_get_name - return the name of a device node
-+ * @fwnode: Device node to find the name of
-+ */
-+const char *fwnode_get_name(struct fwnode_handle *fwnode)
-+{
-+	if (is_of_node(fwnode))
-+		return of_node_full_name(to_of_node(fwnode));
-+	else if (is_acpi_node(fwnode))
-+		return acpi_dev_name(to_acpi_node(fwnode));
-+
-+	return NULL;
-+}
-+EXPORT_SYMBOL_GPL(fwnode_get_name);
-diff --git a/include/linux/property.h b/include/linux/property.h
-index 76ebde9c11d4..826f156f7288 100644
---- a/include/linux/property.h
-+++ b/include/linux/property.h
-@@ -63,6 +63,8 @@ int fwnode_property_read_string(struct fwnode_handle *fwnode,
- struct fwnode_handle *device_get_next_child_node(struct device *dev,
- 						 struct fwnode_handle *child);
+diff --git a/drivers/phy/phy-core.c b/drivers/phy/phy-core.c
+index fc48fac003a6..c27e7d3d86ee 100644
+--- a/drivers/phy/phy-core.c
++++ b/drivers/phy/phy-core.c
+@@ -363,6 +363,8 @@ static struct phy *_of_phy_get(struct device_node *np, int index)
+ 	if (ret)
+ 		return ERR_PTR(-ENODEV);
  
-+const char *fwnode_get_name(struct fwnode_handle *fwnode);
++	fwnode_ensure_device(&args.np->fwnode);
 +
- #define device_for_each_child_node(dev, child) \
- 	for (child = device_get_next_child_node(dev, NULL); child; \
- 	     child = device_get_next_child_node(dev, child))
+ 	mutex_lock(&phy_provider_mutex);
+ 	phy_provider = of_phy_provider_lookup(args.np);
+ 	if (IS_ERR(phy_provider) || !try_module_get(phy_provider->owner)) {
 -- 
 2.4.3
+
