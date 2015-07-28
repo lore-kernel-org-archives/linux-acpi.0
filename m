@@ -1,68 +1,54 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH] ACPI / PM: Use target_state to set the device power state
-Date: Tue, 28 Jul 2015 13:51:21 +0300
-Message-ID: <1438080681-3364-1-git-send-email-mika.westerberg@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:6176 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751173AbbG1Kv0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 28 Jul 2015 06:51:26 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Subject: [PATCH v2 05/22] ACPI: add acpi_dev_get_device()
+Date: Tue, 28 Jul 2015 15:19:36 +0200
+Message-ID: <1438089593-7696-6-git-send-email-tomeu.vizoso@collabora.com>
+References: <1438089593-7696-1-git-send-email-tomeu.vizoso@collabora.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1438089593-7696-1-git-send-email-tomeu.vizoso@collabora.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-arm-kernel@lists.infradead.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-Commit 20dacb71ad28 ("ACPI / PM: Rework device power management to follow
-ACPI 6") changed the device power management to use D3hot if the device
-in question does not have _PR3 method even if D3cold was requested by the
-caller.
+This function is just a getter for struct acpi_device.dev and is needed
+in the implementation of the fwnode API when building with !CONFIG_ACPI.
 
-However, if the device has _PR3 device->power.state is also set to D3hot
-instead of D3Cold after power resources have been turned off because
-device->power.state will be assigned from "state" instead of
-"target_state".
-
-Next time the device is transitioned to D0, acpi_power_transition() will
-find that the current power state of the device is D3hot instead of D3cold
-which causes it to power down all resources required for the current
-(wrong) state D3hot.
-
-Below is a simplified ASL example of a real touch panel device which
-triggers the problem:
-
-  Scope (TPL1)
-  {
-      Name (_PR0, Package (1) { \_SB.PCI0.I2C1.PXTC })
-      Name (_PR3, Package (1) { \_SB.PCI0.I2C1.PXTC })
-      ...
-  }
-
-In both D0 and D3hot the same power resource is required. However, when
-acpi_power_transition() turns off power resources required for D3hot (as
-the device is transitioned to D0) it powers down PXTC which then makes the
-device to lose its power.
-
-Fix this by assigning "target_state" to the device power state instead of
-"state" that is always D3hot even for devices with valid _PR3.
-
-Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
 ---
- drivers/acpi/device_pm.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/device_pm.c b/drivers/acpi/device_pm.c
-index 08dc3ec7e892..337e8118836d 100644
---- a/drivers/acpi/device_pm.c
-+++ b/drivers/acpi/device_pm.c
-@@ -231,7 +231,7 @@ int acpi_device_set_power(struct acpi_device *device, int state)
- 		dev_warn(&device->dev, "Failed to change power state to %s\n",
- 			 acpi_power_state_string(state));
- 	} else {
--		device->power.state = state;
-+		device->power.state = target_state;
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
- 				  "Device [%s] transitioned to %s\n",
- 				  device->pnp.bus_id,
+Changes in v2:
+- Add acpi_dev_get_device()
+
+ include/linux/acpi.h | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 01e6770d8e27..d1ad6c20c7e4 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -78,6 +78,11 @@ static inline void acpi_preset_companion(struct device *dev,
+ 	ACPI_COMPANION_SET(dev, acpi_find_child_device(parent, addr, NULL));
+ }
+ 
++static inline struct device *acpi_dev_get_device(struct acpi_device *adev)
++{
++	return &adev->dev;
++}
++
+ static inline const char *acpi_dev_name(struct acpi_device *adev)
+ {
+ 	return dev_name(&adev->dev);
+@@ -476,6 +481,11 @@ static inline bool has_acpi_companion(struct device *dev)
+ 	return false;
+ }
+ 
++static inline struct device *acpi_dev_get_device(struct acpi_device *adev)
++{
++	return NULL;
++}
++
+ static inline const char *acpi_dev_name(struct acpi_device *adev)
+ {
+ 	return NULL;
 -- 
-2.4.6
-
+2.4.3
