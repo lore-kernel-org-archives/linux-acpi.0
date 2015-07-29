@@ -1,337 +1,170 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH v4 08/10] ACPI: GIC: Add ACPI helper functions to query irq-domain tokens for for GIC MSI and ITS
-Date: Wed, 29 Jul 2015 18:08:57 +0800
-Message-ID: <1438164539-29256-9-git-send-email-hanjun.guo@linaro.org>
-References: <1438164539-29256-1-git-send-email-hanjun.guo@linaro.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pd0-f175.google.com ([209.85.192.175]:32907 "EHLO
-	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752495AbbG2KKo (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Jul 2015 06:10:44 -0400
-Received: by pdbnt7 with SMTP id nt7so3569271pdb.0
-        for <linux-acpi@vger.kernel.org>; Wed, 29 Jul 2015 03:10:44 -0700 (PDT)
-In-Reply-To: <1438164539-29256-1-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Tomeu Vizoso <tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
+Subject: Re: [PATCH v2 04/22] of/platform: add of_platform_device_find()
+Date: Wed, 29 Jul 2015 13:20:03 +0200
+Message-ID: <CAAObsKD9BN7dsEiNB=OvJkoOQPwxwnP794w=X4AwtYz3oxEJqw@mail.gmail.com>
+References: <1438089593-7696-1-git-send-email-tomeu.vizoso@collabora.com>
+ <1438089593-7696-5-git-send-email-tomeu.vizoso@collabora.com>
+ <CAL_JsqJGhFXDKuayuKc2E58X5A7ZGN=uYCVDLnXw_t3_auBg+w@mail.gmail.com>
+ <CAAObsKBfRLdPc0gs55ARfa+qZJAOEyEgRyTf8krZnQMb6-j03g@mail.gmail.com>
+ <CAL_Jsq+RqGAxHE5-ocD-htddBHckG24oZNqfgmMF3Jak6wDXBQ@mail.gmail.com> <CAAObsKA+vMsgiC52jReJckeDjXhdd=_NBocFbMapdwFReiY1SQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAAObsKA+vMsgiC52jReJckeDjXhdd=_NBocFbMapdwFReiY1SQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Rob Herring <robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Timur Tabi <timur@codeaurora.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Grant Likely <grant.likely@linaro.org>, Mark Brown <broonie@kernel.org>, Wei Huang <wei@redhat.com>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
 
-From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+On 29 July 2015 at 08:14, Tomeu Vizoso <tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org> wrote:
+> On 28 July 2015 at 17:31, Rob Herring <robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>> On Tue, Jul 28, 2015 at 8:54 AM, Tomeu Vizoso
+>> <tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org> wrote:
+>>> On 28 July 2015 at 15:39, Rob Herring <robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+>>>> On Tue, Jul 28, 2015 at 8:19 AM, Tomeu Vizoso
+>>>> <tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org> wrote:
+>>>>> From an arbitrary node in the tree, find the enclosing node that
+>>>>> corresponds to a platform device, as registered by
+>>>>> of_platform_populate().
+>>>>>
+>>>>> This can be used to find out what device needs to be probed so the
+>>>>> dependency described by a given node is made available.
+>>>>>
+>>>>> Signed-off-by: Tomeu Vizoso <tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
+>>>>> ---
+>>>>>
+>>>>> Changes in v2:
+>>>>> - Move the logic for finding a platform device from its firmware node to
+>>>>>   of/platform.c as it's not needed for ACPI nodes.
+>>>>>
+>>>>>  drivers/of/platform.c       | 60 +++++++++++++++++++++++++++++++++++++++++++++
+>>>>>  include/linux/of_platform.h |  1 +
+>>>>>  2 files changed, 61 insertions(+)
+>>>>>
+>>>>> diff --git a/drivers/of/platform.c b/drivers/of/platform.c
+>>>>> index ff27494cda8c..89c5cd513027 100644
+>>>>> --- a/drivers/of/platform.c
+>>>>> +++ b/drivers/of/platform.c
+>>>>> @@ -501,6 +501,66 @@ void of_platform_depopulate(struct device *parent)
+>>>>>  }
+>>>>>  EXPORT_SYMBOL_GPL(of_platform_depopulate);
+>>>>>
+>>>>> +static bool of_is_platform(struct device_node *np)
+>>>>> +{
+>>>>> +       int count;
+>>>>> +
+>>>>> +       count = of_property_count_strings(np, "compatible");
+>>>>> +
+>>>>> +       /* The node has to have a compatible string */
+>>>>> +       if (!count)
+>>>>> +               return false;
+>>>>> +
+>>>>> +       /* But it cannot be just a simple memory-mapped bus */
+>>>>> +       if (count == 1 && of_match_node(of_default_bus_match_table, np))
+>>>>> +               return false;
+>>>>> +
+>>>>> +       /* But AMBA devices aren't platform devices */
+>>>>> +       if (of_device_is_compatible(np, "arm,primecell"))
+>>>>> +               return false;
+>>>>> +
+>>>>> +       /* Node is immediately below root */
+>>>>> +       if (!np->parent || !np->parent->parent)
+>>>>> +               return true;
+>>>>> +
+>>>>> +       /* If it's a node in a simple memory-mapped bus */
+>>>>> +       if (of_match_node(of_default_bus_match_table, np->parent))
+>>>>> +               return true;
+>>>>
+>>>> This seems really fragile.
+>>>
+>>> I think this finding logic matches the logic for registering platform
+>>> devices in of_platform_populate and also what is documented in
+>>> Documentation/devicetree/usage-model.txt.
+>>
+>> Right. So now we have that logic in 2 places. One is descending from
+>> the root and one is walking up from the child. That's an opportunity
+>> for some mismatch.
+>
+> Definitely.
+>
+>>>> What about platform devices which are
+>>>> children of MFDs but are not "simple-mfd"?
+>>>
+>>> This code should deal fine with those (the boards I tested with do
+>>> have them). It probes the mfd master, and that in turn will call
+>>> mfd_add_devices causing the target device to be probed.
+>>
+>> I don't see how this function would ever return true in this case
+>> unless you put the MFD at the root level. The only other way to return
+>> true is matching on of_default_bus_match_table for the parent (i.e.
+>> the MFD).
+>
+> Oops, you are right.
+>
+>>>> Does of_find_device_by_node not work for you?
+>>>
+>>> Well, the dependencies aren't always platform devices, that's why I
+>>> need to go up the tree until I find a node that corresponds to a
+>>> platform device that I can query and probe.
+>>>
+>>> If I had a way to get, say, a i2c device from its fwnode then I would
+>>> just need to make sure that a device's parent is probed before probing
+>>> it and everything would be cleaner in the OF case.
+>>
+>> If you have the struct device from the device_node, then you should be
+>> able to do this, right?
+>
+> Yes, if I could go back from the device_node to the struct device that
+> was registered from it, for all buses, then all this would be much
+> simpler and more robust. It would basically work like in the ACPI
+> case.
+>
+> I will play with this idea.
+>
+>>>> That is probably not the
+>>>> most efficient search, but we could fix that. We could add struct
+>>>> device ptr to struct device_node and check without searching for
+>>>> example.
+>>>
+>>> That would be great, but I thought there was an issue with a OF node
+>>> being able to be related to more than one struct device (but I haven't
+>>> found this myself yet).
+>>
+>> I think it pretty much should be one to one. I'm not aware of any
+>> examples where that is not the case. This function would already be
+>> broken if you could have more than one struct device.
+>
+> Well, for platform devices we currently know that there can only be
+> one struct device for a given device_node, but that's not so clear for
+> other devices.
 
-This patch introduces acpi_gic_get_msi_token(), which returns irq-domain
-token that can be used to look up MSI doamin of a device.
-In both GIC MSI and ITS cases, the base_address specified in the GIC MSI
-or GIC ITS structure is used as a token for MSI domain.
+Just found this case:
 
-In addition, this patch also provides low-level helper functions to parse
-and query GIC MSI structure and GIC ITS from MADT. Once parsed, it keeps
-a copy of the structure for use in subsequent queries to avoid having
-to map and parse MADT multiple times.
+http://lxr.free-electrons.com/source/drivers/spi/spi-tegra114.c#L1124
 
-Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
----
- drivers/acpi/Makefile   |   1 +
- drivers/acpi/acpi_gic.c | 234 ++++++++++++++++++++++++++++++++++++++++++++++++
- include/acpi/acpi_gic.h |  23 +++++
- include/linux/acpi.h    |   1 +
- 4 files changed, 259 insertions(+)
- create mode 100644 drivers/acpi/acpi_gic.c
- create mode 100644 include/acpi/acpi_gic.h
+Looks like SPI master devices point to the same device_node as the
+platform device that registers them.
 
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index 8321430..def54b9 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -54,6 +54,7 @@ acpi-$(CONFIG_ACPI_NUMA)	+= numa.o
- acpi-$(CONFIG_ACPI_PROCFS_POWER) += cm_sbs.o
- acpi-y				+= acpi_lpat.o
- acpi-$(CONFIG_ACPI_GENERIC_GSI) += gsi.o
-+acpi-$(CONFIG_ARM_GIC_ACPI)	+= acpi_gic.o
- 
- # These are (potentially) separate modules
- 
-diff --git a/drivers/acpi/acpi_gic.c b/drivers/acpi/acpi_gic.c
-new file mode 100644
-index 0000000..11ee4eb
---- /dev/null
-+++ b/drivers/acpi/acpi_gic.c
-@@ -0,0 +1,234 @@
-+/*
-+ * File: acpi_gic.c
-+ *
-+ * ACPI helper functions for ARM GIC
-+ *
-+ * Copyright (C) 2015 Advanced Micro Devices, Inc.
-+ * Authors: Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>
-+ */
-+
-+#include <linux/acpi.h>
-+#include <linux/init.h>
-+
-+/*
-+ * GIC MSI Frame data structures
-+ */
-+struct gic_msi_frame_handle {
-+	struct list_head list;
-+	struct acpi_madt_generic_msi_frame frame;
-+};
-+
-+static LIST_HEAD(msi_frame_list);
-+
-+static int acpi_num_msi;
-+
-+/*
-+ * GIC ITS data structures
-+ */
-+struct gic_its_handle {
-+	struct list_head list;
-+	struct acpi_madt_generic_translator trans;
-+};
-+
-+static LIST_HEAD(its_list);
-+
-+static int acpi_num_its;
-+
-+/*
-+ * GIC MSI Frame parsing stuff
-+ */
-+inline int acpi_gic_get_num_msi_frame(void)
-+{
-+	return acpi_num_msi;
-+}
-+
-+static int __init
-+acpi_parse_madt_msi(struct acpi_subtable_header *header,
-+		    const unsigned long end)
-+{
-+	struct gic_msi_frame_handle *h;
-+	struct acpi_madt_generic_msi_frame *frame;
-+
-+	frame = (struct acpi_madt_generic_msi_frame *)header;
-+	if (BAD_MADT_ENTRY(frame, end))
-+		return -EINVAL;
-+
-+	h = kzalloc(sizeof(struct gic_msi_frame_handle *), GFP_KERNEL);
-+	if (!h)
-+		return -ENOMEM;
-+
-+	/** Note:
-+	 * We make a copy of this structure since this code is called
-+	 * prior to acpi_early_init(), which sets the acpi_gbl_permanent_mmap.
-+	 * Therefore, we could not keep just the pointer sincce the memory
-+	 * could be unmapped.
-+	 */
-+	memcpy(&h->frame, frame, sizeof(struct acpi_madt_generic_msi_frame));
-+
-+	list_add(&h->list, &msi_frame_list);
-+
-+	return 0;
-+}
-+
-+int __init acpi_gic_msi_init(struct acpi_table_header *table)
-+{
-+	int ret = 0;
-+
-+	if (acpi_num_msi > 0)
-+		return ret;
-+
-+	ret = acpi_parse_entries(ACPI_SIG_MADT,
-+				 sizeof(struct acpi_table_madt),
-+				 acpi_parse_madt_msi, table,
-+				 ACPI_MADT_TYPE_GENERIC_MSI_FRAME, 0);
-+	if (ret == 0) {
-+		pr_debug("No valid ACPI GIC MSI FRAME exist\n");
-+		return ret;
-+	}
-+
-+	acpi_num_msi = ret;
-+	return 0;
-+}
-+
-+int acpi_gic_get_msi_frame(int index, struct acpi_madt_generic_msi_frame **p)
-+{
-+	int i = 0;
-+	struct gic_msi_frame_handle *m;
-+
-+	if (index >= acpi_num_msi)
-+		return -EINVAL;
-+
-+	list_for_each_entry(m, &msi_frame_list, list) {
-+		if (i == index)
-+			break;
-+		i++;
-+	}
-+
-+	if (i == acpi_num_msi)
-+		return -EINVAL;
-+
-+	*p = &(m->frame);
-+	return  0;
-+}
-+
-+/*
-+ * GIC ITS parsing stuff
-+ */
-+inline int acpi_gic_get_num_its(void)
-+{
-+	return acpi_num_its;
-+}
-+
-+static int __init
-+acpi_parse_madt_its(struct acpi_subtable_header *header,
-+		    const unsigned long end)
-+{
-+	struct gic_its_handle *h;
-+	struct acpi_madt_generic_translator *trans;
-+
-+	trans = (struct acpi_madt_generic_translator *)header;
-+	if (BAD_MADT_ENTRY(trans, end))
-+		return -EINVAL;
-+
-+	h = kzalloc(sizeof(struct gic_its_handle *), GFP_KERNEL);
-+	if (!h)
-+		return -ENOMEM;
-+
-+	memcpy(&h->trans, trans, sizeof(struct acpi_madt_generic_translator));
-+
-+	list_add(&h->list, &its_list);
-+
-+	return 0;
-+}
-+
-+int __init acpi_gic_madt_gic_its_init(struct acpi_table_header *table)
-+{
-+	int ret = 0;
-+
-+	if (acpi_num_its > 0)
-+		return ret;
-+
-+	ret = acpi_parse_entries(ACPI_SIG_MADT,
-+				 sizeof(struct acpi_table_madt),
-+				 acpi_parse_madt_its, table,
-+				 ACPI_MADT_TYPE_GENERIC_TRANSLATOR, 0);
-+	if (ret == 0) {
-+		pr_debug("No valid ACPI GIC ITS exist\n");
-+		return ret;
-+	}
-+
-+	acpi_num_its = ret;
-+	return 0;
-+}
-+
-+int acpi_gic_get_its(int index, struct acpi_madt_generic_translator **p)
-+{
-+	int i = 0;
-+	struct gic_its_handle *m;
-+
-+	if (index >= acpi_num_its)
-+		return -EINVAL;
-+
-+	list_for_each_entry(m, &its_list, list) {
-+		if (i == index)
-+			break;
-+		i++;
-+	}
-+
-+	if (i == acpi_num_its)
-+		return -EINVAL;
-+
-+	*p = &(m->trans);
-+	return  0;
-+}
-+
-+static void *acpi_gic_msi_token(struct device *dev)
-+{
-+	int err;
-+	struct acpi_madt_generic_msi_frame *msi;
-+
-+	/**
-+	* Since ACPI 5.1 currently does not define
-+	* a way to associate MSI frame ID to a device,
-+	* we can only support single MSI frame (index 0)
-+	* at the moment.
-+	*/
-+	err = acpi_gic_get_msi_frame(0, &msi);
-+	if (err)
-+		return NULL;
-+
-+	return (void *) msi->base_address;
-+}
-+
-+static void *acpi_gic_its_token(struct device *dev)
-+{
-+	int err;
-+	struct acpi_madt_generic_translator *trans;
-+	int its_id = 0;
-+
-+	/**
-+	 * TODO: We need a way to retrieve GIC ITS ID from
-+	 * struct device pointer (in this case, the device
-+	 * would be the PCI host controller.
-+	 *
-+	 * This would be done by the IORT-related code.
-+	 *
-+	 * its_id = get_its_id(dev);
-+	 */
-+
-+	err = acpi_gic_get_its(its_id, &trans);
-+	if (err)
-+		return NULL;
-+
-+	return (void *) trans->base_address;
-+}
-+
-+void *acpi_gic_get_msi_token(struct device *dev)
-+{
-+	void *token = acpi_gic_msi_token(dev);
-+
-+	if (!token)
-+		token = acpi_gic_its_token(dev);
-+
-+	return token;
-+}
-diff --git a/include/acpi/acpi_gic.h b/include/acpi/acpi_gic.h
-new file mode 100644
-index 0000000..34fa475
---- /dev/null
-+++ b/include/acpi/acpi_gic.h
-@@ -0,0 +1,23 @@
-+/*
-+ *  include/acpi/acpi_gic.h
-+ *
-+ * Copyright (C) 2015 Advanced Micro Devices, Inc.
-+ * Authors: Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>
-+ */
-+
-+#ifndef __ACPI_GIC_H__
-+#define __ACPI_GIC_H__
-+
-+#ifdef CONFIG_ACPI
-+int acpi_gic_get_num_msi_frame(void);
-+int acpi_gic_msi_init(struct acpi_table_header *table);
-+int acpi_gic_get_msi_frame(int index, struct acpi_madt_generic_msi_frame **p);
-+
-+int acpi_gic_get_num_its(void);
-+int acpi_gic_its_init(struct acpi_table_header *table);
-+int acpi_gic_get_its(int index, struct acpi_madt_generic_translator **p);
-+
-+void *acpi_gic_get_msi_token(struct device *dev);
-+#endif
-+
-+#endif /*__ACPI_GIC_H__*/
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 04dd0bb..5d58b61 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -44,6 +44,7 @@
- 
- #include <acpi/acpi_bus.h>
- #include <acpi/acpi_drivers.h>
-+#include <acpi/acpi_gic.h>
- #include <acpi/acpi_numa.h>
- #include <acpi/acpi_io.h>
- #include <asm/acpi.h>
--- 
-1.9.1
+Regards,
 
+Tomeu
+
+>> There is an issue where you could have 2 drivers match the same node,
+>> but on different compatible strings. But that's a different issue.
+>
+> Yup.
+>
+> Thanks,
+>
+> Tomeu
+>
+>> Rob
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+>> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> Please read the FAQ at  http://www.tux.org/lkml/
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
