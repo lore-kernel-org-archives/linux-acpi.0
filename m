@@ -1,92 +1,83 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 00/22] ACPICA: 20150717 Release
-Date: Wed, 29 Jul 2015 02:58:24 +0200
-Message-ID: <6694402.X3yTrJO9Rd@vostro.rjw.lan>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH 00/22] ACPICA: 20150717 Release
+Date: Wed, 29 Jul 2015 01:41:05 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E881EF152C8@SHSMSX101.ccr.corp.intel.com>
 References: <cover.1437627016.git.lv.zheng@intel.com>
+ <6694402.X3yTrJO9Rd@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:56702 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751155AbbG2Ab3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Jul 2015 20:31:29 -0400
-In-Reply-To: <cover.1437627016.git.lv.zheng@intel.com>
+Received: from mga01.intel.com ([192.55.52.88]:57708 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752048AbbG2BlP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 28 Jul 2015 21:41:15 -0400
+In-Reply-To: <6694402.X3yTrJO9Rd@vostro.rjw.lan>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Thursday, July 23, 2015 12:51:58 PM Lv Zheng wrote:
-> The 20150717 ACPICA kernel-resident subsystem updates are linuxized based
-> on the linux-pm/linux-next branch.
-> 
-> The patchset has passed the following build/boot tests.
-> Build tests are performed as follows:
-> 1. i386 + default + COFNIG_ACPI=y
-> 2. i386 + allyes + CONFIG_ACPI=y
-> 3. i386 + default + COFNIG_ACPI=n
-> 4. i386 + allyes + CONFIG_ACPI=n
-> 5. x86_64 + default + COFNIG_ACPI=y
-> 6. x86_64 + allyes + CONFIG_ACPI=y
-> 7. x86_64 + default + COFNIG_ACPI=n
-> 8. x86_64 + allyes + CONFIG_ACPI=n
-> Boot tests are performed as follows:
-> 1. i386 + default + COFNIG_ACPI=y
-> 2. x86_64 + default + COFNIG_ACPI=y
-> Where:
-> 1. i386: machine named as "Dell Inspiron Mini 1010"
-> 2. x86_64: machine named as "HP Compaq 8200 Elite SFF PC"
-> 3. default: kernel configuration with following items enabled:
->    All hardware drivers related to the machines of i386/x86_64
->    All "drivers/acpi" configurations
->    All "drivers/platform" drivers
->    All other drivers that link the APIs provided by ACPICA subsystem
-> 
-> The divergences checking result:
-> Before applying (20150619 Release):
->   539 lines
-> After applying (20150717 Release):
->   518 lines
-> Note that the reduction is due to:
-> 1. The FACS related divergences are not counted;
-> 2. Some debugger related divergences are merged in this release as the
->    configurability of the debugger code has improved.
-> 
-> Bob Moore (6):
->   ACPICA: iASL: Add new warnings for method local_x and arg_x
->     variables.
->   ACPICA: Cleanup use of all non-ANSI local C library functions.
->   ACPICA: Cleanup use of NEGATIVE and POSITIVE defines.
->   ACPICA: iASL: Add support for TCPA Server Table.
->   ACPICA: iASL/Disassembler: Add prototype verbose mode.
->   ACPICA: Update version to 20150717.
-> 
-> Lv Zheng (15):
->   ACPICA: Parser: Reduce parser/namespace divergences for tracer
->     support.
->   ACPICA: Parser: Cleanup aml_offset in struct acpi_walk_state.
->   ACPICA: Parser: Cleanup aml_offset in union acpi_operand_object.
->   ACPICA: Dispatcher: Cleanup union acpi_operand_object's AML address
->     assignments.
->   ACPICA: Executer: Add back pointing reference of method operand.
->   ACPICA: Namespace: Add function to directly return normalized full
->     path.
->   ACPICA: Dispatcher: Move stack traversal code to dispatcher.
->   ACPICA: Dispatcher: Add trace support for interpreter.
->   ACPICA: Executer: Add interpreter tracing mode for method tracing
->     facility.
->   ACPICA: Executer: Add OSL trace hook support.
->   ACPICA: Executer: Add option to bypass opcode tracing.
->   ACPICA: Parser: Remove redundant opcode execution debugging output.
->   ACPICA: MSVC: Fix inclusion order issue of <crtdbg.h>.
->   ACPICA: Debugger: Reduce structure size for debugger.
->   ACPICA: Debugger: Move debugger specific APIs to debugger component.
-> 
-> Markus Elfring (1):
->   ACPICA: Remove extraneous check for null walk_state.
-
-Series queued up for 4.3, thanks!
-
-Rafael
-
+SGksIFJhZmFlbA0KIA0KWW91IG1heSBhbHNvIG5lZWQgdGhpcyBwYXRjaDoNCmh0dHBzOi8vcGF0
+Y2h3b3JrLmtlcm5lbC5vcmcvcGF0Y2gvNjg3OTYyMS8NCldoaWNoIGZpeGVzIGEgcHJvYmxlbSBp
+biB0aGlzIHJlbGVhc2UuDQpTb3JyeSBmb3Igbm90aWNpbmcgdGhpcyBsYXRlLg0KDQpUaGFua3Mg
+YW5kIGJlc3QgcmVnYXJkcw0KLUx2DQoNCj4gRnJvbTogUmFmYWVsIEouIFd5c29ja2kgW21haWx0
+bzpyandAcmp3eXNvY2tpLm5ldF0NCj4gU2VudDogV2VkbmVzZGF5LCBKdWx5IDI5LCAyMDE1IDg6
+NTggQU0NCj4gDQo+IE9uIFRodXJzZGF5LCBKdWx5IDIzLCAyMDE1IDEyOjUxOjU4IFBNIEx2IFpo
+ZW5nIHdyb3RlOg0KPiA+IFRoZSAyMDE1MDcxNyBBQ1BJQ0Ega2VybmVsLXJlc2lkZW50IHN1YnN5
+c3RlbSB1cGRhdGVzIGFyZSBsaW51eGl6ZWQgYmFzZWQNCj4gPiBvbiB0aGUgbGludXgtcG0vbGlu
+dXgtbmV4dCBicmFuY2guDQo+ID4NCj4gPiBUaGUgcGF0Y2hzZXQgaGFzIHBhc3NlZCB0aGUgZm9s
+bG93aW5nIGJ1aWxkL2Jvb3QgdGVzdHMuDQo+ID4gQnVpbGQgdGVzdHMgYXJlIHBlcmZvcm1lZCBh
+cyBmb2xsb3dzOg0KPiA+IDEuIGkzODYgKyBkZWZhdWx0ICsgQ09GTklHX0FDUEk9eQ0KPiA+IDIu
+IGkzODYgKyBhbGx5ZXMgKyBDT05GSUdfQUNQST15DQo+ID4gMy4gaTM4NiArIGRlZmF1bHQgKyBD
+T0ZOSUdfQUNQST1uDQo+ID4gNC4gaTM4NiArIGFsbHllcyArIENPTkZJR19BQ1BJPW4NCj4gPiA1
+LiB4ODZfNjQgKyBkZWZhdWx0ICsgQ09GTklHX0FDUEk9eQ0KPiA+IDYuIHg4Nl82NCArIGFsbHll
+cyArIENPTkZJR19BQ1BJPXkNCj4gPiA3LiB4ODZfNjQgKyBkZWZhdWx0ICsgQ09GTklHX0FDUEk9
+bg0KPiA+IDguIHg4Nl82NCArIGFsbHllcyArIENPTkZJR19BQ1BJPW4NCj4gPiBCb290IHRlc3Rz
+IGFyZSBwZXJmb3JtZWQgYXMgZm9sbG93czoNCj4gPiAxLiBpMzg2ICsgZGVmYXVsdCArIENPRk5J
+R19BQ1BJPXkNCj4gPiAyLiB4ODZfNjQgKyBkZWZhdWx0ICsgQ09GTklHX0FDUEk9eQ0KPiA+IFdo
+ZXJlOg0KPiA+IDEuIGkzODY6IG1hY2hpbmUgbmFtZWQgYXMgIkRlbGwgSW5zcGlyb24gTWluaSAx
+MDEwIg0KPiA+IDIuIHg4Nl82NDogbWFjaGluZSBuYW1lZCBhcyAiSFAgQ29tcGFxIDgyMDAgRWxp
+dGUgU0ZGIFBDIg0KPiA+IDMuIGRlZmF1bHQ6IGtlcm5lbCBjb25maWd1cmF0aW9uIHdpdGggZm9s
+bG93aW5nIGl0ZW1zIGVuYWJsZWQ6DQo+ID4gICAgQWxsIGhhcmR3YXJlIGRyaXZlcnMgcmVsYXRl
+ZCB0byB0aGUgbWFjaGluZXMgb2YgaTM4Ni94ODZfNjQNCj4gPiAgICBBbGwgImRyaXZlcnMvYWNw
+aSIgY29uZmlndXJhdGlvbnMNCj4gPiAgICBBbGwgImRyaXZlcnMvcGxhdGZvcm0iIGRyaXZlcnMN
+Cj4gPiAgICBBbGwgb3RoZXIgZHJpdmVycyB0aGF0IGxpbmsgdGhlIEFQSXMgcHJvdmlkZWQgYnkg
+QUNQSUNBIHN1YnN5c3RlbQ0KPiA+DQo+ID4gVGhlIGRpdmVyZ2VuY2VzIGNoZWNraW5nIHJlc3Vs
+dDoNCj4gPiBCZWZvcmUgYXBwbHlpbmcgKDIwMTUwNjE5IFJlbGVhc2UpOg0KPiA+ICAgNTM5IGxp
+bmVzDQo+ID4gQWZ0ZXIgYXBwbHlpbmcgKDIwMTUwNzE3IFJlbGVhc2UpOg0KPiA+ICAgNTE4IGxp
+bmVzDQo+ID4gTm90ZSB0aGF0IHRoZSByZWR1Y3Rpb24gaXMgZHVlIHRvOg0KPiA+IDEuIFRoZSBG
+QUNTIHJlbGF0ZWQgZGl2ZXJnZW5jZXMgYXJlIG5vdCBjb3VudGVkOw0KPiA+IDIuIFNvbWUgZGVi
+dWdnZXIgcmVsYXRlZCBkaXZlcmdlbmNlcyBhcmUgbWVyZ2VkIGluIHRoaXMgcmVsZWFzZSBhcyB0
+aGUNCj4gPiAgICBjb25maWd1cmFiaWxpdHkgb2YgdGhlIGRlYnVnZ2VyIGNvZGUgaGFzIGltcHJv
+dmVkLg0KPiA+DQo+ID4gQm9iIE1vb3JlICg2KToNCj4gPiAgIEFDUElDQTogaUFTTDogQWRkIG5l
+dyB3YXJuaW5ncyBmb3IgbWV0aG9kIGxvY2FsX3ggYW5kIGFyZ194DQo+ID4gICAgIHZhcmlhYmxl
+cy4NCj4gPiAgIEFDUElDQTogQ2xlYW51cCB1c2Ugb2YgYWxsIG5vbi1BTlNJIGxvY2FsIEMgbGli
+cmFyeSBmdW5jdGlvbnMuDQo+ID4gICBBQ1BJQ0E6IENsZWFudXAgdXNlIG9mIE5FR0FUSVZFIGFu
+ZCBQT1NJVElWRSBkZWZpbmVzLg0KPiA+ICAgQUNQSUNBOiBpQVNMOiBBZGQgc3VwcG9ydCBmb3Ig
+VENQQSBTZXJ2ZXIgVGFibGUuDQo+ID4gICBBQ1BJQ0E6IGlBU0wvRGlzYXNzZW1ibGVyOiBBZGQg
+cHJvdG90eXBlIHZlcmJvc2UgbW9kZS4NCj4gPiAgIEFDUElDQTogVXBkYXRlIHZlcnNpb24gdG8g
+MjAxNTA3MTcuDQo+ID4NCj4gPiBMdiBaaGVuZyAoMTUpOg0KPiA+ICAgQUNQSUNBOiBQYXJzZXI6
+IFJlZHVjZSBwYXJzZXIvbmFtZXNwYWNlIGRpdmVyZ2VuY2VzIGZvciB0cmFjZXINCj4gPiAgICAg
+c3VwcG9ydC4NCj4gPiAgIEFDUElDQTogUGFyc2VyOiBDbGVhbnVwIGFtbF9vZmZzZXQgaW4gc3Ry
+dWN0IGFjcGlfd2Fsa19zdGF0ZS4NCj4gPiAgIEFDUElDQTogUGFyc2VyOiBDbGVhbnVwIGFtbF9v
+ZmZzZXQgaW4gdW5pb24gYWNwaV9vcGVyYW5kX29iamVjdC4NCj4gPiAgIEFDUElDQTogRGlzcGF0
+Y2hlcjogQ2xlYW51cCB1bmlvbiBhY3BpX29wZXJhbmRfb2JqZWN0J3MgQU1MIGFkZHJlc3MNCj4g
+PiAgICAgYXNzaWdubWVudHMuDQo+ID4gICBBQ1BJQ0E6IEV4ZWN1dGVyOiBBZGQgYmFjayBwb2lu
+dGluZyByZWZlcmVuY2Ugb2YgbWV0aG9kIG9wZXJhbmQuDQo+ID4gICBBQ1BJQ0E6IE5hbWVzcGFj
+ZTogQWRkIGZ1bmN0aW9uIHRvIGRpcmVjdGx5IHJldHVybiBub3JtYWxpemVkIGZ1bGwNCj4gPiAg
+ICAgcGF0aC4NCj4gPiAgIEFDUElDQTogRGlzcGF0Y2hlcjogTW92ZSBzdGFjayB0cmF2ZXJzYWwg
+Y29kZSB0byBkaXNwYXRjaGVyLg0KPiA+ICAgQUNQSUNBOiBEaXNwYXRjaGVyOiBBZGQgdHJhY2Ug
+c3VwcG9ydCBmb3IgaW50ZXJwcmV0ZXIuDQo+ID4gICBBQ1BJQ0E6IEV4ZWN1dGVyOiBBZGQgaW50
+ZXJwcmV0ZXIgdHJhY2luZyBtb2RlIGZvciBtZXRob2QgdHJhY2luZw0KPiA+ICAgICBmYWNpbGl0
+eS4NCj4gPiAgIEFDUElDQTogRXhlY3V0ZXI6IEFkZCBPU0wgdHJhY2UgaG9vayBzdXBwb3J0Lg0K
+PiA+ICAgQUNQSUNBOiBFeGVjdXRlcjogQWRkIG9wdGlvbiB0byBieXBhc3Mgb3Bjb2RlIHRyYWNp
+bmcuDQo+ID4gICBBQ1BJQ0E6IFBhcnNlcjogUmVtb3ZlIHJlZHVuZGFudCBvcGNvZGUgZXhlY3V0
+aW9uIGRlYnVnZ2luZyBvdXRwdXQuDQo+ID4gICBBQ1BJQ0E6IE1TVkM6IEZpeCBpbmNsdXNpb24g
+b3JkZXIgaXNzdWUgb2YgPGNydGRiZy5oPi4NCj4gPiAgIEFDUElDQTogRGVidWdnZXI6IFJlZHVj
+ZSBzdHJ1Y3R1cmUgc2l6ZSBmb3IgZGVidWdnZXIuDQo+ID4gICBBQ1BJQ0E6IERlYnVnZ2VyOiBN
+b3ZlIGRlYnVnZ2VyIHNwZWNpZmljIEFQSXMgdG8gZGVidWdnZXIgY29tcG9uZW50Lg0KPiA+DQo+
+ID4gTWFya3VzIEVsZnJpbmcgKDEpOg0KPiA+ICAgQUNQSUNBOiBSZW1vdmUgZXh0cmFuZW91cyBj
+aGVjayBmb3IgbnVsbCB3YWxrX3N0YXRlLg0KPiANCj4gU2VyaWVzIHF1ZXVlZCB1cCBmb3IgNC4z
+LCB0aGFua3MhDQo+IA0KPiBSYWZhZWwNCg0K
