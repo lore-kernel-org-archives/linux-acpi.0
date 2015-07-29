@@ -1,79 +1,37 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] cpufreq: Correct a freq check in cpufreq_set_policy
-Date: Wed, 29 Jul 2015 02:28:16 +0200
-Message-ID: <2213721.TSGdMqobs2@vostro.rjw.lan>
-References: <55B6F83D.3040901@intel.com>
+Subject: Re: [PATCH v6 0/8] mfd: introduce a driver for LPSS devices on SPT
+Date: Wed, 29 Jul 2015 02:30:28 +0200
+Message-ID: <34245799.iU5VrzWmKR@vostro.rjw.lan>
+References: <1438009443-55317-1-git-send-email-andriy.shevchenko@linux.intel.com> <20150728085930.GR14943@x1>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:59405 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750827AbbG2ABU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 28 Jul 2015 20:01:20 -0400
-In-Reply-To: <55B6F83D.3040901@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <20150728085930.GR14943@x1>
+Sender: linux-pm-owner@vger.kernel.org
+To: Lee Jones <lee.jones@linaro.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Vinod Koul <vinod.koul@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-kernel@vger.kernel.org, dmaengine@vger.kernel.org, Heikki Krogerus <heikki.krogerus@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, mturquette@baylibre.com, sboyd@codeaurora.org
 List-Id: linux-acpi@vger.kernel.org
-To: Pan Xinhui <xinhuix.pan@intel.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Viresh Kumar <viresh.kumar@linaro.org>, "mnipxh@163.com" <mnipxh@163.com>, "yanmin_zhang@linux.intel.com" <yanmin_zhang@linux.intel.com>
 
-On Tuesday, July 28, 2015 11:34:21 AM Pan Xinhui wrote:
-> From: Pan Xinhui <xinhuix.pan@intel.com>
+On Tuesday, July 28, 2015 09:59:30 AM Lee Jones wrote:
+> Enjoy,
 > 
-> This check was originally added by commit 9c9a43ed2734 ("[CPUFREQ]
-> return error when failing to set minfreq").It attempt to return an error
-> on obviously incorrect limits when we echo xxx >.../scaling_max,min_freq
-> Actually we just need check if new_policy->min > new_policy->max.
-> Because at least one of max/min is copied from cpufreq_get_policy().
+> The following changes since commit bc0195aad0daa2ad5b0d76cce22b167bc3435590:
 > 
-> For example, when we echo xxx > .../scaling_min_freq, new_policy is
-> copied from policy in cpufreq_get_policy. new_policy->max is same with
-> policy->max. new_policy->min is set to a new value.
+>   Linux 4.2-rc2 (2015-07-12 15:10:30 -0700)
 > 
-> Let me explain it in deduction method, first statment in if ():
-> new_policy->min > policy->max
-> policy->max == new_policy->max
-> ==> new_policy->min > new_policy->max
+> are available in the git repository at:
 > 
-> second statment in if():
-> new_policy->max < policy->min
-> policy->max < policy->min
-> ==>new_policy->min > new_policy->max (induction method)
+>   git://git.kernel.org/pub/scm/linux/kernel/git/lee/mfd.git tags/ib-mfd-base-acpi-dma-v4.3
 > 
-> So we have proved that we only need check if new_policy->min >
-> new_policy->max.
+> for you to fetch changes up to 4b45efe8526359a11ca60a299bef3aebf413fd77:
 > 
-> After apply this patch, we can also modify ->min and ->max in same time
-> if new freq range is very much different from current freq range. For
-> example, if current freq range is 480000-960000, then we want to set
-> this range to 1120000-2240000, we would fail in the past because
-> new_policy->min > policy->max. As long as the cpufreq range is valid, we
-> has no reason to reject the user. So correct the check.
+>   mfd: Add support for Intel Sunrisepoint LPSS devices (2015-07-28 09:56:47 +0100)
 > 
-> Signed-off-by: Pan Xinhui <xinhuix.pan@intel.com>
-> ---
->  drivers/cpufreq/cpufreq.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/cpufreq/cpufreq.c b/drivers/cpufreq/cpufreq.c
-> index 6424e05..8772346 100644
-> --- a/drivers/cpufreq/cpufreq.c
-> +++ b/drivers/cpufreq/cpufreq.c
-> @@ -2276,7 +2276,7 @@ static int cpufreq_set_policy(struct cpufreq_policy *policy,
->  
->  	memcpy(&new_policy->cpuinfo, &policy->cpuinfo, sizeof(policy->cpuinfo));
->  
-> -	if (new_policy->min > policy->max || new_policy->max < policy->min)
+> ----------------------------------------------------------------
+> Immutable branch between MFD, Base, ACPI and DMA due for v4.3
 
-Please add a comment here mentioning the fact that this *relies* on new_policy
-being a copy of policy with one field updated.
+Thanks, much appreciated!
 
-> +	if (new_policy->min > new_policy->max)
->  		return -EINVAL;
->  
->  	/* verify the cpu speed can be set within this limit */
-> 
+Rafael
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
