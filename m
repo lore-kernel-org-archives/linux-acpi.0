@@ -1,99 +1,45 @@
 From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [Patch v5 1/6] ACPI/PCI: Enhance ACPI core to support sparse IO
- space
-Date: Wed, 29 Jul 2015 15:37:41 -0500
-Message-ID: <20150729203741.GC9640@google.com>
+Subject: Re: [Patch v5 4/6] PCI/ACPI: Consolidate common PCI host bridge code
+ into ACPI core
+Date: Wed, 29 Jul 2015 15:54:17 -0500
+Message-ID: <20150729205417.GD9640@google.com>
 References: <1433780448-18636-1-git-send-email-jiang.liu@linux.intel.com>
- <1433780448-18636-2-git-send-email-jiang.liu@linux.intel.com>
+ <1433780448-18636-5-git-send-email-jiang.liu@linux.intel.com>
+ <20150609161230.GC8591@red-moon>
+ <55771B27.1060509@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f41.google.com ([209.85.218.41]:33204 "EHLO
-	mail-oi0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753907AbbG2Uhr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Jul 2015 16:37:47 -0400
-Received: by oixx19 with SMTP id x19so11628969oix.0
-        for <linux-acpi@vger.kernel.org>; Wed, 29 Jul 2015 13:37:47 -0700 (PDT)
+Return-path: <linux-pci-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1433780448-18636-2-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+In-Reply-To: <55771B27.1060509@linux.intel.com>
+Sender: linux-pci-owner@vger.kernel.org
 To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, Yijing Wang <wangyijing@huawei.com>, Len Brown <lenb@kernel.org>, Vivek Goyal <vgoyal@redhat.com>, Thierry Reding <treding@nvidia.com>, Jakub Sitnicki <jsitnicki@gmail.com>, Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>, linux-arm-kernel@lists.infradead.org
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Marc Zyngier <Marc.Zyngier@arm.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, Yijing Wang <wangyijing@huawei.com>, Len Brown <lenb@kernel.org>, Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "x86 @ kernel . org" <x86@kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jun 09, 2015 at 12:20:43AM +0800, Jiang Liu wrote:
-> Enhance ACPI resource parsing interfaces to support sparse IO space,
-> which will be used to share common code between x86 and IA64 later.
-> 
-> Tested-by: Tony Luck <tony.luck@intel.com>
-> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-> Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
-> ---
->  drivers/acpi/resource.c |    9 ++++++---
->  include/linux/ioport.h  |    1 +
->  2 files changed, 7 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-> index 8244f013f210..fdcc73dad2c1 100644
-> --- a/drivers/acpi/resource.c
-> +++ b/drivers/acpi/resource.c
-> @@ -123,7 +123,7 @@ bool acpi_dev_resource_memory(struct acpi_resource *ares, struct resource *res)
->  EXPORT_SYMBOL_GPL(acpi_dev_resource_memory);
->  
->  static void acpi_dev_ioresource_flags(struct resource *res, u64 len,
-> -				      u8 io_decode)
-> +				      u8 io_decode, u8 translation_type)
->  {
->  	res->flags = IORESOURCE_IO;
->  
-> @@ -135,6 +135,8 @@ static void acpi_dev_ioresource_flags(struct resource *res, u64 len,
->  
->  	if (io_decode == ACPI_DECODE_16)
->  		res->flags |= IORESOURCE_IO_16BIT_ADDR;
-> +	if (translation_type == ACPI_SPARSE_TRANSLATION)
-> +		res->flags |= IORESOURCE_IO_SPARSE;
->  }
->  
->  static void acpi_dev_get_ioresource(struct resource *res, u64 start, u64 len,
-> @@ -142,7 +144,7 @@ static void acpi_dev_get_ioresource(struct resource *res, u64 start, u64 len,
->  {
->  	res->start = start;
->  	res->end = start + len - 1;
-> -	acpi_dev_ioresource_flags(res, len, io_decode);
-> +	acpi_dev_ioresource_flags(res, len, io_decode, 0);
->  }
->  
->  /**
-> @@ -227,7 +229,8 @@ static bool acpi_decode_space(struct resource_win *win,
->  		acpi_dev_memresource_flags(res, len, wp);
->  		break;
->  	case ACPI_IO_RANGE:
-> -		acpi_dev_ioresource_flags(res, len, iodec);
-> +		acpi_dev_ioresource_flags(res, len, iodec,
-> +					  addr->info.io.translation_type);
->  		break;
->  	case ACPI_BUS_NUMBER_RANGE:
->  		res->flags = IORESOURCE_BUS;
-> diff --git a/include/linux/ioport.h b/include/linux/ioport.h
-> index 388e3ae94f7a..24bea087e7af 100644
-> --- a/include/linux/ioport.h
-> +++ b/include/linux/ioport.h
-> @@ -94,6 +94,7 @@ struct resource {
->  /* PnP I/O specific bits (IORESOURCE_BITS) */
->  #define IORESOURCE_IO_16BIT_ADDR	(1<<0)
->  #define IORESOURCE_IO_FIXED		(1<<1)
-> +#define IORESOURCE_IO_SPARSE		(1<<2)
+On Wed, Jun 10, 2015 at 12:58:15AM +0800, Jiang Liu wrote:
+> On 2015/6/10 0:12, Lorenzo Pieralisi wrote:
+> > On Mon, Jun 08, 2015 at 05:20:46PM +0100, Jiang Liu wrote:
 
-I don't really like this bit.  We adding a new generic IORESOURCE_* bit
-just for a special case, and it's only used in one place, for one arch,
-during enumeration.
+> >> +struct pci_bus *acpi_pci_root_create(struct acpi_pci_root *root,
+> >> +				     struct acpi_pci_root_ops *ops,
+> >> +				     struct acpi_pci_root_info *info,
+> >> +				     void *sysdata, int segment, int node)
+> > 
+> > I do not think you need to pass segment and node, they clutter the
+> > function signature when you can retrieve them from root, I would
+> > make them local variables and use root->segment and acpi_get_node
+> > in the function body to retrieve them.
+> On x86, node and segment may be overridden under certain conditions.
+> For example, segment will always be 0 if 'pci_ignore_seg' is set.
 
-Don't we have a similar problem (struct resource can't express all the
-information from an ACPI resource) for the _TRA value for bridge windows?
-If it's a similar issue, we should solve it in a similar way.
+I agree we should drop the segment and node parameters.  Having the
+information in two places means we can make a mistake, and we can easily
+avoid that possibility by only keeping it in one place.
 
->  /* PCI ROM control bits (IORESOURCE_BITS) */
->  #define IORESOURCE_ROM_ENABLE		(1<<0)	/* ROM is enabled, same as PCI_ROM_ADDRESS_ENABLE */
-> -- 
-> 1.7.10.4
-> 
+I think it is a bug that we don't set root->segment to zero when we have
+pci_ignore_seg.  Sorry, that's my fault from 1f09b09b4de0 ("x86/PCI: Ignore
+_SEG on HP xw9300").
+
+I don't understand the issue about overriding the node number.  Can you
+explain it?
