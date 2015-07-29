@@ -1,83 +1,157 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH 00/22] ACPICA: 20150717 Release
-Date: Wed, 29 Jul 2015 01:41:05 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E881EF152C8@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1437627016.git.lv.zheng@intel.com>
- <6694402.X3yTrJO9Rd@vostro.rjw.lan>
+From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Subject: Re: [PATCH v2 04/22] of/platform: add of_platform_device_find()
+Date: Wed, 29 Jul 2015 08:14:22 +0200
+Message-ID: <CAAObsKA+vMsgiC52jReJckeDjXhdd=_NBocFbMapdwFReiY1SQ@mail.gmail.com>
+References: <1438089593-7696-1-git-send-email-tomeu.vizoso@collabora.com>
+ <1438089593-7696-5-git-send-email-tomeu.vizoso@collabora.com>
+ <CAL_JsqJGhFXDKuayuKc2E58X5A7ZGN=uYCVDLnXw_t3_auBg+w@mail.gmail.com>
+ <CAAObsKBfRLdPc0gs55ARfa+qZJAOEyEgRyTf8krZnQMb6-j03g@mail.gmail.com> <CAL_Jsq+RqGAxHE5-ocD-htddBHckG24oZNqfgmMF3Jak6wDXBQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:57708 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752048AbbG2BlP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 28 Jul 2015 21:41:15 -0400
-In-Reply-To: <6694402.X3yTrJO9Rd@vostro.rjw.lan>
-Content-Language: en-US
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:35438 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752626AbbG2GOn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Jul 2015 02:14:43 -0400
+In-Reply-To: <CAL_Jsq+RqGAxHE5-ocD-htddBHckG24oZNqfgmMF3Jak6wDXBQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Rob Herring <robherring2@gmail.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Rob Herring <robh+dt@kernel.org>, Grant Likely <grant.likely@linaro.org>
 
-SGksIFJhZmFlbA0KIA0KWW91IG1heSBhbHNvIG5lZWQgdGhpcyBwYXRjaDoNCmh0dHBzOi8vcGF0
-Y2h3b3JrLmtlcm5lbC5vcmcvcGF0Y2gvNjg3OTYyMS8NCldoaWNoIGZpeGVzIGEgcHJvYmxlbSBp
-biB0aGlzIHJlbGVhc2UuDQpTb3JyeSBmb3Igbm90aWNpbmcgdGhpcyBsYXRlLg0KDQpUaGFua3Mg
-YW5kIGJlc3QgcmVnYXJkcw0KLUx2DQoNCj4gRnJvbTogUmFmYWVsIEouIFd5c29ja2kgW21haWx0
-bzpyandAcmp3eXNvY2tpLm5ldF0NCj4gU2VudDogV2VkbmVzZGF5LCBKdWx5IDI5LCAyMDE1IDg6
-NTggQU0NCj4gDQo+IE9uIFRodXJzZGF5LCBKdWx5IDIzLCAyMDE1IDEyOjUxOjU4IFBNIEx2IFpo
-ZW5nIHdyb3RlOg0KPiA+IFRoZSAyMDE1MDcxNyBBQ1BJQ0Ega2VybmVsLXJlc2lkZW50IHN1YnN5
-c3RlbSB1cGRhdGVzIGFyZSBsaW51eGl6ZWQgYmFzZWQNCj4gPiBvbiB0aGUgbGludXgtcG0vbGlu
-dXgtbmV4dCBicmFuY2guDQo+ID4NCj4gPiBUaGUgcGF0Y2hzZXQgaGFzIHBhc3NlZCB0aGUgZm9s
-bG93aW5nIGJ1aWxkL2Jvb3QgdGVzdHMuDQo+ID4gQnVpbGQgdGVzdHMgYXJlIHBlcmZvcm1lZCBh
-cyBmb2xsb3dzOg0KPiA+IDEuIGkzODYgKyBkZWZhdWx0ICsgQ09GTklHX0FDUEk9eQ0KPiA+IDIu
-IGkzODYgKyBhbGx5ZXMgKyBDT05GSUdfQUNQST15DQo+ID4gMy4gaTM4NiArIGRlZmF1bHQgKyBD
-T0ZOSUdfQUNQST1uDQo+ID4gNC4gaTM4NiArIGFsbHllcyArIENPTkZJR19BQ1BJPW4NCj4gPiA1
-LiB4ODZfNjQgKyBkZWZhdWx0ICsgQ09GTklHX0FDUEk9eQ0KPiA+IDYuIHg4Nl82NCArIGFsbHll
-cyArIENPTkZJR19BQ1BJPXkNCj4gPiA3LiB4ODZfNjQgKyBkZWZhdWx0ICsgQ09GTklHX0FDUEk9
-bg0KPiA+IDguIHg4Nl82NCArIGFsbHllcyArIENPTkZJR19BQ1BJPW4NCj4gPiBCb290IHRlc3Rz
-IGFyZSBwZXJmb3JtZWQgYXMgZm9sbG93czoNCj4gPiAxLiBpMzg2ICsgZGVmYXVsdCArIENPRk5J
-R19BQ1BJPXkNCj4gPiAyLiB4ODZfNjQgKyBkZWZhdWx0ICsgQ09GTklHX0FDUEk9eQ0KPiA+IFdo
-ZXJlOg0KPiA+IDEuIGkzODY6IG1hY2hpbmUgbmFtZWQgYXMgIkRlbGwgSW5zcGlyb24gTWluaSAx
-MDEwIg0KPiA+IDIuIHg4Nl82NDogbWFjaGluZSBuYW1lZCBhcyAiSFAgQ29tcGFxIDgyMDAgRWxp
-dGUgU0ZGIFBDIg0KPiA+IDMuIGRlZmF1bHQ6IGtlcm5lbCBjb25maWd1cmF0aW9uIHdpdGggZm9s
-bG93aW5nIGl0ZW1zIGVuYWJsZWQ6DQo+ID4gICAgQWxsIGhhcmR3YXJlIGRyaXZlcnMgcmVsYXRl
-ZCB0byB0aGUgbWFjaGluZXMgb2YgaTM4Ni94ODZfNjQNCj4gPiAgICBBbGwgImRyaXZlcnMvYWNw
-aSIgY29uZmlndXJhdGlvbnMNCj4gPiAgICBBbGwgImRyaXZlcnMvcGxhdGZvcm0iIGRyaXZlcnMN
-Cj4gPiAgICBBbGwgb3RoZXIgZHJpdmVycyB0aGF0IGxpbmsgdGhlIEFQSXMgcHJvdmlkZWQgYnkg
-QUNQSUNBIHN1YnN5c3RlbQ0KPiA+DQo+ID4gVGhlIGRpdmVyZ2VuY2VzIGNoZWNraW5nIHJlc3Vs
-dDoNCj4gPiBCZWZvcmUgYXBwbHlpbmcgKDIwMTUwNjE5IFJlbGVhc2UpOg0KPiA+ICAgNTM5IGxp
-bmVzDQo+ID4gQWZ0ZXIgYXBwbHlpbmcgKDIwMTUwNzE3IFJlbGVhc2UpOg0KPiA+ICAgNTE4IGxp
-bmVzDQo+ID4gTm90ZSB0aGF0IHRoZSByZWR1Y3Rpb24gaXMgZHVlIHRvOg0KPiA+IDEuIFRoZSBG
-QUNTIHJlbGF0ZWQgZGl2ZXJnZW5jZXMgYXJlIG5vdCBjb3VudGVkOw0KPiA+IDIuIFNvbWUgZGVi
-dWdnZXIgcmVsYXRlZCBkaXZlcmdlbmNlcyBhcmUgbWVyZ2VkIGluIHRoaXMgcmVsZWFzZSBhcyB0
-aGUNCj4gPiAgICBjb25maWd1cmFiaWxpdHkgb2YgdGhlIGRlYnVnZ2VyIGNvZGUgaGFzIGltcHJv
-dmVkLg0KPiA+DQo+ID4gQm9iIE1vb3JlICg2KToNCj4gPiAgIEFDUElDQTogaUFTTDogQWRkIG5l
-dyB3YXJuaW5ncyBmb3IgbWV0aG9kIGxvY2FsX3ggYW5kIGFyZ194DQo+ID4gICAgIHZhcmlhYmxl
-cy4NCj4gPiAgIEFDUElDQTogQ2xlYW51cCB1c2Ugb2YgYWxsIG5vbi1BTlNJIGxvY2FsIEMgbGli
-cmFyeSBmdW5jdGlvbnMuDQo+ID4gICBBQ1BJQ0E6IENsZWFudXAgdXNlIG9mIE5FR0FUSVZFIGFu
-ZCBQT1NJVElWRSBkZWZpbmVzLg0KPiA+ICAgQUNQSUNBOiBpQVNMOiBBZGQgc3VwcG9ydCBmb3Ig
-VENQQSBTZXJ2ZXIgVGFibGUuDQo+ID4gICBBQ1BJQ0E6IGlBU0wvRGlzYXNzZW1ibGVyOiBBZGQg
-cHJvdG90eXBlIHZlcmJvc2UgbW9kZS4NCj4gPiAgIEFDUElDQTogVXBkYXRlIHZlcnNpb24gdG8g
-MjAxNTA3MTcuDQo+ID4NCj4gPiBMdiBaaGVuZyAoMTUpOg0KPiA+ICAgQUNQSUNBOiBQYXJzZXI6
-IFJlZHVjZSBwYXJzZXIvbmFtZXNwYWNlIGRpdmVyZ2VuY2VzIGZvciB0cmFjZXINCj4gPiAgICAg
-c3VwcG9ydC4NCj4gPiAgIEFDUElDQTogUGFyc2VyOiBDbGVhbnVwIGFtbF9vZmZzZXQgaW4gc3Ry
-dWN0IGFjcGlfd2Fsa19zdGF0ZS4NCj4gPiAgIEFDUElDQTogUGFyc2VyOiBDbGVhbnVwIGFtbF9v
-ZmZzZXQgaW4gdW5pb24gYWNwaV9vcGVyYW5kX29iamVjdC4NCj4gPiAgIEFDUElDQTogRGlzcGF0
-Y2hlcjogQ2xlYW51cCB1bmlvbiBhY3BpX29wZXJhbmRfb2JqZWN0J3MgQU1MIGFkZHJlc3MNCj4g
-PiAgICAgYXNzaWdubWVudHMuDQo+ID4gICBBQ1BJQ0E6IEV4ZWN1dGVyOiBBZGQgYmFjayBwb2lu
-dGluZyByZWZlcmVuY2Ugb2YgbWV0aG9kIG9wZXJhbmQuDQo+ID4gICBBQ1BJQ0E6IE5hbWVzcGFj
-ZTogQWRkIGZ1bmN0aW9uIHRvIGRpcmVjdGx5IHJldHVybiBub3JtYWxpemVkIGZ1bGwNCj4gPiAg
-ICAgcGF0aC4NCj4gPiAgIEFDUElDQTogRGlzcGF0Y2hlcjogTW92ZSBzdGFjayB0cmF2ZXJzYWwg
-Y29kZSB0byBkaXNwYXRjaGVyLg0KPiA+ICAgQUNQSUNBOiBEaXNwYXRjaGVyOiBBZGQgdHJhY2Ug
-c3VwcG9ydCBmb3IgaW50ZXJwcmV0ZXIuDQo+ID4gICBBQ1BJQ0E6IEV4ZWN1dGVyOiBBZGQgaW50
-ZXJwcmV0ZXIgdHJhY2luZyBtb2RlIGZvciBtZXRob2QgdHJhY2luZw0KPiA+ICAgICBmYWNpbGl0
-eS4NCj4gPiAgIEFDUElDQTogRXhlY3V0ZXI6IEFkZCBPU0wgdHJhY2UgaG9vayBzdXBwb3J0Lg0K
-PiA+ICAgQUNQSUNBOiBFeGVjdXRlcjogQWRkIG9wdGlvbiB0byBieXBhc3Mgb3Bjb2RlIHRyYWNp
-bmcuDQo+ID4gICBBQ1BJQ0E6IFBhcnNlcjogUmVtb3ZlIHJlZHVuZGFudCBvcGNvZGUgZXhlY3V0
-aW9uIGRlYnVnZ2luZyBvdXRwdXQuDQo+ID4gICBBQ1BJQ0E6IE1TVkM6IEZpeCBpbmNsdXNpb24g
-b3JkZXIgaXNzdWUgb2YgPGNydGRiZy5oPi4NCj4gPiAgIEFDUElDQTogRGVidWdnZXI6IFJlZHVj
-ZSBzdHJ1Y3R1cmUgc2l6ZSBmb3IgZGVidWdnZXIuDQo+ID4gICBBQ1BJQ0E6IERlYnVnZ2VyOiBN
-b3ZlIGRlYnVnZ2VyIHNwZWNpZmljIEFQSXMgdG8gZGVidWdnZXIgY29tcG9uZW50Lg0KPiA+DQo+
-ID4gTWFya3VzIEVsZnJpbmcgKDEpOg0KPiA+ICAgQUNQSUNBOiBSZW1vdmUgZXh0cmFuZW91cyBj
-aGVjayBmb3IgbnVsbCB3YWxrX3N0YXRlLg0KPiANCj4gU2VyaWVzIHF1ZXVlZCB1cCBmb3IgNC4z
-LCB0aGFua3MhDQo+IA0KPiBSYWZhZWwNCg0K
+On 28 July 2015 at 17:31, Rob Herring <robherring2@gmail.com> wrote:
+> On Tue, Jul 28, 2015 at 8:54 AM, Tomeu Vizoso
+> <tomeu.vizoso@collabora.com> wrote:
+>> On 28 July 2015 at 15:39, Rob Herring <robherring2@gmail.com> wrote:
+>>> On Tue, Jul 28, 2015 at 8:19 AM, Tomeu Vizoso
+>>> <tomeu.vizoso@collabora.com> wrote:
+>>>> From an arbitrary node in the tree, find the enclosing node that
+>>>> corresponds to a platform device, as registered by
+>>>> of_platform_populate().
+>>>>
+>>>> This can be used to find out what device needs to be probed so the
+>>>> dependency described by a given node is made available.
+>>>>
+>>>> Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+>>>> ---
+>>>>
+>>>> Changes in v2:
+>>>> - Move the logic for finding a platform device from its firmware node to
+>>>>   of/platform.c as it's not needed for ACPI nodes.
+>>>>
+>>>>  drivers/of/platform.c       | 60 +++++++++++++++++++++++++++++++++++++++++++++
+>>>>  include/linux/of_platform.h |  1 +
+>>>>  2 files changed, 61 insertions(+)
+>>>>
+>>>> diff --git a/drivers/of/platform.c b/drivers/of/platform.c
+>>>> index ff27494cda8c..89c5cd513027 100644
+>>>> --- a/drivers/of/platform.c
+>>>> +++ b/drivers/of/platform.c
+>>>> @@ -501,6 +501,66 @@ void of_platform_depopulate(struct device *parent)
+>>>>  }
+>>>>  EXPORT_SYMBOL_GPL(of_platform_depopulate);
+>>>>
+>>>> +static bool of_is_platform(struct device_node *np)
+>>>> +{
+>>>> +       int count;
+>>>> +
+>>>> +       count = of_property_count_strings(np, "compatible");
+>>>> +
+>>>> +       /* The node has to have a compatible string */
+>>>> +       if (!count)
+>>>> +               return false;
+>>>> +
+>>>> +       /* But it cannot be just a simple memory-mapped bus */
+>>>> +       if (count == 1 && of_match_node(of_default_bus_match_table, np))
+>>>> +               return false;
+>>>> +
+>>>> +       /* But AMBA devices aren't platform devices */
+>>>> +       if (of_device_is_compatible(np, "arm,primecell"))
+>>>> +               return false;
+>>>> +
+>>>> +       /* Node is immediately below root */
+>>>> +       if (!np->parent || !np->parent->parent)
+>>>> +               return true;
+>>>> +
+>>>> +       /* If it's a node in a simple memory-mapped bus */
+>>>> +       if (of_match_node(of_default_bus_match_table, np->parent))
+>>>> +               return true;
+>>>
+>>> This seems really fragile.
+>>
+>> I think this finding logic matches the logic for registering platform
+>> devices in of_platform_populate and also what is documented in
+>> Documentation/devicetree/usage-model.txt.
+>
+> Right. So now we have that logic in 2 places. One is descending from
+> the root and one is walking up from the child. That's an opportunity
+> for some mismatch.
+
+Definitely.
+
+>>> What about platform devices which are
+>>> children of MFDs but are not "simple-mfd"?
+>>
+>> This code should deal fine with those (the boards I tested with do
+>> have them). It probes the mfd master, and that in turn will call
+>> mfd_add_devices causing the target device to be probed.
+>
+> I don't see how this function would ever return true in this case
+> unless you put the MFD at the root level. The only other way to return
+> true is matching on of_default_bus_match_table for the parent (i.e.
+> the MFD).
+
+Oops, you are right.
+
+>>> Does of_find_device_by_node not work for you?
+>>
+>> Well, the dependencies aren't always platform devices, that's why I
+>> need to go up the tree until I find a node that corresponds to a
+>> platform device that I can query and probe.
+>>
+>> If I had a way to get, say, a i2c device from its fwnode then I would
+>> just need to make sure that a device's parent is probed before probing
+>> it and everything would be cleaner in the OF case.
+>
+> If you have the struct device from the device_node, then you should be
+> able to do this, right?
+
+Yes, if I could go back from the device_node to the struct device that
+was registered from it, for all buses, then all this would be much
+simpler and more robust. It would basically work like in the ACPI
+case.
+
+I will play with this idea.
+
+>>> That is probably not the
+>>> most efficient search, but we could fix that. We could add struct
+>>> device ptr to struct device_node and check without searching for
+>>> example.
+>>
+>> That would be great, but I thought there was an issue with a OF node
+>> being able to be related to more than one struct device (but I haven't
+>> found this myself yet).
+>
+> I think it pretty much should be one to one. I'm not aware of any
+> examples where that is not the case. This function would already be
+> broken if you could have more than one struct device.
+
+Well, for platform devices we currently know that there can only be
+one struct device for a given device_node, but that's not so clear for
+other devices.
+
+> There is an issue where you could have 2 drivers match the same node,
+> but on different compatible strings. But that's a different issue.
+
+Yup.
+
+Thanks,
+
+Tomeu
+
+> Rob
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
