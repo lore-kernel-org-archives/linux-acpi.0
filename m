@@ -1,81 +1,107 @@
-From: Rob Herring <robherring2@gmail.com>
-Subject: Re: [PATCH v2 04/22] of/platform: add of_platform_device_find()
-Date: Wed, 29 Jul 2015 10:27:31 -0500
-Message-ID: <CAL_Jsq+2b4+pf9G1ynWSkDgyC1agmS-TdTVjzdfQKNBWuuOHgw@mail.gmail.com>
-References: <1438089593-7696-1-git-send-email-tomeu.vizoso@collabora.com>
- <1438089593-7696-5-git-send-email-tomeu.vizoso@collabora.com>
- <CAL_JsqJGhFXDKuayuKc2E58X5A7ZGN=uYCVDLnXw_t3_auBg+w@mail.gmail.com>
- <CAAObsKBfRLdPc0gs55ARfa+qZJAOEyEgRyTf8krZnQMb6-j03g@mail.gmail.com>
- <CAL_Jsq+RqGAxHE5-ocD-htddBHckG24oZNqfgmMF3Jak6wDXBQ@mail.gmail.com>
- <CAAObsKA+vMsgiC52jReJckeDjXhdd=_NBocFbMapdwFReiY1SQ@mail.gmail.com> <CAAObsKD9BN7dsEiNB=OvJkoOQPwxwnP794w=X4AwtYz3oxEJqw@mail.gmail.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH v2] acpi: Use kstrtoul() instead of
+ strtoul()/simple_strtoul()
+Date: Wed, 29 Jul 2015 17:51:20 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37D329493@ORSMSX112.amr.corp.intel.com>
+References: <1438043542-2960-1-git-send-email-linux@roeck-us.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAAObsKD9BN7dsEiNB=OvJkoOQPwxwnP794w=X4AwtYz3oxEJqw@mail.gmail.com>
+In-Reply-To: <1438043542-2960-1-git-send-email-linux@roeck-us.net>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Rob Herring <robh+dt@kernel.org>, Grant Likely <grant.likely@linaro.org>
+To: Guenter Roeck <linux@roeck-us.net>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jul 29, 2015 at 6:20 AM, Tomeu Vizoso
-<tomeu.vizoso@collabora.com> wrote:
-> On 29 July 2015 at 08:14, Tomeu Vizoso <tomeu.vizoso@collabora.com> wrote:
->> On 28 July 2015 at 17:31, Rob Herring <robherring2@gmail.com> wrote:
->>> On Tue, Jul 28, 2015 at 8:54 AM, Tomeu Vizoso
->>> <tomeu.vizoso@collabora.com> wrote:
->>>> On 28 July 2015 at 15:39, Rob Herring <robherring2@gmail.com> wrote:
->>>>> On Tue, Jul 28, 2015 at 8:19 AM, Tomeu Vizoso
->>>>> <tomeu.vizoso@collabora.com> wrote:
->>>>>> From an arbitrary node in the tree, find the enclosing node that
->>>>>> corresponds to a platform device, as registered by
->>>>>> of_platform_populate().
 
-[...]
 
->>>> If I had a way to get, say, a i2c device from its fwnode then I would
->>>> just need to make sure that a device's parent is probed before probing
->>>> it and everything would be cleaner in the OF case.
->>>
->>> If you have the struct device from the device_node, then you should be
->>> able to do this, right?
->>
->> Yes, if I could go back from the device_node to the struct device that
->> was registered from it, for all buses, then all this would be much
->> simpler and more robust. It would basically work like in the ACPI
->> case.
->>
->> I will play with this idea.
->>
->>>>> That is probably not the
->>>>> most efficient search, but we could fix that. We could add struct
->>>>> device ptr to struct device_node and check without searching for
->>>>> example.
->>>>
->>>> That would be great, but I thought there was an issue with a OF node
->>>> being able to be related to more than one struct device (but I haven't
->>>> found this myself yet).
->>>
->>> I think it pretty much should be one to one. I'm not aware of any
->>> examples where that is not the case. This function would already be
->>> broken if you could have more than one struct device.
->>
->> Well, for platform devices we currently know that there can only be
->> one struct device for a given device_node, but that's not so clear for
->> other devices.
->
-> Just found this case:
->
-> http://lxr.free-electrons.com/source/drivers/spi/spi-tegra114.c#L1124
->
-> Looks like SPI master devices point to the same device_node as the
-> platform device that registers them.
+> -----Original Message-----
+> From: Guenter Roeck [mailto:linux@roeck-us.net]
+> Sent: Monday, July 27, 2015 5:32 PM
+> To: rjw@rjwysocki.net
+> Cc: lenb@kernel.org; Moore, Robert; Zheng, Lv; linux-acpi@vger.kernel.org;
+> linux-kernel@vger.kernel.org; devel@acpica.org; Guenter Roeck
+> Subject: [PATCH v2] acpi: Use kstrtoul() instead of
+> strtoul()/simple_strtoul()
+> 
+> simple_strtoul() is deprecated; replace with kstrtoul() and kstrtouint().
 
-I don't think this is a problem. The device ptr would only point to
-the platform device. Nothing else is going to know about the ptr,
-modify it nor expect that it points to the same struct device that
-contains the of_node ptr.
+The ACPICA code is os-independent and cannot use these functions (at least not directly).
 
-So I think any instances of struct device like this are ones you don't
-care about for purposes of probe dependencies.
 
-Rob
+
+
+
+> Return an error if the value passed to the sysfs attribute is not a
+> number.
+> 
+> Drop the definition of strtoul() since it is no longer needed.
+> 
+> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+> ---
+> v2: An additional use of strtoul() was introduced with commit 4fa4616e.
+>     Replace it as well.
+> 
+>  drivers/acpi/acpica/evgpeinit.c | 5 +++--
+>  drivers/acpi/sysfs.c            | 8 ++++++--
+>  include/acpi/platform/aclinux.h | 1 -
+>  3 files changed, 9 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/acpi/acpica/evgpeinit.c
+> b/drivers/acpi/acpica/evgpeinit.c index ea4c0d3fca2d..aa1e8c1f2d4a 100644
+> --- a/drivers/acpi/acpica/evgpeinit.c
+> +++ b/drivers/acpi/acpica/evgpeinit.c
+> @@ -326,6 +326,7 @@ acpi_ev_match_gpe_method(acpi_handle obj_handle,
+>  	u32 gpe_number;
+>  	char name[ACPI_NAME_SIZE + 1];
+>  	u8 type;
+> +	int err;
+> 
+>  	ACPI_FUNCTION_TRACE(ev_match_gpe_method);
+> 
+> @@ -377,8 +378,8 @@ acpi_ev_match_gpe_method(acpi_handle obj_handle,
+> 
+>  	/* 4) The last two characters of the name are the hex GPE Number */
+> 
+> -	gpe_number = strtoul(&name[2], NULL, 16);
+> -	if (gpe_number == ACPI_UINT32_MAX) {
+> +	er = kstrtouint(&name[2], 16, &gpe_number);
+> +	if (err < 0 || gpe_number == ACPI_UINT32_MAX) {
+> 
+>  		/* Conversion failed; invalid method, just ignore it */
+> 
+> diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c index
+> 0876d77b3206..d6ea5712ec57 100644
+> --- a/drivers/acpi/sysfs.c
+> +++ b/drivers/acpi/sysfs.c
+> @@ -616,8 +616,12 @@ static ssize_t counter_set(struct kobject *kobj,
+>  			all_counters[index].count = tmp;
+>  		else
+>  			result = -EINVAL;
+> -	} else
+> -		all_counters[index].count = strtoul(buf, NULL, 0);
+> +	} else {
+> +		if (!kstrtoul(buf, 0, &tmp))
+> +			all_counters[index].count = tmp;
+> +		else
+> +			result = -EINVAL;
+> +	}
+> 
+>  	if (ACPI_FAILURE(result))
+>  		result = -EINVAL;
+> diff --git a/include/acpi/platform/aclinux.h
+> b/include/acpi/platform/aclinux.h index 74ba46c8157a..9925c1d5d58f 100644
+> --- a/include/acpi/platform/aclinux.h
+> +++ b/include/acpi/platform/aclinux.h
+> @@ -119,7 +119,6 @@
+> 
+>  #define ACPI_MACHINE_WIDTH          BITS_PER_LONG
+>  #define ACPI_EXPORT_SYMBOL(symbol)  EXPORT_SYMBOL(symbol);
+> -#define strtoul                     simple_strtoul
+> 
+>  #define acpi_cache_t                        struct kmem_cache
+>  #define acpi_spinlock                       spinlock_t *
+> --
+> 2.1.0
