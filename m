@@ -1,175 +1,337 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: [PATCH v4 03/10] irqchip / GIC / ACPI: Use IRQCHIP_ACPI_DECLARE to
- simplify GICv2 init code
-Date: Wed, 29 Jul 2015 18:08:52 +0800
-Message-ID: <1438164539-29256-4-git-send-email-hanjun.guo@linaro.org>
+Subject: [PATCH v4 08/10] ACPI: GIC: Add ACPI helper functions to query irq-domain tokens for for GIC MSI and ITS
+Date: Wed, 29 Jul 2015 18:08:57 +0800
+Message-ID: <1438164539-29256-9-git-send-email-hanjun.guo@linaro.org>
 References: <1438164539-29256-1-git-send-email-hanjun.guo@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pd0-f175.google.com ([209.85.192.175]:32907 "EHLO
+	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752495AbbG2KKo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Jul 2015 06:10:44 -0400
+Received: by pdbnt7 with SMTP id nt7so3569271pdb.0
+        for <linux-acpi@vger.kernel.org>; Wed, 29 Jul 2015 03:10:44 -0700 (PDT)
 In-Reply-To: <1438164539-29256-1-git-send-email-hanjun.guo@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Marc Zyngier <marc.zyngier@arm.com>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Wei Huang <wei@redhat.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, linux-acpi@vger.kernel.org, Timur Tabi <timur@codeaurora.org>, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Grant Likely <grant.likely@linaro.org>, Mark Brown <broonie@kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Bjorn Helgaas <bhelgaas@google.com>, Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, linux-arm-kernel@lists.infradead.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Timur Tabi <timur@codeaurora.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Grant Likely <grant.likely@linaro.org>, Mark Brown <broonie@kernel.org>, Wei Huang <wei@redhat.com>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
 
-As the ACPI self-probe infrastructure for irqchip is ready,
-we use the infrastructure to simplify GICv2 init code.
+From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 
-acpi_irqchip_init() is renamed as acpi_irq_init() to replace
-the previous hardcode version of acpi_irq_init() in asm/irq.h,
-also cleanup the code which previously calling the GIC driver
-manually in arch/arm64/kernel/acpi.c.
+This patch introduces acpi_gic_get_msi_token(), which returns irq-domain
+token that can be used to look up MSI doamin of a device.
+In both GIC MSI and ITS cases, the base_address specified in the GIC MSI
+or GIC ITS structure is used as a token for MSI domain.
 
->From now on, GIC init calls reside in their drivers only.
-This means the code becomes cleaner and it is not spread
-outside irqchip driver.
+In addition, this patch also provides low-level helper functions to parse
+and query GIC MSI structure and GIC ITS from MADT. Once parsed, it keeps
+a copy of the structure for use in subsequent queries to avoid having
+to map and parse MADT multiple times.
 
+Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- arch/arm64/include/asm/irq.h         | 13 -------------
- arch/arm64/kernel/acpi.c             | 25 -------------------------
- drivers/irqchip/irq-gic-acpi.c       |  2 +-
- drivers/irqchip/irq-gic.c            |  3 ++-
- include/linux/acpi_irq.h             |  4 +++-
- include/linux/irqchip/arm-gic-acpi.h |  9 +--------
- 6 files changed, 7 insertions(+), 49 deletions(-)
+ drivers/acpi/Makefile   |   1 +
+ drivers/acpi/acpi_gic.c | 234 ++++++++++++++++++++++++++++++++++++++++++++++++
+ include/acpi/acpi_gic.h |  23 +++++
+ include/linux/acpi.h    |   1 +
+ 4 files changed, 259 insertions(+)
+ create mode 100644 drivers/acpi/acpi_gic.c
+ create mode 100644 include/acpi/acpi_gic.h
 
-diff --git a/arch/arm64/include/asm/irq.h b/arch/arm64/include/asm/irq.h
-index bbb251b..94c5367 100644
---- a/arch/arm64/include/asm/irq.h
-+++ b/arch/arm64/include/asm/irq.h
-@@ -1,8 +1,6 @@
- #ifndef __ASM_IRQ_H
- #define __ASM_IRQ_H
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index 8321430..def54b9 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -54,6 +54,7 @@ acpi-$(CONFIG_ACPI_NUMA)	+= numa.o
+ acpi-$(CONFIG_ACPI_PROCFS_POWER) += cm_sbs.o
+ acpi-y				+= acpi_lpat.o
+ acpi-$(CONFIG_ACPI_GENERIC_GSI) += gsi.o
++acpi-$(CONFIG_ARM_GIC_ACPI)	+= acpi_gic.o
  
--#include <linux/irqchip/arm-gic-acpi.h>
--
- #include <asm-generic/irq.h>
+ # These are (potentially) separate modules
  
- struct pt_regs;
-@@ -10,15 +8,4 @@ struct pt_regs;
- extern void migrate_irqs(void);
- extern void set_handle_irq(void (*handle_irq)(struct pt_regs *));
- 
--static inline void acpi_irq_init(void)
--{
--	/*
--	 * Hardcode ACPI IRQ chip initialization to GICv2 for now.
--	 * Proper irqchip infrastructure will be implemented along with
--	 * incoming  GICv2m|GICv3|ITS bits.
--	 */
--	acpi_gic_init();
--}
--#define acpi_irq_init acpi_irq_init
--
- #endif
-diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
-index 19de753..d6463bb 100644
---- a/arch/arm64/kernel/acpi.c
-+++ b/arch/arm64/kernel/acpi.c
-@@ -205,28 +205,3 @@ void __init acpi_boot_table_init(void)
- 			disable_acpi();
- 	}
- }
--
--void __init acpi_gic_init(void)
--{
--	struct acpi_table_header *table;
--	acpi_status status;
--	acpi_size tbl_size;
--	int err;
--
--	if (acpi_disabled)
--		return;
--
--	status = acpi_get_table_with_size(ACPI_SIG_MADT, 0, &table, &tbl_size);
--	if (ACPI_FAILURE(status)) {
--		const char *msg = acpi_format_exception(status);
--
--		pr_err("Failed to get MADT table, %s\n", msg);
--		return;
--	}
--
--	err = gic_v2_acpi_init(table);
--	if (err)
--		pr_err("Failed to initialize GIC IRQ controller");
--
--	early_acpi_os_unmap_memory((char *)table, tbl_size);
--}
-diff --git a/drivers/irqchip/irq-gic-acpi.c b/drivers/irqchip/irq-gic-acpi.c
-index 011468d..95454e3 100644
---- a/drivers/irqchip/irq-gic-acpi.c
-+++ b/drivers/irqchip/irq-gic-acpi.c
-@@ -119,7 +119,7 @@ irqchip_acpi_match_end __used __section(__irqchip_acpi_table_end);
- 
- extern struct acpi_table_id __irqchip_acpi_table[];
- 
--void __init acpi_irqchip_init(void)
-+void __init acpi_irq_init(void)
- {
- 	struct acpi_table_id *id;
- 
-diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
-index ce531e6..bec6b00 100644
---- a/drivers/irqchip/irq-gic.c
-+++ b/drivers/irqchip/irq-gic.c
-@@ -1109,7 +1109,7 @@ static int gic_acpi_gsi_desc_populate(struct acpi_gsi_descriptor *data,
- 	return 0;
- }
- 
--int __init
+diff --git a/drivers/acpi/acpi_gic.c b/drivers/acpi/acpi_gic.c
+new file mode 100644
+index 0000000..11ee4eb
+--- /dev/null
++++ b/drivers/acpi/acpi_gic.c
+@@ -0,0 +1,234 @@
++/*
++ * File: acpi_gic.c
++ *
++ * ACPI helper functions for ARM GIC
++ *
++ * Copyright (C) 2015 Advanced Micro Devices, Inc.
++ * Authors: Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>
++ */
++
++#include <linux/acpi.h>
++#include <linux/init.h>
++
++/*
++ * GIC MSI Frame data structures
++ */
++struct gic_msi_frame_handle {
++	struct list_head list;
++	struct acpi_madt_generic_msi_frame frame;
++};
++
++static LIST_HEAD(msi_frame_list);
++
++static int acpi_num_msi;
++
++/*
++ * GIC ITS data structures
++ */
++struct gic_its_handle {
++	struct list_head list;
++	struct acpi_madt_generic_translator trans;
++};
++
++static LIST_HEAD(its_list);
++
++static int acpi_num_its;
++
++/*
++ * GIC MSI Frame parsing stuff
++ */
++inline int acpi_gic_get_num_msi_frame(void)
++{
++	return acpi_num_msi;
++}
++
 +static int __init
- gic_v2_acpi_init(struct acpi_table_header *table)
- {
- 	void __iomem *cpu_base, *dist_base;
-@@ -1163,4 +1163,5 @@ gic_v2_acpi_init(struct acpi_table_header *table)
- 			   gic_acpi_gsi_desc_populate);
- 	return 0;
- }
-+IRQCHIP_ACPI_DECLARE(gic_v2, ACPI_MADT_GIC_VERSION_V2, gic_v2_acpi_init);
- #endif
-diff --git a/include/linux/acpi_irq.h b/include/linux/acpi_irq.h
-index f10c872..4c0e108 100644
---- a/include/linux/acpi_irq.h
-+++ b/include/linux/acpi_irq.h
-@@ -3,7 +3,9 @@
- 
- #include <linux/irq.h>
- 
--#ifndef acpi_irq_init
++acpi_parse_madt_msi(struct acpi_subtable_header *header,
++		    const unsigned long end)
++{
++	struct gic_msi_frame_handle *h;
++	struct acpi_madt_generic_msi_frame *frame;
++
++	frame = (struct acpi_madt_generic_msi_frame *)header;
++	if (BAD_MADT_ENTRY(frame, end))
++		return -EINVAL;
++
++	h = kzalloc(sizeof(struct gic_msi_frame_handle *), GFP_KERNEL);
++	if (!h)
++		return -ENOMEM;
++
++	/** Note:
++	 * We make a copy of this structure since this code is called
++	 * prior to acpi_early_init(), which sets the acpi_gbl_permanent_mmap.
++	 * Therefore, we could not keep just the pointer sincce the memory
++	 * could be unmapped.
++	 */
++	memcpy(&h->frame, frame, sizeof(struct acpi_madt_generic_msi_frame));
++
++	list_add(&h->list, &msi_frame_list);
++
++	return 0;
++}
++
++int __init acpi_gic_msi_init(struct acpi_table_header *table)
++{
++	int ret = 0;
++
++	if (acpi_num_msi > 0)
++		return ret;
++
++	ret = acpi_parse_entries(ACPI_SIG_MADT,
++				 sizeof(struct acpi_table_madt),
++				 acpi_parse_madt_msi, table,
++				 ACPI_MADT_TYPE_GENERIC_MSI_FRAME, 0);
++	if (ret == 0) {
++		pr_debug("No valid ACPI GIC MSI FRAME exist\n");
++		return ret;
++	}
++
++	acpi_num_msi = ret;
++	return 0;
++}
++
++int acpi_gic_get_msi_frame(int index, struct acpi_madt_generic_msi_frame **p)
++{
++	int i = 0;
++	struct gic_msi_frame_handle *m;
++
++	if (index >= acpi_num_msi)
++		return -EINVAL;
++
++	list_for_each_entry(m, &msi_frame_list, list) {
++		if (i == index)
++			break;
++		i++;
++	}
++
++	if (i == acpi_num_msi)
++		return -EINVAL;
++
++	*p = &(m->frame);
++	return  0;
++}
++
++/*
++ * GIC ITS parsing stuff
++ */
++inline int acpi_gic_get_num_its(void)
++{
++	return acpi_num_its;
++}
++
++static int __init
++acpi_parse_madt_its(struct acpi_subtable_header *header,
++		    const unsigned long end)
++{
++	struct gic_its_handle *h;
++	struct acpi_madt_generic_translator *trans;
++
++	trans = (struct acpi_madt_generic_translator *)header;
++	if (BAD_MADT_ENTRY(trans, end))
++		return -EINVAL;
++
++	h = kzalloc(sizeof(struct gic_its_handle *), GFP_KERNEL);
++	if (!h)
++		return -ENOMEM;
++
++	memcpy(&h->trans, trans, sizeof(struct acpi_madt_generic_translator));
++
++	list_add(&h->list, &its_list);
++
++	return 0;
++}
++
++int __init acpi_gic_madt_gic_its_init(struct acpi_table_header *table)
++{
++	int ret = 0;
++
++	if (acpi_num_its > 0)
++		return ret;
++
++	ret = acpi_parse_entries(ACPI_SIG_MADT,
++				 sizeof(struct acpi_table_madt),
++				 acpi_parse_madt_its, table,
++				 ACPI_MADT_TYPE_GENERIC_TRANSLATOR, 0);
++	if (ret == 0) {
++		pr_debug("No valid ACPI GIC ITS exist\n");
++		return ret;
++	}
++
++	acpi_num_its = ret;
++	return 0;
++}
++
++int acpi_gic_get_its(int index, struct acpi_madt_generic_translator **p)
++{
++	int i = 0;
++	struct gic_its_handle *m;
++
++	if (index >= acpi_num_its)
++		return -EINVAL;
++
++	list_for_each_entry(m, &its_list, list) {
++		if (i == index)
++			break;
++		i++;
++	}
++
++	if (i == acpi_num_its)
++		return -EINVAL;
++
++	*p = &(m->trans);
++	return  0;
++}
++
++static void *acpi_gic_msi_token(struct device *dev)
++{
++	int err;
++	struct acpi_madt_generic_msi_frame *msi;
++
++	/**
++	* Since ACPI 5.1 currently does not define
++	* a way to associate MSI frame ID to a device,
++	* we can only support single MSI frame (index 0)
++	* at the moment.
++	*/
++	err = acpi_gic_get_msi_frame(0, &msi);
++	if (err)
++		return NULL;
++
++	return (void *) msi->base_address;
++}
++
++static void *acpi_gic_its_token(struct device *dev)
++{
++	int err;
++	struct acpi_madt_generic_translator *trans;
++	int its_id = 0;
++
++	/**
++	 * TODO: We need a way to retrieve GIC ITS ID from
++	 * struct device pointer (in this case, the device
++	 * would be the PCI host controller.
++	 *
++	 * This would be done by the IORT-related code.
++	 *
++	 * its_id = get_its_id(dev);
++	 */
++
++	err = acpi_gic_get_its(its_id, &trans);
++	if (err)
++		return NULL;
++
++	return (void *) trans->base_address;
++}
++
++void *acpi_gic_get_msi_token(struct device *dev)
++{
++	void *token = acpi_gic_msi_token(dev);
++
++	if (!token)
++		token = acpi_gic_its_token(dev);
++
++	return token;
++}
+diff --git a/include/acpi/acpi_gic.h b/include/acpi/acpi_gic.h
+new file mode 100644
+index 0000000..34fa475
+--- /dev/null
++++ b/include/acpi/acpi_gic.h
+@@ -0,0 +1,23 @@
++/*
++ *  include/acpi/acpi_gic.h
++ *
++ * Copyright (C) 2015 Advanced Micro Devices, Inc.
++ * Authors: Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>
++ */
++
++#ifndef __ACPI_GIC_H__
++#define __ACPI_GIC_H__
++
 +#ifdef CONFIG_ACPI
-+void acpi_irq_init(void);
-+#else
- static inline void acpi_irq_init(void) { }
- #endif
++int acpi_gic_get_num_msi_frame(void);
++int acpi_gic_msi_init(struct acpi_table_header *table);
++int acpi_gic_get_msi_frame(int index, struct acpi_madt_generic_msi_frame **p);
++
++int acpi_gic_get_num_its(void);
++int acpi_gic_its_init(struct acpi_table_header *table);
++int acpi_gic_get_its(int index, struct acpi_madt_generic_translator **p);
++
++void *acpi_gic_get_msi_token(struct device *dev);
++#endif
++
++#endif /*__ACPI_GIC_H__*/
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 04dd0bb..5d58b61 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -44,6 +44,7 @@
  
-diff --git a/include/linux/irqchip/arm-gic-acpi.h b/include/linux/irqchip/arm-gic-acpi.h
-index 13bc676..56cd82c 100644
---- a/include/linux/irqchip/arm-gic-acpi.h
-+++ b/include/linux/irqchip/arm-gic-acpi.h
-@@ -21,12 +21,5 @@
- #define ACPI_GIC_CPU_IF_MEM_SIZE	(SZ_8K)
- #define ACPI_GICV3_DIST_MEM_SIZE	(SZ_64K)
- 
--struct acpi_table_header;
--
--int gic_v2_acpi_init(struct acpi_table_header *table);
--void acpi_gic_init(void);
--#else
--static inline void acpi_gic_init(void) { }
--#endif
--
-+#endif /* CONFIG_ACPI */
- #endif /* ARM_GIC_ACPI_H_ */
+ #include <acpi/acpi_bus.h>
+ #include <acpi/acpi_drivers.h>
++#include <acpi/acpi_gic.h>
+ #include <acpi/acpi_numa.h>
+ #include <acpi/acpi_io.h>
+ #include <asm/acpi.h>
 -- 
 1.9.1
+
