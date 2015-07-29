@@ -1,102 +1,99 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Subject: Re: [PATCH v2] acpi: Use kstrtoul() instead of strtoul()/simple_strtoul()
-Date: Wed, 29 Jul 2015 13:37:12 -0700
-Message-ID: <55B93978.9070306@roeck-us.net>
-References: <1438043542-2960-1-git-send-email-linux@roeck-us.net>	<94F2FBAB4432B54E8AACC7DFDE6C92E37D329493@ORSMSX112.amr.corp.intel.com>	<55B91DAF.3060605@roeck-us.net>	<94F2FBAB4432B54E8AACC7DFDE6C92E37D3294E8@ORSMSX112.amr.corp.intel.com>	<55B9304E.6020408@roeck-us.net> <CAJZ5v0hHxXb-SKpFABFDf9UQcVMoLUmHzBctJ7SvYrfqbJJ6xw@mail.gmail.com>
+From: Bjorn Helgaas <bhelgaas@google.com>
+Subject: Re: [Patch v5 1/6] ACPI/PCI: Enhance ACPI core to support sparse IO
+ space
+Date: Wed, 29 Jul 2015 15:37:41 -0500
+Message-ID: <20150729203741.GC9640@google.com>
+References: <1433780448-18636-1-git-send-email-jiang.liu@linux.intel.com>
+ <1433780448-18636-2-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAJZ5v0hHxXb-SKpFABFDf9UQcVMoLUmHzBctJ7SvYrfqbJJ6xw@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Moore, Robert" <robert.moore@intel.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-oi0-f41.google.com ([209.85.218.41]:33204 "EHLO
+	mail-oi0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753907AbbG2Uhr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Jul 2015 16:37:47 -0400
+Received: by oixx19 with SMTP id x19so11628969oix.0
+        for <linux-acpi@vger.kernel.org>; Wed, 29 Jul 2015 13:37:47 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <1433780448-18636-2-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, Yijing Wang <wangyijing@huawei.com>, Len Brown <lenb@kernel.org>, Vivek Goyal <vgoyal@redhat.com>, Thierry Reding <treding@nvidia.com>, Jakub Sitnicki <jsitnicki@gmail.com>, Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>, linux-arm-kernel@lists.infradead.org
 
-On 07/29/2015 01:04 PM, Rafael J. Wysocki wrote:
-> Hi Guenter,
->
-> On Wed, Jul 29, 2015 at 9:58 PM, Guenter Roeck <linux@roeck-us.net> wrote:
->> On 07/29/2015 12:33 PM, Moore, Robert wrote:
->>>>
->>>> -----Original Message-----
->>>> From: Guenter Roeck [mailto:linux@roeck-us.net]
->>>> Sent: Wednesday, July 29, 2015 11:39 AM
->>>> To: Moore, Robert; rjw@rjwysocki.net
->>>> Cc: lenb@kernel.org; Zheng, Lv; linux-acpi@vger.kernel.org; linux-
->>>> kernel@vger.kernel.org; devel@acpica.org
->>>> Subject: Re: [PATCH v2] acpi: Use kstrtoul() instead of
->>>> strtoul()/simple_strtoul()
->>>>
->>>> On 07/29/2015 10:51 AM, Moore, Robert wrote:
->>>>>
->>>>>
->>>>>
->>>>>> -----Original Message-----
->>>>>> From: Guenter Roeck [mailto:linux@roeck-us.net]
->>>>>> Sent: Monday, July 27, 2015 5:32 PM
->>>>>> To: rjw@rjwysocki.net
->>>>>> Cc: lenb@kernel.org; Moore, Robert; Zheng, Lv;
->>>>>> linux-acpi@vger.kernel.org; linux-kernel@vger.kernel.org;
->>>>>> devel@acpica.org; Guenter Roeck
->>>>>> Subject: [PATCH v2] acpi: Use kstrtoul() instead of
->>>>>> strtoul()/simple_strtoul()
->>>>>>
->>>>>> simple_strtoul() is deprecated; replace with kstrtoul() and
->>>>
->>>> kstrtouint().
->>>>>
->>>>>
->>>>> The ACPICA code is os-independent and cannot use these functions (at
->>>>
->>>> least not directly).
->>>>>
->>>>>
->>>>>
->>>> Odd argument, given that kstrtoul() is used already in the acpi code.
->>>
->>>
->>> They are not in the os-independent ACPICA code. The ACPI-related drivers
->>> are another story, since they are OS-dendent.
->>>
->>
->> That this OS independent code mandates functions such as strtoul(),
->> which may not exist in a target OS, and that it maps strtoul() to
->> simple_strtoul() in a global include file, doesn't seem to be
->> correct either and is asking for repeated trouble. I would have
->> hoped that at the very least such mappings would be implemented
->> in local include files.
->
-> The header is obviously OS-dependent and it does what it does just
-> because simple_strtoul() is available and serves the purpose.
->
-> As I said in the previous message, the strtoul() used by ACPICA might
-> be redefined in terms of kstroul().
->
-> And the change in sysfs.c is still OK.  Do you want me to apply this
-> change only?
->
+On Tue, Jun 09, 2015 at 12:20:43AM +0800, Jiang Liu wrote:
+> Enhance ACPI resource parsing interfaces to support sparse IO space,
+> which will be used to share common code between x86 and IA64 later.
+> 
+> Tested-by: Tony Luck <tony.luck@intel.com>
+> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+> Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
+> ---
+>  drivers/acpi/resource.c |    9 ++++++---
+>  include/linux/ioport.h  |    1 +
+>  2 files changed, 7 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+> index 8244f013f210..fdcc73dad2c1 100644
+> --- a/drivers/acpi/resource.c
+> +++ b/drivers/acpi/resource.c
+> @@ -123,7 +123,7 @@ bool acpi_dev_resource_memory(struct acpi_resource *ares, struct resource *res)
+>  EXPORT_SYMBOL_GPL(acpi_dev_resource_memory);
+>  
+>  static void acpi_dev_ioresource_flags(struct resource *res, u64 len,
+> -				      u8 io_decode)
+> +				      u8 io_decode, u8 translation_type)
+>  {
+>  	res->flags = IORESOURCE_IO;
+>  
+> @@ -135,6 +135,8 @@ static void acpi_dev_ioresource_flags(struct resource *res, u64 len,
+>  
+>  	if (io_decode == ACPI_DECODE_16)
+>  		res->flags |= IORESOURCE_IO_16BIT_ADDR;
+> +	if (translation_type == ACPI_SPARSE_TRANSLATION)
+> +		res->flags |= IORESOURCE_IO_SPARSE;
+>  }
+>  
+>  static void acpi_dev_get_ioresource(struct resource *res, u64 start, u64 len,
+> @@ -142,7 +144,7 @@ static void acpi_dev_get_ioresource(struct resource *res, u64 start, u64 len,
+>  {
+>  	res->start = start;
+>  	res->end = start + len - 1;
+> -	acpi_dev_ioresource_flags(res, len, io_decode);
+> +	acpi_dev_ioresource_flags(res, len, io_decode, 0);
+>  }
+>  
+>  /**
+> @@ -227,7 +229,8 @@ static bool acpi_decode_space(struct resource_win *win,
+>  		acpi_dev_memresource_flags(res, len, wp);
+>  		break;
+>  	case ACPI_IO_RANGE:
+> -		acpi_dev_ioresource_flags(res, len, iodec);
+> +		acpi_dev_ioresource_flags(res, len, iodec,
+> +					  addr->info.io.translation_type);
+>  		break;
+>  	case ACPI_BUS_NUMBER_RANGE:
+>  		res->flags = IORESOURCE_BUS;
+> diff --git a/include/linux/ioport.h b/include/linux/ioport.h
+> index 388e3ae94f7a..24bea087e7af 100644
+> --- a/include/linux/ioport.h
+> +++ b/include/linux/ioport.h
+> @@ -94,6 +94,7 @@ struct resource {
+>  /* PnP I/O specific bits (IORESOURCE_BITS) */
+>  #define IORESOURCE_IO_16BIT_ADDR	(1<<0)
+>  #define IORESOURCE_IO_FIXED		(1<<1)
+> +#define IORESOURCE_IO_SPARSE		(1<<2)
 
-Let's step back a bit. The problem I was trying to solve was that
-there were two definitions of strtoul(), which caused compile errors
-for some builds.
+I don't really like this bit.  We adding a new generic IORESOURCE_* bit
+just for a special case, and it's only used in one place, for one arch,
+during enumeration.
 
-libcfs_string.h 105 #define strtoul(str, endp, base) simple_strtoul(str, endp, base)
-aclinux.h       122 #define strtoul simple_strtoul
+Don't we have a similar problem (struct resource can't express all the
+information from an ACPI resource) for the _TRA value for bridge windows?
+If it's a similar issue, we should solve it in a similar way.
 
-The first was in lustre code. My patch to remove that definition
-has been accepted, so now there is only one such definition left.
-
-Fixing the sysfs code only might make some sense - I'll leave that
-up to you - but it doesn't address the problem I was trying to solve,
-which is that strtoul() is defined in a global but driver specific include
-file (include/linux/...). That definition would still be there and may
-cause trouble again if someone else defines strtoul elsewhere for similar
-reasons.
-
-A fix might be to move the definition of strtoul from aclinux.h to
-some include file in drivers/acpi, but I don't know the code well
-enough to know if that is even feasible, or which file to move it to.
-
-Thanks,
-Guenter
+>  /* PCI ROM control bits (IORESOURCE_BITS) */
+>  #define IORESOURCE_ROM_ENABLE		(1<<0)	/* ROM is enabled, same as PCI_ROM_ADDRESS_ENABLE */
+> -- 
+> 1.7.10.4
+> 
