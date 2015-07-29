@@ -1,157 +1,103 @@
-From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Subject: Re: [PATCH v2 04/22] of/platform: add of_platform_device_find()
-Date: Wed, 29 Jul 2015 08:14:22 +0200
-Message-ID: <CAAObsKA+vMsgiC52jReJckeDjXhdd=_NBocFbMapdwFReiY1SQ@mail.gmail.com>
-References: <1438089593-7696-1-git-send-email-tomeu.vizoso@collabora.com>
- <1438089593-7696-5-git-send-email-tomeu.vizoso@collabora.com>
- <CAL_JsqJGhFXDKuayuKc2E58X5A7ZGN=uYCVDLnXw_t3_auBg+w@mail.gmail.com>
- <CAAObsKBfRLdPc0gs55ARfa+qZJAOEyEgRyTf8krZnQMb6-j03g@mail.gmail.com> <CAL_Jsq+RqGAxHE5-ocD-htddBHckG24oZNqfgmMF3Jak6wDXBQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: [PATCH v4 00/10] ACPI GIC Self-probing, GICv2m and GICv3 support
+Date: Wed, 29 Jul 2015 18:08:49 +0800
+Message-ID: <1438164539-29256-1-git-send-email-hanjun.guo@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:35438 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752626AbbG2GOn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Jul 2015 02:14:43 -0400
-In-Reply-To: <CAL_Jsq+RqGAxHE5-ocD-htddBHckG24oZNqfgmMF3Jak6wDXBQ@mail.gmail.com>
+Received: from mail-pa0-f45.google.com ([209.85.220.45]:33611 "EHLO
+	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751950AbbG2KJq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 29 Jul 2015 06:09:46 -0400
+Received: by padck2 with SMTP id ck2so3416319pad.0
+        for <linux-acpi@vger.kernel.org>; Wed, 29 Jul 2015 03:09:45 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Rob Herring <robherring2@gmail.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Rob Herring <robh+dt@kernel.org>, Grant Likely <grant.likely@linaro.org>
+To: Marc Zyngier <marc.zyngier@arm.com>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Timur Tabi <timur@codeaurora.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Grant Likely <grant.likely@linaro.org>, Mark Brown <broonie@kernel.org>, Wei Huang <wei@redhat.com>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Hanjun Guo <hanjun.guo@linaro.org>
 
-On 28 July 2015 at 17:31, Rob Herring <robherring2@gmail.com> wrote:
-> On Tue, Jul 28, 2015 at 8:54 AM, Tomeu Vizoso
-> <tomeu.vizoso@collabora.com> wrote:
->> On 28 July 2015 at 15:39, Rob Herring <robherring2@gmail.com> wrote:
->>> On Tue, Jul 28, 2015 at 8:19 AM, Tomeu Vizoso
->>> <tomeu.vizoso@collabora.com> wrote:
->>>> From an arbitrary node in the tree, find the enclosing node that
->>>> corresponds to a platform device, as registered by
->>>> of_platform_populate().
->>>>
->>>> This can be used to find out what device needs to be probed so the
->>>> dependency described by a given node is made available.
->>>>
->>>> Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
->>>> ---
->>>>
->>>> Changes in v2:
->>>> - Move the logic for finding a platform device from its firmware node to
->>>>   of/platform.c as it's not needed for ACPI nodes.
->>>>
->>>>  drivers/of/platform.c       | 60 +++++++++++++++++++++++++++++++++++++++++++++
->>>>  include/linux/of_platform.h |  1 +
->>>>  2 files changed, 61 insertions(+)
->>>>
->>>> diff --git a/drivers/of/platform.c b/drivers/of/platform.c
->>>> index ff27494cda8c..89c5cd513027 100644
->>>> --- a/drivers/of/platform.c
->>>> +++ b/drivers/of/platform.c
->>>> @@ -501,6 +501,66 @@ void of_platform_depopulate(struct device *parent)
->>>>  }
->>>>  EXPORT_SYMBOL_GPL(of_platform_depopulate);
->>>>
->>>> +static bool of_is_platform(struct device_node *np)
->>>> +{
->>>> +       int count;
->>>> +
->>>> +       count = of_property_count_strings(np, "compatible");
->>>> +
->>>> +       /* The node has to have a compatible string */
->>>> +       if (!count)
->>>> +               return false;
->>>> +
->>>> +       /* But it cannot be just a simple memory-mapped bus */
->>>> +       if (count == 1 && of_match_node(of_default_bus_match_table, np))
->>>> +               return false;
->>>> +
->>>> +       /* But AMBA devices aren't platform devices */
->>>> +       if (of_device_is_compatible(np, "arm,primecell"))
->>>> +               return false;
->>>> +
->>>> +       /* Node is immediately below root */
->>>> +       if (!np->parent || !np->parent->parent)
->>>> +               return true;
->>>> +
->>>> +       /* If it's a node in a simple memory-mapped bus */
->>>> +       if (of_match_node(of_default_bus_match_table, np->parent))
->>>> +               return true;
->>>
->>> This seems really fragile.
->>
->> I think this finding logic matches the logic for registering platform
->> devices in of_platform_populate and also what is documented in
->> Documentation/devicetree/usage-model.txt.
->
-> Right. So now we have that logic in 2 places. One is descending from
-> the root and one is walking up from the child. That's an opportunity
-> for some mismatch.
+When ACPI core patches were merged into mainline, there were two TODOs for
+ACPI based GIC init, one is the Self-probing for GIC, the other one is to
+support stacked irq domain, also the feature of GICv2m and GICv3 is missing
+in that patch set.
 
-Definitely.
+For ACPI Self-probing for GIC, thanks to the GIC version which is introduced
+in ACPI 6.0, we can match the GIC version and GIC driver, based on that,
+we introduce the self-probe infrastructure similar as IRQCHIP_DECLARE(),
+please see patch 1~3.
 
->>> What about platform devices which are
->>> children of MFDs but are not "simple-mfd"?
->>
->> This code should deal fine with those (the boards I tested with do
->> have them). It probes the mfd master, and that in turn will call
->> mfd_add_devices causing the target device to be probed.
->
-> I don't see how this function would ever return true in this case
-> unless you put the MFD at the root level. The only other way to return
-> true is matching on of_default_bus_match_table for the parent (i.e.
-> the MFD).
+The stacked domain thing is more complicated, Marc introduced a patchset
+to slove this problem (great thanks!) - Making the generic ACPI GSI layer
+irqdomain aware, which is avaiable at:
 
-Oops, you are right.
+git://git.kernel.org/pub/scm/linux/kernel/git/maz/arm-platforms.git irq/gsi-irq-domain-v2
 
->>> Does of_find_device_by_node not work for you?
->>
->> Well, the dependencies aren't always platform devices, that's why I
->> need to go up the tree until I find a node that corresponds to a
->> platform device that I can query and probe.
->>
->> If I had a way to get, say, a i2c device from its fwnode then I would
->> just need to make sure that a device's parent is probed before probing
->> it and everything would be cleaner in the OF case.
->
-> If you have the struct device from the device_node, then you should be
-> able to do this, right?
+so we reworked the GICv2m and GICv3 support on top of it, and combined
+them as a single patch set for review.
 
-Yes, if I could go back from the device_node to the struct device that
-was registered from it, for all buses, then all this would be much
-simpler and more robust. It would basically work like in the ACPI
-case.
+Note: this patchset has no ITS support for GICv3/4, it will be implmented
+in the IORT patchset, which had a draft version but needs to rework it
+on top of Marc's Per-device MSI domain & platform MSI patchset.
 
-I will play with this idea.
+Tested on GICv2 based FVP base model and AMD Seattle platform, both wired
+interrupt and MSI (with some PCI patches) work fine.
 
->>> That is probably not the
->>> most efficient search, but we could fix that. We could add struct
->>> device ptr to struct device_node and check without searching for
->>> example.
->>
->> That would be great, but I thought there was an issue with a OF node
->> being able to be related to more than one struct device (but I haven't
->> found this myself yet).
->
-> I think it pretty much should be one to one. I'm not aware of any
-> examples where that is not the case. This function would already be
-> broken if you could have more than one struct device.
+Patches are on top of Marc's branch irq/gsi-irq-domain-v2, and available
+at:
 
-Well, for platform devices we currently know that there can only be
-one struct device for a given device_node, but that's not so clear for
-other devices.
+git://git.linaro.org/leg/acpi/acpi.git gsi-irqdomain
 
-> There is an issue where you could have 2 drivers match the same node,
-> but on different compatible strings. But that's a different issue.
+Comments are warmly welcomed.
 
-Yup.
+>From v3:
+  - Rework GICv3 patches on top of Marc's tree
+  - Add gicV2m support
 
-Thanks,
+Hanjun Guo (5):
+  irqchip / GIC: Add GIC version support in ACPI MADT
+  ACPI / irqchip: Add self-probe infrastructure to initialize IRQ
+    controller
+  irqchip / GIC / ACPI: Use IRQCHIP_ACPI_DECLARE to simplify GICv2 init
+    code
+  irqchip / GICv3: remove the useless comparision of device node in
+    xlate
+  irqchip / GICv3 / ACPI: Add GICR support via GICC structures
 
-Tomeu
+Suravee Suthikulpanit (3):
+  ACPI: GIC: Add ACPI helper functions to query irq-domain tokens for
+    for GIC MSI and ITS
+  PCI: ACPI: Bind GIC MSI frame to PCI host bridge
+  irqchip / gicv2m: Introducing gicv2m_acpi_init()
 
-> Rob
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+Tomasz Nowicki (2):
+  irqchip / GICv3: Refactor gic_of_init() for GICv3 driver
+  irqchip / GICv3: Add ACPI support for GICv3+ initialization
+
+ arch/arm64/Kconfig                   |   1 +
+ arch/arm64/include/asm/irq.h         |  13 --
+ arch/arm64/kernel/acpi.c             |  25 --
+ drivers/acpi/Makefile                |   1 +
+ drivers/acpi/acpi_gic.c              | 234 +++++++++++++++++++
+ drivers/irqchip/Kconfig              |   3 +
+ drivers/irqchip/Makefile             |   1 +
+ drivers/irqchip/irq-gic-acpi.c       | 175 ++++++++++++++
+ drivers/irqchip/irq-gic-v2m.c        | 111 +++++++--
+ drivers/irqchip/irq-gic-v3.c         | 438 +++++++++++++++++++++++++++++++----
+ drivers/irqchip/irq-gic.c            |   6 +-
+ drivers/pci/pci-acpi.c               |  18 ++
+ drivers/pci/probe.c                  |   3 +
+ include/acpi/acpi_gic.h              |  23 ++
+ include/asm-generic/vmlinux.lds.h    |  13 ++
+ include/linux/acpi.h                 |  17 ++
+ include/linux/acpi_irq.h             |   4 +-
+ include/linux/irqchip.h              |  13 ++
+ include/linux/irqchip/arm-gic-acpi.h |  10 +-
+ include/linux/irqchip/arm-gic.h      |   7 +
+ include/linux/mod_devicetable.h      |   8 +
+ include/linux/pci-acpi.h             |   4 +
+ 22 files changed, 1009 insertions(+), 119 deletions(-)
+ create mode 100644 drivers/acpi/acpi_gic.c
+ create mode 100644 drivers/irqchip/irq-gic-acpi.c
+ create mode 100644 include/acpi/acpi_gic.h
+
+-- 
+1.9.1
+
