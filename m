@@ -1,80 +1,102 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [Patch v5 0/6] Consolidate ACPI PCI root common code into ACPI
- core
-Date: Wed, 29 Jul 2015 15:30:27 -0500
-Message-ID: <20150729203027.GB9640@google.com>
-References: <1433780448-18636-1-git-send-email-jiang.liu@linux.intel.com>
- <55B8C46F.4090109@linaro.org>
+From: Guenter Roeck <linux@roeck-us.net>
+Subject: Re: [PATCH v2] acpi: Use kstrtoul() instead of strtoul()/simple_strtoul()
+Date: Wed, 29 Jul 2015 13:37:12 -0700
+Message-ID: <55B93978.9070306@roeck-us.net>
+References: <1438043542-2960-1-git-send-email-linux@roeck-us.net>	<94F2FBAB4432B54E8AACC7DFDE6C92E37D329493@ORSMSX112.amr.corp.intel.com>	<55B91DAF.3060605@roeck-us.net>	<94F2FBAB4432B54E8AACC7DFDE6C92E37D3294E8@ORSMSX112.amr.corp.intel.com>	<55B9304E.6020408@roeck-us.net> <CAJZ5v0hHxXb-SKpFABFDf9UQcVMoLUmHzBctJ7SvYrfqbJJ6xw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <55B8C46F.4090109@linaro.org>
+In-Reply-To: <CAJZ5v0hHxXb-SKpFABFDf9UQcVMoLUmHzBctJ7SvYrfqbJJ6xw@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Marc Zyngier <marc.zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Yijing Wang <wangyijing@huawei.com>, Lv Zheng <lv.zheng@intel.com>, "lenb @ kernel . org" <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>, linux-arm-kernel@lists.infradead.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Moore, Robert" <robert.moore@intel.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jul 29, 2015 at 08:17:51PM +0800, Hanjun Guo wrote:
-> Hi Bjorn, Rafael,
-> 
-> Just kindly ping for this patchset, it has been reviewed and tested,
-> can it be merged in 4.3?
+On 07/29/2015 01:04 PM, Rafael J. Wysocki wrote:
+> Hi Guenter,
+>
+> On Wed, Jul 29, 2015 at 9:58 PM, Guenter Roeck <linux@roeck-us.net> wrote:
+>> On 07/29/2015 12:33 PM, Moore, Robert wrote:
+>>>>
+>>>> -----Original Message-----
+>>>> From: Guenter Roeck [mailto:linux@roeck-us.net]
+>>>> Sent: Wednesday, July 29, 2015 11:39 AM
+>>>> To: Moore, Robert; rjw@rjwysocki.net
+>>>> Cc: lenb@kernel.org; Zheng, Lv; linux-acpi@vger.kernel.org; linux-
+>>>> kernel@vger.kernel.org; devel@acpica.org
+>>>> Subject: Re: [PATCH v2] acpi: Use kstrtoul() instead of
+>>>> strtoul()/simple_strtoul()
+>>>>
+>>>> On 07/29/2015 10:51 AM, Moore, Robert wrote:
+>>>>>
+>>>>>
+>>>>>
+>>>>>> -----Original Message-----
+>>>>>> From: Guenter Roeck [mailto:linux@roeck-us.net]
+>>>>>> Sent: Monday, July 27, 2015 5:32 PM
+>>>>>> To: rjw@rjwysocki.net
+>>>>>> Cc: lenb@kernel.org; Moore, Robert; Zheng, Lv;
+>>>>>> linux-acpi@vger.kernel.org; linux-kernel@vger.kernel.org;
+>>>>>> devel@acpica.org; Guenter Roeck
+>>>>>> Subject: [PATCH v2] acpi: Use kstrtoul() instead of
+>>>>>> strtoul()/simple_strtoul()
+>>>>>>
+>>>>>> simple_strtoul() is deprecated; replace with kstrtoul() and
+>>>>
+>>>> kstrtouint().
+>>>>>
+>>>>>
+>>>>> The ACPICA code is os-independent and cannot use these functions (at
+>>>>
+>>>> least not directly).
+>>>>>
+>>>>>
+>>>>>
+>>>> Odd argument, given that kstrtoul() is used already in the acpi code.
+>>>
+>>>
+>>> They are not in the os-independent ACPICA code. The ACPI-related drivers
+>>> are another story, since they are OS-dendent.
+>>>
+>>
+>> That this OS independent code mandates functions such as strtoul(),
+>> which may not exist in a target OS, and that it maps strtoul() to
+>> simple_strtoul() in a global include file, doesn't seem to be
+>> correct either and is asking for repeated trouble. I would have
+>> hoped that at the very least such mappings would be implemented
+>> in local include files.
+>
+> The header is obviously OS-dependent and it does what it does just
+> because simple_strtoul() is available and serves the purpose.
+>
+> As I said in the previous message, the strtoul() used by ACPICA might
+> be redefined in terms of kstroul().
+>
+> And the change in sysfs.c is still OK.  Do you want me to apply this
+> change only?
+>
 
-There are open review issues, e.g., IORESOURCE_MEM_8AND16BIT, so I'm not
-ready to merge it as-is.  I'll look at it some more, but we definitely need
-some revisions.
+Let's step back a bit. The problem I was trying to solve was that
+there were two definitions of strtoul(), which caused compile errors
+for some builds.
 
-> ARM64 ACPI PCI patches is based on this one, if this patchset is merged,
-> there will be less dependence for ARM64 ACPI PCI.
-> 
-> Thanks
-> Hanjun
-> 
-> On 06/09/2015 12:20 AM, Jiang Liu wrote:
-> >This patch set consolidates common code to support ACPI PCI root on x86
-> >and IA64 platforms into ACPI core, to reproduce duplicated code and
-> >simplify maintenance. And a patch set based on previous version to support
-> >ACPI based PCIe host bridge on ARM64 has been posted at:
-> >https://lkml.org/lkml/2015/5/26/207
-> >
-> >It's based on latest mainstream kernel. It passes Fengguang's 0day test
-> >suite and has been tested on two IA64 platforms and one x86 platform.
-> >
-> >V4-V5:
-> >1) As suggested by Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, do not
-> >    introduce "struct pci_controller" into generic drivers/acpi/pci_root.c,
-> >    so ARM64 doesn't need to define a useless structure. And it simplifies
-> >    code a little too.
-> >
-> >V3->V4:
-> >1) Add patch[05/08] support solve building issue on ARM64
-> >2) Solve an implicitly pointer cast issue.
-> >3) Rebase to latest mainstream kernel
-> >
-> >V2->V3:
-> >1. Move memory allocation/free from ACPI core into arch
-> >2. Kill the field 'segment' in struct pci_root_info on x86
-> >
-> >Thanks!
-> >Gerry
-> >
-> >Jiang Liu (6):
-> >   ACPI/PCI: Enhance ACPI core to support sparse IO space
-> >   ia64/PCI/ACPI: Use common ACPI resource parsing interface for host
-> >     bridge
-> >   ia64/PCI: Use common struct resource_entry to replace struct
-> >     iospace_resource
-> >   PCI/ACPI: Consolidate common PCI host bridge code into ACPI core
-> >   x86/PCI/ACPI: Use common interface to support PCI host bridge
-> >   ia64/PCI/ACPI: Use common interface to support PCI host bridge
-> >
-> >  arch/ia64/include/asm/pci.h |    5 -
-> >  arch/ia64/pci/pci.c         |  366 ++++++++++++-------------------------------
-> >  arch/x86/pci/acpi.c         |  294 ++++++++++------------------------
-> >  drivers/acpi/pci_root.c     |  198 +++++++++++++++++++++++
-> >  drivers/acpi/resource.c     |    9 +-
-> >  include/linux/ioport.h      |    1 +
-> >  include/linux/pci-acpi.h    |   23 +++
-> >  7 files changed, 415 insertions(+), 481 deletions(-)
-> >
+libcfs_string.h 105 #define strtoul(str, endp, base) simple_strtoul(str, endp, base)
+aclinux.h       122 #define strtoul simple_strtoul
+
+The first was in lustre code. My patch to remove that definition
+has been accepted, so now there is only one such definition left.
+
+Fixing the sysfs code only might make some sense - I'll leave that
+up to you - but it doesn't address the problem I was trying to solve,
+which is that strtoul() is defined in a global but driver specific include
+file (include/linux/...). That definition would still be there and may
+cause trouble again if someone else defines strtoul elsewhere for similar
+reasons.
+
+A fix might be to move the definition of strtoul from aclinux.h to
+some include file in drivers/acpi, but I don't know the code well
+enough to know if that is even feasible, or which file to move it to.
+
+Thanks,
+Guenter
