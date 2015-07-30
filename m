@@ -1,125 +1,89 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [Patch v3 0/4] Introduce a mechanism to allocate PCI IRQ on
- demand
-Date: Thu, 30 Jul 2015 14:23:08 -0500
-Message-ID: <20150730192308.GJ9640@google.com>
-References: <1433926501-22956-1-git-send-email-jiang.liu@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-io0-f177.google.com ([209.85.223.177]:36570 "EHLO
-	mail-io0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750839AbbG3TXP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 30 Jul 2015 15:23:15 -0400
-Received: by ioeg141 with SMTP id g141so64048155ioe.3
-        for <linux-acpi@vger.kernel.org>; Thu, 30 Jul 2015 12:23:14 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <1433926501-22956-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: "Jonathan (Zhixiong) Zhang" <zjzhang-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
+Subject: [PATCH V9 0/5] map GHES memory region according to EFI memory map
+Date: Thu, 30 Jul 2015 14:35:04 -0700
+Message-ID: <1438292109-4170-1-git-send-email-zjzhang@codeaurora.org>
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Matt Fleming <matt.fleming-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, tony.luck-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, ard.biesheuvel-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, ying.huang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, leif.lindholm-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
+Cc: "Jonathan (Zhixiong) Zhang" <zjzhang-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-msm-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, vgandhi-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org, timur-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>
 
-On Wed, Jun 10, 2015 at 04:54:57PM +0800, Jiang Liu wrote:
-> Hi Bjorn,
-> 	I have verified that this patch set could be applied to the
-> mainstream kernel without dependency on other patches, so could you
-> please help to merge it?
-> 
-> This patch set introduces a mechanism to allocate PCI IRQ on demand and
-> free it when not used anymore by hooking pci_device_probe() and
-> pci_device_remove().
-> 
-> It will be used to track IOAPIC pin usage on x86 so we could support
-> IOAPIC hot-removal.
-> 
-> The patch set passes Fengguang's 0day test suite.
-> 
-> V2->V3:
-> 1) Change the default pcibios_alloc_irq() to always return 0, as
->    suggested by Bjorn.
-> 2) Refine comments.
-> 
-> V1->V2:
-> 1) Refine pci_device_probe() to optimize for mainline code as suggested
->    by Bjorn
-> 2) Reorder patch set to put optional patch as the last (Patch 4)
-> 
-> 
-> Jiang Liu (4):
->   PCI: Add hooks to allocate/free IRQ resources when binding/unbinding
->     driver
->   PCI, x86: Allocate PCI IRQ on demand and free it when not used
->     anymore
->   PCI: Add helpers to manage pci_dev->irq and pci_dev->irq_managed
->   PCI, MSI: Free legacy PCI IRQ when enabling MSI/MSI-X
+From: "Jonathan (Zhixiong) Zhang" <zjzhang-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>
 
-Applied to pci/irq with the following changelogs for v4.3, thanks!
+On a platform with APEI (ACPI Platform Error Interface) enabled, firmware
+updates a memory region with hardware error record using nocache
+attribute. When OS reads the region, since it maps the region with
+cacahed attribute even though EFI memory map defines this region as
+uncached, OS gets stale data and errorneously reports there is no new
+HW error.
 
-commit 890e4847587fcff5eb0438e90992ad7d2a261f33
-Author: Jiang Liu <jiang.liu@linux.intel.com>
-Date:   Wed Jun 10 16:54:58 2015 +0800
+When ghes driver maps the memory region, it uses the cache attribute
+according to EFI memory map, if EFI memory map feature is enabled
+at runtime.
 
-    PCI: Add pcibios_alloc_irq() and pcibios_free_irq()
-    
-    Add pcibios_alloc_irq() and pcibios_free_irq(), which are called when
-    binding/unbinding PCI device drivers.
-    
-    PCI arch code may implement these to manage IRQ resources for hotplugged
-    devices.
-    
-    [bhelgaas: changelog]
-    Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-    Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
-    Acked-by: Thomas Gleixner <tglx@linutronix.de>
+Since both arch/x86 and arch/ia64 implemented architecture agnostic EFI
+memory map attribue lookup function efi_memattributes(), the code is
+moved from arch/x86 into EFI subsystem and is declared as __weak; archs
+other than ia64 should not override the default implementation.
 
-commit 991de2e59090e55c65a7f59a049142e3c480f7bd
-Author: Jiang Liu <jiang.liu@linux.intel.com>
-Date:   Wed Jun 10 16:54:59 2015 +0800
+V9:
+1. Rebased to arm64-upstream-14543 of arm64/master.
+2. Match strict MM type in arch_apei_get_mem_attribute().
+V8:
+1. For x86, always return PAGE_KERNEL for arch_apei_get_mem_attribute().
+   The rational is explained in comment.
+2. Rebased to arm64-upstream-14201 of arm64/master,
+   next-20150724 of linux-next/master.
+V7:
+1. Added PROT_DEVICE_nGnRnE and PROT_NORMAL_WT to support all
+   possible UEFI memory types for arm64.
+V6:
+1. Implemented arch_apei_get_mem_attributes() for arm64 as inline
+   function.
+2. Rebased to efi-next-14364 of efi/next, pm+acpi-4.2-rc3 of
+   linux-pm/master, arm64-upstream-13521 of arm64/master,
+   next-20150720 of linux-next/master.
+V5:
+1. Rebased to next-20150713 of linux-next/master, efi-next-14359 of
+   efi/next, pm+acpi-4.2-rc2 of linux-pm/master,
+   arm64-fixes-1215 of arm64/master.
+2. Added comment for efi_mem_attributes(), explained why it is marked
+   as __weak at the function definition site.
+V4:
+1. Introduced arch_apei_get_mem_attributes() to allow arch specific
+   implementation of getting pgprot_t appropriate for a physical
+   address.
+2. Implemented arch_apei_get_mem_attributes() for x86 and for arm64.
+V3:
+1. Rebased to v4.1-rc7.
+2. Moved efi_mem_attributes() from arch/x86 to drivers/firmware/efi
+   and declared it as __weak.
+3. Introduced ARCH_APEI_PAGE_KERNEL_UC to allow arch specific page
+   protection type for UC.
+4. Removed efi_ioremap(). It can not be used for GHES memory region
+   mapping purpose since ioremap can not be used in atomic context.
+V2:
+1. Rebased to v4.1-rc5.
+2. Split removal of efi_mem_attributes() and creation of efi_ioremap()
+   into two patches.
+Jonathan (Zhixiong) Zhang (5):
+  efi: x86: rearrange efi_mem_attributes()
+  x86: acpi: implement arch_apei_get_mem_attributes()
+  arm64: mm: add PROT_DEVICE_nGnRnE and PROT_NORMAL_WT
+  arm64: apei: implement arch_apei_get_mem_attributes()
+  acpi, apei: use appropriate pgprot_t to map GHES memory
 
-    PCI, x86: Implement pcibios_alloc_irq() and pcibios_free_irq()
-    
-    To support IOAPIC hotplug, we need to allocate PCI IRQ resources on demand
-    and free them when not used anymore.
-    
-    Implement pcibios_alloc_irq() and pcibios_free_irq() to dynamically
-    allocate and free PCI IRQs.
-    
-    Remove mp_should_keep_irq(), which is no longer used.
-    
-    [bhelgaas: changelog]
-    Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-    Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
-    Acked-by: Thomas Gleixner <tglx@linutronix.de>
+ arch/arm64/include/asm/acpi.h    | 26 ++++++++++++++++++++++++++
+ arch/arm64/include/asm/memory.h  |  1 +
+ arch/arm64/include/asm/pgtable.h |  2 ++
+ arch/arm64/mm/proc.S             |  4 +++-
+ arch/x86/kernel/acpi/apei.c      | 19 +++++++++++++++++++
+ arch/x86/platform/efi/efi.c      | 18 ------------------
+ drivers/acpi/apei/ghes.c         |  6 ++++--
+ drivers/firmware/efi/efi.c       | 31 +++++++++++++++++++++++++++++++
+ include/acpi/apei.h              |  1 +
+ 9 files changed, 87 insertions(+), 21 deletions(-)
 
-commit 811a4e6fce09bc9239c664c6a1a53645a678c303
-Author: Jiang Liu <jiang.liu@linux.intel.com>
-Date:   Wed Jun 10 16:55:00 2015 +0800
-
-    PCI: Add helpers to manage pci_dev->irq and pci_dev->irq_managed
-    
-    Add pci_has_managed_irq(), pci_set_managed_irq(), and
-    pci_reset_managed_irq() to simplify code.  No functional change.
-    
-    [bhelgaas: changelog]
-    Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-    Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
-    Acked-by: Thomas Gleixner <tglx@linutronix.de>
-
-commit 5f2269916b0e509f2926346b58209abfa8316143
-Author: Jiang Liu <jiang.liu@linux.intel.com>
-Date:   Thu Jul 30 14:00:08 2015 -0500
-
-    PCI/MSI: Free legacy IRQ when enabling MSI/MSI-X
-    
-    Once MSI/MSI-X is enabled by the device driver, a PCI device won't use
-    legacy IRQs again until MSI/MSI-X is disabled.
-    
-    Call pcibios_free_irq() when enabling MSI/MSI-X and pcibios_alloc_irq()
-    when disabling MSI/MSI-X.  This allows arch code to manage resources
-    associated with the legacy IRQ.
-    
-    [bhelgaas: changelog]
-    Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-    Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
-    Acked-by: Thomas Gleixner <tglx@linutronix.de>
+-- 
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project
