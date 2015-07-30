@@ -1,36 +1,41 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [Patch v5 0/6] Consolidate ACPI PCI root common code into ACPI
- core
-Date: Thu, 30 Jul 2015 15:58:49 +0800
-Message-ID: <55B9D938.4020204@linux.intel.com>
-References: <1433780448-18636-1-git-send-email-jiang.liu@linux.intel.com>
- <55B8C46F.4090109@linaro.org> <20150729203027.GB9640@google.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH 0/4] ACPI: Reorganize the core device
+ management/enumeration code
+Date: Thu, 30 Jul 2015 12:54:39 +0300
+Message-ID: <20150730095439.GM11956@lahna.fi.intel.com>
+References: <4521894.N8pXmo8fxI@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:9991 "EHLO mga02.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:32035 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750770AbbG3H6y (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 30 Jul 2015 03:58:54 -0400
-In-Reply-To: <20150729203027.GB9640@google.com>
+	id S1752103AbbG3Jym (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 30 Jul 2015 05:54:42 -0400
+Content-Disposition: inline
+In-Reply-To: <4521894.N8pXmo8fxI@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Marc Zyngier <marc.zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Yijing Wang <wangyijing@huawei.com>, Lv Zheng <lv.zheng@intel.com>, "lenb @ kernel . org" <lenb@kernel.org>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>, linux-arm-kernel@lists.infradead.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On 2015/7/30 4:30, Bjorn Helgaas wrote:
-> On Wed, Jul 29, 2015 at 08:17:51PM +0800, Hanjun Guo wrote:
->> Hi Bjorn, Rafael,
->>
->> Just kindly ping for this patchset, it has been reviewed and tested,
->> can it be merged in 4.3?
+On Tue, Jul 14, 2015 at 01:16:12AM +0200, Rafael J. Wysocki wrote:
+> Hi,
 > 
-> There are open review issues, e.g., IORESOURCE_MEM_8AND16BIT, so I'm not
-> ready to merge it as-is.  I'll look at it some more, but we definitely need
-> some revisions.
-Hi Bjorn,
-	Thanks for review and I will handle all review comments in
-coming days.
-Regards!
-Gerry
+> The size and complexity of drivers/acpi/scan.c has bothered me for quite
+> a while and since I'm working on a feature that will benefit from exposing
+> some additional information under ACPI device objects in sysfs, I've decided
+> to reorganize the code to move some things out of scan.c.
+> 
+> [1/4] Move all ACPI device code related to sysfs into a separate (new) file.
+> [2/4] Move device matching code to bus.c.
+> [3/4] Mode device notification, bus operations and driver management code to bus.c.
+> [4/4] Register the ACPI bus type in acpi_bus_init().
+> 
+> No functional changes except for the [4/4] that will case ACPI to be disabled if
+> the ACPI bus type cannot be registered.
+
+Just noticed this series. If it is not too late, you can add my
+
+Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+
+to the whole series.
