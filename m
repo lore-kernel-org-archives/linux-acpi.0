@@ -1,87 +1,150 @@
 From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Subject: Re: [PATCH v2 0/22] On-demand device probing
-Date: Fri, 31 Jul 2015 12:28:13 +0200
-Message-ID: <CAAObsKDALm94ZFwY+jBv3o8++-trTviiaGctAvvuySw9sxmLRQ@mail.gmail.com>
+Subject: Re: [PATCH v2 04/22] of/platform: add of_platform_device_find()
+Date: Fri, 31 Jul 2015 12:32:45 +0200
+Message-ID: <CAAObsKDjF9uOpX+m-AG0HRcwVrbveDwWP+swxo7-xPCHw_-voQ@mail.gmail.com>
 References: <1438089593-7696-1-git-send-email-tomeu.vizoso@collabora.com>
- <CAL_Jsq+2q=c6JbER8EMOGFtR=a6gvHermb8DRo9dKyj6fvdnXg@mail.gmail.com>
+ <1438089593-7696-5-git-send-email-tomeu.vizoso@collabora.com>
+ <CAL_JsqJGhFXDKuayuKc2E58X5A7ZGN=uYCVDLnXw_t3_auBg+w@mail.gmail.com>
+ <CAAObsKBfRLdPc0gs55ARfa+qZJAOEyEgRyTf8krZnQMb6-j03g@mail.gmail.com>
+ <CAL_Jsq+RqGAxHE5-ocD-htddBHckG24oZNqfgmMF3Jak6wDXBQ@mail.gmail.com>
+ <CAAObsKA+vMsgiC52jReJckeDjXhdd=_NBocFbMapdwFReiY1SQ@mail.gmail.com>
+ <CAAObsKD9BN7dsEiNB=OvJkoOQPwxwnP794w=X4AwtYz3oxEJqw@mail.gmail.com> <CAL_Jsq+2b4+pf9G1ynWSkDgyC1agmS-TdTVjzdfQKNBWuuOHgw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <CAL_Jsq+2q=c6JbER8EMOGFtR=a6gvHermb8DRo9dKyj6fvdnXg@mail.gmail.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Rob Herring <robherring2@gmail.com>
-Cc: "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, Linux USB List <linux-usb@vger.kernel.org>, Wolfram Sang <wsa@the-dreams.de>, David Airlie <airlied@linux.ie>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Linux-ALSA <alsa-devel@alsa-project.org>, dri-devel <dri-devel@lists.freedesktop.org>, Liam Girdwood <lgirdwood@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Thierry Reding <thierry.reding@gmail.com>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>, linux-clk@vger.kernel.org, Alexandre Courbot <gnurou@gmail.com>, =?UTF-8?Q?Terje_Bergstr=C3=B6m?= <tbergstrom@nvidia.com>, Javier Martinez Canillas <javier@osg.samsung.com>, Vinod Koul <vinod.koul@intel.com>, Stephen Warren <swarren@wwwdotorg.org>, Kishon Vijay Abraham I <kishon@ti.com>, linux-acpi@vger.ke
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wi0-f181.google.com ([209.85.212.181]:36905 "EHLO
+	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751292AbbGaKdG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 31 Jul 2015 06:33:06 -0400
+In-Reply-To: <CAL_Jsq+2b4+pf9G1ynWSkDgyC1agmS-TdTVjzdfQKNBWuuOHgw@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Rob Herring <robherring2@gmail.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Rob Herring <robh+dt@kernel.org>, Grant Likely <grant.likely@linaro.org>
 
-T24gMzAgSnVseSAyMDE1IGF0IDA1OjA2LCBSb2IgSGVycmluZyA8cm9iaGVycmluZzJAZ21haWwu
-Y29tPiB3cm90ZToKPiBPbiBUdWUsIEp1bCAyOCwgMjAxNSBhdCA4OjE5IEFNLCBUb21ldSBWaXpv
-c28KPiA8dG9tZXUudml6b3NvQGNvbGxhYm9yYS5jb20+IHdyb3RlOgo+PiBIZWxsbywKPj4KPj4g
-SSBoYXZlIGEgcHJvYmxlbSB3aXRoIHRoZSBwYW5lbCBvbiBteSBUZWdyYSBDaHJvbWVib29rIHRh
-a2luZyBsb25nZXIKPj4gdGhhbiBleHBlY3RlZCB0byBiZSByZWFkeSBkdXJpbmcgYm9vdCAoU3TD
-qXBoYW5lIE1hcmNoZXNpbiByZXBvcnRlZCB3aGF0Cj4+IGlzIGJhc2ljYWxseSB0aGUgc2FtZSBp
-c3N1ZSBpbiBbMF0pLCBhbmQgaGF2ZSBsb29rZWQgaW50byBvcmRlcmVkCj4+IHByb2JpbmcgYXMg
-YSBiZXR0ZXIgd2F5IG9mIHNvbHZpbmcgdGhpcyB0aGFuIG1vdmluZyBub2RlcyBhcm91bmQgaW4g
-dGhlCj4+IERUIG9yIHBsYXlpbmcgd2l0aCBpbml0Y2FsbCBsZXZlbHMgYW5kIGxpbmtpbmcgb3Jk
-ZXIuCj4+Cj4+IFdoaWxlIHJlYWRpbmcgdGhlIHRocmVhZCBbMV0gdGhhdCBBbGV4YW5kZXIgSG9s
-bGVyIHN0YXJ0ZWQgd2l0aCBoaXMKPj4gc2VyaWVzIHRvIG1ha2UgcHJvYmluZyBvcmRlciBkZXRl
-cm1pbmlzdGljLCBpdCBvY2N1cnJlZCB0byBtZSB0aGF0IGl0Cj4+IHNob3VsZCBiZSBwb3NzaWJs
-ZSB0byBhY2hpZXZlIHRoZSBzYW1lIGJ5IHByb2JpbmcgZGV2aWNlcyBhcyB0aGV5IGFyZQo+PiBy
-ZWZlcmVuY2VkIGJ5IG90aGVyIGRldmljZXMuCj4+Cj4+IFRoaXMgYmFzaWNhbGx5IHJldXNlcyB0
-aGUgaW5mb3JtYXRpb24gdGhhdCBpcyBhbHJlYWR5IGltcGxpY2l0IGluIHRoZQo+PiBwcm9iZSgp
-IGltcGxlbWVudGF0aW9ucywgc2F2aW5nIHVzIGZyb20gcmVmYWN0b3JpbmcgZXhpc3RpbmcgZHJp
-dmVycyBvcgo+PiBhZGRpbmcgaW5mb3JtYXRpb24gdG8gRFRCcy4KPj4KPj4gRHVyaW5nIHJldmll
-dyBvZiB2MSBvZiB0aGlzIHNlcmllcyBMaW51cyBXYWxsZWlqIHN1Z2dlc3RlZCB0aGF0IGl0Cj4+
-IHNob3VsZCBiZSB0aGUgZGV2aWNlIGRyaXZlciBjb3JlIHRvIG1ha2Ugc3VyZSB0aGF0IGRlcGVu
-ZGVuY2llcyBhcmUKPj4gcmVhZHkgYmVmb3JlIHByb2JpbmcgYSBkZXZpY2UuIEkgZ2F2ZSB0aGlz
-IGlkZWEgYSB0cnkgWzJdIGJ1dCBNYXJrIEJyb3duCj4+IHBvaW50ZWQgb3V0IHRvIHRoZSBsb2dp
-YyBkdXBsaWNhdGlvbiBiZXR3ZWVuIHRoZSByZXNvdXJjZSBhY3F1aXNpdGlvbgo+PiBhbmQgZGVw
-ZW5kZW5jeSBkaXNjb3ZlcnkgY29kZSBwYXRocyAodGhvdWdoIEkgdGhpbmsgaXQncyBmYWlybHkg
-bWlub3IpLgo+Pgo+PiBUbyBhZGRyZXNzIHRoYXQgY29kZSBkdXBsaWNhdGlvbiBJIGV4cGVyaW1l
-bnRlZCB3aXRoIEFybmQncyBkZXZtX3Byb2JlCj4+IFszXSBjb25jZXB0IG9mIGhhdmluZyBkcml2
-ZXJzIGRlY2xhcmUgdGhlaXIgZGVwZW5kZW5jaWVzIGluc3RlYWQgb2YKPj4gYWNxdWlyaW5nIHRo
-ZW0gZHVyaW5nIHByb2JlLCBhbmQgd2hpbGUgaXQgd29ya2VkIFs0XSwgSSBkb24ndCB0aGluayB3
-ZQo+PiBlbmQgdXAgd2lubmluZyBhbnl0aGluZyB3aGVuIGNvbXBhcmVkIHRvIGp1c3QgcHJvYmlu
-ZyBkZXZpY2VzIG9uLWRlbWFuZAo+PiBmcm9tIHJlc291cmNlIGdldHRlcnMuCj4+Cj4+IE9uZSBy
-ZW1haW5pbmcgb2JqZWN0aW9uIGlzIHRvIHRoZSAic3ByaW5rbGluZyIgb2YgY2FsbHMgdG8KPj4g
-Zndub2RlX2Vuc3VyZV9kZXZpY2UoKSBpbiB0aGUgcmVzb3VyY2UgZ2V0dGVycyBvZiBlYWNoIHN1
-YnN5c3RlbSwgYnV0IEkKPj4gdGhpbmsgaXQncyB0aGUgcmlnaHQgdGhpbmcgdG8gZG8gZ2l2ZW4g
-dGhhdCB0aGUgc3RvcmFnZSBvZiByZXNvdXJjZXMgaXMKPj4gY3VycmVudGx5IHN1YnN5c3RlbS1z
-cGVjaWZpYy4KPgo+IFNlZW1zIGxpa2UgYSBtaW5vciBjaGFuZ2UgdG8gbWUuCj4KPj4gV2UgY291
-bGQgYXZvaWQgdGhlIGFib3ZlIGJ5IG1vdmluZyByZXNvdXJjZSBzdG9yYWdlIGludG8gdGhlIGNv
-cmUsIGJ1dCBJCj4+IGRvbid0IHRoaW5rIHRoZXJlJ3MgYSBjb21wZWxsaW5nIGNhc2UgZm9yIHRo
-YXQuCj4+Cj4+IEkgaGF2ZSB0ZXN0ZWQgdGhpcyBvbiBib2FyZHMgd2l0aCBUZWdyYSwgaU1YLjYs
-IEV4eW5vcyBhbmQgT01BUCBTb0NzLAo+PiBhbmQgdGhlc2UgcGF0Y2hlcyB3ZXJlIGVub3VnaCB0
-byBlbGltaW5hdGUgYWxsIHRoZSBkZWZlcnJlZCBwcm9iZXMKPj4gKGV4Y2VwdCBvbmUgaW4gUGFu
-ZGFCb2FyZCBiZWNhdXNlIG9tYXBfZG1hX3N5c3RlbSBkb2Vzbid0IGhhdmUgYQo+PiBmaXJtd2Fy
-ZSBub2RlIGFzIG9mIHlldCkuCj4+Cj4+IFdpdGggdGhpcyBzZXJpZXMgSSBnZXQgdGhlIGtlcm5l
-bCB0byBvdXRwdXQgdG8gdGhlIHBhbmVsIGluIDAuNXMsCj4+IGluc3RlYWQgb2YgMi44cy4KPgo+
-IEdlbmVyYWxseSwgSSB0aGluayB0aGlzIGxvb2tzIHByZXR0eSBnb29kLiBJdCBpcyBzaW1wbGUg
-YW5kIHRoZSBlcnJvcgo+IHBhdGggaXMgc2ltcGx5IGZhbGxpbmcgYmFjayB0byBkZWZlcnJlZCBw
-cm9iZS4KPgo+IE9uZSBvdmVyYWxsIGNvbW1lbnQgaXMgSSdtIG5vdCBzbyBzdXJlIGlmIGZ3bm9k
-ZV9lbnN1cmVfZGV2aWNlCj4gc2hvdWxkbid0IGp1c3QgYmUgb2ZfZW5zdXJlX2RldmljZS4gQXQg
-bGVhc3QgY3VycmVudGx5LCBpdCBsb29rcyBsaWtlCj4gYWxsIHRoZSBjYWxsaW5nIGxvY2F0aW9u
-cyBhcmUgRFQgc3BlY2lmaWMgZnVuY3Rpb25zIGFueXdheS4gVGhlcmUncwo+IHZlcnkgbGl0dGxl
-IGxvZ2ljIHdpdGhpbiB0aGUgZnVuY3Rpb24gdG8gcmVhbGx5IGJlbmVmaXQgc2hhcmluZyB3aXRo
-Cj4gQUNQSS4gSXQgaXMgYmFzaWNhbGx5IGp1c3QgYSBjYWxsIHRvIG9mX3BsYXRmb3JtX2Rldmlj
-ZV9maW5kIGFuZCB0aGVuCj4gYnVzX3Byb2JlX2RldmljZS4gSSBleHBlY3QgdGhlIGdldCBmdW5j
-dGlvbnMgd2lsbCBhbHdheXMgY2FsbCBpbnRvCj4gRFQvQUNQSSBzcGVjaWZpYyBmdW5jdGlvbnMg
-d2hpY2ggY2FuIHRoZW4gY2FsbCB0aGUgZmlybXdhcmUgc3BlY2lmaWMKPiBkZXZpY2UgZmluZCBm
-dW5jdGlvbi4KClRoYXQncyBmaW5lIHdpdGggbWUuIEkganVzdCB3ZW50IHRoYXQgd2F5IGJlY2F1
-c2UgSSBhc3N1bWVkIHRoZSBwbGFuCndhcyBmb3Igc3Vic3lzdGVtcyB0byBtb3ZlIHRvIGNvbnN1
-bWUgZncgZGF0YSB0aHJvdWdoIGZ3bm9kZSBhbmQgZHJvcAphcyBtdWNoIGZ3LXNwZWNpZmljIGNv
-ZGUgYXMgcG9zc2libGUuCgpCdXQgSSBoYXZlIGp1c3QgbG9va2VkIGF0IGZ3bm9kZV9nZXRfbmFt
-ZWRfZ3Bpb2QgYW5kIHRoZSBPRiBhbmQgQUNQSQpjb2RlIHBhdGhzIGFyZSBzbyBkaXNzaW1pbGFy
-IHRoYXQgSSBndWVzcyB0aGF0J3Mgbm90IHNvIGFuZCB3b3VsZCBiZQpiZXR0ZXIgdG8gZG8gYXMg
-eW91IHNheS4KClRoYW5rcywKClRvbWV1CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0t
-a2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFp
-bG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
+On 29 July 2015 at 17:27, Rob Herring <robherring2@gmail.com> wrote:
+> On Wed, Jul 29, 2015 at 6:20 AM, Tomeu Vizoso
+> <tomeu.vizoso@collabora.com> wrote:
+>> On 29 July 2015 at 08:14, Tomeu Vizoso <tomeu.vizoso@collabora.com> wrote:
+>>> On 28 July 2015 at 17:31, Rob Herring <robherring2@gmail.com> wrote:
+>>>> On Tue, Jul 28, 2015 at 8:54 AM, Tomeu Vizoso
+>>>> <tomeu.vizoso@collabora.com> wrote:
+>>>>> On 28 July 2015 at 15:39, Rob Herring <robherring2@gmail.com> wrote:
+>>>>>> On Tue, Jul 28, 2015 at 8:19 AM, Tomeu Vizoso
+>>>>>> <tomeu.vizoso@collabora.com> wrote:
+>>>>>>> From an arbitrary node in the tree, find the enclosing node that
+>>>>>>> corresponds to a platform device, as registered by
+>>>>>>> of_platform_populate().
+>
+> [...]
+>
+>>>>> If I had a way to get, say, a i2c device from its fwnode then I would
+>>>>> just need to make sure that a device's parent is probed before probing
+>>>>> it and everything would be cleaner in the OF case.
+>>>>
+>>>> If you have the struct device from the device_node, then you should be
+>>>> able to do this, right?
+>>>
+>>> Yes, if I could go back from the device_node to the struct device that
+>>> was registered from it, for all buses, then all this would be much
+>>> simpler and more robust. It would basically work like in the ACPI
+>>> case.
+>>>
+>>> I will play with this idea.
+>>>
+>>>>>> That is probably not the
+>>>>>> most efficient search, but we could fix that. We could add struct
+>>>>>> device ptr to struct device_node and check without searching for
+>>>>>> example.
+>>>>>
+>>>>> That would be great, but I thought there was an issue with a OF node
+>>>>> being able to be related to more than one struct device (but I haven't
+>>>>> found this myself yet).
+>>>>
+>>>> I think it pretty much should be one to one. I'm not aware of any
+>>>> examples where that is not the case. This function would already be
+>>>> broken if you could have more than one struct device.
+>>>
+>>> Well, for platform devices we currently know that there can only be
+>>> one struct device for a given device_node, but that's not so clear for
+>>> other devices.
+>>
+>> Just found this case:
+>>
+>> http://lxr.free-electrons.com/source/drivers/spi/spi-tegra114.c#L1124
+>>
+>> Looks like SPI master devices point to the same device_node as the
+>> platform device that registers them.
+>
+> I don't think this is a problem. The device ptr would only point to
+> the platform device. Nothing else is going to know about the ptr,
+> modify it nor expect that it points to the same struct device that
+> contains the of_node ptr.
+>
+> So I think any instances of struct device like this are ones you don't
+> care about for purposes of probe dependencies.
+
+Ok, I think I got it now. This is what I came up with and works fine
+on all the boards I'm testing with:
+
+diff --git a/drivers/of/platform.c b/drivers/of/platform.c
+index 89c5cd513027..e14518b5e1ce 100644
+--- a/drivers/of/platform.c
++++ b/drivers/of/platform.c
+@@ -192,6 +192,8 @@ static struct platform_device
+*of_platform_device_create_pdata(
+         goto err_clear_flag;
+     }
+
++    np->platform_dev = dev;
++
+     return dev;
+
+ err_clear_flag:
+@@ -501,59 +503,29 @@ void of_platform_depopulate(struct device *parent)
+ }
+ EXPORT_SYMBOL_GPL(of_platform_depopulate);
+
+ /**
+  * of_platform_device_find() - Find nearest ancestor that is a platform device
+  * @np: node to find platform device for
+  *
+- * Walks the tree up and finds the closest ancestor that has match data and
+- * either is at the root of the tree or is a child of a simple memory mapped
+- * bus.
++ * Walks the OF tree up and finds the closest ancestor that has a platform
++ * device associated with it.
+  *
+  * Returns such a device, or NULL if none could be found.
+  */
+ struct device *of_platform_device_find(struct device_node *np)
+ {
+     struct device_node *target;
+-    struct platform_device *pdev;
++    struct platform_device *pdev = NULL;
+
+     of_node_get(np);
+
+     for (target = np;
+          !of_node_is_root(target);
+          target = of_get_next_parent(target))
+-        if (of_is_platform(target))
++        if (target->platform_dev) {
++            pdev = target->platform_dev;
+             break;
+-
+-    pdev = of_find_device_by_node(target);
++        }
+
+     of_node_put(target);
+
+Thanks,
+
+Tomeu
+
+> Rob
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
