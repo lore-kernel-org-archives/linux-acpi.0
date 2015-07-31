@@ -1,95 +1,87 @@
 From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Subject: Re: [PATCH v2 01/22] platform: delay device-driver matches until late_initcall
-Date: Fri, 31 Jul 2015 12:06:38 +0200
-Message-ID: <CAAObsKBSKvR=1VPU7-E89my76FYbjVp7uDNsD2PGiVDJe89r1g@mail.gmail.com>
+Subject: Re: [PATCH v2 0/22] On-demand device probing
+Date: Fri, 31 Jul 2015 12:28:13 +0200
+Message-ID: <CAAObsKDALm94ZFwY+jBv3o8++-trTviiaGctAvvuySw9sxmLRQ@mail.gmail.com>
 References: <1438089593-7696-1-git-send-email-tomeu.vizoso@collabora.com>
- <1438089593-7696-2-git-send-email-tomeu.vizoso@collabora.com> <CAL_Jsq+SBGFNHR+T15FSMsqh-TWaNBMqesxZfXKiH8g9mqXYuQ@mail.gmail.com>
+ <CAL_Jsq+2q=c6JbER8EMOGFtR=a6gvHermb8DRo9dKyj6fvdnXg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f181.google.com ([209.85.212.181]:33291 "EHLO
-	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751361AbbGaKHA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 31 Jul 2015 06:07:00 -0400
-In-Reply-To: <CAL_Jsq+SBGFNHR+T15FSMsqh-TWaNBMqesxZfXKiH8g9mqXYuQ@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <CAL_Jsq+2q=c6JbER8EMOGFtR=a6gvHermb8DRo9dKyj6fvdnXg@mail.gmail.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Rob Herring <robherring2@gmail.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@wwwdotorg.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Javier Martinez Canillas <javier@osg.samsung.com>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, Linux USB List <linux-usb@vger.kernel.org>, Wolfram Sang <wsa@the-dreams.de>, David Airlie <airlied@linux.ie>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linus Walleij <linus.walleij@linaro.org>, Linux-ALSA <alsa-devel@alsa-project.org>, dri-devel <dri-devel@lists.freedesktop.org>, Liam Girdwood <lgirdwood@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Thierry Reding <thierry.reding@gmail.com>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>, linux-clk@vger.kernel.org, Alexandre Courbot <gnurou@gmail.com>, =?UTF-8?Q?Terje_Bergstr=C3=B6m?= <tbergstrom@nvidia.com>, Javier Martinez Canillas <javier@osg.samsung.com>, Vinod Koul <vinod.koul@intel.com>, Stephen Warren <swarren@wwwdotorg.org>, Kishon Vijay Abraham I <kishon@ti.com>, linux-acpi@vger.ke
+List-Id: linux-acpi@vger.kernel.org
 
-On 30 July 2015 at 05:20, Rob Herring <robherring2@gmail.com> wrote:
-> On Tue, Jul 28, 2015 at 8:19 AM, Tomeu Vizoso
-> <tomeu.vizoso@collabora.com> wrote:
->> Delay matches of platform devices until late_initcall, when we are sure
->> that all built-in drivers have been registered already.  This is needed
->> to prevent deferred probes because of some drivers not having registered
->> yet.
->>
->> The reason why only platform devices are delayed is that some other
->> devices are expected to be probed earlier than late_initcall, for
->> example, the system PNP driver needs to probe its devices in
->> fs_initcall.
->>
->> Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
->> ---
->>
->> Changes in v2:
->> - Move delay to platform.c
->>
->>  drivers/base/platform.c | 28 ++++++++++++++++++++++++++++
->>  1 file changed, 28 insertions(+)
->>
->> diff --git a/drivers/base/platform.c b/drivers/base/platform.c
->> index 063f0ab15259..fcf654678e27 100644
->> --- a/drivers/base/platform.c
->> +++ b/drivers/base/platform.c
->> @@ -33,6 +33,8 @@
->>  /* For automatically allocated device IDs */
->>  static DEFINE_IDA(platform_devid_ida);
->>
->> +static bool enable_matches;
->> +
->>  struct device platform_bus = {
->>         .init_name      = "platform",
->>  };
->> @@ -839,6 +841,15 @@ static int platform_match(struct device *dev, struct device_driver *drv)
->>         struct platform_device *pdev = to_platform_device(dev);
->>         struct platform_driver *pdrv = to_platform_driver(drv);
->>
->> +       /*
->> +        * Delay matches of platform devices until late_initcall, when we are
->> +        * sure that all built-in drivers have been registered already. This
->> +        * is needed to prevent deferred probes because of some drivers
->> +        * not having registered yet.
->> +        */
->> +       if (!enable_matches)
->> +               return false;
->> +
->
-> Having this as a global makes me nervous. I think it would be better
-> to be DT specific or per device some how. Perhaps use OF_POPULATED_BUS
-> flag as an additional test.
-
-I see no problem with restricting this to platform devices with an
-of_node (or a fwnode if we still want to address machines with ACPI).
-
-> There could be non-DT platforms that rely on the initcall ordering and
-> moving all probes to late_initcall could change the ordering. I'm not
-> sure though.
-
-Yeah, I'm not sure how much that could be a problem. Maybe if a
-non-platform device has a match and probes before a platform device
-that has been delayed and is a dependency of it. That could be a
-problem in platforms that don't do on-demand probing because of the
-lack of firmware data.
-
-Thanks,
-
-Tomeu
-
-> Rob
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+T24gMzAgSnVseSAyMDE1IGF0IDA1OjA2LCBSb2IgSGVycmluZyA8cm9iaGVycmluZzJAZ21haWwu
+Y29tPiB3cm90ZToKPiBPbiBUdWUsIEp1bCAyOCwgMjAxNSBhdCA4OjE5IEFNLCBUb21ldSBWaXpv
+c28KPiA8dG9tZXUudml6b3NvQGNvbGxhYm9yYS5jb20+IHdyb3RlOgo+PiBIZWxsbywKPj4KPj4g
+SSBoYXZlIGEgcHJvYmxlbSB3aXRoIHRoZSBwYW5lbCBvbiBteSBUZWdyYSBDaHJvbWVib29rIHRh
+a2luZyBsb25nZXIKPj4gdGhhbiBleHBlY3RlZCB0byBiZSByZWFkeSBkdXJpbmcgYm9vdCAoU3TD
+qXBoYW5lIE1hcmNoZXNpbiByZXBvcnRlZCB3aGF0Cj4+IGlzIGJhc2ljYWxseSB0aGUgc2FtZSBp
+c3N1ZSBpbiBbMF0pLCBhbmQgaGF2ZSBsb29rZWQgaW50byBvcmRlcmVkCj4+IHByb2JpbmcgYXMg
+YSBiZXR0ZXIgd2F5IG9mIHNvbHZpbmcgdGhpcyB0aGFuIG1vdmluZyBub2RlcyBhcm91bmQgaW4g
+dGhlCj4+IERUIG9yIHBsYXlpbmcgd2l0aCBpbml0Y2FsbCBsZXZlbHMgYW5kIGxpbmtpbmcgb3Jk
+ZXIuCj4+Cj4+IFdoaWxlIHJlYWRpbmcgdGhlIHRocmVhZCBbMV0gdGhhdCBBbGV4YW5kZXIgSG9s
+bGVyIHN0YXJ0ZWQgd2l0aCBoaXMKPj4gc2VyaWVzIHRvIG1ha2UgcHJvYmluZyBvcmRlciBkZXRl
+cm1pbmlzdGljLCBpdCBvY2N1cnJlZCB0byBtZSB0aGF0IGl0Cj4+IHNob3VsZCBiZSBwb3NzaWJs
+ZSB0byBhY2hpZXZlIHRoZSBzYW1lIGJ5IHByb2JpbmcgZGV2aWNlcyBhcyB0aGV5IGFyZQo+PiBy
+ZWZlcmVuY2VkIGJ5IG90aGVyIGRldmljZXMuCj4+Cj4+IFRoaXMgYmFzaWNhbGx5IHJldXNlcyB0
+aGUgaW5mb3JtYXRpb24gdGhhdCBpcyBhbHJlYWR5IGltcGxpY2l0IGluIHRoZQo+PiBwcm9iZSgp
+IGltcGxlbWVudGF0aW9ucywgc2F2aW5nIHVzIGZyb20gcmVmYWN0b3JpbmcgZXhpc3RpbmcgZHJp
+dmVycyBvcgo+PiBhZGRpbmcgaW5mb3JtYXRpb24gdG8gRFRCcy4KPj4KPj4gRHVyaW5nIHJldmll
+dyBvZiB2MSBvZiB0aGlzIHNlcmllcyBMaW51cyBXYWxsZWlqIHN1Z2dlc3RlZCB0aGF0IGl0Cj4+
+IHNob3VsZCBiZSB0aGUgZGV2aWNlIGRyaXZlciBjb3JlIHRvIG1ha2Ugc3VyZSB0aGF0IGRlcGVu
+ZGVuY2llcyBhcmUKPj4gcmVhZHkgYmVmb3JlIHByb2JpbmcgYSBkZXZpY2UuIEkgZ2F2ZSB0aGlz
+IGlkZWEgYSB0cnkgWzJdIGJ1dCBNYXJrIEJyb3duCj4+IHBvaW50ZWQgb3V0IHRvIHRoZSBsb2dp
+YyBkdXBsaWNhdGlvbiBiZXR3ZWVuIHRoZSByZXNvdXJjZSBhY3F1aXNpdGlvbgo+PiBhbmQgZGVw
+ZW5kZW5jeSBkaXNjb3ZlcnkgY29kZSBwYXRocyAodGhvdWdoIEkgdGhpbmsgaXQncyBmYWlybHkg
+bWlub3IpLgo+Pgo+PiBUbyBhZGRyZXNzIHRoYXQgY29kZSBkdXBsaWNhdGlvbiBJIGV4cGVyaW1l
+bnRlZCB3aXRoIEFybmQncyBkZXZtX3Byb2JlCj4+IFszXSBjb25jZXB0IG9mIGhhdmluZyBkcml2
+ZXJzIGRlY2xhcmUgdGhlaXIgZGVwZW5kZW5jaWVzIGluc3RlYWQgb2YKPj4gYWNxdWlyaW5nIHRo
+ZW0gZHVyaW5nIHByb2JlLCBhbmQgd2hpbGUgaXQgd29ya2VkIFs0XSwgSSBkb24ndCB0aGluayB3
+ZQo+PiBlbmQgdXAgd2lubmluZyBhbnl0aGluZyB3aGVuIGNvbXBhcmVkIHRvIGp1c3QgcHJvYmlu
+ZyBkZXZpY2VzIG9uLWRlbWFuZAo+PiBmcm9tIHJlc291cmNlIGdldHRlcnMuCj4+Cj4+IE9uZSBy
+ZW1haW5pbmcgb2JqZWN0aW9uIGlzIHRvIHRoZSAic3ByaW5rbGluZyIgb2YgY2FsbHMgdG8KPj4g
+Zndub2RlX2Vuc3VyZV9kZXZpY2UoKSBpbiB0aGUgcmVzb3VyY2UgZ2V0dGVycyBvZiBlYWNoIHN1
+YnN5c3RlbSwgYnV0IEkKPj4gdGhpbmsgaXQncyB0aGUgcmlnaHQgdGhpbmcgdG8gZG8gZ2l2ZW4g
+dGhhdCB0aGUgc3RvcmFnZSBvZiByZXNvdXJjZXMgaXMKPj4gY3VycmVudGx5IHN1YnN5c3RlbS1z
+cGVjaWZpYy4KPgo+IFNlZW1zIGxpa2UgYSBtaW5vciBjaGFuZ2UgdG8gbWUuCj4KPj4gV2UgY291
+bGQgYXZvaWQgdGhlIGFib3ZlIGJ5IG1vdmluZyByZXNvdXJjZSBzdG9yYWdlIGludG8gdGhlIGNv
+cmUsIGJ1dCBJCj4+IGRvbid0IHRoaW5rIHRoZXJlJ3MgYSBjb21wZWxsaW5nIGNhc2UgZm9yIHRo
+YXQuCj4+Cj4+IEkgaGF2ZSB0ZXN0ZWQgdGhpcyBvbiBib2FyZHMgd2l0aCBUZWdyYSwgaU1YLjYs
+IEV4eW5vcyBhbmQgT01BUCBTb0NzLAo+PiBhbmQgdGhlc2UgcGF0Y2hlcyB3ZXJlIGVub3VnaCB0
+byBlbGltaW5hdGUgYWxsIHRoZSBkZWZlcnJlZCBwcm9iZXMKPj4gKGV4Y2VwdCBvbmUgaW4gUGFu
+ZGFCb2FyZCBiZWNhdXNlIG9tYXBfZG1hX3N5c3RlbSBkb2Vzbid0IGhhdmUgYQo+PiBmaXJtd2Fy
+ZSBub2RlIGFzIG9mIHlldCkuCj4+Cj4+IFdpdGggdGhpcyBzZXJpZXMgSSBnZXQgdGhlIGtlcm5l
+bCB0byBvdXRwdXQgdG8gdGhlIHBhbmVsIGluIDAuNXMsCj4+IGluc3RlYWQgb2YgMi44cy4KPgo+
+IEdlbmVyYWxseSwgSSB0aGluayB0aGlzIGxvb2tzIHByZXR0eSBnb29kLiBJdCBpcyBzaW1wbGUg
+YW5kIHRoZSBlcnJvcgo+IHBhdGggaXMgc2ltcGx5IGZhbGxpbmcgYmFjayB0byBkZWZlcnJlZCBw
+cm9iZS4KPgo+IE9uZSBvdmVyYWxsIGNvbW1lbnQgaXMgSSdtIG5vdCBzbyBzdXJlIGlmIGZ3bm9k
+ZV9lbnN1cmVfZGV2aWNlCj4gc2hvdWxkbid0IGp1c3QgYmUgb2ZfZW5zdXJlX2RldmljZS4gQXQg
+bGVhc3QgY3VycmVudGx5LCBpdCBsb29rcyBsaWtlCj4gYWxsIHRoZSBjYWxsaW5nIGxvY2F0aW9u
+cyBhcmUgRFQgc3BlY2lmaWMgZnVuY3Rpb25zIGFueXdheS4gVGhlcmUncwo+IHZlcnkgbGl0dGxl
+IGxvZ2ljIHdpdGhpbiB0aGUgZnVuY3Rpb24gdG8gcmVhbGx5IGJlbmVmaXQgc2hhcmluZyB3aXRo
+Cj4gQUNQSS4gSXQgaXMgYmFzaWNhbGx5IGp1c3QgYSBjYWxsIHRvIG9mX3BsYXRmb3JtX2Rldmlj
+ZV9maW5kIGFuZCB0aGVuCj4gYnVzX3Byb2JlX2RldmljZS4gSSBleHBlY3QgdGhlIGdldCBmdW5j
+dGlvbnMgd2lsbCBhbHdheXMgY2FsbCBpbnRvCj4gRFQvQUNQSSBzcGVjaWZpYyBmdW5jdGlvbnMg
+d2hpY2ggY2FuIHRoZW4gY2FsbCB0aGUgZmlybXdhcmUgc3BlY2lmaWMKPiBkZXZpY2UgZmluZCBm
+dW5jdGlvbi4KClRoYXQncyBmaW5lIHdpdGggbWUuIEkganVzdCB3ZW50IHRoYXQgd2F5IGJlY2F1
+c2UgSSBhc3N1bWVkIHRoZSBwbGFuCndhcyBmb3Igc3Vic3lzdGVtcyB0byBtb3ZlIHRvIGNvbnN1
+bWUgZncgZGF0YSB0aHJvdWdoIGZ3bm9kZSBhbmQgZHJvcAphcyBtdWNoIGZ3LXNwZWNpZmljIGNv
+ZGUgYXMgcG9zc2libGUuCgpCdXQgSSBoYXZlIGp1c3QgbG9va2VkIGF0IGZ3bm9kZV9nZXRfbmFt
+ZWRfZ3Bpb2QgYW5kIHRoZSBPRiBhbmQgQUNQSQpjb2RlIHBhdGhzIGFyZSBzbyBkaXNzaW1pbGFy
+IHRoYXQgSSBndWVzcyB0aGF0J3Mgbm90IHNvIGFuZCB3b3VsZCBiZQpiZXR0ZXIgdG8gZG8gYXMg
+eW91IHNheS4KClRoYW5rcywKClRvbWV1CgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fXwpsaW51eC1hcm0ta2VybmVsIG1haWxpbmcgbGlzdApsaW51eC1hcm0t
+a2VybmVsQGxpc3RzLmluZnJhZGVhZC5vcmcKaHR0cDovL2xpc3RzLmluZnJhZGVhZC5vcmcvbWFp
+bG1hbi9saXN0aW5mby9saW51eC1hcm0ta2VybmVsCg==
