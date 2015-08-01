@@ -1,150 +1,119 @@
-From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Subject: Re: [PATCH v2 04/22] of/platform: add of_platform_device_find()
-Date: Fri, 31 Jul 2015 12:32:45 +0200
-Message-ID: <CAAObsKDjF9uOpX+m-AG0HRcwVrbveDwWP+swxo7-xPCHw_-voQ@mail.gmail.com>
-References: <1438089593-7696-1-git-send-email-tomeu.vizoso@collabora.com>
- <1438089593-7696-5-git-send-email-tomeu.vizoso@collabora.com>
- <CAL_JsqJGhFXDKuayuKc2E58X5A7ZGN=uYCVDLnXw_t3_auBg+w@mail.gmail.com>
- <CAAObsKBfRLdPc0gs55ARfa+qZJAOEyEgRyTf8krZnQMb6-j03g@mail.gmail.com>
- <CAL_Jsq+RqGAxHE5-ocD-htddBHckG24oZNqfgmMF3Jak6wDXBQ@mail.gmail.com>
- <CAAObsKA+vMsgiC52jReJckeDjXhdd=_NBocFbMapdwFReiY1SQ@mail.gmail.com>
- <CAAObsKD9BN7dsEiNB=OvJkoOQPwxwnP794w=X4AwtYz3oxEJqw@mail.gmail.com> <CAL_Jsq+2b4+pf9G1ynWSkDgyC1agmS-TdTVjzdfQKNBWuuOHgw@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [PATCH] ACPI / bus: Move duplicate code to a separate new function
+Date: Sat, 01 Aug 2015 02:39:43 +0200
+Message-ID: <4854608.nIfMTUvZQu@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f181.google.com ([209.85.212.181]:36905 "EHLO
-	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751292AbbGaKdG (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 31 Jul 2015 06:33:06 -0400
-In-Reply-To: <CAL_Jsq+2b4+pf9G1ynWSkDgyC1agmS-TdTVjzdfQKNBWuuOHgw@mail.gmail.com>
+Received: from v094114.home.net.pl ([79.96.170.134]:57461 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751272AbbHAAMp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 31 Jul 2015 20:12:45 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Rob Herring <robherring2@gmail.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Rob Herring <robh+dt@kernel.org>, Grant Likely <grant.likely@linaro.org>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-On 29 July 2015 at 17:27, Rob Herring <robherring2@gmail.com> wrote:
-> On Wed, Jul 29, 2015 at 6:20 AM, Tomeu Vizoso
-> <tomeu.vizoso@collabora.com> wrote:
->> On 29 July 2015 at 08:14, Tomeu Vizoso <tomeu.vizoso@collabora.com> wrote:
->>> On 28 July 2015 at 17:31, Rob Herring <robherring2@gmail.com> wrote:
->>>> On Tue, Jul 28, 2015 at 8:54 AM, Tomeu Vizoso
->>>> <tomeu.vizoso@collabora.com> wrote:
->>>>> On 28 July 2015 at 15:39, Rob Herring <robherring2@gmail.com> wrote:
->>>>>> On Tue, Jul 28, 2015 at 8:19 AM, Tomeu Vizoso
->>>>>> <tomeu.vizoso@collabora.com> wrote:
->>>>>>> From an arbitrary node in the tree, find the enclosing node that
->>>>>>> corresponds to a platform device, as registered by
->>>>>>> of_platform_populate().
->
-> [...]
->
->>>>> If I had a way to get, say, a i2c device from its fwnode then I would
->>>>> just need to make sure that a device's parent is probed before probing
->>>>> it and everything would be cleaner in the OF case.
->>>>
->>>> If you have the struct device from the device_node, then you should be
->>>> able to do this, right?
->>>
->>> Yes, if I could go back from the device_node to the struct device that
->>> was registered from it, for all buses, then all this would be much
->>> simpler and more robust. It would basically work like in the ACPI
->>> case.
->>>
->>> I will play with this idea.
->>>
->>>>>> That is probably not the
->>>>>> most efficient search, but we could fix that. We could add struct
->>>>>> device ptr to struct device_node and check without searching for
->>>>>> example.
->>>>>
->>>>> That would be great, but I thought there was an issue with a OF node
->>>>> being able to be related to more than one struct device (but I haven't
->>>>> found this myself yet).
->>>>
->>>> I think it pretty much should be one to one. I'm not aware of any
->>>> examples where that is not the case. This function would already be
->>>> broken if you could have more than one struct device.
->>>
->>> Well, for platform devices we currently know that there can only be
->>> one struct device for a given device_node, but that's not so clear for
->>> other devices.
->>
->> Just found this case:
->>
->> http://lxr.free-electrons.com/source/drivers/spi/spi-tegra114.c#L1124
->>
->> Looks like SPI master devices point to the same device_node as the
->> platform device that registers them.
->
-> I don't think this is a problem. The device ptr would only point to
-> the platform device. Nothing else is going to know about the ptr,
-> modify it nor expect that it points to the same struct device that
-> contains the of_node ptr.
->
-> So I think any instances of struct device like this are ones you don't
-> care about for purposes of probe dependencies.
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Ok, I think I got it now. This is what I came up with and works fine
-on all the boards I'm testing with:
+After merging commit 712e960f0ee9 (ACPI / PM: Attach ACPI power
+domain only once) with commit 1dcc3d3362b0 (ACPI / bus: Move ACPI
+bus type registration) there is some duplicate code in
+acpi_device_is_first_physical_node() and acpi_companion_match()
+that can be moved to a separate routine and called from both
+places.
 
-diff --git a/drivers/of/platform.c b/drivers/of/platform.c
-index 89c5cd513027..e14518b5e1ce 100644
---- a/drivers/of/platform.c
-+++ b/drivers/of/platform.c
-@@ -192,6 +192,8 @@ static struct platform_device
-*of_platform_device_create_pdata(
-         goto err_clear_flag;
-     }
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
 
-+    np->platform_dev = dev;
+On top of linux-pm.git/linux-next.
+
+---
+ drivers/acpi/bus.c |   51 ++++++++++++++++++++++-----------------------------
+ 1 file changed, 22 insertions(+), 29 deletions(-)
+
+Index: linux-pm/drivers/acpi/bus.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/bus.c
++++ linux-pm/drivers/acpi/bus.c
+@@ -482,6 +482,26 @@ static void acpi_device_remove_notify_ha
+                              Device Matching
+    -------------------------------------------------------------------------- */
+ 
++static struct acpi_device *acpi_primary_dev_companion(struct acpi_device *adev,
++						      const struct device *dev)
++{
++	struct mutex *physical_node_lock = &adev->physical_node_lock;
 +
-     return dev;
-
- err_clear_flag:
-@@ -501,59 +503,29 @@ void of_platform_depopulate(struct device *parent)
- }
- EXPORT_SYMBOL_GPL(of_platform_depopulate);
-
++	mutex_lock(physical_node_lock);
++	if (list_empty(&adev->physical_node_list)) {
++		adev = NULL;
++	} else {
++		const struct acpi_device_physical_node *node;
++
++		node = list_first_entry(&adev->physical_node_list,
++					struct acpi_device_physical_node, node);
++		if (node->dev != dev)
++			adev = NULL;
++	}
++	mutex_unlock(physical_node_lock);
++	return adev;
++}
++
  /**
-  * of_platform_device_find() - Find nearest ancestor that is a platform device
-  * @np: node to find platform device for
-  *
-- * Walks the tree up and finds the closest ancestor that has match data and
-- * either is at the root of the tree or is a child of a simple memory mapped
-- * bus.
-+ * Walks the OF tree up and finds the closest ancestor that has a platform
-+ * device associated with it.
-  *
-  * Returns such a device, or NULL if none could be found.
-  */
- struct device *of_platform_device_find(struct device_node *np)
+  * acpi_device_is_first_physical_node - Is given dev first physical node
+  * @adev: ACPI companion device
+@@ -496,19 +516,7 @@ static void acpi_device_remove_notify_ha
+ bool acpi_device_is_first_physical_node(struct acpi_device *adev,
+ 					const struct device *dev)
  {
-     struct device_node *target;
--    struct platform_device *pdev;
-+    struct platform_device *pdev = NULL;
-
-     of_node_get(np);
-
-     for (target = np;
-          !of_node_is_root(target);
-          target = of_get_next_parent(target))
--        if (of_is_platform(target))
-+        if (target->platform_dev) {
-+            pdev = target->platform_dev;
-             break;
+-	bool ret = false;
 -
--    pdev = of_find_device_by_node(target);
-+        }
+-	mutex_lock(&adev->physical_node_lock);
+-	if (!list_empty(&adev->physical_node_list)) {
+-		const struct acpi_device_physical_node *node;
+-
+-		node = list_first_entry(&adev->physical_node_list,
+-					struct acpi_device_physical_node, node);
+-		ret = node->dev == dev;
+-	}
+-	mutex_unlock(&adev->physical_node_lock);
+-
+-	return ret;
++	return !!acpi_primary_dev_companion(adev, dev);
+ }
+ 
+ /*
+@@ -535,7 +543,6 @@ bool acpi_device_is_first_physical_node(
+ struct acpi_device *acpi_companion_match(const struct device *dev)
+ {
+ 	struct acpi_device *adev;
+-	struct mutex *physical_node_lock;
+ 
+ 	adev = ACPI_COMPANION(dev);
+ 	if (!adev)
+@@ -544,21 +551,7 @@ struct acpi_device *acpi_companion_match
+ 	if (list_empty(&adev->pnp.ids))
+ 		return NULL;
+ 
+-	physical_node_lock = &adev->physical_node_lock;
+-	mutex_lock(physical_node_lock);
+-	if (list_empty(&adev->physical_node_list)) {
+-		adev = NULL;
+-	} else {
+-		const struct acpi_device_physical_node *node;
+-
+-		node = list_first_entry(&adev->physical_node_list,
+-					struct acpi_device_physical_node, node);
+-		if (node->dev != dev)
+-			adev = NULL;
+-	}
+-	mutex_unlock(physical_node_lock);
+-
+-	return adev;
++	return acpi_primary_dev_companion(adev, dev);
+ }
+ 
+ /**
 
-     of_node_put(target);
-
-Thanks,
-
-Tomeu
-
-> Rob
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
