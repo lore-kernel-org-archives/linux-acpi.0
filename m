@@ -1,60 +1,98 @@
-From: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
-Subject: [PATCH] ACPI: fix acpi_debugfs_init prototype
-Date: Sat,  1 Aug 2015 21:32:17 +0800
-Message-ID: <1438435937-28886-1-git-send-email-nicolas.iooss_linux@m4x.org>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH v2] acpi: Use kstrtoul() instead of
+ strtoul()/simple_strtoul()
+Date: Sun, 2 Aug 2015 09:16:43 +0200
+Message-ID: <20150802071643.GF32270@amd>
+References: <1438043542-2960-1-git-send-email-linux@roeck-us.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.polytechnique.org ([129.104.30.34]:57146 "EHLO
-	mx1.polytechnique.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750744AbbHANmK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 1 Aug 2015 09:42:10 -0400
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:46886 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751624AbbHBHQp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 2 Aug 2015 03:16:45 -0400
+Content-Disposition: inline
+In-Reply-To: <1438043542-2960-1-git-send-email-linux@roeck-us.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Nicolas Iooss <nicolas.iooss_linux@m4x.org>
+To: Guenter Roeck <linux@roeck-us.net>
+Cc: rjw@rjwysocki.net, lenb@kernel.org, robert.moore@intel.com, lv.zheng@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, devel@acpica.org
 
-acpi_debugfs_init function is declared with return type int in
-drivers/acpi/internal.h when CONFIG_DEBUG_FS is enabled, but its
-definition in drivers/acpi/debugfs.c has return type void. This is due
-to commit aecad432fd68 ("ACPI: Cleanup custom_method debug stuff"),
-which changed the return type from int to void without updating the
-declaration.
+On Mon 2015-07-27 17:32:22, Guenter Roeck wrote:
+> simple_strtoul() is deprecated; replace with kstrtoul() and kstrtouint().
+> Return an error if the value passed to the sysfs attribute is not
+> a number.
+> 
+> Drop the definition of strtoul() since it is no longer needed.
+> 
+> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+> ---
+> v2: An additional use of strtoul() was introduced with commit 4fa4616e.
+>     Replace it as well.
+> 
+>  drivers/acpi/acpica/evgpeinit.c | 5 +++--
+>  drivers/acpi/sysfs.c            | 8 ++++++--
+>  include/acpi/platform/aclinux.h | 1 -
+>  3 files changed, 9 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/acpi/acpica/evgpeinit.c b/drivers/acpi/acpica/evgpeinit.c
+> index ea4c0d3fca2d..aa1e8c1f2d4a 100644
+> --- a/drivers/acpi/acpica/evgpeinit.c
+> +++ b/drivers/acpi/acpica/evgpeinit.c
+> @@ -326,6 +326,7 @@ acpi_ev_match_gpe_method(acpi_handle obj_handle,
+>  	u32 gpe_number;
+>  	char name[ACPI_NAME_SIZE + 1];
+>  	u8 type;
+> +	int err;
+>  
+>  	ACPI_FUNCTION_TRACE(ev_match_gpe_method);
+>  
+> @@ -377,8 +378,8 @@ acpi_ev_match_gpe_method(acpi_handle obj_handle,
+>  
+>  	/* 4) The last two characters of the name are the hex GPE Number */
+>  
+> -	gpe_number = strtoul(&name[2], NULL, 16);
+> -	if (gpe_number == ACPI_UINT32_MAX) {
+> +	er = kstrtouint(&name[2], 16, &gpe_number);
+> +	if (err < 0 || gpe_number == ACPI_UINT32_MAX) {
 
-Fix this inconsistency by updating acpi_debugfs_init prototype.  While
-at it, include internal.h in debugfs.c so that the compiler can check
-that the declaration and definition remain compatible.
+Are you sure you compile-tested this?
 
-Signed-off-by: Nicolas Iooss <nicolas.iooss_linux@m4x.org>
----
- drivers/acpi/debugfs.c  | 2 ++
- drivers/acpi/internal.h | 2 +-
- 2 files changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/debugfs.c b/drivers/acpi/debugfs.c
-index 6b1919f6bd82..68bb305b977f 100644
---- a/drivers/acpi/debugfs.c
-+++ b/drivers/acpi/debugfs.c
-@@ -7,6 +7,8 @@
- #include <linux/debugfs.h>
- #include <linux/acpi.h>
- 
-+#include "internal.h"
-+
- #define _COMPONENT		ACPI_SYSTEM_COMPONENT
- ACPI_MODULE_NAME("debugfs");
- 
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index 4683a96932b9..4b348df3056d 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -70,7 +70,7 @@ void acpi_scan_hotplug_enabled(struct acpi_hotplug_profile *hotplug, bool val);
- 
- #ifdef CONFIG_DEBUG_FS
- extern struct dentry *acpi_debugfs_dir;
--int acpi_debugfs_init(void);
-+void acpi_debugfs_init(void);
- #else
- static inline void acpi_debugfs_init(void) { return; }
- #endif
+>  		/* Conversion failed; invalid method, just ignore it */
+>  
+> diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
+> index 0876d77b3206..d6ea5712ec57 100644
+> --- a/drivers/acpi/sysfs.c
+> +++ b/drivers/acpi/sysfs.c
+> @@ -616,8 +616,12 @@ static ssize_t counter_set(struct kobject *kobj,
+>  			all_counters[index].count = tmp;
+>  		else
+>  			result = -EINVAL;
+> -	} else
+> -		all_counters[index].count = strtoul(buf, NULL, 0);
+> +	} else {
+> +		if (!kstrtoul(buf, 0, &tmp))
+> +			all_counters[index].count = tmp;
+> +		else
+> +			result = -EINVAL;
+> +	}
+>  
+>  	if (ACPI_FAILURE(result))
+>  		result = -EINVAL;
+> diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
+> index 74ba46c8157a..9925c1d5d58f 100644
+> --- a/include/acpi/platform/aclinux.h
+> +++ b/include/acpi/platform/aclinux.h
+> @@ -119,7 +119,6 @@
+>  
+>  #define ACPI_MACHINE_WIDTH          BITS_PER_LONG
+>  #define ACPI_EXPORT_SYMBOL(symbol)  EXPORT_SYMBOL(symbol);
+> -#define strtoul                     simple_strtoul
+>  
+>  #define acpi_cache_t                        struct kmem_cache
+>  #define acpi_spinlock                       spinlock_t *
+
 -- 
-2.5.0
-
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
