@@ -1,33 +1,49 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH] ACPI / bus: Move duplicate code to a separate new
- function
-Date: Mon, 3 Aug 2015 12:48:32 +0300
-Message-ID: <20150803094832.GA1540@lahna.fi.intel.com>
-References: <4854608.nIfMTUvZQu@vostro.rjw.lan>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH V9 0/5] map GHES memory region according to EFI memory map
+Date: Mon, 3 Aug 2015 12:26:58 +0100
+Message-ID: <20150803112658.GE10501@arm.com>
+References: <1438292109-4170-1-git-send-email-zjzhang@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:39067 "EHLO mga03.intel.com"
+Received: from foss.arm.com ([217.140.101.70]:53089 "EHLO foss.arm.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752854AbbHCJsh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 3 Aug 2015 05:48:37 -0400
+	id S1752143AbbHCL1E (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 3 Aug 2015 07:27:04 -0400
 Content-Disposition: inline
-In-Reply-To: <4854608.nIfMTUvZQu@vostro.rjw.lan>
+In-Reply-To: <1438292109-4170-1-git-send-email-zjzhang@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
+Cc: Matt Fleming <matt.fleming@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "x86@kernel.org" <x86@kernel.org>, "tony.luck@gmail.com" <tony.luck@gmail.com>, "ard.biesheuvel@linaro.org" <ard.biesheuvel@linaro.org>, "fu.wei@linaro.org" <fu.wei@linaro.org>, "al.stone@linaro.org" <al.stone@linaro.org>, "bp@alien8.de" <bp@alien8.de>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "ying.huang@intel.com" <ying.huang@intel.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "leif.lindholm@linaro.org" <leif.lindholm@linaro.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-arm-msm@vger.kernel.or
 
-On Sat, Aug 01, 2015 at 02:39:43AM +0200, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> 
-> After merging commit 712e960f0ee9 (ACPI / PM: Attach ACPI power
-> domain only once) with commit 1dcc3d3362b0 (ACPI / bus: Move ACPI
-> bus type registration) there is some duplicate code in
-> acpi_device_is_first_physical_node() and acpi_companion_match()
-> that can be moved to a separate routine and called from both
-> places.
-> 
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Hi Jonathan,
 
-Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+On Thu, Jul 30, 2015 at 10:35:04PM +0100, Jonathan (Zhixiong) Zhang wrote:
+> From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
+> 
+> On a platform with APEI (ACPI Platform Error Interface) enabled, firmware
+> updates a memory region with hardware error record using nocache
+> attribute. When OS reads the region, since it maps the region with
+> cacahed attribute even though EFI memory map defines this region as
+> uncached, OS gets stale data and errorneously reports there is no new
+> HW error.
+> 
+> When ghes driver maps the memory region, it uses the cache attribute
+> according to EFI memory map, if EFI memory map feature is enabled
+> at runtime.
+> 
+> Since both arch/x86 and arch/ia64 implemented architecture agnostic EFI
+> memory map attribue lookup function efi_memattributes(), the code is
+> moved from arch/x86 into EFI subsystem and is declared as __weak; archs
+> other than ia64 should not override the default implementation.
+> 
+> V9:
+> 1. Rebased to arm64-upstream-14543 of arm64/master.
+> 2. Match strict MM type in arch_apei_get_mem_attribute().
+
+I guess this is all going via Matt's tree? I'm happy to take the new
+memory type in arch/arm64/ if there's nothing currently queued, but I
+suspect it makes more sense for it to stay together.
+
+Will
