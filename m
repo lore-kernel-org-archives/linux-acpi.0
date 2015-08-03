@@ -1,126 +1,32 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH] ACPI / bus: Move duplicate code to a separate new function
-Date: Mon, 03 Aug 2015 22:58:17 +0800
-Message-ID: <55BF8189.2040202@linaro.org>
-References: <4854608.nIfMTUvZQu@vostro.rjw.lan>
+From: Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>
+Subject: Re: [PATCH V9 0/5] map GHES memory region according to EFI memory map
+Date: Mon, 3 Aug 2015 17:23:54 +0100
+Message-ID: <20150803162354.GQ2725@codeblueprint.co.uk>
+References: <1438292109-4170-1-git-send-email-zjzhang@codeaurora.org>
+ <20150803112658.GE10501@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f41.google.com ([209.85.220.41]:35659 "EHLO
-	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753195AbbHCO6Y (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Aug 2015 10:58:24 -0400
-Received: by pasy3 with SMTP id y3so16489240pas.2
-        for <linux-acpi@vger.kernel.org>; Mon, 03 Aug 2015 07:58:23 -0700 (PDT)
-In-Reply-To: <4854608.nIfMTUvZQu@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20150803112658.GE10501-5wv7dgnIgG8@public.gmane.org>
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>
+Cc: "Jonathan (Zhixiong) Zhang" <zjzhang-sgV2jX0FEOL9JmXXK+q4OQ@public.gmane.org>, Matt Fleming <matt.fleming-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Ingo Molnar <mingo-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>, "x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "tony.luck-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org" <tony.luck-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "ard.biesheuvel-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <ard.biesheuvel-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org" <bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org>, "rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, "lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org" <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "ying.huang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <ying.huang-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Catalin Marinas <Catalin.Marinas-5wv7dgnIgG8@public.gmane.org>, "leif.lindholm-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <leif.lindholm-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>"linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linu>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@linux.intel.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-On 08/01/2015 08:39 AM, Rafael J. Wysocki wrote:
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->
-> After merging commit 712e960f0ee9 (ACPI / PM: Attach ACPI power
-> domain only once) with commit 1dcc3d3362b0 (ACPI / bus: Move ACPI
-> bus type registration) there is some duplicate code in
-> acpi_device_is_first_physical_node() and acpi_companion_match()
-> that can be moved to a separate routine and called from both
-> places.
->
-> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
->
-> On top of linux-pm.git/linux-next.
->
-> ---
->   drivers/acpi/bus.c |   51 ++++++++++++++++++++++-----------------------------
->   1 file changed, 22 insertions(+), 29 deletions(-)
->
-> Index: linux-pm/drivers/acpi/bus.c
-> ===================================================================
-> --- linux-pm.orig/drivers/acpi/bus.c
-> +++ linux-pm/drivers/acpi/bus.c
-> @@ -482,6 +482,26 @@ static void acpi_device_remove_notify_ha
->                                Device Matching
->      -------------------------------------------------------------------------- */
->
-> +static struct acpi_device *acpi_primary_dev_companion(struct acpi_device *adev,
-> +						      const struct device *dev)
-> +{
-> +	struct mutex *physical_node_lock = &adev->physical_node_lock;
-> +
-> +	mutex_lock(physical_node_lock);
-> +	if (list_empty(&adev->physical_node_list)) {
-> +		adev = NULL;
-> +	} else {
-> +		const struct acpi_device_physical_node *node;
-> +
-> +		node = list_first_entry(&adev->physical_node_list,
-> +					struct acpi_device_physical_node, node);
-> +		if (node->dev != dev)
-> +			adev = NULL;
-> +	}
-> +	mutex_unlock(physical_node_lock);
-> +	return adev;
-> +}
-> +
->   /**
->    * acpi_device_is_first_physical_node - Is given dev first physical node
->    * @adev: ACPI companion device
-> @@ -496,19 +516,7 @@ static void acpi_device_remove_notify_ha
->   bool acpi_device_is_first_physical_node(struct acpi_device *adev,
->   					const struct device *dev)
->   {
-> -	bool ret = false;
-> -
-> -	mutex_lock(&adev->physical_node_lock);
-> -	if (!list_empty(&adev->physical_node_list)) {
-> -		const struct acpi_device_physical_node *node;
-> -
-> -		node = list_first_entry(&adev->physical_node_list,
-> -					struct acpi_device_physical_node, node);
-> -		ret = node->dev == dev;
-> -	}
-> -	mutex_unlock(&adev->physical_node_lock);
-> -
-> -	return ret;
-> +	return !!acpi_primary_dev_companion(adev, dev);
->   }
->
->   /*
-> @@ -535,7 +543,6 @@ bool acpi_device_is_first_physical_node(
->   struct acpi_device *acpi_companion_match(const struct device *dev)
->   {
->   	struct acpi_device *adev;
-> -	struct mutex *physical_node_lock;
->
->   	adev = ACPI_COMPANION(dev);
->   	if (!adev)
-> @@ -544,21 +551,7 @@ struct acpi_device *acpi_companion_match
->   	if (list_empty(&adev->pnp.ids))
->   		return NULL;
->
-> -	physical_node_lock = &adev->physical_node_lock;
-> -	mutex_lock(physical_node_lock);
-> -	if (list_empty(&adev->physical_node_list)) {
-> -		adev = NULL;
-> -	} else {
-> -		const struct acpi_device_physical_node *node;
-> -
-> -		node = list_first_entry(&adev->physical_node_list,
-> -					struct acpi_device_physical_node, node);
-> -		if (node->dev != dev)
-> -			adev = NULL;
-> -	}
-> -	mutex_unlock(physical_node_lock);
-> -
-> -	return adev;
-> +	return acpi_primary_dev_companion(adev, dev);
->   }
+On Mon, 03 Aug, at 12:26:58PM, Will Deacon wrote:
+> 
+> I guess this is all going via Matt's tree? I'm happy to take the new
+> memory type in arch/arm64/ if there's nothing currently queued, but I
+> suspect it makes more sense for it to stay together.
 
-Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
+Right, it probably does make sense to take this through a single tree.
 
-Thanks
-Hanjun
+I'm still waiting for the ACPI folks to chime in on whether this series
+makes sense, and in particular I'd like to hear from people that have
+touched ghes.c in the past.
+
+Rafael, Boris?
+
+-- 
+Matt Fleming, Intel Open Source Technology Center
