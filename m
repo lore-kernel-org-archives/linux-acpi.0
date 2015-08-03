@@ -1,84 +1,152 @@
-From: Eduardo Valentin <edubezval@gmail.com>
-Subject: [GIT PULL] Thermal-SoC management updates for v4.2-rc6
-Date: Sun, 2 Aug 2015 20:00:34 -0700
-Message-ID: <20150803030034.GC30704@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="VywGB/WGlW4DM4P8"
+From: Viresh Kumar <viresh.kumar@linaro.org>
+Subject: [PATCH 1/7] cpufreq: remove redundant CPUFREQ_INCOMPATIBLE notifier event
+Date: Mon,  3 Aug 2015 08:36:14 +0530
+Message-ID: <406f55ac8030043f0349b084878c9b8d04f7ad86.1438571116.git.viresh.kumar@linaro.org>
+References: <cover.1438571116.git.viresh.kumar@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f43.google.com ([209.85.220.43]:33306 "EHLO
-	mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752453AbbHCDAi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 2 Aug 2015 23:00:38 -0400
-Content-Disposition: inline
+Received: from mail-pa0-f50.google.com ([209.85.220.50]:34411 "EHLO
+	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752335AbbHCDGi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 2 Aug 2015 23:06:38 -0400
+Received: by pawu10 with SMTP id u10so1097712paw.1
+        for <linux-acpi@vger.kernel.org>; Sun, 02 Aug 2015 20:06:38 -0700 (PDT)
+In-Reply-To: <cover.1438571116.git.viresh.kumar@linaro.org>
+In-Reply-To: <cover.1438571116.git.viresh.kumar@linaro.org>
+References: <cover.1438571116.git.viresh.kumar@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Rui Zhang <rui.zhang@intel.com>
-Cc: Linux PM <linux-pm@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+To: Rafael Wysocki <rjw@rjwysocki.net>
+Cc: linaro-kernel@lists.linaro.org, linux-pm@vger.kernel.org, Viresh Kumar <viresh.kumar@linaro.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Fabian Frederick <fabf@skynet.be>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Jonathan Corbet <corbet@lwn.net>, Len Brown <lenb@kernel.org>, "open list:ACPI" <linux-acpi@vger.kernel.org>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>, "open list:FRAMEBUFFER LAYER" <linux-fbdev@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, Nicholas Mc Guire <hofrat@osadl.org>, Russell King <rmk+kernel@arm.linux.org.uk>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Wolfram Sang <wsa@the-dreams.de>
 
+What's being done from CPUFREQ_INCOMPATIBLE, can also be done with
+CPUFREQ_ADJUST. There is nothing special with CPUFREQ_INCOMPATIBLE
+notifier.
 
---VywGB/WGlW4DM4P8
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Kill CPUFREQ_INCOMPATIBLE and fix its usage sites.
 
-Hello Rui,
+This also updates the numbering of notifier events to remove holes.
 
-Please pull from
+Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
+---
+ Documentation/cpu-freq/core.txt       | 7 ++-----
+ drivers/acpi/processor_perflib.c      | 2 +-
+ drivers/cpufreq/cpufreq.c             | 4 ----
+ drivers/cpufreq/ppc_cbe_cpufreq_pmi.c | 4 ++--
+ drivers/video/fbdev/pxafb.c           | 1 -
+ drivers/video/fbdev/sa1100fb.c        | 1 -
+ include/linux/cpufreq.h               | 9 ++++-----
+ 7 files changed, 9 insertions(+), 19 deletions(-)
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal fixes
+diff --git a/Documentation/cpu-freq/core.txt b/Documentation/cpu-freq/core.txt
+index 70933eadc308..ba78e7c2a069 100644
+--- a/Documentation/cpu-freq/core.txt
++++ b/Documentation/cpu-freq/core.txt
+@@ -55,16 +55,13 @@ transition notifiers.
+ ----------------------------
+ 
+ These are notified when a new policy is intended to be set. Each
+-CPUFreq policy notifier is called three times for a policy transition:
++CPUFreq policy notifier is called twice for a policy transition:
+ 
+ 1.) During CPUFREQ_ADJUST all CPUFreq notifiers may change the limit if
+     they see a need for this - may it be thermal considerations or
+     hardware limitations.
+ 
+-2.) During CPUFREQ_INCOMPATIBLE only changes may be done in order to avoid
+-    hardware failure.
+-
+-3.) And during CPUFREQ_NOTIFY all notifiers are informed of the new policy
++2.) And during CPUFREQ_NOTIFY all notifiers are informed of the new policy
+    - if two hardware drivers failed to agree on a new policy before this
+    stage, the incompatible hardware shall be shut down, and the user
+    informed of this.
+diff --git a/drivers/acpi/processor_perflib.c b/drivers/acpi/processor_perflib.c
+index 47af702bb6a2..bb01dea39fdc 100644
+--- a/drivers/acpi/processor_perflib.c
++++ b/drivers/acpi/processor_perflib.c
+@@ -83,7 +83,7 @@ static int acpi_processor_ppc_notifier(struct notifier_block *nb,
+ 	if (ignore_ppc)
+ 		return 0;
+ 
+-	if (event != CPUFREQ_INCOMPATIBLE)
++	if (event != CPUFREQ_ADJUST)
+ 		return 0;
+ 
+ 	mutex_lock(&performance_mutex);
+diff --git a/drivers/cpufreq/cpufreq.c b/drivers/cpufreq/cpufreq.c
+index 76a26609d96b..293f47b814bf 100644
+--- a/drivers/cpufreq/cpufreq.c
++++ b/drivers/cpufreq/cpufreq.c
+@@ -2206,10 +2206,6 @@ static int cpufreq_set_policy(struct cpufreq_policy *policy,
+ 	blocking_notifier_call_chain(&cpufreq_policy_notifier_list,
+ 			CPUFREQ_ADJUST, new_policy);
+ 
+-	/* adjust if necessary - hardware incompatibility*/
+-	blocking_notifier_call_chain(&cpufreq_policy_notifier_list,
+-			CPUFREQ_INCOMPATIBLE, new_policy);
+-
+ 	/*
+ 	 * verify the cpu speed can be set within this limit, which might be
+ 	 * different to the first one
+diff --git a/drivers/cpufreq/ppc_cbe_cpufreq_pmi.c b/drivers/cpufreq/ppc_cbe_cpufreq_pmi.c
+index d29e8da396a0..7969f7690498 100644
+--- a/drivers/cpufreq/ppc_cbe_cpufreq_pmi.c
++++ b/drivers/cpufreq/ppc_cbe_cpufreq_pmi.c
+@@ -97,8 +97,8 @@ static int pmi_notifier(struct notifier_block *nb,
+ 	struct cpufreq_frequency_table *cbe_freqs;
+ 	u8 node;
+ 
+-	/* Should this really be called for CPUFREQ_ADJUST, CPUFREQ_INCOMPATIBLE
+-	 * and CPUFREQ_NOTIFY policy events?)
++	/* Should this really be called for CPUFREQ_ADJUST and CPUFREQ_NOTIFY
++	 * policy events?)
+ 	 */
+ 	if (event == CPUFREQ_START)
+ 		return 0;
+diff --git a/drivers/video/fbdev/pxafb.c b/drivers/video/fbdev/pxafb.c
+index 7245611ec963..94813af97f09 100644
+--- a/drivers/video/fbdev/pxafb.c
++++ b/drivers/video/fbdev/pxafb.c
+@@ -1668,7 +1668,6 @@ pxafb_freq_policy(struct notifier_block *nb, unsigned long val, void *data)
+ 
+ 	switch (val) {
+ 	case CPUFREQ_ADJUST:
+-	case CPUFREQ_INCOMPATIBLE:
+ 		pr_debug("min dma period: %d ps, "
+ 			"new clock %d kHz\n", pxafb_display_dma_period(var),
+ 			policy->max);
+diff --git a/drivers/video/fbdev/sa1100fb.c b/drivers/video/fbdev/sa1100fb.c
+index 89dd7e02197f..dcf774c15889 100644
+--- a/drivers/video/fbdev/sa1100fb.c
++++ b/drivers/video/fbdev/sa1100fb.c
+@@ -1042,7 +1042,6 @@ sa1100fb_freq_policy(struct notifier_block *nb, unsigned long val,
+ 
+ 	switch (val) {
+ 	case CPUFREQ_ADJUST:
+-	case CPUFREQ_INCOMPATIBLE:
+ 		dev_dbg(fbi->dev, "min dma period: %d ps, "
+ 			"new clock %d kHz\n", sa1100fb_min_dma_period(fbi),
+ 			policy->max);
+diff --git a/include/linux/cpufreq.h b/include/linux/cpufreq.h
+index bde1e567b3a9..bedcc90c0757 100644
+--- a/include/linux/cpufreq.h
++++ b/include/linux/cpufreq.h
+@@ -369,11 +369,10 @@ static inline void cpufreq_resume(void) {}
+ 
+ /* Policy Notifiers  */
+ #define CPUFREQ_ADJUST			(0)
+-#define CPUFREQ_INCOMPATIBLE		(1)
+-#define CPUFREQ_NOTIFY			(2)
+-#define CPUFREQ_START			(3)
+-#define CPUFREQ_CREATE_POLICY		(4)
+-#define CPUFREQ_REMOVE_POLICY		(5)
++#define CPUFREQ_NOTIFY			(1)
++#define CPUFREQ_START			(2)
++#define CPUFREQ_CREATE_POLICY		(3)
++#define CPUFREQ_REMOVE_POLICY		(4)
+ 
+ #ifdef CONFIG_CPU_FREQ
+ int cpufreq_register_notifier(struct notifier_block *nb, unsigned int list);
+-- 
+2.4.0
 
-to receive Thermal-SoC Management updates for v4.2-rc6 with top-most
-
-3c19d237dd8148926e49259e495ee41dddd1f09c:
-
-  thermal: exynos: Remove unused code related to platform_data on probe() (2015-08-02 19:36:57 -0700)
-
-on top of commit 74d33293e467df61de1b1d8b2fbe29e550dec33b:
-
-  Linux 4.2-rc5 (2015-08-02 18:34:55 -0700)
-
-Specifics:
-- Minor fix on thermal core, while unbinding (need to remove weight_attr)
-- Change a couple of tracing on power allocator governor
-- Driver fixes on: Exynos
-
-BR,
-
-Eduardo Valentin
-----------------------------------------------------------------
-Chanwoo Choi (2):
-      thermal: exynos: Add the dependency of CONFIG_THERMAL_OF instead of CONFIG_OF
-      thermal: exynos: Remove unused code related to platform_data on probe()
-
-Javi Merino (1):
-      thermal: power_allocator: trace the real requested power
-
-Krzysztof Kozlowski (1):
-      thermal: exynos: Disable the regulator on probe failure
-
-Viresh Kumar (1):
-      thermal: remove dangling 'weight_attr' device file
-
- drivers/thermal/power_allocator.c    | 26 ++++++++++++++++----------
- drivers/thermal/samsung/Kconfig      |  2 +-
- drivers/thermal/samsung/exynos_tmu.c |  5 ++---
- drivers/thermal/thermal_core.c       |  1 +
- 4 files changed, 20 insertions(+), 14 deletions(-)
-
---VywGB/WGlW4DM4P8
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQEcBAEBAgAGBQJVvtlGAAoJEMLUO4d9pOJWnp8H/0T69jvFK80RwK9jY3BaEaGh
-beo1mctigW1cyY33qChFBDzyQlGMRq0FmCPkTvLt9oqytfJqORy6WJeuCrtVQZhm
-+Lb3fEOsU3eT6ZAxvfRBUL4FHcZwtMJeGkjZwZZQ4qacqSyFc/0vighpYKdmrjQv
-LFGNZF0UY40kVIz5BI5JEOwC9ncWf8goJ8829K3GjuXsdw/3EsxL3KjwEMg1CLfM
-+KQHdBi/NFkB+oJI5ia6QLMdF745h5AFdWnkJeq+852l60RtU6wo0ILkw1MUvR/m
-MtCNAGpgbSHDmfcKsHrwRG6/agDG3kw/mQkNVFmvAa3HH6QvCtg9tgidKPLYUQI=
-=MrxR
------END PGP SIGNATURE-----
-
---VywGB/WGlW4DM4P8--
