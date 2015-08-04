@@ -1,157 +1,40 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: Re: [PATCH 1/5] x86, gfp: Cache best near node for memory allocation.
-Date: Tue, 4 Aug 2015 11:36:18 +0800
-Message-ID: <55C03332.2030808@cn.fujitsu.com>
-References: <1436261425-29881-1-git-send-email-tangchen@cn.fujitsu.com> <1436261425-29881-2-git-send-email-tangchen@cn.fujitsu.com> <20150715214802.GL15934@mtj.duckdns.org>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH V9 0/5] map GHES memory region according to EFI memory map
+Date: Tue, 4 Aug 2015 06:25:52 +0200
+Message-ID: <20150804042552.GG31787@nazgul.tnic>
+References: <1438292109-4170-1-git-send-email-zjzhang@codeaurora.org>
+ <20150803112658.GE10501@arm.com>
+ <20150803162354.GQ2725@codeblueprint.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([59.151.112.132]:56808 "EHLO
-	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752479AbbHDDhv (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 3 Aug 2015 23:37:51 -0400
-In-Reply-To: <20150715214802.GL15934@mtj.duckdns.org>
+Received: from mail.skyhub.de ([78.46.96.112]:55052 "EHLO mail.skyhub.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752312AbbHDE0N (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 4 Aug 2015 00:26:13 -0400
+Content-Disposition: inline
+In-Reply-To: <20150803162354.GQ2725@codeblueprint.co.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tejun Heo <tj@kernel.org>
-Cc: mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, laijs@cn.fujitsu.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, qiaonuohan@cn.fujitsu.com, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, tangchen@cn.fujitsu.com
+To: Matt Fleming <matt@codeblueprint.co.uk>
+Cc: Will Deacon <will.deacon@arm.com>, "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, Matt Fleming <matt.fleming@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "x86@kernel.org" <x86@kernel.org>, "tony.luck@gmail.com" <tony.luck@gmail.com>, "ard.biesheuvel@linaro.org" <ard.biesheuvel@linaro.org>, "fu.wei@linaro.org" <fu.wei@linaro.org>, "al.stone@linaro.org" <al.stone@linaro.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "ying.huang@intel.com" <ying.huang@intel.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "leif.lindholm@linaro.org" <leif.lindholm@linaro.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Hi TJ,
+On Mon, Aug 03, 2015 at 05:23:54PM +0100, Matt Fleming wrote:
+> Rafael, Boris?
 
-Sorry for the late reply.
+The ghes.c change looks fine I guess. The whole patchset makes sense
+now, with the arch bits extracted. So
 
-On 07/16/2015 05:48 AM, Tejun Heo wrote:
-> ......
-> so in initialization pharse makes no sense any more. The best near online
-> node for each cpu should be cached somewhere.
-> I'm not really following.  Is this because the now offline node can
-> later come online and we'd have to break the constant mapping
-> invariant if we update the mapping later?  If so, it'd be nice to
-> spell that out.
+Acked-by: Borislav Petkov <bp@suse.de>
 
-Yes. Will document this in the next version.
-
->> ......
->>   
->> +int get_near_online_node(int node)
->> +{
->> +	return per_cpu(x86_cpu_to_near_online_node,
->> +		       cpumask_first(&node_to_cpuid_mask_map[node]));
->> +}
->> +EXPORT_SYMBOL(get_near_online_node);
-> Umm... this function is sitting on a fairly hot path and scanning a
-> cpumask each time.  Why not just build a numa node -> numa node array?
-
-Indeed. Will avoid to scan a cpumask.
-
-> ......
->
->>   
->>   static inline struct page *alloc_pages_exact_node(int nid, gfp_t gfp_mask,
->>   						unsigned int order)
->>   {
->> -	VM_BUG_ON(nid < 0 || nid >= MAX_NUMNODES || !node_online(nid));
->> +	VM_BUG_ON(nid < 0 || nid >= MAX_NUMNODES);
->> +
->> +#if IS_ENABLED(CONFIG_X86) && IS_ENABLED(CONFIG_NUMA)
->> +	if (!node_online(nid))
->> +		nid = get_near_online_node(nid);
->> +#endif
->>   
->>   	return __alloc_pages(gfp_mask, order, node_zonelist(nid, gfp_mask));
->>   }
-> Ditto.  Also, what's the synchronization rules for NUMA node
-> on/offlining.  If you end up updating the mapping later, how would
-> that be synchronized against the above usages?
-
-I think the near online node map should be updated when node online/offline
-happens. But about this, I think the current numa code has a little problem.
-
-As you know, firmware info binds a set of CPUs and memory to a node. But
-at boot time, if the node has no memory (a memory-less node) , it won't 
-be online.
-But the CPUs on that node is available, and bound to the near online node.
-(Here, I mean numa_set_node(cpu, node).)
-
-Why does the kernel do this ? I think it is used to ensure that we can 
-allocate memory
-successfully by calling functions like alloc_pages_node() and 
-alloc_pages_exact_node().
-By these two fuctions, any CPU should be bound to a node who has memory 
-so that
-memory allocation can be successful.
-
-That means, for a memory-less node at boot time, CPUs on the node is 
-online,
-but the node is not online.
-
-That also means, "the node is online" equals to "the node has memory". 
-Actually, there
-are a lot of code in the kernel is using this rule.
-
-
-But,
-1) in cpu_up(), it will try to online a node, and it doesn't check if 
-the node has memory.
-2) in try_offline_node(), it offlines CPUs first, and then the memory.
-
-This behavior looks a little wired, or let's say it is ambiguous. It 
-seems that a NUMA node
-consists of CPUs and memory. So if the CPUs are online, the node should 
-be online.
-
-And also,
-The main purpose of this patch-set is to make the cpuid <-> nodeid 
-mapping persistent.
-After this patch-set, alloc_pages_node() and alloc_pages_exact_node() 
-won't depend on
-cpuid <-> nodeid mapping any more. So the node should be online if the 
-CPUs on it are
-online. Otherwise, we cannot setup interfaces of CPUs under /sys.
-
-
-Unfortunately, since I don't have a machine a with memory-less node, I 
-cannot reproduce
-the problem right now.
-
-How do you think the node online behavior should be changed ?
+However, we probably should work towards adhering to EFI memory
+attributes on x86, long term, as we talked. But that's a future thing.
 
 Thanks.
 
+-- 
+Regards/Gruss,
+    Boris.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+ECO tip #101: Trim your mails when you reply.
+--
