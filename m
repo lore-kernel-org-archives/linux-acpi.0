@@ -1,38 +1,74 @@
 From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: [PATCH 0/4] ACPI / core : few cleanups and updates for LPI
-Date: Tue,  4 Aug 2015 18:46:42 +0100
-Message-ID: <1438710406-3822-1-git-send-email-sudeep.holla@arm.com>
+Subject: [PATCH 1/4] ACPI / processor : add support for ACPI0010 processor container
+Date: Tue,  4 Aug 2015 18:46:43 +0100
+Message-ID: <1438710406-3822-2-git-send-email-sudeep.holla@arm.com>
+References: <1438710406-3822-1-git-send-email-sudeep.holla@arm.com>
 Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <1438710406-3822-1-git-send-email-sudeep.holla@arm.com>
 Sender: linux-ia64-owner@vger.kernel.org
 To: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: Sudeep Holla <sudeep.holla@arm.com>, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, x86@kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Rafael,
+ACPI 6.0 adds support for optional processor container device which may
+contain child objects that are either processor devices or other processor
+containers. This allows representing hierarchical processor topologies.
 
-I am working on adding Low Power Idle(LPI) states support that was
-recently added in ACPI 6.0. Before introducing the LPI support, here
-are few updates and cleanups/re-organisation so that LPI support can be
-added to processor_idle module to co-exist with C-state.
+It is declared using the _HID of ACPI0010. It is an abstract container
+used to represent CPU topology and should not be used to hotplug
+purposes.
 
-Regards,
-Sudeep
+This patch enables the support for these ACPI processor containers and
+ensures the generic container/module devices are not created for them.
 
-Sudeep Holla (4):
-  ACPI / processor : add support for ACPI0010 processor container
-  ACPI / sleep: move acpi_processor_sleep to sleep.c
-  ACPI / processor_idle: replace PREFIX with pr_fmt
-  ACPI / processor_idle : introduce ARCH_SUPPORTS_ACPI_PROCESSOR_CSTATE
+Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+---
+ drivers/acpi/acpi_processor.c | 17 +++++++++++++++++
+ include/acpi/processor.h      |  1 +
+ 2 files changed, 18 insertions(+)
 
- arch/ia64/Kconfig             |   1 +
- arch/x86/Kconfig              |   1 +
- drivers/acpi/Kconfig          |   3 ++
- drivers/acpi/acpi_processor.c |  17 ++++++
- drivers/acpi/processor_idle.c | 119 +++++++++++++++++++-----------------------
- drivers/acpi/sleep.c          |  37 +++++++++++++
- include/acpi/processor.h      |   6 ++-
- 7 files changed, 116 insertions(+), 68 deletions(-)
-
+diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
+index 92a5f738e370..921948b34571 100644
+--- a/drivers/acpi/acpi_processor.c
++++ b/drivers/acpi/acpi_processor.c
+@@ -496,7 +496,24 @@ static struct acpi_scan_handler __refdata processor_handler = {
+ 	},
+ };
+ 
++static int acpi_processor_container_attach(struct acpi_device *dev,
++					   const struct acpi_device_id *id)
++{
++	return 1;
++}
++
++static const struct acpi_device_id processor_container_ids[] = {
++	{ ACPI_PROCESSOR_CONTAINER_HID, },
++	{ }
++};
++
++static struct acpi_scan_handler processor_container_handler = {
++	.ids = processor_container_ids,
++	.attach = acpi_processor_container_attach,
++};
++
+ void __init acpi_processor_init(void)
+ {
+ 	acpi_scan_add_handler_with_hotplug(&processor_handler, "processor");
++	acpi_scan_add_handler(&processor_container_handler);
+ }
+diff --git a/include/acpi/processor.h b/include/acpi/processor.h
+index 4188a4d3b597..2669cae4a0c8 100644
+--- a/include/acpi/processor.h
++++ b/include/acpi/processor.h
+@@ -9,6 +9,7 @@
+ #define ACPI_PROCESSOR_CLASS		"processor"
+ #define ACPI_PROCESSOR_DEVICE_NAME	"Processor"
+ #define ACPI_PROCESSOR_DEVICE_HID	"ACPI0007"
++#define ACPI_PROCESSOR_CONTAINER_HID	"ACPI0010"
+ 
+ #define ACPI_PROCESSOR_BUSY_METRIC	10
+ 
 -- 
 1.9.1
 
