@@ -1,40 +1,27 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH V9 0/5] map GHES memory region according to EFI memory map
-Date: Tue, 4 Aug 2015 06:25:52 +0200
-Message-ID: <20150804042552.GG31787@nazgul.tnic>
-References: <1438292109-4170-1-git-send-email-zjzhang@codeaurora.org>
- <20150803112658.GE10501@arm.com>
- <20150803162354.GQ2725@codeblueprint.co.uk>
+From: Kevin Wilson <wkevils@gmail.com>
+Subject: Question about ACPI 6 and the Linux kernel
+Date: Tue, 4 Aug 2015 07:35:48 +0300
+Message-ID: <CAGXs5wVGn1DUXPw94cEXp5KZWq=bUCBpNPE_irgO32y94V8C0g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:55052 "EHLO mail.skyhub.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752312AbbHDE0N (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 4 Aug 2015 00:26:13 -0400
-Content-Disposition: inline
-In-Reply-To: <20150803162354.GQ2725@codeblueprint.co.uk>
+Received: from mail-yk0-f179.google.com ([209.85.160.179]:32925 "EHLO
+	mail-yk0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750744AbbHDEft (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 4 Aug 2015 00:35:49 -0400
+Received: by ykoo205 with SMTP id o205so38369545yko.0
+        for <linux-acpi@vger.kernel.org>; Mon, 03 Aug 2015 21:35:48 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matt Fleming <matt@codeblueprint.co.uk>
-Cc: Will Deacon <will.deacon@arm.com>, "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, Matt Fleming <matt.fleming@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "x86@kernel.org" <x86@kernel.org>, "tony.luck@gmail.com" <tony.luck@gmail.com>, "ard.biesheuvel@linaro.org" <ard.biesheuvel@linaro.org>, "fu.wei@linaro.org" <fu.wei@linaro.org>, "al.stone@linaro.org" <al.stone@linaro.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "ying.huang@intel.com" <ying.huang@intel.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "leif.lindholm@linaro.org" <leif.lindholm@linaro.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Mon, Aug 03, 2015 at 05:23:54PM +0100, Matt Fleming wrote:
-> Rafael, Boris?
+Hi all,
+Is the current ACPI linux subsystem, that you find in the official Linus tree,
+ compliant (even partially) with ACPI 6 ? (which was released in April 2015)
 
-The ghes.c change looks fine I guess. The whole patchset makes sense
-now, with the arch bits extracted. So
+or is it now compliant only with ACPI 5 ?
 
-Acked-by: Borislav Petkov <bp@suse.de>
+What are the plans for ACPI 6? Is there already some git branch for it ?
 
-However, we probably should work towards adhering to EFI memory
-attributes on x86, long term, as we talked. But that's a future thing.
-
-Thanks.
-
--- 
-Regards/Gruss,
-    Boris.
-
-ECO tip #101: Trim your mails when you reply.
---
+Regards,
+Kevin
