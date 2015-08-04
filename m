@@ -1,178 +1,39 @@
-From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Subject: Re: [PATCH v7 4/8] ACPI: Introduce CPU performance controls using CPPC
-Date: Tue, 4 Aug 2015 11:38:46 -0400
-Message-ID: <CAJ5Y-eZSO3UT34FYFyAo5WYS5sXfvYFXkJMV9NDcv7PsOFfEmg@mail.gmail.com>
-References: <cover.1436464513.git.ashwin.chaugule@linaro.org>
-	<e83e47153db1e41b9e45701fc14a4fac266cb782.1436464513.git.ashwin.chaugule@linaro.org>
-	<55C0D50B.6060101@arm.com>
+From: "Zhang, Jonathan Zhixiong" <zjzhang@codeaurora.org>
+Subject: Re: [PATCH V9 0/5] map GHES memory region according to EFI memory map
+Date: Tue, 4 Aug 2015 08:41:36 -0700
+Message-ID: <55C0DD30.9070800@codeaurora.org>
+References: <1438292109-4170-1-git-send-email-zjzhang@codeaurora.org>
+ <20150803112658.GE10501@arm.com> <20150803162354.GQ2725@codeblueprint.co.uk>
+ <20150804042552.GG31787@nazgul.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <55C0D50B.6060101@arm.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Sudeep Holla <sudeep.holla@arm.com>
-Cc: "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "jaswinder.singh@linaro.org" <jaswinder.singh@linaro.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "patches@linaro.org" <patches@linaro.org>, "viresh.kumar@linaro.org" <viresh.kumar@linaro.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150804042552.GG31787@nazgul.tnic>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Borislav Petkov <bp@alien8.de>, Matt Fleming <matt@codeblueprint.co.uk>
+Cc: Will Deacon <will.deacon@arm.com>, Matt Fleming <matt.fleming@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "x86@kernel.org" <x86@kernel.org>, "tony.luck@gmail.com" <tony.luck@gmail.com>, "ard.biesheuvel@linaro.org" <ard.biesheuvel@linaro.org>, "fu.wei@linaro.org" <fu.wei@linaro.org>, "al.stone@linaro.org" <al.stone@linaro.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "ying.huang@intel.com" <ying.huang@intel.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "leif.lindholm@linaro.org" <leif.lindholm@linaro.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-arm-msm@vger.kerne
 List-Id: linux-acpi@vger.kernel.org
 
-On 4 August 2015 at 11:06, Sudeep Holla <sudeep.holla@arm.com> wrote:
-> Hi Ashwin,
->
-> On 09/07/15 19:04, Ashwin Chaugule wrote:
->>
->> CPPC stands for Collaborative Processor Performance Controls
->> and is defined in the ACPI v5.0+ spec. It describes CPU
->> performance controls on an abstract and continuous scale
->> allowing the platform (e.g. remote power processor) to flexibly
->> optimize CPU performance with its knowledge of power budgets
->> and other architecture specific knowledge.
->>
->> This patch adds a shim which exports commonly used functions
->> to get and set CPPC specific controls for each CPU. This enables
->> CPUFreq drivers to gather per CPU performance data and use
->> with exisiting governors or even allows for customized governors
->> which are implemented inside CPUFreq drivers.
->>
->> Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
->> Reviewed-by: Al Stone <al.stone@linaro.org>
->> ---
->>   drivers/acpi/Kconfig     |  14 +
->>   drivers/acpi/Makefile    |   1 +
->>   drivers/acpi/cppc_acpi.c | 812
->> +++++++++++++++++++++++++++++++++++++++++++++++
->>   include/acpi/cppc_acpi.h | 137 ++++++++
->>   4 files changed, 964 insertions(+)
->>   create mode 100644 drivers/acpi/cppc_acpi.c
->>   create mode 100644 include/acpi/cppc_acpi.h
->>
->
-> [..]
->
->
->> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
->> new file mode 100644
->> index 0000000..9c89767
->> --- /dev/null
->> +++ b/drivers/acpi/cppc_acpi.c
->> @@ -0,0 +1,812 @@
->> +/*
->> + * CPPC (Collaborative Processor Performance Control) methods used
->> + * by CPUfreq drivers.
->> + *
->> + * (C) Copyright 2014, 2015 Linaro Ltd.
->> + * Author: Ashwin Chaugule <ashwin.chaugule@linaro.org>
->> + *
->> + * This program is free software; you can redistribute it and/or
->> + * modify it under the terms of the GNU General Public License
->> + * as published by the Free Software Foundation; version 2
->> + * of the License.
->> + *
->> + * CPPC describes a few methods for controlling CPU performance using
->> + * information from a per CPU table called CPC. This table is described
->> in
->> + * the ACPI v5.0+ specification. The table consists of a list of
->> + * registers which may be memory mapped or hardware registers and also
->> may
->> + * include some static integer values.
->> + *
->> + * CPU performance is on an abstract continuous scale as against a
->> discretized
->> + * P-state scale which is tied to CPU frequency only. In brief, the basic
->> + * operation involves:
->> + *
->> + * - OS makes a CPU performance request. (Can provide min and max bounds)
->> + *
->> + * - Platform (such as BMC) is free to optimize request within requested
->> bounds
->> + *   depending on power/thermal budgets etc.
->> + *
->> + * - Platform conveys its decision back to OS
->> + *
->> + * The communication between OS and platform occurs through another
->> medium
->> + * called (PCC) Platform Communication Channel. This is a generic mailbox
->> like
->> + * mechanism which includes doorbell semantics to indicate register
->> updates.
->> + * See drivers/mailbox/pcc.c for details on PCC.
->> + *
->> + * Finer details about the PCC and CPPC spec are available in the latest
->> + * ACPI 5.1 specification.
->> + */
->> +
->> +#define pr_fmt(fmt)    "ACPI CPPC: " fmt
->> +
->> +#include <linux/cpufreq.h>
->> +#include <linux/delay.h>
->> +
->> +#include <acpi/cppc_acpi.h>
->> +/*
->> + * Lock to provide mutually exclusive access to the PCC
->> + * channel. e.g. When the remote updates the shared region
->> + * with new data, the reader needs to be protected from
->> + * other CPUs activity on the same channel.
->> + */
->> +static DEFINE_SPINLOCK(pcc_lock);
->> +
->> +static DEFINE_PER_CPU(struct cpc_desc *, cpc_desc_ptr);
->> +
->> +/* This layer handles all the PCC specifics for CPPC. */
->> +static struct mbox_chan *pcc_channel;
->> +static void __iomem *pcc_comm_addr;
->> +static u64 comm_base_addr;
->> +static int pcc_subspace_idx = -1;
->> +static u16 pcc_cmd_delay;
->> +static int pcc_channel_acquired;
->> +
->> +#define NUM_RETRIES 500
->> +
->> +static int send_pcc_cmd(u16 cmd)
->> +{
->> +       int err, result = 0;
->> +       int retries = NUM_RETRIES;
->> +       struct acpi_pcct_hw_reduced *pcct_ss = pcc_channel->con_priv;
->> +       struct acpi_pcct_shared_memory *generic_comm_base =
->> +               (struct acpi_pcct_shared_memory *) pcc_comm_addr;
->> +       u32 cmd_latency = pcct_ss->latency;
->> +
->> +       /* Write to the shared comm region. */
->> +       writew(cmd, &generic_comm_base->command);
->> +
->> +       /* Flip CMD COMPLETE bit */
->> +       writew(0, &generic_comm_base->status);
->> +
->> +       err = mbox_send_message(pcc_channel, &cmd);
->> +       if (err < 0) {
->> +               pr_err("Err sending PCC mbox message. cmd:%d, ret:%d\n",
->> +                               cmd, err);
->> +               return err;
->> +       }
->> +
->> +       /* Wait for a nominal time to let platform processes command. */
->> +       udelay(cmd_latency);
->
->
-> I don't think above delay belongs here. It should be part of PCC driver.
 
-This delay is PCC subspace specific, so I think it belongs to a client
-(subspace).
-
-> I need to go through PCC again, initially I objected that some part of
-> client code was in PCC driver which seems to be fixed now with commit
-> 33350e6b1833 ("Mailbox: Restructure and simplify PCC mailbox code").
+On 8/3/2015 9:25 PM, Borislav Petkov wrote:
+> On Mon, Aug 03, 2015 at 05:23:54PM +0100, Matt Fleming wrote:
+>> Rafael, Boris?
 >
-> But now I think the controller code is getting into the client side.
-> Ideally you shouldn't access anything related to PCC controller here.
-
-I think its fair to address all PCC details specific to the client in
-the client side code. Moreover this makes it much cleaner to handle
-multiple users of one subspace. e.g. multiple CPUs trying to
-concurrently access the CPPC subspace.
+> The ghes.c change looks fine I guess. The whole patchset makes sense
+> now, with the arch bits extracted. So
+>
+> Acked-by: Borislav Petkov <bp@suse.de>
+Thank you Boris/Matt/Will for the support.
 
 >
-> As I started looking at PCC, I found few issue there. I will post them
-> separately for discussion.
+> However, we probably should work towards adhering to EFI memory
+> attributes on x86, long term, as we talked. But that's a future thing.
+>
+> Thanks.
+>
 
-Ok.
-
-Regards,
-Ashwin.
+-- 
+Jonathan (Zhixiong) Zhang
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project
