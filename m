@@ -1,276 +1,117 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH v4 10/10] irqchip / gicv2m: Introducing gicv2m_acpi_init()
-Date: Tue, 04 Aug 2015 15:23:00 +0100
-Message-ID: <55C0CAC4.3010202@arm.com>
-References: <1438164539-29256-1-git-send-email-hanjun.guo@linaro.org> <1438164539-29256-11-git-send-email-hanjun.guo@linaro.org>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [PATCH v7 2/8] ACPI: Split out ACPI PSS from ACPI Processor driver
+Date: Tue, 04 Aug 2015 15:50:51 +0100
+Message-ID: <55C0D14B.60503@arm.com>
+References: <cover.1436464513.git.ashwin.chaugule@linaro.org>	<09d1b5cf25ed3117b9e1b8feeb40ddf801557039.1436464513.git.ashwin.chaugule@linaro.org>	<55AD03BE.4070209@arm.com> <CAJ5Y-eauLrG7sM1zKFpAWmrvjfyC1KPV0y1OrNn6rZa=445mag@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1438164539-29256-11-git-send-email-hanjun.guo@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, Timur Tabi <timur@codeaurora.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Mark Brown <broonie@kernel.org>, Wei Huang <wei@redhat.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:58371 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753105AbbHDOuz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 4 Aug 2015 10:50:55 -0400
+In-Reply-To: <CAJ5Y-eauLrG7sM1zKFpAWmrvjfyC1KPV0y1OrNn6rZa=445mag@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "jaswinder.singh@linaro.org" <jaswinder.singh@linaro.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "patches@linaro.org" <patches@linaro.org>, "viresh.kumar@linaro.org" <viresh.kumar@linaro.org>
 
-On 29/07/15 11:08, Hanjun Guo wrote:
-> From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-> 
-> This patch introduces gicv2m_acpi_init(), which uses information
-> in MADT GIC MSI frames structure to initialize GICv2m driver.
-> It also refactors gicv2m_init_one() to handle both DT and ACPI
-> initialization path.
-> 
-> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> ---
->  drivers/irqchip/irq-gic-v2m.c   | 111 +++++++++++++++++++++++++++++++---------
->  drivers/irqchip/irq-gic.c       |   3 ++
->  include/linux/irqchip/arm-gic.h |   7 +++
->  3 files changed, 98 insertions(+), 23 deletions(-)
-> 
-> diff --git a/drivers/irqchip/irq-gic-v2m.c b/drivers/irqchip/irq-gic-v2m.c
-> index d0fcbf8..c491a08 100644
-> --- a/drivers/irqchip/irq-gic-v2m.c
-> +++ b/drivers/irqchip/irq-gic-v2m.c
-> @@ -15,6 +15,7 @@
->  
->  #define pr_fmt(fmt) "GICv2m: " fmt
->  
-> +#include <linux/acpi.h>
->  #include <linux/irq.h>
->  #include <linux/irqdomain.h>
->  #include <linux/kernel.h>
-> @@ -211,6 +212,10 @@ static bool is_msi_spi_valid(u32 base, u32 num)
->  	return true;
->  }
->  
-> +char gicv2m_domain_name[] = "GICV2M";
-> +char gicv2m_pci_msi_domain_name[] = "GICV2M-PCI-MSI";
-> +char gicv2m_plat_msi_domain_name[] = "GICV2M-PLAT-MSI";
-> +
 
-Can't these be static? Why do we need them?
 
->  static struct irq_chip gicv2m_pmsi_irq_chip = {
->  	.name			= "pMSI",
->  };
-> @@ -224,8 +229,9 @@ static struct msi_domain_info gicv2m_pmsi_domain_info = {
->  	.chip	= &gicv2m_pmsi_irq_chip,
->  };
->  
-> -static int __init gicv2m_init_one(struct device_node *node,
-> -				  struct irq_domain *parent)
-> +static int __init gicv2m_init_one(struct irq_domain *parent,
-> +				  u32 *spi_start, u32 *nr_spis,
-> +				  struct resource *res, void *token)
->  {
->  	int ret;
->  	struct v2m_data *v2m;
-> @@ -237,28 +243,22 @@ static int __init gicv2m_init_one(struct device_node *node,
->  		return -ENOMEM;
->  	}
->  
-> -	ret = of_address_to_resource(node, 0, &v2m->res);
-> -	if (ret) {
-> -		pr_err("Failed to allocate v2m resource.\n");
-> -		goto err_free_v2m;
-> -	}
-> -
-> -	v2m->base = ioremap(v2m->res.start, resource_size(&v2m->res));
-> +	v2m->base = ioremap(res->start, resource_size(res));
->  	if (!v2m->base) {
->  		pr_err("Failed to map GICv2m resource\n");
->  		ret = -ENOMEM;
->  		goto err_free_v2m;
->  	}
-> +	memcpy(&v2m->res, res, sizeof(struct resource));
->  
-> -	if (!of_property_read_u32(node, "arm,msi-base-spi", &v2m->spi_start) &&
-> -	    !of_property_read_u32(node, "arm,msi-num-spis", &v2m->nr_spis)) {
-> -		pr_info("Overriding V2M MSI_TYPER (base:%u, num:%u)\n",
-> -			v2m->spi_start, v2m->nr_spis);
-> +	if (*spi_start && *nr_spis) {
-> +		v2m->spi_start = *spi_start;
-> +		v2m->nr_spis = *nr_spis;
->  	} else {
->  		u32 typer = readl_relaxed(v2m->base + V2M_MSI_TYPER);
->  
-> -		v2m->spi_start = V2M_MSI_TYPER_BASE_SPI(typer);
-> -		v2m->nr_spis = V2M_MSI_TYPER_NUM_SPI(typer);
-> +		v2m->spi_start = *spi_start = V2M_MSI_TYPER_BASE_SPI(typer);
-> +		v2m->nr_spis = *nr_spis = V2M_MSI_TYPER_NUM_SPI(typer);
->  	}
->  
->  	if (!is_msi_spi_valid(v2m->spi_start, v2m->nr_spis)) {
-> @@ -273,7 +273,7 @@ static int __init gicv2m_init_one(struct device_node *node,
->  		goto err_iounmap;
->  	}
->  
-> -	inner_domain = irq_domain_add_tree(node, &gicv2m_domain_ops, v2m);
-> +	inner_domain = irq_domain_add_tree(token, &gicv2m_domain_ops, v2m);
->  	if (!inner_domain) {
->  		pr_err("Failed to create GICv2m domain\n");
->  		ret = -ENOMEM;
-> @@ -282,9 +282,11 @@ static int __init gicv2m_init_one(struct device_node *node,
->  
->  	inner_domain->bus_token = DOMAIN_BUS_NEXUS;
->  	inner_domain->parent = parent;
-> -	pci_domain = pci_msi_create_irq_domain(node, &gicv2m_msi_domain_info,
-> +	inner_domain->name = gicv2m_domain_name;
-> +
-> +	pci_domain = pci_msi_create_irq_domain(token, &gicv2m_msi_domain_info,
->  					       inner_domain);
-> -	plat_domain = platform_msi_create_irq_domain(node,
-> +	plat_domain = platform_msi_create_irq_domain(token,
->  						     &gicv2m_pmsi_domain_info,
->  						     inner_domain);
->  	if (!pci_domain || !plat_domain) {
-> @@ -293,11 +295,10 @@ static int __init gicv2m_init_one(struct device_node *node,
->  		goto err_free_domains;
->  	}
->  
-> -	spin_lock_init(&v2m->msi_cnt_lock);
-> +	pci_domain->name = gicv2m_pci_msi_domain_name;
-> +	plat_domain->name = gicv2m_plat_msi_domain_name;
->  
-> -	pr_info("Node %s: range[%#lx:%#lx], SPI[%d:%d]\n", node->name,
-> -		(unsigned long)v2m->res.start, (unsigned long)v2m->res.end,
-> -		v2m->spi_start, (v2m->spi_start + v2m->nr_spis));
-> +	spin_lock_init(&v2m->msi_cnt_lock);
->  
->  	return 0;
->  
-> @@ -329,15 +330,79 @@ int __init gicv2m_of_init(struct device_node *node, struct irq_domain *parent)
->  
->  	for (child = of_find_matching_node(node, gicv2m_device_id); child;
->  	     child = of_find_matching_node(child, gicv2m_device_id)) {
-> +		u32 spi_start = 0, nr_spis = 0;
-> +		struct resource res;
-> +
->  		if (!of_find_property(child, "msi-controller", NULL))
->  			continue;
->  
-> -		ret = gicv2m_init_one(child, parent);
-> +		ret = of_address_to_resource(child, 0, &res);
-> +		if (ret) {
-> +			pr_err("Failed to allocate v2m resource.\n");
-> +			break;
-> +		}
-> +
-> +		if (!of_property_read_u32(child, "arm,msi-base-spi", &spi_start) &&
-> +		    !of_property_read_u32(child, "arm,msi-num-spis", &nr_spis))
-> +			pr_info("Overriding V2M MSI_TYPER (base:%u, num:%u)\n",
-> +				spi_start, nr_spis);
-> +
-> +		ret = gicv2m_init_one(parent, &spi_start, &nr_spis, &res,
+On 03/08/15 18:29, Ashwin Chaugule wrote:
+> On 20 July 2015 at 10:20, Sudeep Holla <sudeep.holla@arm.com> wrote:
+>>
+>>
+>> On 09/07/15 19:04, Ashwin Chaugule wrote:
+>>>
+>>> The ACPI processor driver is currently tied too closely
+>>> to the ACPI P-states (PSS) and other related constructs
+>>> for controlling CPU performance.
+>>>
+>>> The newer ACPI specification (v5.1 onwards) introduces
+>>> alternative methods to PSS. These new mechanisms are
+>>> described within each ACPI Processor object and so they
+>>> need to be scanned whenever a new Processor object is detected.
+>>> This patch introduces a new Kconfig symbol to allow for
+>>> finer configurability among the two options for controlling
+>>> performance states. There is no change in functionality and
+>>> the option is auto-selected by the architecture Kconfig files.
+>>>
+>>> The following patchwork introduces CPPC: A newer method of
+>>> controlling CPU performance. The OS is not expected to support
+>>> CPPC and PSS at runtime. So the kconfig option lets us make
+>>> these two mutually exclusive at compile time.
+>>>
+>>> Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+>>> ---
+>>>    arch/x86/Kconfig                |  1 +
+>>>    drivers/acpi/Kconfig            | 19 ++++++---
+>>>    drivers/acpi/Makefile           |  6 +--
+>>>    drivers/acpi/processor_driver.c | 86
+>>> +++++++++++++++++++++++++------------
+>>>    drivers/cpufreq/Kconfig         |  2 +-
+>>>    drivers/cpufreq/Kconfig.x86     |  2 +
+>>>    include/acpi/processor.h        | 94
+>>> +++++++++++++++++++++++++++--------------
+>>>    7 files changed, 142 insertions(+), 68 deletions(-)
+>>>
+>>> diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+>>> index 226d569..93d150d 100644
+>>> --- a/arch/x86/Kconfig
+>>> +++ b/arch/x86/Kconfig
+>>> @@ -143,6 +143,7 @@ config X86
+>>>           select ACPI_LEGACY_TABLES_LOOKUP if ACPI
+>>>           select X86_FEATURE_NAMES if PROC_FS
+>>>           select SRCU
+>>> +       select ACPI_CPU_FREQ_PSS if ACPI
+>>>
+>>>    config INSTRUCTION_DECODER
+>>>           def_bool y
+>>> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+>>> index ab2cbb5..00748dc 100644
+>>> --- a/drivers/acpi/Kconfig
+>>> +++ b/drivers/acpi/Kconfig
+>>> @@ -166,17 +166,26 @@ config ACPI_DOCK
+>>>             This driver supports ACPI-controlled docking stations and
+>>> removable
+>>>             drive bays such as the IBM Ultrabay and the Dell Module Bay.
+>>>
+>>> +config ACPI_CPU_FREQ_PSS
+>>> +       bool
+>>> +       depends on ACPI_PROCESSOR && CPU_FREQ
+>>> +       select THERMAL
+>>> +       help
+>>> +         This driver implements ACPI methods for controlling CPU
+>>> performance
+>>> +         using PSS methods as described in the ACPI spec. It also enables
+>>> support
+>>> +         for ACPI based performance throttling (TSS) and ACPI based
+>>> thermal
+>>> +         monitoring. It is required by several flavors of cpufreq
+>>> +         performance-state drivers.
+>>> +
+>>
+>>
+>> Though I agree CPUFreq and the thermal control are related, having _PSS
+>> in config name shouldn't match well IMO. You can have more generic name.
+>
+> Do you have any suggestions?
+>
 
-If these spi_start and nr_spis pointers passed to gicv2m_init_one are
-only for the benefit of printing the message below, just move the
-message inside the function...
+No, so I am fine with ACPI_CPU_FREQ_PSS for now, we can change later if
+required as along as it's not user-selectable I suppose.
 
-> +				      child);
->  		if (ret) {
->  			of_node_put(node);
->  			break;
->  		}
-> +
-> +		pr_info("Node %s: range[%#lx:%#lx], SPI[%d:%d]\n", child->name,
-> +			(unsigned long)res.start, (unsigned long)res.end,
-> +			spi_start, (spi_start + nr_spis));
->  	}
->  
->  	return ret;
->  }
-> +
-> +#ifdef CONFIG_ACPI
-> +int __init gicv2m_acpi_init(struct acpi_table_header *table,
-> +			    struct irq_domain *parent)
-> +{
-> +	int i, ret;
-> +
-> +	ret = acpi_gic_msi_init(table);
-> +	if (ret)
-> +		return ret;
-> +
-> +	for (i = 0; i < acpi_gic_get_num_msi_frame(); i++) {
-> +		struct resource res;
-> +		u32 spi_start = 0, nr_spis = 0;
-> +		struct acpi_madt_generic_msi_frame *m;
-> +
-> +		ret = acpi_gic_get_msi_frame(i, &m);
-> +		if (ret)
-> +			return ret;
-> +
+>>
+>> You are selecting one config while depending on the other, any
+>> particular reason ?
+>>
+>
+> What is the problem? Sorry, I didn't follow.
+>
 
-All of that should be moved here. And we don't need to build an
-intermediate representation. Just build the v2m_data structures as you go.
+Just follow what Rafael said, he explained it better than me, I was bit
+vague here but implied same thing.
 
-> +		res.start = m->base_address;
-> +		res.end = m->base_address + 0x1000;
-> +
-> +		if (m->flags & ACPI_MADT_OVERRIDE_SPI_VALUES) {
-> +			spi_start = m->spi_base;
-> +			nr_spis = m->spi_count;
-> +
-> +			pr_info("ACPI overriding V2M MSI_TYPER (base:%u, num:%u)\n",
-> +				spi_start, nr_spis);
-> +		}
-> +
-> +		ret = gicv2m_init_one(parent, &spi_start, &nr_spis, &res,
-> +				      (void *)(m->base_address));
-> +		if (ret)
-> +			break;
-> +
-> +		pr_info("MSI frame ID %u: range[%#lx:%#lx], SPI[%d:%d]\n",
-> +			m->msi_frame_id,
-> +			(unsigned long)res.start, (unsigned long)res.end,
-> +			spi_start, (spi_start + nr_spis));
-> +	}
-> +	return ret;
-> +}
-> +
-> +#endif /* CONFIG_ACPI */
-> diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
-> index bec6b00..531ebbc 100644
-> --- a/drivers/irqchip/irq-gic.c
-> +++ b/drivers/irqchip/irq-gic.c
-> @@ -1159,6 +1159,9 @@ gic_v2_acpi_init(struct acpi_table_header *table)
->  	 */
->  	gic_init_bases(0, -1, dist_base, cpu_base, 0, (void *)ACPI_IRQ_MODEL_GIC);
->  
-> +	if (IS_ENABLED(CONFIG_ARM_GIC_V2M))
-> +		gicv2m_acpi_init(table, gic_data[0].domain);
-> +
->  	acpi_set_irq_model(ACPI_IRQ_MODEL_GIC, ACPI_IRQ_MODEL_GIC,
->  			   gic_acpi_gsi_desc_populate);
->  	return 0;
-> diff --git a/include/linux/irqchip/arm-gic.h b/include/linux/irqchip/arm-gic.h
-> index 97799b7..27d8196 100644
-> --- a/include/linux/irqchip/arm-gic.h
-> +++ b/include/linux/irqchip/arm-gic.h
-> @@ -109,6 +109,13 @@ static inline void gic_init(unsigned int nr, int start,
->  
->  int gicv2m_of_init(struct device_node *node, struct irq_domain *parent);
->  
-> +#ifdef CONFIG_ACPI
-> +struct acpi_table_header;
-> +
-> +int gicv2m_acpi_init(struct acpi_table_header *table,
-> +		     struct irq_domain *parent);
-> +#endif
-> +
->  void gic_send_sgi(unsigned int cpu_id, unsigned int irq);
->  int gic_get_cpu_id(unsigned int cpu);
->  void gic_migrate_target(unsigned int new_cpu_id);
-> 
-
-This needs rework to do the parsing of the tables in this driver. Just
-expose the domain_token through a function that you register with the
-ACPI layer.
-
-Thanks,
-
-	M.
--- 
-Jazz is not dead. It just smells funny...
+Regards,
+Sudeep
