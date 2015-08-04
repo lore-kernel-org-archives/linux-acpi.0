@@ -1,7 +1,7 @@
 From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: [PATCH 4/4] ACPI / processor_idle : introduce ARCH_SUPPORTS_ACPI_PROCESSOR_CSTATE
-Date: Tue,  4 Aug 2015 18:46:46 +0100
-Message-ID: <1438710406-3822-5-git-send-email-sudeep.holla@arm.com>
+Subject: [PATCH 3/4] ACPI / processor_idle: replace PREFIX with pr_fmt
+Date: Tue,  4 Aug 2015 18:46:45 +0100
+Message-ID: <1438710406-3822-4-git-send-email-sudeep.holla@arm.com>
 References: <1438710406-3822-1-git-send-email-sudeep.holla@arm.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1438710406-3822-1-git-send-email-sudeep.holla@arm.com>
@@ -10,168 +10,93 @@ To: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: Sudeep Holla <sudeep.holla@arm.com>, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, x86@kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-ACPI 6.0 adds a new method to specify the CPU idle states(c-states)
-called Low Power Idle(LPI) states. Since new architectures like ARM64
-use only LPIs, introduce ARCH_SUPPORTS_ACPI_PROCESSOR_CSTATE to
-encapsulate all the code supporting the traditional C-states.
-
-This patch will help to extend the processor_idle module to support
-LPI.
+Like few of the other ACPI modules, replace PREFIX with pr_fmt and
+change all the printk call sites to use pr_* companion functions
+in processor_idle.
 
 Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
 Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 ---
- arch/ia64/Kconfig             |  1 +
- arch/x86/Kconfig              |  1 +
- drivers/acpi/Kconfig          |  3 +++
- drivers/acpi/processor_idle.c | 57 +++++++++++++++++++++++++++++++------------
- include/acpi/processor.h      |  3 ++-
- 5 files changed, 49 insertions(+), 16 deletions(-)
+ drivers/acpi/processor_idle.c | 25 +++++++++++--------------
+ 1 file changed, 11 insertions(+), 14 deletions(-)
 
-diff --git a/arch/ia64/Kconfig b/arch/ia64/Kconfig
-index 42a91a7aa2b0..a9cf506dfe07 100644
---- a/arch/ia64/Kconfig
-+++ b/arch/ia64/Kconfig
-@@ -16,6 +16,7 @@ config IA64
- 	select PCI if (!IA64_HP_SIM)
- 	select ACPI if (!IA64_HP_SIM)
- 	select ACPI_SYSTEM_POWER_STATES_SUPPORT if ACPI
-+	select ARCH_SUPPORTS_ACPI_PROCESSOR_CSTATE if ACPI
- 	select ARCH_MIGHT_HAVE_ACPI_PDC if ACPI
- 	select HAVE_UNSTABLE_SCHED_CLOCK
- 	select HAVE_IDE
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index b3a1a5d77d92..66b97d5a87b1 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -33,6 +33,7 @@ config X86
- 	select ARCH_MIGHT_HAVE_ACPI_PDC		if ACPI
- 	select ARCH_MIGHT_HAVE_PC_PARPORT
- 	select ARCH_MIGHT_HAVE_PC_SERIO
-+	select ARCH_SUPPORTS_ACPI_PROCESSOR_CSTATE if ACPI
- 	select ARCH_SUPPORTS_ATOMIC_RMW
- 	select ARCH_SUPPORTS_DEFERRED_STRUCT_PAGE_INIT
- 	select ARCH_SUPPORTS_INT128		if X86_64
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 114cf48085ab..f909c5d40696 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -48,6 +48,9 @@ config ACPI_LEGACY_TABLES_LOOKUP
- config ARCH_MIGHT_HAVE_ACPI_PDC
- 	bool
- 
-+config ARCH_SUPPORTS_ACPI_PROCESSOR_CSTATE
-+	bool
-+
- config ACPI_GENERIC_GSI
- 	bool
- 
 diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index 73d51a7ceb63..3fdc48a3c80d 100644
+index 18d4de846490..73d51a7ceb63 100644
 --- a/drivers/acpi/processor_idle.c
 +++ b/drivers/acpi/processor_idle.c
-@@ -63,6 +63,12 @@ module_param(latency_factor, uint, 0644);
+@@ -27,6 +27,7 @@
+  *
+  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  */
++#define pr_fmt(fmt) "ACPI: " fmt
  
- static DEFINE_PER_CPU(struct cpuidle_device *, acpi_cpuidle_device);
+ #include <linux/module.h>
+ #include <linux/acpi.h>
+@@ -46,8 +47,6 @@
+ #include <asm/apic.h>
+ #endif
  
-+struct cpuidle_driver acpi_idle_driver = {
-+	.name =		"acpi_idle",
-+	.owner =	THIS_MODULE,
-+};
-+
-+#ifdef CONFIG_ARCH_SUPPORTS_ACPI_PROCESSOR_CSTATE
- static DEFINE_PER_CPU(struct acpi_processor_cx * [CPUIDLE_STATE_MAX],
- 								acpi_cstate);
- 
-@@ -808,11 +814,6 @@ static void acpi_idle_enter_freeze(struct cpuidle_device *dev,
- 	acpi_idle_do_entry(cx);
- }
- 
--struct cpuidle_driver acpi_idle_driver = {
--	.name =		"acpi_idle",
--	.owner =	THIS_MODULE,
--};
+-#define PREFIX "ACPI: "
 -
- /**
-  * acpi_processor_setup_cpuidle_cx - prepares and configures CPUIDLE
-  * device i.e. per-cpu data
-@@ -929,6 +930,41 @@ static int acpi_processor_setup_cpuidle_states(struct acpi_processor *pr)
- 	return 0;
- }
- 
-+static inline void acpi_processor_cstate_first_run_checks(void)
-+{
-+	static int first_run;
-+
-+	if (first_run)
-+		return;
-+	dmi_check_system(processor_power_dmi_table);
-+	max_cstate = acpi_processor_cstate_check(max_cstate);
-+	if (max_cstate < ACPI_C_STATES_MAX)
-+		pr_notice("ACPI: processor limited to max C-state %d\n",
-+			  max_cstate);
-+	first_run++;
-+}
-+#else
-+
-+static inline int disabled_by_idle_boot_param(void) { return 0; }
-+static inline void acpi_processor_cstate_first_run_checks(void) { }
-+static int acpi_processor_get_power_info(struct acpi_processor *pr)
-+{
-+	return -ENODEV;
-+}
-+
-+static int acpi_processor_setup_cpuidle_cx(struct acpi_processor *pr,
-+					   struct cpuidle_device *dev)
-+{
-+	return -EINVAL;
-+}
-+
-+static int acpi_processor_setup_cpuidle_states(struct acpi_processor *pr)
-+{
-+	return -EINVAL;
-+}
-+
-+#endif
-+
- int acpi_processor_hotplug(struct acpi_processor *pr)
- {
- 	int ret = 0;
-@@ -1022,20 +1058,11 @@ int acpi_processor_power_init(struct acpi_processor *pr)
- 	acpi_status status;
- 	int retval;
- 	struct cpuidle_device *dev;
--	static int first_run;
- 
- 	if (disabled_by_idle_boot_param())
+ #define ACPI_PROCESSOR_CLASS            "processor"
+ #define _COMPONENT              ACPI_PROCESSOR_COMPONENT
+ ACPI_MODULE_NAME("processor_idle");
+@@ -84,9 +83,9 @@ static int set_max_cstate(const struct dmi_system_id *id)
+ 	if (max_cstate > ACPI_PROCESSOR_MAX_POWER)
  		return 0;
  
--	if (!first_run) {
--		dmi_check_system(processor_power_dmi_table);
--		max_cstate = acpi_processor_cstate_check(max_cstate);
--		if (max_cstate < ACPI_C_STATES_MAX)
--			printk(KERN_NOTICE
--			       "ACPI: processor limited to max C-state %d\n",
--			       max_cstate);
--		first_run++;
--	}
-+	acpi_processor_cstate_first_run_checks();
+-	printk(KERN_NOTICE PREFIX "%s detected - limiting to C%ld max_cstate."
+-	       " Override with \"processor.max_cstate=%d\"\n", id->ident,
+-	       (long)id->driver_data, ACPI_PROCESSOR_MAX_POWER + 1);
++	pr_notice("%s detected - limiting to C%ld max_cstate."
++		  " Override with \"processor.max_cstate=%d\"\n", id->ident,
++		  (long)id->driver_data, ACPI_PROCESSOR_MAX_POWER + 1);
  
- 	if (acpi_gbl_FADT.cst_control && !nocst) {
- 		status =
-diff --git a/include/acpi/processor.h b/include/acpi/processor.h
-index 4c464d67ba09..efb8137bf10d 100644
---- a/include/acpi/processor.h
-+++ b/include/acpi/processor.h
-@@ -245,7 +245,8 @@ extern int acpi_processor_get_performance_info(struct acpi_processor *pr);
- DECLARE_PER_CPU(struct acpi_processor *, processors);
- extern struct acpi_processor_errata errata;
+ 	max_cstate = (long)id->driver_data;
  
--#ifdef ARCH_HAS_POWER_INIT
-+#if defined(ARCH_HAS_POWER_INIT) && \
-+	defined(CONFIG_ARCH_SUPPORTS_ACPI_PROCESSOR_CSTATE)
- void acpi_processor_power_init_bm_check(struct acpi_processor_flags *flags,
- 					unsigned int cpu);
- int acpi_processor_ffh_cstate_probe(unsigned int cpu,
+@@ -318,7 +317,7 @@ static int acpi_processor_get_power_info_cst(struct acpi_processor *pr)
+ 
+ 	/* There must be at least 2 elements */
+ 	if (!cst || (cst->type != ACPI_TYPE_PACKAGE) || cst->package.count < 2) {
+-		printk(KERN_ERR PREFIX "not enough elements in _CST\n");
++		pr_err("not enough elements in _CST\n");
+ 		ret = -EFAULT;
+ 		goto end;
+ 	}
+@@ -327,7 +326,7 @@ static int acpi_processor_get_power_info_cst(struct acpi_processor *pr)
+ 
+ 	/* Validate number of power states. */
+ 	if (count < 1 || count != cst->package.count - 1) {
+-		printk(KERN_ERR PREFIX "count given by _CST is not valid\n");
++		pr_err("count given by _CST is not valid\n");
+ 		ret = -EFAULT;
+ 		goto end;
+ 	}
+@@ -436,11 +435,9 @@ static int acpi_processor_get_power_info_cst(struct acpi_processor *pr)
+ 		 * (From 1 through ACPI_PROCESSOR_MAX_POWER - 1)
+ 		 */
+ 		if (current_count >= (ACPI_PROCESSOR_MAX_POWER - 1)) {
+-			printk(KERN_WARNING
+-			       "Limiting number of power states to max (%d)\n",
+-			       ACPI_PROCESSOR_MAX_POWER);
+-			printk(KERN_WARNING
+-			       "Please increase ACPI_PROCESSOR_MAX_POWER if needed.\n");
++			pr_warn("Limiting number of power states to max (%d)\n",
++				ACPI_PROCESSOR_MAX_POWER);
++			pr_warn("Please increase ACPI_PROCESSOR_MAX_POWER if needed.\n");
+ 			break;
+ 		}
+ 	}
+@@ -1064,8 +1061,8 @@ int acpi_processor_power_init(struct acpi_processor *pr)
+ 			retval = cpuidle_register_driver(&acpi_idle_driver);
+ 			if (retval)
+ 				return retval;
+-			printk(KERN_DEBUG "ACPI: %s registered with cpuidle\n",
+-					acpi_idle_driver.name);
++			pr_debug("%s registered with cpuidle\n",
++				 acpi_idle_driver.name);
+ 		}
+ 
+ 		dev = kzalloc(sizeof(*dev), GFP_KERNEL);
 -- 
 1.9.1
