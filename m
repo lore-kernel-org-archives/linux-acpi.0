@@ -1,74 +1,154 @@
 From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: [PATCH 1/4] ACPI / processor : add support for ACPI0010 processor container
-Date: Tue,  4 Aug 2015 18:46:43 +0100
-Message-ID: <1438710406-3822-2-git-send-email-sudeep.holla@arm.com>
+Subject: [PATCH 2/4] ACPI / sleep: move acpi_processor_sleep to sleep.c
+Date: Tue,  4 Aug 2015 18:46:44 +0100
+Message-ID: <1438710406-3822-3-git-send-email-sudeep.holla@arm.com>
 References: <1438710406-3822-1-git-send-email-sudeep.holla@arm.com>
-Return-path: <linux-ia64-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1438710406-3822-1-git-send-email-sudeep.holla@arm.com>
-Sender: linux-ia64-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: Sudeep Holla <sudeep.holla@arm.com>, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, x86@kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-ACPI 6.0 adds support for optional processor container device which may
-contain child objects that are either processor devices or other processor
-containers. This allows representing hierarchical processor topologies.
+acpi_processor_sleep is neither related nor used by CPUIdle framework.
+It's used in system suspend/resume path as a syscore operation. It makes
+more sense to move it to acpi/sleep.c where all the S-state transition
+(a.k.a. Linux system suspend/hiberate) related code are present.
 
-It is declared using the _HID of ACPI0010. It is an abstract container
-used to represent CPU topology and should not be used to hotplug
-purposes.
-
-This patch enables the support for these ACPI processor containers and
-ensures the generic container/module devices are not created for them.
+Also make it depend on CONFIG_ACPI_SYSTEM_POWER_STATES_SUPPORT so that
+it's not compiled on architecture like ARM64 where S-states are not
+yet defined in ACPI.
 
 Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
 Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 ---
- drivers/acpi/acpi_processor.c | 17 +++++++++++++++++
- include/acpi/processor.h      |  1 +
- 2 files changed, 18 insertions(+)
+ drivers/acpi/processor_idle.c | 37 -------------------------------------
+ drivers/acpi/sleep.c          | 37 +++++++++++++++++++++++++++++++++++++
+ include/acpi/processor.h      |  2 +-
+ 3 files changed, 38 insertions(+), 38 deletions(-)
 
-diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
-index 92a5f738e370..921948b34571 100644
---- a/drivers/acpi/acpi_processor.c
-+++ b/drivers/acpi/acpi_processor.c
-@@ -496,7 +496,24 @@ static struct acpi_scan_handler __refdata processor_handler = {
- 	},
- };
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index d540f42c9232..18d4de846490 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -34,7 +34,6 @@
+ #include <linux/sched.h>       /* need_resched() */
+ #include <linux/tick.h>
+ #include <linux/cpuidle.h>
+-#include <linux/syscore_ops.h>
+ #include <acpi/processor.h>
  
-+static int acpi_processor_container_attach(struct acpi_device *dev,
-+					   const struct acpi_device_id *id)
+ /*
+@@ -198,42 +197,6 @@ static void lapic_timer_state_broadcast(struct acpi_processor *pr,
+ 
+ #endif
+ 
+-#ifdef CONFIG_PM_SLEEP
+-static u32 saved_bm_rld;
+-
+-static int acpi_processor_suspend(void)
+-{
+-	acpi_read_bit_register(ACPI_BITREG_BUS_MASTER_RLD, &saved_bm_rld);
+-	return 0;
+-}
+-
+-static void acpi_processor_resume(void)
+-{
+-	u32 resumed_bm_rld = 0;
+-
+-	acpi_read_bit_register(ACPI_BITREG_BUS_MASTER_RLD, &resumed_bm_rld);
+-	if (resumed_bm_rld == saved_bm_rld)
+-		return;
+-
+-	acpi_write_bit_register(ACPI_BITREG_BUS_MASTER_RLD, saved_bm_rld);
+-}
+-
+-static struct syscore_ops acpi_processor_syscore_ops = {
+-	.suspend = acpi_processor_suspend,
+-	.resume = acpi_processor_resume,
+-};
+-
+-void acpi_processor_syscore_init(void)
+-{
+-	register_syscore_ops(&acpi_processor_syscore_ops);
+-}
+-
+-void acpi_processor_syscore_exit(void)
+-{
+-	unregister_syscore_ops(&acpi_processor_syscore_ops);
+-}
+-#endif /* CONFIG_PM_SLEEP */
+-
+ #if defined(CONFIG_X86)
+ static void tsc_check_state(int state)
+ {
+diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+index 2f0d4db40a9e..cfea056e3d82 100644
+--- a/drivers/acpi/sleep.c
++++ b/drivers/acpi/sleep.c
+@@ -19,6 +19,7 @@
+ #include <linux/reboot.h>
+ #include <linux/acpi.h>
+ #include <linux/module.h>
++#include <linux/syscore_ops.h>
+ #include <asm/io.h>
+ #include <trace/events/power.h>
+ 
+@@ -672,6 +673,42 @@ static void acpi_sleep_suspend_setup(void)
+ static inline void acpi_sleep_suspend_setup(void) {}
+ #endif /* !CONFIG_SUSPEND */
+ 
++#ifdef CONFIG_PM_SLEEP
++static u32 saved_bm_rld;
++
++static int acpi_processor_suspend(void)
 +{
-+	return 1;
++	acpi_read_bit_register(ACPI_BITREG_BUS_MASTER_RLD, &saved_bm_rld);
++	return 0;
 +}
 +
-+static const struct acpi_device_id processor_container_ids[] = {
-+	{ ACPI_PROCESSOR_CONTAINER_HID, },
-+	{ }
++static void acpi_processor_resume(void)
++{
++	u32 resumed_bm_rld = 0;
++
++	acpi_read_bit_register(ACPI_BITREG_BUS_MASTER_RLD, &resumed_bm_rld);
++	if (resumed_bm_rld == saved_bm_rld)
++		return;
++
++	acpi_write_bit_register(ACPI_BITREG_BUS_MASTER_RLD, saved_bm_rld);
++}
++
++static struct syscore_ops acpi_processor_syscore_ops = {
++	.suspend = acpi_processor_suspend,
++	.resume = acpi_processor_resume,
 +};
 +
-+static struct acpi_scan_handler processor_container_handler = {
-+	.ids = processor_container_ids,
-+	.attach = acpi_processor_container_attach,
-+};
++void acpi_processor_syscore_init(void)
++{
++	register_syscore_ops(&acpi_processor_syscore_ops);
++}
 +
- void __init acpi_processor_init(void)
- {
- 	acpi_scan_add_handler_with_hotplug(&processor_handler, "processor");
-+	acpi_scan_add_handler(&processor_container_handler);
- }
++void acpi_processor_syscore_exit(void)
++{
++	unregister_syscore_ops(&acpi_processor_syscore_ops);
++}
++#endif /* CONFIG_PM_SLEEP */
++
+ #ifdef CONFIG_HIBERNATION
+ static unsigned long s4_hardware_signature;
+ static struct acpi_table_facs *facs;
 diff --git a/include/acpi/processor.h b/include/acpi/processor.h
-index 4188a4d3b597..2669cae4a0c8 100644
+index 2669cae4a0c8..4c464d67ba09 100644
 --- a/include/acpi/processor.h
 +++ b/include/acpi/processor.h
-@@ -9,6 +9,7 @@
- #define ACPI_PROCESSOR_CLASS		"processor"
- #define ACPI_PROCESSOR_DEVICE_NAME	"Processor"
- #define ACPI_PROCESSOR_DEVICE_HID	"ACPI0007"
-+#define ACPI_PROCESSOR_CONTAINER_HID	"ACPI0010"
+@@ -338,7 +338,7 @@ int acpi_processor_cst_has_changed(struct acpi_processor *pr);
+ int acpi_processor_hotplug(struct acpi_processor *pr);
+ extern struct cpuidle_driver acpi_idle_driver;
  
- #define ACPI_PROCESSOR_BUSY_METRIC	10
- 
+-#ifdef CONFIG_PM_SLEEP
++#if defined(CONFIG_PM_SLEEP) && defined(CONFIG_ACPI_SYSTEM_POWER_STATES_SUPPORT)
+ void acpi_processor_syscore_init(void);
+ void acpi_processor_syscore_exit(void);
+ #else
 -- 
 1.9.1
-
