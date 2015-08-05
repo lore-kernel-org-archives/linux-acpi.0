@@ -1,48 +1,46 @@
-From: Matt Fleming <matt@codeblueprint.co.uk>
-Subject: Re: [PATCH V9 0/5] map GHES memory region according to EFI memory map
-Date: Wed, 5 Aug 2015 17:13:25 +0100
-Message-ID: <20150805161325.GF4332@codeblueprint.co.uk>
-References: <1438292109-4170-1-git-send-email-zjzhang@codeaurora.org>
- <20150803112658.GE10501@arm.com>
- <20150803162354.GQ2725@codeblueprint.co.uk>
- <20150804042552.GG31787@nazgul.tnic>
- <55C0DD30.9070800@codeaurora.org>
- <20150805092125.GB4332@codeblueprint.co.uk>
- <55C232BC.1010107@codeaurora.org>
- <20150805161000.GE4332@codeblueprint.co.uk>
+From: David Daney <ddaney@caviumnetworks.com>
+Subject: Re: [PATCH] acpi, property: Export acpi_dev_prop_read_single call.
+Date: Wed, 5 Aug 2015 10:26:15 -0700
+Message-ID: <55C24737.8000309@caviumnetworks.com>
+References: <1438729319-9146-1-git-send-email-ddaney.cavm@gmail.com> <5621301.c1YGTkGNQk@vostro.rjw.lan> <55C212F6.40504@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f181.google.com ([209.85.212.181]:36072 "EHLO
-	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753155AbbHEQN2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Aug 2015 12:13:28 -0400
-Received: by wicgj17 with SMTP id gj17so199248388wic.1
-        for <linux-acpi@vger.kernel.org>; Wed, 05 Aug 2015 09:13:27 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20150805161000.GE4332@codeblueprint.co.uk>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <55C212F6.40504@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Robert Richter <rrichter@cavium.com>, David Daney <david.daney@cavium.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Zhang, Jonathan Zhixiong" <zjzhang@codeaurora.org>
-Cc: Borislav Petkov <bp@alien8.de>, Will Deacon <will.deacon@arm.com>, Matt Fleming <matt.fleming@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "x86@kernel.org" <x86@kernel.org>, "tony.luck@gmail.com" <tony.luck@gmail.com>, "ard.biesheuvel@linaro.org" <ard.biesheuvel@linaro.org>, "fu.wei@linaro.org" <fu.wei@linaro.org>, "al.stone@linaro.org" <al.stone@linaro.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "ying.huang@intel.com" <ying.huang@intel.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "leif.lindholm@linaro.org" <leif.lindholm@linaro.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.>
 
-On Wed, 05 Aug, at 05:10:00PM, Matt Fleming wrote:
-> On Wed, 05 Aug, at 08:58:52AM, Zhang, Jonathan Zhixiong wrote:
-> > 
-> > Yes, absolutely. It has been in my mind, sorry I was tied up in the last
-> > few days. I wonder what I may missed, I certainly do x86 build test with
-> > versions of the patch set.
-> > 
-> > I will try today and report back.
-> 
-> No problem.
-> 
-> I'd suggest moving the implementation into include/acpi/apei.h and
-> leaving it as static inline instead of implementing it out of line in
-> arch/x86/kernel/acpi/apei.c.
+On 08/05/2015 06:43 AM, Tomasz Nowicki wrote:
+> On 05.08.2015 15:48, Rafael J. Wysocki wrote:
+>> On Tuesday, August 04, 2015 04:01:59 PM David Daney wrote:
+>>> From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+>>>
+>>> Fixes the following build error when building drivers as modules:
+>>>
+>>>   ERROR: "acpi_dev_prop_read_single" [drivers/net/phy/mdio-octeon.ko]
+>>> undefined!
+>>>   ERROR: "acpi_dev_prop_read_single"
+>>> [drivers/net/ethernet/cavium/thunder/thunder_bgx.ko] undefined!
+>>
+>> Can you please tell me why the drivers in question use that function
+>> directly, although they aren't supposed to?
+>>
+>> Clearly, their authors had not tried to build them as modules or they
+>> would have noticed the problem at the development stage already.
+>>
+>> What would be wrong with using the generic device properties API instead?
+>>
+> Yes, you are right. We should use:
+> int device_property_read_u64_array(struct device *dev, const char
+> *propname, u64 *val, size_t nval);
+>
 
-Yeah, I didn't mean include/acpi/apei.h but the architecture-specific
-equivalent.
+Thanks all, for the review and suggestions.  We we try the suggested 
+approach and see how it goes...
 
--- 
-Matt Fleming, Intel Open Source Technology Center
+
+Thanks again,
+David Daney
