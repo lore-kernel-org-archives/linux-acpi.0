@@ -1,52 +1,45 @@
-From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Subject: [PATCH v8 1/9] PCC: Initialize PCC Mailbox earlier at boot
-Date: Wed,  5 Aug 2015 09:40:24 -0400
-Message-ID: <ea93efa9429d1c59fd14cc51d1486ac013abd5ee.1438781668.git.ashwin.chaugule@linaro.org>
-References: <cover.1438781668.git.ashwin.chaugule@linaro.org>
+From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Subject: Re: [PATCH] acpi, property: Export acpi_dev_prop_read_single call.
+Date: Wed, 05 Aug 2015 15:43:18 +0200
+Message-ID: <55C212F6.40504@linaro.org>
+References: <1438729319-9146-1-git-send-email-ddaney.cavm@gmail.com> <5621301.c1YGTkGNQk@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yk0-f170.google.com ([209.85.160.170]:33923 "EHLO
-	mail-yk0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751914AbbHENkx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Aug 2015 09:40:53 -0400
-Received: by ykax123 with SMTP id x123so35449827yka.1
-        for <linux-acpi@vger.kernel.org>; Wed, 05 Aug 2015 06:40:52 -0700 (PDT)
-In-Reply-To: <cover.1438781668.git.ashwin.chaugule@linaro.org>
-In-Reply-To: <cover.1438781668.git.ashwin.chaugule@linaro.org>
-References: <cover.1438781668.git.ashwin.chaugule@linaro.org>
+Received: from mail-lb0-f178.google.com ([209.85.217.178]:32991 "EHLO
+	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751486AbbHENnW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Aug 2015 09:43:22 -0400
+Received: by lbbyj8 with SMTP id yj8so24661712lbb.0
+        for <linux-acpi@vger.kernel.org>; Wed, 05 Aug 2015 06:43:20 -0700 (PDT)
+In-Reply-To: <5621301.c1YGTkGNQk@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, jaswinder.singh@linaro.org
-Cc: sudeep.holla@arm.com, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, patches@linaro.org, viresh.kumar@linaro.org, rwells@codeaurora.org, Ashwin Chaugule <ashwin.chaugule@linaro.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, David Daney <ddaney.cavm@gmail.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Robert Richter <rrichter@cavium.com>, David Daney <david.daney@cavium.com>
 
-This change initializes the PCC Mailbox earlier than
-the ACPI processor driver. This enables drivers introduced
-in follow up patches (e.g. CPPC) to be probed via the ACPI
-processor driver interface. The CPPC probe requires the PCC
-channel to be initialized for it to query each CPUs performance
-capabilities.
+On 05.08.2015 15:48, Rafael J. Wysocki wrote:
+> On Tuesday, August 04, 2015 04:01:59 PM David Daney wrote:
+>> From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+>>
+>> Fixes the following build error when building drivers as modules:
+>>
+>>   ERROR: "acpi_dev_prop_read_single" [drivers/net/phy/mdio-octeon.ko] undefined!
+>>   ERROR: "acpi_dev_prop_read_single" [drivers/net/ethernet/cavium/thunder/thunder_bgx.ko] undefined!
+>
+> Can you please tell me why the drivers in question use that function
+> directly, although they aren't supposed to?
+>
+> Clearly, their authors had not tried to build them as modules or they
+> would have noticed the problem at the development stage already.
+>
+> What would be wrong with using the generic device properties API instead?
+>
+Yes, you are right. We should use:
+int device_property_read_u64_array(struct device *dev, const char 
+*propname, u64 *val, size_t nval);
 
-Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Reviewed-by: Al Stone <al.stone@linaro.org>
----
- drivers/mailbox/pcc.c | 8 +++++++-
- 1 file changed, 7 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
-index 26d121d..f814313 100644
---- a/drivers/mailbox/pcc.c
-+++ b/drivers/mailbox/pcc.c
-@@ -352,4 +352,10 @@ static int __init pcc_init(void)
- 
- 	return 0;
- }
--device_initcall(pcc_init);
-+
-+/*
-+ * Make pcc init postcore so that users of this mailbox
-+ * such as the ACPI Processor driver have it available
-+ * at their init.
-+ */
-+postcore_initcall(pcc_init);
--- 
-1.9.1
+Regards,
+Tomasz
 
