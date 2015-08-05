@@ -1,45 +1,52 @@
-From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Subject: Re: [PATCH] acpi, property: Export acpi_dev_prop_read_single call.
-Date: Wed, 05 Aug 2015 15:43:18 +0200
-Message-ID: <55C212F6.40504@linaro.org>
-References: <1438729319-9146-1-git-send-email-ddaney.cavm@gmail.com> <5621301.c1YGTkGNQk@vostro.rjw.lan>
+From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Subject: Re: [PATCH v7 3/8] ACPI: Decouple ACPI idle and ACPI processor drivers
+Date: Wed, 5 Aug 2015 09:47:18 -0400
+Message-ID: <CAJ5Y-eaOujd2nqC4aqMvv0DOz2nnrDw_ugrn+JK10rANsmV0yw@mail.gmail.com>
+References: <cover.1436464513.git.ashwin.chaugule@linaro.org>
+	<da1eb99c0e128a4c8160537295045164d8fde00d.1436464513.git.ashwin.chaugule@linaro.org>
+	<55AD03F7.60108@arm.com>
+	<CAJ5Y-eYqfpdC2EvEO5gRm7zRbzr0+KwhiL4MUY23uXM91y=MJA@mail.gmail.com>
+	<55C0D156.9090808@arm.com>
+	<CAJ5Y-eaibuK0c_wSsRjM68vOfuRdRSChRdzR=2qtwVYwQcAzVQ@mail.gmail.com>
+	<55C0D7DC.2060709@arm.com>
+	<CAJ5Y-eZo07qVMS37eo=OShCLcgpURfyRA=dOQhtF0Y6_fvR=1Q@mail.gmail.com>
+	<55C0EFA3.2040006@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f178.google.com ([209.85.217.178]:32991 "EHLO
-	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751486AbbHENnW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Aug 2015 09:43:22 -0400
-Received: by lbbyj8 with SMTP id yj8so24661712lbb.0
-        for <linux-acpi@vger.kernel.org>; Wed, 05 Aug 2015 06:43:20 -0700 (PDT)
-In-Reply-To: <5621301.c1YGTkGNQk@vostro.rjw.lan>
+Received: from mail-la0-f46.google.com ([209.85.215.46]:35046 "EHLO
+	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932103AbbHENrU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 5 Aug 2015 09:47:20 -0400
+Received: by labkb6 with SMTP id kb6so7207338lab.2
+        for <linux-acpi@vger.kernel.org>; Wed, 05 Aug 2015 06:47:18 -0700 (PDT)
+In-Reply-To: <55C0EFA3.2040006@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, David Daney <ddaney.cavm@gmail.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, Robert Richter <rrichter@cavium.com>, David Daney <david.daney@cavium.com>
+To: Sudeep Holla <sudeep.holla@arm.com>
+Cc: "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "jaswinder.singh@linaro.org" <jaswinder.singh@linaro.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "patches@linaro.org" <patches@linaro.org>, "viresh.kumar@linaro.org" <viresh.kumar@linaro.org>
 
-On 05.08.2015 15:48, Rafael J. Wysocki wrote:
-> On Tuesday, August 04, 2015 04:01:59 PM David Daney wrote:
->> From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Hi Sudeep,
+
+On 4 August 2015 at 13:00, Sudeep Holla <sudeep.holla@arm.com> wrote:
+
+> On 04/08/15 16:44, Ashwin Chaugule wrote:
+>> On 4 August 2015 at 11:18, Sudeep Holla <sudeep.holla@arm.com> wrote:
+>> Bisectability aside, without the idle changes to decouple it from
+>> ACPI_PROCESSOR, the CPPC code will be non-functional. CPPC code has
+>> been around for review publicly for almost a year and we need it to be
+>> mainlined soon. So, given that we've converged on a solution for new
+>> Kconfigs for Idle and PSS and that they're separate patches, why not
+>> let it progress forwards as part of this series?
 >>
->> Fixes the following build error when building drivers as modules:
->>
->>   ERROR: "acpi_dev_prop_read_single" [drivers/net/phy/mdio-octeon.ko] undefined!
->>   ERROR: "acpi_dev_prop_read_single" [drivers/net/ethernet/cavium/thunder/thunder_bgx.ko] undefined!
+> Sorry, I didn't mean to block this series in anyway. I was just thinking
+> on how to post the preparatory changes to introduce _LPI. I prefer to
+> base it on mainline rather than this patch series and hence I made that
+> request.
 >
-> Can you please tell me why the drivers in question use that function
-> directly, although they aren't supposed to?
->
-> Clearly, their authors had not tried to build them as modules or they
-> would have noticed the problem at the development stage already.
->
-> What would be wrong with using the generic device properties API instead?
->
-Yes, you are right. We should use:
-int device_property_read_u64_array(struct device *dev, const char 
-*propname, u64 *val, size_t nval);
 
-Regards,
-Tomasz
+Can you please try rebasing with Patch 2,3,6 and 9 of the V8 series?
+Those should get you going for your LPI work.
 
+Thanks,
+Ashwin.
