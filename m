@@ -1,226 +1,132 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v4 02/10] ACPI / irqchip: Add self-probe infrastructure
- to initialize IRQ controller
-Date: Wed, 05 Aug 2015 21:24:42 +0800
-Message-ID: <55C20E9A.7000906@linaro.org>
-References: <1438164539-29256-1-git-send-email-hanjun.guo@linaro.org> <1438164539-29256-3-git-send-email-hanjun.guo@linaro.org> <55C0AFA2.8050704@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <55C0AFA2.8050704@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, Timur Tabi <timur@codeaurora.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Mark Brown <broonie@kernel.org>, Wei Huang <wei@redhat.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
+From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Subject: [PATCH v8 0/9] CPUFreq driver using CPPC methods
+Date: Wed,  5 Aug 2015 09:40:23 -0400
+Message-ID: <cover.1438781668.git.ashwin.chaugule@linaro.org>
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: rjw@rjwysocki.net, jaswinder.singh@linaro.org
+Cc: sudeep.holla@arm.com, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, patches@linaro.org, viresh.kumar@linaro.org, rwells@codeaurora.org, Ashwin Chaugule <ashwin.chaugule@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Marc,
+CPPC:
+====
 
-On 08/04/2015 08:27 PM, Marc Zyngier wrote:
-> On 29/07/15 11:08, Hanjun Guo wrote:
->> This self-probe infrastructure works in the similar way as OF,
->> but there is some different in the mechanism:
->>
->> For DT, the init fn will be called once it finds compatible strings
->> in DT,  but for ACPI, we init irqchips by static tables, and in
->> static ACPI tables, there are no compatible strings to indicate
->> irqchips, but thanks to the GIC version presented in ACPI table,
->> we can call the corresponding GIC drivers matching the GIC version
->> with this framework.
->>
->> This mechanism can also be used for clock declare and may also works
->> on x86 for some table parsing too.
->>
->> This patch is based on Tomasz Nowicki <tomasz.nowicki@linaro.org>'s
->> work.
->>
->> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->> ---
->>   drivers/irqchip/irq-gic-acpi.c    | 33 +++++++++++++++++++++++++++++++++
->>   include/asm-generic/vmlinux.lds.h | 13 +++++++++++++
->>   include/linux/acpi.h              | 16 ++++++++++++++++
->>   include/linux/irqchip.h           | 13 +++++++++++++
->>   include/linux/mod_devicetable.h   |  8 ++++++++
->>   5 files changed, 83 insertions(+)
->>
->> diff --git a/drivers/irqchip/irq-gic-acpi.c b/drivers/irqchip/irq-gic-acpi.c
->> index 6537b43..011468d 100644
->> --- a/drivers/irqchip/irq-gic-acpi.c
->> +++ b/drivers/irqchip/irq-gic-acpi.c
->> @@ -107,3 +107,36 @@ static int __init acpi_gic_version_init(void)
->>
->>   	return 0;
->>   }
->> +
->> +/*
->> + * This special acpi_table_id is the sentinel at the end of the
->> + * acpi_table_id[] array of all irqchips. It is automatically placed at
->> + * the end of the array by the linker, thanks to being part of a
->> + * special section.
->> + */
->> +static const struct acpi_table_id
->> +irqchip_acpi_match_end __used __section(__irqchip_acpi_table_end);
->
-> What is this thing for? Nobody refers to it (I know
-> drivers/irqchip/irqchip.c has a similar thing, but that's not enough a
-> reason...).
+CPPC (Collaborative Processor Performance Control) is a new way to control CPU
+performance using an abstract continous scale as against a discretized P-state scale
+which is tied to CPU frequency only. It is defined in the ACPI 5.0+ spec. In brief,
+the basic operation involves:
+- OS makes a CPU performance request. (Can provide min and max tolerable bounds)
 
-If I'm not mistaken, this is for proper section termination, please
-see below:
+- Platform (such as BMC) is free to optimize request within requested bounds depending
+on power/thermal budgets etc.
 
-/* scan the irqchip table to match the GIC version and its driver */
-for (id = __irqchip_acpi_table; id->id[0]; id++) {
-...
-}
+- Platform conveys its decision back to OS
 
-Then irqchip_acpi_match_end will be the end of the table section,
-which will terminate the scanning.
+The communication between OS and platform occurs through another medium called (PCC)
+Platform communication Channel. This is a generic mailbox like mechanism which includes
+doorbell semantics to indicate register updates. See drivers/mailbox/pcc.c
 
->
->> +
->> +extern struct acpi_table_id __irqchip_acpi_table[];
->> +
->> +void __init acpi_irqchip_init(void)
->> +{
->> +	struct acpi_table_id *id;
->> +
->> +	if (acpi_disabled)
->> +		return;
->> +
->> +	if (acpi_gic_version_init())
->> +		return;
->
-> This is the only place where we need the version, right? So just get
-> acpi_gic_version_init to return the version number, and loose the global
-> variable.
+This patchset introduces a CPPC based CPUFreq driver that works with existing governors
+such as ondemand. The CPPC table parsing and the CPPC communication semantics are
+abstracted into separate files to allow future CPPC based drivers to implement their
+own governors if required.
 
-The global variable is still needed because we need to get the GIC
-version when scanning the MADT tables, we can't return the table value
-directly in acpi_table_parse_madt() at now.
+Initial patchsets included an adaptation of the PID governor from intel_pstate.c. However
+recent experiments led to extensive modifications of the algorithm to calculate CPU
+busyness. Until it is verified that these changes are worthwhile, the existing governors
+should provide for a good enough starting point for ARM64 servers.
 
->
->> +
->> +	/* scan the irqchip table to match the GIC version and its driver */
->> +	for (id = __irqchip_acpi_table; id->id[0]; id++) {
->> +		if (gic_version == (u8)id->driver_data) {
->> +			acpi_table_parse(id->id,
->> +					 (acpi_tbl_table_handler)id->handler);
->> +			return;
->> +		}
->> +	}
->> +
->> +	pr_err("No matched driver GIC version %d\n", gic_version);
->> +}
->> diff --git a/include/asm-generic/vmlinux.lds.h b/include/asm-generic/vmlinux.lds.h
->> index 8bd374d..625776c 100644
->> --- a/include/asm-generic/vmlinux.lds.h
->> +++ b/include/asm-generic/vmlinux.lds.h
->> @@ -181,6 +181,18 @@
->>   #define CPUIDLE_METHOD_OF_TABLES() OF_TABLE(CONFIG_CPU_IDLE, cpuidle_method)
->>   #define EARLYCON_OF_TABLES()	OF_TABLE(CONFIG_SERIAL_EARLYCON, earlycon)
->>
->> +#ifdef CONFIG_ACPI
->> +#define ACPI_TABLE(name)						\
->> +	. = ALIGN(8);							\
->> +	VMLINUX_SYMBOL(__##name##_acpi_table) = .;			\
->> +	*(__##name##_acpi_table)					\
->> +	*(__##name##_acpi_table_end)
->> +
->> +#define IRQCHIP_ACPI_MATCH_TABLE()	ACPI_TABLE(irqchip)
->> +#else
->> +#define IRQCHIP_ACPI_MATCH_TABLE()
->> +#endif
->> +
->>   #define KERNEL_DTB()							\
->>   	STRUCT_ALIGN();							\
->>   	VMLINUX_SYMBOL(__dtb_start) = .;				\
->> @@ -516,6 +528,7 @@
->>   	CPUIDLE_METHOD_OF_TABLES()					\
->>   	KERNEL_DTB()							\
->>   	IRQCHIP_OF_MATCH_TABLE()					\
->> +	IRQCHIP_ACPI_MATCH_TABLE()					\
->>   	EARLYCON_TABLE()						\
->>   	EARLYCON_OF_TABLES()
->>
->> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
->> index 0820cb1..04dd0bb 100644
->> --- a/include/linux/acpi.h
->> +++ b/include/linux/acpi.h
->> @@ -829,4 +829,20 @@ static inline struct acpi_device *acpi_get_next_child(struct device *dev,
->>
->>   #endif
->>
->> +#ifdef CONFIG_ACPI
->> +#define ACPI_DECLARE(table, name, table_id, data, fn)			\
->> +	static const struct acpi_table_id __acpi_table_##name		\
->> +		__used __section(__##table##_acpi_table)		\
->> +		 = { .id = table_id,					\
->> +		     .handler = (void *)fn,				\
->> +		     .driver_data = data }
->> +#else
->> +#define ACPI_DECLARE(table, name, table_id, data, fn)			\
->> +	static const struct acpi_table_id __acpi_table_##name		\
->> +		__attribute__((unused))					\
->> +		 = { .id = table_id,					\
->> +		     .handler = (void *)fn,				\
->> +		     .driver_data = data }
->> +#endif
->> +
->>   #endif	/*_LINUX_ACPI_H*/
->> diff --git a/include/linux/irqchip.h b/include/linux/irqchip.h
->> index 6388873..6b66d3e 100644
->> --- a/include/linux/irqchip.h
->> +++ b/include/linux/irqchip.h
->> @@ -11,6 +11,7 @@
->>   #ifndef _LINUX_IRQCHIP_H
->>   #define _LINUX_IRQCHIP_H
->>
->> +#include <linux/acpi.h>
->>   #include <linux/of.h>
->>
->>   /*
->> @@ -25,6 +26,18 @@
->>    */
->>   #define IRQCHIP_DECLARE(name, compat, fn) OF_DECLARE_2(irqchip, name, compat, fn)
->>
->> +/*
->> + * This macro must be used by the different ARM GIC drivers to declare
->> + * the association between their version and their initialization function.
->> + *
->> + * @name: name that must be unique accross all IRQCHIP_ACPI_DECLARE of the
->> + * same file.
->> + * @gic_version: version of GIC
->> + * @fn: initialization function
->> + */
->> +#define IRQCHIP_ACPI_DECLARE(name, gic_version, fn)	\
->> +	ACPI_DECLARE(irqchip, name, ACPI_SIG_MADT, gic_version, fn)
->
-> I don't think this is the right approach. The MADT table has a *huge*
-> number of possible subtables, and none of them is matched by the GIC
-> version.
->
-> What you *really* want is MADT -> GICD -> GIC type. Your ACPI_DECLARE
-> macro doesn't reflect this at all (you've basically cloned OF, and
-> that's clearly not good enough).
->
-> This probably require an intermediate matching function, ending up with
-> something like:
->
-> #define IRQCHIP_ACPI_DECLARE(name, subtable, version, fn) \
-> 	ACPI_DECLARE(irqchip, name, ACPI_SIG_MADT, match_madt_subtable,\
-> 		subtable, version, fn)
->
-> where match_madt_subtable is going to check that a given subtable is
-> really suitable for a given irqchip. None of that should be GIC
-> specific, really.
+Finer details about the PCC and CPPC spec are available in the latest ACPI 5.1
+specification.[2]
 
-I'm little confused here, in the previous patch, the gic version is
-stored, so we only need to match the GIC driver with the gic version.
+Testing:
+=======
 
-In the GIC dirver itself, we will match the madt subtable to find
-information we need to init the GIC, so I'm not sure why
-match_madt_subtable in the ACPI_DECLARE, I think I missed something,
-please correct me.
+This was tested on an SBSA compatible ARMv8 server with CPPCv2
+firmware running on a remote processor. I verified that each CPUs
+performance limits were detected and that new performance requests
+were made by the on-demand governor proportional to the load on each
+CPU. I also verified that using the acpi_processor driver correctly
+maps the physical CPU ids to logical CPU ids, which helps in picking
+up the proper _CPC details from a processor object, in the case where
+CPU physical ids may not be contiguous.
 
-Thanks
-Hanjun
+Changes since V7:
+- Simplied new kconfig options for PSS and idle.
+- Separated patch to enable acpi processor on ARM64.
+- Removed redundant kconfig cross deps on PCC.
+- Decoupled processor_perflib from new PSS kconfig option.
+
+Changes since V6:
+- Separated PSS and CST from ACPI processor driver in two patches.
+- Made new Kconfig symbols auto selectable from Arch Kconfigs.
+
+Changes since V5:
+- Checkpatch cleanups.
+- Change pss_init to pss_perf_init. Rec by Srinivas Pandruvada.
+- Explicit comment explaining why postcore_initcall to pcc mailbox.
+- Fold acpi_processor_syscore_init/exit into CONFIG_ACPI_CST.
+- Added patch with dummy functions used by ACPI_HOTPLUG_CPU.
+
+Changes since V4:
+- Misc cleanups. Addressed feedback from Rafael.
+- Made acpi_processor.c independent of C-states, P-states and others.
+- Per CPU scanning for _CPC is now made from acpi_processor.c
+- Added new Kconfig options for legacy C states and P states to enable future
+support for newer alternatives as defined in the ACPI spec 6.0.
+
+Changes since V3:
+- Split CPPC backend methods into separate files.
+- Add frontend driver which plugs into existing CPUfreq governors.
+- Simplify PCC driver by moving communication space mapping and read/write
+	into client drivers.
+
+Changes since V2:
+- Select driver if !X86, since intel_pstate will use HWP extensions instead.
+- Added more comments.
+- Added Freq domain awareness and PSD parsing.
+
+Changes since V1:
+- Create a new driver based on Dirks suggestion.
+- Fold in CPPC backend hooks into main driver.
+
+Changes since V0: [1]
+- Split intel_pstate.c into a generic PID governor and platform specific backend.
+- Add CPPC accessors as PID backend.
+
+[1] - http://lwn.net/Articles/608715/
+[2] - http://www.uefi.org/sites/default/files/resources/ACPI_5_1release.pdf
+[3] - https://patches.linaro.org/40705/
+
+
+Ashwin Chaugule (9):
+  PCC: Initialize PCC Mailbox earlier at boot
+  ACPI: Split out ACPI PSS from ACPI Processor driver
+  ACPI: Decouple ACPI idle and ACPI processor drivers
+  ACPI: Introduce CPU performance controls using CPPC
+  CPPC: Add a CPUFreq driver for use with CPPC
+  ACPI: Add weak routines for ACPI CPU Hotplug
+  CPPC: Probe for CPPC tables for each ACPI Processor object
+  PCC: Disable compilation by default
+  ACPI: Allow selection of the ACPI processor driver for ARM64
+
+ drivers/acpi/Kconfig            |  35 +-
+ drivers/acpi/Makefile           |   7 +-
+ drivers/acpi/acpi_processor.c   |  18 +
+ drivers/acpi/cppc_acpi.c        | 812 ++++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/processor_driver.c |  90 +++--
+ drivers/cpufreq/Kconfig.arm     |  17 +
+ drivers/cpufreq/Makefile        |   2 +
+ drivers/cpufreq/cppc_cpufreq.c  | 197 ++++++++++
+ drivers/mailbox/Kconfig         |   1 +
+ drivers/mailbox/pcc.c           |   8 +-
+ include/acpi/cppc_acpi.h        | 137 +++++++
+ include/acpi/processor.h        |  63 +++-
+ 12 files changed, 1345 insertions(+), 42 deletions(-)
+ create mode 100644 drivers/acpi/cppc_acpi.c
+ create mode 100644 drivers/cpufreq/cppc_cpufreq.c
+ create mode 100644 include/acpi/cppc_acpi.h
+
+-- 
+1.9.1
+
