@@ -1,16 +1,20 @@
 From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Subject: [PATCH v3 07/18] drm: Probe panels on demand
-Date: Thu,  6 Aug 2015 16:11:44 +0200
-Message-ID: <1438870315-18689-8-git-send-email-tomeu.vizoso@collabora.com>
+Subject: [PATCH v3 12/18] usb: phy: Probe phy devices on demand
+Date: Thu,  6 Aug 2015 16:11:49 +0200
+Message-ID: <1438870315-18689-13-git-send-email-tomeu.vizoso@collabora.com>
 References: <1438870315-18689-1-git-send-email-tomeu.vizoso@collabora.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wi0-f180.google.com ([209.85.212.180]:34718 "EHLO
+	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754858AbbHFOTI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Aug 2015 10:19:08 -0400
 In-Reply-To: <1438870315-18689-1-git-send-email-tomeu.vizoso@collabora.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: linux-kernel@vger.kernel.org
 Cc: Rob Herring <robh+dt@kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-arm-kernel@lists.infradead.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Tomeu Vizoso <tomeu.vizoso@collabora.com>
-List-Id: linux-acpi@vger.kernel.org
 
-When looking up a panel through its OF node, probe it if it hasn't
+When looking up a phy through its OF node, probe it if it hasn't
 already.
 
 The goal is to reduce deferred probes to a minimum, as it makes it very
@@ -23,29 +27,30 @@ Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
 Changes in v3: None
 Changes in v2: None
 
- drivers/gpu/drm/drm_panel.c | 3 +++
+ drivers/usb/phy/phy.c | 3 +++
  1 file changed, 3 insertions(+)
 
-diff --git a/drivers/gpu/drm/drm_panel.c b/drivers/gpu/drm/drm_panel.c
-index 2ef988e037b7..8f01574cabda 100644
---- a/drivers/gpu/drm/drm_panel.c
-+++ b/drivers/gpu/drm/drm_panel.c
-@@ -23,6 +23,7 @@
- 
- #include <linux/err.h>
+diff --git a/drivers/usb/phy/phy.c b/drivers/usb/phy/phy.c
+index 98f75d2842b7..a357681362f5 100644
+--- a/drivers/usb/phy/phy.c
++++ b/drivers/usb/phy/phy.c
+@@ -15,6 +15,7 @@
  #include <linux/module.h>
+ #include <linux/slab.h>
+ #include <linux/of.h>
 +#include <linux/of_platform.h>
  
- #include <drm/drm_crtc.h>
- #include <drm/drm_panel.h>
-@@ -80,6 +81,8 @@ struct drm_panel *of_drm_find_panel(struct device_node *np)
- {
- 	struct drm_panel *panel;
+ #include <linux/usb/phy.h>
  
-+	of_platform_probe(np);
+@@ -196,6 +197,8 @@ struct  usb_phy *devm_usb_get_phy_by_node(struct device *dev,
+ 		goto err0;
+ 	}
+ 
++	of_platform_probe(node);
 +
- 	mutex_lock(&panel_lock);
+ 	spin_lock_irqsave(&phy_lock, flags);
  
- 	list_for_each_entry(panel, &panel_list, list) {
+ 	phy = __of_usb_find_phy(node);
 -- 
 2.4.3
+
