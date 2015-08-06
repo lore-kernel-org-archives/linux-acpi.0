@@ -1,53 +1,49 @@
-From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
-Subject: [PATCH V10 5/5] acpi, apei: use appropriate pgprot_t to map GHES memoryTo: Matt Fleming <matt.fleming@intel.com>, Thomas Gleixner <tglx@linutronix.de>, fu.wei@linaro.org, al.stone@linaro.org, bp@alien8.de, tony.luck@gmail.com, hanjun.guo@linaro.org rjw@rjwysocki.net, lenb@kernel.org, ying.huang@intel.com, catalin.marinas@arm.com, will.deacon@arm.com
-Date: Thu,  6 Aug 2015 06:40:34 -0700
-Message-ID: <1438868434-28736-6-git-send-email-zjzhang@codeaurora.org>
-References: <1438868434-28736-1-git-send-email-zjzhang@codeaurora.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:49881 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753112AbbHFNlN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Aug 2015 09:41:13 -0400
-In-Reply-To: <1438868434-28736-1-git-send-email-zjzhang@codeaurora.org>
-Sender: linux-acpi-owner@vger.kernel.org
+From: "Zhang, Jonathan Zhixiong" <zjzhang@codeaurora.org>
+Subject: Re: [PATCH V9 0/5] map GHES memory region according to EFI memory map
+Date: Thu, 6 Aug 2015 06:47:23 -0700
+Message-ID: <55C3656B.5090808@codeaurora.org>
+References: <1438292109-4170-1-git-send-email-zjzhang@codeaurora.org>
+ <20150803112658.GE10501@arm.com> <20150803162354.GQ2725@codeblueprint.co.uk>
+ <20150804042552.GG31787@nazgul.tnic> <55C0DD30.9070800@codeaurora.org>
+ <20150805092125.GB4332@codeblueprint.co.uk> <55C232BC.1010107@codeaurora.org>
+ <20150805161000.GE4332@codeblueprint.co.uk>
+ <20150805161325.GF4332@codeblueprint.co.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-msm-owner@vger.kernel.org>
+In-Reply-To: <20150805161325.GF4332@codeblueprint.co.uk>
+Sender: linux-arm-msm-owner@vger.kernel.org
+To: Matt Fleming <matt@codeblueprint.co.uk>
+Cc: Borislav Petkov <bp@alien8.de>, Will Deacon <will.deacon@arm.com>, Matt Fleming <matt.fleming@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, "x86@kernel.org" <x86@kernel.org>, "tony.luck@gmail.com" <tony.luck@gmail.com>, "ard.biesheuvel@linaro.org" <ard.biesheuvel@linaro.org>, "fu.wei@linaro.org" <fu.wei@linaro.org>, "al.stone@linaro.org" <al.stone@linaro.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "ying.huang@intel.com" <ying.huang@intel.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "leif.lindholm@linaro.org" <leif.lindholm@linaro.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "linux-efi@vger.kernel.org" <linux-efi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.>
 List-Id: linux-acpi@vger.kernel.org
-Cc: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, timur@codeaurora.org
 
-From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
 
-With ACPI APEI firmware first handling, generic hardware error
-record is updated by firmware in GHES memory region. On an arm64
-platform, firmware updates GHES memory region with uncached
-access attribute, and then Linux reads stale data from cache.
 
-GHES memory region should be mapped with page protection type
-according to what is returned from arch_apei_get_mem_attribute(),
-instead of always with PAGE_KERNEL (eg. cached attribute).
+On 8/5/2015 9:13 AM, Matt Fleming wrote:
+> On Wed, 05 Aug, at 05:10:00PM, Matt Fleming wrote:
+>> On Wed, 05 Aug, at 08:58:52AM, Zhang, Jonathan Zhixiong wrote:
+>>>
+>>> Yes, absolutely. It has been in my mind, sorry I was tied up in the last
+>>> few days. I wonder what I may missed, I certainly do x86 build test with
+>>> versions of the patch set.
+>>>
+>>> I will try today and report back.
+>>
+>> No problem.
+>>
+>> I'd suggest moving the implementation into include/acpi/apei.h and
+>> leaving it as static inline instead of implementing it out of line in
+>> arch/x86/kernel/acpi/apei.c.
+>
+> Yeah, I didn't mean include/acpi/apei.h but the architecture-specific
+> equivalent.
+>
+Thank you Matt. It builds well on x86 with default configuration, but
+not if APEI feature is turned on. This is my fault.
+I just sent a new version of the patch set out.
 
-Acked-by: Borislav Petkov <bp@suse.de>
-Signed-off-by: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
----
- drivers/acpi/apei/ghes.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index 2bfd53cbfe80..0aa37c57acec 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -164,8 +164,10 @@ static void __iomem *ghes_ioremap_pfn_irq(u64 pfn)
- 	unsigned long vaddr;
- 
- 	vaddr = (unsigned long)GHES_IOREMAP_IRQ_PAGE(ghes_ioremap_area->addr);
--	ioremap_page_range(vaddr, vaddr + PAGE_SIZE,
--			   pfn << PAGE_SHIFT, PAGE_KERNEL);
-+	ioremap_page_range(vaddr,
-+			   vaddr + PAGE_SIZE,
-+			   pfn << PAGE_SHIFT,
-+			   arch_apei_get_mem_attribute(pfn << PAGE_SHIFT));
- 
- 	return (void __iomem *)vaddr;
- }
 -- 
+Jonathan (Zhixiong) Zhang
 The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
 a Linux Foundation Collaborative Project
-
