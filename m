@@ -1,56 +1,106 @@
-From: Tomeu Vizoso <tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
-Subject: [PATCH v3 16/18] dma: of: Probe DMA controllers on demand
-Date: Thu,  6 Aug 2015 16:11:53 +0200
-Message-ID: <1438870315-18689-17-git-send-email-tomeu.vizoso@collabora.com>
+From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Subject: [PATCH v3 01/18] platform: delay OF device-driver matches until
+ late_initcall
+Date: Thu,  6 Aug 2015 16:11:38 +0200
+Message-ID: <1438870315-18689-2-git-send-email-tomeu.vizoso@collabora.com>
 References: <1438870315-18689-1-git-send-email-tomeu.vizoso@collabora.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1438870315-18689-1-git-send-email-tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Tomeu Vizoso <tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1438870315-18689-1-git-send-email-tomeu.vizoso@collabora.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-kernel@vger.kernel.org
+Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>, devicetree@vger.kernel.org, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@wwwdotorg.org>, Linus Walleij <linus.walleij@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Rob Herring <robh+dt@kernel.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-When looking up a DMA controller through its OF node, probe it if it
-hasn't already.
+Delay matches of platform devices with OF nodes until late_initcall,
+when we are sure that all built-in drivers have been registered already.
+This is needed to prevent deferred probes because of some drivers not
+having registered yet.
 
-The goal is to reduce deferred probes to a minimum, as it makes it very
-cumbersome to find out why a device failed to probe, and can introduce
-very big delays in when a critical device is probed.
+The reason why only platform devices are delayed is that some other
+devices are expected to be probed earlier than late_initcall, for
+example, the system PNP driver needs to probe its devices in
+fs_initcall.
 
-Signed-off-by: Tomeu Vizoso <tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
+Additionally, only platform devices with OF nodes are delayed because
+some machines may depend on oter platform devices being registered at
+specific times.
+
+Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
 ---
 
-Changes in v3: None
-Changes in v2: None
+Changes in v3:
+- Only delay platform devices with OF nodes
 
- drivers/dma/of-dma.c | 3 +++
- 1 file changed, 3 insertions(+)
+Changes in v2:
+- Move delay to platform.c
 
-diff --git a/drivers/dma/of-dma.c b/drivers/dma/of-dma.c
-index 1e1f2986eba8..9cfc818b9dc8 100644
---- a/drivers/dma/of-dma.c
-+++ b/drivers/dma/of-dma.c
-@@ -17,6 +17,7 @@
- #include <linux/slab.h>
- #include <linux/of.h>
- #include <linux/of_dma.h>
-+#include <linux/of_platform.h>
+ drivers/base/platform.c | 29 +++++++++++++++++++++++++++++
+ 1 file changed, 29 insertions(+)
+
+diff --git a/drivers/base/platform.c b/drivers/base/platform.c
+index 063f0ab15259..0848ece2bf9d 100644
+--- a/drivers/base/platform.c
++++ b/drivers/base/platform.c
+@@ -33,6 +33,8 @@
+ /* For automatically allocated device IDs */
+ static DEFINE_IDA(platform_devid_ida);
  
- static LIST_HEAD(of_dma_list);
- static DEFINE_MUTEX(of_dma_lock);
-@@ -263,6 +264,8 @@ struct dma_chan *of_dma_request_slave_channel(struct device_node *np,
- 		if (of_dma_match_channel(np, name, i, &dma_spec))
- 			continue;
- 
-+		of_platform_probe(dma_spec.np);
++static bool enable_matches;
 +
- 		mutex_lock(&of_dma_lock);
- 		ofdma = of_dma_find_controller(&dma_spec);
+ struct device platform_bus = {
+ 	.init_name	= "platform",
+ };
+@@ -839,6 +841,15 @@ static int platform_match(struct device *dev, struct device_driver *drv)
+ 	struct platform_device *pdev = to_platform_device(dev);
+ 	struct platform_driver *pdrv = to_platform_driver(drv);
  
++	/*
++	 * Delay matches of OF platform devices until late_initcall, when we
++	 * are sure that all built-in drivers have been registered already.
++	 * This is needed to prevent deferred probes because of some drivers
++	 * not having registered yet.
++	 */
++	if (dev->of_node && !enable_matches)
++		return 0;
++
+ 	/* When driver_override is set, only bind to the matching driver */
+ 	if (pdev->driver_override)
+ 		return !strcmp(pdev->driver_override, drv->name);
+@@ -859,6 +870,24 @@ static int platform_match(struct device *dev, struct device_driver *drv)
+ 	return (strcmp(pdev->name, drv->name) == 0);
+ }
+ 
++static int __probe_device(struct device *dev, void *data)
++{
++	if (dev->of_node)
++		device_initial_probe(dev);
++
++	return 0;
++}
++
++static int probe_delayed_matches_initcall(void)
++{
++	enable_matches = true;
++
++	bus_for_each_dev(&platform_bus_type, NULL, NULL, __probe_device);
++
++	return 0;
++}
++late_initcall(probe_delayed_matches_initcall);
++
+ #ifdef CONFIG_PM_SLEEP
+ 
+ static int platform_legacy_suspend(struct device *dev, pm_message_t mesg)
 -- 
 2.4.3
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
