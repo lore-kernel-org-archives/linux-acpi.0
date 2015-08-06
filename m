@@ -1,106 +1,68 @@
 From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Subject: [PATCH v3 01/18] platform: delay OF device-driver matches until
- late_initcall
-Date: Thu,  6 Aug 2015 16:11:38 +0200
-Message-ID: <1438870315-18689-2-git-send-email-tomeu.vizoso@collabora.com>
+Subject: [PATCH v3 18/18] ASoC: core: Probe components on demand
+Date: Thu,  6 Aug 2015 16:11:55 +0200
+Message-ID: <1438870315-18689-19-git-send-email-tomeu.vizoso@collabora.com>
 References: <1438870315-18689-1-git-send-email-tomeu.vizoso@collabora.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1438870315-18689-1-git-send-email-tomeu.vizoso@collabora.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
-Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>, devicetree@vger.kernel.org, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@wwwdotorg.org>, Linus Walleij <linus.walleij@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Rob Herring <robh+dt@kernel.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, linux-arm-kernel@lists.infradead.org
+Cc: Rob Herring <robh+dt@kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-arm-kernel@lists.infradead.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Tomeu Vizoso <tomeu.vizoso@collabora.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Delay matches of platform devices with OF nodes until late_initcall,
-when we are sure that all built-in drivers have been registered already.
-This is needed to prevent deferred probes because of some drivers not
-having registered yet.
+When looking up a component through its OF node, probe it if it hasn't
+already.
 
-The reason why only platform devices are delayed is that some other
-devices are expected to be probed earlier than late_initcall, for
-example, the system PNP driver needs to probe its devices in
-fs_initcall.
-
-Additionally, only platform devices with OF nodes are delayed because
-some machines may depend on oter platform devices being registered at
-specific times.
+The goal is to reduce deferred probes to a minimum, as it makes it very
+cumbersome to find out why a device failed to probe, and can introduce
+very big delays in when a critical device is probed.
 
 Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
 ---
 
-Changes in v3:
-- Only delay platform devices with OF nodes
+Changes in v3: None
+Changes in v2: None
 
-Changes in v2:
-- Move delay to platform.c
+ sound/soc/soc-core.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
- drivers/base/platform.c | 29 +++++++++++++++++++++++++++++
- 1 file changed, 29 insertions(+)
-
-diff --git a/drivers/base/platform.c b/drivers/base/platform.c
-index 063f0ab15259..0848ece2bf9d 100644
---- a/drivers/base/platform.c
-+++ b/drivers/base/platform.c
-@@ -33,6 +33,8 @@
- /* For automatically allocated device IDs */
- static DEFINE_IDA(platform_devid_ida);
- 
-+static bool enable_matches;
-+
- struct device platform_bus = {
- 	.init_name	= "platform",
+diff --git a/sound/soc/soc-core.c b/sound/soc/soc-core.c
+index c81aec9c872a..1157049b1a34 100644
+--- a/sound/soc/soc-core.c
++++ b/sound/soc/soc-core.c
+@@ -34,6 +34,7 @@
+ #include <linux/ctype.h>
+ #include <linux/slab.h>
+ #include <linux/of.h>
++#include <linux/of_platform.h>
+ #include <sound/core.h>
+ #include <sound/jack.h>
+ #include <sound/pcm.h>
+@@ -865,10 +866,12 @@ static const struct snd_soc_dai_ops null_dai_ops = {
  };
-@@ -839,6 +841,15 @@ static int platform_match(struct device *dev, struct device_driver *drv)
- 	struct platform_device *pdev = to_platform_device(dev);
- 	struct platform_driver *pdrv = to_platform_driver(drv);
  
-+	/*
-+	 * Delay matches of OF platform devices until late_initcall, when we
-+	 * are sure that all built-in drivers have been registered already.
-+	 * This is needed to prevent deferred probes because of some drivers
-+	 * not having registered yet.
-+	 */
-+	if (dev->of_node && !enable_matches)
-+		return 0;
-+
- 	/* When driver_override is set, only bind to the matching driver */
- 	if (pdev->driver_override)
- 		return !strcmp(pdev->driver_override, drv->name);
-@@ -859,6 +870,24 @@ static int platform_match(struct device *dev, struct device_driver *drv)
- 	return (strcmp(pdev->name, drv->name) == 0);
- }
+ static struct snd_soc_component *soc_find_component(
+-	const struct device_node *of_node, const char *name)
++	struct device_node *of_node, const char *name)
+ {
+ 	struct snd_soc_component *component;
  
-+static int __probe_device(struct device *dev, void *data)
-+{
-+	if (dev->of_node)
-+		device_initial_probe(dev);
++	of_platform_probe(of_node);
 +
-+	return 0;
-+}
-+
-+static int probe_delayed_matches_initcall(void)
-+{
-+	enable_matches = true;
-+
-+	bus_for_each_dev(&platform_bus_type, NULL, NULL, __probe_device);
-+
-+	return 0;
-+}
-+late_initcall(probe_delayed_matches_initcall);
-+
- #ifdef CONFIG_PM_SLEEP
+ 	lockdep_assert_held(&client_mutex);
  
- static int platform_legacy_suspend(struct device *dev, pm_message_t mesg)
+ 	list_for_each_entry(component, &component_list, list) {
+@@ -890,6 +893,8 @@ static struct snd_soc_dai *snd_soc_find_dai(
+ 	struct snd_soc_dai *dai;
+ 	struct device_node *component_of_node;
+ 
++	of_platform_probe(dlc->of_node);
++
+ 	lockdep_assert_held(&client_mutex);
+ 
+ 	/* Find CPU DAI from registered DAIs*/
 -- 
 2.4.3
