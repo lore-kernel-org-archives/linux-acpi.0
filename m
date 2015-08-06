@@ -1,20 +1,27 @@
 From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Subject: [PATCH v3 17/18] power-supply: Probe power supplies on demand
-Date: Thu,  6 Aug 2015 16:11:54 +0200
-Message-ID: <1438870315-18689-18-git-send-email-tomeu.vizoso@collabora.com>
+Subject: [PATCH v3 08/18] drm/tegra: Probe dpaux devices on demand
+Date: Thu,  6 Aug 2015 16:11:45 +0200
+Message-ID: <1438870315-18689-9-git-send-email-tomeu.vizoso@collabora.com>
 References: <1438870315-18689-1-git-send-email-tomeu.vizoso@collabora.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f175.google.com ([209.85.212.175]:33081 "EHLO
-	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754858AbbHFOTP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Aug 2015 10:19:15 -0400
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1438870315-18689-1-git-send-email-tomeu.vizoso@collabora.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-kernel@vger.kernel.org
-Cc: Rob Herring <robh+dt@kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-arm-kernel@lists.infradead.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>, devicetree@vger.kernel.org, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@wwwdotorg.org>, Linus Walleij <linus.walleij@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Rob Herring <robh+dt@kernel.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, linux-arm-kernel@lists.infradead.org
+List-Id: linux-acpi@vger.kernel.org
 
-When looking up a power supply through its OF node, probe it if it
+When looking up a dpaux device through its OF node, probe it if it
 hasn't already.
 
 The goal is to reduce deferred probes to a minimum, as it makes it very
@@ -27,30 +34,29 @@ Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
 Changes in v3: None
 Changes in v2: None
 
- drivers/power/power_supply_core.c | 3 +++
+ drivers/gpu/drm/tegra/dpaux.c | 3 +++
  1 file changed, 3 insertions(+)
 
-diff --git a/drivers/power/power_supply_core.c b/drivers/power/power_supply_core.c
-index 456987c88baa..668d71656592 100644
---- a/drivers/power/power_supply_core.c
-+++ b/drivers/power/power_supply_core.c
-@@ -19,6 +19,7 @@
- #include <linux/err.h>
- #include <linux/power_supply.h>
- #include <linux/thermal.h>
+diff --git a/drivers/gpu/drm/tegra/dpaux.c b/drivers/gpu/drm/tegra/dpaux.c
+index 07b26972f487..5a98acf07b2d 100644
+--- a/drivers/gpu/drm/tegra/dpaux.c
++++ b/drivers/gpu/drm/tegra/dpaux.c
+@@ -12,6 +12,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/io.h>
+ #include <linux/of_gpio.h>
 +#include <linux/of_platform.h>
- #include "power_supply.h"
- 
- /* exported for the APM Power driver, APM emulation */
-@@ -206,6 +207,8 @@ static int power_supply_find_supply_from_node(struct device_node *supply_node)
+ #include <linux/platform_device.h>
+ #include <linux/reset.h>
+ #include <linux/regulator/consumer.h>
+@@ -394,6 +395,8 @@ struct tegra_dpaux *tegra_dpaux_find_by_of_node(struct device_node *np)
  {
- 	int error;
+ 	struct tegra_dpaux *dpaux;
  
-+	of_platform_probe(supply_node);
++	of_platform_probe(np);
 +
- 	/*
- 	 * class_for_each_device() either returns its own errors or values
- 	 * returned by __power_supply_find_supply_from_node().
+ 	mutex_lock(&dpaux_lock);
+ 
+ 	list_for_each_entry(dpaux, &dpaux_list, list)
 -- 
 2.4.3
-
