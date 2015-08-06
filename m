@@ -1,83 +1,73 @@
-From: Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>
-Subject: [GIT PULL] EFI changes for v4.3
-Date: Thu, 6 Aug 2015 21:32:32 +0100
-Message-ID: <20150806203232.GH4332@codeblueprint.co.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Ingo Molnar <mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, "H. Peter Anvin" <hpa-YMNOUZJC4hwAvxtiuMwx3w@public.gmane.org>
-Cc: linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Borislav Petkov <bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org>, Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Al Stone <al.stone@linaro.org>
+Subject: [PATCH 0/5] ACPI: Provide better MADT subtable sanity checks
+Date: Thu,  6 Aug 2015 14:59:25 -0600
+Message-ID: <1438894770-31163-1-git-send-email-al.stone@linaro.org>
+Return-path: <linux-ia64-owner@vger.kernel.org>
+Sender: linux-ia64-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-pm@vger.kernel.org, linaro-acpi@lists.linaro.org, linaro-kernel@lists.linaro.org, patches@linaro.org, Al Stone <al.stone@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Folks, please pull the following changes for v4.3. The biggest changes
-are the memory map querying updates in the ACPI GHES driver and the
-revert of commit aeffc4928ea2 ("x86/efi: Request desired alignment via
-the PE/COFF headers") which was reportedly causing errors when users
-attempt to sign their kernels with Signtool.
+Currently, the BAD_MADT_ENTRY macro is used to do a very simple sanity
+check on the various subtables that are defined for the MADT.  The check
+compares the size of the subtable data structure as defined by ACPICA to
+the length entry in the subtable.  If they are not the same, the assumption
+is that the subtable is incorrect.
 
-The GHES driver changes touch a mixture of ACPI, x86 and arm64 code but
-all the patches have been ACKed and/or reviewed by relevant people.
+Over time, the ACPI spec has allowed for MADT subtables where this can
+never be true (the local SAPIC subtable, for example).  Or, more recently,
+the spec has accumulated some minor flaws where there are three possible 
+sizes for a subtable, all of which are valid, but only for specific versions
+of the spec (the GICC subtable).  In both cases, BAD_MADT_ENTRY reports these
+subtables as bad when they are not.  In order to retain some sanity check
+on the MADT subtables, we now have to special case these subtables.  Of
+necessity, these special cases have ended up in arch-dependent code (arm64)
+or an arch has simply decided to forgo the check (ia64).
 
-The following changes since commit bc0195aad0daa2ad5b0d76cce22b167bc3435590:
+This patch set replaces the BAD_MADT_ENTRY macro with a function called
+bad_madt_entry().  This function uses a data set of details about the
+subtables to provide more sanity checking than before:
 
-  Linux 4.2-rc2 (2015-07-12 15:10:30 -0700)
+	-- is the subtable legal for the version given in the FADT?
 
-are available in the git repository at:
+	-- is the subtable legal for the revision of the MADT in use?
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/mfleming/efi.git tags/efi-next
+	-- is the subtable of the proper length (including checking
+	   on the one variable length subtable that is currently ignored),
+	   given the FADT version and the MADT revision?
 
-for you to fetch changes up to 8229722e29da369a4e9512a5c18adb4028a7626b:
+Further, this patch set adds in the call to bad_madt_entry() from the 
+acpi_table_parse_madt() function, allowing it to be used consistently
+by all architectures, for all subtables, and removing the need for each
+of the subtable traversal callback functions to use BAD_MADT_ENTRY.
 
-  acpi, apei: use appropriate pgprot_t to map GHES memory (2015-08-06 15:44:41 +0100)
+In theory, as the ACPI specification changes, we would only have to add
+additional information to the data set describing the MADT subtables in
+order to continue providing sanity checks, even when new subtables are
+added.
 
-----------------------------------------------------------------
- * Add support for the new EFI memory map attribute EFI_MEMORY_RO that
-   was introduced in the UEFI 2.5 spec - Ard Biesheuvel
+These patches have been tested on an APM Mustang (arm64) and are known to
+work there.  They have also been cross-compiled for x86 and ia64 with no
+known failures.
 
- * Lower the severity of the invalid BGRT message from pr_err()
-   to pr_debug() since it's legitimate (per the spec) for the firmware
-   to pass the kernel a BGRT with the invalid status bit set. The kernel
-   just simply needs to ignore it.
 
- * Revert the optimisation of using CONFIG_PHYSICAL_ALIGN in the
-   PE/COFF header SectionAlignment field of the EFI stub, since it
-   violates the PE/COFF spec which says SizeOfImage must be a multiple
-   of SectionAlignment, and because it was causing Signtool to fail.
+Al Stone (5):
+  ACPI: add in a bad_madt_entry() function to eventually replace the
+    macro
+  ACPI / ARM64: remove usage of BAD_MADT_ENTRY/BAD_MADT_GICC_ENTRY
+  ACPI / IA64: remove usage of BAD_MADT_ENTRY
+  ACPI / X86: remove usage of BAD_MADT_ENTRY
+  ACPI: remove definition of BAD_MADT_ENTRY macro
 
- * Update the ACPI Platform Error Interface (APEI) GHES driver to query
-   the EFI memory map for the correct cache attributes to use when
-   mapping pages accessed by both the kernel and firmware. This prevents
-   stale data being read by the kernel - Jonathan (Zhixiong) Zhang
-
-----------------------------------------------------------------
-Ard Biesheuvel (1):
-      efi: Add support for EFI_MEMORY_RO attribute introduced by UEFIv2.5
-
-Jonathan (Zhixiong) Zhang (5):
-      efi: x86: rearrange efi_mem_attributes()
-      x86: acpi: implement arch_apei_get_mem_attributes()
-      arm64: mm: add PROT_DEVICE_nGnRnE and PROT_NORMAL_WT
-      arm64: apei: implement arch_apei_get_mem_attributes()
-      acpi, apei: use appropriate pgprot_t to map GHES memory
-
-Matt Fleming (2):
-      x86/efi-bgrt: Switch pr_err() to pr_debug() for invalid BGRT
-      Revert "x86/efi: Request desired alignment via the PE/COFF headers"
-
- arch/arm64/include/asm/acpi.h    | 27 +++++++++++++++++++++++++++
- arch/arm64/include/asm/memory.h  |  1 +
- arch/arm64/include/asm/pgtable.h |  2 ++
- arch/arm64/mm/proc.S             |  4 +++-
- arch/x86/boot/header.S           |  2 +-
- arch/x86/include/asm/acpi.h      | 24 ++++++++++++++++++++++++
- arch/x86/platform/efi/efi-bgrt.c |  9 +++++++--
- arch/x86/platform/efi/efi.c      | 18 ------------------
- drivers/acpi/apei/ghes.c         |  6 ++++--
- drivers/firmware/efi/efi.c       | 39 ++++++++++++++++++++++++++++++++++++---
- include/linux/efi.h              |  1 +
- 11 files changed, 106 insertions(+), 27 deletions(-)
+ arch/arm64/include/asm/acpi.h |   8 --
+ arch/arm64/kernel/smp.c       |   2 -
+ arch/ia64/kernel/acpi.c       |  20 ----
+ arch/x86/kernel/acpi/boot.c   |  27 -----
+ drivers/acpi/tables.c         | 241 ++++++++++++++++++++++++++++++++++++++++++
+ drivers/irqchip/irq-gic.c     |   6 --
+ include/linux/acpi.h          |   4 -
+ 7 files changed, 241 insertions(+), 67 deletions(-)
 
 -- 
-Matt Fleming, Intel Open Source Technology Center
+2.4.3
+
