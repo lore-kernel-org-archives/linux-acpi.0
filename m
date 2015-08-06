@@ -1,51 +1,56 @@
-From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Subject: [PATCH v3 15/18] phy: core: Probe phy providers on demand
-Date: Thu,  6 Aug 2015 16:11:52 +0200
-Message-ID: <1438870315-18689-16-git-send-email-tomeu.vizoso@collabora.com>
+From: Tomeu Vizoso <tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
+Subject: [PATCH v3 14/18] pinctrl: Probe pinctrl devices on demand
+Date: Thu,  6 Aug 2015 16:11:51 +0200
+Message-ID: <1438870315-18689-15-git-send-email-tomeu.vizoso@collabora.com>
 References: <1438870315-18689-1-git-send-email-tomeu.vizoso@collabora.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1438870315-18689-1-git-send-email-tomeu.vizoso@collabora.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Rob Herring <robh+dt@kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-arm-kernel@lists.infradead.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1438870315-18689-1-git-send-email-tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Tomeu Vizoso <tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-When looking up a phy provider through its OF node, probe it if it
+When looking up a pin controller through its OF node, probe it if it
 hasn't already.
 
 The goal is to reduce deferred probes to a minimum, as it makes it very
 cumbersome to find out why a device failed to probe, and can introduce
 very big delays in when a critical device is probed.
 
-Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Signed-off-by: Tomeu Vizoso <tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
 ---
 
 Changes in v3: None
 Changes in v2: None
 
- drivers/phy/phy-core.c | 3 +++
+ drivers/pinctrl/devicetree.c | 3 +++
  1 file changed, 3 insertions(+)
 
-diff --git a/drivers/phy/phy-core.c b/drivers/phy/phy-core.c
-index fc48fac003a6..1ba55fc8cce4 100644
---- a/drivers/phy/phy-core.c
-+++ b/drivers/phy/phy-core.c
+diff --git a/drivers/pinctrl/devicetree.c b/drivers/pinctrl/devicetree.c
+index fe04e748dfe4..2326ae99e06a 100644
+--- a/drivers/pinctrl/devicetree.c
++++ b/drivers/pinctrl/devicetree.c
 @@ -18,6 +18,7 @@
+ 
  #include <linux/device.h>
- #include <linux/slab.h>
  #include <linux/of.h>
 +#include <linux/of_platform.h>
- #include <linux/phy/phy.h>
- #include <linux/idr.h>
- #include <linux/pm_runtime.h>
-@@ -363,6 +364,8 @@ static struct phy *_of_phy_get(struct device_node *np, int index)
- 	if (ret)
- 		return ERR_PTR(-ENODEV);
+ #include <linux/pinctrl/pinctrl.h>
+ #include <linux/slab.h>
  
-+	of_platform_probe(args.np);
+@@ -110,6 +111,8 @@ static int dt_to_map_one_config(struct pinctrl *p, const char *statename,
+ 	struct pinctrl_map *map;
+ 	unsigned num_maps;
+ 
++	of_platform_probe(np_config);
 +
- 	mutex_lock(&phy_provider_mutex);
- 	phy_provider = of_phy_provider_lookup(args.np);
- 	if (IS_ERR(phy_provider) || !try_module_get(phy_provider->owner)) {
+ 	/* Find the pin controller containing np_config */
+ 	np_pctldev = of_node_get(np_config);
+ 	for (;;) {
 -- 
 2.4.3
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
