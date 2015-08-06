@@ -1,107 +1,52 @@
 From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH 5/6] nd_blk: add support for "read flush" DSM flag
-Date: Thu,  6 Aug 2015 11:43:19 -0600
-Message-ID: <1438883000-9011-6-git-send-email-ross.zwisler@linux.intel.com>
-References: <1438883000-9011-1-git-send-email-ross.zwisler@linux.intel.com>
+Subject: [PATCH 0/6] pmem, dax: I/O path enhancements
+Date: Thu,  6 Aug 2015 11:43:14 -0600
+Message-ID: <1438883000-9011-1-git-send-email-ross.zwisler@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1438883000-9011-1-git-send-email-ross.zwisler@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org, dan.j.williams@intel.com
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, Alexander Viro <viro@zeniv.linux.org.uk>, Borislav Petkov <bp@suse.de>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>, Juergen Gross <jgross@suse.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-fsdevel@vger.kernel.org, "Luis R. Rodriguez" <mcgrof@suse.com>, Matthew Wilcox <willy@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Toshi Kani <toshi.kani@hp.com>, x86@kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Add support for the "read flush" _DSM flag, as outlined in the DSM spec:
+Patch 5 adds support for the "read flush" _DSM flag, allowing us to change the
+ND BLK aperture mapping from write-combining to write-back via memremap_pmem().
 
-http://pmem.io/documents/NVDIMM_DSM_Interface_Example.pdf
+Patch 6 updates the DAX I/O path so that all operations that store data (I/O
+writes, zeroing blocks, punching holes, etc.) properly synchronize the stores
+to media using the PMEM API.  This ensures that the data DAX is writing is
+durable on media before the operation completes.
 
-This flag tells the ND BLK driver that it needs to flush the cache lines
-associated with the aperture after the aperture is moved but before any new
-data is read.  This ensures that any stale cache lines from the previous
-contents of the aperture will be discarded from the processor cache, and the
-new data will be read properly from the DIMM.  We know that the cache lines
-are clean and will be discarded without any writeback because either a) the
-previous aperture operation was a read, and we never modified the contents of
-the aperture, or b) the previous aperture operation was a write and we must
-have written back the dirtied contents of the aperture to the DIMM
-before the I/O was completed.
+Patches 1-4 are cleanup patches and additions to the PMEM API that make
+patches 5 and 6 possible.
 
-By supporting the "read flush" flag we can also change the ND BLK aperture
-mapping from write-combining to write-back via memremap_pmem().
+Regarding the choice to add both flush_cache_pmem() and wb_cache_pmem() to the
+PMEM API, I had initially implemented flush_cache_pmem() as a generic function
+flush_io_cache_range() in the spirit of flush_cache_range(), etc., in
+cacheflush.h.  I eventually moved it into the PMEM API because a) it has a
+common and consistent use of the __pmem annotation, b) it has a clear fallback
+method for architectures that don't support it, as opposed to APIs in
+cacheflush.h which would need to be added individually to all other
+architectures.  It can be argued that the flush API could apply to other uses
+beyond PMEM such as flushing cache lines associated with other types of
+sliding MMIO windows.  At this point I'm inclined to have it as part of the
+PMEM API, and then take on the effort of making it a general cache flusing API
+if other users come along.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
----
- drivers/acpi/nfit.c | 18 +++++++++---------
- drivers/acpi/nfit.h |  6 +++++-
- 2 files changed, 14 insertions(+), 10 deletions(-)
+Ross Zwisler (6):
+  pmem: remove indirection layer arch_has_pmem_api()
+  x86: clean up conditional pmem includes
+  x86: add clwb_cache_range()
+  pmem: Add wb_cache_pmem() and flush_cache_pmem()
+  nd_blk: add support for "read flush" DSM flag
+  dax: update I/O path to do proper PMEM flushing
 
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index 7c2638f..5bd6819 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -1080,9 +1080,13 @@ static int acpi_nfit_blk_single_io(struct nfit_blk *nfit_blk,
- 		if (rw)
- 			memcpy_to_pmem(mmio->aperture + offset,
- 					iobuf + copied, c);
--		else
-+		else {
-+			if (nfit_blk->dimm_flags & ND_BLK_READ_FLUSH)
-+				flush_cache_pmem(mmio->aperture + offset, c);
-+
- 			memcpy_from_pmem(iobuf + copied,
- 					mmio->aperture + offset, c);
-+		}
- 
- 		copied += c;
- 		len -= c;
-@@ -1191,13 +1195,9 @@ static void __iomem *__nfit_spa_map(struct acpi_nfit_desc *acpi_desc,
- 	if (!res)
- 		goto err_mem;
- 
--	if (type == SPA_MAP_APERTURE) {
--		/*
--		 * TODO: memremap_pmem() support, but that requires cache
--		 * flushing when the aperture is moved.
--		 */
--		spa_map->iomem = ioremap_wc(start, n);
--	} else
-+	if (type == SPA_MAP_APERTURE)
-+		spa_map->aperture = memremap_pmem(start, n);
-+	else
- 		spa_map->iomem = ioremap_nocache(start, n);
- 
- 	if (!spa_map->iomem)
-@@ -1267,7 +1267,7 @@ static int acpi_nfit_blk_get_flags(struct nvdimm_bus_descriptor *nd_desc,
- 		nfit_blk->dimm_flags = flags.flags;
- 	else if (rc == -ENOTTY) {
- 		/* fall back to a conservative default */
--		nfit_blk->dimm_flags = ND_BLK_DCR_LATCH;
-+		nfit_blk->dimm_flags = ND_BLK_DCR_LATCH | ND_BLK_READ_FLUSH;
- 		rc = 0;
- 	} else
- 		rc = -ENXIO;
-diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
-index f2c2bb7..7c6990e 100644
---- a/drivers/acpi/nfit.h
-+++ b/drivers/acpi/nfit.h
-@@ -41,6 +41,7 @@ enum nfit_uuids {
- };
- 
- enum {
-+	ND_BLK_READ_FLUSH = 1,
- 	ND_BLK_DCR_LATCH = 2,
- };
- 
-@@ -149,7 +150,10 @@ struct nfit_spa_mapping {
- 	struct acpi_nfit_system_address *spa;
- 	struct list_head list;
- 	struct kref kref;
--	void __iomem *iomem;
-+	union {
-+		void __iomem *iomem;
-+		void __pmem  *aperture;
-+	};
- };
- 
- static inline struct nfit_spa_mapping *to_spa_map(struct kref *kref)
+ arch/x86/include/asm/cacheflush.h | 24 +++++++++--------
+ arch/x86/mm/pageattr.c            | 23 ++++++++++++++++
+ drivers/acpi/nfit.c               | 18 ++++++-------
+ drivers/acpi/nfit.h               |  6 ++++-
+ fs/dax.c                          | 55 +++++++++++++++++++++++++++++++--------
+ include/linux/pmem.h              | 36 ++++++++++++++++++-------
+ 6 files changed, 120 insertions(+), 42 deletions(-)
+
 -- 
 2.1.0
