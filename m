@@ -1,20 +1,28 @@
 From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Subject: [PATCH v3 18/18] ASoC: core: Probe components on demand
-Date: Thu,  6 Aug 2015 16:11:55 +0200
-Message-ID: <1438870315-18689-19-git-send-email-tomeu.vizoso@collabora.com>
+Subject: [PATCH v3 04/18] gpio: Probe pinctrl devices on demand
+Date: Thu,  6 Aug 2015 16:11:41 +0200
+Message-ID: <1438870315-18689-5-git-send-email-tomeu.vizoso@collabora.com>
 References: <1438870315-18689-1-git-send-email-tomeu.vizoso@collabora.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1438870315-18689-1-git-send-email-tomeu.vizoso@collabora.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-kernel@vger.kernel.org
-Cc: Rob Herring <robh+dt@kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-arm-kernel@lists.infradead.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>, devicetree@vger.kernel.org, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@wwwdotorg.org>, Linus Walleij <linus.walleij@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Rob Herring <robh+dt@kernel.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-When looking up a component through its OF node, probe it if it hasn't
-already.
+When looking up a pin controller through its OF node, probe it if it
+hasn't already.
 
 The goal is to reduce deferred probes to a minimum, as it makes it very
 cumbersome to find out why a device failed to probe, and can introduce
@@ -26,43 +34,21 @@ Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
 Changes in v3: None
 Changes in v2: None
 
- sound/soc/soc-core.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ drivers/gpio/gpiolib-of.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/sound/soc/soc-core.c b/sound/soc/soc-core.c
-index c81aec9c872a..1157049b1a34 100644
---- a/sound/soc/soc-core.c
-+++ b/sound/soc/soc-core.c
-@@ -34,6 +34,7 @@
- #include <linux/ctype.h>
- #include <linux/slab.h>
- #include <linux/of.h>
-+#include <linux/of_platform.h>
- #include <sound/core.h>
- #include <sound/jack.h>
- #include <sound/pcm.h>
-@@ -865,10 +866,12 @@ static const struct snd_soc_dai_ops null_dai_ops = {
- };
+diff --git a/drivers/gpio/gpiolib-of.c b/drivers/gpio/gpiolib-of.c
+index d8c617c34c85..2d4a1cca995b 100644
+--- a/drivers/gpio/gpiolib-of.c
++++ b/drivers/gpio/gpiolib-of.c
+@@ -359,6 +359,8 @@ static int of_gpiochip_add_pin_range(struct gpio_chip *chip)
+ 		if (ret)
+ 			break;
  
- static struct snd_soc_component *soc_find_component(
--	const struct device_node *of_node, const char *name)
-+	struct device_node *of_node, const char *name)
- {
- 	struct snd_soc_component *component;
- 
-+	of_platform_probe(of_node);
++		of_platform_probe(pinspec.np);
 +
- 	lockdep_assert_held(&client_mutex);
- 
- 	list_for_each_entry(component, &component_list, list) {
-@@ -890,6 +893,8 @@ static struct snd_soc_dai *snd_soc_find_dai(
- 	struct snd_soc_dai *dai;
- 	struct device_node *component_of_node;
- 
-+	of_platform_probe(dlc->of_node);
-+
- 	lockdep_assert_held(&client_mutex);
- 
- 	/* Find CPU DAI from registered DAIs*/
+ 		pctldev = of_pinctrl_get(pinspec.np);
+ 		if (!pctldev)
+ 			return -EPROBE_DEFER;
 -- 
 2.4.3
