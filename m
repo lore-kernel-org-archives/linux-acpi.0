@@ -1,141 +1,39 @@
-From: Rob Herring <robherring2@gmail.com>
-Subject: Re: [PATCH v3 0/18] On-demand device probing
-Date: Thu, 6 Aug 2015 15:14:26 -0500
-Message-ID: <CAL_JsqKq_-TLb_3VRMN_MhjsGnRfpRN1uuEgHE9DAyP3Y3ovhQ@mail.gmail.com>
-References: <1438870315-18689-1-git-send-email-tomeu.vizoso@collabora.com>
+From: Rob Herring <robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v3 01/18] platform: delay OF device-driver matches until late_initcall
+Date: Thu, 6 Aug 2015 15:19:12 -0500
+Message-ID: <CAL_Jsq+GLMZe-f6qEi=7i1YrrWc6k99RpGkOyCd5KkYDiyt0QA@mail.gmail.com>
+References: <1438870315-18689-1-git-send-email-tomeu.vizoso@collabora.com> <1438870315-18689-2-git-send-email-tomeu.vizoso@collabora.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yk0-f174.google.com ([209.85.160.174]:35128 "EHLO
-	mail-yk0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753630AbbHFUOq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Aug 2015 16:14:46 -0400
-In-Reply-To: <1438870315-18689-1-git-send-email-tomeu.vizoso@collabora.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1438870315-18689-2-git-send-email-tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tomeu Vizoso <tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
+Cc: "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>
 
-On Thu, Aug 6, 2015 at 9:11 AM, Tomeu Vizoso <tomeu.vizoso@collabora.co=
-m> wrote:
-> Hello,
+On Thu, Aug 6, 2015 at 9:11 AM, Tomeu Vizoso <tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org> wrote:
+> Delay matches of platform devices with OF nodes until late_initcall,
+> when we are sure that all built-in drivers have been registered already.
+> This is needed to prevent deferred probes because of some drivers not
+> having registered yet.
 >
-> I have a problem with the panel on my Tegra Chromebook taking longer
-> than expected to be ready during boot (St=C3=A9phane Marchesin report=
-ed what
-> is basically the same issue in [0]), and have looked into ordered
-> probing as a better way of solving this than moving nodes around in t=
-he
-> DT or playing with initcall levels and linking order.
+> The reason why only platform devices are delayed is that some other
+> devices are expected to be probed earlier than late_initcall, for
+> example, the system PNP driver needs to probe its devices in
+> fs_initcall.
 >
-> While reading the thread [1] that Alexander Holler started with his
-> series to make probing order deterministic, it occurred to me that it
-> should be possible to achieve the same by probing devices as they are
-> referenced by other devices.
->
-> This basically reuses the information that is already implicit in the
-> probe() implementations, saving us from refactoring existing drivers =
-or
-> adding information to DTBs.
->
-> During review of v1 of this series Linus Walleij suggested that it
-> should be the device driver core to make sure that dependencies are
-> ready before probing a device. I gave this idea a try [2] but Mark Br=
-own
-> pointed out to the logic duplication between the resource acquisition
-> and dependency discovery code paths (though I think it's fairly minor=
-).
->
-> To address that code duplication I experimented with Arnd's devm_prob=
-e
-> [3] concept of having drivers declare their dependencies instead of
-> acquiring them during probe, and while it worked [4], I don't think w=
-e
-> end up winning anything when compared to just probing devices on-dema=
-nd
-> from resource getters.
->
-> One remaining objection is to the "sprinkling" of calls to
-> fwnode_ensure_device() in the resource getters of each subsystem, but=
- I
-> think it's the right thing to do given that the storage of resources =
-is
-> currently subsystem-specific.
->
-> We could avoid the above by moving resource storage into the core, bu=
-t I
-> don't think there's a compelling case for that.
->
-> I have tested this on boards with Tegra, iMX.6, Exynos and OMAP SoCs,
-> and these patches were enough to eliminate all the deferred probes
-> (except one in PandaBoard because omap_dma_system doesn't have a
-> firmware node as of yet).
->
-> Have submitted a branch [5] with these patches to kernelci.org and I'=
-m
-> currently trying to fix all regressions, usually due to code assuming
-> that devices will be probed in a specific order. Current results [6] =
-are
-> 348 passes, 30 fails and 42 unknowns (linux-next [7] is currently
-> 387/3/23).
+> Additionally, only platform devices with OF nodes are delayed because
+> some machines may depend on oter platform devices being registered at
+> specific times.
 
-This is a bit worrying. If this causes a high number of boot failures,
-fixing the errors you can find is not the path forward as we can't
-test a lot of platforms (and many people don't look at -next). We may
-want to put this behind a kconfig option so that we can easily restore
-old behavior it needed. Otherwise, we could have to revert the series.
-
-Are all the commits before this series fixing boot failures? You can't
-do dts updates as the fix or backwards compatibility will be broken.
-
->
-> With this series I get the kernel to output to the panel in 0.5s,
-> instead of 2.8s.
->
-> Regards,
->
-> Tomeu
->
-> [0] http://lists.freedesktop.org/archives/dri-devel/2014-August/06652=
-7.html
->
-> [1] https://lkml.org/lkml/2014/5/12/452
->
-> [2] https://lkml.org/lkml/2015/6/17/305
->
-> [3] http://article.gmane.org/gmane.linux.ports.arm.kernel/277689
->
-> [4] https://lkml.org/lkml/2015/7/21/441a
->
-> [5] https://git.collabora.com/cgit/user/tomeu/linux.git/log/?h=3Don-d=
-emand-probes-v5
->
-> [6] http://kernelci.org/boot/all/job/collabora/kernel/v4.2-rc5-6548-g=
-632b98c83840/
->
-> [7] http://kernelci.org/boot/all/job/next/kernel/next-20150806/
->
-> Changes in v3:
-> - Only delay platform devices with OF nodes
-> - Set and use device_node.platform_dev instead of reversing the logic=
- to
->   find the platform device that encloses a device node.
-
-I still want this to be a struct device and not a struct
-platform_device and am not convinced it can't be. It can simply be an
-optimization of the existing function:
-
-struct platform_device *of_find_device_by_node(struct device_node *np)
-{
-  if (node->device && node->device->bus =3D=3D &platform_bus_type)
-    return to_platform_device(node->device);
-  return NULL;
-}
+How do we know that these probes occur before the unused clocks and
+regulators are turned off? Just getting lucky (as is deferred probe)?
+Can we do this one level earlier so we have a level left to do things
+after probe.
 
 Rob
 --
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
