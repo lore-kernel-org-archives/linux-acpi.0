@@ -1,73 +1,91 @@
-From: Daniel Borkmann <daniel@iogearbox.net>
-Subject: ACPI, WARNING: CPU: 1 PID: 538 at kernel/sched/core.c:7389 __might_sleep+0x7f/0x90()
-Date: Thu, 06 Aug 2015 11:57:05 +0200
-Message-ID: <55C32F71.9070009@iogearbox.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from www62.your-server.de ([213.133.104.62]:35957 "EHLO
-	www62.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753125AbbHFJ5H (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Aug 2015 05:57:07 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
+Subject: [PATCH V10 0/5] map GHES memory region according to EFI memory map
+Date: Thu,  6 Aug 2015 06:40:29 -0700
+Message-ID: <1438868434-28736-1-git-send-email-zjzhang@codeaurora.org>
+Return-path: <linux-arm-msm-owner@vger.kernel.org>
+Sender: linux-arm-msm-owner@vger.kernel.org
+To: Matt Fleming <matt.fleming@intel.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, tony.luck@gmail.com, ard.biesheuvel@linaro.org, fu.wei@linaro.org, al.stone@linaro.org, bp@alien8.de, rjw@rjwysocki.net, lenb@kernel.org, ying.huang@intel.com, catalin.marinas@arm.com, will.deacon@arm.com, leif.lindholm@linaro.org, hanjun.guo@linaro.org
+Cc: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, linux-efi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-msm@vger.kernel.org, linaro-acpi@lists.linaro.org, vgandhi@codeaurora.org, timur@codeaurora.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: rjw@rjwysocki.net
 
-This one seems to trigger during booting (I'm using net.git tree).
-Not sure if that is fixed already, if it is, sorry for the noise ...
+From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
 
-[...]
-[   27.483399] EXT4-fs (dm-1): re-mounted. Opts: (null)
-[   27.970316] systemd-udevd[528]: starting version 208
-[   29.250980] ACPI: SBS HC: EC = 0xffff880263f99a40, offset = 0x20, query_bit = 0x10
-[   29.468909] ------------[ cut here ]------------
-[   29.468920] WARNING: CPU: 1 PID: 538 at kernel/sched/core.c:7389 __might_sleep+0x7f/0x90()
-[   29.468926] do not call blocking ops when !TASK_RUNNING; state=2 set at [<ffffffff810ed7b3>] prepare_to_wait_event+0x63/0x100
-[   29.468929] Modules linked in: sbs(+) sbshc apple_bl nfsd auth_rpcgss nfs_acl lockd grace sunrpc i915 i2c_algo_bit drm_kms_helper drm i2c_core video
-[   29.468954] CPU: 1 PID: 538 Comm: systemd-udevd Not tainted 4.2.0-rc4+ #115
-[   29.468956] Hardware name: Apple Inc. MacBookAir5,1/Mac-66F35F19FE2A0D05, BIOS MBA51.88Z.00EF.B02.1211271028 11/27/2012
-[   29.468959]  ffffffff81c53c73 ffff88008203f848 ffffffff817ef504 0000000000000000
-[   29.468965]  ffff88008203f898 ffff88008203f888 ffffffff8109e11a 0000000000000001
-[   29.468970]  ffffffff81c54cd4 0000000000000268 0000000000000000 ffff88025b973580
-[   29.468975] Call Trace:
-[   29.468981]  [<ffffffff817ef504>] dump_stack+0x4c/0x65
-[   29.468985]  [<ffffffff8109e11a>] warn_slowpath_common+0x8a/0xc0
-[   29.468989]  [<ffffffff8109e196>] warn_slowpath_fmt+0x46/0x50
-[   29.468993]  [<ffffffff810ed7b3>] ? prepare_to_wait_event+0x63/0x100
-[   29.468996]  [<ffffffff810ed7b3>] ? prepare_to_wait_event+0x63/0x100
-[   29.469000]  [<ffffffff810ca77f>] __might_sleep+0x7f/0x90
-[   29.469005]  [<ffffffff817f55c8>] mutex_lock_nested+0x38/0x3d0
-[   29.469010]  [<ffffffff810f60cd>] ? trace_hardirqs_on+0xd/0x10
-[   29.469015]  [<ffffffff81471160>] acpi_ec_transaction+0x74/0x335
-[   29.469019]  [<ffffffff8147146e>] acpi_ec_read+0x4d/0x59
-[   29.469024]  [<ffffffff814714a7>] ec_read+0x2d/0x45
-[   29.469027]  [<ffffffff810ed7e5>] ? prepare_to_wait_event+0x95/0x100
-[   29.469032]  [<ffffffffa02272a4>] smb_check_done+0x22/0x32 [sbshc]
-[   29.469037]  [<ffffffffa0227464>] acpi_smbus_transaction+0x1b0/0x28b [sbshc]
-[   29.469041]  [<ffffffff810ed850>] ? prepare_to_wait_event+0x100/0x100
-[   29.469045]  [<ffffffffa022755a>] acpi_smbus_read+0x1b/0x1d [sbshc]
-[   29.469050]  [<ffffffffa0295041>] acpi_ac_get_present+0x2d/0x62 [sbs]
-[   29.469055]  [<ffffffffa0295640>] acpi_sbs_add+0xb3/0x1f8 [sbs]
-[   29.469059]  [<ffffffff8146c6a6>] acpi_device_probe+0x4b/0xf9
-[   29.469064]  [<ffffffff815161df>] driver_probe_device+0x1ef/0x440
-[   29.469068]  [<ffffffff815164c4>] __driver_attach+0x94/0xa0
-[   29.469072]  [<ffffffff81516430>] ? driver_probe_device+0x440/0x440
-[   29.469077]  [<ffffffff81513f44>] bus_for_each_dev+0x64/0xa0
-[   29.469080]  [<ffffffff81515b8e>] driver_attach+0x1e/0x20
-[   29.469085]  [<ffffffff815156d3>] bus_add_driver+0x1d3/0x290
-[   29.469088]  [<ffffffffa029a000>] ? 0xffffffffa029a000
-[   29.469091]  [<ffffffff815174f0>] driver_register+0x60/0xe0
-[   29.469096]  [<ffffffff8146ce41>] acpi_bus_register_driver+0x3b/0x43
-[   29.469100]  [<ffffffffa029a019>] acpi_sbs_init+0x19/0x1000 [sbs]
-[   29.469105]  [<ffffffff8100211d>] do_one_initcall+0xad/0x1e0
-[   29.469109]  [<ffffffff817eac38>] ? do_init_module+0x28/0x1ec
-[   29.469114]  [<ffffffff817eac71>] do_init_module+0x61/0x1ec
-[   29.469118]  [<ffffffff81140453>] load_module+0x1e23/0x27d0
-[   29.469122]  [<ffffffff8113bf50>] ? m_show+0x190/0x190
-[   29.469128]  [<ffffffff81141000>] SyS_finit_module+0x80/0xb0
-[   29.469133]  [<ffffffff817f9f6e>] entry_SYSCALL_64_fastpath+0x12/0x76
-[   29.469136] ---[ end trace 316ff42163c9d52b ]---
-[   29.499775] random: nonblocking pool is initialized
-[...]
+On a platform with APEI (ACPI Platform Error Interface) enabled, firmware
+updates a memory region with hardware error record using nocache
+attribute. When OS reads the region, since it maps the region with
+cacahed attribute even though EFI memory map defines this region as
+uncached, OS gets stale data and errorneously reports there is no new
+HW error.
+
+When ghes driver maps the memory region, it uses the cache attribute
+according to EFI memory map, if EFI memory map feature is enabled
+at runtime.
+
+Since both arch/x86 and arch/ia64 implemented architecture agnostic EFI
+memory map attribue lookup function efi_memattributes(), the code is
+moved from arch/x86 into EFI subsystem and is declared as __weak; archs
+other than ia64 should not override the default implementation.
+
+V10:
+1. Fixed compilation issue on x86.
+V9:
+1. Rebased to arm64-upstream-14543 of arm64/master.
+2. Match strict MM type in arch_apei_get_mem_attribute().
+V8:
+1. For x86, always return PAGE_KERNEL for arch_apei_get_mem_attribute().
+   The rational is explained in comment.
+2. Rebased to arm64-upstream-14201 of arm64/master,
+   next-20150724 of linux-next/master.
+V7:
+1. Added PROT_DEVICE_nGnRnE and PROT_NORMAL_WT to support all
+   possible UEFI memory types for arm64.
+V6:
+1. Implemented arch_apei_get_mem_attributes() for arm64 as inline
+   function.
+2. Rebased to efi-next-14364 of efi/next, pm+acpi-4.2-rc3 of
+   linux-pm/master, arm64-upstream-13521 of arm64/master,
+   next-20150720 of linux-next/master.
+V5:
+1. Rebased to next-20150713 of linux-next/master, efi-next-14359 of
+   efi/next, pm+acpi-4.2-rc2 of linux-pm/master,
+   arm64-fixes-1215 of arm64/master.
+2. Added comment for efi_mem_attributes(), explained why it is marked
+   as __weak at the function definition site.
+V4:
+1. Introduced arch_apei_get_mem_attributes() to allow arch specific
+   implementation of getting pgprot_t appropriate for a physical
+   address.
+2. Implemented arch_apei_get_mem_attributes() for x86 and for arm64.
+V3:
+1. Rebased to v4.1-rc7.
+2. Moved efi_mem_attributes() from arch/x86 to drivers/firmware/efi
+   and declared it as __weak.
+3. Introduced ARCH_APEI_PAGE_KERNEL_UC to allow arch specific page
+   protection type for UC.
+4. Removed efi_ioremap(). It can not be used for GHES memory region
+   mapping purpose since ioremap can not be used in atomic context.
+V2:
+1. Rebased to v4.1-rc5.
+2. Split removal of efi_mem_attributes() and creation of efi_ioremap()
+   into two patches.
+
+Jonathan (Zhixiong) Zhang (5):
+  efi: x86: rearrange efi_mem_attributes()
+  x86: acpi: implement arch_apei_get_mem_attributes()
+  arm64: mm: add PROT_DEVICE_nGnRnE and PROT_NORMAL_WT
+  arm64: apei: implement arch_apei_get_mem_attributes()
+  acpi, apei: use appropriate pgprot_t to map GHES memory
+
+ arch/arm64/include/asm/acpi.h    | 27 +++++++++++++++++++++++++++
+ arch/arm64/include/asm/memory.h  |  1 +
+ arch/arm64/include/asm/pgtable.h |  2 ++
+ arch/arm64/mm/proc.S             |  4 +++-
+ arch/x86/include/asm/acpi.h      | 24 ++++++++++++++++++++++++
+ arch/x86/platform/efi/efi.c      | 18 ------------------
+ drivers/acpi/apei/ghes.c         |  6 ++++--
+ drivers/firmware/efi/efi.c       | 31 +++++++++++++++++++++++++++++++
+ 8 files changed, 92 insertions(+), 21 deletions(-)
+
+-- 
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project
