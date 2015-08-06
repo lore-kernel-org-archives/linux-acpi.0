@@ -1,258 +1,343 @@
 From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH v4 02/10] ACPI / irqchip: Add self-probe infrastructure
- to initialize IRQ controller
-Date: Thu, 06 Aug 2015 17:29:17 +0100
-Message-ID: <55C38B5D.9090407@arm.com>
-References: <1438164539-29256-1-git-send-email-hanjun.guo@linaro.org> <1438164539-29256-3-git-send-email-hanjun.guo@linaro.org> <55C0AFA2.8050704@arm.com> <55C20E9A.7000906@linaro.org>
+Subject: Re: [PATCH v4 06/10] irqchip / GICv3: Add ACPI support for GICv3+
+ initialization
+Date: Thu, 06 Aug 2015 17:42:01 +0100
+Message-ID: <55C38E59.9090802@arm.com>
+References: <1438164539-29256-1-git-send-email-hanjun.guo@linaro.org> <1438164539-29256-7-git-send-email-hanjun.guo@linaro.org> <55C0BB5E.2080706@arm.com> <55C21709.3070907@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:39272 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752881AbbHFQ3X (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 6 Aug 2015 12:29:23 -0400
-In-Reply-To: <55C20E9A.7000906@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <55C21709.3070907@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Hanjun Guo <hanjun.guo@linaro.org>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, Timur Tabi <timur@codeaurora.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Mark Brown <broonie@kernel.org>, Wei Huang <wei@redhat.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
+List-Id: linux-acpi@vger.kernel.org
 
-On 05/08/15 14:24, Hanjun Guo wrote:
-> Hi Marc,
-> 
-> On 08/04/2015 08:27 PM, Marc Zyngier wrote:
+On 05/08/15 15:00, Hanjun Guo wrote:
+> On 08/04/2015 09:17 PM, Marc Zyngier wrote:
 >> On 29/07/15 11:08, Hanjun Guo wrote:
->>> This self-probe infrastructure works in the similar way as OF,
->>> but there is some different in the mechanism:
+>>> From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
 >>>
->>> For DT, the init fn will be called once it finds compatible strings
->>> in DT,  but for ACPI, we init irqchips by static tables, and in
->>> static ACPI tables, there are no compatible strings to indicate
->>> irqchips, but thanks to the GIC version presented in ACPI table,
->>> we can call the corresponding GIC drivers matching the GIC version
->>> with this framework.
+>>> With the refator of gic_of_init(), GICv3/4 can be initialized
+>>> by gic_init_bases() with gic distributor base address and gic
+>>> redistributor region(s).
 >>>
->>> This mechanism can also be used for clock declare and may also works
->>> on x86 for some table parsing too.
+>>> So get the redistributor region base addresses from MADT GIC
+>>> redistributor subtable, and the distributor base address from
+>>> GICD subtable to init GICv3 irqchip in ACPI way.
 >>>
->>> This patch is based on Tomasz Nowicki <tomasz.nowicki@linaro.org>'s
->>> work.
+>>> Note: GIC redistributor base address may also be provided in
+>>> GICC structures on systems supporting GICv3 and above if the GIC
+>>> Redistributors are not in the always-on power domain, this
+>>> patch didn't implement such feature yet.
 >>>
+>>> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+>>> [hj: Rework this patch and fix multi issues]
 >>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 >>> ---
->>>   drivers/irqchip/irq-gic-acpi.c    | 33 +++++++++++++++++++++++++++++++++
->>>   include/asm-generic/vmlinux.lds.h | 13 +++++++++++++
->>>   include/linux/acpi.h              | 16 ++++++++++++++++
->>>   include/linux/irqchip.h           | 13 +++++++++++++
->>>   include/linux/mod_devicetable.h   |  8 ++++++++
->>>   5 files changed, 83 insertions(+)
+>>>   drivers/irqchip/irq-gic-v3.c | 174 +++++++++++++++++++++++++++++++++++++++++--
+>>>   1 file changed, 169 insertions(+), 5 deletions(-)
 >>>
->>> diff --git a/drivers/irqchip/irq-gic-acpi.c b/drivers/irqchip/irq-gic-acpi.c
->>> index 6537b43..011468d 100644
->>> --- a/drivers/irqchip/irq-gic-acpi.c
->>> +++ b/drivers/irqchip/irq-gic-acpi.c
->>> @@ -107,3 +107,36 @@ static int __init acpi_gic_version_init(void)
->>>
->>>   	return 0;
->>>   }
->>> +
->>> +/*
->>> + * This special acpi_table_id is the sentinel at the end of the
->>> + * acpi_table_id[] array of all irqchips. It is automatically placed at
->>> + * the end of the array by the linker, thanks to being part of a
->>> + * special section.
->>> + */
->>> +static const struct acpi_table_id
->>> +irqchip_acpi_match_end __used __section(__irqchip_acpi_table_end);
->>
->> What is this thing for? Nobody refers to it (I know
->> drivers/irqchip/irqchip.c has a similar thing, but that's not enough a
->> reason...).
-> 
-> If I'm not mistaken, this is for proper section termination, please
-> see below:
-> 
-> /* scan the irqchip table to match the GIC version and its driver */
-> for (id = __irqchip_acpi_table; id->id[0]; id++) {
-> ...
-> }
-> 
-> Then irqchip_acpi_match_end will be the end of the table section,
-> which will terminate the scanning.
-
-Yeah, I got that bit, but I didn't realized this was getting pulled into
-the section. It's probably fine then.
-
->>
->>> +
->>> +extern struct acpi_table_id __irqchip_acpi_table[];
->>> +
->>> +void __init acpi_irqchip_init(void)
->>> +{
->>> +	struct acpi_table_id *id;
->>> +
->>> +	if (acpi_disabled)
->>> +		return;
->>> +
->>> +	if (acpi_gic_version_init())
->>> +		return;
->>
->> This is the only place where we need the version, right? So just get
->> acpi_gic_version_init to return the version number, and loose the global
->> variable.
-> 
-> The global variable is still needed because we need to get the GIC
-> version when scanning the MADT tables, we can't return the table value
-> directly in acpi_table_parse_madt() at now.
-> 
->>
->>> +
->>> +	/* scan the irqchip table to match the GIC version and its driver */
->>> +	for (id = __irqchip_acpi_table; id->id[0]; id++) {
->>> +		if (gic_version == (u8)id->driver_data) {
->>> +			acpi_table_parse(id->id,
->>> +					 (acpi_tbl_table_handler)id->handler);
->>> +			return;
->>> +		}
->>> +	}
->>> +
->>> +	pr_err("No matched driver GIC version %d\n", gic_version);
->>> +}
->>> diff --git a/include/asm-generic/vmlinux.lds.h b/include/asm-generic/vmlinux.lds.h
->>> index 8bd374d..625776c 100644
->>> --- a/include/asm-generic/vmlinux.lds.h
->>> +++ b/include/asm-generic/vmlinux.lds.h
->>> @@ -181,6 +181,18 @@
->>>   #define CPUIDLE_METHOD_OF_TABLES() OF_TABLE(CONFIG_CPU_IDLE, cpuidle_method)
->>>   #define EARLYCON_OF_TABLES()	OF_TABLE(CONFIG_SERIAL_EARLYCON, earlycon)
->>>
->>> +#ifdef CONFIG_ACPI
->>> +#define ACPI_TABLE(name)						\
->>> +	. = ALIGN(8);							\
->>> +	VMLINUX_SYMBOL(__##name##_acpi_table) = .;			\
->>> +	*(__##name##_acpi_table)					\
->>> +	*(__##name##_acpi_table_end)
->>> +
->>> +#define IRQCHIP_ACPI_MATCH_TABLE()	ACPI_TABLE(irqchip)
->>> +#else
->>> +#define IRQCHIP_ACPI_MATCH_TABLE()
->>> +#endif
->>> +
->>>   #define KERNEL_DTB()							\
->>>   	STRUCT_ALIGN();							\
->>>   	VMLINUX_SYMBOL(__dtb_start) = .;				\
->>> @@ -516,6 +528,7 @@
->>>   	CPUIDLE_METHOD_OF_TABLES()					\
->>>   	KERNEL_DTB()							\
->>>   	IRQCHIP_OF_MATCH_TABLE()					\
->>> +	IRQCHIP_ACPI_MATCH_TABLE()					\
->>>   	EARLYCON_TABLE()						\
->>>   	EARLYCON_OF_TABLES()
->>>
->>> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
->>> index 0820cb1..04dd0bb 100644
->>> --- a/include/linux/acpi.h
->>> +++ b/include/linux/acpi.h
->>> @@ -829,4 +829,20 @@ static inline struct acpi_device *acpi_get_next_child(struct device *dev,
->>>
->>>   #endif
->>>
->>> +#ifdef CONFIG_ACPI
->>> +#define ACPI_DECLARE(table, name, table_id, data, fn)			\
->>> +	static const struct acpi_table_id __acpi_table_##name		\
->>> +		__used __section(__##table##_acpi_table)		\
->>> +		 = { .id = table_id,					\
->>> +		     .handler = (void *)fn,				\
->>> +		     .driver_data = data }
->>> +#else
->>> +#define ACPI_DECLARE(table, name, table_id, data, fn)			\
->>> +	static const struct acpi_table_id __acpi_table_##name		\
->>> +		__attribute__((unused))					\
->>> +		 = { .id = table_id,					\
->>> +		     .handler = (void *)fn,				\
->>> +		     .driver_data = data }
->>> +#endif
->>> +
->>>   #endif	/*_LINUX_ACPI_H*/
->>> diff --git a/include/linux/irqchip.h b/include/linux/irqchip.h
->>> index 6388873..6b66d3e 100644
->>> --- a/include/linux/irqchip.h
->>> +++ b/include/linux/irqchip.h
->>> @@ -11,6 +11,7 @@
->>>   #ifndef _LINUX_IRQCHIP_H
->>>   #define _LINUX_IRQCHIP_H
+>>> diff --git a/drivers/irqchip/irq-gic-v3.c b/drivers/irqchip/irq-gic-v3.c
+>>> index c0b96c6..ebc5604 100644
+>>> --- a/drivers/irqchip/irq-gic-v3.c
+>>> +++ b/drivers/irqchip/irq-gic-v3.c
+>>> @@ -15,6 +15,7 @@
+>>>    * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+>>>    */
 >>>
 >>> +#include <linux/acpi.h>
->>>   #include <linux/of.h>
+>>>   #include <linux/cpu.h>
+>>>   #include <linux/cpu_pm.h>
+>>>   #include <linux/delay.h>
+>>> @@ -25,6 +26,7 @@
+>>>   #include <linux/percpu.h>
+>>>   #include <linux/slab.h>
 >>>
->>>   /*
->>> @@ -25,6 +26,18 @@
->>>    */
->>>   #define IRQCHIP_DECLARE(name, compat, fn) OF_DECLARE_2(irqchip, name, compat, fn)
+>>> +#include <linux/irqchip/arm-gic-acpi.h>
+>>>   #include <linux/irqchip/arm-gic-v3.h>
 >>>
->>> +/*
->>> + * This macro must be used by the different ARM GIC drivers to declare
->>> + * the association between their version and their initialization function.
->>> + *
->>> + * @name: name that must be unique accross all IRQCHIP_ACPI_DECLARE of the
->>> + * same file.
->>> + * @gic_version: version of GIC
->>> + * @fn: initialization function
->>> + */
->>> +#define IRQCHIP_ACPI_DECLARE(name, gic_version, fn)	\
->>> +	ACPI_DECLARE(irqchip, name, ACPI_SIG_MADT, gic_version, fn)
+>>>   #include <asm/cputype.h>
+>>> @@ -802,7 +804,8 @@ static int __init gic_init_bases(void __iomem *dist_base,
+>>>      set_handle_irq(gic_handle_irq);
+>>>
+>>>      if (IS_ENABLED(CONFIG_ARM_GIC_V3_ITS) && gic_dist_supports_lpis())
+>>> -            its_init(domain_token, &gic_data.rdists, gic_data.domain);
+>>> +            its_init(irq_domain_token_to_of_node(domain_token),
+>>> +                     &gic_data.rdists, gic_data.domain);
 >>
->> I don't think this is the right approach. The MADT table has a *huge*
->> number of possible subtables, and none of them is matched by the GIC
->> version.
+>> This doesn't make much sense. The first parameter to its_init is indeed
+>> supposed to be an of_node, but what is the point of calling its_init if
+>> you *know* you don't have the necessary topological information to parse
+>> the firmware tables?
 >>
->> What you *really* want is MADT -> GICD -> GIC type. Your ACPI_DECLARE
->> macro doesn't reflect this at all (you've basically cloned OF, and
->> that's clearly not good enough).
->>
->> This probably require an intermediate matching function, ending up with
->> something like:
->>
->> #define IRQCHIP_ACPI_DECLARE(name, subtable, version, fn) \
->> 	ACPI_DECLARE(irqchip, name, ACPI_SIG_MADT, match_madt_subtable,\
->> 		subtable, version, fn)
->>
->> where match_madt_subtable is going to check that a given subtable is
->> really suitable for a given irqchip. None of that should be GIC
->> specific, really.
+>> I don't see *any* code that is going to parse the ITS table in this
+>> series, so please don't call its_init passing a NULL pointer to it. This
+>> is just gross.
 > 
-> I'm little confused here, in the previous patch, the gic version is
-> stored, so we only need to match the GIC driver with the gic version.
+> OK, the ITS ACPI code is in later patch which combined with IORT. How
+> about moving it to the GIC of init code temporary?
+
+Just don't call its_init if irq_domain_token_to_of_node(domain_token) is
+NULL. But don't call it with a NULL parameter.
+
+>>
+>>>
+>>>      gic_smp_init();
+>>>      gic_dist_init();
+>>> @@ -818,6 +821,16 @@ out_free:
+>>>      return err;
+>>>   }
+>>>
+>>> +static int __init detect_distributor(void __iomem *dist_base)
+>>
+>> We do have a naming convention in this file. All functions start with gic_.
+>>
+>>> +{
+>>> +    u32 reg = readl_relaxed(dist_base + GICD_PIDR2) & GIC_PIDR2_ARCH_MASK;
+>>> +
+>>> +    if (reg != GIC_PIDR2_ARCH_GICv3 && reg != GIC_PIDR2_ARCH_GICv4)
+>>> +            return -ENODEV;
+>>> +
+>>> +    return 0;
+>>> +}
+>>
+>> This function doesn't detect anything, it validates that we have
+>> something sensible. Please rename it to gic_validate_dist_version, or
+>> something similar.
 > 
-> In the GIC dirver itself, we will match the madt subtable to find
-> information we need to init the GIC, so I'm not sure why
-> match_madt_subtable in the ACPI_DECLARE, I think I missed something,
-> please correct me.
+> Ok.
+> 
+>>
+>>> +
+>>>   #ifdef CONFIG_OF
+>>>   static int __init gic_of_init(struct device_node *node, struct device_node *parent)
+>>>   {
+>>> @@ -825,7 +838,6 @@ static int __init gic_of_init(struct device_node *node, struct device_node *pare
+>>>      struct redist_region *rdist_regs;
+>>>      u64 redist_stride;
+>>>      u32 nr_redist_regions;
+>>> -    u32 reg;
+>>>      int err, i;
+>>>
+>>>      dist_base = of_iomap(node, 0);
+>>> @@ -835,11 +847,10 @@ static int __init gic_of_init(struct device_node *node, struct device_node *pare
+>>>              return -ENXIO;
+>>>      }
+>>>
+>>> -    reg = readl_relaxed(dist_base + GICD_PIDR2) & GIC_PIDR2_ARCH_MASK;
+>>> -    if (reg != GIC_PIDR2_ARCH_GICv3 && reg != GIC_PIDR2_ARCH_GICv4) {
+>>> +    err = detect_distributor(dist_base);
+>>> +    if (err) {
+>>>              pr_err("%s: no distributor detected, giving up\n",
+>>>                      node->full_name);
+>>> -            err = -ENODEV;
+>>>              goto out_unmap_dist;
+>>>      }
+>>>
+>>> @@ -887,3 +898,156 @@ out_unmap_dist:
+>>>
+>>>   IRQCHIP_DECLARE(gic_v3, "arm,gic-v3", gic_of_init);
+>>>   #endif
+>>> +
+>>> +#ifdef CONFIG_ACPI
+>>> +static struct redist_region *redist_regs __initdata;
+>>> +static u32 nr_redist_regions __initdata;
+>>> +static phys_addr_t dist_phys_base __initdata;
+>>> +
+>>> +static int __init
+>>> +gic_acpi_register_redist(u64 phys_base, u64 size)
+>>
+>> A physical address must use phys_addr_t.
+> 
+> OK.
+> 
+>>
+>>> +{
+>>> +    struct redist_region *redist_regs_new;
+>>> +    void __iomem *redist_base;
+>>> +
+>>> +    redist_regs_new = krealloc(redist_regs,
+>>> +                               sizeof(*redist_regs) * (nr_redist_regions + 1),
+>>> +                               GFP_KERNEL);
+>>
+>> NAK. If you have multiple regions, you count them, you allocate the
+>> right number of regions. This will be far more efficient than doing this
+>> realloc dance. It is not like we're not parsing the tables a zillion
+>> times already. Doing it one more time won't hurt.
+> 
+> Agreed, will update in next version.
+> 
+>>
+>>> +    if (!redist_regs_new) {
+>>> +            pr_err("Couldn't allocate resource for GICR region\n");
+>>> +            return -ENOMEM;
+>>> +    }
+>>> +
+>>> +    redist_regs = redist_regs_new;
+>>> +
+>>> +    redist_base = ioremap(phys_base, size);
+>>> +    if (!redist_base) {
+>>> +            pr_err("Couldn't map GICR region @%llx\n", phys_base);
+>>> +            return -ENOMEM;
+>>> +    }
+>>> +
+>>> +    redist_regs[nr_redist_regions].phys_base = phys_base;
+>>> +    redist_regs[nr_redist_regions].redist_base = redist_base;
+>>> +    nr_redist_regions++;
+>>> +    return 0;
+>>> +}
+>>> +
+>>> +static int __init
+>>> +gic_acpi_parse_madt_redist(struct acpi_subtable_header *header,
+>>> +                    const unsigned long end)
+>>> +{
+>>> +    struct acpi_madt_generic_redistributor *redist;
+>>> +
+>>> +    if (BAD_MADT_ENTRY(header, end))
+>>> +            return -EINVAL;
+>>> +
+>>> +    redist = (struct acpi_madt_generic_redistributor *)header;
+>>> +    if (!redist->base_address)
+>>> +            return -EINVAL;
+>>> +
+>>> +    return gic_acpi_register_redist(redist->base_address, redist->length);
+>>> +}
+>>> +
+>>> +static int __init
+>>> +gic_acpi_parse_madt_distributor(struct acpi_subtable_header *header,
+>>> +                            const unsigned long end)
+>>> +{
+>>
+>> How many versions of gic_acpi_parse_madt_distributor are we going to
+>> get? Why isn't the ACPI parsing in a common file? Why do I have to read
+>> the same code on and on until my eyes bleed?
+> 
+> I will try to move it to common file irq-gic-acpi.c.
+> 
+>>
+>>> +    struct acpi_madt_generic_distributor *dist;
+>>> +
+>>> +    dist = (struct acpi_madt_generic_distributor *)header;
+>>> +
+>>> +    if (BAD_MADT_ENTRY(dist, end))
+>>> +            return -EINVAL;
+>>> +
+>>> +    dist_phys_base = dist->base_address;
+>>> +    return 0;
+>>> +}
+>>> +
+>>> +static int gic_acpi_gsi_desc_populate(struct acpi_gsi_descriptor *data,
+>>> +                                  u32 gsi, unsigned int irq_type)
+>>> +{
+>>> +    /*
+>>> +     * Encode GSI and triggering information the way the GIC likes
+>>> +     * them.
+>>> +     */
+>>> +    if (WARN_ON(gsi < 16))
+>>> +            return -EINVAL;
+>>> +
+>>> +    if (gsi >= 32) {
+>>> +            data->param[0] = 0;             /* SPI */
+>>> +            data->param[1] = gsi - 32;
+>>> +            data->param[2] = irq_type;
+>>> +    } else {
+>>> +            data->param[0] = 1;             /* PPI */
+>>> +            data->param[1] = gsi - 16;
+>>> +            data->param[2] = 0xff << 4 | irq_type;
+>>> +    }
+>>> +
+>>> +    data->param_count = 3;
+>>> +
+>>> +    return 0;
+>>> +}
+>>> +
+>>> +static int __init
+>>> +gic_acpi_init(struct acpi_table_header *table)
+>>> +{
+>>> +    int count, i, err = 0;
+>>> +    void __iomem *dist_base;
+>>> +
+>>> +    /* Get distributor base address */
+>>> +    count = acpi_parse_entries(ACPI_SIG_MADT,
+>>> +                            sizeof(struct acpi_table_madt),
+>>> +                            gic_acpi_parse_madt_distributor, table,
+>>> +                            ACPI_MADT_TYPE_GENERIC_DISTRIBUTOR, 0);
+>>> +    if (count <= 0) {
+>>> +            pr_err("No valid GICD entry exist\n");
+>>> +            return -EINVAL;
+>>> +    } else if (count > 1) {
+>>> +            pr_err("More than one GICD entry detected\n");
+>>> +            return -EINVAL;
+>>> +    }
+>>> +
+>>> +    dist_base = ioremap(dist_phys_base, ACPI_GICV3_DIST_MEM_SIZE);
+>>> +    if (!dist_base) {
+>>> +            pr_err("Unable to map GICD registers\n");
+>>> +            return -ENOMEM;
+>>> +    }
+>>> +
+>>> +    err = detect_distributor(dist_base);
+>>> +    if (err) {
+>>> +            pr_err("No distributor detected at @%p, giving up", dist_base);
+>>> +            goto out_dist_unmap;
+>>> +    }
+>>> +
+>>> +    /* Collect redistributor base addresses */
+>>> +    count = acpi_parse_entries(ACPI_SIG_MADT,
+>>> +                    sizeof(struct acpi_table_madt),
+>>> +                    gic_acpi_parse_madt_redist, table,
+>>> +                    ACPI_MADT_TYPE_GENERIC_REDISTRIBUTOR, 0);
+>>> +    if (count <= 0) {
+>>> +            pr_info("No valid GICR entries exist\n");
+>>> +            err = -EINVAL;
+>>> +            goto out_redist_unmap;
+>>> +    }
+>>> +
+>>> +    err = gic_init_bases(dist_base, redist_regs, nr_redist_regions, 0,
+>>> +                         (void *)ACPI_IRQ_MODEL_GIC);
+>>
+>> There is no other global identifier for GICv3? It feels a bit weird to
+>> use the same ID as GICv2 (though probably not harmful as you can't have
+>> both as the same time). What are you planning to use for the ITS then?
+>> You must make sure you have a global namespace.
+> 
+> I will use the ITS physical base address as the token for ITS, maybe I
+> can use the GICD physical base address here instead?
 
-What you're missing is that it should be possible to use
-IRQCHIP_ACPI_DECLARE with something that is *not* a GIC. It shouldn't be
-GIC specific in any way.
+That should be fine as long as the physical address cannot be
+interpreted as a kernel address. Which is still a bit dodgy. I'd be more
+happy if you had a proper namespace.
 
-You must have a generic way of describing a match in a table by naming
-one of its structures, and possibly a type value inside this structures.
+>>
+>>> +    if (err)
+>>> +            goto out_redist_unmap;
+>>> +
+>>> +    acpi_set_irq_model(ACPI_IRQ_MODEL_GIC, ACPI_IRQ_MODEL_GIC,
+>>> +                       gic_acpi_gsi_desc_populate);
+>>> +    return 0;
+>>> +
+>>> +out_redist_unmap:
+>>> +    for (i = 0; i < nr_redist_regions; i++)
+>>> +            if (redist_regs[i].redist_base)
+>>> +                    iounmap(redist_regs[i].redist_base);
+>>> +    kfree(redist_regs);
+>>> +out_dist_unmap:
+>>> +    iounmap(dist_base);
+>>> +    return err;
+>>> +}
+>>> +IRQCHIP_ACPI_DECLARE(gic_v3, ACPI_MADT_GIC_VERSION_V3, gic_acpi_init);
+>>> +IRQCHIP_ACPI_DECLARE(gic_v4, ACPI_MADT_GIC_VERSION_V4, gic_acpi_init);
+>>
+>> As mentioned before, this doesn't work.
+> 
+> hmm, I think we need more discussion for this one, but we need to match
+> V4 for GICv3 drivers, and everything will be the same in the dirver
+> as I said before.
 
-I want to be able to write something like:
-
-IRQCHIP_ACPI_DECLARE(ioapic, ACPI_IOAPIC, 0, ioacpi_acpi_probe);
-
-where ACPI_IOAPIC is 1 (the type for the IOAPIC structure in the MADT
-table).
-
-For GICv3, I want to be able to write:
-
-IRQCHIP_ACPI_DECLARE(gicv3, ACPI_GICD, ACPI_GICD_GICV3, \
-                     gicv3_acpi_probe);
-
-where ACPI_GICD is 0xC, and ACPI_GICD_GICV3 is 3.
-
-Do you see what I'm aiming for? We follow the spec, strictly the spec,
-but all the spec. No shortcut that only ends up matching the GIC in MADT.
+And as I said before, you don't need to distinguish v3 from v4 in the
+ACPI code. Matching GICv3 is enough.
 
 Thanks,
 
