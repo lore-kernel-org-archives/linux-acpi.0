@@ -1,20 +1,27 @@
-From: Mark Rutland <mark.rutland@arm.com>
+From: Graeme Gregory <gg@slimlogic.co.uk>
 Subject: Re: [PATCH 2/2] net, thunder, bgx: Add support for ACPI binding.
-Date: Fri, 7 Aug 2015 15:01:06 +0100
-Message-ID: <20150807140106.GE7646@leverpostej>
+Date: Fri, 7 Aug 2015 15:54:14 +0100
+Message-ID: <20150807145414.GA5468@xora-haswell.xora.org.uk>
 References: <1438907590-29649-1-git-send-email-ddaney.cavm@gmail.com>
  <1438907590-29649-3-git-send-email-ddaney.cavm@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from out5-smtp.messagingengine.com ([66.111.4.29]:52643 "EHLO
+	out5-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932143AbbHGOyS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 7 Aug 2015 10:54:18 -0400
+Received: from compute1.internal (compute1.nyi.internal [10.202.2.41])
+	by mailout.nyi.internal (Postfix) with ESMTP id A62162082D
+	for <linux-acpi@vger.kernel.org>; Fri,  7 Aug 2015 10:54:17 -0400 (EDT)
 Content-Disposition: inline
 In-Reply-To: <1438907590-29649-3-git-send-email-ddaney.cavm@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: David Daney <ddaney.cavm@gmail.com>, grant.likely@linaro.org, rob.herring@linaro.org
-Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mips@linux-mips.org" <linux-mips@linux-mips.org>, David Daney <david.daney@cavium.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Robert Richter <rrichter@cavium.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Sunil Goutham <sgoutham@cavium.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, deviectree@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: David Daney <ddaney.cavm@gmail.com>
+Cc: netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, linux-kernel@vger.kernel.org, linux-mips@linux-mips.org, Robert Richter <rrichter@cavium.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Sunil Goutham <sgoutham@cavium.com>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, David Daney <david.daney@cavium.com>
 
-On Fri, Aug 07, 2015 at 01:33:10AM +0100, David Daney wrote:
+On Thu, Aug 06, 2015 at 05:33:10PM -0700, David Daney wrote:
 > From: David Daney <david.daney@cavium.com>
 > 
 > Find out which PHYs belong to which BGX instance in the ACPI way.
@@ -80,12 +87,45 @@ On Fri, Aug 07, 2015 at 01:33:10AM +0100, David Daney wrote:
 > +	"local-mac-address",
 > +	"address",
 > +};
+> +
+> +static int acpi_get_mac_address(struct acpi_device *adev, u8 *dst)
+> +{
+> +	const union acpi_object *prop;
+> +	u64 mac_val;
+> +	u8 mac[ETH_ALEN];
+> +	int i, j;
+> +	int ret;
+> +
+> +	for (i = 0; i < ARRAY_SIZE(addr_propnames); i++) {
+> +		ret = acpi_dev_get_property(adev, addr_propnames[i],
+> +					    ACPI_TYPE_INTEGER, &prop);
 
-If these are going to be generally necessary, then we should get them
-adopted as standardised _DSD properties (ideally just one of them).
+Shouldn't this be trying to use device_property_read_* API and making
+the DT/ACPI path the same where possible?
 
-[...]
+Graeme
 
+> +		if (ret)
+> +			continue;
+> +
+> +		mac_val = prop->integer.value;
+> +
+> +		if (mac_val & (~0ULL << 48))
+> +			continue;	/* more than 6 bytes */
+> +
+> +		for (j = 0; j < ARRAY_SIZE(mac); j++)
+> +			mac[j] = (u8)(mac_val >> (8 * j));
+> +		if (!is_valid_ether_addr(mac))
+> +			continue;
+> +
+> +		memcpy(dst, mac, ETH_ALEN);
+> +
+> +		return 0;
+> +	}
+> +
+> +	return ret ? ret : -EINVAL;
+> +}
+> +
 > +static acpi_status bgx_acpi_register_phy(acpi_handle handle,
 > +					 u32 lvl, void *context, void **rv)
 > +{
@@ -110,9 +150,79 @@ adopted as standardised _DSD properties (ideally just one of them).
 > +
 > +	if (acpi_dev_get_property(args.adev, "phy-channel", ACPI_TYPE_INTEGER, &prop))
 > +		goto out;
-
-Likewise for any inter-device properties, so that we can actually handle
-them in a generic fashion, and avoid / learn from the mistakes we've
-already handled with DT.
-
-Mark.
+> +
+> +	phy_id = prop->integer.value;
+> +
+> +	phy_dev = bus_find_device(&mdio_bus_type, NULL, (void *)&phy_id,
+> +				  bgx_match_phy_id);
+> +	if (!phy_dev)
+> +		goto out;
+> +
+> +	bgx->lmac[bgx->lmac_count].phydev = to_phy_device(phy_dev);
+> +out:
+> +	bgx->lmac_count++;
+> +	return AE_OK;
+> +}
+> +
+> +static acpi_status bgx_acpi_match_id(acpi_handle handle, u32 lvl,
+> +				     void *context, void **ret_val)
+> +{
+> +	struct acpi_buffer string = { ACPI_ALLOCATE_BUFFER, NULL };
+> +	struct bgx *bgx = context;
+> +	char bgx_sel[5];
+> +
+> +	snprintf(bgx_sel, 5, "BGX%d", bgx->bgx_id);
+> +	if (ACPI_FAILURE(acpi_get_name(handle, ACPI_SINGLE_NAME, &string))) {
+> +		pr_warn("Invalid link device\n");
+> +		return AE_OK;
+> +	}
+> +
+> +	if (strncmp(string.pointer, bgx_sel, 4))
+> +		return AE_OK;
+> +
+> +	acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, 1,
+> +			    bgx_acpi_register_phy, NULL, bgx, NULL);
+> +
+> +	kfree(string.pointer);
+> +	return AE_CTRL_TERMINATE;
+> +}
+> +
+> +static int bgx_init_acpi_phy(struct bgx *bgx)
+> +{
+> +	acpi_get_devices(NULL, bgx_acpi_match_id, bgx, (void **)NULL);
+> +	return 0;
+> +}
+> +
+> +#else
+> +
+> +static int bgx_init_acpi_phy(struct bgx *bgx)
+> +{
+> +	return -ENODEV;
+> +}
+> +
+> +#endif /* CONFIG_ACPI */
+> +
+>  #if IS_ENABLED(CONFIG_OF_MDIO)
+>  
+>  static int bgx_init_of_phy(struct bgx *bgx)
+> @@ -882,7 +1010,12 @@ static int bgx_init_of_phy(struct bgx *bgx)
+>  
+>  static int bgx_init_phy(struct bgx *bgx)
+>  {
+> -	return bgx_init_of_phy(bgx);
+> +	int err = bgx_init_of_phy(bgx);
+> +
+> +	if (err != -ENODEV)
+> +		return err;
+> +
+> +	return bgx_init_acpi_phy(bgx);
+>  }
+>  
+>  static int bgx_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
+> -- 
+> 1.9.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
