@@ -1,76 +1,73 @@
-From: David Daney <ddaney@caviumnetworks.com>
-Subject: Re: [PATCH 2/2] net, thunder, bgx: Add support for ACPI binding.
-Date: Fri, 7 Aug 2015 09:40:41 -0700
-Message-ID: <55C4DF89.9060502@caviumnetworks.com>
-References: <1438907590-29649-1-git-send-email-ddaney.cavm@gmail.com> <1438907590-29649-3-git-send-email-ddaney.cavm@gmail.com> <55C467A0.4020601@linaro.org> <20150807104320.GQ1820@rric.localhost> <55C48DF9.70406@linaro.org> <20150807115622.GS4914@rric.localhost> <55C4A7AC.1080902@linaro.org>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH 0/6] pmem, dax: I/O path enhancements
+Date: Fri, 7 Aug 2015 09:47:03 -0700
+Message-ID: <CAPcyv4gJM1RRp3ShDf239g_gkcmkz8dN_f0GBOPeXc65YH4+EQ@mail.gmail.com>
+References: <1438883000-9011-1-git-send-email-ross.zwisler@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bl2on0063.outbound.protection.outlook.com ([65.55.169.63]:28551
-	"EHLO na01-bl2-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753731AbbHGQlW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 7 Aug 2015 12:41:22 -0400
-In-Reply-To: <55C4A7AC.1080902@linaro.org>
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:38777 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932388AbbHGQrE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 7 Aug 2015 12:47:04 -0400
+Received: by wibxm9 with SMTP id xm9so73124431wib.1
+        for <linux-acpi@vger.kernel.org>; Fri, 07 Aug 2015 09:47:03 -0700 (PDT)
+In-Reply-To: <1438883000-9011-1-git-send-email-ross.zwisler@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Cc: Robert Richter <robert.richter@caviumnetworks.com>, David Daney <ddaney.cavm@gmail.com>, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, linux-mips@linux-mips.org, Sunil Goutham <sgoutham@cavium.com>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, David Daney <david.daney@cavium.com>
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Borislav Petkov <bp@suse.de>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>, Juergen Gross <jgross@suse.com>, Len Brown <lenb@kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, "Luis R. Rodriguez" <mcgrof@suse.com>, Matthew Wilcox <willy@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Toshi Kani <toshi.kani@hp.com>, X86 ML <x86@kernel.org>
 
-On 08/07/2015 05:42 AM, Tomasz Nowicki wrote:
-> On 07.08.2015 13:56, Robert Richter wrote:
->> On 07.08.15 12:52:41, Tomasz Nowicki wrote:
-[...]
-
->>>>
->>>> I would not pollute bgx_probe() with acpi and dt specifics, and instead
->>>> keep bgx_init_phy(). The typical design pattern for this is:
->>>>
->>>> static int bgx_init_phy(struct bgx *bgx)
->>>> {
->>>> #ifdef CONFIG_ACPI
->>>>          if (!acpi_disabled)
->>>>                  return bgx_init_acpi_phy(bgx);
->>>> #endif
->>>>          return bgx_init_of_phy(bgx);
->>>> }
->>>>
->>>> This adds acpi runtime detection (acpi=no), does not call dt code in
->>>> case of acpi, and saves the #else for bgx_init_acpi_phy().
->>>>
->>>
->>> I am fine with keeping it in bgx_init_phy(), however we can drop there
->>> #ifdefs since both of bgx_init_{acpi,of}_phy calls have empty stub
->>> for !ACPI
->>> and !OF case. Like that:
->>>
->>> static int bgx_init_phy(struct bgx *bgx)
->>> {
->>>
->>>          if (!acpi_disabled)
->>>                  return bgx_init_acpi_phy(bgx);
->>>     else
->>>              return bgx_init_of_phy(bgx);
->>> }
->>
->> As said, keeping it in #ifdefs makes the empty stub function for !acpi
->> obsolete, which makes the code smaller and better readable. This style
->> is common practice in the kernel. Apart from that, the 'else' should
->> be dropped as it is useless.
->>
+On Thu, Aug 6, 2015 at 10:43 AM, Ross Zwisler
+<ross.zwisler@linux.intel.com> wrote:
+> Patch 5 adds support for the "read flush" _DSM flag, allowing us to change the
+> ND BLK aperture mapping from write-combining to write-back via memremap_pmem().
 >
-> I would't say the code is better readable (bgx_init_of_phy has still two
-> stubs) but this is just cosmetic, my point was to use run time detection
-> using acpi_disabled.
+> Patch 6 updates the DAX I/O path so that all operations that store data (I/O
+> writes, zeroing blocks, punching holes, etc.) properly synchronize the stores
+> to media using the PMEM API.  This ensures that the data DAX is writing is
+> durable on media before the operation completes.
 >
+> Patches 1-4 are cleanup patches and additions to the PMEM API that make
+> patches 5 and 6 possible.
+>
+> Regarding the choice to add both flush_cache_pmem() and wb_cache_pmem() to the
+> PMEM API, I had initially implemented flush_cache_pmem() as a generic function
+> flush_io_cache_range() in the spirit of flush_cache_range(), etc., in
+> cacheflush.h.  I eventually moved it into the PMEM API because a) it has a
+> common and consistent use of the __pmem annotation, b) it has a clear fallback
+> method for architectures that don't support it, as opposed to APIs in
+> cacheflush.h which would need to be added individually to all other
+> architectures.  It can be argued that the flush API could apply to other uses
+> beyond PMEM such as flushing cache lines associated with other types of
+> sliding MMIO windows.  At this point I'm inclined to have it as part of the
+> PMEM API, and then take on the effort of making it a general cache flusing API
+> if other users come along.
 
-Thanks Tomasz and Robert for the input.  Because of this, it seems that 
-another version of the patch will be necessary.  In the interests of 
-code clarity and asthetics, we will go with the code without the 
-#ifdefs, and rely on the compiler to optimize away any dead code.
+I'm not convinced.  There are already existing users for invalidating
+a cpu cache and they currently jump through hoops to have cross-arch
+flushing, see drm_clflush_pages().  What the NFIT-BLK driver brings to
+the table is just one more instance where the cpu cache needs to be
+invalidated, and for something so fundamental it is time we had a
+cross arch generic helper.
 
-David Daney
+The cache-writeback case is different.  To date we've only used
+writeback for i/o-incoherent archs.  x86 now for the first time needs
+(potentially) a writeback api specifically for guaranteeing
+persistence.  I say "potentially" because all the cases where we need
+to guarantee persistence could be handled with non-temporal stores.
 
-> Tomasz
-
+The __pmem annotation is a separate issue that we need to tackle.  I
+think Christoph is already on team "__pmem is a mistake", but I think
+we should walk through what carrying it forward would look like.  The
+__pfn_t patches allow for flags to be attached to the pfn(s) returned
+from ->direct_access().  We could add a PFN_PMEM flag and teach
+kmap_atomic_pfn_t() to only operate on !PFN_PMEM pfns.  A new
+"kmap_atomic_pmem()" would be needed to map pfns from the pmem
+driver's ->direct_access() and that would return "void __pmem *".  I
+think this would force DAX to always be "__pmem clean" regardless of
+whether we got the pfns from BRD or PMEM.  It becomes messy when we
+consider carrying __pfn_t in a bio_vec.  But, I think it becomes messy
+in precisely the right way in that drivers that want to setup
+DMA-to-pmem should consciously be handling the __pmem annotation and
+the resulting side effects.
