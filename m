@@ -1,205 +1,187 @@
-From: David Daney <ddaney.cavm@gmail.com>
-Subject: [PATCH 2/2] net, thunder, bgx: Add support for ACPI binding.
-Date: Thu,  6 Aug 2015 17:33:10 -0700
-Message-ID: <1438907590-29649-3-git-send-email-ddaney.cavm@gmail.com>
-References: <1438907590-29649-1-git-send-email-ddaney.cavm@gmail.com>
+From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Subject: Re: [PATCH v3 0/18] On-demand device probing
+Date: Fri, 7 Aug 2015 08:55:45 +0200
+Message-ID: <CAAObsKDAMgsVbzvgofbktKAbdgO+iwdXZwSo8AauTVJdaN3TsA@mail.gmail.com>
+References: <1438870315-18689-1-git-send-email-tomeu.vizoso@collabora.com> <CAL_JsqKq_-TLb_3VRMN_MhjsGnRfpRN1uuEgHE9DAyP3Y3ovhQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1438907590-29649-1-git-send-email-ddaney.cavm@gmail.com>
+In-Reply-To: <CAL_JsqKq_-TLb_3VRMN_MhjsGnRfpRN1uuEgHE9DAyP3Y3ovhQ@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, linux-kernel@vger.kernel.org
-Cc: linux-mips@linux-mips.org, Robert Richter <rrichter@cavium.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Sunil Goutham <sgoutham@cavium.com>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, David Daney <david.daney@cavium.com>
+To: Rob Herring <robherring2@gmail.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>
 List-Id: linux-acpi@vger.kernel.org
 
-From: David Daney <david.daney@cavium.com>
+On 6 August 2015 at 22:14, Rob Herring <robherring2@gmail.com> wrote:
+> On Thu, Aug 6, 2015 at 9:11 AM, Tomeu Vizoso <tomeu.vizoso@collabora.=
+com> wrote:
+>> Hello,
+>>
+>> I have a problem with the panel on my Tegra Chromebook taking longer
+>> than expected to be ready during boot (St=C3=A9phane Marchesin repor=
+ted what
+>> is basically the same issue in [0]), and have looked into ordered
+>> probing as a better way of solving this than moving nodes around in =
+the
+>> DT or playing with initcall levels and linking order.
+>>
+>> While reading the thread [1] that Alexander Holler started with his
+>> series to make probing order deterministic, it occurred to me that i=
+t
+>> should be possible to achieve the same by probing devices as they ar=
+e
+>> referenced by other devices.
+>>
+>> This basically reuses the information that is already implicit in th=
+e
+>> probe() implementations, saving us from refactoring existing drivers=
+ or
+>> adding information to DTBs.
+>>
+>> During review of v1 of this series Linus Walleij suggested that it
+>> should be the device driver core to make sure that dependencies are
+>> ready before probing a device. I gave this idea a try [2] but Mark B=
+rown
+>> pointed out to the logic duplication between the resource acquisitio=
+n
+>> and dependency discovery code paths (though I think it's fairly mino=
+r).
+>>
+>> To address that code duplication I experimented with Arnd's devm_pro=
+be
+>> [3] concept of having drivers declare their dependencies instead of
+>> acquiring them during probe, and while it worked [4], I don't think =
+we
+>> end up winning anything when compared to just probing devices on-dem=
+and
+>> from resource getters.
+>>
+>> One remaining objection is to the "sprinkling" of calls to
+>> fwnode_ensure_device() in the resource getters of each subsystem, bu=
+t I
+>> think it's the right thing to do given that the storage of resources=
+ is
+>> currently subsystem-specific.
+>>
+>> We could avoid the above by moving resource storage into the core, b=
+ut I
+>> don't think there's a compelling case for that.
+>>
+>> I have tested this on boards with Tegra, iMX.6, Exynos and OMAP SoCs=
+,
+>> and these patches were enough to eliminate all the deferred probes
+>> (except one in PandaBoard because omap_dma_system doesn't have a
+>> firmware node as of yet).
+>>
+>> Have submitted a branch [5] with these patches to kernelci.org and I=
+'m
+>> currently trying to fix all regressions, usually due to code assumin=
+g
+>> that devices will be probed in a specific order. Current results [6]=
+ are
+>> 348 passes, 30 fails and 42 unknowns (linux-next [7] is currently
+>> 387/3/23).
+>
+> This is a bit worrying. If this causes a high number of boot failures=
+,
+> fixing the errors you can find is not the path forward as we can't
+> test a lot of platforms (and many people don't look at -next). We may
+> want to put this behind a kconfig option so that we can easily restor=
+e
+> old behavior it needed. Otherwise, we could have to revert the series=
+=2E
 
-Find out which PHYs belong to which BGX instance in the ACPI way.
+A Kconfig sounds fine to me. Altogether, I don't think it's that bad
+because only these boards are known to have broken because of this
+series:
 
-Set the MAC address of the device as provided by ACPI tables. This is
-similar to the implementation for devicetree in
-of_get_mac_address(). The table is searched for the device property
-entries "mac-address", "local-mac-address" and "address" in that
-order. The address is provided in a u64 variable and must contain a
-valid 6 bytes-len mac addr.
+at91-sama5d3_xplained
+sama5d35ek
 
-Based on code from: Narinder Dhillon <ndhillon@cavium.com>
-                    Tomasz Nowicki <tomasz.nowicki@linaro.org>
-                    Robert Richter <rrichter@cavium.com>
+ste-snowball
 
-Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Signed-off-by: Robert Richter <rrichter@cavium.com>
-Signed-off-by: David Daney <david.daney@cavium.com>
----
- drivers/net/ethernet/cavium/thunder/thunder_bgx.c | 137 +++++++++++++++++++++-
- 1 file changed, 135 insertions(+), 2 deletions(-)
+vexpress-v2p-ca15
+vexpress-v2p-ca15
+vexpress-v2p-ca15_a7
+vexpress-v2p-ca15-tc1
+vexpress-v2p-ca9
 
-diff --git a/drivers/net/ethernet/cavium/thunder/thunder_bgx.c b/drivers/net/ethernet/cavium/thunder/thunder_bgx.c
-index 615b2af..2056583 100644
---- a/drivers/net/ethernet/cavium/thunder/thunder_bgx.c
-+++ b/drivers/net/ethernet/cavium/thunder/thunder_bgx.c
-@@ -6,6 +6,7 @@
-  * as published by the Free Software Foundation.
-  */
- 
-+#include <linux/acpi.h>
- #include <linux/module.h>
- #include <linux/interrupt.h>
- #include <linux/pci.h>
-@@ -26,7 +27,7 @@
- struct lmac {
- 	struct bgx		*bgx;
- 	int			dmac;
--	unsigned char		mac[ETH_ALEN];
-+	u8			mac[ETH_ALEN];
- 	bool			link_up;
- 	int			lmacid; /* ID within BGX */
- 	int			lmacid_bd; /* ID on board */
-@@ -835,6 +836,133 @@ static void bgx_get_qlm_mode(struct bgx *bgx)
- 	}
- }
- 
-+#ifdef CONFIG_ACPI
-+
-+static int bgx_match_phy_id(struct device *dev, void *data)
-+{
-+	struct phy_device *phydev = to_phy_device(dev);
-+	u32 *phy_id = data;
-+
-+	if (phydev->addr == *phy_id)
-+		return 1;
-+
-+	return 0;
-+}
-+
-+static const char * const addr_propnames[] = {
-+	"mac-address",
-+	"local-mac-address",
-+	"address",
-+};
-+
-+static int acpi_get_mac_address(struct acpi_device *adev, u8 *dst)
-+{
-+	const union acpi_object *prop;
-+	u64 mac_val;
-+	u8 mac[ETH_ALEN];
-+	int i, j;
-+	int ret;
-+
-+	for (i = 0; i < ARRAY_SIZE(addr_propnames); i++) {
-+		ret = acpi_dev_get_property(adev, addr_propnames[i],
-+					    ACPI_TYPE_INTEGER, &prop);
-+		if (ret)
-+			continue;
-+
-+		mac_val = prop->integer.value;
-+
-+		if (mac_val & (~0ULL << 48))
-+			continue;	/* more than 6 bytes */
-+
-+		for (j = 0; j < ARRAY_SIZE(mac); j++)
-+			mac[j] = (u8)(mac_val >> (8 * j));
-+		if (!is_valid_ether_addr(mac))
-+			continue;
-+
-+		memcpy(dst, mac, ETH_ALEN);
-+
-+		return 0;
-+	}
-+
-+	return ret ? ret : -EINVAL;
-+}
-+
-+static acpi_status bgx_acpi_register_phy(acpi_handle handle,
-+					 u32 lvl, void *context, void **rv)
-+{
-+	struct acpi_reference_args args;
-+	const union acpi_object *prop;
-+	struct bgx *bgx = context;
-+	struct acpi_device *adev;
-+	struct device *phy_dev;
-+	u32 phy_id;
-+
-+	if (acpi_bus_get_device(handle, &adev))
-+		goto out;
-+
-+	SET_NETDEV_DEV(&bgx->lmac[bgx->lmac_count].netdev, &bgx->pdev->dev);
-+
-+	acpi_get_mac_address(adev, bgx->lmac[bgx->lmac_count].mac);
-+
-+	bgx->lmac[bgx->lmac_count].lmacid = bgx->lmac_count;
-+
-+	if (acpi_dev_get_property_reference(adev, "phy-handle", 0, &args))
-+		goto out;
-+
-+	if (acpi_dev_get_property(args.adev, "phy-channel", ACPI_TYPE_INTEGER, &prop))
-+		goto out;
-+
-+	phy_id = prop->integer.value;
-+
-+	phy_dev = bus_find_device(&mdio_bus_type, NULL, (void *)&phy_id,
-+				  bgx_match_phy_id);
-+	if (!phy_dev)
-+		goto out;
-+
-+	bgx->lmac[bgx->lmac_count].phydev = to_phy_device(phy_dev);
-+out:
-+	bgx->lmac_count++;
-+	return AE_OK;
-+}
-+
-+static acpi_status bgx_acpi_match_id(acpi_handle handle, u32 lvl,
-+				     void *context, void **ret_val)
-+{
-+	struct acpi_buffer string = { ACPI_ALLOCATE_BUFFER, NULL };
-+	struct bgx *bgx = context;
-+	char bgx_sel[5];
-+
-+	snprintf(bgx_sel, 5, "BGX%d", bgx->bgx_id);
-+	if (ACPI_FAILURE(acpi_get_name(handle, ACPI_SINGLE_NAME, &string))) {
-+		pr_warn("Invalid link device\n");
-+		return AE_OK;
-+	}
-+
-+	if (strncmp(string.pointer, bgx_sel, 4))
-+		return AE_OK;
-+
-+	acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, 1,
-+			    bgx_acpi_register_phy, NULL, bgx, NULL);
-+
-+	kfree(string.pointer);
-+	return AE_CTRL_TERMINATE;
-+}
-+
-+static int bgx_init_acpi_phy(struct bgx *bgx)
-+{
-+	acpi_get_devices(NULL, bgx_acpi_match_id, bgx, (void **)NULL);
-+	return 0;
-+}
-+
-+#else
-+
-+static int bgx_init_acpi_phy(struct bgx *bgx)
-+{
-+	return -ENODEV;
-+}
-+
-+#endif /* CONFIG_ACPI */
-+
- #if IS_ENABLED(CONFIG_OF_MDIO)
- 
- static int bgx_init_of_phy(struct bgx *bgx)
-@@ -882,7 +1010,12 @@ static int bgx_init_of_phy(struct bgx *bgx)
- 
- static int bgx_init_phy(struct bgx *bgx)
- {
--	return bgx_init_of_phy(bgx);
-+	int err = bgx_init_of_phy(bgx);
-+
-+	if (err != -ENODEV)
-+		return err;
-+
-+	return bgx_init_acpi_phy(bgx);
- }
- 
- static int bgx_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
--- 
-1.9.1
+I assume there's only 3 different bugs to fix there, plus a race in
+imx boards that I have only papered over with a delay so far.
+
+The failure rate seems to be so high because each boot is a
+combination of board+defconfig and there are duplicated boards in
+several labs and many were just offline at that moment.
+
+But I agree that there's no way I can test it on all supported hw, so
+a Kconfig that people can quickly switch on to disable the feature
+sounds good to me.
+
+> Are all the commits before this series fixing boot failures? You can'=
+t
+> do dts updates as the fix or backwards compatibility will be broken.
+
+The gpio-ranges fix for Tegra has a commit that safeguards backwards
+compatibility, and the typo in regulator names for ux500 doesn't
+really break anything that I can see, I just stumped into it when
+trying to blindly fix the boot for ste-snowball (I don't have access
+to that hw).
+
+>> With this series I get the kernel to output to the panel in 0.5s,
+>> instead of 2.8s.
+>>
+>> Regards,
+>>
+>> Tomeu
+>>
+>> [0] http://lists.freedesktop.org/archives/dri-devel/2014-August/0665=
+27.html
+>>
+>> [1] https://lkml.org/lkml/2014/5/12/452
+>>
+>> [2] https://lkml.org/lkml/2015/6/17/305
+>>
+>> [3] http://article.gmane.org/gmane.linux.ports.arm.kernel/277689
+>>
+>> [4] https://lkml.org/lkml/2015/7/21/441a
+>>
+>> [5] https://git.collabora.com/cgit/user/tomeu/linux.git/log/?h=3Don-=
+demand-probes-v5
+>>
+>> [6] http://kernelci.org/boot/all/job/collabora/kernel/v4.2-rc5-6548-=
+g632b98c83840/
+>>
+>> [7] http://kernelci.org/boot/all/job/next/kernel/next-20150806/
+>>
+>> Changes in v3:
+>> - Only delay platform devices with OF nodes
+>> - Set and use device_node.platform_dev instead of reversing the logi=
+c to
+>>   find the platform device that encloses a device node.
+>
+> I still want this to be a struct device and not a struct
+> platform_device and am not convinced it can't be. It can simply be an
+> optimization of the existing function:
+
+Now I realize what you meant, that makes sense to me.
+
+Thanks,
+
+Tomeu
+
+> struct platform_device *of_find_device_by_node(struct device_node *np=
+)
+> {
+>   if (node->device && node->device->bus =3D=3D &platform_bus_type)
+>     return to_platform_device(node->device);
+>   return NULL;
+> }
+>
+> Rob
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kerne=
+l" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
