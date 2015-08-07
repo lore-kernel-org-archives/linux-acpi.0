@@ -1,109 +1,116 @@
-From: Al Stone <al.stone@linaro.org>
-Subject: [PATCH 3/5] ACPI / IA64: remove usage of BAD_MADT_ENTRY
-Date: Thu,  6 Aug 2015 14:59:28 -0600
-Message-ID: <1438894770-31163-4-git-send-email-al.stone@linaro.org>
-References: <1438894770-31163-1-git-send-email-al.stone@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1438894770-31163-1-git-send-email-al.stone@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: Fenghua Yu <fenghua.yu@intel.com>, linaro-kernel@lists.linaro.org, linux-ia64@vger.kernel.org, Al Stone <al.stone@linaro.org>, patches@linaro.org, linux-pm@vger.kernel.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org, Tony Luck <tony.luck@intel.com>
+From: David Daney <ddaney.cavm@gmail.com>
+Subject: [PATCH 1/2] net: thunder: Factor out DT specific code in BGX
+Date: Thu,  6 Aug 2015 17:33:09 -0700
+Message-ID: <1438907590-29649-2-git-send-email-ddaney.cavm@gmail.com>
+References: <1438907590-29649-1-git-send-email-ddaney.cavm@gmail.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ig0-f181.google.com ([209.85.213.181]:37820 "EHLO
+	mail-ig0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752098AbbHGAdZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 6 Aug 2015 20:33:25 -0400
+In-Reply-To: <1438907590-29649-1-git-send-email-ddaney.cavm@gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, linux-kernel@vger.kernel.org
+Cc: linux-mips@linux-mips.org, Robert Richter <rrichter@cavium.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Sunil Goutham <sgoutham@cavium.com>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, David Daney <david.daney@cavium.com>
 
-Now that we have introduced the bad_madt_entry() function, and that
-function is being invoked in acpi_table_parse_madt() for us, there
-is no longer any need to use the BAD_MADT_ENTRY macro.
+From: Robert Richter <rrichter@cavium.com>
 
-Signed-off-by: Al Stone <al.stone@linaro.org>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
+Separate DT code in preparation for follow-on ACPI integration.
+
+Based on code from: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+
+Signed-off-by: Robert Richter <rrichter@cavium.com>
+Signed-off-by: David Daney <david.daney@cavium.com>
 ---
- arch/ia64/kernel/acpi.c | 20 --------------------
- 1 file changed, 20 deletions(-)
+ drivers/net/ethernet/cavium/thunder/thunder_bgx.c | 48 +++++++++++++++++------
+ 1 file changed, 35 insertions(+), 13 deletions(-)
 
-diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
-index b1698bc..efa3f0a 100644
---- a/arch/ia64/kernel/acpi.c
-+++ b/arch/ia64/kernel/acpi.c
-@@ -184,9 +184,6 @@ acpi_parse_lapic_addr_ovr(struct acpi_subtable_header * header,
- 
- 	lapic = (struct acpi_madt_local_apic_override *)header;
- 
--	if (BAD_MADT_ENTRY(lapic, end))
--		return -EINVAL;
--
- 	if (lapic->address) {
- 		iounmap(ipi_base_addr);
- 		ipi_base_addr = ioremap(lapic->address, 0);
-@@ -201,8 +198,6 @@ acpi_parse_lsapic(struct acpi_subtable_header * header, const unsigned long end)
- 
- 	lsapic = (struct acpi_madt_local_sapic *)header;
- 
--	/*Skip BAD_MADT_ENTRY check, as lsapic size could vary */
--
- 	if (lsapic->lapic_flags & ACPI_MADT_ENABLED) {
- #ifdef CONFIG_SMP
- 		smp_boot_data.cpu_phys_id[available_cpus] =
-@@ -222,9 +217,6 @@ acpi_parse_lapic_nmi(struct acpi_subtable_header * header, const unsigned long e
- 
- 	lacpi_nmi = (struct acpi_madt_local_apic_nmi *)header;
- 
--	if (BAD_MADT_ENTRY(lacpi_nmi, end))
--		return -EINVAL;
--
- 	/* TBD: Support lapic_nmi entries */
- 	return 0;
- }
-@@ -236,9 +228,6 @@ acpi_parse_iosapic(struct acpi_subtable_header * header, const unsigned long end
- 
- 	iosapic = (struct acpi_madt_io_sapic *)header;
- 
--	if (BAD_MADT_ENTRY(iosapic, end))
--		return -EINVAL;
--
- 	return iosapic_init(iosapic->address, iosapic->global_irq_base);
+diff --git a/drivers/net/ethernet/cavium/thunder/thunder_bgx.c b/drivers/net/ethernet/cavium/thunder/thunder_bgx.c
+index b961a89..615b2af 100644
+--- a/drivers/net/ethernet/cavium/thunder/thunder_bgx.c
++++ b/drivers/net/ethernet/cavium/thunder/thunder_bgx.c
+@@ -835,18 +835,28 @@ static void bgx_get_qlm_mode(struct bgx *bgx)
+ 	}
  }
  
-@@ -253,9 +242,6 @@ acpi_parse_plat_int_src(struct acpi_subtable_header * header,
+-static void bgx_init_of(struct bgx *bgx, struct device_node *np)
++#if IS_ENABLED(CONFIG_OF_MDIO)
++
++static int bgx_init_of_phy(struct bgx *bgx)
+ {
++	struct device_node *np;
+ 	struct device_node *np_child;
+ 	u8 lmac = 0;
++	char bgx_sel[5];
++	const char *mac;
  
- 	plintsrc = (struct acpi_madt_interrupt_source *)header;
+-	for_each_child_of_node(np, np_child) {
+-		struct device_node *phy_np;
+-		const char *mac;
++	/* Get BGX node from DT */
++	snprintf(bgx_sel, 5, "bgx%d", bgx->bgx_id);
++	np = of_find_node_by_name(NULL, bgx_sel);
++	if (!np)
++		return -ENODEV;
  
--	if (BAD_MADT_ENTRY(plintsrc, end))
--		return -EINVAL;
--
- 	/*
- 	 * Get vector assignment for this interrupt, set attributes,
- 	 * and program the IOSAPIC routing table.
-@@ -336,9 +322,6 @@ acpi_parse_int_src_ovr(struct acpi_subtable_header * header,
+-		phy_np = of_parse_phandle(np_child, "phy-handle", 0);
+-		if (phy_np)
+-			bgx->lmac[lmac].phydev = of_phy_find_device(phy_np);
++	for_each_child_of_node(np, np_child) {
++		struct device_node *phy_np = of_parse_phandle(np_child,
++							      "phy-handle", 0);
++		if (!phy_np)
++			continue;
++		bgx->lmac[lmac].phydev = of_phy_find_device(phy_np);
  
- 	p = (struct acpi_madt_interrupt_override *)header;
- 
--	if (BAD_MADT_ENTRY(p, end))
--		return -EINVAL;
--
- 	iosapic_override_isa_irq(p->source_irq, p->global_irq,
- 				 ((p->inti_flags & ACPI_MADT_POLARITY_MASK) ==
- 				  ACPI_MADT_POLARITY_ACTIVE_LOW) ?
-@@ -356,9 +339,6 @@ acpi_parse_nmi_src(struct acpi_subtable_header * header, const unsigned long end
- 
- 	nmi_src = (struct acpi_madt_nmi_source *)header;
- 
--	if (BAD_MADT_ENTRY(nmi_src, end))
--		return -EINVAL;
--
- 	/* TBD: Support nimsrc entries */
- 	return 0;
+ 		mac = of_get_mac_address(np_child);
+ 		if (mac)
+@@ -858,6 +868,21 @@ static void bgx_init_of(struct bgx *bgx, struct device_node *np)
+ 		if (lmac == MAX_LMAC_PER_BGX)
+ 			break;
+ 	}
++	return 0;
++}
++
++#else
++
++static int bgx_init_of_phy(struct bgx *bgx)
++{
++	return -ENODEV;
++}
++
++#endif /* CONFIG_OF_MDIO */
++
++static int bgx_init_phy(struct bgx *bgx)
++{
++	return bgx_init_of_phy(bgx);
  }
+ 
+ static int bgx_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
+@@ -865,8 +890,6 @@ static int bgx_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
+ 	int err;
+ 	struct device *dev = &pdev->dev;
+ 	struct bgx *bgx = NULL;
+-	struct device_node *np;
+-	char bgx_sel[5];
+ 	u8 lmac;
+ 
+ 	bgx = devm_kzalloc(dev, sizeof(*bgx), GFP_KERNEL);
+@@ -902,10 +925,9 @@ static int bgx_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
+ 	bgx_vnic[bgx->bgx_id] = bgx;
+ 	bgx_get_qlm_mode(bgx);
+ 
+-	snprintf(bgx_sel, 5, "bgx%d", bgx->bgx_id);
+-	np = of_find_node_by_name(NULL, bgx_sel);
+-	if (np)
+-		bgx_init_of(bgx, np);
++	err = bgx_init_phy(bgx);
++	if (err)
++		goto err_enable;
+ 
+ 	bgx_init_hw(bgx);
+ 
 -- 
-2.4.3
+1.9.1
+
