@@ -1,138 +1,81 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH v4 09/10] PCI: ACPI: Bind GIC MSI frame to PCI host bridge
-Date: Fri, 07 Aug 2015 13:06:40 +0100
-Message-ID: <55C49F50.1080903@arm.com>
-References: <1438164539-29256-1-git-send-email-hanjun.guo@linaro.org> <1438164539-29256-10-git-send-email-hanjun.guo@linaro.org> <55C4826C.80600@linaro.org>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v3 05/18] regulator: core: Reduce critical area in
+ _regulator_get
+Date: Fri, 7 Aug 2015 13:07:52 +0100
+Message-ID: <20150807120752.GQ20873@sirena.org.uk>
+References: <1438870315-18689-1-git-send-email-tomeu.vizoso@collabora.com>
+ <1438870315-18689-6-git-send-email-tomeu.vizoso@collabora.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="GBlkOKZ0utbUai18"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:42561 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752505AbbHGMGq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 7 Aug 2015 08:06:46 -0400
-In-Reply-To: <55C4826C.80600@linaro.org>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:32792 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750735AbbHGMIX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 7 Aug 2015 08:08:23 -0400
+Content-Disposition: inline
+In-Reply-To: <1438870315-18689-6-git-send-email-tomeu.vizoso@collabora.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tomasz.nowicki@linaro.org>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, Timur Tabi <timur@codeaurora.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Mark Brown <broonie@kernel.org>, Wei Huang <wei@redhat.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
+To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Cc: linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Thierry Reding <thierry.reding@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-arm-kernel@lists.infradead.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
 
-On 07/08/15 11:03, Tomasz Nowicki wrote:
-> On 29.07.2015 12:08, Hanjun Guo wrote:
->> From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
->>
->> This patch introduces pci_host_bridge_acpi_msi_domain(), which queries
->> a GIC MSI irq-domain token and use it to retrieve an irq_domain with
->> DOMAIN_BUS_PCI_MSI bus type, and bind it to PCI host-bridge.
->>
->> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
->> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->> ---
->>   drivers/pci/pci-acpi.c   | 18 ++++++++++++++++++
->>   drivers/pci/probe.c      |  3 +++
->>   include/linux/pci-acpi.h |  4 ++++
->>   3 files changed, 25 insertions(+)
->>
->> diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
->> index 314a625..5f11653 100644
->> --- a/drivers/pci/pci-acpi.c
->> +++ b/drivers/pci/pci-acpi.c
->> @@ -9,6 +9,7 @@
->>
->>   #include <linux/delay.h>
->>   #include <linux/init.h>
->> +#include <linux/irqdomain.h>
->>   #include <linux/pci.h>
->>   #include <linux/pci_hotplug.h>
->>   #include <linux/module.h>
->> @@ -16,6 +17,7 @@
->>   #include <linux/pci-acpi.h>
->>   #include <linux/pm_runtime.h>
->>   #include <linux/pm_qos.h>
->> +#include <acpi/acpi_gic.h>
->>   #include "pci.h"
->>
->>   /*
->> @@ -681,6 +683,22 @@ static bool pci_acpi_bus_match(struct device *dev)
->>   	return dev_is_pci(dev);
->>   }
->>
->> +#ifdef CONFIG_GENERIC_MSI_IRQ_DOMAIN
->> +struct irq_domain *pci_host_bridge_acpi_msi_domain(struct pci_bus *bus)
->> +{
->> +	struct irq_domain *d = NULL;
->> +	void *token = acpi_gic_get_msi_token(&bus->dev);
->> +
->> +	if (token)
->> +		d = irq_find_matching_host(token, DOMAIN_BUS_PCI_MSI);
->> +
->> +	if (!d)
->> +		pr_debug("Fail to find domain for MSI\n");
->> +
->> +	return d;
->> +}
->> +#endif /*CONFIG_GENERIC_MSI_IRQ_DOMAIN*/
->> +
->>   static struct acpi_bus_type acpi_pci_bus = {
->>   	.name = "PCI",
->>   	.match = pci_acpi_bus_match,
->> diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
->> index a7afeac..8c1204c 100644
->> --- a/drivers/pci/probe.c
->> +++ b/drivers/pci/probe.c
->> @@ -12,6 +12,7 @@
->>   #include <linux/module.h>
->>   #include <linux/cpumask.h>
->>   #include <linux/pci-aspm.h>
->> +#include <linux/pci-acpi.h>
->>   #include <asm-generic/pci-bridge.h>
->>   #include "pci.h"
->>
->> @@ -670,6 +671,8 @@ static struct irq_domain *pci_host_bridge_msi_domain(struct pci_bus *bus)
->>   	 * should be called from here.
->>   	 */
->>   	d = pci_host_bridge_of_msi_domain(bus);
->> +	if (!d)
->> +		d = pci_host_bridge_acpi_msi_domain(bus);
-> 
-> Please use acpi_disabled here.
 
-No, thanks. pci_host_bridge_acpi_msi_domain() can return NULL if ACPI is
-disabled, just like pci_host_bridge_of_msi_domain will return NULL if
-there is no domain to be found (or no OF support).
+--GBlkOKZ0utbUai18
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Littering various firmware predicates all over the place hardly seem
-like a scalable solution, and I'd expect the ACPI backends to be self
-contained.
+On Thu, Aug 06, 2015 at 04:11:42PM +0200, Tomeu Vizoso wrote:
 
-> BTW. This is another place where we need to know our firmware - DT vs 
-> ACPI. I know we can use acpi_disabled but I think more about generic 
-> solution. Since we already have:
-> struct fwnode_handle	*fwnode;
-> we can create macro which identify h/w description style, something like:
-> 
-> #define FWNODE_TYPE(dev)	dev_fwnode(dev)->type
-> 
-> and then:
-> 
-> switch (FWNODE_TYPE(&bus->dev)) {
-> case FWNODE_OF:
-> ...
-> case FWNODE_ACPI:
-> ...
-> case FWNODE_XXX:
-> ...
-> }
-> 
-> Root bus is special case since it has no frimware type but we could 
-> factor out pci_set_bus_of_node(). For platform devices we have all we 
-> need. Just thinking aloud, let me know your thoughts.
+> This backtrace illustrates the situation described above:
+>=20
+> (regulator_register) from [<c05efe64>]
+> (devm_regulator_register+0x48/0x84)
 
-For that to work, we'd need to start converging device_node and
-fwnode_handle. Having both feels quite redundant at the moment.
+Please don't paste entire backtraces into commit messages, they are
+enormous and contain very little useful content - they just obscure
+actual information in the commit message.  If you feel there's useful
+information in there just include edited highlights with only that.
 
-Thanks,
+> +static int _regulator_enable(struct regulator *regulator, bool do_lock)
+>  {
+> -	int ret;
+> +	struct regulator_dev *rdev =3D regulator->rdev;
+> +	int ret =3D 0;
+> =20
+> -	lockdep_assert_held_once(&rdev->mutex);
+> +	if (regulator->always_on)
+> +		return 0;
+> +
+> +	if (rdev->supply) {
+> +		ret =3D regulator_enable(rdev->supply);
+> +		if (ret !=3D 0)
+> +			return ret;
+> +	}
+> +
+> +	if (do_lock)
+> +		mutex_lock(&rdev->mutex);
+> +	else
+> +		lockdep_assert_held_once(&rdev->mutex);
 
-	M.
--- 
-Jazz is not dead. It just smells funny...
+Eew.  This do_lock stuff is *not* nice and going to be fragile.  I'm not
+a fan, we need something better.
+
+--GBlkOKZ0utbUai18
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJVxJ+YAAoJECTWi3JdVIfQK6IH/iukEMdagu+2QgXlAd03ptk8
+x81imRrjhtmJCQYoavTErC1M5CbBBkNxfNvUuC70gSvt9IkTeJN1fJD9pJkfjFpR
+y9XI93sIIYc5wBlJTlNToxIRakd8Z3530WVgxZ7RV3V5UDmhDRAdv0PTygZmeYcO
+X9gyvR5E/dqQwCuDZXZEwYB3hHCy2lA40fdNEQEOvLpX58GL7VSfeaYxla+ZCw/5
+bUC9GBYvt8YGl293uKIgsuYAb8RQm0o3ZK5DNKYZq1DmbatvBBAGlnvqYf3YQLZI
+q+IE7W0zb+B/5wR2SgSEibx7y1+eKuTIBjKdg6BT/fGCMRA5sOxiE1qI+vYR8fQ=
+=l3NK
+-----END PGP SIGNATURE-----
+
+--GBlkOKZ0utbUai18--
