@@ -1,45 +1,110 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: leds-gpio on x86
-Date: Fri, 7 Aug 2015 13:57:45 +0300
-Message-ID: <20150807105745.GB1540@lahna.fi.intel.com>
-References: <20150805220948.3984f19c@x2>
- <20150806165924.GY1540@lahna.fi.intel.com>
- <20150806191727.0bf87a3a@x2>
- <20150806173558.GZ1540@lahna.fi.intel.com>
- <20150806201820.5ca0764d@x2>
+From: Robert Richter <robert.richter@caviumnetworks.com>
+Subject: Re: [PATCH 2/2] net, thunder, bgx: Add support for ACPI binding.
+Date: Fri, 7 Aug 2015 13:56:22 +0200
+Message-ID: <20150807115622.GS4914@rric.localhost>
+References: <1438907590-29649-1-git-send-email-ddaney.cavm@gmail.com>
+ <1438907590-29649-3-git-send-email-ddaney.cavm@gmail.com>
+ <55C467A0.4020601@linaro.org>
+ <20150807104320.GQ1820@rric.localhost>
+ <55C48DF9.70406@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-leds-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-by2on0086.outbound.protection.outlook.com ([207.46.100.86]:50300
+	"EHLO na01-by2-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752517AbbHGL4p (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 7 Aug 2015 07:56:45 -0400
 Content-Disposition: inline
-In-Reply-To: <20150806201820.5ca0764d@x2>
-Sender: linux-leds-owner@vger.kernel.org
-To: Vincent Pelletier <plr.vincent@gmail.com>
-Cc: linux-leds@vger.kernel.org, linux-acpi@vger.kernel.org
+In-Reply-To: <55C48DF9.70406@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Cc: David Daney <ddaney.cavm@gmail.com>, linux-kernel@vger.kernel.org, netdev@vger.kernel.org, "David S. Miller" <davem@davemloft.net>, linux-mips@linux-mips.org, Sunil Goutham <sgoutham@cavium.com>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, David Daney <david.daney@cavium.com>
 
-On Thu, Aug 06, 2015 at 08:18:20PM +0200, Vincent Pelletier wrote:
-> On Thu, 6 Aug 2015 20:35:58 +0300, Mika Westerberg
-> <mika.westerberg@linux.intel.com> wrote:
-> > Do you know which GPIOs are used for leds?
-> > 
-> > Since the GPIO host controller is listed in the DSDT, I think patching
-> > the leds device should be pretty simple.
+On 07.08.15 12:52:41, Tomasz Nowicki wrote:
+> On 07.08.2015 12:43, Robert Richter wrote:
+> >On 07.08.15 10:09:04, Tomasz Nowicki wrote:
+> >>On 07.08.2015 02:33, David Daney wrote:
+> >
+> >...
+> >
+> >>>+#else
+> >>>+
+> >>>+static int bgx_init_acpi_phy(struct bgx *bgx)
+> >>>+{
+> >>>+	return -ENODEV;
+> >>>+}
+> >>>+
+> >>>+#endif /* CONFIG_ACPI */
+> >>>+
+> >>>  #if IS_ENABLED(CONFIG_OF_MDIO)
+> >>>
+> >>>  static int bgx_init_of_phy(struct bgx *bgx)
+> >>>@@ -882,7 +1010,12 @@ static int bgx_init_of_phy(struct bgx *bgx)
+> >>>
+> >>>  static int bgx_init_phy(struct bgx *bgx)
+> >>>  {
+> >>>-	return bgx_init_of_phy(bgx);
+> >>>+	int err = bgx_init_of_phy(bgx);
+> >>>+
+> >>>+	if (err != -ENODEV)
+> >>>+		return err;
+> >>>+
+> >>>+	return bgx_init_acpi_phy(bgx);
+> >>>  }
+> >>>
+> >>
+> >>If kernel can work with DT and ACPI (both compiled in), it should take only
+> >>one path instead of probing DT and ACPI sequentially. How about:
+> >>
+> >>@@ -902,10 +925,9 @@ static int bgx_probe(struct pci_dev *pdev, const struct
+> >>pci_device_id *ent)
+> >>  	bgx_vnic[bgx->bgx_id] = bgx;
+> >>  	bgx_get_qlm_mode(bgx);
+> >>
+> >>-	snprintf(bgx_sel, 5, "bgx%d", bgx->bgx_id);
+> >>-	np = of_find_node_by_name(NULL, bgx_sel);
+> >>-	if (np)
+> >>-		bgx_init_of(bgx, np);
+> >>+	err = acpi_disabled ? bgx_init_of_phy(bgx) : bgx_init_acpi_phy(bgx);
+> >>+	if (err)
+> >>+		goto err_enable;
+> >>
+> >>  	bgx_init_hw(bgx);
+> >
+> >I would not pollute bgx_probe() with acpi and dt specifics, and instead
+> >keep bgx_init_phy(). The typical design pattern for this is:
+> >
+> >static int bgx_init_phy(struct bgx *bgx)
+> >{
+> >#ifdef CONFIG_ACPI
+> >         if (!acpi_disabled)
+> >                 return bgx_init_acpi_phy(bgx);
+> >#endif
+> >         return bgx_init_of_phy(bgx);
+> >}
+> >
+> >This adds acpi runtime detection (acpi=no), does not call dt code in
+> >case of acpi, and saves the #else for bgx_init_acpi_phy().
+> >
 > 
-> That would be fantastic.
+> I am fine with keeping it in bgx_init_phy(), however we can drop there
+> #ifdefs since both of bgx_init_{acpi,of}_phy calls have empty stub for !ACPI
+> and !OF case. Like that:
 > 
-> Green status: 62, green, active low
-> Red status: 63, red, active low
-> HDD racks: 70 to 75, red, active low
-> USB: 17, blue, active low
+> static int bgx_init_phy(struct bgx *bgx)
+> {
 > 
-> I tested all via sysfs with gpio-f7188x driver loaded (numbers above
-> are the values I wrote to /sys/class/gpio/register).
+>         if (!acpi_disabled)
+>                 return bgx_init_acpi_phy(bgx);
+> 	else
+>         	return bgx_init_of_phy(bgx);
+> }
 
-Ah, this is different GPIO controller that is listed in the DSDT (the
-Baytrail GPIO host controller).
+As said, keeping it in #ifdefs makes the empty stub function for !acpi
+obsolete, which makes the code smaller and better readable. This style
+is common practice in the kernel. Apart from that, the 'else' should
+be dropped as it is useless.
 
-In order to get ACPI GPIO stuff work here you would need to first add
-the GPIO device to the ACPI namespace and then modify gpio-f7188x.c to
-probe it from there. You would also need to invent a _HID to the device
-in order to get it matched. Unfortunately using random _HID will make
-upstreaming the changes difficult.
+-Robert
