@@ -1,52 +1,49 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 2/2] net, thunder, bgx: Add support for ACPI binding.
-Date: Sat, 08 Aug 2015 13:26:23 +0200
-Message-ID: <2414262.jivbxTLuUW@wuerfel>
-References: <1438907590-29649-1-git-send-email-ddaney.cavm@gmail.com> <55C467A0.4020601@linaro.org> <20150807104320.GQ1820@rric.localhost>
+From: Vincent Pelletier <plr.vincent@gmail.com>
+Subject: Re: leds-gpio on x86
+Date: Sat, 8 Aug 2015 14:06:56 +0200
+Message-ID: <20150808140656.6b81d3b9@x2>
+References: <20150805220948.3984f19c@x2>
+	<20150806165924.GY1540@lahna.fi.intel.com>
+	<20150806191727.0bf87a3a@x2>
+	<20150806173558.GZ1540@lahna.fi.intel.com>
+	<20150806201820.5ca0764d@x2>
+	<20150807105745.GB1540@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-mips-bounce@linux-mips.org>
-In-Reply-To: <20150807104320.GQ1820@rric.localhost>
-Sender: linux-mips-bounce@linux-mips.org
-Errors-to: linux-mips-bounce@linux-mips.org
-List-help: <mailto:ecartis@linux-mips.org?Subject=help>
-List-unsubscribe: <mailto:ecartis@linux-mips.org?subject=unsubscribe%20linux-mips>
-List-software: Ecartis version 1.0.0
-List-subscribe: <mailto:ecartis@linux-mips.org?subject=subscribe%20linux-mips>
-List-owner: <mailto:ralf@linux-mips.org>
-List-post: <mailto:linux-mips@linux-mips.org>
-List-archive: <http://www.linux-mips.org/archives/linux-mips/>
-To: linux-arm-kernel@lists.infradead.org
-Cc: Robert Richter <robert.richter@caviumnetworks.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, linux-mips@linux-mips.org, David Daney <david.daney@cavium.com>, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, David Daney <ddaney.cavm@gmail.com>, Sunil Goutham <sgoutham@cavium.com>, "David S. Miller" <davem@davemloft.net>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-leds-owner@vger.kernel.org>
+In-Reply-To: <20150807105745.GB1540@lahna.fi.intel.com>
+Sender: linux-leds-owner@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: linux-leds@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Friday 07 August 2015 12:43:20 Robert Richter wrote:
+On Fri, 7 Aug 2015 13:57:45 +0300, Mika Westerberg
+<mika.westerberg@linux.intel.com> wrote:
+> Ah, this is different GPIO controller that is listed in the DSDT (the
+> Baytrail GPIO host controller).
 > 
-> I would not pollute bgx_probe() with acpi and dt specifics, and instead
-> keep bgx_init_phy(). The typical design pattern for this is:
-> 
-> static int bgx_init_phy(struct bgx *bgx)
-> {
-> #ifdef CONFIG_ACPI
->         if (!acpi_disabled)
->                 return bgx_init_acpi_phy(bgx);
-> #endif
->         return bgx_init_of_phy(bgx);
-> }
-> 
-> This adds acpi runtime detection (acpi=no), does not call dt code in
-> case of acpi, and saves the #else for bgx_init_acpi_phy().
-> 
+> In order to get ACPI GPIO stuff work here you would need to first add
+> the GPIO device to the ACPI namespace and then modify gpio-f7188x.c to
+> probe it from there. You would also need to invent a _HID to the device
+> in order to get it matched. Unfortunately using random _HID will make
+> upstreaming the changes difficult.
 
-What you should really do is to use the same function for both,
-using the generic device properties API. If that is not possible,
-explain in a comment why not.
+I gave a shot at writing a module. I got to the point where it builds
+and loads, but it does not appear to do anything (no error
+returned modprobe, nothing in dmesg).
 
-Aside from that, if you do have to use compile-time conditionals,
-use 'if (IS_ENABLED(CONFIG_ACPI) && !acpi_disabled)' instead of
-#ifdef, for readability. The compiler will produce the same binary,
-but also give helpful warnings about incorrect code that you don't
-get with #ifdef.
+I have no idea if the ~4 lines of "actual" code (ie, not just data
+definition) are even in the good direction actually. I took
+  http://www.armadeus.com/wiki/index.php?title=GPIO_LEDS
+as an example. This is for a platform definition for a devboard
+(arm ?), so it may be a wrong example. I took a look at other led
+drivers, and their complexity varies a lot.
 
-	Arnd
+Would you mind taking a look ?
+  https://github.com/vpelletier/linux/commits/ts651
+
+For example, I have no idea how to explicitly depend on gpio-f7188x
+and leds-gpio.
+-- 
+Vincent Pelletier
