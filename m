@@ -1,57 +1,120 @@
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: Re: [PATCH 0/6] pmem, dax: I/O path enhancements
-Date: Fri, 07 Aug 2015 13:06:31 -0600
-Message-ID: <1438974391.2293.3.camel@linux.intel.com>
-References: <1438883000-9011-1-git-send-email-ross.zwisler@linux.intel.com>
-	 <CAPcyv4gJM1RRp3ShDf239g_gkcmkz8dN_f0GBOPeXc65YH4+EQ@mail.gmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH 2/2] net, thunder, bgx: Add support for ACPI binding.
+Date: Sat, 8 Aug 2015 02:05:55 +0200
+Message-ID: <CAJZ5v0gc=bo3ayO7aWq19Hh_205YC52wqXGbbM5vxR1atXm+oA@mail.gmail.com>
+References: <1438907590-29649-1-git-send-email-ddaney.cavm@gmail.com>
+	<1438907590-29649-3-git-send-email-ddaney.cavm@gmail.com>
+	<20150807140106.GE7646@leverpostej>
+	<55C4ECC6.7050908@caviumnetworks.com>
+	<20150807175127.GB12013@leverpostej>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:62390 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1945960AbbHGTGe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 7 Aug 2015 15:06:34 -0400
-In-Reply-To: <CAPcyv4gJM1RRp3ShDf239g_gkcmkz8dN_f0GBOPeXc65YH4+EQ@mail.gmail.com>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:36620 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1946338AbbHHAF6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 7 Aug 2015 20:05:58 -0400
+In-Reply-To: <20150807175127.GB12013@leverpostej>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Alexander Viro <viro@zeniv.linux.org.uk>, Borislav Petkov <bp@suse.de>, "H. Peter Anvin" <hpa@zytor.com>, Ingo Molnar <mingo@redhat.com>, Juergen Gross <jgross@suse.com>, Len Brown <lenb@kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, "Luis R. Rodriguez" <mcgrof@suse.com>, Matthew Wilcox <willy@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Toshi Kani <toshi.kani@hp.com>, X86 ML <x86@kernel.org>
+To: Mark Rutland <mark.rutland@arm.com>
+Cc: David Daney <ddaney@caviumnetworks.com>, David Daney <ddaney.cavm@gmail.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "rob.herring@linaro.org" <rob.herring@linaro.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mips@linux-mips.org" <linux-mips@linux-mips.org>, David Daney <david.daney@cavium.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Robert Richter <rrichter@cavium.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Sunil Goutham <sgoutham@cavium.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree@vger.kernel.org" <deviectree@vger.kernel.org>
 
-On Fri, 2015-08-07 at 09:47 -0700, Dan Williams wrote:
-> On Thu, Aug 6, 2015 at 10:43 AM, Ross Zwisler
-> <ross.zwisler@linux.intel.com> wrote:
-> > Patch 5 adds support for the "read flush" _DSM flag, allowing us to change the
-> > ND BLK aperture mapping from write-combining to write-back via memremap_pmem().
-> >
-> > Patch 6 updates the DAX I/O path so that all operations that store data (I/O
-> > writes, zeroing blocks, punching holes, etc.) properly synchronize the stores
-> > to media using the PMEM API.  This ensures that the data DAX is writing is
-> > durable on media before the operation completes.
-> >
-> > Patches 1-4 are cleanup patches and additions to the PMEM API that make
-> > patches 5 and 6 possible.
-> >
-> > Regarding the choice to add both flush_cache_pmem() and wb_cache_pmem() to the
-> > PMEM API, I had initially implemented flush_cache_pmem() as a generic function
-> > flush_io_cache_range() in the spirit of flush_cache_range(), etc., in
-> > cacheflush.h.  I eventually moved it into the PMEM API because a) it has a
-> > common and consistent use of the __pmem annotation, b) it has a clear fallback
-> > method for architectures that don't support it, as opposed to APIs in
-> > cacheflush.h which would need to be added individually to all other
-> > architectures.  It can be argued that the flush API could apply to other uses
-> > beyond PMEM such as flushing cache lines associated with other types of
-> > sliding MMIO windows.  At this point I'm inclined to have it as part of the
-> > PMEM API, and then take on the effort of making it a general cache flusing API
-> > if other users come along.
-> 
-> I'm not convinced.  There are already existing users for invalidating
-> a cpu cache and they currently jump through hoops to have cross-arch
-> flushing, see drm_clflush_pages().  What the NFIT-BLK driver brings to
-> the table is just one more instance where the cpu cache needs to be
-> invalidated, and for something so fundamental it is time we had a
-> cross arch generic helper.
+Hi Mark,
 
-Fair enough.  I'll move back to the flush_io_cache_range() solution.
+On Fri, Aug 7, 2015 at 7:51 PM, Mark Rutland <mark.rutland@arm.com> wrote:
+> [Correcting the devicetree list address, which I typo'd in my original
+> reply]
+>
+>> >> +static const char * const addr_propnames[] = {
+>> >> +  "mac-address",
+>> >> +  "local-mac-address",
+>> >> +  "address",
+>> >> +};
+>> >
+>> > If these are going to be generally necessary, then we should get them
+>> > adopted as standardised _DSD properties (ideally just one of them).
+>>
+>> As far as I can tell, and please correct me if I am wrong, ACPI-6.0
+>> doesn't contemplate MAC addresses.
+>>
+>> Today we are using "mac-address", which is an Integer containing the MAC
+>> address in its lowest order 48 bits in Little-Endian byte order.
+>>
+>> The hardware and ACPI tables are here today, and we would like to
+>> support it.  If some future ACPI specification specifies a standard way
+>> to do this, we will probably adapt the code to do this in a standard manner.
+>>
+>>
+>> >
+>> > [...]
+>> >
+>> >> +static acpi_status bgx_acpi_register_phy(acpi_handle handle,
+>> >> +                                   u32 lvl, void *context, void **rv)
+>> >> +{
+>> >> +  struct acpi_reference_args args;
+>> >> +  const union acpi_object *prop;
+>> >> +  struct bgx *bgx = context;
+>> >> +  struct acpi_device *adev;
+>> >> +  struct device *phy_dev;
+>> >> +  u32 phy_id;
+>> >> +
+>> >> +  if (acpi_bus_get_device(handle, &adev))
+>> >> +          goto out;
+>> >> +
+>> >> +  SET_NETDEV_DEV(&bgx->lmac[bgx->lmac_count].netdev, &bgx->pdev->dev);
+>> >> +
+>> >> +  acpi_get_mac_address(adev, bgx->lmac[bgx->lmac_count].mac);
+>> >> +
+>> >> +  bgx->lmac[bgx->lmac_count].lmacid = bgx->lmac_count;
+>> >> +
+>> >> +  if (acpi_dev_get_property_reference(adev, "phy-handle", 0, &args))
+>> >> +          goto out;
+>> >> +
+>> >> +  if (acpi_dev_get_property(args.adev, "phy-channel", ACPI_TYPE_INTEGER, &prop))
+>> >> +          goto out;
+>> >
+>> > Likewise for any inter-device properties, so that we can actually handle
+>> > them in a generic fashion, and avoid / learn from the mistakes we've
+>> > already handled with DT.
+>>
+>> This is the fallacy of the ACPI is superior to DT argument.  The
+>> specification of PHY topology and MAC addresses is well standardized in
+>> DT, there is no question about what the proper way to specify it is.
+>> Under ACPI, it is the Wild West, there is no specification, so each
+>> system design is forced to invent something, and everybody comes up with
+>> an incompatible implementation.
+>
+> Indeed.
+>
+> If ACPI is going to handle it, it should handle it properly. I really
+> don't see the point in bodging properties together in a less standard
+> manner than DT, especially for inter-device relationships.
+>
+> Doing so is painful for _everyone_, and it's extremely unlikely that
+> other ACPI-aware OSs will actually support these custom descriptions,
+> making this Linux-specific, and breaking the rationale for using ACPI in
+> the first place -- a standard that says "just do non-standard stuff" is
+> not a usable standard.
+>
+> For intra-device properties, we should standardise what we can, but
+> vendor-specific stuff is ok -- this can be self-contained within a
+> driver.
+>
+> For inter-device relationships ACPI _must_ gain a better model of
+> componentised devices. It's simply unworkable otherwise, and as you
+> point out it's fallacious to say that because ACPI is being used that
+> something is magically industry standard, portable, etc.
+>
+> This is not your problem in particular; the entire handling of _DSD so
+> far is a joke IMO.
 
+It is actually useful to people as far as I can say.
 
+Also, if somebody is going to use properties with ACPI, why whould
+they use a different set of properties with DT?
+
+Wouldn't it be more reasonable to use the same set in both cases?
+
+Thanks,
+Rafael
