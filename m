@@ -1,120 +1,90 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v1] x86, ACPI, irq: Fix a regression caused by
-Date: Sun,  9 Aug 2015 16:58:29 +0800
-Message-ID: <1439110710-26498-1-git-send-email-jiang.liu@linux.intel.com>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [PATCH v2 13/22] i2c: core: Probe i2c master devices on demand
+Date: Sun, 9 Aug 2015 14:34:30 +0200
+Message-ID: <20150809123430.GB1521@katana>
+References: <1438089593-7696-1-git-send-email-tomeu.vizoso@collabora.com>
+ <1438089593-7696-14-git-send-email-tomeu.vizoso@collabora.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Y7xTucakfITjPcLV"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:9018 "EHLO mga01.intel.com"
+Received: from sauhun.de ([89.238.76.85]:60111 "EHLO pokefinder.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754099AbbHIIzP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 9 Aug 2015 04:55:15 -0400
+	id S932973AbbHIMek (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 9 Aug 2015 08:34:40 -0400
+Content-Disposition: inline
+In-Reply-To: <1438089593-7696-14-git-send-email-tomeu.vizoso@collabora.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Nick Meier <nmeier@microsoft.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
+To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Cc: linux-kernel@vger.kernel.org, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-arm-kernel@lists.infradead.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, linux-i2c@vger.kernel.org
 
-Nick Meier reported a regression with HyperV that "
-  After rebooting the VM, the following messages are logged in syslog
-  when trying to load the tulip driver:
-    tulip: Linux Tulip drivers version 1.1.15 (Feb 27, 2007)
-    tulip: 0000:00:0a.0: PCI INT A: failed to register GSI
-    tulip: Cannot enable tulip board #0, aborting
-    tulip: probe of 0000:00:0a.0 failed with error -16
-  Errors occur in 3.19.0 kernel
-  Works in 3.17 kernel.
-"
 
-According to the ACPI dump file posted by Nick at
-https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1440072
+--Y7xTucakfITjPcLV
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-The ACPI MADT table includes an interrupt source overridden entry for
-ACPI SCI:
-[236h 0566  1]                Subtable Type : 02 <Interrupt Source Override>
-[237h 0567  1]                       Length : 0A
-[238h 0568  1]                          Bus : 00
-[239h 0569  1]                       Source : 09
-[23Ah 0570  4]                    Interrupt : 00000009
-[23Eh 0574  2]        Flags (decoded below) : 000D
-                                   Polarity : 1
-                               Trigger Mode : 3
-That means ACPI SCI interrupt(Interrupt : 00000009) works in
-level(Trigger Mode : 3), high(Polarity : 1) mode.
+On Tue, Jul 28, 2015 at 03:19:44PM +0200, Tomeu Vizoso wrote:
+> When looking up an i2c master through its firmware node, probe it if it
+> hasn't already.
+>=20
+> The goal is to reduce deferred probes to a minimum, as it makes it very
+> cumbersome to find out why a device failed to probe, and can introduce
+> very big delays in when a critical device is probed.
+>=20
+> Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
 
-And in DSDT table, we have _PRT method to define PCI interrupts, which
-eventually goes to:
-        Name (PRSA, ResourceTemplate ()
-        {
-            IRQ (Level, ActiveLow, Shared, )
-                {3,4,5,7,9,10,11,12,14,15}
-        })
-        Name (PRSB, ResourceTemplate ()
-        {
-            IRQ (Level, ActiveLow, Shared, )
-                {3,4,5,7,9,10,11,12,14,15}
-        })
-        Name (PRSC, ResourceTemplate ()
-        {
-            IRQ (Level, ActiveLow, Shared, )
-                {3,4,5,7,9,10,11,12,14,15}
-        })
-        Name (PRSD, ResourceTemplate ()
-        {
-            IRQ (Level, ActiveLow, Shared, )
-                {3,4,5,7,9,10,11,12,14,15}
-        })
-which means it's also possible to use IRQ9 for PCI interrupt, but works
-in Level, ActiveLow mode. So it conflicts with ACPI SCI interrupt source
-overriddern.
+What is the status of this series? The boot time reduction sounds great.
 
-So implement a quirk to correct interrupt attribute for HyperV SCI
-interrupt. Nick reports the proposed patch fixes the regression as "
-  Applied the above proposed patch with the DMI values substituted.
-  The tulip driver loaded, and an address was assigned via DHCP.
-"
-Please refer to following links for more information:
-https://bugzilla.kernel.org/show_bug.cgi?id=101301
-https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1440072
+> ---
+>=20
+> Changes in v2: None
+>=20
+>  drivers/i2c/i2c-core.c | 2 ++
+>  1 file changed, 2 insertions(+)
+>=20
+> diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+> index e6d4935161e4..5520b413e3db 100644
+> --- a/drivers/i2c/i2c-core.c
+> +++ b/drivers/i2c/i2c-core.c
+> @@ -1353,6 +1353,8 @@ struct i2c_adapter *of_find_i2c_adapter_by_node(str=
+uct device_node *node)
+>  {
+>  	struct device *dev;
+> =20
+> +	fwnode_ensure_device(&node->fwnode);
 
-Fixes: cd68f6bd53cf ("x86, irq, acpi: Get rid of special handling of GSI for ACPI SCI")
-Reported-and-tested-by: Nick Meier <nmeier@microsoft.com>
-Cc: <stable@vger.kernel.org> # 3.19
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
----
- arch/x86/kernel/acpi/boot.c |   15 +++++++++++++++
- 1 file changed, 15 insertions(+)
+TBH, the function name doesn't tell me a lot. It ensures what?
 
-diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-index e49ee24da85e..47d95a86d56d 100644
---- a/arch/x86/kernel/acpi/boot.c
-+++ b/arch/x86/kernel/acpi/boot.c
-@@ -1308,6 +1308,13 @@ static int __init dmi_ignore_irq0_timer_override(const struct dmi_system_id *d)
- 	return 0;
- }
- 
-+static int __init acpi_force_hyperv_sci_attr(const struct dmi_system_id *d)
-+{
-+	acpi_sci_flags = ACPI_MADT_POLARITY_ACTIVE_LOW |
-+		(acpi_sci_flags & ~ACPI_MADT_POLARITY_MASK);
-+	return 0;
-+}
-+
- /*
-  * ACPI offers an alternative platform interface model that removes
-  * ACPI hardware requirements for platforms that do not implement
-@@ -1458,6 +1465,14 @@ static struct dmi_system_id __initdata acpi_dmi_table_late[] = {
- 		     DMI_MATCH(DMI_PRODUCT_NAME, "AMILO PRO V2030"),
- 		     },
- 	 },
-+	{
-+	 .callback = acpi_force_hyperv_sci_attr,
-+	 .ident = "HyperV",
-+	 .matches = {
-+		     DMI_MATCH(DMI_SYS_VENDOR, "Microsoft Corporation"),
-+		     DMI_MATCH(DMI_PRODUCT_NAME, "Virtual Machine"),
-+		     },
-+	 },
- 	{}
- };
- 
--- 
-1.7.10.4
+> +
+>  	dev =3D bus_find_device(&i2c_bus_type, NULL, node,
+>  					 of_dev_node_match);
+>  	if (!dev)
+> --=20
+> 2.4.3
+>=20
 
+--Y7xTucakfITjPcLV
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJVx0jWAAoJEBQN5MwUoCm2dfkP/RwJheGHqSbnXM3/QEfsOCtE
+1joUxJcgVOSniFqAcvKMNRuxnWDqOAiuU+ts7Fa1BQ/UGLGM9hYVUUKjBqAZaDRH
+Z4gQddCu87WLzHShwbNKCa3p4grVn0XYIeIzE+j0pPSdONcISdb8Mp6fJUA8AvX4
+7sl8D5ayZgRezYwpAHpkv6yFxrCfzS8iX91g5JjX0tykIUDLWnhJvcmpLl7i6kaO
+xWnruNXGzJMGo/90iLJLFaGHCKmUaNTIxwtELTv8+66wJ5wy0Afq0ycaWXB8lPNp
+a9SOZdz/VC2fUj3qOW4IVHflSuhrHyLuJrTjiiFbIgYKj1kNFSZ5NwutMatahAYO
+HuC6Z6aIpjAVc2IgsFPZCLB86S9wO2M33xReivljwA80/USlwxjK0QoixXCF+L+n
+9wZ7JLEsK3/4caHP9f5drrq+ZUtgNyqDGfbGVP+Dxv0Ck/pp87yqfVRoF2xLpxMA
+v9ehTe1nc8KlWeyEHmsNOHtS/gBX5Xyfm0N4TeieDlkxQupg1Ig0C8eVZ5pG24mQ
+47YAGUN8DVwtij9SnOldCOtwJzvdde5fQmxmhWK8oROqS4ZmiW6lujerwG74rcFF
+92QPSXo/5GYHVSFfWULUL5pD2VJm3XGFBYIUl4URITk5VM1LAAwOOnC7jf/2ayM/
+pOJtlvUT5x80dzsfxUed
+=OHet
+-----END PGP SIGNATURE-----
+
+--Y7xTucakfITjPcLV--
