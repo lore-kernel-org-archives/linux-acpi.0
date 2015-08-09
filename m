@@ -1,211 +1,120 @@
-From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Subject: Re: [PATCH v4 10/10] irqchip / gicv2m: Introducing gicv2m_acpi_init()
-Date: Sun, 9 Aug 2015 15:04:31 +0700
-Message-ID: <55C7098F.5010303@amd.com>
-References: <1438164539-29256-1-git-send-email-hanjun.guo@linaro.org>
- <1438164539-29256-11-git-send-email-hanjun.guo@linaro.org>
- <55C0CAC4.3010202@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: [Patch v1] x86, ACPI, irq: Fix a regression caused by
+Date: Sun,  9 Aug 2015 16:58:29 +0800
+Message-ID: <1439110710-26498-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bl2on0103.outbound.protection.outlook.com ([65.55.169.103]:23266
-	"EHLO na01-bl2-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754099AbbHIIEt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 9 Aug 2015 04:04:49 -0400
-In-Reply-To: <55C0CAC4.3010202@arm.com>
+Received: from mga01.intel.com ([192.55.52.88]:9018 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754099AbbHIIzP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 9 Aug 2015 04:55:15 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Timur Tabi <timur@codeaurora.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Mark Brown <broonie@kernel.org>, Wei Huang <wei@redhat.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
+To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Nick Meier <nmeier@microsoft.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
 
-Hi Marc,
+Nick Meier reported a regression with HyperV that "
+  After rebooting the VM, the following messages are logged in syslog
+  when trying to load the tulip driver:
+    tulip: Linux Tulip drivers version 1.1.15 (Feb 27, 2007)
+    tulip: 0000:00:0a.0: PCI INT A: failed to register GSI
+    tulip: Cannot enable tulip board #0, aborting
+    tulip: probe of 0000:00:0a.0 failed with error -16
+  Errors occur in 3.19.0 kernel
+  Works in 3.17 kernel.
+"
 
-On 8/4/15 21:23, Marc Zyngier wrote:
-> On 29/07/15 11:08, Hanjun Guo wrote:
->> From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
->>
->> This patch introduces gicv2m_acpi_init(), which uses information
->> in MADT GIC MSI frames structure to initialize GICv2m driver.
->> It also refactors gicv2m_init_one() to handle both DT and ACPI
->> initialization path.
->>
->> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
->> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->> ---
->>   drivers/irqchip/irq-gic-v2m.c   | 111 +++++++++++++++++++++++++++++++---------
->>   drivers/irqchip/irq-gic.c       |   3 ++
->>   include/linux/irqchip/arm-gic.h |   7 +++
->>   3 files changed, 98 insertions(+), 23 deletions(-)
->>
->> diff --git a/drivers/irqchip/irq-gic-v2m.c b/drivers/irqchip/irq-gic-v2m.c
->> index d0fcbf8..c491a08 100644
->> --- a/drivers/irqchip/irq-gic-v2m.c
->> +++ b/drivers/irqchip/irq-gic-v2m.c
->> @@ -15,6 +15,7 @@
->>
->>   #define pr_fmt(fmt) "GICv2m: " fmt
->>
->> +#include <linux/acpi.h>
->>   #include <linux/irq.h>
->>   #include <linux/irqdomain.h>
->>   #include <linux/kernel.h>
->> @@ -211,6 +212,10 @@ static bool is_msi_spi_valid(u32 base, u32 num)
->>   	return true;
->>   }
->>
->> +char gicv2m_domain_name[] = "GICV2M";
->> +char gicv2m_pci_msi_domain_name[] = "GICV2M-PCI-MSI";
->> +char gicv2m_plat_msi_domain_name[] = "GICV2M-PLAT-MSI";
->> +
->
-> Can't these be static? Why do we need them?
+According to the ACPI dump file posted by Nick at
+https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1440072
 
-Of course, this is not needed. I figured it was useful when I was 
-debugging the irq domain hierarchy stuff. I'll remove it then.
+The ACPI MADT table includes an interrupt source overridden entry for
+ACPI SCI:
+[236h 0566  1]                Subtable Type : 02 <Interrupt Source Override>
+[237h 0567  1]                       Length : 0A
+[238h 0568  1]                          Bus : 00
+[239h 0569  1]                       Source : 09
+[23Ah 0570  4]                    Interrupt : 00000009
+[23Eh 0574  2]        Flags (decoded below) : 000D
+                                   Polarity : 1
+                               Trigger Mode : 3
+That means ACPI SCI interrupt(Interrupt : 00000009) works in
+level(Trigger Mode : 3), high(Polarity : 1) mode.
 
-[...]
->> @@ -329,15 +330,79 @@ int __init gicv2m_of_init(struct device_node *node, struct irq_domain *parent)
->>
->>   	for (child = of_find_matching_node(node, gicv2m_device_id); child;
->>   	     child = of_find_matching_node(child, gicv2m_device_id)) {
->> +		u32 spi_start = 0, nr_spis = 0;
->> +		struct resource res;
->> +
->>   		if (!of_find_property(child, "msi-controller", NULL))
->>   			continue;
->>
->> -		ret = gicv2m_init_one(child, parent);
->> +		ret = of_address_to_resource(child, 0, &res);
->> +		if (ret) {
->> +			pr_err("Failed to allocate v2m resource.\n");
->> +			break;
->> +		}
->> +
->> +		if (!of_property_read_u32(child, "arm,msi-base-spi", &spi_start) &&
->> +		    !of_property_read_u32(child, "arm,msi-num-spis", &nr_spis))
->> +			pr_info("Overriding V2M MSI_TYPER (base:%u, num:%u)\n",
->> +				spi_start, nr_spis);
->> +
->> +		ret = gicv2m_init_one(parent, &spi_start, &nr_spis, &res,
->
-> If these spi_start and nr_spis pointers passed to gicv2m_init_one are
-> only for the benefit of printing the message below, just move the
-> message inside the function...
->
+And in DSDT table, we have _PRT method to define PCI interrupts, which
+eventually goes to:
+        Name (PRSA, ResourceTemplate ()
+        {
+            IRQ (Level, ActiveLow, Shared, )
+                {3,4,5,7,9,10,11,12,14,15}
+        })
+        Name (PRSB, ResourceTemplate ()
+        {
+            IRQ (Level, ActiveLow, Shared, )
+                {3,4,5,7,9,10,11,12,14,15}
+        })
+        Name (PRSC, ResourceTemplate ()
+        {
+            IRQ (Level, ActiveLow, Shared, )
+                {3,4,5,7,9,10,11,12,14,15}
+        })
+        Name (PRSD, ResourceTemplate ()
+        {
+            IRQ (Level, ActiveLow, Shared, )
+                {3,4,5,7,9,10,11,12,14,15}
+        })
+which means it's also possible to use IRQ9 for PCI interrupt, but works
+in Level, ActiveLow mode. So it conflicts with ACPI SCI interrupt source
+overriddern.
 
-Ok.
+So implement a quirk to correct interrupt attribute for HyperV SCI
+interrupt. Nick reports the proposed patch fixes the regression as "
+  Applied the above proposed patch with the DMI values substituted.
+  The tulip driver loaded, and an address was assigned via DHCP.
+"
+Please refer to following links for more information:
+https://bugzilla.kernel.org/show_bug.cgi?id=101301
+https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1440072
 
->> +				      child);
->>   		if (ret) {
->>   			of_node_put(node);
->>   			break;
->>   		}
->> +
->> +		pr_info("Node %s: range[%#lx:%#lx], SPI[%d:%d]\n", child->name,
->> +			(unsigned long)res.start, (unsigned long)res.end,
->> +			spi_start, (spi_start + nr_spis));
->>   	}
->>
->>   	return ret;
->>   }
->> +
->> +#ifdef CONFIG_ACPI
->> +int __init gicv2m_acpi_init(struct acpi_table_header *table,
->> +			    struct irq_domain *parent)
->> +{
->> +	int i, ret;
->> +
->> +	ret = acpi_gic_msi_init(table);
->> +	if (ret)
->> +		return ret;
->> +
->> +	for (i = 0; i < acpi_gic_get_num_msi_frame(); i++) {
->> +		struct resource res;
->> +		u32 spi_start = 0, nr_spis = 0;
->> +		struct acpi_madt_generic_msi_frame *m;
->> +
->> +		ret = acpi_gic_get_msi_frame(i, &m);
->> +		if (ret)
->> +			return ret;
->> +
->
-> All of that should be moved here. And we don't need to build an
-> intermediate representation. Just build the v2m_data structures as you go.
+Fixes: cd68f6bd53cf ("x86, irq, acpi: Get rid of special handling of GSI for ACPI SCI")
+Reported-and-tested-by: Nick Meier <nmeier@microsoft.com>
+Cc: <stable@vger.kernel.org> # 3.19
+Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+---
+ arch/x86/kernel/acpi/boot.c |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-I'll rework the ACPI MADT parsing, and move it into this file, and get 
-rid of the structure.
+diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+index e49ee24da85e..47d95a86d56d 100644
+--- a/arch/x86/kernel/acpi/boot.c
++++ b/arch/x86/kernel/acpi/boot.c
+@@ -1308,6 +1308,13 @@ static int __init dmi_ignore_irq0_timer_override(const struct dmi_system_id *d)
+ 	return 0;
+ }
+ 
++static int __init acpi_force_hyperv_sci_attr(const struct dmi_system_id *d)
++{
++	acpi_sci_flags = ACPI_MADT_POLARITY_ACTIVE_LOW |
++		(acpi_sci_flags & ~ACPI_MADT_POLARITY_MASK);
++	return 0;
++}
++
+ /*
+  * ACPI offers an alternative platform interface model that removes
+  * ACPI hardware requirements for platforms that do not implement
+@@ -1458,6 +1465,14 @@ static struct dmi_system_id __initdata acpi_dmi_table_late[] = {
+ 		     DMI_MATCH(DMI_PRODUCT_NAME, "AMILO PRO V2030"),
+ 		     },
+ 	 },
++	{
++	 .callback = acpi_force_hyperv_sci_attr,
++	 .ident = "HyperV",
++	 .matches = {
++		     DMI_MATCH(DMI_SYS_VENDOR, "Microsoft Corporation"),
++		     DMI_MATCH(DMI_PRODUCT_NAME, "Virtual Machine"),
++		     },
++	 },
+ 	{}
+ };
+ 
+-- 
+1.7.10.4
 
->> +		res.start = m->base_address;
->> +		res.end = m->base_address + 0x1000;
->> +
->> +		if (m->flags & ACPI_MADT_OVERRIDE_SPI_VALUES) {
->> +			spi_start = m->spi_base;
->> +			nr_spis = m->spi_count;
->> +
->> +			pr_info("ACPI overriding V2M MSI_TYPER (base:%u, num:%u)\n",
->> +				spi_start, nr_spis);
->> +		}
->> +
->> +		ret = gicv2m_init_one(parent, &spi_start, &nr_spis, &res,
->> +				      (void *)(m->base_address));
->> +		if (ret)
->> +			break;
->> +
->> +		pr_info("MSI frame ID %u: range[%#lx:%#lx], SPI[%d:%d]\n",
->> +			m->msi_frame_id,
->> +			(unsigned long)res.start, (unsigned long)res.end,
->> +			spi_start, (spi_start + nr_spis));
->> +	}
->> +	return ret;
->> +}
->> +
->> +#endif /* CONFIG_ACPI */
->> diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
->> index bec6b00..531ebbc 100644
->> --- a/drivers/irqchip/irq-gic.c
->> +++ b/drivers/irqchip/irq-gic.c
->> @@ -1159,6 +1159,9 @@ gic_v2_acpi_init(struct acpi_table_header *table)
->>   	 */
->>   	gic_init_bases(0, -1, dist_base, cpu_base, 0, (void *)ACPI_IRQ_MODEL_GIC);
->>
->> +	if (IS_ENABLED(CONFIG_ARM_GIC_V2M))
->> +		gicv2m_acpi_init(table, gic_data[0].domain);
->> +
->>   	acpi_set_irq_model(ACPI_IRQ_MODEL_GIC, ACPI_IRQ_MODEL_GIC,
->>   			   gic_acpi_gsi_desc_populate);
->>   	return 0;
->> diff --git a/include/linux/irqchip/arm-gic.h b/include/linux/irqchip/arm-gic.h
->> index 97799b7..27d8196 100644
->> --- a/include/linux/irqchip/arm-gic.h
->> +++ b/include/linux/irqchip/arm-gic.h
->> @@ -109,6 +109,13 @@ static inline void gic_init(unsigned int nr, int start,
->>
->>   int gicv2m_of_init(struct device_node *node, struct irq_domain *parent);
->>
->> +#ifdef CONFIG_ACPI
->> +struct acpi_table_header;
->> +
->> +int gicv2m_acpi_init(struct acpi_table_header *table,
->> +		     struct irq_domain *parent);
->> +#endif
->> +
->>   void gic_send_sgi(unsigned int cpu_id, unsigned int irq);
->>   int gic_get_cpu_id(unsigned int cpu);
->>   void gic_migrate_target(unsigned int new_cpu_id);
->>
->
-> This needs rework to do the parsing of the tables in this driver. Just
-> expose the domain_token through a function that you register with the
-> ACPI layer.
-
-Ok. I'll investigate and rework this to only expose the domain_token.
-
-Basically, I would need a way to pass down a device from ACPI layer into 
-irqchips (e.g. GICv2m and GICv3-ITS), so that it can verify the device 
-with the MSI domains and return the appropriate domain token (or some 
-sort of domain reference).
-
-Thanks,
-Suravee
