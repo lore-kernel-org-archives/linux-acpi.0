@@ -1,54 +1,182 @@
-From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
-Subject: [PATCH V11 5/5] acpi, apei: use appropriate pgprot_t to map GHES memory
-Date: Sat,  8 Aug 2015 10:18:53 -0700
-Message-ID: <1439054333-21766-6-git-send-email-zjzhang@codeaurora.org>
-References: <1439054333-21766-1-git-send-email-zjzhang@codeaurora.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:59508 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1946784AbbHHRTV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 8 Aug 2015 13:19:21 -0400
-In-Reply-To: <1439054333-21766-1-git-send-email-zjzhang@codeaurora.org>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: Re: [PATCH 1/5] x86, gfp: Cache best near node for memory allocation.
+Date: Sun, 9 Aug 2015 14:15:27 +0800
+Message-ID: <55C6EFFF.5070605@cn.fujitsu.com>
+References: <1436261425-29881-1-git-send-email-tangchen@cn.fujitsu.com> <1436261425-29881-2-git-send-email-tangchen@cn.fujitsu.com> <20150715214802.GL15934@mtj.duckdns.org> <55C03332.2030808@cn.fujitsu.com> <55C0725B.80201@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <55C0725B.80201@linux.intel.com>
+Sender: owner-linux-mm@kvack.org
+To: Jiang Liu <jiang.liu@linux.intel.com>, Tejun Heo <tj@kernel.org>
+Cc: mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, laijs@cn.fujitsu.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, qiaonuohan@cn.fujitsu.com, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matt Fleming <matt.fleming@intel.com>, Thomas Gleixner <tglx@linutronix.de>, fu.wei@linaro.org, al.stone@linaro.org, bp@alien8.de, tony.luck@gmail.com, hanjun.guo@linaro.org, rjw@rjwysocki.net, lenb@kernel.org, ying.huang@intel.com, catalin.marinas@arm.com, will.deacon@arm.com
-Cc: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, timur@codeaurora.org
 
-From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
+Hi Liu,
 
-With ACPI APEI firmware first handling, generic hardware error
-record is updated by firmware in GHES memory region. On an arm64
-platform, firmware updates GHES memory region with uncached
-access attribute, and then Linux reads stale data from cache.
+Have you posted your new patches ?
+(I mean memory-less node support patches.)
 
-GHES memory region should be mapped with page protection type
-according to what is returned from arch_apei_get_mem_attribute(),
-instead of always with PAGE_KERNEL (eg. cached attribute).
+If you are going to post them, please cc me.
 
-Acked-by: Borislav Petkov <bp@suse.de>
-Signed-off-by: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
----
- drivers/acpi/apei/ghes.c | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+And BTW, how did you reproduce the memory-less node problem ?
+Do you have a real memory-less node on your machine ?
 
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index cf198ef5c381..c9caa92f2d13 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -172,8 +172,10 @@ static void __iomem *ghes_ioremap_pfn_irq(u64 pfn)
- 	unsigned long vaddr;
- 
- 	vaddr = (unsigned long)GHES_IOREMAP_IRQ_PAGE(ghes_ioremap_area->addr);
--	ioremap_page_range(vaddr, vaddr + PAGE_SIZE,
--			   pfn << PAGE_SHIFT, PAGE_KERNEL);
-+	ioremap_page_range(vaddr,
-+			   vaddr + PAGE_SIZE,
-+			   pfn << PAGE_SHIFT,
-+			   arch_apei_get_mem_attribute(pfn << PAGE_SHIFT));
- 
- 	return (void __iomem *)vaddr;
- }
--- 
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project
+Thanks. :)
 
+On 08/04/2015 04:05 PM, Jiang Liu wrote:
+> On 2015/8/4 11:36, Tang Chen wrote:
+>> Hi TJ,
+>>
+>> Sorry for the late reply.
+>>
+>> On 07/16/2015 05:48 AM, Tejun Heo wrote:
+>>> ......
+>>> so in initialization pharse makes no sense any more. The best near online
+>>> node for each cpu should be cached somewhere.
+>>> I'm not really following.  Is this because the now offline node can
+>>> later come online and we'd have to break the constant mapping
+>>> invariant if we update the mapping later?  If so, it'd be nice to
+>>> spell that out.
+>> Yes. Will document this in the next version.
+>>
+>>>> ......
+>>>>    +int get_near_online_node(int node)
+>>>> +{
+>>>> +    return per_cpu(x86_cpu_to_near_online_node,
+>>>> +               cpumask_first(&node_to_cpuid_mask_map[node]));
+>>>> +}
+>>>> +EXPORT_SYMBOL(get_near_online_node);
+>>> Umm... this function is sitting on a fairly hot path and scanning a
+>>> cpumask each time.  Why not just build a numa node -> numa node array?
+>> Indeed. Will avoid to scan a cpumask.
+>>
+>>> ......
+>>>
+>>>>      static inline struct page *alloc_pages_exact_node(int nid, gfp_t
+>>>> gfp_mask,
+>>>>                            unsigned int order)
+>>>>    {
+>>>> -    VM_BUG_ON(nid < 0 || nid >= MAX_NUMNODES || !node_online(nid));
+>>>> +    VM_BUG_ON(nid < 0 || nid >= MAX_NUMNODES);
+>>>> +
+>>>> +#if IS_ENABLED(CONFIG_X86) && IS_ENABLED(CONFIG_NUMA)
+>>>> +    if (!node_online(nid))
+>>>> +        nid = get_near_online_node(nid);
+>>>> +#endif
+>>>>          return __alloc_pages(gfp_mask, order, node_zonelist(nid,
+>>>> gfp_mask));
+>>>>    }
+>>> Ditto.  Also, what's the synchronization rules for NUMA node
+>>> on/offlining.  If you end up updating the mapping later, how would
+>>> that be synchronized against the above usages?
+>> I think the near online node map should be updated when node online/offline
+>> happens. But about this, I think the current numa code has a little
+>> problem.
+>>
+>> As you know, firmware info binds a set of CPUs and memory to a node. But
+>> at boot time, if the node has no memory (a memory-less node) , it won't
+>> be online.
+>> But the CPUs on that node is available, and bound to the near online node.
+>> (Here, I mean numa_set_node(cpu, node).)
+>>
+>> Why does the kernel do this ? I think it is used to ensure that we can
+>> allocate memory
+>> successfully by calling functions like alloc_pages_node() and
+>> alloc_pages_exact_node().
+>> By these two fuctions, any CPU should be bound to a node who has memory
+>> so that
+>> memory allocation can be successful.
+>>
+>> That means, for a memory-less node at boot time, CPUs on the node is
+>> online,
+>> but the node is not online.
+>>
+>> That also means, "the node is online" equals to "the node has memory".
+>> Actually, there
+>> are a lot of code in the kernel is using this rule.
+>>
+>>
+>> But,
+>> 1) in cpu_up(), it will try to online a node, and it doesn't check if
+>> the node has memory.
+>> 2) in try_offline_node(), it offlines CPUs first, and then the memory.
+>>
+>> This behavior looks a little wired, or let's say it is ambiguous. It
+>> seems that a NUMA node
+>> consists of CPUs and memory. So if the CPUs are online, the node should
+>> be online.
+> Hi Chen,
+> 	I have posted a patch set to enable memoryless node on x86,
+> will repost it for review:) Hope it help to solve this issue.
+> Thanks!
+> Gerry
+>
+>> And also,
+>> The main purpose of this patch-set is to make the cpuid <-> nodeid
+>> mapping persistent.
+>> After this patch-set, alloc_pages_node() and alloc_pages_exact_node()
+>> won't depend on
+>> cpuid <-> nodeid mapping any more. So the node should be online if the
+>> CPUs on it are
+>> online. Otherwise, we cannot setup interfaces of CPUs under /sys.
+>>
+>>
+>> Unfortunately, since I don't have a machine a with memory-less node, I
+>> cannot reproduce
+>> the problem right now.
+>>
+>> How do you think the node online behavior should be changed ?
+>>
+>> Thanks.
+>>
+>>
+>>
+>>
+>>
+>>
+>>
+>>
+>>
+>>
+>>
+>>
+>>
+>>
+>>
+>>
+>>
+>>
+>>
+>>
+>>
+>>
+>>
+>>
+>>
+>>
+>>
+>>
+>>
+>>
+>>
+>>
+>>
+>>
+>>
+>>
+>>
+>> -- 
+>> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> Please read the FAQ at  http://www.tux.org/lkml/
+> .
+>
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
