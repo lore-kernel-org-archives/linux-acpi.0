@@ -1,182 +1,121 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: Re: [PATCH 1/5] x86, gfp: Cache best near node for memory allocation.
-Date: Sun, 9 Aug 2015 14:15:27 +0800
-Message-ID: <55C6EFFF.5070605@cn.fujitsu.com>
-References: <1436261425-29881-1-git-send-email-tangchen@cn.fujitsu.com> <1436261425-29881-2-git-send-email-tangchen@cn.fujitsu.com> <20150715214802.GL15934@mtj.duckdns.org> <55C03332.2030808@cn.fujitsu.com> <55C0725B.80201@linux.intel.com>
+From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Subject: Re: [PATCH v4 08/10] ACPI: GIC: Add ACPI helper functions to query
+ irq-domain tokens for for GIC MSI and ITS
+Date: Sun, 9 Aug 2015 15:02:33 +0700
+Message-ID: <55C70919.2050805@amd.com>
+References: <1438164539-29256-1-git-send-email-hanjun.guo@linaro.org>
+ <1438164539-29256-9-git-send-email-hanjun.guo@linaro.org>
+ <55C0C5DD.6090607@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <55C0725B.80201@linux.intel.com>
-Sender: owner-linux-mm@kvack.org
-To: Jiang Liu <jiang.liu@linux.intel.com>, Tejun Heo <tj@kernel.org>
-Cc: mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, laijs@cn.fujitsu.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, qiaonuohan@cn.fujitsu.com, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-bl2on0146.outbound.protection.outlook.com ([65.55.169.146]:21312
+	"EHLO na01-bl2-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S932865AbbHIICs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 9 Aug 2015 04:02:48 -0400
+In-Reply-To: <55C0C5DD.6090607@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Timur Tabi <timur@codeaurora.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Mark Brown <broonie@kernel.org>, Wei Huang <wei@redhat.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 
-Hi Liu,
+Hi Marc,
 
-Have you posted your new patches ?
-(I mean memory-less node support patches.)
+Sorry for late reply. Please see my comments below.
 
-If you are going to post them, please cc me.
-
-And BTW, how did you reproduce the memory-less node problem ?
-Do you have a real memory-less node on your machine ?
-
-Thanks. :)
-
-On 08/04/2015 04:05 PM, Jiang Liu wrote:
-> On 2015/8/4 11:36, Tang Chen wrote:
->> Hi TJ,
+On 8/4/15 21:02, Marc Zyngier wrote:
+> On 29/07/15 11:08, Hanjun Guo wrote:
+>> From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 >>
->> Sorry for the late reply.
+>> This patch introduces acpi_gic_get_msi_token(), which returns irq-domain
+>> token that can be used to look up MSI doamin of a device.
+>> In both GIC MSI and ITS cases, the base_address specified in the GIC MSI
+>> or GIC ITS structure is used as a token for MSI domain.
 >>
->> On 07/16/2015 05:48 AM, Tejun Heo wrote:
->>> ......
->>> so in initialization pharse makes no sense any more. The best near online
->>> node for each cpu should be cached somewhere.
->>> I'm not really following.  Is this because the now offline node can
->>> later come online and we'd have to break the constant mapping
->>> invariant if we update the mapping later?  If so, it'd be nice to
->>> spell that out.
->> Yes. Will document this in the next version.
+>> In addition, this patch also provides low-level helper functions to parse
+>> and query GIC MSI structure and GIC ITS from MADT. Once parsed, it keeps
+>> a copy of the structure for use in subsequent queries to avoid having
+>> to map and parse MADT multiple times.
 >>
->>>> ......
->>>>    +int get_near_online_node(int node)
->>>> +{
->>>> +    return per_cpu(x86_cpu_to_near_online_node,
->>>> +               cpumask_first(&node_to_cpuid_mask_map[node]));
->>>> +}
->>>> +EXPORT_SYMBOL(get_near_online_node);
->>> Umm... this function is sitting on a fairly hot path and scanning a
->>> cpumask each time.  Why not just build a numa node -> numa node array?
->> Indeed. Will avoid to scan a cpumask.
+>> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>> ---
+>>   drivers/acpi/Makefile   |   1 +
+>>   drivers/acpi/acpi_gic.c | 234 ++++++++++++++++++++++++++++++++++++++++++++++++
+>>   include/acpi/acpi_gic.h |  23 +++++
+>>   include/linux/acpi.h    |   1 +
+>>   4 files changed, 259 insertions(+)
+>>   create mode 100644 drivers/acpi/acpi_gic.c
+>>   create mode 100644 include/acpi/acpi_gic.h
 >>
->>> ......
->>>
->>>>      static inline struct page *alloc_pages_exact_node(int nid, gfp_t
->>>> gfp_mask,
->>>>                            unsigned int order)
->>>>    {
->>>> -    VM_BUG_ON(nid < 0 || nid >= MAX_NUMNODES || !node_online(nid));
->>>> +    VM_BUG_ON(nid < 0 || nid >= MAX_NUMNODES);
->>>> +
->>>> +#if IS_ENABLED(CONFIG_X86) && IS_ENABLED(CONFIG_NUMA)
->>>> +    if (!node_online(nid))
->>>> +        nid = get_near_online_node(nid);
->>>> +#endif
->>>>          return __alloc_pages(gfp_mask, order, node_zonelist(nid,
->>>> gfp_mask));
->>>>    }
->>> Ditto.  Also, what's the synchronization rules for NUMA node
->>> on/offlining.  If you end up updating the mapping later, how would
->>> that be synchronized against the above usages?
->> I think the near online node map should be updated when node online/offline
->> happens. But about this, I think the current numa code has a little
->> problem.
+>> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+>> index 8321430..def54b9 100644
+>> --- a/drivers/acpi/Makefile
+>> +++ b/drivers/acpi/Makefile
+>> @@ -54,6 +54,7 @@ acpi-$(CONFIG_ACPI_NUMA)	+= numa.o
+>>   acpi-$(CONFIG_ACPI_PROCFS_POWER) += cm_sbs.o
+>>   acpi-y				+= acpi_lpat.o
+>>   acpi-$(CONFIG_ACPI_GENERIC_GSI) += gsi.o
+>> +acpi-$(CONFIG_ARM_GIC_ACPI)	+= acpi_gic.o
 >>
->> As you know, firmware info binds a set of CPUs and memory to a node. But
->> at boot time, if the node has no memory (a memory-less node) , it won't
->> be online.
->> But the CPUs on that node is available, and bound to the near online node.
->> (Here, I mean numa_set_node(cpu, node).)
+>>   # These are (potentially) separate modules
 >>
->> Why does the kernel do this ? I think it is used to ensure that we can
->> allocate memory
->> successfully by calling functions like alloc_pages_node() and
->> alloc_pages_exact_node().
->> By these two fuctions, any CPU should be bound to a node who has memory
->> so that
->> memory allocation can be successful.
->>
->> That means, for a memory-less node at boot time, CPUs on the node is
->> online,
->> but the node is not online.
->>
->> That also means, "the node is online" equals to "the node has memory".
->> Actually, there
->> are a lot of code in the kernel is using this rule.
->>
->>
->> But,
->> 1) in cpu_up(), it will try to online a node, and it doesn't check if
->> the node has memory.
->> 2) in try_offline_node(), it offlines CPUs first, and then the memory.
->>
->> This behavior looks a little wired, or let's say it is ambiguous. It
->> seems that a NUMA node
->> consists of CPUs and memory. So if the CPUs are online, the node should
->> be online.
-> Hi Chen,
-> 	I have posted a patch set to enable memoryless node on x86,
-> will repost it for review:) Hope it help to solve this issue.
-> Thanks!
-> Gerry
+>> diff --git a/drivers/acpi/acpi_gic.c b/drivers/acpi/acpi_gic.c
+>> new file mode 100644
+>> index 0000000..11ee4eb
+>> --- /dev/null
+>> +++ b/drivers/acpi/acpi_gic.c
 >
->> And also,
->> The main purpose of this patch-set is to make the cpuid <-> nodeid
->> mapping persistent.
->> After this patch-set, alloc_pages_node() and alloc_pages_exact_node()
->> won't depend on
->> cpuid <-> nodeid mapping any more. So the node should be online if the
->> CPUs on it are
->> online. Otherwise, we cannot setup interfaces of CPUs under /sys.
->>
->>
->> Unfortunately, since I don't have a machine a with memory-less node, I
->> cannot reproduce
->> the problem right now.
->>
->> How do you think the node online behavior should be changed ?
->>
->> Thanks.
->>
->>
->>
->>
->>
->>
->>
->>
->>
->>
->>
->>
->>
->>
->>
->>
->>
->>
->>
->>
->>
->>
->>
->>
->>
->>
->>
->>
->>
->>
->>
->>
->>
->>
->>
->>
->>
->> -- 
->> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> Please read the FAQ at  http://www.tux.org/lkml/
-> .
->
+> I think this is starting badly. If this is GIC specific, it lives in
+> drivers/irqchip. Nothing in drivers/acpi should be interrupt-controller
+> specific at all. If there are things you need to expose through the ACPI
+> layer, add some indirections.
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+OK, originally, I intended for this to be an intermediate layer b/w ACPI 
+and irqchip, but I guess that's still not what you are looking for. I'll 
+rework this again.
+
+[....]
+>> +
+>> +#endif /*__ACPI_GIC_H__*/
+>> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+>> index 04dd0bb..5d58b61 100644
+>> --- a/include/linux/acpi.h
+>> +++ b/include/linux/acpi.h
+>> @@ -44,6 +44,7 @@
+>>
+>>   #include <acpi/acpi_bus.h>
+>>   #include <acpi/acpi_drivers.h>
+>> +#include <acpi/acpi_gic.h>
+>
+> Ah! No.
+>
+>>   #include <acpi/acpi_numa.h>
+>>   #include <acpi/acpi_io.h>
+>>   #include <asm/acpi.h>
+>>
+>
+> Right. Very little of what is above belongs to the ACPI layer. What
+> would belong here is a generic acpi_get_msi_domain_token(dev) that would
+> call into a controller-specific function to parse the various tables and
+> find out which GICv2m frame (or which ITS) is serving the given device.
+> This would include parsing of the IORT structures if they are available.
+
+The problem here is we would need to figure out the hook into *a 
+controller-specific function* from a generic layer (ACPI in this case).
+
+> For GICv2m, it should be simplistic: just return the domain_token of the
+> v2m widget. For the ITS, it is slightly more complex, and there should
+> be some specific backend for that. There is no ACPI support for the ITS
+> yet, so that shouldn't be your concern at this point in time.
+>
+> Overall, drivers/acpi should be hardware agnostic (or at least aim for
+> it), just like drivers/of is.
+
+I think I understand how you don't like the current approach. Lemme try 
+a different approach and send out another revision.
+
+Thanks,
+Suravee
