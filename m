@@ -1,74 +1,61 @@
-From: Tomeu Vizoso <tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
-Subject: Re: [PATCH v2 13/22] i2c: core: Probe i2c master devices on demand
-Date: Sun, 9 Aug 2015 15:37:36 +0200
-Message-ID: <CAAObsKBUxtdT7gsO9mh__E5kFamp9yPUAetxJJ=ftV4Bu_b2HA@mail.gmail.com>
-References: <1438089593-7696-1-git-send-email-tomeu.vizoso@collabora.com>
- <1438089593-7696-14-git-send-email-tomeu.vizoso@collabora.com> <20150809123430.GB1521@katana>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v3 01/18] platform: delay OF device-driver matches until
+ late_initcall
+Date: Mon, 10 Aug 2015 11:25:15 +0100
+Message-ID: <20150810102515.GA1965@sirena.org.uk>
+References: <1438870315-18689-1-git-send-email-tomeu.vizoso@collabora.com>
+ <1438870315-18689-2-git-send-email-tomeu.vizoso@collabora.com>
+ <CAL_Jsq+GLMZe-f6qEi=7i1YrrWc6k99RpGkOyCd5KkYDiyt0QA@mail.gmail.com>
+ <CAAObsKBapFqzr+4YEXJfcJWMd+tkaBqYbGiFTntHStAP=+P-_Q@mail.gmail.com>
+ <55C4E597.1010701@ti.com>
+ <CAAObsKDJsuhuQfLbxq27Mtm1T_Auz7Gohp8PDyK7rNNDyaGhcg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20150809123430.GB1521@katana>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>
-Cc: "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="FCuugMFkClbJLl1L"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:37176 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934670AbbHJKZi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 10 Aug 2015 06:25:38 -0400
+Content-Disposition: inline
+In-Reply-To: <CAAObsKDJsuhuQfLbxq27Mtm1T_Auz7Gohp8PDyK7rNNDyaGhcg@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Cc: Grygorii Strashko <grygorii.strashko@ti.com>, Rob Herring <robherring2@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Linus Walleij <linus.walleij@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 9 August 2015 at 14:34, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org> wrote:
-> On Tue, Jul 28, 2015 at 03:19:44PM +0200, Tomeu Vizoso wrote:
->> When looking up an i2c master through its firmware node, probe it if it
->> hasn't already.
->>
->> The goal is to reduce deferred probes to a minimum, as it makes it very
->> cumbersome to find out why a device failed to probe, and can introduce
->> very big delays in when a critical device is probed.
->>
->> Signed-off-by: Tomeu Vizoso <tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
->
-> What is the status of this series?
 
-See here for a summary:
+--FCuugMFkClbJLl1L
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-http://lkml.kernel.org/g/1438870315-18689-1-git-send-email-tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org
+On Sun, Aug 09, 2015 at 03:03:14PM +0200, Tomeu Vizoso wrote:
 
-> The boot time reduction sounds great.
+> There was some recent thread about how the disabling of unused clocks
+> and regulators isn't really safe because after late_initcall_sync more
+> drivers can be registered from modules. Furthermore, there's async
+> device probes.
 
-Note that this should not reduce total boot time substantially, as the
-time wasted due to superfluous probe deferrals is really small when
-compared to the time spent in delays due to hardware constraints. If
-you want to reduce total boot time, async probing may be helpful in
-some scenarios.
+What recent thread and why would that be unsafe?  Any driver using a
+clock or regulator ought to be making sure that the clock or regulator
+is enabled before it tries to use it.  The worst that should happen is
+that something gets the power bounced during boot which isn't the end of
+the world.
 
-Regards,
+--FCuugMFkClbJLl1L
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Tomeu
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
 
->> ---
->>
->> Changes in v2: None
->>
->>  drivers/i2c/i2c-core.c | 2 ++
->>  1 file changed, 2 insertions(+)
->>
->> diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
->> index e6d4935161e4..5520b413e3db 100644
->> --- a/drivers/i2c/i2c-core.c
->> +++ b/drivers/i2c/i2c-core.c
->> @@ -1353,6 +1353,8 @@ struct i2c_adapter *of_find_i2c_adapter_by_node(struct device_node *node)
->>  {
->>       struct device *dev;
->>
->> +     fwnode_ensure_device(&node->fwnode);
->
-> TBH, the function name doesn't tell me a lot. It ensures what?
->
->> +
->>       dev = bus_find_device(&i2c_bus_type, NULL, node,
->>                                        of_dev_node_match);
->>       if (!dev)
->> --
->> 2.4.3
->>
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+iQEcBAEBCAAGBQJVyHwIAAoJECTWi3JdVIfQQ2kH/2CXryctZQKKgrOBprylvRft
+nvGYcjSHlDneB5K1SXy3M8Rwl+Yf2W6lc1D0pUnr2HJwa/VIvR7U93lKlK1YkEkL
+E8GCOVGRey1sXKS+opZHI9m1bDsJQHr+H+RhcseHnm2I/uK5xLj3fJ8NgWI+ZVP+
+7NfgAvMD0hNkKYaaOxAoo/yWKd1uk1FQaosaxkswzZ0YqzG5v1g2LtouG1zKN63z
+xjn7LFy2A5TGVjPJC+JWrA+L76mdYvtxueWnLwFJM5S+ke2dK4FX42YuQ8JsOJCi
+IFzNEhlhjEGrwh1unTIKTBKim58+ypq62qgG0Elf4XSMpYX7hRlnR+aNTsN/Oq4=
+=LVVD
+-----END PGP SIGNATURE-----
+
+--FCuugMFkClbJLl1L--
