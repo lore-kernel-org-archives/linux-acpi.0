@@ -1,40 +1,37 @@
-From: Robert Richter <robert.richter@caviumnetworks.com>
+From: David Miller <davem@davemloft.net>
 Subject: Re: [PATCH v2 0/2] net: thunder: Add ACPI support.
-Date: Tue, 11 Aug 2015 22:12:37 +0200
-Message-ID: <20150811201237.GW4914@rric.localhost>
+Date: Tue, 11 Aug 2015 13:49:11 -0700 (PDT)
+Message-ID: <20150811.134911.568429332024299359.davem@davemloft.net>
 References: <1439254717-2875-1-git-send-email-ddaney.cavm@gmail.com>
- <20150811.114908.1384923604512568161.davem@davemloft.net>
- <55CA5567.9010002@caviumnetworks.com>
+	<20150811.114908.1384923604512568161.davem@davemloft.net>
+	<55CA5567.9010002@caviumnetworks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from shards.monkeyblade.net ([149.20.54.216]:51771 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932120AbbHKUtO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Aug 2015 16:49:14 -0400
 In-Reply-To: <55CA5567.9010002@caviumnetworks.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: David Daney <ddaney@caviumnetworks.com>
-Cc: David Miller <davem@davemloft.net>, ddaney.cavm@gmail.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mips@linux-mips.org, tomasz.nowicki@linaro.org, sgoutham@cavium.com, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, mark.rutland@arm.com, rafael@kernel.org, david.daney@cavium.com
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: ddaney@caviumnetworks.com
+Cc: ddaney.cavm@gmail.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mips@linux-mips.org, rrichter@cavium.com, tomasz.nowicki@linaro.org, sgoutham@cavium.com, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, mark.rutland@arm.com, rafael@kernel.org, david.daney@cavium.com
 
-On 11.08.15 13:04:55, David Daney wrote:
-> >In the future it might be better structured to try and get the OF
-> >node, and if that fails then try and use the ACPI method to obtain
-> >these values.
-> 
-> Our current approach, as you can see in the patch, is the opposite.  If ACPI
-> is being used, prefer that over the OF device tree.
-> 
-> You seem to be recommending precedence for OF.  It should be consistent
-> across all drivers/sub-systems, so do you really think that OF before ACPI
-> is the way to go?
+From: David Daney <ddaney@caviumnetworks.com>
+Date: Tue, 11 Aug 2015 13:04:55 -0700
 
-If ACPI is enabled then no OF function may be called at all.
+> You seem to be recommending precedence for OF.  It should be
+> consistent across all drivers/sub-systems, so do you really think
+> that OF before ACPI is the way to go?
 
-With !ACPI or acpi=no kernel parameter, then acpi_disabled is set and
-no ACPI function should be called. It always falls back to and only
-uses OF/devicetree in this case.
+I just think it's more hackish to test acpi_disabled than to
+simply see if the matching OF node even exists.
 
-So there is now way to try devicetree first and then use acpi or vice
-versa. There is no mixup using acpi or devicetree with the same boot,
-either one or the other.
+If ACPI is enabled, no OF node will be found.
 
--Robert
+It could just be my preference for such things.
+
+I really wish it just fell out from the probing method, but
+we're using PCI for that.
