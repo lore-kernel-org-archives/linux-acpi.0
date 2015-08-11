@@ -1,58 +1,52 @@
-From: Linus Walleij <linus.walleij@linaro.org>
-Subject: Re: [PATCH 0/2] drivers: PL061: Add platform driver probing support
-Date: Tue, 11 Aug 2015 14:53:30 +0200
-Message-ID: <CACRpkdYd_oWsx23h4-Hjk8rqcgnuMqd47SEg+4ubtR08jgQY9g@mail.gmail.com>
-References: <1438585198-8764-1-git-send-email-zhaoshenglong@huawei.com>
-	<20150803075848.GH7557@n2100.arm.linux.org.uk>
-	<55BF33AD.5040502@huawei.com>
-	<20150803094923.GI7557@n2100.arm.linux.org.uk>
-	<20150803162623.GB30867@kroah.com>
-	<20150803190935.GL7557@n2100.arm.linux.org.uk>
-	<20150807022141.GD25067@kroah.com>
+From: Vincent Pelletier <plr.vincent@gmail.com>
+Subject: Re: leds-gpio on x86
+Date: Tue, 11 Aug 2015 19:42:56 +0200
+Message-ID: <20150811194256.08816c63@x2>
+References: <20150805220948.3984f19c@x2>
+	<20150806165924.GY1540@lahna.fi.intel.com>
+	<20150806191727.0bf87a3a@x2>
+	<20150806173558.GZ1540@lahna.fi.intel.com>
+	<20150806201820.5ca0764d@x2>
+	<20150807105745.GB1540@lahna.fi.intel.com>
+	<20150808140656.6b81d3b9@x2>
+	<20150811120038.GF1541@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f174.google.com ([209.85.214.174]:36409 "EHLO
-	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934106AbbHKMxa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Aug 2015 08:53:30 -0400
-Received: by obnw1 with SMTP id w1so146885172obn.3
-        for <linux-acpi@vger.kernel.org>; Tue, 11 Aug 2015 05:53:30 -0700 (PDT)
-In-Reply-To: <20150807022141.GD25067@kroah.com>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:32964 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751264AbbHKRnA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 11 Aug 2015 13:43:00 -0400
+In-Reply-To: <20150811120038.GF1541@lahna.fi.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
-Cc: Russell King - ARM Linux <linux@arm.linux.org.uk>, Shannon Zhao <zhaoshenglong@huawei.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Alexandre Courbot <gnurou@gmail.com>, Shannon Zhao <shannon.zhao@linaro.org>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: linux-leds@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Fri, Aug 7, 2015 at 4:21 AM, Greg Kroah-Hartman
-<gregkh@linuxfoundation.org> wrote:
-> On Mon, Aug 03, 2015 at 08:09:35PM +0100, Russell King - ARM Linux wrote:
+On Tue, 11 Aug 2015 15:00:38 +0300, Mika Westerberg
+<mika.westerberg@linux.intel.com> wrote:
+> One thing I noticed:
+> 
+> 	qnap_tsx51_leds_platform_device = platform_device_register_resndata(NULL, "led-gpio", -1, NULL, 0,
+> 		&qnap_tsx51_led_data, sizeof(qnap_tsx51_led_data));
+> 
+> The driver expects "leds-gpio" not "led-gpio".
 
->> Right now, there seems to be a move to convert _all_ AMBA device drivers
->> to become dual-drivers: an amba bus driver and a platform driver.  Is
->> that something you really want to see, irrespective of ACPI issues?
->
-> Ick, no, I don't think that's wise at all.  Why not just make the needed
-> resources availble to _all_ bus drivers, then it doesn't matter if it's
-> AMBA, or ACPI, or USB, or anything else?
+And indeed, this is what was preventing proper detection.
+Very nice catch, thanks a lot.
 
-Amen to that.
+Now, I see two more things I need to do and for which I have no idea:
+- Somehow depend on gpio-f7188x and cause leds-gpio to get loaded (is it
+  a dependence too ?).
+  Module writing documentation mention soft dependencies, but it feels
+  wrong here.
+- Somehow detect that it is actually a qnap of expected model (and, by
+  extension, actually implement led count substraction).
+  I tried (and failed so far) to understand what the original firmware
+  does. dmidecode does not bring something relevant. I have no idea
+  what is typically done in this area.
 
-> I thought that is what some recent patches did to the acpi/of core, but
-> maybe I was mistaken.
-
-I think you're referring to the initiative to provide query functions that will
-work the same on device trees and ACPI devices, that is to get a key/value
-from a certain struct device * no matter if it came from a DT or ACPI.
-
-This is about how the core hardware description spawns devices. While
-DT will (correctly) spawn AMBA devices, the ACPI code apparently
-doesn't. But it should. of_amba_device_create() even shows exactly
-how to do it.
-
-What I fear is that ACPI actually has no way to tell whether a device is
-an AMBA device but rather thinks the whole world consists of
-platform_devices, and then *THAT* needs to be fixed.
-
-Yours,
-Linus Walleij
+Regards,
+-- 
+Vincent Pelletier
