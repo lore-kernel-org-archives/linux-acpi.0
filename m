@@ -1,37 +1,30 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH v2 0/2] net: thunder: Add ACPI support.
-Date: Tue, 11 Aug 2015 13:50:19 -0700 (PDT)
-Message-ID: <20150811.135019.576312282566025940.davem@davemloft.net>
-References: <20150811.114908.1384923604512568161.davem@davemloft.net>
-	<55CA5567.9010002@caviumnetworks.com>
-	<20150811201237.GW4914@rric.localhost>
+From: Timur Tabi <timur@codeaurora.org>
+Subject: Re: [PATCH v4 00/10] ACPI GIC Self-probing, GICv2m and GICv3 support
+Date: Tue, 11 Aug 2015 17:01:57 -0500
+Message-ID: <55CA70D5.6040300@codeaurora.org>
+References: <1438164539-29256-1-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150811201237.GW4914@rric.localhost>
+In-Reply-To: <1438164539-29256-1-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: robert.richter@caviumnetworks.com
-Cc: ddaney@caviumnetworks.com, ddaney.cavm@gmail.com, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mips@linux-mips.org, tomasz.nowicki@linaro.org, sgoutham@cavium.com, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, mark.rutland@arm.com, rafael@kernel.org, david.daney@cavium.com
+To: Hanjun Guo <hanjun.guo@linaro.org>, Marc Zyngier <marc.zyngier@arm.com>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Grant Likely <grant.likely@linaro.org>, Mark Brown <broonie@kernel.org>, Wei Huang <wei@redhat.com>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: Robert Richter <robert.richter@caviumnetworks.com>
-Date: Tue, 11 Aug 2015 22:12:37 +0200
+On 07/29/2015 05:08 AM, Hanjun Guo wrote:
+> Patches are on top of Marc's branch irq/gsi-irq-domain-v2, and available
+> at:
+>
+> git://git.linaro.org/leg/acpi/acpi.git gsi-irqdomain
 
-> On 11.08.15 13:04:55, David Daney wrote:
->> >In the future it might be better structured to try and get the OF
->> >node, and if that fails then try and use the ACPI method to obtain
->> >these values.
->> 
->> Our current approach, as you can see in the patch, is the opposite.  If ACPI
->> is being used, prefer that over the OF device tree.
->> 
->> You seem to be recommending precedence for OF.  It should be consistent
->> across all drivers/sub-systems, so do you really think that OF before ACPI
->> is the way to go?
-> 
-> If ACPI is enabled then no OF function may be called at all.
+Is it my imagination, or is Marc's branch based on v3.9-rc7?
 
-That makes no sense to me at all.
+Also, shouldn't this code be based on the upstream kernel, and not the 
+LEG kernel?
 
-If ACPI is enabled, the OF routines should return no nodes etc.
+-- 
+Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the
+Code Aurora Forum, a Linux Foundation Collaborative Project.
