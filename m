@@ -1,53 +1,66 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH v4 00/10] ACPI GIC Self-probing, GICv2m and GICv3
- support
-Date: Wed, 12 Aug 2015 08:21:38 +0100
-Message-ID: <20150812082138.6a80c71d@arm.com>
-References: <1438164539-29256-1-git-send-email-hanjun.guo@linaro.org>
-	<55CA70D5.6040300@codeaurora.org>
-	<20150811232523.60d192d2@arm.com>
-	<55CA78DE.1000306@codeaurora.org>
-	<20150811234801.51108784@arm.com>
-	<55CA8658.80202@codeaurora.org>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: leds-gpio on x86
+Date: Wed, 12 Aug 2015 15:53:14 +0300
+Message-ID: <20150812125314.GS1541@lahna.fi.intel.com>
+References: <20150805220948.3984f19c@x2>
+ <20150806165924.GY1540@lahna.fi.intel.com>
+ <20150806191727.0bf87a3a@x2>
+ <20150806173558.GZ1540@lahna.fi.intel.com>
+ <20150806201820.5ca0764d@x2>
+ <20150807105745.GB1540@lahna.fi.intel.com>
+ <20150808140656.6b81d3b9@x2>
+ <20150811120038.GF1541@lahna.fi.intel.com>
+ <20150811194256.08816c63@x2>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <55CA8658.80202@codeaurora.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Timur Tabi <timur@codeaurora.org>
-Cc: "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Mark Brown <broonie@kernel.org>, Wei Huang <wei@redhat.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:40925 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752464AbbHLMxS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 12 Aug 2015 08:53:18 -0400
+Content-Disposition: inline
+In-Reply-To: <20150811194256.08816c63@x2>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Vincent Pelletier <plr.vincent@gmail.com>
+Cc: linux-leds@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Wed, 12 Aug 2015 00:33:44 +0100
-Timur Tabi <timur@codeaurora.org> wrote:
+On Tue, Aug 11, 2015 at 07:42:56PM +0200, Vincent Pelletier wrote:
+> On Tue, 11 Aug 2015 15:00:38 +0300, Mika Westerberg
+> <mika.westerberg@linux.intel.com> wrote:
+> > One thing I noticed:
+> > 
+> > 	qnap_tsx51_leds_platform_device = platform_device_register_resndata(NULL, "led-gpio", -1, NULL, 0,
+> > 		&qnap_tsx51_led_data, sizeof(qnap_tsx51_led_data));
+> > 
+> > The driver expects "leds-gpio" not "led-gpio".
+> 
+> And indeed, this is what was preventing proper detection.
+> Very nice catch, thanks a lot.
+> 
+> Now, I see two more things I need to do and for which I have no idea:
+> - Somehow depend on gpio-f7188x and cause leds-gpio to get loaded (is it
+>   a dependence too ?).
+>   Module writing documentation mention soft dependencies, but it feels
+>   wrong here.
 
-> On 08/11/2015 05:48 PM, Marc Zyngier wrote:
-> > I don't see any contradiction here. Hanjun picked the patches from my
-> > own branch in my own tree, put his own patches on top, and pushed that
-> > out on an branch called gsi-irqdomain that is definitely based on
-> > 4.2-rc2. I have no idea where your 3.9-rc7 comes from.
-> 
-> Ok, so that's not your kernel, but the LEG kernel instead.
-> 
-> The top commits show this:
-> 
-> Follows: tracking-mainline-llct-20130415.0, 
-> tracking-mainline-llct-20130417.0, v3.9-rc7
-> 
-> Also,
-> 	$ git tag | grep v4
-> 
-> shows no v4.x tags.
-> 
-> Anyway, I don't want to make a big deal about this.
+Once your module gets loaded, it creates the "leds-gpio" platform device
+which in turn makes the leds-gpio driver to load.
 
-I just cloned this repository, and none of the branches I received have
-this as their top commit. I can only guess that you're looking at
-something else.
+For gpio-f7188x you need to load it manually because it does not have
+any module strings modprobe can match with a device. You can create
+platform device for this in your qnap board file as well and then add
+MODULE_ALIAS() to the driver to get it loaded automatically.
 
-Thanks,
+> - Somehow detect that it is actually a qnap of expected model (and, by
+>   extension, actually implement led count substraction).
+>   I tried (and failed so far) to understand what the original firmware
+>   does. dmidecode does not bring something relevant. I have no idea
+>   what is typically done in this area.
 
-	M.
--- 
-Jazz is not dead. It just smells funny.
+Typically we get necessary information from ACPI or similar device
+description ;-)
+
+You may check DMI strings in _init() of your board file and only create
+the platform devices if they match qnap. /sys/class/dmi/id/* should have
+something to differentiate it from others.
