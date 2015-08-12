@@ -1,39 +1,42 @@
-From: Timur Tabi <timur@codeaurora.org>
-Subject: Re: [PATCH v4 00/10] ACPI GIC Self-probing, GICv2m and GICv3 support
-Date: Tue, 11 Aug 2015 18:33:44 -0500
-Message-ID: <55CA8658.80202@codeaurora.org>
-References: <1438164539-29256-1-git-send-email-hanjun.guo@linaro.org>	<55CA70D5.6040300@codeaurora.org>	<20150811232523.60d192d2@arm.com>	<55CA78DE.1000306@codeaurora.org> <20150811234801.51108784@arm.com>
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: Re: [PATCH 1/5] x86, gfp: Cache best near node for memory allocation.
+Date: Wed, 12 Aug 2015 09:53:51 +0800
+Message-ID: <55CAA72F.8050308@linux.intel.com>
+References: <1436261425-29881-1-git-send-email-tangchen@cn.fujitsu.com>
+ <1436261425-29881-2-git-send-email-tangchen@cn.fujitsu.com>
+ <20150715214802.GL15934@mtj.duckdns.org> <55C03332.2030808@cn.fujitsu.com>
+ <55C0725B.80201@linux.intel.com> <55C6EFFF.5070605@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150811234801.51108784@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Jason Cooper <jason@lakedaemon.net>, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "grant.likely@linaro.org" <grant.likely@linaro.org>, Mark Brown <broonie@kernel.org>, Wei Huang <wei@redhat.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:4229 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753411AbbHLBx4 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 11 Aug 2015 21:53:56 -0400
+In-Reply-To: <55C6EFFF.5070605@cn.fujitsu.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tang Chen <tangchen@cn.fujitsu.com>, Tejun Heo <tj@kernel.org>
+Cc: mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, laijs@cn.fujitsu.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, qiaonuohan@cn.fujitsu.com, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
 
-On 08/11/2015 05:48 PM, Marc Zyngier wrote:
-> I don't see any contradiction here. Hanjun picked the patches from my
-> own branch in my own tree, put his own patches on top, and pushed that
-> out on an branch called gsi-irqdomain that is definitely based on
-> 4.2-rc2. I have no idea where your 3.9-rc7 comes from.
+On 2015/8/9 14:15, Tang Chen wrote:
+> Hi Liu,
+> 
+> Have you posted your new patches ?
+> (I mean memory-less node support patches.)
+Hi Chen,
+	I have rebased my patches to v4.2-rc4, but unfortunately
+it breaks. Seems there are some changes in x86 NUMA support since
+3.17. I need some time to figure it out.
 
-Ok, so that's not your kernel, but the LEG kernel instead.
+> 
+> If you are going to post them, please cc me.
+Sure.
 
-The top commits show this:
-
-Follows: tracking-mainline-llct-20130415.0, 
-tracking-mainline-llct-20130417.0, v3.9-rc7
-
-Also,
-	$ git tag | grep v4
-
-shows no v4.x tags.
-
-Anyway, I don't want to make a big deal about this.
-
--- 
-Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the
-Code Aurora Forum, a Linux Foundation Collaborative Project.
+> 
+> And BTW, how did you reproduce the memory-less node problem ?
+> Do you have a real memory-less node on your machine ?
+Yes, we have a system with memoryless nodes.
+Thanks!
+Gerry
