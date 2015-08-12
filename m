@@ -1,56 +1,68 @@
-From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: [PATCH 1/3] Honor ACPI _CCA attribute setting
-Date: Wed, 12 Aug 2015 16:51:28 -0500
-Message-ID: <1439416290-21228-2-git-send-email-jeremy.linton@arm.com>
+From: Jeremy Linton <jeremy.linton-5wv7dgnIgG8@public.gmane.org>
+Subject: [PATCH 3/3] Add ACPI bindings for the EHCI platform driver.
+Date: Wed, 12 Aug 2015 16:51:30 -0500
+Message-ID: <1439416290-21228-4-git-send-email-jeremy.linton@arm.com>
 References: <1439416290-21228-1-git-send-email-jeremy.linton@arm.com>
 Content-Type: text/plain; charset=WINDOWS-1252
 Content-Transfer-Encoding: quoted-printable
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from eu-smtp-delivery-143.mimecast.com ([207.82.80.143]:62290 "EHLO
-	eu-smtp-delivery-143.mimecast.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751611AbbHLVwJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 12 Aug 2015 17:52:09 -0400
-In-Reply-To: <1439416290-21228-1-git-send-email-jeremy.linton@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1439416290-21228-1-git-send-email-jeremy.linton-5wv7dgnIgG8@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org, linux-ci5G2KO2hbZ+pU9mqzGVBQ@public.gmane.org, suravee.suthikulpanit-5C7GfCeVMHo@public.gmane.org, rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Catalin.Marinas-5wv7dgnIgG8@public.gmane.org, Jeremy Linton <jeremy.linton-5wv7dgnIgG8@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: linux-acpi@vger.kernel.org, linux-usb@vger.kernel.org, stern@rowland.harvard.edu, linux@prisktech.co.nz, suravee.suthikulpanit@amd.com, rafael.j.wysocki@intel.com, Catalin.Marinas@arm.com, Jeremy Linton <jeremy.linton@arm.com>
 
-ACPI configurations can now mark devices as noncoherent,
-support that choice.
+This enables USB on the ARM juno board when booted with
+an ACPI kernel. The PNP id comes from the PNP/ACPI registry
+and describes a EHCI controller without debug.
 
-Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+Signed-off-by: Jeremy Linton <jeremy.linton-5wv7dgnIgG8@public.gmane.org>
 ---
- include/acpi/acpi_bus.h | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/usb/host/ehci-platform.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index 83061ca..7ecb8e4 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -399,7 +399,7 @@ static inline bool acpi_check_dma(struct acpi_device *a=
-dev, bool *coherent)
- =09 * case 1. Do not support and disable DMA.
- =09 * case 2. Support but rely on arch-specific cache maintenance for
- =09 *         non-coherence DMA operations.
--=09 * Currently, we implement case 1 above.
-+=09 * Currently, we implement case 2 above.
- =09 *
- =09 * For the case when _CCA is missing (i.e. cca_seen=3D0) and
- =09 * platform specifies ACPI_CCA_REQUIRED, we do not support DMA,
-@@ -407,7 +407,8 @@ static inline bool acpi_check_dma(struct acpi_device *a=
-dev, bool *coherent)
- =09 *
- =09 * See acpi_init_coherency() for more info.
- =09 */
--=09if (adev->flags.coherent_dma) {
-+=09if (adev->flags.coherent_dma ||
-+=09    (adev->flags.cca_seen && IS_ENABLED(CONFIG_ARM64))) {
- =09=09ret =3D true;
- =09=09if (coherent)
- =09=09=09*coherent =3D adev->flags.coherent_dma;
+diff --git a/drivers/usb/host/ehci-platform.c b/drivers/usb/host/ehci-platf=
+orm.c
+index 82e396f..1807baa 100644
+--- a/drivers/usb/host/ehci-platform.c
++++ b/drivers/usb/host/ehci-platform.c
+@@ -27,6 +27,7 @@
+ #include <linux/io.h>
+ #include <linux/module.h>
+ #include <linux/of.h>
++#include <linux/acpi.h>
+ #include <linux/phy/phy.h>
+ #include <linux/platform_device.h>
+ #include <linux/reset.h>
+@@ -382,6 +383,13 @@ static const struct of_device_id vt8500_ehci_ids[] =3D=
+ {
+ };
+ MODULE_DEVICE_TABLE(of, vt8500_ehci_ids);
+=20
++static const struct acpi_device_id ehci_acpi_match[] =3D {
++=09{ "PNP0D20", 0 },
++=09{ }
++};
++MODULE_DEVICE_TABLE(acpi, ehci_acpi_match);
++
++
+ static const struct platform_device_id ehci_platform_table[] =3D {
+ =09{ "ehci-platform", 0 },
+ =09{ }
+@@ -400,6 +408,7 @@ static struct platform_driver ehci_platform_driver =3D =
+{
+ =09=09.name=09=3D "ehci-platform",
+ =09=09.pm=09=3D &ehci_platform_pm_ops,
+ =09=09.of_match_table =3D vt8500_ehci_ids,
++=09=09.acpi_match_table =3D ACPI_PTR(ehci_acpi_match),
+ =09}
+ };
+=20
 --=20
 2.4.3
 
 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
