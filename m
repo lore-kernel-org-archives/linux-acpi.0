@@ -1,66 +1,63 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: leds-gpio on x86
-Date: Wed, 12 Aug 2015 15:53:14 +0300
-Message-ID: <20150812125314.GS1541@lahna.fi.intel.com>
-References: <20150805220948.3984f19c@x2>
- <20150806165924.GY1540@lahna.fi.intel.com>
- <20150806191727.0bf87a3a@x2>
- <20150806173558.GZ1540@lahna.fi.intel.com>
- <20150806201820.5ca0764d@x2>
- <20150807105745.GB1540@lahna.fi.intel.com>
- <20150808140656.6b81d3b9@x2>
- <20150811120038.GF1541@lahna.fi.intel.com>
- <20150811194256.08816c63@x2>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH v2 0/2] net: thunder: Add ACPI support.
+Date: Wed, 12 Aug 2015 16:23:38 +0100
+Message-ID: <20150812152337.GB5393@e104818-lin.cambridge.arm.com>
+References: <1439254717-2875-1-git-send-email-ddaney.cavm@gmail.com>
+ <20150811.114908.1384923604512568161.davem@davemloft.net>
+ <55CA5567.9010002@caviumnetworks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:40925 "EHLO mga11.intel.com"
+Received: from foss.arm.com ([217.140.101.70]:58987 "EHLO foss.arm.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752464AbbHLMxS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 12 Aug 2015 08:53:18 -0400
+	id S1753397AbbHLPXn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 12 Aug 2015 11:23:43 -0400
 Content-Disposition: inline
-In-Reply-To: <20150811194256.08816c63@x2>
+In-Reply-To: <55CA5567.9010002@caviumnetworks.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Vincent Pelletier <plr.vincent@gmail.com>
-Cc: linux-leds@vger.kernel.org, linux-acpi@vger.kernel.org
+To: David Daney <ddaney@caviumnetworks.com>
+Cc: David Miller <davem@davemloft.net>, mark.rutland@arm.com, linux-mips@linux-mips.org, rafael@kernel.org, netdev@vger.kernel.org, david.daney@cavium.com, linux-kernel@vger.kernel.org, tomasz.nowicki@linaro.org, rrichter@cavium.com, linux-acpi@vger.kernel.org, ddaney.cavm@gmail.com, sgoutham@cavium.com, linux-arm-kernel@lists.infradead.org
 
-On Tue, Aug 11, 2015 at 07:42:56PM +0200, Vincent Pelletier wrote:
-> On Tue, 11 Aug 2015 15:00:38 +0300, Mika Westerberg
-> <mika.westerberg@linux.intel.com> wrote:
-> > One thing I noticed:
-> > 
-> > 	qnap_tsx51_leds_platform_device = platform_device_register_resndata(NULL, "led-gpio", -1, NULL, 0,
-> > 		&qnap_tsx51_led_data, sizeof(qnap_tsx51_led_data));
-> > 
-> > The driver expects "leds-gpio" not "led-gpio".
+On Tue, Aug 11, 2015 at 01:04:55PM -0700, David Daney wrote:
+> On 08/11/2015 11:49 AM, David Miller wrote:
+> >From: David Daney <ddaney.cavm@gmail.com>
+> >Date: Mon, 10 Aug 2015 17:58:35 -0700
+> >
+> >>Change from v1:  Drop PHY binding part, use fwnode_property* APIs.
+> >>
+> >>The first patch (1/2) rearranges the existing code a little with no
+> >>functional change to get ready for the second.  The second (2/2) does
+> >>the actual work of adding support to extract the needed information
+> >>from the ACPI tables.
+> >
+> >Series applied.
 > 
-> And indeed, this is what was preventing proper detection.
-> Very nice catch, thanks a lot.
+> Thank you very much.
 > 
-> Now, I see two more things I need to do and for which I have no idea:
-> - Somehow depend on gpio-f7188x and cause leds-gpio to get loaded (is it
->   a dependence too ?).
->   Module writing documentation mention soft dependencies, but it feels
->   wrong here.
+> >In the future it might be better structured to try and get the OF
+> >node, and if that fails then try and use the ACPI method to obtain
+> >these values.
+> 
+> Our current approach, as you can see in the patch, is the opposite.  If ACPI
+> is being used, prefer that over the OF device tree.
+> 
+> You seem to be recommending precedence for OF.  It should be consistent
+> across all drivers/sub-systems, so do you really think that OF before ACPI
+> is the way to go?
 
-Once your module gets loaded, it creates the "leds-gpio" platform device
-which in turn makes the leds-gpio driver to load.
+On arm64 (unless you use a vendor kernel), DT takes precedence over ACPI
+if both arm provided to the kernel (and it's a fair assumption given
+that ACPI on ARM is still in the early days). You could also force ACPI
+with acpi=force on the kernel cmd line and the arch code will not
+unflatten the DT even if it is provided, therefore is_of_node(fwnode)
+returning false.
 
-For gpio-f7188x you need to load it manually because it does not have
-any module strings modprobe can match with a device. You can create
-platform device for this in your qnap board file as well and then add
-MODULE_ALIAS() to the driver to get it loaded automatically.
+I haven't looked at your driver in detail but something like AMD's
+xgbe_probe() uses a single function for both DT and ACPI with
+device_property_read_*() functions getting the information from the
+correct place in either case. The ACPI vs DT precedence is handled by
+the arch boot code, we never mix the two and confuse the drivers.
 
-> - Somehow detect that it is actually a qnap of expected model (and, by
->   extension, actually implement led count substraction).
->   I tried (and failed so far) to understand what the original firmware
->   does. dmidecode does not bring something relevant. I have no idea
->   what is typically done in this area.
-
-Typically we get necessary information from ACPI or similar device
-description ;-)
-
-You may check DMI strings in _init() of your board file and only create
-the platform devices if they match qnap. /sys/class/dmi/id/* should have
-something to differentiate it from others.
+-- 
+Catalin
