@@ -1,40 +1,54 @@
-From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: Re: [PATCH 3/3] Add ACPI bindings for the EHCI platform driver.
-Date: Thu, 13 Aug 2015 09:45:52 -0500
-Message-ID: <55CCADA0.2090409@arm.com>
-References: <1439416290-21228-1-git-send-email-jeremy.linton@arm.com>
- <1439416290-21228-4-git-send-email-jeremy.linton@arm.com>
- <55CC8470.5070007@huawei.com>
+From: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
+Subject: Re: [PATCH 2/3] Display a DMA error message
+Date: Thu, 13 Aug 2015 10:52:56 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1508131051500.1277-100000@iolanthe.rowland.org>
+References: <1439416290-21228-3-git-send-email-jeremy.linton@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252; format=flowed
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from eu-smtp-delivery-143.mimecast.com ([146.101.78.143]:20062 "EHLO
-	eu-smtp-delivery-143.mimecast.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751996AbbHMOp7 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 13 Aug 2015 10:45:59 -0400
-In-Reply-To: <55CC8470.5070007@huawei.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1439416290-21228-3-git-send-email-jeremy.linton-5wv7dgnIgG8@public.gmane.org>
+Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jeremy Linton <jeremy.linton-5wv7dgnIgG8@public.gmane.org>
+Cc: linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-ci5G2KO2hbZ+pU9mqzGVBQ@public.gmane.org, suravee.suthikulpanit-5C7GfCeVMHo@public.gmane.org, rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, Catalin.Marinas-5wv7dgnIgG8@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <guohanjun@huawei.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>, "linux@prisktech.co.nz" <linux@prisktech.co.nz>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "rafael.j.wysocki@intel.com" <rafael.j.wysocki@intel.com>, Catalin Marinas <Catalin.Marinas@arm.com>
 
-Hello Hanjun,
+On Wed, 12 Aug 2015, Jeremy Linton wrote:
 
+> If the ehci driver fails to configure the dma settings then display
+> a dev error instead of simply failing. This is triggered in an
+> ACPI world if the user fails to set the _CCA on the device.
+> 
+> Signed-off-by: Jeremy Linton <jeremy.linton-5wv7dgnIgG8@public.gmane.org>
+> ---
+>  drivers/usb/host/ehci-platform.c | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/usb/host/ehci-platform.c b/drivers/usb/host/ehci-platform.c
+> index 2593def..82e396f 100644
+> --- a/drivers/usb/host/ehci-platform.c
+> +++ b/drivers/usb/host/ehci-platform.c
+> @@ -162,8 +162,10 @@ static int ehci_platform_probe(struct platform_device *dev)
+>  
+>  	err = dma_coerce_mask_and_coherent(&dev->dev,
+>  		pdata->dma_mask_64 ? DMA_BIT_MASK(64) : DMA_BIT_MASK(32));
+> -	if (err)
+> +	if (err) {
+> +		dev_err(&dev->dev, "Error: DMA setup failed\n");
+>  		return err;
+> +	}
+>  
+>  	irq = platform_get_irq(dev, 0);
+>  	if (irq < 0) {
+> 
 
-On 08/13/2015 06:50 AM, Hanjun Guo wrote:
-> With that minor fixes,
->
-> Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
+Too bad the ohci-platform driver doesn't get the same update, but 
+it clearly wouldn't belong in this patch set.  Anyway,
 
+Acked-by: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
 
-Fixes applied, thanks.
+Alan Stern
 
-
-
-	
-
-	
-
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-usb" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
