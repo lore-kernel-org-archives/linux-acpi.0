@@ -1,34 +1,48 @@
-From: Jeremy Linton <jeremy.linton-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH 3/3] Add ACPI bindings for the EHCI platform driver.
-Date: Thu, 13 Aug 2015 10:13:44 -0500
-Message-ID: <55CCB428.1000404@arm.com>
-References: <Pine.LNX.4.44L0.1508131049001.1277-100000@iolanthe.rowland.org>
+From: Al Stone <al.stone@linaro.org>
+Subject: Re: [Linaro-acpi] [PATCH 1/5] ACPI: add in a bad_madt_entry()
+ function to eventually replace the macro
+Date: Thu, 13 Aug 2015 09:43:46 -0600
+Message-ID: <55CCBB32.6000103@linaro.org>
+References: <1438894770-31163-1-git-send-email-al.stone@linaro.org>
+ <1438894770-31163-2-git-send-email-al.stone@linaro.org>
+ <CAOZdJXVZomskfpvEjmDUiptW3SndJWvfKyzd9SwJp3dh7h3pig@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252; format=flowed
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <Pine.LNX.4.44L0.1508131049001.1277-100000-IYeN2dnnYyZXsRXLowluHWD2FQJk+8+b@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-Cc: "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-ci5G2KO2hbZ+pU9mqzGVBQ@public.gmane.org" <linux-ci5G2KO2hbZ+pU9mqzGVBQ@public.gmane.org>, "suravee.suthikulpanit-5C7GfCeVMHo@public.gmane.org" <suravee.suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Catalin Marinas <Catalin.Marinas-5wv7dgnIgG8@public.gmane.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAOZdJXVZomskfpvEjmDUiptW3SndJWvfKyzd9SwJp3dh7h3pig@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Timur Tabi <timur@codeaurora.org>
+Cc: linux-acpi@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linaro-kernel@lists.linaro.org, linux-ia64@vger.kernel.org, patches@linaro.org, linux-pm@vger.kernel.org, linaro-acpi@lists.linaro.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, lkml <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Alan,
+On 08/12/2015 04:35 PM, Timur Tabi wrote:
+> On Thu, Aug 6, 2015 at 3:59 PM, Al Stone <al.stone@linaro.org> wrote:
+>> +       while (ms->num_types != 0) {
+>> +               if (ms->major_version == major &&
+>> +                   ms->minor_version == minor &&
+>> +                   ms->madt_version == madt->header.revision)
+>> +                       break;
+>> +               ms++;
+>> +       }
+>> +       if (!ms) {
+> 
+> Shouldn't this be
+> 
+>   if (!ms->num_types) {
+> 
+> instead?
+> 
 
-On 08/13/2015 09:53 AM, Alan Stern wrote:
-> With these changes:
+Argh.  Yes, it should.  It will always be false, otherwise.
+Will fix for next version.  Thanks for catching that.
 
-	Applied..
-
-> Acked-by: Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>
-
-	Thanks,
-
-
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Linaro Enterprise Group
+al.stone@linaro.org
+-----------------------------------
