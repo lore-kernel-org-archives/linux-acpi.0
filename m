@@ -1,45 +1,72 @@
-From: Jeremy Linton <jeremy.linton-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH 1/3] Honor ACPI _CCA attribute setting
-Date: Fri, 14 Aug 2015 09:12:28 -0500
-Message-ID: <55CDF74C.3050703@arm.com>
-References: <1439416290-21228-1-git-send-email-jeremy.linton@arm.com>
- <1439416290-21228-2-git-send-email-jeremy.linton@arm.com>
- <55CD4832.7070301@amd.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252; format=flowed
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <55CD4832.7070301-5C7GfCeVMHo@public.gmane.org>
-Sender: linux-usb-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Suravee Suthikulpanit <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
-Cc: "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org" <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, "linux-ci5G2KO2hbZ+pU9mqzGVBQ@public.gmane.org" <linux-ci5G2KO2hbZ+pU9mqzGVBQ@public.gmane.org>, "rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <rafael.j.wysocki-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Catalin Marinas <Catalin.Marinas-5wv7dgnIgG8@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 1/1] ACPI / osl: remove unused code
+Date: Fri, 14 Aug 2015 18:39:25 +0300
+Message-ID: <1439566765-60490-1-git-send-email-andriy.shevchenko@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:19030 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755140AbbHNPj7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 14 Aug 2015 11:39:59 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-Hello Suravee,
+The readq() and writeq() helpers are available in the
+asm-generic/io-64-nonatomic-hi-lo.h and asm-generic/io-64-nonatomic-lo-hi.h
+headers. Someone may use them when it's needed.
 
-On 08/13/2015 08:45 PM, Suravee Suthikulpanit wrote:
-> On 8/13/15 04:51, Jeremy Linton wrote:
->> ACPI configurations can now mark devices as noncoherent,
->> support that choice.
->
-> This change was in my earlier revisions for the original patch series to
-> add ACPI CCA support. At the time, this was pushed back since we were
-> not sure whether this would be a useful case, and whether such hardware
-> exists.
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/acpi/osl.c | 28 ----------------------------
+ 1 file changed, 28 deletions(-)
 
-Yes, I was made aware of that conversation during the review here.
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index 21c1e71..11c32ff 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -944,21 +944,6 @@ acpi_status acpi_os_write_port(acpi_io_address port, u32 value, u32 width)
+ 
+ EXPORT_SYMBOL(acpi_os_write_port);
+ 
+-#ifdef readq
+-static inline u64 read64(const volatile void __iomem *addr)
+-{
+-	return readq(addr);
+-}
+-#else
+-static inline u64 read64(const volatile void __iomem *addr)
+-{
+-	u64 l, h;
+-	l = readl(addr);
+-	h = readl(addr+4);
+-	return l | (h << 32);
+-}
+-#endif
+-
+ acpi_status
+ acpi_os_read_memory(acpi_physical_address phys_addr, u64 *value, u32 width)
+ {
+@@ -1005,19 +990,6 @@ acpi_os_read_memory(acpi_physical_address phys_addr, u64 *value, u32 width)
+ 	return AE_OK;
+ }
+ 
+-#ifdef writeq
+-static inline void write64(u64 val, volatile void __iomem *addr)
+-{
+-	writeq(val, addr);
+-}
+-#else
+-static inline void write64(u64 val, volatile void __iomem *addr)
+-{
+-	writel(val, addr);
+-	writel(val>>32, addr+4);
+-}
+-#endif
+-
+ acpi_status
+ acpi_os_write_memory(acpi_physical_address phys_addr, u64 value, u32 width)
+ {
+-- 
+2.5.0
 
-Basically, the ARM Juno development platform has a mix of coherent and 
-noncoherent devices. The EHCI being one of the primary noncoherent 
-peripherals. Without which, the usefulness of the platform for 
-developing with an ACPI kernel is limited.
-
-
-Thanks,
-
-
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-usb" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
