@@ -1,82 +1,74 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [4.2-rc4] acpi|drm|i915: circular locking
- dependency: acpi_video_get_backlight_type
-Date: Fri, 14 Aug 2015 10:24:51 +0200
-Message-ID: <55CDA5D3.9030606@redhat.com>
-References: <CA+icZUWh+qH0KuF7dcc0gJxM9myssapbPbOboeMoc-WjU-TK+A@mail.gmail.com>
- <CA+icZUWitjMzjhLKs+NLAaUdxQxkW7PNZ19HQfmi8oy2qmC1rA@mail.gmail.com>
- <CA+icZUVoUx3qMp7oChVyo8yN6D+Juf3VHqs25aCKShN1czkROw@mail.gmail.com>
- <20150812192620.GN5176@intel.com> <55CCAACF.7040109@redhat.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI / video: Fix circular lock dependency issue in the video-detect code
+Date: Fri, 14 Aug 2015 11:39:13 +0200
+Message-ID: <8673015.1SLQP2GE9q@vostro.rjw.lan>
+References: <1439484817-2888-1-git-send-email-hdegoede@redhat.com> <CA+icZUUz1ExQHWo1OhVJSZdLf6mopu4hWURcSd4tGtuyCj4TSQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; Format="flowed"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <55CCAACF.7040109@redhat.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: =?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <ville.syrjala@linux.intel.com>, Sedat Dilek <sedat.dilek@gmail.com>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>, intel-gfx <intel-gfx@lists.freedesktop.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Dave Airlie <airlied@redhat.com>, Linus Torvalds <torvalds@linux-foundation.org>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:53154 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752133AbbHNJL4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Aug 2015 05:11:56 -0400
+In-Reply-To: <CA+icZUUz1ExQHWo1OhVJSZdLf6mopu4hWURcSd4tGtuyCj4TSQ@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: sedat.dilek@gmail.com
+Cc: Hans de Goede <hdegoede@redhat.com>, Aaron Lu <aaron.lu@intel.com>, Ville =?ISO-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@linux.intel.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Linux ACPI <linux-acpi@vger.kernel.org>, intel-gfx <intel-gfx@lists.freedesktop.org>
 
-SGksCgpPbiAxMy0wOC0xNSAxNjozMywgSGFucyBkZSBHb2VkZSB3cm90ZToKPiBIaSwKPgo+IE9u
-IDEyLTA4LTE1IDIxOjI2LCBWaWxsZSBTeXJqw6Rsw6Qgd3JvdGU6Cj4+IE9uIE1vbiwgQXVnIDEw
-LCAyMDE1IGF0IDA4OjI5OjAwUE0gKzAyMDAsIFNlZGF0IERpbGVrIHdyb3RlOgo+Pj4gT24gU2F0
-LCBBdWcgMSwgMjAxNSBhdCAyOjIzIFBNLCBTZWRhdCBEaWxlayA8c2VkYXQuZGlsZWtAZ21haWwu
-Y29tPiB3cm90ZToKPj4+PiBPbiBNb24sIEp1bCAyNywgMjAxNSBhdCAxMjozMyBBTSwgU2VkYXQg
-RGlsZWsgPHNlZGF0LmRpbGVrQGdtYWlsLmNvbT4gd3JvdGU6Cj4+Pj4+IEhpLAo+Pj4+Pgo+Pj4+
-PiB0aGlzIG15IGZpcnN0IGJ1aWxkIG9mIGEgNC4yLXJjTiBMaW51eC1rZXJuZWwgYW5kIEkgc2Vl
-IHRoaXMuLi4KPj4+Pj4KPj4+Pgo+Pj4+IEp1c3QgRllJOgo+Pj4+Cj4+Pj4gSSBhbSAqbm90KiBz
-ZWVpbmcgdGhpcyB3aXRoIGRybS1pbnRlbC1uaWdodGx5IGZyb20gYmVsb3cgdXJsLgo+Pj4+Cj4+
-Pj4gQWxzbywgSSBwbGFuIHRvIHRlc3QgTGludXggdjQuMi1yYzUuCj4+Pj4KPj4+Cj4+PiBbIEND
-IExpbnVzIF0KPj4+Cj4+PiBLbm9jayBLbm9jayBLbm9jay4KPj4+Cj4+PiBUaGlzIGlzc3VlIHN0
-aWxsIHJlbWFpbnMgaGVyZSAod2l0aCBDT05GSUdfRFJNX0k5MTU9bSkuLi4KPj4+Cj4+PiBbICAg
-MTguMjY5NzkyXSA9PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
-PT09PT09PT0KPj4+IFsgICAxOC4yNjk3OThdIFsgSU5GTzogcG9zc2libGUgY2lyY3VsYXIgbG9j
-a2luZyBkZXBlbmRlbmN5IGRldGVjdGVkIF0KPj4+IFsgICAxOC4yNjk4MDVdIDQuMi4wLXJjNi0x
-LWluaXphLXNtYWxsICMxIE5vdCB0YWludGVkCj4+PiBbICAgMTguMjY5ODEwXSAtLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCj4+PiBbICAgMTgu
-MjY5ODE2XSBtb2Rwcm9iZS83MjcgaXMgdHJ5aW5nIHRvIGFjcXVpcmUgbG9jazoKPj4+IFsgICAx
-OC4yNjk4MjJdICAoaW5pdF9tdXRleCl7Ky4rLisufSwgYXQ6IFs8ZmZmZmZmZmZhMDA5MGYyZD5d
-Cj4+PiBhY3BpX3ZpZGVvX2dldF9iYWNrbGlnaHRfdHlwZSsweDE3LzB4MTY0IFt2aWRlb10KPj4+
-IFsgICAxOC4yNjk4NDBdCj4+PiBbICAgMTguMjY5ODQwXSBidXQgdGFzayBpcyBhbHJlYWR5IGhv
-bGRpbmcgbG9jazoKPj4+IFsgICAxOC4yNjk4NDhdICAoJigmYmFja2xpZ2h0X25vdGlmaWVyKS0+
-cndzZW0peysrKysuLn0sIGF0Ogo+Pj4gWzxmZmZmZmZmZjgxMGE2NTE5Pl0gX19ibG9ja2luZ19u
-b3RpZmllcl9jYWxsX2NoYWluKzB4MzkvMHg3MAo+Pj4gWyAgIDE4LjI2OTg2NF0KPj4+IFsgICAx
-OC4yNjk4NjRdIHdoaWNoIGxvY2sgYWxyZWFkeSBkZXBlbmRzIG9uIHRoZSBuZXcgbG9jay4KPj4+
-IFsgICAxOC4yNjk4NjRdCj4+PiBbICAgMTguMjY5ODc1XQo+Pj4gWyAgIDE4LjI2OTg3NV0gdGhl
-IGV4aXN0aW5nIGRlcGVuZGVuY3kgY2hhaW4gKGluIHJldmVyc2Ugb3JkZXIpIGlzOgo+Pj4gWyAg
-IDE4LjI2OTg4NF0KPj4+IC4uLgo+Pj4KPj4+IEZ1bGwgZG1lc2cgbG9nIGFuZCBrZXJuZWwtY29u
-ZmlnIGF0dGFjaGVkLgo+Pj4KPj4+IFNoYWxsIEkgYWRkIFJ1c3R5IGFuZCBtb2R1bGVzL21vZHBy
-b2JlIGZvbGtzPwo+Pgo+PiBKdXN0IGdvdCBiYWNrIGZyb20gdmFjYXRpb24gYW5kIHdhcyBncmVl
-dGVkIGJ5IHRoaXMgc2FtZSBsb2NrZGVwIHNwbGF0Lgo+Pgo+PiBPbiBhIGh1bmNoIEkgcmV2ZXJ0
-ZWQKPj4KPj4gY29tbWl0IDkzYTI5MWRmYWY5YzMyOGNhNWE5Y2VhMTczM2FmMWExMjhlZmU4OTAK
-Pj4gQXV0aG9yOiBIYW5zIGRlIEdvZWRlIDxoZGVnb2VkZUByZWRoYXQuY29tPgo+PiBEYXRlOiAg
-IFR1ZSBKdW4gMTYgMTY6Mjc6NTIgMjAxNSArMDIwMAo+Pgo+PiAgICAgIEFDUEkgLyB2aWRlbzog
-TW92ZSBiYWNrbGlnaHQgbm90aWZpZXIgdG8gdmlkZW9fZGV0ZWN0LmMKPj4KPj4gYW5kIHRoZSBw
-cm9ibGVtIHNlZW1zIHRvIGJlIGdvbmUuIEhhbnMsIGFueSB0aG91Z2h0cz8KPgo+IExvb2tpbmcg
-aW50byB0aGlzIGF0bSwgbG9ja2RlcCBjbGVhcmx5IGlzIHJpZ2h0Lgo+Cj4gU29ycnkgYWJvdXQg
-dGhpcyBJIGhhdmUgcHV0IGEgbG90IG9mIHRoaW5raW5nIGludG8gYXZvaWRpbmcKPiB0aGVzZSBr
-aW5kIG9mIGlzc3VlcyB3aXRoIHRoaXMgcGF0Y2gtc2V0LCBidXQgSSBkaWQgbm90IHJlYWxpemUK
-PiB0aGVyZSB3YXMgYW5vdGhlciBsb2NrICJoaWRpbmciIGluc2lkZSB0aGUgbm90aWZpZXItY2hh
-aW4uCj4KPiBGdXJ0aGVyIGFuYWx5c2lzIHNob3dzIHRoYXQgdGhlIGxvY2sgaW5zaWRlIHRoZSBu
-b3RpZmllci1jaGFpbgo+IGNhdXNlcyBzaW1pbGFyIHByb2JsZW1zIHZzIHJlZ2lzdGVyX2NvdW50
-X211dGV4IGZyb20KPiBkcml2ZXJzL2FjcGkvYWNwaV92aWRlby5jLiBJJ20gd29ya2luZyBvbiBh
-IGZpeCBmb3IgdGhpcwo+IGF0bS4KCkhlaCwgbG9vayBhdCB3aGF0IEkganVzdCBmb3VuZCAoSSdt
-IHNoaWZ0aW5nIG15IHdvcmsgZm9jdXMKaW4gdGhlIGRpcmVjdGlvbiBvZiBub3V2ZWF1KSA6Cgpo
-dHRwczovL2J1Z3ppbGxhLnJlZGhhdC5jb20vc2hvd19idWcuY2dpP2lkPTExNTI4NzYKClNvIGl0
-IGxvb2tzIGxpa2Ugd2UgaGF2ZSBoYWQgdGhlIHJvb3QgY2F1c2Ugb2YgdGhpcyBpc3N1ZQpmb3Ig
-YSBsb25nIHRpbWUgYWxyZWFkeSwgbWF5YmUgbXkgcmVjZW50IGJhY2tsaWdodCBzZWxlY3Rpb24K
-bG9naWMgY2xlYW51cCAvIHJld29yayBoYXMgbWFkZSBpdCBlYXNpZXIgdG8gdHJpZ2dlciB0aGUK
-bG9ja2RlcCB3YXJuaW5nIGZvciB0aGlzIHRob3VnaC4KCkFueWhvdyBhc3N1bWluZyBwZW9wbGUg
-YXJlIG9rIHdpdGggdGhlIGZpeCBJIHN1Ym1pdHRlZAp5ZXN0ZXJkYXkgd2UndmUgYSBmaXggZm9y
-IHRoaXMgbm93LgoKUmVnYXJkcywKCkhhbnMKX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX18KSW50ZWwtZ2Z4IG1haWxpbmcgbGlzdApJbnRlbC1nZnhAbGlzdHMu
-ZnJlZWRlc2t0b3Aub3JnCmh0dHA6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0
-aW5mby9pbnRlbC1nZngK
+On Thursday, August 13, 2015 10:39:08 PM Sedat Dilek wrote:
+> 
+> --f46d04447e7fc2306e051d3753a5
+> Content-Type: text/plain; charset=UTF-8
+> 
+> On Thu, Aug 13, 2015 at 6:53 PM, Hans de Goede <hdegoede@redhat.com> wrote:
+> > Before this commit, the following would happen:
+> >
+> > a) acpi_video_get_backlight_type() gets called
+> > b) acpi_video_get_backlight_type() calls acpi_video_init_backlight_type()
+> > c) acpi_video_init_backlight_type() locks its function static init_mutex
+> > d) acpi_video_init_backlight_type() calls backlight_register_notifier()
+> > e) backlight_register_notifier() takes its notifier-chain lock
+> >
+> > And when the backlight notifier chain gets called we've:
+> >
+> > 1) blocking_notifier_call_chain() gets called
+> > 2) blocking_notifier_call_chain() takes the notifier-chain lock
+> > 3) blocking_notifier_call_chain() calls acpi_video_backlight_notify()
+> > 4) acpi_video_backlight_notify() calls acpi_video_get_backlight_type()
+> > 5) acpi_video_get_backlight_type() calls acpi_video_init_backlight_type()
+> > 6) acpi_video_init_backlight_type() locks its function static init_mutex
+> >
+> > So in the first call sequence we have:
+> >
+> > a) init_mutex gets locked
+> > b) notifier-chain gets locked
+> >
+> > and in the second call sequence we have:
+> >
+> > 1) notifier-chain gets locked
+> > 2) init_mutex gets locked
+> >
+> > And we've a circular locking dependency. This specific locking dependency
+> > is fixable without using the big hammer otherwise known as a workqueue,
+> > but further analysis shows a similar problem with the backlight notifier
+> > chain lock vs register_count_mutex from drivers/acpi/acpi_video.c,
+> > and fixing that becomes problematic.
+> >
+> > So this commit simply fixes this with the big hammer, performance
+> > wise this is a non issue as we expect the work to get scheduled
+> > exactly zero or one times during normal system use.
+> >
+> 
+> This patch on top of Linux v4.2-rc6 fixes the issue for me.
+> 
+> Feel free to add my...
+> 
+>    Reported-by: Sedat Dilek <sedat.dilek@gmail.com>
+>    Tested-by: Sedat Dilek <sedat.dilek@gmail.com>
+
+Applied, thanks!
+
+Rafael
+
