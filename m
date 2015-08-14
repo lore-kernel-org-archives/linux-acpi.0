@@ -1,88 +1,89 @@
 From: Sedat Dilek <sedat.dilek@gmail.com>
-Subject: Re: [4.2-rc4] acpi|drm|i915: circular locking
-	dependency: acpi_video_get_backlight_type
-Date: Fri, 14 Aug 2015 11:33:00 +0200
-Message-ID: <CA+icZUV-A=ipw+B9-UaDHEGP0EosFdCQYEKzv47WK+-u30A7kQ@mail.gmail.com>
-References: <CA+icZUWh+qH0KuF7dcc0gJxM9myssapbPbOboeMoc-WjU-TK+A@mail.gmail.com>
- <CA+icZUWitjMzjhLKs+NLAaUdxQxkW7PNZ19HQfmi8oy2qmC1rA@mail.gmail.com>
- <CA+icZUVoUx3qMp7oChVyo8yN6D+Juf3VHqs25aCKShN1czkROw@mail.gmail.com>
- <20150812192620.GN5176@intel.com> <55CCAACF.7040109@redhat.com>
- <55CDA5D3.9030606@redhat.com>
+Subject: Re: [PATCH] ACPI / video: Fix circular lock dependency issue in the
+ video-detect code
+Date: Fri, 14 Aug 2015 11:36:41 +0200
+Message-ID: <CA+icZUXusiLBN0LishXE1GUZ+TYrDmzyoJ4QnoQ1JokjyxphDw@mail.gmail.com>
+References: <1439484817-2888-1-git-send-email-hdegoede@redhat.com>
+	<CA+icZUUz1ExQHWo1OhVJSZdLf6mopu4hWURcSd4tGtuyCj4TSQ@mail.gmail.com>
+	<8673015.1SLQP2GE9q@vostro.rjw.lan>
 Reply-To: sedat.dilek@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <55CDA5D3.9030606@redhat.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Daniel Vetter <daniel.vetter@ffwll.ch>, intel-gfx <intel-gfx@lists.freedesktop.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Dave Airlie <airlied@redhat.com>, Linus Torvalds <torvalds@linux-foundation.org>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wi0-f170.google.com ([209.85.212.170]:34683 "EHLO
+	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754093AbbHNJgn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Aug 2015 05:36:43 -0400
+Received: by wicne3 with SMTP id ne3so13447784wic.1
+        for <linux-acpi@vger.kernel.org>; Fri, 14 Aug 2015 02:36:41 -0700 (PDT)
+In-Reply-To: <8673015.1SLQP2GE9q@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Hans de Goede <hdegoede@redhat.com>, Aaron Lu <aaron.lu@intel.com>, =?UTF-8?B?VmlsbGUgU3lyasOkbMOk?= <ville.syrjala@linux.intel.com>, Daniel Vetter <daniel.vetter@ffwll.ch>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Linus Torvalds <torvalds@linux-foundation.org>, Linux ACPI <linux-acpi@vger.kernel.org>, intel-gfx <intel-gfx@lists.freedesktop.org>
 
-T24gRnJpLCBBdWcgMTQsIDIwMTUgYXQgMTA6MjQgQU0sIEhhbnMgZGUgR29lZGUgPGhkZWdvZWRl
-QHJlZGhhdC5jb20+IHdyb3RlOgo+IEhpLAo+Cj4KPiBPbiAxMy0wOC0xNSAxNjozMywgSGFucyBk
-ZSBHb2VkZSB3cm90ZToKPj4KPj4gSGksCj4+Cj4+IE9uIDEyLTA4LTE1IDIxOjI2LCBWaWxsZSBT
-eXJqw6Rsw6Qgd3JvdGU6Cj4+Pgo+Pj4gT24gTW9uLCBBdWcgMTAsIDIwMTUgYXQgMDg6Mjk6MDBQ
-TSArMDIwMCwgU2VkYXQgRGlsZWsgd3JvdGU6Cj4+Pj4KPj4+PiBPbiBTYXQsIEF1ZyAxLCAyMDE1
-IGF0IDI6MjMgUE0sIFNlZGF0IERpbGVrIDxzZWRhdC5kaWxla0BnbWFpbC5jb20+Cj4+Pj4gd3Jv
-dGU6Cj4+Pj4+Cj4+Pj4+IE9uIE1vbiwgSnVsIDI3LCAyMDE1IGF0IDEyOjMzIEFNLCBTZWRhdCBE
-aWxlayA8c2VkYXQuZGlsZWtAZ21haWwuY29tPgo+Pj4+PiB3cm90ZToKPj4+Pj4+Cj4+Pj4+PiBI
-aSwKPj4+Pj4+Cj4+Pj4+PiB0aGlzIG15IGZpcnN0IGJ1aWxkIG9mIGEgNC4yLXJjTiBMaW51eC1r
-ZXJuZWwgYW5kIEkgc2VlIHRoaXMuLi4KPj4+Pj4+Cj4+Pj4+Cj4+Pj4+IEp1c3QgRllJOgo+Pj4+
-Pgo+Pj4+PiBJIGFtICpub3QqIHNlZWluZyB0aGlzIHdpdGggZHJtLWludGVsLW5pZ2h0bHkgZnJv
-bSBiZWxvdyB1cmwuCj4+Pj4+Cj4+Pj4+IEFsc28sIEkgcGxhbiB0byB0ZXN0IExpbnV4IHY0LjIt
-cmM1Lgo+Pj4+Pgo+Pj4+Cj4+Pj4gWyBDQyBMaW51cyBdCj4+Pj4KPj4+PiBLbm9jayBLbm9jayBL
-bm9jay4KPj4+Pgo+Pj4+IFRoaXMgaXNzdWUgc3RpbGwgcmVtYWlucyBoZXJlICh3aXRoIENPTkZJ
-R19EUk1fSTkxNT1tKS4uLgo+Pj4+Cj4+Pj4gWyAgIDE4LjI2OTc5Ml0gPT09PT09PT09PT09PT09
-PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09Cj4+Pj4gWyAgIDE4LjI2OTc5
-OF0gWyBJTkZPOiBwb3NzaWJsZSBjaXJjdWxhciBsb2NraW5nIGRlcGVuZGVuY3kgZGV0ZWN0ZWQg
-XQo+Pj4+IFsgICAxOC4yNjk4MDVdIDQuMi4wLXJjNi0xLWluaXphLXNtYWxsICMxIE5vdCB0YWlu
-dGVkCj4+Pj4gWyAgIDE4LjI2OTgxMF0gLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLQo+Pj4+IFsgICAxOC4yNjk4MTZdIG1vZHByb2JlLzcyNyBp
-cyB0cnlpbmcgdG8gYWNxdWlyZSBsb2NrOgo+Pj4+IFsgICAxOC4yNjk4MjJdICAoaW5pdF9tdXRl
-eCl7Ky4rLisufSwgYXQ6IFs8ZmZmZmZmZmZhMDA5MGYyZD5dCj4+Pj4gYWNwaV92aWRlb19nZXRf
-YmFja2xpZ2h0X3R5cGUrMHgxNy8weDE2NCBbdmlkZW9dCj4+Pj4gWyAgIDE4LjI2OTg0MF0KPj4+
-PiBbICAgMTguMjY5ODQwXSBidXQgdGFzayBpcyBhbHJlYWR5IGhvbGRpbmcgbG9jazoKPj4+PiBb
-ICAgMTguMjY5ODQ4XSAgKCYoJmJhY2tsaWdodF9ub3RpZmllciktPnJ3c2VtKXsrKysrLi59LCBh
-dDoKPj4+PiBbPGZmZmZmZmZmODEwYTY1MTk+XSBfX2Jsb2NraW5nX25vdGlmaWVyX2NhbGxfY2hh
-aW4rMHgzOS8weDcwCj4+Pj4gWyAgIDE4LjI2OTg2NF0KPj4+PiBbICAgMTguMjY5ODY0XSB3aGlj
-aCBsb2NrIGFscmVhZHkgZGVwZW5kcyBvbiB0aGUgbmV3IGxvY2suCj4+Pj4gWyAgIDE4LjI2OTg2
-NF0KPj4+PiBbICAgMTguMjY5ODc1XQo+Pj4+IFsgICAxOC4yNjk4NzVdIHRoZSBleGlzdGluZyBk
-ZXBlbmRlbmN5IGNoYWluIChpbiByZXZlcnNlIG9yZGVyKSBpczoKPj4+PiBbICAgMTguMjY5ODg0
-XQo+Pj4+IC4uLgo+Pj4+Cj4+Pj4gRnVsbCBkbWVzZyBsb2cgYW5kIGtlcm5lbC1jb25maWcgYXR0
-YWNoZWQuCj4+Pj4KPj4+PiBTaGFsbCBJIGFkZCBSdXN0eSBhbmQgbW9kdWxlcy9tb2Rwcm9iZSBm
-b2xrcz8KPj4+Cj4+Pgo+Pj4gSnVzdCBnb3QgYmFjayBmcm9tIHZhY2F0aW9uIGFuZCB3YXMgZ3Jl
-ZXRlZCBieSB0aGlzIHNhbWUgbG9ja2RlcCBzcGxhdC4KPj4+Cj4+PiBPbiBhIGh1bmNoIEkgcmV2
-ZXJ0ZWQKPj4+Cj4+PiBjb21taXQgOTNhMjkxZGZhZjljMzI4Y2E1YTljZWExNzMzYWYxYTEyOGVm
-ZTg5MAo+Pj4gQXV0aG9yOiBIYW5zIGRlIEdvZWRlIDxoZGVnb2VkZUByZWRoYXQuY29tPgo+Pj4g
-RGF0ZTogICBUdWUgSnVuIDE2IDE2OjI3OjUyIDIwMTUgKzAyMDAKPj4+Cj4+PiAgICAgIEFDUEkg
-LyB2aWRlbzogTW92ZSBiYWNrbGlnaHQgbm90aWZpZXIgdG8gdmlkZW9fZGV0ZWN0LmMKPj4+Cj4+
-PiBhbmQgdGhlIHByb2JsZW0gc2VlbXMgdG8gYmUgZ29uZS4gSGFucywgYW55IHRob3VnaHRzPwo+
-Pgo+Pgo+PiBMb29raW5nIGludG8gdGhpcyBhdG0sIGxvY2tkZXAgY2xlYXJseSBpcyByaWdodC4K
-Pj4KPj4gU29ycnkgYWJvdXQgdGhpcyBJIGhhdmUgcHV0IGEgbG90IG9mIHRoaW5raW5nIGludG8g
-YXZvaWRpbmcKPj4gdGhlc2Uga2luZCBvZiBpc3N1ZXMgd2l0aCB0aGlzIHBhdGNoLXNldCwgYnV0
-IEkgZGlkIG5vdCByZWFsaXplCj4+IHRoZXJlIHdhcyBhbm90aGVyIGxvY2sgImhpZGluZyIgaW5z
-aWRlIHRoZSBub3RpZmllci1jaGFpbi4KPj4KPj4gRnVydGhlciBhbmFseXNpcyBzaG93cyB0aGF0
-IHRoZSBsb2NrIGluc2lkZSB0aGUgbm90aWZpZXItY2hhaW4KPj4gY2F1c2VzIHNpbWlsYXIgcHJv
-YmxlbXMgdnMgcmVnaXN0ZXJfY291bnRfbXV0ZXggZnJvbQo+PiBkcml2ZXJzL2FjcGkvYWNwaV92
-aWRlby5jLiBJJ20gd29ya2luZyBvbiBhIGZpeCBmb3IgdGhpcwo+PiBhdG0uCj4KPgo+IEhlaCwg
-bG9vayBhdCB3aGF0IEkganVzdCBmb3VuZCAoSSdtIHNoaWZ0aW5nIG15IHdvcmsgZm9jdXMKPiBp
-biB0aGUgZGlyZWN0aW9uIG9mIG5vdXZlYXUpIDoKPgo+IGh0dHBzOi8vYnVnemlsbGEucmVkaGF0
-LmNvbS9zaG93X2J1Zy5jZ2k/aWQ9MTE1Mjg3Ngo+Cj4gU28gaXQgbG9va3MgbGlrZSB3ZSBoYXZl
-IGhhZCB0aGUgcm9vdCBjYXVzZSBvZiB0aGlzIGlzc3VlCj4gZm9yIGEgbG9uZyB0aW1lIGFscmVh
-ZHksIG1heWJlIG15IHJlY2VudCBiYWNrbGlnaHQgc2VsZWN0aW9uCj4gbG9naWMgY2xlYW51cCAv
-IHJld29yayBoYXMgbWFkZSBpdCBlYXNpZXIgdG8gdHJpZ2dlciB0aGUKPiBsb2NrZGVwIHdhcm5p
-bmcgZm9yIHRoaXMgdGhvdWdoLgo+Cj4gQW55aG93IGFzc3VtaW5nIHBlb3BsZSBhcmUgb2sgd2l0
-aCB0aGUgZml4IEkgc3VibWl0dGVkCj4geWVzdGVyZGF5IHdlJ3ZlIGEgZml4IGZvciB0aGlzIG5v
-dy4KPgoKWWF5IDotKQoKLSBzZWRAIC0KCj4gUmVnYXJkcywKPgo+IEhhbnMKX19fX19fX19fX19f
-X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX18KSW50ZWwtZ2Z4IG1haWxpbmcgbGlz
-dApJbnRlbC1nZnhAbGlzdHMuZnJlZWRlc2t0b3Aub3JnCmh0dHA6Ly9saXN0cy5mcmVlZGVza3Rv
-cC5vcmcvbWFpbG1hbi9saXN0aW5mby9pbnRlbC1nZngK
+On Fri, Aug 14, 2015 at 11:39 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Thursday, August 13, 2015 10:39:08 PM Sedat Dilek wrote:
+>>
+>> --f46d04447e7fc2306e051d3753a5
+>> Content-Type: text/plain; charset=UTF-8
+>>
+>> On Thu, Aug 13, 2015 at 6:53 PM, Hans de Goede <hdegoede@redhat.com> wrote:
+>> > Before this commit, the following would happen:
+>> >
+>> > a) acpi_video_get_backlight_type() gets called
+>> > b) acpi_video_get_backlight_type() calls acpi_video_init_backlight_type()
+>> > c) acpi_video_init_backlight_type() locks its function static init_mutex
+>> > d) acpi_video_init_backlight_type() calls backlight_register_notifier()
+>> > e) backlight_register_notifier() takes its notifier-chain lock
+>> >
+>> > And when the backlight notifier chain gets called we've:
+>> >
+>> > 1) blocking_notifier_call_chain() gets called
+>> > 2) blocking_notifier_call_chain() takes the notifier-chain lock
+>> > 3) blocking_notifier_call_chain() calls acpi_video_backlight_notify()
+>> > 4) acpi_video_backlight_notify() calls acpi_video_get_backlight_type()
+>> > 5) acpi_video_get_backlight_type() calls acpi_video_init_backlight_type()
+>> > 6) acpi_video_init_backlight_type() locks its function static init_mutex
+>> >
+>> > So in the first call sequence we have:
+>> >
+>> > a) init_mutex gets locked
+>> > b) notifier-chain gets locked
+>> >
+>> > and in the second call sequence we have:
+>> >
+>> > 1) notifier-chain gets locked
+>> > 2) init_mutex gets locked
+>> >
+>> > And we've a circular locking dependency. This specific locking dependency
+>> > is fixable without using the big hammer otherwise known as a workqueue,
+>> > but further analysis shows a similar problem with the backlight notifier
+>> > chain lock vs register_count_mutex from drivers/acpi/acpi_video.c,
+>> > and fixing that becomes problematic.
+>> >
+>> > So this commit simply fixes this with the big hammer, performance
+>> > wise this is a non issue as we expect the work to get scheduled
+>> > exactly zero or one times during normal system use.
+>> >
+>>
+>> This patch on top of Linux v4.2-rc6 fixes the issue for me.
+>>
+>> Feel free to add my...
+>>
+>>    Reported-by: Sedat Dilek <sedat.dilek@gmail.com>
+>>    Tested-by: Sedat Dilek <sedat.dilek@gmail.com>
+>
+> Applied, thanks!
+>
+
+Thanks for carrying this one.
+Isn't this a for-4.2/acpi-video-fixes?
+Why did you apply this in your linux-next Git branch?
+
+- sed@ -
+
+[1] http://git.kernel.org/cgit/linux/kernel/git/rafael/linux-pm.git/commit/?h=linux-next&id=7231ed1a813e0a9d249bbbe58e66ca058aee83e1
+
+> Rafael
+>
