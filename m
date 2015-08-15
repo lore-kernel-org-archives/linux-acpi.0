@@ -1,74 +1,60 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Subject: Re: [RFC 0/1] i2c: acpi: revert setting a "stable" device name
-Date: Sat, 15 Aug 2015 08:13:02 -0700
-Message-ID: <20150815151302.GA10020@roeck-us.net>
-References: <1439581034-5972-1-git-send-email-dustin@cumulusnetworks.com>
+From: Eduardo Valentin <edubezval@gmail.com>
+Subject: [GIT PULL] Thermal-SoC management updates for v4.2-rc7
+Date: Sat, 15 Aug 2015 10:14:47 -0700
+Message-ID: <20150815171445.GA4151@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bh-25.webhostbox.net ([208.91.199.152]:44790 "EHLO
-	bh-25.webhostbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752179AbbHOPNL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 15 Aug 2015 11:13:11 -0400
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:33803 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751551AbbHOROw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 15 Aug 2015 13:14:52 -0400
 Content-Disposition: inline
-In-Reply-To: <1439581034-5972-1-git-send-email-dustin@cumulusnetworks.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dustin Byford <dustin@cumulusnetworks.com>
-Cc: Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, jarkko.nikula@linux.intel.com, jdelvare@suse.com, lm-sensors@lm-sensors.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org
+To: Rui Zhang <rui.zhang@intel.com>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-On Fri, Aug 14, 2015 at 12:37:13PM -0700, Dustin Byford wrote:
-> 70762ab from 11/2014 (i2c: Use stable dev_name for ACPI enumerated I2C
-> slaves) modified the sysfs-visible dev_name() for ACPI enumerated I2C
-> devices.  With that change, /sys/bus/i2c/devices/i2c-0-004a, for
-> example, became /sys/bus/i2c/devices/i2c-PNPXXXX:xx
-> 
-> That causes problems for userspace code such as 'sensors' which does
-> this:
-> 
-> lib/sysfs.c:665:
-> if ((!subsys || !strcmp(subsys, "i2c")) &&
->     sscanf(dev_name, "%hd-%x", &entry.chip.bus.nr,
->            &entry.chip.addr) == 2) {
-> ...
-> 
-> Therefore, in theory, sensors that were previously visible by running
-> 'sensors' no longer show up.  On the other hand, there are probably few,
-> if any, cases of this because ACPI enumerated I2C hwmon devices are not
-> common.
-> 
-> I'm not defending the 'sensors' code, I'm sure there are better ways to
-> discover a hwmon I2C device from userspace.  But, I'm also not sure
+Hello Rui,
 
-Is it necessary to defend user space applications nowadays if a kernel change
-breaks a well established ABI ? WHat happened to "Thou Shalt Not Break
-Userspace" ?
+Please pull from
 
-I absolutely agree that i2c bus renumbering across reboots is a problem.
-However, it seems to me that 70762ab doesn't solve that problem, it just
-paints it over. And, as you have noticed, it introduces new problems along
-the way.
+  git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal fixes
 
-Guenter
+to receive Thermal-SoC Management updates for v4.2-rc7 with top-most
 
-> 70762ab achieved its stated goal in a meaningful way.  Won't
-> "i2c-<acpi_dev_name>" also vary with ACPI scan order, BIOS settings,
-> firmware upgrades, etc...?
-> 
-> Hence the RFC patch.  To submit a change like this I would need to
-> consider the fallout for ALSA SoC.  The other option is to see what can
-> be done in 'sensors' to include the ACPI enumerated hwmon devices.
-> 
-> Any opinions on which way to go?
-> 
->    --Dustin
-> 
-> Dustin Byford (1):
->   i2c: acpi: revert setting a "stable" device name
-> 
->  drivers/i2c/i2c-core.c | 7 -------
->  1 file changed, 7 deletions(-)
-> 
-> -- 
-> 2.1.4
-> 
+1afb9c539daebc2c8a7b33d0e0b8fc9f74671b02:
+
+  thermal/cpu_cooling: update policy limits if clipped_freq < policy->max (2015-08-14 18:26:23 -0700)
+
+on top of commit 7ddab73346a1277b90fd6a4d044bc948f9cc9ad8:
+
+  Merge branch 'fixes' of git://ftp.arm.linux.org.uk/~rmk/linux-arm (2015-08-13 16:34:56 -0700)
+
+
+Specifics:
+- Locked fix in the cpu cooling code.
+- Refactoring in the cpu cooling code.
+- Remove devm* functions from power allocator.
+
+BR,
+
+Eduardo Valentin
+----------------------------------------------------------------
+Dmitry Torokhov (1):
+      thermal: power_allocator: do not use devm* interfaces
+
+Russell King (1):
+      thermal: cpu_cooling: fix lockdep problems in cpu_cooling
+
+Viresh Kumar (6):
+      thermal/cpu_cooling: No need to initialize max_freq to 0
+      thermal/cpu_cooling: quit early after updating policy
+      thermal/cpu_cooling: convert 'switch' block to 'if' block in notifier
+      thermal/cpu_cooling: rename cpufreq_val as clipped_freq
+      thermal/cpu_cooling: rename max_freq as clipped_freq in notifier
+      thermal/cpu_cooling: update policy limits if clipped_freq < policy->max
+
+ drivers/thermal/cpu_cooling.c     | 73 +++++++++++++++++++++++----------------
+ drivers/thermal/power_allocator.c |  8 ++---
+ 2 files changed, 48 insertions(+), 33 deletions(-)
