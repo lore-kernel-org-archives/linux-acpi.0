@@ -1,66 +1,148 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH 2/3] Display a DMA error message
-Date: Fri, 14 Aug 2015 23:56:46 +0200
-Message-ID: <3034536.ALogCXmi9A@wuerfel>
-References: <1439416290-21228-1-git-send-email-jeremy.linton@arm.com> <2099290.n6l88bWDgg@wuerfel> <55CE612C.4010405@arm.com>
+From: Vincent Pelletier <plr.vincent@gmail.com>
+Subject: Re: leds-gpio on x86
+Date: Sat, 15 Aug 2015 12:36:40 +0200
+Message-ID: <20150815123640.45a5b9bf@x2>
+References: <20150805220948.3984f19c@x2>
+	<20150806165924.GY1540@lahna.fi.intel.com>
+	<20150806191727.0bf87a3a@x2>
+	<20150806173558.GZ1540@lahna.fi.intel.com>
+	<20150806201820.5ca0764d@x2>
+	<20150807105745.GB1540@lahna.fi.intel.com>
+	<20150808140656.6b81d3b9@x2>
+	<20150811120038.GF1541@lahna.fi.intel.com>
+	<20150811194256.08816c63@x2>
+	<20150812125314.GS1541@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.187]:51464 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752549AbbHNV45 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 14 Aug 2015 17:56:57 -0400
-In-Reply-To: <55CE612C.4010405@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-leds-owner@vger.kernel.org>
+In-Reply-To: <20150812125314.GS1541@lahna.fi.intel.com>
+Sender: linux-leds-owner@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: linux-leds@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Jeremy Linton <jeremy.linton@arm.com>, "linux-usb@vger.kernel.org" <linux-usb@vger.kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "rafael.j.wysocki@intel.com" <rafael.j.wysocki@intel.com>, "linux@prisktech.co.nz" <linux@prisktech.co.nz>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "stern@rowland.harvard.edu" <stern@rowland.harvard.edu>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>
 
-On Friday 14 August 2015 16:44:12 Jeremy Linton wrote:
-> On 08/14/2015 04:19 PM, Arnd Bergmann wrote:
-> > On Wednesday 12 August 2015 16:51:29 Jeremy Linton wrote:
-> >> diff --git a/drivers/usb/host/ehci-platform.c b/drivers/usb/host/ehci-platform.c
-> >> index 2593def..82e396f 100644
-> >> --- a/drivers/usb/host/ehci-platform.c
-> >> +++ b/drivers/usb/host/ehci-platform.c
-> >> @@ -162,8 +162,10 @@ static int ehci_platform_probe(struct platform_device *dev)
-> >>
-> >>          err = dma_coerce_mask_and_coherent(&dev->dev,
-> >>                  pdata->dma_mask_64 ? DMA_BIT_MASK(64) : DMA_BIT_MASK(32));
-> >> -       if (err)
-> >> +       if (err) {
-> >> +               dev_err(&dev->dev, "Error: DMA setup failed\n");
-> >>                  return err;
-> >> +       }
-> >
-> > We should really stop doing this: the platform should provide the
-> > correct dma mask when creating the device, instead of setting a
-> > bogus pdata field. Do not duplicate this bug for ACPI.
+On Wed, 12 Aug 2015 15:53:14 +0300, Mika Westerberg
+<mika.westerberg@linux.intel.com> wrote:
+> Once your module gets loaded, it creates the "leds-gpio" platform device
+> which in turn makes the leds-gpio driver to load.
+
+Oh, right, I somehow thought I had to modprobe it too and didn't check
+without. It does work.
+
+> For gpio-f7188x you need to load it manually because it does not have
+> any module strings modprobe can match with a device. You can create
+> platform device for this in your qnap board file as well and then add
+> MODULE_ALIAS() to the driver to get it loaded automatically.
+
+Looking at MODULE_ALIAS, I found "request_module()". It works great.
+
+I've also added declaration for both buttons, and moved my code to
+drivers/platform/x86/ as it is no longer leds-specific. I found that
+there are things like laptop-[brand-]specific modules there, so I guess
+it is reasonable.
+
+> > - Somehow detect that it is actually a qnap of expected model (and, by
+> >   extension, actually implement led count substraction).
+> >   I tried (and failed so far) to understand what the original firmware
+> >   does. dmidecode does not bring something relevant. I have no idea
+> >   what is typically done in this area.
 > 
-> 
-> I'm not sure I understand, I'm not changing the mask anywhere, all I'm 
-> doing is printing a message if the mask cannot be set.
+> Typically we get necessary information from ACPI or similar device
+> description ;-)
 
-The problem is that dma_coerce_mask_and_coherent() is not a proper
-interface for a driver to use, it's an annotation that tells us
-that the driver is trying to do something horrible by overriding
-the dma mask that was set by the platform.
+Right :) .
 
-> AKA if CCA is missing or set to 0 then, this line is triggered because 
-> the dma_coerce_mask_and_coherent() routine returns with a failure 
-> indicating there aren't any DMA ops to set a mask on. Right now what 
-> happens is the device detection displays that there is an EHCI 
-> controller then silently disappears with telling the user why it didn't 
-> configure.
+> You may check DMI strings in _init() of your board file and only create
+> the platform devices if they match qnap. /sys/class/dmi/id/* should have
+> something to differentiate it from others.
 
-Adding a warning is fine, but the text is not right here (the driver is
-not setting up the dma mask, but trying to override the one that has been
-set up by the platform), and the solution should really be to not
-call dma_coerce_mask_and_coherent() at all for ACPI. The main reason
-that we have not removed this call here yet is that there is still a
-MIPS platform that relies on it. We should probably remove it for DT
-already and only do it if platform data was provided, but that requires
-careful testing.
+Sadly, ACPI-careless OEM is DMI-careless too:
 
-	Arnd
+Handle 0x0000, DMI type 0, 24 bytes
+BIOS Information
+        Vendor: American Megatrends Inc.
+        Version: 5.6.5
+        Release Date: 05/19/2014
+        Address: 0xF0000
+        Runtime Size: 64 kB
+        ROM Size: 1024 kB
+        Characteristics:
+                PCI is supported
+                BIOS is upgradeable
+                BIOS shadowing is allowed
+                Boot from CD is supported
+                Selectable boot is supported
+                BIOS ROM is socketed
+                EDD is supported
+                5.25"/1.2 MB floppy services are supported (int 13h)
+                3.5"/720 kB floppy services are supported (int 13h)
+                3.5"/2.88 MB floppy services are supported (int 13h)
+                Print screen service is supported (int 5h)
+                8042 keyboard services are supported (int 9h)
+                Serial services are supported (int 14h)
+                Printer services are supported (int 17h)
+                ACPI is supported
+                USB legacy is supported
+                BIOS boot specification is supported
+                Targeted content distribution is supported
+                UEFI is supported
+        BIOS Revision: 5.6
+
+Handle 0x0001, DMI type 1, 27 bytes
+System Information
+        Manufacturer: To be filled by O.E.M.
+        Product Name: To be filled by O.E.M.
+        Version: To be filled by O.E.M.
+        Serial Number: To be filled by O.E.M.
+        UUID: 03000200-0400-0500-0006-000700080009
+        Wake-up Type: Power Switch
+        SKU Number: To be filled by O.E.M.
+        Family: To be filled by O.E.M.
+
+Handle 0x0002, DMI type 2, 15 bytes
+Base Board Information
+        Manufacturer: AMI Corporation
+        Product Name: Aptio CRB
+        Version: To be filled by O.E.M.
+        Serial Number: To be filled by O.E.M.
+        Asset Tag: To be filled by O.E.M.
+        Features:
+                Board is a hosting board
+                Board is replaceable
+        Location In Chassis: To be filled by O.E.M.
+        Chassis Handle: 0x0003
+        Type: Motherboard
+        Contained Object Handles: 0
+
+Handle 0x0003, DMI type 3, 25 bytes
+Chassis Information
+        Manufacturer: To Be Filled By O.E.M.
+        Type: Desktop
+        Lock: Not Present
+        Version: To Be Filled By O.E.M.
+        Serial Number: To Be Filled By O.E.M.
+        Asset Tag: To Be Filled By O.E.M.
+        Boot-up State: Safe
+        Power Supply State: Safe
+        Thermal State: Safe
+        Security Status: None
+        OEM Information: 0x00000000
+        Height: Unspecified
+        Number Of Power Cords: 1
+        Contained Elements: 1
+                <OUT OF SPEC> (0)
+        SKU Number: To be filled by O.E.M.
+
+BIOS block values look nice, but not specific enough.
+"Aptio CRB" seems to be an AMI trademark for their UEFI bios.
+UUID looks garbage (or rather, it looks too clean to be relevant).
+
+So I guess /etc/modules is the way.
+
+I think the module is now quite close to submission for broader
+review, thanks to your help.
+
+Regards,
+-- 
+Vincent Pelletier
