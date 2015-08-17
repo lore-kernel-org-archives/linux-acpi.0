@@ -1,102 +1,67 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v2 1/1] ACPI / osl: replace custom implementation of readq / writeq
-Date: Mon, 17 Aug 2015 17:28:46 +0300
-Message-ID: <1439821726-146561-1-git-send-email-andriy.shevchenko@linux.intel.com>
+From: Dustin Byford <dustin@cumulusnetworks.com>
+Subject: Re: [RFC v2 0/1] i2c: acpi: scan ACPI enumerated I2C mux channels
+Date: Mon, 17 Aug 2015 12:00:45 -0700
+Message-ID: <20150817190045.GA25318@cumulusnetworks.com>
+References: <1439510358-16664-1-git-send-email-dustin@cumulusnetworks.com>
+ <1439580693-5538-1-git-send-email-dustin@cumulusnetworks.com>
+ <20150817120305.GB1552@lahna.fi.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:57228 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754674AbbHQO2t (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 17 Aug 2015 10:28:49 -0400
+Received: from mail-pa0-f53.google.com ([209.85.220.53]:35834 "EHLO
+	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750962AbbHQTAr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 17 Aug 2015 15:00:47 -0400
+Received: by pacgr6 with SMTP id gr6so114184849pac.2
+        for <linux-acpi@vger.kernel.org>; Mon, 17 Aug 2015 12:00:46 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20150817120305.GB1552@lahna.fi.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org, linux-kernel@vger.kernel.org, rjw@rjwysocki.net, linux-acpi@vger.kernel.org
 
-The readq() and writeq() helpers are available in the
-asm-generic/io-64-nonatomic-hi-lo.h and asm-generic/io-64-nonatomic-lo-hi.h
-headers. Replace custom implementation by the generic helpers.
+Hi Mika,
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
-Since v1:
-- test with CONFIG_ACPI=y
-- update commit message and patch accordingly
-- tested on Intel Braswell platform
- drivers/acpi/osl.c | 33 +++------------------------------
- 1 file changed, 3 insertions(+), 30 deletions(-)
+Thanks for taking a look.
 
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 21c1e71..739a4a6 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -43,6 +43,7 @@
- 
- #include <asm/io.h>
- #include <asm/uaccess.h>
-+#include <asm-generic/io-64-nonatomic-lo-hi.h>
- 
- #include "internal.h"
- 
-@@ -944,21 +945,6 @@ acpi_status acpi_os_write_port(acpi_io_address port, u32 value, u32 width)
- 
- EXPORT_SYMBOL(acpi_os_write_port);
- 
--#ifdef readq
--static inline u64 read64(const volatile void __iomem *addr)
--{
--	return readq(addr);
--}
--#else
--static inline u64 read64(const volatile void __iomem *addr)
--{
--	u64 l, h;
--	l = readl(addr);
--	h = readl(addr+4);
--	return l | (h << 32);
--}
--#endif
--
- acpi_status
- acpi_os_read_memory(acpi_physical_address phys_addr, u64 *value, u32 width)
- {
-@@ -991,7 +977,7 @@ acpi_os_read_memory(acpi_physical_address phys_addr, u64 *value, u32 width)
- 		*(u32 *) value = readl(virt_addr);
- 		break;
- 	case 64:
--		*(u64 *) value = read64(virt_addr);
-+		*(u64 *) value = readq(virt_addr);
- 		break;
- 	default:
- 		BUG();
-@@ -1005,19 +991,6 @@ acpi_os_read_memory(acpi_physical_address phys_addr, u64 *value, u32 width)
- 	return AE_OK;
- }
- 
--#ifdef writeq
--static inline void write64(u64 val, volatile void __iomem *addr)
--{
--	writeq(val, addr);
--}
--#else
--static inline void write64(u64 val, volatile void __iomem *addr)
--{
--	writel(val, addr);
--	writel(val>>32, addr+4);
--}
--#endif
--
- acpi_status
- acpi_os_write_memory(acpi_physical_address phys_addr, u64 value, u32 width)
- {
-@@ -1046,7 +1019,7 @@ acpi_os_write_memory(acpi_physical_address phys_addr, u64 value, u32 width)
- 		writel(value, virt_addr);
- 		break;
- 	case 64:
--		write64(value, virt_addr);
-+		writeq(value, virt_addr);
- 		break;
- 	default:
- 		BUG();
--- 
-2.5.0
+On Mon Aug 17 15:03, Mika Westerberg wrote:
+> On Fri, Aug 14, 2015 at 12:31:32PM -0700, Dustin Byford wrote:
 
+> >     Name (_DSD, Package ()
+> >     {
+> >         ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+> >         Package () {
+> >             Package (2) { "compatible", "nxp,pca9548" },
+> >         }
+> 
+> Nice, you are using _DSD :-)
+
+Yes, and I've got some other patches related to that.  I'll keep
+sending, but the relative youth of _DSD does bring up a few higher level
+issues (for me at least).  One thing at a time though, stay tuned.
+
+> > I had to:
+> > 
+> > 1) Find and set an ACPI companion for the "virtual" I2C adapters created
+> >    for each mux channel.
+> > 
+> > 2) Make sure to scan adap.dev when registering devices under each mux
+> >    channel.
+
+> I think the current code in I2C core is not actually doing the right
+> thing according the ACPI spec at least. To my understanding you can have
+> device with I2cSerialBus resource _anywhere_ in the namespace, not just
+> directly below the host controller. It's the ResourceSource attribute
+> that tells the corresponding host controller.
+
+I think you're right.
+
+> I wonder if it helps if we scan the whole namespace for devices with
+> I2cSerialBus that matches the just registered adapter? Something like
+> the patch below.
+
+Looks reasonable to me.  Let me work with the patch for a bit and see if
+I can make it work in my system.
+
+		--Dustin
