@@ -1,78 +1,91 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH v3 13/51] PCI: Separate realloc list checking after allocation
-Date: Tue, 18 Aug 2015 14:58:06 -0700
-Message-ID: <CAE9FiQVDRFvzadNz6HkEgShuJdfWWvF_tu-fT982WVp9ZEkxeA@mail.gmail.com>
-References: <1438039809-24957-1-git-send-email-yinghai@kernel.org>
-	<1438039809-24957-14-git-send-email-yinghai@kernel.org>
-	<20150817235416.GS26431@google.com>
+From: Eduardo Valentin <edubezval@gmail.com>
+Subject: [GIT PULL] Last minute fixes on Thermal-SoC for v4.2-rc8
+Date: Tue, 18 Aug 2015 16:44:37 -0700
+Message-ID: <20150818234436.GB4494@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="3lcZGd9BuhuYXNfi"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ig0-f173.google.com ([209.85.213.173]:36265 "EHLO
-	mail-ig0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753085AbbHRV6H (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Aug 2015 17:58:07 -0400
-In-Reply-To: <20150817235416.GS26431@google.com>
+Received: from mail-pa0-f47.google.com ([209.85.220.47]:34110 "EHLO
+	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753105AbbHRXok (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Aug 2015 19:44:40 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: David Miller <davem@davemloft.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Wei Yang <weiyang@linux.vnet.ibm.com>, TJ <linux@iam.tj>, Yijing Wang <wangyijing@huawei.com>, Andrew Morton <akpm@linux-foundation.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>, Rui Zhang <rui.zhang@intel.com>
+Cc: Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Russell King <rmk+kernel@arm.linux.org.uk>
 
-On Mon, Aug 17, 2015 at 4:54 PM, Bjorn Helgaas <bhelgaas@google.com> wrote:
-> On Mon, Jul 27, 2015 at 04:29:31PM -0700, Yinghai Lu wrote:
->> We check the realloc list, as list must be empty after allocation.
->>
->> Separate the realloc list checking to another function.
->>
->> Add checking that is missed in acpiphp driver.
->>
->> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
->> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
->> Cc: Len Brown <lenb@kernel.org>
->> Cc: linux-acpi@vger.kernel.org
->> ---
->>  drivers/pci/hotplug/acpiphp_glue.c |  1 +
->>  drivers/pci/pci.h                  |  1 +
->>  drivers/pci/setup-bus.c            | 11 ++++++++---
->>  3 files changed, 10 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
->> index ff53856..134caee 100644
->> --- a/drivers/pci/hotplug/acpiphp_glue.c
->> +++ b/drivers/pci/hotplug/acpiphp_glue.c
->> @@ -507,6 +507,7 @@ static void enable_slot(struct acpiphp_slot *slot)
->>               }
->>       }
->>       __pci_bus_assign_resources(bus, &add_list, NULL);
->> +     __pci_bus_check_realloc(&add_list);
->>
->>       acpiphp_sanitize_bus(bus);
->>       pcie_bus_configure_settings(bus);
->> diff --git a/drivers/pci/pci.h b/drivers/pci/pci.h
->> index 4ff0ff1..2b83977 100644
->> --- a/drivers/pci/pci.h
->> +++ b/drivers/pci/pci.h
->> @@ -235,6 +235,7 @@ void __pci_bus_size_bridges(struct pci_bus *bus,
->>  void __pci_bus_assign_resources(const struct pci_bus *bus,
->>                               struct list_head *realloc_head,
->>                               struct list_head *fail_head);
->> +void __pci_bus_check_realloc(struct list_head *realloc_head);
->>  bool pci_bus_clip_resource(struct pci_dev *dev, int idx);
->>
->>  void pci_reassigndev_resource_alignment(struct pci_dev *dev);
->> diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
->> index 06664db..f30225c 100644
->> --- a/drivers/pci/setup-bus.c
->> +++ b/drivers/pci/setup-bus.c
->> @@ -350,6 +350,11 @@ out:
->>       }
->>  }
->>
->> +void __pci_bus_check_realloc(struct list_head *realloc_head)
->> +{
->> +     BUG_ON(!list_empty(realloc_head));
->
-> I don't think this really improves readability.  At least before, we could
-> see what we were looking for and we knew it might BUG().
 
-ok, will only missing BUG_ON into acpiphp_glue.c.
+--3lcZGd9BuhuYXNfi
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+Hello Linus,
+
+
+I have these last minute fixes on the thermal-soc tree. It has gone through
+linux-next. There is a fix of a long lasting bug in cpu cooling device,
+thanks for RMK for being pushing this.
+
+So, if there is still time, please pull from:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal fixes
+
+to receive Thermal-SoC Management updates for v4.2-rc8 with top-most
+
+1afb9c539daebc2c8a7b33d0e0b8fc9f74671b02:
+
+  thermal/cpu_cooling: update policy limits if clipped_freq < policy->max (2015-08-14 18:26:23 -0700)
+
+on top of commit 7ddab73346a1277b90fd6a4d044bc948f9cc9ad8:
+
+  Merge branch 'fixes' of git://ftp.arm.linux.org.uk/~rmk/linux-arm (2015-08-13 16:34:56 -0700)
+
+
+Specifics:
+- I am sending in behalf of Rui this time, as he does not have any
+  further patches.
+- Urgent fix: Lockdep fix in the cpu cooling code.
+- Refactoring in the cpu cooling code.
+- Remove devm* functions from power allocator.
+
+BR,
+
+Eduardo Valentin
+----------------------------------------------------------------
+Dmitry Torokhov (1):
+      thermal: power_allocator: do not use devm* interfaces
+
+Russell King (1):
+      thermal: cpu_cooling: fix lockdep problems in cpu_cooling
+
+Viresh Kumar (6):
+      thermal/cpu_cooling: No need to initialize max_freq to 0
+      thermal/cpu_cooling: quit early after updating policy
+      thermal/cpu_cooling: convert 'switch' block to 'if' block in notifier
+      thermal/cpu_cooling: rename cpufreq_val as clipped_freq
+      thermal/cpu_cooling: rename max_freq as clipped_freq in notifier
+      thermal/cpu_cooling: update policy limits if clipped_freq < policy->max
+
+ drivers/thermal/cpu_cooling.c     | 73 +++++++++++++++++++++++----------------
+ drivers/thermal/power_allocator.c |  8 ++---
+ 2 files changed, 48 insertions(+), 33 deletions(-)
+
+--3lcZGd9BuhuYXNfi
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQEcBAEBAgAGBQJV08NWAAoJEMLUO4d9pOJWOGEH/RH60zORt81Ihkzc1BsJbEZB
+9iqTs4WGkMr3g6LJHG5cmOkl+CUjQ2t6EbBzDZ1cPrJn0b8DMmeqH6Nn2E9m1SGe
+ikXjMvi4nO66cMo3+O4AEv34sLZ5BjcsfsLSO69NZ3Z0FB1uk5tkDVLWTWBYs22W
+Tnol96q/N1VMTh53c4L1KHHV1x4CzNWBfe5Zaktbcc5cXU+NzcnDWB5EzQUss8/r
+0llWwUFN/VIGGdTy3ialIEg0+UDjG1KHXGOVG2spYo6oixm94rxF4B4KY4eQlrYg
+qZlPQdzD7V3eBP6TK3PcTwh+9mNH+xCLFoBq8AK9Ioj0yJgv+1MWmkt95jYlu4k=
+=QII+
+-----END PGP SIGNATURE-----
+
+--3lcZGd9BuhuYXNfi--
