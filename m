@@ -1,48 +1,92 @@
-From: Zhouyi Zhou <yizhouzhou@ict.ac.cn>
-Subject: [RFC] ACPICA: save a function call
-Date: Tue, 18 Aug 2015 22:07:43 +0800
-Message-ID: <1439906863-5681-1-git-send-email-yizhouzhou@ict.ac.cn>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: lv.zheng@intel.com, robert.moore@intel.com, rafael.j.wysocki@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, linux-kernel@vger.kernel.org
-Cc: Zhouyi Zhou <yizhouzhou@ict.ac.cn>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [Patch v1] x86, ACPI, irq: Fix a regression caused by
+Date: Tue, 18 Aug 2015 21:36:02 +0200 (CEST)
+Message-ID: <alpine.DEB.2.11.1508182133010.3873@nanos>
+References: <1439110710-26498-1-git-send-email-jiang.liu@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from www.linutronix.de ([62.245.132.108]:58015 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750780AbbHRTgk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Aug 2015 15:36:40 -0400
+In-Reply-To: <1439110710-26498-1-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Nick Meier <nmeier@microsoft.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
 
-In function acpi_ps_build_named_op, the if statement
-in line 221 ensure the argument status to function call
-acpi_ps_next_parse_state has the value 0, while 
-acpi_ps_next_parse_state do not change any global state
-when called with callback_status==0.
+On Sun, 9 Aug 2015, Jiang Liu wrote:
+> Nick Meier reported a regression with HyperV that "
+>   After rebooting the VM, the following messages are logged in syslog
+>   when trying to load the tulip driver:
+>     tulip: Linux Tulip drivers version 1.1.15 (Feb 27, 2007)
+>     tulip: 0000:00:0a.0: PCI INT A: failed to register GSI
+>     tulip: Cannot enable tulip board #0, aborting
+>     tulip: probe of 0000:00:0a.0 failed with error -16
+>   Errors occur in 3.19.0 kernel
+>   Works in 3.17 kernel.
+> "
+> 
+> According to the ACPI dump file posted by Nick at
+> https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1440072
+> 
+> The ACPI MADT table includes an interrupt source overridden entry for
+> ACPI SCI:
+> [236h 0566  1]                Subtable Type : 02 <Interrupt Source Override>
+> [237h 0567  1]                       Length : 0A
+> [238h 0568  1]                          Bus : 00
+> [239h 0569  1]                       Source : 09
+> [23Ah 0570  4]                    Interrupt : 00000009
+> [23Eh 0574  2]        Flags (decoded below) : 000D
+>                                    Polarity : 1
+>                                Trigger Mode : 3
+> That means ACPI SCI interrupt(Interrupt : 00000009) works in
+> level(Trigger Mode : 3), high(Polarity : 1) mode.
+> 
+> And in DSDT table, we have _PRT method to define PCI interrupts, which
+> eventually goes to:
+>         Name (PRSA, ResourceTemplate ()
+>         {
+>             IRQ (Level, ActiveLow, Shared, )
+>                 {3,4,5,7,9,10,11,12,14,15}
+>         })
+>         Name (PRSB, ResourceTemplate ()
+>         {
+>             IRQ (Level, ActiveLow, Shared, )
+>                 {3,4,5,7,9,10,11,12,14,15}
+>         })
+>         Name (PRSC, ResourceTemplate ()
+>         {
+>             IRQ (Level, ActiveLow, Shared, )
+>                 {3,4,5,7,9,10,11,12,14,15}
+>         })
+>         Name (PRSD, ResourceTemplate ()
+>         {
+>             IRQ (Level, ActiveLow, Shared, )
+>                 {3,4,5,7,9,10,11,12,14,15}
+>         })
+> which means it's also possible to use IRQ9 for PCI interrupt, but works
+> in Level, ActiveLow mode. So it conflicts with ACPI SCI interrupt source
+> overriddern.
+>
+> So implement a quirk to correct interrupt attribute for HyperV SCI
+> interrupt. Nick reports the proposed patch fixes the regression as "
+>   Applied the above proposed patch with the DMI values substituted.
+>   The tulip driver loaded, and an address was assigned via DHCP.
+> "
+> Please refer to following links for more information:
+> https://bugzilla.kernel.org/show_bug.cgi?id=101301
+> https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1440072
+> 
+> Fixes: cd68f6bd53cf ("x86, irq, acpi: Get rid of special handling of GSI for ACPI SCI")
 
-I think following lines should be removed to save some CPU 
-cycles because the compilers won't do it (the callee
-is defined in another compiling unit, so it can't be inlined).  
+I have a hard time to understand WHY that particular patch actually
+caused that regression, WHY the original code worked with this weird
+ACPI table and WHY we are better off with a quirk for this case.
 
+Can you please elaborate?
 
-Signed-off-by: Zhouyi Zhou <yizhouzhou@ict.ac.cn>
+Thanks,
 
----
- drivers/acpi/acpica/psobject.c |    8 --------
- 1 file changed, 8 deletions(-)
-
-diff --git a/drivers/acpi/acpica/psobject.c b/drivers/acpi/acpica/psobject.c
-index 2f5ddd8..4ff6530 100644
---- a/drivers/acpi/acpica/psobject.c
-+++ b/drivers/acpi/acpica/psobject.c
-@@ -230,14 +230,6 @@ acpi_ps_build_named_op(struct acpi_walk_state *walk_state,
- 		return_ACPI_STATUS(AE_CTRL_PARSE_CONTINUE);
- 	}
- 
--	status = acpi_ps_next_parse_state(walk_state, *op, status);
--	if (ACPI_FAILURE(status)) {
--		if (status == AE_CTRL_PENDING) {
--			status = AE_CTRL_PARSE_PENDING;
--		}
--		return_ACPI_STATUS(status);
--	}
--
- 	acpi_ps_append_arg(*op, unnamed_op->common.value.arg);
- 
- 	if ((*op)->common.aml_opcode == AML_REGION_OP ||
--- 
-1.7.10.4
+	tglx
