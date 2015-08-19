@@ -1,52 +1,86 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [Patch v2] x86, ACPI, irq: Add a quirk to override SCI polarity
- for HyperV
-Date: Wed, 19 Aug 2015 17:05:55 +0800
-Message-ID: <55D446F3.7000500@linux.intel.com>
-References: <alpine.DEB.2.11.1508182133010.3873@nanos>
- <1439963634-12006-1-git-send-email-jiang.liu@linux.intel.com>
- <CAJZ5v0g7F+BRMzc9-uuxHAK896B-hoOJ5AW7M4jGpowVG+hujw@mail.gmail.com>
- <55D42185.1000709@linux.intel.com>
- <CAJZ5v0gqAX+OEqKPK4b6nz4wpO=HScocTdBqzQsE=ikhA-rcwQ@mail.gmail.com>
- <55D427D3.7040103@linux.intel.com> <alpine.DEB.2.11.1508191025000.3873@nanos>
- <alpine.DEB.2.11.1508191039470.3873@nanos>
+From: Standard Charterd Bank UAE <abriones@munichiclayo.gob.pe>
+Subject: =?utf-8?Q?Telegrafische_=C3=9Cberweisung_HINWEIS?=
+Date: Wed, 19 Aug 2015 07:02:34 -0500 (PET)
+Message-ID: <1376371667.509362.1439985754821.JavaMail.zimbra@munichiclayo.gob.pe>
+Reply-To: Standard Charterd Bank UAE <standchart_orgbank@asia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:23955 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750874AbbHSJGE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 19 Aug 2015 05:06:04 -0400
-In-Reply-To: <alpine.DEB.2.11.1508191039470.3873@nanos>
+Received: from mail.munichiclayo.gob.pe ([200.48.163.60]:33383 "EHLO
+	mail.munichiclayo.gob.pe" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751920AbbHSMOh convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Aug 2015 08:14:37 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Nick Meier <nmeier@microsoft.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>
 
-On 2015/8/19 16:40, Thomas Gleixner wrote:
-> On Wed, 19 Aug 2015, Thomas Gleixner wrote:
->> On Wed, 19 Aug 2015, Jiang Liu wrote:
->>> On 2015/8/19 14:45, Rafael J. Wysocki wrote:
->>>> Well, the regression at hand has just shown that the assertion in the
->>>> changelog of that commit ("no need for for special treatment for GSI
->>>> used by ACPI SCI") does not really hold.  So, if the only motivation
->>>> for it was to get rid of one extra check in mp_unregister_gsi()
->>>> (mp_register_gsi() still needs to check if it is dealing with the SCI
->>>> anyway), I'd vote for reverting it.
->>> Hi Rafael,
->>> 	The motivation is to treat SCI as normal IOAPIC interrupt so
->>> we could enforce stricter pin attribute checking. Now it does reveal
->>> flaws in ACPI BIOS implementations, but we ran into trouble about how to
->>> handle those flaws:(
->>
->> The intent of this change is entirely correct, though it seems that
->> reality of ACPI is just different.
->>
->> To be on the safe side of things, I agree with Rafael that we should
->> revert that patch instead of introducing a single platform quirk.
-> 
-> Jiang,
-> 
-> can you please prepare a revert patch for this?
-Sure, will send out revert patch after basic tests.
+Standard Chartered Bank Dubai Main Branch,
+Al Fardan Geb=C3=A4ude, Al Mankhool Road,
+P.O. Box 999, Dubai,
+Vereinigte Arabische Emirate
+
+Sehr geehrte Kunden,
+
+
+Telegrafische =C3=9Cberweisung HINWEIS.
+
+Wir sind hiermit offiziell informieren Sie =C3=BCber Ihre Fondstelegraf=
+ische =C3=9Cberweisung durch unsere Bank, Standard Chartered Bank, auf =
+Ihr Bankkonto, die offiziell von der Leitung der Weltbank Swiss (WBS) g=
+enehmigt worden ist, um die Summe von $ 5.500,000.00 USD in Credit Ihre=
+r Bank Konto.
+Beachten Sie, dass ich die Bearbeitung Ihrer Zahlung und alles =C3=BCbe=
+r die sofortige =C3=9Cberweisung von Ihrem Fonds wird innerhalb k=C3=BC=
+rzester Zeit von der Zeit, die wir Ihren Unten ben=C3=B6tigten Informat=
+ionen erhalten gef=C3=BChrt werden gestartet.
+Auch dar=C3=BCber informiert, dass der Gouverneur von Standard Chartere=
+d Bank (UAE) Plc auf Ihrer Avis unterschreiben und eine Kopie der Berat=
+ung wird bei der Weltbank in der Schweiz f=C3=BCr einige Aufzeichnungsz=
+wecke versandt werden. Inzwischen Ihrer Information und Ihre vollst=C3=A4=
+ndigen Kontaktdaten wurden aus unserer Forschung manager.Barrister Paul=
+ Dean eingehen, werden in Ihrem Namen, um eine zu erhalten, zu handeln
+AFIDAVIT ANSPRUCHS zur sofortigen Ver=C3=B6ffentlichung Ihres Fonds.
+
+Dieser Fonds war Teil der eingereichten verstorbenen Pr=C3=A4sidenten S=
+addam Hussein im Irak Discovery Fund der Weltbank der Schweiz, die die =
+Schweizer Bank hat beschlossen, es zu gro=C3=9Fz=C3=BCgig verteilen
+helfen wenigen gl=C3=BCcklichen Menschen, und die Europ=C3=A4ische Unio=
+n wird im Einvernehmen mit der Schweizerischen Bank, den Fonds auf 700 =
+hunderttausend Menschen in Amerika, Europa und Asien, Naher Osten Afrik=
+a in andere zu verteilen, um zur Verbesserung ihrer Unternehmen.
+
+Daher best=C3=A4tigen die die unten angegebenen Informationen genau, de=
+nn dieses Amt nicht leisten k=C3=B6nnen, haftet f=C3=BCr falsche =C3=9C=
+bertragung von Mitteln oder Haftung eines Fonds in ein unbekanntes Kont=
+o gutgeschrieben gehalten werden.
+Das einzige, was von Ihnen verlangt wird, um die eidesstattliche Erkl=C3=
+=A4rung ANSPRUCH zu erhalten, damit wir Ihrem Konto direkt durch telegr=
+afische =C3=9Cberweisung oder =C3=BCber eine unserer entsprechenden Ban=
+ken und schickt Kopien der Geldtransfer Freigabedokumente f=C3=BCr Sie =
+und Ihre Banker zur Best=C3=A4tigung.
+
+Sollten Sie unsere Richtlinien befolgen, werden Ihre Fonds gutgeschrieb=
+en und beziehen sich auf Ihrem Bankkonto innerhalb von f=C3=BCnf (5) Ba=
+nkarbeitstagen ab dem Tag, Sie diese eidesstattliche Erkl=C3=A4rung ANS=
+PRUCH erhalten.
+
+=46=C3=BCr weitere Informationen und Unterst=C3=BCtzung auf dieser Remi=
+ttance Mitteilung Bitte leiten Sie Ihre
+
+VOLLER NAME:
+
+=46ULL KONTAKTADRESSE:
+
+Telefon- und Faxnummern:
+
+Direkt an meine E-Mail: standchart_orgbank@asia.com
+
+Mit freundlichen Gr=C3=BC=C3=9Fen,
+Mr. Rajesh Arora
+=46inanzvorstand,
+UAE.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
