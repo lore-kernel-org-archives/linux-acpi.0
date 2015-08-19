@@ -1,99 +1,402 @@
-From: Al Stone <al.stone@linaro.org>
-Subject: [PATCH v2 3/5] ACPI / IA64: remove usage of BAD_MADT_ENTRY
-Date: Wed, 19 Aug 2015 16:07:26 -0600
-Message-ID: <1440022048-6285-4-git-send-email-al.stone@linaro.org>
-References: <1440022048-6285-1-git-send-email-al.stone@linaro.org>
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <1440022048-6285-1-git-send-email-al.stone@linaro.org>
-Sender: linux-ia64-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-pm@vger.kernel.org, linaro-acpi@lists.linaro.org, linaro-kernel@lists.linaro.org, patches@linaro.org, Al Stone <al.stone@linaro.org>, Tony Luck <tony.luck@intel.com>, Fenghua Yu <fenghua.yu@intel.com>
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v2] nd_blk: add support for "read flush" DSM flag
+Date: Wed, 19 Aug 2015 16:48:04 -0600
+Message-ID: <1440024484-26152-1-git-send-email-ross.zwisler@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:8195 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751621AbbHSWsP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 19 Aug 2015 18:48:15 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "Luis R. Rodriguez" <mcgrof@suse.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andrew Morton <akpm@linux-foundation.org>, Borislav Petkov <bp@suse.de>, Christoph Hellwig <hch@lst.de>, Christoph Jaeger <cj@linux.com>, Dan Streetman <ddstreet@ieee.org>, Dan Williams <dan.j.williams@intel.com>, Ingo Molnar <mingo@redhat.com>, Juergen Gross <jgross@suse.com>, Len Brown <lenb@kernel.org>, Rusty Russell <rusty@rustcorp.com.au>, Stephen Rothwell <sfr@canb.auug.org.au>, Thierry Reding <treding@nvidia.com>, Thomas Gleixner <tglx@linutronix.de>, Toshi Kani <toshi.kani@hp.com>, Vishal Verma <vishal.l.verma@intel.com>, Will Deacon <will.deacon@arm.com>, Yalin Wang <Yalin.Wang@sonymobile.com>, linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org, x86@kernel.org
 
-Now that we have introduced the bad_madt_entry() function, and that
-function is being invoked in acpi_table_parse_madt() for us, there
-is no longer any need to use the BAD_MADT_ENTRY macro.
+Add support for the "read flush" _DSM flag, as outlined in the DSM spec:
 
-Signed-off-by: Al Stone <al.stone@linaro.org>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Fenghua Yu <fenghua.yu@intel.com>
+http://pmem.io/documents/NVDIMM_DSM_Interface_Example.pdf
+
+This flag tells the ND BLK driver that it needs to flush the cache lines
+associated with the aperture after the aperture is moved but before any
+new data is read.  This ensures that any stale cache lines from the
+previous contents of the aperture will be discarded from the processor
+cache, and the new data will be read properly from the DIMM.  We know
+that the cache lines are clean and will be discarded without any
+writeback because either a) the previous aperture operation was a read,
+and we never modified the contents of the aperture, or b) the previous
+aperture operation was a write and we must have written back the dirtied
+contents of the aperture to the DIMM before the I/O was completed.
+
+By supporting the "read flush" flag we can also change the ND BLK
+aperture mapping from write-combining to write-back via memremap().
+
+In order to add support for the "read flush" flag I needed to add a
+generic routine to invalidate cache lines, mmio_flush_range().  This is
+protected by the ARCH_HAS_MMIO_FLUSH Kconfig variable, and is currently
+only supported on x86.
+
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
 ---
- arch/ia64/kernel/acpi.c | 20 --------------------
- 1 file changed, 20 deletions(-)
+ arch/x86/Kconfig                  |  1 +
+ arch/x86/include/asm/cacheflush.h |  2 ++
+ arch/x86/include/asm/io.h         |  2 --
+ arch/x86/include/asm/pmem.h       |  2 ++
+ drivers/acpi/Kconfig              |  1 +
+ drivers/acpi/nfit.c               | 55 ++++++++++++++++++++++-----------------
+ drivers/acpi/nfit.h               | 16 ++++++++----
+ lib/Kconfig                       |  3 +++
+ tools/testing/nvdimm/Kbuild       |  2 ++
+ tools/testing/nvdimm/test/iomap.c | 30 +++++++++++++++++++--
+ tools/testing/nvdimm/test/nfit.c  | 10 ++++---
+ 11 files changed, 88 insertions(+), 36 deletions(-)
 
-diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
-index b1698bc..efa3f0a 100644
---- a/arch/ia64/kernel/acpi.c
-+++ b/arch/ia64/kernel/acpi.c
-@@ -184,9 +184,6 @@ acpi_parse_lapic_addr_ovr(struct acpi_subtable_header * header,
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index 76c6115..03ab612 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -28,6 +28,7 @@ config X86
+ 	select ARCH_HAS_FAST_MULTIPLIER
+ 	select ARCH_HAS_GCOV_PROFILE_ALL
+ 	select ARCH_HAS_PMEM_API
++	select ARCH_HAS_MMIO_FLUSH
+ 	select ARCH_HAS_SG_CHAIN
+ 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
+ 	select ARCH_MIGHT_HAVE_ACPI_PDC		if ACPI
+diff --git a/arch/x86/include/asm/cacheflush.h b/arch/x86/include/asm/cacheflush.h
+index 471418a..e63aa38 100644
+--- a/arch/x86/include/asm/cacheflush.h
++++ b/arch/x86/include/asm/cacheflush.h
+@@ -89,6 +89,8 @@ int set_pages_rw(struct page *page, int numpages);
  
- 	lapic = (struct acpi_madt_local_apic_override *)header;
+ void clflush_cache_range(void *addr, unsigned int size);
  
--	if (BAD_MADT_ENTRY(lapic, end))
--		return -EINVAL;
++#define mmio_flush_range(addr, size) clflush_cache_range(addr, size)
++
+ #ifdef CONFIG_DEBUG_RODATA
+ void mark_rodata_ro(void);
+ extern const int rodata_test_data;
+diff --git a/arch/x86/include/asm/io.h b/arch/x86/include/asm/io.h
+index d241fbd..83ec9b1 100644
+--- a/arch/x86/include/asm/io.h
++++ b/arch/x86/include/asm/io.h
+@@ -248,8 +248,6 @@ static inline void flush_write_buffers(void)
+ #endif
+ }
+ 
+-#define ARCH_MEMREMAP_PMEM MEMREMAP_WB
 -
- 	if (lapic->address) {
- 		iounmap(ipi_base_addr);
- 		ipi_base_addr = ioremap(lapic->address, 0);
-@@ -201,8 +198,6 @@ acpi_parse_lsapic(struct acpi_subtable_header * header, const unsigned long end)
+ #endif /* __KERNEL__ */
  
- 	lsapic = (struct acpi_madt_local_sapic *)header;
+ extern void native_io_delay(void);
+diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
+index a3a0df6..bb026c5 100644
+--- a/arch/x86/include/asm/pmem.h
++++ b/arch/x86/include/asm/pmem.h
+@@ -18,6 +18,8 @@
+ #include <asm/cpufeature.h>
+ #include <asm/special_insns.h>
  
--	/*Skip BAD_MADT_ENTRY check, as lsapic size could vary */
--
- 	if (lsapic->lapic_flags & ACPI_MADT_ENABLED) {
- #ifdef CONFIG_SMP
- 		smp_boot_data.cpu_phys_id[available_cpus] =
-@@ -222,9 +217,6 @@ acpi_parse_lapic_nmi(struct acpi_subtable_header * header, const unsigned long e
++#define ARCH_MEMREMAP_PMEM MEMREMAP_WB
++
+ #ifdef CONFIG_ARCH_HAS_PMEM_API
+ /**
+  * arch_memcpy_to_pmem - copy data to persistent memory
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 114cf48..4baeb85 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -410,6 +410,7 @@ config ACPI_NFIT
+ 	tristate "ACPI NVDIMM Firmware Interface Table (NFIT)"
+ 	depends on PHYS_ADDR_T_64BIT
+ 	depends on BLK_DEV
++	depends on ARCH_HAS_MMIO_FLUSH
+ 	select LIBNVDIMM
+ 	help
+ 	  Infrastructure to probe ACPI 6 compliant platforms for
+diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+index 7c2638f..56fff01 100644
+--- a/drivers/acpi/nfit.c
++++ b/drivers/acpi/nfit.c
+@@ -1017,7 +1017,7 @@ static u64 read_blk_stat(struct nfit_blk *nfit_blk, unsigned int bw)
+ 	if (mmio->num_lines)
+ 		offset = to_interleave_offset(offset, mmio);
  
- 	lacpi_nmi = (struct acpi_madt_local_apic_nmi *)header;
+-	return readq(mmio->base + offset);
++	return readq(mmio->addr.base + offset);
+ }
  
--	if (BAD_MADT_ENTRY(lacpi_nmi, end))
--		return -EINVAL;
--
- 	/* TBD: Support lapic_nmi entries */
+ static void write_blk_ctl(struct nfit_blk *nfit_blk, unsigned int bw,
+@@ -1042,11 +1042,11 @@ static void write_blk_ctl(struct nfit_blk *nfit_blk, unsigned int bw,
+ 	if (mmio->num_lines)
+ 		offset = to_interleave_offset(offset, mmio);
+ 
+-	writeq(cmd, mmio->base + offset);
++	writeq(cmd, mmio->addr.base + offset);
+ 	wmb_blk(nfit_blk);
+ 
+ 	if (nfit_blk->dimm_flags & ND_BLK_DCR_LATCH)
+-		readq(mmio->base + offset);
++		readq(mmio->addr.base + offset);
+ }
+ 
+ static int acpi_nfit_blk_single_io(struct nfit_blk *nfit_blk,
+@@ -1078,11 +1078,16 @@ static int acpi_nfit_blk_single_io(struct nfit_blk *nfit_blk,
+ 		}
+ 
+ 		if (rw)
+-			memcpy_to_pmem(mmio->aperture + offset,
++			memcpy_to_pmem(mmio->addr.aperture + offset,
+ 					iobuf + copied, c);
+-		else
++		else {
++			if (nfit_blk->dimm_flags & ND_BLK_READ_FLUSH)
++				mmio_flush_range((void __force *)
++					mmio->addr.aperture + offset, c);
++
+ 			memcpy_from_pmem(iobuf + copied,
+-					mmio->aperture + offset, c);
++					mmio->addr.aperture + offset, c);
++		}
+ 
+ 		copied += c;
+ 		len -= c;
+@@ -1129,7 +1134,10 @@ static void nfit_spa_mapping_release(struct kref *kref)
+ 
+ 	WARN_ON(!mutex_is_locked(&acpi_desc->spa_map_mutex));
+ 	dev_dbg(acpi_desc->dev, "%s: SPA%d\n", __func__, spa->range_index);
+-	iounmap(spa_map->iomem);
++	if (spa_map->type == SPA_MAP_APERTURE)
++		memunmap((void __force *)spa_map->addr.aperture);
++	else
++		iounmap(spa_map->addr.base);
+ 	release_mem_region(spa->address, spa->length);
+ 	list_del(&spa_map->list);
+ 	kfree(spa_map);
+@@ -1175,7 +1183,7 @@ static void __iomem *__nfit_spa_map(struct acpi_nfit_desc *acpi_desc,
+ 	spa_map = find_spa_mapping(acpi_desc, spa);
+ 	if (spa_map) {
+ 		kref_get(&spa_map->kref);
+-		return spa_map->iomem;
++		return spa_map->addr.base;
+ 	}
+ 
+ 	spa_map = kzalloc(sizeof(*spa_map), GFP_KERNEL);
+@@ -1191,20 +1199,19 @@ static void __iomem *__nfit_spa_map(struct acpi_nfit_desc *acpi_desc,
+ 	if (!res)
+ 		goto err_mem;
+ 
+-	if (type == SPA_MAP_APERTURE) {
+-		/*
+-		 * TODO: memremap_pmem() support, but that requires cache
+-		 * flushing when the aperture is moved.
+-		 */
+-		spa_map->iomem = ioremap_wc(start, n);
+-	} else
+-		spa_map->iomem = ioremap_nocache(start, n);
++	spa_map->type = type;
++	if (type == SPA_MAP_APERTURE)
++		spa_map->addr.aperture = (void __pmem *)memremap(start, n,
++							ARCH_MEMREMAP_PMEM);
++	else
++		spa_map->addr.base = ioremap_nocache(start, n);
++
+ 
+-	if (!spa_map->iomem)
++	if (!spa_map->addr.base)
+ 		goto err_map;
+ 
+ 	list_add_tail(&spa_map->list, &acpi_desc->spa_maps);
+-	return spa_map->iomem;
++	return spa_map->addr.base;
+ 
+  err_map:
+ 	release_mem_region(start, n);
+@@ -1267,7 +1274,7 @@ static int acpi_nfit_blk_get_flags(struct nvdimm_bus_descriptor *nd_desc,
+ 		nfit_blk->dimm_flags = flags.flags;
+ 	else if (rc == -ENOTTY) {
+ 		/* fall back to a conservative default */
+-		nfit_blk->dimm_flags = ND_BLK_DCR_LATCH;
++		nfit_blk->dimm_flags = ND_BLK_DCR_LATCH | ND_BLK_READ_FLUSH;
+ 		rc = 0;
+ 	} else
+ 		rc = -ENXIO;
+@@ -1307,9 +1314,9 @@ static int acpi_nfit_blk_region_enable(struct nvdimm_bus *nvdimm_bus,
+ 	/* map block aperture memory */
+ 	nfit_blk->bdw_offset = nfit_mem->bdw->offset;
+ 	mmio = &nfit_blk->mmio[BDW];
+-	mmio->base = nfit_spa_map(acpi_desc, nfit_mem->spa_bdw,
++	mmio->addr.base = nfit_spa_map(acpi_desc, nfit_mem->spa_bdw,
+ 			SPA_MAP_APERTURE);
+-	if (!mmio->base) {
++	if (!mmio->addr.base) {
+ 		dev_dbg(dev, "%s: %s failed to map bdw\n", __func__,
+ 				nvdimm_name(nvdimm));
+ 		return -ENOMEM;
+@@ -1330,9 +1337,9 @@ static int acpi_nfit_blk_region_enable(struct nvdimm_bus *nvdimm_bus,
+ 	nfit_blk->cmd_offset = nfit_mem->dcr->command_offset;
+ 	nfit_blk->stat_offset = nfit_mem->dcr->status_offset;
+ 	mmio = &nfit_blk->mmio[DCR];
+-	mmio->base = nfit_spa_map(acpi_desc, nfit_mem->spa_dcr,
++	mmio->addr.base = nfit_spa_map(acpi_desc, nfit_mem->spa_dcr,
+ 			SPA_MAP_CONTROL);
+-	if (!mmio->base) {
++	if (!mmio->addr.base) {
+ 		dev_dbg(dev, "%s: %s failed to map dcr\n", __func__,
+ 				nvdimm_name(nvdimm));
+ 		return -ENOMEM;
+@@ -1399,7 +1406,7 @@ static void acpi_nfit_blk_region_disable(struct nvdimm_bus *nvdimm_bus,
+ 	for (i = 0; i < 2; i++) {
+ 		struct nfit_blk_mmio *mmio = &nfit_blk->mmio[i];
+ 
+-		if (mmio->base)
++		if (mmio->addr.base)
+ 			nfit_spa_unmap(acpi_desc, mmio->spa);
+ 	}
+ 	nd_blk_region_set_provider_data(ndbr, NULL);
+diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
+index f2c2bb7..7e74015 100644
+--- a/drivers/acpi/nfit.h
++++ b/drivers/acpi/nfit.h
+@@ -41,6 +41,7 @@ enum nfit_uuids {
+ };
+ 
+ enum {
++	ND_BLK_READ_FLUSH = 1,
+ 	ND_BLK_DCR_LATCH = 2,
+ };
+ 
+@@ -117,12 +118,16 @@ enum nd_blk_mmio_selector {
+ 	DCR,
+ };
+ 
++struct nd_blk_addr {
++	union {
++		void __iomem *base;
++		void __pmem  *aperture;
++	};
++};
++
+ struct nfit_blk {
+ 	struct nfit_blk_mmio {
+-		union {
+-			void __iomem *base;
+-			void __pmem  *aperture;
+-		};
++		struct nd_blk_addr addr;
+ 		u64 size;
+ 		u64 base_offset;
+ 		u32 line_size;
+@@ -149,7 +154,8 @@ struct nfit_spa_mapping {
+ 	struct acpi_nfit_system_address *spa;
+ 	struct list_head list;
+ 	struct kref kref;
+-	void __iomem *iomem;
++	enum spa_map_type type;
++	struct nd_blk_addr addr;
+ };
+ 
+ static inline struct nfit_spa_mapping *to_spa_map(struct kref *kref)
+diff --git a/lib/Kconfig b/lib/Kconfig
+index 3a2ef67..a938a39 100644
+--- a/lib/Kconfig
++++ b/lib/Kconfig
+@@ -531,4 +531,7 @@ config ARCH_HAS_SG_CHAIN
+ config ARCH_HAS_PMEM_API
+ 	bool
+ 
++config ARCH_HAS_MMIO_FLUSH
++	bool
++
+ endmenu
+diff --git a/tools/testing/nvdimm/Kbuild b/tools/testing/nvdimm/Kbuild
+index e667579..98f2881 100644
+--- a/tools/testing/nvdimm/Kbuild
++++ b/tools/testing/nvdimm/Kbuild
+@@ -1,8 +1,10 @@
+ ldflags-y += --wrap=ioremap_wc
++ldflags-y += --wrap=memremap
+ ldflags-y += --wrap=devm_ioremap_nocache
+ ldflags-y += --wrap=devm_memremap
+ ldflags-y += --wrap=ioremap_nocache
+ ldflags-y += --wrap=iounmap
++ldflags-y += --wrap=memunmap
+ ldflags-y += --wrap=__devm_request_region
+ ldflags-y += --wrap=__request_region
+ ldflags-y += --wrap=__release_region
+diff --git a/tools/testing/nvdimm/test/iomap.c b/tools/testing/nvdimm/test/iomap.c
+index ff1e004..179d228 100644
+--- a/tools/testing/nvdimm/test/iomap.c
++++ b/tools/testing/nvdimm/test/iomap.c
+@@ -89,12 +89,25 @@ void *__wrap_devm_memremap(struct device *dev, resource_size_t offset,
+ 	nfit_res = get_nfit_res(offset);
+ 	rcu_read_unlock();
+ 	if (nfit_res)
+-		return (void __iomem *) nfit_res->buf + offset
+-			- nfit_res->res->start;
++		return nfit_res->buf + offset - nfit_res->res->start;
+ 	return devm_memremap(dev, offset, size, flags);
+ }
+ EXPORT_SYMBOL(__wrap_devm_memremap);
+ 
++void *__wrap_memremap(resource_size_t offset, size_t size,
++		unsigned long flags)
++{
++	struct nfit_test_resource *nfit_res;
++
++	rcu_read_lock();
++	nfit_res = get_nfit_res(offset);
++	rcu_read_unlock();
++	if (nfit_res)
++		return nfit_res->buf + offset - nfit_res->res->start;
++	return memremap(offset, size, flags);
++}
++EXPORT_SYMBOL(__wrap_memremap);
++
+ void __iomem *__wrap_ioremap_nocache(resource_size_t offset, unsigned long size)
+ {
+ 	return __nfit_test_ioremap(offset, size, ioremap_nocache);
+@@ -120,6 +133,19 @@ void __wrap_iounmap(volatile void __iomem *addr)
+ }
+ EXPORT_SYMBOL(__wrap_iounmap);
+ 
++void __wrap_memunmap(void *addr)
++{
++	struct nfit_test_resource *nfit_res;
++
++	rcu_read_lock();
++	nfit_res = get_nfit_res((unsigned long) addr);
++	rcu_read_unlock();
++	if (nfit_res)
++		return;
++	return memunmap(addr);
++}
++EXPORT_SYMBOL(__wrap_memunmap);
++
+ static struct resource *nfit_test_request_region(struct device *dev,
+ 		struct resource *parent, resource_size_t start,
+ 		resource_size_t n, const char *name, int flags)
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index 28dba91..021e6f9 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -1029,9 +1029,13 @@ static int nfit_test_blk_do_io(struct nd_blk_region *ndbr, resource_size_t dpa,
+ 
+ 	lane = nd_region_acquire_lane(nd_region);
+ 	if (rw)
+-		memcpy(mmio->base + dpa, iobuf, len);
+-	else
+-		memcpy(iobuf, mmio->base + dpa, len);
++		memcpy(mmio->addr.base + dpa, iobuf, len);
++	else {
++		memcpy(iobuf, mmio->addr.base + dpa, len);
++
++		/* give us some some coverage of the mmio_flush_range() API */
++		mmio_flush_range(mmio->addr.base + dpa, len);
++	}
+ 	nd_region_release_lane(nd_region, lane);
+ 
  	return 0;
- }
-@@ -236,9 +228,6 @@ acpi_parse_iosapic(struct acpi_subtable_header * header, const unsigned long end
- 
- 	iosapic = (struct acpi_madt_io_sapic *)header;
- 
--	if (BAD_MADT_ENTRY(iosapic, end))
--		return -EINVAL;
--
- 	return iosapic_init(iosapic->address, iosapic->global_irq_base);
- }
- 
-@@ -253,9 +242,6 @@ acpi_parse_plat_int_src(struct acpi_subtable_header * header,
- 
- 	plintsrc = (struct acpi_madt_interrupt_source *)header;
- 
--	if (BAD_MADT_ENTRY(plintsrc, end))
--		return -EINVAL;
--
- 	/*
- 	 * Get vector assignment for this interrupt, set attributes,
- 	 * and program the IOSAPIC routing table.
-@@ -336,9 +322,6 @@ acpi_parse_int_src_ovr(struct acpi_subtable_header * header,
- 
- 	p = (struct acpi_madt_interrupt_override *)header;
- 
--	if (BAD_MADT_ENTRY(p, end))
--		return -EINVAL;
--
- 	iosapic_override_isa_irq(p->source_irq, p->global_irq,
- 				 ((p->inti_flags & ACPI_MADT_POLARITY_MASK) ==
- 				  ACPI_MADT_POLARITY_ACTIVE_LOW) ?
-@@ -356,9 +339,6 @@ acpi_parse_nmi_src(struct acpi_subtable_header * header, const unsigned long end
- 
- 	nmi_src = (struct acpi_madt_nmi_source *)header;
- 
--	if (BAD_MADT_ENTRY(nmi_src, end))
--		return -EINVAL;
--
- 	/* TBD: Support nimsrc entries */
- 	return 0;
- }
 -- 
-2.4.3
+2.1.0
 
