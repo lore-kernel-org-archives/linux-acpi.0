@@ -1,91 +1,138 @@
-From: Eduardo Valentin <edubezval@gmail.com>
-Subject: [GIT PULL] Last minute fixes on Thermal-SoC for v4.2-rc8
-Date: Tue, 18 Aug 2015 16:44:37 -0700
-Message-ID: <20150818234436.GB4494@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="3lcZGd9BuhuYXNfi"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f47.google.com ([209.85.220.47]:34110 "EHLO
-	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753105AbbHRXok (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 18 Aug 2015 19:44:40 -0400
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: [Patch v2] x86, ACPI, irq: Add a quirk to override SCI polarity for HyperV
+Date: Wed, 19 Aug 2015 13:53:54 +0800
+Message-ID: <1439963634-12006-1-git-send-email-jiang.liu@linux.intel.com>
+References: <alpine.DEB.2.11.1508182133010.3873@nanos>
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.11.1508182133010.3873@nanos>
+Sender: linux-pm-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Nick Meier <nmeier@microsoft.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>, Rui Zhang <rui.zhang@intel.com>
-Cc: Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Russell King <rmk+kernel@arm.linux.org.uk>
 
+Nick Meier reported a regression with HyperV that "
+  After rebooting the VM, the following messages are logged in syslog
+  when trying to load the tulip driver:
+    tulip: Linux Tulip drivers version 1.1.15 (Feb 27, 2007)
+    tulip: 0000:00:0a.0: PCI INT A: failed to register GSI
+    tulip: Cannot enable tulip board #0, aborting
+    tulip: probe of 0000:00:0a.0 failed with error -16
+  Errors occur in 3.19.0 kernel
+  Works in 3.17 kernel.
+"
 
---3lcZGd9BuhuYXNfi
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+According to the ACPI dump file posted by Nick at
+https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1440072
 
-Hello Linus,
+The ACPI MADT table includes an interrupt source overridden entry for
+ACPI SCI:
+[236h 0566  1]                Subtable Type : 02 <Interrupt Source Override>
+[237h 0567  1]                       Length : 0A
+[238h 0568  1]                          Bus : 00
+[239h 0569  1]                       Source : 09
+[23Ah 0570  4]                    Interrupt : 00000009
+[23Eh 0574  2]        Flags (decoded below) : 000D
+                                   Polarity : 1
+                               Trigger Mode : 3
 
+And in DSDT table, we have _PRT method to define PCI interrupts, which
+eventually goes to:
+        Name (PRSA, ResourceTemplate ()
+        {
+            IRQ (Level, ActiveLow, Shared, )
+                {3,4,5,7,9,10,11,12,14,15}
+        })
+        Name (PRSB, ResourceTemplate ()
+        {
+            IRQ (Level, ActiveLow, Shared, )
+                {3,4,5,7,9,10,11,12,14,15}
+        })
+        Name (PRSC, ResourceTemplate ()
+        {
+            IRQ (Level, ActiveLow, Shared, )
+                {3,4,5,7,9,10,11,12,14,15}
+        })
+        Name (PRSD, ResourceTemplate ()
+        {
+            IRQ (Level, ActiveLow, Shared, )
+                {3,4,5,7,9,10,11,12,14,15}
+        })
 
-I have these last minute fixes on the thermal-soc tree. It has gone through
-linux-next. There is a fix of a long lasting bug in cpu cooling device,
-thanks for RMK for being pushing this.
+According to the MADT and DSDT tables above, IRQ 9 may be used for:
+1) ACPI SCI in level, high mode
+2) PCI legacy IRQ in level, low mode
+So there's a possible conflict in polarity setting for IRQ 9.
 
-So, if there is still time, please pull from:
+Prior to commit cd68f6bd53cf ("x86, irq, acpi: Get rid of special
+handling of GSI for ACPI SCI"), ACPI SCI is handled specially and
+there's no check for conflicts between ACPI SCI and PCI legagy IRQ.
+And it seems that the HyperV hypervisor doesn't make use of the
+polarity configuration in IOAPIC entry, so it just works.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal fixes
+Commit cd68f6bd53cf gets rid of the specially handling of ACPI SCI,
+and then the pin attribute checking logic discloses the conflicts
+between ACPI SCI and PCI legacy IRQ on HyperV virtual machine,
+and rejects the request to assign IRQ9 to PCI devices.
 
-to receive Thermal-SoC Management updates for v4.2-rc8 with top-most
+Since HyperV doesn't make use of the IOAPIC polarity setting,
+add a quirk to enforce ACPI SCI as level, low on HyperV guests,
+so IRQ9 could be used for both ACPI SCI and PCI legacy IRQ.
 
-1afb9c539daebc2c8a7b33d0e0b8fc9f74671b02:
+Nick reports the proposed patch fixes the regression as "
+  Applied the above proposed patch with the DMI values substituted.
+  The tulip driver loaded, and an address was assigned via DHCP.
+"
+Please refer to following links for more information:
+https://bugzilla.kernel.org/show_bug.cgi?id=101301
+https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1440072
 
-  thermal/cpu_cooling: update policy limits if clipped_freq < policy->max (2015-08-14 18:26:23 -0700)
+Fixes: cd68f6bd53cf ("x86, irq, acpi: Get rid of special handling of GSI for ACPI SCI")
+Reported-and-tested-by: Nick Meier <nmeier@microsoft.com>
+Cc: <stable@vger.kernel.org> # 3.19
+Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+---
+Hi Thomas,
+	I have refined the commit message to explain why it works with
+the old code.
+Thanks!
+Gerry
+---
+ arch/x86/kernel/acpi/boot.c |   15 +++++++++++++++
+ 1 file changed, 15 insertions(+)
 
-on top of commit 7ddab73346a1277b90fd6a4d044bc948f9cc9ad8:
+diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+index e49ee24da85e..47d95a86d56d 100644
+--- a/arch/x86/kernel/acpi/boot.c
++++ b/arch/x86/kernel/acpi/boot.c
+@@ -1308,6 +1308,13 @@ static int __init dmi_ignore_irq0_timer_override(const struct dmi_system_id *d)
+ 	return 0;
+ }
+ 
++static int __init acpi_force_hyperv_sci_attr(const struct dmi_system_id *d)
++{
++	acpi_sci_flags = ACPI_MADT_POLARITY_ACTIVE_LOW |
++		(acpi_sci_flags & ~ACPI_MADT_POLARITY_MASK);
++	return 0;
++}
++
+ /*
+  * ACPI offers an alternative platform interface model that removes
+  * ACPI hardware requirements for platforms that do not implement
+@@ -1458,6 +1465,14 @@ static struct dmi_system_id __initdata acpi_dmi_table_late[] = {
+ 		     DMI_MATCH(DMI_PRODUCT_NAME, "AMILO PRO V2030"),
+ 		     },
+ 	 },
++	{
++	 .callback = acpi_force_hyperv_sci_attr,
++	 .ident = "HyperV",
++	 .matches = {
++		     DMI_MATCH(DMI_SYS_VENDOR, "Microsoft Corporation"),
++		     DMI_MATCH(DMI_PRODUCT_NAME, "Virtual Machine"),
++		     },
++	 },
+ 	{}
+ };
+ 
+-- 
+1.7.10.4
 
-  Merge branch 'fixes' of git://ftp.arm.linux.org.uk/~rmk/linux-arm (2015-08-13 16:34:56 -0700)
-
-
-Specifics:
-- I am sending in behalf of Rui this time, as he does not have any
-  further patches.
-- Urgent fix: Lockdep fix in the cpu cooling code.
-- Refactoring in the cpu cooling code.
-- Remove devm* functions from power allocator.
-
-BR,
-
-Eduardo Valentin
-----------------------------------------------------------------
-Dmitry Torokhov (1):
-      thermal: power_allocator: do not use devm* interfaces
-
-Russell King (1):
-      thermal: cpu_cooling: fix lockdep problems in cpu_cooling
-
-Viresh Kumar (6):
-      thermal/cpu_cooling: No need to initialize max_freq to 0
-      thermal/cpu_cooling: quit early after updating policy
-      thermal/cpu_cooling: convert 'switch' block to 'if' block in notifier
-      thermal/cpu_cooling: rename cpufreq_val as clipped_freq
-      thermal/cpu_cooling: rename max_freq as clipped_freq in notifier
-      thermal/cpu_cooling: update policy limits if clipped_freq < policy->max
-
- drivers/thermal/cpu_cooling.c     | 73 +++++++++++++++++++++++----------------
- drivers/thermal/power_allocator.c |  8 ++---
- 2 files changed, 48 insertions(+), 33 deletions(-)
-
---3lcZGd9BuhuYXNfi
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQEcBAEBAgAGBQJV08NWAAoJEMLUO4d9pOJWOGEH/RH60zORt81Ihkzc1BsJbEZB
-9iqTs4WGkMr3g6LJHG5cmOkl+CUjQ2t6EbBzDZ1cPrJn0b8DMmeqH6Nn2E9m1SGe
-ikXjMvi4nO66cMo3+O4AEv34sLZ5BjcsfsLSO69NZ3Z0FB1uk5tkDVLWTWBYs22W
-Tnol96q/N1VMTh53c4L1KHHV1x4CzNWBfe5Zaktbcc5cXU+NzcnDWB5EzQUss8/r
-0llWwUFN/VIGGdTy3ialIEg0+UDjG1KHXGOVG2spYo6oixm94rxF4B4KY4eQlrYg
-qZlPQdzD7V3eBP6TK3PcTwh+9mNH+xCLFoBq8AK9Ioj0yJgv+1MWmkt95jYlu4k=
-=QII+
------END PGP SIGNATURE-----
-
---3lcZGd9BuhuYXNfi--
