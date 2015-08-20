@@ -1,67 +1,100 @@
-From: Al Stone <ahs3@redhat.com>
-Subject: Re: [PATCH v2 2/5] ACPI / ARM64: remove usage of
- BAD_MADT_ENTRY/BAD_MADT_GICC_ENTRY
-Date: Thu, 20 Aug 2015 10:57:05 -0600
-Message-ID: <55D606E1.4040804@redhat.com>
-References: <1440022048-6285-1-git-send-email-al.stone@linaro.org>
- <1440022048-6285-3-git-send-email-al.stone@linaro.org>
- <20150820101322.GA19328@arm.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH v2] nd_blk: add support for "read flush" DSM flag
+Date: Thu, 20 Aug 2015 10:59:44 -0700
+Message-ID: <CAPcyv4itBu=-WSzt03L3C1n+BxcLGtePuEEcdwBxk=kx0Mnqjw@mail.gmail.com>
+References: <1440024484-26152-1-git-send-email-ross.zwisler@linux.intel.com>
+	<CAPcyv4ifZgaQfskPQFGQNhVtnUfkh-Q2au0GjRDYTO60r4F0-g@mail.gmail.com>
+	<1440089067.30197.3.camel@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20150820101322.GA19328@arm.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Will Deacon <will.deacon@arm.com>, Al Stone <al.stone@linaro.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, "patches@linaro.org" <patches@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-vk0-f53.google.com ([209.85.213.53]:36611 "EHLO
+	mail-vk0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750986AbbHTR7p (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Aug 2015 13:59:45 -0400
+Received: by vkif69 with SMTP id f69so13923066vki.3
+        for <linux-acpi@vger.kernel.org>; Thu, 20 Aug 2015 10:59:45 -0700 (PDT)
+In-Reply-To: <1440089067.30197.3.camel@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, "Luis R. Rodriguez" <mcgrof@suse.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andrew Morton <akpm@linux-foundation.org>, Borislav Petkov <bp@suse.de>, Christoph Hellwig <hch@lst.de>, Christoph Jaeger <cj@linux.com>, Dan Streetman <ddstreet@ieee.org>, Ingo Molnar <mingo@redhat.com>, Juergen Gross <jgross@suse.com>, Len Brown <lenb@kernel.org>, Rusty Russell <rusty@rustcorp.com.au>, Stephen Rothwell <sfr@canb.auug.org.au>, Thierry Reding <treding@nvidia.com>, Thomas Gleixner <tglx@linutronix.de>, Toshi Kani <toshi.kani@hp.com>, Vishal Verma <vishal.l.verma@intel.com>, Will Deacon <will.deacon@arm.com>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, X86 ML <x86@kernel.org>
 
-On 08/20/2015 04:13 AM, Will Deacon wrote:
-> Hi Al,
-> 
-> On Wed, Aug 19, 2015 at 11:07:25PM +0100, Al Stone wrote:
->> Now that we have introduced the bad_madt_entry() function, and that
->> function is being invoked in acpi_table_parse_madt() for us, there
->> is no longer any need to use the BAD_MADT_ENTRY macro, or in the case
->> of arm64, the BAD_MADT_GICC_ENTRY, too.
+On Thu, Aug 20, 2015 at 9:44 AM, Ross Zwisler
+<ross.zwisler@linux.intel.com> wrote:
+> On Wed, 2015-08-19 at 16:06 -0700, Dan Williams wrote:
+>> On Wed, Aug 19, 2015 at 3:48 PM, Ross Zwisler
+>> <ross.zwisler@linux.intel.com> wrote:
+>> > Add support for the "read flush" _DSM flag, as outlined in the DSM spec:
+>> >
+>> > http://pmem.io/documents/NVDIMM_DSM_Interface_Example.pdf
+>> >
+>> > This flag tells the ND BLK driver that it needs to flush the cache lines
+>> > associated with the aperture after the aperture is moved but before any
+>> > new data is read.  This ensures that any stale cache lines from the
+>> > previous contents of the aperture will be discarded from the processor
+>> > cache, and the new data will be read properly from the DIMM.  We know
+>> > that the cache lines are clean and will be discarded without any
+>> > writeback because either a) the previous aperture operation was a read,
+>> > and we never modified the contents of the aperture, or b) the previous
+>> > aperture operation was a write and we must have written back the dirtied
+>> > contents of the aperture to the DIMM before the I/O was completed.
+>> >
+>> > By supporting the "read flush" flag we can also change the ND BLK
+>> > aperture mapping from write-combining to write-back via memremap().
+>> >
+>> > In order to add support for the "read flush" flag I needed to add a
+>> > generic routine to invalidate cache lines, mmio_flush_range().  This is
+>> > protected by the ARCH_HAS_MMIO_FLUSH Kconfig variable, and is currently
+>> > only supported on x86.
+>> >
+>> > Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+>> > Cc: Dan Williams <dan.j.williams@intel.com>
+>> [..]
+>> > diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+>> > index 7c2638f..56fff01 100644
+>> > --- a/drivers/acpi/nfit.c
+>> > +++ b/drivers/acpi/nfit.c
+>> [..]
+>> >  static int acpi_nfit_blk_single_io(struct nfit_blk *nfit_blk,
+>> > @@ -1078,11 +1078,16 @@ static int acpi_nfit_blk_single_io(struct nfit_blk *nfit_blk,
+>> >                 }
+>> >
+>> >                 if (rw)
+>> > -                       memcpy_to_pmem(mmio->aperture + offset,
+>> > +                       memcpy_to_pmem(mmio->addr.aperture + offset,
+>> >                                         iobuf + copied, c);
+>> > -               else
+>> > +               else {
+>> > +                       if (nfit_blk->dimm_flags & ND_BLK_READ_FLUSH)
+>> > +                               mmio_flush_range((void __force *)
+>> > +                                       mmio->addr.aperture + offset, c);
+>> > +
+>> >                         memcpy_from_pmem(iobuf + copied,
+>> > -                                       mmio->aperture + offset, c);
+>> > +                                       mmio->addr.aperture + offset, c);
+>> > +               }
 >>
->> Signed-off-by: Al Stone <al.stone@linaro.org>
->> Acked-by: Catalin Marinas <catalin.marinas@arm.com>
->> Acked-by: Marc Zyngier <marc.zyngier@arm.com>
->> Cc: Will Deacon <will.deacon@arm.com>
->> Cc: Thomas Gleixner <tglx@linutronix.de>
->> Cc: Jason Cooper <jason@lakedaemon.net>
->> ---
->>  arch/arm64/include/asm/acpi.h | 8 --------
->>  arch/arm64/kernel/smp.c       | 2 --
->>  drivers/irqchip/irq-gic.c     | 6 ------
->>  3 files changed, 16 deletions(-)
-> 
-> How are you planning to merge this (and which kernel are you targetting?)
-> You've got Acks for both arm64 and irqchip, so I guess either of those
-> trees could take it.
+>> Why is the flush inside the "while (len)" loop?  I think it should be
+>> done immediately after the call to write_blk_ctl() since that is the
+>> point at which the aperture becomes invalidated, and not prior to each
+>> read within a given aperture position.  Taking it a bit further, we
+>> may be writing the same address into the control register as was there
+>> previously so we wouldn't need to flush in that case.
+>
+> The reason I was doing it in the "while (len)" loop is that you have to walk
+> through the interleave tables, reading each segment until you have read 'len'
+> bytes.  If we were to invalidate right after the write_blk_ctl(), we would
+> essentially have to re-create the "while (len)" loop, hop through all the
+> segments doing the invalidation, then run through the segments again doing the
+> actual I/O.
+>
+> It seemed a lot cleaner to just run through the segments once, invalidating
+> and reading each segment individually.
 
-Yeah, this is a little messy.  If I can get into 4.2, that would be nice,
-but not required -- arm64 already has a usable patch for now, and that's
-the only arch affected.  So, 4.3 was my primary target (which is why I
-worked with linux-next for these).
-
-Which tree?  Yeesh.  1/5 and 5/5 are ACPI only and required for the rest
-to work properly; 2/5 is arm64, 3/5 is ia64, and 4/5 is x86.  ARM folks are
-the only ones to have provided acks or reviews, however.  I guess I was
-assuming this would have to go in via Rafael's ACPI tree since those are
-the key parts -- the arch-specific patches would remove safety checks on
-MADT subtables without replacing them, if they went in before the ACPI
-patches.
-
-Does that make sense?  What do you think?
-
--- 
-ciao,
-al
------------------------------------
-Al Stone
-Software Engineer
-Red Hat, Inc.
-ahs3@redhat.com
------------------------------------
+I agree it's cleaner if it is considering the de-interleave, but why
+consider interleave at all?  In other words just flush the entire
+aperture unconditionally.  Regardless of whether it reads all of the
+aperture it is indeed invalid because the aperture has moved.  I'm not
+seeing the benefit of being careful to let stale data stay in the
+cache a bit longer.
