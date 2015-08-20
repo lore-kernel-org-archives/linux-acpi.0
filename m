@@ -1,52 +1,46 @@
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH] nfit, nd_blk: BLK status register is only 32 bits
-Date: Thu, 20 Aug 2015 16:27:38 -0600
-Message-ID: <1440109658-29164-1-git-send-email-ross.zwisler@linux.intel.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH v2.2 01/22] fjes: Introduce FUJITSU Extended Socket
+ Network Device driver
+Date: Thu, 20 Aug 2015 15:49:01 -0700 (PDT)
+Message-ID: <20150820.154901.1696097888673162441.davem@davemloft.net>
+References: <1440060306-13040-1-git-send-email-izumi.taku@jp.fujitsu.com>
+	<1440060386-13189-1-git-send-email-izumi.taku@jp.fujitsu.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:26374 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751732AbbHTW1r (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 20 Aug 2015 18:27:47 -0400
+Received: from shards.monkeyblade.net ([149.20.54.216]:57675 "EHLO
+	shards.monkeyblade.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752890AbbHTWtD (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Aug 2015 18:49:03 -0400
+In-Reply-To: <1440060386-13189-1-git-send-email-izumi.taku@jp.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org, Nicholas Moulin <nicholas.w.moulin@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>
+To: izumi.taku@jp.fujitsu.com
+Cc: netdev@vger.kernel.org, platform-driver-x86@vger.kernel.org, dvhart@infradead.org, rkhan@redhat.com, alexander.h.duyck@redhat.com, linux-acpi@vger.kernel.org, joe@perches.com, sergei.shtylyov@cogentembedded.com, stephen@networkplumber.org, yasu.isimatu@gmail.com
 
-Only read 32 bits for the BLK status register in read_blk_stat().
+From: Taku Izumi <izumi.taku@jp.fujitsu.com>
+Date: Thu, 20 Aug 2015 17:46:05 +0900
 
-The format and size of this register is defined in the
-"NVDIMM Driver Writer's guide":
+> +obj-$(CONFIG_FUJITSU_ES) += fjes.o
+> +
+> +fjes-objs := fjes_main.o
+> +
 
-http://pmem.io/documents/NVDIMM_Driver_Writers_Guide.pdf
+Please do not have trailing empty lines in any files you add
+or edit, 'git' warns about this even when applying patches.
 
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Reported-by: Nicholas Moulin <nicholas.w.moulin@linux.intel.com>
----
- drivers/acpi/nfit.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+> +static int fjes_acpi_add(struct acpi_device *device)
+> +{
+> +	acpi_status status;
+> +	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL};
+> +	union acpi_object *str;
+> +	char str_buf[sizeof(FJES_ACPI_SYMBOL) + 1];
+> +	int result;
+> +	struct platform_device *plat_dev;
 
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index 7c2638f..8689ee1 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -1009,7 +1009,7 @@ static void wmb_blk(struct nfit_blk *nfit_blk)
- 		wmb_pmem();
- }
- 
--static u64 read_blk_stat(struct nfit_blk *nfit_blk, unsigned int bw)
-+static u32 read_blk_stat(struct nfit_blk *nfit_blk, unsigned int bw)
- {
- 	struct nfit_blk_mmio *mmio = &nfit_blk->mmio[DCR];
- 	u64 offset = nfit_blk->stat_offset + mmio->size * bw;
-@@ -1017,7 +1017,7 @@ static u64 read_blk_stat(struct nfit_blk *nfit_blk, unsigned int bw)
- 	if (mmio->num_lines)
- 		offset = to_interleave_offset(offset, mmio);
- 
--	return readq(mmio->base + offset);
-+	return readl(mmio->base + offset);
- }
- 
- static void write_blk_ctl(struct nfit_blk *nfit_blk, unsigned int bw,
--- 
-2.1.0
+Please order your local variables in "reverse christmas tree" order, which
+means longer lines come before shorter ones.
 
+Please correct this problem in your entire submission, as I am not going
+to point out each and every other place where this problem exists.
