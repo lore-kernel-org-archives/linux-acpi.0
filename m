@@ -1,40 +1,74 @@
-From: Mark Singer <MSinger@napavalley.edu>
-Subject: (unknown)
-Date: Thu, 20 Aug 2015 00:12:49 -0700
-Message-ID: <66EA9C2C53B30B46B1D28150E6EB8FB5015BB1A6902C__12392.4189284027$1440055166$gmane$org@mail.napavalley.edu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+From: Taku Izumi <izumi.taku@jp.fujitsu.com>
+Subject: [PATCH v2.2 00/22] FUJITSU Extended Socket network device driver
+Date: Thu, 20 Aug 2015 17:45:06 +0900
+Message-ID: <1440060306-13040-1-git-send-email-izumi.taku@jp.fujitsu.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.napavalley.edu ([209.129.252.13]:17286 "EHLO
-	mail.napavalley.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751161AbbHTHSU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Aug 2015 03:18:20 -0400
-Subject: 
-Content-Language: en-US
+Received: from mgwkm04.jp.fujitsu.com ([202.219.69.171]:36940 "EHLO
+	mgwkm04.jp.fujitsu.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751283AbbHTIuJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Aug 2015 04:50:09 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: netdev@vger.kernel.org, davem@davemloft.net
+Cc: platform-driver-x86@vger.kernel.org, dvhart@infradead.org, rkhan@redhat.com, alexander.h.duyck@redhat.com, linux-acpi@vger.kernel.org, joe@perches.com, sergei.shtylyov@cogentembedded.com, stephen@networkplumber.org, yasu.isimatu@gmail.com, Taku Izumi <izumi.taku@jp.fujitsu.com>
+
+This patchsets adds FUJITSU Extended Socket network device driver.
+Extended Socket network device is a shared memory based high-speed network
+interface between Extended Partitions of PRIMEQUEST 2000 E2 series.
+ 
+You can get some information about Extended Partition and Extended
+Socket by referring the following manual.
+ 
+http://globalsp.ts.fujitsu.com/dmsp/Publications/public/CA92344-0537.pdf
+    3.2.1 Extended Partitioning
+    3.2.2 Extended Socke
+
+v2.1 -> v2.2:
+   - minor fix patch 21/22 according to Sergei's comment
 
 
+Taku Izumi (22):
+  fjes: Introduce FUJITSU Extended Socket Network Device driver
+  fjes: Hardware initialization routine
+  fjes: Hardware cleanup routine
+  fjes: platform_driver's .probe and .remove routine
+  fjes: ES information acquisition routine
+  fjes: buffer address regist/unregistration routine
+  fjes: net_device_ops.ndo_open and .ndo_stop
+  fjes: net_device_ops.ndo_start_xmit
+  fjes: raise_intr_rxdata_task
+  fjes: tx_stall_task
+  fjes: NAPI polling function
+  fjes: net_device_ops.ndo_get_stats64
+  fjes: net_device_ops.ndo_change_mtu
+  fjes: net_device_ops.ndo_tx_timeout
+  fjes: net_device_ops.ndo_vlan_rx_add/kill_vid
+  fjes: interrupt_watch_task
+  fjes: force_close_task
+  fjes: unshare_watch_task
+  fjes: update_zone_task
+  fjes: epstop_task
+  fjes: handle receive cancellation request interrupt
+  fjes: ethtool support
 
+ drivers/net/Kconfig             |    7 +
+ drivers/net/Makefile            |    2 +
+ drivers/net/fjes/Makefile       |   31 +
+ drivers/net/fjes/fjes.h         |   77 +++
+ drivers/net/fjes/fjes_ethtool.c |  135 ++++
+ drivers/net/fjes/fjes_hw.c      | 1117 +++++++++++++++++++++++++++++++
+ drivers/net/fjes/fjes_hw.h      |  334 ++++++++++
+ drivers/net/fjes/fjes_main.c    | 1388 +++++++++++++++++++++++++++++++++++++++
+ drivers/net/fjes/fjes_regs.h    |  142 ++++
+ 9 files changed, 3233 insertions(+)
+ create mode 100644 drivers/net/fjes/Makefile
+ create mode 100644 drivers/net/fjes/fjes.h
+ create mode 100644 drivers/net/fjes/fjes_ethtool.c
+ create mode 100644 drivers/net/fjes/fjes_hw.c
+ create mode 100644 drivers/net/fjes/fjes_hw.h
+ create mode 100644 drivers/net/fjes/fjes_main.c
+ create mode 100644 drivers/net/fjes/fjes_regs.h
 
-Do you need an investor?
-Our investors fund project and business. We also give out loan/credit t=
-o any individual and company at 3% interest rate yearly. For more infor=
-mation, Contact us via Email: devonfps@gmail.com=20
+-- 
+1.8.3.1
 
-If you need an investor or quick funding, forward your response ONLY to=
- this E-mail: devonfps@gmail.com=20
-=2E...
-Haben Sie einen Investor brauchen?
-Unsere Investoren Fonds Projekt- und Gesch=E4fts. Wir geben auch Darleh=
-en / Kredite an jeden einzelnen und Unternehmen bei 3% Zinsen j=E4hrlic=
-h. F=FCr weitere Informationen, kontaktieren Sie uns per E-Mail: devonf=
-ps@gmail.com=20
-
-Wenn Sie ein Investor oder schnelle Finanzierung ben=F6tigen, senden Si=
-e Ihre Antwort nur auf diese E-mail: devonfps@gmail.com --
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
