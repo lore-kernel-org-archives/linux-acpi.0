@@ -1,65 +1,40 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [Patch v2] x86, ACPI, irq: Add a quirk to override SCI polarity
- for HyperV
-Date: Thu, 20 Aug 2015 14:19:12 +0800
-Message-ID: <55D57160.40108@linux.intel.com>
-References: <alpine.DEB.2.11.1508182133010.3873@nanos>
- <1439963634-12006-1-git-send-email-jiang.liu@linux.intel.com>
- <CAJZ5v0g7F+BRMzc9-uuxHAK896B-hoOJ5AW7M4jGpowVG+hujw@mail.gmail.com>
- <55D42185.1000709@linux.intel.com>
- <CAJZ5v0gqAX+OEqKPK4b6nz4wpO=HScocTdBqzQsE=ikhA-rcwQ@mail.gmail.com>
- <55D427D3.7040103@linux.intel.com> <alpine.DEB.2.11.1508191025000.3873@nanos>
- <alpine.DEB.2.11.1508191039470.3873@nanos>
+From: Mark Singer <MSinger@napavalley.edu>
+Subject: (unknown)
+Date: Thu, 20 Aug 2015 00:12:49 -0700
+Message-ID: <66EA9C2C53B30B46B1D28150E6EB8FB5015BB1A6902C__12392.4189284027$1440055166$gmane$org@mail.napavalley.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.11.1508191039470.3873@nanos>
-Sender: linux-pm-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Nick Meier <nmeier@microsoft.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.napavalley.edu ([209.129.252.13]:17286 "EHLO
+	mail.napavalley.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751161AbbHTHSU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Aug 2015 03:18:20 -0400
+Subject: 
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 2015/8/19 16:40, Thomas Gleixner wrote:
-> On Wed, 19 Aug 2015, Thomas Gleixner wrote:
->> On Wed, 19 Aug 2015, Jiang Liu wrote:
->>> On 2015/8/19 14:45, Rafael J. Wysocki wrote:
->>>> Well, the regression at hand has just shown that the assertion in the
->>>> changelog of that commit ("no need for for special treatment for GSI
->>>> used by ACPI SCI") does not really hold.  So, if the only motivation
->>>> for it was to get rid of one extra check in mp_unregister_gsi()
->>>> (mp_register_gsi() still needs to check if it is dealing with the SCI
->>>> anyway), I'd vote for reverting it.
->>> Hi Rafael,
->>> 	The motivation is to treat SCI as normal IOAPIC interrupt so
->>> we could enforce stricter pin attribute checking. Now it does reveal
->>> flaws in ACPI BIOS implementations, but we ran into trouble about how to
->>> handle those flaws:(
->>
->> The intent of this change is entirely correct, though it seems that
->> reality of ACPI is just different.
->>
->> To be on the safe side of things, I agree with Rafael that we should
->> revert that patch instead of introducing a single platform quirk.
-> 
-> Jiang,
-> 
-> can you please prepare a revert patch for this?
-Hi Rafael and Thomas,
-	I have tried to revert commit cd68f6bd53cf, but found
-it's not an easy task now.
-	When converting to hierarchical irqdomain, the IOAPIC
-internal and interfaces have changed much, and seems no easy
-way to revert cd68f6bd53cf. There may be three possible solutions
-here:
-1) use quirk to correct SCI polarity, as the patch does.
-2) change IOAPIC interfaces to provide a special way to
-   handle SCI interrupt.
-3) change drivers/acpi/pci_link.c to penalize SCI IRQ so it
-   won't be used for PCI IRQ if SCI polarity conflicts with
-   PCI IRQ polarity.
 
-What's your thoughts here?
 
-Thanks!
-Gerry
+
+Do you need an investor?
+Our investors fund project and business. We also give out loan/credit t=
+o any individual and company at 3% interest rate yearly. For more infor=
+mation, Contact us via Email: devonfps@gmail.com=20
+
+If you need an investor or quick funding, forward your response ONLY to=
+ this E-mail: devonfps@gmail.com=20
+=2E...
+Haben Sie einen Investor brauchen?
+Unsere Investoren Fonds Projekt- und Gesch=E4fts. Wir geben auch Darleh=
+en / Kredite an jeden einzelnen und Unternehmen bei 3% Zinsen j=E4hrlic=
+h. F=FCr weitere Informationen, kontaktieren Sie uns per E-Mail: devonf=
+ps@gmail.com=20
+
+Wenn Sie ein Investor oder schnelle Finanzierung ben=F6tigen, senden Si=
+e Ihre Antwort nur auf diese E-mail: devonfps@gmail.com --
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
