@@ -1,53 +1,61 @@
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: Re: [PATCH v2] nd_blk: add support for "read flush" DSM flag
-Date: Thu, 20 Aug 2015 15:15:39 -0600
-Message-ID: <1440105339.30197.11.camel@linux.intel.com>
-References: <1440024484-26152-1-git-send-email-ross.zwisler@linux.intel.com>
-	 <CAPcyv4ifZgaQfskPQFGQNhVtnUfkh-Q2au0GjRDYTO60r4F0-g@mail.gmail.com>
-	 <1440089067.30197.3.camel@linux.intel.com>
-	 <CAPcyv4itBu=-WSzt03L3C1n+BxcLGtePuEEcdwBxk=kx0Mnqjw@mail.gmail.com>
-	 <1440094654.30197.8.camel@linux.intel.com>
-	 <CAPcyv4iSJ8e3mgiMb3cG_NEW4VqmuWhHdL2v4Os_xiPSgGLmCg@mail.gmail.com>
-	 <1440097210.30197.9.camel@linux.intel.com>
-	 <CAPcyv4iZb4ot2nEn5DJ+19wF-ZiWk=fKb41mehd6Pv0buGRxJQ@mail.gmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] Power management and ACPI fixes for v4.2-rc8
+Date: Fri, 21 Aug 2015 00:14:41 +0200
+Message-ID: <CAJZ5v0hhAE=3oWvfSL4zN5=Qb4-yGyCR+XLtm+CVXH0fKvhuuw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:13996 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752137AbbHTVPm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 20 Aug 2015 17:15:42 -0400
-In-Reply-To: <CAPcyv4iZb4ot2nEn5DJ+19wF-ZiWk=fKb41mehd6Pv0buGRxJQ@mail.gmail.com>
+Received: from mail-la0-f45.google.com ([209.85.215.45]:35412 "EHLO
+	mail-la0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752632AbbHTWOn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Aug 2015 18:14:43 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, "Luis R. Rodriguez" <mcgrof@suse.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andrew Morton <akpm@linux-foundation.org>, Borislav Petkov <bp@suse.de>, Christoph Hellwig <hch@lst.de>, Christoph Jaeger <cj@linux.com>, Dan Streetman <ddstreet@ieee.org>, Ingo Molnar <mingo@redhat.com>, Juergen Gross <jgross@suse.com>, Len Brown <lenb@kernel.org>, Rusty Russell <rusty@rustcorp.com.au>, Stephen Rothwell <sfr@canb.auug.org.au>, Thierry Reding <treding@nvidia.com>, Thomas Gleixner <tglx@linutronix.de>, Toshi Kani <toshi.kani@hp.com>, Vishal Verma <vishal.l.verma@intel.com>, Will Deacon <will.deacon@arm.com>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, X86 ML <x86@kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Thu, 2015-08-20 at 13:27 -0700, Dan Williams wrote:
-[...]
-> With regards to the fencing, since we already take care to flush
-> writes we don't need to fence at all for the flush, right?  All we
-> care about is that reads see valid data.
+Hi Linus,
 
-We were careful to flush writes, but we could still have (now stale) data in
-the cache either due to a previous read or because of prefetching.  So we
-need to flush, and we need to fence to make sure that our flushing stays
-correctly ordered with respect to our reads.
+Please pull from
 
-So, to recap, I think are options are:
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ pm+acpi-4.2-rc8
 
-a)
-	loop through aperture segments, flushing each without any fencing
-	mb() to order all the flushes
-	loop through aperture segments, doing the reads
+to receive power management and ACPI fixes for v4.2-rc8 (if you
+decide to do an -rc8) or for the final v4.2 with top-most commit
+b8a1171f71c62cdd049fbc452a095173d32ee5fd
 
-b)
-	loop through aperture segments
-		flushing segment with mb() fencing
-		read the new data for this segment from the DIMM
-	
-Option b) is what is already implemented and is cleaner, but option a) has the
-benefit of having many fewer fences.
+ Merge branches 'acpi-video' and 'cpufreq-fixes'
+
+on top of commit 2c6625cd545bdd66acff14f3394865d43920a5c7
+
+ Linux 4.2-rc7
+
+These fix a recent regression in the ACPI backlight code and a memory
+leak in the Exynos cpufreq driver.
+
+Specifics:
+
+ - Fix a recently introduced issue in the ACPI backlight code which
+   causes lockdep to complain about a circular lock dependency during
+   initialization (Hans de Goede).
+
+ - Fix a possible memory leak during initialization in the Exynos cpufreq
+   driver (Shailendra Verma).
+
+Thanks!
 
 
+---------------
+
+Hans de Goede (1):
+      ACPI / video: Fix circular lock dependency issue in the video-detect code
+
+Shailendra Verma (1):
+      cpufreq: exynos: Fix for memory leak in case SoC name does not match
+
+---------------
+
+ drivers/acpi/video_detect.c      | 16 +++++++++++++---
+ drivers/cpufreq/exynos-cpufreq.c |  6 ++++--
+ 2 files changed, 17 insertions(+), 5 deletions(-)
