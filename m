@@ -1,61 +1,52 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] Power management and ACPI fixes for v4.2-rc8
-Date: Fri, 21 Aug 2015 00:14:41 +0200
-Message-ID: <CAJZ5v0hhAE=3oWvfSL4zN5=Qb4-yGyCR+XLtm+CVXH0fKvhuuw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH] nfit, nd_blk: BLK status register is only 32 bits
+Date: Thu, 20 Aug 2015 16:27:38 -0600
+Message-ID: <1440109658-29164-1-git-send-email-ross.zwisler@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-la0-f45.google.com ([209.85.215.45]:35412 "EHLO
-	mail-la0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752632AbbHTWOn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 20 Aug 2015 18:14:43 -0400
+Received: from mga01.intel.com ([192.55.52.88]:26374 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751732AbbHTW1r (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 20 Aug 2015 18:27:47 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: linux-kernel@vger.kernel.org
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org, Nicholas Moulin <nicholas.w.moulin@linux.intel.com>, Dan Williams <dan.j.williams@intel.com>
 
-Hi Linus,
+Only read 32 bits for the BLK status register in read_blk_stat().
 
-Please pull from
+The format and size of this register is defined in the
+"NVDIMM Driver Writer's guide":
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- pm+acpi-4.2-rc8
+http://pmem.io/documents/NVDIMM_Driver_Writers_Guide.pdf
 
-to receive power management and ACPI fixes for v4.2-rc8 (if you
-decide to do an -rc8) or for the final v4.2 with top-most commit
-b8a1171f71c62cdd049fbc452a095173d32ee5fd
+Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+Reported-by: Nicholas Moulin <nicholas.w.moulin@linux.intel.com>
+---
+ drivers/acpi/nfit.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
- Merge branches 'acpi-video' and 'cpufreq-fixes'
+diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+index 7c2638f..8689ee1 100644
+--- a/drivers/acpi/nfit.c
++++ b/drivers/acpi/nfit.c
+@@ -1009,7 +1009,7 @@ static void wmb_blk(struct nfit_blk *nfit_blk)
+ 		wmb_pmem();
+ }
+ 
+-static u64 read_blk_stat(struct nfit_blk *nfit_blk, unsigned int bw)
++static u32 read_blk_stat(struct nfit_blk *nfit_blk, unsigned int bw)
+ {
+ 	struct nfit_blk_mmio *mmio = &nfit_blk->mmio[DCR];
+ 	u64 offset = nfit_blk->stat_offset + mmio->size * bw;
+@@ -1017,7 +1017,7 @@ static u64 read_blk_stat(struct nfit_blk *nfit_blk, unsigned int bw)
+ 	if (mmio->num_lines)
+ 		offset = to_interleave_offset(offset, mmio);
+ 
+-	return readq(mmio->base + offset);
++	return readl(mmio->base + offset);
+ }
+ 
+ static void write_blk_ctl(struct nfit_blk *nfit_blk, unsigned int bw,
+-- 
+2.1.0
 
-on top of commit 2c6625cd545bdd66acff14f3394865d43920a5c7
-
- Linux 4.2-rc7
-
-These fix a recent regression in the ACPI backlight code and a memory
-leak in the Exynos cpufreq driver.
-
-Specifics:
-
- - Fix a recently introduced issue in the ACPI backlight code which
-   causes lockdep to complain about a circular lock dependency during
-   initialization (Hans de Goede).
-
- - Fix a possible memory leak during initialization in the Exynos cpufreq
-   driver (Shailendra Verma).
-
-Thanks!
-
-
----------------
-
-Hans de Goede (1):
-      ACPI / video: Fix circular lock dependency issue in the video-detect code
-
-Shailendra Verma (1):
-      cpufreq: exynos: Fix for memory leak in case SoC name does not match
-
----------------
-
- drivers/acpi/video_detect.c      | 16 +++++++++++++---
- drivers/cpufreq/exynos-cpufreq.c |  6 ++++--
- 2 files changed, 17 insertions(+), 5 deletions(-)
