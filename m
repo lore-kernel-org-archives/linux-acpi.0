@@ -1,78 +1,65 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v2] nd_blk: add support for "read flush" DSM flag
-Date: Wed, 19 Aug 2015 16:06:51 -0700
-Message-ID: <CAPcyv4ifZgaQfskPQFGQNhVtnUfkh-Q2au0GjRDYTO60r4F0-g@mail.gmail.com>
-References: <1440024484-26152-1-git-send-email-ross.zwisler@linux.intel.com>
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: Re: [Patch v2] x86, ACPI, irq: Add a quirk to override SCI polarity
+ for HyperV
+Date: Thu, 20 Aug 2015 14:19:12 +0800
+Message-ID: <55D57160.40108@linux.intel.com>
+References: <alpine.DEB.2.11.1508182133010.3873@nanos>
+ <1439963634-12006-1-git-send-email-jiang.liu@linux.intel.com>
+ <CAJZ5v0g7F+BRMzc9-uuxHAK896B-hoOJ5AW7M4jGpowVG+hujw@mail.gmail.com>
+ <55D42185.1000709@linux.intel.com>
+ <CAJZ5v0gqAX+OEqKPK4b6nz4wpO=HScocTdBqzQsE=ikhA-rcwQ@mail.gmail.com>
+ <55D427D3.7040103@linux.intel.com> <alpine.DEB.2.11.1508191025000.3873@nanos>
+ <alpine.DEB.2.11.1508191039470.3873@nanos>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vk0-f51.google.com ([209.85.213.51]:33941 "EHLO
-	mail-vk0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752034AbbHSXGw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 19 Aug 2015 19:06:52 -0400
-Received: by vkm66 with SMTP id 66so9447953vkm.1
-        for <linux-acpi@vger.kernel.org>; Wed, 19 Aug 2015 16:06:52 -0700 (PDT)
-In-Reply-To: <1440024484-26152-1-git-send-email-ross.zwisler@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.11.1508191039470.3873@nanos>
+Sender: linux-pm-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Nick Meier <nmeier@microsoft.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, "Luis R. Rodriguez" <mcgrof@suse.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andrew Morton <akpm@linux-foundation.org>, Borislav Petkov <bp@suse.de>, Christoph Hellwig <hch@lst.de>, Christoph Jaeger <cj@linux.com>, Dan Streetman <ddstreet@ieee.org>, Ingo Molnar <mingo@redhat.com>, Juergen Gross <jgross@suse.com>, Len Brown <lenb@kernel.org>, Rusty Russell <rusty@rustcorp.com.au>, Stephen Rothwell <sfr@canb.auug.org.au>, Thierry Reding <treding@nvidia.com>, Thomas Gleixner <tglx@linutronix.de>, Toshi Kani <toshi.kani@hp.com>, Vishal Verma <vishal.l.verma@intel.com>, Will Deacon <will.deacon@arm.com>, Yalin Wang <Yalin.Wang@sonymobile.com>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, X86 ML <x86@kernel.org>
 
-On Wed, Aug 19, 2015 at 3:48 PM, Ross Zwisler
-<ross.zwisler@linux.intel.com> wrote:
-> Add support for the "read flush" _DSM flag, as outlined in the DSM spec:
->
-> http://pmem.io/documents/NVDIMM_DSM_Interface_Example.pdf
->
-> This flag tells the ND BLK driver that it needs to flush the cache lines
-> associated with the aperture after the aperture is moved but before any
-> new data is read.  This ensures that any stale cache lines from the
-> previous contents of the aperture will be discarded from the processor
-> cache, and the new data will be read properly from the DIMM.  We know
-> that the cache lines are clean and will be discarded without any
-> writeback because either a) the previous aperture operation was a read,
-> and we never modified the contents of the aperture, or b) the previous
-> aperture operation was a write and we must have written back the dirtied
-> contents of the aperture to the DIMM before the I/O was completed.
->
-> By supporting the "read flush" flag we can also change the ND BLK
-> aperture mapping from write-combining to write-back via memremap().
->
-> In order to add support for the "read flush" flag I needed to add a
-> generic routine to invalidate cache lines, mmio_flush_range().  This is
-> protected by the ARCH_HAS_MMIO_FLUSH Kconfig variable, and is currently
-> only supported on x86.
->
-> Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-> Cc: Dan Williams <dan.j.williams@intel.com>
-[..]
-> diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-> index 7c2638f..56fff01 100644
-> --- a/drivers/acpi/nfit.c
-> +++ b/drivers/acpi/nfit.c
-[..]
->  static int acpi_nfit_blk_single_io(struct nfit_blk *nfit_blk,
-> @@ -1078,11 +1078,16 @@ static int acpi_nfit_blk_single_io(struct nfit_blk *nfit_blk,
->                 }
->
->                 if (rw)
-> -                       memcpy_to_pmem(mmio->aperture + offset,
-> +                       memcpy_to_pmem(mmio->addr.aperture + offset,
->                                         iobuf + copied, c);
-> -               else
-> +               else {
-> +                       if (nfit_blk->dimm_flags & ND_BLK_READ_FLUSH)
-> +                               mmio_flush_range((void __force *)
-> +                                       mmio->addr.aperture + offset, c);
-> +
->                         memcpy_from_pmem(iobuf + copied,
-> -                                       mmio->aperture + offset, c);
-> +                                       mmio->addr.aperture + offset, c);
-> +               }
+On 2015/8/19 16:40, Thomas Gleixner wrote:
+> On Wed, 19 Aug 2015, Thomas Gleixner wrote:
+>> On Wed, 19 Aug 2015, Jiang Liu wrote:
+>>> On 2015/8/19 14:45, Rafael J. Wysocki wrote:
+>>>> Well, the regression at hand has just shown that the assertion in the
+>>>> changelog of that commit ("no need for for special treatment for GSI
+>>>> used by ACPI SCI") does not really hold.  So, if the only motivation
+>>>> for it was to get rid of one extra check in mp_unregister_gsi()
+>>>> (mp_register_gsi() still needs to check if it is dealing with the SCI
+>>>> anyway), I'd vote for reverting it.
+>>> Hi Rafael,
+>>> 	The motivation is to treat SCI as normal IOAPIC interrupt so
+>>> we could enforce stricter pin attribute checking. Now it does reveal
+>>> flaws in ACPI BIOS implementations, but we ran into trouble about how to
+>>> handle those flaws:(
+>>
+>> The intent of this change is entirely correct, though it seems that
+>> reality of ACPI is just different.
+>>
+>> To be on the safe side of things, I agree with Rafael that we should
+>> revert that patch instead of introducing a single platform quirk.
+> 
+> Jiang,
+> 
+> can you please prepare a revert patch for this?
+Hi Rafael and Thomas,
+	I have tried to revert commit cd68f6bd53cf, but found
+it's not an easy task now.
+	When converting to hierarchical irqdomain, the IOAPIC
+internal and interfaces have changed much, and seems no easy
+way to revert cd68f6bd53cf. There may be three possible solutions
+here:
+1) use quirk to correct SCI polarity, as the patch does.
+2) change IOAPIC interfaces to provide a special way to
+   handle SCI interrupt.
+3) change drivers/acpi/pci_link.c to penalize SCI IRQ so it
+   won't be used for PCI IRQ if SCI polarity conflicts with
+   PCI IRQ polarity.
 
-Why is the flush inside the "while (len)" loop?  I think it should be
-done immediately after the call to write_blk_ctl() since that is the
-point at which the aperture becomes invalidated, and not prior to each
-read within a given aperture position.  Taking it a bit further, we
-may be writing the same address into the control register as was there
-previously so we wouldn't need to flush in that case.
+What's your thoughts here?
+
+Thanks!
+Gerry
