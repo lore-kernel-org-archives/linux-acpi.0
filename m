@@ -1,54 +1,60 @@
-From: "Kasagar, Srinidhi" <srinidhi.kasagar@intel.com>
-Subject: Re: [PATCH] ACPI / LPSS: Ignore 10ms delay for Braswell and Baytrail
-Date: Fri, 21 Aug 2015 17:46:21 +0530
-Message-ID: <20150821121621.GB26813@intel-desktop>
-References: <1440090968-17728-1-git-send-email-srinidhi.kasagar@intel.com>
- <20150820123805.GG30005@lahna.fi.intel.com>
- <20150820130447.GA1337@kuha.fi.intel.com>
+From: "Izumi, Taku" <izumi.taku@jp.fujitsu.com>
+Subject: RE: [PATCH v2.2 01/22] fjes: Introduce FUJITSU Extended Socket
+ Network Device driver
+Date: Fri, 21 Aug 2015 06:11:12 +0000
+Message-ID: <E86EADE93E2D054CBCD4E708C38D364A54269C80@G01JPEXMBYT01>
+References: <1440060306-13040-1-git-send-email-izumi.taku@jp.fujitsu.com>
+	<1440060386-13189-1-git-send-email-izumi.taku@jp.fujitsu.com>
+ <20150820.154901.1696097888673162441.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:15629 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750772AbbHUEZL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 21 Aug 2015 00:25:11 -0400
-Content-Disposition: inline
-In-Reply-To: <20150820130447.GA1337@kuha.fi.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="iso-2022-jp"
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <20150820.154901.1696097888673162441.davem@davemloft.net>
+Content-Language: ja-JP
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, "dvhart@infradead.org" <dvhart@infradead.org>, "rkhan@redhat.com" <rkhan@redhat.com>, "alexander.h.duyck@redhat.com" <alexander.h.duyck@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "joe@perches.com" <joe@perches.com>, "sergei.shtylyov@cogentembedded.com" <sergei.shtylyov@cogentembedded.com>, "stephen@networkplumber.org" <stephen@networkplumber.org>, "yasu.isimatu@gmail.com" <yasu.isimatu@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org, rafael.j.wysocki@intel.com, Kumar P Mahesh <mahesh.kumar.p@intel.com>
 
-On Thu, Aug 20, 2015 at 04:04:47PM +0300, Heikki Krogerus wrote:
-> Hi,
-> 
-> On Thu, Aug 20, 2015 at 03:38:05PM +0300, Mika Westerberg wrote:
-> > +Heikki
-> > 
-> > On Thu, Aug 20, 2015 at 10:46:07PM +0530, Srinidhi Kasagar wrote:
-> > > LPSS devices in Braswell and Baytrail does not need the default
-> > > 10ms d3_delay imposed by PCI specification. Removing this
-> > > unnecessary delay significantly reduces the resume time
-> > > (~200ms on Braswell/Cherrytrail) on these platforms.
-> > > 
-> > > Signed-off-by: Srinidhi Kasagar <srinidhi.kasagar@intel.com>
-> > > Signed-off-by: Kumar P Mahesh <mahesh.kumar.p@intel.com>
-> > 
-> > Have you tested this on Asus T100? The delay was actually needed in
-> > order to restore the context IIRC.
-> 
-> We need to make sure the write operation succeeded when restoring the
-> register values. That was the problem we had with T100, which btw. is
-> Baytrail.
-> 
-> Instead of using the delay conditionally, why not just read the value
-> back in a loop (with timeout of course) until we see the write
-> succeed? That should speedup the resume like you want, but still
-> guarantee the ctx has really been restored.
+Dear David,
 
-I would love to do that. But these are PCI devices and the delay
-is imposed by PCI spec and in many other places these conditional
-delays have been used. I do not think there exist any mechanism to
-verify write succeeds.
+ Thank you for reviewing.
+ I'll update patchset according to your comment.
 
-Srinidhi
+ Sincerely,
+ Taku Izumi
+
+> -----Original Message-----
+> From: David Miller [mailto:davem@davemloft.net]
+> Sent: Friday, August 21, 2015 7:49 AM
+> To: Izumi, Taku/泉 拓
+> Cc: netdev@vger.kernel.org; platform-driver-x86@vger.kernel.org; dvhart@infradead.org; rkhan@redhat.com;
+> alexander.h.duyck@redhat.com; linux-acpi@vger.kernel.org; joe@perches.com; sergei.shtylyov@cogentembedded.com;
+> stephen@networkplumber.org; yasu.isimatu@gmail.com
+> Subject: Re: [PATCH v2.2 01/22] fjes: Introduce FUJITSU Extended Socket Network Device driver
+> 
+> From: Taku Izumi <izumi.taku@jp.fujitsu.com>
+> Date: Thu, 20 Aug 2015 17:46:05 +0900
+> 
+> > +obj-$(CONFIG_FUJITSU_ES) += fjes.o
+> > +
+> > +fjes-objs := fjes_main.o
+> > +
+> 
+> Please do not have trailing empty lines in any files you add
+> or edit, 'git' warns about this even when applying patches.
+> 
+> > +static int fjes_acpi_add(struct acpi_device *device)
+> > +{
+> > +	acpi_status status;
+> > +	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL};
+> > +	union acpi_object *str;
+> > +	char str_buf[sizeof(FJES_ACPI_SYMBOL) + 1];
+> > +	int result;
+> > +	struct platform_device *plat_dev;
+> 
+> Please order your local variables in "reverse christmas tree" order, which
+> means longer lines come before shorter ones.
+> 
+> Please correct this problem in your entire submission, as I am not going
+> to point out each and every other place where this problem exists.
