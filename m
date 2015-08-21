@@ -1,195 +1,61 @@
-From: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Subject: [PATCH v3 04/22] fjes: platform_driver's .probe and .remove routine
-Date: Fri, 21 Aug 2015 17:29:20 +0900
-Message-ID: <1440145778-15941-4-git-send-email-izumi.taku@jp.fujitsu.com>
-References: <1440145680-15851-1-git-send-email-izumi.taku@jp.fujitsu.com>
- <1440145778-15941-1-git-send-email-izumi.taku@jp.fujitsu.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1440145778-15941-1-git-send-email-izumi.taku@jp.fujitsu.com>
-Sender: netdev-owner@vger.kernel.org
-To: netdev@vger.kernel.org, davem@davemloft.net
-Cc: platform-driver-x86@vger.kernel.org, dvhart@infradead.org, rkhan@redhat.com, alexander.h.duyck@redhat.com, linux-acpi@vger.kernel.org, joe@perches.com, sergei.shtylyov@cogentembedded.com, stephen@networkplumber.org, yasu.isimatu@gmail.com, Taku Izumi <izumi.taku@jp.fujitsu.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH] ACPI / LPSS: Ignore 10ms delay for Braswell and Baytrail
+Date: Fri, 21 Aug 2015 16:20:15 +0300
+Message-ID: <20150821132015.GN30005@lahna.fi.intel.com>
+References: <1440090968-17728-1-git-send-email-srinidhi.kasagar@intel.com>
+ <20150820123805.GG30005@lahna.fi.intel.com>
+ <20150821121152.GA26813@intel-desktop>
+ <20150821063641.GK30005@lahna.fi.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([134.134.136.65]:29524 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754095AbbHUNW0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 21 Aug 2015 09:22:26 -0400
+Content-Disposition: inline
+In-Reply-To: <20150821063641.GK30005@lahna.fi.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Kasagar, Srinidhi" <srinidhi.kasagar@intel.com>
+Cc: linux-acpi@vger.kernel.org, rafael.j.wysocki@intel.com, Kumar P Mahesh <mahesh.kumar.p@intel.com>, Heikki Krogerus <heikki.krogerus@intel.com>
 
-This patch implements platform_driver's .probe and .remove
-routine, and also adds board specific private data structure.
+On Fri, Aug 21, 2015 at 09:36:41AM +0300, Mika Westerberg wrote:
+> On Fri, Aug 21, 2015 at 05:41:52PM +0530, Kasagar, Srinidhi wrote:
+> > On Thu, Aug 20, 2015 at 03:38:05PM +0300, Mika Westerberg wrote:
+> > > +Heikki
+> > > 
+> > > On Thu, Aug 20, 2015 at 10:46:07PM +0530, Srinidhi Kasagar wrote:
+> > > > LPSS devices in Braswell and Baytrail does not need the default
+> > > > 10ms d3_delay imposed by PCI specification. Removing this
+> > > > unnecessary delay significantly reduces the resume time
+> > > > (~200ms on Braswell/Cherrytrail) on these platforms.
+> > > > 
+> > > > Signed-off-by: Srinidhi Kasagar <srinidhi.kasagar@intel.com>
+> > > > Signed-off-by: Kumar P Mahesh <mahesh.kumar.p@intel.com>
+> > > 
+> > > Have you tested this on Asus T100? The delay was actually needed in
+> > > order to restore the context IIRC.
+> > 
+> > Sorry, I do not have T100 h/w :(
+> 
+> OK. We have one and I'm going to test this patch on it. In particular
+> the T100 needed to have these delays otherwise writes failed.
 
-This driver registers net_device at platform_driver's .probe
-routine and unregisters net_device at its .remove routine.
+The patch does not apply on top of v4.2-rc7 or linux-pm/bleeding-edge.
+So I just unconditionally set the delay to 0 for all LPSS devices on
+T100.
 
-Signed-off-by: Taku Izumi <izumi.taku@jp.fujitsu.com>
----
- drivers/net/fjes/fjes.h      | 25 ++++++++++++
- drivers/net/fjes/fjes_main.c | 94 ++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 119 insertions(+)
+Having msleep(0) seems to be enough and the touch panel including I2C
+host controller runtime resumes just fine :-)
 
-diff --git a/drivers/net/fjes/fjes.h b/drivers/net/fjes/fjes.h
-index 15ded96..54bc189 100644
---- a/drivers/net/fjes/fjes.h
-+++ b/drivers/net/fjes/fjes.h
-@@ -24,7 +24,32 @@
- 
- #include <linux/acpi.h>
- 
-+#include "fjes_hw.h"
-+
- #define FJES_ACPI_SYMBOL	"Extended Socket"
-+#define FJES_MAX_QUEUES		1
-+#define FJES_TX_RETRY_INTERVAL	(20 * HZ)
-+
-+/* board specific private data structure */
-+struct fjes_adapter {
-+	struct net_device *netdev;
-+	struct platform_device *plat_dev;
-+
-+	struct napi_struct napi;
-+	struct rtnl_link_stats64 stats64;
-+
-+	unsigned int tx_retry_count;
-+	unsigned long tx_start_jiffies;
-+	unsigned long rx_last_jiffies;
-+	bool unset_rx_last;
-+
-+	bool force_reset;
-+	bool open_guard;
-+
-+	bool irq_registered;
-+
-+	struct fjes_hw hw;
-+};
- 
- extern char fjes_driver_name[];
- extern char fjes_driver_version[];
-diff --git a/drivers/net/fjes/fjes_main.c b/drivers/net/fjes/fjes_main.c
-index 9517666..45a8b9c 100644
---- a/drivers/net/fjes/fjes_main.c
-+++ b/drivers/net/fjes/fjes_main.c
-@@ -23,6 +23,7 @@
- #include <linux/types.h>
- #include <linux/nls.h>
- #include <linux/platform_device.h>
-+#include <linux/netdevice.h>
- 
- #include "fjes.h"
- 
-@@ -49,6 +50,9 @@ static acpi_status fjes_get_acpi_resource(struct acpi_resource *, void*);
- static int fjes_probe(struct platform_device *);
- static int fjes_remove(struct platform_device *);
- 
-+static int fjes_sw_init(struct fjes_adapter *);
-+static void fjes_netdev_setup(struct net_device *);
-+
- static const struct acpi_device_id fjes_acpi_ids[] = {
- 	{"PNP0C02", 0},
- 	{"", 0},
-@@ -166,18 +170,108 @@ fjes_get_acpi_resource(struct acpi_resource *acpi_res, void *data)
- 	return AE_OK;
- }
- 
-+static const struct net_device_ops fjes_netdev_ops = {
-+};
-+
- /* fjes_probe - Device Initialization Routine */
- static int fjes_probe(struct platform_device *plat_dev)
- {
-+	struct fjes_adapter *adapter;
-+	struct net_device *netdev;
-+	struct resource *res;
-+	struct fjes_hw *hw;
-+	int err;
-+
-+	err = -ENOMEM;
-+	netdev = alloc_netdev_mq(sizeof(struct fjes_adapter), "es%d",
-+				 NET_NAME_UNKNOWN, fjes_netdev_setup,
-+				 FJES_MAX_QUEUES);
-+
-+	if (!netdev)
-+		goto err_out;
-+
-+	SET_NETDEV_DEV(netdev, &plat_dev->dev);
-+
-+	dev_set_drvdata(&plat_dev->dev, netdev);
-+	adapter = netdev_priv(netdev);
-+	adapter->netdev = netdev;
-+	adapter->plat_dev = plat_dev;
-+	hw = &adapter->hw;
-+	hw->back = adapter;
-+
-+	/* setup the private structure */
-+	err = fjes_sw_init(adapter);
-+	if (err)
-+		goto err_free_netdev;
-+
-+	adapter->force_reset = false;
-+	adapter->open_guard = false;
-+
-+	res = platform_get_resource(plat_dev, IORESOURCE_MEM, 0);
-+	hw->hw_res.start = res->start;
-+	hw->hw_res.size = res->end - res->start + 1;
-+	hw->hw_res.irq = platform_get_irq(plat_dev, 0);
-+	err = fjes_hw_init(&adapter->hw);
-+	if (err)
-+		goto err_free_netdev;
-+
-+	/* setup MAC address (02:00:00:00:00:[epid])*/
-+	netdev->dev_addr[0] = 2;
-+	netdev->dev_addr[1] = 0;
-+	netdev->dev_addr[2] = 0;
-+	netdev->dev_addr[3] = 0;
-+	netdev->dev_addr[4] = 0;
-+	netdev->dev_addr[5] = hw->my_epid; /* EPID */
-+
-+	err = register_netdev(netdev);
-+	if (err)
-+		goto err_hw_exit;
-+
-+	netif_carrier_off(netdev);
-+
- 	return 0;
-+
-+err_hw_exit:
-+	fjes_hw_exit(&adapter->hw);
-+err_free_netdev:
-+	free_netdev(netdev);
-+err_out:
-+	return err;
- }
- 
- /* fjes_remove - Device Removal Routine */
- static int fjes_remove(struct platform_device *plat_dev)
- {
-+	struct net_device *netdev = dev_get_drvdata(&plat_dev->dev);
-+	struct fjes_adapter *adapter = netdev_priv(netdev);
-+	struct fjes_hw *hw = &adapter->hw;
-+
-+	unregister_netdev(netdev);
-+
-+	fjes_hw_exit(hw);
-+
-+	free_netdev(netdev);
-+
- 	return 0;
- }
- 
-+static int fjes_sw_init(struct fjes_adapter *adapter)
-+{
-+	return 0;
-+}
-+
-+/* fjes_netdev_setup - netdevice initialization routine */
-+static void fjes_netdev_setup(struct net_device *netdev)
-+{
-+	ether_setup(netdev);
-+
-+	netdev->watchdog_timeo = FJES_TX_RETRY_INTERVAL;
-+	netdev->netdev_ops = &fjes_netdev_ops;
-+	netdev->mtu = fjes_support_mtu[0];
-+	netdev->flags |= IFF_BROADCAST;
-+	netdev->features |= NETIF_F_HW_CSUM | NETIF_F_HW_VLAN_CTAG_FILTER;
-+}
-+
- /* fjes_init_module - Driver Registration Routine */
- static int __init fjes_init_module(void)
- {
--- 
-1.8.3.1
+If I remove msleep() completely then things break apart and runtime
+resuming the touch panel triggers this:
+
+[   46.143111] i2c_hid i2c-ATML1000:00: i2c_hid_set_power
+[   46.145758] i2c_hid i2c-ATML1000:00: __i2c_hid_command: cmd=fb 00 00 08
+[   46.148483] i2c_designware 80860F41:05: Unknown Synopsys component type: 0x00000000
+[   46.252125] i2c_designware 80860F41:05: timeout in enabling adapter
+[   47.254426] i2c_designware 80860F41:05: controller timed out
+
+So clearly it needs some delay but it does not have to be 10ms.
