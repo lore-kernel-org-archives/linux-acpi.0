@@ -1,60 +1,38 @@
-From: "Izumi, Taku" <izumi.taku@jp.fujitsu.com>
-Subject: RE: [PATCH v2.2 01/22] fjes: Introduce FUJITSU Extended Socket
- Network Device driver
-Date: Fri, 21 Aug 2015 06:11:12 +0000
-Message-ID: <E86EADE93E2D054CBCD4E708C38D364A54269C80@G01JPEXMBYT01>
-References: <1440060306-13040-1-git-send-email-izumi.taku@jp.fujitsu.com>
-	<1440060386-13189-1-git-send-email-izumi.taku@jp.fujitsu.com>
- <20150820.154901.1696097888673162441.davem@davemloft.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="iso-2022-jp"
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <20150820.154901.1696097888673162441.davem@davemloft.net>
-Content-Language: ja-JP
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, "dvhart@infradead.org" <dvhart@infradead.org>, "rkhan@redhat.com" <rkhan@redhat.com>, "alexander.h.duyck@redhat.com" <alexander.h.duyck@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "joe@perches.com" <joe@perches.com>, "sergei.shtylyov@cogentembedded.com" <sergei.shtylyov@cogentembedded.com>, "stephen@networkplumber.org" <stephen@networkplumber.org>, "yasu.isimatu@gmail.com" <yasu.isimatu@gmail.com>
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: [PATCH v4 13/52] PCI, acpiphp: Add missing realloc list checking after resource allocation
+Date: Thu, 20 Aug 2015 23:20:28 -0700
+Message-ID: <1440138067-4314-14-git-send-email-yinghai@kernel.org>
+References: <1440138067-4314-1-git-send-email-yinghai@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1440138067-4314-1-git-send-email-yinghai@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>, David Miller <davem@davemloft.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Wei Yang <weiyang@linux.vnet.ibm.com>, TJ <linux@iam.tj>, Yijing Wang <wangyijing@huawei.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Dear David,
+We check the realloc list, as list must be empty after allocation.
 
- Thank you for reviewing.
- I'll update patchset according to your comment.
+Add missing one acpiphp driver.
 
- Sincerely,
- Taku Izumi
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
+---
+ drivers/pci/hotplug/acpiphp_glue.c | 1 +
+ 1 file changed, 1 insertion(+)
 
-> -----Original Message-----
-> From: David Miller [mailto:davem@davemloft.net]
-> Sent: Friday, August 21, 2015 7:49 AM
-> To: Izumi, Taku/泉 拓
-> Cc: netdev@vger.kernel.org; platform-driver-x86@vger.kernel.org; dvhart@infradead.org; rkhan@redhat.com;
-> alexander.h.duyck@redhat.com; linux-acpi@vger.kernel.org; joe@perches.com; sergei.shtylyov@cogentembedded.com;
-> stephen@networkplumber.org; yasu.isimatu@gmail.com
-> Subject: Re: [PATCH v2.2 01/22] fjes: Introduce FUJITSU Extended Socket Network Device driver
-> 
-> From: Taku Izumi <izumi.taku@jp.fujitsu.com>
-> Date: Thu, 20 Aug 2015 17:46:05 +0900
-> 
-> > +obj-$(CONFIG_FUJITSU_ES) += fjes.o
-> > +
-> > +fjes-objs := fjes_main.o
-> > +
-> 
-> Please do not have trailing empty lines in any files you add
-> or edit, 'git' warns about this even when applying patches.
-> 
-> > +static int fjes_acpi_add(struct acpi_device *device)
-> > +{
-> > +	acpi_status status;
-> > +	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL};
-> > +	union acpi_object *str;
-> > +	char str_buf[sizeof(FJES_ACPI_SYMBOL) + 1];
-> > +	int result;
-> > +	struct platform_device *plat_dev;
-> 
-> Please order your local variables in "reverse christmas tree" order, which
-> means longer lines come before shorter ones.
-> 
-> Please correct this problem in your entire submission, as I am not going
-> to point out each and every other place where this problem exists.
+diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
+index ff53856..1c7c1d7 100644
+--- a/drivers/pci/hotplug/acpiphp_glue.c
++++ b/drivers/pci/hotplug/acpiphp_glue.c
+@@ -507,6 +507,7 @@ static void enable_slot(struct acpiphp_slot *slot)
+ 		}
+ 	}
+ 	__pci_bus_assign_resources(bus, &add_list, NULL);
++	BUG_ON(!list_empty(&add_list));
+ 
+ 	acpiphp_sanitize_bus(bus);
+ 	pcie_bus_configure_settings(bus);
+-- 
+1.8.4.5
