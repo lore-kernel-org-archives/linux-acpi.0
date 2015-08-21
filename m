@@ -1,38 +1,73 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH v2.2 04/22] fjes: platform_driver's .probe and .remove
- routine
-Date: Thu, 20 Aug 2015 15:51:28 -0700 (PDT)
-Message-ID: <20150820.155128.302382371842900422.davem@davemloft.net>
-References: <1440060306-13040-1-git-send-email-izumi.taku@jp.fujitsu.com>
-	<1440060386-13189-1-git-send-email-izumi.taku@jp.fujitsu.com>
-	<1440060386-13189-4-git-send-email-izumi.taku@jp.fujitsu.com>
+From: "Kasagar, Srinidhi" <srinidhi.kasagar@intel.com>
+Subject: Re: [PATCH] ACPI / LPSS: Ignore 10ms delay for Braswell and Baytrail
+Date: Fri, 21 Aug 2015 17:41:52 +0530
+Message-ID: <20150821121152.GA26813@intel-desktop>
+References: <1440090968-17728-1-git-send-email-srinidhi.kasagar@intel.com>
+ <20150820123805.GG30005@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <1440060386-13189-4-git-send-email-izumi.taku@jp.fujitsu.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: izumi.taku@jp.fujitsu.com
-Cc: netdev@vger.kernel.org, platform-driver-x86@vger.kernel.org, dvhart@infradead.org, rkhan@redhat.com, alexander.h.duyck@redhat.com, linux-acpi@vger.kernel.org, joe@perches.com, sergei.shtylyov@cogentembedded.com, stephen@networkplumber.org, yasu.isimatu@gmail.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:43706 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750959AbbHUEUo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 21 Aug 2015 00:20:44 -0400
+Content-Disposition: inline
+In-Reply-To: <20150820123805.GG30005@lahna.fi.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, rafael.j.wysocki@intel.com, Kumar P Mahesh <mahesh.kumar.p@intel.com>, Heikki Krogerus <heikki.krogerus@intel.com>
 
-From: Taku Izumi <izumi.taku@jp.fujitsu.com>
-Date: Thu, 20 Aug 2015 17:46:08 +0900
+On Thu, Aug 20, 2015 at 03:38:05PM +0300, Mika Westerberg wrote:
+> +Heikki
+> 
+> On Thu, Aug 20, 2015 at 10:46:07PM +0530, Srinidhi Kasagar wrote:
+> > LPSS devices in Braswell and Baytrail does not need the default
+> > 10ms d3_delay imposed by PCI specification. Removing this
+> > unnecessary delay significantly reduces the resume time
+> > (~200ms on Braswell/Cherrytrail) on these platforms.
+> > 
+> > Signed-off-by: Srinidhi Kasagar <srinidhi.kasagar@intel.com>
+> > Signed-off-by: Kumar P Mahesh <mahesh.kumar.p@intel.com>
+> 
+> Have you tested this on Asus T100? The delay was actually needed in
+> order to restore the context IIRC.
 
-> +
-> +err_register:
-> +	fjes_hw_exit(&adapter->hw);
-> +err_hw_init:
-> +err_sw_init:
-> +	free_netdev(netdev);
-> +err_alloc_netdev:
-> +	return err;
+Sorry, I do not have T100 h/w :(
 
-Having multiple code labels in the same exact spot is suboptimal.
+> 
+> Also you are saying Braswell and Baytrail but...
+> 
+> > ---
+> >  drivers/acpi/acpi_lpss.c |   59 ++++++++++++++++++++++++++++++++++++----------
+> >  1 file changed, 46 insertions(+), 13 deletions(-)
+> > 
 
-Instead, name the labels such that they describe the first cleanup
-action they will perform, instead of the context in which they are
-jumped to from.
+[...]
 
-So "err_hw_exit:", "err_free_netdev", and "err_out:" would be
-appropriate.
+> > @@ -219,13 +247,13 @@ static const struct acpi_device_id acpi_lpss_device_ids[] = {
+> >  	{ "8086228E", LPSS_ADDR(bsw_spi_dev_desc) },
+> >  	{ "808622C1", LPSS_ADDR(byt_i2c_dev_desc) },
+> >  
+> > -	{ "INT3430", LPSS_ADDR(lpt_dev_desc) },
+> > -	{ "INT3431", LPSS_ADDR(lpt_dev_desc) },
+> > -	{ "INT3432", LPSS_ADDR(lpt_i2c_dev_desc) },
+> > -	{ "INT3433", LPSS_ADDR(lpt_i2c_dev_desc) },
+> > -	{ "INT3434", LPSS_ADDR(lpt_uart_dev_desc) },
+> > -	{ "INT3435", LPSS_ADDR(lpt_uart_dev_desc) },
+> > -	{ "INT3436", LPSS_ADDR(lpt_sdio_dev_desc) },
+> > +	{ "INT3430", LPSS_ADDR(bsw_lpt_dev_desc) },
+> > +	{ "INT3431", LPSS_ADDR(bsw_lpt_dev_desc) },
+> > +	{ "INT3432", LPSS_ADDR(bsw_lpt_i2c_dev_desc) },
+> > +	{ "INT3433", LPSS_ADDR(bsw_lpt_i2c_dev_desc) },
+> > +	{ "INT3434", LPSS_ADDR(bsw_lpt_uart_dev_desc) },
+> > +	{ "INT3435", LPSS_ADDR(bsw_lpt_uart_dev_desc) },
+> > +	{ "INT3436", LPSS_ADDR(bsw_lpt_sdio_dev_desc) },
+> 
+> ... these are Broadwell devices. Have you tested that this won't break
+> existing Broadwell systems?
+
+You mean these are Broadwell devices too? As of now I have
+tested these devices to be working on Braswell and Cherrytrail.
+
+Srinidhi
