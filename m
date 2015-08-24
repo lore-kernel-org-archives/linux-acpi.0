@@ -1,44 +1,39 @@
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: Re: [PATCH] nfit, nd_blk: BLK status register is only 32 bits
-Date: Mon, 24 Aug 2015 11:40:42 -0600
-Message-ID: <20150824174042.GA18754@linux.intel.com>
-References: <1440109658-29164-1-git-send-email-ross.zwisler@linux.intel.com>
- <x49wpwkbox2.fsf@segfault.boston.devel.redhat.com>
+From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Subject: Re: [PATCH] pci: acpi: Generic function for setting up PCI device DMA
+ coherency
+Date: Tue, 25 Aug 2015 01:02:31 +0700
+Message-ID: <55DB5C37.9020700@amd.com>
+References: <1439459925-2361-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+ <55DB4939.5070605@amd.com>
+ <CAErSpo4BzNgvVyEbFZWmQPR4KQsvMT1tRpT1mxPL=TymYSM3DQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:32241 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751179AbbHXRlY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 24 Aug 2015 13:41:24 -0400
-Content-Disposition: inline
-In-Reply-To: <x49wpwkbox2.fsf@segfault.boston.devel.redhat.com>
+Received: from mail-bl2on0145.outbound.protection.outlook.com ([65.55.169.145]:33856
+	"EHLO na01-bl2-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751235AbbHXSCq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 24 Aug 2015 14:02:46 -0400
+In-Reply-To: <CAErSpo4BzNgvVyEbFZWmQPR4KQsvMT1tRpT1mxPL=TymYSM3DQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jeff Moyer <jmoyer@redhat.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, linux-kernel@vger.kernel.org, linux-nvdimm@ml01.01.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Rafael Wysocki <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Rob Herring <robh+dt@kernel.org>, Murali Karicheri <m-karicheri2@ti.com>
 
-On Mon, Aug 24, 2015 at 01:02:17PM -0400, Jeff Moyer wrote:
-> Ross Zwisler <ross.zwisler@linux.intel.com> writes:
-> 
-> > Only read 32 bits for the BLK status register in read_blk_stat().
-> >
-> > The format and size of this register is defined in the
-> > "NVDIMM Driver Writer's guide":
-> >
-> > http://pmem.io/documents/NVDIMM_Driver_Writers_Guide.pdf
-> >
-> > Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-> > Reported-by: Nicholas Moulin <nicholas.w.moulin@linux.intel.com>
-> 
-> Looks fine,
-> 
-> Reviewed-by: Jeff Moyer <jmoyer@redhat.com>
-> 
-> However, now that you've drawn attention to that code, I'll note that
-> there is no checking of the pending or retry bits.  In fact,
-> ACPI_NFIT_CONTROL_BUFFERED isn't even checked upon loading the tables.
-> Is this on a todo list somewhere?
+Hi,
 
-Yep, you're right, we do need to add support for each of these.  I'm planning
-on doing it unless someone else gets to it first.
+On 8/25/15 00:32, Bjorn Helgaas wrote:
+> On Mon, Aug 24, 2015 at 9:41 AM, Suravee Suthikulpanit
+> <Suravee.Suthikulpanit@amd.com>  wrote:
+>> >Hi,
+>> >
+>> >Ping. Does anyone have any comments or suggestions?
+> Yes, I sent you some ideas a couple weeks ago.  I'll resend them.
+>
+
+Not sure how I missed that one. Sorry.
+
+Thanks again,
+
+Suravee
