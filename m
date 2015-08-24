@@ -1,65 +1,34 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: Re: [PATCH] pci: acpi: Generic function for setting up PCI device DMA coherency
-Date: Mon, 24 Aug 2015 13:14:59 -0700
-Message-ID: <CAErSpo6TcwVH+TT5wZnLjOPMTa1NBoN=qJCev1rg1n_xFbggBQ@mail.gmail.com>
-References: <1439459925-2361-1-git-send-email-Suravee.Suthikulpanit@amd.com>
- <20150814015004.GA26431@google.com> <CAErSpo7yN08tKyo-yyyVG58vUptbHGN=L+MEZ8TQy1gm5a1_0Q@mail.gmail.com>
- <55DB6BF6.1030206@amd.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH v3 00/22] FUJITSU Extended Socket network device driver
+Date: Mon, 24 Aug 2015 14:10:32 -0700 (PDT)
+Message-ID: <20150824.141032.405416417791540419.davem@davemloft.net>
+References: <1440145680-15851-1-git-send-email-izumi.taku@jp.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:36073 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754565AbbHXUPU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Aug 2015 16:15:20 -0400
-Received: by wicja10 with SMTP id ja10so82086155wic.1
-        for <linux-acpi@vger.kernel.org>; Mon, 24 Aug 2015 13:15:19 -0700 (PDT)
-In-Reply-To: <55DB6BF6.1030206@amd.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <1440145680-15851-1-git-send-email-izumi.taku@jp.fujitsu.com>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: izumi.taku@jp.fujitsu.com
+Cc: netdev@vger.kernel.org, platform-driver-x86@vger.kernel.org, dvhart@infradead.org, rkhan@redhat.com, alexander.h.duyck@redhat.com, linux-acpi@vger.kernel.org, joe@perches.com, sergei.shtylyov@cogentembedded.com, stephen@networkplumber.org, yasu.isimatu@gmail.com
 List-Id: linux-acpi@vger.kernel.org
-To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Cc: Rafael Wysocki <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Rob Herring <robh+dt@kernel.org>, Murali Karicheri <m-karicheri2@ti.com>, Jeremy Linton <jeremy.linton@arm.com>
 
-On Mon, Aug 24, 2015 at 12:09 PM, Suravee Suthikulpanit
-<Suravee.Suthikulpanit@amd.com> wrote:
+From: Taku Izumi <izumi.taku@jp.fujitsu.com>
+Date: Fri, 21 Aug 2015 17:28:00 +0900
 
->>> commit 84cfb2213cd400fef227ec0d7829ec4e12895da9
->>> Author: Bjorn Helgaas <bhelgaas@google.com>
->>> Date:   Thu Aug 13 19:49:52 2015 -0500
->>>
->>>      ACPI / scan: Rename acpi_check_dma() to acpi_dma_is_coherent()
->>>
->>>      The name "acpi_check_dma()" doesn't give any much indication about
->>> what
->>>      exactly it checks.  The function also returns information both as a
->>> normal
->>>      return value and as the "bool *coherent" return parameter.  But
->>> "*coherent"
->>>      doesn't actually give any extra information: it is unchanged when
->>> returning
->>>      false and set to true when returning true.
->>>
->>>      Rename acpi_check_dma() to acpi_dma_is_coherent() so the callers
->>> read more
->>>      naturally.  Drop the return parameter and just use the function
->>> return
->>>      value.
->>>
->>>      Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
->
->
-> This was because, at one point, we wanted to be able to differentiate
-> between the case _CCA=0 and missing _CCA in ARM64, where we would support
-> DMA (using arch-specific cache maintenance) if _CCA=0, and disable DMA when
-> missing _CCA on ARM64.
->
-> It seems like the logic is now required (please see
-> https://www.mail-archive.com/linux-usb@vger.kernel.org/msg62735.html). So,
-> we would need the true/false return, and the coherent variable to be able to
-> differentiate between the two cases.
->
-> Please let me know what you think.
+> This patchsets adds FUJITSU Extended Socket network device driver.
+> Extended Socket network device is a shared memory based high-speed
+> network interface between Extended Partitions of PRIMEQUEST 2000 E2
+> series.
+> 
+> You can get some information about Extended Partition and Extended
+> Socket by referring the following manual.
+> 
+> http://globalsp.ts.fujitsu.com/dmsp/Publications/public/CA92344-0537.pdf
+>     3.2.1 Extended Partitioning
+>     3.2.2 Extended Socke
+> 
+> v2.2 -> v3:
+>    - Fix up according to David's comment (No functional change)
 
-It's hard for me to comment without seeing the actual patches.  I
-think returning two values (_CCA-seen and coherent) is a confusing
-interface.
+Series applied, thank you.
