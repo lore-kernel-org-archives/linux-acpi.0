@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 09/20] ACPICA: acpinames: Add new options and wildcard support.
-Date: Tue, 25 Aug 2015 10:29:25 +0800
-Message-ID: <3d9ae8658031d20c458899aca0f070a9a998eb84.1440402549.git.lv.zheng@intel.com>
+Subject: [PATCH 10/20] ACPICA: acpiexec/acpinames: Support very large number of ACPI tables.
+Date: Tue, 25 Aug 2015 10:29:33 +0800
+Message-ID: <4a209fd44e70724f1f6df0844a6640232e9184c6.1440402549.git.lv.zheng@intel.com>
 References: <cover.1440402549.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1440402549.git.lv.zheng@intel.com>
@@ -12,48 +12,105 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit 0ecf5b5a41c3d2e09af48f0fdbc9ae784f631788
+ACPICA commit ca3bd4c5cdc39a9009280032adbbc20f34e94c47
 
-- Add wilcard support for input filenames.
-- Add -l option to load tables and exit, no display. This is
-useful for validation of the namespace during BIOS generation.
-- Add -x option for specifying debug level.
+Fix a couple of issues with >40 ACPI tables.
+Return exit error for acpinames to enable use with BIOS builds.
 
-Linux kernel is not affected by this commit.
+The new exported function is used by acpinames. For Linux kernel, this
+change is a no-op.
 
-Link: https://github.com/acpica/acpica/commit/0ecf5b5a
+Link: https://github.com/acpica/acpica/commit/ca3bd4c5
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/acutils.h |    2 +-
- drivers/acpi/acpica/utmisc.c  |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/acpi/acpica/actables.h |    5 +++++
+ drivers/acpi/acpica/tbxfload.c |   17 ++++++++++++-----
+ drivers/acpi/acpica/utfileio.c |    2 +-
+ 3 files changed, 18 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/acpi/acpica/acutils.h b/drivers/acpi/acpica/acutils.h
-index 566ff4df..fb2aa50 100644
---- a/drivers/acpi/acpica/acutils.h
-+++ b/drivers/acpi/acpica/acutils.h
-@@ -517,7 +517,7 @@ const struct acpi_exception_info *acpi_ut_validate_exception(acpi_status
+diff --git a/drivers/acpi/acpica/actables.h b/drivers/acpi/acpica/actables.h
+index ab7f3a0..f7731f2 100644
+--- a/drivers/acpi/acpica/actables.h
++++ b/drivers/acpi/acpica/actables.h
+@@ -165,4 +165,9 @@ acpi_status acpi_tb_parse_root_table(acpi_physical_address rsdp_address);
  
- u8 acpi_ut_is_pci_root_bridge(char *id);
+ u8 acpi_is_valid_signature(char *signature);
  
--#if (defined ACPI_ASL_COMPILER || defined ACPI_EXEC_APP)
-+#if (defined ACPI_ASL_COMPILER || defined ACPI_EXEC_APP || defined ACPI_NAMES_APP)
- u8 acpi_ut_is_aml_table(struct acpi_table_header *table);
- #endif
++/*
++ * tbxfload
++ */
++acpi_status acpi_tb_load_namespace(void);
++
+ #endif				/* __ACTABLES_H__ */
+diff --git a/drivers/acpi/acpica/tbxfload.c b/drivers/acpi/acpica/tbxfload.c
+index fb4d4e6..96b82a8 100644
+--- a/drivers/acpi/acpica/tbxfload.c
++++ b/drivers/acpi/acpica/tbxfload.c
+@@ -51,9 +51,6 @@
+ #define _COMPONENT          ACPI_TABLES
+ ACPI_MODULE_NAME("tbxfload")
  
-diff --git a/drivers/acpi/acpica/utmisc.c b/drivers/acpi/acpica/utmisc.c
-index 98087ea..517a5ec 100644
---- a/drivers/acpi/acpica/utmisc.c
-+++ b/drivers/acpi/acpica/utmisc.c
-@@ -75,7 +75,7 @@ u8 acpi_ut_is_pci_root_bridge(char *id)
- 	return (FALSE);
- }
- 
--#if (defined ACPI_ASL_COMPILER || defined ACPI_EXEC_APP)
-+#if (defined ACPI_ASL_COMPILER || defined ACPI_EXEC_APP || defined ACPI_NAMES_APP)
+-/* Local prototypes */
+-static acpi_status acpi_tb_load_namespace(void);
+-
  /*******************************************************************************
   *
-  * FUNCTION:    acpi_ut_is_aml_table
+  * FUNCTION:    acpi_load_tables
+@@ -65,7 +62,6 @@ static acpi_status acpi_tb_load_namespace(void);
+  * DESCRIPTION: Load the ACPI tables from the RSDT/XSDT
+  *
+  ******************************************************************************/
+-
+ acpi_status __init acpi_load_tables(void)
+ {
+ 	acpi_status status;
+@@ -75,6 +71,13 @@ acpi_status __init acpi_load_tables(void)
+ 	/* Load the namespace from the tables */
+ 
+ 	status = acpi_tb_load_namespace();
++
++	/* Don't let single failures abort the load */
++
++	if (status == AE_CTRL_TERMINATE) {
++		status = AE_OK;
++	}
++
+ 	if (ACPI_FAILURE(status)) {
+ 		ACPI_EXCEPTION((AE_INFO, status,
+ 				"While loading namespace from ACPI tables"));
+@@ -97,7 +100,7 @@ ACPI_EXPORT_SYMBOL_INIT(acpi_load_tables)
+  *              the RSDT/XSDT.
+  *
+  ******************************************************************************/
+-static acpi_status acpi_tb_load_namespace(void)
++acpi_status acpi_tb_load_namespace(void)
+ {
+ 	acpi_status status;
+ 	u32 i;
+@@ -214,6 +217,10 @@ static acpi_status acpi_tb_load_namespace(void)
+ 		ACPI_ERROR((AE_INFO,
+ 			    "%u ACPI AML tables successfully acquired and loaded, %u failed",
+ 			    tables_loaded, tables_failed));
++
++		/* Indicate at least one failure */
++
++		status = AE_CTRL_TERMINATE;
+ 	}
+ 
+ unlock_and_exit:
+diff --git a/drivers/acpi/acpica/utfileio.c b/drivers/acpi/acpica/utfileio.c
+index 857af82..75a94f5 100644
+--- a/drivers/acpi/acpica/utfileio.c
++++ b/drivers/acpi/acpica/utfileio.c
+@@ -312,7 +312,7 @@ acpi_ut_read_table_from_file(char *filename, struct acpi_table_header ** table)
+ 	/* Get the entire file */
+ 
+ 	fprintf(stderr,
+-		"Reading ACPI table from file %10s - Length %.8u (0x%06X)\n",
++		"Reading ACPI table from file %12s - Length %.8u (0x%06X)\n",
+ 		filename, file_size, file_size);
+ 
+ 	status = acpi_ut_read_table(file, table, &table_length);
 -- 
 1.7.10
