@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 16/20] ACPICA: Debugger: Split debugger initialization/termination APIs.
-Date: Tue, 25 Aug 2015 10:30:19 +0800
-Message-ID: <7d8634a7cfd3102ed44aa7da7f96a7b36515c6fe.1440402549.git.lv.zheng@intel.com>
+Subject: [PATCH 03/20] ACPICA: Update parameter validation for data_table_region and load_table.
+Date: Tue, 25 Aug 2015 10:28:39 +0800
+Message-ID: <94a2b733f6a0b9f1ed59170d47c3f63b0d2c00b1.1440402549.git.lv.zheng@intel.com>
 References: <cover.1440402549.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1440402549.git.lv.zheng@intel.com>
@@ -10,97 +10,207 @@ To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-ACPICA commit 7a3f22baab000b186779dac64ad71d9776b8f432
+From: Bob Moore <robert.moore@intel.com>
 
-It is likely that the debugger is enabled only when a userspace program
-explicitly tells a kernel to do so, so it shouldn't be initialized as
-early as current implementation.
+ACPICA commit 51ab555e60b4a3de3cc4a846e86d0de255be441a
 
-The only tool requiring ACPI_DEBUGGER is acpiexec, so acpiexec need to call
-the new APIs by itself. And BSD developers may also get notified to invoke
-the APIs for DDB enabling. Lv Zheng.
+Add additional validation for the table signature and
+the OEM strings. Eliminates buffer read overrun in data_table_region.
+ACPICA BZ 1184.
 
-This patch doesn't affect Linux kernel as debugger is currently not enabled
-in the Linux kernel.
-
-Link: https://github.com/acpica/acpica/commit/7a3f22ba
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Link: https://bugs.acpica.org/show_bug.cgi?id=1184
+Link: https://github.com/acpica/acpica/commit/51ab555e
 Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/acdebug.h  |    4 ----
- drivers/acpi/acpica/utxface.c  |    7 -------
- drivers/acpi/acpica/utxfinit.c |   11 -----------
- include/acpi/acpixf.h          |    3 +++
- 4 files changed, 3 insertions(+), 22 deletions(-)
+ drivers/acpi/acpica/actables.h |    2 ++
+ drivers/acpi/acpica/dsopcode.c |   31 ++++++++++++++++++++-----------
+ drivers/acpi/acpica/exconfig.c |    8 --------
+ drivers/acpi/acpica/tbfind.c   |   15 ++++++++++++++-
+ drivers/acpi/acpica/tbutils.c  |   33 +++++++++++++++++++++++++++++++++
+ 5 files changed, 69 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/acpi/acpica/acdebug.h b/drivers/acpi/acpica/acdebug.h
-index b5a9c51..447f6d3 100644
---- a/drivers/acpi/acpica/acdebug.h
-+++ b/drivers/acpi/acpica/acdebug.h
-@@ -77,10 +77,6 @@ struct acpi_db_execute_walk {
- /*
-  * dbxface - external debugger interfaces
-  */
--acpi_status acpi_db_initialize(void);
--
--void acpi_db_terminate(void);
--
- acpi_status
- acpi_db_single_step(struct acpi_walk_state *walk_state,
- 		    union acpi_parse_object *op, u32 op_type);
-diff --git a/drivers/acpi/acpica/utxface.c b/drivers/acpi/acpica/utxface.c
-index c2bd5e2..4f33281 100644
---- a/drivers/acpi/acpica/utxface.c
-+++ b/drivers/acpi/acpica/utxface.c
-@@ -92,13 +92,6 @@ acpi_status __init acpi_terminate(void)
+diff --git a/drivers/acpi/acpica/actables.h b/drivers/acpi/acpica/actables.h
+index 7e0b6f1..58497b7 100644
+--- a/drivers/acpi/acpica/actables.h
++++ b/drivers/acpi/acpica/actables.h
+@@ -164,4 +164,6 @@ acpi_tb_install_fixed_table(acpi_physical_address address,
  
- 	acpi_ut_mutex_terminate();
+ acpi_status acpi_tb_parse_root_table(acpi_physical_address rsdp_address);
  
--#ifdef ACPI_DEBUGGER
--
--	/* Shut down the debugger */
--
--	acpi_db_terminate();
--#endif
--
- 	/* Now we can shutdown the OS-dependent layer */
++u8 acpi_is_valid_signature(char *signature);
++
+ #endif				/* __ACTABLES_H__ */
+diff --git a/drivers/acpi/acpica/dsopcode.c b/drivers/acpi/acpica/dsopcode.c
+index ea0cc4e..81d7b986 100644
+--- a/drivers/acpi/acpica/dsopcode.c
++++ b/drivers/acpi/acpica/dsopcode.c
+@@ -480,8 +480,8 @@ acpi_ds_eval_table_region_operands(struct acpi_walk_state *walk_state,
+ 	union acpi_operand_object **operand;
+ 	struct acpi_namespace_node *node;
+ 	union acpi_parse_object *next_op;
+-	u32 table_index;
+ 	struct acpi_table_header *table;
++	u32 table_index;
  
- 	status = acpi_os_terminate();
-diff --git a/drivers/acpi/acpica/utxfinit.c b/drivers/acpi/acpica/utxfinit.c
-index 42a32a6..a7137ec 100644
---- a/drivers/acpi/acpica/utxfinit.c
-+++ b/drivers/acpi/acpica/utxfinit.c
-@@ -124,17 +124,6 @@ acpi_status __init acpi_initialize_subsystem(void)
+ 	ACPI_FUNCTION_TRACE_PTR(ds_eval_table_region_operands, op);
+ 
+@@ -504,6 +504,8 @@ acpi_ds_eval_table_region_operands(struct acpi_walk_state *walk_state,
  		return_ACPI_STATUS(status);
  	}
  
--	/* If configured, initialize the AML debugger */
--
--#ifdef ACPI_DEBUGGER
--	status = acpi_db_initialize();
--	if (ACPI_FAILURE(status)) {
--		ACPI_EXCEPTION((AE_INFO, status,
--				"During Debugger initialization"));
++	operand = &walk_state->operands[0];
++
+ 	/*
+ 	 * Resolve the Signature string, oem_id string,
+ 	 * and oem_table_id string operands
+@@ -511,32 +513,34 @@ acpi_ds_eval_table_region_operands(struct acpi_walk_state *walk_state,
+ 	status = acpi_ex_resolve_operands(op->common.aml_opcode,
+ 					  ACPI_WALK_OPERANDS, walk_state);
+ 	if (ACPI_FAILURE(status)) {
 -		return_ACPI_STATUS(status);
--	}
--#endif
++		goto cleanup;
+ 	}
+ 
+-	operand = &walk_state->operands[0];
 -
- 	return_ACPI_STATUS(AE_OK);
+ 	/* Find the ACPI table */
+ 
+ 	status = acpi_tb_find_table(operand[0]->string.pointer,
+ 				    operand[1]->string.pointer,
+ 				    operand[2]->string.pointer, &table_index);
+ 	if (ACPI_FAILURE(status)) {
+-		return_ACPI_STATUS(status);
++		if (status == AE_NOT_FOUND) {
++			ACPI_ERROR((AE_INFO,
++				    "ACPI Table [%4.4s] OEM:(%s, %s) not found in RSDT/XSDT",
++				    operand[0]->string.pointer,
++				    operand[1]->string.pointer,
++				    operand[2]->string.pointer));
++		}
++		goto cleanup;
+ 	}
+ 
+-	acpi_ut_remove_reference(operand[0]);
+-	acpi_ut_remove_reference(operand[1]);
+-	acpi_ut_remove_reference(operand[2]);
+-
+ 	status = acpi_get_table_by_index(table_index, &table);
+ 	if (ACPI_FAILURE(status)) {
+-		return_ACPI_STATUS(status);
++		goto cleanup;
+ 	}
+ 
+ 	obj_desc = acpi_ns_get_attached_object(node);
+ 	if (!obj_desc) {
+-		return_ACPI_STATUS(AE_NOT_EXIST);
++		status = AE_NOT_EXIST;
++		goto cleanup;
+ 	}
+ 
+ 	obj_desc->region.address = ACPI_PTR_TO_PHYSADDR(table);
+@@ -551,6 +555,11 @@ acpi_ds_eval_table_region_operands(struct acpi_walk_state *walk_state,
+ 
+ 	obj_desc->region.flags |= AOPOBJ_DATA_VALID;
+ 
++cleanup:
++	acpi_ut_remove_reference(operand[0]);
++	acpi_ut_remove_reference(operand[1]);
++	acpi_ut_remove_reference(operand[2]);
++
+ 	return_ACPI_STATUS(status);
  }
  
-diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index f2e2327..d3d7ea0 100644
---- a/include/acpi/acpixf.h
-+++ b/include/acpi/acpixf.h
-@@ -917,6 +917,9 @@ ACPI_DBG_DEPENDENT_RETURN_VOID(void
- ACPI_APP_DEPENDENT_RETURN_VOID(ACPI_PRINTF_LIKE(1)
- 				void ACPI_INTERNAL_VAR_XFACE
- 				acpi_log_error(const char *format, ...))
-+ acpi_status acpi_initialize_debugger(void);
-+
-+void acpi_terminate_debugger(void);
+diff --git a/drivers/acpi/acpica/exconfig.c b/drivers/acpi/acpica/exconfig.c
+index 24a4c5c..b540913 100644
+--- a/drivers/acpi/acpica/exconfig.c
++++ b/drivers/acpi/acpica/exconfig.c
+@@ -162,14 +162,6 @@ acpi_ex_load_table_op(struct acpi_walk_state *walk_state,
  
- /*
-  * Divergences
+ 	ACPI_FUNCTION_TRACE(ex_load_table_op);
+ 
+-	/* Validate lengths for the Signature, oem_id, and oem_table_id strings */
+-
+-	if ((operand[0]->string.length > ACPI_NAME_SIZE) ||
+-	    (operand[1]->string.length > ACPI_OEM_ID_SIZE) ||
+-	    (operand[2]->string.length > ACPI_OEM_TABLE_ID_SIZE)) {
+-		return_ACPI_STATUS(AE_AML_STRING_LIMIT);
+-	}
+-
+ 	/* Find the ACPI table in the RSDT/XSDT */
+ 
+ 	status = acpi_tb_find_table(operand[0]->string.pointer,
+diff --git a/drivers/acpi/acpica/tbfind.c b/drivers/acpi/acpica/tbfind.c
+index 119c84a..405529d 100644
+--- a/drivers/acpi/acpica/tbfind.c
++++ b/drivers/acpi/acpica/tbfind.c
+@@ -68,12 +68,25 @@ acpi_status
+ acpi_tb_find_table(char *signature,
+ 		   char *oem_id, char *oem_table_id, u32 *table_index)
+ {
+-	u32 i;
+ 	acpi_status status;
+ 	struct acpi_table_header header;
++	u32 i;
+ 
+ 	ACPI_FUNCTION_TRACE(tb_find_table);
+ 
++	/* Validate the input table signature */
++
++	if (!acpi_is_valid_signature(signature)) {
++		return_ACPI_STATUS(AE_BAD_SIGNATURE);
++	}
++
++	/* Don't allow the OEM strings to be too long */
++
++	if ((strlen(oem_id) > ACPI_OEM_ID_SIZE) ||
++	    (strlen(oem_table_id) > ACPI_OEM_TABLE_ID_SIZE)) {
++		return_ACPI_STATUS(AE_AML_STRING_LIMIT);
++	}
++
+ 	/* Normalize the input strings */
+ 
+ 	memset(&header, 0, sizeof(struct acpi_table_header));
+diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
+index 568ac0e..db7f2aa 100644
+--- a/drivers/acpi/acpica/tbutils.c
++++ b/drivers/acpi/acpica/tbutils.c
+@@ -412,3 +412,36 @@ next_table:
+ 
+ 	return_ACPI_STATUS(AE_OK);
+ }
++
++/*******************************************************************************
++ *
++ * FUNCTION:    acpi_is_valid_signature
++ *
++ * PARAMETERS:  signature           - Sig string to be validated
++ *
++ * RETURN:      TRUE if signature is correct length and has valid characters
++ *
++ * DESCRIPTION: Validate an ACPI table signature.
++ *
++ ******************************************************************************/
++
++u8 acpi_is_valid_signature(char *signature)
++{
++	u32 i;
++
++	/* Validate the signature length */
++
++	if (strlen(signature) != ACPI_NAME_SIZE) {
++		return (FALSE);
++	}
++
++	/* Validate each character in the signature */
++
++	for (i = 0; i < ACPI_NAME_SIZE; i++) {
++		if (!acpi_ut_valid_acpi_char(signature[i], i)) {
++			return (FALSE);
++		}
++	}
++
++	return (TRUE);
++}
 -- 
 1.7.10
