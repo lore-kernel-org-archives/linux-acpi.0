@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 12/20] ACPICA: Add additional debug info/statements.
-Date: Tue, 25 Aug 2015 10:29:45 +0800
-Message-ID: <c792d9871855f000eb3398535decbceb807c8151.1440402549.git.lv.zheng@intel.com>
+Subject: [PATCH 11/20] ACPICA: Table handling: Cleanup and update debug output for tools.
+Date: Tue, 25 Aug 2015 10:29:39 +0800
+Message-ID: <043d3dd9d42ddaa7b6a3341b1f0e22b088c2dec7.1440402549.git.lv.zheng@intel.com>
 References: <cover.1440402549.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1440402549.git.lv.zheng@intel.com>
@@ -12,197 +12,144 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit 74094ca9f51e2652a9b5f01722d8640a653cc75a
+ACPICA commit 93862bd7a227543bc617d822ef5c4f8a5d68b519
 
-For _REG methods and module-level code blocks.
-For acpiexec, add deletion of module-level blocks in case
-of an early abort.
+Add output of table OEM ID along with signature to support lots
+of SSDTs.
 
-Link: https://github.com/acpica/acpica/commit/74094ca9
+Cleanup use of table pointers.
+
+Link: https://github.com/acpica/acpica/commit/93862bd7
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/aclocal.h  |    7 +++++++
- drivers/acpi/acpica/evregion.c |   22 ++++++++++++++++++----
- drivers/acpi/acpica/nseval.c   |    3 ++-
- drivers/acpi/acpica/nsutils.c  |   17 +++++++++++++++++
- drivers/acpi/acpica/psloop.c   |   14 +++++++++++++-
- 5 files changed, 57 insertions(+), 6 deletions(-)
+ drivers/acpi/acpica/dsinit.c   |   11 +++++----
+ drivers/acpi/acpica/tbxfload.c |   53 ++++++++++++++++++----------------------
+ 2 files changed, 30 insertions(+), 34 deletions(-)
 
-diff --git a/drivers/acpi/acpica/aclocal.h b/drivers/acpi/acpica/aclocal.h
-index 92cbaee..acbf68b 100644
---- a/drivers/acpi/acpica/aclocal.h
-+++ b/drivers/acpi/acpica/aclocal.h
-@@ -406,6 +406,13 @@ struct acpi_simple_repair_info {
+diff --git a/drivers/acpi/acpica/dsinit.c b/drivers/acpi/acpica/dsinit.c
+index bbf52f0..920f1b1 100644
+--- a/drivers/acpi/acpica/dsinit.c
++++ b/drivers/acpi/acpica/dsinit.c
+@@ -247,11 +247,12 @@ acpi_ds_initialize_objects(u32 table_index,
+ 	/* Summary of objects initialized */
  
- #define ACPI_NUM_RTYPES                 5	/* Number of actual object types */
+ 	ACPI_DEBUG_PRINT_RAW((ACPI_DB_INIT,
+-			      "Table [%4.4s] (id %4.4X) - %4u Objects with %3u Devices, "
+-			      "%3u Regions, %3u Methods (%u/%u/%u Serial/Non/Cvt)\n",
+-			      table->signature, owner_id, info.object_count,
+-			      info.device_count, info.op_region_count,
+-			      info.method_count, info.serial_method_count,
++			      "Table [%4.4s:%8.8s] (id %.2X) - %4u Objects with %3u Devices, "
++			      "%3u Regions, %4u Methods (%u/%u/%u Serial/Non/Cvt)\n",
++			      table->signature, table->oem_table_id, owner_id,
++			      info.object_count, info.device_count,
++			      info.op_region_count, info.method_count,
++			      info.serial_method_count,
+ 			      info.non_serial_method_count,
+ 			      info.serialized_method_count));
  
-+/* Info for running the _REG methods */
-+
-+struct acpi_reg_walk_info {
-+	acpi_adr_space_type space_id;
-+	u32 reg_run_count;
-+};
-+
- /*****************************************************************************
-  *
-  * Event typedefs and structs
-diff --git a/drivers/acpi/acpica/evregion.c b/drivers/acpi/acpica/evregion.c
-index 2ba28a6..5ee79a1 100644
---- a/drivers/acpi/acpica/evregion.c
-+++ b/drivers/acpi/acpica/evregion.c
-@@ -626,9 +626,17 @@ acpi_ev_execute_reg_methods(struct acpi_namespace_node *node,
- 			    acpi_adr_space_type space_id)
- {
+diff --git a/drivers/acpi/acpica/tbxfload.c b/drivers/acpi/acpica/tbxfload.c
+index 96b82a8..55ee14c 100644
+--- a/drivers/acpi/acpica/tbxfload.c
++++ b/drivers/acpi/acpica/tbxfload.c
+@@ -105,6 +105,7 @@ acpi_status acpi_tb_load_namespace(void)
  	acpi_status status;
-+	struct acpi_reg_walk_info info;
+ 	u32 i;
+ 	struct acpi_table_header *new_dsdt;
++	struct acpi_table_desc *table;
+ 	u32 tables_loaded = 0;
+ 	u32 tables_failed = 0;
  
- 	ACPI_FUNCTION_TRACE(ev_execute_reg_methods);
- 
-+	info.space_id = space_id;
-+	info.reg_run_count = 0;
-+
-+	ACPI_DEBUG_PRINT_RAW((ACPI_DB_NAMES,
-+			      "    Running _REG methods for SpaceId %s\n",
-+			      acpi_ut_get_region_name(info.space_id)));
-+
- 	/*
- 	 * Run all _REG methods for all Operation Regions for this space ID. This
- 	 * is a separate walk in order to handle any interdependencies between
-@@ -637,7 +645,7 @@ acpi_ev_execute_reg_methods(struct acpi_namespace_node *node,
+@@ -116,15 +117,11 @@ acpi_status acpi_tb_load_namespace(void)
+ 	 * Load the namespace. The DSDT is required, but any SSDT and
+ 	 * PSDT tables are optional. Verify the DSDT.
  	 */
- 	status = acpi_ns_walk_namespace(ACPI_TYPE_ANY, node, ACPI_UINT32_MAX,
- 					ACPI_NS_WALK_UNLOCK, acpi_ev_reg_run,
--					NULL, &space_id, NULL);
-+					NULL, &info, NULL);
- 
- 	/* Special case for EC: handle "orphan" _REG methods with no region */
- 
-@@ -645,6 +653,11 @@ acpi_ev_execute_reg_methods(struct acpi_namespace_node *node,
- 		acpi_ev_orphan_ec_reg_method(node);
++	table = &acpi_gbl_root_table_list.tables[acpi_gbl_dsdt_index];
++
+ 	if (!acpi_gbl_root_table_list.current_table_count ||
+-	    !ACPI_COMPARE_NAME(&
+-			       (acpi_gbl_root_table_list.
+-				tables[acpi_gbl_dsdt_index].signature),
+-			       ACPI_SIG_DSDT)
+-	    ||
+-	    ACPI_FAILURE(acpi_tb_validate_table
+-			 (&acpi_gbl_root_table_list.
+-			  tables[acpi_gbl_dsdt_index]))) {
++	    !ACPI_COMPARE_NAME(table->signature.ascii, ACPI_SIG_DSDT) ||
++	    ACPI_FAILURE(acpi_tb_validate_table(table))) {
+ 		status = AE_NO_ACPI_TABLES;
+ 		goto unlock_and_exit;
  	}
+@@ -135,8 +132,7 @@ acpi_status acpi_tb_load_namespace(void)
+ 	 * array can change dynamically as tables are loaded at run-time. Note:
+ 	 * .Pointer field is not validated until after call to acpi_tb_validate_table.
+ 	 */
+-	acpi_gbl_DSDT =
+-	    acpi_gbl_root_table_list.tables[acpi_gbl_dsdt_index].pointer;
++	acpi_gbl_DSDT = table->pointer;
  
-+	ACPI_DEBUG_PRINT_RAW((ACPI_DB_NAMES,
-+			      "    Executed %u _REG methods for SpaceId %s\n",
-+			      info.reg_run_count,
-+			      acpi_ut_get_region_name(info.space_id)));
-+
- 	return_ACPI_STATUS(status);
- }
- 
-@@ -664,10 +677,10 @@ acpi_ev_reg_run(acpi_handle obj_handle,
- {
- 	union acpi_operand_object *obj_desc;
- 	struct acpi_namespace_node *node;
--	acpi_adr_space_type space_id;
- 	acpi_status status;
-+	struct acpi_reg_walk_info *info;
- 
--	space_id = *ACPI_CAST_PTR(acpi_adr_space_type, context);
-+	info = ACPI_CAST_PTR(struct acpi_reg_walk_info, context);
- 
- 	/* Convert and validate the device handle */
- 
-@@ -696,13 +709,14 @@ acpi_ev_reg_run(acpi_handle obj_handle,
- 
- 	/* Object is a Region */
- 
--	if (obj_desc->region.space_id != space_id) {
-+	if (obj_desc->region.space_id != info->space_id) {
- 
- 		/* This region is for a different address space, just ignore it */
- 
- 		return (AE_OK);
- 	}
- 
-+	info->reg_run_count++;
- 	status = acpi_ev_execute_reg_method(obj_desc, ACPI_REG_CONNECT);
- 	return (status);
- }
-diff --git a/drivers/acpi/acpica/nseval.c b/drivers/acpi/acpica/nseval.c
-index 88822b7a..7eba578 100644
---- a/drivers/acpi/acpica/nseval.c
-+++ b/drivers/acpi/acpica/nseval.c
-@@ -465,7 +465,8 @@ acpi_ns_exec_module_code(union acpi_operand_object *method_obj,
- 
- 	status = acpi_ns_evaluate(info);
- 
--	ACPI_DEBUG_PRINT((ACPI_DB_INIT, "Executed module-level code at %p\n",
-+	ACPI_DEBUG_PRINT((ACPI_DB_INIT_NAMES,
-+			  "Executed module-level code at %p\n",
- 			  method_obj->method.aml_start));
- 
- 	/* Delete a possible implicit return value (in slack mode) */
-diff --git a/drivers/acpi/acpica/nsutils.c b/drivers/acpi/acpica/nsutils.c
-index 9a34c5f..d1261fe 100644
---- a/drivers/acpi/acpica/nsutils.c
-+++ b/drivers/acpi/acpica/nsutils.c
-@@ -596,6 +596,23 @@ void acpi_ns_terminate(void)
- 
- 	ACPI_FUNCTION_TRACE(ns_terminate);
- 
-+#ifdef ACPI_EXEC_APP
-+	{
-+		union acpi_operand_object *prev;
-+		union acpi_operand_object *next;
-+
-+		/* Delete any module-level code blocks */
-+
-+		next = acpi_gbl_module_code_list;
-+		while (next) {
-+			prev = next;
-+			next = next->method.mutex;
-+			prev->method.mutex = NULL;	/* Clear the Mutex (cheated) field */
-+			acpi_ut_remove_reference(prev);
-+		}
-+	}
-+#endif
-+
  	/*
- 	 * Free the entire namespace -- all nodes and all objects
- 	 * attached to the nodes
-diff --git a/drivers/acpi/acpica/psloop.c b/drivers/acpi/acpica/psloop.c
-index 6b11fd7..03ac8c9 100644
---- a/drivers/acpi/acpica/psloop.c
-+++ b/drivers/acpi/acpica/psloop.c
-@@ -321,6 +321,8 @@ acpi_ps_link_module_code(union acpi_parse_object *parent_op,
- 	union acpi_operand_object *method_obj;
- 	struct acpi_namespace_node *parent_node;
+ 	 * Optionally copy the entire DSDT to local memory (instead of simply
+@@ -174,21 +170,15 @@ acpi_status acpi_tb_load_namespace(void)
  
-+	ACPI_FUNCTION_TRACE(ps_link_module_code);
+ 	(void)acpi_ut_acquire_mutex(ACPI_MTX_TABLES);
+ 	for (i = 0; i < acpi_gbl_root_table_list.current_table_count; ++i) {
++		table = &acpi_gbl_root_table_list.tables[i];
 +
- 	/* Get the tail of the list */
- 
- 	prev = next = acpi_gbl_module_code_list;
-@@ -340,9 +342,13 @@ acpi_ps_link_module_code(union acpi_parse_object *parent_op,
- 
- 		method_obj = acpi_ut_create_internal_object(ACPI_TYPE_METHOD);
- 		if (!method_obj) {
--			return;
-+			return_VOID;
+ 		if (!acpi_gbl_root_table_list.tables[i].address ||
+-		    (!ACPI_COMPARE_NAME
+-		     (&(acpi_gbl_root_table_list.tables[i].signature),
+-		      ACPI_SIG_SSDT)
+-		     &&
+-		     !ACPI_COMPARE_NAME(&
+-					(acpi_gbl_root_table_list.tables[i].
+-					 signature), ACPI_SIG_PSDT)
+-		     &&
+-		     !ACPI_COMPARE_NAME(&
+-					(acpi_gbl_root_table_list.tables[i].
+-					 signature), ACPI_SIG_OSDT))
+-		    ||
+-		    ACPI_FAILURE(acpi_tb_validate_table
+-				 (&acpi_gbl_root_table_list.tables[i]))) {
++		    (!ACPI_COMPARE_NAME(table->signature.ascii, ACPI_SIG_SSDT)
++		     && !ACPI_COMPARE_NAME(table->signature.ascii,
++					   ACPI_SIG_PSDT)
++		     && !ACPI_COMPARE_NAME(table->signature.ascii,
++					   ACPI_SIG_OSDT))
++		    || ACPI_FAILURE(acpi_tb_validate_table(table))) {
+ 			continue;
  		}
  
-+		ACPI_DEBUG_PRINT((ACPI_DB_PARSE,
-+				  "Create/Link new code block: %p\n",
-+				  method_obj));
+@@ -198,10 +188,15 @@ acpi_status acpi_tb_load_namespace(void)
+ 		status = acpi_ns_load_table(i, acpi_gbl_root_node);
+ 		if (ACPI_FAILURE(status)) {
+ 			ACPI_EXCEPTION((AE_INFO, status,
+-					"[%4.4s] table load failed",
+-					&acpi_gbl_root_table_list.tables[i].
+-					signature.ascii[0]));
++					"(%4.4s:%8.8s) while loading table",
++					table->signature.ascii,
++					table->pointer->oem_table_id));
+ 			tables_failed++;
 +
- 		if (parent_op->common.node) {
- 			parent_node = parent_op->common.node;
++			ACPI_DEBUG_PRINT_RAW((ACPI_DB_INIT,
++					      "Table [%4.4s:%8.8s] (id FF) - Table namespace load failed\n\n",
++					      table->signature.ascii,
++					      table->pointer->oem_table_id));
  		} else {
-@@ -367,8 +373,14 @@ acpi_ps_link_module_code(union acpi_parse_object *parent_op,
- 			prev->method.mutex = method_obj;
+ 			tables_loaded++;
  		}
+@@ -215,8 +210,8 @@ acpi_status acpi_tb_load_namespace(void)
+ 			   tables_loaded));
  	} else {
-+		ACPI_DEBUG_PRINT((ACPI_DB_PARSE,
-+				  "Appending to existing code block: %p\n",
-+				  prev));
-+
- 		prev->method.aml_length += aml_length;
- 	}
-+
-+	return_VOID;
- }
+ 		ACPI_ERROR((AE_INFO,
+-			    "%u ACPI AML tables successfully acquired and loaded, %u failed",
+-			    tables_loaded, tables_failed));
++			    "%u table load failures, %u successful",
++			    tables_failed, tables_loaded));
  
- /*******************************************************************************
+ 		/* Indicate at least one failure */
+ 
 -- 
 1.7.10
