@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 08/20] ACPICA: Headers: Fix some comments, no functional change.
-Date: Tue, 25 Aug 2015 10:29:17 +0800
-Message-ID: <81cc61925621eca3ac9b99bbe85d5298fb92700d.1440402549.git.lv.zheng@intel.com>
+Subject: [PATCH 09/20] ACPICA: acpinames: Add new options and wildcard support.
+Date: Tue, 25 Aug 2015 10:29:25 +0800
+Message-ID: <3d9ae8658031d20c458899aca0f070a9a998eb84.1440402549.git.lv.zheng@intel.com>
 References: <cover.1440402549.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1440402549.git.lv.zheng@intel.com>
@@ -12,51 +12,48 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit 539f8c03fe64305725bd85343e42f3b6c42aad14
+ACPICA commit 0ecf5b5a41c3d2e09af48f0fdbc9ae784f631788
 
-A couple typos and long lines.
+- Add wilcard support for input filenames.
+- Add -l option to load tables and exit, no display. This is
+useful for validation of the namespace during BIOS generation.
+- Add -x option for specifying debug level.
 
-Link: https://github.com/acpica/acpica/commit/539f8c03
+Linux kernel is not affected by this commit.
+
+Link: https://github.com/acpica/acpica/commit/0ecf5b5a
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- include/acpi/platform/acenv.h |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/acpi/acpica/acutils.h |    2 +-
+ drivers/acpi/acpica/utmisc.c  |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/include/acpi/platform/acenv.h b/include/acpi/platform/acenv.h
-index 3cedd43..1332537 100644
---- a/include/acpi/platform/acenv.h
-+++ b/include/acpi/platform/acenv.h
-@@ -89,8 +89,8 @@
+diff --git a/drivers/acpi/acpica/acutils.h b/drivers/acpi/acpica/acutils.h
+index 566ff4df..fb2aa50 100644
+--- a/drivers/acpi/acpica/acutils.h
++++ b/drivers/acpi/acpica/acutils.h
+@@ -517,7 +517,7 @@ const struct acpi_exception_info *acpi_ut_validate_exception(acpi_status
+ 
+ u8 acpi_ut_is_pci_root_bridge(char *id);
+ 
+-#if (defined ACPI_ASL_COMPILER || defined ACPI_EXEC_APP)
++#if (defined ACPI_ASL_COMPILER || defined ACPI_EXEC_APP || defined ACPI_NAMES_APP)
+ u8 acpi_ut_is_aml_table(struct acpi_table_header *table);
  #endif
  
- /*
-- * acpi_bin/acpi_dump/acpi_help/acpi_names/acpi_src/acpi_xtract/Example configuration.
-- * All single threaded.
-+ * acpi_bin/acpi_dump/acpi_help/acpi_names/acpi_src/acpi_xtract/Example
-+ * configuration. All single threaded.
-  */
- #if (defined ACPI_BIN_APP)      || \
- 	(defined ACPI_DUMP_APP)     || \
-@@ -123,7 +123,7 @@
- #define ACPI_USE_NATIVE_RSDP_POINTER
- #endif
+diff --git a/drivers/acpi/acpica/utmisc.c b/drivers/acpi/acpica/utmisc.c
+index 98087ea..517a5ec 100644
+--- a/drivers/acpi/acpica/utmisc.c
++++ b/drivers/acpi/acpica/utmisc.c
+@@ -75,7 +75,7 @@ u8 acpi_ut_is_pci_root_bridge(char *id)
+ 	return (FALSE);
+ }
  
--/* acpi_dump configuration. Native mapping used if provied by OSPMs */
-+/* acpi_dump configuration. Native mapping used if provided by the host */
- 
- #ifdef ACPI_DUMP_APP
- #define ACPI_USE_NATIVE_MEMORY_MAPPING
-@@ -323,8 +323,8 @@
-  * ACPI_USE_STANDARD_HEADERS - Define this if linking to a C library and
-  *      the standard header files may be used.
+-#if (defined ACPI_ASL_COMPILER || defined ACPI_EXEC_APP)
++#if (defined ACPI_ASL_COMPILER || defined ACPI_EXEC_APP || defined ACPI_NAMES_APP)
+ /*******************************************************************************
   *
-- * The ACPICA subsystem only uses low level C library functions that do not call
-- * operating system services and may therefore be inlined in the code.
-+ * The ACPICA subsystem only uses low level C library functions that do not
-+ * call operating system services and may therefore be inlined in the code.
-  *
-  * It may be necessary to tailor these include files to the target
-  * generation environment.
+  * FUNCTION:    acpi_ut_is_aml_table
 -- 
 1.7.10
