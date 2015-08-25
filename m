@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 11/20] ACPICA: Table handling: Cleanup and update debug output for tools.
-Date: Tue, 25 Aug 2015 10:29:39 +0800
-Message-ID: <043d3dd9d42ddaa7b6a3341b1f0e22b088c2dec7.1440402549.git.lv.zheng@intel.com>
+Subject: [PATCH 13/20] ACPICA: Debugger: Add option to display namespace summary/counts.
+Date: Tue, 25 Aug 2015 10:29:52 +0800
+Message-ID: <05df9715b9436312ab36ae4c0a8c43524232243d.1440402549.git.lv.zheng@intel.com>
 References: <cover.1440402549.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1440402549.git.lv.zheng@intel.com>
@@ -12,144 +12,72 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit 93862bd7a227543bc617d822ef5c4f8a5d68b519
+ACPICA commit bba222c15c2ce79076eb3a5e9d4d5f7120db8a00
 
-Add output of table OEM ID along with signature to support lots
-of SSDTs.
+If "Objects" command is invoked with no arguments, the counts
+for each object type are displayed.
 
-Cleanup use of table pointers.
+Linux kernel is not affected by this commit as currently debugger is
+not enabled in the Linux kernel.
 
-Link: https://github.com/acpica/acpica/commit/93862bd7
+Link: https://github.com/acpica/acpica/commit/bba222c1
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/dsinit.c   |   11 +++++----
- drivers/acpi/acpica/tbxfload.c |   53 ++++++++++++++++++----------------------
- 2 files changed, 30 insertions(+), 34 deletions(-)
+ drivers/acpi/acpica/acglobal.h |    4 ++--
+ drivers/acpi/acpica/aclocal.h  |    4 ++++
+ include/acpi/actypes.h         |    2 ++
+ 3 files changed, 8 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/acpica/dsinit.c b/drivers/acpi/acpica/dsinit.c
-index bbf52f0..920f1b1 100644
---- a/drivers/acpi/acpica/dsinit.c
-+++ b/drivers/acpi/acpica/dsinit.c
-@@ -247,11 +247,12 @@ acpi_ds_initialize_objects(u32 table_index,
- 	/* Summary of objects initialized */
+diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
+index 95ed861..c597192 100644
+--- a/drivers/acpi/acpica/acglobal.h
++++ b/drivers/acpi/acpica/acglobal.h
+@@ -346,8 +346,8 @@ ACPI_GLOBAL(char, acpi_gbl_db_debug_filename[ACPI_DB_LINE_BUFFER_SIZE]);
+ /*
+  * Statistic globals
+  */
+-ACPI_GLOBAL(u16, acpi_gbl_obj_type_count[ACPI_TYPE_NS_NODE_MAX + 1]);
+-ACPI_GLOBAL(u16, acpi_gbl_node_type_count[ACPI_TYPE_NS_NODE_MAX + 1]);
++ACPI_GLOBAL(u16, acpi_gbl_obj_type_count[ACPI_TOTAL_TYPES]);
++ACPI_GLOBAL(u16, acpi_gbl_node_type_count[ACPI_TOTAL_TYPES]);
+ ACPI_GLOBAL(u16, acpi_gbl_obj_type_count_misc);
+ ACPI_GLOBAL(u16, acpi_gbl_node_type_count_misc);
+ ACPI_GLOBAL(u32, acpi_gbl_num_nodes);
+diff --git a/drivers/acpi/acpica/aclocal.h b/drivers/acpi/acpica/aclocal.h
+index acbf68b..6f70826 100644
+--- a/drivers/acpi/acpica/aclocal.h
++++ b/drivers/acpi/acpica/aclocal.h
+@@ -1131,6 +1131,10 @@ struct acpi_integrity_info {
+ #define ACPI_DB_CONSOLE_OUTPUT          0x02
+ #define ACPI_DB_DUPLICATE_OUTPUT        0x03
  
- 	ACPI_DEBUG_PRINT_RAW((ACPI_DB_INIT,
--			      "Table [%4.4s] (id %4.4X) - %4u Objects with %3u Devices, "
--			      "%3u Regions, %3u Methods (%u/%u/%u Serial/Non/Cvt)\n",
--			      table->signature, owner_id, info.object_count,
--			      info.device_count, info.op_region_count,
--			      info.method_count, info.serial_method_count,
-+			      "Table [%4.4s:%8.8s] (id %.2X) - %4u Objects with %3u Devices, "
-+			      "%3u Regions, %4u Methods (%u/%u/%u Serial/Non/Cvt)\n",
-+			      table->signature, table->oem_table_id, owner_id,
-+			      info.object_count, info.device_count,
-+			      info.op_region_count, info.method_count,
-+			      info.serial_method_count,
- 			      info.non_serial_method_count,
- 			      info.serialized_method_count));
- 
-diff --git a/drivers/acpi/acpica/tbxfload.c b/drivers/acpi/acpica/tbxfload.c
-index 96b82a8..55ee14c 100644
---- a/drivers/acpi/acpica/tbxfload.c
-+++ b/drivers/acpi/acpica/tbxfload.c
-@@ -105,6 +105,7 @@ acpi_status acpi_tb_load_namespace(void)
- 	acpi_status status;
- 	u32 i;
- 	struct acpi_table_header *new_dsdt;
-+	struct acpi_table_desc *table;
- 	u32 tables_loaded = 0;
- 	u32 tables_failed = 0;
- 
-@@ -116,15 +117,11 @@ acpi_status acpi_tb_load_namespace(void)
- 	 * Load the namespace. The DSDT is required, but any SSDT and
- 	 * PSDT tables are optional. Verify the DSDT.
- 	 */
-+	table = &acpi_gbl_root_table_list.tables[acpi_gbl_dsdt_index];
++struct acpi_object_info {
++	u32 types[ACPI_TOTAL_TYPES];
++};
 +
- 	if (!acpi_gbl_root_table_list.current_table_count ||
--	    !ACPI_COMPARE_NAME(&
--			       (acpi_gbl_root_table_list.
--				tables[acpi_gbl_dsdt_index].signature),
--			       ACPI_SIG_DSDT)
--	    ||
--	    ACPI_FAILURE(acpi_tb_validate_table
--			 (&acpi_gbl_root_table_list.
--			  tables[acpi_gbl_dsdt_index]))) {
-+	    !ACPI_COMPARE_NAME(table->signature.ascii, ACPI_SIG_DSDT) ||
-+	    ACPI_FAILURE(acpi_tb_validate_table(table))) {
- 		status = AE_NO_ACPI_TABLES;
- 		goto unlock_and_exit;
- 	}
-@@ -135,8 +132,7 @@ acpi_status acpi_tb_load_namespace(void)
- 	 * array can change dynamically as tables are loaded at run-time. Note:
- 	 * .Pointer field is not validated until after call to acpi_tb_validate_table.
- 	 */
--	acpi_gbl_DSDT =
--	    acpi_gbl_root_table_list.tables[acpi_gbl_dsdt_index].pointer;
-+	acpi_gbl_DSDT = table->pointer;
+ /*****************************************************************************
+  *
+  * Debug
+diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
+index 531eca4..f914958 100644
+--- a/include/acpi/actypes.h
++++ b/include/acpi/actypes.h
+@@ -662,6 +662,7 @@ typedef u32 acpi_object_type;
+ #define ACPI_TYPE_DEBUG_OBJECT          0x10
  
- 	/*
- 	 * Optionally copy the entire DSDT to local memory (instead of simply
-@@ -174,21 +170,15 @@ acpi_status acpi_tb_load_namespace(void)
+ #define ACPI_TYPE_EXTERNAL_MAX          0x10
++#define ACPI_NUM_TYPES                  (ACPI_TYPE_EXTERNAL_MAX + 1)
  
- 	(void)acpi_ut_acquire_mutex(ACPI_MTX_TABLES);
- 	for (i = 0; i < acpi_gbl_root_table_list.current_table_count; ++i) {
-+		table = &acpi_gbl_root_table_list.tables[i];
-+
- 		if (!acpi_gbl_root_table_list.tables[i].address ||
--		    (!ACPI_COMPARE_NAME
--		     (&(acpi_gbl_root_table_list.tables[i].signature),
--		      ACPI_SIG_SSDT)
--		     &&
--		     !ACPI_COMPARE_NAME(&
--					(acpi_gbl_root_table_list.tables[i].
--					 signature), ACPI_SIG_PSDT)
--		     &&
--		     !ACPI_COMPARE_NAME(&
--					(acpi_gbl_root_table_list.tables[i].
--					 signature), ACPI_SIG_OSDT))
--		    ||
--		    ACPI_FAILURE(acpi_tb_validate_table
--				 (&acpi_gbl_root_table_list.tables[i]))) {
-+		    (!ACPI_COMPARE_NAME(table->signature.ascii, ACPI_SIG_SSDT)
-+		     && !ACPI_COMPARE_NAME(table->signature.ascii,
-+					   ACPI_SIG_PSDT)
-+		     && !ACPI_COMPARE_NAME(table->signature.ascii,
-+					   ACPI_SIG_OSDT))
-+		    || ACPI_FAILURE(acpi_tb_validate_table(table))) {
- 			continue;
- 		}
+ /*
+  * These are object types that do not map directly to the ACPI
+@@ -683,6 +684,7 @@ typedef u32 acpi_object_type;
+ #define ACPI_TYPE_LOCAL_SCOPE           0x1B	/* 1 Name, multiple object_list Nodes */
  
-@@ -198,10 +188,15 @@ acpi_status acpi_tb_load_namespace(void)
- 		status = acpi_ns_load_table(i, acpi_gbl_root_node);
- 		if (ACPI_FAILURE(status)) {
- 			ACPI_EXCEPTION((AE_INFO, status,
--					"[%4.4s] table load failed",
--					&acpi_gbl_root_table_list.tables[i].
--					signature.ascii[0]));
-+					"(%4.4s:%8.8s) while loading table",
-+					table->signature.ascii,
-+					table->pointer->oem_table_id));
- 			tables_failed++;
-+
-+			ACPI_DEBUG_PRINT_RAW((ACPI_DB_INIT,
-+					      "Table [%4.4s:%8.8s] (id FF) - Table namespace load failed\n\n",
-+					      table->signature.ascii,
-+					      table->pointer->oem_table_id));
- 		} else {
- 			tables_loaded++;
- 		}
-@@ -215,8 +210,8 @@ acpi_status acpi_tb_load_namespace(void)
- 			   tables_loaded));
- 	} else {
- 		ACPI_ERROR((AE_INFO,
--			    "%u ACPI AML tables successfully acquired and loaded, %u failed",
--			    tables_loaded, tables_failed));
-+			    "%u table load failures, %u successful",
-+			    tables_failed, tables_loaded));
+ #define ACPI_TYPE_NS_NODE_MAX           0x1B	/* Last typecode used within a NS Node */
++#define ACPI_TOTAL_TYPES                (ACPI_TYPE_NS_NODE_MAX + 1)
  
- 		/* Indicate at least one failure */
- 
+ /*
+  * These are special object types that never appear in
 -- 
 1.7.10
