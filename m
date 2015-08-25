@@ -1,54 +1,51 @@
-From: Guenter Roeck <linux@roeck-us.net>
-Subject: Re: [RFC] i2c: Revert back to old device naming for ACPI enumerated
- I2C slaves
-Date: Tue, 25 Aug 2015 10:12:24 -0700
-Message-ID: <55DCA1F8.3050008@roeck-us.net>
-References: <1440413522-7855-1-git-send-email-jarkko.nikula@linux.intel.com> <20150825052513.GI1654@sirena.org.uk> <20150825145756.GA4066@schokonusskuchen.bad> <55DC8746.1060809@roeck-us.net> <20150825161850.GA8118@katana>
+From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Subject: [PATCH V2 0/4] PCI: ACPI: Setting up DMA coherency for PCI device from _CCA attribute
+Date: Wed, 26 Aug 2015 00:33:25 +0700
+Message-ID: <1440524009-5359-1-git-send-email-Suravee.Suthikulpanit@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bh-25.webhostbox.net ([208.91.199.152]:54615 "EHLO
-	bh-25.webhostbox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751780AbbHYRM2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Aug 2015 13:12:28 -0400
-In-Reply-To: <20150825161850.GA8118@katana>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: bhelgaas@google.com, rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com
+Cc: hanjun.guo@linaro.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Wolfram Sang <wsa@the-dreams.de>
-Cc: Mark Brown <broonie@kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, linux-i2c@vger.kernel.org, alsa-devel@alsa-project.org, linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jean Delvare <jdelvare@suse.com>, Liam Girdwood <lgirdwood@gmail.com>, Dustin Byford <dustin@cumulusnetworks.com>
 
-On 08/25/2015 09:18 AM, Wolfram Sang wrote:
-> On Tue, Aug 25, 2015 at 08:18:30AM -0700, Guenter Roeck wrote:
->> On 08/25/2015 07:57 AM, Wolfram Sang wrote:
->>> On Tue, Aug 25, 2015 at 06:25:13AM +0100, Mark Brown wrote:
->>>> On Mon, Aug 24, 2015 at 01:52:02PM +0300, Jarkko Nikula wrote:
->>>>> Commit 70762abb9f89 ("i2c: Use stable dev_name for ACPI enumerated I2C
->>>>> slaves") broke the lm-sensors which relies on I2C hwmon slave devices under
->>>>> /sys/bus/i2c/devices/ to be named as "x-00yz". However if those hwmon
->>>>> devices are ACPI 5 enumerated their name became "i2c-INTABCD:ij" and sysfs
->>>>> code in lm-sensors does not find them anymore:
->>>>
->>>> Acked-by: Mark Brown <broonie@kernel.org>
->>>
->>> Don't you think there will be regressions given that the new naming
->>> scheme was around for 18 months?
->>>
->>
->> acpi is pretty long term. New bindings don't show up quickly.
->
-> The key is, there might be userspace applications that got used to our
-> new "export" of ACPI bindings. The bindings were already existing, our
-> "export" did change.
->
->> So I am not surprised that this only shows up now.
->
-> I am, to be honest. It shows running lm-sensors with ACPI on a kernel
-> newer than 18 months. Not a rare scenario, so I thought.
->
-With i2c (sensor) devices enumerated in acpi ? Yes, I think that is quite rare.
-This is not about the kernel, it is about such device bindings showing up
-in acpi data.
+This patch adds support to setup DMA coherency for PCI device using
+the ACPI _CCA attribute. According to the ACPI spec, the _CCA attribute
+is required for ARM64. Therefore, this patch is a pre-req for ACPI PCI
+support for ARM64 which is currently in development.
 
-Guenter
+Also, this should not affect other architectures that does not define 
+CONFIG_ACPI_CCA_REQUIRED, since the default value is coherent.
 
+In the V2 of this patch series, I have pulled in the following patch from Jeremy
+before cleaning up the acpi_check_dma() function (in patch 2).
+
+    http://www.spinics.net/lists/linux-usb/msg128582.html)
+
+Changes from V1: (https://lkml.org/lkml/2015/8/13/182)
+    * Include patch 1 from Jeremy to enable support for _CCA=0
+    * Clean up acpi_check_dma() per Bjorn suggestions
+    * Split the original V1 patch into two patches (patch 3 and 4)
+
+Jeremy Linton (1):
+  Honor ACPI _CCA attribute setting
+
+Suravee Suthikulpanit (3):
+  ACPI/scan: Clean up acpi_check_dma
+  PCI: OF: Move of_pci_dma_configure() to pci_dma_configure()
+  PCI: ACPI: Add support for PCI device DMA coherency
+
+ drivers/acpi/acpi_platform.c |  7 ++++++-
+ drivers/acpi/glue.c          |  5 +++--
+ drivers/acpi/scan.c          | 39 +++++++++++++++++++++++++++++++++++++++
+ drivers/base/property.c      |  8 ++++++--
+ drivers/of/of_pci.c          | 20 --------------------
+ drivers/pci/probe.c          | 32 ++++++++++++++++++++++++++++++--
+ include/acpi/acpi_bus.h      | 35 ++---------------------------------
+ include/linux/acpi.h         |  4 ++--
+ include/linux/of_pci.h       |  3 ---
+ 9 files changed, 88 insertions(+), 65 deletions(-)
+
+-- 
+2.1.0
