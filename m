@@ -1,141 +1,45 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 19/20] ACPICA: Debugger: Cleanup debugging outputs to dump name path without trailing underscores.
-Date: Tue, 25 Aug 2015 10:30:41 +0800
-Message-ID: <8a79c5d19beaa442122c879838141fda37077080.1440402549.git.lv.zheng@intel.com>
+Subject: [PATCH 20/20] ACPICA: Update version to 20150818.
+Date: Tue, 25 Aug 2015 10:30:48 +0800
+Message-ID: <8497b6dbdb6fcad41a97948f43c104c11f20a3a4.1440402549.git.lv.zheng@intel.com>
 References: <cover.1440402549.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([134.134.136.65]:4966 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932766AbbHYCbJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 24 Aug 2015 22:31:09 -0400
 In-Reply-To: <cover.1440402549.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
-List-Id: linux-acpi@vger.kernel.org
 
-ACPICA commit 51a49c2fb4a73f302a6df2b8ddc1350dd261684d
+From: Bob Moore <robert.moore@intel.com>
 
-It is better to use unified ASL path name to interact with the developers.
+ACPICA commit d93470de8febeecdc20633fde11cb0b200fa773b
 
-There are following acpi_ns_build_normalized_pathname() users invoking it for
-debugging purposes (acpiexec test results are attached):
+Version 20150818.
 
-1. acpi_ut_display_init_pathname (acpi_ns_handle_to_pathname):
-     ---------------------------------------------
-      Initializing Region        \_SB.H_EC.ECF2
-     ---------------------------------------------
-2. acpi_ns_print_node_pathname (acpi_ns_handle_to_pathname):
-     ---------------------------------------------
-     - ex \_SB.H_EC._STA
-     Evaluating \_SB.H_EC._STA
-     ---------------------------------------------
-3. acpi_ds_print_node_pathname (acpi_ns_handle_to_pathname):
-     ---------------------------------------------
-     - level 211b console
-     - execute \M1
-     ...
-     **** Exception AE_AML_UNINITIALIZED_ARG during execution of method [\M1] (Node 009CB6B8)
-     ---------------------------------------------
-4. acpi_ex_dump_reference_obj (acpi_ns_handle_to_pathname):
-     ---------------------------------------------
-     - dump \_TZ.FAN4._PR0
-     ...
-     [00] 00835E98 [Object Reference] Type [Named Object] 05 00828878 \_TZ.FN04
-     ---------------------------------------------
-5. acpi_db_bus_walk (acpi_ns_handle_to_pathname):
-     ---------------------------------------------
-     - businfo
-     \_SB.PCI0                        Type 6
-     ...
-     ---------------------------------------------
-6. acpi_db_walk_and_match_name (acpi_ns_handle_to_pathname):
-     ---------------------------------------------
-     - find _PR0
-                       \_TZ.FAN4._PR0 Package      002D8DF8 01 Elements 01
-     ---------------------------------------------
-7. acpi_db_walk_for_specific_objects (acpi_ns_handle_to_pathname):
-     ---------------------------------------------
-     - methods
-     ...
-                       \_SB.PCI0._PRT Method       0026D918 01 Args 0 Len 0005 Aml 0026B199
-     ...
-     ---------------------------------------------
-8. acpi_db_decode_and_dispaly_object (acpi_get_name):
-     ---------------------------------------------
-     - gpes
-     Block 0 - Info 003AC7B0  device_node 003A0E08 [\_GPE] - FADT-defined GPE block
-     ...
-     ---------------------------------------------
-9. acpi_db_display_gpes (acpi_get_name):
-     ---------------------------------------------
-     - dump \_GPE
-     Object (003A0E08) Pathname:  \_GPE
-     ---------------------------------------------
-10.ae_miscellaneous_tests (acpi_get_name):
-     No output available
-
-This patch cleans up all of the above usages. ACPICA BZ 1178, Lv Zheng.
-
-Linux kernel's ACPICA debugging messages may also be changed.
-
-Link: https://github.com/acpica/acpica/commit/51a49c2f
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Link: https://github.com/acpica/acpica/commit/d93470de
 Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/dsdebug.c |    2 +-
- drivers/acpi/acpica/exdump.c  |    2 +-
- drivers/acpi/acpica/nsutils.c |    2 +-
- drivers/acpi/acpica/utmisc.c  |    2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+ include/acpi/acpixf.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/acpica/dsdebug.c b/drivers/acpi/acpica/dsdebug.c
-index a651d30..309556e 100644
---- a/drivers/acpi/acpica/dsdebug.c
-+++ b/drivers/acpi/acpica/dsdebug.c
-@@ -89,7 +89,7 @@ acpi_ds_print_node_pathname(struct acpi_namespace_node *node,
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index d3d7ea0..c33eeab 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -46,7 +46,7 @@
  
- 	buffer.length = ACPI_ALLOCATE_LOCAL_BUFFER;
+ /* Current ACPICA subsystem version in YYYYMMDD format */
  
--	status = acpi_ns_handle_to_pathname(node, &buffer, FALSE);
-+	status = acpi_ns_handle_to_pathname(node, &buffer, TRUE);
- 	if (ACPI_SUCCESS(status)) {
- 		if (message) {
- 			ACPI_DEBUG_PRINT_RAW((ACPI_DB_DISPATCH, "%s ",
-diff --git a/drivers/acpi/acpica/exdump.c b/drivers/acpi/acpica/exdump.c
-index b6495fb..d836f88 100644
---- a/drivers/acpi/acpica/exdump.c
-+++ b/drivers/acpi/acpica/exdump.c
-@@ -996,7 +996,7 @@ static void acpi_ex_dump_reference_obj(union acpi_operand_object *obj_desc)
- 		acpi_os_printf(" %p ", obj_desc->reference.node);
+-#define ACPI_CA_VERSION                 0x20150717
++#define ACPI_CA_VERSION                 0x20150818
  
- 		status = acpi_ns_handle_to_pathname(obj_desc->reference.node,
--						    &ret_buf, FALSE);
-+						    &ret_buf, TRUE);
- 		if (ACPI_FAILURE(status)) {
- 			acpi_os_printf(" Could not convert name to pathname\n");
- 		} else {
-diff --git a/drivers/acpi/acpica/nsutils.c b/drivers/acpi/acpica/nsutils.c
-index d1261fe..de325ae 100644
---- a/drivers/acpi/acpica/nsutils.c
-+++ b/drivers/acpi/acpica/nsutils.c
-@@ -83,7 +83,7 @@ acpi_ns_print_node_pathname(struct acpi_namespace_node *node,
- 
- 	buffer.length = ACPI_ALLOCATE_LOCAL_BUFFER;
- 
--	status = acpi_ns_handle_to_pathname(node, &buffer, FALSE);
-+	status = acpi_ns_handle_to_pathname(node, &buffer, TRUE);
- 	if (ACPI_SUCCESS(status)) {
- 		if (message) {
- 			acpi_os_printf("%s ", message);
-diff --git a/drivers/acpi/acpica/utmisc.c b/drivers/acpi/acpica/utmisc.c
-index 517a5ec..bd4443b 100644
---- a/drivers/acpi/acpica/utmisc.c
-+++ b/drivers/acpi/acpica/utmisc.c
-@@ -376,7 +376,7 @@ acpi_ut_display_init_pathname(u8 type,
- 	/* Get the full pathname to the node */
- 
- 	buffer.length = ACPI_ALLOCATE_LOCAL_BUFFER;
--	status = acpi_ns_handle_to_pathname(obj_handle, &buffer, FALSE);
-+	status = acpi_ns_handle_to_pathname(obj_handle, &buffer, TRUE);
- 	if (ACPI_FAILURE(status)) {
- 		return;
- 	}
+ #include <acpi/acconfig.h>
+ #include <acpi/actypes.h>
 -- 
 1.7.10
+
