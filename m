@@ -1,48 +1,25 @@
-From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [RFC] i2c: Revert back to old device naming for ACPI enumerated
- I2C slaves
-Date: Tue, 25 Aug 2015 06:25:13 +0100
-Message-ID: <20150825052513.GI1654@sirena.org.uk>
-References: <1440413522-7855-1-git-send-email-jarkko.nikula@linux.intel.com>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [Patch v3] ACPI, PCI: Penalize legacy IRQ used by ACPI SCI
+Date: Tue, 25 Aug 2015 10:01:31 +0200 (CEST)
+Message-ID: <alpine.DEB.2.11.1508241957590.15006@nanos>
+References: <alpine.DEB.2.11.1508201247370.3873@nanos> <1440142584-22404-1-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="r5lq+205vWdkqwtk"
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <1440413522-7855-1-git-send-email-jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jarkko Nikula <jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Jean Delvare <jdelvare-IBi9RG/b67k@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Dustin Byford <dustin-qUQiAmfTcIp+XZJcv9eMoEEOCMrvLtNR@public.gmane.org>, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1440142584-22404-1-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Nick Meier <nmeier@microsoft.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
+On Fri, 21 Aug 2015, Jiang Liu wrote:
+> ---
+> Hi Nick,
+> 	Rafael and Thomas have concerns about the way to solve the
+> regression by quirk, so could you please help to test this patch?
 
---r5lq+205vWdkqwtk
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Nick, can you please confirm that this works?
 
-On Mon, Aug 24, 2015 at 01:52:02PM +0300, Jarkko Nikula wrote:
-> Commit 70762abb9f89 ("i2c: Use stable dev_name for ACPI enumerated I2C
-> slaves") broke the lm-sensors which relies on I2C hwmon slave devices under
-> /sys/bus/i2c/devices/ to be named as "x-00yz". However if those hwmon
-> devices are ACPI 5 enumerated their name became "i2c-INTABCD:ij" and sysfs
-> code in lm-sensors does not find them anymore:
+Thanks,
 
-Acked-by: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-
---r5lq+205vWdkqwtk
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJV2/wxAAoJECTWi3JdVIfQqAEH/RzBrneVJ4mml8ks/Gr9hA+B
-Gy/2BLyESl/2wYICVZwduC6p07x1UH3mHPPLbt/F9YAOupj6KXDgBXPViiSQQsiv
-oTYuJLAiCnCxT8XrF1TDO3e4T16e6/mjk26mjgDBeHHpidwN16yofs070kAnK++Z
-7/KPVhjhOVwbo7BXXlFXrrmUJ0f7DGE6dUxkpVgabqgO8peCBOWgcPgAXlJ/Dlod
-p34VsGwiRO8oCNGKT12Mb+rhS/7jKdkoSH2khWDPOJSQQB4KHKHJ/FFlGcaolpKF
-EUhpxIm5nvafU9CuLEfLE/3GoMZxfZLmf+XOyF2zBPVVISdhtLv+fkCKpa7KmgM=
-=kKSL
------END PGP SIGNATURE-----
-
---r5lq+205vWdkqwtk--
+	tglx
