@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 17/20] ACPICA: Disassembler: Cleanup acpi_gbl_db_opt_disasm.
-Date: Tue, 25 Aug 2015 10:30:27 +0800
-Message-ID: <d3c33a186a85ee4b3ae3a218e5d4c3c5a5f7f301.1440402549.git.lv.zheng@intel.com>
+Subject: [PATCH 18/20] ACPICA: Disassembler: Cleanup acpi_gbl_db_opt_verbose acpiexec usage.
+Date: Tue, 25 Aug 2015 10:30:34 +0800
+Message-ID: <a1d162a8d1bfbc5928d56186ad941f6d3e8aa48f.1440402549.git.lv.zheng@intel.com>
 References: <cover.1440402549.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1440402549.git.lv.zheng@intel.com>
@@ -10,37 +10,61 @@ To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-ACPICA commit 969989cf7f85e2a2a0cd048cd25fc706246a48a2
+ACPICA commit 42d7ad7bfb1cfb95183c1386c77509f2036f521d
 
-This patch cleans up the following global variable - acpi_gbl_db_opt_disasm:
-The setting is used to control the full disassembly feature for iasl. ACPI
-debugger (acpiexec) shall have nothing to do with it. Actually, acpiexec
-never links to ad_aml_disassemble().
+When acpi_gbl_db_opt_verbose is used in acpi_dm_descending_op() (invoked by
+acpi_dm_disassemble()), it is actually exported by the disassembler but used
+by the debugger to distinguish the output of the disassembler for different
+debugger commands. It is by default TRUE but is set to FALSE for control
+method disassembly command - "disassemble". So it's initialization should
+be a part of the ACPI_DISASSEMBLER conditioned code. This patch uses
+ACPI_INIT_GLOBAL to achieve a clean manner so that when ACPI_DISASSEMBLER
+is not defined, ACPI_DEBUGGER conditioned code needn't link to this option.
+Since it is a disassembler exported variable, it is renamed to
+acpi_gbl_dm_opt_Verbose in this patch.
 
-This patch thus renames this global option to acpi_gbl_dm_opt_disasm and
-removes all acpiexec and debugger references on it. Lv Zheng.
+As VERBOSE_PRINT() macro has only one user, this patch also removes the
+definition of this macro. Lv Zheng.
 
 This patch doesn't affect Linux kernel.
 
-Link: https://github.com/acpica/acpica/commit/969989cf
+Link: https://github.com/acpica/acpica/commit/42d7ad7b
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
+ drivers/acpi/acpica/acdebug.h  |    3 ---
  drivers/acpi/acpica/acglobal.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ 2 files changed, 1 insertion(+), 4 deletions(-)
 
+diff --git a/drivers/acpi/acpica/acdebug.h b/drivers/acpi/acpica/acdebug.h
+index 447f6d3..eb2e926 100644
+--- a/drivers/acpi/acpica/acdebug.h
++++ b/drivers/acpi/acpica/acdebug.h
+@@ -67,9 +67,6 @@ struct acpi_db_execute_walk {
+ };
+ 
+ #define PARAM_LIST(pl)                  pl
+-#define DBTEST_OUTPUT_LEVEL(lvl)        if (acpi_gbl_db_opt_verbose)
+-#define VERBOSE_PRINT(fp)               DBTEST_OUTPUT_LEVEL(lvl) {\
+-			  acpi_os_printf PARAM_LIST(fp);}
+ 
+ #define EX_NO_SINGLE_STEP               1
+ #define EX_SINGLE_STEP                  2
 diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
-index 03c443b..0007eb7 100644
+index 0007eb7..09f37b5 100644
 --- a/drivers/acpi/acpica/acglobal.h
 +++ b/drivers/acpi/acpica/acglobal.h
-@@ -313,7 +313,7 @@ ACPI_INIT_GLOBAL(u8, acpi_gbl_ignore_noop_operator, FALSE);
+@@ -312,10 +312,10 @@ ACPI_INIT_GLOBAL(u8, acpi_gbl_no_resource_disassembly, FALSE);
+ ACPI_INIT_GLOBAL(u8, acpi_gbl_ignore_noop_operator, FALSE);
  ACPI_INIT_GLOBAL(u8, acpi_gbl_cstyle_disassembly, TRUE);
  ACPI_INIT_GLOBAL(u8, acpi_gbl_force_aml_disassembly, FALSE);
++ACPI_INIT_GLOBAL(u8, acpi_gbl_dm_opt_verbose, TRUE);
  
--ACPI_GLOBAL(u8, acpi_gbl_db_opt_disasm);
-+ACPI_GLOBAL(u8, acpi_gbl_dm_opt_disasm);
+ ACPI_GLOBAL(u8, acpi_gbl_dm_opt_disasm);
  ACPI_GLOBAL(u8, acpi_gbl_dm_opt_listing);
- ACPI_GLOBAL(u8, acpi_gbl_db_opt_verbose);
+-ACPI_GLOBAL(u8, acpi_gbl_db_opt_verbose);
  ACPI_GLOBAL(u8, acpi_gbl_num_external_methods);
+ ACPI_GLOBAL(u32, acpi_gbl_resolved_external_methods);
+ ACPI_GLOBAL(struct acpi_external_list *, acpi_gbl_external_list);
 -- 
 1.7.10
