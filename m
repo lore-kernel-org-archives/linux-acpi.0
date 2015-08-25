@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 13/20] ACPICA: Debugger: Add option to display namespace summary/counts.
-Date: Tue, 25 Aug 2015 10:29:52 +0800
-Message-ID: <05df9715b9436312ab36ae4c0a8c43524232243d.1440402549.git.lv.zheng@intel.com>
+Subject: [PATCH 14/20] ACPICA: Make the max-number-of-loops runtime configurable.
+Date: Tue, 25 Aug 2015 10:30:00 +0800
+Message-ID: <b97acec57fcfc523c14c2b1481684766245dd8ed.1440402549.git.lv.zheng@intel.com>
 References: <cover.1440402549.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1440402549.git.lv.zheng@intel.com>
@@ -12,72 +12,75 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit bba222c15c2ce79076eb3a5e9d4d5f7120db8a00
+ACPICA commit a9d9c2d0c2d077bb3175ec9c252cf0e5da3efd45
 
-If "Objects" command is invoked with no arguments, the counts
-for each object type are displayed.
+Was previously compile-time only.
+Add support option for acpiexec.
 
-Linux kernel is not affected by this commit as currently debugger is
-not enabled in the Linux kernel.
-
-Link: https://github.com/acpica/acpica/commit/bba222c1
+Link: https://github.com/acpica/acpica/commit/a9d9c2d0
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/acglobal.h |    4 ++--
- drivers/acpi/acpica/aclocal.h  |    4 ++++
- include/acpi/actypes.h         |    2 ++
- 3 files changed, 8 insertions(+), 2 deletions(-)
+ drivers/acpi/acpica/acglobal.h  |    4 ++++
+ drivers/acpi/acpica/dscontrol.c |    2 +-
+ drivers/acpi/acpica/utinit.c    |    1 +
+ include/acpi/acconfig.h         |    4 ----
+ 4 files changed, 6 insertions(+), 5 deletions(-)
 
 diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
-index 95ed861..c597192 100644
+index c597192..03c443b 100644
 --- a/drivers/acpi/acpica/acglobal.h
 +++ b/drivers/acpi/acpica/acglobal.h
-@@ -346,8 +346,8 @@ ACPI_GLOBAL(char, acpi_gbl_db_debug_filename[ACPI_DB_LINE_BUFFER_SIZE]);
- /*
-  * Statistic globals
-  */
--ACPI_GLOBAL(u16, acpi_gbl_obj_type_count[ACPI_TYPE_NS_NODE_MAX + 1]);
--ACPI_GLOBAL(u16, acpi_gbl_node_type_count[ACPI_TYPE_NS_NODE_MAX + 1]);
-+ACPI_GLOBAL(u16, acpi_gbl_obj_type_count[ACPI_TOTAL_TYPES]);
-+ACPI_GLOBAL(u16, acpi_gbl_node_type_count[ACPI_TOTAL_TYPES]);
- ACPI_GLOBAL(u16, acpi_gbl_obj_type_count_misc);
- ACPI_GLOBAL(u16, acpi_gbl_node_type_count_misc);
- ACPI_GLOBAL(u32, acpi_gbl_num_nodes);
-diff --git a/drivers/acpi/acpica/aclocal.h b/drivers/acpi/acpica/aclocal.h
-index acbf68b..6f70826 100644
---- a/drivers/acpi/acpica/aclocal.h
-+++ b/drivers/acpi/acpica/aclocal.h
-@@ -1131,6 +1131,10 @@ struct acpi_integrity_info {
- #define ACPI_DB_CONSOLE_OUTPUT          0x02
- #define ACPI_DB_DUPLICATE_OUTPUT        0x03
+@@ -236,6 +236,10 @@ ACPI_INIT_GLOBAL(u32, acpi_gbl_nesting_level, 0);
  
-+struct acpi_object_info {
-+	u32 types[ACPI_TOTAL_TYPES];
-+};
+ ACPI_GLOBAL(struct acpi_thread_state *, acpi_gbl_current_walk_list);
+ 
++/* Maximum number of While() loop iterations before forced abort */
 +
- /*****************************************************************************
-  *
-  * Debug
-diff --git a/include/acpi/actypes.h b/include/acpi/actypes.h
-index 531eca4..f914958 100644
---- a/include/acpi/actypes.h
-+++ b/include/acpi/actypes.h
-@@ -662,6 +662,7 @@ typedef u32 acpi_object_type;
- #define ACPI_TYPE_DEBUG_OBJECT          0x10
++ACPI_GLOBAL(u16, acpi_gbl_max_loop_iterations);
++
+ /* Control method single step flag */
  
- #define ACPI_TYPE_EXTERNAL_MAX          0x10
-+#define ACPI_NUM_TYPES                  (ACPI_TYPE_EXTERNAL_MAX + 1)
+ ACPI_GLOBAL(u8, acpi_gbl_cm_single_step);
+diff --git a/drivers/acpi/acpica/dscontrol.c b/drivers/acpi/acpica/dscontrol.c
+index 39da9da..435fc16 100644
+--- a/drivers/acpi/acpica/dscontrol.c
++++ b/drivers/acpi/acpica/dscontrol.c
+@@ -212,7 +212,7 @@ acpi_ds_exec_end_control_op(struct acpi_walk_state * walk_state,
+ 			 */
+ 			control_state->control.loop_count++;
+ 			if (control_state->control.loop_count >
+-			    ACPI_MAX_LOOP_ITERATIONS) {
++			    acpi_gbl_max_loop_iterations) {
+ 				status = AE_AML_INFINITE_LOOP;
+ 				break;
+ 			}
+diff --git a/drivers/acpi/acpica/utinit.c b/drivers/acpi/acpica/utinit.c
+index 7f897c6..28ab3a1 100644
+--- a/drivers/acpi/acpica/utinit.c
++++ b/drivers/acpi/acpica/utinit.c
+@@ -207,6 +207,7 @@ acpi_status acpi_ut_init_globals(void)
+ 	acpi_gbl_debugger_configuration = DEBUGGER_THREADING;
+ 	acpi_gbl_osi_mutex = NULL;
+ 	acpi_gbl_reg_methods_executed = FALSE;
++	acpi_gbl_max_loop_iterations = 0xFFFF;
  
- /*
-  * These are object types that do not map directly to the ACPI
-@@ -683,6 +684,7 @@ typedef u32 acpi_object_type;
- #define ACPI_TYPE_LOCAL_SCOPE           0x1B	/* 1 Name, multiple object_list Nodes */
+ 	/* Hardware oriented */
  
- #define ACPI_TYPE_NS_NODE_MAX           0x1B	/* Last typecode used within a NS Node */
-+#define ACPI_TOTAL_TYPES                (ACPI_TYPE_NS_NODE_MAX + 1)
+diff --git a/include/acpi/acconfig.h b/include/acpi/acconfig.h
+index 03aacfb..e11611c 100644
+--- a/include/acpi/acconfig.h
++++ b/include/acpi/acconfig.h
+@@ -136,10 +136,6 @@
  
- /*
-  * These are special object types that never appear in
+ #define ACPI_ROOT_TABLE_SIZE_INCREMENT  4
+ 
+-/* Maximum number of While() loop iterations before forced abort */
+-
+-#define ACPI_MAX_LOOP_ITERATIONS        0xFFFF
+-
+ /* Maximum sleep allowed via Sleep() operator */
+ 
+ #define ACPI_MAX_SLEEP                  2000	/* 2000 millisec == two seconds */
 -- 
 1.7.10
