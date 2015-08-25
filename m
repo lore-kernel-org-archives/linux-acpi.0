@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 14/20] ACPICA: Make the max-number-of-loops runtime configurable.
-Date: Tue, 25 Aug 2015 10:30:00 +0800
-Message-ID: <b97acec57fcfc523c14c2b1481684766245dd8ed.1440402549.git.lv.zheng@intel.com>
+Subject: [PATCH 15/20] ACPICA: Header support to improve compatibility with MSVC.
+Date: Tue, 25 Aug 2015 10:30:11 +0800
+Message-ID: <9bd50a1d9431bc6ddc637994e311ffbe973a3e06.1440402549.git.lv.zheng@intel.com>
 References: <cover.1440402549.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1440402549.git.lv.zheng@intel.com>
@@ -12,75 +12,54 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit a9d9c2d0c2d077bb3175ec9c252cf0e5da3efd45
+ACPICA commit 5b4087fba991d8383046b550bbe22f3d8d9b9c8f
 
-Was previously compile-time only.
-Add support option for acpiexec.
+Needed to improve MSVC editor support for symbols.
 
-Link: https://github.com/acpica/acpica/commit/a9d9c2d0
+For Linux kernel, this change is a no-op.
+
+Link: https://github.com/acpica/acpica/commit/5b4087fb
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/acglobal.h  |    4 ++++
- drivers/acpi/acpica/dscontrol.c |    2 +-
- drivers/acpi/acpica/utinit.c    |    1 +
- include/acpi/acconfig.h         |    4 ----
- 4 files changed, 6 insertions(+), 5 deletions(-)
+ include/acpi/platform/acenv.h |    9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
-index c597192..03c443b 100644
---- a/drivers/acpi/acpica/acglobal.h
-+++ b/drivers/acpi/acpica/acglobal.h
-@@ -236,6 +236,10 @@ ACPI_INIT_GLOBAL(u32, acpi_gbl_nesting_level, 0);
+diff --git a/include/acpi/platform/acenv.h b/include/acpi/platform/acenv.h
+index 1332537..ec00e2b 100644
+--- a/include/acpi/platform/acenv.h
++++ b/include/acpi/platform/acenv.h
+@@ -70,13 +70,14 @@
  
- ACPI_GLOBAL(struct acpi_thread_state *, acpi_gbl_current_walk_list);
- 
-+/* Maximum number of While() loop iterations before forced abort */
+ #ifdef ACPI_ASL_COMPILER
+ #define ACPI_APPLICATION
+-#define ACPI_DISASSEMBLER
+ #define ACPI_DEBUG_OUTPUT
+ #define ACPI_CONSTANT_EVAL_ONLY
+ #define ACPI_LARGE_NAMESPACE_NODE
+ #define ACPI_DATA_TABLE_DISASSEMBLY
+ #define ACPI_SINGLE_THREADED
+ #define ACPI_32BIT_PHYSICAL_ADDRESS
 +
-+ACPI_GLOBAL(u16, acpi_gbl_max_loop_iterations);
-+
- /* Control method single step flag */
++#define ACPI_DISASSEMBLER 1
+ #endif
  
- ACPI_GLOBAL(u8, acpi_gbl_cm_single_step);
-diff --git a/drivers/acpi/acpica/dscontrol.c b/drivers/acpi/acpica/dscontrol.c
-index 39da9da..435fc16 100644
---- a/drivers/acpi/acpica/dscontrol.c
-+++ b/drivers/acpi/acpica/dscontrol.c
-@@ -212,7 +212,7 @@ acpi_ds_exec_end_control_op(struct acpi_walk_state * walk_state,
- 			 */
- 			control_state->control.loop_count++;
- 			if (control_state->control.loop_count >
--			    ACPI_MAX_LOOP_ITERATIONS) {
-+			    acpi_gbl_max_loop_iterations) {
- 				status = AE_AML_INFINITE_LOOP;
- 				break;
- 			}
-diff --git a/drivers/acpi/acpica/utinit.c b/drivers/acpi/acpica/utinit.c
-index 7f897c6..28ab3a1 100644
---- a/drivers/acpi/acpica/utinit.c
-+++ b/drivers/acpi/acpica/utinit.c
-@@ -207,6 +207,7 @@ acpi_status acpi_ut_init_globals(void)
- 	acpi_gbl_debugger_configuration = DEBUGGER_THREADING;
- 	acpi_gbl_osi_mutex = NULL;
- 	acpi_gbl_reg_methods_executed = FALSE;
-+	acpi_gbl_max_loop_iterations = 0xFFFF;
+ /* acpi_exec configuration. Multithreaded with full AML debugger */
+@@ -151,12 +152,12 @@
+ #define ACPI_USE_LOCAL_CACHE
+ #endif
  
- 	/* Hardware oriented */
+-/* Common debug support */
++/* Common debug/disassembler support */
  
-diff --git a/include/acpi/acconfig.h b/include/acpi/acconfig.h
-index 03aacfb..e11611c 100644
---- a/include/acpi/acconfig.h
-+++ b/include/acpi/acconfig.h
-@@ -136,10 +136,6 @@
+ #ifdef ACPI_FULL_DEBUG
+-#define ACPI_DEBUGGER
+ #define ACPI_DEBUG_OUTPUT
+-#define ACPI_DISASSEMBLER
++#define ACPI_DEBUGGER 1
++#define ACPI_DISASSEMBLER 1
+ #endif
  
- #define ACPI_ROOT_TABLE_SIZE_INCREMENT  4
  
--/* Maximum number of While() loop iterations before forced abort */
--
--#define ACPI_MAX_LOOP_ITERATIONS        0xFFFF
--
- /* Maximum sleep allowed via Sleep() operator */
- 
- #define ACPI_MAX_SLEEP                  2000	/* 2000 millisec == two seconds */
 -- 
 1.7.10
