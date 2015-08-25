@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 05/20] ACPICA: Update info messages during ACPICA init.
-Date: Tue, 25 Aug 2015 10:28:54 +0800
-Message-ID: <b80d0f8df06d46ab085c762f8cd215eada720e9d.1440402549.git.lv.zheng@intel.com>
+Subject: [PATCH 07/20] ACPICA: Tables: Cleanup to reduce FACS globals.
+Date: Tue, 25 Aug 2015 10:29:08 +0800
+Message-ID: <89dfc4c9bd9f39f2cf79f09c2ffa9628604ec15f.1440402549.git.lv.zheng@intel.com>
 References: <cover.1440402549.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1440402549.git.lv.zheng@intel.com>
@@ -10,57 +10,90 @@ To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Bob Moore <robert.moore@intel.com>
+ACPICA commit 3f42ba76e2a0453976d3108296d5f656fdf2bd6e
 
-ACPICA commit 4ccf8a1cc499ec8f00345f662a5887483980e1dd
+In this patch, FACS table mapping is also tuned a bit so that only the
+selected FACS table will be mapped by the OSPM (mapped on demand) and the
+FACS related global variables can be reduced. Lv Zheng.
 
-Small cleanup of messages.
-
-Link: https://github.com/acpica/acpica/commit/4ccf8a1c
-Signed-off-by: Bob Moore <robert.moore@intel.com>
+Link: https://github.com/acpica/acpica/commit/3f42ba76
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/dsinit.c   |    9 +++++++++
- drivers/acpi/acpica/tbxfload.c |    4 ++--
- 2 files changed, 11 insertions(+), 2 deletions(-)
+ drivers/acpi/acpica/acglobal.h  |    2 --
+ drivers/acpi/acpica/hwxfsleep.c |   15 ++-------------
+ drivers/acpi/acpica/tbutils.c   |    9 +++++----
+ 3 files changed, 7 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/acpi/acpica/dsinit.c b/drivers/acpi/acpica/dsinit.c
-index 95779e8..bbf52f0 100644
---- a/drivers/acpi/acpica/dsinit.c
-+++ b/drivers/acpi/acpica/dsinit.c
-@@ -237,6 +237,15 @@ acpi_ds_initialize_objects(u32 table_index,
- 		return_ACPI_STATUS(status);
+diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
+index e78667e..95ed861 100644
+--- a/drivers/acpi/acpica/acglobal.h
++++ b/drivers/acpi/acpica/acglobal.h
+@@ -64,8 +64,6 @@ ACPI_INIT_GLOBAL(u32, acpi_gbl_xfacs_index, ACPI_INVALID_TABLE_INDEX);
+ 
+ #if (!ACPI_REDUCED_HARDWARE)
+ ACPI_GLOBAL(struct acpi_table_facs *, acpi_gbl_FACS);
+-ACPI_GLOBAL(struct acpi_table_facs *, acpi_gbl_facs32);
+-ACPI_GLOBAL(struct acpi_table_facs *, acpi_gbl_facs64);
+ 
+ #endif				/* !ACPI_REDUCED_HARDWARE */
+ 
+diff --git a/drivers/acpi/acpica/hwxfsleep.c b/drivers/acpi/acpica/hwxfsleep.c
+index 52dfd0d..d62a616 100644
+--- a/drivers/acpi/acpica/hwxfsleep.c
++++ b/drivers/acpi/acpica/hwxfsleep.c
+@@ -160,19 +160,8 @@ acpi_set_firmware_waking_vectors(acpi_physical_address physical_address,
+ 
+ 	ACPI_FUNCTION_TRACE(acpi_set_firmware_waking_vectors);
+ 
+-	/* If Hardware Reduced flag is set, there is no FACS */
+-
+-	if (acpi_gbl_reduced_hardware) {
+-		return_ACPI_STATUS (AE_OK);
+-	}
+-
+-	if (acpi_gbl_facs32) {
+-		(void)acpi_hw_set_firmware_waking_vectors(acpi_gbl_facs32,
+-							  physical_address,
+-							  physical_address64);
+-	}
+-	if (acpi_gbl_facs64) {
+-		(void)acpi_hw_set_firmware_waking_vectors(acpi_gbl_facs64,
++	if (acpi_gbl_FACS) {
++		(void)acpi_hw_set_firmware_waking_vectors(acpi_gbl_FACS,
+ 							  physical_address,
+ 							  physical_address64);
+ 	}
+diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
+index b1d500e..4337990 100644
+--- a/drivers/acpi/acpica/tbutils.c
++++ b/drivers/acpi/acpica/tbutils.c
+@@ -68,6 +68,7 @@ acpi_tb_get_root_table_entry(u8 *table_entry, u32 table_entry_size);
+ 
+ acpi_status acpi_tb_initialize_facs(void)
+ {
++	struct acpi_table_facs *facs;
+ 
+ 	/* If Hardware Reduced flag is set, there is no FACS */
+ 
+@@ -80,14 +81,14 @@ acpi_status acpi_tb_initialize_facs(void)
+ 		(void)acpi_get_table_by_index(acpi_gbl_xfacs_index,
+ 					      ACPI_CAST_INDIRECT_PTR(struct
+ 								     acpi_table_header,
+-								     &acpi_gbl_facs32));
+-		acpi_gbl_FACS = acpi_gbl_facs32;
++								     &facs));
++		acpi_gbl_FACS = facs;
+ 	} else if (acpi_gbl_FADT.facs) {
+ 		(void)acpi_get_table_by_index(acpi_gbl_facs_index,
+ 					      ACPI_CAST_INDIRECT_PTR(struct
+ 								     acpi_table_header,
+-								     &acpi_gbl_facs64));
+-		acpi_gbl_FACS = acpi_gbl_facs64;
++								     &facs));
++		acpi_gbl_FACS = facs;
  	}
  
-+	/* DSDT is always the first AML table */
-+
-+	if (ACPI_COMPARE_NAME(table->signature, ACPI_SIG_DSDT)) {
-+		ACPI_DEBUG_PRINT_RAW((ACPI_DB_INIT,
-+				      "\nInitializing Namespace objects:\n"));
-+	}
-+
-+	/* Summary of objects initialized */
-+
- 	ACPI_DEBUG_PRINT_RAW((ACPI_DB_INIT,
- 			      "Table [%4.4s] (id %4.4X) - %4u Objects with %3u Devices, "
- 			      "%3u Regions, %3u Methods (%u/%u/%u Serial/Non/Cvt)\n",
-diff --git a/drivers/acpi/acpica/tbxfload.c b/drivers/acpi/acpica/tbxfload.c
-index 7862cf0..6cbb2f7 100644
---- a/drivers/acpi/acpica/tbxfload.c
-+++ b/drivers/acpi/acpica/tbxfload.c
-@@ -208,11 +208,11 @@ static acpi_status acpi_tb_load_namespace(void)
- 
- 	if (!tables_failed) {
- 		ACPI_INFO((AE_INFO,
--			   "All (%u) ACPI AML tables successfully loaded",
-+			   "%u ACPI AML tables successfully acquired and loaded",
- 			   tables_loaded));
- 	} else {
- 		ACPI_ERROR((AE_INFO,
--			    "%u ACPI AML tables loaded, %u failed",
-+			    "%u ACPI AML tables successfully acquired and loaded, %u failed",
- 			    tables_loaded, tables_failed));
- 	}
- 
+ 	/* If there is no FACS, just continue. There was already an error msg */
 -- 
 1.7.10
