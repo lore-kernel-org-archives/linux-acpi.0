@@ -1,150 +1,87 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: Re: [PATCH v4 13/52] PCI, acpiphp: Add missing realloc list checking
- after resource allocation
-Date: Mon, 24 Aug 2015 15:14:26 -0700
-Message-ID: <CAE9FiQWW_zzZGoq-rrbe+R==-xwRHMkTAtFRGGkN-GK-F6NWsg@mail.gmail.com>
-References: <1440138067-4314-1-git-send-email-yinghai@kernel.org>
-	<1440138067-4314-14-git-send-email-yinghai@kernel.org>
-	<205780224.0d92UNafyF@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [RFC] i2c: Revert back to old device naming for ACPI enumerated I2C slaves
+Date: Tue, 25 Aug 2015 02:19:36 +0200
+Message-ID: <2688486.RKUY9k7hgx@vostro.rjw.lan>
+References: <1440413522-7855-1-git-send-email-jarkko.nikula@linux.intel.com> <20150824132612.GA10078@katana>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; boundary="nextPart1520531.O02NFJvkWi"; micalg="pgp-sha256"; protocol="application/pgp-signature"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-io0-f175.google.com ([209.85.223.175]:33008 "EHLO
-	mail-io0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751561AbbHXWO1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Aug 2015 18:14:27 -0400
-In-Reply-To: <205780224.0d92UNafyF@vostro.rjw.lan>
+Received: from v094114.home.net.pl ([79.96.170.134]:57590 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751990AbbHXXwN (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 24 Aug 2015 19:52:13 -0400
+In-Reply-To: <20150824132612.GA10078@katana>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, David Miller <davem@davemloft.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Wei Yang <weiyang@linux.vnet.ibm.com>, TJ <linux@iam.tj>, Yijing Wang <wangyijing@huawei.com>, Andrew Morton <akpm@linux-foundation.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+To: Wolfram Sang <wsa@the-dreams.de>
+Cc: Jarkko Nikula <jarkko.nikula@linux.intel.com>, linux-i2c@vger.kernel.org, alsa-devel@alsa-project.org, linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org, Mark Brown <broonie@kernel.org>, Jean Delvare <jdelvare@suse.com>, Liam Girdwood <lgirdwood@gmail.com>, Dustin Byford <dustin@cumulusnetworks.com>, linux@roeck-us.net
 
-On Mon, Aug 24, 2015 at 3:09 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Thursday, August 20, 2015 11:20:28 PM Yinghai Lu wrote:
->> We check the realloc list, as list must be empty after allocation.
->>
->> Add missing one acpiphp driver.
->>
->> Signed-off-by: Yinghai Lu <yinghai@kernel.org>
->> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
->> Cc: Len Brown <lenb@kernel.org>
->> Cc: linux-acpi@vger.kernel.org
->> ---
->>  drivers/pci/hotplug/acpiphp_glue.c | 1 +
->>  1 file changed, 1 insertion(+)
->>
->> diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
->> index ff53856..1c7c1d7 100644
->> --- a/drivers/pci/hotplug/acpiphp_glue.c
->> +++ b/drivers/pci/hotplug/acpiphp_glue.c
->> @@ -507,6 +507,7 @@ static void enable_slot(struct acpiphp_slot *slot)
->>               }
->>       }
->>       __pci_bus_assign_resources(bus, &add_list, NULL);
->> +     BUG_ON(!list_empty(&add_list));
->
-> Is crashing the kernel the best we can do here?
->
-> What about bailing out with a WARN_ON() instead?  Surely, the kernel can work
-> without the new device?
 
-That should not happen.
-If that list is not empty, we could have broken the assign logic for
-optional or additional
-resource allocation.
+--nextPart1520531.O02NFJvkWi
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="utf-8"
 
-We have other two BUG_ON checking in drivers/pci/setup-bus.c.
+On Monday, August 24, 2015 03:26:13 PM Wolfram Sang wrote:
+> On Mon, Aug 24, 2015 at 01:52:02PM +0300, Jarkko Nikula wrote:
+> > Commit 70762abb9f89 ("i2c: Use stable dev_name for ACPI enumerated I2C
+> > slaves") broke the lm-sensors which relies on I2C hwmon slave devices under
+> > /sys/bus/i2c/devices/ to be named as "x-00yz". However if those hwmon
+> > devices are ACPI 5 enumerated their name became "i2c-INTABCD:ij" and sysfs
+> > code in lm-sensors does not find them anymore:
+> > 
+> > lib/sysfs.c:665:
+> > if ((!subsys || !strcmp(subsys, "i2c")) &&
+> >     sscanf(dev_name, "%hd-%x", &entry.chip.bus.nr,
+> > 	   &entry.chip.addr) == 2) {
+> > 
+> > This patch fixes this by reverting back the old device naming in i2c-core
+> > but at the same avoids regression to ALSA SoC drivers that depend on stable
+> > device binding.
+> 
+> This way we fix some userspace by going back. However, this name change
+> was effective for 18 months, so enough time for some other userspace to
+> adapt. We would break the latter by reverting.
 
-Do we need to change them all to WARN_ON()?
+Right.
 
-or you prefer this version instead:
+Generally, reverts of such things need to be made relatively quickly.
 
----
+> I tend to create the symlinks to prevent any further breakage. I am open
+> for other suggestions, though. This ugly situation has surely happened
+> before somewhere somewhen in the kernel :/
 
-Subject: [PATCH] PCI: Separate realloc list checking after allocation
+It happens on a regular basis.
 
-We check the realloc list, as list must be empty after allocation.
+In this particular case it looks like we need a mechanism to use the old
+naming scheme for hwmon and the new one for everything else or something
+similar.  I'm afraid I am not familiar enough with the i2c core to suggest
+anything specific ATM, though.
 
-Separate the realloc list checking to another function.
+Thanks,
+Rafael
 
-Add checking that is missed in acpiphp driver.
+--nextPart1520531.O02NFJvkWi
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part.
+Content-Transfer-Encoding: 7Bit
 
--v2: change to WARN_ON addording to Rafael.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
 
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
----
- drivers/pci/hotplug/acpiphp_glue.c |    1 +
- drivers/pci/pci.h                  |    1 +
- drivers/pci/setup-bus.c            |   12 +++++++++---
- 3 files changed, 11 insertions(+), 3 deletions(-)
+iQIcBAABCAAGBQJV27SfAAoJEILEb/54YlRxsD0P/3SvBX/qDUxkYNJ8pNg6xN7A
+/9pNIq+AgGNncYljkG4JWKrUod1Hfw3/lO6WXwx3E8b8zbBdq2B+R2DVJo/gnrb5
+zIx0PU83UlG5VgsgEUZKkGMhXGOJAWGpcDKpj6UL2E3XhqeIl42BOKu1DAxXX0ml
+BGmdHro8fwqykaUCKS9E4lBGerz/3/QE5nbA2XxDJSMx9N0dU+sDtgdHxIr5KmZ7
+E5BqkL/sDn7h6r1n+29tTyAM+z86HaHQGzNmQxmH1SBa0sEnZ7x+p8Td5XULvx80
+JtFFw6a/yPnD9CVMtI2XdgWxEmRo6Nr2RcicJAM8rUEuBKNveUKI1lwILnKfvTCF
+HCg00DLwhpEQMFwdI1o7hpLAFmBA1DRFkad6HyDveqlCFuryXlSXa7wlYJYwc6yt
+GaOuzqgcVSPioy/Jkgn+GJ7RbpmJMc31L+GceFN0iAxhn8cUZtAseIHSzqjChBam
+C6mg+hhDawvKqq/huukefmp9Ws/bv2FuiyetLi8Sv0xyjKu7rq2b/x5WGiqsYh9z
+WAtQsnGG9XfRiSKbt7yUg5TgEwpLuPs/IRxnV8FAk1JhMHqj4gKy6NPDKRw96opp
+id+EbCOWzr+zBljFt393D2NC0ATEgtqJ5G0PJ6MdKueIZDnSRjQH8EJkDbOEbUAf
+tJ6J5pPMBZxCj6W3oP65
+=Gw3G
+-----END PGP SIGNATURE-----
 
-Index: linux-2.6/drivers/pci/hotplug/acpiphp_glue.c
-===================================================================
---- linux-2.6.orig/drivers/pci/hotplug/acpiphp_glue.c
-+++ linux-2.6/drivers/pci/hotplug/acpiphp_glue.c
-@@ -507,6 +507,7 @@ static void enable_slot(struct acpiphp_s
-         }
-     }
-     __pci_bus_assign_resources(bus, &add_list, NULL);
-+    pci_bus_check_realloc(&add_list);
+--nextPart1520531.O02NFJvkWi--
 
-     acpiphp_sanitize_bus(bus);
-     pcie_bus_configure_settings(bus);
-Index: linux-2.6/drivers/pci/pci.h
-===================================================================
---- linux-2.6.orig/drivers/pci/pci.h
-+++ linux-2.6/drivers/pci/pci.h
-@@ -237,6 +237,7 @@ void __pci_bus_size_bridges(struct pci_b
- void __pci_bus_assign_resources(const struct pci_bus *bus,
-                 struct list_head *realloc_head,
-                 struct list_head *fail_head);
-+void pci_bus_check_realloc(struct list_head *realloc_head);
- bool pci_bus_clip_resource(struct pci_dev *dev, int idx);
-
- void pci_reassigndev_resource_alignment(struct pci_dev *dev);
-Index: linux-2.6/drivers/pci/setup-bus.c
-===================================================================
---- linux-2.6.orig/drivers/pci/setup-bus.c
-+++ linux-2.6/drivers/pci/setup-bus.c
-@@ -349,6 +349,12 @@ out:
-     }
- }
-
-+void pci_bus_check_realloc(struct list_head *realloc_head)
-+{
-+    if (WARN_ON(!list_empty(realloc_head)))
-+        free_list(realloc_head);
-+}
-+
- /**
-  * assign_requested_resources_sorted() - satisfy resource requests
-  *
-@@ -1860,7 +1866,7 @@ again:
-     /* Depth last, allocate resources and update the hardware. */
-     __pci_bus_assign_resources(bus, add_list, &fail_head);
-     if (add_list)
--        BUG_ON(!list_empty(add_list));
-+        pci_bus_check_realloc(add_list);
-     tried_times++;
-
-     /* any device complain? */
-@@ -1935,7 +1941,7 @@ void pci_assign_unassigned_bridge_resour
- again:
-     __pci_bus_size_bridges(parent, &add_list);
-     __pci_bridge_assign_resources(bridge, &add_list, &fail_head);
--    BUG_ON(!list_empty(&add_list));
-+    pci_bus_check_realloc(&add_list);
-     tried_times++;
-
-     if (list_empty(&fail_head))
-@@ -1994,6 +2000,6 @@ void pci_assign_unassigned_bus_resources
-                              &add_list);
-     up_read(&pci_bus_sem);
-     __pci_bus_assign_resources(bus, &add_list, NULL);
--    BUG_ON(!list_empty(&add_list));
-+    pci_bus_check_realloc(&add_list);
- }
- EXPORT_SYMBOL_GPL(pci_assign_unassigned_bus_resources);
