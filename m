@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 07/20] ACPICA: Tables: Cleanup to reduce FACS globals.
-Date: Tue, 25 Aug 2015 10:29:08 +0800
-Message-ID: <89dfc4c9bd9f39f2cf79f09c2ffa9628604ec15f.1440402549.git.lv.zheng@intel.com>
+Subject: [PATCH 08/20] ACPICA: Headers: Fix some comments, no functional change.
+Date: Tue, 25 Aug 2015 10:29:17 +0800
+Message-ID: <81cc61925621eca3ac9b99bbe85d5298fb92700d.1440402549.git.lv.zheng@intel.com>
 References: <cover.1440402549.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1440402549.git.lv.zheng@intel.com>
@@ -10,90 +10,53 @@ To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-ACPICA commit 3f42ba76e2a0453976d3108296d5f656fdf2bd6e
+From: Bob Moore <robert.moore@intel.com>
 
-In this patch, FACS table mapping is also tuned a bit so that only the
-selected FACS table will be mapped by the OSPM (mapped on demand) and the
-FACS related global variables can be reduced. Lv Zheng.
+ACPICA commit 539f8c03fe64305725bd85343e42f3b6c42aad14
 
-Link: https://github.com/acpica/acpica/commit/3f42ba76
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+A couple typos and long lines.
+
+Link: https://github.com/acpica/acpica/commit/539f8c03
 Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/acglobal.h  |    2 --
- drivers/acpi/acpica/hwxfsleep.c |   15 ++-------------
- drivers/acpi/acpica/tbutils.c   |    9 +++++----
- 3 files changed, 7 insertions(+), 19 deletions(-)
+ include/acpi/platform/acenv.h |   10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
-index e78667e..95ed861 100644
---- a/drivers/acpi/acpica/acglobal.h
-+++ b/drivers/acpi/acpica/acglobal.h
-@@ -64,8 +64,6 @@ ACPI_INIT_GLOBAL(u32, acpi_gbl_xfacs_index, ACPI_INVALID_TABLE_INDEX);
+diff --git a/include/acpi/platform/acenv.h b/include/acpi/platform/acenv.h
+index 3cedd43..1332537 100644
+--- a/include/acpi/platform/acenv.h
++++ b/include/acpi/platform/acenv.h
+@@ -89,8 +89,8 @@
+ #endif
  
- #if (!ACPI_REDUCED_HARDWARE)
- ACPI_GLOBAL(struct acpi_table_facs *, acpi_gbl_FACS);
--ACPI_GLOBAL(struct acpi_table_facs *, acpi_gbl_facs32);
--ACPI_GLOBAL(struct acpi_table_facs *, acpi_gbl_facs64);
+ /*
+- * acpi_bin/acpi_dump/acpi_help/acpi_names/acpi_src/acpi_xtract/Example configuration.
+- * All single threaded.
++ * acpi_bin/acpi_dump/acpi_help/acpi_names/acpi_src/acpi_xtract/Example
++ * configuration. All single threaded.
+  */
+ #if (defined ACPI_BIN_APP)      || \
+ 	(defined ACPI_DUMP_APP)     || \
+@@ -123,7 +123,7 @@
+ #define ACPI_USE_NATIVE_RSDP_POINTER
+ #endif
  
- #endif				/* !ACPI_REDUCED_HARDWARE */
+-/* acpi_dump configuration. Native mapping used if provied by OSPMs */
++/* acpi_dump configuration. Native mapping used if provided by the host */
  
-diff --git a/drivers/acpi/acpica/hwxfsleep.c b/drivers/acpi/acpica/hwxfsleep.c
-index 52dfd0d..d62a616 100644
---- a/drivers/acpi/acpica/hwxfsleep.c
-+++ b/drivers/acpi/acpica/hwxfsleep.c
-@@ -160,19 +160,8 @@ acpi_set_firmware_waking_vectors(acpi_physical_address physical_address,
- 
- 	ACPI_FUNCTION_TRACE(acpi_set_firmware_waking_vectors);
- 
--	/* If Hardware Reduced flag is set, there is no FACS */
--
--	if (acpi_gbl_reduced_hardware) {
--		return_ACPI_STATUS (AE_OK);
--	}
--
--	if (acpi_gbl_facs32) {
--		(void)acpi_hw_set_firmware_waking_vectors(acpi_gbl_facs32,
--							  physical_address,
--							  physical_address64);
--	}
--	if (acpi_gbl_facs64) {
--		(void)acpi_hw_set_firmware_waking_vectors(acpi_gbl_facs64,
-+	if (acpi_gbl_FACS) {
-+		(void)acpi_hw_set_firmware_waking_vectors(acpi_gbl_FACS,
- 							  physical_address,
- 							  physical_address64);
- 	}
-diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
-index b1d500e..4337990 100644
---- a/drivers/acpi/acpica/tbutils.c
-+++ b/drivers/acpi/acpica/tbutils.c
-@@ -68,6 +68,7 @@ acpi_tb_get_root_table_entry(u8 *table_entry, u32 table_entry_size);
- 
- acpi_status acpi_tb_initialize_facs(void)
- {
-+	struct acpi_table_facs *facs;
- 
- 	/* If Hardware Reduced flag is set, there is no FACS */
- 
-@@ -80,14 +81,14 @@ acpi_status acpi_tb_initialize_facs(void)
- 		(void)acpi_get_table_by_index(acpi_gbl_xfacs_index,
- 					      ACPI_CAST_INDIRECT_PTR(struct
- 								     acpi_table_header,
--								     &acpi_gbl_facs32));
--		acpi_gbl_FACS = acpi_gbl_facs32;
-+								     &facs));
-+		acpi_gbl_FACS = facs;
- 	} else if (acpi_gbl_FADT.facs) {
- 		(void)acpi_get_table_by_index(acpi_gbl_facs_index,
- 					      ACPI_CAST_INDIRECT_PTR(struct
- 								     acpi_table_header,
--								     &acpi_gbl_facs64));
--		acpi_gbl_FACS = acpi_gbl_facs64;
-+								     &facs));
-+		acpi_gbl_FACS = facs;
- 	}
- 
- 	/* If there is no FACS, just continue. There was already an error msg */
+ #ifdef ACPI_DUMP_APP
+ #define ACPI_USE_NATIVE_MEMORY_MAPPING
+@@ -323,8 +323,8 @@
+  * ACPI_USE_STANDARD_HEADERS - Define this if linking to a C library and
+  *      the standard header files may be used.
+  *
+- * The ACPICA subsystem only uses low level C library functions that do not call
+- * operating system services and may therefore be inlined in the code.
++ * The ACPICA subsystem only uses low level C library functions that do not
++ * call operating system services and may therefore be inlined in the code.
+  *
+  * It may be necessary to tailor these include files to the target
+  * generation environment.
 -- 
 1.7.10
