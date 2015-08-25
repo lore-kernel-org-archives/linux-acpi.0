@@ -1,71 +1,82 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH V2 4/4] PCI: ACPI: Add support for PCI device DMA coherency
-Date: Wed, 26 Aug 2015 01:48:55 +0200
-Message-ID: <5541922.5doADRYBJG@vostro.rjw.lan>
-References: <1440524009-5359-1-git-send-email-Suravee.Suthikulpanit@amd.com> <1440524009-5359-5-git-send-email-Suravee.Suthikulpanit@amd.com>
+Subject: Re: [PATCH 00/20] ACPICA: 20150818 Release
+Date: Wed, 26 Aug 2015 01:49:31 +0200
+Message-ID: <5059463.QBoEmM0tRe@vostro.rjw.lan>
+References: <cover.1440402549.git.lv.zheng@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1440524009-5359-5-git-send-email-Suravee.Suthikulpanit@amd.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Cc: bhelgaas@google.com, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, hanjun.guo@linaro.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rob Herring <robh+dt@kernel.org>, Murali Karicheri <m-karicheri2@ti.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:63425 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S932739AbbHYXV6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 25 Aug 2015 19:21:58 -0400
+In-Reply-To: <cover.1440402549.git.lv.zheng@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Wednesday, August 26, 2015 12:33:29 AM Suravee Suthikulpanit wrote:
-> This patch adds support for setting up PCI device DMA coherency from
-> ACPI _CCA object that should normally be specified in the DSDT node
-> of its PCI host bridge.
+On Tuesday, August 25, 2015 10:28:18 AM Lv Zheng wrote:
+> The 20150818 ACPICA kernel-resident subsystem updates are linuxized based
+> on the linux-pm/linux-next branch.
 > 
-> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-> CC: Bjorn Helgaas <bhelgaas@google.com>
-> CC: Catalin Marinas <catalin.marinas@arm.com>
-> CC: Rob Herring <robh+dt@kernel.org>
-> CC: Will Deacon <will.deacon@arm.com>
-> CC: Rafael J. Wysocki <rjw@rjwysocki.net>
-> CC: Murali Karicheri <m-karicheri2@ti.com>
-> ---
->  drivers/pci/probe.c | 15 ++++++++++-----
->  1 file changed, 10 insertions(+), 5 deletions(-)
+> The patchset has passed the following build/boot tests.
+> Build tests are performed as follows:
+> 1. i386 + default + COFNIG_ACPI=y
+> 2. i386 + allyes + CONFIG_ACPI=y
+> 3. i386 + default + COFNIG_ACPI=n
+> 4. i386 + allyes + CONFIG_ACPI=n
+> 5. x86_64 + default + COFNIG_ACPI=y
+> 6. x86_64 + allyes + CONFIG_ACPI=y
+> 7. x86_64 + default + COFNIG_ACPI=n
+> 8. x86_64 + allyes + CONFIG_ACPI=n
+> Boot tests are performed as follows:
+> 1. i386 + default + COFNIG_ACPI=y
+> 2. x86_64 + default + COFNIG_ACPI=y
+> Where:
+> 1. i386: machine named as "Dell Inspiron Mini 1010"
+> 2. x86_64: machine named as "HP Compaq 8200 Elite SFF PC"
+> 3. default: kernel configuration with following items enabled:
+>    All hardware drivers related to the machines of i386/x86_64
+>    All "drivers/acpi" configurations
+>    All "drivers/platform" drivers
+>    All other drivers that link the APIs provided by ACPICA subsystem
 > 
-> diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-> index 4de6594..2fd2a60 100644
-> --- a/drivers/pci/probe.c
-> +++ b/drivers/pci/probe.c
-> @@ -1551,17 +1551,22 @@ static void pci_init_capabilities(struct pci_dev *dev)
->   * @dev: ptr to pci_dev struct of the PCI device
->   *
->   * Function to update PCI devices's DMA configuration using the same
-> - * info from the OF node of host bridge's parent (if any).
-> + * info from the OF node or ACPI node of host bridge's parent (if any).
->   */
->  static void pci_dma_configure(struct pci_dev *dev)
->  {
->  	struct device *bridge = pci_get_host_bridge_device(dev);
->  
->  	if (IS_ENABLED(CONFIG_OF) && dev->dev.of_node) {
-> -		if (!bridge->parent)
-> -			return;
-> -
-> -		of_dma_configure(&dev->dev, bridge->parent->of_node);
-> +		if (bridge->parent)
-> +			of_dma_configure(&dev->dev,
-> +					 bridge->parent->of_node);
-> +	} else if (has_acpi_companion(bridge)) {
-> +		struct acpi_device *adev = to_acpi_node(bridge->fwnode);
-> +		int coherent = acpi_check_dma_coherency(adev);
-> +
-> +		if (-1 != coherent)
-
-The ordering of this check is somewhat unusual.
-
-
-> +			arch_setup_dma_ops(&dev->dev, 0, 0, NULL, coherent);
->  	}
->  
->  	pci_put_host_bridge_device(bridge);
+> The divergences checking result:
+> Before applying (20150717 Release):
+>   518 lines
+> After applying (20150818 Release):
+>   517 lines
 > 
+> Bob Moore (14):
+>   ACPICA: Correctly cleanup after a ACPI table load failure.
+>   ACPICA: Disassembler: Remove duplicate code in _PLD processing.
+>   ACPICA: Update parameter validation for data_table_region and
+>     load_table.
+>   ACPICA: Disassembler: Update for new listing mode.
+>   ACPICA: Update info messages during ACPICA init.
+>   ACPICA: Headers: Fix some comments, no functional change.
+>   ACPICA: acpinames: Add new options and wildcard support.
+>   ACPICA: acpiexec/acpinames: Support very large number of ACPI tables.
+>   ACPICA: Table handling: Cleanup and update debug output for tools.
+>   ACPICA: Add additional debug info/statements.
+>   ACPICA: Debugger: Add option to display namespace summary/counts.
+>   ACPICA: Make the max-number-of-loops runtime configurable.
+>   ACPICA: Header support to improve compatibility with MSVC.
+>   ACPICA: Update version to 20150818.
+> 
+> Lv Zheng (6):
+>   ACPICA: Tables: Fix global table list issues by removing fixed table
+>     indexes.
+>   ACPICA: Tables: Cleanup to reduce FACS globals.
+>   ACPICA: Debugger: Split debugger initialization/termination APIs.
+>   ACPICA: Disassembler: Cleanup acpi_gbl_db_opt_disasm.
+>   ACPICA: Disassembler: Cleanup acpi_gbl_db_opt_verbose acpiexec usage.
+>   ACPICA: Debugger: Cleanup debugging outputs to dump name path without
+>     trailing underscores.
 
-Thanks,
+Series queued up for 4.3, thanks!
+
 Rafael
+
