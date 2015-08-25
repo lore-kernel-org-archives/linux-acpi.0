@@ -1,216 +1,33 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 03/20] ACPICA: Update parameter validation for data_table_region and load_table.
-Date: Tue, 25 Aug 2015 10:28:39 +0800
-Message-ID: <94a2b733f6a0b9f1ed59170d47c3f63b0d2c00b1.1440402549.git.lv.zheng@intel.com>
-References: <cover.1440402549.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1440402549.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
+From: Dustin Byford <dustin-qUQiAmfTcIp+XZJcv9eMoEEOCMrvLtNR@public.gmane.org>
+Subject: Re: [RFC] i2c: Revert back to old device naming for ACPI enumerated
+ I2C slaves
+Date: Mon, 24 Aug 2015 22:03:06 -0700
+Message-ID: <20150825050306.GB21569@cumulusnetworks.com>
+References: <1440413522-7855-1-git-send-email-jarkko.nikula@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <1440413522-7855-1-git-send-email-jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jarkko Nikula <jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, lm-sensors-GZX6beZjE8VD60Wz+7aTrA@public.gmane.org, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Jean Delvare <jdelvare-IBi9RG/b67k@public.gmane.org>, Liam Girdwood <lgirdwood-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-From: Bob Moore <robert.moore@intel.com>
+On Mon Aug 24 13:52, Jarkko Nikula wrote:
 
-ACPICA commit 51ab555e60b4a3de3cc4a846e86d0de255be441a
+> I don't know how common ACPI enumerated I2C hwmon devices are but I guess
+> they exists since Dustin notices this issue and wrote "With that change,
+> /sys/bus/i2c/devices/i2c-0-004a, for example, became
+> /sys/bus/i2c/devices/i2c-PNPXXXX:xx".
 
-Add additional validation for the table signature and
-the OEM strings. Eliminates buffer read overrun in data_table_region.
-ACPICA BZ 1184.
+I wouldn't take my particular use case as evidence they are common, or
+even they really exist.  I got here because I loaded a hwmon driver
+using the _DSD/PRP0001 mechanism in ACPI.  In that case, those devices
+have never worked with 'sensors'  Therefore, in that context, this
+change is just fixing a bug.
 
-Link: https://bugs.acpica.org/show_bug.cgi?id=1184
-Link: https://github.com/acpica/acpica/commit/51ab555e
-Signed-off-by: Bob Moore <robert.moore@intel.com>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- drivers/acpi/acpica/actables.h |    2 ++
- drivers/acpi/acpica/dsopcode.c |   31 ++++++++++++++++++++-----------
- drivers/acpi/acpica/exconfig.c |    8 --------
- drivers/acpi/acpica/tbfind.c   |   15 ++++++++++++++-
- drivers/acpi/acpica/tbutils.c  |   33 +++++++++++++++++++++++++++++++++
- 5 files changed, 69 insertions(+), 20 deletions(-)
+I can't say much about other apps writing against the current sysfs
+names.  18 months seems like a long time.
 
-diff --git a/drivers/acpi/acpica/actables.h b/drivers/acpi/acpica/actables.h
-index 7e0b6f1..58497b7 100644
---- a/drivers/acpi/acpica/actables.h
-+++ b/drivers/acpi/acpica/actables.h
-@@ -164,4 +164,6 @@ acpi_tb_install_fixed_table(acpi_physical_address address,
- 
- acpi_status acpi_tb_parse_root_table(acpi_physical_address rsdp_address);
- 
-+u8 acpi_is_valid_signature(char *signature);
-+
- #endif				/* __ACTABLES_H__ */
-diff --git a/drivers/acpi/acpica/dsopcode.c b/drivers/acpi/acpica/dsopcode.c
-index ea0cc4e..81d7b986 100644
---- a/drivers/acpi/acpica/dsopcode.c
-+++ b/drivers/acpi/acpica/dsopcode.c
-@@ -480,8 +480,8 @@ acpi_ds_eval_table_region_operands(struct acpi_walk_state *walk_state,
- 	union acpi_operand_object **operand;
- 	struct acpi_namespace_node *node;
- 	union acpi_parse_object *next_op;
--	u32 table_index;
- 	struct acpi_table_header *table;
-+	u32 table_index;
- 
- 	ACPI_FUNCTION_TRACE_PTR(ds_eval_table_region_operands, op);
- 
-@@ -504,6 +504,8 @@ acpi_ds_eval_table_region_operands(struct acpi_walk_state *walk_state,
- 		return_ACPI_STATUS(status);
- 	}
- 
-+	operand = &walk_state->operands[0];
-+
- 	/*
- 	 * Resolve the Signature string, oem_id string,
- 	 * and oem_table_id string operands
-@@ -511,32 +513,34 @@ acpi_ds_eval_table_region_operands(struct acpi_walk_state *walk_state,
- 	status = acpi_ex_resolve_operands(op->common.aml_opcode,
- 					  ACPI_WALK_OPERANDS, walk_state);
- 	if (ACPI_FAILURE(status)) {
--		return_ACPI_STATUS(status);
-+		goto cleanup;
- 	}
- 
--	operand = &walk_state->operands[0];
--
- 	/* Find the ACPI table */
- 
- 	status = acpi_tb_find_table(operand[0]->string.pointer,
- 				    operand[1]->string.pointer,
- 				    operand[2]->string.pointer, &table_index);
- 	if (ACPI_FAILURE(status)) {
--		return_ACPI_STATUS(status);
-+		if (status == AE_NOT_FOUND) {
-+			ACPI_ERROR((AE_INFO,
-+				    "ACPI Table [%4.4s] OEM:(%s, %s) not found in RSDT/XSDT",
-+				    operand[0]->string.pointer,
-+				    operand[1]->string.pointer,
-+				    operand[2]->string.pointer));
-+		}
-+		goto cleanup;
- 	}
- 
--	acpi_ut_remove_reference(operand[0]);
--	acpi_ut_remove_reference(operand[1]);
--	acpi_ut_remove_reference(operand[2]);
--
- 	status = acpi_get_table_by_index(table_index, &table);
- 	if (ACPI_FAILURE(status)) {
--		return_ACPI_STATUS(status);
-+		goto cleanup;
- 	}
- 
- 	obj_desc = acpi_ns_get_attached_object(node);
- 	if (!obj_desc) {
--		return_ACPI_STATUS(AE_NOT_EXIST);
-+		status = AE_NOT_EXIST;
-+		goto cleanup;
- 	}
- 
- 	obj_desc->region.address = ACPI_PTR_TO_PHYSADDR(table);
-@@ -551,6 +555,11 @@ acpi_ds_eval_table_region_operands(struct acpi_walk_state *walk_state,
- 
- 	obj_desc->region.flags |= AOPOBJ_DATA_VALID;
- 
-+cleanup:
-+	acpi_ut_remove_reference(operand[0]);
-+	acpi_ut_remove_reference(operand[1]);
-+	acpi_ut_remove_reference(operand[2]);
-+
- 	return_ACPI_STATUS(status);
- }
- 
-diff --git a/drivers/acpi/acpica/exconfig.c b/drivers/acpi/acpica/exconfig.c
-index 24a4c5c..b540913 100644
---- a/drivers/acpi/acpica/exconfig.c
-+++ b/drivers/acpi/acpica/exconfig.c
-@@ -162,14 +162,6 @@ acpi_ex_load_table_op(struct acpi_walk_state *walk_state,
- 
- 	ACPI_FUNCTION_TRACE(ex_load_table_op);
- 
--	/* Validate lengths for the Signature, oem_id, and oem_table_id strings */
--
--	if ((operand[0]->string.length > ACPI_NAME_SIZE) ||
--	    (operand[1]->string.length > ACPI_OEM_ID_SIZE) ||
--	    (operand[2]->string.length > ACPI_OEM_TABLE_ID_SIZE)) {
--		return_ACPI_STATUS(AE_AML_STRING_LIMIT);
--	}
--
- 	/* Find the ACPI table in the RSDT/XSDT */
- 
- 	status = acpi_tb_find_table(operand[0]->string.pointer,
-diff --git a/drivers/acpi/acpica/tbfind.c b/drivers/acpi/acpica/tbfind.c
-index 119c84a..405529d 100644
---- a/drivers/acpi/acpica/tbfind.c
-+++ b/drivers/acpi/acpica/tbfind.c
-@@ -68,12 +68,25 @@ acpi_status
- acpi_tb_find_table(char *signature,
- 		   char *oem_id, char *oem_table_id, u32 *table_index)
- {
--	u32 i;
- 	acpi_status status;
- 	struct acpi_table_header header;
-+	u32 i;
- 
- 	ACPI_FUNCTION_TRACE(tb_find_table);
- 
-+	/* Validate the input table signature */
-+
-+	if (!acpi_is_valid_signature(signature)) {
-+		return_ACPI_STATUS(AE_BAD_SIGNATURE);
-+	}
-+
-+	/* Don't allow the OEM strings to be too long */
-+
-+	if ((strlen(oem_id) > ACPI_OEM_ID_SIZE) ||
-+	    (strlen(oem_table_id) > ACPI_OEM_TABLE_ID_SIZE)) {
-+		return_ACPI_STATUS(AE_AML_STRING_LIMIT);
-+	}
-+
- 	/* Normalize the input strings */
- 
- 	memset(&header, 0, sizeof(struct acpi_table_header));
-diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
-index 568ac0e..db7f2aa 100644
---- a/drivers/acpi/acpica/tbutils.c
-+++ b/drivers/acpi/acpica/tbutils.c
-@@ -412,3 +412,36 @@ next_table:
- 
- 	return_ACPI_STATUS(AE_OK);
- }
-+
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_is_valid_signature
-+ *
-+ * PARAMETERS:  signature           - Sig string to be validated
-+ *
-+ * RETURN:      TRUE if signature is correct length and has valid characters
-+ *
-+ * DESCRIPTION: Validate an ACPI table signature.
-+ *
-+ ******************************************************************************/
-+
-+u8 acpi_is_valid_signature(char *signature)
-+{
-+	u32 i;
-+
-+	/* Validate the signature length */
-+
-+	if (strlen(signature) != ACPI_NAME_SIZE) {
-+		return (FALSE);
-+	}
-+
-+	/* Validate each character in the signature */
-+
-+	for (i = 0; i < ACPI_NAME_SIZE; i++) {
-+		if (!acpi_ut_valid_acpi_char(signature[i], i)) {
-+			return (FALSE);
-+		}
-+	}
-+
-+	return (TRUE);
-+}
--- 
-1.7.10
+		--Dustin
