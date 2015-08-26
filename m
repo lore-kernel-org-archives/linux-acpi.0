@@ -1,93 +1,50 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH 1/2]: nfit: Clarify memory device state flags strings
-Date: Wed, 26 Aug 2015 10:20:23 -0600
-Message-ID: <1440606024-29873-2-git-send-email-toshi.kani@hp.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH 2/2]: acpica/nfit: Rename not-armed bit definition
+Date: Wed, 26 Aug 2015 10:16:17 -0700
+Message-ID: <CAPcyv4ifkE4kZ3fc3qqwQwBa1QabMcZotLJm+gXALZbNKYQ3aQ@mail.gmail.com>
 References: <1440606024-29873-1-git-send-email-toshi.kani@hp.com>
+	<1440606024-29873-3-git-send-email-toshi.kani@hp.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1440606024-29873-1-git-send-email-toshi.kani@hp.com>
+In-Reply-To: <1440606024-29873-3-git-send-email-toshi.kani@hp.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: dan.j.williams@intel.com, rafael.j.wysocki@intel.com
-Cc: robert.moore@intel.com, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, elliott@hp.com, Toshi Kani <toshi.kani@hp.com>
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: Rafael J Wysocki <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Elliott, Robert (Server Storage)" <elliott@hp.com>
 List-Id: linux-acpi@vger.kernel.org
 
-ACPI 6.0 NFIT Memory Device State Flags in Table 5-129 defines
-NVDIMM status as follows.  These bits indicate multiple info,
-such as failures, pending event, and capability.
+On Wed, Aug 26, 2015 at 9:20 AM, Toshi Kani <toshi.kani@hp.com> wrote:
+> ACPI 6.0 NFIT Memory Device State Flags in Table 5-129 defines
+> bit 3 as follows.
+>
+>   Bit [3] set to 1 to indicate that the Memory Device is observed
+>   to be not armed prior to OSPM hand off. A Memory Device is
+>   considered armed if it is able to accept persistent writes.
+>
+> This bit is currently defined as ACPI_NFIT_MEM_ARMED, which can be
+> confusing as if the Memory Device is armed when this bit is set.
+>
+> Change the name to ACPI_NFIT_MEM_NOT_ARMED per the spec.
+>
+> Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Cc: Bob Moore <robert.moore@intel.com>
+> Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> ---
+>  drivers/acpi/nfit.c              |    6 +++---
+>  drivers/acpi/nfit.h              |    2 +-
+>  include/acpi/actbl1.h            |    2 +-
 
-  Bit [0] set to 1 to indicate that the previous SAVE to the
-  Memory Device failed.
-  Bit [1] set to 1 to indicate that the last RESTORE from the
-  Memory Device failed.
-  Bit [2] set to 1 to indicate that platform flush of data to
-  Memory Device failed. As a result, the restored data content
-  may be inconsistent even if SAVE and RESTORE do not indicate
-  failure.
-  Bit [3] set to 1 to indicate that the Memory Device is observed
-  to be not armed prior to OSPM hand off. A Memory Device is
-  considered armed if it is able to accept persistent writes.
-  Bit [4] set to 1 to indicate that the Memory Device observed
-  SMART and health events prior to OSPM handoff.
-  Bit [5] is set to 1 to indicate that platform firmware is
-  enabled to notify OSPM on SMART and health events related to
-  the memory device using Notify codes as specified in Section
-  5.6.6.
+This file "include/acpi/actbl1.h" is owned by the ACPICA project so
+any changes need to come through them.  But that said, I'm not sure we
+need friendly names at this level.
 
-/sys/bus/nd/devices/nmemX/nfit/flags shows this flags info.
-The output strings associated with the bits are "save", "restore",
-"smart", etc., which can be confusing as they may be interpreted
-as positive status, i.e. save succeeded.
+What I usually say about sysfs name changes to be more human friendly
+is "sysfs is not a UI", i.e. it's not necessarily meant to be user
+friendly.  As long as the names for the flags are distinct then
+wrapping descriptive / accurate names around them is the role of
+libndctl and userspace management software.
 
-Change the strings to be more descriptive per the ACPI spec.
-Also add a string to bit 5 for completeness.
-
-Change also the dev_info() message in acpi_nfit_register_dimms()
-to be consistent with the sysfs flags strings.
-
-Reported-by: Robert Elliott <elliott@hp.com>
-Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
----
- drivers/acpi/nfit.c |   23 ++++++++++++-----------
- 1 file changed, 12 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index c3fe206..6993ff2 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -701,12 +701,13 @@ static ssize_t flags_show(struct device *dev,
- {
- 	u16 flags = to_nfit_memdev(dev)->flags;
- 
--	return sprintf(buf, "%s%s%s%s%s\n",
--			flags & ACPI_NFIT_MEM_SAVE_FAILED ? "save " : "",
--			flags & ACPI_NFIT_MEM_RESTORE_FAILED ? "restore " : "",
--			flags & ACPI_NFIT_MEM_FLUSH_FAILED ? "flush " : "",
--			flags & ACPI_NFIT_MEM_ARMED ? "arm " : "",
--			flags & ACPI_NFIT_MEM_HEALTH_OBSERVED ? "smart " : "");
-+	return sprintf(buf, "%s%s%s%s%s%s\n",
-+		flags & ACPI_NFIT_MEM_SAVE_FAILED ? "save_fail " : "",
-+		flags & ACPI_NFIT_MEM_RESTORE_FAILED ? "restore_fail " : "",
-+		flags & ACPI_NFIT_MEM_FLUSH_FAILED ? "flush_fail " : "",
-+		flags & ACPI_NFIT_MEM_ARMED ? "not_arm " : "",
-+		flags & ACPI_NFIT_MEM_HEALTH_OBSERVED ? "smart_event " : "",
-+		flags & ACPI_NFIT_MEM_HEALTH_ENABLED ? "notify_enabled " : "");
- }
- static DEVICE_ATTR_RO(flags);
- 
-@@ -834,11 +835,11 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
- 			continue;
- 
- 		dev_info(acpi_desc->dev, "%s: failed: %s%s%s%s\n",
--				nvdimm_name(nvdimm),
--			mem_flags & ACPI_NFIT_MEM_SAVE_FAILED ? "save " : "",
--			mem_flags & ACPI_NFIT_MEM_RESTORE_FAILED ? "restore " : "",
--			mem_flags & ACPI_NFIT_MEM_FLUSH_FAILED ? "flush " : "",
--			mem_flags & ACPI_NFIT_MEM_ARMED ? "arm " : "");
-+		  nvdimm_name(nvdimm),
-+		  mem_flags & ACPI_NFIT_MEM_SAVE_FAILED ? "save_fail " : "",
-+		  mem_flags & ACPI_NFIT_MEM_RESTORE_FAILED ? "restore_fail ":"",
-+		  mem_flags & ACPI_NFIT_MEM_FLUSH_FAILED ? "flush_fail " : "",
-+		  mem_flags & ACPI_NFIT_MEM_ARMED ? "not_arm " : "");
- 
- 	}
- 
+Similar feedback for patch1 in the sense that I don't think we need to
+update the sysfs naming.  For example the API to retrieve the state of
+the "arm" flag in libndctl is ndctl_dimm_failed_arm().
