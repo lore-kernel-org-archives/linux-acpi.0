@@ -1,70 +1,131 @@
-From: "Williams, Dan J" <dan.j.williams@intel.com>
-Subject: [GIT PULL] libnvdimm fix for 4.2
-Date: Wed, 26 Aug 2015 00:16:06 +0000
-Message-ID: <1440548164.31365.13.camel@intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v8 0/9] CPUFreq driver using CPPC methods
+Date: Wed, 26 Aug 2015 02:46:01 +0200
+Message-ID: <21207145.jPCoRLotCE@vostro.rjw.lan>
+References: <cover.1438781668.git.ashwin.chaugule@linaro.org> <2045829.54HCqxaeyf@vostro.rjw.lan> <CAJ5Y-ebJhAY8PPz4AqyGBD=oGPEJOyD9eH66Dc_2S9kFT4pW4w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:45595 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753943AbbHZAQI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 25 Aug 2015 20:16:08 -0400
-Content-Language: en-US
-Content-ID: <140300644124DD46B17F8D0CF7CCC231@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <CAJ5Y-ebJhAY8PPz4AqyGBD=oGPEJOyD9eH66Dc_2S9kFT4pW4w@mail.gmail.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Cc: Jaswinder Singh <jaswinder.singh@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Patch Tracking <patches@linaro.org>, Viresh Kumar <viresh.kumar@linaro.org>, "rwells@codeaurora.org" <rwells@codeaurora.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-SGkgTGludXMgcGxlYXNlIHB1bGwgZnJvbS4uLg0KDQogIGdpdDovL2dpdC5rZXJuZWwub3JnL3B1
-Yi9zY20vbGludXgva2VybmVsL2dpdC9udmRpbW0vbnZkaW1tIGxpYm52ZGltbS1maXhlcw0KDQou
-Li50byByZWNlaXZlIGEgc2luZ2xlIGZpeCBmb3IgdGhlIG5kX2JsayBkcml2ZXIuDQoNClRoZSBl
-ZmZlY3Qgb2YgZ2V0dGluZyB0aGUgd2lkdGggb2YgdGhpcyByZWdpc3RlciByZWFkIHdyb25nIGlz
-IHRoYXQgYWxsDQpJL08gZmFpbHMgd2hlbiB0aGUgcmVhZCByZXR1cm5zIG5vbi16ZXJvLiAgR2l2
-ZW4gdGhlIGF2YWlsYWJpbGl0eSBvZg0KQUNQSSA2IE5GSVQgZW5hYmxlZCBwbGF0Zm9ybXMsIHRo
-aXMgY291bGQgcmVhc29uYWJseSB3YWl0IHRvIGNvbWUgaW4NCmR1cmluZyB0aGUgNC4zIG1lcmdl
-IHdpbmRvdyB3aXRoIGEgdGFnIGZvciA0LjItc3RhYmxlLiAgT3RoZXJ3aXNlLCB0aGlzDQptYWtl
-cyB0aGUgNC4yIGtlcm5lbCBmdWxseSBmdW5jdGlvbmFsIHdpdGggZGV2aWNlcyB0aGF0IGNvbmZv
-cm0gdG8gdGhlDQptbWlvLWJsb2NrLWFwZXJ0dXJlcyBkZWZpbmVkIGluIHRoZSBBQ1BJIDYgTkZJ
-VCAoTlZESU1NIEZpcm13YXJlDQpJbnRlcmZhY2UgVGFibGUpLg0KDQpGdWxsIGNoYW5nZWxvZyBh
-bmQgZGlmZnN0YXQgYmVsb3cuDQoNCi0tLQ0KDQoNClRoZSBmb2xsb3dpbmcgY2hhbmdlcyBzaW5j
-ZSBjb21taXQgY2JmZThmYTZjZDY3MjAxMWM3NTVjM2NkODVjOWZmZDRlMmQxMGE2ZjoNCg0KICBM
-aW51eCA0LjItcmM0ICgyMDE1LTA3LTI2IDEyOjI2OjIxIC0wNzAwKQ0KDQphcmUgYXZhaWxhYmxl
-IGluIHRoZSBnaXQgcmVwb3NpdG9yeSBhdDoNCg0KICBnaXQ6Ly9naXQua2VybmVsLm9yZy9wdWIv
-c2NtL2xpbnV4L2tlcm5lbC9naXQvbnZkaW1tL252ZGltbSBsaWJudmRpbW0tZml4ZXMNCg0KZm9y
-IHlvdSB0byBmZXRjaCBjaGFuZ2VzIHVwIHRvIGRlNGExOTZjMDJhMmEyNjMxYjUxNmQ5MGRhNmU4
-ZDA1MmNjYjA3ZTg6DQoNCiAgbmZpdCwgbmRfYmxrOiBCTEsgc3RhdHVzIHJlZ2lzdGVyIGlzIG9u
-bHkgMzIgYml0cyAoMjAxNS0wOC0yNSAxOTo0MjowMSAtMDQwMCkNCg0KLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQ0KUm9zcyBa
-d2lzbGVyICgxKToNCiAgICAgIG5maXQsIG5kX2JsazogQkxLIHN0YXR1cyByZWdpc3RlciBpcyBv
-bmx5IDMyIGJpdHMNCg0KIGRyaXZlcnMvYWNwaS9uZml0LmMgfCA0ICsrLS0NCiAxIGZpbGUgY2hh
-bmdlZCwgMiBpbnNlcnRpb25zKCspLCAyIGRlbGV0aW9ucygtKQ0KDQotLS0NCg0KY29tbWl0IGRl
-NGExOTZjMDJhMmEyNjMxYjUxNmQ5MGRhNmU4ZDA1MmNjYjA3ZTgNCkF1dGhvcjogUm9zcyBad2lz
-bGVyIDxyb3NzLnp3aXNsZXJAbGludXguaW50ZWwuY29tPg0KRGF0ZTogICBUaHUgQXVnIDIwIDE2
-OjI3OjM4IDIwMTUgLTA2MDANCg0KICAgIG5maXQsIG5kX2JsazogQkxLIHN0YXR1cyByZWdpc3Rl
-ciBpcyBvbmx5IDMyIGJpdHMNCiAgICANCiAgICBPbmx5IHJlYWQgMzIgYml0cyBmb3IgdGhlIEJM
-SyBzdGF0dXMgcmVnaXN0ZXIgaW4gcmVhZF9ibGtfc3RhdCgpLg0KICAgIA0KICAgIFRoZSBmb3Jt
-YXQgYW5kIHNpemUgb2YgdGhpcyByZWdpc3RlciBpcyBkZWZpbmVkIGluIHRoZQ0KICAgICJOVkRJ
-TU0gRHJpdmVyIFdyaXRlcidzIGd1aWRlIjoNCiAgICANCiAgICBodHRwOi8vcG1lbS5pby9kb2N1
-bWVudHMvTlZESU1NX0RyaXZlcl9Xcml0ZXJzX0d1aWRlLnBkZg0KICAgIA0KICAgIFNpZ25lZC1v
-ZmYtYnk6IFJvc3MgWndpc2xlciA8cm9zcy56d2lzbGVyQGxpbnV4LmludGVsLmNvbT4NCiAgICBS
-ZXBvcnRlZC1ieTogTmljaG9sYXMgTW91bGluIDxuaWNob2xhcy53Lm1vdWxpbkBsaW51eC5pbnRl
-bC5jb20+DQogICAgVGVzdGVkLWJ5OiBOaWNob2xhcyBNb3VsaW4gPG5pY2hvbGFzLncubW91bGlu
-QGxpbnV4LmludGVsLmNvbT4NCiAgICBSZXZpZXdlZC1ieTogSmVmZiBNb3llciA8am1veWVyQHJl
-ZGhhdC5jb20+DQogICAgU2lnbmVkLW9mZi1ieTogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFt
-c0BpbnRlbC5jb20+DQoNCmRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvbmZpdC5jIGIvZHJpdmVy
-cy9hY3BpL25maXQuYw0KaW5kZXggNjI4YTQyYzQxYWIxLi5iYjI5ZTU2Mjc2YmQgMTAwNjQ0DQot
-LS0gYS9kcml2ZXJzL2FjcGkvbmZpdC5jDQorKysgYi9kcml2ZXJzL2FjcGkvbmZpdC5jDQpAQCAt
-MTAyNCw3ICsxMDI0LDcgQEAgc3RhdGljIHZvaWQgd21iX2JsayhzdHJ1Y3QgbmZpdF9ibGsgKm5m
-aXRfYmxrKQ0KIAkJd21iX3BtZW0oKTsNCiB9DQogDQotc3RhdGljIHU2NCByZWFkX2Jsa19zdGF0
-KHN0cnVjdCBuZml0X2JsayAqbmZpdF9ibGssIHVuc2lnbmVkIGludCBidykNCitzdGF0aWMgdTMy
-IHJlYWRfYmxrX3N0YXQoc3RydWN0IG5maXRfYmxrICpuZml0X2JsaywgdW5zaWduZWQgaW50IGJ3
-KQ0KIHsNCiAJc3RydWN0IG5maXRfYmxrX21taW8gKm1taW8gPSAmbmZpdF9ibGstPm1taW9bRENS
-XTsNCiAJdTY0IG9mZnNldCA9IG5maXRfYmxrLT5zdGF0X29mZnNldCArIG1taW8tPnNpemUgKiBi
-dzsNCkBAIC0xMDMyLDcgKzEwMzIsNyBAQCBzdGF0aWMgdTY0IHJlYWRfYmxrX3N0YXQoc3RydWN0
-IG5maXRfYmxrICpuZml0X2JsaywgdW5zaWduZWQgaW50IGJ3KQ0KIAlpZiAobW1pby0+bnVtX2xp
-bmVzKQ0KIAkJb2Zmc2V0ID0gdG9faW50ZXJsZWF2ZV9vZmZzZXQob2Zmc2V0LCBtbWlvKTsNCiAN
-Ci0JcmV0dXJuIHJlYWRxKG1taW8tPmJhc2UgKyBvZmZzZXQpOw0KKwlyZXR1cm4gcmVhZGwobW1p
-by0+YmFzZSArIG9mZnNldCk7DQogfQ0KIA0KIHN0YXRpYyB2b2lkIHdyaXRlX2Jsa19jdGwoc3Ry
-dWN0IG5maXRfYmxrICpuZml0X2JsaywgdW5zaWduZWQgaW50IGJ3LA0KDQo=
+On Tuesday, August 25, 2015 08:03:06 PM Ashwin Chaugule wrote:
+> On 25 August 2015 at 20:24, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> > On Wednesday, August 05, 2015 09:40:23 AM Ashwin Chaugule wrote:
+> >> CPPC:
+> >> ====
+> >>
+> >> CPPC (Collaborative Processor Performance Control) is a new way to control CPU
+> >> performance using an abstract continous scale as against a discretized P-state scale
+> >> which is tied to CPU frequency only. It is defined in the ACPI 5.0+ spec. In brief,
+> >> the basic operation involves:
+> >> - OS makes a CPU performance request. (Can provide min and max tolerable bounds)
+> >>
+> >> - Platform (such as BMC) is free to optimize request within requested bounds depending
+> >> on power/thermal budgets etc.
+> >>
+> >> - Platform conveys its decision back to OS
+> >>
+> >> The communication between OS and platform occurs through another medium called (PCC)
+> >> Platform communication Channel. This is a generic mailbox like mechanism which includes
+> >> doorbell semantics to indicate register updates. See drivers/mailbox/pcc.c
+> >>
+> >> This patchset introduces a CPPC based CPUFreq driver that works with existing governors
+> >> such as ondemand. The CPPC table parsing and the CPPC communication semantics are
+> >> abstracted into separate files to allow future CPPC based drivers to implement their
+> >> own governors if required.
+> >>
+> >> Initial patchsets included an adaptation of the PID governor from intel_pstate.c. However
+> >> recent experiments led to extensive modifications of the algorithm to calculate CPU
+> >> busyness. Until it is verified that these changes are worthwhile, the existing governors
+> >> should provide for a good enough starting point for ARM64 servers.
+> >>
+> >> Finer details about the PCC and CPPC spec are available in the latest ACPI 5.1
+> >> specification.[2]
+> >>
+> >> Testing:
+> >> =======
+> >>
+> >> This was tested on an SBSA compatible ARMv8 server with CPPCv2
+> >> firmware running on a remote processor. I verified that each CPUs
+> >> performance limits were detected and that new performance requests
+> >> were made by the on-demand governor proportional to the load on each
+> >> CPU. I also verified that using the acpi_processor driver correctly
+> >> maps the physical CPU ids to logical CPU ids, which helps in picking
+> >> up the proper _CPC details from a processor object, in the case where
+> >> CPU physical ids may not be contiguous.
+> >>
+> >> Changes since V7:
+> >> - Simplied new kconfig options for PSS and idle.
+> >> - Separated patch to enable acpi processor on ARM64.
+> >> - Removed redundant kconfig cross deps on PCC.
+> >> - Decoupled processor_perflib from new PSS kconfig option.
+> >>
+> >> Changes since V6:
+> >> - Separated PSS and CST from ACPI processor driver in two patches.
+> >> - Made new Kconfig symbols auto selectable from Arch Kconfigs.
+> >>
+> >> Changes since V5:
+> >> - Checkpatch cleanups.
+> >> - Change pss_init to pss_perf_init. Rec by Srinivas Pandruvada.
+> >> - Explicit comment explaining why postcore_initcall to pcc mailbox.
+> >> - Fold acpi_processor_syscore_init/exit into CONFIG_ACPI_CST.
+> >> - Added patch with dummy functions used by ACPI_HOTPLUG_CPU.
+> >>
+> >> Changes since V4:
+> >> - Misc cleanups. Addressed feedback from Rafael.
+> >> - Made acpi_processor.c independent of C-states, P-states and others.
+> >> - Per CPU scanning for _CPC is now made from acpi_processor.c
+> >> - Added new Kconfig options for legacy C states and P states to enable future
+> >> support for newer alternatives as defined in the ACPI spec 6.0.
+> >>
+> >> Changes since V3:
+> >> - Split CPPC backend methods into separate files.
+> >> - Add frontend driver which plugs into existing CPUfreq governors.
+> >> - Simplify PCC driver by moving communication space mapping and read/write
+> >>       into client drivers.
+> >>
+> >> Changes since V2:
+> >> - Select driver if !X86, since intel_pstate will use HWP extensions instead.
+> >> - Added more comments.
+> >> - Added Freq domain awareness and PSD parsing.
+> >>
+> >> Changes since V1:
+> >> - Create a new driver based on Dirks suggestion.
+> >> - Fold in CPPC backend hooks into main driver.
+> >>
+> >> Changes since V0: [1]
+> >> - Split intel_pstate.c into a generic PID governor and platform specific backend.
+> >> - Add CPPC accessors as PID backend.
+> >>
+> >> [1] - http://lwn.net/Articles/608715/
+> >> [2] - http://www.uefi.org/sites/default/files/resources/ACPI_5_1release.pdf
+> >> [3] - https://patches.linaro.org/40705/
+> >>
+> >>
+> >> Ashwin Chaugule (9):
+> >>   PCC: Initialize PCC Mailbox earlier at boot
+> >>   ACPI: Split out ACPI PSS from ACPI Processor driver
+> >>   ACPI: Decouple ACPI idle and ACPI processor drivers
+> >>   ACPI: Introduce CPU performance controls using CPPC
+> >>   CPPC: Add a CPUFreq driver for use with CPPC
+> >>   ACPI: Add weak routines for ACPI CPU Hotplug
+> >>   CPPC: Probe for CPPC tables for each ACPI Processor object
+> >>   PCC: Disable compilation by default
+> >>   ACPI: Allow selection of the ACPI processor driver for ARM64
+> >
+> > I've queued up [1-3/9] for 4.3, but I still have a couple of questions/comments
+> > regarding [4/9] and the rest of the series (I'll respond to the patch messages
+> > with those).
+> 
+> Thanks! Would you mind taking [8/9] too? It just defaults PCC to disabled.
+
+OK, I'll do that.
+
+Thanks,
+Rafael
+
