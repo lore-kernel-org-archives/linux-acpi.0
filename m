@@ -1,43 +1,40 @@
-From: Timur Tabi <timur@codeaurora.org>
-Subject: Re: [PATCH v2 1/5] ACPI: add in a bad_madt_entry() function to
- eventually replace the macro
-Date: Wed, 26 Aug 2015 10:38:42 -0500
-Message-ID: <CAOZdJXXCnb7ChYqh-QYptTQBmfESDPaauThHyu8Dav6Qs_+4Bw@mail.gmail.com>
-References: <1440022048-6285-1-git-send-email-al.stone@linaro.org>
-	<1440022048-6285-2-git-send-email-al.stone@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <1440022048-6285-2-git-send-email-al.stone@linaro.org>
-Sender: linux-ia64-owner@vger.kernel.org
-To: Al Stone <al.stone@linaro.org>
-Cc: linux-acpi@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linaro-kernel@lists.linaro.org, linux-ia64@vger.kernel.org, patches@linaro.org, linux-pm@vger.kernel.org, linaro-acpi@lists.linaro.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, lkml <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: [PATCH 0/2]: acpi, nfit: Clarify memory device state flags
+Date: Wed, 26 Aug 2015 10:20:22 -0600
+Message-ID: <1440606024-29873-1-git-send-email-toshi.kani@hp.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g2t1383g.austin.hp.com ([15.217.136.92]:47322 "EHLO
+	g2t1383g.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756359AbbHZQWf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Aug 2015 12:22:35 -0400
+Received: from g1t5425.austin.hp.com (g1t5425.austin.hp.com [15.216.225.55])
+	(using TLSv1.2 with cipher DHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by g2t1383g.austin.hp.com (Postfix) with ESMTPS id 5BA482636
+	for <linux-acpi@vger.kernel.org>; Wed, 26 Aug 2015 16:22:34 +0000 (UTC)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: dan.j.williams@intel.com, rafael.j.wysocki@intel.com
+Cc: robert.moore@intel.com, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, elliott@hp.com
 
-On Wed, Aug 19, 2015 at 5:07 PM, Al Stone <al.stone@linaro.org> wrote:
-> +                               pr_err("Variable length MADT subtable %d is wrong size: %d\n",
-> +                                      entry->type, entry->length);
-> +                               return 1;
-> +                       }
-> +               }
-> +       } else {
-> +               if (entry->length != len) {
-> +                       pr_err("MADT subtable %d is wrong size: %d\n",
-> +                              len, entry->type);
+ACPI 6.0 NFIT Memory Device State Flags in Table 5-129 defines
+NVDIMM status.  User can check the NVDIMM status from sysfs and
+dmesg output, but the output can be confusing at this point.
 
-Can we make these a little more descriptive?
+Patch 01 clarifies the output strings from the sysfs and dmesg.
 
-pr_err("Variable length MADT subtable type %d is wrong size: %d,
-should be %d\n",
-      entry->type, entry->length, len);
+Patch 02 clarifies the define name of not-arm bit in the flags.
 
-pr_err("MADT subtable type %d is wrong size: %d, should be %d\n",
-      entry->type, entry->length, len);
+This patchset is based on libnvdimm-pending of the nvdimm tree.
 
+---
+Toshi Kani (2):
+  1/2 nfit: Clarify memory device state flags strings
+  2/2 acpica/nfit: Rename not-armed bit definition
 
-
-
--- 
-Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project.
+---
+ drivers/acpi/nfit.c              | 25 +++++++++++++------------
+ drivers/acpi/nfit.h              |  2 +-
+ include/acpi/actbl1.h            |  2 +-
+ tools/testing/nvdimm/test/nfit.c |  2 +-
+ 4 files changed, 16 insertions(+), 15 deletions(-)
