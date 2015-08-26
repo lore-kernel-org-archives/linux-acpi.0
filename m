@@ -1,7 +1,7 @@
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: [PATCH 2/2]: acpica/nfit: Rename not-armed bit definition
-Date: Wed, 26 Aug 2015 10:20:24 -0600
-Message-ID: <1440606024-29873-3-git-send-email-toshi.kani@hp.com>
+Subject: [PATCH 1/2]: nfit: Clarify memory device state flags strings
+Date: Wed, 26 Aug 2015 10:20:23 -0600
+Message-ID: <1440606024-29873-2-git-send-email-toshi.kani@hp.com>
 References: <1440606024-29873-1-git-send-email-toshi.kani@hp.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1440606024-29873-1-git-send-email-toshi.kani@hp.com>
@@ -11,95 +11,83 @@ Cc: robert.moore@intel.com, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.or
 List-Id: linux-acpi@vger.kernel.org
 
 ACPI 6.0 NFIT Memory Device State Flags in Table 5-129 defines
-bit 3 as follows.
+NVDIMM status as follows.  These bits indicate multiple info,
+such as failures, pending event, and capability.
 
+  Bit [0] set to 1 to indicate that the previous SAVE to the
+  Memory Device failed.
+  Bit [1] set to 1 to indicate that the last RESTORE from the
+  Memory Device failed.
+  Bit [2] set to 1 to indicate that platform flush of data to
+  Memory Device failed. As a result, the restored data content
+  may be inconsistent even if SAVE and RESTORE do not indicate
+  failure.
   Bit [3] set to 1 to indicate that the Memory Device is observed
   to be not armed prior to OSPM hand off. A Memory Device is
   considered armed if it is able to accept persistent writes.
+  Bit [4] set to 1 to indicate that the Memory Device observed
+  SMART and health events prior to OSPM handoff.
+  Bit [5] is set to 1 to indicate that platform firmware is
+  enabled to notify OSPM on SMART and health events related to
+  the memory device using Notify codes as specified in Section
+  5.6.6.
 
-This bit is currently defined as ACPI_NFIT_MEM_ARMED, which can be
-confusing as if the Memory Device is armed when this bit is set.
+/sys/bus/nd/devices/nmemX/nfit/flags shows this flags info.
+The output strings associated with the bits are "save", "restore",
+"smart", etc., which can be confusing as they may be interpreted
+as positive status, i.e. save succeeded.
 
-Change the name to ACPI_NFIT_MEM_NOT_ARMED per the spec.
+Change the strings to be more descriptive per the ACPI spec.
+Also add a string to bit 5 for completeness.
 
+Change also the dev_info() message in acpi_nfit_register_dimms()
+to be consistent with the sysfs flags strings.
+
+Reported-by: Robert Elliott <elliott@hp.com>
 Signed-off-by: Toshi Kani <toshi.kani@hp.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Bob Moore <robert.moore@intel.com>
-Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 ---
- drivers/acpi/nfit.c              |    6 +++---
- drivers/acpi/nfit.h              |    2 +-
- include/acpi/actbl1.h            |    2 +-
- tools/testing/nvdimm/test/nfit.c |    2 +-
- 4 files changed, 6 insertions(+), 6 deletions(-)
+ drivers/acpi/nfit.c |   23 ++++++++++++-----------
+ 1 file changed, 12 insertions(+), 11 deletions(-)
 
 diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index 6993ff2..1eb3654 100644
+index c3fe206..6993ff2 100644
 --- a/drivers/acpi/nfit.c
 +++ b/drivers/acpi/nfit.c
-@@ -705,7 +705,7 @@ static ssize_t flags_show(struct device *dev,
- 		flags & ACPI_NFIT_MEM_SAVE_FAILED ? "save_fail " : "",
- 		flags & ACPI_NFIT_MEM_RESTORE_FAILED ? "restore_fail " : "",
- 		flags & ACPI_NFIT_MEM_FLUSH_FAILED ? "flush_fail " : "",
--		flags & ACPI_NFIT_MEM_ARMED ? "not_arm " : "",
-+		flags & ACPI_NFIT_MEM_NOT_ARMED ? "not_arm " : "",
- 		flags & ACPI_NFIT_MEM_HEALTH_OBSERVED ? "smart_event " : "",
- 		flags & ACPI_NFIT_MEM_HEALTH_ENABLED ? "notify_enabled " : "");
+@@ -701,12 +701,13 @@ static ssize_t flags_show(struct device *dev,
+ {
+ 	u16 flags = to_nfit_memdev(dev)->flags;
+ 
+-	return sprintf(buf, "%s%s%s%s%s\n",
+-			flags & ACPI_NFIT_MEM_SAVE_FAILED ? "save " : "",
+-			flags & ACPI_NFIT_MEM_RESTORE_FAILED ? "restore " : "",
+-			flags & ACPI_NFIT_MEM_FLUSH_FAILED ? "flush " : "",
+-			flags & ACPI_NFIT_MEM_ARMED ? "arm " : "",
+-			flags & ACPI_NFIT_MEM_HEALTH_OBSERVED ? "smart " : "");
++	return sprintf(buf, "%s%s%s%s%s%s\n",
++		flags & ACPI_NFIT_MEM_SAVE_FAILED ? "save_fail " : "",
++		flags & ACPI_NFIT_MEM_RESTORE_FAILED ? "restore_fail " : "",
++		flags & ACPI_NFIT_MEM_FLUSH_FAILED ? "flush_fail " : "",
++		flags & ACPI_NFIT_MEM_ARMED ? "not_arm " : "",
++		flags & ACPI_NFIT_MEM_HEALTH_OBSERVED ? "smart_event " : "",
++		flags & ACPI_NFIT_MEM_HEALTH_ENABLED ? "notify_enabled " : "");
  }
-@@ -815,7 +815,7 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
- 			flags |= NDD_ALIASING;
+ static DEVICE_ATTR_RO(flags);
  
- 		mem_flags = __to_nfit_memdev(nfit_mem)->flags;
--		if (mem_flags & ACPI_NFIT_MEM_ARMED)
-+		if (mem_flags & ACPI_NFIT_MEM_NOT_ARMED)
- 			flags |= NDD_UNARMED;
+@@ -834,11 +835,11 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
+ 			continue;
  
- 		rc = acpi_nfit_add_dimm(acpi_desc, nfit_mem, device_handle);
-@@ -839,7 +839,7 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
- 		  mem_flags & ACPI_NFIT_MEM_SAVE_FAILED ? "save_fail " : "",
- 		  mem_flags & ACPI_NFIT_MEM_RESTORE_FAILED ? "restore_fail ":"",
- 		  mem_flags & ACPI_NFIT_MEM_FLUSH_FAILED ? "flush_fail " : "",
--		  mem_flags & ACPI_NFIT_MEM_ARMED ? "not_arm " : "");
-+		  mem_flags & ACPI_NFIT_MEM_NOT_ARMED ? "not_arm " : "");
+ 		dev_info(acpi_desc->dev, "%s: failed: %s%s%s%s\n",
+-				nvdimm_name(nvdimm),
+-			mem_flags & ACPI_NFIT_MEM_SAVE_FAILED ? "save " : "",
+-			mem_flags & ACPI_NFIT_MEM_RESTORE_FAILED ? "restore " : "",
+-			mem_flags & ACPI_NFIT_MEM_FLUSH_FAILED ? "flush " : "",
+-			mem_flags & ACPI_NFIT_MEM_ARMED ? "arm " : "");
++		  nvdimm_name(nvdimm),
++		  mem_flags & ACPI_NFIT_MEM_SAVE_FAILED ? "save_fail " : "",
++		  mem_flags & ACPI_NFIT_MEM_RESTORE_FAILED ? "restore_fail ":"",
++		  mem_flags & ACPI_NFIT_MEM_FLUSH_FAILED ? "flush_fail " : "",
++		  mem_flags & ACPI_NFIT_MEM_ARMED ? "not_arm " : "");
  
  	}
  
-diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
-index f2c2bb7..de4a00d 100644
---- a/drivers/acpi/nfit.h
-+++ b/drivers/acpi/nfit.h
-@@ -24,7 +24,7 @@
- #define UUID_NFIT_DIMM "4309ac30-0d11-11e4-9191-0800200c9a66"
- #define ACPI_NFIT_MEM_FAILED_MASK (ACPI_NFIT_MEM_SAVE_FAILED \
- 		| ACPI_NFIT_MEM_RESTORE_FAILED | ACPI_NFIT_MEM_FLUSH_FAILED \
--		| ACPI_NFIT_MEM_ARMED)
-+		| ACPI_NFIT_MEM_NOT_ARMED)
- 
- enum nfit_uuids {
- 	NFIT_SPA_VOLATILE,
-diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
-index fcd5709..238754e 100644
---- a/include/acpi/actbl1.h
-+++ b/include/acpi/actbl1.h
-@@ -1012,7 +1012,7 @@ struct acpi_nfit_memory_map {
- #define ACPI_NFIT_MEM_SAVE_FAILED       (1)	/* 00: Last SAVE to Memory Device failed */
- #define ACPI_NFIT_MEM_RESTORE_FAILED    (1<<1)	/* 01: Last RESTORE from Memory Device failed */
- #define ACPI_NFIT_MEM_FLUSH_FAILED      (1<<2)	/* 02: Platform flush failed */
--#define ACPI_NFIT_MEM_ARMED             (1<<3)	/* 03: Memory Device observed to be not armed */
-+#define ACPI_NFIT_MEM_NOT_ARMED         (1<<3)	/* 03: Memory Device observed to be not armed */
- #define ACPI_NFIT_MEM_HEALTH_OBSERVED   (1<<4)	/* 04: Memory Device observed SMART/health events */
- #define ACPI_NFIT_MEM_HEALTH_ENABLED    (1<<5)	/* 05: SMART/health events enabled */
- 
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 28dba91..9495249 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -998,7 +998,7 @@ static void nfit_test1_setup(struct nfit_test *t)
- 	memdev->interleave_ways = 1;
- 	memdev->flags = ACPI_NFIT_MEM_SAVE_FAILED | ACPI_NFIT_MEM_RESTORE_FAILED
- 		| ACPI_NFIT_MEM_FLUSH_FAILED | ACPI_NFIT_MEM_HEALTH_OBSERVED
--		| ACPI_NFIT_MEM_ARMED;
-+		| ACPI_NFIT_MEM_NOT_ARMED;
- 
- 	offset += sizeof(*memdev);
- 	/* dcr-descriptor0 */
