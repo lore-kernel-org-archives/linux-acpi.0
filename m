@@ -1,77 +1,77 @@
-From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Subject: Re: [PATCH V2 4/4] PCI: ACPI: Add support for PCI device DMA
- coherency
-Date: Wed, 26 Aug 2015 09:01:58 +0700
-Message-ID: <55DD1E16.40607@amd.com>
-References: <1440524009-5359-1-git-send-email-Suravee.Suthikulpanit@amd.com>
- <1440524009-5359-5-git-send-email-Suravee.Suthikulpanit@amd.com>
- <5541922.5doADRYBJG@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH V2 2/4] ACPI/scan: Clean up acpi_check_dma
+Date: Wed, 26 Aug 2015 04:44:20 +0200
+Message-ID: <1937405.90E8lxrvy8@vostro.rjw.lan>
+References: <1440524009-5359-1-git-send-email-Suravee.Suthikulpanit@amd.com> <1659571.paO1iYcMuM@vostro.rjw.lan> <55DD1DB7.1020203@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bn1bon0058.outbound.protection.outlook.com ([157.56.111.58]:4205
-	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752277AbbHZCCJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 25 Aug 2015 22:02:09 -0400
-In-Reply-To: <5541922.5doADRYBJG@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <55DD1DB7.1020203@amd.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Cc: bhelgaas@google.com, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, hanjun.guo@linaro.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rob Herring <robh+dt@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: bhelgaas@google.com, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, hanjun.guo@linaro.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rob Herring <robh+dt@kernel.org>, Murali Karicheri <m-karicheri2@ti.com>
 
-Hi Rafael,
+On Wednesday, August 26, 2015 09:00:23 AM Suravee Suthikulpanit wrote:
+> Hi Rafael,
+> 
+> On 8/26/15 06:48, Rafael J. Wysocki wrote:
+> 
+> >[...]
+> > On Wednesday, August 26, 2015 12:33:27 AM Suravee Suthikulpanit wrote:
+> >> diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
+> >> index b9657af..55cf916 100644
+> >> --- a/drivers/acpi/glue.c
+> >> +++ b/drivers/acpi/glue.c
+> >> @@ -168,7 +168,7 @@ int acpi_bind_one(struct device *dev, struct acpi_device *acpi_dev)
+> >>   	struct list_head *physnode_list;
+> >>   	unsigned int node_id;
+> >>   	int retval = -EINVAL;
+> >> -	bool coherent;
+> >> +	int coherent;
+> >
+> > enum, anyone?  With clearly defined values?
+> 
+> Originally I had defined
+> 
+> enum acpi_dma_coherency {
+> 	ACPI_DMA_NON_COHERENT,
+> 	ACPI_DMA_COHERENT,
+> 	APCI_DMA_NOT_SUPPORTED = -1,
+> };
+> 
+> Although, this would need to be defined in the include/linux/acpi.h, and 
+> will be used also for #ifndef CONFIG_ACPI code to return errors. I was 
+> not sure if this would be too much. If this is preferred, I'll add this 
+> back in.
+> 
+> >>
+> >>   	if (has_acpi_companion(dev)) {
+> >>   		if (acpi_dev) {
+> >> @@ -225,7 +225,8 @@ int acpi_bind_one(struct device *dev, struct acpi_device *acpi_dev)
+> >>   	if (!has_acpi_companion(dev))
+> >>   		ACPI_COMPANION_SET(dev, acpi_dev);
+> >>
+> >> -	if (acpi_check_dma(acpi_dev, &coherent))
+> >> +	coherent = acpi_check_dma_coherency(acpi_dev);
+> >> +	if (coherent != -1)
+> >
+> > Like here I'm not sure why -1 is special?
+> 
+> It's just another value to communicate that DMA is not supported. :)
 
-On 8/26/15 06:48, Rafael J. Wysocki wrote:
-> On Wednesday, August 26, 2015 12:33:29 AM Suravee Suthikulpanit wrote:
->> This patch adds support for setting up PCI device DMA coherency from
->> ACPI _CCA object that should normally be specified in the DSDT node
->> of its PCI host bridge.
->>
->> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
->> CC: Bjorn Helgaas <bhelgaas@google.com>
->> CC: Catalin Marinas <catalin.marinas@arm.com>
->> CC: Rob Herring <robh+dt@kernel.org>
->> CC: Will Deacon <will.deacon@arm.com>
->> CC: Rafael J. Wysocki <rjw@rjwysocki.net>
->> CC: Murali Karicheri <m-karicheri2@ti.com>
->> ---
->>   drivers/pci/probe.c | 15 ++++++++++-----
->>   1 file changed, 10 insertions(+), 5 deletions(-)
->>
->> diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
->> index 4de6594..2fd2a60 100644
->> --- a/drivers/pci/probe.c
->> +++ b/drivers/pci/probe.c
->> @@ -1551,17 +1551,22 @@ static void pci_init_capabilities(struct pci_dev *dev)
->>    * @dev: ptr to pci_dev struct of the PCI device
->>    *
->>    * Function to update PCI devices's DMA configuration using the same
->> - * info from the OF node of host bridge's parent (if any).
->> + * info from the OF node or ACPI node of host bridge's parent (if any).
->>    */
->>   static void pci_dma_configure(struct pci_dev *dev)
->>   {
->>   	struct device *bridge = pci_get_host_bridge_device(dev);
->>
->>   	if (IS_ENABLED(CONFIG_OF) && dev->dev.of_node) {
->> -		if (!bridge->parent)
->> -			return;
->> -
->> -		of_dma_configure(&dev->dev, bridge->parent->of_node);
->> +		if (bridge->parent)
->> +			of_dma_configure(&dev->dev,
->> +					 bridge->parent->of_node);
->> +	} else if (has_acpi_companion(bridge)) {
->> +		struct acpi_device *adev = to_acpi_node(bridge->fwnode);
->> +		int coherent = acpi_check_dma_coherency(adev);
->> +
->> +		if (-1 != coherent)
->
-> The ordering of this check is somewhat unusual.
+OK
 
-I'll fix this.
+So maybe use 0/1 for the coherence thing and a proper error code
+(-ENOTSUPP seems to be a good candidate) for the "no DMA" case?
+
+Then, if you rename the local variable to something like "ret",
+it will be slightly less confusing.
+
+And instead of checking against a specific negative value, you can
+simply use "if (stuff < 0)" or "if (stuff >= 0)" to check whether or
+not it is supported at all.
 
 Thanks,
-Suravee
+Rafael
