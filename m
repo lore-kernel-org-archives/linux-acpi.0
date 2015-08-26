@@ -1,42 +1,58 @@
-From: Thomas Gleixner <tglx@linutronix.de>
-Subject: Re: [Patch v3] ACPI, PCI: Penalize legacy IRQ used by ACPI SCI
-Date: Thu, 27 Aug 2015 00:07:45 +0200 (CEST)
-Message-ID: <alpine.DEB.2.11.1508270007220.15006@nanos>
-References: <alpine.DEB.2.11.1508201247370.3873@nanos> <1440142584-22404-1-git-send-email-jiang.liu@linux.intel.com> <alpine.DEB.2.11.1508241957590.15006@nanos> <55DD2791.3020905@intel.com> <alpine.DEB.2.11.1508261127060.15006@nanos>
- <CAJZ5v0ig2dbGtm6Td+kEw6H=ufwZTd4TWPdtUGFXgPbRJKTtPw@mail.gmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH 2/2]: acpica/nfit: Rename not-armed bit definition
+Date: Thu, 27 Aug 2015 01:16:41 +0200
+Message-ID: <CAJZ5v0g2AF7P=T-L_DJqLbOSAoqWcgZseTbeMCx9yChkNgFJOw@mail.gmail.com>
+References: <1440606024-29873-1-git-send-email-toshi.kani@hp.com>
+	<1440606024-29873-3-git-send-email-toshi.kani@hp.com>
+	<CAPcyv4ifkE4kZ3fc3qqwQwBa1QabMcZotLJm+gXALZbNKYQ3aQ@mail.gmail.com>
+	<1440623522.14237.57.camel@hp.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from www.linutronix.de ([62.245.132.108]:57628 "EHLO
-	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752047AbbHZWIb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Aug 2015 18:08:31 -0400
-In-Reply-To: <CAJZ5v0ig2dbGtm6Td+kEw6H=ufwZTd4TWPdtUGFXgPbRJKTtPw@mail.gmail.com>
+Received: from mail-pa0-f47.google.com ([209.85.220.47]:34197 "EHLO
+	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752089AbbHZXQl (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 26 Aug 2015 19:16:41 -0400
+In-Reply-To: <1440623522.14237.57.camel@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Aaron Lu <aaron.lu@intel.com>, Jiang Liu <jiang.liu@linux.intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Nick Meier <nmeier@microsoft.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>
+To: Toshi Kani <toshi.kani@hp.com>
+Cc: Dan Williams <dan.j.williams@intel.com>, Rafael J Wysocki <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Elliott, Robert (Server Storage)" <elliott@hp.com>
 
-On Wed, 26 Aug 2015, Rafael J. Wysocki wrote:
-> On Wed, Aug 26, 2015 at 11:27 AM, Thomas Gleixner <tglx@linutronix.de> wrote:
-> > On Wed, 26 Aug 2015, Aaron Lu wrote:
-> >> On 08/25/2015 04:01 PM, Thomas Gleixner wrote:
-> >> > On Fri, 21 Aug 2015, Jiang Liu wrote:
-> >> >> ---
-> >> >> Hi Nick,
-> >> >>    Rafael and Thomas have concerns about the way to solve the
-> >> >> regression by quirk, so could you please help to test this patch?
-> >> >
-> >> > Nick, can you please confirm that this works?
-> >>
-> >> I saw Nick said this in bugzilla:
-> >> "
-> >> Tested the v3 patch - it works in a Hyper-V environment.  The Tulip driver loads and the NIC was successfully assigned an IP address via DHCP.
-> >
-> > Rafael, can you take it via the ACPI tree?
-> 
-> I'll do that.
+On Wed, Aug 26, 2015 at 11:12 PM, Toshi Kani <toshi.kani@hp.com> wrote:
+> On Wed, 2015-08-26 at 10:16 -0700, Dan Williams wrote:
+>> On Wed, Aug 26, 2015 at 9:20 AM, Toshi Kani <toshi.kani@hp.com> wrote:
+>> > ACPI 6.0 NFIT Memory Device State Flags in Table 5-129 defines
+>> > bit 3 as follows.
+>> >
+>> >   Bit [3] set to 1 to indicate that the Memory Device is observed
+>> >   to be not armed prior to OSPM hand off. A Memory Device is
+>> >   considered armed if it is able to accept persistent writes.
+>> >
+>> > This bit is currently defined as ACPI_NFIT_MEM_ARMED, which can be
+>> > confusing as if the Memory Device is armed when this bit is set.
+>> >
+>> > Change the name to ACPI_NFIT_MEM_NOT_ARMED per the spec.
+>> >
+>> > Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+>> > Cc: Dan Williams <dan.j.williams@intel.com>
+>> > Cc: Bob Moore <robert.moore@intel.com>
+>> > Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+>> > ---
+>> >  drivers/acpi/nfit.c              |    6 +++---
+>> >  drivers/acpi/nfit.h              |    2 +-
+>> >  include/acpi/actbl1.h            |    2 +-
+>>
+>> This file "include/acpi/actbl1.h" is owned by the ACPICA project so
+>> any changes need to come through them.  But that said, I'm not sure we
+>> need friendly names at this level.
+>
+> I think the name is misleading, but I agree with the process and this patch2
+> can be dropped.  It'd be nice if the ACPICA project can pick it up later
+> when they have a chance, though.
 
-Forgot to say:
+A good way to cause that to happen would be to send a patch to the
+ACPICA development list + maintainers as per MAINTAINERS.
 
-Acked-by: Thomas Gleixner <tglx@linutronix.de>
+Thanks,
+Rafael
