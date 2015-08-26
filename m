@@ -1,60 +1,34 @@
-From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Subject: Re: [PATCH V2 0/4] PCI: ACPI: Setting up DMA coherency for PCI device
- from _CCA attribute
-Date: Wed, 26 Aug 2015 09:36:28 +0700
-Message-ID: <55DD262C.3010008@amd.com>
-References: <1440524009-5359-1-git-send-email-Suravee.Suthikulpanit@amd.com>
- <240091906.Gl2z931jjW@wuerfel>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: Re: [Patch v3] ACPI, PCI: Penalize legacy IRQ used by ACPI SCI
+Date: Wed, 26 Aug 2015 10:42:25 +0800
+Message-ID: <55DD2791.3020905@intel.com>
+References: <alpine.DEB.2.11.1508201247370.3873@nanos>
+ <1440142584-22404-1-git-send-email-jiang.liu@linux.intel.com>
+ <alpine.DEB.2.11.1508241957590.15006@nanos>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <240091906.Gl2z931jjW@wuerfel>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org
-Cc: catalin.marinas@arm.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, will.deacon@arm.com, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, linux-pci@vger.kernel.org, bhelgaas@google.com, lenb@kernel.org
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.11.1508241957590.15006@nanos>
+Sender: linux-pm-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>
+Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Nick Meier <nmeier@microsoft.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>, Pavel Machek <pavel@ucw.cz>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Arnd,
+On 08/25/2015 04:01 PM, Thomas Gleixner wrote:
+> On Fri, 21 Aug 2015, Jiang Liu wrote:
+>> ---
+>> Hi Nick,
+>> 	Rafael and Thomas have concerns about the way to solve the
+>> regression by quirk, so could you please help to test this patch?
+> 
+> Nick, can you please confirm that this works?
 
-On 8/26/15 01:48, Arnd Bergmann wrote:
-> On Wednesday 26 August 2015 00:33:25 Suravee Suthikulpanit wrote:
->> This patch adds support to setup DMA coherency for PCI device using
->> the ACPI _CCA attribute. According to the ACPI spec, the _CCA attribute
->> is required for ARM64. Therefore, this patch is a pre-req for ACPI PCI
->> support for ARM64 which is currently in development.
->>
->> Also, this should not affect other architectures that does not define
->> CONFIG_ACPI_CCA_REQUIRED, since the default value is coherent.
->>
->
-> We only support ACPI on SBSA compliant platforms, and SBSA mandates
-> cache-coherent PCI, so I don't think this is actually needed,
-> just use coherent all the time and do WARN_ON(!CCA) to catch people
-> that try to incorrectly use ACPI on a non-SBSA platform.
->
-> 	Arnd
+I saw Nick said this in bugzilla:
+"
+Tested the v3 patch - it works in a Hyper-V environment.  The Tulip driver loads and the NIC was successfully assigned an IP address via DHCP.
+"
+https://bugzilla.kernel.org/show_bug.cgi?id=101301#c17
 
-Thanks for pointing out. The CONFIG_ACPI_CCA_REQUIRED is already existed 
-and selected in arch/arm64/Kconfig, and used for both PCI and non-PCI 
-devices. I am not adding anything specific for the PCI case.
-
-Although, I think WARN_ON(!CCA) when it is required is a good idea. I'll 
-find a proper place for it.
-
-Thanks,
-Suravee.
-
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+Regards,
+Aaron
