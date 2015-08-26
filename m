@@ -1,50 +1,59 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH 2/2]: acpica/nfit: Rename not-armed bit definition
-Date: Wed, 26 Aug 2015 10:16:17 -0700
-Message-ID: <CAPcyv4ifkE4kZ3fc3qqwQwBa1QabMcZotLJm+gXALZbNKYQ3aQ@mail.gmail.com>
-References: <1440606024-29873-1-git-send-email-toshi.kani@hp.com>
-	<1440606024-29873-3-git-send-email-toshi.kani@hp.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1440606024-29873-3-git-send-email-toshi.kani@hp.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>
-Cc: Rafael J Wysocki <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Elliott, Robert (Server Storage)" <elliott@hp.com>
+From: Lukasz Anaczkowski <lukasz.anaczkowski@intel.com>
+Subject: Re: [PATCH] x86, acpi: Handle lapic/x2apic entries in MADT
+Date: Wed, 26 Aug 2015 19:49:28 +0200
+Message-ID: <1440611369-26314-1-git-send-email-lukasz.anaczkowski@intel.com>
+References: <55DDB45D.2030901@arm.com>
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <55DDB45D.2030901@arm.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: marc.zyngier@arm.com, lorenzo.pieralisi@arm.com, tomasz.nowicki@linaro.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, jason@lakedaemon.net
+Cc: rjw@rjwysocki.net, len.brown@intel.com, pavel@ucw.cz, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Aug 26, 2015 at 9:20 AM, Toshi Kani <toshi.kani@hp.com> wrote:
-> ACPI 6.0 NFIT Memory Device State Flags in Table 5-129 defines
-> bit 3 as follows.
->
->   Bit [3] set to 1 to indicate that the Memory Device is observed
->   to be not armed prior to OSPM hand off. A Memory Device is
->   considered armed if it is able to accept persistent writes.
->
-> This bit is currently defined as ACPI_NFIT_MEM_ARMED, which can be
-> confusing as if the Memory Device is armed when this bit is set.
->
-> Change the name to ACPI_NFIT_MEM_NOT_ARMED per the spec.
->
-> Signed-off-by: Toshi Kani <toshi.kani@hp.com>
-> Cc: Dan Williams <dan.j.williams@intel.com>
-> Cc: Bob Moore <robert.moore@intel.com>
-> Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> ---
->  drivers/acpi/nfit.c              |    6 +++---
->  drivers/acpi/nfit.h              |    2 +-
->  include/acpi/actbl1.h            |    2 +-
+Marc nad Lorenzo,
 
-This file "include/acpi/actbl1.h" is owned by the ACPICA project so
-any changes need to come through them.  But that said, I'm not sure we
-need friendly names at this level.
+First of all appologies for breaking arm64 (again) and thank you for
+debugging effort. I own you.
 
-What I usually say about sysfs name changes to be more human friendly
-is "sysfs is not a UI", i.e. it's not necessarily meant to be user
-friendly.  As long as the names for the flags are distinct then
-wrapping descriptive / accurate names around them is the role of
-libndctl and userspace management software.
+> - count is only incremented when max_entries != 0, as you noticed
 
-Similar feedback for patch1 in the sense that I don't think we need to
-update the sysfs naming.  For example the API to retrieve the state of
-the "arm" flag in libndctl is ndctl_dimm_failed_arm().
+You are right, sorry for that, it's fixed in v3.
+
+> - With max_entries != 0, count now represent the sum of all matches
+>  Is that expected?
+
+I have no strong opinion on that one. All of the x86 ACPI entries
+handling only checks for count < 0, or uses count from the
+acpi_subtable_proc structure (and that's why I didn't noticed the
+mainline breakage).
+If you think it's not correct or less usable than other approach,
+let me know.
+
+> - The proc iteration stops after the first match. Why?
+
+So, the initial implementation of the acpi_parse_entries accepted
+single handler for the ACPI table. Now, with this change, assumption
+is that different handlers for different tables/subtables are passed,
+meaning only one can meet entry->type == proc[i].id condition.
+mainline breakage). This approach saves one local varaible, but
+I don't think this is ultimate argument :)
+
+> - The test for max_entries is done inside the proc loop. Why?
+
+That's obviously wrong in context of the overall wrong counting.
+
+> [...] this should be documented and agreed upon.
+
+I've added description with assumptions. Again, if you think it's
+not correct, let me know.
+
+Tomasz Nowicki wrote:
+> should acpi_table_parse_entries suppose to be removed above?
+
+Thanks for pointing this out. I've missed implementation of
+acpi_table_parse_entries when was backporting initial patch.
+I've added it back.
+
+Cheers,
+Lukasz
+
