@@ -1,414 +1,113 @@
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: [PATCH v3] nd_blk: change aperture mapping from WC to WB
-Date: Thu, 27 Aug 2015 13:14:20 -0600
-Message-ID: <1440702860-17363-2-git-send-email-ross.zwisler@linux.intel.com>
-References: <1440702860-17363-1-git-send-email-ross.zwisler@linux.intel.com>
+From: "Williams, Dan J" <dan.j.williams@intel.com>
+Subject: [GIT PULL] libnvdimm ABI fixup for 4.2
+Date: Thu, 27 Aug 2015 23:36:16 +0000
+Message-ID: <1440718572.21270.19.camel@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1440702860-17363-1-git-send-email-ross.zwisler@linux.intel.com>
+Content-Language: en-US
+Content-ID: <84CB7E7ACD98C14EA8E98B3D972E0548@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Ingo Molnar <mingo@redhat.com>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org, x86@kernel.org, Dan Williams <dan.j.williams@intel.com>
+To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
+Cc: "toshi.kani@hp.com" <toshi.kani@hp.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linda.knippers@hp.com" <linda.knippers@hp.com>, "elliott@hp.com" <elliott@hp.com>, "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-This should result in a pretty sizeable performance gain for reads.  For
-rough comparison I did some simple read testing using PMEM to compare
-reads of write combining (WC) mappings vs write-back (WB).  This was
-done on a random lab machine.
-
-PMEM reads from a write combining mapping:
-	# dd of=/dev/null if=/dev/pmem0 bs=4096 count=100000
-	100000+0 records in
-	100000+0 records out
-	409600000 bytes (410 MB) copied, 9.2855 s, 44.1 MB/s
-
-PMEM reads from a write-back mapping:
-	# dd of=/dev/null if=/dev/pmem0 bs=4096 count=1000000
-	1000000+0 records in
-	1000000+0 records out
-	4096000000 bytes (4.1 GB) copied, 3.44034 s, 1.2 GB/s
-
-To be able to safely support a write-back aperture I needed to add
-support for the "read flush" _DSM flag, as outlined in the DSM spec:
-
-http://pmem.io/documents/NVDIMM_DSM_Interface_Example.pdf
-
-This flag tells the ND BLK driver that it needs to flush the cache lines
-associated with the aperture after the aperture is moved but before any
-new data is read.  This ensures that any stale cache lines from the
-previous contents of the aperture will be discarded from the processor
-cache, and the new data will be read properly from the DIMM.  We know
-that the cache lines are clean and will be discarded without any
-writeback because either a) the previous aperture operation was a read,
-and we never modified the contents of the aperture, or b) the previous
-aperture operation was a write and we must have written back the dirtied
-contents of the aperture to the DIMM before the I/O was completed.
-
-In order to add support for the "read flush" flag I needed to add a
-generic routine to invalidate cache lines, mmio_flush_range().  This is
-protected by the ARCH_HAS_MMIO_FLUSH Kconfig variable, and is currently
-only supported on x86.
-
-Signed-off-by: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
----
- arch/x86/Kconfig                  |  1 +
- arch/x86/include/asm/cacheflush.h |  2 ++
- arch/x86/include/asm/io.h         |  2 --
- arch/x86/include/asm/pmem.h       |  2 ++
- drivers/acpi/Kconfig              |  1 +
- drivers/acpi/nfit.c               | 55 ++++++++++++++++++++++-----------------
- drivers/acpi/nfit.h               | 16 ++++++++----
- lib/Kconfig                       |  3 +++
- tools/testing/nvdimm/Kbuild       |  2 ++
- tools/testing/nvdimm/test/iomap.c | 30 +++++++++++++++++++--
- tools/testing/nvdimm/test/nfit.c  | 10 ++++---
- 11 files changed, 88 insertions(+), 36 deletions(-)
-
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 76c6115..03ab612 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -28,6 +28,7 @@ config X86
- 	select ARCH_HAS_FAST_MULTIPLIER
- 	select ARCH_HAS_GCOV_PROFILE_ALL
- 	select ARCH_HAS_PMEM_API
-+	select ARCH_HAS_MMIO_FLUSH
- 	select ARCH_HAS_SG_CHAIN
- 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
- 	select ARCH_MIGHT_HAVE_ACPI_PDC		if ACPI
-diff --git a/arch/x86/include/asm/cacheflush.h b/arch/x86/include/asm/cacheflush.h
-index 471418a..e63aa38 100644
---- a/arch/x86/include/asm/cacheflush.h
-+++ b/arch/x86/include/asm/cacheflush.h
-@@ -89,6 +89,8 @@ int set_pages_rw(struct page *page, int numpages);
- 
- void clflush_cache_range(void *addr, unsigned int size);
- 
-+#define mmio_flush_range(addr, size) clflush_cache_range(addr, size)
-+
- #ifdef CONFIG_DEBUG_RODATA
- void mark_rodata_ro(void);
- extern const int rodata_test_data;
-diff --git a/arch/x86/include/asm/io.h b/arch/x86/include/asm/io.h
-index d241fbd..83ec9b1 100644
---- a/arch/x86/include/asm/io.h
-+++ b/arch/x86/include/asm/io.h
-@@ -248,8 +248,6 @@ static inline void flush_write_buffers(void)
- #endif
- }
- 
--#define ARCH_MEMREMAP_PMEM MEMREMAP_WB
--
- #endif /* __KERNEL__ */
- 
- extern void native_io_delay(void);
-diff --git a/arch/x86/include/asm/pmem.h b/arch/x86/include/asm/pmem.h
-index a3a0df6..bb026c5 100644
---- a/arch/x86/include/asm/pmem.h
-+++ b/arch/x86/include/asm/pmem.h
-@@ -18,6 +18,8 @@
- #include <asm/cpufeature.h>
- #include <asm/special_insns.h>
- 
-+#define ARCH_MEMREMAP_PMEM MEMREMAP_WB
-+
- #ifdef CONFIG_ARCH_HAS_PMEM_API
- /**
-  * arch_memcpy_to_pmem - copy data to persistent memory
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 114cf48..4baeb85 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -410,6 +410,7 @@ config ACPI_NFIT
- 	tristate "ACPI NVDIMM Firmware Interface Table (NFIT)"
- 	depends on PHYS_ADDR_T_64BIT
- 	depends on BLK_DEV
-+	depends on ARCH_HAS_MMIO_FLUSH
- 	select LIBNVDIMM
- 	help
- 	  Infrastructure to probe ACPI 6 compliant platforms for
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index 7c2638f..56fff01 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -1017,7 +1017,7 @@ static u64 read_blk_stat(struct nfit_blk *nfit_blk, unsigned int bw)
- 	if (mmio->num_lines)
- 		offset = to_interleave_offset(offset, mmio);
- 
--	return readq(mmio->base + offset);
-+	return readq(mmio->addr.base + offset);
- }
- 
- static void write_blk_ctl(struct nfit_blk *nfit_blk, unsigned int bw,
-@@ -1042,11 +1042,11 @@ static void write_blk_ctl(struct nfit_blk *nfit_blk, unsigned int bw,
- 	if (mmio->num_lines)
- 		offset = to_interleave_offset(offset, mmio);
- 
--	writeq(cmd, mmio->base + offset);
-+	writeq(cmd, mmio->addr.base + offset);
- 	wmb_blk(nfit_blk);
- 
- 	if (nfit_blk->dimm_flags & ND_BLK_DCR_LATCH)
--		readq(mmio->base + offset);
-+		readq(mmio->addr.base + offset);
- }
- 
- static int acpi_nfit_blk_single_io(struct nfit_blk *nfit_blk,
-@@ -1078,11 +1078,16 @@ static int acpi_nfit_blk_single_io(struct nfit_blk *nfit_blk,
- 		}
- 
- 		if (rw)
--			memcpy_to_pmem(mmio->aperture + offset,
-+			memcpy_to_pmem(mmio->addr.aperture + offset,
- 					iobuf + copied, c);
--		else
-+		else {
-+			if (nfit_blk->dimm_flags & ND_BLK_READ_FLUSH)
-+				mmio_flush_range((void __force *)
-+					mmio->addr.aperture + offset, c);
-+
- 			memcpy_from_pmem(iobuf + copied,
--					mmio->aperture + offset, c);
-+					mmio->addr.aperture + offset, c);
-+		}
- 
- 		copied += c;
- 		len -= c;
-@@ -1129,7 +1134,10 @@ static void nfit_spa_mapping_release(struct kref *kref)
- 
- 	WARN_ON(!mutex_is_locked(&acpi_desc->spa_map_mutex));
- 	dev_dbg(acpi_desc->dev, "%s: SPA%d\n", __func__, spa->range_index);
--	iounmap(spa_map->iomem);
-+	if (spa_map->type == SPA_MAP_APERTURE)
-+		memunmap((void __force *)spa_map->addr.aperture);
-+	else
-+		iounmap(spa_map->addr.base);
- 	release_mem_region(spa->address, spa->length);
- 	list_del(&spa_map->list);
- 	kfree(spa_map);
-@@ -1175,7 +1183,7 @@ static void __iomem *__nfit_spa_map(struct acpi_nfit_desc *acpi_desc,
- 	spa_map = find_spa_mapping(acpi_desc, spa);
- 	if (spa_map) {
- 		kref_get(&spa_map->kref);
--		return spa_map->iomem;
-+		return spa_map->addr.base;
- 	}
- 
- 	spa_map = kzalloc(sizeof(*spa_map), GFP_KERNEL);
-@@ -1191,20 +1199,19 @@ static void __iomem *__nfit_spa_map(struct acpi_nfit_desc *acpi_desc,
- 	if (!res)
- 		goto err_mem;
- 
--	if (type == SPA_MAP_APERTURE) {
--		/*
--		 * TODO: memremap_pmem() support, but that requires cache
--		 * flushing when the aperture is moved.
--		 */
--		spa_map->iomem = ioremap_wc(start, n);
--	} else
--		spa_map->iomem = ioremap_nocache(start, n);
-+	spa_map->type = type;
-+	if (type == SPA_MAP_APERTURE)
-+		spa_map->addr.aperture = (void __pmem *)memremap(start, n,
-+							ARCH_MEMREMAP_PMEM);
-+	else
-+		spa_map->addr.base = ioremap_nocache(start, n);
-+
- 
--	if (!spa_map->iomem)
-+	if (!spa_map->addr.base)
- 		goto err_map;
- 
- 	list_add_tail(&spa_map->list, &acpi_desc->spa_maps);
--	return spa_map->iomem;
-+	return spa_map->addr.base;
- 
-  err_map:
- 	release_mem_region(start, n);
-@@ -1267,7 +1274,7 @@ static int acpi_nfit_blk_get_flags(struct nvdimm_bus_descriptor *nd_desc,
- 		nfit_blk->dimm_flags = flags.flags;
- 	else if (rc == -ENOTTY) {
- 		/* fall back to a conservative default */
--		nfit_blk->dimm_flags = ND_BLK_DCR_LATCH;
-+		nfit_blk->dimm_flags = ND_BLK_DCR_LATCH | ND_BLK_READ_FLUSH;
- 		rc = 0;
- 	} else
- 		rc = -ENXIO;
-@@ -1307,9 +1314,9 @@ static int acpi_nfit_blk_region_enable(struct nvdimm_bus *nvdimm_bus,
- 	/* map block aperture memory */
- 	nfit_blk->bdw_offset = nfit_mem->bdw->offset;
- 	mmio = &nfit_blk->mmio[BDW];
--	mmio->base = nfit_spa_map(acpi_desc, nfit_mem->spa_bdw,
-+	mmio->addr.base = nfit_spa_map(acpi_desc, nfit_mem->spa_bdw,
- 			SPA_MAP_APERTURE);
--	if (!mmio->base) {
-+	if (!mmio->addr.base) {
- 		dev_dbg(dev, "%s: %s failed to map bdw\n", __func__,
- 				nvdimm_name(nvdimm));
- 		return -ENOMEM;
-@@ -1330,9 +1337,9 @@ static int acpi_nfit_blk_region_enable(struct nvdimm_bus *nvdimm_bus,
- 	nfit_blk->cmd_offset = nfit_mem->dcr->command_offset;
- 	nfit_blk->stat_offset = nfit_mem->dcr->status_offset;
- 	mmio = &nfit_blk->mmio[DCR];
--	mmio->base = nfit_spa_map(acpi_desc, nfit_mem->spa_dcr,
-+	mmio->addr.base = nfit_spa_map(acpi_desc, nfit_mem->spa_dcr,
- 			SPA_MAP_CONTROL);
--	if (!mmio->base) {
-+	if (!mmio->addr.base) {
- 		dev_dbg(dev, "%s: %s failed to map dcr\n", __func__,
- 				nvdimm_name(nvdimm));
- 		return -ENOMEM;
-@@ -1399,7 +1406,7 @@ static void acpi_nfit_blk_region_disable(struct nvdimm_bus *nvdimm_bus,
- 	for (i = 0; i < 2; i++) {
- 		struct nfit_blk_mmio *mmio = &nfit_blk->mmio[i];
- 
--		if (mmio->base)
-+		if (mmio->addr.base)
- 			nfit_spa_unmap(acpi_desc, mmio->spa);
- 	}
- 	nd_blk_region_set_provider_data(ndbr, NULL);
-diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
-index f2c2bb7..7e74015 100644
---- a/drivers/acpi/nfit.h
-+++ b/drivers/acpi/nfit.h
-@@ -41,6 +41,7 @@ enum nfit_uuids {
- };
- 
- enum {
-+	ND_BLK_READ_FLUSH = 1,
- 	ND_BLK_DCR_LATCH = 2,
- };
- 
-@@ -117,12 +118,16 @@ enum nd_blk_mmio_selector {
- 	DCR,
- };
- 
-+struct nd_blk_addr {
-+	union {
-+		void __iomem *base;
-+		void __pmem  *aperture;
-+	};
-+};
-+
- struct nfit_blk {
- 	struct nfit_blk_mmio {
--		union {
--			void __iomem *base;
--			void __pmem  *aperture;
--		};
-+		struct nd_blk_addr addr;
- 		u64 size;
- 		u64 base_offset;
- 		u32 line_size;
-@@ -149,7 +154,8 @@ struct nfit_spa_mapping {
- 	struct acpi_nfit_system_address *spa;
- 	struct list_head list;
- 	struct kref kref;
--	void __iomem *iomem;
-+	enum spa_map_type type;
-+	struct nd_blk_addr addr;
- };
- 
- static inline struct nfit_spa_mapping *to_spa_map(struct kref *kref)
-diff --git a/lib/Kconfig b/lib/Kconfig
-index 3a2ef67..a938a39 100644
---- a/lib/Kconfig
-+++ b/lib/Kconfig
-@@ -531,4 +531,7 @@ config ARCH_HAS_SG_CHAIN
- config ARCH_HAS_PMEM_API
- 	bool
- 
-+config ARCH_HAS_MMIO_FLUSH
-+	bool
-+
- endmenu
-diff --git a/tools/testing/nvdimm/Kbuild b/tools/testing/nvdimm/Kbuild
-index e667579..98f2881 100644
---- a/tools/testing/nvdimm/Kbuild
-+++ b/tools/testing/nvdimm/Kbuild
-@@ -1,8 +1,10 @@
- ldflags-y += --wrap=ioremap_wc
-+ldflags-y += --wrap=memremap
- ldflags-y += --wrap=devm_ioremap_nocache
- ldflags-y += --wrap=devm_memremap
- ldflags-y += --wrap=ioremap_nocache
- ldflags-y += --wrap=iounmap
-+ldflags-y += --wrap=memunmap
- ldflags-y += --wrap=__devm_request_region
- ldflags-y += --wrap=__request_region
- ldflags-y += --wrap=__release_region
-diff --git a/tools/testing/nvdimm/test/iomap.c b/tools/testing/nvdimm/test/iomap.c
-index ff1e004..179d228 100644
---- a/tools/testing/nvdimm/test/iomap.c
-+++ b/tools/testing/nvdimm/test/iomap.c
-@@ -89,12 +89,25 @@ void *__wrap_devm_memremap(struct device *dev, resource_size_t offset,
- 	nfit_res = get_nfit_res(offset);
- 	rcu_read_unlock();
- 	if (nfit_res)
--		return (void __iomem *) nfit_res->buf + offset
--			- nfit_res->res->start;
-+		return nfit_res->buf + offset - nfit_res->res->start;
- 	return devm_memremap(dev, offset, size, flags);
- }
- EXPORT_SYMBOL(__wrap_devm_memremap);
- 
-+void *__wrap_memremap(resource_size_t offset, size_t size,
-+		unsigned long flags)
-+{
-+	struct nfit_test_resource *nfit_res;
-+
-+	rcu_read_lock();
-+	nfit_res = get_nfit_res(offset);
-+	rcu_read_unlock();
-+	if (nfit_res)
-+		return nfit_res->buf + offset - nfit_res->res->start;
-+	return memremap(offset, size, flags);
-+}
-+EXPORT_SYMBOL(__wrap_memremap);
-+
- void __iomem *__wrap_ioremap_nocache(resource_size_t offset, unsigned long size)
- {
- 	return __nfit_test_ioremap(offset, size, ioremap_nocache);
-@@ -120,6 +133,19 @@ void __wrap_iounmap(volatile void __iomem *addr)
- }
- EXPORT_SYMBOL(__wrap_iounmap);
- 
-+void __wrap_memunmap(void *addr)
-+{
-+	struct nfit_test_resource *nfit_res;
-+
-+	rcu_read_lock();
-+	nfit_res = get_nfit_res((unsigned long) addr);
-+	rcu_read_unlock();
-+	if (nfit_res)
-+		return;
-+	return memunmap(addr);
-+}
-+EXPORT_SYMBOL(__wrap_memunmap);
-+
- static struct resource *nfit_test_request_region(struct device *dev,
- 		struct resource *parent, resource_size_t start,
- 		resource_size_t n, const char *name, int flags)
-diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
-index 28dba91..021e6f9 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -1029,9 +1029,13 @@ static int nfit_test_blk_do_io(struct nd_blk_region *ndbr, resource_size_t dpa,
- 
- 	lane = nd_region_acquire_lane(nd_region);
- 	if (rw)
--		memcpy(mmio->base + dpa, iobuf, len);
--	else
--		memcpy(iobuf, mmio->base + dpa, len);
-+		memcpy(mmio->addr.base + dpa, iobuf, len);
-+	else {
-+		memcpy(iobuf, mmio->addr.base + dpa, len);
-+
-+		/* give us some some coverage of the mmio_flush_range() API */
-+		mmio_flush_range(mmio->addr.base + dpa, len);
-+	}
- 	nd_region_release_lane(nd_region, lane);
- 
- 	return 0;
--- 
-2.1.0
+SGkgTGludXMsIHBsZWFzZSBwdWxsIGZyb206DQoNCiAgICBnaXQ6Ly9naXQua2VybmVsLm9yZy9w
+dWIvc2NtL2xpbnV4L2tlcm5lbC9naXQvbnZkaW1tL252ZGltbSBsaWJudmRpbW0tZml4ZXMNCg0K
+Li4udG8gcmVjZWl2ZSBvbmUgZmluYWwgZml4IGZvciA0LjIuDQoNCkkgcHVzaGVkIGJhY2sgb24g
+dGhpcyBjaGFuZ2UgcXVpdGUgaGFyZCBnaXZlbiB0aGUgbGF0ZSBkYXRlLCB0aGF0IGl0DQphcHBl
+YXJzIHRvIGJlIHB1cmVseSBjb3NtZXRpYywgc3lzZnMgaXMgbm90IG5lY2Vzc2FyaWx5IG1lYW50
+IHRvIGJlIGENCnVzZXIgZnJpZW5kbHkgVUksIGFuZCB0aGUga2VybmVsIGludGVycHJldHMgdGhl
+IHJldmVyc2VkIHBvbGFyaXR5IG9mIHRoZQ0KQUNQSV9ORklUX01FTV9BUk1FRCBmbGFnIGNvcnJl
+Y3RseS4gIFdoZW4gdGhpcyBmbGFnIGlzIHNldCwgdGhlIGVuZXJneQ0Kc291cmNlIG9mIGFuIE5W
+RElNTSBpcyBub3QgYXJtZWQgYW5kIGFueSBuZXcgd3JpdGVzIHRvIHRoZSBESU1NIG1heSBub3QN
+CmJlIHByZXNlcnZlZC4NCg0KSG93ZXZlciwgQm9iIE1vb3JlIHdhcm5lZCBtZSB0aGF0IGl0IGlz
+IGltcG9ydGFudCB0byBnZXQgdGhlc2UgdGhpbmdzDQpuYW1lZCBjb3JyZWN0bHkgd2hlcmV2ZXIg
+dGhleSBhcHBlYXIgb3RoZXJ3aXNlIHdlIHJ1biB0aGUgcmlzayBvZiBhIGxlc3MNCnRoYW4gY2F1
+dGlvdXMgZmlybXdhcmUgZW5naW5lZXIgaW1wbGVtZW50aW5nIHRoZSBwb2xhcml0eSB0aGUgd3Jv
+bmcgd2F5Lg0KT25jZSBhIG1pc3Rha2UgbGlrZSB0aGF0IGVzY2FwZXMgaW50byBwcm9kdWN0aW9u
+IHBsYXRmb3JtcyB0aGUgZmxhZw0KYmVjb21lcyB1c2VsZXNzIGFuZCB3ZSBuZWVkIHRvIG1vdmUg
+dG8gYSBuZXcgYml0IHBvc2l0aW9uLg0KDQpCb2IgaGFzIGFncmVlZCB0byB0YWtlIGEgY2hhbmdl
+IHRocm91Z2ggQUNQSUNBIHRvIHJlbmFtZQ0KQUNQSV9ORklUX01FTV9BUk1FRCB0byBBQ1BJX05G
+SVRfTUVNX05PVF9BUk1FRCwgYW5kIHRoZSBwYXRjaCBiZWxvdyBmcm9tDQpUb3NoaSBicmluZ3Mg
+dGhlIHN5c2ZzIHJlcHJlc2VudGF0aW9uIG9mIHRoZXNlIGZsYWdzIGluIGxpbmUgd2l0aCB0aGVp
+cg0KcmVzcGVjdGl2ZSBwb2xhcml0aWVzLg0KDQpQbGVhc2UgcHVsbCBmb3IgNC4yIGFzIHRoaXMg
+aXMgdGhlIGZpcnN0IGtlcm5lbCB0byBleHBvc2UgdGhlIEFDUEkgTkZJVA0Kc3lzZnMgcmVwcmVz
+ZW50YXRpb24sIGFuZCB0aGlzIGlzIGxpa2VseSBhIGtlcm5lbCB0aGF0IGZpcm13YXJlDQpkZXZl
+bG9wZXJzIHdpbGwgYmUgdXNpbmcgZm9yIGNoZWNraW5nIG91dCB0aGVpciBOVkRJTU0gZW5hYmxp
+bmcuDQoNClRoZSBmb2xsb3dpbmcgY2hhbmdlcyBzaW5jZSBjb21taXQgZGU0YTE5NmMwMmEyYTI2
+MzFiNTE2ZDkwZGE2ZThkMDUyY2NiMDdlODoNCg0KICBuZml0LCBuZF9ibGs6IEJMSyBzdGF0dXMg
+cmVnaXN0ZXIgaXMgb25seSAzMiBiaXRzICgyMDE1LTA4LTI1IDE5OjQyOjAxIC0wNDAwKQ0KDQph
+cmUgYXZhaWxhYmxlIGluIHRoZSBnaXQgcmVwb3NpdG9yeSBhdDoNCg0KICBnaXQ6Ly9naXQua2Vy
+bmVsLm9yZy9wdWIvc2NtL2xpbnV4L2tlcm5lbC9naXQvbnZkaW1tL252ZGltbSBsaWJudmRpbW0t
+Zml4ZXMNCg0KZm9yIHlvdSB0byBmZXRjaCBjaGFuZ2VzIHVwIHRvIDQwMmJhZTU5N2VjNjhiODQ0
+OTg0MzJmNWEwMDY5ZjI4YmZiODA3ZDY6DQoNCiAgbmZpdDogQ2xhcmlmeSBtZW1vcnkgZGV2aWNl
+IHN0YXRlIGZsYWdzIHN0cmluZ3MgKDIwMTUtMDgtMjcgMTQ6MzU6NTggLTA0MDApDQoNCi0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0NClRvc2hpIEthbmkgKDEpOg0KICAgICAgbmZpdDogQ2xhcmlmeSBtZW1vcnkgZGV2aWNlIHN0
+YXRlIGZsYWdzIHN0cmluZ3MNCg0KIGRyaXZlcnMvYWNwaS9uZml0LmMgfCAyMCArKysrKysrKysr
+LS0tLS0tLS0tLQ0KIDEgZmlsZSBjaGFuZ2VkLCAxMCBpbnNlcnRpb25zKCspLCAxMCBkZWxldGlv
+bnMoLSkNCg0KY29tbWl0IDQwMmJhZTU5N2VjNjhiODQ0OTg0MzJmNWEwMDY5ZjI4YmZiODA3ZDYN
+CkF1dGhvcjogVG9zaGkgS2FuaSA8dG9zaGkua2FuaUBocC5jb20+DQpEYXRlOiAgIFdlZCBBdWcg
+MjYgMTA6MjA6MjMgMjAxNSAtMDYwMA0KDQogICAgbmZpdDogQ2xhcmlmeSBtZW1vcnkgZGV2aWNl
+IHN0YXRlIGZsYWdzIHN0cmluZ3MNCiAgICANCiAgICBBQ1BJIDYuMCBORklUIE1lbW9yeSBEZXZp
+Y2UgU3RhdGUgRmxhZ3MgaW4gVGFibGUgNS0xMjkgZGVmaW5lcw0KICAgIE5WRElNTSBzdGF0dXMg
+YXMgZm9sbG93cy4gIFRoZXNlIGJpdHMgaW5kaWNhdGUgbXVsdGlwbGUgaW5mbywNCiAgICBzdWNo
+IGFzIGZhaWx1cmVzLCBwZW5kaW5nIGV2ZW50LCBhbmQgY2FwYWJpbGl0eS4NCiAgICANCiAgICAg
+IEJpdCBbMF0gc2V0IHRvIDEgdG8gaW5kaWNhdGUgdGhhdCB0aGUgcHJldmlvdXMgU0FWRSB0byB0
+aGUNCiAgICAgIE1lbW9yeSBEZXZpY2UgZmFpbGVkLg0KICAgICAgQml0IFsxXSBzZXQgdG8gMSB0
+byBpbmRpY2F0ZSB0aGF0IHRoZSBsYXN0IFJFU1RPUkUgZnJvbSB0aGUNCiAgICAgIE1lbW9yeSBE
+ZXZpY2UgZmFpbGVkLg0KICAgICAgQml0IFsyXSBzZXQgdG8gMSB0byBpbmRpY2F0ZSB0aGF0IHBs
+YXRmb3JtIGZsdXNoIG9mIGRhdGEgdG8NCiAgICAgIE1lbW9yeSBEZXZpY2UgZmFpbGVkLiBBcyBh
+IHJlc3VsdCwgdGhlIHJlc3RvcmVkIGRhdGEgY29udGVudA0KICAgICAgbWF5IGJlIGluY29uc2lz
+dGVudCBldmVuIGlmIFNBVkUgYW5kIFJFU1RPUkUgZG8gbm90IGluZGljYXRlDQogICAgICBmYWls
+dXJlLg0KICAgICAgQml0IFszXSBzZXQgdG8gMSB0byBpbmRpY2F0ZSB0aGF0IHRoZSBNZW1vcnkg
+RGV2aWNlIGlzIG9ic2VydmVkDQogICAgICB0byBiZSBub3QgYXJtZWQgcHJpb3IgdG8gT1NQTSBo
+YW5kIG9mZi4gQSBNZW1vcnkgRGV2aWNlIGlzDQogICAgICBjb25zaWRlcmVkIGFybWVkIGlmIGl0
+IGlzIGFibGUgdG8gYWNjZXB0IHBlcnNpc3RlbnQgd3JpdGVzLg0KICAgICAgQml0IFs0XSBzZXQg
+dG8gMSB0byBpbmRpY2F0ZSB0aGF0IHRoZSBNZW1vcnkgRGV2aWNlIG9ic2VydmVkDQogICAgICBT
+TUFSVCBhbmQgaGVhbHRoIGV2ZW50cyBwcmlvciB0byBPU1BNIGhhbmRvZmYuDQogICAgDQogICAg
+L3N5cy9idXMvbmQvZGV2aWNlcy9ubWVtWC9uZml0L2ZsYWdzIHNob3dzIHRoaXMgZmxhZ3MgaW5m
+by4NCiAgICBUaGUgb3V0cHV0IHN0cmluZ3MgYXNzb2NpYXRlZCB3aXRoIHRoZSBiaXRzIGFyZSAi
+c2F2ZSIsICJyZXN0b3JlIiwNCiAgICAic21hcnQiLCBldGMuLCB3aGljaCBjYW4gYmUgY29uZnVz
+aW5nIGFzIHRoZXkgbWF5IGJlIGludGVycHJldGVkDQogICAgYXMgcG9zaXRpdmUgc3RhdHVzLCBp
+LmUuIHNhdmUgc3VjY2VlZGVkLg0KICAgIA0KICAgIENoYW5nZSBhbHNvIHRoZSBkZXZfaW5mbygp
+IG1lc3NhZ2UgaW4gYWNwaV9uZml0X3JlZ2lzdGVyX2RpbW1zKCkNCiAgICB0byBiZSBjb25zaXN0
+ZW50IHdpdGggdGhlIHN5c2ZzIGZsYWdzIHN0cmluZ3MuDQogICAgDQogICAgUmVwb3J0ZWQtYnk6
+IFJvYmVydCBFbGxpb3R0IDxlbGxpb3R0QGhwLmNvbT4NCiAgICBTaWduZWQtb2ZmLWJ5OiBUb3No
+aSBLYW5pIDx0b3NoaS5rYW5pQGhwLmNvbT4NCiAgICBbcm9zczogcmVuYW1lICdub3RfYXJtJyB0
+byAnbm90X2FybWVkJ10NCiAgICBDYzogUm9zcyBad2lzbGVyIDxyb3NzLnp3aXNsZXJAbGludXgu
+aW50ZWwuY29tPg0KICAgIFtkamJ3OiBkZWZlciBhZGRpbmcgYml0NSwgSEVBTFRIX0VOQUJMRUQs
+IGZvciBub3ddDQogICAgU2lnbmVkLW9mZi1ieTogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFt
+c0BpbnRlbC5jb20+DQoNCmRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvbmZpdC5jIGIvZHJpdmVy
+cy9hY3BpL25maXQuYw0KaW5kZXggYmIyOWU1NjI3NmJkLi5jZjBmZDk2YTc2MDIgMTAwNjQ0DQot
+LS0gYS9kcml2ZXJzL2FjcGkvbmZpdC5jDQorKysgYi9kcml2ZXJzL2FjcGkvbmZpdC5jDQpAQCAt
+NzAyLDExICs3MDIsMTEgQEAgc3RhdGljIHNzaXplX3QgZmxhZ3Nfc2hvdyhzdHJ1Y3QgZGV2aWNl
+ICpkZXYsDQogCXUxNiBmbGFncyA9IHRvX25maXRfbWVtZGV2KGRldiktPmZsYWdzOw0KIA0KIAly
+ZXR1cm4gc3ByaW50ZihidWYsICIlcyVzJXMlcyVzXG4iLA0KLQkJCWZsYWdzICYgQUNQSV9ORklU
+X01FTV9TQVZFX0ZBSUxFRCA/ICJzYXZlICIgOiAiIiwNCi0JCQlmbGFncyAmIEFDUElfTkZJVF9N
+RU1fUkVTVE9SRV9GQUlMRUQgPyAicmVzdG9yZSAiIDogIiIsDQotCQkJZmxhZ3MgJiBBQ1BJX05G
+SVRfTUVNX0ZMVVNIX0ZBSUxFRCA/ICJmbHVzaCAiIDogIiIsDQotCQkJZmxhZ3MgJiBBQ1BJX05G
+SVRfTUVNX0FSTUVEID8gImFybSAiIDogIiIsDQotCQkJZmxhZ3MgJiBBQ1BJX05GSVRfTUVNX0hF
+QUxUSF9PQlNFUlZFRCA/ICJzbWFydCAiIDogIiIpOw0KKwkJZmxhZ3MgJiBBQ1BJX05GSVRfTUVN
+X1NBVkVfRkFJTEVEID8gInNhdmVfZmFpbCAiIDogIiIsDQorCQlmbGFncyAmIEFDUElfTkZJVF9N
+RU1fUkVTVE9SRV9GQUlMRUQgPyAicmVzdG9yZV9mYWlsICIgOiAiIiwNCisJCWZsYWdzICYgQUNQ
+SV9ORklUX01FTV9GTFVTSF9GQUlMRUQgPyAiZmx1c2hfZmFpbCAiIDogIiIsDQorCQlmbGFncyAm
+IEFDUElfTkZJVF9NRU1fQVJNRUQgPyAibm90X2FybWVkICIgOiAiIiwNCisJCWZsYWdzICYgQUNQ
+SV9ORklUX01FTV9IRUFMVEhfT0JTRVJWRUQgPyAic21hcnRfZXZlbnQgIiA6ICIiKTsNCiB9DQog
+c3RhdGljIERFVklDRV9BVFRSX1JPKGZsYWdzKTsNCiANCkBAIC04NDksMTIgKzg0OSwxMiBAQCBz
+dGF0aWMgaW50IGFjcGlfbmZpdF9yZWdpc3Rlcl9kaW1tcyhzdHJ1Y3QgYWNwaV9uZml0X2Rlc2Mg
+KmFjcGlfZGVzYykNCiAJCWlmICgobWVtX2ZsYWdzICYgQUNQSV9ORklUX01FTV9GQUlMRURfTUFT
+SykgPT0gMCkNCiAJCQljb250aW51ZTsNCiANCi0JCWRldl9pbmZvKGFjcGlfZGVzYy0+ZGV2LCAi
+JXM6IGZhaWxlZDogJXMlcyVzJXNcbiIsDQorCQlkZXZfaW5mbyhhY3BpX2Rlc2MtPmRldiwgIiVz
+IGZsYWdzOiVzJXMlcyVzXG4iLA0KIAkJCQludmRpbW1fbmFtZShudmRpbW0pLA0KLQkJCW1lbV9m
+bGFncyAmIEFDUElfTkZJVF9NRU1fU0FWRV9GQUlMRUQgPyAic2F2ZSAiIDogIiIsDQotCQkJbWVt
+X2ZsYWdzICYgQUNQSV9ORklUX01FTV9SRVNUT1JFX0ZBSUxFRCA/ICJyZXN0b3JlICIgOiAiIiwN
+Ci0JCQltZW1fZmxhZ3MgJiBBQ1BJX05GSVRfTUVNX0ZMVVNIX0ZBSUxFRCA/ICJmbHVzaCAiIDog
+IiIsDQotCQkJbWVtX2ZsYWdzICYgQUNQSV9ORklUX01FTV9BUk1FRCA/ICJhcm0gIiA6ICIiKTsN
+CisJCSAgbWVtX2ZsYWdzICYgQUNQSV9ORklUX01FTV9TQVZFX0ZBSUxFRCA/ICIgc2F2ZV9mYWls
+IiA6ICIiLA0KKwkJICBtZW1fZmxhZ3MgJiBBQ1BJX05GSVRfTUVNX1JFU1RPUkVfRkFJTEVEID8g
+IiByZXN0b3JlX2ZhaWwiOiIiLA0KKwkJICBtZW1fZmxhZ3MgJiBBQ1BJX05GSVRfTUVNX0ZMVVNI
+X0ZBSUxFRCA/ICIgZmx1c2hfZmFpbCIgOiAiIiwNCisJCSAgbWVtX2ZsYWdzICYgQUNQSV9ORklU
+X01FTV9BUk1FRCA/ICIgbm90X2FybWVkIiA6ICIiKTsNCiANCiAJfQ0KIA0KDQo=
