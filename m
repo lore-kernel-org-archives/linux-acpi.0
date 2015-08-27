@@ -1,88 +1,40 @@
 From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH 1/2]: nfit: Clarify memory device state flags strings
-Date: Thu, 27 Aug 2015 08:18:39 -0600
-Message-ID: <1440685119.14237.83.camel@hp.com>
+Subject: Re: [PATCH 2/2]: acpica/nfit: Rename not-armed bit definition
+Date: Thu, 27 Aug 2015 08:32:03 -0600
+Message-ID: <1440685923.14237.89.camel@hp.com>
 References: <1440606024-29873-1-git-send-email-toshi.kani@hp.com>
-	 <1440606024-29873-2-git-send-email-toshi.kani@hp.com>
-	 <20150827030740.GB4438@linux.intel.com>
+	 <1440606024-29873-3-git-send-email-toshi.kani@hp.com>
+	 <CAPcyv4ifkE4kZ3fc3qqwQwBa1QabMcZotLJm+gXALZbNKYQ3aQ@mail.gmail.com>
+	 <1440623522.14237.57.camel@hp.com>
+	 <CAJZ5v0g2AF7P=T-L_DJqLbOSAoqWcgZseTbeMCx9yChkNgFJOw@mail.gmail.com>
+	 <1440631796.14237.67.camel@hp.com> <1440632135.14237.70.camel@hp.com>
+	 <94F2FBAB4432B54E8AACC7DFDE6C92E37D340BD7@ORSMSX112.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150827030740.GB4438@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ross Zwisler <ross.zwisler@linux.intel.com>
-Cc: dan.j.williams@intel.com, rafael.j.wysocki@intel.com, linux-nvdimm@lists.01.org, robert.moore@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g4t3427.houston.hp.com ([15.201.208.55]:43792 "EHLO
+	g4t3427.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753431AbbH0OeQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Aug 2015 10:34:16 -0400
+In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37D340BD7@ORSMSX112.amr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Moore, Robert" <robert.moore@intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: "Williams, Dan J" <dan.j.williams@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Elliott, Robert (Server Storage)" <elliott@hp.com>, "Box, David E" <david.e.box@intel.com>
 
-On Wed, 2015-08-26 at 21:07 -0600, Ross Zwisler wrote:
-> On Wed, Aug 26, 2015 at 10:20:23AM -0600, Toshi Kani wrote:
-> > diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-> > index c3fe206..6993ff2 100644
-> > --- a/drivers/acpi/nfit.c
-> > +++ b/drivers/acpi/nfit.c
-> > @@ -701,12 +701,13 @@ static ssize_t flags_show(struct device *dev,
-> >  {
-> >  	u16 flags = to_nfit_memdev(dev)->flags;
-> >  
-> > -	return sprintf(buf, "%s%s%s%s%s\n",
-> > -			flags & ACPI_NFIT_MEM_SAVE_FAILED ? "save " : 
-> > "",
-> > -			flags & ACPI_NFIT_MEM_RESTORE_FAILED ? "restore 
-> > " : "",
-> > -			flags & ACPI_NFIT_MEM_FLUSH_FAILED ? "flush " : 
-> > "",
-> > -			flags & ACPI_NFIT_MEM_ARMED ? "arm " : "",
-> > -			flags & ACPI_NFIT_MEM_HEALTH_OBSERVED ? "smart 
-> > " : "");
-> > +	return sprintf(buf, "%s%s%s%s%s%s\n",
-> > +		flags & ACPI_NFIT_MEM_SAVE_FAILED ? "save_fail " : "",
-> > +		flags & ACPI_NFIT_MEM_RESTORE_FAILED ? "restore_fail " 
-> > : "",
-> > +		flags & ACPI_NFIT_MEM_FLUSH_FAILED ? "flush_fail " : 
-> > "",
-> > +		flags & ACPI_NFIT_MEM_ARMED ? "not_arm " : "",
-> 
-> Assuming we do want to update these strings to be more friendly, 
+On Thu, 2015-08-27 at 01:56 +0000, Moore, Robert wrote:
+> I don=E2=80=99t have any problem changing this in ACPICA if/when you =
+all agree.
 
-> "not_armed" probably makes more sense than "not_arm".  Also applies to the 
-> 2nd hunk below.
-
-Agreed.  (Will update if this patch gets ever resurrected. :-)
-
-> > +		flags & ACPI_NFIT_MEM_HEALTH_OBSERVED ? "smart_event " > > : "",
-> > +		flags & ACPI_NFIT_MEM_HEALTH_ENABLED ? "notify_enabled 
-> > " : "");
-> >  }
-> >  static DEVICE_ATTR_RO(flags);
-> >  
-> > @@ -834,11 +835,11 @@ static int acpi_nfit_register_dimms(struct 
-> > acpi_nfit_desc *acpi_desc)
-> >  			continue;
-> >  
-> >  		dev_info(acpi_desc->dev, "%s: failed: %s%s%s%s\n",
-> > -				nvdimm_name(nvdimm),
-> > -			mem_flags & ACPI_NFIT_MEM_SAVE_FAILED ? "save " 
-> > : "",
-> > -			mem_flags & ACPI_NFIT_MEM_RESTORE_FAILED ? 
-> > "restore " : "",
-> > -			mem_flags & ACPI_NFIT_MEM_FLUSH_FAILED ? "flush 
-> > " : "",
-> > -			mem_flags & ACPI_NFIT_MEM_ARMED ? "arm " : "");
-> > +		  nvdimm_name(nvdimm),
-> > +		  mem_flags & ACPI_NFIT_MEM_SAVE_FAILED ? "save_fail " 
-> > : "",
-> > +		  mem_flags & ACPI_NFIT_MEM_RESTORE_FAILED ? 
-> > "restore_fail ":"",
-> > +		  mem_flags & ACPI_NFIT_MEM_FLUSH_FAILED ? "flush_fail 
-> > " : "",
-> > +		  mem_flags & ACPI_NFIT_MEM_ARMED ? "not_arm " : "");
-> 
-> While you're in here, is there a reason not to include the last two flags
-> (smart_event and notify_enabled) in this dev_info() output?
-
-This dev_info() logs any failure in NVDIMM, and the last two flags are not
-failure conditions.
+Great.  I will resend this patch alone, assuming the patch can be based=
+ on
+the Dan's NVDIMM tree (since it changes NFIT files).
 
 Thanks,
--Toshi
+-Toshi=20
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
