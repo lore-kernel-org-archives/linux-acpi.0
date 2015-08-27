@@ -1,60 +1,40 @@
-From: Toshi Kani <toshi.kani@hp.com>
-Subject: Re: [PATCH 1/2]: nfit: Clarify memory device state flags strings
-Date: Thu, 27 Aug 2015 13:02:20 -0600
-Message-ID: <1440702140.14237.92.camel@hp.com>
-References: <1440606024-29873-1-git-send-email-toshi.kani@hp.com>
-	 <1440606024-29873-2-git-send-email-toshi.kani@hp.com>
-	 <CAPcyv4hNdyDSirnbxw9uMWZXPVhzGSznEDT0GEMD8do2go6i7Q@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: [PATCH v3] change aperture mapping from WC to WB
+Date: Thu, 27 Aug 2015 13:14:19 -0600
+Message-ID: <1440702860-17363-1-git-send-email-ross.zwisler@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g9t5009.houston.hp.com ([15.240.92.67]:38377 "EHLO
-	g9t5009.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751728AbbH0TE3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Aug 2015 15:04:29 -0400
-In-Reply-To: <CAPcyv4hNdyDSirnbxw9uMWZXPVhzGSznEDT0GEMD8do2go6i7Q@mail.gmail.com>
+Received: from mga09.intel.com ([134.134.136.24]:33821 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752265AbbH0TOs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 27 Aug 2015 15:14:48 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Rafael J Wysocki <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Elliott, Robert (Server Storage)" <elliott@hp.com>
+To: linux-kernel@vger.kernel.org
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "H. Peter Anvin" <hpa@zytor.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Ingo Molnar <mingo@redhat.com>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, linux-acpi@vger.kernel.org, linux-nvdimm@lists.01.org, x86@kernel.org, Dan Williams <dan.j.williams@intel.com>
 
-On Thu, 2015-08-27 at 11:57 -0700, Dan Williams wrote:
-> On Wed, Aug 26, 2015 at 9:20 AM, Toshi Kani <toshi.kani@hp.com> wrote:
-> > ACPI 6.0 NFIT Memory Device State Flags in Table 5-129 defines
-> > NVDIMM status as follows.  These bits indicate multiple info,
-> > such as failures, pending event, and capability.
-> > 
-> >   Bit [0] set to 1 to indicate that the previous SAVE to the
-> >   Memory Device failed.
-> >   Bit [1] set to 1 to indicate that the last RESTORE from the
-> >   Memory Device failed.
-> >   Bit [2] set to 1 to indicate that platform flush of data to
-> >   Memory Device failed. As a result, the restored data content
-> >   may be inconsistent even if SAVE and RESTORE do not indicate
-> >   failure.
-> >   Bit [3] set to 1 to indicate that the Memory Device is observed
-> >   to be not armed prior to OSPM hand off. A Memory Device is
-> >   considered armed if it is able to accept persistent writes.
-> >   Bit [4] set to 1 to indicate that the Memory Device observed
-> >   SMART and health events prior to OSPM handoff.
-> >   Bit [5] is set to 1 to indicate that platform firmware is
-> >   enabled to notify OSPM on SMART and health events related to
-> >   the memory device using Notify codes as specified in Section
-> >   5.6.6.
-> > 
-> > /sys/bus/nd/devices/nmemX/nfit/flags shows this flags info.
-> > The output strings associated with the bits are "save", "restore",
-> > "smart", etc., which can be confusing as they may be interpreted
-> > as positive status, i.e. save succeeded.
-> > 
-> > Change the strings to be more descriptive per the ACPI spec.
-> > Also add a string to bit 5 for completeness.
-> 
-> Ok I'm going to push this upstream for 4.2 with the "not_armed" fixup
-> that Ross suggested, but I'll defer adding bit5 since that is separate
-> from the urgent fix to get the polarities properly reflected and we
-> can add support for it later.
+The patch formerly known as `nd_blk: add support for "read flush" DSM flag'.
 
-Great!!  Thanks Dan! (and sorry for making more work to you...)
--Toshi
+I changed the patch title and updated the description to place more emphasis on
+the real purpose of the change, which is to move the BLK aperture mapping to
+WB.  Really the implementation of the "read flush" flag was just to enable this
+mapping change.
+
+Ross Zwisler (1):
+  nd_blk: change aperture mapping from WC to WB
+
+ arch/x86/Kconfig                  |  1 +
+ arch/x86/include/asm/cacheflush.h |  2 ++
+ arch/x86/include/asm/io.h         |  2 --
+ arch/x86/include/asm/pmem.h       |  2 ++
+ drivers/acpi/Kconfig              |  1 +
+ drivers/acpi/nfit.c               | 55 ++++++++++++++++++++++-----------------
+ drivers/acpi/nfit.h               | 16 ++++++++----
+ lib/Kconfig                       |  3 +++
+ tools/testing/nvdimm/Kbuild       |  2 ++
+ tools/testing/nvdimm/test/iomap.c | 30 +++++++++++++++++++--
+ tools/testing/nvdimm/test/nfit.c  | 10 ++++---
+ 11 files changed, 88 insertions(+), 36 deletions(-)
+
+-- 
+2.1.0
+
