@@ -1,41 +1,41 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / LPSS: Ignore 10ms delay for Braswell and Baytrail
-Date: Thu, 27 Aug 2015 19:26:30 +0200
-Message-ID: <53385977.18c1CJRJ2u@vostro.rjw.lan>
-References: <20150821121152.GA26813@intel-desktop> <20150827161321.GA9886@intel-desktop> <20150827083050.GC28428@lahna.fi.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH 2/2]: acpica/nfit: Rename not-armed bit definition
+Date: Thu, 27 Aug 2015 10:04:36 -0700
+Message-ID: <CAPcyv4hahUFB13tLvQ4CPsf+ZDu8xg668Rxqf5GkUHj1AFXs3g@mail.gmail.com>
+References: <1440606024-29873-1-git-send-email-toshi.kani@hp.com>
+	<1440606024-29873-3-git-send-email-toshi.kani@hp.com>
+	<CAPcyv4ifkE4kZ3fc3qqwQwBa1QabMcZotLJm+gXALZbNKYQ3aQ@mail.gmail.com>
+	<1440623522.14237.57.camel@hp.com>
+	<CAPcyv4he-kQ7ZoNXNH29ARG9_eX4fR-1yzuqT750z2yUDFxEUw@mail.gmail.com>
+	<1440625466.14237.62.camel@hp.com>
+	<CAPcyv4iy-_foyLcBGr9TSoR=9gmkS1c7g1c=TKVommdtfPCumA@mail.gmail.com>
+	<55DF21FC.8020106@hp.com>
+	<CAPcyv4grdxvWnLE1v7xPx0bw7K_CbZooWzN4_ToGS98gkrU_Hg@mail.gmail.com>
+	<55DF2E26.30701@hp.com>
+	<CAPcyv4h8iu+4yWvREyocdfFKDEo6QsV_17z=kougVBZNCeRjaQ@mail.gmail.com>
+	<55DF3BA7.7070909@hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:50948 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751574AbbH0Q65 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Aug 2015 12:58:57 -0400
-In-Reply-To: <20150827083050.GC28428@lahna.fi.intel.com>
+Received: from mail-vk0-f48.google.com ([209.85.213.48]:32799 "EHLO
+	mail-vk0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751570AbbH0REh (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 27 Aug 2015 13:04:37 -0400
+Received: by vkd66 with SMTP id 66so12272422vkd.0
+        for <linux-acpi@vger.kernel.org>; Thu, 27 Aug 2015 10:04:36 -0700 (PDT)
+In-Reply-To: <55DF3BA7.7070909@hp.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: "Kasagar, Srinidhi" <srinidhi.kasagar@intel.com>, linux-acpi@vger.kernel.org, rafael.j.wysocki@intel.com, Kumar P Mahesh <mahesh.kumar.p@intel.com>, Heikki Krogerus <heikki.krogerus@intel.com>
+To: Linda Knippers <linda.knippers@hp.com>
+Cc: Toshi Kani <toshi.kani@hp.com>, Rafael J Wysocki <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Elliott, Robert (Server Storage)" <elliott@hp.com>
 
-On Thursday, August 27, 2015 11:30:50 AM Mika Westerberg wrote:
-> On Thu, Aug 27, 2015 at 09:43:21PM +0530, Kasagar, Srinidhi wrote:
-> > >From 970c704dbb05aa8392b6e1090ceaf9ed76b6436b Mon Sep 17 00:00:00 2001
-> > From: Srinidhi Kasagar <srinidhi.kasagar@intel.com>
-> > Date: Thu, 27 Aug 2015 21:30:55 +0530
-> > Subject: [PATCH] ACPI / LPSS: Ignore 10ms delay for Braswell
-> > 
-> > LPSS devices in Braswell does not need the default 10ms
-> > d3_delay imposed by PCI specification. Removing this
-> > unnecessary delay significantly reduces the resume time
-> > approximately upto 200ms on this platform.
-> > 
-> > Signed-off-by: Srinidhi Kasagar <srinidhi.kasagar@intel.com>
-> 
-> Looks good now, thanks!
-> 
-> Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+On Thu, Aug 27, 2015 at 9:32 AM, Linda Knippers <linda.knippers@hp.com> wrote:
+> I know this seems like a nit but we've going to live with this stuff for
+> a long time.
 
-Applied, thanks!
-
-Rafael
-
+Along those lines, Bob just came by my office and gave me a decisive
+argument that I think trumps my ABI concerns, and one I'd be willing
+to argue for 4.2 inclusion.  Some BIOS implementers may do the work to
+get the polarity correct others may just read the flag name and get it
+wrong.  Once that happens the field loses all meaning regardless of
+whether Linux interprets it correctly.
