@@ -1,79 +1,179 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH 2/2]: acpica/nfit: Rename not-armed bit definition
-Date: Thu, 27 Aug 2015 01:56:43 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37D340BD7@ORSMSX112.amr.corp.intel.com>
-References: <1440606024-29873-1-git-send-email-toshi.kani@hp.com>
-	 <1440606024-29873-3-git-send-email-toshi.kani@hp.com>
-	 <CAPcyv4ifkE4kZ3fc3qqwQwBa1QabMcZotLJm+gXALZbNKYQ3aQ@mail.gmail.com>
-	 <1440623522.14237.57.camel@hp.com>
-	 <CAJZ5v0g2AF7P=T-L_DJqLbOSAoqWcgZseTbeMCx9yChkNgFJOw@mail.gmail.com>
-	 <1440631796.14237.67.camel@hp.com> <1440632135.14237.70.camel@hp.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: [PATCH 5/6] ACPI / gpio: Split acpi_get_gpiod_by_index()
+Date: Thu, 27 Aug 2015 04:41:33 +0200
+Message-ID: <8402685.WoxEi8zV68@vostro.rjw.lan>
+References: <1596179.pGEt0Ullqu@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:34091 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751880AbbH0B4q (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 26 Aug 2015 21:56:46 -0400
-In-Reply-To: <1440632135.14237.70.camel@hp.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <1596179.pGEt0Ullqu@vostro.rjw.lan>
+Sender: linux-gpio-owner@vger.kernel.org
+To: ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Darren Hart <darren.hart@intel.com>, Grant Likely <grant.likely@linaro.org>, Arnd Bergmann <arnd.bergmann@linaro.org>, David Woodhouse <dwmw2@infradead.org>, Dustin Byford <dustin@cumulusnetworks.com>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, linux-gpio@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hp.com>, "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: "Williams, Dan J" <dan.j.williams@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Elliott, Robert (Server Storage)" <elliott@hp.com>, "Box, David E" <david.e.box@intel.com>
 
-SSBkb27igJl0IGhhdmUgYW55IHByb2JsZW0gY2hhbmdpbmcgdGhpcyBpbiBBQ1BJQ0EgaWYvd2hl
-biB5b3UgYWxsIGFncmVlLg0KDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJv
-bTogVG9zaGkgS2FuaSBbbWFpbHRvOnRvc2hpLmthbmlAaHAuY29tXQ0KPiBTZW50OiBXZWRuZXNk
-YXksIEF1Z3VzdCAyNiwgMjAxNSA0OjM2IFBNDQo+IFRvOiBSYWZhZWwgSi4gV3lzb2NraQ0KPiBD
-YzogV2lsbGlhbXMsIERhbiBKOyBXeXNvY2tpLCBSYWZhZWwgSjsgTW9vcmUsIFJvYmVydDsgbGlu
-dXgtDQo+IG52ZGltbUBsaXN0cy4wMS5vcmc7IExpbnV4IEFDUEk7IGxpbnV4LWtlcm5lbEB2Z2Vy
-Lmtlcm5lbC5vcmc7IEVsbGlvdHQsDQo+IFJvYmVydCAoU2VydmVyIFN0b3JhZ2UpDQo+IFN1Ympl
-Y3Q6IFJlOiBbUEFUQ0ggMi8yXTogYWNwaWNhL25maXQ6IFJlbmFtZSBub3QtYXJtZWQgYml0IGRl
-ZmluaXRpb24NCj4gDQo+IE9uIFdlZCwgMjAxNS0wOC0yNiBhdCAxNzoyOSAtMDYwMCwgVG9zaGkg
-S2FuaSB3cm90ZToNCj4gPiBPbiBUaHUsIDIwMTUtMDgtMjcgYXQgMDE6MTYgKzAyMDAsIFJhZmFl
-bCBKLiBXeXNvY2tpIHdyb3RlOg0KPiA+ID4gT24gV2VkLCBBdWcgMjYsIDIwMTUgYXQgMTE6MTIg
-UE0sIFRvc2hpIEthbmkgPHRvc2hpLmthbmlAaHAuY29tPg0KPiB3cm90ZToNCj4gPiA+ID4gT24g
-V2VkLCAyMDE1LTA4LTI2IGF0IDEwOjE2IC0wNzAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+ID4g
-PiA+ID4gT24gV2VkLCBBdWcgMjYsIDIwMTUgYXQgOToyMCBBTSwgVG9zaGkgS2FuaSA8dG9zaGku
-a2FuaUBocC5jb20+DQo+ID4gPiA+ID4gd3JvdGU6DQo+ID4gPiA+ID4gPiBBQ1BJIDYuMCBORklU
-IE1lbW9yeSBEZXZpY2UgU3RhdGUgRmxhZ3MgaW4gVGFibGUgNS0xMjkgZGVmaW5lcw0KPiA+ID4g
-PiA+ID4gYml0IDMgYXMgZm9sbG93cy4NCj4gPiA+ID4gPiA+DQo+ID4gPiA+ID4gPiAgIEJpdCBb
-M10gc2V0IHRvIDEgdG8gaW5kaWNhdGUgdGhhdCB0aGUgTWVtb3J5IERldmljZSBpcw0KPiBvYnNl
-cnZlZA0KPiA+ID4gPiA+ID4gICB0byBiZSBub3QgYXJtZWQgcHJpb3IgdG8gT1NQTSBoYW5kIG9m
-Zi4gQSBNZW1vcnkgRGV2aWNlIGlzDQo+ID4gPiA+ID4gPiAgIGNvbnNpZGVyZWQgYXJtZWQgaWYg
-aXQgaXMgYWJsZSB0byBhY2NlcHQgcGVyc2lzdGVudCB3cml0ZXMuDQo+ID4gPiA+ID4gPg0KPiA+
-ID4gPiA+ID4gVGhpcyBiaXQgaXMgY3VycmVudGx5IGRlZmluZWQgYXMgQUNQSV9ORklUX01FTV9B
-Uk1FRCwgd2hpY2gNCj4gPiA+ID4gPiA+IGNhbiBiZSBjb25mdXNpbmcgYXMgaWYgdGhlIE1lbW9y
-eSBEZXZpY2UgaXMgYXJtZWQgd2hlbiB0aGlzIGJpdA0KPiBpcyBzZXQuDQo+ID4gPiA+ID4gPg0K
-PiA+ID4gPiA+ID4gQ2hhbmdlIHRoZSBuYW1lIHRvIEFDUElfTkZJVF9NRU1fTk9UX0FSTUVEIHBl
-ciB0aGUgc3BlYy4NCj4gPiA+ID4gPiA+DQo+ID4gPiA+ID4gPiBTaWduZWQtb2ZmLWJ5OiBUb3No
-aSBLYW5pIDx0b3NoaS5rYW5pQGhwLmNvbT4NCj4gPiA+ID4gPiA+IENjOiBEYW4gV2lsbGlhbXMg
-PGRhbi5qLndpbGxpYW1zQGludGVsLmNvbT4NCj4gPiA+ID4gPiA+IENjOiBCb2IgTW9vcmUgPHJv
-YmVydC5tb29yZUBpbnRlbC5jb20+DQo+ID4gPiA+ID4gPiBDYzogUmFmYWVsIEouIFd5c29ja2kg
-PHJhZmFlbC5qLnd5c29ja2lAaW50ZWwuY29tPg0KPiA+ID4gPiA+ID4gLS0tDQo+ID4gPiA+ID4g
-PiAgZHJpdmVycy9hY3BpL25maXQuYyAgICAgICAgICAgICAgfCAgICA2ICsrKy0tLQ0KPiA+ID4g
-PiA+ID4gIGRyaXZlcnMvYWNwaS9uZml0LmggICAgICAgICAgICAgIHwgICAgMiArLQ0KPiA+ID4g
-PiA+ID4gIGluY2x1ZGUvYWNwaS9hY3RibDEuaCAgICAgICAgICAgIHwgICAgMiArLQ0KPiA+ID4g
-PiA+DQo+ID4gPiA+ID4gVGhpcyBmaWxlICJpbmNsdWRlL2FjcGkvYWN0YmwxLmgiIGlzIG93bmVk
-IGJ5IHRoZSBBQ1BJQ0EgcHJvamVjdA0KPiA+ID4gPiA+IHNvIGFueSBjaGFuZ2VzIG5lZWQgdG8g
-Y29tZSB0aHJvdWdoIHRoZW0uICBCdXQgdGhhdCBzYWlkLCBJJ20NCj4gPiA+ID4gPiBub3Qgc3Vy
-ZSB3ZSBuZWVkIGZyaWVuZGx5IG5hbWVzIGF0IHRoaXMgbGV2ZWwuDQo+ID4gPiA+DQo+ID4gPiA+
-IEkgdGhpbmsgdGhlIG5hbWUgaXMgbWlzbGVhZGluZywgYnV0IEkgYWdyZWUgd2l0aCB0aGUgcHJv
-Y2VzcyBhbmQNCj4gPiA+ID4gdGhpcw0KPiA+ID4gPiBwYXRjaDIgY2FuIGJlIGRyb3BwZWQuICBJ
-dCdkIGJlIG5pY2UgaWYgdGhlIEFDUElDQSBwcm9qZWN0IGNhbg0KPiA+ID4gPiBwaWNrIGl0IHVw
-IGxhdGVyIHdoZW4gdGhleSBoYXZlIGEgY2hhbmNlLCB0aG91Z2guDQo+ID4gPg0KPiA+ID4gQSBn
-b29kIHdheSB0byBjYXVzZSB0aGF0IHRvIGhhcHBlbiB3b3VsZCBiZSB0byBzZW5kIGEgcGF0Y2gg
-dG8gdGhlDQo+ID4gPiBBQ1BJQ0EgZGV2ZWxvcG1lbnQgbGlzdCArIG1haW50YWluZXJzIGFzIHBl
-ciBNQUlOVEFJTkVSUy4NCj4gPg0KPiA+IE9oLCBJIHNlZS4gIEkgZGlkIHJ1biBnZXRfbWFpbnRh
-aW5lci5wbCBmb3IgdGhpcyBwYXRjaCwgYnV0DQo+ID4gZGV2ZWxAYWNwaWNhLm9yZyBkaWQgbm90
-IGNvbWUgb3V0IGluIG91dHB1dC4uLiAgU28sIEkgZGlkIG5vdCByZWFsaXplDQo+ID4gdGhpcyBl
-bWFpbCBsaXN0Lg0KPiANCj4gU29ycnksIGl0IHdhcyBsaXN0ZWQgaW4gdGhlIG91dHB1dC4gIEkg
-d2FzIHNpbXBseSBibGluZGVkLi4uIDotKA0KPiANCj4gJCBzY3JpcHRzL2dldF9tYWludGFpbmVy
-LnBsIHBhdGNoZXMtbmQtZmxhZ3MvMDIqDQo+ICA6DQo+IGxpbnV4LW52ZGltbUBsaXN0cy4wMS5v
-cmcgKG9wZW4gbGlzdDpMSUJOVkRJTU0gQkxLOiBNTUlPLUFQRVJUVVJFIERSSVZFUikNCj4gbGlu
-dXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmcgKG9wZW4gbGlzdDpBQ1BJKSBsaW51eC1rZXJuZWxAdmdl
-ci5rZXJuZWwub3JnDQo+IChvcGVuIGxpc3QpIGRldmVsQGFjcGljYS5vcmcgKG9wZW4gbGlzdDpB
-Q1BJIENPTVBPTkVOVCBBUkNISVRFQ1RVUkUNCj4gKEFDUElDQSkpDQo+IA0KPiBUaGFua3MhDQo+
-IC1Ub3NoaQ0K
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+
+Split acpi_get_gpiod_by_index() into three smaller routines to
+allow the subsequent change of the generic firmware node properties
+code to be more strarightforward.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+---
+ drivers/gpio/gpiolib-acpi.c |  113 +++++++++++++++++++++++++-------------------
+ 1 file changed, 65 insertions(+), 48 deletions(-)
+
+Index: linux-pm/drivers/gpio/gpiolib-acpi.c
+===================================================================
+--- linux-pm.orig/drivers/gpio/gpiolib-acpi.c
++++ linux-pm/drivers/gpio/gpiolib-acpi.c
+@@ -389,6 +389,8 @@ struct acpi_gpio_lookup {
+ 	struct acpi_gpio_info info;
+ 	int index;
+ 	int pin_index;
++	bool active_low;
++	struct acpi_device *adev;
+ 	struct gpio_desc *desc;
+ 	int n;
+ };
+@@ -425,6 +427,59 @@ static int acpi_find_gpio(struct acpi_re
+ 	return 1;
+ }
+ 
++static int acpi_gpio_resource_lookup(struct acpi_gpio_lookup *lookup,
++				     struct acpi_gpio_info *info)
++{
++	struct list_head res_list;
++	int ret;
++
++	INIT_LIST_HEAD(&res_list);
++
++	ret = acpi_dev_get_resources(lookup->adev, &res_list, acpi_find_gpio,
++				     lookup);
++	if (ret < 0)
++		return ret;
++
++	acpi_dev_free_resource_list(&res_list);
++
++	if (!lookup->desc)
++		return -ENOENT;
++
++	if (info) {
++		*info = lookup->info;
++		if (lookup->active_low)
++			info->active_low = lookup->active_low;
++	}
++	return 0;
++}
++
++static int acpi_gpio_property_lookup(struct acpi_device *adev,
++				     const char *propname, int index,
++				     struct acpi_gpio_lookup *lookup)
++{
++	struct acpi_reference_args args;
++	int ret;
++
++	memset(&args, 0, sizeof(args));
++	ret = acpi_dev_get_property_reference(adev, propname, index, &args);
++	if (ret && !acpi_get_driver_gpio_data(adev, propname, index, &args))
++		return ret;
++
++	/*
++	 * The property was found and resolved, so need to lookup the GPIO based
++	 * on returned args.
++	 */
++	lookup->adev = args.adev;
++	if (args.nargs >= 2) {
++		lookup->index = args.args[0];
++		lookup->pin_index = args.args[1];
++		/* 3rd argument, if present is used to specify active_low. */
++		if (args.nargs >= 3)
++			lookup->active_low = !!args.args[2];
++	}
++	return 0;
++}
++
+ /**
+  * acpi_get_gpiod_by_index() - get a GPIO descriptor from device resources
+  * @adev: pointer to a ACPI device to get GPIO from
+@@ -452,8 +507,6 @@ struct gpio_desc *acpi_get_gpiod_by_inde
+ 					  struct acpi_gpio_info *info)
+ {
+ 	struct acpi_gpio_lookup lookup;
+-	struct list_head resource_list;
+-	bool active_low = false;
+ 	int ret;
+ 
+ 	if (!adev)
+@@ -463,58 +516,22 @@ struct gpio_desc *acpi_get_gpiod_by_inde
+ 	lookup.index = index;
+ 
+ 	if (propname) {
+-		struct acpi_reference_args args;
+-
+ 		dev_dbg(&adev->dev, "GPIO: looking up %s\n", propname);
+ 
+-		memset(&args, 0, sizeof(args));
+-		ret = acpi_dev_get_property_reference(adev, propname,
+-						      index, &args);
+-		if (ret) {
+-			bool found = acpi_get_driver_gpio_data(adev, propname,
+-							       index, &args);
+-			if (!found)
+-				return ERR_PTR(ret);
+-		}
+-
+-		/*
+-		 * The property was found and resolved so need to
+-		 * lookup the GPIO based on returned args instead.
+-		 */
+-		adev = args.adev;
+-		if (args.nargs >= 2) {
+-			lookup.index = args.args[0];
+-			lookup.pin_index = args.args[1];
+-			/*
+-			 * 3rd argument, if present is used to
+-			 * specify active_low.
+-			 */
+-			if (args.nargs >= 3)
+-				active_low = !!args.args[2];
+-		}
+-
+-		dev_dbg(&adev->dev, "GPIO: _DSD returned %s %zd %llu %llu %llu\n",
+-			dev_name(&adev->dev), args.nargs,
+-			args.args[0], args.args[1], args.args[2]);
++		ret = acpi_gpio_property_lookup(adev, propname, index, &lookup);
++		if (ret)
++			return ERR_PTR(ret);
++
++		dev_dbg(&adev->dev, "GPIO: _DSD returned %s %d %d %u\n",
++			dev_name(&lookup.adev->dev), lookup.index,
++			lookup.pin_index, lookup.active_low);
+ 	} else {
+ 		dev_dbg(&adev->dev, "GPIO: looking up %d in _CRS\n", index);
++		lookup.adev = adev;
+ 	}
+ 
+-	INIT_LIST_HEAD(&resource_list);
+-	ret = acpi_dev_get_resources(adev, &resource_list, acpi_find_gpio,
+-				     &lookup);
+-	if (ret < 0)
+-		return ERR_PTR(ret);
+-
+-	acpi_dev_free_resource_list(&resource_list);
+-
+-	if (lookup.desc && info) {
+-		*info = lookup.info;
+-		if (active_low)
+-			info->active_low = active_low;
+-	}
+-
+-	return lookup.desc ? lookup.desc : ERR_PTR(-ENOENT);
++	ret = acpi_gpio_resource_lookup(&lookup, info);
++	return ret ? ERR_PTR(ret) : lookup.desc;
+ }
+ 
+ /**
+
