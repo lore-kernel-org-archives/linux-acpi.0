@@ -1,182 +1,109 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH] ACPI / ARM64: Get configuration base address of ECAM via
- ACPI MCFG table
-Date: Fri, 28 Aug 2015 15:39:43 +0100
-Message-ID: <20150828143943.GF15924@red-moon>
-References: <1440766163-12101-1-git-send-email-dennis.chen@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Toshi Kani <toshi.kani@hp.com>
+Subject: [PATCH]: acpica/nfit: Rename not-armed bit definition
+Date: Fri, 28 Aug 2015 08:40:17 -0600
+Message-ID: <1440772817-13562-1-git-send-email-toshi.kani@hp.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:52232 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751963AbbH1Ojk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 28 Aug 2015 10:39:40 -0400
-Content-Disposition: inline
-In-Reply-To: <1440766163-12101-1-git-send-email-dennis.chen@arm.com>
+Received: from g9t5008.houston.hp.com ([15.240.92.66]:53548 "EHLO
+	g9t5008.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751757AbbH1Om2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 28 Aug 2015 10:42:28 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dennis Chen <dennis.chen@arm.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <Will.Deacon@arm.com>
+To: dan.j.williams@intel.com, rafael.j.wysocki@intel.com, robert.moore@intel.com
+Cc: devel@acpica.org, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hp.com>
 
-Hi Dennis,
+ACPI 6.0 NFIT Memory Device State Flags in Table 5-129 defines
+bit 3 as follows.
 
-You should CC linux-pci@vger.kernel.org and the PCI subsystem
-maintainer next time.
+  Bit [3] set to 1 to indicate that the Memory Device is observed
+  to be not armed prior to OSPM hand off. A Memory Device is
+  considered armed if it is able to accept persistent writes.
 
-On Fri, Aug 28, 2015 at 01:49:23PM +0100, Dennis Chen wrote:
-> This patch will fall back to ACPI MCFG table if _CBA method fails
-> to get the configuration base address of ECAM. Firmware on ARM
-> platform uses MCFG table instead of _CBA method. This is needed
-> to scan the PCIe root complex for ARM SoC.
+This bit is currently defined as ACPI_NFIT_MEM_ARMED, which can be
+confusing as if the Memory Device is armed when this bit is set.
 
-Code to enumerate PCI with ACPI on ARM64 is under review:
+Change the name to ACPI_NFIT_MEM_NOT_ARMED per the spec.
 
-https://lkml.org/lkml/2015/6/8/443
+Signed-off-by: Toshi Kani <toshi.kani@hp.com>
+Cc: Bob Moore <robert.moore@intel.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+This patch is based on the linus's tree.
+---
+ drivers/acpi/nfit.c              |    6 +++---
+ drivers/acpi/nfit.h              |    2 +-
+ include/acpi/actbl1.h            |    2 +-
+ tools/testing/nvdimm/test/nfit.c |    2 +-
+ 4 files changed, 6 insertions(+), 6 deletions(-)
 
-Having said that, I do not think this patch will be needed,
-you can't add code in the kernel because it may be needed in
-the future, I do not see how it can be possibly useful at present
-on ARM64 unless you pulled some patch dependencies; if that's the
-case you should have listed them.
-
-This patch can't be review standalone since it has no use in
-the current kernel (at least for ARM64, it should be tested
-on x86 though).
-
-Thanks,
-Lorenzo
-
-> Signed-off-by: Dennis Chen <dennis.chen@arm.com>
-> ---
->  drivers/pci/pci-acpi.c | 102 ++++++++++++++++++++++++++++++++++++++++++++++---
->  1 file changed, 97 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-> index 314a625..211b9d9 100644
-> --- a/drivers/pci/pci-acpi.c
-> +++ b/drivers/pci/pci-acpi.c
-> @@ -27,18 +27,110 @@ const u8 pci_acpi_dsm_uuid[] = {
->  	0x91, 0x17, 0xea, 0x4d, 0x19, 0xc3, 0x43, 0x4d
->  };
->  
-> +static int __init acpi_mcfg_check_entry(struct acpi_table_mcfg *mcfg)
-> +{
-> +	if (mcfg->header.revision != 1) {
-> +		pr_err("invalid header revision:%d in ACPI MCFG table\n",
-> +			mcfg->header.revision);
-> +		return -EINVAL;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static phys_addr_t __init acpi_get_mcfg_cba(u16 segment, u8 bus)
-> +{
-> +	struct acpi_table_header *table = NULL;
-> +	acpi_size tbl_size;
-> +	struct acpi_table_mcfg *mcfg = NULL;
-> +	struct acpi_mcfg_allocation *cfg_table, *cfg;
-> +	acpi_status status;
-> +	phys_addr_t cba = 0;
-> +	unsigned long i;
-> +	int entries;
-> +
-> +	if (acpi_disabled)
-> +		return 0;
-> +
-> +	status = acpi_get_table_with_size(ACPI_SIG_MCFG, 0, &table, &tbl_size);
-> +	if (ACPI_FAILURE(status)) {
-> +		const char *msg = acpi_format_exception(status);
-> +
-> +		pr_err("Failed to get MCFG table, %s\n", msg);
-> +		return 0;
-> +	}
-> +
-> +	if (table)
-> +		mcfg = (struct acpi_table_mcfg *)table;
-> +
-> +	entries = 0;
-> +	i = table->length - sizeof(struct acpi_table_mcfg);
-> +	while (i >= sizeof(struct acpi_mcfg_allocation)) {
-> +		entries++;
-> +		i -= sizeof(struct acpi_mcfg_allocation);
-> +	}
-> +	if (entries == 0) {
-> +		pr_err("ACPI MCFG table has no entries\n");
-> +		goto out;
-> +	}
-> +
-> +	cfg_table = (struct acpi_mcfg_allocation *) &mcfg[1];
-> +	for (i = 0; i < entries; i++) {
-> +		cfg = &cfg_table[i];
-> +		if (acpi_mcfg_check_entry(mcfg))
-> +			goto out;
-> +
-> +		if (cfg->pci_segment == segment &&
-> +			cfg->start_bus_number <= bus &&
-> +			bus <= cfg->end_bus_number) {
-> +			cba = (phys_addr_t)cfg->address;
-> +			goto out;
-> +		}
-> +	}
-> +out:
-> +	/*
-> +	 * acpi_get_table_with_size() creates MCFG table mapping that
-> +	 * should be released after parsing and before resuming boot
-> +	 */
-> +	early_acpi_os_unmap_memory(table, tbl_size);
-> +	return cba;
-> +}
-> +
->  phys_addr_t acpi_pci_root_get_mcfg_addr(acpi_handle handle)
->  {
->  	acpi_status status = AE_NOT_EXIST;
-> -	unsigned long long mcfg_addr;
-> +	unsigned long long mcfg_addr, mcfg_seg, mcfg_bus;
-> +	u16 seg;
-> +	u8 bus;
-> +
-> +	if (!handle)
-> +		return 0;
->  
-> -	if (handle)
-> -		status = acpi_evaluate_integer(handle, METHOD_NAME__CBA,
-> +	status = acpi_evaluate_integer(handle, METHOD_NAME__CBA,
->  					       NULL, &mcfg_addr);
-> +	if (ACPI_SUCCESS(status))
-> +		return (phys_addr_t)mcfg_addr;
-> +
-> +	pr_info("ACPI: Falling back to acpi mcfg table\n");
-> +
-> +	/*
-> +	 * Fall back to MCFG table if _CBA failed:
-> +	 * get the mcfg_addr via ACPI MCFG table. PCI Firmware v3.2 spec: 4.1.2
-> +	 */
-> +	status = acpi_evaluate_integer(handle, METHOD_NAME__SEG,
-> +						NULL, &mcfg_seg);
->  	if (ACPI_FAILURE(status))
-> -		return 0;
-> +		mcfg_seg = 0;
-> +
-> +	status = acpi_evaluate_integer(handle, METHOD_NAME__BBN,
-> +						NULL, &mcfg_bus);
-> +	if (ACPI_FAILURE(status))
-> +		mcfg_bus = 0;
-> +
-> +	seg = mcfg_seg & 0xFFFF;
-> +	bus = mcfg_bus & 0xFF;
->  
-> -	return (phys_addr_t)mcfg_addr;
-> +	return acpi_get_mcfg_cba(seg, bus);
->  }
->  
->  static acpi_status decode_type0_hpx_record(union acpi_object *record,
-> -- 
-> 1.9.1
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
+diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+index cf0fd96..4596e0a 100644
+--- a/drivers/acpi/nfit.c
++++ b/drivers/acpi/nfit.c
+@@ -705,7 +705,7 @@ static ssize_t flags_show(struct device *dev,
+ 		flags & ACPI_NFIT_MEM_SAVE_FAILED ? "save_fail " : "",
+ 		flags & ACPI_NFIT_MEM_RESTORE_FAILED ? "restore_fail " : "",
+ 		flags & ACPI_NFIT_MEM_FLUSH_FAILED ? "flush_fail " : "",
+-		flags & ACPI_NFIT_MEM_ARMED ? "not_armed " : "",
++		flags & ACPI_NFIT_MEM_NOT_ARMED ? "not_armed " : "",
+ 		flags & ACPI_NFIT_MEM_HEALTH_OBSERVED ? "smart_event " : "");
+ }
+ static DEVICE_ATTR_RO(flags);
+@@ -830,7 +830,7 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
+ 			flags |= NDD_ALIASING;
+ 
+ 		mem_flags = __to_nfit_memdev(nfit_mem)->flags;
+-		if (mem_flags & ACPI_NFIT_MEM_ARMED)
++		if (mem_flags & ACPI_NFIT_MEM_NOT_ARMED)
+ 			flags |= NDD_UNARMED;
+ 
+ 		rc = acpi_nfit_add_dimm(acpi_desc, nfit_mem, device_handle);
+@@ -854,7 +854,7 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
+ 		  mem_flags & ACPI_NFIT_MEM_SAVE_FAILED ? " save_fail" : "",
+ 		  mem_flags & ACPI_NFIT_MEM_RESTORE_FAILED ? " restore_fail":"",
+ 		  mem_flags & ACPI_NFIT_MEM_FLUSH_FAILED ? " flush_fail" : "",
+-		  mem_flags & ACPI_NFIT_MEM_ARMED ? " not_armed" : "");
++		  mem_flags & ACPI_NFIT_MEM_NOT_ARMED ? " not_armed" : "");
+ 
+ 	}
+ 
+diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
+index 79b6d83..90505e3 100644
+--- a/drivers/acpi/nfit.h
++++ b/drivers/acpi/nfit.h
+@@ -24,7 +24,7 @@
+ #define UUID_NFIT_DIMM "4309ac30-0d11-11e4-9191-0800200c9a66"
+ #define ACPI_NFIT_MEM_FAILED_MASK (ACPI_NFIT_MEM_SAVE_FAILED \
+ 		| ACPI_NFIT_MEM_RESTORE_FAILED | ACPI_NFIT_MEM_FLUSH_FAILED \
+-		| ACPI_NFIT_MEM_ARMED)
++		| ACPI_NFIT_MEM_NOT_ARMED)
+ 
+ enum nfit_uuids {
+ 	NFIT_SPA_VOLATILE,
+diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
+index fcd5709..238754e 100644
+--- a/include/acpi/actbl1.h
++++ b/include/acpi/actbl1.h
+@@ -1012,7 +1012,7 @@ struct acpi_nfit_memory_map {
+ #define ACPI_NFIT_MEM_SAVE_FAILED       (1)	/* 00: Last SAVE to Memory Device failed */
+ #define ACPI_NFIT_MEM_RESTORE_FAILED    (1<<1)	/* 01: Last RESTORE from Memory Device failed */
+ #define ACPI_NFIT_MEM_FLUSH_FAILED      (1<<2)	/* 02: Platform flush failed */
+-#define ACPI_NFIT_MEM_ARMED             (1<<3)	/* 03: Memory Device observed to be not armed */
++#define ACPI_NFIT_MEM_NOT_ARMED         (1<<3)	/* 03: Memory Device observed to be not armed */
+ #define ACPI_NFIT_MEM_HEALTH_OBSERVED   (1<<4)	/* 04: Memory Device observed SMART/health events */
+ #define ACPI_NFIT_MEM_HEALTH_ENABLED    (1<<5)	/* 05: SMART/health events enabled */
+ 
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index d0bdae4..ed271ba 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -917,7 +917,7 @@ static void nfit_test1_setup(struct nfit_test *t)
+ 	memdev->interleave_ways = 1;
+ 	memdev->flags = ACPI_NFIT_MEM_SAVE_FAILED | ACPI_NFIT_MEM_RESTORE_FAILED
+ 		| ACPI_NFIT_MEM_FLUSH_FAILED | ACPI_NFIT_MEM_HEALTH_OBSERVED
+-		| ACPI_NFIT_MEM_ARMED;
++		| ACPI_NFIT_MEM_NOT_ARMED;
+ 
+ 	offset += sizeof(*memdev);
+ 	/* dcr-descriptor0 */
