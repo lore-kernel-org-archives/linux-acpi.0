@@ -1,113 +1,148 @@
-From: "Williams, Dan J" <dan.j.williams@intel.com>
-Subject: [GIT PULL] libnvdimm ABI fixup for 4.2
-Date: Thu, 27 Aug 2015 23:36:16 +0000
-Message-ID: <1440718572.21270.19.camel@intel.com>
+From: Dustin Byford <dustin@cumulusnetworks.com>
+Subject: Re: [PATCH 0/6] ACPI / properties: Hierarchical properties support
+Date: Thu, 27 Aug 2015 17:10:48 -0700
+Message-ID: <20150828001048.GA10729@cumulusnetworks.com>
+References: <1596179.pGEt0Ullqu@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Language: en-US
-Content-ID: <84CB7E7ACD98C14EA8E98B3D972E0548@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>
-Cc: "toshi.kani@hp.com" <toshi.kani@hp.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linda.knippers@hp.com" <linda.knippers@hp.com>, "elliott@hp.com" <elliott@hp.com>, "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1596179.pGEt0Ullqu@vostro.rjw.lan>
+Sender: linux-gpio-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Darren Hart <darren.hart@intel.com>, Grant Likely <grant.likely@linaro.org>, Arnd Bergmann <arnd.bergmann@linaro.org>, David Woodhouse <dwmw2@infradead.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, linux-gpio@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-SGkgTGludXMsIHBsZWFzZSBwdWxsIGZyb206DQoNCiAgICBnaXQ6Ly9naXQua2VybmVsLm9yZy9w
-dWIvc2NtL2xpbnV4L2tlcm5lbC9naXQvbnZkaW1tL252ZGltbSBsaWJudmRpbW0tZml4ZXMNCg0K
-Li4udG8gcmVjZWl2ZSBvbmUgZmluYWwgZml4IGZvciA0LjIuDQoNCkkgcHVzaGVkIGJhY2sgb24g
-dGhpcyBjaGFuZ2UgcXVpdGUgaGFyZCBnaXZlbiB0aGUgbGF0ZSBkYXRlLCB0aGF0IGl0DQphcHBl
-YXJzIHRvIGJlIHB1cmVseSBjb3NtZXRpYywgc3lzZnMgaXMgbm90IG5lY2Vzc2FyaWx5IG1lYW50
-IHRvIGJlIGENCnVzZXIgZnJpZW5kbHkgVUksIGFuZCB0aGUga2VybmVsIGludGVycHJldHMgdGhl
-IHJldmVyc2VkIHBvbGFyaXR5IG9mIHRoZQ0KQUNQSV9ORklUX01FTV9BUk1FRCBmbGFnIGNvcnJl
-Y3RseS4gIFdoZW4gdGhpcyBmbGFnIGlzIHNldCwgdGhlIGVuZXJneQ0Kc291cmNlIG9mIGFuIE5W
-RElNTSBpcyBub3QgYXJtZWQgYW5kIGFueSBuZXcgd3JpdGVzIHRvIHRoZSBESU1NIG1heSBub3QN
-CmJlIHByZXNlcnZlZC4NCg0KSG93ZXZlciwgQm9iIE1vb3JlIHdhcm5lZCBtZSB0aGF0IGl0IGlz
-IGltcG9ydGFudCB0byBnZXQgdGhlc2UgdGhpbmdzDQpuYW1lZCBjb3JyZWN0bHkgd2hlcmV2ZXIg
-dGhleSBhcHBlYXIgb3RoZXJ3aXNlIHdlIHJ1biB0aGUgcmlzayBvZiBhIGxlc3MNCnRoYW4gY2F1
-dGlvdXMgZmlybXdhcmUgZW5naW5lZXIgaW1wbGVtZW50aW5nIHRoZSBwb2xhcml0eSB0aGUgd3Jv
-bmcgd2F5Lg0KT25jZSBhIG1pc3Rha2UgbGlrZSB0aGF0IGVzY2FwZXMgaW50byBwcm9kdWN0aW9u
-IHBsYXRmb3JtcyB0aGUgZmxhZw0KYmVjb21lcyB1c2VsZXNzIGFuZCB3ZSBuZWVkIHRvIG1vdmUg
-dG8gYSBuZXcgYml0IHBvc2l0aW9uLg0KDQpCb2IgaGFzIGFncmVlZCB0byB0YWtlIGEgY2hhbmdl
-IHRocm91Z2ggQUNQSUNBIHRvIHJlbmFtZQ0KQUNQSV9ORklUX01FTV9BUk1FRCB0byBBQ1BJX05G
-SVRfTUVNX05PVF9BUk1FRCwgYW5kIHRoZSBwYXRjaCBiZWxvdyBmcm9tDQpUb3NoaSBicmluZ3Mg
-dGhlIHN5c2ZzIHJlcHJlc2VudGF0aW9uIG9mIHRoZXNlIGZsYWdzIGluIGxpbmUgd2l0aCB0aGVp
-cg0KcmVzcGVjdGl2ZSBwb2xhcml0aWVzLg0KDQpQbGVhc2UgcHVsbCBmb3IgNC4yIGFzIHRoaXMg
-aXMgdGhlIGZpcnN0IGtlcm5lbCB0byBleHBvc2UgdGhlIEFDUEkgTkZJVA0Kc3lzZnMgcmVwcmVz
-ZW50YXRpb24sIGFuZCB0aGlzIGlzIGxpa2VseSBhIGtlcm5lbCB0aGF0IGZpcm13YXJlDQpkZXZl
-bG9wZXJzIHdpbGwgYmUgdXNpbmcgZm9yIGNoZWNraW5nIG91dCB0aGVpciBOVkRJTU0gZW5hYmxp
-bmcuDQoNClRoZSBmb2xsb3dpbmcgY2hhbmdlcyBzaW5jZSBjb21taXQgZGU0YTE5NmMwMmEyYTI2
-MzFiNTE2ZDkwZGE2ZThkMDUyY2NiMDdlODoNCg0KICBuZml0LCBuZF9ibGs6IEJMSyBzdGF0dXMg
-cmVnaXN0ZXIgaXMgb25seSAzMiBiaXRzICgyMDE1LTA4LTI1IDE5OjQyOjAxIC0wNDAwKQ0KDQph
-cmUgYXZhaWxhYmxlIGluIHRoZSBnaXQgcmVwb3NpdG9yeSBhdDoNCg0KICBnaXQ6Ly9naXQua2Vy
-bmVsLm9yZy9wdWIvc2NtL2xpbnV4L2tlcm5lbC9naXQvbnZkaW1tL252ZGltbSBsaWJudmRpbW0t
-Zml4ZXMNCg0KZm9yIHlvdSB0byBmZXRjaCBjaGFuZ2VzIHVwIHRvIDQwMmJhZTU5N2VjNjhiODQ0
-OTg0MzJmNWEwMDY5ZjI4YmZiODA3ZDY6DQoNCiAgbmZpdDogQ2xhcmlmeSBtZW1vcnkgZGV2aWNl
-IHN0YXRlIGZsYWdzIHN0cmluZ3MgKDIwMTUtMDgtMjcgMTQ6MzU6NTggLTA0MDApDQoNCi0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0NClRvc2hpIEthbmkgKDEpOg0KICAgICAgbmZpdDogQ2xhcmlmeSBtZW1vcnkgZGV2aWNlIHN0
-YXRlIGZsYWdzIHN0cmluZ3MNCg0KIGRyaXZlcnMvYWNwaS9uZml0LmMgfCAyMCArKysrKysrKysr
-LS0tLS0tLS0tLQ0KIDEgZmlsZSBjaGFuZ2VkLCAxMCBpbnNlcnRpb25zKCspLCAxMCBkZWxldGlv
-bnMoLSkNCg0KY29tbWl0IDQwMmJhZTU5N2VjNjhiODQ0OTg0MzJmNWEwMDY5ZjI4YmZiODA3ZDYN
-CkF1dGhvcjogVG9zaGkgS2FuaSA8dG9zaGkua2FuaUBocC5jb20+DQpEYXRlOiAgIFdlZCBBdWcg
-MjYgMTA6MjA6MjMgMjAxNSAtMDYwMA0KDQogICAgbmZpdDogQ2xhcmlmeSBtZW1vcnkgZGV2aWNl
-IHN0YXRlIGZsYWdzIHN0cmluZ3MNCiAgICANCiAgICBBQ1BJIDYuMCBORklUIE1lbW9yeSBEZXZp
-Y2UgU3RhdGUgRmxhZ3MgaW4gVGFibGUgNS0xMjkgZGVmaW5lcw0KICAgIE5WRElNTSBzdGF0dXMg
-YXMgZm9sbG93cy4gIFRoZXNlIGJpdHMgaW5kaWNhdGUgbXVsdGlwbGUgaW5mbywNCiAgICBzdWNo
-IGFzIGZhaWx1cmVzLCBwZW5kaW5nIGV2ZW50LCBhbmQgY2FwYWJpbGl0eS4NCiAgICANCiAgICAg
-IEJpdCBbMF0gc2V0IHRvIDEgdG8gaW5kaWNhdGUgdGhhdCB0aGUgcHJldmlvdXMgU0FWRSB0byB0
-aGUNCiAgICAgIE1lbW9yeSBEZXZpY2UgZmFpbGVkLg0KICAgICAgQml0IFsxXSBzZXQgdG8gMSB0
-byBpbmRpY2F0ZSB0aGF0IHRoZSBsYXN0IFJFU1RPUkUgZnJvbSB0aGUNCiAgICAgIE1lbW9yeSBE
-ZXZpY2UgZmFpbGVkLg0KICAgICAgQml0IFsyXSBzZXQgdG8gMSB0byBpbmRpY2F0ZSB0aGF0IHBs
-YXRmb3JtIGZsdXNoIG9mIGRhdGEgdG8NCiAgICAgIE1lbW9yeSBEZXZpY2UgZmFpbGVkLiBBcyBh
-IHJlc3VsdCwgdGhlIHJlc3RvcmVkIGRhdGEgY29udGVudA0KICAgICAgbWF5IGJlIGluY29uc2lz
-dGVudCBldmVuIGlmIFNBVkUgYW5kIFJFU1RPUkUgZG8gbm90IGluZGljYXRlDQogICAgICBmYWls
-dXJlLg0KICAgICAgQml0IFszXSBzZXQgdG8gMSB0byBpbmRpY2F0ZSB0aGF0IHRoZSBNZW1vcnkg
-RGV2aWNlIGlzIG9ic2VydmVkDQogICAgICB0byBiZSBub3QgYXJtZWQgcHJpb3IgdG8gT1NQTSBo
-YW5kIG9mZi4gQSBNZW1vcnkgRGV2aWNlIGlzDQogICAgICBjb25zaWRlcmVkIGFybWVkIGlmIGl0
-IGlzIGFibGUgdG8gYWNjZXB0IHBlcnNpc3RlbnQgd3JpdGVzLg0KICAgICAgQml0IFs0XSBzZXQg
-dG8gMSB0byBpbmRpY2F0ZSB0aGF0IHRoZSBNZW1vcnkgRGV2aWNlIG9ic2VydmVkDQogICAgICBT
-TUFSVCBhbmQgaGVhbHRoIGV2ZW50cyBwcmlvciB0byBPU1BNIGhhbmRvZmYuDQogICAgDQogICAg
-L3N5cy9idXMvbmQvZGV2aWNlcy9ubWVtWC9uZml0L2ZsYWdzIHNob3dzIHRoaXMgZmxhZ3MgaW5m
-by4NCiAgICBUaGUgb3V0cHV0IHN0cmluZ3MgYXNzb2NpYXRlZCB3aXRoIHRoZSBiaXRzIGFyZSAi
-c2F2ZSIsICJyZXN0b3JlIiwNCiAgICAic21hcnQiLCBldGMuLCB3aGljaCBjYW4gYmUgY29uZnVz
-aW5nIGFzIHRoZXkgbWF5IGJlIGludGVycHJldGVkDQogICAgYXMgcG9zaXRpdmUgc3RhdHVzLCBp
-LmUuIHNhdmUgc3VjY2VlZGVkLg0KICAgIA0KICAgIENoYW5nZSBhbHNvIHRoZSBkZXZfaW5mbygp
-IG1lc3NhZ2UgaW4gYWNwaV9uZml0X3JlZ2lzdGVyX2RpbW1zKCkNCiAgICB0byBiZSBjb25zaXN0
-ZW50IHdpdGggdGhlIHN5c2ZzIGZsYWdzIHN0cmluZ3MuDQogICAgDQogICAgUmVwb3J0ZWQtYnk6
-IFJvYmVydCBFbGxpb3R0IDxlbGxpb3R0QGhwLmNvbT4NCiAgICBTaWduZWQtb2ZmLWJ5OiBUb3No
-aSBLYW5pIDx0b3NoaS5rYW5pQGhwLmNvbT4NCiAgICBbcm9zczogcmVuYW1lICdub3RfYXJtJyB0
-byAnbm90X2FybWVkJ10NCiAgICBDYzogUm9zcyBad2lzbGVyIDxyb3NzLnp3aXNsZXJAbGludXgu
-aW50ZWwuY29tPg0KICAgIFtkamJ3OiBkZWZlciBhZGRpbmcgYml0NSwgSEVBTFRIX0VOQUJMRUQs
-IGZvciBub3ddDQogICAgU2lnbmVkLW9mZi1ieTogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFt
-c0BpbnRlbC5jb20+DQoNCmRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvbmZpdC5jIGIvZHJpdmVy
-cy9hY3BpL25maXQuYw0KaW5kZXggYmIyOWU1NjI3NmJkLi5jZjBmZDk2YTc2MDIgMTAwNjQ0DQot
-LS0gYS9kcml2ZXJzL2FjcGkvbmZpdC5jDQorKysgYi9kcml2ZXJzL2FjcGkvbmZpdC5jDQpAQCAt
-NzAyLDExICs3MDIsMTEgQEAgc3RhdGljIHNzaXplX3QgZmxhZ3Nfc2hvdyhzdHJ1Y3QgZGV2aWNl
-ICpkZXYsDQogCXUxNiBmbGFncyA9IHRvX25maXRfbWVtZGV2KGRldiktPmZsYWdzOw0KIA0KIAly
-ZXR1cm4gc3ByaW50ZihidWYsICIlcyVzJXMlcyVzXG4iLA0KLQkJCWZsYWdzICYgQUNQSV9ORklU
-X01FTV9TQVZFX0ZBSUxFRCA/ICJzYXZlICIgOiAiIiwNCi0JCQlmbGFncyAmIEFDUElfTkZJVF9N
-RU1fUkVTVE9SRV9GQUlMRUQgPyAicmVzdG9yZSAiIDogIiIsDQotCQkJZmxhZ3MgJiBBQ1BJX05G
-SVRfTUVNX0ZMVVNIX0ZBSUxFRCA/ICJmbHVzaCAiIDogIiIsDQotCQkJZmxhZ3MgJiBBQ1BJX05G
-SVRfTUVNX0FSTUVEID8gImFybSAiIDogIiIsDQotCQkJZmxhZ3MgJiBBQ1BJX05GSVRfTUVNX0hF
-QUxUSF9PQlNFUlZFRCA/ICJzbWFydCAiIDogIiIpOw0KKwkJZmxhZ3MgJiBBQ1BJX05GSVRfTUVN
-X1NBVkVfRkFJTEVEID8gInNhdmVfZmFpbCAiIDogIiIsDQorCQlmbGFncyAmIEFDUElfTkZJVF9N
-RU1fUkVTVE9SRV9GQUlMRUQgPyAicmVzdG9yZV9mYWlsICIgOiAiIiwNCisJCWZsYWdzICYgQUNQ
-SV9ORklUX01FTV9GTFVTSF9GQUlMRUQgPyAiZmx1c2hfZmFpbCAiIDogIiIsDQorCQlmbGFncyAm
-IEFDUElfTkZJVF9NRU1fQVJNRUQgPyAibm90X2FybWVkICIgOiAiIiwNCisJCWZsYWdzICYgQUNQ
-SV9ORklUX01FTV9IRUFMVEhfT0JTRVJWRUQgPyAic21hcnRfZXZlbnQgIiA6ICIiKTsNCiB9DQog
-c3RhdGljIERFVklDRV9BVFRSX1JPKGZsYWdzKTsNCiANCkBAIC04NDksMTIgKzg0OSwxMiBAQCBz
-dGF0aWMgaW50IGFjcGlfbmZpdF9yZWdpc3Rlcl9kaW1tcyhzdHJ1Y3QgYWNwaV9uZml0X2Rlc2Mg
-KmFjcGlfZGVzYykNCiAJCWlmICgobWVtX2ZsYWdzICYgQUNQSV9ORklUX01FTV9GQUlMRURfTUFT
-SykgPT0gMCkNCiAJCQljb250aW51ZTsNCiANCi0JCWRldl9pbmZvKGFjcGlfZGVzYy0+ZGV2LCAi
-JXM6IGZhaWxlZDogJXMlcyVzJXNcbiIsDQorCQlkZXZfaW5mbyhhY3BpX2Rlc2MtPmRldiwgIiVz
-IGZsYWdzOiVzJXMlcyVzXG4iLA0KIAkJCQludmRpbW1fbmFtZShudmRpbW0pLA0KLQkJCW1lbV9m
-bGFncyAmIEFDUElfTkZJVF9NRU1fU0FWRV9GQUlMRUQgPyAic2F2ZSAiIDogIiIsDQotCQkJbWVt
-X2ZsYWdzICYgQUNQSV9ORklUX01FTV9SRVNUT1JFX0ZBSUxFRCA/ICJyZXN0b3JlICIgOiAiIiwN
-Ci0JCQltZW1fZmxhZ3MgJiBBQ1BJX05GSVRfTUVNX0ZMVVNIX0ZBSUxFRCA/ICJmbHVzaCAiIDog
-IiIsDQotCQkJbWVtX2ZsYWdzICYgQUNQSV9ORklUX01FTV9BUk1FRCA/ICJhcm0gIiA6ICIiKTsN
-CisJCSAgbWVtX2ZsYWdzICYgQUNQSV9ORklUX01FTV9TQVZFX0ZBSUxFRCA/ICIgc2F2ZV9mYWls
-IiA6ICIiLA0KKwkJICBtZW1fZmxhZ3MgJiBBQ1BJX05GSVRfTUVNX1JFU1RPUkVfRkFJTEVEID8g
-IiByZXN0b3JlX2ZhaWwiOiIiLA0KKwkJICBtZW1fZmxhZ3MgJiBBQ1BJX05GSVRfTUVNX0ZMVVNI
-X0ZBSUxFRCA/ICIgZmx1c2hfZmFpbCIgOiAiIiwNCisJCSAgbWVtX2ZsYWdzICYgQUNQSV9ORklU
-X01FTV9BUk1FRCA/ICIgbm90X2FybWVkIiA6ICIiKTsNCiANCiAJfQ0KIA0KDQo=
+On Thu Aug 27 04:34, Rafael J. Wysocki wrote:
+
+Hi Rafael,
+
+> The issue at hand is that we need to be able to support hierarchical device
+> properties in ACPI, like when the set of properties of an entity called "Fred"
+> may include a subset called "dog" containing the properties of the Fred's dog
+> rather than those of Fred himself.  And it may make sense to have the same
+> property, like "hair color", for both Fred and the dog, but with different
+> values.
+
+OK.  I have a couple of questions.
+
+> We (I, Darren and Dave at least) have explored many possible ways to deal with
+> that in ACPI, but the majority of them turned out to be unattractive for various
+> reasons.  Our first take was to use ACPI device objects to make the "child"
+> property sets available via _DSD, but that approach is generally incompatible
+> with the PnP Manager in Windows following the notion that all device objects
+> in ACPI tables are supposed to represent real devices.  It can still be made
+> work by adding _STA that returns 0 to those "property-only" device objects,
+> but that leads to complications in other places and is error prone (if the _STA
+> is forgotten, for example).  Moreover, it adds quite a bit of overhead even in
+> Linux (an ACPICA representation, struct acpi_device, driver core mechanics etc)
+> for things that are only supposed to represent sets of device properties.  And,
+> in addition to that, we'd need to figure out how to give those things arbitrary
+> names in a consistent way.  All of that caused us to drop the approach based on
+> device objects and look for other options.
+
+What's the overhead/effect on Windows for an ACPI object without a _HID (_ADR
+only)?  That seems like a case where the OS shouldn't be expecting to load
+another driver for the ACPI object and the _ADR gives each node a unique name
+(even if it is an unfriendly integer)
+
+> The idea is that _DSD may return a package containing the properties of the
+> device it belongs to along with a directory of objects that need to be evaluated
+> in order to obtain the "child" property sets of it.  That directory needs to be
+> present in a separate section of the _DSD package (after the new UUID defined in
+> the above document) and is a list of two-element sub-packages (entries) where
+> the first element is the name of the entry (the name of the "child" property set
+> represented by it) and the second element is a "pointer" (essentially, a path
+> or "namestring" in the ACPI terminology) to the control method or a static
+> data package that needs to be evaluated to obtain the entry's data.  The data
+> returned by it is then interpreted in the same way as a _DSD return package,
+> so it may also contain properties and a directory of its own "child" property
+> sets.
+
+Do you expect there to be cases where using an ACPI device object is more
+desirable than hierarchical properties?  Or is it just impossible given the PNP
+manager in Windows?
+
+The best example I can think of is perhaps a multi function device where each
+sub-function really does look like a separate device and you probably want to
+reference that sub-device, as a device, in other ASL code.
+
+Stating the above more generally, by taking this approach you loose the ability
+to reference these child nodes as a device object.  In this LED example, I
+think it would be nice to set the "trigger" for the led by adding a reference
+to the LED from another device (such as a NIC).
+
+Device (NIC0)
+{
+    ...
+    Name (_DSD, Package () {
+        ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+        Package () {
+            Package () {"activity-led", LEDS.LEDM },
+            Package () {"link-led", LEDS.LEDH },
+        },
+    }
+}
+
+I'm not sure that's even supported in devicetree or LEDs are the best example
+of this, but the pattern seems generally useful.
+
+Without a device you're also forced to use a "label" property instead of a
+_STR.
+
+> As an example, consider the following ASL from an experimental MinnowBoard
+> firmware:
+> 
+>         Device (LEDS)
+>         {
+>             Name (_HID, "PRP0001")
+> 
+>             Name (_CRS, ResourceTemplate () {
+>                 GpioIo (Exclusive, PullDown, 0, 0, IoRestrictionOutputOnly,
+>                         "\\_SB.PCI0.LPC", 0, ResourceConsumer) {10}
+>                 GpioIo (Exclusive, PullDown, 0, 0, IoRestrictionOutputOnly,
+>                         "\\_SB.PCI0.LPC", 0, ResourceConsumer) {11}
+>             })
+> 
+>             Name (_DSD, Package () {
+>                 ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+>                 Package () {
+>                     Package () {"compatible", Package () {"gpio-leds"}},
+>                 },
+>                 // Data extension
+>                 ToUUID("dbb8e3e6-5886-4ba6-8795-1319f52a966b"),
+>                 Package () {
+>                     Package () {"heartbeat", "LEDH"},
+>                     Package () {"mmc-activity", "LEDM"},
+
+I guess LEDH and LEDM have to be strings here.  It would be nice if the
+compiler could verify the path resolves.  I suppose it's more incentive to keep
+these in the same scope.
+
+>            Name (LEDH, Package () {
+>                ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+>                Package () {
+>                    Package () {"label", "Heartbeat"},
+>                    Package () {"gpios", Package () {^LEDS, 0, 0, 0}},
+>                    Package () {"linux,default-trigger", "heartbeat"},
+>                    Package () {"linux,default-state", "off"},
+>                    Package () {"linux,retain-state-suspended", 1},
+>                }
+>            })
+>            
+>            Name (LEDM, Package () {
+>                ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+>                Package () {
+>                    Package () {"label", Package () {"MMC0 Activity"}},
+>                    Package () {"gpios", Package () {^LEDS, 1, 0, 0}},
+>                    Package () {"linux,default-trigger", Package () {"mmc0"}},
+>                    Package () {"linux,default-state", "off"},
+>                    Package () {"linux,retain-state-suspended", 1},
+>                }
+>            })
+>        }
+
+I suspect you've thought of all of this.  Thanks in advance for any
+explanations.
+
+                --Dustin
