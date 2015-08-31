@@ -1,107 +1,59 @@
 From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Subject: Re: [PATCH 05/11] x86, pci, acpi: Move arch-agnostic MMCONFIG (aka
- ECAM) and ACPI code out of arch/x86/ directory
-Date: Mon, 31 Aug 2015 13:01:33 +0200
-Message-ID: <55E4340D.6050004@linaro.org>
-References: <1432644564-24746-1-git-send-email-hanjun.guo@linaro.org> <1432644564-24746-6-git-send-email-hanjun.guo@linaro.org> <20150526170817.GU1565@arm.com> <55657B02.5090805@linaro.org> <20150602133215.GC23650@red-moon> <55701A31.808@linaro.org> <20150604102253.GA31773@red-moon> <5570447D.3020705@linaro.org> <557504A2.3060203@linaro.org> <20150608151443.GA16151@red-moon>
+Subject: Re: [PATCH 02/11] x86, pci: Clean up comment about buggy MMIO config
+ space access for AMD Fam10h CPUs.
+Date: Mon, 31 Aug 2015 14:04:23 +0200
+Message-ID: <55E442C7.7060509@linaro.org>
+References: <1432644564-24746-1-git-send-email-hanjun.guo@linaro.org> <1432644564-24746-3-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20150608151443.GA16151@red-moon>
+In-Reply-To: <1432644564-24746-3-git-send-email-hanjun.guo@linaro.org>
 Sender: linux-pci-owner@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Liviu Dudau <Liviu.Dudau@arm.com>, Yijing Wang <wangyijing@huawei.com>
-Cc: Will Deacon <Will.Deacon@arm.com>, Arnd Bergmann <arnd@arndb.de>, Catalin Marinas <Catalin.Marinas@arm.com>, Jiang Liu <jiang.liu@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "msalter@redhat.com" <msalter@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
+To: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jiang Liu <jiang.liu@linux.intel.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Yijing Wang <wangyijing@huawei.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Mark Salter <msalter@redhat.com>, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 08.06.2015 17:14, Lorenzo Pieralisi wrote:
-> On Mon, Jun 08, 2015 at 03:57:38AM +0100, Hanjun Guo wrote:
+On 26.05.2015 14:49, Hanjun Guo wrote:
+> From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
 >
-> [...]
+> - fix typo
+> - improve explanation
+> - add reference to the related document
 >
->>>>>>>> Why can't we make use of the ECAM implementation used by
->>>>>>>> pci-host-generic
->>>>>>>> and drivers/pci/access.c?
->>>>>>>
->>>>>>> We had that question when I had posted MMCFG patch set separately,
->>>>>>> please see:
->>>>>>> https://lkml.org/lkml/2015/3/11/492
->>>>>>
->>>>>> Yes, but the real question is, why do we need to have PCI config space
->>>>>> up and running before a bus struct is even created ? I think the
->>>>>> reason is
->>>>>> the PCI configuration address space format (ACPI 6.0, Table 5-27, page
->>>>>> 108):
->>>>>>
->>>>>> "PCI Configuration space addresses must be confined to devices on
->>>>>> PCI Segment Group 0, bus 0. This restriction exists to accommodate
->>>>>> access to fixed hardware prior to PCI bus enumeration".
->>>>>>
->>>>>> On HW reduced platforms I do not even think this is required at all,
->>>>>> we have to look into this to avoid code duplication that might well
->>>>>> turn out useless.
->>>>>
->>>>> This is only for the fixed hardware, which will be not available for
->>>>> ARM64 (reduced hardware mode), but in Generic Hardware Programming
->>>>> Model, we using OEM-provided ACPI Machine Language (AML) code to access
->>>>> generic hardware registers, this will be available for reduced hardware
->>>>> too.
->>>>>
->>>>> So in ACPI spec, it says: (ACPI 6.0 page 66, last paragraph)
->>>>>
->>>>> ACPI defines eight address spaces that may be accessed by generic
->>>>> hardware implementations. These include:
->>>>> * System I/O space
->>>>> * System memory space
->>>>> * PCI configuration space
->>>>> * Embedded controller space
->>>>> * System Management Bus (SMBus) space
->>>>> * CMOS
->>>>> * PCI BAR Target
->>>>> * IPMI space
->>>>>
->>>>> So if any device using the PCI address space for control, such
->>>>> as a system reset control device, its address space can be reside
->>>>> in PCI configuration space (who can prevent a OEM do that crazy
->>>>> thing? :) ), and it should be accessible before the PCI bus is
->>>>> created.
->>>>
->>>> Us, by changing attitude and questioning features whose usefulness
->>>> is questionable. I will look into this and raise the point, I am not
->>>> thrilled by the idea of adding another set of PCI accessor functions
->>>> and drivers because we have to access a register through PCI before
->>>> enumerating the bus (and on arm64 this is totally useless since
->>>> we are not meant to support fixed HW anyway). Maybe we can make acpica
->>>> code use a "special" stub (ACPI specific, PCI configuration space address
->>>> space has restrictions anyway), I have to review this set in its
->>>> entirety to see how to do that (and I would kindly ask you to do
->>>> it too, before saying it is not possible to implement it).
->>>
->>> I'm willing to do that, actually, if we don't need a mechanism to
->>> access PCI config space before the bus is created, the code can be
->>> simplified a lot.
->>
->> After more investigation on the spec and the ACPI core code, I'm
->> still not convinced that accessing to PCI config space before PCI
->> bus creating is impossible, also there is no enough ARM64 hardware
->> to prove that too. But I think we can go in this way, reuse the
->> ECAM implementation by pci-host-generic for now, and implement the PCI
->> accessor functions before enumerating PCI bus when needed in the
->> future, does it make sense?
+> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+> ---
+>   arch/x86/include/asm/pci_x86.h | 9 ++++++---
+>   1 file changed, 6 insertions(+), 3 deletions(-)
 >
-> You mean we rewrite the patch to make sure we can use the PCI host generic
-> driver with MCFG and we leave the acpica PCI config call empty stubs on
-> arm64 (as they are now) ?
+> diff --git a/arch/x86/include/asm/pci_x86.h b/arch/x86/include/asm/pci_x86.h
+> index 164e3f8..eddf8f0 100644
+> --- a/arch/x86/include/asm/pci_x86.h
+> +++ b/arch/x86/include/asm/pci_x86.h
+> @@ -154,10 +154,13 @@ extern struct list_head pci_mmcfg_list;
+>
+>   /*
+>    * AMD Fam10h CPUs are buggy, and cannot access MMIO config space
+> - * on their northbrige except through the * %eax register. As such, you MUST
+> - * NOT use normal IOMEM accesses, you need to only use the magic mmio-config
+> + * on their northbridge except through the * %eax register. As such, you MUST
+> + * NOT use normal IOMEM accesses, you need to only use the magic mmio_config_*
+>    * accessor functions.
+> - * In fact just use pci_config_*, nothing else please.
+> + *
+> + * Please refer to the following doc:
+> + * "BIOS and Kernel Developer's Guide (BKDG) For AMD Family 10h Processors",
+> + * rev. 3.48, sec 2.11.1, "MMIO Configuration Coding Requirements".
+>    */
+>   static inline unsigned char mmio_config_readb(void __iomem *pos)
+>   {
 >
 
-Hi Bjorn, Rafael,
+Hi Bjorn,
 
-Lorenzo pointed out very important problem we are having with PCI config 
-space access for ARM64. Please refer to the above discussion and add 
-your 2 cents. Can we forget about accessing PCI config space (for 
-Hardware Reduced profile) before PCI bus creation? If not, do you see a 
-way to use drivers/pci/access.c accessors here, like acpica change? Any 
-opinion is very appreciated.
+Can you please consider to pick up this one patch?
 
 Regards,
 Tomasz
