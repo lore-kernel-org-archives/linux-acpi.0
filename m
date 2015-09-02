@@ -1,51 +1,58 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [GIT PULL] Power management and ACPI updates for v4.3-rc1
-Date: Wed, 2 Sep 2015 14:40:54 +0200
-Message-ID: <CAJZ5v0hGhjwvYHqNcgSZd0ou4gScfA0XqKiSfafXUDTvrz3dRQ@mail.gmail.com>
-References: <CAJZ5v0j71Zwe8H7Lais82+N97-eF==Yjf4SPnb40kdyBLu2THw@mail.gmail.com>
-	<20150902163914.34988848@canb.auug.org.au>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: Possible deadlock related to CPU hotplug and kernfs
+Date: Wed, 2 Sep 2015 12:14:45 -0400
+Message-ID: <20150902161445.GI22326@mtj.duckdns.org>
+References: <55E54FE2.7030601@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20150902163914.34988848@canb.auug.org.au>
-Sender: linux-pm-owner@vger.kernel.org
-To: Stephen Rothwell <sfr@canb.auug.org.au>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-yk0-f180.google.com ([209.85.160.180]:35917 "EHLO
+	mail-yk0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752619AbbIBQOs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Sep 2015 12:14:48 -0400
+Content-Disposition: inline
+In-Reply-To: <55E54FE2.7030601@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux hotplug mailing <linux-hotplug@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-Hi,
+On Tue, Sep 01, 2015 at 03:12:34PM +0800, Jiang Liu wrote:
+> Hi Rafael and Tejun,
+> 	When running CPU hotplug tests, it triggers an lockdep warning
+> as follow. The two possible deadlock paths are:
+> 1) echo x > /sys/devices/system/cpu/cpux/online
+>    ->kernfs_fop_write()
+>      ->kernfs_get_active()
+> 1.a)   ->rwsem_acquire_read(&kn->dep_map, 0, 1, _RET_IP_);
+>          ->cpu_up()
+> 1.b)       ->cpu_hotplug_begin()[lock_map_acquire(&cpu_hotplug.dep_map)]
+> 2) hardware triggers hotplug evetns
+>    ->acpi_device_hotplug()
+>      ->acpi_processor_remove()
+> 2.a)   ->cpu_hotplug_begin()[lock_map_acquire(&cpu_hotplug.dep_map)]
+>          ->unregister_cpu()
+>            ->device_del()
+>              ->kernfs_remove_by_name_ns()
+>                ->__kernfs_remove()
+>                  ->kernfs_drain()
+> 2.b)               ->rwsem_acquire(&kn->dep_map, 0, 0, _RET_IP_)
+> 
+> So there is a possible deadlock scenario among 1.a, 1.b, 2.a and 2.b.
+> I'm not familiar with kernfs, so could you please help to comment:
+> 1) whether is a real deadlock issue?
 
-On Wed, Sep 2, 2015 at 8:39 AM, Stephen Rothwell <sfr@canb.auug.org.au> wrote:
-> Hi Linus,
->
-> On Wed, 2 Sep 2015 01:41:11 +0200 "Rafael J. Wysocki" <rafael@kernel.org> wrote:
->>
->> Hi Linus,
->>
->> Please pull from
->>
->>  git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
->>  pm+acpi-4.3-rc1
->>
->> to receive power management and ACPI material for v4.3-rc1 with
->> top-most commit e625ccec1fa6c24620f38fd72d5b2fd62230ad2b
->>
->>  Merge branches 'pm-tools' and 'powercap'
->>
->> on top of commit 64291f7db5bd8150a74ad2036f1037e6a0428df2
->>
->>  Linux 4.2
->
-> So there are about 20 commits in here that have not been in linux-next
-> (unless they have bee rebased) and about 10 of those will be in today's
-> linux-next.  Not judging, just notiing.
+Yes, it seems to be.  It's highly unlikely but still possible.
 
-I needed to apply some of them (in the cpufreq branch) afresh because
-I originally took them from Patchwork and I didn't notice that it
-mangled the From: tags in them.
+> 2) any recommended way to get it fixed?
 
-All of them were ready last week and went through the 0-day build
-testing, though.
+This usually happens with "delete" files and it's worked around by
+performing special self-removal on the file before actually removing
+the device.  I suppose on/offline files would need to turn off
+active_protection with kernfs_[un]break_active_protection() which
+should probably grow sysfs and device layer wrappers.
 
-Thanks,
-Rafael
+Thanks.
+
+-- 
+tejun
