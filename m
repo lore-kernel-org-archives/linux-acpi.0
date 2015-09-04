@@ -1,42 +1,78 @@
-From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Subject: Re: [PATCH v3 01/18] platform: delay OF device-driver matches until late_initcall
-Date: Fri, 4 Sep 2015 07:46:24 +0200
-Message-ID: <CAAObsKB0XiqquxFxAnH5LzenrcY8SbH69qPW25m6R9B09DQT5g@mail.gmail.com>
-References: <1438870315-18689-1-git-send-email-tomeu.vizoso@collabora.com>
- <1438870315-18689-2-git-send-email-tomeu.vizoso@collabora.com>
- <CAL_Jsq+GLMZe-f6qEi=7i1YrrWc6k99RpGkOyCd5KkYDiyt0QA@mail.gmail.com>
- <CAAObsKBapFqzr+4YEXJfcJWMd+tkaBqYbGiFTntHStAP=+P-_Q@mail.gmail.com>
- <55C4E597.1010701@ti.com> <CAAObsKDJsuhuQfLbxq27Mtm1T_Auz7Gohp8PDyK7rNNDyaGhcg@mail.gmail.com>
- <20150810102515.GA1965@sirena.org.uk>
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: Re: Possible deadlock related to CPU hotplug and kernfs
+Date: Fri, 4 Sep 2015 15:20:34 +0800
+Message-ID: <55E94642.6020707@linux.intel.com>
+References: <55E54FE2.7030601@linux.intel.com>
+ <20150902161445.GI22326@mtj.duckdns.org> <12669324.bPBpI0mOPP@vostro.rjw.lan>
+ <20150903161904.GC10394@mtj.duckdns.org>
+ <CAJZ5v0izmv8CycKd0hjEkSBUmPeRmWWMUMgfMHkXK-0uDJFPaQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150810102515.GA1965@sirena.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Grygorii Strashko <grygorii.strashko@ti.com>, Rob Herring <robherring2@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Linus Walleij <linus.walleij@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:57711 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752801AbbIDHUh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 4 Sep 2015 03:20:37 -0400
+In-Reply-To: <CAJZ5v0izmv8CycKd0hjEkSBUmPeRmWWMUMgfMHkXK-0uDJFPaQ@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>, Tejun Heo <tj@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux hotplug mailing <linux-hotplug@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On 10 August 2015 at 12:25, Mark Brown <broonie@kernel.org> wrote:
-> On Sun, Aug 09, 2015 at 03:03:14PM +0200, Tomeu Vizoso wrote:
->
->> There was some recent thread about how the disabling of unused clocks
->> and regulators isn't really safe because after late_initcall_sync more
->> drivers can be registered from modules. Furthermore, there's async
->> device probes.
->
-> What recent thread and why would that be unsafe?
+On 2015/9/4 4:08, Rafael J. Wysocki wrote:
+> Hi Tejun,
+> 
+> On Thu, Sep 3, 2015 at 6:19 PM, Tejun Heo <tj@kernel.org> wrote:
+>> Hello, Rafael.
+>>
+>> On Thu, Sep 03, 2015 at 02:58:16AM +0200, Rafael J. Wysocki wrote:
+>>> So acpi_device_hotplug() calls lock_device_hotplug() which simply
+>>> acquires device_hotplug_lock.  It is held throughout the entire
+>>> hot-add/hot-remove code path.
+>>>
+>>> Witing anything to /sys/devices/system/cpu/cpux/online goes through
+>>> online_store() in drivers/base/core.c and that does
+>>> lock_device_hotplug_sysfs() which then attempts to acquire
+>>> device_hotplug_lock using mutex_trylock().  And it only calls
+>>> either device_online() or device_offline() if it ends up with the
+>>> lock held.
+>>>
+>>> Quite frankly, I don't see how these particular two code paths can
+>>> deadlock in any way.
+>>>
+>>> So either a third code path is involved which is not executed
+>>> under device_hotplug_lock, or lockdep needs to be told to actually
+>>> take device_hotplug_lock into account in this case IMO.
+>>
+>> Hmm... all sysfs rw functions are protected from removal.  ie. by
+>> default, removal of a sysfs file drains in-flight rw operations, so
+>> the hot plug path grabs a lock and then tries to remove a file and
+>> writing to the online file makes the file's write method to try to
+>> grab the same lock.  It deadlocks if the hotunplug path already has
+>> the lock and trying to drain the online file for removal.
+> 
+> My point is that you cannot get into that situation.  If hotplug
+> already holds device_hotplug_lock, the write to "online" will end up
+> doing restart_syscall().
+> 
+> If the "online" code path is holding the lock, hotplug cannot acquire
+> it and cannot proceed.
+> 
+> Am I missing anything?
+Hi Rafael,
+	I think your are right. The lock_device_hotplug_sysfs() has
+already provided a solution for such a deadlock scenario. And there's
+another related code path at boot as:
+smp_init()
+	->cpu_up()
+		->cpu_hotplug_begin()
+	So it seems to be a false alarm. Any way to teach lockdep
+about this to get rid of the false alarm?
+Thanks!
+Gerry
 
-Sorry, I should have said instead that it's already unpredictable and
-that from what I have seen during testing these series doesn't make it
-any worst.
-
-Regards,
-
-Tomeu
-
-> Any driver using a
-> clock or regulator ought to be making sure that the clock or regulator
-> is enabled before it tries to use it.  The worst that should happen is
-> that something gets the power bounced during boot which isn't the end of
-> the world.
+> 
+> Thanks,
+> Rafael
+> 
