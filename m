@@ -1,57 +1,188 @@
-From: Tomeu Vizoso <tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
-Subject: [PATCH v4 05/22] gpio: Probe GPIO drivers on demand
-Date: Mon,  7 Sep 2015 14:23:30 +0200
-Message-ID: <1441628627-5143-6-git-send-email-tomeu.vizoso@collabora.com>
+From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Subject: [PATCH v4 02/22] ARM: amba: Move reading of periphid to pre_probe()
+Date: Mon,  7 Sep 2015 14:23:27 +0200
+Message-ID: <1441628627-5143-3-git-send-email-tomeu.vizoso@collabora.com>
 References: <1441628627-5143-1-git-send-email-tomeu.vizoso@collabora.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1441628627-5143-1-git-send-email-tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Tomeu Vizoso <tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>, linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Alexandre Courbot <gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1441628627-5143-1-git-send-email-tomeu.vizoso@collabora.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-kernel@vger.kernel.org
+Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>, devicetree@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@wwwdotorg.org>, Linus Walleij <linus.walleij@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Rob Herring <robh+dt@kernel.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-When looking up a gpiochip through its firmware node, probe it if it
-hasn't already.
+Reading the periphid when the Primecell device is registered means that
+the apb pclk must be available by then or the device won't be registered
+at all.
 
-The goal is to reduce deferred probes to a minimum, as it makes it very
-cumbersome to find out why a device failed to probe, and can introduce
-very big delays in when a critical device is probed.
+By moving this code to pre_probe (to be called by the device-driver core
+before the device is matched to a driver) we remove any order
+requirements.
 
-Signed-off-by: Tomeu Vizoso <tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
+Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
 ---
 
-Changes in v4: None
+Changes in v4:
+- Added bus.pre_probe callback so the probes of Primecell devices can be
+  deferred if their device IDs cannot be yet read because of the clock
+  driver not having probed when they are registered. Maybe this goes
+  overboard and the matching information should be in the DT if there is
+  one.
+
 Changes in v3: None
 Changes in v2: None
 
- drivers/gpio/gpiolib-of.c | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/amba/bus.c | 78 ++++++++++++++++++++++++++----------------------------
+ 1 file changed, 38 insertions(+), 40 deletions(-)
 
-diff --git a/drivers/gpio/gpiolib-of.c b/drivers/gpio/gpiolib-of.c
-index fa6e3c8823d6..9a439dab7a87 100644
---- a/drivers/gpio/gpiolib-of.c
-+++ b/drivers/gpio/gpiolib-of.c
-@@ -19,6 +19,7 @@
- #include <linux/gpio/consumer.h>
- #include <linux/of.h>
- #include <linux/of_address.h>
-+#include <linux/of_device.h>
- #include <linux/of_gpio.h>
- #include <linux/pinctrl/pinctrl.h>
- #include <linux/slab.h>
-@@ -95,6 +96,8 @@ struct gpio_desc *of_get_named_gpiod_flags(struct device_node *np,
- 		return ERR_PTR(ret);
+diff --git a/drivers/amba/bus.c b/drivers/amba/bus.c
+index f0099360039e..1cbe43b4acd3 100644
+--- a/drivers/amba/bus.c
++++ b/drivers/amba/bus.c
+@@ -24,6 +24,8 @@
+ 
+ #define to_amba_driver(d)	container_of(d, struct amba_driver, drv)
+ 
++static int amba_pre_probe(struct device *dev);
++
+ static const struct amba_id *
+ amba_lookup(const struct amba_id *table, struct amba_device *dev)
+ {
+@@ -193,6 +195,7 @@ struct bus_type amba_bustype = {
+ 	.name		= "amba",
+ 	.dev_attrs	= amba_dev_attrs,
+ 	.match		= amba_match,
++	.pre_probe	= amba_pre_probe,
+ 	.uevent		= amba_uevent,
+ 	.pm		= &amba_pm,
+ };
+@@ -336,44 +339,26 @@ static void amba_device_release(struct device *dev)
+ 	kfree(d);
+ }
+ 
+-/**
+- *	amba_device_add - add a previously allocated AMBA device structure
+- *	@dev: AMBA device allocated by amba_device_alloc
+- *	@parent: resource parent for this devices resources
+- *
+- *	Claim the resource, and read the device cell ID if not already
+- *	initialized.  Register the AMBA device with the Linux device
+- *	manager.
+- */
+-int amba_device_add(struct amba_device *dev, struct resource *parent)
++static int amba_pre_probe(struct device *dev)
+ {
++	struct amba_device *d = to_amba_device(dev);
+ 	u32 size;
+ 	void __iomem *tmp;
+ 	int i, ret;
+ 
+-	WARN_ON(dev->irq[0] == (unsigned int)-1);
+-	WARN_ON(dev->irq[1] == (unsigned int)-1);
+-
+-	ret = request_resource(parent, &dev->res);
+-	if (ret)
+-		goto err_out;
+-
+-	/* Hard-coded primecell ID instead of plug-n-play */
+-	if (dev->periphid != 0)
+-		goto skip_probe;
++	if (d->periphid != 0)
++		return 0;
+ 
+ 	/*
+ 	 * Dynamically calculate the size of the resource
+ 	 * and use this for iomap
+ 	 */
+-	size = resource_size(&dev->res);
+-	tmp = ioremap(dev->res.start, size);
+-	if (!tmp) {
+-		ret = -ENOMEM;
+-		goto err_release;
+-	}
++	size = resource_size(&d->res);
++	tmp = ioremap(d->res.start, size);
++	if (!tmp)
++		return -ENOMEM;
+ 
+-	ret = amba_get_enable_pclk(dev);
++	ret = amba_get_enable_pclk(d);
+ 	if (ret == 0) {
+ 		u32 pid, cid;
+ 
+@@ -388,37 +373,50 @@ int amba_device_add(struct amba_device *dev, struct resource *parent)
+ 			cid |= (readl(tmp + size - 0x10 + 4 * i) & 255) <<
+ 				(i * 8);
+ 
+-		amba_put_disable_pclk(dev);
++		amba_put_disable_pclk(d);
+ 
+ 		if (cid == AMBA_CID || cid == CORESIGHT_CID)
+-			dev->periphid = pid;
++			d->periphid = pid;
+ 
+-		if (!dev->periphid)
++		if (!d->periphid)
+ 			ret = -ENODEV;
  	}
  
-+	of_device_probe(gg_data.gpiospec.np);
-+
- 	gpiochip_find(&gg_data, of_gpiochip_find_and_xlate);
+ 	iounmap(tmp);
  
- 	of_node_put(gg_data.gpiospec.np);
++	return ret;
++}
++
++/**
++ *	amba_device_add - add a previously allocated AMBA device structure
++ *	@dev: AMBA device allocated by amba_device_alloc
++ *	@parent: resource parent for this devices resources
++ *
++ *	Claim the resource, and register the AMBA device with the Linux device
++ *	manager.
++ */
++int amba_device_add(struct amba_device *dev, struct resource *parent)
++{
++	int ret;
++
++	WARN_ON(dev->irq[0] == (unsigned int)-1);
++	WARN_ON(dev->irq[1] == (unsigned int)-1);
++
++	ret = request_resource(parent, &dev->res);
+ 	if (ret)
+-		goto err_release;
++		return ret;
+ 
+- skip_probe:
+ 	ret = device_add(&dev->dev);
+ 	if (ret)
+-		goto err_release;
++		return ret;
+ 
+ 	if (dev->irq[0])
+ 		ret = device_create_file(&dev->dev, &dev_attr_irq0);
+ 	if (ret == 0 && dev->irq[1])
+ 		ret = device_create_file(&dev->dev, &dev_attr_irq1);
+-	if (ret == 0)
+-		return ret;
+-
+-	device_unregister(&dev->dev);
++	if (ret)
++		device_unregister(&dev->dev);
+ 
+- err_release:
+-	release_resource(&dev->res);
+- err_out:
+ 	return ret;
+ }
+ EXPORT_SYMBOL_GPL(amba_device_add);
 -- 
 2.4.3
-
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
