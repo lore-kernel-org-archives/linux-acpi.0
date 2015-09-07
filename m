@@ -1,85 +1,85 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: Possible deadlock related to CPU hotplug and kernfs
-Date: Mon, 7 Sep 2015 11:11:19 +0800
-Message-ID: <55ED0057.1000806@linux.intel.com>
-References: <55E54FE2.7030601@linux.intel.com>
- <20150902161445.GI22326@mtj.duckdns.org> <12669324.bPBpI0mOPP@vostro.rjw.lan>
- <20150903161904.GC10394@mtj.duckdns.org>
- <CAJZ5v0izmv8CycKd0hjEkSBUmPeRmWWMUMgfMHkXK-0uDJFPaQ@mail.gmail.com>
- <55E94642.6020707@linux.intel.com>
- <CAJZ5v0itBxg_gQzEe=nVfxOVpw5WBs9u8VDP7PHoyXyirnmdPQ@mail.gmail.com>
+From: Ganapatrao Kulkarni <gpkulkarni@gmail.com>
+Subject: Re: [PATCH 01/11] ARM64 / PCI: introduce struct pci_controller for ACPI
+Date: Mon, 7 Sep 2015 09:44:22 +0530
+Message-ID: <CAFpQJXUU4mVbJSyfQJJm_VjR_uAm-xKHP7syYaM_xuC+CG7q5w@mail.gmail.com>
+References: <1432644564-24746-1-git-send-email-hanjun.guo@linaro.org>
+	<1432644564-24746-2-git-send-email-hanjun.guo@linaro.org>
+	<20150526165844.GD2175@e106497-lin.cambridge.arm.com>
+	<5564AB68.6080502@linux.intel.com>
+	<55657EA3.5000601@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:33954 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752716AbbIGDLW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 6 Sep 2015 23:11:22 -0400
-In-Reply-To: <CAJZ5v0itBxg_gQzEe=nVfxOVpw5WBs9u8VDP7PHoyXyirnmdPQ@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <55657EA3.5000601@linaro.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Liviu Dudau <Liviu.Dudau@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Will Deacon <Will.Deacon@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Yijing Wang <wangyijing@huawei.com>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "msalter@redhat.com" <msalter@redhat.com>, Bjorn Helgaas <bhelgaas@google.com>, Thomas Gleixner <tglx@linutronix.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Tejun Heo <tj@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux hotplug mailing <linux-hotplug@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 
-On 2015/9/4 22:16, Rafael J. Wysocki wrote:
-> Hi,
-> 
-> On Fri, Sep 4, 2015 at 9:20 AM, Jiang Liu <jiang.liu@linux.intel.com> wrote:
->> On 2015/9/4 4:08, Rafael J. Wysocki wrote:
->>> Hi Tejun,
+Hi Hanjun,
+
+On Wed, May 27, 2015 at 1:51 PM, Hanjun Guo <hanjun.guo@linaro.org> wro=
+te:
+> Hi Liviu,
+>
+> On 2015=E5=B9=B405=E6=9C=8827=E6=97=A5 01:20, Jiang Liu wrote:
+>>
+>> On 2015/5/27 0:58, Liviu Dudau wrote:
 >>>
->>> On Thu, Sep 3, 2015 at 6:19 PM, Tejun Heo <tj@kernel.org> wrote:
->>>> Hello, Rafael.
+>>> On Tue, May 26, 2015 at 01:49:14PM +0100, Hanjun Guo wrote:
 >>>>
->>>> On Thu, Sep 03, 2015 at 02:58:16AM +0200, Rafael J. Wysocki wrote:
->>>>> So acpi_device_hotplug() calls lock_device_hotplug() which simply
->>>>> acquires device_hotplug_lock.  It is held throughout the entire
->>>>> hot-add/hot-remove code path.
->>>>>
->>>>> Witing anything to /sys/devices/system/cpu/cpux/online goes through
->>>>> online_store() in drivers/base/core.c and that does
->>>>> lock_device_hotplug_sysfs() which then attempts to acquire
->>>>> device_hotplug_lock using mutex_trylock().  And it only calls
->>>>> either device_online() or device_offline() if it ends up with the
->>>>> lock held.
->>>>>
->>>>> Quite frankly, I don't see how these particular two code paths can
->>>>> deadlock in any way.
->>>>>
->>>>> So either a third code path is involved which is not executed
->>>>> under device_hotplug_lock, or lockdep needs to be told to actually
->>>>> take device_hotplug_lock into account in this case IMO.
->>>>
->>>> Hmm... all sysfs rw functions are protected from removal.  ie. by
->>>> default, removal of a sysfs file drains in-flight rw operations, so
->>>> the hot plug path grabs a lock and then tries to remove a file and
->>>> writing to the online file makes the file's write method to try to
->>>> grab the same lock.  It deadlocks if the hotunplug path already has
->>>> the lock and trying to drain the online file for removal.
+>>>> ARM64 ACPI based PCI host bridge init needs a arch dependent
+>>>> struct pci_controller to accommodate common PCI host bridge
+>>>> code which is introduced later, or it will lead to compile
+>>>> errors on ARM64.
 >>>
->>> My point is that you cannot get into that situation.  If hotplug
->>> already holds device_hotplug_lock, the write to "online" will end up
->>> doing restart_syscall().
 >>>
->>> If the "online" code path is holding the lock, hotplug cannot acquire
->>> it and cannot proceed.
+>>> Hi Hanjun,
 >>>
->>> Am I missing anything?
->> Hi Rafael,
->>         I think your are right. The lock_device_hotplug_sysfs() has
->> already provided a solution for such a deadlock scenario. And there's
->> another related code path at boot as:
->> smp_init()
->>         ->cpu_up()
->>                 ->cpu_hotplug_begin()
->>         So it seems to be a false alarm. Any way to teach lockdep
->> about this to get rid of the false alarm?
-> 
-> Well, maybe we could call lock_device_hotplug() from that code path too?
-Hi Rafael,
-	Adding lock_device_hotplug() to smp_init() doesn't solve the
-issue. So it seems to be an false alarm of lockdep, and I don't know
-how to get rid of such an lockdep false alarm:(
-Thanks!
-Gerry
+>>> Two questions: why don't you introduce this patch next to the
+>>> one that is going to make use of it (or even merge it there)?
+>
+>
+> this is because of this patch is needed by Jiang Liu's patch set
+> to fix the compile error on ARM64, I'd rather do that, but It's
+> better to let Jiang Liu's patch goes in, and then this one, that's
+> why I prepared a single patch for the struct. (I mentioned it
+> in the cover letter)
+>
+>>> Second, why is the whole struct pci_controller not surrounded
+>>> by #ifdef CONFIG_ACPI as you are implying that this is needed
+>>> only for ACPI?
+>
+>
+> I hope it can be reused, since the NUMA node and segment (domain)
+> is both needed for DT and ACPI, if it's not the case foe now, I
+> can surrounded them all by #ifdef CONFIG_ACPI.
+we can make use of this structure to hold pci to numa node
+mapping(pcibus_to_node).
+can you please pull node member out of  CONFIG_ACPI ifdef.
+or you can put only acpi_device under ifdef.
+>
+>>>
+>>> Btw, looking through the whole series I'm not (yet) convinced
+>>> that this is needed at all.
+>>
+>> Hi Liviu,
+>>         This structure is required by the requested patch set
+>> at http://patchwork.ozlabs.org/patch/472249/, which consolidates
+>> the common code to support PCI host bridge into ACPI core.
+>
+>
+> Jiang, thanks for the explanation :)
+>
+> Thanks
+> Hanjun
+
+thanks
+Ganapat
+>
+>
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
