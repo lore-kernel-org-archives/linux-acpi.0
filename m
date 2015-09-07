@@ -1,7 +1,7 @@
 From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Subject: [PATCH v4 14/22] usb: phy: Probe phy devices on demand
-Date: Mon,  7 Sep 2015 14:23:39 +0200
-Message-ID: <1441628627-5143-15-git-send-email-tomeu.vizoso@collabora.com>
+Subject: [PATCH v4 15/22] clk: Probe clk providers on demand
+Date: Mon,  7 Sep 2015 14:23:40 +0200
+Message-ID: <1441628627-5143-16-git-send-email-tomeu.vizoso@collabora.com>
 References: <1441628627-5143-1-git-send-email-tomeu.vizoso@collabora.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -18,10 +18,10 @@ List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
 Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
 Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-kernel@vger.kernel.org
-Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>, devicetree@vger.kernel.org, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@wwwdotorg.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Rob Herring <robh+dt@kernel.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Felipe Balbi <balbi@ti.com>, linux-arm-kernel@lists.infradead.org
+Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>, devicetree@vger.kernel.org, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@wwwdotorg.org>, Stephen Boyd <sboyd@codeaurora.org>, Linus Walleij <linus.walleij@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Rob Herring <robh+dt@kernel.org>, linux-clk@vger.kernel.org, Javier Martinez Canillas <javier@osg.samsung.com>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Michael Turquette <mturquette@baylibre.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-When looking up a phy through its OF node, probe it if it hasn't
+When looking up a clock through its OF node, probe it if it hasn't
 already.
 
 The goal is to reduce deferred probes to a minimum, as it makes it very
@@ -35,29 +35,29 @@ Changes in v4: None
 Changes in v3: None
 Changes in v2: None
 
- drivers/usb/phy/phy.c | 3 +++
+ drivers/clk/clk.c | 3 +++
  1 file changed, 3 insertions(+)
 
-diff --git a/drivers/usb/phy/phy.c b/drivers/usb/phy/phy.c
-index 98f75d2842b7..fb0b650bb494 100644
---- a/drivers/usb/phy/phy.c
-+++ b/drivers/usb/phy/phy.c
-@@ -15,6 +15,7 @@
- #include <linux/module.h>
+diff --git a/drivers/clk/clk.c b/drivers/clk/clk.c
+index 43e2c3ad6c31..e5fe02a11c36 100644
+--- a/drivers/clk/clk.c
++++ b/drivers/clk/clk.c
+@@ -19,6 +19,7 @@
+ #include <linux/list.h>
  #include <linux/slab.h>
  #include <linux/of.h>
 +#include <linux/of_device.h>
+ #include <linux/device.h>
+ #include <linux/init.h>
+ #include <linux/sched.h>
+@@ -3004,6 +3005,8 @@ struct clk *__of_clk_get_from_provider(struct of_phandle_args *clkspec,
+ 	if (!clkspec)
+ 		return ERR_PTR(-EINVAL);
  
- #include <linux/usb/phy.h>
- 
-@@ -196,6 +197,8 @@ struct  usb_phy *devm_usb_get_phy_by_node(struct device *dev,
- 		goto err0;
- 	}
- 
-+	of_device_probe(node);
++	of_device_probe(clkspec->np);
 +
- 	spin_lock_irqsave(&phy_lock, flags);
- 
- 	phy = __of_usb_find_phy(node);
+ 	/* Check if we have such a provider in our array */
+ 	mutex_lock(&of_clk_mutex);
+ 	list_for_each_entry(provider, &of_clk_providers, link) {
 -- 
 2.4.3
