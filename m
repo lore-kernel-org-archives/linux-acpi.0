@@ -1,53 +1,68 @@
-From: Tomeu Vizoso <tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
-Subject: [PATCH v4 11/22] i2c: core: Probe i2c adapters and devices on demand
-Date: Mon,  7 Sep 2015 14:23:36 +0200
-Message-ID: <1441628627-5143-12-git-send-email-tomeu.vizoso@collabora.com>
-References: <1441628627-5143-1-git-send-email-tomeu.vizoso@collabora.com>
-Return-path: <linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1441628627-5143-1-git-send-email-tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
-Sender: linux-i2c-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Tomeu Vizoso <tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>, Wolfram Sang <wsa-z923LK4zBo2bacvFa/9K2g@public.gmane.org>, linux-i2c-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Subject: Re: [PATCH v3 02/18] of/platform: add of_platform_probe
+Date: Mon, 7 Sep 2015 14:31:06 +0200
+Message-ID: <CAAObsKAZ0kaT2TZQdMnxy9ZjHMz2jFeYQvQjrCsa90J11bOVpA@mail.gmail.com>
+References: <1438870315-18689-1-git-send-email-tomeu.vizoso@collabora.com>
+ <1438870315-18689-3-git-send-email-tomeu.vizoso@collabora.com>
+ <20150807121913.GS20873@sirena.org.uk> <CAAObsKCrakupiZMQ9AoiWo6fDYT6Cfi_khdssUS6pv61zYS1Zg@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAAObsKCrakupiZMQ9AoiWo6fDYT6Cfi_khdssUS6pv61zYS1Zg@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Thierry Reding <thierry.reding@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
 List-Id: linux-acpi@vger.kernel.org
 
-When looking up an i2c adapter or device through its OF node, probe it
-if it hasn't already.
+On 11 August 2015 at 11:37, Tomeu Vizoso <tomeu.vizoso@collabora.com> wrote:
+> On 7 August 2015 at 14:19, Mark Brown <broonie@kernel.org> wrote:
+>> On Thu, Aug 06, 2015 at 04:11:39PM +0200, Tomeu Vizoso wrote:
+>>
+>>> Walks the OF tree up and finds the closest ancestor that has a platform
+>>> device associated with it, probing it if isn't bound to a driver yet.
+>>
+>>> The above should ensure that the dependency represented by the passed OF
+>>> node is available, because probing a platform device should cause its
+>>> descendants to be probed as well.
+>>
+>> This sounds like it's going to break in the case where we have MFDs that
+>> represent their functions in DT (not a pattern I'm a fan of but it's a
+>> thing people do).  We'll walk back to the platform device for the MFD
+>> function, try to probe it and then give up.  Perhaps that's good enough
+>> anyway but it's not clear to me why we don't just try every parent we
+>> find?
+>
+> Agreed. In the attempt at probing dependencies before a device is
+> probed, I considered that a device's parent is also a dependency and
+> that worked well. From what I saw, few devices will defer their probe
+> if their parent hasn't been probed yet, assuming that it will have
+> probed already. But with simple-mfd and simple-bus that shouldn't be
+> relied upon as things will break if their parents defer their probe.
+> With async probing enabled this failure scenario becomes more
+> probable.
 
-The goal is to reduce deferred probes to a minimum, as it makes it very
-cumbersome to find out why a device failed to probe, and can introduce
-very big delays in when a critical device is probed.
+Actually I'm not sure how we could probe the ascendants on demand, as
+currently the parent's device lock is taken when probing so trying to
+probe a sibling from within a probe callback will cause a deadlock.
 
-Signed-off-by: Tomeu Vizoso <tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
----
+AFAICS this is only needed for USB interface devices and this
+behaviour could be limited to them, but I don't like much assuming
+that no USB device will ever have a dependency on a sibling (though
+that probably won't happen ever).
 
-Changes in v4: None
-Changes in v3: None
-Changes in v2: None
+Regards,
 
- drivers/i2c/i2c-core.c | 4 ++++
- 1 file changed, 4 insertions(+)
+Tomeu
 
-diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
-index 5f89f1e3c2f2..02da3acbbd35 100644
---- a/drivers/i2c/i2c-core.c
-+++ b/drivers/i2c/i2c-core.c
-@@ -1413,6 +1413,8 @@ struct i2c_client *of_find_i2c_device_by_node(struct device_node *node)
- 	struct device *dev;
- 	struct i2c_client *client;
- 
-+	of_device_probe(node);
-+
- 	dev = bus_find_device(&i2c_bus_type, NULL, node, of_dev_node_match);
- 	if (!dev)
- 		return NULL;
-@@ -1431,6 +1433,8 @@ struct i2c_adapter *of_find_i2c_adapter_by_node(struct device_node *node)
- 	struct device *dev;
- 	struct i2c_adapter *adapter;
- 
-+	of_device_probe(node);
-+
- 	dev = bus_find_device(&i2c_bus_type, NULL, node, of_dev_node_match);
- 	if (!dev)
- 		return NULL;
--- 
-2.4.3
+>> I'm also not a fan of the fact that the interface here is explicitly
+>> saying that we want to probe a platform device, that's an implementation
+>> detail that callers shouldn't need to know about.  From the point of
+>> view of the callers what they're trying to do is kick any dependencies
+>> into being instantiated, the fact that we currently try to accomplish it
+>> with platform devices isn't something they care about.
+>
+> Agreed.
+>
+> Thanks,
+>
+> Tomeu
