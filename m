@@ -1,45 +1,83 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 1/5] acpi: Add basic device probing infrastructure
-Date: Mon, 07 Sep 2015 23:29:36 +0200
-Message-ID: <2194763.hsLfaM94lK@vostro.rjw.lan>
-References: <1441386412-8139-1-git-send-email-marc.zyngier@arm.com> <1441386412-8139-2-git-send-email-marc.zyngier@arm.com>
+Subject: Re: Possible deadlock related to CPU hotplug and kernfs
+Date: Mon, 07 Sep 2015 23:33:21 +0200
+Message-ID: <2165815.z3RZSlC1oy@vostro.rjw.lan>
+References: <55E54FE2.7030601@linux.intel.com> <CAJZ5v0itBxg_gQzEe=nVfxOVpw5WBs9u8VDP7PHoyXyirnmdPQ@mail.gmail.com> <55ED0057.1000806@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:45796 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751255AbbIGVBr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Sep 2015 17:01:47 -0400
-In-Reply-To: <1441386412-8139-2-git-send-email-marc.zyngier@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <55ED0057.1000806@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>, mingo@kernel.org, Peter Zijlstra <peterz@infradead.org>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Tejun Heo <tj@kernel.org>, linux hotplug mailing <linux-hotplug@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Len Brown <lenb@kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Friday, September 04, 2015 06:06:48 PM Marc Zyngier wrote:
-> IRQ controllers and timers are the two types of device the kernel
-> requires before being able to use the device driver model.
-> 
-> ACPI so far lacks a proper probing infrastructure similar to the one
-> we have with DT, where we're able to declare IRQ chips and
-> clocksources inside the driver code, and let the core code pick it up
-> and call us back on a match. This leads to all kind of really ugly
-> hacks all over the arm64 code and even in the ACPI layer.
-> 
-> In order to allow some basic probing based on the ACPI tables,
-> introduce "struct acpi_probe_entry" which contains just enough
-> data and callbacks to match a table, an optional subtable, and
-> call a probe function. A driver can, at build time, register itself
-> and expect being called if the right entry exists in the ACPI
-> table.
-> 
-> A acpi_probe_device_init() is provided, taking an ACPI table
-> identifier, and iterating over the registered entries.
+On Monday, September 07, 2015 11:11:19 AM Jiang Liu wrote:
+> On 2015/9/4 22:16, Rafael J. Wysocki wrote:
+> > Hi,
+> > 
+> > On Fri, Sep 4, 2015 at 9:20 AM, Jiang Liu <jiang.liu@linux.intel.com> wrote:
+> >> On 2015/9/4 4:08, Rafael J. Wysocki wrote:
+> >>> Hi Tejun,
+> >>>
+> >>> On Thu, Sep 3, 2015 at 6:19 PM, Tejun Heo <tj@kernel.org> wrote:
+> >>>> Hello, Rafael.
+> >>>>
+> >>>> On Thu, Sep 03, 2015 at 02:58:16AM +0200, Rafael J. Wysocki wrote:
+> >>>>> So acpi_device_hotplug() calls lock_device_hotplug() which simply
+> >>>>> acquires device_hotplug_lock.  It is held throughout the entire
+> >>>>> hot-add/hot-remove code path.
+> >>>>>
+> >>>>> Witing anything to /sys/devices/system/cpu/cpux/online goes through
+> >>>>> online_store() in drivers/base/core.c and that does
+> >>>>> lock_device_hotplug_sysfs() which then attempts to acquire
+> >>>>> device_hotplug_lock using mutex_trylock().  And it only calls
+> >>>>> either device_online() or device_offline() if it ends up with the
+> >>>>> lock held.
+> >>>>>
+> >>>>> Quite frankly, I don't see how these particular two code paths can
+> >>>>> deadlock in any way.
+> >>>>>
+> >>>>> So either a third code path is involved which is not executed
+> >>>>> under device_hotplug_lock, or lockdep needs to be told to actually
+> >>>>> take device_hotplug_lock into account in this case IMO.
+> >>>>
+> >>>> Hmm... all sysfs rw functions are protected from removal.  ie. by
+> >>>> default, removal of a sysfs file drains in-flight rw operations, so
+> >>>> the hot plug path grabs a lock and then tries to remove a file and
+> >>>> writing to the online file makes the file's write method to try to
+> >>>> grab the same lock.  It deadlocks if the hotunplug path already has
+> >>>> the lock and trying to drain the online file for removal.
+> >>>
+> >>> My point is that you cannot get into that situation.  If hotplug
+> >>> already holds device_hotplug_lock, the write to "online" will end up
+> >>> doing restart_syscall().
+> >>>
+> >>> If the "online" code path is holding the lock, hotplug cannot acquire
+> >>> it and cannot proceed.
+> >>>
+> >>> Am I missing anything?
+> >> Hi Rafael,
+> >>         I think your are right. The lock_device_hotplug_sysfs() has
+> >> already provided a solution for such a deadlock scenario. And there's
+> >> another related code path at boot as:
+> >> smp_init()
+> >>         ->cpu_up()
+> >>                 ->cpu_hotplug_begin()
+> >>         So it seems to be a false alarm. Any way to teach lockdep
+> >> about this to get rid of the false alarm?
+> > 
+> > Well, maybe we could call lock_device_hotplug() from that code path too?
+> Hi Rafael,
+> 	Adding lock_device_hotplug() to smp_init() doesn't solve the
+> issue. So it seems to be an false alarm of lockdep, and I don't know
+> how to get rid of such an lockdep false alarm:(
 
-What about things that are provided by the ACPI namespace (eg. via _MAT) rather
-than in static tables?
+Peter, Ingo, some help from lockdep expert is needed.
 
-Thanks,
+We have a splat that almost certainly is a false positive (the original report
+is here http://marc.info/?l=linux-kernel&m=144109156901959&w=4) and no ideas
+how to make it go away.  Can you please have a look and advise?
+
 Rafael
-
