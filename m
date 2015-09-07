@@ -1,116 +1,45 @@
-From: Tomeu Vizoso <tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
-Subject: [PATCH v4 01/22] driver core: Add pre_probe callback to bus_type
-Date: Mon,  7 Sep 2015 14:23:26 +0200
-Message-ID: <1441628627-5143-2-git-send-email-tomeu.vizoso@collabora.com>
+From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Subject: [PATCH v4 06/22] gpio: Probe pinctrl devices on demand
+Date: Mon,  7 Sep 2015 14:23:31 +0200
+Message-ID: <1441628627-5143-7-git-send-email-tomeu.vizoso@collabora.com>
 References: <1441628627-5143-1-git-send-email-tomeu.vizoso@collabora.com>
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1441628627-5143-1-git-send-email-tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Tomeu Vizoso <tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <1441628627-5143-1-git-send-email-tomeu.vizoso@collabora.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Rob Herring <robh+dt@kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-arm-kernel@lists.infradead.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, linux-gpio@vger.kernel.org, Alexandre Courbot <gnurou@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Some buses (eg. AMBA) need access to some HW resources (it may need a
-clock to be enabled so a device ID can be read) before a device can be
-matched to a driver.
+When looking up a pin controller through its OF node, probe it if it
+hasn't already.
 
-The pre_probe callback allows the device-driver core to request the bus
-to perform this initialization and can defer the probe if any of the
-resources needed are missing.
+The goal is to reduce deferred probes to a minimum, as it makes it very
+cumbersome to find out why a device failed to probe, and can introduce
+very big delays in when a critical device is probed.
 
-This gives us more flexibility when setting the order in which devices
-are probed because the resources needed to get the matching information
-don't need to be available by the time that the bus devices are
-registered.
-
-Signed-off-by: Tomeu Vizoso <tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
+Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
 ---
 
 Changes in v4: None
 Changes in v3: None
 Changes in v2: None
 
- drivers/base/dd.c      | 24 ++++++++++++++++++++++++
- include/linux/device.h |  4 ++++
- 2 files changed, 28 insertions(+)
+ drivers/gpio/gpiolib-of.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/base/dd.c b/drivers/base/dd.c
-index be0eb4639128..faf60bfc46b3 100644
---- a/drivers/base/dd.c
-+++ b/drivers/base/dd.c
-@@ -544,6 +544,17 @@ static int __device_attach(struct device *dev, bool allow_async)
- 	int ret = 0;
+diff --git a/drivers/gpio/gpiolib-of.c b/drivers/gpio/gpiolib-of.c
+index 9a439dab7a87..05da9a56608d 100644
+--- a/drivers/gpio/gpiolib-of.c
++++ b/drivers/gpio/gpiolib-of.c
+@@ -359,6 +359,8 @@ static int of_gpiochip_add_pin_range(struct gpio_chip *chip)
+ 		if (ret)
+ 			break;
  
- 	device_lock(dev);
++		of_device_probe(pinspec.np);
 +
-+	if (dev->bus && dev->bus->pre_probe) {
-+		ret = dev->bus->pre_probe(dev);
-+		if (ret) {
-+			if (ret == -EPROBE_DEFER)
-+				driver_deferred_probe_add(dev);
-+			ret = 0;
-+			goto out_unlock;
-+		}
-+	}
-+
- 	if (dev->driver) {
- 		if (klist_node_attached(&dev->p->knode_driver)) {
- 			ret = 1;
-@@ -619,6 +630,7 @@ void device_initial_probe(struct device *dev)
- static int __driver_attach(struct device *dev, void *data)
- {
- 	struct device_driver *drv = data;
-+	int ret;
- 
- 	/*
- 	 * Lock device and try to bind to it. We drop the error
-@@ -636,8 +648,20 @@ static int __driver_attach(struct device *dev, void *data)
- 	if (dev->parent)	/* Needed for USB */
- 		device_lock(dev->parent);
- 	device_lock(dev);
-+
-+	if (dev->bus && dev->bus->pre_probe) {
-+		ret = dev->bus->pre_probe(dev);
-+		if (ret) {
-+			if (ret == -EPROBE_DEFER)
-+				driver_deferred_probe_add(dev);
-+			goto out;
-+		}
-+	}
-+
- 	if (!dev->driver)
- 		driver_probe_device(drv, dev);
-+
-+out:
- 	device_unlock(dev);
- 	if (dev->parent)
- 		device_unlock(dev->parent);
-diff --git a/include/linux/device.h b/include/linux/device.h
-index 5d7bc6349930..d8be07bc9c3f 100644
---- a/include/linux/device.h
-+++ b/include/linux/device.h
-@@ -74,6 +74,9 @@ extern void bus_remove_file(struct bus_type *, struct bus_attribute *);
-  *		given device can be handled by the given driver.
-  * @uevent:	Called when a device is added, removed, or a few other things
-  *		that generate uevents to add the environment variables.
-+ * @pre_probe:	Called when a new device or driver is added to this bus, to
-+ *		perform any initializations that are needed so the device can
-+ *		be matched to a driver.
-  * @probe:	Called when a new device or driver add to this bus, and callback
-  *		the specific driver's probe to initial the matched device.
-  * @remove:	Called when a device removed from this bus.
-@@ -113,6 +116,7 @@ struct bus_type {
- 
- 	int (*match)(struct device *dev, struct device_driver *drv);
- 	int (*uevent)(struct device *dev, struct kobj_uevent_env *env);
-+	int (*pre_probe)(struct device *dev);
- 	int (*probe)(struct device *dev);
- 	int (*remove)(struct device *dev);
- 	void (*shutdown)(struct device *dev);
+ 		pctldev = of_pinctrl_get(pinspec.np);
+ 		if (!pctldev)
+ 			return -EPROBE_DEFER;
 -- 
 2.4.3
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
