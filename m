@@ -1,87 +1,116 @@
-From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Subject: [PATCH v4 03/22] of/platform: Point to struct device from device node
-Date: Mon,  7 Sep 2015 14:23:28 +0200
-Message-ID: <1441628627-5143-4-git-send-email-tomeu.vizoso@collabora.com>
+From: Tomeu Vizoso <tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
+Subject: [PATCH v4 01/22] driver core: Add pre_probe callback to bus_type
+Date: Mon,  7 Sep 2015 14:23:26 +0200
+Message-ID: <1441628627-5143-2-git-send-email-tomeu.vizoso@collabora.com>
 References: <1441628627-5143-1-git-send-email-tomeu.vizoso@collabora.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:33115 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751355AbbIGMYN (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Sep 2015 08:24:13 -0400
-In-Reply-To: <1441628627-5143-1-git-send-email-tomeu.vizoso@collabora.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1441628627-5143-1-git-send-email-tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Tomeu Vizoso <tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Rob Herring <robh+dt@kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-arm-kernel@lists.infradead.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>
 
-When adding a platform device, set the device node's device member to
-point to it.
+Some buses (eg. AMBA) need access to some HW resources (it may need a
+clock to be enabled so a device ID can be read) before a device can be
+matched to a driver.
 
-This speeds lookups considerably and is safe because we only create one
-platform device for any given device node.
+The pre_probe callback allows the device-driver core to request the bus
+to perform this initialization and can defer the probe if any of the
+resources needed are missing.
 
-Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+This gives us more flexibility when setting the order in which devices
+are probed because the resources needed to get the matching information
+don't need to be available by the time that the bus devices are
+registered.
+
+Signed-off-by: Tomeu Vizoso <tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
 ---
 
 Changes in v4: None
 Changes in v3: None
 Changes in v2: None
 
- drivers/of/platform.c | 13 +++++--------
- include/linux/of.h    |  1 +
- 2 files changed, 6 insertions(+), 8 deletions(-)
+ drivers/base/dd.c      | 24 ++++++++++++++++++++++++
+ include/linux/device.h |  4 ++++
+ 2 files changed, 28 insertions(+)
 
-diff --git a/drivers/of/platform.c b/drivers/of/platform.c
-index 1001efaedcb8..baf04d7249bd 100644
---- a/drivers/of/platform.c
-+++ b/drivers/of/platform.c
-@@ -32,11 +32,6 @@ const struct of_device_id of_default_bus_match_table[] = {
- 	{} /* Empty terminated list */
- };
+diff --git a/drivers/base/dd.c b/drivers/base/dd.c
+index be0eb4639128..faf60bfc46b3 100644
+--- a/drivers/base/dd.c
++++ b/drivers/base/dd.c
+@@ -544,6 +544,17 @@ static int __device_attach(struct device *dev, bool allow_async)
+ 	int ret = 0;
  
--static int of_dev_node_match(struct device *dev, void *data)
--{
--	return dev->of_node == data;
--}
--
- /**
-  * of_find_device_by_node - Find the platform_device associated with a node
-  * @np: Pointer to device tree node
-@@ -45,10 +40,10 @@ static int of_dev_node_match(struct device *dev, void *data)
-  */
- struct platform_device *of_find_device_by_node(struct device_node *np)
- {
--	struct device *dev;
-+	if (np->device && np->device->bus == &platform_bus_type)
-+		return to_platform_device(np->device);
- 
--	dev = bus_find_device(&platform_bus_type, NULL, np, of_dev_node_match);
--	return dev ? to_platform_device(dev) : NULL;
-+	return NULL;
- }
- EXPORT_SYMBOL(of_find_device_by_node);
- 
-@@ -192,6 +187,8 @@ static struct platform_device *of_platform_device_create_pdata(
- 		goto err_clear_flag;
- 	}
- 
-+	np->device = &dev->dev;
+ 	device_lock(dev);
 +
- 	return dev;
++	if (dev->bus && dev->bus->pre_probe) {
++		ret = dev->bus->pre_probe(dev);
++		if (ret) {
++			if (ret == -EPROBE_DEFER)
++				driver_deferred_probe_add(dev);
++			ret = 0;
++			goto out_unlock;
++		}
++	}
++
+ 	if (dev->driver) {
+ 		if (klist_node_attached(&dev->p->knode_driver)) {
+ 			ret = 1;
+@@ -619,6 +630,7 @@ void device_initial_probe(struct device *dev)
+ static int __driver_attach(struct device *dev, void *data)
+ {
+ 	struct device_driver *drv = data;
++	int ret;
  
- err_clear_flag:
-diff --git a/include/linux/of.h b/include/linux/of.h
-index 2194b8ca41f9..eb091be0f8ee 100644
---- a/include/linux/of.h
-+++ b/include/linux/of.h
-@@ -52,6 +52,7 @@ struct device_node {
- 	phandle phandle;
- 	const char *full_name;
- 	struct fwnode_handle fwnode;
-+	struct device *device;
+ 	/*
+ 	 * Lock device and try to bind to it. We drop the error
+@@ -636,8 +648,20 @@ static int __driver_attach(struct device *dev, void *data)
+ 	if (dev->parent)	/* Needed for USB */
+ 		device_lock(dev->parent);
+ 	device_lock(dev);
++
++	if (dev->bus && dev->bus->pre_probe) {
++		ret = dev->bus->pre_probe(dev);
++		if (ret) {
++			if (ret == -EPROBE_DEFER)
++				driver_deferred_probe_add(dev);
++			goto out;
++		}
++	}
++
+ 	if (!dev->driver)
+ 		driver_probe_device(drv, dev);
++
++out:
+ 	device_unlock(dev);
+ 	if (dev->parent)
+ 		device_unlock(dev->parent);
+diff --git a/include/linux/device.h b/include/linux/device.h
+index 5d7bc6349930..d8be07bc9c3f 100644
+--- a/include/linux/device.h
++++ b/include/linux/device.h
+@@ -74,6 +74,9 @@ extern void bus_remove_file(struct bus_type *, struct bus_attribute *);
+  *		given device can be handled by the given driver.
+  * @uevent:	Called when a device is added, removed, or a few other things
+  *		that generate uevents to add the environment variables.
++ * @pre_probe:	Called when a new device or driver is added to this bus, to
++ *		perform any initializations that are needed so the device can
++ *		be matched to a driver.
+  * @probe:	Called when a new device or driver add to this bus, and callback
+  *		the specific driver's probe to initial the matched device.
+  * @remove:	Called when a device removed from this bus.
+@@ -113,6 +116,7 @@ struct bus_type {
  
- 	struct	property *properties;
- 	struct	property *deadprops;	/* removed properties */
+ 	int (*match)(struct device *dev, struct device_driver *drv);
+ 	int (*uevent)(struct device *dev, struct kobj_uevent_env *env);
++	int (*pre_probe)(struct device *dev);
+ 	int (*probe)(struct device *dev);
+ 	int (*remove)(struct device *dev);
+ 	void (*shutdown)(struct device *dev);
 -- 
 2.4.3
 
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
