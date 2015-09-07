@@ -1,85 +1,71 @@
-From: Ganapatrao Kulkarni <gpkulkarni@gmail.com>
-Subject: Re: [PATCH 01/11] ARM64 / PCI: introduce struct pci_controller for ACPI
-Date: Mon, 7 Sep 2015 09:44:22 +0530
-Message-ID: <CAFpQJXUU4mVbJSyfQJJm_VjR_uAm-xKHP7syYaM_xuC+CG7q5w@mail.gmail.com>
-References: <1432644564-24746-1-git-send-email-hanjun.guo@linaro.org>
-	<1432644564-24746-2-git-send-email-hanjun.guo@linaro.org>
-	<20150526165844.GD2175@e106497-lin.cambridge.arm.com>
-	<5564AB68.6080502@linux.intel.com>
-	<55657EA3.5000601@linaro.org>
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: Re: [PATCH 0/5] ACPI probing infrastructure
+Date: Mon, 7 Sep 2015 08:58:33 +0200
+Message-ID: <55ED3599.5090508@semihalf.com>
+References: <1441386412-8139-1-git-send-email-marc.zyngier@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <55657EA3.5000601@linaro.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Liviu Dudau <Liviu.Dudau@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Will Deacon <Will.Deacon@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Yijing Wang <wangyijing@huawei.com>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "msalter@redhat.com" <msalter@redhat.com>, Bjorn Helgaas <bhelgaas@google.com>, Thomas Gleixner <tglx@linutronix.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1441386412-8139-1-git-send-email-marc.zyngier@arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>
+Cc: linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Hanjun,
+Hi Marc,
 
-On Wed, May 27, 2015 at 1:51 PM, Hanjun Guo <hanjun.guo@linaro.org> wro=
-te:
-> Hi Liviu,
+On 04.09.2015 19:06, Marc Zyngier wrote:
+> IRQ controllers and timers are the two types of device the kernel
+> requires before being able to use the device driver model.
 >
-> On 2015=E5=B9=B405=E6=9C=8827=E6=97=A5 01:20, Jiang Liu wrote:
->>
->> On 2015/5/27 0:58, Liviu Dudau wrote:
->>>
->>> On Tue, May 26, 2015 at 01:49:14PM +0100, Hanjun Guo wrote:
->>>>
->>>> ARM64 ACPI based PCI host bridge init needs a arch dependent
->>>> struct pci_controller to accommodate common PCI host bridge
->>>> code which is introduced later, or it will lead to compile
->>>> errors on ARM64.
->>>
->>>
->>> Hi Hanjun,
->>>
->>> Two questions: why don't you introduce this patch next to the
->>> one that is going to make use of it (or even merge it there)?
+> ACPI so far lacks a proper probing infrastructure similar to the one
+> we have with DT, where we're able to declare IRQ chips and
+> clocksources inside the driver code, and let the core code pick it up
+> and call us back on a match. This leads to all kind of really ugly
+> hacks all over the arm64 code and even in the ACPI layer.
 >
+> It turns out that providing such a probing infrastructure is rather
+> easy, and provides a much deserved cleanup in both the arch code, the
+> GIC driver, and the architected timer driver.
 >
-> this is because of this patch is needed by Jiang Liu's patch set
-> to fix the compile error on ARM64, I'd rather do that, but It's
-> better to let Jiang Liu's patch goes in, and then this one, that's
-> why I prepared a single patch for the struct. (I mentioned it
-> in the cover letter)
+> I'm sure there is some more code to be deleted, and one can only
+> wonder why this wasn't done before the arm64 code was initially merged
+> (the diffstat says it all...).
 >
->>> Second, why is the whole struct pci_controller not surrounded
->>> by #ifdef CONFIG_ACPI as you are implying that this is needed
->>> only for ACPI?
+> Patches are against v4.2, and a branch is available at
 >
+> git://git.kernel.org/pub/scm/linux/kernel/git/maz/arm-platforms.git acpi/device-probing
 >
-> I hope it can be reused, since the NUMA node and segment (domain)
-> is both needed for DT and ACPI, if it's not the case foe now, I
-> can surrounded them all by #ifdef CONFIG_ACPI.
-we can make use of this structure to hold pci to numa node
-mapping(pcibus_to_node).
-can you please pull node member out of  CONFIG_ACPI ifdef.
-or you can put only acpi_device under ifdef.
+> Marc Zyngier (5):
+>    acpi: Add basic device probing infrastructure
+>    irqchip/acpi: Add probing infrastructure for ACPI-based irqchips
+>    irqchip/gic: Convert the GIC driver to ACPI probing
+>    clocksource/acpi: Add probing infrastructure for ACPI-based
+>      clocksources
+>    clocksource/arm_arch_timer: Convert to ACPI probing
 >
->>>
->>> Btw, looking through the whole series I'm not (yet) convinced
->>> that this is needed at all.
->>
->> Hi Liviu,
->>         This structure is required by the requested patch set
->> at http://patchwork.ozlabs.org/patch/472249/, which consolidates
->> the common code to support PCI host bridge into ACPI core.
+>   arch/arm64/include/asm/acpi.h        |  1 -
+>   arch/arm64/include/asm/irq.h         | 13 -------
+>   arch/arm64/kernel/acpi.c             | 25 -------------
+>   arch/arm64/kernel/time.c             |  6 ----
+>   drivers/acpi/scan.c                  | 41 +++++++++++++++++++++
+>   drivers/clocksource/arm_arch_timer.c | 10 +-----
+>   drivers/clocksource/clksrc-of.c      |  4 +++
+>   drivers/irqchip/irq-gic.c            | 69 ++++++++++++++++++------------------
+>   drivers/irqchip/irqchip.c            |  5 ++-
+>   include/asm-generic/vmlinux.lds.h    | 11 ++++++
+>   include/linux/acpi.h                 | 56 +++++++++++++++++++++++++++++
+>   include/linux/acpi_irq.h             | 10 ------
+>   include/linux/clocksource.h          |  6 ----
+>   include/linux/irqchip.h              | 16 +++++++++
+>   include/linux/irqchip/arm-gic-acpi.h | 31 ----------------
+>   15 files changed, 166 insertions(+), 138 deletions(-)
+>   delete mode 100644 include/linux/acpi_irq.h
+>   delete mode 100644 include/linux/irqchip/arm-gic-acpi.h
 >
->
-> Jiang, thanks for the explanation :)
->
-> Thanks
-> Hanjun
 
-thanks
-Ganapat
->
->
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+Thanks for cleaning this up!
+
+For the whole series:
+Acked-by: Tomasz Nowicki <tn@semihalf.com>
