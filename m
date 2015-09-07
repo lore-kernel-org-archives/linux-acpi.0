@@ -1,74 +1,129 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH 01/11] ARM64 / PCI: introduce struct pci_controller for
- ACPI
-Date: Mon, 7 Sep 2015 09:45:42 +0100
-Message-ID: <20150907084542.GA29293@red-moon>
+From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Subject: Re: [PATCH 05/11] x86, pci, acpi: Move arch-agnostic MMCONFIG (aka
+ ECAM) and ACPI code out of arch/x86/ directory
+Date: Mon, 7 Sep 2015 11:59:44 +0200
+Message-ID: <55ED6010.3020406@linaro.org>
 References: <1432644564-24746-1-git-send-email-hanjun.guo@linaro.org>
- <1432644564-24746-2-git-send-email-hanjun.guo@linaro.org>
- <20150526165844.GD2175@e106497-lin.cambridge.arm.com>
- <5564AB68.6080502@linux.intel.com>
- <55657EA3.5000601@linaro.org>
- <CAFpQJXUU4mVbJSyfQJJm_VjR_uAm-xKHP7syYaM_xuC+CG7q5w@mail.gmail.com>
+ <1432644564-24746-6-git-send-email-hanjun.guo@linaro.org>
+ <20150526170817.GU1565@arm.com> <55657B02.5090805@linaro.org>
+ <20150602133215.GC23650@red-moon> <55701A31.808@linaro.org>
+ <20150604102253.GA31773@red-moon> <5570447D.3020705@linaro.org>
+ <557504A2.3060203@linaro.org> <20150608151443.GA16151@red-moon>
+ <55E4340D.6050004@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAFpQJXUU4mVbJSyfQJJm_VjR_uAm-xKHP7syYaM_xuC+CG7q5w@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Ganapatrao Kulkarni <gpkulkarni@gmail.com>
-Cc: "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Jiang Liu <jiang.liu@linux.intel.com>, Liviu Dudau <Liviu.Dudau@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Arnd Bergmann <arnd@arndb.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Catalin Marinas <Catalin.Marinas@arm.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Will Deacon <Will.Deacon@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Yijing Wang <wangyijing@huawei.com>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "msalter@redhat.com" <msalter@redhat.com>, Bjorn Helgaas <bhelgaas@google.com>, Thomas Gleixner <tglx@linutronix.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lb0-f182.google.com ([209.85.217.182]:34842 "EHLO
+	mail-lb0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751915AbbIGJ7s (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Sep 2015 05:59:48 -0400
+Received: by lbpo4 with SMTP id o4so36761503lbp.2
+        for <linux-acpi@vger.kernel.org>; Mon, 07 Sep 2015 02:59:47 -0700 (PDT)
+In-Reply-To: <55E4340D.6050004@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, Yijing Wang <wangyijing@huawei.com>, Will Deacon <Will.Deacon@arm.com>, Arnd Bergmann <arnd@arndb.de>, Catalin Marinas <Catalin.Marinas@arm.com>, Jiang Liu <jiang.liu@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "msalter@redhat.com" <msalter@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 
-On Mon, Sep 07, 2015 at 05:14:22AM +0100, Ganapatrao Kulkarni wrote:
-> Hi Hanjun,
-> 
-> On Wed, May 27, 2015 at 1:51 PM, Hanjun Guo <hanjun.guo@linaro.org> wrote:
-> > Hi Liviu,
-> >
-> > On 2015???05???27??? 01:20, Jiang Liu wrote:
-> >>
-> >> On 2015/5/27 0:58, Liviu Dudau wrote:
-> >>>
-> >>> On Tue, May 26, 2015 at 01:49:14PM +0100, Hanjun Guo wrote:
-> >>>>
-> >>>> ARM64 ACPI based PCI host bridge init needs a arch dependent
-> >>>> struct pci_controller to accommodate common PCI host bridge
-> >>>> code which is introduced later, or it will lead to compile
-> >>>> errors on ARM64.
-> >>>
-> >>>
-> >>> Hi Hanjun,
-> >>>
-> >>> Two questions: why don't you introduce this patch next to the
-> >>> one that is going to make use of it (or even merge it there)?
-> >
-> >
-> > this is because of this patch is needed by Jiang Liu's patch set
-> > to fix the compile error on ARM64, I'd rather do that, but It's
-> > better to let Jiang Liu's patch goes in, and then this one, that's
-> > why I prepared a single patch for the struct. (I mentioned it
-> > in the cover letter)
-> >
-> >>> Second, why is the whole struct pci_controller not surrounded
-> >>> by #ifdef CONFIG_ACPI as you are implying that this is needed
-> >>> only for ACPI?
-> >
-> >
-> > I hope it can be reused, since the NUMA node and segment (domain)
-> > is both needed for DT and ACPI, if it's not the case foe now, I
-> > can surrounded them all by #ifdef CONFIG_ACPI.
-> we can make use of this structure to hold pci to numa node
-> mapping(pcibus_to_node).
-> can you please pull node member out of  CONFIG_ACPI ifdef.
-> or you can put only acpi_device under ifdef.
+On 31.08.2015 13:01, Tomasz Nowicki wrote:
+> On 08.06.2015 17:14, Lorenzo Pieralisi wrote:
+>> On Mon, Jun 08, 2015 at 03:57:38AM +0100, Hanjun Guo wrote:
+>>
+>> [...]
+>>
+>>>>>>>>> Why can't we make use of the ECAM implementation used by
+>>>>>>>>> pci-host-generic
+>>>>>>>>> and drivers/pci/access.c?
+>>>>>>>>
+>>>>>>>> We had that question when I had posted MMCFG patch set separately,
+>>>>>>>> please see:
+>>>>>>>> https://lkml.org/lkml/2015/3/11/492
+>>>>>>>
+>>>>>>> Yes, but the real question is, why do we need to have PCI config
+>>>>>>> space
+>>>>>>> up and running before a bus struct is even created ? I think the
+>>>>>>> reason is
+>>>>>>> the PCI configuration address space format (ACPI 6.0, Table 5-27,
+>>>>>>> page
+>>>>>>> 108):
+>>>>>>>
+>>>>>>> "PCI Configuration space addresses must be confined to devices on
+>>>>>>> PCI Segment Group 0, bus 0. This restriction exists to accommodate
+>>>>>>> access to fixed hardware prior to PCI bus enumeration".
+>>>>>>>
+>>>>>>> On HW reduced platforms I do not even think this is required at all,
+>>>>>>> we have to look into this to avoid code duplication that might well
+>>>>>>> turn out useless.
+>>>>>>
+>>>>>> This is only for the fixed hardware, which will be not available for
+>>>>>> ARM64 (reduced hardware mode), but in Generic Hardware Programming
+>>>>>> Model, we using OEM-provided ACPI Machine Language (AML) code to
+>>>>>> access
+>>>>>> generic hardware registers, this will be available for reduced
+>>>>>> hardware
+>>>>>> too.
+>>>>>>
+>>>>>> So in ACPI spec, it says: (ACPI 6.0 page 66, last paragraph)
+>>>>>>
+>>>>>> ACPI defines eight address spaces that may be accessed by generic
+>>>>>> hardware implementations. These include:
+>>>>>> * System I/O space
+>>>>>> * System memory space
+>>>>>> * PCI configuration space
+>>>>>> * Embedded controller space
+>>>>>> * System Management Bus (SMBus) space
+>>>>>> * CMOS
+>>>>>> * PCI BAR Target
+>>>>>> * IPMI space
+>>>>>>
+>>>>>> So if any device using the PCI address space for control, such
+>>>>>> as a system reset control device, its address space can be reside
+>>>>>> in PCI configuration space (who can prevent a OEM do that crazy
+>>>>>> thing? :) ), and it should be accessible before the PCI bus is
+>>>>>> created.
+>>>>>
+>>>>> Us, by changing attitude and questioning features whose usefulness
+>>>>> is questionable. I will look into this and raise the point, I am not
+>>>>> thrilled by the idea of adding another set of PCI accessor functions
+>>>>> and drivers because we have to access a register through PCI before
+>>>>> enumerating the bus (and on arm64 this is totally useless since
+>>>>> we are not meant to support fixed HW anyway). Maybe we can make acpica
+>>>>> code use a "special" stub (ACPI specific, PCI configuration space
+>>>>> address
+>>>>> space has restrictions anyway), I have to review this set in its
+>>>>> entirety to see how to do that (and I would kindly ask you to do
+>>>>> it too, before saying it is not possible to implement it).
+>>>>
+>>>> I'm willing to do that, actually, if we don't need a mechanism to
+>>>> access PCI config space before the bus is created, the code can be
+>>>> simplified a lot.
+>>>
+>>> After more investigation on the spec and the ACPI core code, I'm
+>>> still not convinced that accessing to PCI config space before PCI
+>>> bus creating is impossible, also there is no enough ARM64 hardware
+>>> to prove that too. But I think we can go in this way, reuse the
+>>> ECAM implementation by pci-host-generic for now, and implement the PCI
+>>> accessor functions before enumerating PCI bus when needed in the
+>>> future, does it make sense?
+>>
+>> You mean we rewrite the patch to make sure we can use the PCI host
+>> generic
+>> driver with MCFG and we leave the acpica PCI config call empty stubs on
+>> arm64 (as they are now) ?
+>>
+>
+> Hi Bjorn, Rafael,
+>
+> Lorenzo pointed out very important problem we are having with PCI config
+> space access for ARM64. Please refer to the above discussion and add
+> your 2 cents. Can we forget about accessing PCI config space (for
+> Hardware Reduced profile) before PCI bus creation? If not, do you see a
+> way to use drivers/pci/access.c accessors here, like acpica change? Any
+> opinion is very appreciated.
+>
 
-That struct disappeared in the latest series:
-
-https://lkml.org/lkml/2015/6/8/443
-
-we have to have a common way to handle the NUMA info in DT and ACPI
-so we should still find a solution that can be shared between the two,
-it is yet another thing to take into account for PCI ACPI on arm64.
+Kindly remainder.
 
 Thanks,
-Lorenzo
+Tomasz
