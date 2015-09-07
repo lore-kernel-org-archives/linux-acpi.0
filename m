@@ -1,129 +1,186 @@
-From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Subject: Re: [PATCH 05/11] x86, pci, acpi: Move arch-agnostic MMCONFIG (aka
- ECAM) and ACPI code out of arch/x86/ directory
-Date: Mon, 7 Sep 2015 11:59:44 +0200
-Message-ID: <55ED6010.3020406@linaro.org>
-References: <1432644564-24746-1-git-send-email-hanjun.guo@linaro.org>
- <1432644564-24746-6-git-send-email-hanjun.guo@linaro.org>
- <20150526170817.GU1565@arm.com> <55657B02.5090805@linaro.org>
- <20150602133215.GC23650@red-moon> <55701A31.808@linaro.org>
- <20150604102253.GA31773@red-moon> <5570447D.3020705@linaro.org>
- <557504A2.3060203@linaro.org> <20150608151443.GA16151@red-moon>
- <55E4340D.6050004@linaro.org>
+From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Subject: [PATCH v4 0/22] On-demand device probing
+Date: Mon,  7 Sep 2015 14:23:25 +0200
+Message-ID: <1441628627-5143-1-git-send-email-tomeu.vizoso@collabora.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f182.google.com ([209.85.217.182]:34842 "EHLO
-	mail-lb0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751915AbbIGJ7s (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Sep 2015 05:59:48 -0400
-Received: by lbpo4 with SMTP id o4so36761503lbp.2
-        for <linux-acpi@vger.kernel.org>; Mon, 07 Sep 2015 02:59:47 -0700 (PDT)
-In-Reply-To: <55E4340D.6050004@linaro.org>
+Received: from mail-wi0-f175.google.com ([209.85.212.175]:35710 "EHLO
+	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751117AbbIGMYJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Sep 2015 08:24:09 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Hanjun Guo <hanjun.guo@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, Yijing Wang <wangyijing@huawei.com>, Will Deacon <Will.Deacon@arm.com>, Arnd Bergmann <arnd@arndb.de>, Catalin Marinas <Catalin.Marinas@arm.com>, Jiang Liu <jiang.liu@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "msalter@redhat.com" <msalter@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
+To: linux-kernel@vger.kernel.org
+Cc: Rob Herring <robh+dt@kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-arm-kernel@lists.infradead.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, linux-fbdev@vger.kernel.org, linux-usb@vger.kernel.org, Felipe Balbi <balbi@ti.com>, linux-pwm@vger.kernel.org, =?UTF-8?q?Terje=20Bergstr=C3=B6m?= <tbergstrom@nvidia.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jingoo Han <jingoohan1@gmail.com>, David Airlie <airlied@linux.ie>, Michael Turquette <mturquette@baylibre.com>, linux-clk@vger.kernel.org, dmaengine@vger.kern
 
-On 31.08.2015 13:01, Tomasz Nowicki wrote:
-> On 08.06.2015 17:14, Lorenzo Pieralisi wrote:
->> On Mon, Jun 08, 2015 at 03:57:38AM +0100, Hanjun Guo wrote:
->>
->> [...]
->>
->>>>>>>>> Why can't we make use of the ECAM implementation used by
->>>>>>>>> pci-host-generic
->>>>>>>>> and drivers/pci/access.c?
->>>>>>>>
->>>>>>>> We had that question when I had posted MMCFG patch set separately,
->>>>>>>> please see:
->>>>>>>> https://lkml.org/lkml/2015/3/11/492
->>>>>>>
->>>>>>> Yes, but the real question is, why do we need to have PCI config
->>>>>>> space
->>>>>>> up and running before a bus struct is even created ? I think the
->>>>>>> reason is
->>>>>>> the PCI configuration address space format (ACPI 6.0, Table 5-27,
->>>>>>> page
->>>>>>> 108):
->>>>>>>
->>>>>>> "PCI Configuration space addresses must be confined to devices on
->>>>>>> PCI Segment Group 0, bus 0. This restriction exists to accommodate
->>>>>>> access to fixed hardware prior to PCI bus enumeration".
->>>>>>>
->>>>>>> On HW reduced platforms I do not even think this is required at all,
->>>>>>> we have to look into this to avoid code duplication that might well
->>>>>>> turn out useless.
->>>>>>
->>>>>> This is only for the fixed hardware, which will be not available for
->>>>>> ARM64 (reduced hardware mode), but in Generic Hardware Programming
->>>>>> Model, we using OEM-provided ACPI Machine Language (AML) code to
->>>>>> access
->>>>>> generic hardware registers, this will be available for reduced
->>>>>> hardware
->>>>>> too.
->>>>>>
->>>>>> So in ACPI spec, it says: (ACPI 6.0 page 66, last paragraph)
->>>>>>
->>>>>> ACPI defines eight address spaces that may be accessed by generic
->>>>>> hardware implementations. These include:
->>>>>> * System I/O space
->>>>>> * System memory space
->>>>>> * PCI configuration space
->>>>>> * Embedded controller space
->>>>>> * System Management Bus (SMBus) space
->>>>>> * CMOS
->>>>>> * PCI BAR Target
->>>>>> * IPMI space
->>>>>>
->>>>>> So if any device using the PCI address space for control, such
->>>>>> as a system reset control device, its address space can be reside
->>>>>> in PCI configuration space (who can prevent a OEM do that crazy
->>>>>> thing? :) ), and it should be accessible before the PCI bus is
->>>>>> created.
->>>>>
->>>>> Us, by changing attitude and questioning features whose usefulness
->>>>> is questionable. I will look into this and raise the point, I am not
->>>>> thrilled by the idea of adding another set of PCI accessor functions
->>>>> and drivers because we have to access a register through PCI before
->>>>> enumerating the bus (and on arm64 this is totally useless since
->>>>> we are not meant to support fixed HW anyway). Maybe we can make acpica
->>>>> code use a "special" stub (ACPI specific, PCI configuration space
->>>>> address
->>>>> space has restrictions anyway), I have to review this set in its
->>>>> entirety to see how to do that (and I would kindly ask you to do
->>>>> it too, before saying it is not possible to implement it).
->>>>
->>>> I'm willing to do that, actually, if we don't need a mechanism to
->>>> access PCI config space before the bus is created, the code can be
->>>> simplified a lot.
->>>
->>> After more investigation on the spec and the ACPI core code, I'm
->>> still not convinced that accessing to PCI config space before PCI
->>> bus creating is impossible, also there is no enough ARM64 hardware
->>> to prove that too. But I think we can go in this way, reuse the
->>> ECAM implementation by pci-host-generic for now, and implement the PCI
->>> accessor functions before enumerating PCI bus when needed in the
->>> future, does it make sense?
->>
->> You mean we rewrite the patch to make sure we can use the PCI host
->> generic
->> driver with MCFG and we leave the acpica PCI config call empty stubs on
->> arm64 (as they are now) ?
->>
->
-> Hi Bjorn, Rafael,
->
-> Lorenzo pointed out very important problem we are having with PCI config
-> space access for ARM64. Please refer to the above discussion and add
-> your 2 cents. Can we forget about accessing PCI config space (for
-> Hardware Reduced profile) before PCI bus creation? If not, do you see a
-> way to use drivers/pci/access.c accessors here, like acpica change? Any
-> opinion is very appreciated.
->
+Hello,
 
-Kindly remainder.
+I have a problem with the panel on my Tegra Chromebook taking longer
+than expected to be ready during boot (St=C3=A9phane Marchesin reported=
+ what
+is basically the same issue in [0]), and have looked into ordered
+probing as a better way of solving this than moving nodes around in the
+DT or playing with initcall levels and linking order.
 
-Thanks,
-Tomasz
+While reading the thread [1] that Alexander Holler started with his
+series to make probing order deterministic, it occurred to me that it
+should be possible to achieve the same by probing devices as they are
+referenced by other devices.
+
+This basically reuses the information that is already implicit in the
+probe() implementations, saving us from refactoring existing drivers or
+adding information to DTBs.
+
+During review of v1 of this series Linus Walleij suggested that it
+should be the device driver core to make sure that dependencies are
+ready before probing a device. I gave this idea a try [2] but Mark Brow=
+n
+pointed out to the logic duplication between the resource acquisition
+and dependency discovery code paths (though I think it's fairly minor).
+
+To address that code duplication I experimented with Arnd's devm_probe
+[3] concept of having drivers declare their dependencies instead of
+acquiring them during probe, and while it worked [4], I don't think we
+end up winning anything when compared to just probing devices on-demand
+from resource getters.
+
+One remaining objection is to the "sprinkling" of calls to
+of_device_probe() in the resource getters of each subsystem, but I thin=
+k
+it's the right thing to do given that the storage of resources is
+currently subsystem-specific.
+
+We could avoid the above by moving resource storage into the core, but =
+I
+don't think there's a compelling case for that.
+
+I have tested this on boards with Tegra, iMX.6, Exynos, Rockchip and
+OMAP SoCs, and these patches were enough to eliminate all the deferred
+probes (except one in PandaBoard because omap_dma_system doesn't have a
+firmware node as of yet).
+
+Have submitted a branch [5] with only these patches on top of thursday'=
+s
+linux-next to kernelci.org and I don't see any issues that could be
+caused by them. For some reason it currently has more passes than the
+version of -next it's based on!
+
+With this series I get the kernel to output to the panel in 0.5s,
+instead of 2.8s.
+
+Regards,
+
+Tomeu
+
+[0] http://lists.freedesktop.org/archives/dri-devel/2014-August/066527.=
+html
+
+[1] https://lkml.org/lkml/2014/5/12/452
+
+[2] https://lkml.org/lkml/2015/6/17/305
+
+[3] http://article.gmane.org/gmane.linux.ports.arm.kernel/277689
+
+[4] https://lkml.org/lkml/2015/7/21/441a
+
+[5] https://git.collabora.com/cgit/user/tomeu/linux.git/log/?h=3Don-dem=
+and-probes-v6
+
+[6] http://kernelci.org/boot/all/job/collabora/kernel/v4.2-11902-g25d80=
+c927f8b/
+
+[7] http://kernelci.org/boot/all/job/next/kernel/next-20150903/
+
+Changes in v4:
+- Added bus.pre_probe callback so the probes of Primecell devices can b=
+e
+  deferred if their device IDs cannot be yet read because of the clock
+  driver not having probed when they are registered. Maybe this goes
+  overboard and the matching information should be in the DT if there i=
+s
+  one.
+- Rename of_platform_probe to of_device_probe
+- Use device_node.device instead of device_node.platform_dev
+- Take a reference to the regulator's device to prevent dangling
+  pointers
+- Add Kconfig DELAY_DEVICE_PROBES to allow disabling delayed probing in
+  machines with initcalls that depend on devices probing at a given tim=
+e.
+- Start processing deferred probes in device_initcall_sync
+- Also defer probes of AMBA devices registered from the DT as they can
+  also request resources.
+
+Changes in v3:
+- Set and use device_node.platform_dev instead of reversing the logic t=
+o
+  find the platform device that encloses a device node.
+- Drop the fwnode API to probe firmware nodes and add OF-only API for
+  now. I think this same scheme could be used for machines with ACPI,
+  but I haven't been able to find one that had to defer its probes beca=
+use
+  of the device probe order.
+- Avoid unlocking the regulator device's mutex if we don't have a devic=
+e
+
+Changes in v2:
+- Acquire regulator device lock before returning from regulator_dev_loo=
+kup()
+
+Tomeu Vizoso (22):
+  driver core: Add pre_probe callback to bus_type
+  ARM: amba: Move reading of periphid to pre_probe()
+  of/platform: Point to struct device from device node
+  of: add function to allow probing a device from a OF node
+  gpio: Probe GPIO drivers on demand
+  gpio: Probe pinctrl devices on demand
+  regulator: core: Reduce critical area in _regulator_get
+  regulator: core: Probe regulators on demand
+  drm: Probe panels on demand
+  drm/tegra: Probe dpaux devices on demand
+  i2c: core: Probe i2c adapters and devices on demand
+  pwm: Probe PWM chip devices on demand
+  backlight: Probe backlight devices on demand
+  usb: phy: Probe phy devices on demand
+  clk: Probe clk providers on demand
+  pinctrl: Probe pinctrl devices on demand
+  phy: core: Probe phy providers on demand
+  dma: of: Probe DMA controllers on demand
+  power-supply: Probe power supplies on demand
+  driver core: Allow deferring probes until late init
+  driver core: Start processing deferred probes earlier
+  of/platform: Defer probes of registered devices
+
+ drivers/amba/bus.c                  | 78 ++++++++++++++++++-----------=
+--------
+ drivers/base/Kconfig                | 18 +++++++++
+ drivers/base/dd.c                   | 35 ++++++++++++++++-
+ drivers/clk/clk.c                   |  3 ++
+ drivers/dma/of-dma.c                |  3 ++
+ drivers/gpio/gpiolib-of.c           |  5 +++
+ drivers/gpu/drm/drm_panel.c         |  3 ++
+ drivers/gpu/drm/tegra/dpaux.c       |  3 ++
+ drivers/i2c/i2c-core.c              |  4 ++
+ drivers/of/device.c                 | 58 +++++++++++++++++++++++++++
+ drivers/of/platform.c               | 26 +++++++------
+ drivers/phy/phy-core.c              |  3 ++
+ drivers/pinctrl/devicetree.c        |  3 ++
+ drivers/power/power_supply_core.c   |  3 ++
+ drivers/pwm/core.c                  |  3 ++
+ drivers/regulator/core.c            | 58 ++++++++++++++++++---------
+ drivers/usb/phy/phy.c               |  3 ++
+ drivers/video/backlight/backlight.c |  3 ++
+ include/linux/device.h              |  6 +++
+ include/linux/of.h                  |  1 +
+ include/linux/of_device.h           |  3 ++
+ 21 files changed, 251 insertions(+), 71 deletions(-)
+
+--=20
+2.4.3
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
