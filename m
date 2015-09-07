@@ -1,56 +1,46 @@
 From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Subject: [PATCH v4 08/22] regulator: core: Probe regulators on demand
-Date: Mon,  7 Sep 2015 14:23:33 +0200
-Message-ID: <1441628627-5143-9-git-send-email-tomeu.vizoso@collabora.com>
+Subject: [PATCH v4 10/22] drm/tegra: Probe dpaux devices on demand
+Date: Mon,  7 Sep 2015 14:23:35 +0200
+Message-ID: <1441628627-5143-11-git-send-email-tomeu.vizoso@collabora.com>
 References: <1441628627-5143-1-git-send-email-tomeu.vizoso@collabora.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f173.google.com ([209.85.212.173]:34962 "EHLO
-	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750997AbbIGMYW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Sep 2015 08:24:22 -0400
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
 In-Reply-To: <1441628627-5143-1-git-send-email-tomeu.vizoso@collabora.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
 To: linux-kernel@vger.kernel.org
-Cc: Rob Herring <robh+dt@kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-arm-kernel@lists.infradead.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, Liam Girdwood <lgirdwood@gmail.com>
+Cc: devicetree@vger.kernel.org, =?UTF-8?q?Terje=20Bergstr=C3=B6m?= <tbergstrom@nvidia.com>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@wwwdotorg.org>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Rob Herring <robh+dt@kernel.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Mark Brown <broonie@kernel.org>, dri-devel@lists.freedesktop.org, linux-tegra@vger.kernel.org, Alexandre Courbot <gnurou@gmail.com>, linux-arm-kernel@lists.infradead.org
+List-Id: linux-acpi@vger.kernel.org
 
-When looking up a regulator through its OF node, probe it if it hasn't
-already.
-
-The goal is to reduce deferred probes to a minimum, as it makes it very
-cumbersome to find out why a device failed to probe, and can introduce
-very big delays in when a critical device is probed.
-
-Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
----
-
-Changes in v4: None
-Changes in v3: None
-Changes in v2: None
-
- drivers/regulator/core.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/drivers/regulator/core.c b/drivers/regulator/core.c
-index f4aa6cae76d5..615133f45c76 100644
---- a/drivers/regulator/core.c
-+++ b/drivers/regulator/core.c
-@@ -26,6 +26,7 @@
- #include <linux/gpio.h>
- #include <linux/gpio/consumer.h>
- #include <linux/of.h>
-+#include <linux/of_device.h>
- #include <linux/regmap.h>
- #include <linux/regulator/of_regulator.h>
- #include <linux/regulator/consumer.h>
-@@ -1340,6 +1341,7 @@ static struct regulator_dev *regulator_dev_lookup(struct device *dev,
- 	if (dev && dev->of_node) {
- 		node = of_get_regulator(dev, supply);
- 		if (node) {
-+			of_device_probe(node);
- 			mutex_lock(&regulator_list_mutex);
- 			list_for_each_entry(r, &regulator_list, list)
- 				if (r->dev.parent &&
--- 
-2.4.3
-
+V2hlbiBsb29raW5nIHVwIGEgZHBhdXggZGV2aWNlIHRocm91Z2ggaXRzIE9GIG5vZGUsIHByb2Jl
+IGl0IGlmIGl0Cmhhc24ndCBhbHJlYWR5LgoKVGhlIGdvYWwgaXMgdG8gcmVkdWNlIGRlZmVycmVk
+IHByb2JlcyB0byBhIG1pbmltdW0sIGFzIGl0IG1ha2VzIGl0IHZlcnkKY3VtYmVyc29tZSB0byBm
+aW5kIG91dCB3aHkgYSBkZXZpY2UgZmFpbGVkIHRvIHByb2JlLCBhbmQgY2FuIGludHJvZHVjZQp2
+ZXJ5IGJpZyBkZWxheXMgaW4gd2hlbiBhIGNyaXRpY2FsIGRldmljZSBpcyBwcm9iZWQuCgpTaWdu
+ZWQtb2ZmLWJ5OiBUb21ldSBWaXpvc28gPHRvbWV1LnZpem9zb0Bjb2xsYWJvcmEuY29tPgotLS0K
+CkNoYW5nZXMgaW4gdjQ6IE5vbmUKQ2hhbmdlcyBpbiB2MzogTm9uZQpDaGFuZ2VzIGluIHYyOiBO
+b25lCgogZHJpdmVycy9ncHUvZHJtL3RlZ3JhL2RwYXV4LmMgfCAzICsrKwogMSBmaWxlIGNoYW5n
+ZWQsIDMgaW5zZXJ0aW9ucygrKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvZ3B1L2RybS90ZWdyYS9k
+cGF1eC5jIGIvZHJpdmVycy9ncHUvZHJtL3RlZ3JhL2RwYXV4LmMKaW5kZXggMjI0YTdkYzhlNGVk
+Li45NmEyZWVjN2UwMjAgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvZ3B1L2RybS90ZWdyYS9kcGF1eC5j
+CisrKyBiL2RyaXZlcnMvZ3B1L2RybS90ZWdyYS9kcGF1eC5jCkBAIC0xMiw2ICsxMiw3IEBACiAj
+aW5jbHVkZSA8bGludXgvaW50ZXJydXB0Lmg+CiAjaW5jbHVkZSA8bGludXgvaW8uaD4KICNpbmNs
+dWRlIDxsaW51eC9vZl9ncGlvLmg+CisjaW5jbHVkZSA8bGludXgvb2ZfZGV2aWNlLmg+CiAjaW5j
+bHVkZSA8bGludXgvcGxhdGZvcm1fZGV2aWNlLmg+CiAjaW5jbHVkZSA8bGludXgvcmVzZXQuaD4K
+ICNpbmNsdWRlIDxsaW51eC9yZWd1bGF0b3IvY29uc3VtZXIuaD4KQEAgLTQzOSw2ICs0NDAsOCBA
+QCBzdHJ1Y3QgdGVncmFfZHBhdXggKnRlZ3JhX2RwYXV4X2ZpbmRfYnlfb2Zfbm9kZShzdHJ1Y3Qg
+ZGV2aWNlX25vZGUgKm5wKQogewogCXN0cnVjdCB0ZWdyYV9kcGF1eCAqZHBhdXg7CiAKKwlvZl9k
+ZXZpY2VfcHJvYmUobnApOworCiAJbXV0ZXhfbG9jaygmZHBhdXhfbG9jayk7CiAKIAlsaXN0X2Zv
+cl9lYWNoX2VudHJ5KGRwYXV4LCAmZHBhdXhfbGlzdCwgbGlzdCkKLS0gCjIuNC4zCgpfX19fX19f
+X19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpkcmktZGV2ZWwgbWFpbGlu
+ZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0cDovL2xpc3RzLmZyZWVk
+ZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
