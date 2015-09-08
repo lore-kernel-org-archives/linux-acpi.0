@@ -1,132 +1,103 @@
-From: Leif Lindholm <leif.lindholm-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [RFC 3/5] acpi/serial: add DBG2 earlycon support
-Date: Tue, 8 Sep 2015 18:03:07 +0100
-Message-ID: <20150908170307.GP10728@bivouac.eciton.net>
-References: <1441716217-23786-1-git-send-email-leif.lindholm@linaro.org>
- <1441716217-23786-4-git-send-email-leif.lindholm@linaro.org>
- <20150908130951.GE20562@leverpostej>
+From: David Daney <ddaney@caviumnetworks.com>
+Subject: Re: _DSD standardization note (WAS: Re: [PATCH 2/2] net, thunder,
+ bgx: Add support for ACPI binding.)
+Date: Tue, 8 Sep 2015 10:17:04 -0700
+Message-ID: <55EF1810.40300@caviumnetworks.com>
+References: <1438907590-29649-1-git-send-email-ddaney.cavm@gmail.com>	<1438907590-29649-3-git-send-email-ddaney.cavm@gmail.com>	<20150807140106.GE7646@leverpostej>	<55C4ECC6.7050908@caviumnetworks.com>	<20150807175127.GB12013@leverpostej>	<CAJZ5v0gc=bo3ayO7aWq19Hh_205YC52wqXGbbM5vxR1atXm+oA@mail.gmail.com>	<55C5494D.5010903@caviumnetworks.com> <CAJZ5v0iNqRsrpwzWY5o97R1S+Dr-CzRPg3Cymt1q4v5gvABCQA@mail.gmail.com> <55EB49E5.5040206@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20150908130951.GE20562@leverpostej>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>
-Cc: "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "torez-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <torez-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org" <linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>, "lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset="UTF-8"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <55EB49E5.5040206@redhat.com>
+Sender: netdev-owner@vger.kernel.org
+To: Jon Masters <jcm@redhat.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Mark Rutland <mark.rutland@arm.com>, David Daney <ddaney.cavm@gmail.com>, "grant.likely@linaro.org" <grant.likely@linaro.org>, "rob.herring@linaro.org" <rob.herring@linaro.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-mips@linux-mips.org" <linux-mips@linux-mips.org>, David Daney <david.daney@cavium.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Robert Richter <rrichter@cavium.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Sunil Goutham <sgoutham@cavium.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Sep 08, 2015 at 02:09:51PM +0100, Mark Rutland wrote:
-> On Tue, Sep 08, 2015 at 01:43:35PM +0100, Leif Lindholm wrote:
-> > The ACPI DBG2 table defines a debug console. Add support for parsing it
-> > and using it to select earlycon destination when no arguments provided.
-> > 
-> > Signed-off-by: Leif Lindholm <leif.lindholm-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> 
-> [...]
-> 
-> > diff --git a/drivers/acpi/console.c b/drivers/acpi/console.c
-> > new file mode 100644
-> > index 0000000..a985890
-> > --- /dev/null
-> > +++ b/drivers/acpi/console.c
-> > @@ -0,0 +1,103 @@
-> > +/*
-> > + * Copyright (c) 2012, Intel Corporation
-> > + * Copyright (c) 2015, Linaro Ltd.
-> > + *
-> > + * This program is free software; you can redistribute it and/or modify
-> > + * it under the terms of the GNU General Public License version 2 as
-> > + * published by the Free Software Foundation.
-> > + *
-> > + */
-> > +
-> > +#define DEBUG
-> 
-> Why?
+On 09/05/2015 01:00 PM, Jon Masters wrote:
+> Following up on this thread after finally seeing it...figured I would
+> send something just for the archive mainly (we discussed this in person
+> recently at a few different events and I think are aligned already).
+>
+> On 08/07/2015 08:28 PM, Rafael J. Wysocki wrote:
+>> Hi David,
+>>
+>> On Sat, Aug 8, 2015 at 2:11 AM, David Daney <ddaney@caviumnetworks.com> wrote:
+>>> On 08/07/2015 05:05 PM, Rafael J. Wysocki wrote:
+>>
+>> [cut]
+>>
+>>>>
+>>>> It is actually useful to people as far as I can say.
+>>>>
+>>>> Also, if somebody is going to use properties with ACPI, why whould
+>>>> they use a different set of properties with DT?
+>
+> Generally speaking, if there's a net new thing to handle, there is of
+> course no particular problem with using DT as an inspiration, but we
+> need to be conscious of the fact that Linux isn't the only Operating
+> System that may need to support these bindings, so the correct thing (as
+> stated by many of you, and below, and in person also recently - so we
+> are aligned) is to get this (the MAC address binding for _DSD in ACPI)
+> standardized properly through UEFI where everyone who has a vest OS
+> interest beyond Linux can also have their own involvement as well. As
+> discussed, that doesn't make it part of ACPI6.0, just a binding.
+>
+> FWIW I made a decision on the Red Hat end that in our guidelines to
+> partners for ARM RHEL(SA - Server for ARM) builds we would not generally
+> endorse any use of _DSD, with the exception of the MAC address binding
+> being discussed here. In that case, I realized I had not been fully
+> prescriptive enough with the vendors building early hw in that I should
+> have realized this would happen and have required that they do this the
+> right way. MAC IP should be more sophisticated such that it can handle
+> being reset even after the firmware has loaded its MAC address(es).
+> Platform flash storage separate from UEFI variable storage (which is
+> being abused to contain too much now that DXE drivers then load into the
+> ACPI tables prior to exiting Boot Services, etc.) should contain the
+> actual MAC address(es), as it is done on other arches, and it should not
+> be necessary to communicate this via ACPI tables to begin with (that's a
+> cost saving embedded concept that should not happen on server systems in
+> the general case). I have already had several unannounced future designs
+> adjusted in light of this _DSD usage.
+>
+> In the case of providing MAC address information (only) by _DSD, I
+> connected the initial ARMv8 SoC silicon vendors who needed to use such a
+> hack to ensure they were using the same properties, and will followup
+> off list to ensure Cavium are looped into that. But, we do need to get
+> the _DSD property for MAC address provision standardized through UEFI
+> properly as an official binding rather than just a link on the website,
+> and then we need to be extremely careful not to grow any further
+> dependence upon _DSD elsewhere. Generally, if you're using that approach
+> on a server system (other than for this MAC case), your firmware or
+> design (or both) need to be modified to not use _DSD.
 
-Kept around from Lv Zheng's 2012 set. Will drop.
+I think we need to be cognizant of the fact that ARMv8 SoCs do contain, 
+and in the future will still contain, many different hardware bus 
+interface devices.  These include I2C, MDIO, GPIO, xMII (x in {,SG,RGM, 
+etc} network MAC interfaces).  In the context of network interfaces 
+these are often used in conjunction with stand-alone PHY devices.
 
-> > +#define pr_fmt(fmt) "ACPI: " KBUILD_MODNAME ": " fmt
-> > +
-> > +#include <linux/acpi.h>
-> > +#include <linux/kernel.h>
-> > +#include <linux/serial_core.h>
-> > +
-> > +#define NUM_ELEMS(x) (sizeof(x) / sizeof(*x))
-> 
-> Use ARRAY_SIZE (from kernel.h).
+A network driver on such a system must know several things that cannot 
+be probed, and thus must be communicated by the firmware:
 
-I was sure there was something like that, but my grep-fu failed me.
-Will fix.
+  - PHY type/model-number.
 
-> > +
-> > +#ifdef CONFIG_SERIAL_EARLYCON
-> > +static int use_earlycon __initdata;
-> > +static int __init setup_acpi_earlycon(char *buf)
-> > +{
-> > +	if (!buf)
-> > +		use_earlycon = 1;
-> > +
-> > +	return 0;
-> > +}
-> > +early_param("earlycon", setup_acpi_earlycon);
-> 
-> It seems a shame to add this after folding the OF case into the earlycon
-> code. What necessitates this being a separate early_param? Why is it too
-> early to parse DBG2?
+  - PHY management channel (MDIO/I2C + management bus address)
 
-Currently, we don't even know where our ACPI tables are  at this point
-(efi_init() is called two functions after parse_early_param() in
-setup_arch). More specifically, because acpi_boot_table_init() is
-called even later than that.
+  - PHY interrupt connection, if any, (Often a GPIO pin).
 
-If we moved both of those earlier, we could drop the extra earlycon
-param handling for ACPI. That would of course reduce the ability to
-have dynamically configurable debug messages for both of these.
+  - SFP eeprom location (Which I2C bus is it on).
 
-> [...]
-> 
-> > diff --git a/drivers/tty/serial/earlycon.c b/drivers/tty/serial/earlycon.c
-> > index 2bda09a..c063cbb 100644
-> > --- a/drivers/tty/serial/earlycon.c
-> > +++ b/drivers/tty/serial/earlycon.c
-> > @@ -13,6 +13,7 @@
-> >  
-> >  #define pr_fmt(fmt)	KBUILD_MODNAME ": " fmt
-> >  
-> > +#include <linux/acpi.h>
-> >  #include <linux/console.h>
-> >  #include <linux/kernel.h>
-> >  #include <linux/init.h>
-> > @@ -184,12 +185,16 @@ static int __init param_setup_earlycon(char *buf)
-> >  	int err;
-> >  
-> >  	/*
-> > -	 * Just 'earlycon' is a valid param for devicetree earlycons;
-> > -	 * don't generate a warning from parse_early_params() in that case
-> > +	 * Just 'earlycon' is a valid param for devicetree or ACPI earlycons;
-> > +	 * ACPI cannot be parsed yet, so return without action if enabled.
-> > +	 * Otherwise, attempt initialization using DT.
-> >  	 */
-> > -	if (!buf || !buf[0])
-> > -		if (IS_ENABLED(CONFIG_OF_FLATTREE))
-> > +	if (!buf || !buf[0]) {
-> > +		if (!acpi_disabled)
-> > +			return 0;
-> > +		else if (IS_ENABLED(CONFIG_OF_FLATTREE))
-> >  			return early_init_dt_scan_chosen_serial();
-> > +	}
-> 
-> It would be much nicer if we could handle the ACPI earlycon parsing in
-> the same place. As above, I assume I'm missing something that prevents
-> that.
+On x86 systems, all those things were placed on a PCI NIC, and the 
+configuration could be identified in a stand alone manner by the NIC 
+driver, so everything was simple.
 
-I don't disagree.
+For SoC based systems, I don't see a better alternative than to expose 
+the topology via firmware tables.  In the case of OF device-tree, this 
+is done in a standard manner with "phy-handle" and "interrupts" 
+properties utilizing phandle links to traverse branches of the device tree.
 
-/
-    Leif
+I am not an ACPI guru, so I don't know for certain the best way to 
+express this in ACPI, but it seems like _DSD may have to be involved.
 
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+David Daney
