@@ -1,38 +1,27 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: Possible deadlock related to CPU hotplug and kernfs
-Date: Tue, 8 Sep 2015 12:40:08 +0200
-Message-ID: <20150908104008.GD3644@twins.programming.kicks-ass.net>
-References: <55E54FE2.7030601@linux.intel.com>
- <CAJZ5v0itBxg_gQzEe=nVfxOVpw5WBs9u8VDP7PHoyXyirnmdPQ@mail.gmail.com>
- <55ED0057.1000806@linux.intel.com>
- <2165815.z3RZSlC1oy@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <2165815.z3RZSlC1oy@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, mingo@kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>, Tejun Heo <tj@kernel.org>, linux hotplug mailing <linux-hotplug@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+From: Lukasz Anaczkowski <lukasz.anaczkowski@intel.com>
+Subject: Re: [PATCH] x86, arm64, acpi: Handle lapic/x2apic entries in MADT
+Date: Tue,  8 Sep 2015 13:07:55 +0200
+Message-ID: <1441710480-17622-1-git-send-email-lukasz.anaczkowski@intel.com>
+References: <20150827093738.GA21134@red-moon>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:4262 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753367AbbIHLIH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 8 Sep 2015 07:08:07 -0400
+In-Reply-To: <20150827093738.GA21134@red-moon>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: marc.zyngier@arm.com, lorenzo.pieralisi@arm.com, tomasz.nowicki@linaro.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, jason@lakedaemon.net
+Cc: rjw@rjwysocki.net, len.brown@intel.com, pavel@ucw.cz, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Mon, Sep 07, 2015 at 11:33:21PM +0200, Rafael J. Wysocki wrote:
-> On Monday, September 07, 2015 11:11:19 AM Jiang Liu wrote:
-> Peter, Ingo, some help from lockdep expert is needed.
-> 
-> We have a splat that almost certainly is a false positive (the original report
-> is here http://marc.info/?l=linux-kernel&m=144109156901959&w=4) and no ideas
-> how to make it go away.  Can you please have a look and advise?
+Hi Lorenzo, Ingo and Tomasz,
 
-I can't even find the relevant code :/
+I'm sending revisited set of patches with all your comments addressed (I hope),
+thus I'll skip replying to single each of them.
 
->From that email I get kernfs_fop_write() which calls
-kernfs_get_active(), but that does _NOT_ call cpu_up(), so that
-callchain is shite.
+Thanks in advance for comments.
 
-The actual lockdep splat is also not really helpful, and is spraying
-names over: acpi, device, sysfs and kernfs (do we really need that many
-layeres of obfuscation for a simple file?)
+Cheers,
+Lukasz
 
-So, please, start by explaining the thing proper such that simple people
-like me know what to look for.
+
