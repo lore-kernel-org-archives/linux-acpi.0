@@ -1,53 +1,38 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH 1/5] acpi: Add basic device probing infrastructure
-Date: Tue, 08 Sep 2015 10:57:57 +0100
-Message-ID: <55EEB125.1030708@arm.com>
-References: <1441386412-8139-1-git-send-email-marc.zyngier@arm.com> <1441386412-8139-2-git-send-email-marc.zyngier@arm.com> <2194763.hsLfaM94lK@vostro.rjw.lan>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: Possible deadlock related to CPU hotplug and kernfs
+Date: Tue, 8 Sep 2015 12:40:08 +0200
+Message-ID: <20150908104008.GD3644@twins.programming.kicks-ass.net>
+References: <55E54FE2.7030601@linux.intel.com>
+ <CAJZ5v0itBxg_gQzEe=nVfxOVpw5WBs9u8VDP7PHoyXyirnmdPQ@mail.gmail.com>
+ <55ED0057.1000806@linux.intel.com>
+ <2165815.z3RZSlC1oy@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:53766 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752020AbbIHJ6B (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 8 Sep 2015 05:58:01 -0400
-In-Reply-To: <2194763.hsLfaM94lK@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <2165815.z3RZSlC1oy@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, mingo@kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>, Tejun Heo <tj@kernel.org>, linux hotplug mailing <linux-hotplug@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-On 07/09/15 22:29, Rafael J. Wysocki wrote:
-> On Friday, September 04, 2015 06:06:48 PM Marc Zyngier wrote:
->> IRQ controllers and timers are the two types of device the kernel
->> requires before being able to use the device driver model.
->>
->> ACPI so far lacks a proper probing infrastructure similar to the one
->> we have with DT, where we're able to declare IRQ chips and
->> clocksources inside the driver code, and let the core code pick it up
->> and call us back on a match. This leads to all kind of really ugly
->> hacks all over the arm64 code and even in the ACPI layer.
->>
->> In order to allow some basic probing based on the ACPI tables,
->> introduce "struct acpi_probe_entry" which contains just enough
->> data and callbacks to match a table, an optional subtable, and
->> call a probe function. A driver can, at build time, register itself
->> and expect being called if the right entry exists in the ACPI
->> table.
->>
->> A acpi_probe_device_init() is provided, taking an ACPI table
->> identifier, and iterating over the registered entries.
+On Mon, Sep 07, 2015 at 11:33:21PM +0200, Rafael J. Wysocki wrote:
+> On Monday, September 07, 2015 11:11:19 AM Jiang Liu wrote:
+> Peter, Ingo, some help from lockdep expert is needed.
 > 
-> What about things that are provided by the ACPI namespace (eg. via _MAT) rather
-> than in static tables?
+> We have a splat that almost certainly is a false positive (the original report
+> is here http://marc.info/?l=linux-kernel&m=144109156901959&w=4) and no ideas
+> how to make it go away.  Can you please have a look and advise?
 
-By the time we get to process non-static tables, the whole probing
-infrastructure (including the ACPI interpreter) should be up and
-running. I'm not seeing this stuff as a replacement for more dynamic
-things - quite the opposite. It is only to be used for early bring-up.
+I can't even find the relevant code :/
 
-Thanks,
+>From that email I get kernfs_fop_write() which calls
+kernfs_get_active(), but that does _NOT_ call cpu_up(), so that
+callchain is shite.
 
-	M.
--- 
-Jazz is not dead. It just smells funny...
+The actual lockdep splat is also not really helpful, and is spraying
+names over: acpi, device, sysfs and kernfs (do we really need that many
+layeres of obfuscation for a simple file?)
+
+So, please, start by explaining the thing proper such that simple people
+like me know what to look for.
