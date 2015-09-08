@@ -1,88 +1,189 @@
-From: Tomasz Nowicki <tn@semihalf.com>
-Subject: Re: [PATCH] x86, arm64, acpi: Handle lapic/x2apic entries in MADT
-Date: Tue, 8 Sep 2015 16:44:48 +0200
-Message-ID: <55EEF460.2010104@semihalf.com>
-References: <55DDB45D.2030901@arm.com>
- <1440611369-26314-1-git-send-email-lukasz.anaczkowski@intel.com>
- <1440611369-26314-2-git-send-email-lukasz.anaczkowski@intel.com>
- <55E55BA8.5090102@linaro.org>
- <C1C2579D7BE026428F81F41198ADB1723786A47E@irsmsx110.ger.corp.intel.com>
- <55E5A9EE.3030704@linaro.org>
- <C1C2579D7BE026428F81F41198ADB172378A783A@irsmsx110.ger.corp.intel.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH 05/11] x86, pci, acpi: Move arch-agnostic MMCONFIG (aka
+ ECAM) and ACPI code out of arch/x86/ directory
+Date: Tue, 8 Sep 2015 16:07:27 +0100
+Message-ID: <20150908150727.GF29293@red-moon>
+References: <20150526170817.GU1565@arm.com>
+ <55657B02.5090805@linaro.org>
+ <20150602133215.GC23650@red-moon>
+ <55701A31.808@linaro.org>
+ <20150604102253.GA31773@red-moon>
+ <5570447D.3020705@linaro.org>
+ <557504A2.3060203@linaro.org>
+ <20150608151443.GA16151@red-moon>
+ <55E4340D.6050004@linaro.org>
+ <55ED6010.3020406@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <C1C2579D7BE026428F81F41198ADB172378A783A@irsmsx110.ger.corp.intel.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Anaczkowski, Lukasz" <lukasz.anaczkowski@intel.com>
-Cc: Tomasz Nowicki <tomasz.nowicki@linaro.org>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "tglx@linutronix.de" <tglx@linutronix.de>, "mingo@redhat.com" <mingo@redhat.com>, "hpa@zytor.com" <hpa@zytor.com>, "x86@kernel.org" <x86@kernel.org>, "jason@lakedaemon.net" <jason@lakedaemon.net>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, "pavel@ucw.cz" <pavel@ucw.cz>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <55ED6010.3020406@linaro.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, Yijing Wang <wangyijing@huawei.com>, Will Deacon <Will.Deacon@arm.com>, Arnd Bergmann <arnd@arndb.de>, Catalin Marinas <Catalin.Marinas@arm.com>, Jiang Liu <jiang.liu@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "msalter@redhat.com" <msalter@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 07.09.2015 16:04, Anaczkowski, Lukasz wrote:
->
-> From: Tomasz Nowicki [mailto:tomasz.nowicki@linaro.org]
-> Sent: Tuesday, September 1, 2015 3:37 PM
->> On 01.09.2015 14:07, Anaczkowski, Lukasz wrote:
->>> From: Tomasz Nowicki [mailto:tomasz.nowicki@linaro.org]
->>> Sent: Tuesday, September 1, 2015 10:03 AM
->>>>
->>>>> To fix this, each LAPIC/X2APIC entry from MADT table needs to be
->>>>> handled at the same time when processing it, thus adding
->>>>> acpi_subtable_proc structure which stores
->>>>> () ACPI table id
->>>>> () handler that processes table
->>>>> () counter how many items has been processed and passing it to
->>>>> acpi_table_parse_entries().
->>>
->>>> Why can't you leave the parsing code as is and create ApicId sorted list while parsing LAPIC/X2APIC? You could call acpi_register_lapic() after all... Do I miss something ?
->>>
->>> Just to make sure I understand correctly - you suggest to replace
->>> calls to acpi_register_lapic() with a code that builds an APIC ID list while parsing LAPIC/X2APIC, and after parsing is done, go thru the list and call acpi_register_lapic() on each APIC ID, correct?
->>>
->>
->> Yes, does it work for you?
->
-> Hi Tomasz, sorry for late response, I was distracted by other things.
->
-> So, I see two options to build the list:
->
-> (a) use APIC ID as the table index
-> (b) always append APIC ID to the end of table, in the order that BIOS lists them
->
-> Also, my goal is to end up with enumeration like this (assuming there's 72 cores, 4 hyper threads each, total 288 logical CPUs):
->
-> APIC ID  ->    Logical ID
-> 0              ->     0
-> 1              ->     72
-> 2              ->     144
-> 3              ->     216
-> 4              ->     1
-> 5              ->     73
-> 6              ->     145
-> 7              ->     217
-> 8              ->     2
-> ...
-> 284         ->      71
-> 285         ->      143
-> 286         ->      215
-> 287         ->      287
->
-> Note that n,n+1,n+2,n+3 APIC IDs share same physical core, while being separated by core count in logical listing (e.g. 0,72,144,216 share same physical core).
->
-> Now, ACPI spec specifies how APIC IDs should be listed:
-> (1) Boot processor is listed first
-> (2) For multi-threaded processors, BIOS should list the first logical processor of each of the individual multi-threaded processors in MADT before listing any of the second logical processors.
-> (3) APIC IDs < 0xFF should be listed in APIC subtable, APIC IDs >= 0xFF should be listed in X2APIC subtable
->
-> Keeping in mind above, BIOS lists APIC IDs as:
->
-> APIC (0,4,8, .., 252)
-> X2APIC (256,260,264, .. 284)
-> APIC (1,5,9,...,253)
-> X2API (257,261,265, 285)
-> etc
+Hi Tomasz,
 
-OK got it, your patches make sense then.
+On Mon, Sep 07, 2015 at 10:59:44AM +0100, Tomasz Nowicki wrote:
+> On 31.08.2015 13:01, Tomasz Nowicki wrote:
+> > On 08.06.2015 17:14, Lorenzo Pieralisi wrote:
+> >> On Mon, Jun 08, 2015 at 03:57:38AM +0100, Hanjun Guo wrote:
+> >>
+> >> [...]
+> >>
+> >>>>>>>>> Why can't we make use of the ECAM implementation used by
+> >>>>>>>>> pci-host-generic
+> >>>>>>>>> and drivers/pci/access.c?
+> >>>>>>>>
+> >>>>>>>> We had that question when I had posted MMCFG patch set separately,
+> >>>>>>>> please see:
+> >>>>>>>> https://lkml.org/lkml/2015/3/11/492
+> >>>>>>>
+> >>>>>>> Yes, but the real question is, why do we need to have PCI config
+> >>>>>>> space
+> >>>>>>> up and running before a bus struct is even created ? I think the
+> >>>>>>> reason is
+> >>>>>>> the PCI configuration address space format (ACPI 6.0, Table 5-27,
+> >>>>>>> page
+> >>>>>>> 108):
+> >>>>>>>
+> >>>>>>> "PCI Configuration space addresses must be confined to devices on
+> >>>>>>> PCI Segment Group 0, bus 0. This restriction exists to accommodate
+> >>>>>>> access to fixed hardware prior to PCI bus enumeration".
+> >>>>>>>
+> >>>>>>> On HW reduced platforms I do not even think this is required at all,
+> >>>>>>> we have to look into this to avoid code duplication that might well
+> >>>>>>> turn out useless.
+> >>>>>>
+> >>>>>> This is only for the fixed hardware, which will be not available for
+> >>>>>> ARM64 (reduced hardware mode), but in Generic Hardware Programming
+> >>>>>> Model, we using OEM-provided ACPI Machine Language (AML) code to
+> >>>>>> access
+> >>>>>> generic hardware registers, this will be available for reduced
+> >>>>>> hardware
+> >>>>>> too.
+> >>>>>>
+> >>>>>> So in ACPI spec, it says: (ACPI 6.0 page 66, last paragraph)
+> >>>>>>
+> >>>>>> ACPI defines eight address spaces that may be accessed by generic
+> >>>>>> hardware implementations. These include:
+> >>>>>> * System I/O space
+> >>>>>> * System memory space
+> >>>>>> * PCI configuration space
+> >>>>>> * Embedded controller space
+> >>>>>> * System Management Bus (SMBus) space
+> >>>>>> * CMOS
+> >>>>>> * PCI BAR Target
+> >>>>>> * IPMI space
+> >>>>>>
+> >>>>>> So if any device using the PCI address space for control, such
+> >>>>>> as a system reset control device, its address space can be reside
+> >>>>>> in PCI configuration space (who can prevent a OEM do that crazy
+> >>>>>> thing? :) ), and it should be accessible before the PCI bus is
+> >>>>>> created.
+> >>>>>
+> >>>>> Us, by changing attitude and questioning features whose usefulness
+> >>>>> is questionable. I will look into this and raise the point, I am not
+> >>>>> thrilled by the idea of adding another set of PCI accessor functions
+> >>>>> and drivers because we have to access a register through PCI before
+> >>>>> enumerating the bus (and on arm64 this is totally useless since
+> >>>>> we are not meant to support fixed HW anyway). Maybe we can make acpica
+> >>>>> code use a "special" stub (ACPI specific, PCI configuration space
+> >>>>> address
+> >>>>> space has restrictions anyway), I have to review this set in its
+> >>>>> entirety to see how to do that (and I would kindly ask you to do
+> >>>>> it too, before saying it is not possible to implement it).
+> >>>>
+> >>>> I'm willing to do that, actually, if we don't need a mechanism to
+> >>>> access PCI config space before the bus is created, the code can be
+> >>>> simplified a lot.
+> >>>
+> >>> After more investigation on the spec and the ACPI core code, I'm
+> >>> still not convinced that accessing to PCI config space before PCI
+> >>> bus creating is impossible, also there is no enough ARM64 hardware
+> >>> to prove that too. But I think we can go in this way, reuse the
+> >>> ECAM implementation by pci-host-generic for now, and implement the PCI
+> >>> accessor functions before enumerating PCI bus when needed in the
+> >>> future, does it make sense?
+> >>
+> >> You mean we rewrite the patch to make sure we can use the PCI host
+> >> generic
+> >> driver with MCFG and we leave the acpica PCI config call empty stubs on
+> >> arm64 (as they are now) ?
+> >>
+> >
+> > Hi Bjorn, Rafael,
+> >
+> > Lorenzo pointed out very important problem we are having with PCI config
+> > space access for ARM64. Please refer to the above discussion and add
+> > your 2 cents. Can we forget about accessing PCI config space (for
+> > Hardware Reduced profile) before PCI bus creation? If not, do you see a
+> > way to use drivers/pci/access.c accessors here, like acpica change? Any
+> > opinion is very appreciated.
+> >
+> 
+> Kindly remainder.
 
-Tomasz
+I think (but I am happy to be corrected) that the map_bus() hook
+(ie that's why struct pci_bus is required in eg pci_generic_config_write)
+is there to ensure that when the generic accessors are called
+a) we have a valid bus b) the host controllers implementing it
+has been initialized.
+
+I had another look and I noticed you are trying to solve multiple
+things at once:
+
+1) ACPICA seems to need PCI config space on bus 0 to be working
+   before PCI enumerates (ie before we have a root bus), we need to
+   countercheck on that, but you can't use the generic PCI accessors
+   for that reasons (ie root bus might not be available, you do not
+   have a pci_bus struct)
+2) the raw_pci_read/write require _generic_ mmio back-ends, since AMD
+   can't cope with standard x86 read/write{b,w,l}
+
+Overall, it seems to me that we can avoid code duplication by
+shuffling your code a bit.
+
+You could modify the generic accessors in drivers/pci/access.c to
+use your mmio back-end instead of using plain read/write{b,w,l}
+functions (we should check if RobH is ok with that there can be
+reasons that prevent this from happening). This would solve the
+AMD mmio issue.
+
+By factoring out the code that actually carries out the reads
+and writes in the accessors basically you decouple the functions
+requiring the struct pci_bus from the ones that does not require it
+(ie raw_pci_{read/write}.
+
+The generic MMIO layer belongs in the drivers/pci/access.c file, it has
+nothing to do with ECAM.
+
+The mmcfg interface should probably live in pci-acpi.c, I do not think
+you need an extra file in there but that's a detail.
+
+Basically the generic accessors would become something like eg:
+
+int pci_generic_config_write(struct pci_bus *bus, unsigned int devfn,
+			     int where, int size, u32 val)
+{
+	void __iomem *addr;
+
+	addr = bus->ops->map_bus(bus, devfn, where);
+	if (!addr)
+		return PCIBIOS_DEVICE_NOT_FOUND;
+
+	pci_mmio_write(size, addr + where, value);
+
+	return PCIBIOS_SUCCESSFUL;
+}
+
+With that in place using raw_pci_write/read or the generic accessors
+becomes almost identical, with code requiring the pci_bus to be
+created using the generic accessors and ACPICA using the raw version.
+
+I might be missing something, so apologies if that's the case.
+
+Comments welcome.
+
+Lorenzo
