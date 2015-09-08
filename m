@@ -1,109 +1,47 @@
-From: Mark Rutland <mark.rutland@arm.com>
-Subject: Re: [RFC 3/5] acpi/serial: add DBG2 earlycon support
-Date: Tue, 8 Sep 2015 14:09:51 +0100
-Message-ID: <20150908130951.GE20562@leverpostej>
-References: <1441716217-23786-1-git-send-email-leif.lindholm@linaro.org>
- <1441716217-23786-4-git-send-email-leif.lindholm@linaro.org>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH 0/5] ACPI probing infrastructure
+Date: Tue, 08 Sep 2015 21:19:45 +0800
+Message-ID: <55EEE071.7040506@linaro.org>
+References: <1441386412-8139-1-git-send-email-marc.zyngier@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1441716217-23786-4-git-send-email-leif.lindholm@linaro.org>
-Content-Language: en-US
+In-Reply-To: <1441386412-8139-1-git-send-email-marc.zyngier@arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Leif Lindholm <leif.lindholm@linaro.org>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "al.stone@linaro.org" <al.stone@linaro.org>, "torez@redhat.com" <torez@redhat.com>, "jcm@redhat.com" <jcm@redhat.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "lv.zheng@intel.com" <lv.zheng@intel.com>
+To: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tomasz Nowicki <tn@semihalf.com>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>
+Cc: linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Sep 08, 2015 at 01:43:35PM +0100, Leif Lindholm wrote:
-> The ACPI DBG2 table defines a debug console. Add support for parsing it
-> and using it to select earlycon destination when no arguments provided.
-> 
-> Signed-off-by: Leif Lindholm <leif.lindholm@linaro.org>
+Hi Marc,
 
-[...]
+Sorry for the late response for quite a while...
 
-> diff --git a/drivers/acpi/console.c b/drivers/acpi/console.c
-> new file mode 100644
-> index 0000000..a985890
-> --- /dev/null
-> +++ b/drivers/acpi/console.c
-> @@ -0,0 +1,103 @@
-> +/*
-> + * Copyright (c) 2012, Intel Corporation
-> + * Copyright (c) 2015, Linaro Ltd.
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + *
-> + */
-> +
-> +#define DEBUG
+On 09/05/2015 01:06 AM, Marc Zyngier wrote:
+> IRQ controllers and timers are the two types of device the kernel
+> requires before being able to use the device driver model.
+>
+> ACPI so far lacks a proper probing infrastructure similar to the one
+> we have with DT, where we're able to declare IRQ chips and
+> clocksources inside the driver code, and let the core code pick it up
+> and call us back on a match. This leads to all kind of really ugly
+> hacks all over the arm64 code and even in the ACPI layer.
+>
+> It turns out that providing such a probing infrastructure is rather
+> easy, and provides a much deserved cleanup in both the arch code, the
+> GIC driver, and the architected timer driver.
+>
+> I'm sure there is some more code to be deleted, and one can only
+> wonder why this wasn't done before the arm64 code was initially merged
+> (the diffstat says it all...).
+>
+> Patches are against v4.2, and a branch is available at
+>
+> git://git.kernel.org/pub/scm/linux/kernel/git/maz/arm-platforms.git acpi/device-probing
 
-Why?
+Great thanks to cleanup these stuff, I will test
+this patch set and review it, will get back to you
+if I get anything.
 
-> +#define pr_fmt(fmt) "ACPI: " KBUILD_MODNAME ": " fmt
-> +
-> +#include <linux/acpi.h>
-> +#include <linux/kernel.h>
-> +#include <linux/serial_core.h>
-> +
-> +#define NUM_ELEMS(x) (sizeof(x) / sizeof(*x))
-
-Use ARRAY_SIZE (from kernel.h).
-
-> +
-> +#ifdef CONFIG_SERIAL_EARLYCON
-> +static int use_earlycon __initdata;
-> +static int __init setup_acpi_earlycon(char *buf)
-> +{
-> +	if (!buf)
-> +		use_earlycon = 1;
-> +
-> +	return 0;
-> +}
-> +early_param("earlycon", setup_acpi_earlycon);
-
-It seems a shame to add this after folding the OF case into the earlycon
-code. What necessitates this being a separate early_param? Why is it too
-early to parse DBG2?
-
-[...]
-
-> diff --git a/drivers/tty/serial/earlycon.c b/drivers/tty/serial/earlycon.c
-> index 2bda09a..c063cbb 100644
-> --- a/drivers/tty/serial/earlycon.c
-> +++ b/drivers/tty/serial/earlycon.c
-> @@ -13,6 +13,7 @@
->  
->  #define pr_fmt(fmt)	KBUILD_MODNAME ": " fmt
->  
-> +#include <linux/acpi.h>
->  #include <linux/console.h>
->  #include <linux/kernel.h>
->  #include <linux/init.h>
-> @@ -184,12 +185,16 @@ static int __init param_setup_earlycon(char *buf)
->  	int err;
->  
->  	/*
-> -	 * Just 'earlycon' is a valid param for devicetree earlycons;
-> -	 * don't generate a warning from parse_early_params() in that case
-> +	 * Just 'earlycon' is a valid param for devicetree or ACPI earlycons;
-> +	 * ACPI cannot be parsed yet, so return without action if enabled.
-> +	 * Otherwise, attempt initialization using DT.
->  	 */
-> -	if (!buf || !buf[0])
-> -		if (IS_ENABLED(CONFIG_OF_FLATTREE))
-> +	if (!buf || !buf[0]) {
-> +		if (!acpi_disabled)
-> +			return 0;
-> +		else if (IS_ENABLED(CONFIG_OF_FLATTREE))
->  			return early_init_dt_scan_chosen_serial();
-> +	}
-
-It would be much nicer if we could handle the ACPI earlycon parsing in
-the same place. As above, I assume I'm missing something that prevents
-that.
-
-Mark.
+Thanks
+Hanjun
