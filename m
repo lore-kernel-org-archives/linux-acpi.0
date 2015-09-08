@@ -1,85 +1,88 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: Re: [PATCH 0/5] ACPI probing infrastructure
-Date: Tue, 8 Sep 2015 16:38:50 +0200
-Message-ID: <55EEF2FA.3050009@semihalf.com>
-References: <1441386412-8139-1-git-send-email-marc.zyngier@arm.com>
- <55ED3599.5090508@semihalf.com>
+Subject: Re: [PATCH] x86, arm64, acpi: Handle lapic/x2apic entries in MADT
+Date: Tue, 8 Sep 2015 16:44:48 +0200
+Message-ID: <55EEF460.2010104@semihalf.com>
+References: <55DDB45D.2030901@arm.com>
+ <1440611369-26314-1-git-send-email-lukasz.anaczkowski@intel.com>
+ <1440611369-26314-2-git-send-email-lukasz.anaczkowski@intel.com>
+ <55E55BA8.5090102@linaro.org>
+ <C1C2579D7BE026428F81F41198ADB1723786A47E@irsmsx110.ger.corp.intel.com>
+ <55E5A9EE.3030704@linaro.org>
+ <C1C2579D7BE026428F81F41198ADB172378A783A@irsmsx110.ger.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-la0-f42.google.com ([209.85.215.42]:36443 "EHLO
-	mail-la0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755805AbbIHOiz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Sep 2015 10:38:55 -0400
-Received: by lanb10 with SMTP id b10so70122789lan.3
-        for <linux-acpi@vger.kernel.org>; Tue, 08 Sep 2015 07:38:54 -0700 (PDT)
-In-Reply-To: <55ED3599.5090508@semihalf.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <C1C2579D7BE026428F81F41198ADB172378A783A@irsmsx110.ger.corp.intel.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Anaczkowski, Lukasz" <lukasz.anaczkowski@intel.com>
+Cc: Tomasz Nowicki <tomasz.nowicki@linaro.org>, "marc.zyngier@arm.com" <marc.zyngier@arm.com>, "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "tglx@linutronix.de" <tglx@linutronix.de>, "mingo@redhat.com" <mingo@redhat.com>, "hpa@zytor.com" <hpa@zytor.com>, "x86@kernel.org" <x86@kernel.org>, "jason@lakedaemon.net" <jason@lakedaemon.net>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, "pavel@ucw.cz" <pavel@ucw.cz>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Yinghai Lu <yinghai@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>
-Cc: linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 07.09.2015 08:58, Tomasz Nowicki wrote:
-> Hi Marc,
+On 07.09.2015 16:04, Anaczkowski, Lukasz wrote:
 >
-> On 04.09.2015 19:06, Marc Zyngier wrote:
->> IRQ controllers and timers are the two types of device the kernel
->> requires before being able to use the device driver model.
+> From: Tomasz Nowicki [mailto:tomasz.nowicki@linaro.org]
+> Sent: Tuesday, September 1, 2015 3:37 PM
+>> On 01.09.2015 14:07, Anaczkowski, Lukasz wrote:
+>>> From: Tomasz Nowicki [mailto:tomasz.nowicki@linaro.org]
+>>> Sent: Tuesday, September 1, 2015 10:03 AM
+>>>>
+>>>>> To fix this, each LAPIC/X2APIC entry from MADT table needs to be
+>>>>> handled at the same time when processing it, thus adding
+>>>>> acpi_subtable_proc structure which stores
+>>>>> () ACPI table id
+>>>>> () handler that processes table
+>>>>> () counter how many items has been processed and passing it to
+>>>>> acpi_table_parse_entries().
+>>>
+>>>> Why can't you leave the parsing code as is and create ApicId sorted list while parsing LAPIC/X2APIC? You could call acpi_register_lapic() after all... Do I miss something ?
+>>>
+>>> Just to make sure I understand correctly - you suggest to replace
+>>> calls to acpi_register_lapic() with a code that builds an APIC ID list while parsing LAPIC/X2APIC, and after parsing is done, go thru the list and call acpi_register_lapic() on each APIC ID, correct?
+>>>
 >>
->> ACPI so far lacks a proper probing infrastructure similar to the one
->> we have with DT, where we're able to declare IRQ chips and
->> clocksources inside the driver code, and let the core code pick it up
->> and call us back on a match. This leads to all kind of really ugly
->> hacks all over the arm64 code and even in the ACPI layer.
->>
->> It turns out that providing such a probing infrastructure is rather
->> easy, and provides a much deserved cleanup in both the arch code, the
->> GIC driver, and the architected timer driver.
->>
->> I'm sure there is some more code to be deleted, and one can only
->> wonder why this wasn't done before the arm64 code was initially merged
->> (the diffstat says it all...).
->>
->> Patches are against v4.2, and a branch is available at
->>
->> git://git.kernel.org/pub/scm/linux/kernel/git/maz/arm-platforms.git
->> acpi/device-probing
->>
->> Marc Zyngier (5):
->>    acpi: Add basic device probing infrastructure
->>    irqchip/acpi: Add probing infrastructure for ACPI-based irqchips
->>    irqchip/gic: Convert the GIC driver to ACPI probing
->>    clocksource/acpi: Add probing infrastructure for ACPI-based
->>      clocksources
->>    clocksource/arm_arch_timer: Convert to ACPI probing
->>
->>   arch/arm64/include/asm/acpi.h        |  1 -
->>   arch/arm64/include/asm/irq.h         | 13 -------
->>   arch/arm64/kernel/acpi.c             | 25 -------------
->>   arch/arm64/kernel/time.c             |  6 ----
->>   drivers/acpi/scan.c                  | 41 +++++++++++++++++++++
->>   drivers/clocksource/arm_arch_timer.c | 10 +-----
->>   drivers/clocksource/clksrc-of.c      |  4 +++
->>   drivers/irqchip/irq-gic.c            | 69
->> ++++++++++++++++++------------------
->>   drivers/irqchip/irqchip.c            |  5 ++-
->>   include/asm-generic/vmlinux.lds.h    | 11 ++++++
->>   include/linux/acpi.h                 | 56 +++++++++++++++++++++++++++++
->>   include/linux/acpi_irq.h             | 10 ------
->>   include/linux/clocksource.h          |  6 ----
->>   include/linux/irqchip.h              | 16 +++++++++
->>   include/linux/irqchip/arm-gic-acpi.h | 31 ----------------
->>   15 files changed, 166 insertions(+), 138 deletions(-)
->>   delete mode 100644 include/linux/acpi_irq.h
->>   delete mode 100644 include/linux/irqchip/arm-gic-acpi.h
->>
+>> Yes, does it work for you?
 >
-> Thanks for cleaning this up!
+> Hi Tomasz, sorry for late response, I was distracted by other things.
 >
-> For the whole series:
-> Acked-by: Tomasz Nowicki <tn@semihalf.com>
+> So, I see two options to build the list:
+>
+> (a) use APIC ID as the table index
+> (b) always append APIC ID to the end of table, in the order that BIOS lists them
+>
+> Also, my goal is to end up with enumeration like this (assuming there's 72 cores, 4 hyper threads each, total 288 logical CPUs):
+>
+> APIC ID  ->    Logical ID
+> 0              ->     0
+> 1              ->     72
+> 2              ->     144
+> 3              ->     216
+> 4              ->     1
+> 5              ->     73
+> 6              ->     145
+> 7              ->     217
+> 8              ->     2
+> ...
+> 284         ->      71
+> 285         ->      143
+> 286         ->      215
+> 287         ->      287
+>
+> Note that n,n+1,n+2,n+3 APIC IDs share same physical core, while being separated by core count in logical listing (e.g. 0,72,144,216 share same physical core).
+>
+> Now, ACPI spec specifies how APIC IDs should be listed:
+> (1) Boot processor is listed first
+> (2) For multi-threaded processors, BIOS should list the first logical processor of each of the individual multi-threaded processors in MADT before listing any of the second logical processors.
+> (3) APIC IDs < 0xFF should be listed in APIC subtable, APIC IDs >= 0xFF should be listed in X2APIC subtable
+>
+> Keeping in mind above, BIOS lists APIC IDs as:
+>
+> APIC (0,4,8, .., 252)
+> X2APIC (256,260,264, .. 284)
+> APIC (1,5,9,...,253)
+> X2API (257,261,265, 285)
+> etc
 
-s/Acked-by/Reviewed-by
+OK got it, your patches make sense then.
 
 Tomasz
