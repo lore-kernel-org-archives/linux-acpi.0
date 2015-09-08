@@ -1,179 +1,75 @@
-From: Lukasz Anaczkowski <lukasz.anaczkowski@intel.com>
-Subject: [PATCH 4/4] x86, acpi: Handle apic/x2apic entries in MADT in correct order
-Date: Tue,  8 Sep 2015 13:08:00 +0200
-Message-ID: <1441710480-17622-6-git-send-email-lukasz.anaczkowski@intel.com>
-References: <20150827093738.GA21134@red-moon>
- <1441710480-17622-1-git-send-email-lukasz.anaczkowski@intel.com>
- <1441710480-17622-2-git-send-email-lukasz.anaczkowski@intel.com>
- <1441710480-17622-3-git-send-email-lukasz.anaczkowski@intel.com>
- <1441710480-17622-4-git-send-email-lukasz.anaczkowski@intel.com>
- <1441710480-17622-5-git-send-email-lukasz.anaczkowski@intel.com>
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1441710480-17622-5-git-send-email-lukasz.anaczkowski@intel.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: marc.zyngier@arm.com, lorenzo.pieralisi@arm.com, tomasz.nowicki@linaro.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, jason@lakedaemon.net
-Cc: rjw@rjwysocki.net, len.brown@intel.com, pavel@ucw.cz, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Lukasz Anaczkowski <lukasz.anaczkowski@intel.com>, Yinghai Lu <yinghai@kernel.org>
+From: Leif Lindholm <leif.lindholm@linaro.org>
+Subject: [RFC 0/5] console/acpi: add DBG2 and SPCR console configuration
+Date: Tue,  8 Sep 2015 13:43:32 +0100
+Message-ID: <1441716217-23786-1-git-send-email-leif.lindholm@linaro.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wi0-f180.google.com ([209.85.212.180]:32962 "EHLO
+	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754175AbbIHMns (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Sep 2015 08:43:48 -0400
+Received: by wiclk2 with SMTP id lk2so118932795wic.0
+        for <linux-acpi@vger.kernel.org>; Tue, 08 Sep 2015 05:43:47 -0700 (PDT)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: mark.rutland@arm.com, al.stone@linaro.org, torez@redhat.com, jcm@redhat.com, graeme.gregory@linaro.org, linaro-acpi@lists.linaro.org, lv.zheng@intel.com
 
-ACPI specifies the following rules when listing APIC IDs:
-(1) Boot processor is listed first
-(2) For multi-threaded processors, BIOS should list the first logical
-    processor of each of the individual multi-threaded processors in MADT
-    before listing any of the second logical processors.
-(3) APIC IDs < 0xFF should be listed in APIC subtable, APIC IDs >= 0xFF
-    should be listed in X2APIC subtable
+Support for configuring bootconsole and console via the ACPI tables
+DBG2 (Debug Port Table 2) [1] and SPCR (Serial Port Console Redirection
+Table) [2], defined by Microsoft, has been discussed on and off over the
+years.
 
-Because of above, when there's more than 0xFF logical CPUs, BIOS
-interleaves APIC/X2APIC subtables.
+[1] https://msdn.microsoft.com/en-us/library/windows/hardware/dn639131(v=vs.85).aspx
+[2] https://msdn.microsoft.com/en-us/library/windows/hardware/dn639132(v=vs.85).aspx
 
-Assuming, there's 72 cores, 72 hyper-threads each, 288 CPUs total,
-listing is like this:
+Licensing concerns have prevented this happening in the past, but as of
+10 August 2015, these tables have both been released also under OWF 1.0
+(http://www.openwebfoundation.org/legal/the-owf-1-0-agreements/owfa-1-0)
+which is think is noncontroversially GPL-compatible?
 
-APIC (0,4,8, .., 252)
-X2APIC (258,260,264, .. 284)
-APIC (1,5,9,...,253)
-X2APIC (259,261,265,...,285)
-APIC (2,6,10,...,254)
-X2APIC (260,262,266,..,286)
-APIC (3,7,11,...,251)
-X2APIC (255,261,262,266,..,287)
+This set is a first attempt at implementing this.
 
-Now, before this patch, due to how ACPI MADT subtables were parsed (BSP
-then X2APIC then APIC), kernel enumerated CPUs in reverted order (i.e.
-high APIC IDs were getting low logical IDs, and low APIC IDs were
-getting high logical IDs).
-This is wrong for the following reasons:
-() it's hard to predict how cores and threads are enumerated
-() when it's hard to predict, s/w threads cannot be properly affinitized
-   causing significant performance impact due to e.g. inproper cache
-   sharing
-() enumeration is inconsistent with how threads are enumerated on
-   other Intel Xeon processors
+Submitting as an RFC since the SPCR handling currently depends on the
+console driver being initialized after subsystem initcalls. Workaround
+to enable testing surrounding infrastructure in 5/5, _really_ not
+intended to be merged.
+(Suggestions for acceptable ways of working around this appreciated.)
 
-To fix this, each APIC/X2APIC entry from MADT table needs to be
-handled at the same time when processing them. Thus, adding
-acpi_subtable_proc structure which stores
-() ACPI table id
-() handler that processes table
-() counter how many items has been processed
-and passing it to acpi_table_parse_entries().
+For testing the DBG2 stuff with pl011, you would need:
+- A patch to unbreak pl011 earlycon, like
+  http://permalink.gmane.org/gmane.linux.ports.arm.kernel/433219
+- A QEMU that generates DBG2 tables, like current HEAD with the
+  addition of
+  http://lists.nongnu.org/archive/html/qemu-devel/2015-09/msg01719.html
 
-Also, order in which MADT APIC/X2APIC handlers are passed is
-reversed to achieve correct CPU enumeration.
+SPCR support is included in QEMU's ARM mach-virt since 2.4 release.
 
-In scenario when someone boots kernel with options 'maxcpus=72 nox2apic',
-in result less cores may be booted, since some of the CPUs the kernel
-will try to use will have APIC ID >= 0xFF. In such case, one
-should not pass 'nox2apic'.
+DBG2 support has an Intel copyright notice added to it since my starting
+point was Lv Zheng's 2012 DBGP/DBG2 set (although not much of the
+original remains - this is quite a cut-down version).
 
-Disclimer: code parsing MADT APIC/X2APIC has not been touched since 2009,
-when X2APIC support was initially added. I do not know why MADT parsing
-code was added in the reversed order in the first place.
-I guess it didn't matter at that time since nobody cared about cores
-with APIC IDs >= 0xFF, right?
+Leif Lindholm (4):
+  arm64: move acpi/dt decision earlier in boot process
+  of/serial: move earlycon early_param handling to serial
+  acpi/serial: add DBG2 earlycon support
+  HACK: serial: move pl011 initcall to device_initcall
 
-This patch is based on work of "Yinghai Lu <yinghai@kernel.org>"
-previously published at https://lkml.org/lkml/2013/1/21/563,
-thus putting Yinghai Lu as 'Signed-off-by', as well.
+Torez Smith (1):
+  tty/console: use SPCR table to define console
 
-Signed-off-by: Lukasz Anaczkowski <lukasz.anaczkowski@intel.com>
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Acked-by: Thomas Gleixner <tglx@linutronix.de> (commit message)
----
- arch/x86/kernel/acpi/boot.c | 37 ++++++++++++++++++-------------------
- drivers/acpi/tables.c       |  3 ++-
- 2 files changed, 20 insertions(+), 20 deletions(-)
+ arch/arm64/kernel/acpi.c         |  55 +++++----
+ drivers/acpi/Makefile            |   1 +
+ drivers/acpi/console.c           | 260 +++++++++++++++++++++++++++++++++++++++
+ drivers/of/fdt.c                 |  13 +-
+ drivers/tty/serial/amba-pl011.c  |   2 +-
+ drivers/tty/serial/earlycon.c    |  18 ++-
+ drivers/tty/serial/serial_core.c |  14 ++-
+ include/linux/acpi.h             |  13 ++
+ include/linux/of_fdt.h           |   1 +
+ include/linux/serial_core.h      |   9 +-
+ 10 files changed, 337 insertions(+), 49 deletions(-)
+ create mode 100644 drivers/acpi/console.c
 
-diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-index 21cb7a0..8e014d4 100644
---- a/arch/x86/kernel/acpi/boot.c
-+++ b/arch/x86/kernel/acpi/boot.c
-@@ -981,7 +981,8 @@ static int __init acpi_parse_madt_lapic_entries(void)
- {
- 	int count;
- 	int x2count = 0;
--	struct acpi_subtable_proc madt_proc[1];
-+	int ret;
-+	struct acpi_subtable_proc madt_proc[2];
- 
- 	if (!cpu_has_apic)
- 		return -ENODEV;
-@@ -1008,16 +1009,19 @@ static int __init acpi_parse_madt_lapic_entries(void)
- 		memset(madt_proc, 0, sizeof(madt_proc));
- 		madt_proc[0].id = ACPI_MADT_TYPE_LOCAL_X2APIC;
- 		madt_proc[0].handler = acpi_parse_x2apic;
--		x2count = acpi_table_parse_entries_array(ACPI_SIG_MADT,
--						sizeof(struct acpi_table_madt),
--						madt_proc, ARRAY_SIZE(madt_proc), MAX_LOCAL_APIC);
--
--		memset(madt_proc, 0, sizeof(madt_proc));
--		madt_proc[0].id = ACPI_MADT_TYPE_LOCAL_APIC;
--		madt_proc[0].handler = acpi_parse_lapic;
--		count = acpi_table_parse_entries_array(ACPI_SIG_MADT,
-+		madt_proc[1].id = ACPI_MADT_TYPE_LOCAL_APIC;
-+		madt_proc[1].handler = acpi_parse_lapic;
-+		ret = acpi_table_parse_entries_array(ACPI_SIG_MADT,
- 				sizeof(struct acpi_table_madt),
- 				madt_proc, ARRAY_SIZE(madt_proc), MAX_LOCAL_APIC);
-+		if (ret < 0) {
-+			printk(KERN_ERR PREFIX
-+					"Error parsing LAPIC/X2APIC entries\n");
-+			return ret;
-+		}
-+
-+		x2count = madt_proc[0].count;
-+		count = madt_proc[1].count;
- 	}
- 	if (!count && !x2count) {
- 		printk(KERN_ERR PREFIX "No LAPIC entries present\n");
-@@ -1032,21 +1036,16 @@ static int __init acpi_parse_madt_lapic_entries(void)
- 	memset(madt_proc, 0, sizeof(madt_proc));
- 	madt_proc[0].id = ACPI_MADT_TYPE_LOCAL_X2APIC_NMI;
- 	madt_proc[0].handler = acpi_parse_x2apic_nmi;
--	count = acpi_table_parse_entries_array(ACPI_SIG_MADT,
-+	madt_proc[1].id = ACPI_MADT_TYPE_LOCAL_APIC_NMI;
-+	madt_proc[1].handler = acpi_parse_lapic_nmi;
-+	ret = acpi_table_parse_entries_array(ACPI_SIG_MADT,
- 			sizeof(struct acpi_table_madt),
- 			madt_proc, ARRAY_SIZE(madt_proc), 0);
- 
--	memset(madt_proc, 0, sizeof(madt_proc));
--	madt_proc[0].id = ACPI_MADT_TYPE_LOCAL_APIC_NMI;
--	madt_proc[0].handler = acpi_parse_lapic_nmi;
--	x2count = acpi_table_parse_entries_array(ACPI_SIG_MADT,
--			sizeof(struct acpi_table_madt),
--			madt_proc, ARRAY_SIZE(madt_proc), 0);
--
--	if (count < 0 || x2count < 0) {
-+	if (ret < 0) {
- 		printk(KERN_ERR PREFIX "Error parsing LAPIC NMI entry\n");
- 		/* TBD: Cleanup to allow fallback to MPS */
--		return count;
-+		return ret;
- 	}
- 	return 0;
- }
-diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-index ececeac..bc23220 100644
---- a/drivers/acpi/tables.c
-+++ b/drivers/acpi/tables.c
-@@ -239,6 +239,7 @@ acpi_parse_entries(char *id, unsigned long table_size,
- 	struct acpi_subtable_header *entry;
- 	int count = 0;
- 	unsigned long table_end;
-+	int i;
- 
- 	if (acpi_disabled)
- 		return -ENODEV;
-@@ -269,7 +270,7 @@ acpi_parse_entries(char *id, unsigned long table_size,
- 		for (i = 0; i < proc_num; i++) {
- 			if (entry->type != proc[i].id)
- 				continue;
--			if (!proc->handler || proc[i].handler(entry, table_end)) {
-+			if (!proc->handler || proc[i].handler(entry, table_end))
- 				return -EINVAL;
- 
- 			proc->count++;
 -- 
-1.8.3.1
+2.1.4
 
