@@ -1,63 +1,109 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH 1/5] acpi: Add basic device probing infrastructure
-Date: Tue, 08 Sep 2015 21:01:20 +0800
-Message-ID: <55EEDC20.6050803@linaro.org>
-References: <1441386412-8139-1-git-send-email-marc.zyngier@arm.com> <1441386412-8139-2-git-send-email-marc.zyngier@arm.com> <2194763.hsLfaM94lK@vostro.rjw.lan> <55EEB125.1030708@arm.com>
+From: Mark Rutland <mark.rutland@arm.com>
+Subject: Re: [RFC 3/5] acpi/serial: add DBG2 earlycon support
+Date: Tue, 8 Sep 2015 14:09:51 +0100
+Message-ID: <20150908130951.GE20562@leverpostej>
+References: <1441716217-23786-1-git-send-email-leif.lindholm@linaro.org>
+ <1441716217-23786-4-git-send-email-leif.lindholm@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f47.google.com ([209.85.220.47]:35295 "EHLO
-	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752702AbbIHNBe (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Sep 2015 09:01:34 -0400
-Received: by pacfv12 with SMTP id fv12so126831212pac.2
-        for <linux-acpi@vger.kernel.org>; Tue, 08 Sep 2015 06:01:34 -0700 (PDT)
-In-Reply-To: <55EEB125.1030708@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1441716217-23786-4-git-send-email-leif.lindholm@linaro.org>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: Leif Lindholm <leif.lindholm@linaro.org>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "al.stone@linaro.org" <al.stone@linaro.org>, "torez@redhat.com" <torez@redhat.com>, "jcm@redhat.com" <jcm@redhat.com>, "graeme.gregory@linaro.org" <graeme.gregory@linaro.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "lv.zheng@intel.com" <lv.zheng@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>, Tomasz Nowicki <tn@semihalf.com>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 09/08/2015 05:57 PM, Marc Zyngier wrote:
-> On 07/09/15 22:29, Rafael J. Wysocki wrote:
->> On Friday, September 04, 2015 06:06:48 PM Marc Zyngier wrote:
->>> IRQ controllers and timers are the two types of device the kernel
->>> requires before being able to use the device driver model.
->>>
->>> ACPI so far lacks a proper probing infrastructure similar to the one
->>> we have with DT, where we're able to declare IRQ chips and
->>> clocksources inside the driver code, and let the core code pick it up
->>> and call us back on a match. This leads to all kind of really ugly
->>> hacks all over the arm64 code and even in the ACPI layer.
->>>
->>> In order to allow some basic probing based on the ACPI tables,
->>> introduce "struct acpi_probe_entry" which contains just enough
->>> data and callbacks to match a table, an optional subtable, and
->>> call a probe function. A driver can, at build time, register itself
->>> and expect being called if the right entry exists in the ACPI
->>> table.
->>>
->>> A acpi_probe_device_init() is provided, taking an ACPI table
->>> identifier, and iterating over the registered entries.
->>
->> What about things that are provided by the ACPI namespace (eg. via _MAT) rather
->> than in static tables?
->
-> By the time we get to process non-static tables, the whole probing
-> infrastructure (including the ACPI interpreter) should be up and
-> running. I'm not seeing this stuff as a replacement for more dynamic
-> things - quite the opposite. It is only to be used for early bring-up.
+On Tue, Sep 08, 2015 at 01:43:35PM +0100, Leif Lindholm wrote:
+> The ACPI DBG2 table defines a debug console. Add support for parsing it
+> and using it to select earlycon destination when no arguments provided.
+> 
+> Signed-off-by: Leif Lindholm <leif.lindholm@linaro.org>
 
-Yes, this framework is for static tables and used at boot time,
-sometimes quite early, which is before acpi_early_init().
+[...]
 
-But for _MAT (which is used for dynamic device configuration), it's
-really a good question, I think _MAT is mainly for CPU hotplug, and
-it's not related to this framework (for GIC init and clock source).
-To hot add/remove a whole ARM SoC with _MAT, I think we need more
-time to make the spec ready first, that's long term work, and agian
-it's nothing to do with this infrastructure if I understand correctly :)
+> diff --git a/drivers/acpi/console.c b/drivers/acpi/console.c
+> new file mode 100644
+> index 0000000..a985890
+> --- /dev/null
+> +++ b/drivers/acpi/console.c
+> @@ -0,0 +1,103 @@
+> +/*
+> + * Copyright (c) 2012, Intel Corporation
+> + * Copyright (c) 2015, Linaro Ltd.
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + *
+> + */
+> +
+> +#define DEBUG
 
-Thanks
-Hanjun
+Why?
+
+> +#define pr_fmt(fmt) "ACPI: " KBUILD_MODNAME ": " fmt
+> +
+> +#include <linux/acpi.h>
+> +#include <linux/kernel.h>
+> +#include <linux/serial_core.h>
+> +
+> +#define NUM_ELEMS(x) (sizeof(x) / sizeof(*x))
+
+Use ARRAY_SIZE (from kernel.h).
+
+> +
+> +#ifdef CONFIG_SERIAL_EARLYCON
+> +static int use_earlycon __initdata;
+> +static int __init setup_acpi_earlycon(char *buf)
+> +{
+> +	if (!buf)
+> +		use_earlycon = 1;
+> +
+> +	return 0;
+> +}
+> +early_param("earlycon", setup_acpi_earlycon);
+
+It seems a shame to add this after folding the OF case into the earlycon
+code. What necessitates this being a separate early_param? Why is it too
+early to parse DBG2?
+
+[...]
+
+> diff --git a/drivers/tty/serial/earlycon.c b/drivers/tty/serial/earlycon.c
+> index 2bda09a..c063cbb 100644
+> --- a/drivers/tty/serial/earlycon.c
+> +++ b/drivers/tty/serial/earlycon.c
+> @@ -13,6 +13,7 @@
+>  
+>  #define pr_fmt(fmt)	KBUILD_MODNAME ": " fmt
+>  
+> +#include <linux/acpi.h>
+>  #include <linux/console.h>
+>  #include <linux/kernel.h>
+>  #include <linux/init.h>
+> @@ -184,12 +185,16 @@ static int __init param_setup_earlycon(char *buf)
+>  	int err;
+>  
+>  	/*
+> -	 * Just 'earlycon' is a valid param for devicetree earlycons;
+> -	 * don't generate a warning from parse_early_params() in that case
+> +	 * Just 'earlycon' is a valid param for devicetree or ACPI earlycons;
+> +	 * ACPI cannot be parsed yet, so return without action if enabled.
+> +	 * Otherwise, attempt initialization using DT.
+>  	 */
+> -	if (!buf || !buf[0])
+> -		if (IS_ENABLED(CONFIG_OF_FLATTREE))
+> +	if (!buf || !buf[0]) {
+> +		if (!acpi_disabled)
+> +			return 0;
+> +		else if (IS_ENABLED(CONFIG_OF_FLATTREE))
+>  			return early_init_dt_scan_chosen_serial();
+> +	}
+
+It would be much nicer if we could handle the ACPI earlycon parsing in
+the same place. As above, I assume I'm missing something that prevents
+that.
+
+Mark.
