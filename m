@@ -1,83 +1,144 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: Possible deadlock related to CPU hotplug and kernfs
-Date: Mon, 07 Sep 2015 23:33:21 +0200
-Message-ID: <2165815.z3RZSlC1oy@vostro.rjw.lan>
-References: <55E54FE2.7030601@linux.intel.com> <CAJZ5v0itBxg_gQzEe=nVfxOVpw5WBs9u8VDP7PHoyXyirnmdPQ@mail.gmail.com> <55ED0057.1000806@linux.intel.com>
+From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Subject: Re: [PATCH v4 0/22] On-demand device probing
+Date: Tue, 8 Sep 2015 09:30:41 +0200
+Message-ID: <CAAObsKDUzk-9H2_VrVmbc=ZeRaknGcjTMY3Mauh3JVZxLz4CiA@mail.gmail.com>
+References: <1441628627-5143-1-git-send-email-tomeu.vizoso@collabora.com> <CAL_Jsq+E31JaPcp5ELS_ztSqgSrK7U4OzB9xNcNz01Ayrrm+Yg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <55ED0057.1000806@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>, mingo@kernel.org, Peter Zijlstra <peterz@infradead.org>
-Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Tejun Heo <tj@kernel.org>, linux hotplug mailing <linux-hotplug@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-clk-owner@vger.kernel.org>
+In-Reply-To: <CAL_Jsq+E31JaPcp5ELS_ztSqgSrK7U4OzB9xNcNz01Ayrrm+Yg@mail.gmail.com>
+Sender: linux-clk-owner@vger.kernel.org
+To: Rob Herring <robherring2@gmail.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, "linux-fbdev@vger.kernel.org" <linux-fbdev@vger.kernel.org>, Linux USB List <linux-usb@vger.kernel.org>, Felipe Balbi <balbi@ti.com>, Linux PWM List <linux-pwm@vger.kernel.org>, =?UTF-8?Q?Terje_Bergstr=C3=B6m?= <tbergstrom@nvidia.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday, September 07, 2015 11:11:19 AM Jiang Liu wrote:
-> On 2015/9/4 22:16, Rafael J. Wysocki wrote:
-> > Hi,
-> > 
-> > On Fri, Sep 4, 2015 at 9:20 AM, Jiang Liu <jiang.liu@linux.intel.com> wrote:
-> >> On 2015/9/4 4:08, Rafael J. Wysocki wrote:
-> >>> Hi Tejun,
-> >>>
-> >>> On Thu, Sep 3, 2015 at 6:19 PM, Tejun Heo <tj@kernel.org> wrote:
-> >>>> Hello, Rafael.
-> >>>>
-> >>>> On Thu, Sep 03, 2015 at 02:58:16AM +0200, Rafael J. Wysocki wrote:
-> >>>>> So acpi_device_hotplug() calls lock_device_hotplug() which simply
-> >>>>> acquires device_hotplug_lock.  It is held throughout the entire
-> >>>>> hot-add/hot-remove code path.
-> >>>>>
-> >>>>> Witing anything to /sys/devices/system/cpu/cpux/online goes through
-> >>>>> online_store() in drivers/base/core.c and that does
-> >>>>> lock_device_hotplug_sysfs() which then attempts to acquire
-> >>>>> device_hotplug_lock using mutex_trylock().  And it only calls
-> >>>>> either device_online() or device_offline() if it ends up with the
-> >>>>> lock held.
-> >>>>>
-> >>>>> Quite frankly, I don't see how these particular two code paths can
-> >>>>> deadlock in any way.
-> >>>>>
-> >>>>> So either a third code path is involved which is not executed
-> >>>>> under device_hotplug_lock, or lockdep needs to be told to actually
-> >>>>> take device_hotplug_lock into account in this case IMO.
-> >>>>
-> >>>> Hmm... all sysfs rw functions are protected from removal.  ie. by
-> >>>> default, removal of a sysfs file drains in-flight rw operations, so
-> >>>> the hot plug path grabs a lock and then tries to remove a file and
-> >>>> writing to the online file makes the file's write method to try to
-> >>>> grab the same lock.  It deadlocks if the hotunplug path already has
-> >>>> the lock and trying to drain the online file for removal.
-> >>>
-> >>> My point is that you cannot get into that situation.  If hotplug
-> >>> already holds device_hotplug_lock, the write to "online" will end up
-> >>> doing restart_syscall().
-> >>>
-> >>> If the "online" code path is holding the lock, hotplug cannot acquire
-> >>> it and cannot proceed.
-> >>>
-> >>> Am I missing anything?
-> >> Hi Rafael,
-> >>         I think your are right. The lock_device_hotplug_sysfs() has
-> >> already provided a solution for such a deadlock scenario. And there's
-> >> another related code path at boot as:
-> >> smp_init()
-> >>         ->cpu_up()
-> >>                 ->cpu_hotplug_begin()
-> >>         So it seems to be a false alarm. Any way to teach lockdep
-> >> about this to get rid of the false alarm?
-> > 
-> > Well, maybe we could call lock_device_hotplug() from that code path too?
-> Hi Rafael,
-> 	Adding lock_device_hotplug() to smp_init() doesn't solve the
-> issue. So it seems to be an false alarm of lockdep, and I don't know
-> how to get rid of such an lockdep false alarm:(
+On 7 September 2015 at 22:50, Rob Herring <robherring2@gmail.com> wrote=
+:
+> On Mon, Sep 7, 2015 at 7:23 AM, Tomeu Vizoso <tomeu.vizoso@collabora.=
+com> wrote:
+>> Hello,
+>>
+>> I have a problem with the panel on my Tegra Chromebook taking longer
+>> than expected to be ready during boot (St=C3=A9phane Marchesin repor=
+ted what
+>> is basically the same issue in [0]), and have looked into ordered
+>> probing as a better way of solving this than moving nodes around in =
+the
+>> DT or playing with initcall levels and linking order.
+>>
+>> While reading the thread [1] that Alexander Holler started with his
+>> series to make probing order deterministic, it occurred to me that i=
+t
+>> should be possible to achieve the same by probing devices as they ar=
+e
+>> referenced by other devices.
+>>
+>> This basically reuses the information that is already implicit in th=
+e
+>> probe() implementations, saving us from refactoring existing drivers=
+ or
+>> adding information to DTBs.
+>>
+>> During review of v1 of this series Linus Walleij suggested that it
+>> should be the device driver core to make sure that dependencies are
+>> ready before probing a device. I gave this idea a try [2] but Mark B=
+rown
+>> pointed out to the logic duplication between the resource acquisitio=
+n
+>> and dependency discovery code paths (though I think it's fairly mino=
+r).
+>>
+>> To address that code duplication I experimented with Arnd's devm_pro=
+be
+>> [3] concept of having drivers declare their dependencies instead of
+>> acquiring them during probe, and while it worked [4], I don't think =
+we
+>> end up winning anything when compared to just probing devices on-dem=
+and
+>> from resource getters.
+>>
+>> One remaining objection is to the "sprinkling" of calls to
+>> of_device_probe() in the resource getters of each subsystem, but I t=
+hink
+>> it's the right thing to do given that the storage of resources is
+>> currently subsystem-specific.
+>>
+>> We could avoid the above by moving resource storage into the core, b=
+ut I
+>> don't think there's a compelling case for that.
+>>
+>> I have tested this on boards with Tegra, iMX.6, Exynos, Rockchip and
+>> OMAP SoCs, and these patches were enough to eliminate all the deferr=
+ed
+>> probes (except one in PandaBoard because omap_dma_system doesn't hav=
+e a
+>> firmware node as of yet).
+>>
+>> Have submitted a branch [5] with only these patches on top of thursd=
+ay's
+>> linux-next to kernelci.org and I don't see any issues that could be
+>> caused by them. For some reason it currently has more passes than th=
+e
+>> version of -next it's based on!
+>>
+>> With this series I get the kernel to output to the panel in 0.5s,
+>> instead of 2.8s.
+>>
+>> Regards,
+>>
+>> Tomeu
+>>
+>> [0] http://lists.freedesktop.org/archives/dri-devel/2014-August/0665=
+27.html
+>>
+>> [1] https://lkml.org/lkml/2014/5/12/452
+>>
+>> [2] https://lkml.org/lkml/2015/6/17/305
+>>
+>> [3] http://article.gmane.org/gmane.linux.ports.arm.kernel/277689
+>>
+>> [4] https://lkml.org/lkml/2015/7/21/441a
+>>
+>> [5] https://git.collabora.com/cgit/user/tomeu/linux.git/log/?h=3Don-=
+demand-probes-v6
+>>
+>> [6] http://kernelci.org/boot/all/job/collabora/kernel/v4.2-11902-g25=
+d80c927f8b/
+>>
+>> [7] http://kernelci.org/boot/all/job/next/kernel/next-20150903/
+>>
+>> Changes in v4:
+>> - Added bus.pre_probe callback so the probes of Primecell devices ca=
+n be
+>>   deferred if their device IDs cannot be yet read because of the clo=
+ck
+>>   driver not having probed when they are registered. Maybe this goes
+>>   overboard and the matching information should be in the DT if ther=
+e is
+>>   one.
+>
+> Seems overboard to me or at least a separate problem.
 
-Peter, Ingo, some help from lockdep expert is needed.
+It's a separate problem but this was preventing the series from
+working on a few boards.
 
-We have a splat that almost certainly is a false positive (the original report
-is here http://marc.info/?l=linux-kernel&m=144109156901959&w=4) and no ideas
-how to make it go away.  Can you please have a look and advise?
+> Most clocks have
+> to be setup before the driver model simply because timers depend on
+> clocks usually.
 
-Rafael
+Yes, but in this case the apb clocks for the primecell devices are
+implemented in a normal platform driver (vexpress_osc_driver), instead
+of using CLK_OF_DECLARE.
+
+Regards,
+
+Tomeu
+
+> Rob
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kerne=
+l" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
