@@ -1,89 +1,43 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 0/5] ACPI probing infrastructure
-Date: Wed, 09 Sep 2015 00:26:03 +0200
-Message-ID: <1498026.RpctfQGBpr@vostro.rjw.lan>
-References: <1441386412-8139-1-git-send-email-marc.zyngier@arm.com> <3667410.80mLyhGuXy@vostro.rjw.lan> <55EEAE56.9070804@arm.com>
+Subject: Re: Possible deadlock related to CPU hotplug and kernfs
+Date: Wed, 09 Sep 2015 00:28:12 +0200
+Message-ID: <4305045.rOCzS8rSge@vostro.rjw.lan>
+References: <55E54FE2.7030601@linux.intel.com> <2165815.z3RZSlC1oy@vostro.rjw.lan> <20150908104008.GD3644@twins.programming.kicks-ass.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:50533 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752071AbbIHV6O (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Sep 2015 17:58:14 -0400
-In-Reply-To: <55EEAE56.9070804@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150908104008.GD3644@twins.programming.kicks-ass.net>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, mingo@kernel.org, "Rafael J. Wysocki" <rafael@kernel.org>, Tejun Heo <tj@kernel.org>, linux hotplug mailing <linux-hotplug@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Len Brown <lenb@kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Tuesday, September 08, 2015 10:45:58 AM Marc Zyngier wrote:
-> On 07/09/15 22:26, Rafael J. Wysocki wrote:
-> > On Friday, September 04, 2015 06:06:47 PM Marc Zyngier wrote:
-> >> IRQ controllers and timers are the two types of device the kernel
-> >> requires before being able to use the device driver model.
-> >>
-> >> ACPI so far lacks a proper probing infrastructure similar to the one
-> >> we have with DT, where we're able to declare IRQ chips and
-> >> clocksources inside the driver code, and let the core code pick it up
-> >> and call us back on a match. This leads to all kind of really ugly
-> >> hacks all over the arm64 code and even in the ACPI layer.
-> >>
-> >> It turns out that providing such a probing infrastructure is rather
-> >> easy, and provides a much deserved cleanup in both the arch code, the
-> >> GIC driver, and the architected timer driver.
+On Tuesday, September 08, 2015 12:40:08 PM Peter Zijlstra wrote:
+> On Mon, Sep 07, 2015 at 11:33:21PM +0200, Rafael J. Wysocki wrote:
+> > On Monday, September 07, 2015 11:11:19 AM Jiang Liu wrote:
+> > Peter, Ingo, some help from lockdep expert is needed.
 > > 
-> > Since I'm not familiar with the DT probing infrastructure mentioned above,
-> > can you please explain to me (possibly at a high level), how it is supposed
-> > to work in the ACPI case?
+> > We have a splat that almost certainly is a false positive (the original report
+> > is here http://marc.info/?l=linux-kernel&m=144109156901959&w=4) and no ideas
+> > how to make it go away.  Can you please have a look and advise?
 > 
-> So let's start with DT. Each interrupt controller driver has at least
-> one entry like this:
+> I can't even find the relevant code :/
 > 
-> IRQCHIP_DECLARE(gic_400, "arm,gic-400", gic_of_init);
+> From that email I get kernfs_fop_write() which calls
+> kernfs_get_active(), but that does _NOT_ call cpu_up(), so that
+> callchain is shite.
 > 
-> which says: if you find a node having "arm,gic-400" as a compatible
-> string in the device tree, then call gic_of_init with this node as a
-> parameter. The probing itself is done by the OF layer when the
-> architecture code calls of_irq_init() (usually via irqchip_init).
+> The actual lockdep splat is also not really helpful, and is spraying
+> names over: acpi, device, sysfs and kernfs (do we really need that many
+> layeres of obfuscation for a simple file?)
 > 
-> This has a number of benefits:
-> 
-> - The irqchip code is self-contained. No architecture specific entry
-> point, no exposed symbols. Just a standard interface.
-> 
-> - The low-level architecture code doesn't have to know about which
-> interrupt controller is present. It just calls into the firmware
-> interface (of_irq_init) which is going to sort things out.
-> 
-> Similar infrastructure is provided for the timers/clock sources. Note
-> that this is not a replacement for the device model, but acts as a
-> probing infrastructure for things that are required too early for the
-> device infrastructure to be available.
-> 
-> What I'm aiming for is to introduce the same level of abstraction for
-> ACPI, or at least for the few bits that are required before a full blown
-> ACPI/device model can be used. For this, I introduce something  vaguely
-> similar:
-> 
-> IRQCHIP_ACPI_DECLARE(gic_v2, ACPI_MADT_TYPE_GENERIC_DISTRIBUTOR,
-> 		     gic_validate_dist, ACPI_MADT_GIC_VERSION_V2,
-> 		     gic_v2_acpi_init);
-> 
-> which says: if you find a ACPI_MADT_TYPE_GENERIC_DISTRIBUTOR entry in
-> MADT (implied by the macro), and that entry is of type
-> ACPI_MADT_GIC_VERSION_V2 (as checked by gic_validate_dist), then call
-> gic_v2_acpi_init with the entry as a parameter. A bit more convoluted,
-> but still without any special entry point.
-> 
-> The various interrupt controller drivers can then implement the above,
-> and the arch code can use a firmware-specific call to get the probing
-> done, still being oblivious of what interrupt controller is being used.
-> It also makes the adaptation of a DT driver to ACPI easier.
-> 
-> Does this help?
+> So, please, start by explaining the thing proper such that simple people
+> like me know what to look for.
 
-Yes it does, thanks!
+OK, I'll try to get that later this week.
 
+Or maybe Jiang Liu can beat me to doing that. :-)
+
+Thanks,
 Rafael
-
