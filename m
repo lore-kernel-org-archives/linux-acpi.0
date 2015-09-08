@@ -1,224 +1,275 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH 0/4] Fix how CPUs are enumerated when there's more than
- 255 CPUs
-Date: Tue, 08 Sep 2015 17:27:38 +0100
-Message-ID: <55EF0C7A.7070105@arm.com>
-References: <20150827093738.GA21134@red-moon> <1441710480-17622-1-git-send-email-lukasz.anaczkowski@intel.com> <1441710480-17622-2-git-send-email-lukasz.anaczkowski@intel.com>
+From: Mark Salter <msalter@redhat.com>
+Subject: Re: [Linaro-acpi] [RFC 3/5] acpi/serial: add DBG2 earlycon support
+Date: Tue, 08 Sep 2015 12:38:59 -0400
+Message-ID: <1441730339.5459.8.camel@redhat.com>
+References: <1441716217-23786-1-git-send-email-leif.lindholm@linaro.org>
+	 <1441716217-23786-4-git-send-email-leif.lindholm@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1441710480-17622-2-git-send-email-lukasz.anaczkowski@intel.com>
+In-Reply-To: <1441716217-23786-4-git-send-email-leif.lindholm@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Lukasz Anaczkowski <lukasz.anaczkowski@intel.com>, lorenzo.pieralisi@arm.com, tomasz.nowicki@linaro.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, jason@lakedaemon.net
-Cc: rjw@rjwysocki.net, len.brown@intel.com, pavel@ucw.cz, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Leif Lindholm <leif.lindholm@linaro.org>, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: linaro-acpi@lists.linaro.org, jcm@redhat.com, torez@redhat.com, lv.zheng@intel.com
 List-Id: linux-acpi@vger.kernel.org
 
-On 08/09/15 12:07, Lukasz Anaczkowski wrote:
-> This series of patches attempts to fix how CPUs are enumerated by kernel when
-> there's more than 255 of them on single processor.
-> In such case, BIOS may interleave APIC/X2APIC MADT subtables, to obey requirements
-> specified in ACPI spec. Without this patches, kernel then would first enumerate
-> BSP, then X2APIC then APIC, resulting in low APIC IDs to be assigned with high
-> logical IDs and high APIC IDs to be assigned low logical IDs. Biggest consequence
-> of that could be performance penalties due to wrong L2 cache sharing.
-> More details in patch 4/4.
+On Tue, 2015-09-08 at 13:43 +0100, Leif Lindholm wrote:
+> The ACPI DBG2 table defines a debug console. Add support for parsing it
+> and using it to select earlycon destination when no arguments provided.
 > 
-> Also, simpler approach has been considered, which did not required ACPI parsing
-> interface changes, however it failed to meet requirements. More details can be
-> found here: https://lkml.org/lkml/2015/9/7/285
+> Signed-off-by: Leif Lindholm <leif.lindholm@linaro.org>
+> ---
+>  arch/arm64/kernel/acpi.c      |   2 +
+>  drivers/acpi/Makefile         |   1 +
+>  drivers/acpi/console.c        | 103 ++++++++++++++++++++++++++++++++++++++++++
+>  drivers/of/fdt.c              |   2 +-
+>  drivers/tty/serial/earlycon.c |  16 ++++---
+>  include/linux/acpi.h          |   4 ++
+>  include/linux/serial_core.h   |   9 ++--
+>  7 files changed, 126 insertions(+), 11 deletions(-)
+>  create mode 100644 drivers/acpi/console.c
 > 
-> I've compiled this code successfully for x86/arm64 and verified it on x86. I'd
-> really appreciate if someone could give it a try on arm64.
-> Although interface has changed, semantics stayed the same, thus runtime issues
-> should not appear. Please verify, thanks!
+> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+> index b9a5623..be7600a 100644
+> --- a/arch/arm64/kernel/acpi.c
+> +++ b/arch/arm64/kernel/acpi.c
+> @@ -207,6 +207,8 @@ void __init acpi_boot_table_init(void)
+>  		if (!param_acpi_force)
+>  			disable_acpi();
+>  	}
+> +
+> +	acpi_early_console_probe();
+>  }
+>  
+>  void __init acpi_gic_init(void)
+> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+> index b5e7cd8..a89587d 100644
+> --- a/drivers/acpi/Makefile
+> +++ b/drivers/acpi/Makefile
+> @@ -10,6 +10,7 @@ ccflags-$(CONFIG_ACPI_DEBUG)	+= -DACPI_DEBUG_OUTPUT
+>  #
+>  obj-y				+= tables.o
+>  obj-$(CONFIG_X86)		+= blacklist.o
+> +obj-y				+= console.o
 
-I really don't see why you cannot provide simple helpers that avoids
-the churn on code that doesn't require this new feature. It just makes
-the code hard(er) to read, and unnecessarily convoluted. ACPI doesn't
-need more of that, really.
+obj-$(CONFIG_SERIAL_EARLYCON) += console.o
 
-I've come up with this (on top of your series):
+to eliminate whole-file #ifdef
 
-diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
-index f3ccc68..acaa3b4 100644
---- a/drivers/acpi/numa.c
-+++ b/drivers/acpi/numa.c
-@@ -314,15 +314,9 @@ static int __init
- acpi_table_parse_srat(enum acpi_srat_type id,
- 		      acpi_tbl_entry_handler handler, unsigned int max_entries)
- {
--	struct acpi_subtable_proc srat_proc;
--
--	memset(&srat_proc, 0, sizeof(srat_proc));
--	srat_proc.id = id;
--	srat_proc.handler = handler;
--
--	return acpi_table_parse_entries_array(ACPI_SIG_SRAT,
--				sizeof(struct acpi_table_srat),
--				&srat_proc, 1, max_entries);
-+	return acpi_table_parse_entries(ACPI_SIG_SRAT,
-+					    sizeof(struct acpi_table_srat), id,
-+					    handler, max_entries);
- }
- 
- int __init acpi_numa_init(void)
-@@ -341,7 +335,6 @@ int __init acpi_numa_init(void)
- 				     acpi_parse_x2apic_affinity, 0);
- 		acpi_table_parse_srat(ACPI_SRAT_TYPE_CPU_AFFINITY,
- 				     acpi_parse_processor_affinity, 0);
--
- 		cnt = acpi_table_parse_srat(ACPI_SRAT_TYPE_MEMORY_AFFINITY,
- 					    acpi_parse_memory_affinity,
- 					    NR_NODE_MEMBLKS);
-diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-index bc23220..758b334 100644
---- a/drivers/acpi/tables.c
-+++ b/drivers/acpi/tables.c
-@@ -215,7 +215,7 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
- }
- 
- /**
-- * acpi_parse_entries - for each proc_num find a subtable with proc->id
-+ * acpi_parse_entries_array - for each proc_num find a subtable with proc->id
-  *    and run proc->handler on it. Assumption is that there's only
-  *    single handler for particular entry id.
-  *
-@@ -230,8 +230,8 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
-  * On success returns sum of all matching entries for all proc handlers.
-  * Oterwise, -ENODEV or -EINVAL is returned.
-  */
--int __init
--acpi_parse_entries(char *id, unsigned long table_size,
-+static int __init
-+acpi_parse_entries_array(char *id, unsigned long table_size,
- 		struct acpi_table_header *table_header,
- 		struct acpi_subtable_proc *proc, int proc_num,
- 		unsigned int max_entries)
-@@ -300,6 +300,20 @@ acpi_parse_entries(char *id, unsigned long table_size,
- 	return count;
- }
- 
-+int __init acpi_parse_entries(char *id, unsigned long table_size,
-+			      acpi_tbl_entry_handler handler,
-+ 			      struct acpi_table_header *table_header,
-+			      int entry_id, unsigned int max_entries)
-+{
-+	struct acpi_subtable_proc proc = {
-+		.id		= entry_id,
-+		.handler	= handler,
-+	};
-+
-+	return acpi_parse_entries_array(id, table_size, table_header,
-+					&proc, 1, max_entries);
-+}
-+
- int __init
- acpi_table_parse_entries_array(char *id,
- 			 unsigned long table_size,
-@@ -326,8 +340,8 @@ acpi_table_parse_entries_array(char *id,
- 		return -ENODEV;
- 	}
- 
--	count = acpi_parse_entries(id, table_size, table_header,
--			proc, proc_num, max_entries);
-+	count = acpi_parse_entries_array(id, table_size, table_header,
-+					 proc, proc_num, max_entries);
- 
- 	early_acpi_os_unmap_memory((char *)table_header, tbl_size);
- 	return count;
-@@ -340,17 +354,13 @@ acpi_table_parse_entries(char *id,
- 			acpi_tbl_entry_handler handler,
- 			unsigned int max_entries)
- {
--	struct acpi_subtable_proc proc[1];
--
--	if (!handler)
--		return -EINVAL;
--
--	memset(proc, 0, sizeof(proc));
--	proc[0].id = entry_id;
--	proc[0].handler = handler;
-+	struct acpi_subtable_proc proc = {
-+		.id		= entry_id,
-+		.handler	= handler,
-+	};
- 
--	return acpi_table_parse_entries_array(id, table_size, proc, 1,
--						max_entries);
-+	return acpi_table_parse_entries_array(id, table_size, &proc, 1,
-+					      max_entries);
- }
- 
- int __init
-diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
-index 581336c..4dd8826 100644
---- a/drivers/irqchip/irq-gic.c
-+++ b/drivers/irqchip/irq-gic.c
-@@ -1091,16 +1091,12 @@ gic_v2_acpi_init(struct acpi_table_header *table)
- {
- 	void __iomem *cpu_base, *dist_base;
- 	int count;
--	struct acpi_subtable_proc gic_proc[1];
--
--	memset(gic_proc, 0, sizeof(gic_proc));
--	gic_proc[0].id = ACPI_MADT_TYPE_GENERIC_INTERRUPT;
--	gic_proc[0].handler = gic_acpi_parse_madt_cpu;
- 
- 	/* Collect CPU base addresses */
- 	count = acpi_parse_entries(ACPI_SIG_MADT,
- 				   sizeof(struct acpi_table_madt),
--				   table, gic_proc, 1, 0);
-+				   gic_acpi_parse_madt_cpu, table,
-+				   ACPI_MADT_TYPE_GENERIC_INTERRUPT, 0);
- 	if (count <= 0) {
- 		pr_err("No valid GICC entries exist\n");
- 		return -EINVAL;
-@@ -1110,13 +1106,10 @@ gic_v2_acpi_init(struct acpi_table_header *table)
- 	 * Find distributor base address. We expect one distributor entry since
- 	 * ACPI 5.1 spec neither support multi-GIC instances nor GIC cascade.
- 	 */
--	memset(gic_proc, 0, sizeof(gic_proc));
--	gic_proc[0].id = ACPI_MADT_TYPE_GENERIC_DISTRIBUTOR;
--	gic_proc[0].handler = gic_acpi_parse_madt_distributor;
--
- 	count = acpi_parse_entries(ACPI_SIG_MADT,
- 				   sizeof(struct acpi_table_madt),
--				   table, gic_proc, 1, 0);
-+				   gic_acpi_parse_madt_distributor, table,
-+				   ACPI_MADT_TYPE_GENERIC_DISTRIBUTOR, 0);
- 	if (count <= 0) {
- 		pr_err("No valid GICD entries exist\n");
- 		return -EINVAL;
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 52c8d20..0f6381d 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -152,9 +152,9 @@ int acpi_numa_init (void);
- int acpi_table_init (void);
- int acpi_table_parse(char *id, acpi_tbl_table_handler handler);
- int __init acpi_parse_entries(char *id, unsigned long table_size,
--			      struct acpi_table_header *table_header,
--			      struct acpi_subtable_proc *proc, int proc_num,
--			      unsigned int max_entries);
-+			      acpi_tbl_entry_handler handler,
-+ 			      struct acpi_table_header *table_header,
-+			      int entry_id, unsigned int max_entries);
- int __init acpi_table_parse_entries(char *id, unsigned long table_size,
- 				    int entry_id,
- 				    acpi_tbl_entry_handler handler,
+>  
+>  #
+>  # ACPI Core Subsystem (Interpreter)
+> diff --git a/drivers/acpi/console.c b/drivers/acpi/console.c
+> new file mode 100644
+> index 0000000..a985890
+> --- /dev/null
+> +++ b/drivers/acpi/console.c
+> @@ -0,0 +1,103 @@
+> +/*
+> + * Copyright (c) 2012, Intel Corporation
+> + * Copyright (c) 2015, Linaro Ltd.
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + *
+> + */
+> +
+> +#define DEBUG
+> +#define pr_fmt(fmt) "ACPI: " KBUILD_MODNAME ": " fmt
+> +
+> +#include <linux/acpi.h>
+> +#include <linux/kernel.h>
+> +#include <linux/serial_core.h>
+> +
+> +#define NUM_ELEMS(x) (sizeof(x) / sizeof(*x))
+> +
+> +#ifdef CONFIG_SERIAL_EARLYCON
+> +static int use_earlycon __initdata;
+> +static int __init setup_acpi_earlycon(char *buf)
+> +{
+> +	if (!buf)
+> +		use_earlycon = 1;
+> +
+> +	return 0;
+> +}
+> +early_param("earlycon", setup_acpi_earlycon);
+> +
+> +extern struct earlycon_id __earlycon_table[];
+> +
+> +static __initdata struct {
+> +	int id;
+> +	const char *name;
+> +} subtypes[] = {
+> +	{0, "uart8250"},
+> +	{1, "uart8250"},
+> +	{2, NULL},
+> +	{3, "pl011"},
+> +};
 
-In my view, this makes the change a lot more palatable, and it
-can fit in exactly two patches:
+Instead of having a table here, why not have an ACPI_EARLYCON_DECLARE()
+where individual drivers can provide an id similar to OF_EARLYCON_DECLARE()
+providing compatible strings?
 
-1) add the acpi_subtable_proc stuff with the compatibility helpers
-2) change arch/x86/kernel/acpi/boot.c to do whatever you want it
-   to do
+> +
+> +static int __init acpi_setup_earlycon(unsigned long addr, const char *driver)
+> +{
+> +	const struct earlycon_id *match;
+> +
+> +	for (match = __earlycon_table; match->name[0]; match++)
+> +		if (strcmp(driver, match->name) == 0)
+> +			return setup_earlycon_driver(addr, match->setup);
+> +
+> +	return -ENODEV;
+> +}
+> +
+> +static int __init acpi_parse_dbg2(struct acpi_table_header *table)
+> +{
+> +	struct acpi_table_dbg2 *dbg2;
+> +	struct acpi_dbg2_device *entry;
+> +	void *tbl_end;
+> +
+> +	dbg2 = (struct acpi_table_dbg2 *)table;
+> +	if (!dbg2) {
+> +		pr_debug("DBG2 not present.\n");
+> +		return -ENODEV;
+> +	}
+> +
+> +	tbl_end = (void *)table + table->length;
+> +
+> +	entry = (struct acpi_dbg2_device *)((void *)dbg2 + dbg2->info_offset);
+> +
+> +	while (((void *)entry) + sizeof(struct acpi_dbg2_device) < tbl_end) {
+> +		struct acpi_generic_address *addr;
+> +
+> +		if (entry->revision != 0) {
+> +			pr_debug("DBG2 revision %d not supported.\n",
+> +				 entry->revision);
+> +			return -ENODEV;
+> +		}
+> +
+> +		addr = (void *)entry + entry->base_address_offset;
+> +
+> +		pr_debug("DBG2 PROBE - console (%04x:%04x).\n",
+> +			 entry->port_type, entry->port_subtype);
+> +
+> +		if (use_earlycon &&
+> +		    (entry->port_type == ACPI_DBG2_SERIAL_PORT) &&
+> +		    (entry->port_subtype < NUM_ELEMS(subtypes)))
+> +			acpi_setup_earlycon(addr->address,
+> +					    subtypes[entry->port_subtype].name);
 
-It will be a lot easier to review and to verify.
+Don't we need to handle space_id (and bit width) as well as address?
 
-Thanks,
+> +
+> +		entry = (struct acpi_dbg2_device *)
+> +			((void *)entry + entry->length);
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +int __init acpi_early_console_probe(void)
+> +{
+> +	acpi_table_parse(ACPI_SIG_DBG2, acpi_parse_dbg2);
+> +
+> +	return 0;
+> +}
+> +#endif /* CONFIG_SERIAL_EARLYCON */
+> diff --git a/drivers/of/fdt.c b/drivers/of/fdt.c
+> index fcfc4c7..a96209f 100644
+> --- a/drivers/of/fdt.c
+> +++ b/drivers/of/fdt.c
+> @@ -829,7 +829,7 @@ int __init early_init_dt_scan_chosen_serial(void)
+>  		if (!addr)
+>  			return -ENXIO;
+>  
+> -		of_setup_earlycon(addr, match->data);
+> +		setup_earlycon_driver(addr, match->data);
+>  		return 0;
+>  	}
+>  	return -ENODEV;
+> diff --git a/drivers/tty/serial/earlycon.c b/drivers/tty/serial/earlycon.c
+> index 2bda09a..c063cbb 100644
+> --- a/drivers/tty/serial/earlycon.c
+> +++ b/drivers/tty/serial/earlycon.c
+> @@ -13,6 +13,7 @@
+>  
+>  #define pr_fmt(fmt)	KBUILD_MODNAME ": " fmt
+>  
+> +#include <linux/acpi.h>
+>  #include <linux/console.h>
+>  #include <linux/kernel.h>
+>  #include <linux/init.h>
+> @@ -184,12 +185,16 @@ static int __init param_setup_earlycon(char *buf)
+>  	int err;
+>  
+>  	/*
+> -	 * Just 'earlycon' is a valid param for devicetree earlycons;
+> -	 * don't generate a warning from parse_early_params() in that case
+> +	 * Just 'earlycon' is a valid param for devicetree or ACPI earlycons;
+> +	 * ACPI cannot be parsed yet, so return without action if enabled.
+> +	 * Otherwise, attempt initialization using DT.
+>  	 */
+> -	if (!buf || !buf[0])
+> -		if (IS_ENABLED(CONFIG_OF_FLATTREE))
+> +	if (!buf || !buf[0]) {
+> +		if (!acpi_disabled)
 
-	M.
--- 
-Jazz is not dead. It just smells funny...
+How do we know for sure that "acpi" has been parsed before "earlycon"?
+
+> +			return 0;
+> +		else if (IS_ENABLED(CONFIG_OF_FLATTREE))
+>  			return early_init_dt_scan_chosen_serial();
+> +	}
+>  
+>  	err = setup_earlycon(buf);
+>  	if (err == -ENOENT || err == -EALREADY)
+> @@ -198,8 +203,7 @@ static int __init param_setup_earlycon(char *buf)
+>  }
+>  early_param("earlycon", param_setup_earlycon);
+>  
+> -int __init of_setup_earlycon(unsigned long addr,
+> -			     int (*setup)(struct earlycon_device *, const char *))
+> +int __init setup_earlycon_driver(unsigned long addr, earlycon_initfunc_t setup)
+>  {
+>  	int err;
+>  	struct uart_port *port = &early_console_dev.port;
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 7235c48..88cb9c1 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -811,4 +811,8 @@ static inline struct acpi_device *acpi_get_next_child(struct device *dev,
+>  
+>  #endif
+>  
+> +#if defined(CONFIG_ACPI) && defined(CONFIG_SERIAL_EARLYCON)
+> +int __init acpi_early_console_probe(void);
+> +#endif
+> +
+>  #endif	/*_LINUX_ACPI_H*/
+> diff --git a/include/linux/serial_core.h b/include/linux/serial_core.h
+> index 297d4fa..39e99b0 100644
+> --- a/include/linux/serial_core.h
+> +++ b/include/linux/serial_core.h
+> @@ -339,14 +339,15 @@ struct earlycon_device {
+>  	unsigned int baud;
+>  };
+>  
+> +typedef int (*earlycon_initfunc_t)(struct earlycon_device *, const char *);
+> +
+>  struct earlycon_id {
+> -	char	name[16];
+> -	int	(*setup)(struct earlycon_device *, const char *options);
+> +	char			name[16];
+> +	earlycon_initfunc_t	setup;
+>  } __aligned(32);
+>  
+>  extern int setup_earlycon(char *buf);
+> -extern int of_setup_earlycon(unsigned long addr,
+> -			     int (*setup)(struct earlycon_device *, const char *));
+> +extern int setup_earlycon_driver(unsigned long addr, earlycon_initfunc_t setup);
+>  
+>  #define EARLYCON_DECLARE(_name, func)					\
+>  	static const struct earlycon_id __earlycon_##_name		\
