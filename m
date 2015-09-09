@@ -1,113 +1,40 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [Patch v5 1/6] ACPI/PCI: Enhance ACPI core to support sparse IO
- space
-Date: Wed, 9 Sep 2015 14:38:02 +0800
-Message-ID: <55EFD3CA.3050301@linux.intel.com>
-References: <1433780448-18636-1-git-send-email-jiang.liu@linux.intel.com>
- <1433780448-18636-2-git-send-email-jiang.liu@linux.intel.com>
- <20150729203741.GC9640@google.com>
+From: "Anaczkowski, Lukasz" <lukasz.anaczkowski@intel.com>
+Subject: RE: [PATCH 0/4] Fix how CPUs are enumerated when there's more than
+ 255 CPUs
+Date: Wed, 9 Sep 2015 07:01:19 +0000
+Message-ID: <C1C2579D7BE026428F81F41198ADB172378AACE4@irsmsx110.ger.corp.intel.com>
+References: <20150827093738.GA21134@red-moon>
+ <1441710480-17622-1-git-send-email-lukasz.anaczkowski@intel.com>
+ <1441710480-17622-2-git-send-email-lukasz.anaczkowski@intel.com>
+ <55EF0C7A.7070105@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:24406 "EHLO mga01.intel.com"
+Received: from mga03.intel.com ([134.134.136.65]:7550 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752694AbbIIGiH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 9 Sep 2015 02:38:07 -0400
-In-Reply-To: <20150729203741.GC9640@google.com>
+	id S1751407AbbIIHBX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Sep 2015 03:01:23 -0400
+In-Reply-To: <55EF0C7A.7070105@arm.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, Yijing Wang <wangyijing@huawei.com>, Len Brown <lenb@kernel.org>, Vivek Goyal <vgoyal@redhat.com>, Thierry Reding <treding@nvidia.com>, Jakub Sitnicki <jsitnicki@gmail.com>, Lv Zheng <lv.zheng@intel.com>, LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>, linux-arm-kernel@lists.infradead.org
+To: Marc Zyngier <marc.zyngier@arm.com>, "lorenzo.pieralisi@arm.com" <lorenzo.pieralisi@arm.com>, "tomasz.nowicki@linaro.org" <tomasz.nowicki@linaro.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "mingo@redhat.com" <mingo@redhat.com>, "hpa@zytor.com" <hpa@zytor.com>, "x86@kernel.org" <x86@kernel.org>, "jason@lakedaemon.net" <jason@lakedaemon.net>
+Cc: "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, "pavel@ucw.cz" <pavel@ucw.cz>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On 2015/7/30 4:37, Bjorn Helgaas wrote:
-> On Tue, Jun 09, 2015 at 12:20:43AM +0800, Jiang Liu wrote:
->> Enhance ACPI resource parsing interfaces to support sparse IO space,
->> which will be used to share common code between x86 and IA64 later.
->>
->> Tested-by: Tony Luck <tony.luck@intel.com>
->> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
->> Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
->> ---
->>  drivers/acpi/resource.c |    9 ++++++---
->>  include/linux/ioport.h  |    1 +
->>  2 files changed, 7 insertions(+), 3 deletions(-)
->>
->> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
->> index 8244f013f210..fdcc73dad2c1 100644
->> --- a/drivers/acpi/resource.c
->> +++ b/drivers/acpi/resource.c
->> @@ -123,7 +123,7 @@ bool acpi_dev_resource_memory(struct acpi_resource *ares, struct resource *res)
->>  EXPORT_SYMBOL_GPL(acpi_dev_resource_memory);
->>  
->>  static void acpi_dev_ioresource_flags(struct resource *res, u64 len,
->> -				      u8 io_decode)
->> +				      u8 io_decode, u8 translation_type)
->>  {
->>  	res->flags = IORESOURCE_IO;
->>  
->> @@ -135,6 +135,8 @@ static void acpi_dev_ioresource_flags(struct resource *res, u64 len,
->>  
->>  	if (io_decode == ACPI_DECODE_16)
->>  		res->flags |= IORESOURCE_IO_16BIT_ADDR;
->> +	if (translation_type == ACPI_SPARSE_TRANSLATION)
->> +		res->flags |= IORESOURCE_IO_SPARSE;
->>  }
->>  
->>  static void acpi_dev_get_ioresource(struct resource *res, u64 start, u64 len,
->> @@ -142,7 +144,7 @@ static void acpi_dev_get_ioresource(struct resource *res, u64 start, u64 len,
->>  {
->>  	res->start = start;
->>  	res->end = start + len - 1;
->> -	acpi_dev_ioresource_flags(res, len, io_decode);
->> +	acpi_dev_ioresource_flags(res, len, io_decode, 0);
->>  }
->>  
->>  /**
->> @@ -227,7 +229,8 @@ static bool acpi_decode_space(struct resource_win *win,
->>  		acpi_dev_memresource_flags(res, len, wp);
->>  		break;
->>  	case ACPI_IO_RANGE:
->> -		acpi_dev_ioresource_flags(res, len, iodec);
->> +		acpi_dev_ioresource_flags(res, len, iodec,
->> +					  addr->info.io.translation_type);
->>  		break;
->>  	case ACPI_BUS_NUMBER_RANGE:
->>  		res->flags = IORESOURCE_BUS;
->> diff --git a/include/linux/ioport.h b/include/linux/ioport.h
->> index 388e3ae94f7a..24bea087e7af 100644
->> --- a/include/linux/ioport.h
->> +++ b/include/linux/ioport.h
->> @@ -94,6 +94,7 @@ struct resource {
->>  /* PnP I/O specific bits (IORESOURCE_BITS) */
->>  #define IORESOURCE_IO_16BIT_ADDR	(1<<0)
->>  #define IORESOURCE_IO_FIXED		(1<<1)
->> +#define IORESOURCE_IO_SPARSE		(1<<2)
-> 
-> I don't really like this bit.  We adding a new generic IORESOURCE_* bit
-> just for a special case, and it's only used in one place, for one arch,
-> during enumeration.
-Hi Bjorn,
-	Instead of defining a formal flag IORESOURCE_IO_SPARSE, we may
-reuse other field in struct resource to pass back the SPARSE flag,
-but that's a little dirty. For example, we may reuse res->name field
-to carry the SPARSE flag for the IA64 special case.
-	Is that OK?
-Thanks!
-Gerry
+From: Marc Zyngier [mailto:marc.zyngier@arm.com] 
+Sent: Tuesday, September 8, 2015 6:28 PM
 
-> 
-> Don't we have a similar problem (struct resource can't express all the
-> information from an ACPI resource) for the _TRA value for bridge windows?
-> If it's a similar issue, we should solve it in a similar way.
-Per my understanding, we just ignore ACPI address space information
-which can't be expressed by struct resource.
-Thanks!
-Gerry
+> In my view, this makes the change a lot more palatable, and it can fit in exactly two patches:
+>
+> 1) add the acpi_subtable_proc stuff with the compatibility helpers
+> 2) change arch/x86/kernel/acpi/boot.c to do whatever you want it
+>   to do
 
-> 
->>  /* PCI ROM control bits (IORESOURCE_BITS) */
->>  #define IORESOURCE_ROM_ENABLE		(1<<0)	/* ROM is enabled, same as PCI_ROM_ADDRESS_ENABLE */
->> -- 
->> 1.7.10.4
->>
+> It will be a lot easier to review and to verify.
+
+Thanks, Marc.
+Sounds you're right, I'll try to follow KISS rule better next time. Will send updated patches.
+
+Cheers,
+Lukasz
