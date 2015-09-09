@@ -1,147 +1,82 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH 2/2] x86, acpi: Handle apic/x2apic entries in MADT in
+From: "Anaczkowski, Lukasz" <lukasz.anaczkowski@intel.com>
+Subject: RE: [PATCH 2/2] x86, acpi: Handle apic/x2apic entries in MADT in
  correct order
-Date: Wed, 9 Sep 2015 14:56:19 +0100
-Message-ID: <20150909135619.GA11965@red-moon>
+Date: Wed, 9 Sep 2015 14:27:47 +0000
+Message-ID: <C1C2579D7BE026428F81F41198ADB172378BEA81@irsmsx110.ger.corp.intel.com>
 References: <55EF0C7A.7070105@arm.com>
  <1441791018-14669-1-git-send-email-lukasz.anaczkowski@intel.com>
  <1441791018-14669-2-git-send-email-lukasz.anaczkowski@intel.com>
  <1441791018-14669-3-git-send-email-lukasz.anaczkowski@intel.com>
+ <20150909135619.GA11965@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-pm-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1441791018-14669-3-git-send-email-lukasz.anaczkowski@intel.com>
+In-Reply-To: <20150909135619.GA11965@red-moon>
+Content-Language: en-US
 Sender: linux-pm-owner@vger.kernel.org
-To: Lukasz Anaczkowski <lukasz.anaczkowski@intel.com>
-Cc: Marc Zyngier <Marc.Zyngier@arm.com>, "tomasz.nowicki@linaro.org" <tomasz.nowicki@linaro.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "mingo@redhat.com" <mingo@redhat.com>, "hpa@zytor.com" <hpa@zytor.com>, "x86@kernel.org" <x86@kernel.org>, "jason@lakedaemon.net" <jason@lakedaemon.net>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "len.brown@intel.com" <len.brown@intel.com>, "pavel@ucw.cz" <pavel@ucw.cz>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Marc Zyngier <Marc.Zyngier@arm.com>, "tomasz.nowicki@linaro.org" <tomasz.nowicki@linaro.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "mingo@redhat.com" <mingo@redhat.com>, "hpa@zytor.com" <hpa@zytor.com>, "x86@kernel.org" <x86@kernel.org>, "jason@lakedaemon.net" <jason@lakedaemon.net>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, "pavel@ucw.cz" <pavel@ucw.cz>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Craft, Clayton A" <clayton.a.craft@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Sep 09, 2015 at 10:30:18AM +0100, Lukasz Anaczkowski wrote:
-> ACPI specifies the following rules when listing APIC IDs:
-> (1) Boot processor is listed first
-> (2) For multi-threaded processors, BIOS should list the first logical
->     processor of each of the individual multi-threaded processors in MADT
->     before listing any of the second logical processors.
-> (3) APIC IDs < 0xFF should be listed in APIC subtable, APIC IDs >= 0xFF
->     should be listed in X2APIC subtable
-> 
-> Because of above, when there's more than 0xFF logical CPUs, BIOS
-> interleaves APIC/X2APIC subtables.
-> 
-> Assuming, there's 72 cores, 72 hyper-threads each, 288 CPUs total,
-> listing is like this:
-> 
-> APIC (0,4,8, .., 252)
-> X2APIC (258,260,264, .. 284)
-> APIC (1,5,9,...,253)
-> X2APIC (259,261,265,...,285)
-> APIC (2,6,10,...,254)
-> X2APIC (260,262,266,..,286)
-> APIC (3,7,11,...,251)
-> X2APIC (255,261,262,266,..,287)
-> 
-> Now, before this patch, due to how ACPI MADT subtables were parsed (BSP
-> then X2APIC then APIC), kernel enumerated CPUs in reverted order (i.e.
-> high APIC IDs were getting low logical IDs, and low APIC IDs were
-> getting high logical IDs).
-> This is wrong for the following reasons:
-> () it's hard to predict how cores and threads are enumerated
+-----Original Message-----
+From: Lorenzo Pieralisi [mailto:lorenzo.pieralisi@arm.com] 
+Sent: Wednesday, September 9, 2015 3:56 PM
 
-So ? Why would the logical cpus order matters at all ? I guessed
-there are probeable properties that allows the kernel to build
-the affinity (ie topology list, shared caches, smt siblings, etc).
-Please explain, since I am confused, to me all you need is a list
-of existing physical ids, in whatever order they come, that's at least
-what we need on ARM.
+> On Wed, Sep 09, 2015 at 10:30:18AM +0100, Lukasz Anaczkowski wrote:
+> > () it's hard to predict how cores and threads are enumerated
 
-> () when it's hard to predict, s/w threads cannot be properly affinitized
->    causing significant performance impact due to e.g. inproper cache
->    sharing
+> So ? Why would the logical cpus order matters at all ? I guessed
+> there are probeable properties that allows the kernel to build
+> the affinity (ie topology list, shared caches, smt siblings, etc).
+> Please explain, since I am confused, to me all you need is a list
+> of existing physical ids, in whatever order they come, that's at least
+> what we need on ARM.
 
-See above. Why cpus logical ordering would matter here ?
+Hi Lorenzo,
 
-> () enumeration is inconsistent with how threads are enumerated on
->    other Intel Xeon processors
+Sure, let me try to explain this better.
 
-And why does that matter ? Is it because userspace is making assumptions
-on the logical cpu enumeration scheme ? I am just asking, I would
-like to understand.
+Proper (i.e. predictable way of CPU enumeration) matters for HPC software,
+(this is where I come from) as there are workloads that have some assumptions 
+on CPU enumeration in order to keep cache hit ratio as high as possible.
+E.g. in KNL cores share L2 caches, and if during enumeration logical cores do not
+reflect physical cores, S/W can start affinitize threads to the same physical cores
+causing great performance impact exactly due to L2 cache misses.
+(e.g. s/w assumes that HT CPUs are separated by core count).
 
-> So, order in which MADT APIC/X2APIC handlers are passed is
-> reverse and both handlers are passed to be called during same MADT
-> table to walk to achieve correct CPU enumeration.
+Now, those changes would not be required if someone who have written
+APIC spec had reserved more than just 1 byte for CPU id :)
+Unfortunately, it's the case for x86 APIC ID and once it turns out there's a need
+to enumerate more than that, they added X2APIC spec which has 4 bytes for ID.
+Even that would be also fine if there were just physical cores, but with HT, ACPI
+clearly says, that first must be listed physical cores and only after that HT CPUs
+(and that's why APIC/X2APIC subtables are interleaved).
 
-Define "correct" please, you define the logical ordering you
-want to achieve, you do not define why that's more "correct"
-than the current implementation.
+When GIC spec was added, someone was smart enough to put 4 bytes from
+the begging, so you don't need to care about it on ARM :)
 
-Thank you,
-Lorenzo
+> > () enumeration is inconsistent with how threads are enumerated on
+> >    other Intel Xeon processors
 
-> In scenario when someone boots kernel with options 'maxcpus=72 nox2apic',
-> in result less cores may be booted, since some of the CPUs the kernel
-> will try to use will have APIC ID >= 0xFF. In such case, one
-> should not pass 'nox2apic'.
-> 
-> Disclimer: code parsing MADT APIC/X2APIC has not been touched since 2009,
-> when X2APIC support was initially added. I do not know why MADT parsing
-> code was added in the reversed order in the first place.
-> I guess it didn't matter at that time since nobody cared about cores
-> with APIC IDs >= 0xFF, right?
-> 
-> This patch is based on work of "Yinghai Lu <yinghai@kernel.org>"
-> previously published at https://lkml.org/lkml/2013/1/21/563
-> 
-> Here's the explanation why parsing interface needs to be changed
-> and why simpler approach will not work https://lkml.org/lkml/2015/9/7/285
-> 
-> Signed-off-by: Lukasz Anaczkowski <lukasz.anaczkowski@intel.com>
-> Acked-by: Thomas Gleixner <tglx@linutronix.de> (commit message)
-> ---
->  arch/x86/kernel/acpi/boot.c | 22 ++++++++++++++++++----
->  1 file changed, 18 insertions(+), 4 deletions(-)
-> 
-> diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-> index e49ee24..116e911 100644
-> --- a/arch/x86/kernel/acpi/boot.c
-> +++ b/arch/x86/kernel/acpi/boot.c
-> @@ -981,6 +981,8 @@ static int __init acpi_parse_madt_lapic_entries(void)
->  {
->  	int count;
->  	int x2count = 0;
-> +	int ret;
-> +	struct acpi_subtable_proc madt_proc[2];
->  
->  	if (!cpu_has_apic)
->  		return -ENODEV;
-> @@ -1004,10 +1006,22 @@ static int __init acpi_parse_madt_lapic_entries(void)
->  				      acpi_parse_sapic, MAX_LOCAL_APIC);
->  
->  	if (!count) {
-> -		x2count = acpi_table_parse_madt(ACPI_MADT_TYPE_LOCAL_X2APIC,
-> -					acpi_parse_x2apic, MAX_LOCAL_APIC);
-> -		count = acpi_table_parse_madt(ACPI_MADT_TYPE_LOCAL_APIC,
-> -					acpi_parse_lapic, MAX_LOCAL_APIC);
-> +		memset(madt_proc, 0, sizeof(madt_proc));
-> +		madt_proc[0].id = ACPI_MADT_TYPE_LOCAL_APIC;
-> +		madt_proc[0].handler = acpi_parse_lapic;
-> +		madt_proc[1].id = ACPI_MADT_TYPE_LOCAL_X2APIC;
-> +		madt_proc[1].handler = acpi_parse_x2apic;
-> +		ret = acpi_table_parse_entries_array(ACPI_SIG_MADT,
-> +				sizeof(struct acpi_table_madt),
-> +				madt_proc, ARRAY_SIZE(madt_proc), MAX_LOCAL_APIC);
-> +		if (ret < 0) {
-> +			printk(KERN_ERR PREFIX
-> +					"Error parsing LAPIC/X2APIC entries\n");
-> +			return ret;
-> +		}
-> +
-> +		x2count = madt_proc[0].count;
-> +		count = madt_proc[1].count;
->  	}
->  	if (!count && !x2count) {
->  		printk(KERN_ERR PREFIX "No LAPIC entries present\n");
-> -- 
-> 1.8.3.1
-> 
+> And why does that matter ? Is it because userspace is making assumptions
+> on the logical cpu enumeration scheme ? I am just asking, I would
+> like to understand.
+
+Yes, HPC software makes some assumptions about CPU enumeration (as mentioned 
+above) and having inconsistent enumeration between different x86 CPUs (Xeon vs Xeon Phi)
+make such s/w basically not portable.
+
+> > So, order in which MADT APIC/X2APIC handlers are passed is
+> > reverse and both handlers are passed to be called during same MADT
+> > table to walk to achieve correct CPU enumeration.
+
+> Define "correct" please, you define the logical ordering you
+> want to achieve, you do not define why that's more "correct"
+> than the current implementation.
+
+Ok, probably 'correct' word is not the best here :)
+Does 'compatible' sound better?
+
+Thanks,
+Lukasz
