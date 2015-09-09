@@ -1,95 +1,59 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH 2/2] x86, acpi: Handle apic/x2apic entries in MADT in
- correct order
-Date: Wed, 9 Sep 2015 16:43:34 +0100
-Message-ID: <20150909154334.GA12341@red-moon>
-References: <55EF0C7A.7070105@arm.com>
- <1441791018-14669-1-git-send-email-lukasz.anaczkowski@intel.com>
- <1441791018-14669-2-git-send-email-lukasz.anaczkowski@intel.com>
- <1441791018-14669-3-git-send-email-lukasz.anaczkowski@intel.com>
- <20150909135619.GA11965@red-moon>
- <C1C2579D7BE026428F81F41198ADB172378BEA81@irsmsx110.ger.corp.intel.com>
+From: Al Stone <ahs3@redhat.com>
+Subject: Re: [PATCH v2 1/5] ACPI: add in a bad_madt_entry() function to
+ eventually replace the macro
+Date: Wed, 9 Sep 2015 13:57:59 -0600
+Message-ID: <55F08F47.1070906@redhat.com>
+References: <1440022048-6285-1-git-send-email-al.stone@linaro.org>
+ <1440022048-6285-2-git-send-email-al.stone@linaro.org>
+ <55EDADF5.5060008@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:58745 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751390AbbIIPn1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 9 Sep 2015 11:43:27 -0400
-Content-Disposition: inline
-In-Reply-To: <C1C2579D7BE026428F81F41198ADB172378BEA81@irsmsx110.ger.corp.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <55EDADF5.5060008@arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sudeep Holla <sudeep.holla@arm.com>, Al Stone <al.stone@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, "patches@linaro.org" <patches@linaro.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Anaczkowski, Lukasz" <lukasz.anaczkowski@intel.com>
-Cc: Marc Zyngier <Marc.Zyngier@arm.com>, "tomasz.nowicki@linaro.org" <tomasz.nowicki@linaro.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "mingo@redhat.com" <mingo@redhat.com>, "hpa@zytor.com" <hpa@zytor.com>, "x86@kernel.org" <x86@kernel.org>, "jason@lakedaemon.net" <jason@lakedaemon.net>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "Brown, Len" <len.brown@intel.com>, "pavel@ucw.cz" <pavel@ucw.cz>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Craft, Clayton A" <clayton.a.craft@intel.com>
 
-On Wed, Sep 09, 2015 at 03:27:47PM +0100, Anaczkowski, Lukasz wrote:
-> -----Original Message-----
-> From: Lorenzo Pieralisi [mailto:lorenzo.pieralisi@arm.com] 
-> Sent: Wednesday, September 9, 2015 3:56 PM
+On 09/07/2015 09:32 AM, Sudeep Holla wrote:
+> Hi Al,
 > 
-> > On Wed, Sep 09, 2015 at 10:30:18AM +0100, Lukasz Anaczkowski wrote:
-> > > () it's hard to predict how cores and threads are enumerated
+> On 19/08/15 23:07, Al Stone wrote:
 > 
-> > So ? Why would the logical cpus order matters at all ? I guessed
-> > there are probeable properties that allows the kernel to build
-> > the affinity (ie topology list, shared caches, smt siblings, etc).
-> > Please explain, since I am confused, to me all you need is a list
-> > of existing physical ids, in whatever order they come, that's at least
-> > what we need on ARM.
+> I finally got a chance to try this series on Juno. Well it exposed a firmware
+> bug in MADT table :)
 > 
-> Hi Lorenzo,
+> [..]
 > 
-> Sure, let me try to explain this better.
+>>                  acpi_tbl_entry_handler handler,
+>> @@ -245,6 +484,8 @@ acpi_parse_entries(char *id, unsigned long table_size,
+>>                 table_end) {
+>>                  if (entry->type == entry_id
+>>                      && (!max_entries || count < max_entries)) {
+>> +                       if (bad_madt_entry(table_header, entry))
+>> +                               return -EINVAL;
 > 
-> Proper (i.e. predictable way of CPU enumeration) matters for HPC software,
-> (this is where I come from) as there are workloads that have some assumptions 
-> on CPU enumeration in order to keep cache hit ratio as high as possible.
-> E.g. in KNL cores share L2 caches, and if during enumeration logical cores do not
-> reflect physical cores, S/W can start affinitize threads to the same physical cores
-> causing great performance impact exactly due to L2 cache misses.
-> (e.g. s/w assumes that HT CPUs are separated by core count).
-> 
-> Now, those changes would not be required if someone who have written
-> APIC spec had reserved more than just 1 byte for CPU id :)
-> Unfortunately, it's the case for x86 APIC ID and once it turns out there's a need
-> to enumerate more than that, they added X2APIC spec which has 4 bytes for ID.
-> Even that would be also fine if there were just physical cores, but with HT, ACPI
-> clearly says, that first must be listed physical cores and only after that HT CPUs
-> (and that's why APIC/X2APIC subtables are interleaved).
-> 
-> When GIC spec was added, someone was smart enough to put 4 bytes from
-> the begging, so you don't need to care about it on ARM :)
-> 
-> > > () enumeration is inconsistent with how threads are enumerated on
-> > >    other Intel Xeon processors
-> 
-> > And why does that matter ? Is it because userspace is making assumptions
-> > on the logical cpu enumeration scheme ? I am just asking, I would
-> > like to understand.
-> 
-> Yes, HPC software makes some assumptions about CPU enumeration (as mentioned 
-> above) and having inconsistent enumeration between different x86 CPUs (Xeon vs Xeon Phi)
-> make such s/w basically not portable.
+> Not sure if we can have the above check here unconditionally.
+> Currently I can see there are 2 other users of acpi_parse_entries i.e.
+> PCC and NUMA. So may be it can be made conditional or return success for
+> non-MADT tables from bad_madt_entry ?
 
-Eh, what about "other s/w" (since MADT APIC/X2APIC parsing is unchanged
-since 2009 as you mentioned) that relies on the way current enumeration is
-implemented ? I will leave that to you.
+So, I went back and double checked the other users and they're looking at
+the return value for acpi_parse_entries properly; adding in the check above
+unconditionally should not cause any behavior change.  Further, despite the
+name, acpi_parse_entries is only used to examine MADT subtables.  Granted,
+we should probably make the name clearer at some point (too ambiguous as to
+which entries are parsed right now).  Nonetheless, current usage seems to
+be in order.
 
-/me going back to commenting the code :)
 
-> > > So, order in which MADT APIC/X2APIC handlers are passed is
-> > > reverse and both handlers are passed to be called during same MADT
-> > > table to walk to achieve correct CPU enumeration.
-> 
-> > Define "correct" please, you define the logical ordering you
-> > want to achieve, you do not define why that's more "correct"
-> > than the current implementation.
-> 
-> Ok, probably 'correct' word is not the best here :)
-> Does 'compatible' sound better?
-
-No, see above :)
-
-Thanks,
-Lorenzo
+-- 
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Red Hat, Inc.
+ahs3@redhat.com
+-----------------------------------
