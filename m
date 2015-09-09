@@ -1,69 +1,36 @@
-From: "Suthikulpanit, Suravee" <suravee.suthikulpanit@amd.com>
-Subject: Re: [PATCH V3 0/4] PCI: ACPI: Setting up DMA coherency for PCI device
- from _CCA attribute
-Date: Wed, 9 Sep 2015 19:16:49 +0700
-Message-ID: <55F02331.2060001@amd.com>
-References: <1440597279-11802-1-git-send-email-Suravee.Suthikulpanit@amd.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1440597279-11802-1-git-send-email-Suravee.Suthikulpanit@amd.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: bhelgaas@google.com, rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com
-Cc: hanjun.guo@linaro.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Lukasz Anaczkowski <lukasz.anaczkowski@intel.com>
+Subject: Re: [PATCH 1/2] acpi: Added acpi_subtable_proc to ACPI table parsers
+Date: Wed,  9 Sep 2015 15:47:26 +0200
+Message-ID: <1441806449-27481-1-git-send-email-lukasz.anaczkowski@intel.com>
+References: <55F00E55.9080008@arm.com>
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <55F00E55.9080008@arm.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: marc.zyngier@arm.com, lorenzo.pieralisi@arm.com, tomasz.nowicki@linaro.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, jason@lakedaemon.net
+Cc: rjw@rjwysocki.net, len.brown@intel.com, pavel@ucw.cz, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi All,
+From: Marc Zyngier [mailto:marc.zyngier@arm.com] 
+Sent: Wednesday, September 9, 2015 12:48 PM
 
-Are there any other concerns about this patch series?
+> Nit: Please add a version number to the patches you send - this is at
+> least the 4th revision of this series, and it is harder to keep track of
+> what I'm reviewing. git send-email --subject-prefix "PATCH v4" is your
+> friend.
 
-Thanks,
-Suravee
+Oh... so this is how you do that! Thanks!
+Let me put 'v4' on this series and I'll start counting from that.
 
-On 8/26/2015 8:54 PM, Suravee Suthikulpanit wrote:
-> This patch adds support to setup DMA coherency for PCI device using
-> the ACPI _CCA attribute. According to the ACPI spec, the _CCA attribute
-> is required for ARM64. Therefore, this patch is a pre-req for ACPI PCI
-> support for ARM64 which is currently in development.
->
-> Also, this should not affect other architectures that does not define
-> CONFIG_ACPI_CCA_REQUIRED, since the default value is coherent.
->
-> I have included the following patch from Jeremy before cleaning up
-> the acpi_check_dma() function (in patch 2).
->
->      http://www.spinics.net/lists/linux-usb/msg128582.html)
->
-> Changes from V2: (https://lkml.org/lkml/2015/8/25/549)
->      * Return -ENOSUPP instead of -1 (per Rafael's suggestion)
->      * Add WARN() when fail to setup DMA for PCI device when booting
->        ACPI (per Arnd's suggestion)
->      * Added Acked-by from Rob.
->      * Minor clean up
->
-> Changes from V1: (https://lkml.org/lkml/2015/8/13/182)
->      * Include patch 1 from Jeremy to enable support for _CCA=0
->      * Clean up acpi_check_dma() per Bjorn suggestions
->      * Split the original V1 patch into two patches (patch 3 and 4)
->
->
-> Jeremy Linton (1):
->    Honor ACPI _CCA attribute setting
->
-> Suravee Suthikulpanit (3):
->    ACPI/scan: Clean up acpi_check_dma
->    PCI: OF: Move of_pci_dma_configure() to pci_dma_configure()
->    PCI: ACPI: Add support for PCI device DMA coherency
->
->   drivers/acpi/acpi_platform.c |  7 ++++++-
->   drivers/acpi/glue.c          |  6 +++---
->   drivers/acpi/scan.c          | 39 +++++++++++++++++++++++++++++++++++++++
->   drivers/base/property.c      | 10 +++++++---
->   drivers/of/of_pci.c          | 20 --------------------
->   drivers/pci/probe.c          | 35 +++++++++++++++++++++++++++++++++--
->   include/acpi/acpi_bus.h      | 35 ++---------------------------------
->   include/linux/acpi.h         |  4 ++--
->   include/linux/of_pci.h       |  3 ---
->   9 files changed, 92 insertions(+), 67 deletions(-)
->
+> If you respin it to address the above minor
+> comments, you can add my:
+
+> Reviewed-by: Marc Zyngier <marc.zyngier@arm.com>
+> Tested-by: Marc Zyngier <marc.zyngier@arm.com>
+
+I've incorporated your comments and putting tags into 1/2 patch.
+Thanks, Marc, for all your support!
+
+Cheers,
+Lukasz
+
+
