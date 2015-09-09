@@ -1,269 +1,69 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH 1/2] acpi: Added acpi_subtable_proc to ACPI table parsers
-Date: Wed, 09 Sep 2015 11:47:49 +0100
-Message-ID: <55F00E55.9080008@arm.com>
-References: <55EF0C7A.7070105@arm.com> <1441791018-14669-1-git-send-email-lukasz.anaczkowski@intel.com> <1441791018-14669-2-git-send-email-lukasz.anaczkowski@intel.com>
+From: "Suthikulpanit, Suravee" <suravee.suthikulpanit@amd.com>
+Subject: Re: [PATCH V3 0/4] PCI: ACPI: Setting up DMA coherency for PCI device
+ from _CCA attribute
+Date: Wed, 9 Sep 2015 19:16:49 +0700
+Message-ID: <55F02331.2060001@amd.com>
+References: <1440597279-11802-1-git-send-email-Suravee.Suthikulpanit@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:57938 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753032AbbIIKrx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 9 Sep 2015 06:47:53 -0400
-In-Reply-To: <1441791018-14669-2-git-send-email-lukasz.anaczkowski@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1440597279-11802-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: bhelgaas@google.com, rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com
+Cc: hanjun.guo@linaro.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lukasz Anaczkowski <lukasz.anaczkowski@intel.com>, lorenzo.pieralisi@arm.com, tomasz.nowicki@linaro.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, jason@lakedaemon.net
-Cc: rjw@rjwysocki.net, len.brown@intel.com, pavel@ucw.cz, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-Hi Lucasz,
+Hi All,
 
-Nit: Please add a version number to the patches you send - this is at
-least the 4th revision of this series, and it is harder to keep track of
-what I'm reviewing. git send-email --subject-prefix "PATCH v4" is your
-friend.
-
-On 09/09/15 10:30, Lukasz Anaczkowski wrote:
-> ACPI subtable parsing needs to be extended to allow two or more
-> handlers to be run in the same ACPI table walk, thus adding
-> acpi_subtable_proc structure which stores
-> () ACPI table id
-> () handler that processes table
-> () counter how many items has been processed
-> and passing it to acpi_parse_entries_array() and
-> acpi_table_parse_entries_array().
-> 
-> This is needed to fix CPU enumeration when APIC/X2APIC entries
-> are interleaved.
-> 
-> Signed-off-by: Lukasz Anaczkowski <lukasz.anaczkowski@intel.com>
-> ---
->  drivers/acpi/tables.c | 89 +++++++++++++++++++++++++++++++++++++++++----------
->  include/linux/acpi.h  | 13 ++++++++
->  2 files changed, 85 insertions(+), 17 deletions(-)
-> 
-> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-> index 2e19189..13e5089 100644
-> --- a/drivers/acpi/tables.c
-> +++ b/drivers/acpi/tables.c
-> @@ -214,20 +214,37 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
->  	}
->  }
->  
-> +/**
-> + * acpi_parse_entries_array - for each proc_num find a subtable with proc->id
-> + *    and run proc->handler on it. Assumption is that there's only
-> + *    single handler for particular entry id.
-> + *
-> + * @id: table id (for debugging purposes)
-> + * @table_size: single entry size
-> + * @table_header: where does the table start?
-> + * @proc: array of acpi_subtable_proc struct containing entry id
-> + *        and associated handler with it
-> + * @proc_num: how big proc is?
-> + * @max_entries: how many entries can we process?
-> + *
-> + * On success returns sum of all matching entries for all proc handlers.
-> + * Oterwise, -ENODEV or -EINVAL is returned.
-
-s/Oterwise/Otherwise/
-
-> + */
->  int __init
-> -acpi_parse_entries(char *id, unsigned long table_size,
-> -		acpi_tbl_entry_handler handler,
-> +acpi_parse_entries_array(char *id, unsigned long table_size,
->  		struct acpi_table_header *table_header,
-> -		int entry_id, unsigned int max_entries)
-> +		struct acpi_subtable_proc *proc, int proc_num,
-> +		unsigned int max_entries)
-
-It seems that there is no user of this function outside of this file, so
-it can be made static.
-
->  {
->  	struct acpi_subtable_header *entry;
-> -	int count = 0;
->  	unsigned long table_end;
-> +	int count = 0;
-> +	int i;
->  
->  	if (acpi_disabled)
->  		return -ENODEV;
->  
-> -	if (!id || !handler)
-> +	if (!id)
->  		return -EINVAL;
->  
->  	if (!table_size)
-> @@ -247,20 +264,27 @@ acpi_parse_entries(char *id, unsigned long table_size,
->  
->  	while (((unsigned long)entry) + sizeof(struct acpi_subtable_header) <
->  	       table_end) {
-> -		if (entry->type == entry_id
-> -		    && (!max_entries || count < max_entries)) {
-> -			if (handler(entry, table_end))
-> +		if (max_entries && count >= max_entries)
-> +			break;
-> +
-> +		for (i = 0; i < proc_num; i++) {
-> +			if (entry->type != proc[i].id)
-> +				continue;
-> +			if (!proc->handler || proc[i].handler(entry, table_end))
->  				return -EINVAL;
->  
-> -			count++;
-> +			proc->count++;
-> +			break;
->  		}
-> +		if (i != proc_num)
-> +			count++;
->  
->  		/*
->  		 * If entry->length is 0, break from this loop to avoid
->  		 * infinite loop.
->  		 */
->  		if (entry->length == 0) {
-> -			pr_err("[%4.4s:0x%02x] Invalid zero length\n", id, entry_id);
-> +			pr_err("[%4.4s:0x%02x] Invalid zero length\n", id, proc->id);
->  			return -EINVAL;
->  		}
->  
-> @@ -270,17 +294,31 @@ acpi_parse_entries(char *id, unsigned long table_size,
->  
->  	if (max_entries && count > max_entries) {
->  		pr_warn("[%4.4s:0x%02x] ignored %i entries of %i found\n",
-> -			id, entry_id, count - max_entries, count);
-> +			id, proc->id, count - max_entries, count);
->  	}
->  
->  	return count;
->  }
->  
-> +int __init acpi_parse_entries(char *id, unsigned long table_size,
-> +			       acpi_tbl_entry_handler handler,
-> +			       struct acpi_table_header *table_header,
-> +			       int entry_id, unsigned int max_entries)
-> +{
-> +	struct acpi_subtable_proc proc = {
-> +		.id		= entry_id,
-> +		.handler	= handler,
-> +		.count		= 0,
-
-count is implicitly initialized to zero when you have a partial initializer.
-
-> +	};
-> +
-> +	return acpi_parse_entries_array(id, table_size, table_header,
-> +			&proc, 1, max_entries);
-> +}
-> +
->  int __init
-> -acpi_table_parse_entries(char *id,
-> +acpi_table_parse_entries_array(char *id,
->  			 unsigned long table_size,
-> -			 int entry_id,
-> -			 acpi_tbl_entry_handler handler,
-> +			 struct acpi_subtable_proc *proc, int proc_num,
->  			 unsigned int max_entries)
->  {
->  	struct acpi_table_header *table_header = NULL;
-> @@ -291,7 +329,7 @@ acpi_table_parse_entries(char *id,
->  	if (acpi_disabled)
->  		return -ENODEV;
->  
-> -	if (!id || !handler)
-> +	if (!id)
->  		return -EINVAL;
->  
->  	if (!strncmp(id, ACPI_SIG_MADT, 4))
-> @@ -303,14 +341,31 @@ acpi_table_parse_entries(char *id,
->  		return -ENODEV;
->  	}
->  
-> -	count = acpi_parse_entries(id, table_size, handler, table_header,
-> -			entry_id, max_entries);
-> +	count = acpi_parse_entries_array(id, table_size, table_header,
-> +			proc, proc_num, max_entries);
->  
->  	early_acpi_os_unmap_memory((char *)table_header, tbl_size);
->  	return count;
->  }
->  
->  int __init
-> +acpi_table_parse_entries(char *id,
-> +			unsigned long table_size,
-> +			int entry_id,
-> +			acpi_tbl_entry_handler handler,
-> +			unsigned int max_entries)
-> +{
-> +	struct acpi_subtable_proc proc = {
-> +		.id		= entry_id,
-> +		.handler	= handler,
-> +		.count		= 0,
-
-Same here.
-
-> +	};
-> +
-> +	return acpi_table_parse_entries_array(id, table_size, &proc, 1,
-> +						max_entries);
-> +}
-> +
-> +int __init
->  acpi_table_parse_madt(enum acpi_madt_type id,
->  		      acpi_tbl_entry_handler handler, unsigned int max_entries)
->  {
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index d2445fa..7a25ef9 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -135,6 +135,12 @@ static inline void acpi_initrd_override(void *data, size_t size)
->  		(!entry) || (unsigned long)entry + sizeof(*entry) > end ||  \
->  		((struct acpi_subtable_header *)entry)->length < sizeof(*entry))
->  
-> +struct acpi_subtable_proc {
-> +	int id;
-> +	acpi_tbl_entry_handler handler;
-> +	int count;
-> +};
-> +
->  char * __acpi_map_table (unsigned long phys_addr, unsigned long size);
->  void __acpi_unmap_table(char *map, unsigned long size);
->  int early_acpi_boot_init(void);
-> @@ -149,10 +155,17 @@ int __init acpi_parse_entries(char *id, unsigned long table_size,
->  			      acpi_tbl_entry_handler handler,
->  			      struct acpi_table_header *table_header,
->  			      int entry_id, unsigned int max_entries);
-> +int __init acpi_parse_entries_array(char *id, unsigned long table_size,
-> +			      struct acpi_table_header *table_header,
-> +			      struct acpi_subtable_proc *proc, int proc_num,
-> +			      unsigned int max_entries);
-
-and you can drop this one if you make it static in tables.c
-
->  int __init acpi_table_parse_entries(char *id, unsigned long table_size,
->  				    int entry_id,
->  				    acpi_tbl_entry_handler handler,
->  				    unsigned int max_entries);
-> +int __init acpi_table_parse_entries_array(char *id, unsigned long table_size,
-> +				    struct acpi_subtable_proc *proc, int proc_num,
-> +				    unsigned int max_entries);
->  int acpi_table_parse_madt(enum acpi_madt_type id,
->  			  acpi_tbl_entry_handler handler,
->  			  unsigned int max_entries);
-> 
-
-Other than that, I gave it a quick run on arm64, and it did boot without
-any observable issue. If you respin it to address the above minor
-comments, you can add my:
-
-Reviewed-by: Marc Zyngier <marc.zyngier@arm.com>
-Tested-by: Marc Zyngier <marc.zyngier@arm.com>
+Are there any other concerns about this patch series?
 
 Thanks,
+Suravee
 
-	M.
--- 
-Jazz is not dead. It just smells funny...
+On 8/26/2015 8:54 PM, Suravee Suthikulpanit wrote:
+> This patch adds support to setup DMA coherency for PCI device using
+> the ACPI _CCA attribute. According to the ACPI spec, the _CCA attribute
+> is required for ARM64. Therefore, this patch is a pre-req for ACPI PCI
+> support for ARM64 which is currently in development.
+>
+> Also, this should not affect other architectures that does not define
+> CONFIG_ACPI_CCA_REQUIRED, since the default value is coherent.
+>
+> I have included the following patch from Jeremy before cleaning up
+> the acpi_check_dma() function (in patch 2).
+>
+>      http://www.spinics.net/lists/linux-usb/msg128582.html)
+>
+> Changes from V2: (https://lkml.org/lkml/2015/8/25/549)
+>      * Return -ENOSUPP instead of -1 (per Rafael's suggestion)
+>      * Add WARN() when fail to setup DMA for PCI device when booting
+>        ACPI (per Arnd's suggestion)
+>      * Added Acked-by from Rob.
+>      * Minor clean up
+>
+> Changes from V1: (https://lkml.org/lkml/2015/8/13/182)
+>      * Include patch 1 from Jeremy to enable support for _CCA=0
+>      * Clean up acpi_check_dma() per Bjorn suggestions
+>      * Split the original V1 patch into two patches (patch 3 and 4)
+>
+>
+> Jeremy Linton (1):
+>    Honor ACPI _CCA attribute setting
+>
+> Suravee Suthikulpanit (3):
+>    ACPI/scan: Clean up acpi_check_dma
+>    PCI: OF: Move of_pci_dma_configure() to pci_dma_configure()
+>    PCI: ACPI: Add support for PCI device DMA coherency
+>
+>   drivers/acpi/acpi_platform.c |  7 ++++++-
+>   drivers/acpi/glue.c          |  6 +++---
+>   drivers/acpi/scan.c          | 39 +++++++++++++++++++++++++++++++++++++++
+>   drivers/base/property.c      | 10 +++++++---
+>   drivers/of/of_pci.c          | 20 --------------------
+>   drivers/pci/probe.c          | 35 +++++++++++++++++++++++++++++++++--
+>   include/acpi/acpi_bus.h      | 35 ++---------------------------------
+>   include/linux/acpi.h         |  4 ++--
+>   include/linux/of_pci.h       |  3 ---
+>   9 files changed, 92 insertions(+), 67 deletions(-)
+>
