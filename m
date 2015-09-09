@@ -1,100 +1,67 @@
-From: Al Stone <al.stone@linaro.org>
-Subject: [PATCH v3 2/5] ACPI / ARM64: remove usage of
- BAD_MADT_ENTRY/BAD_MADT_GICC_ENTRY
-Date: Wed,  9 Sep 2015 15:09:48 -0600
-Message-ID: <1441832991-28200-3-git-send-email-al.stone@linaro.org>
-References: <1441832991-28200-1-git-send-email-al.stone@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1441832991-28200-1-git-send-email-al.stone@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: linaro-kernel@lists.linaro.org, linux-ia64@vger.kernel.org, Jason Cooper <jason@lakedaemon.net>, Al Stone <al.stone@linaro.org>, patches@linaro.org, linux-pm@vger.kernel.org, linaro-acpi@lists.linaro.org, Will Deacon <will.deacon@arm.com>, linux-kernel@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>
+From: Rasmus Villemoes <linux@rasmusvillemoes.dk>
+Subject: [PATCH 1/3] ACPI: constify first argument of struct acpi_scan_handler::match
+Date: Wed,  9 Sep 2015 23:59:41 +0200
+Message-ID: <1441835983-15197-1-git-send-email-linux@rasmusvillemoes.dk>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-la0-f46.google.com ([209.85.215.46]:33879 "EHLO
+	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751870AbbIIV74 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Sep 2015 17:59:56 -0400
+Received: by laeb10 with SMTP id b10so16348393lae.1
+        for <linux-acpi@vger.kernel.org>; Wed, 09 Sep 2015 14:59:54 -0700 (PDT)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>
+Cc: Rasmus Villemoes <linux@rasmusvillemoes.dk>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, devel@acpica.org
 
-Now that we have introduced the bad_madt_entry() function, and that
-function is being invoked in acpi_table_parse_madt() for us, there
-is no longer any need to use the BAD_MADT_ENTRY macro, or in the case
-of arm64, the BAD_MADT_GICC_ENTRY, too.
+One wouldn't expect a "match" function modify the string it searches
+for, and indeed the only instance of the struct
+acpi_scan_handler::match callback, acpi_pnp_match, can easily be
+changed. While there, update its helper matching_id().
 
-Signed-off-by: Al Stone <al.stone@linaro.org>
-Acked-by: Catalin Marinas <catalin.marinas@arm.com>
-Acked-by: Marc Zyngier <marc.zyngier@arm.com>
-Reviewed-and-tested-by: Sudeep Holla <sudeep.holla@arm.com>
-Cc: Will Deacon <will.deacon@arm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>
-Cc: Jason Cooper <jason@lakedaemon.net>
+This is also preparation for constifying struct acpi_hardware_id::id.
+
+Signed-off-by: Rasmus Villemoes <linux@rasmusvillemoes.dk>
 ---
- arch/arm64/include/asm/acpi.h | 8 --------
- arch/arm64/kernel/smp.c       | 2 --
- drivers/irqchip/irq-gic.c     | 6 ------
- 3 files changed, 16 deletions(-)
+ drivers/acpi/acpi_pnp.c | 4 ++--
+ include/acpi/acpi_bus.h | 2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-index 208cec0..ed7e212 100644
---- a/arch/arm64/include/asm/acpi.h
-+++ b/arch/arm64/include/asm/acpi.h
-@@ -19,14 +19,6 @@
- #include <asm/cputype.h>
- #include <asm/smp_plat.h>
+diff --git a/drivers/acpi/acpi_pnp.c b/drivers/acpi/acpi_pnp.c
+index c58940b231d6..48fc3ad13a4b 100644
+--- a/drivers/acpi/acpi_pnp.c
++++ b/drivers/acpi/acpi_pnp.c
+@@ -316,7 +316,7 @@ static const struct acpi_device_id acpi_pnp_device_ids[] = {
+ 	{""},
+ };
  
--/* Macros for consistency checks of the GICC subtable of MADT */
--#define ACPI_MADT_GICC_LENGTH	\
--	(acpi_gbl_FADT.header.revision < 6 ? 76 : 80)
--
--#define BAD_MADT_GICC_ENTRY(entry, end)						\
--	(!(entry) || (unsigned long)(entry) + sizeof(*(entry)) > (end) ||	\
--	 (entry)->header.length != ACPI_MADT_GICC_LENGTH)
--
- /* Basic configuration for ACPI */
- #ifdef	CONFIG_ACPI
- /* ACPI table mapping after acpi_gbl_permanent_mmap is set */
-diff --git a/arch/arm64/kernel/smp.c b/arch/arm64/kernel/smp.c
-index dbdaacd..66cc8c4 100644
---- a/arch/arm64/kernel/smp.c
-+++ b/arch/arm64/kernel/smp.c
-@@ -451,8 +451,6 @@ acpi_parse_gic_cpu_interface(struct acpi_subtable_header *header,
- 	struct acpi_madt_generic_interrupt *processor;
+-static bool matching_id(char *idstr, char *list_id)
++static bool matching_id(const char *idstr, const char *list_id)
+ {
+ 	int i;
  
- 	processor = (struct acpi_madt_generic_interrupt *)header;
--	if (BAD_MADT_GICC_ENTRY(processor, end))
--		return -EINVAL;
- 
- 	acpi_table_print_madt_entry(header);
- 
-diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
-index e6b7ed5..b3530e3 100644
---- a/drivers/irqchip/irq-gic.c
-+++ b/drivers/irqchip/irq-gic.c
-@@ -1189,9 +1189,6 @@ gic_acpi_parse_madt_cpu(struct acpi_subtable_header *header,
- 
- 	processor = (struct acpi_madt_generic_interrupt *)header;
- 
--	if (BAD_MADT_GICC_ENTRY(processor, end))
--		return -EINVAL;
--
- 	/*
- 	 * There is no support for non-banked GICv1/2 register in ACPI spec.
- 	 * All CPU interface addresses have to be the same.
-@@ -1213,9 +1210,6 @@ gic_acpi_parse_madt_distributor(struct acpi_subtable_header *header,
- 
- 	dist = (struct acpi_madt_generic_distributor *)header;
- 
--	if (BAD_MADT_ENTRY(dist, end))
--		return -EINVAL;
--
- 	dist_phy_base = dist->base_address;
- 	return 0;
+@@ -333,7 +333,7 @@ static bool matching_id(char *idstr, char *list_id)
+ 	return true;
  }
+ 
+-static bool acpi_pnp_match(char *idstr, const struct acpi_device_id **matchid)
++static bool acpi_pnp_match(const char *idstr, const struct acpi_device_id **matchid)
+ {
+ 	const struct acpi_device_id *devid;
+ 
+diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+index 5ba8fb64f664..9a1b46c64fc1 100644
+--- a/include/acpi/acpi_bus.h
++++ b/include/acpi/acpi_bus.h
+@@ -129,7 +129,7 @@ static inline struct acpi_hotplug_profile *to_acpi_hotplug_profile(
+ struct acpi_scan_handler {
+ 	const struct acpi_device_id *ids;
+ 	struct list_head list_node;
+-	bool (*match)(char *idstr, const struct acpi_device_id **matchid);
++	bool (*match)(const char *idstr, const struct acpi_device_id **matchid);
+ 	int (*attach)(struct acpi_device *dev, const struct acpi_device_id *id);
+ 	void (*detach)(struct acpi_device *dev);
+ 	void (*bind)(struct device *phys_dev);
 -- 
-2.4.3
+2.1.3
+
