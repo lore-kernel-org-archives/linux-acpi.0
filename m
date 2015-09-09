@@ -1,238 +1,256 @@
-From: Lukasz Anaczkowski <lukasz.anaczkowski@intel.com>
-Subject: [PATCH v4 1/2] acpi: Added acpi_subtable_proc to ACPI table parsers
-Date: Wed,  9 Sep 2015 15:47:28 +0200
-Message-ID: <1441806449-27481-3-git-send-email-lukasz.anaczkowski@intel.com>
-References: <55F00E55.9080008@arm.com>
- <1441806449-27481-1-git-send-email-lukasz.anaczkowski@intel.com>
- <1441806449-27481-2-git-send-email-lukasz.anaczkowski@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:53423 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753440AbbIINrp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 9 Sep 2015 09:47:45 -0400
-In-Reply-To: <1441806449-27481-2-git-send-email-lukasz.anaczkowski@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Subject: Re: [PATCH 05/11] x86, pci, acpi: Move arch-agnostic MMCONFIG (aka
+ ECAM) and ACPI code out of arch/x86/ directory
+Date: Wed, 9 Sep 2015 15:47:55 +0200
+Message-ID: <55F0388B.1090607@linaro.org>
+References: <20150526170817.GU1565@arm.com> <55657B02.5090805@linaro.org>
+ <20150602133215.GC23650@red-moon> <55701A31.808@linaro.org>
+ <20150604102253.GA31773@red-moon> <5570447D.3020705@linaro.org>
+ <557504A2.3060203@linaro.org> <20150608151443.GA16151@red-moon>
+ <55E4340D.6050004@linaro.org> <55ED6010.3020406@linaro.org>
+ <20150908150727.GF29293@red-moon>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20150908150727.GF29293@red-moon>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "msalter@redhat.com" <msalter@redhat.com>, Liviu Dudau <Liviu.Dudau@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Will Deacon <Will.Deacon@arm.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Yijing Wang <wangyijing@huawei.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-acpi@vger.kernel.org
-To: marc.zyngier@arm.com, lorenzo.pieralisi@arm.com, tomasz.nowicki@linaro.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, jason@lakedaemon.net
-Cc: rjw@rjwysocki.net, len.brown@intel.com, pavel@ucw.cz, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Lukasz Anaczkowski <lukasz.anaczkowski@intel.com>
 
-ACPI subtable parsing needs to be extended to allow two or more
-handlers to be run in the same ACPI table walk, thus adding
-acpi_subtable_proc structure which stores
-() ACPI table id
-() handler that processes table
-() counter how many items has been processed
-and passing it to acpi_parse_entries_array() and
-acpi_table_parse_entries_array().
+Hi Lorenzo,
 
-This is needed to fix CPU enumeration when APIC/X2APIC entries
-are interleaved.
+On 08.09.2015 17:07, Lorenzo Pieralisi wrote:
+> Hi Tomasz,
+>
+> On Mon, Sep 07, 2015 at 10:59:44AM +0100, Tomasz Nowicki wrote:
+>> On 31.08.2015 13:01, Tomasz Nowicki wrote:
+>>> On 08.06.2015 17:14, Lorenzo Pieralisi wrote:
+>>>> On Mon, Jun 08, 2015 at 03:57:38AM +0100, Hanjun Guo wrote:
+>>>>
+>>>> [...]
+>>>>
+>>>>>>>>>>> Why can't we make use of the ECAM implementation used by
+>>>>>>>>>>> pci-host-generic
+>>>>>>>>>>> and drivers/pci/access.c?
+>>>>>>>>>>
+>>>>>>>>>> We had that question when I had posted MMCFG patch set separately,
+>>>>>>>>>> please see:
+>>>>>>>>>> https://lkml.org/lkml/2015/3/11/492
+>>>>>>>>>
+>>>>>>>>> Yes, but the real question is, why do we need to have PCI config
+>>>>>>>>> space
+>>>>>>>>> up and running before a bus struct is even created ? I think the
+>>>>>>>>> reason is
+>>>>>>>>> the PCI configuration address space format (ACPI 6.0, Table 5-27,
+>>>>>>>>> page
+>>>>>>>>> 108):
+>>>>>>>>>
+>>>>>>>>> "PCI Configuration space addresses must be confined to devices on
+>>>>>>>>> PCI Segment Group 0, bus 0. This restriction exists to accommodate
+>>>>>>>>> access to fixed hardware prior to PCI bus enumeration".
+>>>>>>>>>
+>>>>>>>>> On HW reduced platforms I do not even think this is required at all,
+>>>>>>>>> we have to look into this to avoid code duplication that might well
+>>>>>>>>> turn out useless.
+>>>>>>>>
+>>>>>>>> This is only for the fixed hardware, which will be not available for
+>>>>>>>> ARM64 (reduced hardware mode), but in Generic Hardware Programming
+>>>>>>>> Model, we using OEM-provided ACPI Machine Language (AML) code to
+>>>>>>>> access
+>>>>>>>> generic hardware registers, this will be available for reduced
+>>>>>>>> hardware
+>>>>>>>> too.
+>>>>>>>>
+>>>>>>>> So in ACPI spec, it says: (ACPI 6.0 page 66, last paragraph)
+>>>>>>>>
+>>>>>>>> ACPI defines eight address spaces that may be accessed by generic
+>>>>>>>> hardware implementations. These include:
+>>>>>>>> * System I/O space
+>>>>>>>> * System memory space
+>>>>>>>> * PCI configuration space
+>>>>>>>> * Embedded controller space
+>>>>>>>> * System Management Bus (SMBus) space
+>>>>>>>> * CMOS
+>>>>>>>> * PCI BAR Target
+>>>>>>>> * IPMI space
+>>>>>>>>
+>>>>>>>> So if any device using the PCI address space for control, such
+>>>>>>>> as a system reset control device, its address space can be reside
+>>>>>>>> in PCI configuration space (who can prevent a OEM do that crazy
+>>>>>>>> thing? :) ), and it should be accessible before the PCI bus is
+>>>>>>>> created.
+>>>>>>>
+>>>>>>> Us, by changing attitude and questioning features whose usefulness
+>>>>>>> is questionable. I will look into this and raise the point, I am not
+>>>>>>> thrilled by the idea of adding another set of PCI accessor functions
+>>>>>>> and drivers because we have to access a register through PCI before
+>>>>>>> enumerating the bus (and on arm64 this is totally useless since
+>>>>>>> we are not meant to support fixed HW anyway). Maybe we can make acpica
+>>>>>>> code use a "special" stub (ACPI specific, PCI configuration space
+>>>>>>> address
+>>>>>>> space has restrictions anyway), I have to review this set in its
+>>>>>>> entirety to see how to do that (and I would kindly ask you to do
+>>>>>>> it too, before saying it is not possible to implement it).
+>>>>>>
+>>>>>> I'm willing to do that, actually, if we don't need a mechanism to
+>>>>>> access PCI config space before the bus is created, the code can be
+>>>>>> simplified a lot.
+>>>>>
+>>>>> After more investigation on the spec and the ACPI core code, I'm
+>>>>> still not convinced that accessing to PCI config space before PCI
+>>>>> bus creating is impossible, also there is no enough ARM64 hardware
+>>>>> to prove that too. But I think we can go in this way, reuse the
+>>>>> ECAM implementation by pci-host-generic for now, and implement the PCI
+>>>>> accessor functions before enumerating PCI bus when needed in the
+>>>>> future, does it make sense?
+>>>>
+>>>> You mean we rewrite the patch to make sure we can use the PCI host
+>>>> generic
+>>>> driver with MCFG and we leave the acpica PCI config call empty stubs on
+>>>> arm64 (as they are now) ?
+>>>>
+>>>
+>>> Hi Bjorn, Rafael,
+>>>
+>>> Lorenzo pointed out very important problem we are having with PCI config
+>>> space access for ARM64. Please refer to the above discussion and add
+>>> your 2 cents. Can we forget about accessing PCI config space (for
+>>> Hardware Reduced profile) before PCI bus creation? If not, do you see a
+>>> way to use drivers/pci/access.c accessors here, like acpica change? Any
+>>> opinion is very appreciated.
+>>>
+>>
+>> Kindly remainder.
+>
+> I think (but I am happy to be corrected) that the map_bus() hook
+> (ie that's why struct pci_bus is required in eg pci_generic_config_write)
+> is there to ensure that when the generic accessors are called
+> a) we have a valid bus b) the host controllers implementing it
+> has been initialized.
+>
+> I had another look and I noticed you are trying to solve multiple
+> things at once:
+>
+> 1) ACPICA seems to need PCI config space on bus 0 to be working
+>     before PCI enumerates (ie before we have a root bus), we need to
+>     countercheck on that, but you can't use the generic PCI accessors
+>     for that reasons (ie root bus might not be available, you do not
+>     have a pci_bus struct)
+> 2) the raw_pci_read/write require _generic_ mmio back-ends, since AMD
+>     can't cope with standard x86 read/write{b,w,l}
+>
+> Overall, it seems to me that we can avoid code duplication by
+> shuffling your code a bit.
+>
+> You could modify the generic accessors in drivers/pci/access.c to
+> use your mmio back-end instead of using plain read/write{b,w,l}
+> functions (we should check if RobH is ok with that there can be
+> reasons that prevent this from happening). This would solve the
+> AMD mmio issue.
+>
+> By factoring out the code that actually carries out the reads
+> and writes in the accessors basically you decouple the functions
+> requiring the struct pci_bus from the ones that does not require it
+> (ie raw_pci_{read/write}.
+>
+> The generic MMIO layer belongs in the drivers/pci/access.c file, it has
+> nothing to do with ECAM.
+>
+> The mmcfg interface should probably live in pci-acpi.c, I do not think
+> you need an extra file in there but that's a detail.
+>
+> Basically the generic accessors would become something like eg:
+>
+> int pci_generic_config_write(struct pci_bus *bus, unsigned int devfn,
+> 			     int where, int size, u32 val)
+> {
+> 	void __iomem *addr;
+>
+> 	addr = bus->ops->map_bus(bus, devfn, where);
+> 	if (!addr)
+> 		return PCIBIOS_DEVICE_NOT_FOUND;
+>
+> 	pci_mmio_write(size, addr + where, value);
+>
+> 	return PCIBIOS_SUCCESSFUL;
+> }
+>
+> With that in place using raw_pci_write/read or the generic accessors
+> becomes almost identical, with code requiring the pci_bus to be
+> created using the generic accessors and ACPICA using the raw version.
+>
+> I might be missing something, so apologies if that's the case.
+>
 
-Signed-off-by: Lukasz Anaczkowski <lukasz.anaczkowski@intel.com>
-Reviewed-by: Marc Zyngier <marc.zyngier@arm.com>
-Tested-by: Marc Zyngier <marc.zyngier@arm.com>
----
- drivers/acpi/tables.c | 91 +++++++++++++++++++++++++++++++++++++++++----------
- include/linux/acpi.h  | 19 +++++++++--
- 2 files changed, 89 insertions(+), 21 deletions(-)
+Actually, I think you showed me the right direction :) Here are some 
+conclusions/comments/concerns. Please correct me if I am wrong:
 
-diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-index 2e19189..b2608fe 100644
---- a/drivers/acpi/tables.c
-+++ b/drivers/acpi/tables.c
-@@ -214,20 +214,37 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
- 	}
- }
- 
--int __init
--acpi_parse_entries(char *id, unsigned long table_size,
--		acpi_tbl_entry_handler handler,
-+/**
-+ * acpi_parse_entries_array - for each proc_num find a subtable with proc->id
-+ *    and run proc->handler on it. Assumption is that there's only
-+ *    single handler for particular entry id.
-+ *
-+ * @id: table id (for debugging purposes)
-+ * @table_size: single entry size
-+ * @table_header: where does the table start?
-+ * @proc: array of acpi_subtable_proc struct containing entry id
-+ *        and associated handler with it
-+ * @proc_num: how big proc is?
-+ * @max_entries: how many entries can we process?
-+ *
-+ * On success returns sum of all matching entries for all proc handlers.
-+ * Otherwise, -ENODEV or -EINVAL is returned.
-+ */
-+static int __init
-+acpi_parse_entries_array(char *id, unsigned long table_size,
- 		struct acpi_table_header *table_header,
--		int entry_id, unsigned int max_entries)
-+		struct acpi_subtable_proc *proc, int proc_num,
-+		unsigned int max_entries)
- {
- 	struct acpi_subtable_header *entry;
--	int count = 0;
- 	unsigned long table_end;
-+	int count = 0;
-+	int i;
- 
- 	if (acpi_disabled)
- 		return -ENODEV;
- 
--	if (!id || !handler)
-+	if (!id)
- 		return -EINVAL;
- 
- 	if (!table_size)
-@@ -247,20 +264,27 @@ acpi_parse_entries(char *id, unsigned long table_size,
- 
- 	while (((unsigned long)entry) + sizeof(struct acpi_subtable_header) <
- 	       table_end) {
--		if (entry->type == entry_id
--		    && (!max_entries || count < max_entries)) {
--			if (handler(entry, table_end))
-+		if (max_entries && count >= max_entries)
-+			break;
-+
-+		for (i = 0; i < proc_num; i++) {
-+			if (entry->type != proc[i].id)
-+				continue;
-+			if (!proc->handler || proc[i].handler(entry, table_end))
- 				return -EINVAL;
- 
--			count++;
-+			proc->count++;
-+			break;
- 		}
-+		if (i != proc_num)
-+			count++;
- 
- 		/*
- 		 * If entry->length is 0, break from this loop to avoid
- 		 * infinite loop.
- 		 */
- 		if (entry->length == 0) {
--			pr_err("[%4.4s:0x%02x] Invalid zero length\n", id, entry_id);
-+			pr_err("[%4.4s:0x%02x] Invalid zero length\n", id, proc->id);
- 			return -EINVAL;
- 		}
- 
-@@ -270,17 +294,32 @@ acpi_parse_entries(char *id, unsigned long table_size,
- 
- 	if (max_entries && count > max_entries) {
- 		pr_warn("[%4.4s:0x%02x] ignored %i entries of %i found\n",
--			id, entry_id, count - max_entries, count);
-+			id, proc->id, count - max_entries, count);
- 	}
- 
- 	return count;
- }
- 
- int __init
--acpi_table_parse_entries(char *id,
-+acpi_parse_entries(char *id,
-+			unsigned long table_size,
-+			acpi_tbl_entry_handler handler,
-+			struct acpi_table_header *table_header,
-+			int entry_id, unsigned int max_entries)
-+{
-+	struct acpi_subtable_proc proc = {
-+		.id		= entry_id,
-+		.handler	= handler,
-+	};
-+
-+	return acpi_parse_entries_array(id, table_size, table_header,
-+			&proc, 1, max_entries);
-+}
-+
-+int __init
-+acpi_table_parse_entries_array(char *id,
- 			 unsigned long table_size,
--			 int entry_id,
--			 acpi_tbl_entry_handler handler,
-+			 struct acpi_subtable_proc *proc, int proc_num,
- 			 unsigned int max_entries)
- {
- 	struct acpi_table_header *table_header = NULL;
-@@ -291,7 +330,7 @@ acpi_table_parse_entries(char *id,
- 	if (acpi_disabled)
- 		return -ENODEV;
- 
--	if (!id || !handler)
-+	if (!id)
- 		return -EINVAL;
- 
- 	if (!strncmp(id, ACPI_SIG_MADT, 4))
-@@ -303,14 +342,30 @@ acpi_table_parse_entries(char *id,
- 		return -ENODEV;
- 	}
- 
--	count = acpi_parse_entries(id, table_size, handler, table_header,
--			entry_id, max_entries);
-+	count = acpi_parse_entries_array(id, table_size, table_header,
-+			proc, proc_num, max_entries);
- 
- 	early_acpi_os_unmap_memory((char *)table_header, tbl_size);
- 	return count;
- }
- 
- int __init
-+acpi_table_parse_entries(char *id,
-+			unsigned long table_size,
-+			int entry_id,
-+			acpi_tbl_entry_handler handler,
-+			unsigned int max_entries)
-+{
-+	struct acpi_subtable_proc proc = {
-+		.id		= entry_id,
-+		.handler	= handler,
-+	};
-+
-+	return acpi_table_parse_entries_array(id, table_size, &proc, 1,
-+						max_entries);
-+}
-+
-+int __init
- acpi_table_parse_madt(enum acpi_madt_type id,
- 		      acpi_tbl_entry_handler handler, unsigned int max_entries)
- {
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index d2445fa..3dd741f 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -135,6 +135,12 @@ static inline void acpi_initrd_override(void *data, size_t size)
- 		(!entry) || (unsigned long)entry + sizeof(*entry) > end ||  \
- 		((struct acpi_subtable_header *)entry)->length < sizeof(*entry))
- 
-+struct acpi_subtable_proc {
-+	int id;
-+	acpi_tbl_entry_handler handler;
-+	int count;
-+};
-+
- char * __acpi_map_table (unsigned long phys_addr, unsigned long size);
- void __acpi_unmap_table(char *map, unsigned long size);
- int early_acpi_boot_init(void);
-@@ -150,9 +156,16 @@ int __init acpi_parse_entries(char *id, unsigned long table_size,
- 			      struct acpi_table_header *table_header,
- 			      int entry_id, unsigned int max_entries);
- int __init acpi_table_parse_entries(char *id, unsigned long table_size,
--				    int entry_id,
--				    acpi_tbl_entry_handler handler,
--				    unsigned int max_entries);
-+			      int entry_id,
-+			      acpi_tbl_entry_handler handler,
-+			      unsigned int max_entries);
-+int __init acpi_table_parse_entries(char *id, unsigned long table_size,
-+			      int entry_id,
-+			      acpi_tbl_entry_handler handler,
-+			      unsigned int max_entries);
-+int __init acpi_table_parse_entries_array(char *id, unsigned long table_size,
-+			      struct acpi_subtable_proc *proc, int proc_num,
-+			      unsigned int max_entries);
- int acpi_table_parse_madt(enum acpi_madt_type id,
- 			  acpi_tbl_entry_handler handler,
- 			  unsigned int max_entries);
--- 
-1.8.3.1
+1. We need raw_pci_write/read accessors (based on ECAM) for ARM64 too 
+but only up to the point where buses are enumerated. From that point on, 
+we should reuse generic accessors from access.c file, right?
 
+2. For ARM64 ACPI PCI, we can use generic accessors right away, .map_bus 
+would call common code part (pci_dev_base()). The only thing that worry 
+me is fact that MCFG regions are RCU list so it needs rcu_read_lock() 
+for the .map_bus (mcfg lookup) *and* read/write operation.
+
+3. Changing generic accessors to introduce generic MMIO layer (because 
+of AMD issue) like this:
+int pci_generic_config_write(struct pci_bus *bus, unsigned int devfn,
+			     int where, int size, u32 val)
+{
+	void __iomem *addr;
+
+	addr = bus->ops->map_bus(bus, devfn, where);
+	if (!addr)
+		return PCIBIOS_DEVICE_NOT_FOUND;
+
+	pci_mmio_write(size, addr + where, val);
+
+	return PCIBIOS_SUCCESSFUL;
+}
+would imply using those accessors for x86 ACPI PCI host bridge driver, 
+see arch/x86/pci/common.c
+
+int raw_pci_read(unsigned int domain, unsigned int bus, unsigned int devfn,
+						int reg, int len, u32 *val)
+{
+	if (domain == 0 && reg < 256 && raw_pci_ops)
+		return raw_pci_ops->read(domain, bus, devfn, reg, len, val);
+	if (raw_pci_ext_ops)
+		return raw_pci_ext_ops->read(domain, bus, devfn, reg, len, val);
+	return -EINVAL;
+}
+[...]
+static int pci_read(struct pci_bus *bus, unsigned int devfn, int where, 
+int size, u32 *value)
+{
+	return raw_pci_read(pci_domain_nr(bus), bus->number,
+				 devfn, where, size, value);
+}
+[...]
+struct pci_ops pci_root_ops = {
+	.read = pci_read,
+	.write = pci_write,
+};
+
+Currently, the above code may call lots of different accessors (not 
+necessarily generic accessor friendly :), moreover it possible that x86 
+may have registered two accessor sets (raw_pci_ops, raw_pci_ext_ops). I 
+am happy to fix that but I would need x86 PCI expert to get know if that 
+is possible at all.
+
+I really appreciate your help.
+
+Thanks,
+Tomasz
