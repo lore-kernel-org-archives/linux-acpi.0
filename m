@@ -1,74 +1,100 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH v2 5/7] x86, acpi, cpu-hotplug: Introduce
- apicid_to_cpuid[] array to store persistent cpuid <-> apicid mapping.
-Date: Thu, 10 Sep 2015 15:55:32 -0400
-Message-ID: <20150910195532.GK8114@mtj.duckdns.org>
-References: <1441859269-25831-1-git-send-email-tangchen@cn.fujitsu.com>
- <1441859269-25831-6-git-send-email-tangchen@cn.fujitsu.com>
+From: Al Stone <ahs3@redhat.com>
+Subject: Re: [PATCH v2 1/5] ACPI: add in a bad_madt_entry() function to
+ eventually replace the macro
+Date: Thu, 10 Sep 2015 14:43:45 -0600
+Message-ID: <55F1EB81.9030908@redhat.com>
+References: <1440022048-6285-1-git-send-email-al.stone@linaro.org>
+ <1440022048-6285-2-git-send-email-al.stone@linaro.org>
+ <55EDADF5.5060008@arm.com> <55F08F47.1070906@redhat.com>
+ <55F1ADC4.7090005@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <1441859269-25831-6-git-send-email-tangchen@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: jiang.liu@linux.intel.com, mika.j.penttila@gmail.com, mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, qiaonuohan@cn.fujitsu.com, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Gu Zheng <guz.fnst@cn.fujitsu.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <55F1ADC4.7090005@arm.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Sudeep Holla <sudeep.holla@arm.com>, Al Stone <al.stone@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, "patches@linaro.org" <patches@linaro.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hello,
+On 09/10/2015 10:20 AM, Sudeep Holla wrote:
+> 
+> 
+> On 09/09/15 20:57, Al Stone wrote:
+>> On 09/07/2015 09:32 AM, Sudeep Holla wrote:
+>>> Hi Al,
+>>>
+>>> On 19/08/15 23:07, Al Stone wrote:
+>>>
+>>> I finally got a chance to try this series on Juno. Well it exposed a firmware
+>>> bug in MADT table :)
+>>>
+>>> [..]
+>>>
+>>>>                   acpi_tbl_entry_handler handler,
+>>>> @@ -245,6 +484,8 @@ acpi_parse_entries(char *id, unsigned long table_size,
+>>>>                  table_end) {
+>>>>                   if (entry->type == entry_id
+>>>>                       && (!max_entries || count < max_entries)) {
+>>>> +                       if (bad_madt_entry(table_header, entry))
+>>>> +                               return -EINVAL;
+>>>
+>>> Not sure if we can have the above check here unconditionally.
+>>> Currently I can see there are 2 other users of acpi_parse_entries i.e.
+>>> PCC and NUMA. So may be it can be made conditional or return success for
+>>> non-MADT tables from bad_madt_entry ?
+>>
+>> So, I went back and double checked the other users and they're looking at
+>> the return value for acpi_parse_entries properly; adding in the check above
+>> unconditionally should not cause any behavior change.
+> 
+> I disagree. I populated PCCT table on Juno to get this error for
+> PCCT(PCCT header gets interpreted as MADT header):
+> "
+> ACPI: undefined version for either FADT 5.1 or MADT 1
+> Error parsing PCC subspaces from PCCT
+> "
+> And here the stacktrace:
+> [<ffffffc000881e58>] bad_madt_entry+0x90/0x16c
+> [<ffffffc000882030>] acpi_table_parse_entries+0xfc/0x180
+> [<ffffffc000895af8>] pcc_init+0x70/0x148
+> 
+>> Further, despite the name, acpi_parse_entries is only used to examine MADT
+>> subtables.  Granted, we should probably make the name clearer at some point
+>> (too ambiguous as to which entries are parsed right now).  Nonetheless, current
+>> usage seems to be in order.
+>>
+> 
+> From the code inspection, I can see we have 3 users of acpi_parse_entries not
+> just MADT but also PCC and NUMA/SRAT
+> 
+> Something like this solves this issue:
+> -              if (bad_madt_entry(table_header, entry))
+> +              if (!strncmp(id, ACPI_SIG_MADT, 4) &&
+> +                      bad_madt_entry(table_header, entry)
+> 
+> 
+> Or am I still missing something ?
+> 
+> Regards,
+> Sudeep
 
-So, overall, I think this is the right way to go although I have no
-idea whether the acpi part is okay.
+Nope, I missed it.  Your fix above will solve the problem; I misunderstood
+how acpi_parse_entries() was being used -- somehow I had it in my head that
+only MADT was in use, and just not seeing that it's being used for several
+other subtable traversals also.  Sorry about that, Sudeep.  My mistake.
 
-> +/*
-> + * Current allocated max logical CPU ID plus 1.
-> + * All allocated CPU ID should be in [0, max_logical_cpuid),
-> + * so the maximum of max_logical_cpuid is nr_cpu_ids.
-> + *
-> + * NOTE: Reserve 0 for BSP.
-> + */
-> +static int max_logical_cpuid = 1;
-
-Rename it to nr_logical_cpuids and just mention that it's allocated
-contiguously?
-
-> +static int cpuid_to_apicid[] = {
-> +	[0 ... NR_CPUS - 1] = -1,
-> +};
-
-And maybe mention how the two variables are synchronized?
-
-> +static int allocate_logical_cpuid(int apicid)
-> +{
-> +	int i;
-> +
-> +	/*
-> +	 * cpuid <-> apicid mapping is persistent, so when a cpu is up,
-> +	 * check if the kernel has allocated a cpuid for it.
-> +	 */
-> +	for (i = 0; i < max_logical_cpuid; i++) {
-> +		if (cpuid_to_apicid[i] == apicid)
-> +			return i;
-> +	}
-> +
-> +	/* Allocate a new cpuid. */
-> +	if (max_logical_cpuid >= nr_cpu_ids) {
-> +		WARN_ONCE(1, "Only %d processors supported."
-> +			     "Processor %d/0x%x and the rest are ignored.\n",
-> +			     nr_cpu_ids - 1, max_logical_cpuid, apicid);
-> +		return -1;
-> +	}
-
-So, the original code didn't have this failure mode, why is this
-different for the new code?
-
-Thanks.
+I'll add this fix for a v4, but I'll wait for a few days to see if I get any
+additional comments -- I haven't heard from any x86, ia64 or ACPI maintainers
+yet.  OTOH, it's nice to know we've already found and fixed two sets of arm64
+ACPI tables that are in error by using these patches, even with the flaws :).
 
 -- 
-tejun
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Red Hat, Inc.
+ahs3@redhat.com
+-----------------------------------
