@@ -1,7 +1,7 @@
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [PATCH v2 2/7] x86, numa: Introduce a node to node array to map a node to its best online node.
-Date: Thu, 10 Sep 2015 12:27:44 +0800
-Message-ID: <1441859269-25831-3-git-send-email-tangchen@cn.fujitsu.com>
+Subject: [PATCH v2 4/7] x86, acpi, cpu-hotplug: Enable acpi to register all possible cpus at boot time.
+Date: Thu, 10 Sep 2015 12:27:46 +0800
+Message-ID: <1441859269-25831-5-git-send-email-tangchen@cn.fujitsu.com>
 References: <1441859269-25831-1-git-send-email-tangchen@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,10 +9,10 @@ Return-path: <owner-linux-mm@kvack.org>
 In-Reply-To: <1441859269-25831-1-git-send-email-tangchen@cn.fujitsu.com>
 Sender: owner-linux-mm@kvack.org
 To: tj@kernel.org, jiang.liu@linux.intel.com, mika.j.penttila@gmail.com, mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, qiaonuohan@cn.fujitsu.com
-Cc: tangchen@cn.fujitsu.com, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
+Cc: tangchen@cn.fujitsu.com, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Gu Zheng <guz.fnst@cn.fujitsu.com>
 List-Id: linux-acpi@vger.kernel.org
 
-The whole patch-set aims at solving this problem:
+From: Gu Zheng <guz.fnst@cn.fujitsu.com>
 
 [Problem]
 
@@ -138,152 +138,93 @@ MADT (Multiple APIC Description Table). So we finish the job in the following st
 4. Establish all possible cpuid <-> nodeid mapping.
    This is done via an additional acpi namespace walk for processors.
 
-But before that, we should make memory allocators be able to get best near online node
-at any time, because if node hotplug happens, the best near online node will change.
+This patch finished step 1.
 
-In current kernel, CPUs on a memory-less node are all mapped to its best online
-node to ensure the memory allocation on these CPUs successful. This is done
-outside alloc_pages_node() and alloc_pages_exact_node(), when the kernel boots.
-
-In this patch, we calculate best near online node for all nodes at node hotplug time,
-and store them in an array so that they could be obtained inside memory allocator
-at any time.
-
+Signed-off-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
 ---
- arch/x86/include/asm/topology.h | 10 ++++++++++
- arch/x86/mm/numa.c              | 32 +++++++++++++++++++++++++++++++-
- mm/memory_hotplug.c             |  4 ++++
- 3 files changed, 45 insertions(+), 1 deletion(-)
+ arch/x86/kernel/apic/apic.c | 26 +++++++++++++++++++-------
+ 1 file changed, 19 insertions(+), 7 deletions(-)
 
-diff --git a/arch/x86/include/asm/topology.h b/arch/x86/include/asm/topology.h
-index 0fb4648..53422fd 100644
---- a/arch/x86/include/asm/topology.h
-+++ b/arch/x86/include/asm/topology.h
-@@ -82,6 +82,9 @@ static inline const struct cpumask *cpumask_of_node(int node)
+diff --git a/arch/x86/kernel/apic/apic.c b/arch/x86/kernel/apic/apic.c
+index dcb5285..a9c9830 100644
+--- a/arch/x86/kernel/apic/apic.c
++++ b/arch/x86/kernel/apic/apic.c
+@@ -1977,7 +1977,7 @@ void disconnect_bsp_APIC(int virt_wire_setup)
+ 	apic_write(APIC_LVT1, value);
  }
- #endif
  
-+extern int get_near_online_node(int node);
-+extern void update_node_to_near_node_map(void);
-+
- extern void setup_node_to_cpumask_map(void);
- 
- /*
-@@ -113,6 +116,13 @@ static inline int early_cpu_to_node(int cpu)
- 
- static inline void setup_node_to_cpumask_map(void) { }
- 
-+static inline int get_near_online_node(int node)
-+{
-+	return 0;
-+}
-+
-+static inline void update_node_to_near_node_map() { }
-+
- #endif
- 
- #include <asm-generic/topology.h>
-diff --git a/arch/x86/mm/numa.c b/arch/x86/mm/numa.c
-index fea387a..8bd7661 100644
---- a/arch/x86/mm/numa.c
-+++ b/arch/x86/mm/numa.c
-@@ -78,6 +78,14 @@ EXPORT_SYMBOL(node_to_cpumask_map);
- DEFINE_EARLY_PER_CPU(int, x86_cpu_to_node_map, NUMA_NO_NODE);
- EXPORT_EARLY_PER_CPU_SYMBOL(x86_cpu_to_node_map);
- 
-+/*
-+ * Map nid index to the best near online node. The best near online node
-+ * is the backup node for memory allocation on offline node.
-+ */
-+static int node_to_near_node_map[] = {
-+	[0 ... MAX_NUMNODES - 1] = NUMA_NO_NODE,
-+};
-+
- /**
-  * find_near_online_node - Find the best near online node of a node.
-  * @node: NUMA node ID of the current node.
-@@ -89,7 +97,7 @@ EXPORT_EARLY_PER_CPU_SYMBOL(x86_cpu_to_node_map);
-  * RETURNS:
-  * The best near online node ID on success, -1 on failure.
-  */
--static __init int find_near_online_node(int node)
-+static int find_near_online_node(int node)
+-int generic_processor_info(int apicid, int version)
++static int __generic_processor_info(int apicid, int version, bool enabled)
  {
- 	int n, val;
- 	int min_val = INT_MAX;
-@@ -107,6 +115,25 @@ static __init int find_near_online_node(int node)
- 	return near_node;
- }
+ 	int cpu, max = nr_cpu_ids;
+ 	bool boot_cpu_detected = physid_isset(boot_cpu_physical_apicid,
+@@ -2011,7 +2011,8 @@ int generic_processor_info(int apicid, int version)
+ 			   " Processor %d/0x%x ignored.\n",
+ 			   thiscpu, apicid);
  
-+int get_near_online_node(int node)
-+{
-+	return node_to_near_node_map[node];
-+}
-+EXPORT_SYMBOL(get_near_online_node);
-+
-+static void set_near_online_node(int node)
-+{
-+	node_to_near_node_map[node] = find_near_online_node(node);
-+}
-+
-+void update_node_to_near_node_map()
-+{
-+	int node;
-+
-+	for_each_node(node)
-+		set_near_online_node(node);
-+}
-+
- void numa_set_node(int cpu, int node)
- {
- 	int *cpu_to_node_map = early_per_cpu_ptr(x86_cpu_to_node_map);
-@@ -126,6 +153,8 @@ void numa_set_node(int cpu, int node)
- #endif
- 	per_cpu(x86_cpu_to_node_map, cpu) = node;
- 
-+	set_near_online_node(node);
-+
- 	set_cpu_numa_node(cpu, node);
- }
- 
-@@ -249,6 +278,7 @@ static void __init alloc_node_data(int nid)
- 	memset(NODE_DATA(nid), 0, sizeof(pg_data_t));
- 
- 	node_set_online(nid);
-+	update_node_to_near_node_map();
- }
- 
- /**
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index 6da82bc..9d78d5f 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -1164,6 +1164,8 @@ int try_online_node(int nid)
- 		goto out;
+-		disabled_cpus++;
++		if (enabled)
++			disabled_cpus++;
+ 		return -ENODEV;
  	}
- 	node_set_online(nid);
-+	update_node_to_near_node_map();
+ 
+@@ -2028,7 +2029,8 @@ int generic_processor_info(int apicid, int version)
+ 			" reached. Keeping one slot for boot cpu."
+ 			"  Processor %d/0x%x ignored.\n", max, thiscpu, apicid);
+ 
+-		disabled_cpus++;
++		if (enabled)
++			disabled_cpus++;
+ 		return -ENODEV;
+ 	}
+ 
+@@ -2039,11 +2041,14 @@ int generic_processor_info(int apicid, int version)
+ 			"ACPI: NR_CPUS/possible_cpus limit of %i reached."
+ 			"  Processor %d/0x%x ignored.\n", max, thiscpu, apicid);
+ 
+-		disabled_cpus++;
++		if (enabled)
++			disabled_cpus++;
+ 		return -EINVAL;
+ 	}
+ 
+-	num_processors++;
++	if (enabled)
++		num_processors++;
 +
- 	ret = register_one_node(nid);
- 	BUG_ON(ret);
+ 	if (apicid == boot_cpu_physical_apicid) {
+ 		/*
+ 		 * x86_bios_cpu_apicid is required to have processors listed
+@@ -2071,7 +2076,8 @@ int generic_processor_info(int apicid, int version)
+ 			apic_version[boot_cpu_physical_apicid], cpu, version);
+ 	}
  
-@@ -1264,6 +1266,7 @@ int __ref add_memory(int nid, u64 start, u64 size)
+-	physid_set(apicid, phys_cpu_present_map);
++	if (enabled)
++		physid_set(apicid, phys_cpu_present_map);
+ 	if (apicid > max_physical_apicid)
+ 		max_physical_apicid = apicid;
  
- 	/* we online node here. we can't roll back from here. */
- 	node_set_online(nid);
-+	update_node_to_near_node_map();
+@@ -2084,11 +2090,17 @@ int generic_processor_info(int apicid, int version)
+ 		apic->x86_32_early_logical_apicid(cpu);
+ #endif
+ 	set_cpu_possible(cpu, true);
+-	set_cpu_present(cpu, true);
++	if (enabled)
++		set_cpu_present(cpu, true);
  
- 	if (new_node) {
- 		ret = register_one_node(nid);
-@@ -1970,6 +1973,7 @@ void try_offline_node(int nid)
- 	 */
- 	node_set_offline(nid);
- 	unregister_one_node(nid);
-+	update_node_to_near_node_map();
+ 	return cpu;
+ }
  
- 	/* free waittable in each zone */
- 	for (i = 0; i < MAX_NR_ZONES; i++) {
++int generic_processor_info(int apicid, int version)
++{
++	return __generic_processor_info(apicid, version, true);
++}
++
+ int hard_smp_processor_id(void)
+ {
+ 	return read_apic_id();
 -- 
 1.9.3
 
