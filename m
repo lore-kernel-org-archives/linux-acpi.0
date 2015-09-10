@@ -1,62 +1,29 @@
-From: Rami Rosen <ramirose@gmail.com>
-Subject: [PATCH] ACPI: change init_acpi_device_notify() to return void.
-Date: Thu, 10 Sep 2015 23:48:09 +0300
-Message-ID: <1441918089-27368-1-git-send-email-ramirose@gmail.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:36639 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750943AbbIJUs0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Sep 2015 16:48:26 -0400
-Received: by wicgb1 with SMTP id gb1so39642833wic.1
-        for <linux-acpi@vger.kernel.org>; Thu, 10 Sep 2015 13:48:25 -0700 (PDT)
-Sender: linux-acpi-owner@vger.kernel.org
+From: Christoph Lameter <cl@linux.com>
+Subject: Re: [PATCH v2 3/7] x86, gfp: Cache best near node for memory
+ allocation.
+Date: Thu, 10 Sep 2015 17:02:31 -0500 (CDT)
+Message-ID: <alpine.DEB.2.11.1509101701220.11096@east.gentwo.org>
+References: <1441859269-25831-1-git-send-email-tangchen@cn.fujitsu.com> <1441859269-25831-4-git-send-email-tangchen@cn.fujitsu.com> <20150910192935.GI8114@mtj.duckdns.org> <20150910193819.GJ8114@mtj.duckdns.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20150910193819.GJ8114@mtj.duckdns.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tejun Heo <tj@kernel.org>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>, jiang.liu@linux.intel.com, mika.j.penttila@gmail.com, mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, qiaonuohan@cn.fujitsu.com, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Gu Zheng <guz.fnst@cn.fujitsu.com>
 List-Id: linux-acpi@vger.kernel.org
-To: rafael.j.wysocki@intel.com
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, Rami Rosen <ramirose@gmail.com>
 
-This patch changes the type of the return value of the init_acpi_device_notify() 
-method to be void, as this method never fails and its return value is never
-used.
+On Thu, 10 Sep 2015, Tejun Heo wrote:
 
-Signed-off-by: Rami Rosen <ramirose@gmail.com>
----
- drivers/acpi/glue.c     | 5 ++---
- drivers/acpi/internal.h | 2 +-
- 2 files changed, 3 insertions(+), 4 deletions(-)
+> > Why not just update node_data[]->node_zonelist in the first place?
+> > Also, what's the synchronization rule here?  How are allocators
+> > synchronized against node hot [un]plugs?
+>
+> Also, shouldn't kmalloc_node() or any public allocator fall back
+> automatically to a near node w/o GFP_THISNODE?  Why is this failing at
+> all?  I get that cpu id -> node id mapping changing messes up the
+> locality but allocations shouldn't fail, right?
 
-diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
-index b9657af..1470ae4 100644
---- a/drivers/acpi/glue.c
-+++ b/drivers/acpi/glue.c
-@@ -351,13 +351,12 @@ static int acpi_platform_notify_remove(struct device *dev)
- 	return 0;
- }
- 
--int __init init_acpi_device_notify(void)
-+void __init init_acpi_device_notify(void)
- {
- 	if (platform_notify || platform_notify_remove) {
- 		printk(KERN_ERR PREFIX "Can't use platform_notify\n");
--		return 0;
-+		return;
- 	}
- 	platform_notify = acpi_platform_notify;
- 	platform_notify_remove = acpi_platform_notify_remove;
--	return 0;
- }
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index 9e42621..e72c6a6 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -21,7 +21,7 @@
- #define PREFIX "ACPI: "
- 
- acpi_status acpi_os_initialize1(void);
--int init_acpi_device_notify(void);
-+void init_acpi_device_notify(void);
- int acpi_scan_init(void);
- void acpi_pci_root_init(void);
- void acpi_pci_link_init(void);
--- 
-2.4.3
-
+Without a node specification allocations are subject to various
+constraints and memory policies. It is not simply going to the next node.
+The memory load may require spreading out the allocations over multiple
+nodes, the app may have specified which nodes are to be used etc etc.
