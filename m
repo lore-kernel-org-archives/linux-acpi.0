@@ -1,7 +1,7 @@
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [PATCH v2 7/7] x86, acpi, cpu-hotplug: Set persistent cpuid <-> nodeid mapping when booting.
-Date: Thu, 10 Sep 2015 12:27:49 +0800
-Message-ID: <1441859269-25831-8-git-send-email-tangchen@cn.fujitsu.com>
+Subject: [PATCH v2 3/7] x86, gfp: Cache best near node for memory allocation.
+Date: Thu, 10 Sep 2015 12:27:45 +0800
+Message-ID: <1441859269-25831-4-git-send-email-tangchen@cn.fujitsu.com>
 References: <1441859269-25831-1-git-send-email-tangchen@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,175 +14,87 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Gu Zheng <guz.fnst@cn.fujitsu.com>
 
-This patch finishes step4 mentioned in previous patch 4.
+In the current kernel, all possible cpus are mapped to the best near online
+node if they reside in a memory-less node in init_cpu_to_node().
 
-There are four mappings in the kernel:
-1. nodeid (logical node id)   <->   pxm
-2. apicid (physical cpu id)   <->   nodeid
-3. cpuid (logical cpu id)     <->   apicid
-4. cpuid (logical cpu id)     <->   nodeid
+init_cpu_to_node()
+{
+	......
+	for_each_possible_cpu(cpu) {
+		......
+		if (!node_online(node))
+			node = find_near_online_node(node);
+		numa_set_node(cpu, node);
+	}
+}
 
-1. pxm (proximity domain) is provided by ACPI firmware in SRAT, and nodeid <-> pxm
-   mapping is setup at boot time. This mapping is persistent, won't change.
+The reason for doing this is to prevent memory allocation failure if the
+cpu is online but there is no memory on that node.
 
-2. apicid <-> nodeid mapping is setup using info in 1. The mapping is setup at boot
-   time and CPU hotadd time, and cleared at CPU hotremove time. This mapping is also
-   persistent.
+But since cpuid <-> nodeid mapping is planed to be made static, doing
+so in initialization pharse makes no sense any more.
 
-3. cpuid <-> apicid mapping is setup at boot time and CPU hotadd time. cpuid is
-   allocated, lower ids first, and released at CPU hotremove time, reused for other
-   hotadded CPUs. So this mapping is not persistent.
+The best near online node for each cpu has been cached in an array in previous
+patch. And the reason for doing this is to avoid mapping CPUs on memory-less
+nodes to other nodes.
 
-4. cpuid <-> nodeid mapping is also setup at boot time and CPU hotadd time, and
-   cleared at CPU hotremove time. As a result of 3, this mapping is not persistent.
-
-So, in order to setup persistent cpuid <-> nodeid mapping for all possible CPUs,
-we should:
-1. Setup cpuid <-> apicid mapping for all possible CPUs, which has been done in patch 4.
-2. Setup cpuid <-> nodeid mapping for all possible CPUs.
-
-This patch set the persistent cpuid <-> nodeid mapping for all enabled/disabled
-processors at boot time via an additional acpi namespace walk for processors.
+So in this patch, we get best near online node for CPUs on memory-less nodes
+inside alloc_pages_node() and alloc_pages_exact_node() to avoid memory allocation
+failure.
 
 Signed-off-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
 ---
- arch/ia64/kernel/acpi.c       |  2 +-
- arch/x86/kernel/acpi/boot.c   |  2 +-
- drivers/acpi/bus.c            |  3 ++
- drivers/acpi/processor_core.c | 65 +++++++++++++++++++++++++++++++++++++++++++
- include/linux/acpi.h          |  2 ++
- 5 files changed, 72 insertions(+), 2 deletions(-)
+ arch/x86/mm/numa.c  | 3 +--
+ include/linux/gfp.h | 8 +++++++-
+ 2 files changed, 8 insertions(+), 3 deletions(-)
 
-diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
-index b1698bc..7db5563 100644
---- a/arch/ia64/kernel/acpi.c
-+++ b/arch/ia64/kernel/acpi.c
-@@ -796,7 +796,7 @@ int acpi_isa_irq_to_gsi(unsigned isa_irq, u32 *gsi)
-  *  ACPI based hotplug CPU support
-  */
- #ifdef CONFIG_ACPI_HOTPLUG_CPU
--static int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
-+int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
- {
- #ifdef CONFIG_ACPI_NUMA
- 	/*
-diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-index bcc85b2..b9a1aa1 100644
---- a/arch/x86/kernel/acpi/boot.c
-+++ b/arch/x86/kernel/acpi/boot.c
-@@ -695,7 +695,7 @@ static void __init acpi_set_irq_model_ioapic(void)
- #ifdef CONFIG_ACPI_HOTPLUG_CPU
- #include <acpi/processor.h>
+diff --git a/arch/x86/mm/numa.c b/arch/x86/mm/numa.c
+index 8bd7661..e89b9fb 100644
+--- a/arch/x86/mm/numa.c
++++ b/arch/x86/mm/numa.c
+@@ -151,6 +151,7 @@ void numa_set_node(int cpu, int node)
+ 		return;
+ 	}
+ #endif
++
+ 	per_cpu(x86_cpu_to_node_map, cpu) = node;
  
--static void acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
-+void acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
- {
- #ifdef CONFIG_ACPI_NUMA
- 	int nid;
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index 513e7230e..fd03885 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -700,6 +700,9 @@ static int __init acpi_init(void)
- 	acpi_debugfs_init();
- 	acpi_sleep_proc_init();
- 	acpi_wakeup_device_init();
-+#ifdef CONFIG_ACPI_HOTPLUG_CPU
-+	acpi_set_processor_mapping();
-+#endif
- 	return 0;
+ 	set_near_online_node(node);
+@@ -787,8 +788,6 @@ void __init init_cpu_to_node(void)
+ 
+ 		if (node == NUMA_NO_NODE)
+ 			continue;
+-		if (!node_online(node))
+-			node = find_near_online_node(node);
+ 		numa_set_node(cpu, node);
+ 	}
+ }
+diff --git a/include/linux/gfp.h b/include/linux/gfp.h
+index ad35f30..1a1324f 100644
+--- a/include/linux/gfp.h
++++ b/include/linux/gfp.h
+@@ -307,13 +307,19 @@ static inline struct page *alloc_pages_node(int nid, gfp_t gfp_mask,
+ 	if (nid < 0)
+ 		nid = numa_node_id();
+ 
++	if (!node_online(nid))
++		nid = get_near_online_node(nid);
++
+ 	return __alloc_pages(gfp_mask, order, node_zonelist(nid, gfp_mask));
  }
  
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index 824b98b..45580ff 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -261,6 +261,71 @@ int acpi_get_cpuid(acpi_handle handle, int type, u32 acpi_id)
+ static inline struct page *alloc_pages_exact_node(int nid, gfp_t gfp_mask,
+ 						unsigned int order)
+ {
+-	VM_BUG_ON(nid < 0 || nid >= MAX_NUMNODES || !node_online(nid));
++	VM_BUG_ON(nid < 0 || nid >= MAX_NUMNODES);
++
++	if (!node_online(nid))
++		nid = get_near_online_node(nid);
+ 
+ 	return __alloc_pages(gfp_mask, order, node_zonelist(nid, gfp_mask));
  }
- EXPORT_SYMBOL_GPL(acpi_get_cpuid);
- 
-+#ifdef CONFIG_ACPI_HOTPLUG_CPU
-+static bool map_processor(acpi_handle handle, int *phys_id, int *cpuid)
-+{
-+	int type;
-+	u32 acpi_id;
-+	acpi_status status;
-+	acpi_object_type acpi_type;
-+	unsigned long long tmp;
-+	union acpi_object object = { 0 };
-+	struct acpi_buffer buffer = { sizeof(union acpi_object), &object };
-+
-+	status = acpi_get_type(handle, &acpi_type);
-+	if (ACPI_FAILURE(status))
-+		return false;
-+
-+	switch (acpi_type) {
-+	case ACPI_TYPE_PROCESSOR:
-+		status = acpi_evaluate_object(handle, NULL, NULL, &buffer);
-+		if (ACPI_FAILURE(status))
-+			return false;
-+		acpi_id = object.processor.proc_id;
-+		break;
-+	case ACPI_TYPE_DEVICE:
-+		status = acpi_evaluate_integer(handle, "_UID", NULL, &tmp);
-+		if (ACPI_FAILURE(status))
-+			return false;
-+		acpi_id = tmp;
-+		break;
-+	default:
-+		return false;
-+	}
-+
-+	type = (acpi_type == ACPI_TYPE_DEVICE) ? 1 : 0;
-+
-+	*phys_id = __acpi_get_phys_id(handle, type, acpi_id, false);
-+	*cpuid = acpi_map_cpuid(*phys_id, acpi_id);
-+	if (*cpuid == -1)
-+		return false;
-+
-+	return true;
-+}
-+
-+static acpi_status __init
-+set_processor_node_mapping(acpi_handle handle, u32 lvl, void *context,
-+			   void **rv)
-+{
-+	u32 apic_id;
-+	int cpu_id;
-+
-+	if (!map_processor(handle, &apic_id, &cpu_id))
-+		return AE_ERROR;
-+
-+	acpi_map_cpu2node(handle, cpu_id, apic_id);
-+	return AE_OK;
-+}
-+
-+void __init acpi_set_processor_mapping(void)
-+{
-+	/* Set persistent cpu <-> node mapping for all processors. */
-+	acpi_walk_namespace(ACPI_TYPE_PROCESSOR, ACPI_ROOT_OBJECT,
-+			    ACPI_UINT32_MAX, set_processor_node_mapping,
-+			    NULL, NULL, NULL);
-+}
-+#endif
-+
- #ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
- static int get_ioapic_id(struct acpi_subtable_header *entry, u32 gsi_base,
- 			 u64 *phys_addr, int *ioapic_id)
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index d2445fa..7a78830 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -185,6 +185,8 @@ static inline bool invalid_phys_cpuid(phys_cpuid_t phys_id)
- /* Arch dependent functions for cpu hotplug support */
- int acpi_map_cpu(acpi_handle handle, phys_cpuid_t physid, int *pcpu);
- int acpi_unmap_cpu(int cpu);
-+void acpi_map_cpu2node(acpi_handle handle, int cpu, int physid);
-+void __init acpi_set_processor_mapping(void);
- #endif /* CONFIG_ACPI_HOTPLUG_CPU */
- 
- #ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
 -- 
 1.9.3
 
