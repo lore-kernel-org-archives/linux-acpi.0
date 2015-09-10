@@ -1,46 +1,59 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: Re: New Surface 3 (atom x7) having problems with ACPI regions
-Date: Thu, 10 Sep 2015 15:35:56 +0800
-Message-ID: <20150910073556.GA6863@aaronlu.sh.intel.com>
-References: <CAN+gG=FMjShOWf6LXwDd5Fps-ME4cDCtN2h6bTZRvOifhAMRtQ@mail.gmail.com>
- <55F0FD2A.7050900@intel.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH 0/5] ACPI probing infrastructure
+Date: Thu, 10 Sep 2015 17:03:15 +0800
+Message-ID: <55F14753.5070703@linaro.org>
+References: <1441386412-8139-1-git-send-email-marc.zyngier@arm.com> <55EEE071.7040506@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:61907 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751462AbbIJHeN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 10 Sep 2015 03:34:13 -0400
-Content-Disposition: inline
-In-Reply-To: <55F0FD2A.7050900@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <55EEE071.7040506@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tomasz Nowicki <tn@semihalf.com>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>
+Cc: linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: Benjamin Tissoires <benjamin.tissoires@gmail.com>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Bastien Nocera <hadess@hadess.net>, Yu Chen <yu.c.chen@intel.com>
 
-On Thu, Sep 10, 2015 at 11:46:50AM +0800, Aaron Lu wrote:
-> I'm not so sure of the below part:
-> "
-> The failure of executing the _STA control method will cause the device
-> node not having the acpi_device structure created and then in the SPI
-> ACPI enumerate function acpi_spi_add_device, it will not be created and
-> used.
-> "
+On 09/08/2015 09:19 PM, Hanjun Guo wrote:
+> Hi Marc,
+>
+> Sorry for the late response for quite a while...
+>
+> On 09/05/2015 01:06 AM, Marc Zyngier wrote:
+>> IRQ controllers and timers are the two types of device the kernel
+>> requires before being able to use the device driver model.
+>>
+>> ACPI so far lacks a proper probing infrastructure similar to the one
+>> we have with DT, where we're able to declare IRQ chips and
+>> clocksources inside the driver code, and let the core code pick it up
+>> and call us back on a match. This leads to all kind of really ugly
+>> hacks all over the arm64 code and even in the ACPI layer.
+>>
+>> It turns out that providing such a probing infrastructure is rather
+>> easy, and provides a much deserved cleanup in both the arch code, the
+>> GIC driver, and the architected timer driver.
+>>
+>> I'm sure there is some more code to be deleted, and one can only
+>> wonder why this wasn't done before the arm64 code was initially merged
+>> (the diffstat says it all...).
+>>
+>> Patches are against v4.2, and a branch is available at
+>>
+>> git://git.kernel.org/pub/scm/linux/kernel/git/maz/arm-platforms.git
+>> acpi/device-probing
 
-With the above said, I wonder if the following patch which ignores the
-error return of the _STA and set status to 0 makes any difference?
+I pulled, and noticed that there is v2, it's cleaner than v1 for the
+patch 1/5 to me :)
 
+>
+> Great thanks to cleanup these stuff, I will test
+> this patch set and review it, will get back to you
+> if I get anything.
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index ec256352f423..418c8a7cec91 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -2293,7 +2293,7 @@ static int acpi_bus_type_and_status(acpi_handle handle, int *type,
- 		*type = ACPI_BUS_TYPE_DEVICE;
- 		status = acpi_bus_get_status_handle(handle, sta);
- 		if (ACPI_FAILURE(status))
--			return -ENODEV;
-+			*sta = 0;
- 		break;
- 	case ACPI_TYPE_PROCESSOR:
- 		*type = ACPI_BUS_TYPE_PROCESSOR;
+I tested the v2 and it boots pretty happy as before, if
+you post to maillist,
+
+Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
+Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
+
+Thanks
+Hanjun
