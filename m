@@ -1,45 +1,23 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 1/7] cpufreq: remove redundant CPUFREQ_INCOMPATIBLE
- notifier event
-Date: Thu, 10 Sep 2015 02:53:18 +0200
-Message-ID: <CAJZ5v0jRDFJF6_mNvE7JknuUG-Tz1mDFMXw5rOEJP4GqXZtprA@mail.gmail.com>
-References: <cover.1438571116.git.viresh.kumar@linaro.org>
-	<406f55ac8030043f0349b084878c9b8d04f7ad86.1438571116.git.viresh.kumar@linaro.org>
-	<4897937.47p7WB7CoU@vostro.rjw.lan>
-	<20150910003918.GL5266@linux>
+From: Guaranteed@vger.kernel.org, Loan@vger.kernel.org
+Subject: Contact Us For Unsecured Guaranteed Loans Today!!!?
+Date: Wed, 9 Sep 2015 18:09:04 -0700
+Message-ID: <DM3PR20MB06667B3D4F981EBCFD442D42B8510@DM3PR20MB0666.namprd20.prod.outlook.com>
+Reply-To: <guarloan01@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-doc-owner@vger.kernel.org>
-In-Reply-To: <20150910003918.GL5266@linux>
-Sender: linux-doc-owner@vger.kernel.org
-To: Viresh Kumar <viresh.kumar@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lists linaro-kernel <linaro-kernel@lists.linaro.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Dmitry Eremin-Solenikov <dbaryshkov@gmail.com>, Fabian Frederick <fabf@skynet.be>, Jean-Christophe Plagniol-Villard <plagnioj@jcrosoft.com>, Jonathan Corbet <corbet@lwn.net>, Len Brown <lenb@kernel.org>, "open list:ACPI" <linux-acpi@vger.kernel.org>, "open list:DOCUMENTATION" <linux-doc@vger.kernel.org>, "open list:FRAMEBUFFER LAYER" <linux-fbdev@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, Nicholas Mc Guire <hofrat@osadl.org>, Russell King <rmk+kernel@arm.linux.org.uk>, Tomi Valkeinen <tomi.valkeinen@ti.com>, Wolfram Sang <wsa@the-dreams.de>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-bn1bhn0249.outbound.protection.outlook.com ([157.56.111.249]:14134
+	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752020AbbIJBKq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Sep 2015 21:10:46 -0400
+Content-Description: Mail message body
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: To@vger.kernel.org
 
-Hi,
-
-On Thu, Sep 10, 2015 at 2:39 AM, Viresh Kumar <viresh.kumar@linaro.org> wrote:
-> On 10-09-15, 01:26, Rafael J. Wysocki wrote:
->> On Monday, August 03, 2015 08:36:14 AM Viresh Kumar wrote:
->> > What's being done from CPUFREQ_INCOMPATIBLE, can also be done with
->> > CPUFREQ_ADJUST. There is nothing special with CPUFREQ_INCOMPATIBLE
->> > notifier.
->>
->> The above part of the changelog is a disaster to me. :-(
->>
->> It not only doesn't explain what really goes on, but it's actively confusing.
->>
->> What really happens is that the core sends CPUFREQ_INCOMPATIBLE notifications
->> unconditionally right after sending the CPUFREQ_ADJUST ones, so the former is
->> just redundant and it's more efficient to merge the two into one.
->
-> Undoubtedly this looks far better :)
->
-> But, isn't this series already applied some time back ?
-
-Right, never mind.  For some reason that patch was left in the "New" state.
-
-The code is OK.
-
-Thanks,
-Rafael
+Do you need a genuine Loan to settle your bills and start up a good
+business? Kindly contact us now with your details to get a good
+Loan at a low rate of 3% per Annu, Quick send your details via:
+guarloan01@gmail.com
