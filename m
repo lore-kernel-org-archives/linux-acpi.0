@@ -1,105 +1,157 @@
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [PATCH v2 3/7] x86, gfp: Cache best near node for memory allocation.
-Date: Thu, 10 Sep 2015 12:27:45 +0800
-Message-ID: <1441859269-25831-4-git-send-email-tangchen@cn.fujitsu.com>
+Subject: [PATCH v2 5/7] x86, acpi, cpu-hotplug: Introduce apicid_to_cpuid[] array to store persistent cpuid <-> apicid mapping.
+Date: Thu, 10 Sep 2015 12:27:47 +0800
+Message-ID: <1441859269-25831-6-git-send-email-tangchen@cn.fujitsu.com>
 References: <1441859269-25831-1-git-send-email-tangchen@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <owner-linux-mm@kvack.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cn.fujitsu.com ([59.151.112.132]:60199 "EHLO
+	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752821AbbIJE3p (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Sep 2015 00:29:45 -0400
 In-Reply-To: <1441859269-25831-1-git-send-email-tangchen@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: tj@kernel.org, jiang.liu@linux.intel.com, mika.j.penttila@gmail.com, mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, qiaonuohan@cn.fujitsu.com
 Cc: tangchen@cn.fujitsu.com, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Gu Zheng <guz.fnst@cn.fujitsu.com>
-List-Id: linux-acpi@vger.kernel.org
 
 From: Gu Zheng <guz.fnst@cn.fujitsu.com>
 
-In the current kernel, all possible cpus are mapped to the best near online
-node if they reside in a memory-less node in init_cpu_to_node().
+This patch finishes step2 mentioned in previous patch 4.
 
-init_cpu_to_node()
-{
-	......
-	for_each_possible_cpu(cpu) {
-		......
-		if (!node_online(node))
-			node = find_near_online_node(node);
-		numa_set_node(cpu, node);
-	}
-}
+In this patch, we introduce a new static array named apicid_to_cpuid[],
+which is large enough to store info for all possible cpus.
 
-The reason for doing this is to prevent memory allocation failure if the
-cpu is online but there is no memory on that node.
+And then, we modify the cpuid calculation. In generic_processor_info(),
+it simply finds the next unused cpuid. And it is also why the cpuid <-> nodeid
+mapping changes with node hotplug.
 
-But since cpuid <-> nodeid mapping is planed to be made static, doing
-so in initialization pharse makes no sense any more.
+After this patch, we find the next unused cpuid, map it to an apicid,
+and store the mapping in apicid_to_cpuid[], so that cpuid <-> apicid
+mapping will be persistent.
 
-The best near online node for each cpu has been cached in an array in previous
-patch. And the reason for doing this is to avoid mapping CPUs on memory-less
-nodes to other nodes.
+And finally we will use this array to make cpuid <-> nodeid persistent.
 
-So in this patch, we get best near online node for CPUs on memory-less nodes
-inside alloc_pages_node() and alloc_pages_exact_node() to avoid memory allocation
-failure.
+cpuid <-> apicid mapping is established at local apic registeration time.
+But non-present or disabled cpus are ignored.
+
+In this patch, we establish all possible cpuid <-> apicid mapping when
+registering local apic.
 
 Signed-off-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
 Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
 ---
- arch/x86/mm/numa.c  | 3 +--
- include/linux/gfp.h | 8 +++++++-
- 2 files changed, 8 insertions(+), 3 deletions(-)
+ arch/x86/include/asm/mpspec.h |  1 +
+ arch/x86/kernel/acpi/boot.c   |  6 ++---
+ arch/x86/kernel/apic/apic.c   | 53 ++++++++++++++++++++++++++++++++++++++++---
+ 3 files changed, 53 insertions(+), 7 deletions(-)
 
-diff --git a/arch/x86/mm/numa.c b/arch/x86/mm/numa.c
-index 8bd7661..e89b9fb 100644
---- a/arch/x86/mm/numa.c
-+++ b/arch/x86/mm/numa.c
-@@ -151,6 +151,7 @@ void numa_set_node(int cpu, int node)
- 		return;
- 	}
+diff --git a/arch/x86/include/asm/mpspec.h b/arch/x86/include/asm/mpspec.h
+index b07233b..db902d8 100644
+--- a/arch/x86/include/asm/mpspec.h
++++ b/arch/x86/include/asm/mpspec.h
+@@ -86,6 +86,7 @@ static inline void early_reserve_e820_mpc_new(void) { }
  #endif
-+
- 	per_cpu(x86_cpu_to_node_map, cpu) = node;
  
- 	set_near_online_node(node);
-@@ -787,8 +788,6 @@ void __init init_cpu_to_node(void)
+ int generic_processor_info(int apicid, int version);
++int __generic_processor_info(int apicid, int version, bool enabled);
  
- 		if (node == NUMA_NO_NODE)
- 			continue;
--		if (!node_online(node))
--			node = find_near_online_node(node);
- 		numa_set_node(cpu, node);
+ #define PHYSID_ARRAY_SIZE	BITS_TO_LONGS(MAX_LOCAL_APIC)
+ 
+diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+index e49ee24..bcc85b2 100644
+--- a/arch/x86/kernel/acpi/boot.c
++++ b/arch/x86/kernel/acpi/boot.c
+@@ -174,15 +174,13 @@ static int acpi_register_lapic(int id, u8 enabled)
+ 		return -EINVAL;
  	}
- }
-diff --git a/include/linux/gfp.h b/include/linux/gfp.h
-index ad35f30..1a1324f 100644
---- a/include/linux/gfp.h
-+++ b/include/linux/gfp.h
-@@ -307,13 +307,19 @@ static inline struct page *alloc_pages_node(int nid, gfp_t gfp_mask,
- 	if (nid < 0)
- 		nid = numa_node_id();
  
-+	if (!node_online(nid))
-+		nid = get_near_online_node(nid);
+-	if (!enabled) {
++	if (!enabled)
+ 		++disabled_cpus;
+-		return -EINVAL;
+-	}
+ 
+ 	if (boot_cpu_physical_apicid != -1U)
+ 		ver = apic_version[boot_cpu_physical_apicid];
+ 
+-	return generic_processor_info(id, ver);
++	return __generic_processor_info(id, ver, enabled);
+ }
+ 
+ static int __init
+diff --git a/arch/x86/kernel/apic/apic.c b/arch/x86/kernel/apic/apic.c
+index a9c9830..42b2a9c 100644
+--- a/arch/x86/kernel/apic/apic.c
++++ b/arch/x86/kernel/apic/apic.c
+@@ -1977,7 +1977,45 @@ void disconnect_bsp_APIC(int virt_wire_setup)
+ 	apic_write(APIC_LVT1, value);
+ }
+ 
+-static int __generic_processor_info(int apicid, int version, bool enabled)
++/*
++ * Current allocated max logical CPU ID plus 1.
++ * All allocated CPU ID should be in [0, max_logical_cpuid),
++ * so the maximum of max_logical_cpuid is nr_cpu_ids.
++ *
++ * NOTE: Reserve 0 for BSP.
++ */
++static int max_logical_cpuid = 1;
 +
- 	return __alloc_pages(gfp_mask, order, node_zonelist(nid, gfp_mask));
- }
- 
- static inline struct page *alloc_pages_exact_node(int nid, gfp_t gfp_mask,
- 						unsigned int order)
++static int cpuid_to_apicid[] = {
++	[0 ... NR_CPUS - 1] = -1,
++};
++
++static int allocate_logical_cpuid(int apicid)
++{
++	int i;
++
++	/*
++	 * cpuid <-> apicid mapping is persistent, so when a cpu is up,
++	 * check if the kernel has allocated a cpuid for it.
++	 */
++	for (i = 0; i < max_logical_cpuid; i++) {
++		if (cpuid_to_apicid[i] == apicid)
++			return i;
++	}
++
++	/* Allocate a new cpuid. */
++	if (max_logical_cpuid >= nr_cpu_ids) {
++		WARN_ONCE(1, "Only %d processors supported."
++			     "Processor %d/0x%x and the rest are ignored.\n",
++			     nr_cpu_ids - 1, max_logical_cpuid, apicid);
++		return -1;
++	}
++
++	cpuid_to_apicid[max_logical_cpuid] = apicid;
++	return max_logical_cpuid++;
++}
++
++int __generic_processor_info(int apicid, int version, bool enabled)
  {
--	VM_BUG_ON(nid < 0 || nid >= MAX_NUMNODES || !node_online(nid));
-+	VM_BUG_ON(nid < 0 || nid >= MAX_NUMNODES);
+ 	int cpu, max = nr_cpu_ids;
+ 	bool boot_cpu_detected = physid_isset(boot_cpu_physical_apicid,
+@@ -2058,8 +2096,17 @@ static int __generic_processor_info(int apicid, int version, bool enabled)
+ 		 * for BSP.
+ 		 */
+ 		cpu = 0;
+-	} else
+-		cpu = cpumask_next_zero(-1, cpu_present_mask);
 +
-+	if (!node_online(nid))
-+		nid = get_near_online_node(nid);
++		/* Logical cpuid 0 is reserved for BSP. */
++		cpuid_to_apicid[0] = apicid;
++	} else {
++		cpu = allocate_logical_cpuid(apicid);
++		if (cpu < 0) {
++			if (enabled)
++				disabled_cpus++;
++			return -EINVAL;
++		}
++	}
  
- 	return __alloc_pages(gfp_mask, order, node_zonelist(nid, gfp_mask));
- }
+ 	/*
+ 	 * Validate version
 -- 
 1.9.3
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
