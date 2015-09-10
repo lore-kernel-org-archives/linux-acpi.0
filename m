@@ -1,82 +1,130 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v2 1/5] ACPI: add in a bad_madt_entry() function to
- eventually replace the macro
-Date: Thu, 10 Sep 2015 17:20:20 +0100
-Message-ID: <55F1ADC4.7090005@arm.com>
-References: <1440022048-6285-1-git-send-email-al.stone@linaro.org>
- <1440022048-6285-2-git-send-email-al.stone@linaro.org>
- <55EDADF5.5060008@arm.com> <55F08F47.1070906@redhat.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH V2 1/2] efi: print unrecognized CPER section
+Date: Thu, 10 Sep 2015 20:27:15 +0200
+Message-ID: <20150910182715.GB10457@pd.tnic>
+References: <1441747761-12012-1-git-send-email-zjzhang@codeaurora.org>
+ <1441747761-12012-2-git-send-email-zjzhang@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:34597 "EHLO foss.arm.com"
+Received: from mail.skyhub.de ([78.46.96.112]:58823 "EHLO mail.skyhub.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752626AbbIJQUY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 10 Sep 2015 12:20:24 -0400
-In-Reply-To: <55F08F47.1070906@redhat.com>
+	id S1751545AbbIJS1T (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 10 Sep 2015 14:27:19 -0400
+Content-Disposition: inline
+In-Reply-To: <1441747761-12012-2-git-send-email-zjzhang@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Al Stone <ahs3@redhat.com>, Al Stone <al.stone@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, "patches@linaro.org" <patches@linaro.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>
+To: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
+Cc: Matt Fleming <matt.fleming@intel.com>, tony.luck@intel.com, fu.wei@linaro.org, al.stone@linaro.org, rjw@rjwysocki.net, mchehab@osg.samsung.com, mingo@redhat.com, gong.chen@linux.intel.com, linux-efi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, vgandhi@codeaurora.org, linux-acpi@vger.kernel.org, timur@codeaurora.org
 
+On Tue, Sep 08, 2015 at 02:29:20PM -0700, Jonathan (Zhixiong) Zhang wrote:
+> From: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
+> 
+> UEFI spec allows for non-standard section in Common Platform Error
+> Record. This is defined in section N.2.3 of UEFI version 2.5.
+> 
+> Currently if the CPER section's type (UUID) does not match with
+> one of the section types that the kernel knows how to parse, the
+> section is skipped. Therefore, user is not able to see
+> such CPER data, for instace, error record of non-standard section.
 
+instace?
 
-On 09/09/15 20:57, Al Stone wrote:
-> On 09/07/2015 09:32 AM, Sudeep Holla wrote:
->> Hi Al,
->>
->> On 19/08/15 23:07, Al Stone wrote:
->>
->> I finally got a chance to try this series on Juno. Well it exposed a firmware
->> bug in MADT table :)
->>
->> [..]
->>
->>>                   acpi_tbl_entry_handler handler,
->>> @@ -245,6 +484,8 @@ acpi_parse_entries(char *id, unsigned long table_size,
->>>                  table_end) {
->>>                   if (entry->type == entry_id
->>>                       && (!max_entries || count < max_entries)) {
->>> +                       if (bad_madt_entry(table_header, entry))
->>> +                               return -EINVAL;
->>
->> Not sure if we can have the above check here unconditionally.
->> Currently I can see there are 2 other users of acpi_parse_entries i.e.
->> PCC and NUMA. So may be it can be made conditional or return success for
->> non-MADT tables from bad_madt_entry ?
->
-> So, I went back and double checked the other users and they're looking at
-> the return value for acpi_parse_entries properly; adding in the check above
-> unconditionally should not cause any behavior change.
+Introduce a spellchecker into your workflow, pls.
 
-I disagree. I populated PCCT table on Juno to get this error for
-PCCT(PCCT header gets interpreted as MADT header):
-"
-ACPI: undefined version for either FADT 5.1 or MADT 1
-Error parsing PCC subspaces from PCCT
-"
-And here the stacktrace:
-[<ffffffc000881e58>] bad_madt_entry+0x90/0x16c
-[<ffffffc000882030>] acpi_table_parse_entries+0xfc/0x180
-[<ffffffc000895af8>] pcc_init+0x70/0x148
+> For above mentioned case, this change prints out the raw data in
+> hex in dmesg buffer. Data length is taken from Error Data length
+> field of Generic Error Data Entry.
+> 
+> Following is a sample output from dmesg:
+> [  115.771702] {1}[Hardware Error]: Hardware error from APEI Generic Hardware Error Source: 2
+> [  115.779042] {1}[Hardware Error]: It has been corrected by h/w and requires no further action
+> [  115.787456] {1}[Hardware Error]: event severity: corrected
+> [  115.792927] {1}[Hardware Error]:  Error 0, type: corrected
+> [  115.798415] {1}[Hardware Error]:  fru_id: 00000000-0000-0000-0000-000000000000
+> [  115.805596] {1}[Hardware Error]:  fru_text:
+> [  115.816105] {1}[Hardware Error]:  section type: d2e2621c-f936-468d-0d84-15a4ed015c8b
+> [  115.823880] {1}[Hardware Error]:  section length: 88
+> [  115.828779] {1}[Hardware Error]:   00000000: 01000001 00000002 5f434345 525f4543
+> [  115.836153] {1}[Hardware Error]:   00000010: 0000574d 00000000 00000000 00000000
+> [  115.843531] {1}[Hardware Error]:   00000020: 00000000 00000000 00000000 00000000
+> [  115.850908] {1}[Hardware Error]:   00000030: 00000000 00000000 00000000 00000000
+> [  115.858288] {1}[Hardware Error]:   00000040: fe800000 00000000 00000004 5f434345
+> [  115.865665] {1}[Hardware Error]:   00000050: 525f4543 0000574d
+> 
+> Change-Id: I663a6e3ae6dcf68e4e389f76d555e9106ffee165
 
-> Further, despite the name, acpi_parse_entries is only used to examine MADT
-> subtables.  Granted, we should probably make the name clearer at some point
-> (too ambiguous as to which entries are parsed right now).  Nonetheless, current
-> usage seems to be in order.
->
+As already noted, no internal cset IDs or whatever other markup.
 
- From the code inspection, I can see we have 3 users of 
-acpi_parse_entries not just MADT but also PCC and NUMA/SRAT
+> Signed-off-by: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
+> ---
+>  drivers/firmware/efi/cper.c | 39 +++++++++++++++++++++++++++++++--------
+>  1 file changed, 31 insertions(+), 8 deletions(-)
+> 
+> diff --git a/drivers/firmware/efi/cper.c b/drivers/firmware/efi/cper.c
+> index d42537425438..8a58b2927408 100644
+> --- a/drivers/firmware/efi/cper.c
+> +++ b/drivers/firmware/efi/cper.c
+> @@ -32,12 +32,31 @@
+>  #include <linux/acpi.h>
+>  #include <linux/pci.h>
+>  #include <linux/aer.h>
+> +#include <linux/printk.h>
+>  
+>  #define INDENT_SP	" "
+>  
+> +#define ROW_SIZE 16
+> +#define GROUP_SIZE 4
+> +
+>  static char rcd_decode_str[CPER_REC_LEN];
+>  
+>  /*
+> + * cper_print_hex - print hex from a CPER data buffer
+> + * @pfx: prefix for each line, including log level and prefix string
 
-Something like this solves this issue:
--              if (bad_madt_entry(table_header, entry))
-+              if (!strncmp(id, ACPI_SIG_MADT, 4) &&
-+                      bad_madt_entry(table_header, entry)
+Why?
 
+First argument of print_hex_dump() is @level and second is @prefix_str.
+But you're calling print_hex_dump() with "" as a second arg...
 
-Or am I still missing something ?
+> + * @buf: buffer pointer
+> + * @len: size of buffer
+> + *
+> + * print_hex_dump() expects log level and prefix string to be passed
+> + * in two different paramters. Internally it concatenates them. In
+> + * our case, those two are already concatenated in pfx.
 
-Regards,
-Sudeep
+This doesn't make any sense, why?
+
+And WTH are you defining a macro for, to use exactly *once*?! Why can't
+you simply use print_hex_dump() like normal kids would do? Same with
+those ROW_SIZE and GROUP_SIZE defines... Kill them. Kill it all.
+
+> + */
+> +#define cper_print_hex(pfx, buf, len)				\
+> +	print_hex_dump(pfx, "",					\
+> +		DUMP_PREFIX_OFFSET, ROW_SIZE, GROUP_SIZE,	\
+> +		buf, len, 0)
+> +
+> +/*
+>   * CPER record ID need to be unique even after reboot, because record
+>   * ID is used as index for ERST storage, while CPER records from
+>   * multiple boot may co-exist in ERST.
+> @@ -392,7 +411,9 @@ static void cper_estatus_print_section(
+>  	uuid_le *sec_type = (uuid_le *)gdata->section_type;
+>  	__u16 severity;
+>  	char newpfx[64];
+> +	u32 len;
+>  
+> +	len = gdata->error_data_length;
+
+This and the changes it brings with it are unrelated to this patch -
+needs to be a separate patch.
+
+-- 
+Regards/Gruss,
+    Boris.
+
+ECO tip #101: Trim your mails when you reply.
+--
