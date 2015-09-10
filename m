@@ -1,58 +1,56 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH 0/5] ACPI probing infrastructure
-Date: Thu, 10 Sep 2015 17:03:15 +0800
-Message-ID: <55F14753.5070703@linaro.org>
-References: <1441386412-8139-1-git-send-email-marc.zyngier@arm.com> <55EEE071.7040506@linaro.org>
+Subject: Re: [PATCH V3 0/4] PCI: ACPI: Setting up DMA coherency for PCI device
+ from _CCA attribute
+Date: Thu, 10 Sep 2015 17:15:58 +0800
+Message-ID: <55F14A4E.80206@linaro.org>
+References: <1440597279-11802-1-git-send-email-Suravee.Suthikulpanit@amd.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <55EEE071.7040506@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tomasz Nowicki <tn@semihalf.com>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>
-Cc: linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1440597279-11802-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, bhelgaas@google.com, rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com
+Cc: linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 09/08/2015 09:19 PM, Hanjun Guo wrote:
-> Hi Marc,
+On 08/26/2015 09:54 PM, Suravee Suthikulpanit wrote:
+> This patch adds support to setup DMA coherency for PCI device using
+> the ACPI _CCA attribute. According to the ACPI spec, the _CCA attribute
+> is required for ARM64. Therefore, this patch is a pre-req for ACPI PCI
+> support for ARM64 which is currently in development.
 >
-> Sorry for the late response for quite a while...
+> Also, this should not affect other architectures that does not define
+> CONFIG_ACPI_CCA_REQUIRED, since the default value is coherent.
 >
-> On 09/05/2015 01:06 AM, Marc Zyngier wrote:
->> IRQ controllers and timers are the two types of device the kernel
->> requires before being able to use the device driver model.
->>
->> ACPI so far lacks a proper probing infrastructure similar to the one
->> we have with DT, where we're able to declare IRQ chips and
->> clocksources inside the driver code, and let the core code pick it up
->> and call us back on a match. This leads to all kind of really ugly
->> hacks all over the arm64 code and even in the ACPI layer.
->>
->> It turns out that providing such a probing infrastructure is rather
->> easy, and provides a much deserved cleanup in both the arch code, the
->> GIC driver, and the architected timer driver.
->>
->> I'm sure there is some more code to be deleted, and one can only
->> wonder why this wasn't done before the arm64 code was initially merged
->> (the diffstat says it all...).
->>
->> Patches are against v4.2, and a branch is available at
->>
->> git://git.kernel.org/pub/scm/linux/kernel/git/maz/arm-platforms.git
->> acpi/device-probing
-
-I pulled, and noticed that there is v2, it's cleaner than v1 for the
-patch 1/5 to me :)
-
+> I have included the following patch from Jeremy before cleaning up
+> the acpi_check_dma() function (in patch 2).
 >
-> Great thanks to cleanup these stuff, I will test
-> this patch set and review it, will get back to you
-> if I get anything.
+>      http://www.spinics.net/lists/linux-usb/msg128582.html)
+>
+> Changes from V2: (https://lkml.org/lkml/2015/8/25/549)
+>      * Return -ENOSUPP instead of -1 (per Rafael's suggestion)
+>      * Add WARN() when fail to setup DMA for PCI device when booting
+>        ACPI (per Arnd's suggestion)
+>      * Added Acked-by from Rob.
+>      * Minor clean up
+>
+> Changes from V1: (https://lkml.org/lkml/2015/8/13/182)
+>      * Include patch 1 from Jeremy to enable support for _CCA=0
+>      * Clean up acpi_check_dma() per Bjorn suggestions
+>      * Split the original V1 patch into two patches (patch 3 and 4)
+>
+>
+> Jeremy Linton (1):
+>    Honor ACPI _CCA attribute setting
+>
+> Suravee Suthikulpanit (3):
+>    ACPI/scan: Clean up acpi_check_dma
+>    PCI: OF: Move of_pci_dma_configure() to pci_dma_configure()
+>    PCI: ACPI: Add support for PCI device DMA coherency
 
-I tested the v2 and it boots pretty happy as before, if
-you post to maillist,
+For this series,
 
-Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
 Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
 
 Thanks
