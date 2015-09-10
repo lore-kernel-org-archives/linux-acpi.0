@@ -1,97 +1,55 @@
-From: Graeme Gregory <graeme.gregory@linaro.org>
-Subject: Re: [Linaro-acpi] [PATCH v3 0/5] ACPI: Provide better MADT subtable
- sanity checks
-Date: Thu, 10 Sep 2015 13:16:12 +0100
-Message-ID: <20150910121612.GB11267@xora-haswell.xora.org.uk>
+From: Al Stone <ahs3@redhat.com>
+Subject: Re: [Linaro-acpi] [PATCH v3 1/5] ACPI: add in a bad_madt_entry()
+ function to eventually replace the macro
+Date: Thu, 10 Sep 2015 08:13:36 -0600
+Message-ID: <55F19010.9060603@redhat.com>
 References: <1441832991-28200-1-git-send-email-al.stone@linaro.org>
+ <1441832991-28200-2-git-send-email-al.stone@linaro.org>
+ <20150910121413.GA11267@xora-haswell.xora.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-ia64-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1441832991-28200-1-git-send-email-al.stone@linaro.org>
+In-Reply-To: <20150910121413.GA11267@xora-haswell.xora.org.uk>
 Sender: linux-ia64-owner@vger.kernel.org
-To: Al Stone <al.stone@linaro.org>
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-kernel@lists.linaro.org, linux-ia64@vger.kernel.org, patches@linaro.org, linux-pm@vger.kernel.org, linaro-acpi@lists.linaro.org, linux-kernel@vger.kernel.org
+To: Graeme Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linaro-kernel@lists.linaro.org, linux-ia64@vger.kernel.org, patches@linaro.org, linux-pm@vger.kernel.org, linaro-acpi@lists.linaro.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Sep 09, 2015 at 03:09:46PM -0600, Al Stone wrote:
-> Currently, the BAD_MADT_ENTRY macro is used to do a very simple sanity
-> check on the various subtables that are defined for the MADT.  The check
-> compares the size of the subtable data structure as defined by ACPICA to
-> the length entry in the subtable.  If they are not the same, the assumption
-> is that the subtable is incorrect.
-> 
-> Over time, the ACPI spec has allowed for MADT subtables where this can
-> never be true (the local SAPIC subtable, for example).  Or, more recently,
-> the spec has accumulated some minor flaws where there are three possible 
-> sizes for a subtable, all of which are valid, but only for specific versions
-> of the spec (the GICC subtable).  In both cases, BAD_MADT_ENTRY reports these
-> subtables as bad when they are not.  In order to retain some sanity check
-> on the MADT subtables, we now have to special case these subtables.  Of
-> necessity, these special cases have ended up in arch-dependent code (arm64)
-> or an arch has simply decided to forgo the check (ia64).
-> 
-> This patch set replaces the BAD_MADT_ENTRY macro with a function called
-> bad_madt_entry().  This function uses a data set of details about the
-> subtables to provide more sanity checking than before:
-> 
-> 	-- is the subtable legal for the version given in the FADT?
-> 
-> 	-- is the subtable legal for the revision of the MADT in use?
-> 
-> 	-- is the subtable of the proper length (including checking
-> 	   on the one variable length subtable that is currently ignored),
-> 	   given the FADT version and the MADT revision?
-> 
-> Further, this patch set adds in the call to bad_madt_entry() from the 
-> acpi_table_parse_madt() function, allowing it to be used consistently
-> by all architectures, for all subtables, and removing the need for each
-> of the subtable traversal callback functions to use BAD_MADT_ENTRY.
-> 
-> In theory, as the ACPI specification changes, we would only have to add
-> additional information to the data set describing the MADT subtables in
-> order to continue providing sanity checks, even when new subtables are
-> added.
-> 
-> These patches have been tested on an APM Mustang (arm64) and are known to
-> work there.  They have also been cross-compiled for x86 and ia64 with no
-> known failures.
-> 
-> Changes for v3:
->    -- Reviewed-and-tested-by from Sudeep Holla for arm64 parts
->    -- Clearer language in error messages (Graeme Gregory, Timur Tabi)
->    -- Double checked that inserting call to bad_madt_entry() into the
->       function acpi_parse_entries() does not impact current behavior
->       (Sudeep Holla)
->    
-> Changes for v2:
->    -- Acked-by on 2/5 from Marc Zyngier and Catalin Marinas for ARM
->    -- Correct faulty end of loop test found by Timur Tabi
-> 
-> 
-> Al Stone (5):
->   ACPI: add in a bad_madt_entry() function to eventually replace the
->     macro
->   ACPI / ARM64: remove usage of BAD_MADT_ENTRY/BAD_MADT_GICC_ENTRY
->   ACPI / IA64: remove usage of BAD_MADT_ENTRY
->   ACPI / X86: remove usage of BAD_MADT_ENTRY
->   ACPI: remove definition of BAD_MADT_ENTRY macro
-> 
->  arch/arm64/include/asm/acpi.h |   8 --
->  arch/arm64/kernel/smp.c       |   2 -
->  arch/ia64/kernel/acpi.c       |  20 ----
->  arch/x86/kernel/acpi/boot.c   |  27 -----
->  drivers/acpi/tables.c         | 245 +++++++++++++++++++++++++++++++++++++++++-
->  drivers/irqchip/irq-gic.c     |   6 --
->  include/linux/acpi.h          |   4 -
->  7 files changed, 244 insertions(+), 68 deletions(-)
-> 
+On 09/10/2015 06:14 AM, Graeme Gregory wrote:
+> On Wed, Sep 09, 2015 at 03:09:47PM -0600, Al Stone wrote:
+>> The existing BAD_MADT_ENTRY macro only checks that the size of the data
+>> structure for an MADT subtable matches the length entry in the subtable.
+>> This is, unfortunately, not reliable.  Nor, as it turns out, does it have
+>> anything to do with what the length should be in any particular table.
+>>
 
-Whole series looks good to me apart from minor whitespace nit.
+[snip...]
+  			if (handler(entry, table_end))
+>>  				return -EINVAL;
+>>  
+>> @@ -349,7 +592,7 @@ int __init acpi_table_parse(char *id, acpi_tbl_table_handler handler)
+>>  		return -ENODEV;
+>>  }
+>>  
+>> -/* 
+>> +/*
+>>   * The BIOS is supposed to supply a single APIC/MADT,
+>>   * but some report two.  Provide a knob to use either.
+>>   * (don't you wish instance 0 and 1 were not the same?)
+> 
+> Unrelated whitespace change snuck in here.
+> 
+> Graeme
 
-Reviewed-by: Graeme Gregory <graeme.gregory@linaro.org>
+Bah.  Nice catch; not sure how that got in there, but duly noted.
 
-Thanks
-
-G
-
+-- 
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Red Hat, Inc.
+ahs3@redhat.com
+-----------------------------------
