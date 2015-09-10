@@ -1,57 +1,41 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH V3 0/4] PCI: ACPI: Setting up DMA coherency for PCI device
- from _CCA attribute
-Date: Thu, 10 Sep 2015 17:15:58 +0800
-Message-ID: <55F14A4E.80206@linaro.org>
-References: <1440597279-11802-1-git-send-email-Suravee.Suthikulpanit@amd.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1440597279-11802-1-git-send-email-Suravee.Suthikulpanit@amd.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, bhelgaas@google.com, rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com
-Cc: linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: Sudip Mukherjee <sudipm.mukherjee@gmail.com>
+Subject: [PATCH] ACPICA: fix possible NULL dereference
+Date: Thu, 10 Sep 2015 15:49:28 +0530
+Message-ID: <1441880368-17718-1-git-send-email-sudipm.mukherjee@gmail.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pa0-f54.google.com ([209.85.220.54]:36570 "EHLO
+	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753466AbbIJKTj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Sep 2015 06:19:39 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, devel@acpica.org, Sudip Mukherjee <sudipm.mukherjee@gmail.com>
 
-On 08/26/2015 09:54 PM, Suravee Suthikulpanit wrote:
-> This patch adds support to setup DMA coherency for PCI device using
-> the ACPI _CCA attribute. According to the ACPI spec, the _CCA attribute
-> is required for ARM64. Therefore, this patch is a pre-req for ACPI PCI
-> support for ARM64 which is currently in development.
->
-> Also, this should not affect other architectures that does not define
-> CONFIG_ACPI_CCA_REQUIRED, since the default value is coherent.
->
-> I have included the following patch from Jeremy before cleaning up
-> the acpi_check_dma() function (in patch 2).
->
->      http://www.spinics.net/lists/linux-usb/msg128582.html)
->
-> Changes from V2: (https://lkml.org/lkml/2015/8/25/549)
->      * Return -ENOSUPP instead of -1 (per Rafael's suggestion)
->      * Add WARN() when fail to setup DMA for PCI device when booting
->        ACPI (per Arnd's suggestion)
->      * Added Acked-by from Rob.
->      * Minor clean up
->
-> Changes from V1: (https://lkml.org/lkml/2015/8/13/182)
->      * Include patch 1 from Jeremy to enable support for _CCA=0
->      * Clean up acpi_check_dma() per Bjorn suggestions
->      * Split the original V1 patch into two patches (patch 3 and 4)
->
->
-> Jeremy Linton (1):
->    Honor ACPI _CCA attribute setting
->
-> Suravee Suthikulpanit (3):
->    ACPI/scan: Clean up acpi_check_dma
->    PCI: OF: Move of_pci_dma_configure() to pci_dma_configure()
->    PCI: ACPI: Add support for PCI device DMA coherency
+acpi_ns_get_secondary_object() can return NULL, and if it returns NULL
+then we were dereferencing it while calling acpi_ds_execute_arguments().
 
-For this series,
+Lets have a NULL check and return AE_NOT_EXIST.	
 
-Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
+Signed-off-by: Sudip Mukherjee <sudip@vectorindia.org>
+---
+ drivers/acpi/acpica/dsargs.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-Thanks
-Hanjun
+diff --git a/drivers/acpi/acpica/dsargs.c b/drivers/acpi/acpica/dsargs.c
+index e2ab59e..4bb8952 100644
+--- a/drivers/acpi/acpica/dsargs.c
++++ b/drivers/acpi/acpica/dsargs.c
+@@ -192,6 +192,9 @@ acpi_ds_get_buffer_field_arguments(union acpi_operand_object *obj_desc)
+ 	/* Get the AML pointer (method object) and buffer_field node */
+ 
+ 	extra_desc = acpi_ns_get_secondary_object(obj_desc);
++	if (!extra_desc)
++		return_ACPI_STATUS(AE_NOT_EXIST);
++
+ 	node = obj_desc->buffer_field.node;
+ 
+ 	ACPI_DEBUG_EXEC(acpi_ut_display_init_pathname(ACPI_TYPE_BUFFER_FIELD,
+-- 
+1.9.1
+
