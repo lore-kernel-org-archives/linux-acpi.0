@@ -1,60 +1,48 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH V2 2/2] ras: acpi / apei: generate trace event for
- unrecognized CPER section
-Date: Thu, 10 Sep 2015 20:41:36 +0200
-Message-ID: <20150910184136.GC10457@pd.tnic>
-References: <1441747761-12012-1-git-send-email-zjzhang@codeaurora.org>
- <1441747761-12012-3-git-send-email-zjzhang@codeaurora.org>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCH v2 3/7] x86, gfp: Cache best near node for memory
+ allocation.
+Date: Thu, 10 Sep 2015 15:29:35 -0400
+Message-ID: <20150910192935.GI8114@mtj.duckdns.org>
+References: <1441859269-25831-1-git-send-email-tangchen@cn.fujitsu.com>
+ <1441859269-25831-4-git-send-email-tangchen@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:60497 "EHLO mail.skyhub.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752078AbbIJSll (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 10 Sep 2015 14:41:41 -0400
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
 Content-Disposition: inline
-In-Reply-To: <1441747761-12012-3-git-send-email-zjzhang@codeaurora.org>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <1441859269-25831-4-git-send-email-tangchen@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: jiang.liu@linux.intel.com, mika.j.penttila@gmail.com, mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, qiaonuohan@cn.fujitsu.com, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Gu Zheng <guz.fnst@cn.fujitsu.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Jonathan (Zhixiong) Zhang" <zjzhang@codeaurora.org>
-Cc: Matt Fleming <matt.fleming@intel.com>, tony.luck@intel.com, fu.wei@linaro.org, al.stone@linaro.org, rjw@rjwysocki.net, mchehab@osg.samsung.com, mingo@redhat.com, gong.chen@linux.intel.com, linux-efi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, vgandhi@codeaurora.org, linux-acpi@vger.kernel.org, timur@codeaurora.org
 
-On Tue, Sep 08, 2015 at 02:29:21PM -0700, Jonathan (Zhixiong) Zhang wrote:
->  /*
-> + * Raw Events Report
-> + *
-> + * This event is generated when hardware detected a hardware
-> + * error event, which may be of non-standard section as defined
-> + * in UEFI spec appendix "Common Platform Error Record", or may
-> + * be of sections for which TRACE_EVENT is not defined.
-> + *
-> + */
-> +TRACE_EVENT(raw_event,
+Hello,
+
+On Thu, Sep 10, 2015 at 12:27:45PM +0800, Tang Chen wrote:
+> diff --git a/include/linux/gfp.h b/include/linux/gfp.h
+> index ad35f30..1a1324f 100644
+> --- a/include/linux/gfp.h
+> +++ b/include/linux/gfp.h
+> @@ -307,13 +307,19 @@ static inline struct page *alloc_pages_node(int nid, gfp_t gfp_mask,
+>  	if (nid < 0)
+>  		nid = numa_node_id();
+>  
+> +	if (!node_online(nid))
+> +		nid = get_near_online_node(nid);
 > +
-> +	TP_PROTO(const uuid_le *sec_type,
-> +		 const uuid_le *fru_id,
-> +		 const char *fru_text,
-> +		 u8 sev,
-> +		 const u8 *err,
-> +		 const u32 len),
+>  	return __alloc_pages(gfp_mask, order, node_zonelist(nid, gfp_mask));
+>  }
 
-This is not a raw event - this is an event which has a section type, FRU
-ID, text, etc, etc.
+Why not just update node_data[]->node_zonelist in the first place?
+Also, what's the synchronization rule here?  How are allocators
+synchronized against node hot [un]plugs?
 
-A raw event is one which takes exactly two arguments: bytes and count.
-What it does is, it dumps the bytes of length count in a block or other
-amicably formatted output, most likely hex, similar to hexdump or other
-tools; *without* any attempt to interpret it whatsoever.
-
-Its *consumers* do the interpretation. So that that raw_event tracepoint
-can be used as a fallback in all cases where the error information is of
-unknown structure to the kernel.
-
-Btw, @count should be sanity-checked before calling the tracepoint with
-insane values.
+Thanks.
 
 -- 
-Regards/Gruss,
-    Boris.
+tejun
 
-ECO tip #101: Trim your mails when you reply.
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
