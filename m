@@ -1,91 +1,64 @@
-From: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [RFC 3/5] acpi/serial: add DBG2 earlycon support
-Date: Fri, 11 Sep 2015 00:43:48 -0500
-Message-ID: <CAL_JsqJwdSA=NJ5x4RXhh3H2um_56XmJgg+P-6hJEK7J-a4iyw@mail.gmail.com>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [PATCH v2 1/5] ACPI: add in a bad_madt_entry() function to
+ eventually replace the macro
+Date: Fri, 11 Sep 2015 09:49:43 +0100
+Message-ID: <55F295A7.20406@arm.com>
+References: <1440022048-6285-1-git-send-email-al.stone@linaro.org>
+ <1440022048-6285-2-git-send-email-al.stone@linaro.org>
+ <55EDADF5.5060008@arm.com> <55F08F47.1070906@redhat.com>
+ <55F1ADC4.7090005@arm.com> <55F1EB81.9030908@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Leif Lindholm <leif.lindholm-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <al.stone-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "torez-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <torez-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org" <jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, "graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org" <graeme.gregory-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org" <linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>, "lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org" <lv.zheng-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:36656 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751064AbbIKItu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 11 Sep 2015 04:49:50 -0400
+In-Reply-To: <55F1EB81.9030908@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Al Stone <ahs3@redhat.com>, Al Stone <al.stone@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, "patches@linaro.org" <patches@linaro.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>
 
-On Tue, Sep 8, 2015 at 12:03 PM, Leif Lindholm <leif.lindholm-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org> wrote:
-> On Tue, Sep 08, 2015 at 02:09:51PM +0100, Mark Rutland wrote:
->> On Tue, Sep 08, 2015 at 01:43:35PM +0100, Leif Lindholm wrote:
->> > The ACPI DBG2 table defines a debug console. Add support for parsing it
->> > and using it to select earlycon destination when no arguments provided.
->> >
->> > Signed-off-by: Leif Lindholm <leif.lindholm-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
->>
->> [...]
->>
->> > diff --git a/drivers/acpi/console.c b/drivers/acpi/console.c
->> > new file mode 100644
->> > index 0000000..a985890
->> > --- /dev/null
->> > +++ b/drivers/acpi/console.c
->> > @@ -0,0 +1,103 @@
->> > +/*
->> > + * Copyright (c) 2012, Intel Corporation
->> > + * Copyright (c) 2015, Linaro Ltd.
->> > + *
->> > + * This program is free software; you can redistribute it and/or modify
->> > + * it under the terms of the GNU General Public License version 2 as
->> > + * published by the Free Software Foundation.
->> > + *
->> > + */
->> > +
->> > +#define DEBUG
->>
->> Why?
->
-> Kept around from Lv Zheng's 2012 set. Will drop.
->
->> > +#define pr_fmt(fmt) "ACPI: " KBUILD_MODNAME ": " fmt
->> > +
->> > +#include <linux/acpi.h>
->> > +#include <linux/kernel.h>
->> > +#include <linux/serial_core.h>
->> > +
->> > +#define NUM_ELEMS(x) (sizeof(x) / sizeof(*x))
->>
->> Use ARRAY_SIZE (from kernel.h).
->
-> I was sure there was something like that, but my grep-fu failed me.
-> Will fix.
->
->> > +
->> > +#ifdef CONFIG_SERIAL_EARLYCON
->> > +static int use_earlycon __initdata;
->> > +static int __init setup_acpi_earlycon(char *buf)
->> > +{
->> > +   if (!buf)
->> > +           use_earlycon = 1;
->> > +
->> > +   return 0;
->> > +}
->> > +early_param("earlycon", setup_acpi_earlycon);
->>
->> It seems a shame to add this after folding the OF case into the earlycon
->> code. What necessitates this being a separate early_param? Why is it too
->> early to parse DBG2?
->
-> Currently, we don't even know where our ACPI tables are  at this point
-> (efi_init() is called two functions after parse_early_param() in
-> setup_arch). More specifically, because acpi_boot_table_init() is
-> called even later than that.
->
-> If we moved both of those earlier, we could drop the extra earlycon
-> param handling for ACPI. That would of course reduce the ability to
-> have dynamically configurable debug messages for both of these.
 
-Personally, I liked that we don't have to have the early_param
-handling globally located. I'm not sure I see the benefit of
-centralizing it especially if it doesn't even help for your case.
 
-Rob
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On 10/09/15 21:43, Al Stone wrote:
+> On 09/10/2015 10:20 AM, Sudeep Holla wrote:
+>>
+
+[...]
+
+>>
+>>  From the code inspection, I can see we have 3 users of acpi_parse_entries not
+>> just MADT but also PCC and NUMA/SRAT
+>>
+>> Something like this solves this issue:
+>> -              if (bad_madt_entry(table_header, entry))
+>> +              if (!strncmp(id, ACPI_SIG_MADT, 4) &&
+>> +                      bad_madt_entry(table_header, entry)
+>>
+>>
+>> Or am I still missing something ?
+>
+> Nope, I missed it.  Your fix above will solve the problem; I misunderstood
+> how acpi_parse_entries() was being used -- somehow I had it in my head that
+> only MADT was in use, and just not seeing that it's being used for several
+> other subtable traversals also.  Sorry about that, Sudeep.  My mistake.
+>
+
+No worries.
+
+> I'll add this fix for a v4, but I'll wait for a few days to see if I get any
+> additional comments -- I haven't heard from any x86, ia64 or ACPI maintainers
+
+Makes sense.
+
+> yet.  OTOH, it's nice to know we've already found and fixed two sets of arm64
+> ACPI tables that are in error by using these patches, even with the flaws :).
+>
+
+Very much true indeed :)
+
+Regards,
+Sudeep
