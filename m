@@ -1,173 +1,69 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH 05/11] x86, pci, acpi: Move arch-agnostic MMCONFIG (aka
- ECAM) and ACPI code out of arch/x86/ directory
-Date: Fri, 11 Sep 2015 12:20:18 +0100
-Message-ID: <20150911112018.GA13033@red-moon>
-References: <20150602133215.GC23650@red-moon>
- <55701A31.808@linaro.org>
- <20150604102253.GA31773@red-moon>
- <5570447D.3020705@linaro.org>
- <557504A2.3060203@linaro.org>
- <20150608151443.GA16151@red-moon>
- <55E4340D.6050004@linaro.org>
- <55ED6010.3020406@linaro.org>
- <20150908150727.GF29293@red-moon>
- <55F0388B.1090607@linaro.org>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v4 01/22] driver core: Add pre_probe callback to bus_type
+Date: Fri, 11 Sep 2015 13:04:08 +0100
+Message-ID: <20150911120408.GO12027@sirena.org.uk>
+References: <1441628627-5143-1-git-send-email-tomeu.vizoso@collabora.com>
+ <1441628627-5143-2-git-send-email-tomeu.vizoso@collabora.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="/GGxXfKRHScBDXG5"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:59984 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752859AbbIKMEd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Sep 2015 08:04:33 -0400
 Content-Disposition: inline
-In-Reply-To: <55F0388B.1090607@linaro.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, Yijing Wang <wangyijing@huawei.com>, Will Deacon <Will.Deacon@arm.com>, Arnd Bergmann <arnd@arndb.de>, Catalin Marinas <Catalin.Marinas@arm.com>, Jiang Liu <jiang.liu@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "msalter@redhat.com" <msalter@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
+In-Reply-To: <1441628627-5143-2-git-send-email-tomeu.vizoso@collabora.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Cc: linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Thierry Reding <thierry.reding@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-arm-kernel@lists.infradead.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
-On Wed, Sep 09, 2015 at 02:47:55PM +0100, Tomasz Nowicki wrote:
 
-[...]
+--/GGxXfKRHScBDXG5
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> > I think (but I am happy to be corrected) that the map_bus() hook
-> > (ie that's why struct pci_bus is required in eg pci_generic_config_write)
-> > is there to ensure that when the generic accessors are called
-> > a) we have a valid bus b) the host controllers implementing it
-> > has been initialized.
-> >
-> > I had another look and I noticed you are trying to solve multiple
-> > things at once:
-> >
-> > 1) ACPICA seems to need PCI config space on bus 0 to be working
-> >     before PCI enumerates (ie before we have a root bus), we need to
-> >     countercheck on that, but you can't use the generic PCI accessors
-> >     for that reasons (ie root bus might not be available, you do not
-> >     have a pci_bus struct)
-> > 2) the raw_pci_read/write require _generic_ mmio back-ends, since AMD
-> >     can't cope with standard x86 read/write{b,w,l}
-> >
-> > Overall, it seems to me that we can avoid code duplication by
-> > shuffling your code a bit.
-> >
-> > You could modify the generic accessors in drivers/pci/access.c to
-> > use your mmio back-end instead of using plain read/write{b,w,l}
-> > functions (we should check if RobH is ok with that there can be
-> > reasons that prevent this from happening). This would solve the
-> > AMD mmio issue.
-> >
-> > By factoring out the code that actually carries out the reads
-> > and writes in the accessors basically you decouple the functions
-> > requiring the struct pci_bus from the ones that does not require it
-> > (ie raw_pci_{read/write}.
-> >
-> > The generic MMIO layer belongs in the drivers/pci/access.c file, it has
-> > nothing to do with ECAM.
-> >
-> > The mmcfg interface should probably live in pci-acpi.c, I do not think
-> > you need an extra file in there but that's a detail.
-> >
-> > Basically the generic accessors would become something like eg:
-> >
-> > int pci_generic_config_write(struct pci_bus *bus, unsigned int devfn,
-> >                            int where, int size, u32 val)
-> > {
-> >       void __iomem *addr;
-> >
-> >       addr = bus->ops->map_bus(bus, devfn, where);
-> >       if (!addr)
-> >               return PCIBIOS_DEVICE_NOT_FOUND;
-> >
-> >       pci_mmio_write(size, addr + where, value);
-> >
-> >       return PCIBIOS_SUCCESSFUL;
-> > }
-> >
-> > With that in place using raw_pci_write/read or the generic accessors
-> > becomes almost identical, with code requiring the pci_bus to be
-> > created using the generic accessors and ACPICA using the raw version.
-> >
-> > I might be missing something, so apologies if that's the case.
-> >
-> 
-> Actually, I think you showed me the right direction :) Here are some
-> conclusions/comments/concerns. Please correct me if I am wrong:
-> 
-> 1. We need raw_pci_write/read accessors (based on ECAM) for ARM64 too
-> but only up to the point where buses are enumerated. From that point on,
-> we should reuse generic accessors from access.c file, right?
+On Mon, Sep 07, 2015 at 02:23:26PM +0200, Tomeu Vizoso wrote:
 
-Well, I still have not figured out whether on arm64 the raw accessors
-required by ACPICA make sense.
+> +	if (dev->bus && dev->bus->pre_probe) {
+> +		ret = dev->bus->pre_probe(dev);
+> +		if (ret) {
+> +			if (ret == -EPROBE_DEFER)
+> +				driver_deferred_probe_add(dev);
+> +			ret = 0;
+> +			goto out_unlock;
+> +		}
+> +	}
 
-So either arm64 relies on the generic MCFG based raw read and writes
-or we define the global raw read and writes as empty (ie x86 overrides
-them anyway).
+So if we get an error other than -EPROBE_DEFER we silently ignore it?
+That seems surprising and at least worth a comment.
 
-I will get back to you on this.
+> +	if (dev->bus && dev->bus->pre_probe) {
+> +		ret = dev->bus->pre_probe(dev);
+> +		if (ret) {
+> +			if (ret == -EPROBE_DEFER)
+> +				driver_deferred_probe_add(dev);
+> +			goto out;
+> +		}
+> +	}
 
-> 2. For ARM64 ACPI PCI, we can use generic accessors right away, .map_bus
-> would call common code part (pci_dev_base()). The only thing that worry
-> me is fact that MCFG regions are RCU list so it needs rcu_read_lock()
-> for the .map_bus (mcfg lookup) *and* read/write operation.
+That's more what I'd expect.
 
-Do you mean the address look-up and the mmio operation should be carried
-out atomically right ? I have to review the MCFG descriptor locking anyway
-to check if and when there is a problem here.
+--/GGxXfKRHScBDXG5
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-> 3. Changing generic accessors to introduce generic MMIO layer (because
-> of AMD issue) like this:
-> int pci_generic_config_write(struct pci_bus *bus, unsigned int devfn,
->                              int where, int size, u32 val)
-> {
->         void __iomem *addr;
-> 
->         addr = bus->ops->map_bus(bus, devfn, where);
->         if (!addr)
->                 return PCIBIOS_DEVICE_NOT_FOUND;
-> 
->         pci_mmio_write(size, addr + where, val);
-> 
->         return PCIBIOS_SUCCESSFUL;
-> }
-> would imply using those accessors for x86 ACPI PCI host bridge driver,
-> see arch/x86/pci/common.c
-> 
-> int raw_pci_read(unsigned int domain, unsigned int bus, unsigned int devfn,
->                                                 int reg, int len, u32 *val)
-> {
->         if (domain == 0 && reg < 256 && raw_pci_ops)
->                 return raw_pci_ops->read(domain, bus, devfn, reg, len, val);
->         if (raw_pci_ext_ops)
->                 return raw_pci_ext_ops->read(domain, bus, devfn, reg, len, val);
->         return -EINVAL;
-> }
-> [...]
-> static int pci_read(struct pci_bus *bus, unsigned int devfn, int where,
-> int size, u32 *value)
-> {
->         return raw_pci_read(pci_domain_nr(bus), bus->number,
->                                  devfn, where, size, value);
-> }
-> [...]
-> struct pci_ops pci_root_ops = {
->         .read = pci_read,
->         .write = pci_write,
-> };
-> 
-> Currently, the above code may call lots of different accessors (not
-> necessarily generic accessor friendly :), moreover it possible that x86
-> may have registered two accessor sets (raw_pci_ops, raw_pci_ext_ops). I
-> am happy to fix that but I would need x86 PCI expert to get know if that
-> is possible at all.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
 
-Well, we can let x86 code use the same pci_ops as they are using
-today without bothering converting it to generic accessors.
+iQEcBAEBCAAGBQJV8sM3AAoJECTWi3JdVIfQuAQH/0wfAhyhwtb7xaoL2MFUGJQO
+3QX063MsDiR0Ga7Shnk3m6/lCQFngh54xIrtzNzUh0ANqfE7uhWx+FhSZDx1foqX
+APfTvO1ssV8Gy6BSKj1jMGy2S3pLcifO+TRUKqssLecRsO1G9igjEX84cpbEPb2b
+TEk7osYawsNh1yWn3tWd1NPe6FgZty97uG1O6ezfCxSGW3vFrgAaq3B0ztXGVxWT
+H2kbUE3rP9kiO4IM4hcsWhxjSVRPrllqGBtIkEzKf0/G2jEcrLMI5uo+NcRtTlO5
+tsHnf3RIjeQPFKuaLogK1epn5GNXxS3O8pwP9wN3VWqsv5uAHVbAAVGyQHYPEvw=
+=xK52
+-----END PGP SIGNATURE-----
 
-Honestly, even the AMD requirement for special MMIO back-end could
-be left in x86 code, which would simplify your task even more (it
-would leave more x86 churn but that's not my call).
-
-> I really appreciate your help.
-
-You are welcome, I will get back to you shortly on the points above.
-
-Thanks,
-Lorenzo
+--/GGxXfKRHScBDXG5--
