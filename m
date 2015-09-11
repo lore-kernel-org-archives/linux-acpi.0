@@ -1,61 +1,119 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v3 02/18] of/platform: add of_platform_probe
-Date: Fri, 11 Sep 2015 16:35:30 +0100
-Message-ID: <20150911153530.GM20922@sirena.org.uk>
-References: <1438870315-18689-1-git-send-email-tomeu.vizoso@collabora.com>
- <1438870315-18689-3-git-send-email-tomeu.vizoso@collabora.com>
- <20150807121913.GS20873@sirena.org.uk>
- <CAAObsKCrakupiZMQ9AoiWo6fDYT6Cfi_khdssUS6pv61zYS1Zg@mail.gmail.com>
- <CAAObsKAZ0kaT2TZQdMnxy9ZjHMz2jFeYQvQjrCsa90J11bOVpA@mail.gmail.com>
- <20150911095748.GC12027@sirena.org.uk>
- <CAAObsKAaxBJUH=u-2VSDGUQ6CsqpATpF-48LHEtvd3FD3_prsQ@mail.gmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] More power management and ACPI updates for v4.3-rc1
+Date: Fri, 11 Sep 2015 23:45:32 +0200
+Message-ID: <CAJZ5v0i7WN2XBuMg-bpaNhNMZ5nWvJEJR3qbpQigca=gveqNpQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="egxrhndXibJAPJ54"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:60247 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753195AbbIKPfx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Sep 2015 11:35:53 -0400
-Content-Disposition: inline
-In-Reply-To: <CAAObsKAaxBJUH=u-2VSDGUQ6CsqpATpF-48LHEtvd3FD3_prsQ@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Thierry Reding <thierry.reding@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
+
+Hi Linus,
+
+Please pull from
+
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ pm+acpi-4.3-rc1-2
+
+to receive addtional power management and ACPI material for v4.3-rc1
+with top-most commit 4614e0cc66a8ea1d163efc364ba743424dee5c0a
+
+ Merge branches 'pm-cpu', 'pm-cpuidle' and 'pm-domains'
+
+on top of commit ae982073095a44f004d7ffb9f271077abef9dbcf
+
+ Merge tag 'pm+acpi-4.3-rc1' of
+git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm
+
+These are mostly fixes and cleanups on top of the previous PM+ACPI
+pull request (cpufreq core and drivers, cpuidle, generic power
+domains framework).  Some of them didn't make to that pull request
+and some fix issues introduced by it.
+
+The only really new thing is the support for suspend frequency in
+the cpufreq-dt driver, but it is needed to fix an issue with
+Exynos platforms.
+
+Specifics:
+
+ - Build fix for the new Mediatek MT8173 cpufreq driver (Guenter Roeck).
+
+ - Generic power domains framework fixes (power on error code
+   path, subdomain removal) and cleanup of a deprecated API user
+   (Geert Uytterhoeven, Jon Hunter, Ulf Hansson).
+
+ - cpufreq-dt driver fixes including two fixes for bugs related to
+   the new Operating Performance Points Device Tree bindings
+   introduced recently (Viresh Kumar).
+
+ - Suspend frequency support for the cpufreq-dt driver
+   (Bartlomiej Zolnierkiewicz, Viresh Kumar).
+
+ - cpufreq core cleanups (Viresh Kumar).
+
+ - intel_pstate driver fixes (Chen Yu, Kristen Carlson Accardi).
+
+ - Additional sanity check in the cpuidle core (Xunlei Pang).
+
+ - Fix for a comment related to CPU power management (Lina Iyer).
+
+Thanks!
 
 
---egxrhndXibJAPJ54
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+---------------
 
-On Fri, Sep 11, 2015 at 04:06:07PM +0200, Tomeu Vizoso wrote:
+Bartlomiej Zolnierkiewicz (3):
+      PM / OPP: add dev_pm_opp_get_suspend_opp() helper
+      cpufreq: allow cpufreq_generic_suspend() to work without suspend frequency
+      cpufreq-dt: add suspend frequency support
 
-> Once a platform device (with the platform bus as its parent) is
-> retrieved from the deferred queue, both the parent and the device in
-> question are locked (because of the USB stuff mentioned below). If
-> that device depends on another device whose parent is the platform bus
-> and we try to probe it (useless, but I don't see a good way of
-> avoiding it) then we'll deadlock when device_attach locks that device.
+Chen Yu (1):
+      intel_pstate: Fix user input of min/max to legal policy region
 
-Ugh, that's nasty.  Trying to fix this would most likely devolve into
-trying to shove things onto the deferred list in the right order but
-that's definitely a very different solution with problems.
+Geert Uytterhoeven (1):
+      staging: board: Migrate away from __pm_genpd_name_add_device()
 
---egxrhndXibJAPJ54
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Guenter Roeck (1):
+      cpufreq: Add ARM_MT8173_CPUFREQ dependency on THERMAL
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+Jon Hunter (1):
+      PM / Domains: Ensure subdomain is not in use before removing
 
-iQEcBAEBCAAGBQJV8vTBAAoJECTWi3JdVIfQmHYH/1w26xjIUDlT4O8IxqvkyoGh
-BhTIIQWoiEWZXfJ96aNqM8l5Du35u0pac3Q12yRJr08EyTnFQmA7TQXb7yWlldoA
-1Gkd4wkWQ8/R8Kcx+wbVXUKODgEcRcoV17bOoqA8Nfyd5nVUY2xW10jMf/AwpXXR
-lm4MU0Wafx+1YnvfqcX0ZIIsSnQEcKKh5iLRsrdhjAnjXCI3qn0ZAs1abNRi+0BR
-GRa3dx0DU+eVYl1VyddlYz2LIda2SnfxSfj/E7BVDXyEuSSLd6j+TUdzZdabjjWA
-wvPtKKs7Ei7LaagpYS6JaMYyfNu2r8/uaOOcDZXjI89g2QmflY0RhyhaPpuSMgA=
-=QJVT
------END PGP SIGNATURE-----
+Kristen Carlson Accardi (1):
+      intel_pstate: fix PCT_TO_HWP macro
 
---egxrhndXibJAPJ54--
+Lina Iyer (1):
+      kernel/cpu_pm: fix cpu_cluster_pm_exit comment
+
+Ulf Hansson (1):
+      PM / Domains: Try power off masters in error path of __pm_genpd_poweron()
+
+Viresh Kumar (6):
+      cpufreq: dt: Check OPP count before marking them shared
+      cpufreq: dt: Print error on failing to mark OPPs as shared
+      cpufreq: dt: Tolerance applies on both sides of target voltage
+      cpufreq: staticize cpufreq_cpu_get_raw()
+      cpufreq: Use __func__ to print function's name
+      PM / OPP: Return suspend_opp only if it is enabled
+
+Xunlei Pang (1):
+      cpuidle/coupled: Add sanity check for safe_state_index
+
+---------------
+
+ drivers/base/power/domain.c             | 38 +++++++++++++++++++++-----------
+ drivers/base/power/opp.c                | 28 +++++++++++++++++++++++
+ drivers/cpufreq/Kconfig.arm             |  1 +
+ drivers/cpufreq/cpufreq-dt.c            | 39 ++++++++++++++++++++++-----------
+ drivers/cpufreq/cpufreq.c               |  9 ++++----
+ drivers/cpufreq/intel_pstate.c          | 38 +++++++++++++++++++++++---------
+ drivers/cpuidle/coupled.c               | 22 +++++++++++++++++++
+ drivers/cpuidle/cpuidle.h               |  6 +++++
+ drivers/cpuidle/driver.c                |  4 ++++
+ drivers/staging/board/armadillo800eva.c |  2 +-
+ drivers/staging/board/board.c           | 36 +++++++++++++++++++++++++++++-
+ include/linux/pm_opp.h                  |  6 +++++
+ kernel/cpu_pm.c                         |  2 +-
+ 13 files changed, 187 insertions(+), 44 deletions(-)
