@@ -1,31 +1,113 @@
-From: Global@vger.kernel.org, Ore@vger.kernel.org,
-	Malaysia@vger.kernel.org
-Subject: Investments and Loans.
-Date: Sat, 12 Sep 2015 17:22:58 +0100
-Message-ID: <AM2PR08MB0050682EB48F8AB125221693B85F0@AM2PR08MB0050.eurprd08.prod.outlook.com>
-Reply-To: <mrsangupta@qq.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: [PATCH v2 0/5] ACPI probing infrastructure
+Date: Sun, 13 Sep 2015 15:02:18 +0100
+Message-ID: <1442152943-24493-1-git-send-email-marc.zyngier@arm.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-am1hn0253.outbound.protection.outlook.com ([157.56.112.253]:34262
-	"EHLO emea01-am1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751246AbbILQXO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Sep 2015 12:23:14 -0400
-Content-Description: Mail message body
+Received: from foss.arm.com ([217.140.101.70]:42974 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752093AbbIMOC5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 13 Sep 2015 10:02:57 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Recipients@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>
+Cc: linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Dear sir/ Madam
+IRQ controllers and timers are the two types of device the kernel
+requires before being able to use the device driver model.
 
-I am Mr Sujata Gupta Foreign investment Co-ordinator for Global Ore (M) SDN. BHD Malaysia, we are currently looking for foreign investors for property developement and purchase in our country.
+The Device Tree infrastructure makes it very easy to make these
+discoverable by the rest of the kernel. For example, each interrupt
+controller driver has at least one entry like this:
 
-We are also business investors, We give out Equity Loan Funding, Collateral and Non Collateral Loans. SBLC and many other business support services.
+IRQCHIP_DECLARE(gic_400, "arm,gic-400", gic_of_init);
 
-Kindly contact us if you are interested to partner with us, Looking forward to your urgent response. Reply via : mrsangupta@qq.com
+which says: if you find a node having "arm,gic-400" as a compatible
+string in the device tree, then call gic_of_init with this node as a
+parameter. The probing itself is done by the OF layer when the
+architecture code calls of_irq_init() (usually via irqchip_init).
 
-Sincerely
-Mr Sujata Gupta
-Investment Co-ordinator.
+This has a number of benefits:
+
+- The irqchip code is self-contained. No architecture specific entry
+point, no exposed symbols. Just a standard interface.
+
+- The low-level architecture code doesn't have to know about which
+interrupt controller is present. It just calls into the firmware
+interface (of_irq_init) which is going to sort things out.
+
+Similar infrastructure is provided for the timers/clock sources. Note
+that this is not a replacement for the device model, but acts as a
+probing infrastructure for things that are required too early for the
+device infrastructure to be available.
+
+What I'm aiming for is to introduce the same level of abstraction for
+ACPI, or at least for the few bits that are required before a full blown
+ACPI/device model can be used. For this, I introduce something vaguely
+similar:
+
+IRQCHIP_ACPI_DECLARE(gic_v2, ACPI_MADT_TYPE_GENERIC_DISTRIBUTOR,
+		     gic_validate_dist, ACPI_MADT_GIC_VERSION_V2,
+		     gic_v2_acpi_init);
+
+which says: if you find a ACPI_MADT_TYPE_GENERIC_DISTRIBUTOR entry in
+MADT (implied by the macro), and that entry is of type
+ACPI_MADT_GIC_VERSION_V2 (as checked by gic_validate_dist), then call
+gic_v2_acpi_init with the entry as a parameter. A bit more convoluted,
+but still without any special entry point.
+
+The various interrupt controller drivers can then implement the above,
+and the arch code can use a firmware-specific call to get the probing
+done, still oblivious to what interrupt controller is being used. It
+also makes the adaptation of a DT driver to ACPI easier.
+
+It turns out that providing such a probing infrastructure is rather
+easy, and provides a much deserved cleanup in both the arch code, the
+GIC driver, and the architected timer driver.
+
+I'm sure there is some more code to be deleted, and one can only
+wonder why this wasn't done before the arm64 code was initially merged
+(the diffstat says it all...).
+
+Patches are against v4.3-rc1, and a branch is available at
+
+git://git.kernel.org/pub/scm/linux/kernel/git/maz/arm-platforms.git acpi/device-probing-v2
+
+* From the initial version:
+  - Make the infrastructure more DT like by providing an
+    acpi_probe_entry array per "device type" (one for irqchips, one
+    for clocksources). This means that entries can depend on any ACPI
+    static table.
+  - Use some cpp magic to reduce the amount of code added to an
+    absolute minimum.
+  - Rebased on v4.3-rc1
+
+Marc Zyngier (5):
+  acpi: Add basic device probing infrastructure
+  irqchip/acpi: Add probing infrastructure for ACPI-based irqchips
+  irqchip/gic: Convert the GIC driver to ACPI probing
+  clocksource/acpi: Add probing infrastructure for ACPI-based
+    clocksources
+  clocksource/arm_arch_timer: Convert to ACPI probing
+
+ arch/arm64/include/asm/acpi.h        |  1 -
+ arch/arm64/include/asm/irq.h         | 13 -------
+ arch/arm64/kernel/acpi.c             | 25 -------------
+ arch/arm64/kernel/time.c             |  6 ----
+ drivers/acpi/scan.c                  | 39 ++++++++++++++++++++
+ drivers/clocksource/arm_arch_timer.c | 10 +-----
+ drivers/clocksource/clksrc-of.c      |  4 +++
+ drivers/irqchip/irq-gic.c            | 69 ++++++++++++++++++------------------
+ drivers/irqchip/irqchip.c            |  5 ++-
+ include/asm-generic/vmlinux.lds.h    | 12 +++++++
+ include/linux/acpi.h                 | 65 +++++++++++++++++++++++++++++++++
+ include/linux/acpi_irq.h             | 10 ------
+ include/linux/clocksource.h          |  7 ++--
+ include/linux/irqchip.h              | 16 +++++++++
+ include/linux/irqchip/arm-gic-acpi.h | 31 ----------------
+ 15 files changed, 176 insertions(+), 137 deletions(-)
+ delete mode 100644 include/linux/acpi_irq.h
+ delete mode 100644 include/linux/irqchip/arm-gic-acpi.h
+
+-- 
+2.1.4
+
