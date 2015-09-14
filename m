@@ -1,129 +1,226 @@
 From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: [PATCH v3 7/8] irqchip: GIC: Switch ACPI support to stacked domains
-Date: Mon, 14 Sep 2015 17:44:06 +0100
-Message-ID: <1442249047-21182-8-git-send-email-marc.zyngier@arm.com>
+Subject: [PATCH v3 3/8] genirq: irqdomain: Allow a domain to be identified
+ with non-DT data
+Date: Mon, 14 Sep 2015 17:44:02 +0100
+Message-ID: <1442249047-21182-4-git-send-email-marc.zyngier@arm.com>
 References: <1442249047-21182-1-git-send-email-marc.zyngier@arm.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1442249047-21182-1-git-send-email-marc.zyngier@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Graeme Gregory <graeme@xora.org.uk>, Jake Oshins <jakeo@microsoft.com>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-kernel@vger.kernel.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Jake Oshins <jakeo@microsoft.com>, Graeme Gregory <graeme@xora.org.uk>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-Now that the basic ACPI GSI code is irq domain aware, make sure
-that the ACPI support in the GIC doesn't pointlessly deviate from
-the DT path.
+Now that irqdomains are not directly tied to device nodes, let's
+make sure that they can be identified by other types of data.
+
+For this, we implement the method suggested in a previous patch,
+where device_token is a small integer representing data stored
+in an IDR.
+
+We end-up with a bunch of functions to allocate/free a token,
+retrieve the data associated to it, or even lookup a token
+by data. Not all of it might prove to be necessary, but we can
+probably drop some of them if they don't get enough traction.
+
+With this, it is possible to uniquely indentify a irqdomain,
+even without a device node.
 
 Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
 ---
- drivers/irqchip/irq-gic.c | 54 ++++++++++++++++++++++++++++++++++++-----------
- 1 file changed, 42 insertions(+), 12 deletions(-)
+ include/linux/irqdomain.h |   5 ++
+ kernel/irq/irqdomain.c    | 134 ++++++++++++++++++++++++++++++++++++++++++++--
+ 2 files changed, 136 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
-index ecf72cf..bc6353a 100644
---- a/drivers/irqchip/irq-gic.c
-+++ b/drivers/irqchip/irq-gic.c
-@@ -926,8 +926,6 @@ static int gic_irq_domain_xlate(struct irq_domain *d,
- {
- 	unsigned long ret = 0;
+diff --git a/include/linux/irqdomain.h b/include/linux/irqdomain.h
+index ac7041b..ecd0b25 100644
+--- a/include/linux/irqdomain.h
++++ b/include/linux/irqdomain.h
+@@ -159,6 +159,11 @@ enum {
+ 	IRQ_DOMAIN_FLAG_NONCORE		= (1 << 16),
+ };
  
--	if (irq_domain_get_of_node(d) != controller)
--		return -EINVAL;
- 	if (intsize < 3)
- 		return -EINVAL;
++extern void *irq_domain_alloc_domain_token(void *data);
++extern void irq_domain_free_domain_token(void *domain_token);
++extern void *irq_domain_token_to_data(void *domain_token);
++extern void *irq_domain_find_domain_token(void *data);
++
+ #ifdef CONFIG_IRQ_DOMAIN
+ extern struct device_node *irq_domain_token_to_of_node(void *domain_token);
  
-@@ -995,7 +993,7 @@ static const struct irq_domain_ops gic_irq_domain_ops = {
+diff --git a/kernel/irq/irqdomain.c b/kernel/irq/irqdomain.c
+index a00e0ce..619552a 100644
+--- a/kernel/irq/irqdomain.c
++++ b/kernel/irq/irqdomain.c
+@@ -2,6 +2,7 @@
  
- static void __init __gic_init_bases(unsigned int gic_nr, int irq_start,
- 			   void __iomem *dist_base, void __iomem *cpu_base,
--			   u32 percpu_offset, struct device_node *node)
-+			   u32 percpu_offset, void *domain_token)
- {
- 	irq_hw_number_t hwirq_base;
- 	struct gic_chip_data *gic;
-@@ -1047,8 +1045,8 @@ static void __init __gic_init_bases(unsigned int gic_nr, int irq_start,
- 		gic_irqs = 1020;
- 	gic->gic_irqs = gic_irqs;
+ #include <linux/debugfs.h>
+ #include <linux/hardirq.h>
++#include <linux/idr.h>
+ #include <linux/interrupt.h>
+ #include <linux/irq.h>
+ #include <linux/irqdesc.h>
+@@ -23,20 +24,147 @@ static DEFINE_MUTEX(irq_domain_mutex);
  
--	if (node) {		/* DT case */
--		gic->domain = irq_domain_add_linear(node, gic_irqs,
-+	if (domain_token) {		/* DT/ACPI case */
-+		gic->domain = irq_domain_add_linear(domain_token, gic_irqs,
- 						    &gic_irq_domain_hierarchy_ops,
- 						    gic);
- 	} else {		/* Non-DT case */
-@@ -1074,7 +1072,7 @@ static void __init __gic_init_bases(unsigned int gic_nr, int irq_start,
- 			irq_base = irq_start;
- 		}
+ static DEFINE_MUTEX(revmap_trees_mutex);
+ static struct irq_domain *irq_default_domain;
++static DEFINE_IDR(irq_domain_idr);
  
--		gic->domain = irq_domain_add_legacy(node, gic_irqs, irq_base,
-+		gic->domain = irq_domain_add_legacy(NULL, gic_irqs, irq_base,
- 					hwirq_base, &gic_irq_domain_ops, gic);
- 	}
+ static int irq_domain_alloc_descs(int virq, unsigned int nr_irqs,
+ 				  irq_hw_number_t hwirq, int node);
+ static void irq_domain_check_hierarchy(struct irq_domain *domain);
  
-@@ -1220,10 +1218,36 @@ gic_acpi_parse_madt_distributor(struct acpi_subtable_header *header,
- 	return 0;
- }
- 
-+static int gic_acpi_gsi_desc_populate(struct acpi_gsi_descriptor *data,
-+				      u32 gsi, unsigned int irq_type)
++/*
++ * We need to differenciate between a valid pointer (to a device_node)
++ * and a "small integer". For this, we encode a "type" in the bottom
++ * two bits:
++ *
++ * - device_node, being a pointer, has encoding 00 (and is left alone)
++ * - small integer is shifted by two bits to the left, and has encoding 01
++ *
++ * Encodings 10 and 11 are reserved.
++ */
++static bool irq_domain_check_of_node(void *domain_token)
 +{
-+	/*
-+	 * Encode GSI and triggering information the way the GIC likes
-+	 * them.
-+	 */
-+	if (WARN_ON(gsi < 16))
-+		return -EINVAL;
-+
-+	if (gsi >= 32) {
-+		data->param[0] = 0;		/* SPI */
-+		data->param[1] = gsi - 32;
-+		data->param[2] = irq_type;
-+	} else {
-+		data->param[0] = 1; 		/* PPI */
-+		data->param[1] = gsi - 16;
-+		data->param[2] = 0xff << 4 | irq_type;
-+	}
-+
-+	data->param_count = 3;
-+
-+	return 0;
++	return (virt_addr_valid(domain_token) &&
++		IS_ALIGNED((unsigned long)domain_token,
++			   sizeof(unsigned long)));
 +}
 +
- int __init
- gic_v2_acpi_init(struct acpi_table_header *table)
- {
- 	void __iomem *cpu_base, *dist_base;
-+	void *domain_token;
- 	int count;
- 
- 	/* Collect CPU base addresses */
-@@ -1274,14 +1298,20 @@ gic_v2_acpi_init(struct acpi_table_header *table)
- 		static_key_slow_dec(&supports_deactivate);
- 
- 	/*
--	 * Initialize zero GIC instance (no multi-GIC support). Also, set GIC
--	 * as default IRQ domain to allow for GSI registration and GSI to IRQ
--	 * number translation (see acpi_register_gsi() and acpi_gsi_to_irq()).
-+	 * Initialize GIC instance zero (no multi-GIC support).
- 	 */
--	__gic_init_bases(0, -1, dist_base, cpu_base, 0, NULL);
--	irq_set_default_host(gic_data[0].domain);
-+	domain_token = irq_domain_alloc_domain_token(NULL);
-+	if (!domain_token) {
-+		pr_err("Unable to allocate domain token\n");
-+		iounmap(cpu_base);
-+		iounmap(dist_base);
-+		return -ENOMEM;
-+	}
++static void *irq_domain_encode_id(int id)
++{
++	return (void *)(long)((id << 2) | 1);
++}
 +
-+	__gic_init_bases(0, -1, dist_base, cpu_base, 0, domain_token);
++static int irq_domain_decode_id(void *domain_token)
++{
++	int val = (long)domain_token;
++
++	WARN_ON((val & 3) != 1);
++	return val >> 2;
++}
++
++/**
++ * irq_domain_alloc_domain_token - Allocate a new domain_token
++ * @data: caller-specific data
++ *
++ * Allocate a "small integer" that can be used to identify an irqdomain.
++ * Returns this integer as a void *, or NULL on failure.
++ */
++void *irq_domain_alloc_domain_token(void *data)
++{
++	int id;
++
++	if (!data)
++		data = &irq_domain_idr;
++
++	/*
++	 * Reuse the global irqdomain mutex, as this should be called
++	 * in the same context. 2^24 - 1 domains should be enough for
++	 * everybody.
++	 */
++	mutex_lock(&irq_domain_mutex);
++	id = idr_alloc(&irq_domain_idr, data, 1, 0xffffff, GFP_KERNEL);
++	mutex_unlock(&irq_domain_mutex);
++
++	if (id < 0)
++		return NULL;
++
++	return irq_domain_encode_id(id);
++}
++
++/**
++ * irq_domain_free_domain_token - Free an existing domain_token
++ * @domain_token: A previously allocated domain token
++ *
++ * Free the "small integer" that was used to identify an irqdomain.
++ * @domain_token is not allowed to be NULL or a valid kernel address.
++ */
++void irq_domain_free_domain_token(void *domain_token)
++{
++	WARN_ON(!domain_token);
++	WARN_ON(irq_domain_check_of_node(domain_token));
++
++	mutex_lock(&irq_domain_mutex);
++	idr_remove(&irq_domain_idr, irq_domain_decode_id(domain_token));
++	mutex_unlock(&irq_domain_mutex);
++}
++
++/**
++ * irq_domain_token_to_data - Retrieve data associated with a domain_token
++ * @domain_token: An allocated domain token
++ *
++ * Returns the data previously associated with an irqdomain.
++ */
++void *irq_domain_token_to_data(void *domain_token)
++{
++	void *data;
++
++	WARN_ON(!domain_token);
++	WARN_ON(irq_domain_check_of_node(domain_token));
++
++	rcu_read_lock();
++	data = idr_find(&irq_domain_idr, irq_domain_decode_id(domain_token));
++	rcu_read_unlock();
++
++	if (data == &irq_domain_idr)
++		data = NULL;
++
++	return data;
++}
++
++static int __irq_domain_matches_id(int id, void *p, void *data)
++{
++	return (p == data) ? id : 0;
++}
++
++/**
++ * irq_domain_token_find_domain_token - Find a previously allocated domain_token
++ * @data: A unique pointer previously used to allocate a domain_token
++ *
++ * Returns the domain_token previously allocated with @data. Because
++ * this is an expensive operation, it should only be used when there
++ * is no practical way to retrieve the domain token itself. @data must
++ * have only been used to allocate a single domain_token.
++ */
++void *irq_domain_find_domain_token(void *data)
++{
++	int id;
++
++	mutex_lock(&irq_domain_mutex);
++	id = idr_for_each(&irq_domain_idr, __irq_domain_matches_id, data);
++	mutex_unlock(&irq_domain_mutex);
++
++	if (WARN_ON(id <= 0))
++		return NULL;
++
++	return irq_domain_encode_id(id);
++}
++
+ struct device_node *irq_domain_token_to_of_node(void *domain_token)
+ {
+ 	/*
+ 	 * Assume that anything represented by a valid kernel address
+ 	 * is a device_node. Anything else must be a "small integer",
+-	 * and indirected by some other structure (an IDR, for
+-	 * example) if a pointer is required.
++	 * and indirected via the irqdomain IDR layer.
+ 	 */
+-	if (virt_addr_valid(domain_token))
++	if (irq_domain_check_of_node(domain_token))
+ 		return domain_token;
  
--	acpi_irq_model = ACPI_IRQ_MODEL_GIC;
-+	acpi_set_irq_model(ACPI_IRQ_MODEL_GIC, domain_token,
-+			   gic_acpi_gsi_desc_populate);
- 	return 0;
- }
- #endif
+ 	return NULL;
 -- 
 2.1.4
