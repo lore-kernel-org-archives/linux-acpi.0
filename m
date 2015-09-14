@@ -1,67 +1,102 @@
-From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH V2] debugfs: don't assume sizeof(bool) to be 4 bytes
-Date: Mon, 14 Sep 2015 18:11:09 +0100
-Message-ID: <20150914171109.GW12027@sirena.org.uk>
-References: <81516fb9c662cc338b5af5b63fbbcde5374e0893.1442202447.git.viresh.kumar@linaro.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v3 2/8] genirq: irqdomain: Remove irqdomain dependency on struct device_node
+Date: Tue, 15 Sep 2015 01:15:12 +0200
+Message-ID: <2330801.UsQO8cZmqT@vostro.rjw.lan>
+References: <1442249047-21182-1-git-send-email-marc.zyngier@arm.com> <1442249047-21182-3-git-send-email-marc.zyngier@arm.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============4492793628393361331=="
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <81516fb9c662cc338b5af5b63fbbcde5374e0893.1442202447.git.viresh.kumar-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Viresh Kumar <viresh.kumar-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: "open list:NETWORKING DRIVERS (WIRELESS)" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "moderated list:SOUND - SOC LAYER / DYNAMIC AUDIO POWER MANAGEM..." <alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org>, Avri Altman <avri.altman-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Stanislaw Gruszka <sgruszka-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jiri Slaby <jirislaby-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "open list:DOCUMENTATION" <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Jaroslav Kysela <perex-/Fr2/VpizcU@public.gmane.org>, "open list:MEMORY MANAGEMENT" <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, Kalle Valo <kvalo-A+ZNKFmMK5xy9aJCnZT0Uw@public.gmane.org>, Emmanuel Grumbach <emmanuel.grumbach-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Luciano Coelho <luciano.coelho-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Wang Long <long.wanglong-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Richard Fitzgerald <rf-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Ingo Molnar <mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Johan Hedberg <johan.hedberg@g>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1442249047-21182-3-git-send-email-marc.zyngier@arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Graeme Gregory <graeme@xora.org.uk>, Jake Oshins <jakeo@microsoft.com>
 List-Id: linux-acpi@vger.kernel.org
 
+On Monday, September 14, 2015 05:44:01 PM Marc Zyngier wrote:
+> struct device_node is very much DT specific, and the original authors
+> of the irqdomain subsystem recognized that tie, and went as far as
+> mentionning that this could be replaced by some "void *token",
+> should another firmware infrastructure be using it.
+> 
+> As we move ACPI on arm64 towards this model too, it makes a lot of sense
+> to perform that particular move.
+> 
+> We replace "struct device_node *of_node" with "void *domain_token", which
+> is a benign enough transformation. A non DT user of irqdomain can now
+> identify its domains using this pointer.
+> 
+> Also, in order to prevent the introduction of sideband type information,
+> only DT is allowed to store a valid kernel pointer in domain_token
+> (a pointer that passes the virt_addr_valid() test will be considered
+> as a valid device_node).
+> 
+> non-DT users that wish to store valid pointers in domain_token are
+> required to use another structure such as an IDR.
+> 
+> Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
+> ---
+>  include/linux/irqdomain.h | 68 +++++++++++++++++++-----------------
+>  kernel/irq/irqdomain.c    | 89 ++++++++++++++++++++++++++++++++++-------------
+>  2 files changed, 101 insertions(+), 56 deletions(-)
+> 
+> diff --git a/include/linux/irqdomain.h b/include/linux/irqdomain.h
+> index f644fdb..ac7041b 100644
+> --- a/include/linux/irqdomain.h
+> +++ b/include/linux/irqdomain.h
+> @@ -17,16 +17,14 @@
+>   * model). It's the domain callbacks that are responsible for setting the
+>   * irq_chip on a given irq_desc after it's been mapped.
+>   *
+> - * The host code and data structures are agnostic to whether or not
+> - * we use an open firmware device-tree. We do have references to struct
+> - * device_node in two places: in irq_find_host() to find the host matching
+> - * a given interrupt controller node, and of course as an argument to its
+> - * counterpart domain->ops->match() callback. However, those are treated as
+> - * generic pointers by the core and the fact that it's actually a device-node
+> - * pointer is purely a convention between callers and implementation. This
+> - * code could thus be used on other architectures by replacing those two
+> - * by some sort of arch-specific void * "token" used to identify interrupt
+> - * controllers.
+> + * The host code and data structures are agnostic to whether or not we
+> + * use an open firmware device-tree. Domains can be assigned a
+> + * "void *domain_token" identifier, which is assumed to represent a
+> + * "struct device_node" if the pointer is a valid virtual address.
+> + *
+> + * Otherwise, the value is assumed to be an opaque identifier. Should
+> + * a pointer to a non "struct device_node" be required, another data
+> + * structure should be used to indirect it (an IDR for example).
+>   */
+>  
+>  #ifndef _LINUX_IRQDOMAIN_H
+> @@ -108,8 +106,8 @@ struct irq_domain_chip_generic;
+>   * @flags: host per irq_domain flags
+>   *
+>   * Optional elements
+> - * @of_node: Pointer to device tree nodes associated with the irq_domain. Used
+> - *           when decoding device tree interrupt specifiers.
+> + * @domain_token: optional firmware-specific identifier for
+> + *                the interrupt controller
+>   * @gc: Pointer to a list of generic chips. There is a helper function for
+>   *      setting up one or more generic chips for interrupt controllers
+>   *      drivers using the generic chip library which uses this pointer.
+> @@ -130,7 +128,7 @@ struct irq_domain {
+>  	unsigned int flags;
+>  
+>  	/* Optional data */
+> -	struct device_node *of_node;
+> +	void *domain_token;
 
---===============4492793628393361331==
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="gABkrxlT8b359YXV"
-Content-Disposition: inline
+I'm wondering if that may be something which isn't (void *), but a specific
+pointer type, so the compiler warns us when something suspicious is assigned
+to it?
 
+[Somewhat along the lines struct fwnode_handle is used elsewehere.]
 
---gABkrxlT8b359YXV
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+>  	enum irq_domain_bus_token bus_token;
+>  	struct irq_domain_chip_generic *gc;
+>  #ifdef	CONFIG_IRQ_DOMAIN_HIERARCHY
+> @@ -161,70 +159,73 @@ enum {
 
-On Mon, Sep 14, 2015 at 09:21:54AM +0530, Viresh Kumar wrote:
-> Long back 'bool' type used to be a typecast to 'int', but that changed
-> in v2.6.19. And that is a typecast to _Bool now, which (mostly) takes
-> just a byte. Anyway, the bool type is implementation defined, and better
-> we don't assume its size to be 4 bytes or 1.
-
-Acked-by: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-
---gABkrxlT8b359YXV
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJV9v+sAAoJECTWi3JdVIfQjVwH/jgfnm1aCRP2kYvsvOpD6Rhn
-kzv9ftGGPrLduAP9ROoaVhjxQkuM2GeRIumTyi3MqALAowWUGrIZq4NsNEJCrS7i
-hMEXqTeR55u5D1BPXElYtftTImYZDDvfrEjs/3cGvAN/FObbWA6q1a95DTEYw7Qw
-w1G2AXM+1fenUoqF/9sNbAfjUkjV5Mm3cF1SWuYc+q656/Iuzzhj6foZECAVqf9o
-VVqePsqpfnD/LFsU5GKYS42AcaFyn3deAhRB+IbLWKOOwuiCWrgLisYWH2VnsyiI
-BATL4sO2gk7mvpJOQXpQiCNDw+h08FiWoLscnN+UbvDhs7TJrdUAjYWLioFZJhw=
-=s8m4
------END PGP SIGNATURE-----
-
---gABkrxlT8b359YXV--
-
---===============4492793628393361331==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============4492793628393361331==--
+Thanks,
+Rafael
