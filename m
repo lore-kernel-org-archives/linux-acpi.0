@@ -1,100 +1,83 @@
-From: Eduardo Valentin <edubezval@gmail.com>
-Subject: [GIT PULL] Thermal-SoC management updates for v4.3-rc2
-Date: Sun, 13 Sep 2015 20:55:01 -0700
-Message-ID: <20150914035500.GC5075@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="MnLPg7ZWsaic7Fhd"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: Rui Zhang <rui.zhang@intel.com>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: [Patch v6 1/7] ACPI/PCI: Enhance ACPI core to support sparse IO space
+Date: Mon, 14 Sep 2015 16:07:30 +0800
+Message-ID: <1442218057-4355-2-git-send-email-jiang.liu@linux.intel.com>
+References: <1442218057-4355-1-git-send-email-jiang.liu@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:20040 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753264AbbINIEn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 14 Sep 2015 04:04:43 -0400
+In-Reply-To: <1442218057-4355-1-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Jakub Sitnicki <jsitnicki@gmail.com>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org
 
+Enhance ACPI resource parsing interfaces to support sparse IO space,
+which will be used to share common code between x86 and IA64 later.
 
---MnLPg7ZWsaic7Fhd
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Tested-by: Tony Luck <tony.luck@intel.com>
+Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
+---
+ drivers/acpi/resource.c |    9 ++++++---
+ include/linux/ioport.h  |    1 +
+ 2 files changed, 7 insertions(+), 3 deletions(-)
 
-Hello Rui,
+diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+index 15d22db05054..cdc5c2599beb 100644
+--- a/drivers/acpi/resource.c
++++ b/drivers/acpi/resource.c
+@@ -119,7 +119,7 @@ bool acpi_dev_resource_memory(struct acpi_resource *ares, struct resource *res)
+ EXPORT_SYMBOL_GPL(acpi_dev_resource_memory);
+ 
+ static void acpi_dev_ioresource_flags(struct resource *res, u64 len,
+-				      u8 io_decode)
++				      u8 io_decode, u8 translation_type)
+ {
+ 	res->flags = IORESOURCE_IO;
+ 
+@@ -131,6 +131,8 @@ static void acpi_dev_ioresource_flags(struct resource *res, u64 len,
+ 
+ 	if (io_decode == ACPI_DECODE_16)
+ 		res->flags |= IORESOURCE_IO_16BIT_ADDR;
++	if (translation_type == ACPI_SPARSE_TRANSLATION)
++		res->flags |= IORESOURCE_IO_SPARSE;
+ }
+ 
+ static void acpi_dev_get_ioresource(struct resource *res, u64 start, u64 len,
+@@ -138,7 +140,7 @@ static void acpi_dev_get_ioresource(struct resource *res, u64 start, u64 len,
+ {
+ 	res->start = start;
+ 	res->end = start + len - 1;
+-	acpi_dev_ioresource_flags(res, len, io_decode);
++	acpi_dev_ioresource_flags(res, len, io_decode, 0);
+ }
+ 
+ /**
+@@ -231,7 +233,8 @@ static bool acpi_decode_space(struct resource_win *win,
+ 		acpi_dev_memresource_flags(res, len, wp);
+ 		break;
+ 	case ACPI_IO_RANGE:
+-		acpi_dev_ioresource_flags(res, len, iodec);
++		acpi_dev_ioresource_flags(res, len, iodec,
++					  addr->info.io.translation_type);
+ 		break;
+ 	case ACPI_BUS_NUMBER_RANGE:
+ 		res->flags = IORESOURCE_BUS;
+diff --git a/include/linux/ioport.h b/include/linux/ioport.h
+index 388e3ae94f7a..24bea087e7af 100644
+--- a/include/linux/ioport.h
++++ b/include/linux/ioport.h
+@@ -94,6 +94,7 @@ struct resource {
+ /* PnP I/O specific bits (IORESOURCE_BITS) */
+ #define IORESOURCE_IO_16BIT_ADDR	(1<<0)
+ #define IORESOURCE_IO_FIXED		(1<<1)
++#define IORESOURCE_IO_SPARSE		(1<<2)
+ 
+ /* PCI ROM control bits (IORESOURCE_BITS) */
+ #define IORESOURCE_ROM_ENABLE		(1<<0)	/* ROM is enabled, same as PCI_ROM_ADDRESS_ENABLE */
+-- 
+1.7.10.4
 
-(apologize for duplicates, now copying the mailing lists)
-
-Please pull from
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal fixes
-
-to receive Thermal-SoC Management updates for v4.3-rc2 with top-most
-
-eba4f88d5af84e0fcaa5d6eb4fe35a75c47203cb:
-
-  thermal: cpu_cooling: free power table on error or when unregistering (2015-09-13 20:34:05 -0700)
-
-on top of commit 6ff33f3902c3b1c5d0db6b1e2c70b6d76fba357f:
-
-  Linux 4.3-rc1 (2015-09-12 16:35:56 -0700)
-
-Specifics:
-- Add compile test flags on thermal drivers that allow it without
-producing compilation errors
-- Fixes around memory allocation on cpu_cooling
-- Fix on db8500 cpufreq code to allow autoload
-- Maintainer entries for cpu cooling device
-
-More fixes still to come, but if not for rc2, for rc3.
-
-BR,
-
-Eduardo Valentin
-----------------------------------------------------------------
-Eduardo Valentin (10):
-      thermal: hisi: allow compile test
-      thermal: spear: allow compile test
-      thermal: rockchip: allow compile test
-      thermal: kirkwood: allow compile test
-      thermal: dove: allow compile test
-      thermal: armada: allow compile test
-      thermal: exynos: allow compile test
-      thermal: qcom_spmi: allow compile test
-      thermal: ti-soc: allow compile test
-      thermal: ti-soc: Kconfig fix to avoid menu showing wrongly
-
-Javi Merino (2):
-      thermal: cpu_cooling: don't call kcalloc() under rcu_read_lock
-      thermal: cpu_cooling: free power table on error or when unregistering
-
-Luis de Bethencourt (1):
-      thermal: db8500_cpufreq_cooling: Fix module autoload for OF platform driver
-
-Punit Agrawal (1):
-      thermal: Fix thermal_zone_of_sensor_register to match documentation
-
-Viresh Kumar (1):
-      thermal: cpu_cooling: Add MAINTAINERS entry
-
- MAINTAINERS                              | 10 ++++++
- drivers/thermal/Kconfig                  | 17 ++++++-----
- drivers/thermal/cpu_cooling.c            | 52 +++++++++++++++++++-------------
- drivers/thermal/db8500_cpufreq_cooling.c |  1 +
- drivers/thermal/ti-soc-thermal/Kconfig   |  8 ++---
- include/linux/thermal.h                  |  2 +-
- 6 files changed, 55 insertions(+), 35 deletions(-)
-
---MnLPg7ZWsaic7Fhd
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQEcBAEBAgAGBQJV9kUMAAoJEMLUO4d9pOJW/4oH/187mKDBq/A74F+54NdXHQF+
-Kfkw+WFnpOcqLdQGGgGkZuzhlpy7B42Z2tyf6f8EmX10abSt1BQV9tiAc6aq9tpx
-o/F+ULFeobdd35nVqZ77lmMayX7YXwVdTPqmnkCJm37M5gfqAb2VMxDdkgx8WPzv
-QhC46ChKqEMZHW6WPsEfoxRRaAhcFohjS0C5EzjGX1bODmiOXMvdMlTrkDF51042
-XzqAkA+M8FLm6Wk7842L4rk0SKhyp2k6gMVUtZ1qRjkqfPpL//KgfOWsEvkhVnXZ
-Wb2LvnxJxMOecli9iOTz/LXc28PPEVcx982EmR338uKKdbHJdwdKmFvvfTsymlk=
-=zUBw
------END PGP SIGNATURE-----
-
---MnLPg7ZWsaic7Fhd--
