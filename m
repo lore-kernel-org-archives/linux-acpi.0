@@ -1,101 +1,138 @@
-From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Subject: Re: [PATCH 05/11] x86, pci, acpi: Move arch-agnostic MMCONFIG (aka
- ECAM) and ACPI code out of arch/x86/ directory
-Date: Mon, 14 Sep 2015 13:34:02 +0200
-Message-ID: <55F6B0AA.9030506@linaro.org>
-References: <20150604102253.GA31773@red-moon> <5570447D.3020705@linaro.org>
- <557504A2.3060203@linaro.org> <20150608151443.GA16151@red-moon>
- <55E4340D.6050004@linaro.org> <55ED6010.3020406@linaro.org>
- <20150908150727.GF29293@red-moon> <55F0388B.1090607@linaro.org>
- <20150911112018.GA13033@red-moon> <55F2CA98.7050905@linaro.org>
- <20150914093719.GC18410@red-moon>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20150914093719.GC18410@red-moon>
-Sender: linux-pci-owner@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, Yijing Wang <wangyijing@huawei.com>, Will Deacon <Will.Deacon@arm.com>, Arnd Bergmann <arnd@arndb.de>, Catalin Marinas <Catalin.Marinas@arm.com>, Jiang Liu <jiang.liu@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "msalter@redhat.com" <msalter@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: [PATCH 1/2] device property: Add fwnode_property_match_string()
+Date: Mon, 14 Sep 2015 17:37:35 +0300
+Message-ID: <1442241456-75340-1-git-send-email-mika.westerberg@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:17884 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751751AbbINOhk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 14 Sep 2015 10:37:40 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Vinod Koul <vinod.koul@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Dan Williams <dan.j.williams@intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 14.09.2015 11:37, Lorenzo Pieralisi wrote:
-> On Fri, Sep 11, 2015 at 01:35:36PM +0100, Tomasz Nowicki wrote:
->> On 11.09.2015 13:20, Lorenzo Pieralisi wrote:
->
-> [...]
->
->>>>> With that in place using raw_pci_write/read or the generic accessors
->>>>> becomes almost identical, with code requiring the pci_bus to be
->>>>> created using the generic accessors and ACPICA using the raw version.
->>>>>
->>>>> I might be missing something, so apologies if that's the case.
->>>>>
->>>>
->>>> Actually, I think you showed me the right direction :) Here are some
->>>> conclusions/comments/concerns. Please correct me if I am wrong:
->>>>
->>>> 1. We need raw_pci_write/read accessors (based on ECAM) for ARM64 too
->>>> but only up to the point where buses are enumerated. From that point on,
->>>> we should reuse generic accessors from access.c file, right?
->>>
->>> Well, I still have not figured out whether on arm64 the raw accessors
->>> required by ACPICA make sense.
->>>
->>> So either arm64 relies on the generic MCFG based raw read and writes
->>> or we define the global raw read and writes as empty (ie x86 overrides
->>> them anyway).
->>>
->>> I will get back to you on this.
->>>
->>>> 2. For ARM64 ACPI PCI, we can use generic accessors right away, .map_bus
->>>> would call common code part (pci_dev_base()). The only thing that worry
->>>> me is fact that MCFG regions are RCU list so it needs rcu_read_lock()
->>>> for the .map_bus (mcfg lookup) *and* read/write operation.
->>>
->>> Do you mean the address look-up and the mmio operation should be carried
->>> out atomically right ?
->> Yes.
->
-> We can wrap the calls pci_generic_read/write() within a function and
-> add rcu_read_lock()/unlock() around them, eg:
->
-> int pci_generic_config_read_rcu()
-> {
-> 	rcu_read_lock();
-> 	pci_generic_config_read(...);
-> 	rcu_read_unlock();
-> }
-It looks good to me, thanks for suggestion.
+Sometimes it is useful to be able to extract an index of certain string
+value from an array of strings. A typical use case is to give a name to a
+DMA channel, PWM, clock and so on.
 
->
-> Honestly it seems the RCU API is needed just because config space
-> can be also accessed by raw_ accessors in ACPICA code, that's the only
-> reason I see to protect the config structs against config space
-> removal (basically config entries are removed only when the host
-> bridge is released if I read the code correctly, and the only way
-> this can happen concurrently is having ACPICA code reusing the
-> same config space but accessing it with no pci_bus struct attached
-> to it, by just using the (segment, bus, dev, fn) tuple).
->
-Right.
+Provide an implementation using unified device property accessors that
+follows of_property_match_string() but works for all supported fwnodes.
 
-Side note:
-MCFG region can be removed from the pci_mmcfg_list list only if it has 
-been "hot added" there. Which means that PCI host bridge specified 
-configuration base address (_CBA) different than those from MCFG static 
-table e.g.:
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+---
+ drivers/base/property.c  | 68 ++++++++++++++++++++++++++++++++++++++++++++++++
+ include/linux/property.h |  4 +++
+ 2 files changed, 72 insertions(+)
 
-DSDT.asl:
-Device (PCI0) {
-     Name (_HID, EISAID ("PNP0A03"))
-     [...]
-     Name (_CBA, 0xB0000000)
-     [...]
-}
+diff --git a/drivers/base/property.c b/drivers/base/property.c
+index 2d75366c61e0..a128db413f01 100644
+--- a/drivers/base/property.c
++++ b/drivers/base/property.c
+@@ -287,6 +287,28 @@ int device_property_read_string(struct device *dev, const char *propname,
+ }
+ EXPORT_SYMBOL_GPL(device_property_read_string);
+ 
++/**
++ * device_property_match_string - find a string in an array and return index
++ * @dev: Device to get the property of
++ * @propname: Name of the property holding the array
++ * @string: String to look for
++ *
++ * Find a given string in a string array and if it is found return the
++ * index back.
++ *
++ * Return: %0 if the property was found (success),
++ *	   %-EINVAL if given arguments are not valid,
++ *	   %-ENODATA if the property does not have a value,
++ *	   %-EPROTO if the property is not an array of strings,
++ *	   %-ENXIO if no suitable firmware interface is present.
++ */
++int device_property_match_string(struct device *dev, const char *propname,
++				 const char *string)
++{
++	return fwnode_property_match_string(dev_fwnode(dev), propname, string);
++}
++EXPORT_SYMBOL_GPL(device_property_match_string);
++
+ #define OF_DEV_PROP_READ_ARRAY(node, propname, type, val, nval) \
+ 	(val) ? of_property_read_##type##_array((node), (propname), (val), (nval)) \
+ 	      : of_property_count_elems_of_size((node), (propname), sizeof(type))
+@@ -479,6 +501,52 @@ int fwnode_property_read_string(struct fwnode_handle *fwnode,
+ EXPORT_SYMBOL_GPL(fwnode_property_read_string);
+ 
+ /**
++ * fwnode_property_match_string - find a string in an array and return index
++ * @fwnode: Firmware node to get the property of
++ * @propname: Name of the property holding the array
++ * @string: String to look for
++ *
++ * Find a given string in a string array and if it is found return the
++ * index back.
++ *
++ * Return: %0 if the property was found (success),
++ *	   %-EINVAL if given arguments are not valid,
++ *	   %-ENODATA if the property does not have a value,
++ *	   %-EPROTO if the property is not an array of strings,
++ *	   %-ENXIO if no suitable firmware interface is present.
++ */
++int fwnode_property_match_string(struct fwnode_handle *fwnode,
++	const char *propname, const char *string)
++{
++	const char **values;
++	int nval, ret, i;
++
++	nval = fwnode_property_read_string_array(fwnode, propname, NULL, 0);
++	if (nval < 0)
++		return nval;
++
++	values = kcalloc(nval, sizeof(*values), GFP_KERNEL);
++	if (!values)
++		return -ENOMEM;
++
++	ret = fwnode_property_read_string_array(fwnode, propname, values, nval);
++	if (ret < 0)
++		goto out;
++
++	ret = -ENODATA;
++	for (i = 0; i < nval; i++) {
++		if (!strcmp(values[i], string)) {
++			ret = i;
++			break;
++		}
++	}
++out:
++	kfree(values);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(fwnode_property_match_string);
++
++/**
+  * device_get_next_child_node - Return the next child node handle for a device
+  * @dev: Device to find the next child node for.
+  * @child: Handle to one of the device's child nodes or a null handle.
+diff --git a/include/linux/property.h b/include/linux/property.h
+index a59c6ee566c2..463de52fe891 100644
+--- a/include/linux/property.h
++++ b/include/linux/property.h
+@@ -40,6 +40,8 @@ int device_property_read_string_array(struct device *dev, const char *propname,
+ 				      const char **val, size_t nval);
+ int device_property_read_string(struct device *dev, const char *propname,
+ 				const char **val);
++int device_property_match_string(struct device *dev,
++				 const char *propname, const char *string);
+ 
+ bool fwnode_property_present(struct fwnode_handle *fwnode, const char *propname);
+ int fwnode_property_read_u8_array(struct fwnode_handle *fwnode,
+@@ -59,6 +61,8 @@ int fwnode_property_read_string_array(struct fwnode_handle *fwnode,
+ 				      size_t nval);
+ int fwnode_property_read_string(struct fwnode_handle *fwnode,
+ 				const char *propname, const char **val);
++int fwnode_property_match_string(struct fwnode_handle *fwnode,
++				 const char *propname, const char *string);
+ 
+ struct fwnode_handle *device_get_next_child_node(struct device *dev,
+ 						 struct fwnode_handle *child);
+-- 
+2.5.1
 
-But pci_mmcfg_list elements coming from static MCFG table cannot be 
-removed, hence they are living there for ever.
-
-Thanks,
-Tomasz
