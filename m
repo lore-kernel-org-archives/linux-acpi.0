@@ -1,99 +1,134 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH 2/2] acpi-dma: Add support for "dma-names" device property
-Date: Mon, 14 Sep 2015 17:37:36 +0300
-Message-ID: <1442241456-75340-2-git-send-email-mika.westerberg@linux.intel.com>
-References: <1442241456-75340-1-git-send-email-mika.westerberg@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1442241456-75340-1-git-send-email-mika.westerberg@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Vinod Koul <vinod.koul@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Dan Williams <dan.j.williams@intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Subject: Re: [PATCH 05/11] x86, pci, acpi: Move arch-agnostic MMCONFIG (aka
+ ECAM) and ACPI code out of arch/x86/ directory
+Date: Mon, 14 Sep 2015 16:55:50 +0200
+Message-ID: <55F6DFF6.4010807@linaro.org>
+References: <20150602133215.GC23650@red-moon> <55701A31.808@linaro.org>
+ <20150604102253.GA31773@red-moon> <5570447D.3020705@linaro.org>
+ <557504A2.3060203@linaro.org> <20150608151443.GA16151@red-moon>
+ <55E4340D.6050004@linaro.org> <55ED6010.3020406@linaro.org>
+ <20150908150727.GF29293@red-moon> <55F0388B.1090607@linaro.org>
+ <20150911112018.GA13033@red-moon>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-la0-f50.google.com ([209.85.215.50]:36108 "EHLO
+	mail-la0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752997AbbINOz5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Sep 2015 10:55:57 -0400
+Received: by lanb10 with SMTP id b10so88177007lan.3
+        for <linux-acpi@vger.kernel.org>; Mon, 14 Sep 2015 07:55:56 -0700 (PDT)
+In-Reply-To: <20150911112018.GA13033@red-moon>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, Yijing Wang <wangyijing@huawei.com>, Will Deacon <Will.Deacon@arm.com>, Arnd Bergmann <arnd@arndb.de>, Catalin Marinas <Catalin.Marinas@arm.com>, Jiang Liu <jiang.liu@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "msalter@redhat.com" <msalter@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 
-The current implementation hard codes the two supported channels so that
-"tx" is always 0 and "rx" is always 1. This is because there has been no
-suitable way in ACPI to name resources.
+On 11.09.2015 13:20, Lorenzo Pieralisi wrote:
+> On Wed, Sep 09, 2015 at 02:47:55PM +0100, Tomasz Nowicki wrote:
+>
+> [...]
+>
+>>> I think (but I am happy to be corrected) that the map_bus() hook
+>>> (ie that's why struct pci_bus is required in eg pci_generic_config_write)
+>>> is there to ensure that when the generic accessors are called
+>>> a) we have a valid bus b) the host controllers implementing it
+>>> has been initialized.
+>>>
+>>> I had another look and I noticed you are trying to solve multiple
+>>> things at once:
+>>>
+>>> 1) ACPICA seems to need PCI config space on bus 0 to be working
+>>>      before PCI enumerates (ie before we have a root bus), we need to
+>>>      countercheck on that, but you can't use the generic PCI accessors
+>>>      for that reasons (ie root bus might not be available, you do not
+>>>      have a pci_bus struct)
+>>> 2) the raw_pci_read/write require _generic_ mmio back-ends, since AMD
+>>>      can't cope with standard x86 read/write{b,w,l}
+>>>
+>>> Overall, it seems to me that we can avoid code duplication by
+>>> shuffling your code a bit.
+>>>
+>>> You could modify the generic accessors in drivers/pci/access.c to
+>>> use your mmio back-end instead of using plain read/write{b,w,l}
+>>> functions (we should check if RobH is ok with that there can be
+>>> reasons that prevent this from happening). This would solve the
+>>> AMD mmio issue.
+>>>
+>>> By factoring out the code that actually carries out the reads
+>>> and writes in the accessors basically you decouple the functions
+>>> requiring the struct pci_bus from the ones that does not require it
+>>> (ie raw_pci_{read/write}.
+>>>
+>>> The generic MMIO layer belongs in the drivers/pci/access.c file, it has
+>>> nothing to do with ECAM.
+>>>
+>>> The mmcfg interface should probably live in pci-acpi.c, I do not think
+>>> you need an extra file in there but that's a detail.
+>>>
+>>> Basically the generic accessors would become something like eg:
+>>>
+>>> int pci_generic_config_write(struct pci_bus *bus, unsigned int devfn,
+>>>                             int where, int size, u32 val)
+>>> {
+>>>        void __iomem *addr;
+>>>
+>>>        addr = bus->ops->map_bus(bus, devfn, where);
+>>>        if (!addr)
+>>>                return PCIBIOS_DEVICE_NOT_FOUND;
+>>>
+>>>        pci_mmio_write(size, addr + where, value);
+>>>
+>>>        return PCIBIOS_SUCCESSFUL;
+>>> }
+>>>
+>>> With that in place using raw_pci_write/read or the generic accessors
+>>> becomes almost identical, with code requiring the pci_bus to be
+>>> created using the generic accessors and ACPICA using the raw version.
+>>>
+>>> I might be missing something, so apologies if that's the case.
+>>>
+>>
+>> Actually, I think you showed me the right direction :) Here are some
+>> conclusions/comments/concerns. Please correct me if I am wrong:
+>>
+>> 1. We need raw_pci_write/read accessors (based on ECAM) for ARM64 too
+>> but only up to the point where buses are enumerated. From that point on,
+>> we should reuse generic accessors from access.c file, right?
+>
+> Well, I still have not figured out whether on arm64 the raw accessors
+> required by ACPICA make sense.
+>
+> So either arm64 relies on the generic MCFG based raw read and writes
+> or we define the global raw read and writes as empty (ie x86 overrides
+> them anyway).
+>
 
-With _DSD device properties we can finally do this:
+My concerns/ideas related to raw accessors for ARM64, please correct me 
+at any point.
 
-	Device (SPI1) {
-	    Name (_CRS, ResourceTemplate () {
-	        ...
-	        FixedDMA (0x0000, 0x0000, Width32bit)
-	        FixedDMA (0x0001, 0x0001, Width32bit)
-	    })
+ACPI spec - chapter: 19.5.96 OperationRegion (Declare Operation Region)
+defines PCI_Config as one of region types. Every time ASL opcode 
+operates on corresponding PCI config space region, ASL interpreter is 
+dispatching address space to our raw accessors, please see 
+acpi_ex_pci_config_space_handler, acpi_ev_pci_config_region_setup calls. 
+What is more important, such operations may happen after (yes after) bus 
+enumeration, but always raw accessors are called at the end with the 
+{segment, bus, dev, fn} tuple.
 
-	    Name (_DSD, Package () {
-	        ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-	        Package () {
-	            Package () {"dma-names", Package () {"tx", "rx"}}
-	        },
-	    })
-	}
+Giving above, here are some ideas:
+1. We force somehow vendors to avoid operations on PCI config regions in 
+ASL code. PCI config region definitions still fall into Hardware Reduced 
+profile, so new ACPICA special subset for ARM64 is need. Then raw ACPI 
+accessors can be empty (and overridden by x86).
+2. We provide raw accessors which translate {segment, bus, dev, fn} 
+tuple to Linux generic accessors (this can be considered only if PCI 
+config accesses happened after bus enumeration for HR profile, thus 
+tuple to bus structure map is possible).
+4. We rely on the generic MCFG based raw read and writes.
 
-The names "tx" and "rx" now provide index of the FixedDMA resource in
-question.
+Let me know your opinion.
 
-Modify acpi_dma_request_slave_chan_by_name() so that it looks for
-"dma-names" property first and only then fall back using hardcoded indices.
-
-The DT "dma-names" binding that we reuse for ACPI is documented in
-Documentation/devicetree/bindings/dma/dma.txt.
-
-Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
----
- drivers/dma/acpi-dma.c | 25 +++++++++++++++++--------
- 1 file changed, 17 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/dma/acpi-dma.c b/drivers/dma/acpi-dma.c
-index 5a635646e05c..981a38fc4cb8 100644
---- a/drivers/dma/acpi-dma.c
-+++ b/drivers/dma/acpi-dma.c
-@@ -21,6 +21,7 @@
- #include <linux/ioport.h>
- #include <linux/acpi.h>
- #include <linux/acpi_dma.h>
-+#include <linux/property.h>
- 
- static LIST_HEAD(acpi_dma_list);
- static DEFINE_MUTEX(acpi_dma_lock);
-@@ -413,21 +414,29 @@ EXPORT_SYMBOL_GPL(acpi_dma_request_slave_chan_by_index);
-  * translate the names "tx" and "rx" here based on the most common case where
-  * the first FixedDMA descriptor is TX and second is RX.
-  *
-+ * If the device has "dma-names" property the FixedDMA descriptor indices
-+ * are retrieved based on those. Otherwise the function falls back using
-+ * hardcoded indices.
-+ *
-  * Return:
-  * Pointer to appropriate dma channel on success or an error pointer.
-  */
- struct dma_chan *acpi_dma_request_slave_chan_by_name(struct device *dev,
- 		const char *name)
- {
--	size_t index;
--
--	if (!strcmp(name, "tx"))
--		index = 0;
--	else if (!strcmp(name, "rx"))
--		index = 1;
--	else
--		return ERR_PTR(-ENODEV);
-+	int index;
-+
-+	index = device_property_match_string(dev, "dma-names", name);
-+	if (index < 0) {
-+		if (!strcmp(name, "tx"))
-+			index = 0;
-+		else if (!strcmp(name, "rx"))
-+			index = 1;
-+		else
-+			return ERR_PTR(-ENODEV);
-+	}
- 
-+	dev_dbg(dev, "found DMA channel \"%s\" at index %d\n", name, index);
- 	return acpi_dma_request_slave_chan_by_index(dev, index);
- }
- EXPORT_SYMBOL_GPL(acpi_dma_request_slave_chan_by_name);
--- 
-2.5.1
+Thanks,
+Tomasz
