@@ -1,134 +1,112 @@
-From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Subject: Re: [PATCH 05/11] x86, pci, acpi: Move arch-agnostic MMCONFIG (aka
- ECAM) and ACPI code out of arch/x86/ directory
-Date: Mon, 14 Sep 2015 16:55:50 +0200
-Message-ID: <55F6DFF6.4010807@linaro.org>
-References: <20150602133215.GC23650@red-moon> <55701A31.808@linaro.org>
- <20150604102253.GA31773@red-moon> <5570447D.3020705@linaro.org>
- <557504A2.3060203@linaro.org> <20150608151443.GA16151@red-moon>
- <55E4340D.6050004@linaro.org> <55ED6010.3020406@linaro.org>
- <20150908150727.GF29293@red-moon> <55F0388B.1090607@linaro.org>
- <20150911112018.GA13033@red-moon>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: [PATCH 2/2] ACPI: Eliminate CONFIG_.*{,_MODULE} #ifdef in favor of IS_ENABLED()
+Date: Mon, 14 Sep 2015 16:01:55 +0100
+Message-ID: <1442242915-14762-2-git-send-email-sudeep.holla@arm.com>
+References: <1442242915-14762-1-git-send-email-sudeep.holla@arm.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-la0-f50.google.com ([209.85.215.50]:36108 "EHLO
-	mail-la0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752997AbbINOz5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Sep 2015 10:55:57 -0400
-Received: by lanb10 with SMTP id b10so88177007lan.3
-        for <linux-acpi@vger.kernel.org>; Mon, 14 Sep 2015 07:55:56 -0700 (PDT)
-In-Reply-To: <20150911112018.GA13033@red-moon>
+Received: from foss.arm.com ([217.140.101.70]:46654 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755156AbbINPCH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 14 Sep 2015 11:02:07 -0400
+In-Reply-To: <1442242915-14762-1-git-send-email-sudeep.holla@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, Yijing Wang <wangyijing@huawei.com>, Will Deacon <Will.Deacon@arm.com>, Arnd Bergmann <arnd@arndb.de>, Catalin Marinas <Catalin.Marinas@arm.com>, Jiang Liu <jiang.liu@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "msalter@redhat.com" <msalter@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
+Cc: Sudeep Holla <sudeep.holla@arm.com>, Lv Zheng <lv.zheng@intel.com>, Zhang Rui <rui.zhang@intel.com>
 
-On 11.09.2015 13:20, Lorenzo Pieralisi wrote:
-> On Wed, Sep 09, 2015 at 02:47:55PM +0100, Tomasz Nowicki wrote:
->
-> [...]
->
->>> I think (but I am happy to be corrected) that the map_bus() hook
->>> (ie that's why struct pci_bus is required in eg pci_generic_config_write)
->>> is there to ensure that when the generic accessors are called
->>> a) we have a valid bus b) the host controllers implementing it
->>> has been initialized.
->>>
->>> I had another look and I noticed you are trying to solve multiple
->>> things at once:
->>>
->>> 1) ACPICA seems to need PCI config space on bus 0 to be working
->>>      before PCI enumerates (ie before we have a root bus), we need to
->>>      countercheck on that, but you can't use the generic PCI accessors
->>>      for that reasons (ie root bus might not be available, you do not
->>>      have a pci_bus struct)
->>> 2) the raw_pci_read/write require _generic_ mmio back-ends, since AMD
->>>      can't cope with standard x86 read/write{b,w,l}
->>>
->>> Overall, it seems to me that we can avoid code duplication by
->>> shuffling your code a bit.
->>>
->>> You could modify the generic accessors in drivers/pci/access.c to
->>> use your mmio back-end instead of using plain read/write{b,w,l}
->>> functions (we should check if RobH is ok with that there can be
->>> reasons that prevent this from happening). This would solve the
->>> AMD mmio issue.
->>>
->>> By factoring out the code that actually carries out the reads
->>> and writes in the accessors basically you decouple the functions
->>> requiring the struct pci_bus from the ones that does not require it
->>> (ie raw_pci_{read/write}.
->>>
->>> The generic MMIO layer belongs in the drivers/pci/access.c file, it has
->>> nothing to do with ECAM.
->>>
->>> The mmcfg interface should probably live in pci-acpi.c, I do not think
->>> you need an extra file in there but that's a detail.
->>>
->>> Basically the generic accessors would become something like eg:
->>>
->>> int pci_generic_config_write(struct pci_bus *bus, unsigned int devfn,
->>>                             int where, int size, u32 val)
->>> {
->>>        void __iomem *addr;
->>>
->>>        addr = bus->ops->map_bus(bus, devfn, where);
->>>        if (!addr)
->>>                return PCIBIOS_DEVICE_NOT_FOUND;
->>>
->>>        pci_mmio_write(size, addr + where, value);
->>>
->>>        return PCIBIOS_SUCCESSFUL;
->>> }
->>>
->>> With that in place using raw_pci_write/read or the generic accessors
->>> becomes almost identical, with code requiring the pci_bus to be
->>> created using the generic accessors and ACPICA using the raw version.
->>>
->>> I might be missing something, so apologies if that's the case.
->>>
->>
->> Actually, I think you showed me the right direction :) Here are some
->> conclusions/comments/concerns. Please correct me if I am wrong:
->>
->> 1. We need raw_pci_write/read accessors (based on ECAM) for ARM64 too
->> but only up to the point where buses are enumerated. From that point on,
->> we should reuse generic accessors from access.c file, right?
->
-> Well, I still have not figured out whether on arm64 the raw accessors
-> required by ACPICA make sense.
->
-> So either arm64 relies on the generic MCFG based raw read and writes
-> or we define the global raw read and writes as empty (ie x86 overrides
-> them anyway).
->
+This commit removes all CONFIG_.*{,_MODULE} in ACPI code, replacing it
+with IS_ENABLED().
 
-My concerns/ideas related to raw accessors for ARM64, please correct me 
-at any point.
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Zhang Rui <rui.zhang@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>
+Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+---
+ drivers/acpi/bus.c             | 12 ++++--------
+ drivers/acpi/int340x_thermal.c |  9 ++++-----
+ include/acpi/button.h          |  4 ++--
+ include/acpi/video.h           |  2 +-
+ 4 files changed, 11 insertions(+), 16 deletions(-)
 
-ACPI spec - chapter: 19.5.96 OperationRegion (Declare Operation Region)
-defines PCI_Config as one of region types. Every time ASL opcode 
-operates on corresponding PCI config space region, ASL interpreter is 
-dispatching address space to our raw accessors, please see 
-acpi_ex_pci_config_space_handler, acpi_ev_pci_config_region_setup calls. 
-What is more important, such operations may happen after (yes after) bus 
-enumeration, but always raw accessors are called at the end with the 
-{segment, bus, dev, fn} tuple.
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 46506e7687cd..a212cefae524 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -315,14 +315,10 @@ static void acpi_bus_osc_support(void)
+ 
+ 	capbuf[OSC_QUERY_DWORD] = OSC_QUERY_ENABLE;
+ 	capbuf[OSC_SUPPORT_DWORD] = OSC_SB_PR3_SUPPORT; /* _PR3 is in use */
+-#if defined(CONFIG_ACPI_PROCESSOR_AGGREGATOR) ||\
+-			defined(CONFIG_ACPI_PROCESSOR_AGGREGATOR_MODULE)
+-	capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_PAD_SUPPORT;
+-#endif
+-
+-#if defined(CONFIG_ACPI_PROCESSOR) || defined(CONFIG_ACPI_PROCESSOR_MODULE)
+-	capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_PPC_OST_SUPPORT;
+-#endif
++	if (IS_ENABLED(CONFIG_ACPI_PROCESSOR_AGGREGATOR))
++		capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_PAD_SUPPORT;
++	if (IS_ENABLED(CONFIG_ACPI_PROCESSOR))
++		capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_PPC_OST_SUPPORT;
+ 
+ 	capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_HOTPLUG_OST_SUPPORT;
+ 
+diff --git a/drivers/acpi/int340x_thermal.c b/drivers/acpi/int340x_thermal.c
+index 6c7c7975f72e..33505c651f62 100644
+--- a/drivers/acpi/int340x_thermal.c
++++ b/drivers/acpi/int340x_thermal.c
+@@ -33,13 +33,12 @@ static const struct acpi_device_id int340x_thermal_device_ids[] = {
+ static int int340x_thermal_handler_attach(struct acpi_device *adev,
+ 					const struct acpi_device_id *id)
+ {
+-#if defined(CONFIG_INT340X_THERMAL) || defined(CONFIG_INT340X_THERMAL_MODULE)
+-	acpi_create_platform_device(adev);
+-#elif defined(CONFIG_INTEL_SOC_DTS_THERMAL) || defined(CONFIG_INTEL_SOC_DTS_THERMAL_MODULE)
++	if (IS_ENABLED(CONFIG_INT340X_THERMAL))
++		acpi_create_platform_device(adev);
+ 	/* Intel SoC DTS thermal driver needs INT3401 to set IRQ descriptor */
+-	if (id->driver_data == INT3401_DEVICE)
++	else if (IS_ENABLED(CONFIG_INTEL_SOC_DTS_THERMAL) &&
++		 id->driver_data == INT3401_DEVICE)
+ 		acpi_create_platform_device(adev);
+-#endif
+ 	return 1;
+ }
+ 
+diff --git a/include/acpi/button.h b/include/acpi/button.h
+index 97eea0e4c016..1cad8b2d460c 100644
+--- a/include/acpi/button.h
++++ b/include/acpi/button.h
+@@ -3,7 +3,7 @@
+ 
+ #include <linux/notifier.h>
+ 
+-#if defined(CONFIG_ACPI_BUTTON) || defined(CONFIG_ACPI_BUTTON_MODULE)
++#if IS_ENABLED(CONFIG_ACPI_BUTTON)
+ extern int acpi_lid_notifier_register(struct notifier_block *nb);
+ extern int acpi_lid_notifier_unregister(struct notifier_block *nb);
+ extern int acpi_lid_open(void);
+@@ -20,6 +20,6 @@ static inline int acpi_lid_open(void)
+ {
+ 	return 1;
+ }
+-#endif /* defined(CONFIG_ACPI_BUTTON) || defined(CONFIG_ACPI_BUTTON_MODULE) */
++#endif /* IS_ENABLED(CONFIG_ACPI_BUTTON) */
+ 
+ #endif /* ACPI_BUTTON_H */
+diff --git a/include/acpi/video.h b/include/acpi/video.h
+index e840b294c6f5..c62392d9b52a 100644
+--- a/include/acpi/video.h
++++ b/include/acpi/video.h
+@@ -24,7 +24,7 @@ enum acpi_backlight_type {
+ 	acpi_backlight_native,
+ };
+ 
+-#if (defined CONFIG_ACPI_VIDEO || defined CONFIG_ACPI_VIDEO_MODULE)
++#if IS_ENABLED(CONFIG_ACPI_VIDEO)
+ extern int acpi_video_register(void);
+ extern void acpi_video_unregister(void);
+ extern int acpi_video_get_edid(struct acpi_device *device, int type,
+-- 
+1.9.1
 
-Giving above, here are some ideas:
-1. We force somehow vendors to avoid operations on PCI config regions in 
-ASL code. PCI config region definitions still fall into Hardware Reduced 
-profile, so new ACPICA special subset for ARM64 is need. Then raw ACPI 
-accessors can be empty (and overridden by x86).
-2. We provide raw accessors which translate {segment, bus, dev, fn} 
-tuple to Linux generic accessors (this can be considered only if PCI 
-config accesses happened after bus enumeration for HR profile, thus 
-tuple to bus structure map is possible).
-4. We rely on the generic MCFG based raw read and writes.
-
-Let me know your opinion.
-
-Thanks,
-Tomasz
