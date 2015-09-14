@@ -1,109 +1,135 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 2/2] acpi-dma: Add support for "dma-names" device property
-Date: Tue, 15 Sep 2015 01:19:59 +0200
-Message-ID: <2758429.Hja1JGjCVP@vostro.rjw.lan>
-References: <1442241456-75340-1-git-send-email-mika.westerberg@linux.intel.com> <1442241456-75340-2-git-send-email-mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH] ACPI: tables: simplify acpi_parse_entries
+Date: Tue, 15 Sep 2015 01:41 +0200
+Message-ID: <1725643.HXZjLoU2vc@vostro.rjw.lan>
+References: <1442243686-15845-1-git-send-email-sudeep.holla@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1442241456-75340-2-git-send-email-mika.westerberg@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Vinod Koul <vinod.koul@intel.com>, Dan Williams <dan.j.williams@intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:58639 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751619AbbINXNC (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Sep 2015 19:13:02 -0400
+In-Reply-To: <1442243686-15845-1-git-send-email-sudeep.holla@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sudeep Holla <sudeep.holla@arm.com>
+Cc: linux-acpi@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 
-On Monday, September 14, 2015 05:37:36 PM Mika Westerberg wrote:
-> The current implementation hard codes the two supported channels so that
-> "tx" is always 0 and "rx" is always 1. This is because there has been no
-> suitable way in ACPI to name resources.
+On Monday, September 14, 2015 04:14:46 PM Sudeep Holla wrote:
+> acpi_parse_entries passes the table end pointer to the sub-table entry
+> handler. acpi_parse_entries itself could validate the end of an entry
+> against the table end using the length in the sub-table entry.
 > 
-> With _DSD device properties we can finally do this:
+> This patch adds the validation of the sub-table entry end using the
+> length field.This will help to eliminate the need to pass the table end
+> to the handlers.
 > 
-> 	Device (SPI1) {
-> 	    Name (_CRS, ResourceTemplate () {
-> 	        ...
-> 	        FixedDMA (0x0000, 0x0000, Width32bit)
-> 	        FixedDMA (0x0001, 0x0001, Width32bit)
-> 	    })
-> 
-> 	    Name (_DSD, Package () {
-> 	        ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-> 	        Package () {
-> 	            Package () {"dma-names", Package () {"tx", "rx"}}
-> 	        },
-> 	    })
-> 	}
-> 
-> The names "tx" and "rx" now provide index of the FixedDMA resource in
-> question.
-> 
-> Modify acpi_dma_request_slave_chan_by_name() so that it looks for
-> "dma-names" property first and only then fall back using hardcoded indices.
-> 
-> The DT "dma-names" binding that we reuse for ACPI is documented in
-> Documentation/devicetree/bindings/dma/dma.txt.
-> 
-> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
 
-This and the [1/2] both look reasonable to me, but I need an ACK from Vinod
-for this one.
+Well, I'm not a big fan of (void *) arithmetics and the patch seems to be
+doing too much to me.
 
 > ---
->  drivers/dma/acpi-dma.c | 25 +++++++++++++++++--------
->  1 file changed, 17 insertions(+), 8 deletions(-)
+>  drivers/acpi/tables.c | 34 +++++++++-------------------------
+>  1 file changed, 9 insertions(+), 25 deletions(-)
 > 
-> diff --git a/drivers/dma/acpi-dma.c b/drivers/dma/acpi-dma.c
-> index 5a635646e05c..981a38fc4cb8 100644
-> --- a/drivers/dma/acpi-dma.c
-> +++ b/drivers/dma/acpi-dma.c
-> @@ -21,6 +21,7 @@
->  #include <linux/ioport.h>
->  #include <linux/acpi.h>
->  #include <linux/acpi_dma.h>
-> +#include <linux/property.h>
->  
->  static LIST_HEAD(acpi_dma_list);
->  static DEFINE_MUTEX(acpi_dma_lock);
-> @@ -413,21 +414,29 @@ EXPORT_SYMBOL_GPL(acpi_dma_request_slave_chan_by_index);
->   * translate the names "tx" and "rx" here based on the most common case where
->   * the first FixedDMA descriptor is TX and second is RX.
->   *
-> + * If the device has "dma-names" property the FixedDMA descriptor indices
-> + * are retrieved based on those. Otherwise the function falls back using
-> + * hardcoded indices.
-> + *
->   * Return:
->   * Pointer to appropriate dma channel on success or an error pointer.
->   */
->  struct dma_chan *acpi_dma_request_slave_chan_by_name(struct device *dev,
->  		const char *name)
+> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+> index 17a6fa01a338..145d4f6a1c54 100644
+> --- a/drivers/acpi/tables.c
+> +++ b/drivers/acpi/tables.c
+> @@ -217,16 +217,13 @@ acpi_parse_entries(char *id, unsigned long table_size,
+>  		int entry_id, unsigned int max_entries)
 >  {
-> -	size_t index;
-> -
-> -	if (!strcmp(name, "tx"))
-> -		index = 0;
-> -	else if (!strcmp(name, "rx"))
-> -		index = 1;
-> -	else
-> -		return ERR_PTR(-ENODEV);
-> +	int index;
-> +
-> +	index = device_property_match_string(dev, "dma-names", name);
-> +	if (index < 0) {
-> +		if (!strcmp(name, "tx"))
-> +			index = 0;
-> +		else if (!strcmp(name, "rx"))
-> +			index = 1;
-> +		else
-> +			return ERR_PTR(-ENODEV);
-> +	}
+>  	struct acpi_subtable_header *entry;
+> +	void *entry_end, *table_end;
+>  	int count = 0;
+> -	unsigned long table_end;
+
+I'd keep that as unsigned long and I'd add unsigned long entry_end here.
+
 >  
-> +	dev_dbg(dev, "found DMA channel \"%s\" at index %d\n", name, index);
->  	return acpi_dma_request_slave_chan_by_index(dev, index);
->  }
->  EXPORT_SYMBOL_GPL(acpi_dma_request_slave_chan_by_name);
+>  	if (acpi_disabled)
+>  		return -ENODEV;
+>  
+> -	if (!id || !handler)
+> -		return -EINVAL;
+> -
+> -	if (!table_size)
+> +	if (!id || !handler || !table_size)
+>  		return -EINVAL;
+
+Please mention this cleanup bit in the changelog, as it is not related to
+the other changes.
+
+>  
+>  	if (!table_header) {
+> @@ -234,34 +231,21 @@ acpi_parse_entries(char *id, unsigned long table_size,
+>  		return -ENODEV;
+>  	}
+>  
+> -	table_end = (unsigned long)table_header + table_header->length;
+> +	table_end = (void *)table_header + table_header->length;
+>  
+>  	/* Parse all entries looking for a match. */
+> +	entry = (void *)table_header + table_size;
+> +	entry_end = (void *)entry + entry->length;
+>  
+> -	entry = (struct acpi_subtable_header *)
+> -	    ((unsigned long)table_header + table_size);
+
+	entry_end = (unsigned long)table_header + table_size;
+	entry = (struct acpi_subtable_header *)entry_end;
+	entry_end += entry->length;
+
+> -
+> -	while (((unsigned long)entry) + sizeof(struct acpi_subtable_header) <
+> -	       table_end) {
+> +	while (entry->length && entry_end <= table_end) {
+
+We used to return -EINVAL for entry->length == 0 and now we don't.  Isn't that
+a problem?
+
+>  		if (entry->type == entry_id
+>  		    && (!max_entries || count < max_entries)) {
+> -			if (handler(entry, table_end))
+> +			if (handler(entry, (unsigned long)entry_end))
+>  				return -EINVAL;
+> -
+>  			count++;
+>  		}
+> -
+> -		/*
+> -		 * If entry->length is 0, break from this loop to avoid
+> -		 * infinite loop.
+> -		 */
+> -		if (entry->length == 0) {
+> -			pr_err("[%4.4s:0x%02x] Invalid zero length\n", id, entry_id);
+> -			return -EINVAL;
+> -		}
+
+Perhaps just reorder this with the previous if () and write the loop as
+
+	while (entry_end <= table_end) {
+
+> -
+> -		entry = (struct acpi_subtable_header *)
+> -		    ((unsigned long)entry + entry->length);
+> +		entry = entry_end;
+> +		entry_end = (void *)entry + entry->length;
+
+And this can be
+
+		entry = (struct acpi_subtable_header *)entry_end;
+		entry_end += entry->length;
+
+>  	}
+>  
+>  	if (max_entries && count > max_entries) {
 > 
 
 Thanks,
 Rafael
+
