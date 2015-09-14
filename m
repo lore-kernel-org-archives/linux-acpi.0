@@ -1,83 +1,64 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v6 1/7] ACPI/PCI: Enhance ACPI core to support sparse IO space
-Date: Mon, 14 Sep 2015 16:07:30 +0800
-Message-ID: <1442218057-4355-2-git-send-email-jiang.liu@linux.intel.com>
-References: <1442218057-4355-1-git-send-email-jiang.liu@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:20040 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753264AbbINIEn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 14 Sep 2015 04:04:43 -0400
-In-Reply-To: <1442218057-4355-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Jakub Sitnicki <jsitnicki@gmail.com>
+Subject: [Patch v6 0/7] Consolidate ACPI PCI root common code into ACPI core
+Date: Mon, 14 Sep 2015 16:07:29 +0800
+Message-ID: <1442218057-4355-1-git-send-email-jiang.liu@linux.intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>
 Cc: Jiang Liu <jiang.liu@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-Enhance ACPI resource parsing interfaces to support sparse IO space,
-which will be used to share common code between x86 and IA64 later.
+This patch set consolidates common code to support ACPI PCI root on x86
+and IA64 platforms into ACPI core, to reproduce duplicated code and
+simplify maintenance. And a patch set based on previous version to support
+ACPI based PCIe host bridge on ARM64 has been posted at:
+https://lkml.org/lkml/2015/5/26/207
 
-Tested-by: Tony Luck <tony.luck@intel.com>
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
----
- drivers/acpi/resource.c |    9 ++++++---
- include/linux/ioport.h  |    1 +
- 2 files changed, 7 insertions(+), 3 deletions(-)
+It's based on latest mainstream kernel. It passes Fengguang's 0day test
+suite and has been tested on two IA64 platforms and one x86 platform.
 
-diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-index 15d22db05054..cdc5c2599beb 100644
---- a/drivers/acpi/resource.c
-+++ b/drivers/acpi/resource.c
-@@ -119,7 +119,7 @@ bool acpi_dev_resource_memory(struct acpi_resource *ares, struct resource *res)
- EXPORT_SYMBOL_GPL(acpi_dev_resource_memory);
- 
- static void acpi_dev_ioresource_flags(struct resource *res, u64 len,
--				      u8 io_decode)
-+				      u8 io_decode, u8 translation_type)
- {
- 	res->flags = IORESOURCE_IO;
- 
-@@ -131,6 +131,8 @@ static void acpi_dev_ioresource_flags(struct resource *res, u64 len,
- 
- 	if (io_decode == ACPI_DECODE_16)
- 		res->flags |= IORESOURCE_IO_16BIT_ADDR;
-+	if (translation_type == ACPI_SPARSE_TRANSLATION)
-+		res->flags |= IORESOURCE_IO_SPARSE;
- }
- 
- static void acpi_dev_get_ioresource(struct resource *res, u64 start, u64 len,
-@@ -138,7 +140,7 @@ static void acpi_dev_get_ioresource(struct resource *res, u64 start, u64 len,
- {
- 	res->start = start;
- 	res->end = start + len - 1;
--	acpi_dev_ioresource_flags(res, len, io_decode);
-+	acpi_dev_ioresource_flags(res, len, io_decode, 0);
- }
- 
- /**
-@@ -231,7 +233,8 @@ static bool acpi_decode_space(struct resource_win *win,
- 		acpi_dev_memresource_flags(res, len, wp);
- 		break;
- 	case ACPI_IO_RANGE:
--		acpi_dev_ioresource_flags(res, len, iodec);
-+		acpi_dev_ioresource_flags(res, len, iodec,
-+					  addr->info.io.translation_type);
- 		break;
- 	case ACPI_BUS_NUMBER_RANGE:
- 		res->flags = IORESOURCE_BUS;
-diff --git a/include/linux/ioport.h b/include/linux/ioport.h
-index 388e3ae94f7a..24bea087e7af 100644
---- a/include/linux/ioport.h
-+++ b/include/linux/ioport.h
-@@ -94,6 +94,7 @@ struct resource {
- /* PnP I/O specific bits (IORESOURCE_BITS) */
- #define IORESOURCE_IO_16BIT_ADDR	(1<<0)
- #define IORESOURCE_IO_FIXED		(1<<1)
-+#define IORESOURCE_IO_SPARSE		(1<<2)
- 
- /* PCI ROM control bits (IORESOURCE_BITS) */
- #define IORESOURCE_ROM_ENABLE		(1<<0)	/* ROM is enabled, same as PCI_ROM_ADDRESS_ENABLE */
+V5->V6:
+1) Patch 5 to reset domain number to 0 when pci_ignore_seg is set
+2) Remove parameter segment and node from function acpi_pci_root_create(),
+   as suggested by Lorenzo and Bjorn.
+V4-V5:
+1) As suggested by Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, do not
+   introduce "struct pci_controller" into generic drivers/acpi/pci_root.c,
+   so ARM64 doesn't need to define a useless structure. And it simplifies
+   code a little too.
+
+V3->V4:
+1) Add patch[05/08] support solve building issue on ARM64
+2) Solve an implicitly pointer cast issue.
+3) Rebase to latest mainstream kernel
+
+V2->V3:
+1. Move memory allocation/free from ACPI core into arch
+2. Kill the field 'segment' in struct pci_root_info on x86
+
+Thanks!
+Gerry
+
+Jiang Liu (7):
+  ACPI/PCI: Enhance ACPI core to support sparse IO space
+  ia64/PCI/ACPI: Use common ACPI resource parsing interface for host
+    bridge
+  ia64/PCI: Use common struct resource_entry to replace struct
+    iospace_resource
+  PCI/ACPI: Consolidate common PCI host bridge code into ACPI core
+  ACPI, PCI: Reset acpi_root_dev->domain to 0 when pci_ignore_seg is
+    set
+  x86/PCI/ACPI: Use common interface to support PCI host bridge
+  ia64/PCI/ACPI: Use common interface to support PCI host bridge
+
+ arch/ia64/include/asm/pci.h |    5 -
+ arch/ia64/pci/pci.c         |  367 ++++++++++++-------------------------------
+ arch/x86/pci/acpi.c         |  295 ++++++++++------------------------
+ drivers/acpi/pci_root.c     |  199 +++++++++++++++++++++++
+ drivers/acpi/resource.c     |    9 +-
+ include/linux/ioport.h      |    1 +
+ include/linux/pci-acpi.h    |   23 +++
+ 7 files changed, 415 insertions(+), 484 deletions(-)
+
 -- 
 1.7.10.4
-
