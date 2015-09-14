@@ -1,96 +1,43 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: [PATCH] ACPI: tables: simplify acpi_parse_entries
-Date: Mon, 14 Sep 2015 16:14:46 +0100
-Message-ID: <1442243686-15845-1-git-send-email-sudeep.holla@arm.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:46701 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755580AbbINPPG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 14 Sep 2015 11:15:06 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Subject: Re: [PATCH V2] debugfs: don't assume sizeof(bool) to be 4 bytes
+Date: Mon, 14 Sep 2015 17:39:06 +0200
+Message-ID: <1708603.aKpYchk1pa@wuerfel>
+References: <81516fb9c662cc338b5af5b63fbbcde5374e0893.1442202447.git.viresh.kumar@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <81516fb9c662cc338b5af5b63fbbcde5374e0893.1442202447.git.viresh.kumar-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: linaro-kernel-cunTk1MwBs8s++Sfvej+rw@public.gmane.org
+Cc: "moderated list:SOUND - SOC LAYER / DYNAMIC AUDIO POWER MANAGEM..." <alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org>, Avri Altman <avri.altman-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Stanislaw Gruszka <sgruszka-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jiri Slaby <jirislaby-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "open list:DOCUMENTATION" <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Viresh Kumar <viresh.kumar-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Jaroslav Kysela <perex-/Fr2/VpizcU@public.gmane.org>, "open list:MEMORY MANAGEMENT" <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, Kalle Valo <kvalo-A+ZNKFmMK5xy9aJCnZT0Uw@public.gmane.org>, Emmanuel Grumbach <emmanuel.grumbach-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Luciano Coelho <luciano.coelho-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "open list:CISCO SCSI HBA DRIVER" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Joerg Roedel <joro-sbq1PF/6f4d8uUxBSJOaYoYkZiVZrdSR2LY78lusg7I@public.gmane.org>, Richard Fitzgerald <rf-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Ingo Molnar <mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hariprasad S <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Thomas Gleixner <tglx@linutro>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
-Cc: Sudeep Holla <sudeep.holla@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 
-acpi_parse_entries passes the table end pointer to the sub-table entry
-handler. acpi_parse_entries itself could validate the end of an entry
-against the table end using the length in the sub-table entry.
+On Monday 14 September 2015 09:21:54 Viresh Kumar wrote:
+> diff --git a/drivers/acpi/ec_sys.c b/drivers/acpi/ec_sys.c
+> index b4c216bab22b..bea8e425a8de 100644
+> --- a/drivers/acpi/ec_sys.c
+> +++ b/drivers/acpi/ec_sys.c
+> @@ -128,7 +128,7 @@ static int acpi_ec_add_debugfs(struct acpi_ec *ec, unsigned int ec_device_count)
+>  	if (!debugfs_create_x32("gpe", 0444, dev_dir, (u32 *)&first_ec->gpe))
+>  		goto error;
+>  	if (!debugfs_create_bool("use_global_lock", 0444, dev_dir,
+> -				 (u32 *)&first_ec->global_lock))
+> +				 &first_ec->global_lock))
+>  		goto error;
+>  
+>  	if (write_support)
 
-This patch adds the validation of the sub-table entry end using the
-length field.This will help to eliminate the need to pass the table end
-to the handlers.
+This one might need a separate patch that can be backported to stable, as
+the original code is already broken on big-endian 64-bit machines:
+global_lock is 'unsigned long'.
 
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
----
- drivers/acpi/tables.c | 34 +++++++++-------------------------
- 1 file changed, 9 insertions(+), 25 deletions(-)
-
-diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-index 17a6fa01a338..145d4f6a1c54 100644
---- a/drivers/acpi/tables.c
-+++ b/drivers/acpi/tables.c
-@@ -217,16 +217,13 @@ acpi_parse_entries(char *id, unsigned long table_size,
- 		int entry_id, unsigned int max_entries)
- {
- 	struct acpi_subtable_header *entry;
-+	void *entry_end, *table_end;
- 	int count = 0;
--	unsigned long table_end;
- 
- 	if (acpi_disabled)
- 		return -ENODEV;
- 
--	if (!id || !handler)
--		return -EINVAL;
--
--	if (!table_size)
-+	if (!id || !handler || !table_size)
- 		return -EINVAL;
- 
- 	if (!table_header) {
-@@ -234,34 +231,21 @@ acpi_parse_entries(char *id, unsigned long table_size,
- 		return -ENODEV;
- 	}
- 
--	table_end = (unsigned long)table_header + table_header->length;
-+	table_end = (void *)table_header + table_header->length;
- 
- 	/* Parse all entries looking for a match. */
-+	entry = (void *)table_header + table_size;
-+	entry_end = (void *)entry + entry->length;
- 
--	entry = (struct acpi_subtable_header *)
--	    ((unsigned long)table_header + table_size);
--
--	while (((unsigned long)entry) + sizeof(struct acpi_subtable_header) <
--	       table_end) {
-+	while (entry->length && entry_end <= table_end) {
- 		if (entry->type == entry_id
- 		    && (!max_entries || count < max_entries)) {
--			if (handler(entry, table_end))
-+			if (handler(entry, (unsigned long)entry_end))
- 				return -EINVAL;
--
- 			count++;
- 		}
--
--		/*
--		 * If entry->length is 0, break from this loop to avoid
--		 * infinite loop.
--		 */
--		if (entry->length == 0) {
--			pr_err("[%4.4s:0x%02x] Invalid zero length\n", id, entry_id);
--			return -EINVAL;
--		}
--
--		entry = (struct acpi_subtable_header *)
--		    ((unsigned long)entry + entry->length);
-+		entry = entry_end;
-+		entry_end = (void *)entry + entry->length;
- 	}
- 
- 	if (max_entries && count > max_entries) {
--- 
-1.9.1
-
+	Arnd
