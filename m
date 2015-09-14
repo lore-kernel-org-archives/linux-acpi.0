@@ -1,102 +1,109 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v3 2/8] genirq: irqdomain: Remove irqdomain dependency on struct device_node
-Date: Tue, 15 Sep 2015 01:15:12 +0200
-Message-ID: <2330801.UsQO8cZmqT@vostro.rjw.lan>
-References: <1442249047-21182-1-git-send-email-marc.zyngier@arm.com> <1442249047-21182-3-git-send-email-marc.zyngier@arm.com>
+Subject: Re: [PATCH 2/2] acpi-dma: Add support for "dma-names" device property
+Date: Tue, 15 Sep 2015 01:19:59 +0200
+Message-ID: <2758429.Hja1JGjCVP@vostro.rjw.lan>
+References: <1442241456-75340-1-git-send-email-mika.westerberg@linux.intel.com> <1442241456-75340-2-git-send-email-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1442249047-21182-3-git-send-email-marc.zyngier@arm.com>
+In-Reply-To: <1442241456-75340-2-git-send-email-mika.westerberg@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Graeme Gregory <graeme@xora.org.uk>, Jake Oshins <jakeo@microsoft.com>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Vinod Koul <vinod.koul@intel.com>, Dan Williams <dan.j.williams@intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday, September 14, 2015 05:44:01 PM Marc Zyngier wrote:
-> struct device_node is very much DT specific, and the original authors
-> of the irqdomain subsystem recognized that tie, and went as far as
-> mentionning that this could be replaced by some "void *token",
-> should another firmware infrastructure be using it.
+On Monday, September 14, 2015 05:37:36 PM Mika Westerberg wrote:
+> The current implementation hard codes the two supported channels so that
+> "tx" is always 0 and "rx" is always 1. This is because there has been no
+> suitable way in ACPI to name resources.
 > 
-> As we move ACPI on arm64 towards this model too, it makes a lot of sense
-> to perform that particular move.
+> With _DSD device properties we can finally do this:
 > 
-> We replace "struct device_node *of_node" with "void *domain_token", which
-> is a benign enough transformation. A non DT user of irqdomain can now
-> identify its domains using this pointer.
+> 	Device (SPI1) {
+> 	    Name (_CRS, ResourceTemplate () {
+> 	        ...
+> 	        FixedDMA (0x0000, 0x0000, Width32bit)
+> 	        FixedDMA (0x0001, 0x0001, Width32bit)
+> 	    })
 > 
-> Also, in order to prevent the introduction of sideband type information,
-> only DT is allowed to store a valid kernel pointer in domain_token
-> (a pointer that passes the virt_addr_valid() test will be considered
-> as a valid device_node).
+> 	    Name (_DSD, Package () {
+> 	        ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+> 	        Package () {
+> 	            Package () {"dma-names", Package () {"tx", "rx"}}
+> 	        },
+> 	    })
+> 	}
 > 
-> non-DT users that wish to store valid pointers in domain_token are
-> required to use another structure such as an IDR.
+> The names "tx" and "rx" now provide index of the FixedDMA resource in
+> question.
 > 
-> Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
+> Modify acpi_dma_request_slave_chan_by_name() so that it looks for
+> "dma-names" property first and only then fall back using hardcoded indices.
+> 
+> The DT "dma-names" binding that we reuse for ACPI is documented in
+> Documentation/devicetree/bindings/dma/dma.txt.
+> 
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+
+This and the [1/2] both look reasonable to me, but I need an ACK from Vinod
+for this one.
+
 > ---
->  include/linux/irqdomain.h | 68 +++++++++++++++++++-----------------
->  kernel/irq/irqdomain.c    | 89 ++++++++++++++++++++++++++++++++++-------------
->  2 files changed, 101 insertions(+), 56 deletions(-)
+>  drivers/dma/acpi-dma.c | 25 +++++++++++++++++--------
+>  1 file changed, 17 insertions(+), 8 deletions(-)
 > 
-> diff --git a/include/linux/irqdomain.h b/include/linux/irqdomain.h
-> index f644fdb..ac7041b 100644
-> --- a/include/linux/irqdomain.h
-> +++ b/include/linux/irqdomain.h
-> @@ -17,16 +17,14 @@
->   * model). It's the domain callbacks that are responsible for setting the
->   * irq_chip on a given irq_desc after it's been mapped.
+> diff --git a/drivers/dma/acpi-dma.c b/drivers/dma/acpi-dma.c
+> index 5a635646e05c..981a38fc4cb8 100644
+> --- a/drivers/dma/acpi-dma.c
+> +++ b/drivers/dma/acpi-dma.c
+> @@ -21,6 +21,7 @@
+>  #include <linux/ioport.h>
+>  #include <linux/acpi.h>
+>  #include <linux/acpi_dma.h>
+> +#include <linux/property.h>
+>  
+>  static LIST_HEAD(acpi_dma_list);
+>  static DEFINE_MUTEX(acpi_dma_lock);
+> @@ -413,21 +414,29 @@ EXPORT_SYMBOL_GPL(acpi_dma_request_slave_chan_by_index);
+>   * translate the names "tx" and "rx" here based on the most common case where
+>   * the first FixedDMA descriptor is TX and second is RX.
 >   *
-> - * The host code and data structures are agnostic to whether or not
-> - * we use an open firmware device-tree. We do have references to struct
-> - * device_node in two places: in irq_find_host() to find the host matching
-> - * a given interrupt controller node, and of course as an argument to its
-> - * counterpart domain->ops->match() callback. However, those are treated as
-> - * generic pointers by the core and the fact that it's actually a device-node
-> - * pointer is purely a convention between callers and implementation. This
-> - * code could thus be used on other architectures by replacing those two
-> - * by some sort of arch-specific void * "token" used to identify interrupt
-> - * controllers.
-> + * The host code and data structures are agnostic to whether or not we
-> + * use an open firmware device-tree. Domains can be assigned a
-> + * "void *domain_token" identifier, which is assumed to represent a
-> + * "struct device_node" if the pointer is a valid virtual address.
+> + * If the device has "dma-names" property the FixedDMA descriptor indices
+> + * are retrieved based on those. Otherwise the function falls back using
+> + * hardcoded indices.
 > + *
-> + * Otherwise, the value is assumed to be an opaque identifier. Should
-> + * a pointer to a non "struct device_node" be required, another data
-> + * structure should be used to indirect it (an IDR for example).
+>   * Return:
+>   * Pointer to appropriate dma channel on success or an error pointer.
 >   */
+>  struct dma_chan *acpi_dma_request_slave_chan_by_name(struct device *dev,
+>  		const char *name)
+>  {
+> -	size_t index;
+> -
+> -	if (!strcmp(name, "tx"))
+> -		index = 0;
+> -	else if (!strcmp(name, "rx"))
+> -		index = 1;
+> -	else
+> -		return ERR_PTR(-ENODEV);
+> +	int index;
+> +
+> +	index = device_property_match_string(dev, "dma-names", name);
+> +	if (index < 0) {
+> +		if (!strcmp(name, "tx"))
+> +			index = 0;
+> +		else if (!strcmp(name, "rx"))
+> +			index = 1;
+> +		else
+> +			return ERR_PTR(-ENODEV);
+> +	}
 >  
->  #ifndef _LINUX_IRQDOMAIN_H
-> @@ -108,8 +106,8 @@ struct irq_domain_chip_generic;
->   * @flags: host per irq_domain flags
->   *
->   * Optional elements
-> - * @of_node: Pointer to device tree nodes associated with the irq_domain. Used
-> - *           when decoding device tree interrupt specifiers.
-> + * @domain_token: optional firmware-specific identifier for
-> + *                the interrupt controller
->   * @gc: Pointer to a list of generic chips. There is a helper function for
->   *      setting up one or more generic chips for interrupt controllers
->   *      drivers using the generic chip library which uses this pointer.
-> @@ -130,7 +128,7 @@ struct irq_domain {
->  	unsigned int flags;
->  
->  	/* Optional data */
-> -	struct device_node *of_node;
-> +	void *domain_token;
-
-I'm wondering if that may be something which isn't (void *), but a specific
-pointer type, so the compiler warns us when something suspicious is assigned
-to it?
-
-[Somewhat along the lines struct fwnode_handle is used elsewehere.]
-
->  	enum irq_domain_bus_token bus_token;
->  	struct irq_domain_chip_generic *gc;
->  #ifdef	CONFIG_IRQ_DOMAIN_HIERARCHY
-> @@ -161,70 +159,73 @@ enum {
+> +	dev_dbg(dev, "found DMA channel \"%s\" at index %d\n", name, index);
+>  	return acpi_dma_request_slave_chan_by_index(dev, index);
+>  }
+>  EXPORT_SYMBOL_GPL(acpi_dma_request_slave_chan_by_name);
+> 
 
 Thanks,
 Rafael
