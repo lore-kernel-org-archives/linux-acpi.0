@@ -1,73 +1,85 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: [PATCH v2 4/5] clocksource/acpi: Add probing infrastructure for ACPI-based clocksources
-Date: Sun, 13 Sep 2015 15:02:22 +0100
-Message-ID: <1442152943-24493-5-git-send-email-marc.zyngier@arm.com>
-References: <1442152943-24493-1-git-send-email-marc.zyngier@arm.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1442152943-24493-1-git-send-email-marc.zyngier@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>
-Cc: linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH] ACPI: change acpi_sleep_proc_init() to return void.
+Date: Mon, 14 Sep 2015 03:32:36 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E8832D1FF55@SHSMSX101.ccr.corp.intel.com>
+References: <1441982962-7299-1-git-send-email-ramirose@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:34397 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752890AbbINDde convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 13 Sep 2015 23:33:34 -0400
+In-Reply-To: <1441982962-7299-1-git-send-email-ramirose@gmail.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Rami Rosen <ramirose@gmail.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-DT enjoys a rather nice probing infrastructure for clocksources,
-while ACPI is so far stuck into a very distant past.
+Hi,
 
-This patch introduces a declarative API, allowing clocksources
-to be self-contained and be called when parsing the GTDT table.
+> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-owner@vger.kernel.org] On Behalf Of Rami Rosen
+> Sent: Friday, September 11, 2015 10:49 PM
+> 
+> This patch changes the type of the return value of the acpi_sleep_proc_init()
+> method to be void, as this method never fails and its return value is never
+> used.
+> 
+> Signed-off-by: Rami Rosen <ramirose@gmail.com>
+> ---
+>  drivers/acpi/internal.h | 4 ++--
+>  drivers/acpi/proc.c     | 4 +---
+>  2 files changed, 3 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+> index 9e42621..685bcb6 100644
+> --- a/drivers/acpi/internal.h
+> +++ b/drivers/acpi/internal.h
+> @@ -179,13 +179,13 @@ static inline int acpi_sleep_init(void) { return -ENXIO; }
+>  #endif
+> 
+>  #ifdef CONFIG_ACPI_SLEEP
+> -int acpi_sleep_proc_init(void);
+> +void acpi_sleep_proc_init(void);
+>  int suspend_nvs_alloc(void);
+>  void suspend_nvs_free(void);
+>  int suspend_nvs_save(void);
+>  void suspend_nvs_restore(void);
+>  #else
+> -static inline int acpi_sleep_proc_init(void) { return 0; }
+> +static inline void acpi_sleep_proc_init(void) { return 0; }
 
-Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
----
- drivers/clocksource/clksrc-of.c   | 4 ++++
- include/asm-generic/vmlinux.lds.h | 1 +
- include/linux/clocksource.h       | 3 +++
- 3 files changed, 8 insertions(+)
+Has this line been tested?
 
-diff --git a/drivers/clocksource/clksrc-of.c b/drivers/clocksource/clksrc-of.c
-index 0093a8e..a2105bd 100644
---- a/drivers/clocksource/clksrc-of.c
-+++ b/drivers/clocksource/clksrc-of.c
-@@ -14,6 +14,7 @@
-  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  */
- 
-+#include <linux/acpi.h>
- #include <linux/init.h>
- #include <linux/of.h>
- #include <linux/clocksource.h>
-@@ -38,6 +39,9 @@ void __init clocksource_of_init(void)
- 		init_func(np);
- 		clocksources++;
- 	}
-+
-+	clocksources += acpi_probe_device_table(clksrc);
-+
- 	if (!clocksources)
- 		pr_crit("%s: no matching clocksources found\n", __func__);
- }
-diff --git a/include/asm-generic/vmlinux.lds.h b/include/asm-generic/vmlinux.lds.h
-index cd836cd..c4bd0e2 100644
---- a/include/asm-generic/vmlinux.lds.h
-+++ b/include/asm-generic/vmlinux.lds.h
-@@ -525,6 +525,7 @@
- 	KERNEL_DTB()							\
- 	IRQCHIP_OF_MATCH_TABLE()					\
- 	ACPI_PROBE_TABLE(irqchip)					\
-+	ACPI_PROBE_TABLE(clksrc)					\
- 	EARLYCON_TABLE()						\
- 	EARLYCON_OF_TABLES()
- 
-diff --git a/include/linux/clocksource.h b/include/linux/clocksource.h
-index 278dd27..4bd7fe6 100644
---- a/include/linux/clocksource.h
-+++ b/include/linux/clocksource.h
-@@ -258,4 +258,7 @@ void acpi_generic_timer_init(void);
- static inline void acpi_generic_timer_init(void) { }
- #endif
- 
-+#define CLOCKSOURCE_ACPI_DECLARE(name, table_id, fn)		\
-+	ACPI_DECLARE(clksrc, name, table_id, 0, NULL, 0, fn)
-+
- #endif /* _LINUX_CLOCKSOURCE_H */
--- 
-2.1.4
+Thanks
+-Lv
+
+>  static inline int suspend_nvs_alloc(void) { return 0; }
+>  static inline void suspend_nvs_free(void) {}
+>  static inline int suspend_nvs_save(void) { return 0; }
+> diff --git a/drivers/acpi/proc.c b/drivers/acpi/proc.c
+> index 75c28ea..2a35815 100644
+> --- a/drivers/acpi/proc.c
+> +++ b/drivers/acpi/proc.c
+> @@ -144,11 +144,9 @@ static const struct file_operations acpi_system_wakeup_device_fops = {
+>  	.release = single_release,
+>  };
+> 
+> -int __init acpi_sleep_proc_init(void)
+> +void __init acpi_sleep_proc_init(void)
+>  {
+>  	/* 'wakeup device' [R/W] */
+>  	proc_create("wakeup", S_IFREG | S_IRUGO | S_IWUSR,
+>  		    acpi_root_dir, &acpi_system_wakeup_device_fops);
+> -
+> -	return 0;
+>  }
+> --
+> 2.4.3
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
