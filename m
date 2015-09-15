@@ -1,29 +1,77 @@
-From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Subject: Re: [PATCH v3 2/8] genirq: irqdomain: Remove irqdomain dependency on
- struct device_node
-Date: Tue, 15 Sep 2015 14:08:54 +0200
-Message-ID: <55F80A56.70107@linaro.org>
-References: <1442249047-21182-1-git-send-email-marc.zyngier@arm.com>
- <1442249047-21182-3-git-send-email-marc.zyngier@arm.com>
- <55F7F9E2.3070105@linaro.org> <alpine.DEB.2.11.1509151401340.3971@nanos>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: [PATCH v3 2/8] genirq: irqdomain: Remove irqdomain dependency
+ on struct device_node
+Date: Tue, 15 Sep 2015 13:22:22 +0100
+Message-ID: <55F80D7E.9090208@arm.com>
+References: <1442249047-21182-1-git-send-email-marc.zyngier@arm.com> <1442249047-21182-3-git-send-email-marc.zyngier@arm.com> <55F7F9E2.3070105@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.11.1509151401340.3971@nanos>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Marc Zyngier <marc.zyngier@arm.com>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Graeme Gregory <graeme@xora.org.uk>, Jake Oshins <jakeo@microsoft.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:50346 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751477AbbIOMW1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 15 Sep 2015 08:22:27 -0400
+In-Reply-To: <55F7F9E2.3070105@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tomasz Nowicki <tomasz.nowicki@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Graeme Gregory <graeme@xora.org.uk>, Jake Oshins <jakeo@microsoft.com>
 
-On 15.09.2015 14:04, Thomas Gleixner wrote:
-> On Tue, 15 Sep 2015, Tomasz Nowicki wrote:
->
-> Can you folks please do proper quoting on reply? It's annoying to
-> scroll down 250+ lines to find TWO lines of reply and then have
-> another 250+ lines for nothing.
->
+On 15/09/15 11:58, Tomasz Nowicki wrote:
+> On 14.09.2015 18:44, Marc Zyngier wrote:
+>> struct device_node is very much DT specific, and the original authors
+>> of the irqdomain subsystem recognized that tie, and went as far as
+>> mentionning that this could be replaced by some "void *token",
+>> should another firmware infrastructure be using it.
+>>
+>> As we move ACPI on arm64 towards this model too, it makes a lot of sense
+>> to perform that particular move.
+>>
+>> We replace "struct device_node *of_node" with "void *domain_token", which
+>> is a benign enough transformation. A non DT user of irqdomain can now
+>> identify its domains using this pointer.
+>>
+>> Also, in order to prevent the introduction of sideband type information,
+>> only DT is allowed to store a valid kernel pointer in domain_token
+>> (a pointer that passes the virt_addr_valid() test will be considered
+>> as a valid device_node).
+>>
+>> non-DT users that wish to store valid pointers in domain_token are
+>> required to use another structure such as an IDR.
+>>
+>> Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
+>> ---
+>>   include/linux/irqdomain.h | 68 +++++++++++++++++++-----------------
+>>   kernel/irq/irqdomain.c    | 89 ++++++++++++++++++++++++++++++++++-------------
+>>   2 files changed, 101 insertions(+), 56 deletions(-)
+>>
 
-Yeah, good point! Sorry.
+[...]
 
-Tomasz
+>> -struct irq_domain *__irq_domain_add(struct device_node *of_node, int size,
+>> +struct irq_domain *__irq_domain_add(void *domain_token, int size,
+>>   				    irq_hw_number_t hwirq_max, int direct_max,
+>>   				    const struct irq_domain_ops *ops,
+>>   				    void *host_data)
+>>   {
+>> +	struct device_node *of_node;
+>>   	struct irq_domain *domain;
+>>
+>> +	of_node = irq_domain_token_to_of_node(domain_token);
+>>   	domain = kzalloc_node(sizeof(*domain) + (sizeof(unsigned int) * size),
+>>   			      GFP_KERNEL, of_node_to_nid(of_node));
+> 
+> While we are here, do you think it makes sense to abstract 
+> of_node_to_nid as well? Then we would really remove device_node 
+> dependency for irqdomain.
+
+Not quite sure yet. I've decided to completely ignore the whole NUMA
+thing for the time being. This is a performance issue, not a
+functionality problem.
+
+Once we have something that actually makes sense, we can have a look.
+
+	M.
+-- 
+Jazz is not dead. It just smells funny...
