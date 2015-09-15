@@ -1,56 +1,53 @@
-From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Subject: Re: [PATCH v4 21/22] driver core: Start processing deferred probes earlier
-Date: Tue, 15 Sep 2015 15:16:12 +0200
-Message-ID: <CAAObsKCOZ3TkQB6oKt+UmBSvUoM-kXT0Rs=FaFKs8bY76065LA@mail.gmail.com>
-References: <1441628627-5143-1-git-send-email-tomeu.vizoso@collabora.com>
- <1441628627-5143-22-git-send-email-tomeu.vizoso@collabora.com> <20150911122423.GS12027@sirena.org.uk>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [PATCH] ACPI: tables: simplify acpi_parse_entries
+Date: Tue, 15 Sep 2015 14:35:32 +0100
+Message-ID: <55F81EA4.7000400@arm.com>
+References: <1442243686-15845-1-git-send-email-sudeep.holla@arm.com>
+ <1725643.HXZjLoU2vc@vostro.rjw.lan> <55F7E583.2070207@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150911122423.GS12027@sirena.org.uk>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Thierry Reding <thierry.reding@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:50667 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751694AbbIONfh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 15 Sep 2015 09:35:37 -0400
+In-Reply-To: <55F7E583.2070207@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Sudeep Holla <Sudeep.Holla@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>
 
-On 11 September 2015 at 14:24, Mark Brown <broonie@kernel.org> wrote:
-> On Mon, Sep 07, 2015 at 02:23:46PM +0200, Tomeu Vizoso wrote:
->> Some initcalls in the late level assume that some devices will have
->> already probed without explicitly checking for that.
->>
->> After the recent move to defer most device probes when they are
->> registered, pressure increased in the late initcall level.
->>
->> By starting the processing of the deferred queue in device_initcall_sync
->> we increase the chances that the initcalls mentioned before will find
->> the devices they depend on to have already probed.
+
+
+On 15/09/15 10:31, Sudeep Holla wrote:
 >
-> Which cases do we have that are outside the driver model and thus
-> affected by this?  USB gadgets are one case I'm aware of, and cpufreq is
-> still problematic.  I'm wondering if it might be tractable to address
-> the actual problems with the remaining reliance on init ordering here.
+>
+> On 15/09/15 00:41, Rafael J. Wysocki wrote:
+>> On Monday, September 14, 2015 04:14:46 PM Sudeep Holla wrote:
+>>> acpi_parse_entries passes the table end pointer to the sub-table entry
+>>> handler. acpi_parse_entries itself could validate the end of an entry
+>>> against the table end using the length in the sub-table entry.
+>>>
+>>> This patch adds the validation of the sub-table entry end using the
+>>> length field.This will help to eliminate the need to pass the table end
+>>> to the handlers.
+>>>
+>>> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+>>> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+>>
 
-Actually, I don't know of any specific case that needs this commit.
-The present series without this patch passes on all the boards in
-kernelci, but Grygorii Strashko argued for it during the review of the
-earlier version of this series:
-http://lkml.kernel.org/g/55CE3D04.8000607@ti.com
+[...]
 
-IMO it would be better to not apply this patch until the need arises,
-and even then, it may be better to make the dependencies explicit
-instead of relying on implicit ordering and messing with the link
-order.
+> I will respin the patch as per your suggestion but needs to go only
+> after Al's MADT patches.
+>
 
-> I'm also wondering if we might end up running into situations where this
-> makes the problem with havinng to defer probes more of an issue on some
-> systems - since we start trying earlier while we are still doing our
-> first pass initialisation we could end up deferring some device then
-> retrying it a bunch of times while going through the earlier phases of
-> init as we continue to register more devices.
+Alternately we can retain passing table_end to the handlers for now.
 
-With the rest of the series this shouldn't happen as all/most deferred
-probes should be avoided.
+Once Al's MADT series removes those BAD_GIC_ENTRY macros, there will be
+no users of that second argument in subtable handlers and it can be
+completely removed. Let me know your thoughts.
 
 Regards,
-
-Tomeu
+Sudeep
