@@ -1,127 +1,77 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH 2/2] acpi-dma: Add support for "dma-names" device
- property
-Date: Tue, 15 Sep 2015 09:46:01 +0300
-Message-ID: <1442299561.8361.26.camel@linux.intel.com>
-References: <1442241456-75340-1-git-send-email-mika.westerberg@linux.intel.com>
-	 <1442241456-75340-2-git-send-email-mika.westerberg@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+From: Viresh Kumar <viresh.kumar@linaro.org>
+Subject: [PATCH V3 1/2] ACPI / EC: Fix broken big-endian 64bit platforms using 'global_lock'
+Date: Tue, 15 Sep 2015 14:04:58 +0530
+Message-ID: <9b705747a138c96c26faee5218f7b47403195b28.1442305897.git.viresh.kumar@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:45260 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751389AbbIOGsN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 15 Sep 2015 02:48:13 -0400
-In-Reply-To: <1442241456-75340-2-git-send-email-mika.westerberg@linux.intel.com>
+Received: from mail-pa0-f43.google.com ([209.85.220.43]:36578 "EHLO
+	mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751330AbbIOIfH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Sep 2015 04:35:07 -0400
+Received: by padhk3 with SMTP id hk3so170252653pad.3
+        for <linux-acpi@vger.kernel.org>; Tue, 15 Sep 2015 01:35:07 -0700 (PDT)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Vinod Koul <vinod.koul@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Dan Williams <dan.j.williams@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: gregkh@linuxfoundation.org
+Cc: linaro-kernel@lists.linaro.org, Rafael Wysocki <rjw@rjwysocki.net>, sboyd@codeaurora.org, arnd@arndb.de, Viresh Kumar <viresh.kumar@linaro.org>, stable@vger.kernel.org, Len Brown <lenb@kernel.org>, "open list:ACPI" <linux-acpi@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
 
-On Mon, 2015-09-14 at 17:37 +0300, Mika Westerberg wrote:
-> The current implementation hard codes the two supported channels so 
-> that
-> "tx" is always 0 and "rx" is always 1. This is because there has been 
-> no
-> suitable way in ACPI to name resources.
-> 
-> With _DSD device properties we can finally do this:
-> 
-> 	Device (SPI1) {
-> 	    Name (_CRS, ResourceTemplate () {
-> 	        ...
-> 	        FixedDMA (0x0000, 0x0000, Width32bit)
-> 	        FixedDMA (0x0001, 0x0001, Width32bit)
-> 	    })
-> 
-> 	    Name (_DSD, Package () {
-> 	        ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-> 	        Package () {
-> 	            Package () {"dma-names", Package () {"tx", 
-> "rx"}}
-> 	        },
-> 	    })
-> 	}
-> 
-> The names "tx" and "rx" now provide index of the FixedDMA resource in
-> question.
-> 
-> Modify acpi_dma_request_slave_chan_by_name() so that it looks for
-> "dma-names" property first and only then fall back using hardcoded 
-> indices.
-> 
-> The DT "dma-names" binding that we reuse for ACPI is documented in
-> Documentation/devicetree/bindings/dma/dma.txt.
-> 
+global_lock is defined as an unsigned long and accessing only its lower
+32 bits from sysfs is incorrect, as we need to consider other 32 bits
+for big endian 64 bit systems.
 
-For both
-Acked-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Fix that by making global_lock an u32 instead.
 
-> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> ---
->  drivers/dma/acpi-dma.c | 25 +++++++++++++++++--------
->  1 file changed, 17 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/dma/acpi-dma.c b/drivers/dma/acpi-dma.c
-> index 5a635646e05c..981a38fc4cb8 100644
-> --- a/drivers/dma/acpi-dma.c
-> +++ b/drivers/dma/acpi-dma.c
-> @@ -21,6 +21,7 @@
->  #include <linux/ioport.h>
->  #include <linux/acpi.h>
->  #include <linux/acpi_dma.h>
-> +#include <linux/property.h>
->  
->  static LIST_HEAD(acpi_dma_list);
->  static DEFINE_MUTEX(acpi_dma_lock);
-> @@ -413,21 +414,29 @@ 
-> EXPORT_SYMBOL_GPL(acpi_dma_request_slave_chan_by_index);
->   * translate the names "tx" and "rx" here based on the most common 
-> case where
->   * the first FixedDMA descriptor is TX and second is RX.
->   *
-> + * If the device has "dma-names" property the FixedDMA descriptor 
-> indices
-> + * are retrieved based on those. Otherwise the function falls back 
-> using
-> + * hardcoded indices.
-> + *
->   * Return:
->   * Pointer to appropriate dma channel on success or an error 
-> pointer.
->   */
->  struct dma_chan *acpi_dma_request_slave_chan_by_name(struct device 
-> *dev,
->  		const char *name)
->  {
-> -	size_t index;
-> -
-> -	if (!strcmp(name, "tx"))
-> -		index = 0;
-> -	else if (!strcmp(name, "rx"))
-> -		index = 1;
-> -	else
-> -		return ERR_PTR(-ENODEV);
-> +	int index;
-> +
-> +	index = device_property_match_string(dev, "dma-names", 
-> name);
-> +	if (index < 0) {
-> +		if (!strcmp(name, "tx"))
-> +			index = 0;
-> +		else if (!strcmp(name, "rx"))
-> +			index = 1;
-> +		else
-> +			return ERR_PTR(-ENODEV);
-> +	}
->  
-> +	dev_dbg(dev, "found DMA channel \"%s\" at index %d\n", name, 
-> index);
->  	return acpi_dma_request_slave_chan_by_index(dev, index);
->  }
->  EXPORT_SYMBOL_GPL(acpi_dma_request_slave_chan_by_name);
+Cc: <stable@vger.kernel.org>  # v4.1+
+Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
 
+---
+Its marked just for # v4.1+, because arm64 has the first 64 big-endian
+platform with ACPI. And ACPI support for that is mainlined recently
+only (Arnd Bergmann).
+
+Another thing worth noticing is that, global_lock is getting an unsigned
+long long value assigned to it in ec_parse_device() and this is what
+Arnd had to say about that:
+
+"I think that's fine, it does this because the _GLP variable in ACPI is
+defined as an u64. And that's what happens on 32-bit architectures
+anyway."
+
+This patch should go via GregKH, as the second patch has dependency on
+it.
+
+V2->V3:
+- Moved this out in a separate patch, so that it can be backported.
+---
+ drivers/acpi/ec_sys.c   | 2 +-
+ drivers/acpi/internal.h | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/ec_sys.c b/drivers/acpi/ec_sys.c
+index b4c216bab22b..bea8e425a8de 100644
+--- a/drivers/acpi/ec_sys.c
++++ b/drivers/acpi/ec_sys.c
+@@ -128,7 +128,7 @@ static int acpi_ec_add_debugfs(struct acpi_ec *ec, unsigned int ec_device_count)
+ 	if (!debugfs_create_x32("gpe", 0444, dev_dir, (u32 *)&first_ec->gpe))
+ 		goto error;
+ 	if (!debugfs_create_bool("use_global_lock", 0444, dev_dir,
+-				 (u32 *)&first_ec->global_lock))
++				 &first_ec->global_lock))
+ 		goto error;
+ 
+ 	if (write_support)
+diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+index 9e426210c2a8..9db196de003c 100644
+--- a/drivers/acpi/internal.h
++++ b/drivers/acpi/internal.h
+@@ -138,7 +138,7 @@ struct acpi_ec {
+ 	unsigned long gpe;
+ 	unsigned long command_addr;
+ 	unsigned long data_addr;
+-	unsigned long global_lock;
++	u32 global_lock;
+ 	unsigned long flags;
+ 	unsigned long reference_count;
+ 	struct mutex mutex;
 -- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+2.4.0
+
