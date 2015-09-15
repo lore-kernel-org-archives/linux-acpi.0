@@ -1,135 +1,67 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI: tables: simplify acpi_parse_entries
-Date: Tue, 15 Sep 2015 01:41 +0200
-Message-ID: <1725643.HXZjLoU2vc@vostro.rjw.lan>
-References: <1442243686-15845-1-git-send-email-sudeep.holla@arm.com>
+Subject: Re: [PATCH] acpi-dma: Use ACPI_COMPANION() instead of acpi_bus_get_device()
+Date: Tue, 15 Sep 2015 02:18:32 +0200
+Message-ID: <20340602.Zly2mnObfT@vostro.rjw.lan>
+References: <1441372350-11630-1-git-send-email-jarkko.nikula@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:58639 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:56096 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751619AbbINXNC (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Sep 2015 19:13:02 -0400
-In-Reply-To: <1442243686-15845-1-git-send-email-sudeep.holla@arm.com>
+	with SMTP id S1751617AbbINXug (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Sep 2015 19:50:36 -0400
+In-Reply-To: <1441372350-11630-1-git-send-email-jarkko.nikula@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sudeep Holla <sudeep.holla@arm.com>
-Cc: linux-acpi@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+To: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Cc: dmaengine@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, Vinod Koul <vinod.koul@intel.com>, linux-acpi@vger.kernel.org
 
-On Monday, September 14, 2015 04:14:46 PM Sudeep Holla wrote:
-> acpi_parse_entries passes the table end pointer to the sub-table entry
-> handler. acpi_parse_entries itself could validate the end of an entry
-> against the table end using the length in the sub-table entry.
+On Friday, September 04, 2015 04:12:30 PM Jarkko Nikula wrote:
+> Get pointer to the struct acpi_device by using ACPI_COMPANION() macro. This
+> is more efficient than using ACPI_HANDLE() and acpi_bus_get_device().
 > 
-> This patch adds the validation of the sub-table entry end using the
-> length field.This will help to eliminate the need to pass the table end
-> to the handlers.
-> 
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+> Signed-off-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
 
-Well, I'm not a big fan of (void *) arithmetics and the patch seems to be
-doing too much to me.
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
 > ---
->  drivers/acpi/tables.c | 34 +++++++++-------------------------
->  1 file changed, 9 insertions(+), 25 deletions(-)
+>  drivers/dma/acpi-dma.c | 11 +++++------
+>  1 file changed, 5 insertions(+), 6 deletions(-)
 > 
-> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-> index 17a6fa01a338..145d4f6a1c54 100644
-> --- a/drivers/acpi/tables.c
-> +++ b/drivers/acpi/tables.c
-> @@ -217,16 +217,13 @@ acpi_parse_entries(char *id, unsigned long table_size,
->  		int entry_id, unsigned int max_entries)
->  {
->  	struct acpi_subtable_header *entry;
-> +	void *entry_end, *table_end;
->  	int count = 0;
-> -	unsigned long table_end;
-
-I'd keep that as unsigned long and I'd add unsigned long entry_end here.
-
+> diff --git a/drivers/dma/acpi-dma.c b/drivers/dma/acpi-dma.c
+> index 5a635646e05c..04257432c482 100644
+> --- a/drivers/dma/acpi-dma.c
+> +++ b/drivers/dma/acpi-dma.c
+> @@ -160,10 +160,8 @@ int acpi_dma_controller_register(struct device *dev,
+>  		return -EINVAL;
 >  
->  	if (acpi_disabled)
->  		return -ENODEV;
->  
-> -	if (!id || !handler)
+>  	/* Check if the device was enumerated by ACPI */
+> -	if (!ACPI_HANDLE(dev))
 > -		return -EINVAL;
 > -
-> -	if (!table_size)
-> +	if (!id || !handler || !table_size)
+> -	if (acpi_bus_get_device(ACPI_HANDLE(dev), &adev))
+> +	adev = ACPI_COMPANION(dev);
+> +	if (!adev)
 >  		return -EINVAL;
-
-Please mention this cleanup bit in the changelog, as it is not related to
-the other changes.
-
 >  
->  	if (!table_header) {
-> @@ -234,34 +231,21 @@ acpi_parse_entries(char *id, unsigned long table_size,
->  		return -ENODEV;
->  	}
+>  	adma = kzalloc(sizeof(*adma), GFP_KERNEL);
+> @@ -358,10 +356,11 @@ struct dma_chan *acpi_dma_request_slave_chan_by_index(struct device *dev,
+>  	int found;
 >  
-> -	table_end = (unsigned long)table_header + table_header->length;
-> +	table_end = (void *)table_header + table_header->length;
+>  	/* Check if the device was enumerated by ACPI */
+> -	if (!dev || !ACPI_HANDLE(dev))
+> +	if (!dev)
+>  		return ERR_PTR(-ENODEV);
 >  
->  	/* Parse all entries looking for a match. */
-> +	entry = (void *)table_header + table_size;
-> +	entry_end = (void *)entry + entry->length;
+> -	if (acpi_bus_get_device(ACPI_HANDLE(dev), &adev))
+> +	adev = ACPI_COMPANION(dev);
+> +	if (!adev)
+>  		return ERR_PTR(-ENODEV);
 >  
-> -	entry = (struct acpi_subtable_header *)
-> -	    ((unsigned long)table_header + table_size);
-
-	entry_end = (unsigned long)table_header + table_size;
-	entry = (struct acpi_subtable_header *)entry_end;
-	entry_end += entry->length;
-
-> -
-> -	while (((unsigned long)entry) + sizeof(struct acpi_subtable_header) <
-> -	       table_end) {
-> +	while (entry->length && entry_end <= table_end) {
-
-We used to return -EINVAL for entry->length == 0 and now we don't.  Isn't that
-a problem?
-
->  		if (entry->type == entry_id
->  		    && (!max_entries || count < max_entries)) {
-> -			if (handler(entry, table_end))
-> +			if (handler(entry, (unsigned long)entry_end))
->  				return -EINVAL;
-> -
->  			count++;
->  		}
-> -
-> -		/*
-> -		 * If entry->length is 0, break from this loop to avoid
-> -		 * infinite loop.
-> -		 */
-> -		if (entry->length == 0) {
-> -			pr_err("[%4.4s:0x%02x] Invalid zero length\n", id, entry_id);
-> -			return -EINVAL;
-> -		}
-
-Perhaps just reorder this with the previous if () and write the loop as
-
-	while (entry_end <= table_end) {
-
-> -
-> -		entry = (struct acpi_subtable_header *)
-> -		    ((unsigned long)entry + entry->length);
-> +		entry = entry_end;
-> +		entry_end = (void *)entry + entry->length;
-
-And this can be
-
-		entry = (struct acpi_subtable_header *)entry_end;
-		entry_end += entry->length;
-
->  	}
->  
->  	if (max_entries && count > max_entries) {
+>  	memset(&pdata, 0, sizeof(pdata));
 > 
 
-Thanks,
-Rafael
-
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
