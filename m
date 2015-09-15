@@ -1,48 +1,127 @@
-From: Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
-Subject: Re: [PATCH V2] debugfs: don't assume sizeof(bool) to be 4 bytes
-Date: Tue, 15 Sep 2015 08:30:55 +0200
-Message-ID: <11729827.zzMdq0fFyE@wuerfel>
-References: <81516fb9c662cc338b5af5b63fbbcde5374e0893.1442202447.git.viresh.kumar@linaro.org>
-	<20150914160348.GA7290@kroah.com> <20150915020438.GG32551@linux>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH 2/2] acpi-dma: Add support for "dma-names" device
+ property
+Date: Tue, 15 Sep 2015 09:46:01 +0300
+Message-ID: <1442299561.8361.26.camel@linux.intel.com>
+References: <1442241456-75340-1-git-send-email-mika.westerberg@linux.intel.com>
+	 <1442241456-75340-2-git-send-email-mika.westerberg@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <20150915020438.GG32551@linux>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: Viresh Kumar <viresh.kumar-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Cc: "moderated list:SOUND - SOC LAYER / DYNAMIC AUDIO POWER MANAGEM..." <alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org>, Avri Altman <avri.altman-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Stanislaw Gruszka <sgruszka-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jiri Slaby <jirislaby-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "open list:DOCUMENTATION" <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Joerg Roedel <joro-RCxXqF11Dk4CgAX/W8SZqEqCLAeBNdoH@public.gmane.org>, Jaroslav Kysela <perex-/Fr2/VpizcU@public.gmane.org>, "open list:MEMORY MANAGEMENT" <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, Kalle Valo <kvalo-A+ZNKFmMK5xy9aJCnZT0Uw@public.gmane.org>, Emmanuel Grumbach <emmanuel.grumbach-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Luciano Coelho <luciano.coelho-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Richard Fitzgerald <rf-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Ingo Molnar <mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Hariprasad S <hariprasad-ut6Up61K2wZBDgjK7y7TUQ@public.gmane.org>, Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Davidlohr Bueso <dave-h16yJtLeMjHk1uMJSBkQmQ@public.gmane.org>, Eliad Peller <eli>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([134.134.136.65]:45260 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751389AbbIOGsN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 15 Sep 2015 02:48:13 -0400
+In-Reply-To: <1442241456-75340-2-git-send-email-mika.westerberg@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Vinod Koul <vinod.koul@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Dan Williams <dan.j.williams@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Tuesday 15 September 2015 07:34:38 Viresh Kumar wrote:
-> On 14-09-15, 09:03, Greg KH wrote:
-> > What ever ones you think it is relevant for :)
+On Mon, 2015-09-14 at 17:37 +0300, Mika Westerberg wrote:
+> The current implementation hard codes the two supported channels so 
+> that
+> "tx" is always 0 and "rx" is always 1. This is because there has been 
+> no
+> suitable way in ACPI to name resources.
 > 
-> "Relevant" is a relevant term :)
+> With _DSD device properties we can finally do this:
 > 
-> So, the patch which defined the type bool as _Bool was added in v2.6.19 :)
+> 	Device (SPI1) {
+> 	    Name (_CRS, ResourceTemplate () {
+> 	        ...
+> 	        FixedDMA (0x0000, 0x0000, Width32bit)
+> 	        FixedDMA (0x0001, 0x0001, Width32bit)
+> 	    })
 > 
-> 6e2182874324 ("[PATCH] Generic boolean")
+> 	    Name (_DSD, Package () {
+> 	        ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+> 	        Package () {
+> 	            Package () {"dma-names", Package () {"tx", 
+> "rx"}}
+> 	        },
+> 	    })
+> 	}
 > 
-> So, I will try at least for v3.10+ as they are used by a lot of
-> people, as they are LTS kernels. But wasn't sure if I should do it
-> right from 2.6.19.
+> The names "tx" and "rx" now provide index of the FixedDMA resource in
+> question.
+> 
+> Modify acpi_dma_request_slave_chan_by_name() so that it looks for
+> "dma-names" property first and only then fall back using hardcoded 
+> indices.
+> 
+> The DT "dma-names" binding that we reuse for ACPI is documented in
+> Documentation/devicetree/bindings/dma/dma.txt.
+> 
 
-I don't think there is any use in backporting the global type change,
-that is too invasive and does not change much. The specific bug
-in the acpi code dates back to when acpi_ec_add_debugfs() was
-added in 2.6.36, so that is the earliest point it could be backported
-to. Then again, as I said it is only a problem on big-endian 64-bit
-architectures, and on ACPI that would specifically mean arm64, which
-only very recently gained ACPI support, so backporting to 4.1 is probably
-enough.
+For both
+Acked-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-	Arnd
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> ---
+>  drivers/dma/acpi-dma.c | 25 +++++++++++++++++--------
+>  1 file changed, 17 insertions(+), 8 deletions(-)
+> 
+> diff --git a/drivers/dma/acpi-dma.c b/drivers/dma/acpi-dma.c
+> index 5a635646e05c..981a38fc4cb8 100644
+> --- a/drivers/dma/acpi-dma.c
+> +++ b/drivers/dma/acpi-dma.c
+> @@ -21,6 +21,7 @@
+>  #include <linux/ioport.h>
+>  #include <linux/acpi.h>
+>  #include <linux/acpi_dma.h>
+> +#include <linux/property.h>
+>  
+>  static LIST_HEAD(acpi_dma_list);
+>  static DEFINE_MUTEX(acpi_dma_lock);
+> @@ -413,21 +414,29 @@ 
+> EXPORT_SYMBOL_GPL(acpi_dma_request_slave_chan_by_index);
+>   * translate the names "tx" and "rx" here based on the most common 
+> case where
+>   * the first FixedDMA descriptor is TX and second is RX.
+>   *
+> + * If the device has "dma-names" property the FixedDMA descriptor 
+> indices
+> + * are retrieved based on those. Otherwise the function falls back 
+> using
+> + * hardcoded indices.
+> + *
+>   * Return:
+>   * Pointer to appropriate dma channel on success or an error 
+> pointer.
+>   */
+>  struct dma_chan *acpi_dma_request_slave_chan_by_name(struct device 
+> *dev,
+>  		const char *name)
+>  {
+> -	size_t index;
+> -
+> -	if (!strcmp(name, "tx"))
+> -		index = 0;
+> -	else if (!strcmp(name, "rx"))
+> -		index = 1;
+> -	else
+> -		return ERR_PTR(-ENODEV);
+> +	int index;
+> +
+> +	index = device_property_match_string(dev, "dma-names", 
+> name);
+> +	if (index < 0) {
+> +		if (!strcmp(name, "tx"))
+> +			index = 0;
+> +		else if (!strcmp(name, "rx"))
+> +			index = 1;
+> +		else
+> +			return ERR_PTR(-ENODEV);
+> +	}
+>  
+> +	dev_dbg(dev, "found DMA channel \"%s\" at index %d\n", name, 
+> index);
+>  	return acpi_dma_request_slave_chan_by_index(dev, index);
+>  }
+>  EXPORT_SYMBOL_GPL(acpi_dma_request_slave_chan_by_name);
+
+-- 
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
