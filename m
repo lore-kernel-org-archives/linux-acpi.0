@@ -1,163 +1,88 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH] ACPI: tables: simplify acpi_parse_entries
-Date: Tue, 15 Sep 2015 10:31:47 +0100
-Message-ID: <55F7E583.2070207@arm.com>
-References: <1442243686-15845-1-git-send-email-sudeep.holla@arm.com>
- <1725643.HXZjLoU2vc@vostro.rjw.lan>
+From: Johannes Berg <johannes-cdvu00un1VgdHxzADdlk8Q@public.gmane.org>
+Subject: Re: [PATCH V3 2/2] debugfs: don't assume sizeof(bool) to be 4 bytes
+Date: Tue, 15 Sep 2015 12:37:44 +0200
+Message-ID: <1442313464.1914.21.camel@sipsolutions.net>
+References: <9b705747a138c96c26faee5218f7b47403195b28.1442305897.git.viresh.kumar@linaro.org>
+	<27d37898b4be6b9b9f31b90135f8206ca079a868.1442305897.git.viresh.kumar@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:49595 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754951AbbIOJbw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 15 Sep 2015 05:31:52 -0400
-In-Reply-To: <1725643.HXZjLoU2vc@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <27d37898b4be6b9b9f31b90135f8206ca079a868.1442305897.git.viresh.kumar-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Viresh Kumar <viresh.kumar-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org" <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Cc: "open list:NETWORKING DRIVERS
+	(WIRELESS)" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "moderated list:SOUND - SOC LAYER /
+	DYNAMIC AUDIO POWER MANAGEM..." <alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org>, "Altman,
+	Avri" <avri.altman-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Stanislaw Gruszka <sgruszka-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>, Jiri Slaby <jirislaby-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "open list:DOCUMENTATION" <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Peter Zijlstra <peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>, Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, Sebastian Andrzej Siewior <bigeasy-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Jaroslav Kysela <perex-/Fr2/VpizcU@public.gmane.org>, "open list:MEMORY MANAGEMENT" <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, Kalle Valo <kvalo-A+ZNKFmMK5xy9aJCnZT0Uw@public.gmane.org>, "Grumbach,
+	Emmanuel" <emmanuel.grumbach-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, "Coelho,
+	Luciano" <luciano.coelho-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Wang Long <long.wanglong-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, Richard Fitzgerald <rf-yzvPICuk2AATkU/dhu1WVueM+bqZidxxQQ4Iyu8u01E@public.gmane.org>, Ingo Molnar <mingo-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, open list <linux-kern>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>
+
+Hi,
+
+This email has far too many people Cc'ed on it - I don't think vger is
+even accepting it for that reason. You should probably restrict it to
+just a few lists when you resubmit.
+
+> The problem with current code is that it reads/writes 4 bytes for a
+> boolean, which will read/update 3 excess bytes following the boolean
+> variable (when sizeof(bool) is 1 byte). And that can lead to hard to 
+> fix bugs. It was a nightmare cracking this one.
+
+Unless you're ignoring (or worse, casting away) type warnings, there's
+no problem/bug at all, you just have to define all the variables used
+with debugfs_create_bool() as actual u32 variables.
+
+It sounds like you are/were doing something like the following:
+
+bool a, b, c;
+...
+debugfs_create_bool("a", 0600, dir, (u32 *)&a);
+
+which is quite clearly invalid.
+
+Had you properly defined them as u32, as everyone (except for the ACPI
+case) does, there wouldn't have been any problem:
+
+u32 a, b, c;
+...
+debugfs_create_bool("a", 0600, dir, &a);
 
 
+As far as I can tell, there's no bug in the API. It might be a bit
+strange to have a set of functions called debugfs_create_<type> and
+then one of them doesn't actually use the type from the name, but
+that's only a problem if you blindly add casts or ignore the compiler
+warnings you'd get without casts.
 
-On 15/09/15 00:41, Rafael J. Wysocki wrote:
-> On Monday, September 14, 2015 04:14:46 PM Sudeep Holla wrote:
->> acpi_parse_entries passes the table end pointer to the sub-table entry
->> handler. acpi_parse_entries itself could validate the end of an entry
->> against the table end using the length in the sub-table entry.
->>
->> This patch adds the validation of the sub-table entry end using the
->> length field.This will help to eliminate the need to pass the table end
->> to the handlers.
->>
->> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
->> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
->
-> Well, I'm not a big fan of (void *) arithmetics and the patch seems to be
-> doing too much to me.
->
+In other words, I think your commit log is extremely misleading. The
+API perhaps has some inconsistent naming, but all this talk about the
+sizeof(bool) etc. is simply completely irrelevant since "bool" is not
+the type used here at all. There's nothing to fix in any of the code
+you're changing (again, apart from ACPI.)
 
-Agreed, I will try to remove(if not most likely reduce) it.
+That said, I don't actually object to this change itself, being able to
+actually use bool variables with debugfs_create_bool would be nice.
+However, that shouldn't be documented as a bugfix or anything like
+that, merely as a cleanup to make the API naming more consistent and to
+be able to use the (smaller and often more convenient) bool type.
 
->> ---
->>   drivers/acpi/tables.c | 34 +++++++++-------------------------
->>   1 file changed, 9 insertions(+), 25 deletions(-)
->>
->> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
->> index 17a6fa01a338..145d4f6a1c54 100644
->> --- a/drivers/acpi/tables.c
->> +++ b/drivers/acpi/tables.c
->> @@ -217,16 +217,13 @@ acpi_parse_entries(char *id, unsigned long table_size,
->>   		int entry_id, unsigned int max_entries)
->>   {
->>   	struct acpi_subtable_header *entry;
->> +	void *entry_end, *table_end;
->>   	int count = 0;
->> -	unsigned long table_end;
->
-> I'd keep that as unsigned long and I'd add unsigned long entry_end here.
->
+Clearly, it would also lead to less confusion, as we see in ACPI and
+hear from your OPP code. Note that ACPI is even more confused though
+since it uses "unsigned long", so it's entirely possible that somebody
+actually thought about that case and decided not to worry about 64-bit
+big-endian platforms.
 
-OK will change accordingly
+Of course this also means that only the ACPI patch is a candidate for s
+table.
 
->>
->>   	if (acpi_disabled)
->>   		return -ENODEV;
->>
->> -	if (!id || !handler)
->> -		return -EINVAL;
->> -
->> -	if (!table_size)
->> +	if (!id || !handler || !table_size)
->>   		return -EINVAL;
->
-> Please mention this cleanup bit in the changelog, as it is not related to
-> the other changes.
->
-
-Ah right, sorry for unnecessary change. Better I will remove it.
-
->>
->>   	if (!table_header) {
->> @@ -234,34 +231,21 @@ acpi_parse_entries(char *id, unsigned long table_size,
->>   		return -ENODEV;
->>   	}
->>
->> -	table_end = (unsigned long)table_header + table_header->length;
->> +	table_end = (void *)table_header + table_header->length;
->>
->>   	/* Parse all entries looking for a match. */
->> +	entry = (void *)table_header + table_size;
->> +	entry_end = (void *)entry + entry->length;
->>
->> -	entry = (struct acpi_subtable_header *)
->> -	    ((unsigned long)table_header + table_size);
->
-> 	entry_end = (unsigned long)table_header + table_size;
-> 	entry = (struct acpi_subtable_header *)entry_end;
-> 	entry_end += entry->length;
->
->> -
->> -	while (((unsigned long)entry) + sizeof(struct acpi_subtable_header) <
->> -	       table_end) {
->> +	while (entry->length && entry_end <= table_end) {
->
-> We used to return -EINVAL for entry->length == 0 and now we don't.  Isn't that
-> a problem?
->
-
-I thought the main reason was to break the infinite loop, will retain
-that as you suggested.
-
->>   		if (entry->type == entry_id
->>   		    && (!max_entries || count < max_entries)) {
->> -			if (handler(entry, table_end))
->> +			if (handler(entry, (unsigned long)entry_end))
->>   				return -EINVAL;
->> -
->>   			count++;
->>   		}
->> -
->> -		/*
->> -		 * If entry->length is 0, break from this loop to avoid
->> -		 * infinite loop.
->> -		 */
->> -		if (entry->length == 0) {
->> -			pr_err("[%4.4s:0x%02x] Invalid zero length\n", id, entry_id);
->> -			return -EINVAL;
->> -		}
->
-> Perhaps just reorder this with the previous if () and write the loop as
->
-
-Make sense.
-
-> 	while (entry_end <= table_end) {
->
->> -
->> -		entry = (struct acpi_subtable_header *)
->> -		    ((unsigned long)entry + entry->length);
->> +		entry = entry_end;
->> +		entry_end = (void *)entry + entry->length;
->
-> And this can be
->
-> 		entry = (struct acpi_subtable_header *)entry_end;
-> 		entry_end += entry->length;
->
-
-OK
-
-Anyways I realized that I tested this on top of Al's MADT cleanup
-series. I think this might break BAD_MADT_ENTRY macro which expects to
-get table_end rather than entry_end(though latter is correct)
-
-I am not sure if that's the case with APIC, but for MADT and
-BAD_MADT_GICC_ENTRY, entry + sizeof(*entry) > entry_end can be true(as
-the specification is broken and Al is trying to solve)
-
-I will respin the patch as per your suggestion but needs to go only
-after Al's MADT patches.
-
-Regards,
-Sudeep
+johannes
