@@ -1,103 +1,75 @@
 From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: [PATCH v2 3/5] ACPI / processor_idle: replace PREFIX with pr_fmt
-Date: Wed, 16 Sep 2015 14:59:21 +0100
-Message-ID: <1442411963-14398-4-git-send-email-sudeep.holla@arm.com>
+Subject: [PATCH v2 1/5] ACPI / processor : add support for ACPI0010 processor container
+Date: Wed, 16 Sep 2015 14:59:19 +0100
+Message-ID: <1442411963-14398-2-git-send-email-sudeep.holla@arm.com>
 References: <1438710406-3822-1-git-send-email-sudeep.holla@arm.com>
  <1442411963-14398-1-git-send-email-sudeep.holla@arm.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-ia64-owner@vger.kernel.org>
 In-Reply-To: <1442411963-14398-1-git-send-email-sudeep.holla@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-ia64-owner@vger.kernel.org
 To: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: Sudeep Holla <sudeep.holla@arm.com>, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, x86@kernel.org, Al Stone <al.stone@linaro.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Mahesh Sivasubramanian <msivasub@codeaurora.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Like few of the other ACPI modules, replace PREFIX with pr_fmt and
-change all the printk call sites to use pr_* companion functions
-in processor_idle.
+ACPI 6.0 adds support for optional processor container device which may
+contain child objects that are either processor devices or other processor
+containers. This allows representing hierarchical processor topologies.
+
+It is declared using the _HID of ACPI0010. It is an abstract container
+used to represent CPU topology and should not be used to hotplug
+purposes.
+
+This patch enables the support for these ACPI processor containers and
+ensures the generic container/module devices are not created for them.
 
 Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
 ---
- drivers/acpi/processor_idle.c | 25 +++++++++++--------------
- 1 file changed, 11 insertions(+), 14 deletions(-)
+ drivers/acpi/acpi_processor.c | 17 +++++++++++++++++
+ include/acpi/processor.h      |  1 +
+ 2 files changed, 18 insertions(+)
 
-diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-index a24067b850d2..fadce354d2b7 100644
---- a/drivers/acpi/processor_idle.c
-+++ b/drivers/acpi/processor_idle.c
-@@ -23,6 +23,7 @@
-  *
-  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  */
-+#define pr_fmt(fmt) "ACPI: " fmt
+diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
+index 985b8a83184e..6df6c0270cb1 100644
+--- a/drivers/acpi/acpi_processor.c
++++ b/drivers/acpi/acpi_processor.c
+@@ -496,7 +496,24 @@ static struct acpi_scan_handler processor_handler = {
+ 	},
+ };
  
- #include <linux/module.h>
- #include <linux/acpi.h>
-@@ -42,8 +43,6 @@
- #include <asm/apic.h>
- #endif
++static int acpi_processor_container_attach(struct acpi_device *dev,
++					   const struct acpi_device_id *id)
++{
++	return 1;
++}
++
++static const struct acpi_device_id processor_container_ids[] = {
++	{ ACPI_PROCESSOR_CONTAINER_HID, },
++	{ }
++};
++
++static struct acpi_scan_handler processor_container_handler = {
++	.ids = processor_container_ids,
++	.attach = acpi_processor_container_attach,
++};
++
+ void __init acpi_processor_init(void)
+ {
+ 	acpi_scan_add_handler_with_hotplug(&processor_handler, "processor");
++	acpi_scan_add_handler(&processor_container_handler);
+ }
+diff --git a/include/acpi/processor.h b/include/acpi/processor.h
+index ff5f135f16b1..51b61dcdbd9c 100644
+--- a/include/acpi/processor.h
++++ b/include/acpi/processor.h
+@@ -9,6 +9,7 @@
+ #define ACPI_PROCESSOR_CLASS		"processor"
+ #define ACPI_PROCESSOR_DEVICE_NAME	"Processor"
+ #define ACPI_PROCESSOR_DEVICE_HID	"ACPI0007"
++#define ACPI_PROCESSOR_CONTAINER_HID	"ACPI0010"
  
--#define PREFIX "ACPI: "
--
- #define ACPI_PROCESSOR_CLASS            "processor"
- #define _COMPONENT              ACPI_PROCESSOR_COMPONENT
- ACPI_MODULE_NAME("processor_idle");
-@@ -80,9 +79,9 @@ static int set_max_cstate(const struct dmi_system_id *id)
- 	if (max_cstate > ACPI_PROCESSOR_MAX_POWER)
- 		return 0;
+ #define ACPI_PROCESSOR_BUSY_METRIC	10
  
--	printk(KERN_NOTICE PREFIX "%s detected - limiting to C%ld max_cstate."
--	       " Override with \"processor.max_cstate=%d\"\n", id->ident,
--	       (long)id->driver_data, ACPI_PROCESSOR_MAX_POWER + 1);
-+	pr_notice("%s detected - limiting to C%ld max_cstate."
-+		  " Override with \"processor.max_cstate=%d\"\n", id->ident,
-+		  (long)id->driver_data, ACPI_PROCESSOR_MAX_POWER + 1);
- 
- 	max_cstate = (long)id->driver_data;
- 
-@@ -314,7 +313,7 @@ static int acpi_processor_get_power_info_cst(struct acpi_processor *pr)
- 
- 	/* There must be at least 2 elements */
- 	if (!cst || (cst->type != ACPI_TYPE_PACKAGE) || cst->package.count < 2) {
--		printk(KERN_ERR PREFIX "not enough elements in _CST\n");
-+		pr_err("not enough elements in _CST\n");
- 		ret = -EFAULT;
- 		goto end;
- 	}
-@@ -323,7 +322,7 @@ static int acpi_processor_get_power_info_cst(struct acpi_processor *pr)
- 
- 	/* Validate number of power states. */
- 	if (count < 1 || count != cst->package.count - 1) {
--		printk(KERN_ERR PREFIX "count given by _CST is not valid\n");
-+		pr_err("count given by _CST is not valid\n");
- 		ret = -EFAULT;
- 		goto end;
- 	}
-@@ -432,11 +431,9 @@ static int acpi_processor_get_power_info_cst(struct acpi_processor *pr)
- 		 * (From 1 through ACPI_PROCESSOR_MAX_POWER - 1)
- 		 */
- 		if (current_count >= (ACPI_PROCESSOR_MAX_POWER - 1)) {
--			printk(KERN_WARNING
--			       "Limiting number of power states to max (%d)\n",
--			       ACPI_PROCESSOR_MAX_POWER);
--			printk(KERN_WARNING
--			       "Please increase ACPI_PROCESSOR_MAX_POWER if needed.\n");
-+			pr_warn("Limiting number of power states to max (%d)\n",
-+				ACPI_PROCESSOR_MAX_POWER);
-+			pr_warn("Please increase ACPI_PROCESSOR_MAX_POWER if needed.\n");
- 			break;
- 		}
- 	}
-@@ -1060,8 +1057,8 @@ int acpi_processor_power_init(struct acpi_processor *pr)
- 			retval = cpuidle_register_driver(&acpi_idle_driver);
- 			if (retval)
- 				return retval;
--			printk(KERN_DEBUG "ACPI: %s registered with cpuidle\n",
--					acpi_idle_driver.name);
-+			pr_debug("%s registered with cpuidle\n",
-+				 acpi_idle_driver.name);
- 		}
- 
- 		dev = kzalloc(sizeof(*dev), GFP_KERNEL);
 -- 
 1.9.1
+
