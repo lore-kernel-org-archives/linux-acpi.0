@@ -1,50 +1,94 @@
-From: Al Stone <ahs3@redhat.com>
-Subject: Re: [PATCH v3 0/5] ACPI: Provide better MADT subtable sanity checks
-Date: Wed, 16 Sep 2015 10:27:57 -0600
-Message-ID: <55F9988D.5080002@redhat.com>
-References: <1441832991-28200-1-git-send-email-al.stone@linaro.org>
- <55F889E8.3070706@redhat.com> <1880799.vMhNVMG5Vc@vostro.rjw.lan>
- <55F997C1.20606@linaro.org>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: [PATCH v2 3/5] irqchip/gic: Convert the GIC driver to ACPI probing
+Date: Wed, 16 Sep 2015 18:28:39 +0100
+Message-ID: <55F9A6C7.6000007@arm.com>
+References: <1442152943-24493-1-git-send-email-marc.zyngier@arm.com> <1442152943-24493-4-git-send-email-marc.zyngier@arm.com> <55F98525.7030900@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <55F997C1.20606@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Al Stone <al.stone@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-pm@vger.kernel.org, linaro-acpi@lists.linaro.org, linaro-kernel@lists.linaro.org, patches@linaro.org, "lenb@kernel.org" <lenb@kernel.org>, "tony.luck@intel.com" <tony.luck@intel.com>, "fenghua.yu@intel.com" <fenghua.yu@intel.com>, Pavel Machek <pavel@ucw.cz>, "tglx@linutronix.de" <tglx@linutronix.de>, mingo@redhat.com, "H. Peter Anvin" <hpa@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:37874 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752299AbbIPR2n (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 16 Sep 2015 13:28:43 -0400
+In-Reply-To: <55F98525.7030900@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tomasz Nowicki <tn@semihalf.com>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>
+Cc: linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 09/16/2015 10:24 AM, Al Stone wrote:
-> On 09/15/2015 08:44 PM, Rafael J. Wysocki wrote:
->> On Tuesday, September 15, 2015 03:13:12 PM Al Stone wrote:
->>> On 09/09/2015 03:09 PM, Al Stone wrote:
->>>> Currently, the BAD_MADT_ENTRY macro is used to do a very simple sanity
->>>> check on the various subtables that are defined for the MADT.  The check
->>>> compares the size of the subtable data structure as defined by ACPICA to
->>>> the length entry in the subtable.  If they are not the same, the assumption
->>>> is that the subtable is incorrect.
->>>>
-
-[snip...]
-
->> I'm going to apply this series if people have no problems with it.  I do think
->> it is slightly overkill, but then as long as it works ...
+On 16/09/15 16:05, Hanjun Guo wrote:
+> Hi Marc,
+> 
+> On 09/13/2015 10:02 PM, Marc Zyngier wrote:
+> [...]
+>> diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
+>> index e6b7ed5..8a0b9c3 100644
+>> --- a/drivers/irqchip/irq-gic.c
+>> +++ b/drivers/irqchip/irq-gic.c
+>> @@ -41,7 +41,6 @@
+>>   #include <linux/irqchip.h>
+>>   #include <linux/irqchip/chained_irq.h>
+>>   #include <linux/irqchip/arm-gic.h>
+>> -#include <linux/irqchip/arm-gic-acpi.h>
 >>
->> Thanks,
->> Rafael
+>>   #include <asm/cputype.h>
+>>   #include <asm/irq.h>
+>> @@ -1177,7 +1176,7 @@ IRQCHIP_DECLARE(msm_qgic2, "qcom,msm-qgic2", gic_of_init);
+>>   #endif
 >>
+>>   #ifdef CONFIG_ACPI
+>> -static phys_addr_t dist_phy_base, cpu_phy_base __initdata;
+>> +static phys_addr_t cpu_phy_base __initdata;
+>>
+>>   static int __init
+>>   gic_acpi_parse_madt_cpu(struct acpi_subtable_header *header,
+>> @@ -1205,60 +1204,56 @@ gic_acpi_parse_madt_cpu(struct acpi_subtable_header *header,
+>>   	return 0;
+>>   }
+>>
+>> -static int __init
+>> -gic_acpi_parse_madt_distributor(struct acpi_subtable_header *header,
+>> -				const unsigned long end)
+>> +/* The things you have to do to just *count* something... */
+>> +static int __init acpi_dummy_func(struct acpi_subtable_header *header,
+>> +				  const unsigned long end)
+>>   {
+>> -	struct acpi_madt_generic_distributor *dist;
+>> +	return 0;
+>> +}
+>>
+>> -	dist = (struct acpi_madt_generic_distributor *)header;
+>> +static bool __init acpi_gic_redist_is_present(void)
+>> +{
+>> +	return acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_REDISTRIBUTOR,
+>> +				     acpi_dummy_func, 0) > 0;
+>> +}
+>>
+>> -	if (BAD_MADT_ENTRY(dist, end))
+>> -		return -EINVAL;
+>> +static bool __init gic_validate_dist(struct acpi_subtable_header *header,
+>> +				     struct acpi_probe_entry *ape)
+>> +{
+>> +	struct acpi_madt_generic_distributor *dist;
+>> +	dist = (struct acpi_madt_generic_distributor *)header;
+>>
+>> -	dist_phy_base = dist->base_address;
+>> -	return 0;
+>> +	return (dist->version == ape->driver_data &&
+>> +		(dist->version != ACPI_MADT_GIC_VERSION_NONE ||
+>> +		 !acpi_gic_redist_is_present()));
+>>
+> 
+> When I was rebasing the GICv3 patches on top of yours, I noticed
+> that GICv3 will also needs to check the acpi_gic_redist_is_present(),
+> can we move the code above to some common place, or just leave
+> the code duplicate but self-contained?
 
-Would you prefer I send out the updated version with Sudeep's fix to apply
-instead of this version?  Or have you picked that up already?  Easily updated
-and sent out, if it'll make your life simpler....
+Please keep it self-contained so far. We can "optimize" later.
 
+Thanks,
+
+	M.
 -- 
-ciao,
-al
------------------------------------
-Al Stone
-Software Engineer
-Red Hat, Inc.
-ahs3@redhat.com
------------------------------------
+Jazz is not dead. It just smells funny...
