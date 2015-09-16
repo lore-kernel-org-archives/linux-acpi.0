@@ -1,75 +1,84 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: [PATCH v2 1/5] ACPI / processor : add support for ACPI0010 processor container
-Date: Wed, 16 Sep 2015 14:59:19 +0100
-Message-ID: <1442411963-14398-2-git-send-email-sudeep.holla@arm.com>
-References: <1438710406-3822-1-git-send-email-sudeep.holla@arm.com>
- <1442411963-14398-1-git-send-email-sudeep.holla@arm.com>
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <1442411963-14398-1-git-send-email-sudeep.holla@arm.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, x86@kernel.org, Al Stone <al.stone@linaro.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Mahesh Sivasubramanian <msivasub@codeaurora.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH v2 3/5] irqchip/gic: Convert the GIC driver to ACPI probing
+Date: Wed, 16 Sep 2015 23:05:09 +0800
+Message-ID: <55F98525.7030900@linaro.org>
+References: <1442152943-24493-1-git-send-email-marc.zyngier@arm.com> <1442152943-24493-4-git-send-email-marc.zyngier@arm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1442152943-24493-4-git-send-email-marc.zyngier@arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Tomasz Nowicki <tn@semihalf.com>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>
+Cc: linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-ACPI 6.0 adds support for optional processor container device which may
-contain child objects that are either processor devices or other processor
-containers. This allows representing hierarchical processor topologies.
+Hi Marc,
 
-It is declared using the _HID of ACPI0010. It is an abstract container
-used to represent CPU topology and should not be used to hotplug
-purposes.
+On 09/13/2015 10:02 PM, Marc Zyngier wrote:
+[...]
+> diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
+> index e6b7ed5..8a0b9c3 100644
+> --- a/drivers/irqchip/irq-gic.c
+> +++ b/drivers/irqchip/irq-gic.c
+> @@ -41,7 +41,6 @@
+>   #include <linux/irqchip.h>
+>   #include <linux/irqchip/chained_irq.h>
+>   #include <linux/irqchip/arm-gic.h>
+> -#include <linux/irqchip/arm-gic-acpi.h>
+>
+>   #include <asm/cputype.h>
+>   #include <asm/irq.h>
+> @@ -1177,7 +1176,7 @@ IRQCHIP_DECLARE(msm_qgic2, "qcom,msm-qgic2", gic_of_init);
+>   #endif
+>
+>   #ifdef CONFIG_ACPI
+> -static phys_addr_t dist_phy_base, cpu_phy_base __initdata;
+> +static phys_addr_t cpu_phy_base __initdata;
+>
+>   static int __init
+>   gic_acpi_parse_madt_cpu(struct acpi_subtable_header *header,
+> @@ -1205,60 +1204,56 @@ gic_acpi_parse_madt_cpu(struct acpi_subtable_header *header,
+>   	return 0;
+>   }
+>
+> -static int __init
+> -gic_acpi_parse_madt_distributor(struct acpi_subtable_header *header,
+> -				const unsigned long end)
+> +/* The things you have to do to just *count* something... */
+> +static int __init acpi_dummy_func(struct acpi_subtable_header *header,
+> +				  const unsigned long end)
+>   {
+> -	struct acpi_madt_generic_distributor *dist;
+> +	return 0;
+> +}
+>
+> -	dist = (struct acpi_madt_generic_distributor *)header;
+> +static bool __init acpi_gic_redist_is_present(void)
+> +{
+> +	return acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_REDISTRIBUTOR,
+> +				     acpi_dummy_func, 0) > 0;
+> +}
+>
+> -	if (BAD_MADT_ENTRY(dist, end))
+> -		return -EINVAL;
+> +static bool __init gic_validate_dist(struct acpi_subtable_header *header,
+> +				     struct acpi_probe_entry *ape)
+> +{
+> +	struct acpi_madt_generic_distributor *dist;
+> +	dist = (struct acpi_madt_generic_distributor *)header;
+>
+> -	dist_phy_base = dist->base_address;
+> -	return 0;
+> +	return (dist->version == ape->driver_data &&
+> +		(dist->version != ACPI_MADT_GIC_VERSION_NONE ||
+> +		 !acpi_gic_redist_is_present()));
+>
 
-This patch enables the support for these ACPI processor containers and
-ensures the generic container/module devices are not created for them.
+When I was rebasing the GICv3 patches on top of yours, I noticed
+that GICv3 will also needs to check the acpi_gic_redist_is_present(),
+can we move the code above to some common place, or just leave
+the code duplicate but self-contained?
 
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
----
- drivers/acpi/acpi_processor.c | 17 +++++++++++++++++
- include/acpi/processor.h      |  1 +
- 2 files changed, 18 insertions(+)
-
-diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
-index 985b8a83184e..6df6c0270cb1 100644
---- a/drivers/acpi/acpi_processor.c
-+++ b/drivers/acpi/acpi_processor.c
-@@ -496,7 +496,24 @@ static struct acpi_scan_handler processor_handler = {
- 	},
- };
- 
-+static int acpi_processor_container_attach(struct acpi_device *dev,
-+					   const struct acpi_device_id *id)
-+{
-+	return 1;
-+}
-+
-+static const struct acpi_device_id processor_container_ids[] = {
-+	{ ACPI_PROCESSOR_CONTAINER_HID, },
-+	{ }
-+};
-+
-+static struct acpi_scan_handler processor_container_handler = {
-+	.ids = processor_container_ids,
-+	.attach = acpi_processor_container_attach,
-+};
-+
- void __init acpi_processor_init(void)
- {
- 	acpi_scan_add_handler_with_hotplug(&processor_handler, "processor");
-+	acpi_scan_add_handler(&processor_container_handler);
- }
-diff --git a/include/acpi/processor.h b/include/acpi/processor.h
-index ff5f135f16b1..51b61dcdbd9c 100644
---- a/include/acpi/processor.h
-+++ b/include/acpi/processor.h
-@@ -9,6 +9,7 @@
- #define ACPI_PROCESSOR_CLASS		"processor"
- #define ACPI_PROCESSOR_DEVICE_NAME	"Processor"
- #define ACPI_PROCESSOR_DEVICE_HID	"ACPI0007"
-+#define ACPI_PROCESSOR_CONTAINER_HID	"ACPI0010"
- 
- #define ACPI_PROCESSOR_BUSY_METRIC	10
- 
--- 
-1.9.1
-
+Thanks
+Hanjun
