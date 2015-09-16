@@ -1,41 +1,58 @@
-From: Ingo Molnar <mingo@kernel.org>
-Subject: Re: [PATCH V3 2/2] debugfs: don't assume sizeof(bool) to be 4 bytes
-Date: Wed, 16 Sep 2015 10:02:18 +0200
-Message-ID: <20150916080218.GA8155@gmail.com>
-References: <9b705747a138c96c26faee5218f7b47403195b28.1442305897.git.viresh.kumar@linaro.org>
- <27d37898b4be6b9b9f31b90135f8206ca079a868.1442305897.git.viresh.kumar@linaro.org>
- <1442313464.1914.21.camel@sipsolutions.net>
- <20150915110447.GI6350@linux>
- <20150915094509.46cca84d@gandalf.local.home>
- <CA+55aFxVQ9jD=jUqPZt76EMe_Tb-_SA8v=rOHeR9Ljdsc6=xGQ@mail.gmail.com>
- <20150915134732.7ff50d03@gandalf.local.home>
+From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Subject: Re: [PATCH v4 04/22] of: add function to allow probing a device from
+ a OF node
+Date: Wed, 16 Sep 2015 10:17:43 +0200
+Message-ID: <CAAObsKBihtEeNN_NyTmB+U9NAJV6UmJ5LJrqBbO7h9KZPPh8LQ@mail.gmail.com>
+References: <1441628627-5143-1-git-send-email-tomeu.vizoso@collabora.com>
+ <1441628627-5143-5-git-send-email-tomeu.vizoso@collabora.com> <20150911120824.GP12027@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <20150915134732.7ff50d03@gandalf.local.home>
-Sender: owner-linux-mm@kvack.org
-To: Steven Rostedt <rostedt@goodmis.org>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Viresh Kumar <viresh.kumar@linaro.org>, Johannes Berg <johannes@sipsolutions.net>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, Rafael Wysocki <rjw@rjwysocki.net>, "sboyd@codeaurora.org" <sboyd@codeaurora.org>, "arnd@arndb.de" <arnd@arndb.de>, Mark Brown <broonie@kernel.org>, Akinobu Mita <akinobu.mita@gmail.com>, Alexander Duyck <alexander.h.duyck@redhat.com>, "moderated list:SOUND - SOC LAYER / DYNAMIC AUDIO POWER MANAGEM..." <alsa-devel@alsa-project.org>, Andrew Morton <akpm@linux-foundation.org>, Andy Lutomirski <luto@amacapital.net>, Arik Nemtsov <arik@wizery.com>, "open list:QUALCOMM ATHEROS ATH10K WIRELESS DRIVER" <ath10k@lists.infradead.org>, "open list:QUALCOMM ATHEROS ATH9K WIRELESS DRIVER" <ath9k-devel@lists.ath9k.org>, Altman, A
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wi0-f181.google.com ([209.85.212.181]:33375 "EHLO
+	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751967AbbIPISE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Sep 2015 04:18:04 -0400
+In-Reply-To: <20150911120824.GP12027@sirena.org.uk>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Thierry Reding <thierry.reding@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Alan Stern <stern@rowland.harvard.edu>
 
+On 11 September 2015 at 14:08, Mark Brown <broonie@kernel.org> wrote:
+> On Mon, Sep 07, 2015 at 02:23:29PM +0200, Tomeu Vizoso wrote:
+>> Walks the OF tree up and finds the closest ancestor that has a struct
+>> device associated with it, probing it if isn't bound to a driver yet.
+>
+>> The above should ensure that the dependency represented by the passed OF
+>> node is available, because probing a device should cause its descendants
+>> to be probed as well (when they get registered).
+>
+> I'm still not seeing how this works for MFDs where the MFD binding is
+> present directly in DT.
 
-* Steven Rostedt <rostedt@goodmis.org> wrote:
+The same problem should happen with simple-bus nodes such as
+nvidia,tegra124-host1x in which children devices are represented in
+the DT (and registered right after their parent) and depend on their
+parent for their operation.
 
-> But please, next time, go easy on the Cc list. Maybe just use bcc for those not 
-> on the list, stating that you BCC'd a lot of people to make sure this is sane, 
-> but didn't want to spam everyone with every reply.
+Looked at why it wasn't being a problem in my tests and Thierry
+mentioned that tegra_host1x_driver takes care of the synchronization
+between the bus and their children. So children would make use of the
+bus only once it has finished probing and is ready to work (the init
+and exit callbacks in host1x_client_ops signal when the bus is safe to
+use).
 
-Not just that, such a long Cc: list is a semi-guarantee that various list engines 
-(vger included I think) would drop the mail as spam and nobody else would get the 
-mail...
+AFAICS, this is a must currently for correct operation in simple-bus
+and simple-mfd situations, because probing order is currently very
+unpredictable and it's totally possible for the probing of a child to
+start before the probing of its parent has finished (if async probing
+is enabled or if a module is loaded that registers a child's driver at
+the wrong time).
 
-Thanks,
+I would prefer if the core would take care of making sure that parents
+are always probed before their children, but the unconditional locking
+of the parent device stands in the way.
 
-	Ingo
+Regards,
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Tomeu
