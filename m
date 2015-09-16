@@ -1,161 +1,41 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH v3 2/8] genirq: irqdomain: Remove irqdomain dependency
- on struct device_node
-Date: Wed, 16 Sep 2015 08:49:27 +0100
-Message-ID: <55F91F07.3040807@arm.com>
-References: <1442249047-21182-1-git-send-email-marc.zyngier@arm.com> <2330801.UsQO8cZmqT@vostro.rjw.lan> <55F7E268.1040302@arm.com> <2173233.CY7mtnyU1M@vostro.rjw.lan>
+From: Ingo Molnar <mingo@kernel.org>
+Subject: Re: [PATCH V3 2/2] debugfs: don't assume sizeof(bool) to be 4 bytes
+Date: Wed, 16 Sep 2015 10:02:18 +0200
+Message-ID: <20150916080218.GA8155@gmail.com>
+References: <9b705747a138c96c26faee5218f7b47403195b28.1442305897.git.viresh.kumar@linaro.org>
+ <27d37898b4be6b9b9f31b90135f8206ca079a868.1442305897.git.viresh.kumar@linaro.org>
+ <1442313464.1914.21.camel@sipsolutions.net>
+ <20150915110447.GI6350@linux>
+ <20150915094509.46cca84d@gandalf.local.home>
+ <CA+55aFxVQ9jD=jUqPZt76EMe_Tb-_SA8v=rOHeR9Ljdsc6=xGQ@mail.gmail.com>
+ <20150915134732.7ff50d03@gandalf.local.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:54102 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751967AbbIPHtd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 16 Sep 2015 03:49:33 -0400
-In-Reply-To: <2173233.CY7mtnyU1M@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <owner-linux-mm@kvack.org>
+Content-Disposition: inline
+In-Reply-To: <20150915134732.7ff50d03@gandalf.local.home>
+Sender: owner-linux-mm@kvack.org
+To: Steven Rostedt <rostedt@goodmis.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Viresh Kumar <viresh.kumar@linaro.org>, Johannes Berg <johannes@sipsolutions.net>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, Rafael Wysocki <rjw@rjwysocki.net>, "sboyd@codeaurora.org" <sboyd@codeaurora.org>, "arnd@arndb.de" <arnd@arndb.de>, Mark Brown <broonie@kernel.org>, Akinobu Mita <akinobu.mita@gmail.com>, Alexander Duyck <alexander.h.duyck@redhat.com>, "moderated list:SOUND - SOC LAYER / DYNAMIC AUDIO POWER MANAGEM..." <alsa-devel@alsa-project.org>, Andrew Morton <akpm@linux-foundation.org>, Andy Lutomirski <luto@amacapital.net>, Arik Nemtsov <arik@wizery.com>, "open list:QUALCOMM ATHEROS ATH10K WIRELESS DRIVER" <ath10k@lists.infradead.org>, "open list:QUALCOMM ATHEROS ATH9K WIRELESS DRIVER" <ath9k-devel@lists.ath9k.org>, Altman, A
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Graeme Gregory <graeme@xora.org.uk>, Jake Oshins <jakeo@microsoft.com>
 
-On 16/09/15 02:53, Rafael J. Wysocki wrote:
-> On Tuesday, September 15, 2015 10:18:32 AM Marc Zyngier wrote:
->> On 15/09/15 00:15, Rafael J. Wysocki wrote:
->>> On Monday, September 14, 2015 05:44:01 PM Marc Zyngier wrote:
->>>> struct device_node is very much DT specific, and the original authors
->>>> of the irqdomain subsystem recognized that tie, and went as far as
->>>> mentionning that this could be replaced by some "void *token",
->>>> should another firmware infrastructure be using it.
->>>>
->>>> As we move ACPI on arm64 towards this model too, it makes a lot of sense
->>>> to perform that particular move.
->>>>
->>>> We replace "struct device_node *of_node" with "void *domain_token", which
->>>> is a benign enough transformation. A non DT user of irqdomain can now
->>>> identify its domains using this pointer.
->>>>
->>>> Also, in order to prevent the introduction of sideband type information,
->>>> only DT is allowed to store a valid kernel pointer in domain_token
->>>> (a pointer that passes the virt_addr_valid() test will be considered
->>>> as a valid device_node).
->>>>
->>>> non-DT users that wish to store valid pointers in domain_token are
->>>> required to use another structure such as an IDR.
->>>>
->>>> Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
->>>> ---
->>>>  include/linux/irqdomain.h | 68 +++++++++++++++++++-----------------
->>>>  kernel/irq/irqdomain.c    | 89 ++++++++++++++++++++++++++++++++++-------------
->>>>  2 files changed, 101 insertions(+), 56 deletions(-)
->>>>
->>>> diff --git a/include/linux/irqdomain.h b/include/linux/irqdomain.h
->>>> index f644fdb..ac7041b 100644
->>>> --- a/include/linux/irqdomain.h
->>>> +++ b/include/linux/irqdomain.h
->>>> @@ -17,16 +17,14 @@
->>>>   * model). It's the domain callbacks that are responsible for setting the
->>>>   * irq_chip on a given irq_desc after it's been mapped.
->>>>   *
->>>> - * The host code and data structures are agnostic to whether or not
->>>> - * we use an open firmware device-tree. We do have references to struct
->>>> - * device_node in two places: in irq_find_host() to find the host matching
->>>> - * a given interrupt controller node, and of course as an argument to its
->>>> - * counterpart domain->ops->match() callback. However, those are treated as
->>>> - * generic pointers by the core and the fact that it's actually a device-node
->>>> - * pointer is purely a convention between callers and implementation. This
->>>> - * code could thus be used on other architectures by replacing those two
->>>> - * by some sort of arch-specific void * "token" used to identify interrupt
->>>> - * controllers.
->>>> + * The host code and data structures are agnostic to whether or not we
->>>> + * use an open firmware device-tree. Domains can be assigned a
->>>> + * "void *domain_token" identifier, which is assumed to represent a
->>>> + * "struct device_node" if the pointer is a valid virtual address.
->>>> + *
->>>> + * Otherwise, the value is assumed to be an opaque identifier. Should
->>>> + * a pointer to a non "struct device_node" be required, another data
->>>> + * structure should be used to indirect it (an IDR for example).
->>>>   */
->>>>  
->>>>  #ifndef _LINUX_IRQDOMAIN_H
->>>> @@ -108,8 +106,8 @@ struct irq_domain_chip_generic;
->>>>   * @flags: host per irq_domain flags
->>>>   *
->>>>   * Optional elements
->>>> - * @of_node: Pointer to device tree nodes associated with the irq_domain. Used
->>>> - *           when decoding device tree interrupt specifiers.
->>>> + * @domain_token: optional firmware-specific identifier for
->>>> + *                the interrupt controller
->>>>   * @gc: Pointer to a list of generic chips. There is a helper function for
->>>>   *      setting up one or more generic chips for interrupt controllers
->>>>   *      drivers using the generic chip library which uses this pointer.
->>>> @@ -130,7 +128,7 @@ struct irq_domain {
->>>>  	unsigned int flags;
->>>>  
->>>>  	/* Optional data */
->>>> -	struct device_node *of_node;
->>>> +	void *domain_token;
->>>
->>> I'm wondering if that may be something which isn't (void *), but a specific
->>> pointer type, so the compiler warns us when something suspicious is assigned
->>> to it?
->>>
->>> [Somewhat along the lines struct fwnode_handle is used elsewehere.]
->>
->> Yeah, I'm obviously being lazy ;-).
->>
->> More seriously, I'm trying hard to avoid anything that will require an
->> additional memory allocation. Going from a device_node to a
->> fwnode_handle-like structure requires such an allocation which is going
->> to be a massive pain to retrofit - not impossible, but painful.
->>
->> What I'm currently aiming for is tagged pointers, where the two bottom
->> bits indicate the type of the pointed object (see patch #3):
->> - 00 indicates a device node
->> - 01 indicates an IDR entry (shifted left by two bits)
->> - 10 and 11 are currently unallocated, and one of them could be used to
->> encode a fwnode_handle.
->>
->> It would be slightly easier to replace the (void *) with a union of the
->> above types:
->>
->> 	union domain_token {
->> 		struct device_node *of_node;
->> 		struct fwnode_handle *fwnode;
->> 		unsigned long id;
->> 	};
->>
->> That would remove the need for an extra allocation (at the cost of the
->> above hack). We just need the accessors to strip the tag. Still need to
->> repaint all the users of irq_domain_add_*, which is going to be
->> amazingly invasive.
->>
->> Thoughts?
-> 
-> Well, I'm not sure this is worth the effort to be honest.
-> 
-> I've just seen quite a few bugs where a pointer to something completely invalid
-> have been silently passed via (void *) which often results in very interesting
-> breakage (that is really hard to debug for that matter).
 
-I actually tried to prototype this yesterday, and ended up in hell. The
-main issue is the point where the generic irqdomain code meets the DT
-subsystem (which is basically any interrupt controller, including those
-being ACPI driven). The domain_token to of_node path is dead easy, but
-you cannot do the reverse conversion, so this would have to spread
-around like a cancer. I gave up.
+* Steven Rostedt <rostedt@goodmis.org> wrote:
 
-At this stage, I see two options: sticking with (void *) with the risk
-of breakage and subtle bugs which we all love to track down (not!), or
-do a major U-turn and make device_node a strict requirement for domain
-lookup.
+> But please, next time, go easy on the Cc list. Maybe just use bcc for those not 
+> on the list, stating that you BCC'd a lot of people to make sure this is sane, 
+> but didn't want to spam everyone with every reply.
 
-After the above experiment, I now see some value in actually keeping
-device_node around, using it as the token, and allocating it when
-required (the typical case being those interrupt controllers that are
-both DT and ACPI). I'll play with it a bit more.
+Not just that, such a long Cc: list is a semi-guarantee that various list engines 
+(vger included I think) would drop the mail as spam and nobody else would get the 
+mail...
 
 Thanks,
 
-	M.
--- 
-Jazz is not dead. It just smells funny...
+	Ingo
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
