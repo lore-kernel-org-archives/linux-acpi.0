@@ -1,153 +1,102 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v3 2/8] genirq: irqdomain: Remove irqdomain dependency on struct device_node
-Date: Wed, 16 Sep 2015 14:57:51 +0200
-Message-ID: <3069907.asGkZrHrai@vostro.rjw.lan>
-References: <1442249047-21182-1-git-send-email-marc.zyngier@arm.com> <2173233.CY7mtnyU1M@vostro.rjw.lan> <55F91F07.3040807@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:47852 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751845AbbIPM3u (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Sep 2015 08:29:50 -0400
-In-Reply-To: <55F91F07.3040807@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: [PATCH v2 1/2] ACPI / tables: simplify acpi_parse_entries
+Date: Wed, 16 Sep 2015 13:58:06 +0100
+Message-ID: <1442408287-10410-1-git-send-email-sudeep.holla@arm.com>
+References: <1442243686-15845-1-git-send-email-sudeep.holla@arm.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1442243686-15845-1-git-send-email-sudeep.holla@arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, Al Stone <al.stone@linaro.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Graeme Gregory <graeme@xora.org.uk>, Jake Oshins <jakeo@microsoft.com>
 
-On Wednesday, September 16, 2015 08:49:27 AM Marc Zyngier wrote:
-> On 16/09/15 02:53, Rafael J. Wysocki wrote:
-> > On Tuesday, September 15, 2015 10:18:32 AM Marc Zyngier wrote:
-> >> On 15/09/15 00:15, Rafael J. Wysocki wrote:
-> >>> On Monday, September 14, 2015 05:44:01 PM Marc Zyngier wrote:
-> >>>> struct device_node is very much DT specific, and the original authors
-> >>>> of the irqdomain subsystem recognized that tie, and went as far as
-> >>>> mentionning that this could be replaced by some "void *token",
-> >>>> should another firmware infrastructure be using it.
-> >>>>
-> >>>> As we move ACPI on arm64 towards this model too, it makes a lot of sense
-> >>>> to perform that particular move.
-> >>>>
-> >>>> We replace "struct device_node *of_node" with "void *domain_token", which
-> >>>> is a benign enough transformation. A non DT user of irqdomain can now
-> >>>> identify its domains using this pointer.
-> >>>>
-> >>>> Also, in order to prevent the introduction of sideband type information,
-> >>>> only DT is allowed to store a valid kernel pointer in domain_token
-> >>>> (a pointer that passes the virt_addr_valid() test will be considered
-> >>>> as a valid device_node).
-> >>>>
-> >>>> non-DT users that wish to store valid pointers in domain_token are
-> >>>> required to use another structure such as an IDR.
-> >>>>
-> >>>> Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
-> >>>> ---
-> >>>>  include/linux/irqdomain.h | 68 +++++++++++++++++++-----------------
-> >>>>  kernel/irq/irqdomain.c    | 89 ++++++++++++++++++++++++++++++++++-------------
-> >>>>  2 files changed, 101 insertions(+), 56 deletions(-)
-> >>>>
-> >>>> diff --git a/include/linux/irqdomain.h b/include/linux/irqdomain.h
-> >>>> index f644fdb..ac7041b 100644
-> >>>> --- a/include/linux/irqdomain.h
-> >>>> +++ b/include/linux/irqdomain.h
-> >>>> @@ -17,16 +17,14 @@
-> >>>>   * model). It's the domain callbacks that are responsible for setting the
-> >>>>   * irq_chip on a given irq_desc after it's been mapped.
-> >>>>   *
-> >>>> - * The host code and data structures are agnostic to whether or not
-> >>>> - * we use an open firmware device-tree. We do have references to struct
-> >>>> - * device_node in two places: in irq_find_host() to find the host matching
-> >>>> - * a given interrupt controller node, and of course as an argument to its
-> >>>> - * counterpart domain->ops->match() callback. However, those are treated as
-> >>>> - * generic pointers by the core and the fact that it's actually a device-node
-> >>>> - * pointer is purely a convention between callers and implementation. This
-> >>>> - * code could thus be used on other architectures by replacing those two
-> >>>> - * by some sort of arch-specific void * "token" used to identify interrupt
-> >>>> - * controllers.
-> >>>> + * The host code and data structures are agnostic to whether or not we
-> >>>> + * use an open firmware device-tree. Domains can be assigned a
-> >>>> + * "void *domain_token" identifier, which is assumed to represent a
-> >>>> + * "struct device_node" if the pointer is a valid virtual address.
-> >>>> + *
-> >>>> + * Otherwise, the value is assumed to be an opaque identifier. Should
-> >>>> + * a pointer to a non "struct device_node" be required, another data
-> >>>> + * structure should be used to indirect it (an IDR for example).
-> >>>>   */
-> >>>>  
-> >>>>  #ifndef _LINUX_IRQDOMAIN_H
-> >>>> @@ -108,8 +106,8 @@ struct irq_domain_chip_generic;
-> >>>>   * @flags: host per irq_domain flags
-> >>>>   *
-> >>>>   * Optional elements
-> >>>> - * @of_node: Pointer to device tree nodes associated with the irq_domain. Used
-> >>>> - *           when decoding device tree interrupt specifiers.
-> >>>> + * @domain_token: optional firmware-specific identifier for
-> >>>> + *                the interrupt controller
-> >>>>   * @gc: Pointer to a list of generic chips. There is a helper function for
-> >>>>   *      setting up one or more generic chips for interrupt controllers
-> >>>>   *      drivers using the generic chip library which uses this pointer.
-> >>>> @@ -130,7 +128,7 @@ struct irq_domain {
-> >>>>  	unsigned int flags;
-> >>>>  
-> >>>>  	/* Optional data */
-> >>>> -	struct device_node *of_node;
-> >>>> +	void *domain_token;
-> >>>
-> >>> I'm wondering if that may be something which isn't (void *), but a specific
-> >>> pointer type, so the compiler warns us when something suspicious is assigned
-> >>> to it?
-> >>>
-> >>> [Somewhat along the lines struct fwnode_handle is used elsewehere.]
-> >>
-> >> Yeah, I'm obviously being lazy ;-).
-> >>
-> >> More seriously, I'm trying hard to avoid anything that will require an
-> >> additional memory allocation. Going from a device_node to a
-> >> fwnode_handle-like structure requires such an allocation which is going
-> >> to be a massive pain to retrofit - not impossible, but painful.
-> >>
-> >> What I'm currently aiming for is tagged pointers, where the two bottom
-> >> bits indicate the type of the pointed object (see patch #3):
-> >> - 00 indicates a device node
-> >> - 01 indicates an IDR entry (shifted left by two bits)
-> >> - 10 and 11 are currently unallocated, and one of them could be used to
-> >> encode a fwnode_handle.
-> >>
-> >> It would be slightly easier to replace the (void *) with a union of the
-> >> above types:
-> >>
-> >> 	union domain_token {
-> >> 		struct device_node *of_node;
-> >> 		struct fwnode_handle *fwnode;
-> >> 		unsigned long id;
-> >> 	};
-> >>
-> >> That would remove the need for an extra allocation (at the cost of the
-> >> above hack). We just need the accessors to strip the tag. Still need to
-> >> repaint all the users of irq_domain_add_*, which is going to be
-> >> amazingly invasive.
-> >>
-> >> Thoughts?
-> > 
-> > Well, I'm not sure this is worth the effort to be honest.
-> > 
-> > I've just seen quite a few bugs where a pointer to something completely invalid
-> > have been silently passed via (void *) which often results in very interesting
-> > breakage (that is really hard to debug for that matter).
-> 
-> I actually tried to prototype this yesterday, and ended up in hell. The
-> main issue is the point where the generic irqdomain code meets the DT
-> subsystem (which is basically any interrupt controller, including those
-> being ACPI driven). The domain_token to of_node path is dead easy, but
-> you cannot do the reverse conversion, so this would have to spread
-> around like a cancer. I gave up.
+acpi_parse_entries passes the table end pointer to the sub-table entry
+handler. acpi_parse_entries itself could validate the end of an entry
+against the table end using the length in the sub-table entry.
 
-If you replaced the struct device_node pointer with a struct fwnode_handle one,
-you can get from there to the original with to_of_node() easily and backwards
-too.
+This patch adds the validation of the sub-table entry end using the
+length field.This will help to eliminate the need to pass the table end
+to the handlers.
 
-Thanks,
-Rafael
+It also moves the check for zero length entry early so that execution of
+the handler can be avoided.
 
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+---
+ drivers/acpi/tables.c | 31 +++++++++++++++----------------
+ 1 file changed, 15 insertions(+), 16 deletions(-)
+
+Hi Rafael,
+
+As I mentioned earlier, this needs to be applied after Al's MADT changes
+are merged. You might get simple conflicts in acpi_parse_entries.
+
+Regards,
+Sudeep
+
+v1->v2:
+	- Incorporated Rafael's review comments
+	- Moved zero length entry check early
+	- Added a patch to remove the unused table_end parameter
+
+diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+index d0716bb6359d..69b9d05f5b96 100644
+--- a/drivers/acpi/tables.c
++++ b/drivers/acpi/tables.c
+@@ -459,7 +459,7 @@ acpi_parse_entries(char *id, unsigned long table_size,
+ {
+ 	struct acpi_subtable_header *entry;
+ 	int count = 0;
+-	unsigned long table_end;
++	unsigned long table_end, entry_end;
+
+ 	if (acpi_disabled)
+ 		return -ENODEV;
+@@ -478,12 +478,20 @@ acpi_parse_entries(char *id, unsigned long table_size,
+ 	table_end = (unsigned long)table_header + table_header->length;
+
+ 	/* Parse all entries looking for a match. */
++	entry_end = (unsigned long)table_header + table_size;
++	entry = (struct acpi_subtable_header *)entry_end;
++	entry_end += entry->length;
+
+-	entry = (struct acpi_subtable_header *)
+-	    ((unsigned long)table_header + table_size);
++	while (entry_end <= table_end) {
++		/*
++		 * If entry->length is 0, break from this loop to avoid
++		 * infinite loop.
++		 */
++		if (entry->length == 0) {
++			pr_err("[%4.4s:0x%02x] Invalid zero length\n", id, entry_id);
++			return -EINVAL;
++		}
+
+-	while (((unsigned long)entry) + sizeof(struct acpi_subtable_header) <
+-	       table_end) {
+ 		if (entry->type == entry_id
+ 		    && (!max_entries || count < max_entries)) {
+ 			if (!strncmp(id, ACPI_SIG_MADT, 4) &&
+@@ -495,17 +503,8 @@ acpi_parse_entries(char *id, unsigned long table_size,
+ 			count++;
+ 		}
+
+-		/*
+-		 * If entry->length is 0, break from this loop to avoid
+-		 * infinite loop.
+-		 */
+-		if (entry->length == 0) {
+-			pr_err("[%4.4s:0x%02x] Invalid zero length\n", id, entry_id);
+-			return -EINVAL;
+-		}
+-
+-		entry = (struct acpi_subtable_header *)
+-		    ((unsigned long)entry + entry->length);
++		entry = (struct acpi_subtable_header *)entry_end;
++		entry_end += entry->length;
+ 	}
+
+ 	if (max_entries && count > max_entries) {
+--
+1.9.1
