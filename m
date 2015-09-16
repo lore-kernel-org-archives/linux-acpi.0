@@ -1,106 +1,55 @@
-From: Al Stone <ahs3@redhat.com>
-Subject: Re: [PATCH v3 0/5] ACPI: Provide better MADT subtable sanity checks
-Date: Tue, 15 Sep 2015 15:13:12 -0600
-Message-ID: <55F889E8.3070706@redhat.com>
-References: <1441832991-28200-1-git-send-email-al.stone@linaro.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] ACPI: tables: simplify acpi_parse_entries
+Date: Wed, 16 Sep 2015 03:47:01 +0200
+Message-ID: <1900057.h5EV8TWhVD@vostro.rjw.lan>
+References: <1442243686-15845-1-git-send-email-sudeep.holla@arm.com> <55F7E583.2070207@arm.com> <55F81EA4.7000400@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <1441832991-28200-1-git-send-email-al.stone@linaro.org>
-Sender: linux-ia64-owner@vger.kernel.org
-To: Al Stone <al.stone@linaro.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-pm@vger.kernel.org, linaro-acpi@lists.linaro.org, linaro-kernel@lists.linaro.org, patches@linaro.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "tony.luck@intel.com" <tony.luck@intel.com>, "fenghua.yu@intel.com" <fenghua.yu@intel.com>, Pavel Machek <pavel@ucw.cz>, "tglx@linutronix.de" <tglx@linutronix.de>, mingo@redhat.com, "H. Peter Anvin" <hpa@linux.intel.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:56416 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752089AbbIPBTB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Sep 2015 21:19:01 -0400
+In-Reply-To: <55F81EA4.7000400@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sudeep Holla <sudeep.holla@arm.com>
+Cc: Sudeep Holla <Sudeep.Holla@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>
 
-On 09/09/2015 03:09 PM, Al Stone wrote:
-> Currently, the BAD_MADT_ENTRY macro is used to do a very simple sanity
-> check on the various subtables that are defined for the MADT.  The check
-> compares the size of the subtable data structure as defined by ACPICA to
-> the length entry in the subtable.  If they are not the same, the assumption
-> is that the subtable is incorrect.
+On Tuesday, September 15, 2015 02:35:32 PM Sudeep Holla wrote:
 > 
-> Over time, the ACPI spec has allowed for MADT subtables where this can
-> never be true (the local SAPIC subtable, for example).  Or, more recently,
-> the spec has accumulated some minor flaws where there are three possible 
-> sizes for a subtable, all of which are valid, but only for specific versions
-> of the spec (the GICC subtable).  In both cases, BAD_MADT_ENTRY reports these
-> subtables as bad when they are not.  In order to retain some sanity check
-> on the MADT subtables, we now have to special case these subtables.  Of
-> necessity, these special cases have ended up in arch-dependent code (arm64)
-> or an arch has simply decided to forgo the check (ia64).
+> On 15/09/15 10:31, Sudeep Holla wrote:
+> >
+> >
+> > On 15/09/15 00:41, Rafael J. Wysocki wrote:
+> >> On Monday, September 14, 2015 04:14:46 PM Sudeep Holla wrote:
+> >>> acpi_parse_entries passes the table end pointer to the sub-table entry
+> >>> handler. acpi_parse_entries itself could validate the end of an entry
+> >>> against the table end using the length in the sub-table entry.
+> >>>
+> >>> This patch adds the validation of the sub-table entry end using the
+> >>> length field.This will help to eliminate the need to pass the table end
+> >>> to the handlers.
+> >>>
+> >>> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> >>> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+> >>
 > 
-> This patch set replaces the BAD_MADT_ENTRY macro with a function called
-> bad_madt_entry().  This function uses a data set of details about the
-> subtables to provide more sanity checking than before:
+> [...]
 > 
-> 	-- is the subtable legal for the version given in the FADT?
+> > I will respin the patch as per your suggestion but needs to go only
+> > after Al's MADT patches.
+> >
 > 
-> 	-- is the subtable legal for the revision of the MADT in use?
+> Alternately we can retain passing table_end to the handlers for now.
 > 
-> 	-- is the subtable of the proper length (including checking
-> 	   on the one variable length subtable that is currently ignored),
-> 	   given the FADT version and the MADT revision?
-> 
-> Further, this patch set adds in the call to bad_madt_entry() from the 
-> acpi_table_parse_madt() function, allowing it to be used consistently
-> by all architectures, for all subtables, and removing the need for each
-> of the subtable traversal callback functions to use BAD_MADT_ENTRY.
-> 
-> In theory, as the ACPI specification changes, we would only have to add
-> additional information to the data set describing the MADT subtables in
-> order to continue providing sanity checks, even when new subtables are
-> added.
-> 
-> These patches have been tested on an APM Mustang (arm64) and are known to
-> work there.  They have also been cross-compiled for x86 and ia64 with no
-> known failures.
-> 
-> Changes for v3:
->    -- Reviewed-and-tested-by from Sudeep Holla for arm64 parts
->    -- Clearer language in error messages (Graeme Gregory, Timur Tabi)
->    -- Double checked that inserting call to bad_madt_entry() into the
->       function acpi_parse_entries() does not impact current behavior
->       (Sudeep Holla)
->    
-> Changes for v2:
->    -- Acked-by on 2/5 from Marc Zyngier and Catalin Marinas for ARM
->    -- Correct faulty end of loop test found by Timur Tabi
-> 
-> 
-> Al Stone (5):
->   ACPI: add in a bad_madt_entry() function to eventually replace the
->     macro
->   ACPI / ARM64: remove usage of BAD_MADT_ENTRY/BAD_MADT_GICC_ENTRY
->   ACPI / IA64: remove usage of BAD_MADT_ENTRY
->   ACPI / X86: remove usage of BAD_MADT_ENTRY
->   ACPI: remove definition of BAD_MADT_ENTRY macro
-> 
->  arch/arm64/include/asm/acpi.h |   8 --
->  arch/arm64/kernel/smp.c       |   2 -
->  arch/ia64/kernel/acpi.c       |  20 ----
->  arch/x86/kernel/acpi/boot.c   |  27 -----
->  drivers/acpi/tables.c         | 245 +++++++++++++++++++++++++++++++++++++++++-
->  drivers/irqchip/irq-gic.c     |   6 --
->  include/linux/acpi.h          |   4 -
->  7 files changed, 244 insertions(+), 68 deletions(-)
-> 
+> Once Al's MADT series removes those BAD_GIC_ENTRY macros, there will be
+> no users of that second argument in subtable handlers and it can be
+> completely removed. Let me know your thoughts.
 
-Ping?  Any additional comments on this version?  I have only received
-feedback from arm64 reviewers so far, over three revisions, even though
-everyone that needs to be (ACPI, ia64, x86) has also been CCd.
+I'm going to apply the Al's series, so that sounds like the way to go.
 
-Anyone else before I fix a couple of things for v4 that the arm64 folks
-found?  ACKs?  NAKs?  Please don't bother me, I'm in the merge window :)?
+Thanks,
+Rafael
 
-Thanks.
-
--- 
-ciao,
-al
------------------------------------
-Al Stone
-Software Engineer
-Red Hat, Inc.
-ahs3@redhat.com
------------------------------------
