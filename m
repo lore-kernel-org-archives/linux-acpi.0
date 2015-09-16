@@ -1,7 +1,7 @@
 From: Hanjun Guo <hanjun.guo@linaro.org>
 Subject: Re: [PATCH v2 3/5] irqchip/gic: Convert the GIC driver to ACPI probing
-Date: Wed, 16 Sep 2015 23:05:09 +0800
-Message-ID: <55F98525.7030900@linaro.org>
+Date: Wed, 16 Sep 2015 23:09:21 +0800
+Message-ID: <55F98621.1030201@linaro.org>
 References: <1442152943-24493-1-git-send-email-marc.zyngier@arm.com> <1442152943-24493-4-git-send-email-marc.zyngier@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
