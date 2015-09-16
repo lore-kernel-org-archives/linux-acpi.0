@@ -1,58 +1,50 @@
-From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Subject: Re: [PATCH v4 04/22] of: add function to allow probing a device from
- a OF node
-Date: Wed, 16 Sep 2015 10:17:43 +0200
-Message-ID: <CAAObsKBihtEeNN_NyTmB+U9NAJV6UmJ5LJrqBbO7h9KZPPh8LQ@mail.gmail.com>
-References: <1441628627-5143-1-git-send-email-tomeu.vizoso@collabora.com>
- <1441628627-5143-5-git-send-email-tomeu.vizoso@collabora.com> <20150911120824.GP12027@sirena.org.uk>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [PATCH v3 2/8] genirq: irqdomain: Remove irqdomain dependency
+ on struct device_node
+Date: Wed, 16 Sep 2015 11:00:26 +0200 (CEST)
+Message-ID: <alpine.DEB.2.11.1509161040590.3951@nanos>
+References: <1442249047-21182-1-git-send-email-marc.zyngier@arm.com> <2330801.UsQO8cZmqT@vostro.rjw.lan> <55F7E268.1040302@arm.com> <2173233.CY7mtnyU1M@vostro.rjw.lan> <55F91F07.3040807@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f181.google.com ([209.85.212.181]:33375 "EHLO
-	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751967AbbIPISE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Sep 2015 04:18:04 -0400
-In-Reply-To: <20150911120824.GP12027@sirena.org.uk>
+Received: from www.linutronix.de ([62.245.132.108]:47163 "EHLO
+	Galois.linutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752002AbbIPJBG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Sep 2015 05:01:06 -0400
+In-Reply-To: <55F91F07.3040807@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Thierry Reding <thierry.reding@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Frank Rowand <frowand.list@gmail.com>, Grant Likely <grant.likely@linaro.org>, Alan Stern <stern@rowland.harvard.edu>
+To: Marc Zyngier <marc.zyngier@arm.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Graeme Gregory <graeme@xora.org.uk>, Jake Oshins <jakeo@microsoft.com>
 
-On 11 September 2015 at 14:08, Mark Brown <broonie@kernel.org> wrote:
-> On Mon, Sep 07, 2015 at 02:23:29PM +0200, Tomeu Vizoso wrote:
->> Walks the OF tree up and finds the closest ancestor that has a struct
->> device associated with it, probing it if isn't bound to a driver yet.
->
->> The above should ensure that the dependency represented by the passed OF
->> node is available, because probing a device should cause its descendants
->> to be probed as well (when they get registered).
->
-> I'm still not seeing how this works for MFDs where the MFD binding is
-> present directly in DT.
+On Wed, 16 Sep 2015, Marc Zyngier wrote:
+> On 16/09/15 02:53, Rafael J. Wysocki wrote:
+> > I've just seen quite a few bugs where a pointer to something completely invalid
+> > have been silently passed via (void *) which often results in very interesting
+> > breakage (that is really hard to debug for that matter).
+> 
+> I actually tried to prototype this yesterday, and ended up in hell. The
+> main issue is the point where the generic irqdomain code meets the DT
+> subsystem (which is basically any interrupt controller, including those
+> being ACPI driven). The domain_token to of_node path is dead easy, but
+> you cannot do the reverse conversion, so this would have to spread
+> around like a cancer. I gave up.
+> 
+> At this stage, I see two options: sticking with (void *) with the risk
+> of breakage and subtle bugs which we all love to track down (not!), or
+> do a major U-turn and make device_node a strict requirement for domain
+> lookup.
+> 
+> After the above experiment, I now see some value in actually keeping
+> device_node around, using it as the token, and allocating it when
+> required (the typical case being those interrupt controllers that are
+> both DT and ACPI). I'll play with it a bit more.
 
-The same problem should happen with simple-bus nodes such as
-nvidia,tegra124-host1x in which children devices are represented in
-the DT (and registered right after their parent) and depend on their
-parent for their operation.
+Right. We already have the fwnode_type in struct device_node, so we
+can reuse it. If you care about the size of the struct, then you can
+make some of the struct members conditional on CONFIG_OF.
 
-Looked at why it wasn't being a problem in my tests and Thierry
-mentioned that tegra_host1x_driver takes care of the synchronization
-between the bus and their children. So children would make use of the
-bus only once it has finished probing and is ready to work (the init
-and exit callbacks in host1x_client_ops signal when the bus is safe to
-use).
+Thanks,
 
-AFAICS, this is a must currently for correct operation in simple-bus
-and simple-mfd situations, because probing order is currently very
-unpredictable and it's totally possible for the probing of a child to
-start before the probing of its parent has finished (if async probing
-is enabled or if a module is loaded that registers a child's driver at
-the wrong time).
+	tglx
 
-I would prefer if the core would take care of making sure that parents
-are always probed before their children, but the unconditional locking
-of the parent device stands in the way.
-
-Regards,
-
-Tomeu
