@@ -1,7 +1,7 @@
 From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Subject: [PATCH v5 08/23] regulator: core: Drop redundant locking
-Date: Thu, 17 Sep 2015 14:57:02 +0200
-Message-ID: <1442494637-3674-9-git-send-email-tomeu.vizoso@collabora.com>
+Subject: [PATCH v5 02/23] ARM: amba: Move reading of periphid to pre_probe()
+Date: Thu, 17 Sep 2015 14:56:56 +0200
+Message-ID: <1442494637-3674-3-git-send-email-tomeu.vizoso@collabora.com>
 References: <1442494637-3674-1-git-send-email-tomeu.vizoso@collabora.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1442494637-3674-1-git-send-email-tomeu.vizoso@collabora.com>
@@ -10,206 +10,169 @@ To: linux-kernel@vger.kernel.org
 Cc: Rob Herring <robh+dt@kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-arm-kernel@lists.infradead.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Tomeu Vizoso <tomeu.vizoso@collabora.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Now that we use a klist when looking up regulator devices, we can avoid
-locking regulator_list_mutex if we take a reference on the regulator
-device, if one is found.
+Reading the periphid when the Primecell device is registered means that
+the apb pclk must be available by then or the device won't be registered
+at all.
 
-This change would be useful if for example regulator devices could be
-registered on demand when a driver requests them. regulator_register()
-could end up being called from within _regulator_get while the lock on
-regulator_list_mutex is being held, causing a deadlock.
-
-This sequence illustrates the situation described above:
-
-tegra_hdmi_probe
-    _regulator_get
-            regulator_dev_lookup
-                    of_device_probe
-                            reg_fixed_voltage_probe
-                                    regulator_register
+By moving this code to pre_probe (to be called by the device-driver core
+before the device is matched to a driver) we remove any order
+requirements.
 
 Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
 ---
 
-Changes in v5:
-- Use regulator_class' klist of devices instead of regulator_list to
-  store and lookup regulator devices.
-
+Changes in v5: None
 Changes in v4:
-- Take a reference to the regulator's device to prevent dangling
-  pointers
+- Added bus.pre_probe callback so the probes of Primecell devices can be
+  deferred if their device IDs cannot be yet read because of the clock
+  driver not having probed when they are registered. Maybe this goes
+  overboard and the matching information should be in the DT if there is
+  one.
 
-Changes in v3:
-- Avoid unlocking the regulator device's mutex if we don't have a device
+Changes in v3: None
+Changes in v2: None
 
-Changes in v2:
-- Acquire regulator device lock before returning from
-  regulator_dev_lookup()
+ drivers/amba/bus.c | 78 ++++++++++++++++++++++++++----------------------------
+ 1 file changed, 38 insertions(+), 40 deletions(-)
 
- drivers/regulator/core.c | 49 +++++++++++++++++++++++++++++-------------------
- 1 file changed, 30 insertions(+), 19 deletions(-)
-
-diff --git a/drivers/regulator/core.c b/drivers/regulator/core.c
-index b048af9c1ae4..24245c78b58c 100644
---- a/drivers/regulator/core.c
-+++ b/drivers/regulator/core.c
-@@ -1328,7 +1328,7 @@ static void regulator_supply_alias(struct device **dev, const char **supply)
+diff --git a/drivers/amba/bus.c b/drivers/amba/bus.c
+index f0099360039e..1cbe43b4acd3 100644
+--- a/drivers/amba/bus.c
++++ b/drivers/amba/bus.c
+@@ -24,6 +24,8 @@
  
- static int of_node_match(struct device *dev, const void *data)
+ #define to_amba_driver(d)	container_of(d, struct amba_driver, drv)
+ 
++static int amba_pre_probe(struct device *dev);
++
+ static const struct amba_id *
+ amba_lookup(const struct amba_id *table, struct amba_device *dev)
  {
--	return dev->of_node == data;
-+	return dev->of_node == data && get_device(dev);
+@@ -193,6 +195,7 @@ struct bus_type amba_bustype = {
+ 	.name		= "amba",
+ 	.dev_attrs	= amba_dev_attrs,
+ 	.match		= amba_match,
++	.pre_probe	= amba_pre_probe,
+ 	.uevent		= amba_uevent,
+ 	.pm		= &amba_pm,
+ };
+@@ -336,44 +339,26 @@ static void amba_device_release(struct device *dev)
+ 	kfree(d);
  }
  
- static struct regulator_dev *of_find_regulator_by_node(struct device_node *np)
-@@ -1344,7 +1344,7 @@ static int regulator_match(struct device *dev, const void *data)
+-/**
+- *	amba_device_add - add a previously allocated AMBA device structure
+- *	@dev: AMBA device allocated by amba_device_alloc
+- *	@parent: resource parent for this devices resources
+- *
+- *	Claim the resource, and read the device cell ID if not already
+- *	initialized.  Register the AMBA device with the Linux device
+- *	manager.
+- */
+-int amba_device_add(struct amba_device *dev, struct resource *parent)
++static int amba_pre_probe(struct device *dev)
  {
- 	struct regulator_dev *r = dev_to_rdev(dev);
++	struct amba_device *d = to_amba_device(dev);
+ 	u32 size;
+ 	void __iomem *tmp;
+ 	int i, ret;
  
--	return strcmp(rdev_get_name(r), data) == 0;
-+	return strcmp(rdev_get_name(r), data) == 0 && get_device(dev);
- }
- 
- static struct regulator_dev *regulator_lookup_by_name(const char *name)
-@@ -1395,16 +1395,20 @@ static struct regulator_dev *regulator_dev_lookup(struct device *dev,
- 	if (r)
- 		return r;
- 
-+	mutex_lock(&regulator_list_mutex);
- 	list_for_each_entry(map, &regulator_map_list, list) {
- 		/* If the mapping has a device set up it must match */
- 		if (map->dev_name &&
- 		    (!devname || strcmp(map->dev_name, devname)))
- 			continue;
- 
--		if (strcmp(map->supply, supply) == 0)
-+		if (strcmp(map->supply, supply) == 0 &&
-+		    get_device(&map->regulator->dev)) {
-+			mutex_unlock(&regulator_list_mutex);
- 			return map->regulator;
-+		}
- 	}
+-	WARN_ON(dev->irq[0] == (unsigned int)-1);
+-	WARN_ON(dev->irq[1] == (unsigned int)-1);
 -
-+	mutex_unlock(&regulator_list_mutex);
- 
- 	return NULL;
- }
-@@ -1435,6 +1439,7 @@ static int regulator_resolve_supply(struct regulator_dev *rdev)
- 	if (!r) {
- 		if (have_full_constraints()) {
- 			r = dummy_regulator_rdev;
-+			get_device(&r->dev);
- 		} else {
- 			dev_err(dev, "Failed to resolve %s-supply for %s\n",
- 				rdev->supply_name, rdev->desc->name);
-@@ -1444,12 +1449,16 @@ static int regulator_resolve_supply(struct regulator_dev *rdev)
- 
- 	/* Recursively resolve the supply of the supply */
- 	ret = regulator_resolve_supply(r);
--	if (ret < 0)
-+	if (ret < 0) {
-+		put_device(&r->dev);
- 		return ret;
-+	}
- 
- 	ret = set_supply(rdev, r);
--	if (ret < 0)
-+	if (ret < 0) {
-+		put_device(&r->dev);
- 		return ret;
-+	}
- 
- 	/* Cascade always-on state to supply */
- 	if (_regulator_is_enabled(rdev) && rdev->supply) {
-@@ -1485,8 +1494,6 @@ static struct regulator *_regulator_get(struct device *dev, const char *id,
- 	else
- 		ret = -EPROBE_DEFER;
- 
--	mutex_lock(&regulator_list_mutex);
+-	ret = request_resource(parent, &dev->res);
+-	if (ret)
+-		goto err_out;
 -
- 	rdev = regulator_dev_lookup(dev, id, &ret);
- 	if (rdev)
- 		goto found;
-@@ -1498,7 +1505,7 @@ static struct regulator *_regulator_get(struct device *dev, const char *id,
- 	 * succeed, so, quit with appropriate error value
+-	/* Hard-coded primecell ID instead of plug-n-play */
+-	if (dev->periphid != 0)
+-		goto skip_probe;
++	if (d->periphid != 0)
++		return 0;
+ 
+ 	/*
+ 	 * Dynamically calculate the size of the resource
+ 	 * and use this for iomap
  	 */
- 	if (ret && ret != -ENODEV)
--		goto out;
-+		return regulator;
+-	size = resource_size(&dev->res);
+-	tmp = ioremap(dev->res.start, size);
+-	if (!tmp) {
+-		ret = -ENOMEM;
+-		goto err_release;
+-	}
++	size = resource_size(&d->res);
++	tmp = ioremap(d->res.start, size);
++	if (!tmp)
++		return -ENOMEM;
  
- 	if (!devname)
- 		devname = "deviceless";
-@@ -1512,40 +1519,46 @@ static struct regulator *_regulator_get(struct device *dev, const char *id,
- 			devname, id);
+-	ret = amba_get_enable_pclk(dev);
++	ret = amba_get_enable_pclk(d);
+ 	if (ret == 0) {
+ 		u32 pid, cid;
  
- 		rdev = dummy_regulator_rdev;
-+		get_device(&rdev->dev);
- 		goto found;
- 	/* Don't log an error when called from regulator_get_optional() */
- 	} else if (!have_full_constraints() || exclusive) {
- 		dev_warn(dev, "dummy supplies not allowed\n");
+@@ -388,37 +373,50 @@ int amba_device_add(struct amba_device *dev, struct resource *parent)
+ 			cid |= (readl(tmp + size - 0x10 + 4 * i) & 255) <<
+ 				(i * 8);
+ 
+-		amba_put_disable_pclk(dev);
++		amba_put_disable_pclk(d);
+ 
+ 		if (cid == AMBA_CID || cid == CORESIGHT_CID)
+-			dev->periphid = pid;
++			d->periphid = pid;
+ 
+-		if (!dev->periphid)
++		if (!d->periphid)
+ 			ret = -ENODEV;
  	}
  
--	mutex_unlock(&regulator_list_mutex);
- 	return regulator;
+ 	iounmap(tmp);
  
- found:
- 	if (rdev->exclusive) {
- 		regulator = ERR_PTR(-EPERM);
--		goto out;
-+		put_device(&rdev->dev);
-+		return regulator;
- 	}
++	return ret;
++}
++
++/**
++ *	amba_device_add - add a previously allocated AMBA device structure
++ *	@dev: AMBA device allocated by amba_device_alloc
++ *	@parent: resource parent for this devices resources
++ *
++ *	Claim the resource, and register the AMBA device with the Linux device
++ *	manager.
++ */
++int amba_device_add(struct amba_device *dev, struct resource *parent)
++{
++	int ret;
++
++	WARN_ON(dev->irq[0] == (unsigned int)-1);
++	WARN_ON(dev->irq[1] == (unsigned int)-1);
++
++	ret = request_resource(parent, &dev->res);
+ 	if (ret)
+-		goto err_release;
++		return ret;
  
- 	if (exclusive && rdev->open_count) {
- 		regulator = ERR_PTR(-EBUSY);
--		goto out;
-+		put_device(&rdev->dev);
-+		return regulator;
- 	}
+- skip_probe:
+ 	ret = device_add(&dev->dev);
+ 	if (ret)
+-		goto err_release;
++		return ret;
  
- 	ret = regulator_resolve_supply(rdev);
- 	if (ret < 0) {
- 		regulator = ERR_PTR(ret);
--		goto out;
-+		put_device(&rdev->dev);
-+		return regulator;
- 	}
- 
--	if (!try_module_get(rdev->owner))
--		goto out;
-+	if (!try_module_get(rdev->owner)) {
-+		put_device(&rdev->dev);
-+		return regulator;
-+	}
- 
- 	regulator = create_regulator(rdev, dev, id);
- 	if (regulator == NULL) {
- 		regulator = ERR_PTR(-ENOMEM);
-+		put_device(&rdev->dev);
- 		module_put(rdev->owner);
--		goto out;
-+		return regulator;
- 	}
- 
- 	rdev->open_count++;
-@@ -1559,9 +1572,6 @@ found:
- 			rdev->use_count = 0;
- 	}
- 
--out:
--	mutex_unlock(&regulator_list_mutex);
+ 	if (dev->irq[0])
+ 		ret = device_create_file(&dev->dev, &dev_attr_irq0);
+ 	if (ret == 0 && dev->irq[1])
+ 		ret = device_create_file(&dev->dev, &dev_attr_irq1);
+-	if (ret == 0)
+-		return ret;
 -
- 	return regulator;
+-	device_unregister(&dev->dev);
++	if (ret)
++		device_unregister(&dev->dev);
+ 
+- err_release:
+-	release_resource(&dev->res);
+- err_out:
+ 	return ret;
  }
- 
-@@ -1659,6 +1669,7 @@ static void _regulator_put(struct regulator *regulator)
- 
- 	rdev->open_count--;
- 	rdev->exclusive = 0;
-+	put_device(&rdev->dev);
- 	mutex_unlock(&rdev->mutex);
- 
- 	kfree(regulator->supply_name);
+ EXPORT_SYMBOL_GPL(amba_device_add);
 -- 
 2.4.3
