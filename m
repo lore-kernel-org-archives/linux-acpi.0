@@ -1,7 +1,7 @@
 From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Subject: [PATCH v5 01/23] driver core: Add pre_probe callback to bus_type
-Date: Thu, 17 Sep 2015 14:56:55 +0200
-Message-ID: <1442494637-3674-2-git-send-email-tomeu.vizoso@collabora.com>
+Subject: [PATCH v5 03/23] of/platform: Point to struct device from device node
+Date: Thu, 17 Sep 2015 14:56:57 +0200
+Message-ID: <1442494637-3674-4-git-send-email-tomeu.vizoso@collabora.com>
 References: <1442494637-3674-1-git-send-email-tomeu.vizoso@collabora.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1442494637-3674-1-git-send-email-tomeu.vizoso@collabora.com>
@@ -10,119 +10,99 @@ To: linux-kernel@vger.kernel.org
 Cc: Rob Herring <robh+dt@kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-arm-kernel@lists.infradead.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Tomeu Vizoso <tomeu.vizoso@collabora.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Some buses (eg. AMBA) need access to some HW resources (it may need a
-clock to be enabled so a device ID can be read) before a device can be
-matched to a driver.
+When adding platform and AMBA devices, set the device node's device
+member to point to it.
 
-The pre_probe callback allows the device-driver core to request the bus
-to perform this initialization and can defer the probe if any of the
-resources needed are missing.
-
-This gives us more flexibility when setting the order in which devices
-are probed because the resources needed to get the matching information
-don't need to be available by the time that the bus devices are
-registered.
+This speeds lookups considerably and is safe because we only create one
+of these devices for any given device node.
 
 Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
 ---
 
 Changes in v5:
-- Reduce some code duplication by adding device_pre_probe()
-- Print a warning if pre_probe() returns an error
+- Set the pointer to struct device also for AMBA devices
+- Unset the pointer to struct device when the platform device is about
+  to be unregistered
+- Increase the reference count of the device before returning from
+  of_find_device_by_node()
 
 Changes in v4: None
 Changes in v3: None
 Changes in v2: None
 
- drivers/base/dd.c      | 39 +++++++++++++++++++++++++++++++++++++++
- include/linux/device.h |  4 ++++
- 2 files changed, 43 insertions(+)
+ drivers/of/platform.c | 19 ++++++++++---------
+ include/linux/of.h    |  1 +
+ 2 files changed, 11 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/base/dd.c b/drivers/base/dd.c
-index be0eb4639128..5caa8478404d 100644
---- a/drivers/base/dd.c
-+++ b/drivers/base/dd.c
-@@ -539,6 +539,37 @@ static void __device_attach_async_helper(void *_dev, async_cookie_t cookie)
- 	put_device(dev);
- }
+diff --git a/drivers/of/platform.c b/drivers/of/platform.c
+index 1001efaedcb8..408d89f1d124 100644
+--- a/drivers/of/platform.c
++++ b/drivers/of/platform.c
+@@ -32,11 +32,6 @@ const struct of_device_id of_default_bus_match_table[] = {
+ 	{} /* Empty terminated list */
+ };
  
-+/**
-+ * device_pre_probe - perform initializations before a device can be matched
-+ * @dev: device.
-+ *
-+ * Call the pre_probe() callback in the bus, if any, to give it a chance to
-+ * perform any initializations needed before the device can be matched to a
-+ * driver (for example, read a device id from a register).
-+ *
-+ * Returns 1 if the operation was successful or there's no pre_probe callback
-+ * 0 if an error happened and the device isn't ready to be matched to a driver
-+ */
-+static int device_pre_probe(struct device *dev)
-+{
-+	int ret;
-+
-+	if (!dev->bus || !dev->bus->pre_probe)
-+		return 1;
-+
-+	ret = dev->bus->pre_probe(dev);
-+	if (ret) {
-+		if (ret == -EPROBE_DEFER)
-+			driver_deferred_probe_add(dev);
-+		else
-+			dev_warn(dev, "pre-probe failed: %d\n", ret);
-+
-+		return 0;
-+	}
-+
-+	return 1;
-+}
-+
- static int __device_attach(struct device *dev, bool allow_async)
+-static int of_dev_node_match(struct device *dev, void *data)
+-{
+-	return dev->of_node == data;
+-}
+-
+ /**
+  * of_find_device_by_node - Find the platform_device associated with a node
+  * @np: Pointer to device tree node
+@@ -45,10 +40,10 @@ static int of_dev_node_match(struct device *dev, void *data)
+  */
+ struct platform_device *of_find_device_by_node(struct device_node *np)
  {
- 	int ret = 0;
-@@ -566,6 +597,11 @@ static int __device_attach(struct device *dev, bool allow_async)
- 		if (dev->parent)
- 			pm_runtime_get_sync(dev->parent);
+-	struct device *dev;
+-
+-	dev = bus_find_device(&platform_bus_type, NULL, np, of_dev_node_match);
+-	return dev ? to_platform_device(dev) : NULL;
++	if (np->device && np->device->bus == &platform_bus_type &&
++	    get_device(np->device))
++		return to_platform_device(np->device);
++	return NULL;
+ }
+ EXPORT_SYMBOL(of_find_device_by_node);
  
-+		if (!device_pre_probe(dev)) {
-+			ret = 0;
-+			goto out_unlock;
-+		}
+@@ -192,6 +187,8 @@ static struct platform_device *of_platform_device_create_pdata(
+ 		goto err_clear_flag;
+ 	}
+ 
++	np->device = &dev->dev;
 +
- 		ret = bus_for_each_drv(dev->bus, NULL, &data,
- 					__device_attach_driver);
- 		if (!ret && allow_async && data.have_async) {
-@@ -630,6 +666,9 @@ static int __driver_attach(struct device *dev, void *data)
- 	 * is an error.
- 	 */
+ 	return dev;
  
-+	if (!device_pre_probe(dev))
-+		return 0;
+ err_clear_flag:
+@@ -272,6 +269,8 @@ static struct amba_device *of_amba_device_create(struct device_node *node,
+ 		goto err_free;
+ 	}
+ 
++	node->device = &dev->dev;
 +
- 	if (!driver_match_device(drv, dev))
- 		return 0;
+ 	return dev;
  
-diff --git a/include/linux/device.h b/include/linux/device.h
-index 5d7bc6349930..d8be07bc9c3f 100644
---- a/include/linux/device.h
-+++ b/include/linux/device.h
-@@ -74,6 +74,9 @@ extern void bus_remove_file(struct bus_type *, struct bus_attribute *);
-  *		given device can be handled by the given driver.
-  * @uevent:	Called when a device is added, removed, or a few other things
-  *		that generate uevents to add the environment variables.
-+ * @pre_probe:	Called when a new device or driver is added to this bus, to
-+ *		perform any initializations that are needed so the device can
-+ *		be matched to a driver.
-  * @probe:	Called when a new device or driver add to this bus, and callback
-  *		the specific driver's probe to initial the matched device.
-  * @remove:	Called when a device removed from this bus.
-@@ -113,6 +116,7 @@ struct bus_type {
+ err_free:
+@@ -476,6 +475,8 @@ static int of_platform_device_destroy(struct device *dev, void *data)
+ 	if (of_node_check_flag(dev->of_node, OF_POPULATED_BUS))
+ 		device_for_each_child(dev, NULL, of_platform_device_destroy);
  
- 	int (*match)(struct device *dev, struct device_driver *drv);
- 	int (*uevent)(struct device *dev, struct kobj_uevent_env *env);
-+	int (*pre_probe)(struct device *dev);
- 	int (*probe)(struct device *dev);
- 	int (*remove)(struct device *dev);
- 	void (*shutdown)(struct device *dev);
++	dev->of_node->device = NULL;
++
+ 	if (dev->bus == &platform_bus_type)
+ 		platform_device_unregister(to_platform_device(dev));
+ #ifdef CONFIG_ARM_AMBA
+diff --git a/include/linux/of.h b/include/linux/of.h
+index 2194b8ca41f9..eb091be0f8ee 100644
+--- a/include/linux/of.h
++++ b/include/linux/of.h
+@@ -52,6 +52,7 @@ struct device_node {
+ 	phandle phandle;
+ 	const char *full_name;
+ 	struct fwnode_handle fwnode;
++	struct device *device;
+ 
+ 	struct	property *properties;
+ 	struct	property *deadprops;	/* removed properties */
 -- 
 2.4.3
