@@ -1,52 +1,41 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v3 0/5] ACPI: Provide better MADT subtable sanity checks
-Date: Thu, 17 Sep 2015 02:34:26 +0200
-Message-ID: <2360913.mWVNIccye0@vostro.rjw.lan>
-References: <1441832991-28200-1-git-send-email-al.stone@linaro.org> <55F997C1.20606@linaro.org> <55F9988D.5080002@redhat.com>
+Subject: Re: [PATCH] ACPI / PNP: Reserve ACPI resources at the fs_initcall_sync stage
+Date: Thu, 17 Sep 2015 02:44:34 +0200
+Message-ID: <1939916.sIenfPkyq6@vostro.rjw.lan>
+References: <5042629.WJWA6bekh1@vostro.rjw.lan> <CAFSKS=OrfLH3q0xrt3T4L20nCcPYTsEB0YDVahmHa3-O79rE3A@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <55F9988D.5080002@redhat.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: Al Stone <ahs3@redhat.com>
-Cc: Al Stone <al.stone@linaro.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-pm@vger.kernel.org, linaro-acpi@lists.linaro.org, linaro-kernel@lists.linaro.org, patches@linaro.org, "lenb@kernel.org" <lenb@kernel.org>, "tony.luck@intel.com" <tony.luck@intel.com>, "fenghua.yu@intel.com" <fenghua.yu@intel.com>, Pavel Machek <pavel@ucw.cz>, "tglx@linutronix.de" <tglx@linutronix.de>, mingo@redhat.com, "H. Peter Anvin" <hpa@linux.intel.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CAFSKS=OrfLH3q0xrt3T4L20nCcPYTsEB0YDVahmHa3-O79rE3A@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: George McCollister <george.mccollister@gmail.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, g5983969@trbvm.com, Roland Dreier <roland@purestorage.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday, September 16, 2015 10:27:57 AM Al Stone wrote:
-> On 09/16/2015 10:24 AM, Al Stone wrote:
-> > On 09/15/2015 08:44 PM, Rafael J. Wysocki wrote:
-> >> On Tuesday, September 15, 2015 03:13:12 PM Al Stone wrote:
-> >>> On 09/09/2015 03:09 PM, Al Stone wrote:
-> >>>> Currently, the BAD_MADT_ENTRY macro is used to do a very simple sanity
-> >>>> check on the various subtables that are defined for the MADT.  The check
-> >>>> compares the size of the subtable data structure as defined by ACPICA to
-> >>>> the length entry in the subtable.  If they are not the same, the assumption
-> >>>> is that the subtable is incorrect.
-> >>>>
+On Wednesday, September 16, 2015 04:45:51 PM George McCollister wrote:
+> Unfortunately I just got around to trying linux 4.1.6 (which contains
+> this commit) on the Versalogic Tiger (VL-EPM-24)
+> http://www.versalogic.com/tiger and this commit breaks it, seems to be
+> back to the old behavior reported here:
 > 
-> [snip...]
+> http://marc.info/?t=143092384600002&r=1&w=2
 > 
-> >> I'm going to apply this series if people have no problems with it.  I do think
-> >> it is slightly overkill, but then as long as it works ...
-> >>
-> >> Thanks,
-> >> Rafael
-> >>
+> Before reversing the commit it shows:
+> pci 0000:00:1c.0: BAR 13: assigned [io  0x2000-0x2fff]
 > 
-> Would you prefer I send out the updated version with Sudeep's fix to apply
-> instead of this version?
+> After reversing the commit it shows:
+> pci 0000:00:1c.0: BAR 13: assigned [io  0x3000-0x3fff]
+> 
+> I don't have a solution to propose at this point and haven't tried the
+> latest upstream so I'll just be building with this commit reversed
+> (which solves the problem) until I have a chance to look into this
+> further.
 
-Yes, I would.
-
-> Or have you picked that up already?
-
-No, I haven't.
-
-> Easily updated and sent out, if it'll make your life simpler....
-
-Yes, please.
+It looks like on your system the ACPI resources really need to be reserved
+before the PCI bus is initialized, but we can't do that unconditionally
+for everyone without introducing regressions, so the only way to address
+that I can see would be to blacklist your system.
 
 Thanks,
 Rafael
-
