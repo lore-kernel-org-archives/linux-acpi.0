@@ -1,64 +1,59 @@
 From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Subject: [PATCH v5 13/23] pwm: Probe PWM chip devices on demand
-Date: Thu, 17 Sep 2015 14:57:07 +0200
-Message-ID: <1442494637-3674-14-git-send-email-tomeu.vizoso@collabora.com>
+Subject: [PATCH v5 22/23] driver core: Start processing deferred probes earlier
+Date: Thu, 17 Sep 2015 14:57:16 +0200
+Message-ID: <1442494637-3674-23-git-send-email-tomeu.vizoso@collabora.com>
 References: <1442494637-3674-1-git-send-email-tomeu.vizoso@collabora.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1442494637-3674-1-git-send-email-tomeu.vizoso@collabora.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
-Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>, devicetree@vger.kernel.org, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@wwwdotorg.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Rob Herring <robh+dt@kernel.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Alan Stern <stern@rowland.harvard.edu>, linux-arm-kernel@lists.infradead.org
+Cc: Rob Herring <robh+dt@kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-arm-kernel@lists.infradead.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Tomeu Vizoso <tomeu.vizoso@collabora.com>
 List-Id: linux-acpi@vger.kernel.org
 
-When looking up a PWM chip through its OF node, probe it if it hasn't
-already.
+Some initcalls in the late level assume that some devices will have
+already probed without explicitly checking for that.
 
-The goal is to reduce deferred probes to a minimum, as it makes it very
-cumbersome to find out why a device failed to probe, and can introduce
-very big delays in when a critical device is probed.
+After the recent move to defer most device probes when they are
+registered, pressure increased in the late initcall level.
+
+By starting the processing of the deferred queue in device_initcall_sync
+we increase the chances that the initcalls mentioned before will find
+the devices they depend on to have already probed.
 
 Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
 ---
 
 Changes in v5: None
-Changes in v4: None
+Changes in v4:
+- Start processing deferred probes in device_initcall_sync
+
 Changes in v3: None
 Changes in v2: None
 
- drivers/pwm/core.c | 3 +++
- 1 file changed, 3 insertions(+)
+ drivers/base/dd.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/pwm/core.c b/drivers/pwm/core.c
-index 3f9df3ea3350..794a923df0d8 100644
---- a/drivers/pwm/core.c
-+++ b/drivers/pwm/core.c
-@@ -29,6 +29,7 @@
- #include <linux/device.h>
- #include <linux/debugfs.h>
- #include <linux/seq_file.h>
-+#include <linux/of_device.h>
- 
- #include <dt-bindings/pwm/pwm.h>
- 
-@@ -516,6 +517,8 @@ static struct pwm_chip *of_node_to_pwmchip(struct device_node *np)
+diff --git a/drivers/base/dd.c b/drivers/base/dd.c
+index 300c59562fc9..5d8572be9b63 100644
+--- a/drivers/base/dd.c
++++ b/drivers/base/dd.c
+@@ -176,7 +176,7 @@ static void driver_deferred_probe_trigger(void)
+  *
+  * We don't want to get in the way when the bulk of drivers are getting probed.
+  * Instead, this initcall makes sure that deferred probing is delayed until
+- * late_initcall time.
++ * device_initcall_sync time.
+  */
+ static int deferred_probe_initcall(void)
  {
- 	struct pwm_chip *chip;
+@@ -190,7 +190,7 @@ static int deferred_probe_initcall(void)
+ 	flush_workqueue(deferred_wq);
+ 	return 0;
+ }
+-late_initcall(deferred_probe_initcall);
++device_initcall_sync(deferred_probe_initcall);
  
-+	of_device_probe(np);
-+
- 	mutex_lock(&pwm_lock);
- 
- 	list_for_each_entry(chip, &pwm_chips, list)
+ static void driver_bound(struct device *dev)
+ {
 -- 
 2.4.3
