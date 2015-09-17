@@ -1,41 +1,52 @@
-From: Al Stone <al.stone@linaro.org>
-Subject: [PATCH v4 5/5] ACPI: remove definition of BAD_MADT_ENTRY macro
-Date: Wed, 16 Sep 2015 17:26:45 -0600
-Message-ID: <1442446005-19799-6-git-send-email-al.stone@linaro.org>
-References: <1442446005-19799-1-git-send-email-al.stone@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1442446005-19799-1-git-send-email-al.stone@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Cc: linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-pm@vger.kernel.org, linaro-acpi@lists.linaro.org, linaro-kernel@lists.linaro.org, patches@linaro.org, Al Stone <al.stone@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v3 0/5] ACPI: Provide better MADT subtable sanity checks
+Date: Thu, 17 Sep 2015 02:34:26 +0200
+Message-ID: <2360913.mWVNIccye0@vostro.rjw.lan>
+References: <1441832991-28200-1-git-send-email-al.stone@linaro.org> <55F997C1.20606@linaro.org> <55F9988D.5080002@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <55F9988D.5080002@redhat.com>
+Sender: linux-ia64-owner@vger.kernel.org
+To: Al Stone <ahs3@redhat.com>
+Cc: Al Stone <al.stone@linaro.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-pm@vger.kernel.org, linaro-acpi@lists.linaro.org, linaro-kernel@lists.linaro.org, patches@linaro.org, "lenb@kernel.org" <lenb@kernel.org>, "tony.luck@intel.com" <tony.luck@intel.com>, "fenghua.yu@intel.com" <fenghua.yu@intel.com>, Pavel Machek <pavel@ucw.cz>, "tglx@linutronix.de" <tglx@linutronix.de>, mingo@redhat.com, "H. Peter Anvin" <hpa@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Now that we have introduced to bad_madt_entry(), and we have removed
-all the usages of the BAD_MADT_ENTRY macro from all of the various
-architectures that use it (arm64, ia64, x86), we can remove the macro
-definition since it is no longer used.
+On Wednesday, September 16, 2015 10:27:57 AM Al Stone wrote:
+> On 09/16/2015 10:24 AM, Al Stone wrote:
+> > On 09/15/2015 08:44 PM, Rafael J. Wysocki wrote:
+> >> On Tuesday, September 15, 2015 03:13:12 PM Al Stone wrote:
+> >>> On 09/09/2015 03:09 PM, Al Stone wrote:
+> >>>> Currently, the BAD_MADT_ENTRY macro is used to do a very simple sanity
+> >>>> check on the various subtables that are defined for the MADT.  The check
+> >>>> compares the size of the subtable data structure as defined by ACPICA to
+> >>>> the length entry in the subtable.  If they are not the same, the assumption
+> >>>> is that the subtable is incorrect.
+> >>>>
+> 
+> [snip...]
+> 
+> >> I'm going to apply this series if people have no problems with it.  I do think
+> >> it is slightly overkill, but then as long as it works ...
+> >>
+> >> Thanks,
+> >> Rafael
+> >>
+> 
+> Would you prefer I send out the updated version with Sudeep's fix to apply
+> instead of this version?
 
-Signed-off-by: Al Stone <al.stone@linaro.org>
-Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>
----
- include/linux/acpi.h | 4 ----
- 1 file changed, 4 deletions(-)
+Yes, I would.
 
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 7235c48..a6d6326 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -127,10 +127,6 @@ static inline void acpi_initrd_override(void *data, size_t size)
- }
- #endif
- 
--#define BAD_MADT_ENTRY(entry, end) (					    \
--		(!entry) || (unsigned long)entry + sizeof(*entry) > end ||  \
--		((struct acpi_subtable_header *)entry)->length < sizeof(*entry))
--
- char * __acpi_map_table (unsigned long phys_addr, unsigned long size);
- void __acpi_unmap_table(char *map, unsigned long size);
- int early_acpi_boot_init(void);
--- 
-2.4.3
+> Or have you picked that up already?
+
+No, I haven't.
+
+> Easily updated and sent out, if it'll make your life simpler....
+
+Yes, please.
+
+Thanks,
+Rafael
+
