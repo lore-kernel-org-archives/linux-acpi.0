@@ -1,41 +1,90 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / PNP: Reserve ACPI resources at the fs_initcall_sync stage
-Date: Thu, 17 Sep 2015 02:44:34 +0200
-Message-ID: <1939916.sIenfPkyq6@vostro.rjw.lan>
-References: <5042629.WJWA6bekh1@vostro.rjw.lan> <CAFSKS=OrfLH3q0xrt3T4L20nCcPYTsEB0YDVahmHa3-O79rE3A@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <CAFSKS=OrfLH3q0xrt3T4L20nCcPYTsEB0YDVahmHa3-O79rE3A@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: George McCollister <george.mccollister@gmail.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Bjorn Helgaas <bhelgaas@google.com>, g5983969@trbvm.com, Roland Dreier <roland@purestorage.com>
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: [Bugfix 1/2] ACPI, PCI, irq: Do not share PCI IRQ with ISA IRQ
+Date: Thu, 17 Sep 2015 14:02:45 +0800
+Message-ID: <1442469766-31264-1-git-send-email-jiang.liu@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:11986 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752989AbbIQF7s (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 17 Sep 2015 01:59:48 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, wfg@linux.intel.com, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org
 
-On Wednesday, September 16, 2015 04:45:51 PM George McCollister wrote:
-> Unfortunately I just got around to trying linux 4.1.6 (which contains
-> this commit) on the Versalogic Tiger (VL-EPM-24)
-> http://www.versalogic.com/tiger and this commit breaks it, seems to be
-> back to the old behavior reported here:
-> 
-> http://marc.info/?t=143092384600002&r=1&w=2
-> 
-> Before reversing the commit it shows:
-> pci 0000:00:1c.0: BAR 13: assigned [io  0x2000-0x2fff]
-> 
-> After reversing the commit it shows:
-> pci 0000:00:1c.0: BAR 13: assigned [io  0x3000-0x3fff]
-> 
-> I don't have a solution to propose at this point and haven't tried the
-> latest upstream so I'll just be building with this commit reversed
-> (which solves the problem) until I have a chance to look into this
-> further.
+Avoid IRQs occupied by ISA IRQs when allocating IRQs for PCI link devices,
+otherwise it may cause interrupt storm due to incompatible pin attributes.
 
-It looks like on your system the ACPI resources really need to be reserved
-before the PCI bus is initialized, but we can't do that unconditionally
-for everyone without introducing regressions, so the only way to address
-that I can see would be to blacklist your system.
+This issue was triggered on a KVM virtual machine, which
+1) uses IRQ9 for SCI in high level mode.
+2) defines an PCI interrupt link device (LNKS) with IRQ9 as the only
+   possible irq.
+3) has an PCI device referring to link device LNKS.
+So it causes interrupt storm when enabling the PCI device because PCI IRQ
+works in low level mode.
 
-Thanks,
-Rafael
+Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+---
+ drivers/acpi/pci_irq.c  |    1 +
+ drivers/acpi/pci_link.c |   13 +++++++++++++
+ include/linux/acpi.h    |    1 +
+ 3 files changed, 15 insertions(+)
+
+diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
+index 6da0f9beab19..c9336751e5e3 100644
+--- a/drivers/acpi/pci_irq.c
++++ b/drivers/acpi/pci_irq.c
+@@ -372,6 +372,7 @@ static int acpi_isa_register_gsi(struct pci_dev *dev)
+ 
+ 	/* Interrupt Line values above 0xF are forbidden */
+ 	if (dev->irq > 0 && (dev->irq <= 0xF) &&
++	    acpi_isa_irq_available(dev->irq) &&
+ 	    (acpi_isa_irq_to_gsi(dev->irq, &dev_gsi) == 0)) {
+ 		dev_warn(&dev->dev, "PCI INT %c: no GSI - using ISA IRQ %d\n",
+ 			 pin_name(dev->pin), dev->irq);
+diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+index 3b4ea98e3ea0..246e50d22120 100644
+--- a/drivers/acpi/pci_link.c
++++ b/drivers/acpi/pci_link.c
+@@ -553,6 +553,13 @@ static int acpi_pci_link_allocate(struct acpi_pci_link *link)
+ 				irq = link->irq.possible[i];
+ 		}
+ 	}
++	if (acpi_irq_penalty[irq] >= PIRQ_PENALTY_ISA_ALWAYS) {
++		printk(KERN_ERR PREFIX "No IRQ available for %s [%s]. "
++			    "Try pci=noacpi or acpi=off\n",
++			    acpi_device_name(link->device),
++			    acpi_device_bid(link->device));
++		return -ENODEV;
++	}
+ 
+ 	/* Attempt to enable the link device at this IRQ. */
+ 	if (acpi_pci_link_set(link, irq)) {
+@@ -821,6 +828,12 @@ void acpi_penalize_isa_irq(int irq, int active)
+ 	}
+ }
+ 
++bool acpi_isa_irq_available(int irq)
++{
++	return irq >= 0 && (irq >= ARRAY_SIZE(acpi_irq_penalty) ||
++			    acpi_irq_penalty[irq] < PIRQ_PENALTY_ISA_ALWAYS);
++}
++
+ /*
+  * Penalize IRQ used by ACPI SCI. If ACPI SCI pin attributes conflict with
+  * PCI IRQ attributes, mark ACPI SCI as ISA_ALWAYS so it won't be use for
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 7235c4851460..43856d19cf4d 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -217,6 +217,7 @@ struct pci_dev;
+ 
+ int acpi_pci_irq_enable (struct pci_dev *dev);
+ void acpi_penalize_isa_irq(int irq, int active);
++bool acpi_isa_irq_available(int irq);
+ void acpi_penalize_sci_irq(int irq, int trigger, int polarity);
+ void acpi_pci_irq_disable (struct pci_dev *dev);
+ 
+-- 
+1.7.10.4
+
