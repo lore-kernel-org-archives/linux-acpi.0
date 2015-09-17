@@ -1,16 +1,27 @@
 From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Subject: [PATCH v5 20/23] power-supply: Probe power supplies on demand
-Date: Thu, 17 Sep 2015 14:57:14 +0200
-Message-ID: <1442494637-3674-21-git-send-email-tomeu.vizoso@collabora.com>
+Subject: [PATCH v5 05/23] gpio: Probe GPIO drivers on demand
+Date: Thu, 17 Sep 2015 14:56:59 +0200
+Message-ID: <1442494637-3674-6-git-send-email-tomeu.vizoso@collabora.com>
 References: <1442494637-3674-1-git-send-email-tomeu.vizoso@collabora.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1442494637-3674-1-git-send-email-tomeu.vizoso@collabora.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-kernel@vger.kernel.org
-Cc: Rob Herring <robh+dt@kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-arm-kernel@lists.infradead.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>, devicetree@vger.kernel.org, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@wwwdotorg.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Rob Herring <robh+dt@kernel.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Alan Stern <stern@rowland.harvard.edu>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-When looking up a power supply through its OF node, probe it if it
+When looking up a gpiochip through its firmware node, probe it if it
 hasn't already.
 
 The goal is to reduce deferred probes to a minimum, as it makes it very
@@ -25,29 +36,29 @@ Changes in v4: None
 Changes in v3: None
 Changes in v2: None
 
- drivers/power/power_supply_core.c | 3 +++
+ drivers/gpio/gpiolib-of.c | 3 +++
  1 file changed, 3 insertions(+)
 
-diff --git a/drivers/power/power_supply_core.c b/drivers/power/power_supply_core.c
-index 456987c88baa..80bc89f4ae89 100644
---- a/drivers/power/power_supply_core.c
-+++ b/drivers/power/power_supply_core.c
+diff --git a/drivers/gpio/gpiolib-of.c b/drivers/gpio/gpiolib-of.c
+index fa6e3c8823d6..9a439dab7a87 100644
+--- a/drivers/gpio/gpiolib-of.c
++++ b/drivers/gpio/gpiolib-of.c
 @@ -19,6 +19,7 @@
- #include <linux/err.h>
- #include <linux/power_supply.h>
- #include <linux/thermal.h>
+ #include <linux/gpio/consumer.h>
+ #include <linux/of.h>
+ #include <linux/of_address.h>
 +#include <linux/of_device.h>
- #include "power_supply.h"
+ #include <linux/of_gpio.h>
+ #include <linux/pinctrl/pinctrl.h>
+ #include <linux/slab.h>
+@@ -95,6 +96,8 @@ struct gpio_desc *of_get_named_gpiod_flags(struct device_node *np,
+ 		return ERR_PTR(ret);
+ 	}
  
- /* exported for the APM Power driver, APM emulation */
-@@ -206,6 +207,8 @@ static int power_supply_find_supply_from_node(struct device_node *supply_node)
- {
- 	int error;
- 
-+	of_device_probe(supply_node);
++	of_device_probe(gg_data.gpiospec.np);
 +
- 	/*
- 	 * class_for_each_device() either returns its own errors or values
- 	 * returned by __power_supply_find_supply_from_node().
+ 	gpiochip_find(&gg_data, of_gpiochip_find_and_xlate);
+ 
+ 	of_node_put(gg_data.gpiospec.np);
 -- 
 2.4.3
