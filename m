@@ -1,7 +1,7 @@
 From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Subject: [PATCH v5 05/23] gpio: Probe GPIO drivers on demand
-Date: Thu, 17 Sep 2015 14:56:59 +0200
-Message-ID: <1442494637-3674-6-git-send-email-tomeu.vizoso@collabora.com>
+Subject: [PATCH v5 13/23] pwm: Probe PWM chip devices on demand
+Date: Thu, 17 Sep 2015 14:57:07 +0200
+Message-ID: <1442494637-3674-14-git-send-email-tomeu.vizoso@collabora.com>
 References: <1442494637-3674-1-git-send-email-tomeu.vizoso@collabora.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,8 +21,8 @@ To: linux-kernel@vger.kernel.org
 Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>, devicetree@vger.kernel.org, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@wwwdotorg.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Rob Herring <robh+dt@kernel.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Alan Stern <stern@rowland.harvard.edu>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-When looking up a gpiochip through its firmware node, probe it if it
-hasn't already.
+When looking up a PWM chip through its OF node, probe it if it hasn't
+already.
 
 The goal is to reduce deferred probes to a minimum, as it makes it very
 cumbersome to find out why a device failed to probe, and can introduce
@@ -36,29 +36,29 @@ Changes in v4: None
 Changes in v3: None
 Changes in v2: None
 
- drivers/gpio/gpiolib-of.c | 3 +++
+ drivers/pwm/core.c | 3 +++
  1 file changed, 3 insertions(+)
 
-diff --git a/drivers/gpio/gpiolib-of.c b/drivers/gpio/gpiolib-of.c
-index fa6e3c8823d6..9a439dab7a87 100644
---- a/drivers/gpio/gpiolib-of.c
-+++ b/drivers/gpio/gpiolib-of.c
-@@ -19,6 +19,7 @@
- #include <linux/gpio/consumer.h>
- #include <linux/of.h>
- #include <linux/of_address.h>
+diff --git a/drivers/pwm/core.c b/drivers/pwm/core.c
+index 3f9df3ea3350..794a923df0d8 100644
+--- a/drivers/pwm/core.c
++++ b/drivers/pwm/core.c
+@@ -29,6 +29,7 @@
+ #include <linux/device.h>
+ #include <linux/debugfs.h>
+ #include <linux/seq_file.h>
 +#include <linux/of_device.h>
- #include <linux/of_gpio.h>
- #include <linux/pinctrl/pinctrl.h>
- #include <linux/slab.h>
-@@ -95,6 +96,8 @@ struct gpio_desc *of_get_named_gpiod_flags(struct device_node *np,
- 		return ERR_PTR(ret);
- 	}
  
-+	of_device_probe(gg_data.gpiospec.np);
+ #include <dt-bindings/pwm/pwm.h>
+ 
+@@ -516,6 +517,8 @@ static struct pwm_chip *of_node_to_pwmchip(struct device_node *np)
+ {
+ 	struct pwm_chip *chip;
+ 
++	of_device_probe(np);
 +
- 	gpiochip_find(&gg_data, of_gpiochip_find_and_xlate);
+ 	mutex_lock(&pwm_lock);
  
- 	of_node_put(gg_data.gpiospec.np);
+ 	list_for_each_entry(chip, &pwm_chips, list)
 -- 
 2.4.3
