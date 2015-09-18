@@ -1,45 +1,105 @@
-From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Subject: Re: [PATCH v5 01/23] driver core: Add pre_probe callback to bus_type
-Date: Fri, 18 Sep 2015 16:56:32 +0200
-Message-ID: <CAAObsKADuTjSUZbVJj5g3Ead-Zb87JEqRzvgh9DW1my4Bdh33Q@mail.gmail.com>
-References: <1442494637-3674-2-git-send-email-tomeu.vizoso@collabora.com> <Pine.LNX.4.44L0.1509171150410.1270-100000@iolanthe.rowland.org>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] Power management and ACPI updates for v4.3-rc2
+Date: Sat, 19 Sep 2015 00:06:05 +0200
+Message-ID: <CAJZ5v0hcL8PvJotx2A2JBLERQ=kkWMT9pA0q4EyXUm25sdeE6A@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.44L0.1509171150410.1270-100000@iolanthe.rowland.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 17 September 2015 at 17:52, Alan Stern <stern@rowland.harvard.edu> wrote:
-> On Thu, 17 Sep 2015, Tomeu Vizoso wrote:
->
->> Some buses (eg. AMBA) need access to some HW resources (it may need a
->> clock to be enabled so a device ID can be read) before a device can be
->> matched to a driver.
->>
->> The pre_probe callback allows the device-driver core to request the bus
->> to perform this initialization and can defer the probe if any of the
->> resources needed are missing.
->>
->> This gives us more flexibility when setting the order in which devices
->> are probed because the resources needed to get the matching information
->> don't need to be available by the time that the bus devices are
->> registered.
->
-> Can't the subsystem do this itself in its matching routine?
+Hi Linus,
 
-That seems to work, thanks for the idea!
+Please pull from
 
-Regards,
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ pm+acpi-4.3-rc2
 
-Tomeu
+to receive power management and ACPI material for v4.3-rc2 with
+top-most commit 0f40314b81b765c26202cde33523e35809adbe9b
 
-> Alan Stern
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+ Merge branch 'acpi-bus'
+
+on top of commit 6ff33f3902c3b1c5d0db6b1e2c70b6d76fba357f
+
+ Linux 4.3-rc1
+
+Included are: a somewhat late devfreq update which however is mostly
+fixes and cleanups with one new thing only (the PPMUv2 support on
+Exynos5433), an ACPI cpufreq driver fixup and two ACPI core cleanups
+related to preprocessor directives.
+
+Specifics:
+
+ - Fix a memory allocation size in the devfreq core (Xiaolong Ye).
+
+ - Fix a mistake in the exynos-ppmu DT binding (Javier Martinez
+   Canillas).
+
+ - Add support for PPMUv2 ((Platform Performance Monitoring Unit
+   version 2.0) on the Exynos5433 SoCs (Chanwoo Choi).
+
+ - Fix a type casting bug in the Exynos PPMU code (MyungJoo Ham).
+
+ - Assorted devfreq code cleanups and optimizations (Javi Merino,
+   MyungJoo Ham, Viresh Kumar).
+
+ - Fix up the ACPI cpufreq driver to use a more lightweight way
+   to get to its private data in the ->get() callback (Rafael J
+   Wysocki).
+
+ - Fix a CONFIG_ prefix bug in one of the ACPI drivers and make
+   the ACPI subsystem use IS_ENABLED() instead of #ifdefs in
+   function bodies (Sudeep Holla).
+
+Thanks!
+
+
+---------------
+
+Chanwoo Choi (2):
+      PM / devfreq: exynos-ppmu: Add the support of PPMUv2 for Exynos5433
+      PM / devfreq: exynos-ppmu: Update documentation to support PPMUv2
+
+Javi Merino (2):
+      PM / devfreq: cache the last call to get_dev_status()
+      PM / devfreq: drop comment about thermal setting max_freq
+
+Javier Martinez Canillas (1):
+      PM / devfreq: event: Remove incorrect property in exynos-ppmu DT binding
+
+MyungJoo Ham (3):
+      PM / devfreq: exynos-ppmu: bit-wise operation bugfix.
+      PM / devfreq: comments for get_dev_status usage updated
+      PM / devfreq: tegra: Update governor to use devfreq_update_stats()
+
+Rafael J. Wysocki (1):
+      cpufreq: acpi-cpufreq: Use cpufreq_cpu_get_raw() in ->get()
+
+Sudeep Holla (2):
+      ACPI: int340x_thermal: add missing CONFIG_ prefix
+      ACPI: Eliminate CONFIG_.*{, _MODULE} #ifdef in favor of IS_ENABLED()
+
+Viresh Kumar (1):
+      PM / devfreq: Drop unlikely before IS_ERR(_OR_NULL)
+
+Xiaolong Ye (1):
+      PM / devfreq: Fix incorrect type issue.
+
+---------------
+
+ drivers/acpi/bus.c                        | 12 ++++-------
+ drivers/acpi/int340x_thermal.c            |  9 ++++-----
+ drivers/cpufreq/acpi-cpufreq.c            |  3 +--
+ drivers/cpufreq/cpufreq.c                 |  4 ++--
+ drivers/devfreq/devfreq.c                 | 12 +++++------
+ drivers/devfreq/event/exynos-ppmu.c       |  3 ++-
+ drivers/devfreq/governor_simpleondemand.c | 33 +++++++++++++++++--------------
+ drivers/devfreq/tegra-devfreq.c           |  8 +++++---
+ include/acpi/button.h                     |  4 ++--
+ include/acpi/video.h                      |  2 +-
+ include/linux/cpufreq.h                   |  5 +++++
+ include/linux/devfreq.h                   | 24 +++++++++++++++++++++-
+ 12 files changed, 73 insertions(+), 46 deletions(-)
