@@ -1,59 +1,59 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v4 0/2] Fix how CPUs are enumerated when there's more than 255 CPUs
-Date: Sat, 19 Sep 2015 00:38:40 +0200
-Message-ID: <4056505.e2bzOSJciv@vostro.rjw.lan>
-References: <55F00E55.9080008@arm.com> <1441806449-27481-2-git-send-email-lukasz.anaczkowski@intel.com> <8172792.K9nu98zGau@vostro.rjw.lan>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH v5 07/23] regulator: core: Remove regulator_list
+Date: Sat, 19 Sep 2015 08:01:29 -0700
+Message-ID: <20150919150129.GR12027@sirena.org.uk>
+References: <1442494637-3674-1-git-send-email-tomeu.vizoso@collabora.com>
+ <1442494637-3674-8-git-send-email-tomeu.vizoso@collabora.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:65519 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751941AbbIRWKg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Sep 2015 18:10:36 -0400
-In-Reply-To: <8172792.K9nu98zGau@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="55BQxs/tzKPczcTk"
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1442494637-3674-8-git-send-email-tomeu.vizoso@collabora.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Cc: linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Thierry Reding <thierry.reding@gmail.com>, Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-arm-kernel@lists.infradead.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
 List-Id: linux-acpi@vger.kernel.org
-To: Lukasz Anaczkowski <lukasz.anaczkowski@intel.com>
-Cc: marc.zyngier@arm.com, lorenzo.pieralisi@arm.com, tomasz.nowicki@linaro.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, x86@kernel.org, jason@lakedaemon.net, len.brown@intel.com, pavel@ucw.cz, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Wednesday, September 09, 2015 10:45:48 PM Rafael J. Wysocki wrote:
-> On Wednesday, September 09, 2015 03:47:27 PM Lukasz Anaczkowski wrote:
-> > This series of patches attempts to fix how CPUs are enumerated by kernel when
-> > there's more than 255 of them on single processor.
-> > In such case, BIOS may interleave APIC/X2APIC MADT subtables, to obey requirements
-> > specified in ACPI spec. Without this patches, kernel then would first enumerate
-> > BSP, then X2APIC then APIC, resulting in low APIC IDs to be assigned with high
-> > logical IDs and high APIC IDs to be assigned low logical IDs. Biggest consequence
-> > of that could be performance penalties due to wrong L2 cache sharing.
-> > More details in patch 2/2.
-> > 
-> > Also, simpler approach has been considered, which did not required ACPI parsing
-> > interface changes, however it failed to meet requirements. More details can be
-> > found here: https://lkml.org/lkml/2015/9/7/285
-> > 
-> > Lukasz Anaczkowski (2):
-> >   acpi: Added acpi_subtable_proc to ACPI table parsers
-> >   x86, acpi: Handle apic/x2apic entries in MADT in correct order
-> > 
-> >  arch/x86/kernel/acpi/boot.c | 22 +++++++++--
-> >  drivers/acpi/tables.c       | 91 ++++++++++++++++++++++++++++++++++++---------
-> >  include/linux/acpi.h        | 19 ++++++++--
-> >  3 files changed, 107 insertions(+), 25 deletions(-)
-> 
-> OK
-> 
-> Does anyone in the CC have any objections against merging this series?
-> 
-> If not, I'll queue it up as 4.3-rc material.
 
-Well, I had a plan to push this for 4.3-rc2, but then I looked at it again
-and realized that I'd like it to stay in linux-next for a couple of weeks
-at least as I'm really unsure that it's not going to uncover some nastiness
-somewhere.
+--55BQxs/tzKPczcTk
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Which practically means it's now scheduled for v4.4.
+On Thu, Sep 17, 2015 at 02:57:01PM +0200, Tomeu Vizoso wrote:
+> As we are already registering a device with regulator_class for each
+> regulator device, regulator_list is redundant and can be replaced with
+> calls to class_find_device() and class_for_each_device().
 
-Thanks,
-Rafael
+This appears to leak references to the struct devices returned by
+class_find_device() - it takes a reference before it returns so any
+device found using class_find_device() needs to be released with
+put_device() and I don't see any new put_device() calls in here.
 
+> Changes in v5: None
+> Changes in v4: None
+> Changes in v3: None
+> Changes in v2: None
+
+This is not the case at all, this patch was newly added.  If you want
+to include changelogs like this in the patch description try to ensure
+that they bear some relationship to reality, if they don't they are
+actively harmful as they are likely to mislead or annoy the reader.
+
+--55BQxs/tzKPczcTk
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJV/XjIAAoJECTWi3JdVIfQyZIH/0fiZnlocw3ABt0s1/Kpabky
+QIxkNj8r1pYrYVDhQCsLEbZ2+kYufFeRoL3FcWOLbubWw/InFyMKWj7CmEJRN3CR
+W2LTCLqeRy+tjScE7+xt84NA6s9aKJwBCT6NP6vwNYU6EdHwmmbfiXX4olJP30mx
+nVEVZrKTI4Ix4intQspgSUsCWir2GToc44wzIVqatBF/iRk0kAjwii1S27007x1N
+ScmDZ2nPsVrqpHzTZXZSaApZPxwTd4ylCSFHUv67EWtgGTqG1DvfkMd7mYqvFLw6
+E79T5UqxD2+tc2FX5tMBHFT9ETFnKX3CFXqIPX55xg2ZToYLKvKiOvB7WmBOAco=
+=yWQv
+-----END PGP SIGNATURE-----
+
+--55BQxs/tzKPczcTk--
