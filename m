@@ -1,59 +1,51 @@
-From: Mark Brown <broonie@kernel.org>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
 Subject: Re: [PATCH v5 07/23] regulator: core: Remove regulator_list
-Date: Sat, 19 Sep 2015 08:01:29 -0700
-Message-ID: <20150919150129.GR12027@sirena.org.uk>
+Date: Sun, 20 Sep 2015 21:32:42 +0100
+Message-ID: <20150920203242.GM21084@n2100.arm.linux.org.uk>
 References: <1442494637-3674-1-git-send-email-tomeu.vizoso@collabora.com>
  <1442494637-3674-8-git-send-email-tomeu.vizoso@collabora.com>
+ <20150919150129.GR12027@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="55BQxs/tzKPczcTk"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1442494637-3674-8-git-send-email-tomeu.vizoso@collabora.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Cc: linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Thierry Reding <thierry.reding@gmail.com>, Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-arm-kernel@lists.infradead.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
-List-Id: linux-acpi@vger.kernel.org
-
-
---55BQxs/tzKPczcTk
 Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from pandora.arm.linux.org.uk ([78.32.30.218]:34826 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755368AbbITUdB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 20 Sep 2015 16:33:01 -0400
 Content-Disposition: inline
+In-Reply-To: <20150919150129.GR12027@sirena.org.uk>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
+To: Mark Brown <broonie@kernel.org>
+Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>, devicetree@vger.kernel.org, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@wwwdotorg.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Thierry Reding <thierry.reding@gmail.com>, Alan Stern <stern@rowland.harvard.edu>, linux-arm-kernel@lists.infradead.org
 
-On Thu, Sep 17, 2015 at 02:57:01PM +0200, Tomeu Vizoso wrote:
-> As we are already registering a device with regulator_class for each
-> regulator device, regulator_list is redundant and can be replaced with
-> calls to class_find_device() and class_for_each_device().
+On Sat, Sep 19, 2015 at 08:01:29AM -0700, Mark Brown wrote:
+> On Thu, Sep 17, 2015 at 02:57:01PM +0200, Tomeu Vizoso wrote:
+> > As we are already registering a device with regulator_class for each
+> > regulator device, regulator_list is redundant and can be replaced with
+> > calls to class_find_device() and class_for_each_device().
+> 
+> This appears to leak references to the struct devices returned by
+> class_find_device() - it takes a reference before it returns so any
+> device found using class_find_device() needs to be released with
+> put_device() and I don't see any new put_device() calls in here.
 
-This appears to leak references to the struct devices returned by
-class_find_device() - it takes a reference before it returns so any
-device found using class_find_device() needs to be released with
-put_device() and I don't see any new put_device() calls in here.
+When I've been fiding exactly that kind of bug in the PHY code, I've
+been adding comments to the docbook function header detailing the
+requirement to balance the reference.  IMHO, this is a good idea,
+because the more places that get it with these APIs, the more likely
+people are to potentially read it.
 
-> Changes in v5: None
-> Changes in v4: None
-> Changes in v3: None
-> Changes in v2: None
+The comment I've been putting in the phy code is:
 
-This is not the case at all, this patch was newly added.  If you want
-to include changelogs like this in the patch description try to ensure
-that they bear some relationship to reality, if they don't they are
-actively harmful as they are likely to mislead or annoy the reader.
+ * If successful, returns a pointer to the phy_device with the embedded
+ * struct device refcount incremented by one, or NULL on failure. The
+ * refcount must be dropped by calling phy_disconnect() or phy_detach().
 
---55BQxs/tzKPczcTk
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+which even goes as far as telling people how they should be dropping
+the reference.  So there should be no excuse (ignorance is not an
+excuse for this!)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJV/XjIAAoJECTWi3JdVIfQyZIH/0fiZnlocw3ABt0s1/Kpabky
-QIxkNj8r1pYrYVDhQCsLEbZ2+kYufFeRoL3FcWOLbubWw/InFyMKWj7CmEJRN3CR
-W2LTCLqeRy+tjScE7+xt84NA6s9aKJwBCT6NP6vwNYU6EdHwmmbfiXX4olJP30mx
-nVEVZrKTI4Ix4intQspgSUsCWir2GToc44wzIVqatBF/iRk0kAjwii1S27007x1N
-ScmDZ2nPsVrqpHzTZXZSaApZPxwTd4ylCSFHUv67EWtgGTqG1DvfkMd7mYqvFLw6
-E79T5UqxD2+tc2FX5tMBHFT9ETFnKX3CFXqIPX55xg2ZToYLKvKiOvB7WmBOAco=
-=yWQv
------END PGP SIGNATURE-----
-
---55BQxs/tzKPczcTk--
+-- 
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
