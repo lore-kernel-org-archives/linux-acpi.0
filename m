@@ -1,51 +1,50 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH v5 07/23] regulator: core: Remove regulator_list
-Date: Sun, 20 Sep 2015 21:32:42 +0100
-Message-ID: <20150920203242.GM21084@n2100.arm.linux.org.uk>
-References: <1442494637-3674-1-git-send-email-tomeu.vizoso@collabora.com>
- <1442494637-3674-8-git-send-email-tomeu.vizoso@collabora.com>
- <20150919150129.GR12027@sirena.org.uk>
+From: Javi Merino <javi.merino@arm.com>
+Subject: Re: [GIT PULL] Thermal-SoC management updates for v4.3-rc2
+Date: Mon, 21 Sep 2015 09:57:45 +0100
+Message-ID: <20150921085744.GB2746@e104805>
+References: <20150914035500.GC5075@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from pandora.arm.linux.org.uk ([78.32.30.218]:34826 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755368AbbITUdB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 20 Sep 2015 16:33:01 -0400
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20150919150129.GR12027@sirena.org.uk>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <20150914035500.GC5075@localhost.localdomain>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Rui Zhang <rui.zhang@intel.com>, Eduardo Valentin <edubezval@gmail.com>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>, devicetree@vger.kernel.org, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@wwwdotorg.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Thierry Reding <thierry.reding@gmail.com>, Alan Stern <stern@rowland.harvard.edu>, linux-arm-kernel@lists.infradead.org
 
-On Sat, Sep 19, 2015 at 08:01:29AM -0700, Mark Brown wrote:
-> On Thu, Sep 17, 2015 at 02:57:01PM +0200, Tomeu Vizoso wrote:
-> > As we are already registering a device with regulator_class for each
-> > regulator device, regulator_list is redundant and can be replaced with
-> > calls to class_find_device() and class_for_each_device().
+Hi Eduardo, Rui,
+
+On Mon, Sep 14, 2015 at 04:55:01AM +0100, Eduardo Valentin wrote:
+> Hello Rui,
 > 
-> This appears to leak references to the struct devices returned by
-> class_find_device() - it takes a reference before it returns so any
-> device found using class_find_device() needs to be released with
-> put_device() and I don't see any new put_device() calls in here.
+> (apologize for duplicates, now copying the mailing lists)
+> 
+> Please pull from
+> 
+>   git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal fixes
+> 
+> to receive Thermal-SoC Management updates for v4.3-rc2 with top-most
+> 
+> eba4f88d5af84e0fcaa5d6eb4fe35a75c47203cb:
+> 
+>   thermal: cpu_cooling: free power table on error or when unregistering (2015-09-13 20:34:05 -0700)
+> 
+> on top of commit 6ff33f3902c3b1c5d0db6b1e2c70b6d76fba357f:
+> 
+>   Linux 4.3-rc1 (2015-09-12 16:35:56 -0700)
+> 
+> Specifics:
+> - Add compile test flags on thermal drivers that allow it without
+> producing compilation errors
+> - Fixes around memory allocation on cpu_cooling
+> - Fix on db8500 cpufreq code to allow autoload
+> - Maintainer entries for cpu cooling device
+> 
+> More fixes still to come, but if not for rc2, for rc3.
 
-When I've been fiding exactly that kind of bug in the PHY code, I've
-been adding comments to the docbook function header detailing the
-requirement to balance the reference.  IMHO, this is a good idea,
-because the more places that get it with these APIs, the more likely
-people are to potentially read it.
+Looks like this didn't make it for -rc2.  Please send a pull request
+for -rc3.
 
-The comment I've been putting in the phy code is:
-
- * If successful, returns a pointer to the phy_device with the embedded
- * struct device refcount incremented by one, or NULL on failure. The
- * refcount must be dropped by calling phy_disconnect() or phy_detach().
-
-which even goes as far as telling people how they should be dropping
-the reference.  So there should be no excuse (ignorance is not an
-excuse for this!)
-
--- 
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
+Thanks,
+Javi
