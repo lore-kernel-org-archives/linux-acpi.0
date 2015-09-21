@@ -1,50 +1,43 @@
-From: Javi Merino <javi.merino@arm.com>
-Subject: Re: [GIT PULL] Thermal-SoC management updates for v4.3-rc2
-Date: Mon, 21 Sep 2015 09:57:45 +0100
-Message-ID: <20150921085744.GB2746@e104805>
+From: "Zhang, Rui" <rui.zhang@intel.com>
+Subject: RE: [GIT PULL] Thermal-SoC management updates for v4.3-rc2
+Date: Mon, 21 Sep 2015 13:36:35 +0000
+Message-ID: <744357E9AAD1214791ACBA4B0B90926332E930C2@SHSMSX101.ccr.corp.intel.com>
 References: <20150914035500.GC5075@localhost.localdomain>
+ <20150921085744.GB2746@e104805>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150914035500.GC5075@localhost.localdomain>
+In-Reply-To: <20150921085744.GB2746@e104805>
+Content-Language: en-US
 Sender: linux-kernel-owner@vger.kernel.org
-To: Rui Zhang <rui.zhang@intel.com>, Eduardo Valentin <edubezval@gmail.com>
+To: Javi Merino <javi.merino@arm.com>, Eduardo Valentin <edubezval@gmail.com>
 Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Eduardo, Rui,
-
-On Mon, Sep 14, 2015 at 04:55:01AM +0100, Eduardo Valentin wrote:
-> Hello Rui,
-> 
-> (apologize for duplicates, now copying the mailing lists)
-> 
-> Please pull from
-> 
->   git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal fixes
-> 
-> to receive Thermal-SoC Management updates for v4.3-rc2 with top-most
-> 
-> eba4f88d5af84e0fcaa5d6eb4fe35a75c47203cb:
-> 
->   thermal: cpu_cooling: free power table on error or when unregistering (2015-09-13 20:34:05 -0700)
-> 
-> on top of commit 6ff33f3902c3b1c5d0db6b1e2c70b6d76fba357f:
-> 
->   Linux 4.3-rc1 (2015-09-12 16:35:56 -0700)
-> 
-> Specifics:
-> - Add compile test flags on thermal drivers that allow it without
-> producing compilation errors
-> - Fixes around memory allocation on cpu_cooling
-> - Fix on db8500 cpufreq code to allow autoload
-> - Maintainer entries for cpu cooling device
-> 
-> More fixes still to come, but if not for rc2, for rc3.
-
-Looks like this didn't make it for -rc2.  Please send a pull request
-for -rc3.
-
-Thanks,
-Javi
+WWVhaCwgd2lsbCBzZW5kIGZvciAtcmMzLg0KDQpUaGFua3MsDQpydWkNCg0KPiAtLS0tLU9yaWdp
+bmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBKYXZpIE1lcmlubyBbbWFpbHRvOmphdmkubWVyaW5v
+QGFybS5jb21dDQo+IFNlbnQ6IE1vbmRheSwgU2VwdGVtYmVyIDIxLCAyMDE1IDQ6NTggUE0NCj4g
+VG86IFpoYW5nLCBSdWk7IEVkdWFyZG8gVmFsZW50aW4NCj4gQ2M6IExpbnV4IEFDUEk7IExpbnV4
+IFBNOyBMS01MDQo+IFN1YmplY3Q6IFJlOiBbR0lUIFBVTExdIFRoZXJtYWwtU29DIG1hbmFnZW1l
+bnQgdXBkYXRlcyBmb3IgdjQuMy1yYzINCj4gSW1wb3J0YW5jZTogSGlnaA0KPiANCj4gSGkgRWR1
+YXJkbywgUnVpLA0KPiANCj4gT24gTW9uLCBTZXAgMTQsIDIwMTUgYXQgMDQ6NTU6MDFBTSArMDEw
+MCwgRWR1YXJkbyBWYWxlbnRpbiB3cm90ZToNCj4gPiBIZWxsbyBSdWksDQo+ID4NCj4gPiAoYXBv
+bG9naXplIGZvciBkdXBsaWNhdGVzLCBub3cgY29weWluZyB0aGUgbWFpbGluZyBsaXN0cykNCj4g
+Pg0KPiA+IFBsZWFzZSBwdWxsIGZyb20NCj4gPg0KPiA+DQo+ID4gZ2l0Oi8vZ2l0Lmtlcm5lbC5v
+cmcvcHViL3NjbS9saW51eC9rZXJuZWwvZ2l0L2V2YWxlbnRpL2xpbnV4LXNvYy10aGVybQ0KPiA+
+IGFsIGZpeGVzDQo+ID4NCj4gPiB0byByZWNlaXZlIFRoZXJtYWwtU29DIE1hbmFnZW1lbnQgdXBk
+YXRlcyBmb3IgdjQuMy1yYzIgd2l0aCB0b3AtbW9zdA0KPiA+DQo+ID4gZWJhNGY4OGQ1YWY4NGUw
+ZmNhYTVkNmViNGZlMzVhNzVjNDcyMDNjYjoNCj4gPg0KPiA+ICAgdGhlcm1hbDogY3B1X2Nvb2xp
+bmc6IGZyZWUgcG93ZXIgdGFibGUgb24gZXJyb3Igb3Igd2hlbg0KPiA+IHVucmVnaXN0ZXJpbmcg
+KDIwMTUtMDktMTMgMjA6MzQ6MDUgLTA3MDApDQo+ID4NCj4gPiBvbiB0b3Agb2YgY29tbWl0IDZm
+ZjMzZjM5MDJjM2IxYzVkMGRiNmIxZTJjNzBiNmQ3NmZiYTM1N2Y6DQo+ID4NCj4gPiAgIExpbnV4
+IDQuMy1yYzEgKDIwMTUtMDktMTIgMTY6MzU6NTYgLTA3MDApDQo+ID4NCj4gPiBTcGVjaWZpY3M6
+DQo+ID4gLSBBZGQgY29tcGlsZSB0ZXN0IGZsYWdzIG9uIHRoZXJtYWwgZHJpdmVycyB0aGF0IGFs
+bG93IGl0IHdpdGhvdXQNCj4gPiBwcm9kdWNpbmcgY29tcGlsYXRpb24gZXJyb3JzDQo+ID4gLSBG
+aXhlcyBhcm91bmQgbWVtb3J5IGFsbG9jYXRpb24gb24gY3B1X2Nvb2xpbmcNCj4gPiAtIEZpeCBv
+biBkYjg1MDAgY3B1ZnJlcSBjb2RlIHRvIGFsbG93IGF1dG9sb2FkDQo+ID4gLSBNYWludGFpbmVy
+IGVudHJpZXMgZm9yIGNwdSBjb29saW5nIGRldmljZQ0KPiA+DQo+ID4gTW9yZSBmaXhlcyBzdGls
+bCB0byBjb21lLCBidXQgaWYgbm90IGZvciByYzIsIGZvciByYzMuDQo+IA0KPiBMb29rcyBsaWtl
+IHRoaXMgZGlkbid0IG1ha2UgaXQgZm9yIC1yYzIuICBQbGVhc2Ugc2VuZCBhIHB1bGwgcmVxdWVz
+dCBmb3IgLXJjMy4NCj4gDQo+IFRoYW5rcywNCj4gSmF2aQ0K
