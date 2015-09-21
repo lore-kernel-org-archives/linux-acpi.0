@@ -1,55 +1,60 @@
 From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Subject: [PATCH v6 21/22] driver core: Start processing deferred probes earlier
-Date: Mon, 21 Sep 2015 16:03:01 +0200
-Message-ID: <1442844182-27787-22-git-send-email-tomeu.vizoso@collabora.com>
+Subject: [PATCH v6 05/22] gpio: Probe GPIO drivers on demand
+Date: Mon, 21 Sep 2015 16:02:45 +0200
+Message-ID: <1442844182-27787-6-git-send-email-tomeu.vizoso@collabora.com>
 References: <1442844182-27787-1-git-send-email-tomeu.vizoso@collabora.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1442844182-27787-1-git-send-email-tomeu.vizoso@collabora.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: linux-kernel@vger.kernel.org
-Cc: Rob Herring <robh+dt@kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-arm-kernel@lists.infradead.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>, devicetree@vger.kernel.org, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@wwwdotorg.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Rob Herring <robh+dt@kernel.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Alan Stern <stern@rowland.harvard.edu>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-Some initcalls in the late level assume that some devices will have
-already probed without explicitly checking for that.
+When looking up a gpiochip through its firmware node, probe it if it
+hasn't already.
 
-After the recent move to defer most device probes when they are
-registered, pressure increased in the late initcall level.
-
-By starting the processing of the deferred queue in device_initcall_sync
-we increase the chances that the initcalls mentioned before will find
-the devices they depend on to have already probed.
+The goal is to reduce deferred probes to a minimum, as it makes it very
+cumbersome to find out why a device failed to probe, and can introduce
+very big delays in when a critical device is probed.
 
 Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
 ---
 
-Changes in v4:
-- Start processing deferred probes in device_initcall_sync
 
- drivers/base/dd.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/gpio/gpiolib-of.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
-diff --git a/drivers/base/dd.c b/drivers/base/dd.c
-index 269ea76c1a4f..f0ef9233fcd6 100644
---- a/drivers/base/dd.c
-+++ b/drivers/base/dd.c
-@@ -176,7 +176,7 @@ static void driver_deferred_probe_trigger(void)
-  *
-  * We don't want to get in the way when the bulk of drivers are getting probed.
-  * Instead, this initcall makes sure that deferred probing is delayed until
-- * late_initcall time.
-+ * device_initcall_sync time.
-  */
- static int deferred_probe_initcall(void)
- {
-@@ -190,7 +190,7 @@ static int deferred_probe_initcall(void)
- 	flush_workqueue(deferred_wq);
- 	return 0;
- }
--late_initcall(deferred_probe_initcall);
-+device_initcall_sync(deferred_probe_initcall);
+diff --git a/drivers/gpio/gpiolib-of.c b/drivers/gpio/gpiolib-of.c
+index fa6e3c8823d6..9a439dab7a87 100644
+--- a/drivers/gpio/gpiolib-of.c
++++ b/drivers/gpio/gpiolib-of.c
+@@ -19,6 +19,7 @@
+ #include <linux/gpio/consumer.h>
+ #include <linux/of.h>
+ #include <linux/of_address.h>
++#include <linux/of_device.h>
+ #include <linux/of_gpio.h>
+ #include <linux/pinctrl/pinctrl.h>
+ #include <linux/slab.h>
+@@ -95,6 +96,8 @@ struct gpio_desc *of_get_named_gpiod_flags(struct device_node *np,
+ 		return ERR_PTR(ret);
+ 	}
  
- static void driver_bound(struct device *dev)
- {
++	of_device_probe(gg_data.gpiospec.np);
++
+ 	gpiochip_find(&gg_data, of_gpiochip_find_and_xlate);
+ 
+ 	of_node_put(gg_data.gpiospec.np);
 -- 
 2.4.3
