@@ -1,7 +1,7 @@
 From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Subject: [PATCH v6 01/22] driver core: handle -EPROBE_DEFER from bus_type.match()
-Date: Mon, 21 Sep 2015 16:02:41 +0200
-Message-ID: <1442844182-27787-2-git-send-email-tomeu.vizoso@collabora.com>
+Subject: [PATCH v6 03/22] of/platform: Point to struct device from device node
+Date: Mon, 21 Sep 2015 16:02:43 +0200
+Message-ID: <1442844182-27787-4-git-send-email-tomeu.vizoso@collabora.com>
 References: <1442844182-27787-1-git-send-email-tomeu.vizoso@collabora.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1442844182-27787-1-git-send-email-tomeu.vizoso@collabora.com>
@@ -10,92 +10,95 @@ To: linux-kernel@vger.kernel.org
 Cc: Rob Herring <robh+dt@kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-arm-kernel@lists.infradead.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Tomeu Vizoso <tomeu.vizoso@collabora.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Lets implementations of the match() callback in struct bus_type to
-return errors and if it's -EPROBE_DEFER then queue the device for
-deferred probing.
+When adding platform and AMBA devices, set the device node's device
+member to point to it.
 
-This is useful to buses such as AMBA in which devices are registered
-before their matching information can be retrieved from the HW
-(typically because a clock driver hasn't probed yet).
+This speeds lookups considerably and is safe because we only create one
+of these devices for any given device node.
 
 Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
 ---
 
+Changes in v5:
+- Set the pointer to struct device also for AMBA devices
+- Unset the pointer to struct device when the platform device is about
+  to be unregistered
+- Increase the reference count of the device before returning from
+  of_find_device_by_node()
 
- drivers/base/dd.c      | 24 ++++++++++++++++++++++--
- include/linux/device.h |  2 +-
- 2 files changed, 23 insertions(+), 3 deletions(-)
+ drivers/of/platform.c | 19 ++++++++++---------
+ include/linux/of.h    |  1 +
+ 2 files changed, 11 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/base/dd.c b/drivers/base/dd.c
-index be0eb4639128..7dc04ee81c8b 100644
---- a/drivers/base/dd.c
-+++ b/drivers/base/dd.c
-@@ -488,6 +488,7 @@ static int __device_attach_driver(struct device_driver *drv, void *_data)
- 	struct device_attach_data *data = _data;
- 	struct device *dev = data->dev;
- 	bool async_allowed;
-+	int ret;
+diff --git a/drivers/of/platform.c b/drivers/of/platform.c
+index 1001efaedcb8..408d89f1d124 100644
+--- a/drivers/of/platform.c
++++ b/drivers/of/platform.c
+@@ -32,11 +32,6 @@ const struct of_device_id of_default_bus_match_table[] = {
+ 	{} /* Empty terminated list */
+ };
  
- 	/*
- 	 * Check if device has already been claimed. This may
-@@ -498,8 +499,17 @@ static int __device_attach_driver(struct device_driver *drv, void *_data)
- 	if (dev->driver)
- 		return -EBUSY;
- 
--	if (!driver_match_device(drv, dev))
-+	ret = driver_match_device(drv, dev);
-+	if (!ret)
- 		return 0;
-+	else if (ret < 0) {
-+		if (ret == -EPROBE_DEFER) {
-+			dev_dbg(dev, "Device match requests probe deferral\n");
-+			driver_deferred_probe_add(dev);
-+		} else
-+			dev_warn(dev, "Bus failed to match device: %d", ret);
-+		return ret;
-+	}
- 
- 	async_allowed = driver_allows_async_probing(drv);
- 
-@@ -619,6 +629,7 @@ void device_initial_probe(struct device *dev)
- static int __driver_attach(struct device *dev, void *data)
+-static int of_dev_node_match(struct device *dev, void *data)
+-{
+-	return dev->of_node == data;
+-}
+-
+ /**
+  * of_find_device_by_node - Find the platform_device associated with a node
+  * @np: Pointer to device tree node
+@@ -45,10 +40,10 @@ static int of_dev_node_match(struct device *dev, void *data)
+  */
+ struct platform_device *of_find_device_by_node(struct device_node *np)
  {
- 	struct device_driver *drv = data;
-+	int ret;
+-	struct device *dev;
+-
+-	dev = bus_find_device(&platform_bus_type, NULL, np, of_dev_node_match);
+-	return dev ? to_platform_device(dev) : NULL;
++	if (np->device && np->device->bus == &platform_bus_type &&
++	    get_device(np->device))
++		return to_platform_device(np->device);
++	return NULL;
+ }
+ EXPORT_SYMBOL(of_find_device_by_node);
  
- 	/*
- 	 * Lock device and try to bind to it. We drop the error
-@@ -630,8 +641,17 @@ static int __driver_attach(struct device *dev, void *data)
- 	 * is an error.
- 	 */
+@@ -192,6 +187,8 @@ static struct platform_device *of_platform_device_create_pdata(
+ 		goto err_clear_flag;
+ 	}
  
--	if (!driver_match_device(drv, dev))
-+	ret = driver_match_device(drv, dev);
-+	if (!ret)
-+		return 0;
-+	else if (ret < 0) {
-+		if (ret == -EPROBE_DEFER) {
-+			dev_dbg(dev, "Device match requests probe deferral\n");
-+			driver_deferred_probe_add(dev);
-+		} else
-+			dev_warn(dev, "Bus failed to match device: %d", ret);
- 		return 0;
-+	}
++	np->device = &dev->dev;
++
+ 	return dev;
  
- 	if (dev->parent)	/* Needed for USB */
- 		device_lock(dev->parent);
-diff --git a/include/linux/device.h b/include/linux/device.h
-index 5d7bc6349930..8e7b806f0744 100644
---- a/include/linux/device.h
-+++ b/include/linux/device.h
-@@ -70,7 +70,7 @@ extern void bus_remove_file(struct bus_type *, struct bus_attribute *);
-  * @dev_groups:	Default attributes of the devices on the bus.
-  * @drv_groups: Default attributes of the device drivers on the bus.
-  * @match:	Called, perhaps multiple times, whenever a new device or driver
-- *		is added for this bus. It should return a nonzero value if the
-+ *		is added for this bus. It should return a positive value if the
-  *		given device can be handled by the given driver.
-  * @uevent:	Called when a device is added, removed, or a few other things
-  *		that generate uevents to add the environment variables.
+ err_clear_flag:
+@@ -272,6 +269,8 @@ static struct amba_device *of_amba_device_create(struct device_node *node,
+ 		goto err_free;
+ 	}
+ 
++	node->device = &dev->dev;
++
+ 	return dev;
+ 
+ err_free:
+@@ -476,6 +475,8 @@ static int of_platform_device_destroy(struct device *dev, void *data)
+ 	if (of_node_check_flag(dev->of_node, OF_POPULATED_BUS))
+ 		device_for_each_child(dev, NULL, of_platform_device_destroy);
+ 
++	dev->of_node->device = NULL;
++
+ 	if (dev->bus == &platform_bus_type)
+ 		platform_device_unregister(to_platform_device(dev));
+ #ifdef CONFIG_ARM_AMBA
+diff --git a/include/linux/of.h b/include/linux/of.h
+index 2194b8ca41f9..eb091be0f8ee 100644
+--- a/include/linux/of.h
++++ b/include/linux/of.h
+@@ -52,6 +52,7 @@ struct device_node {
+ 	phandle phandle;
+ 	const char *full_name;
+ 	struct fwnode_handle fwnode;
++	struct device *device;
+ 
+ 	struct	property *properties;
+ 	struct	property *deadprops;	/* removed properties */
 -- 
 2.4.3
