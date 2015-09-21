@@ -1,7 +1,7 @@
 From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Subject: [PATCH v6 14/22] usb: phy: Probe phy devices on demand
-Date: Mon, 21 Sep 2015 16:02:54 +0200
-Message-ID: <1442844182-27787-15-git-send-email-tomeu.vizoso@collabora.com>
+Subject: [PATCH v6 13/22] backlight: Probe backlight devices on demand
+Date: Mon, 21 Sep 2015 16:02:53 +0200
+Message-ID: <1442844182-27787-14-git-send-email-tomeu.vizoso@collabora.com>
 References: <1442844182-27787-1-git-send-email-tomeu.vizoso@collabora.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -21,8 +21,8 @@ To: linux-kernel@vger.kernel.org
 Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>, devicetree@vger.kernel.org, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@wwwdotorg.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Rob Herring <robh+dt@kernel.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Alan Stern <stern@rowland.harvard.edu>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-When looking up a phy through its OF node, probe it if it hasn't
-already.
+When looking up a backlight device through its OF node, probe it if it
+hasn't already.
 
 The goal is to reduce deferred probes to a minimum, as it makes it very
 cumbersome to find out why a device failed to probe, and can introduce
@@ -32,29 +32,29 @@ Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
 ---
 
 
- drivers/usb/phy/phy.c | 3 +++
+ drivers/video/backlight/backlight.c | 3 +++
  1 file changed, 3 insertions(+)
 
-diff --git a/drivers/usb/phy/phy.c b/drivers/usb/phy/phy.c
-index 98f75d2842b7..fb0b650bb494 100644
---- a/drivers/usb/phy/phy.c
-+++ b/drivers/usb/phy/phy.c
-@@ -15,6 +15,7 @@
- #include <linux/module.h>
+diff --git a/drivers/video/backlight/backlight.c b/drivers/video/backlight/backlight.c
+index bddc8b17a4d8..9bcdc16eacdf 100644
+--- a/drivers/video/backlight/backlight.c
++++ b/drivers/video/backlight/backlight.c
+@@ -16,6 +16,7 @@
+ #include <linux/err.h>
+ #include <linux/fb.h>
  #include <linux/slab.h>
- #include <linux/of.h>
 +#include <linux/of_device.h>
  
- #include <linux/usb/phy.h>
- 
-@@ -196,6 +197,8 @@ struct  usb_phy *devm_usb_get_phy_by_node(struct device *dev,
- 		goto err0;
- 	}
+ #ifdef CONFIG_PMAC_BACKLIGHT
+ #include <asm/backlight.h>
+@@ -559,6 +560,8 @@ struct backlight_device *of_find_backlight_by_node(struct device_node *node)
+ {
+ 	struct device *dev;
  
 +	of_device_probe(node);
 +
- 	spin_lock_irqsave(&phy_lock, flags);
+ 	dev = class_find_device(backlight_class, NULL, node, of_parent_match);
  
- 	phy = __of_usb_find_phy(node);
+ 	return dev ? to_backlight_device(dev) : NULL;
 -- 
 2.4.3
