@@ -1,53 +1,54 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v1 8/8] pwm-pca9685: enable ACPI device found on Galileo
- Gen2
-Date: Wed, 23 Sep 2015 15:56:52 +0300
-Message-ID: <1443013012.8361.172.camel@linux.intel.com>
-References: <1442916619-140607-1-git-send-email-andriy.shevchenko@linux.intel.com>
-	 <1442916619-140607-9-git-send-email-andriy.shevchenko@linux.intel.com>
-	 <20150922143714.GA9235@ulmo.nvidia.com>
-	 <1442997686.8361.161.camel@linux.intel.com>
-	 <20150923124800.GA11187@ulmo.nvidia.com>
+From: G Gregory <graeme.gregory@linaro.org>
+Subject: Re: [RFC 0/5] console/acpi: add DBG2 and SPCR console configuration
+Date: Wed, 23 Sep 2015 16:45:35 +0100
+Message-ID: <20150923154535.GB2431@xora-yoga13-vm.xora.org.uk>
+References: <1441716217-23786-1-git-send-email-leif.lindholm@linaro.org>
+ <CACVXFVPEJb-RXLgU0V+HduoENquUs3oDGWsUtCvH+TOSRMYiUg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <20150923124800.GA11187@ulmo.nvidia.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Thierry Reding <thierry.reding@gmail.com>
-Cc: linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, linux-gpio@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Wolfram Sang <wsa@the-dreams.de>, Linus Walleij <linus.walleij@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@intel.com>, "Puustinen, Ismo" <ismo.puustinen@intel.com>, "Pandruvada, Srinivas" <srinivas.pandruvada@intel.com>, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pa0-f44.google.com ([209.85.220.44]:33679 "EHLO
+	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752825AbbIWPpp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Sep 2015 11:45:45 -0400
+Received: by pacex6 with SMTP id ex6so43848094pac.0
+        for <linux-acpi@vger.kernel.org>; Wed, 23 Sep 2015 08:45:45 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <CACVXFVPEJb-RXLgU0V+HduoENquUs3oDGWsUtCvH+TOSRMYiUg@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ming Lei <ming.lei@canonical.com>
+Cc: Leif Lindholm <leif.lindholm@linaro.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, linux-serial@vger.kernel.org, Linux ACPI <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mark Rutland <mark.rutland@arm.com>, al.stone@linaro.org, torez@redhat.com, Jon Masters <jcm@redhat.com>, linaro-acpi@lists.linaro.org, Lv Zheng <lv.zheng@intel.com>
 
-On Wed, 2015-09-23 at 14:48 +0200, Thierry Reding wrote:
-> > > > 
-
-> On Wed, Sep 23, 2015 at 11:41:26AM +0300, Andy Shevchenko wrote:
-> > On Tue, 2015-09-22 at 16:37 +0200, Thierry Reding wrote:
-> > > On Tue, Sep 22, 2015 at 01:10:19PM +0300, Andy Shevchenko wrote:
-> > 
-
-> > > 
-> > > >  		.of_match_table = pca9685_dt_ids,
-> > > 
-> > > Similarly to the above, this should use of_match_ptr(), which in 
-> > > turn
-> > > will require #ifdef protection for the table to avoid warnings.
-> > 
-> > Hmm... my patch do not touches that part. Perhaps another patch for
-> > this?
+On Wed, Sep 23, 2015 at 03:38:20PM +0800, Ming Lei wrote:
+> Hi Leif,
 > 
-> Your patch does touch that part by removing the dependency on OF. 
-> That
-> makes it possible to build this code with !OF, which in turn would 
-> make
-> the OF match table unused.
-
-Ah, you're right. Will amend this part as well.
-Thanks!
-
 > 
-> Thierry
+> On Tue, Sep 8, 2015 at 8:43 PM, Leif Lindholm <leif.lindholm@linaro.org> wrote:
+> > Support for configuring bootconsole and console via the ACPI tables
+> > DBG2 (Debug Port Table 2) [1] and SPCR (Serial Port Console Redirection
+> > Table) [2], defined by Microsoft, has been discussed on and off over the
+> > years.
+> >
+> > [1] https://msdn.microsoft.com/en-us/library/windows/hardware/dn639131(v=vs.85).aspx
+> > [2] https://msdn.microsoft.com/en-us/library/windows/hardware/dn639132(v=vs.85).aspx
+> >
+> > Licensing concerns have prevented this happening in the past, but as of
+> > 10 August 2015, these tables have both been released also under OWF 1.0
+> > (http://www.openwebfoundation.org/legal/the-owf-1-0-agreements/owfa-1-0)
+> > which is think is noncontroversially GPL-compatible?
+> >
+> > This set is a first attempt at implementing this.
+> 
+> From distribution view, the patchset looks very useful.
+> 
+> I have one simple question, are there other candidates for conveying this kind
+> of information like what DBG2/SPCR does? Or are DBG2 and SPCR the
+> offical speficiations to do such things in ARM server industry?
+> 
 
--- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+They are mandated in the SBBR spec
+
+Graeme
+
+
