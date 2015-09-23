@@ -1,44 +1,73 @@
-From: Ming Lei <ming.lei@canonical.com>
-Subject: Re: [RFC 0/5] console/acpi: add DBG2 and SPCR console configuration
-Date: Wed, 23 Sep 2015 15:38:20 +0800
-Message-ID: <CACVXFVPEJb-RXLgU0V+HduoENquUs3oDGWsUtCvH+TOSRMYiUg@mail.gmail.com>
-References: <1441716217-23786-1-git-send-email-leif.lindholm@linaro.org>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH V3 1/2] ACPI / EC: Fix broken big-endian 64bit platforms
+ using 'global_lock'
+Date: Wed, 23 Sep 2015 07:52:12 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883406510E@SHSMSX101.ccr.corp.intel.com>
+References: <9b705747a138c96c26faee5218f7b47403195b28.1442305897.git.viresh.kumar@linaro.org>
+ <1515364.kIriLUmZv6@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:49288 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751110AbbIWHiX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Sep 2015 03:38:23 -0400
-In-Reply-To: <1441716217-23786-1-git-send-email-leif.lindholm@linaro.org>
+Received: from mga02.intel.com ([134.134.136.20]:26628 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752841AbbIWHwV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 23 Sep 2015 03:52:21 -0400
+In-Reply-To: <1515364.kIriLUmZv6@vostro.rjw.lan>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Leif Lindholm <leif.lindholm@linaro.org>
-Cc: linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, linux-serial@vger.kernel.org, Linux ACPI <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mark Rutland <mark.rutland@arm.com>, al.stone@linaro.org, torez@redhat.com, Jon Masters <jcm@redhat.com>, G Gregory <graeme.gregory@linaro.org>, linaro-acpi@lists.linaro.org, Lv Zheng <lv.zheng@intel.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Viresh Kumar <viresh.kumar@linaro.org>
+Cc: "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, "sboyd@codeaurora.org" <sboyd@codeaurora.org>, "arnd@arndb.de" <arnd@arndb.de>, "stable@vger.kernel.org" <stable@vger.kernel.org>, Len Brown <lenb@kernel.org>, "open list:ACPI" <linux-acpi@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
 
-Hi Leif,
-
-
-On Tue, Sep 8, 2015 at 8:43 PM, Leif Lindholm <leif.lindholm@linaro.org> wrote:
-> Support for configuring bootconsole and console via the ACPI tables
-> DBG2 (Debug Port Table 2) [1] and SPCR (Serial Port Console Redirection
-> Table) [2], defined by Microsoft, has been discussed on and off over the
-> years.
->
-> [1] https://msdn.microsoft.com/en-us/library/windows/hardware/dn639131(v=vs.85).aspx
-> [2] https://msdn.microsoft.com/en-us/library/windows/hardware/dn639132(v=vs.85).aspx
->
-> Licensing concerns have prevented this happening in the past, but as of
-> 10 August 2015, these tables have both been released also under OWF 1.0
-> (http://www.openwebfoundation.org/legal/the-owf-1-0-agreements/owfa-1-0)
-> which is think is noncontroversially GPL-compatible?
->
-> This set is a first attempt at implementing this.
-
->From distribution view, the patchset looks very useful.
-
-I have one simple question, are there other candidates for conveying this kind
-of information like what DBG2/SPCR does? Or are DBG2 and SPCR the
-offical speficiations to do such things in ARM server industry?
-
-Thanks,
+SGksDQoNCj4gRnJvbTogUmFmYWVsIEouIFd5c29ja2kgW21haWx0bzpyandAcmp3eXNvY2tpLm5l
+dF0NCj4gU2VudDogV2VkbmVzZGF5LCBTZXB0ZW1iZXIgMTYsIDIwMTUgOTo1NyBBTQ0KPiANCj4g
+T24gVHVlc2RheSwgU2VwdGVtYmVyIDE1LCAyMDE1IDAyOjA0OjU4IFBNIFZpcmVzaCBLdW1hciB3
+cm90ZToNCj4gPiBnbG9iYWxfbG9jayBpcyBkZWZpbmVkIGFzIGFuIHVuc2lnbmVkIGxvbmcgYW5k
+IGFjY2Vzc2luZyBvbmx5IGl0cyBsb3dlcg0KPiA+IDMyIGJpdHMgZnJvbSBzeXNmcyBpcyBpbmNv
+cnJlY3QsIGFzIHdlIG5lZWQgdG8gY29uc2lkZXIgb3RoZXIgMzIgYml0cw0KPiA+IGZvciBiaWcg
+ZW5kaWFuIDY0IGJpdCBzeXN0ZW1zLg0KPiA+DQo+ID4gRml4IHRoYXQgYnkgbWFraW5nIGdsb2Jh
+bF9sb2NrIGFuIHUzMiBpbnN0ZWFkLg0KPiA+DQo+ID4gQ2M6IDxzdGFibGVAdmdlci5rZXJuZWwu
+b3JnPiAgIyB2NC4xKw0KPiA+IFNpZ25lZC1vZmYtYnk6IFZpcmVzaCBLdW1hciA8dmlyZXNoLmt1
+bWFyQGxpbmFyby5vcmc+DQo+ID4NCj4gPiAtLS0NCj4gPiBJdHMgbWFya2VkIGp1c3QgZm9yICMg
+djQuMSssIGJlY2F1c2UgYXJtNjQgaGFzIHRoZSBmaXJzdCA2NCBiaWctZW5kaWFuDQo+ID4gcGxh
+dGZvcm0gd2l0aCBBQ1BJLiBBbmQgQUNQSSBzdXBwb3J0IGZvciB0aGF0IGlzIG1haW5saW5lZCBy
+ZWNlbnRseQ0KPiA+IG9ubHkgKEFybmQgQmVyZ21hbm4pLg0KPiANCj4gT0sNCj4gDQo+IFNvIGFy
+ZSB5b3UgYXdhcmUgb2YgYW55IEFSTSBwbGF0Zm9ybSBpbXBsZW1lbnRpbmcgdGhlIEFDUEkgRUM/
+DQo+IA0KPiBJIGFtIG5vdC4gIE1vcmVvdmVyLCBJJ20gbm90IGF3YXJlIG9mIGFueSBwbGFucyBp
+biB0aGF0IGFyZWEuDQo+IA0KPiA+IEFub3RoZXIgdGhpbmcgd29ydGggbm90aWNpbmcgaXMgdGhh
+dCwgZ2xvYmFsX2xvY2sgaXMgZ2V0dGluZyBhbiB1bnNpZ25lZA0KPiA+IGxvbmcgbG9uZyB2YWx1
+ZSBhc3NpZ25lZCB0byBpdCBpbiBlY19wYXJzZV9kZXZpY2UoKSBhbmQgdGhpcyBpcyB3aGF0DQo+
+ID4gQXJuZCBoYWQgdG8gc2F5IGFib3V0IHRoYXQ6DQo+ID4NCj4gPiAiSSB0aGluayB0aGF0J3Mg
+ZmluZSwgaXQgZG9lcyB0aGlzIGJlY2F1c2UgdGhlIF9HTFAgdmFyaWFibGUgaW4gQUNQSSBpcw0K
+PiA+IGRlZmluZWQgYXMgYW4gdTY0LiBBbmQgdGhhdCdzIHdoYXQgaGFwcGVucyBvbiAzMi1iaXQg
+YXJjaGl0ZWN0dXJlcw0KPiA+IGFueXdheS4iDQo+ID4NCj4gPiBUaGlzIHBhdGNoIHNob3VsZCBn
+byB2aWEgR3JlZ0tILCBhcyB0aGUgc2Vjb25kIHBhdGNoIGhhcyBkZXBlbmRlbmN5IG9uDQo+ID4g
+aXQuDQo+ID4NCj4gPiBWMi0+VjM6DQo+ID4gLSBNb3ZlZCB0aGlzIG91dCBpbiBhIHNlcGFyYXRl
+IHBhdGNoLCBzbyB0aGF0IGl0IGNhbiBiZSBiYWNrcG9ydGVkLg0KPiANCj4gTHYsIGNhbiB5b3Ug
+aGF2ZSBhIGxvb2sgYXQgdGhpcywgcGxlYXNlPw0KPiANCj4gPiAtLS0NCj4gPiAgZHJpdmVycy9h
+Y3BpL2VjX3N5cy5jICAgfCAyICstDQo+ID4gIGRyaXZlcnMvYWNwaS9pbnRlcm5hbC5oIHwgMiAr
+LQ0KPiA+ICAyIGZpbGVzIGNoYW5nZWQsIDIgaW5zZXJ0aW9ucygrKSwgMiBkZWxldGlvbnMoLSkN
+Cj4gPg0KPiA+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvZWNfc3lzLmMgYi9kcml2ZXJzL2Fj
+cGkvZWNfc3lzLmMNCj4gPiBpbmRleCBiNGMyMTZiYWIyMmIuLmJlYThlNDI1YThkZSAxMDA2NDQN
+Cj4gPiAtLS0gYS9kcml2ZXJzL2FjcGkvZWNfc3lzLmMNCj4gPiArKysgYi9kcml2ZXJzL2FjcGkv
+ZWNfc3lzLmMNCj4gPiBAQCAtMTI4LDcgKzEyOCw3IEBAIHN0YXRpYyBpbnQgYWNwaV9lY19hZGRf
+ZGVidWdmcyhzdHJ1Y3QgYWNwaV9lYyAqZWMsIHVuc2lnbmVkIGludCBlY19kZXZpY2VfY291bnQp
+DQo+ID4gIAlpZiAoIWRlYnVnZnNfY3JlYXRlX3gzMigiZ3BlIiwgMDQ0NCwgZGV2X2RpciwgKHUz
+MiAqKSZmaXJzdF9lYy0+Z3BlKSkNCj4gPiAgCQlnb3RvIGVycm9yOw0KPiA+ICAJaWYgKCFkZWJ1
+Z2ZzX2NyZWF0ZV9ib29sKCJ1c2VfZ2xvYmFsX2xvY2siLCAwNDQ0LCBkZXZfZGlyLA0KPiA+IC0J
+CQkJICh1MzIgKikmZmlyc3RfZWMtPmdsb2JhbF9sb2NrKSkNCj4gPiArCQkJCSAmZmlyc3RfZWMt
+Pmdsb2JhbF9sb2NrKSkNCj4gPiAgCQlnb3RvIGVycm9yOw0KPiA+DQo+ID4gIAlpZiAod3JpdGVf
+c3VwcG9ydCkNCj4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL2ludGVybmFsLmggYi9kcml2
+ZXJzL2FjcGkvaW50ZXJuYWwuaA0KPiA+IGluZGV4IDllNDI2MjEwYzJhOC4uOWRiMTk2ZGUwMDNj
+IDEwMDY0NA0KPiA+IC0tLSBhL2RyaXZlcnMvYWNwaS9pbnRlcm5hbC5oDQo+ID4gKysrIGIvZHJp
+dmVycy9hY3BpL2ludGVybmFsLmgNCj4gPiBAQCAtMTM4LDcgKzEzOCw3IEBAIHN0cnVjdCBhY3Bp
+X2VjIHsNCj4gPiAgCXVuc2lnbmVkIGxvbmcgZ3BlOw0KPiA+ICAJdW5zaWduZWQgbG9uZyBjb21t
+YW5kX2FkZHI7DQo+ID4gIAl1bnNpZ25lZCBsb25nIGRhdGFfYWRkcjsNCj4gPiAtCXVuc2lnbmVk
+IGxvbmcgZ2xvYmFsX2xvY2s7DQo+ID4gKwl1MzIgZ2xvYmFsX2xvY2s7DQo+ID4gIAl1bnNpZ25l
+ZCBsb25nIGZsYWdzOw0KPiA+ICAJdW5zaWduZWQgbG9uZyByZWZlcmVuY2VfY291bnQ7DQo+ID4g
+IAlzdHJ1Y3QgbXV0ZXggbXV0ZXg7DQo+ID4NCj4gDQoNCklmIHdlIHJlYWxseSB3YW50IHRvIGNo
+YW5nZSwgd2UgbWF5IGNoYW5nZSBldmVyeXRoaW5nIGhlcmUuDQpncGUvY29tbWFuZF9hZGRyL2Rh
+dGFfYWRkci9nbG9iYWxfbG9jay4NCkFuZCBJTU8sIGlmIHdlIHJlYWxseSB3YW50IHRvIGNoYW5n
+ZSBnbG9iYWxfbG9jaywgd2Ugc2hvdWxkIG1ha2UgaXQgYm9vbCBoZXJlLg0KDQpUaGFua3MgYW5k
+IGJlc3QgcmVnYXJkcw0KLUx2DQoNCj4gVGhhbmtzLA0KPiBSYWZhZWwNCg0K
