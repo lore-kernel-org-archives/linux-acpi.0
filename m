@@ -1,54 +1,21 @@
-From: G Gregory <graeme.gregory@linaro.org>
-Subject: Re: [RFC 0/5] console/acpi: add DBG2 and SPCR console configuration
-Date: Wed, 23 Sep 2015 16:45:35 +0100
-Message-ID: <20150923154535.GB2431@xora-yoga13-vm.xora.org.uk>
-References: <1441716217-23786-1-git-send-email-leif.lindholm@linaro.org>
- <CACVXFVPEJb-RXLgU0V+HduoENquUs3oDGWsUtCvH+TOSRMYiUg@mail.gmail.com>
+From: <funds1222222@Jerryloan.onmicrosoft.com>
+Subject: (unknown)
+Date: Wed, 23 Sep 2015 22:46:20 +0530
+Message-ID: <SIXPR06MB04614FB6898775E775D27213B8440@SIXPR06MB0461.apcprd06.prod.outlook.com>
+Reply-To: <jerrysmith@inbox.lv>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f44.google.com ([209.85.220.44]:33679 "EHLO
-	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752825AbbIWPpp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Sep 2015 11:45:45 -0400
-Received: by pacex6 with SMTP id ex6so43848094pac.0
-        for <linux-acpi@vger.kernel.org>; Wed, 23 Sep 2015 08:45:45 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <CACVXFVPEJb-RXLgU0V+HduoENquUs3oDGWsUtCvH+TOSRMYiUg@mail.gmail.com>
+Received: from mail-hk2apc01hn0205.outbound.protection.outlook.com ([104.47.124.205]:20448
+	"EHLO APC01-HK2-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1755794AbbIWRRu convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Sep 2015 13:17:50 -0400
+Content-Description: Mail message body
+Subject: 
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ming Lei <ming.lei@canonical.com>
-Cc: Leif Lindholm <leif.lindholm@linaro.org>, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, linux-serial@vger.kernel.org, Linux ACPI <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Mark Rutland <mark.rutland@arm.com>, al.stone@linaro.org, torez@redhat.com, Jon Masters <jcm@redhat.com>, linaro-acpi@lists.linaro.org, Lv Zheng <lv.zheng@intel.com>
+To: Recipients@vger.kernel.org
 
-On Wed, Sep 23, 2015 at 03:38:20PM +0800, Ming Lei wrote:
-> Hi Leif,
-> 
-> 
-> On Tue, Sep 8, 2015 at 8:43 PM, Leif Lindholm <leif.lindholm@linaro.org> wrote:
-> > Support for configuring bootconsole and console via the ACPI tables
-> > DBG2 (Debug Port Table 2) [1] and SPCR (Serial Port Console Redirection
-> > Table) [2], defined by Microsoft, has been discussed on and off over the
-> > years.
-> >
-> > [1] https://msdn.microsoft.com/en-us/library/windows/hardware/dn639131(v=vs.85).aspx
-> > [2] https://msdn.microsoft.com/en-us/library/windows/hardware/dn639132(v=vs.85).aspx
-> >
-> > Licensing concerns have prevented this happening in the past, but as of
-> > 10 August 2015, these tables have both been released also under OWF 1.0
-> > (http://www.openwebfoundation.org/legal/the-owf-1-0-agreements/owfa-1-0)
-> > which is think is noncontroversially GPL-compatible?
-> >
-> > This set is a first attempt at implementing this.
-> 
-> From distribution view, the patchset looks very useful.
-> 
-> I have one simple question, are there other candidates for conveying this kind
-> of information like what DBG2/SPCR does? Or are DBG2 and SPCR the
-> offical speficiations to do such things in ARM server industry?
-> 
-
-They are mandated in the SBBR spec
-
-Graeme
-
-
+We Give Out Loans For 3% Interest Rate And We Offer Loans From $5,000 To $50,000,000.00, Are You Looking To Buy A House Car Or Company Or Start Up A Truck Company or Buy A Truck Or Personal Loans, Email Us At jerrysmith@inbox.lv  With Amount Needed And Phone Number.
