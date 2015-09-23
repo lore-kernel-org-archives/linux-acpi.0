@@ -1,88 +1,44 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v1 8/8] pwm-pca9685: enable ACPI device found on Galileo
- Gen2
-Date: Wed, 23 Sep 2015 11:41:26 +0300
-Message-ID: <1442997686.8361.161.camel@linux.intel.com>
-References: <1442916619-140607-1-git-send-email-andriy.shevchenko@linux.intel.com>
-	 <1442916619-140607-9-git-send-email-andriy.shevchenko@linux.intel.com>
-	 <20150922143714.GA9235@ulmo.nvidia.com>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [PATCH V3 1/2] ACPI / EC: Fix broken big-endian 64bit platforms
+ using 'global_lock'
+Date: Wed, 23 Sep 2015 10:15:42 +0100
+Message-ID: <56026DBE.3090603@arm.com>
+References: <9b705747a138c96c26faee5218f7b47403195b28.1442305897.git.viresh.kumar@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150922143714.GA9235@ulmo.nvidia.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thierry Reding <thierry.reding@gmail.com>
-Cc: linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, linux-gpio@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Wolfram Sang <wsa@the-dreams.de>, Linus Walleij <linus.walleij@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@intel.com>, "Puustinen, Ismo" <ismo.puustinen@intel.com>, "Pandruvada, Srinivas" <srinivas.pandruvada@intel.com>, linux-kernel@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:33764 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753105AbbIWJPr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 23 Sep 2015 05:15:47 -0400
+In-Reply-To: <9b705747a138c96c26faee5218f7b47403195b28.1442305897.git.viresh.kumar@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Viresh Kumar <viresh.kumar@linaro.org>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, Rafael Wysocki <rjw@rjwysocki.net>, "sboyd@codeaurora.org" <sboyd@codeaurora.org>, "arnd@arndb.de" <arnd@arndb.de>, "stable@vger.kernel.org" <stable@vger.kernel.org>, Len Brown <lenb@kernel.org>, "open list:ACPI" <linux-acpi@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>
 
-On Tue, 2015-09-22 at 16:37 +0200, Thierry Reding wrote:
-> On Tue, Sep 22, 2015 at 01:10:19PM +0300, Andy Shevchenko wrote:
 
-> > --- a/drivers/pwm/pwm-pca9685.c
-> > +++ b/drivers/pwm/pwm-pca9685.c
-> > @@ -26,6 +26,8 @@
-> >  #include <linux/regmap.h>
-> >  #include <linux/slab.h>
-> >  #include <linux/delay.h>
-> > +#include <linux/acpi.h>
-> > +#include <linux/property.h>
-> 
-> These should be kept sorted. I know that delay.h isn't properly 
-> ordered
-> either, I missed that during patch review. Please keep new ones 
-> ordered
-> alphabetically and I'll sort out the delay.h via a separate patch.
 
-Will do in next version.
+On 15/09/15 09:34, Viresh Kumar wrote:
+> global_lock is defined as an unsigned long and accessing only its lower
+> 32 bits from sysfs is incorrect, as we need to consider other 32 bits
+> for big endian 64 bit systems.
+>
+> Fix that by making global_lock an u32 instead.
+>
+> Cc: <stable@vger.kernel.org>  # v4.1+
+> Signed-off-by: Viresh Kumar <viresh.kumar@linaro.org>
+>
+> ---
+> Its marked just for # v4.1+, because arm64 has the first 64 big-endian
+> platform with ACPI. And ACPI support for that is mainlined recently
+> only (Arnd Bergmann).
+>
 
-> @@ -363,6 +364,12 @@ static const struct i2c_device_id pca9685_id[]
-> > = {
-> >  };
-> >  MODULE_DEVICE_TABLE(i2c, pca9685_id);
-> >  
-> > +static const struct acpi_device_id pca9685_acpi_ids[] = {
-> > +	{ "INT3492", 0 },
-> > +	{ /* sentinel */ },
-> > +};
-> > +MODULE_DEVICE_TABLE(acpi, pca9685_acpi_ids);
-> > +
-> >  static const struct of_device_id pca9685_dt_ids[] = {
-> >  	{ .compatible = "nxp,pca9685-pwm", },
-> >  	{ /* sentinel */ }
-> > @@ -372,6 +379,7 @@ MODULE_DEVICE_TABLE(of, pca9685_dt_ids);
-> >  static struct i2c_driver pca9685_i2c_driver = {
-> >  	.driver = {
-> >  		.name = "pca9685-pwm",
-> > +		.acpi_match_table = ACPI_PTR(pca9685_acpi_ids),
-> 
-> I think you now need #ifdef protection for the ACPI ID table, 
-> otherwise
-> the compiler will warn that the table is unused for !ACPI.
+Just to clarify, we don't support big-endian with ACPI on ARM64.
+We mandate use of EFI for ACPI on ARM64 and EFI spec mandates only
+little endian.
 
-No, there is no warning, just checked a build with CONFIG_ACPI=n.
-
-Tried even with C=1 W=2, and driver compiled in and a module.
-In all variants no warning regarding the topic is issued.
-
-$ gcc --version
-gcc (Debian 5.2.1-17) 5.2.1 20150911
-
-Perhaps this would explain what is happening there.
-https://gcc.gnu.org/bugzilla/show_bug.cgi?id=28901
-
-So, I will add #ifdef in the code as well, though I'm not a big fan of
-conditional compilation.
-
-> 
-> >  		.of_match_table = pca9685_dt_ids,
-> 
-> Similarly to the above, this should use of_match_ptr(), which in turn
-> will require #ifdef protection for the table to avoid warnings.
-
-Hmm... my patch do not touches that part. Perhaps another patch for
-this?
-
--- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+Regards,
+Sudeep
