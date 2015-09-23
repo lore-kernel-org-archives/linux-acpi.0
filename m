@@ -1,73 +1,185 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH V3 1/2] ACPI / EC: Fix broken big-endian 64bit platforms
- using 'global_lock'
-Date: Wed, 23 Sep 2015 07:52:12 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883406510E@SHSMSX101.ccr.corp.intel.com>
-References: <9b705747a138c96c26faee5218f7b47403195b28.1442305897.git.viresh.kumar@linaro.org>
- <1515364.kIriLUmZv6@vostro.rjw.lan>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH v1 3/8] mfd: intel_quark_i2c_gpio: load gpio driver first
+Date: Wed, 23 Sep 2015 10:53:42 +0300
+Message-ID: <1442994822.8361.145.camel@linux.intel.com>
+References: <1442916619-140607-1-git-send-email-andriy.shevchenko@linux.intel.com>
+	 <1442916619-140607-4-git-send-email-andriy.shevchenko@linux.intel.com>
+	 <20150922222340.GC9317@x1>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:26628 "EHLO mga02.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:3379 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752841AbbIWHwV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 23 Sep 2015 03:52:21 -0400
-In-Reply-To: <1515364.kIriLUmZv6@vostro.rjw.lan>
-Content-Language: en-US
+	id S1752321AbbIWHxs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 23 Sep 2015 03:53:48 -0400
+In-Reply-To: <20150922222340.GC9317@x1>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Viresh Kumar <viresh.kumar@linaro.org>
-Cc: "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "linaro-kernel@lists.linaro.org" <linaro-kernel@lists.linaro.org>, "sboyd@codeaurora.org" <sboyd@codeaurora.org>, "arnd@arndb.de" <arnd@arndb.de>, "stable@vger.kernel.org" <stable@vger.kernel.org>, Len Brown <lenb@kernel.org>, "open list:ACPI" <linux-acpi@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
+To: Lee Jones <lee.jones@linaro.org>
+Cc: linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, linux-gpio@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, Linus Walleij <linus.walleij@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@intel.com>, "Puustinen, Ismo" <ismo.puustinen@intel.com>, "Pandruvada, Srinivas" <srinivas.pandruvada@intel.com>, linux-kernel@vger.kernel.org
 
-SGksDQoNCj4gRnJvbTogUmFmYWVsIEouIFd5c29ja2kgW21haWx0bzpyandAcmp3eXNvY2tpLm5l
-dF0NCj4gU2VudDogV2VkbmVzZGF5LCBTZXB0ZW1iZXIgMTYsIDIwMTUgOTo1NyBBTQ0KPiANCj4g
-T24gVHVlc2RheSwgU2VwdGVtYmVyIDE1LCAyMDE1IDAyOjA0OjU4IFBNIFZpcmVzaCBLdW1hciB3
-cm90ZToNCj4gPiBnbG9iYWxfbG9jayBpcyBkZWZpbmVkIGFzIGFuIHVuc2lnbmVkIGxvbmcgYW5k
-IGFjY2Vzc2luZyBvbmx5IGl0cyBsb3dlcg0KPiA+IDMyIGJpdHMgZnJvbSBzeXNmcyBpcyBpbmNv
-cnJlY3QsIGFzIHdlIG5lZWQgdG8gY29uc2lkZXIgb3RoZXIgMzIgYml0cw0KPiA+IGZvciBiaWcg
-ZW5kaWFuIDY0IGJpdCBzeXN0ZW1zLg0KPiA+DQo+ID4gRml4IHRoYXQgYnkgbWFraW5nIGdsb2Jh
-bF9sb2NrIGFuIHUzMiBpbnN0ZWFkLg0KPiA+DQo+ID4gQ2M6IDxzdGFibGVAdmdlci5rZXJuZWwu
-b3JnPiAgIyB2NC4xKw0KPiA+IFNpZ25lZC1vZmYtYnk6IFZpcmVzaCBLdW1hciA8dmlyZXNoLmt1
-bWFyQGxpbmFyby5vcmc+DQo+ID4NCj4gPiAtLS0NCj4gPiBJdHMgbWFya2VkIGp1c3QgZm9yICMg
-djQuMSssIGJlY2F1c2UgYXJtNjQgaGFzIHRoZSBmaXJzdCA2NCBiaWctZW5kaWFuDQo+ID4gcGxh
-dGZvcm0gd2l0aCBBQ1BJLiBBbmQgQUNQSSBzdXBwb3J0IGZvciB0aGF0IGlzIG1haW5saW5lZCBy
-ZWNlbnRseQ0KPiA+IG9ubHkgKEFybmQgQmVyZ21hbm4pLg0KPiANCj4gT0sNCj4gDQo+IFNvIGFy
-ZSB5b3UgYXdhcmUgb2YgYW55IEFSTSBwbGF0Zm9ybSBpbXBsZW1lbnRpbmcgdGhlIEFDUEkgRUM/
-DQo+IA0KPiBJIGFtIG5vdC4gIE1vcmVvdmVyLCBJJ20gbm90IGF3YXJlIG9mIGFueSBwbGFucyBp
-biB0aGF0IGFyZWEuDQo+IA0KPiA+IEFub3RoZXIgdGhpbmcgd29ydGggbm90aWNpbmcgaXMgdGhh
-dCwgZ2xvYmFsX2xvY2sgaXMgZ2V0dGluZyBhbiB1bnNpZ25lZA0KPiA+IGxvbmcgbG9uZyB2YWx1
-ZSBhc3NpZ25lZCB0byBpdCBpbiBlY19wYXJzZV9kZXZpY2UoKSBhbmQgdGhpcyBpcyB3aGF0DQo+
-ID4gQXJuZCBoYWQgdG8gc2F5IGFib3V0IHRoYXQ6DQo+ID4NCj4gPiAiSSB0aGluayB0aGF0J3Mg
-ZmluZSwgaXQgZG9lcyB0aGlzIGJlY2F1c2UgdGhlIF9HTFAgdmFyaWFibGUgaW4gQUNQSSBpcw0K
-PiA+IGRlZmluZWQgYXMgYW4gdTY0LiBBbmQgdGhhdCdzIHdoYXQgaGFwcGVucyBvbiAzMi1iaXQg
-YXJjaGl0ZWN0dXJlcw0KPiA+IGFueXdheS4iDQo+ID4NCj4gPiBUaGlzIHBhdGNoIHNob3VsZCBn
-byB2aWEgR3JlZ0tILCBhcyB0aGUgc2Vjb25kIHBhdGNoIGhhcyBkZXBlbmRlbmN5IG9uDQo+ID4g
-aXQuDQo+ID4NCj4gPiBWMi0+VjM6DQo+ID4gLSBNb3ZlZCB0aGlzIG91dCBpbiBhIHNlcGFyYXRl
-IHBhdGNoLCBzbyB0aGF0IGl0IGNhbiBiZSBiYWNrcG9ydGVkLg0KPiANCj4gTHYsIGNhbiB5b3Ug
-aGF2ZSBhIGxvb2sgYXQgdGhpcywgcGxlYXNlPw0KPiANCj4gPiAtLS0NCj4gPiAgZHJpdmVycy9h
-Y3BpL2VjX3N5cy5jICAgfCAyICstDQo+ID4gIGRyaXZlcnMvYWNwaS9pbnRlcm5hbC5oIHwgMiAr
-LQ0KPiA+ICAyIGZpbGVzIGNoYW5nZWQsIDIgaW5zZXJ0aW9ucygrKSwgMiBkZWxldGlvbnMoLSkN
-Cj4gPg0KPiA+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvZWNfc3lzLmMgYi9kcml2ZXJzL2Fj
-cGkvZWNfc3lzLmMNCj4gPiBpbmRleCBiNGMyMTZiYWIyMmIuLmJlYThlNDI1YThkZSAxMDA2NDQN
-Cj4gPiAtLS0gYS9kcml2ZXJzL2FjcGkvZWNfc3lzLmMNCj4gPiArKysgYi9kcml2ZXJzL2FjcGkv
-ZWNfc3lzLmMNCj4gPiBAQCAtMTI4LDcgKzEyOCw3IEBAIHN0YXRpYyBpbnQgYWNwaV9lY19hZGRf
-ZGVidWdmcyhzdHJ1Y3QgYWNwaV9lYyAqZWMsIHVuc2lnbmVkIGludCBlY19kZXZpY2VfY291bnQp
-DQo+ID4gIAlpZiAoIWRlYnVnZnNfY3JlYXRlX3gzMigiZ3BlIiwgMDQ0NCwgZGV2X2RpciwgKHUz
-MiAqKSZmaXJzdF9lYy0+Z3BlKSkNCj4gPiAgCQlnb3RvIGVycm9yOw0KPiA+ICAJaWYgKCFkZWJ1
-Z2ZzX2NyZWF0ZV9ib29sKCJ1c2VfZ2xvYmFsX2xvY2siLCAwNDQ0LCBkZXZfZGlyLA0KPiA+IC0J
-CQkJICh1MzIgKikmZmlyc3RfZWMtPmdsb2JhbF9sb2NrKSkNCj4gPiArCQkJCSAmZmlyc3RfZWMt
-Pmdsb2JhbF9sb2NrKSkNCj4gPiAgCQlnb3RvIGVycm9yOw0KPiA+DQo+ID4gIAlpZiAod3JpdGVf
-c3VwcG9ydCkNCj4gPiBkaWZmIC0tZ2l0IGEvZHJpdmVycy9hY3BpL2ludGVybmFsLmggYi9kcml2
-ZXJzL2FjcGkvaW50ZXJuYWwuaA0KPiA+IGluZGV4IDllNDI2MjEwYzJhOC4uOWRiMTk2ZGUwMDNj
-IDEwMDY0NA0KPiA+IC0tLSBhL2RyaXZlcnMvYWNwaS9pbnRlcm5hbC5oDQo+ID4gKysrIGIvZHJp
-dmVycy9hY3BpL2ludGVybmFsLmgNCj4gPiBAQCAtMTM4LDcgKzEzOCw3IEBAIHN0cnVjdCBhY3Bp
-X2VjIHsNCj4gPiAgCXVuc2lnbmVkIGxvbmcgZ3BlOw0KPiA+ICAJdW5zaWduZWQgbG9uZyBjb21t
-YW5kX2FkZHI7DQo+ID4gIAl1bnNpZ25lZCBsb25nIGRhdGFfYWRkcjsNCj4gPiAtCXVuc2lnbmVk
-IGxvbmcgZ2xvYmFsX2xvY2s7DQo+ID4gKwl1MzIgZ2xvYmFsX2xvY2s7DQo+ID4gIAl1bnNpZ25l
-ZCBsb25nIGZsYWdzOw0KPiA+ICAJdW5zaWduZWQgbG9uZyByZWZlcmVuY2VfY291bnQ7DQo+ID4g
-IAlzdHJ1Y3QgbXV0ZXggbXV0ZXg7DQo+ID4NCj4gDQoNCklmIHdlIHJlYWxseSB3YW50IHRvIGNo
-YW5nZSwgd2UgbWF5IGNoYW5nZSBldmVyeXRoaW5nIGhlcmUuDQpncGUvY29tbWFuZF9hZGRyL2Rh
-dGFfYWRkci9nbG9iYWxfbG9jay4NCkFuZCBJTU8sIGlmIHdlIHJlYWxseSB3YW50IHRvIGNoYW5n
-ZSBnbG9iYWxfbG9jaywgd2Ugc2hvdWxkIG1ha2UgaXQgYm9vbCBoZXJlLg0KDQpUaGFua3MgYW5k
-IGJlc3QgcmVnYXJkcw0KLUx2DQoNCj4gVGhhbmtzLA0KPiBSYWZhZWwNCg0K
+On Tue, 2015-09-22 at 23:23 +0100, Lee Jones wrote:
+> On Tue, 22 Sep 2015, Andy Shevchenko wrote:
+> 
+> > On Intel Galileo boards the GPIO expander is connected to i2c bus. 
+> > Moreover it
+> > is able to generate interrupt, but interrupt line is connected to 
+> > GPIO. That's
+> > why we have to have GPIO driver in place when we will probe i2c 
+> > host with
+> > device connected to it.
+> > 
+> > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> > ---
+> >  drivers/mfd/intel_quark_i2c_gpio.c | 48 +++++++++++++++++++++-----
+> > ------------
+> >  1 file changed, 27 insertions(+), 21 deletions(-)
+> 
+> --- a/drivers/mfd/intel_quark_i2c_gpio.c
+> +++ b/drivers/mfd/intel_quark_i2c_gpio.c
+> @@ -28,8 +28,8 @@
+>  #include <linux/platform_data/i2c-designware.h>
+>  
+>  /* PCI BAR for register base address */
+> -#define MFD_I2C_BAR            0
+> -#define MFD_GPIO_BAR           1
+> +#define MFD_GPIO_BAR           0
+> +#define MFD_I2C_BAR            1
+>  
+>  /* The base GPIO number under GPIOLIB framework */
+>  #define INTEL_QUARK_MFD_GPIO_BASE      8
+> 
+> ?
+
+No, PCI bars are left without changes, but _ADR values are different.
+Otherwise it will not work.
+
+Here is the excerpt from DSDT
+    Device (GIP0)
+    {   
+        Name (_ADR, 0x00150002)  // _ADR: Address
+        Name (_STA, 0x0F)  // _STA: Status
+        Name (_PRW, Package (0x02)  // _PRW: Power Resources for Wake
+          {   
+              0x0F, 
+              0x03
+          })
+        Device (GPO)
+        {   
+          Name (_ADR, Zero)  // _ADR: Address
+          Name (_STA, 0x0F)  // _STA: Status
+          Name (_PRW, Package (0x02)  // _PRW: Power Resources for Wake
+            {   
+                0x0F, 
+                0x03
+            })
+        }
+
+        Device (I2C)
+        {   
+          Name (_ADR, One)  // _ADR: Address
+          Name (_STA, 0x0F)  // _STA: Status
+          Name (_PRW, Package (0x02)  // _PRW: Power Resources for Wake
+            {   
+                0x0F, 
+                0x03
+            })
+        }
+    }
+
+> 
+> > diff --git a/drivers/mfd/intel_quark_i2c_gpio.c 
+> > b/drivers/mfd/intel_quark_i2c_gpio.c
+> > index 1ce1603..89bd4bf 100644
+> > --- a/drivers/mfd/intel_quark_i2c_gpio.c
+> > +++ b/drivers/mfd/intel_quark_i2c_gpio.c
+> > @@ -82,27 +82,26 @@ static struct resource intel_quark_i2c_res[] = 
+> > {
+> >  	},
+> >  };
+> >  
+> > +static struct mfd_cell intel_quark_mfd_i2c_cell = {
+> > +	.id = MFD_I2C_BAR,
+> > +	.name = "i2c_designware",
+> > +	.num_resources = ARRAY_SIZE(intel_quark_i2c_res),
+> > +	.resources = intel_quark_i2c_res,
+> > +	.ignore_resource_conflicts = true,
+> > +};
+> > +
+> >  static struct resource intel_quark_gpio_res[] = {
+> >  	[INTEL_QUARK_IORES_MEM] = {
+> >  		.flags = IORESOURCE_MEM,
+> >  	},
+> >  };
+> >  
+> > -static struct mfd_cell intel_quark_mfd_cells[] = {
+> > -	{
+> > -		.id = MFD_I2C_BAR,
+> > -		.name = "i2c_designware",
+> > -		.num_resources = ARRAY_SIZE(intel_quark_i2c_res),
+> > -		.resources = intel_quark_i2c_res,
+> > -		.ignore_resource_conflicts = true,
+> > -	},
+> > -	{
+> > -		.id = MFD_GPIO_BAR,
+> > -		.name = "gpio-dwapb",
+> > -		.num_resources = ARRAY_SIZE(intel_quark_gpio_res),
+> > -		.resources = intel_quark_gpio_res,
+> > -		.ignore_resource_conflicts = true,
+> > -	},
+> > +static struct mfd_cell intel_quark_mfd_gpio_cell = {
+> > +	.id = MFD_GPIO_BAR,
+> > +	.name = "gpio-dwapb",
+> > +	.num_resources = ARRAY_SIZE(intel_quark_gpio_res),
+> > +	.resources = intel_quark_gpio_res,
+> > +	.ignore_resource_conflicts = true,
+> >  };
+> >  
+> >  static const struct pci_device_id intel_quark_mfd_ids[] = {
+> > @@ -248,18 +247,25 @@ static int intel_quark_mfd_probe(struct 
+> > pci_dev *pdev,
+> >  
+> >  	dev_set_drvdata(&pdev->dev, quark_mfd);
+> >  
+> > -	ret = intel_quark_i2c_setup(pdev, 
+> > &intel_quark_mfd_cells[MFD_I2C_BAR]);
+> > +	ret = intel_quark_i2c_setup(pdev, 
+> > &intel_quark_mfd_i2c_cell);
+> >  	if (ret)
+> >  		return ret;
+> >  
+> > -	ret = intel_quark_gpio_setup(pdev,
+> > -				    
+> >  &intel_quark_mfd_cells[MFD_GPIO_BAR]);
+> > +	ret = intel_quark_gpio_setup(pdev, 
+> > &intel_quark_mfd_gpio_cell);
+> >  	if (ret)
+> >  		return ret;
+> >  
+> > -	return mfd_add_devices(&pdev->dev, 0, 
+> > intel_quark_mfd_cells,
+> > -			       ARRAY_SIZE(intel_quark_mfd_cells), 
+> > NULL, 0,
+> > -			       NULL);
+> > +	ret = mfd_add_devices(&pdev->dev, 0, 
+> > &intel_quark_mfd_gpio_cell, 1,
+> > +			      NULL, 0, NULL);
+> > +	if (ret)
+> > +		return ret;
+> > +
+> > +	ret = mfd_add_devices(&pdev->dev, 0, 
+> > &intel_quark_mfd_i2c_cell, 1,
+> > +			      NULL, 0, NULL);
+> > +	if (ret)
+> > +		mfd_remove_devices(&pdev->dev);
+> > +
+> > +	return ret;
+> >  }
+> >  
+> >  static void intel_quark_mfd_remove(struct pci_dev *pdev)
+> 
+
+-- 
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
