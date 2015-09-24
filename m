@@ -1,165 +1,119 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 2/3] ACPI / EC: Fix query handler related issues
-Date: Thu, 24 Sep 2015 14:54:48 +0800
-Message-ID: <99ca634310ba07f3f8e06ebdabc3c5631eb0dd47.1443076693.git.lv.zheng@intel.com>
-References: <cover.1443076693.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1443076693.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH 2/2] acpi-dma: Add support for "dma-names" device property
+Date: Thu, 24 Sep 2015 12:12:54 +0300
+Message-ID: <20150924091254.GL1536@lahna.fi.intel.com>
+References: <1442241456-75340-1-git-send-email-mika.westerberg@linux.intel.com>
+ <1442241456-75340-2-git-send-email-mika.westerberg@linux.intel.com>
+ <2758429.Hja1JGjCVP@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:49039 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751459AbbIXJM6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 24 Sep 2015 05:12:58 -0400
+Content-Disposition: inline
+In-Reply-To: <2758429.Hja1JGjCVP@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Vinod Koul <vinod.koul@intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dan Williams <dan.j.williams@intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-1. acpi_ec_remove_query_handlers()
-This patch refines the query handler removal logic implemented in
-acpi_ec_remove_query_handler(), making it to invoke new
-acpi_ec_remove_query_handlers() API, and ensuring all other removal code
-paths to invoke the new API to honor the reference count of the query
-handlers.
+On Tue, Sep 15, 2015 at 01:19:59AM +0200, Rafael J. Wysocki wrote:
+> On Monday, September 14, 2015 05:37:36 PM Mika Westerberg wrote:
+> > The current implementation hard codes the two supported channels so that
+> > "tx" is always 0 and "rx" is always 1. This is because there has been no
+> > suitable way in ACPI to name resources.
+> > 
+> > With _DSD device properties we can finally do this:
+> > 
+> > 	Device (SPI1) {
+> > 	    Name (_CRS, ResourceTemplate () {
+> > 	        ...
+> > 	        FixedDMA (0x0000, 0x0000, Width32bit)
+> > 	        FixedDMA (0x0001, 0x0001, Width32bit)
+> > 	    })
+> > 
+> > 	    Name (_DSD, Package () {
+> > 	        ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+> > 	        Package () {
+> > 	            Package () {"dma-names", Package () {"tx", "rx"}}
+> > 	        },
+> > 	    })
+> > 	}
+> > 
+> > The names "tx" and "rx" now provide index of the FixedDMA resource in
+> > question.
+> > 
+> > Modify acpi_dma_request_slave_chan_by_name() so that it looks for
+> > "dma-names" property first and only then fall back using hardcoded indices.
+> > 
+> > The DT "dma-names" binding that we reuse for ACPI is documented in
+> > Documentation/devicetree/bindings/dma/dma.txt.
+> > 
+> > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> 
+> This and the [1/2] both look reasonable to me, but I need an ACK from Vinod
+> for this one.
 
-2. acpi_ec_get_query_handler_by_value()
-This patch also refines the query handler search logic originally
-implemented in acpi_ec_query(), collecting it into
-acpi_ec_get_query_handler_by_value(). And since schedule_work() can ensure
-the serilization of acpi_ec_event_handler(), we needn't put the
-mutex_lock() around schedule_work().
+Vinod, any comments?
 
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- drivers/acpi/ec.c |   73 +++++++++++++++++++++++++++++++++--------------------
- 1 file changed, 45 insertions(+), 28 deletions(-)
-
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index 42c66b6..ddaaa9d 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -929,6 +929,23 @@ acpi_ec_get_query_handler(struct acpi_ec_query_handler *handler)
- 	return handler;
- }
- 
-+static struct acpi_ec_query_handler *
-+acpi_ec_get_query_handler_by_value(struct acpi_ec *ec, u8 value)
-+{
-+	struct acpi_ec_query_handler *handler;
-+	bool found = false;
-+
-+	mutex_lock(&ec->mutex);
-+	list_for_each_entry(handler, &ec->list, node) {
-+		if (value == handler->query_bit) {
-+			found = true;
-+			break;
-+		}
-+	}
-+	mutex_unlock(&ec->mutex);
-+	return found ? acpi_ec_get_query_handler(handler) : NULL;
-+}
-+
- static void acpi_ec_query_handler_release(struct kref *kref)
- {
- 	struct acpi_ec_query_handler *handler =
-@@ -964,14 +981,15 @@ int acpi_ec_add_query_handler(struct acpi_ec *ec, u8 query_bit,
- }
- EXPORT_SYMBOL_GPL(acpi_ec_add_query_handler);
- 
--void acpi_ec_remove_query_handler(struct acpi_ec *ec, u8 query_bit)
-+static void acpi_ec_remove_query_handlers(struct acpi_ec *ec,
-+					  bool remove_all, u8 query_bit)
- {
- 	struct acpi_ec_query_handler *handler, *tmp;
- 	LIST_HEAD(free_list);
- 
- 	mutex_lock(&ec->mutex);
- 	list_for_each_entry_safe(handler, tmp, &ec->list, node) {
--		if (query_bit == handler->query_bit) {
-+		if (remove_all || query_bit == handler->query_bit) {
- 			list_del_init(&handler->node);
- 			list_add(&handler->node, &free_list);
- 		}
-@@ -980,6 +998,11 @@ void acpi_ec_remove_query_handler(struct acpi_ec *ec, u8 query_bit)
- 	list_for_each_entry_safe(handler, tmp, &free_list, node)
- 		acpi_ec_put_query_handler(handler);
- }
-+
-+void acpi_ec_remove_query_handler(struct acpi_ec *ec, u8 query_bit)
-+{
-+	acpi_ec_remove_query_handlers(ec, false, query_bit);
-+}
- EXPORT_SYMBOL_GPL(acpi_ec_remove_query_handler);
- 
- static struct acpi_ec_query *acpi_ec_create_query(u8 *pval)
-@@ -1025,7 +1048,6 @@ static int acpi_ec_query(struct acpi_ec *ec, u8 *data)
- {
- 	u8 value = 0;
- 	int result;
--	struct acpi_ec_query_handler *handler;
- 	struct acpi_ec_query *q;
- 
- 	q = acpi_ec_create_query(&value);
-@@ -1043,25 +1065,26 @@ static int acpi_ec_query(struct acpi_ec *ec, u8 *data)
- 	if (result)
- 		goto err_exit;
- 
--	mutex_lock(&ec->mutex);
--	result = -ENODATA;
--	list_for_each_entry(handler, &ec->list, node) {
--		if (value == handler->query_bit) {
--			result = 0;
--			q->handler = acpi_ec_get_query_handler(handler);
--			ec_dbg_evt("Query(0x%02x) scheduled",
--				   q->handler->query_bit);
--			/*
--			 * It is reported that _Qxx are evaluated in a
--			 * parallel way on Windows:
--			 * https://bugzilla.kernel.org/show_bug.cgi?id=94411
--			 */
--			if (!schedule_work(&q->work))
--				result = -EBUSY;
--			break;
--		}
-+	q->handler = acpi_ec_get_query_handler_by_value(ec, value);
-+	if (!q->handler) {
-+		result = -ENODATA;
-+		goto err_exit;
-+	}
-+
-+	/*
-+	 * It is reported that _Qxx are evaluated in a parallel way on
-+	 * Windows:
-+	 * https://bugzilla.kernel.org/show_bug.cgi?id=94411
-+	 *
-+	 * Put this log entry before schedule_work() in order to make
-+	 * it appearing before any other log entries occurred during the
-+	 * work queue execution.
-+	 */
-+	ec_dbg_evt("Query(0x%02x) scheduled", value);
-+	if (!schedule_work(&q->work)) {
-+		ec_dbg_evt("Query(0x%02x) overlapped", value);
-+		result = -EBUSY;
- 	}
--	mutex_unlock(&ec->mutex);
- 
- err_exit:
- 	if (result && q)
-@@ -1354,19 +1377,13 @@ static int acpi_ec_add(struct acpi_device *device)
- static int acpi_ec_remove(struct acpi_device *device)
- {
- 	struct acpi_ec *ec;
--	struct acpi_ec_query_handler *handler, *tmp;
- 
- 	if (!device)
- 		return -EINVAL;
- 
- 	ec = acpi_driver_data(device);
- 	ec_remove_handlers(ec);
--	mutex_lock(&ec->mutex);
--	list_for_each_entry_safe(handler, tmp, &ec->list, node) {
--		list_del(&handler->node);
--		kfree(handler);
--	}
--	mutex_unlock(&ec->mutex);
-+	acpi_ec_remove_query_handlers(ec, true, 0);
- 	release_region(ec->data_addr, 1);
- 	release_region(ec->command_addr, 1);
- 	device->driver_data = NULL;
--- 
-1.7.10
+> 
+> > ---
+> >  drivers/dma/acpi-dma.c | 25 +++++++++++++++++--------
+> >  1 file changed, 17 insertions(+), 8 deletions(-)
+> > 
+> > diff --git a/drivers/dma/acpi-dma.c b/drivers/dma/acpi-dma.c
+> > index 5a635646e05c..981a38fc4cb8 100644
+> > --- a/drivers/dma/acpi-dma.c
+> > +++ b/drivers/dma/acpi-dma.c
+> > @@ -21,6 +21,7 @@
+> >  #include <linux/ioport.h>
+> >  #include <linux/acpi.h>
+> >  #include <linux/acpi_dma.h>
+> > +#include <linux/property.h>
+> >  
+> >  static LIST_HEAD(acpi_dma_list);
+> >  static DEFINE_MUTEX(acpi_dma_lock);
+> > @@ -413,21 +414,29 @@ EXPORT_SYMBOL_GPL(acpi_dma_request_slave_chan_by_index);
+> >   * translate the names "tx" and "rx" here based on the most common case where
+> >   * the first FixedDMA descriptor is TX and second is RX.
+> >   *
+> > + * If the device has "dma-names" property the FixedDMA descriptor indices
+> > + * are retrieved based on those. Otherwise the function falls back using
+> > + * hardcoded indices.
+> > + *
+> >   * Return:
+> >   * Pointer to appropriate dma channel on success or an error pointer.
+> >   */
+> >  struct dma_chan *acpi_dma_request_slave_chan_by_name(struct device *dev,
+> >  		const char *name)
+> >  {
+> > -	size_t index;
+> > -
+> > -	if (!strcmp(name, "tx"))
+> > -		index = 0;
+> > -	else if (!strcmp(name, "rx"))
+> > -		index = 1;
+> > -	else
+> > -		return ERR_PTR(-ENODEV);
+> > +	int index;
+> > +
+> > +	index = device_property_match_string(dev, "dma-names", name);
+> > +	if (index < 0) {
+> > +		if (!strcmp(name, "tx"))
+> > +			index = 0;
+> > +		else if (!strcmp(name, "rx"))
+> > +			index = 1;
+> > +		else
+> > +			return ERR_PTR(-ENODEV);
+> > +	}
+> >  
+> > +	dev_dbg(dev, "found DMA channel \"%s\" at index %d\n", name, index);
+> >  	return acpi_dma_request_slave_chan_by_index(dev, index);
+> >  }
+> >  EXPORT_SYMBOL_GPL(acpi_dma_request_slave_chan_by_name);
+> > 
+> 
+> Thanks,
+> Rafael
