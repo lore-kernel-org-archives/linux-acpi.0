@@ -1,87 +1,137 @@
-From: Jarkko Nikula <jarkko.nikula@linux.intel.com>
-Subject: [PATCH 1/2] spi: pxa2xx: Set the max_speed_hz of the master
-Date: Fri, 25 Sep 2015 10:27:17 +0300
-Message-ID: <1443166038-31658-1-git-send-email-jarkko.nikula@linux.intel.com>
+From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Subject: Re: [PATCH 05/11] x86, pci, acpi: Move arch-agnostic MMCONFIG (aka
+ ECAM) and ACPI code out of arch/x86/ directory
+Date: Fri, 25 Sep 2015 18:02:09 +0200
+Message-ID: <56057001.9000101@linaro.org>
+References: <20150602133215.GC23650@red-moon> <55701A31.808@linaro.org>
+ <20150604102253.GA31773@red-moon> <5570447D.3020705@linaro.org>
+ <557504A2.3060203@linaro.org> <20150608151443.GA16151@red-moon>
+ <55E4340D.6050004@linaro.org> <55ED6010.3020406@linaro.org>
+ <20150908150727.GF29293@red-moon> <55F0388B.1090607@linaro.org>
+ <20150911112018.GA13033@red-moon> <55F6DFF6.4010807@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:36067 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750856AbbIYH12 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 25 Sep 2015 03:27:28 -0400
+Received: from mail-la0-f47.google.com ([209.85.215.47]:32950 "EHLO
+	mail-la0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752746AbbIYQCO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Sep 2015 12:02:14 -0400
+Received: by lahh2 with SMTP id h2so101970024lah.0
+        for <linux-acpi@vger.kernel.org>; Fri, 25 Sep 2015 09:02:13 -0700 (PDT)
+In-Reply-To: <55F6DFF6.4010807@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-spi@vger.kernel.org
-Cc: Mark Brown <broonie@kernel.org>, linux-acpi@vger.kernel.org, Daniel Mack <daniel@zonque.org>, Haojian Zhuang <haojian.zhuang@gmail.com>, Robert Jarzmik <robert.jarzmik@free.fr>, Jarkko Nikula <jarkko.nikula@linux.intel.com>
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, Yijing Wang <wangyijing@huawei.com>, Will Deacon <Will.Deacon@arm.com>, Arnd Bergmann <arnd@arndb.de>, Catalin Marinas <Catalin.Marinas@arm.com>, Jiang Liu <jiang.liu@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "msalter@redhat.com" <msalter@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 
-Carry input clock of the controller in max_speed_hz of struct spi_master
-instead of in own driver data. They mean the same thing and more over now
-the max_speed_hz is not even set here.
+Hi Lorenzo,
 
-As an added bonus this allows SPI core to validate that transfer speed is
-not beyond the maximum input clock. This is not a problem in spi-pxa2xx as
-the driver doesn't use transfer speed parameter directly but via input
-clock divider calculation which will top at divide by one. However it's
-better to validate speed before passing it here.
+On 09/14/2015 04:55 PM, Tomasz Nowicki wrote:
+> On 11.09.2015 13:20, Lorenzo Pieralisi wrote:
+>> On Wed, Sep 09, 2015 at 02:47:55PM +0100, Tomasz Nowicki wrote:
+>>
+>> [...]
+>>
+>>>> I think (but I am happy to be corrected) that the map_bus() hook
+>>>> (ie that's why struct pci_bus is required in eg
+>>>> pci_generic_config_write)
+>>>> is there to ensure that when the generic accessors are called
+>>>> a) we have a valid bus b) the host controllers implementing it
+>>>> has been initialized.
+>>>>
+>>>> I had another look and I noticed you are trying to solve multiple
+>>>> things at once:
+>>>>
+>>>> 1) ACPICA seems to need PCI config space on bus 0 to be working
+>>>>      before PCI enumerates (ie before we have a root bus), we need to
+>>>>      countercheck on that, but you can't use the generic PCI accessors
+>>>>      for that reasons (ie root bus might not be available, you do not
+>>>>      have a pci_bus struct)
+>>>> 2) the raw_pci_read/write require _generic_ mmio back-ends, since AMD
+>>>>      can't cope with standard x86 read/write{b,w,l}
+>>>>
+>>>> Overall, it seems to me that we can avoid code duplication by
+>>>> shuffling your code a bit.
+>>>>
+>>>> You could modify the generic accessors in drivers/pci/access.c to
+>>>> use your mmio back-end instead of using plain read/write{b,w,l}
+>>>> functions (we should check if RobH is ok with that there can be
+>>>> reasons that prevent this from happening). This would solve the
+>>>> AMD mmio issue.
+>>>>
+>>>> By factoring out the code that actually carries out the reads
+>>>> and writes in the accessors basically you decouple the functions
+>>>> requiring the struct pci_bus from the ones that does not require it
+>>>> (ie raw_pci_{read/write}.
+>>>>
+>>>> The generic MMIO layer belongs in the drivers/pci/access.c file, it has
+>>>> nothing to do with ECAM.
+>>>>
+>>>> The mmcfg interface should probably live in pci-acpi.c, I do not think
+>>>> you need an extra file in there but that's a detail.
+>>>>
+>>>> Basically the generic accessors would become something like eg:
+>>>>
+>>>> int pci_generic_config_write(struct pci_bus *bus, unsigned int devfn,
+>>>>                             int where, int size, u32 val)
+>>>> {
+>>>>        void __iomem *addr;
+>>>>
+>>>>        addr = bus->ops->map_bus(bus, devfn, where);
+>>>>        if (!addr)
+>>>>                return PCIBIOS_DEVICE_NOT_FOUND;
+>>>>
+>>>>        pci_mmio_write(size, addr + where, value);
+>>>>
+>>>>        return PCIBIOS_SUCCESSFUL;
+>>>> }
+>>>>
+>>>> With that in place using raw_pci_write/read or the generic accessors
+>>>> becomes almost identical, with code requiring the pci_bus to be
+>>>> created using the generic accessors and ACPICA using the raw version.
+>>>>
+>>>> I might be missing something, so apologies if that's the case.
+>>>>
+>>>
+>>> Actually, I think you showed me the right direction :) Here are some
+>>> conclusions/comments/concerns. Please correct me if I am wrong:
+>>>
+>>> 1. We need raw_pci_write/read accessors (based on ECAM) for ARM64 too
+>>> but only up to the point where buses are enumerated. From that point on,
+>>> we should reuse generic accessors from access.c file, right?
+>>
+>> Well, I still have not figured out whether on arm64 the raw accessors
+>> required by ACPICA make sense.
+>>
+>> So either arm64 relies on the generic MCFG based raw read and writes
+>> or we define the global raw read and writes as empty (ie x86 overrides
+>> them anyway).
+>>
+>
+> My concerns/ideas related to raw accessors for ARM64, please correct me
+> at any point.
+>
+> ACPI spec - chapter: 19.5.96 OperationRegion (Declare Operation Region)
+> defines PCI_Config as one of region types. Every time ASL opcode
+> operates on corresponding PCI config space region, ASL interpreter is
+> dispatching address space to our raw accessors, please see
+> acpi_ex_pci_config_space_handler, acpi_ev_pci_config_region_setup calls.
+> What is more important, such operations may happen after (yes after) bus
+> enumeration, but always raw accessors are called at the end with the
+> {segment, bus, dev, fn} tuple.
+>
+> Giving above, here are some ideas:
+> 1. We force somehow vendors to avoid operations on PCI config regions in
+> ASL code. PCI config region definitions still fall into Hardware Reduced
+> profile, so new ACPICA special subset for ARM64 is need. Then raw ACPI
+> accessors can be empty (and overridden by x86).
+> 2. We provide raw accessors which translate {segment, bus, dev, fn}
+> tuple to Linux generic accessors (this can be considered only if PCI
+> config accesses happened after bus enumeration for HR profile, thus
+> tuple to bus structure map is possible).
+> 4. We rely on the generic MCFG based raw read and writes.
 
-Signed-off-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
----
- drivers/spi/spi-pxa2xx.c | 12 ++++++------
- drivers/spi/spi-pxa2xx.h |  3 ---
- 2 files changed, 6 insertions(+), 9 deletions(-)
+I will appreciate your opinion on above ideas.
 
-diff --git a/drivers/spi/spi-pxa2xx.c b/drivers/spi/spi-pxa2xx.c
-index 7a4cb07a5f47..36cbb0f10856 100644
---- a/drivers/spi/spi-pxa2xx.c
-+++ b/drivers/spi/spi-pxa2xx.c
-@@ -806,7 +806,7 @@ static unsigned int quark_x1000_get_clk_div(int rate, u32 *dds)
- 
- static unsigned int ssp_get_clk_div(struct driver_data *drv_data, int rate)
- {
--	unsigned long ssp_clk = drv_data->max_clk_rate;
-+	unsigned long ssp_clk = drv_data->master->max_speed_hz;
- 	const struct ssp_device *ssp = drv_data->ssp;
- 
- 	rate = min_t(int, ssp_clk, rate);
-@@ -1221,13 +1221,13 @@ static int setup(struct spi_device *spi)
- 	/* NOTE:  PXA25x_SSP _could_ use external clocking ... */
- 	cr0 = pxa2xx_configure_sscr0(drv_data, clk_div, spi->bits_per_word);
- 	if (!pxa25x_ssp_comp(drv_data))
--		dev_dbg(&spi->dev, "%ld Hz actual, %s\n",
--			drv_data->max_clk_rate
-+		dev_dbg(&spi->dev, "%u Hz actual, %s\n",
-+			drv_data->master->max_speed_hz
- 				/ (1 + ((cr0 & SSCR0_SCR(0xfff)) >> 8)),
- 			chip->enable_dma ? "DMA" : "PIO");
- 	else
--		dev_dbg(&spi->dev, "%ld Hz actual, %s\n",
--			drv_data->max_clk_rate / 2
-+		dev_dbg(&spi->dev, "%u Hz actual, %s\n",
-+			drv_data->master->max_speed_hz / 2
- 				/ (1 + ((cr0 & SSCR0_SCR(0x0ff)) >> 8)),
- 			chip->enable_dma ? "DMA" : "PIO");
- 
-@@ -1477,7 +1477,7 @@ static int pxa2xx_spi_probe(struct platform_device *pdev)
- 	/* Enable SOC clock */
- 	clk_prepare_enable(ssp->clk);
- 
--	drv_data->max_clk_rate = clk_get_rate(ssp->clk);
-+	master->max_speed_hz = clk_get_rate(ssp->clk);
- 
- 	/* Load default SSP configuration */
- 	pxa2xx_spi_write(drv_data, SSCR0, 0);
-diff --git a/drivers/spi/spi-pxa2xx.h b/drivers/spi/spi-pxa2xx.h
-index b91bda26bfa8..fd7a7bc91b9f 100644
---- a/drivers/spi/spi-pxa2xx.h
-+++ b/drivers/spi/spi-pxa2xx.h
-@@ -46,9 +46,6 @@ struct driver_data {
- 	u32 clear_sr;
- 	u32 mask_sr;
- 
--	/* Maximun clock rate */
--	unsigned long max_clk_rate;
--
- 	/* Message Transfer pump */
- 	struct tasklet_struct pump_transfers;
- 
--- 
-2.5.3
-
+Tomasz
