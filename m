@@ -1,79 +1,103 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v9 1/5] ACPI: Introduce CPU performance controls using CPPC
-Date: Sat, 26 Sep 2015 02:05:07 +0200
-Message-ID: <10036388.hkOY1zLhN4@vostro.rjw.lan>
-References: <cover.1441830300.git.ashwin.chaugule@linaro.org> <de2aab7944aea82d7f846e96c193bf577507cdcd.1441830300.git.ashwin.chaugule@linaro.org>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [Bugfix 1/2] ACPI, PCI, irq: Do not share PCI IRQ with ISA IRQ
+Date: Fri, 25 Sep 2015 18:40:40 -0500
+Message-ID: <20150925234040.GB23134@localhost>
+References: <1442469766-31264-1-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:51799 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754526AbbIYXgy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Sep 2015 19:36:54 -0400
-In-Reply-To: <de2aab7944aea82d7f846e96c193bf577507cdcd.1441830300.git.ashwin.chaugule@linaro.org>
+Received: from mail.kernel.org ([198.145.29.136]:60041 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753559AbbIYXko (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 25 Sep 2015 19:40:44 -0400
+Content-Disposition: inline
+In-Reply-To: <1442469766-31264-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Cc: sudeep.holla@arm.com, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, patches@linaro.org, viresh.kumar@linaro.org, rwells@codeaurora.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Thomas Gleixner <tglx@linutronix.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, wfg@linux.intel.com, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org
 
-On Wednesday, September 09, 2015 04:27:04 PM Ashwin Chaugule wrote:
-> CPPC stands for Collaborative Processor Performance Controls
-> and is defined in the ACPI v5.0+ spec. It describes CPU
-> performance controls on an abstract and continuous scale
-> allowing the platform (e.g. remote power processor) to flexibly
-> optimize CPU performance with its knowledge of power budgets
-> and other architecture specific knowledge.
+On Thu, Sep 17, 2015 at 02:02:45PM +0800, Jiang Liu wrote:
+> Avoid IRQs occupied by ISA IRQs when allocating IRQs for PCI link devices,
+> otherwise it may cause interrupt storm due to incompatible pin attributes.
 > 
-> This patch adds a shim which exports commonly used functions
-> to get and set CPPC specific controls for each CPU. This enables
-> CPUFreq drivers to gather per CPU performance data and use
-> with exisiting governors or even allows for customized governors
-> which are implemented inside CPUFreq drivers.
+> This issue was triggered on a KVM virtual machine, which
+> 1) uses IRQ9 for SCI in high level mode.
+> 2) defines an PCI interrupt link device (LNKS) with IRQ9 as the only
+>    possible irq.
+> 3) has an PCI device referring to link device LNKS.
+> So it causes interrupt storm when enabling the PCI device because PCI IRQ
+> works in low level mode.
 > 
-> Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-> Reviewed-by: Al Stone <al.stone@linaro.org>
+> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+
 > ---
-
-[cut]
-
-> +
-> +/**
-> + * acpi_get_psd_map - Map the CPUs in a common freq domain as indicated
-> + * 	in the respective _PSD entries.
-
-One minor nit: this needs to be one-line in a proper kerneldoc.
-
-> + * @all_cpu_data: This array of pointers contains all the CPU specific
-> + *	details to access CPPC registers and freq domain information for each
-> + *	CPU.
-
-Ditto.
-
-You can add more description below.
-
-[cut]
-
-> +int cppc_get_perf_ctrs(int cpunum, struct cppc_perf_fb_ctrs *perf_fb_ctrs)
-> +{
-> +	struct cpc_desc *cpc_desc = per_cpu(cpc_desc_ptr, cpunum);
-> +	struct cpc_register_resource *delivered_reg, *reference_reg;
-> +	u64 delivered, reference;
-> +	int ret = 0;
-> +
-> +	if (!cpc_desc) {
-> +		pr_debug("No CPC descriptor for CPU:%d\n", cpunum);
+>  drivers/acpi/pci_irq.c  |    1 +
+>  drivers/acpi/pci_link.c |   13 +++++++++++++
+>  include/linux/acpi.h    |    1 +
+>  3 files changed, 15 insertions(+)
+> 
+> diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
+> index 6da0f9beab19..c9336751e5e3 100644
+> --- a/drivers/acpi/pci_irq.c
+> +++ b/drivers/acpi/pci_irq.c
+> @@ -372,6 +372,7 @@ static int acpi_isa_register_gsi(struct pci_dev *dev)
+>  
+>  	/* Interrupt Line values above 0xF are forbidden */
+>  	if (dev->irq > 0 && (dev->irq <= 0xF) &&
+> +	    acpi_isa_irq_available(dev->irq) &&
+>  	    (acpi_isa_irq_to_gsi(dev->irq, &dev_gsi) == 0)) {
+>  		dev_warn(&dev->dev, "PCI INT %c: no GSI - using ISA IRQ %d\n",
+>  			 pin_name(dev->pin), dev->irq);
+> diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+> index 3b4ea98e3ea0..246e50d22120 100644
+> --- a/drivers/acpi/pci_link.c
+> +++ b/drivers/acpi/pci_link.c
+> @@ -553,6 +553,13 @@ static int acpi_pci_link_allocate(struct acpi_pci_link *link)
+>  				irq = link->irq.possible[i];
+>  		}
+>  	}
+> +	if (acpi_irq_penalty[irq] >= PIRQ_PENALTY_ISA_ALWAYS) {
+> +		printk(KERN_ERR PREFIX "No IRQ available for %s [%s]. "
+> +			    "Try pci=noacpi or acpi=off\n",
+> +			    acpi_device_name(link->device),
+> +			    acpi_device_bid(link->device));
 > +		return -ENODEV;
 > +	}
+>  
+>  	/* Attempt to enable the link device at this IRQ. */
+>  	if (acpi_pci_link_set(link, irq)) {
+> @@ -821,6 +828,12 @@ void acpi_penalize_isa_irq(int irq, int active)
+>  	}
+>  }
+>  
+> +bool acpi_isa_irq_available(int irq)
+> +{
+> +	return irq >= 0 && (irq >= ARRAY_SIZE(acpi_irq_penalty) ||
+> +			    acpi_irq_penalty[irq] < PIRQ_PENALTY_ISA_ALWAYS);
+> +}
 > +
-> +	delivered_reg = &cpc_desc->cpc_regs[DELIVERED_CTR];
-> +	reference_reg = &cpc_desc->cpc_regs[REFERENCE_CTR];
-> +
-> +	spin_lock(&pcc_lock);
-
-I still have the question about this lock.
-
-Why does it have to be a spinlock?
-
-Rafael
-
+>  /*
+>   * Penalize IRQ used by ACPI SCI. If ACPI SCI pin attributes conflict with
+>   * PCI IRQ attributes, mark ACPI SCI as ISA_ALWAYS so it won't be use for
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 7235c4851460..43856d19cf4d 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -217,6 +217,7 @@ struct pci_dev;
+>  
+>  int acpi_pci_irq_enable (struct pci_dev *dev);
+>  void acpi_penalize_isa_irq(int irq, int active);
+> +bool acpi_isa_irq_available(int irq);
+>  void acpi_penalize_sci_irq(int irq, int trigger, int polarity);
+>  void acpi_pci_irq_disable (struct pci_dev *dev);
+>  
+> -- 
+> 1.7.10.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
