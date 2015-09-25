@@ -1,62 +1,45 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 2/2] acpi-dma: Add support for "dma-names" device property
-Date: Fri, 25 Sep 2015 02:29:55 +0200
-Message-ID: <1484799.EJckEmIlYa@vostro.rjw.lan>
-References: <1442241456-75340-1-git-send-email-mika.westerberg@linux.intel.com> <1442241456-75340-2-git-send-email-mika.westerberg@linux.intel.com> <20150924153528.GB2381@localhost>
+From: Viresh Kumar <viresh.kumar@linaro.org>
+Subject: Re: [PATCH V3 1/2] ACPI / EC: Fix broken big-endian 64bit platforms
+ using 'global_lock'
+Date: Thu, 24 Sep 2015 17:03:02 -0700
+Message-ID: <20150925000302.GD5951@linux>
+References: <9b705747a138c96c26faee5218f7b47403195b28.1442305897.git.viresh.kumar@linaro.org>
+ <1801121.8kgxqyHjgV@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:54762 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751723AbbIYABm (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Sep 2015 20:01:42 -0400
-In-Reply-To: <20150924153528.GB2381@localhost>
+Received: from mail-pa0-f51.google.com ([209.85.220.51]:33576 "EHLO
+	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752644AbbIYADI (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Sep 2015 20:03:08 -0400
+Received: by pacex6 with SMTP id ex6so86977891pac.0
+        for <linux-acpi@vger.kernel.org>; Thu, 24 Sep 2015 17:03:07 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <1801121.8kgxqyHjgV@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Vinod Koul <vinod.koul@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dan Williams <dan.j.williams@intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: gregkh@linuxfoundation.org, linaro-kernel@lists.linaro.org, sboyd@codeaurora.org, arnd@arndb.de, stable@vger.kernel.org, Len Brown <lenb@kernel.org>, "open list:ACPI" <linux-acpi@vger.kernel.org>, open list <linux-kernel@vger.kernel.org>
 
-On Thursday, September 24, 2015 09:05:28 PM Vinod Koul wrote:
-> On Mon, Sep 14, 2015 at 05:37:36PM +0300, Mika Westerberg wrote:
-> > The current implementation hard codes the two supported channels so that
-> > "tx" is always 0 and "rx" is always 1. This is because there has been no
-> > suitable way in ACPI to name resources.
-> > 
-> > With _DSD device properties we can finally do this:
-> > 
-> > 	Device (SPI1) {
-> > 	    Name (_CRS, ResourceTemplate () {
-> > 	        ...
-> > 	        FixedDMA (0x0000, 0x0000, Width32bit)
-> > 	        FixedDMA (0x0001, 0x0001, Width32bit)
-> > 	    })
-> > 
-> > 	    Name (_DSD, Package () {
-> > 	        ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-> > 	        Package () {
-> > 	            Package () {"dma-names", Package () {"tx", "rx"}}
-> > 	        },
-> > 	    })
-> > 	}
-> > 
-> > The names "tx" and "rx" now provide index of the FixedDMA resource in
-> > question.
-> > 
-> > Modify acpi_dma_request_slave_chan_by_name() so that it looks for
-> > "dma-names" property first and only then fall back using hardcoded indices.
-> > 
-> > The DT "dma-names" binding that we reuse for ACPI is documented in
-> > Documentation/devicetree/bindings/dma/dma.txt.
+On 25-09-15, 02:17, Rafael J. Wysocki wrote:
+> Actually, what about adding a local u32 variable, say val, here and doing
 > 
-> Acked-by: Vinod Koul <vinod.koul@intel.com>
+> >  	if (!debugfs_create_x32("gpe", 0444, dev_dir, (u32 *)&first_ec->gpe))
+> >  		goto error;
+> >  	if (!debugfs_create_bool("use_global_lock", 0444, dev_dir,
+> > -				 (u32 *)&first_ec->global_lock))
+> > +				 &first_ec->global_lock))
 > 
-> This is actually good and will help a lot.
+> 	if (!debugfs_create_bool("use_global_lock", 0444, dev_dir, &val))
+> 
+> >  		goto error;
+> 
+> 	first_ec->global_lock = val;
+> 
+> And then you can turn val into bool just fine without changing the structure
+> definition.
 
-Thanks!
+sure. Looks good.
 
-Added [1/2] and this one to my device-properties branch.
-
-Thanks,
-Rafael
-
+-- 
+viresh
