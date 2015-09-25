@@ -1,219 +1,51 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 1/5] acpi: Add basic device probing infrastructure
-Date: Sat, 26 Sep 2015 01:54:18 +0200
-Message-ID: <12040863.OFfZIfOccM@vostro.rjw.lan>
-References: <1442152943-24493-1-git-send-email-marc.zyngier@arm.com> <1442152943-24493-2-git-send-email-marc.zyngier@arm.com>
+Subject: Re: [PATCH 2/2] spi: pxa2xx: Use ACPI_COMPANION() instead of acpi_bus_get_device()
+Date: Sat, 26 Sep 2015 01:56:09 +0200
+Message-ID: <4840826.juYE1IZ9q9@vostro.rjw.lan>
+References: <1443166038-31658-1-git-send-email-jarkko.nikula@linux.intel.com> <1443166038-31658-2-git-send-email-jarkko.nikula@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:41973 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:57274 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751362AbbIYX0E (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Sep 2015 19:26:04 -0400
-In-Reply-To: <1442152943-24493-2-git-send-email-marc.zyngier@arm.com>
+	with SMTP id S1755089AbbIYX1z (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Sep 2015 19:27:55 -0400
+In-Reply-To: <1443166038-31658-2-git-send-email-jarkko.nikula@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Len Brown <lenb@kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Cc: linux-spi@vger.kernel.org, Mark Brown <broonie@kernel.org>, linux-acpi@vger.kernel.org, Daniel Mack <daniel@zonque.org>, Haojian Zhuang <haojian.zhuang@gmail.com>, Robert Jarzmik <robert.jarzmik@free.fr>
 
-On Sunday, September 13, 2015 03:02:19 PM Marc Zyngier wrote:
+On Friday, September 25, 2015 10:27:18 AM Jarkko Nikula wrote:
+> Get pointer to the struct acpi_device by using ACPI_COMPANION() macro. This
+> is more efficient than using ACPI_HANDLE() and acpi_bus_get_device().
+> 
+> Signed-off-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
 
-The subject is slightly confusing IMO (there is a device probing infrastructure
-in the ACPI subsystem, but not for the kind of devices in question here).
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-> IRQ controllers and timers are the two types of device the kernel
-> requires before being able to use the device driver model.
-> 
-> ACPI so far lacks a proper probing infrastructure similar to the one
-> we have with DT, where we're able to declare IRQ chips and
-> clocksources inside the driver code, and let the core code pick it up
-> and call us back on a match. This leads to all kind of really ugly
-> hacks all over the arm64 code and even in the ACPI layer.
-> 
-> In order to allow some basic probing based on the ACPI tables,
-> introduce "struct acpi_probe_entry" which contains just enough
-> data and callbacks to match a table, an optional subtable, and
-> call a probe function. A driver can, at build time, register itself
-> and expect being called if the right entry exists in the ACPI
-> table.
-> 
-> A acpi_probe_device_table() is provided, taking an identifier for
-> a set of acpi_prove_entries, and iterating over the registered
-> entries.
-> 
-> Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
 > ---
->  drivers/acpi/scan.c               | 39 +++++++++++++++++++++++
->  include/asm-generic/vmlinux.lds.h | 10 ++++++
->  include/linux/acpi.h              | 65 +++++++++++++++++++++++++++++++++++++++
->  3 files changed, 114 insertions(+)
+>  drivers/spi/spi-pxa2xx.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
 > 
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index 01136b8..ac3030b 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -1933,3 +1933,42 @@ int __init acpi_scan_init(void)
->  	mutex_unlock(&acpi_scan_lock);
->  	return result;
->  }
-> +
-> +static struct acpi_probe_entry *ape;
-> +static int acpi_probe_count;
-> +static DEFINE_SPINLOCK(acpi_probe_lock);
-> +
-> +static int __init acpi_match_madt(struct acpi_subtable_header *header,
-> +				  const unsigned long end)
-> +{
-> +	if (!ape->validate_subtbl || ape->validate_subtbl(header, ape))
-> +		if (!ape->probe_subtbl(header, end))
-> +			acpi_probe_count++;
-> +
-> +	return 0;
-> +}
-> +
-> +int __init __acpi_probe_device_table(struct acpi_probe_entry *ap_head, int nr)
-> +{
-> +	int count = 0;
-> +
-> +	if (acpi_disabled)
-> +		return 0;
-> +
-> +	spin_lock(&acpi_probe_lock);
-> +	for (ape = ap_head; nr; ape++, nr--) {
-> +		if (ACPI_COMPARE_NAME(ACPI_SIG_MADT, ape->id)) {
-> +			acpi_probe_count = 0;
-> +			acpi_table_parse_madt(ape->type, acpi_match_madt, 0);
-> +			count += acpi_probe_count;
-> +		} else {
-> +			int res;
-> +			res = acpi_table_parse(ape->id, ape->probe_table);
-> +			if (!res)
-> +				count++;
-> +		}
-> +	}
-> +	spin_unlock(&acpi_probe_lock);
-> +
-> +	return count;
-> +}
-> diff --git a/include/asm-generic/vmlinux.lds.h b/include/asm-generic/vmlinux.lds.h
-> index 1781e54..efd7ed1 100644
-> --- a/include/asm-generic/vmlinux.lds.h
-> +++ b/include/asm-generic/vmlinux.lds.h
-> @@ -181,6 +181,16 @@
->  #define CPUIDLE_METHOD_OF_TABLES() OF_TABLE(CONFIG_CPU_IDLE, cpuidle_method)
->  #define EARLYCON_OF_TABLES()	OF_TABLE(CONFIG_SERIAL_EARLYCON, earlycon)
+> diff --git a/drivers/spi/spi-pxa2xx.c b/drivers/spi/spi-pxa2xx.c
+> index 36cbb0f10856..6f834e5b0547 100644
+> --- a/drivers/spi/spi-pxa2xx.c
+> +++ b/drivers/spi/spi-pxa2xx.c
+> @@ -1316,8 +1316,8 @@ pxa2xx_spi_acpi_get_pdata(struct platform_device *pdev)
+>  	const struct pci_device_id *pcidev_id = NULL;
+>  	int devid, type;
 >  
-> +#ifdef CONFIG_ACPI
-> +#define ACPI_PROBE_TABLE(name)						\
-> +	. = ALIGN(8);							\
-> +	VMLINUX_SYMBOL(__##name##_acpi_probe_table) = .;		\
-> +	*(__##name##_acpi_probe_table)					\
-> +	VMLINUX_SYMBOL(__##name##_acpi_probe_table_end) = .;
-> +#else
-> +#define ACPI_PROBE_TABLE(name)
-> +#endif
-> +
->  #define KERNEL_DTB()							\
->  	STRUCT_ALIGN();							\
->  	VMLINUX_SYMBOL(__dtb_start) = .;				\
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 7235c48..c63fbda 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -759,6 +759,61 @@ int acpi_dev_prop_read(struct acpi_device *adev, const char *propname,
+> -	if (!ACPI_HANDLE(&pdev->dev) ||
+> -	    acpi_bus_get_device(ACPI_HANDLE(&pdev->dev), &adev))
+> +	adev = ACPI_COMPANION(&pdev->dev);
+> +	if (!adev)
+>  		return NULL;
 >  
->  struct acpi_device *acpi_get_next_child(struct device *dev,
->  					struct acpi_device *child);
-> +
-> +struct acpi_probe_entry;
-> +typedef bool (*acpi_probe_entry_validate_subtbl)(struct acpi_subtable_header *,
-> +						 struct acpi_probe_entry *);
-> +
-> +#define ACPI_TABLE_ID_LEN	5
-> +
-> +/**
-> + * struct acpi_probe_entry - boot-time probing entry
-> + * @id:			ACPI table name
-> + * @type:		Optional subtable type to match
-> + *			(if @id contains subtables)
-> + * @validate_subtbl:	Optional callback to check the validity of
-> + *			the subtable
-
-I'd call this subtbl_valid (or even subtable_valid for that matter, the two extra
-vowels in the name don't really hurt IMO).
-
-> + * @probe_table:	Callback to the driver being probed when table
-> + *			match is successful
-> + * @probe_subtbl:	Callback to the driver being probed when table and
-> + *			subtable match (and optionnal callback is successful)
-
-s/optionnal/optional/
-
-> + * @driver_data:	Sideband data provided back to the driver
-> + */
-> +struct acpi_probe_entry {
-> +	__u8 id[ACPI_TABLE_ID_LEN];
-> +	__u8 type;
-> +	acpi_probe_entry_validate_subtbl validate_subtbl;
-> +	union {
-> +		acpi_tbl_table_handler probe_table;
-> +		acpi_tbl_entry_handler probe_subtbl;
-> +	};
-> +	kernel_ulong_t driver_data;
-> +};
-> +
-> +#define ACPI_DECLARE(table, name, table_id, subtable, valid, data, fn)	\
-
-The name of this macro might be a bit less generic and more self-explaining IMO.
-
-Like ACPI_DECLARE_PROBE_ENTRY()?
-
-> +	static const struct acpi_probe_entry __acpi_probe_##name	\
-> +		__used __section(__##table##_acpi_probe_table)		\
-> +		 = {							\
-> +			.id = table_id,					\
-> +			.type = subtable,				\
-> +			.validate_subtbl = valid,			\
-> +			.probe_table = (acpi_tbl_table_handler)fn,	\
-> +			.driver_data = data, 				\
-> +		   }
-> +
-> +#define ACPI_PROBE_TABLE(name)		__##name##_acpi_probe_table
-> +#define ACPI_PROBE_TABLE_END(name)	__##name##_acpi_probe_table_end
-> +
-> +int __acpi_probe_device_table(struct acpi_probe_entry *start, int nr);
-> +
-> +#define acpi_probe_device_table(t)					\
-> +	({ 								\
-> +		extern struct acpi_probe_entry ACPI_PROBE_TABLE(t),	\
-> +			                       ACPI_PROBE_TABLE_END(t);	\
-> +		__acpi_probe_device_table(&ACPI_PROBE_TABLE(t),		\
-> +					  (&ACPI_PROBE_TABLE_END(t) -	\
-> +					   &ACPI_PROBE_TABLE(t)));	\
-> +	})
->  #else
->  static inline int acpi_dev_get_property(struct acpi_device *adev,
->  					const char *name, acpi_object_type type,
-> @@ -809,6 +864,16 @@ static inline struct acpi_device *acpi_get_next_child(struct device *dev,
->  	return NULL;
->  }
->  
-> +#define ACPI_DECLARE(table, name, table_id, subtable, validate, data, fn) \
-> +	static const void * __acpi_table_##name[]			\
-> +		__attribute__((unused))					\
-> +		 = { (void *) table_id,					\
-> +		     (void *) subtable,					\
-> +		     (void *) valid,					\
-> +		     (void *) fn,					\
-> +		     (void *) data }
-> +
-> +#define acpi_probe_device_table(t)	({ int __r = 0; __r;})
->  #endif
->  
->  #endif	/*_LINUX_ACPI_H*/
+>  	if (dev_is_pci(pdev->dev.parent))
 > 
 
-Thanks,
-Rafael
-
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
