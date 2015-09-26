@@ -1,51 +1,79 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 2/2] spi: pxa2xx: Use ACPI_COMPANION() instead of acpi_bus_get_device()
-Date: Sat, 26 Sep 2015 01:56:09 +0200
-Message-ID: <4840826.juYE1IZ9q9@vostro.rjw.lan>
-References: <1443166038-31658-1-git-send-email-jarkko.nikula@linux.intel.com> <1443166038-31658-2-git-send-email-jarkko.nikula@linux.intel.com>
+Subject: Re: [PATCH v9 1/5] ACPI: Introduce CPU performance controls using CPPC
+Date: Sat, 26 Sep 2015 02:05:07 +0200
+Message-ID: <10036388.hkOY1zLhN4@vostro.rjw.lan>
+References: <cover.1441830300.git.ashwin.chaugule@linaro.org> <de2aab7944aea82d7f846e96c193bf577507cdcd.1441830300.git.ashwin.chaugule@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:57274 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:51799 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1755089AbbIYX1z (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Sep 2015 19:27:55 -0400
-In-Reply-To: <1443166038-31658-2-git-send-email-jarkko.nikula@linux.intel.com>
+	with SMTP id S1754526AbbIYXgy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Sep 2015 19:36:54 -0400
+In-Reply-To: <de2aab7944aea82d7f846e96c193bf577507cdcd.1441830300.git.ashwin.chaugule@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@linux.intel.com>
-Cc: linux-spi@vger.kernel.org, Mark Brown <broonie@kernel.org>, linux-acpi@vger.kernel.org, Daniel Mack <daniel@zonque.org>, Haojian Zhuang <haojian.zhuang@gmail.com>, Robert Jarzmik <robert.jarzmik@free.fr>
+To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Cc: sudeep.holla@arm.com, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, patches@linaro.org, viresh.kumar@linaro.org, rwells@codeaurora.org
 
-On Friday, September 25, 2015 10:27:18 AM Jarkko Nikula wrote:
-> Get pointer to the struct acpi_device by using ACPI_COMPANION() macro. This
-> is more efficient than using ACPI_HANDLE() and acpi_bus_get_device().
+On Wednesday, September 09, 2015 04:27:04 PM Ashwin Chaugule wrote:
+> CPPC stands for Collaborative Processor Performance Controls
+> and is defined in the ACPI v5.0+ spec. It describes CPU
+> performance controls on an abstract and continuous scale
+> allowing the platform (e.g. remote power processor) to flexibly
+> optimize CPU performance with its knowledge of power budgets
+> and other architecture specific knowledge.
 > 
-> Signed-off-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
-
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-
+> This patch adds a shim which exports commonly used functions
+> to get and set CPPC specific controls for each CPU. This enables
+> CPUFreq drivers to gather per CPU performance data and use
+> with exisiting governors or even allows for customized governors
+> which are implemented inside CPUFreq drivers.
+> 
+> Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+> Reviewed-by: Al Stone <al.stone@linaro.org>
 > ---
->  drivers/spi/spi-pxa2xx.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/spi/spi-pxa2xx.c b/drivers/spi/spi-pxa2xx.c
-> index 36cbb0f10856..6f834e5b0547 100644
-> --- a/drivers/spi/spi-pxa2xx.c
-> +++ b/drivers/spi/spi-pxa2xx.c
-> @@ -1316,8 +1316,8 @@ pxa2xx_spi_acpi_get_pdata(struct platform_device *pdev)
->  	const struct pci_device_id *pcidev_id = NULL;
->  	int devid, type;
->  
-> -	if (!ACPI_HANDLE(&pdev->dev) ||
-> -	    acpi_bus_get_device(ACPI_HANDLE(&pdev->dev), &adev))
-> +	adev = ACPI_COMPANION(&pdev->dev);
-> +	if (!adev)
->  		return NULL;
->  
->  	if (dev_is_pci(pdev->dev.parent))
-> 
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+[cut]
+
+> +
+> +/**
+> + * acpi_get_psd_map - Map the CPUs in a common freq domain as indicated
+> + * 	in the respective _PSD entries.
+
+One minor nit: this needs to be one-line in a proper kerneldoc.
+
+> + * @all_cpu_data: This array of pointers contains all the CPU specific
+> + *	details to access CPPC registers and freq domain information for each
+> + *	CPU.
+
+Ditto.
+
+You can add more description below.
+
+[cut]
+
+> +int cppc_get_perf_ctrs(int cpunum, struct cppc_perf_fb_ctrs *perf_fb_ctrs)
+> +{
+> +	struct cpc_desc *cpc_desc = per_cpu(cpc_desc_ptr, cpunum);
+> +	struct cpc_register_resource *delivered_reg, *reference_reg;
+> +	u64 delivered, reference;
+> +	int ret = 0;
+> +
+> +	if (!cpc_desc) {
+> +		pr_debug("No CPC descriptor for CPU:%d\n", cpunum);
+> +		return -ENODEV;
+> +	}
+> +
+> +	delivered_reg = &cpc_desc->cpc_regs[DELIVERED_CTR];
+> +	reference_reg = &cpc_desc->cpc_regs[REFERENCE_CTR];
+> +
+> +	spin_lock(&pcc_lock);
+
+I still have the question about this lock.
+
+Why does it have to be a spinlock?
+
+Rafael
+
