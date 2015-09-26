@@ -1,41 +1,63 @@
-From: Rami Rosen <ramirose@gmail.com>
-Subject: [PATCH] Documentation: ACPI: add copy_dsdt to ACPI format options.
-Date: Sat, 26 Sep 2015 19:27:57 +0300
-Message-ID: <1443284877-7537-1-git-send-email-ramirose@gmail.com>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCH v2 3/7] x86, gfp: Cache best near node for memory
+ allocation.
+Date: Sat, 26 Sep 2015 13:53:37 -0400
+Message-ID: <20150926175337.GB3572@htj.duckdns.org>
+References: <1441859269-25831-1-git-send-email-tangchen@cn.fujitsu.com>
+ <1441859269-25831-4-git-send-email-tangchen@cn.fujitsu.com>
+ <20150910192935.GI8114@mtj.duckdns.org>
+ <560665DB.7020301@cn.fujitsu.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f182.google.com ([209.85.212.182]:34624 "EHLO
-	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751478AbbIZQ2Y (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 26 Sep 2015 12:28:24 -0400
+Received: from mail-yk0-f177.google.com ([209.85.160.177]:33491 "EHLO
+	mail-yk0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753207AbbIZRxr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 26 Sep 2015 13:53:47 -0400
+Content-Disposition: inline
+In-Reply-To: <560665DB.7020301@cn.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rafael.j.wysocki@intel.com
-Cc: ming.m.lin@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Rami Rosen <ramirose@gmail.com>
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: jiang.liu@linux.intel.com, mika.j.penttila@gmail.com, mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, qiaonuohan@cn.fujitsu.com, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
 
-commit aa2110cb1a7510f9b834adfb39b05d4843a35d35
-("ACPI: add boot option acpi=copy_dsdt to fix corrupt DSDT") added 
-copy_dsdt as an ACPI boot option, but did not add it to ACPI format options in
-Documentation/kernel-parameters.txt. This patch fixes it.
+Hello, Tang.
 
-Signed-off-by: Rami Rosen <ramirose@gmail.com>
----
- Documentation/kernel-parameters.txt | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+On Sat, Sep 26, 2015 at 05:31:07PM +0800, Tang Chen wrote:
+> >>@@ -307,13 +307,19 @@ static inline struct page *alloc_pages_node(int nid, gfp_t gfp_mask,
+> >>  	if (nid < 0)
+> >>  		nid = numa_node_id();
+> >>+	if (!node_online(nid))
+> >>+		nid = get_near_online_node(nid);
+> >>+
+> >>  	return __alloc_pages(gfp_mask, order, node_zonelist(nid, gfp_mask));
+> >>  }
+> >Why not just update node_data[]->node_zonelist in the first place?
+> 
+> zonelist will be rebuilt in __offline_pages() when the zone is not populated
+> any more.
+> 
+> Here, getting the best near online node is for those cpus on memory-less
+> nodes.
+> 
+> In the original code, if nid is NUMA_NO_NODE, the node the current cpu
+> resides in
+> will be chosen. And if the node is memory-less node, the cpu will be mapped
+> to its
+> best near online node.
+> 
+> But this patch-set will map the cpu to its original node, so numa_node_id()
+> may return
+> a memory-less node to allocator. And then memory allocation may fail.
 
-diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
-index 22a4b68..bbf4ee6c 100644
---- a/Documentation/kernel-parameters.txt
-+++ b/Documentation/kernel-parameters.txt
-@@ -167,7 +167,8 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
- 
- 	acpi=		[HW,ACPI,X86,ARM64]
- 			Advanced Configuration and Power Interface
--			Format: { force | off | strict | noirq | rsdt }
-+			Format: { force | off | strict | noirq | rsdt |
-+				  copy_dsdt }
- 			force -- enable ACPI if default was off
- 			off -- disable ACPI if default was on
- 			noirq -- do not use ACPI for IRQ routing
+Correct me if I'm wrong but the zonelist dictates which memory areas
+the page allocator is gonna try to from, right?  What I'm wondering is
+why we aren't handling memory-less nodes by simply updating their
+zonelists.  I mean, if, say, node 2 is memory-less, its zonelist can
+simply point to zones from other nodes, right?  What am I missing
+here?
+
+Thanks.
+
 -- 
-2.4.3
-
+tejun
