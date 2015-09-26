@@ -1,84 +1,41 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: Re: [PATCH v2 5/7] x86, acpi, cpu-hotplug: Introduce apicid_to_cpuid[]
- array to store persistent cpuid <-> apicid mapping.
-Date: Sat, 26 Sep 2015 17:52:09 +0800
-Message-ID: <56066AC9.6020703@cn.fujitsu.com>
-References: <1441859269-25831-1-git-send-email-tangchen@cn.fujitsu.com> <1441859269-25831-6-git-send-email-tangchen@cn.fujitsu.com> <20150910195532.GK8114@mtj.duckdns.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20150910195532.GK8114@mtj.duckdns.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tejun Heo <tj@kernel.org>
-Cc: jiang.liu@linux.intel.com, mika.j.penttila@gmail.com, mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, qiaonuohan@cn.fujitsu.com, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, tangchen@cn.fujitsu.com
+From: Rami Rosen <ramirose@gmail.com>
+Subject: [PATCH] Documentation: ACPI: add copy_dsdt to ACPI format options.
+Date: Sat, 26 Sep 2015 19:27:57 +0300
+Message-ID: <1443284877-7537-1-git-send-email-ramirose@gmail.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wi0-f182.google.com ([209.85.212.182]:34624 "EHLO
+	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751478AbbIZQ2Y (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 26 Sep 2015 12:28:24 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: rafael.j.wysocki@intel.com
+Cc: ming.m.lin@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Rami Rosen <ramirose@gmail.com>
 
-Hi tj,
+commit aa2110cb1a7510f9b834adfb39b05d4843a35d35
+("ACPI: add boot option acpi=copy_dsdt to fix corrupt DSDT") added 
+copy_dsdt as an ACPI boot option, but did not add it to ACPI format options in
+Documentation/kernel-parameters.txt. This patch fixes it.
 
-On 09/11/2015 03:55 AM, Tejun Heo wrote:
-> Hello,
->
-> So, overall, I think this is the right way to go although I have no
-> idea whether the acpi part is okay.
+Signed-off-by: Rami Rosen <ramirose@gmail.com>
+---
+ Documentation/kernel-parameters.txt | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Thank you very much for reviewing. :)
+diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
+index 22a4b68..bbf4ee6c 100644
+--- a/Documentation/kernel-parameters.txt
++++ b/Documentation/kernel-parameters.txt
+@@ -167,7 +167,8 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
+ 
+ 	acpi=		[HW,ACPI,X86,ARM64]
+ 			Advanced Configuration and Power Interface
+-			Format: { force | off | strict | noirq | rsdt }
++			Format: { force | off | strict | noirq | rsdt |
++				  copy_dsdt }
+ 			force -- enable ACPI if default was off
+ 			off -- disable ACPI if default was on
+ 			noirq -- do not use ACPI for IRQ routing
+-- 
+2.4.3
 
->
->> +/*
->> + * Current allocated max logical CPU ID plus 1.
->> + * All allocated CPU ID should be in [0, max_logical_cpuid),
->> + * so the maximum of max_logical_cpuid is nr_cpu_ids.
->> + *
->> + * NOTE: Reserve 0 for BSP.
->> + */
->> +static int max_logical_cpuid = 1;
-> Rename it to nr_logical_cpuids and just mention that it's allocated
-> contiguously?
-
-OK.
-
->
->> +static int cpuid_to_apicid[] = {
->> +	[0 ... NR_CPUS - 1] = -1,
->> +};
-> And maybe mention how the two variables are synchronized?
-
-User should call allocate_logical_cpuid() to get a new logical cpuid.
-This allocator will ensure the synchronization.
-
-Will mention it in the comment.
-
->
->> +static int allocate_logical_cpuid(int apicid)
->> +{
->> +	int i;
->> +
->> +	/*
->> +	 * cpuid <-> apicid mapping is persistent, so when a cpu is up,
->> +	 * check if the kernel has allocated a cpuid for it.
->> +	 */
->> +	for (i = 0; i < max_logical_cpuid; i++) {
->> +		if (cpuid_to_apicid[i] == apicid)
->> +			return i;
->> +	}
->> +
->> +	/* Allocate a new cpuid. */
->> +	if (max_logical_cpuid >= nr_cpu_ids) {
->> +		WARN_ONCE(1, "Only %d processors supported."
->> +			     "Processor %d/0x%x and the rest are ignored.\n",
->> +			     nr_cpu_ids - 1, max_logical_cpuid, apicid);
->> +		return -1;
->> +	}
-> So, the original code didn't have this failure mode, why is this
-> different for the new code?
-
-It is not different. Since max_logical_cpuid is new, this is ensure it 
-won't
-go beyond NR_CPUS.
-
-Thanks.
-
->
-> Thanks.
->
