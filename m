@@ -1,59 +1,113 @@
-From: Viresh Kumar <viresh.kumar-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH V4 1/2] ACPI / EC: Fix broken 64bit big-endian users of
-	'global_lock'
-Date: Sat, 26 Sep 2015 11:40:00 -0700
-Message-ID: <CAKohpok0A3JRhVCabscfJGuhJerWmypsQnwdqJcmvBBWdpvPwQ@mail.gmail.com>
-References: <e28c4b4deaf766910c366ab87b64325da59c8ad6.1443198783.git.viresh.kumar@linaro.org>
-	<4357538.Wlf88yQie6@vostro.rjw.lan>
-	<CAKohpok2Z2m7GZt1GzZzofeHEioF=XJEq8YVgtY=VtS9tmpb_Q@mail.gmail.com>
-	<2524822.pQu4UKMrlb@vostro.rjw.lan> <20150925214438.GH5951@linux>
-	<CAJZ5v0i+xJ4U13vCVsvXc7S8wP0AokbmNXPidBkDwbjXMM8fCw@mail.gmail.com>
+From: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Subject: Re: [PATCH v6 0/22] On-demand device probing
+Date: Sat, 26 Sep 2015 12:22:18 -0700
+Message-ID: <20150926192218.GA15657@kroah.com>
+References: <1442844182-27787-1-git-send-email-tomeu.vizoso@collabora.com>
+ <5606E120.3070305@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <CAJZ5v0i+xJ4U13vCVsvXc7S8wP0AokbmNXPidBkDwbjXMM8fCw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: "open list:NETWORKING DRIVERS (WIRELESS)" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "moderated list:SOUND - SOC LAYER / DYNAMIC AUDIO POWER MANAGEM..." <alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org>, Linaro Kernel Mailman List <linaro-kernel-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>, "open list:TARGET SUBSYSTEM" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "open list:ULTRA-WIDEBAND (UWB) SUBSYSTEM:" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, QCA ath9k Development <ath9k-devel-A+ZNKFmMK5xy9aJCnZT0Uw@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Intel Linux Wireless <ilw-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "open list:AMD IOMMU (AMD-VI)" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "open list:BLUETOOTH DRIVERS" <linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netd>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <5606E120.3070305-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Tomeu Vizoso <tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 25 September 2015 at 15:19, Rafael J. Wysocki <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org> wrote:
-> So if you allow something like debugfs to update your structure, how
-> do you make sure there is the proper locking?
+On Sat, Sep 26, 2015 at 01:17:04PM -0500, Rob Herring wrote:
+> On 09/21/2015 09:02 AM, Tomeu Vizoso wrote:
+> > Hello,
+> >=20
+> > I have a problem with the panel on my Tegra Chromebook taking longe=
+r
+> > than expected to be ready during boot (St=E9phane Marchesin reporte=
+d what
+> > is basically the same issue in [0]), and have looked into ordered
+> > probing as a better way of solving this than moving nodes around in=
+ the
+> > DT or playing with initcall levels and linking order.
+> >=20
+> > While reading the thread [1] that Alexander Holler started with his
+> > series to make probing order deterministic, it occurred to me that =
+it
+> > should be possible to achieve the same by probing devices as they a=
+re
+> > referenced by other devices.
+> >=20
+> > This basically reuses the information that is already implicit in t=
+he
+> > probe() implementations, saving us from refactoring existing driver=
+s or
+> > adding information to DTBs.
+> >=20
+> > During review of v1 of this series Linus Walleij suggested that it
+> > should be the device driver core to make sure that dependencies are
+> > ready before probing a device. I gave this idea a try [2] but Mark =
+Brown
+> > pointed out to the logic duplication between the resource acquisiti=
+on
+> > and dependency discovery code paths (though I think it's fairly min=
+or).
+> >=20
+> > To address that code duplication I experimented with Arnd's devm_pr=
+obe
+> > [3] concept of having drivers declare their dependencies instead of
+> > acquiring them during probe, and while it worked [4], I don't think=
+ we
+> > end up winning anything when compared to just probing devices on-de=
+mand
+> > from resource getters.
+> >=20
+> > One remaining objection is to the "sprinkling" of calls to
+> > of_device_probe() in the resource getters of each subsystem, but I =
+think
+> > it's the right thing to do given that the storage of resources is
+> > currently subsystem-specific.
+> >=20
+> > We could avoid the above by moving resource storage into the core, =
+but I
+> > don't think there's a compelling case for that.
+> >=20
+> > I have tested this on boards with Tegra, iMX.6, Exynos, Rockchip an=
+d
+> > OMAP SoCs, and these patches were enough to eliminate all the defer=
+red
+> > probes (except one in PandaBoard because omap_dma_system doesn't ha=
+ve a
+> > firmware node as of yet).
+> >=20
+> > Have submitted a branch [5][6][7] with these patches on top of toda=
+y's
+> > linux-next (20150921) to kernelci.org and I don't see any issues th=
+at
+> > could be caused by them.
+> >=20
+> > With this series I get the kernel to output to the panel in 0.5s,
+> > instead of 2.8s.
+>=20
+> I think we're pretty close other than some minor comments. I would li=
+ke
+> to see ack's from Greg and some reviewed-bys from others. The subsyst=
+em
+> changes are minor and there has been plenty of chance to comment, so =
+I
+> don't think acks from all subsystems are needed.
+>=20
+> Your branch is based on -next. Is there any dependence on something i=
+n
+> -next? I want to get this into -next soon, but need a branch not base=
+d
+> on -next. Please send me a pull request with the collected acks and
+> minor comments I have addressed.
 
-Not really sure at all.. Isn't there some debugfs locking that will
-jump in, to avoid updation of fields to the same device?
+Let me review this on Monday and I'll let you know...
 
-> Is that not a problem in all of the places modified by the [2/2]?
+thanks,
 
-Right, but its not new AFAICT.
-
-We already have u32 fields in those structs and on 64 bit machines
-we have the same read-update-write problems for two consecutive
-u32's. Right?
-
-> How can the future users of the API know what to do to avoid potential
-> problems with it?
-
-No idea really :)
-
->> Anyway, that problem isn't here for sure as its between two
->> unsigned-longs. So, should I just move it to bool and resend ?
->
-> I guess it might be more convenient to fold this into the other patch,
-> because we seem to be splitting hairs here.
-
-I can and that's what I did. But then Arnd asked me to separate it
-out. I can fold it back if that's what you want.
-
+greg k-h
 --
-viresh
+To unsubscribe from this list: send the line "unsubscribe devicetree" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
