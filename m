@@ -1,51 +1,38 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 1/2] ACPI / tables: simplify acpi_parse_entries
-Date: Sat, 26 Sep 2015 02:27:43 +0200
-Message-ID: <2184252.JT4i34L2sb@vostro.rjw.lan>
-References: <1442243686-15845-1-git-send-email-sudeep.holla@arm.com> <1442408287-10410-1-git-send-email-sudeep.holla@arm.com>
+From: Robert Jarzmik <robert.jarzmik-GANU6spQydw@public.gmane.org>
+Subject: Re: [PATCH 1/2] spi: pxa2xx: Set the max_speed_hz of the master
+Date: Sat, 26 Sep 2015 11:23:26 +0200
+Message-ID: <877fndo7ox.fsf@belgarion.home>
+References: <1443166038-31658-1-git-send-email-jarkko.nikula@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:53833 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754137AbbIYX73 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Sep 2015 19:59:29 -0400
-In-Reply-To: <1442408287-10410-1-git-send-email-sudeep.holla@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1443166038-31658-1-git-send-email-jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+	(Jarkko Nikula's message of "Fri, 25 Sep 2015 10:27:17 +0300")
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jarkko Nikula <jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Daniel Mack <daniel-cYrQPVfZoowdnm+yROfE0A@public.gmane.org>, Haojian Zhuang <haojian.zhuang-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Sudeep Holla <sudeep.holla@arm.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Al Stone <al.stone@linaro.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 
-On Wednesday, September 16, 2015 01:58:06 PM Sudeep Holla wrote:
-> acpi_parse_entries passes the table end pointer to the sub-table entry
-> handler. acpi_parse_entries itself could validate the end of an entry
-> against the table end using the length in the sub-table entry.
-> 
-> This patch adds the validation of the sub-table entry end using the
-> length field.This will help to eliminate the need to pass the table end
-> to the handlers.
-> 
-> It also moves the check for zero length entry early so that execution of
-> the handler can be avoided.
-> 
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+Jarkko Nikula <jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org> writes:
+
+> Carry input clock of the controller in max_speed_hz of struct spi_master
+> instead of in own driver data. They mean the same thing and more over now
+> the max_speed_hz is not even set here.
 >
-> ---
->  drivers/acpi/tables.c | 31 +++++++++++++++----------------
->  1 file changed, 15 insertions(+), 16 deletions(-)
-> 
-> Hi Rafael,
-> 
-> As I mentioned earlier, this needs to be applied after Al's MADT changes
-> are merged. You might get simple conflicts in acpi_parse_entries.
+> As an added bonus this allows SPI core to validate that transfer speed is
+> not beyond the maximum input clock. This is not a problem in spi-pxa2xx as
+> the driver doesn't use transfer speed parameter directly but via input
+> clock divider calculation which will top at divide by one. However it's
+> better to validate speed before passing it here.
+>
+> Signed-off-by: Jarkko Nikula <jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Acked-by: Robert Jarzmik <robert.jarzmik-GANU6spQydw@public.gmane.org>
 
-This needs to be rebased on top of some patches in my linux-next branch.
+Cheers.
 
-It probably is better to rebase it on top of my bleeding-edge branch that
-contains the Al's patches already, though.
-
-Thanks,
-Rafael
-
+--
+Robert
+--
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
