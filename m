@@ -1,60 +1,62 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH v2 0/5] ACPI probing infrastructure
-Date: Mon, 28 Sep 2015 14:50:01 +0100
-Message-ID: <56094589.504@arm.com>
-References: <1442152943-24493-1-git-send-email-marc.zyngier@arm.com> <1698028.ftHN1K8oZa@vostro.rjw.lan> <560939A7.3030603@arm.com> <39030379.kalO2V72FV@vostro.rjw.lan>
+From: James Bottomley <James.Bottomley-d9PhHud1JfjCXq6kfMZ53/egYHeGw8Jk@public.gmane.org>
+Subject: Re: [PATCH V4 1/2] ACPI / EC: Fix broken 64bit big-endian users of
+ 'global_lock'
+Date: Mon, 28 Sep 2015 07:26:46 -0700
+Message-ID: <1443450406.2168.3.camel@HansenPartnership.com>
+References: <e28c4b4deaf766910c366ab87b64325da59c8ad6.1443198783.git.viresh.kumar@linaro.org>
+	 <2524822.pQu4UKMrlb@vostro.rjw.lan>
+	 <1443297128.2181.11.camel@HansenPartnership.com>
+	 <3461169.v5xKdGLGjP@vostro.rjw.lan>
+	 <063D6719AE5E284EB5DD2968C1650D6D1CBA3BF7@AcuExch.aculab.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:50877 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755163AbbI1NuF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 28 Sep 2015 09:50:05 -0400
-In-Reply-To: <39030379.kalO2V72FV@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <063D6719AE5E284EB5DD2968C1650D6D1CBA3BF7-VkEWCZq2GCInGFn1LkZF6NBPR1lH4CV8@public.gmane.org>
+Sender: linux-wireless-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: David Laight <David.Laight-ZS65k/vG3HxXrIkS9f7CXA@public.gmane.org>
+Cc: "'Rafael J. Wysocki'" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Viresh Kumar <viresh.kumar-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Johannes Berg <johannes-cdvu00un1VgdHxzADdlk8Q@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Linaro Kernel Mailman List <linaro-kernel-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>, QCA ath9k Development <ath9k-devel-A+ZNKFmMK5xy9aJCnZT0Uw@public.gmane.org>, Intel Linux Wireless <ilw-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "open list:BLUETOOTH DRIVERS" <linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "open list:AMD IOMMU (AMD-VI)" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "open list:NETWORKING DRIVERS (WIRELESS)" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "open list:TARGET SUBSYSTEM" <linux-scsi-u79uwXL29TY@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 28/09/15 14:53, Rafael J. Wysocki wrote:
-> On Monday, September 28, 2015 01:59:19 PM Marc Zyngier wrote:
->> Hi Rafael,
->>
->> On 26/09/15 00:45, Rafael J. Wysocki wrote:
->>
->>>> Marc Zyngier (5):
->>>>   acpi: Add basic device probing infrastructure
->>>>   irqchip/acpi: Add probing infrastructure for ACPI-based irqchips
->>>>   irqchip/gic: Convert the GIC driver to ACPI probing
->>>>   clocksource/acpi: Add probing infrastructure for ACPI-based
->>>>     clocksources
->>>>   clocksource/arm_arch_timer: Convert to ACPI probing
->>>
->>> I'm generally fine with this (modulo a couple of super-minor nits in the
->>> first patch), but it needs ACKs from Thomas for the irqchip-related and
->>> clocksource-related patches.
->>
->> Sure. I've now addressed your comments, and I'll post the updated series
->> later today.
->>
->>> Plus [3/5] needs to be rebased on top of the Al's patches removing BAD_MADT_ENTRY
->>> (currently in my bleeding-edge branch).
->>
->> Al's patches were there on Friday, but vanished over the weekend. Do you
->> have another (stable?) branch with these patches in (assuming they are
->> still aimed at 4.4)?
+On Mon, 2015-09-28 at 08:58 +0000, David Laight wrote:
+> From: Rafael J. Wysocki
+> > Sent: 27 September 2015 15:09
+> ...
+> > > > Say you have three adjacent fields in a structure, x, y, z, each one byte long.
+> > > > Initially, all of them are equal to 0.
+> > > >
+> > > > CPU A writes 1 to x and CPU B writes 2 to y at the same time.
+> > > >
+> > > > What's the result?
+> > >
+> > > I think every CPU's  cache architecure guarantees adjacent store
+> > > integrity, even in the face of SMP, so it's x==1 and y==2.  If you're
+> > > thinking of old alpha SMP system where the lowest store width is 32 bits
+> > > and thus you have to do RMW to update a byte, this was usually fixed by
+> > > padding (assuming the structure is not packed).  However, it was such a
+> > > problem that even the later alpha chips had byte extensions.
 > 
-> The Al's patches are gone for now, because they introduced a 0-day testing
-> regression.
+> Does linux still support those old Alphas?
 > 
-> I guess this means I can apply your patches first and ask Al to rebase his
-> next version on them.
+> The x86 cpus will also do 32bit wide rmw cycles for the 'bit' operations.
 
-OK. I'll rebase them on the current bleeding-edge, and post that.
+That's different: it's an atomic RMW operation.  The problem with the
+alpha was that the operation wasn't atomic (meaning that it can't be
+interrupted and no intermediate output states are visible).
 
-Thanks,
+> > OK, thanks!
+> 
+> You still have to ensure the compiler doesn't do wider rmw cycles.
+> I believe the recent versions of gcc won't do wider accesses for volatile data.
 
-	M.
--- 
-Jazz is not dead. It just smells funny...
+I don't understand this comment.  You seem to be implying gcc would do a
+64 bit RMW for a 32 bit store ... that would be daft when a single
+instruction exists to perform the operation on all architectures.
+
+James
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-wireless" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
