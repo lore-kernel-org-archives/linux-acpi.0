@@ -1,7 +1,7 @@
 From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: [PATCH v3 1/7] acpi: Add early device probing infrastructure
-Date: Mon, 28 Sep 2015 15:49:12 +0100
-Message-ID: <1443451758-22717-2-git-send-email-marc.zyngier@arm.com>
+Subject: [PATCH v3 4/7] clocksource/acpi: Add probing infrastructure for ACPI-based clocksources
+Date: Mon, 28 Sep 2015 15:49:15 +0100
+Message-ID: <1443451758-22717-5-git-send-email-marc.zyngier@arm.com>
 References: <1443451758-22717-1-git-send-email-marc.zyngier@arm.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1443451758-22717-1-git-send-email-marc.zyngier@arm.com>
@@ -10,184 +10,64 @@ To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Hanjun
 Cc: linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-IRQ controllers and timers are the two types of device the kernel
-requires before being able to use the device driver model.
+DT enjoys a rather nice probing infrastructure for clocksources,
+while ACPI is so far stuck into a very distant past.
 
-ACPI so far lacks a proper probing infrastructure similar to the one
-we have with DT, where we're able to declare IRQ chips and
-clocksources inside the driver code, and let the core code pick it up
-and call us back on a match. This leads to all kind of really ugly
-hacks all over the arm64 code and even in the ACPI layer.
-
-In order to allow some basic probing based on the ACPI tables,
-introduce "struct acpi_probe_entry" which contains just enough
-data and callbacks to match a table, an optional subtable, and
-call a probe function. A driver can, at build time, register itself
-and expect being called if the right entry exists in the ACPI
-table.
-
-A acpi_probe_device_table() is provided, taking an identifier for
-a set of acpi_prove_entries, and iterating over the registered
-entries.
+This patch introduces a declarative API, allowing clocksources
+to be self-contained and be called when parsing the GTDT table.
 
 Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
 ---
- drivers/acpi/scan.c               | 39 +++++++++++++++++++++++
- include/asm-generic/vmlinux.lds.h | 10 ++++++
- include/linux/acpi.h              | 66 +++++++++++++++++++++++++++++++++++++++
- 3 files changed, 115 insertions(+)
+ drivers/clocksource/clksrc-of.c   | 4 ++++
+ include/asm-generic/vmlinux.lds.h | 1 +
+ include/linux/clocksource.h       | 3 +++
+ 3 files changed, 8 insertions(+)
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index f834b8c..daf9fc8 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -1913,3 +1913,42 @@ int __init acpi_scan_init(void)
- 	mutex_unlock(&acpi_scan_lock);
- 	return result;
+diff --git a/drivers/clocksource/clksrc-of.c b/drivers/clocksource/clksrc-of.c
+index 0093a8e..a2105bd 100644
+--- a/drivers/clocksource/clksrc-of.c
++++ b/drivers/clocksource/clksrc-of.c
+@@ -14,6 +14,7 @@
+  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  */
+ 
++#include <linux/acpi.h>
+ #include <linux/init.h>
+ #include <linux/of.h>
+ #include <linux/clocksource.h>
+@@ -38,6 +39,9 @@ void __init clocksource_of_init(void)
+ 		init_func(np);
+ 		clocksources++;
+ 	}
++
++	clocksources += acpi_probe_device_table(clksrc);
++
+ 	if (!clocksources)
+ 		pr_crit("%s: no matching clocksources found\n", __func__);
  }
-+
-+static struct acpi_probe_entry *ape;
-+static int acpi_probe_count;
-+static DEFINE_SPINLOCK(acpi_probe_lock);
-+
-+static int __init acpi_match_madt(struct acpi_subtable_header *header,
-+				  const unsigned long end)
-+{
-+	if (!ape->subtable_valid || ape->subtable_valid(header, ape))
-+		if (!ape->probe_subtbl(header, end))
-+			acpi_probe_count++;
-+
-+	return 0;
-+}
-+
-+int __init __acpi_probe_device_table(struct acpi_probe_entry *ap_head, int nr)
-+{
-+	int count = 0;
-+
-+	if (acpi_disabled)
-+		return 0;
-+
-+	spin_lock(&acpi_probe_lock);
-+	for (ape = ap_head; nr; ape++, nr--) {
-+		if (ACPI_COMPARE_NAME(ACPI_SIG_MADT, ape->id)) {
-+			acpi_probe_count = 0;
-+			acpi_table_parse_madt(ape->type, acpi_match_madt, 0);
-+			count += acpi_probe_count;
-+		} else {
-+			int res;
-+			res = acpi_table_parse(ape->id, ape->probe_table);
-+			if (!res)
-+				count++;
-+		}
-+	}
-+	spin_unlock(&acpi_probe_lock);
-+
-+	return count;
-+}
 diff --git a/include/asm-generic/vmlinux.lds.h b/include/asm-generic/vmlinux.lds.h
-index 1781e54..efd7ed1 100644
+index cd836cd..c4bd0e2 100644
 --- a/include/asm-generic/vmlinux.lds.h
 +++ b/include/asm-generic/vmlinux.lds.h
-@@ -181,6 +181,16 @@
- #define CPUIDLE_METHOD_OF_TABLES() OF_TABLE(CONFIG_CPU_IDLE, cpuidle_method)
- #define EARLYCON_OF_TABLES()	OF_TABLE(CONFIG_SERIAL_EARLYCON, earlycon)
+@@ -525,6 +525,7 @@
+ 	KERNEL_DTB()							\
+ 	IRQCHIP_OF_MATCH_TABLE()					\
+ 	ACPI_PROBE_TABLE(irqchip)					\
++	ACPI_PROBE_TABLE(clksrc)					\
+ 	EARLYCON_TABLE()						\
+ 	EARLYCON_OF_TABLES()
  
-+#ifdef CONFIG_ACPI
-+#define ACPI_PROBE_TABLE(name)						\
-+	. = ALIGN(8);							\
-+	VMLINUX_SYMBOL(__##name##_acpi_probe_table) = .;		\
-+	*(__##name##_acpi_probe_table)					\
-+	VMLINUX_SYMBOL(__##name##_acpi_probe_table_end) = .;
-+#else
-+#define ACPI_PROBE_TABLE(name)
-+#endif
-+
- #define KERNEL_DTB()							\
- 	STRUCT_ALIGN();							\
- 	VMLINUX_SYMBOL(__dtb_start) = .;				\
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 84e7055..51a96a8 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -787,6 +787,61 @@ int acpi_dev_prop_read(struct acpi_device *adev, const char *propname,
- 
- struct fwnode_handle *acpi_get_next_subnode(struct device *dev,
- 					    struct fwnode_handle *subnode);
-+
-+struct acpi_probe_entry;
-+typedef bool (*acpi_probe_entry_validate_subtbl)(struct acpi_subtable_header *,
-+						 struct acpi_probe_entry *);
-+
-+#define ACPI_TABLE_ID_LEN	5
-+
-+/**
-+ * struct acpi_probe_entry - boot-time probing entry
-+ * @id:			ACPI table name
-+ * @type:		Optional subtable type to match
-+ *			(if @id contains subtables)
-+ * @subtable_valid:	Optional callback to check the validity of
-+ *			the subtable
-+ * @probe_table:	Callback to the driver being probed when table
-+ *			match is successful
-+ * @probe_subtbl:	Callback to the driver being probed when table and
-+ *			subtable match (and optional callback is successful)
-+ * @driver_data:	Sideband data provided back to the driver
-+ */
-+struct acpi_probe_entry {
-+	__u8 id[ACPI_TABLE_ID_LEN];
-+	__u8 type;
-+	acpi_probe_entry_validate_subtbl subtable_valid;
-+	union {
-+		acpi_tbl_table_handler probe_table;
-+		acpi_tbl_entry_handler probe_subtbl;
-+	};
-+	kernel_ulong_t driver_data;
-+};
-+
-+#define ACPI_DECLARE_PROBE_ENTRY(table, name, table_id, subtable, valid, data, fn)	\
-+	static const struct acpi_probe_entry __acpi_probe_##name	\
-+		__used __section(__##table##_acpi_probe_table)		\
-+		 = {							\
-+			.id = table_id,					\
-+			.type = subtable,				\
-+			.subtable_valid = valid,			\
-+			.probe_table = (acpi_tbl_table_handler)fn,	\
-+			.driver_data = data, 				\
-+		   }
-+
-+#define ACPI_PROBE_TABLE(name)		__##name##_acpi_probe_table
-+#define ACPI_PROBE_TABLE_END(name)	__##name##_acpi_probe_table_end
-+
-+int __acpi_probe_device_table(struct acpi_probe_entry *start, int nr);
-+
-+#define acpi_probe_device_table(t)					\
-+	({ 								\
-+		extern struct acpi_probe_entry ACPI_PROBE_TABLE(t),	\
-+			                       ACPI_PROBE_TABLE_END(t);	\
-+		__acpi_probe_device_table(&ACPI_PROBE_TABLE(t),		\
-+					  (&ACPI_PROBE_TABLE_END(t) -	\
-+					   &ACPI_PROBE_TABLE(t)));	\
-+	})
- #else
- static inline int acpi_dev_get_property(struct acpi_device *adev,
- 					const char *name, acpi_object_type type,
-@@ -845,6 +900,17 @@ static inline struct fwnode_handle *acpi_get_next_subnode(struct device *dev,
- {
- 	return NULL;
- }
-+
-+#define ACPI_DECLARE_PROBE_ENTRY(table, name, table_id, subtable, validate, data, fn) \
-+	static const void * __acpi_table_##name[]			\
-+		__attribute__((unused))					\
-+		 = { (void *) table_id,					\
-+		     (void *) subtable,					\
-+		     (void *) valid,					\
-+		     (void *) fn,					\
-+		     (void *) data }
-+
-+#define acpi_probe_device_table(t)	({ int __r = 0; __r;})
+diff --git a/include/linux/clocksource.h b/include/linux/clocksource.h
+index 278dd27..8cde048 100644
+--- a/include/linux/clocksource.h
++++ b/include/linux/clocksource.h
+@@ -258,4 +258,7 @@ void acpi_generic_timer_init(void);
+ static inline void acpi_generic_timer_init(void) { }
  #endif
  
- #endif	/*_LINUX_ACPI_H*/
++#define CLOCKSOURCE_ACPI_DECLARE(name, table_id, fn)		\
++	ACPI_DECLARE_PROBE_ENTRY(clksrc, name, table_id, 0, NULL, 0, fn)
++
+ #endif /* _LINUX_CLOCKSOURCE_H */
 -- 
 2.1.4
