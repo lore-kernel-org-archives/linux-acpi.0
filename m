@@ -1,76 +1,89 @@
-From: David Laight <David.Laight@ACULAB.COM>
-Subject: RE: [PATCH V4 1/2] ACPI / EC: Fix broken 64bit big-endian users of
- 'global_lock'
-Date: Mon, 28 Sep 2015 15:31:17 +0000
-Message-ID: <063D6719AE5E284EB5DD2968C1650D6D1CBA42F5@AcuExch.aculab.com>
-References: <e28c4b4deaf766910c366ab87b64325da59c8ad6.1443198783.git.viresh.kumar@linaro.org>
-	 <2524822.pQu4UKMrlb@vostro.rjw.lan>
-	 <1443297128.2181.11.camel@HansenPartnership.com>
-	 <3461169.v5xKdGLGjP@vostro.rjw.lan>
-	 <063D6719AE5E284EB5DD2968C1650D6D1CBA3BF7@AcuExch.aculab.com>
-	 <1443450406.2168.3.camel@HansenPartnership.com>
-	 <063D6719AE5E284EB5DD2968C1650D6D1CBA4232@AcuExch.aculab.com>
- <1443453111.2168.9.camel@HansenPartnership.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1443453111.2168.9.camel@HansenPartnership.com>
-Content-Language: en-US
-Sender: owner-linux-mm@kvack.org
-To: 'James Bottomley' <James.Bottomley@HansenPartnership.com>
-Cc: "'Rafael J. Wysocki'" <rjw@rjwysocki.net>, Viresh Kumar <viresh.kumar@linaro.org>, Johannes Berg <johannes@sipsolutions.net>, Greg
- Kroah-Hartman <gregkh@linuxfoundation.org>, Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>, QCA ath9k Development <ath9k-devel@qca.qualcomm.com>, Intel Linux Wireless <ilw@linux.intel.com>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, Linux Kernel
- Mailing List <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "open list:BLUETOOTH DRIVERS" <linux-bluetooth@vger.kernel.org>, "open list:AMD IOMMU (AMD-VI)" <iommu@lists.linux-foundation.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "open list:NETWORKING DRIVERS (WIRELESS)" <linux-wireless@vger.kernel.org>, "open list:TARGET SUBSYSTEM" <linux-scsi@vger.kern>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: [PATCH v4 0/9] Making the generic ACPI GSI layer irqdomain aware
+Date: Mon, 28 Sep 2015 17:42:53 +0100
+Message-ID: <1443458582-7497-1-git-send-email-marc.zyngier@arm.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:51642 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933867AbbI1QnT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 28 Sep 2015 12:43:19 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Graeme Gregory <graeme@xora.org.uk>, Jake Oshins <jakeo@microsoft.com>
 
-RnJvbTogSmFtZXMgQm90dG9tbGV5IA0KPiBTZW50OiAyOCBTZXB0ZW1iZXIgMjAxNSAxNjoxMg0K
-PiA+ID4gPiBUaGUgeDg2IGNwdXMgd2lsbCBhbHNvIGRvIDMyYml0IHdpZGUgcm13IGN5Y2xlcyBm
-b3IgdGhlICdiaXQnIG9wZXJhdGlvbnMuDQo+ID4gPg0KPiA+ID4gVGhhdCdzIGRpZmZlcmVudDog
-aXQncyBhbiBhdG9taWMgUk1XIG9wZXJhdGlvbi4gIFRoZSBwcm9ibGVtIHdpdGggdGhlDQo+ID4g
-PiBhbHBoYSB3YXMgdGhhdCB0aGUgb3BlcmF0aW9uIHdhc24ndCBhdG9taWMgKG1lYW5pbmcgdGhh
-dCBpdCBjYW4ndCBiZQ0KPiA+ID4gaW50ZXJydXB0ZWQgYW5kIG5vIGludGVybWVkaWF0ZSBvdXRw
-dXQgc3RhdGVzIGFyZSB2aXNpYmxlKS4NCj4gPg0KPiA+IEl0IGlzIG9ubHkgYXRvbWljIGlmIHBy
-ZWZpeGVkIGJ5IHRoZSAnbG9jaycgcHJlZml4Lg0KPiA+IE5vcm1hbGx5IHRoZSByZWFkIGFuZCB3
-cml0ZSBhcmUgc2VwYXJhdGUgYnVzIGN5Y2xlcy4NCj4gDQo+IFRoZSBlc3NlbnRpYWwgcG9pbnQg
-aXMgdGhhdCB4ODYgaGFzIGF0b21pYyBiaXQgb3BzIGFuZCBieXRlIHdyaXRlcy4NCj4gRWFybHkg
-YWxwaGEgZGlkIG5vdC4NCg0KRWFybHkgYWxwaGEgZGlkbid0IGhhdmUgYW55IGJ5dGUgYWNjZXNz
-ZXMuDQoNCk9uIHg4NiBpZiB5b3UgaGF2ZSB0aGUgZm9sbG93aW5nOg0KCXN0cnVjdCB7DQoJCWNo
-YXIgIGE7DQoJCXZvbGF0aWxlIGNoYXIgYjsNCgl9ICpmb287DQoJZm9vLT5hIHw9IDQ7DQoNClRo
-ZSBjb21waWxlciBpcyBsaWtlbHkgdG8gZ2VuZXJhdGUgYSAnYmlzICM0LCAwKHJieCknIChvciBz
-aW1pbGFyKQ0KYW5kIHRoZSBjcHUgd2lsbCBkbyB0d28gMzJiaXQgbWVtb3J5IGN5Y2xlcyB0aGF0
-IHJlYWQgYW5kIHdyaXRlDQp0aGUgJ3ZvbGF0aWxlJyBmaWVsZCAnYicuDQooZ2NjIGRlZmluaXRl
-bHkgdXNlZCB0byBkbyB0aGlzLi4uKQ0KDQpBIGxvdCBvZiBmaWVsZHMgd2VyZSBtYWRlIDMyYml0
-IChhbmQgcHJvYmFibHkgbm90IGJpdGZpZWxkcykgaW4gdGhlIGxpbnV4DQprZXJuZWwgdHJlZSBh
-IHllYXIgb3IgdHdvIGFnbyB0byBhdm9pZCB0aGlzIHZlcnkgcHJvYmxlbS4NCg0KPiA+ID4gPiBZ
-b3Ugc3RpbGwgaGF2ZSB0byBlbnN1cmUgdGhlIGNvbXBpbGVyIGRvZXNuJ3QgZG8gd2lkZXIgcm13
-IGN5Y2xlcy4NCj4gPiA+ID4gSSBiZWxpZXZlIHRoZSByZWNlbnQgdmVyc2lvbnMgb2YgZ2NjIHdv
-bid0IGRvIHdpZGVyIGFjY2Vzc2VzIGZvciB2b2xhdGlsZSBkYXRhLg0KPiA+ID4NCj4gPiA+IEkg
-ZG9uJ3QgdW5kZXJzdGFuZCB0aGlzIGNvbW1lbnQuICBZb3Ugc2VlbSB0byBiZSBpbXBseWluZyBn
-Y2Mgd291bGQgZG8gYQ0KPiA+ID4gNjQgYml0IFJNVyBmb3IgYSAzMiBiaXQgc3RvcmUgLi4uIHRo
-YXQgd291bGQgYmUgZGFmdCB3aGVuIGEgc2luZ2xlDQo+ID4gPiBpbnN0cnVjdGlvbiBleGlzdHMg
-dG8gcGVyZm9ybSB0aGUgb3BlcmF0aW9uIG9uIGFsbCBhcmNoaXRlY3R1cmVzLg0KPiA+DQo+ID4g
-UmVhZCB0aGUgb2JqZWN0IGNvZGUgYW5kIHdlZXAuLi4NCj4gPiBJdCBpcyBtb3N0IGxpa2VseSB0
-byBoYXBwZW4gZm9yIG9wZXJhdGlvbnMgdGhhdCBhcmUgcm13IChlZyBiaXQgc2V0KS4NCj4gPiBG
-b3IgaW5zdGFuY2UgdGhlIGFybSBjcHUgaGFzIGxpbWl0ZWQgb2Zmc2V0cyBmb3IgMTZiaXQgYWNj
-ZXNzZXMsIGZvcg0KPiA+IG5vcm1hbCBzdHJ1Y3R1cmVzIHRoZSBjb21waWxlciBpcyBsaWtlbHkg
-dG8gdXNlIGEgMzJiaXQgcm13IHNlcXVlbmNlDQo+ID4gZm9yIGEgMTZiaXQgZmllbGQgdGhhdCBo
-YXMgYSBsYXJnZSBvZmZzZXQuDQo+ID4gVGhlIEMgbGFuZ3VhZ2UgYWxsb3dzIHRoZSBjb21waWxl
-ciB0byBkbyBpdCBmb3IgYW55IGFjY2VzcyAoSUlSQyBpbmNsdWRpbmcNCj4gPiB2b2xhdGlsZXMp
-Lg0KPiANCj4gSSB0aGluayB5b3UgbWlnaHQgYmUgY29uZnVzaW5nIGRpZmZlcmVudCB0aGluZ3Mu
-ICBNb3N0IFJJU0MgQ1BVcyBjYW4ndA0KPiBkbyAzMiBiaXQgc3RvcmUgaW1tZWRpYXRlcyBiZWNh
-dXNlIHRoZXJlIGFyZW4ndCBlbm91Z2ggYml0cyBpbiB0aGVpcg0KPiBhcnNlbmFsLCBzbyB0aGV5
-IHRlbmQgdG8gc3BsaXQgMzIgYml0IGxvYWRzIGludG8gYSBsZWZ0IGFuZCByaWdodCBwYXJ0DQo+
-IChmaXJzdCB0aGUgdG9wIHRoZW4gdGhlIG9mZnNldCkuICBUaGlzIChhbmQgb3RoZXIgdGhpbmdz
-KSBhcmUgbW9zdGx5DQo+IHdoYXQgeW91IHNlZSBpbiBjb2RlLiAgSG93ZXZlciwgMzIgYml0IHJl
-Z2lzdGVyIHN0b3JlcyBhcmUgc3RpbGwgYXRvbWljLA0KPiB3aGljaCBpcyBhbGwgd2UgcmVxdWly
-ZS4gIEl0J3Mgbm90IHJlYWxseSB0aGUgY29tcGlsZXIncyBmYXVsdCwgaXQncw0KPiBtb3N0bHkg
-YW4gYXJjaGl0ZWN0dXJhbCBsaW1pdGF0aW9uLg0KDQpObywgSSdtIG5vdCB0YWxraW5nIGFib3V0
-IGhvdyAzMmJpdCBjb25zdGFudHMgYXJlIGdlbmVyYXRlZC4NCkknbSB0YWxraW5nIGFib3V0IHN0
-cnVjdHVyZSBvZmZzZXRzLg0KDQoJRGF2aWQNCg0K
+The irqdomain code is not entierely ACPI friendly, as it has some
+built-in knowledge of the device-tree. Nothing too harmful, but enough
+to scare the ARM ACPI developpers which end up with their own version
+of the square wheel.
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+This small patch series adapts the irqdomain code to remove the
+hurdles that prevent the full blown irqdomain subsystem to be used on
+ACPI, creates an interface between the GSI layer and the irqdomain,
+and as an example, convert the ARM GIC ACPI support to use irqdomains
+as originally intended.
+
+Overall, this gives us a way to use irqdomains on both DT and ACPI
+enabled platforms, having very little changes made to the actual
+drivers (other than the probing infrastructure). Because we keep the
+flow of information between the various layers identical between ACPI
+and DT, we immediately benefit from the existing infrastructure. The
+"convert the GSI information to be DT friendly" is admitedly not very
+pretty, but I see it as a stepping stone towards unifying the two
+structures.
+
+This has been test-booted on Juno, is based on 4.3-rc3, and available at:
+
+git://git.kernel.org/pub/scm/linux/kernel/git/maz/arm-platforms.git irq/gsi-irq-domain-v4
+
+* From v3:
+   - Got rid of the whole "void *" malarchy, and introduce a DT-based
+     fwnode_handle allocator. Much smaller patch, better type checking,
+     and a path forward to introduce fwnode_handle as the irqdomain
+     identifier.
+   - Small rework of the GIC stuff (cleanup, mostly).
+
+* From v2:
+   - Rebased on vanilla 4.3-rc1
+   - Added the IDR infrastructure to irqdomain.c so that drivers don't
+     have to come up with their own way of allocating identifiers
+   - Changed the acpi_set_irq_model() signature to directly take a
+     void *domain_token
+
+* From v1:
+  - Improved my Coccinelle foo and hopefully caught all the
+    irq_domain.of_node users this time
+  - Decoupled acpi_irq_model from domain_token. These are now two
+    separate values that can be set independently
+  - Moved the duty of populating acpi_gsi_descriptor to the interrupt
+    controller, as it keeps the knowledge of the mapping with
+    of_phandle_args in a single location
+  - Generic accessor to set acpi_irq_model, domain_token and the
+    populate function all in one go from the interrupt controller
+  - General cleanup
+
+Marc Zyngier (9):
+  drivers/of: Introduce of_node_alloc
+  genirq/irqdomain: Add irq_create_acpi_mapping
+  genirq/irqdomain: Add a fwnode_handle allocator
+  acpi/gsi: Always perform an irq domain lookup
+  acpi/gsi: Add acpi_set_irq_model to initialize the GSI layer
+  acpi/gsi: Select OF_DYNAMIC when ACPI_GENERIC_GSI is selected
+  irqchip/GIC: Get rid of gic_init_bases()
+  irqchip/GIC: Switch ACPI support to stacked domains
+  acpi/gsi: Cleanup acpi_register_gsi
+
+ drivers/acpi/Kconfig            |  1 +
+ drivers/acpi/gsi.c              | 61 ++++++++++++++++++++++++-------------
+ drivers/irqchip/irq-gic.c       | 66 ++++++++++++++++++++++++++++++-----------
+ drivers/of/dynamic.c            | 22 ++++++++++++++
+ include/linux/acpi.h            | 14 +++++++++
+ include/linux/irqchip/arm-gic.h |  9 ++----
+ include/linux/irqdomain.h       |  2 ++
+ include/linux/of.h              |  5 ++++
+ kernel/irq/irqdomain.c          | 48 ++++++++++++++++++++++++++++++
+ 9 files changed, 183 insertions(+), 45 deletions(-)
+
+-- 
+2.1.4
+
