@@ -1,138 +1,81 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: [PATCH v3 2/7] irqchip/acpi: Add probing infrastructure for ACPI-based irqchips
-Date: Mon, 28 Sep 2015 15:49:13 +0100
-Message-ID: <1443451758-22717-3-git-send-email-marc.zyngier@arm.com>
-References: <1443451758-22717-1-git-send-email-marc.zyngier@arm.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1443451758-22717-1-git-send-email-marc.zyngier@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: James Bottomley <James.Bottomley@HansenPartnership.com>
+Subject: Re: [PATCH V4 1/2] ACPI / EC: Fix broken 64bit big-endian users of
+ 'global_lock'
+Date: Mon, 28 Sep 2015 08:11:51 -0700
+Message-ID: <1443453111.2168.9.camel@HansenPartnership.com>
+References: <e28c4b4deaf766910c366ab87b64325da59c8ad6.1443198783.git.viresh.kumar@linaro.org>
+	 <2524822.pQu4UKMrlb@vostro.rjw.lan>
+	 <1443297128.2181.11.camel@HansenPartnership.com>
+	 <3461169.v5xKdGLGjP@vostro.rjw.lan>
+	 <063D6719AE5E284EB5DD2968C1650D6D1CBA3BF7@AcuExch.aculab.com>
+	 <1443450406.2168.3.camel@HansenPartnership.com>
+	 <063D6719AE5E284EB5DD2968C1650D6D1CBA4232@AcuExch.aculab.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <063D6719AE5E284EB5DD2968C1650D6D1CBA4232@AcuExch.aculab.com>
+Sender: netdev-owner@vger.kernel.org
+To: David Laight <David.Laight@ACULAB.COM>
+Cc: "'Rafael J. Wysocki'" <rjw@rjwysocki.net>, Viresh Kumar <viresh.kumar@linaro.org>, Johannes Berg <johannes@sipsolutions.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>, QCA ath9k Development <ath9k-devel@qca.qualcomm.com>, Intel Linux Wireless <ilw@linux.intel.com>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "open list:BLUETOOTH DRIVERS" <linux-bluetooth@vger.kernel.org>, "open list:AMD IOMMU (AMD-VI)" <iommu@lists.linux-foundation.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "open list:NETWORKING DRIVERS (WIRELESS)" <linux-wireless@vger.kernel.org>, "open list:TARGET SUBSYSTEM" <linux-scsi@vger.ker>
 List-Id: linux-acpi@vger.kernel.org
 
-DT enjoys a rather nice probing infrastructure for irqchips, while
-ACPI is so far stuck into a very distant past.
+On Mon, 2015-09-28 at 14:50 +0000, David Laight wrote:
+> From: James Bottomley [mailto:James.Bottomley@HansenPartnership.com]
+> > Sent: 28 September 2015 15:27
+> > On Mon, 2015-09-28 at 08:58 +0000, David Laight wrote:
+> > > From: Rafael J. Wysocki
+> > > > Sent: 27 September 2015 15:09
+> > > ...
+> > > > > > Say you have three adjacent fields in a structure, x, y, z, each one byte long.
+> > > > > > Initially, all of them are equal to 0.
+> > > > > >
+> > > > > > CPU A writes 1 to x and CPU B writes 2 to y at the same time.
+> > > > > >
+> > > > > > What's the result?
+> > > > >
+> > > > > I think every CPU's  cache architecure guarantees adjacent store
+> > > > > integrity, even in the face of SMP, so it's x==1 and y==2.  If you're
+> > > > > thinking of old alpha SMP system where the lowest store width is 32 bits
+> > > > > and thus you have to do RMW to update a byte, this was usually fixed by
+> > > > > padding (assuming the structure is not packed).  However, it was such a
+> > > > > problem that even the later alpha chips had byte extensions.
+> > >
+> > > Does linux still support those old Alphas?
+> > >
+> > > The x86 cpus will also do 32bit wide rmw cycles for the 'bit' operations.
+> > 
+> > That's different: it's an atomic RMW operation.  The problem with the
+> > alpha was that the operation wasn't atomic (meaning that it can't be
+> > interrupted and no intermediate output states are visible).
+> 
+> It is only atomic if prefixed by the 'lock' prefix.
+> Normally the read and write are separate bus cycles.
 
-This patch introduces a declarative API, allowing irqchips to be
-self-contained and be called when a particular entry is matched
-in the MADT table.
+The essential point is that x86 has atomic bit ops and byte writes.
+Early alpha did not.
 
-Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
----
- arch/arm64/include/asm/irq.h      | 11 -----------
- drivers/irqchip/irqchip.c         |  8 +++++---
- include/asm-generic/vmlinux.lds.h |  1 +
- include/linux/acpi_irq.h          | 10 ----------
- include/linux/irqchip.h           | 17 +++++++++++++++++
- 5 files changed, 23 insertions(+), 24 deletions(-)
- delete mode 100644 include/linux/acpi_irq.h
+> > > You still have to ensure the compiler doesn't do wider rmw cycles.
+> > > I believe the recent versions of gcc won't do wider accesses for volatile data.
+> > 
+> > I don't understand this comment.  You seem to be implying gcc would do a
+> > 64 bit RMW for a 32 bit store ... that would be daft when a single
+> > instruction exists to perform the operation on all architectures.
+> 
+> Read the object code and weep...
+> It is most likely to happen for operations that are rmw (eg bit set).
+> For instance the arm cpu has limited offsets for 16bit accesses, for
+> normal structures the compiler is likely to use a 32bit rmw sequence
+> for a 16bit field that has a large offset.
+> The C language allows the compiler to do it for any access (IIRC including
+> volatiles).
 
-diff --git a/arch/arm64/include/asm/irq.h b/arch/arm64/include/asm/irq.h
-index bbb251b..1a1037a 100644
---- a/arch/arm64/include/asm/irq.h
-+++ b/arch/arm64/include/asm/irq.h
-@@ -10,15 +10,4 @@ struct pt_regs;
- extern void migrate_irqs(void);
- extern void set_handle_irq(void (*handle_irq)(struct pt_regs *));
- 
--static inline void acpi_irq_init(void)
--{
--	/*
--	 * Hardcode ACPI IRQ chip initialization to GICv2 for now.
--	 * Proper irqchip infrastructure will be implemented along with
--	 * incoming  GICv2m|GICv3|ITS bits.
--	 */
--	acpi_gic_init();
--}
--#define acpi_irq_init acpi_irq_init
--
- #endif
-diff --git a/drivers/irqchip/irqchip.c b/drivers/irqchip/irqchip.c
-index afd1af3..1ee773e 100644
---- a/drivers/irqchip/irqchip.c
-+++ b/drivers/irqchip/irqchip.c
-@@ -8,7 +8,7 @@
-  * warranty of any kind, whether express or implied.
-  */
- 
--#include <linux/acpi_irq.h>
-+#include <linux/acpi.h>
- #include <linux/init.h>
- #include <linux/of_irq.h>
- #include <linux/irqchip.h>
-@@ -27,6 +27,8 @@ extern struct of_device_id __irqchip_of_table[];
- void __init irqchip_init(void)
- {
- 	of_irq_init(__irqchip_of_table);
--
--	acpi_irq_init();
-+#if defined(CONFIG_ARM64) && defined(CONFIG_ACPI)
-+	acpi_gic_init();	/* Temporary hack */
-+#endif
-+	acpi_probe_device_table(irqchip);
- }
-diff --git a/include/asm-generic/vmlinux.lds.h b/include/asm-generic/vmlinux.lds.h
-index efd7ed1..cd836cd 100644
---- a/include/asm-generic/vmlinux.lds.h
-+++ b/include/asm-generic/vmlinux.lds.h
-@@ -524,6 +524,7 @@
- 	CPUIDLE_METHOD_OF_TABLES()					\
- 	KERNEL_DTB()							\
- 	IRQCHIP_OF_MATCH_TABLE()					\
-+	ACPI_PROBE_TABLE(irqchip)					\
- 	EARLYCON_TABLE()						\
- 	EARLYCON_OF_TABLES()
- 
-diff --git a/include/linux/acpi_irq.h b/include/linux/acpi_irq.h
-deleted file mode 100644
-index f10c872..0000000
---- a/include/linux/acpi_irq.h
-+++ /dev/null
-@@ -1,10 +0,0 @@
--#ifndef _LINUX_ACPI_IRQ_H
--#define _LINUX_ACPI_IRQ_H
--
--#include <linux/irq.h>
--
--#ifndef acpi_irq_init
--static inline void acpi_irq_init(void) { }
--#endif
--
--#endif /* _LINUX_ACPI_IRQ_H */
-diff --git a/include/linux/irqchip.h b/include/linux/irqchip.h
-index 6388873..89c34b2 100644
---- a/include/linux/irqchip.h
-+++ b/include/linux/irqchip.h
-@@ -11,6 +11,7 @@
- #ifndef _LINUX_IRQCHIP_H
- #define _LINUX_IRQCHIP_H
- 
-+#include <linux/acpi.h>
- #include <linux/of.h>
- 
- /*
-@@ -25,6 +26,22 @@
-  */
- #define IRQCHIP_DECLARE(name, compat, fn) OF_DECLARE_2(irqchip, name, compat, fn)
- 
-+/*
-+ * This macro must be used by the different irqchip drivers to declare
-+ * the association between their version and their initialization function.
-+ *
-+ * @name: name that must be unique accross all IRQCHIP_ACPI_DECLARE of the
-+ * same file.
-+ * @subtable: Subtable to be identified in MADT
-+ * @validate: Function to be called on that subtable to check its validity.
-+ *            Can be NULL.
-+ * @data: data to be checked by the validate function.
-+ * @fn: initialization function
-+ */
-+#define IRQCHIP_ACPI_DECLARE(name, subtable, validate, data, fn)	\
-+	ACPI_DECLARE_PROBE_ENTRY(irqchip, name, ACPI_SIG_MADT, 		\
-+				 subtable, validate, data, fn)
-+
- #ifdef CONFIG_IRQCHIP
- void irqchip_init(void);
- #else
--- 
-2.1.4
+I think you might be confusing different things.  Most RISC CPUs can't
+do 32 bit store immediates because there aren't enough bits in their
+arsenal, so they tend to split 32 bit loads into a left and right part
+(first the top then the offset).  This (and other things) are mostly
+what you see in code.  However, 32 bit register stores are still atomic,
+which is all we require.  It's not really the compiler's fault, it's
+mostly an architectural limitation.
+
+James
