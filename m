@@ -1,77 +1,114 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [Linaro-acpi] [PATCH v2 0/5] ACPI probing infrastructure
-Date: Mon, 28 Sep 2015 21:49:48 +0200
-Message-ID: <CAJZ5v0iKjgStXDd-On1Q93izKJgccAuKZPje_yuy9kU4r1DpnQ@mail.gmail.com>
-References: <1442152943-24493-1-git-send-email-marc.zyngier@arm.com>
-	<1698028.ftHN1K8oZa@vostro.rjw.lan>
-	<560939A7.3030603@arm.com>
-	<39030379.kalO2V72FV@vostro.rjw.lan>
-	<56094589.504@arm.com>
-	<5609984D.70702@linaro.org>
+From: Al Stone <ahs3@redhat.com>
+Subject: Re: [PATCH v4 0/5] Provide better MADT subtable sanity checks
+Date: Mon, 28 Sep 2015 14:17:46 -0600
+Message-ID: <5609A06A.5020802@redhat.com>
+References: <1442446005-19799-1-git-send-email-al.stone@linaro.org>
+ <1883446.cx2ktyZcIz@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-la0-f45.google.com ([209.85.215.45]:36762 "EHLO
-	mail-la0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750907AbbI1Ttu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Sep 2015 15:49:50 -0400
-In-Reply-To: <5609984D.70702@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1883446.cx2ktyZcIz@vostro.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Al Stone <al.stone@linaro.org>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-pm@vger.kernel.org, linaro-acpi@lists.linaro.org, linaro-kernel@lists.linaro.org, patches@linaro.org
 List-Id: linux-acpi@vger.kernel.org
-To: Al Stone <al.stone@linaro.org>
-Cc: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Catalin Marinas <catalin.marinas@arm.com>, Jason Cooper <jason@lakedaemon.net>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Will Deacon <will.deacon@arm.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Sudeep Holla <sudeep.holla@arm.com>, Thomas Gleixner <tglx@linutronix.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
 
-Hi,
+On 09/25/2015 05:29 PM, Rafael J. Wysocki wrote:
+> On Wednesday, September 16, 2015 05:26:40 PM Al Stone wrote:
+>> Currently, the BAD_MADT_ENTRY macro is used to do a very simple sanity
+>> check on the various subtables that are defined for the MADT.  The check
+>> compares the size of the subtable data structure as defined by ACPICA to
+>> the length entry in the subtable.  If they are not the same, the assumption
+>> is that the subtable is incorrect.
+>>
+>> Over time, the ACPI spec has allowed for MADT subtables where this can
+>> never be true (the local SAPIC subtable, for example).  Or, more recently,
+>> the spec has accumulated some minor flaws where there are three possible 
+>> sizes for a subtable, all of which are valid, but only for specific versions
+>> of the spec (the GICC subtable).  In both cases, BAD_MADT_ENTRY reports these
+>> subtables as bad when they are not.  In order to retain some sanity check
+>> on the MADT subtables, we now have to special case these subtables.  Of
+>> necessity, these special cases have ended up in arch-dependent code (arm64)
+>> or an arch has simply decided to forgo the check (ia64).
+>>
+>> This patch set replaces the BAD_MADT_ENTRY macro with a function called
+>> bad_madt_entry().  This function uses a data set of details about the
+>> subtables to provide more sanity checking than before:
+>>
+>> 	-- is the subtable legal for the version given in the FADT?
+>>
+>> 	-- is the subtable legal for the revision of the MADT in use?
+>>
+>> 	-- is the subtable of the proper length (including checking
+>> 	   on the one variable length subtable that is currently ignored),
+>> 	   given the FADT version and the MADT revision?
+>>
+>> Further, this patch set adds in the call to bad_madt_entry() from the 
+>> acpi_table_parse_madt() function, allowing it to be used consistently
+>> by all architectures, for all subtables, and removing the need for each
+>> of the subtable traversal callback functions to use BAD_MADT_ENTRY.
+>>
+>> In theory, as the ACPI specification changes, we would only have to add
+>> additional information to the data set describing the MADT subtables in
+>> order to continue providing sanity checks, even when new subtables are
+>> added.
+>>
+>> These patches have been tested on an APM Mustang (arm64) and are known to
+>> work there.  They have also been cross-compiled for x86 and ia64 with no
+>> known failures.
+>>
+>> Changes for v4:
+>>    -- Remove extraneous white space change (Graeme Gregory)
+>>    -- acpi_parse_entries() changes also needed a check to make sure that
+>>       only MADT entries used bad_madt_entry() (Sudeep Holla)
+>>    -- inadvertent use of 01day build noted that bad_madt_entry() can be
+>>       static, so added it (Sudeep Holla, Fengguang Wu)
+>>
+>> Changes for v3:
+>>    -- Reviewed-and-tested-by from Sudeep Holla for arm64 parts
+>>    -- Clearer language in error messages (Graeme Gregory, Timur Tabi)
+>>    -- Double checked that inserting call to bad_madt_entry() into the
+>>       function acpi_parse_entries() does not impact current behavior
+>>       (Sudeep Holla)
+>>    
+>> Changes for v2:
+>>    -- Acked-by on 2/5 from Marc Zyngier and Catalin Marinas for ARM
+>>    -- Correct faulty end of loop test found by Timur Tabi
+>>
+>>
+>> Al Stone (5):
+>>   ACPI: add in a bad_madt_entry() function to eventually replace the
+>>     macro
+>>   ACPI / ARM64: remove usage of BAD_MADT_ENTRY/BAD_MADT_GICC_ENTRY
+>>   ACPI / IA64: remove usage of BAD_MADT_ENTRY
+>>   ACPI / X86: remove usage of BAD_MADT_ENTRY
+>>   ACPI: remove definition of BAD_MADT_ENTRY macro
+> 
+> I've queued this up for v4.4, but I had to rebase it on top of some previous
+> changes in my linux-next branch.
+> 
+> Can you please look at my bleeding-edge branch and see if the result of the
+> rebase is as intended?  In particular, I'm not sure if we really need to return
+> -EINVAL from acpi_parse_entries_array() when we find a bad MADT entry or it
+> will be sufficient to simply go to the next entry in that case?
+> 
+> Thanks,
+> Rafael
 
-On Mon, Sep 28, 2015 at 9:43 PM, Al Stone <al.stone@linaro.org> wrote:
-> On 09/28/2015 07:50 AM, Marc Zyngier wrote:
->> On 28/09/15 14:53, Rafael J. Wysocki wrote:
->>> On Monday, September 28, 2015 01:59:19 PM Marc Zyngier wrote:
->>>> Hi Rafael,
->>>>
->>>> On 26/09/15 00:45, Rafael J. Wysocki wrote:
->>>>
->>>>>> Marc Zyngier (5):
->>>>>>   acpi: Add basic device probing infrastructure
->>>>>>   irqchip/acpi: Add probing infrastructure for ACPI-based irqchips
->>>>>>   irqchip/gic: Convert the GIC driver to ACPI probing
->>>>>>   clocksource/acpi: Add probing infrastructure for ACPI-based
->>>>>>     clocksources
->>>>>>   clocksource/arm_arch_timer: Convert to ACPI probing
->>>>>
->>>>> I'm generally fine with this (modulo a couple of super-minor nits in the
->>>>> first patch), but it needs ACKs from Thomas for the irqchip-related and
->>>>> clocksource-related patches.
->>>>
->>>> Sure. I've now addressed your comments, and I'll post the updated series
->>>> later today.
->>>>
->>>>> Plus [3/5] needs to be rebased on top of the Al's patches removing BAD_MADT_ENTRY
->>>>> (currently in my bleeding-edge branch).
->>>>
->>>> Al's patches were there on Friday, but vanished over the weekend. Do you
->>>> have another (stable?) branch with these patches in (assuming they are
->>>> still aimed at 4.4)?
->>>
->>> The Al's patches are gone for now, because they introduced a 0-day testing
->>> regression.
->>>
->>> I guess this means I can apply your patches first and ask Al to rebase his
->>> next version on them.
->>
->> OK. I'll rebase them on the current bleeding-edge, and post that.
->>
->> Thanks,
->>
->>       M.
->>
->
-> Yeah, sorry about that; I had some bad info from the 1.0 version of the ACPI
-> spec.  And I was busy with family stuff all weekend.
->
-> Rafael, I'll look for Marc's patches to show up in bleeding-edge and rebase on
-> top of that.
+I see there being two options: (1) return -EINVAL and indicate that the tables
+are incorrect, or (2) print a warning (or something more aggressive?), go to
+the next entry, and hope for the best with the remainder of the MADT subtables.
+The former is consistent with past behavior, I think, and the latter seems to
+me a bit of a gamble.  So, my vote is for (1), the current method; what are you
+thinking these days?
 
-Sounds good, thanks!
-
-Rafael
+-- 
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Red Hat, Inc.
+ahs3@redhat.com
+-----------------------------------
