@@ -1,260 +1,69 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: [PATCH v3 3/7] irqchip/gic: Convert the GIC driver to ACPI probing
-Date: Mon, 28 Sep 2015 15:49:14 +0100
-Message-ID: <1443451758-22717-4-git-send-email-marc.zyngier@arm.com>
-References: <1443451758-22717-1-git-send-email-marc.zyngier@arm.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1443451758-22717-1-git-send-email-marc.zyngier@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+From: David Laight <David.Laight@ACULAB.COM>
+Subject: RE: [PATCH V4 1/2] ACPI / EC: Fix broken 64bit big-endian users of
+ 'global_lock'
+Date: Mon, 28 Sep 2015 14:50:44 +0000
+Message-ID: <063D6719AE5E284EB5DD2968C1650D6D1CBA4232@AcuExch.aculab.com>
+References: <e28c4b4deaf766910c366ab87b64325da59c8ad6.1443198783.git.viresh.kumar@linaro.org>
+	 <2524822.pQu4UKMrlb@vostro.rjw.lan>
+	 <1443297128.2181.11.camel@HansenPartnership.com>
+	 <3461169.v5xKdGLGjP@vostro.rjw.lan>
+	 <063D6719AE5E284EB5DD2968C1650D6D1CBA3BF7@AcuExch.aculab.com>
+ <1443450406.2168.3.camel@HansenPartnership.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1443450406.2168.3.camel@HansenPartnership.com>
+Content-Language: en-US
+Sender: owner-linux-mm@kvack.org
+To: 'James Bottomley' <James.Bottomley@HansenPartnership.com>
+Cc: "'Rafael J. Wysocki'" <rjw@rjwysocki.net>, Viresh Kumar <viresh.kumar@linaro.org>, Johannes Berg <johannes@sipsolutions.net>, Greg
+ Kroah-Hartman <gregkh@linuxfoundation.org>, Linaro Kernel Mailman List <linaro-kernel@lists.linaro.org>, QCA ath9k Development <ath9k-devel@qca.qualcomm.com>, Intel Linux Wireless <ilw@linux.intel.com>, "linux-doc@vger.kernel.org" <linux-doc@vger.kernel.org>, Linux Kernel
+ Mailing List <linux-kernel@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "open list:BLUETOOTH DRIVERS" <linux-bluetooth@vger.kernel.org>, "open list:AMD IOMMU (AMD-VI)" <iommu@lists.linux-foundation.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>, "open list:NETWORKING DRIVERS (WIRELESS)" <linux-wireless@vger.kernel.org>, "open list:TARGET SUBSYSTEM" <linux-scsi@vger.kern>
 List-Id: linux-acpi@vger.kernel.org
 
-Now that we have a basic infrastructure to register irqchips and
-call them on discovery of a matching entry in MADT, convert the
-GIC driver to this new probing method.
+RnJvbTogSmFtZXMgQm90dG9tbGV5IFttYWlsdG86SmFtZXMuQm90dG9tbGV5QEhhbnNlblBhcnRu
+ZXJzaGlwLmNvbV0NCj4gU2VudDogMjggU2VwdGVtYmVyIDIwMTUgMTU6MjcNCj4gT24gTW9uLCAy
+MDE1LTA5LTI4IGF0IDA4OjU4ICswMDAwLCBEYXZpZCBMYWlnaHQgd3JvdGU6DQo+ID4gRnJvbTog
+UmFmYWVsIEouIFd5c29ja2kNCj4gPiA+IFNlbnQ6IDI3IFNlcHRlbWJlciAyMDE1IDE1OjA5DQo+
+ID4gLi4uDQo+ID4gPiA+ID4gU2F5IHlvdSBoYXZlIHRocmVlIGFkamFjZW50IGZpZWxkcyBpbiBh
+IHN0cnVjdHVyZSwgeCwgeSwgeiwgZWFjaCBvbmUgYnl0ZSBsb25nLg0KPiA+ID4gPiA+IEluaXRp
+YWxseSwgYWxsIG9mIHRoZW0gYXJlIGVxdWFsIHRvIDAuDQo+ID4gPiA+ID4NCj4gPiA+ID4gPiBD
+UFUgQSB3cml0ZXMgMSB0byB4IGFuZCBDUFUgQiB3cml0ZXMgMiB0byB5IGF0IHRoZSBzYW1lIHRp
+bWUuDQo+ID4gPiA+ID4NCj4gPiA+ID4gPiBXaGF0J3MgdGhlIHJlc3VsdD8NCj4gPiA+ID4NCj4g
+PiA+ID4gSSB0aGluayBldmVyeSBDUFUncyAgY2FjaGUgYXJjaGl0ZWN1cmUgZ3VhcmFudGVlcyBh
+ZGphY2VudCBzdG9yZQ0KPiA+ID4gPiBpbnRlZ3JpdHksIGV2ZW4gaW4gdGhlIGZhY2Ugb2YgU01Q
+LCBzbyBpdCdzIHg9PTEgYW5kIHk9PTIuICBJZiB5b3UncmUNCj4gPiA+ID4gdGhpbmtpbmcgb2Yg
+b2xkIGFscGhhIFNNUCBzeXN0ZW0gd2hlcmUgdGhlIGxvd2VzdCBzdG9yZSB3aWR0aCBpcyAzMiBi
+aXRzDQo+ID4gPiA+IGFuZCB0aHVzIHlvdSBoYXZlIHRvIGRvIFJNVyB0byB1cGRhdGUgYSBieXRl
+LCB0aGlzIHdhcyB1c3VhbGx5IGZpeGVkIGJ5DQo+ID4gPiA+IHBhZGRpbmcgKGFzc3VtaW5nIHRo
+ZSBzdHJ1Y3R1cmUgaXMgbm90IHBhY2tlZCkuICBIb3dldmVyLCBpdCB3YXMgc3VjaCBhDQo+ID4g
+PiA+IHByb2JsZW0gdGhhdCBldmVuIHRoZSBsYXRlciBhbHBoYSBjaGlwcyBoYWQgYnl0ZSBleHRl
+bnNpb25zLg0KPiA+DQo+ID4gRG9lcyBsaW51eCBzdGlsbCBzdXBwb3J0IHRob3NlIG9sZCBBbHBo
+YXM/DQo+ID4NCj4gPiBUaGUgeDg2IGNwdXMgd2lsbCBhbHNvIGRvIDMyYml0IHdpZGUgcm13IGN5
+Y2xlcyBmb3IgdGhlICdiaXQnIG9wZXJhdGlvbnMuDQo+IA0KPiBUaGF0J3MgZGlmZmVyZW50OiBp
+dCdzIGFuIGF0b21pYyBSTVcgb3BlcmF0aW9uLiAgVGhlIHByb2JsZW0gd2l0aCB0aGUNCj4gYWxw
+aGEgd2FzIHRoYXQgdGhlIG9wZXJhdGlvbiB3YXNuJ3QgYXRvbWljIChtZWFuaW5nIHRoYXQgaXQg
+Y2FuJ3QgYmUNCj4gaW50ZXJydXB0ZWQgYW5kIG5vIGludGVybWVkaWF0ZSBvdXRwdXQgc3RhdGVz
+IGFyZSB2aXNpYmxlKS4NCg0KSXQgaXMgb25seSBhdG9taWMgaWYgcHJlZml4ZWQgYnkgdGhlICds
+b2NrJyBwcmVmaXguDQpOb3JtYWxseSB0aGUgcmVhZCBhbmQgd3JpdGUgYXJlIHNlcGFyYXRlIGJ1
+cyBjeWNsZXMuDQogDQo+ID4gWW91IHN0aWxsIGhhdmUgdG8gZW5zdXJlIHRoZSBjb21waWxlciBk
+b2Vzbid0IGRvIHdpZGVyIHJtdyBjeWNsZXMuDQo+ID4gSSBiZWxpZXZlIHRoZSByZWNlbnQgdmVy
+c2lvbnMgb2YgZ2NjIHdvbid0IGRvIHdpZGVyIGFjY2Vzc2VzIGZvciB2b2xhdGlsZSBkYXRhLg0K
+PiANCj4gSSBkb24ndCB1bmRlcnN0YW5kIHRoaXMgY29tbWVudC4gIFlvdSBzZWVtIHRvIGJlIGlt
+cGx5aW5nIGdjYyB3b3VsZCBkbyBhDQo+IDY0IGJpdCBSTVcgZm9yIGEgMzIgYml0IHN0b3JlIC4u
+LiB0aGF0IHdvdWxkIGJlIGRhZnQgd2hlbiBhIHNpbmdsZQ0KPiBpbnN0cnVjdGlvbiBleGlzdHMg
+dG8gcGVyZm9ybSB0aGUgb3BlcmF0aW9uIG9uIGFsbCBhcmNoaXRlY3R1cmVzLg0KDQpSZWFkIHRo
+ZSBvYmplY3QgY29kZSBhbmQgd2VlcC4uLg0KSXQgaXMgbW9zdCBsaWtlbHkgdG8gaGFwcGVuIGZv
+ciBvcGVyYXRpb25zIHRoYXQgYXJlIHJtdyAoZWcgYml0IHNldCkuDQpGb3IgaW5zdGFuY2UgdGhl
+IGFybSBjcHUgaGFzIGxpbWl0ZWQgb2Zmc2V0cyBmb3IgMTZiaXQgYWNjZXNzZXMsIGZvcg0Kbm9y
+bWFsIHN0cnVjdHVyZXMgdGhlIGNvbXBpbGVyIGlzIGxpa2VseSB0byB1c2UgYSAzMmJpdCBybXcg
+c2VxdWVuY2UNCmZvciBhIDE2Yml0IGZpZWxkIHRoYXQgaGFzIGEgbGFyZ2Ugb2Zmc2V0Lg0KVGhl
+IEMgbGFuZ3VhZ2UgYWxsb3dzIHRoZSBjb21waWxlciB0byBkbyBpdCBmb3IgYW55IGFjY2VzcyAo
+SUlSQyBpbmNsdWRpbmcNCnZvbGF0aWxlcykuDQoNCglEYXZpZA0KDQo=
 
-It ends up being a code deletion party, which is a rather good thing.
-
-Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
----
- arch/arm64/include/asm/acpi.h        |  1 -
- arch/arm64/include/asm/irq.h         |  2 --
- arch/arm64/kernel/acpi.c             | 25 -------------
- drivers/irqchip/irq-gic.c            | 69 ++++++++++++++++++------------------
- drivers/irqchip/irqchip.c            |  3 --
- include/linux/irqchip/arm-gic-acpi.h | 31 ----------------
- 6 files changed, 35 insertions(+), 96 deletions(-)
- delete mode 100644 include/linux/irqchip/arm-gic-acpi.h
-
-diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-index 208cec0..6894205 100644
---- a/arch/arm64/include/asm/acpi.h
-+++ b/arch/arm64/include/asm/acpi.h
-@@ -12,7 +12,6 @@
- #ifndef _ASM_ACPI_H
- #define _ASM_ACPI_H
- 
--#include <linux/irqchip/arm-gic-acpi.h>
- #include <linux/mm.h>
- #include <linux/psci.h>
- 
-diff --git a/arch/arm64/include/asm/irq.h b/arch/arm64/include/asm/irq.h
-index 1a1037a..94c5367 100644
---- a/arch/arm64/include/asm/irq.h
-+++ b/arch/arm64/include/asm/irq.h
-@@ -1,8 +1,6 @@
- #ifndef __ASM_IRQ_H
- #define __ASM_IRQ_H
- 
--#include <linux/irqchip/arm-gic-acpi.h>
--
- #include <asm-generic/irq.h>
- 
- struct pt_regs;
-diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
-index 19de753..d6463bb 100644
---- a/arch/arm64/kernel/acpi.c
-+++ b/arch/arm64/kernel/acpi.c
-@@ -205,28 +205,3 @@ void __init acpi_boot_table_init(void)
- 			disable_acpi();
- 	}
- }
--
--void __init acpi_gic_init(void)
--{
--	struct acpi_table_header *table;
--	acpi_status status;
--	acpi_size tbl_size;
--	int err;
--
--	if (acpi_disabled)
--		return;
--
--	status = acpi_get_table_with_size(ACPI_SIG_MADT, 0, &table, &tbl_size);
--	if (ACPI_FAILURE(status)) {
--		const char *msg = acpi_format_exception(status);
--
--		pr_err("Failed to get MADT table, %s\n", msg);
--		return;
--	}
--
--	err = gic_v2_acpi_init(table);
--	if (err)
--		pr_err("Failed to initialize GIC IRQ controller");
--
--	early_acpi_os_unmap_memory((char *)table, tbl_size);
--}
-diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
-index 982c09c..d4add30 100644
---- a/drivers/irqchip/irq-gic.c
-+++ b/drivers/irqchip/irq-gic.c
-@@ -41,7 +41,6 @@
- #include <linux/irqchip.h>
- #include <linux/irqchip/chained_irq.h>
- #include <linux/irqchip/arm-gic.h>
--#include <linux/irqchip/arm-gic-acpi.h>
- 
- #include <asm/cputype.h>
- #include <asm/irq.h>
-@@ -1195,7 +1194,7 @@ IRQCHIP_DECLARE(msm_qgic2, "qcom,msm-qgic2", gic_of_init);
- #endif
- 
- #ifdef CONFIG_ACPI
--static phys_addr_t dist_phy_base, cpu_phy_base __initdata;
-+static phys_addr_t cpu_phy_base __initdata;
- 
- static int __init
- gic_acpi_parse_madt_cpu(struct acpi_subtable_header *header,
-@@ -1223,60 +1222,56 @@ gic_acpi_parse_madt_cpu(struct acpi_subtable_header *header,
- 	return 0;
- }
- 
--static int __init
--gic_acpi_parse_madt_distributor(struct acpi_subtable_header *header,
--				const unsigned long end)
-+/* The things you have to do to just *count* something... */
-+static int __init acpi_dummy_func(struct acpi_subtable_header *header,
-+				  const unsigned long end)
- {
--	struct acpi_madt_generic_distributor *dist;
-+	return 0;
-+}
- 
--	dist = (struct acpi_madt_generic_distributor *)header;
-+static bool __init acpi_gic_redist_is_present(void)
-+{
-+	return acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_REDISTRIBUTOR,
-+				     acpi_dummy_func, 0) > 0;
-+}
- 
--	if (BAD_MADT_ENTRY(dist, end))
--		return -EINVAL;
-+static bool __init gic_validate_dist(struct acpi_subtable_header *header,
-+				     struct acpi_probe_entry *ape)
-+{
-+	struct acpi_madt_generic_distributor *dist;
-+	dist = (struct acpi_madt_generic_distributor *)header;
- 
--	dist_phy_base = dist->base_address;
--	return 0;
-+	return (dist->version == ape->driver_data &&
-+		(dist->version != ACPI_MADT_GIC_VERSION_NONE ||
-+		 !acpi_gic_redist_is_present()));
- }
- 
--int __init
--gic_v2_acpi_init(struct acpi_table_header *table)
-+#define ACPI_GICV2_DIST_MEM_SIZE	(SZ_4K)
-+#define ACPI_GIC_CPU_IF_MEM_SIZE	(SZ_8K)
-+
-+static int __init gic_v2_acpi_init(struct acpi_subtable_header *header,
-+				   const unsigned long end)
- {
-+	struct acpi_madt_generic_distributor *dist;
- 	void __iomem *cpu_base, *dist_base;
- 	int count;
- 
- 	/* Collect CPU base addresses */
--	count = acpi_parse_entries(ACPI_SIG_MADT,
--				   sizeof(struct acpi_table_madt),
--				   gic_acpi_parse_madt_cpu, table,
--				   ACPI_MADT_TYPE_GENERIC_INTERRUPT, 0);
-+	count = acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_INTERRUPT,
-+				      gic_acpi_parse_madt_cpu, 0);
- 	if (count <= 0) {
- 		pr_err("No valid GICC entries exist\n");
- 		return -EINVAL;
- 	}
- 
--	/*
--	 * Find distributor base address. We expect one distributor entry since
--	 * ACPI 5.1 spec neither support multi-GIC instances nor GIC cascade.
--	 */
--	count = acpi_parse_entries(ACPI_SIG_MADT,
--				   sizeof(struct acpi_table_madt),
--				   gic_acpi_parse_madt_distributor, table,
--				   ACPI_MADT_TYPE_GENERIC_DISTRIBUTOR, 0);
--	if (count <= 0) {
--		pr_err("No valid GICD entries exist\n");
--		return -EINVAL;
--	} else if (count > 1) {
--		pr_err("More than one GICD entry detected\n");
--		return -EINVAL;
--	}
--
- 	cpu_base = ioremap(cpu_phy_base, ACPI_GIC_CPU_IF_MEM_SIZE);
- 	if (!cpu_base) {
- 		pr_err("Unable to map GICC registers\n");
- 		return -ENOMEM;
- 	}
- 
--	dist_base = ioremap(dist_phy_base, ACPI_GICV2_DIST_MEM_SIZE);
-+	dist = (struct acpi_madt_generic_distributor *)header;
-+	dist_base = ioremap(dist->base_address, ACPI_GICV2_DIST_MEM_SIZE);
- 	if (!dist_base) {
- 		pr_err("Unable to map GICD registers\n");
- 		iounmap(cpu_base);
-@@ -1302,4 +1297,10 @@ gic_v2_acpi_init(struct acpi_table_header *table)
- 	acpi_irq_model = ACPI_IRQ_MODEL_GIC;
- 	return 0;
- }
-+IRQCHIP_ACPI_DECLARE(gic_v2, ACPI_MADT_TYPE_GENERIC_DISTRIBUTOR,
-+		     gic_validate_dist, ACPI_MADT_GIC_VERSION_V2,
-+		     gic_v2_acpi_init);
-+IRQCHIP_ACPI_DECLARE(gic_v2_maybe, ACPI_MADT_TYPE_GENERIC_DISTRIBUTOR,
-+		     gic_validate_dist, ACPI_MADT_GIC_VERSION_NONE,
-+		     gic_v2_acpi_init);
- #endif
-diff --git a/drivers/irqchip/irqchip.c b/drivers/irqchip/irqchip.c
-index 1ee773e..2b35e68 100644
---- a/drivers/irqchip/irqchip.c
-+++ b/drivers/irqchip/irqchip.c
-@@ -27,8 +27,5 @@ extern struct of_device_id __irqchip_of_table[];
- void __init irqchip_init(void)
- {
- 	of_irq_init(__irqchip_of_table);
--#if defined(CONFIG_ARM64) && defined(CONFIG_ACPI)
--	acpi_gic_init();	/* Temporary hack */
--#endif
- 	acpi_probe_device_table(irqchip);
- }
-diff --git a/include/linux/irqchip/arm-gic-acpi.h b/include/linux/irqchip/arm-gic-acpi.h
-deleted file mode 100644
-index de3419e..0000000
---- a/include/linux/irqchip/arm-gic-acpi.h
-+++ /dev/null
-@@ -1,31 +0,0 @@
--/*
-- * Copyright (C) 2014, Linaro Ltd.
-- *	Author: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- */
--
--#ifndef ARM_GIC_ACPI_H_
--#define ARM_GIC_ACPI_H_
--
--#ifdef CONFIG_ACPI
--
--/*
-- * Hard code here, we can not get memory size from MADT (but FDT does),
-- * Actually no need to do that, because this size can be inferred
-- * from GIC spec.
-- */
--#define ACPI_GICV2_DIST_MEM_SIZE	(SZ_4K)
--#define ACPI_GIC_CPU_IF_MEM_SIZE	(SZ_8K)
--
--struct acpi_table_header;
--
--int gic_v2_acpi_init(struct acpi_table_header *table);
--void acpi_gic_init(void);
--#else
--static inline void acpi_gic_init(void) { }
--#endif
--
--#endif /* ARM_GIC_ACPI_H_ */
--- 
-2.1.4
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
