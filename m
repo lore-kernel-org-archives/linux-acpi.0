@@ -1,55 +1,55 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 1/2] ACPI / tables: simplify acpi_parse_entries
-Date: Mon, 28 Sep 2015 15:50:22 +0200
-Message-ID: <3513292.8DqxMl02v0@vostro.rjw.lan>
-References: <1442243686-15845-1-git-send-email-sudeep.holla@arm.com> <2184252.JT4i34L2sb@vostro.rjw.lan> <5609123F.7020307@arm.com>
+Subject: Re: [PATCH v2 0/5] ACPI probing infrastructure
+Date: Mon, 28 Sep 2015 15:53:52 +0200
+Message-ID: <39030379.kalO2V72FV@vostro.rjw.lan>
+References: <1442152943-24493-1-git-send-email-marc.zyngier@arm.com> <1698028.ftHN1K8oZa@vostro.rjw.lan> <560939A7.3030603@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5609123F.7020307@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sudeep Holla <sudeep.holla@arm.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Al Stone <al.stone@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:64930 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1757367AbbI1NZe (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Sep 2015 09:25:34 -0400
+In-Reply-To: <560939A7.3030603@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Len Brown <lenb@kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Monday, September 28, 2015 11:11:11 AM Sudeep Holla wrote:
+On Monday, September 28, 2015 01:59:19 PM Marc Zyngier wrote:
+> Hi Rafael,
 > 
-> On 26/09/15 01:27, Rafael J. Wysocki wrote:
-> > On Wednesday, September 16, 2015 01:58:06 PM Sudeep Holla wrote:
-> >> acpi_parse_entries passes the table end pointer to the sub-table entry
-> >> handler. acpi_parse_entries itself could validate the end of an entry
-> >> against the table end using the length in the sub-table entry.
-> >>
-> >> This patch adds the validation of the sub-table entry end using the
-> >> length field.This will help to eliminate the need to pass the table end
-> >> to the handlers.
-> >>
-> >> It also moves the check for zero length entry early so that execution of
-> >> the handler can be avoided.
-> >>
-> >> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> >> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
-> >>
-> >> ---
-> >>   drivers/acpi/tables.c | 31 +++++++++++++++----------------
-> >>   1 file changed, 15 insertions(+), 16 deletions(-)
-> >>
-> >> Hi Rafael,
-> >>
-> >> As I mentioned earlier, this needs to be applied after Al's MADT changes
-> >> are merged. You might get simple conflicts in acpi_parse_entries.
-> >
-> > This needs to be rebased on top of some patches in my linux-next branch.
-> >
-> > It probably is better to rebase it on top of my bleeding-edge branch that
-> > contains the Al's patches already, though.
-> >
+> On 26/09/15 00:45, Rafael J. Wysocki wrote:
 > 
-> I don't see Al's patches in your linux-next or bleeding-edge
+> >> Marc Zyngier (5):
+> >>   acpi: Add basic device probing infrastructure
+> >>   irqchip/acpi: Add probing infrastructure for ACPI-based irqchips
+> >>   irqchip/gic: Convert the GIC driver to ACPI probing
+> >>   clocksource/acpi: Add probing infrastructure for ACPI-based
+> >>     clocksources
+> >>   clocksource/arm_arch_timer: Convert to ACPI probing
+> > 
+> > I'm generally fine with this (modulo a couple of super-minor nits in the
+> > first patch), but it needs ACKs from Thomas for the irqchip-related and
+> > clocksource-related patches.
+> 
+> Sure. I've now addressed your comments, and I'll post the updated series
+> later today.
+> 
+> > Plus [3/5] needs to be rebased on top of the Al's patches removing BAD_MADT_ENTRY
+> > (currently in my bleeding-edge branch).
+> 
+> Al's patches were there on Friday, but vanished over the weekend. Do you
+> have another (stable?) branch with these patches in (assuming they are
+> still aimed at 4.4)?
 
-They were there, but I've dropped them due to a 0-day testing failure.
+The Al's patches are gone for now, because they introduced a 0-day testing
+regression.
 
-I think your patches depend on the Al's ones, is that correct?
+I guess this means I can apply your patches first and ask Al to rebase his
+next version on them.
 
+Thanks,
 Rafael
+
