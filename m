@@ -1,115 +1,52 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v3 0/7] Early ACPI probing infrastructure
-Date: Tue, 29 Sep 2015 00:46:04 +0200
-Message-ID: <3881043.sWK6Pcr0HP@vostro.rjw.lan>
-References: <1443451758-22717-1-git-send-email-marc.zyngier@arm.com>
+From: Frank Rowand <frowand.list@gmail.com>
+Subject: Re: [PATCH v4 1/9] drivers/of: Introduce of_node_alloc
+Date: Mon, 28 Sep 2015 15:50:38 -0700
+Message-ID: <5609C43E.1040106@gmail.com>
+References: <1443458582-7497-1-git-send-email-marc.zyngier@arm.com> <1443458582-7497-2-git-send-email-marc.zyngier@arm.com>
+Reply-To: frowand.list@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:43123 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751754AbbI1WRp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Sep 2015 18:17:45 -0400
-In-Reply-To: <1443451758-22717-1-git-send-email-marc.zyngier@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1443458582-7497-2-git-send-email-marc.zyngier@arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Len Brown <lenb@kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh+dt@kernel.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Graeme Gregory <graeme@xora.org.uk>, Jake Oshins <jakeo@microsoft.com>
+List-Id: linux-acpi@vger.kernel.org
 
-On Monday, September 28, 2015 03:49:11 PM Marc Zyngier wrote:
-> IRQ controllers and timers are the two types of device the kernel
-> requires before being able to use the device driver model.
+On 9/28/2015 9:42 AM, Marc Zyngier wrote:
+> We want to be able to generate "fake" device nodes that can be
+> used as an identifier for irq domains. For that, we reuse the
+> dynamic DT layer in order to generate DT nodes in a detached state
+> (so that it doesn't interfere with the rest of the tree).
 > 
-> The Device Tree infrastructure makes it very easy to make these
-> discoverable by the rest of the kernel. For example, each interrupt
-> controller driver has at least one entry like this:
+> Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
+> ---
+>  drivers/of/dynamic.c | 22 ++++++++++++++++++++++
+>  include/linux/of.h   |  5 +++++
+>  2 files changed, 27 insertions(+)
 > 
-> IRQCHIP_DECLARE(gic_400, "arm,gic-400", gic_of_init);
-> 
-> which says: if you find a node having "arm,gic-400" as a compatible
-> string in the device tree, then call gic_of_init with this node as a
-> parameter. The probing itself is done by the OF layer when the
-> architecture code calls of_irq_init() (usually via irqchip_init).
-> 
-> This has a number of benefits:
-> 
-> - The irqchip code is self-contained. No architecture specific entry
-> point, no exposed symbols. Just a standard interface.
-> 
-> - The low-level architecture code doesn't have to know about which
-> interrupt controller is present. It just calls into the firmware
-> interface (of_irq_init) which is going to sort things out.
-> 
-> Similar infrastructure is provided for the timers/clock sources. Note
-> that this is not a replacement for the device model, but acts as a
-> probing infrastructure for things that are required too early for the
-> device infrastructure to be available.
-> 
-> What I'm aiming for is to introduce the same level of abstraction for
-> ACPI, or at least for the few bits that are required before a full blown
-> ACPI/device model can be used. For this, I introduce something vaguely
-> similar:
-> 
-> IRQCHIP_ACPI_DECLARE(gic_v2, ACPI_MADT_TYPE_GENERIC_DISTRIBUTOR,
-> 		     gic_validate_dist, ACPI_MADT_GIC_VERSION_V2,
-> 		     gic_v2_acpi_init);
-> 
-> which says: if you find a ACPI_MADT_TYPE_GENERIC_DISTRIBUTOR entry in
-> MADT (implied by the macro), and that entry is of type
-> ACPI_MADT_GIC_VERSION_V2 (as checked by gic_validate_dist), then call
-> gic_v2_acpi_init with the entry as a parameter. A bit more convoluted,
-> but still without any special entry point.
-> 
-> The various interrupt controller drivers can then implement the above,
-> and the arch code can use a firmware-specific call to get the probing
-> done, still oblivious to what interrupt controller is being used. It
-> also makes the adaptation of a DT driver to ACPI easier.
-> 
-> It turns out that providing such a probing infrastructure is rather
-> easy, and provides a much deserved cleanup in both the arch code, the
-> GIC driver, and the architected timer driver. An additional (and very
-> much optional) patch renames files and symbols to make it obvious that
-> the infrastructure is not just for DT anymore.
-> 
-> I'm sure there is some more code to be deleted, and one can only
-> wonder why this wasn't done before the arm64 code was initially merged
-> (the diffstat says it all...).
-> 
-> Patches are against Rafael's bleeding-edge branch, and a branch is
-> available at
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/maz/arm-platforms.git acpi/device-probing-v3
-> 
-> * From v2:
->   - Addressed Rafael's comments (title for patch #1, macro/field names)
->   - New config symbols for clocksources
->   - Additional and optional last patch to get rid of the apparent
->     dependency between the probing infrastructure and DT.
-> 
-> * From the initial version:
->   - Make the infrastructure more DT like by providing an
->     acpi_probe_entry array per "device type" (one for irqchips, one
->     for clocksources). This means that entries can depend on any ACPI
->     static table.
->   - Use some cpp magic to reduce the amount of code added to an
->     absolute minimum.
->   - Rebased on v4.3-rc1
-> 
-> Marc Zyngier (7):
->   acpi: Add early device probing infrastructure
->   irqchip/acpi: Add probing infrastructure for ACPI-based irqchips
->   irqchip/gic: Convert the GIC driver to ACPI probing
->   clocksource/acpi: Add probing infrastructure for ACPI-based
->     clocksources
->   clocksource: Add new CLKSRC_{PROBE,ACPI} config symbols
->   clocksource/arm_arch_timer: Convert to ACPI probing
->   clocksource: cosmetic: Drop OF 'dependency' from symbols
+> diff --git a/drivers/of/dynamic.c b/drivers/of/dynamic.c
+> index 53826b8..709d363 100644
+> --- a/drivers/of/dynamic.c
+> +++ b/drivers/of/dynamic.c
+> @@ -445,6 +445,28 @@ struct device_node *__of_node_dup(const struct device_node *np, const char *fmt,
+>  	return NULL;
+>  }
+>  
+> +/**
+> + * of_node_alloc() - Allocate an empty device node dynamically.
+> + * @fmt: Format string (plus vargs) for new full name of the device node
+> + *
+> + * Create an device tree node, either by by allocating an empty one
 
-If you want me to apply this series, ACKs are needed for patches [3-7/7].
+      Create a device tree node by allocating an empty one
 
-They are fine by me, but I'd also like to hear from the other maintainers.
+> + * suitable for further modification.  The node data are dynamically
+> + * allocated and all the node flags have the OF_DYNAMIC & OF_DETACHED
+> + * bits set. Returns the newly allocated node or NULL on out of memory
+> + * error.
+> + */
+> +struct device_node *of_node_alloc(const char *fmt, ...)
 
-Thanks,
-Rafael
-
+< snip >
