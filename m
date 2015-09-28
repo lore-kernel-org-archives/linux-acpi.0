@@ -1,96 +1,70 @@
-From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Subject: Re: [PATCH v9 1/5] ACPI: Introduce CPU performance controls using CPPC
-Date: Sun, 27 Sep 2015 13:15:20 -0400
-Message-ID: <CAJ5Y-eb0vYaf6krUMT-XKESkD56nkFwbB+gc_Rzwii8ctp65Gw@mail.gmail.com>
-References: <cover.1441830300.git.ashwin.chaugule@linaro.org>
-	<de2aab7944aea82d7f846e96c193bf577507cdcd.1441830300.git.ashwin.chaugule@linaro.org>
-	<10036388.hkOY1zLhN4@vostro.rjw.lan>
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: Re: [PATCH v2 3/7] x86, gfp: Cache best near node for memory allocation.
+Date: Mon, 28 Sep 2015 09:50:18 +0800
+Message-ID: <56089CDA.3020309@cn.fujitsu.com>
+References: <1441859269-25831-1-git-send-email-tangchen@cn.fujitsu.com> <1441859269-25831-4-git-send-email-tangchen@cn.fujitsu.com> <20150910192935.GI8114@mtj.duckdns.org> <560665DB.7020301@cn.fujitsu.com> <20150926175337.GB3572@htj.duckdns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-la0-f54.google.com ([209.85.215.54]:36043 "EHLO
-	mail-la0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751038AbbI0RPX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 27 Sep 2015 13:15:23 -0400
-Received: by laclj5 with SMTP id lj5so44663347lac.3
-        for <linux-acpi@vger.kernel.org>; Sun, 27 Sep 2015 10:15:21 -0700 (PDT)
-In-Reply-To: <10036388.hkOY1zLhN4@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20150926175337.GB3572@htj.duckdns.org>
+Sender: owner-linux-mm@kvack.org
+To: Tejun Heo <tj@kernel.org>
+Cc: jiang.liu@linux.intel.com, mika.j.penttila@gmail.com, mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, qiaonuohan@cn.fujitsu.com, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Patch Tracking <patches@linaro.org>, Viresh Kumar <viresh.kumar@linaro.org>, "rwells@codeaurora.org" <rwells@codeaurora.org>
 
-Hi Rafael,
+Hi, tj,
 
-
-On 25 September 2015 at 20:05, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Wednesday, September 09, 2015 04:27:04 PM Ashwin Chaugule wrote:
->> CPPC stands for Collaborative Processor Performance Controls
->> and is defined in the ACPI v5.0+ spec. It describes CPU
->> performance controls on an abstract and continuous scale
->> allowing the platform (e.g. remote power processor) to flexibly
->> optimize CPU performance with its knowledge of power budgets
->> and other architecture specific knowledge.
+On 09/27/2015 01:53 AM, Tejun Heo wrote:
+> Hello, Tang.
+>
+> On Sat, Sep 26, 2015 at 05:31:07PM +0800, Tang Chen wrote:
+>>>> @@ -307,13 +307,19 @@ static inline struct page *alloc_pages_node(int nid, gfp_t gfp_mask,
+>>>>   	if (nid < 0)
+>>>>   		nid = numa_node_id();
+>>>> +	if (!node_online(nid))
+>>>> +		nid = get_near_online_node(nid);
+>>>> +
+>>>>   	return __alloc_pages(gfp_mask, order, node_zonelist(nid, gfp_mask));
+>>>>   }
+>>> Why not just update node_data[]->node_zonelist in the first place?
+>> zonelist will be rebuilt in __offline_pages() when the zone is not populated
+>> any more.
 >>
->> This patch adds a shim which exports commonly used functions
->> to get and set CPPC specific controls for each CPU. This enables
->> CPUFreq drivers to gather per CPU performance data and use
->> with exisiting governors or even allows for customized governors
->> which are implemented inside CPUFreq drivers.
+>> Here, getting the best near online node is for those cpus on memory-less
+>> nodes.
 >>
->> Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
->> Reviewed-by: Al Stone <al.stone@linaro.org>
->> ---
->
-> [cut]
->
->> +
->> +/**
->> + * acpi_get_psd_map - Map the CPUs in a common freq domain as indicated
->> + *   in the respective _PSD entries.
->
-> One minor nit: this needs to be one-line in a proper kerneldoc.
->
->> + * @all_cpu_data: This array of pointers contains all the CPU specific
->> + *   details to access CPPC registers and freq domain information for each
->> + *   CPU.
->
-> Ditto.
->
-> You can add more description below.
+>> In the original code, if nid is NUMA_NO_NODE, the node the current cpu
+>> resides in
+>> will be chosen. And if the node is memory-less node, the cpu will be mapped
+>> to its
+>> best near online node.
+>>
+>> But this patch-set will map the cpu to its original node, so numa_node_id()
+>> may return
+>> a memory-less node to allocator. And then memory allocation may fail.
+> Correct me if I'm wrong but the zonelist dictates which memory areas
+> the page allocator is gonna try to from, right?  What I'm wondering is
+> why we aren't handling memory-less nodes by simply updating their
+> zonelists.  I mean, if, say, node 2 is memory-less, its zonelist can
+> simply point to zones from other nodes, right?  What am I missing
+> here?
 
-Ok. Will do.
+Oh, yes, you are right. But I remember some time ago, Liu, Jiang has or was
+going to handle memory less node like this in his patch:
+
+https://lkml.org/lkml/2015/8/16/130
+
+BTW, to Liu Jiang, how is your patches going on ?
+
+Thanks.
 
 >
-> [cut]
+> Thanks.
 >
->> +int cppc_get_perf_ctrs(int cpunum, struct cppc_perf_fb_ctrs *perf_fb_ctrs)
->> +{
->> +     struct cpc_desc *cpc_desc = per_cpu(cpc_desc_ptr, cpunum);
->> +     struct cpc_register_resource *delivered_reg, *reference_reg;
->> +     u64 delivered, reference;
->> +     int ret = 0;
->> +
->> +     if (!cpc_desc) {
->> +             pr_debug("No CPC descriptor for CPU:%d\n", cpunum);
->> +             return -ENODEV;
->> +     }
->> +
->> +     delivered_reg = &cpc_desc->cpc_regs[DELIVERED_CTR];
->> +     reference_reg = &cpc_desc->cpc_regs[REFERENCE_CTR];
->> +
->> +     spin_lock(&pcc_lock);
->
-> I still have the question about this lock.
->
-> Why does it have to be a spinlock?
 
-The idea is to let CPUs send in their requests as quickly as possible.
-The PCC transaction only relays the request. So the CPUs don't really
-wait for all the clk + voltage toggling etc. I think any other
-primitive, might cause unnecessary delays in sending requests. Also
-FWIW, this is another thing I was influenced by from the pcc-cpufreq.c
-driver. :)
-
-Regards,
-Ashwin.
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
