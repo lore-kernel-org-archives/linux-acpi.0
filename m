@@ -1,50 +1,100 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH v2 0/5] ACPI probing infrastructure
-Date: Mon, 28 Sep 2015 13:59:19 +0100
-Message-ID: <560939A7.3030603@arm.com>
-References: <1442152943-24493-1-git-send-email-marc.zyngier@arm.com> <1698028.ftHN1K8oZa@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v9 1/5] ACPI: Introduce CPU performance controls using CPPC
+Date: Mon, 28 Sep 2015 15:36:16 +0200
+Message-ID: <14309818.LXTR0vLlii@vostro.rjw.lan>
+References: <cover.1441830300.git.ashwin.chaugule@linaro.org> <10036388.hkOY1zLhN4@vostro.rjw.lan> <CAJ5Y-eb0vYaf6krUMT-XKESkD56nkFwbB+gc_Rzwii8ctp65Gw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:50680 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933393AbbI1M7Z (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 28 Sep 2015 08:59:25 -0400
-In-Reply-To: <1698028.ftHN1K8oZa@vostro.rjw.lan>
+Received: from v094114.home.net.pl ([79.96.170.134]:49816 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S933817AbbI1NH6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Sep 2015 09:07:58 -0400
+In-Reply-To: <CAJ5Y-eb0vYaf6krUMT-XKESkD56nkFwbB+gc_Rzwii8ctp65Gw@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Patch Tracking <patches@linaro.org>, Viresh Kumar <viresh.kumar@linaro.org>, "rwells@codeaurora.org" <rwells@codeaurora.org>
 
-Hi Rafael,
-
-On 26/09/15 00:45, Rafael J. Wysocki wrote:
-
->> Marc Zyngier (5):
->>   acpi: Add basic device probing infrastructure
->>   irqchip/acpi: Add probing infrastructure for ACPI-based irqchips
->>   irqchip/gic: Convert the GIC driver to ACPI probing
->>   clocksource/acpi: Add probing infrastructure for ACPI-based
->>     clocksources
->>   clocksource/arm_arch_timer: Convert to ACPI probing
+On Sunday, September 27, 2015 01:15:20 PM Ashwin Chaugule wrote:
+> Hi Rafael,
 > 
-> I'm generally fine with this (modulo a couple of super-minor nits in the
-> first patch), but it needs ACKs from Thomas for the irqchip-related and
-> clocksource-related patches.
+> 
+> On 25 September 2015 at 20:05, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> > On Wednesday, September 09, 2015 04:27:04 PM Ashwin Chaugule wrote:
+> >> CPPC stands for Collaborative Processor Performance Controls
+> >> and is defined in the ACPI v5.0+ spec. It describes CPU
+> >> performance controls on an abstract and continuous scale
+> >> allowing the platform (e.g. remote power processor) to flexibly
+> >> optimize CPU performance with its knowledge of power budgets
+> >> and other architecture specific knowledge.
+> >>
+> >> This patch adds a shim which exports commonly used functions
+> >> to get and set CPPC specific controls for each CPU. This enables
+> >> CPUFreq drivers to gather per CPU performance data and use
+> >> with exisiting governors or even allows for customized governors
+> >> which are implemented inside CPUFreq drivers.
+> >>
+> >> Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+> >> Reviewed-by: Al Stone <al.stone@linaro.org>
+> >> ---
+> >
+> > [cut]
+> >
+> >> +
+> >> +/**
+> >> + * acpi_get_psd_map - Map the CPUs in a common freq domain as indicated
+> >> + *   in the respective _PSD entries.
+> >
+> > One minor nit: this needs to be one-line in a proper kerneldoc.
+> >
+> >> + * @all_cpu_data: This array of pointers contains all the CPU specific
+> >> + *   details to access CPPC registers and freq domain information for each
+> >> + *   CPU.
+> >
+> > Ditto.
+> >
+> > You can add more description below.
+> 
+> Ok. Will do.
+> 
+> >
+> > [cut]
+> >
+> >> +int cppc_get_perf_ctrs(int cpunum, struct cppc_perf_fb_ctrs *perf_fb_ctrs)
+> >> +{
+> >> +     struct cpc_desc *cpc_desc = per_cpu(cpc_desc_ptr, cpunum);
+> >> +     struct cpc_register_resource *delivered_reg, *reference_reg;
+> >> +     u64 delivered, reference;
+> >> +     int ret = 0;
+> >> +
+> >> +     if (!cpc_desc) {
+> >> +             pr_debug("No CPC descriptor for CPU:%d\n", cpunum);
+> >> +             return -ENODEV;
+> >> +     }
+> >> +
+> >> +     delivered_reg = &cpc_desc->cpc_regs[DELIVERED_CTR];
+> >> +     reference_reg = &cpc_desc->cpc_regs[REFERENCE_CTR];
+> >> +
+> >> +     spin_lock(&pcc_lock);
+> >
+> > I still have the question about this lock.
+> >
+> > Why does it have to be a spinlock?
+> 
+> The idea is to let CPUs send in their requests as quickly as possible.
+> The PCC transaction only relays the request. So the CPUs don't really
+> wait for all the clk + voltage toggling etc. I think any other
+> primitive, might cause unnecessary delays in sending requests.
 
-Sure. I've now addressed your comments, and I'll post the updated series
-later today.
+It might if there was contention.
 
-> Plus [3/5] needs to be rebased on top of the Al's patches removing BAD_MADT_ENTRY
-> (currently in my bleeding-edge branch).
+> Also FWIW, this is another thing I was influenced by from the pcc-cpufreq.c
+> driver. :)
 
-Al's patches were there on Friday, but vanished over the weekend. Do you
-have another (stable?) branch with these patches in (assuming they are
-still aimed at 4.4)?
+OK, so this sounds like an optimization, which is fine.
 
 Thanks,
+Rafael
 
-	M.
--- 
-Jazz is not dead. It just smells funny...
