@@ -1,74 +1,96 @@
-From: Al Stone <al.stone@linaro.org>
-Subject: Re: [Linaro-acpi] [PATCH v2 0/5] ACPI probing infrastructure
-Date: Mon, 28 Sep 2015 13:43:09 -0600
-Message-ID: <5609984D.70702@linaro.org>
-References: <1442152943-24493-1-git-send-email-marc.zyngier@arm.com>
- <1698028.ftHN1K8oZa@vostro.rjw.lan> <560939A7.3030603@arm.com>
- <39030379.kalO2V72FV@vostro.rjw.lan> <56094589.504@arm.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v2 1/2] ACPI / tables: simplify acpi_parse_entries
+Date: Mon, 28 Sep 2015 21:46:51 +0200
+Message-ID: <CAJZ5v0jF_o3STqg4R7NkMZPgVx3UwFmCEJz=-KVCO_9Nq_us0g@mail.gmail.com>
+References: <1442243686-15845-1-git-send-email-sudeep.holla@arm.com>
+	<2184252.JT4i34L2sb@vostro.rjw.lan>
+	<5609123F.7020307@arm.com>
+	<3513292.8DqxMl02v0@vostro.rjw.lan>
+	<5609429B.6070604@arm.com>
+	<5609977C.6050701@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <56094589.504@arm.com>
+In-Reply-To: <5609977C.6050701@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Catalin Marinas <catalin.marinas@arm.com>, Jason Cooper <jason@lakedaemon.net>, linaro-acpi@lists.linaro.org, Will Deacon <will.deacon@arm.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Sudeep Holla <sudeep.holla@arm.com>, Thomas Gleixner <tglx@linutronix.de>, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
+To: Al Stone <al.stone@linaro.org>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Marc Zyngier <marc.zyngier@arm.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 09/28/2015 07:50 AM, Marc Zyngier wrote:
-> On 28/09/15 14:53, Rafael J. Wysocki wrote:
->> On Monday, September 28, 2015 01:59:19 PM Marc Zyngier wrote:
->>> Hi Rafael,
->>>
->>> On 26/09/15 00:45, Rafael J. Wysocki wrote:
->>>
->>>>> Marc Zyngier (5):
->>>>>   acpi: Add basic device probing infrastructure
->>>>>   irqchip/acpi: Add probing infrastructure for ACPI-based irqchips
->>>>>   irqchip/gic: Convert the GIC driver to ACPI probing
->>>>>   clocksource/acpi: Add probing infrastructure for ACPI-based
->>>>>     clocksources
->>>>>   clocksource/arm_arch_timer: Convert to ACPI probing
+Hi,
+
+On Mon, Sep 28, 2015 at 9:39 PM, Al Stone <al.stone@linaro.org> wrote:
+> On 09/28/2015 07:37 AM, Sudeep Holla wrote:
+>>
+>>
+>> On 28/09/15 14:50, Rafael J. Wysocki wrote:
+>>> On Monday, September 28, 2015 11:11:11 AM Sudeep Holla wrote:
 >>>>
->>>> I'm generally fine with this (modulo a couple of super-minor nits in the
->>>> first patch), but it needs ACKs from Thomas for the irqchip-related and
->>>> clocksource-related patches.
+>>>> On 26/09/15 01:27, Rafael J. Wysocki wrote:
+>>>>> On Wednesday, September 16, 2015 01:58:06 PM Sudeep Holla wrote:
+>>>>>> acpi_parse_entries passes the table end pointer to the sub-table entry
+>>>>>> handler. acpi_parse_entries itself could validate the end of an entry
+>>>>>> against the table end using the length in the sub-table entry.
+>>>>>>
+>>>>>> This patch adds the validation of the sub-table entry end using the
+>>>>>> length field.This will help to eliminate the need to pass the table end
+>>>>>> to the handlers.
+>>>>>>
+>>>>>> It also moves the check for zero length entry early so that execution of
+>>>>>> the handler can be avoided.
+>>>>>>
+>>>>>> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+>>>>>> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+>>>>>>
+>>>>>> ---
+>>>>>>    drivers/acpi/tables.c | 31 +++++++++++++++----------------
+>>>>>>    1 file changed, 15 insertions(+), 16 deletions(-)
+>>>>>>
+>>>>>> Hi Rafael,
+>>>>>>
+>>>>>> As I mentioned earlier, this needs to be applied after Al's MADT changes
+>>>>>> are merged. You might get simple conflicts in acpi_parse_entries.
+>>>>>
+>>>>> This needs to be rebased on top of some patches in my linux-next branch.
+>>>>>
+>>>>> It probably is better to rebase it on top of my bleeding-edge branch that
+>>>>> contains the Al's patches already, though.
+>>>>>
+>>>>
+>>>> I don't see Al's patches in your linux-next or bleeding-edge
 >>>
->>> Sure. I've now addressed your comments, and I'll post the updated series
->>> later today.
+>>> They were there, but I've dropped them due to a 0-day testing failure.
 >>>
->>>> Plus [3/5] needs to be rebased on top of the Al's patches removing BAD_MADT_ENTRY
->>>> (currently in my bleeding-edge branch).
->>>
->>> Al's patches were there on Friday, but vanished over the weekend. Do you
->>> have another (stable?) branch with these patches in (assuming they are
->>> still aimed at 4.4)?
 >>
->> The Al's patches are gone for now, because they introduced a 0-day testing
->> regression.
+>> Yes I guess we did see this last week, I had ask Al to fix it privately.
+>> It was some discrepancy with ACPIv1.0 specification between different
+>> sections that resulted in failures I saw.
 >>
->> I guess this means I can apply your patches first and ask Al to rebase his
->> next version on them.
-> 
-> OK. I'll rebase them on the current bleeding-edge, and post that.
-> 
-> Thanks,
-> 
-> 	M.
-> 
+>>> I think your patches depend on the Al's ones, is that correct?
+>>>
+>>
+>> Correct, I think it's easier if I wait for his patches.
+>>
+>> Regards,
+>> Sudeep
+>
+> My apologies.  Was participating in family stuff all weekend
+> and Linaro Connect all last week.
+>
+> This appears to be an incorrect reading of the 1.0 spec, and not
+> being able to find the 1.0b version, on my part.  Unfortunately,
+> http://www.acpi.info/DOWNLOADS/*spec*.pdf is not public so one has
+> to guess at files names for older versions of the spec -- and I
+> assumed 1.0B, the current naming practice.
+>
+> Sorry about that...the patch is pretty simple, I think.  Rafael,
+> which tree do you want me to base the respin on?  Your bleeding-edge
+> branch?
 
-Yeah, sorry about that; I had some bad info from the 1.0 version of the ACPI
-spec.  And I was busy with family stuff all weekend.
+My linux-next branch should be OK for that.
 
-Rafael, I'll look for Marc's patches to show up in bleeding-edge and rebase on
-top of that.
+I guess there will be a conflict between your patches and the Marc's
+ones, but I can resolve that one I suppose.
 
--- 
-ciao,
-al
------------------------------------
-Al Stone
-Software Engineer
-Linaro Enterprise Group
-al.stone@linaro.org
------------------------------------
+Thanks,
+Rafael
