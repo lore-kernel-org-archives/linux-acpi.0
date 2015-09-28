@@ -1,81 +1,148 @@
 From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: [PATCH v4 1/9] drivers/of: Introduce of_node_alloc
-Date: Mon, 28 Sep 2015 17:42:54 +0100
-Message-ID: <1443458582-7497-2-git-send-email-marc.zyngier@arm.com>
+Subject: [PATCH v4 8/9] irqchip/GIC: Switch ACPI support to stacked domains
+Date: Mon, 28 Sep 2015 17:43:01 +0100
+Message-ID: <1443458582-7497-9-git-send-email-marc.zyngier@arm.com>
 References: <1443458582-7497-1-git-send-email-marc.zyngier@arm.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:51752 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934467AbbI1Qnn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 28 Sep 2015 12:43:43 -0400
 In-Reply-To: <1443458582-7497-1-git-send-email-marc.zyngier@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>
 Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, devicetree@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Graeme Gregory <graeme@xora.org.uk>, Jake Oshins <jakeo@microsoft.com>
-List-Id: linux-acpi@vger.kernel.org
 
-We want to be able to generate "fake" device nodes that can be
-used as an identifier for irq domains. For that, we reuse the
-dynamic DT layer in order to generate DT nodes in a detached state
-(so that it doesn't interfere with the rest of the tree).
+Now that the basic ACPI GSI code is irq domain aware, make sure
+that the ACPI support in the GIC doesn't pointlessly deviate from
+the DT path.
 
 Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
 ---
- drivers/of/dynamic.c | 22 ++++++++++++++++++++++
- include/linux/of.h   |  5 +++++
- 2 files changed, 27 insertions(+)
+ drivers/irqchip/irq-gic.c | 58 ++++++++++++++++++++++++++++++++++++-----------
+ 1 file changed, 45 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/of/dynamic.c b/drivers/of/dynamic.c
-index 53826b8..709d363 100644
---- a/drivers/of/dynamic.c
-+++ b/drivers/of/dynamic.c
-@@ -445,6 +445,28 @@ struct device_node *__of_node_dup(const struct device_node *np, const char *fmt,
- 	return NULL;
- }
- 
-+/**
-+ * of_node_alloc() - Allocate an empty device node dynamically.
-+ * @fmt: Format string (plus vargs) for new full name of the device node
-+ *
-+ * Create an device tree node, either by by allocating an empty one
-+ * suitable for further modification.  The node data are dynamically
-+ * allocated and all the node flags have the OF_DYNAMIC & OF_DETACHED
-+ * bits set. Returns the newly allocated node or NULL on out of memory
-+ * error.
-+ */
-+struct device_node *of_node_alloc(const char *fmt, ...)
-+{
-+	struct device_node *np;
-+	va_list vargs;
-+
-+	va_start(vargs, fmt);
-+	np = __of_node_dup(NULL, fmt, vargs);
-+	va_end(vargs);
-+
-+	return np;
-+}
-+
- static void __of_changeset_entry_destroy(struct of_changeset_entry *ce)
+diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
+index 0e4142d..4f5772d 100644
+--- a/drivers/irqchip/irq-gic.c
++++ b/drivers/irqchip/irq-gic.c
+@@ -910,8 +910,6 @@ static int gic_irq_domain_xlate(struct irq_domain *d,
  {
- 	of_node_put(ce->np);
-diff --git a/include/linux/of.h b/include/linux/of.h
-index 2194b8c..f7f11f7 100644
---- a/include/linux/of.h
-+++ b/include/linux/of.h
-@@ -104,6 +104,7 @@ static inline int of_node_is_attached(struct device_node *node)
- #ifdef CONFIG_OF_DYNAMIC
- extern struct device_node *of_node_get(struct device_node *node);
- extern void of_node_put(struct device_node *node);
-+extern struct device_node *of_node_alloc(const char *fmt, ...);
- #else /* CONFIG_OF_DYNAMIC */
- /* Dummy ref counting routines - to be implemented later */
- static inline struct device_node *of_node_get(struct device_node *node)
-@@ -111,6 +112,10 @@ static inline struct device_node *of_node_get(struct device_node *node)
- 	return node;
- }
- static inline void of_node_put(struct device_node *node) { }
-+static inline struct device_node *of_node_alloc(const char *fmt, ...)
-+{
-+	return NULL;
-+}
- #endif /* !CONFIG_OF_DYNAMIC */
+ 	unsigned long ret = 0;
  
- /* Pointer for first entry in chain of all nodes. */
+-	if (d->of_node != controller)
+-		return -EINVAL;
+ 	if (intsize < 3)
+ 		return -EINVAL;
+ 
+@@ -979,7 +977,7 @@ static const struct irq_domain_ops gic_irq_domain_ops = {
+ 
+ static void __init __gic_init_bases(unsigned int gic_nr, int irq_start,
+ 			   void __iomem *dist_base, void __iomem *cpu_base,
+-			   u32 percpu_offset, struct device_node *node)
++			   u32 percpu_offset, struct fwnode_handle *handle)
+ {
+ 	irq_hw_number_t hwirq_base;
+ 	struct gic_chip_data *gic;
+@@ -1031,11 +1029,12 @@ static void __init __gic_init_bases(unsigned int gic_nr, int irq_start,
+ 		gic_irqs = 1020;
+ 	gic->gic_irqs = gic_irqs;
+ 
+-	if (node) {		/* DT case */
++	if (handle) {		/* DT/ACPI */
++		struct device_node *node = to_of_node(handle);
+ 		gic->domain = irq_domain_add_linear(node, gic_irqs,
+ 						    &gic_irq_domain_hierarchy_ops,
+ 						    gic);
+-	} else {		/* Non-DT case */
++	} else {		/* Legacy support */
+ 		/*
+ 		 * For primary GICs, skip over SGIs.
+ 		 * For secondary GICs, skip over PPIs, too.
+@@ -1058,7 +1057,7 @@ static void __init __gic_init_bases(unsigned int gic_nr, int irq_start,
+ 			irq_base = irq_start;
+ 		}
+ 
+-		gic->domain = irq_domain_add_legacy(node, gic_irqs, irq_base,
++		gic->domain = irq_domain_add_legacy(NULL, gic_irqs, irq_base,
+ 					hwirq_base, &gic_irq_domain_ops, gic);
+ 	}
+ 
+@@ -1166,7 +1165,8 @@ gic_of_init(struct device_node *node, struct device_node *parent)
+ 	if (of_property_read_u32(node, "cpu-offset", &percpu_offset))
+ 		percpu_offset = 0;
+ 
+-	__gic_init_bases(gic_cnt, -1, dist_base, cpu_base, percpu_offset, node);
++	__gic_init_bases(gic_cnt, -1, dist_base, cpu_base, percpu_offset,
++			 &node->fwnode);
+ 	if (!gic_cnt)
+ 		gic_init_physaddr(node);
+ 
+@@ -1236,10 +1236,36 @@ gic_acpi_parse_madt_distributor(struct acpi_subtable_header *header,
+ 	return 0;
+ }
+ 
++static int gic_acpi_gsi_desc_populate(struct acpi_gsi_descriptor *data,
++				      u32 gsi, unsigned int irq_type)
++{
++	/*
++	 * Encode GSI and triggering information the way the GIC likes
++	 * them.
++	 */
++	if (WARN_ON(gsi < 16))
++		return -EINVAL;
++
++	if (gsi >= 32) {
++		data->param[0] = 0;		/* SPI */
++		data->param[1] = gsi - 32;
++		data->param[2] = irq_type;
++	} else {
++		data->param[0] = 1; 		/* PPI */
++		data->param[1] = gsi - 16;
++		data->param[2] = 0xff << 4 | irq_type;
++	}
++
++	data->param_count = 3;
++
++	return 0;
++}
++
+ int __init
+ gic_v2_acpi_init(struct acpi_table_header *table)
+ {
+ 	void __iomem *cpu_base, *dist_base;
++	struct fwnode_handle *domain_handle;
+ 	int count;
+ 
+ 	/* Collect CPU base addresses */
+@@ -1290,14 +1316,20 @@ gic_v2_acpi_init(struct acpi_table_header *table)
+ 		static_key_slow_dec(&supports_deactivate);
+ 
+ 	/*
+-	 * Initialize zero GIC instance (no multi-GIC support). Also, set GIC
+-	 * as default IRQ domain to allow for GSI registration and GSI to IRQ
+-	 * number translation (see acpi_register_gsi() and acpi_gsi_to_irq()).
++	 * Initialize GIC instance zero (no multi-GIC support).
+ 	 */
+-	__gic_init_bases(0, -1, dist_base, cpu_base, 0, NULL);
+-	irq_set_default_host(gic_data[0].domain);
++	domain_handle = irq_domain_alloc_fwnode(NULL);
++	if (!domain_handle) {
++		pr_err("Unable to allocate domain handle\n");
++		iounmap(cpu_base);
++		iounmap(dist_base);
++		return -ENOMEM;
++	}
++
++	__gic_init_bases(0, -1, dist_base, cpu_base, 0, domain_handle);
+ 
+-	acpi_irq_model = ACPI_IRQ_MODEL_GIC;
++	acpi_set_irq_model(ACPI_IRQ_MODEL_GIC, domain_handle,
++			   gic_acpi_gsi_desc_populate);
+ 	return 0;
+ }
+ #endif
 -- 
 2.1.4
+
