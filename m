@@ -1,56 +1,58 @@
-From: David Laight <David.Laight-ZS65k/vG3HxXrIkS9f7CXA@public.gmane.org>
-Subject: RE: [PATCH V4 1/2] ACPI / EC: Fix broken 64bit big-endian users of
-	'global_lock'
-Date: Mon, 28 Sep 2015 08:58:17 +0000
-Message-ID: <063D6719AE5E284EB5DD2968C1650D6D1CBA3BF7@AcuExch.aculab.com>
-References: <e28c4b4deaf766910c366ab87b64325da59c8ad6.1443198783.git.viresh.kumar@linaro.org>
-	<2524822.pQu4UKMrlb@vostro.rjw.lan>
-	<1443297128.2181.11.camel@HansenPartnership.com>
-	<3461169.v5xKdGLGjP@vostro.rjw.lan>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [PATCH v2 1/2] ACPI / tables: simplify acpi_parse_entries
+Date: Mon, 28 Sep 2015 11:11:11 +0100
+Message-ID: <5609123F.7020307@arm.com>
+References: <1442243686-15845-1-git-send-email-sudeep.holla@arm.com>
+ <1442408287-10410-1-git-send-email-sudeep.holla@arm.com>
+ <2184252.JT4i34L2sb@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-In-Reply-To: <3461169.v5xKdGLGjP-sKB8Sp2ER+y1GS7QM15AGw@public.gmane.org>
-Content-Language: en-US
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: "'Rafael J. Wysocki'" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, James Bottomley <James.Bottomley-JuX6DAaQMKPCXq6kfMZ53/egYHeGw8Jk@public.gmane.org>
-Cc: "moderated list:SOUND - SOC LAYER / DYNAMIC AUDIO
-	POWER MANAGEM..." <alsa-devel-K7yf7f+aM1XWsZ/bQMPhNw@public.gmane.org>, Linaro Kernel Mailman List <linaro-kernel-cunTk1MwBs8s++Sfvej+rw@public.gmane.org>, "open list:TARGET SUBSYSTEM" <linux-scsi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-doc-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Viresh Kumar <viresh.kumar-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "open list:ULTRA-WIDEBAND (UWB) SUBSYSTEM:" <linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "open list:NETWORKING DRIVERS (WIRELESS)" <linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, QCA ath9k Development <ath9k-devel-A+ZNKFmMK5xy9aJCnZT0Uw@public.gmane.org>, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Intel Linux Wireless <ilw-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Linux ACPI <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "open list:AMD IOMMU (AMD-VI)" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "open list:BLUETOOTH DRIVERS" <linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linux Memory Management List <linux-mm-Bw31MaZKKs3YtjvyW6yDsg@public.gmane.org>, Greg Kroah-Hartman <gregkh@li>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:50150 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932497AbbI1KLO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 28 Sep 2015 06:11:14 -0400
+In-Reply-To: <2184252.JT4i34L2sb@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Al Stone <al.stone@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>
 
-From: Rafael J. Wysocki
-> Sent: 27 September 2015 15:09
-...
-> > > Say you have three adjacent fields in a structure, x, y, z, each one byte long.
-> > > Initially, all of them are equal to 0.
-> > >
-> > > CPU A writes 1 to x and CPU B writes 2 to y at the same time.
-> > >
-> > > What's the result?
-> >
-> > I think every CPU's  cache architecure guarantees adjacent store
-> > integrity, even in the face of SMP, so it's x==1 and y==2.  If you're
-> > thinking of old alpha SMP system where the lowest store width is 32 bits
-> > and thus you have to do RMW to update a byte, this was usually fixed by
-> > padding (assuming the structure is not packed).  However, it was such a
-> > problem that even the later alpha chips had byte extensions.
 
-Does linux still support those old Alphas?
 
-The x86 cpus will also do 32bit wide rmw cycles for the 'bit' operations.
+On 26/09/15 01:27, Rafael J. Wysocki wrote:
+> On Wednesday, September 16, 2015 01:58:06 PM Sudeep Holla wrote:
+>> acpi_parse_entries passes the table end pointer to the sub-table entry
+>> handler. acpi_parse_entries itself could validate the end of an entry
+>> against the table end using the length in the sub-table entry.
+>>
+>> This patch adds the validation of the sub-table entry end using the
+>> length field.This will help to eliminate the need to pass the table end
+>> to the handlers.
+>>
+>> It also moves the check for zero length entry early so that execution of
+>> the handler can be avoided.
+>>
+>> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+>> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+>>
+>> ---
+>>   drivers/acpi/tables.c | 31 +++++++++++++++----------------
+>>   1 file changed, 15 insertions(+), 16 deletions(-)
+>>
+>> Hi Rafael,
+>>
+>> As I mentioned earlier, this needs to be applied after Al's MADT changes
+>> are merged. You might get simple conflicts in acpi_parse_entries.
+>
+> This needs to be rebased on top of some patches in my linux-next branch.
+>
+> It probably is better to rebase it on top of my bleeding-edge branch that
+> contains the Al's patches already, though.
+>
 
-> OK, thanks!
+I don't see Al's patches in your linux-next or bleeding-edge
 
-You still have to ensure the compiler doesn't do wider rmw cycles.
-I believe the recent versions of gcc won't do wider accesses for volatile data.
-
-	David
+Regards,
+Sudeep
