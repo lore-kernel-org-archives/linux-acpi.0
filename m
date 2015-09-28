@@ -1,100 +1,55 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v9 1/5] ACPI: Introduce CPU performance controls using CPPC
-Date: Mon, 28 Sep 2015 15:36:16 +0200
-Message-ID: <14309818.LXTR0vLlii@vostro.rjw.lan>
-References: <cover.1441830300.git.ashwin.chaugule@linaro.org> <10036388.hkOY1zLhN4@vostro.rjw.lan> <CAJ5Y-eb0vYaf6krUMT-XKESkD56nkFwbB+gc_Rzwii8ctp65Gw@mail.gmail.com>
+Subject: Re: [PATCH v2 1/2] ACPI / tables: simplify acpi_parse_entries
+Date: Mon, 28 Sep 2015 15:50:22 +0200
+Message-ID: <3513292.8DqxMl02v0@vostro.rjw.lan>
+References: <1442243686-15845-1-git-send-email-sudeep.holla@arm.com> <2184252.JT4i34L2sb@vostro.rjw.lan> <5609123F.7020307@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:49816 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S933817AbbI1NH6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 28 Sep 2015 09:07:58 -0400
-In-Reply-To: <CAJ5Y-eb0vYaf6krUMT-XKESkD56nkFwbB+gc_Rzwii8ctp65Gw@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5609123F.7020307@arm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sudeep Holla <sudeep.holla@arm.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Al Stone <al.stone@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Patch Tracking <patches@linaro.org>, Viresh Kumar <viresh.kumar@linaro.org>, "rwells@codeaurora.org" <rwells@codeaurora.org>
 
-On Sunday, September 27, 2015 01:15:20 PM Ashwin Chaugule wrote:
-> Hi Rafael,
+On Monday, September 28, 2015 11:11:11 AM Sudeep Holla wrote:
 > 
-> 
-> On 25 September 2015 at 20:05, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> > On Wednesday, September 09, 2015 04:27:04 PM Ashwin Chaugule wrote:
-> >> CPPC stands for Collaborative Processor Performance Controls
-> >> and is defined in the ACPI v5.0+ spec. It describes CPU
-> >> performance controls on an abstract and continuous scale
-> >> allowing the platform (e.g. remote power processor) to flexibly
-> >> optimize CPU performance with its knowledge of power budgets
-> >> and other architecture specific knowledge.
+> On 26/09/15 01:27, Rafael J. Wysocki wrote:
+> > On Wednesday, September 16, 2015 01:58:06 PM Sudeep Holla wrote:
+> >> acpi_parse_entries passes the table end pointer to the sub-table entry
+> >> handler. acpi_parse_entries itself could validate the end of an entry
+> >> against the table end using the length in the sub-table entry.
 > >>
-> >> This patch adds a shim which exports commonly used functions
-> >> to get and set CPPC specific controls for each CPU. This enables
-> >> CPUFreq drivers to gather per CPU performance data and use
-> >> with exisiting governors or even allows for customized governors
-> >> which are implemented inside CPUFreq drivers.
+> >> This patch adds the validation of the sub-table entry end using the
+> >> length field.This will help to eliminate the need to pass the table end
+> >> to the handlers.
 > >>
-> >> Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-> >> Reviewed-by: Al Stone <al.stone@linaro.org>
+> >> It also moves the check for zero length entry early so that execution of
+> >> the handler can be avoided.
+> >>
+> >> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> >> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+> >>
 > >> ---
+> >>   drivers/acpi/tables.c | 31 +++++++++++++++----------------
+> >>   1 file changed, 15 insertions(+), 16 deletions(-)
+> >>
+> >> Hi Rafael,
+> >>
+> >> As I mentioned earlier, this needs to be applied after Al's MADT changes
+> >> are merged. You might get simple conflicts in acpi_parse_entries.
 > >
-> > [cut]
+> > This needs to be rebased on top of some patches in my linux-next branch.
 > >
-> >> +
-> >> +/**
-> >> + * acpi_get_psd_map - Map the CPUs in a common freq domain as indicated
-> >> + *   in the respective _PSD entries.
+> > It probably is better to rebase it on top of my bleeding-edge branch that
+> > contains the Al's patches already, though.
 > >
-> > One minor nit: this needs to be one-line in a proper kerneldoc.
-> >
-> >> + * @all_cpu_data: This array of pointers contains all the CPU specific
-> >> + *   details to access CPPC registers and freq domain information for each
-> >> + *   CPU.
-> >
-> > Ditto.
-> >
-> > You can add more description below.
 > 
-> Ok. Will do.
-> 
-> >
-> > [cut]
-> >
-> >> +int cppc_get_perf_ctrs(int cpunum, struct cppc_perf_fb_ctrs *perf_fb_ctrs)
-> >> +{
-> >> +     struct cpc_desc *cpc_desc = per_cpu(cpc_desc_ptr, cpunum);
-> >> +     struct cpc_register_resource *delivered_reg, *reference_reg;
-> >> +     u64 delivered, reference;
-> >> +     int ret = 0;
-> >> +
-> >> +     if (!cpc_desc) {
-> >> +             pr_debug("No CPC descriptor for CPU:%d\n", cpunum);
-> >> +             return -ENODEV;
-> >> +     }
-> >> +
-> >> +     delivered_reg = &cpc_desc->cpc_regs[DELIVERED_CTR];
-> >> +     reference_reg = &cpc_desc->cpc_regs[REFERENCE_CTR];
-> >> +
-> >> +     spin_lock(&pcc_lock);
-> >
-> > I still have the question about this lock.
-> >
-> > Why does it have to be a spinlock?
-> 
-> The idea is to let CPUs send in their requests as quickly as possible.
-> The PCC transaction only relays the request. So the CPUs don't really
-> wait for all the clk + voltage toggling etc. I think any other
-> primitive, might cause unnecessary delays in sending requests.
+> I don't see Al's patches in your linux-next or bleeding-edge
 
-It might if there was contention.
+They were there, but I've dropped them due to a 0-day testing failure.
 
-> Also FWIW, this is another thing I was influenced by from the pcc-cpufreq.c
-> driver. :)
+I think your patches depend on the Al's ones, is that correct?
 
-OK, so this sounds like an optimization, which is fine.
-
-Thanks,
 Rafael
-
