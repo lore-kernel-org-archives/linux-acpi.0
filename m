@@ -1,141 +1,102 @@
-From: Dustin Byford <dustin@cumulusnetworks.com>
-Subject: Re: [RFC v2 0/1] i2c: acpi: scan ACPI enumerated I2C mux channels
-Date: Tue, 29 Sep 2015 16:19:12 -0700
-Message-ID: <20150929231912.GA7913@cumulusnetworks.com>
-References: <1439510358-16664-1-git-send-email-dustin@cumulusnetworks.com>
- <1439580693-5538-1-git-send-email-dustin@cumulusnetworks.com>
- <20150817120305.GB1552@lahna.fi.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20150817120305.GB1552@lahna.fi.intel.com>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>, rjw@rjwysocki.net, linux-acpi@vger.kernel.org
-Cc: linux-i2c@vger.kernel.org
+From: Al Stone <al.stone@linaro.org>
+Subject: [PATCH v5 0/5] Provide better MADT subtable sanity checks
+Date: Tue, 29 Sep 2015 17:45:41 -0600
+Message-ID: <1443570346-15378-1-git-send-email-al.stone@linaro.org>
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, linux-pm@vger.kernel.org, linaro-acpi@lists.linaro.org, linaro-kernel@lists.linaro.org, patches@linaro.org, Al Stone <al.stone@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Mika,
+NB: this patch set is for use against the linux-pm bleeding edge branch.
 
-On Mon Aug 17 15:03, Mika Westerberg wrote:
-> I think the current code in I2C core is not actually doing the right
-> thing according the ACPI spec at least. To my understanding you can have
-> device with I2cSerialBus resource _anywhere_ in the namespace, not just
-> directly below the host controller. It's the ResourceSource attribute
-> that tells the corresponding host controller.
-> 
-> I wonder if it helps if we scan the whole namespace for devices with
-> I2cSerialBus that matches the just registered adapter? Something like
-> the patch below.
+Currently, the BAD_MADT_ENTRY macro is used to do a very simple sanity
+check on the various subtables that are defined for the MADT.  The check
+compares the size of the subtable data structure as defined by ACPICA to
+the length entry in the subtable.  If they are not the same, the assumption
+is that the subtable is incorrect.
 
-I've been working with the patch you suggested below.
+Over time, the ACPI spec has allowed for MADT subtables where this can
+never be true (the local SAPIC subtable, for example).  Or, more recently,
+the spec has accumulated some minor flaws where there are three possible 
+sizes for a subtable, all of which are valid, but only for specific versions
+of the spec (the GICC subtable).  In both cases, BAD_MADT_ENTRY reports these
+subtables as bad when they are not.  In order to retain some sanity check
+on the MADT subtables, we now have to special case these subtables.  Of
+necessity, these special cases have ended up in arch-dependent code (arm64)
+or an arch has simply decided to forgo the check (ia64).
 
-> diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
-> index c83e4d13cfc5..2a309d27421a 100644
-> --- a/drivers/i2c/i2c-core.c
-> +++ b/drivers/i2c/i2c-core.c
+This patch set replaces the BAD_MADT_ENTRY macro with a function called
+bad_madt_entry().  This function uses a data set of details about the
+subtables to provide more sanity checking than before:
 
-...
+	-- is the subtable legal for the version given in the FADT?
 
->  static void acpi_i2c_register_devices(struct i2c_adapter *adap)
->  {
-> -     acpi_handle handle;
->       acpi_status status;
->  
-> -     if (!adap->dev.parent)
-> -             return;
-> -
-> -     handle = ACPI_HANDLE(adap->dev.parent);
-> -     if (!handle)
-> +     if (!adap->dev.parent || !has_acpi_companion(adap->dev.parent))
->               return;
->  
-> -     status = acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, 1,
-> +     status = acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
-> +                                  ACPI_I2C_MAX_SCAN_DEPTH,
->                                    acpi_i2c_add_device, NULL,
->                                    adap, NULL);
+	-- is the subtable legal for the revision of the MADT in use?
 
-On my systems (which admittedly all define their i2c clients below the
-controller) this works as expected, i.e. there's no change in behavior.
-As far as I can tell it more accurately implements the spec.
+	-- is the subtable of the proper length (including checking
+	   on the one variable length subtable that is currently ignored),
+	   given the FADT version and the MADT revision?
+
+Further, this patch set adds in the call to bad_madt_entry() from the 
+acpi_table_parse_madt() function, allowing it to be used consistently
+by all architectures, for all subtables, and removing the need for each
+of the subtable traversal callback functions to use BAD_MADT_ENTRY.
+
+In theory, as the ACPI specification changes, we would only have to add
+additional information to the data set describing the MADT subtables in
+order to continue providing sanity checks, even when new subtables are
+added.
+
+These patches have been tested on an APM Mustang (arm64) and are known to
+work there.  They have also been cross-compiled for x86 and ia64 with no
+known failures.
+
+Changes for v5:
+   -- 0-day found incorrect data in the table describing allowed MADT
+      subtables; this only affected ACPI 1.0 firmware.  Corrected the
+      data to meet the 1.0b spec.
+   -- Rebase to bleeding-edge branch for Rafael Wysocki; this patch set
+      now requires that a patch set from Marc Zyngier be applied first:
+      https://lkml.org/lkml/2015/9/28/421
+   -- Tested on AMD Seattle (linux-pm tree) also
+
+Changes for v4:
+   -- Remove extraneous white space change (Graeme Gregory)
+   -- acpi_parse_entries() changes also needed a check to make sure that
+      only MADT entries used bad_madt_entry() (Sudeep Holla)
+   -- inadvertent use of 01day build noted that bad_madt_entry() can be
+      static, so added it (Sudeep Holla, Fengguang Wu)
+
+Changes for v3:
+   -- Reviewed-and-tested-by from Sudeep Holla for arm64 parts
+   -- Clearer language in error messages (Graeme Gregory, Timur Tabi)
+   -- Double checked that inserting call to bad_madt_entry() into the
+      function acpi_parse_entries() does not impact current behavior
+      (Sudeep Holla)
+   
+Changes for v2:
+   -- Acked-by on 2/5 from Marc Zyngier and Catalin Marinas for ARM
+   -- Correct faulty end of loop test found by Timur Tabi
 
 
-However, it doesn't quite solve my problem.  When
-acpi_i2c_register_devices(adap) is called on the "virtual" controller
-that is created for an i2c mux channel, the adap->dev.parent (set to the
-parent i2c bus for the mux) does not have an acpi companion.  That
-ultimately causes acpi_i2c_add_device() to never find a match.
+Al Stone (5):
+  ACPI: add in a bad_madt_entry() function to eventually replace the
+    macro
+  ACPI / ARM64: remove usage of BAD_MADT_ENTRY/BAD_MADT_GICC_ENTRY
+  ACPI / IA64: remove usage of BAD_MADT_ENTRY
+  ACPI / X86: remove usage of BAD_MADT_ENTRY
+  ACPI: remove definition of BAD_MADT_ENTRY macro
 
-I'll recap a bit since it's been a while and I've learned a few things
-that might affect the discussion.  For now, I'll focus on my proposed
-ASL for an I2C mux using device properties.
+ arch/arm64/include/asm/acpi.h |   8 --
+ arch/arm64/kernel/smp.c       |   2 -
+ arch/ia64/kernel/acpi.c       |  20 ----
+ arch/x86/kernel/acpi/boot.c   |  27 -----
+ drivers/acpi/tables.c         | 247 +++++++++++++++++++++++++++++++++++++++++-
+ drivers/irqchip/irq-gic.c     |   3 -
+ include/linux/acpi.h          |   4 -
+ 7 files changed, 246 insertions(+), 65 deletions(-)
 
-Lets say we have i2c hardware attached like this:
+-- 
+2.4.3
 
-i801 controller (PCI)
-   pca9548 8-channel mux (address 0x70)
-       lm75 temperature sensor (channel 0 on the mux with address 0x50)
-
-I think this is a sensible way to represent it:
-
-Device (MUX0) {
-    Name (_ADR, 0x70)
-    Name (_HID, "PRP0001")
-    Name (_CRS, ResourceTemplate()
-    {
-        I2cSerialBus (0x70, ControllerInitiated, I2C_SPEED,
-                      AddressingMode7Bit, "^^SMB2", 0x00,
-                      ResourceConsumer,,)
-    })
-    Name (_DSD, Package ()
-    {
-        ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-        Package () {
-            Package (2) { "compatible", "nxp,pca9548" },
-        }
-    })
-
-    // MUX channel 0
-    Device (CH00) {
-        Name (_ADR, 0x0)
-
-        Device (TMP0) {
-            Name (_ADR, 0x50)
-            Name (_CRS, ResourceTemplate()
-            {
-                I2cSerialBus (0x60, ControllerInitiated, I2C_SPEED,
-                              AddressingMode7Bit, "^CH00", 0x00,
-                              ResourceConsumer,,)
-            })
-            Name (_DSD, Package ()
-            {
-                ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-                Package () {
-                    Package (2) { "compatible", "national,lm75" },
-                }
-            })
-        }
-    }
-}
-
-The new thing here is using _ADR to treat each mux channel as a device
-and referencing those devices elsewhere (CH00).  I arrived at this
-because it seems to fit the ACPI model reasonably well* and it's easy to
-implement (just like in other callers to acpi_preset_companion())
-
-* by reasonably well, I think it's clear and works naturally but this
-use of _ADR isn't explicitly defined in the spec [ACPI 6, Table 6-168
-(page 278)]
-
-Hopefully the spec ambiguity isn't too much effort to clarify.  I think
-it's a good change.  But, perhaps it's unnecessary.  Any feedback on
-whether this ASL seem like the right way to go for device property i2c
-muxes?
-
-If not, is there an acceptable alternative?  I wonder how muxes are
-handled otherwise?  Hopefully not ASL methods :)
-
-thanks,
-
-                --Dustin
