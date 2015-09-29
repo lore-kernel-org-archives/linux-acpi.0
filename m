@@ -1,43 +1,46 @@
-From: Rob Herring <robh@kernel.org>
-Subject: Re: [PATCH v6 20/22] driver core: Allow deferring probes until late init
-Date: Tue, 29 Sep 2015 11:58:47 -0500
-Message-ID: <CAL_JsqL+ZhS7ob6Z7ZPRScAjMBTP4hABe_vh4jPjstKAbScGDg@mail.gmail.com>
-References: <1442844182-27787-1-git-send-email-tomeu.vizoso@collabora.com>
- <1442844182-27787-21-git-send-email-tomeu.vizoso@collabora.com>
- <5606E0DA.2040900@kernel.org> <CAAObsKBoBgP_y161qWC_U+yVtbWxudFgBNM7map0jz2WcJws_w@mail.gmail.com>
+From: Rob Herring <robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v4 0/9] Making the generic ACPI GSI layer irqdomain aware
+Date: Tue, 29 Sep 2015 12:11:11 -0500
+Message-ID: <CAL_Jsq+b10aEREipSsrg69=S4gpv-xZWRYS+TVTvhbqdHGATsA@mail.gmail.com>
+References: <1443458582-7497-1-git-send-email-marc.zyngier@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yk0-f169.google.com ([209.85.160.169]:34223 "EHLO
-	mail-yk0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753943AbbI2Q7K (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Sep 2015 12:59:10 -0400
-In-Reply-To: <CAAObsKBoBgP_y161qWC_U+yVtbWxudFgBNM7map0jz2WcJws_w@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1443458582-7497-1-git-send-email-marc.zyngier-5wv7dgnIgG8@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>
+Cc: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Jiang Liu <jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, Tomasz Nowicki <tomasz.nowicki-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, Graeme Gregory <graeme-/SyDAi3Rz4f10XsdtD+oqA@public.gmane.org>, Jake Oshins <jakeo-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>
 
-On Tue, Sep 29, 2015 at 3:05 AM, Tomeu Vizoso
-<tomeu.vizoso@collabora.com> wrote:
-> On 26 September 2015 at 20:15, Rob Herring <robh@kernel.org> wrote:
->> On 09/21/2015 09:03 AM, Tomeu Vizoso wrote:
->>> Add a field to struct device that instructs the device-driver core to
->>> defer the probe of this device until the late_initcall level.
->>
->> This is true until the next patch with moves deferred probe processing
->> to device_initcall_sync. So disabling this option alone won't totally
->> revert to current behaviour. I guess patch 21 could be reverted if
->> necessary.
+On Mon, Sep 28, 2015 at 11:42 AM, Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org> wrote:
+> The irqdomain code is not entierely ACPI friendly, as it has some
+> built-in knowledge of the device-tree. Nothing too harmful, but enough
+> to scare the ARM ACPI developpers which end up with their own version
+> of the square wheel.
 >
-> Actually, the goal with that commit was to prevent potential problems
-> due to the increased pressure on late_initcall, as suggested by
-> Grygorii Strashko, but I haven't found yet any evidence of it being
-> needed, and in my testing the series boot all boards in kernelci with
-> or without this commit. So I would just not commit it for now and only
-> consider applying it later if someone reports a problem.
+> This small patch series adapts the irqdomain code to remove the
+> hurdles that prevent the full blown irqdomain subsystem to be used on
+> ACPI, creates an interface between the GSI layer and the irqdomain,
+> and as an example, convert the ARM GIC ACPI support to use irqdomains
+> as originally intended.
+>
+> Overall, this gives us a way to use irqdomains on both DT and ACPI
+> enabled platforms, having very little changes made to the actual
+> drivers (other than the probing infrastructure). Because we keep the
+> flow of information between the various layers identical between ACPI
+> and DT, we immediately benefit from the existing infrastructure. The
+> "convert the GSI information to be DT friendly" is admitedly not very
+> pretty, but I see it as a stepping stone towards unifying the two
+> structures.
 
-I had similar concerns with assumptions about ordering WRT
-late_initcall. I would keep this for now.
+Did I miss v1-v3 or did the DT change just show up? I probably tuned
+out with ACPI in the subject.
+
+Needing fake DT nodes for ACPI is just wrong. There's got to be
+another, better way.
 
 Rob
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
