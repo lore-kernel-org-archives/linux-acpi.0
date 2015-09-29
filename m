@@ -1,57 +1,138 @@
-From: Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH v4 1/9] drivers/of: Introduce of_node_alloc
-Date: Tue, 29 Sep 2015 09:01:28 +0100
-Message-ID: <20150929090128.4647f27a@arm.com>
-References: <1443458582-7497-1-git-send-email-marc.zyngier@arm.com>
-	<1443458582-7497-2-git-send-email-marc.zyngier@arm.com>
-	<5609C43E.1040106@gmail.com>
+From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Subject: Re: [PATCH v6 20/22] driver core: Allow deferring probes until late init
+Date: Tue, 29 Sep 2015 10:05:38 +0200
+Message-ID: <CAAObsKBoBgP_y161qWC_U+yVtbWxudFgBNM7map0jz2WcJws_w@mail.gmail.com>
+References: <1442844182-27787-1-git-send-email-tomeu.vizoso@collabora.com>
+ <1442844182-27787-21-git-send-email-tomeu.vizoso@collabora.com> <5606E0DA.2040900@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <5609C43E.1040106-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Thomas Gleixner <tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org>, Jiang Liu <jiang.liu-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Jason Cooper <jason-NLaQJdtUoK4Be96aLqz0jA@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Lorenzo Pieralisi <lorenzo.pieralisi-5wv7dgnIgG8@public.gmane.org>, Tomasz Nowicki <tomasz.nowicki-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Hanjun Guo <hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org>, Graeme Gregory <graeme-/SyDAi3Rz4f10XsdtD+oqA@public.gmane.org>, Jake Oshins <jakeo-0li6OtcxBFHby3iVrkZq2A@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wi0-f176.google.com ([209.85.212.176]:35408 "EHLO
+	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932565AbbI2IGA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Sep 2015 04:06:00 -0400
+In-Reply-To: <5606E0DA.2040900@kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Rob Herring <robh@kernel.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
 
-On Mon, 28 Sep 2015 15:50:38 -0700
-Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+On 26 September 2015 at 20:15, Rob Herring <robh@kernel.org> wrote:
+> On 09/21/2015 09:03 AM, Tomeu Vizoso wrote:
+>> Add a field to struct device that instructs the device-driver core to
+>> defer the probe of this device until the late_initcall level.
+>
+> This is true until the next patch with moves deferred probe processing
+> to device_initcall_sync. So disabling this option alone won't totally
+> revert to current behaviour. I guess patch 21 could be reverted if
+> necessary.
 
-> On 9/28/2015 9:42 AM, Marc Zyngier wrote:
-> > We want to be able to generate "fake" device nodes that can be
-> > used as an identifier for irq domains. For that, we reuse the
-> > dynamic DT layer in order to generate DT nodes in a detached state
-> > (so that it doesn't interfere with the rest of the tree).
-> > 
-> > Signed-off-by: Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>
-> > ---
-> >  drivers/of/dynamic.c | 22 ++++++++++++++++++++++
-> >  include/linux/of.h   |  5 +++++
-> >  2 files changed, 27 insertions(+)
-> > 
-> > diff --git a/drivers/of/dynamic.c b/drivers/of/dynamic.c
-> > index 53826b8..709d363 100644
-> > --- a/drivers/of/dynamic.c
-> > +++ b/drivers/of/dynamic.c
-> > @@ -445,6 +445,28 @@ struct device_node *__of_node_dup(const struct device_node *np, const char *fmt,
-> >  	return NULL;
-> >  }
-> >  
-> > +/**
-> > + * of_node_alloc() - Allocate an empty device node dynamically.
-> > + * @fmt: Format string (plus vargs) for new full name of the device node
-> > + *
-> > + * Create an device tree node, either by by allocating an empty one
-> 
->       Create a device tree node by allocating an empty one
+Actually, the goal with that commit was to prevent potential problems
+due to the increased pressure on late_initcall, as suggested by
+Grygorii Strashko, but I haven't found yet any evidence of it being
+needed, and in my testing the series boot all boards in kernelci with
+or without this commit. So I would just not commit it for now and only
+consider applying it later if someone reports a problem.
 
-Ah! Thanks!
+>> By letting all built-in drivers to register before starting to probe, we
+>> can avoid any deferred probes by probing dependencies on demand.
+>>
+>> Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+>>
+>> ---
+>>
+>> Changes in v4:
+>> - Add Kconfig DELAY_DEVICE_PROBES to allow disabling delayed probing in
+>>   machines with initcalls that depend on devices probing at a given time.
+>>
+>>  drivers/base/Kconfig   | 18 ++++++++++++++++++
+>>  drivers/base/dd.c      |  7 +++++++
+>>  include/linux/device.h |  2 ++
+>>  3 files changed, 27 insertions(+)
+>>
+>> diff --git a/drivers/base/Kconfig b/drivers/base/Kconfig
+>> index 98504ec99c7d..44b5d33b1f49 100644
+>> --- a/drivers/base/Kconfig
+>> +++ b/drivers/base/Kconfig
+>> @@ -324,4 +324,22 @@ config CMA_ALIGNMENT
+>>
+>>  endif
+>>
+>> +config DELAY_DEVICE_PROBES
+>> +     bool "Allow delaying the probe of some devices"
+>
+> I'd like to hide visibility of this behind EXPERT.
 
-	M.
--- 
-Jazz is not dead. It just smells funny.
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Done.
+
+>> +     default y
+>> +     help
+>> +       Devices can be matched to a driver and probed from the moment they
+>> +       are registered, but early during boot their probes are likely to be
+>> +       deferred because some dependency isn't available yet because most
+>> +       drivers haven't been registered yet.
+>> +
+>> +       Enabling this option allows the device registration code to delay the
+>> +       probing of a specific device until device_initcall_sync, when all
+>> +       built-in drivers have been registered already.
+>> +
+>> +       In some platforms there may be implicit assumptions about when some
+>> +       devices are probed, so enabling this option could cause problems there.
+>> +
+>> +       If unsure, say Y here.
+>> +
+>>  endmenu
+>> diff --git a/drivers/base/dd.c b/drivers/base/dd.c
+>> index 7dc04ee81c8b..269ea76c1a4f 100644
+>> --- a/drivers/base/dd.c
+>> +++ b/drivers/base/dd.c
+>> @@ -417,6 +417,13 @@ int driver_probe_device(struct device_driver *drv, struct device *dev)
+>>       if (!device_is_registered(dev))
+>>               return -ENODEV;
+>>
+>> +#if IS_ENABLED(CONFIG_DELAY_DEVICE_PROBES)
+>
+> This can be moved to the if.
+
+Done.
+
+Thanks,
+
+Tomeu
+
+>> +     if (!driver_deferred_probe_enable && dev->probe_late) {
+>> +             driver_deferred_probe_add(dev);
+>> +             return 0;
+>> +     }
+>> +#endif
+>> +
+>>       pr_debug("bus: '%s': %s: matched device %s with driver %s\n",
+>>                drv->bus->name, __func__, dev_name(dev), drv->name);
+>>
+>> diff --git a/include/linux/device.h b/include/linux/device.h
+>> index 8e7b806f0744..e64f4c7e243d 100644
+>> --- a/include/linux/device.h
+>> +++ b/include/linux/device.h
+>> @@ -744,6 +744,7 @@ struct device_dma_parameters {
+>>   *
+>>   * @offline_disabled: If set, the device is permanently online.
+>>   * @offline: Set after successful invocation of bus type's .offline().
+>> + * @probe_late:      If set, device will be probed in the late initcall level.
+>>   *
+>>   * At the lowest level, every device in a Linux system is represented by an
+>>   * instance of struct device. The device structure contains the information
+>> @@ -828,6 +829,7 @@ struct device {
+>>
+>>       bool                    offline_disabled:1;
+>>       bool                    offline:1;
+>> +     bool                    probe_late:1;
+>>  };
+>>
+>>  static inline struct device *kobj_to_dev(struct kobject *kobj)
+>>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
