@@ -1,59 +1,141 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH v4 0/9] Making the generic ACPI GSI layer irqdomain aware
-Date: Tue, 29 Sep 2015 18:17:57 +0100
-Message-ID: <560AC7C5.1090201@arm.com>
-References: <1443458582-7497-1-git-send-email-marc.zyngier@arm.com> <CAL_Jsq+b10aEREipSsrg69=S4gpv-xZWRYS+TVTvhbqdHGATsA@mail.gmail.com>
+From: Dustin Byford <dustin@cumulusnetworks.com>
+Subject: Re: [RFC v2 0/1] i2c: acpi: scan ACPI enumerated I2C mux channels
+Date: Tue, 29 Sep 2015 16:19:12 -0700
+Message-ID: <20150929231912.GA7913@cumulusnetworks.com>
+References: <1439510358-16664-1-git-send-email-dustin@cumulusnetworks.com>
+ <1439580693-5538-1-git-send-email-dustin@cumulusnetworks.com>
+ <20150817120305.GB1552@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:56083 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934106AbbI2RSD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 29 Sep 2015 13:18:03 -0400
-In-Reply-To: <CAL_Jsq+b10aEREipSsrg69=S4gpv-xZWRYS+TVTvhbqdHGATsA@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-i2c-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20150817120305.GB1552@lahna.fi.intel.com>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>, rjw@rjwysocki.net, linux-acpi@vger.kernel.org
+Cc: linux-i2c@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Rob Herring <robherring2@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mark Rutland <mark.rutland@arm.com>, Rob Herring <robh+dt@kernel.org>, Frank Rowand <frowand.list@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Graeme Gregory <graeme@xora.org.uk>, Jake Oshins <jakeo@microsoft.com>
 
-On 29/09/15 18:11, Rob Herring wrote:
-> On Mon, Sep 28, 2015 at 11:42 AM, Marc Zyngier <marc.zyngier@arm.com> wrote:
->> The irqdomain code is not entierely ACPI friendly, as it has some
->> built-in knowledge of the device-tree. Nothing too harmful, but enough
->> to scare the ARM ACPI developpers which end up with their own version
->> of the square wheel.
->>
->> This small patch series adapts the irqdomain code to remove the
->> hurdles that prevent the full blown irqdomain subsystem to be used on
->> ACPI, creates an interface between the GSI layer and the irqdomain,
->> and as an example, convert the ARM GIC ACPI support to use irqdomains
->> as originally intended.
->>
->> Overall, this gives us a way to use irqdomains on both DT and ACPI
->> enabled platforms, having very little changes made to the actual
->> drivers (other than the probing infrastructure). Because we keep the
->> flow of information between the various layers identical between ACPI
->> and DT, we immediately benefit from the existing infrastructure. The
->> "convert the GSI information to be DT friendly" is admitedly not very
->> pretty, but I see it as a stepping stone towards unifying the two
->> structures.
+Hi Mika,
+
+On Mon Aug 17 15:03, Mika Westerberg wrote:
+> I think the current code in I2C core is not actually doing the right
+> thing according the ACPI spec at least. To my understanding you can have
+> device with I2cSerialBus resource _anywhere_ in the namespace, not just
+> directly below the host controller. It's the ResourceSource attribute
+> that tells the corresponding host controller.
 > 
-> Did I miss v1-v3 or did the DT change just show up? I probably tuned
-> out with ACPI in the subject.
+> I wonder if it helps if we scan the whole namespace for devices with
+> I2cSerialBus that matches the just registered adapter? Something like
+> the patch below.
 
-No, that's new. It was far worse before.
+I've been working with the patch you suggested below.
 
-> Needing fake DT nodes for ACPI is just wrong. There's got to be
-> another, better way.
+> diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+> index c83e4d13cfc5..2a309d27421a 100644
+> --- a/drivers/i2c/i2c-core.c
+> +++ b/drivers/i2c/i2c-core.c
 
-Well, the alternative is to rewrite the whole of irqdomain and
-everything that gets called from there in terms of fwnode_handle. Which
-will trickle in the whole of OF as well.
+...
 
-Note that the fake DT node doesn't represent an ACPI object at all. It
-is an identifier for an irqdomain, and that's where it stops.
+>  static void acpi_i2c_register_devices(struct i2c_adapter *adap)
+>  {
+> -     acpi_handle handle;
+>       acpi_status status;
+>  
+> -     if (!adap->dev.parent)
+> -             return;
+> -
+> -     handle = ACPI_HANDLE(adap->dev.parent);
+> -     if (!handle)
+> +     if (!adap->dev.parent || !has_acpi_companion(adap->dev.parent))
+>               return;
+>  
+> -     status = acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, 1,
+> +     status = acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
+> +                                  ACPI_I2C_MAX_SCAN_DEPTH,
+>                                    acpi_i2c_add_device, NULL,
+>                                    adap, NULL);
 
-	M.
--- 
-Jazz is not dead. It just smells funny...
+On my systems (which admittedly all define their i2c clients below the
+controller) this works as expected, i.e. there's no change in behavior.
+As far as I can tell it more accurately implements the spec.
+
+
+However, it doesn't quite solve my problem.  When
+acpi_i2c_register_devices(adap) is called on the "virtual" controller
+that is created for an i2c mux channel, the adap->dev.parent (set to the
+parent i2c bus for the mux) does not have an acpi companion.  That
+ultimately causes acpi_i2c_add_device() to never find a match.
+
+I'll recap a bit since it's been a while and I've learned a few things
+that might affect the discussion.  For now, I'll focus on my proposed
+ASL for an I2C mux using device properties.
+
+Lets say we have i2c hardware attached like this:
+
+i801 controller (PCI)
+   pca9548 8-channel mux (address 0x70)
+       lm75 temperature sensor (channel 0 on the mux with address 0x50)
+
+I think this is a sensible way to represent it:
+
+Device (MUX0) {
+    Name (_ADR, 0x70)
+    Name (_HID, "PRP0001")
+    Name (_CRS, ResourceTemplate()
+    {
+        I2cSerialBus (0x70, ControllerInitiated, I2C_SPEED,
+                      AddressingMode7Bit, "^^SMB2", 0x00,
+                      ResourceConsumer,,)
+    })
+    Name (_DSD, Package ()
+    {
+        ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+        Package () {
+            Package (2) { "compatible", "nxp,pca9548" },
+        }
+    })
+
+    // MUX channel 0
+    Device (CH00) {
+        Name (_ADR, 0x0)
+
+        Device (TMP0) {
+            Name (_ADR, 0x50)
+            Name (_CRS, ResourceTemplate()
+            {
+                I2cSerialBus (0x60, ControllerInitiated, I2C_SPEED,
+                              AddressingMode7Bit, "^CH00", 0x00,
+                              ResourceConsumer,,)
+            })
+            Name (_DSD, Package ()
+            {
+                ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+                Package () {
+                    Package (2) { "compatible", "national,lm75" },
+                }
+            })
+        }
+    }
+}
+
+The new thing here is using _ADR to treat each mux channel as a device
+and referencing those devices elsewhere (CH00).  I arrived at this
+because it seems to fit the ACPI model reasonably well* and it's easy to
+implement (just like in other callers to acpi_preset_companion())
+
+* by reasonably well, I think it's clear and works naturally but this
+use of _ADR isn't explicitly defined in the spec [ACPI 6, Table 6-168
+(page 278)]
+
+Hopefully the spec ambiguity isn't too much effort to clarify.  I think
+it's a good change.  But, perhaps it's unnecessary.  Any feedback on
+whether this ASL seem like the right way to go for device property i2c
+muxes?
+
+If not, is there an acceptable alternative?  I wonder how muxes are
+handled otherwise?  Hopefully not ASL methods :)
+
+thanks,
+
+                --Dustin
