@@ -1,106 +1,49 @@
 From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Subject: [PATCH v7 19/20] driver core: Allow deferring probes until late init
-Date: Tue, 29 Sep 2015 11:10:57 +0200
-Message-ID: <1443517859-30376-20-git-send-email-tomeu.vizoso@collabora.com>
+Subject: [PATCH v7 13/20] usb: phy: Probe phy devices on demand
+Date: Tue, 29 Sep 2015 11:10:51 +0200
+Message-ID: <1443517859-30376-14-git-send-email-tomeu.vizoso@collabora.com>
 References: <1443517859-30376-1-git-send-email-tomeu.vizoso@collabora.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f181.google.com ([209.85.212.181]:35652 "EHLO
-	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933568AbbI2JMf (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Sep 2015 05:12:35 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1443517859-30376-1-git-send-email-tomeu.vizoso@collabora.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-kernel@vger.kernel.org
 Cc: Rob Herring <robh+dt@kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-arm-kernel@lists.infradead.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, devicetree@vger.kernel.org, Russell King <rmk+kernel@arm.linux.org.uk>, Linus Walleij <linus.walleij@linaro.org>, Ulf Hansson <ulf.hansson@linaro.org>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Tomeu Vizoso <tomeu.vizoso@collabora.com>
+List-Id: linux-acpi@vger.kernel.org
 
-Add a field to struct device that instructs the device-driver core to
-defer the probe of this device until the late_initcall level.
+When looking up a phy through its OF node, probe it if it hasn't
+already.
 
-By letting all built-in drivers to register before starting to probe, we
-can avoid any deferred probes by probing dependencies on demand.
+The goal is to reduce deferred probes to a minimum, as it makes it very
+cumbersome to find out why a device failed to probe, and can introduce
+very big delays in when a critical device is probed.
 
 Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-
 ---
 
-Changes in v7:
-- Move IS_ENABLED(CONFIG_DELAY_DEVICE_PROBES) into if condition
-- Hide CONFIG_DELAY_DEVICE_PROBES behind EXPERT
 
-Changes in v4:
-- Add Kconfig DELAY_DEVICE_PROBES to allow disabling delayed probing in
-  machines with initcalls that depend on devices probing at a given time.
+ drivers/usb/phy/phy.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
- drivers/base/Kconfig   | 18 ++++++++++++++++++
- drivers/base/dd.c      |  6 ++++++
- include/linux/device.h |  2 ++
- 3 files changed, 26 insertions(+)
-
-diff --git a/drivers/base/Kconfig b/drivers/base/Kconfig
-index 98504ec99c7d..8bb7b556da1b 100644
---- a/drivers/base/Kconfig
-+++ b/drivers/base/Kconfig
-@@ -324,4 +324,22 @@ config CMA_ALIGNMENT
+diff --git a/drivers/usb/phy/phy.c b/drivers/usb/phy/phy.c
+index 98f75d2842b7..fb0b650bb494 100644
+--- a/drivers/usb/phy/phy.c
++++ b/drivers/usb/phy/phy.c
+@@ -15,6 +15,7 @@
+ #include <linux/module.h>
+ #include <linux/slab.h>
+ #include <linux/of.h>
++#include <linux/of_device.h>
  
- endif
+ #include <linux/usb/phy.h>
  
-+config DELAY_DEVICE_PROBES
-+	bool "Allow delaying the probe of some devices" if EXPERT
-+	default y
-+	help
-+	  Devices can be matched to a driver and probed from the moment they
-+	  are registered, but early during boot their probes are likely to be
-+	  deferred because some dependency isn't available yet because most
-+	  drivers haven't been registered yet.
+@@ -196,6 +197,8 @@ struct  usb_phy *devm_usb_get_phy_by_node(struct device *dev,
+ 		goto err0;
+ 	}
+ 
++	of_device_probe(node);
 +
-+	  Enabling this option allows the device registration code to delay the
-+	  probing of a specific device until device_initcall_sync, when all
-+	  built-in drivers have been registered already.
-+
-+	  In some platforms there may be implicit assumptions about when some
-+	  devices are probed, so enabling this option could cause problems there.
-+
-+	  If unsure, say Y here.
-+
- endmenu
-diff --git a/drivers/base/dd.c b/drivers/base/dd.c
-index 7dc04ee81c8b..c4a3f298e726 100644
---- a/drivers/base/dd.c
-+++ b/drivers/base/dd.c
-@@ -417,6 +417,12 @@ int driver_probe_device(struct device_driver *drv, struct device *dev)
- 	if (!device_is_registered(dev))
- 		return -ENODEV;
+ 	spin_lock_irqsave(&phy_lock, flags);
  
-+	if (IS_ENABLED(CONFIG_DELAY_DEVICE_PROBES) &&
-+	    !driver_deferred_probe_enable && dev->probe_late) {
-+		driver_deferred_probe_add(dev);
-+		return 0;
-+	}
-+
- 	pr_debug("bus: '%s': %s: matched device %s with driver %s\n",
- 		 drv->bus->name, __func__, dev_name(dev), drv->name);
- 
-diff --git a/include/linux/device.h b/include/linux/device.h
-index 8e7b806f0744..e64f4c7e243d 100644
---- a/include/linux/device.h
-+++ b/include/linux/device.h
-@@ -744,6 +744,7 @@ struct device_dma_parameters {
-  *
-  * @offline_disabled: If set, the device is permanently online.
-  * @offline:	Set after successful invocation of bus type's .offline().
-+ * @probe_late:	If set, device will be probed in the late initcall level.
-  *
-  * At the lowest level, every device in a Linux system is represented by an
-  * instance of struct device. The device structure contains the information
-@@ -828,6 +829,7 @@ struct device {
- 
- 	bool			offline_disabled:1;
- 	bool			offline:1;
-+	bool			probe_late:1;
- };
- 
- static inline struct device *kobj_to_dev(struct kobject *kobj)
+ 	phy = __of_usb_find_phy(node);
 -- 
 2.4.3
-
