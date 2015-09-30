@@ -1,46 +1,31 @@
-From: Alan Stern <stern@rowland.harvard.edu>
-Subject: Re: [RFC][PATCH 2/2] PM / sleep: Kick devices that might have been
- reset by firmware
-Date: Wed, 30 Sep 2015 10:46:03 -0400 (EDT)
-Message-ID: <Pine.LNX.4.44L0.1509301039270.15216-100000@netrider.rowland.org>
-References: <5732365.XVsXxYIbHS@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <5732365.XVsXxYIbHS@vostro.rjw.lan>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Linux PM list <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Daniel Vetter <daniel.vetter@intel.com>
+From: Marcel Holtmann <marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>
+Subject: Re: [PATCH] Bluetooth: hci_intel: Cleanup the device probe code
+Date: Wed, 30 Sep 2015 16:52:03 +0200
+Message-ID: <9BB7E6C8-A45E-4D88-8B01-D1660370B7FF@holtmann.org>
+References: <1443619732-19401-1-git-send-email-jarkko.nikula@linux.intel.com>
+Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2104\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1443619732-19401-1-git-send-email-jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Sender: linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jarkko Nikula <jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: linux-bluetooth <linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Gustavo F. Padovan" <gustavo-THi1TnShQwVAfugRpC6u6w@public.gmane.org>, Johan Hedberg <johan.hedberg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Loic Poulain <loic.poulain-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 30 Sep 2015, Rafael J. Wysocki wrote:
+Hi Jarkko,
 
-> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> There is some unneeded code in "hci_intel" probing. First
+> acpi_match_device() call is needless as driver/platform/acpi core code has
+> already done the matching before calling the probe and the driver does not
+> use the returned pointer to matching _HID other than checking is it NULL.
 > 
-> If the platform firmware was involved in the system resume that's
-> being completed, there is a concern that some devices might have
-> been reset by it and if those devices had the power.direct_complete
-> flag set during the preceding suspend transition, they may stay
-> in a reset-power-on state indefinitely (until they are runtime-resumed
-> and then suspended again).  That may not be a big deal from the
-> individual device's perspective, but if the system is an SoC, it may
-> be prevented from entering deep SoC-wide low-power states on idle
-> because of that.
-> 
-> To prevent that from happening, force a runtime resume for devices
-> with power.direct_complete set if the platform firmware was involved
-> in the resume transition currently in progress.
-> 
-> Something similar was done by the ACPI PM domain, but regardless of
-> the platform firmware involvement, and the new mechanism should be
-> sufficient to replace that code, so drop it.
+> Then tree wide grep for "hci_intel" doesn't reveal that there is any code
+> registering this platform device so it looks this device is always backed
+> with ACPI companion so also ACPI_HANDLE() test can be removed.
 
-Maybe I'm not reading patch 1/2 correctly, but it looks like an
-ordinary ACPI-based desktop PC will always believe the firmware was
-involved in an S3 sleep transition.  If that's so then won't this
-change defeat all the work being done by people trying to prevent
-unneeded runtime resumes during system resume?  direct_complete would 
-be useful only on non-ACPI systems.
+eventually there will be DT platform device. Does that make a difference or is it still valid to remove this probe handling.
 
-Alan Stern
+Regards
 
+Marcel
