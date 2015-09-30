@@ -1,50 +1,73 @@
-From: Jarkko Nikula <jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: [PATCH 5/5] Bluetooth: hci_bcm: Do not test ACPI companion in bcm_acpi_probe()
-Date: Wed, 30 Sep 2015 16:26:45 +0300
-Message-ID: <1443619605-19320-5-git-send-email-jarkko.nikula@linux.intel.com>
-References: <1443619605-19320-1-git-send-email-jarkko.nikula@linux.intel.com>
-Return-path: <linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1443619605-19320-1-git-send-email-jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Sender: linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-Cc: linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Marcel Holtmann <marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>, Gustavo Padovan <gustavo-THi1TnShQwVAfugRpC6u6w@public.gmane.org>, Johan Hedberg <johan.hedberg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Frederic Danis <frederic.danis-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Jarkko Nikula <jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+From: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Subject: [PATCH] Bluetooth: hci_intel: Cleanup the device probe code
+Date: Wed, 30 Sep 2015 16:28:52 +0300
+Message-ID: <1443619732-19401-1-git-send-email-jarkko.nikula@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([192.55.52.115]:28401 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755305AbbI3N27 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 30 Sep 2015 09:28:59 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-bluetooth@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, Marcel Holtmann <marcel@holtmann.org>, Gustavo Padovan <gustavo@padovan.org>, Johan Hedberg <johan.hedberg@gmail.com>, Loic Poulain <loic.poulain@intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>
 
-This device has always ACPI companion because driver supports only ACPI
-enumeration. Therefore there is no need to test it in bcm_acpi_probe() and
-we can pass it directly to acpi_dev_get_resources() (which will return
--EINVAL in case of NULL argument is passed).
+There is some unneeded code in "hci_intel" probing. First
+acpi_match_device() call is needless as driver/platform/acpi core code has
+already done the matching before calling the probe and the driver does not
+use the returned pointer to matching _HID other than checking is it NULL.
 
-Signed-off-by: Jarkko Nikula <jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Then tree wide grep for "hci_intel" doesn't reveal that there is any code
+registering this platform device so it looks this device is always backed
+with ACPI companion so also ACPI_HANDLE() test can be removed.
+
+Signed-off-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
 ---
- drivers/bluetooth/hci_bcm.c | 8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ drivers/bluetooth/hci_intel.c | 24 ------------------------
+ 1 file changed, 24 deletions(-)
 
-diff --git a/drivers/bluetooth/hci_bcm.c b/drivers/bluetooth/hci_bcm.c
-index 967d16692925..512873262055 100644
---- a/drivers/bluetooth/hci_bcm.c
-+++ b/drivers/bluetooth/hci_bcm.c
-@@ -647,7 +647,6 @@ static int bcm_resource(struct acpi_resource *ares, void *data)
- static int bcm_acpi_probe(struct bcm_device *dev)
- {
- 	struct platform_device *pdev = dev->pdev;
--	struct acpi_device *adev;
- 	LIST_HEAD(resources);
- 	const struct dmi_system_id *dmi_id;
- 	int ret;
-@@ -696,11 +695,8 @@ static int bcm_acpi_probe(struct bcm_device *dev)
- 	}
- 
- 	/* Retrieve UART ACPI info */
--	adev = ACPI_COMPANION(&dev->pdev->dev);
--	if (!adev)
--		return 0;
+diff --git a/drivers/bluetooth/hci_intel.c b/drivers/bluetooth/hci_intel.c
+index 49e25409de67..2952107e3bae 100644
+--- a/drivers/bluetooth/hci_intel.c
++++ b/drivers/bluetooth/hci_intel.c
+@@ -1165,22 +1165,6 @@ static const struct acpi_device_id intel_acpi_match[] = {
+ 	{ },
+ };
+ MODULE_DEVICE_TABLE(acpi, intel_acpi_match);
 -
--	ret = acpi_dev_get_resources(adev, &resources, bcm_resource, dev);
-+	ret = acpi_dev_get_resources(ACPI_COMPANION(&dev->pdev->dev),
-+				     &resources, bcm_resource, dev);
- 	if (ret < 0)
- 		return ret;
- 	acpi_dev_free_resource_list(&resources);
+-static int intel_acpi_probe(struct intel_device *idev)
+-{
+-	const struct acpi_device_id *id;
+-
+-	id = acpi_match_device(intel_acpi_match, &idev->pdev->dev);
+-	if (!id)
+-		return -ENODEV;
+-
+-	return 0;
+-}
+-#else
+-static int intel_acpi_probe(struct intel_device *idev)
+-{
+-	return -ENODEV;
+-}
+ #endif
+ 
+ #ifdef CONFIG_PM
+@@ -1248,14 +1232,6 @@ static int intel_probe(struct platform_device *pdev)
+ 
+ 	idev->pdev = pdev;
+ 
+-	if (ACPI_HANDLE(&pdev->dev)) {
+-		int err = intel_acpi_probe(idev);
+-		if (err)
+-			return err;
+-	} else {
+-		return -ENODEV;
+-	}
+-
+ 	idev->reset = devm_gpiod_get_optional(&pdev->dev, "reset",
+ 					      GPIOD_OUT_LOW);
+ 	if (IS_ERR(idev->reset)) {
 -- 
 2.5.3
+
