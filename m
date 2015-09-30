@@ -1,55 +1,46 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [RFC v2 0/1] i2c: acpi: scan ACPI enumerated I2C mux channels
-Date: Wed, 30 Sep 2015 16:57:02 +0300
-Message-ID: <20150930135702.GJ1551@lahna.fi.intel.com>
-References: <1439510358-16664-1-git-send-email-dustin@cumulusnetworks.com>
- <20150929231912.GA7913@cumulusnetworks.com>
- <20150930094336.GF1551@lahna.fi.intel.com>
- <2521626.jxElES8O1e@vostro.rjw.lan>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [RFC][PATCH 2/2] PM / sleep: Kick devices that might have been
+ reset by firmware
+Date: Wed, 30 Sep 2015 10:46:03 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1509301039270.15216-100000@netrider.rowland.org>
+References: <5732365.XVsXxYIbHS@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:45111 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750999AbbI3N5F (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 30 Sep 2015 09:57:05 -0400
-Content-Disposition: inline
-In-Reply-To: <2521626.jxElES8O1e@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <5732365.XVsXxYIbHS@vostro.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Dustin Byford <dustin@cumulusnetworks.com>, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org
+Cc: Linux PM list <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Daniel Vetter <daniel.vetter@intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Sep 30, 2015 at 02:52:28PM +0200, Rafael J. Wysocki wrote:
-> > >     Device (CH00) {
-> > >         Name (_ADR, 0x0)
-> > > 
-> > >         Device (TMP0) {
-> > >             Name (_ADR, 0x50)
-> > 
-> > ... and this are not needed. I2cSerialBus already contains the address.
-> > 
-> > Also I think you need to have "PRP0001" here as well.
+On Wed, 30 Sep 2015, Rafael J. Wysocki wrote:
+
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > 
-> The idea is to use _ADR kind of instead of "PRP0001" to express the "you
-> don't need a driver for this" idea AFAICS.
+> If the platform firmware was involved in the system resume that's
+> being completed, there is a concern that some devices might have
+> been reset by it and if those devices had the power.direct_complete
+> flag set during the preceding suspend transition, they may stay
+> in a reset-power-on state indefinitely (until they are runtime-resumed
+> and then suspended again).  That may not be a big deal from the
+> individual device's perspective, but if the system is an SoC, it may
+> be prevented from entering deep SoC-wide low-power states on idle
+> because of that.
+> 
+> To prevent that from happening, force a runtime resume for devices
+> with power.direct_complete set if the platform firmware was involved
+> in the resume transition currently in progress.
+> 
+> Something similar was done by the ACPI PM domain, but regardless of
+> the platform firmware involvement, and the new mechanism should be
+> sufficient to replace that code, so drop it.
 
-But I think it needs a driver and it even includes "compatible" string
-below :-)
+Maybe I'm not reading patch 1/2 correctly, but it looks like an
+ordinary ACPI-based desktop PC will always believe the firmware was
+involved in an S3 sleep transition.  If that's so then won't this
+change defeat all the work being done by people trying to prevent
+unneeded runtime resumes during system resume?  direct_complete would 
+be useful only on non-ACPI systems.
 
-> > >             Name (_CRS, ResourceTemplate()
-> > >             {
-> > >                 I2cSerialBus (0x60, ControllerInitiated, I2C_SPEED,
-> > >                               AddressingMode7Bit, "^CH00", 0x00,
-> > >                               ResourceConsumer,,)
-> > >             })
-> > >             Name (_DSD, Package ()
-> > >             {
-> > >                 ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-> > >                 Package () {
-> > >                     Package (2) { "compatible", "national,lm75" },
-> > >                 }
-> > >             })
-> > >         }
-> > >     }
-> > > }
+Alan Stern
+
