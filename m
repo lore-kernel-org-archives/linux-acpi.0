@@ -1,73 +1,55 @@
-From: Jarkko Nikula <jarkko.nikula@linux.intel.com>
-Subject: [PATCH] Bluetooth: hci_intel: Cleanup the device probe code
-Date: Wed, 30 Sep 2015 16:28:52 +0300
-Message-ID: <1443619732-19401-1-git-send-email-jarkko.nikula@linux.intel.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [RFC v2 0/1] i2c: acpi: scan ACPI enumerated I2C mux channels
+Date: Wed, 30 Sep 2015 16:57:02 +0300
+Message-ID: <20150930135702.GJ1551@lahna.fi.intel.com>
+References: <1439510358-16664-1-git-send-email-dustin@cumulusnetworks.com>
+ <20150929231912.GA7913@cumulusnetworks.com>
+ <20150930094336.GF1551@lahna.fi.intel.com>
+ <2521626.jxElES8O1e@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:28401 "EHLO mga14.intel.com"
+Received: from mga03.intel.com ([134.134.136.65]:45111 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755305AbbI3N27 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 30 Sep 2015 09:28:59 -0400
+	id S1750999AbbI3N5F (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 30 Sep 2015 09:57:05 -0400
+Content-Disposition: inline
+In-Reply-To: <2521626.jxElES8O1e@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-bluetooth@vger.kernel.org
-Cc: linux-acpi@vger.kernel.org, Marcel Holtmann <marcel@holtmann.org>, Gustavo Padovan <gustavo@padovan.org>, Johan Hedberg <johan.hedberg@gmail.com>, Loic Poulain <loic.poulain@intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Dustin Byford <dustin@cumulusnetworks.com>, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org
 
-There is some unneeded code in "hci_intel" probing. First
-acpi_match_device() call is needless as driver/platform/acpi core code has
-already done the matching before calling the probe and the driver does not
-use the returned pointer to matching _HID other than checking is it NULL.
+On Wed, Sep 30, 2015 at 02:52:28PM +0200, Rafael J. Wysocki wrote:
+> > >     Device (CH00) {
+> > >         Name (_ADR, 0x0)
+> > > 
+> > >         Device (TMP0) {
+> > >             Name (_ADR, 0x50)
+> > 
+> > ... and this are not needed. I2cSerialBus already contains the address.
+> > 
+> > Also I think you need to have "PRP0001" here as well.
+> 
+> The idea is to use _ADR kind of instead of "PRP0001" to express the "you
+> don't need a driver for this" idea AFAICS.
 
-Then tree wide grep for "hci_intel" doesn't reveal that there is any code
-registering this platform device so it looks this device is always backed
-with ACPI companion so also ACPI_HANDLE() test can be removed.
+But I think it needs a driver and it even includes "compatible" string
+below :-)
 
-Signed-off-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
----
- drivers/bluetooth/hci_intel.c | 24 ------------------------
- 1 file changed, 24 deletions(-)
-
-diff --git a/drivers/bluetooth/hci_intel.c b/drivers/bluetooth/hci_intel.c
-index 49e25409de67..2952107e3bae 100644
---- a/drivers/bluetooth/hci_intel.c
-+++ b/drivers/bluetooth/hci_intel.c
-@@ -1165,22 +1165,6 @@ static const struct acpi_device_id intel_acpi_match[] = {
- 	{ },
- };
- MODULE_DEVICE_TABLE(acpi, intel_acpi_match);
--
--static int intel_acpi_probe(struct intel_device *idev)
--{
--	const struct acpi_device_id *id;
--
--	id = acpi_match_device(intel_acpi_match, &idev->pdev->dev);
--	if (!id)
--		return -ENODEV;
--
--	return 0;
--}
--#else
--static int intel_acpi_probe(struct intel_device *idev)
--{
--	return -ENODEV;
--}
- #endif
- 
- #ifdef CONFIG_PM
-@@ -1248,14 +1232,6 @@ static int intel_probe(struct platform_device *pdev)
- 
- 	idev->pdev = pdev;
- 
--	if (ACPI_HANDLE(&pdev->dev)) {
--		int err = intel_acpi_probe(idev);
--		if (err)
--			return err;
--	} else {
--		return -ENODEV;
--	}
--
- 	idev->reset = devm_gpiod_get_optional(&pdev->dev, "reset",
- 					      GPIOD_OUT_LOW);
- 	if (IS_ERR(idev->reset)) {
--- 
-2.5.3
-
+> > >             Name (_CRS, ResourceTemplate()
+> > >             {
+> > >                 I2cSerialBus (0x60, ControllerInitiated, I2C_SPEED,
+> > >                               AddressingMode7Bit, "^CH00", 0x00,
+> > >                               ResourceConsumer,,)
+> > >             })
+> > >             Name (_DSD, Package ()
+> > >             {
+> > >                 ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+> > >                 Package () {
+> > >                     Package (2) { "compatible", "national,lm75" },
+> > >                 }
+> > >             })
+> > >         }
+> > >     }
+> > > }
