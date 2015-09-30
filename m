@@ -1,159 +1,130 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [RFC v2 0/1] i2c: acpi: scan ACPI enumerated I2C mux channels
-Date: Wed, 30 Sep 2015 12:43:36 +0300
-Message-ID: <20150930094336.GF1551@lahna.fi.intel.com>
-References: <1439510358-16664-1-git-send-email-dustin@cumulusnetworks.com>
- <1439580693-5538-1-git-send-email-dustin@cumulusnetworks.com>
- <20150817120305.GB1552@lahna.fi.intel.com>
- <20150929231912.GA7913@cumulusnetworks.com>
+From: Tomeu Vizoso <tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
+Subject: Re: [PATCH v6 0/22] On-demand device probing
+Date: Wed, 30 Sep 2015 12:09:27 +0200
+Message-ID: <CAAObsKChqEfFO+qTwLcBLs8tPPT_gchGKK287652jdC=5R6+qQ@mail.gmail.com>
+References: <1442844182-27787-1-git-send-email-tomeu.vizoso@collabora.com>
+ <5606E120.3070305@kernel.org> <20150926192218.GA15657@kroah.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:19074 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932181AbbI3Jph (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 30 Sep 2015 05:45:37 -0400
-Content-Disposition: inline
-In-Reply-To: <20150929231912.GA7913@cumulusnetworks.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20150926192218.GA15657-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>
+Cc: Rob Herring <robh-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Dustin Byford <dustin@cumulusnetworks.com>
-Cc: rjw@rjwysocki.net, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org
 
-On Tue, Sep 29, 2015 at 04:19:12PM -0700, Dustin Byford wrote:
-> Hi Mika,
-> 
-> On Mon Aug 17 15:03, Mika Westerberg wrote:
-> > I think the current code in I2C core is not actually doing the right
-> > thing according the ACPI spec at least. To my understanding you can have
-> > device with I2cSerialBus resource _anywhere_ in the namespace, not just
-> > directly below the host controller. It's the ResourceSource attribute
-> > that tells the corresponding host controller.
-> > 
-> > I wonder if it helps if we scan the whole namespace for devices with
-> > I2cSerialBus that matches the just registered adapter? Something like
-> > the patch below.
-> 
-> I've been working with the patch you suggested below.
-> 
-> > diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
-> > index c83e4d13cfc5..2a309d27421a 100644
-> > --- a/drivers/i2c/i2c-core.c
-> > +++ b/drivers/i2c/i2c-core.c
-> 
-> ...
-> 
-> >  static void acpi_i2c_register_devices(struct i2c_adapter *adap)
-> >  {
-> > -     acpi_handle handle;
-> >       acpi_status status;
-> >  
-> > -     if (!adap->dev.parent)
-> > -             return;
-> > -
-> > -     handle = ACPI_HANDLE(adap->dev.parent);
-> > -     if (!handle)
-> > +     if (!adap->dev.parent || !has_acpi_companion(adap->dev.parent))
-> >               return;
-> >  
-> > -     status = acpi_walk_namespace(ACPI_TYPE_DEVICE, handle, 1,
-> > +     status = acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
-> > +                                  ACPI_I2C_MAX_SCAN_DEPTH,
-> >                                    acpi_i2c_add_device, NULL,
-> >                                    adap, NULL);
-> 
-> On my systems (which admittedly all define their i2c clients below the
-> controller) this works as expected, i.e. there's no change in behavior.
-> As far as I can tell it more accurately implements the spec.
-> 
-> 
-> However, it doesn't quite solve my problem.  When
-> acpi_i2c_register_devices(adap) is called on the "virtual" controller
-> that is created for an i2c mux channel, the adap->dev.parent (set to the
-> parent i2c bus for the mux) does not have an acpi companion.  That
-> ultimately causes acpi_i2c_add_device() to never find a match.
-> 
-> I'll recap a bit since it's been a while and I've learned a few things
-> that might affect the discussion.  For now, I'll focus on my proposed
-> ASL for an I2C mux using device properties.
-> 
-> Lets say we have i2c hardware attached like this:
-> 
-> i801 controller (PCI)
->    pca9548 8-channel mux (address 0x70)
->        lm75 temperature sensor (channel 0 on the mux with address 0x50)
-> 
-> I think this is a sensible way to represent it:
-> 
-> Device (MUX0) {
->     Name (_ADR, 0x70)
+On 26 September 2015 at 21:22, Greg Kroah-Hartman
+<gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org> wrote:
+> On Sat, Sep 26, 2015 at 01:17:04PM -0500, Rob Herring wrote:
+>> On 09/21/2015 09:02 AM, Tomeu Vizoso wrote:
+>> > Hello,
+>> >
+>> > I have a problem with the panel on my Tegra Chromebook taking long=
+er
+>> > than expected to be ready during boot (St=C3=A9phane Marchesin rep=
+orted what
+>> > is basically the same issue in [0]), and have looked into ordered
+>> > probing as a better way of solving this than moving nodes around i=
+n the
+>> > DT or playing with initcall levels and linking order.
+>> >
+>> > While reading the thread [1] that Alexander Holler started with hi=
+s
+>> > series to make probing order deterministic, it occurred to me that=
+ it
+>> > should be possible to achieve the same by probing devices as they =
+are
+>> > referenced by other devices.
+>> >
+>> > This basically reuses the information that is already implicit in =
+the
+>> > probe() implementations, saving us from refactoring existing drive=
+rs or
+>> > adding information to DTBs.
+>> >
+>> > During review of v1 of this series Linus Walleij suggested that it
+>> > should be the device driver core to make sure that dependencies ar=
+e
+>> > ready before probing a device. I gave this idea a try [2] but Mark=
+ Brown
+>> > pointed out to the logic duplication between the resource acquisit=
+ion
+>> > and dependency discovery code paths (though I think it's fairly mi=
+nor).
+>> >
+>> > To address that code duplication I experimented with Arnd's devm_p=
+robe
+>> > [3] concept of having drivers declare their dependencies instead o=
+f
+>> > acquiring them during probe, and while it worked [4], I don't thin=
+k we
+>> > end up winning anything when compared to just probing devices on-d=
+emand
+>> > from resource getters.
+>> >
+>> > One remaining objection is to the "sprinkling" of calls to
+>> > of_device_probe() in the resource getters of each subsystem, but I=
+ think
+>> > it's the right thing to do given that the storage of resources is
+>> > currently subsystem-specific.
+>> >
+>> > We could avoid the above by moving resource storage into the core,=
+ but I
+>> > don't think there's a compelling case for that.
+>> >
+>> > I have tested this on boards with Tegra, iMX.6, Exynos, Rockchip a=
+nd
+>> > OMAP SoCs, and these patches were enough to eliminate all the defe=
+rred
+>> > probes (except one in PandaBoard because omap_dma_system doesn't h=
+ave a
+>> > firmware node as of yet).
+>> >
+>> > Have submitted a branch [5][6][7] with these patches on top of tod=
+ay's
+>> > linux-next (20150921) to kernelci.org and I don't see any issues t=
+hat
+>> > could be caused by them.
+>> >
+>> > With this series I get the kernel to output to the panel in 0.5s,
+>> > instead of 2.8s.
+>>
+>> I think we're pretty close other than some minor comments. I would l=
+ike
+>> to see ack's from Greg and some reviewed-bys from others. The subsys=
+tem
+>> changes are minor and there has been plenty of chance to comment, so=
+ I
+>> don't think acks from all subsystems are needed.
+>>
+>> Your branch is based on -next. Is there any dependence on something =
+in
+>> -next? I want to get this into -next soon, but need a branch not bas=
+ed
+>> on -next. Please send me a pull request with the collected acks and
+>> minor comments I have addressed.
+>
+> Let me review this on Monday and I'll let you know...
 
-This..
+Hi Greg, hope you don't mind that I ping you regarding this, just in
+case it fell through some crack.
 
->     Name (_HID, "PRP0001")
->     Name (_CRS, ResourceTemplate()
->     {
->         I2cSerialBus (0x70, ControllerInitiated, I2C_SPEED,
->                       AddressingMode7Bit, "^^SMB2", 0x00,
->                       ResourceConsumer,,)
->     })
->     Name (_DSD, Package ()
->     {
->         ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
->         Package () {
->             Package (2) { "compatible", "nxp,pca9548" },
->         }
->     })
-> 
->     // MUX channel 0
->     Device (CH00) {
->         Name (_ADR, 0x0)
-> 
->         Device (TMP0) {
->             Name (_ADR, 0x50)
+Regards,
 
-... and this are not needed. I2cSerialBus already contains the address.
+Tomeu
 
-Also I think you need to have "PRP0001" here as well.
-
->             Name (_CRS, ResourceTemplate()
->             {
->                 I2cSerialBus (0x60, ControllerInitiated, I2C_SPEED,
->                               AddressingMode7Bit, "^CH00", 0x00,
->                               ResourceConsumer,,)
->             })
->             Name (_DSD, Package ()
->             {
->                 ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
->                 Package () {
->                     Package (2) { "compatible", "national,lm75" },
->                 }
->             })
->         }
->     }
-> }
-> 
-> The new thing here is using _ADR to treat each mux channel as a device
-> and referencing those devices elsewhere (CH00).  I arrived at this
-> because it seems to fit the ACPI model reasonably well* and it's easy to
-> implement (just like in other callers to acpi_preset_companion())
-> 
-> * by reasonably well, I think it's clear and works naturally but this
-> use of _ADR isn't explicitly defined in the spec [ACPI 6, Table 6-168
-> (page 278)]
-> 
-> Hopefully the spec ambiguity isn't too much effort to clarify.  I think
-> it's a good change.  But, perhaps it's unnecessary.  Any feedback on
-> whether this ASL seem like the right way to go for device property i2c
-> muxes?
-
-Well to me your ASL looks reasonable. Usage of _ADR to specify mux
-channel seems natural and follows other buses which have an entry in
-that table. I don't know if it is forbidden to invent this kind of
-things that are not explicitly mentioned in the spec, though.
-
-> If not, is there an acceptable alternative?  I wonder how muxes are
-> handled otherwise?  Hopefully not ASL methods :)
-
-I cannot think of any better way. I have never seen ACPI DSDT/SSDT
-containing I2C mux before.
+> thanks,
+>
+> greg k-h
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kerne=
+l" in
+> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" i=
+n
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
