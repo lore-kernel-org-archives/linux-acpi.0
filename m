@@ -1,55 +1,48 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [RFC] i2c: Revert back to old device naming for ACPI enumerated
- I2C slaves
-Date: Thu, 1 Oct 2015 22:37:44 +0200
-Message-ID: <20151001203744.GA7514@katana>
-References: <1440413522-7855-1-git-send-email-jarkko.nikula@linux.intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: bisected: Re: 4.3.0-rc3-00042: ACPI Warning: AcpiEnable failed
+Date: Thu, 01 Oct 2015 23:56:14 +0200
+Message-ID: <2057337.qekm8qivoU@vostro.rjw.lan>
+References: <alpine.LRH.2.20.1509291519111.3351@math.ut.ee> <alpine.LRH.2.20.1510010927010.10113@math.ut.ee>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="Qxx1br4bt0+wmkIi"
-Return-path: <linux-i2c-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1440413522-7855-1-git-send-email-jarkko.nikula@linux.intel.com>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@linux.intel.com>
-Cc: linux-i2c@vger.kernel.org, alsa-devel@alsa-project.org, linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org, Mark Brown <broonie@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jean Delvare <jdelvare@suse.com>, Liam Girdwood <lgirdwood@gmail.com>, Dustin Byford <dustin@cumulusnetworks.com>, linux@roeck-us.net
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:49812 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1750715AbbJAV1w (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Oct 2015 17:27:52 -0400
+In-Reply-To: <alpine.LRH.2.20.1510010927010.10113@math.ut.ee>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Meelis Roos <mroos@ut.ee>
+Cc: Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org, Linux Kernel list <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Bob Moore <robert.moore@intel.com>
 
+On Thursday, October 01, 2015 09:36:57 AM Meelis Roos wrote:
+> > 4.2.0 worked fine, 4.3.0-rc3-00042-g3225031 was the next one tested 
+> > after that and with this kernel, ACPI enabling fails. This is Pentium 
+> > III, 1 GHz, Intel 815 chipset, DMI tells something about "Packard Bell 
+> > NEC" as the mainboard type.
+> > 
+> > Full dmesg and config are below. What additional information can I 
+> > provide besides bisecting (will take time)?
+> 
+> Bisecting done, here is the culprit:
+> 
+> 8ec3f459073e67e5c6d78507dec693064b3040a2 is the first bad commit
+> commit 8ec3f459073e67e5c6d78507dec693064b3040a2
+> Author: Lv Zheng <lv.zheng@intel.com>
+> Date:   Tue Aug 25 10:29:01 2015 +0800
+> 
+>     ACPICA: Tables: Fix global table list issues by removing fixed table indexes
+>     
+>     ACPICA commit c0b38b4c3982c2336ee92a2a14716107248bd941
 
---Qxx1br4bt0+wmkIi
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Thanks a lot for bisecting this!
 
+It will help if you file a bug entry at bugzilla.kernel.org agaist ACPI for
+this issue (please mark it as a regression) and attach the output of acpidump
+from the affected system to it.
 
-> This is for discussion so I didn't cc stable@vger.kernel.org yet. I was
-> thinking would it work if we'd keep the stable name but have an another
-> symlink in /sys/bus/i2c/devices/ that uses "x-00yz" name. However this
-> feels ill-use of devices directory and probably causes more troubles
-> elsewhere.
+Thanks,
+Rafael
 
-Do you foresee troubles already? I am still in favour of a symlink.
-
-
---Qxx1br4bt0+wmkIi
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJWDZmYAAoJEBQN5MwUoCm25hkP/3+U2dMOIHZGya4yUggP8AYZ
-YF4qLzQtFL5l6FU6v+JJKBtS0eTKO7zTa32xF+ZoehMzBxZqLJY8bszneh3v1+ig
-NowxWNTgRHe4phdd0OWYEk25iL3AMfRFO5LMn9JkbsdIv7FGGwIzx7vqPJQS2n7j
-L7YW2uAs1RwjrGKBnhjID/+40fBT8c2U2GjXiQUt6YxndUIMD7O9IchfVgcN4AuM
-i3eDxnPtJSGb8icBTLJLKTHKftM+NtgO6VOuZz7TTQTyQPknjXK9srlCDjt57nGo
-9nY9FIjAnSVwwioWJvOrxNOu+nocidwyTf8wwqvFZmmKzzByklpq9AI18Y7sa1GX
-zWM7QK0dC9H+xjc1fuxfFNEp+/1q87ML3bbfiNSQWcrlU59RrsMouL47dnT3qS/t
-70Tb3o+GfmoCIy7Vb/t400mFPWBNjYwkQ8iNqjTqclMghMFkZgXInH6tvzeZB2sU
-IvfEy3gZL8qQ7YsZcyShkbzwL/JdTuob7B4AK+6nXUcrezCOvarJ/IS4iIojdwnh
-4huTEGy2MlQjxhKThnaxodHzhU6DIvGcQTmivMZm7KEHg3FA8I3v347Ym59jUydp
-9pzX7eA3j/vKgaloHbGmratapQwcQd7aTXeTBtZGllEDFZv68k/HV9EC4+10pp6v
-ZsK8vK0wvQCcTyG7SSpE
-=rE/C
------END PGP SIGNATURE-----
-
---Qxx1br4bt0+wmkIi--
