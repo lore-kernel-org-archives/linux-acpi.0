@@ -1,101 +1,68 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v2 5/8] gpio: pca953x: store driver_data for future use
-Date: Thu,  1 Oct 2015 14:20:27 +0300
-Message-ID: <1443698430-74415-6-git-send-email-andriy.shevchenko@linux.intel.com>
-References: <1443698430-74415-1-git-send-email-andriy.shevchenko@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1443698430-74415-1-git-send-email-andriy.shevchenko@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, linux-gpio@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Wolfram Sang <wsa@the-dreams.de>, Linus Walleij <linus.walleij@linaro.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@intel.com>, "Puustinen, Ismo" <ismo.puustinen@intel.com>, "Pandruvada, Srinivas" <srinivas.pandruvada@intel.com>, linux-kernel@vger.kernel.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+From: Alan Stern <stern@rowland.harvard.edu>
+Subject: Re: [RFC][PATCH 2/2] PM / sleep: Kick devices that might have been
+ reset by firmware
+Date: Thu, 1 Oct 2015 10:47:26 -0400 (EDT)
+Message-ID: <Pine.LNX.4.44L0.1510011034080.1689-100000@iolanthe.rowland.org>
+References: <2877152.vgpvethKO3@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from iolanthe.rowland.org ([192.131.102.54]:59109 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753472AbbJAOr1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Oct 2015 10:47:27 -0400
+In-Reply-To: <2877152.vgpvethKO3@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Daniel Vetter <daniel.vetter@intel.com>
 
-Instead of using id->driver_data directly we copied it to the internal
-structure. This will help to adapt driver for ACPI use.
+On Wed, 30 Sep 2015, Rafael J. Wysocki wrote:
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- drivers/gpio/gpio-pca953x.c | 17 ++++++++++-------
- 1 file changed, 10 insertions(+), 7 deletions(-)
+> > If that's so then won't this change defeat all the work being done by
+> > people trying to prevent unneeded runtime resumes during system resume?
+> > direct_complete would be useful only on non-ACPI systems.
+> 
+> To me at least the main motivation for direct_complete was to avoid unneeded
+> runtime resumes during system suspend and this patch doesn't change that.
 
-diff --git a/drivers/gpio/gpio-pca953x.c b/drivers/gpio/gpio-pca953x.c
-index 50caeb1..242e244 100644
---- a/drivers/gpio/gpio-pca953x.c
-+++ b/drivers/gpio/gpio-pca953x.c
-@@ -42,6 +42,9 @@
- #define PCA_INT			0x0100
- #define PCA953X_TYPE		0x1000
- #define PCA957X_TYPE		0x2000
-+#define PCA_TYPE_MASK		0xF000
-+
-+#define PCA_CHIP_TYPE(x)	((x) & PCA_TYPE_MASK)
- 
- static const struct i2c_device_id pca953x_id[] = {
- 	{ "pca9505", 40 | PCA953X_TYPE | PCA_INT, },
-@@ -95,6 +98,7 @@ struct pca953x_chip {
- 	struct gpio_chip gpio_chip;
- 	const char *const *names;
- 	int	chip_type;
-+	unsigned long driver_data;
- };
- 
- static inline struct pca953x_chip *to_pca(struct gpio_chip *gc)
-@@ -517,14 +521,13 @@ static irqreturn_t pca953x_irq_handler(int irq, void *devid)
- }
- 
- static int pca953x_irq_setup(struct pca953x_chip *chip,
--			     const struct i2c_device_id *id,
- 			     int irq_base)
- {
- 	struct i2c_client *client = chip->client;
- 	int ret, i, offset = 0;
- 
- 	if (client->irq && irq_base != -1
--			&& (id->driver_data & PCA_INT)) {
-+			&& (chip->driver_data & PCA_INT)) {
- 
- 		switch (chip->chip_type) {
- 		case PCA953X_TYPE:
-@@ -581,12 +584,11 @@ static int pca953x_irq_setup(struct pca953x_chip *chip,
- 
- #else /* CONFIG_GPIO_PCA953X_IRQ */
- static int pca953x_irq_setup(struct pca953x_chip *chip,
--			     const struct i2c_device_id *id,
- 			     int irq_base)
- {
- 	struct i2c_client *client = chip->client;
- 
--	if (irq_base != -1 && (id->driver_data & PCA_INT))
-+	if (irq_base != -1 && (chip->driver_data & PCA_INT))
- 		dev_warn(&client->dev, "interrupt support not compiled in\n");
- 
- 	return 0;
-@@ -673,14 +675,15 @@ static int pca953x_probe(struct i2c_client *client,
- 
- 	chip->client = client;
- 
--	chip->chip_type = id->driver_data & (PCA953X_TYPE | PCA957X_TYPE);
-+	chip->driver_data = id->driver_data;
-+	chip->chip_type = PCA_CHIP_TYPE(chip->driver_data);
- 
- 	mutex_init(&chip->i2c_lock);
- 
- 	/* initialize cached registers from their original values.
- 	 * we can't share this chip with another i2c master.
- 	 */
--	pca953x_setup_gpio(chip, id->driver_data & PCA_GPIO_MASK);
-+	pca953x_setup_gpio(chip, chip->driver_data & PCA_GPIO_MASK);
- 
- 	if (chip->chip_type == PCA953X_TYPE)
- 		ret = device_pca953x_init(chip, invert);
-@@ -693,7 +696,7 @@ static int pca953x_probe(struct i2c_client *client,
- 	if (ret)
- 		return ret;
- 
--	ret = pca953x_irq_setup(chip, id, irq_base);
-+	ret = pca953x_irq_setup(chip, irq_base);
- 	if (ret)
- 		return ret;
- 
--- 
-2.5.1
+I always thought that at least part of the motivation was to allow 
+devices to remain in runtime suspend throughout an entire system sleep 
+transition: The device starts out in runtime suspend before the 
+system goes to sleep and it is still in runtime suspend after the 
+system wakes up.
+
+> Moreover, there is a difference between scheduling an asynchronous runtime
+> resume during system resume and doing a synchrouous runtime resume at that
+> point.  In the latter case the resume process has to wait for the runtime
+> resume to complete, while in the former case we can get to thawing user
+> space while the scheduled runtime resume is in progress (or even still
+> waiting for that matter).
+
+True.  However, in practice what generally happened (before you
+introduced direct_complete) is that the device would get set back to
+full power during the system resume, just as though it had not been in
+runtime suspend before the system went to sleep.
+
+If the device uses async suspend/resume then this is not quite as bad
+as doing a synchronous runtime resume.  But as you say, it's still not
+as good as doing an async runtime resume, so I guess the effects of
+your patch aren't quite as bad as I thought at first.
+
+> This means that direct_complete would be useful even for S3 transitions
+> with this patch applied.  Not to mention the suspend-to-idle case in which
+> the resume really doesn't go through the firmware.
+
+Certainly.
+
+> That said, perhaps the check as proposed is too coarse-grained.  We need to
+> do something like this in the ACPI PM domain code (and we do it already) and
+> for PCI devices that are likely to be affected by the issue at hand.  So
+> what about the appended patch (on top of https://patchwork.kernel.org/patch/7291711/)
+> instead?
+
+It seems reasonable.  If it turns out that more drivers need to check 
+for firmware interference, we can add them in later on.
+
+Alan Stern
+
