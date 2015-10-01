@@ -1,41 +1,34 @@
-From: Marcel Holtmann <marcel@holtmann.org>
-Subject: Re: [PATCH] Bluetooth: hci_intel: Cleanup the device probe code
-Date: Thu, 1 Oct 2015 08:57:29 +0200
-Message-ID: <90C2E979-8ED1-4129-8D61-071CD3831E45@holtmann.org>
-References: <1443619732-19401-1-git-send-email-jarkko.nikula@linux.intel.com>
+From: Marcel Holtmann <marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>
+Subject: Re: [PATCH 1/5] Bluetooth: hci_bcm: Add missing acpi_dev_free_resource_list()
+Date: Thu, 1 Oct 2015 09:13:08 +0200
+Message-ID: <FBA45A9C-2E3D-4D13-BEDE-957647DC173F@holtmann.org>
+References: <1443619605-19320-1-git-send-email-jarkko.nikula@linux.intel.com>
 Mime-Version: 1.0 (Mac OS X Mail 8.2 \(2104\))
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from senator.holtmann.net ([87.106.208.187]:55240 "EHLO
-	mail.holtmann.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752346AbbJAG5g (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Oct 2015 02:57:36 -0400
-In-Reply-To: <1443619732-19401-1-git-send-email-jarkko.nikula@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1443619605-19320-1-git-send-email-jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Sender: linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Jarkko Nikula <jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Cc: linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Gustavo F. Padovan" <gustavo-THi1TnShQwVAfugRpC6u6w@public.gmane.org>, Johan Hedberg <johan.hedberg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Frederic Danis <frederic.danis-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@linux.intel.com>
-Cc: linux-bluetooth <linux-bluetooth@vger.kernel.org>, linux-acpi@vger.kernel.org, "Gustavo F. Padovan" <gustavo@padovan.org>, Johan Hedberg <johan.hedberg@gmail.com>, Loic Poulain <loic.poulain@intel.com>
 
 Hi Jarkko,
 
-> There is some unneeded code in "hci_intel" probing. First
-> acpi_match_device() call is needless as driver/platform/acpi core code has
-> already done the matching before calling the probe and the driver does not
-> use the returned pointer to matching _HID other than checking is it NULL.
+> Caller of acpi_dev_get_resources() should free the constructed resource
+> list by calling the acpi_dev_free_resource_list() in order to avoid memory
+> leak.
 > 
-> Then tree wide grep for "hci_intel" doesn't reveal that there is any code
-> registering this platform device so it looks this device is always backed
-> with ACPI companion so also ACPI_HANDLE() test can be removed.
-> 
-> Signed-off-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+> Signed-off-by: Jarkko Nikula <jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 > ---
-> drivers/bluetooth/hci_intel.c | 24 ------------------------
-> 1 file changed, 24 deletions(-)
+> Call to acpi_dev_get_resources() was introduced by the commit ae056908862b
+> ("Bluetooth: hci_bcm: Retrieve UART speed from ACPI") so fix should go to
+> v4.3-rc.
 
-patch has been applied to bluetooth-next tree.
+if this should go into 4.3 then you need to send it against bluetooth tree actually and not bluetooth-next. And you might want to include patch 2/5 in there as well. Sending them as combined set with bluetooth-next patches is not really helping.
+
+In case this is not an urgent fix that has to make it into 4.3, then I am just applying all 5 to bluetooth-next tree. Your choice.
 
 Regards
 
 Marcel
-
