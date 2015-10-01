@@ -1,132 +1,55 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH] ACPICA: AcpiGetSleepTypeData: Failure to find \_Sx
- should not result in a loud warning
-Date: Thu, 1 Oct 2015 17:57:52 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37D357F6E@ORSMSX112.amr.corp.intel.com>
-References: <1443720528-14499-1-git-send-email-prarit@redhat.com>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [RFC] i2c: Revert back to old device naming for ACPI enumerated
+ I2C slaves
+Date: Thu, 1 Oct 2015 22:37:44 +0200
+Message-ID: <20151001203744.GA7514@katana>
+References: <1440413522-7855-1-git-send-email-jarkko.nikula@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:9000 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756644AbbJAR5x convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Oct 2015 13:57:53 -0400
-In-Reply-To: <1443720528-14499-1-git-send-email-prarit@redhat.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="Qxx1br4bt0+wmkIi"
+Return-path: <linux-i2c-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1440413522-7855-1-git-send-email-jarkko.nikula@linux.intel.com>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Cc: linux-i2c@vger.kernel.org, alsa-devel@alsa-project.org, linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org, Mark Brown <broonie@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jean Delvare <jdelvare@suse.com>, Liam Girdwood <lgirdwood@gmail.com>, Dustin Byford <dustin@cumulusnetworks.com>, linux@roeck-us.net
 List-Id: linux-acpi@vger.kernel.org
-To: Prarit Bhargava <prarit@redhat.com>, "devel@acpica.org" <devel@acpica.org>
-Cc: "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Box, David E" <david.e.box@intel.com>
-
-I seem to remember that this came up a long time ago.
-
-Perhaps someone else will remember.
 
 
-> -----Original Message-----
-> From: Prarit Bhargava [mailto:prarit@redhat.com]
-> Sent: Thursday, October 01, 2015 10:29 AM
-> To: devel@acpica.org
-> Cc: Prarit Bhargava; Moore, Robert; Zheng, Lv; Wysocki, Rafael J; Len
-> Brown; linux-acpi@vger.kernel.org
-> Subject: [PATCH] ACPICA: AcpiGetSleepTypeData: Failure to find \_Sx should
-> not result in a loud warning
-> 
-> 48ffb94 ("ACPICA: AcpiGetSleepTypeData: Allow \_Sx to return either 1 or 2
-> integers") changed the error handling in AcpiGetSleepTypeData such that
-> 
-> ACPI Exception: AE_NOT_FOUND, While evaluating Sleep State [\_S1_]
-> (20130517/hwxface-571)
-> 
-> is displayed on systems not implementing individual ACPI \_Sx sleep
-> states.
-> Since these states are optional the loud warning is incorrect.  This patch
-> changes the kernel to the older behaviour of not warning on a missing
-> \_Sx.
-> 
-> Before patch:
-> 
-> [root@dell-pem520-03 ~]# dmesg | grep "While evaluating Sleep State"
->  ACPI Exception: AE_NOT_FOUND, While evaluating Sleep State [\_S1_]
-> (20130517/hwxface-571)  ACPI Exception: AE_NOT_FOUND, While evaluating
-> Sleep State [\_S2_] (20130517/hwxface-571)  ACPI Exception: AE_NOT_FOUND,
-> While evaluating Sleep State [\_S3_] (20130517/hwxface-571)
-> [root@dell-pem520-03 ~]#
-> 
-> After patch:
-> 
-> [root@dell-pem520-03 ~]# dmesg | grep "While evaluating Sleep State"
-> [root@dell-pem520-03 ~]#
-> 
-> Fixes: 48ffb94 ("ACPICA: AcpiGetSleepTypeData: Allow \_Sx to return either
-> 1 or 2 integers")
-> Cc: Robert Moore <robert.moore@intel.com>
-> Cc: Lv Zheng <lv.zheng@intel.com>
-> Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-> Cc: Len Brown <lenb@kernel.org>
-> Cc: linux-acpi@vger.kernel.org
-> 
-> Signed-off-by: Prarit Bhargava <prarit@redhat.com>
-> ---
->  drivers/acpi/acpica/hwxface.c |   10 ++++++----
->  1 file changed, 6 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/acpi/acpica/hwxface.c b/drivers/acpi/acpica/hwxface.c
-> index 5f97468..8f50a7f 100644
-> --- a/drivers/acpi/acpica/hwxface.c
-> +++ b/drivers/acpi/acpica/hwxface.c
-> @@ -508,6 +508,7 @@ acpi_get_sleep_type_data(u8 sleep_state, u8
-> *sleep_type_a, u8 *sleep_type_b)
->  	    ACPI_CAST_PTR(char, acpi_gbl_sleep_state_names[sleep_state]);
->  	status = acpi_ns_evaluate(info);
->  	if (ACPI_FAILURE(status)) {
-> +		/* \_Sx states are optional */
->  		goto cleanup;
->  	}
-> 
-> @@ -517,7 +518,7 @@ acpi_get_sleep_type_data(u8 sleep_state, u8
-> *sleep_type_a, u8 *sleep_type_b)
->  		ACPI_ERROR((AE_INFO, "No Sleep State object returned from
-> [%s]",
->  			    info->relative_pathname));
->  		status = AE_AML_NO_RETURN_VALUE;
-> -		goto cleanup;
-> +		goto cleanup1;
->  	}
-> 
->  	/* Return object must be of type Package */ @@ -526,7 +527,7 @@
-> acpi_get_sleep_type_data(u8 sleep_state, u8 *sleep_type_a, u8
-> *sleep_type_b)
->  		ACPI_ERROR((AE_INFO,
->  			    "Sleep State return object is not a Package"));
->  		status = AE_AML_OPERAND_TYPE;
-> -		goto cleanup1;
-> +		goto cleanup2;
->  	}
-> 
->  	/*
-> @@ -570,16 +571,17 @@ acpi_get_sleep_type_data(u8 sleep_state, u8
-> *sleep_type_a, u8 *sleep_type_b)
->  		break;
->  	}
-> 
-> -cleanup1:
-> +cleanup2:
->  	acpi_ut_remove_reference(info->return_object);
-> 
-> -cleanup:
-> +cleanup1:
->  	if (ACPI_FAILURE(status)) {
->  		ACPI_EXCEPTION((AE_INFO, status,
->  				"While evaluating Sleep State [%s]",
->  				info->relative_pathname));
->  	}
-> 
-> +cleanup:
->  	ACPI_FREE(info);
->  	return_ACPI_STATUS(status);
->  }
-> --
-> 1.7.9.3
+--Qxx1br4bt0+wmkIi
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
+
+> This is for discussion so I didn't cc stable@vger.kernel.org yet. I was
+> thinking would it work if we'd keep the stable name but have an another
+> symlink in /sys/bus/i2c/devices/ that uses "x-00yz" name. However this
+> feels ill-use of devices directory and probably causes more troubles
+> elsewhere.
+
+Do you foresee troubles already? I am still in favour of a symlink.
+
+
+--Qxx1br4bt0+wmkIi
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJWDZmYAAoJEBQN5MwUoCm25hkP/3+U2dMOIHZGya4yUggP8AYZ
+YF4qLzQtFL5l6FU6v+JJKBtS0eTKO7zTa32xF+ZoehMzBxZqLJY8bszneh3v1+ig
+NowxWNTgRHe4phdd0OWYEk25iL3AMfRFO5LMn9JkbsdIv7FGGwIzx7vqPJQS2n7j
+L7YW2uAs1RwjrGKBnhjID/+40fBT8c2U2GjXiQUt6YxndUIMD7O9IchfVgcN4AuM
+i3eDxnPtJSGb8icBTLJLKTHKftM+NtgO6VOuZz7TTQTyQPknjXK9srlCDjt57nGo
+9nY9FIjAnSVwwioWJvOrxNOu+nocidwyTf8wwqvFZmmKzzByklpq9AI18Y7sa1GX
+zWM7QK0dC9H+xjc1fuxfFNEp+/1q87ML3bbfiNSQWcrlU59RrsMouL47dnT3qS/t
+70Tb3o+GfmoCIy7Vb/t400mFPWBNjYwkQ8iNqjTqclMghMFkZgXInH6tvzeZB2sU
+IvfEy3gZL8qQ7YsZcyShkbzwL/JdTuob7B4AK+6nXUcrezCOvarJ/IS4iIojdwnh
+4huTEGy2MlQjxhKThnaxodHzhU6DIvGcQTmivMZm7KEHg3FA8I3v347Ym59jUydp
+9pzX7eA3j/vKgaloHbGmratapQwcQd7aTXeTBtZGllEDFZv68k/HV9EC4+10pp6v
+ZsK8vK0wvQCcTyG7SSpE
+=rE/C
+-----END PGP SIGNATURE-----
+
+--Qxx1br4bt0+wmkIi--
