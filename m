@@ -1,47 +1,68 @@
-From: Jarkko Nikula <jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
-Subject: Re: [PATCH 1/5] Bluetooth: hci_bcm: Add missing acpi_dev_free_resource_list()
-Date: Thu, 01 Oct 2015 11:39:06 +0300
-Message-ID: <560CF12A.8020709@linux.intel.com>
-References: <1443619605-19320-1-git-send-email-jarkko.nikula@linux.intel.com> <FBA45A9C-2E3D-4D13-BEDE-957647DC173F@holtmann.org> <B5ED0060-B534-493D-B6CD-16E44D255B2C@holtmann.org>
+From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Subject: Re: [PATCH v9 1/5] ACPI: Introduce CPU performance controls using CPPC
+Date: Thu, 1 Oct 2015 06:20:50 -0400
+Message-ID: <CAJ5Y-eYZxR4Sk27bhnBytamBi=aDp0475GC0oU-hNn=ZQ-iDUg@mail.gmail.com>
+References: <cover.1441830300.git.ashwin.chaugule@linaro.org>
+	<10036388.hkOY1zLhN4@vostro.rjw.lan>
+	<CAJ5Y-eb0vYaf6krUMT-XKESkD56nkFwbB+gc_Rzwii8ctp65Gw@mail.gmail.com>
+	<14309818.LXTR0vLlii@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <B5ED0060-B534-493D-B6CD-16E44D255B2C-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>
-Sender: linux-bluetooth-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Marcel Holtmann <marcel-kz+m5ild9QBg9hUCZPvPmw@public.gmane.org>
-Cc: linux-bluetooth <linux-bluetooth-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Gustavo F. Padovan" <gustavo-THi1TnShQwVAfugRpC6u6w@public.gmane.org>, Johan Hedberg <johan.hedberg-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Frederic Danis <frederic.danis-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-la0-f41.google.com ([209.85.215.41]:34339 "EHLO
+	mail-la0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751547AbbJAKUw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 1 Oct 2015 06:20:52 -0400
+Received: by labzv5 with SMTP id zv5so71962816lab.1
+        for <linux-acpi@vger.kernel.org>; Thu, 01 Oct 2015 03:20:50 -0700 (PDT)
+In-Reply-To: <14309818.LXTR0vLlii@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Patch Tracking <patches@linaro.org>, Viresh Kumar <viresh.kumar@linaro.org>, "rwells@codeaurora.org" <rwells@codeaurora.org>
 
-On 10/01/2015 11:05 AM, Marcel Holtmann wrote:
-> Hi Jarkko,
->
->>> Caller of acpi_dev_get_resources() should free the constructed resource
->>> list by calling the acpi_dev_free_resource_list() in order to avoid memory
->>> leak.
->>>
->>> Signed-off-by: Jarkko Nikula <jarkko.nikula-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
->>> ---
->>> Call to acpi_dev_get_resources() was introduced by the commit ae056908862b
->>> ("Bluetooth: hci_bcm: Retrieve UART speed from ACPI") so fix should go to
->>> v4.3-rc.
+Hi Rafael,
+
+On 28 September 2015 at 09:36, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Sunday, September 27, 2015 01:15:20 PM Ashwin Chaugule wrote:
+>> On 25 September 2015 at 20:05, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+>> > On Wednesday, September 09, 2015 04:27:04 PM Ashwin Chaugule wrote:
+>> >> +int cppc_get_perf_ctrs(int cpunum, struct cppc_perf_fb_ctrs *perf_fb_ctrs)
+>> >> +{
+>> >> +     struct cpc_desc *cpc_desc = per_cpu(cpc_desc_ptr, cpunum);
+>> >> +     struct cpc_register_resource *delivered_reg, *reference_reg;
+>> >> +     u64 delivered, reference;
+>> >> +     int ret = 0;
+>> >> +
+>> >> +     if (!cpc_desc) {
+>> >> +             pr_debug("No CPC descriptor for CPU:%d\n", cpunum);
+>> >> +             return -ENODEV;
+>> >> +     }
+>> >> +
+>> >> +     delivered_reg = &cpc_desc->cpc_regs[DELIVERED_CTR];
+>> >> +     reference_reg = &cpc_desc->cpc_regs[REFERENCE_CTR];
+>> >> +
+>> >> +     spin_lock(&pcc_lock);
+>> >
+>> > I still have the question about this lock.
+>> >
+>> > Why does it have to be a spinlock?
 >>
->> if this should go into 4.3 then you need to send it against bluetooth tree actually and not bluetooth-next. And you might want to include patch 2/5 in there as well. Sending them as combined set with bluetooth-next patches is not really helping.
->>
->> In case this is not an urgent fix that has to make it into 4.3, then I am just applying all 5 to bluetooth-next tree. Your choice.
+>> The idea is to let CPUs send in their requests as quickly as possible.
+>> The PCC transaction only relays the request. So the CPUs don't really
+>> wait for all the clk + voltage toggling etc. I think any other
+>> primitive, might cause unnecessary delays in sending requests.
 >
-> I changed my mind here and applied all 5 patches to bluetooth-next tree.
+> It might if there was contention.
 >
-Ah, sorry, brain fart from me to send these together.
+>> Also FWIW, this is another thing I was influenced by from the pcc-cpufreq.c
+>> driver. :)
+>
+> OK, so this sounds like an optimization, which is fine.
+>
 
-Anyway, issue doesn't look fatal as leak happens only during probe time 
-and may not actually even exists. At least on Asus T100TA the 
-acpi_dev_get_resources() for the "BCM2E39" device returns 0, i.e. it 
-doesn't build the list but calls the bcm_resource() a few times still.
+Great. Would you prefer a git pull request with the kernel doc +
+compiler warning fix, or should I send V10 ?
 
-Looks like acpi_dev_get_resources() builds the list for certain types of 
-resources and probably not for these GPIO and serial bus that 
-bcm_resource() is handling.
-
--- 
-Jarkko
+Regards,
+Ashwin.
