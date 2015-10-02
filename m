@@ -1,43 +1,82 @@
-From: Meelis Roos <mroos@linux.ee>
-Subject: Re: bisected: Re: 4.3.0-rc3-00042: ACPI Warning: AcpiEnable failed
-Date: Fri, 2 Oct 2015 09:14:23 +0300 (EEST)
-Message-ID: <alpine.LRH.2.20.1510020901590.17033@math.ut.ee>
-References: <alpine.LRH.2.20.1509291519111.3351@math.ut.ee> <alpine.LRH.2.20.1510010927010.10113@math.ut.ee> <2057337.qekm8qivoU@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2057337.qekm8qivoU@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org, Linux Kernel list <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Bob Moore <robert.moore@intel.com>
+From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Subject: [PATCH v8 0/4] Allow USB devices to remain runtime-suspended when sleeping
+Date: Fri,  2 Oct 2015 09:14:27 +0200
+Message-ID: <1443770071-2570-1-git-send-email-tomeu.vizoso@collabora.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wi0-f181.google.com ([209.85.212.181]:38127 "EHLO
+	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751361AbbJBHQj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Oct 2015 03:16:39 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-pm@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, martyn.welch@collabora.co.uk, Ulf Hansson <ulf.hansson@linaro.org>
+Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>, David Airlie <airlied@linux.ie>, Tomas Winkler <tomas.winkler@intel.com>, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Russell King <linux@arm.linux.org.uk>, Len Brown <lenb@kernel.org>, Len Brown <len.brown@intel.com>, Kevin Hilman <khilman@kernel.org>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, linux-arm-kernel@lists.infradead.org
 
-> > > 4.2.0 worked fine, 4.3.0-rc3-00042-g3225031 was the next one tested 
-> > > after that and with this kernel, ACPI enabling fails. This is Pentium 
-> > > III, 1 GHz, Intel 815 chipset, DMI tells something about "Packard Bell 
-> > > NEC" as the mainboard type.
-> > > 
-> > > Full dmesg and config are below. What additional information can I 
-> > > provide besides bisecting (will take time)?
-> > 
-> > Bisecting done, here is the culprit:
-> > 
-> > 8ec3f459073e67e5c6d78507dec693064b3040a2 is the first bad commit
-> > commit 8ec3f459073e67e5c6d78507dec693064b3040a2
-> > Author: Lv Zheng <lv.zheng@intel.com>
-> > Date:   Tue Aug 25 10:29:01 2015 +0800
-> > 
-> >     ACPICA: Tables: Fix global table list issues by removing fixed table indexes
-> >     
-> >     ACPICA commit c0b38b4c3982c2336ee92a2a14716107248bd941
-> 
-> Thanks a lot for bisecting this!
-> 
-> It will help if you file a bug entry at bugzilla.kernel.org agaist ACPI for
-> this issue (please mark it as a regression) and attach the output of acpidump
-> from the affected system to it.
+Hi,
 
-Done, https://bugzilla.kernel.org/show_bug.cgi?id=105351
+this is v8 of an attempt to make it easier for devices to remain in
+runtime PM when the system goes to sleep, mainly to reduce the time
+spent resuming devices.
+
+For this, we interpret the absence of all PM callback implementations as
+it being safe to do direct_complete, so their ancestors aren't prevented
+from remaining runtime-suspended.
+
+Additionally, the prepare() callback of USB devices will return 1 if
+runtime PM is enabled and the current wakeup settings are correct.
+
+With these changes, a uvcvideo device (for example) stays in runtime
+suspend when the system goes to sleep and is left in that state when the
+system resumes, not delaying it unnecessarily.
+
+Thanks,
+
+Tomeu
+
+Changes in v8:
+- Add device_is_bound()
+- Add dev_pm_domain_set() and update code to use it
+- Move no_pm_callbacks field into CONFIG_PM_SLEEP
+- Call device_check_pm_callbacks only after a device is bound or unbound
+
+Changes in v7:
+- Reduce indentation by adding a label in device_prepare()
+
+Changes in v6:
+- Add stub for !CONFIG_PM.
+- Move implementation of device_check_pm_callbacks to power/main.c as it
+  doesn't belong to CONFIG_PM_SLEEP.
+- Take dev->power.lock before modifying flag.
+
+Changes in v5:
+- Check for all dev_pm_ops instances associated to a device, updating a
+  no_pm_callbacks flag at the times when that could change.
+
+Tomeu Vizoso (4):
+  device core: add device_is_bound()
+  PM / Domains: add setter for dev.pm_domain
+  PM / sleep: Go direct_complete if driver has no callbacks
+  USB / PM: Allow USB devices to remain runtime-suspended when sleeping
+
+ arch/arm/mach-omap2/omap_device.c |  7 ++++---
+ drivers/acpi/acpi_lpss.c          |  5 +++--
+ drivers/acpi/device_pm.c          |  5 +++--
+ drivers/base/dd.c                 | 12 ++++++++++--
+ drivers/base/power/clock_ops.c    |  5 +++--
+ drivers/base/power/common.c       |  8 ++++++++
+ drivers/base/power/domain.c       |  6 ++++--
+ drivers/base/power/main.c         | 33 +++++++++++++++++++++++++++++++++
+ drivers/base/power/power.h        |  6 ++++++
+ drivers/gpu/vga/vga_switcheroo.c  | 10 +++++-----
+ drivers/misc/mei/pci-me.c         |  5 +++--
+ drivers/misc/mei/pci-txe.c        |  5 +++--
+ drivers/usb/core/port.c           |  6 ++++++
+ drivers/usb/core/usb.c            | 11 ++++++++++-
+ include/linux/device.h            |  2 ++
+ include/linux/pm.h                |  1 +
+ include/linux/pm_domain.h         |  3 +++
+ 17 files changed, 107 insertions(+), 23 deletions(-)
 
 -- 
-Meelis Roos (mroos@linux.ee)
+2.4.3
+
