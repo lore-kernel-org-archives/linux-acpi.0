@@ -1,33 +1,52 @@
-From: Jarkko Nikula <jarkko.nikula@linux.intel.com>
-Subject: Re: [RFC] i2c: Revert back to old device naming for ACPI enumerated
- I2C slaves
-Date: Fri, 02 Oct 2015 12:27:16 +0300
-Message-ID: <560E4DF4.4000901@linux.intel.com>
-References: <1440413522-7855-1-git-send-email-jarkko.nikula@linux.intel.com> <20151001203744.GA7514@katana>
+From: =?iso-8859-1?Q?Niccol=F2_Belli?= <niccolo.belli@linuxsystems.it>
+Subject: [Dell XPS 13 9343] Random kernel Oops at boot with =?iso-8859-1?Q?"acpi=3Dht",_disappearing_with_"acpi=3Doff"?=
+Date: Fri, 02 Oct 2015 11:59:38 +0200
+Message-ID: <16367d85-fe84-4792-819a-d50a508409ef@linuxsystems.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <20151001203744.GA7514@katana>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Wolfram Sang <wsa@the-dreams.de>
-Cc: linux-i2c@vger.kernel.org, alsa-devel@alsa-project.org, linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org, Mark Brown <broonie@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jean Delvare <jdelvare@suse.com>, Liam Girdwood <lgirdwood@gmail.com>, Dustin Byford <dustin@cumulusnetworks.com>, linux@roeck-us.net
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.linuxsystems.it ([2.119.245.41]:58964 "EHLO
+	mail.linuxsystems.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752015AbbJBKI7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 2 Oct 2015 06:08:59 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org
 
-On 10/01/2015 11:37 PM, Wolfram Sang wrote:
->
->> This is for discussion so I didn't cc stable@vger.kernel.org yet. I was
->> thinking would it work if we'd keep the stable name but have an another
->> symlink in /sys/bus/i2c/devices/ that uses "x-00yz" name. However this
->> feels ill-use of devices directory and probably causes more troubles
->> elsewhere.
->
-> Do you foresee troubles already? I am still in favour of a symlink.
->
-I haven't looked at this for a while but one problem was that devices/ 
-directory belongs to private structure of struct bus_type and in order 
-to create a symlink there it needs to done in drivers/base/bus.c: 
-bus_add_device() which felt quite hackish to me.
+Hi,
+This laptop suffers of random kernel hangs at boot: I tested kernel 4.1=
+=2E8,=20
+4.2.1 and 4.3-rc3 and they are all affected.
+Every time I turn on my laptop I have to boot several times to be able =
+to=20
+reach the sddm login because often I get hangs which prevent the system=
+ to=20
+boot. Once booted I don't have any problem anymore, until the next boot=
+=2E
 
--- 
-Jarkko
+With "acpi=3Doff" the system boots flawlessly, while with "acpi=3Dht" I=
+ still=20
+get random hangs, so I guess the problem is in the ACPI table parsing c=
+ode=20
+itself, or perhaps the SMP code.
+
+I recompiled kernel 4.3-rc3 with CONFIG_ACPI_DEBUG=3Dy and I attached f=
+ull=20
+log from a serial console, booting with "debug acpi.debug_level=3D0x200=
+3"=20
+(warn, error and tables debug enabled):=20
+https://bugzilla.kernel.org/attachment.cgi?id=3D189041
+
+Distro is Arch Linux. Please let me know if you need further logs.
+
+Bugzilla: https://bugzilla.kernel.org/show_bug.cgi?id=3D105251
+
+Niccol=C3=B2 Belli
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
