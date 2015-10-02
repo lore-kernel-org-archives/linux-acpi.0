@@ -1,513 +1,234 @@
-From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Subject: Re: [PATCH v2 5/5] ACPI / processor_idle: Add support for Low Power
- Idle(LPI) states
-Date: Fri, 2 Oct 2015 13:07:18 -0400
-Message-ID: <CAJ5Y-eaY9vQ=yhy649Nyj_rrTRubCUG_VG3rpNHM-LDv4jJkPA@mail.gmail.com>
-References: <1438710406-3822-1-git-send-email-sudeep.holla@arm.com>
- <1442411963-14398-1-git-send-email-sudeep.holla@arm.com> <1442411963-14398-6-git-send-email-sudeep.holla@arm.com>
+From: Wei Huang <wei@redhat.com>
+Subject: Re: [PATCH v3 1/7] acpi: Add early device probing infrastructure
+Date: Fri, 2 Oct 2015 16:06:05 -0500
+Message-ID: <560EF1BD.1020004@redhat.com>
+References: <1443451758-22717-1-git-send-email-marc.zyngier@arm.com>
+ <1443451758-22717-2-git-send-email-marc.zyngier@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <1442411963-14398-6-git-send-email-sudeep.holla@arm.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: Sudeep Holla <sudeep.holla@arm.com>
-Cc: linux acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, lkml <linux-kernel@vger.kernel.org>, linux-ia64@vger.kernel.org, x86@kernel.org, Al Stone <al.stone@linaro.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Mahesh Sivasubramanian <msivasub@codeaurora.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:51895 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751299AbbJBVGL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 2 Oct 2015 17:06:11 -0400
+In-Reply-To: <1443451758-22717-2-git-send-email-marc.zyngier@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>
+Cc: linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Hi Sudeep,
+Hi Marc,
 
-On 16 September 2015 at 09:59, Sudeep Holla <sudeep.holla@arm.com> wrote:
-> ACPI 6.0 introduced an optional object _LPI that provides an alternate
-> method to describe Low Power Idle states. It defines the local power
-> states for each node in a hierarchical processor topology. The OSPM can
-> use _LPI object to select a local power state for each level of processor
-> hierarchy in the system. They used to produce a composite power state
-> request that is presented to the platform by the OSPM.
->
-> Since multiple processors affect the idle state for any non-leaf hierarchy
-> node, coordination of idle state requests between the processors is
-> required. ACPI supports two different coordination schemes: Platform
-> coordinated and  OS initiated.
->
-> This patch adds initial support for Platform coordination scheme of LPI.
->
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+On 09/28/2015 09:49 AM, Marc Zyngier wrote:
+> IRQ controllers and timers are the two types of device the kernel
+> requires before being able to use the device driver model.
+> 
+> ACPI so far lacks a proper probing infrastructure similar to the one
+> we have with DT, where we're able to declare IRQ chips and
+> clocksources inside the driver code, and let the core code pick it up
+> and call us back on a match. This leads to all kind of really ugly
+> hacks all over the arm64 code and even in the ACPI layer.
+> 
+> In order to allow some basic probing based on the ACPI tables,
+> introduce "struct acpi_probe_entry" which contains just enough
+> data and callbacks to match a table, an optional subtable, and
+> call a probe function. A driver can, at build time, register itself
+> and expect being called if the right entry exists in the ACPI
+> table.
+> 
+> A acpi_probe_device_table() is provided, taking an identifier for
+> a set of acpi_prove_entries, and iterating over the registered
+> entries.
+> 
+> Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
 > ---
->  drivers/acpi/Kconfig            |   3 +
->  drivers/acpi/bus.c              |   8 +-
->  drivers/acpi/processor_driver.c |   2 +-
->  drivers/acpi/processor_idle.c   | 412 +++++++++++++++++++++++++++++++++++-----
->  include/acpi/processor.h        |  26 ++-
->  include/linux/acpi.h            |   4 +
->  6 files changed, 405 insertions(+), 50 deletions(-)
->
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index 1eb0b8a84a65..1bb6fade84bc 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -51,6 +51,9 @@ config ARCH_MIGHT_HAVE_ACPI_PDC
->  config ARCH_SUPPORTS_ACPI_PROCESSOR_CSTATE
->         bool
->
-> +config ARCH_SUPPORTS_ACPI_PROCESSOR_LPI
-> +       bool
+>  drivers/acpi/scan.c               | 39 +++++++++++++++++++++++
+>  include/asm-generic/vmlinux.lds.h | 10 ++++++
+>  include/linux/acpi.h              | 66 +++++++++++++++++++++++++++++++++++++++
+>  3 files changed, 115 insertions(+)
+> 
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index f834b8c..daf9fc8 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -1913,3 +1913,42 @@ int __init acpi_scan_init(void)
+>  	mutex_unlock(&acpi_scan_lock);
+>  	return result;
+>  }
 > +
->  config ACPI_GENERIC_GSI
->         bool
->
-> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-> index a212cefae524..2e9e2e3fde6a 100644
-> --- a/drivers/acpi/bus.c
-> +++ b/drivers/acpi/bus.c
-> @@ -301,6 +301,7 @@ acpi_status acpi_run_osc(acpi_handle handle, struct acpi_osc_context *context)
->  EXPORT_SYMBOL(acpi_run_osc);
->
->  bool osc_sb_apei_support_acked;
-> +bool osc_pc_lpi_support_acked;
->  static u8 sb_uuid_str[] = "0811B06E-4A27-44F9-8D60-3CBBC22E7B48";
->  static void acpi_bus_osc_support(void)
->  {
-> @@ -321,6 +322,8 @@ static void acpi_bus_osc_support(void)
->                 capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_PPC_OST_SUPPORT;
->
->         capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_HOTPLUG_OST_SUPPORT;
-> +       if (IS_ENABLED(CONFIG_ARCH_SUPPORTS_ACPI_PROCESSOR_LPI))
-> +               capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_PCLPI_SUPPORT;
->
->         if (!ghes_disable)
->                 capbuf[OSC_SUPPORT_DWORD] |= OSC_SB_APEI_SUPPORT;
-> @@ -328,9 +331,12 @@ static void acpi_bus_osc_support(void)
->                 return;
->         if (ACPI_SUCCESS(acpi_run_osc(handle, &context))) {
->                 u32 *capbuf_ret = context.ret.pointer;
-> -               if (context.ret.length > OSC_SUPPORT_DWORD)
-> +               if (context.ret.length > OSC_SUPPORT_DWORD) {
->                         osc_sb_apei_support_acked =
->                                 capbuf_ret[OSC_SUPPORT_DWORD] & OSC_SB_APEI_SUPPORT;
-> +                       osc_pc_lpi_support_acked =
-> +                               capbuf_ret[OSC_SUPPORT_DWORD] & OSC_SB_PCLPI_SUPPORT;
-> +               }
-
-Not sure we want to keep adding more OSC global flags, since theyre
-not really used elsewhere outside the drivers. I'm not strongly
-against it, but seems like for LPI, CPPC and maybe a few others, we
-could do the check locally, like pcc-cpufreq does.
-
->                 kfree(context.ret.pointer);
->         }
->         /* do we need to check other returned cap? Sounds no */
-> diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
-> index dff584a7137b..5000f4af1d5e 100644
-> --- a/drivers/acpi/processor_driver.c
-> +++ b/drivers/acpi/processor_driver.c
-> @@ -90,7 +90,7 @@ static void acpi_processor_notify(acpi_handle handle, u32 event, void *data)
->                                                   pr->performance_platform_limit);
->                 break;
->         case ACPI_PROCESSOR_NOTIFY_POWER:
-> -               acpi_processor_cst_has_changed(pr);
-> +               acpi_processor_power_state_has_changed(pr);
->                 acpi_bus_generate_netlink_event(device->pnp.device_class,
->                                                   dev_name(&device->dev), event, 0);
->                 break;
-> diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
-> index 9ca840c88f48..af851f16bb2e 100644
-> --- a/drivers/acpi/processor_idle.c
-> +++ b/drivers/acpi/processor_idle.c
-> @@ -576,7 +576,7 @@ static int acpi_processor_power_verify(struct acpi_processor *pr)
->         return (working);
->  }
->
-> -static int acpi_processor_get_power_info(struct acpi_processor *pr)
-> +static int acpi_processor_get_cstate_info(struct acpi_processor *pr)
->  {
->         unsigned int i;
->         int result;
-> @@ -810,31 +810,12 @@ static void acpi_idle_enter_freeze(struct cpuidle_device *dev,
->         acpi_idle_do_entry(cx);
->  }
->
-> -/**
-> - * acpi_processor_setup_cpuidle_cx - prepares and configures CPUIDLE
-> - * device i.e. per-cpu data
-> - *
-> - * @pr: the ACPI processor
-> - * @dev : the cpuidle device
-> - */
->  static int acpi_processor_setup_cpuidle_cx(struct acpi_processor *pr,
->                                            struct cpuidle_device *dev)
->  {
->         int i, count = CPUIDLE_DRIVER_STATE_START;
->         struct acpi_processor_cx *cx;
->
-> -       if (!pr->flags.power_setup_done)
-> -               return -EINVAL;
-> -
-> -       if (pr->flags.power == 0) {
-> -               return -EINVAL;
-> -       }
-> -
-> -       if (!dev)
-> -               return -EINVAL;
-> -
-> -       dev->cpu = pr->id;
-> -
->         if (max_cstate == 0)
->                 max_cstate = 1;
->
-> @@ -857,31 +838,13 @@ static int acpi_processor_setup_cpuidle_cx(struct acpi_processor *pr,
->         return 0;
->  }
->
-> -/**
-> - * acpi_processor_setup_cpuidle states- prepares and configures cpuidle
-> - * global state data i.e. idle routines
-> - *
-> - * @pr: the ACPI processor
-> - */
-> -static int acpi_processor_setup_cpuidle_states(struct acpi_processor *pr)
-> +static int acpi_processor_setup_cstates(struct acpi_processor *pr)
->  {
->         int i, count = CPUIDLE_DRIVER_STATE_START;
->         struct acpi_processor_cx *cx;
->         struct cpuidle_state *state;
->         struct cpuidle_driver *drv = &acpi_idle_driver;
->
-> -       if (!pr->flags.power_setup_done)
-> -               return -EINVAL;
-> -
-> -       if (pr->flags.power == 0)
-> -               return -EINVAL;
-> -
-> -       drv->safe_state_index = -1;
-> -       for (i = CPUIDLE_DRIVER_STATE_START; i < CPUIDLE_STATE_MAX; i++) {
-> -               drv->states[i].name[0] = '\0';
-> -               drv->states[i].desc[0] = '\0';
-> -       }
-> -
->         if (max_cstate == 0)
->                 max_cstate = 1;
->
-> @@ -943,24 +906,381 @@ static inline void acpi_processor_cstate_first_run_checks(void)
->
->  static inline int disabled_by_idle_boot_param(void) { return 0; }
->  static inline void acpi_processor_cstate_first_run_checks(void) { }
-> -static int acpi_processor_get_power_info(struct acpi_processor *pr)
-> +static int acpi_processor_get_cstate_info(struct acpi_processor *pr)
->  {
->         return -ENODEV;
->  }
-> -
->  static int acpi_processor_setup_cpuidle_cx(struct acpi_processor *pr,
->                                            struct cpuidle_device *dev)
->  {
->         return -EINVAL;
->  }
->
-> -static int acpi_processor_setup_cpuidle_states(struct acpi_processor *pr)
-> +static int acpi_processor_setup_cstates(struct acpi_processor *pr)
+> +static struct acpi_probe_entry *ape;
+> +static int acpi_probe_count;
+> +static DEFINE_SPINLOCK(acpi_probe_lock);
+> +
+> +static int __init acpi_match_madt(struct acpi_subtable_header *header,
+> +				  const unsigned long end)
 > +{
-> +       return -EINVAL;
+> +	if (!ape->subtable_valid || ape->subtable_valid(header, ape))
+> +		if (!ape->probe_subtbl(header, end))
+> +			acpi_probe_count++;
+> +
+> +	return 0;
 > +}
+> +
+> +int __init __acpi_probe_device_table(struct acpi_probe_entry *ap_head, int nr)
+> +{
+> +	int count = 0;
+> +
+> +	if (acpi_disabled)
+> +		return 0;
+> +
+> +	spin_lock(&acpi_probe_lock);
+> +	for (ape = ap_head; nr; ape++, nr--) {
+> +		if (ACPI_COMPARE_NAME(ACPI_SIG_MADT, ape->id)) {
+> +			acpi_probe_count = 0;
+> +			acpi_table_parse_madt(ape->type, acpi_match_madt, 0);
+> +			count += acpi_probe_count;
+> +		} else {
+> +			int res;
+> +			res = acpi_table_parse(ape->id, ape->probe_table);
+> +			if (!res)
+> +				count++;
+> +		}
+> +	}
+> +	spin_unlock(&acpi_probe_lock);
+> +
+> +	return count;
+> +}
+> diff --git a/include/asm-generic/vmlinux.lds.h b/include/asm-generic/vmlinux.lds.h
+> index 1781e54..efd7ed1 100644
+> --- a/include/asm-generic/vmlinux.lds.h
+> +++ b/include/asm-generic/vmlinux.lds.h
+> @@ -181,6 +181,16 @@
+>  #define CPUIDLE_METHOD_OF_TABLES() OF_TABLE(CONFIG_CPU_IDLE, cpuidle_method)
+>  #define EARLYCON_OF_TABLES()	OF_TABLE(CONFIG_SERIAL_EARLYCON, earlycon)
+>  
+> +#ifdef CONFIG_ACPI
+> +#define ACPI_PROBE_TABLE(name)						\
+> +	. = ALIGN(8);							\
+> +	VMLINUX_SYMBOL(__##name##_acpi_probe_table) = .;		\
+> +	*(__##name##_acpi_probe_table)					\
+> +	VMLINUX_SYMBOL(__##name##_acpi_probe_table_end) = .;
+> +#else
+> +#define ACPI_PROBE_TABLE(name)
 > +#endif
 > +
-> +#ifdef CONFIG_ARCH_SUPPORTS_ACPI_PROCESSOR_LPI
+>  #define KERNEL_DTB()							\
+>  	STRUCT_ALIGN();							\
+>  	VMLINUX_SYMBOL(__dtb_start) = .;				\
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 84e7055..51a96a8 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -787,6 +787,61 @@ int acpi_dev_prop_read(struct acpi_device *adev, const char *propname,
+>  
+>  struct fwnode_handle *acpi_get_next_subnode(struct device *dev,
+>  					    struct fwnode_handle *subnode);
 > +
-> +struct acpi_processor_lpi_info {
-> +       int state_count;
-> +       struct acpi_processor_lpi *lpix;
-> +};
+> +struct acpi_probe_entry;
+> +typedef bool (*acpi_probe_entry_validate_subtbl)(struct acpi_subtable_header *,
+> +						 struct acpi_probe_entry *);
 > +
-> +static int acpi_processor_evaluate_lpi(acpi_handle handle,
-> +                                      struct acpi_processor_lpi_info *info)
-> +{
-> +       acpi_status status = 0;
-> +       int ret;
-> +       int version, level, pkg_count, state_count = 1, loop;
-> +       struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
-> +       union acpi_object *lpi;
-> +       struct acpi_processor_lpi *lpix;
-> +
-> +       status = acpi_evaluate_object(handle, "_LPI", NULL, &buffer);
-> +       if (ACPI_FAILURE(status)) {
-> +               ACPI_DEBUG_PRINT((ACPI_DB_INFO, "No _LPI, giving up\n"));
-> +               return -ENODEV;
-> +       }
-> +
-> +       lpi = buffer.pointer;
-> +
-> +       /* There must be at least 4 elements = 3 elements + 1 package */
-> +       if (!lpi || (lpi->type != ACPI_TYPE_PACKAGE) || lpi->package.count < 4) {
-> +               pr_info("not enough elements in _LPI\n");
-> +               ret = -EFAULT;
-> +               goto end;
-> +       }
-> +
-> +       version = lpi->package.elements[0].integer.value;
-> +       level = lpi->package.elements[1].integer.value;
-> +       pkg_count = lpi->package.elements[2].integer.value;
-> +
-> +       /* Validate number of power states. */
-> +       if (pkg_count < 1 || pkg_count != lpi->package.count - 3) {
-> +               pr_err("count given by _LPI is not valid\n");
-> +               ret = -EFAULT;
-> +               goto end;
-> +       }
-> +
-> +       lpix = kcalloc(pkg_count, sizeof(*lpix), GFP_KERNEL);
-> +       if (!lpix) {
-> +               ret = -ENOMEM;
-> +               goto end;
-> +       }
-> +
-> +       info->state_count = pkg_count;
-> +       info->lpix = lpix;
-> +       for (loop = 3; state_count <= pkg_count; loop++, state_count++, lpix++) {
-
-Reusing state_count can be confusing. Maybe use state_idx, state_ctr
-or something. Or add comments to explain how this thing is laid out.
-
-> +               union acpi_object *element, *obj;
-> +
-> +               element = &lpi->package.elements[loop];
-> +               if (element->type != ACPI_TYPE_PACKAGE)
-> +                       continue;
-> +
-> +               if (element->package.count < 7)
-> +                       continue;
-> +
-> +               /* TODO
-> +                * this long list is looking insane now
-> +                * need a cleaner and saner way to read the elements
-> +                */
-> +               obj = &element->package.elements[6];
-> +               if (obj->type == ACPI_TYPE_BUFFER) {
-> +                       struct acpi_power_register *reg;
-> +
-> +                       reg = (struct acpi_power_register *)obj->buffer.pointer;
-> +                       if (reg->space_id != ACPI_ADR_SPACE_SYSTEM_IO &&
-> +                           (reg->space_id != ACPI_ADR_SPACE_FIXED_HARDWARE))
-> +                               continue;
-> +                       lpix->address = reg->address;
-> +                       if (reg->space_id == ACPI_ADR_SPACE_FIXED_HARDWARE)
-> +                               lpix->entry_method = ACPI_CSTATE_FFH;
-> +                       else
-> +                               lpix->entry_method = ACPI_CSTATE_SYSTEMIO;
-> +               } else if (obj->type == ACPI_TYPE_INTEGER)
-> +                       lpix->address = obj->integer.value;
-> +               else
-> +                       continue;
-> +
-> +               /* elements[7,8] skipped for now i.e. Residency/Usage counter*/
-> +
-> +               obj = &element->package.elements[9];
-> +               if (obj->type == ACPI_TYPE_STRING)
-> +                       strncpy(lpix->desc, obj->string.pointer, ACPI_CX_DESC_LEN);
-> +
-> +               lpix->index = state_count;
-> +
-> +               obj = &element->package.elements[0];
-> +               if (obj->type != ACPI_TYPE_INTEGER)
-> +                       continue;
-> +               lpix->min_residency = obj->integer.value;
-> +
-> +               obj = &element->package.elements[1];
-> +               if (obj->type != ACPI_TYPE_INTEGER)
-> +                       continue;
-> +               lpix->wake_latency = obj->integer.value;
-> +
-> +               obj = &element->package.elements[2];
-> +               if (obj->type != ACPI_TYPE_INTEGER)
-> +                       continue;
-> +               lpix->flags = obj->integer.value;
-> +
-> +               obj = &element->package.elements[3];
-> +               if (obj->type != ACPI_TYPE_INTEGER)
-> +                       continue;
-> +               lpix->arch_flags = obj->integer.value;
-> +
-> +               obj = &element->package.elements[4];
-> +               if (obj->type != ACPI_TYPE_INTEGER)
-> +                       continue;
-> +               lpix->res_cnt_freq = obj->integer.value;
-> +
-> +               obj = &element->package.elements[5];
-> +               if (obj->type != ACPI_TYPE_INTEGER)
-> +                       continue;
-> +               lpix->enable_parent_state = obj->integer.value;
-> +       }
-> +       ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Found %d power states\n",
-> +                         state_count));
-> +end:
-> +       kfree(buffer.pointer);
-> +       return status;
-> +}
-> +
-> +static int max_leaf_depth, fl_scnt;
-> +/*
-> + * l_lpi - local LPI state
-> + * p_lpi - parent LPI state
-> + * c_lpi - composite LPI state
-> + */
-> +static void combine_lpi_states(struct acpi_processor_lpi *l_lpi,
-> +                              struct acpi_processor_lpi *p_lpi,
-> +                              struct acpi_processor_lpi *c_lpi)
-> +{
-> +       c_lpi->min_residency = max(l_lpi->min_residency, p_lpi->min_residency);
-> +       c_lpi->wake_latency = l_lpi->wake_latency + p_lpi->wake_latency;
-> +       c_lpi->enable_parent_state = p_lpi->enable_parent_state;
-> +       c_lpi->entry_method = l_lpi->entry_method;
-> +       c_lpi->address = l_lpi->address + p_lpi->address;
-
-Aren't there some constraints to how this addr is worked out? Need to
-look at the LPI spec. but IIRC, in some cases its not additive and the
-parent value is used for overwriting.
-
-> +       c_lpi->index = p_lpi->index;
-> +       c_lpi->flags = p_lpi->flags;
-> +       c_lpi->arch_flags = p_lpi->arch_flags;
-> +       strncpy(c_lpi->desc, l_lpi->desc, ACPI_CX_DESC_LEN);
-> +       strncat(c_lpi->desc, "+", ACPI_CX_DESC_LEN);
-> +       strncat(c_lpi->desc, p_lpi->desc, ACPI_CX_DESC_LEN);
-> +}
-> +
-> +static int flatten_lpi_states(struct acpi_processor *pr,
-> +                             struct acpi_processor_lpi_info *info,
-> +                             struct acpi_processor_lpi *lpi,
-> +                             uint32_t depth)
-> +{
-> +       int j, scount = info[depth].state_count;
-> +       struct acpi_processor_lpi *t = info[depth].lpix;
-> +
-> +       for (j = 0; j < scount; j++, t++) {
-> +               struct acpi_processor_lpi *flpi = &pr->power.lpi_states[fl_scnt];
-> +               bool valid = false;
-> +
-> +               if (depth == max_leaf_depth) { /* leaf/processor node */
-> +                       memcpy(flpi, t, sizeof(*t));
-> +                       fl_scnt++;
-> +                       valid = true;
-> +               } else if (lpi && t->index <= lpi->enable_parent_state) {
-> +                       combine_lpi_states(lpi, t, flpi);
-> +                       fl_scnt++;
-> +                       valid = true;
-> +               }
-> +               if (valid && depth)
-> +                       flatten_lpi_states(pr, info, flpi, depth - 1);
-> +       }
-> +       return 0;
-> +}
-
-So is this thing taking one idle state at a time from each node
-(proc/cluster..) and checking if it can be collapsed with one state
-from each parent node (using the EPS constraint) then moving to the
-next idle state at the lower node and up again?
-
-> +
-> +static int acpi_processor_get_lpi_info(struct acpi_processor *pr)
-> +{
-> +       int ret, i;
-> +       struct acpi_processor_lpi_info *info;
-> +       struct acpi_device *d = NULL;
-> +       acpi_handle handle = pr->handle, phandle;
-> +       acpi_status status;
-> +
-> +       if (!osc_pc_lpi_support_acked)
-> +               return -EOPNOTSUPP;
-> +
-> +       max_leaf_depth = 0;
-> +       if (!acpi_has_method(handle, "_LPI"))
-> +               return -EINVAL;
-> +       fl_scnt = 0;
-> +
-> +       while (ACPI_SUCCESS(status = acpi_get_parent(handle, &phandle))) {
-> +               if (!acpi_has_method(handle, "_LPI"))
-> +                       continue;
-> +               acpi_bus_get_device(handle, &d);
-> +               if (!strcmp(acpi_device_hid(d), ACPI_PROCESSOR_CONTAINER_HID))
-> +                       break;
-> +               max_leaf_depth++;
-> +               handle = phandle;
-> +       }
-> +
-> +       info = kcalloc(max_leaf_depth + 1, sizeof(*info), GFP_KERNEL);
-> +       if (!info)
-> +               return -ENOMEM;
-> +
-> +       phandle = pr->handle;
-> +       for (i = max_leaf_depth; i >= 0 && ACPI_SUCCESS(status); i--) {
-> +               handle = phandle;
-> +               ret = acpi_processor_evaluate_lpi(handle, info + i);
-> +               if (ret)
-> +                       break;
-> +               status = acpi_get_parent(handle, &phandle);
-> +       }
-> +
-> +       flatten_lpi_states(pr, info, NULL, max_leaf_depth);
-> +
-> +       pr->power.count = fl_scnt;
-> +       for (i = 0; i <= max_leaf_depth; i++)
-> +               kfree(info[i].lpix);
-> +       kfree(info);
-> +
-> +       /* Tell driver that _LPI is supported. */
-> +       pr->flags.has_lpi = 1;
-> +       pr->flags.power = 1;
-> +
-> +       return 0;
-> +}
+> +#define ACPI_TABLE_ID_LEN	5
 > +
 > +/**
-> + * acpi_idle_lpi_enter - enters an ACPI any LPI state
-> + * @dev: the target CPU
-> + * @drv: cpuidle driver containing cpuidle state info
-> + * @index: index of target state
-> + *
+> + * struct acpi_probe_entry - boot-time probing entry
+> + * @id:			ACPI table name
+> + * @type:		Optional subtable type to match
+> + *			(if @id contains subtables)
+> + * @subtable_valid:	Optional callback to check the validity of
+> + *			the subtable
+> + * @probe_table:	Callback to the driver being probed when table
+> + *			match is successful
+> + * @probe_subtbl:	Callback to the driver being probed when table and
+> + *			subtable match (and optional callback is successful)
+> + * @driver_data:	Sideband data provided back to the driver
 > + */
 
-Might as well add Return types to the kernel doc. here and elsewhere.
+A suggestion: could you add more details to the description above? I couldn't figure how to use it without reading __acpi_probe_device_table(). Something like "if @id matches the one defined in __acpi_probe_device_table(), then probe_subtbl() will be invoked; otherwise probe_table() will be invoked" would be helpful for programmers use this struct. 
 
-> +static int acpi_idle_lpi_enter(struct cpuidle_device *dev,
-> +                              struct cpuidle_driver *drv, int index)
+> +struct acpi_probe_entry {
+> +	__u8 id[ACPI_TABLE_ID_LEN];
+> +	__u8 type;
+> +	acpi_probe_entry_validate_subtbl subtable_valid;
+> +	union {
+> +		acpi_tbl_table_handler probe_table;
+> +		acpi_tbl_entry_handler probe_subtbl;
+> +	};
+
+Could we avoid using union for probe_table & probe_subtbl? The benefit is that we don't need to do function casting below and compiler can automatically check the correctness.
+
+> +	kernel_ulong_t driver_data;
+> +};
+> +
+> +#define ACPI_DECLARE_PROBE_ENTRY(table, name, table_id, subtable, valid, data, fn)	\
+> +	static const struct acpi_probe_entry __acpi_probe_##name	\
+> +		__used __section(__##table##_acpi_probe_table)		\
+> +		 = {							\
+> +			.id = table_id,					\
+> +			.type = subtable,				\
+> +			.subtable_valid = valid,			\
+> +			.probe_table = (acpi_tbl_table_handler)fn,	\
+> +			.driver_data = data, 				\
+> +		   }
+> +
+
+Something like: 
+
+#define ACPI_DECLARE_PROBE_ENTRY(table, name, table_id, subtable, valid, data, fn, subfn)	\
+	static const struct acpi_probe_entry __acpi_probe_##name	\
+		__used __section(__##table##_acpi_probe_table)		\
+		 = {							\
+			.id = table_id,					\
+			.type = subtable,				\
+			.subtable_valid = valid,			\
+			.probe_table = fn,				\
+			.probe_subtbl = subfn,				\
+			.driver_data = data, 				\
+		   }
+
+Then in patch 3, you can define new entries as:
+
+IRQCHIP_ACPI_DECLARE(gic_v2, ACPI_MADT_TYPE_GENERIC_DISTRIBUTOR,
+		     gic_validate_dist, ACPI_MADT_GIC_VERSION_V2,
+		     NULL, gic_v2_acpi_init);
+IRQCHIP_ACPI_DECLARE(gic_v2_maybe, ACPI_MADT_TYPE_GENERIC_DISTRIBUTOR,
+		     gic_validate_dist, ACPI_MADT_GIC_VERSION_NONE,
+		     NULL, gic_v2_acpi_init);
+
+
+> +#define ACPI_PROBE_TABLE(name)		__##name##_acpi_probe_table
+> +#define ACPI_PROBE_TABLE_END(name)	__##name##_acpi_probe_table_end
+> +
+> +int __acpi_probe_device_table(struct acpi_probe_entry *start, int nr);
+> +
+> +#define acpi_probe_device_table(t)					\
+> +	({ 								\
+> +		extern struct acpi_probe_entry ACPI_PROBE_TABLE(t),	\
+> +			                       ACPI_PROBE_TABLE_END(t);	\
+> +		__acpi_probe_device_table(&ACPI_PROBE_TABLE(t),		\
+> +					  (&ACPI_PROBE_TABLE_END(t) -	\
+> +					   &ACPI_PROBE_TABLE(t)));	\
+> +	})
+>  #else
+>  static inline int acpi_dev_get_property(struct acpi_device *adev,
+>  					const char *name, acpi_object_type type,
+> @@ -845,6 +900,17 @@ static inline struct fwnode_handle *acpi_get_next_subnode(struct device *dev,
 >  {
-> +       struct acpi_processor *pr;
-> +       struct acpi_processor_lpi *lpi;
-> +
-> +       pr = __this_cpu_read(processors);
-> +
-> +       if (unlikely(!pr))
-> +               return -EINVAL;
-> +
-> +       lpi = &pr->power.lpi_states[index];
-> +       if (lpi->entry_method == ACPI_CSTATE_FFH)
-> +               /* Call into architectural FFH based C-state */
-> +               return acpi_processor_ffh_lpi_enter(lpi, index);
-
-Where is this thing (and the lpi_probe()) defined ?
-
->         return -EINVAL;
+>  	return NULL;
 >  }
->
-> +static int acpi_processor_setup_lpi_states(struct acpi_processor *pr)
-> +{
-> +       int i;
-> +       struct acpi_processor_lpi *lpi;
-> +       struct cpuidle_state *state;
-> +       struct cpuidle_driver *drv = &acpi_idle_driver;
 > +
-> +       for (i = 0; i < fl_scnt && i < CPUIDLE_STATE_MAX; i++) {
-> +               lpi = &pr->power.lpi_states[i];
+> +#define ACPI_DECLARE_PROBE_ENTRY(table, name, table_id, subtable, validate, data, fn) \
+> +	static const void * __acpi_table_##name[]			\
+> +		__attribute__((unused))					\
+> +		 = { (void *) table_id,					\
+> +		     (void *) subtable,					\
+> +		     (void *) valid,					\
+> +		     (void *) fn,					\
+> +		     (void *) data }
 > +
-> +               state = &drv->states[i];
-> +               snprintf(state->name, CPUIDLE_NAME_LEN, "LPI-%d", i);
-> +               strncpy(state->desc, lpi->desc, CPUIDLE_DESC_LEN);
-> +               state->exit_latency = lpi->wake_latency;
-> +               state->target_residency = lpi->min_residency;
-> +               if (lpi->arch_flags)
-> +                       state->flags |= CPUIDLE_FLAG_TIMER_STOP;
-
-Plan to add arch specific callbacks later? FFH spec has some details
-for ARM64 on what to save/restore.
-
-Regards,
-Ashwin
+> +#define acpi_probe_device_table(t)	({ int __r = 0; __r;})
+>  #endif
+>  
+>  #endif	/*_LINUX_ACPI_H*/
+> 
