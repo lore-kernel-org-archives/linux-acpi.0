@@ -1,29 +1,43 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: [RFC][PATCH v2 0/2] PM / sleep: Make it possible to check if suspend/resume goes via firmware
-Date: Fri, 02 Oct 2015 03:50:42 +0200
-Message-ID: <5472042.4c1h9diL7E@vostro.rjw.lan>
-References: <10641052.oOBhM6BU9G@vostro.rjw.lan>
+From: Meelis Roos <mroos@linux.ee>
+Subject: Re: bisected: Re: 4.3.0-rc3-00042: ACPI Warning: AcpiEnable failed
+Date: Fri, 2 Oct 2015 09:14:23 +0300 (EEST)
+Message-ID: <alpine.LRH.2.20.1510020901590.17033@math.ut.ee>
+References: <alpine.LRH.2.20.1509291519111.3351@math.ut.ee> <alpine.LRH.2.20.1510010927010.10113@math.ut.ee> <2057337.qekm8qivoU@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=US-ASCII
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <10641052.oOBhM6BU9G@vostro.rjw.lan>
+In-Reply-To: <2057337.qekm8qivoU@vostro.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Linux PM list <linux-pm@vger.kernel.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, Daniel Vetter <daniel.vetter@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Linux PCI <linux-pci@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org, Linux Kernel list <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Bob Moore <robert.moore@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday, September 30, 2015 02:46:10 AM Rafael J. Wysocki wrote:
-> Hi All,
+> > > 4.2.0 worked fine, 4.3.0-rc3-00042-g3225031 was the next one tested 
+> > > after that and with this kernel, ACPI enabling fails. This is Pentium 
+> > > III, 1 GHz, Intel 815 chipset, DMI tells something about "Packard Bell 
+> > > NEC" as the mainboard type.
+> > > 
+> > > Full dmesg and config are below. What additional information can I 
+> > > provide besides bisecting (will take time)?
+> > 
+> > Bisecting done, here is the culprit:
+> > 
+> > 8ec3f459073e67e5c6d78507dec693064b3040a2 is the first bad commit
+> > commit 8ec3f459073e67e5c6d78507dec693064b3040a2
+> > Author: Lv Zheng <lv.zheng@intel.com>
+> > Date:   Tue Aug 25 10:29:01 2015 +0800
+> > 
+> >     ACPICA: Tables: Fix global table list issues by removing fixed table indexes
+> >     
+> >     ACPICA commit c0b38b4c3982c2336ee92a2a14716107248bd941
 > 
-> Patch [1/2] introduces a new mechanism that can be used to check whether or not
-> platform firmware is going to be involved in system suspend or was involved
-> in system resume.
+> Thanks a lot for bisecting this!
+> 
+> It will help if you file a bug entry at bugzilla.kernel.org agaist ACPI for
+> this issue (please mark it as a regression) and attach the output of acpidump
+> from the affected system to it.
 
-That's still the case, but patch [2/2] modifies the PCI PM layer and the general
-ACPI PM domain only to use the mechanism added by the [1/2].
+Done, https://bugzilla.kernel.org/show_bug.cgi?id=105351
 
-Comments welcome.
-
-Thanks,
-Rafael
+-- 
+Meelis Roos (mroos@linux.ee)
