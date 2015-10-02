@@ -1,46 +1,49 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v1 5/8] gpio: pca953x: store driver_data for future use
-Date: Fri, 02 Oct 2015 15:16:01 +0300
-Message-ID: <1443788161.8361.331.camel@linux.intel.com>
-References: <1442916619-140607-1-git-send-email-andriy.shevchenko@linux.intel.com>
-	 <1442916619-140607-6-git-send-email-andriy.shevchenko@linux.intel.com>
-	 <CACRpkdb88A4wP2_z_SsxOU_NoyGVVsA7TomgcKO6Qn+fguoJFA@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: bisected: Re: 4.3.0-rc3-00042: ACPI Warning: AcpiEnable failed
+Date: Fri, 02 Oct 2015 15:47:25 +0200
+Message-ID: <1743661.D3hQjBt1p1@vostro.rjw.lan>
+References: <alpine.LRH.2.20.1509291519111.3351@math.ut.ee> <2057337.qekm8qivoU@vostro.rjw.lan> <alpine.LRH.2.20.1510020901590.17033@math.ut.ee>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:35038 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750730AbbJBMQI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 2 Oct 2015 08:16:08 -0400
-In-Reply-To: <CACRpkdb88A4wP2_z_SsxOU_NoyGVVsA7TomgcKO6Qn+fguoJFA@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.LRH.2.20.1510020901590.17033@math.ut.ee>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Meelis Roos <mroos@linux.ee>
+Cc: Lv Zheng <lv.zheng@intel.com>, linux-acpi@vger.kernel.org, Linux Kernel list <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, Bob Moore <robert.moore@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>, Gregory CLEMENT <gregory.clement@free-electrons.com>, Grygorii Strashko <grygorii.strashko@ti.com>, Graeme Smecher <gsmecher@threespeedlogic.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>, Wolfram Sang <wsa@the-dreams.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@intel.com>, "Puustinen, Ismo" <ismo.puustinen@intel.com>, "Pandruvada, Srinivas" <srinivas.pandruvada@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Fri, 2015-10-02 at 03:53 -0700, Linus Walleij wrote:
-> On Tue, Sep 22, 2015 at 3:10 AM, Andy Shevchenko
-> <andriy.shevchenko@linux.intel.com> wrote:
-> 
-> > Instead of using id->driver_data directly we copied it to the 
-> > internal
-> > structure. This will help to adapt driver for ACPI use.
+On Friday, October 02, 2015 09:14:23 AM Meelis Roos wrote:
+> > > > 4.2.0 worked fine, 4.3.0-rc3-00042-g3225031 was the next one tested 
+> > > > after that and with this kernel, ACPI enabling fails. This is Pentium 
+> > > > III, 1 GHz, Intel 815 chipset, DMI tells something about "Packard Bell 
+> > > > NEC" as the mainboard type.
+> > > > 
+> > > > Full dmesg and config are below. What additional information can I 
+> > > > provide besides bisecting (will take time)?
+> > > 
+> > > Bisecting done, here is the culprit:
+> > > 
+> > > 8ec3f459073e67e5c6d78507dec693064b3040a2 is the first bad commit
+> > > commit 8ec3f459073e67e5c6d78507dec693064b3040a2
+> > > Author: Lv Zheng <lv.zheng@intel.com>
+> > > Date:   Tue Aug 25 10:29:01 2015 +0800
+> > > 
+> > >     ACPICA: Tables: Fix global table list issues by removing fixed table indexes
+> > >     
+> > >     ACPICA commit c0b38b4c3982c2336ee92a2a14716107248bd941
 > > 
-> > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> > Thanks a lot for bisecting this!
+> > 
+> > It will help if you file a bug entry at bugzilla.kernel.org agaist ACPI for
+> > this issue (please mark it as a regression) and attach the output of acpidump
+> > from the affected system to it.
 > 
-> Gregory, Grygorii, Graeme: can I get some help in reviewing these
-> PCA patches for ACPI support?
+> Done, https://bugzilla.kernel.org/show_bug.cgi?id=105351
 
-I would like to notice that there is v2 of the series (GPIO patches
-weren't changed AFAIR).
+Thanks!
 
-http://www.spinics.net/lists/kernel/msg2087827.html
+I need Lv to look at this and he may not be available before the next Saturday.
 
-> 
-> Yours,
-> Linus Walleij
-
--- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+Thanks,
+Rafael
