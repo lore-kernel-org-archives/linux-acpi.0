@@ -1,135 +1,106 @@
-From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Subject: Re: [PATCH] ACPICA: AcpiGetSleepTypeData: Failure to find \_Sx should
- not result in a loud warning
-Date: Fri, 2 Oct 2015 00:28:55 +0200
-Message-ID: <560DB3A7.2010405@intel.com>
-References: <1443720528-14499-1-git-send-email-prarit@redhat.com>
- <94F2FBAB4432B54E8AACC7DFDE6C92E37D357F6E@ORSMSX112.amr.corp.intel.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] Power management and ACPI updates for v4.3-rc4
+Date: Fri, 2 Oct 2015 03:11:44 +0200
+Message-ID: <CAJZ5v0jwdZM9ompxN+x8iMGWZBrKoRGpxXgoAqi4wrhO56LHXw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:56799 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750718AbbJAW3A (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 1 Oct 2015 18:29:00 -0400
-In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37D357F6E@ORSMSX112.amr.corp.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>, Prarit Bhargava <prarit@redhat.com>, "devel@acpica.org" <devel@acpica.org>
-Cc: "Zheng, Lv" <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Box, David E" <david.e.box@intel.com>
 
-On 10/1/2015 7:57 PM, Moore, Robert wrote:
-> I seem to remember that this came up a long time ago.
->
-> Perhaps someone else will remember.
->
+Hi Linus,
 
-I can't recall, sorry.
+Please pull from
 
->> -----Original Message-----
->> From: Prarit Bhargava [mailto:prarit@redhat.com]
->> Sent: Thursday, October 01, 2015 10:29 AM
->> To: devel@acpica.org
->> Cc: Prarit Bhargava; Moore, Robert; Zheng, Lv; Wysocki, Rafael J; Len
->> Brown; linux-acpi@vger.kernel.org
->> Subject: [PATCH] ACPICA: AcpiGetSleepTypeData: Failure to find \_Sx should
->> not result in a loud warning
->>
->> 48ffb94 ("ACPICA: AcpiGetSleepTypeData: Allow \_Sx to return either 1 or 2
->> integers") changed the error handling in AcpiGetSleepTypeData such that
->>
->> ACPI Exception: AE_NOT_FOUND, While evaluating Sleep State [\_S1_]
->> (20130517/hwxface-571)
->>
->> is displayed on systems not implementing individual ACPI \_Sx sleep
->> states.
->> Since these states are optional the loud warning is incorrect.  This patch
->> changes the kernel to the older behaviour of not warning on a missing
->> \_Sx.
->>
->> Before patch:
->>
->> [root@dell-pem520-03 ~]# dmesg | grep "While evaluating Sleep State"
->>   ACPI Exception: AE_NOT_FOUND, While evaluating Sleep State [\_S1_]
->> (20130517/hwxface-571)  ACPI Exception: AE_NOT_FOUND, While evaluating
->> Sleep State [\_S2_] (20130517/hwxface-571)  ACPI Exception: AE_NOT_FOUND,
->> While evaluating Sleep State [\_S3_] (20130517/hwxface-571)
->> [root@dell-pem520-03 ~]#
->>
->> After patch:
->>
->> [root@dell-pem520-03 ~]# dmesg | grep "While evaluating Sleep State"
->> [root@dell-pem520-03 ~]#
->>
->> Fixes: 48ffb94 ("ACPICA: AcpiGetSleepTypeData: Allow \_Sx to return either
->> 1 or 2 integers")
->> Cc: Robert Moore <robert.moore@intel.com>
->> Cc: Lv Zheng <lv.zheng@intel.com>
->> Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
->> Cc: Len Brown <lenb@kernel.org>
->> Cc: linux-acpi@vger.kernel.org
->>
->> Signed-off-by: Prarit Bhargava <prarit@redhat.com>
->> ---
->>   drivers/acpi/acpica/hwxface.c |   10 ++++++----
->>   1 file changed, 6 insertions(+), 4 deletions(-)
->>
->> diff --git a/drivers/acpi/acpica/hwxface.c b/drivers/acpi/acpica/hwxface.c
->> index 5f97468..8f50a7f 100644
->> --- a/drivers/acpi/acpica/hwxface.c
->> +++ b/drivers/acpi/acpica/hwxface.c
->> @@ -508,6 +508,7 @@ acpi_get_sleep_type_data(u8 sleep_state, u8
->> *sleep_type_a, u8 *sleep_type_b)
->>   	    ACPI_CAST_PTR(char, acpi_gbl_sleep_state_names[sleep_state]);
->>   	status = acpi_ns_evaluate(info);
->>   	if (ACPI_FAILURE(status)) {
->> +		/* \_Sx states are optional */
->>   		goto cleanup;
->>   	}
->>
->> @@ -517,7 +518,7 @@ acpi_get_sleep_type_data(u8 sleep_state, u8
->> *sleep_type_a, u8 *sleep_type_b)
->>   		ACPI_ERROR((AE_INFO, "No Sleep State object returned from
->> [%s]",
->>   			    info->relative_pathname));
->>   		status = AE_AML_NO_RETURN_VALUE;
->> -		goto cleanup;
->> +		goto cleanup1;
->>   	}
->>
->>   	/* Return object must be of type Package */ @@ -526,7 +527,7 @@
->> acpi_get_sleep_type_data(u8 sleep_state, u8 *sleep_type_a, u8
->> *sleep_type_b)
->>   		ACPI_ERROR((AE_INFO,
->>   			    "Sleep State return object is not a Package"));
->>   		status = AE_AML_OPERAND_TYPE;
->> -		goto cleanup1;
->> +		goto cleanup2;
->>   	}
->>
->>   	/*
->> @@ -570,16 +571,17 @@ acpi_get_sleep_type_data(u8 sleep_state, u8
->> *sleep_type_a, u8 *sleep_type_b)
->>   		break;
->>   	}
->>
->> -cleanup1:
->> +cleanup2:
->>   	acpi_ut_remove_reference(info->return_object);
->>
->> -cleanup:
->> +cleanup1:
->>   	if (ACPI_FAILURE(status)) {
->>   		ACPI_EXCEPTION((AE_INFO, status,
->>   				"While evaluating Sleep State [%s]",
->>   				info->relative_pathname));
->>   	}
->>
->> +cleanup:
->>   	ACPI_FREE(info);
->>   	return_ACPI_STATUS(status);
->>   }
->> --
->> 1.7.9.3
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ pm+acpi-4.3-rc4
 
+to receive power management and ACPI material for v4.3-rc4 with
+top-most commit eb6d1c287ae1f7221248d5be26a5b1560073c09e
+
+ Merge branches 'pm-cpuidle', 'pm-opp' and 'pm-tools'
+
+on top of commit 9ffecb10283508260936b96022d4ee43a7798b4c
+
+ Linux 4.3-rc3
+
+These are fixes mostly, for a few changes made in this cycle
+(the intel_idle driver, the OPP library, the ACPI EC driver,
+turbostat) and for some issues that have just been discovered
+(ACPI PCI IRQ management, PCI power management
+documentation, turbostat), with a couple of cleanups on top
+of them.
+
+Specifics:
+
+ - intel_idle driver fixup for the recently added Skylake chips
+   support (Len Brown).
+
+ - Operating Performance Points (OPP) library fix related to the
+   recently added support for new DT bindings and a fix for a typo
+   in a comment (Viresh Kumar, Stephen Boyd).
+
+ - ACPI EC driver fix for a recently introduced memory leak in an
+   error code path (Lv Zheng).
+
+ - ACPI PCI IRQ management fix for the issue where an ISA IRQ is
+   shared with a PCI device which requires it to be configured in a
+   different way and may cause an interrupt storm to happen as a
+   result with an extra ACPI SCI IRQ handling simplification on top
+   of it (Jiang Liu).
+
+ - Update of the PCI power management documentation that became
+   outdated and started to actively confuse the readers to make
+   it actually reflect the code (Rafael J Wysocki).
+
+ - turbostat fixes including an IVB Xeon regression fix (related to
+   the --debug command line option), Skylake adjustment for the TSC
+   running at a frequency that doesn't match the base one exactly,
+   and a Knights Landing quirk to account for the fact that it only
+   updates APERF and MPERF every 1024 clock cycles plus bumping up
+   the turbostat version number (Len Brown, Hubert Chrzaniuk).
+
+Thanks!
+
+
+---------------
+
+Hubert Chrzaniuk (1):
+      tools/power turbostat: KNL workaround for %Busy and Avg_MHz
+
+Jiang Liu (2):
+      ACPI, PCI, irq: Do not share PCI IRQ with ISA IRQ
+      ACPI / PCI: Remove duplicated penalty on SCI IRQ
+
+Len Brown (4):
+      intel_idle: Skylake Client Support - updated
+      tools/power turbostat: IVB Xeon: fix --debug regression
+      tools/power turbostat: SKL: Adjust for TSC difference from base frequency
+      tools/power turbosat: update version number
+
+Lv Zheng (1):
+      ACPI / EC: Fix a memory leak issue in acpi_ec_query()
+
+Rafael J. Wysocki (1):
+      PCI / PM: Update runtime PM documentation for PCI devices
+
+Stephen Boyd (1):
+      PM / OPP: Fix typo modifcation -> modification
+
+Viresh Kumar (1):
+      PM / OPP: of_property_count_u32_elems() can return errors
+
+---------------
+
+ Documentation/power/pci.txt           | 51 ++++++++++++++++++++++++++---------
+ drivers/acpi/ec.c                     |  2 ++
+ drivers/acpi/pci_irq.c                |  1 +
+ drivers/acpi/pci_link.c               | 16 +++++++++--
+ drivers/base/power/opp.c              | 17 ++++++++----
+ drivers/idle/intel_idle.c             | 12 +++++++--
+ drivers/pci/pci-driver.c              |  7 ++---
+ include/linux/acpi.h                  |  1 +
+ tools/power/x86/turbostat/turbostat.c | 39 +++++++++++++++++++++++----
+ 9 files changed, 116 insertions(+), 30 deletions(-)
