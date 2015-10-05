@@ -1,58 +1,103 @@
-From: =?iso-8859-1?Q?Niccol=F2_Belli?= <niccolo.belli@linuxsystems.it>
-Subject: Re: [Dell XPS 13 9343] Random kernel Oops at boot with =?iso-8859-1?Q?"acpi=3Dht",_disappearing_with_"acpi=3Doff"?=
-Date: Mon, 05 Oct 2015 17:59:38 +0200
-Message-ID: <481e7bc8-b4c4-4acd-9988-f3e0e5ea87b3@linuxsystems.it>
-References: <16367d85-fe84-4792-819a-d50a508409ef@linuxsystems.it>
- <20151002101919.GZ1551@lahna.fi.intel.com>
- <c4c8d5aa-d2ad-4448-9ca5-d381c30ba6d7@linuxsystems.it>
- <20151005104645.GA1506@lahna.fi.intel.com>
- <97e73880-b4a6-4118-bf11-6a90d2505fd1@linuxsystems.it>
- <20151005135449.GF1506@lahna.fi.intel.com>
+From: Wei Huang <wei@redhat.com>
+Subject: Re: [PATCH v3 1/7] acpi: Add early device probing infrastructure
+Date: Mon, 5 Oct 2015 12:07:42 -0500
+Message-ID: <5612AE5E.8080504@redhat.com>
+References: <1443451758-22717-1-git-send-email-marc.zyngier@arm.com>
+ <1443451758-22717-2-git-send-email-marc.zyngier@arm.com>
+ <560EF1BD.1020004@redhat.com> <20151003110402.6aa3022b@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.linuxsystems.it ([2.119.245.41]:50484 "EHLO
-	mail.linuxsystems.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752181AbbJEP7m convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Oct 2015 11:59:42 -0400
-In-Reply-To: <20151005135449.GF1506@lahna.fi.intel.com>
+Received: from mx1.redhat.com ([209.132.183.28]:50342 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752070AbbJERHq (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 5 Oct 2015 13:07:46 -0400
+In-Reply-To: <20151003110402.6aa3022b@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Daniel Lezcano <daniel.lezcano@linaro.org>, linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-Il luned=C3=AC 5 ottobre 2015 15:54:49 CEST, Mika Westerberg ha scritto=
-:
-> On Mon, Oct 05, 2015 at 03:41:09PM +0200, Niccol=C3=B2 Belli wrote:
->> Il luned=C3=AC 5 ottobre 2015 12:46:45 CEST, Mika Westerberg ha scri=
-tto: ...
->
-> It says:
->
-> Mounting /boot...
-> [FAILED] Failed to mount /boot.
-> See 'systemctl status boot.mount' for details.
-> [DEPEND] Dependency failed for Local File Systems.
->
-> Did you run 'systemctl status boot.mount'?
 
-Please do not consider my previous e-mail, becuase the failure was due =
-to=20
-file loss: in fact sometimes the system hangs while shutting down (I th=
-ink=20
-because of this bug) and so some modules of my just compiled kernel wer=
-e=20
-loss. I recompiled the kernel once again and synced the disks just to b=
-e=20
-sure: I still get random crashes even with CONFIG_SND_SOC=3Dn.
-See the new log: https://bugzilla.kernel.org/attachment.cgi?id=3D189481
 
-Thank you very much for your help, it's much apreciated.
-Niccol=C3=B2 Belli
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On 10/03/2015 05:04 AM, Marc Zyngier wrote:
+> On Fri, 2 Oct 2015 16:06:05 -0500
+> Wei Huang <wei@redhat.com> wrote:
+> 
+> Hi Wei,
+> 
+>> Hi Marc,
+> 
+> [...]
+> 
+>>> +struct acpi_probe_entry {
+>>> +	__u8 id[ACPI_TABLE_ID_LEN];
+>>> +	__u8 type;
+>>> +	acpi_probe_entry_validate_subtbl subtable_valid;
+>>> +	union {
+>>> +		acpi_tbl_table_handler probe_table;
+>>> +		acpi_tbl_entry_handler probe_subtbl;
+>>> +	};
+>>
+>> Could we avoid using union for probe_table & probe_subtbl? The benefit is that we don't need to do function casting below and compiler can automatically check the correctness.
+>>
+>>> +	kernel_ulong_t driver_data;
+>>> +};
+>>> +
+>>> +#define ACPI_DECLARE_PROBE_ENTRY(table, name, table_id, subtable, valid, data, fn)	\
+>>> +	static const struct acpi_probe_entry __acpi_probe_##name	\
+>>> +		__used __section(__##table##_acpi_probe_table)		\
+>>> +		 = {							\
+>>> +			.id = table_id,					\
+>>> +			.type = subtable,				\
+>>> +			.subtable_valid = valid,			\
+>>> +			.probe_table = (acpi_tbl_table_handler)fn,	\
+>>> +			.driver_data = data, 				\
+>>> +		   }
+>>> +
+>>
+>> Something like: 
+>>
+>> #define ACPI_DECLARE_PROBE_ENTRY(table, name, table_id, subtable, valid, data, fn, subfn)	\
+>> 	static const struct acpi_probe_entry __acpi_probe_##name	\
+>> 		__used __section(__##table##_acpi_probe_table)		\
+>> 		 = {							\
+>> 			.id = table_id,					\
+>> 			.type = subtable,				\
+>> 			.subtable_valid = valid,			\
+>> 			.probe_table = fn,				\
+>> 			.probe_subtbl = subfn,				\
+>> 			.driver_data = data, 				\
+>> 		   }
+>>
+>> Then in patch 3, you can define new entries as:
+>>
+>> IRQCHIP_ACPI_DECLARE(gic_v2, ACPI_MADT_TYPE_GENERIC_DISTRIBUTOR,
+>> 		     gic_validate_dist, ACPI_MADT_GIC_VERSION_V2,
+>> 		     NULL, gic_v2_acpi_init);
+>> IRQCHIP_ACPI_DECLARE(gic_v2_maybe, ACPI_MADT_TYPE_GENERIC_DISTRIBUTOR,
+>> 		     gic_validate_dist, ACPI_MADT_GIC_VERSION_NONE,
+>> 		     NULL, gic_v2_acpi_init);
+>>
+> 
+> That's exactly what I was trying to avoid. If you want to do that, do
+> it in the IRQCHIP_ACPI_DECLARE macro, as there is strictly no need for
+> this this NULL to appear here (MADT always matches by subtable).
+> 
+> Or even better, have two ACPI_DECLARE* that populate the probe entry in
+> a mutually exclusive way (either probe_table is set and both
+> valid/subtbl are NULL, or probe_table is NULL and the two other fields
+> are set).
+
+Yes, this approach would be sufficient. So users can clearly tell them
+apart in terms of usage cases.
+
+Thanks,
+-Wei
+
+> 
+> Thanks,
+> 
+> 	M.
+> 
