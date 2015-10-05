@@ -1,101 +1,94 @@
-From: Ulf Hansson <ulf.hansson@linaro.org>
-Subject: Re: [PATCH v9 0/4] Allow USB devices to remain runtime-suspended when sleeping
-Date: Mon, 5 Oct 2015 23:36:17 +0200
-Message-ID: <CAPDyKFrU5mBz+xrj9dHkNfGa_QFBBWVsarFm4UG0oOTXyQfiHQ@mail.gmail.com>
-References: <1444056332-30246-1-git-send-email-tomeu.vizoso@collabora.com>
+From: Frank Rowand <frowand.list@gmail.com>
+Subject: Re: [PATCH v6 21/22] driver core: Start processing deferred probes
+ earlier
+Date: Mon, 05 Oct 2015 16:52:35 -0700
+Message-ID: <56130D43.10200@gmail.com>
+References: <1442844182-27787-1-git-send-email-tomeu.vizoso@collabora.com> <1442844182-27787-22-git-send-email-tomeu.vizoso@collabora.com>
+Reply-To: frowand.list@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1444056332-30246-1-git-send-email-tomeu.vizoso@collabora.com>
+In-Reply-To: <1442844182-27787-22-git-send-email-tomeu.vizoso@collabora.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Cc: "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, martyn.welch@collabora.co.uk, David Airlie <airlied@linux.ie>, Tomas Winkler <tomas.winkler@intel.com>, linux-usb@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, dri-devel@lists.freedesktop.org, Russell King <linux@arm.linux.org.uk>, Len Brown <lenb@kernel.org>, Len Brown <len.brown@intel.com>, Kevin Hilman <khilman@kernel.org>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap <linux-omap@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-arm-kernel@lists.infradead.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
 List-Id: linux-acpi@vger.kernel.org
 
-On 5 October 2015 at 16:45, Tomeu Vizoso <tomeu.vizoso@collabora.com> wrote:
-> Hi,
->
-> this is v9 of an attempt to make it easier for devices to remain in
-> runtime PM when the system goes to sleep, mainly to reduce the time
-> spent resuming devices.
->
-> For this, we interpret the absence of all PM callback implementations as
-> it being safe to do direct_complete, so their ancestors aren't prevented
-> from remaining runtime-suspended.
->
-> Additionally, the prepare() callback of USB devices will return 1 if
-> runtime PM is enabled and the current wakeup settings are correct.
->
-> With these changes, a uvcvideo device (for example) stays in runtime
-> suspend when the system goes to sleep and is left in that state when the
-> system resumes, not delaying it unnecessarily.
->
-> Thanks,
->
-> Tomeu
->
-> Changes in v9:
-> - Add docs noting the need for the device lock to be held before calling
->   device_is_bound()
-> - Add docs noting the need for the device lock to be held before calling
->   dev_pm_domain_set()
-> - Move to CONFIG_PM_SLEEP as suggested by Rafael and Ulf.
-> - Rename from device_check_pm_callbacks to device_pm_check_callbacks to
->   follow with the naming convention of existing API.
-> - Re-add calling to device_pm_check_callbacks from device registration
->   and when updating the PM domain of a device.
->
-> Changes in v8:
-> - Add device_is_bound()
-> - Add dev_pm_domain_set() and update code to use it
-> - Move no_pm_callbacks field into CONFIG_PM_SLEEP
-> - Call device_check_pm_callbacks only after a device is bound or unbound
->
-> Changes in v7:
-> - Reduce indentation by adding a label in device_prepare()
->
-> Changes in v6:
-> - Add stub for !CONFIG_PM.
-> - Move implementation of device_check_pm_callbacks to power/main.c as it
->   doesn't belong to CONFIG_PM_SLEEP.
-> - Take dev->power.lock before modifying flag.
->
-> Changes in v5:
-> - Check for all dev_pm_ops instances associated to a device, updating a
->   no_pm_callbacks flag at the times when that could change.
->
-> Tomeu Vizoso (4):
->   device core: add device_is_bound()
->   PM / Domains: add setter for dev.pm_domain
->   PM / sleep: Go direct_complete if driver has no callbacks
->   USB / PM: Allow USB devices to remain runtime-suspended when sleeping
->
->  arch/arm/mach-omap2/omap_device.c |  7 ++++---
->  drivers/acpi/acpi_lpss.c          |  5 +++--
->  drivers/acpi/device_pm.c          |  5 +++--
->  drivers/base/dd.c                 | 21 +++++++++++++++++++--
->  drivers/base/power/clock_ops.c    |  5 +++--
->  drivers/base/power/common.c       | 24 ++++++++++++++++++++++++
->  drivers/base/power/domain.c       |  6 ++++--
->  drivers/base/power/main.c         | 35 +++++++++++++++++++++++++++++++++++
->  drivers/base/power/power.h        |  3 +++
->  drivers/gpu/vga/vga_switcheroo.c  | 10 +++++-----
->  drivers/misc/mei/pci-me.c         |  5 +++--
->  drivers/misc/mei/pci-txe.c        |  5 +++--
->  drivers/usb/core/port.c           |  6 ++++++
->  drivers/usb/core/usb.c            | 11 ++++++++++-
->  include/linux/device.h            |  2 ++
->  include/linux/pm.h                |  1 +
->  include/linux/pm_domain.h         |  3 +++
->  17 files changed, 131 insertions(+), 23 deletions(-)
->
-> --
-> 2.4.3
->
+On 9/21/2015 7:03 AM, Tomeu Vizoso wrote:
+> Some initcalls in the late level assume that some devices will have
+> already probed without explicitly checking for that.
+> 
+> After the recent move to defer most device probes when they are
+> registered, pressure increased in the late initcall level.
+> 
+> By starting the processing of the deferred queue in device_initcall_sync
+> we increase the chances that the initcalls mentioned before will find
+> the devices they depend on to have already probed.
+> 
+> Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+> ---
+> 
+> Changes in v4:
+> - Start processing deferred probes in device_initcall_sync
+> 
+>  drivers/base/dd.c | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/base/dd.c b/drivers/base/dd.c
+> index 269ea76c1a4f..f0ef9233fcd6 100644
+> --- a/drivers/base/dd.c
+> +++ b/drivers/base/dd.c
+> @@ -176,7 +176,7 @@ static void driver_deferred_probe_trigger(void)
+>   *
+>   * We don't want to get in the way when the bulk of drivers are getting probed.
+>   * Instead, this initcall makes sure that deferred probing is delayed until
+> - * late_initcall time.
+> + * device_initcall_sync time.
 
-This looks good to me, for the series you may add:
+This is a misuse of the *_sync initcall level.
 
-Reviewed-by: Ulf Hansson <ulf.hansson@linaro.org>
+If a deferred probe created a thread and expected a wait at the
+following *_sync level then the wait would not occur because
+there is no subsequent *_sync level.  This is not a problem today
+because (as far as I know) there are no threads in the probe
+functions.  But there has been interest in adding parallel
+probing and that could expose this problem.
 
-Kind regards
-Uffe
+The purpose of the *_sync initcall levels is to allow the corresponding
+initcall level to use multiple threads of execution instead of a single
+thread.  The *_sync level provides a location for a wait for all of the
+threads at the corresponding init level to complete.  This is better
+explained in the git log:
+
+commit 735a7ffb739b6efeaeb1e720306ba308eaaeb20e
+Author: Andrew Morton <akpm@osdl.org>
+Date:   Fri Oct 27 11:42:37 2006 -0700
+
+    [PATCH] drivers: wait for threaded probes between initcall levels
+
+    The multithreaded-probing code has a problem: after one initcall level (eg,
+    core_initcall) has been processed, we will then start processing the next
+    level (postcore_initcall) while the kernel threads which are handling
+    core_initcall are still executing.  This breaks the guarantees which the
+    layered initcalls previously gave us.
+
+    IOW, we want to be multithreaded _within_ an initcall level, but not between
+    different levels.
+
+    Fix that up by causing the probing code to wait for all outstanding probes at
+    one level to complete before we start processing the next level.
+
+>   */
+>  static int deferred_probe_initcall(void)
+>  {
+> @@ -190,7 +190,7 @@ static int deferred_probe_initcall(void)
+>  	flush_workqueue(deferred_wq);
+>  	return 0;
+>  }
+> -late_initcall(deferred_probe_initcall);
+> +device_initcall_sync(deferred_probe_initcall);
+>  
+>  static void driver_bound(struct device *dev)
+>  {
+> 
