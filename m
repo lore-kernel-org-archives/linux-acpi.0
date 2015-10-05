@@ -1,162 +1,45 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 2/8] mfd: core: redo ACPI matching of the children devices
-Date: Mon, 05 Oct 2015 16:02:05 +0200
-Message-ID: <22225717.sVrBxKhDNA@vostro.rjw.lan>
-References: <1443698430-74415-1-git-send-email-andriy.shevchenko@linux.intel.com> <1443698430-74415-3-git-send-email-andriy.shevchenko@linux.intel.com>
+From: =?iso-8859-1?Q?Niccol=F2_Belli?= <niccolo.belli@linuxsystems.it>
+Subject: Re: [Dell XPS 13 9343] Random kernel Oops at boot with =?iso-8859-1?Q?"acpi=3Dht",_disappearing_with_"acpi=3Doff"?=
+Date: Mon, 05 Oct 2015 15:41:09 +0200
+Message-ID: <97e73880-b4a6-4118-bf11-6a90d2505fd1@linuxsystems.it>
+References: <16367d85-fe84-4792-819a-d50a508409ef@linuxsystems.it>
+ <20151002101919.GZ1551@lahna.fi.intel.com>
+ <c4c8d5aa-d2ad-4448-9ca5-d381c30ba6d7@linuxsystems.it>
+ <20151005104645.GA1506@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:44020 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751265AbbJENdh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Oct 2015 09:33:37 -0400
-In-Reply-To: <1443698430-74415-3-git-send-email-andriy.shevchenko@linux.intel.com>
+Received: from mail.linuxsystems.it ([2.119.245.41]:49600 "EHLO
+	mail.linuxsystems.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751251AbbJENlS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Oct 2015 09:41:18 -0400
+In-Reply-To: <20151005104645.GA1506@lahna.fi.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, linux-gpio@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Wolfram Sang <wsa@the-dreams.de>, Linus Walleij <linus.walleij@linaro.org>, Mika Westerberg <mika.westerberg@intel.com>, "Puustinen, Ismo" <ismo.puustinen@intel.com>, "Pandruvada, Srinivas" <srinivas.pandruvada@intel.com>, linux-kernel@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Thursday, October 01, 2015 02:20:24 PM Andy Shevchenko wrote:
-> There is at least one board on the market, i.e. Intel Galileo Gen2, that uses
-> _ADR to distinguish the devices under one actual device. Due to this we have to
-> improve the quirk in the MFD core to handle that board.
-> 
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Il luned=C3=AC 5 ottobre 2015 12:46:45 CEST, Mika Westerberg ha scritto=
+:
+> On Sat, Oct 03, 2015 at 12:11:54PM +0200, Niccol=C3=B2 Belli wrote:
+>> On venerd=C3=AC 2 ottobre 2015 12:19:19 CEST, Mika Westerberg wrote:=
+ ...
+>
+> What if you disable the whole ALSA SoC?
+>
+> CONFIG_SND_SOC=3Dn
 
->From the ACPI angle:
+Now I don't get any Oops but it doesn't reach the login anymore: instea=
+d it=20
+goes into emergency mode! :(
+Log: https://bugzilla.kernel.org/attachment.cgi?id=3D189471
 
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-
-> ---
->  Documentation/acpi/enumeration.txt | 11 +++++---
->  drivers/mfd/mfd-core.c             | 52 ++++++++++++++++++++++++++------------
->  include/linux/mfd/core.h           | 10 ++++++--
->  3 files changed, 52 insertions(+), 21 deletions(-)
-> 
-> diff --git a/Documentation/acpi/enumeration.txt b/Documentation/acpi/enumeration.txt
-> index b731b29..a91ec5a 100644
-> --- a/Documentation/acpi/enumeration.txt
-> +++ b/Documentation/acpi/enumeration.txt
-> @@ -347,13 +347,18 @@ For the first case, the MFD drivers do not need to do anything. The
->  resulting child platform device will have its ACPI_COMPANION() set to point
->  to the parent device.
->  
-> -If the ACPI namespace has a device that we can match using an ACPI id,
-> -the id should be set like:
-> +If the ACPI namespace has a device that we can match using an ACPI id or ACPI
-> +adr, the cell should be set like:
-> +
-> +	static struct mfd_cell_acpi_match my_subdevice_cell_acpi_match = {
-> +		.pnpid = "XYZ0001",
-> +		.adr = 0,
-> +	};
->  
->  	static struct mfd_cell my_subdevice_cell = {
->  		.name = "my_subdevice",
->  		/* set the resources relative to the parent */
-> -		.acpi_pnpid = "XYZ0001",
-> +		.acpi_match = &my_subdevice_cell_acpi_match,
->  	};
->  
->  The ACPI id "XYZ0001" is then used to lookup an ACPI device directly under
-> diff --git a/drivers/mfd/mfd-core.c b/drivers/mfd/mfd-core.c
-> index c17635d..60b60dc 100644
-> --- a/drivers/mfd/mfd-core.c
-> +++ b/drivers/mfd/mfd-core.c
-> @@ -82,29 +82,49 @@ static int mfd_platform_add_cell(struct platform_device *pdev,
->  static void mfd_acpi_add_device(const struct mfd_cell *cell,
->  				struct platform_device *pdev)
->  {
-> -	struct acpi_device *parent_adev;
-> +	const struct mfd_cell_acpi_match *match = cell->acpi_match;
-> +	struct acpi_device *parent, *child;
->  	struct acpi_device *adev;
->  
-> -	parent_adev = ACPI_COMPANION(pdev->dev.parent);
-> -	if (!parent_adev)
-> +	parent = ACPI_COMPANION(pdev->dev.parent);
-> +	if (!parent)
->  		return;
->  
->  	/*
-> -	 * MFD child device gets its ACPI handle either from the ACPI
-> -	 * device directly under the parent that matches the acpi_pnpid or
-> -	 * it will use the parent handle if is no acpi_pnpid is given.
-> +	 * MFD child device gets its ACPI handle either from the ACPI device
-> +	 * directly under the parent that matches the either _HID or _CID, or
-> +	 * _ADR or it will use the parent handle if is no ID is given.
-> +	 *
-> +	 * Note that use of _ADR is a grey area in the ACPI specification,
-> +	 * though Intel Galileo Gen2 is using it to distinguish the children
-> +	 * devices.
->  	 */
-> -	adev = parent_adev;
-> -	if (cell->acpi_pnpid) {
-> -		struct acpi_device_id ids[2] = {};
-> -		struct acpi_device *child_adev;
-> -
-> -		strlcpy(ids[0].id, cell->acpi_pnpid, sizeof(ids[0].id));
-> -		list_for_each_entry(child_adev, &parent_adev->children, node)
-> -			if (acpi_match_device_ids(child_adev, ids)) {
-> -				adev = child_adev;
-> -				break;
-> +	adev = parent;
-> +	if (match) {
-> +		if (match->pnpid) {
-> +			struct acpi_device_id ids[2] = {};
-> +
-> +			strlcpy(ids[0].id, match->pnpid, sizeof(ids[0].id));
-> +			list_for_each_entry(child, &parent->children, node) {
-> +				if (acpi_match_device_ids(child, ids)) {
-> +					adev = child;
-> +					break;
-> +				}
-> +			}
-> +		} else {
-> +			unsigned long long adr;
-> +			acpi_status status;
-> +
-> +			list_for_each_entry(child, &parent->children, node) {
-> +				status = acpi_evaluate_integer(child->handle,
-> +							       "_ADR", NULL,
-> +							       &adr);
-> +				if (ACPI_SUCCESS(status) && match->adr == adr) {
-> +					adev = child;
-> +					break;
-> +				}
->  			}
-> +		}
->  	}
->  
->  	ACPI_COMPANION_SET(&pdev->dev, adev);
-> diff --git a/include/linux/mfd/core.h b/include/linux/mfd/core.h
-> index a76bc10..27dac3f 100644
-> --- a/include/linux/mfd/core.h
-> +++ b/include/linux/mfd/core.h
-> @@ -18,6 +18,12 @@
->  
->  struct irq_domain;
->  
-> +/* Matches ACPI PNP id, either _HID or _CID, or ACPI _ADR */
-> +struct mfd_cell_acpi_match {
-> +	const char			*pnpid;
-> +	const unsigned long long	adr;
-> +};
-> +
->  /*
->   * This struct describes the MFD part ("cell").
->   * After registration the copy of this structure will become the platform data
-> @@ -44,8 +50,8 @@ struct mfd_cell {
->  	 */
->  	const char		*of_compatible;
->  
-> -	/* Matches ACPI PNP id, either _HID or _CID */
-> -	const char		*acpi_pnpid;
-> +	/* Matches ACPI */
-> +	const struct mfd_cell_acpi_match	*acpi_match;
->  
->  	/*
->  	 * These resources can be specified relative to the parent device.
-> 
-
+Thanks,
+Niccol=C3=B2 Belli
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
