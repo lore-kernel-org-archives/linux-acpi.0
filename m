@@ -1,7 +1,7 @@
 From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: [PATCH 13/16] irqchip/gic: Kill the xlate method
-Date: Tue,  6 Oct 2015 18:36:26 +0100
-Message-ID: <1444152989-31726-14-git-send-email-marc.zyngier@arm.com>
+Subject: [PATCH 12/16] irqchip/gic: Switch ACPI support to stacked domains
+Date: Tue,  6 Oct 2015 18:36:25 +0100
+Message-ID: <1444152989-31726-13-git-send-email-marc.zyngier@arm.com>
 References: <1444152989-31726-1-git-send-email-marc.zyngier@arm.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1444152989-31726-1-git-send-email-marc.zyngier@arm.com>
@@ -10,62 +10,113 @@ To: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>,
 Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Graeme Gregory <graeme@xora.org.uk>, Jake Oshins <jakeo@microsoft.com>
 List-Id: linux-acpi@vger.kernel.org
 
-We are now left with only two use models for the GIC driver:
-- Via a firmware interface, which mandates a hierarchical domain,
-  and the use of the 'translate' method
-- The legacy platforms, which assume irq==hwirq, hence not using
-  the 'xlate' method.
-
-The logical conclusion is that we can now nuke the 'xlate' method
-altogether.
+Now that the basic ACPI GSI code is irq domain aware, make sure
+that the ACPI support in the GIC doesn't pointlessly deviate from
+the DT path.
 
 Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
 ---
- drivers/irqchip/irq-gic.c | 25 -------------------------
- 1 file changed, 25 deletions(-)
+ drivers/irqchip/irq-gic.c | 44 ++++++++++++++++++++++++++++++--------------
+ 1 file changed, 30 insertions(+), 14 deletions(-)
 
 diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
-index ad5ecfd..a4bd77f 100644
+index f1f4ca1..ad5ecfd 100644
 --- a/drivers/irqchip/irq-gic.c
 +++ b/drivers/irqchip/irq-gic.c
-@@ -903,30 +903,6 @@ static void gic_irq_domain_unmap(struct irq_domain *d, unsigned int irq)
- {
+@@ -950,6 +950,15 @@ static int gic_irq_domain_translate(struct irq_domain *d,
+ 		return 0;
+ 	}
+ 
++	if (fwspec->fwnode->type == FWNODE_IRQCHIP) {
++		if(fwspec->param_count != 2)
++			return -EINVAL;
++
++		*hwirq = fwspec->param[0];
++		*type = fwspec->param[1];
++		return 0;
++	}
++
+ 	return -EINVAL;
  }
  
--static int gic_irq_domain_xlate(struct irq_domain *d,
--				struct device_node *controller,
--				const u32 *intspec, unsigned int intsize,
--				unsigned long *out_hwirq, unsigned int *out_type)
--{
--	unsigned long ret = 0;
--
--	if (irq_domain_get_of_node(d) != controller)
--		return -EINVAL;
--	if (intsize < 3)
--		return -EINVAL;
--
--	/* Get the interrupt number and add 16 to skip over SGIs */
--	*out_hwirq = intspec[1] + 16;
--
--	/* For SPIs, we need to add 16 more to get the GIC irq ID number */
--	if (!intspec[0])
--		*out_hwirq += 16;
--
--	*out_type = intspec[2] & IRQ_TYPE_SENSE_MASK;
--
--	return ret;
--}
--
- static int gic_irq_domain_translate(struct irq_domain *d,
- 				    struct irq_fwspec *fwspec,
- 				    unsigned long *hwirq,
-@@ -1008,7 +984,6 @@ static const struct irq_domain_ops gic_irq_domain_hierarchy_ops = {
- static const struct irq_domain_ops gic_irq_domain_ops = {
- 	.map = gic_irq_domain_map,
- 	.unmap = gic_irq_domain_unmap,
--	.xlate = gic_irq_domain_xlate,
- };
+@@ -1004,7 +1013,7 @@ static const struct irq_domain_ops gic_irq_domain_ops = {
  
  static void __init __gic_init_bases(unsigned int gic_nr, int irq_start,
+ 			   void __iomem *dist_base, void __iomem *cpu_base,
+-			   u32 percpu_offset, struct device_node *node)
++			   u32 percpu_offset, struct fwnode_handle *handle)
+ {
+ 	irq_hw_number_t hwirq_base;
+ 	struct gic_chip_data *gic;
+@@ -1056,11 +1065,11 @@ static void __init __gic_init_bases(unsigned int gic_nr, int irq_start,
+ 		gic_irqs = 1020;
+ 	gic->gic_irqs = gic_irqs;
+ 
+-	if (node) {		/* DT case */
+-		gic->domain = irq_domain_add_linear(node, gic_irqs,
+-						    &gic_irq_domain_hierarchy_ops,
+-						    gic);
+-	} else {		/* Non-DT case */
++	if (handle) {		/* DT/ACPI */
++		gic->domain = irq_domain_create_linear(handle, gic_irqs,
++						       &gic_irq_domain_hierarchy_ops,
++						       gic);
++	} else {		/* Legacy support */
+ 		/*
+ 		 * For primary GICs, skip over SGIs.
+ 		 * For secondary GICs, skip over PPIs, too.
+@@ -1083,7 +1092,7 @@ static void __init __gic_init_bases(unsigned int gic_nr, int irq_start,
+ 			irq_base = irq_start;
+ 		}
+ 
+-		gic->domain = irq_domain_add_legacy(node, gic_irqs, irq_base,
++		gic->domain = irq_domain_add_legacy(NULL, gic_irqs, irq_base,
+ 					hwirq_base, &gic_irq_domain_ops, gic);
+ 	}
+ 
+@@ -1191,7 +1200,8 @@ gic_of_init(struct device_node *node, struct device_node *parent)
+ 	if (of_property_read_u32(node, "cpu-offset", &percpu_offset))
+ 		percpu_offset = 0;
+ 
+-	__gic_init_bases(gic_cnt, -1, dist_base, cpu_base, percpu_offset, node);
++	__gic_init_bases(gic_cnt, -1, dist_base, cpu_base, percpu_offset,
++			 &node->fwnode);
+ 	if (!gic_cnt)
+ 		gic_init_physaddr(node);
+ 
+@@ -1265,6 +1275,7 @@ int __init
+ gic_v2_acpi_init(struct acpi_table_header *table)
+ {
+ 	void __iomem *cpu_base, *dist_base;
++	struct fwnode_handle *domain_handle;
+ 	int count;
+ 
+ 	/* Collect CPU base addresses */
+@@ -1315,14 +1326,19 @@ gic_v2_acpi_init(struct acpi_table_header *table)
+ 		static_key_slow_dec(&supports_deactivate);
+ 
+ 	/*
+-	 * Initialize zero GIC instance (no multi-GIC support). Also, set GIC
+-	 * as default IRQ domain to allow for GSI registration and GSI to IRQ
+-	 * number translation (see acpi_register_gsi() and acpi_gsi_to_irq()).
++	 * Initialize GIC instance zero (no multi-GIC support).
+ 	 */
+-	__gic_init_bases(0, -1, dist_base, cpu_base, 0, NULL);
+-	irq_set_default_host(gic_data[0].domain);
++	domain_handle = irq_domain_alloc_fwnode(dist_base);
++	if (!domain_handle) {
++		pr_err("Unable to allocate domain handle\n");
++		iounmap(cpu_base);
++		iounmap(dist_base);
++		return -ENOMEM;
++	}
++
++	__gic_init_bases(0, -1, dist_base, cpu_base, 0, domain_handle);
+ 
+-	acpi_irq_model = ACPI_IRQ_MODEL_GIC;
++	acpi_set_irq_model(ACPI_IRQ_MODEL_GIC, domain_handle);
+ 	return 0;
+ }
+ #endif
 -- 
 2.1.4
