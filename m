@@ -1,7 +1,7 @@
 From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: [PATCH 15/16] irqdomain: Introduce irq_domain_create_hierarchy
-Date: Tue,  6 Oct 2015 18:36:28 +0100
-Message-ID: <1444152989-31726-16-git-send-email-marc.zyngier@arm.com>
+Subject: [PATCH 11/16] irqchip/gic: Get rid of gic_init_bases()
+Date: Tue,  6 Oct 2015 18:36:24 +0100
+Message-ID: <1444152989-31726-12-git-send-email-marc.zyngier@arm.com>
 References: <1444152989-31726-1-git-send-email-marc.zyngier@arm.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1444152989-31726-1-git-send-email-marc.zyngier@arm.com>
@@ -10,83 +10,66 @@ To: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>,
 Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Graeme Gregory <graeme@xora.org.uk>, Jake Oshins <jakeo@microsoft.com>
 List-Id: linux-acpi@vger.kernel.org
 
-As we're about to start converting the various MSI layers to
-use fwnode_handle instead of device_node, add irq_domain_create_hierarchy
-as a directly equivalent of irq_domain_add_hierarchy (which still
-exists as a compatibility interface).
+Since nobody is using gic_init_bases anymore outside of the GIC
+driver itself, let's do a bit of housekeeping and remove the now
+useless entry point.
+
+Only gic_init() is now exposed to the rest of the kernel for the
+benefit of legacy systems.
 
 Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
 ---
- include/linux/irqdomain.h | 17 +++++++++++++++--
- kernel/irq/irqdomain.c    | 10 +++++-----
- 2 files changed, 20 insertions(+), 7 deletions(-)
+ drivers/irqchip/irq-gic.c       | 8 +++-----
+ include/linux/irqchip/arm-gic.h | 9 ++-------
+ 2 files changed, 5 insertions(+), 12 deletions(-)
 
-diff --git a/include/linux/irqdomain.h b/include/linux/irqdomain.h
-index 949caa7..2b3340ae 100644
---- a/include/linux/irqdomain.h
-+++ b/include/linux/irqdomain.h
-@@ -340,10 +340,23 @@ extern void irq_domain_set_info(struct irq_domain *domain, unsigned int virq,
- 				void *chip_data, irq_flow_handler_t handler,
- 				void *handler_data, const char *handler_name);
- #ifdef	CONFIG_IRQ_DOMAIN_HIERARCHY
--extern struct irq_domain *irq_domain_add_hierarchy(struct irq_domain *parent,
-+extern struct irq_domain *irq_domain_create_hierarchy(struct irq_domain *parent,
- 			unsigned int flags, unsigned int size,
--			struct device_node *node,
-+			struct fwnode_handle *fwnode,
- 			const struct irq_domain_ops *ops, void *host_data);
-+
-+static inline struct irq_domain *irq_domain_add_hierarchy(struct irq_domain *parent,
-+					    unsigned int flags,
-+					    unsigned int size,
-+					    struct device_node *node,
-+					    const struct irq_domain_ops *ops,
-+					    void *host_data)
-+{
-+	return irq_domain_create_hierarchy(parent, flags, size,
-+					   of_node_to_fwnode(node),
-+					   ops, host_data);
-+}
-+
- extern int __irq_domain_alloc_irqs(struct irq_domain *domain, int irq_base,
- 				   unsigned int nr_irqs, int node, void *arg,
- 				   bool realloc);
-diff --git a/kernel/irq/irqdomain.c b/kernel/irq/irqdomain.c
-index 6fbecae..a53b60f 100644
---- a/kernel/irq/irqdomain.c
-+++ b/kernel/irq/irqdomain.c
-@@ -858,7 +858,7 @@ static int irq_domain_alloc_descs(int virq, unsigned int cnt,
-  * @parent:	Parent irq domain to associate with the new domain
-  * @flags:	Irq domain flags associated to the domain
-  * @size:	Size of the domain. See below
-- * @node:	Optional device-tree node of the interrupt controller
-+ * @fwnode:	Optional fwnode of the interrupt controller
-  * @ops:	Pointer to the interrupt domain callbacks
-  * @host_data:	Controller private data pointer
-  *
-@@ -868,19 +868,19 @@ static int irq_domain_alloc_descs(int virq, unsigned int cnt,
-  * domain flags are set.
-  * Returns pointer to IRQ domain, or NULL on failure.
-  */
--struct irq_domain *irq_domain_add_hierarchy(struct irq_domain *parent,
-+struct irq_domain *irq_domain_create_hierarchy(struct irq_domain *parent,
- 					    unsigned int flags,
- 					    unsigned int size,
--					    struct device_node *node,
-+					    struct fwnode_handle *fwnode,
- 					    const struct irq_domain_ops *ops,
- 					    void *host_data)
- {
- 	struct irq_domain *domain;
+diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
+index b0135be..f1f4ca1 100644
+--- a/drivers/irqchip/irq-gic.c
++++ b/drivers/irqchip/irq-gic.c
+@@ -1112,17 +1112,15 @@ static void __init __gic_init_bases(unsigned int gic_nr, int irq_start,
+ 	gic_pm_init(gic);
+ }
  
- 	if (size)
--		domain = irq_domain_add_linear(node, size, ops, host_data);
-+		domain = irq_domain_create_linear(fwnode, size, ops, host_data);
- 	else
--		domain = irq_domain_add_tree(node, ops, host_data);
-+		domain = irq_domain_create_tree(fwnode, ops, host_data);
- 	if (domain) {
- 		domain->parent = parent;
- 		domain->flags |= flags;
+-void __init gic_init_bases(unsigned int gic_nr, int irq_start,
+-			   void __iomem *dist_base, void __iomem *cpu_base,
+-			   u32 percpu_offset, struct device_node *node)
++void __init gic_init(unsigned int gic_nr, int irq_start,
++		     void __iomem *dist_base, void __iomem *cpu_base)
+ {
+ 	/*
+ 	 * Non-DT/ACPI systems won't run a hypervisor, so let's not
+ 	 * bother with these...
+ 	 */
+ 	static_key_slow_dec(&supports_deactivate);
+-	__gic_init_bases(gic_nr, irq_start, dist_base, cpu_base,
+-			 percpu_offset, node);
++	__gic_init_bases(gic_nr, irq_start, dist_base, cpu_base, 0, NULL);
+ }
+ 
+ #ifdef CONFIG_OF
+diff --git a/include/linux/irqchip/arm-gic.h b/include/linux/irqchip/arm-gic.h
+index b8901df..bae69e5 100644
+--- a/include/linux/irqchip/arm-gic.h
++++ b/include/linux/irqchip/arm-gic.h
+@@ -100,16 +100,11 @@
+ 
+ struct device_node;
+ 
+-void gic_init_bases(unsigned int, int, void __iomem *, void __iomem *,
+-		    u32 offset, struct device_node *);
+ void gic_cascade_irq(unsigned int gic_nr, unsigned int irq);
+ int gic_cpu_if_down(unsigned int gic_nr);
+ 
+-static inline void gic_init(unsigned int nr, int start,
+-			    void __iomem *dist , void __iomem *cpu)
+-{
+-	gic_init_bases(nr, start, dist, cpu, 0, NULL);
+-}
++void gic_init(unsigned int nr, int start,
++	      void __iomem *dist , void __iomem *cpu);
+ 
+ int gicv2m_of_init(struct device_node *node, struct irq_domain *parent);
+ 
 -- 
 2.1.4
