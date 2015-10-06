@@ -1,7 +1,7 @@
 From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: [PATCH 02/16] irqdomain: Convert irqdomain->of_node to fwnode
-Date: Tue,  6 Oct 2015 18:36:15 +0100
-Message-ID: <1444152989-31726-3-git-send-email-marc.zyngier@arm.com>
+Subject: [PATCH 07/16] irqdomain: Introduce irq_domain_create_{linear,tree}
+Date: Tue,  6 Oct 2015 18:36:20 +0100
+Message-ID: <1444152989-31726-8-git-send-email-marc.zyngier@arm.com>
 References: <1444152989-31726-1-git-send-email-marc.zyngier@arm.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1444152989-31726-1-git-send-email-marc.zyngier@arm.com>
@@ -10,75 +10,139 @@ To: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>,
 Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Graeme Gregory <graeme@xora.org.uk>, Jake Oshins <jakeo@microsoft.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Now that we have everyone accessing the of_node field via the
-irq_domain_get_of_node accessor, it is pretty easy to swap it
-for a pointer to a fwnode_handle.
+Just like we have irq_domain_add_{linear,tree} to create a irq domain
+identified by an of_node, introduce irq_domain_create_{linear,tree}
+that do the same thing, except that they take a struct fwnode_handle.
 
-This translates into a few limited changes in __irq_domain_add,
-and an updated irq_domain_get_of_node.
+Existing functions get rewritten in terms of the new ones so that
+everything keeps working as before (and __irq_domain_add is now
+fwnode_handle based as well).
 
 Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
 ---
- include/linux/irqdomain.h | 5 +++--
- kernel/irq/irqdomain.c    | 6 +++++-
- 2 files changed, 8 insertions(+), 3 deletions(-)
+ include/linux/irqdomain.h | 31 +++++++++++++++++++++++++------
+ kernel/irq/irqdomain.c    | 11 ++++++-----
+ 2 files changed, 31 insertions(+), 11 deletions(-)
 
 diff --git a/include/linux/irqdomain.h b/include/linux/irqdomain.h
-index f644fdb..2f508f4 100644
+index 7e7842e..995d4c5 100644
 --- a/include/linux/irqdomain.h
 +++ b/include/linux/irqdomain.h
-@@ -34,6 +34,7 @@
- 
- #include <linux/types.h>
- #include <linux/irqhandler.h>
-+#include <linux/of.h>
- #include <linux/radix-tree.h>
- 
- struct device_node;
-@@ -130,7 +131,7 @@ struct irq_domain {
- 	unsigned int flags;
- 
- 	/* Optional data */
--	struct device_node *of_node;
-+	struct fwnode_handle *fwnode;
- 	enum irq_domain_bus_token bus_token;
- 	struct irq_domain_chip_generic *gc;
- #ifdef	CONFIG_IRQ_DOMAIN_HIERARCHY
-@@ -163,7 +164,7 @@ enum {
- 
- static inline struct device_node *irq_domain_get_of_node(struct irq_domain *d)
- {
--	return d->of_node;
-+	return to_of_node(d->fwnode);
+@@ -188,7 +188,7 @@ static inline struct device_node *irq_domain_get_of_node(struct irq_domain *d)
  }
  
  #ifdef CONFIG_IRQ_DOMAIN
+-struct irq_domain *__irq_domain_add(struct device_node *of_node, int size,
++struct irq_domain *__irq_domain_add(struct fwnode_handle *fwnode, int size,
+ 				    irq_hw_number_t hwirq_max, int direct_max,
+ 				    const struct irq_domain_ops *ops,
+ 				    void *host_data);
+@@ -207,11 +207,15 @@ extern struct irq_domain *irq_find_matching_fwnode(struct fwnode_handle *fwnode,
+ 						   enum irq_domain_bus_token bus_token);
+ extern void irq_set_default_host(struct irq_domain *host);
+ 
++static inline struct fwnode_handle *of_node_to_fwnode(struct device_node *node)
++{
++	return node ? &node->fwnode : NULL;
++}
++
+ static inline struct irq_domain *irq_find_matching_host(struct device_node *node,
+ 							enum irq_domain_bus_token bus_token)
+ {
+-	return irq_find_matching_fwnode(node ? &node->fwnode : NULL,
+-					bus_token);
++	return irq_find_matching_fwnode(of_node_to_fwnode(node), bus_token);
+ }
+ 
+ static inline struct irq_domain *irq_find_host(struct device_node *node)
+@@ -231,14 +235,14 @@ static inline struct irq_domain *irq_domain_add_linear(struct device_node *of_no
+ 					 const struct irq_domain_ops *ops,
+ 					 void *host_data)
+ {
+-	return __irq_domain_add(of_node, size, size, 0, ops, host_data);
++	return __irq_domain_add(of_node_to_fwnode(of_node), size, size, 0, ops, host_data);
+ }
+ static inline struct irq_domain *irq_domain_add_nomap(struct device_node *of_node,
+ 					 unsigned int max_irq,
+ 					 const struct irq_domain_ops *ops,
+ 					 void *host_data)
+ {
+-	return __irq_domain_add(of_node, 0, max_irq, max_irq, ops, host_data);
++	return __irq_domain_add(of_node_to_fwnode(of_node), 0, max_irq, max_irq, ops, host_data);
+ }
+ static inline struct irq_domain *irq_domain_add_legacy_isa(
+ 				struct device_node *of_node,
+@@ -252,7 +256,22 @@ static inline struct irq_domain *irq_domain_add_tree(struct device_node *of_node
+ 					 const struct irq_domain_ops *ops,
+ 					 void *host_data)
+ {
+-	return __irq_domain_add(of_node, 0, ~0, 0, ops, host_data);
++	return __irq_domain_add(of_node_to_fwnode(of_node), 0, ~0, 0, ops, host_data);
++}
++
++static inline struct irq_domain *irq_domain_create_linear(struct fwnode_handle *fwnode,
++					 unsigned int size,
++					 const struct irq_domain_ops *ops,
++					 void *host_data)
++{
++	return __irq_domain_add(fwnode, size, size, 0, ops, host_data);
++}
++
++static inline struct irq_domain *irq_domain_create_tree(struct fwnode_handle *fwnode,
++					 const struct irq_domain_ops *ops,
++					 void *host_data)
++{
++	return __irq_domain_add(fwnode, 0, ~0, 0, ops, host_data);
+ }
+ 
+ extern void irq_domain_remove(struct irq_domain *host);
 diff --git a/kernel/irq/irqdomain.c b/kernel/irq/irqdomain.c
-index 8f8b538..1aee5c1 100644
+index 2adc84e..ea62f67 100644
 --- a/kernel/irq/irqdomain.c
 +++ b/kernel/irq/irqdomain.c
-@@ -46,17 +46,21 @@ struct irq_domain *__irq_domain_add(struct device_node *of_node, int size,
+@@ -40,13 +40,15 @@ static void irq_domain_check_hierarchy(struct irq_domain *domain);
+  * Allocates and initialize and irq_domain structure.
+  * Returns pointer to IRQ domain, or NULL on failure.
+  */
+-struct irq_domain *__irq_domain_add(struct device_node *of_node, int size,
++struct irq_domain *__irq_domain_add(struct fwnode_handle *fwnode, int size,
+ 				    irq_hw_number_t hwirq_max, int direct_max,
+ 				    const struct irq_domain_ops *ops,
  				    void *host_data)
  {
  	struct irq_domain *domain;
-+	struct fwnode_handle *fwnode;
+-	struct fwnode_handle *fwnode;
++	struct device_node *of_node;
++
++	of_node = to_of_node(fwnode);
  
  	domain = kzalloc_node(sizeof(*domain) + (sizeof(unsigned int) * size),
  			      GFP_KERNEL, of_node_to_nid(of_node));
- 	if (WARN_ON(!domain))
+@@ -54,7 +56,6 @@ struct irq_domain *__irq_domain_add(struct device_node *of_node, int size,
  		return NULL;
  
-+	of_node_get(of_node);
-+	fwnode = of_node ? &of_node->fwnode : NULL;
-+
+ 	of_node_get(of_node);
+-	fwnode = of_node ? &of_node->fwnode : NULL;
+ 
  	/* Fill structure */
  	INIT_RADIX_TREE(&domain->revmap_tree, GFP_KERNEL);
- 	domain->ops = ops;
- 	domain->host_data = host_data;
--	domain->of_node = of_node_get(of_node);
-+	domain->fwnode = fwnode;
- 	domain->hwirq_max = hwirq_max;
- 	domain->revmap_size = size;
- 	domain->revmap_direct_max_irq = direct_max;
+@@ -137,7 +138,7 @@ struct irq_domain *irq_domain_add_simple(struct device_node *of_node,
+ {
+ 	struct irq_domain *domain;
+ 
+-	domain = __irq_domain_add(of_node, size, size, 0, ops, host_data);
++	domain = __irq_domain_add(of_node_to_fwnode(of_node), size, size, 0, ops, host_data);
+ 	if (!domain)
+ 		return NULL;
+ 
+@@ -181,7 +182,7 @@ struct irq_domain *irq_domain_add_legacy(struct device_node *of_node,
+ {
+ 	struct irq_domain *domain;
+ 
+-	domain = __irq_domain_add(of_node, first_hwirq + size,
++	domain = __irq_domain_add(of_node_to_fwnode(of_node), first_hwirq + size,
+ 				  first_hwirq + size, 0, ops, host_data);
+ 	if (domain)
+ 		irq_domain_associate_many(domain, first_irq, first_hwirq, size);
 -- 
 2.1.4
