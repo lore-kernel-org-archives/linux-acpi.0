@@ -1,108 +1,67 @@
-From: Rob Herring <robherring2@gmail.com>
-Subject: Re: [PATCH v6 21/22] driver core: Start processing deferred probes earlier
-Date: Mon, 5 Oct 2015 21:49:38 -0500
-Message-ID: <CAL_JsqKBKSsvEuoufc=xesSvcA1bf-X43O0YOvuntUJE5NYCJA@mail.gmail.com>
+From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [PATCH v6 21/22] driver core: Start processing deferred probes
+ earlier
+Date: Tue, 6 Oct 2015 11:45:15 +0100
+Message-ID: <20151006104515.GJ12635@sirena.org.uk>
 References: <1442844182-27787-1-git-send-email-tomeu.vizoso@collabora.com>
- <1442844182-27787-22-git-send-email-tomeu.vizoso@collabora.com> <56130D43.10200@gmail.com>
+ <1442844182-27787-22-git-send-email-tomeu.vizoso@collabora.com>
+ <56130D43.10200@gmail.com>
+ <CAL_JsqKBKSsvEuoufc=xesSvcA1bf-X43O0YOvuntUJE5NYCJA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yk0-f172.google.com ([209.85.160.172]:33539 "EHLO
-	mail-yk0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751238AbbJFCt6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 5 Oct 2015 22:49:58 -0400
-In-Reply-To: <56130D43.10200@gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="g2qYG+WgOEFhwE/z"
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAL_JsqKBKSsvEuoufc=xesSvcA1bf-X43O0YOvuntUJE5NYCJA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Rob Herring <robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tomeu Vizoso <tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Frank Rowand <frowand.list@gmail.com>
-Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>
 
-On Mon, Oct 5, 2015 at 6:52 PM, Frank Rowand <frowand.list@gmail.com> wrote:
-> On 9/21/2015 7:03 AM, Tomeu Vizoso wrote:
->> Some initcalls in the late level assume that some devices will have
->> already probed without explicitly checking for that.
->>
->> After the recent move to defer most device probes when they are
->> registered, pressure increased in the late initcall level.
->>
->> By starting the processing of the deferred queue in device_initcall_sync
->> we increase the chances that the initcalls mentioned before will find
->> the devices they depend on to have already probed.
->>
->> Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
->> ---
->>
->> Changes in v4:
->> - Start processing deferred probes in device_initcall_sync
->>
->>  drivers/base/dd.c | 4 ++--
->>  1 file changed, 2 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/base/dd.c b/drivers/base/dd.c
->> index 269ea76c1a4f..f0ef9233fcd6 100644
->> --- a/drivers/base/dd.c
->> +++ b/drivers/base/dd.c
->> @@ -176,7 +176,7 @@ static void driver_deferred_probe_trigger(void)
->>   *
->>   * We don't want to get in the way when the bulk of drivers are getting probed.
->>   * Instead, this initcall makes sure that deferred probing is delayed until
->> - * late_initcall time.
->> + * device_initcall_sync time.
->
-> This is a misuse of the *_sync initcall level.
->
-> If a deferred probe created a thread and expected a wait at the
-> following *_sync level then the wait would not occur because
-> there is no subsequent *_sync level.  This is not a problem today
-> because (as far as I know) there are no threads in the probe
-> functions.  But there has been interest in adding parallel
-> probing and that could expose this problem.
->
-> The purpose of the *_sync initcall levels is to allow the corresponding
-> initcall level to use multiple threads of execution instead of a single
-> thread.  The *_sync level provides a location for a wait for all of the
-> threads at the corresponding init level to complete.  This is better
-> explained in the git log:
 
-The things I was worried about like clk and regulator disabling are
-actually late_initcall_sync, so maybe late_initcall is fine here after
-all.
+--g2qYG+WgOEFhwE/z
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-However, looking at other *_initcall_sync users, I'm not so sure they
-are doing the same abuse.
+On Mon, Oct 05, 2015 at 09:49:38PM -0500, Rob Herring wrote:
+> On Mon, Oct 5, 2015 at 6:52 PM, Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
 
-Rob
+> > The purpose of the *_sync initcall levels is to allow the corresponding
+> > initcall level to use multiple threads of execution instead of a single
+> > thread.  The *_sync level provides a location for a wait for all of the
+> > threads at the corresponding init level to complete.  This is better
+> > explained in the git log:
 
->
-> commit 735a7ffb739b6efeaeb1e720306ba308eaaeb20e
-> Author: Andrew Morton <akpm@osdl.org>
-> Date:   Fri Oct 27 11:42:37 2006 -0700
->
->     [PATCH] drivers: wait for threaded probes between initcall levels
->
->     The multithreaded-probing code has a problem: after one initcall level (eg,
->     core_initcall) has been processed, we will then start processing the next
->     level (postcore_initcall) while the kernel threads which are handling
->     core_initcall are still executing.  This breaks the guarantees which the
->     layered initcalls previously gave us.
->
->     IOW, we want to be multithreaded _within_ an initcall level, but not between
->     different levels.
->
->     Fix that up by causing the probing code to wait for all outstanding probes at
->     one level to complete before we start processing the next level.
->
->>   */
->>  static int deferred_probe_initcall(void)
->>  {
->> @@ -190,7 +190,7 @@ static int deferred_probe_initcall(void)
->>       flush_workqueue(deferred_wq);
->>       return 0;
->>  }
->> -late_initcall(deferred_probe_initcall);
->> +device_initcall_sync(deferred_probe_initcall);
->>
->>  static void driver_bound(struct device *dev)
->>  {
->>
->
+> The things I was worried about like clk and regulator disabling are
+> actually late_initcall_sync, so maybe late_initcall is fine here after
+> all.
+
+> However, looking at other *_initcall_sync users, I'm not so sure they
+> are doing the same abuse.
+
+They're trying to run at the point where we've completed deferred
+probe processing - in other words, at the sync point.  What they really
+want is an additional callback at the point where the syncs have
+actually happened.
+
+--g2qYG+WgOEFhwE/z
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJWE6Y6AAoJECTWi3JdVIfQKRUH/1mUtCLtXBhE6vc5lYkjXBIb
+Xz0SlNQV6+vB/ju/WLw70Iy6uI2+VVsfRaohtrBTt7T28dgBiAl4ifXVrnpWZn6W
+7KNEkk+mzqycPjG1U///Ix/H0RtXCeY6Sqlpxp1H5PrsrICH0f/gAH9fUPGsF+97
+REDaPHVF6NpXBuqjlEGp1g//4r/+z+Q24uM8UpidP4icBdEdDNY009mzD7WFSYPj
+dR+ro490GcBNvP4xAjmZxsHbXHgHqPY0v04uHuDQXoE0C2UBu7zA7FsKKqYIemiv
+j2DI56Doz4/a2BP1CHH3SWBAA//Md0eMAUML4xmMoy1S7MIY79M6GMtIY25L5IY=
+=J/s4
+-----END PGP SIGNATURE-----
+
+--g2qYG+WgOEFhwE/z--
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
