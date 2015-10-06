@@ -1,67 +1,108 @@
-From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Subject: Re: [PATCH v6 21/22] driver core: Start processing deferred probes
- earlier
-Date: Tue, 6 Oct 2015 11:45:15 +0100
-Message-ID: <20151006104515.GJ12635@sirena.org.uk>
-References: <1442844182-27787-1-git-send-email-tomeu.vizoso@collabora.com>
- <1442844182-27787-22-git-send-email-tomeu.vizoso@collabora.com>
- <56130D43.10200@gmail.com>
- <CAL_JsqKBKSsvEuoufc=xesSvcA1bf-X43O0YOvuntUJE5NYCJA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="g2qYG+WgOEFhwE/z"
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <CAL_JsqKBKSsvEuoufc=xesSvcA1bf-X43O0YOvuntUJE5NYCJA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Rob Herring <robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
-Cc: Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Tomeu Vizoso <tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: [PATCH 00/16] Divorcing irqdomain and device_node
+Date: Tue,  6 Oct 2015 18:36:13 +0100
+Message-ID: <1444152989-31726-1-git-send-email-marc.zyngier@arm.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Graeme Gregory <graeme@xora.org.uk>, Jake Oshins <jakeo@microsoft.com>
 List-Id: linux-acpi@vger.kernel.org
 
+[This patch series used to be called "Making the generic ACPI GSI
+layer irqdomain aware", but as I've radically changed my approach to
+this problem, I've decided to reset the counters...]
 
---g2qYG+WgOEFhwE/z
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+The irqdomain code is not entierely ACPI friendly, as it has some
+built-in knowledge of the device-tree. Nothing too harmful, but enough
+to scare the ARM ACPI developpers which end up with their own version
+of the square wheel. And some of the ramifications actually run deeper
+than initially expected.
 
-On Mon, Oct 05, 2015 at 09:49:38PM -0500, Rob Herring wrote:
-> On Mon, Oct 5, 2015 at 6:52 PM, Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org> wrote:
+This series adapts the irqdomain code to use 'struct fwnode_handle'
+instead of 'struct device_node' as the identifier for a domain
+(compatibility interfaces are of course added). It also introduces a
+generic IRQ specifier that firmware interfaces (DT or ACPI) can
+directly use to configure interrupts, and allow the ACPI GSI code to
+be plugged into this.
 
-> > The purpose of the *_sync initcall levels is to allow the corresponding
-> > initcall level to use multiple threads of execution instead of a single
-> > thread.  The *_sync level provides a location for a wait for all of the
-> > threads at the corresponding init level to complete.  This is better
-> > explained in the git log:
+As examples, we convert the ARM GIC ACPI support to use irqdomains as
+originally intended, and rework the MSI code to also move away from
+using device nodes when using irqdomains.
 
-> The things I was worried about like clk and regulator disabling are
-> actually late_initcall_sync, so maybe late_initcall is fine here after
-> all.
+Overall, this gives us a way to use irqdomains on both DT and ACPI
+enabled platforms, having very little changes made to the actual
+drivers (other than the probing infrastructure). Because we keep the
+flow of information between the various layers identical between ACPI
+and DT, we immediately benefit from the existing infrastructure.
 
-> However, looking at other *_initcall_sync users, I'm not so sure they
-> are doing the same abuse.
+This has been test-booted on Juno, is based on 4.3-rc4, and available at:
 
-They're trying to run at the point where we've completed deferred
-probe processing - in other words, at the sync point.  What they really
-want is an additional callback at the point where the syncs have
-actually happened.
+git://git.kernel.org/pub/scm/linux/kernel/git/maz/arm-platforms.git irq/irq-domain-fwnode-v1
 
---g2qYG+WgOEFhwE/z
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+Marc Zyngier (16):
+  irqdomain: Use an accessor for the of_node field
+  irqdomain: Convert irqdomain->of_node to fwnode
+  irqdomain: Allow irq domain lookup by fwnode
+  irqdomain: Introduce a firmware-specific IRQ specifier structure
+  irqchip: Convert all alloc/xlate users from of_node to fwnode
+  irqdomain: Introduce irq_create_fwspec_mapping
+  irqdomain: Introduce irq_domain_create_{linear,tree}
+  irqdomain: Add a fwnode_handle allocator
+  acpi/gsi: Always perform an irq domain lookup
+  acpi/gsi: Add acpi_set_irq_model to initialize the GSI layer
+  irqchip/gic: Get rid of gic_init_bases()
+  irqchip/gic: Switch ACPI support to stacked domains
+  irqchip/gic: Kill the xlate method
+  acpi/gsi: Cleanup acpi_register_gsi
+  irqdomain: Introduce irq_domain_create_hierarchy
+  irqdomain/msi: Use fwnode instead of of_node
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
+ arch/arm/mach-exynos/suspend.c                |  55 ++++----
+ arch/arm/mach-imx/gpc.c                       |  55 ++++----
+ arch/arm/mach-omap2/omap-wakeupgen.c          |  55 ++++----
+ arch/c6x/platforms/megamod-pic.c              |   2 +-
+ arch/mips/cavium-octeon/octeon-irq.c          |   4 +-
+ arch/powerpc/platforms/cell/axon_msi.c        |   2 +-
+ arch/powerpc/platforms/cell/spider-pic.c      |   9 +-
+ arch/powerpc/platforms/pasemi/msi.c           |   6 +-
+ arch/powerpc/platforms/powernv/opal-irqchip.c |   2 +-
+ arch/powerpc/sysdev/ehv_pic.c                 |   3 +-
+ arch/powerpc/sysdev/fsl_msi.c                 |   2 +-
+ arch/powerpc/sysdev/i8259.c                   |   3 +-
+ arch/powerpc/sysdev/ipic.c                    |   3 +-
+ arch/powerpc/sysdev/mpic.c                    |   3 +-
+ arch/powerpc/sysdev/mpic_msi.c                |   2 +-
+ arch/powerpc/sysdev/qe_lib/qe_ic.c            |   3 +-
+ drivers/acpi/gsi.c                            |  54 ++++----
+ drivers/base/platform-msi.c                   |   6 +-
+ drivers/gpio/gpio-sodaville.c                 |   2 +-
+ drivers/irqchip/exynos-combiner.c             |   2 +-
+ drivers/irqchip/irq-atmel-aic-common.c        |   2 +-
+ drivers/irqchip/irq-crossbar.c                |  62 ++++-----
+ drivers/irqchip/irq-gic-v2m.c                 |  23 ++--
+ drivers/irqchip/irq-gic-v3-its-pci-msi.c      |   3 +-
+ drivers/irqchip/irq-gic-v3-its-platform-msi.c |   3 +-
+ drivers/irqchip/irq-gic-v3-its.c              |  20 +--
+ drivers/irqchip/irq-gic-v3.c                  |  49 ++++----
+ drivers/irqchip/irq-gic.c                     |  94 ++++++++------
+ drivers/irqchip/irq-hip04.c                   |   2 +-
+ drivers/irqchip/irq-imx-gpcv2.c               |  64 +++++-----
+ drivers/irqchip/irq-mtk-sysirq.c              |  49 ++++----
+ drivers/irqchip/irq-nvic.c                    |  18 ++-
+ drivers/irqchip/irq-s3c24xx.c                 |   4 +-
+ drivers/irqchip/irq-tegra.c                   |  55 ++++----
+ drivers/irqchip/irq-vf610-mscm-ir.c           |  45 ++++---
+ drivers/pci/host/pci-xgene-msi.c              |   2 +-
+ drivers/pci/msi.c                             |  14 +--
+ drivers/spmi/spmi-pmic-arb.c                  |   2 +-
+ include/linux/acpi.h                          |   3 +
+ include/linux/fwnode.h                        |   1 +
+ include/linux/irqchip/arm-gic.h               |   9 +-
+ include/linux/irqdomain.h                     |  86 +++++++++++--
+ include/linux/msi.h                           |   9 +-
+ kernel/irq/irqdomain.c                        | 173 ++++++++++++++++++++------
+ kernel/irq/msi.c                              |   8 +-
+ 45 files changed, 665 insertions(+), 408 deletions(-)
 
-iQEcBAEBCAAGBQJWE6Y6AAoJECTWi3JdVIfQKRUH/1mUtCLtXBhE6vc5lYkjXBIb
-Xz0SlNQV6+vB/ju/WLw70Iy6uI2+VVsfRaohtrBTt7T28dgBiAl4ifXVrnpWZn6W
-7KNEkk+mzqycPjG1U///Ix/H0RtXCeY6Sqlpxp1H5PrsrICH0f/gAH9fUPGsF+97
-REDaPHVF6NpXBuqjlEGp1g//4r/+z+Q24uM8UpidP4icBdEdDNY009mzD7WFSYPj
-dR+ro490GcBNvP4xAjmZxsHbXHgHqPY0v04uHuDQXoE0C2UBu7zA7FsKKqYIemiv
-j2DI56Doz4/a2BP1CHH3SWBAA//Md0eMAUML4xmMoy1S7MIY79M6GMtIY25L5IY=
-=J/s4
------END PGP SIGNATURE-----
-
---g2qYG+WgOEFhwE/z--
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+2.1.4
