@@ -1,256 +1,97 @@
 From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: [PATCH 16/16] irqdomain/msi: Use fwnode instead of of_node
-Date: Tue,  6 Oct 2015 18:36:29 +0100
-Message-ID: <1444152989-31726-17-git-send-email-marc.zyngier@arm.com>
+Subject: [PATCH 03/16] irqdomain: Allow irq domain lookup by fwnode
+Date: Tue,  6 Oct 2015 18:36:16 +0100
+Message-ID: <1444152989-31726-4-git-send-email-marc.zyngier@arm.com>
 References: <1444152989-31726-1-git-send-email-marc.zyngier@arm.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1444152989-31726-1-git-send-email-marc.zyngier@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Graeme Gregory <graeme@xora.org.uk>, Jake Oshins <jakeo@microsoft.com>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-kernel@vger.kernel.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Jake Oshins <jakeo@microsoft.com>, Graeme Gregory <graeme@xora.org.uk>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-As we continue to push of_node towards the outskirts of irq domains,
-let's start tackling the case of msi_create_irq_domain and its little
-friends.
+So far, our irq domains are still looked up by device node.
+Let's change this and allow a domain to be looked up using
+a fwnode_handle pointer.
 
-This has limited impact in both PCI/MSI, platform MSI, and a few
-drivers.
+The existing interfaces are preserved with a couple of helpers.
 
 Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
 ---
- drivers/base/platform-msi.c                   |  6 +++---
- drivers/irqchip/irq-gic-v2m.c                 |  5 +++--
- drivers/irqchip/irq-gic-v3-its-pci-msi.c      |  3 ++-
- drivers/irqchip/irq-gic-v3-its-platform-msi.c |  3 ++-
- drivers/pci/host/pci-xgene-msi.c              |  2 +-
- drivers/pci/msi.c                             | 14 +++++++-------
- include/linux/msi.h                           |  9 +++++----
- kernel/irq/msi.c                              |  8 ++++----
- 8 files changed, 27 insertions(+), 23 deletions(-)
+ include/linux/irqdomain.h | 11 +++++++++--
+ kernel/irq/irqdomain.c    | 14 ++++++--------
+ 2 files changed, 15 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/base/platform-msi.c b/drivers/base/platform-msi.c
-index 134483d..5df4575 100644
---- a/drivers/base/platform-msi.c
-+++ b/drivers/base/platform-msi.c
-@@ -152,7 +152,7 @@ static int platform_msi_alloc_descs(struct device *dev, int nvec,
+diff --git a/include/linux/irqdomain.h b/include/linux/irqdomain.h
+index 2f508f4..607c185 100644
+--- a/include/linux/irqdomain.h
++++ b/include/linux/irqdomain.h
+@@ -183,10 +183,17 @@ struct irq_domain *irq_domain_add_legacy(struct device_node *of_node,
+ 					 irq_hw_number_t first_hwirq,
+ 					 const struct irq_domain_ops *ops,
+ 					 void *host_data);
+-extern struct irq_domain *irq_find_matching_host(struct device_node *node,
+-						 enum irq_domain_bus_token bus_token);
++extern struct irq_domain *irq_find_matching_fwnode(struct fwnode_handle *fwnode,
++						   enum irq_domain_bus_token bus_token);
+ extern void irq_set_default_host(struct irq_domain *host);
  
- /**
-  * platform_msi_create_irq_domain - Create a platform MSI interrupt domain
-- * @np:		Optional device-tree node of the interrupt controller
-+ * @fwnode:		Optional fwnode of the interrupt controller
-  * @info:	MSI domain info
-  * @parent:	Parent irq domain
-  *
-@@ -162,7 +162,7 @@ static int platform_msi_alloc_descs(struct device *dev, int nvec,
-  * Returns:
-  * A domain pointer or NULL in case of failure.
-  */
--struct irq_domain *platform_msi_create_irq_domain(struct device_node *np,
-+struct irq_domain *platform_msi_create_irq_domain(struct fwnode_handle *fwnode,
- 						  struct msi_domain_info *info,
- 						  struct irq_domain *parent)
++static inline struct irq_domain *irq_find_matching_host(struct device_node *node,
++							enum irq_domain_bus_token bus_token)
++{
++	return irq_find_matching_fwnode(node ? &node->fwnode : NULL,
++					bus_token);
++}
++
+ static inline struct irq_domain *irq_find_host(struct device_node *node)
  {
-@@ -173,7 +173,7 @@ struct irq_domain *platform_msi_create_irq_domain(struct device_node *np,
- 	if (info->flags & MSI_FLAG_USE_DEF_CHIP_OPS)
- 		platform_msi_update_chip_ops(info);
- 
--	domain = msi_create_irq_domain(np, info, parent);
-+	domain = msi_create_irq_domain(fwnode, info, parent);
- 	if (domain)
- 		domain->bus_token = DOMAIN_BUS_PLATFORM_MSI;
- 
-diff --git a/drivers/irqchip/irq-gic-v2m.c b/drivers/irqchip/irq-gic-v2m.c
-index b2b08dd..93bb843 100644
---- a/drivers/irqchip/irq-gic-v2m.c
-+++ b/drivers/irqchip/irq-gic-v2m.c
-@@ -286,9 +286,10 @@ static int __init gicv2m_init_one(struct device_node *node,
- 
- 	inner_domain->bus_token = DOMAIN_BUS_NEXUS;
- 	inner_domain->parent = parent;
--	pci_domain = pci_msi_create_irq_domain(node, &gicv2m_msi_domain_info,
-+	pci_domain = pci_msi_create_irq_domain(of_node_to_fwnode(node),
-+					       &gicv2m_msi_domain_info,
- 					       inner_domain);
--	plat_domain = platform_msi_create_irq_domain(node,
-+	plat_domain = platform_msi_create_irq_domain(of_node_to_fwnode(node),
- 						     &gicv2m_pmsi_domain_info,
- 						     inner_domain);
- 	if (!pci_domain || !plat_domain) {
-diff --git a/drivers/irqchip/irq-gic-v3-its-pci-msi.c b/drivers/irqchip/irq-gic-v3-its-pci-msi.c
-index a7c8c9f..693c2f9 100644
---- a/drivers/irqchip/irq-gic-v3-its-pci-msi.c
-+++ b/drivers/irqchip/irq-gic-v3-its-pci-msi.c
-@@ -125,7 +125,8 @@ static int __init its_pci_msi_init(void)
- 			continue;
- 		}
- 
--		if (!pci_msi_create_irq_domain(np, &its_pci_msi_domain_info,
-+		if (!pci_msi_create_irq_domain(of_node_to_fwnode(np),
-+					       &its_pci_msi_domain_info,
- 					       parent)) {
- 			pr_err("%s: unable to create PCI domain\n",
- 			       np->full_name);
-diff --git a/drivers/irqchip/irq-gic-v3-its-platform-msi.c b/drivers/irqchip/irq-gic-v3-its-platform-msi.c
-index a865505..960a816 100644
---- a/drivers/irqchip/irq-gic-v3-its-platform-msi.c
-+++ b/drivers/irqchip/irq-gic-v3-its-platform-msi.c
-@@ -78,7 +78,8 @@ static int __init its_pmsi_init(void)
- 			continue;
- 		}
- 
--		if (!platform_msi_create_irq_domain(np, &its_pmsi_domain_info,
-+		if (!platform_msi_create_irq_domain(of_node_to_fwnode(np),
-+						    &its_pmsi_domain_info,
- 						    parent)) {
- 			pr_err("%s: unable to create platform domain\n",
- 			       np->full_name);
-diff --git a/drivers/pci/host/pci-xgene-msi.c b/drivers/pci/host/pci-xgene-msi.c
-index e491681..a6456b5 100644
---- a/drivers/pci/host/pci-xgene-msi.c
-+++ b/drivers/pci/host/pci-xgene-msi.c
-@@ -256,7 +256,7 @@ static int xgene_allocate_domains(struct xgene_msi *msi)
- 	if (!msi->inner_domain)
- 		return -ENOMEM;
- 
--	msi->msi_domain = pci_msi_create_irq_domain(msi->node,
-+	msi->msi_domain = pci_msi_create_irq_domain(of_node_to_fwnode(msi->node),
- 						    &xgene_msi_domain_info,
- 						    msi->inner_domain);
- 
-diff --git a/drivers/pci/msi.c b/drivers/pci/msi.c
-index d449714..ddd59fe 100644
---- a/drivers/pci/msi.c
-+++ b/drivers/pci/msi.c
-@@ -1246,8 +1246,8 @@ static void pci_msi_domain_update_chip_ops(struct msi_domain_info *info)
- }
+ 	return irq_find_matching_host(node, DOMAIN_BUS_ANY);
+diff --git a/kernel/irq/irqdomain.c b/kernel/irq/irqdomain.c
+index 1aee5c1..10b6105 100644
+--- a/kernel/irq/irqdomain.c
++++ b/kernel/irq/irqdomain.c
+@@ -191,12 +191,12 @@ struct irq_domain *irq_domain_add_legacy(struct device_node *of_node,
+ EXPORT_SYMBOL_GPL(irq_domain_add_legacy);
  
  /**
-- * pci_msi_create_irq_domain - Creat a MSI interrupt domain
-- * @node:	Optional device-tree node of the interrupt controller
-+ * pci_msi_create_irq_domain - Create a MSI interrupt domain
-+ * @fwnode:	Optional fwnode of the interrupt controller
-  * @info:	MSI domain info
-  * @parent:	Parent irq domain
-  *
-@@ -1256,7 +1256,7 @@ static void pci_msi_domain_update_chip_ops(struct msi_domain_info *info)
-  * Returns:
-  * A domain pointer or NULL in case of failure.
+- * irq_find_matching_host() - Locates a domain for a given device node
+- * @node: device-tree node of the interrupt controller
++ * irq_find_matching_fwnode() - Locates a domain for a given fwnode
++ * @fwnode: FW descriptor of the interrupt controller
+  * @bus_token: domain-specific data
   */
--struct irq_domain *pci_msi_create_irq_domain(struct device_node *node,
-+struct irq_domain *pci_msi_create_irq_domain(struct fwnode_handle *fwnode,
- 					     struct msi_domain_info *info,
- 					     struct irq_domain *parent)
+-struct irq_domain *irq_find_matching_host(struct device_node *node,
+-					  enum irq_domain_bus_token bus_token)
++struct irq_domain *irq_find_matching_fwnode(struct fwnode_handle *fwnode,
++					    enum irq_domain_bus_token bus_token)
  {
-@@ -1267,7 +1267,7 @@ struct irq_domain *pci_msi_create_irq_domain(struct device_node *node,
- 	if (info->flags & MSI_FLAG_USE_DEF_CHIP_OPS)
- 		pci_msi_domain_update_chip_ops(info);
+ 	struct irq_domain *h, *found = NULL;
+ 	int rc;
+@@ -212,12 +212,10 @@ struct irq_domain *irq_find_matching_host(struct device_node *node,
+ 	 */
+ 	mutex_lock(&irq_domain_mutex);
+ 	list_for_each_entry(h, &irq_domain_list, link) {
+-		struct device_node *of_node;
+-		of_node = irq_domain_get_of_node(h);
+ 		if (h->ops->match)
+-			rc = h->ops->match(h, node, bus_token);
++			rc = h->ops->match(h, to_of_node(fwnode), bus_token);
+ 		else
+-			rc = ((of_node != NULL) && (of_node == node) &&
++			rc = ((fwnode != NULL) && (h->fwnode == fwnode) &&
+ 			      ((bus_token == DOMAIN_BUS_ANY) ||
+ 			       (h->bus_token == bus_token)));
  
--	domain = msi_create_irq_domain(node, info, parent);
-+	domain = msi_create_irq_domain(fwnode, info, parent);
- 	if (!domain)
- 		return NULL;
- 
-@@ -1303,14 +1303,14 @@ void pci_msi_domain_free_irqs(struct irq_domain *domain, struct pci_dev *dev)
- 
- /**
-  * pci_msi_create_default_irq_domain - Create a default MSI interrupt domain
-- * @node:	Optional device-tree node of the interrupt controller
-+ * @fwnode:	Optional fwnode of the interrupt controller
-  * @info:	MSI domain info
-  * @parent:	Parent irq domain
-  *
-  * Returns: A domain pointer or NULL in case of failure. If successful
-  * the default PCI/MSI irqdomain pointer is updated.
-  */
--struct irq_domain *pci_msi_create_default_irq_domain(struct device_node *node,
-+struct irq_domain *pci_msi_create_default_irq_domain(struct fwnode_handle *fwnode,
- 		struct msi_domain_info *info, struct irq_domain *parent)
- {
- 	struct irq_domain *domain;
-@@ -1320,7 +1320,7 @@ struct irq_domain *pci_msi_create_default_irq_domain(struct device_node *node,
- 		pr_err("PCI: default irq domain for PCI MSI has already been created.\n");
- 		domain = NULL;
- 	} else {
--		domain = pci_msi_create_irq_domain(node, info, parent);
-+		domain = pci_msi_create_irq_domain(fwnode, info, parent);
- 		pci_msi_default_domain = domain;
- 	}
- 	mutex_unlock(&pci_msi_domain_lock);
-diff --git a/include/linux/msi.h b/include/linux/msi.h
-index ad939d0..32a24b9 100644
---- a/include/linux/msi.h
-+++ b/include/linux/msi.h
-@@ -174,6 +174,7 @@ struct msi_controller {
- struct irq_domain;
- struct irq_chip;
- struct device_node;
-+struct fwnode_handle;
- struct msi_domain_info;
- 
- /**
-@@ -262,7 +263,7 @@ enum {
- int msi_domain_set_affinity(struct irq_data *data, const struct cpumask *mask,
- 			    bool force);
- 
--struct irq_domain *msi_create_irq_domain(struct device_node *of_node,
-+struct irq_domain *msi_create_irq_domain(struct fwnode_handle *fwnode,
- 					 struct msi_domain_info *info,
- 					 struct irq_domain *parent);
- int msi_domain_alloc_irqs(struct irq_domain *domain, struct device *dev,
-@@ -270,7 +271,7 @@ int msi_domain_alloc_irqs(struct irq_domain *domain, struct device *dev,
- void msi_domain_free_irqs(struct irq_domain *domain, struct device *dev);
- struct msi_domain_info *msi_get_domain_info(struct irq_domain *domain);
- 
--struct irq_domain *platform_msi_create_irq_domain(struct device_node *np,
-+struct irq_domain *platform_msi_create_irq_domain(struct fwnode_handle *fwnode,
- 						  struct msi_domain_info *info,
- 						  struct irq_domain *parent);
- int platform_msi_domain_alloc_irqs(struct device *dev, unsigned int nvec,
-@@ -280,13 +281,13 @@ void platform_msi_domain_free_irqs(struct device *dev);
- 
- #ifdef CONFIG_PCI_MSI_IRQ_DOMAIN
- void pci_msi_domain_write_msg(struct irq_data *irq_data, struct msi_msg *msg);
--struct irq_domain *pci_msi_create_irq_domain(struct device_node *node,
-+struct irq_domain *pci_msi_create_irq_domain(struct fwnode_handle *fwnode,
- 					     struct msi_domain_info *info,
- 					     struct irq_domain *parent);
- int pci_msi_domain_alloc_irqs(struct irq_domain *domain, struct pci_dev *dev,
- 			      int nvec, int type);
- void pci_msi_domain_free_irqs(struct irq_domain *domain, struct pci_dev *dev);
--struct irq_domain *pci_msi_create_default_irq_domain(struct device_node *node,
-+struct irq_domain *pci_msi_create_default_irq_domain(struct fwnode_handle *fwnode,
- 		 struct msi_domain_info *info, struct irq_domain *parent);
- 
- irq_hw_number_t pci_msi_domain_calc_hwirq(struct pci_dev *dev,
-diff --git a/kernel/irq/msi.c b/kernel/irq/msi.c
-index 7e6512b..95354bb 100644
---- a/kernel/irq/msi.c
-+++ b/kernel/irq/msi.c
-@@ -239,11 +239,11 @@ static void msi_domain_update_chip_ops(struct msi_domain_info *info)
- 
- /**
-  * msi_create_irq_domain - Create a MSI interrupt domain
-- * @of_node:	Optional device-tree node of the interrupt controller
-+ * @fwnode:	Optional fwnode of the interrupt controller
-  * @info:	MSI domain info
-  * @parent:	Parent irq domain
-  */
--struct irq_domain *msi_create_irq_domain(struct device_node *node,
-+struct irq_domain *msi_create_irq_domain(struct fwnode_handle *fwnode,
- 					 struct msi_domain_info *info,
- 					 struct irq_domain *parent)
- {
-@@ -252,8 +252,8 @@ struct irq_domain *msi_create_irq_domain(struct device_node *node,
- 	if (info->flags & MSI_FLAG_USE_DEF_CHIP_OPS)
- 		msi_domain_update_chip_ops(info);
- 
--	return irq_domain_add_hierarchy(parent, 0, 0, node, &msi_domain_ops,
--					info);
-+	return irq_domain_create_hierarchy(parent, 0, 0, fwnode,
-+					   &msi_domain_ops, info);
- }
- 
- /**
 -- 
 2.1.4
