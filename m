@@ -1,122 +1,123 @@
 From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: [PATCH 12/16] irqchip/gic: Switch ACPI support to stacked domains
-Date: Tue,  6 Oct 2015 18:36:25 +0100
-Message-ID: <1444152989-31726-13-git-send-email-marc.zyngier@arm.com>
+Subject: [PATCH 06/16] irqdomain: Introduce irq_create_fwspec_mapping
+Date: Tue,  6 Oct 2015 18:36:19 +0100
+Message-ID: <1444152989-31726-7-git-send-email-marc.zyngier@arm.com>
 References: <1444152989-31726-1-git-send-email-marc.zyngier@arm.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1444152989-31726-1-git-send-email-marc.zyngier@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Graeme Gregory <graeme@xora.org.uk>, Jake Oshins <jakeo@microsoft.com>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-kernel@vger.kernel.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Jake Oshins <jakeo@microsoft.com>, Graeme Gregory <graeme@xora.org.uk>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-Now that the basic ACPI GSI code is irq domain aware, make sure
-that the ACPI support in the GIC doesn't pointlessly deviate from
-the DT path.
+Just like we have irq_create_of_mapping, irq_create_fwspec_mapping
+creates a IRQ domain mapping for an interrupt described in a
+struct irq_fwspec.
+
+irq_create_of_mapping gets rewritten in terms of the new function,
+and the hack we introduced before gets removed (now that no stacked
+irqchip uses of_phandle_args anymore).
 
 Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
 ---
- drivers/irqchip/irq-gic.c | 44 ++++++++++++++++++++++++++++++--------------
- 1 file changed, 30 insertions(+), 14 deletions(-)
+ include/linux/irqdomain.h |  1 +
+ kernel/irq/irqdomain.c    | 30 +++++++++++++++---------------
+ 2 files changed, 16 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
-index f1f4ca1..ad5ecfd 100644
---- a/drivers/irqchip/irq-gic.c
-+++ b/drivers/irqchip/irq-gic.c
-@@ -950,6 +950,15 @@ static int gic_irq_domain_translate(struct irq_domain *d,
+diff --git a/include/linux/irqdomain.h b/include/linux/irqdomain.h
+index 533c974..7e7842e 100644
+--- a/include/linux/irqdomain.h
++++ b/include/linux/irqdomain.h
+@@ -267,6 +267,7 @@ extern void irq_domain_disassociate(struct irq_domain *domain,
+ 
+ extern unsigned int irq_create_mapping(struct irq_domain *host,
+ 				       irq_hw_number_t hwirq);
++extern unsigned int irq_create_fwspec_mapping(struct irq_fwspec *fwspec);
+ extern void irq_dispose_mapping(unsigned int virq);
+ 
+ /**
+diff --git a/kernel/irq/irqdomain.c b/kernel/irq/irqdomain.c
+index 3f07055..2adc84e 100644
+--- a/kernel/irq/irqdomain.c
++++ b/kernel/irq/irqdomain.c
+@@ -514,37 +514,28 @@ static void of_phandle_args_to_fwspec(struct of_phandle_args *irq_data,
+ 		fwspec->param[i] = irq_data->args[i];
+ }
+ 
+-unsigned int irq_create_of_mapping(struct of_phandle_args *irq_data)
++unsigned int irq_create_fwspec_mapping(struct irq_fwspec *fwspec)
+ {
+-	struct irq_fwspec fwspec;
+ 	struct irq_domain *domain;
+ 	irq_hw_number_t hwirq;
+ 	unsigned int type = IRQ_TYPE_NONE;
+ 	int virq;
+ 
+-	of_phandle_args_to_fwspec(irq_data, &fwspec);
+-
+-	if (fwspec.fwnode)
+-		domain = irq_find_matching_fwnode(fwspec.fwnode, DOMAIN_BUS_ANY);
++	if (fwspec->fwnode)
++		domain = irq_find_matching_fwnode(fwspec->fwnode, DOMAIN_BUS_ANY);
+ 	else
+ 		domain = irq_default_domain;
+ 
+ 	if (!domain) {
+ 		pr_warn("no irq domain found for %s !\n",
+-			of_node_full_name(to_of_node(fwspec.fwnode)));
++			of_node_full_name(to_of_node(fwspec->fwnode)));
  		return 0;
  	}
  
-+	if (fwspec->fwnode->type == FWNODE_IRQCHIP) {
-+		if(fwspec->param_count != 2)
-+			return -EINVAL;
-+
-+		*hwirq = fwspec->param[0];
-+		*type = fwspec->param[1];
-+		return 0;
-+	}
-+
- 	return -EINVAL;
- }
+-	if (irq_domain_translate(domain, &fwspec, &hwirq, &type))
++	if (irq_domain_translate(domain, fwspec, &hwirq, &type))
+ 		return 0;
  
-@@ -1004,7 +1013,7 @@ static const struct irq_domain_ops gic_irq_domain_ops = {
- 
- static void __init __gic_init_bases(unsigned int gic_nr, int irq_start,
- 			   void __iomem *dist_base, void __iomem *cpu_base,
--			   u32 percpu_offset, struct device_node *node)
-+			   u32 percpu_offset, struct fwnode_handle *handle)
- {
- 	irq_hw_number_t hwirq_base;
- 	struct gic_chip_data *gic;
-@@ -1056,11 +1065,11 @@ static void __init __gic_init_bases(unsigned int gic_nr, int irq_start,
- 		gic_irqs = 1020;
- 	gic->gic_irqs = gic_irqs;
- 
--	if (node) {		/* DT case */
--		gic->domain = irq_domain_add_linear(node, gic_irqs,
--						    &gic_irq_domain_hierarchy_ops,
--						    gic);
--	} else {		/* Non-DT case */
-+	if (handle) {		/* DT/ACPI */
-+		gic->domain = irq_domain_create_linear(handle, gic_irqs,
-+						       &gic_irq_domain_hierarchy_ops,
-+						       gic);
-+	} else {		/* Legacy support */
+ 	if (irq_domain_is_hierarchy(domain)) {
+-		/* Temporary hack */
+-		void *desc = &fwspec;
+-#ifdef	CONFIG_IRQ_DOMAIN_HIERARCHY
+-		if (!domain->ops->translate)
+-			desc = irq_data;
+-#endif
  		/*
- 		 * For primary GICs, skip over SGIs.
- 		 * For secondary GICs, skip over PPIs, too.
-@@ -1083,7 +1092,7 @@ static void __init __gic_init_bases(unsigned int gic_nr, int irq_start,
- 			irq_base = irq_start;
- 		}
+ 		 * If we've already configured this interrupt,
+ 		 * don't do it again, or hell will break loose.
+@@ -553,7 +544,7 @@ unsigned int irq_create_of_mapping(struct of_phandle_args *irq_data)
+ 		if (virq)
+ 			return virq;
  
--		gic->domain = irq_domain_add_legacy(node, gic_irqs, irq_base,
-+		gic->domain = irq_domain_add_legacy(NULL, gic_irqs, irq_base,
- 					hwirq_base, &gic_irq_domain_ops, gic);
- 	}
- 
-@@ -1191,7 +1200,8 @@ gic_of_init(struct device_node *node, struct device_node *parent)
- 	if (of_property_read_u32(node, "cpu-offset", &percpu_offset))
- 		percpu_offset = 0;
- 
--	__gic_init_bases(gic_cnt, -1, dist_base, cpu_base, percpu_offset, node);
-+	__gic_init_bases(gic_cnt, -1, dist_base, cpu_base, percpu_offset,
-+			 &node->fwnode);
- 	if (!gic_cnt)
- 		gic_init_physaddr(node);
- 
-@@ -1265,6 +1275,7 @@ int __init
- gic_v2_acpi_init(struct acpi_table_header *table)
- {
- 	void __iomem *cpu_base, *dist_base;
-+	struct fwnode_handle *domain_handle;
- 	int count;
- 
- 	/* Collect CPU base addresses */
-@@ -1315,14 +1326,19 @@ gic_v2_acpi_init(struct acpi_table_header *table)
- 		static_key_slow_dec(&supports_deactivate);
- 
- 	/*
--	 * Initialize zero GIC instance (no multi-GIC support). Also, set GIC
--	 * as default IRQ domain to allow for GSI registration and GSI to IRQ
--	 * number translation (see acpi_register_gsi() and acpi_gsi_to_irq()).
-+	 * Initialize GIC instance zero (no multi-GIC support).
- 	 */
--	__gic_init_bases(0, -1, dist_base, cpu_base, 0, NULL);
--	irq_set_default_host(gic_data[0].domain);
-+	domain_handle = irq_domain_alloc_fwnode(dist_base);
-+	if (!domain_handle) {
-+		pr_err("Unable to allocate domain handle\n");
-+		iounmap(cpu_base);
-+		iounmap(dist_base);
-+		return -ENOMEM;
-+	}
-+
-+	__gic_init_bases(0, -1, dist_base, cpu_base, 0, domain_handle);
- 
--	acpi_irq_model = ACPI_IRQ_MODEL_GIC;
-+	acpi_set_irq_model(ACPI_IRQ_MODEL_GIC, domain_handle);
- 	return 0;
+-		virq = irq_domain_alloc_irqs(domain, 1, NUMA_NO_NODE, desc);
++		virq = irq_domain_alloc_irqs(domain, 1, NUMA_NO_NODE, fwspec);
+ 		if (virq <= 0)
+ 			return 0;
+ 	} else {
+@@ -569,6 +560,15 @@ unsigned int irq_create_of_mapping(struct of_phandle_args *irq_data)
+ 		irq_set_irq_type(virq, type);
+ 	return virq;
  }
- #endif
++EXPORT_SYMBOL_GPL(irq_create_fwspec_mapping);
++
++unsigned int irq_create_of_mapping(struct of_phandle_args *irq_data)
++{
++	struct irq_fwspec fwspec;
++
++	of_phandle_args_to_fwspec(irq_data, &fwspec);
++	return irq_create_fwspec_mapping(&fwspec);
++}
+ EXPORT_SYMBOL_GPL(irq_create_of_mapping);
+ 
+ /**
 -- 
 2.1.4
