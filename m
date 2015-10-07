@@ -1,52 +1,35 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [Patch v6 6/7] x86/PCI/ACPI: Use common interface to support PCI
- host bridge
-Date: Wed, 7 Oct 2015 07:45:54 -0500
-Message-ID: <20151007124554.GA22797@localhost>
-References: <1442218057-4355-1-git-send-email-jiang.liu@linux.intel.com>
- <1442218057-4355-7-git-send-email-jiang.liu@linux.intel.com>
- <20151006180144.GC29420@localhost>
- <5614DD67.4070801@linaro.org>
+From: Prarit Bhargava <prarit@redhat.com>
+Subject: Re: [PATCH] ACPICA: AcpiGetSleepTypeData: Failure to find \_Sx should
+ not result in a loud warning
+Date: Wed, 07 Oct 2015 11:28:53 -0400
+Message-ID: <56153A35.4090705@redhat.com>
+References: <1443720528-14499-1-git-send-email-prarit@redhat.com> <94F2FBAB4432B54E8AACC7DFDE6C92E37D357F6E@ORSMSX112.amr.corp.intel.com> <560DB3A7.2010405@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:53047 "EHLO mail.kernel.org"
+Received: from mx1.redhat.com ([209.132.183.28]:56867 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751302AbbJGMp6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 7 Oct 2015 08:45:58 -0400
-Content-Disposition: inline
-In-Reply-To: <5614DD67.4070801@linaro.org>
+	id S1754971AbbJGP2z (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 7 Oct 2015 11:28:55 -0400
+In-Reply-To: <560DB3A7.2010405@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "devel@acpica.org" <devel@acpica.org>
+Cc: "Zheng, Lv" <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Box, David E" <david.e.box@intel.com>
 
-On Wed, Oct 07, 2015 at 04:52:55PM +0800, Hanjun Guo wrote:
-> On 10/07/2015 02:01 AM, Bjorn Helgaas wrote:
-> >On Mon, Sep 14, 2015 at 04:07:35PM +0800, Jiang Liu wrote:
-> >>Use common interface to simplify ACPI PCI host bridge implementation.
-> >>
-> >>Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-> >>Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
-> >
-> >Is there a corresponding ia64 patch?  If we're really consolidating
-> >this code (which I completely support), we need to do the whole job.
-> 
-> Yes, there is a patch for it:
-> 
-> [Patch v6 7/7] ia64/PCI/ACPI: Use common interface to support PCI
-> host bridge
-> 
-> which has lots of code simplification [1],
-> 
->  arch/ia64/pci/pci.c |  232
-> ++++++++++-----------------------------------------
->  1 file changed, 46 insertions(+), 186 deletions(-)
-> 
-> [1]: https://lkml.org/lkml/2015/9/14/84
 
-Oh, sorry I missed that.  I review things that appear on linux-pci,
-and several patches in this series weren't posted there, so I didn't
-see them.
 
-Bjorn
+On 10/01/2015 06:28 PM, Rafael J. Wysocki wrote:
+> On 10/1/2015 7:57 PM, Moore, Robert wrote:
+>> I seem to remember that this came up a long time ago.
+>>
+>> Perhaps someone else will remember.
+>>
+> 
+> I can't recall, sorry.
+
+FWIW, a google search on these warnings yields tonnes of comments about them,
+but with no resolution AFAICT.
+
+P.
