@@ -1,150 +1,52 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v3 2/6] mfd: core: redo ACPI matching of the children devices
-Date: Wed,  7 Oct 2015 13:18:45 +0300
-Message-ID: <1444213129-29793-3-git-send-email-andriy.shevchenko@linux.intel.com>
-References: <1444213129-29793-1-git-send-email-andriy.shevchenko@linux.intel.com>
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <1444213129-29793-1-git-send-email-andriy.shevchenko@linux.intel.com>
-Sender: linux-i2c-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Wolfram Sang <wsa@the-dreams.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@intel.com>, "Puustinen, Ismo" <ismo.puustinen@intel.com>, "Pandruvada, Srinivas" <srinivas.pandruvada@intel.com>, linux-kernel@vger.kernel.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [Patch v6 6/7] x86/PCI/ACPI: Use common interface to support PCI
+ host bridge
+Date: Wed, 7 Oct 2015 07:45:54 -0500
+Message-ID: <20151007124554.GA22797@localhost>
+References: <1442218057-4355-1-git-send-email-jiang.liu@linux.intel.com>
+ <1442218057-4355-7-git-send-email-jiang.liu@linux.intel.com>
+ <20151006180144.GC29420@localhost>
+ <5614DD67.4070801@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.29.136]:53047 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751302AbbJGMp6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 7 Oct 2015 08:45:58 -0400
+Content-Disposition: inline
+In-Reply-To: <5614DD67.4070801@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org
 
-There is at least one board on the market, i.e. Intel Galileo Gen2, that uses
-_ADR to distinguish the devices under one actual device. Due to this we have to
-improve the quirk in the MFD core to handle that board.
+On Wed, Oct 07, 2015 at 04:52:55PM +0800, Hanjun Guo wrote:
+> On 10/07/2015 02:01 AM, Bjorn Helgaas wrote:
+> >On Mon, Sep 14, 2015 at 04:07:35PM +0800, Jiang Liu wrote:
+> >>Use common interface to simplify ACPI PCI host bridge implementation.
+> >>
+> >>Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+> >>Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
+> >
+> >Is there a corresponding ia64 patch?  If we're really consolidating
+> >this code (which I completely support), we need to do the whole job.
+> 
+> Yes, there is a patch for it:
+> 
+> [Patch v6 7/7] ia64/PCI/ACPI: Use common interface to support PCI
+> host bridge
+> 
+> which has lots of code simplification [1],
+> 
+>  arch/ia64/pci/pci.c |  232
+> ++++++++++-----------------------------------------
+>  1 file changed, 46 insertions(+), 186 deletions(-)
+> 
+> [1]: https://lkml.org/lkml/2015/9/14/84
 
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- Documentation/acpi/enumeration.txt | 11 +++++---
- drivers/mfd/mfd-core.c             | 52 ++++++++++++++++++++++++++------------
- include/linux/mfd/core.h           | 10 ++++++--
- 3 files changed, 52 insertions(+), 21 deletions(-)
+Oh, sorry I missed that.  I review things that appear on linux-pci,
+and several patches in this series weren't posted there, so I didn't
+see them.
 
-diff --git a/Documentation/acpi/enumeration.txt b/Documentation/acpi/enumeration.txt
-index b731b29..a91ec5a 100644
---- a/Documentation/acpi/enumeration.txt
-+++ b/Documentation/acpi/enumeration.txt
-@@ -347,13 +347,18 @@ For the first case, the MFD drivers do not need to do anything. The
- resulting child platform device will have its ACPI_COMPANION() set to point
- to the parent device.
- 
--If the ACPI namespace has a device that we can match using an ACPI id,
--the id should be set like:
-+If the ACPI namespace has a device that we can match using an ACPI id or ACPI
-+adr, the cell should be set like:
-+
-+	static struct mfd_cell_acpi_match my_subdevice_cell_acpi_match = {
-+		.pnpid = "XYZ0001",
-+		.adr = 0,
-+	};
- 
- 	static struct mfd_cell my_subdevice_cell = {
- 		.name = "my_subdevice",
- 		/* set the resources relative to the parent */
--		.acpi_pnpid = "XYZ0001",
-+		.acpi_match = &my_subdevice_cell_acpi_match,
- 	};
- 
- The ACPI id "XYZ0001" is then used to lookup an ACPI device directly under
-diff --git a/drivers/mfd/mfd-core.c b/drivers/mfd/mfd-core.c
-index c17635d..60b60dc 100644
---- a/drivers/mfd/mfd-core.c
-+++ b/drivers/mfd/mfd-core.c
-@@ -82,29 +82,49 @@ static int mfd_platform_add_cell(struct platform_device *pdev,
- static void mfd_acpi_add_device(const struct mfd_cell *cell,
- 				struct platform_device *pdev)
- {
--	struct acpi_device *parent_adev;
-+	const struct mfd_cell_acpi_match *match = cell->acpi_match;
-+	struct acpi_device *parent, *child;
- 	struct acpi_device *adev;
- 
--	parent_adev = ACPI_COMPANION(pdev->dev.parent);
--	if (!parent_adev)
-+	parent = ACPI_COMPANION(pdev->dev.parent);
-+	if (!parent)
- 		return;
- 
- 	/*
--	 * MFD child device gets its ACPI handle either from the ACPI
--	 * device directly under the parent that matches the acpi_pnpid or
--	 * it will use the parent handle if is no acpi_pnpid is given.
-+	 * MFD child device gets its ACPI handle either from the ACPI device
-+	 * directly under the parent that matches the either _HID or _CID, or
-+	 * _ADR or it will use the parent handle if is no ID is given.
-+	 *
-+	 * Note that use of _ADR is a grey area in the ACPI specification,
-+	 * though Intel Galileo Gen2 is using it to distinguish the children
-+	 * devices.
- 	 */
--	adev = parent_adev;
--	if (cell->acpi_pnpid) {
--		struct acpi_device_id ids[2] = {};
--		struct acpi_device *child_adev;
--
--		strlcpy(ids[0].id, cell->acpi_pnpid, sizeof(ids[0].id));
--		list_for_each_entry(child_adev, &parent_adev->children, node)
--			if (acpi_match_device_ids(child_adev, ids)) {
--				adev = child_adev;
--				break;
-+	adev = parent;
-+	if (match) {
-+		if (match->pnpid) {
-+			struct acpi_device_id ids[2] = {};
-+
-+			strlcpy(ids[0].id, match->pnpid, sizeof(ids[0].id));
-+			list_for_each_entry(child, &parent->children, node) {
-+				if (acpi_match_device_ids(child, ids)) {
-+					adev = child;
-+					break;
-+				}
-+			}
-+		} else {
-+			unsigned long long adr;
-+			acpi_status status;
-+
-+			list_for_each_entry(child, &parent->children, node) {
-+				status = acpi_evaluate_integer(child->handle,
-+							       "_ADR", NULL,
-+							       &adr);
-+				if (ACPI_SUCCESS(status) && match->adr == adr) {
-+					adev = child;
-+					break;
-+				}
- 			}
-+		}
- 	}
- 
- 	ACPI_COMPANION_SET(&pdev->dev, adev);
-diff --git a/include/linux/mfd/core.h b/include/linux/mfd/core.h
-index a76bc10..27dac3f 100644
---- a/include/linux/mfd/core.h
-+++ b/include/linux/mfd/core.h
-@@ -18,6 +18,12 @@
- 
- struct irq_domain;
- 
-+/* Matches ACPI PNP id, either _HID or _CID, or ACPI _ADR */
-+struct mfd_cell_acpi_match {
-+	const char			*pnpid;
-+	const unsigned long long	adr;
-+};
-+
- /*
-  * This struct describes the MFD part ("cell").
-  * After registration the copy of this structure will become the platform data
-@@ -44,8 +50,8 @@ struct mfd_cell {
- 	 */
- 	const char		*of_compatible;
- 
--	/* Matches ACPI PNP id, either _HID or _CID */
--	const char		*acpi_pnpid;
-+	/* Matches ACPI */
-+	const struct mfd_cell_acpi_match	*acpi_match;
- 
- 	/*
- 	 * These resources can be specified relative to the parent device.
--- 
-2.5.3
+Bjorn
