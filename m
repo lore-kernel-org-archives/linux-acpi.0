@@ -1,41 +1,75 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [Patch v6 6/7] x86/PCI/ACPI: Use common interface to support
- PCI host bridge
-Date: Wed, 07 Oct 2015 16:52:55 +0800
-Message-ID: <5614DD67.4070801@linaro.org>
-References: <1442218057-4355-1-git-send-email-jiang.liu@linux.intel.com> <1442218057-4355-7-git-send-email-jiang.liu@linux.intel.com> <20151006180144.GC29420@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20151006180144.GC29420@localhost>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>, Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Ingo Molnar <mingo@redhat.com>, "H. Peter Anvin" <hpa@zytor.com>, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v3 4/6] mfd: intel_quark_i2c_gpio: support devices behind i2c bus
+Date: Wed,  7 Oct 2015 13:18:47 +0300
+Message-ID: <1444213129-29793-5-git-send-email-andriy.shevchenko@linux.intel.com>
+References: <1444213129-29793-1-git-send-email-andriy.shevchenko@linux.intel.com>
+Return-path: <linux-i2c-owner@vger.kernel.org>
+In-Reply-To: <1444213129-29793-1-git-send-email-andriy.shevchenko@linux.intel.com>
+Sender: linux-i2c-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Wolfram Sang <wsa@the-dreams.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@intel.com>, "Puustinen, Ismo" <ismo.puustinen@intel.com>, "Pandruvada, Srinivas" <srinivas.pandruvada@intel.com>, linux-kernel@vger.kernel.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 10/07/2015 02:01 AM, Bjorn Helgaas wrote:
-> On Mon, Sep 14, 2015 at 04:07:35PM +0800, Jiang Liu wrote:
->> Use common interface to simplify ACPI PCI host bridge implementation.
->>
->> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
->> Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
->
-> Is there a corresponding ia64 patch?  If we're really consolidating
-> this code (which I completely support), we need to do the whole job.
+On Intel Galileo Gen2 the GPIO expanders are connected to the i2c bus. For
+those devices the ACPI table has specific parameters that refer to an actual
+i2c host controller. Since MFD now copes with that specific configuration we
+have to provide a necessary information how to distinguish devices in ACPI
+namespace. Here the _ADR values are provided.
 
-Yes, there is a patch for it:
+Acked-by: Lee Jones <lee.jones@linaro.org>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/mfd/intel_quark_i2c_gpio.c | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-[Patch v6 7/7] ia64/PCI/ACPI: Use common interface to support PCI host 
-bridge
-
-which has lots of code simplification [1],
-
-  arch/ia64/pci/pci.c |  232 
-++++++++++-----------------------------------------
-  1 file changed, 46 insertions(+), 186 deletions(-)
-
-[1]: https://lkml.org/lkml/2015/9/14/84
-
-Thanks
-Hanjun
+diff --git a/drivers/mfd/intel_quark_i2c_gpio.c b/drivers/mfd/intel_quark_i2c_gpio.c
+index 958c134..0421374 100644
+--- a/drivers/mfd/intel_quark_i2c_gpio.c
++++ b/drivers/mfd/intel_quark_i2c_gpio.c
+@@ -31,6 +31,10 @@
+ #define MFD_I2C_BAR		0
+ #define MFD_GPIO_BAR		1
+ 
++/* ACPI _ADR value to match the child node */
++#define MFD_ACPI_MATCH_GPIO	0ULL
++#define MFD_ACPI_MATCH_I2C	1ULL
++
+ /* The base GPIO number under GPIOLIB framework */
+ #define INTEL_QUARK_MFD_GPIO_BASE	8
+ 
+@@ -82,16 +86,25 @@ static struct resource intel_quark_i2c_res[] = {
+ 	},
+ };
+ 
++static struct mfd_cell_acpi_match intel_quark_acpi_match_i2c = {
++	.adr = MFD_ACPI_MATCH_I2C,
++};
++
+ static struct resource intel_quark_gpio_res[] = {
+ 	[INTEL_QUARK_IORES_MEM] = {
+ 		.flags = IORESOURCE_MEM,
+ 	},
+ };
+ 
++static struct mfd_cell_acpi_match intel_quark_acpi_match_gpio = {
++	.adr = MFD_ACPI_MATCH_GPIO,
++};
++
+ static struct mfd_cell intel_quark_mfd_cells[] = {
+ 	{
+ 		.id = MFD_GPIO_BAR,
+ 		.name = "gpio-dwapb",
++		.acpi_match = &intel_quark_acpi_match_gpio,
+ 		.num_resources = ARRAY_SIZE(intel_quark_gpio_res),
+ 		.resources = intel_quark_gpio_res,
+ 		.ignore_resource_conflicts = true,
+@@ -99,6 +112,7 @@ static struct mfd_cell intel_quark_mfd_cells[] = {
+ 	{
+ 		.id = MFD_I2C_BAR,
+ 		.name = "i2c_designware",
++		.acpi_match = &intel_quark_acpi_match_i2c,
+ 		.num_resources = ARRAY_SIZE(intel_quark_i2c_res),
+ 		.resources = intel_quark_i2c_res,
+ 		.ignore_resource_conflicts = true,
+-- 
+2.5.3
