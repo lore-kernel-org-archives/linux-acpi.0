@@ -1,102 +1,52 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [Patch v6 4/7] PCI/ACPI: Consolidate common PCI host bridge code
- into ACPI core
-Date: Thu, 8 Oct 2015 13:32:04 +0800
-Message-ID: <5615FFD4.3090202@linux.intel.com>
-References: <1442218057-4355-1-git-send-email-jiang.liu@linux.intel.com>
- <1442218057-4355-5-git-send-email-jiang.liu@linux.intel.com>
- <20151006174725.GA29420@localhost>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [Dell XPS 13 9343] Random kernel Oops at boot with "acpi=ht",
+ disappearing with "acpi=off"
+Date: Thu, 8 Oct 2015 13:06:15 +0300
+Message-ID: <20151008100615.GO1506@lahna.fi.intel.com>
+References: <16367d85-fe84-4792-819a-d50a508409ef@linuxsystems.it>
+ <20151002101919.GZ1551@lahna.fi.intel.com>
+ <c4c8d5aa-d2ad-4448-9ca5-d381c30ba6d7@linuxsystems.it>
+ <20151005104645.GA1506@lahna.fi.intel.com>
+ <97e73880-b4a6-4118-bf11-6a90d2505fd1@linuxsystems.it>
+ <20151005135449.GF1506@lahna.fi.intel.com>
+ <481e7bc8-b4c4-4acd-9988-f3e0e5ea87b3@linuxsystems.it>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20151006174725.GA29420@localhost>
+Content-Disposition: inline
+In-Reply-To: <481e7bc8-b4c4-4acd-9988-f3e0e5ea87b3@linuxsystems.it>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org, linux-pci@vger.kernel.org
+To: =?iso-8859-1?Q?Niccol=F2?= Belli <niccolo.belli@linuxsystems.it>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 2015/10/7 1:47, Bjorn Helgaas wrote:
-> Hi Jiang,
-> 
-> Strictly speaking, this patch by itself doesn't actually "consolidate"
-> anything because it only adds acpi_pci_root_create() (which isn't called by
-> anything yet), but doesn't remove the original x86 copy.
-> 
-<snit>
->> +struct pci_bus *acpi_pci_root_create(struct acpi_pci_root *root,
->> +				     struct acpi_pci_root_ops *ops,
->> +				     struct acpi_pci_root_info *info,
->> +				     void *sysdata)
->> +{
->> +	int ret, busnum = root->secondary.start;
->> +	struct acpi_device *device = root->device;
->> +	int node = acpi_get_node(device->handle);
->> +	struct pci_bus *bus;
->> +
->> +	info->root = root;
->> +	info->bridge = device;
->> +	info->ops = ops;
->> +	INIT_LIST_HEAD(&info->resources);
->> +	snprintf(info->name, sizeof(info->name), "PCI Bus %04x:%02x",
->> +		 root->segment, busnum);
->> +
->> +	if (ops->init_info && ops->init_info(info))
->> +		goto out_release_info;
->> +	ret = acpi_pci_probe_root_resources(info);
->> +	if (ops->prepare_resources)
->> +		ret = ops->prepare_resources(info, ret);
->> +	if (ret < 0)
->> +		goto out_release_info;
->> +	else if (ret > 0)
->> +		pci_acpi_root_add_resources(info);
-> 
-> This is unnecessarily complicated: you set "ret", then overwrite it if
-> ops->prepare_resources.  By the time you test "ret", it's messy to
-> figure out what it means.
-> 
-> Both ops->prepare_resources() and pci_acpi_root_add_resources()
-> should be able to deal with empty resource lists, so can you do the
-> following instead?
-> 
->     ret = acpi_pci_probe_root_resources(info);
->     if (ret < 0)
->         goto out_release_info;
-Hi Bjorn,
-	Thanks for review:)
-	The original code is used to handle a special case for x86,
-where acpi_pci_probe_root_resources() fails but ops->prepare_resources()
-succeeds. For x86, PCI host bridge resources may probed by means
-other than ACPI when pci_use_crs is true (AMD and Broadcom hostbridges).
-So we can't return failure when acpi_pci_probe_root_resources() fails.
-+	ret = acpi_pci_probe_root_resources(info);
-+	if (ops->prepare_resources)
-+		ret = ops->prepare_resources(info, ret);
-+	if (ret < 0)
-+		goto out_release_info;
+On Mon, Oct 05, 2015 at 05:59:38PM +0200, Niccol=F2 Belli wrote:
+> Il luned=EC 5 ottobre 2015 15:54:49 CEST, Mika Westerberg ha scritto:
+> >On Mon, Oct 05, 2015 at 03:41:09PM +0200, Niccol=F2 Belli wrote:
+> >>Il luned=EC 5 ottobre 2015 12:46:45 CEST, Mika Westerberg ha scritt=
+o: ...
+> >
+> >It says:
+> >
+> >Mounting /boot...
+> >[FAILED] Failed to mount /boot.
+> >See 'systemctl status boot.mount' for details.
+> >[DEPEND] Dependency failed for Local File Systems.
+> >
+> >Did you run 'systemctl status boot.mount'?
+>=20
+> Please do not consider my previous e-mail, becuase the failure was du=
+e to
+> file loss: in fact sometimes the system hangs while shutting down (I =
+think
+> because of this bug) and so some modules of my just compiled kernel w=
+ere
+> loss. I recompiled the kernel once again and synced the disks just to=
+ be
+> sure: I still get random crashes even with CONFIG_SND_SOC=3Dn.
+> See the new log: https://bugzilla.kernel.org/attachment.cgi?id=3D1894=
+81
 
->     if (ops->prepare_resources) {
->         ret = ops->prepare_resources(info, ret);
->         if (ret < 0)
->             goto out_release_info;
->     }
->     pci_acpi_root_add_resources(info);
-I will remove the redundant check of (ret > 0) in:
-+	else if (ret > 0)
-+		pci_acpi_root_add_resources(info);
-
-> 
->> +	pci_add_resource(&info->resources, &root->secondary);
->> +
->> +	bus = pci_create_root_bus(NULL, busnum, ops->pci_ops,
->> +				  sysdata, &info->resources);
->> +	if (bus) {
-> 
->     if (!bus)
->         goto out_release_info;
-> 
-> Then it looks like the other error paths above, and you can un-indent
-> the following code, which is the normal path:
-Will do this.
-Thanks!
-Gerry
+It looks like a memory corruption somewhere. Unfortunately it is not
+obvious from the log where :-(
