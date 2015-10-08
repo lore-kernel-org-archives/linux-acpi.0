@@ -1,58 +1,94 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [Dell XPS 13 9343] Random kernel Oops at boot with "acpi=ht",
- disappearing with "acpi=off"
-Date: Thu, 8 Oct 2015 13:28:16 +0300
-Message-ID: <20151008102816.GP1506@lahna.fi.intel.com>
-References: <16367d85-fe84-4792-819a-d50a508409ef@linuxsystems.it>
- <20151002101919.GZ1551@lahna.fi.intel.com>
- <c4c8d5aa-d2ad-4448-9ca5-d381c30ba6d7@linuxsystems.it>
- <20151005104645.GA1506@lahna.fi.intel.com>
- <97e73880-b4a6-4118-bf11-6a90d2505fd1@linuxsystems.it>
- <20151005135449.GF1506@lahna.fi.intel.com>
- <481e7bc8-b4c4-4acd-9988-f3e0e5ea87b3@linuxsystems.it>
- <20151008100615.GO1506@lahna.fi.intel.com>
- <9517e70c-d3ec-4dd0-8064-a06546812d16@linuxsystems.it>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [Patch v6 4/7] PCI/ACPI: Consolidate common PCI host bridge code
+ into ACPI core
+Date: Thu, 8 Oct 2015 08:20:10 -0500
+Message-ID: <20151008132010.GI27633@localhost>
+References: <1442218057-4355-1-git-send-email-jiang.liu@linux.intel.com>
+ <1442218057-4355-5-git-send-email-jiang.liu@linux.intel.com>
+ <20151006174725.GA29420@localhost>
+ <5615FFD4.3090202@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:11070 "EHLO mga03.intel.com"
+Received: from mail.kernel.org ([198.145.29.136]:45298 "EHLO mail.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755220AbbJHK2T (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 8 Oct 2015 06:28:19 -0400
+	id S1755041AbbJHNUO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 8 Oct 2015 09:20:14 -0400
 Content-Disposition: inline
-In-Reply-To: <9517e70c-d3ec-4dd0-8064-a06546812d16@linuxsystems.it>
+In-Reply-To: <5615FFD4.3090202@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: =?iso-8859-1?Q?Niccol=F2?= Belli <niccolo.belli@linuxsystems.it>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org, linux-pci@vger.kernel.org
 
-On Thu, Oct 08, 2015 at 12:17:39PM +0200, Niccol=F2 Belli wrote:
-> Il gioved=EC 8 ottobre 2015 12:06:15 CEST, Mika Westerberg ha scritto=
-:
-> >On Mon, Oct 05, 2015 at 05:59:38PM +0200, Niccol=F2 Belli wrote:
-> >>Il luned=EC 5 ottobre 2015 15:54:49 CEST, Mika Westerberg ha scritt=
-o: ...
-> >
-> >It looks like a memory corruption somewhere. Unfortunately it is not
-> >obvious from the log where :-(
->=20
-> It seems I'm the only one with this issue, both Dell and an Aaron Lu =
-(an
-> Intel employee which uses Fedora) told me they don't experience it:
-> https://bugzilla.kernel.org/show_bug.cgi?id=3D105251
-> So maybe it has something to do with my configuration, maybe the comb=
-o
-> dm-crypt + btrfs which is pretty unusual, but I really don't know.
+On Thu, Oct 08, 2015 at 01:32:04PM +0800, Jiang Liu wrote:
+> On 2015/10/7 1:47, Bjorn Helgaas wrote:
+> >> +struct pci_bus *acpi_pci_root_create(struct acpi_pci_root *root,
+> >> +				     struct acpi_pci_root_ops *ops,
+> >> +				     struct acpi_pci_root_info *info,
+> >> +				     void *sysdata)
+> >> +{
+> >> +	int ret, busnum = root->secondary.start;
+> >> +	struct acpi_device *device = root->device;
+> >> +	int node = acpi_get_node(device->handle);
+> >> +	struct pci_bus *bus;
+> >> +
+> >> +	info->root = root;
+> >> +	info->bridge = device;
+> >> +	info->ops = ops;
+> >> +	INIT_LIST_HEAD(&info->resources);
+> >> +	snprintf(info->name, sizeof(info->name), "PCI Bus %04x:%02x",
+> >> +		 root->segment, busnum);
+> >> +
+> >> +	if (ops->init_info && ops->init_info(info))
+> >> +		goto out_release_info;
+> >> +	ret = acpi_pci_probe_root_resources(info);
+> >> +	if (ops->prepare_resources)
+> >> +		ret = ops->prepare_resources(info, ret);
+> >> +	if (ret < 0)
+> >> +		goto out_release_info;
+> >> +	else if (ret > 0)
+> >> +		pci_acpi_root_add_resources(info);
+> > 
+> > This is unnecessarily complicated: you set "ret", then overwrite it if
+> > ops->prepare_resources.  By the time you test "ret", it's messy to
+> > figure out what it means.
+> > 
+> > Both ops->prepare_resources() and pci_acpi_root_add_resources()
+> > should be able to deal with empty resource lists, so can you do the
+> > following instead?
+> > 
+> >     ret = acpi_pci_probe_root_resources(info);
+> >     if (ret < 0)
+> >         goto out_release_info;
+>
+> 	The original code is used to handle a special case for x86,
+> where acpi_pci_probe_root_resources() fails but ops->prepare_resources()
+> succeeds. For x86, PCI host bridge resources may probed by means
+> other than ACPI when pci_use_crs is true (AMD and Broadcom hostbridges).
+> So we can't return failure when acpi_pci_probe_root_resources() fails.
 
-You may want to try another distro if it reproduces.
+That's even worse than I thought.  I take back my ack; I think this
+really needs to be restructured so it does the right thing *and* reads
+clearly.  Having convoluted generic code to deal with an arch-specific
+special case is a recipe for breakage in the future.
 
-> If you can tell me how to obtain a more useful log I can provide it.
+Maybe you can move the non-ACPI resource probing from
+prepare_resources() into acpi_pci_probe_root_resources() (you could
+rename it to something more generic if that helps).
 
-Other than dmesg, I have no idea :-/ Maybe full crashdump but then it
-needs someone who is able to analyze it properly.
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +	ret = acpi_pci_probe_root_resources(info);
+> +	if (ops->prepare_resources)
+> +		ret = ops->prepare_resources(info, ret);
+> +	if (ret < 0)
+> +		goto out_release_info;
+> 
+> >     if (ops->prepare_resources) {
+> >         ret = ops->prepare_resources(info, ret);
+> >         if (ret < 0)
+> >             goto out_release_info;
+> >     }
+> >     pci_acpi_root_add_resources(info);
+> I will remove the redundant check of (ret > 0) in:
+> +	else if (ret > 0)
+> +		pci_acpi_root_add_resources(info);
