@@ -1,79 +1,102 @@
-From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH 2/3] acpi: add a utility function for evaluating _FIT
-Date: Wed,  7 Oct 2015 15:49:36 -0600
-Message-ID: <1444254577-23744-3-git-send-email-vishal.l.verma@intel.com>
-References: <1444254577-23744-1-git-send-email-vishal.l.verma@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:27349 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753851AbbJGVuA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 7 Oct 2015 17:50:00 -0400
-In-Reply-To: <1444254577-23744-1-git-send-email-vishal.l.verma@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: Re: [Patch v6 4/7] PCI/ACPI: Consolidate common PCI host bridge code
+ into ACPI core
+Date: Thu, 8 Oct 2015 13:32:04 +0800
+Message-ID: <5615FFD4.3090202@linux.intel.com>
+References: <1442218057-4355-1-git-send-email-jiang.liu@linux.intel.com>
+ <1442218057-4355-5-git-send-email-jiang.liu@linux.intel.com>
+ <20151006174725.GA29420@localhost>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20151006174725.GA29420@localhost>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: Vishal Verma <vishal.l.verma@intel.com>, Dan Williams <dan.j.williams@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org
 
-_FIT is an ACPI method to request an updated NFIT (Nvdimm Firmware
-Interface Table) after a hotplug event. Add a function to evaluate the
-_FIT method and return a buffer with the updated NFIT.
+On 2015/10/7 1:47, Bjorn Helgaas wrote:
+> Hi Jiang,
+> 
+> Strictly speaking, this patch by itself doesn't actually "consolidate"
+> anything because it only adds acpi_pci_root_create() (which isn't called by
+> anything yet), but doesn't remove the original x86 copy.
+> 
+<snit>
+>> +struct pci_bus *acpi_pci_root_create(struct acpi_pci_root *root,
+>> +				     struct acpi_pci_root_ops *ops,
+>> +				     struct acpi_pci_root_info *info,
+>> +				     void *sysdata)
+>> +{
+>> +	int ret, busnum = root->secondary.start;
+>> +	struct acpi_device *device = root->device;
+>> +	int node = acpi_get_node(device->handle);
+>> +	struct pci_bus *bus;
+>> +
+>> +	info->root = root;
+>> +	info->bridge = device;
+>> +	info->ops = ops;
+>> +	INIT_LIST_HEAD(&info->resources);
+>> +	snprintf(info->name, sizeof(info->name), "PCI Bus %04x:%02x",
+>> +		 root->segment, busnum);
+>> +
+>> +	if (ops->init_info && ops->init_info(info))
+>> +		goto out_release_info;
+>> +	ret = acpi_pci_probe_root_resources(info);
+>> +	if (ops->prepare_resources)
+>> +		ret = ops->prepare_resources(info, ret);
+>> +	if (ret < 0)
+>> +		goto out_release_info;
+>> +	else if (ret > 0)
+>> +		pci_acpi_root_add_resources(info);
+> 
+> This is unnecessarily complicated: you set "ret", then overwrite it if
+> ops->prepare_resources.  By the time you test "ret", it's messy to
+> figure out what it means.
+> 
+> Both ops->prepare_resources() and pci_acpi_root_add_resources()
+> should be able to deal with empty resource lists, so can you do the
+> following instead?
+> 
+>     ret = acpi_pci_probe_root_resources(info);
+>     if (ret < 0)
+>         goto out_release_info;
+Hi Bjorn,
+	Thanks for review:)
+	The original code is used to handle a special case for x86,
+where acpi_pci_probe_root_resources() fails but ops->prepare_resources()
+succeeds. For x86, PCI host bridge resources may probed by means
+other than ACPI when pci_use_crs is true (AMD and Broadcom hostbridges).
+So we can't return failure when acpi_pci_probe_root_resources() fails.
++	ret = acpi_pci_probe_root_resources(info);
++	if (ops->prepare_resources)
++		ret = ops->prepare_resources(info, ret);
++	if (ret < 0)
++		goto out_release_info;
 
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Cc: <linux-acpi@vger.kernel.org>
-Cc: <linux-nvdimm@lists.01.org>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- drivers/acpi/utils.c    | 23 +++++++++++++++++++++++
- include/acpi/acpi_bus.h |  1 +
- 2 files changed, 24 insertions(+)
+>     if (ops->prepare_resources) {
+>         ret = ops->prepare_resources(info, ret);
+>         if (ret < 0)
+>             goto out_release_info;
+>     }
+>     pci_acpi_root_add_resources(info);
+I will remove the redundant check of (ret > 0) in:
++	else if (ret > 0)
++		pci_acpi_root_add_resources(info);
 
-diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
-index 475c907..78f7c69 100644
---- a/drivers/acpi/utils.c
-+++ b/drivers/acpi/utils.c
-@@ -614,6 +614,29 @@ acpi_status acpi_evaluate_lck(acpi_handle handle, int lock)
- }
- 
- /**
-+ * acpi_evaluate_fit: Evaluate _FIT method to get an updated NFIT
-+ * @handle: ACPI device handle
-+ * @buf: buffer for the updated NFIT
-+ *
-+ * Evaluate device's _FIT method if present to get an updated NFIT
-+ */
-+acpi_status acpi_evaluate_fit(acpi_handle handle, struct acpi_buffer **buf)
-+{
-+	acpi_status status;
-+	struct acpi_buffer buffer = { ACPI_ALLOCATE_BUFFER, NULL };
-+
-+	status = acpi_evaluate_object(handle, "_FIT", NULL, &buffer);
-+
-+	if (ACPI_FAILURE(status))
-+		return status;
-+
-+	*buf = &buffer;
-+
-+	return status;
-+}
-+EXPORT_SYMBOL(acpi_evaluate_fit);
-+
-+/**
-  * acpi_evaluate_dsm - evaluate device's _DSM method
-  * @handle: ACPI device handle
-  * @uuid: UUID of requested functions, should be 16 bytes
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index 5ba8fb6..7483399 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -61,6 +61,7 @@ bool acpi_ata_match(acpi_handle handle);
- bool acpi_bay_match(acpi_handle handle);
- bool acpi_dock_match(acpi_handle handle);
- 
-+acpi_status acpi_evaluate_fit(acpi_handle handle, struct acpi_buffer **buf);
- bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, int rev, u64 funcs);
- union acpi_object *acpi_evaluate_dsm(acpi_handle handle, const u8 *uuid,
- 			int rev, int func, union acpi_object *argv4);
--- 
-2.4.3
-
+> 
+>> +	pci_add_resource(&info->resources, &root->secondary);
+>> +
+>> +	bus = pci_create_root_bus(NULL, busnum, ops->pci_ops,
+>> +				  sysdata, &info->resources);
+>> +	if (bus) {
+> 
+>     if (!bus)
+>         goto out_release_info;
+> 
+> Then it looks like the other error paths above, and you can un-indent
+> the following code, which is the normal path:
+Will do this.
+Thanks!
+Gerry
