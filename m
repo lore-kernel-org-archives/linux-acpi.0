@@ -1,94 +1,142 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [Patch v6 4/7] PCI/ACPI: Consolidate common PCI host bridge code
- into ACPI core
-Date: Thu, 8 Oct 2015 08:20:10 -0500
-Message-ID: <20151008132010.GI27633@localhost>
-References: <1442218057-4355-1-git-send-email-jiang.liu@linux.intel.com>
- <1442218057-4355-5-git-send-email-jiang.liu@linux.intel.com>
- <20151006174725.GA29420@localhost>
- <5615FFD4.3090202@linux.intel.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH] ACPICA: AcpiGetSleepTypeData: Failure to find \_Sx
+ should not result in a loud warning [v2]
+Date: Thu, 8 Oct 2015 14:19:39 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37D970F57@ORSMSX111.amr.corp.intel.com>
+References: <94F2FBAB4432B54E8AACC7DFDE6C92E37D36303A@ORSMSX112.amr.corp.intel.com>
+ <1444243849-27929-1-git-send-email-prarit@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:45298 "EHLO mail.kernel.org"
+Received: from mga02.intel.com ([134.134.136.20]:53520 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755041AbbJHNUO (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 8 Oct 2015 09:20:14 -0400
-Content-Disposition: inline
-In-Reply-To: <5615FFD4.3090202@linux.intel.com>
+	id S932145AbbJHOUD convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 8 Oct 2015 10:20:03 -0400
+In-Reply-To: <1444243849-27929-1-git-send-email-prarit@redhat.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org, linux-pci@vger.kernel.org
+To: Prarit Bhargava <prarit@redhat.com>, "devel@acpica.org" <devel@acpica.org>
+Cc: "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Thu, Oct 08, 2015 at 01:32:04PM +0800, Jiang Liu wrote:
-> On 2015/10/7 1:47, Bjorn Helgaas wrote:
-> >> +struct pci_bus *acpi_pci_root_create(struct acpi_pci_root *root,
-> >> +				     struct acpi_pci_root_ops *ops,
-> >> +				     struct acpi_pci_root_info *info,
-> >> +				     void *sysdata)
-> >> +{
-> >> +	int ret, busnum = root->secondary.start;
-> >> +	struct acpi_device *device = root->device;
-> >> +	int node = acpi_get_node(device->handle);
-> >> +	struct pci_bus *bus;
-> >> +
-> >> +	info->root = root;
-> >> +	info->bridge = device;
-> >> +	info->ops = ops;
-> >> +	INIT_LIST_HEAD(&info->resources);
-> >> +	snprintf(info->name, sizeof(info->name), "PCI Bus %04x:%02x",
-> >> +		 root->segment, busnum);
-> >> +
-> >> +	if (ops->init_info && ops->init_info(info))
-> >> +		goto out_release_info;
-> >> +	ret = acpi_pci_probe_root_resources(info);
-> >> +	if (ops->prepare_resources)
-> >> +		ret = ops->prepare_resources(info, ret);
-> >> +	if (ret < 0)
-> >> +		goto out_release_info;
-> >> +	else if (ret > 0)
-> >> +		pci_acpi_root_add_resources(info);
-> > 
-> > This is unnecessarily complicated: you set "ret", then overwrite it if
-> > ops->prepare_resources.  By the time you test "ret", it's messy to
-> > figure out what it means.
-> > 
-> > Both ops->prepare_resources() and pci_acpi_root_add_resources()
-> > should be able to deal with empty resource lists, so can you do the
-> > following instead?
-> > 
-> >     ret = acpi_pci_probe_root_resources(info);
-> >     if (ret < 0)
-> >         goto out_release_info;
->
-> 	The original code is used to handle a special case for x86,
-> where acpi_pci_probe_root_resources() fails but ops->prepare_resources()
-> succeeds. For x86, PCI host bridge resources may probed by means
-> other than ACPI when pci_use_crs is true (AMD and Broadcom hostbridges).
-> So we can't return failure when acpi_pci_probe_root_resources() fails.
+We'll do the ACPICA version of this, although with probably with some changes.
+Thanks,
+Bob
 
-That's even worse than I thought.  I take back my ack; I think this
-really needs to be restructured so it does the right thing *and* reads
-clearly.  Having convoluted generic code to deal with an arch-specific
-special case is a recipe for breakage in the future.
 
-Maybe you can move the non-ACPI resource probing from
-prepare_resources() into acpi_pci_probe_root_resources() (you could
-rename it to something more generic if that helps).
-
-> +	ret = acpi_pci_probe_root_resources(info);
-> +	if (ops->prepare_resources)
-> +		ret = ops->prepare_resources(info, ret);
-> +	if (ret < 0)
-> +		goto out_release_info;
+> -----Original Message-----
+> From: Prarit Bhargava [mailto:prarit@redhat.com]
+> Sent: Wednesday, October 07, 2015 11:51 AM
+> To: devel@acpica.org
+> Cc: Prarit Bhargava; Moore, Robert; Zheng, Lv; Wysocki, Rafael J; Len
+> Brown; linux-acpi@vger.kernel.org
+> Subject: [PATCH] ACPICA: AcpiGetSleepTypeData: Failure to find \_Sx should
+> not result in a loud warning [v2]
 > 
-> >     if (ops->prepare_resources) {
-> >         ret = ops->prepare_resources(info, ret);
-> >         if (ret < 0)
-> >             goto out_release_info;
-> >     }
-> >     pci_acpi_root_add_resources(info);
-> I will remove the redundant check of (ret > 0) in:
-> +	else if (ret > 0)
-> +		pci_acpi_root_add_resources(info);
+> 48ffb94 ("ACPICA: AcpiGetSleepTypeData: Allow \_Sx to return either 1 or 2
+> integers") changed the error handling in AcpiGetSleepTypeData such that
+> 
+> ACPI Exception: AE_NOT_FOUND, While evaluating Sleep State [\_S1_]
+> (20130517/hwxface-571)
+> 
+> is displayed on systems not implementing individual ACPI \_Sx sleep
+> states.
+> Since these states are optional the loud warning is incorrect.  This patch
+> changes the kernel to the older behaviour of not warning on a not found
+> \_Sx.
+> 
+> Before patch:
+> 
+> [root@dell-pem520-03 ~]# dmesg | grep "While evaluating Sleep State"
+>  ACPI Exception: AE_NOT_FOUND, While evaluating Sleep State [\_S1_]
+> (20130517/hwxface-571)  ACPI Exception: AE_NOT_FOUND, While evaluating
+> Sleep State [\_S2_] (20130517/hwxface-571)  ACPI Exception: AE_NOT_FOUND,
+> While evaluating Sleep State [\_S3_] (20130517/hwxface-571)
+> [root@dell-pem520-03 ~]#
+> 
+> After patch:
+> 
+> [root@dell-pem520-03 ~]# dmesg | grep "While evaluating Sleep State"
+> [root@dell-pem520-03 ~]#
+> 
+> v2: Suggested by Robert Moore: Do not warn on AE_NOT_FOUND, otherwise warn
+> loudly
+> 
+> Fixes: 48ffb94 ("ACPICA: AcpiGetSleepTypeData: Allow \_Sx to return either
+> 1 or 2 integers")
+> Cc: Robert Moore <robert.moore@intel.com>
+> Cc: Lv Zheng <lv.zheng@intel.com>
+> Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+> Cc: Len Brown <lenb@kernel.org>
+> Cc: linux-acpi@vger.kernel.org
+> Signed-off-by: Prarit Bhargava <prarit@redhat.com>
+> ---
+>  drivers/acpi/acpica/hwxface.c |   15 ++++++++++-----
+>  1 file changed, 10 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/acpi/acpica/hwxface.c b/drivers/acpi/acpica/hwxface.c
+> index 5f97468..b450133 100644
+> --- a/drivers/acpi/acpica/hwxface.c
+> +++ b/drivers/acpi/acpica/hwxface.c
+> @@ -507,9 +507,13 @@ acpi_get_sleep_type_data(u8 sleep_state, u8
+> *sleep_type_a, u8 *sleep_type_b)
+>  	info->relative_pathname =
+>  	    ACPI_CAST_PTR(char, acpi_gbl_sleep_state_names[sleep_state]);
+>  	status = acpi_ns_evaluate(info);
+> -	if (ACPI_FAILURE(status)) {
+> +	if (status == AE_NOT_FOUND) {
+> +		/* \_Sx states are optional */
+>  		goto cleanup;
+>  	}
+> +	if (ACPI_FAILURE(status)) {
+> +		goto cleanup1;
+> +	}
+> 
+>  	/* Must have a return object */
+> 
+> @@ -517,7 +521,7 @@ acpi_get_sleep_type_data(u8 sleep_state, u8
+> *sleep_type_a, u8 *sleep_type_b)
+>  		ACPI_ERROR((AE_INFO, "No Sleep State object returned from
+> [%s]",
+>  			    info->relative_pathname));
+>  		status = AE_AML_NO_RETURN_VALUE;
+> -		goto cleanup;
+> +		goto cleanup1;
+>  	}
+> 
+>  	/* Return object must be of type Package */ @@ -526,7 +530,7 @@
+> acpi_get_sleep_type_data(u8 sleep_state, u8 *sleep_type_a, u8
+> *sleep_type_b)
+>  		ACPI_ERROR((AE_INFO,
+>  			    "Sleep State return object is not a Package"));
+>  		status = AE_AML_OPERAND_TYPE;
+> -		goto cleanup1;
+> +		goto cleanup2;
+>  	}
+> 
+>  	/*
+> @@ -570,16 +574,17 @@ acpi_get_sleep_type_data(u8 sleep_state, u8
+> *sleep_type_a, u8 *sleep_type_b)
+>  		break;
+>  	}
+> 
+> -cleanup1:
+> +cleanup2:
+>  	acpi_ut_remove_reference(info->return_object);
+> 
+> -cleanup:
+> +cleanup1:
+>  	if (ACPI_FAILURE(status)) {
+>  		ACPI_EXCEPTION((AE_INFO, status,
+>  				"While evaluating Sleep State [%s]",
+>  				info->relative_pathname));
+>  	}
+> 
+> +cleanup:
+>  	ACPI_FREE(info);
+>  	return_ACPI_STATUS(status);
+>  }
+> --
+> 1.7.9.3
+
