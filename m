@@ -1,49 +1,54 @@
-From: "Chen, Yu C" <yu.c.chen@intel.com>
-Subject: RE: [PATCH][v3] ACPI / PM: Fix incorrect wakeup irq setting before
- suspend-to-idle
-Date: Fri, 9 Oct 2015 09:50:21 +0000
-Message-ID: <36DF59CE26D8EE47B0655C516E9CE6402865A448@shsmsx102.ccr.corp.intel.com>
-References: <1444378813-17857-1-git-send-email-yu.c.chen@intel.com>
- <1AE640813FDE7649BE1B193DEA596E883BAC6884@SHSMSX101.ccr.corp.intel.com>
+From: Prarit Bhargava <prarit@redhat.com>
+Subject: Re: [PATCH] ACPICA: AcpiGetSleepTypeData: Failure to find \_Sx should
+ not result in a loud warning [v2]
+Date: Fri, 09 Oct 2015 07:29:41 -0400
+Message-ID: <5617A525.2070806@redhat.com>
+References: <94F2FBAB4432B54E8AACC7DFDE6C92E37D36303A@ORSMSX112.amr.corp.intel.com> <1444243849-27929-1-git-send-email-prarit@redhat.com> <94F2FBAB4432B54E8AACC7DFDE6C92E37D970F57@ORSMSX111.amr.corp.intel.com> <56167C58.8000405@redhat.com> <1AE640813FDE7649BE1B193DEA596E883BAC675E@SHSMSX101.ccr.corp.intel.com> <1AE640813FDE7649BE1B193DEA596E883BAC67EE@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E883BAC6884@SHSMSX101.ccr.corp.intel.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:50441 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753984AbbJIL3m (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 9 Oct 2015 07:29:42 -0400
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E883BAC67EE@SHSMSX101.ccr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "devel@acpica.org" <devel@acpica.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>
 
-Hi, LV
 
-> -----Original Message-----
-> From: Zheng, Lv
-> Sent: Friday, October 09, 2015 4:33 PM
-> To: Chen, Yu C; rjw@rjwysocki.net; lenb@kernel.org
-> Cc: linux-pm@vger.kernel.org; linux-acpi@vger.kernel.org; linux-
-> kernel@vger.kernel.org; Zhang, Rui
-> Subject: RE: [PATCH][v3] ACPI / PM: Fix incorrect wakeup irq setting before
-> suspend-to-idle
-> 
-> Hi, Yu
-> 
-> > From: Chen, Yu C
-> > Sent: Friday, October 09, 2015 4:20 PM
-> >
-> >
-> >  acpi_status acpi_os_remove_interrupt_handler(u32 irq,
-> > acpi_osd_handler handler)
-> 
-> Why don't you rename irq here to gsi to improve the readability?
-> The false naming and the wrong example written for this function are
-> probably the root causes of all other bad code.
-> So if we want to stop people making future mistakes, we need to cleanup
-> ourselves.
-> 
-OK, will rewrite in next version.
 
+On 10/09/2015 01:26 AM, Zheng, Lv wrote:
+> Please ignore this.
+> The fix is against the caller.
+> 
 > Thanks and best regards
 > -Lv
 > 
+>> -----Original Message-----
+>> From: Devel [mailto:devel-bounces@acpica.org] On Behalf Of Zheng, Lv
+>> Sent: Friday, October 09, 2015 10:02 AM
+>> To: Prarit Bhargava; Moore, Robert; devel@acpica.org
+>> Cc: linux-acpi@vger.kernel.org; Wysocki, Rafael J
+>> Subject: Re: [Devel] [PATCH] ACPICA: AcpiGetSleepTypeData: Failure to find \_Sx should not result in a loud warning [v2]
+>>
+>> Why don't you fix this in the invoker side?
+>> For example:
+>> If (acpi_get_handle())
+>> 	acpi_evaluate_object()
+
+That seems like a sloppy workaround an actual bug in ACPICA.
+
+>> So that the AE_NOT_FOUND warning can still be kept for the real troubles?
+
+The code is warning 100% of the time on something that is optional.
+
+>> There are really scenarios that such warning is useful for catching bugs.
+>>
+
+What scenario is possible where this causes a problem?  Issuing an error on
+something that is optional is not a good idea.
+
+P.
