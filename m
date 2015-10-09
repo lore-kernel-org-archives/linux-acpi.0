@@ -1,45 +1,43 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Bugfix v4 0/2] Prevent binding PCI drivers to PCI devices used by non-pci drivers
-Date: Fri,  9 Oct 2015 22:07:30 +0800
-Message-ID: <1444399652-25920-1-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Bugfix v4 1/2] iommu/amd: Prevent binding other PCI drivers to IOMMU PCI devices
+Date: Fri,  9 Oct 2015 22:07:31 +0800
+Message-ID: <1444399652-25920-2-git-send-email-jiang.liu@linux.intel.com>
 References: <1444386214-26319-1-git-send-email-joro@8bytes.org>
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1444386214-26319-1-git-send-email-joro@8bytes.org>
-Sender: linux-pci-owner@vger.kernel.org
+ <1444399652-25920-1-git-send-email-jiang.liu@linux.intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1444399652-25920-1-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Joerg Roedel <joro@8bytes.org>, Borislav Petkov <bp@alien8.de>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Vetter <daniel@ffwll.ch>, Alex Deucher <alexdeucher@gmail.com>, Christian Knig <christian.koenig@amd.com>
 Cc: Jiang Liu <jiang.liu@linux.intel.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-iommu@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Joerg,
-	I prepared this patchset yesterday but forgot to send them out.
-I think it still worth sending out for review, so here we go:)
+AMD IOMMU driver makes use of IOMMU PCI devices, so prevent binding other
+PCI drivers to IOMMU PCI devices.
 
+This fixes a bug reported by Boris that system suspend/resume gets broken
+on AMD platforms. For more information, please refer to:
+	https://lkml.org/lkml/2015/9/26/89
+
+Fixes: 991de2e59090 ("PCI, x86: Implement pcibios_alloc_irq() and pcibios_free_irq()")
+Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Borislav Petkov <bp@alien8.de>
 ---
-Commit 991de2e59090 ("PCI, x86: Implement pcibios_alloc_irq() and
-pcibios_free_irq()") breaks suspend/resume on some AMD platforms.
-The root cause is:
-1) AMD IOMMU drivers enables MSI on IOMMU PCI devices at early boot stage
-2) PCI driver binding code tries to allocate/free PCI legacy IRQ when
-   binding other PCI drivers to IOMMU PCI devices at later boot stage,
-   and breaks PCI MSI allocation information.
-3) System resume breaks when restoring PCI MSI state using the damaged
-   data.
-
-We have tried on solution to detect that a PCI is in use by IOMMU driver
-by checking pci_msi_enabled(). But that's too specific, actually we should
-prevent binding PCI drivers to PCI devices used by non-PCI drivers.
-
-Fortunately, we could prevent binding PCI drivers to PCI devices by setting
-pci_dev->match_driver to false. If needed, we could implement a helper
-function to manipulate pci_dev->match_driver.
-
-Jiang Liu (2):
-  iommu/amd: Prevent binding other PCI drivers to IOMMU PCI devices
-  ACPI, PCI: Prevent binding other PCI drivers to IOAPIC PCI devices
-
- drivers/acpi/ioapic.c          |    7 +++++--
  drivers/iommu/amd_iommu_init.c |    3 +++
- 2 files changed, 8 insertions(+), 2 deletions(-)
+ 1 file changed, 3 insertions(+)
 
+diff --git a/drivers/iommu/amd_iommu_init.c b/drivers/iommu/amd_iommu_init.c
+index 5ef347a13cb5..1b066e7d144d 100644
+--- a/drivers/iommu/amd_iommu_init.c
++++ b/drivers/iommu/amd_iommu_init.c
+@@ -1256,6 +1256,9 @@ static int iommu_init_pci(struct amd_iommu *iommu)
+ 	if (!iommu->dev)
+ 		return -ENODEV;
+ 
++	/* Prevent binding other PCI device drivers to IOMMU devices */
++	iommu->dev->match_driver = false;
++
+ 	pci_read_config_dword(iommu->dev, cap_ptr + MMIO_CAP_HDR_OFFSET,
+ 			      &iommu->cap);
+ 	pci_read_config_dword(iommu->dev, cap_ptr + MMIO_RANGE_OFFSET,
 -- 
 1.7.10.4
