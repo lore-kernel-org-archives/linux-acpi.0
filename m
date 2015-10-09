@@ -1,38 +1,33 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH 01/16] irqdomain: Use an accessor for the of_node field
-Date: Fri, 09 Oct 2015 15:31:12 +0100
-Message-ID: <5617CFB0.8090703@arm.com>
-References: <1444152989-31726-1-git-send-email-marc.zyngier@arm.com> <1444152989-31726-2-git-send-email-marc.zyngier@arm.com> <alpine.DEB.2.11.1510091623090.6097@nanos>
+From: Joerg Roedel <joro@8bytes.org>
+Subject: Re: [Bugfix v4 2/2] ACPI, PCI: Prevent binding other PCI drivers to
+ IOAPIC PCI devices
+Date: Fri, 9 Oct 2015 17:45:17 +0200
+Message-ID: <20151009154517.GF27420@8bytes.org>
+References: <1444386214-26319-1-git-send-email-joro@8bytes.org>
+ <1444399652-25920-1-git-send-email-jiang.liu@linux.intel.com>
+ <1444399652-25920-3-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.11.1510091623090.6097@nanos>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Graeme Gregory <graeme@xora.org.uk>, Jake Oshins <jakeo@microsoft.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from 8bytes.org ([81.169.241.247]:38922 "EHLO theia.8bytes.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757419AbbJIPpT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 9 Oct 2015 11:45:19 -0400
+Content-Disposition: inline
+In-Reply-To: <1444399652-25920-3-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Borislav Petkov <bp@alien8.de>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Vetter <daniel@ffwll.ch>, Alex Deucher <alexdeucher@gmail.com>, Christian =?iso-8859-1?Q?K=F6nig?= <christian.koenig@amd.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-iommu@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org
 
-On 09/10/15 15:24, Thomas Gleixner wrote:
-> On Tue, 6 Oct 2015, Marc Zyngier wrote:
->> index d3ca792..f644fdb 100644
->> --- a/include/linux/irqdomain.h
->> +++ b/include/linux/irqdomain.h
->> @@ -161,6 +161,11 @@ enum {
->>  	IRQ_DOMAIN_FLAG_NONCORE		= (1 << 16),
->>  };
->>  
->> +static inline struct device_node *irq_domain_get_of_node(struct irq_domain *d)
->> +{
->> +	return d->of_node;
->> +}
->> +
+On Fri, Oct 09, 2015 at 10:07:32PM +0800, Jiang Liu wrote:
+> The ACPI IOAPIC driver makes use of IOAPIC PCI devices, so prevent
+> binding other PCI drivers to IOAPIC PCI devices used by ACPI IOAPIC
+> driver.
 > 
-> Can you please make that a seperate patch, which I can expedite to
-> Linus? That way we can fix stuff which shows up in next as well.
+> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+> ---
+>  drivers/acpi/ioapic.c |    7 +++++--
+>  1 file changed, 5 insertions(+), 2 deletions(-)
 
-Just this one hunk? Sure. Coming up!
-
-	M.
--- 
-Jazz is not dead. It just smells funny...
+Reviewed-by: Joerg Roedel <jroedel@suse.de>
