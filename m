@@ -1,75 +1,45 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH] ACPICA: AcpiGetSleepTypeData: Failure to find \_Sx
- should not result in a loud warning [v2]
-Date: Fri, 9 Oct 2015 14:04:22 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37D9784D0@ORSMSX112.amr.corp.intel.com>
-References: <94F2FBAB4432B54E8AACC7DFDE6C92E37D36303A@ORSMSX112.amr.corp.intel.com>
- <1444243849-27929-1-git-send-email-prarit@redhat.com>
- <94F2FBAB4432B54E8AACC7DFDE6C92E37D970F57@ORSMSX111.amr.corp.intel.com>
- <56167C58.8000405@redhat.com>
- <1AE640813FDE7649BE1B193DEA596E883BAC675E@SHSMSX101.ccr.corp.intel.com>
- <1AE640813FDE7649BE1B193DEA596E883BAC67EE@SHSMSX101.ccr.corp.intel.com>
- <5617A525.2070806@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:40578 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751231AbbJIOEX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Oct 2015 10:04:23 -0400
-In-Reply-To: <5617A525.2070806@redhat.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: [Bugfix v4 0/2] Prevent binding PCI drivers to PCI devices used by non-pci drivers
+Date: Fri,  9 Oct 2015 22:07:30 +0800
+Message-ID: <1444399652-25920-1-git-send-email-jiang.liu@linux.intel.com>
+References: <1444386214-26319-1-git-send-email-joro@8bytes.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1444386214-26319-1-git-send-email-joro@8bytes.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Joerg Roedel <joro@8bytes.org>, Borislav Petkov <bp@alien8.de>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Vetter <daniel@ffwll.ch>, Alex Deucher <alexdeucher@gmail.com>, Christian Knig <christian.koenig@amd.com>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-iommu@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Prarit Bhargava <prarit@redhat.com>, "Zheng, Lv" <lv.zheng@intel.com>, "devel@acpica.org" <devel@acpica.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>
 
-I have no issues with the original solution. We don't warn on other ACPI_NOT_FOUND exceptions.
+Hi Joerg,
+	I prepared this patchset yesterday but forgot to send them out.
+I think it still worth sending out for review, so here we go:)
 
+---
+Commit 991de2e59090 ("PCI, x86: Implement pcibios_alloc_irq() and
+pcibios_free_irq()") breaks suspend/resume on some AMD platforms.
+The root cause is:
+1) AMD IOMMU drivers enables MSI on IOMMU PCI devices at early boot stage
+2) PCI driver binding code tries to allocate/free PCI legacy IRQ when
+   binding other PCI drivers to IOMMU PCI devices at later boot stage,
+   and breaks PCI MSI allocation information.
+3) System resume breaks when restoring PCI MSI state using the damaged
+   data.
 
-> -----Original Message-----
-> From: Prarit Bhargava [mailto:prarit@redhat.com]
-> Sent: Friday, October 09, 2015 4:30 AM
-> To: Zheng, Lv; Moore, Robert; devel@acpica.org
-> Cc: linux-acpi@vger.kernel.org; Wysocki, Rafael J
-> Subject: Re: [PATCH] ACPICA: AcpiGetSleepTypeData: Failure to find \_Sx
-> should not result in a loud warning [v2]
-> 
-> 
-> 
-> On 10/09/2015 01:26 AM, Zheng, Lv wrote:
-> > Please ignore this.
-> > The fix is against the caller.
-> >
-> > Thanks and best regards
-> > -Lv
-> >
-> >> -----Original Message-----
-> >> From: Devel [mailto:devel-bounces@acpica.org] On Behalf Of Zheng, Lv
-> >> Sent: Friday, October 09, 2015 10:02 AM
-> >> To: Prarit Bhargava; Moore, Robert; devel@acpica.org
-> >> Cc: linux-acpi@vger.kernel.org; Wysocki, Rafael J
-> >> Subject: Re: [Devel] [PATCH] ACPICA: AcpiGetSleepTypeData: Failure to
-> >> find \_Sx should not result in a loud warning [v2]
-> >>
-> >> Why don't you fix this in the invoker side?
-> >> For example:
-> >> If (acpi_get_handle())
-> >> 	acpi_evaluate_object()
-> 
-> That seems like a sloppy workaround an actual bug in ACPICA.
-> 
-> >> So that the AE_NOT_FOUND warning can still be kept for the real
-> troubles?
-> 
-> The code is warning 100% of the time on something that is optional.
-> 
-> >> There are really scenarios that such warning is useful for catching
-> bugs.
-> >>
-> 
-> What scenario is possible where this causes a problem?  Issuing an error
-> on something that is optional is not a good idea.
-> 
-> P.
+We have tried on solution to detect that a PCI is in use by IOMMU driver
+by checking pci_msi_enabled(). But that's too specific, actually we should
+prevent binding PCI drivers to PCI devices used by non-PCI drivers.
+
+Fortunately, we could prevent binding PCI drivers to PCI devices by setting
+pci_dev->match_driver to false. If needed, we could implement a helper
+function to manipulate pci_dev->match_driver.
+
+Jiang Liu (2):
+  iommu/amd: Prevent binding other PCI drivers to IOMMU PCI devices
+  ACPI, PCI: Prevent binding other PCI drivers to IOAPIC PCI devices
+
+ drivers/acpi/ioapic.c          |    7 +++++--
+ drivers/iommu/amd_iommu_init.c |    3 +++
+ 2 files changed, 8 insertions(+), 2 deletions(-)
+
+-- 
+1.7.10.4
