@@ -1,43 +1,53 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Bugfix v4 1/2] iommu/amd: Prevent binding other PCI drivers to IOMMU PCI devices
-Date: Fri,  9 Oct 2015 22:07:31 +0800
-Message-ID: <1444399652-25920-2-git-send-email-jiang.liu@linux.intel.com>
+Subject: [Bugfix v4 2/2] ACPI, PCI: Prevent binding other PCI drivers to IOAPIC PCI devices
+Date: Fri,  9 Oct 2015 22:07:32 +0800
+Message-ID: <1444399652-25920-3-git-send-email-jiang.liu@linux.intel.com>
 References: <1444386214-26319-1-git-send-email-joro@8bytes.org>
  <1444399652-25920-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1444399652-25920-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Joerg Roedel <joro@8bytes.org>, Borislav Petkov <bp@alien8.de>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Vetter <daniel@ffwll.ch>, Alex Deucher <alexdeucher@gmail.com>, Christian Knig <christian.koenig@amd.com>
+To: Joerg Roedel <joro@8bytes.org>, Borislav Petkov <bp@alien8.de>, Bjorn Helgaas <bhelgaas@google.com>, Daniel Vetter <daniel@ffwll.ch>, Alex Deucher <alexdeucher@gmail.com>, =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>
 Cc: Jiang Liu <jiang.liu@linux.intel.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-iommu@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-AMD IOMMU driver makes use of IOMMU PCI devices, so prevent binding other
-PCI drivers to IOMMU PCI devices.
+The ACPI IOAPIC driver makes use of IOAPIC PCI devices, so prevent
+binding other PCI drivers to IOAPIC PCI devices used by ACPI IOAPIC
+driver.
 
-This fixes a bug reported by Boris that system suspend/resume gets broken
-on AMD platforms. For more information, please refer to:
-	https://lkml.org/lkml/2015/9/26/89
-
-Fixes: 991de2e59090 ("PCI, x86: Implement pcibios_alloc_irq() and pcibios_free_irq()")
 Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Borislav Petkov <bp@alien8.de>
 ---
- drivers/iommu/amd_iommu_init.c |    3 +++
- 1 file changed, 3 insertions(+)
+ drivers/acpi/ioapic.c |    7 +++++--
+ 1 file changed, 5 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/iommu/amd_iommu_init.c b/drivers/iommu/amd_iommu_init.c
-index 5ef347a13cb5..1b066e7d144d 100644
---- a/drivers/iommu/amd_iommu_init.c
-+++ b/drivers/iommu/amd_iommu_init.c
-@@ -1256,6 +1256,9 @@ static int iommu_init_pci(struct amd_iommu *iommu)
- 	if (!iommu->dev)
- 		return -ENODEV;
+diff --git a/drivers/acpi/ioapic.c b/drivers/acpi/ioapic.c
+index ccdc8db16bb8..da71b274fc21 100644
+--- a/drivers/acpi/ioapic.c
++++ b/drivers/acpi/ioapic.c
+@@ -162,12 +162,14 @@ done:
+ 	list_add(&ioapic->list, &ioapic_list);
+ 	mutex_unlock(&ioapic_list_lock);
  
-+	/* Prevent binding other PCI device drivers to IOMMU devices */
-+	iommu->dev->match_driver = false;
-+
- 	pci_read_config_dword(iommu->dev, cap_ptr + MMIO_CAP_HDR_OFFSET,
- 			      &iommu->cap);
- 	pci_read_config_dword(iommu->dev, cap_ptr + MMIO_RANGE_OFFSET,
+-	if (dev)
++	if (dev) {
++		dev->match_driver = false;
+ 		dev_info(&dev->dev, "%s at %pR, GSI %u\n",
+ 			 type, res, (u32)gsi_base);
+-	else
++	} else {
+ 		acpi_handle_info(handle, "%s at %pR, GSI %u\n",
+ 				 type, res, (u32)gsi_base);
++	}
+ 
+ 	return AE_OK;
+ 
+@@ -216,6 +218,7 @@ int acpi_ioapic_remove(struct acpi_pci_root *root)
+ 		if (ioapic->pdev) {
+ 			pci_release_region(ioapic->pdev, 0);
+ 			pci_disable_device(ioapic->pdev);
++			ioapic->pdev->match_driver = true;
+ 			pci_dev_put(ioapic->pdev);
+ 		} else if (ioapic->res.flags && ioapic->res.parent) {
+ 			release_resource(&ioapic->res);
 -- 
 1.7.10.4
