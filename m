@@ -1,64 +1,67 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] Power management and ACPI fixes for v4.3-rc5
-Date: Sat, 10 Oct 2015 00:23:25 +0200
-Message-ID: <CAJZ5v0hrz7UqcNHSwi=9PuCcOX1nXdAMiei-M0Akux-XjTA1+g@mail.gmail.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH] ACPICA: AcpiGetSleepTypeData: Failure to find \_Sx
+ should not result in a loud warning [v2]
+Date: Sat, 10 Oct 2015 01:22:20 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BAC6BF4@SHSMSX101.ccr.corp.intel.com>
+References: <94F2FBAB4432B54E8AACC7DFDE6C92E37D36303A@ORSMSX112.amr.corp.intel.com>
+ <1444243849-27929-1-git-send-email-prarit@redhat.com>
+ <94F2FBAB4432B54E8AACC7DFDE6C92E37D970F57@ORSMSX111.amr.corp.intel.com>
+ <56167C58.8000405@redhat.com>
+ <1AE640813FDE7649BE1B193DEA596E883BAC675E@SHSMSX101.ccr.corp.intel.com>
+ <1AE640813FDE7649BE1B193DEA596E883BAC67EE@SHSMSX101.ccr.corp.intel.com>
+ <5617A525.2070806@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pm-owner@vger.kernel.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:25627 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750956AbbJJBWY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 9 Oct 2015 21:22:24 -0400
+In-Reply-To: <5617A525.2070806@redhat.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Prarit Bhargava <prarit@redhat.com>, "Moore, Robert" <robert.moore@intel.com>, "devel@acpica.org" <devel@acpica.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>
 
-Hi Linus,
+Hi,
 
-Please pull from
+> From: Prarit Bhargava [mailto:prarit@redhat.com]
+> Sent: Friday, October 09, 2015 7:30 PM
+> 
+> On 10/09/2015 01:26 AM, Zheng, Lv wrote:
+> > Please ignore this.
+> > The fix is against the caller.
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- pm+acpi-4.3-rc5
+As I said, the previous email is sent due to lack of confirmation.
+So you needn't reply the previous message.
 
-to receive power management and ACPI fixes for v4.3-rc5 with
-top-most commit 670aee3fc7ac37ae947f8b582d87b51d5fa36524
+Thanks
+-Lv
 
- Merge branches 'pm-devfreq' and 'pm-cpufreq'
-
-on top of commit 049e6dde7e57f0054fdc49102e7ef4830c698b46
-
- Linux 4.3-rc4
-
-These are four fixes for bugs in the devfreq and cpufreq
-subsystems, including two regression fixes (one for a recent
-regression and one for a problem introduced in 4.2).
-
-Specifics:
-
- - Two fixes for cpufreq regressions, an acpi-cpufreq driver one
-   introduced during the 4.2 cycle when we started to preserve
-   cpufreq directories for offline CPUs and a general one
-   introduced recently (Srinivas Pandruvada).
-
- - Two devfreq fixes, one for a double kfree() in an error code
-   path and one for a confusing sysfs-related failure (Geliang Tang,
-   Tobias Jakobi).
-
-Thanks!
-
-
----------------
-
-Geliang Tang (1):
-      PM / devfreq: fix double kfree
-
-Srinivas Pandruvada (2):
-      cpufreq: acpi_cpufreq: prevent crash on reading freqdomain_cpus
-      cpufreq: prevent lockup on reading scaling_available_frequencies
-
-Tobias Jakobi (1):
-      PM / devfreq: Fix governor_store()
-
----------------
-
- drivers/cpufreq/acpi-cpufreq.c | 3 +++
- drivers/cpufreq/cpufreq.c      | 4 +++-
- drivers/devfreq/devfreq.c      | 7 ++++---
- 3 files changed, 10 insertions(+), 4 deletions(-)
+> >
+> > Thanks and best regards
+> > -Lv
+> >
+> >> From: Devel [mailto:devel-bounces@acpica.org] On Behalf Of Zheng, Lv
+> >> Sent: Friday, October 09, 2015 10:02 AM
+> >>
+> >> Why don't you fix this in the invoker side?
+> >> For example:
+> >> If (acpi_get_handle())
+> >> 	acpi_evaluate_object()
+> 
+> That seems like a sloppy workaround an actual bug in ACPICA.
+> 
+> >> So that the AE_NOT_FOUND warning can still be kept for the real troubles?
+> 
+> The code is warning 100% of the time on something that is optional.
+> 
+> >> There are really scenarios that such warning is useful for catching bugs.
+> >>
+> 
+> What scenario is possible where this causes a problem?  Issuing an error on
+> something that is optional is not a good idea.
+> 
+> P.
