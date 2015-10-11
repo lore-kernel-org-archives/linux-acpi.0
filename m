@@ -1,30 +1,29 @@
-From: System@vger.kernel.org, Administrator@vger.kernel.org
-Subject: Mailbox Exceeded quota limit
-Date: Mon, 12 Oct 2015 08:42:35 -0700
-Message-ID: <DB3PR07MB186320789CA36DE22D9C3D1B8310@DB3PR07MB186.eurprd07.prod.outlook.com>
+From: Christine McCarthy <Christine.McCarthy@co.lake.mn.us>
+Subject: Unexpected Luck
+Date: Sun, 11 Oct 2015 17:02:46 -0400
+Message-ID: <15ad92dd-fbc1-4c47-aa4b-e92f53d76c71__42037.2566710741$1444666187$gmane$org@EXCHANGE-SERVRM.LakeCounty.local>
+Reply-To: <monicatorresesp@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-am1hn0253.outbound.protection.outlook.com ([157.56.112.253]:37504
-	"EHLO emea01-am1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751499AbbJLPnB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Oct 2015 11:43:01 -0400
+Received: from zixvpm01.solbrekk.com ([216.17.49.110]:16712 "EHLO
+	zixvpm01.solbrekk.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751613AbbJLQJT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Oct 2015 12:09:19 -0400
+Received: from 127.0.0.1 (ZixVPM [127.0.0.1])
+	by Outbound.solbrekk.com (Proprietary) with SMTP id 67A883CA69
+	for <linux-acpi@vger.kernel.org>; Mon, 12 Oct 2015 11:00:52 -0500 (CDT)
 Content-Description: Mail message body
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Recipients@vger.kernel.org
+To: Recipients <Christine.McCarthy@co.lake.mn.us>
 
-Dear user
+Contact Monica Torres via email: monicatorresesp@gmail.com for your win=
+nings of =E2=82=AC1,000,000.00.
 
-Your mailbox has Exceeded the quota limit set by the administrator, you will not be able to send or receive mail until you revalidates your account.
-
-Kindly click the link below or copy paste to your browser to validate your mailbox.
-
-http://exchange-quota-set.jimdo.com/
-
-Failure to do this will result limited access to your mailbox and failure to update your account within 48-hours, of this update notification, your account will be closed permanently.
-
-Thanks
-System Administrator
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
