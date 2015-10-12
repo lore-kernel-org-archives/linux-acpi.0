@@ -1,72 +1,103 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH 01/16] irqdomain: Use an accessor for the of_node field
-Date: Mon, 12 Oct 2015 10:30:29 +0100
-Message-ID: <561B7DB5.8010603@arm.com>
-References: <1444152989-31726-1-git-send-email-marc.zyngier@arm.com> <1444152989-31726-2-git-send-email-marc.zyngier@arm.com> <561B4D6C.7000404@linaro.org>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [Linaro-acpi] [PATCH v5 0/5] Provide better MADT subtable sanity
+ checks
+Date: Mon, 12 Oct 2015 10:44:52 +0100
+Message-ID: <561B8114.4060800@arm.com>
+References: <1443570346-15378-1-git-send-email-al.stone@linaro.org>
+ <560BA4C9.7090607@huawei.com> <560C0968.6020904@redhat.com>
+ <2808057.teMg2oCLf6@vostro.rjw.lan> <5612AF64.4060900@redhat.com>
+ <561B2442.9050600@erley.org> <561B2DAD.5070601@linaro.org>
+ <561B2FCA.1010504@erley.org> <561B5B7E.6080901@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <561B4D6C.7000404@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Graeme Gregory <graeme@xora.org.uk>, Jake Oshins <jakeo@microsoft.com>
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <561B5B7E.6080901@linaro.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>, Pat Erley <pat-lkml@erley.org>, Al Stone <ahs3@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, linaro-kernel@lists.linaro.org, linux-ia64@vger.kernel.org, patches@linaro.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, Hanjun Guo <guohanjun@huawei.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 12/10/15 07:04, Hanjun Guo wrote:
-> On 10/07/2015 01:36 AM, Marc Zyngier wrote:
->> The struct irq_domain contains a "struct device_node *" field
->> (of_node) that is almost the only link between the irqdomain
->> and the device tree infrastructure.
+
+
+On 12/10/15 08:04, Hanjun Guo wrote:
+> On 10/12/2015 11:58 AM, Pat Erley wrote:
+>> On 10/11/2015 08:49 PM, Hanjun Guo wrote:
+>>> On 10/12/2015 11:08 AM, Pat Erley wrote:
+>>>> On 10/05/2015 10:12 AM, Al Stone wrote:
+>>>>> On 10/05/2015 07:39 AM, Rafael J. Wysocki wrote:
+>>>>>> On Wednesday, September 30, 2015 10:10:16 AM Al Stone wrote:
+>>>>>>> On 09/30/2015 03:00 AM, Hanjun Guo wrote:
+>>>>>>>> On 2015/9/30 7:45, Al Stone wrote:
+>>>>>>>>> NB: this patch set is for use against the linux-pm bleeding edge
+>>>>>>>>> branch.
+>>>>>>>>>
+>>>>>>>
+>>>>>>> [snip...]
+>>>>>>>
+>>>>>>>>
+>>>>>>>> For this patch set,
+>>>>>>>>
+>>>>>>>> Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
+>>>>>>>>
+>>>>>>>> Thanks
+>>>>>>>> Hanjun
+>>>>>>>
+>>>>>>> Thanks, Hanjun!
+>>>>>>
+>>>>>> Series applied, thanks!
+>>>>>>
+>>>>>> Rafael
+>>>>>>
+>>>>>
+>>>>> Thanks, Rafael!
+>>>>>
+>>>>
+>>>> Just decided to test out linux-next (to see the new nouveau cleanups).
+>>>> This change set prevents my Lenovo W510 from booting properly.
+>>>>
+>>>> Reverting: 7494b0 "ACPI: add in a bad_madt_entry() function to
+>>>> eventually replace the macro"
+>>>>
+>>>> Gets the system booting again.  I'm attaching my dmesg from the failed
+>>>> boot, who wants the acpidump?
+>>>
+>>> [    0.000000] ACPI: undefined version for either FADT 4.0 or MADT 1
+>>> [    0.000000] ACPI: Error parsing LAPIC address override entry
+>>> [    0.000000] ACPI: Invalid BIOS MADT, disabling ACPI
+>>>
+>>> Seems the MADT revision is not right, could you dump the ACPI MADT
+>>> (APIC) table and send it out? I will take a look :)
+>>>
+>>> Thanks
+>>> Hanjun
 >>
->> In order to prepare for the removal of that field, convert all
->> users to use an accessor.
->>
->> Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
->> ---
->>   arch/arm/mach-omap2/omap-wakeupgen.c          |  2 +-
->>   arch/c6x/platforms/megamod-pic.c              |  2 +-
->>   arch/mips/cavium-octeon/octeon-irq.c          |  4 ++--
->>   arch/powerpc/platforms/cell/axon_msi.c        |  2 +-
->>   arch/powerpc/platforms/cell/spider-pic.c      |  9 +++++---
->>   arch/powerpc/platforms/pasemi/msi.c           |  6 ++++--
->>   arch/powerpc/platforms/powernv/opal-irqchip.c |  2 +-
->>   arch/powerpc/sysdev/ehv_pic.c                 |  3 ++-
->>   arch/powerpc/sysdev/fsl_msi.c                 |  2 +-
->>   arch/powerpc/sysdev/i8259.c                   |  3 ++-
->>   arch/powerpc/sysdev/ipic.c                    |  3 ++-
->>   arch/powerpc/sysdev/mpic.c                    |  3 ++-
->>   arch/powerpc/sysdev/mpic_msi.c                |  2 +-
->>   arch/powerpc/sysdev/qe_lib/qe_ic.c            |  3 ++-
->>   drivers/gpio/gpio-sodaville.c                 |  2 +-
->>   drivers/irqchip/exynos-combiner.c             |  2 +-
->>   drivers/irqchip/irq-atmel-aic-common.c        |  2 +-
->>   drivers/irqchip/irq-crossbar.c                |  4 ++--
->>   drivers/irqchip/irq-gic-v2m.c                 |  2 +-
->>   drivers/irqchip/irq-gic-v3-its.c              |  2 +-
->>   drivers/irqchip/irq-gic-v3.c                  |  2 +-
->>   drivers/irqchip/irq-gic.c                     |  2 +-
->>   drivers/irqchip/irq-hip04.c                   |  2 +-
->>   drivers/irqchip/irq-imx-gpcv2.c               |  2 +-
->>   drivers/irqchip/irq-mtk-sysirq.c              |  2 +-
->>   drivers/irqchip/irq-s3c24xx.c                 |  4 ++--
->>   drivers/irqchip/irq-tegra.c                   |  4 ++--
->>   drivers/irqchip/irq-vf610-mscm-ir.c           |  5 +++--
->>   drivers/spmi/spmi-pmic-arb.c                  |  2 +-
->>   include/linux/irqdomain.h                     |  5 +++++
->>   kernel/irq/irqdomain.c                        | 30 +++++++++++++++++++--------
->>   31 files changed, 74 insertions(+), 46 deletions(-)
-> 
-> Some missing files I noticed:
-> ./arch/arm/mach-imx/gpc.c:	if (domain->of_node != controller)
-> ./arch/arm/mach-imx/gpc.c:	parent_args.np = domain->parent->of_node;
-> ./arch/arm/mach-exynos/suspend.c:	if (domain->of_node != controller)
-> ./arch/arm/mach-exynos/suspend.c:	parent_args.np = domain->parent->of_node;
+>> Here ya go, enjoy.  Feel free to CC me on any patches that might fix it.
+>
+> Thanks! I think I had the right guess, the MADT revision is not right
+> for ACPI 4.0:
+>
+> [000h 0000   4]                    Signature : "APIC"    [Multiple APIC
+> Description Table (MADT)]
+> [004h 0004   4]                 Table Length : 000000BC
+> [008h 0008   1]                     *Revision : 01*
+>
+> I encountered such problem before because the table was just copied from
+> previous version, and without the update for table revision.
+>
+> I think we may need to ignore the table revision for x86, but restrict
+> it for ARM64, I'd like Al and Rafael's suggestion before I send out a
+> patch.
+>
 
-I've already caught them with v2 - 01.org doing its usual fine job!
+Instead of just removing the check completely on x86, IMO restrict it to
+some newer/later version of ACPI so you can still force vendors to fix
+their ACPI tables at-least in future.
 
-Thanks anyway,
+It would be good to get such sanity check in the tools used to build
+those tables, but yes since such static tables can be built in many
+ways, its difficult to deal it in all those tools.
 
-	M.
 -- 
-Jazz is not dead. It just smells funny...
+Regards,
+Sudeep
