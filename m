@@ -1,29 +1,116 @@
-From: Christine McCarthy <Christine.McCarthy@co.lake.mn.us>
-Subject: Unexpected Luck
-Date: Sun, 11 Oct 2015 17:02:46 -0400
-Message-ID: <15ad92dd-fbc1-4c47-aa4b-e92f53d76c71__42037.2566710741$1444666187$gmane$org@EXCHANGE-SERVRM.LakeCounty.local>
-Reply-To: <monicatorresesp@gmail.com>
+From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Subject: Re: [PATCH 03/16] irqdomain: Allow irq domain lookup by fwnode
+Date: Mon, 12 Oct 2015 13:31:09 -0500
+Message-ID: <561BFC6D.6020500@amd.com>
+References: <1444152989-31726-1-git-send-email-marc.zyngier@arm.com>
+ <1444152989-31726-4-git-send-email-marc.zyngier@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from zixvpm01.solbrekk.com ([216.17.49.110]:16712 "EHLO
-	zixvpm01.solbrekk.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751613AbbJLQJT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Oct 2015 12:09:19 -0400
-Received: from 127.0.0.1 (ZixVPM [127.0.0.1])
-	by Outbound.solbrekk.com (Proprietary) with SMTP id 67A883CA69
-	for <linux-acpi@vger.kernel.org>; Mon, 12 Oct 2015 11:00:52 -0500 (CDT)
-Content-Description: Mail message body
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1444152989-31726-4-git-send-email-marc.zyngier@arm.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Marc Zyngier <marc.zyngier@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-kernel@vger.kernel.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Jake Oshins <jakeo@microsoft.com>, Graeme Gregory <graeme@xora.org.uk>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: Recipients <Christine.McCarthy@co.lake.mn.us>
 
-Contact Monica Torres via email: monicatorresesp@gmail.com for your win=
-nings of =E2=82=AC1,000,000.00.
+[RESEND] Not sure if the email went out the first time.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hi Marc,
+
+On 10/6/15 12:36, Marc Zyngier wrote:
+> So far, our irq domains are still looked up by device node.
+> Let's change this and allow a domain to be looked up using
+> a fwnode_handle pointer.
+>
+> The existing interfaces are preserved with a couple of helpers.
+>
+> Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
+> ---
+>   include/linux/irqdomain.h | 11 +++++++++--
+>   kernel/irq/irqdomain.c    | 14 ++++++--------
+>   2 files changed, 15 insertions(+), 10 deletions(-)
+>
+> diff --git a/include/linux/irqdomain.h b/include/linux/irqdomain.h
+> index 2f508f4..607c185 100644
+> --- a/include/linux/irqdomain.h
+> +++ b/include/linux/irqdomain.h
+> @@ -183,10 +183,17 @@ struct irq_domain *irq_domain_add_legacy(struct device_node *of_node,
+>   					 irq_hw_number_t first_hwirq,
+>   					 const struct irq_domain_ops *ops,
+>   					 void *host_data);
+> -extern struct irq_domain *irq_find_matching_host(struct device_node *node,
+> -						 enum irq_domain_bus_token bus_token);
+> +extern struct irq_domain *irq_find_matching_fwnode(struct fwnode_handle *fwnode,
+> +						   enum irq_domain_bus_token bus_token);
+>   extern void irq_set_default_host(struct irq_domain *host);
+>
+> +static inline struct irq_domain *irq_find_matching_host(struct device_node *node,
+> +							enum irq_domain_bus_token bus_token)
+> +{
+> +	return irq_find_matching_fwnode(node ? &node->fwnode : NULL,
+> +					bus_token);
+> +}
+> +
+>   static inline struct irq_domain *irq_find_host(struct device_node *node)
+>   {
+>   	return irq_find_matching_host(node, DOMAIN_BUS_ANY);
+> diff --git a/kernel/irq/irqdomain.c b/kernel/irq/irqdomain.c
+> index 1aee5c1..10b6105 100644
+> --- a/kernel/irq/irqdomain.c
+> +++ b/kernel/irq/irqdomain.c
+> @@ -191,12 +191,12 @@ struct irq_domain *irq_domain_add_legacy(struct device_node *of_node,
+>   EXPORT_SYMBOL_GPL(irq_domain_add_legacy);
+>
+>   /**
+> - * irq_find_matching_host() - Locates a domain for a given device node
+> - * @node: device-tree node of the interrupt controller
+> + * irq_find_matching_fwnode() - Locates a domain for a given fwnode
+> + * @fwnode: FW descriptor of the interrupt controller
+>    * @bus_token: domain-specific data
+>    */
+> -struct irq_domain *irq_find_matching_host(struct device_node *node,
+> -					  enum irq_domain_bus_token bus_token)
+> +struct irq_domain *irq_find_matching_fwnode(struct fwnode_handle *fwnode,
+> +					    enum irq_domain_bus_token bus_token)
+>   {
+>   	struct irq_domain *h, *found = NULL;
+>   	int rc;
+> @@ -212,12 +212,10 @@ struct irq_domain *irq_find_matching_host(struct device_node *node,
+>   	 */
+>   	mutex_lock(&irq_domain_mutex);
+>   	list_for_each_entry(h, &irq_domain_list, link) {
+> -		struct device_node *of_node;
+> -		of_node = irq_domain_get_of_node(h);
+>   		if (h->ops->match)
+> -			rc = h->ops->match(h, node, bus_token);
+> +			rc = h->ops->match(h, to_of_node(fwnode), bus_token);
+>   		else
+> -			rc = ((of_node != NULL) && (of_node == node) &&
+> +			rc = ((fwnode != NULL) && (h->fwnode == fwnode) &&
+>   			      ((bus_token == DOMAIN_BUS_ANY) ||
+>   			       (h->bus_token == bus_token)));
+>
+>
+
+In the kernel/irq/irq_domain.c, shouldn't you also change the export 
+symbol from:
+
+     EXPORT_SYMBOL_GPL(irq_find_matching_host);
+
+to:
+
+     EXPORT_SYMBOL_GPL(irq_find_matching_fwnode);
+
+at the end of this function as well?
+
+Thanks,
+Suravee
