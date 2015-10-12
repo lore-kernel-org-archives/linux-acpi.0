@@ -1,66 +1,88 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: bisected: Re: 4.3.0-rc3-00042: ACPI Warning: AcpiEnable failed
-Date: Mon, 12 Oct 2015 07:48:12 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BAC712B@SHSMSX101.ccr.corp.intel.com>
-References: <alpine.LRH.2.20.1509291519111.3351@math.ut.ee>
- <alpine.LRH.2.20.1510010927010.10113@math.ut.ee>
- <2057337.qekm8qivoU@vostro.rjw.lan>
- <alpine.LRH.2.20.1510020901590.17033@math.ut.ee>
+From: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Subject: Re: [RFC] i2c: Revert back to old device naming for ACPI enumerated
+ I2C slaves
+Date: Mon, 12 Oct 2015 11:32:23 +0300
+Message-ID: <561B7017.8090004@linux.intel.com>
+References: <1440413522-7855-1-git-send-email-jarkko.nikula@linux.intel.com> <20151001203744.GA7514@katana> <560E4DF4.4000901@linux.intel.com> <20151009214712.GD1481@katana>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:63641 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751255AbbJLHs0 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Oct 2015 03:48:26 -0400
-In-Reply-To: <alpine.LRH.2.20.1510020901590.17033@math.ut.ee>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner@vger.kernel.org>
+In-Reply-To: <20151009214712.GD1481@katana>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Wolfram Sang <wsa@the-dreams.de>
+Cc: linux-i2c@vger.kernel.org, alsa-devel@alsa-project.org, linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org, Mark Brown <broonie@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jean Delvare <jdelvare@suse.com>, Liam Girdwood <lgirdwood@gmail.com>, Dustin Byford <dustin@cumulusnetworks.com>, linux@roeck-us.net
 List-Id: linux-acpi@vger.kernel.org
-To: Meelis Roos <mroos@linux.ee>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linux Kernel list <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-Hi, Rafael
+Hi
+On 10/10/2015 12:47 AM, Wolfram Sang wrote:
+> On Fri, Oct 02, 2015 at 12:27:16PM +0300, Jarkko Nikula wrote:
+>> On 10/01/2015 11:37 PM, Wolfram Sang wrote:
+>>> Do you foresee troubles already? I am still in favour of a symlink.
+>>>
+>> I haven't looked at this for a while but one problem was that devices/
+>> directory belongs to private structure of struct bus_type and in order to
+>> create a symlink there it needs to done in drivers/base/bus.c:
+>> bus_add_device() which felt quite hackish to me.
+>
+> This is just a quick prototype and untested; but I did something similar
+> in the i2c-mux code:
+>
+> diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+> index 5f89f1e3c2f24f..715dca57ba68fd 100644
+> --- a/drivers/i2c/i2c-core.c
+> +++ b/drivers/i2c/i2c-core.c
+> @@ -970,13 +970,15 @@ static void i2c_dev_set_name(struct i2c_adapter *adap,
+>   {
+>   	struct acpi_device *adev = ACPI_COMPANION(&client->dev);
+>
+> -	if (adev) {
+> -		dev_set_name(&client->dev, "i2c-%s", acpi_dev_name(adev));
+> -		return;
+> -	}
+> -
+>   	dev_set_name(&client->dev, "%d-%04x", i2c_adapter_id(adap),
+>   		     i2c_encode_flags_to_addr(client));
+> +
+> +	if (adev) {
+> +		char symlink_name[256];
+> +
+> +		snprintf(symlink_name, sizeof(symlink_name), "i2c-%s", acpi_dev_name(adev));
+> +		sysfs_create_link(&client->dev.kobj, &adap->dev.kobj, symlink_name);
+> +	}
+>   }
+>
+>   /**
+>
+> Shouldn't something like this be enough?
+>
+Not really. It would create the symlink under the device not under 
+/sys/bus/i2c/devices/. Please note the sysfs_create_link() must be 
+called after device_register(). I moved the symlink creation into 
+i2c_new_device() for the example below.
 
-The bug has been fixed.
-The root cause is the previous commit doesn't cover a hidden logic:
- acpi_enable() should rely on the existence of FADT while currently it relies on the number of loaded tables.
-The fix that removes the hidden logic is an ACPICA commit.
-Shall we wait until it is merged via an ACPICA release cycle or make it a bit faster by merging Linuxized version first?
+Now:
 
-Thanks and best regards
--Lv
+/sys/bus/i2c/devices/i2c-ATML3432:00 -> 
+../../../devices/pci0000:00/0000:00:15.1/i2c_designware.1/i2c-9/i2c-ATML3432:00
 
-> From: mroos@math.ut.ee [mailto:mroos@math.ut.ee] On Behalf Of Meelis Roos
-> Sent: Friday, October 02, 2015 2:14 PM
-> 
-> > > > 4.2.0 worked fine, 4.3.0-rc3-00042-g3225031 was the next one tested
-> > > > after that and with this kernel, ACPI enabling fails. This is Pentium
-> > > > III, 1 GHz, Intel 815 chipset, DMI tells something about "Packard Bell
-> > > > NEC" as the mainboard type.
-> > > >
-> > > > Full dmesg and config are below. What additional information can I
-> > > > provide besides bisecting (will take time)?
-> > >
-> > > Bisecting done, here is the culprit:
-> > >
-> > > 8ec3f459073e67e5c6d78507dec693064b3040a2 is the first bad commit
-> > > commit 8ec3f459073e67e5c6d78507dec693064b3040a2
-> > > Author: Lv Zheng <lv.zheng@intel.com>
-> > > Date:   Tue Aug 25 10:29:01 2015 +0800
-> > >
-> > >     ACPICA: Tables: Fix global table list issues by removing fixed table indexes
-> > >
-> > >     ACPICA commit c0b38b4c3982c2336ee92a2a14716107248bd941
-> >
-> > Thanks a lot for bisecting this!
-> >
-> > It will help if you file a bug entry at bugzilla.kernel.org agaist ACPI for
-> > this issue (please mark it as a regression) and attach the output of acpidump
-> > from the affected system to it.
-> 
-> Done, https://bugzilla.kernel.org/show_bug.cgi?id=105351
-> 
-> --
-> Meelis Roos (mroos@linux.ee)
+After modified patch:
+
+/sys/bus/i2c/devices/9-004c -> 
+../../../devices/pci0000:00/0000:00:15.1/i2c_designware.1/i2c-9/9-004c
+
+which has now the symlink pointing to adapter
+
+/sys/devices/pci0000:00/0000:00:15.1/i2c_designware.1/i2c-9/9-004c/
+i2c-ATML3432:00 -> ../../i2c-9
+
+We would need a following symlink but I didn't figure out how to do it 
+without touching drivers/base/bus.c.
+
+/sys/bus/i2c/devices/i2c-ATML3432:00 -> 9-004c
+
+Symlinks there are added/removed by using &bus->p->devices_kset->kobj 
+where p is a private for driver core only.
+
+-- 
+Jarkko
