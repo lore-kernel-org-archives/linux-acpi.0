@@ -1,78 +1,52 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 00/16] Divorcing irqdomain and device_node
-Date: Mon, 12 Oct 2015 22:38:45 +0200
-Message-ID: <4276106.FmN73grJgW@vostro.rjw.lan>
-References: <1444152989-31726-1-git-send-email-marc.zyngier@arm.com> <alpine.DEB.2.11.1510112255330.6097@nanos>
+From: Dmitry Torokhov <dmitry.torokhov@gmail.com>
+Subject: Re: [Update][PATCH 3/3] input: i8042: Avoid resetting controller on
+ system suspend/resume
+Date: Mon, 12 Oct 2015 13:11:44 -0700
+Message-ID: <20151012201144.GB4010@dtor-ws>
+References: <10641052.oOBhM6BU9G@vostro.rjw.lan>
+ <3385784.1Q539YNd1G@vostro.rjw.lan>
+ <1738265.GZcYUZQGSy@vostro.rjw.lan>
+ <5474174.JsPHbLRjZ7@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.11.1510112255330.6097@nanos>
+Content-Disposition: inline
+In-Reply-To: <5474174.JsPHbLRjZ7@vostro.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>
-Cc: Marc Zyngier <marc.zyngier@arm.com>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Graeme Gregory <graeme@xora.org.uk>, Jake Oshins <jakeo@microsoft.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux PM list <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Daniel Vetter <daniel.vetter@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Linux PCI <linux-pci@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sunday, October 11, 2015 11:01:17 PM Thomas Gleixner wrote:
-> On Tue, 6 Oct 2015, Marc Zyngier wrote:
-> > [This patch series used to be called "Making the generic ACPI GSI
-> > layer irqdomain aware", but as I've radically changed my approach to
-> > this problem, I've decided to reset the counters...]
+On Mon, Oct 12, 2015 at 10:17:05PM +0200, Rafael J. Wysocki wrote:
+> On Wednesday, October 07, 2015 03:03:57 AM Rafael J. Wysocki wrote:
+> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > > 
-> > The irqdomain code is not entierely ACPI friendly, as it has some
-> > built-in knowledge of the device-tree. Nothing too harmful, but enough
-> > to scare the ARM ACPI developpers which end up with their own version
-> > of the square wheel. And some of the ramifications actually run deeper
-> > than initially expected.
+> > If the upcoming system suspend is not going to be handled by the
+> > platform firmware, like in the suspend-to-idle case, it is not
+> > necessary to reset the controller in i8042_pm_suspend(), so avoid
+> > doing that.
 > > 
-> > This series adapts the irqdomain code to use 'struct fwnode_handle'
-> > instead of 'struct device_node' as the identifier for a domain
-> > (compatibility interfaces are of course added). It also introduces a
-> > generic IRQ specifier that firmware interfaces (DT or ACPI) can
-> > directly use to configure interrupts, and allow the ACPI GSI code to
-> > be plugged into this.
+> > Moreover, if the system resume currently in progress has not been
+> > started by the platform firmware, like in the suspend-to-idle case,
+> > i8042_controller_resume() need not be called by i8042_pm_resume(),
+> > so avoid doing that too in that case.
 > > 
-> > As examples, we convert the ARM GIC ACPI support to use irqdomains as
-> > originally intended, and rework the MSI code to also move away from
-> > using device nodes when using irqdomains.
+> > Additionally, try to catch the event that woke up the system by
+> > calling the interrupt handler early during system resume if it has
+> > not been started by the platform firmware.
 > > 
-> > Overall, this gives us a way to use irqdomains on both DT and ACPI
-> > enabled platforms, having very little changes made to the actual
-> > drivers (other than the probing infrastructure). Because we keep the
-> > flow of information between the various layers identical between ACPI
-> > and DT, we immediately benefit from the existing infrastructure.
-> > 
-> > This has been test-booted on Juno, is based on 4.3-rc4, and available at:
-> > 
-> > git://git.kernel.org/pub/scm/linux/kernel/git/maz/arm-platforms.git irq/irq-domain-fwnode-v1
-> > 
-> > Marc Zyngier (16):
-> >   irqdomain: Use an accessor for the of_node field
-> >   irqdomain: Convert irqdomain->of_node to fwnode
-> >   irqdomain: Allow irq domain lookup by fwnode
-> >   irqdomain: Introduce a firmware-specific IRQ specifier structure
-> >   irqchip: Convert all alloc/xlate users from of_node to fwnode
-> >   irqdomain: Introduce irq_create_fwspec_mapping
-> >   irqdomain: Introduce irq_domain_create_{linear,tree}
-> >   irqdomain: Add a fwnode_handle allocator
-> >   acpi/gsi: Always perform an irq domain lookup
-> >   acpi/gsi: Add acpi_set_irq_model to initialize the GSI layer
-> >   irqchip/gic: Get rid of gic_init_bases()
-> >   irqchip/gic: Switch ACPI support to stacked domains
-> >   irqchip/gic: Kill the xlate method
-> >   acpi/gsi: Cleanup acpi_register_gsi
-> >   irqdomain: Introduce irq_domain_create_hierarchy
-> >   irqdomain/msi: Use fwnode instead of of_node
+> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 > 
-> I really like this one way better than the previous attempts and I
-> couldn't find any real issue when going through them with a fine comb.
+> If there are no more comments here, I'll tentatively queue it up for v4.4
+> along with the [1-2/3] from this series.
 > 
-> I'd like to get that into 4.4, so I have to ask for the opinion of
-> ACPI folks. Having an ack on those patches would be nice.
+> Please let me know if there are any problems with that.
 
-I've ACKed the generic ones, please let me know if I missed any of them.
+No problems from my POV.
 
-The rest seems to be ARM-specific ...
+Acked-by: Dmitry Torokhov <dmitry.torokhov@gmail.com>
 
-Thanks,
-Rafael
+Thanks.
+
+-- 
+Dmitry
