@@ -1,94 +1,66 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH 00/16] Divorcing irqdomain and device_node
-Date: Mon, 12 Oct 2015 15:09:50 +0800
-Message-ID: <561B5CBE.50701@linaro.org>
-References: <1444152989-31726-1-git-send-email-marc.zyngier@arm.com> <alpine.DEB.2.11.1510112255330.6097@nanos> <561B1DB9.6010909@linaro.org>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: bisected: Re: 4.3.0-rc3-00042: ACPI Warning: AcpiEnable failed
+Date: Mon, 12 Oct 2015 07:48:12 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BAC712B@SHSMSX101.ccr.corp.intel.com>
+References: <alpine.LRH.2.20.1509291519111.3351@math.ut.ee>
+ <alpine.LRH.2.20.1510010927010.10113@math.ut.ee>
+ <2057337.qekm8qivoU@vostro.rjw.lan>
+ <alpine.LRH.2.20.1510020901590.17033@math.ut.ee>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f51.google.com ([209.85.220.51]:33181 "EHLO
-	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751724AbbJLHKD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Oct 2015 03:10:03 -0400
-Received: by pabrc13 with SMTP id rc13so11459441pab.0
-        for <linux-acpi@vger.kernel.org>; Mon, 12 Oct 2015 00:10:02 -0700 (PDT)
-In-Reply-To: <561B1DB9.6010909@linaro.org>
+Received: from mga14.intel.com ([192.55.52.115]:63641 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751255AbbJLHs0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Oct 2015 03:48:26 -0400
+In-Reply-To: <alpine.LRH.2.20.1510020901590.17033@math.ut.ee>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Thomas Gleixner <tglx@linutronix.de>, Marc Zyngier <marc.zyngier@arm.com>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Graeme Gregory <graeme@xora.org.uk>, Jake Oshins <jakeo@microsoft.com>
+To: Meelis Roos <mroos@linux.ee>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linux Kernel list <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-On 10/12/2015 10:40 AM, Hanjun Guo wrote:
-> On 10/12/2015 05:01 AM, Thomas Gleixner wrote:
->> On Tue, 6 Oct 2015, Marc Zyngier wrote:
->>> [This patch series used to be called "Making the generic ACPI GSI
->>> layer irqdomain aware", but as I've radically changed my approach to
->>> this problem, I've decided to reset the counters...]
->>>
->>> The irqdomain code is not entierely ACPI friendly, as it has some
->>> built-in knowledge of the device-tree. Nothing too harmful, but enough
->>> to scare the ARM ACPI developpers which end up with their own version
->>> of the square wheel. And some of the ramifications actually run deeper
->>> than initially expected.
->>>
->>> This series adapts the irqdomain code to use 'struct fwnode_handle'
->>> instead of 'struct device_node' as the identifier for a domain
->>> (compatibility interfaces are of course added). It also introduces a
->>> generic IRQ specifier that firmware interfaces (DT or ACPI) can
->>> directly use to configure interrupts, and allow the ACPI GSI code to
->>> be plugged into this.
->>>
->>> As examples, we convert the ARM GIC ACPI support to use irqdomains as
->>> originally intended, and rework the MSI code to also move away from
->>> using device nodes when using irqdomains.
->>>
->>> Overall, this gives us a way to use irqdomains on both DT and ACPI
->>> enabled platforms, having very little changes made to the actual
->>> drivers (other than the probing infrastructure). Because we keep the
->>> flow of information between the various layers identical between ACPI
->>> and DT, we immediately benefit from the existing infrastructure.
->>>
->>> This has been test-booted on Juno, is based on 4.3-rc4, and available
->>> at:
->>>
->>> git://git.kernel.org/pub/scm/linux/kernel/git/maz/arm-platforms.git
->>> irq/irq-domain-fwnode-v1
+Hi, Rafael
 
-I pulled, and I found that there is v2 :)
+The bug has been fixed.
+The root cause is the previous commit doesn't cover a hidden logic:
+ acpi_enable() should rely on the existence of FADT while currently it relies on the number of loaded tables.
+The fix that removes the hidden logic is an ACPICA commit.
+Shall we wait until it is merged via an ACPICA release cycle or make it a bit faster by merging Linuxized version first?
 
->>>
->>> Marc Zyngier (16):
->>>    irqdomain: Use an accessor for the of_node field
->>>    irqdomain: Convert irqdomain->of_node to fwnode
->>>    irqdomain: Allow irq domain lookup by fwnode
->>>    irqdomain: Introduce a firmware-specific IRQ specifier structure
->>>    irqchip: Convert all alloc/xlate users from of_node to fwnode
->>>    irqdomain: Introduce irq_create_fwspec_mapping
->>>    irqdomain: Introduce irq_domain_create_{linear,tree}
->>>    irqdomain: Add a fwnode_handle allocator
->>>    acpi/gsi: Always perform an irq domain lookup
->>>    acpi/gsi: Add acpi_set_irq_model to initialize the GSI layer
->>>    irqchip/gic: Get rid of gic_init_bases()
->>>    irqchip/gic: Switch ACPI support to stacked domains
->>>    irqchip/gic: Kill the xlate method
->>>    acpi/gsi: Cleanup acpi_register_gsi
->>>    irqdomain: Introduce irq_domain_create_hierarchy
->>>    irqdomain/msi: Use fwnode instead of of_node
->>
->> I really like this one way better than the previous attempts and I
->> couldn't find any real issue when going through them with a fine comb.
->
-> Fully agree, this version removes the dependency on DT for ACPI.
->
->>
->> I'd like to get that into 4.4, so I have to ask for the opinion of
->> ACPI folks. Having an ack on those patches would be nice.
->
-> I'm reviewing this patch set, and will have a test today.
+Thanks and best regards
+-Lv
 
-I'm pretty fine with this patch set (except some comments for patch 1),
-I will wait for your v2 to be sent out, then add reviews and acks.
-
-Thanks
-Hanjun
+> From: mroos@math.ut.ee [mailto:mroos@math.ut.ee] On Behalf Of Meelis Roos
+> Sent: Friday, October 02, 2015 2:14 PM
+> 
+> > > > 4.2.0 worked fine, 4.3.0-rc3-00042-g3225031 was the next one tested
+> > > > after that and with this kernel, ACPI enabling fails. This is Pentium
+> > > > III, 1 GHz, Intel 815 chipset, DMI tells something about "Packard Bell
+> > > > NEC" as the mainboard type.
+> > > >
+> > > > Full dmesg and config are below. What additional information can I
+> > > > provide besides bisecting (will take time)?
+> > >
+> > > Bisecting done, here is the culprit:
+> > >
+> > > 8ec3f459073e67e5c6d78507dec693064b3040a2 is the first bad commit
+> > > commit 8ec3f459073e67e5c6d78507dec693064b3040a2
+> > > Author: Lv Zheng <lv.zheng@intel.com>
+> > > Date:   Tue Aug 25 10:29:01 2015 +0800
+> > >
+> > >     ACPICA: Tables: Fix global table list issues by removing fixed table indexes
+> > >
+> > >     ACPICA commit c0b38b4c3982c2336ee92a2a14716107248bd941
+> >
+> > Thanks a lot for bisecting this!
+> >
+> > It will help if you file a bug entry at bugzilla.kernel.org agaist ACPI for
+> > this issue (please mark it as a regression) and attach the output of acpidump
+> > from the affected system to it.
+> 
+> Done, https://bugzilla.kernel.org/show_bug.cgi?id=105351
+> 
+> --
+> Meelis Roos (mroos@linux.ee)
