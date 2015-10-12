@@ -1,88 +1,72 @@
-From: Jarkko Nikula <jarkko.nikula@linux.intel.com>
-Subject: Re: [RFC] i2c: Revert back to old device naming for ACPI enumerated
- I2C slaves
-Date: Mon, 12 Oct 2015 11:32:23 +0300
-Message-ID: <561B7017.8090004@linux.intel.com>
-References: <1440413522-7855-1-git-send-email-jarkko.nikula@linux.intel.com> <20151001203744.GA7514@katana> <560E4DF4.4000901@linux.intel.com> <20151009214712.GD1481@katana>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: [PATCH 01/16] irqdomain: Use an accessor for the of_node field
+Date: Mon, 12 Oct 2015 10:30:29 +0100
+Message-ID: <561B7DB5.8010603@arm.com>
+References: <1444152989-31726-1-git-send-email-marc.zyngier@arm.com> <1444152989-31726-2-git-send-email-marc.zyngier@arm.com> <561B4D6C.7000404@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <20151009214712.GD1481@katana>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Wolfram Sang <wsa@the-dreams.de>
-Cc: linux-i2c@vger.kernel.org, alsa-devel@alsa-project.org, linux-acpi@vger.kernel.org, lm-sensors@lm-sensors.org, Mark Brown <broonie@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jean Delvare <jdelvare@suse.com>, Liam Girdwood <lgirdwood@gmail.com>, Dustin Byford <dustin@cumulusnetworks.com>, linux@roeck-us.net
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <561B4D6C.7000404@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>, Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Graeme Gregory <graeme@xora.org.uk>, Jake Oshins <jakeo@microsoft.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi
-On 10/10/2015 12:47 AM, Wolfram Sang wrote:
-> On Fri, Oct 02, 2015 at 12:27:16PM +0300, Jarkko Nikula wrote:
->> On 10/01/2015 11:37 PM, Wolfram Sang wrote:
->>> Do you foresee troubles already? I am still in favour of a symlink.
->>>
->> I haven't looked at this for a while but one problem was that devices/
->> directory belongs to private structure of struct bus_type and in order to
->> create a symlink there it needs to done in drivers/base/bus.c:
->> bus_add_device() which felt quite hackish to me.
->
-> This is just a quick prototype and untested; but I did something similar
-> in the i2c-mux code:
->
-> diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
-> index 5f89f1e3c2f24f..715dca57ba68fd 100644
-> --- a/drivers/i2c/i2c-core.c
-> +++ b/drivers/i2c/i2c-core.c
-> @@ -970,13 +970,15 @@ static void i2c_dev_set_name(struct i2c_adapter *adap,
->   {
->   	struct acpi_device *adev = ACPI_COMPANION(&client->dev);
->
-> -	if (adev) {
-> -		dev_set_name(&client->dev, "i2c-%s", acpi_dev_name(adev));
-> -		return;
-> -	}
-> -
->   	dev_set_name(&client->dev, "%d-%04x", i2c_adapter_id(adap),
->   		     i2c_encode_flags_to_addr(client));
-> +
-> +	if (adev) {
-> +		char symlink_name[256];
-> +
-> +		snprintf(symlink_name, sizeof(symlink_name), "i2c-%s", acpi_dev_name(adev));
-> +		sysfs_create_link(&client->dev.kobj, &adap->dev.kobj, symlink_name);
-> +	}
->   }
->
->   /**
->
-> Shouldn't something like this be enough?
->
-Not really. It would create the symlink under the device not under 
-/sys/bus/i2c/devices/. Please note the sysfs_create_link() must be 
-called after device_register(). I moved the symlink creation into 
-i2c_new_device() for the example below.
+On 12/10/15 07:04, Hanjun Guo wrote:
+> On 10/07/2015 01:36 AM, Marc Zyngier wrote:
+>> The struct irq_domain contains a "struct device_node *" field
+>> (of_node) that is almost the only link between the irqdomain
+>> and the device tree infrastructure.
+>>
+>> In order to prepare for the removal of that field, convert all
+>> users to use an accessor.
+>>
+>> Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
+>> ---
+>>   arch/arm/mach-omap2/omap-wakeupgen.c          |  2 +-
+>>   arch/c6x/platforms/megamod-pic.c              |  2 +-
+>>   arch/mips/cavium-octeon/octeon-irq.c          |  4 ++--
+>>   arch/powerpc/platforms/cell/axon_msi.c        |  2 +-
+>>   arch/powerpc/platforms/cell/spider-pic.c      |  9 +++++---
+>>   arch/powerpc/platforms/pasemi/msi.c           |  6 ++++--
+>>   arch/powerpc/platforms/powernv/opal-irqchip.c |  2 +-
+>>   arch/powerpc/sysdev/ehv_pic.c                 |  3 ++-
+>>   arch/powerpc/sysdev/fsl_msi.c                 |  2 +-
+>>   arch/powerpc/sysdev/i8259.c                   |  3 ++-
+>>   arch/powerpc/sysdev/ipic.c                    |  3 ++-
+>>   arch/powerpc/sysdev/mpic.c                    |  3 ++-
+>>   arch/powerpc/sysdev/mpic_msi.c                |  2 +-
+>>   arch/powerpc/sysdev/qe_lib/qe_ic.c            |  3 ++-
+>>   drivers/gpio/gpio-sodaville.c                 |  2 +-
+>>   drivers/irqchip/exynos-combiner.c             |  2 +-
+>>   drivers/irqchip/irq-atmel-aic-common.c        |  2 +-
+>>   drivers/irqchip/irq-crossbar.c                |  4 ++--
+>>   drivers/irqchip/irq-gic-v2m.c                 |  2 +-
+>>   drivers/irqchip/irq-gic-v3-its.c              |  2 +-
+>>   drivers/irqchip/irq-gic-v3.c                  |  2 +-
+>>   drivers/irqchip/irq-gic.c                     |  2 +-
+>>   drivers/irqchip/irq-hip04.c                   |  2 +-
+>>   drivers/irqchip/irq-imx-gpcv2.c               |  2 +-
+>>   drivers/irqchip/irq-mtk-sysirq.c              |  2 +-
+>>   drivers/irqchip/irq-s3c24xx.c                 |  4 ++--
+>>   drivers/irqchip/irq-tegra.c                   |  4 ++--
+>>   drivers/irqchip/irq-vf610-mscm-ir.c           |  5 +++--
+>>   drivers/spmi/spmi-pmic-arb.c                  |  2 +-
+>>   include/linux/irqdomain.h                     |  5 +++++
+>>   kernel/irq/irqdomain.c                        | 30 +++++++++++++++++++--------
+>>   31 files changed, 74 insertions(+), 46 deletions(-)
+> 
+> Some missing files I noticed:
+> ./arch/arm/mach-imx/gpc.c:	if (domain->of_node != controller)
+> ./arch/arm/mach-imx/gpc.c:	parent_args.np = domain->parent->of_node;
+> ./arch/arm/mach-exynos/suspend.c:	if (domain->of_node != controller)
+> ./arch/arm/mach-exynos/suspend.c:	parent_args.np = domain->parent->of_node;
 
-Now:
+I've already caught them with v2 - 01.org doing its usual fine job!
 
-/sys/bus/i2c/devices/i2c-ATML3432:00 -> 
-../../../devices/pci0000:00/0000:00:15.1/i2c_designware.1/i2c-9/i2c-ATML3432:00
+Thanks anyway,
 
-After modified patch:
-
-/sys/bus/i2c/devices/9-004c -> 
-../../../devices/pci0000:00/0000:00:15.1/i2c_designware.1/i2c-9/9-004c
-
-which has now the symlink pointing to adapter
-
-/sys/devices/pci0000:00/0000:00:15.1/i2c_designware.1/i2c-9/9-004c/
-i2c-ATML3432:00 -> ../../i2c-9
-
-We would need a following symlink but I didn't figure out how to do it 
-without touching drivers/base/bus.c.
-
-/sys/bus/i2c/devices/i2c-ATML3432:00 -> 9-004c
-
-Symlinks there are added/removed by using &bus->p->devices_kset->kobj 
-where p is a private for driver core only.
-
+	M.
 -- 
-Jarkko
+Jazz is not dead. It just smells funny...
