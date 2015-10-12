@@ -1,137 +1,99 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 08/16] irqdomain: Add a fwnode_handle allocator
-Date: Mon, 12 Oct 2015 22:32:33 +0200
-Message-ID: <2677234.2V3gJEKKSa@vostro.rjw.lan>
-References: <1444152989-31726-1-git-send-email-marc.zyngier@arm.com> <1444152989-31726-9-git-send-email-marc.zyngier@arm.com>
+Subject: Re: [PATCH 09/16] acpi/gsi: Always perform an irq domain lookup
+Date: Mon, 12 Oct 2015 22:34:26 +0200
+Message-ID: <2238247.YpCRlzfP9y@vostro.rjw.lan>
+References: <1444152989-31726-1-git-send-email-marc.zyngier@arm.com> <1444152989-31726-10-git-send-email-marc.zyngier@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:64633 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:57981 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751286AbbJLUDy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Oct 2015 16:03:54 -0400
-In-Reply-To: <1444152989-31726-9-git-send-email-marc.zyngier@arm.com>
+	with SMTP id S1751694AbbJLUFr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Oct 2015 16:05:47 -0400
+In-Reply-To: <1444152989-31726-10-git-send-email-marc.zyngier@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Marc Zyngier <marc.zyngier@arm.com>
 Cc: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Graeme Gregory <graeme@xora.org.uk>, Jake Oshins <jakeo@microsoft.com>
 
-On Tuesday, October 06, 2015 06:36:21 PM Marc Zyngier wrote:
-> In order to be able to reference an irqdomain from ACPI, we need
-> to be able to create an identifier, which is usually a struct
-> device_node.
+On Tuesday, October 06, 2015 06:36:22 PM Marc Zyngier wrote:
+> Instead of directly passing NULL to the various irq_domain functions,
+> start by looking up the domain with a domain identifier..
 > 
-> This device node does't really fit the ACPI infrastructure, so
-> we cunningly allocate a new structure containing a fwnode_handle,
-> and return that.
-> 
-> This structure doesn't really point to a device (interrupt
-> controllers are not "real" devices in Linux), but as we cannot
-> really deny that they exist, we create them with a new fwnode_type
-> (FWNODE_IRQCHIP).
+> As this identifier is permanently set to NULL, the lookup function will
+> return the same value (no domain found) and the default will be used,
+> preserving the current behaviour.
 > 
 > Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
 
-This is fine by me:
-
 Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-[Side note: One of the patches in my linux-next branch will conflict with
-the change in enum fwnode_type, but that shouldn't be a big deal.] 
-
 > ---
->  include/linux/fwnode.h    |  1 +
->  include/linux/irqdomain.h |  2 ++
->  kernel/irq/irqdomain.c    | 51 +++++++++++++++++++++++++++++++++++++++++++++++
->  3 files changed, 54 insertions(+)
+>  drivers/acpi/gsi.c | 26 +++++++++++++-------------
+>  1 file changed, 13 insertions(+), 13 deletions(-)
 > 
-> diff --git a/include/linux/fwnode.h b/include/linux/fwnode.h
-> index 0408545..37ec668 100644
-> --- a/include/linux/fwnode.h
-> +++ b/include/linux/fwnode.h
-> @@ -17,6 +17,7 @@ enum fwnode_type {
->  	FWNODE_OF,
->  	FWNODE_ACPI,
->  	FWNODE_PDATA,
-> +	FWNODE_IRQCHIP,
->  };
+> diff --git a/drivers/acpi/gsi.c b/drivers/acpi/gsi.c
+> index 38208f2..2c39fe1 100644
+> --- a/drivers/acpi/gsi.c
+> +++ b/drivers/acpi/gsi.c
+> @@ -11,9 +11,12 @@
+>  #include <linux/acpi.h>
+>  #include <linux/irq.h>
+>  #include <linux/irqdomain.h>
+> +#include <linux/of.h>
 >  
->  struct fwnode_handle {
-> diff --git a/include/linux/irqdomain.h b/include/linux/irqdomain.h
-> index 995d4c5..949caa7 100644
-> --- a/include/linux/irqdomain.h
-> +++ b/include/linux/irqdomain.h
-> @@ -188,6 +188,8 @@ static inline struct device_node *irq_domain_get_of_node(struct irq_domain *d)
+>  enum acpi_irq_model_id acpi_irq_model;
+>  
+> +static struct fwnode_handle *acpi_gsi_domain_id;
+> +
+>  static unsigned int acpi_gsi_get_irq_type(int trigger, int polarity)
+>  {
+>  	switch (polarity) {
+> @@ -45,12 +48,10 @@ static unsigned int acpi_gsi_get_irq_type(int trigger, int polarity)
+>   */
+>  int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
+>  {
+> -	/*
+> -	 * Only default domain is supported at present, always find
+> -	 * the mapping corresponding to default domain by passing NULL
+> -	 * as irq_domain parameter
+> -	 */
+> -	*irq = irq_find_mapping(NULL, gsi);
+> +	struct irq_domain *d = irq_find_matching_fwnode(acpi_gsi_domain_id,
+> +							DOMAIN_BUS_ANY);
+> +
+> +	*irq = irq_find_mapping(d, gsi);
+>  	/*
+>  	 * *irq == 0 means no mapping, that should
+>  	 * be reported as a failure
+> @@ -74,13 +75,10 @@ int acpi_register_gsi(struct device *dev, u32 gsi, int trigger,
+>  {
+>  	unsigned int irq;
+>  	unsigned int irq_type = acpi_gsi_get_irq_type(trigger, polarity);
+> +	struct irq_domain *d = irq_find_matching_fwnode(acpi_gsi_domain_id,
+> +							DOMAIN_BUS_ANY);
+>  
+> -	/*
+> -	 * There is no way at present to look-up the IRQ domain on ACPI,
+> -	 * hence always create mapping referring to the default domain
+> -	 * by passing NULL as irq_domain parameter
+> -	 */
+> -	irq = irq_create_mapping(NULL, gsi);
+> +	irq = irq_create_mapping(d, gsi);
+>  	if (!irq)
+>  		return -EINVAL;
+>  
+> @@ -98,7 +96,9 @@ EXPORT_SYMBOL_GPL(acpi_register_gsi);
+>   */
+>  void acpi_unregister_gsi(u32 gsi)
+>  {
+> -	int irq = irq_find_mapping(NULL, gsi);
+> +	struct irq_domain *d = irq_find_matching_fwnode(acpi_gsi_domain_id,
+> +							DOMAIN_BUS_ANY);
+> +	int irq = irq_find_mapping(d, gsi);
+>  
+>  	irq_dispose_mapping(irq);
 >  }
->  
->  #ifdef CONFIG_IRQ_DOMAIN
-> +struct fwnode_handle *irq_domain_alloc_fwnode(void *data);
-> +void irq_domain_free_fwnode(struct fwnode_handle *fwnode);
->  struct irq_domain *__irq_domain_add(struct fwnode_handle *fwnode, int size,
->  				    irq_hw_number_t hwirq_max, int direct_max,
->  				    const struct irq_domain_ops *ops,
-> diff --git a/kernel/irq/irqdomain.c b/kernel/irq/irqdomain.c
-> index ea62f67..6fbecae 100644
-> --- a/kernel/irq/irqdomain.c
-> +++ b/kernel/irq/irqdomain.c
-> @@ -27,6 +27,57 @@ static int irq_domain_alloc_descs(int virq, unsigned int nr_irqs,
->  				  irq_hw_number_t hwirq, int node);
->  static void irq_domain_check_hierarchy(struct irq_domain *domain);
->  
-> +struct irqchip_fwid {
-> +	struct fwnode_handle fwnode;
-> +	char *name;
-> +	void *data;
-> +};
-> +
-> +/**
-> + * irq_domain_alloc_fwnode - Allocate a fwnode_handle suitable for
-> + *                           identifying an irq domain
-> + * @data: optional user-provided data
-> + *
-> + * Allocate a struct device_node, and return a poiner to the embedded
-> + * fwnode_handle (or NULL on failure).
-> + */
-> +struct fwnode_handle *irq_domain_alloc_fwnode(void *data)
-> +{
-> +	struct irqchip_fwid *fwid;
-> +	char *name;
-> +
-> +	fwid = kzalloc(sizeof(*fwid), GFP_KERNEL);
-> +	name = kasprintf(GFP_KERNEL, "irqchip@%p", data);
-> +
-> +	if (!fwid || !name) {
-> +		kfree(fwid);
-> +		kfree(name);
-> +		return NULL;
-> +	}
-> +
-> +	fwid->name = name;
-> +	fwid->data = data;
-> +	fwid->fwnode.type = FWNODE_IRQCHIP;
-> +	return &fwid->fwnode;
-> +}
-> +
-> +/**
-> + * irq_domain_free_fwnode - Free a non-OF-backed fwnode_handle
-> + *
-> + * Free a fwnode_handle allocated with irq_domain_alloc_fwnode.
-> + */
-> +void irq_domain_free_fwnode(struct fwnode_handle *fwnode)
-> +{
-> +	struct irqchip_fwid *fwid;
-> +
-> +	if (WARN_ON(fwnode->type != FWNODE_IRQCHIP))
-> +		return;
-> +
-> +	fwid = container_of(fwnode, struct irqchip_fwid, fwnode);
-> +	kfree(fwid->name);
-> +	kfree(fwid);
-> +}
-> +
->  /**
->   * __irq_domain_add() - Allocate a new irq_domain data structure
->   * @of_node: optional device-tree node of the interrupt controller
 > 
 
