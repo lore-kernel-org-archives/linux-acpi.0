@@ -1,49 +1,50 @@
-From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Subject: Re: [PATCH V3 0/4] PCI: ACPI: Setting up DMA coherency for PCI device
- from _CCA attribute
-Date: Mon, 12 Oct 2015 14:51:33 -0500
-Message-ID: <561C0F45.8090107@amd.com>
-References: <1440597279-11802-1-git-send-email-Suravee.Suthikulpanit@amd.com>
- <55F02331.2060001@amd.com> <8172790.rR5Ld4j83C@vostro.rjw.lan>
- <55F0EF79.3090202@amd.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH][v3] ACPI / PM: Fix incorrect wakeup irq setting before suspend-to-idle
+Date: Mon, 12 Oct 2015 22:20:28 +0200
+Message-ID: <4932550.izVA1bjiZk@vostro.rjw.lan>
+References: <1444378813-17857-1-git-send-email-yu.c.chen@intel.com> <1AE640813FDE7649BE1B193DEA596E883BAC6884@SHSMSX101.ccr.corp.intel.com> <36DF59CE26D8EE47B0655C516E9CE6402865A448@shsmsx102.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <55F0EF79.3090202@amd.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: bhelgaas@google.com, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, hanjun.guo@linaro.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <36DF59CE26D8EE47B0655C516E9CE6402865A448@shsmsx102.ccr.corp.intel.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Chen, Yu C" <yu.c.chen@intel.com>
+Cc: "Zheng, Lv" <lv.zheng@intel.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Rafael,
+On Friday, October 09, 2015 09:50:21 AM Chen, Yu C wrote:
+> Hi, LV
+> 
+> > -----Original Message-----
+> > From: Zheng, Lv
+> > Sent: Friday, October 09, 2015 4:33 PM
+> > To: Chen, Yu C; rjw@rjwysocki.net; lenb@kernel.org
+> > Cc: linux-pm@vger.kernel.org; linux-acpi@vger.kernel.org; linux-
+> > kernel@vger.kernel.org; Zhang, Rui
+> > Subject: RE: [PATCH][v3] ACPI / PM: Fix incorrect wakeup irq setting before
+> > suspend-to-idle
+> > 
+> > Hi, Yu
+> > 
+> > > From: Chen, Yu C
+> > > Sent: Friday, October 09, 2015 4:20 PM
+> > >
+> > >
+> > >  acpi_status acpi_os_remove_interrupt_handler(u32 irq,
+> > > acpi_osd_handler handler)
+> > 
+> > Why don't you rename irq here to gsi to improve the readability?
+> > The false naming and the wrong example written for this function are
+> > probably the root causes of all other bad code.
+> > So if we want to stop people making future mistakes, we need to cleanup
+> > ourselves.
+> > 
+> OK, will rewrite in next version.
 
-On 9/9/15 21:48, Suthikulpanit, Suravee wrote:
-> Hi Rafael,
->
-> On 9/10/2015 3:38 AM, Rafael J. Wysocki wrote:
->> On Wednesday, September 09, 2015 07:16:49 PM Suthikulpanit, Suravee
->> wrote:
->>> >Hi All,
->>> >
->>> >Are there any other concerns about this patch series?
->> I have none, but then it sort of missed the merge window.
->>
->> I can easily queue it up for the next one unless it is super-urgent,
->> but in that case I need to know why that's the case.
->>
->
-> This is not urgent. This mainly needed to enable the ACPI PCI supports
-> for ARM64 which is still work in progress.
->
-> Thanks,
-> Suravee
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+It would be good to change the subject of the patch too I think, because it is
+not about wakeup IRQs only any more.
 
-Just wondering if you are planning to queue this series up for 4.4 as well?
+Thanks,
+Rafael
 
-Thank you,
-Suravee
