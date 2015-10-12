@@ -1,73 +1,89 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: bisected: Re: 4.3.0-rc3-00042: ACPI Warning: AcpiEnable failed
-Date: Mon, 12 Oct 2015 21:18:49 +0200
-Message-ID: <5827210.uo0vLJMZv1@vostro.rjw.lan>
-References: <alpine.LRH.2.20.1509291519111.3351@math.ut.ee> <alpine.LRH.2.20.1510020901590.17033@math.ut.ee> <1AE640813FDE7649BE1B193DEA596E883BAC712B@SHSMSX101.ccr.corp.intel.com>
+Subject: Re: [Linaro-acpi] [PATCH v5 0/5] Provide better MADT subtable sanity checks
+Date: Mon, 12 Oct 2015 21:21:46 +0200
+Message-ID: <1776686.ko2Ldkd9he@vostro.rjw.lan>
+References: <1443570346-15378-1-git-send-email-al.stone@linaro.org> <561B2FCA.1010504@erley.org> <561B5B7E.6080901@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E883BAC712B@SHSMSX101.ccr.corp.intel.com>
+In-Reply-To: <561B5B7E.6080901@linaro.org>
 Sender: linux-kernel-owner@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: Meelis Roos <mroos@linux.ee>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linux Kernel list <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Pat Erley <pat-lkml@erley.org>, Al Stone <ahs3@redhat.com>, linaro-kernel@lists.linaro.org, linux-ia64@vger.kernel.org, patches@linaro.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, Hanjun Guo <guohanjun@huawei.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday, October 12, 2015 07:48:12 AM Zheng, Lv wrote:
-> Hi, Rafael
+On Monday, October 12, 2015 03:04:30 PM Hanjun Guo wrote:
+> On 10/12/2015 11:58 AM, Pat Erley wrote:
+> > On 10/11/2015 08:49 PM, Hanjun Guo wrote:
+> >> On 10/12/2015 11:08 AM, Pat Erley wrote:
+> >>> On 10/05/2015 10:12 AM, Al Stone wrote:
+> >>>> On 10/05/2015 07:39 AM, Rafael J. Wysocki wrote:
+> >>>>> On Wednesday, September 30, 2015 10:10:16 AM Al Stone wrote:
+> >>>>>> On 09/30/2015 03:00 AM, Hanjun Guo wrote:
+> >>>>>>> On 2015/9/30 7:45, Al Stone wrote:
+> >>>>>>>> NB: this patch set is for use against the linux-pm bleeding edge
+> >>>>>>>> branch.
+> >>>>>>>>
+> >>>>>>
+> >>>>>> [snip...]
+> >>>>>>
+> >>>>>>>
+> >>>>>>> For this patch set,
+> >>>>>>>
+> >>>>>>> Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
+> >>>>>>>
+> >>>>>>> Thanks
+> >>>>>>> Hanjun
+> >>>>>>
+> >>>>>> Thanks, Hanjun!
+> >>>>>
+> >>>>> Series applied, thanks!
+> >>>>>
+> >>>>> Rafael
+> >>>>>
+> >>>>
+> >>>> Thanks, Rafael!
+> >>>>
+> >>>
+> >>> Just decided to test out linux-next (to see the new nouveau cleanups).
+> >>> This change set prevents my Lenovo W510 from booting properly.
+> >>>
+> >>> Reverting: 7494b0 "ACPI: add in a bad_madt_entry() function to
+> >>> eventually replace the macro"
+> >>>
+> >>> Gets the system booting again.  I'm attaching my dmesg from the failed
+> >>> boot, who wants the acpidump?
+> >>
+> >> [    0.000000] ACPI: undefined version for either FADT 4.0 or MADT 1
+> >> [    0.000000] ACPI: Error parsing LAPIC address override entry
+> >> [    0.000000] ACPI: Invalid BIOS MADT, disabling ACPI
+> >>
+> >> Seems the MADT revision is not right, could you dump the ACPI MADT
+> >> (APIC) table and send it out? I will take a look :)
+> >>
+> >> Thanks
+> >> Hanjun
+> >
+> > Here ya go, enjoy.  Feel free to CC me on any patches that might fix it.
+> 
+> Thanks! I think I had the right guess, the MADT revision is not right
+> for ACPI 4.0:
+> 
+> [000h 0000   4]                    Signature : "APIC"    [Multiple APIC 
+> Description Table (MADT)]
+> [004h 0004   4]                 Table Length : 000000BC
+> [008h 0008   1]                     *Revision : 01*
+> 
+> I encountered such problem before because the table was just copied from
+> previous version, and without the update for table revision.
+> 
+> I think we may need to ignore the table revision for x86, but restrict
+> it for ARM64, I'd like Al and Rafael's suggestion before I send out a
+> patch.
 
-Hi,
-
-> The bug has been fixed.
-> The root cause is the previous commit doesn't cover a hidden logic:
->  acpi_enable() should rely on the existence of FADT while currently it relies on the number of loaded tables.
-> The fix that removes the hidden logic is an ACPICA commit.
-> Shall we wait until it is merged via an ACPICA release cycle or make it a bit faster by merging Linuxized version first?
-
-Please send the Linuxized version of it ASAP, we need it for 4.3.
+As I said before to Al, we definitely can't break systems that worked before
+the commit in question.
 
 Thanks,
 Rafael
-
-
-> > From: mroos@math.ut.ee [mailto:mroos@math.ut.ee] On Behalf Of Meelis Roos
-> > Sent: Friday, October 02, 2015 2:14 PM
-> > 
-> > > > > 4.2.0 worked fine, 4.3.0-rc3-00042-g3225031 was the next one tested
-> > > > > after that and with this kernel, ACPI enabling fails. This is Pentium
-> > > > > III, 1 GHz, Intel 815 chipset, DMI tells something about "Packard Bell
-> > > > > NEC" as the mainboard type.
-> > > > >
-> > > > > Full dmesg and config are below. What additional information can I
-> > > > > provide besides bisecting (will take time)?
-> > > >
-> > > > Bisecting done, here is the culprit:
-> > > >
-> > > > 8ec3f459073e67e5c6d78507dec693064b3040a2 is the first bad commit
-> > > > commit 8ec3f459073e67e5c6d78507dec693064b3040a2
-> > > > Author: Lv Zheng <lv.zheng@intel.com>
-> > > > Date:   Tue Aug 25 10:29:01 2015 +0800
-> > > >
-> > > >     ACPICA: Tables: Fix global table list issues by removing fixed table indexes
-> > > >
-> > > >     ACPICA commit c0b38b4c3982c2336ee92a2a14716107248bd941
-> > >
-> > > Thanks a lot for bisecting this!
-> > >
-> > > It will help if you file a bug entry at bugzilla.kernel.org agaist ACPI for
-> > > this issue (please mark it as a regression) and attach the output of acpidump
-> > > from the affected system to it.
-> > 
-> > Done, https://bugzilla.kernel.org/show_bug.cgi?id=105351
-> > 
-> > --
-> > Meelis Roos (mroos@linux.ee)
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
