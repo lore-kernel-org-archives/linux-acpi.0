@@ -1,116 +1,73 @@
-From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Subject: Re: [PATCH 03/16] irqdomain: Allow irq domain lookup by fwnode
-Date: Mon, 12 Oct 2015 13:31:09 -0500
-Message-ID: <561BFC6D.6020500@amd.com>
-References: <1444152989-31726-1-git-send-email-marc.zyngier@arm.com>
- <1444152989-31726-4-git-send-email-marc.zyngier@arm.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: bisected: Re: 4.3.0-rc3-00042: ACPI Warning: AcpiEnable failed
+Date: Mon, 12 Oct 2015 21:18:49 +0200
+Message-ID: <5827210.uo0vLJMZv1@vostro.rjw.lan>
+References: <alpine.LRH.2.20.1509291519111.3351@math.ut.ee> <alpine.LRH.2.20.1510020901590.17033@math.ut.ee> <1AE640813FDE7649BE1B193DEA596E883BAC712B@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1444152989-31726-4-git-send-email-marc.zyngier@arm.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Marc Zyngier <marc.zyngier@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-kernel@vger.kernel.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Jake Oshins <jakeo@microsoft.com>, Graeme Gregory <graeme@xora.org.uk>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E883BAC712B@SHSMSX101.ccr.corp.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: Meelis Roos <mroos@linux.ee>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linux Kernel list <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-[RESEND] Not sure if the email went out the first time.
+On Monday, October 12, 2015 07:48:12 AM Zheng, Lv wrote:
+> Hi, Rafael
 
-Hi Marc,
+Hi,
 
-On 10/6/15 12:36, Marc Zyngier wrote:
-> So far, our irq domains are still looked up by device node.
-> Let's change this and allow a domain to be looked up using
-> a fwnode_handle pointer.
->
-> The existing interfaces are preserved with a couple of helpers.
->
-> Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
-> ---
->   include/linux/irqdomain.h | 11 +++++++++--
->   kernel/irq/irqdomain.c    | 14 ++++++--------
->   2 files changed, 15 insertions(+), 10 deletions(-)
->
-> diff --git a/include/linux/irqdomain.h b/include/linux/irqdomain.h
-> index 2f508f4..607c185 100644
-> --- a/include/linux/irqdomain.h
-> +++ b/include/linux/irqdomain.h
-> @@ -183,10 +183,17 @@ struct irq_domain *irq_domain_add_legacy(struct device_node *of_node,
->   					 irq_hw_number_t first_hwirq,
->   					 const struct irq_domain_ops *ops,
->   					 void *host_data);
-> -extern struct irq_domain *irq_find_matching_host(struct device_node *node,
-> -						 enum irq_domain_bus_token bus_token);
-> +extern struct irq_domain *irq_find_matching_fwnode(struct fwnode_handle *fwnode,
-> +						   enum irq_domain_bus_token bus_token);
->   extern void irq_set_default_host(struct irq_domain *host);
->
-> +static inline struct irq_domain *irq_find_matching_host(struct device_node *node,
-> +							enum irq_domain_bus_token bus_token)
-> +{
-> +	return irq_find_matching_fwnode(node ? &node->fwnode : NULL,
-> +					bus_token);
-> +}
-> +
->   static inline struct irq_domain *irq_find_host(struct device_node *node)
->   {
->   	return irq_find_matching_host(node, DOMAIN_BUS_ANY);
-> diff --git a/kernel/irq/irqdomain.c b/kernel/irq/irqdomain.c
-> index 1aee5c1..10b6105 100644
-> --- a/kernel/irq/irqdomain.c
-> +++ b/kernel/irq/irqdomain.c
-> @@ -191,12 +191,12 @@ struct irq_domain *irq_domain_add_legacy(struct device_node *of_node,
->   EXPORT_SYMBOL_GPL(irq_domain_add_legacy);
->
->   /**
-> - * irq_find_matching_host() - Locates a domain for a given device node
-> - * @node: device-tree node of the interrupt controller
-> + * irq_find_matching_fwnode() - Locates a domain for a given fwnode
-> + * @fwnode: FW descriptor of the interrupt controller
->    * @bus_token: domain-specific data
->    */
-> -struct irq_domain *irq_find_matching_host(struct device_node *node,
-> -					  enum irq_domain_bus_token bus_token)
-> +struct irq_domain *irq_find_matching_fwnode(struct fwnode_handle *fwnode,
-> +					    enum irq_domain_bus_token bus_token)
->   {
->   	struct irq_domain *h, *found = NULL;
->   	int rc;
-> @@ -212,12 +212,10 @@ struct irq_domain *irq_find_matching_host(struct device_node *node,
->   	 */
->   	mutex_lock(&irq_domain_mutex);
->   	list_for_each_entry(h, &irq_domain_list, link) {
-> -		struct device_node *of_node;
-> -		of_node = irq_domain_get_of_node(h);
->   		if (h->ops->match)
-> -			rc = h->ops->match(h, node, bus_token);
-> +			rc = h->ops->match(h, to_of_node(fwnode), bus_token);
->   		else
-> -			rc = ((of_node != NULL) && (of_node == node) &&
-> +			rc = ((fwnode != NULL) && (h->fwnode == fwnode) &&
->   			      ((bus_token == DOMAIN_BUS_ANY) ||
->   			       (h->bus_token == bus_token)));
->
->
+> The bug has been fixed.
+> The root cause is the previous commit doesn't cover a hidden logic:
+>  acpi_enable() should rely on the existence of FADT while currently it relies on the number of loaded tables.
+> The fix that removes the hidden logic is an ACPICA commit.
+> Shall we wait until it is merged via an ACPICA release cycle or make it a bit faster by merging Linuxized version first?
 
-In the kernel/irq/irq_domain.c, shouldn't you also change the export 
-symbol from:
-
-     EXPORT_SYMBOL_GPL(irq_find_matching_host);
-
-to:
-
-     EXPORT_SYMBOL_GPL(irq_find_matching_fwnode);
-
-at the end of this function as well?
+Please send the Linuxized version of it ASAP, we need it for 4.3.
 
 Thanks,
-Suravee
+Rafael
+
+
+> > From: mroos@math.ut.ee [mailto:mroos@math.ut.ee] On Behalf Of Meelis Roos
+> > Sent: Friday, October 02, 2015 2:14 PM
+> > 
+> > > > > 4.2.0 worked fine, 4.3.0-rc3-00042-g3225031 was the next one tested
+> > > > > after that and with this kernel, ACPI enabling fails. This is Pentium
+> > > > > III, 1 GHz, Intel 815 chipset, DMI tells something about "Packard Bell
+> > > > > NEC" as the mainboard type.
+> > > > >
+> > > > > Full dmesg and config are below. What additional information can I
+> > > > > provide besides bisecting (will take time)?
+> > > >
+> > > > Bisecting done, here is the culprit:
+> > > >
+> > > > 8ec3f459073e67e5c6d78507dec693064b3040a2 is the first bad commit
+> > > > commit 8ec3f459073e67e5c6d78507dec693064b3040a2
+> > > > Author: Lv Zheng <lv.zheng@intel.com>
+> > > > Date:   Tue Aug 25 10:29:01 2015 +0800
+> > > >
+> > > >     ACPICA: Tables: Fix global table list issues by removing fixed table indexes
+> > > >
+> > > >     ACPICA commit c0b38b4c3982c2336ee92a2a14716107248bd941
+> > >
+> > > Thanks a lot for bisecting this!
+> > >
+> > > It will help if you file a bug entry at bugzilla.kernel.org agaist ACPI for
+> > > this issue (please mark it as a regression) and attach the output of acpidump
+> > > from the affected system to it.
+> > 
+> > Done, https://bugzilla.kernel.org/show_bug.cgi?id=105351
+> > 
+> > --
+> > Meelis Roos (mroos@linux.ee)
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
