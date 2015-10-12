@@ -1,49 +1,55 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH][v3] ACPI / PM: Fix incorrect wakeup irq setting before suspend-to-idle
-Date: Mon, 12 Oct 2015 22:20:28 +0200
-Message-ID: <4932550.izVA1bjiZk@vostro.rjw.lan>
-References: <1444378813-17857-1-git-send-email-yu.c.chen@intel.com> <1AE640813FDE7649BE1B193DEA596E883BAC6884@SHSMSX101.ccr.corp.intel.com> <36DF59CE26D8EE47B0655C516E9CE6402865A448@shsmsx102.ccr.corp.intel.com>
+Subject: Re: [PATCH V3 0/4] PCI: ACPI: Setting up DMA coherency for PCI device from _CCA attribute
+Date: Mon, 12 Oct 2015 22:27:29 +0200
+Message-ID: <3864683.NagPOmtRbX@vostro.rjw.lan>
+References: <1440597279-11802-1-git-send-email-Suravee.Suthikulpanit@amd.com> <55F0EF79.3090202@amd.com> <561C0F45.8090107@amd.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <36DF59CE26D8EE47B0655C516E9CE6402865A448@shsmsx102.ccr.corp.intel.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Chen, Yu C" <yu.c.chen@intel.com>
-Cc: "Zheng, Lv" <lv.zheng@intel.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:54397 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751790AbbJLT6u (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Oct 2015 15:58:50 -0400
+In-Reply-To: <561C0F45.8090107@amd.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Cc: bhelgaas@google.com, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, hanjun.guo@linaro.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On Friday, October 09, 2015 09:50:21 AM Chen, Yu C wrote:
-> Hi, LV
+On Monday, October 12, 2015 02:51:33 PM Suravee Suthikulpanit wrote:
+> Hi Rafael,
 > 
-> > -----Original Message-----
-> > From: Zheng, Lv
-> > Sent: Friday, October 09, 2015 4:33 PM
-> > To: Chen, Yu C; rjw@rjwysocki.net; lenb@kernel.org
-> > Cc: linux-pm@vger.kernel.org; linux-acpi@vger.kernel.org; linux-
-> > kernel@vger.kernel.org; Zhang, Rui
-> > Subject: RE: [PATCH][v3] ACPI / PM: Fix incorrect wakeup irq setting before
-> > suspend-to-idle
-> > 
-> > Hi, Yu
-> > 
-> > > From: Chen, Yu C
-> > > Sent: Friday, October 09, 2015 4:20 PM
-> > >
-> > >
-> > >  acpi_status acpi_os_remove_interrupt_handler(u32 irq,
-> > > acpi_osd_handler handler)
-> > 
-> > Why don't you rename irq here to gsi to improve the readability?
-> > The false naming and the wrong example written for this function are
-> > probably the root causes of all other bad code.
-> > So if we want to stop people making future mistakes, we need to cleanup
-> > ourselves.
-> > 
-> OK, will rewrite in next version.
+> On 9/9/15 21:48, Suthikulpanit, Suravee wrote:
+> > Hi Rafael,
+> >
+> > On 9/10/2015 3:38 AM, Rafael J. Wysocki wrote:
+> >> On Wednesday, September 09, 2015 07:16:49 PM Suthikulpanit, Suravee
+> >> wrote:
+> >>> >Hi All,
+> >>> >
+> >>> >Are there any other concerns about this patch series?
+> >> I have none, but then it sort of missed the merge window.
+> >>
+> >> I can easily queue it up for the next one unless it is super-urgent,
+> >> but in that case I need to know why that's the case.
+> >>
+> >
+> > This is not urgent. This mainly needed to enable the ACPI PCI supports
+> > for ARM64 which is still work in progress.
+> >
+> > Thanks,
+> > Suravee
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> Just wondering if you are planning to queue this series up for 4.4 as well?
 
-It would be good to change the subject of the patch too I think, because it is
-not about wakeup IRQs only any more.
+You don't seem to have addressed the Bjorn's comments on patch [2/4].
+
+They need to be addressed before I can take this series.
 
 Thanks,
 Rafael
