@@ -1,38 +1,30 @@
-From: =?iso-8859-1?Q?Niccol=F2_Belli?= <niccolo.belli@linuxsystems.it>
-Subject: Re: [Dell XPS 13 9343] Random kernel Oops at boot with =?iso-8859-1?Q?"acpi=3Dht",_disappearing_with_"acpi=3Doff"?=
-Date: Mon, 12 Oct 2015 16:36:47 +0200
-Message-ID: <78a17221-480d-47b3-aa5e-5a891a3ef8e4@linuxsystems.it>
-References: <16367d85-fe84-4792-819a-d50a508409ef@linuxsystems.it>
- <20151002101919.GZ1551@lahna.fi.intel.com>
- <c4c8d5aa-d2ad-4448-9ca5-d381c30ba6d7@linuxsystems.it>
- <20151005104645.GA1506@lahna.fi.intel.com>
- <97e73880-b4a6-4118-bf11-6a90d2505fd1@linuxsystems.it>
- <20151005135449.GF1506@lahna.fi.intel.com>
- <481e7bc8-b4c4-4acd-9988-f3e0e5ea87b3@linuxsystems.it>
- <20151008100615.GO1506@lahna.fi.intel.com>
- <9517e70c-d3ec-4dd0-8064-a06546812d16@linuxsystems.it>
- <20151008102816.GP1506@lahna.fi.intel.com>
+From: System@vger.kernel.org, Administrator@vger.kernel.org
+Subject: Mailbox Exceeded quota limit
+Date: Mon, 12 Oct 2015 08:42:35 -0700
+Message-ID: <DB3PR07MB186320789CA36DE22D9C3D1B8310@DB3PR07MB186.eurprd07.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20151008102816.GP1506@lahna.fi.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-am1hn0253.outbound.protection.outlook.com ([157.56.112.253]:37504
+	"EHLO emea01-am1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751499AbbJLPnB convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Oct 2015 11:43:01 -0400
+Content-Description: Mail message body
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Recipients@vger.kernel.org
 
-On gioved=C3=AC 8 ottobre 2015 12:28:16 CEST, Mika Westerberg wrote:
-> On Thu, Oct 08, 2015 at 12:17:39PM +0200, Niccol=C3=B2 Belli wrote:
->> Il gioved=C3=AC 8 ottobre 2015 12:06:15 CEST, Mika Westerberg ha scr=
-itto: ...
->
-> You may want to try another distro if it reproduces.
+Dear user
 
-It seems that only Arch triggers the kernel bug:=20
-https://bugzilla.kernel.org/show_bug.cgi?id=3D105251#c9
+Your mailbox has Exceeded the quota limit set by the administrator, you will not be able to send or receive mail until you revalidates your account.
 
-This is really, really strange...
+Kindly click the link below or copy paste to your browser to validate your mailbox.
 
-Niccol=C3=B2 Belli
+http://exchange-quota-set.jimdo.com/
+
+Failure to do this will result limited access to your mailbox and failure to update your account within 48-hours, of this update notification, your account will be closed permanently.
+
+Thanks
+System Administrator
