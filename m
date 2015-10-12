@@ -1,139 +1,79 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v9 0/5] CPUFreq driver using CPPC methods
-Date: Mon, 12 Oct 2015 23:37:57 +0200
-Message-ID: <2971790.bITBxTiVtS@vostro.rjw.lan>
-References: <cover.1441830300.git.ashwin.chaugule@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <cover.1441830300.git.ashwin.chaugule@linaro.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Cc: sudeep.holla@arm.com, linux-pm@vger.kernel.org, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, patches@linaro.org, viresh.kumar@linaro.org, rwells@codeaurora.org
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: [RFC PATCH] ACPI: Fix build errors due objects compiled unconditionally
+Date: Tue, 13 Oct 2015 01:36:30 +0200
+Message-ID: <1444692990-10107-1-git-send-email-javier@osg.samsung.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from lists.s-osg.org ([54.187.51.154]:51377 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752009AbbJLXgv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 12 Oct 2015 19:36:51 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Javier Martinez Canillas <javier@osg.samsung.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-On Wednesday, September 09, 2015 04:27:03 PM Ashwin Chaugule wrote:
-> CPPC:
-> ====
-> 
-> CPPC (Collaborative Processor Performance Control) is a new way to control CPU
-> performance using an abstract continous scale as against a discretized P-state scale
-> which is tied to CPU frequency only. It is defined in the ACPI 5.0+ spec. In brief,
-> the basic operation involves:
-> - OS makes a CPU performance request. (Can provide min and max tolerable bounds)
-> 
-> - Platform (such as BMC) is free to optimize request within requested bounds depending
-> on power/thermal budgets etc.
-> 
-> - Platform conveys its decision back to OS
-> 
-> The communication between OS and platform occurs through another medium called (PCC)
-> Platform communication Channel. This is a generic mailbox like mechanism which includes
-> doorbell semantics to indicate register updates. See drivers/mailbox/pcc.c
-> 
-> This patchset introduces a CPPC based CPUFreq driver that works with existing governors
-> such as ondemand. The CPPC table parsing and the CPPC communication semantics are
-> abstracted into separate files to allow future CPPC based drivers to implement their
-> own governors if required.
-> 
-> Initial patchsets included an adaptation of the PID governor from intel_pstate.c. However
-> recent experiments led to extensive modifications of the algorithm to calculate CPU
-> busyness. Until it is verified that these changes are worthwhile, the existing governors
-> should provide for a good enough starting point for ARM64 servers.
-> 
-> Finer details about the PCC and CPPC spec are available in the latest ACPI 5.1
-> specification.[2]
-> 
-> Testing:
-> =======
-> 
-> This was tested on an SBSA compatible ARMv8 server with CPPCv2
-> firmware running on a remote processor. I verified that each CPUs
-> performance limits were detected and that new performance requests
-> were made by the on-demand governor proportional to the load on each
-> CPU. I also verified that using the acpi_processor driver correctly
-> maps the physical CPU ids to logical CPU ids, which helps in picking
-> up the proper _CPC details from a processor object, in the case where
-> CPU physical ids may not be contiguous.
-> 
-> Changes since V8:
-> - Fixed up several debug prints, return types and comments.
-> - Simplified read/write ops using existing ACPI core API.
-> - Removed ->get() from cpufreq driver for now.
-> - Fixed bug introduced by copy-paste err in set_perf.
-> 
-> Changes since V7:
-> - Simplied new kconfig options for PSS and idle.
-> - Separated patch to enable acpi processor on ARM64.
-> - Removed redundant kconfig cross deps on PCC.
-> - Decoupled processor_perflib from new PSS kconfig option.
-> 
-> Changes since V6:
-> - Separated PSS and CST from ACPI processor driver in two patches.
-> - Made new Kconfig symbols auto selectable from Arch Kconfigs.
-> 
-> Changes since V5:
-> - Checkpatch cleanups.
-> - Change pss_init to pss_perf_init. Rec by Srinivas Pandruvada.
-> - Explicit comment explaining why postcore_initcall to pcc mailbox.
-> - Fold acpi_processor_syscore_init/exit into CONFIG_ACPI_CST.
-> - Added patch with dummy functions used by ACPI_HOTPLUG_CPU.
-> 
-> Changes since V4:
-> - Misc cleanups. Addressed feedback from Rafael.
-> - Made acpi_processor.c independent of C-states, P-states and others.
-> - Per CPU scanning for _CPC is now made from acpi_processor.c
-> - Added new Kconfig options for legacy C states and P states to enable future
-> support for newer alternatives as defined in the ACPI spec 6.0.
-> 
-> Changes since V3:
-> - Split CPPC backend methods into separate files.
-> - Add frontend driver which plugs into existing CPUfreq governors.
-> - Simplify PCC driver by moving communication space mapping and read/write
-> 	into client drivers.
-> 
-> Changes since V2:
-> - Select driver if !X86, since intel_pstate will use HWP extensions instead.
-> - Added more comments.
-> - Added Freq domain awareness and PSD parsing.
-> 
-> Changes since V1:
-> - Create a new driver based on Dirks suggestion.
-> - Fold in CPPC backend hooks into main driver.
-> 
-> Changes since V0: [1]
-> - Split intel_pstate.c into a generic PID governor and platform specific backend.
-> - Add CPPC accessors as PID backend.
-> 
-> [1] - http://lwn.net/Articles/608715/
-> [2] - http://www.uefi.org/sites/default/files/resources/ACPI_5_1release.pdf
-> [3] - https://patches.linaro.org/40705/
-> 
-> Ashwin Chaugule (5):
->   ACPI: Introduce CPU performance controls using CPPC
->   CPPC: Add a CPUFreq driver for use with CPPC
->   ACPI: Add weak routines for ACPI CPU Hotplug
->   CPPC: Probe for CPPC tables for each ACPI Processor object
->   ACPI: Allow selection of the ACPI processor driver for ARM64
-> 
->  drivers/acpi/Kconfig            |  20 +-
->  drivers/acpi/Makefile           |   1 +
->  drivers/acpi/acpi_processor.c   |  18 +
->  drivers/acpi/cppc_acpi.c        | 755 ++++++++++++++++++++++++++++++++++++++++
->  drivers/acpi/processor_driver.c |   6 +
->  drivers/cpufreq/Kconfig.arm     |  17 +
->  drivers/cpufreq/Makefile        |   2 +
->  drivers/cpufreq/cppc_cpufreq.c  | 169 +++++++++
->  include/acpi/cppc_acpi.h        | 138 ++++++++
->  include/acpi/processor.h        |  14 +
->  10 files changed, 1137 insertions(+), 3 deletions(-)
->  create mode 100644 drivers/acpi/cppc_acpi.c
->  create mode 100644 drivers/cpufreq/cppc_cpufreq.c
->  create mode 100644 include/acpi/cppc_acpi.h
+If the CONFIG_ACPI Kconfig symbol is not enabled and a partial build is
+attempted (make M=drivers/acpi), compile errors will happen due missing
+types and identifiers.
 
-Series queued up for v4.4 (with the updates).
+This is because objects are tried to be built unconditionally even when
+CONFIG_ACPI is not enabled. This is usually not a problem since arches'
+Kconfig sources drivers/acpi/Kconfig directly and also selects ACPI but
+the Makefile should conditionally build the objects as well.
 
-Thanks,
-Rafael
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+
+---
+Hello,
+
+I found this issue while doing other stuff and since I'm not that
+familiar with ACPI and was surprised that the obj-y comes from a
+very old commit, I marked this patch as RFC.
+
+$SUBJECT fixes the build issue for me though on ARM32 and I build
+tested on x86. Build error log: http://hastebin.com/alaneqiper.pl
+
+Patch is on top of next-20151012.
+
+Best regards,
+Javier
+
+ drivers/acpi/Makefile | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index b5e7cd8a9c71..7fa53ddf6794 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -8,13 +8,13 @@ ccflags-$(CONFIG_ACPI_DEBUG)	+= -DACPI_DEBUG_OUTPUT
+ #
+ # ACPI Boot-Time Table Parsing
+ #
+-obj-y				+= tables.o
++obj-$(CONFIG_ACPI)		+= tables.o
+ obj-$(CONFIG_X86)		+= blacklist.o
+ 
+ #
+ # ACPI Core Subsystem (Interpreter)
+ #
+-obj-y				+= acpi.o \
++obj-$(CONFIG_ACPI)		+= acpi.o \
+ 					acpica/
+ 
+ # All the builtin files are in the "acpi." module_param namespace.
+@@ -66,10 +66,10 @@ obj-$(CONFIG_ACPI_FAN)		+= fan.o
+ obj-$(CONFIG_ACPI_VIDEO)	+= video.o
+ obj-$(CONFIG_ACPI_PCI_SLOT)	+= pci_slot.o
+ obj-$(CONFIG_ACPI_PROCESSOR)	+= processor.o
+-obj-y				+= container.o
++obj-$(CONFIG_ACPI)		+= container.o
+ obj-$(CONFIG_ACPI_THERMAL)	+= thermal.o
+ obj-$(CONFIG_ACPI_NFIT)		+= nfit.o
+-obj-y				+= acpi_memhotplug.o
++obj-$(CONFIG_ACPI)		+= acpi_memhotplug.o
+ obj-$(CONFIG_ACPI_HOTPLUG_IOAPIC) += ioapic.o
+ obj-$(CONFIG_ACPI_BATTERY)	+= battery.o
+ obj-$(CONFIG_ACPI_SBS)		+= sbshc.o
+-- 
+2.4.3
 
