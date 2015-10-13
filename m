@@ -1,79 +1,73 @@
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [RFC PATCH] ACPI: Fix build errors due objects compiled unconditionally
-Date: Tue, 13 Oct 2015 01:36:30 +0200
-Message-ID: <1444692990-10107-1-git-send-email-javier@osg.samsung.com>
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: Re: [PATCH 3/3] acpi: nfit: Add support for hotplug
+Date: Mon, 12 Oct 2015 18:35:13 -0600
+Message-ID: <1444696513.20657.16.camel@hpe.com>
+References: <1444254577-23744-1-git-send-email-vishal.l.verma@intel.com>
+	 <1444254577-23744-4-git-send-email-vishal.l.verma@intel.com>
+	 <CAPcyv4gqoGho8HNmOQM_H88vyKVHguze+uYuyFoxBUiGgB7aDA@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:51377 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752009AbbJLXgv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 12 Oct 2015 19:36:51 -0400
+Received: from g1t6225.austin.hp.com ([15.73.96.126]:35071 "EHLO
+	g1t6225.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751902AbbJMAiu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Oct 2015 20:38:50 -0400
+Received: from g1t6223.austin.hp.com (g1t6223.austin.hp.com [15.73.96.124])
+	(using TLSv1.2 with cipher DHE-RSA-AES256-GCM-SHA384 (256/256 bits))
+	(No client certificate requested)
+	by g1t6225.austin.hp.com (Postfix) with ESMTPS id 5343682B1
+	for <linux-acpi@vger.kernel.org>; Tue, 13 Oct 2015 00:38:50 +0000 (UTC)
+In-Reply-To: <CAPcyv4gqoGho8HNmOQM_H88vyKVHguze+uYuyFoxBUiGgB7aDA@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Javier Martinez Canillas <javier@osg.samsung.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: Dan Williams <dan.j.williams@intel.com>, Vishal Verma <vishal.l.verma@intel.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Linux ACPI <linux-acpi@vger.kernel.org>, "Elliott, Robert (Persistent Memory)" <elliott@hpe.com>
 
-If the CONFIG_ACPI Kconfig symbol is not enabled and a partial build is
-attempted (make M=drivers/acpi), compile errors will happen due missing
-types and identifiers.
+On Fri, 2015-10-09 at 12:44 -0700, Dan Williams wrote:
+> [ adding Robert and Toshi ]
+> 
+> On Wed, Oct 7, 2015 at 2:49 PM, Vishal Verma <vishal.l.verma@intel.com>
+> wrote:
+ :
+> > @@ -242,9 +246,13 @@ static bool add_memdev(struct acpi_nfit_desc
+> > *acpi_desc,
+> >                 struct acpi_nfit_memory_map *memdev)
+> >  {
+> >         struct device *dev = acpi_desc->dev;
+> > -       struct nfit_memdev *nfit_memdev = devm_kzalloc(dev,
+> > -                       sizeof(*nfit_memdev), GFP_KERNEL);
+> > +       struct nfit_memdev *nfit_memdev;
+> > +
+> > +       list_for_each_entry(nfit_memdev, &acpi_desc->memdevs, list)
+> > +               if (memcmp(nfit_memdev->memdev, memdev,
+> > sizeof(*memdev)) == 0)
+> > +                       return true;
+> 
+> I'm wondering if we need to be cognizant of flag changes here.
+> Robert, Toshi are you expecting that the flags of an existing memory
+> device entry will be updated by the this notification mechanism?
 
-This is because objects are tried to be built unconditionally even when
-CONFIG_ACPI is not enabled. This is usually not a problem since arches'
-Kconfig sources drivers/acpi/Kconfig directly and also selects ACPI but
-the Makefile should conditionally build the objects as well.
+This patch-set can focus on the simple hot-add case for now.  We think bit
+[4] of the flags, smart and health event bit, could be updated on an
+existing memory device when such an event has occurred during runtime, but
+it may require clarification to the spec since the bit is currently defined
+as "SMART and health events prior to OSPM handoff" (which does not make
+sense for _FIT).  We will need to support other updates in the flags, but
+we will first need to understand what the OS should do in such scenarios.
 
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+> > @@ -811,6 +835,8 @@ static int acpi_nfit_register_dimms(struct
+> > acpi_nfit_desc *acpi_desc)
+> >                          */
+> >                         dev_err(acpi_desc->dev, "duplicate DCR
+> > detected: %s\n",
+> >                                         nvdimm_name(nvdimm));
+> > +                       /* TODO Do we need the warning? */
+> > +                       dimm_count++;
+> 
+> Robert, comments?
 
----
-Hello,
+Yes, this warning message should be removed.
 
-I found this issue while doing other stuff and since I'm not that
-familiar with ACPI and was surprised that the obj-y comes from a
-very old commit, I marked this patch as RFC.
-
-$SUBJECT fixes the build issue for me though on ARM32 and I build
-tested on x86. Build error log: http://hastebin.com/alaneqiper.pl
-
-Patch is on top of next-20151012.
-
-Best regards,
-Javier
-
- drivers/acpi/Makefile | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index b5e7cd8a9c71..7fa53ddf6794 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -8,13 +8,13 @@ ccflags-$(CONFIG_ACPI_DEBUG)	+= -DACPI_DEBUG_OUTPUT
- #
- # ACPI Boot-Time Table Parsing
- #
--obj-y				+= tables.o
-+obj-$(CONFIG_ACPI)		+= tables.o
- obj-$(CONFIG_X86)		+= blacklist.o
- 
- #
- # ACPI Core Subsystem (Interpreter)
- #
--obj-y				+= acpi.o \
-+obj-$(CONFIG_ACPI)		+= acpi.o \
- 					acpica/
- 
- # All the builtin files are in the "acpi." module_param namespace.
-@@ -66,10 +66,10 @@ obj-$(CONFIG_ACPI_FAN)		+= fan.o
- obj-$(CONFIG_ACPI_VIDEO)	+= video.o
- obj-$(CONFIG_ACPI_PCI_SLOT)	+= pci_slot.o
- obj-$(CONFIG_ACPI_PROCESSOR)	+= processor.o
--obj-y				+= container.o
-+obj-$(CONFIG_ACPI)		+= container.o
- obj-$(CONFIG_ACPI_THERMAL)	+= thermal.o
- obj-$(CONFIG_ACPI_NFIT)		+= nfit.o
--obj-y				+= acpi_memhotplug.o
-+obj-$(CONFIG_ACPI)		+= acpi_memhotplug.o
- obj-$(CONFIG_ACPI_HOTPLUG_IOAPIC) += ioapic.o
- obj-$(CONFIG_ACPI_BATTERY)	+= battery.o
- obj-$(CONFIG_ACPI_SBS)		+= sbshc.o
--- 
-2.4.3
-
+Thanks,
+-Toshi
