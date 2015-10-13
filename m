@@ -1,123 +1,97 @@
 From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: [PATCH v2 06/17] irqdomain: Introduce irq_create_fwspec_mapping
-Date: Tue, 13 Oct 2015 12:51:34 +0100
-Message-ID: <1444737105-31573-7-git-send-email-marc.zyngier@arm.com>
+Subject: [PATCH v2 15/17] irqdomain: Introduce irq_domain_create_hierarchy
+Date: Tue, 13 Oct 2015 12:51:43 +0100
+Message-ID: <1444737105-31573-16-git-send-email-marc.zyngier@arm.com>
 References: <1444737105-31573-1-git-send-email-marc.zyngier@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1444737105-31573-1-git-send-email-marc.zyngier@arm.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-kernel@vger.kernel.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Jake Oshins <jakeo@microsoft.com>, Graeme Gregory <graeme@xora.org.uk>, linux-arm-kernel@lists.infradead.org
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Graeme Gregory <graeme@xora.org.uk>, Jake Oshins <jakeo@microsoft.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Just like we have irq_create_of_mapping, irq_create_fwspec_mapping
-creates a IRQ domain mapping for an interrupt described in a
-struct irq_fwspec.
-
-irq_create_of_mapping gets rewritten in terms of the new function,
-and the hack we introduced before gets removed (now that no stacked
-irqchip uses of_phandle_args anymore).
+As we're about to start converting the various MSI layers to
+use fwnode_handle instead of device_node, add irq_domain_create_hierarchy
+as a directly equivalent of irq_domain_add_hierarchy (which still
+exists as a compatibility interface).
 
 Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
 ---
- include/linux/irqdomain.h |  1 +
- kernel/irq/irqdomain.c    | 30 +++++++++++++++---------------
- 2 files changed, 16 insertions(+), 15 deletions(-)
+ include/linux/irqdomain.h | 17 +++++++++++++++--
+ kernel/irq/irqdomain.c    | 12 ++++++------
+ 2 files changed, 21 insertions(+), 8 deletions(-)
 
 diff --git a/include/linux/irqdomain.h b/include/linux/irqdomain.h
-index 533c974..7e7842e 100644
+index 949caa7..2b3340ae 100644
 --- a/include/linux/irqdomain.h
 +++ b/include/linux/irqdomain.h
-@@ -267,6 +267,7 @@ extern void irq_domain_disassociate(struct irq_domain *domain,
- 
- extern unsigned int irq_create_mapping(struct irq_domain *host,
- 				       irq_hw_number_t hwirq);
-+extern unsigned int irq_create_fwspec_mapping(struct irq_fwspec *fwspec);
- extern void irq_dispose_mapping(unsigned int virq);
- 
- /**
+@@ -340,10 +340,23 @@ extern void irq_domain_set_info(struct irq_domain *domain, unsigned int virq,
+ 				void *chip_data, irq_flow_handler_t handler,
+ 				void *handler_data, const char *handler_name);
+ #ifdef	CONFIG_IRQ_DOMAIN_HIERARCHY
+-extern struct irq_domain *irq_domain_add_hierarchy(struct irq_domain *parent,
++extern struct irq_domain *irq_domain_create_hierarchy(struct irq_domain *parent,
+ 			unsigned int flags, unsigned int size,
+-			struct device_node *node,
++			struct fwnode_handle *fwnode,
+ 			const struct irq_domain_ops *ops, void *host_data);
++
++static inline struct irq_domain *irq_domain_add_hierarchy(struct irq_domain *parent,
++					    unsigned int flags,
++					    unsigned int size,
++					    struct device_node *node,
++					    const struct irq_domain_ops *ops,
++					    void *host_data)
++{
++	return irq_domain_create_hierarchy(parent, flags, size,
++					   of_node_to_fwnode(node),
++					   ops, host_data);
++}
++
+ extern int __irq_domain_alloc_irqs(struct irq_domain *domain, int irq_base,
+ 				   unsigned int nr_irqs, int node, void *arg,
+ 				   bool realloc);
 diff --git a/kernel/irq/irqdomain.c b/kernel/irq/irqdomain.c
-index 86dfd40..b1fda6d 100644
+index 41151d3..22aa961 100644
 --- a/kernel/irq/irqdomain.c
 +++ b/kernel/irq/irqdomain.c
-@@ -514,37 +514,28 @@ static void of_phandle_args_to_fwspec(struct of_phandle_args *irq_data,
- 		fwspec->param[i] = irq_data->args[i];
- }
+@@ -854,11 +854,11 @@ static int irq_domain_alloc_descs(int virq, unsigned int cnt,
  
--unsigned int irq_create_of_mapping(struct of_phandle_args *irq_data)
-+unsigned int irq_create_fwspec_mapping(struct irq_fwspec *fwspec)
- {
--	struct irq_fwspec fwspec;
- 	struct irq_domain *domain;
- 	irq_hw_number_t hwirq;
- 	unsigned int type = IRQ_TYPE_NONE;
- 	int virq;
- 
--	of_phandle_args_to_fwspec(irq_data, &fwspec);
--
--	if (fwspec.fwnode)
--		domain = irq_find_matching_fwnode(fwspec.fwnode, DOMAIN_BUS_ANY);
-+	if (fwspec->fwnode)
-+		domain = irq_find_matching_fwnode(fwspec->fwnode, DOMAIN_BUS_ANY);
- 	else
- 		domain = irq_default_domain;
- 
- 	if (!domain) {
- 		pr_warn("no irq domain found for %s !\n",
--			of_node_full_name(to_of_node(fwspec.fwnode)));
-+			of_node_full_name(to_of_node(fwspec->fwnode)));
- 		return 0;
- 	}
- 
--	if (irq_domain_translate(domain, &fwspec, &hwirq, &type))
-+	if (irq_domain_translate(domain, fwspec, &hwirq, &type))
- 		return 0;
- 
- 	if (irq_domain_is_hierarchy(domain)) {
--		/* Temporary hack */
--		void *desc = &fwspec;
--#ifdef	CONFIG_IRQ_DOMAIN_HIERARCHY
--		if (!domain->ops->translate)
--			desc = irq_data;
--#endif
- 		/*
- 		 * If we've already configured this interrupt,
- 		 * don't do it again, or hell will break loose.
-@@ -553,7 +544,7 @@ unsigned int irq_create_of_mapping(struct of_phandle_args *irq_data)
- 		if (virq)
- 			return virq;
- 
--		virq = irq_domain_alloc_irqs(domain, 1, NUMA_NO_NODE, desc);
-+		virq = irq_domain_alloc_irqs(domain, 1, NUMA_NO_NODE, fwspec);
- 		if (virq <= 0)
- 			return 0;
- 	} else {
-@@ -569,6 +560,15 @@ unsigned int irq_create_of_mapping(struct of_phandle_args *irq_data)
- 		irq_set_irq_type(virq, type);
- 	return virq;
- }
-+EXPORT_SYMBOL_GPL(irq_create_fwspec_mapping);
-+
-+unsigned int irq_create_of_mapping(struct of_phandle_args *irq_data)
-+{
-+	struct irq_fwspec fwspec;
-+
-+	of_phandle_args_to_fwspec(irq_data, &fwspec);
-+	return irq_create_fwspec_mapping(&fwspec);
-+}
- EXPORT_SYMBOL_GPL(irq_create_of_mapping);
- 
+ #ifdef	CONFIG_IRQ_DOMAIN_HIERARCHY
  /**
+- * irq_domain_add_hierarchy - Add a irqdomain into the hierarchy
++ * irq_domain_create_hierarchy - Add a irqdomain into the hierarchy
+  * @parent:	Parent irq domain to associate with the new domain
+  * @flags:	Irq domain flags associated to the domain
+  * @size:	Size of the domain. See below
+- * @node:	Optional device-tree node of the interrupt controller
++ * @fwnode:	Optional fwnode of the interrupt controller
+  * @ops:	Pointer to the interrupt domain callbacks
+  * @host_data:	Controller private data pointer
+  *
+@@ -868,19 +868,19 @@ static int irq_domain_alloc_descs(int virq, unsigned int cnt,
+  * domain flags are set.
+  * Returns pointer to IRQ domain, or NULL on failure.
+  */
+-struct irq_domain *irq_domain_add_hierarchy(struct irq_domain *parent,
++struct irq_domain *irq_domain_create_hierarchy(struct irq_domain *parent,
+ 					    unsigned int flags,
+ 					    unsigned int size,
+-					    struct device_node *node,
++					    struct fwnode_handle *fwnode,
+ 					    const struct irq_domain_ops *ops,
+ 					    void *host_data)
+ {
+ 	struct irq_domain *domain;
+ 
+ 	if (size)
+-		domain = irq_domain_add_linear(node, size, ops, host_data);
++		domain = irq_domain_create_linear(fwnode, size, ops, host_data);
+ 	else
+-		domain = irq_domain_add_tree(node, ops, host_data);
++		domain = irq_domain_create_tree(fwnode, ops, host_data);
+ 	if (domain) {
+ 		domain->parent = parent;
+ 		domain->flags |= flags;
 -- 
 2.1.4
