@@ -1,97 +1,159 @@
 From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: [PATCH v2 10/17] acpi/gsi: Add acpi_set_irq_model to initialize the GSI layer
-Date: Tue, 13 Oct 2015 12:51:38 +0100
-Message-ID: <1444737105-31573-11-git-send-email-marc.zyngier@arm.com>
+Subject: [PATCH v2 07/17] irqdomain: Introduce irq_domain_create_{linear, tree}
+Date: Tue, 13 Oct 2015 12:51:35 +0100
+Message-ID: <1444737105-31573-8-git-send-email-marc.zyngier@arm.com>
 References: <1444737105-31573-1-git-send-email-marc.zyngier@arm.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1444737105-31573-1-git-send-email-marc.zyngier@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Graeme Gregory <graeme@xora.org.uk>, Jake Oshins <jakeo@microsoft.com>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-kernel@vger.kernel.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Jake Oshins <jakeo@microsoft.com>, Graeme Gregory <graeme@xora.org.uk>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-In order to start embrassing irqdomains at the GSI level, introduce
-a new initializer:
+Just like we have irq_domain_add_{linear,tree} to create a irq domain
+identified by an of_node, introduce irq_domain_create_{linear,tree}
+that do the same thing, except that they take a struct fwnode_handle.
 
-void acpi_set_irq_model(enum acpi_irq_model_id model,
-			struct fwnode_handle *fwnode);
+Existing functions get rewritten in terms of the new ones so that
+everything keeps working as before (and __irq_domain_add is now
+fwnode_handle based as well).
 
-where:
-- model is the value assigned to acpi_irq_model
-- fwnode is the identifier for the irqdomain mapping
-  GSI interrupts
-
-As nobody calls this code yet, the current code is (mostly)
-left in place.
-
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
 ---
- drivers/acpi/gsi.c   | 32 +++++++++++++++++++++++++++-----
- include/linux/acpi.h |  3 +++
- 2 files changed, 30 insertions(+), 5 deletions(-)
+ include/linux/irqdomain.h | 31 +++++++++++++++++++++++++------
+ kernel/irq/irqdomain.c    | 11 ++++++-----
+ 2 files changed, 31 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/acpi/gsi.c b/drivers/acpi/gsi.c
-index 2c39fe1..202a8fe 100644
---- a/drivers/acpi/gsi.c
-+++ b/drivers/acpi/gsi.c
-@@ -75,12 +75,21 @@ int acpi_register_gsi(struct device *dev, u32 gsi, int trigger,
- {
- 	unsigned int irq;
- 	unsigned int irq_type = acpi_gsi_get_irq_type(trigger, polarity);
--	struct irq_domain *d = irq_find_matching_fwnode(acpi_gsi_domain_id,
--							DOMAIN_BUS_ANY);
- 
--	irq = irq_create_mapping(d, gsi);
--	if (!irq)
--		return -EINVAL;
-+	if (acpi_gsi_domain_id) {
-+		struct irq_fwspec fwspec;
-+
-+		fwspec.fwnode = acpi_gsi_domain_id;
-+		fwspec.param[0] = gsi;
-+		fwspec.param[1] = irq_type;
-+		fwspec.param_count = 2;
-+
-+		return irq_create_fwspec_mapping(&fwspec);
-+	} else {
-+		irq = irq_create_mapping(NULL, gsi);
-+		if (!irq)
-+			return -EINVAL;
-+	}
- 
- 	/* Set irq type if specified and different than the current one */
- 	if (irq_type != IRQ_TYPE_NONE &&
-@@ -103,3 +112,16 @@ void acpi_unregister_gsi(u32 gsi)
- 	irq_dispose_mapping(irq);
+diff --git a/include/linux/irqdomain.h b/include/linux/irqdomain.h
+index 7e7842e..995d4c5 100644
+--- a/include/linux/irqdomain.h
++++ b/include/linux/irqdomain.h
+@@ -188,7 +188,7 @@ static inline struct device_node *irq_domain_get_of_node(struct irq_domain *d)
  }
- EXPORT_SYMBOL_GPL(acpi_unregister_gsi);
-+
-+/**
-+ * acpi_set_irq_model - Setup the GSI irqdomain information
-+ * @model: the value assigned to acpi_irq_model
-+ * @fwnode: the irq_domain identifier for mapping and looking up
-+ *          GSI interrupts
-+ */
-+void __init acpi_set_irq_model(enum acpi_irq_model_id model,
-+			       struct fwnode_handle *fwnode)
-+{
-+	acpi_irq_model = model;
-+	acpi_gsi_domain_id = fwnode;
-+}
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 43856d1..d863e12 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -201,6 +201,9 @@ int acpi_register_gsi (struct device *dev, u32 gsi, int triggering, int polarity
- int acpi_gsi_to_irq (u32 gsi, unsigned int *irq);
- int acpi_isa_irq_to_gsi (unsigned isa_irq, u32 *gsi);
  
-+void acpi_set_irq_model(enum acpi_irq_model_id model,
-+			struct fwnode_handle *fwnode);
+ #ifdef CONFIG_IRQ_DOMAIN
+-struct irq_domain *__irq_domain_add(struct device_node *of_node, int size,
++struct irq_domain *__irq_domain_add(struct fwnode_handle *fwnode, int size,
+ 				    irq_hw_number_t hwirq_max, int direct_max,
+ 				    const struct irq_domain_ops *ops,
+ 				    void *host_data);
+@@ -207,11 +207,15 @@ extern struct irq_domain *irq_find_matching_fwnode(struct fwnode_handle *fwnode,
+ 						   enum irq_domain_bus_token bus_token);
+ extern void irq_set_default_host(struct irq_domain *host);
+ 
++static inline struct fwnode_handle *of_node_to_fwnode(struct device_node *node)
++{
++	return node ? &node->fwnode : NULL;
++}
 +
- #ifdef CONFIG_X86_IO_APIC
- extern int acpi_get_override_irq(u32 gsi, int *trigger, int *polarity);
- #else
+ static inline struct irq_domain *irq_find_matching_host(struct device_node *node,
+ 							enum irq_domain_bus_token bus_token)
+ {
+-	return irq_find_matching_fwnode(node ? &node->fwnode : NULL,
+-					bus_token);
++	return irq_find_matching_fwnode(of_node_to_fwnode(node), bus_token);
+ }
+ 
+ static inline struct irq_domain *irq_find_host(struct device_node *node)
+@@ -231,14 +235,14 @@ static inline struct irq_domain *irq_domain_add_linear(struct device_node *of_no
+ 					 const struct irq_domain_ops *ops,
+ 					 void *host_data)
+ {
+-	return __irq_domain_add(of_node, size, size, 0, ops, host_data);
++	return __irq_domain_add(of_node_to_fwnode(of_node), size, size, 0, ops, host_data);
+ }
+ static inline struct irq_domain *irq_domain_add_nomap(struct device_node *of_node,
+ 					 unsigned int max_irq,
+ 					 const struct irq_domain_ops *ops,
+ 					 void *host_data)
+ {
+-	return __irq_domain_add(of_node, 0, max_irq, max_irq, ops, host_data);
++	return __irq_domain_add(of_node_to_fwnode(of_node), 0, max_irq, max_irq, ops, host_data);
+ }
+ static inline struct irq_domain *irq_domain_add_legacy_isa(
+ 				struct device_node *of_node,
+@@ -252,7 +256,22 @@ static inline struct irq_domain *irq_domain_add_tree(struct device_node *of_node
+ 					 const struct irq_domain_ops *ops,
+ 					 void *host_data)
+ {
+-	return __irq_domain_add(of_node, 0, ~0, 0, ops, host_data);
++	return __irq_domain_add(of_node_to_fwnode(of_node), 0, ~0, 0, ops, host_data);
++}
++
++static inline struct irq_domain *irq_domain_create_linear(struct fwnode_handle *fwnode,
++					 unsigned int size,
++					 const struct irq_domain_ops *ops,
++					 void *host_data)
++{
++	return __irq_domain_add(fwnode, size, size, 0, ops, host_data);
++}
++
++static inline struct irq_domain *irq_domain_create_tree(struct fwnode_handle *fwnode,
++					 const struct irq_domain_ops *ops,
++					 void *host_data)
++{
++	return __irq_domain_add(fwnode, 0, ~0, 0, ops, host_data);
+ }
+ 
+ extern void irq_domain_remove(struct irq_domain *host);
+diff --git a/kernel/irq/irqdomain.c b/kernel/irq/irqdomain.c
+index b1fda6d..de6d749 100644
+--- a/kernel/irq/irqdomain.c
++++ b/kernel/irq/irqdomain.c
+@@ -40,13 +40,15 @@ static void irq_domain_check_hierarchy(struct irq_domain *domain);
+  * Allocates and initialize and irq_domain structure.
+  * Returns pointer to IRQ domain, or NULL on failure.
+  */
+-struct irq_domain *__irq_domain_add(struct device_node *of_node, int size,
++struct irq_domain *__irq_domain_add(struct fwnode_handle *fwnode, int size,
+ 				    irq_hw_number_t hwirq_max, int direct_max,
+ 				    const struct irq_domain_ops *ops,
+ 				    void *host_data)
+ {
+ 	struct irq_domain *domain;
+-	struct fwnode_handle *fwnode;
++	struct device_node *of_node;
++
++	of_node = to_of_node(fwnode);
+ 
+ 	domain = kzalloc_node(sizeof(*domain) + (sizeof(unsigned int) * size),
+ 			      GFP_KERNEL, of_node_to_nid(of_node));
+@@ -54,7 +56,6 @@ struct irq_domain *__irq_domain_add(struct device_node *of_node, int size,
+ 		return NULL;
+ 
+ 	of_node_get(of_node);
+-	fwnode = of_node ? &of_node->fwnode : NULL;
+ 
+ 	/* Fill structure */
+ 	INIT_RADIX_TREE(&domain->revmap_tree, GFP_KERNEL);
+@@ -137,7 +138,7 @@ struct irq_domain *irq_domain_add_simple(struct device_node *of_node,
+ {
+ 	struct irq_domain *domain;
+ 
+-	domain = __irq_domain_add(of_node, size, size, 0, ops, host_data);
++	domain = __irq_domain_add(of_node_to_fwnode(of_node), size, size, 0, ops, host_data);
+ 	if (!domain)
+ 		return NULL;
+ 
+@@ -181,7 +182,7 @@ struct irq_domain *irq_domain_add_legacy(struct device_node *of_node,
+ {
+ 	struct irq_domain *domain;
+ 
+-	domain = __irq_domain_add(of_node, first_hwirq + size,
++	domain = __irq_domain_add(of_node_to_fwnode(of_node), first_hwirq + size,
+ 				  first_hwirq + size, 0, ops, host_data);
+ 	if (domain)
+ 		irq_domain_associate_many(domain, first_irq, first_hwirq, size);
 -- 
 2.1.4
