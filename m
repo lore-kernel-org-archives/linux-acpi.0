@@ -1,71 +1,106 @@
 From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: [PATCH v2 14/17] acpi/gsi: Cleanup acpi_register_gsi
-Date: Tue, 13 Oct 2015 12:51:42 +0100
-Message-ID: <1444737105-31573-15-git-send-email-marc.zyngier@arm.com>
+Subject: [PATCH v2 03/17] irqdomain: Allow irq domain lookup by fwnode
+Date: Tue, 13 Oct 2015 12:51:31 +0100
+Message-ID: <1444737105-31573-4-git-send-email-marc.zyngier@arm.com>
 References: <1444737105-31573-1-git-send-email-marc.zyngier@arm.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1444737105-31573-1-git-send-email-marc.zyngier@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Graeme Gregory <graeme@xora.org.uk>, Jake Oshins <jakeo@microsoft.com>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, linux-kernel@vger.kernel.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Jake Oshins <jakeo@microsoft.com>, Graeme Gregory <graeme@xora.org.uk>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-As the only user of drivers/acpi/gsi.c is now using acpi_set_irq_model
-to set acpi_gsi_domain_id to something meaningful, we can always rely
-on that information to be present (its absence is an error), and
-guarantee that new interrupt controllers will use this API.
+So far, our irq domains are still looked up by device node.
+Let's change this and allow a domain to be looked up using
+a fwnode_handle pointer.
 
-Take this opportunity to cleanup acpi_register_gsi.
+The existing interfaces are preserved with a couple of helpers.
 
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
 ---
- drivers/acpi/gsi.c | 30 ++++++++++--------------------
- 1 file changed, 10 insertions(+), 20 deletions(-)
+ include/linux/irqdomain.h | 11 +++++++++--
+ kernel/irq/irqdomain.c    | 16 +++++++---------
+ 2 files changed, 16 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/acpi/gsi.c b/drivers/acpi/gsi.c
-index 202a8fe..fa4585a 100644
---- a/drivers/acpi/gsi.c
-+++ b/drivers/acpi/gsi.c
-@@ -73,29 +73,19 @@ EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
- int acpi_register_gsi(struct device *dev, u32 gsi, int trigger,
- 		      int polarity)
- {
--	unsigned int irq;
--	unsigned int irq_type = acpi_gsi_get_irq_type(trigger, polarity);
-+	struct irq_fwspec fwspec;
+diff --git a/include/linux/irqdomain.h b/include/linux/irqdomain.h
+index 2f508f4..607c185 100644
+--- a/include/linux/irqdomain.h
++++ b/include/linux/irqdomain.h
+@@ -183,10 +183,17 @@ struct irq_domain *irq_domain_add_legacy(struct device_node *of_node,
+ 					 irq_hw_number_t first_hwirq,
+ 					 const struct irq_domain_ops *ops,
+ 					 void *host_data);
+-extern struct irq_domain *irq_find_matching_host(struct device_node *node,
+-						 enum irq_domain_bus_token bus_token);
++extern struct irq_domain *irq_find_matching_fwnode(struct fwnode_handle *fwnode,
++						   enum irq_domain_bus_token bus_token);
+ extern void irq_set_default_host(struct irq_domain *host);
  
--	if (acpi_gsi_domain_id) {
--		struct irq_fwspec fwspec;
--
--		fwspec.fwnode = acpi_gsi_domain_id;
--		fwspec.param[0] = gsi;
--		fwspec.param[1] = irq_type;
--		fwspec.param_count = 2;
--
--		return irq_create_fwspec_mapping(&fwspec);
--	} else {
--		irq = irq_create_mapping(NULL, gsi);
--		if (!irq)
--			return -EINVAL;
-+	if (WARN_ON(!acpi_gsi_domain_id)) {
-+		pr_warn("GSI: No registered irqchip, giving up\n");
-+		return -EINVAL;
- 	}
- 
--	/* Set irq type if specified and different than the current one */
--	if (irq_type != IRQ_TYPE_NONE &&
--		irq_type != irq_get_trigger_type(irq))
--		irq_set_irq_type(irq, irq_type);
--	return irq;
-+	fwspec.fwnode = acpi_gsi_domain_id;
-+	fwspec.param[0] = gsi;
-+	fwspec.param[1] = acpi_gsi_get_irq_type(trigger, polarity);
-+	fwspec.param_count = 2;
++static inline struct irq_domain *irq_find_matching_host(struct device_node *node,
++							enum irq_domain_bus_token bus_token)
++{
++	return irq_find_matching_fwnode(node ? &node->fwnode : NULL,
++					bus_token);
++}
 +
-+	return irq_create_fwspec_mapping(&fwspec);
- }
- EXPORT_SYMBOL_GPL(acpi_register_gsi);
+ static inline struct irq_domain *irq_find_host(struct device_node *node)
+ {
+ 	return irq_find_matching_host(node, DOMAIN_BUS_ANY);
+diff --git a/kernel/irq/irqdomain.c b/kernel/irq/irqdomain.c
+index 1aee5c1..023ab6d 100644
+--- a/kernel/irq/irqdomain.c
++++ b/kernel/irq/irqdomain.c
+@@ -191,12 +191,12 @@ struct irq_domain *irq_domain_add_legacy(struct device_node *of_node,
+ EXPORT_SYMBOL_GPL(irq_domain_add_legacy);
  
+ /**
+- * irq_find_matching_host() - Locates a domain for a given device node
+- * @node: device-tree node of the interrupt controller
++ * irq_find_matching_fwnode() - Locates a domain for a given fwnode
++ * @fwnode: FW descriptor of the interrupt controller
+  * @bus_token: domain-specific data
+  */
+-struct irq_domain *irq_find_matching_host(struct device_node *node,
+-					  enum irq_domain_bus_token bus_token)
++struct irq_domain *irq_find_matching_fwnode(struct fwnode_handle *fwnode,
++					    enum irq_domain_bus_token bus_token)
+ {
+ 	struct irq_domain *h, *found = NULL;
+ 	int rc;
+@@ -212,12 +212,10 @@ struct irq_domain *irq_find_matching_host(struct device_node *node,
+ 	 */
+ 	mutex_lock(&irq_domain_mutex);
+ 	list_for_each_entry(h, &irq_domain_list, link) {
+-		struct device_node *of_node;
+-		of_node = irq_domain_get_of_node(h);
+ 		if (h->ops->match)
+-			rc = h->ops->match(h, node, bus_token);
++			rc = h->ops->match(h, to_of_node(fwnode), bus_token);
+ 		else
+-			rc = ((of_node != NULL) && (of_node == node) &&
++			rc = ((fwnode != NULL) && (h->fwnode == fwnode) &&
+ 			      ((bus_token == DOMAIN_BUS_ANY) ||
+ 			       (h->bus_token == bus_token)));
+ 
+@@ -229,7 +227,7 @@ struct irq_domain *irq_find_matching_host(struct device_node *node,
+ 	mutex_unlock(&irq_domain_mutex);
+ 	return found;
+ }
+-EXPORT_SYMBOL_GPL(irq_find_matching_host);
++EXPORT_SYMBOL_GPL(irq_find_matching_fwnode);
+ 
+ /**
+  * irq_set_default_host() - Set a "default" irq domain
 -- 
 2.1.4
