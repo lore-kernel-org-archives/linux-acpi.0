@@ -1,144 +1,104 @@
-From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Subject: [PATCH 3/4] gicv2m: Refactor to prepare for ACPI support
-Date: Tue, 13 Oct 2015 13:46:22 -0700
-Message-ID: <1444769183-12374-4-git-send-email-Suravee.Suthikulpanit@amd.com>
-References: <1444769183-12374-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH] ACPICA: AcpiGetSleepTypeData: Failure to find \_Sx
+ should not result in a loud warning [v2]
+Date: Tue, 13 Oct 2015 20:59:53 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37D98000D@ORSMSX112.amr.corp.intel.com>
+References: <94F2FBAB4432B54E8AACC7DFDE6C92E37D36303A@ORSMSX112.amr.corp.intel.com>
+ <1444243849-27929-1-git-send-email-prarit@redhat.com>
+ <94F2FBAB4432B54E8AACC7DFDE6C92E37D970F57@ORSMSX111.amr.corp.intel.com>
+ <56167C58.8000405@redhat.com>
+ <1AE640813FDE7649BE1B193DEA596E883BAC675E@SHSMSX101.ccr.corp.intel.com>
+ <1AE640813FDE7649BE1B193DEA596E883BAC67EE@SHSMSX101.ccr.corp.intel.com>
+ <5617A525.2070806@redhat.com>
+ <1AE640813FDE7649BE1B193DEA596E883BAC6C12@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1444769183-12374-1-git-send-email-Suravee.Suthikulpanit@amd.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, graeme.gregory@linaro.org, Catalin Marinas <Catalin.Marinas@arm.com>, Will Deacon <will.deacon@arm.com>, linux-kernel@vger.kernel.org, tomasz.nowicki@linaro.org, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, linux-arm-kernel@lists.infradead.org
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:46589 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752932AbbJMU7z convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Oct 2015 16:59:55 -0400
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E883BAC6C12@SHSMSX101.ccr.corp.intel.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>, Prarit Bhargava <prarit@redhat.com>, "devel@acpica.org" <devel@acpica.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>
 
-This patch refactors gicv2m_init_one() to prepare for ACPI support.
-It also replaces the irq_domain_add_tree() w/ irq_domain_create_tree()
-since we will need to pass the struct fwnode_handle, instead of
-struct device_node, when adding ACPI support later.
+I'm a bit confused. What does the execution of the _Sx methods have to do with module-level code? Obviously, many times the _Sx objects are implemented as simply named objects, but the table load doesn't care what is and what isn't present.
 
-Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
----
- drivers/irqchip/irq-gic-v2m.c | 51 ++++++++++++++++++++++++++-----------------
- 1 file changed, 31 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/irqchip/irq-gic-v2m.c b/drivers/irqchip/irq-gic-v2m.c
-index bf9b3c0..97d1bf4 100644
---- a/drivers/irqchip/irq-gic-v2m.c
-+++ b/drivers/irqchip/irq-gic-v2m.c
-@@ -239,8 +239,10 @@ static struct msi_domain_info gicv2m_pmsi_domain_info = {
- 	.chip	= &gicv2m_pmsi_irq_chip,
- };
- 
--static int __init gicv2m_init_one(struct device_node *node,
--				  struct irq_domain *parent)
-+static int __init gicv2m_init_one(struct irq_domain *parent,
-+				  u32 spi_start, u32 nr_spis,
-+				  struct resource *res,
-+				  struct fwnode_handle *fwnode)
- {
- 	int ret;
- 	struct v2m_data *v2m;
-@@ -252,23 +254,17 @@ static int __init gicv2m_init_one(struct device_node *node,
- 		return -ENOMEM;
- 	}
- 
--	ret = of_address_to_resource(node, 0, &v2m->res);
--	if (ret) {
--		pr_err("Failed to allocate v2m resource.\n");
--		goto err_free_v2m;
--	}
--
--	v2m->base = ioremap(v2m->res.start, resource_size(&v2m->res));
-+	v2m->base = ioremap(res->start, resource_size(res));
- 	if (!v2m->base) {
- 		pr_err("Failed to map GICv2m resource\n");
- 		ret = -ENOMEM;
- 		goto err_free_v2m;
- 	}
-+	memcpy(&v2m->res, res, sizeof(struct resource));
- 
--	if (!of_property_read_u32(node, "arm,msi-base-spi", &v2m->spi_start) &&
--	    !of_property_read_u32(node, "arm,msi-num-spis", &v2m->nr_spis)) {
--		pr_info("Overriding V2M MSI_TYPER (base:%u, num:%u)\n",
--			v2m->spi_start, v2m->nr_spis);
-+	if (spi_start && nr_spis) {
-+		v2m->spi_start = spi_start;
-+		v2m->nr_spis = nr_spis;
- 	} else {
- 		u32 typer = readl_relaxed(v2m->base + V2M_MSI_TYPER);
- 
-@@ -299,7 +295,7 @@ static int __init gicv2m_init_one(struct device_node *node,
- 		goto err_iounmap;
- 	}
- 
--	inner_domain = irq_domain_add_tree(node, &gicv2m_domain_ops, v2m);
-+	inner_domain = irq_domain_create_tree(fwnode, &gicv2m_domain_ops, v2m);
- 	if (!inner_domain) {
- 		pr_err("Failed to create GICv2m domain\n");
- 		ret = -ENOMEM;
-@@ -308,10 +304,10 @@ static int __init gicv2m_init_one(struct device_node *node,
- 
- 	inner_domain->bus_token = DOMAIN_BUS_NEXUS;
- 	inner_domain->parent = parent;
--	pci_domain = pci_msi_create_irq_domain(of_node_to_fwnode(node),
-+	pci_domain = pci_msi_create_irq_domain(fwnode,
- 					       &gicv2m_msi_domain_info,
- 					       inner_domain);
--	plat_domain = platform_msi_create_irq_domain(of_node_to_fwnode(node),
-+	plat_domain = platform_msi_create_irq_domain(fwnode,
- 						     &gicv2m_pmsi_domain_info,
- 						     inner_domain);
- 	if (!pci_domain || !plat_domain) {
-@@ -322,10 +318,9 @@ static int __init gicv2m_init_one(struct device_node *node,
- 
- 	spin_lock_init(&v2m->msi_cnt_lock);
- 
--	pr_info("Node %s: range[%#lx:%#lx], SPI[%d:%d]\n", node->name,
--		(unsigned long)v2m->res.start, (unsigned long)v2m->res.end,
-+	pr_info("range[%#lx:%#lx], SPI[%d:%d]\n",
-+		(unsigned long)res->start, (unsigned long)res->end,
- 		v2m->spi_start, (v2m->spi_start + v2m->nr_spis));
--
- 	return 0;
- 
- err_free_domains:
-@@ -356,10 +351,26 @@ int __init gicv2m_of_init(struct device_node *node, struct irq_domain *parent)
- 
- 	for (child = of_find_matching_node(node, gicv2m_device_id); child;
- 	     child = of_find_matching_node(child, gicv2m_device_id)) {
-+		u32 spi_start = 0, nr_spis = 0;
-+		struct resource res;
-+
- 		if (!of_find_property(child, "msi-controller", NULL))
- 			continue;
- 
--		ret = gicv2m_init_one(child, parent);
-+		ret = of_address_to_resource(child, 0, &res);
-+		if (ret) {
-+			pr_err("Failed to allocate v2m resource.\n");
-+			break;
-+		}
-+
-+		if (!of_property_read_u32(child, "arm,msi-base-spi",
-+					  &spi_start) &&
-+		    !of_property_read_u32(child, "arm,msi-num-spis", &nr_spis))
-+			pr_info("Overriding V2M MSI_TYPER (base:%u, num:%u)\n",
-+				spi_start, nr_spis);
-+
-+		ret = gicv2m_init_one(parent, spi_start, nr_spis, &res,
-+				      &child->fwnode);
- 		if (ret) {
- 			of_node_put(node);
- 			break;
--- 
-2.1.0
+> -----Original Message-----
+> From: Zheng, Lv
+> Sent: Friday, October 09, 2015 6:38 PM
+> To: Prarit Bhargava; Moore, Robert; devel@acpica.org
+> Cc: linux-acpi@vger.kernel.org; Wysocki, Rafael J
+> Subject: RE: [PATCH] ACPICA: AcpiGetSleepTypeData: Failure to find \_Sx
+> should not result in a loud warning [v2]
+> 
+> Hi,
+> 
+> > From: Prarit Bhargava [mailto:prarit@redhat.com]
+> > Sent: Friday, October 09, 2015 7:30 PM
+> >
+> > On 10/09/2015 01:26 AM, Zheng, Lv wrote:
+> > > Please ignore this.
+> > > The fix is against the caller.
+> > >
+> > > Thanks and best regards
+> > > -Lv
+> > >
+> > >> From: Devel [mailto:devel-bounces@acpica.org] On Behalf Of Zheng,
+> > >> Lv
+> > >> Sent: Friday, October 09, 2015 10:02 AM
+> > >>
+> > >> Why don't you fix this in the invoker side?
+> > >> For example:
+> > >> If (acpi_get_handle())
+> > >> 	acpi_evaluate_object()
+> >
+> > That seems like a sloppy workaround an actual bug in ACPICA.
+> 
+> So let me ignore this which is a reply for a useless question.
+> 
+> >
+> > >> So that the AE_NOT_FOUND warning can still be kept for the real
+> troubles?
+> >
+> > The code is warning 100% of the time on something that is optional.
+> 
+> Let me ignore this which is a reply for a useless question.
+> 
+> >
+> > >> There are really scenarios that such warning is useful for catching
+> bugs.
+> > >>
+> >
+> > What scenario is possible where this causes a problem?  Issuing an
+> > error on something that is optional is not a good idea.
+> 
+> There are several scenarios, let me say some known stuffs about the module
+> level code support.
+> In AML grammar, module level code (non-object-definition AML opcodes
+> outside of a control method) is legal.
+> While it is supported in ACPICA in a split way:
+> 1. In the early stage, table loading code only executes those object
+> definition opcodes and links all "if/else/while" AML fragments together.
+> 2. In the late stage, object initialization code will execute such AML
+> fragments before invoking all _INI methods.
+> 
+> 1. Since code is not executed in the Windows compliant order during the
+> early table loading stage, some objects are not defined while they should.
+> 2. Even worse, during the early stage, ACPICA may fail the whole table
+> loading process due to AE_NOT_FOUND, leaving us partial initialized
+> objects (the ACPICA AML interpreter implements 2 phases to parse a table
+> to complete the table loading).
+> Such issue is worked around by deleting the namespace objects created
+> during the early stage if an exception (AE_NOT_FOUND) is encountered.
+> 
+> So you can see, such kind of error is sometime useful for catching AML
+> interpreter issues or BIOS bugs.
+> 
+> Thanks and best regards
+> -Lv
