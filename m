@@ -1,26 +1,93 @@
-From: "Woody Wu" <woodywoowm@foxmail.com>
-Subject: Attn: New Design/Infrared Thermal Lamp Vendor/Aukewel Co., ltd
-Date: Tue, 13 Oct 2015 09:00:02 +0800
-Message-ID: <201510130900023408912@a.zengchangsheng.com>
-Reply-To: woodywoowm@foxmail.com
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [Linaro-acpi] [PATCH v5 0/5] Provide better MADT subtable sanity
+ checks
+Date: Tue, 13 Oct 2015 09:23:30 +0800
+Message-ID: <561C5D12.1000408@linaro.org>
+References: <1443570346-15378-1-git-send-email-al.stone@linaro.org> <561B2FCA.1010504@erley.org> <561B5B7E.6080901@linaro.org> <1776686.ko2Ldkd9he@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="GB2312"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from [115.47.35.253] ([115.47.35.253]:1714 "HELO
-	a.zengchangsheng.com" rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org
-	with SMTP id S1752009AbbJMAxU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 12 Oct 2015 20:53:20 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <1776686.ko2Ldkd9he@vostro.rjw.lan>
+Sender: linux-ia64-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Pat Erley <pat-lkml@erley.org>, Al Stone <ahs3@redhat.com>, linaro-kernel@lists.linaro.org, linux-ia64@vger.kernel.org, patches@linaro.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, Hanjun Guo <guohanjun@huawei.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi <linux-acpi@vger.kernel.org>
 
-RGVhciBDbGllbnQsDQoNCkhhdmUgYSBnb29kIGRheSENCkdsYWQgdG8gbGVhcm4geW91J3JlIG9u
-IHRoZSBtYXJrZXQgb2YgSW5mcmFyZWQgTGFtcCBwcm9kdWN0cw0KDQpXZSBhcmUgdGhlIG1hbnVm
-YWN0dXJlIGF0IGZhbWlseSB1c2UgZWxlY3Ryb25pYyBoZWFsdGggZGV2aWNlcyBzaW5jZSAyMDAw
-Lg0KV2Uga2VlcCBnb29kIHF1YWxpdHkgYW5kIHJlbGlhYmxlIGNvb3BlcmF0aW9uIGZvciBnbG9i
-YWwgdmFsdWVkIGN1c3RvbWVycy4gDQoNCk1haW4gcHJvZHVjdHMgaW5jbHVkZSBpbmZyYXJlZCBs
-YW1wLg0KDQpJZiBhbnkgcHJvZHVjdCBtZWV0IHlvdXIgZGVtYW5kLCBwbGVhc2UgY29udGFjdCB1
-cy4gDQpBbnkgb2YgeW91ciBxdWVzdGlvbiB3aWxsIGJlIHJlcGxpZWQgcHJvbXB0Lg0KDQoNCkJl
-c3QgcmVnYXJkcy4NCg0KV29vZHkgV29v
+On 10/13/2015 03:21 AM, Rafael J. Wysocki wrote:
+> On Monday, October 12, 2015 03:04:30 PM Hanjun Guo wrote:
+>> On 10/12/2015 11:58 AM, Pat Erley wrote:
+>>> On 10/11/2015 08:49 PM, Hanjun Guo wrote:
+>>>> On 10/12/2015 11:08 AM, Pat Erley wrote:
+>>>>> On 10/05/2015 10:12 AM, Al Stone wrote:
+>>>>>> On 10/05/2015 07:39 AM, Rafael J. Wysocki wrote:
+>>>>>>> On Wednesday, September 30, 2015 10:10:16 AM Al Stone wrote:
+>>>>>>>> On 09/30/2015 03:00 AM, Hanjun Guo wrote:
+>>>>>>>>> On 2015/9/30 7:45, Al Stone wrote:
+>>>>>>>>>> NB: this patch set is for use against the linux-pm bleeding edge
+>>>>>>>>>> branch.
+>>>>>>>>>>
+>>>>>>>>
+>>>>>>>> [snip...]
+>>>>>>>>
+>>>>>>>>>
+>>>>>>>>> For this patch set,
+>>>>>>>>>
+>>>>>>>>> Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
+>>>>>>>>>
+>>>>>>>>> Thanks
+>>>>>>>>> Hanjun
+>>>>>>>>
+>>>>>>>> Thanks, Hanjun!
+>>>>>>>
+>>>>>>> Series applied, thanks!
+>>>>>>>
+>>>>>>> Rafael
+>>>>>>>
+>>>>>>
+>>>>>> Thanks, Rafael!
+>>>>>>
+>>>>>
+>>>>> Just decided to test out linux-next (to see the new nouveau cleanups).
+>>>>> This change set prevents my Lenovo W510 from booting properly.
+>>>>>
+>>>>> Reverting: 7494b0 "ACPI: add in a bad_madt_entry() function to
+>>>>> eventually replace the macro"
+>>>>>
+>>>>> Gets the system booting again.  I'm attaching my dmesg from the failed
+>>>>> boot, who wants the acpidump?
+>>>>
+>>>> [    0.000000] ACPI: undefined version for either FADT 4.0 or MADT 1
+>>>> [    0.000000] ACPI: Error parsing LAPIC address override entry
+>>>> [    0.000000] ACPI: Invalid BIOS MADT, disabling ACPI
+>>>>
+>>>> Seems the MADT revision is not right, could you dump the ACPI MADT
+>>>> (APIC) table and send it out? I will take a look :)
+>>>>
+>>>> Thanks
+>>>> Hanjun
+>>>
+>>> Here ya go, enjoy.  Feel free to CC me on any patches that might fix it.
+>>
+>> Thanks! I think I had the right guess, the MADT revision is not right
+>> for ACPI 4.0:
+>>
+>> [000h 0000   4]                    Signature : "APIC"    [Multiple APIC
+>> Description Table (MADT)]
+>> [004h 0004   4]                 Table Length : 000000BC
+>> [008h 0008   1]                     *Revision : 01*
+>>
+>> I encountered such problem before because the table was just copied from
+>> previous version, and without the update for table revision.
+>>
+>> I think we may need to ignore the table revision for x86, but restrict
+>> it for ARM64, I'd like Al and Rafael's suggestion before I send out a
+>> patch.
+>
+> As I said before to Al, we definitely can't break systems that worked before
+> the commit in question.
+
+Sure :)
+
+Thanks
+Hanjun
