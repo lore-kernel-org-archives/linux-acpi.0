@@ -1,61 +1,258 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v2 00/17] Divorcing irqdomain and device_node
-Date: Tue, 13 Oct 2015 17:39:09 +0100
-Message-ID: <20151013163909.GA32295@red-moon>
-References: <1444737105-31573-1-git-send-email-marc.zyngier@arm.com>
+From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Subject: Re: [PATCH v6 0/22] On-demand device probing
+Date: Tue, 13 Oct 2015 21:57:09 +0200
+Message-ID: <CAAObsKDffo935Ae3wEPVAFyqBDR+d6LKmh0ORfmYGnu2DN7YEw@mail.gmail.com>
+References: <1442844182-27787-1-git-send-email-tomeu.vizoso@collabora.com> <5606E120.3070305@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:54072 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932107AbbJMQii (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 13 Oct 2015 12:38:38 -0400
-Content-Disposition: inline
-In-Reply-To: <1444737105-31573-1-git-send-email-marc.zyngier@arm.com>
+Received: from mail-wi0-f175.google.com ([209.85.212.175]:33497 "EHLO
+	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752161AbbJMT5a convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Oct 2015 15:57:30 -0400
+In-Reply-To: <5606E120.3070305@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Graeme Gregory <graeme@xora.org.uk>, Jake Oshins <jakeo@microsoft.com>
+To: Rob Herring <robh@kernel.org>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
 
-On Tue, Oct 13, 2015 at 12:51:28PM +0100, Marc Zyngier wrote:
-> [This patch series used to be called "Making the generic ACPI GSI
-> layer irqdomain aware", but as I've radically changed my approach to
-> this problem, I've decided to reset the counters...]
-> 
-> The irqdomain code is not entierely ACPI friendly, as it has some
-> built-in knowledge of the device-tree. Nothing too harmful, but enough
-> to scare the ARM ACPI developpers which end up with their own version
-> of the square wheel. And some of the ramifications actually run deeper
-> than initially expected.
-> 
-> This series adapts the irqdomain code to use 'struct fwnode_handle'
-> instead of 'struct device_node' as the identifier for a domain
-> (compatibility interfaces are of course added). It also introduces a
-> generic IRQ specifier that firmware interfaces (DT or ACPI) can
-> directly use to configure interrupts, and allow the ACPI GSI code to
-> be plugged into this.
-> 
-> As examples, we convert the ARM GIC ACPI support to use irqdomains as
-> originally intended, and rework the MSI code to also move away from
-> using device nodes when using irqdomains.
-> 
-> Overall, this gives us a way to use irqdomains on both DT and ACPI
-> enabled platforms, having very little changes made to the actual
-> drivers (other than the probing infrastructure). Because we keep the
-> flow of information between the various layers identical between ACPI
-> and DT, we immediately benefit from the existing infrastructure.
-> 
-> This has been test-booted on Juno, is based on 4.3-rc5 + tip/irq/core
-> (in order to avoid potential conflicts), and available at:
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/maz/arm-platforms.git irq/irq-domain-fwnode-v2
+On 26 September 2015 at 20:17, Rob Herring <robh@kernel.org> wrote:
+> On 09/21/2015 09:02 AM, Tomeu Vizoso wrote:
+>> Hello,
+>>
+>> I have a problem with the panel on my Tegra Chromebook taking longer
+>> than expected to be ready during boot (St=C3=A9phane Marchesin repor=
+ted what
+>> is basically the same issue in [0]), and have looked into ordered
+>> probing as a better way of solving this than moving nodes around in =
+the
+>> DT or playing with initcall levels and linking order.
+>>
+>> While reading the thread [1] that Alexander Holler started with his
+>> series to make probing order deterministic, it occurred to me that i=
+t
+>> should be possible to achieve the same by probing devices as they ar=
+e
+>> referenced by other devices.
+>>
+>> This basically reuses the information that is already implicit in th=
+e
+>> probe() implementations, saving us from refactoring existing drivers=
+ or
+>> adding information to DTBs.
+>>
+>> During review of v1 of this series Linus Walleij suggested that it
+>> should be the device driver core to make sure that dependencies are
+>> ready before probing a device. I gave this idea a try [2] but Mark B=
+rown
+>> pointed out to the logic duplication between the resource acquisitio=
+n
+>> and dependency discovery code paths (though I think it's fairly mino=
+r).
+>>
+>> To address that code duplication I experimented with Arnd's devm_pro=
+be
+>> [3] concept of having drivers declare their dependencies instead of
+>> acquiring them during probe, and while it worked [4], I don't think =
+we
+>> end up winning anything when compared to just probing devices on-dem=
+and
+>> from resource getters.
+>>
+>> One remaining objection is to the "sprinkling" of calls to
+>> of_device_probe() in the resource getters of each subsystem, but I t=
+hink
+>> it's the right thing to do given that the storage of resources is
+>> currently subsystem-specific.
+>>
+>> We could avoid the above by moving resource storage into the core, b=
+ut I
+>> don't think there's a compelling case for that.
+>>
+>> I have tested this on boards with Tegra, iMX.6, Exynos, Rockchip and
+>> OMAP SoCs, and these patches were enough to eliminate all the deferr=
+ed
+>> probes (except one in PandaBoard because omap_dma_system doesn't hav=
+e a
+>> firmware node as of yet).
+>>
+>> Have submitted a branch [5][6][7] with these patches on top of today=
+'s
+>> linux-next (20150921) to kernelci.org and I don't see any issues tha=
+t
+>> could be caused by them.
+>>
+>> With this series I get the kernel to output to the panel in 0.5s,
+>> instead of 2.8s.
+>
+> I think we're pretty close other than some minor comments. I would li=
+ke
+> to see ack's from Greg and some reviewed-bys from others. The subsyst=
+em
+> changes are minor and there has been plenty of chance to comment, so =
+I
+> don't think acks from all subsystems are needed.
 
-Tested on AMD Supercharger (ACPI PCI+MSI), by applying dependent series [0,1]
-and some code soon to be posted to match gic v2m fwnode using this neat
-patch series :-)
+Hi Rob,
 
-Tested-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+I'm not sure we are going to get much more feedback by just waiting or
+resending what has been sent so many times.
 
-[0] https://lkml.org/lkml/2015/6/8/443
-[1] http://comments.gmane.org/gmane.linux.kernel.pci/40904
+Did you have in mind specific people you wanted to see reviewed-bys fro=
+m?
 
+Guess Greg will get to this sometime soon.
+
+Regards,
+
+Tomeu
+
+> Your branch is based on -next. Is there any dependence on something i=
+n
+> -next? I want to get this into -next soon, but need a branch not base=
+d
+> on -next. Please send me a pull request with the collected acks and
+> minor comments I have addressed.
+>
+> Rob
+>
+>>
+>> Regards,
+>>
+>> Tomeu
+>>
+>> [0] http://lists.freedesktop.org/archives/dri-devel/2014-August/0665=
+27.html
+>>
+>> [1] https://lkml.org/lkml/2014/5/12/452
+>>
+>> [2] https://lkml.org/lkml/2015/6/17/305
+>>
+>> [3] http://article.gmane.org/gmane.linux.ports.arm.kernel/277689
+>>
+>> [4] https://lkml.org/lkml/2015/7/21/441a
+>>
+>> [5] https://git.collabora.com/cgit/user/tomeu/linux.git/log/?h=3Don-=
+demand-probes-v8
+>>
+>> [6] http://kernelci.org/boot/all/job/collabora/kernel/v4.3-rc2-2587-=
+gf92b0ab33d14/
+>>
+>> [7] http://kernelci.org/boot/all/job/next/kernel/next-20150921
+>>
+>> Changes in v6:
+>> - Drop bus_type.pre_probe and read the periphid in match() instead a=
+s
+>>   suggested by Alan Stern.
+>> - Merge changes to the regulator subsystem's locking so no reference=
+s
+>>   are leaked between commits.
+>>
+>> Changes in v5:
+>> - Set the pointer to struct device also for AMBA devices
+>> - Unset the pointer to struct device when the platform device is abo=
+ut
+>>   to be unregistered
+>> - Increase the reference count of the device before returning from
+>>   of_find_device_by_node()
+>> - Move the assignment to device_node->device for AMBA devices to ano=
+ther
+>>   commit.
+>> - Hold a reference to the struct device while it's in use in
+>>   of_device_probe().
+>> - Use regulator_class' klist of devices instead of regulator_list to
+>>   store and lookup regulator devices.
+>>
+>> Changes in v4:
+>> - Added bus.pre_probe callback so the probes of Primecell devices ca=
+n be
+>>   deferred if their device IDs cannot be yet read because of the clo=
+ck
+>>   driver not having probed when they are registered. Maybe this goes
+>>   overboard and the matching information should be in the DT if ther=
+e is
+>>   one.
+>> - Rename of_platform_probe to of_device_probe
+>> - Use device_node.device instead of device_node.platform_dev
+>> - Add Kconfig DELAY_DEVICE_PROBES to allow disabling delayed probing=
+ in
+>>   machines with initcalls that depend on devices probing at a given =
+time.
+>> - Start processing deferred probes in device_initcall_sync
+>> - Also defer probes of AMBA devices registered from the DT as they c=
+an
+>>   also request resources.
+>>
+>> Changes in v3:
+>> - Set and use device_node.platform_dev instead of reversing the logi=
+c to
+>>   find the platform device that encloses a device node.
+>> - Drop the fwnode API to probe firmware nodes and add OF-only API fo=
+r
+>>   now. I think this same scheme could be used for machines with ACPI=
+,
+>>   but I haven't been able to find one that had to defer its probes b=
+ecause
+>>   of the device probe order.
+>>
+>> Tomeu Vizoso (22):
+>>   driver core: handle -EPROBE_DEFER from bus_type.match()
+>>   ARM: amba: Move reading of periphid to amba_match()
+>>   of/platform: Point to struct device from device node
+>>   of: add function to allow probing a device from a OF node
+>>   gpio: Probe GPIO drivers on demand
+>>   gpio: Probe pinctrl devices on demand
+>>   regulator: core: Remove regulator_list
+>>   regulator: core: Probe regulators on demand
+>>   drm: Probe panels on demand
+>>   drm/tegra: Probe dpaux devices on demand
+>>   i2c: core: Probe i2c adapters and devices on demand
+>>   pwm: Probe PWM chip devices on demand
+>>   backlight: Probe backlight devices on demand
+>>   usb: phy: Probe phy devices on demand
+>>   clk: Probe clk providers on demand
+>>   pinctrl: Probe pinctrl devices on demand
+>>   phy: core: Probe phy providers on demand
+>>   dma: of: Probe DMA controllers on demand
+>>   power-supply: Probe power supplies on demand
+>>   driver core: Allow deferring probes until late init
+>>   driver core: Start processing deferred probes earlier
+>>   of/platform: Defer probes of registered devices
+>>
+>>  drivers/amba/bus.c                  |  88 ++++++------
+>>  drivers/base/Kconfig                |  18 +++
+>>  drivers/base/dd.c                   |  35 ++++-
+>>  drivers/clk/clk.c                   |   3 +
+>>  drivers/dma/of-dma.c                |   3 +
+>>  drivers/gpio/gpiolib-of.c           |   5 +
+>>  drivers/gpu/drm/drm_panel.c         |   3 +
+>>  drivers/gpu/drm/tegra/dpaux.c       |   3 +
+>>  drivers/i2c/i2c-core.c              |   4 +
+>>  drivers/of/device.c                 |  61 +++++++++
+>>  drivers/of/platform.c               |  30 +++--
+>>  drivers/phy/phy-core.c              |   3 +
+>>  drivers/pinctrl/devicetree.c        |   3 +
+>>  drivers/power/power_supply_core.c   |   3 +
+>>  drivers/pwm/core.c                  |   3 +
+>>  drivers/regulator/core.c            | 257 +++++++++++++++++++++++--=
+-----------
+>>  drivers/usb/phy/phy.c               |   3 +
+>>  drivers/video/backlight/backlight.c |   3 +
+>>  include/linux/device.h              |   4 +-
+>>  include/linux/of.h                  |   1 +
+>>  include/linux/of_device.h           |   3 +
+>>  21 files changed, 386 insertions(+), 150 deletions(-)
+>>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kerne=
+l" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
