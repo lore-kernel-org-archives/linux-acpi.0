@@ -1,67 +1,61 @@
-From: Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>
-Subject: Re: [PATCH V3 2/4] ACPI/scan: Clean up acpi_check_dma
-Date: Tue, 13 Oct 2015 08:52:21 -0700
-Message-ID: <561D28B5.7030303@amd.com>
-References: <1440597279-11802-1-git-send-email-Suravee.Suthikulpanit@amd.com>
- <1440597279-11802-3-git-send-email-Suravee.Suthikulpanit@amd.com>
- <20150914163411.GL829@google.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH v2 00/17] Divorcing irqdomain and device_node
+Date: Tue, 13 Oct 2015 17:39:09 +0100
+Message-ID: <20151013163909.GA32295@red-moon>
+References: <1444737105-31573-1-git-send-email-marc.zyngier@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bn1bon0055.outbound.protection.outlook.com ([157.56.111.55]:32155
-	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751417AbbJMPwL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 13 Oct 2015 11:52:11 -0400
-In-Reply-To: <20150914163411.GL829@google.com>
+Received: from foss.arm.com ([217.140.101.70]:54072 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932107AbbJMQii (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 13 Oct 2015 12:38:38 -0400
+Content-Disposition: inline
+In-Reply-To: <1444737105-31573-1-git-send-email-marc.zyngier@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>
-Cc: rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, hanjun.guo@linaro.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rob Herring <robh+dt@kernel.org>
+To: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Graeme Gregory <graeme@xora.org.uk>, Jake Oshins <jakeo@microsoft.com>
 
-Hi Bjorn,
+On Tue, Oct 13, 2015 at 12:51:28PM +0100, Marc Zyngier wrote:
+> [This patch series used to be called "Making the generic ACPI GSI
+> layer irqdomain aware", but as I've radically changed my approach to
+> this problem, I've decided to reset the counters...]
+> 
+> The irqdomain code is not entierely ACPI friendly, as it has some
+> built-in knowledge of the device-tree. Nothing too harmful, but enough
+> to scare the ARM ACPI developpers which end up with their own version
+> of the square wheel. And some of the ramifications actually run deeper
+> than initially expected.
+> 
+> This series adapts the irqdomain code to use 'struct fwnode_handle'
+> instead of 'struct device_node' as the identifier for a domain
+> (compatibility interfaces are of course added). It also introduces a
+> generic IRQ specifier that firmware interfaces (DT or ACPI) can
+> directly use to configure interrupts, and allow the ACPI GSI code to
+> be plugged into this.
+> 
+> As examples, we convert the ARM GIC ACPI support to use irqdomains as
+> originally intended, and rework the MSI code to also move away from
+> using device nodes when using irqdomains.
+> 
+> Overall, this gives us a way to use irqdomains on both DT and ACPI
+> enabled platforms, having very little changes made to the actual
+> drivers (other than the probing infrastructure). Because we keep the
+> flow of information between the various layers identical between ACPI
+> and DT, we immediately benefit from the existing infrastructure.
+> 
+> This has been test-booted on Juno, is based on 4.3-rc5 + tip/irq/core
+> (in order to avoid potential conflicts), and available at:
+> 
+> git://git.kernel.org/pub/scm/linux/kernel/git/maz/arm-platforms.git irq/irq-domain-fwnode-v2
 
-Thanks for your feedback. And sorry for late response. Some how I didn't 
-see this earlier.  Please see my comments below.
+Tested on AMD Supercharger (ACPI PCI+MSI), by applying dependent series [0,1]
+and some code soon to be posted to match gic v2m fwnode using this neat
+patch series :-)
 
-On 09/14/2015 09:34 AM, Bjorn Helgaas wrote:
->> [..]
->> So, in order to simplify the function, this patch renames acpi_check_dma()
->> to acpi_check_dma_coherency() to clearly indicate the purpose of this
->> function, and only returns an integer where -1 means DMA not supported,
->> 1 means coherent DMA, and 0 means non-coherent DMA.
->
-> I think acpi_check_dma_coherency() is better, but only slightly.  It
-> still doesn't give a hint about the *sense* of the return value.  I
-> think it'd be easier to read if there were two functions, e.g.,
+Tested-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 
-I have been going back-and-forth between the current version, and the 
-two-function-approach in the past. I can definitely go with this route 
-if you would prefer. Although, if acpi_dma_is_coherent() == 0, it would 
-be ambiguous whether DMA is not supported or non-coherent DMA is 
-supported. Then, we would need to call acpi_dma_is_supported() to find 
-out. So, that's okay with you?
+[0] https://lkml.org/lkml/2015/6/8/443
+[1] http://comments.gmane.org/gmane.linux.kernel.pci/40904
 
->> [...]
->> +
->> +	/**
->> +	 * Currently, we only support _CCA=1 (i.e. coherent_dma=1)
->> +	 * This should be equivalent to specifying dma-coherent for
->> +	 * a device in OF.
->> +	 *
->> +	 * For the case when _CCA=0 (i.e. coherent_dma=0 && cca_seen=1),
->> +	 * we have two choices:
->> +	 *   1. Do not support and disable DMA.
->
-> I know you didn't write this comment, but do we actually *disable* DMA in
-> the sense of turning off PCI bus mastering or calling an ACPI method that
-> disables DMA by this device?  I suspect we just don't set up DMA ops and
-> masks for this device.
-
-Actually, I wrote this comment. When we disable DMA, we basically set 
-dma-mask=0 and do not setup DMA ops as you mentioned. We don't actually 
-mess with the hardware.
-
-Thanks,
-Suravee
