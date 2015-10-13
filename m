@@ -1,89 +1,75 @@
 From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: [PATCH v2 09/17] acpi/gsi: Always perform an irq domain lookup
-Date: Tue, 13 Oct 2015 12:51:37 +0100
-Message-ID: <1444737105-31573-10-git-send-email-marc.zyngier@arm.com>
+Subject: [PATCH v2 11/17] irqchip/gic: Get rid of gic_init_bases()
+Date: Tue, 13 Oct 2015 12:51:39 +0100
+Message-ID: <1444737105-31573-12-git-send-email-marc.zyngier@arm.com>
 References: <1444737105-31573-1-git-send-email-marc.zyngier@arm.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1444737105-31573-1-git-send-email-marc.zyngier@arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Graeme Gregory <graeme@xora.org.uk>, Jake Oshins <jakeo@microsoft.com>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Graeme Gregory <graeme@xora.org.uk>, Jake Oshins <jakeo@microsoft.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Instead of directly passing NULL to the various irq_domain functions,
-start by looking up the domain with a domain identifier..
+Since nobody is using gic_init_bases anymore outside of the GIC
+driver itself, let's do a bit of housekeeping and remove the now
+useless entry point.
 
-As this identifier is permanently set to NULL, the lookup function will
-return the same value (no domain found) and the default will be used,
-preserving the current behaviour.
+Only gic_init() is now exposed to the rest of the kernel for the
+benefit of legacy systems.
 
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
 ---
- drivers/acpi/gsi.c | 26 +++++++++++++-------------
- 1 file changed, 13 insertions(+), 13 deletions(-)
+ drivers/irqchip/irq-gic.c       | 8 +++-----
+ include/linux/irqchip/arm-gic.h | 9 ++-------
+ 2 files changed, 5 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/acpi/gsi.c b/drivers/acpi/gsi.c
-index 38208f2..2c39fe1 100644
---- a/drivers/acpi/gsi.c
-+++ b/drivers/acpi/gsi.c
-@@ -11,9 +11,12 @@
- #include <linux/acpi.h>
- #include <linux/irq.h>
- #include <linux/irqdomain.h>
-+#include <linux/of.h>
- 
- enum acpi_irq_model_id acpi_irq_model;
- 
-+static struct fwnode_handle *acpi_gsi_domain_id;
-+
- static unsigned int acpi_gsi_get_irq_type(int trigger, int polarity)
- {
- 	switch (polarity) {
-@@ -45,12 +48,10 @@ static unsigned int acpi_gsi_get_irq_type(int trigger, int polarity)
-  */
- int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
- {
--	/*
--	 * Only default domain is supported at present, always find
--	 * the mapping corresponding to default domain by passing NULL
--	 * as irq_domain parameter
--	 */
--	*irq = irq_find_mapping(NULL, gsi);
-+	struct irq_domain *d = irq_find_matching_fwnode(acpi_gsi_domain_id,
-+							DOMAIN_BUS_ANY);
-+
-+	*irq = irq_find_mapping(d, gsi);
- 	/*
- 	 * *irq == 0 means no mapping, that should
- 	 * be reported as a failure
-@@ -74,13 +75,10 @@ int acpi_register_gsi(struct device *dev, u32 gsi, int trigger,
- {
- 	unsigned int irq;
- 	unsigned int irq_type = acpi_gsi_get_irq_type(trigger, polarity);
-+	struct irq_domain *d = irq_find_matching_fwnode(acpi_gsi_domain_id,
-+							DOMAIN_BUS_ANY);
- 
--	/*
--	 * There is no way at present to look-up the IRQ domain on ACPI,
--	 * hence always create mapping referring to the default domain
--	 * by passing NULL as irq_domain parameter
--	 */
--	irq = irq_create_mapping(NULL, gsi);
-+	irq = irq_create_mapping(d, gsi);
- 	if (!irq)
- 		return -EINVAL;
- 
-@@ -98,7 +96,9 @@ EXPORT_SYMBOL_GPL(acpi_register_gsi);
-  */
- void acpi_unregister_gsi(u32 gsi)
- {
--	int irq = irq_find_mapping(NULL, gsi);
-+	struct irq_domain *d = irq_find_matching_fwnode(acpi_gsi_domain_id,
-+							DOMAIN_BUS_ANY);
-+	int irq = irq_find_mapping(d, gsi);
- 
- 	irq_dispose_mapping(irq);
+diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
+index 9262bb9..12b2973 100644
+--- a/drivers/irqchip/irq-gic.c
++++ b/drivers/irqchip/irq-gic.c
+@@ -1127,17 +1127,15 @@ static void __init __gic_init_bases(unsigned int gic_nr, int irq_start,
+ 	gic_pm_init(gic);
  }
+ 
+-void __init gic_init_bases(unsigned int gic_nr, int irq_start,
+-			   void __iomem *dist_base, void __iomem *cpu_base,
+-			   u32 percpu_offset, struct device_node *node)
++void __init gic_init(unsigned int gic_nr, int irq_start,
++		     void __iomem *dist_base, void __iomem *cpu_base)
+ {
+ 	/*
+ 	 * Non-DT/ACPI systems won't run a hypervisor, so let's not
+ 	 * bother with these...
+ 	 */
+ 	static_key_slow_dec(&supports_deactivate);
+-	__gic_init_bases(gic_nr, irq_start, dist_base, cpu_base,
+-			 percpu_offset, node);
++	__gic_init_bases(gic_nr, irq_start, dist_base, cpu_base, 0, NULL);
+ }
+ 
+ #ifdef CONFIG_OF
+diff --git a/include/linux/irqchip/arm-gic.h b/include/linux/irqchip/arm-gic.h
+index b8901df..bae69e5 100644
+--- a/include/linux/irqchip/arm-gic.h
++++ b/include/linux/irqchip/arm-gic.h
+@@ -100,16 +100,11 @@
+ 
+ struct device_node;
+ 
+-void gic_init_bases(unsigned int, int, void __iomem *, void __iomem *,
+-		    u32 offset, struct device_node *);
+ void gic_cascade_irq(unsigned int gic_nr, unsigned int irq);
+ int gic_cpu_if_down(unsigned int gic_nr);
+ 
+-static inline void gic_init(unsigned int nr, int start,
+-			    void __iomem *dist , void __iomem *cpu)
+-{
+-	gic_init_bases(nr, start, dist, cpu, 0, NULL);
+-}
++void gic_init(unsigned int nr, int start,
++	      void __iomem *dist , void __iomem *cpu);
+ 
+ int gicv2m_of_init(struct device_node *node, struct irq_domain *parent);
+ 
 -- 
 2.1.4
