@@ -1,123 +1,91 @@
 From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH 03/16] irqdomain: Allow irq domain lookup by fwnode
-Date: Tue, 13 Oct 2015 08:35:09 +0100
-Message-ID: <20151013083509.5992c223@arm.com>
-References: <1444152989-31726-1-git-send-email-marc.zyngier@arm.com>
-	<1444152989-31726-4-git-send-email-marc.zyngier@arm.com>
-	<561BFC6D.6020500@amd.com>
+Subject: Re: [PATCH 00/16] Divorcing irqdomain and device_node
+Date: Tue, 13 Oct 2015 09:24:32 +0100
+Message-ID: <561CBFC0.60206@arm.com>
+References: <1444152989-31726-1-git-send-email-marc.zyngier@arm.com> <alpine.DEB.2.11.1510112255330.6097@nanos> <4276106.FmN73grJgW@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:51047 "EHLO foss.arm.com"
+Received: from foss.arm.com ([217.140.101.70]:51212 "EHLO foss.arm.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752059AbbJMHfU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 13 Oct 2015 03:35:20 -0400
-In-Reply-To: <561BFC6D.6020500@amd.com>
+	id S932223AbbJMIYh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 13 Oct 2015 04:24:37 -0400
+In-Reply-To: <4276106.FmN73grJgW@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, Graeme Gregory <graeme@xora.org.uk>, Jake Oshins <jakeo@microsoft.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Graeme Gregory <graeme@xora.org.uk>, Jake Oshins <jakeo@microsoft.com>
 
-On Mon, 12 Oct 2015 13:31:09 -0500
-Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com> wrote:
+On 12/10/15 21:38, Rafael J. Wysocki wrote:
+> On Sunday, October 11, 2015 11:01:17 PM Thomas Gleixner wrote:
+>> On Tue, 6 Oct 2015, Marc Zyngier wrote:
+>>> [This patch series used to be called "Making the generic ACPI GSI
+>>> layer irqdomain aware", but as I've radically changed my approach to
+>>> this problem, I've decided to reset the counters...]
+>>>
+>>> The irqdomain code is not entierely ACPI friendly, as it has some
+>>> built-in knowledge of the device-tree. Nothing too harmful, but enough
+>>> to scare the ARM ACPI developpers which end up with their own version
+>>> of the square wheel. And some of the ramifications actually run deeper
+>>> than initially expected.
+>>>
+>>> This series adapts the irqdomain code to use 'struct fwnode_handle'
+>>> instead of 'struct device_node' as the identifier for a domain
+>>> (compatibility interfaces are of course added). It also introduces a
+>>> generic IRQ specifier that firmware interfaces (DT or ACPI) can
+>>> directly use to configure interrupts, and allow the ACPI GSI code to
+>>> be plugged into this.
+>>>
+>>> As examples, we convert the ARM GIC ACPI support to use irqdomains as
+>>> originally intended, and rework the MSI code to also move away from
+>>> using device nodes when using irqdomains.
+>>>
+>>> Overall, this gives us a way to use irqdomains on both DT and ACPI
+>>> enabled platforms, having very little changes made to the actual
+>>> drivers (other than the probing infrastructure). Because we keep the
+>>> flow of information between the various layers identical between ACPI
+>>> and DT, we immediately benefit from the existing infrastructure.
+>>>
+>>> This has been test-booted on Juno, is based on 4.3-rc4, and available at:
+>>>
+>>> git://git.kernel.org/pub/scm/linux/kernel/git/maz/arm-platforms.git irq/irq-domain-fwnode-v1
+>>>
+>>> Marc Zyngier (16):
+>>>   irqdomain: Use an accessor for the of_node field
+>>>   irqdomain: Convert irqdomain->of_node to fwnode
+>>>   irqdomain: Allow irq domain lookup by fwnode
+>>>   irqdomain: Introduce a firmware-specific IRQ specifier structure
+>>>   irqchip: Convert all alloc/xlate users from of_node to fwnode
+>>>   irqdomain: Introduce irq_create_fwspec_mapping
+>>>   irqdomain: Introduce irq_domain_create_{linear,tree}
+>>>   irqdomain: Add a fwnode_handle allocator
+>>>   acpi/gsi: Always perform an irq domain lookup
+>>>   acpi/gsi: Add acpi_set_irq_model to initialize the GSI layer
+>>>   irqchip/gic: Get rid of gic_init_bases()
+>>>   irqchip/gic: Switch ACPI support to stacked domains
+>>>   irqchip/gic: Kill the xlate method
+>>>   acpi/gsi: Cleanup acpi_register_gsi
+>>>   irqdomain: Introduce irq_domain_create_hierarchy
+>>>   irqdomain/msi: Use fwnode instead of of_node
+>>
+>> I really like this one way better than the previous attempts and I
+>> couldn't find any real issue when going through them with a fine comb.
+>>
+>> I'd like to get that into 4.4, so I have to ask for the opinion of
+>> ACPI folks. Having an ack on those patches would be nice.
+> 
+> I've ACKed the generic ones, please let me know if I missed any of them.
+> 
+> The rest seems to be ARM-specific ...
 
-Hi Suravee,
+Thanks a lot Rafael.
 
-> [RESEND] Not sure if the email went out the first time.
-> 
-> Hi Marc,
-> 
-> On 10/6/15 12:36, Marc Zyngier wrote:
-> > So far, our irq domains are still looked up by device node.
-> > Let's change this and allow a domain to be looked up using
-> > a fwnode_handle pointer.
-> >
-> > The existing interfaces are preserved with a couple of helpers.
-> >
-> > Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
-> > ---
-> >   include/linux/irqdomain.h | 11 +++++++++--
-> >   kernel/irq/irqdomain.c    | 14 ++++++--------
-> >   2 files changed, 15 insertions(+), 10 deletions(-)
-> >
-> > diff --git a/include/linux/irqdomain.h b/include/linux/irqdomain.h
-> > index 2f508f4..607c185 100644
-> > --- a/include/linux/irqdomain.h
-> > +++ b/include/linux/irqdomain.h
-> > @@ -183,10 +183,17 @@ struct irq_domain *irq_domain_add_legacy(struct device_node *of_node,
-> >   					 irq_hw_number_t first_hwirq,
-> >   					 const struct irq_domain_ops *ops,
-> >   					 void *host_data);
-> > -extern struct irq_domain *irq_find_matching_host(struct device_node *node,
-> > -						 enum irq_domain_bus_token bus_token);
-> > +extern struct irq_domain *irq_find_matching_fwnode(struct fwnode_handle *fwnode,
-> > +						   enum irq_domain_bus_token bus_token);
-> >   extern void irq_set_default_host(struct irq_domain *host);
-> >
-> > +static inline struct irq_domain *irq_find_matching_host(struct device_node *node,
-> > +							enum irq_domain_bus_token bus_token)
-> > +{
-> > +	return irq_find_matching_fwnode(node ? &node->fwnode : NULL,
-> > +					bus_token);
-> > +}
-> > +
-> >   static inline struct irq_domain *irq_find_host(struct device_node *node)
-> >   {
-> >   	return irq_find_matching_host(node, DOMAIN_BUS_ANY);
-> > diff --git a/kernel/irq/irqdomain.c b/kernel/irq/irqdomain.c
-> > index 1aee5c1..10b6105 100644
-> > --- a/kernel/irq/irqdomain.c
-> > +++ b/kernel/irq/irqdomain.c
-> > @@ -191,12 +191,12 @@ struct irq_domain *irq_domain_add_legacy(struct device_node *of_node,
-> >   EXPORT_SYMBOL_GPL(irq_domain_add_legacy);
-> >
-> >   /**
-> > - * irq_find_matching_host() - Locates a domain for a given device node
-> > - * @node: device-tree node of the interrupt controller
-> > + * irq_find_matching_fwnode() - Locates a domain for a given fwnode
-> > + * @fwnode: FW descriptor of the interrupt controller
-> >    * @bus_token: domain-specific data
-> >    */
-> > -struct irq_domain *irq_find_matching_host(struct device_node *node,
-> > -					  enum irq_domain_bus_token bus_token)
-> > +struct irq_domain *irq_find_matching_fwnode(struct fwnode_handle *fwnode,
-> > +					    enum irq_domain_bus_token bus_token)
-> >   {
-> >   	struct irq_domain *h, *found = NULL;
-> >   	int rc;
-> > @@ -212,12 +212,10 @@ struct irq_domain *irq_find_matching_host(struct device_node *node,
-> >   	 */
-> >   	mutex_lock(&irq_domain_mutex);
-> >   	list_for_each_entry(h, &irq_domain_list, link) {
-> > -		struct device_node *of_node;
-> > -		of_node = irq_domain_get_of_node(h);
-> >   		if (h->ops->match)
-> > -			rc = h->ops->match(h, node, bus_token);
-> > +			rc = h->ops->match(h, to_of_node(fwnode), bus_token);
-> >   		else
-> > -			rc = ((of_node != NULL) && (of_node == node) &&
-> > +			rc = ((fwnode != NULL) && (h->fwnode == fwnode) &&
-> >   			      ((bus_token == DOMAIN_BUS_ANY) ||
-> >   			       (h->bus_token == bus_token)));
-> >
-> >
-> 
-> In the kernel/irq/irq_domain.c, shouldn't you also change the export 
-> symbol from:
-> 
->      EXPORT_SYMBOL_GPL(irq_find_matching_host);
-> 
-> to:
-> 
->      EXPORT_SYMBOL_GPL(irq_find_matching_fwnode);
-> 
-> at the end of this function as well?
-
-Well spotted! I'll update the v2 branch.
+I'll repost the series today with a couple of fixes so that Thomas can
+stick it into -next.
 
 Thanks,
 
 	M.
 -- 
-Jazz is not dead. It just smells funny.
+Jazz is not dead. It just smells funny...
