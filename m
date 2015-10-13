@@ -1,91 +1,59 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH 00/16] Divorcing irqdomain and device_node
-Date: Tue, 13 Oct 2015 09:24:32 +0100
-Message-ID: <561CBFC0.60206@arm.com>
-References: <1444152989-31726-1-git-send-email-marc.zyngier@arm.com> <alpine.DEB.2.11.1510112255330.6097@nanos> <4276106.FmN73grJgW@vostro.rjw.lan>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [Linaro-acpi] [PATCH v5 0/5] Provide better MADT subtable sanity
+ checks
+Date: Tue, 13 Oct 2015 09:43:45 +0100
+Message-ID: <561CC441.6090003@arm.com>
+References: <1443570346-15378-1-git-send-email-al.stone@linaro.org>
+ <561B5B7E.6080901@linaro.org> <561B8114.4060800@arm.com>
+ <32835486.gnkKHR2R1U@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:51212 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932223AbbJMIYh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 13 Oct 2015 04:24:37 -0400
-In-Reply-To: <4276106.FmN73grJgW@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <32835486.gnkKHR2R1U@vostro.rjw.lan>
+Sender: linux-pm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Pat Erley <pat-lkml@erley.org>, Al Stone <ahs3@redhat.com>, linaro-kernel@lists.linaro.org, linux-ia64@vger.kernel.org, patches@linaro.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, linux-acpi@vger.kernel.org, Hanjun Guo <guohanjun@huawei.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Thomas Gleixner <tglx@linutronix.de>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Graeme Gregory <graeme@xora.org.uk>, Jake Oshins <jakeo@microsoft.com>
 
-On 12/10/15 21:38, Rafael J. Wysocki wrote:
-> On Sunday, October 11, 2015 11:01:17 PM Thomas Gleixner wrote:
->> On Tue, 6 Oct 2015, Marc Zyngier wrote:
->>> [This patch series used to be called "Making the generic ACPI GSI
->>> layer irqdomain aware", but as I've radically changed my approach to
->>> this problem, I've decided to reset the counters...]
->>>
->>> The irqdomain code is not entierely ACPI friendly, as it has some
->>> built-in knowledge of the device-tree. Nothing too harmful, but enough
->>> to scare the ARM ACPI developpers which end up with their own version
->>> of the square wheel. And some of the ramifications actually run deeper
->>> than initially expected.
->>>
->>> This series adapts the irqdomain code to use 'struct fwnode_handle'
->>> instead of 'struct device_node' as the identifier for a domain
->>> (compatibility interfaces are of course added). It also introduces a
->>> generic IRQ specifier that firmware interfaces (DT or ACPI) can
->>> directly use to configure interrupts, and allow the ACPI GSI code to
->>> be plugged into this.
->>>
->>> As examples, we convert the ARM GIC ACPI support to use irqdomains as
->>> originally intended, and rework the MSI code to also move away from
->>> using device nodes when using irqdomains.
->>>
->>> Overall, this gives us a way to use irqdomains on both DT and ACPI
->>> enabled platforms, having very little changes made to the actual
->>> drivers (other than the probing infrastructure). Because we keep the
->>> flow of information between the various layers identical between ACPI
->>> and DT, we immediately benefit from the existing infrastructure.
->>>
->>> This has been test-booted on Juno, is based on 4.3-rc4, and available at:
->>>
->>> git://git.kernel.org/pub/scm/linux/kernel/git/maz/arm-platforms.git irq/irq-domain-fwnode-v1
->>>
->>> Marc Zyngier (16):
->>>   irqdomain: Use an accessor for the of_node field
->>>   irqdomain: Convert irqdomain->of_node to fwnode
->>>   irqdomain: Allow irq domain lookup by fwnode
->>>   irqdomain: Introduce a firmware-specific IRQ specifier structure
->>>   irqchip: Convert all alloc/xlate users from of_node to fwnode
->>>   irqdomain: Introduce irq_create_fwspec_mapping
->>>   irqdomain: Introduce irq_domain_create_{linear,tree}
->>>   irqdomain: Add a fwnode_handle allocator
->>>   acpi/gsi: Always perform an irq domain lookup
->>>   acpi/gsi: Add acpi_set_irq_model to initialize the GSI layer
->>>   irqchip/gic: Get rid of gic_init_bases()
->>>   irqchip/gic: Switch ACPI support to stacked domains
->>>   irqchip/gic: Kill the xlate method
->>>   acpi/gsi: Cleanup acpi_register_gsi
->>>   irqdomain: Introduce irq_domain_create_hierarchy
->>>   irqdomain/msi: Use fwnode instead of of_node
+
+
+On 12/10/15 20:25, Rafael J. Wysocki wrote:
+> On Monday, October 12, 2015 10:44:52 AM Sudeep Holla wrote:
+
+[...]
+
 >>
->> I really like this one way better than the previous attempts and I
->> couldn't find any real issue when going through them with a fine comb.
->>
->> I'd like to get that into 4.4, so I have to ask for the opinion of
->> ACPI folks. Having an ack on those patches would be nice.
-> 
-> I've ACKed the generic ones, please let me know if I missed any of them.
-> 
-> The rest seems to be ARM-specific ...
+>> Instead of just removing the check completely on x86, IMO restrict
+>> it to some newer/later version of ACPI so you can still force
+>> vendors to fix their ACPI tables at-least in future.
+>
+> No, we can't force vendors to fix their ACPI tables.  This is
+> completely unrealistic.
+>
 
-Thanks a lot Rafael.
+No, I was referring to the future platforms *only*
 
-I'll repost the series today with a couple of fixes so that Thomas can
-stick it into -next.
+> We simly need to deal with the bugs in the ACPI tables in the
+> kernel.
+>
 
-Thanks,
+Yes sadly true for existing systems, but if we now place a check for
+ACPIv6.0 and above, we might avoid seeing such broken tables sometime in
+future once the kernel with this check in place is used for validation.
 
-	M.
+>> It would be good to get such sanity check in the tools used to
+>> build those tables, but yes since such static tables can be built
+>> in many ways, its difficult to deal it in all those tools.
+>
+> As I said to Al, we need those checks in firmware test suites.
+> Having them in the kernel is OK too, but they should cause warnings
+> to be printed to the kernel log instead of causing the kernel to
+> panic.
+>
+
+Agreed
+
 -- 
-Jazz is not dead. It just smells funny...
+Regards,
+Sudeep
