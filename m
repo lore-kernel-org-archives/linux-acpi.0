@@ -1,69 +1,165 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: bisected: Re: 4.3.0-rc3-00042: ACPI Warning: AcpiEnable failed
-Date: Wed, 14 Oct 2015 05:48:44 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BAC7D0D@SHSMSX101.ccr.corp.intel.com>
-References: <alpine.LRH.2.20.1509291519111.3351@math.ut.ee>
- <alpine.LRH.2.20.1510020901590.17033@math.ut.ee>
- <1AE640813FDE7649BE1B193DEA596E883BAC712B@SHSMSX101.ccr.corp.intel.com>
- <5827210.uo0vLJMZv1@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:24100 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750759AbbJNFsx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 14 Oct 2015 01:48:53 -0400
-In-Reply-To: <5827210.uo0vLJMZv1@vostro.rjw.lan>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH] ACPICA: Tables: Fix FADT dependency regression
+Date: Wed, 14 Oct 2015 13:53:57 +0800
+Message-ID: <418f30545e189dc5bf3c033979af04f0772a1e27.1444802010.git.lv.zheng@intel.com>
+References: <alpine.LRH.2.20.1510010927010.10113@math.ut.ee>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <alpine.LRH.2.20.1510010927010.10113@math.ut.ee>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Meelis Roos <mroos@linux.ee>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linux Kernel list <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-SGksDQoNCj4gRnJvbTogUmFmYWVsIEouIFd5c29ja2kgW21haWx0bzpyandAcmp3eXNvY2tpLm5l
-dF0NCj4gU2VudDogVHVlc2RheSwgT2N0b2JlciAxMywgMjAxNSAzOjE5IEFNDQo+IA0KPiBPbiBN
-b25kYXksIE9jdG9iZXIgMTIsIDIwMTUgMDc6NDg6MTIgQU0gWmhlbmcsIEx2IHdyb3RlOg0KPiA+
-IEhpLCBSYWZhZWwNCj4gDQo+IEhpLA0KPiANCj4gPiBUaGUgYnVnIGhhcyBiZWVuIGZpeGVkLg0K
-PiA+IFRoZSByb290IGNhdXNlIGlzIHRoZSBwcmV2aW91cyBjb21taXQgZG9lc24ndCBjb3ZlciBh
-IGhpZGRlbiBsb2dpYzoNCj4gPiAgYWNwaV9lbmFibGUoKSBzaG91bGQgcmVseSBvbiB0aGUgZXhp
-c3RlbmNlIG9mIEZBRFQgd2hpbGUgY3VycmVudGx5IGl0IHJlbGllcyBvbiB0aGUgbnVtYmVyIG9m
-IGxvYWRlZCB0YWJsZXMuDQo+ID4gVGhlIGZpeCB0aGF0IHJlbW92ZXMgdGhlIGhpZGRlbiBsb2dp
-YyBpcyBhbiBBQ1BJQ0EgY29tbWl0Lg0KPiA+IFNoYWxsIHdlIHdhaXQgdW50aWwgaXQgaXMgbWVy
-Z2VkIHZpYSBhbiBBQ1BJQ0EgcmVsZWFzZSBjeWNsZSBvciBtYWtlIGl0IGEgYml0IGZhc3RlciBi
-eSBtZXJnaW5nIExpbnV4aXplZCB2ZXJzaW9uIGZpcnN0Pw0KPiANCj4gUGxlYXNlIHNlbmQgdGhl
-IExpbnV4aXplZCB2ZXJzaW9uIG9mIGl0IEFTQVAsIHdlIG5lZWQgaXQgZm9yIDQuMy4NCg0KSSds
-bCBzZW5kIHRoZSBmaXggdG8gdGhpcyB0aHJlYWQuDQoNClRoYW5rcyBhbmQgYmVzdCByZWdhcmRz
-DQotTHYNCg0KPiANCj4gVGhhbmtzLA0KPiBSYWZhZWwNCj4gDQo+IA0KPiA+ID4gRnJvbTogbXJv
-b3NAbWF0aC51dC5lZSBbbWFpbHRvOm1yb29zQG1hdGgudXQuZWVdIE9uIEJlaGFsZiBPZiBNZWVs
-aXMgUm9vcw0KPiA+ID4gU2VudDogRnJpZGF5LCBPY3RvYmVyIDAyLCAyMDE1IDI6MTQgUE0NCj4g
-PiA+DQo+ID4gPiA+ID4gPiA0LjIuMCB3b3JrZWQgZmluZSwgNC4zLjAtcmMzLTAwMDQyLWczMjI1
-MDMxIHdhcyB0aGUgbmV4dCBvbmUgdGVzdGVkDQo+ID4gPiA+ID4gPiBhZnRlciB0aGF0IGFuZCB3
-aXRoIHRoaXMga2VybmVsLCBBQ1BJIGVuYWJsaW5nIGZhaWxzLiBUaGlzIGlzIFBlbnRpdW0NCj4g
-PiA+ID4gPiA+IElJSSwgMSBHSHosIEludGVsIDgxNSBjaGlwc2V0LCBETUkgdGVsbHMgc29tZXRo
-aW5nIGFib3V0ICJQYWNrYXJkIEJlbGwNCj4gPiA+ID4gPiA+IE5FQyIgYXMgdGhlIG1haW5ib2Fy
-ZCB0eXBlLg0KPiA+ID4gPiA+ID4NCj4gPiA+ID4gPiA+IEZ1bGwgZG1lc2cgYW5kIGNvbmZpZyBh
-cmUgYmVsb3cuIFdoYXQgYWRkaXRpb25hbCBpbmZvcm1hdGlvbiBjYW4gSQ0KPiA+ID4gPiA+ID4g
-cHJvdmlkZSBiZXNpZGVzIGJpc2VjdGluZyAod2lsbCB0YWtlIHRpbWUpPw0KPiA+ID4gPiA+DQo+
-ID4gPiA+ID4gQmlzZWN0aW5nIGRvbmUsIGhlcmUgaXMgdGhlIGN1bHByaXQ6DQo+ID4gPiA+ID4N
-Cj4gPiA+ID4gPiA4ZWMzZjQ1OTA3M2U2N2U1YzZkNzg1MDdkZWM2OTMwNjRiMzA0MGEyIGlzIHRo
-ZSBmaXJzdCBiYWQgY29tbWl0DQo+ID4gPiA+ID4gY29tbWl0IDhlYzNmNDU5MDczZTY3ZTVjNmQ3
-ODUwN2RlYzY5MzA2NGIzMDQwYTINCj4gPiA+ID4gPiBBdXRob3I6IEx2IFpoZW5nIDxsdi56aGVu
-Z0BpbnRlbC5jb20+DQo+ID4gPiA+ID4gRGF0ZTogICBUdWUgQXVnIDI1IDEwOjI5OjAxIDIwMTUg
-KzA4MDANCj4gPiA+ID4gPg0KPiA+ID4gPiA+ICAgICBBQ1BJQ0E6IFRhYmxlczogRml4IGdsb2Jh
-bCB0YWJsZSBsaXN0IGlzc3VlcyBieSByZW1vdmluZyBmaXhlZCB0YWJsZSBpbmRleGVzDQo+ID4g
-PiA+ID4NCj4gPiA+ID4gPiAgICAgQUNQSUNBIGNvbW1pdCBjMGIzOGI0YzM5ODJjMjMzNmVlOTJh
-MmExNDcxNjEwNzI0OGJkOTQxDQo+ID4gPiA+DQo+ID4gPiA+IFRoYW5rcyBhIGxvdCBmb3IgYmlz
-ZWN0aW5nIHRoaXMhDQo+ID4gPiA+DQo+ID4gPiA+IEl0IHdpbGwgaGVscCBpZiB5b3UgZmlsZSBh
-IGJ1ZyBlbnRyeSBhdCBidWd6aWxsYS5rZXJuZWwub3JnIGFnYWlzdCBBQ1BJIGZvcg0KPiA+ID4g
-PiB0aGlzIGlzc3VlIChwbGVhc2UgbWFyayBpdCBhcyBhIHJlZ3Jlc3Npb24pIGFuZCBhdHRhY2gg
-dGhlIG91dHB1dCBvZiBhY3BpZHVtcA0KPiA+ID4gPiBmcm9tIHRoZSBhZmZlY3RlZCBzeXN0ZW0g
-dG8gaXQuDQo+ID4gPg0KPiA+ID4gRG9uZSwgaHR0cHM6Ly9idWd6aWxsYS5rZXJuZWwub3JnL3No
-b3dfYnVnLmNnaT9pZD0xMDUzNTENCj4gPiA+DQo+ID4gPiAtLQ0KPiA+ID4gTWVlbGlzIFJvb3Mg
-KG1yb29zQGxpbnV4LmVlKQ0KPiA+IC0tDQo+ID4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxp
-c3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LWtlcm5lbCIgaW4NCj4gPiB0aGUg
-Ym9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZw0KPiA+IE1vcmUg
-bWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8u
-aHRtbA0KPiA+IFBsZWFzZSByZWFkIHRoZSBGQVEgYXQgIGh0dHA6Ly93d3cudHV4Lm9yZy9sa21s
-Lw0KPiANCj4gLS0NCj4gSSBzcGVhayBvbmx5IGZvciBteXNlbGYuDQo+IFJhZmFlbCBKLiBXeXNv
-Y2tpLCBJbnRlbCBPcGVuIFNvdXJjZSBUZWNobm9sb2d5IENlbnRlci4NCg==
+Some logics actually relying on the existence of FADT, currently relies on
+the number of loaded tables. This false dependency can easily trigger
+regressions. The reported regression can be seen on the following commit:
+  Commit: 8ec3f459073e67e5c6d78507dec693064b3040a2
+  Subject: ACPICA: Tables: Fix global table list issues by removing fixed table
+The commit changing the fixed table indexes results in the change of FADT
+table index, originally, it was 3 (thus the installed table count should be
+greater than 4), while currently it is 0 (and the installed table count may
+be 3).
+
+This patch fixes this regression by cleaning up the code. Lv Zheng.
+
+Reference: https://bugzilla.kernel.org/show_bug.cgi?id=105351
+Reported-and-tested-by: Meelis Roos <mroos@linux.ee>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+---
+ drivers/acpi/acpica/acglobal.h |    1 +
+ drivers/acpi/acpica/actables.h |    4 +---
+ drivers/acpi/acpica/evxfevnt.c |    2 +-
+ drivers/acpi/acpica/tbfadt.c   |   10 +++++-----
+ drivers/acpi/acpica/tbutils.c  |   26 ++------------------------
+ 5 files changed, 10 insertions(+), 33 deletions(-)
+
+diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
+index 09f37b5..4dde37c 100644
+--- a/drivers/acpi/acpica/acglobal.h
++++ b/drivers/acpi/acpica/acglobal.h
+@@ -61,6 +61,7 @@ ACPI_GLOBAL(struct acpi_table_header, acpi_gbl_original_dsdt_header);
+ ACPI_INIT_GLOBAL(u32, acpi_gbl_dsdt_index, ACPI_INVALID_TABLE_INDEX);
+ ACPI_INIT_GLOBAL(u32, acpi_gbl_facs_index, ACPI_INVALID_TABLE_INDEX);
+ ACPI_INIT_GLOBAL(u32, acpi_gbl_xfacs_index, ACPI_INVALID_TABLE_INDEX);
++ACPI_INIT_GLOBAL(u32, acpi_gbl_fadt_index, ACPI_INVALID_TABLE_INDEX);
+ 
+ #if (!ACPI_REDUCED_HARDWARE)
+ ACPI_GLOBAL(struct acpi_table_facs *, acpi_gbl_FACS);
+diff --git a/drivers/acpi/acpica/actables.h b/drivers/acpi/acpica/actables.h
+index f7731f2..591ea95 100644
+--- a/drivers/acpi/acpica/actables.h
++++ b/drivers/acpi/acpica/actables.h
+@@ -85,7 +85,7 @@ void acpi_tb_set_table_loaded_flag(u32 table_index, u8 is_loaded);
+ /*
+  * tbfadt - FADT parse/convert/validate
+  */
+-void acpi_tb_parse_fadt(u32 table_index);
++void acpi_tb_parse_fadt(void);
+ 
+ void acpi_tb_create_local_fadt(struct acpi_table_header *table, u32 length);
+ 
+@@ -138,8 +138,6 @@ acpi_status acpi_tb_get_owner_id(u32 table_index, acpi_owner_id *owner_id);
+  */
+ acpi_status acpi_tb_initialize_facs(void);
+ 
+-u8 acpi_tb_tables_loaded(void);
+-
+ void
+ acpi_tb_print_table_header(acpi_physical_address address,
+ 			   struct acpi_table_header *header);
+diff --git a/drivers/acpi/acpica/evxfevnt.c b/drivers/acpi/acpica/evxfevnt.c
+index faad911..10ce48e 100644
+--- a/drivers/acpi/acpica/evxfevnt.c
++++ b/drivers/acpi/acpica/evxfevnt.c
+@@ -71,7 +71,7 @@ acpi_status acpi_enable(void)
+ 
+ 	/* ACPI tables must be present */
+ 
+-	if (!acpi_tb_tables_loaded()) {
++	if (acpi_gbl_fadt_index == ACPI_INVALID_TABLE_INDEX) {
+ 		return_ACPI_STATUS(AE_NO_ACPI_TABLES);
+ 	}
+ 
+diff --git a/drivers/acpi/acpica/tbfadt.c b/drivers/acpi/acpica/tbfadt.c
+index 455a070..a6454f4 100644
+--- a/drivers/acpi/acpica/tbfadt.c
++++ b/drivers/acpi/acpica/tbfadt.c
+@@ -298,7 +298,7 @@ acpi_tb_select_address(char *register_name, u32 address32, u64 address64)
+  *
+  * FUNCTION:    acpi_tb_parse_fadt
+  *
+- * PARAMETERS:  table_index         - Index for the FADT
++ * PARAMETERS:  None
+  *
+  * RETURN:      None
+  *
+@@ -307,7 +307,7 @@ acpi_tb_select_address(char *register_name, u32 address32, u64 address64)
+  *
+  ******************************************************************************/
+ 
+-void acpi_tb_parse_fadt(u32 table_index)
++void acpi_tb_parse_fadt(void)
+ {
+ 	u32 length;
+ 	struct acpi_table_header *table;
+@@ -319,11 +319,11 @@ void acpi_tb_parse_fadt(u32 table_index)
+ 	 * Get a local copy of the FADT and convert it to a common format
+ 	 * Map entire FADT, assumed to be smaller than one page.
+ 	 */
+-	length = acpi_gbl_root_table_list.tables[table_index].length;
++	length = acpi_gbl_root_table_list.tables[acpi_gbl_fadt_index].length;
+ 
+ 	table =
+-	    acpi_os_map_memory(acpi_gbl_root_table_list.tables[table_index].
+-			       address, length);
++	    acpi_os_map_memory(acpi_gbl_root_table_list.
++			       tables[acpi_gbl_fadt_index].address, length);
+ 	if (!table) {
+ 		return;
+ 	}
+diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
+index 4337990..d8ddef3 100644
+--- a/drivers/acpi/acpica/tbutils.c
++++ b/drivers/acpi/acpica/tbutils.c
+@@ -99,29 +99,6 @@ acpi_status acpi_tb_initialize_facs(void)
+ 
+ /*******************************************************************************
+  *
+- * FUNCTION:    acpi_tb_tables_loaded
+- *
+- * PARAMETERS:  None
+- *
+- * RETURN:      TRUE if required ACPI tables are loaded
+- *
+- * DESCRIPTION: Determine if the minimum required ACPI tables are present
+- *              (FADT, FACS, DSDT)
+- *
+- ******************************************************************************/
+-
+-u8 acpi_tb_tables_loaded(void)
+-{
+-
+-	if (acpi_gbl_root_table_list.current_table_count >= 4) {
+-		return (TRUE);
+-	}
+-
+-	return (FALSE);
+-}
+-
+-/*******************************************************************************
+- *
+  * FUNCTION:    acpi_tb_check_dsdt_header
+  *
+  * PARAMETERS:  None
+@@ -392,7 +369,8 @@ acpi_status __init acpi_tb_parse_root_table(acpi_physical_address rsdp_address)
+ 		    ACPI_COMPARE_NAME(&acpi_gbl_root_table_list.
+ 				      tables[table_index].signature,
+ 				      ACPI_SIG_FADT)) {
+-			acpi_tb_parse_fadt(table_index);
++			acpi_gbl_fadt_index = table_index;
++			acpi_tb_parse_fadt();
+ 		}
+ 
+ next_table:
+-- 
+1.7.10
