@@ -1,69 +1,99 @@
 From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Subject: [PATCH V2 3/6] irqdomain: introduce is_fwnode_irqchip helper
-Date: Wed, 14 Oct 2015 16:25:53 -0700
-Message-ID: <1444865156-9870-4-git-send-email-Suravee.Suthikulpanit@amd.com>
+Subject: [PATCH V2 1/6] pci: msi: Add support to query MSI domain for pci
+ device
+Date: Wed, 14 Oct 2015 16:25:51 -0700
+Message-ID: <1444865156-9870-2-git-send-email-Suravee.Suthikulpanit@amd.com>
 References: <1444865156-9870-1-git-send-email-Suravee.Suthikulpanit@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1444865156-9870-1-git-send-email-Suravee.Suthikulpanit@amd.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, hanjun.guo@linaro.org, tomasz.nowicki@linaro.org, graeme.gregory@linaro.org, dhdang@apm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, graeme.gregory@linaro.org, Catalin Marinas <Catalin.Marinas@arm.com>, dhdang@apm.com, Will Deacon <will.deacon@arm.com>, linux-kernel@vger.kernel.org, tomasz.nowicki@linaro.org, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-Since there will be several places checking if fwnode.type
-is equal FWNODE_IRQCHIP, this patch adds a convenient function
-for this purpose.
+This patch introduces an interface for irqchip to register a callback,
+to provide a way to determine appropriate MSI domain for a pci device.
 
 Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 ---
- drivers/irqchip/irq-gic.c | 2 +-
- include/linux/irqdomain.h | 5 +++++
- kernel/irq/irqdomain.c    | 2 +-
- 3 files changed, 7 insertions(+), 2 deletions(-)
+ drivers/pci/msi.c   | 30 ++++++++++++++++++++++++++++++
+ include/linux/msi.h |  7 +++++++
+ 2 files changed, 37 insertions(+)
 
-diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
-index 1d0e768..6685b33 100644
---- a/drivers/irqchip/irq-gic.c
-+++ b/drivers/irqchip/irq-gic.c
-@@ -939,7 +939,7 @@ static int gic_irq_domain_translate(struct irq_domain *d,
- 		return 0;
- 	}
+diff --git a/drivers/pci/msi.c b/drivers/pci/msi.c
+index ddd59fe..2c87843 100644
+--- a/drivers/pci/msi.c
++++ b/drivers/pci/msi.c
+@@ -1327,4 +1327,34 @@ struct irq_domain *pci_msi_create_default_irq_domain(struct fwnode_handle *fwnod
  
--	if (fwspec->fwnode->type == FWNODE_IRQCHIP) {
-+	if (is_fwnode_irqchip(fwspec->fwnode)) {
- 		if(fwspec->param_count != 2)
- 			return -EINVAL;
- 
-diff --git a/include/linux/irqdomain.h b/include/linux/irqdomain.h
-index d5e5c5b..4950a71 100644
---- a/include/linux/irqdomain.h
-+++ b/include/linux/irqdomain.h
-@@ -211,6 +211,11 @@ static inline struct fwnode_handle *of_node_to_fwnode(struct device_node *node)
- 	return node ? &node->fwnode : NULL;
+ 	return domain;
  }
- 
-+static inline bool is_fwnode_irqchip(struct fwnode_handle *fwnode)
++
++static struct fwnode_handle *(*pci_msi_get_fwnode_cb)(struct device *dev);
++
++/**
++ * pci_msi_register_fwnode_provider - Register callback to retrieve fwnode
++ * @fn:		The interrupt domain to retrieve
++ *
++ * This should be called by irqchip driver, which is the parent of
++ * the MSI domain to provide callback interface to query fwnode.
++ */
++void
++pci_msi_register_fwnode_provider(struct fwnode_handle *(*fn)(struct device *))
 +{
-+	return fwnode && fwnode->type == FWNODE_IRQCHIP;
++	pci_msi_get_fwnode_cb = fn;
 +}
 +
- static inline struct irq_domain *irq_find_matching_host(struct device_node *node,
- 							enum irq_domain_bus_token bus_token)
- {
-diff --git a/kernel/irq/irqdomain.c b/kernel/irq/irqdomain.c
-index 22aa961..7f34d98 100644
---- a/kernel/irq/irqdomain.c
-+++ b/kernel/irq/irqdomain.c
-@@ -70,7 +70,7 @@ void irq_domain_free_fwnode(struct fwnode_handle *fwnode)
- {
- 	struct irqchip_fwid *fwid;
++/**
++ * pci_msi_get_fwnode - Query fwnode for MSI controller of the @dev
++ * @dev:	The device that we try to query MSI domain token for
++ *
++ * This is used to query MSI domain token when setting up MSI domain
++ * for a device. Returns fwnode_handle * if token found / NULL if not found
++ */
++struct fwnode_handle *pci_msi_get_fwnode(struct device *dev)
++{
++	if (pci_msi_get_fwnode_cb)
++		return pci_msi_get_fwnode_cb(dev);
++
++	return NULL;
++}
+ #endif /* CONFIG_PCI_MSI_IRQ_DOMAIN */
+diff --git a/include/linux/msi.h b/include/linux/msi.h
+index 32a24b9..ceaebf6 100644
+--- a/include/linux/msi.h
++++ b/include/linux/msi.h
+@@ -3,6 +3,7 @@
  
--	if (WARN_ON(fwnode->type != FWNODE_IRQCHIP))
-+	if (WARN_ON(!is_fwnode_irqchip(fwnode)))
- 		return;
+ #include <linux/kobject.h>
+ #include <linux/list.h>
++#include <linux/fwnode.h>
  
- 	fwid = container_of(fwnode, struct irqchip_fwid, fwnode);
+ struct msi_msg {
+ 	u32	address_lo;	/* low 32 bits of msi message address */
+@@ -294,6 +295,12 @@ irq_hw_number_t pci_msi_domain_calc_hwirq(struct pci_dev *dev,
+ 					  struct msi_desc *desc);
+ int pci_msi_domain_check_cap(struct irq_domain *domain,
+ 			     struct msi_domain_info *info, struct device *dev);
++
++void
++pci_msi_register_fwnode_provider(struct fwnode_handle *(*fn)(struct device *));
++
++struct fwnode_handle *pci_msi_get_fwnode(struct device *dev);
++
+ #endif /* CONFIG_PCI_MSI_IRQ_DOMAIN */
+ 
+ #endif /* LINUX_MSI_H */
 -- 
 2.1.0
