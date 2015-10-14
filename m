@@ -1,102 +1,111 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Patch v7 3/7] ia64/PCI: Use common struct resource_entry to replace struct iospace_resource
-Date: Wed, 14 Oct 2015 14:29:38 +0800
-Message-ID: <1444804182-6596-4-git-send-email-jiang.liu@linux.intel.com>
-References: <1444804182-6596-1-git-send-email-jiang.liu@linux.intel.com>
+From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Subject: Re: [PATCH v2 05/17] irqchip: Convert all alloc/xlate users from
+ of_node to fwnode
+Date: Wed, 14 Oct 2015 17:26:00 +0200
+Message-ID: <561E7408.3050106@linaro.org>
+References: <1444737105-31573-1-git-send-email-marc.zyngier@arm.com>
+ <1444737105-31573-6-git-send-email-marc.zyngier@arm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1444804182-6596-1-git-send-email-jiang.liu@linux.intel.com>
+In-Reply-To: <1444737105-31573-6-git-send-email-marc.zyngier@arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, Jason Cooper <jason@lakedaemon.net>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Graeme Gregory <graeme@xora.org.uk>, Jake Oshins <jakeo@microsoft.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Use common struct resource_entry to replace private
-struct iospace_resource.
+Hi Marc,
 
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
-Signed-off-by: Liu Jiang <jiang.liu@linux.intel.com>
----
- arch/ia64/include/asm/pci.h |    5 -----
- arch/ia64/pci/pci.c         |   17 ++++++++---------
- 2 files changed, 8 insertions(+), 14 deletions(-)
+On 13.10.2015 13:51, Marc Zyngier wrote:
+> Since we now have a generic data structure to express an
+> interrupt specifier, convert all hierarchical irqchips that
+> are OF based to use a fwnode_handle as part of their alloc
+> and xlate (which becomes translate) callbacks.
+>
+> As most of these drivers have dependencies (they exchange IRQ
+> specifiers), change them all in a single, massive patch...
+>
+> Signed-off-by: Marc Zyngier <marc.zyngier@arm.com>
+> ---
+>   arch/arm/mach-exynos/suspend.c       | 55 ++++++++++++++++---------------
+>   arch/arm/mach-imx/gpc.c              | 55 ++++++++++++++++---------------
+>   arch/arm/mach-omap2/omap-wakeupgen.c | 55 ++++++++++++++++---------------
+>   drivers/irqchip/irq-crossbar.c       | 62 ++++++++++++++++++----------------
+>   drivers/irqchip/irq-gic-v2m.c        | 18 ++++++----
+>   drivers/irqchip/irq-gic-v3-its.c     | 20 ++++++-----
+>   drivers/irqchip/irq-gic-v3.c         | 49 +++++++++++++--------------
+>   drivers/irqchip/irq-gic.c            | 33 ++++++++++++++++---
+>   drivers/irqchip/irq-imx-gpcv2.c      | 64 ++++++++++++++++--------------------
+>   drivers/irqchip/irq-mtk-sysirq.c     | 49 ++++++++++++++-------------
+>   drivers/irqchip/irq-nvic.c           | 18 +++++++---
+>   drivers/irqchip/irq-tegra.c          | 55 ++++++++++++++++---------------
+>   drivers/irqchip/irq-vf610-mscm-ir.c  | 42 +++++++++++++++--------
+>   13 files changed, 323 insertions(+), 252 deletions(-)
+>
 
-diff --git a/arch/ia64/include/asm/pci.h b/arch/ia64/include/asm/pci.h
-index 36d2c1e3928b..07039d168f37 100644
---- a/arch/ia64/include/asm/pci.h
-+++ b/arch/ia64/include/asm/pci.h
-@@ -64,11 +64,6 @@ extern int pci_mmap_legacy_page_range(struct pci_bus *bus,
- #define pci_legacy_read platform_pci_legacy_read
- #define pci_legacy_write platform_pci_legacy_write
- 
--struct iospace_resource {
--	struct list_head list;
--	struct resource res;
--};
--
- struct pci_controller {
- 	struct acpi_device *companion;
- 	void *iommu;
-diff --git a/arch/ia64/pci/pci.c b/arch/ia64/pci/pci.c
-index d20db9e48014..b1846b891ea5 100644
---- a/arch/ia64/pci/pci.c
-+++ b/arch/ia64/pci/pci.c
-@@ -154,14 +154,14 @@ new_space (u64 phys_base, int sparse)
- static int add_io_space(struct device *dev, struct pci_root_info *info,
- 			struct resource_entry *entry)
- {
--	struct iospace_resource *iospace;
-+	struct resource_entry *iospace;
- 	struct resource *resource, *res = entry->res;
- 	char *name;
- 	unsigned long base, min, max, base_port;
- 	unsigned int sparse = 0, space_nr, len;
- 
- 	len = strlen(info->name) + 32;
--	iospace = kzalloc(sizeof(*iospace) + len, GFP_KERNEL);
-+	iospace = resource_list_create_entry(NULL, len);
- 	if (!iospace) {
- 		dev_err(dev, "PCI: No memory for %s I/O port space\n",
- 			info->name);
-@@ -190,7 +190,7 @@ static int add_io_space(struct device *dev, struct pci_root_info *info,
- 	if (space_nr == 0)
- 		sparse = 1;
- 
--	resource = &iospace->res;
-+	resource = iospace->res;
- 	resource->name  = name;
- 	resource->flags = IORESOURCE_MEM;
- 	resource->start = base + (sparse ? IO_SPACE_SPARSE_ENCODING(min) : min);
-@@ -205,12 +205,12 @@ static int add_io_space(struct device *dev, struct pci_root_info *info,
- 	entry->offset = base_port;
- 	res->start = min + base_port;
- 	res->end = max + base_port;
--	list_add_tail(&iospace->list, &info->io_resources);
-+	resource_list_add_tail(iospace, &info->io_resources);
- 
- 	return 0;
- 
- free_resource:
--	kfree(iospace);
-+	resource_list_free_entry(iospace);
- 	return -ENOSPC;
- }
- 
-@@ -369,12 +369,11 @@ static void add_resources(struct pci_root_info *info, struct device *dev)
- static void __release_pci_root_info(struct pci_root_info *info)
- {
- 	struct resource *res;
--	struct iospace_resource *iospace, *tmp;
- 	struct resource_entry *entry, *tentry;
- 
--	list_for_each_entry_safe(iospace, tmp, &info->io_resources, list) {
--		release_resource(&iospace->res);
--		kfree(iospace);
-+	resource_list_for_each_entry_safe(entry, tentry, &info->io_resources) {
-+		release_resource(entry->res);
-+		resource_list_destroy_entry(entry);
- 	}
- 
- 	resource_list_for_each_entry_safe(entry, tentry, &info->resources) {
--- 
-1.7.10.4
+[...]
+
+>
+>   static int its_irq_domain_alloc(struct irq_domain *domain, unsigned int virq,
+> diff --git a/drivers/irqchip/irq-gic-v3.c b/drivers/irqchip/irq-gic-v3.c
+> index 5793880..05d010b 100644
+> --- a/drivers/irqchip/irq-gic-v3.c
+> +++ b/drivers/irqchip/irq-gic-v3.c
+> @@ -737,32 +737,30 @@ static int gic_irq_domain_map(struct irq_domain *d, unsigned int irq,
+>   	return 0;
+>   }
+>
+> -static int gic_irq_domain_xlate(struct irq_domain *d,
+> -				struct device_node *controller,
+> -				const u32 *intspec, unsigned int intsize,
+> -				unsigned long *out_hwirq, unsigned int *out_type)
+> +static int gic_irq_domain_translate(struct irq_domain *d,
+> +				    struct irq_fwspec *fwspec,
+> +				    unsigned long *hwirq,
+> +				    unsigned int *type)
+>   {
+> -	if (irq_domain_get_of_node(d) != controller)
+> -		return -EINVAL;
+> -	if (intsize < 3)
+> -		return -EINVAL;
+> +	if (is_of_node(fwspec->fwnode)) {
+> +		if (fwspec->param_count < 3)
+> +			return -EINVAL;
+>
+> -	switch(intspec[0]) {
+> -	case 0:			/* SPI */
+> -		*out_hwirq = intspec[1] + 32;
+> -		break;
+> -	case 1:			/* PPI */
+> -		*out_hwirq = intspec[1] + 16;
+> -		break;
+> -	case GIC_IRQ_TYPE_LPI:	/* LPI */
+> -		*out_hwirq = intspec[1];
+> -		break;
+> -	default:
+> -		return -EINVAL;
+> +		/* Get the interrupt number and add 16 to skip over SGIs */
+> +		*hwirq = fwspec->param[1] + 16;
+> +
+> +		/*
+> +		 * For SPIs, we need to add 16 more to get the GIC irq
+> +		 * ID number
+> +		 */
+> +		if (!fwspec->param[0])
+> +			*hwirq += 16;
+> +
+> +		*type = fwspec->param[2] & IRQ_TYPE_SENSE_MASK;
+> +		return 0;
+>   	}
+>
+> -	*out_type = intspec[2] & IRQ_TYPE_SENSE_MASK;
+> -	return 0;
+> +	return -EINVAL;
+>   }
+
+What about GIC_IRQ_TYPE_LPI type? Previously we leaved interrupt line nr 
+and now +32.
+
+Regards,
+Tomasz
