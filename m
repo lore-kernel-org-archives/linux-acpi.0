@@ -1,165 +1,71 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH] ACPICA: Tables: Fix FADT dependency regression
-Date: Wed, 14 Oct 2015 13:53:57 +0800
-Message-ID: <418f30545e189dc5bf3c033979af04f0772a1e27.1444802010.git.lv.zheng@intel.com>
-References: <alpine.LRH.2.20.1510010927010.10113@math.ut.ee>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.LRH.2.20.1510010927010.10113@math.ut.ee>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: [Patch v7 0/7] Consolidate ACPI PCI root common code into ACPI core
+Date: Wed, 14 Oct 2015 14:29:35 +0800
+Message-ID: <1444804182-6596-1-git-send-email-jiang.liu@linux.intel.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>
+Cc: Liu Jiang <jiang.liu@linux.intel.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Some logics actually relying on the existence of FADT, currently relies on
-the number of loaded tables. This false dependency can easily trigger
-regressions. The reported regression can be seen on the following commit:
-  Commit: 8ec3f459073e67e5c6d78507dec693064b3040a2
-  Subject: ACPICA: Tables: Fix global table list issues by removing fixed table
-The commit changing the fixed table indexes results in the change of FADT
-table index, originally, it was 3 (thus the installed table count should be
-greater than 4), while currently it is 0 (and the installed table count may
-be 3).
+From: Liu Jiang <jiang.liu@linux.intel.com>
 
-This patch fixes this regression by cleaning up the code. Lv Zheng.
+This patch set consolidates common code to support ACPI PCI root on x86
+and IA64 platforms into ACPI core, to reproduce duplicated code and
+simplify maintenance. And a patch set based on previous version to support
+ACPI based PCIe host bridge on ARM64 has been posted at:
+https://lkml.org/lkml/2015/5/26/207
 
-Reference: https://bugzilla.kernel.org/show_bug.cgi?id=105351
-Reported-and-tested-by: Meelis Roos <mroos@linux.ee>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- drivers/acpi/acpica/acglobal.h |    1 +
- drivers/acpi/acpica/actables.h |    4 +---
- drivers/acpi/acpica/evxfevnt.c |    2 +-
- drivers/acpi/acpica/tbfadt.c   |   10 +++++-----
- drivers/acpi/acpica/tbutils.c  |   26 ++------------------------
- 5 files changed, 10 insertions(+), 33 deletions(-)
+It's based on latest mainstream kernel. It passes Fengguang's 0day test
+suite and has been tested on two IA64 platforms and one x86 platform.
 
-diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
-index 09f37b5..4dde37c 100644
---- a/drivers/acpi/acpica/acglobal.h
-+++ b/drivers/acpi/acpica/acglobal.h
-@@ -61,6 +61,7 @@ ACPI_GLOBAL(struct acpi_table_header, acpi_gbl_original_dsdt_header);
- ACPI_INIT_GLOBAL(u32, acpi_gbl_dsdt_index, ACPI_INVALID_TABLE_INDEX);
- ACPI_INIT_GLOBAL(u32, acpi_gbl_facs_index, ACPI_INVALID_TABLE_INDEX);
- ACPI_INIT_GLOBAL(u32, acpi_gbl_xfacs_index, ACPI_INVALID_TABLE_INDEX);
-+ACPI_INIT_GLOBAL(u32, acpi_gbl_fadt_index, ACPI_INVALID_TABLE_INDEX);
- 
- #if (!ACPI_REDUCED_HARDWARE)
- ACPI_GLOBAL(struct acpi_table_facs *, acpi_gbl_FACS);
-diff --git a/drivers/acpi/acpica/actables.h b/drivers/acpi/acpica/actables.h
-index f7731f2..591ea95 100644
---- a/drivers/acpi/acpica/actables.h
-+++ b/drivers/acpi/acpica/actables.h
-@@ -85,7 +85,7 @@ void acpi_tb_set_table_loaded_flag(u32 table_index, u8 is_loaded);
- /*
-  * tbfadt - FADT parse/convert/validate
-  */
--void acpi_tb_parse_fadt(u32 table_index);
-+void acpi_tb_parse_fadt(void);
- 
- void acpi_tb_create_local_fadt(struct acpi_table_header *table, u32 length);
- 
-@@ -138,8 +138,6 @@ acpi_status acpi_tb_get_owner_id(u32 table_index, acpi_owner_id *owner_id);
-  */
- acpi_status acpi_tb_initialize_facs(void);
- 
--u8 acpi_tb_tables_loaded(void);
--
- void
- acpi_tb_print_table_header(acpi_physical_address address,
- 			   struct acpi_table_header *header);
-diff --git a/drivers/acpi/acpica/evxfevnt.c b/drivers/acpi/acpica/evxfevnt.c
-index faad911..10ce48e 100644
---- a/drivers/acpi/acpica/evxfevnt.c
-+++ b/drivers/acpi/acpica/evxfevnt.c
-@@ -71,7 +71,7 @@ acpi_status acpi_enable(void)
- 
- 	/* ACPI tables must be present */
- 
--	if (!acpi_tb_tables_loaded()) {
-+	if (acpi_gbl_fadt_index == ACPI_INVALID_TABLE_INDEX) {
- 		return_ACPI_STATUS(AE_NO_ACPI_TABLES);
- 	}
- 
-diff --git a/drivers/acpi/acpica/tbfadt.c b/drivers/acpi/acpica/tbfadt.c
-index 455a070..a6454f4 100644
---- a/drivers/acpi/acpica/tbfadt.c
-+++ b/drivers/acpi/acpica/tbfadt.c
-@@ -298,7 +298,7 @@ acpi_tb_select_address(char *register_name, u32 address32, u64 address64)
-  *
-  * FUNCTION:    acpi_tb_parse_fadt
-  *
-- * PARAMETERS:  table_index         - Index for the FADT
-+ * PARAMETERS:  None
-  *
-  * RETURN:      None
-  *
-@@ -307,7 +307,7 @@ acpi_tb_select_address(char *register_name, u32 address32, u64 address64)
-  *
-  ******************************************************************************/
- 
--void acpi_tb_parse_fadt(u32 table_index)
-+void acpi_tb_parse_fadt(void)
- {
- 	u32 length;
- 	struct acpi_table_header *table;
-@@ -319,11 +319,11 @@ void acpi_tb_parse_fadt(u32 table_index)
- 	 * Get a local copy of the FADT and convert it to a common format
- 	 * Map entire FADT, assumed to be smaller than one page.
- 	 */
--	length = acpi_gbl_root_table_list.tables[table_index].length;
-+	length = acpi_gbl_root_table_list.tables[acpi_gbl_fadt_index].length;
- 
- 	table =
--	    acpi_os_map_memory(acpi_gbl_root_table_list.tables[table_index].
--			       address, length);
-+	    acpi_os_map_memory(acpi_gbl_root_table_list.
-+			       tables[acpi_gbl_fadt_index].address, length);
- 	if (!table) {
- 		return;
- 	}
-diff --git a/drivers/acpi/acpica/tbutils.c b/drivers/acpi/acpica/tbutils.c
-index 4337990..d8ddef3 100644
---- a/drivers/acpi/acpica/tbutils.c
-+++ b/drivers/acpi/acpica/tbutils.c
-@@ -99,29 +99,6 @@ acpi_status acpi_tb_initialize_facs(void)
- 
- /*******************************************************************************
-  *
-- * FUNCTION:    acpi_tb_tables_loaded
-- *
-- * PARAMETERS:  None
-- *
-- * RETURN:      TRUE if required ACPI tables are loaded
-- *
-- * DESCRIPTION: Determine if the minimum required ACPI tables are present
-- *              (FADT, FACS, DSDT)
-- *
-- ******************************************************************************/
--
--u8 acpi_tb_tables_loaded(void)
--{
--
--	if (acpi_gbl_root_table_list.current_table_count >= 4) {
--		return (TRUE);
--	}
--
--	return (FALSE);
--}
--
--/*******************************************************************************
-- *
-  * FUNCTION:    acpi_tb_check_dsdt_header
-  *
-  * PARAMETERS:  None
-@@ -392,7 +369,8 @@ acpi_status __init acpi_tb_parse_root_table(acpi_physical_address rsdp_address)
- 		    ACPI_COMPARE_NAME(&acpi_gbl_root_table_list.
- 				      tables[table_index].signature,
- 				      ACPI_SIG_FADT)) {
--			acpi_tb_parse_fadt(table_index);
-+			acpi_gbl_fadt_index = table_index;
-+			acpi_tb_parse_fadt();
- 		}
- 
- next_table:
+V6->V7:
+1) Improve commit message according to Bjorn's suggestion.
+2) Move arch specific logic(code) from ACPI core into arch code
+   according to Bjorn's review comments.
+
+V5->V6:
+1) Patch 5 to reset domain number to 0 when pci_ignore_seg is set
+2) Remove parameter segment and node from function acpi_pci_root_create(),
+   as suggested by Lorenzo and Bjorn.
+V4-V5:
+1) As suggested by Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, do not
+   introduce "struct pci_controller" into generic drivers/acpi/pci_root.c,
+   so ARM64 doesn't need to define a useless structure. And it simplifies
+   code a little too.
+
+V3->V4:
+1) Add patch[05/08] support solve building issue on ARM64
+2) Solve an implicitly pointer cast issue.
+3) Rebase to latest mainstream kernel
+
+V2->V3:
+1. Move memory allocation/free from ACPI core into arch
+2. Kill the field 'segment' in struct pci_root_info on x86
+
+Thanks!
+Gerry
+
+Jiang Liu (7):
+  ACPI/PCI: Enhance ACPI core to support sparse IO space
+  ia64/PCI/ACPI: Use common ACPI resource parsing interface for host
+    bridge
+  ia64/PCI: Use common struct resource_entry to replace struct
+    iospace_resource
+  PCI/ACPI: Add interface acpi_pci_root_create()
+  ACPI, PCI: Reset acpi_root_dev->domain to 0 when pci_ignore_seg is
+    set
+  x86/PCI/ACPI: Use common interface to support PCI host bridge
+  ia64/PCI/ACPI: Use common interface to support PCI host bridge
+
+ arch/ia64/include/asm/pci.h |    5 -
+ arch/ia64/pci/pci.c         |  368 ++++++++++++-------------------------------
+ arch/x86/pci/acpi.c         |  296 +++++++++++-----------------------
+ drivers/acpi/pci_root.c     |  204 ++++++++++++++++++++++++
+ drivers/acpi/resource.c     |    9 +-
+ include/linux/ioport.h      |    1 +
+ include/linux/pci-acpi.h    |   24 +++
+ 7 files changed, 423 insertions(+), 484 deletions(-)
+
 -- 
-1.7.10
+1.7.10.4
