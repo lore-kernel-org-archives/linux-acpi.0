@@ -1,50 +1,71 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 0/4] Fix regressions uncovered by bad_madt_entry() patches
-Date: Thu, 15 Oct 2015 01:44:43 +0200
-Message-ID: <2129967.6jsKS4L8fa@vostro.rjw.lan>
-References: <1444857985-28844-1-git-send-email-al.stone@linaro.org>
+From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Subject: [PATCH V2 0/6] gicv2m: acpi: Add ACPI support for GICv2m MSI
+Date: Wed, 14 Oct 2015 16:25:50 -0700
+Message-ID: <1444865156-9870-1-git-send-email-Suravee.Suthikulpanit@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:63969 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753664AbbJNXQA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Oct 2015 19:16:00 -0400
-In-Reply-To: <1444857985-28844-1-git-send-email-al.stone@linaro.org>
+Received: from mail-by2on0054.outbound.protection.outlook.com ([207.46.100.54]:38840
+	"EHLO na01-by2-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753717AbbJNXZt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 14 Oct 2015 19:25:49 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Al Stone <al.stone@linaro.org>
-Cc: linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, linaro-kernel@lists.linaro.org, patches@linaro.org
+To: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, hanjun.guo@linaro.org, tomasz.nowicki@linaro.org, graeme.gregory@linaro.org, dhdang@apm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 
-On Wednesday, October 14, 2015 03:26:21 PM Al Stone wrote:
-> Once the patch series "Provide better MADT subtable sanity checks" got
-> into linux-next (commit b9e11e92b9), several existing platforms were found
-> where the firmware was doing odd things that aren't exactly correct if
-> the ACPI specification is being followed precisely.  This patch series
-> relaxes some of the checks on MADT subtables so that these previously 
-> working systems (all x86-based) will continue to boot.  For arm64, since
-> ACPI usage is still relatively new, the stricter checking is left in place.
-> 
-> Al Stone (4):
->   ACPI: workaround x86 firmware using reserved MADT subtable IDs
->   ACPI: workaround x86 firmware with mis-matched FADT/MADT revisions
->   ACPI: workaround FADT always being revision 2
->   ACPI: for bad_madt_entry(), the GIC ITS table is 20 bytes long, not 16
-> 
->  drivers/acpi/tables.c | 62 ++++++++++++++++++++++++++++++++++++++++++---------
->  1 file changed, 51 insertions(+), 11 deletions(-)
+This patch series has been forked from the following patch series since
+it no longer depends on the rest of the patches.
 
-Honestly, having reviewed this series I'm inclined to drop the original
-changes from my tree and ask you to start over.
+  [PATCH v4 00/10] ACPI GIC Self-probing, GICv2m and GICv3 support
+  https://lkml.org/lkml/2015/7/29/234
 
-It seems to have been a mistake to modify the existing behavior for x86 and
-goodness only knows about ia64.  The changes for these architectures don't make
-us better off in any way.
+It has been ported to use the newly introduced device fwnode_handle 
+for ACPI irqdmain introduced by Marc in the following patch series:
 
-I understand the motivation to keep ARM64 "fresh and clean", but there must be
-a way to do that without affecting the other architectures negatively.
+  [PATCH v2 00/17] Divorcing irqdomain and device_node
+  http://git.kernel.org/cgit/linux/kernel/git/maz/arm-platforms.git irq/irq-domain-fwnode-v2
+
+The following git branch contains the submitted patches along with
+the pre-requsite patches (mainly for ARM64 PCI support for ACPI).
+
+  https://github.com/ssuthiku/linux.git	irq-domain-fwnode-v2-v2m-multiframe
+
+This has been tested on AMD Seattle (Overdrive) RevB system. 
+
+NOTE: I have not tested ACPI GICv2m multiframe support since
+I don't have access to such system. Any helps are appreciated.
 
 Thanks,
-Rafael
+Suravee
+
+Changes from V1: (https://lkml.org/lkml/2015/10/13/859)
+  - Rebase on top of Marc's patch to addng support for multiple MSI frames
+    (https://lkml.org/lkml/2015/10/14/271)
+  - Adding fwnode convenient functions (patch 3 and 4)
+
+Suravee Suthikulpanit (6):
+  pci: msi: Add support to query MSI domain for pci device
+  acpi: pci: Setup MSI domain for ACPI based pci devices
+  irqdomain: introduce is_fwnode_irqchip helper
+  irqdomain: Introduce irq_domain_get_irqchip_fwnode_name helper
+    function
+  gicv2m: Refactor to prepare for ACPI support
+  gicv2m: acpi: Introducing GICv2m ACPI support
+
+ drivers/irqchip/irq-gic-v2m.c   | 151 ++++++++++++++++++++++++++++++++++------
+ drivers/irqchip/irq-gic.c       |   5 +-
+ drivers/pci/msi.c               |  30 ++++++++
+ drivers/pci/pci-acpi.c          |  13 ++++
+ drivers/pci/probe.c             |   2 +
+ include/linux/irqchip/arm-gic.h |   6 ++
+ include/linux/irqdomain.h       |   6 ++
+ include/linux/msi.h             |   7 ++
+ include/linux/pci.h             |   7 ++
+ kernel/irq/irqdomain.c          |  20 +++++-
+ 10 files changed, 224 insertions(+), 23 deletions(-)
+
+-- 
+2.1.0
 
