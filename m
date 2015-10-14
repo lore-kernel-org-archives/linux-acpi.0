@@ -1,228 +1,120 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH] acpi: set return value to const char for some functions
-Date: Wed, 14 Oct 2015 20:53:19 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37D9803BD@ORSMSX112.amr.corp.intel.com>
-References: <1444849635-14456-1-git-send-email-clabbe.montjoie@gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [Linaro-acpi] [PATCH v5 0/5] Provide better MADT subtable sanity checks
+Date: Wed, 14 Oct 2015 23:25:48 +0200
+Message-ID: <3556673.VbpJrNsKqP@vostro.rjw.lan>
+References: <1443570346-15378-1-git-send-email-al.stone@linaro.org> <561C8351.3030304@erley.org> <561EB923.6010109@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1444849635-14456-1-git-send-email-clabbe.montjoie@gmail.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: LABBE Corentin <clabbe.montjoie@gmail.com>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "lenb@kernel.org" <lenb@kernel.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:50609 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753605AbbJNU5I (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Oct 2015 16:57:08 -0400
+In-Reply-To: <561EB923.6010109@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Al Stone <ahs3@redhat.com>
+Cc: Pat Erley <pat-lkml@erley.org>, Al Stone <al.stone@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, linaro-kernel@lists.linaro.org, linux-ia64@vger.kernel.org, linaro-acpi@lists.linaro.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, patches@linaro.org, Hanjun Guo <guohanjun@huawei.com>, linux-arm-kernel@lists.infradead.org
 
-In ACPICA, we tend to be very careful concerning the "const" keyword in order to avoid a phenomenon known as "const pollution".
+On Wednesday, October 14, 2015 02:20:51 PM Al Stone wrote:
+> This is a multi-part message in MIME format.
+> --------------020400080004050109020606
+> Content-Type: text/plain; charset=utf-8
+> Content-Transfer-Encoding: 7bit
+> 
+> On 10/12/2015 10:06 PM, Pat Erley wrote:
+> > On 10/12/2015 01:52 PM, Al Stone wrote:
+> >> On 10/11/2015 09:58 PM, Pat Erley wrote:
+> >>> On 10/11/2015 08:49 PM, Hanjun Guo wrote:
+> >>>> On 10/12/2015 11:08 AM, Pat Erley wrote:
+> >>>>> On 10/05/2015 10:12 AM, Al Stone wrote:
+> >>>>>> On 10/05/2015 07:39 AM, Rafael J. Wysocki wrote:
+> >>>>>>> On Wednesday, September 30, 2015 10:10:16 AM Al Stone wrote:
+> >>>>>>>> On 09/30/2015 03:00 AM, Hanjun Guo wrote:
+> >>>>>>>>> On 2015/9/30 7:45, Al Stone wrote:
+> >>>>>>>>>> NB: this patch set is for use against the linux-pm bleeding edge
+> >>>>>>>>>> branch.
+> >>>>>>>>>>
+> >>>>>>>>
+> >>>>>>>> [snip...]
+> >>>>>>>>
+> >>>>>>>>>
+> >>>>>>>>> For this patch set,
+> >>>>>>>>>
+> >>>>>>>>> Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
+> >>>>>>>>>
+> >>>>>>>>> Thanks
+> >>>>>>>>> Hanjun
+> >>>>>>>>
+> >>>>>>>> Thanks, Hanjun!
+> >>>>>>>
+> >>>>>>> Series applied, thanks!
+> >>>>>>>
+> >>>>>>> Rafael
+> >>>>>>>
+> >>>>>>
+> >>>>>> Thanks, Rafael!
+> >>>>>>
+> >>>>>
+> >>>>> Just decided to test out linux-next (to see the new nouveau cleanups).
+> >>>>> This change set prevents my Lenovo W510 from booting properly.
+> >>>>>
+> >>>>> Reverting: 7494b0 "ACPI: add in a bad_madt_entry() function to
+> >>>>> eventually replace the macro"
+> >>>>>
+> >>>>> Gets the system booting again.  I'm attaching my dmesg from the failed
+> >>>>> boot, who wants the acpidump?
+> >>>>
+> >>>> [    0.000000] ACPI: undefined version for either FADT 4.0 or MADT 1
+> >>>> [    0.000000] ACPI: Error parsing LAPIC address override entry
+> >>>> [    0.000000] ACPI: Invalid BIOS MADT, disabling ACPI
+> >>>>
+> >>>> Seems the MADT revision is not right, could you dump the ACPI MADT
+> >>>> (APIC) table and send it out? I will take a look :)
+> >>>>
+> >>>> Thanks
+> >>>> Hanjun
+> >>>
+> >>> Here ya go, enjoy.  Feel free to CC me on any patches that might fix it.
+> >>
+> >> Pat,
+> >>
+> >> Would you mind sending a copy of the FADT, also, please?  The first of the
+> >> ACPI messages is a check of version correspondence between the FADT and MADT,
+> >> while the second message is from looking at just an MADT subtable.  Thanks
+> >> for sending the MADT out -- that helps me quite a lot in thinking this through.
+> >>
+> >> BTW, whoever is providing the BIOS (Lenovo, I assume) may want to have a look
+> >> at these, also:
+> >>
+> >> [    0.000000] ACPI BIOS Warning (bug): 32/64X length mismatch in
+> >> FADT/Pm1aControlBlock: 16/32 (20150818/tbfadt-623)
+> >> [    0.000000] ACPI BIOS Warning (bug): Invalid length for
+> >> FADT/Pm1aControlBlock: 32, using default 16 (20150818/tbfadt-704)
+> >>
+> >> Not inherently dangerous, but definitely sloppy and mind-numbingly easy to
+> >> avoid, IIRC.
+> >>
+> > 
+> > Here ya go.
+> 
+> Okay.  There's just a lot of weird stuff out there in ACPI-land.  I've
+> attached four minor fixes for the special cases that have been reported
+> (well, the last one is actually a fix for a typo in the spec, but just
+> the same...).
+> 
+> These should apply on top of linux-next; would you mind trying them out
+> to make sure I didn't break anything else on your laptop?  If they behave
+> as I hope they will, I think I'll have covered all the places where the
+> checking of MADT subtables needs to be be relaxed a bit.  These work for
+> me on arm64, but if they work for you and a couple of other testers, then
+> I'll send them to Rafael properly.
 
-That is not to say that we won't use const in some limited cases.
+Well, you might as well submit them properly right away, so I could pick
+them up and put them into my linux-next branch, which then might make it
+easier for some people to test them.
 
-Bob
+Thanks,
+Rafael
 
-
-> -----Original Message-----
-> From: LABBE Corentin [mailto:clabbe.montjoie@gmail.com]
-> Sent: Wednesday, October 14, 2015 12:07 PM
-> To: Moore, Robert; Zheng, Lv; Wysocki, Rafael J; lenb@kernel.org
-> Cc: linux-acpi@vger.kernel.org; devel@acpica.org; linux-
-> kernel@vger.kernel.org; LABBE Corentin
-> Subject: [PATCH] acpi: set return value to const char for some functions
-> 
-> This patch set some array of const char as const.
-> In the same time, some function return pointer to thoses array without
-> properly giving the information that the data is const.
-> This patch set the return type of thoses functions as const char *
-> 
-> Signed-off-by: LABBE Corentin <clabbe.montjoie@gmail.com>
-> ---
->  drivers/acpi/acpica/acutils.h  | 12 ++++++------
-> drivers/acpi/acpica/utdecode.c | 24 ++++++++++++------------
->  drivers/acpi/acpica/uthex.c    |  4 ++--
->  drivers/acpi/tables.c          |  6 ++++--
->  4 files changed, 24 insertions(+), 22 deletions(-)
-> 
-> diff --git a/drivers/acpi/acpica/acutils.h b/drivers/acpi/acpica/acutils.h
-> index fb2aa50..e5d9d4f 100644
-> --- a/drivers/acpi/acpica/acutils.h
-> +++ b/drivers/acpi/acpica/acutils.h
-> @@ -189,21 +189,21 @@ char *acpi_ut_get_mutex_name(u32 mutex_id);  const
-> char *acpi_ut_get_notify_name(u32 notify_value, acpi_object_type type);
-> #endif
-> 
-> -char *acpi_ut_get_type_name(acpi_object_type type);
-> +const char *acpi_ut_get_type_name(acpi_object_type type);
-> 
->  char *acpi_ut_get_node_name(void *object);
-> 
-> -char *acpi_ut_get_descriptor_name(void *object);
-> +const char *acpi_ut_get_descriptor_name(void *object);
-> 
->  const char *acpi_ut_get_reference_name(union acpi_operand_object
-> *object);
-> 
-> -char *acpi_ut_get_object_type_name(union acpi_operand_object *obj_desc);
-> +const char *acpi_ut_get_object_type_name(union acpi_operand_object
-> +*obj_desc);
-> 
-> -char *acpi_ut_get_region_name(u8 space_id);
-> +const char *acpi_ut_get_region_name(u8 space_id);
-> 
-> -char *acpi_ut_get_event_name(u32 event_id);
-> +const char *acpi_ut_get_event_name(u32 event_id);
-> 
-> -char acpi_ut_hex_to_ascii_char(u64 integer, u32 position);
-> +const char acpi_ut_hex_to_ascii_char(u64 integer, u32 position);
-> 
->  u8 acpi_ut_ascii_char_to_hex(int hex_char);
-> 
-> diff --git a/drivers/acpi/acpica/utdecode.c
-> b/drivers/acpi/acpica/utdecode.c index 988e23b..e08cdb1 100644
-> --- a/drivers/acpi/acpica/utdecode.c
-> +++ b/drivers/acpi/acpica/utdecode.c
-> @@ -114,7 +114,7 @@ const char
-> *acpi_gbl_region_types[ACPI_NUM_PREDEFINED_REGIONS] = {
->  	"PCC"			/* 0x0A */
->  };
-> 
-> -char *acpi_ut_get_region_name(u8 space_id)
-> +const char *acpi_ut_get_region_name(u8 space_id)
->  {
-> 
->  	if (space_id >= ACPI_USER_REGION_BEGIN) { @@ -127,7 +127,7 @@ char
-> *acpi_ut_get_region_name(u8 space_id)
->  		return ("InvalidSpaceId");
->  	}
-> 
-> -	return (ACPI_CAST_PTR(char, acpi_gbl_region_types[space_id]));
-> +	return (ACPI_CAST_PTR(const char, acpi_gbl_region_types[space_id]));
->  }
-> 
-> 
-> /*************************************************************************
-> ******
-> @@ -152,14 +152,14 @@ static const char
-> *acpi_gbl_event_types[ACPI_NUM_FIXED_EVENTS] = {
->  	"RealTimeClock",
->  };
-> 
-> -char *acpi_ut_get_event_name(u32 event_id)
-> +const char *acpi_ut_get_event_name(u32 event_id)
->  {
-> 
->  	if (event_id > ACPI_EVENT_MAX) {
->  		return ("InvalidEventID");
->  	}
-> 
-> -	return (ACPI_CAST_PTR(char, acpi_gbl_event_types[event_id]));
-> +	return (ACPI_CAST_PTR(const char, acpi_gbl_event_types[event_id]));
->  }
-> 
-> 
-> /*************************************************************************
-> ******
-> @@ -220,17 +220,17 @@ static const char *acpi_gbl_ns_type_names[] = {
->  	/* 30 */ "Invalid"
->  };
-> 
-> -char *acpi_ut_get_type_name(acpi_object_type type)
-> +const char *acpi_ut_get_type_name(acpi_object_type type)
->  {
-> 
->  	if (type > ACPI_TYPE_INVALID) {
-> -		return (ACPI_CAST_PTR(char, acpi_gbl_bad_type));
-> +		return (ACPI_CAST_PTR(const char, acpi_gbl_bad_type));
->  	}
-> 
-> -	return (ACPI_CAST_PTR(char, acpi_gbl_ns_type_names[type]));
-> +	return (ACPI_CAST_PTR(const char, acpi_gbl_ns_type_names[type]));
->  }
-> 
-> -char *acpi_ut_get_object_type_name(union acpi_operand_object *obj_desc)
-> +const char *acpi_ut_get_object_type_name(union acpi_operand_object
-> +*obj_desc)
->  {
-> 
->  	if (!obj_desc) {
-> @@ -318,7 +318,7 @@ static const char *acpi_gbl_desc_type_names[] = {
->  	/* 15 */ "Node"
->  };
-> 
-> -char *acpi_ut_get_descriptor_name(void *object)
-> +const char *acpi_ut_get_descriptor_name(void *object)
->  {
-> 
->  	if (!object) {
-> @@ -329,7 +329,7 @@ char *acpi_ut_get_descriptor_name(void *object)
->  		return ("Not a Descriptor");
->  	}
-> 
-> -	return (ACPI_CAST_PTR(char,
-> +	return (ACPI_CAST_PTR(const char,
->  			      acpi_gbl_desc_type_names[ACPI_GET_DESCRIPTOR_TYPE
->  						       (object)]));
-> 
-> @@ -400,7 +400,7 @@ const char *acpi_ut_get_reference_name(union
-> acpi_operand_object *object)
-> 
->  /* Names for internal mutex objects, used for debug output */
-> 
-> -static char *acpi_gbl_mutex_names[ACPI_NUM_MUTEX] = {
-> +static const char *acpi_gbl_mutex_names[ACPI_NUM_MUTEX] = {
->  	"ACPI_MTX_Interpreter",
->  	"ACPI_MTX_Namespace",
->  	"ACPI_MTX_Tables",
-> @@ -411,7 +411,7 @@ static char *acpi_gbl_mutex_names[ACPI_NUM_MUTEX] = {
->  	"ACPI_MTX_CommandReady"
->  };
-> 
-> -char *acpi_ut_get_mutex_name(u32 mutex_id)
-> +const char *acpi_ut_get_mutex_name(u32 mutex_id)
->  {
-> 
->  	if (mutex_id > ACPI_MAX_MUTEX) {
-> diff --git a/drivers/acpi/acpica/uthex.c b/drivers/acpi/acpica/uthex.c
-> index fda8b3d..9239711 100644
-> --- a/drivers/acpi/acpica/uthex.c
-> +++ b/drivers/acpi/acpica/uthex.c
-> @@ -48,7 +48,7 @@
->  ACPI_MODULE_NAME("uthex")
-> 
->  /* Hex to ASCII conversion table */
-> -static char acpi_gbl_hex_to_ascii[] = {
-> +static const char acpi_gbl_hex_to_ascii[] = {
->  	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C',
-> 'D',
->  	    'E', 'F'
->  };
-> @@ -67,7 +67,7 @@ static char acpi_gbl_hex_to_ascii[] = {
->   *
-> 
-> **************************************************************************
-> ****/
-> 
-> -char acpi_ut_hex_to_ascii_char(u64 integer, u32 position)
-> +const char acpi_ut_hex_to_ascii_char(u64 integer, u32 position)
->  {
-> 
->  	return (acpi_gbl_hex_to_ascii[(integer >> position) & 0xF]); diff --
-> git a/drivers/acpi/tables.c b/drivers/acpi/tables.c index 17a6fa0..7c8a037
-> 100644
-> --- a/drivers/acpi/tables.c
-> +++ b/drivers/acpi/tables.c
-> @@ -35,8 +35,10 @@
-> 
->  #define ACPI_MAX_TABLES		128
-> 
-> -static char *mps_inti_flags_polarity[] = { "dfl", "high", "res", "low" };
-> -static char *mps_inti_flags_trigger[] = { "dfl", "edge", "res", "level"
-> };
-> +static const char * const mps_inti_flags_polarity[] = {
-> +	"dfl", "high", "res", "low" };
-> +static const char * const mps_inti_flags_trigger[] = {
-> +	"dfl", "edge", "res", "level" };
-> 
->  static struct acpi_table_desc initial_tables[ACPI_MAX_TABLES] __initdata;
-> 
-> --
-> 2.4.9
