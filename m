@@ -1,124 +1,69 @@
 From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH] ACPICA: AcpiGetSleepTypeData: Failure to find \_Sx
- should not result in a loud warning [v2]
-Date: Wed, 14 Oct 2015 01:47:42 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BAC7C87@SHSMSX101.ccr.corp.intel.com>
-References: <94F2FBAB4432B54E8AACC7DFDE6C92E37D36303A@ORSMSX112.amr.corp.intel.com>
- <1444243849-27929-1-git-send-email-prarit@redhat.com>
- <94F2FBAB4432B54E8AACC7DFDE6C92E37D970F57@ORSMSX111.amr.corp.intel.com>
- <56167C58.8000405@redhat.com>
- <1AE640813FDE7649BE1B193DEA596E883BAC675E@SHSMSX101.ccr.corp.intel.com>
- <1AE640813FDE7649BE1B193DEA596E883BAC67EE@SHSMSX101.ccr.corp.intel.com>
- <5617A525.2070806@redhat.com>
- <1AE640813FDE7649BE1B193DEA596E883BAC6C12@SHSMSX101.ccr.corp.intel.com>
- <94F2FBAB4432B54E8AACC7DFDE6C92E37D98000D@ORSMSX112.amr.corp.intel.com>
+Subject: RE: bisected: Re: 4.3.0-rc3-00042: ACPI Warning: AcpiEnable failed
+Date: Wed, 14 Oct 2015 05:48:44 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BAC7D0D@SHSMSX101.ccr.corp.intel.com>
+References: <alpine.LRH.2.20.1509291519111.3351@math.ut.ee>
+ <alpine.LRH.2.20.1510020901590.17033@math.ut.ee>
+ <1AE640813FDE7649BE1B193DEA596E883BAC712B@SHSMSX101.ccr.corp.intel.com>
+ <5827210.uo0vLJMZv1@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:7546 "EHLO mga03.intel.com"
+Received: from mga03.intel.com ([134.134.136.65]:24100 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753011AbbJNBrq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Oct 2015 21:47:46 -0400
-In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37D98000D@ORSMSX112.amr.corp.intel.com>
+	id S1750759AbbJNFsx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 14 Oct 2015 01:48:53 -0400
+In-Reply-To: <5827210.uo0vLJMZv1@vostro.rjw.lan>
 Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>, Prarit Bhargava <prarit@redhat.com>, "devel@acpica.org" <devel@acpica.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Meelis Roos <mroos@linux.ee>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Linux Kernel list <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-Hi, Bob
-
-> -----Original Message-----
-> From: Moore, Robert
-> Sent: Wednesday, October 14, 2015 5:00 AM
-> To: Zheng, Lv; Prarit Bhargava; devel@acpica.org
-> Cc: linux-acpi@vger.kernel.org; Wysocki, Rafael J
-> Subject: RE: [PATCH] ACPICA: AcpiGetSleepTypeData: Failure to find \_Sx should not result in a loud warning [v2]
-> 
-> I'm a bit confused. What does the execution of the _Sx methods have to do with module-level code? Obviously, many times the _Sx
-> objects are implemented as simply named objects, but the table load doesn't care what is and what isn't present.
-> 
-
-The AE_NOT_FOUND for _Sx should have been fixed.
-
-What we are talking is not related to the _Sx warning.
-I was just replying Prarit that why such kind of warning messages could be useful.
-
-Thanks and best regards
--Lv
-
-> 
-> > -----Original Message-----
-> > From: Zheng, Lv
-> > Sent: Friday, October 09, 2015 6:38 PM
-> > To: Prarit Bhargava; Moore, Robert; devel@acpica.org
-> > Cc: linux-acpi@vger.kernel.org; Wysocki, Rafael J
-> > Subject: RE: [PATCH] ACPICA: AcpiGetSleepTypeData: Failure to find \_Sx
-> > should not result in a loud warning [v2]
-> >
-> > Hi,
-> >
-> > > From: Prarit Bhargava [mailto:prarit@redhat.com]
-> > > Sent: Friday, October 09, 2015 7:30 PM
-> > >
-> > > On 10/09/2015 01:26 AM, Zheng, Lv wrote:
-> > > > Please ignore this.
-> > > > The fix is against the caller.
-> > > >
-> > > > Thanks and best regards
-> > > > -Lv
-> > > >
-> > > >> From: Devel [mailto:devel-bounces@acpica.org] On Behalf Of Zheng,
-> > > >> Lv
-> > > >> Sent: Friday, October 09, 2015 10:02 AM
-> > > >>
-> > > >> Why don't you fix this in the invoker side?
-> > > >> For example:
-> > > >> If (acpi_get_handle())
-> > > >> 	acpi_evaluate_object()
-> > >
-> > > That seems like a sloppy workaround an actual bug in ACPICA.
-> >
-> > So let me ignore this which is a reply for a useless question.
-> >
-> > >
-> > > >> So that the AE_NOT_FOUND warning can still be kept for the real
-> > troubles?
-> > >
-> > > The code is warning 100% of the time on something that is optional.
-> >
-> > Let me ignore this which is a reply for a useless question.
-> >
-> > >
-> > > >> There are really scenarios that such warning is useful for catching
-> > bugs.
-> > > >>
-> > >
-> > > What scenario is possible where this causes a problem?  Issuing an
-> > > error on something that is optional is not a good idea.
-> >
-> > There are several scenarios, let me say some known stuffs about the module
-> > level code support.
-> > In AML grammar, module level code (non-object-definition AML opcodes
-> > outside of a control method) is legal.
-> > While it is supported in ACPICA in a split way:
-> > 1. In the early stage, table loading code only executes those object
-> > definition opcodes and links all "if/else/while" AML fragments together.
-> > 2. In the late stage, object initialization code will execute such AML
-> > fragments before invoking all _INI methods.
-> >
-> > 1. Since code is not executed in the Windows compliant order during the
-> > early table loading stage, some objects are not defined while they should.
-> > 2. Even worse, during the early stage, ACPICA may fail the whole table
-> > loading process due to AE_NOT_FOUND, leaving us partial initialized
-> > objects (the ACPICA AML interpreter implements 2 phases to parse a table
-> > to complete the table loading).
-> > Such issue is worked around by deleting the namespace objects created
-> > during the early stage if an exception (AE_NOT_FOUND) is encountered.
-> >
-> > So you can see, such kind of error is sometime useful for catching AML
-> > interpreter issues or BIOS bugs.
-> >
-> > Thanks and best regards
-> > -Lv
+SGksDQoNCj4gRnJvbTogUmFmYWVsIEouIFd5c29ja2kgW21haWx0bzpyandAcmp3eXNvY2tpLm5l
+dF0NCj4gU2VudDogVHVlc2RheSwgT2N0b2JlciAxMywgMjAxNSAzOjE5IEFNDQo+IA0KPiBPbiBN
+b25kYXksIE9jdG9iZXIgMTIsIDIwMTUgMDc6NDg6MTIgQU0gWmhlbmcsIEx2IHdyb3RlOg0KPiA+
+IEhpLCBSYWZhZWwNCj4gDQo+IEhpLA0KPiANCj4gPiBUaGUgYnVnIGhhcyBiZWVuIGZpeGVkLg0K
+PiA+IFRoZSByb290IGNhdXNlIGlzIHRoZSBwcmV2aW91cyBjb21taXQgZG9lc24ndCBjb3ZlciBh
+IGhpZGRlbiBsb2dpYzoNCj4gPiAgYWNwaV9lbmFibGUoKSBzaG91bGQgcmVseSBvbiB0aGUgZXhp
+c3RlbmNlIG9mIEZBRFQgd2hpbGUgY3VycmVudGx5IGl0IHJlbGllcyBvbiB0aGUgbnVtYmVyIG9m
+IGxvYWRlZCB0YWJsZXMuDQo+ID4gVGhlIGZpeCB0aGF0IHJlbW92ZXMgdGhlIGhpZGRlbiBsb2dp
+YyBpcyBhbiBBQ1BJQ0EgY29tbWl0Lg0KPiA+IFNoYWxsIHdlIHdhaXQgdW50aWwgaXQgaXMgbWVy
+Z2VkIHZpYSBhbiBBQ1BJQ0EgcmVsZWFzZSBjeWNsZSBvciBtYWtlIGl0IGEgYml0IGZhc3RlciBi
+eSBtZXJnaW5nIExpbnV4aXplZCB2ZXJzaW9uIGZpcnN0Pw0KPiANCj4gUGxlYXNlIHNlbmQgdGhl
+IExpbnV4aXplZCB2ZXJzaW9uIG9mIGl0IEFTQVAsIHdlIG5lZWQgaXQgZm9yIDQuMy4NCg0KSSds
+bCBzZW5kIHRoZSBmaXggdG8gdGhpcyB0aHJlYWQuDQoNClRoYW5rcyBhbmQgYmVzdCByZWdhcmRz
+DQotTHYNCg0KPiANCj4gVGhhbmtzLA0KPiBSYWZhZWwNCj4gDQo+IA0KPiA+ID4gRnJvbTogbXJv
+b3NAbWF0aC51dC5lZSBbbWFpbHRvOm1yb29zQG1hdGgudXQuZWVdIE9uIEJlaGFsZiBPZiBNZWVs
+aXMgUm9vcw0KPiA+ID4gU2VudDogRnJpZGF5LCBPY3RvYmVyIDAyLCAyMDE1IDI6MTQgUE0NCj4g
+PiA+DQo+ID4gPiA+ID4gPiA0LjIuMCB3b3JrZWQgZmluZSwgNC4zLjAtcmMzLTAwMDQyLWczMjI1
+MDMxIHdhcyB0aGUgbmV4dCBvbmUgdGVzdGVkDQo+ID4gPiA+ID4gPiBhZnRlciB0aGF0IGFuZCB3
+aXRoIHRoaXMga2VybmVsLCBBQ1BJIGVuYWJsaW5nIGZhaWxzLiBUaGlzIGlzIFBlbnRpdW0NCj4g
+PiA+ID4gPiA+IElJSSwgMSBHSHosIEludGVsIDgxNSBjaGlwc2V0LCBETUkgdGVsbHMgc29tZXRo
+aW5nIGFib3V0ICJQYWNrYXJkIEJlbGwNCj4gPiA+ID4gPiA+IE5FQyIgYXMgdGhlIG1haW5ib2Fy
+ZCB0eXBlLg0KPiA+ID4gPiA+ID4NCj4gPiA+ID4gPiA+IEZ1bGwgZG1lc2cgYW5kIGNvbmZpZyBh
+cmUgYmVsb3cuIFdoYXQgYWRkaXRpb25hbCBpbmZvcm1hdGlvbiBjYW4gSQ0KPiA+ID4gPiA+ID4g
+cHJvdmlkZSBiZXNpZGVzIGJpc2VjdGluZyAod2lsbCB0YWtlIHRpbWUpPw0KPiA+ID4gPiA+DQo+
+ID4gPiA+ID4gQmlzZWN0aW5nIGRvbmUsIGhlcmUgaXMgdGhlIGN1bHByaXQ6DQo+ID4gPiA+ID4N
+Cj4gPiA+ID4gPiA4ZWMzZjQ1OTA3M2U2N2U1YzZkNzg1MDdkZWM2OTMwNjRiMzA0MGEyIGlzIHRo
+ZSBmaXJzdCBiYWQgY29tbWl0DQo+ID4gPiA+ID4gY29tbWl0IDhlYzNmNDU5MDczZTY3ZTVjNmQ3
+ODUwN2RlYzY5MzA2NGIzMDQwYTINCj4gPiA+ID4gPiBBdXRob3I6IEx2IFpoZW5nIDxsdi56aGVu
+Z0BpbnRlbC5jb20+DQo+ID4gPiA+ID4gRGF0ZTogICBUdWUgQXVnIDI1IDEwOjI5OjAxIDIwMTUg
+KzA4MDANCj4gPiA+ID4gPg0KPiA+ID4gPiA+ICAgICBBQ1BJQ0E6IFRhYmxlczogRml4IGdsb2Jh
+bCB0YWJsZSBsaXN0IGlzc3VlcyBieSByZW1vdmluZyBmaXhlZCB0YWJsZSBpbmRleGVzDQo+ID4g
+PiA+ID4NCj4gPiA+ID4gPiAgICAgQUNQSUNBIGNvbW1pdCBjMGIzOGI0YzM5ODJjMjMzNmVlOTJh
+MmExNDcxNjEwNzI0OGJkOTQxDQo+ID4gPiA+DQo+ID4gPiA+IFRoYW5rcyBhIGxvdCBmb3IgYmlz
+ZWN0aW5nIHRoaXMhDQo+ID4gPiA+DQo+ID4gPiA+IEl0IHdpbGwgaGVscCBpZiB5b3UgZmlsZSBh
+IGJ1ZyBlbnRyeSBhdCBidWd6aWxsYS5rZXJuZWwub3JnIGFnYWlzdCBBQ1BJIGZvcg0KPiA+ID4g
+PiB0aGlzIGlzc3VlIChwbGVhc2UgbWFyayBpdCBhcyBhIHJlZ3Jlc3Npb24pIGFuZCBhdHRhY2gg
+dGhlIG91dHB1dCBvZiBhY3BpZHVtcA0KPiA+ID4gPiBmcm9tIHRoZSBhZmZlY3RlZCBzeXN0ZW0g
+dG8gaXQuDQo+ID4gPg0KPiA+ID4gRG9uZSwgaHR0cHM6Ly9idWd6aWxsYS5rZXJuZWwub3JnL3No
+b3dfYnVnLmNnaT9pZD0xMDUzNTENCj4gPiA+DQo+ID4gPiAtLQ0KPiA+ID4gTWVlbGlzIFJvb3Mg
+KG1yb29zQGxpbnV4LmVlKQ0KPiA+IC0tDQo+ID4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0aGlzIGxp
+c3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LWtlcm5lbCIgaW4NCj4gPiB0aGUg
+Ym9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZw0KPiA+IE1vcmUg
+bWFqb3Jkb21vIGluZm8gYXQgIGh0dHA6Ly92Z2VyLmtlcm5lbC5vcmcvbWFqb3Jkb21vLWluZm8u
+aHRtbA0KPiA+IFBsZWFzZSByZWFkIHRoZSBGQVEgYXQgIGh0dHA6Ly93d3cudHV4Lm9yZy9sa21s
+Lw0KPiANCj4gLS0NCj4gSSBzcGVhayBvbmx5IGZvciBteXNlbGYuDQo+IFJhZmFlbCBKLiBXeXNv
+Y2tpLCBJbnRlbCBPcGVuIFNvdXJjZSBUZWNobm9sb2d5IENlbnRlci4NCg==
