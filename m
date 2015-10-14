@@ -1,39 +1,50 @@
-From: Frank Rowand <frowand.list@gmail.com>
-Subject: Re: [PATCH v7 20/20] of/platform: Defer probes of registered devices
-Date: Wed, 14 Oct 2015 16:12:23 -0700
-Message-ID: <561EE157.4070604@gmail.com>
-References: <1443517859-30376-1-git-send-email-tomeu.vizoso@collabora.com> <1443517859-30376-21-git-send-email-tomeu.vizoso@collabora.com>
-Reply-To: frowand.list@gmail.com
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 0/4] Fix regressions uncovered by bad_madt_entry() patches
+Date: Thu, 15 Oct 2015 01:44:43 +0200
+Message-ID: <2129967.6jsKS4L8fa@vostro.rjw.lan>
+References: <1444857985-28844-1-git-send-email-al.stone@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:34579 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754687AbbJNXMZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Oct 2015 19:12:25 -0400
-In-Reply-To: <1443517859-30376-21-git-send-email-tomeu.vizoso@collabora.com>
+Received: from v094114.home.net.pl ([79.96.170.134]:63969 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753664AbbJNXQA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Oct 2015 19:16:00 -0400
+In-Reply-To: <1444857985-28844-1-git-send-email-al.stone@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Cc: linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-arm-kernel@lists.infradead.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, devicetree@vger.kernel.org, Russell King <rmk+kernel@arm.linux.org.uk>, Linus Walleij <linus.walleij@linaro.org>, Ulf Hansson <ulf.hansson@linaro.org>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
+To: Al Stone <al.stone@linaro.org>
+Cc: linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, linaro-kernel@lists.linaro.org, patches@linaro.org
 
-On 9/29/2015 2:10 AM, Tomeu Vizoso wrote:
-> Instead of trying to match and probe platform and AMBA devices right
-> after each is registered, delay their probes until device_initcall_sync.
-                                                     ^^^^^^^^^^^^^^^^^^^^
-                                                     late_initcall
+On Wednesday, October 14, 2015 03:26:21 PM Al Stone wrote:
+> Once the patch series "Provide better MADT subtable sanity checks" got
+> into linux-next (commit b9e11e92b9), several existing platforms were found
+> where the firmware was doing odd things that aren't exactly correct if
+> the ACPI specification is being followed precisely.  This patch series
+> relaxes some of the checks on MADT subtables so that these previously 
+> working systems (all x86-based) will continue to boot.  For arm64, since
+> ACPI usage is still relatively new, the stricter checking is left in place.
+> 
+> Al Stone (4):
+>   ACPI: workaround x86 firmware using reserved MADT subtable IDs
+>   ACPI: workaround x86 firmware with mis-matched FADT/MADT revisions
+>   ACPI: workaround FADT always being revision 2
+>   ACPI: for bad_madt_entry(), the GIC ITS table is 20 bytes long, not 16
+> 
+>  drivers/acpi/tables.c | 62 ++++++++++++++++++++++++++++++++++++++++++---------
+>  1 file changed, 51 insertions(+), 11 deletions(-)
 
-> 
-> This means that devices will start probing once all built-in drivers
-> have registered, and after all platform and AMBA devices from the DT
-> have been registered already.
-> 
-> This allows us to prevent deferred probes by probing dependencies on
-> demand.
-> 
-> Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-> ---
+Honestly, having reviewed this series I'm inclined to drop the original
+changes from my tree and ask you to start over.
 
-< snip >
+It seems to have been a mistake to modify the existing behavior for x86 and
+goodness only knows about ia64.  The changes for these architectures don't make
+us better off in any way.
+
+I understand the motivation to keep ARM64 "fresh and clean", but there must be
+a way to do that without affecting the other architectures negatively.
+
+Thanks,
+Rafael
 
