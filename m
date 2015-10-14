@@ -1,74 +1,124 @@
-From: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>
-Subject: Re: [PATCH V3 2/4] ACPI/scan: Clean up acpi_check_dma
-Date: Tue, 13 Oct 2015 18:53:28 -0500
-Message-ID: <561D9978.9090406@amd.com>
-References: <1440597279-11802-1-git-send-email-Suravee.Suthikulpanit@amd.com>
- <1440597279-11802-3-git-send-email-Suravee.Suthikulpanit@amd.com>
- <20150914163411.GL829@google.com> <561D28B5.7030303@amd.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH] ACPICA: AcpiGetSleepTypeData: Failure to find \_Sx
+ should not result in a loud warning [v2]
+Date: Wed, 14 Oct 2015 01:47:42 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BAC7C87@SHSMSX101.ccr.corp.intel.com>
+References: <94F2FBAB4432B54E8AACC7DFDE6C92E37D36303A@ORSMSX112.amr.corp.intel.com>
+ <1444243849-27929-1-git-send-email-prarit@redhat.com>
+ <94F2FBAB4432B54E8AACC7DFDE6C92E37D970F57@ORSMSX111.amr.corp.intel.com>
+ <56167C58.8000405@redhat.com>
+ <1AE640813FDE7649BE1B193DEA596E883BAC675E@SHSMSX101.ccr.corp.intel.com>
+ <1AE640813FDE7649BE1B193DEA596E883BAC67EE@SHSMSX101.ccr.corp.intel.com>
+ <5617A525.2070806@redhat.com>
+ <1AE640813FDE7649BE1B193DEA596E883BAC6C12@SHSMSX101.ccr.corp.intel.com>
+ <94F2FBAB4432B54E8AACC7DFDE6C92E37D98000D@ORSMSX112.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bl2on0080.outbound.protection.outlook.com ([65.55.169.80]:9376
-	"EHLO na01-bl2-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751049AbbJMXxr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 13 Oct 2015 19:53:47 -0400
-In-Reply-To: <561D28B5.7030303@amd.com>
+Received: from mga03.intel.com ([134.134.136.65]:7546 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753011AbbJNBrq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 13 Oct 2015 21:47:46 -0400
+In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37D98000D@ORSMSX112.amr.corp.intel.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, rjw@rjwysocki.net
-Cc: lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, hanjun.guo@linaro.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rob Herring <robh+dt@kernel.org>, Jeremy Linton <Jeremy.Linton@arm.com>, Tom Lendacky <thomas.lendacky@amd.com>
+To: "Moore, Robert" <robert.moore@intel.com>, Prarit Bhargava <prarit@redhat.com>, "devel@acpica.org" <devel@acpica.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>
 
-Bjorn / Rafael,
+Hi, Bob
 
-On 10/13/2015 10:52 AM, Suravee Suthikulpanit wrote:
->
-> On 09/14/2015 09:34 AM, Bjorn Helgaas wrote:
->> [..]
->> I think acpi_check_dma_coherency() is better, but only slightly.  It
->> still doesn't give a hint about the *sense* of the return value.  I
->> think it'd be easier to read if there were two functions, e.g.,
->
-> I have been going back-and-forth between the current version, and the
-> two-function-approach in the past. I can definitely go with this route
-> if you would prefer. Although, if acpi_dma_is_coherent() == 0, it would
-> be ambiguous whether DMA is not supported or non-coherent DMA is
-> supported. Then, we would need to call acpi_dma_is_supported() to find
-> out. So, that's okay with you?
+> -----Original Message-----
+> From: Moore, Robert
+> Sent: Wednesday, October 14, 2015 5:00 AM
+> To: Zheng, Lv; Prarit Bhargava; devel@acpica.org
+> Cc: linux-acpi@vger.kernel.org; Wysocki, Rafael J
+> Subject: RE: [PATCH] ACPICA: AcpiGetSleepTypeData: Failure to find \_Sx should not result in a loud warning [v2]
+> 
+> I'm a bit confused. What does the execution of the _Sx methods have to do with module-level code? Obviously, many times the _Sx
+> objects are implemented as simply named objects, but the table load doesn't care what is and what isn't present.
+> 
 
-Thinking about this again, I still think having one API (which can tell 
-whether DMA is supported or not, and if so whether it is coherent or 
-non-coherent) would be the least confusing and least error prone.
+The AE_NOT_FOUND for _Sx should have been fixed.
 
-What if we would just have:
+What we are talking is not related to the _Sx warning.
+I was just replying Prarit that why such kind of warning messages could be useful.
 
-     enum dev_dma_type acpi_get_dev_dma_type(struct acpi_device *adev);
+Thanks and best regards
+-Lv
 
-where:
-     enum dev_dma_type {
-         DEV_DMA_NOT_SUPPORTED,
-         DEV_DMA_NON_COHERENT,
-         DEV_DMA_COHERENT,
-     };
-
-This would probably mean that we should modify drivers/base/property.c 
-to replace:
-     bool device_dma_is_coherent()
-to:
-     enum dev_dma_type device_get_dma_type()
-
-We used to discuss the enum approach in the past 
-(https://lkml.org/lkml/2015/8/25/868). But we only considered at the 
-ACPI level at the time. Actually, this should also reflect in the 
-property.c.
-
-At this point, only drivers/crypto/ccp/ccp-platform.c and 
-drivers/net/ethernet/amd/xgbe/xgbe-main.c are calling the 
-device_dma_is_coherent(). So, it should be easy to change this API.
-
-Please let me know your opinions, or if you have other suggestions.
-
-Thanks again,
-Suravee
-
+> 
+> > -----Original Message-----
+> > From: Zheng, Lv
+> > Sent: Friday, October 09, 2015 6:38 PM
+> > To: Prarit Bhargava; Moore, Robert; devel@acpica.org
+> > Cc: linux-acpi@vger.kernel.org; Wysocki, Rafael J
+> > Subject: RE: [PATCH] ACPICA: AcpiGetSleepTypeData: Failure to find \_Sx
+> > should not result in a loud warning [v2]
+> >
+> > Hi,
+> >
+> > > From: Prarit Bhargava [mailto:prarit@redhat.com]
+> > > Sent: Friday, October 09, 2015 7:30 PM
+> > >
+> > > On 10/09/2015 01:26 AM, Zheng, Lv wrote:
+> > > > Please ignore this.
+> > > > The fix is against the caller.
+> > > >
+> > > > Thanks and best regards
+> > > > -Lv
+> > > >
+> > > >> From: Devel [mailto:devel-bounces@acpica.org] On Behalf Of Zheng,
+> > > >> Lv
+> > > >> Sent: Friday, October 09, 2015 10:02 AM
+> > > >>
+> > > >> Why don't you fix this in the invoker side?
+> > > >> For example:
+> > > >> If (acpi_get_handle())
+> > > >> 	acpi_evaluate_object()
+> > >
+> > > That seems like a sloppy workaround an actual bug in ACPICA.
+> >
+> > So let me ignore this which is a reply for a useless question.
+> >
+> > >
+> > > >> So that the AE_NOT_FOUND warning can still be kept for the real
+> > troubles?
+> > >
+> > > The code is warning 100% of the time on something that is optional.
+> >
+> > Let me ignore this which is a reply for a useless question.
+> >
+> > >
+> > > >> There are really scenarios that such warning is useful for catching
+> > bugs.
+> > > >>
+> > >
+> > > What scenario is possible where this causes a problem?  Issuing an
+> > > error on something that is optional is not a good idea.
+> >
+> > There are several scenarios, let me say some known stuffs about the module
+> > level code support.
+> > In AML grammar, module level code (non-object-definition AML opcodes
+> > outside of a control method) is legal.
+> > While it is supported in ACPICA in a split way:
+> > 1. In the early stage, table loading code only executes those object
+> > definition opcodes and links all "if/else/while" AML fragments together.
+> > 2. In the late stage, object initialization code will execute such AML
+> > fragments before invoking all _INI methods.
+> >
+> > 1. Since code is not executed in the Windows compliant order during the
+> > early table loading stage, some objects are not defined while they should.
+> > 2. Even worse, during the early stage, ACPICA may fail the whole table
+> > loading process due to AE_NOT_FOUND, leaving us partial initialized
+> > objects (the ACPICA AML interpreter implements 2 phases to parse a table
+> > to complete the table loading).
+> > Such issue is worked around by deleting the namespace objects created
+> > during the early stage if an exception (AE_NOT_FOUND) is encountered.
+> >
+> > So you can see, such kind of error is sometime useful for catching AML
+> > interpreter issues or BIOS bugs.
+> >
+> > Thanks and best regards
+> > -Lv
