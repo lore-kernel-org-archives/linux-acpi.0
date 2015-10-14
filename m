@@ -1,59 +1,114 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 4/4] ACPI: for bad_madt_entry(), the GIC ITS table is 20 bytes long, not 16
-Date: Thu, 15 Oct 2015 01:39:15 +0200
-Message-ID: <2164493.DUcQPnEyLL@vostro.rjw.lan>
-References: <1444857985-28844-1-git-send-email-al.stone@linaro.org> <1444857985-28844-5-git-send-email-al.stone@linaro.org>
+From: Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v7 19/20] driver core: Allow deferring probes until late
+ init
+Date: Wed, 14 Oct 2015 16:12:09 -0700
+Message-ID: <561EE149.4040701@gmail.com>
+References: <1443517859-30376-1-git-send-email-tomeu.vizoso@collabora.com> <1443517859-30376-20-git-send-email-tomeu.vizoso@collabora.com>
+Reply-To: frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:47575 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753156AbbJNXKd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Oct 2015 19:10:33 -0400
-In-Reply-To: <1444857985-28844-5-git-send-email-al.stone@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1443517859-30376-20-git-send-email-tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tomeu Vizoso <tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
+Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Russell King <rmk+kernel-lFZ/pmaqli7XmaaqVzeoHQ@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Ulf Hansson <ulf.hansson-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Al Stone <al.stone@linaro.org>
-Cc: linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, linaro-kernel@lists.linaro.org, patches@linaro.org
 
-On Wednesday, October 14, 2015 03:26:25 PM Al Stone wrote:
-> Correct a typo where bad_madt_entry() expected the MADT GIC ITS subtable
-> to be 16 bytes long, but it is actually 20 bytes.  This is a cut'n'paste
-> error picked up from the spec and inadvertently replicated in code.
+On 9/29/2015 2:10 AM, Tomeu Vizoso wrote:
+> Add a field to struct device that instructs the device-driver core to
+> defer the probe of this device until the late_initcall level.
 > 
-> Signed-off-by: Al Stone <al.stone@linaro.org>
+> By letting all built-in drivers to register before starting to probe, we
+> can avoid any deferred probes by probing dependencies on demand.
+> 
+> Signed-off-by: Tomeu Vizoso <tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
+> 
 > ---
->  drivers/acpi/tables.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
 > 
-> diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-> index 790d4b0..1b7c13e 100644
-> --- a/drivers/acpi/tables.c
-> +++ b/drivers/acpi/tables.c
-> @@ -292,7 +292,7 @@ void acpi_table_print_madt_entry(struct acpi_subtable_header *header)
->   * GICD                  0xc                         24    24    24
->   * GICv2m MSI            0xd                               24    24
->   * GICR                  0xe                               16    16
-> - * GIC ITS               0xf                                     16
-> + * GIC ITS               0xf                                     20
+> Changes in v7:
+> - Move IS_ENABLED(CONFIG_DELAY_DEVICE_PROBES) into if condition
+> - Hide CONFIG_DELAY_DEVICE_PROBES behind EXPERT
+> 
+> Changes in v4:
+> - Add Kconfig DELAY_DEVICE_PROBES to allow disabling delayed probing in
+>   machines with initcalls that depend on devices probing at a given time.
+> 
+>  drivers/base/Kconfig   | 18 ++++++++++++++++++
+>  drivers/base/dd.c      |  6 ++++++
+>  include/linux/device.h |  2 ++
+>  3 files changed, 26 insertions(+)
+> 
+> diff --git a/drivers/base/Kconfig b/drivers/base/Kconfig
+> index 98504ec99c7d..8bb7b556da1b 100644
+> --- a/drivers/base/Kconfig
+> +++ b/drivers/base/Kconfig
+> @@ -324,4 +324,22 @@ config CMA_ALIGNMENT
+>  
+>  endif
+>  
+> +config DELAY_DEVICE_PROBES
+> +	bool "Allow delaying the probe of some devices" if EXPERT
+> +	default y
+> +	help
+> +	  Devices can be matched to a driver and probed from the moment they
+> +	  are registered, but early during boot their probes are likely to be
+> +	  deferred because some dependency isn't available yet because most
+> +	  drivers haven't been registered yet.
+> +
+> +	  Enabling this option allows the device registration code to delay the
+> +	  probing of a specific device until device_initcall_sync, when all
+                                             ^^^^^^^^^^^^^^^^^^^^
+                                             late_initcall
+
+> +	  built-in drivers have been registered already.
+> +
+> +	  In some platforms there may be implicit assumptions about when some
+> +	  devices are probed, so enabling this option could cause problems there.
+> +
+> +	  If unsure, say Y here.
+> +
+>  endmenu
+> diff --git a/drivers/base/dd.c b/drivers/base/dd.c
+> index 7dc04ee81c8b..c4a3f298e726 100644
+> --- a/drivers/base/dd.c
+> +++ b/drivers/base/dd.c
+> @@ -417,6 +417,12 @@ int driver_probe_device(struct device_driver *drv, struct device *dev)
+>  	if (!device_is_registered(dev))
+>  		return -ENODEV;
+>  
+> +	if (IS_ENABLED(CONFIG_DELAY_DEVICE_PROBES) &&
+> +	    !driver_deferred_probe_enable && dev->probe_late) {
+> +		driver_deferred_probe_add(dev);
+> +		return 0;
+> +	}
+> +
+>  	pr_debug("bus: '%s': %s: matched device %s with driver %s\n",
+>  		 drv->bus->name, __func__, dev_name(dev), drv->name);
+>  
+> diff --git a/include/linux/device.h b/include/linux/device.h
+> index 8e7b806f0744..e64f4c7e243d 100644
+> --- a/include/linux/device.h
+> +++ b/include/linux/device.h
+> @@ -744,6 +744,7 @@ struct device_dma_parameters {
 >   *
->   * In the table, each length entry is what should be in the length
->   * field of the subtable, and -- in general -- it should match the
-> @@ -366,7 +366,7 @@ static struct acpi_madt_subtable_lengths spec_info[] = {
->  		.madt_version = 3,
->  		.num_types = 16,
->  		.lengths = { 8, 12, 10, 8, 6, 12, 16, SUBTABLE_VARIABLE,
-> -			     16, 16, 12, 80, 24, 24, 16, 16 }
-> +			     16, 16, 12, 80, 24, 24, 16, 20 }
->  	},
->  	{ /* terminator */
->  		.major_version = 0,
+>   * @offline_disabled: If set, the device is permanently online.
+>   * @offline:	Set after successful invocation of bus type's .offline().
+> + * @probe_late:	If set, device will be probed in the late initcall level.
+>   *
+>   * At the lowest level, every device in a Linux system is represented by an
+>   * instance of struct device. The device structure contains the information
+> @@ -828,6 +829,7 @@ struct device {
+>  
+>  	bool			offline_disabled:1;
+>  	bool			offline:1;
+> +	bool			probe_late:1;
+>  };
+>  
+>  static inline struct device *kobj_to_dev(struct kobject *kobj)
 > 
 
-That really needs to be folded into the original patch to avoid creating
-artificial bisection holes.
-
-Thanks,
-Rafael
-
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
