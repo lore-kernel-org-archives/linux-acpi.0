@@ -1,46 +1,121 @@
-From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Subject: Re: [PATCH V2 6/6] gicv2m: acpi: Introducing GICv2m ACPI support
-Date: Thu, 15 Oct 2015 08:29:42 +0200
-Message-ID: <561F47D5.6070601@linaro.org>
-References: <1444865156-9870-1-git-send-email-Suravee.Suthikulpanit@amd.com>
- <1444865156-9870-7-git-send-email-Suravee.Suthikulpanit@amd.com>
- <561F449E.2050803@semihalf.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH v3 6/6] pwm-pca9685: enable ACPI device found on Galileo
+ Gen2
+Date: Thu, 15 Oct 2015 13:21:45 +0300
+Message-ID: <1444904505.8361.640.camel@linux.intel.com>
+References: <1444213129-29793-1-git-send-email-andriy.shevchenko@linux.intel.com>
+	 <1444213129-29793-7-git-send-email-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <561F449E.2050803@semihalf.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, hanjun.guo@linaro.org, graeme.gregory@linaro.org, dhdang@apm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Return-path: <linux-i2c-owner@vger.kernel.org>
+In-Reply-To: <1444213129-29793-7-git-send-email-andriy.shevchenko@linux.intel.com>
+Sender: linux-i2c-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Wolfram Sang <wsa@the-dreams.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@intel.com>, "Puustinen, Ismo" <ismo.puustinen@intel.com>, "Pandruvada, Srinivas" <srinivas.pandruvada@intel.com>, linux-kernel@vger.kernel.org
+Cc: Thierry Reding <thierry.reding@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 15.10.2015 08:15, Tomasz Nowicki wrote:
-> Hi Suravee,
->
+On Wed, 2015-10-07 at 13:18 +0300, Andy Shevchenko wrote:
+> There is a chip connected to i2c bus on Intel Galileo Gen2 board. 
+> Enable it via
+> ACPI ID INT3492.
 
-[...]
+Thierry, can you Ack or take this one, please?
 
-> Moreover, seems we need to add irq_domain_free_fwnode to gicv2m_teardown():
->   static void gicv2m_teardown(void)
->   {
->       struct v2m_data *v2m, *tmp;
->
->       list_for_each_entry_safe(v2m, tmp, &v2m_nodes, entry) {
-> +        struct fwnode_handle *handle = v2m->fwnode;
+> 
+> Cc: Thierry Reding <thierry.reding@gmail.com>
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> ---
+>  drivers/pwm/Kconfig       |  2 +-
+>  drivers/pwm/pwm-pca9685.c | 20 ++++++++++++++++----
+>  2 files changed, 17 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/pwm/Kconfig b/drivers/pwm/Kconfig
+> index 0cfaf6b..2f4641a 100644
+> --- a/drivers/pwm/Kconfig
+> +++ b/drivers/pwm/Kconfig
+> @@ -272,7 +272,7 @@ config PWM_MXS
+>  
+>  config PWM_PCA9685
+>  	tristate "NXP PCA9685 PWM driver"
+> -	depends on OF && I2C
+> +	depends on I2C
+>  	select REGMAP_I2C
+>  	help
+>  	  Generic PWM framework driver for NXP PCA9685 LED 
+> controller.
+> diff --git a/drivers/pwm/pwm-pca9685.c b/drivers/pwm/pwm-pca9685.c
+> index 70448a6..117fccf 100644
+> --- a/drivers/pwm/pwm-pca9685.c
+> +++ b/drivers/pwm/pwm-pca9685.c
+> @@ -19,9 +19,11 @@
+>   * this program.  If not, see <http://www.gnu.org/licenses/>.
+>   */
+>  
+> +#include <linux/acpi.h>
+>  #include <linux/i2c.h>
+>  #include <linux/module.h>
+>  #include <linux/platform_device.h>
+> +#include <linux/property.h>
+>  #include <linux/pwm.h>
+>  #include <linux/regmap.h>
+>  #include <linux/slab.h>
+> @@ -297,7 +299,6 @@ static const struct regmap_config 
+> pca9685_regmap_i2c_config = {
+>  static int pca9685_pwm_probe(struct i2c_client *client,
+>  				const struct i2c_device_id *id)
+>  {
+> -	struct device_node *np = client->dev.of_node;
+>  	struct pca9685 *pca;
+>  	int ret;
+>  	int mode2;
+> @@ -320,12 +321,12 @@ static int pca9685_pwm_probe(struct i2c_client 
+> *client,
+>  
+>  	regmap_read(pca->regmap, PCA9685_MODE2, &mode2);
+>  
+> -	if (of_property_read_bool(np, "invert"))
+> +	if (device_property_read_bool(&client->dev, "invert"))
+>  		mode2 |= MODE2_INVRT;
+>  	else
+>  		mode2 &= ~MODE2_INVRT;
+>  
+> -	if (of_property_read_bool(np, "open-drain"))
+> +	if (device_property_read_bool(&client->dev, "open-drain"))
+>  		mode2 &= ~MODE2_OUTDRV;
+>  	else
+>  		mode2 |= MODE2_OUTDRV;
+> @@ -363,16 +364,27 @@ static const struct i2c_device_id pca9685_id[] 
+> = {
+>  };
+>  MODULE_DEVICE_TABLE(i2c, pca9685_id);
+>  
+> +#ifdef CONFIG_ACPI
+> +static const struct acpi_device_id pca9685_acpi_ids[] = {
+> +	{ "INT3492", 0 },
+> +	{ /* sentinel */ },
+> +};
+> +MODULE_DEVICE_TABLE(acpi, pca9685_acpi_ids);
+> +#endif
 > +
->           list_del(&v2m->entry);
->           kfree(v2m->bm);
->           iounmap(v2m->base);
-> -        of_node_put(to_of_node(v2m->fwnode));
-> +        if (is_of_node(handle))
-> +            of_node_put(to_of_node(handle));
-> +        else if (is_irqchip_node(handle))
-> +            irq_domain_free_fwnode(handle);
->           kfree(v2m);
->       }
->   }
->
-Sorry, I missed you already did something similar in your patch.
+> +#ifdef CONFIG_OF
+>  static const struct of_device_id pca9685_dt_ids[] = {
+>  	{ .compatible = "nxp,pca9685-pwm", },
+>  	{ /* sentinel */ }
+>  };
+>  MODULE_DEVICE_TABLE(of, pca9685_dt_ids);
+> +#endif
+>  
+>  static struct i2c_driver pca9685_i2c_driver = {
+>  	.driver = {
+>  		.name = "pca9685-pwm",
+> -		.of_match_table = pca9685_dt_ids,
+> +		.acpi_match_table = ACPI_PTR(pca9685_acpi_ids),
+> +		.of_match_table = of_match_ptr(pca9685_dt_ids),
+>  	},
+>  	.probe = pca9685_pwm_probe,
+>  	.remove = pca9685_pwm_remove,
 
-Tomasz
+-- 
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
