@@ -1,124 +1,120 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V1 10/10] acpi, gicv3, its: Use MADT ITS subtable to do PCI/MSI domain initialization.
-Date: Thu, 15 Oct 2015 16:05:19 +0200
-Message-ID: <1444917919-21152-11-git-send-email-tn@semihalf.com>
+Subject: [PATCH V1 08/10] irqchip, gicv3, its: Probe ITS in the ACPI way.
+Date: Thu, 15 Oct 2015 16:05:17 +0200
+Message-ID: <1444917919-21152-9-git-send-email-tn@semihalf.com>
 References: <1444917919-21152-1-git-send-email-tn@semihalf.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f182.google.com ([209.85.217.182]:33275 "EHLO
-	mail-lb0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753448AbbJOOGQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Oct 2015 10:06:16 -0400
-Received: by lbbpp2 with SMTP id pp2so40821995lbb.0
-        for <linux-acpi@vger.kernel.org>; Thu, 15 Oct 2015 07:06:14 -0700 (PDT)
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1444917919-21152-1-git-send-email-tn@semihalf.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com
 Cc: will.deacon@arm.com, Catalin.Marinas@arm.com, hanjun.guo@linaro.org, graeme.gregory@linaro.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, ddaney.cavm@gmail.com, Suravee.Suthikulpanit@amd.com, Tomasz Nowicki <tn@semihalf.com>
+List-Id: linux-acpi@vger.kernel.org
 
-After refactoring DT code, we let ACPI to build ITS PCI MSI domain
-and do requester ID to device ID translation using IORT table.
+Since we prepared ITS for being initialized different that via DT,
+it is now possible to parse MADT and pass mandatory info to
+firmware-agnostic ITS init call.
 
-We have now full PCI MSI domain stack, thus we can enable ITS initialization
-from GICv3 core driver for ACPI scenario.
+Note that we are using here IORT lib to keep track of allocated
+domain handler which will be used to build PCI MSI domain on top
+in the later patches.
 
 Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- drivers/irqchip/irq-gic-v3-its-pci-msi.c | 48 ++++++++++++++++++++++++++++++--
- drivers/irqchip/irq-gic-v3.c             |  3 +-
- 2 files changed, 47 insertions(+), 4 deletions(-)
+ drivers/irqchip/irq-gic-v3-its.c | 56 +++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 55 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/irqchip/irq-gic-v3-its-pci-msi.c b/drivers/irqchip/irq-gic-v3-its-pci-msi.c
-index cfd35da..09ae2d8 100644
---- a/drivers/irqchip/irq-gic-v3-its-pci-msi.c
-+++ b/drivers/irqchip/irq-gic-v3-its-pci-msi.c
-@@ -15,6 +15,8 @@
+diff --git a/drivers/irqchip/irq-gic-v3-its.c b/drivers/irqchip/irq-gic-v3-its.c
+index 25926f2..061af36 100644
+--- a/drivers/irqchip/irq-gic-v3-its.c
++++ b/drivers/irqchip/irq-gic-v3-its.c
+@@ -15,10 +15,12 @@
   * along with this program.  If not, see <http://www.gnu.org/licenses/>.
   */
  
 +#include <linux/acpi.h>
+ #include <linux/bitmap.h>
+ #include <linux/cpu.h>
+ #include <linux/delay.h>
+ #include <linux/interrupt.h>
 +#include <linux/iort.h>
+ #include <linux/log2.h>
+ #include <linux/mm.h>
  #include <linux/msi.h>
- #include <linux/of.h>
- #include <linux/of_irq.h>
-@@ -59,8 +61,10 @@ static int its_pci_msi_vec_count(struct pci_dev *pdev)
- static int its_get_pci_alias(struct pci_dev *pdev, u16 alias, void *data)
- {
- 	struct its_pci_alias *dev_alias = data;
-+	u32 dev_id;
- 
--	dev_alias->dev_id = alias;
-+	dev_alias->dev_id = iort_find_pci_id(pdev, alias, &dev_id) == 0 ?
-+								dev_id : alias;
- 	if (pdev != dev_alias->pdev)
- 		dev_alias->count += its_pci_msi_vec_count(pdev);
- 
-@@ -145,10 +149,50 @@ static int __init its_pci_of_msi_init(void)
+@@ -1248,6 +1250,11 @@ static int its_irq_gic_domain_alloc(struct irq_domain *domain,
+ 		fwspec.param[0] = GIC_IRQ_TYPE_LPI;
+ 		fwspec.param[1] = hwirq;
+ 		fwspec.param[2] = IRQ_TYPE_EDGE_RISING;
++	} else if (is_fwnode_irqchip(domain->parent->fwnode)) {
++		fwspec.fwnode = domain->parent->fwnode;
++		fwspec.param_count = 2;
++		fwspec.param[0] = hwirq;
++		fwspec.param[1] = IRQ_TYPE_EDGE_RISING;
+ 	} else {
+ 		return -EINVAL;
+ 	}
+@@ -1541,6 +1548,52 @@ int its_cpu_init(void)
  	return 0;
  }
  
 +#ifdef CONFIG_ACPI
 +
++#define ACPI_GICV3_ITS_MEM_SIZE (2 * SZ_64K)
++
++static struct irq_domain *its_parent __initdata;
++
 +static int __init
-+its_pci_msi_parse_madt(struct acpi_subtable_header *header,
-+		    const unsigned long end)
++gic_acpi_parse_madt_its(struct acpi_subtable_header *header,
++			const unsigned long end)
 +{
 +	struct acpi_madt_generic_translator *its_entry;
 +	struct fwnode_handle *domain_handle;
++	int err;
 +
 +	its_entry = (struct acpi_madt_generic_translator *)header;
-+	domain_handle = iort_find_its_domain_token(its_entry->translation_id);
++	domain_handle = irq_domain_alloc_fwnode((void *)its_entry->base_address);
 +	if (!domain_handle) {
-+		pr_err("ITS@0x%lx: Unable to locate ITS domain handle\n",
-+		       (long)its_entry->base_address);
-+		return 0;
++		pr_err("Unable to allocate GICv2m domain token\n");
++		return -ENOMEM;
 +	}
 +
-+	if (its_pci_msi_init_one(domain_handle))
-+		return 0;
-+
-+	pci_msi_register_fwnode_provider(&iort_find_pci_domain_token);
-+	pr_info("PCI/MSI: ITS@0x%lx domain created\n",
-+		(long)its_entry->base_address);
++	/* ITS works as msi controller in ACPI case */
++	err = its_probe_one(its_entry->base_address, ACPI_GICV3_ITS_MEM_SIZE,
++			    its_parent, true, domain_handle);
++	if (err) {
++		irq_domain_free_fwnode(domain_handle);
++		return err;
++	}
++	iort_register_domain_token(its_entry->translation_id, domain_handle);
 +	return 0;
 +}
 +
-+static int __init its_pci_acpi_msi_init(void)
++void __init its_acpi_probe(struct irq_domain *parent_domain)
 +{
-+	acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_TRANSLATOR,
-+			      its_pci_msi_parse_madt, 0);
-+	return 0;
++	int count;
++
++	its_parent = parent_domain;
++	count = acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_TRANSLATOR,
++				      gic_acpi_parse_madt_its, 0);
++	if (count <= 0)
++		pr_info("No valid GIC ITS entries exist\n");
 +}
 +#else
-+inline static int __init its_pci_acpi_msi_init(void)
-+{
-+	return 0;
-+}
++static inline void __init its_acpi_probe(struct irq_domain *parent_domain) { }
 +#endif
 +
- static int __init its_pci_msi_init(void)
- {
- 	its_pci_of_msi_init();
-+	its_pci_acpi_msi_init();
-+
- 	return 0;
- }
--
- early_initcall(its_pci_msi_init);
-diff --git a/drivers/irqchip/irq-gic-v3.c b/drivers/irqchip/irq-gic-v3.c
-index 27a6b79..b498947 100644
---- a/drivers/irqchip/irq-gic-v3.c
-+++ b/drivers/irqchip/irq-gic-v3.c
-@@ -894,8 +894,7 @@ static int __init gic_init_bases(void __iomem *dist_base,
+ static struct of_device_id its_device_id[] = {
+ 	{	.compatible	= "arm,gic-v3-its",	},
+ 	{},
+@@ -1557,7 +1610,8 @@ int __init its_init(struct fwnode_handle *handle, struct rdists *rdists,
+ 		     np = of_find_matching_node(np, its_device_id)) {
+ 			its_of_probe(np, parent_domain);
+ 		}
+-	}
++	} else
++		its_acpi_probe(parent_domain);
  
- 	set_handle_irq(gic_handle_irq);
- 
--	if (IS_ENABLED(CONFIG_ARM_GIC_V3_ITS) && gic_dist_supports_lpis() &&
--	    to_of_node(handle)) /* Temp hack to prevent ITS init for ACPI */
-+	if (IS_ENABLED(CONFIG_ARM_GIC_V3_ITS) && gic_dist_supports_lpis())
- 		its_init(handle, &gic_data.rdists, gic_data.domain);
- 
- 	gic_smp_init();
+ 	if (list_empty(&its_nodes)) {
+ 		pr_warn("ITS: No ITS available, not enabling LPIs\n");
 -- 
 1.9.1
-
