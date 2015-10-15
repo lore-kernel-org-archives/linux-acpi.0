@@ -1,240 +1,174 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH] acpi: set return value to const char for some functions
-Date: Thu, 15 Oct 2015 19:32:57 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37D9806CC@ORSMSX112.amr.corp.intel.com>
-References: <1444849635-14456-1-git-send-email-clabbe.montjoie@gmail.com>
-	 <94F2FBAB4432B54E8AACC7DFDE6C92E37D9803BD@ORSMSX112.amr.corp.intel.com>
- <1444875266.2718.37.camel@perches.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:49443 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752104AbbJOTc7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Oct 2015 15:32:59 -0400
-In-Reply-To: <1444875266.2718.37.camel@perches.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+From: Michal Marek <mmarek@suse.com>
+Subject: [PATCH 9/9] treewide: Remove newlines inside DEFINE_PER_CPU() macros
+Date: Thu, 15 Oct 2015 22:16:35 +0200
+Message-ID: <1444940195-28272-10-git-send-email-mmarek@suse.com>
+References: <1444940195-28272-1-git-send-email-mmarek@suse.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1444940195-28272-1-git-send-email-mmarek@suse.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kbuild@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org, rds-devel@oss.oracle.com, netdev@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Joe Perches <joe@perches.com>
-Cc: LABBE Corentin <clabbe.montjoie@gmail.com>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Box, David E" <david.e.box@intel.com>
 
-> Please describe the effects of "const pollution".
-> 
-> Why isn't it useful to update the functions that don't modify function
-> pointer arguments to const?
+Otherwise make tags can't parse them:
 
-It's not that const isn't useful, but it can create problems, especially in existing code. It can bubble up to higher functions, causing lots of changes to existing variables and the definition of existing functions. Not to mention lots of casting and recasting.
+ctags: Warning: arch/ia64/kernel/smp.c:60: null expansion of name pattern "\1"
+ctags: Warning: drivers/xen/events/events_2l.c:41: null expansion of name pattern "\1"
+ctags: Warning: drivers/acpi/processor_idle.c:64: null expansion of name pattern "\1"
+ctags: Warning: kernel/locking/lockdep.c:153: null expansion of name pattern "\1"
+ctags: Warning: kernel/workqueue.c:305: null expansion of name pattern "\1"
+ctags: Warning: kernel/rcu/rcutorture.c:133: null expansion of name pattern "\1"
+ctags: Warning: kernel/rcu/rcutorture.c:135: null expansion of name pattern "\1"
+ctags: Warning: net/rds/page.c:45: null expansion of name pattern "\1"
+ctags: Warning: net/ipv4/syncookies.c:53: null expansion of name pattern "\1"
+ctags: Warning: net/ipv6/syncookies.c:44: null expansion of name pattern "\1"
 
-Example quote:
+Cc: linux-ia64@vger.kernel.org
+Cc: xen-devel@lists.xenproject.org
+Cc: linux-acpi@vger.kernel.org
+Cc: rds-devel@oss.oracle.com
+Cc: netdev@vger.kernel.org
+Signed-off-by: Michal Marek <mmarek@suse.com>
+---
+ arch/ia64/kernel/smp.c         | 3 +--
+ drivers/acpi/processor_idle.c  | 3 +--
+ drivers/xen/events/events_2l.c | 3 +--
+ kernel/locking/lockdep.c       | 3 +--
+ kernel/rcu/rcutorture.c        | 6 ++----
+ kernel/workqueue.c             | 3 +--
+ net/ipv4/syncookies.c          | 3 +--
+ net/ipv6/syncookies.c          | 3 +--
+ net/rds/page.c                 | 3 +--
+ 9 files changed, 10 insertions(+), 20 deletions(-)
 
-"if you started to use "const" for some methods you usually forced to use this in most of your code. But the time spent for maintaining (typing, recompiling when some const is missing, etc.) of const-correctness in code seems greater than for fixing of possible (very rare) problems caused by not using of const-correctness at all."
-
-Also, ACPICA has to be additionally careful because it must compile with many different C compilers.
-
-
-
-All that being said, I went ahead and made the actual ACPICA changes corresponding to your patches. There were no pollution issues, and it actually simplified the code by eliminating the need for some uses of ACPI_CAST_PTR.
-
-The only issue I found was here, so we won't do this one:
-
-const char
-AcpiUtHexToAsciiChar
-
-\acpica\source\include\acutils.h(322) :
-    warning C4180: qualifier applied to function type has no meaning; ignored
-
-
-Here is the current patch to the actual ACPICA code (which is in a different format than the Linux version of the code):
-
-diff --git a/source/components/namespace/nsxfname.c b/source/components/namespace/nsxfname.c
-index 51cc4f4..c368c1f 100644
---- a/source/components/namespace/nsxfname.c
-+++ b/source/components/namespace/nsxfname.c
-@@ -249,7 +249,7 @@ AcpiGetName (
+diff --git a/arch/ia64/kernel/smp.c b/arch/ia64/kernel/smp.c
+index 7f706d4f84f7..1dcfe29d8a42 100644
+--- a/arch/ia64/kernel/smp.c
++++ b/arch/ia64/kernel/smp.c
+@@ -57,8 +57,7 @@ static struct local_tlb_flush_counts {
+ 	unsigned int count;
+ } __attribute__((__aligned__(32))) local_tlb_flush_counts[NR_CPUS];
+ 
+-static DEFINE_PER_CPU_SHARED_ALIGNED(unsigned short [NR_CPUS],
+-				     shadow_flush_counts);
++static DEFINE_PER_CPU_SHARED_ALIGNED(unsigned short [NR_CPUS], shadow_flush_counts);
+ 
+ #define IPI_CALL_FUNC		0
+ #define IPI_CPU_STOP		1
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index 175c86bee3a9..16ca18547370 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -61,8 +61,7 @@ module_param(latency_factor, uint, 0644);
+ 
+ static DEFINE_PER_CPU(struct cpuidle_device *, acpi_cpuidle_device);
+ 
+-static DEFINE_PER_CPU(struct acpi_processor_cx * [CPUIDLE_STATE_MAX],
+-								acpi_cstate);
++static DEFINE_PER_CPU(struct acpi_processor_cx * [CPUIDLE_STATE_MAX], acpi_cstate);
+ 
+ static int disabled_by_idle_boot_param(void)
  {
-     ACPI_STATUS             Status;
-     ACPI_NAMESPACE_NODE     *Node;
--    char                    *NodeName;
-+    const char              *NodeName;
+diff --git a/drivers/xen/events/events_2l.c b/drivers/xen/events/events_2l.c
+index 7dd46312c180..7ffed4c62434 100644
+--- a/drivers/xen/events/events_2l.c
++++ b/drivers/xen/events/events_2l.c
+@@ -38,8 +38,7 @@
+ /* Find the first set bit in a evtchn mask */
+ #define EVTCHN_FIRST_BIT(w) find_first_bit(BM(&(w)), BITS_PER_EVTCHN_WORD)
  
+-static DEFINE_PER_CPU(xen_ulong_t [EVTCHN_2L_NR_CHANNELS/BITS_PER_EVTCHN_WORD],
+-		      cpu_evtchn_mask);
++static DEFINE_PER_CPU(xen_ulong_t [EVTCHN_2L_NR_CHANNELS/BITS_PER_EVTCHN_WORD], cpu_evtchn_mask);
  
-     /* Parameter validation */
-diff --git a/source/components/utilities/utdecode.c b/source/components/utilities/utdecode.c
-index 580f891..3d927f5 100644
---- a/source/components/utilities/utdecode.c
-+++ b/source/components/utilities/utdecode.c
-@@ -191,7 +191,7 @@ const char        *AcpiGbl_RegionTypes[ACPI_NUM_PREDEFINED_REGIONS] =
- };
- 
- 
--char *
-+const char *
- AcpiUtGetRegionName (
-     UINT8                   SpaceId)
+ static unsigned evtchn_2l_max_channels(void)
  {
-@@ -213,7 +213,7 @@ AcpiUtGetRegionName (
-         return ("InvalidSpaceId");
-     }
- 
--    return (ACPI_CAST_PTR (char, AcpiGbl_RegionTypes[SpaceId]));
-+    return (AcpiGbl_RegionTypes[SpaceId]);
+diff --git a/kernel/locking/lockdep.c b/kernel/locking/lockdep.c
+index 8acfbf773e06..3b44d89faa48 100644
+--- a/kernel/locking/lockdep.c
++++ b/kernel/locking/lockdep.c
+@@ -150,8 +150,7 @@ static inline struct lock_class *hlock_class(struct held_lock *hlock)
  }
  
+ #ifdef CONFIG_LOCK_STAT
+-static DEFINE_PER_CPU(struct lock_class_stats[MAX_LOCKDEP_KEYS],
+-		      cpu_lock_stats);
++static DEFINE_PER_CPU(struct lock_class_stats[MAX_LOCKDEP_KEYS], cpu_lock_stats);
  
-@@ -241,7 +241,7 @@ static const char        *AcpiGbl_EventTypes[ACPI_NUM_FIXED_EVENTS] =
+ static inline u64 lockstat_clock(void)
+ {
+diff --git a/kernel/rcu/rcutorture.c b/kernel/rcu/rcutorture.c
+index 77192953dee5..588bc3374602 100644
+--- a/kernel/rcu/rcutorture.c
++++ b/kernel/rcu/rcutorture.c
+@@ -130,10 +130,8 @@ static struct rcu_torture __rcu *rcu_torture_current;
+ static unsigned long rcu_torture_current_version;
+ static struct rcu_torture rcu_tortures[10 * RCU_TORTURE_PIPE_LEN];
+ static DEFINE_SPINLOCK(rcu_torture_lock);
+-static DEFINE_PER_CPU(long [RCU_TORTURE_PIPE_LEN + 1],
+-		      rcu_torture_count) = { 0 };
+-static DEFINE_PER_CPU(long [RCU_TORTURE_PIPE_LEN + 1],
+-		      rcu_torture_batch) = { 0 };
++static DEFINE_PER_CPU(long [RCU_TORTURE_PIPE_LEN + 1], rcu_torture_count) = { 0 };
++static DEFINE_PER_CPU(long [RCU_TORTURE_PIPE_LEN + 1], rcu_torture_batch) = { 0 };
+ static atomic_t rcu_torture_wcount[RCU_TORTURE_PIPE_LEN + 1];
+ static atomic_t n_rcu_torture_alloc;
+ static atomic_t n_rcu_torture_alloc_fail;
+diff --git a/kernel/workqueue.c b/kernel/workqueue.c
+index ca71582fcfab..b800c945e10b 100644
+--- a/kernel/workqueue.c
++++ b/kernel/workqueue.c
+@@ -302,8 +302,7 @@ static bool workqueue_freezing;		/* PL: have wqs started freezing? */
+ static cpumask_var_t wq_unbound_cpumask; /* PL: low level cpumask for all unbound wqs */
+ 
+ /* the per-cpu worker pools */
+-static DEFINE_PER_CPU_SHARED_ALIGNED(struct worker_pool [NR_STD_WORKER_POOLS],
+-				     cpu_worker_pools);
++static DEFINE_PER_CPU_SHARED_ALIGNED(struct worker_pool [NR_STD_WORKER_POOLS], cpu_worker_pools);
+ 
+ static DEFINE_IDR(worker_pool_idr);	/* PR: idr of all pools */
+ 
+diff --git a/net/ipv4/syncookies.c b/net/ipv4/syncookies.c
+index d70b1f603692..07a5fb157798 100644
+--- a/net/ipv4/syncookies.c
++++ b/net/ipv4/syncookies.c
+@@ -50,8 +50,7 @@ static u32 syncookie_secret[2][16-4+SHA_DIGEST_WORDS] __read_mostly;
+ #define TSBITS	6
+ #define TSMASK	(((__u32)1 << TSBITS) - 1)
+ 
+-static DEFINE_PER_CPU(__u32 [16 + 5 + SHA_WORKSPACE_WORDS],
+-		      ipv4_cookie_scratch);
++static DEFINE_PER_CPU(__u32 [16 + 5 + SHA_WORKSPACE_WORDS], ipv4_cookie_scratch);
+ 
+ static u32 cookie_hash(__be32 saddr, __be32 daddr, __be16 sport, __be16 dport,
+ 		       u32 count, int c)
+diff --git a/net/ipv6/syncookies.c b/net/ipv6/syncookies.c
+index 0909f4e0d53c..5e3ee6a64127 100644
+--- a/net/ipv6/syncookies.c
++++ b/net/ipv6/syncookies.c
+@@ -41,8 +41,7 @@ static __u16 const msstab[] = {
+ 	9000 - 60,
  };
  
+-static DEFINE_PER_CPU(__u32 [16 + 5 + SHA_WORKSPACE_WORDS],
+-		      ipv6_cookie_scratch);
++static DEFINE_PER_CPU(__u32 [16 + 5 + SHA_WORKSPACE_WORDS], ipv6_cookie_scratch);
  
--char *
-+const char *
- AcpiUtGetEventName (
-     UINT32                  EventId)
- {
-@@ -251,7 +251,7 @@ AcpiUtGetEventName (
-         return ("InvalidEventID");
-     }
- 
--    return (ACPI_CAST_PTR (char, AcpiGbl_EventTypes[EventId]));
-+    return (AcpiGbl_EventTypes[EventId]);
- }
- 
- 
-@@ -316,21 +316,21 @@ static const char           *AcpiGbl_NsTypeNames[] =
+ static u32 cookie_hash(const struct in6_addr *saddr, const struct in6_addr *daddr,
+ 		       __be16 sport, __be16 dport, u32 count, int c)
+diff --git a/net/rds/page.c b/net/rds/page.c
+index 9005a2c920ee..6bfb9a59ea55 100644
+--- a/net/rds/page.c
++++ b/net/rds/page.c
+@@ -42,8 +42,7 @@ struct rds_page_remainder {
+ 	unsigned long	r_offset;
  };
  
+-static DEFINE_PER_CPU_SHARED_ALIGNED(struct rds_page_remainder,
+-				     rds_page_remainders);
++static DEFINE_PER_CPU_SHARED_ALIGNED(struct rds_page_remainder, rds_page_remainders);
  
--char *
-+const char *
- AcpiUtGetTypeName (
-     ACPI_OBJECT_TYPE        Type)
- {
- 
-     if (Type > ACPI_TYPE_INVALID)
-     {
--        return (ACPI_CAST_PTR (char, AcpiGbl_BadType));
-+        return (AcpiGbl_BadType);
-     }
- 
--    return (ACPI_CAST_PTR (char, AcpiGbl_NsTypeNames[Type]));
-+    return (AcpiGbl_NsTypeNames[Type]);
- }
- 
- 
--char *
-+const char *
- AcpiUtGetObjectTypeName (
-     ACPI_OPERAND_OBJECT     *ObjDesc)
- {
-@@ -372,7 +372,7 @@ AcpiUtGetObjectTypeName (
-  *
-  ******************************************************************************/
- 
--char *
-+const char *
- AcpiUtGetNodeName (
-     void                    *Object)
- {
-@@ -448,7 +448,7 @@ static const char           *AcpiGbl_DescTypeNames[] =
- };
- 
- 
--char *
-+const char *
- AcpiUtGetDescriptorName (
-     void                    *Object)
- {
-@@ -463,9 +463,7 @@ AcpiUtGetDescriptorName (
-         return ("Not a Descriptor");
-     }
- 
--    return (ACPI_CAST_PTR (char,
--        AcpiGbl_DescTypeNames[ACPI_GET_DESCRIPTOR_TYPE (Object)]));
--
-+    return (AcpiGbl_DescTypeNames[ACPI_GET_DESCRIPTOR_TYPE (Object)]);
- }
- 
- 
-@@ -542,7 +540,7 @@ AcpiUtGetReferenceName (
- 
- /* Names for internal mutex objects, used for debug output */
- 
--static char                 *AcpiGbl_MutexNames[ACPI_NUM_MUTEX] =
-+static const char           *AcpiGbl_MutexNames[ACPI_NUM_MUTEX] =
- {
-     "ACPI_MTX_Interpreter",
-     "ACPI_MTX_Namespace",
-@@ -552,7 +550,7 @@ static char                 *AcpiGbl_MutexNames[ACPI_NUM_MUTEX] =
-     "ACPI_MTX_Memory",
- };
- 
--char *
-+const char *
- AcpiUtGetMutexName (
-     UINT32                  MutexId)
- {
-diff --git a/source/components/utilities/uthex.c b/source/components/utilities/uthex.c
-index c652f6a..3a32003 100644
---- a/source/components/utilities/uthex.c
-+++ b/source/components/utilities/uthex.c
-@@ -122,7 +122,7 @@
- 
- /* Hex to ASCII conversion table */
- 
--static char                 AcpiGbl_HexToAscii[] =
-+static const char           AcpiGbl_HexToAscii[] =
- {
-     '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'
- };
-diff --git a/source/include/acutils.h b/source/include/acutils.h
-index 4fc44ff..f9372a2 100644
---- a/source/include/acutils.h
-+++ b/source/include/acutils.h
-@@ -278,7 +278,7 @@ AcpiUtInitGlobals (
- 
- #if defined(ACPI_DEBUG_OUTPUT) || defined(ACPI_DEBUGGER)
- 
--char *
-+const char *
- AcpiUtGetMutexName (
-     UINT32                  MutexId);
- 
-@@ -288,15 +288,15 @@ AcpiUtGetNotifyName (
-     ACPI_OBJECT_TYPE        Type);
- #endif
- 
--char *
-+const char *
- AcpiUtGetTypeName (
-     ACPI_OBJECT_TYPE        Type);
- 
--char *
-+const char *
- AcpiUtGetNodeName (
-     void                    *Object);
- 
--char *
-+const char *
- AcpiUtGetDescriptorName (
-     void                    *Object);
- 
-@@ -304,15 +304,15 @@ const char *
- AcpiUtGetReferenceName (
-     ACPI_OPERAND_OBJECT     *Object);
- 
--char *
-+const char *
- AcpiUtGetObjectTypeName (
-     ACPI_OPERAND_OBJECT     *ObjDesc);
- 
--char *
-+const char *
- AcpiUtGetRegionName (
-     UINT8                   SpaceId);
- 
--char *
-+const char *
- AcpiUtGetEventName (
-     UINT32                  EventId);
-
+ /*
+  * returns 0 on success or -errno on failure.
+-- 
+2.1.4
