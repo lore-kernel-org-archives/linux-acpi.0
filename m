@@ -1,121 +1,80 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v3 6/6] pwm-pca9685: enable ACPI device found on Galileo
- Gen2
-Date: Thu, 15 Oct 2015 13:21:45 +0300
-Message-ID: <1444904505.8361.640.camel@linux.intel.com>
-References: <1444213129-29793-1-git-send-email-andriy.shevchenko@linux.intel.com>
-	 <1444213129-29793-7-git-send-email-andriy.shevchenko@linux.intel.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH 05/11] x86, pci, acpi: Move arch-agnostic MMCONFIG (aka
+ ECAM) and ACPI code out of arch/x86/ directory
+Date: Thu, 15 Oct 2015 14:22:00 +0100
+Message-ID: <20151015132200.GA7621@red-moon>
+References: <20150604102253.GA31773@red-moon>
+ <5570447D.3020705@linaro.org>
+ <557504A2.3060203@linaro.org>
+ <20150608151443.GA16151@red-moon>
+ <55E4340D.6050004@linaro.org>
+ <55ED6010.3020406@linaro.org>
+ <20150908150727.GF29293@red-moon>
+ <55F0388B.1090607@linaro.org>
+ <20150911112018.GA13033@red-moon>
+ <55F6DFF6.4010807@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <1444213129-29793-7-git-send-email-andriy.shevchenko@linux.intel.com>
-Sender: linux-i2c-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Wolfram Sang <wsa@the-dreams.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@intel.com>, "Puustinen, Ismo" <ismo.puustinen@intel.com>, "Pandruvada, Srinivas" <srinivas.pandruvada@intel.com>, linux-kernel@vger.kernel.org
-Cc: Thierry Reding <thierry.reding@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:35664 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752756AbbJONV1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 15 Oct 2015 09:21:27 -0400
+Content-Disposition: inline
+In-Reply-To: <55F6DFF6.4010807@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, Yijing Wang <wangyijing@huawei.com>, Will Deacon <Will.Deacon@arm.com>, Arnd Bergmann <arnd@arndb.de>, Catalin Marinas <Catalin.Marinas@arm.com>, Jiang Liu <jiang.liu@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "msalter@redhat.com" <msalter@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
 
-On Wed, 2015-10-07 at 13:18 +0300, Andy Shevchenko wrote:
-> There is a chip connected to i2c bus on Intel Galileo Gen2 board. 
-> Enable it via
-> ACPI ID INT3492.
+On Mon, Sep 14, 2015 at 03:55:50PM +0100, Tomasz Nowicki wrote:
 
-Thierry, can you Ack or take this one, please?
+[...]
 
+> > Well, I still have not figured out whether on arm64 the raw accessors
+> > required by ACPICA make sense.
+> >
+> > So either arm64 relies on the generic MCFG based raw read and writes
+> > or we define the global raw read and writes as empty (ie x86 overrides
+> > them anyway).
+> >
 > 
-> Cc: Thierry Reding <thierry.reding@gmail.com>
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> ---
->  drivers/pwm/Kconfig       |  2 +-
->  drivers/pwm/pwm-pca9685.c | 20 ++++++++++++++++----
->  2 files changed, 17 insertions(+), 5 deletions(-)
+> My concerns/ideas related to raw accessors for ARM64, please correct me 
+> at any point.
 > 
-> diff --git a/drivers/pwm/Kconfig b/drivers/pwm/Kconfig
-> index 0cfaf6b..2f4641a 100644
-> --- a/drivers/pwm/Kconfig
-> +++ b/drivers/pwm/Kconfig
-> @@ -272,7 +272,7 @@ config PWM_MXS
->  
->  config PWM_PCA9685
->  	tristate "NXP PCA9685 PWM driver"
-> -	depends on OF && I2C
-> +	depends on I2C
->  	select REGMAP_I2C
->  	help
->  	  Generic PWM framework driver for NXP PCA9685 LED 
-> controller.
-> diff --git a/drivers/pwm/pwm-pca9685.c b/drivers/pwm/pwm-pca9685.c
-> index 70448a6..117fccf 100644
-> --- a/drivers/pwm/pwm-pca9685.c
-> +++ b/drivers/pwm/pwm-pca9685.c
-> @@ -19,9 +19,11 @@
->   * this program.  If not, see <http://www.gnu.org/licenses/>.
->   */
->  
-> +#include <linux/acpi.h>
->  #include <linux/i2c.h>
->  #include <linux/module.h>
->  #include <linux/platform_device.h>
-> +#include <linux/property.h>
->  #include <linux/pwm.h>
->  #include <linux/regmap.h>
->  #include <linux/slab.h>
-> @@ -297,7 +299,6 @@ static const struct regmap_config 
-> pca9685_regmap_i2c_config = {
->  static int pca9685_pwm_probe(struct i2c_client *client,
->  				const struct i2c_device_id *id)
->  {
-> -	struct device_node *np = client->dev.of_node;
->  	struct pca9685 *pca;
->  	int ret;
->  	int mode2;
-> @@ -320,12 +321,12 @@ static int pca9685_pwm_probe(struct i2c_client 
-> *client,
->  
->  	regmap_read(pca->regmap, PCA9685_MODE2, &mode2);
->  
-> -	if (of_property_read_bool(np, "invert"))
-> +	if (device_property_read_bool(&client->dev, "invert"))
->  		mode2 |= MODE2_INVRT;
->  	else
->  		mode2 &= ~MODE2_INVRT;
->  
-> -	if (of_property_read_bool(np, "open-drain"))
-> +	if (device_property_read_bool(&client->dev, "open-drain"))
->  		mode2 &= ~MODE2_OUTDRV;
->  	else
->  		mode2 |= MODE2_OUTDRV;
-> @@ -363,16 +364,27 @@ static const struct i2c_device_id pca9685_id[] 
-> = {
->  };
->  MODULE_DEVICE_TABLE(i2c, pca9685_id);
->  
-> +#ifdef CONFIG_ACPI
-> +static const struct acpi_device_id pca9685_acpi_ids[] = {
-> +	{ "INT3492", 0 },
-> +	{ /* sentinel */ },
-> +};
-> +MODULE_DEVICE_TABLE(acpi, pca9685_acpi_ids);
-> +#endif
-> +
-> +#ifdef CONFIG_OF
->  static const struct of_device_id pca9685_dt_ids[] = {
->  	{ .compatible = "nxp,pca9685-pwm", },
->  	{ /* sentinel */ }
->  };
->  MODULE_DEVICE_TABLE(of, pca9685_dt_ids);
-> +#endif
->  
->  static struct i2c_driver pca9685_i2c_driver = {
->  	.driver = {
->  		.name = "pca9685-pwm",
-> -		.of_match_table = pca9685_dt_ids,
-> +		.acpi_match_table = ACPI_PTR(pca9685_acpi_ids),
-> +		.of_match_table = of_match_ptr(pca9685_dt_ids),
->  	},
->  	.probe = pca9685_pwm_probe,
->  	.remove = pca9685_pwm_remove,
+> ACPI spec - chapter: 19.5.96 OperationRegion (Declare Operation Region)
+> defines PCI_Config as one of region types. Every time ASL opcode 
+> operates on corresponding PCI config space region, ASL interpreter is 
+> dispatching address space to our raw accessors, please see 
+> acpi_ex_pci_config_space_handler, acpi_ev_pci_config_region_setup calls. 
+> What is more important, such operations may happen after (yes after) bus 
+> enumeration, but always raw accessors are called at the end with the 
+> {segment, bus, dev, fn} tuple.
+> 
+> Giving above, here are some ideas:
+> 1. We force somehow vendors to avoid operations on PCI config regions in 
+> ASL code. PCI config region definitions still fall into Hardware Reduced 
+> profile, so new ACPICA special subset for ARM64 is need. Then raw ACPI 
+> accessors can be empty (and overridden by x86).
 
--- 
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+I am coming back to this, I am not sure that PCI config based OperationRegions
+fall into Hardware Reduced profile, I will finally start a thread on ASWG
+to check that.
+
+Other than that, are you posting an updated version of this series soon ?
+Let me know if you need help refactoring/testing the patches.
+
+Thanks,
+Lorenzo
+
+> 2. We provide raw accessors which translate {segment, bus, dev, fn} 
+> tuple to Linux generic accessors (this can be considered only if PCI 
+> config accesses happened after bus enumeration for HR profile, thus 
+> tuple to bus structure map is possible).
+> 4. We rely on the generic MCFG based raw read and writes.
+> 
+> Let me know your opinion.
+> 
+> Thanks,
+> Tomasz
+> 
