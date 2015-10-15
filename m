@@ -1,77 +1,148 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH 0/4] Fix regressions uncovered by bad_madt_entry() patches
-Date: Thu, 15 Oct 2015 02:37:47 +0200
-Message-ID: <CAJZ5v0iUXhfdLD53dd_4bYREapM9b0ZtDdN6TAxan7-uy+9fXg@mail.gmail.com>
-References: <1444857985-28844-1-git-send-email-al.stone@linaro.org>
-	<2129967.6jsKS4L8fa@vostro.rjw.lan>
-	<561EF215.3070100@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH 00/13] ACPICA: 20150930 Release
+Date: Thu, 15 Oct 2015 10:07:40 +0800
+Message-ID: <cover.1444874756.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f176.google.com ([209.85.217.176]:33878 "EHLO
-	mail-lb0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751103AbbJOAht (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 14 Oct 2015 20:37:49 -0400
-Received: by lbbck17 with SMTP id ck17so58227898lbb.1
-        for <linux-acpi@vger.kernel.org>; Wed, 14 Oct 2015 17:37:47 -0700 (PDT)
-In-Reply-To: <561EF215.3070100@redhat.com>
+Received: from mga11.intel.com ([192.55.52.93]:62015 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932105AbbJOCHo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 14 Oct 2015 22:07:44 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Al Stone <ahs3@redhat.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Al Stone <al.stone@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Lists linaro-kernel <linaro-kernel@lists.linaro.org>, "patches@linaro.org" <patches@linaro.org>
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Thu, Oct 15, 2015 at 2:23 AM, Al Stone <ahs3@redhat.com> wrote:
-> On 10/14/2015 05:44 PM, Rafael J. Wysocki wrote:
->> On Wednesday, October 14, 2015 03:26:21 PM Al Stone wrote:
->>> Once the patch series "Provide better MADT subtable sanity checks" got
->>> into linux-next (commit b9e11e92b9), several existing platforms were found
->>> where the firmware was doing odd things that aren't exactly correct if
->>> the ACPI specification is being followed precisely.  This patch series
->>> relaxes some of the checks on MADT subtables so that these previously
->>> working systems (all x86-based) will continue to boot.  For arm64, since
->>> ACPI usage is still relatively new, the stricter checking is left in place.
->>>
->>> Al Stone (4):
->>>   ACPI: workaround x86 firmware using reserved MADT subtable IDs
->>>   ACPI: workaround x86 firmware with mis-matched FADT/MADT revisions
->>>   ACPI: workaround FADT always being revision 2
->>>   ACPI: for bad_madt_entry(), the GIC ITS table is 20 bytes long, not 16
->>>
->>>  drivers/acpi/tables.c | 62 ++++++++++++++++++++++++++++++++++++++++++---------
->>>  1 file changed, 51 insertions(+), 11 deletions(-)
->>
->> Honestly, having reviewed this series I'm inclined to drop the original
->> changes from my tree and ask you to start over.
->
-> Yeah, I'm leaning that way, too.  This is getting way too messy.
->
->> It seems to have been a mistake to modify the existing behavior for x86 and
->> goodness only knows about ia64.  The changes for these architectures don't make
->> us better off in any way.
->
-> Right.  It is truly amazing to me how much kruft this has turned up, when the
-> idea was simply to make sure that the tables used contain proper content -- and
-> this is only for one table.  I understand why we don't want to break something
-> that's already working but I am just sort of amazed at how much improperly
-> written firmware is in use.  I wanted to believe things were better than that.
+The 20150930 ACPICA kernel-resident subsystem updates are linuxized based
+on the linux-pm/linux-next branch.
 
-Well, actually, this is quite consistent with all of my previous
-experience as disappointing as that may be ...
+The patchset has passed the following build/boot tests.
+Build tests are performed as follows:
+1. i386 + allyes
+2. i386 + allno
+3. i386 + default + ACPI_DEBUGGER=y
+4. i386 + default + ACPI_DEBUGGER=n + ACPI_DEBUG=y
+5. i386 + default + ACPI_DEBUG=n + ACPI=y
+6. i386 + default + ACPI=n
+7. x86_64 + allyes
+8. x86_64 + allno
+9. x86_64 + default + ACPI_DEBUGGER=y
+10.x86_64 + default + ACPI_DEBUGGER=n + ACPI_DEBUG=y
+11.x86_64 + default + ACPI_DEBUG=n + ACPI=y
+12.x86_64 + default + ACPI=n
+Boot tests are performed as follows:
+1. i386 + default + ACPI_DEBUGGER=y
+2. x86_64 + default + ACPI_DEBUGGER=y
+Where:
+1. i386: machine named as "Dell Inspiron Mini 1010"
+2. x86_64: machine named as "HP Compaq 8200 Elite SFF PC"
+3. default: kernel configuration with following items enabled:
+   All hardware drivers related to the machines of i386/x86_64
+   All "drivers/acpi" configurations
+   All "drivers/platform" drivers
+   All other drivers that link the APIs provided by ACPICA subsystem
 
-> Oh, well.  I'll turn the optimism knob back down to 1 and the cynicism knob all
-> the way up to 11...
->
->> I understand the motivation to keep ARM64 "fresh and clean", but there must be
->> a way to do that without affecting the other architectures negatively.
->>
->> Thanks,
->> Rafael
->
-> Let me think on that; it can be done, I'm sure, but part of the motivation for
-> these patches was that all architectures should follow the same ACPI rules.  I
-> was honestly hoping to avoid a per architecture solution.
+The divergences checking result:
+Before applying (20150818 Release):
+  517 lines
+After applying (20150930 Release):
+  517 lines
 
-That hasn't worked out well, though.
+Note there are still 2 ACPICA debugger patches not released during this
+release cycle, so the debugger IO driver is not released in this cycle. In
+this series the ACPICA debugger core is compile time enabled as all ACPICA
+debugger files can be built with ACPI_DEBUGGER=y, but not runtime enabled
+as there is no invocations calling ACPICA debugger APIs and its required
+OSls are just stubs.
 
-Thanks,
-Rafael
+Bob Moore (8):
+  ACPICA: Remove unnecessary conditional compilation.
+  ACPICA: iASL: Add symbolic operator support for Index() operator.
+  ACPICA: Update exception code for "file not found" error
+  ACPICA: Debugger: Update mutexes used for multithreaded debugger
+  ACPICA: Update NFIT table to rename a flags field
+  ACPICA: Improve typechecking, both compile-time and runtime
+  ACPICA: iASL: General cleanup of the file suffix #defines
+  ACPICA: Update version to 20150930
+
+Lv Zheng (5):
+  ACPICA: Linuxize: Export debugger files to Linux
+  ACPICA: Debugger: Fix "quit/exit" command by cleaning up user
+    commands termination logic
+  ACPICA: Debugger: Fix "terminate" command by cleaning up subsystem
+    shutdown logic
+  ACPI: Enable build of AML interpreter debugger
+  ACPICA: Debugger: Fix dead lock issue ocurred in single stepping mode
+
+ drivers/acpi/Kconfig                      |    9 +
+ drivers/acpi/acpica/Makefile              |   16 +
+ drivers/acpi/acpica/acapps.h              |    2 +-
+ drivers/acpi/acpica/acdebug.h             |    6 +
+ drivers/acpi/acpica/acglobal.h            |    6 +-
+ drivers/acpi/acpica/acinterp.h            |    2 -
+ drivers/acpi/acpica/aclocal.h             |   14 +-
+ drivers/acpi/acpica/acnamesp.h            |    4 -
+ drivers/acpi/acpica/acopcode.h            |    4 +-
+ drivers/acpi/acpica/acparser.h            |    4 -
+ drivers/acpi/acpica/acutils.h             |    2 -
+ drivers/acpi/acpica/amlcode.h             |   11 +-
+ drivers/acpi/acpica/dbcmds.c              | 1187 +++++++++++++++++++++++++++
+ drivers/acpi/acpica/dbconvert.c           |  484 +++++++++++
+ drivers/acpi/acpica/dbdisply.c            | 1108 +++++++++++++++++++++++++
+ drivers/acpi/acpica/dbexec.c              |  763 +++++++++++++++++
+ drivers/acpi/acpica/dbfileio.c            |  256 ++++++
+ drivers/acpi/acpica/dbhistry.c            |  239 ++++++
+ drivers/acpi/acpica/dbinput.c             | 1267 +++++++++++++++++++++++++++++
+ drivers/acpi/acpica/dbmethod.c            |  369 +++++++++
+ drivers/acpi/acpica/dbnames.c             |  947 +++++++++++++++++++++
+ drivers/acpi/acpica/dbobject.c            |  533 ++++++++++++
+ drivers/acpi/acpica/dbstats.c             |  546 +++++++++++++
+ drivers/acpi/acpica/dbtest.c              | 1057 ++++++++++++++++++++++++
+ drivers/acpi/acpica/dbutils.c             |  457 +++++++++++
+ drivers/acpi/acpica/dbxface.c             |  487 +++++++++++
+ drivers/acpi/acpica/evxface.c             |    2 +-
+ drivers/acpi/acpica/exconvrt.c            |    1 +
+ drivers/acpi/acpica/exresolv.c            |    1 -
+ drivers/acpi/acpica/exresop.c             |    2 +
+ drivers/acpi/acpica/exstore.c             |  120 ++-
+ drivers/acpi/acpica/exstoren.c            |    5 +-
+ drivers/acpi/acpica/nsdump.c              |    6 -
+ drivers/acpi/acpica/nspredef.c            |    2 +-
+ drivers/acpi/acpica/pstree.c              |    2 -
+ drivers/acpi/acpica/psutils.c             |    2 -
+ drivers/acpi/acpica/rsdump.c              |    3 -
+ drivers/acpi/acpica/rsutils.c             |    2 -
+ drivers/acpi/acpica/rsxface.c             |    4 +-
+ drivers/acpi/acpica/utdecode.c            |   21 +-
+ drivers/acpi/acpica/utfileio.c            |    6 +
+ drivers/acpi/acpica/utinit.c              |   15 +-
+ drivers/acpi/acpica/utmutex.c             |   21 +
+ drivers/acpi/acpica/utxface.c             |   19 +-
+ drivers/acpi/nfit.c                       |    6 +-
+ drivers/acpi/nfit.h                       |    2 +-
+ drivers/acpi/osl.c                        |   11 +-
+ include/acpi/acexcep.h                    |    7 +-
+ include/acpi/acpixf.h                     |   12 +-
+ include/acpi/actbl1.h                     |    2 +-
+ include/acpi/platform/acenv.h             |    8 +-
+ include/acpi/platform/aclinux.h           |    7 +-
+ include/acpi/platform/aclinuxex.h         |    5 +
+ tools/power/acpi/tools/acpidump/apfiles.c |    2 +-
+ 54 files changed, 9941 insertions(+), 135 deletions(-)
+ create mode 100644 drivers/acpi/acpica/dbcmds.c
+ create mode 100644 drivers/acpi/acpica/dbconvert.c
+ create mode 100644 drivers/acpi/acpica/dbdisply.c
+ create mode 100644 drivers/acpi/acpica/dbexec.c
+ create mode 100644 drivers/acpi/acpica/dbfileio.c
+ create mode 100644 drivers/acpi/acpica/dbhistry.c
+ create mode 100644 drivers/acpi/acpica/dbinput.c
+ create mode 100644 drivers/acpi/acpica/dbmethod.c
+ create mode 100644 drivers/acpi/acpica/dbnames.c
+ create mode 100644 drivers/acpi/acpica/dbobject.c
+ create mode 100644 drivers/acpi/acpica/dbstats.c
+ create mode 100644 drivers/acpi/acpica/dbtest.c
+ create mode 100644 drivers/acpi/acpica/dbutils.c
+ create mode 100644 drivers/acpi/acpica/dbxface.c
+
+-- 
+1.7.10
+
