@@ -1,93 +1,57 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [Patch v7 0/7] Consolidate ACPI PCI root common code into ACPI
- core
-Date: Thu, 15 Oct 2015 15:48:29 -0500
-Message-ID: <20151015204829.GH10442@localhost>
-References: <1444804182-6596-1-git-send-email-jiang.liu@linux.intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v3 1/2] ACPI / tables: simplify acpi_parse_entries
+Date: Thu, 15 Oct 2015 23:37:18 +0200
+Message-ID: <1716674.6oaNdqBolQ@vostro.rjw.lan>
+References: <1442408287-10410-1-git-send-email-sudeep.holla@arm.com> <561FC9E9.20507@arm.com> <561FCCF2.8010908@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:57329 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752302AbbJOUsd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 15 Oct 2015 16:48:33 -0400
-Content-Disposition: inline
-In-Reply-To: <1444804182-6596-1-git-send-email-jiang.liu@linux.intel.com>
+Received: from v094114.home.net.pl ([79.96.170.134]:46470 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752231AbbJOVIf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Oct 2015 17:08:35 -0400
+In-Reply-To: <561FCCF2.8010908@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org
+To: Al Stone <al.stone@linaro.org>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>
 
-On Wed, Oct 14, 2015 at 02:29:35PM +0800, Jiang Liu wrote:
-> From: Liu Jiang <jiang.liu@linux.intel.com>
+On Thursday, October 15, 2015 09:57:38 AM Al Stone wrote:
+> On 10/15/2015 09:44 AM, Sudeep Holla wrote:
+> > Hi Rafael,
+> > 
+> > On 01/10/15 16:11, Sudeep Holla wrote:
+> >> acpi_parse_entries passes the table end pointer to the sub-table entry
+> >> handler. acpi_parse_entries itself could validate the end of an entry
+> >> against the table end using the length in the sub-table entry.
+> >>
+> >> This patch adds the validation of the sub-table entry end using the
+> >> length field.This will help to eliminate the need to pass the table end
+> >> to the handlers.
+> >>
+> >> It also moves the check for zero length entry early so that execution of
+> >> the handler can be avoided.
+> >>
+> >> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> > 
+> > Now that Al's MADT is queued, can you consider applying these ?
+> > 
 > 
-> This patch set consolidates common code to support ACPI PCI root on x86
-> and IA64 platforms into ACPI core, to reproduce duplicated code and
-> simplify maintenance. And a patch set based on previous version to support
-> ACPI based PCIe host bridge on ARM64 has been posted at:
-> https://lkml.org/lkml/2015/5/26/207
-> 
-> It's based on latest mainstream kernel. It passes Fengguang's 0day test
-> suite and has been tested on two IA64 platforms and one x86 platform.
-> 
-> V6->V7:
-> 1) Improve commit message according to Bjorn's suggestion.
-> 2) Move arch specific logic(code) from ACPI core into arch code
->    according to Bjorn's review comments.
+> I think we have to remove my patches from the queue until I can make
+> them arch-specific; doing these MADT checks breaks far too many existing
+> x86 systems where the firmware does things it should not;
 
-Thanks for cleaning this up; I think it looks much better.
+Right.  I've dropped the series already.
 
-As far as I'm concerned, this series is ready to go.  I assume Rafael
-will merge it.
+> re-reading some of the ia64 kernel code, there's a pathological case there
+> where it could break (but shouldn't if iasl is being used to compile tables).
 
-> V5->V6:
-> 1) Patch 5 to reset domain number to 0 when pci_ignore_seg is set
-> 2) Remove parameter segment and node from function acpi_pci_root_create(),
->    as suggested by Lorenzo and Bjorn.
-> V4-V5:
-> 1) As suggested by Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, do not
->    introduce "struct pci_controller" into generic drivers/acpi/pci_root.c,
->    so ARM64 doesn't need to define a useless structure. And it simplifies
->    code a little too.
-> 
-> V3->V4:
-> 1) Add patch[05/08] support solve building issue on ARM64
-> 2) Solve an implicitly pointer cast issue.
-> 3) Rebase to latest mainstream kernel
-> 
-> V2->V3:
-> 1. Move memory allocation/free from ACPI core into arch
-> 2. Kill the field 'segment' in struct pci_root_info on x86
-> 
-> Thanks!
-> Gerry
-> 
-> Jiang Liu (7):
->   ACPI/PCI: Enhance ACPI core to support sparse IO space
->   ia64/PCI/ACPI: Use common ACPI resource parsing interface for host
->     bridge
->   ia64/PCI: Use common struct resource_entry to replace struct
->     iospace_resource
->   PCI/ACPI: Add interface acpi_pci_root_create()
->   ACPI, PCI: Reset acpi_root_dev->domain to 0 when pci_ignore_seg is
->     set
->   x86/PCI/ACPI: Use common interface to support PCI host bridge
->   ia64/PCI/ACPI: Use common interface to support PCI host bridge
-> 
->  arch/ia64/include/asm/pci.h |    5 -
->  arch/ia64/pci/pci.c         |  368 ++++++++++++-------------------------------
->  arch/x86/pci/acpi.c         |  296 +++++++++++-----------------------
->  drivers/acpi/pci_root.c     |  204 ++++++++++++++++++++++++
->  drivers/acpi/resource.c     |    9 +-
->  include/linux/ioport.h      |    1 +
->  include/linux/pci-acpi.h    |   24 +++
->  7 files changed, 423 insertions(+), 484 deletions(-)
-> 
-> -- 
-> 1.7.10.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+I wouldn't count on iasl being used.
+
+> I'll be working on the new version today.
+
+Thanks!
+
+Rafael
+
