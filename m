@@ -1,38 +1,28 @@
-From: Insu Yun <wuninsu@gmail.com>
-Subject: [PATCH] acpi:correctly check failed allocation
-Date: Thu, 15 Oct 2015 12:19:30 -0400
-Message-ID: <1444925970-28676-1-git-send-email-wuninsu@gmail.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yk0-f172.google.com ([209.85.160.172]:35798 "EHLO
-	mail-yk0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753479AbbJOQTP (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Oct 2015 12:19:15 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: [PATCH 05/11] x86, pci, acpi: Move arch-agnostic MMCONFIG (aka
+ ECAM) and ACPI code out of arch/x86/ directory
+Date: Thu, 15 Oct 2015 17:26:35 +0100
+Message-ID: <561FD3BB.70501@arm.com>
+References: <20150604102253.GA31773@red-moon> <5570447D.3020705@linaro.org> <557504A2.3060203@linaro.org> <20150608151443.GA16151@red-moon> <55E4340D.6050004@linaro.org> <55ED6010.3020406@linaro.org> <20150908150727.GF29293@red-moon> <55F0388B.1090607@linaro.org> <20150911112018.GA13033@red-moon> <55F6DFF6.4010807@linaro.org> <20151015132200.GA7621@red-moon> <561FB985.8070509@linaro.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <561FB985.8070509@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tomasz Nowicki <tomasz.nowicki@linaro.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "msalter@redhat.com" <msalter@redhat.com>, Liviu Dudau <Liviu.Dudau@arm.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Will Deacon <Will.Deacon@arm.com>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, Yijing Wang <wangyijing@huawei.com>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Bjorn Helgaas <bhelgaas@google.com>, Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: taesoo@gatech.edu, yeongjin.jang@gatech.edu, insu@gatech.edu, Insu Yun <wuninsu@gmail.com>
 
-Since kobject_create_and_add can be failed in memory pressure,
-return value need to be checked and return ENOMEM.
+On 15/10/15 15:34, Tomasz Nowicki wrote:
 
-Signed-off-by: Insu Yun <wuninsu@gmail.com>
----
- drivers/acpi/sysfs.c | 2 ++
- 1 file changed, 2 insertions(+)
+> Of course your help in testing is welcomed. Also please have a look at 
+> my GICv3/ITS patches, they are important for ACPI PCI.
 
-diff --git a/drivers/acpi/sysfs.c b/drivers/acpi/sysfs.c
-index 40a4265..e712a7b 100644
---- a/drivers/acpi/sysfs.c
-+++ b/drivers/acpi/sysfs.c
-@@ -878,6 +878,8 @@ int __init acpi_sysfs_init(void)
- 		return result;
- 
- 	hotplug_kobj = kobject_create_and_add("hotplug", acpi_kobj);
-+  if (!hotplug_kobj)
-+    return -ENOMEM;
- 	result = sysfs_create_file(hotplug_kobj, &force_remove_attr.attr);
- 	if (result)
- 		return result;
+Where is the dependency? ACPI/PCI should really be standalone.
+
+Thanks,
+
+	M.
 -- 
-1.9.1
-
+Jazz is not dead. It just smells funny...
