@@ -1,80 +1,181 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH 05/11] x86, pci, acpi: Move arch-agnostic MMCONFIG (aka
- ECAM) and ACPI code out of arch/x86/ directory
-Date: Thu, 15 Oct 2015 14:22:00 +0100
-Message-ID: <20151015132200.GA7621@red-moon>
-References: <20150604102253.GA31773@red-moon>
- <5570447D.3020705@linaro.org>
- <557504A2.3060203@linaro.org>
- <20150608151443.GA16151@red-moon>
- <55E4340D.6050004@linaro.org>
- <55ED6010.3020406@linaro.org>
- <20150908150727.GF29293@red-moon>
- <55F0388B.1090607@linaro.org>
- <20150911112018.GA13033@red-moon>
- <55F6DFF6.4010807@linaro.org>
+From: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>
+Subject: Re: [PATCH V2 6/6] gicv2m: acpi: Introducing GICv2m ACPI support
+Date: Thu, 15 Oct 2015 09:03:36 -0500
+Message-ID: <561FB238.10509@amd.com>
+References: <1444865156-9870-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+ <1444865156-9870-7-git-send-email-Suravee.Suthikulpanit@amd.com>
+ <561F449E.2050803@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:35664 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752756AbbJONV1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 15 Oct 2015 09:21:27 -0400
-Content-Disposition: inline
-In-Reply-To: <55F6DFF6.4010807@linaro.org>
+Received: from mail-bl2on0092.outbound.protection.outlook.com ([65.55.169.92]:44043
+	"EHLO na01-bl2-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750752AbbJOODz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 15 Oct 2015 10:03:55 -0400
+In-Reply-To: <561F449E.2050803@semihalf.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, Yijing Wang <wangyijing@huawei.com>, Will Deacon <Will.Deacon@arm.com>, Arnd Bergmann <arnd@arndb.de>, Catalin Marinas <Catalin.Marinas@arm.com>, Jiang Liu <jiang.liu@linux.intel.com>, Thomas Gleixner <tglx@linutronix.de>, "suravee.suthikulpanit@amd.com" <suravee.suthikulpanit@amd.com>, "msalter@redhat.com" <msalter@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>
+To: Tomasz Nowicki <tn@semihalf.com>, marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, hanjun.guo@linaro.org, graeme.gregory@linaro.org, dhdang@apm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Mon, Sep 14, 2015 at 03:55:50PM +0100, Tomasz Nowicki wrote:
+Hi Tomasz,
 
-[...]
+Thanks for the feedback.
 
-> > Well, I still have not figured out whether on arm64 the raw accessors
-> > required by ACPICA make sense.
-> >
-> > So either arm64 relies on the generic MCFG based raw read and writes
-> > or we define the global raw read and writes as empty (ie x86 overrides
-> > them anyway).
-> >
-> 
-> My concerns/ideas related to raw accessors for ARM64, please correct me 
-> at any point.
-> 
-> ACPI spec - chapter: 19.5.96 OperationRegion (Declare Operation Region)
-> defines PCI_Config as one of region types. Every time ASL opcode 
-> operates on corresponding PCI config space region, ASL interpreter is 
-> dispatching address space to our raw accessors, please see 
-> acpi_ex_pci_config_space_handler, acpi_ev_pci_config_region_setup calls. 
-> What is more important, such operations may happen after (yes after) bus 
-> enumeration, but always raw accessors are called at the end with the 
-> {segment, bus, dev, fn} tuple.
-> 
-> Giving above, here are some ideas:
-> 1. We force somehow vendors to avoid operations on PCI config regions in 
-> ASL code. PCI config region definitions still fall into Hardware Reduced 
-> profile, so new ACPICA special subset for ARM64 is need. Then raw ACPI 
-> accessors can be empty (and overridden by x86).
+On 10/15/2015 1:15 AM, Tomasz Nowicki wrote:
+>> [..]
+>> @@ -138,6 +140,11 @@ static int gicv2m_irq_gic_domain_alloc(struct
+>> irq_domain *domain,
+>>           fwspec.param[0] = 0;
+>>           fwspec.param[1] = hwirq - 32;
+>>           fwspec.param[2] = IRQ_TYPE_EDGE_RISING;
+>> +    } else if (is_fwnode_irqchip(domain->parent->fwnode)) {
+>> +        fwspec.fwnode = domain->parent->fwnode;
+>> +        fwspec.param_count = 2;
+>> +        fwspec.param[0] = hwirq;
+>> +        fwspec.param[1] = IRQ_TYPE_EDGE_RISING & IRQ_TYPE_SENSE_MASK;
+> How about just:
+> fwspec.param[1] = IRQ_TYPE_EDGE_RISING;
 
-I am coming back to this, I am not sure that PCI config based OperationRegions
-fall into Hardware Reduced profile, I will finally start a thread on ASWG
-to check that.
+Right.
 
-Other than that, are you posting an updated version of this series soon ?
-Let me know if you need help refactoring/testing the patches.
+>
+>>       } else {
+>>           return -EINVAL;
+>>       }
+>> @@ -255,6 +262,8 @@ static void gicv2m_teardown(void)
+>>           kfree(v2m->bm);
+>>           iounmap(v2m->base);
+>>           of_node_put(to_of_node(v2m->fwnode));
+>> +        if (is_fwnode_irqchip(v2m->fwnode))
+>> +            irq_domain_free_fwnode(v2m->fwnode);
+>>           kfree(v2m);
+>>       }
+>>   }
+>> @@ -359,6 +368,8 @@ static int __init gicv2m_init_one(struct
+>> fwnode_handle *fwnode,
+>>
+>>       if (to_of_node(fwnode))
+>>           name = to_of_node(fwnode)->name;
+>> +    else
+>> +        name = irq_domain_get_irqchip_fwnode_name(fwnode);
+>>
+>>       pr_info("Frame %s: range[%#lx:%#lx], SPI[%d:%d]\n", name,
+>>           (unsigned long)res->start, (unsigned long)res->end,
+>> @@ -415,3 +426,86 @@ int __init gicv2m_of_init(struct device_node
+>> *node, struct irq_domain *parent)
+>>           gicv2m_teardown();
+>>       return ret;
+>>   }
+>> +
+>> +#ifdef CONFIG_ACPI
+>> +static int acpi_num_msi;
+>> +
+>> +static struct fwnode_handle *gicv2m_get_fwnode(struct device *dev)
+>> +{
+>> +    struct v2m_data *data;
+>> +
+>> +    if (WARN_ON(acpi_num_msi <= 0))
+>> +        return NULL;
+>> +
+>> +    /* We only return the fwnode of the first MSI frame. */
+>> +    data = list_first_entry_or_null(&v2m_nodes,
+>> +                    struct v2m_data, entry);
+> This can be one line and still fits within 80 characters.
+
+Ok.
+
+>> +    if (!data)
+>> +        return NULL;
+>> +
+>> +    return data->fwnode;
+>> +}
+>> +
+>> +static int __init
+>> +acpi_parse_madt_msi(struct acpi_subtable_header *header,
+>> +            const unsigned long end)
+>> +{
+>> +    int ret;
+>> +    struct resource res;
+>> +    u32 spi_start = 0, nr_spis = 0;
+>> +    struct acpi_madt_generic_msi_frame *m;
+>> +    struct fwnode_handle *fwnode = NULL;
+>> +
+>> +    m = (struct acpi_madt_generic_msi_frame *)header;
+>> +    if (BAD_MADT_ENTRY(m, end))
+>> +        return -EINVAL;
+>> +
+>> +    res.start = m->base_address;
+>> +    res.end = m->base_address + 0x1000;
+>> +
+>> +    if (m->flags & ACPI_MADT_OVERRIDE_SPI_VALUES) {
+>> +        spi_start = m->spi_base;
+>> +        nr_spis = m->spi_count;
+>> +
+>> +        pr_info("ACPI overriding V2M MSI_TYPER (base:%u, num:%u)\n",
+>> +            spi_start, nr_spis);
+>> +    }
+>> +
+>> +    fwnode = irq_domain_alloc_fwnode((void *)m->base_address);
+>> +    if (!fwnode) {
+>> +        pr_err("Unable to allocate GICv2m domain token\n");
+>> +        return -EINVAL;
+>> +    }
+>> +
+>> +    ret = gicv2m_init_one(fwnode, spi_start, nr_spis, &res);
+> I case of error, we should call here:
+> irq_domain_free_fwnode(fwnode);
+
+This should have already been handled when returning from the 
+acpi_parse_madt_msi() in gicv2m_teardown() since we would need to 
+iterate through all existing MSI frame to clean up.
+
+>> +
+>> +    return ret;
+>> +}
+>> +
+>> +int __init gicv2m_acpi_init(struct irq_domain *parent)
+>> +{
+>> +    int ret;
+>> +
+>> +    if (acpi_num_msi > 0)
+>> +        return 0;
+>> +
+>> +    acpi_num_msi =
+>> acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_MSI_FRAME,
+>> +                      acpi_parse_madt_msi, 0);
+>> +
+>> +    if (acpi_num_msi <= 0)
+>> +        goto err_out;
+> If acpi_table_parse_madt return 0, then we don't need to call
+> gicv2m_teardown(). Instead we can simply return, optionally add some
+> pr_info. Well, gicv2m_teardown would do nothing, so this is just
+> cosmetic and up to you.
+
+I'd be hesitate to add pr_info here since V2m is optional, we already 
+print information for each frame found. I think I would just leave this 
+one the way it is.
+
+>> [..]
+>> diff --git a/include/linux/irqchip/arm-gic.h
+>> b/include/linux/irqchip/arm-gic.h
+>> index bae69e5..7398538 100644
+>> --- a/include/linux/irqchip/arm-gic.h
+>> +++ b/include/linux/irqchip/arm-gic.h
+>> @@ -108,6 +108,12 @@ void gic_init(unsigned int nr, int start,
+>>
+>>   int gicv2m_of_init(struct device_node *node, struct irq_domain
+>> *parent);
+>>
+>> +#ifdef CONFIG_ACPI
+>> +#include <linux/acpi.h>
+> I think, we don't need this include here. You already added it to itq-gic.c
+
+Right.
 
 Thanks,
-Lorenzo
+Suravee
 
-> 2. We provide raw accessors which translate {segment, bus, dev, fn} 
-> tuple to Linux generic accessors (this can be considered only if PCI 
-> config accesses happened after bus enumeration for HR profile, thus 
-> tuple to bus structure map is possible).
-> 4. We rely on the generic MCFG based raw read and writes.
-> 
-> Let me know your opinion.
-> 
-> Thanks,
-> Tomasz
-> 
+
