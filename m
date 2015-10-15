@@ -1,56 +1,34 @@
-From: Jon Masters <jcm@redhat.com>
-Subject: Re: [PATCH 00/11] ARM64 PCI hostbridge init based on ACPI
-Date: Thu, 15 Oct 2015 19:49:03 -0400 (EDT)
-Message-ID: <A2E9B42F-21EE-4432-91E2-9142BE595825@redhat.com>
-References: <1432644564-24746-1-git-send-email-hanjun.guo@linaro.org> <561FFB4C.1000500@redhat.com> <562039FE.9050004@linaro.org>
+From: Joe Perches <joe@perches.com>
+Subject: Re: [PATCH] acpi: set return value to const char for some functions
+Date: Thu, 15 Oct 2015 16:59:46 -0700
+Message-ID: <1444953586.22921.0.camel@perches.com>
+References: <1444849635-14456-1-git-send-email-clabbe.montjoie@gmail.com>
+	 <94F2FBAB4432B54E8AACC7DFDE6C92E37D9803BD@ORSMSX112.amr.corp.intel.com>
+	 <1444875266.2718.37.camel@perches.com>
+	 <94F2FBAB4432B54E8AACC7DFDE6C92E37D9806CC@ORSMSX112.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <562039FE.9050004@linaro.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Arnd Bergmann <arnd@arndb.de>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, Liviu Dudau <Liviu.Dudau@arm.com>, linux-kernel@vger.kernel.org, Tomasz Nowicki <tomasz.nowicki@linaro.org>, linux-acpi@vger.kernel.org, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Mark Salter <msalter@redhat.com>, Yijing Wang <wangyijing@huawei.com>, Thomas Gleixner <tglx@linutronix.de>, Jiang Liu <jiang.liu@linux.intel.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtprelay0027.hostedemail.com ([216.40.44.27]:59997 "EHLO
+	smtprelay.hostedemail.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751371AbbJOX7u (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 15 Oct 2015 19:59:50 -0400
+In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37D9806CC@ORSMSX112.amr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: LABBE Corentin <clabbe.montjoie@gmail.com>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Box, David E" <david.e.box@intel.com>
 
-Sorry for top posting. Can you summarize the OperationRegion issue? I am aware of a few early firmwares that effectively had the producer/consumer type for bridge resources the wrong way around but not of the specific issue. If ASWG confidential I can take it over there.
+On Thu, 2015-10-15 at 19:32 +0000, Moore, Robert wrote:
+> if you started to use "const" for some methods you usually forced to
+> use this in most of your code. But the time spent for maintaining
+> (typing, recompiling when some const is missing, etc.) of
+> const-correctness in code seems greater than for fixing of possible
+> (very rare) problems caused by not using of const-correctness at all
 
--- 
-Computer Architect | Sent from my 64-bit #ARM Powered phone
+c is not c++.
 
-> On Oct 15, 2015, at 19:43, Hanjun Guo <hanjun.guo@linaro.org> wrote:
-> 
->> On 10/16/2015 03:15 AM, Jon Masters wrote:
->> Hi Hanjun,
->> 
->> Thanks for your hard work on ARM64 PCI host bridge/root complex so far!
->> 
->>> On 05/26/2015 08:49 AM, Hanjun Guo wrote:
->>> This patch set is introducing ARM64 PCI hostbridge init based on ACPI,
->>> which based on Jiang Liu's patch set "Consolidate ACPI PCI root common
->>> code into ACPI core":
->>> 
->>> https://lkml.org/lkml/2015/5/14/98
->> 
->> The latest version (v7) of the ACPI PCI root common code consolidation
->> series was posted by Gerry (Jiang Liu) yesterday:
->> 
->> https://lkml.kernel.org/g/1444804182-6596-1-git-send-email-jiang.liu@linux.intel.com
->> 
->> This got me wondering what the status is of the ARM64 specific
->> hostbridge patch series that has a dependency upon the former. Are you
->> planning to wait for that series to be accepted or post a newer rebased
->> version for additional review, or something else?
-> 
-> Tomasz and Lorenzo are discussing about the PCI config based
-> OperationRegions, which still have no conclusion yet, Lorenzo
-> started a discussion on ASWG and hope can get some feedback.
-> 
-> Other than that, Tomasz volunteered to cleanup this patch set, I
-> think we need to rebase on Jiang's v7 patchset which was accepted
-> By Rafael, of course I will work with Tomasz to prepare those
-> patches.
-> 
-> Thanks
-> Hanjun
+"seems" is a dubious statement.
+
