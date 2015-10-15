@@ -1,191 +1,76 @@
-From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Subject: [PATCH V2 6/6] gicv2m: acpi: Introducing GICv2m ACPI support
-Date: Wed, 14 Oct 2015 16:25:56 -0700
-Message-ID: <1444865156-9870-7-git-send-email-Suravee.Suthikulpanit@amd.com>
-References: <1444865156-9870-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+From: Al Stone <ahs3@redhat.com>
+Subject: Re: [PATCH 0/4] Fix regressions uncovered by bad_madt_entry() patches
+Date: Wed, 14 Oct 2015 18:23:49 -0600
+Message-ID: <561EF215.3070100@redhat.com>
+References: <1444857985-28844-1-git-send-email-al.stone@linaro.org>
+ <2129967.6jsKS4L8fa@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1444865156-9870-1-git-send-email-Suravee.Suthikulpanit@amd.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, hanjun.guo@linaro.org, tomasz.nowicki@linaro.org, graeme.gregory@linaro.org, dhdang@apm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:50680 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751007AbbJOAXu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 14 Oct 2015 20:23:50 -0400
+In-Reply-To: <2129967.6jsKS4L8fa@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Al Stone <al.stone@linaro.org>
+Cc: linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, linaro-kernel@lists.linaro.org, patches@linaro.org
 
-This patch introduces gicv2m_acpi_init(), which uses information
-in MADT GIC MSI frames structure to initialize GICv2m driver.
+On 10/14/2015 05:44 PM, Rafael J. Wysocki wrote:
+> On Wednesday, October 14, 2015 03:26:21 PM Al Stone wrote:
+>> Once the patch series "Provide better MADT subtable sanity checks" got
+>> into linux-next (commit b9e11e92b9), several existing platforms were found
+>> where the firmware was doing odd things that aren't exactly correct if
+>> the ACPI specification is being followed precisely.  This patch series
+>> relaxes some of the checks on MADT subtables so that these previously 
+>> working systems (all x86-based) will continue to boot.  For arm64, since
+>> ACPI usage is still relatively new, the stricter checking is left in place.
+>>
+>> Al Stone (4):
+>>   ACPI: workaround x86 firmware using reserved MADT subtable IDs
+>>   ACPI: workaround x86 firmware with mis-matched FADT/MADT revisions
+>>   ACPI: workaround FADT always being revision 2
+>>   ACPI: for bad_madt_entry(), the GIC ITS table is 20 bytes long, not 16
+>>
+>>  drivers/acpi/tables.c | 62 ++++++++++++++++++++++++++++++++++++++++++---------
+>>  1 file changed, 51 insertions(+), 11 deletions(-)
+> 
+> Honestly, having reviewed this series I'm inclined to drop the original
+> changes from my tree and ask you to start over.
 
-Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
----
- drivers/irqchip/irq-gic-v2m.c   | 94 +++++++++++++++++++++++++++++++++++++++++
- drivers/irqchip/irq-gic.c       |  3 ++
- include/linux/irqchip/arm-gic.h |  6 +++
- 3 files changed, 103 insertions(+)
+Yeah, I'm leaning that way, too.  This is getting way too messy.
 
-diff --git a/drivers/irqchip/irq-gic-v2m.c b/drivers/irqchip/irq-gic-v2m.c
-index 7e60f7e..290f5b3 100644
---- a/drivers/irqchip/irq-gic-v2m.c
-+++ b/drivers/irqchip/irq-gic-v2m.c
-@@ -15,9 +15,11 @@
- 
- #define pr_fmt(fmt) "GICv2m: " fmt
- 
-+#include <linux/acpi.h>
- #include <linux/irq.h>
- #include <linux/irqdomain.h>
- #include <linux/kernel.h>
-+#include <linux/msi.h>
- #include <linux/of_address.h>
- #include <linux/of_pci.h>
- #include <linux/slab.h>
-@@ -138,6 +140,11 @@ static int gicv2m_irq_gic_domain_alloc(struct irq_domain *domain,
- 		fwspec.param[0] = 0;
- 		fwspec.param[1] = hwirq - 32;
- 		fwspec.param[2] = IRQ_TYPE_EDGE_RISING;
-+	} else if (is_fwnode_irqchip(domain->parent->fwnode)) {
-+		fwspec.fwnode = domain->parent->fwnode;
-+		fwspec.param_count = 2;
-+		fwspec.param[0] = hwirq;
-+		fwspec.param[1] = IRQ_TYPE_EDGE_RISING & IRQ_TYPE_SENSE_MASK;
- 	} else {
- 		return -EINVAL;
- 	}
-@@ -255,6 +262,8 @@ static void gicv2m_teardown(void)
- 		kfree(v2m->bm);
- 		iounmap(v2m->base);
- 		of_node_put(to_of_node(v2m->fwnode));
-+		if (is_fwnode_irqchip(v2m->fwnode))
-+			irq_domain_free_fwnode(v2m->fwnode);
- 		kfree(v2m);
- 	}
- }
-@@ -359,6 +368,8 @@ static int __init gicv2m_init_one(struct fwnode_handle *fwnode,
- 
- 	if (to_of_node(fwnode))
- 		name = to_of_node(fwnode)->name;
-+	else
-+		name = irq_domain_get_irqchip_fwnode_name(fwnode);
- 
- 	pr_info("Frame %s: range[%#lx:%#lx], SPI[%d:%d]\n", name,
- 		(unsigned long)res->start, (unsigned long)res->end,
-@@ -415,3 +426,86 @@ int __init gicv2m_of_init(struct device_node *node, struct irq_domain *parent)
- 		gicv2m_teardown();
- 	return ret;
- }
-+
-+#ifdef CONFIG_ACPI
-+static int acpi_num_msi;
-+
-+static struct fwnode_handle *gicv2m_get_fwnode(struct device *dev)
-+{
-+	struct v2m_data *data;
-+
-+	if (WARN_ON(acpi_num_msi <= 0))
-+		return NULL;
-+
-+	/* We only return the fwnode of the first MSI frame. */
-+	data = list_first_entry_or_null(&v2m_nodes,
-+					struct v2m_data, entry);
-+	if (!data)
-+		return NULL;
-+
-+	return data->fwnode;
-+}
-+
-+static int __init
-+acpi_parse_madt_msi(struct acpi_subtable_header *header,
-+		    const unsigned long end)
-+{
-+	int ret;
-+	struct resource res;
-+	u32 spi_start = 0, nr_spis = 0;
-+	struct acpi_madt_generic_msi_frame *m;
-+	struct fwnode_handle *fwnode = NULL;
-+
-+	m = (struct acpi_madt_generic_msi_frame *)header;
-+	if (BAD_MADT_ENTRY(m, end))
-+		return -EINVAL;
-+
-+	res.start = m->base_address;
-+	res.end = m->base_address + 0x1000;
-+
-+	if (m->flags & ACPI_MADT_OVERRIDE_SPI_VALUES) {
-+		spi_start = m->spi_base;
-+		nr_spis = m->spi_count;
-+
-+		pr_info("ACPI overriding V2M MSI_TYPER (base:%u, num:%u)\n",
-+			spi_start, nr_spis);
-+	}
-+
-+	fwnode = irq_domain_alloc_fwnode((void *)m->base_address);
-+	if (!fwnode) {
-+		pr_err("Unable to allocate GICv2m domain token\n");
-+		return -EINVAL;
-+	}
-+
-+	ret = gicv2m_init_one(fwnode, spi_start, nr_spis, &res);
-+
-+	return ret;
-+}
-+
-+int __init gicv2m_acpi_init(struct irq_domain *parent)
-+{
-+	int ret;
-+
-+	if (acpi_num_msi > 0)
-+		return 0;
-+
-+	acpi_num_msi = acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_MSI_FRAME,
-+				      acpi_parse_madt_msi, 0);
-+
-+	if (acpi_num_msi <= 0)
-+		goto err_out;
-+
-+	ret = gicv2m_allocate_domains(parent);
-+	if (ret)
-+		goto err_out;
-+
-+	pci_msi_register_fwnode_provider(&gicv2m_get_fwnode);
-+
-+	return 0;
-+
-+err_out:
-+	gicv2m_teardown();
-+	return -EINVAL;
-+}
-+
-+#endif /* CONFIG_ACPI */
-diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
-index 6685b33..bb3e1f2 100644
---- a/drivers/irqchip/irq-gic.c
-+++ b/drivers/irqchip/irq-gic.c
-@@ -1329,6 +1329,9 @@ gic_v2_acpi_init(struct acpi_table_header *table)
- 
- 	__gic_init_bases(0, -1, dist_base, cpu_base, 0, domain_handle);
- 
-+	if (IS_ENABLED(CONFIG_ARM_GIC_V2M))
-+		gicv2m_acpi_init(gic_data[0].domain);
-+
- 	acpi_set_irq_model(ACPI_IRQ_MODEL_GIC, domain_handle);
- 	return 0;
- }
-diff --git a/include/linux/irqchip/arm-gic.h b/include/linux/irqchip/arm-gic.h
-index bae69e5..7398538 100644
---- a/include/linux/irqchip/arm-gic.h
-+++ b/include/linux/irqchip/arm-gic.h
-@@ -108,6 +108,12 @@ void gic_init(unsigned int nr, int start,
- 
- int gicv2m_of_init(struct device_node *node, struct irq_domain *parent);
- 
-+#ifdef CONFIG_ACPI
-+#include <linux/acpi.h>
-+
-+int gicv2m_acpi_init(struct irq_domain *parent);
-+#endif
-+
- void gic_send_sgi(unsigned int cpu_id, unsigned int irq);
- int gic_get_cpu_id(unsigned int cpu);
- void gic_migrate_target(unsigned int new_cpu_id);
+> It seems to have been a mistake to modify the existing behavior for x86 and
+> goodness only knows about ia64.  The changes for these architectures don't make
+> us better off in any way.
+
+Right.  It is truly amazing to me how much kruft this has turned up, when the
+idea was simply to make sure that the tables used contain proper content -- and
+this is only for one table.  I understand why we don't want to break something
+that's already working but I am just sort of amazed at how much improperly
+written firmware is in use.  I wanted to believe things were better than that.
+
+Oh, well.  I'll turn the optimism knob back down to 1 and the cynicism knob all
+the way up to 11...
+
+> I understand the motivation to keep ARM64 "fresh and clean", but there must be
+> a way to do that without affecting the other architectures negatively.
+> 
+> Thanks,
+> Rafael
+
+Let me think on that; it can be done, I'm sure, but part of the motivation for
+these patches was that all architectures should follow the same ACPI rules.  I
+was honestly hoping to avoid a per architecture solution.
+
 -- 
-2.1.0
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Red Hat, Inc.
+ahs3@redhat.com
+-----------------------------------
