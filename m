@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 03/13] ACPICA: Update exception code for "file not found" error
-Date: Thu, 15 Oct 2015 10:08:00 +0800
-Message-ID: <a67e846edea0c011f2497d2d49191b2de4162b1f.1444874756.git.lv.zheng@intel.com>
+Subject: [PATCH 05/13] ACPICA: Update NFIT table to rename a flags field
+Date: Thu, 15 Oct 2015 10:08:13 +0800
+Message-ID: <bc29758b19277cd16bae61cadc1dd50e1f48b06d.1444874756.git.lv.zheng@intel.com>
 References: <cover.1444874756.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1444874756.git.lv.zheng@intel.com>
@@ -12,46 +12,75 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit ac1564c26d239348ef13455f61d5616f3961ff43
+ACPICA commit 534deab97fb416a13bfede15c538e2c9eac9384a
 
-Used by the ACPICA applications.
+Updated one of the memory subtable flags to clarify.
 
-This patch is a bit broken due to non-portable <errno.h> inclusion as on
-some platforms, there is no such a header file for their lib-c exports.
-Fortunately, Linux doesn't compile utfileio.c for either the kernel
-space ACPICA core (drivers/acpi/acpica) or the userspace ACPICA tools
-(tools/power/acpi) for now, so it's safe to leave this patch as it is.
-
-Link: https://github.com/acpica/acpica/commit/ac1564c2
+Link: https://github.com/acpica/acpica/commit/534deab9
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/utfileio.c |    6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/acpi/nfit.c   |    6 +++---
+ drivers/acpi/nfit.h   |    2 +-
+ include/acpi/actbl1.h |    2 +-
+ 3 files changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/acpi/acpica/utfileio.c b/drivers/acpi/acpica/utfileio.c
-index 75a94f5..d435b7b 100644
---- a/drivers/acpi/acpica/utfileio.c
-+++ b/drivers/acpi/acpica/utfileio.c
-@@ -45,6 +45,7 @@
- #include "accommon.h"
- #include "actables.h"
- #include "acapps.h"
-+#include "errno.h"
+diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+index c1b8d03..bc18aa2 100644
+--- a/drivers/acpi/nfit.c
++++ b/drivers/acpi/nfit.c
+@@ -706,7 +706,7 @@ static ssize_t flags_show(struct device *dev,
+ 		flags & ACPI_NFIT_MEM_SAVE_FAILED ? "save_fail " : "",
+ 		flags & ACPI_NFIT_MEM_RESTORE_FAILED ? "restore_fail " : "",
+ 		flags & ACPI_NFIT_MEM_FLUSH_FAILED ? "flush_fail " : "",
+-		flags & ACPI_NFIT_MEM_ARMED ? "not_armed " : "",
++		flags & ACPI_NFIT_MEM_NOT_ARMED ? "not_armed " : "",
+ 		flags & ACPI_NFIT_MEM_HEALTH_OBSERVED ? "smart_event " : "");
+ }
+ static DEVICE_ATTR_RO(flags);
+@@ -815,7 +815,7 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
+ 			flags |= NDD_ALIASING;
  
- #ifdef ACPI_ASL_COMPILER
- #include "aslcompiler.h"
-@@ -301,6 +302,11 @@ acpi_ut_read_table_from_file(char *filename, struct acpi_table_header ** table)
- 	file = fopen(filename, "rb");
- 	if (!file) {
- 		perror("Could not open input file");
-+
-+		if (errno == ENOENT) {
-+			return (AE_NOT_EXIST);
-+		}
-+
- 		return (status);
+ 		mem_flags = __to_nfit_memdev(nfit_mem)->flags;
+-		if (mem_flags & ACPI_NFIT_MEM_ARMED)
++		if (mem_flags & ACPI_NFIT_MEM_NOT_ARMED)
+ 			flags |= NDD_UNARMED;
+ 
+ 		rc = acpi_nfit_add_dimm(acpi_desc, nfit_mem, device_handle);
+@@ -839,7 +839,7 @@ static int acpi_nfit_register_dimms(struct acpi_nfit_desc *acpi_desc)
+ 		  mem_flags & ACPI_NFIT_MEM_SAVE_FAILED ? " save_fail" : "",
+ 		  mem_flags & ACPI_NFIT_MEM_RESTORE_FAILED ? " restore_fail":"",
+ 		  mem_flags & ACPI_NFIT_MEM_FLUSH_FAILED ? " flush_fail" : "",
+-		  mem_flags & ACPI_NFIT_MEM_ARMED ? " not_armed" : "");
++		  mem_flags & ACPI_NFIT_MEM_NOT_ARMED ? " not_armed" : "");
+ 
  	}
+ 
+diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
+index 7e74015..329a1eb 100644
+--- a/drivers/acpi/nfit.h
++++ b/drivers/acpi/nfit.h
+@@ -24,7 +24,7 @@
+ #define UUID_NFIT_DIMM "4309ac30-0d11-11e4-9191-0800200c9a66"
+ #define ACPI_NFIT_MEM_FAILED_MASK (ACPI_NFIT_MEM_SAVE_FAILED \
+ 		| ACPI_NFIT_MEM_RESTORE_FAILED | ACPI_NFIT_MEM_FLUSH_FAILED \
+-		| ACPI_NFIT_MEM_ARMED)
++		| ACPI_NFIT_MEM_NOT_ARMED)
+ 
+ enum nfit_uuids {
+ 	NFIT_SPA_VOLATILE,
+diff --git a/include/acpi/actbl1.h b/include/acpi/actbl1.h
+index fcd5709..1bb979e 100644
+--- a/include/acpi/actbl1.h
++++ b/include/acpi/actbl1.h
+@@ -1012,7 +1012,7 @@ struct acpi_nfit_memory_map {
+ #define ACPI_NFIT_MEM_SAVE_FAILED       (1)	/* 00: Last SAVE to Memory Device failed */
+ #define ACPI_NFIT_MEM_RESTORE_FAILED    (1<<1)	/* 01: Last RESTORE from Memory Device failed */
+ #define ACPI_NFIT_MEM_FLUSH_FAILED      (1<<2)	/* 02: Platform flush failed */
+-#define ACPI_NFIT_MEM_ARMED             (1<<3)	/* 03: Memory Device observed to be not armed */
++#define ACPI_NFIT_MEM_NOT_ARMED         (1<<3)	/* 03: Memory Device is not armed */
+ #define ACPI_NFIT_MEM_HEALTH_OBSERVED   (1<<4)	/* 04: Memory Device observed SMART/health events */
+ #define ACPI_NFIT_MEM_HEALTH_ENABLED    (1<<5)	/* 05: SMART/health events enabled */
  
 -- 
 1.7.10
