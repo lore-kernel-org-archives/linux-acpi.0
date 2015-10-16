@@ -1,69 +1,79 @@
-From: Rafael Wysocki <rjwysocki@gmail.com>
-Subject: [GIT PULL] Power management and ACPI fixes for v4.3-rc6
-Date: Fri, 16 Oct 2015 15:26:20 +0200
-Message-ID: <CAJZ5v0iTKevUN+-fJQFAT-eK7NAwQuCkn0r-uaYL43vRNny46Q@mail.gmail.com>
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [PATCH v2 2/2] acpi: nfit: Add support for hot-add
+Date: Fri, 16 Oct 2015 22:23:37 +0000
+Message-ID: <1445034217.11973.13.camel@intel.com>
+References: <1444863866-19173-1-git-send-email-vishal.l.verma@intel.com>
+	 <1444863866-19173-3-git-send-email-vishal.l.verma@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pm-owner@vger.kernel.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:54503 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750880AbbJPWXj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 16 Oct 2015 18:23:39 -0400
+In-Reply-To: <1444863866-19173-3-git-send-email-vishal.l.verma@intel.com>
+Content-Language: en-US
+Content-ID: <4AB82BD662322D408A73DEF012C393D5@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
+Cc: "Williams, Dan J" <dan.j.williams@intel.com>, "toshi.kani@hpe.com" <toshi.kani@hpe.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "elliott@hpe.com" <elliott@hpe.com>
 
-Hi Linus,
-
-Please pull from
-
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- pm+acpi-4.3-rc6
-
-to receive power management and ACPI fixes for v4.3-rc6 with
-top-most commit fa548237321c4469e80741f773c4f5935a68a998
-
- Merge branches 'acpica', 'pm-domains' and 'pm-cpufreq'
-
-on top of commit 25cb62b76430a91cc6195f902e61c2cb84ade622
-
- Linux 4.3-rc5
-
-These fix two recent regressions (ACPICA, the generic power
-domains framework) and one crash that may happen on specific
-hardware supported since 4.1 (intel_pstate).
-
-Specifics:
-
- - Fix a regression introduced by a recent ACPICA cleanup that
-   uncovered a latent bug (Lv Zheng).
-
- - Fix a recent regression in the generic power domains framework
-   that may cause it to violate PM QoS latency constraints in some
-   cases (Ulf Hansson).
-
- - Fix an intel_pstate driver crash on the Knights Landing chips
-   that do not update the MPERF counter as often as expected by the
-   driver which may result in a divide by 0 (Srinivas Pandruvada).
-
-Thanks!
-
-
----------------
-
-Lv Zheng (1):
-      ACPICA: Tables: Fix FADT dependency regression
-
-Srinivas Pandruvada (1):
-      cpufreq: intel_pstate: Fix divide by zero on Knights Landing (KNL)
-
-Ulf Hansson (1):
-      PM / Domains: Fix validation of latency constraints in genpd governor
-
----------------
-
- drivers/acpi/acpica/acglobal.h       |  1 +
- drivers/acpi/acpica/actables.h       |  4 +---
- drivers/acpi/acpica/evxfevnt.c       |  2 +-
- drivers/acpi/acpica/tbfadt.c         | 10 +++++-----
- drivers/acpi/acpica/tbutils.c        | 26 ++------------------------
- drivers/base/power/domain_governor.c | 22 ++++++----------------
- drivers/cpufreq/intel_pstate.c       |  5 +++++
- 7 files changed, 21 insertions(+), 49 deletions(-)
+T24gV2VkLCAyMDE1LTEwLTE0IGF0IDE3OjA0IC0wNjAwLCBWaXNoYWwgVmVybWEgd3JvdGU6DQo+
+IEFkZCBhIC5ub3RpZnkgY2FsbGJhY2sgdG8gdGhlIGFjcGlfbmZpdF9kcml2ZXIgdGhhdCBnZXRz
+IGNhbGxlZCBvbiBhDQo+IGhvdHBsdWcgZXZlbnQuIEZyb20gdGhpcywgZXZhbHVhdGUgdGhlIF9G
+SVQgQUNQSSBtZXRob2Qgd2hpY2ggcmV0dXJucw0KPiB0aGUgdXBkYXRlZCBORklUIHdpdGggaGFu
+ZGxlcyBmb3IgdGhlIGhvdC1wbHVnZ2VkIE5WRElNTS4NCj4gDQo+IEl0ZXJhdGUgb3ZlciB0aGUg
+bmV3IE5GSVQsIGFuZCBhZGQgYW55IG5ldyB0YWJsZXMgZm91bmQsIGFuZA0KPiByZWdpc3Rlci9l
+bmFibGUgdGhlIGNvcnJlc3BvbmRpbmcgcmVnaW9ucy4NCj4gDQo+IEluIHRoZSBuZml0IHRlc3Qg
+ZnJhbWV3b3JrLCBhZnRlciBub3JtYWwgaW5pdGlhbGl6YXRpb24sIHVwZGF0ZSB0aGUNCj4gTkZJ
+VA0KPiB3aXRoIGEgbmV3IGhvdC1wbHVnZ2VkIE5WRElNTSwgYW5kIGRpcmVjdGx5IGNhbGwgaW50
+byB0aGUgZHJpdmVyIHRvDQo+IHVwZGF0ZSBpdHMgdmlldyBvZiB0aGUgYXZhaWxhYmxlIHJlZ2lv
+bnMuDQo+IA0KPiBDYzogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+DQo+
+IENjOiBSYWZhZWwgSi4gV3lzb2NraSA8cmFmYWVsLmoud3lzb2NraUBpbnRlbC5jb20+DQo+IENj
+OiBUb3NoaSBLYW5pIDx0b3NoaS5rYW5pQGhwZS5jb20+DQo+IENjOiBFbGxpb3R0LCBSb2JlcnQg
+PGVsbGlvdHRAaHBlLmNvbT4NCj4gQ2M6IDxsaW51eC1hY3BpQHZnZXIua2VybmVsLm9yZz4NCj4g
+Q2M6IDxsaW51eC1udmRpbW1AbGlzdHMuMDEub3JnPg0KPiBTaWduZWQtb2ZmLWJ5OiBWaXNoYWwg
+VmVybWEgPHZpc2hhbC5sLnZlcm1hQGludGVsLmNvbT4NCj4gLS0tDQo+ICBkcml2ZXJzL2FjcGkv
+bmZpdC5jICAgICAgICAgICAgICB8IDE5NyArKysrKysrKysrKysrKysrKysrKysrKysrKysrKw0K
+PiAtLS0tLS0tLS0tDQo+ICBkcml2ZXJzL2FjcGkvbmZpdC5oICAgICAgICAgICAgICB8ICAgMiAr
+DQo+ICB0b29scy90ZXN0aW5nL252ZGltbS90ZXN0L25maXQuYyB8IDE1Ng0KPiArKysrKysrKysr
+KysrKysrKysrKysrKysrKysrKystDQo+ICAzIGZpbGVzIGNoYW5nZWQsIDMwNCBpbnNlcnRpb25z
+KCspLCA1MSBkZWxldGlvbnMoLSkNCj4gDQoNCjxzbmlwPg0KDQo+IGRpZmYgLS1naXQgYS90b29s
+cy90ZXN0aW5nL252ZGltbS90ZXN0L25maXQuYw0KPiBiL3Rvb2xzL3Rlc3RpbmcvbnZkaW1tL3Rl
+c3QvbmZpdC5jDQo+IGluZGV4IDAyMWU2ZjkuLmQ4MDNlNjggMTAwNjQ0DQo+IC0tLSBhL3Rvb2xz
+L3Rlc3RpbmcvbnZkaW1tL3Rlc3QvbmZpdC5jDQo+ICsrKyBiL3Rvb2xzL3Rlc3RpbmcvbnZkaW1t
+L3Rlc3QvbmZpdC5jDQoNCjxzbmlwPg0KDQo+ICANCj4gKwlpZiAodC0+c2V0dXBfaG90cGx1Zykg
+ew0KPiArCQlvZmZzZXQgPSBvZmZzZXQgKyBzaXplb2Yoc3RydWN0IGFjcGlfbmZpdF9mbHVzaF9h
+ZGRyZXNzKSAqIDQ7DQo+ICsJCS8qIGRjci1kZXNjcmlwdG9yNCAqLw0KPiArCQlkY3IgPSBuZml0
+X2J1ZiArIG9mZnNldDsNCj4gKwkJZGNyLT5oZWFkZXIudHlwZSA9IEFDUElfTkZJVF9UWVBFX0NP
+TlRST0xfUkVHSU9OOw0KPiArCQlkY3ItPmhlYWRlci5sZW5ndGggPSBzaXplb2Yoc3RydWN0IGFj
+cGlfbmZpdF9jb250cm9sX3JlZ2lvbik7DQo+ICsJCWRjci0+cmVnaW9uX2luZGV4ID0gNCsxOw0K
+PiArCQlkY3ItPnZlbmRvcl9pZCA9IDB4YWJjZDsNCj4gKwkJZGNyLT5kZXZpY2VfaWQgPSAwOw0K
+PiArCQlkY3ItPnJldmlzaW9uX2lkID0gMTsNCj4gKwkJZGNyLT5zZXJpYWxfbnVtYmVyID0gfmhh
+bmRsZVs0XTsNCj4gKwkJZGNyLT53aW5kb3dzID0gMDsNCj4gKwkJZGNyLT53aW5kb3dfc2l6ZSA9
+IDA7DQo+ICsJCWRjci0+Y29tbWFuZF9vZmZzZXQgPSAwOw0KPiArCQlkY3ItPmNvbW1hbmRfc2l6
+ZSA9IDA7DQo+ICsJCWRjci0+c3RhdHVzX29mZnNldCA9IDA7DQo+ICsJCWRjci0+c3RhdHVzX3Np
+emUgPSAwOw0KPiArDQoNCkkganVzdCBub3RpY2VkIHRoYXQgd2hpbGUgd2UgZG8gYWRkIGEgYmxv
+Y2sgd2luZG93IGZvciB0aGlzIG5ldyBob3RwbHVnDQpESU1NLCB0aGUgZGNyIGZpZWxkcyB0YWxr
+aW5nIGFib3V0IGJsb2NrIHdpbmRvd3Mgd2VyZSBub3QgaW5pdGlhbGl6ZWQNCmNvcnJlY3RseS4g
+V2hpbGUgdGhpcyBzdGlsbCBfd29ya3NfIGJlY2F1c2Ugb2YgYSBjb3JyZWN0IGJkdyBzdHJ1Y3R1
+cmUsDQp3ZSBzaG91bGQgZml4IGl0IHRvIGJlIGEgd2VsbCBmb3JtZWQgbmZpdC4NCg0KSWYgdGhl
+cmUncyBhIHYzIGR1ZSB0byBhZGRpdGlvbmFsIGZlZWRiYWNrLCBJJ2xsIGluY2x1ZGUgdGhlIGZv
+bGxvd2luZw0KcGF0Y2guIElmIG5vdCwgRGFuLCBwZXJoYXBzIHlvdSBjYW4gc3F1YXNoIGl0IGlu
+PyAoT3IgSSBjb3VsZCBzZW5kIGEgdjMNCnJlZ2FyZGxlc3MgaWYgeW91IHByZWZlciB0aGF0KS4N
+Cg0KZGlmZiAtLWdpdCBhL3Rvb2xzL3Rlc3RpbmcvbnZkaW1tL3Rlc3QvbmZpdC5jIGIvdG9vbHMv
+dGVzdGluZy9udmRpbW0vdGVzdC9uZml0LmMNCmluZGV4IGQ4MDNlNjguLjZmNjk1ZWUgMTAwNjQ0
+DQotLS0gYS90b29scy90ZXN0aW5nL252ZGltbS90ZXN0L25maXQuYw0KKysrIGIvdG9vbHMvdGVz
+dGluZy9udmRpbW0vdGVzdC9uZml0LmMNCkBAIC05NzgsMTIgKzk3OCwxMiBAQCBzdGF0aWMgdm9p
+ZCBuZml0X3Rlc3QwX3NldHVwKHN0cnVjdCBuZml0X3Rlc3QgKnQpDQogCQlkY3ItPmRldmljZV9p
+ZCA9IDA7DQogCQlkY3ItPnJldmlzaW9uX2lkID0gMTsNCiAJCWRjci0+c2VyaWFsX251bWJlciA9
+IH5oYW5kbGVbNF07DQotCQlkY3ItPndpbmRvd3MgPSAwOw0KLQkJZGNyLT53aW5kb3dfc2l6ZSA9
+IDA7DQorCQlkY3ItPndpbmRvd3MgPSAxOw0KKwkJZGNyLT53aW5kb3dfc2l6ZSA9IERDUl9TSVpF
+Ow0KIAkJZGNyLT5jb21tYW5kX29mZnNldCA9IDA7DQotCQlkY3ItPmNvbW1hbmRfc2l6ZSA9IDA7
+DQotCQlkY3ItPnN0YXR1c19vZmZzZXQgPSAwOw0KLQkJZGNyLT5zdGF0dXNfc2l6ZSA9IDA7DQor
+CQlkY3ItPmNvbW1hbmRfc2l6ZSA9IDg7DQorCQlkY3ItPnN0YXR1c19vZmZzZXQgPSA4Ow0KKwkJ
+ZGNyLT5zdGF0dXNfc2l6ZSA9IDQ7DQogDQogCQlvZmZzZXQgPSBvZmZzZXQgKyBzaXplb2Yoc3Ry
+dWN0IGFjcGlfbmZpdF9jb250cm9sX3JlZ2lvbik7DQogCQkvKiBiZHc0IChzcGEvZGNyNCwgZGlt
+bTQpICovDQo=
