@@ -1,50 +1,48 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [Patch v7 0/7] Consolidate ACPI PCI root common code into ACPI
- core
-Date: Fri, 16 Oct 2015 09:56:21 +0800
-Message-ID: <56205945.4000606@linux.intel.com>
-References: <1444804182-6596-1-git-send-email-jiang.liu@linux.intel.com>
- <20151015204829.GH10442@localhost> <18082551.ZgPkP00eQT@vostro.rjw.lan>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH] acpi: set return value to const char for some functions
+Date: Fri, 16 Oct 2015 03:37:55 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37D980841@ORSMSX112.amr.corp.intel.com>
+References: <1444849635-14456-1-git-send-email-clabbe.montjoie@gmail.com>
+	 <94F2FBAB4432B54E8AACC7DFDE6C92E37D9803BD@ORSMSX112.amr.corp.intel.com>
+	 <1444875266.2718.37.camel@perches.com>
+	 <94F2FBAB4432B54E8AACC7DFDE6C92E37D9806CC@ORSMSX112.amr.corp.intel.com>
+ <1444953586.22921.0.camel@perches.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:59654 "EHLO mga03.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:22688 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751912AbbJPB4Z (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 15 Oct 2015 21:56:25 -0400
-In-Reply-To: <18082551.ZgPkP00eQT@vostro.rjw.lan>
+	id S1752488AbbJPDh5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 15 Oct 2015 23:37:57 -0400
+In-Reply-To: <1444953586.22921.0.camel@perches.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <helgaas@kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org
+To: Joe Perches <joe@perches.com>
+Cc: LABBE Corentin <clabbe.montjoie@gmail.com>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Box, David E" <david.e.box@intel.com>
 
-On 2015/10/16 5:49, Rafael J. Wysocki wrote:
-> On Thursday, October 15, 2015 03:48:29 PM Bjorn Helgaas wrote:
->> On Wed, Oct 14, 2015 at 02:29:35PM +0800, Jiang Liu wrote:
->>> From: Liu Jiang <jiang.liu@linux.intel.com>
->>>
->>> This patch set consolidates common code to support ACPI PCI root on x86
->>> and IA64 platforms into ACPI core, to reproduce duplicated code and
->>> simplify maintenance. And a patch set based on previous version to support
->>> ACPI based PCIe host bridge on ARM64 has been posted at:
->>> https://lkml.org/lkml/2015/5/26/207
->>>
->>> It's based on latest mainstream kernel. It passes Fengguang's 0day test
->>> suite and has been tested on two IA64 platforms and one x86 platform.
->>>
->>> V6->V7:
->>> 1) Improve commit message according to Bjorn's suggestion.
->>> 2) Move arch specific logic(code) from ACPI core into arch code
->>>    according to Bjorn's review comments.
->>
->> Thanks for cleaning this up; I think it looks much better.
->>
->> As far as I'm concerned, this series is ready to go.  I assume Rafael
->> will merge it.
+If you don't like the quote, just stick with my first assessment.
+
+
+> -----Original Message-----
+> From: Joe Perches [mailto:joe@perches.com]
+> Sent: Thursday, October 15, 2015 5:00 PM
+> To: Moore, Robert
+> Cc: LABBE Corentin; Zheng, Lv; Wysocki, Rafael J; lenb@kernel.org; linux-
+> acpi@vger.kernel.org; devel@acpica.org; linux-kernel@vger.kernel.org; Box,
+> David E
+> Subject: Re: [PATCH] acpi: set return value to const char for some
+> functions
 > 
-> Yes, I'm going to do that.
+> On Thu, 2015-10-15 at 19:32 +0000, Moore, Robert wrote:
+> > if you started to use "const" for some methods you usually forced to
+> > use this in most of your code. But the time spent for maintaining
+> > (typing, recompiling when some const is missing, etc.) of
+> > const-correctness in code seems greater than for fixing of possible
+> > (very rare) problems caused by not using of const-correctness at all
 > 
-> Thanks a lot for your help with the review!
-Thanks Bjorn and Rafael for review!
+> c is not c++.
+> 
+> "seems" is a dubious statement.
 
