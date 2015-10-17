@@ -1,79 +1,75 @@
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Subject: Re: [PATCH v2 2/2] acpi: nfit: Add support for hot-add
-Date: Fri, 16 Oct 2015 22:23:37 +0000
-Message-ID: <1445034217.11973.13.camel@intel.com>
-References: <1444863866-19173-1-git-send-email-vishal.l.verma@intel.com>
-	 <1444863866-19173-3-git-send-email-vishal.l.verma@intel.com>
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Subject: Re: [PATCH v7 01/20] driver core: handle -EPROBE_DEFER from
+ bus_type.match()
+Date: Fri, 16 Oct 2015 23:51:33 -0700
+Message-ID: <20151017065133.GA18329@kroah.com>
+References: <1443517859-30376-1-git-send-email-tomeu.vizoso@collabora.com>
+ <1443517859-30376-2-git-send-email-tomeu.vizoso@collabora.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:54503 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750880AbbJPWXj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 16 Oct 2015 18:23:39 -0400
-In-Reply-To: <1444863866-19173-3-git-send-email-vishal.l.verma@intel.com>
-Content-Language: en-US
-Content-ID: <4AB82BD662322D408A73DEF012C393D5@intel.com>
+Received: from mail.linuxfoundation.org ([140.211.169.12]:32986 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751380AbbJQGvj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 17 Oct 2015 02:51:39 -0400
+Content-Disposition: inline
+In-Reply-To: <1443517859-30376-2-git-send-email-tomeu.vizoso@collabora.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
-Cc: "Williams, Dan J" <dan.j.williams@intel.com>, "toshi.kani@hpe.com" <toshi.kani@hpe.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "elliott@hpe.com" <elliott@hpe.com>
+To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Cc: linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-arm-kernel@lists.infradead.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, devicetree@vger.kernel.org, Russell King <rmk+kernel@arm.linux.org.uk>, Linus Walleij <linus.walleij@linaro.org>, Ulf Hansson <ulf.hansson@linaro.org>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
 
-T24gV2VkLCAyMDE1LTEwLTE0IGF0IDE3OjA0IC0wNjAwLCBWaXNoYWwgVmVybWEgd3JvdGU6DQo+
-IEFkZCBhIC5ub3RpZnkgY2FsbGJhY2sgdG8gdGhlIGFjcGlfbmZpdF9kcml2ZXIgdGhhdCBnZXRz
-IGNhbGxlZCBvbiBhDQo+IGhvdHBsdWcgZXZlbnQuIEZyb20gdGhpcywgZXZhbHVhdGUgdGhlIF9G
-SVQgQUNQSSBtZXRob2Qgd2hpY2ggcmV0dXJucw0KPiB0aGUgdXBkYXRlZCBORklUIHdpdGggaGFu
-ZGxlcyBmb3IgdGhlIGhvdC1wbHVnZ2VkIE5WRElNTS4NCj4gDQo+IEl0ZXJhdGUgb3ZlciB0aGUg
-bmV3IE5GSVQsIGFuZCBhZGQgYW55IG5ldyB0YWJsZXMgZm91bmQsIGFuZA0KPiByZWdpc3Rlci9l
-bmFibGUgdGhlIGNvcnJlc3BvbmRpbmcgcmVnaW9ucy4NCj4gDQo+IEluIHRoZSBuZml0IHRlc3Qg
-ZnJhbWV3b3JrLCBhZnRlciBub3JtYWwgaW5pdGlhbGl6YXRpb24sIHVwZGF0ZSB0aGUNCj4gTkZJ
-VA0KPiB3aXRoIGEgbmV3IGhvdC1wbHVnZ2VkIE5WRElNTSwgYW5kIGRpcmVjdGx5IGNhbGwgaW50
-byB0aGUgZHJpdmVyIHRvDQo+IHVwZGF0ZSBpdHMgdmlldyBvZiB0aGUgYXZhaWxhYmxlIHJlZ2lv
-bnMuDQo+IA0KPiBDYzogRGFuIFdpbGxpYW1zIDxkYW4uai53aWxsaWFtc0BpbnRlbC5jb20+DQo+
-IENjOiBSYWZhZWwgSi4gV3lzb2NraSA8cmFmYWVsLmoud3lzb2NraUBpbnRlbC5jb20+DQo+IENj
-OiBUb3NoaSBLYW5pIDx0b3NoaS5rYW5pQGhwZS5jb20+DQo+IENjOiBFbGxpb3R0LCBSb2JlcnQg
-PGVsbGlvdHRAaHBlLmNvbT4NCj4gQ2M6IDxsaW51eC1hY3BpQHZnZXIua2VybmVsLm9yZz4NCj4g
-Q2M6IDxsaW51eC1udmRpbW1AbGlzdHMuMDEub3JnPg0KPiBTaWduZWQtb2ZmLWJ5OiBWaXNoYWwg
-VmVybWEgPHZpc2hhbC5sLnZlcm1hQGludGVsLmNvbT4NCj4gLS0tDQo+ICBkcml2ZXJzL2FjcGkv
-bmZpdC5jICAgICAgICAgICAgICB8IDE5NyArKysrKysrKysrKysrKysrKysrKysrKysrKysrKw0K
-PiAtLS0tLS0tLS0tDQo+ICBkcml2ZXJzL2FjcGkvbmZpdC5oICAgICAgICAgICAgICB8ICAgMiAr
-DQo+ICB0b29scy90ZXN0aW5nL252ZGltbS90ZXN0L25maXQuYyB8IDE1Ng0KPiArKysrKysrKysr
-KysrKysrKysrKysrKysrKysrKystDQo+ICAzIGZpbGVzIGNoYW5nZWQsIDMwNCBpbnNlcnRpb25z
-KCspLCA1MSBkZWxldGlvbnMoLSkNCj4gDQoNCjxzbmlwPg0KDQo+IGRpZmYgLS1naXQgYS90b29s
-cy90ZXN0aW5nL252ZGltbS90ZXN0L25maXQuYw0KPiBiL3Rvb2xzL3Rlc3RpbmcvbnZkaW1tL3Rl
-c3QvbmZpdC5jDQo+IGluZGV4IDAyMWU2ZjkuLmQ4MDNlNjggMTAwNjQ0DQo+IC0tLSBhL3Rvb2xz
-L3Rlc3RpbmcvbnZkaW1tL3Rlc3QvbmZpdC5jDQo+ICsrKyBiL3Rvb2xzL3Rlc3RpbmcvbnZkaW1t
-L3Rlc3QvbmZpdC5jDQoNCjxzbmlwPg0KDQo+ICANCj4gKwlpZiAodC0+c2V0dXBfaG90cGx1Zykg
-ew0KPiArCQlvZmZzZXQgPSBvZmZzZXQgKyBzaXplb2Yoc3RydWN0IGFjcGlfbmZpdF9mbHVzaF9h
-ZGRyZXNzKSAqIDQ7DQo+ICsJCS8qIGRjci1kZXNjcmlwdG9yNCAqLw0KPiArCQlkY3IgPSBuZml0
-X2J1ZiArIG9mZnNldDsNCj4gKwkJZGNyLT5oZWFkZXIudHlwZSA9IEFDUElfTkZJVF9UWVBFX0NP
-TlRST0xfUkVHSU9OOw0KPiArCQlkY3ItPmhlYWRlci5sZW5ndGggPSBzaXplb2Yoc3RydWN0IGFj
-cGlfbmZpdF9jb250cm9sX3JlZ2lvbik7DQo+ICsJCWRjci0+cmVnaW9uX2luZGV4ID0gNCsxOw0K
-PiArCQlkY3ItPnZlbmRvcl9pZCA9IDB4YWJjZDsNCj4gKwkJZGNyLT5kZXZpY2VfaWQgPSAwOw0K
-PiArCQlkY3ItPnJldmlzaW9uX2lkID0gMTsNCj4gKwkJZGNyLT5zZXJpYWxfbnVtYmVyID0gfmhh
-bmRsZVs0XTsNCj4gKwkJZGNyLT53aW5kb3dzID0gMDsNCj4gKwkJZGNyLT53aW5kb3dfc2l6ZSA9
-IDA7DQo+ICsJCWRjci0+Y29tbWFuZF9vZmZzZXQgPSAwOw0KPiArCQlkY3ItPmNvbW1hbmRfc2l6
-ZSA9IDA7DQo+ICsJCWRjci0+c3RhdHVzX29mZnNldCA9IDA7DQo+ICsJCWRjci0+c3RhdHVzX3Np
-emUgPSAwOw0KPiArDQoNCkkganVzdCBub3RpY2VkIHRoYXQgd2hpbGUgd2UgZG8gYWRkIGEgYmxv
-Y2sgd2luZG93IGZvciB0aGlzIG5ldyBob3RwbHVnDQpESU1NLCB0aGUgZGNyIGZpZWxkcyB0YWxr
-aW5nIGFib3V0IGJsb2NrIHdpbmRvd3Mgd2VyZSBub3QgaW5pdGlhbGl6ZWQNCmNvcnJlY3RseS4g
-V2hpbGUgdGhpcyBzdGlsbCBfd29ya3NfIGJlY2F1c2Ugb2YgYSBjb3JyZWN0IGJkdyBzdHJ1Y3R1
-cmUsDQp3ZSBzaG91bGQgZml4IGl0IHRvIGJlIGEgd2VsbCBmb3JtZWQgbmZpdC4NCg0KSWYgdGhl
-cmUncyBhIHYzIGR1ZSB0byBhZGRpdGlvbmFsIGZlZWRiYWNrLCBJJ2xsIGluY2x1ZGUgdGhlIGZv
-bGxvd2luZw0KcGF0Y2guIElmIG5vdCwgRGFuLCBwZXJoYXBzIHlvdSBjYW4gc3F1YXNoIGl0IGlu
-PyAoT3IgSSBjb3VsZCBzZW5kIGEgdjMNCnJlZ2FyZGxlc3MgaWYgeW91IHByZWZlciB0aGF0KS4N
-Cg0KZGlmZiAtLWdpdCBhL3Rvb2xzL3Rlc3RpbmcvbnZkaW1tL3Rlc3QvbmZpdC5jIGIvdG9vbHMv
-dGVzdGluZy9udmRpbW0vdGVzdC9uZml0LmMNCmluZGV4IGQ4MDNlNjguLjZmNjk1ZWUgMTAwNjQ0
-DQotLS0gYS90b29scy90ZXN0aW5nL252ZGltbS90ZXN0L25maXQuYw0KKysrIGIvdG9vbHMvdGVz
-dGluZy9udmRpbW0vdGVzdC9uZml0LmMNCkBAIC05NzgsMTIgKzk3OCwxMiBAQCBzdGF0aWMgdm9p
-ZCBuZml0X3Rlc3QwX3NldHVwKHN0cnVjdCBuZml0X3Rlc3QgKnQpDQogCQlkY3ItPmRldmljZV9p
-ZCA9IDA7DQogCQlkY3ItPnJldmlzaW9uX2lkID0gMTsNCiAJCWRjci0+c2VyaWFsX251bWJlciA9
-IH5oYW5kbGVbNF07DQotCQlkY3ItPndpbmRvd3MgPSAwOw0KLQkJZGNyLT53aW5kb3dfc2l6ZSA9
-IDA7DQorCQlkY3ItPndpbmRvd3MgPSAxOw0KKwkJZGNyLT53aW5kb3dfc2l6ZSA9IERDUl9TSVpF
-Ow0KIAkJZGNyLT5jb21tYW5kX29mZnNldCA9IDA7DQotCQlkY3ItPmNvbW1hbmRfc2l6ZSA9IDA7
-DQotCQlkY3ItPnN0YXR1c19vZmZzZXQgPSAwOw0KLQkJZGNyLT5zdGF0dXNfc2l6ZSA9IDA7DQor
-CQlkY3ItPmNvbW1hbmRfc2l6ZSA9IDg7DQorCQlkY3ItPnN0YXR1c19vZmZzZXQgPSA4Ow0KKwkJ
-ZGNyLT5zdGF0dXNfc2l6ZSA9IDQ7DQogDQogCQlvZmZzZXQgPSBvZmZzZXQgKyBzaXplb2Yoc3Ry
-dWN0IGFjcGlfbmZpdF9jb250cm9sX3JlZ2lvbik7DQogCQkvKiBiZHc0IChzcGEvZGNyNCwgZGlt
-bTQpICovDQo=
+On Tue, Sep 29, 2015 at 11:10:39AM +0200, Tomeu Vizoso wrote:
+> Lets implementations of the match() callback in struct bus_type to
+> return errors and if it's -EPROBE_DEFER then queue the device for
+> deferred probing.
+> 
+> This is useful to buses such as AMBA in which devices are registered
+> before their matching information can be retrieved from the HW
+> (typically because a clock driver hasn't probed yet).
+> 
+> Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+> ---
+> 
+> 
+>  drivers/base/dd.c      | 24 ++++++++++++++++++++++--
+>  include/linux/device.h |  2 +-
+>  2 files changed, 23 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/base/dd.c b/drivers/base/dd.c
+> index be0eb4639128..7dc04ee81c8b 100644
+> --- a/drivers/base/dd.c
+> +++ b/drivers/base/dd.c
+> @@ -488,6 +488,7 @@ static int __device_attach_driver(struct device_driver *drv, void *_data)
+>  	struct device_attach_data *data = _data;
+>  	struct device *dev = data->dev;
+>  	bool async_allowed;
+> +	int ret;
+>  
+>  	/*
+>  	 * Check if device has already been claimed. This may
+> @@ -498,8 +499,17 @@ static int __device_attach_driver(struct device_driver *drv, void *_data)
+>  	if (dev->driver)
+>  		return -EBUSY;
+>  
+> -	if (!driver_match_device(drv, dev))
+> +	ret = driver_match_device(drv, dev);
+> +	if (!ret)
+>  		return 0;
+> +	else if (ret < 0) {
+> +		if (ret == -EPROBE_DEFER) {
+> +			dev_dbg(dev, "Device match requests probe deferral\n");
+> +			driver_deferred_probe_add(dev);
+> +		} else
+> +			dev_warn(dev, "Bus failed to match device: %d", ret);
+
+This is going to start to cause warnings where there were previously
+none, which isn't going to be a good idea.  It's completly normal for a
+bus to not match a device, let's not be noisy for no good reason, unless
+you are going to deal with all of the confused user emails?
+
+You do this a bunch in this patch, please don't.
+
+thanks,
+
+greg k-h
