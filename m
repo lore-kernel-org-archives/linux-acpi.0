@@ -1,64 +1,54 @@
-From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Subject: Re: [PATCH v7 13/20] usb: phy: Probe phy devices on demand
-Date: Fri, 16 Oct 2015 23:55:52 -0700
-Message-ID: <20151017065552.GC18329@kroah.com>
-References: <1443517859-30376-1-git-send-email-tomeu.vizoso@collabora.com>
- <1443517859-30376-14-git-send-email-tomeu.vizoso@collabora.com>
+From: =?iso-8859-1?Q?Niccol=F2_Belli?= <niccolo.belli@linuxsystems.it>
+Subject: Re: [Dell XPS 13 9343] Random kernel Oops at boot with =?iso-8859-1?Q?"acpi=3Dht",_disappearing_with_"acpi=3Doff"?=
+Date: Mon, 19 Oct 2015 00:18:54 +0200
+Message-ID: <75739899-c216-46ab-9ba5-dee9e07c77af@linuxsystems.it>
+References: <16367d85-fe84-4792-819a-d50a508409ef@linuxsystems.it>
+ <20151002101919.GZ1551@lahna.fi.intel.com>
+ <c4c8d5aa-d2ad-4448-9ca5-d381c30ba6d7@linuxsystems.it>
+ <20151005104645.GA1506@lahna.fi.intel.com>
+ <97e73880-b4a6-4118-bf11-6a90d2505fd1@linuxsystems.it>
+ <20151005135449.GF1506@lahna.fi.intel.com>
+ <481e7bc8-b4c4-4acd-9988-f3e0e5ea87b3@linuxsystems.it>
+ <20151008100615.GO1506@lahna.fi.intel.com>
+ <9517e70c-d3ec-4dd0-8064-a06546812d16@linuxsystems.it>
+ <20151008102816.GP1506@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:33017 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750914AbbJQGzx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 17 Oct 2015 02:55:53 -0400
-Content-Disposition: inline
-In-Reply-To: <1443517859-30376-14-git-send-email-tomeu.vizoso@collabora.com>
+Received: from mail.linuxsystems.it ([2.119.245.41]:54301 "EHLO
+	mail.linuxsystems.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751268AbbJRWS6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 18 Oct 2015 18:18:58 -0400
+In-Reply-To: <20151008102816.GP1506@lahna.fi.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Cc: linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-arm-kernel@lists.infradead.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, devicetree@vger.kernel.org, Russell King <rmk+kernel@arm.linux.org.uk>, Linus Walleij <linus.walleij@linaro.org>, Ulf Hansson <ulf.hansson@linaro.org>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Tue, Sep 29, 2015 at 11:10:51AM +0200, Tomeu Vizoso wrote:
-> When looking up a phy through its OF node, probe it if it hasn't
-> already.
-> 
-> The goal is to reduce deferred probes to a minimum, as it makes it very
-> cumbersome to find out why a device failed to probe, and can introduce
-> very big delays in when a critical device is probed.
-> 
-> Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-> ---
-> 
-> 
->  drivers/usb/phy/phy.c | 3 +++
->  1 file changed, 3 insertions(+)
-> 
-> diff --git a/drivers/usb/phy/phy.c b/drivers/usb/phy/phy.c
-> index 98f75d2842b7..fb0b650bb494 100644
-> --- a/drivers/usb/phy/phy.c
-> +++ b/drivers/usb/phy/phy.c
-> @@ -15,6 +15,7 @@
->  #include <linux/module.h>
->  #include <linux/slab.h>
->  #include <linux/of.h>
-> +#include <linux/of_device.h>
->  
->  #include <linux/usb/phy.h>
->  
-> @@ -196,6 +197,8 @@ struct  usb_phy *devm_usb_get_phy_by_node(struct device *dev,
->  		goto err0;
->  	}
->  
-> +	of_device_probe(node);
+I tried to use Ubuntu's kernel with Ubuntu's initramfs on Arch, but som=
+ehow=20
+I didn't manage to boot the system.
 
-Ugh, this "sprinkling" of calls all over different subsystems like this
-isn't ok.  Why is of just so broken that it has to do crap like this?
+So I kept the Ubuntu kernel and I generated a new initramfs for it: I s=
+till=20
+get crashes at boot, maybe a bit less frequently.
 
-I really don't like this solution / series at all, sorry.  We have
-deferred probing, if you need stuff like that (where the dependancy tree
-isn't in order), how slow is that really?  What is taking your hardware
-so long to init that warrents this being spread all across the tree?
+Then I decided to build a kernel statically without using initramfs at =
+all:=20
+I don't get crashes anymore!!!
 
-thanks,
+So even Ubuntu's kernel *IS* bugged, but somehow only Arch's initramfs=20
+exposes the bug.
 
-greg k-h
+Unfortunately my laptop uses dm-crypt, so I *need* an initramfs to boot=
+ it=20
+(I was booting a flash drive in my tests).
+
+Niccol=C3=B2 Belli
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
