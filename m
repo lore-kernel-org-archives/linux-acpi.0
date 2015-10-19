@@ -1,332 +1,64 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: [PATCH] acpi: set return value to const char for some functions
-Date: Mon, 19 Oct 2015 17:15:40 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37D981F39@ORSMSX112.amr.corp.intel.com>
-References: <1444849635-14456-1-git-send-email-clabbe.montjoie@gmail.com>
- <94F2FBAB4432B54E8AACC7DFDE6C92E37D9803BD@ORSMSX112.amr.corp.intel.com>
- <20151019120255.GA18559@Red>
+From: Davidlohr Bueso <dave@stgolabs.net>
+Subject: [PATCH] GHES: Fix cached error-status
+Date: Mon, 19 Oct 2015 10:55:54 -0700
+Message-ID: <20151019175554.GB3367@linux-uzut.site>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:42200 "EHLO mga02.intel.com"
+Received: from mx2.suse.de ([195.135.220.15]:42935 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753771AbbJSRPm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Oct 2015 13:15:42 -0400
-Content-Language: en-US
+	id S1751194AbbJSR4P (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 19 Oct 2015 13:56:15 -0400
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: LABBE Corentin <montjoie.mailing@gmail.com>
-Cc: LABBE Corentin <clabbe.montjoie@gmail.com>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "lenb@kernel.org" <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Huang Ying <ying.huang@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Borislav Petkov <bp@suse.de>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-You may have missed this, from last week:
+In ghes_estatus_cached() we currently have a situation where
+we can break out of the loop before examining all the possible
+estatus_caches. Move the 'break' statement inside of the 'if',
+such that an otherwise possibly missed cache is acknowledged
+and the function returns the proper value.
 
+Introduced by 152cef40a808d (ACPI, APEI, GHES, Error records
+content based throttle).
 
-> All that being said, I went ahead and made the actual ACPICA changes
-> corresponding to your patches. There were no pollution issues, and it
-> actually simplified the code by eliminating the need for some uses of
-> ACPI_CAST_PTR.
-> 
-> The only issue I found was here, so we won't do this one:
-> 
-> const char
-> AcpiUtHexToAsciiChar
-> 
-> \acpica\source\include\acutils.h(322) :
->     warning C4180: qualifier applied to function type has no meaning;
-> ignored
->
+Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
+---
 
+Hi,
 
+I found this accidentally and have no idea if it is correct, but
+seems to be a case of a misplaced break. If this is not the case,
+then it is a very weird way of using a for-loop, and should probably
+be rewritten -- and there are other funky places in this file...
 
+100% untested.
 
+Thanks,
+Davidlohr
 
+  drivers/acpi/apei/ghes.c | 5 +++--
+  1 file changed, 3 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
+index 3dd9c46..3fda4a2 100644
+--- a/drivers/acpi/apei/ghes.c
++++ b/drivers/acpi/apei/ghes.c
+@@ -541,9 +541,10 @@ static int ghes_estatus_cached(struct acpi_hest_generic_status *estatus)
+  			continue;
+  		atomic_inc(&cache->count);
+  		now = sched_clock();
+-		if (now - cache->time_in < GHES_ESTATUS_IN_CACHE_MAX_NSEC)
++		if (now - cache->time_in < GHES_ESTATUS_IN_CACHE_MAX_NSEC) {
+  			cached = 1;
+-		break;
++			break;
++		}
+  	}
+  	rcu_read_unlock();
+  	return cached;
+-- 
+2.1.4
 
-> -----Original Message-----
-> From: Moore, Robert
-> Sent: Monday, October 19, 2015 10:05 AM
-> To: 'LABBE Corentin'
-> Cc: LABBE Corentin; Zheng, Lv; Wysocki, Rafael J; lenb@kernel.org; linux-
-> acpi@vger.kernel.org; devel@acpica.org; linux-kernel@vger.kernel.org
-> Subject: RE: [PATCH] acpi: set return value to const char for some
-> functions
-> 
-> Actually, I thought I got most of the changes.
-> 
-> Again, ACPICA code is in a different format than the Linux version of the
-> code, so your patch cannot be directly applied.
-> 
-> Bob
-> 
-> 
-> > -----Original Message-----
-> > From: LABBE Corentin [mailto:montjoie.mailing@gmail.com]
-> > Sent: Monday, October 19, 2015 5:03 AM
-> > To: Moore, Robert
-> > Cc: LABBE Corentin; Zheng, Lv; Wysocki, Rafael J; lenb@kernel.org;
-> > linux- acpi@vger.kernel.org; devel@acpica.org;
-> > linux-kernel@vger.kernel.org
-> > Subject: Re: [PATCH] acpi: set return value to const char for some
-> > functions
-> >
-> > On Wed, Oct 14, 2015 at 08:53:19PM +0000, Moore, Robert wrote:
-> > > In ACPICA, we tend to be very careful concerning the "const" keyword
-> > > in
-> > order to avoid a phenomenon known as "const pollution".
-> > >
-> > > That is not to say that we won't use const in some limited cases.
-> > >
-> > > Bob
-> > >
-> >
-> > Hello
-> >
-> > The problem is that all function in this patch return a pointer to
-> > string literal without giving that information.
-> > I am sad to see that you seems to agree with that but, for resuming
-> > your conversation with Joe Perches, you reject this patch just because
-> > you worry that perhaps in the future it will make you more works do
-> > deal with it.
-> >
-> > Does you will accept the subset of this patch for adding const to
-> > "static char xxx[] = {}" ?
-> >
-> > Regards
-> >
-> > >
-> > > > -----Original Message-----
-> > > > From: LABBE Corentin [mailto:clabbe.montjoie@gmail.com]
-> > > > Sent: Wednesday, October 14, 2015 12:07 PM
-> > > > To: Moore, Robert; Zheng, Lv; Wysocki, Rafael J; lenb@kernel.org
-> > > > Cc: linux-acpi@vger.kernel.org; devel@acpica.org; linux-
-> > > > kernel@vger.kernel.org; LABBE Corentin
-> > > > Subject: [PATCH] acpi: set return value to const char for some
-> > > > functions
-> > > >
-> > > > This patch set some array of const char as const.
-> > > > In the same time, some function return pointer to thoses array
-> > > > without properly giving the information that the data is const.
-> > > > This patch set the return type of thoses functions as const char *
-> > > >
-> > > > Signed-off-by: LABBE Corentin <clabbe.montjoie@gmail.com>
-> > > > ---
-> > > >  drivers/acpi/acpica/acutils.h  | 12 ++++++------
-> > > > drivers/acpi/acpica/utdecode.c | 24 ++++++++++++------------
-> > > >  drivers/acpi/acpica/uthex.c    |  4 ++--
-> > > >  drivers/acpi/tables.c          |  6 ++++--
-> > > >  4 files changed, 24 insertions(+), 22 deletions(-)
-> > > >
-> > > > diff --git a/drivers/acpi/acpica/acutils.h
-> > > > b/drivers/acpi/acpica/acutils.h index fb2aa50..e5d9d4f 100644
-> > > > --- a/drivers/acpi/acpica/acutils.h
-> > > > +++ b/drivers/acpi/acpica/acutils.h
-> > > > @@ -189,21 +189,21 @@ char *acpi_ut_get_mutex_name(u32 mutex_id);
-> > > > const char *acpi_ut_get_notify_name(u32 notify_value,
-> > > > acpi_object_type type); #endif
-> > > >
-> > > > -char *acpi_ut_get_type_name(acpi_object_type type);
-> > > > +const char *acpi_ut_get_type_name(acpi_object_type type);
-> > > >
-> > > >  char *acpi_ut_get_node_name(void *object);
-> > > >
-> > > > -char *acpi_ut_get_descriptor_name(void *object);
-> > > > +const char *acpi_ut_get_descriptor_name(void *object);
-> > > >
-> > > >  const char *acpi_ut_get_reference_name(union acpi_operand_object
-> > > > *object);
-> > > >
-> > > > -char *acpi_ut_get_object_type_name(union acpi_operand_object
-> > > > *obj_desc);
-> > > > +const char *acpi_ut_get_object_type_name(union
-> > > > +acpi_operand_object *obj_desc);
-> > > >
-> > > > -char *acpi_ut_get_region_name(u8 space_id);
-> > > > +const char *acpi_ut_get_region_name(u8 space_id);
-> > > >
-> > > > -char *acpi_ut_get_event_name(u32 event_id);
-> > > > +const char *acpi_ut_get_event_name(u32 event_id);
-> > > >
-> > > > -char acpi_ut_hex_to_ascii_char(u64 integer, u32 position);
-> > > > +const char acpi_ut_hex_to_ascii_char(u64 integer, u32 position);
-> > > >
-> > > >  u8 acpi_ut_ascii_char_to_hex(int hex_char);
-> > > >
-> > > > diff --git a/drivers/acpi/acpica/utdecode.c
-> > > > b/drivers/acpi/acpica/utdecode.c index 988e23b..e08cdb1 100644
-> > > > --- a/drivers/acpi/acpica/utdecode.c
-> > > > +++ b/drivers/acpi/acpica/utdecode.c
-> > > > @@ -114,7 +114,7 @@ const char
-> > > > *acpi_gbl_region_types[ACPI_NUM_PREDEFINED_REGIONS] = {
-> > > >  	"PCC"			/* 0x0A */
-> > > >  };
-> > > >
-> > > > -char *acpi_ut_get_region_name(u8 space_id)
-> > > > +const char *acpi_ut_get_region_name(u8 space_id)
-> > > >  {
-> > > >
-> > > >  	if (space_id >= ACPI_USER_REGION_BEGIN) { @@ -127,7 +127,7 @@
-> > > > char
-> > > > *acpi_ut_get_region_name(u8 space_id)
-> > > >  		return ("InvalidSpaceId");
-> > > >  	}
-> > > >
-> > > > -	return (ACPI_CAST_PTR(char, acpi_gbl_region_types[space_id]));
-> > > > +	return (ACPI_CAST_PTR(const char,
-> > > > +acpi_gbl_region_types[space_id]));
-> > > >  }
-> > > >
-> > > >
-> > > > /*****************************************************************
-> > > > **
-> > > > ******
-> > > > ******
-> > > > @@ -152,14 +152,14 @@ static const char
-> > > > *acpi_gbl_event_types[ACPI_NUM_FIXED_EVENTS] = {
-> > > >  	"RealTimeClock",
-> > > >  };
-> > > >
-> > > > -char *acpi_ut_get_event_name(u32 event_id)
-> > > > +const char *acpi_ut_get_event_name(u32 event_id)
-> > > >  {
-> > > >
-> > > >  	if (event_id > ACPI_EVENT_MAX) {
-> > > >  		return ("InvalidEventID");
-> > > >  	}
-> > > >
-> > > > -	return (ACPI_CAST_PTR(char, acpi_gbl_event_types[event_id]));
-> > > > +	return (ACPI_CAST_PTR(const char,
-> > > > +acpi_gbl_event_types[event_id]));
-> > > >  }
-> > > >
-> > > >
-> > > > /*****************************************************************
-> > > > **
-> > > > ******
-> > > > ******
-> > > > @@ -220,17 +220,17 @@ static const char *acpi_gbl_ns_type_names[] =
-> {
-> > > >  	/* 30 */ "Invalid"
-> > > >  };
-> > > >
-> > > > -char *acpi_ut_get_type_name(acpi_object_type type)
-> > > > +const char *acpi_ut_get_type_name(acpi_object_type type)
-> > > >  {
-> > > >
-> > > >  	if (type > ACPI_TYPE_INVALID) {
-> > > > -		return (ACPI_CAST_PTR(char, acpi_gbl_bad_type));
-> > > > +		return (ACPI_CAST_PTR(const char, acpi_gbl_bad_type));
-> > > >  	}
-> > > >
-> > > > -	return (ACPI_CAST_PTR(char, acpi_gbl_ns_type_names[type]));
-> > > > +	return (ACPI_CAST_PTR(const char,
-> > > > +acpi_gbl_ns_type_names[type]));
-> > > >  }
-> > > >
-> > > > -char *acpi_ut_get_object_type_name(union acpi_operand_object
-> > > > *obj_desc)
-> > > > +const char *acpi_ut_get_object_type_name(union
-> > > > +acpi_operand_object
-> > > > +*obj_desc)
-> > > >  {
-> > > >
-> > > >  	if (!obj_desc) {
-> > > > @@ -318,7 +318,7 @@ static const char *acpi_gbl_desc_type_names[] =
-> {
-> > > >  	/* 15 */ "Node"
-> > > >  };
-> > > >
-> > > > -char *acpi_ut_get_descriptor_name(void *object)
-> > > > +const char *acpi_ut_get_descriptor_name(void *object)
-> > > >  {
-> > > >
-> > > >  	if (!object) {
-> > > > @@ -329,7 +329,7 @@ char *acpi_ut_get_descriptor_name(void *object)
-> > > >  		return ("Not a Descriptor");
-> > > >  	}
-> > > >
-> > > > -	return (ACPI_CAST_PTR(char,
-> > > > +	return (ACPI_CAST_PTR(const char,
-> > > >
-> acpi_gbl_desc_type_names[ACPI_GET_DESCRIPTOR_TYPE
-> > > >  						       (object)]));
-> > > >
-> > > > @@ -400,7 +400,7 @@ const char *acpi_ut_get_reference_name(union
-> > > > acpi_operand_object *object)
-> > > >
-> > > >  /* Names for internal mutex objects, used for debug output */
-> > > >
-> > > > -static char *acpi_gbl_mutex_names[ACPI_NUM_MUTEX] = {
-> > > > +static const char *acpi_gbl_mutex_names[ACPI_NUM_MUTEX] = {
-> > > >  	"ACPI_MTX_Interpreter",
-> > > >  	"ACPI_MTX_Namespace",
-> > > >  	"ACPI_MTX_Tables",
-> > > > @@ -411,7 +411,7 @@ static char
-> > > > *acpi_gbl_mutex_names[ACPI_NUM_MUTEX]
-> > = {
-> > > >  	"ACPI_MTX_CommandReady"
-> > > >  };
-> > > >
-> > > > -char *acpi_ut_get_mutex_name(u32 mutex_id)
-> > > > +const char *acpi_ut_get_mutex_name(u32 mutex_id)
-> > > >  {
-> > > >
-> > > >  	if (mutex_id > ACPI_MAX_MUTEX) { diff --git
-> > > > a/drivers/acpi/acpica/uthex.c b/drivers/acpi/acpica/uthex.c index
-> > > > fda8b3d..9239711 100644
-> > > > --- a/drivers/acpi/acpica/uthex.c
-> > > > +++ b/drivers/acpi/acpica/uthex.c
-> > > > @@ -48,7 +48,7 @@
-> > > >  ACPI_MODULE_NAME("uthex")
-> > > >
-> > > >  /* Hex to ASCII conversion table */ -static char
-> > > > acpi_gbl_hex_to_ascii[] = {
-> > > > +static const char acpi_gbl_hex_to_ascii[] = {
-> > > >  	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B',
-> 'C',
-> > > > 'D',
-> > > >  	    'E', 'F'
-> > > >  };
-> > > > @@ -67,7 +67,7 @@ static char acpi_gbl_hex_to_ascii[] = {
-> > > >   *
-> > > >
-> > > > ******************************************************************
-> > > > **
-> > > > ******
-> > > > ****/
-> > > >
-> > > > -char acpi_ut_hex_to_ascii_char(u64 integer, u32 position)
-> > > > +const char acpi_ut_hex_to_ascii_char(u64 integer, u32 position)
-> > > >  {
-> > > >
-> > > >  	return (acpi_gbl_hex_to_ascii[(integer >> position) & 0xF]);
-> > > > diff
-> > > > -- git a/drivers/acpi/tables.c b/drivers/acpi/tables.c index
-> > > > 17a6fa0..7c8a037
-> > > > 100644
-> > > > --- a/drivers/acpi/tables.c
-> > > > +++ b/drivers/acpi/tables.c
-> > > > @@ -35,8 +35,10 @@
-> > > >
-> > > >  #define ACPI_MAX_TABLES		128
-> > > >
-> > > > -static char *mps_inti_flags_polarity[] = { "dfl", "high", "res",
-> > > > "low" }; -static char *mps_inti_flags_trigger[] = { "dfl", "edge",
-> > "res", "level"
-> > > > };
-> > > > +static const char * const mps_inti_flags_polarity[] = {
-> > > > +	"dfl", "high", "res", "low" };
-> > > > +static const char * const mps_inti_flags_trigger[] = {
-> > > > +	"dfl", "edge", "res", "level" };
-> > > >
-> > > >  static struct acpi_table_desc initial_tables[ACPI_MAX_TABLES]
-> > > > __initdata;
-> > > >
-> > > > --
-> > > > 2.4.9
-> > >
-> > > --
-> > > To unsubscribe from this list: send the line "unsubscribe
-> > > linux-kernel" in the body of a message to majordomo@vger.kernel.org
-> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > > Please read the FAQ at  http://www.tux.org/lkml/
