@@ -1,511 +1,100 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v2 12/14] ACPI: Enable build of AML interpreter debugger
-Date: Mon, 19 Oct 2015 10:25:56 +0800
-Message-ID: <fc53c015a0fd5de1b1f298066302bc0c2c1af7c6.1445221165.git.lv.zheng@intel.com>
+Subject: [PATCH v2 10/14] ACPICA: Debugger: Fix "terminate" command by cleaning up subsystem shutdown logic
+Date: Mon, 19 Oct 2015 10:25:42 +0800
+Message-ID: <461c7deeae5ea10b33051ccebac25edfddeb3d45.1445221165.git.lv.zheng@intel.com>
 References: <8c1016ca8a570ba7c7a1c9f0f88d73cd83cea490> <cover.1445221164.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:9580 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753349AbbJSC0A (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 18 Oct 2015 22:26:00 -0400
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1445221164.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
-This patch enables ACPICA debugger files using a configurable
-CONFIG_ACPI_DEBUGGER configuration item. Those debugger related code that
-was originally masked as ACPI_FUTURE_USAGE now gets unmasked.
+ACPICA commit 7e823714911480be47e310fb1b3590d289b9fd99
 
-Necessary OSL stubs are also added in this patch:
-1. acpi_os_readable(): This should be arch specific in Linux, while this
-    patch doesn't introduce real implementation and a complex mechanism to
-    allow architecture specific acpi_os_readable() to be implemented to
-    validate the address. It may be done by future commits.
-2. acpi_os_get_line(): This is used to obtain debugger command input. This
-    patch only introduces a simple KDB concept example in it and the
-    example should be co-working with the code implemented in
-    acpi_os_printf(). Since this KDB example won't be compiled unless
-    ENABLE_DEBUGGER is defined and it seems Linux has already stopped to
-    use ENABLE_DEBUGGER, thus do not expect it can work properly.
+Segmentation fault can be seen for executing the "terminate" command. This
+is because acpi_ut_subsystem_shutdown() is errnously called multiple times.
 
-This patch also cleans up all other ACPI_FUTURE_USAGE surroundings
-accordingly.
-1. Since linkage error can be automatically detected, declaration in the
-   headers needn't be surrounded by ACPI_FUTURE_USAGE.
-   So only the following separate exported fuction bodies are masked by
-   this macro (other exported fucntions may have already been masked at
-   entire module level via drivers/acpi/acpica/Makefile):
-     acpi_install_exception_handler()
-     acpi_subsystem_status()
-     acpi_get_system_info()
-     acpi_get_statistics()
-     acpi_install_initialization_handler()
-2. Since strip can automatically zap the no-user functions, functions that
-   are not marked with ACPI_EXPORT_SYMBOL() needn't get surrounded by
-   ACPI_FUTURE_USAGE.
-   So the following function which is not used by Linux kernel now won't
-   get surrounded by this macro:
-     acpi_ps_get_name()
+This patch cleans up acpi_ut_subsystem_shutdown() logics to fix this
+issue. Lv Zheng.
 
+Link: https://github.com/acpica/acpica/commit/7e823714
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/Kconfig              |    9 +++++++++
- drivers/acpi/acpica/Makefile      |   18 +++++++++++++++++-
- drivers/acpi/acpica/acinterp.h    |    2 --
- drivers/acpi/acpica/acnamesp.h    |    4 ----
- drivers/acpi/acpica/acparser.h    |    4 ----
- drivers/acpi/acpica/acutils.h     |    2 --
- drivers/acpi/acpica/evxface.c     |    2 +-
- drivers/acpi/acpica/nsdump.c      |    6 ------
- drivers/acpi/acpica/pstree.c      |    2 --
- drivers/acpi/acpica/psutils.c     |    2 --
- drivers/acpi/acpica/rsutils.c     |    2 --
- drivers/acpi/acpica/rsxface.c     |    4 ++--
- drivers/acpi/acpica/utxface.c     |    2 +-
- drivers/acpi/osl.c                |   11 +++--------
- include/acpi/acpixf.h             |   10 ----------
- include/acpi/platform/aclinux.h   |    7 +++++--
- include/acpi/platform/aclinuxex.h |    5 +++++
- 17 files changed, 43 insertions(+), 49 deletions(-)
+ drivers/acpi/acpica/dbinput.c |    3 ++-
+ drivers/acpi/acpica/utinit.c  |   13 +++++++++++++
+ drivers/acpi/acpica/utxface.c |   13 -------------
+ 3 files changed, 15 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 5d1015c..706c2e9 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -57,6 +57,15 @@ config ACPI_SYSTEM_POWER_STATES_SUPPORT
- config ACPI_CCA_REQUIRED
- 	bool
+diff --git a/drivers/acpi/acpica/dbinput.c b/drivers/acpi/acpica/dbinput.c
+index f8cddd6..0480254 100644
+--- a/drivers/acpi/acpica/dbinput.c
++++ b/drivers/acpi/acpica/dbinput.c
+@@ -1074,6 +1074,7 @@ acpi_db_command_dispatch(char *input_buffer,
+ 		 * re-creating the semaphores!
+ 		 */
  
-+config ACPI_DEBUGGER
-+	bool "In-kernel debugger (EXPERIMENTAL)"
-+	select ACPI_DEBUG
-+	help
-+	  Enable in-kernel debugging facilities: statistics, internal
-+	  object dump, single step control method execution.
-+	  This is still under development, currently enabling this only
-+	  results in the compilation of the ACPICA debugger files.
-+
- config ACPI_SLEEP
- 	bool
- 	depends on SUSPEND || HIBERNATION
-diff --git a/drivers/acpi/acpica/Makefile b/drivers/acpi/acpica/Makefile
-index ac78d76..885936f 100644
---- a/drivers/acpi/acpica/Makefile
-+++ b/drivers/acpi/acpica/Makefile
-@@ -177,8 +177,24 @@ acpi-y +=		\
- 	utxferror.o	\
- 	utxfmutex.o
++		acpi_gbl_db_terminate_loop = TRUE;
+ 		/*  acpi_initialize (NULL); */
+ 		break;
  
--acpi-$(ACPI_FUTURE_USAGE) +=	\
-+acpi-$(CONFIG_ACPI_DEBUGGER) +=	\
-+	dbcmds.o		\
-+	dbconvert.o		\
-+	dbdisply.o		\
-+	dbexec.o		\
-+	dbhistry.o		\
-+	dbinput.o		\
-+	dbmethod.o		\
-+	dbnames.o		\
-+	dbobject.o		\
-+	dbstats.o		\
-+	dbutils.o		\
-+	dbxface.o		\
- 	rsdump.o		\
-+
-+acpi-$(ACPI_FUTURE_USAGE) +=	\
-+	dbfileio.o		\
-+	dbtest.o		\
- 	utcache.o		\
- 	utfileio.o		\
- 	utprint.o		\
-diff --git a/drivers/acpi/acpica/acinterp.h b/drivers/acpi/acpica/acinterp.h
-index e820ed8..e9e936e 100644
---- a/drivers/acpi/acpica/acinterp.h
-+++ b/drivers/acpi/acpica/acinterp.h
-@@ -397,12 +397,10 @@ void
- acpi_ex_dump_operands(union acpi_operand_object **operands,
- 		      const char *opcode_name, u32 num_opcodes);
+@@ -1151,7 +1152,7 @@ void ACPI_SYSTEM_XFACE acpi_db_execute_thread(void *context)
+ 	acpi_status status = AE_OK;
+ 	acpi_status Mstatus;
  
--#ifdef	ACPI_FUTURE_USAGE
- void
- acpi_ex_dump_object_descriptor(union acpi_operand_object *object, u32 flags);
+-	while (status != AE_CTRL_TERMINATE) {
++	while (status != AE_CTRL_TERMINATE && !acpi_gbl_db_terminate_loop) {
+ 		acpi_gbl_method_executing = FALSE;
+ 		acpi_gbl_step_to_next_call = FALSE;
  
- void acpi_ex_dump_namespace_node(struct acpi_namespace_node *node, u32 flags);
--#endif				/* ACPI_FUTURE_USAGE */
- 
- /*
-  * exnames - AML namestring support
-diff --git a/drivers/acpi/acpica/acnamesp.h b/drivers/acpi/acpica/acnamesp.h
-index ea0d907..5d261c9 100644
---- a/drivers/acpi/acpica/acnamesp.h
-+++ b/drivers/acpi/acpica/acnamesp.h
-@@ -193,9 +193,7 @@ acpi_ns_convert_to_resource(union acpi_operand_object *original_object,
- /*
-  * nsdump - Namespace dump/print utilities
-  */
--#ifdef	ACPI_FUTURE_USAGE
- void acpi_ns_dump_tables(acpi_handle search_base, u32 max_depth);
--#endif				/* ACPI_FUTURE_USAGE */
- 
- void acpi_ns_dump_entry(acpi_handle handle, u32 debug_level);
- 
-@@ -208,7 +206,6 @@ acpi_status
- acpi_ns_dump_one_object(acpi_handle obj_handle,
- 			u32 level, void *context, void **return_value);
- 
--#ifdef	ACPI_FUTURE_USAGE
- void
- acpi_ns_dump_objects(acpi_object_type type,
- 		     u8 display_type,
-@@ -220,7 +217,6 @@ acpi_ns_dump_object_paths(acpi_object_type type,
- 			  u8 display_type,
- 			  u32 max_depth,
- 			  acpi_owner_id owner_id, acpi_handle start_handle);
--#endif				/* ACPI_FUTURE_USAGE */
- 
- /*
-  * nseval - Namespace evaluation functions
-diff --git a/drivers/acpi/acpica/acparser.h b/drivers/acpi/acpica/acparser.h
-index 6021ccf..8fc8c7c 100644
---- a/drivers/acpi/acpica/acparser.h
-+++ b/drivers/acpi/acpica/acparser.h
-@@ -194,10 +194,8 @@ union acpi_parse_object *acpi_ps_find(union acpi_parse_object *scope,
- 
- union acpi_parse_object *acpi_ps_get_arg(union acpi_parse_object *op, u32 argn);
- 
--#ifdef	ACPI_FUTURE_USAGE
- union acpi_parse_object *acpi_ps_get_depth_next(union acpi_parse_object *origin,
- 						union acpi_parse_object *op);
--#endif				/* ACPI_FUTURE_USAGE */
- 
- /*
-  * pswalk - parse tree walk routines
-@@ -235,9 +233,7 @@ void acpi_ps_free_op(union acpi_parse_object *op);
- 
- u8 acpi_ps_is_leading_char(u32 c);
- 
--#ifdef	ACPI_FUTURE_USAGE
- u32 acpi_ps_get_name(union acpi_parse_object *op);
--#endif				/* ACPI_FUTURE_USAGE */
- 
- void acpi_ps_set_name(union acpi_parse_object *op, u32 name);
- 
-diff --git a/drivers/acpi/acpica/acutils.h b/drivers/acpi/acpica/acutils.h
-index fb2aa50..8b8fef6 100644
---- a/drivers/acpi/acpica/acutils.h
-+++ b/drivers/acpi/acpica/acutils.h
-@@ -635,9 +635,7 @@ void
- acpi_ut_free_and_track(void *address,
- 		       u32 component, const char *module, u32 line);
- 
--#ifdef	ACPI_FUTURE_USAGE
- void acpi_ut_dump_allocation_info(void);
--#endif				/* ACPI_FUTURE_USAGE */
- 
- void acpi_ut_dump_allocations(u32 component, const char *module);
- 
-diff --git a/drivers/acpi/acpica/evxface.c b/drivers/acpi/acpica/evxface.c
-index 81f2d9e..07d22bf 100644
---- a/drivers/acpi/acpica/evxface.c
-+++ b/drivers/acpi/acpica/evxface.c
-@@ -405,7 +405,7 @@ cleanup:
- }
- 
- ACPI_EXPORT_SYMBOL(acpi_install_exception_handler)
--#endif				/*  ACPI_FUTURE_USAGE  */
-+#endif
- 
- #if (!ACPI_REDUCED_HARDWARE)
- /*******************************************************************************
-diff --git a/drivers/acpi/acpica/nsdump.c b/drivers/acpi/acpica/nsdump.c
-index 0f1daba..37aa5c4 100644
---- a/drivers/acpi/acpica/nsdump.c
-+++ b/drivers/acpi/acpica/nsdump.c
-@@ -60,7 +60,6 @@ acpi_ns_dump_one_device(acpi_handle obj_handle,
- 
- #if defined(ACPI_DEBUG_OUTPUT) || defined(ACPI_DEBUGGER)
- 
--#ifdef	ACPI_FUTURE_USAGE
- static acpi_status
- acpi_ns_dump_one_object_path(acpi_handle obj_handle,
- 			     u32 level, void *context, void **return_value);
-@@ -68,7 +67,6 @@ acpi_ns_dump_one_object_path(acpi_handle obj_handle,
- static acpi_status
- acpi_ns_get_max_depth(acpi_handle obj_handle,
- 		      u32 level, void *context, void **return_value);
--#endif				/* ACPI_FUTURE_USAGE */
- 
- /*******************************************************************************
-  *
-@@ -625,7 +623,6 @@ cleanup:
- 	return (AE_OK);
- }
- 
--#ifdef ACPI_FUTURE_USAGE
- /*******************************************************************************
-  *
-  * FUNCTION:    acpi_ns_dump_objects
-@@ -680,9 +677,7 @@ acpi_ns_dump_objects(acpi_object_type type,
- 
- 	(void)acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
- }
--#endif				/* ACPI_FUTURE_USAGE */
- 
--#ifdef	ACPI_FUTURE_USAGE
- /*******************************************************************************
-  *
-  * FUNCTION:    acpi_ns_dump_one_object_path, acpi_ns_get_max_depth
-@@ -810,7 +805,6 @@ acpi_ns_dump_object_paths(acpi_object_type type,
- 
- 	(void)acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
- }
--#endif				/* ACPI_FUTURE_USAGE */
- 
- /*******************************************************************************
-  *
-diff --git a/drivers/acpi/acpica/pstree.c b/drivers/acpi/acpica/pstree.c
-index 89984f3..cf2f2fa 100644
---- a/drivers/acpi/acpica/pstree.c
-+++ b/drivers/acpi/acpica/pstree.c
-@@ -183,7 +183,6 @@ acpi_ps_append_arg(union acpi_parse_object *op, union acpi_parse_object *arg)
- 	}
- }
- 
--#ifdef ACPI_FUTURE_USAGE
- /*******************************************************************************
-  *
-  * FUNCTION:    acpi_ps_get_depth_next
-@@ -317,4 +316,3 @@ union acpi_parse_object *acpi_ps_get_child(union acpi_parse_object *op)
- 	return (child);
- }
- #endif
--#endif				/*  ACPI_FUTURE_USAGE  */
-diff --git a/drivers/acpi/acpica/psutils.c b/drivers/acpi/acpica/psutils.c
-index 183cc1e..71d2877 100644
---- a/drivers/acpi/acpica/psutils.c
-+++ b/drivers/acpi/acpica/psutils.c
-@@ -205,7 +205,6 @@ u8 acpi_ps_is_leading_char(u32 c)
- /*
-  * Get op's name (4-byte name segment) or 0 if unnamed
-  */
--#ifdef ACPI_FUTURE_USAGE
- u32 acpi_ps_get_name(union acpi_parse_object * op)
+diff --git a/drivers/acpi/acpica/utinit.c b/drivers/acpi/acpica/utinit.c
+index d8699df..ccd0745 100644
+--- a/drivers/acpi/acpica/utinit.c
++++ b/drivers/acpi/acpica/utinit.c
+@@ -282,6 +282,19 @@ void acpi_ut_subsystem_shutdown(void)
  {
+ 	ACPI_FUNCTION_TRACE(ut_subsystem_shutdown);
  
-@@ -219,7 +218,6 @@ u32 acpi_ps_get_name(union acpi_parse_object * op)
- 
- 	return (op->named.name);
- }
--#endif				/*  ACPI_FUTURE_USAGE  */
- 
- /*
-  * Set op's name
-diff --git a/drivers/acpi/acpica/rsutils.c b/drivers/acpi/acpica/rsutils.c
-index 52b024d..9486992 100644
---- a/drivers/acpi/acpica/rsutils.c
-+++ b/drivers/acpi/acpica/rsutils.c
-@@ -564,7 +564,6 @@ acpi_rs_get_crs_method_data(struct acpi_namespace_node *node,
-  *
-  ******************************************************************************/
- 
--#ifdef ACPI_FUTURE_USAGE
- acpi_status
- acpi_rs_get_prs_method_data(struct acpi_namespace_node *node,
- 			    struct acpi_buffer *ret_buffer)
-@@ -596,7 +595,6 @@ acpi_rs_get_prs_method_data(struct acpi_namespace_node *node,
- 	acpi_ut_remove_reference(obj_desc);
- 	return_ACPI_STATUS(status);
- }
--#endif				/*  ACPI_FUTURE_USAGE  */
- 
- /*******************************************************************************
-  *
-diff --git a/drivers/acpi/acpica/rsxface.c b/drivers/acpi/acpica/rsxface.c
-index de51f83..1e8cd57 100644
---- a/drivers/acpi/acpica/rsxface.c
-+++ b/drivers/acpi/acpica/rsxface.c
-@@ -220,7 +220,7 @@ acpi_get_current_resources(acpi_handle device_handle,
- }
- 
- ACPI_EXPORT_SYMBOL(acpi_get_current_resources)
--#ifdef ACPI_FUTURE_USAGE
++	/* Just exit if subsystem is already shutdown */
 +
- /*******************************************************************************
-  *
-  * FUNCTION:    acpi_get_possible_resources
-@@ -262,7 +262,7 @@ acpi_get_possible_resources(acpi_handle device_handle,
- }
- 
- ACPI_EXPORT_SYMBOL(acpi_get_possible_resources)
--#endif				/*  ACPI_FUTURE_USAGE  */
++	if (acpi_gbl_shutdown) {
++		ACPI_ERROR((AE_INFO, "ACPI Subsystem is already terminated"));
++		return_VOID;
++	}
 +
- /*******************************************************************************
-  *
-  * FUNCTION:    acpi_set_current_resources
++	/* Subsystem appears active, go ahead and shut it down */
++
++	acpi_gbl_shutdown = TRUE;
++	acpi_gbl_startup_flags = 0;
++	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Shutting down ACPI Subsystem\n"));
++
+ #ifndef ACPI_ASL_COMPILER
+ 
+ 	/* Close the acpi_event Handling */
 diff --git a/drivers/acpi/acpica/utxface.c b/drivers/acpi/acpica/utxface.c
-index a6b0eb0..f9c8f9c 100644
+index f183daf..a6b0eb0 100644
 --- a/drivers/acpi/acpica/utxface.c
 +++ b/drivers/acpi/acpica/utxface.c
-@@ -253,7 +253,7 @@ acpi_install_initialization_handler(acpi_init_handler handler, u32 function)
- }
+@@ -67,19 +67,6 @@ acpi_status __init acpi_terminate(void)
  
- ACPI_EXPORT_SYMBOL(acpi_install_initialization_handler)
--#endif				/*  ACPI_FUTURE_USAGE  */
-+#endif
+ 	ACPI_FUNCTION_TRACE(acpi_terminate);
  
- /*****************************************************************************
-  *
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 739a4a6..3272915 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -66,8 +66,6 @@ struct acpi_os_dpc {
- /* stuff for debugger support */
- int acpi_in_debugger;
- EXPORT_SYMBOL(acpi_in_debugger);
+-	/* Just exit if subsystem is already shutdown */
 -
--extern char line_buf[80];
- #endif				/*ENABLE_DEBUGGER */
- 
- static int (*__acpi_os_prepare_sleep)(u8 sleep_state, u32 pm1a_ctrl,
-@@ -1345,15 +1343,13 @@ acpi_status acpi_os_signal_semaphore(acpi_handle handle, u32 units)
- 	return AE_OK;
- }
- 
--#ifdef ACPI_FUTURE_USAGE
--u32 acpi_os_get_line(char *buffer)
-+acpi_status acpi_os_get_line(char *buffer, u32 buffer_length, u32 *bytes_read)
- {
+-	if (acpi_gbl_shutdown) {
+-		ACPI_ERROR((AE_INFO, "ACPI Subsystem is already terminated"));
+-		return_ACPI_STATUS(AE_OK);
+-	}
 -
- #ifdef ENABLE_DEBUGGER
- 	if (acpi_in_debugger) {
- 		u32 chars;
+-	/* Subsystem appears active, go ahead and shut it down */
+-
+-	acpi_gbl_shutdown = TRUE;
+-	acpi_gbl_startup_flags = 0;
+-	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Shutting down ACPI Subsystem\n"));
+-
+ 	/* Shutdown and free all resources */
  
--		kdb_read(buffer, sizeof(line_buf));
-+		kdb_read(buffer, buffer_length);
- 
- 		/* remove the CR kdb includes */
- 		chars = strlen(buffer) - 1;
-@@ -1361,9 +1357,8 @@ u32 acpi_os_get_line(char *buffer)
- 	}
- #endif
- 
--	return 0;
-+	return AE_OK;
- }
--#endif				/*  ACPI_FUTURE_USAGE  */
- 
- acpi_status acpi_os_signal(u32 function, void *info)
- {
-diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index f837adf..ded9fa3 100644
---- a/include/acpi/acpixf.h
-+++ b/include/acpi/acpixf.h
-@@ -393,15 +393,11 @@ ACPI_EXTERNAL_RETURN_STATUS(acpi_status __init acpi_terminate(void))
-  */
- ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status acpi_enable(void))
- ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status acpi_disable(void))
--#ifdef ACPI_FUTURE_USAGE
- ACPI_EXTERNAL_RETURN_STATUS(acpi_status acpi_subsystem_status(void))
--#endif
- 
--#ifdef ACPI_FUTURE_USAGE
- ACPI_EXTERNAL_RETURN_STATUS(acpi_status
- 			    acpi_get_system_info(struct acpi_buffer
- 						 *ret_buffer))
--#endif
- ACPI_EXTERNAL_RETURN_STATUS(acpi_status
- 			     acpi_get_statistics(struct acpi_statistics *stats))
- ACPI_EXTERNAL_RETURN_PTR(const char
-@@ -625,11 +621,9 @@ ACPI_EXTERNAL_RETURN_STATUS(acpi_status
- 							       space_id,
- 							       acpi_adr_space_handler
- 							       handler))
--#ifdef ACPI_FUTURE_USAGE
- ACPI_EXTERNAL_RETURN_STATUS(acpi_status
- 			     acpi_install_exception_handler
- 			     (acpi_exception_handler handler))
--#endif
- ACPI_EXTERNAL_RETURN_STATUS(acpi_status
- 			     acpi_install_interface_handler
- 			     (acpi_interface_handler handler))
-@@ -750,12 +744,10 @@ ACPI_EXTERNAL_RETURN_STATUS(acpi_status
- 			     acpi_get_current_resources(acpi_handle device,
- 							struct acpi_buffer
- 							*ret_buffer))
--#ifdef ACPI_FUTURE_USAGE
- ACPI_EXTERNAL_RETURN_STATUS(acpi_status
- 			     acpi_get_possible_resources(acpi_handle device,
- 							 struct acpi_buffer
- 							 *ret_buffer))
--#endif
- ACPI_EXTERNAL_RETURN_STATUS(acpi_status
- 			     acpi_get_event_resources(acpi_handle device_handle,
- 						      struct acpi_buffer
-@@ -844,7 +836,6 @@ ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status
- /*
-  * ACPI Timer interfaces
-  */
--#ifdef ACPI_FUTURE_USAGE
- ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status
- 				acpi_get_timer_resolution(u32 *resolution))
- ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status acpi_get_timer(u32 *ticks))
-@@ -853,7 +844,6 @@ ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status
- 				acpi_get_timer_duration(u32 start_ticks,
- 							u32 end_ticks,
- 							u32 *time_elapsed))
--#endif				/* ACPI_FUTURE_USAGE */
- 
- /*
-  * Error/Warning output
-diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
-index 74ba46c..323e5da 100644
---- a/include/acpi/platform/aclinux.h
-+++ b/include/acpi/platform/aclinux.h
-@@ -63,12 +63,16 @@
- 
- #define ACPI_USE_SYSTEM_INTTYPES
- 
--/* Compile for reduced hardware mode only with this kernel config */
-+/* Kernel specific ACPICA configuration */
- 
- #ifdef CONFIG_ACPI_REDUCED_HARDWARE_ONLY
- #define ACPI_REDUCED_HARDWARE 1
- #endif
- 
-+#ifdef CONFIG_ACPI_DEBUGGER
-+#define ACPI_DEBUGGER
-+#endif
-+
- #include <linux/string.h>
- #include <linux/kernel.h>
- #include <linux/ctype.h>
-@@ -151,7 +155,6 @@
-  * OSL interfaces used by utilities
-  */
- #define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_redirect_output
--#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_get_line
- #define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_get_table_by_name
- #define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_get_table_by_index
- #define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_get_table_by_address
-diff --git a/include/acpi/platform/aclinuxex.h b/include/acpi/platform/aclinuxex.h
-index acedc3f..fd6d70f 100644
---- a/include/acpi/platform/aclinuxex.h
-+++ b/include/acpi/platform/aclinuxex.h
-@@ -124,6 +124,11 @@ static inline acpi_thread_id acpi_os_get_thread_id(void)
- 		lock ? AE_OK : AE_NO_MEMORY; \
- 	})
- 
-+static inline u8 acpi_os_readable(void *pointer, acpi_size length)
-+{
-+	return TRUE;
-+}
-+
- /*
-  * OSL interfaces added by Linux
-  */
+ 	acpi_ut_subsystem_shutdown();
 -- 
 1.7.10
-
