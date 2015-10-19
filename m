@@ -1,178 +1,195 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v2 11/14] ACPICA: Debugger: Add thread ID support so that single step mode can only apply to the debugger thread
-Date: Mon, 19 Oct 2015 10:25:50 +0800
-Message-ID: <36305e3a27770c01ccc407a6f6ddd527a3be81f9.1445221165.git.lv.zheng@intel.com>
+Subject: [PATCH v2 09/14] ACPICA: Debugger: Fix "quit/exit" command by cleaning up user commands termination logic
+Date: Mon, 19 Oct 2015 10:25:32 +0800
+Message-ID: <98d60fa60319a9f62938628f78531f59d2fc9d2a.1445221165.git.lv.zheng@intel.com>
 References: <8c1016ca8a570ba7c7a1c9f0f88d73cd83cea490> <cover.1445221164.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:29745 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753190AbbJSCZg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 18 Oct 2015 22:25:36 -0400
 In-Reply-To: <cover.1445221164.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-When the debugger is running in the kernel mode, acpi_db_single_step() may
-also be invoked by the kernel runtime code path but the single stepping
-command prompt may be erronously logged as the kernel logs and runtime code
-path cannot proceed.
+ACPICA commit 0dd68e16274cd38224aa4781eddc57dc2cbaa108
 
-This patch fixes this issue by adding acpi_gbl_db_thread_id for the debugger
-thread and preventing acpi_db_single_step() to be invoked from other threads.
+The quit/exit commands shouldn't invoke acpi_terminate_debugger() and
+acpi_terminate() right in the user command loop, because when the debugger
+exits, the kernel ACPI subsystem shouldn't be terminated (acpi_terminate())
+and the debugger should only be terminated by its users
+(acpi_terminate_debugger()) rather than being terminated itself. Leaving such
+invocations causes kernel panic when the debugger is shipped in the Linux
+kernel.
 
-It is not suitable to add acpi_thread_id parameter for acpi_os_execute() as
-the function may be implemented as work queue on some hosts. So it is
-better to let the hosts invoke acpi_set_debugger_thread_id(). Currently
-acpiexec is not configured as DEBUGGER_MULTI_THREADED, but we can do this.
-When we do this, it is better to invoke acpi_set_debugger_thread_id() in
-acpi_os_execute() when the execution type is OSL_DEBUGGER_MAIN_THREAD. The
-support should look like:
-  create_thread(&tid);
-  if (type == OSL_DEBUGGER_MAIN_THREAD)
-      acpi_set_debugger_thread_id(tid);
-  resume_thread(tid);
-Similarly, semop() may be used for pthread implementation. But this patch
-simply skips debugger thread ID check for application instead of
-introducing such complications as there is no need to skip
-acpi_db_single_step() for an application debugger - acpiexec.
+This patch fixes this issue. Lv Zheng.
 
-Note that the debugger thread ID can also be used by acpi_os_printf() to
-filter out debugger output. Lv Zheng.
-
+Link: https://github.com/acpica/acpica/commit/0dd68e16
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/acglobal.h |    1 +
- drivers/acpi/acpica/aclocal.h  |    8 ++++++++
- drivers/acpi/acpica/dbexec.c   |    3 ++-
- drivers/acpi/acpica/dbxface.c  |   28 +++++++++++++++++++++++++++-
- include/acpi/acpiosxf.h        |    3 ++-
- include/acpi/acpixf.h          |    2 ++
- 6 files changed, 42 insertions(+), 3 deletions(-)
+ drivers/acpi/acpica/acglobal.h |    3 ++-
+ drivers/acpi/acpica/dbinput.c  |   16 ++++------------
+ drivers/acpi/acpica/dbxface.c  |   20 ++++++++++++++++++++
+ drivers/acpi/acpica/utinit.c   |    2 --
+ drivers/acpi/acpica/utxface.c  |    4 ----
+ 5 files changed, 26 insertions(+), 19 deletions(-)
 
 diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
-index d82249c..fdef15f 100644
+index 593de41..d82249c 100644
 --- a/drivers/acpi/acpica/acglobal.h
 +++ b/drivers/acpi/acpica/acglobal.h
-@@ -326,6 +326,7 @@ ACPI_GLOBAL(struct acpi_external_file *, acpi_gbl_external_file_list);
+@@ -324,7 +324,6 @@ ACPI_GLOBAL(struct acpi_external_file *, acpi_gbl_external_file_list);
  
+ #ifdef ACPI_DEBUGGER
+ 
+-ACPI_INIT_GLOBAL(u8, acpi_gbl_db_terminate_threads, FALSE);
  ACPI_INIT_GLOBAL(u8, acpi_gbl_abort_method, FALSE);
  ACPI_INIT_GLOBAL(u8, acpi_gbl_method_executing, FALSE);
-+ACPI_INIT_GLOBAL(acpi_thread_id, acpi_gbl_db_thread_id, ACPI_INVALID_THREAD_ID);
  
- ACPI_GLOBAL(u8, acpi_gbl_db_opt_no_ini_methods);
- ACPI_GLOBAL(u8, acpi_gbl_db_opt_no_region_support);
-diff --git a/drivers/acpi/acpica/aclocal.h b/drivers/acpi/acpica/aclocal.h
-index 4e41b43..e1dd784 100644
---- a/drivers/acpi/acpica/aclocal.h
-+++ b/drivers/acpi/acpica/aclocal.h
-@@ -109,6 +109,14 @@ struct acpi_rw_lock {
+@@ -336,6 +335,8 @@ ACPI_GLOBAL(char *, acpi_gbl_db_filename);
+ ACPI_GLOBAL(u32, acpi_gbl_db_debug_level);
+ ACPI_GLOBAL(u32, acpi_gbl_db_console_debug_level);
+ ACPI_GLOBAL(struct acpi_namespace_node *, acpi_gbl_db_scope_node);
++ACPI_GLOBAL(u8, acpi_gbl_db_terminate_loop);
++ACPI_GLOBAL(u8, acpi_gbl_db_threads_terminated);
  
- #define ACPI_MUTEX_NOT_ACQUIRED         (acpi_thread_id) 0
+ ACPI_GLOBAL(char *, acpi_gbl_db_args[ACPI_DEBUGGER_MAX_ARGS]);
+ ACPI_GLOBAL(acpi_object_type, acpi_gbl_db_arg_types[ACPI_DEBUGGER_MAX_ARGS]);
+diff --git a/drivers/acpi/acpica/dbinput.c b/drivers/acpi/acpica/dbinput.c
+index 7f1b6ec..f8cddd6 100644
+--- a/drivers/acpi/acpica/dbinput.c
++++ b/drivers/acpi/acpica/dbinput.c
+@@ -694,7 +694,7 @@ acpi_db_command_dispatch(char *input_buffer,
  
-+/* This Thread ID means an invalid thread ID */
-+
-+#ifdef ACPI_OS_INVALID_THREAD_ID
-+#define ACPI_INVALID_THREAD_ID          ACPI_OS_INVALID_THREAD_ID
-+#else
-+#define ACPI_INVALID_THREAD_ID          ((acpi_thread_id) 0xFFFFFFFF)
-+#endif
-+
- /* Table for the global mutexes */
+ 	/* If acpi_terminate has been called, terminate this thread */
  
- struct acpi_mutex_info {
-diff --git a/drivers/acpi/acpica/dbexec.c b/drivers/acpi/acpica/dbexec.c
-index 8eef298..258e615 100644
---- a/drivers/acpi/acpica/dbexec.c
-+++ b/drivers/acpi/acpica/dbexec.c
-@@ -725,7 +725,8 @@ acpi_db_create_execution_threads(char *num_threads_arg,
+-	if (acpi_gbl_db_terminate_threads) {
++	if (acpi_gbl_db_terminate_loop) {
+ 		return (AE_CTRL_TERMINATE);
+ 	}
  
- 	for (i = 0; i < (num_threads); i++) {
- 		status =
--		    acpi_os_execute(OSL_DEBUGGER_THREAD, acpi_db_method_thread,
-+		    acpi_os_execute(OSL_DEBUGGER_EXEC_THREAD,
-+				    acpi_db_method_thread,
- 				    &acpi_gbl_db_method_info);
- 		if (ACPI_FAILURE(status)) {
- 			break;
+@@ -1116,7 +1116,7 @@ acpi_db_command_dispatch(char *input_buffer,
+ #ifdef ACPI_APPLICATION
+ 		acpi_db_close_debug_file();
+ #endif
+-		acpi_gbl_db_terminate_threads = TRUE;
++		acpi_gbl_db_terminate_loop = TRUE;
+ 		return (AE_CTRL_TERMINATE);
+ 
+ 	case CMD_NOT_FOUND:
+@@ -1166,6 +1166,7 @@ void ACPI_SYSTEM_XFACE acpi_db_execute_thread(void *context)
+ 
+ 		acpi_os_release_mutex(acpi_gbl_db_command_complete);
+ 	}
++	acpi_gbl_db_threads_terminated = TRUE;
+ }
+ 
+ /*******************************************************************************
+@@ -1212,7 +1213,7 @@ acpi_status acpi_db_user_commands(char prompt, union acpi_parse_object *op)
+ 
+ 	/* TBD: [Restructure] Need a separate command line buffer for step mode */
+ 
+-	while (!acpi_gbl_db_terminate_threads) {
++	while (!acpi_gbl_db_terminate_loop) {
+ 
+ 		/* Force output to console until a command is entered */
+ 
+@@ -1261,14 +1262,5 @@ acpi_status acpi_db_user_commands(char prompt, union acpi_parse_object *op)
+ 		}
+ 	}
+ 
+-	/* Shut down the debugger */
+-
+-	acpi_terminate_debugger();
+-
+-	/*
+-	 * Only this thread (the original thread) should actually terminate the
+-	 * subsystem, because all the semaphores are deleted during termination
+-	 */
+-	status = acpi_terminate();
+ 	return (status);
+ }
 diff --git a/drivers/acpi/acpica/dbxface.c b/drivers/acpi/acpica/dbxface.c
-index bef5f4e..342298a 100644
+index 26023bd..bef5f4e 100644
 --- a/drivers/acpi/acpica/dbxface.c
 +++ b/drivers/acpi/acpica/dbxface.c
-@@ -164,6 +164,12 @@ acpi_db_single_step(struct acpi_walk_state * walk_state,
+@@ -401,6 +401,10 @@ acpi_status acpi_initialize_debugger(void)
+ 	acpi_gbl_db_scope_buf[1] = 0;
+ 	acpi_gbl_db_scope_node = acpi_gbl_root_node;
  
- 	ACPI_FUNCTION_ENTRY();
- 
-+#ifndef ACPI_APPLICATION
-+	if (acpi_gbl_db_thread_id != acpi_os_get_thread_id()) {
-+		return (AE_OK);
-+	}
-+#endif
++	/* Initialize user commands loop */
 +
- 	/* Check the abort flag */
++	acpi_gbl_db_terminate_loop = FALSE;
++
+ 	/*
+ 	 * If configured for multi-thread support, the debug executor runs in
+ 	 * a separate thread so that the front end can be in another address
+@@ -426,11 +430,13 @@ acpi_status acpi_initialize_debugger(void)
  
- 	if (acpi_gbl_abort_method) {
-@@ -431,7 +437,7 @@ acpi_status acpi_initialize_debugger(void)
  		/* Create the debug execution thread to execute commands */
  
- 		acpi_gbl_db_threads_terminated = FALSE;
--		status = acpi_os_execute(OSL_DEBUGGER_THREAD,
-+		status = acpi_os_execute(OSL_DEBUGGER_MAIN_THREAD,
++		acpi_gbl_db_threads_terminated = FALSE;
+ 		status = acpi_os_execute(OSL_DEBUGGER_THREAD,
  					 acpi_db_execute_thread, NULL);
  		if (ACPI_FAILURE(status)) {
  			ACPI_EXCEPTION((AE_INFO, status,
-@@ -439,6 +445,8 @@ acpi_status acpi_initialize_debugger(void)
- 			acpi_gbl_db_threads_terminated = TRUE;
+ 					"Could not start debugger thread"));
++			acpi_gbl_db_threads_terminated = TRUE;
  			return_ACPI_STATUS(status);
  		}
-+	} else {
-+		acpi_gbl_db_thread_id = acpi_os_get_thread_id();
  	}
+@@ -454,6 +460,20 @@ ACPI_EXPORT_SYMBOL(acpi_initialize_debugger)
+ void acpi_terminate_debugger(void)
+ {
  
++	/* Terminate the AML Debugger */
++
++	acpi_gbl_db_terminate_loop = TRUE;
++
++	if (acpi_gbl_debugger_configuration & DEBUGGER_MULTI_THREADED) {
++		acpi_os_release_mutex(acpi_gbl_db_command_ready);
++
++		/* Wait the AML Debugger threads */
++
++		while (!acpi_gbl_db_threads_terminated) {
++			acpi_os_sleep(100);
++		}
++	}
++
+ 	if (acpi_gbl_db_buffer) {
+ 		acpi_os_free(acpi_gbl_db_buffer);
+ 		acpi_gbl_db_buffer = NULL;
+diff --git a/drivers/acpi/acpica/utinit.c b/drivers/acpi/acpica/utinit.c
+index 28ab3a1..d8699df 100644
+--- a/drivers/acpi/acpica/utinit.c
++++ b/drivers/acpi/acpica/utinit.c
+@@ -241,8 +241,6 @@ acpi_status acpi_ut_init_globals(void)
+ 	acpi_gbl_disable_mem_tracking = FALSE;
+ #endif
+ 
+-	ACPI_DEBUGGER_EXEC(acpi_gbl_db_terminate_threads = FALSE);
+-
  	return_ACPI_STATUS(AE_OK);
-@@ -485,3 +493,21 @@ void acpi_terminate_debugger(void)
  }
  
- ACPI_EXPORT_SYMBOL(acpi_terminate_debugger)
-+
-+/*******************************************************************************
-+ *
-+ * FUNCTION:    acpi_set_debugger_thread_id
-+ *
-+ * PARAMETERS:  thread_id       - Debugger thread ID
-+ *
-+ * RETURN:      None
-+ *
-+ * DESCRIPTION: Set debugger thread ID
-+ *
-+ ******************************************************************************/
-+void acpi_set_debugger_thread_id(acpi_thread_id thread_id)
-+{
-+	acpi_gbl_db_thread_id = thread_id;
-+}
-+
-+ACPI_EXPORT_SYMBOL(acpi_set_debugger_thread_id)
-diff --git a/include/acpi/acpiosxf.h b/include/acpi/acpiosxf.h
-index a54ad1c..fbc2baf 100644
---- a/include/acpi/acpiosxf.h
-+++ b/include/acpi/acpiosxf.h
-@@ -55,7 +55,8 @@ typedef enum {
- 	OSL_GLOBAL_LOCK_HANDLER,
- 	OSL_NOTIFY_HANDLER,
- 	OSL_GPE_HANDLER,
--	OSL_DEBUGGER_THREAD,
-+	OSL_DEBUGGER_MAIN_THREAD,
-+	OSL_DEBUGGER_EXEC_THREAD,
- 	OSL_EC_POLL_HANDLER,
- 	OSL_EC_BURST_HANDLER
- } acpi_execute_type;
-diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index c33eeab..f837adf 100644
---- a/include/acpi/acpixf.h
-+++ b/include/acpi/acpixf.h
-@@ -939,4 +939,6 @@ ACPI_EXTERNAL_RETURN_STATUS(acpi_status
- 					       void **data,
- 					       void (*callback)(void *)))
+diff --git a/drivers/acpi/acpica/utxface.c b/drivers/acpi/acpica/utxface.c
+index 4f33281..f183daf 100644
+--- a/drivers/acpi/acpica/utxface.c
++++ b/drivers/acpi/acpica/utxface.c
+@@ -80,10 +80,6 @@ acpi_status __init acpi_terminate(void)
+ 	acpi_gbl_startup_flags = 0;
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Shutting down ACPI Subsystem\n"));
  
-+void acpi_set_debugger_thread_id(acpi_thread_id thread_id);
-+
- #endif				/* __ACXFACE_H__ */
+-	/* Terminate the AML Debugger if present */
+-
+-	ACPI_DEBUGGER_EXEC(acpi_gbl_db_terminate_threads = TRUE);
+-
+ 	/* Shutdown and free all resources */
+ 
+ 	acpi_ut_subsystem_shutdown();
 -- 
 1.7.10
+
