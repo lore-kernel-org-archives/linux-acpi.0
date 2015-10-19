@@ -1,64 +1,38 @@
-From: Davidlohr Bueso <dave@stgolabs.net>
-Subject: [PATCH] GHES: Fix cached error-status
-Date: Mon, 19 Oct 2015 10:55:54 -0700
-Message-ID: <20151019175554.GB3367@linux-uzut.site>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v2 09/14] ACPICA: Debugger: Fix "quit/exit" command by cleaning up user commands termination logic
+Date: Mon, 19 Oct 2015 23:04:03 +0200
+Message-ID: <3263599.JhYyYcsC47@vostro.rjw.lan>
+References: <98d60fa60319a9f62938628f78531f59d2fc9d2a.1445221165.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:42935 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751194AbbJSR4P (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 19 Oct 2015 13:56:15 -0400
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <98d60fa60319a9f62938628f78531f59d2fc9d2a.1445221165.git.lv.zheng@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Huang Ying <ying.huang@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Borislav Petkov <bp@suse.de>, Tony Luck <tony.luck@intel.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-In ghes_estatus_cached() we currently have a situation where
-we can break out of the loop before examining all the possible
-estatus_caches. Move the 'break' statement inside of the 'if',
-such that an otherwise possibly missed cache is acknowledged
-and the function returns the proper value.
+On Monday, October 19, 2015 10:25:32 AM Lv Zheng wrote:
+> ACPICA commit 0dd68e16274cd38224aa4781eddc57dc2cbaa108
+> 
+> The quit/exit commands shouldn't invoke acpi_terminate_debugger() and
+> acpi_terminate() right in the user command loop, because when the debugger
+> exits, the kernel ACPI subsystem shouldn't be terminated (acpi_terminate())
+> and the debugger should only be terminated by its users
+> (acpi_terminate_debugger()) rather than being terminated itself. Leaving such
+> invocations causes kernel panic when the debugger is shipped in the Linux
+> kernel.
+> 
+> This patch fixes this issue. Lv Zheng.
+> 
+> Link: https://github.com/acpica/acpica/commit/0dd68e16
+> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> Signed-off-by: Bob Moore <robert.moore@intel.com>
 
-Introduced by 152cef40a808d (ACPI, APEI, GHES, Error records
-content based throttle).
+This patch does not apply for me on top of the current mainline.
 
-Signed-off-by: Davidlohr Bueso <dbueso@suse.de>
----
-
-Hi,
-
-I found this accidentally and have no idea if it is correct, but
-seems to be a case of a misplaced break. If this is not the case,
-then it is a very weird way of using a for-loop, and should probably
-be rewritten -- and there are other funky places in this file...
-
-100% untested.
+What tree is it applicable to?
 
 Thanks,
-Davidlohr
-
-  drivers/acpi/apei/ghes.c | 5 +++--
-  1 file changed, 3 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/acpi/apei/ghes.c b/drivers/acpi/apei/ghes.c
-index 3dd9c46..3fda4a2 100644
---- a/drivers/acpi/apei/ghes.c
-+++ b/drivers/acpi/apei/ghes.c
-@@ -541,9 +541,10 @@ static int ghes_estatus_cached(struct acpi_hest_generic_status *estatus)
-  			continue;
-  		atomic_inc(&cache->count);
-  		now = sched_clock();
--		if (now - cache->time_in < GHES_ESTATUS_IN_CACHE_MAX_NSEC)
-+		if (now - cache->time_in < GHES_ESTATUS_IN_CACHE_MAX_NSEC) {
-  			cached = 1;
--		break;
-+			break;
-+		}
-  	}
-  	rcu_read_unlock();
-  	return cached;
--- 
-2.1.4
-
+Rafael
