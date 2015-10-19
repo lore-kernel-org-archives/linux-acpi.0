@@ -1,38 +1,99 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 09/14] ACPICA: Debugger: Fix "quit/exit" command by cleaning up user commands termination logic
-Date: Mon, 19 Oct 2015 23:04:03 +0200
-Message-ID: <3263599.JhYyYcsC47@vostro.rjw.lan>
-References: <98d60fa60319a9f62938628f78531f59d2fc9d2a.1445221165.git.lv.zheng@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <98d60fa60319a9f62938628f78531f59d2fc9d2a.1445221165.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
+From: Dustin Byford <dustin@cumulusnetworks.com>
+Subject: [PATCH v3 0/1] i2c: acpi: scan ACPI enumerated I2C mux channels
+Date: Mon, 19 Oct 2015 15:28:59 -0700
+Message-ID: <1445293740-28537-1-git-send-email-dustin@cumulusnetworks.com>
+References: <1439510358-16664-1-git-send-email-dustin@cumulusnetworks.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pa0-f53.google.com ([209.85.220.53]:36656 "EHLO
+	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751151AbbJSW3G (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 19 Oct 2015 18:29:06 -0400
+Received: by pacfv9 with SMTP id fv9so107912363pac.3
+        for <linux-acpi@vger.kernel.org>; Mon, 19 Oct 2015 15:29:05 -0700 (PDT)
+In-Reply-To: <1439510358-16664-1-git-send-email-dustin@cumulusnetworks.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Wolfram Sang <wsa@the-dreams.de>, Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, rjw@rjwysocki.net, andriy.shevchenko@linux.intel.com
 
-On Monday, October 19, 2015 10:25:32 AM Lv Zheng wrote:
-> ACPICA commit 0dd68e16274cd38224aa4781eddc57dc2cbaa108
-> 
-> The quit/exit commands shouldn't invoke acpi_terminate_debugger() and
-> acpi_terminate() right in the user command loop, because when the debugger
-> exits, the kernel ACPI subsystem shouldn't be terminated (acpi_terminate())
-> and the debugger should only be terminated by its users
-> (acpi_terminate_debugger()) rather than being terminated itself. Leaving such
-> invocations causes kernel panic when the debugger is shipped in the Linux
-> kernel.
-> 
-> This patch fixes this issue. Lv Zheng.
-> 
-> Link: https://github.com/acpica/acpica/commit/0dd68e16
-> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-> Signed-off-by: Bob Moore <robert.moore@intel.com>
+The following patch adds support for describing ACPI enumerated I2C mux ports
+like this (added as Documentation/acpi/i2c-muxes.txt):
 
-This patch does not apply for me on top of the current mainline.
++------+   +------+
+| SMB1 |-->| MUX0 |--CH00--> i2c client A (0x50)
+|      |   | 0x70 |--CH01--> i2c client B (0x50)
++------+   +------+
 
-What tree is it applicable to?
+Device (SMB1)
+{
+    Name (_HID, ...)
+    Device (MUX0)
+    {
+        Name (_HID, ...)
+        Name (_CRS, ResourceTemplate () {
+            I2cSerialBus (0x70, ControllerInitiated, I2C_SPEED,
+                          AddressingMode7Bit, "^SMB1", 0x00,
+                          ResourceConsumer,,)
+        }
 
-Thanks,
-Rafael
+        Device (CH00)
+        {
+            Name (_ADR, 0)
+
+            Device (CLIA)
+            {
+                Name (_HID, ...)
+                Name (_CRS, ResourceTemplate () {
+                    I2cSerialBus (0x50, ControllerInitiated, I2C_SPEED,
+                                  AddressingMode7Bit, "^CH00", 0x00,
+                                  ResourceConsumer,,)
+                }
+            }
+        }
+
+        Device (CH01)
+        {
+            Name (_ADR, 1)
+
+            Device (CLIB)
+            {
+                Name (_HID, ...)
+                Name (_CRS, ResourceTemplate () {
+                    I2cSerialBus (0x50, ControllerInitiated, I2C_SPEED,
+                                  AddressingMode7Bit, "^CH01", 0x00,
+                                  ResourceConsumer,,)
+                }
+            }
+        }
+    }
+}
+
+v3:
+- Correct to and cc list (sorry git-send-email trouble again)
+
+v2:
+- Drop duplicate patch already submitted by Andy Shevchenko (i2c / ACPI:
+  Rework I2C device scanning)
+- Whitespace cleanup suggested by Mika
+- Implement a acpi_preset_companion() stub for when CONFIG_ACPI is not set.
+- Instead of special casing I2C muxes with regards to enumerating client
+  devices, make sure adap->dev always has an ACPI companion.
+
+I based this on linux-pm/bleeding-edge, but now it depends on Andy's change
+(i2c / ACPI: Rework I2C device scanning) and I don't know where the rest of
+his patch set is going.  Let me know if there's a more appropriate branch
+and I'll be happy to rebase.
+
+Dustin Byford (1):
+  i2c: add ACPI support for I2C mux ports
+
+ Documentation/acpi/i2c-muxes.txt | 58 ++++++++++++++++++++++++++++++++++++++++
+ drivers/i2c/i2c-core.c           | 15 +++++++++--
+ drivers/i2c/i2c-mux.c            |  8 ++++++
+ include/linux/acpi.h             |  6 +++++
+ 4 files changed, 85 insertions(+), 2 deletions(-)
+ create mode 100644 Documentation/acpi/i2c-muxes.txt
+
+-- 
+2.1.4
+
