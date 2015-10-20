@@ -1,85 +1,83 @@
-From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Subject: Re: [PATCH V3 2/4] ACPI/scan: Clean up acpi_check_dma
-Date: Tue, 20 Oct 2015 07:53:27 -0500
-Message-ID: <56263947.2090805@amd.com>
-References: <1440597279-11802-1-git-send-email-Suravee.Suthikulpanit@amd.com>
- <1440597279-11802-3-git-send-email-Suravee.Suthikulpanit@amd.com>
- <20150914163411.GL829@google.com> <561D28B5.7030303@amd.com>
- <561D9978.9090406@amd.com> <20151020021735.GA20869@localhost>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [PATCH v3 1/6] i2c / ACPI: Rework I2C device scanning
+Date: Tue, 20 Oct 2015 16:26:32 +0200
+Message-ID: <20151020142631.GA5379@katana>
+References: <1444213129-29793-1-git-send-email-andriy.shevchenko@linux.intel.com>
+ <1444213129-29793-2-git-send-email-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20151020021735.GA20869@localhost>
-Sender: linux-pci-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, hanjun.guo@linaro.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rob Herring <robh+dt@kernel.org>, Jeremy Linton <Jeremy.Linton@arm.com>, Tom Lendacky <thomas.lendacky@amd.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="MGYHOYXEY6WxJCY8"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from sauhun.de ([89.238.76.85]:43087 "EHLO pokefinder.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752857AbbJTO0j (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 20 Oct 2015 10:26:39 -0400
+Content-Disposition: inline
+In-Reply-To: <1444213129-29793-2-git-send-email-andriy.shevchenko@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@intel.com>, "Puustinen, Ismo" <ismo.puustinen@intel.com>, "Pandruvada, Srinivas" <srinivas.pandruvada@intel.com>, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-Hi Bjorn/Rafael,
 
-Let me redo the patch with enum then. At least, that's more clear to 
-everyone.
+--MGYHOYXEY6WxJCY8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thanks,
+On Wed, Oct 07, 2015 at 01:18:44PM +0300, Andy Shevchenko wrote:
+> From: Mika Westerberg <mika.westerberg@linux.intel.com>
+>=20
+> The way we currently scan I2C devices behind an I2C host controller does =
+not
+> work in cases where the I2C device in question is not declared directly b=
+elow
+> the host controller ACPI node.
+>=20
+> This is perfectly legal according the ACPI 6.0 specification and some exi=
+sting
+> systems are doing this.
+>=20
+> To be able to enumerate all devices which are connected to a certain I2C =
+host
+> controller we need to rework the current I2C scanning routine a bit. Inst=
+ead of
+> scanning directly below the host controller we scan the whole ACPI namesp=
+ace
+> for present devices with valid I2cSerialBus() connection pointing to the =
+host
+> controller in question.
+>=20
+> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-Suravee
+Applied to for-next, thanks!
 
-On 10/19/15 21:17, Bjorn Helgaas wrote:
-> On Tue, Oct 13, 2015 at 06:53:28PM -0500, Suravee Suthikulanit wrote:
->> Bjorn / Rafael,
->>
->> On 10/13/2015 10:52 AM, Suravee Suthikulpanit wrote:
->>>
->>> On 09/14/2015 09:34 AM, Bjorn Helgaas wrote:
->>>> [..]
->>>> I think acpi_check_dma_coherency() is better, but only slightly.  It
->>>> still doesn't give a hint about the *sense* of the return value.  I
->>>> think it'd be easier to read if there were two functions, e.g.,
->>>
->>> I have been going back-and-forth between the current version, and the
->>> two-function-approach in the past. I can definitely go with this route
->>> if you would prefer. Although, if acpi_dma_is_coherent() == 0, it would
->>> be ambiguous whether DMA is not supported or non-coherent DMA is
->>> supported. Then, we would need to call acpi_dma_is_supported() to find
->>> out. So, that's okay with you?
->>
->> Thinking about this again, I still think having one API (which can
->> tell whether DMA is supported or not, and if so whether it is
->> coherent or non-coherent) would be the least confusing and least
->> error prone.
->>
->> What if we would just have:
->>
->>      enum dev_dma_type acpi_get_dev_dma_type(struct acpi_device *adev);
->>
->> where:
->>      enum dev_dma_type {
->>          DEV_DMA_NOT_SUPPORTED,
->>          DEV_DMA_NON_COHERENT,
->>          DEV_DMA_COHERENT,
->>      };
->>
->> This would probably mean that we should modify
->> drivers/base/property.c to replace:
->>      bool device_dma_is_coherent()
->> to:
->>      enum dev_dma_type device_get_dma_type()
->>
->> We used to discuss the enum approach in the past
->> (https://lkml.org/lkml/2015/8/25/868). But we only considered at the
->> ACPI level at the time. Actually, this should also reflect in the
->> property.c.
->>
->> At this point, only drivers/crypto/ccp/ccp-platform.c and
->> drivers/net/ethernet/amd/xgbe/xgbe-main.c are calling the
->> device_dma_is_coherent(). So, it should be easy to change this API.
->
-> OK, I'm fine with either the enum or Rafael's 0/1/-ENOTSUPP idea.
->
-> Bjorn
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+I am going to pick up patch 5 as well. I hope the others can go via mfd
+and there is no build dependency on them?
+
+
+--MGYHOYXEY6WxJCY8
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJWJk8XAAoJEBQN5MwUoCm2VdsP/2OCBz0JyaVBjgLSk0z8PrhO
+H5D3bHPw/keLONC6JPkQCqIHre6h6twp5KJwu7JDvttyukP/SDepZm4K3scgNj7K
+URDAZupc8AtqE2jVU5UHg28Q3hEu8lMe7t6JE9gmRQ8FsxfHHh4+9OIQ+UfKYwa+
+wiiTeMX07YxuvmYdxTwgLiBjAyGABTbrdMr1nIu0tPP76cOws7OzBg5Gj91/iO1m
+67sUJA67f3TVH5LIpTuu7f2lOpLeXA4DsmnCNeUr5EeOpBqcbp9Fgh1aOPZPBlIJ
+dBTRdjxsXEk5Jqw9vRziy5h71qysppyEQHT2gt6VCsmm0XoCoNR4N2P4mUZJcFSS
+OgEGNvjCZEFoIgeLmz385OepcHeGv+Fn7dozvpZhuW69WXvW0h2NW/EJamNU6v+j
+iEEv3qG1qm/hZ3uh242MuZ/zY6G9q9uc6Fyg9PFjOVRZmQBuPYGlQU9m5n3q/B1c
+NAUqFdlylum0B22cnCSfsbEO8VEP2PUgN+mSITmspeIJlr+ksRRwKER6p39Kox8p
+8zX4oH5NY0X2yc7h9OiCLCnjcReKY+KyuG8hBJytlVk4U178yf7EsQyW30Qg5Qx+
+PZhMVJC4RdkBnvozVcl1fQhkq3vao9JAw4CBTAXivrcesM+MvvFXx8LAV0NY5uKn
+tB1VTAl8gCMI4hfiehRx
+=piWK
+-----END PGP SIGNATURE-----
+
+--MGYHOYXEY6WxJCY8--
