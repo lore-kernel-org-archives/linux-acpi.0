@@ -1,66 +1,85 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v3 1/1] i2c: add ACPI support for I2C mux ports
-Date: Tue, 20 Oct 2015 15:51:11 +0300
-Message-ID: <20151020125111.GJ1526@lahna.fi.intel.com>
-References: <1439510358-16664-1-git-send-email-dustin@cumulusnetworks.com>
- <1445293740-28537-1-git-send-email-dustin@cumulusnetworks.com>
- <1445293740-28537-2-git-send-email-dustin@cumulusnetworks.com>
+From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Subject: Re: [PATCH V3 2/4] ACPI/scan: Clean up acpi_check_dma
+Date: Tue, 20 Oct 2015 07:53:27 -0500
+Message-ID: <56263947.2090805@amd.com>
+References: <1440597279-11802-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+ <1440597279-11802-3-git-send-email-Suravee.Suthikulpanit@amd.com>
+ <20150914163411.GL829@google.com> <561D28B5.7030303@amd.com>
+ <561D9978.9090406@amd.com> <20151020021735.GA20869@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1445293740-28537-2-git-send-email-dustin@cumulusnetworks.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dustin Byford <dustin@cumulusnetworks.com>
-Cc: Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, rjw@rjwysocki.net, andriy.shevchenko@linux.intel.com
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20151020021735.GA20869@localhost>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, hanjun.guo@linaro.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rob Herring <robh+dt@kernel.org>, Jeremy Linton <Jeremy.Linton@arm.com>, Tom Lendacky <thomas.lendacky@amd.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Oct 19, 2015 at 03:29:00PM -0700, Dustin Byford wrote:
-> Although I2C mux devices are easily enumerated using ACPI (_HID/_CID or
-> device property compatible string match) enumerating I2C client devices
-> connected through a I2C mux device requires a little extra work.
-> 
-> This change implements a method for describing an I2C device hierarchy that
-> includes mux devices by using an ACPI Device() for each mux channel along
-> with an _ADR to set the channel number for the device.  See
-> Documentation/acpi/i2c-muxes.txt for a simple example.
-> 
-> Signed-off-by: Dustin Byford <dustin@cumulusnetworks.com>
+Hi Bjorn/Rafael,
 
-In general this looks good to me.
+Let me redo the patch with enum then. At least, that's more clear to 
+everyone.
 
-> ---
->  Documentation/acpi/i2c-muxes.txt | 58 ++++++++++++++++++++++++++++++++++++++++
->  drivers/i2c/i2c-core.c           | 15 +++++++++--
->  drivers/i2c/i2c-mux.c            |  8 ++++++
->  include/linux/acpi.h             |  6 +++++
->  4 files changed, 85 insertions(+), 2 deletions(-)
->  create mode 100644 Documentation/acpi/i2c-muxes.txt
-> 
+Thanks,
 
-[...]
+Suravee
 
-> +	/*
-> +	 * By default, associate I2C adapters with their parent device's ACPI
-> +	 * node.
-> +	 */
-> +	if (!has_acpi_companion(dev)) {
-> +		struct acpi_device *adev = ACPI_COMPANION(dev->parent);
-> +
-> +		if (adev)
-> +			ACPI_COMPANION_SET(dev, adev);
-
-Instead of always doing this in the I2C core, maybe we can make it
-dependent on the host controller driver. For example the I2C designware
-driver already did this for both DT and ACPI:
-
-	adap->dev.parent = &pdev->dev;
-	adap->dev.of_node = pdev->dev.of_node;
-	ACPI_COMPANION_SET(&adap->dev, ACPI_COMPANION(&pdev->dev));
-
-Also I would like to ask what Rafael thinks about this since he authored
-b34bb1ee71158d5b ("ACPI / I2C: Use parent's ACPI_HANDLE() in
-acpi_i2c_register_devices()").
-
-I don't see a problem multiple Linux devices sharing a single ACPI
-companion device like in this patch but I may be forgetting something ;-)
+On 10/19/15 21:17, Bjorn Helgaas wrote:
+> On Tue, Oct 13, 2015 at 06:53:28PM -0500, Suravee Suthikulanit wrote:
+>> Bjorn / Rafael,
+>>
+>> On 10/13/2015 10:52 AM, Suravee Suthikulpanit wrote:
+>>>
+>>> On 09/14/2015 09:34 AM, Bjorn Helgaas wrote:
+>>>> [..]
+>>>> I think acpi_check_dma_coherency() is better, but only slightly.  It
+>>>> still doesn't give a hint about the *sense* of the return value.  I
+>>>> think it'd be easier to read if there were two functions, e.g.,
+>>>
+>>> I have been going back-and-forth between the current version, and the
+>>> two-function-approach in the past. I can definitely go with this route
+>>> if you would prefer. Although, if acpi_dma_is_coherent() == 0, it would
+>>> be ambiguous whether DMA is not supported or non-coherent DMA is
+>>> supported. Then, we would need to call acpi_dma_is_supported() to find
+>>> out. So, that's okay with you?
+>>
+>> Thinking about this again, I still think having one API (which can
+>> tell whether DMA is supported or not, and if so whether it is
+>> coherent or non-coherent) would be the least confusing and least
+>> error prone.
+>>
+>> What if we would just have:
+>>
+>>      enum dev_dma_type acpi_get_dev_dma_type(struct acpi_device *adev);
+>>
+>> where:
+>>      enum dev_dma_type {
+>>          DEV_DMA_NOT_SUPPORTED,
+>>          DEV_DMA_NON_COHERENT,
+>>          DEV_DMA_COHERENT,
+>>      };
+>>
+>> This would probably mean that we should modify
+>> drivers/base/property.c to replace:
+>>      bool device_dma_is_coherent()
+>> to:
+>>      enum dev_dma_type device_get_dma_type()
+>>
+>> We used to discuss the enum approach in the past
+>> (https://lkml.org/lkml/2015/8/25/868). But we only considered at the
+>> ACPI level at the time. Actually, this should also reflect in the
+>> property.c.
+>>
+>> At this point, only drivers/crypto/ccp/ccp-platform.c and
+>> drivers/net/ethernet/amd/xgbe/xgbe-main.c are calling the
+>> device_dma_is_coherent(). So, it should be easy to change this API.
+>
+> OK, I'm fine with either the enum or Rafael's 0/1/-ENOTSUPP idea.
+>
+> Bjorn
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
