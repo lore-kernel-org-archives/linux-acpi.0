@@ -1,67 +1,66 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH v4 11/22] i2c: core: Probe i2c adapters and devices on
- demand
-Date: Tue, 20 Oct 2015 12:42:26 +0200
-Message-ID: <20151020104226.GA3654@katana>
-References: <1441628627-5143-1-git-send-email-tomeu.vizoso@collabora.com>
- <1441628627-5143-12-git-send-email-tomeu.vizoso@collabora.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v3 1/1] i2c: add ACPI support for I2C mux ports
+Date: Tue, 20 Oct 2015 15:51:11 +0300
+Message-ID: <20151020125111.GJ1526@lahna.fi.intel.com>
+References: <1439510358-16664-1-git-send-email-dustin@cumulusnetworks.com>
+ <1445293740-28537-1-git-send-email-dustin@cumulusnetworks.com>
+ <1445293740-28537-2-git-send-email-dustin@cumulusnetworks.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="mP3DRpeJDSE+ciuQ"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1441628627-5143-12-git-send-email-tomeu.vizoso@collabora.com>
+In-Reply-To: <1445293740-28537-2-git-send-email-dustin@cumulusnetworks.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Cc: linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-arm-kernel@lists.infradead.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, linux-i2c@vger.kernel.org
+To: Dustin Byford <dustin@cumulusnetworks.com>
+Cc: Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, rjw@rjwysocki.net, andriy.shevchenko@linux.intel.com
 List-Id: linux-acpi@vger.kernel.org
 
+On Mon, Oct 19, 2015 at 03:29:00PM -0700, Dustin Byford wrote:
+> Although I2C mux devices are easily enumerated using ACPI (_HID/_CID or
+> device property compatible string match) enumerating I2C client devices
+> connected through a I2C mux device requires a little extra work.
+> 
+> This change implements a method for describing an I2C device hierarchy that
+> includes mux devices by using an ACPI Device() for each mux channel along
+> with an _ADR to set the channel number for the device.  See
+> Documentation/acpi/i2c-muxes.txt for a simple example.
+> 
+> Signed-off-by: Dustin Byford <dustin@cumulusnetworks.com>
 
---mP3DRpeJDSE+ciuQ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+In general this looks good to me.
 
-On Mon, Sep 07, 2015 at 02:23:36PM +0200, Tomeu Vizoso wrote:
-> When looking up an i2c adapter or device through its OF node, probe it
-> if it hasn't already.
->=20
-> The goal is to reduce deferred probes to a minimum, as it makes it very
-> cumbersome to find out why a device failed to probe, and can introduce
-> very big delays in when a critical device is probed.
->=20
-> Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+> ---
+>  Documentation/acpi/i2c-muxes.txt | 58 ++++++++++++++++++++++++++++++++++++++++
+>  drivers/i2c/i2c-core.c           | 15 +++++++++--
+>  drivers/i2c/i2c-mux.c            |  8 ++++++
+>  include/linux/acpi.h             |  6 +++++
+>  4 files changed, 85 insertions(+), 2 deletions(-)
+>  create mode 100644 Documentation/acpi/i2c-muxes.txt
+> 
 
-If the I2C part stays that simple and the core part of the series is
-accepted, then:
+[...]
 
-Acked-by: Wolfram Sang <wsa@the-dreams.de>
+> +	/*
+> +	 * By default, associate I2C adapters with their parent device's ACPI
+> +	 * node.
+> +	 */
+> +	if (!has_acpi_companion(dev)) {
+> +		struct acpi_device *adev = ACPI_COMPANION(dev->parent);
+> +
+> +		if (adev)
+> +			ACPI_COMPANION_SET(dev, adev);
 
-Thanks,
+Instead of always doing this in the I2C core, maybe we can make it
+dependent on the host controller driver. For example the I2C designware
+driver already did this for both DT and ACPI:
 
-   Wolfram
+	adap->dev.parent = &pdev->dev;
+	adap->dev.of_node = pdev->dev.of_node;
+	ACPI_COMPANION_SET(&adap->dev, ACPI_COMPANION(&pdev->dev));
 
+Also I would like to ask what Rafael thinks about this since he authored
+b34bb1ee71158d5b ("ACPI / I2C: Use parent's ACPI_HANDLE() in
+acpi_i2c_register_devices()").
 
---mP3DRpeJDSE+ciuQ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJWJhqSAAoJEBQN5MwUoCm24w4QAJ8ONPT/Hm1UJ6mBcD2gL8gN
-YIrmKR0KrZKo+POtx1Ke64FBO29RZP/OlJKW2C1j6ZFu+Ab3DI0bERI5Vc6BzZLr
-KC0zkEHP1i2Ya0AjGvUoYNFR7jsmLL48++UknY3TMPDKO/Z4/B+UEPHexF9dpkY7
-94L8HIwQFj6+40VLmf7bvk+R6qTPMxb2CgV8cEiDUJX3u3EDAHX8Kegrcb5ndz6i
-xCFEMiWHAT6FG9HJUUly1xV1aV69r0pX3DJeN0G+cnLTTMfrXzlCT+txtK7rgMPi
-iT/43yeBvk4nrm1A2wkYIQfet2uAuwg/Jd179nN53mfHPtZcEa8mYr5wnlhIYzfj
-NmpII7BnXz9SR15TU1ryTLvqueJNXpWk7TXqKDCBec2P6gJZIYD81rgxNQST7tqI
-BxxSYjL7VRycQAlg33lgV/eSOnZLH8PppC8ALOpGm9mv4WkIIveaHjzLQO5xq8oq
-tzlTdI4CKHPlndPbiVDCbjyv3/dHBLNCTusx5V1HxNheM8T7nuPGgT9wEsdTLVId
-yTFvoKxJx8EmQbw1KWvmEXvo+c8cLNP8x41cwy2mYdoqgWoRZ23Ajtb/e7o/FSuG
-izf6V5ztmhqX7f5hLKPbwj3hf5iWRkjO7f3c3aV09YZ5/VSTwaSd9d4mFZh9BzE3
-Rh1W53P/SLYh3Jtbib31
-=VtHt
------END PGP SIGNATURE-----
-
---mP3DRpeJDSE+ciuQ--
+I don't see a problem multiple Linux devices sharing a single ACPI
+companion device like in this patch but I may be forgetting something ;-)
