@@ -1,60 +1,92 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH v3 5/6] at24: enable ACPI device found on Galileo Gen2
-Date: Tue, 20 Oct 2015 16:28:51 +0200
-Message-ID: <20151020142851.GB5379@katana>
-References: <1444213129-29793-1-git-send-email-andriy.shevchenko@linux.intel.com>
- <1444213129-29793-6-git-send-email-andriy.shevchenko@linux.intel.com>
+From: Dustin Byford <dustin@cumulusnetworks.com>
+Subject: Re: [PATCH v3 1/1] i2c: add ACPI support for I2C mux ports
+Date: Tue, 20 Oct 2015 10:49:59 -0700
+Message-ID: <20151020174959.GA14829@cumulusnetworks.com>
+References: <1439510358-16664-1-git-send-email-dustin@cumulusnetworks.com>
+ <1445293740-28537-1-git-send-email-dustin@cumulusnetworks.com>
+ <1445293740-28537-2-git-send-email-dustin@cumulusnetworks.com>
+ <20151020125111.GJ1526@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="hHWLQfXTYDoKhP50"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-i2c-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1444213129-29793-6-git-send-email-andriy.shevchenko@linux.intel.com>
+In-Reply-To: <20151020125111.GJ1526@lahna.fi.intel.com>
 Sender: linux-i2c-owner@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@intel.com>, "Puustinen, Ismo" <ismo.puustinen@intel.com>, "Pandruvada, Srinivas" <srinivas.pandruvada@intel.com>, linux-kernel@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, rjw@rjwysocki.net, andriy.shevchenko@linux.intel.com
 List-Id: linux-acpi@vger.kernel.org
 
+Hi Mika,
 
---hHWLQfXTYDoKhP50
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Tue Oct 20 15:51, Mika Westerberg wrote:
+> On Mon, Oct 19, 2015 at 03:29:00PM -0700, Dustin Byford wrote:
+> > Although I2C mux devices are easily enumerated using ACPI (_HID/_CID or
+> > device property compatible string match) enumerating I2C client devices
+> > connected through a I2C mux device requires a little extra work.
+> > 
+> > This change implements a method for describing an I2C device hierarchy that
+> > includes mux devices by using an ACPI Device() for each mux channel along
+> > with an _ADR to set the channel number for the device.  See
+> > Documentation/acpi/i2c-muxes.txt for a simple example.
+> > 
+> > Signed-off-by: Dustin Byford <dustin@cumulusnetworks.com>
+> 
+> In general this looks good to me.
+> 
+> > ---
+> >  Documentation/acpi/i2c-muxes.txt | 58 ++++++++++++++++++++++++++++++++++++++++
+> >  drivers/i2c/i2c-core.c           | 15 +++++++++--
+> >  drivers/i2c/i2c-mux.c            |  8 ++++++
+> >  include/linux/acpi.h             |  6 +++++
+> >  4 files changed, 85 insertions(+), 2 deletions(-)
+> >  create mode 100644 Documentation/acpi/i2c-muxes.txt
+> > 
+> 
+> [...]
+> 
+> > +	/*
+> > +	 * By default, associate I2C adapters with their parent device's ACPI
+> > +	 * node.
+> > +	 */
+> > +	if (!has_acpi_companion(dev)) {
+> > +		struct acpi_device *adev = ACPI_COMPANION(dev->parent);
+> > +
+> > +		if (adev)
+> > +			ACPI_COMPANION_SET(dev, adev);
+> 
+> Instead of always doing this in the I2C core, maybe we can make it
+> dependent on the host controller driver. For example the I2C designware
+> driver already did this for both DT and ACPI:
 
-On Wed, Oct 07, 2015 at 01:18:48PM +0300, Andy Shevchenko wrote:
-> There is a 24c08 chip connected to i2c bus on Intel Galileo Gen2 board. E=
-nable
-> it via ACPI ID INT3499.
->=20
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+I considered it, but I thought a default that fairly closely matches the
+old behavior was more convenient.
 
-Sparse rightfully says:
-
-drivers/misc/eeprom/at24.c:491:53: warning: symbol 'id' shadows an earlier =
-one
-drivers/misc/eeprom/at24.c:474:50: originally declared here
+On the other hand, leaving it up to the controllers makes it all very
+explicit and perhaps simpler to reason about.
 
 
---hHWLQfXTYDoKhP50
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+I could be convinced either way.  But, if we move it to the controller
+drivers, which ones need the change?
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+grep -i acpi drivers/i2c/busses/i2c*
 
-iQIcBAEBAgAGBQJWJk+jAAoJEBQN5MwUoCm2FBwP+QGNIKvp9rhU8y+7Z8D+zqpe
-/oQ8/1/UD+DLUzWA+5gLixdD1rsBwpldKzjiIJ5S7I1ScXsGE3BiRLI5T54S7xvv
-BgRRNkPnWo3e4wSKFIKY+MWYlSIiZW9Bikvki6wFaP+yRk7Lg846dJSydxEc3XOg
-/VFGmroTyStxxLkNZmgafF3x26hHmQlGnKLa8IONee/XICxcjIDZ4QRZYB+COAzA
-iKSbUOkRR3Z6Jfu4Qgo0NzbM2rggLcRKkmHyiGEwy+ShR6NKur2sAxO3KKbmJY6h
-BQmDtVl6KAsr0i4p0zmKC2IZ28qhtBrxFdjSZg7P6rkzljAbZR+YxwDWGOR+mDGv
-omEBYSjxVOHHoB92H9kkdGhnCjzcaenWtRutml7GiEnR3aEt8ZrIp6isDeBHa2dU
-/kWZ0aWFzbZoUBV39Wdczog2X5LwQ5VR6+LTiZBse3Ydo3ANsM7gkx8UunOBZzVu
-ivklHIb0B7T1DP8fJ4onhBESyXxJQ2XH4E1bR4QOJJziHO767l6uNESroAgOOpER
-yvCuHfVeoU1lwUe5qt1xBDtVHpJ+GTq/OG3bGYRDvXyPjCejFUC5+tieuCb6Wb6q
-MwPM/010kEVXEbKWcJeB7zBN8/JsmDLr8E4KqgZ1SgQNsBcLvtM7O82YK1jZAH8N
-PklIg3GoxebdlTF14Pnf
-=vVZ7
------END PGP SIGNATURE-----
+shows 18 drivers that might care.
 
---hHWLQfXTYDoKhP50--
+> 	adap->dev.parent = &pdev->dev;
+> 	adap->dev.of_node = pdev->dev.of_node;
+> 	ACPI_COMPANION_SET(&adap->dev, ACPI_COMPANION(&pdev->dev));
+
+Interesting, this code isn't in my tree.  I wonder why it was added,
+what code looks at the acpi companion on the i2c dev?  Before my change
+it was supposed to be NULL, and it is NULL on every other controller.
+
+> Also I would like to ask what Rafael thinks about this since he authored
+> b34bb1ee71158d5b ("ACPI / I2C: Use parent's ACPI_HANDLE() in
+> acpi_i2c_register_devices()").
+> 
+> I don't see a problem multiple Linux devices sharing a single ACPI
+> companion device like in this patch but I may be forgetting something ;-)
+
+OK.  Thanks.
+
+		--Dustin
