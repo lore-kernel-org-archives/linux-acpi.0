@@ -1,59 +1,259 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH v2 09/14] ACPICA: Debugger: Fix "quit/exit" command by
- cleaning up user commands termination logic
-Date: Tue, 20 Oct 2015 07:14:14 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BAC95F8@SHSMSX101.ccr.corp.intel.com>
-References: <98d60fa60319a9f62938628f78531f59d2fc9d2a.1445221165.git.lv.zheng@intel.com>
- <3263599.JhYyYcsC47@vostro.rjw.lan>
- <1AE640813FDE7649BE1B193DEA596E883BAC93DE@SHSMSX101.ccr.corp.intel.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH v3 1/1] i2c: add ACPI support for I2C mux ports
+Date: Tue, 20 Oct 2015 12:16:04 +0300
+Message-ID: <1445332564.22669.2.camel@linux.intel.com>
+References: <1439510358-16664-1-git-send-email-dustin@cumulusnetworks.com>
+	 <1445293740-28537-1-git-send-email-dustin@cumulusnetworks.com>
+	 <1445293740-28537-2-git-send-email-dustin@cumulusnetworks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:23618 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751965AbbJTHOj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 20 Oct 2015 03:14:39 -0400
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E883BAC93DE@SHSMSX101.ccr.corp.intel.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-i2c-owner@vger.kernel.org>
+In-Reply-To: <1445293740-28537-2-git-send-email-dustin@cumulusnetworks.com>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Dustin Byford <dustin@cumulusnetworks.com>, Wolfram Sang <wsa@the-dreams.de>, Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, rjw@rjwysocki.net, "Puustinen, Ismo" <ismo.puustinen@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-SXQgbG9va3MgcGF0Y2ggMDggaXMgbm90IGxpc3RlZCBvbiB0aGUgaHR0cHM6Ly9wYXRjaHdvcmsu
-a2VybmVsLm9yZy9wcm9qZWN0L2xpbnV4LWFjcGkvbGlzdC8uDQpJIGp1c3QgcmUtc2VudCBpdCwg
-aG9wZSBpdCBjb3VsZCByZWFjaCB0aGUgbWFpbGluZyBsaXN0IHRoaXMgdGltZS4NCkknbGwgYWxz
-byBzZW5kIGl0IGluIGF0dGFjaG1lbnQgc3R5bGUgdmlhIHByaXZhdGUgcm91dGUgdG8geW91Lg0K
-DQpUaGFua3MgYW5kIGJlc3QgcmVnYXJkcw0KLUx2DQoNCj4gRnJvbTogbGludXgtYWNwaS1vd25l
-ckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1hY3BpLW93bmVyQHZnZXIua2VybmVsLm9y
-Z10gT24gQmVoYWxmIE9mIFpoZW5nLCBMdg0KPiBTZW50OiBUdWVzZGF5LCBPY3RvYmVyIDIwLCAy
-MDE1IDEwOjA0IEFNDQo+IA0KPiBJIHdhcyB1c2luZyBsaW51eC1wbS5naXQvbGludXgtbmV4dCBi
-YXNlIHdoaWNoIEkgZG93bmxvYWRlZCBhIHdlZWsgYWdvLg0KPiBNYXliZSB0aGUgY29uZmxpY3Qg
-d2FzIGNhdXNlZCBieSB0aGUgZmFzdC1wYXRoIEFDUElDQSB0YWJsZSBmaXggbWVyZ2VkIGFmdGVy
-IG15IGRvd25sb2FkaW5nLg0KPiBMZXQgbWUgY2hlY2sgYWdhaW4uDQo+IA0KPiBUaGFua3MgYW5k
-IGJlc3QgcmVnYXJkcw0KPiAtTHYNCj4gDQo+ID4gRnJvbTogUmFmYWVsIEouIFd5c29ja2kgW21h
-aWx0bzpyandAcmp3eXNvY2tpLm5ldF0NCj4gPiBTZW50OiBUdWVzZGF5LCBPY3RvYmVyIDIwLCAy
-MDE1IDU6MDQgQU0NCj4gPg0KPiA+IE9uIE1vbmRheSwgT2N0b2JlciAxOSwgMjAxNSAxMDoyNToz
-MiBBTSBMdiBaaGVuZyB3cm90ZToNCj4gPiA+IEFDUElDQSBjb21taXQgMGRkNjhlMTYyNzRjZDM4
-MjI0YWE0NzgxZWRkYzU3ZGMyY2JhYTEwOA0KPiA+ID4NCj4gPiA+IFRoZSBxdWl0L2V4aXQgY29t
-bWFuZHMgc2hvdWxkbid0IGludm9rZSBhY3BpX3Rlcm1pbmF0ZV9kZWJ1Z2dlcigpIGFuZA0KPiA+
-ID4gYWNwaV90ZXJtaW5hdGUoKSByaWdodCBpbiB0aGUgdXNlciBjb21tYW5kIGxvb3AsIGJlY2F1
-c2Ugd2hlbiB0aGUgZGVidWdnZXINCj4gPiA+IGV4aXRzLCB0aGUga2VybmVsIEFDUEkgc3Vic3lz
-dGVtIHNob3VsZG4ndCBiZSB0ZXJtaW5hdGVkIChhY3BpX3Rlcm1pbmF0ZSgpKQ0KPiA+ID4gYW5k
-IHRoZSBkZWJ1Z2dlciBzaG91bGQgb25seSBiZSB0ZXJtaW5hdGVkIGJ5IGl0cyB1c2Vycw0KPiA+
-ID4gKGFjcGlfdGVybWluYXRlX2RlYnVnZ2VyKCkpIHJhdGhlciB0aGFuIGJlaW5nIHRlcm1pbmF0
-ZWQgaXRzZWxmLiBMZWF2aW5nIHN1Y2gNCj4gPiA+IGludm9jYXRpb25zIGNhdXNlcyBrZXJuZWwg
-cGFuaWMgd2hlbiB0aGUgZGVidWdnZXIgaXMgc2hpcHBlZCBpbiB0aGUgTGludXgNCj4gPiA+IGtl
-cm5lbC4NCj4gPiA+DQo+ID4gPiBUaGlzIHBhdGNoIGZpeGVzIHRoaXMgaXNzdWUuIEx2IFpoZW5n
-Lg0KPiA+ID4NCj4gPiA+IExpbms6IGh0dHBzOi8vZ2l0aHViLmNvbS9hY3BpY2EvYWNwaWNhL2Nv
-bW1pdC8wZGQ2OGUxNg0KPiA+ID4gU2lnbmVkLW9mZi1ieTogTHYgWmhlbmcgPGx2LnpoZW5nQGlu
-dGVsLmNvbT4NCj4gPiA+IFNpZ25lZC1vZmYtYnk6IEJvYiBNb29yZSA8cm9iZXJ0Lm1vb3JlQGlu
-dGVsLmNvbT4NCj4gPg0KPiA+IFRoaXMgcGF0Y2ggZG9lcyBub3QgYXBwbHkgZm9yIG1lIG9uIHRv
-cCBvZiB0aGUgY3VycmVudCBtYWlubGluZS4NCj4gPg0KPiA+IFdoYXQgdHJlZSBpcyBpdCBhcHBs
-aWNhYmxlIHRvPw0KPiA+DQo+ID4gVGhhbmtzLA0KPiA+IFJhZmFlbA0KPiANCj4gTu+/ve+/ve+/
-ve+/ve+/vXLvv73vv71577+977+977+9Yu+/vVjvv73vv73Hp3bvv71e77+9Kd66ey5u77+9K++/
-ve+/ve+/ve+/vXvvv71p77+9Yu+/vXthee+/vR3Kh9qZ77+9LGoN77+977+9Zu+/ve+/ve+/vWjv
-v73vv73vv71677+9Hu+/vXfvv73vv73vv70NCj4gDQo+IO+/ve+/ve+/vWo6K3bvv73vv73vv713
-77+9au+/vW3vv73vv73vv73vv70N77+977+977+977+9elor77+977+977+977+977+93aJqIu+/
-ve+/vSHvv71pDQo=
++Cc: Ismo Puustinen
+
+On Mon, 2015-10-19 at 15:29 -0700, Dustin Byford wrote:
+> Although I2C mux devices are easily enumerated using ACPI (_HID/_CID
+> or
+> device property compatible string match) enumerating I2C client
+> devices
+> connected through a I2C mux device requires a little extra work.
+>=20
+> This change implements a method for describing an I2C device
+> hierarchy that
+> includes mux devices by using an ACPI Device() for each mux channel
+> along
+> with an _ADR to set the channel number for the device.=C2=A0=C2=A0See
+> Documentation/acpi/i2c-muxes.txt for a simple example.
+
+Ismo, can you test this patch on top of what you have to see if it goes
+smoothly (no break of Galileo Gen2 support) ?
+
+>=20
+> Signed-off-by: Dustin Byford <dustin@cumulusnetworks.com>
+> ---
+> =C2=A0Documentation/acpi/i2c-muxes.txt | 58
+> ++++++++++++++++++++++++++++++++++++++++
+> =C2=A0drivers/i2c/i2c-core.c=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0=C2=A0=C2=A0| 15 +++++++++--
+> =C2=A0drivers/i2c/i2c-mux.c=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0|=C2=A0=C2=A08 ++++++
+> =C2=A0include/linux/acpi.h=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0|=C2=A0=C2=A06 +++++
+> =C2=A04 files changed, 85 insertions(+), 2 deletions(-)
+> =C2=A0create mode 100644 Documentation/acpi/i2c-muxes.txt
+>=20
+> diff --git a/Documentation/acpi/i2c-muxes.txt
+> b/Documentation/acpi/i2c-muxes.txt
+> new file mode 100644
+> index 0000000..9fcc4f0
+> --- /dev/null
+> +++ b/Documentation/acpi/i2c-muxes.txt
+> @@ -0,0 +1,58 @@
+> +ACPI I2C Muxes
+> +--------------
+> +
+> +Describing an I2C device hierarchy that includes I2C muxes requires
+> an ACPI
+> +Device () scope per mux channel.
+> +
+> +Consider this topology:
+> +
+> ++------+=C2=A0=C2=A0=C2=A0+------+
+> +| SMB1 |-->| MUX0 |--CH00--> i2c client A (0x50)
+> +|=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0|=C2=A0=C2=A0=C2=A0| 0x70 |--CH=
+01--> i2c client B (0x50)
+> ++------+=C2=A0=C2=A0=C2=A0+------+
+> +
+> +which corresponds to the following ASL:
+> +
+> +Device (SMB1)
+> +{
+> +=C2=A0=C2=A0=C2=A0=C2=A0Name (_HID, ...)
+> +=C2=A0=C2=A0=C2=A0=C2=A0Device (MUX0)
+> +=C2=A0=C2=A0=C2=A0=C2=A0{
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0Name (_HID, ...)
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0Name (_CRS, Resource=
+Template () {
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0I2cSerialBus (0x70, ControllerInitiated, I2C_SPEED,
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0AddressingMode7Bit, "^SMB1", 0x00,
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0ResourceConsumer,,)
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0}
+> +
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0Device (CH00)
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0{
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0Name (_ADR, 0)
+> +
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0Device (CLIA)
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0{
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0Name (_HID, ...)
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0Name (_CRS, ResourceTemplate () {
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0I2cSerialBus (0x50, =
+ControllerInitiated,
+> I2C_SPEED,
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0Addressi=
+ngMode7Bit, "^CH00", 0x00,
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0Resource=
+Consumer,,)
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0}
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0}
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0}
+> +
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0Device (CH01)
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0{
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0Name (_ADR, 1)
+> +
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0Device (CLIB)
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0{
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0Name (_HID, ...)
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0Name (_CRS, ResourceTemplate () {
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0I2cSerialBus (0x50, =
+ControllerInitiated,
+> I2C_SPEED,
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0Addressi=
+ngMode7Bit, "^CH01", 0x00,
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0Resource=
+Consumer,,)
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0}
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0}
+> +=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0}
+> +=C2=A0=C2=A0=C2=A0=C2=A0}
+> +}
+> diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
+> index 579b99d..af0811c 100644
+> --- a/drivers/i2c/i2c-core.c
+> +++ b/drivers/i2c/i2c-core.c
+> @@ -156,7 +156,7 @@ static acpi_status
+> acpi_i2c_add_device(acpi_handle handle, u32 level,
+> =C2=A0	info.fwnode =3D acpi_fwnode_handle(adev);
+> =C2=A0
+> =C2=A0	memset(&lookup, 0, sizeof(lookup));
+> -	lookup.adapter_handle =3D ACPI_HANDLE(adapter->dev.parent);
+> +	lookup.adapter_handle =3D ACPI_HANDLE(&adapter->dev);
+> =C2=A0	lookup.device_handle =3D handle;
+> =C2=A0	lookup.info =3D &info;
+> =C2=A0
+> @@ -212,7 +212,7 @@ static void acpi_i2c_register_devices(struct
+> i2c_adapter *adap)
+> =C2=A0{
+> =C2=A0	acpi_status status;
+> =C2=A0
+> -	if (!adap->dev.parent || !has_acpi_companion(adap-
+> >dev.parent))
+> +	if (!has_acpi_companion(&adap->dev))
+> =C2=A0		return;
+> =C2=A0
+> =C2=A0	status =3D acpi_walk_namespace(ACPI_TYPE_DEVICE,
+> ACPI_ROOT_OBJECT,
+> @@ -1667,6 +1667,17 @@ int i2c_add_adapter(struct i2c_adapter
+> *adapter)
+> =C2=A0	struct device *dev =3D &adapter->dev;
+> =C2=A0	int id;
+> =C2=A0
+> +	/*
+> +	=C2=A0* By default, associate I2C adapters with their parent
+> device's ACPI
+> +	=C2=A0* node.
+> +	=C2=A0*/
+> +	if (!has_acpi_companion(dev)) {
+> +		struct acpi_device *adev =3D ACPI_COMPANION(dev-
+> >parent);
+> +
+> +		if (adev)
+> +			ACPI_COMPANION_SET(dev, adev);
+> +	}
+> +
+> =C2=A0	if (dev->of_node) {
+> =C2=A0		id =3D of_alias_get_id(dev->of_node, "i2c");
+> =C2=A0		if (id >=3D 0) {
+> diff --git a/drivers/i2c/i2c-mux.c b/drivers/i2c/i2c-mux.c
+> index 2ba7c0f..00fc5b1 100644
+> --- a/drivers/i2c/i2c-mux.c
+> +++ b/drivers/i2c/i2c-mux.c
+> @@ -25,6 +25,7 @@
+> =C2=A0#include <linux/i2c.h>
+> =C2=A0#include <linux/i2c-mux.h>
+> =C2=A0#include <linux/of.h>
+> +#include <linux/acpi.h>
+> =C2=A0
+> =C2=A0/* multiplexer per channel data */
+> =C2=A0struct i2c_mux_priv {
+> @@ -173,6 +174,13 @@ struct i2c_adapter *i2c_add_mux_adapter(struct
+> i2c_adapter *parent,
+> =C2=A0		}
+> =C2=A0	}
+> =C2=A0
+> +	/*
+> +	=C2=A0* Associate the mux channel with an ACPI node.
+> +	=C2=A0*/
+> +	if (has_acpi_companion(mux_dev))
+> +		acpi_preset_companion(&priv->adap.dev,
+> ACPI_COMPANION(mux_dev),
+> +				=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0chan_id);
+> +
+> =C2=A0	if (force_nr) {
+> =C2=A0		priv->adap.nr =3D force_nr;
+> =C2=A0		ret =3D i2c_add_numbered_adapter(&priv->adap);
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 51a96a8..66564f8 100644
+
+
+
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -505,6 +505,12 @@ static inline bool has_acpi_companion(struct
+> device *dev)
+> =C2=A0	return false;
+> =C2=A0}
+> =C2=A0
+> +static inline void acpi_preset_companion(struct device *dev,
+> +					=C2=A0struct acpi_device *parent,
+> u64 addr)
+> +{
+> +	return;
+> +}
+> +
+> =C2=A0static inline const char *acpi_dev_name(struct acpi_device *ade=
+v)
+> =C2=A0{
+> =C2=A0	return NULL;
+
+=46or me seems this one can go separately. Rafael, what do you think?
+
+--=20
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
