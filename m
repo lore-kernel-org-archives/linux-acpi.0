@@ -1,109 +1,43 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [Patch v7 4/7] PCI/ACPI: Add interface acpi_pci_root_create()
-Date: Wed, 21 Oct 2015 12:42:18 +0100
-Message-ID: <20151021114218.GA18602@red-moon>
-References: <1444804182-6596-1-git-send-email-jiang.liu@linux.intel.com>
- <1444804182-6596-5-git-send-email-jiang.liu@linux.intel.com>
- <562761A1.4020306@linaro.org>
- <20151021110201.GE3394@e106497-lin.cambridge.arm.com>
- <562776A5.7000303@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:60570 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753822AbbJULlm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 21 Oct 2015 07:41:42 -0400
-Content-Disposition: inline
-In-Reply-To: <562776A5.7000303@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: [PATCH] acpi: video: Add a quirk to force native backlight on Lenovo IdeaPad S405
+Date: Wed, 21 Oct 2015 13:45:03 +0200
+Message-ID: <1445427903-3799-1-git-send-email-hdegoede@redhat.com>
+Return-path: <stable-owner@vger.kernel.org>
+Sender: stable-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: stable@vger.kernel.org, Aaron Lu <aaron.lu@intel.com>, linux-acpi@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Cc: Liviu Dudau <Liviu.Dudau@arm.com>, Jiang Liu <jiang.liu@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org
 
-On Wed, Oct 21, 2015 at 01:27:33PM +0200, Tomasz Nowicki wrote:
-> On 21.10.2015 13:02, Liviu Dudau wrote:
-> >On Wed, Oct 21, 2015 at 11:57:53AM +0200, Tomasz Nowicki wrote:
-> >>On 14.10.2015 08:29, Jiang Liu wrote:
-> >>>Introduce common interface acpi_pci_root_create() and related data
-> >>>structures to create PCI root bus for ACPI PCI host bridges. It will
-> >>>be used to kill duplicated arch specific code for IA64 and x86. It may
-> >>>also help ARM64 in future.
-> >>>
-> >>>Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> >>>Tested-by: Tony Luck <tony.luck@intel.com>
-> >>>Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-> >>>Signed-off-by: Liu Jiang <jiang.liu@linux.intel.com>
-> >>>---
-> >>>  drivers/acpi/pci_root.c  |  204 ++++++++++++++++++++++++++++++++++++++++++++++
-> >>>  include/linux/pci-acpi.h |   24 ++++++
-> >>>  2 files changed, 228 insertions(+)
-> >>>
-> >>
-> >>[...]
-> >>
-> >>>+
-> >>>+struct pci_bus *acpi_pci_root_create(struct acpi_pci_root *root,
-> >>>+				     struct acpi_pci_root_ops *ops,
-> >>>+				     struct acpi_pci_root_info *info,
-> >>>+				     void *sysdata)
-> >>>+{
-> >>>+	int ret, busnum = root->secondary.start;
-> >>>+	struct acpi_device *device = root->device;
-> >>>+	int node = acpi_get_node(device->handle);
-> >>>+	struct pci_bus *bus;
-> >>>+
-> >>>+	info->root = root;
-> >>>+	info->bridge = device;
-> >>>+	info->ops = ops;
-> >>>+	INIT_LIST_HEAD(&info->resources);
-> >>>+	snprintf(info->name, sizeof(info->name), "PCI Bus %04x:%02x",
-> >>>+		 root->segment, busnum);
-> >>>+
-> >>>+	if (ops->init_info && ops->init_info(info))
-> >>>+		goto out_release_info;
-> >>>+	if (ops->prepare_resources)
-> >>>+		ret = ops->prepare_resources(info);
-> >>>+	else
-> >>>+		ret = acpi_pci_probe_root_resources(info);
-> >>>+	if (ret < 0)
-> >>>+		goto out_release_info;
-> >>>+
-> >>>+	pci_acpi_root_add_resources(info);
-> >>>+	pci_add_resource(&info->resources, &root->secondary);
-> >>>+	bus = pci_create_root_bus(NULL, busnum, ops->pci_ops,
-> >>>+				  sysdata, &info->resources);
-> >>
-> >>Thank a lot for this cleanup!!
-> >>
-> >>I recall you already considered passing segment (domain nr) to
-> >>pci_create_root_bus, right? Can you please remind me why we gave up on this?
-> >>
-> >>I am asking because currently I can not find the way to retrieve domain
-> >>number from pci_bus_assign_domain_nr (for those platforms which choose
-> >>PCI_DOMAINS_GENERIC and want to use segment nr from MCFG table) which is the
-> >>part of pci_create_root_bus.
-> >
-> >Not sure I fully understand your question, but pci_bus_assign_domain_nr() will
-> >put the assigned domain number in bus->domain_nr if you chose PCI_DOMAINS_GENERIC.
-> >Do you want to override that value with the segment nr from MCFG?
-> >
-> 
-> Let me give ACPI ARM64 example:
-> 
-> 1. We parse MCFG table and get segment nr assigned to root bridge
-> 2. Then PCI host bridge calls acpi_pci_root_create ->
-> pci_create_root_bus -> pci_bus_assign_domain_nr
-> 3. At this point we cannot get segment nr for ACPI
-> 
-> So I would like to assign MCFG segment nr to bus->domain_nr being in
-> pci_bus_assign_domain_nr giving we have scenario above.
+The Lenovo IdeaPad S405 is a not "Windows8 ready" machine which still has
+a broken ACPI video backlight implementation. Add a quirk to force use
+of native backlight on this machine.
 
-I do not understand what you mean by "assign MCFG segment" here, please
-explain. The MCFG segment group number is used to look-up the configuration
-space for a given host bridge, not to assign a domain number to it.
+BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1201530
+Cc: stable@vger.kernel.org
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+---
+ drivers/acpi/video_detect.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-The domain_nr above is the value returned by the _SEG object for the host
-bridge device.
-
-Lorenzo
+diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
+index 2922f1f..0d3a384 100644
+--- a/drivers/acpi/video_detect.c
++++ b/drivers/acpi/video_detect.c
+@@ -244,6 +244,15 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
+ 
+ 	/* Non win8 machines which need native backlight nevertheless */
+ 	{
++	 /* https://bugzilla.redhat.com/show_bug.cgi?id=1201530 */
++	 .callback = video_detect_force_native,
++	 .ident = "Lenovo Ideapad S405",
++	 .matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
++		DMI_MATCH(DMI_BOARD_NAME, "Lenovo IdeaPad S405"),
++		},
++	},
++	{
+ 	 /* https://bugzilla.redhat.com/show_bug.cgi?id=1187004 */
+ 	 .callback = video_detect_force_native,
+ 	 .ident = "Lenovo Ideapad Z570",
+-- 
+2.5.0
