@@ -1,80 +1,73 @@
-From: Jan Kara <jack@suse.cz>
-Subject: Re: what's in nvdimm.git for v4.4?
-Date: Wed, 21 Oct 2015 11:08:00 +0200
-Message-ID: <20151021090800.GA2939@quack.suse.cz>
-References: <1445383903.6611.39.camel@intel.com>
- <20151021000103.GA19199@dastard>
- <CAPcyv4hBV=tsEmNajuMXr8Jj7-+ovT7FP3yWrfDLZVWejgA2ig@mail.gmail.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v3 1/1] i2c: add ACPI support for I2C mux ports
+Date: Wed, 21 Oct 2015 12:08:49 +0300
+Message-ID: <20151021090849.GW1526@lahna.fi.intel.com>
+References: <1439510358-16664-1-git-send-email-dustin@cumulusnetworks.com>
+ <1445293740-28537-1-git-send-email-dustin@cumulusnetworks.com>
+ <1445293740-28537-2-git-send-email-dustin@cumulusnetworks.com>
+ <20151020125111.GJ1526@lahna.fi.intel.com>
+ <20151020174959.GA14829@cumulusnetworks.com>
+ <20151021081231.GQ1526@lahna.fi.intel.com>
+ <20151021082116.GA5635@cumulusnetworks.com>
+ <20151021083406.GU1526@lahna.fi.intel.com>
+ <20151021085241.GA5949@cumulusnetworks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <CAPcyv4hBV=tsEmNajuMXr8Jj7-+ovT7FP3yWrfDLZVWejgA2ig@mail.gmail.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Dave Chinner <david@fromorbit.com>, "axboe@fb.com" <axboe@fb.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "hch@lst.de" <hch@lst.de>, "martin.petersen@oracle.com" <martin.petersen@oracle.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "jack@suse.cz" <jack@suse.cz>
+In-Reply-To: <20151021085241.GA5949@cumulusnetworks.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Dustin Byford <dustin@cumulusnetworks.com>
+Cc: Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, rjw@rjwysocki.net, andriy.shevchenko@linux.intel.com
 List-Id: linux-acpi@vger.kernel.org
 
-Sorry for replying to this email and not to patch posting directly but I
-didn't find the original mail in any of my mailboxes...
-
-On Tue 20-10-15 17:31:18, Dan Williams wrote:
-> On Tue, Oct 20, 2015 at 5:01 PM, Dave Chinner <david@fromorbit.com> wrote:
-> > On Tue, Oct 20, 2015 at 11:31:45PM +0000, Williams, Dan J wrote:
-> >> Here is a status summary of the topic-branches nvdimm.git is tracking
-> >> for v4.4.  Unless indicated these branches are not present in -next.
-> >> Please ACK, NAK, or ask for a re-post of any of the below to disposition
-> >> it for the merge window.
-> >>
-> >> ===
-> >> for-4.4/dax-fixes:
-> >> ===
-> > ...
-> >>         Dave Chinner (5):
-> >>               xfs: fix inode size update overflow in xfs_map_direct()
-> >>               xfs: introduce BMAPI_ZERO for allocating zeroed extents
-> >>               xfs: Don't use unwritten extents for DAX
-> >>               xfs: DAX does not use IO completion callbacks
-> >>               xfs: add ->pfn_mkwrite support for DAX
-> >
-> > Please drop these. They have not been reviewed yet, and because
-> > the changes affect more than just DAX (core XFS allocator
-> > functionality was changed) these need to go through the XFS tree.
-> >
+On Wed, Oct 21, 2015 at 01:52:41AM -0700, Dustin Byford wrote:
+> On Wed Oct 21 11:34, Mika Westerberg wrote:
+> > On Wed, Oct 21, 2015 at 01:21:16AM -0700, Dustin Byford wrote:
+> > > On Wed Oct 21 11:12, Mika Westerberg wrote:
+> > > > On Tue, Oct 20, 2015 at 10:49:59AM -0700, Dustin Byford wrote:
+> > > > > I considered it, but I thought a default that fairly closely matches the
+> > > > > old behavior was more convenient.
+> > > > > 
+> > > > > On the other hand, leaving it up to the controllers makes it all very
+> > > > > explicit and perhaps simpler to reason about.
+> > > > > 
+> > > > > 
+> > > > > I could be convinced either way.  But, if we move it to the controller
+> > > > > drivers, which ones need the change?
+> > > > > 
+> > > > > grep -i acpi drivers/i2c/busses/i2c*
+> > > > > 
+> > > > > shows 18 drivers that might care.
+> > > > 
+> > > > I'm quite confident the designware I2C is enough for now. Intel uses it
+> > > > for all SoCs with LPSS and I think AMD has the same block for their I2C
+> > > > solution.
+> > > 
+> > > I certainly care about i801, ismt, and isch.  Doesn't this affect any
+> > > i2c controller with clients that may be enumerated through ACPI?
+> > 
+> > Yes, but so far I haven't seen any other devices being used for this
+> > than the I2C designware.
+> > 
+> > Which hardware you are testing this patch on?
 > 
-> Ok, thanks for the heads up.  For the get_user_pages() patches that
-> build on these fixes I'm assuming your review bandwidth is in short
-> supply to also give an XFS sign-off on those changes for 4.4?
+> I'm working with a number of x86-based network switch platforms.  Mostly
+> rangeley at the moment, but I'm sure others are in the works.  Have a
+> look at:
 > 
-> I'm wondering if we can take a conservative step forward with those
-> patches for 4.4.  if XFS and EXT4 interactions need more time to get
-> worked out, which I believe they do, I can conceive just turning on
-> get_user_pages() support for DAX-mappings of the raw block device.
-> This would be via the new facility I posted yesterday:
-> https://lists.01.org/pipermail/linux-nvdimm/2015-October/002512.html.
-> While not very functional for applications it makes testing base DAX
-> mechanisms straightforward.
+> http://www.opencompute.org/wiki/Networking/SpecsAndDesigns
+> 
+> for examples.
 
-I had a look at the patch and I miss one thing: Why do we need bd_mutex
-to protect faults? I see a comment there:
+Cool :)
 
-/* check that the faulting page hasn't raced with bdev resize */
+> My goal, hence the recent patches, is to help the network switch
+> industry move a lot of platform description into ACPI.  That means lots
+> of complicated I2C trees; switches are full of I2C devices.
 
-Is it really possible that bdev gets shrunk under us? Hum, looking into
-fs/block_dev.c, probably it is. But there are other places - like DIO path
-- assuming that block device mapping cannot just disappear from under us. I
-wonder how that would cope with bdev size change...
+I see.
 
-Also we only call invalidate_bdev() to invalidate page cache pages of the
-bdev after resize which specifically skips any mmaped pages so bdev resizing
-in presence of mmap is unreliable to say the least.
-
-Anyway, bd_mutex seems like a big hammer in the fast path to protect against
-rare size changes. Also nesting of bd_mutex under mmap_sem makes me
-somewhat uneasy (I'd definitely wonder whether lockdep would not complain
-about that)...
-
-								Honza
--- 
-Jan Kara <jack@suse.com>
-SUSE Labs, CR
+I don't really have strong feelings whether it should be the I2C core or
+individual drivers setting the ACPI companion. However, it would be nice
+to match DT here and they assign their of_node per driver.
