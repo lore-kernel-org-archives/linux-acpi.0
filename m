@@ -1,63 +1,50 @@
-From: "Elliott, Robert (Persistent Memory)" <elliott@hpe.com>
-Subject: RE: what's in nvdimm.git for v4.4?
-Date: Wed, 21 Oct 2015 22:36:46 +0000
-Message-ID: <94D0CD8314A33A4D9D801C0FE68B40295BDD2000@G9W0745.americas.hpqcorp.net>
-References: <1445383903.6611.39.camel@intel.com>
- <20151021000103.GA19199@dastard>
- <CAPcyv4hBV=tsEmNajuMXr8Jj7-+ovT7FP3yWrfDLZVWejgA2ig@mail.gmail.com>
- <20151021090800.GA2939@quack.suse.cz>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v3 1/1] i2c: add ACPI support for I2C mux ports
+Date: Thu, 22 Oct 2015 00:39:52 +0200
+Message-ID: <CAJZ5v0js30rwaDrROaUsuyw+95YNqjfqR+kj4AvGRw8FfGXDEQ@mail.gmail.com>
+References: <1439510358-16664-1-git-send-email-dustin@cumulusnetworks.com>
+	<1445293740-28537-1-git-send-email-dustin@cumulusnetworks.com>
+	<1445293740-28537-2-git-send-email-dustin@cumulusnetworks.com>
+	<20151020125111.GJ1526@lahna.fi.intel.com>
+	<20151020174959.GA14829@cumulusnetworks.com>
+	<20151021081231.GQ1526@lahna.fi.intel.com>
+	<20151021082116.GA5635@cumulusnetworks.com>
+	<20151021083406.GU1526@lahna.fi.intel.com>
+	<20151021085241.GA5949@cumulusnetworks.com>
+	<20151021090849.GW1526@lahna.fi.intel.com>
+	<20151021092508.GB5949@cumulusnetworks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t3426.houston.hp.com ([15.201.208.54]:42912 "EHLO
-	g4t3426.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932499AbbJUWhd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Oct 2015 18:37:33 -0400
-In-Reply-To: <20151021090800.GA2939@quack.suse.cz>
-Content-Language: en-US
+Received: from mail-lf0-f44.google.com ([209.85.215.44]:35223 "EHLO
+	mail-lf0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756554AbbJUWjx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Oct 2015 18:39:53 -0400
+In-Reply-To: <20151021092508.GB5949@cumulusnetworks.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jan Kara <jack@suse.cz>, Dan Williams <dan.j.williams@intel.com>
-Cc: "martin.petersen@oracle.com" <martin.petersen@oracle.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Dave Chinner <david@fromorbit.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "axboe@fb.com" <axboe@fb.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "hch@lst.de" <hch@lst.de>
+To: Dustin Byford <dustin@cumulusnetworks.com>
+Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
+Hi,
 
+On Wed, Oct 21, 2015 at 11:25 AM, Dustin Byford
+<dustin@cumulusnetworks.com> wrote:
+> On Wed Oct 21 12:08, Mika Westerberg wrote:
+>> I don't really have strong feelings whether it should be the I2C core or
+>> individual drivers setting the ACPI companion. However, it would be nice
+>> to match DT here and they assign their of_node per driver.
+>
+> OK with me, if we can convince Rafael this is a good idea, I'll send a
+> new revision with drivers setting the companion.
 
-> -----Original Message-----
-> From: Linux-nvdimm [mailto:linux-nvdimm-bounces@lists.01.org] On Behalf Of
-> Jan Kara
-> Sent: Wednesday, October 21, 2015 4:08 AM
-...
-> On Tue 20-10-15 17:31:18, Dan Williams wrote:
-> > On Tue, Oct 20, 2015 at 5:01 PM, Dave Chinner <david@fromorbit.com>
-...
-> > I'm wondering if we can take a conservative step forward with those
-> > patches for 4.4.  if XFS and EXT4 interactions need more time to get
-> > worked out, which I believe they do, I can conceive just turning on
-> > get_user_pages() support for DAX-mappings of the raw block device.
-> > This would be via the new facility I posted yesterday:
-> > https://lists.01.org/pipermail/linux-nvdimm/2015-October/002512.html.
-> > While not very functional for applications it makes testing base DAX
-> > mechanisms straightforward.
-> 
-> I had a look at the patch and I miss one thing: Why do we need bd_mutex
-> to protect faults? I see a comment there:
-> 
-> /* check that the faulting page hasn't raced with bdev resize */
-> 
-> Is it really possible that bdev gets shrunk under us? Hum, looking into
-> fs/block_dev.c, probably it is. But there are other places - like DIO path
-> - assuming that block device mapping cannot just disappear from under us.
-> I wonder how that would cope with bdev size change...
+If you can guarantee that ACPI PM or anything like _DS or _SRS will
+never be invoked for the device objects that "inherit" the ACPI
+companion from their parent, it at least is not outright dangerous.
 
-DIO_IGNORE_TRUNCATE was added to eliminate an awful lot of CPU
-time incrementing and decrementing i_dio_count for direct IO
-to block devices, especially at pmem type speeds.  I hope 
-that kind of accounting doesn't need to be brought back.
+That said I'm thinking that may need some more sophisticated approach
+here, so we really can guarantee certain things, but that's for the
+future.
 
-https://lkml.org/lkml/2015/4/3/557
-https://lkml.org/lkml/2015/4/15/590
-
----
-Robert Elliott, HPE Persistent Memory
-
+Thanks,
+Rafael
