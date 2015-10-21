@@ -1,53 +1,88 @@
-From: Rob Herring <robh+dt@kernel.org>
-Subject: Re: [PATCH v6 22/22] of/platform: Defer probes of registered devices
-Date: Wed, 21 Oct 2015 08:44:44 -0500
-Message-ID: <CAL_JsqLhZmc8cEC+tFJ25KLe0bQZsWmrRWGBMQake9VN6OjvdQ@mail.gmail.com>
-References: <1442844182-27787-1-git-send-email-tomeu.vizoso@collabora.com>
- <1442844182-27787-23-git-send-email-tomeu.vizoso@collabora.com> <1445406845.701.55.camel@freescale.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH v3 0/6] enable I2C devices behind I2C bus on Gen2
+Date: Wed, 21 Oct 2015 18:05:54 +0300
+Message-ID: <1445439954.22669.38.camel@linux.intel.com>
+References: <1444213129-29793-1-git-send-email-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:51358 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753455AbbJUNpI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 21 Oct 2015 09:45:08 -0400
-In-Reply-To: <1445406845.701.55.camel@freescale.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-i2c-owner@vger.kernel.org>
+In-Reply-To: <1444213129-29793-1-git-send-email-andriy.shevchenko@linux.intel.com>
+Sender: linux-i2c-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Wolfram Sang <wsa@the-dreams.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@intel.com>, "Puustinen, Ismo" <ismo.puustinen@intel.com>, "Pandruvada, Srinivas" <srinivas.pandruvada@intel.com>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Scott Wood <scottwood@freescale.com>
-Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, Hu Mingkai-B21284 <Mingkai.Hu@freescale.com>
 
-On Wed, Oct 21, 2015 at 12:54 AM, Scott Wood <scottwood@freescale.com> wrote:
-> On Mon, 2015-09-21 at 16:03 +0200, Tomeu Vizoso wrote:
->> Instead of trying to match and probe platform and AMBA devices right
->> after each is registered, delay their probes until device_initcall_sync.
->>
->> This means that devices will start probing once all built-in drivers
->> have registered, and after all platform and AMBA devices from the DT
->> have been registered already.
->>
->> This allows us to prevent deferred probes by probing dependencies on
->> demand.
->>
->> Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
->> ---
->>
->> Changes in v4:
->> - Also defer probes of AMBA devices registered from the DT as they can
->>   also request resources.
->>
->>  drivers/of/platform.c | 11 ++++++++---
->>  1 file changed, 8 insertions(+), 3 deletions(-)
->
-> This breaks arch/powerpc/sysdev/fsl_pci.c.  The PCI bus is an OF platform
-> device, and it must be probed before pcibios_init() which is a
-> subsys_initcall(), or else the PCI bus never gets scanned.
+On Wed, 2015-10-07 at 13:18 +0300, Andy Shevchenko wrote:
+> There is a board in the wild, i.e. Intel Galileo Gen2, that has ACPI
+> enumerated
+> devices behind I2C bus.
 
-Thanks for the report. This is probably getting dropped, but it could
-be disabled for PPC.
+Lee, since Wolfram is going to apply patches 1 and 5, how could we
+proceed with the rest? Patches are indeed build independent, though
+they are unified by enabling logically piece-by-piece. It would be
+great if you think you may apply them to your v4.4 queue.
 
-Any plans to fix this and make PCI hosts hotplugable? For the scanning
-part, generally the host controller drivers are responsible for
-scanning their bus now.
 
-Rob
+> This patch series dedicated to enable those devices. Meanwhile it
+> also changes
+> I2C core to cope with ACPI 6.0 specification (patch 1).
+>=20
+> The MFD framework is also updated to cope with interesting
+> implementation of
+> the cell descriptions under ACPI MFD (patch 2).
+>=20
+> The patches 5 and 6 are pretty independent and could be applied
+> ahead, though
+> they don't make much sense without previous ones.
+>=20
+> Srinivas, it would be nice to see your tag (ideally Tested-by) to be
+> sure we
+> don't break ISH stuff.
+>=20
+> Since it touches multiple subsystems someone needs to create an
+> immutable
+> branch. I don't actually know whose subsystem better here. Wolfram?
+>=20
+> Tested on the actual Intel Galileo Gen2 by Ismo (gpio expanders) and
+> me (at24).
+>=20
+> Changelog v3:
+> - append ACKs from Rafael (from ACPI angle)
+> - drop upstreamed patches (GPIO pca953x)
+>=20
+> Changelog v2:
+> - append tags
+> - re-make patch 3 (suggested by Lee)
+> - improve patch 8 (suggested by Thierry)
+>=20
+> Andy Shevchenko (5):
+> =C2=A0 mfd: core: redo ACPI matching of the children devices
+> =C2=A0 mfd: intel_quark_i2c_gpio: load gpio driver first
+> =C2=A0 mfd: intel_quark_i2c_gpio: support devices behind i2c bus
+> =C2=A0 at24: enable ACPI device found on Galileo Gen2
+> =C2=A0 pwm-pca9685: enable ACPI device found on Galileo Gen2
+>=20
+> Mika Westerberg (1):
+> =C2=A0 i2c / ACPI: Rework I2C device scanning
+>=20
+> =C2=A0Documentation/acpi/enumeration.txt | 11 +++--
+> =C2=A0drivers/i2c/i2c-core.c=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0| 82 +++++++++++++++++++++++++++-
+> ----------
+> =C2=A0drivers/mfd/intel_quark_i2c_gpio.c | 33 ++++++++++-----
+> =C2=A0drivers/mfd/mfd-core.c=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=
+=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0| 52 ++++++++++++++++--------
+> =C2=A0drivers/misc/eeprom/at24.c=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0| 22 ++++++++--
+> =C2=A0drivers/pwm/Kconfig=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0|=C2=A0=C2=A02 +-
+> =C2=A0drivers/pwm/pwm-pca9685.c=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0| 20 ++++++++--
+> =C2=A0include/linux/mfd/core.h=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
+=A0=C2=A0=C2=A0=C2=A0=C2=A0| 10 ++++-
+> =C2=A08 files changed, 170 insertions(+), 62 deletions(-)
+>=20
+
+--=20
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
