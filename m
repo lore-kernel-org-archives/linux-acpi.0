@@ -1,118 +1,40 @@
-From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Subject: Re: [Patch v7 4/7] PCI/ACPI: Add interface acpi_pci_root_create()
-Date: Wed, 21 Oct 2015 14:16:51 +0200
-Message-ID: <56278233.1020308@linaro.org>
-References: <1444804182-6596-1-git-send-email-jiang.liu@linux.intel.com>
- <1444804182-6596-5-git-send-email-jiang.liu@linux.intel.com>
- <562761A1.4020306@linaro.org>
- <20151021110201.GE3394@e106497-lin.cambridge.arm.com>
- <562776A5.7000303@linaro.org> <20151021114218.GA18602@red-moon>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH] ACPI / property: Fix subnode lookup scope for data-only
+ subnodes
+Date: Wed, 21 Oct 2015 16:20:36 +0300
+Message-ID: <20151021132036.GC1526@lahna.fi.intel.com>
+References: <3607867.RKSpENdj9h@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20151021114218.GA18602@red-moon>
-Sender: linux-pci-owner@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Liviu Dudau <Liviu.Dudau@arm.com>, Jiang Liu <jiang.liu@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:30863 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751069AbbJUNXy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 21 Oct 2015 09:23:54 -0400
+Content-Disposition: inline
+In-Reply-To: <3607867.RKSpENdj9h@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Darren Hart <darren.hart@intel.com>
 
-On 21.10.2015 13:42, Lorenzo Pieralisi wrote:
-> On Wed, Oct 21, 2015 at 01:27:33PM +0200, Tomasz Nowicki wrote:
->> On 21.10.2015 13:02, Liviu Dudau wrote:
->>> On Wed, Oct 21, 2015 at 11:57:53AM +0200, Tomasz Nowicki wrote:
->>>> On 14.10.2015 08:29, Jiang Liu wrote:
->>>>> Introduce common interface acpi_pci_root_create() and related data
->>>>> structures to create PCI root bus for ACPI PCI host bridges. It will
->>>>> be used to kill duplicated arch specific code for IA64 and x86. It may
->>>>> also help ARM64 in future.
->>>>>
->>>>> Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
->>>>> Tested-by: Tony Luck <tony.luck@intel.com>
->>>>> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
->>>>> Signed-off-by: Liu Jiang <jiang.liu@linux.intel.com>
->>>>> ---
->>>>>   drivers/acpi/pci_root.c  |  204 ++++++++++++++++++++++++++++++++++++++++++++++
->>>>>   include/linux/pci-acpi.h |   24 ++++++
->>>>>   2 files changed, 228 insertions(+)
->>>>>
->>>>
->>>> [...]
->>>>
->>>>> +
->>>>> +struct pci_bus *acpi_pci_root_create(struct acpi_pci_root *root,
->>>>> +				     struct acpi_pci_root_ops *ops,
->>>>> +				     struct acpi_pci_root_info *info,
->>>>> +				     void *sysdata)
->>>>> +{
->>>>> +	int ret, busnum = root->secondary.start;
->>>>> +	struct acpi_device *device = root->device;
->>>>> +	int node = acpi_get_node(device->handle);
->>>>> +	struct pci_bus *bus;
->>>>> +
->>>>> +	info->root = root;
->>>>> +	info->bridge = device;
->>>>> +	info->ops = ops;
->>>>> +	INIT_LIST_HEAD(&info->resources);
->>>>> +	snprintf(info->name, sizeof(info->name), "PCI Bus %04x:%02x",
->>>>> +		 root->segment, busnum);
->>>>> +
->>>>> +	if (ops->init_info && ops->init_info(info))
->>>>> +		goto out_release_info;
->>>>> +	if (ops->prepare_resources)
->>>>> +		ret = ops->prepare_resources(info);
->>>>> +	else
->>>>> +		ret = acpi_pci_probe_root_resources(info);
->>>>> +	if (ret < 0)
->>>>> +		goto out_release_info;
->>>>> +
->>>>> +	pci_acpi_root_add_resources(info);
->>>>> +	pci_add_resource(&info->resources, &root->secondary);
->>>>> +	bus = pci_create_root_bus(NULL, busnum, ops->pci_ops,
->>>>> +				  sysdata, &info->resources);
->>>>
->>>> Thank a lot for this cleanup!!
->>>>
->>>> I recall you already considered passing segment (domain nr) to
->>>> pci_create_root_bus, right? Can you please remind me why we gave up on this?
->>>>
->>>> I am asking because currently I can not find the way to retrieve domain
->>>> number from pci_bus_assign_domain_nr (for those platforms which choose
->>>> PCI_DOMAINS_GENERIC and want to use segment nr from MCFG table) which is the
->>>> part of pci_create_root_bus.
->>>
->>> Not sure I fully understand your question, but pci_bus_assign_domain_nr() will
->>> put the assigned domain number in bus->domain_nr if you chose PCI_DOMAINS_GENERIC.
->>> Do you want to override that value with the segment nr from MCFG?
->>>
->>
->> Let me give ACPI ARM64 example:
->>
->> 1. We parse MCFG table and get segment nr assigned to root bridge
->> 2. Then PCI host bridge calls acpi_pci_root_create ->
->> pci_create_root_bus -> pci_bus_assign_domain_nr
->> 3. At this point we cannot get segment nr for ACPI
->>
->> So I would like to assign MCFG segment nr to bus->domain_nr being in
->> pci_bus_assign_domain_nr giving we have scenario above.
->
-> I do not understand what you mean by "assign MCFG segment" here, please
-> explain. The MCFG segment group number is used to look-up the configuration
-> space for a given host bridge, not to assign a domain number to it.
->
-> The domain_nr above is the value returned by the _SEG object for the host
-> bridge device.
+On Wed, Oct 21, 2015 at 01:51:24AM +0200, Rafael J. Wysocki wrote:
+> From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> 
+> The correct scope for looking up the objects to generate data packages for
+> data-only subnodes pointed to by another data-only subnode is the scope
+> of the parent of that subnode and not the scope containing the _DSD object
+> at the top of the hierarchy (the latter works only if all of the objects
+> returning data-only subnode packages in a given hierarchy are in the same
+> scope).
+> 
+> Fix the code to work as expected.
+> 
+> Fixes: 445b0eb058f5 (ACPI / property: Add support for data-only subnodes)
+> Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-If I read the code correctly, MCFG region assigned to PCI host bridge X 
-should have the same value for its segment field and corresponding _SEG 
-object. Anyway, you are right, the MCFG segment group number should be 
-used to look-up the configuration space and _SEG object to retrieve 
-domain nr.
+Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
 
-To evaluate _SEG object being in pci_bus_assign_domain_nr we still miss 
-there the PCI host bridge device. So I should change my previous 
-question, can we pass down the PCI host bridge device to be able to call 
-_SEG object being in pci_bus_assign_domain_nr?
+All my tests still pass so you can also add
 
-Thanks,
-Tomasz
+Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
