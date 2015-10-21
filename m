@@ -1,171 +1,118 @@
-From: Liviu Dudau <Liviu.Dudau@arm.com>
+From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
 Subject: Re: [Patch v7 4/7] PCI/ACPI: Add interface acpi_pci_root_create()
-Date: Wed, 21 Oct 2015 12:52:24 +0100
-Message-ID: <20151021115224.GH3394@e106497-lin.cambridge.arm.com>
+Date: Wed, 21 Oct 2015 14:16:51 +0200
+Message-ID: <56278233.1020308@linaro.org>
 References: <1444804182-6596-1-git-send-email-jiang.liu@linux.intel.com>
  <1444804182-6596-5-git-send-email-jiang.liu@linux.intel.com>
  <562761A1.4020306@linaro.org>
  <20151021110201.GE3394@e106497-lin.cambridge.arm.com>
- <562776A5.7000303@linaro.org>
- <56277BB9.8090508@linux.intel.com>
+ <562776A5.7000303@linaro.org> <20151021114218.GA18602@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:60657 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932211AbbJULw0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 21 Oct 2015 07:52:26 -0400
-Content-Disposition: inline
-In-Reply-To: <56277BB9.8090508@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20151021114218.GA18602@red-moon>
+Sender: linux-pci-owner@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Liviu Dudau <Liviu.Dudau@arm.com>, Jiang Liu <jiang.liu@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Tomasz Nowicki <tomasz.nowicki@linaro.org>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org
 
-On Wed, Oct 21, 2015 at 07:49:13PM +0800, Jiang Liu wrote:
-> On 2015/10/21 19:27, Tomasz Nowicki wrote:
-> > On 21.10.2015 13:02, Liviu Dudau wrote:
-> >> On Wed, Oct 21, 2015 at 11:57:53AM +0200, Tomasz Nowicki wrote:
-> >>> On 14.10.2015 08:29, Jiang Liu wrote:
-> >>>> Introduce common interface acpi_pci_root_create() and related da=
-ta
-> >>>> structures to create PCI root bus for ACPI PCI host bridges. It =
-will
-> >>>> be used to kill duplicated arch specific code for IA64 and x86. =
-It may
-> >>>> also help ARM64 in future.
-> >>>>
-> >>>> Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> >>>> Tested-by: Tony Luck <tony.luck@intel.com>
-> >>>> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-> >>>> Signed-off-by: Liu Jiang <jiang.liu@linux.intel.com>
-> >>>> ---
-> >>>>   drivers/acpi/pci_root.c  |  204
-> >>>> ++++++++++++++++++++++++++++++++++++++++++++++
-> >>>>   include/linux/pci-acpi.h |   24 ++++++
-> >>>>   2 files changed, 228 insertions(+)
-> >>>>
-> >>>
-> >>> [...]
-> >>>
-> >>>> +
-> >>>> +struct pci_bus *acpi_pci_root_create(struct acpi_pci_root *root=
-,
-> >>>> +                     struct acpi_pci_root_ops *ops,
-> >>>> +                     struct acpi_pci_root_info *info,
-> >>>> +                     void *sysdata)
-> >>>> +{
-> >>>> +    int ret, busnum =3D root->secondary.start;
-> >>>> +    struct acpi_device *device =3D root->device;
-> >>>> +    int node =3D acpi_get_node(device->handle);
-> >>>> +    struct pci_bus *bus;
-> >>>> +
-> >>>> +    info->root =3D root;
-> >>>> +    info->bridge =3D device;
-> >>>> +    info->ops =3D ops;
-> >>>> +    INIT_LIST_HEAD(&info->resources);
-> >>>> +    snprintf(info->name, sizeof(info->name), "PCI Bus %04x:%02x=
-",
-> >>>> +         root->segment, busnum);
-> >>>> +
-> >>>> +    if (ops->init_info && ops->init_info(info))
-> >>>> +        goto out_release_info;
-> >>>> +    if (ops->prepare_resources)
-> >>>> +        ret =3D ops->prepare_resources(info);
-> >>>> +    else
-> >>>> +        ret =3D acpi_pci_probe_root_resources(info);
-> >>>> +    if (ret < 0)
-> >>>> +        goto out_release_info;
-> >>>> +
-> >>>> +    pci_acpi_root_add_resources(info);
-> >>>> +    pci_add_resource(&info->resources, &root->secondary);
-> >>>> +    bus =3D pci_create_root_bus(NULL, busnum, ops->pci_ops,
-> >>>> +                  sysdata, &info->resources);
-> >>>
-> >>> Thank a lot for this cleanup!!
-> >>>
-> >>> I recall you already considered passing segment (domain nr) to
-> >>> pci_create_root_bus, right? Can you please remind me why we gave =
-up
-> >>> on this?
-> >>>
-> >>> I am asking because currently I can not find the way to retrieve =
-domain
-> >>> number from pci_bus_assign_domain_nr (for those platforms which c=
-hoose
-> >>> PCI_DOMAINS_GENERIC and want to use segment nr from MCFG table) w=
-hich
-> >>> is the
-> >>> part of pci_create_root_bus.
-> >>
-> >> Not sure I fully understand your question, but
-> >> pci_bus_assign_domain_nr() will
-> >> put the assigned domain number in bus->domain_nr if you chose
-> >> PCI_DOMAINS_GENERIC.
-> >> Do you want to override that value with the segment nr from MCFG?
-> >>
-> >=20
-> > Let me give ACPI ARM64 example:
-> >=20
-> > 1. We parse MCFG table and get segment nr assigned to root bridge
-> > 2. Then PCI host bridge calls acpi_pci_root_create ->
-> > pci_create_root_bus -> pci_bus_assign_domain_nr
-> > 3. At this point we cannot get segment nr for ACPI
-> >=20
-> > So I would like to assign MCFG segment nr to bus->domain_nr being i=
-n
-> > pci_bus_assign_domain_nr giving we have scenario above.
-> Please use sysdata for that, IA64 and x86 are making use of sysdata
-> to store such information:
-> struct pci_sysdata {
->         int             domain;         /* PCI domain */
->         int             node;           /* NUMA node */
-> #ifdef CONFIG_ACPI
->         struct acpi_device *companion;  /* ACPI companion device */
-> #endif
-> #ifdef CONFIG_X86_64
->         void            *iommu;         /* IOMMU private data */
-> #endif
-> };
->=20
-> Hanjun once tried to introduce struct pci_sysdata for ARM64, but
-> seems it has been rejected.
+On 21.10.2015 13:42, Lorenzo Pieralisi wrote:
+> On Wed, Oct 21, 2015 at 01:27:33PM +0200, Tomasz Nowicki wrote:
+>> On 21.10.2015 13:02, Liviu Dudau wrote:
+>>> On Wed, Oct 21, 2015 at 11:57:53AM +0200, Tomasz Nowicki wrote:
+>>>> On 14.10.2015 08:29, Jiang Liu wrote:
+>>>>> Introduce common interface acpi_pci_root_create() and related data
+>>>>> structures to create PCI root bus for ACPI PCI host bridges. It will
+>>>>> be used to kill duplicated arch specific code for IA64 and x86. It may
+>>>>> also help ARM64 in future.
+>>>>>
+>>>>> Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+>>>>> Tested-by: Tony Luck <tony.luck@intel.com>
+>>>>> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+>>>>> Signed-off-by: Liu Jiang <jiang.liu@linux.intel.com>
+>>>>> ---
+>>>>>   drivers/acpi/pci_root.c  |  204 ++++++++++++++++++++++++++++++++++++++++++++++
+>>>>>   include/linux/pci-acpi.h |   24 ++++++
+>>>>>   2 files changed, 228 insertions(+)
+>>>>>
+>>>>
+>>>> [...]
+>>>>
+>>>>> +
+>>>>> +struct pci_bus *acpi_pci_root_create(struct acpi_pci_root *root,
+>>>>> +				     struct acpi_pci_root_ops *ops,
+>>>>> +				     struct acpi_pci_root_info *info,
+>>>>> +				     void *sysdata)
+>>>>> +{
+>>>>> +	int ret, busnum = root->secondary.start;
+>>>>> +	struct acpi_device *device = root->device;
+>>>>> +	int node = acpi_get_node(device->handle);
+>>>>> +	struct pci_bus *bus;
+>>>>> +
+>>>>> +	info->root = root;
+>>>>> +	info->bridge = device;
+>>>>> +	info->ops = ops;
+>>>>> +	INIT_LIST_HEAD(&info->resources);
+>>>>> +	snprintf(info->name, sizeof(info->name), "PCI Bus %04x:%02x",
+>>>>> +		 root->segment, busnum);
+>>>>> +
+>>>>> +	if (ops->init_info && ops->init_info(info))
+>>>>> +		goto out_release_info;
+>>>>> +	if (ops->prepare_resources)
+>>>>> +		ret = ops->prepare_resources(info);
+>>>>> +	else
+>>>>> +		ret = acpi_pci_probe_root_resources(info);
+>>>>> +	if (ret < 0)
+>>>>> +		goto out_release_info;
+>>>>> +
+>>>>> +	pci_acpi_root_add_resources(info);
+>>>>> +	pci_add_resource(&info->resources, &root->secondary);
+>>>>> +	bus = pci_create_root_bus(NULL, busnum, ops->pci_ops,
+>>>>> +				  sysdata, &info->resources);
+>>>>
+>>>> Thank a lot for this cleanup!!
+>>>>
+>>>> I recall you already considered passing segment (domain nr) to
+>>>> pci_create_root_bus, right? Can you please remind me why we gave up on this?
+>>>>
+>>>> I am asking because currently I can not find the way to retrieve domain
+>>>> number from pci_bus_assign_domain_nr (for those platforms which choose
+>>>> PCI_DOMAINS_GENERIC and want to use segment nr from MCFG table) which is the
+>>>> part of pci_create_root_bus.
+>>>
+>>> Not sure I fully understand your question, but pci_bus_assign_domain_nr() will
+>>> put the assigned domain number in bus->domain_nr if you chose PCI_DOMAINS_GENERIC.
+>>> Do you want to override that value with the segment nr from MCFG?
+>>>
+>>
+>> Let me give ACPI ARM64 example:
+>>
+>> 1. We parse MCFG table and get segment nr assigned to root bridge
+>> 2. Then PCI host bridge calls acpi_pci_root_create ->
+>> pci_create_root_bus -> pci_bus_assign_domain_nr
+>> 3. At this point we cannot get segment nr for ACPI
+>>
+>> So I would like to assign MCFG segment nr to bus->domain_nr being in
+>> pci_bus_assign_domain_nr giving we have scenario above.
+>
+> I do not understand what you mean by "assign MCFG segment" here, please
+> explain. The MCFG segment group number is used to look-up the configuration
+> space for a given host bridge, not to assign a domain number to it.
+>
+> The domain_nr above is the value returned by the _SEG object for the host
+> bridge device.
 
-=46or good reason! There is a lot of duplication between different arch=
-es notion
-of the pci_sysdata and they can be moved into pci_bus or pci_host_bridg=
-e
-structures. The goal is to get rid of multiple pci_sysdata structures, =
-not
-to add more.
+If I read the code correctly, MCFG region assigned to PCI host bridge X 
+should have the same value for its segment field and corresponding _SEG 
+object. Anyway, you are right, the MCFG segment group number should be 
+used to look-up the configuration space and _SEG object to retrieve 
+domain nr.
 
-Best regards,
-Liviu
+To evaluate _SEG object being in pci_bus_assign_domain_nr we still miss 
+there the PCI host bridge device. So I should change my previous 
+question, can we pass down the PCI host bridge device to be able to call 
+_SEG object being in pci_bus_assign_domain_nr?
 
->=20
-> >=20
-> > Thanks,
-> > Tomasz
-> > --=20
-> > To unsubscribe from this list: send the line "unsubscribe linux-ker=
-nel" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > Please read the FAQ at  http://www.tux.org/lkml/
->=20
-
---=20
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-| I would like to |
-| fix the world,  |
-| but they're not |
-| giving me the   |
- \ source code!  /
-  ---------------
-    =C2=AF\_(=E3=83=84)_/=C2=AF
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Tomasz
