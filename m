@@ -1,48 +1,43 @@
-From: Scott Wood <scottwood@freescale.com>
-Subject: Re: [PATCH v6 22/22] of/platform: Defer probes of registered devices
-Date: Wed, 21 Oct 2015 00:54:05 -0500
-Message-ID: <1445406845.701.55.camel@freescale.com>
-References: <1442844182-27787-1-git-send-email-tomeu.vizoso@collabora.com>
-	 <1442844182-27787-23-git-send-email-tomeu.vizoso@collabora.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v3 1/1] i2c: add ACPI support for I2C mux ports
+Date: Wed, 21 Oct 2015 11:02:39 +0300
+Message-ID: <20151021080239.GP1526@lahna.fi.intel.com>
+References: <1439510358-16664-1-git-send-email-dustin@cumulusnetworks.com>
+ <1445293740-28537-2-git-send-email-dustin@cumulusnetworks.com>
+ <20151020125111.GJ1526@lahna.fi.intel.com>
+ <1693922.rKkZ06EDTQ@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bn1on0131.outbound.protection.outlook.com ([157.56.110.131]:36352
-	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751912AbbJUFy0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 21 Oct 2015 01:54:26 -0400
-In-Reply-To: <1442844182-27787-23-git-send-email-tomeu.vizoso@collabora.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-i2c-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1693922.rKkZ06EDTQ@vostro.rjw.lan>
+Sender: linux-i2c-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Dustin Byford <dustin@cumulusnetworks.com>, Wolfram Sang <wsa@the-dreams.de>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, andriy.shevchenko@linux.intel.com
 List-Id: linux-acpi@vger.kernel.org
-To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Cc: linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-arm-kernel@lists.infradead.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, linuxppc-dev@lists.ozlabs.org, Hu Mingkai-B21284 <Mingkai.Hu@freescale.com>
 
-On Mon, 2015-09-21 at 16:03 +0200, Tomeu Vizoso wrote:
-> Instead of trying to match and probe platform and AMBA devices right
-> after each is registered, delay their probes until device_initcall_sync.
-> 
-> This means that devices will start probing once all built-in drivers
-> have registered, and after all platform and AMBA devices from the DT
-> have been registered already.
-> 
-> This allows us to prevent deferred probes by probing dependencies on
-> demand.
-> 
-> Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-> ---
-> 
-> Changes in v4:
-> - Also defer probes of AMBA devices registered from the DT as they can
->   also request resources.
-> 
->  drivers/of/platform.c | 11 ++++++++---
->  1 file changed, 8 insertions(+), 3 deletions(-)
+On Wed, Oct 21, 2015 at 01:12:01AM +0200, Rafael J. Wysocki wrote:
+> Well, we already have that in the MFD case, but in principle it may be
+> problematic for things like power management (say you want to put a
+> child device into D3, so you use _PS3 on its ACPI companion and then
+> the parent is powere down instead).
 
-This breaks arch/powerpc/sysdev/fsl_pci.c.  The PCI bus is an OF platform 
-device, and it must be probed before pcibios_init() which is a 
-subsys_initcall(), or else the PCI bus never gets scanned.
+That case I understand and we should not allow that. However, here we
+have an I2C adapter which is purely Linux abstraction that does not have
+any representation either in DT nor ACPI. And we don't do any power
+management for that either.
 
--Scott
+If I understand correctly, DT shares the same of_node for both the host
+controller device and the adapter which then makes it possible to
+enumerate devices behind by just looking adap->dev.of_node. In case of
+ACPI we need to know that it's the parent device that we should look for
+child devices which may not be true always (like what this patch is
+trying to resolve).
 
+> At least, devices in that setup should not be attached to the ACPI PM
+> domain.
+
+Agreed.
+
+Currently acpi_dev_pm_attach() only attaches the first physical device
+to the ACPI power domain so this should be taken care already.
