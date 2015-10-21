@@ -1,143 +1,58 @@
-From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Subject: [PATCH V4 7/8] PCI: OF: Move of_pci_dma_configure() to pci_dma_configure()
-Date: Wed, 21 Oct 2015 08:52:10 -0700
-Message-ID: <1445442731-28819-8-git-send-email-Suravee.Suthikulpanit@amd.com>
-References: <1445442731-28819-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+From: Al Stone <ahs3@redhat.com>
+Subject: Re: [PATCH 0/3] Add AMBA bus probing support to ACPI
+Date: Wed, 21 Oct 2015 10:41:37 -0600
+Message-ID: <5627C041.6090001@redhat.com>
+References: <1443609530-21524-1-git-send-email-graeme.gregory@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1445442731-28819-1-git-send-email-Suravee.Suthikulpanit@amd.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: bhelgaas@google.com, rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com
-Cc: hanjun.guo@linaro.org, thomas.lendacky@amd.com, herbert@gondor.apana.org.au, davem@davemloft.net, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Murali Karicheri <m-karicheri2@ti.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:35897 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753995AbbJUQli (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 21 Oct 2015 12:41:38 -0400
+In-Reply-To: <1443609530-21524-1-git-send-email-graeme.gregory@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Graeme Gregory <graeme.gregory@linaro.org>, linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, shannon.zhao@linaro.org
 
-This patch move of_pci_dma_configure() to a more generic
-pci_dma_configure(), which can be extended by non-OF code (e.g. ACPI).
+On 09/30/2015 04:38 AM, Graeme Gregory wrote:
+> As discussed when Shannon Zhao sent a patch to add platform_device support
+> to pl061 driver. Russel and other maintainers prefered that ACPI learned
+> how to create AMBA devices rather than converting/adding platform_device
+> support to AMBA drivers.
+> 
+> http://comments.gmane.org/gmane.linux.ports.arm.kernel/431364
+> 
+> 1) Adds basic AMBA device probing support to ACPI, it uses a whitelist of
+> device IDs as the number of AMBA devices is limited. Currently the two ids
+> present are those used in QEMU for arm64.
+> 
+> 2) Adds the plumbing into ACPI probe sequence.
+> 
+> 3) From ACPI pl011 is only defined (SBSA document) to be in SBSA mode which has
+> reduced functionality. There may be a better method to do this that I have
+> overlooked.
+> 
+> Thanks
+> 
+> Graeme
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-This has no functional change.
+Any comments on these patches?  It's been awful quiet....
 
-Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Acked-by: Rob Herring <robh+dt@kernel.org>
-CC: Bjorn Helgaas <bhelgaas@google.com>
-CC: Catalin Marinas <catalin.marinas@arm.com>
-CC: Will Deacon <will.deacon@arm.com>
-CC: Rafael J. Wysocki <rjw@rjwysocki.net>
-CC: Murali Karicheri <m-karicheri2@ti.com>
----
- drivers/of/of_pci.c    | 20 --------------------
- drivers/pci/probe.c    | 27 +++++++++++++++++++++++++--
- include/linux/of_pci.h |  3 ---
- 3 files changed, 25 insertions(+), 25 deletions(-)
-
-diff --git a/drivers/of/of_pci.c b/drivers/of/of_pci.c
-index 5751dc5..b66ee4e 100644
---- a/drivers/of/of_pci.c
-+++ b/drivers/of/of_pci.c
-@@ -117,26 +117,6 @@ int of_get_pci_domain_nr(struct device_node *node)
- }
- EXPORT_SYMBOL_GPL(of_get_pci_domain_nr);
- 
--/**
-- * of_pci_dma_configure - Setup DMA configuration
-- * @dev: ptr to pci_dev struct of the PCI device
-- *
-- * Function to update PCI devices's DMA configuration using the same
-- * info from the OF node of host bridge's parent (if any).
-- */
--void of_pci_dma_configure(struct pci_dev *pci_dev)
--{
--	struct device *dev = &pci_dev->dev;
--	struct device *bridge = pci_get_host_bridge_device(pci_dev);
--
--	if (!bridge->parent)
--		return;
--
--	of_dma_configure(dev, bridge->parent->of_node);
--	pci_put_host_bridge_device(bridge);
--}
--EXPORT_SYMBOL_GPL(of_pci_dma_configure);
--
- #if defined(CONFIG_OF_ADDRESS)
- /**
-  * of_pci_get_host_bridge_resources - Parse PCI host bridge resources from DT
-diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-index eea8b42..09264f8 100644
---- a/drivers/pci/probe.c
-+++ b/drivers/pci/probe.c
-@@ -6,12 +6,14 @@
- #include <linux/delay.h>
- #include <linux/init.h>
- #include <linux/pci.h>
--#include <linux/of_pci.h>
-+#include <linux/of_device.h>
- #include <linux/pci_hotplug.h>
- #include <linux/slab.h>
- #include <linux/module.h>
- #include <linux/cpumask.h>
- #include <linux/pci-aspm.h>
-+#include <linux/acpi.h>
-+#include <linux/property.h>
- #include <asm-generic/pci-bridge.h>
- #include "pci.h"
- 
-@@ -1635,6 +1637,27 @@ static void pci_set_msi_domain(struct pci_dev *dev)
- 				   dev_get_msi_domain(&dev->bus->dev));
- }
- 
-+/**
-+ * pci_dma_configure - Setup DMA configuration
-+ * @dev: ptr to pci_dev struct of the PCI device
-+ *
-+ * Function to update PCI devices's DMA configuration using the same
-+ * info from the OF node of host bridge's parent (if any).
-+ */
-+static void pci_dma_configure(struct pci_dev *dev)
-+{
-+	struct device *bridge = pci_get_host_bridge_device(dev);
-+
-+	if (IS_ENABLED(CONFIG_OF) && dev->dev.of_node) {
-+		if (!bridge->parent)
-+			return;
-+
-+		of_dma_configure(&dev->dev, bridge->parent->of_node);
-+	}
-+
-+	pci_put_host_bridge_device(bridge);
-+}
-+
- void pci_device_add(struct pci_dev *dev, struct pci_bus *bus)
- {
- 	int ret;
-@@ -1648,7 +1671,7 @@ void pci_device_add(struct pci_dev *dev, struct pci_bus *bus)
- 	dev->dev.dma_mask = &dev->dma_mask;
- 	dev->dev.dma_parms = &dev->dma_parms;
- 	dev->dev.coherent_dma_mask = 0xffffffffull;
--	of_pci_dma_configure(dev);
-+	pci_dma_configure(dev);
- 
- 	pci_set_dma_max_seg_size(dev, 65536);
- 	pci_set_dma_seg_boundary(dev, 0xffffffff);
-diff --git a/include/linux/of_pci.h b/include/linux/of_pci.h
-index 29fd3fe..ce0e5ab 100644
---- a/include/linux/of_pci.h
-+++ b/include/linux/of_pci.h
-@@ -16,7 +16,6 @@ int of_pci_get_devfn(struct device_node *np);
- int of_irq_parse_and_map_pci(const struct pci_dev *dev, u8 slot, u8 pin);
- int of_pci_parse_bus_range(struct device_node *node, struct resource *res);
- int of_get_pci_domain_nr(struct device_node *node);
--void of_pci_dma_configure(struct pci_dev *pci_dev);
- #else
- static inline int of_irq_parse_pci(const struct pci_dev *pdev, struct of_phandle_args *out_irq)
- {
-@@ -51,8 +50,6 @@ of_get_pci_domain_nr(struct device_node *node)
- {
- 	return -1;
- }
--
--static inline void of_pci_dma_configure(struct pci_dev *pci_dev) { }
- #endif
- 
- #if defined(CONFIG_OF_ADDRESS)
 -- 
-2.1.0
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Red Hat, Inc.
+ahs3@redhat.com
+-----------------------------------
