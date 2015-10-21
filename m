@@ -1,43 +1,52 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: what's in nvdimm.git for v4.4?
-Date: Wed, 21 Oct 2015 15:18:07 -0700
-Message-ID: <CAPcyv4gFQmiQYAFY0M_f4eDpLMtZqukChmavQXQWw-fxSasHaw@mail.gmail.com>
-References: <1445383903.6611.39.camel@intel.com>
-	<5627CFBC.4080801@fb.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH 0/3] Add AMBA bus probing support to ACPI
+Date: Thu, 22 Oct 2015 00:29:53 +0200
+Message-ID: <CAJZ5v0g8ce-_+6yA26CZpNq6XvYw5qVhhu6hB0vxnnWbHEhNHA@mail.gmail.com>
+References: <1443609530-21524-1-git-send-email-graeme.gregory@linaro.org>
+	<5627C041.6090001@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f173.google.com ([209.85.212.173]:37851 "EHLO
-	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752587AbbJUWSJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Oct 2015 18:18:09 -0400
-Received: by wicfv8 with SMTP id fv8so95244617wic.0
-        for <linux-acpi@vger.kernel.org>; Wed, 21 Oct 2015 15:18:07 -0700 (PDT)
-In-Reply-To: <5627CFBC.4080801@fb.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5627C041.6090001@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Al Stone <ahs3@redhat.com>
+Cc: Graeme Gregory <graeme.gregory@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, shannon.zhao@linaro.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jens Axboe <axboe@fb.com>
-Cc: "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "hch@lst.de" <hch@lst.de>, "martin.petersen@oracle.com" <martin.petersen@oracle.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "david@fromorbit.com" <david@fromorbit.com>, "jack@suse.cz" <jack@suse.cz>
 
-On Wed, Oct 21, 2015 at 10:47 AM, Jens Axboe <axboe@fb.com> wrote:
-> On 10/20/2015 05:31 PM, Williams, Dan J wrote:
+On Wed, Oct 21, 2015 at 6:41 PM, Al Stone <ahs3@redhat.com> wrote:
+> On 09/30/2015 04:38 AM, Graeme Gregory wrote:
+>> As discussed when Shannon Zhao sent a patch to add platform_device support
+>> to pl061 driver. Russel and other maintainers prefered that ACPI learned
+>> how to create AMBA devices rather than converting/adding platform_device
+>> support to AMBA drivers.
 >>
->> ===
->> for-4.4/dax-gup: get_user_pages() support for dax mappings
-[..]
->> ===
-[..]
-> We really should pull these core block changes in separately.
-
-Sounds good to me.  I'll refactor the block bits into a standalone series.
-
->> ===
->> for-4.4/blk-integrity:
->> ===
-[..]
+>> http://comments.gmane.org/gmane.linux.ports.arm.kernel/431364
+>>
+>> 1) Adds basic AMBA device probing support to ACPI, it uses a whitelist of
+>> device IDs as the number of AMBA devices is limited. Currently the two ids
+>> present are those used in QEMU for arm64.
+>>
+>> 2) Adds the plumbing into ACPI probe sequence.
+>>
+>> 3) From ACPI pl011 is only defined (SBSA document) to be in SBSA mode which has
+>> reduced functionality. There may be a better method to do this that I have
+>> overlooked.
+>>
+>> Thanks
+>>
+>> Graeme
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
 >
->
-> I'll pull these in.
->
+> Any comments on these patches?  It's been awful quiet....
 
-Much appreciated!
+That's because of my limited review bandwidth.
+
+I'm kind of in the middle of travel now, sorry about that.
+
+Thanks,
+Rafael
