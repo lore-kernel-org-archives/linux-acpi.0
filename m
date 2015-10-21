@@ -1,34 +1,43 @@
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
 Subject: Re: what's in nvdimm.git for v4.4?
-Date: Wed, 21 Oct 2015 15:58:18 -0600
-Message-ID: <20151021215818.GA640@linux.intel.com>
+Date: Wed, 21 Oct 2015 15:18:07 -0700
+Message-ID: <CAPcyv4gFQmiQYAFY0M_f4eDpLMtZqukChmavQXQWw-fxSasHaw@mail.gmail.com>
 References: <1445383903.6611.39.camel@intel.com>
+	<5627CFBC.4080801@fb.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:56250 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750910AbbJUV6U (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 21 Oct 2015 17:58:20 -0400
-Content-Disposition: inline
-In-Reply-To: <1445383903.6611.39.camel@intel.com>
+Received: from mail-wi0-f173.google.com ([209.85.212.173]:37851 "EHLO
+	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752587AbbJUWSJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Oct 2015 18:18:09 -0400
+Received: by wicfv8 with SMTP id fv8so95244617wic.0
+        for <linux-acpi@vger.kernel.org>; Wed, 21 Oct 2015 15:18:07 -0700 (PDT)
+In-Reply-To: <5627CFBC.4080801@fb.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Williams, Dan J" <dan.j.williams@intel.com>
-Cc: "axboe@fb.com" <axboe@fb.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "hch@lst.de" <hch@lst.de>, "martin.petersen@oracle.com" <martin.petersen@oracle.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "david@fromorbit.com" <david@fromorbit.com>, "jack@suse.cz" <jack@suse.cz>
+To: Jens Axboe <axboe@fb.com>
+Cc: "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "hch@lst.de" <hch@lst.de>, "martin.petersen@oracle.com" <martin.petersen@oracle.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "david@fromorbit.com" <david@fromorbit.com>, "jack@suse.cz" <jack@suse.cz>
 
-On Tue, Oct 20, 2015 at 11:31:45PM +0000, Williams, Dan J wrote:
-> Here is a status summary of the topic-branches nvdimm.git is tracking
-> for v4.4.  Unless indicated these branches are not present in -next.
-> Please ACK, NAK, or ask for a re-post of any of the below to disposition
-> it for the merge window.
-> 
-> ===
-> for-4.4/dax-fixes:
-> ===
-<snip>
->         Ross Zwisler (2):
->               dax: dax_pfn_mkwrite() truncate race check
+On Wed, Oct 21, 2015 at 10:47 AM, Jens Axboe <axboe@fb.com> wrote:
+> On 10/20/2015 05:31 PM, Williams, Dan J wrote:
+>>
+>> ===
+>> for-4.4/dax-gup: get_user_pages() support for dax mappings
+[..]
+>> ===
+[..]
+> We really should pull these core block changes in separately.
 
-We can drop this patch for dax_pfn_mkwrite() as that whole function is going
-away after we merge the locking fixes from XFS, ext2 and ext4.
+Sounds good to me.  I'll refactor the block bits into a standalone series.
+
+>> ===
+>> for-4.4/blk-integrity:
+>> ===
+[..]
+>
+>
+> I'll pull these in.
+>
+
+Much appreciated!
