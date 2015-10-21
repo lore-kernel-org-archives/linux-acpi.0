@@ -1,133 +1,109 @@
-From: Geert Uytterhoeven <geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org>
-Subject: Re: [PATCH v4 04/22] of: add function to allow probing a device from
- a OF node
-Date: Wed, 21 Oct 2015 13:29:08 +0200
-Message-ID: <CAMuHMdW+Uq+mu=iy852bzcvRs8E=w8-WV4oDUyTyLOaDnwrp1Q@mail.gmail.com>
-References: <1441628627-5143-1-git-send-email-tomeu.vizoso@collabora.com>
-	<1441628627-5143-5-git-send-email-tomeu.vizoso@collabora.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [Patch v7 4/7] PCI/ACPI: Add interface acpi_pci_root_create()
+Date: Wed, 21 Oct 2015 12:42:18 +0100
+Message-ID: <20151021114218.GA18602@red-moon>
+References: <1444804182-6596-1-git-send-email-jiang.liu@linux.intel.com>
+ <1444804182-6596-5-git-send-email-jiang.liu@linux.intel.com>
+ <562761A1.4020306@linaro.org>
+ <20151021110201.GE3394@e106497-lin.cambridge.arm.com>
+ <562776A5.7000303@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1441628627-5143-5-git-send-email-tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tomeu Vizoso <tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
-Cc: "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, ACPI Devel Maling List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, Frank Rowand <frowand.list-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Grant Likely <grant.likely-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Linux-sh list <linux-sh-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:60570 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753822AbbJULlm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 21 Oct 2015 07:41:42 -0400
+Content-Disposition: inline
+In-Reply-To: <562776A5.7000303@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Cc: Liviu Dudau <Liviu.Dudau@arm.com>, Jiang Liu <jiang.liu@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org
 
-Hi Tomeu,
+On Wed, Oct 21, 2015 at 01:27:33PM +0200, Tomasz Nowicki wrote:
+> On 21.10.2015 13:02, Liviu Dudau wrote:
+> >On Wed, Oct 21, 2015 at 11:57:53AM +0200, Tomasz Nowicki wrote:
+> >>On 14.10.2015 08:29, Jiang Liu wrote:
+> >>>Introduce common interface acpi_pci_root_create() and related data
+> >>>structures to create PCI root bus for ACPI PCI host bridges. It will
+> >>>be used to kill duplicated arch specific code for IA64 and x86. It may
+> >>>also help ARM64 in future.
+> >>>
+> >>>Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> >>>Tested-by: Tony Luck <tony.luck@intel.com>
+> >>>Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+> >>>Signed-off-by: Liu Jiang <jiang.liu@linux.intel.com>
+> >>>---
+> >>>  drivers/acpi/pci_root.c  |  204 ++++++++++++++++++++++++++++++++++++++++++++++
+> >>>  include/linux/pci-acpi.h |   24 ++++++
+> >>>  2 files changed, 228 insertions(+)
+> >>>
+> >>
+> >>[...]
+> >>
+> >>>+
+> >>>+struct pci_bus *acpi_pci_root_create(struct acpi_pci_root *root,
+> >>>+				     struct acpi_pci_root_ops *ops,
+> >>>+				     struct acpi_pci_root_info *info,
+> >>>+				     void *sysdata)
+> >>>+{
+> >>>+	int ret, busnum = root->secondary.start;
+> >>>+	struct acpi_device *device = root->device;
+> >>>+	int node = acpi_get_node(device->handle);
+> >>>+	struct pci_bus *bus;
+> >>>+
+> >>>+	info->root = root;
+> >>>+	info->bridge = device;
+> >>>+	info->ops = ops;
+> >>>+	INIT_LIST_HEAD(&info->resources);
+> >>>+	snprintf(info->name, sizeof(info->name), "PCI Bus %04x:%02x",
+> >>>+		 root->segment, busnum);
+> >>>+
+> >>>+	if (ops->init_info && ops->init_info(info))
+> >>>+		goto out_release_info;
+> >>>+	if (ops->prepare_resources)
+> >>>+		ret = ops->prepare_resources(info);
+> >>>+	else
+> >>>+		ret = acpi_pci_probe_root_resources(info);
+> >>>+	if (ret < 0)
+> >>>+		goto out_release_info;
+> >>>+
+> >>>+	pci_acpi_root_add_resources(info);
+> >>>+	pci_add_resource(&info->resources, &root->secondary);
+> >>>+	bus = pci_create_root_bus(NULL, busnum, ops->pci_ops,
+> >>>+				  sysdata, &info->resources);
+> >>
+> >>Thank a lot for this cleanup!!
+> >>
+> >>I recall you already considered passing segment (domain nr) to
+> >>pci_create_root_bus, right? Can you please remind me why we gave up on this?
+> >>
+> >>I am asking because currently I can not find the way to retrieve domain
+> >>number from pci_bus_assign_domain_nr (for those platforms which choose
+> >>PCI_DOMAINS_GENERIC and want to use segment nr from MCFG table) which is the
+> >>part of pci_create_root_bus.
+> >
+> >Not sure I fully understand your question, but pci_bus_assign_domain_nr() will
+> >put the assigned domain number in bus->domain_nr if you chose PCI_DOMAINS_GENERIC.
+> >Do you want to override that value with the segment nr from MCFG?
+> >
+> 
+> Let me give ACPI ARM64 example:
+> 
+> 1. We parse MCFG table and get segment nr assigned to root bridge
+> 2. Then PCI host bridge calls acpi_pci_root_create ->
+> pci_create_root_bus -> pci_bus_assign_domain_nr
+> 3. At this point we cannot get segment nr for ACPI
+> 
+> So I would like to assign MCFG segment nr to bus->domain_nr being in
+> pci_bus_assign_domain_nr giving we have scenario above.
 
-On Mon, Sep 7, 2015 at 2:23 PM, Tomeu Vizoso <tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org> wrote:
-> Walks the OF tree up and finds the closest ancestor that has a struct
-> device associated with it, probing it if isn't bound to a driver yet.
->
-> The above should ensure that the dependency represented by the passed OF
-> node is available, because probing a device should cause its descendants
-> to be probed as well (when they get registered).
->
-> Subsystems can use this when looking up resources for drivers, to reduce
-> the chances of deferred probes because of the probing order of devices.
->
-> Signed-off-by: Tomeu Vizoso <tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
-> ---
->
-> Changes in v4:
-> - Rename of_platform_probe to of_device_probe
-> - Use device_node.device instead of device_node.platform_dev
->
-> Changes in v3:
-> - Set and use device_node.platform_dev instead of reversing the logic to
->   find the platform device that encloses a device node.
-> - Drop the fwnode API to probe firmware nodes and add OF-only API for
->   now. I think this same scheme could be used for machines with ACPI,
->   but I haven't been able to find one that had to defer its probes because
->   of the device probe order.
->
-> Changes in v2: None
->
->  drivers/of/device.c       | 58 +++++++++++++++++++++++++++++++++++++++++++++++
->  drivers/of/platform.c     |  2 ++
->  include/linux/of_device.h |  3 +++
->  3 files changed, 63 insertions(+)
->
-> diff --git a/drivers/of/device.c b/drivers/of/device.c
-> index 8b91ea241b10..c32ac7b6fbe2 100644
-> --- a/drivers/of/device.c
-> +++ b/drivers/of/device.c
-> @@ -286,3 +286,61 @@ int of_device_uevent_modalias(struct device *dev, struct kobj_uevent_env *env)
->
->         return 0;
->  }
-> +
-> +/**
-> + * of_device_probe() - Probe device associated with OF node
-> + * @np: node to probe
-> + *
-> + * Probe the device associated with the passed device node.
-> + */
-> +void of_device_probe(struct device_node *np)
-> +{
-> +       struct device_node *target;
-> +       struct device *dev = NULL;
-> +
-> +       if (!of_root || !of_node_check_flag(of_root, OF_POPULATED_BUS))
-> +               return;
-> +
-> +       if (!np)
-> +               return;
-> +
-> +       of_node_get(np);
-> +
-> +       /* Find the closest ancestor that has a device associated */
-> +       for (target = np;
-> +            !of_node_is_root(target);
-> +            target = of_get_next_parent(target))
-> +               if (target->device) {
-> +                       dev = target->device;
-> +                       break;
-> +               }
-> +
-> +       of_node_put(target);
-> +
-> +       if (!dev) {
-> +               pr_warn("Couldn't find a device for node '%s'\n",
-> +                       of_node_full_name(np));
+I do not understand what you mean by "assign MCFG segment" here, please
+explain. The MCFG segment group number is used to look-up the configuration
+space for a given host bridge, not to assign a domain number to it.
 
-This is triggered for all devices with clocks instantiated through
-CLK_OF_DECLARE().
-E.g. on r8a7791/koelsch ("... | sort | uniq -c"):
+The domain_nr above is the value returned by the _SEG object for the host
+bridge device.
 
-      1 Couldn't find a device for node '/clocks/audio_clk_a'
-      1 Couldn't find a device for node '/clocks/audio_clk_b'
-      1 Couldn't find a device for node '/clocks/audio_clk_c'
-      2 Couldn't find a device for node '/clocks/cpg_clocks@e6150000'
-      1 Couldn't find a device for node '/clocks/m2_clk'
-      2 Couldn't find a device for node '/clocks/mstp0_clks@e6150130'
-     34 Couldn't find a device for node '/clocks/mstp10_clks@e6150998'
-      2 Couldn't find a device for node '/clocks/mstp1_clks@e6150134'
-      2 Couldn't find a device for node '/clocks/mstp2_clks@e6150138'
-     10 Couldn't find a device for node '/clocks/mstp3_clks@e615013c'
-      3 Couldn't find a device for node '/clocks/mstp5_clks@e6150144'
-      8 Couldn't find a device for node '/clocks/mstp7_clks@e615014c'
-      4 Couldn't find a device for node '/clocks/mstp8_clks@e6150990'
-     22 Couldn't find a device for node '/clocks/mstp9_clks@e6150994'
-      1 Couldn't find a device for node '/clocks/pcie_bus_clk'
-
-Corresponding DTS is arch/arm/boot/dts/r8a7791.dtsi.
-
-> +               return;
-> +       }
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert-Td1EMuHUCqxL1ZNQvxDV9g@public.gmane.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Lorenzo
