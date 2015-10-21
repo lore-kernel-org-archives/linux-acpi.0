@@ -1,146 +1,143 @@
 From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Subject: [PATCH V4 5/8] device property: acpi: Make use of the new DMA
- Attribute APIs
-Date: Wed, 21 Oct 2015 08:52:08 -0700
-Message-ID: <1445442731-28819-6-git-send-email-Suravee.Suthikulpanit@amd.com>
+Subject: [PATCH V4 7/8] PCI: OF: Move of_pci_dma_configure() to pci_dma_configure()
+Date: Wed, 21 Oct 2015 08:52:10 -0700
+Message-ID: <1445442731-28819-8-git-send-email-Suravee.Suthikulpanit@amd.com>
 References: <1445442731-28819-1-git-send-email-Suravee.Suthikulpanit@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1445442731-28819-1-git-send-email-Suravee.Suthikulpanit@amd.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: bhelgaas@google.com, rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com
-Cc: thomas.lendacky@amd.com, herbert@gondor.apana.org.au, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, davem@davemloft.net, linux-arm-kernel@lists.infradead.org
+Cc: hanjun.guo@linaro.org, thomas.lendacky@amd.com, herbert@gondor.apana.org.au, davem@davemloft.net, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Murali Karicheri <m-karicheri2@ti.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Now that we have the new DMA attribute APIs, we can replace the older
-acpi_check_dma() and device_dma_is_coherent().
+This patch move of_pci_dma_configure() to a more generic
+pci_dma_configure(), which can be extended by non-OF code (e.g. ACPI).
+
+This has no functional change.
 
 Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Acked-by: Rob Herring <robh+dt@kernel.org>
+CC: Bjorn Helgaas <bhelgaas@google.com>
+CC: Catalin Marinas <catalin.marinas@arm.com>
+CC: Will Deacon <will.deacon@arm.com>
 CC: Rafael J. Wysocki <rjw@rjwysocki.net>
-CC: Tom Lendacky <thomas.lendacky@amd.com>
-CC: Herbert Xu <herbert@gondor.apana.org.au>
-CC: David S. Miller <davem@davemloft.net>
+CC: Murali Karicheri <m-karicheri2@ti.com>
 ---
- drivers/acpi/acpi_platform.c              | 7 ++++++-
- drivers/acpi/glue.c                       | 8 +++++---
- drivers/crypto/ccp/ccp-platform.c         | 9 ++++++++-
- drivers/net/ethernet/amd/xgbe/xgbe-main.c | 9 ++++++++-
- 4 files changed, 27 insertions(+), 6 deletions(-)
+ drivers/of/of_pci.c    | 20 --------------------
+ drivers/pci/probe.c    | 27 +++++++++++++++++++++++++--
+ include/linux/of_pci.h |  3 ---
+ 3 files changed, 25 insertions(+), 25 deletions(-)
 
-diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
-index 06a67d5..296b7a1 100644
---- a/drivers/acpi/acpi_platform.c
-+++ b/drivers/acpi/acpi_platform.c
-@@ -103,7 +103,12 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev)
- 	pdevinfo.res = resources;
- 	pdevinfo.num_res = count;
- 	pdevinfo.fwnode = acpi_fwnode_handle(adev);
--	pdevinfo.dma_mask = acpi_check_dma(adev, NULL) ? DMA_BIT_MASK(32) : 0;
+diff --git a/drivers/of/of_pci.c b/drivers/of/of_pci.c
+index 5751dc5..b66ee4e 100644
+--- a/drivers/of/of_pci.c
++++ b/drivers/of/of_pci.c
+@@ -117,26 +117,6 @@ int of_get_pci_domain_nr(struct device_node *node)
+ }
+ EXPORT_SYMBOL_GPL(of_get_pci_domain_nr);
+ 
+-/**
+- * of_pci_dma_configure - Setup DMA configuration
+- * @dev: ptr to pci_dev struct of the PCI device
+- *
+- * Function to update PCI devices's DMA configuration using the same
+- * info from the OF node of host bridge's parent (if any).
+- */
+-void of_pci_dma_configure(struct pci_dev *pci_dev)
+-{
+-	struct device *dev = &pci_dev->dev;
+-	struct device *bridge = pci_get_host_bridge_device(pci_dev);
+-
+-	if (!bridge->parent)
+-		return;
+-
+-	of_dma_configure(dev, bridge->parent->of_node);
+-	pci_put_host_bridge_device(bridge);
+-}
+-EXPORT_SYMBOL_GPL(of_pci_dma_configure);
+-
+ #if defined(CONFIG_OF_ADDRESS)
+ /**
+  * of_pci_get_host_bridge_resources - Parse PCI host bridge resources from DT
+diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+index eea8b42..09264f8 100644
+--- a/drivers/pci/probe.c
++++ b/drivers/pci/probe.c
+@@ -6,12 +6,14 @@
+ #include <linux/delay.h>
+ #include <linux/init.h>
+ #include <linux/pci.h>
+-#include <linux/of_pci.h>
++#include <linux/of_device.h>
+ #include <linux/pci_hotplug.h>
+ #include <linux/slab.h>
+ #include <linux/module.h>
+ #include <linux/cpumask.h>
+ #include <linux/pci-aspm.h>
++#include <linux/acpi.h>
++#include <linux/property.h>
+ #include <asm-generic/pci-bridge.h>
+ #include "pci.h"
+ 
+@@ -1635,6 +1637,27 @@ static void pci_set_msi_domain(struct pci_dev *dev)
+ 				   dev_get_msi_domain(&dev->bus->dev));
+ }
+ 
++/**
++ * pci_dma_configure - Setup DMA configuration
++ * @dev: ptr to pci_dev struct of the PCI device
++ *
++ * Function to update PCI devices's DMA configuration using the same
++ * info from the OF node of host bridge's parent (if any).
++ */
++static void pci_dma_configure(struct pci_dev *dev)
++{
++	struct device *bridge = pci_get_host_bridge_device(dev);
 +
-+	if (acpi_dma_supported(adev))
-+		pdevinfo.dma_mask = DMA_BIT_MASK(32);
-+	else
-+		pdevinfo.dma_mask = 0;
++	if (IS_ENABLED(CONFIG_OF) && dev->dev.of_node) {
++		if (!bridge->parent)
++			return;
 +
- 	pdev = platform_device_register_full(&pdevinfo);
- 	if (IS_ERR(pdev))
- 		dev_err(&adev->dev, "platform device creation failed: %ld\n",
-diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
-index b9657af..a66e776 100644
---- a/drivers/acpi/glue.c
-+++ b/drivers/acpi/glue.c
-@@ -168,7 +168,7 @@ int acpi_bind_one(struct device *dev, struct acpi_device *acpi_dev)
- 	struct list_head *physnode_list;
- 	unsigned int node_id;
- 	int retval = -EINVAL;
--	bool coherent;
-+	enum dev_dma_attr attr;
- 
- 	if (has_acpi_companion(dev)) {
- 		if (acpi_dev) {
-@@ -225,8 +225,10 @@ int acpi_bind_one(struct device *dev, struct acpi_device *acpi_dev)
- 	if (!has_acpi_companion(dev))
- 		ACPI_COMPANION_SET(dev, acpi_dev);
- 
--	if (acpi_check_dma(acpi_dev, &coherent))
--		arch_setup_dma_ops(dev, 0, 0, NULL, coherent);
-+	attr = acpi_get_dma_attr(acpi_dev);
-+	if (attr != DEV_DMA_NOT_SUPPORTED)
-+		arch_setup_dma_ops(dev, 0, 0, NULL,
-+				   attr == DEV_DMA_COHERENT);
- 
- 	acpi_physnode_link_name(physical_node_name, node_id);
- 	retval = sysfs_create_link(&acpi_dev->dev.kobj, &dev->kobj,
-diff --git a/drivers/crypto/ccp/ccp-platform.c b/drivers/crypto/ccp/ccp-platform.c
-index bb241c3..edd9e16 100644
---- a/drivers/crypto/ccp/ccp-platform.c
-+++ b/drivers/crypto/ccp/ccp-platform.c
-@@ -96,6 +96,7 @@ static int ccp_platform_probe(struct platform_device *pdev)
- 	struct ccp_platform *ccp_platform;
- 	struct device *dev = &pdev->dev;
- 	struct acpi_device *adev = ACPI_COMPANION(dev);
-+	enum dev_dma_attr attr;
- 	struct resource *ior;
- 	int ret;
- 
-@@ -122,13 +123,19 @@ static int ccp_platform_probe(struct platform_device *pdev)
- 	}
- 	ccp->io_regs = ccp->io_map;
- 
-+	attr = device_get_dma_attr(dev);
-+	if (attr == DEV_DMA_NOT_SUPPORTED) {
-+		dev_err(dev, "DMA is not supported");
-+		goto e_err;
++		of_dma_configure(&dev->dev, bridge->parent->of_node);
 +	}
-+	ccp_platform->coherent = (attr == DEV_DMA_COHERENT);
 +
- 	ret = dma_set_mask_and_coherent(dev, DMA_BIT_MASK(48));
- 	if (ret) {
- 		dev_err(dev, "dma_set_mask_and_coherent failed (%d)\n", ret);
- 		goto e_err;
- 	}
- 
--	ccp_platform->coherent = device_dma_is_coherent(ccp->dev);
- 	if (ccp_platform->coherent)
- 		ccp->axcache = CACHE_WB_NO_ALLOC;
- 	else
-diff --git a/drivers/net/ethernet/amd/xgbe/xgbe-main.c b/drivers/net/ethernet/amd/xgbe/xgbe-main.c
-index e83bd76..b596c7f 100644
---- a/drivers/net/ethernet/amd/xgbe/xgbe-main.c
-+++ b/drivers/net/ethernet/amd/xgbe/xgbe-main.c
-@@ -342,6 +342,7 @@ static int xgbe_probe(struct platform_device *pdev)
- 	struct resource *res;
- 	const char *phy_mode;
- 	unsigned int i, phy_memnum, phy_irqnum;
-+	enum dev_dma_attr attr;
++	pci_put_host_bridge_device(bridge);
++}
++
+ void pci_device_add(struct pci_dev *dev, struct pci_bus *bus)
+ {
  	int ret;
+@@ -1648,7 +1671,7 @@ void pci_device_add(struct pci_dev *dev, struct pci_bus *bus)
+ 	dev->dev.dma_mask = &dev->dma_mask;
+ 	dev->dev.dma_parms = &dev->dma_parms;
+ 	dev->dev.coherent_dma_mask = 0xffffffffull;
+-	of_pci_dma_configure(dev);
++	pci_dma_configure(dev);
  
- 	DBGPR("--> xgbe_probe\n");
-@@ -608,8 +609,14 @@ static int xgbe_probe(struct platform_device *pdev)
- 	if (ret)
- 		goto err_io;
+ 	pci_set_dma_max_seg_size(dev, 65536);
+ 	pci_set_dma_seg_boundary(dev, 0xffffffff);
+diff --git a/include/linux/of_pci.h b/include/linux/of_pci.h
+index 29fd3fe..ce0e5ab 100644
+--- a/include/linux/of_pci.h
++++ b/include/linux/of_pci.h
+@@ -16,7 +16,6 @@ int of_pci_get_devfn(struct device_node *np);
+ int of_irq_parse_and_map_pci(const struct pci_dev *dev, u8 slot, u8 pin);
+ int of_pci_parse_bus_range(struct device_node *node, struct resource *res);
+ int of_get_pci_domain_nr(struct device_node *node);
+-void of_pci_dma_configure(struct pci_dev *pci_dev);
+ #else
+ static inline int of_irq_parse_pci(const struct pci_dev *pdev, struct of_phandle_args *out_irq)
+ {
+@@ -51,8 +50,6 @@ of_get_pci_domain_nr(struct device_node *node)
+ {
+ 	return -1;
+ }
+-
+-static inline void of_pci_dma_configure(struct pci_dev *pci_dev) { }
+ #endif
  
-+	attr = device_get_dma_attr(dev);
-+	if (attr == DEV_DMA_NOT_SUPPORTED) {
-+		dev_err(dev, "DMA is not supported");
-+		goto err_io;
-+	}
-+	pdata->coherent = (attr == DEV_DMA_COHERENT);
-+
- 	/* Set the DMA coherency values */
--	pdata->coherent = device_dma_is_coherent(pdata->dev);
- 	if (pdata->coherent) {
- 		pdata->axdomain = XGBE_DMA_OS_AXDOMAIN;
- 		pdata->arcache = XGBE_DMA_OS_ARCACHE;
+ #if defined(CONFIG_OF_ADDRESS)
 -- 
 2.1.0
