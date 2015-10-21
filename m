@@ -1,86 +1,75 @@
-From: Jens Axboe <axboe@fb.com>
-Subject: Re: what's in nvdimm.git for v4.4?
-Date: Wed, 21 Oct 2015 11:47:40 -0600
-Message-ID: <5627CFBC.4080801@fb.com>
-References: <1445383903.6611.39.camel@intel.com>
+From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Subject: [PATCH V3 0/6] gicv2m: acpi: Add ACPI support for GICv2m MSI
+Date: Wed, 21 Oct 2015 11:47:23 -0700
+Message-ID: <1445453249-32557-1-git-send-email-Suravee.Suthikulpanit@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx0a-00082601.pphosted.com ([67.231.145.42]:41228 "EHLO
-	mx0a-00082601.pphosted.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751843AbbJURr6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 21 Oct 2015 13:47:58 -0400
-In-Reply-To: <1445383903.6611.39.camel@intel.com>
+Received: from mail-by2on0092.outbound.protection.outlook.com ([207.46.100.92]:5988
+	"EHLO na01-by2-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750827AbbJUSru (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 21 Oct 2015 14:47:50 -0400
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Williams, Dan J" <dan.j.williams@intel.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "hch@lst.de" <hch@lst.de>, "martin.petersen@oracle.com" <martin.petersen@oracle.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "david@fromorbit.com" <david@fromorbit.com>, "jack@suse.cz" <jack@suse.cz>
+To: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, hanjun.guo@linaro.org, tomasz.nowicki@linaro.org, graeme.gregory@linaro.org, dhdang@apm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 
-On 10/20/2015 05:31 PM, Williams, Dan J wrote:
-> ===
-> for-4.4/dax-gup: get_user_pages() support for dax mappings
-> https://urldefense.proofpoint.com/v2/url?u=https-3A__lists.01.org_pipermail_linux-2Dnvdimm_2015-2DOctober_002387.html&d=CwIGaQ&c=5VD0RTtNlTh3ycd41b3MUw&r=cK1a7KivzZRh1fKQMjSm2A&m=GDROuamLFa0boM8dkPE6fXkQ-bqUhy3M3gH-W-7UaUU&s=S8I_OUhMMB7AAcJn6TzV01M9jB6e2wB3aMIT4lTGHf8&e=
-> ===
->
->          Needs acks from core -mm folks particularly for:
->                  x86, mm: introduce vmem_altmap to augment
->                  vmemmap_populate()
->                  mm, x86: get_user_pages() for dax mappings
->
->          Dan Williams (22):
->                block: generic request_queue reference counting
->                dax: increase granularity of dax_clear_blocks() operations
->                block, dax: fix lifetime of in-kernel dax mappings with dax_map_atomic()
->                mm: introduce __get_dev_pagemap()
->                x86, mm: introduce vmem_altmap to augment vmemmap_populate()
->                libnvdimm, pfn, pmem: allocate memmap array in persistent memory
->                avr32: convert to asm-generic/memory_model.h
->                hugetlb: fix compile error on tile
->                frv: fix compiler warning from definition of __pmd()
->                um: kill pfn_t
->                kvm: rename pfn_t to kvm_pfn_t
->                mips: fix PAGE_MASK definition
->                mm, dax, pmem: introduce pfn_t
->                mm, dax, gpu: convert vm_insert_mixed to pfn_t, introduce _PAGE_DEVMAP
->                mm, dax: convert vmf_insert_pfn_pmd() to pfn_t
->                list: introduce list_del_poison()
->                mm, dax, pmem: introduce {get|put}_dev_pagemap() for dax-gup
->                block: notify queue death confirmation
->                mm, pmem: devm_memunmap_pages(), truncate and unmap ZONE_DEVICE pages
->                mm, x86: get_user_pages() for dax mappings
->                block: introduce file_bd_inode()
->                block: enable dax for raw block devices
+This patch series has been forked from the following patch series since
+it no longer depends on the rest of the patches.
 
-We really should pull these core block changes in separately.
+  [PATCH v4 00/10] ACPI GIC Self-probing, GICv2m and GICv3 support
+  https://lkml.org/lkml/2015/7/29/234
 
-> ===
-> for-4.4/blk-integrity:
-> ===
->
->          Jens?  I've folded my fixes with Martin's latest and
->          block.git/for-4.4/drivers.
->
->          Dan Williams (7):
->                md, dm, scsi, nvme, libnvdimm: drop blk_integrity_unregister() at shutdown
->                md: suspend i/o during runtime blk_integrity_unregister
->                nvme: suspend i/o during runtime blk_integrity_unregister
->                block: generic request_queue reference counting
->                block: move blk_integrity to request_queue
->                block: blk_flush_integrity() for bio-based drivers
->                block, libnvdimm, nvme: provide a built-in blk_integrity nop profile
->
->          Martin K. Petersen (5):
->                block: Move integrity kobject to struct gendisk
->                block: Consolidate static integrity profile properties
->                block: Reduce the size of struct blk_integrity
->                block: Export integrity data interval size in sysfs
->                block: Inline blk_integrity in struct gendisk
+It has been ported to use the newly introduced device fwnode_handle 
+for ACPI irqdmain introduced by Marc in the following patch series:
 
-I'll pull these in.
+  [PATCH v2 00/17] Divorcing irqdomain and device_node
+  http://git.kernel.org/cgit/linux/kernel/git/maz/arm-platforms.git irq/irq-domain-fwnode-v2
 
+The following git branch contains the submitted patches along with
+the pre-requsite patches (mainly for ARM64 PCI support for ACPI).
+
+  https://github.com/ssuthiku/linux.git	v2m-multiframe-v3
+
+This has been tested on AMD Seattle (Overdrive) RevB system. 
+
+NOTE: I have not tested ACPI GICv2m multiframe support since
+I don't have access to such system. Any helps are appreciated.
+
+Thanks,
+Suravee
+
+Changes from V2: (https://lkml.org/lkml/2015/10/14/1010)
+  - Minor clean up from Tomasz review comment in patch 6/6.
+
+Changes from V1: (https://lkml.org/lkml/2015/10/13/859)
+  - Rebase on top of Marc's patch to addng support for multiple MSI frames
+    (https://lkml.org/lkml/2015/10/14/271)
+  - Adding fwnode convenient functions (patch 3 and 4)
+
+
+Suravee Suthikulpanit (6):
+  pci: msi: Add support to query MSI domain for pci device
+  acpi: pci: Setup MSI domain for ACPI based pci devices
+  irqdomain: introduce is_fwnode_irqchip helper
+  irqdomain: Introduce irq_domain_get_irqchip_fwnode_name helper
+    function
+  gicv2m: Refactor to prepare for ACPI support
+  gicv2m: acpi: Introducing GICv2m ACPI support
+
+ drivers/irqchip/irq-gic-v2m.c   | 152 ++++++++++++++++++++++++++++++++++------
+ drivers/irqchip/irq-gic.c       |   5 +-
+ drivers/pci/msi.c               |  30 ++++++++
+ drivers/pci/pci-acpi.c          |  13 ++++
+ drivers/pci/probe.c             |   2 +
+ include/linux/irqchip/arm-gic.h |   4 ++
+ include/linux/irqdomain.h       |   6 ++
+ include/linux/msi.h             |   7 ++
+ include/linux/pci.h             |   7 ++
+ kernel/irq/irqdomain.c          |  20 +++++-
+ 10 files changed, 223 insertions(+), 23 deletions(-)
 
 -- 
-Jens Axboe
+2.1.0
 
