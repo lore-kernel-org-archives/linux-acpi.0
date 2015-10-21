@@ -1,71 +1,68 @@
-From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Subject: [PATCH V3 4/6] irqdomain: Introduce irq_domain_get_irqchip_fwnode_name helper function
-Date: Wed, 21 Oct 2015 11:47:27 -0700
-Message-ID: <1445453249-32557-5-git-send-email-Suravee.Suthikulpanit@amd.com>
-References: <1445453249-32557-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+From: Prarit Bhargava <prarit@redhat.com>
+Subject: Re: [PATCH 9/9] treewide: Remove newlines inside DEFINE_PER_CPU()
+ macros
+Date: Wed, 21 Oct 2015 15:27:55 -0400
+Message-ID: <5627E73B.9000502@redhat.com>
+References: <1444940195-28272-1-git-send-email-mmarek@suse.com> <1444940195-28272-10-git-send-email-mmarek@suse.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-by2on0083.outbound.protection.outlook.com ([207.46.100.83]:52032
-	"EHLO na01-by2-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755268AbbJUSuY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 21 Oct 2015 14:50:24 -0400
-In-Reply-To: <1445453249-32557-1-git-send-email-Suravee.Suthikulpanit@amd.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-ia64-owner@vger.kernel.org>
+In-Reply-To: <1444940195-28272-10-git-send-email-mmarek@suse.com>
+Sender: linux-ia64-owner@vger.kernel.org
+To: Michal Marek <mmarek@suse.com>, linux-kbuild@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org, rds-devel@oss.oracle.com, netdev@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, hanjun.guo@linaro.org, tomasz.nowicki@linaro.org, graeme.gregory@linaro.org, dhdang@apm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 
-This patch adds an accessor function to retrieve struct irqchip_fwid.name.
+On 10/15/2015 04:16 PM, Michal Marek wrote:
+> Otherwise make tags can't parse them:
+> 
+> ctags: Warning: arch/ia64/kernel/smp.c:60: null expansion of name pattern "\1"
+> ctags: Warning: drivers/xen/events/events_2l.c:41: null expansion of name pattern "\1"
+> ctags: Warning: drivers/acpi/processor_idle.c:64: null expansion of name pattern "\1"
+> ctags: Warning: kernel/locking/lockdep.c:153: null expansion of name pattern "\1"
+> ctags: Warning: kernel/workqueue.c:305: null expansion of name pattern "\1"
+> ctags: Warning: kernel/rcu/rcutorture.c:133: null expansion of name pattern "\1"
+> ctags: Warning: kernel/rcu/rcutorture.c:135: null expansion of name pattern "\1"
+> ctags: Warning: net/rds/page.c:45: null expansion of name pattern "\1"
+> ctags: Warning: net/ipv4/syncookies.c:53: null expansion of name pattern "\1"
+> ctags: Warning: net/ipv6/syncookies.c:44: null expansion of name pattern "\1"
+> 
+> Cc: linux-ia64@vger.kernel.org
+> Cc: xen-devel@lists.xenproject.org
+> Cc: linux-acpi@vger.kernel.org
+> Cc: rds-devel@oss.oracle.com
+> Cc: netdev@vger.kernel.org
+> Signed-off-by: Michal Marek <mmarek@suse.com>
+> ---
+>  arch/ia64/kernel/smp.c         | 3 +--
+>  drivers/acpi/processor_idle.c  | 3 +--
+>  drivers/xen/events/events_2l.c | 3 +--
+>  kernel/locking/lockdep.c       | 3 +--
+>  kernel/rcu/rcutorture.c        | 6 ++----
+>  kernel/workqueue.c             | 3 +--
+>  net/ipv4/syncookies.c          | 3 +--
+>  net/ipv6/syncookies.c          | 3 +--
+>  net/rds/page.c                 | 3 +--
+>  9 files changed, 10 insertions(+), 20 deletions(-)
+> 
+> diff --git a/arch/ia64/kernel/smp.c b/arch/ia64/kernel/smp.c
+> index 7f706d4f84f7..1dcfe29d8a42 100644
+> --- a/arch/ia64/kernel/smp.c
+> +++ b/arch/ia64/kernel/smp.c
+> @@ -57,8 +57,7 @@ static struct local_tlb_flush_counts {
+>  	unsigned int count;
+>  } __attribute__((__aligned__(32))) local_tlb_flush_counts[NR_CPUS];
+>  
+> -static DEFINE_PER_CPU_SHARED_ALIGNED(unsigned short [NR_CPUS],
+> -				     shadow_flush_counts);
+> +static DEFINE_PER_CPU_SHARED_ALIGNED(unsigned short [NR_CPUS], shadow_flush_counts);
+>  
 
-Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
----
- include/linux/irqdomain.h |  1 +
- kernel/irq/irqdomain.c    | 18 ++++++++++++++++++
- 2 files changed, 19 insertions(+)
+I guarantee you're going to end up fixing this issue over and over again as more
+code is added in.
 
-diff --git a/include/linux/irqdomain.h b/include/linux/irqdomain.h
-index 4950a71..006633d 100644
---- a/include/linux/irqdomain.h
-+++ b/include/linux/irqdomain.h
-@@ -187,6 +187,7 @@ static inline struct device_node *irq_domain_get_of_node(struct irq_domain *d)
- #ifdef CONFIG_IRQ_DOMAIN
- struct fwnode_handle *irq_domain_alloc_fwnode(void *data);
- void irq_domain_free_fwnode(struct fwnode_handle *fwnode);
-+const char *irq_domain_get_irqchip_fwnode_name(struct fwnode_handle *fwnode);
- struct irq_domain *__irq_domain_add(struct fwnode_handle *fwnode, int size,
- 				    irq_hw_number_t hwirq_max, int direct_max,
- 				    const struct irq_domain_ops *ops,
-diff --git a/kernel/irq/irqdomain.c b/kernel/irq/irqdomain.c
-index 7f34d98..a8c1cf6 100644
---- a/kernel/irq/irqdomain.c
-+++ b/kernel/irq/irqdomain.c
-@@ -79,6 +79,24 @@ void irq_domain_free_fwnode(struct fwnode_handle *fwnode)
- }
- 
- /**
-+ * irq_domain_get_irqchip_fwnode_name - Retrieve associated name of
-+ *                                      specified irqchip fwnode
-+ * @fwnode: Specified fwnode_handle
-+ *
-+ * Returns associated name of the specified fwnode, or NULL on failure.
-+ */
-+const char *irq_domain_get_irqchip_fwnode_name(struct fwnode_handle *fwnode)
-+{
-+	struct irqchip_fwid *fwid;
-+
-+	if (!is_fwnode_irqchip(fwnode))
-+		return NULL;
-+
-+	fwid = container_of(fwnode, struct irqchip_fwid, fwnode);
-+	return fwid->name;
-+}
-+
-+/**
-  * __irq_domain_add() - Allocate a new irq_domain data structure
-  * @of_node: optional device-tree node of the interrupt controller
-  * @size: Size of linear map; 0 for radix mapping only
--- 
-2.1.0
+OOC, why not fix ctags to recognize newlines?
+
+P.
 
