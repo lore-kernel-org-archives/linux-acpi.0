@@ -1,48 +1,34 @@
-From: Michal Marek <mmarek@suse.com>
-Subject: Re: [PATCH 9/9] treewide: Remove newlines inside DEFINE_PER_CPU()
- macros
-Date: Wed, 21 Oct 2015 21:52:45 +0200
-Message-ID: <5627ED0D.20308@suse.com>
-References: <1444940195-28272-1-git-send-email-mmarek@suse.com>
- <1444940195-28272-10-git-send-email-mmarek@suse.com>
- <5627E73B.9000502@redhat.com>
+From: Ross Zwisler <ross.zwisler@linux.intel.com>
+Subject: Re: what's in nvdimm.git for v4.4?
+Date: Wed, 21 Oct 2015 15:58:18 -0600
+Message-ID: <20151021215818.GA640@linux.intel.com>
+References: <1445383903.6611.39.camel@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kbuild-owner@vger.kernel.org>
-In-Reply-To: <5627E73B.9000502@redhat.com>
-Sender: linux-kbuild-owner@vger.kernel.org
-To: Prarit Bhargava <prarit@redhat.com>
-Cc: linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org, rds-devel@oss.oracle.com, netdev@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:56250 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750910AbbJUV6U (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 21 Oct 2015 17:58:20 -0400
+Content-Disposition: inline
+In-Reply-To: <1445383903.6611.39.camel@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Williams, Dan J" <dan.j.williams@intel.com>
+Cc: "axboe@fb.com" <axboe@fb.com>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "hch@lst.de" <hch@lst.de>, "martin.petersen@oracle.com" <martin.petersen@oracle.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "david@fromorbit.com" <david@fromorbit.com>, "jack@suse.cz" <jack@suse.cz>
 
-Dne 21.10.2015 v 21:27 Prarit Bhargava napsal(a):
-> On 10/15/2015 04:16 PM, Michal Marek wrote:
->> Otherwise make tags can't parse them:
->>
->> ctags: Warning: arch/ia64/kernel/smp.c:60: null expansion of name pattern "\1"
->> ctags: Warning: drivers/xen/events/events_2l.c:41: null expansion of name pattern "\1"
->> ctags: Warning: drivers/acpi/processor_idle.c:64: null expansion of name pattern "\1"
->> ctags: Warning: kernel/locking/lockdep.c:153: null expansion of name pattern "\1"
->> ctags: Warning: kernel/workqueue.c:305: null expansion of name pattern "\1"
->> ctags: Warning: kernel/rcu/rcutorture.c:133: null expansion of name pattern "\1"
->> ctags: Warning: kernel/rcu/rcutorture.c:135: null expansion of name pattern "\1"
->> ctags: Warning: net/rds/page.c:45: null expansion of name pattern "\1"
->> ctags: Warning: net/ipv4/syncookies.c:53: null expansion of name pattern "\1"
->> ctags: Warning: net/ipv6/syncookies.c:44: null expansion of name pattern "\1"
+On Tue, Oct 20, 2015 at 11:31:45PM +0000, Williams, Dan J wrote:
+> Here is a status summary of the topic-branches nvdimm.git is tracking
+> for v4.4.  Unless indicated these branches are not present in -next.
+> Please ACK, NAK, or ask for a re-post of any of the below to disposition
+> it for the merge window.
 > 
-> I guarantee you're going to end up fixing this issue over and over again as more
-> code is added in.
+> ===
+> for-4.4/dax-fixes:
+> ===
+<snip>
+>         Ross Zwisler (2):
+>               dax: dax_pfn_mkwrite() truncate race check
 
-This is certainly going to happen, but it should be quickly spotted by
-anybody running make tags on linux-next. And 10 instances since the
-beginning of git is not too many.
-
-
-> OOC, why not fix ctags to recognize newlines?
-
-It's not ctags itself parsing the DEFINE_PER_CPU() macro, but a
-user-supplied regex specified on commandline. Which can only operate on
-single lines.
-
-Michal
+We can drop this patch for dax_pfn_mkwrite() as that whole function is going
+away after we merge the locking fixes from XFS, ext2 and ext4.
