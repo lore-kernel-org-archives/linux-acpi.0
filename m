@@ -1,60 +1,75 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: what's in nvdimm.git for v4.4?
-Date: Wed, 21 Oct 2015 15:50:02 -0700
-Message-ID: <CAPcyv4hh9kzX-E5P5aB96tr9ggyP9hjmYb9BF6V9=z2-5E+AjQ@mail.gmail.com>
-References: <1445383903.6611.39.camel@intel.com>
-	<20151021000103.GA19199@dastard>
-	<CAPcyv4hBV=tsEmNajuMXr8Jj7-+ovT7FP3yWrfDLZVWejgA2ig@mail.gmail.com>
-	<20151021090800.GA2939@quack.suse.cz>
-	<94D0CD8314A33A4D9D801C0FE68B40295BDD2000@G9W0745.americas.hpqcorp.net>
+From: Scott Wood <scottwood-KZfg59tc24xl57MIdRCFDg@public.gmane.org>
+Subject: Re: [PATCH v6 22/22] of/platform: Defer probes of registered devices
+Date: Wed, 21 Oct 2015 17:51:52 -0500
+Message-ID: <1445467912.701.90.camel@freescale.com>
+References: <1442844182-27787-1-git-send-email-tomeu.vizoso@collabora.com>
+	 <1442844182-27787-23-git-send-email-tomeu.vizoso@collabora.com>
+	 <1445406845.701.55.camel@freescale.com>
+	 <CAL_JsqLhZmc8cEC+tFJ25KLe0bQZsWmrRWGBMQake9VN6OjvdQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <94D0CD8314A33A4D9D801C0FE68B40295BDD2000@G9W0745.americas.hpqcorp.net>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Elliott, Robert (Persistent Memory)" <elliott@hpe.com>
-Cc: Jan Kara <jack@suse.cz>, "martin.petersen@oracle.com" <martin.petersen@oracle.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, Dave Chinner <david@fromorbit.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "axboe@fb.com" <axboe@fb.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "hch@lst.de" <hch@lst.de>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAL_JsqLhZmc8cEC+tFJ25KLe0bQZsWmrRWGBMQake9VN6OjvdQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Cc: Tomeu Vizoso <tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, linuxppc-dev <linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Hu Mingkai-B21284 <Mingkai.Hu-KZfg59tc24xl57MIdRCFDg@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Oct 21, 2015 at 3:36 PM, Elliott, Robert (Persistent Memory)
-<elliott@hpe.com> wrote:
->
->
->> -----Original Message-----
->> From: Linux-nvdimm [mailto:linux-nvdimm-bounces@lists.01.org] On Behalf Of
->> Jan Kara
->> Sent: Wednesday, October 21, 2015 4:08 AM
-> ...
->> On Tue 20-10-15 17:31:18, Dan Williams wrote:
->> > On Tue, Oct 20, 2015 at 5:01 PM, Dave Chinner <david@fromorbit.com>
-> ...
->> > I'm wondering if we can take a conservative step forward with those
->> > patches for 4.4.  if XFS and EXT4 interactions need more time to get
->> > worked out, which I believe they do, I can conceive just turning on
->> > get_user_pages() support for DAX-mappings of the raw block device.
->> > This would be via the new facility I posted yesterday:
->> > https://lists.01.org/pipermail/linux-nvdimm/2015-October/002512.html.
->> > While not very functional for applications it makes testing base DAX
->> > mechanisms straightforward.
->>
->> I had a look at the patch and I miss one thing: Why do we need bd_mutex
->> to protect faults? I see a comment there:
->>
->> /* check that the faulting page hasn't raced with bdev resize */
->>
->> Is it really possible that bdev gets shrunk under us? Hum, looking into
->> fs/block_dev.c, probably it is. But there are other places - like DIO path
->> - assuming that block device mapping cannot just disappear from under us.
->> I wonder how that would cope with bdev size change...
->
-> DIO_IGNORE_TRUNCATE was added to eliminate an awful lot of CPU
-> time incrementing and decrementing i_dio_count for direct IO
-> to block devices, especially at pmem type speeds.  I hope
-> that kind of accounting doesn't need to be brought back.
->
-> https://lkml.org/lkml/2015/4/3/557
-> https://lkml.org/lkml/2015/4/15/590
+On Wed, 2015-10-21 at 08:44 -0500, Rob Herring wrote:
+> On Wed, Oct 21, 2015 at 12:54 AM, Scott Wood <scottwood-KZfg59tc24xl57MIdRCFDg@public.gmane.org> 
+> wrote:
+> > On Mon, 2015-09-21 at 16:03 +0200, Tomeu Vizoso wrote:
+> > > Instead of trying to match and probe platform and AMBA devices right
+> > > after each is registered, delay their probes until device_initcall_sync.
+> > > 
+> > > This means that devices will start probing once all built-in drivers
+> > > have registered, and after all platform and AMBA devices from the DT
+> > > have been registered already.
+> > > 
+> > > This allows us to prevent deferred probes by probing dependencies on
+> > > demand.
+> > > 
+> > > Signed-off-by: Tomeu Vizoso <tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
+> > > ---
+> > > 
+> > > Changes in v4:
+> > > - Also defer probes of AMBA devices registered from the DT as they can
+> > >   also request resources.
+> > > 
+> > >  drivers/of/platform.c | 11 ++++++++---
+> > >  1 file changed, 8 insertions(+), 3 deletions(-)
+> > 
+> > This breaks arch/powerpc/sysdev/fsl_pci.c.  The PCI bus is an OF platform
+> > device, and it must be probed before pcibios_init() which is a
+> > subsys_initcall(), or else the PCI bus never gets scanned.
+> 
+> Thanks for the report. This is probably getting dropped, but it could
+> be disabled for PPC.
 
-Thanks for that reminder Robert.  I think this backs up my suspicion
-that the base mmap_sem protections should be enough for raw block mmap
-+ DAX.
+I don't think that adding another arbitrary arch difference would be the 
+right solution.
+
+> Any plans to fix this and make PCI hosts hotplugable? For the scanning
+> part, generally the host controller drivers are responsible for
+> scanning their bus now.
+
+Scanning from the host controller driver seems like a reasonable goal, though 
+
+it'd take a bit of digging to extract whatever other things fsl_pci may 
+depend on from the common PPC PCI code, in particular the various things that 
+
+pcibios_resource_survey() does after all PCI buses have been scanned.
+
+There's also check_swiotlb_enabled(), another subsys_initcall, which frees 
+the swiotlb memory if ppc_swiotlb_enable hasn't been set.  The PCI host 
+controller probe sets ppc_swiotlb_enable if it wasn't able to create an 
+inbound mapping for all RAM.  Even if we were to change that to a later 
+initcall, there's nothing later than late_initcall that we could use.
+
+-Scott
+
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
