@@ -1,38 +1,68 @@
-From: Chen Yu <yu.c.chen@intel.com>
-Subject: [PATCH 2/3] ACPI: Using correct irq when waiting for events
-Date: Thu, 22 Oct 2015 20:03:19 +0800
-Message-ID: <1445515399-31302-1-git-send-email-yu.c.chen@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org
-Cc: rui.zhang@intel.com, lv.zheng@intel.com, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, Chen Yu <yu.c.chen@intel.com>, stable@vger.kernel.org
+From: Michal Marek <mmarek@suse.com>
+Subject: Re: [PATCH 9/9] treewide: Remove newlines inside DEFINE_PER_CPU()
+ macros
+Date: Thu, 22 Oct 2015 14:06:32 +0200
+Message-ID: <5628D148.7000102@suse.com>
+References: <1444940195-28272-1-git-send-email-mmarek@suse.com>
+ <1444940195-28272-10-git-send-email-mmarek@suse.com>
+ <5627E73B.9000502@redhat.com> <5627ED0D.20308@suse.com>
+ <5628C913.10800@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <5628C913.10800@redhat.com>
+Sender: netdev-owner@vger.kernel.org
+To: Prarit Bhargava <prarit@redhat.com>
+Cc: linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org, rds-devel@oss.oracle.com, netdev@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-When system is waiting for GPE/fixed event handler to finish,
-it uses the acpi_gbl_FADT.sci_interrupt directly. However, we
-should use mapped irq returned by acpi_gsi_to_irq for synchronize_hardirq.
+On 2015-10-22 13:31, Prarit Bhargava wrote:
+> 
+> 
+> On 10/21/2015 03:52 PM, Michal Marek wrote:
+>> Dne 21.10.2015 v 21:27 Prarit Bhargava napsal(a):
+>>> On 10/15/2015 04:16 PM, Michal Marek wrote:
+>>>> Otherwise make tags can't parse them:
+>>>>
+>>>> ctags: Warning: arch/ia64/kernel/smp.c:60: null expansion of name pattern "\1"
+>>>> ctags: Warning: drivers/xen/events/events_2l.c:41: null expansion of name pattern "\1"
+>>>> ctags: Warning: drivers/acpi/processor_idle.c:64: null expansion of name pattern "\1"
+>>>> ctags: Warning: kernel/locking/lockdep.c:153: null expansion of name pattern "\1"
+>>>> ctags: Warning: kernel/workqueue.c:305: null expansion of name pattern "\1"
+>>>> ctags: Warning: kernel/rcu/rcutorture.c:133: null expansion of name pattern "\1"
+>>>> ctags: Warning: kernel/rcu/rcutorture.c:135: null expansion of name pattern "\1"
+>>>> ctags: Warning: net/rds/page.c:45: null expansion of name pattern "\1"
+>>>> ctags: Warning: net/ipv4/syncookies.c:53: null expansion of name pattern "\1"
+>>>> ctags: Warning: net/ipv6/syncookies.c:44: null expansion of name pattern "\1"
+>>>
+>>> I guarantee you're going to end up fixing this issue over and over again as more
+>>> code is added in.
+>>
+>> This is certainly going to happen, but it should be quickly spotted by
+>> anybody running make tags on linux-next. And 10 instances since the
+>> beginning of git is not too many.
+> 
+> Not everyone uses 'make tags'.  'make cscope' exists and functions correctly ;)
 
-Cc: <stable@vger.kernel.org> # 3.19+
-Acked-by: Lv Zheng <lv.zheng@intel.com>
-Signed-off-by: Chen Yu <yu.c.chen@intel.com>
----
- drivers/acpi/osl.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+cscope works, but unfortunately it cannot be extended to understand the
+preprocessor constructs. But it does not suffer from the problem at
+hand, obviously.
 
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 2e9eccf..3341788 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -1184,8 +1184,8 @@ void acpi_os_wait_events_complete(void)
- 	 * Make sure the GPE handler or the fixed event handler is not used
- 	 * on another CPU after removal.
- 	 */
--	if (acpi_irq_handler)
--		synchronize_hardirq(acpi_gbl_FADT.sci_interrupt);
-+	if (!IS_INVALID_ACPI_IRQ(acpi_sci_irq))
-+		synchronize_hardirq(acpi_sci_irq);
- 	flush_workqueue(kacpid_wq);
- 	flush_workqueue(kacpi_notify_wq);
- }
--- 
-1.8.4.2
+
+>> It's not ctags itself parsing the DEFINE_PER_CPU() macro, but a
+>> user-supplied regex specified on commandline. Which can only operate on
+>> single lines.
+>>
+> 
+> What's the regex?
+
+See
+https://lkml.kernel.org/r/1444940195-28272-9-git-send-email-mmarek@suse.com
+
+It used to require a closing parenthesis, so it would not match the
+multiline macro invocations at all. Now it matches them, but ctags
+correctly warns that the empty string is probably not what we intended
+to match.
+
+Michal
