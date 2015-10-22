@@ -1,154 +1,95 @@
-From: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Subject: Re: [PATCH v6 04/22] of: add function to allow probing a device from a OF node
-Date: Thu, 22 Oct 2015 03:06:47 +0200
-Message-ID: <10119606.2TraDKGPVy@vostro.rjw.lan>
-References: <1442844182-27787-1-git-send-email-tomeu.vizoso@collabora.com> <1442844182-27787-5-git-send-email-tomeu.vizoso@collabora.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: ACPI: Can I use I2cSerialBus with a PCI I2C controller?
+Date: Thu, 22 Oct 2015 11:01:57 +0300
+Message-ID: <20151022080157.GI1526@lahna.fi.intel.com>
+References: <CAE7DoPZs69A5vLzDfrRXuC3q9fpkaXRYna2NQwHZk_BK9gLnvQ@mail.gmail.com>
+ <20151021085056.GV1526@lahna.fi.intel.com>
+ <CAE7DoPak939WjCWaGQw7W6aR0dZOcJCjcQK8gMa9iu+WRmnDDw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1442844182-27787-5-git-send-email-tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Tomeu Vizoso <tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
-Cc: linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([192.55.52.115]:6336 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750993AbbJVIE2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 22 Oct 2015 04:04:28 -0400
+Content-Disposition: inline
+In-Reply-To: <CAE7DoPak939WjCWaGQw7W6aR0dZOcJCjcQK8gMa9iu+WRmnDDw@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ben Gardner <gardner.ben@gmail.com>
+Cc: linux-acpi@vger.kernel.org
 
-On Monday, September 21, 2015 04:02:44 PM Tomeu Vizoso wrote:
-> Walks the OF tree up and finds the closest ancestor that has a struct
-> device associated with it, probing it if isn't bound to a driver yet.
+On Wed, Oct 21, 2015 at 06:14:27PM -0500, Ben Gardner wrote:
+> Thanks for the help!
 > 
-> The above should ensure that the dependency represented by the passed OF
-> node is available, because probing a device should cause its descendants
-> to be probed as well (when they get registered).
+> >> So my questions are:
+> >>   Can I use I2cSerialBus with a PCI I2C controller?
+> >
+> > Yes you can.
+> >
+> > That's what we do all the time for Intel hardware.
 > 
-> Subsystems can use this when looking up resources for drivers, to reduce
-> the chances of deferred probes because of the probing order of devices.
+> That is good to hear.
+> ...
 > 
-> Signed-off-by: Tomeu Vizoso <tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
-> ---
+> > So you can just drop the whole _CRS and make your I2C host controller
+> > device to look like:
+> >
+> > Device (I2C3)
+> > {
+> >         Name (_ADR, 0x00180003)
+> >
+> >         /* Standard Mode: HCNT, LCNT, SDA Hold Time */
+> >         Name (SSCN, Package () { 0x200, 0x200, 0x6 })
+> >
+> >         /* Fast Mode: HCNT, LCNT, SDA Hold Time */
+> >         Name (FMCN, Package () { 0x55, 0x99, 0x6 })
+> >
+> >         Device (EEP0)
+> >         {
+> >                 Name (_CID, Package() { "24c02" })
+> >                 Name (_CRS, ResourceTemplate () {
+> >                         I2cSerialBus (0x0057, ControllerInitiated, 400000,
+> >                                       AddressingMode7Bit, "\\_SB.I2C3", 0x00,
+> >                                       ResourceConsumer,,)
+> >                 })
+> >         }
+> > }
 > 
-> Changes in v5:
-> - Move the assignment to device_node->device for AMBA devices to another
->   commit.
-> - Hold a reference to the struct device while it's in use in
->   of_device_probe().
+> OK. I tried that.
+> It looks like the device is nested properly in the ACPI tree:
 > 
-> Changes in v4:
-> - Rename of_platform_probe to of_device_probe
-> - Use device_node.device instead of device_node.platform_dev
+> I see this symlink:
+> /sys/bus/acpi/devices/24C02:00 ->
+> ../../../devices/LNXSYSTM:00/LNXSYBUS:00/device:16/24C02:00
 > 
-> Changes in v3:
-> - Set and use device_node.platform_dev instead of reversing the logic to
->   find the platform device that encloses a device node.
-> - Drop the fwnode API to probe firmware nodes and add OF-only API for
->   now. I think this same scheme could be used for machines with ACPI,
->   but I haven't been able to find one that had to defer its probes because
->   of the device probe order.
+> # for x in /sys/bus/acpi/devices/* ; do if [ -e $x/path ] ; then
+> printf "%-30.30s  %s\n" "$(cat $x/path)" "$x" ; fi ; done | sort |
+> grep I2C3
+> \_SB_.I2C3                      device:16
+> \_SB_.I2C3.EEP0                 24C02:00
 > 
->  drivers/of/device.c       | 61 +++++++++++++++++++++++++++++++++++++++++++++++
->  include/linux/of_device.h |  3 +++
->  2 files changed, 64 insertions(+)
+> But no I2C device are created under /sys/bus/i2c/devices/.
+> # ll /sys/bus/i2c/devices/
+> lrwxrwxrwx    1 root     root             0 Oct 21 11:30 i2c-1 ->
+> ../../../devices/pci0000:00/0000:00:18.1/i2c-1
+> lrwxrwxrwx    1 root     root             0 Oct 21 11:30 i2c-2 ->
+> ../../../devices/pci0000:00/0000:00:18.2/i2c-2
+> lrwxrwxrwx    1 root     root             0 Oct 21 11:30 i2c-3 ->
+> ../../../devices/pci0000:00/0000:00:18.3/i2c-3
 > 
-> diff --git a/drivers/of/device.c b/drivers/of/device.c
-> index 8b91ea241b10..836be71fc90e 100644
-> --- a/drivers/of/device.c
-> +++ b/drivers/of/device.c
-> @@ -286,3 +286,64 @@ int of_device_uevent_modalias(struct device *dev, struct kobj_uevent_env *env)
->  
->  	return 0;
->  }
-> +
-> +/**
-> + * of_device_probe() - Probe device associated with OF node
-> + * @np: node to probe
-> + *
-> + * Probe the device associated with the passed device node.
-> + */
-> +void of_device_probe(struct device_node *np)
+> I'll have to dig further to find where it is failing in i2c_core.c. I
+> assume it will be in the same spot.
+> Is there a way to see PCI to ACPI associations?
 
-Same question as from Greg: How does a subsystem know whether or not to use
-this function?
+Yes, the PCI device has a symlink "firmware_node" which points to the
+ACPI device.
 
-> +{
-> +	struct device_node *target;
-> +	struct device *dev = NULL;
-> +
-> +	if (!of_root || !of_node_check_flag(of_root, OF_POPULATED_BUS))
-> +		return;
-> +
-> +	if (!np)
-> +		return;
-> +
-> +	of_node_get(np);
-> +
-> +	/* Find the closest ancestor that has a device associated */
-> +	for (target = np;
-> +	     !of_node_is_root(target);
-> +	     target = of_get_next_parent(target))
-> +		if (get_device(target->device)) {
-> +			dev = target->device;
-> +			break;
-> +		}
-> +
-> +	of_node_put(target);
-> +
-> +	if (!dev) {
-> +		pr_warn("Couldn't find a device for node '%s'\n",
-> +			of_node_full_name(np));
-> +		return;
-> +	}
-> +
-> +	/*
-> +	 * Device is bound or is being probed right now. If we have bad luck
-> +	 * and the dependency isn't ready when it's needed, deferred probe
-> +	 * will save us.
-> +	 */
-> +	if (dev->driver)
-> +		goto out;
-> +
-> +	/*
-> +	 * Probing a device should cause its descendants to be probed as
-> +	 * well, which includes the passed device node.
-> +	 */
-> +	if (device_attach(dev) != 1)
-> +		/*
-> +		 * This cannot be a warning for now because clock nodes have a
-> +		 * compatible string but the clock framework doesn't follow
-> +		 * the device/driver model yet.
-> +		 */
-> +		dev_dbg(dev, "Probe failed for %s\n", of_node_full_name(np));
-> +
-> +out:
-> +	put_device(dev);
-> +}
-> +EXPORT_SYMBOL_GPL(of_device_probe);
-> diff --git a/include/linux/of_device.h b/include/linux/of_device.h
-> index cc7dd687a89d..da8d489e73ad 100644
-> --- a/include/linux/of_device.h
-> +++ b/include/linux/of_device.h
-> @@ -40,6 +40,7 @@ extern ssize_t of_device_get_modalias(struct device *dev,
->  
->  extern void of_device_uevent(struct device *dev, struct kobj_uevent_env *env);
->  extern int of_device_uevent_modalias(struct device *dev, struct kobj_uevent_env *env);
-> +extern void of_device_probe(struct device_node *np);
->  
->  static inline void of_device_node_put(struct device *dev)
->  {
-> @@ -84,6 +85,8 @@ static inline int of_device_uevent_modalias(struct device *dev,
->  	return -ENODEV;
->  }
->  
-> +static inline void of_device_probe(struct device_node *np) { }
-> +
->  static inline void of_device_node_put(struct device *dev) { }
->  
->  static inline const struct of_device_id *__of_match_device(
-> 
+Here an example from Skylake system (which uses PCI mode for LPSS
+devices):
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+# ls -l /sys/bus/pci/devices/0000\:00\:15.1/firmware_node
+lrwxrwxrwx    1 root     root             0 Oct 22 08:00 /sys/bus/pci/devices/0000:00:15.1/firmware_node -> ../../LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/device:6f
+
+# cat /sys/bus/pci/devices/0000\:00\:15.1/firmware_node/path 
+\_SB_.PCI0.I2C1
