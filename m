@@ -1,94 +1,122 @@
-From: Scott Wood <scottwood@freescale.com>
-Subject: Re: [PATCH v6 22/22] of/platform: Defer probes of registered devices
-Date: Thu, 22 Oct 2015 16:27:10 -0500
-Message-ID: <1445549230.701.116.camel@freescale.com>
-References: <1442844182-27787-1-git-send-email-tomeu.vizoso@collabora.com>
-	 <1442844182-27787-23-git-send-email-tomeu.vizoso@collabora.com>
-	 <1445406845.701.55.camel@freescale.com>
-	 <CAL_JsqLhZmc8cEC+tFJ25KLe0bQZsWmrRWGBMQake9VN6OjvdQ@mail.gmail.com>
-	 <1445467912.701.90.camel@freescale.com>
-	 <CAAObsKAfufBe_SycibUN3ZsE3fOkBfUjZRx1SWEMwVtM6t7inQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bl2on0131.outbound.protection.outlook.com ([65.55.169.131]:32160
-	"EHLO na01-bl2-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S932461AbbJVV10 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 22 Oct 2015 17:27:26 -0400
-In-Reply-To: <CAAObsKAfufBe_SycibUN3ZsE3fOkBfUjZRx1SWEMwVtM6t7inQ@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: [PATCH 1/3] resource: Add @flags to region_intersects()
+Date: Thu, 22 Oct 2015 17:20:42 -0600
+Message-ID: <1445556044-30322-2-git-send-email-toshi.kani@hpe.com>
+References: <1445556044-30322-1-git-send-email-toshi.kani@hpe.com>
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1445556044-30322-1-git-send-email-toshi.kani@hpe.com>
+Sender: owner-linux-mm@kvack.org
+To: akpm@linux-foundation.org, dan.j.williams@intel.com, rjw@rjwysocki.net
+Cc: linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Cc: Rob Herring <robh+dt@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, Hu Mingkai-B21284 <Mingkai.Hu@freescale.com>
 
-On Thu, 2015-10-22 at 15:04 +0200, Tomeu Vizoso wrote:
-> On 22 October 2015 at 00:51, Scott Wood <scottwood@freescale.com> wrote:
-> > On Wed, 2015-10-21 at 08:44 -0500, Rob Herring wrote:
-> > > On Wed, Oct 21, 2015 at 12:54 AM, Scott Wood <scottwood@freescale.com>
-> > > wrote:
-> > > > On Mon, 2015-09-21 at 16:03 +0200, Tomeu Vizoso wrote:
-> > > > > Instead of trying to match and probe platform and AMBA devices right
-> > > > > after each is registered, delay their probes until 
-> > > > > device_initcall_sync.
-> > > > > 
-> > > > > This means that devices will start probing once all built-in drivers
-> > > > > have registered, and after all platform and AMBA devices from the DT
-> > > > > have been registered already.
-> > > > > 
-> > > > > This allows us to prevent deferred probes by probing dependencies on
-> > > > > demand.
-> > > > > 
-> > > > > Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-> > > > > ---
-> > > > > 
-> > > > > Changes in v4:
-> > > > > - Also defer probes of AMBA devices registered from the DT as they 
-> > > > > can
-> > > > >   also request resources.
-> > > > > 
-> > > > >  drivers/of/platform.c | 11 ++++++++---
-> > > > >  1 file changed, 8 insertions(+), 3 deletions(-)
-> > > > 
-> > > > This breaks arch/powerpc/sysdev/fsl_pci.c.  The PCI bus is an OF 
-> > > > platform
-> > > > device, and it must be probed before pcibios_init() which is a
-> > > > subsys_initcall(), or else the PCI bus never gets scanned.
-> > > 
-> > > Thanks for the report. This is probably getting dropped, but it could
-> > > be disabled for PPC.
-> > 
-> > I don't think that adding another arbitrary arch difference would be the
-> > right solution.
-> 
-> I think Rob meant temporarily disable it while things get fixed. At
-> least, 
+region_intersects() checks if a specified region partially overlaps
+or fully eclipses a resource identified by @name.  It currently sets
+resource flags statically, which prevents the caller from specifying
+a non-RAM region, such as persistent memory.  Add @flags so that
+any region can be specified to the function.
 
-So, what is the permanent fix for the swiotlb issue (or more generally, the 
-inability to have a late_initcall that runs after non-module, non-hotplug 
-platform devices have been probed)?
+A helper function, region_intersects_ram(), is added so that the
+callers that check a RAM region do not have to specify its iomem
+resource name and flags.
 
-> I don't see any reason why PPC wouldn't benefit from this
-> series.
+Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+---
+ include/linux/mm.h |    4 +++-
+ kernel/memremap.c  |    5 ++---
+ kernel/resource.c  |   22 +++++++++++++++-------
+ 3 files changed, 20 insertions(+), 11 deletions(-)
 
-It's not clear to me what the benefit of this is at all, much less for PPC.   
-What is the fundamental problem with deferred probes?  In the cover letter 
-you say this change saves 2.3 seconds, but where is that time being consumed? 
- Are the drivers taking too long in their probe function trying to initialize 
-and then deferring, rather than checking for dependencies up front?  Or are 
-there really so many devices and such a pessimal ordering that most of the 
-time is spent iterating through and reordering the list, with each defer 
-happening quickly?
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 80001de..699224e 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -358,7 +358,9 @@ enum {
+ 	REGION_MIXED,
+ };
+ 
+-int region_intersects(resource_size_t offset, size_t size, const char *type);
++int region_intersects(resource_size_t offset, size_t size, const char *type,
++			unsigned long flags);
++int region_intersects_ram(resource_size_t offset, size_t size);
+ 
+ /* Support for virtually mapped pages */
+ struct page *vmalloc_to_page(const void *addr);
+diff --git a/kernel/memremap.c b/kernel/memremap.c
+index 72b0c66..2157ea5 100644
+--- a/kernel/memremap.c
++++ b/kernel/memremap.c
+@@ -47,7 +47,7 @@ __weak void __iomem *ioremap_cache(resource_size_t offset, unsigned long size)
+  */
+ void *memremap(resource_size_t offset, size_t size, unsigned long flags)
+ {
+-	int is_ram = region_intersects(offset, size, "System RAM");
++	int is_ram = region_intersects_ram(offset, size);
+ 	void *addr = NULL;
+ 
+ 	if (is_ram == REGION_MIXED) {
+@@ -152,8 +152,7 @@ static void devm_memremap_pages_release(struct device *dev, void *res)
+ 
+ void *devm_memremap_pages(struct device *dev, struct resource *res)
+ {
+-	int is_ram = region_intersects(res->start, resource_size(res),
+-			"System RAM");
++	int is_ram = region_intersects_ram(res->start, resource_size(res));
+ 	struct page_map *page_map;
+ 	int error, nid;
+ 
+diff --git a/kernel/resource.c b/kernel/resource.c
+index f150dbb..8a77ed8 100644
+--- a/kernel/resource.c
++++ b/kernel/resource.c
+@@ -497,6 +497,7 @@ EXPORT_SYMBOL_GPL(page_is_ram);
+  * @start: region start address
+  * @size: size of region
+  * @name: name of resource (in iomem_resource)
++ * @flags: flags of resource (in iomem_resource)
+  *
+  * Check if the specified region partially overlaps or fully eclipses a
+  * resource identified by @name.  Return REGION_DISJOINT if the region
+@@ -504,15 +505,11 @@ EXPORT_SYMBOL_GPL(page_is_ram);
+  * @type and another resource, and return REGION_INTERSECTS if the
+  * region overlaps @type and no other defined resource. Note, that
+  * REGION_INTERSECTS is also returned in the case when the specified
+- * region overlaps RAM and undefined memory holes.
+- *
+- * region_intersect() is used by memory remapping functions to ensure
+- * the user is not remapping RAM and is a vast speed up over walking
+- * through the resource table page by page.
++ * region overlaps with undefined memory holes.
+  */
+-int region_intersects(resource_size_t start, size_t size, const char *name)
++int region_intersects(resource_size_t start, size_t size, const char *name,
++			unsigned long flags)
+ {
+-	unsigned long flags = IORESOURCE_MEM | IORESOURCE_BUSY;
+ 	resource_size_t end = start + size - 1;
+ 	int type = 0; int other = 0;
+ 	struct resource *p;
+@@ -539,6 +536,17 @@ int region_intersects(resource_size_t start, size_t size, const char *name)
+ 	return REGION_DISJOINT;
+ }
+ 
++/*
++ * region_intersect_ram() is used by memory remapping functions to ensure
++ * the user is not remapping RAM and is a vast speed up over walking
++ * through the resource table page by page.
++ */
++int region_intersects_ram(resource_size_t start, size_t size)
++{
++	return region_intersects(start, size, "System RAM",
++				 IORESOURCE_MEM | IORESOURCE_BUSY);
++}
++
+ void __weak arch_remove_reservations(struct resource *avail)
+ {
+ }
 
-Even if something different does need to be done at this level, forcing all 
-OF platform devices to be probed at the late_initcall level seems quite 
-intrusive.  You limited it to OF because people complained that other things 
-will break.  Things still broke.  Surely there's a better way to address the 
-problem.  Can't the delay be requested by drivers that might otherwise need 
-to defer (which could be done incrementally, focusing on the worst 
-performance problems), rather than enabling it for everything?
-
--Scott
-
-
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
