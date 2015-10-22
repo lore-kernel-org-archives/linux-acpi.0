@@ -1,88 +1,62 @@
-From: Tomeu Vizoso <tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
-Subject: Re: [PATCH v6 22/22] of/platform: Defer probes of registered devices
-Date: Thu, 22 Oct 2015 15:04:59 +0200
-Message-ID: <CAAObsKAfufBe_SycibUN3ZsE3fOkBfUjZRx1SWEMwVtM6t7inQ@mail.gmail.com>
-References: <1442844182-27787-1-git-send-email-tomeu.vizoso@collabora.com>
- <1442844182-27787-23-git-send-email-tomeu.vizoso@collabora.com>
- <1445406845.701.55.camel@freescale.com> <CAL_JsqLhZmc8cEC+tFJ25KLe0bQZsWmrRWGBMQake9VN6OjvdQ@mail.gmail.com>
- <1445467912.701.90.camel@freescale.com>
+From: Ben Gardner <gardner.ben@gmail.com>
+Subject: Re: ACPI: Can I use I2cSerialBus with a PCI I2C controller?
+Date: Thu, 22 Oct 2015 11:19:16 -0500
+Message-ID: <CAE7DoPY8+zw4xw0hWTmPoG4iPgC=2JRCT4bHqeqqaH+BywTWpw@mail.gmail.com>
+References: <CAE7DoPZs69A5vLzDfrRXuC3q9fpkaXRYna2NQwHZk_BK9gLnvQ@mail.gmail.com>
+	<20151021085056.GV1526@lahna.fi.intel.com>
+	<CAE7DoPak939WjCWaGQw7W6aR0dZOcJCjcQK8gMa9iu+WRmnDDw@mail.gmail.com>
+	<20151022080157.GI1526@lahna.fi.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1445467912.701.90.camel-KZfg59tc24xl57MIdRCFDg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Scott Wood <scottwood-KZfg59tc24xl57MIdRCFDg@public.gmane.org>
-Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, linuxppc-dev <linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Hu Mingkai-B21284 <Mingkai.Hu-KZfg59tc24xl57MIdRCFDg@public.gmane.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ig0-f180.google.com ([209.85.213.180]:37011 "EHLO
+	mail-ig0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757333AbbJVQTQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Oct 2015 12:19:16 -0400
+Received: by igbhv6 with SMTP id hv6so63361708igb.0
+        for <linux-acpi@vger.kernel.org>; Thu, 22 Oct 2015 09:19:16 -0700 (PDT)
+In-Reply-To: <20151022080157.GI1526@lahna.fi.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-On 22 October 2015 at 00:51, Scott Wood <scottwood-KZfg59tc24xl57MIdRCFDg@public.gmane.org> wrote:
-> On Wed, 2015-10-21 at 08:44 -0500, Rob Herring wrote:
->> On Wed, Oct 21, 2015 at 12:54 AM, Scott Wood <scottwood-KZfg59tc24xl57MIdRCFDg@public.gmane.org>
->> wrote:
->> > On Mon, 2015-09-21 at 16:03 +0200, Tomeu Vizoso wrote:
->> > > Instead of trying to match and probe platform and AMBA devices right
->> > > after each is registered, delay their probes until device_initcall_sync.
->> > >
->> > > This means that devices will start probing once all built-in drivers
->> > > have registered, and after all platform and AMBA devices from the DT
->> > > have been registered already.
->> > >
->> > > This allows us to prevent deferred probes by probing dependencies on
->> > > demand.
->> > >
->> > > Signed-off-by: Tomeu Vizoso <tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
->> > > ---
->> > >
->> > > Changes in v4:
->> > > - Also defer probes of AMBA devices registered from the DT as they can
->> > >   also request resources.
->> > >
->> > >  drivers/of/platform.c | 11 ++++++++---
->> > >  1 file changed, 8 insertions(+), 3 deletions(-)
->> >
->> > This breaks arch/powerpc/sysdev/fsl_pci.c.  The PCI bus is an OF platform
->> > device, and it must be probed before pcibios_init() which is a
->> > subsys_initcall(), or else the PCI bus never gets scanned.
->>
->> Thanks for the report. This is probably getting dropped, but it could
->> be disabled for PPC.
+>> Is there a way to see PCI to ACPI associations?
 >
-> I don't think that adding another arbitrary arch difference would be the
-> right solution.
+> Yes, the PCI device has a symlink "firmware_node" which points to the
+> ACPI device.
+>
+> Here an example from Skylake system (which uses PCI mode for LPSS
+> devices):
+>
+> # ls -l /sys/bus/pci/devices/0000\:00\:15.1/firmware_node
+> lrwxrwxrwx    1 root     root             0 Oct 22 08:00 /sys/bus/pci/devices/0000:00:15.1/firmware_node -> ../../LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/device:6f
+>
+> # cat /sys/bus/pci/devices/0000\:00\:15.1/firmware_node/path
+> \_SB_.PCI0.I2C1
 
-I think Rob meant temporarily disable it while things get fixed. At
-least, I don't see any reason why PPC wouldn't benefit from this
-series.
+I see the problem now.
+Your I2C controller is under the PCI0 device on your Skylake system,
+mine was not.
 
-Regards,
+So, I moved the definition of all the PCI devices that are on PCI bus
+0 to under PCI0.
+After that, all the PCI devices found their ACPI companion and the
+firmware_node symlink is present and correct.
+I2C-core creates a symlink for the attached device on the right controller.
+/sys/bus/i2c/devices/i2c-24C02:00 ->
+../../../devices/pci0000:00/0000:00:18.3/i2c-3/i2c-24C02:00
+So that part is solved. (And I'll have to send a patch to coreboot...)
 
-Tomeu
+The next issue is that the I2C-core isn't matching the device to the
+"at24" driver, which has the alias "24c02".
 
->> Any plans to fix this and make PCI hosts hotplugable? For the scanning
->> part, generally the host controller drivers are responsible for
->> scanning their bus now.
->
-> Scanning from the host controller driver seems like a reasonable goal, though
->
-> it'd take a bit of digging to extract whatever other things fsl_pci may
-> depend on from the common PPC PCI code, in particular the various things that
->
-> pcibios_resource_survey() does after all PCI buses have been scanned.
->
-> There's also check_swiotlb_enabled(), another subsys_initcall, which frees
-> the swiotlb memory if ppc_swiotlb_enable hasn't been set.  The PCI host
-> controller probe sets ppc_swiotlb_enable if it wasn't able to create an
-> inbound mapping for all RAM.  Even if we were to change that to a later
-> initcall, there's nothing later than late_initcall that we could use.
->
-> -Scott
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I used to instantiate the device from user space with:
+# echo 24c02 0x57 > /sys/bus/i2c/devices/i2c-3/new_device
+That now shows the address is busy, so it is creating the device, just
+not linking it to the driver.
+
+I'll dig further and see what I can see.
+
+Thanks for your help.
+Ben
