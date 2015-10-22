@@ -1,102 +1,41 @@
-From: Prarit Bhargava <prarit@redhat.com>
-Subject: [PATCH] ACPICA: AcpiGetSleepTypeData: Reduce warnings
-Date: Thu, 22 Oct 2015 13:17:18 -0400
-Message-ID: <1445534238-30447-1-git-send-email-prarit@redhat.com>
+From: Ben Gardner <gardner.ben@gmail.com>
+Subject: Re: ACPI: Can I use I2cSerialBus with a PCI I2C controller?
+Date: Thu, 22 Oct 2015 12:17:58 -0500
+Message-ID: <CAE7DoPZfLDEBmeODQv3oEbs033gpq4oSA=Sx15wMajzVUbUinw@mail.gmail.com>
+References: <CAE7DoPZs69A5vLzDfrRXuC3q9fpkaXRYna2NQwHZk_BK9gLnvQ@mail.gmail.com>
+	<20151021085056.GV1526@lahna.fi.intel.com>
+	<CAE7DoPak939WjCWaGQw7W6aR0dZOcJCjcQK8gMa9iu+WRmnDDw@mail.gmail.com>
+	<20151022080157.GI1526@lahna.fi.intel.com>
+	<CAE7DoPY8+zw4xw0hWTmPoG4iPgC=2JRCT4bHqeqqaH+BywTWpw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:58995 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757916AbbJVRRX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 22 Oct 2015 13:17:23 -0400
+Received: from mail-io0-f180.google.com ([209.85.223.180]:36396 "EHLO
+	mail-io0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757459AbbJVRR7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Oct 2015 13:17:59 -0400
+Received: by ioll68 with SMTP id l68so99122751iol.3
+        for <linux-acpi@vger.kernel.org>; Thu, 22 Oct 2015 10:17:58 -0700 (PDT)
+In-Reply-To: <CAE7DoPY8+zw4xw0hWTmPoG4iPgC=2JRCT4bHqeqqaH+BywTWpw@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Robert Moore <Robert.Moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>, Prarit Bhargava <prarit@redhat.com>
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-From: Robert Moore <Robert.Moore@intel.com>
+> The next issue is that the I2C-core isn't matching the device to the
+> "at24" driver, which has the alias "24c02".
 
-ACPICA commit 7bb77313091e52a846df4c9c2bea90be31bfb9d8
+Here is what I found.
+i2c-core is creating the device with the ACPI name "24C02:00".
+The at24 driver uses "24c02" as the alias.
+i2c-code is matching devices to drivers using strcmp().
 
-Eliminate warnings for "not found" _Sx errors, since these
-are optional. Original NOT_FOUND status is still returned.
+Result: no match. ("24c02" != "24C02:00").
 
-Original changes by Prarit Bhargava.
-ACPICA BZ 1208.
+If I modify acpi_i2c_add_device() to cut off the name at the ':' and
+covert to lowercase when populating info.type, it matches and works.
+I must be missing something here, because this would have never worked as-is.
+I'll ask on the I2C mailing list.
 
-Before patch:
-
-[prarit@prarit linux]$ dmesg | grep "Sleep State"
-ACPI Exception: AE_NOT_FOUND, While evaluating Sleep State [\_S1_] (20130517/hwxface-571)
-ACPI Exception: AE_NOT_FOUND, While evaluating Sleep State [\_S2_] (20130517/hwxface-571)
-
-After patch:
-[prarit@prarit linux]$ dmesg | grep "Sleep State"
-[prarit@prarit linux]$
-
-Cc: Robert Moore <Robert.Moore@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Cc: Len Brown <lenb@kernel.org>
-
-Signed-off-by: Prarit Bhargava <prarit@redhat.com>
----
- drivers/acpi/acpica/hwxface.c |   15 ++++++++++-----
- 1 file changed, 10 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/acpi/acpica/hwxface.c b/drivers/acpi/acpica/hwxface.c
-index 5f97468..ea0cee4 100644
---- a/drivers/acpi/acpica/hwxface.c
-+++ b/drivers/acpi/acpica/hwxface.c
-@@ -508,7 +508,11 @@ acpi_get_sleep_type_data(u8 sleep_state, u8 *sleep_type_a, u8 *sleep_type_b)
- 	    ACPI_CAST_PTR(char, acpi_gbl_sleep_state_names[sleep_state]);
- 	status = acpi_ns_evaluate(info);
- 	if (ACPI_FAILURE(status)) {
--		goto cleanup;
-+		if (status == AE_NOT_FOUND) {
-+			/* The _Sx states are optional, ignore NOT_FOUND */
-+			goto finalcleanup;
-+		}
-+		goto warningcleanup;
- 	}
- 
- 	/* Must have a return object */
-@@ -517,7 +521,7 @@ acpi_get_sleep_type_data(u8 sleep_state, u8 *sleep_type_a, u8 *sleep_type_b)
- 		ACPI_ERROR((AE_INFO, "No Sleep State object returned from [%s]",
- 			    info->relative_pathname));
- 		status = AE_AML_NO_RETURN_VALUE;
--		goto cleanup;
-+		goto warningcleanup;
- 	}
- 
- 	/* Return object must be of type Package */
-@@ -526,7 +530,7 @@ acpi_get_sleep_type_data(u8 sleep_state, u8 *sleep_type_a, u8 *sleep_type_b)
- 		ACPI_ERROR((AE_INFO,
- 			    "Sleep State return object is not a Package"));
- 		status = AE_AML_OPERAND_TYPE;
--		goto cleanup1;
-+		goto returnvaluecleanup;
- 	}
- 
- 	/*
-@@ -570,16 +574,17 @@ acpi_get_sleep_type_data(u8 sleep_state, u8 *sleep_type_a, u8 *sleep_type_b)
- 		break;
- 	}
- 
--cleanup1:
-+returnvaluecleanup:
- 	acpi_ut_remove_reference(info->return_object);
- 
--cleanup:
-+warningcleanup:
- 	if (ACPI_FAILURE(status)) {
- 		ACPI_EXCEPTION((AE_INFO, status,
- 				"While evaluating Sleep State [%s]",
- 				info->relative_pathname));
- 	}
- 
-+finalcleanup:
- 	ACPI_FREE(info);
- 	return_ACPI_STATUS(status);
- }
--- 
-1.7.9.3
-
+Thanks again,
+Ben
