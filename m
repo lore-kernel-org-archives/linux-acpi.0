@@ -1,95 +1,110 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: ACPI: Can I use I2cSerialBus with a PCI I2C controller?
-Date: Thu, 22 Oct 2015 11:01:57 +0300
-Message-ID: <20151022080157.GI1526@lahna.fi.intel.com>
-References: <CAE7DoPZs69A5vLzDfrRXuC3q9fpkaXRYna2NQwHZk_BK9gLnvQ@mail.gmail.com>
- <20151021085056.GV1526@lahna.fi.intel.com>
- <CAE7DoPak939WjCWaGQw7W6aR0dZOcJCjcQK8gMa9iu+WRmnDDw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:6336 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750993AbbJVIE2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 22 Oct 2015 04:04:28 -0400
-Content-Disposition: inline
-In-Reply-To: <CAE7DoPak939WjCWaGQw7W6aR0dZOcJCjcQK8gMa9iu+WRmnDDw@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Dustin Byford <dustin@cumulusnetworks.com>
+Subject: [PATCH v4 0/2] i2c: acpi: scan ACPI enumerated I2C mux channels
+Date: Thu, 22 Oct 2015 02:17:40 -0700
+Message-ID: <1445505462-27915-1-git-send-email-dustin@cumulusnetworks.com>
+References: <1439510358-16664-1-git-send-email-dustin@cumulusnetworks.com>
+Return-path: <linux-i2c-owner@vger.kernel.org>
+In-Reply-To: <1439510358-16664-1-git-send-email-dustin@cumulusnetworks.com>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Wolfram Sang <wsa@the-dreams.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Jean Delvare <jdelvare@suse.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, rjw@rjwysocki.net, "Puustinen, Ismo" <ismo.puustinen@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Ben Gardner <gardner.ben@gmail.com>
-Cc: linux-acpi@vger.kernel.org
 
-On Wed, Oct 21, 2015 at 06:14:27PM -0500, Ben Gardner wrote:
-> Thanks for the help!
-> 
-> >> So my questions are:
-> >>   Can I use I2cSerialBus with a PCI I2C controller?
-> >
-> > Yes you can.
-> >
-> > That's what we do all the time for Intel hardware.
-> 
-> That is good to hear.
-> ...
-> 
-> > So you can just drop the whole _CRS and make your I2C host controller
-> > device to look like:
-> >
-> > Device (I2C3)
-> > {
-> >         Name (_ADR, 0x00180003)
-> >
-> >         /* Standard Mode: HCNT, LCNT, SDA Hold Time */
-> >         Name (SSCN, Package () { 0x200, 0x200, 0x6 })
-> >
-> >         /* Fast Mode: HCNT, LCNT, SDA Hold Time */
-> >         Name (FMCN, Package () { 0x55, 0x99, 0x6 })
-> >
-> >         Device (EEP0)
-> >         {
-> >                 Name (_CID, Package() { "24c02" })
-> >                 Name (_CRS, ResourceTemplate () {
-> >                         I2cSerialBus (0x0057, ControllerInitiated, 400000,
-> >                                       AddressingMode7Bit, "\\_SB.I2C3", 0x00,
-> >                                       ResourceConsumer,,)
-> >                 })
-> >         }
-> > }
-> 
-> OK. I tried that.
-> It looks like the device is nested properly in the ACPI tree:
-> 
-> I see this symlink:
-> /sys/bus/acpi/devices/24C02:00 ->
-> ../../../devices/LNXSYSTM:00/LNXSYBUS:00/device:16/24C02:00
-> 
-> # for x in /sys/bus/acpi/devices/* ; do if [ -e $x/path ] ; then
-> printf "%-30.30s  %s\n" "$(cat $x/path)" "$x" ; fi ; done | sort |
-> grep I2C3
-> \_SB_.I2C3                      device:16
-> \_SB_.I2C3.EEP0                 24C02:00
-> 
-> But no I2C device are created under /sys/bus/i2c/devices/.
-> # ll /sys/bus/i2c/devices/
-> lrwxrwxrwx    1 root     root             0 Oct 21 11:30 i2c-1 ->
-> ../../../devices/pci0000:00/0000:00:18.1/i2c-1
-> lrwxrwxrwx    1 root     root             0 Oct 21 11:30 i2c-2 ->
-> ../../../devices/pci0000:00/0000:00:18.2/i2c-2
-> lrwxrwxrwx    1 root     root             0 Oct 21 11:30 i2c-3 ->
-> ../../../devices/pci0000:00/0000:00:18.3/i2c-3
-> 
-> I'll have to dig further to find where it is failing in i2c_core.c. I
-> assume it will be in the same spot.
-> Is there a way to see PCI to ACPI associations?
+The following series adds support for describing ACPI enumerated I2C mux
+ports like this (added as Documentation/acpi/i2c-muxes.txt):
 
-Yes, the PCI device has a symlink "firmware_node" which points to the
-ACPI device.
++------+   +------+
+| SMB1 |-->| MUX0 |--CH00--> i2c client A (0x50)
+|      |   | 0x70 |--CH01--> i2c client B (0x50)
++------+   +------+
 
-Here an example from Skylake system (which uses PCI mode for LPSS
-devices):
+Device (SMB1)
+{
+    Name (_HID, ...)
+    Device (MUX0)
+    {
+        Name (_HID, ...)
+        Name (_CRS, ResourceTemplate () {
+            I2cSerialBus (0x70, ControllerInitiated, I2C_SPEED,
+                          AddressingMode7Bit, "^SMB1", 0x00,
+                          ResourceConsumer,,)
+        }
 
-# ls -l /sys/bus/pci/devices/0000\:00\:15.1/firmware_node
-lrwxrwxrwx    1 root     root             0 Oct 22 08:00 /sys/bus/pci/devices/0000:00:15.1/firmware_node -> ../../LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/device:6f
+        Device (CH00)
+        {
+            Name (_ADR, 0)
 
-# cat /sys/bus/pci/devices/0000\:00\:15.1/firmware_node/path 
-\_SB_.PCI0.I2C1
+            Device (CLIA)
+            {
+                Name (_HID, ...)
+                Name (_CRS, ResourceTemplate () {
+                    I2cSerialBus (0x50, ControllerInitiated, I2C_SPEED,
+                                  AddressingMode7Bit, "^CH00", 0x00,
+                                  ResourceConsumer,,)
+                }
+            }
+        }
+
+        Device (CH01)
+        {
+            Name (_ADR, 1)
+
+            Device (CLIB)
+            {
+                Name (_HID, ...)
+                Name (_CRS, ResourceTemplate () {
+                    I2cSerialBus (0x50, ControllerInitiated, I2C_SPEED,
+                                  AddressingMode7Bit, "^CH01", 0x00,
+                                  ResourceConsumer,,)
+                }
+            }
+        }
+    }
+}
+
+v4:
+- Moved the acpi_preset_companion() stub to a separate patch.
+- Moved ACPI companion set from i2c-core to i801, ismt, and designware
+  drivers.  With a minor rearrangement it was much easier to verify the
+  drivers are all consistent (hopefully a little extra churn is warranted)
+
+I was able to test i801 and ismt myself, but I could use some help making
+sure the designware driver is OK since I don't have the hardware.
+
+v3:
+- Correct to and cc list (sorry git-send-email trouble again)
+
+v2:
+- Drop duplicate patch already submitted by Andy Shevchenko (i2c / ACPI:
+  Rework I2C device scanning)
+- Whitespace cleanup suggested by Mika
+- Implement a acpi_preset_companion() stub for when CONFIG_ACPI is not set.
+- Instead of special casing I2C muxes with regards to enumerating client
+  devices, make sure adap->dev always has an ACPI companion.
+
+I based this on linux-pm/bleeding-edge, but now it depends on Andy's change
+(i2c / ACPI: Rework I2C device scanning) and I don't know where the rest of
+his patch set is going.  Let me know if there's a more appropriate branch
+and I'll be happy to rebase.
+
+Thanks,
+
+		--Dustin
+
+Dustin Byford (2):
+  acpi: add acpi_preset_companion() stub
+  i2c: add ACPI support for I2C mux ports
+
+ Documentation/acpi/i2c-muxes.txt            | 58 +++++++++++++++++++++++++++++
+ drivers/i2c/busses/i2c-designware-pcidrv.c  |  1 +
+ drivers/i2c/busses/i2c-designware-platdrv.c |  6 ++-
+ drivers/i2c/busses/i2c-i801.c               |  9 ++---
+ drivers/i2c/busses/i2c-ismt.c               |  8 +---
+ drivers/i2c/i2c-core.c                      |  4 +-
+ drivers/i2c/i2c-mux.c                       |  8 ++++
+ include/linux/acpi.h                        |  6 +++
+ 8 files changed, 84 insertions(+), 16 deletions(-)
+ create mode 100644 Documentation/acpi/i2c-muxes.txt
+
+-- 
+2.1.4
