@@ -1,58 +1,26 @@
-From: Prarit Bhargava <prarit@redhat.com>
-Subject: Re: [PATCH 9/9] treewide: Remove newlines inside DEFINE_PER_CPU()
- macros
-Date: Thu, 22 Oct 2015 07:31:31 -0400
-Message-ID: <5628C913.10800@redhat.com>
-References: <1444940195-28272-1-git-send-email-mmarek@suse.com> <1444940195-28272-10-git-send-email-mmarek@suse.com> <5627E73B.9000502@redhat.com> <5627ED0D.20308@suse.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+From: Chen Yu <yu.c.chen@intel.com>
+Subject: [PATCH 0/3] Fix incorrect using of acpi irq
+Date: Thu, 22 Oct 2015 20:02:54 +0800
+Message-ID: <1445515374-31204-1-git-send-email-yu.c.chen@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5627ED0D.20308@suse.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Michal Marek <mmarek@suse.com>
-Cc: linux-kbuild@vger.kernel.org, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, xen-devel@lists.xenproject.org, linux-acpi@vger.kernel.org, rds-devel@oss.oracle.com, netdev@vger.kernel.org
+To: rjw@rjwysocki.net, lenb@kernel.org
+Cc: rui.zhang@intel.com, lv.zheng@intel.com, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, Chen Yu <yu.c.chen@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
+This series of patches are trying to convert codes who use
+acpi_gbl_FADT.sci_interrupt incorrectly to use the right irq
+mapped by acpi_gsi_to_irq.
 
+Chen Yu (3):
+  ACPI: Using correct irq when uninstalling acpi irq handler
+  ACPI: Using correct irq when waiting for events
+  ACPI / PM: Fix incorrect wakeup irq setting before suspend-to-idle
 
-On 10/21/2015 03:52 PM, Michal Marek wrote:
-> Dne 21.10.2015 v 21:27 Prarit Bhargava napsal(a):
->> On 10/15/2015 04:16 PM, Michal Marek wrote:
->>> Otherwise make tags can't parse them:
->>>
->>> ctags: Warning: arch/ia64/kernel/smp.c:60: null expansion of name pattern "\1"
->>> ctags: Warning: drivers/xen/events/events_2l.c:41: null expansion of name pattern "\1"
->>> ctags: Warning: drivers/acpi/processor_idle.c:64: null expansion of name pattern "\1"
->>> ctags: Warning: kernel/locking/lockdep.c:153: null expansion of name pattern "\1"
->>> ctags: Warning: kernel/workqueue.c:305: null expansion of name pattern "\1"
->>> ctags: Warning: kernel/rcu/rcutorture.c:133: null expansion of name pattern "\1"
->>> ctags: Warning: kernel/rcu/rcutorture.c:135: null expansion of name pattern "\1"
->>> ctags: Warning: net/rds/page.c:45: null expansion of name pattern "\1"
->>> ctags: Warning: net/ipv4/syncookies.c:53: null expansion of name pattern "\1"
->>> ctags: Warning: net/ipv6/syncookies.c:44: null expansion of name pattern "\1"
->>
->> I guarantee you're going to end up fixing this issue over and over again as more
->> code is added in.
-> 
-> This is certainly going to happen, but it should be quickly spotted by
-> anybody running make tags on linux-next. And 10 instances since the
-> beginning of git is not too many.
+ drivers/acpi/osl.c   | 14 +++++++++-----
+ drivers/acpi/sleep.c |  6 ++++--
+ include/linux/acpi.h |  3 +++
+ 3 files changed, 16 insertions(+), 7 deletions(-)
 
-Not everyone uses 'make tags'.  'make cscope' exists and functions correctly ;)
-
-> 
-> 
->> OOC, why not fix ctags to recognize newlines?
-> 
-> It's not ctags itself parsing the DEFINE_PER_CPU() macro, but a
-> user-supplied regex specified on commandline. Which can only operate on
-> single lines.
-> 
-
-What's the regex?
-
-P.
-
-> Michal
-> 
+-- 
+1.8.4.2
