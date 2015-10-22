@@ -1,62 +1,73 @@
-From: Ben Gardner <gardner.ben@gmail.com>
-Subject: Re: ACPI: Can I use I2cSerialBus with a PCI I2C controller?
-Date: Thu, 22 Oct 2015 11:19:16 -0500
-Message-ID: <CAE7DoPY8+zw4xw0hWTmPoG4iPgC=2JRCT4bHqeqqaH+BywTWpw@mail.gmail.com>
-References: <CAE7DoPZs69A5vLzDfrRXuC3q9fpkaXRYna2NQwHZk_BK9gLnvQ@mail.gmail.com>
-	<20151021085056.GV1526@lahna.fi.intel.com>
-	<CAE7DoPak939WjCWaGQw7W6aR0dZOcJCjcQK8gMa9iu+WRmnDDw@mail.gmail.com>
-	<20151022080157.GI1526@lahna.fi.intel.com>
+From: Al Stone <ahs3@redhat.com>
+Subject: Re: [PATCH 0/3] Add AMBA bus probing support to ACPI
+Date: Thu, 22 Oct 2015 11:04:40 -0600
+Message-ID: <56291728.8040602@redhat.com>
+References: <1443609530-21524-1-git-send-email-graeme.gregory@linaro.org>
+ <5627C041.6090001@redhat.com>
+ <CAJZ5v0g8ce-_+6yA26CZpNq6XvYw5qVhhu6hB0vxnnWbHEhNHA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ig0-f180.google.com ([209.85.213.180]:37011 "EHLO
-	mail-ig0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757333AbbJVQTQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Oct 2015 12:19:16 -0400
-Received: by igbhv6 with SMTP id hv6so63361708igb.0
-        for <linux-acpi@vger.kernel.org>; Thu, 22 Oct 2015 09:19:16 -0700 (PDT)
-In-Reply-To: <20151022080157.GI1526@lahna.fi.intel.com>
+Received: from mx1.redhat.com ([209.132.183.28]:48424 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751718AbbJVREl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 22 Oct 2015 13:04:41 -0400
+In-Reply-To: <CAJZ5v0g8ce-_+6yA26CZpNq6XvYw5qVhhu6hB0vxnnWbHEhNHA@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Graeme Gregory <graeme.gregory@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, shannon.zhao@linaro.org
 
->> Is there a way to see PCI to ACPI associations?
->
-> Yes, the PCI device has a symlink "firmware_node" which points to the
-> ACPI device.
->
-> Here an example from Skylake system (which uses PCI mode for LPSS
-> devices):
->
-> # ls -l /sys/bus/pci/devices/0000\:00\:15.1/firmware_node
-> lrwxrwxrwx    1 root     root             0 Oct 22 08:00 /sys/bus/pci/devices/0000:00:15.1/firmware_node -> ../../LNXSYSTM:00/LNXSYBUS:00/PNP0A08:00/device:6f
->
-> # cat /sys/bus/pci/devices/0000\:00\:15.1/firmware_node/path
-> \_SB_.PCI0.I2C1
+On 10/21/2015 04:29 PM, Rafael J. Wysocki wrote:
+> On Wed, Oct 21, 2015 at 6:41 PM, Al Stone <ahs3@redhat.com> wrote:
+>> On 09/30/2015 04:38 AM, Graeme Gregory wrote:
+>>> As discussed when Shannon Zhao sent a patch to add platform_device support
+>>> to pl061 driver. Russel and other maintainers prefered that ACPI learned
+>>> how to create AMBA devices rather than converting/adding platform_device
+>>> support to AMBA drivers.
+>>>
+>>> http://comments.gmane.org/gmane.linux.ports.arm.kernel/431364
+>>>
+>>> 1) Adds basic AMBA device probing support to ACPI, it uses a whitelist of
+>>> device IDs as the number of AMBA devices is limited. Currently the two ids
+>>> present are those used in QEMU for arm64.
+>>>
+>>> 2) Adds the plumbing into ACPI probe sequence.
+>>>
+>>> 3) From ACPI pl011 is only defined (SBSA document) to be in SBSA mode which has
+>>> reduced functionality. There may be a better method to do this that I have
+>>> overlooked.
+>>>
+>>> Thanks
+>>>
+>>> Graeme
+>>>
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>
+>>
+>> Any comments on these patches?  It's been awful quiet....
+> 
+> That's because of my limited review bandwidth.
+> 
+> I'm kind of in the middle of travel now, sorry about that.
+> 
+> Thanks,
+> Rafael
+> 
 
-I see the problem now.
-Your I2C controller is under the PCI0 device on your Skylake system,
-mine was not.
+Aha.  No worries, Rafael.  Just curious.  Thanks for checking in,
+and safe travels!
 
-So, I moved the definition of all the PCI devices that are on PCI bus
-0 to under PCI0.
-After that, all the PCI devices found their ACPI companion and the
-firmware_node symlink is present and correct.
-I2C-core creates a symlink for the attached device on the right controller.
-/sys/bus/i2c/devices/i2c-24C02:00 ->
-../../../devices/pci0000:00/0000:00:18.3/i2c-3/i2c-24C02:00
-So that part is solved. (And I'll have to send a patch to coreboot...)
-
-The next issue is that the I2C-core isn't matching the device to the
-"at24" driver, which has the alias "24c02".
-
-I used to instantiate the device from user space with:
-# echo 24c02 0x57 > /sys/bus/i2c/devices/i2c-3/new_device
-That now shows the address is busy, so it is creating the device, just
-not linking it to the driver.
-
-I'll dig further and see what I can see.
-
-Thanks for your help.
-Ben
+-- 
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Red Hat, Inc.
+ahs3@redhat.com
+-----------------------------------
