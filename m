@@ -1,38 +1,129 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / property: Fix subnode lookup scope for data-only subnodes
-Date: Thu, 22 Oct 2015 01:44:58 +0200
-Message-ID: <3357380.Nnsq3b9RG3@vostro.rjw.lan>
-References: <3607867.RKSpENdj9h@vostro.rjw.lan> <20151021132036.GC1526@lahna.fi.intel.com>
+Subject: Re: [PATCH v6 01/22] driver core: handle -EPROBE_DEFER from bus_type.match()
+Date: Thu, 22 Oct 2015 03:00:27 +0200
+Message-ID: <1908332.fNIEkCOsjd@vostro.rjw.lan>
+References: <1442844182-27787-1-git-send-email-tomeu.vizoso@collabora.com> <1442844182-27787-2-git-send-email-tomeu.vizoso@collabora.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20151021132036.GC1526@lahna.fi.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Darren Hart <darren.hart@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:55119 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753158AbbJVAbf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 21 Oct 2015 20:31:35 -0400
+In-Reply-To: <1442844182-27787-2-git-send-email-tomeu.vizoso@collabora.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Cc: linux-kernel@vger.kernel.org, Rob Herring <robh+dt@kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Alan Stern <stern@rowland.harvard.edu>, linux-arm-kernel@lists.infradead.org, Dmitry Torokhov <dmitry.torokhov@gmail.com>, devicetree@vger.kernel.org, Linus Walleij <linus.walleij@linaro.org>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
 
-On Wednesday, October 21, 2015 04:20:36 PM Mika Westerberg wrote:
-> On Wed, Oct 21, 2015 at 01:51:24AM +0200, Rafael J. Wysocki wrote:
-> > From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> > 
-> > The correct scope for looking up the objects to generate data packages for
-> > data-only subnodes pointed to by another data-only subnode is the scope
-> > of the parent of that subnode and not the scope containing the _DSD object
-> > at the top of the hierarchy (the latter works only if all of the objects
-> > returning data-only subnode packages in a given hierarchy are in the same
-> > scope).
-> > 
-> > Fix the code to work as expected.
-> > 
-> > Fixes: 445b0eb058f5 (ACPI / property: Add support for data-only subnodes)
-> > Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+On Monday, September 21, 2015 04:02:41 PM Tomeu Vizoso wrote:
+> Lets implementations of the match() callback in struct bus_type to
+> return errors and if it's -EPROBE_DEFER then queue the device for
+> deferred probing.
 > 
-> Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> This is useful to buses such as AMBA in which devices are registered
+> before their matching information can be retrieved from the HW
+> (typically because a clock driver hasn't probed yet).
 > 
-> All my tests still pass so you can also add
+> Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+> ---
 > 
-> Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> 
+>  drivers/base/dd.c      | 24 ++++++++++++++++++++++--
+>  include/linux/device.h |  2 +-
+>  2 files changed, 23 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/base/dd.c b/drivers/base/dd.c
+> index be0eb4639128..7dc04ee81c8b 100644
+> --- a/drivers/base/dd.c
+> +++ b/drivers/base/dd.c
+> @@ -488,6 +488,7 @@ static int __device_attach_driver(struct device_driver *drv, void *_data)
+>  	struct device_attach_data *data = _data;
+>  	struct device *dev = data->dev;
+>  	bool async_allowed;
+> +	int ret;
+>  
+>  	/*
+>  	 * Check if device has already been claimed. This may
+> @@ -498,8 +499,17 @@ static int __device_attach_driver(struct device_driver *drv, void *_data)
+>  	if (dev->driver)
+>  		return -EBUSY;
+>  
+> -	if (!driver_match_device(drv, dev))
+> +	ret = driver_match_device(drv, dev);
+> +	if (!ret)
+>  		return 0;
+> +	else if (ret < 0) {
+> +		if (ret == -EPROBE_DEFER) {
+> +			dev_dbg(dev, "Device match requests probe deferral\n");
+> +			driver_deferred_probe_add(dev);
+> +		} else
+> +			dev_warn(dev, "Bus failed to match device: %d", ret);
+> +		return ret;
+> +	}
 
-Thanks!
+The code below was reachable if an error was returned from driver_match_device()
+before this patch.  What's the reason for changing that?
+
+Shouldn't the code here really be:
+
+	ret = driver_match_device(drv, dev);
+	if (!ret)
+		return 0;
+
+	if (ret == -EPROBE_DEFER) {
+		driver_deferred_probe_add(dev);
+		return ret;
+	}
+
+>  	async_allowed = driver_allows_async_probing(drv);
+>  
+> @@ -619,6 +629,7 @@ void device_initial_probe(struct device *dev)
+>  static int __driver_attach(struct device *dev, void *data)
+>  {
+>  	struct device_driver *drv = data;
+> +	int ret;
+>  
+>  	/*
+>  	 * Lock device and try to bind to it. We drop the error
+> @@ -630,8 +641,17 @@ static int __driver_attach(struct device *dev, void *data)
+>  	 * is an error.
+>  	 */
+>  
+> -	if (!driver_match_device(drv, dev))
+> +	ret = driver_match_device(drv, dev);
+> +	if (!ret)
+> +		return 0;
+> +	else if (ret < 0) {
+> +		if (ret == -EPROBE_DEFER) {
+> +			dev_dbg(dev, "Device match requests probe deferral\n");
+> +			driver_deferred_probe_add(dev);
+> +		} else
+> +			dev_warn(dev, "Bus failed to match device: %d", ret);
+>  		return 0;
+
+Same comment here, plus why do we return 0 at this point?
+
+> +	}
+>  
+>  	if (dev->parent)	/* Needed for USB */
+>  		device_lock(dev->parent);
+> diff --git a/include/linux/device.h b/include/linux/device.h
+> index 5d7bc6349930..8e7b806f0744 100644
+> --- a/include/linux/device.h
+> +++ b/include/linux/device.h
+> @@ -70,7 +70,7 @@ extern void bus_remove_file(struct bus_type *, struct bus_attribute *);
+>   * @dev_groups:	Default attributes of the devices on the bus.
+>   * @drv_groups: Default attributes of the device drivers on the bus.
+>   * @match:	Called, perhaps multiple times, whenever a new device or driver
+> - *		is added for this bus. It should return a nonzero value if the
+> + *		is added for this bus. It should return a positive value if the
+>   *		given device can be handled by the given driver.
+>   * @uevent:	Called when a device is added, removed, or a few other things
+>   *		that generate uevents to add the environment variables.
+> 
+
+Thanks,
+Rafael
+
