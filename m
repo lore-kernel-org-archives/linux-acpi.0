@@ -1,45 +1,64 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v4 2/2] i2c: add ACPI support for I2C mux ports
-Date: Fri, 23 Oct 2015 11:40:13 +0300
-Message-ID: <20151023084013.GS1526@lahna.fi.intel.com>
-References: <1439510358-16664-1-git-send-email-dustin@cumulusnetworks.com>
- <1445505462-27915-1-git-send-email-dustin@cumulusnetworks.com>
- <1445505462-27915-3-git-send-email-dustin@cumulusnetworks.com>
+From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Subject: Re: ACPI: Introduce CPU performance controls using CPPC
+Date: Fri, 23 Oct 2015 04:42:14 -0400
+Message-ID: <CAJ5Y-ebz5vL7KYFatcNYpdR=z1JkqPpq-8L=pkUXXDYpA132Mg@mail.gmail.com>
+References: <20151022194928.GA24403@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1445505462-27915-3-git-send-email-dustin@cumulusnetworks.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dustin Byford <dustin@cumulusnetworks.com>
-Cc: Wolfram Sang <wsa@the-dreams.de>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Jean Delvare <jdelvare@suse.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, rjw@rjwysocki.net, "Puustinen, Ismo" <ismo.puustinen@intel.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lf0-f50.google.com ([209.85.215.50]:34497 "EHLO
+	mail-lf0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752551AbbJWImf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 Oct 2015 04:42:35 -0400
+Received: by lfaz124 with SMTP id z124so75706935lfa.1
+        for <linux-acpi@vger.kernel.org>; Fri, 23 Oct 2015 01:42:34 -0700 (PDT)
+In-Reply-To: <20151022194928.GA24403@mwanda>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Dan Carpenter <dan.carpenter@oracle.com>, Rafael Wysocki <rafael@kernel.org>
+Cc: linux acpi <linux-acpi@vger.kernel.org>
 
-On Thu, Oct 22, 2015 at 02:17:42AM -0700, Dustin Byford wrote:
-> Although I2C mux devices are easily enumerated using ACPI (_HID/_CID or
-> device property compatible string match), enumerating I2C client devices
-> connected through an I2C mux needs a little extra work.
-> 
-> This change implements a method for describing an I2C device hierarchy that
-> includes mux devices by using an ACPI Device() for each mux channel along
-> with an _ADR to set the channel number for the device.  See
-> Documentation/acpi/i2c-muxes.txt for a simple example.
-> 
-> To make this work the ismt, i801, and designware pci/platform devs now
-> share an ACPI companion with their I2C adapter dev similar to how it's done
-> in OF.  This is done on the assumption that power management functions will
-> not be called directly on the I2C dev that is sharing the ACPI node.
-> 
-> Signed-off-by: Dustin Byford <dustin@cumulusnetworks.com>
+Hi Dan,
 
-This looks good to me.
+On 22 October 2015 at 15:49, Dan Carpenter <dan.carpenter@oracle.com> wrote:
+> Hello Ashwin Chaugule,
+>
+> The patch 337aadff8e45: "ACPI: Introduce CPU performance controls
+> using CPPC" from Oct 2, 2015, leads to the following static checker
+> warning:
+>
+>         drivers/acpi/cppc_acpi.c:527 acpi_cppc_processor_probe()
+>         warn: overwrite may leak 'cpc_ptr'
+>
+> drivers/acpi/cppc_acpi.c
+>    426          cpc_ptr = kzalloc(sizeof(struct cpc_desc), GFP_KERNEL);
+>    427          if (!cpc_ptr) {
+>    428                  ret = -ENOMEM;
+>    429                  goto out_buf_free;
+>    430          }
+>    431
+>    432          /* First entry is NumEntries. */
+>    433          cpc_obj = &out_obj->package.elements[0];
+>    434          if (cpc_obj->type == ACPI_TYPE_INTEGER) {
+>    435                  num_ent = cpc_obj->integer.value;
+>    436          } else {
+>    437                  pr_debug("Unexpected entry type(%d) for NumEntries\n",
+>    438                                  cpc_obj->type);
+>    439                  goto out_free;
+>    440          }
+>
+> [ snip ]
+>
+>    523          kfree(output.pointer);
+>    524          return 0;
+>    525
+>    526  out_free:
+>    527          cpc_ptr = per_cpu(cpc_desc_ptr, pr->id);
+>
+> Why do we have this line?  Maybe it is left over and should be deleted?
 
-You did also some stylistic changes to the drivers in question which I
-think should be placed to a separate patches.
+Gah! You're right. This is a left over and should be deleted. I can
+send the fix to Rafael, if you dont have one ready to send?
 
-Regardless of that,
-
-Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-
-I'll leave this up to Rafael and Wolfram to decide how to go forward
-with this patch.
+Thanks,
+Ashwin.
