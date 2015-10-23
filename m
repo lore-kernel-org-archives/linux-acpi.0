@@ -1,44 +1,76 @@
-From: Jarkko Nikula <jarkko.nikula@linux.intel.com>
-Subject: Re: [PATCH v4 2/2] i2c: add ACPI support for I2C mux ports
-Date: Fri, 23 Oct 2015 16:55:55 +0300
-Message-ID: <562A3C6B.6070304@linux.intel.com>
-References: <1439510358-16664-1-git-send-email-dustin@cumulusnetworks.com> <1445505462-27915-1-git-send-email-dustin@cumulusnetworks.com> <1445505462-27915-3-git-send-email-dustin@cumulusnetworks.com> <20151023084013.GS1526@lahna.fi.intel.com> <20151023101611.GH13380@katana> <20151023131311.GA1526@lahna.fi.intel.com> <20151023134004.GB1526@lahna.fi.intel.com>
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: Re: [PATCH 3/3] ACPI/APEI/EINJ: Allow memory error injection to
+ NVDIMM
+Date: Fri, 23 Oct 2015 08:03:57 -0600
+Message-ID: <1445609037.20657.68.camel@hpe.com>
+References: <1445556044-30322-1-git-send-email-toshi.kani@hpe.com>
+	 <1445556044-30322-4-git-send-email-toshi.kani@hpe.com>
+	 <CAPcyv4j9iDrUrS1Xt4sTV8KOg6wsb=stp=XzoOLFBtuqWf+0AQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20151023134004.GB1526@lahna.fi.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>, Wolfram Sang <wsa@the-dreams.de>
-Cc: Dustin Byford <dustin@cumulusnetworks.com>, Jean Delvare <jdelvare@suse.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, rjw@rjwysocki.net, "Puustinen, Ismo" <ismo.puustinen@intel.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <CAPcyv4j9iDrUrS1Xt4sTV8KOg6wsb=stp=XzoOLFBtuqWf+0AQ@mail.gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux MM <linux-mm@kvack.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 10/23/2015 04:40 PM, Mika Westerberg wrote:
-> On Fri, Oct 23, 2015 at 04:13:11PM +0300, Mika Westerberg wrote:
->> On Fri, Oct 23, 2015 at 12:16:11PM +0200, Wolfram Sang wrote:
->>> On Fri, Oct 23, 2015 at 11:40:13AM +0300, Mika Westerberg wrote:
->>>> On Thu, Oct 22, 2015 at 02:17:42AM -0700, Dustin Byford wrote:
-> Ah, forgot to mention that the i2c-designware-pcidrv.c misses include=
- of
-> <linux/acpi.h> so that needs to be fixed. Otherwise we get:
->
-> drivers/i2c/busses/i2c-designware-pcidrv.c: In function =E2=80=98i2c_=
-dw_pci_probe=E2=80=99:
-> drivers/i2c/busses/i2c-designware-pcidrv.c:259:2: error: implicit dec=
-laration of function =E2=80=98ACPI_COMPANION_SET=E2=80=99 [-Werror=3Dim=
-plicit-function-declaration]
-> drivers/i2c/busses/i2c-designware-pcidrv.c:259:33: error: implicit de=
-claration of function =E2=80=98ACPI_COMPANION=E2=80=99 [-Werror=3Dimpli=
-cit-function-declaration]
->
-Please also check that patches apply on top of i2c/for-next due recentl=
-y=20
-applied cleanup patches from me.
+On Thu, 2015-10-22 at 17:14 -0700, Dan Williams wrote:
+> On Thu, Oct 22, 2015 at 4:20 PM, Toshi Kani <toshi.kani@hpe.com> wrote:
+> > In the case of memory error injection, einj_error_inject() checks
+> > if a target address is regular RAM.  Change this check to allow
+> > injecting a memory error to both RAM and NVDIMM so that memory
+> > errors can be tested on NVDIMM as well.
+> > 
+> > Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+> > ---
+> >  drivers/acpi/apei/einj.c |   12 ++++++++----
+> >  1 file changed, 8 insertions(+), 4 deletions(-)
+> > 
+> > diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
+> > index 0431883..696f45a 100644
+> > --- a/drivers/acpi/apei/einj.c
+> > +++ b/drivers/acpi/apei/einj.c
+> > @@ -519,7 +519,7 @@ static int
+> (u32 type, u32 flags, u64 param1, u64 param2,
+> >                              u64 param3, u64 param4)
+> >  {
+> >         int rc;
+> > -       unsigned long pfn;
+> > +       u64 base_addr, size;
+> > 
+> >         /* If user manually set "flags", make sure it is legal */
+> >         if (flags && (flags &
+> > @@ -545,10 +545,14 @@ static int einj_error_inject(u32 type, u32 flags, u64
+> > param1, u64 param2,
+> >         /*
+> >          * Disallow crazy address masks that give BIOS leeway to pick
+> >          * injection address almost anywhere. Insist on page or
+> > -        * better granularity and that target address is normal RAM.
+> > +        * better granularity and that target address is normal RAM or
+> > +        * NVDIMM.
+> >          */
+> > -       pfn = PFN_DOWN(param1 & param2);
+> > -       if (!page_is_ram(pfn) || ((param2 & PAGE_MASK) != PAGE_MASK))
+> > +       base_addr = param1 & param2;
+> > +       size = (~param2) + 1;
+> > +       if (((!page_is_ram(PFN_DOWN(base_addr))) &&
+> > +            (region_intersects_pmem(base_addr, size) != REGION_INTERSECTS))
+> > ||
+> > +           ((param2 & PAGE_MASK) != PAGE_MASK))
+> 
+> Hmm, should we also convert the page_is_ram() call to
+> region_intersects_ram() so that we check the entire range from
+> base_addr to base_addr + size?
 
-I think commit d80d134182ba ("i2c: designware: Move common probe code=20
-into i2c_dw_probe()") makes your patch only a 2 liner to=20
-drivers/i2c/busses/i2c-designware-core.c :-)
+Agreed.  I will update to use region_intersects_ram().
 
---=20
-Jarkko
+Thanks,
+-Toshi
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
