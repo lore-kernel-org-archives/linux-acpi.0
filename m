@@ -1,38 +1,85 @@
 From: Ben Gardner <gardner.ben@gmail.com>
-Subject: Re: [PATCH v4 4/5] at24: enable ACPI device found on Galileo Gen2
-Date: Fri, 23 Oct 2015 12:20:09 -0500
-Message-ID: <CAE7DoPb01p+iugRv_h9zqGgYggrkJJ=sypP4Rt7jMbi6Xncw+g@mail.gmail.com>
-References: <1445591805-28886-1-git-send-email-andriy.shevchenko@linux.intel.com>
-	<1445591805-28886-5-git-send-email-andriy.shevchenko@linux.intel.com>
+Subject: Re: ACPI: Can I use I2cSerialBus with a PCI I2C controller?
+Date: Fri, 23 Oct 2015 12:24:06 -0500
+Message-ID: <CAE7DoPbsc28tp9oOYnasTqtREOx=yNAk-xJV7q=jUHBPCPctNg@mail.gmail.com>
+References: <CAE7DoPZs69A5vLzDfrRXuC3q9fpkaXRYna2NQwHZk_BK9gLnvQ@mail.gmail.com>
+	<20151021085056.GV1526@lahna.fi.intel.com>
+	<CAE7DoPak939WjCWaGQw7W6aR0dZOcJCjcQK8gMa9iu+WRmnDDw@mail.gmail.com>
+	<20151022080157.GI1526@lahna.fi.intel.com>
+	<CAE7DoPY8+zw4xw0hWTmPoG4iPgC=2JRCT4bHqeqqaH+BywTWpw@mail.gmail.com>
+	<CAE7DoPZfLDEBmeODQv3oEbs033gpq4oSA=Sx15wMajzVUbUinw@mail.gmail.com>
+	<20151023082054.GP1526@lahna.fi.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ig0-f177.google.com ([209.85.213.177]:33255 "EHLO
-	mail-ig0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751080AbbJWRUK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 Oct 2015 13:20:10 -0400
-In-Reply-To: <1445591805-28886-5-git-send-email-andriy.shevchenko@linux.intel.com>
+Received: from mail-io0-f176.google.com ([209.85.223.176]:35259 "EHLO
+	mail-io0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751080AbbJWRYH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 Oct 2015 13:24:07 -0400
+Received: by iofz202 with SMTP id z202so130821198iof.2
+        for <linux-acpi@vger.kernel.org>; Fri, 23 Oct 2015 10:24:06 -0700 (PDT)
+In-Reply-To: <20151023082054.GP1526@lahna.fi.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, Linux I2C <linux-i2c@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>, Wolfram Sang <wsa@the-dreams.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@intel.com>, "Puustinen, Ismo" <ismo.puustinen@intel.com>, linux-kernel@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org
 
-Hi,
+On Fri, Oct 23, 2015 at 3:20 AM, Mika Westerberg
+<mika.westerberg@linux.intel.com> wrote:
+> On Thu, Oct 22, 2015 at 12:17:58PM -0500, Ben Gardner wrote:
+>> > The next issue is that the I2C-core isn't matching the device to the
+>> > "at24" driver, which has the alias "24c02".
+>>
+>> Here is what I found.
+>> i2c-core is creating the device with the ACPI name "24C02:00".
+>> The at24 driver uses "24c02" as the alias.
+>> i2c-code is matching devices to drivers using strcmp().
+>>
+>> Result: no match. ("24c02" != "24C02:00").
+>>
+>> If I modify acpi_i2c_add_device() to cut off the name at the ':' and
+>> covert to lowercase when populating info.type, it matches and works.
+>> I must be missing something here, because this would have never worked as-is.
+>> I'll ask on the I2C mailing list.
+>
+> You should either use proper _HID/_CID for the device or put "PRP0001"
+> to the _HID and let the match happen with DT .compatible strings. I've
+> attached a hack that I use locally.
+>
+> The corresponding ASL fragment would look like:
+>
+>
+>         Device (AT24)
+>         {
+>             Name (_HID, "PRP0001")
+>
+>             Method (_CRS, 0, Serialized) {
+>                 Name (UBUF, ResourceTemplate () {
+>                     I2cSerialBus (0x50, ControllerInitiated, 0x00061A80,
+>                         AddressingMode7Bit, "\\_SB.I2C6",
+>                         0x00, ResourceConsumer)
+>                 })
+>                 Return (UBUF)
+>             }
+>
+>             Name (_DSD, Package () {
+>                 ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+>                 Package () {
+>                     Package () {"compatible", "atmel,24c02"},
+>                     Package () {"size", 256},
+>                     Package () {"pagesize", 32},
+>                     Package () {"abs-value", 1},
+>                 },
+>             })
+>
+>             Method (_STA, 0, NotSerialized)
+>             {
+>                 Return (0xF)
+>             }
+>         }
 
-On Fri, Oct 23, 2015 at 4:16 AM, Andy Shevchenko
-<andriy.shevchenko@linux.intel.com> wrote:
-> There is a 24c08 chip connected to i2c bus on Intel Galileo Gen2 board. Enable
-> it via ACPI ID INT3499.
-
-I'm looking to do something similar with a 24C02 and would like to
-know if there is an ID already defined for that.
-
-Is there a master list of ACPI IDs?
-
-The best I found is here: http://www.uefi.org/PNP_ACPI_Registry
-But that doesn't seem to have individual numbers and it indicates that
-the "INT" PNP ID is reserved by INTERPHASE CORPORATION.
-Intel Corp looks to have "ICO" for the PNP ID and ACPI/INTC/INTL for ACPI IDs.
+I like this approach, as one change to the driver will support all ACPI devices.
+I'll give it a try.
 
 Thanks,
 Ben
