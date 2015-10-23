@@ -1,49 +1,95 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: ACPI: Can I use I2cSerialBus with a PCI I2C controller?
-Date: Fri, 23 Oct 2015 12:43:45 +0300
-Message-ID: <20151023094345.GY1526@lahna.fi.intel.com>
-References: <CAE7DoPZs69A5vLzDfrRXuC3q9fpkaXRYna2NQwHZk_BK9gLnvQ@mail.gmail.com>
- <20151021085056.GV1526@lahna.fi.intel.com>
- <CAE7DoPak939WjCWaGQw7W6aR0dZOcJCjcQK8gMa9iu+WRmnDDw@mail.gmail.com>
- <20151022080157.GI1526@lahna.fi.intel.com>
- <CAE7DoPY8+zw4xw0hWTmPoG4iPgC=2JRCT4bHqeqqaH+BywTWpw@mail.gmail.com>
- <CAE7DoPZfLDEBmeODQv3oEbs033gpq4oSA=Sx15wMajzVUbUinw@mail.gmail.com>
- <20151023082054.GP1526@lahna.fi.intel.com>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [PATCH v4 2/2] i2c: add ACPI support for I2C mux ports
+Date: Fri, 23 Oct 2015 12:16:11 +0200
+Message-ID: <20151023101611.GH13380@katana>
+References: <1439510358-16664-1-git-send-email-dustin@cumulusnetworks.com>
+ <1445505462-27915-1-git-send-email-dustin@cumulusnetworks.com>
+ <1445505462-27915-3-git-send-email-dustin@cumulusnetworks.com>
+ <20151023084013.GS1526@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="CNfT9TXqV7nd4cfk"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:21578 "EHLO mga02.intel.com"
+Received: from sauhun.de ([89.238.76.85]:34550 "EHLO pokefinder.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751609AbbJWJns (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 23 Oct 2015 05:43:48 -0400
+	id S1751212AbbJWKQS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 23 Oct 2015 06:16:18 -0400
 Content-Disposition: inline
-In-Reply-To: <20151023082054.GP1526@lahna.fi.intel.com>
+In-Reply-To: <20151023084013.GS1526@lahna.fi.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ben Gardner <gardner.ben@gmail.com>
-Cc: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Dustin Byford <dustin@cumulusnetworks.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Jean Delvare <jdelvare@suse.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, rjw@rjwysocki.net, "Puustinen, Ismo" <ismo.puustinen@intel.com>
 
-On Fri, Oct 23, 2015 at 11:20:54AM +0300, Mika Westerberg wrote:
-> On Thu, Oct 22, 2015 at 12:17:58PM -0500, Ben Gardner wrote:
-> > > The next issue is that the I2C-core isn't matching the device to the
-> > > "at24" driver, which has the alias "24c02".
-> > 
-> > Here is what I found.
-> > i2c-core is creating the device with the ACPI name "24C02:00".
-> > The at24 driver uses "24c02" as the alias.
-> > i2c-code is matching devices to drivers using strcmp().
-> > 
-> > Result: no match. ("24c02" != "24C02:00").
-> > 
-> > If I modify acpi_i2c_add_device() to cut off the name at the ':' and
-> > covert to lowercase when populating info.type, it matches and works.
-> > I must be missing something here, because this would have never worked as-is.
-> > I'll ask on the I2C mailing list.
-> 
-> You should either use proper _HID/_CID for the device or put "PRP0001"
-> to the _HID and let the match happen with DT .compatible strings. I've
-> attached a hack that I use locally.
 
-Alternatively you can use patch by Andy here:
+--CNfT9TXqV7nd4cfk
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-https://patchwork.ozlabs.org/patch/524923
+On Fri, Oct 23, 2015 at 11:40:13AM +0300, Mika Westerberg wrote:
+> On Thu, Oct 22, 2015 at 02:17:42AM -0700, Dustin Byford wrote:
+> > Although I2C mux devices are easily enumerated using ACPI (_HID/_CID or
+> > device property compatible string match), enumerating I2C client devices
+> > connected through an I2C mux needs a little extra work.
+> >=20
+> > This change implements a method for describing an I2C device hierarchy =
+that
+> > includes mux devices by using an ACPI Device() for each mux channel alo=
+ng
+> > with an _ADR to set the channel number for the device.  See
+> > Documentation/acpi/i2c-muxes.txt for a simple example.
+> >=20
+> > To make this work the ismt, i801, and designware pci/platform devs now
+> > share an ACPI companion with their I2C adapter dev similar to how it's =
+done
+> > in OF.  This is done on the assumption that power management functions =
+will
+> > not be called directly on the I2C dev that is sharing the ACPI node.
+> >=20
+> > Signed-off-by: Dustin Byford <dustin@cumulusnetworks.com>
+>=20
+> This looks good to me.
+>=20
+> You did also some stylistic changes to the drivers in question which I
+> think should be placed to a separate patches.
+
+I am fine with those.
+
+> Regardless of that,
+>=20
+> Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+
+I would love to get a Tested-by for the designware part. Then, I could
+queue it for 4.4 already.
+
+> I'll leave this up to Rafael and Wolfram to decide how to go forward
+> with this patch.
+
+I'd think I pick both when Rafael acks patch 1 (with the unneded 'return'
+removed).
+
+
+--CNfT9TXqV7nd4cfk
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJWKgjrAAoJEBQN5MwUoCm2lPsQAJoDz+5sU/F4Kszvx06sTq6f
+MHkS1QigX9fqsfMJ+EgaFOrq0fRVX1xpsYeHUPdHidVInf6it2iy8q//JFoBBiN9
+iuCbEWt42OunLrA4oBDZgHB9S/fBbomNdNjKGTo4DJ+6E5OIiryKUc6AtX8mTORy
+miLMhQngrSNpbo7ximlQ6LR48xypwOHZ4NZlO0I9Sfa842b3rYcWKkGLwzXs1Gbz
+HcIegyvp4B3uHG+QlB5Bp7ljmfNf9Wt1ziDNyA7HzvrQjMd4HMGWMPHMgP6n1+wG
+jX4U2izqpUOl+WMgezkeM2Jvuz3VqeLeXfGCv4sirXq7T/5sj2KBKs4XLOrS4pxu
+BanPTkBn80boojCfec7u+6OVkyt+hHsPMkL1TcA/Ha8+Gu8yOMzDQF/vf1S/K9Q7
+SyAms6QKVfoW8gq01wNU9cEoxu3JOeUh2TC/ZxTiAgsdM/TgOw757Q5tVDmKqlmI
+qYCRje3HybebVmDi85C3YEWk64zMr6ez3VHo2ttUWbWk3JZVCykE5+NitY+2TaJB
+Zv93JsulqbWP+0OBVi8XIZYtI9Qj//ECTU27hMS1ERiNckNDBZPlU9QRXelK+hNY
+mdzpnGVTNxfRhForcY3SXkIF38iR+VydHX96lcXzwTnoh2F6k5hJdMmh478KG799
+wbtx6Lm0nAFd3HTKChrx
+=B/b3
+-----END PGP SIGNATURE-----
+
+--CNfT9TXqV7nd4cfk--
