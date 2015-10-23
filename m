@@ -1,95 +1,50 @@
 From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH v4 2/2] i2c: add ACPI support for I2C mux ports
-Date: Fri, 23 Oct 2015 12:16:11 +0200
-Message-ID: <20151023101611.GH13380@katana>
-References: <1439510358-16664-1-git-send-email-dustin@cumulusnetworks.com>
- <1445505462-27915-1-git-send-email-dustin@cumulusnetworks.com>
- <1445505462-27915-3-git-send-email-dustin@cumulusnetworks.com>
- <20151023084013.GS1526@lahna.fi.intel.com>
+Subject: Re: [PATCH v4 0/5] enable I2C devices behind I2C bus on Gen2
+Date: Fri, 23 Oct 2015 14:38:35 +0200
+Message-ID: <20151023123835.GN13380@katana>
+References: <1445591805-28886-1-git-send-email-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="CNfT9TXqV7nd4cfk"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from sauhun.de ([89.238.76.85]:34550 "EHLO pokefinder.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751212AbbJWKQS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 23 Oct 2015 06:16:18 -0400
+	protocol="application/pgp-signature"; boundary="qi3SIpffvxS/TM8d"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20151023084013.GS1526@lahna.fi.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <1445591805-28886-1-git-send-email-andriy.shevchenko@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@intel.com>, "Puustinen, Ismo" <ismo.puustinen@intel.com>, linux-kernel@vger.kernel.org, Thierry Reding <thierry.reding@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Dustin Byford <dustin@cumulusnetworks.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Jean Delvare <jdelvare@suse.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, rjw@rjwysocki.net, "Puustinen, Ismo" <ismo.puustinen@intel.com>
 
 
---CNfT9TXqV7nd4cfk
+--qi3SIpffvxS/TM8d
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-On Fri, Oct 23, 2015 at 11:40:13AM +0300, Mika Westerberg wrote:
-> On Thu, Oct 22, 2015 at 02:17:42AM -0700, Dustin Byford wrote:
-> > Although I2C mux devices are easily enumerated using ACPI (_HID/_CID or
-> > device property compatible string match), enumerating I2C client devices
-> > connected through an I2C mux needs a little extra work.
-> >=20
-> > This change implements a method for describing an I2C device hierarchy =
-that
-> > includes mux devices by using an ACPI Device() for each mux channel alo=
-ng
-> > with an _ADR to set the channel number for the device.  See
-> > Documentation/acpi/i2c-muxes.txt for a simple example.
-> >=20
-> > To make this work the ismt, i801, and designware pci/platform devs now
-> > share an ACPI companion with their I2C adapter dev similar to how it's =
-done
-> > in OF.  This is done on the assumption that power management functions =
-will
-> > not be called directly on the I2C dev that is sharing the ACPI node.
-> >=20
-> > Signed-off-by: Dustin Byford <dustin@cumulusnetworks.com>
->=20
-> This looks good to me.
->=20
-> You did also some stylistic changes to the drivers in question which I
-> think should be placed to a separate patches.
-
-I am fine with those.
-
-> Regardless of that,
->=20
-> Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-
-I would love to get a Tested-by for the designware part. Then, I could
-queue it for 4.4 already.
-
-> I'll leave this up to Rafael and Wolfram to decide how to go forward
-> with this patch.
-
-I'd think I pick both when Rafael acks patch 1 (with the unneded 'return'
-removed).
 
 
---CNfT9TXqV7nd4cfk
+> Wolfram, since Lee acknowledged patches 1-3, can you pull them to your tree?
+
+So, I picked patches 1-4 to my for-next. Patch 5 is missing an ACK.
+
+
+--qi3SIpffvxS/TM8d
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Digital signature
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQIcBAEBAgAGBQJWKgjrAAoJEBQN5MwUoCm2lPsQAJoDz+5sU/F4Kszvx06sTq6f
-MHkS1QigX9fqsfMJ+EgaFOrq0fRVX1xpsYeHUPdHidVInf6it2iy8q//JFoBBiN9
-iuCbEWt42OunLrA4oBDZgHB9S/fBbomNdNjKGTo4DJ+6E5OIiryKUc6AtX8mTORy
-miLMhQngrSNpbo7ximlQ6LR48xypwOHZ4NZlO0I9Sfa842b3rYcWKkGLwzXs1Gbz
-HcIegyvp4B3uHG+QlB5Bp7ljmfNf9Wt1ziDNyA7HzvrQjMd4HMGWMPHMgP6n1+wG
-jX4U2izqpUOl+WMgezkeM2Jvuz3VqeLeXfGCv4sirXq7T/5sj2KBKs4XLOrS4pxu
-BanPTkBn80boojCfec7u+6OVkyt+hHsPMkL1TcA/Ha8+Gu8yOMzDQF/vf1S/K9Q7
-SyAms6QKVfoW8gq01wNU9cEoxu3JOeUh2TC/ZxTiAgsdM/TgOw757Q5tVDmKqlmI
-qYCRje3HybebVmDi85C3YEWk64zMr6ez3VHo2ttUWbWk3JZVCykE5+NitY+2TaJB
-Zv93JsulqbWP+0OBVi8XIZYtI9Qj//ECTU27hMS1ERiNckNDBZPlU9QRXelK+hNY
-mdzpnGVTNxfRhForcY3SXkIF38iR+VydHX96lcXzwTnoh2F6k5hJdMmh478KG799
-wbtx6Lm0nAFd3HTKChrx
-=B/b3
+iQIcBAEBAgAGBQJWKipLAAoJEBQN5MwUoCm2zfsP+wWii3/v3rhMOXwP5IMTKXZo
+sRevMcP6+pVMT0do9FbjETMDrpjENsfuJEmmuJQFtejo9X+++QLCofWVL+RUktGg
++gQJOK3TFrr/vbM/YfnUUEHC+jXnfeyoe8YQl36kG4jjodOJ5Q0o3yPj4/V4vezJ
+OJUIP0JrSwRTjY30h/Zys1YXjiDImUU6bURTDloh2fX/0ZuBBJowstQye5bXidg0
+FNXUNRXeVyedAwS8Ss15wjSWCZ1Pf235JtI+t2om1qAto1nqrvsro58pVriQZJ+0
+YxYo7vK6YHeGDfQtRLd0nIVjOoAkKuF/OHFdr0gHL6b5y5T7r9uPMsFPRPJOaaYy
+7WLu0j50JwgIcEwk6g8XeKqNX2/1P/05vAauORh2vvklKSw75MZ08tgaZmrjPvUM
+o4R9ACiAh3eEj/syO7eY8utWzET4eAOibdo+o8hKUY3ixIUMuGjDWUHCUXcgpaLC
+M2OQt0rVg4lkgKa6sjcMyHW8sq57uTxs5KqCrnpwDDFXzvueDRrcshRKjQjoEwAa
+K2gVC5xPkifHQot6Mxr6fE5dx0EoGcbqBjOrN+YeX4/f+NL5ZRaNTviEk/Lb2KIC
+XZ+8HZqfqR2aBwOOReqo2fmTy4ocXQdwLISaagu3+zSV4haFGgR3ylvLsK6X7ghL
+AOBAFPjaGDX0+ki2AmSx
+=bHpy
 -----END PGP SIGNATURE-----
 
---CNfT9TXqV7nd4cfk--
+--qi3SIpffvxS/TM8d--
