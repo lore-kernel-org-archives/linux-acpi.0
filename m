@@ -1,50 +1,57 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH v4 0/5] enable I2C devices behind I2C bus on Gen2
-Date: Fri, 23 Oct 2015 14:38:35 +0200
-Message-ID: <20151023123835.GN13380@katana>
-References: <1445591805-28886-1-git-send-email-andriy.shevchenko@linux.intel.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v4 2/2] i2c: add ACPI support for I2C mux ports
+Date: Fri, 23 Oct 2015 16:13:11 +0300
+Message-ID: <20151023131311.GA1526@lahna.fi.intel.com>
+References: <1439510358-16664-1-git-send-email-dustin@cumulusnetworks.com>
+ <1445505462-27915-1-git-send-email-dustin@cumulusnetworks.com>
+ <1445505462-27915-3-git-send-email-dustin@cumulusnetworks.com>
+ <20151023084013.GS1526@lahna.fi.intel.com>
+ <20151023101611.GH13380@katana>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="qi3SIpffvxS/TM8d"
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1445591805-28886-1-git-send-email-andriy.shevchenko@linux.intel.com>
+In-Reply-To: <20151023101611.GH13380@katana>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@intel.com>, "Puustinen, Ismo" <ismo.puustinen@intel.com>, linux-kernel@vger.kernel.org, Thierry Reding <thierry.reding@gmail.com>
+To: Wolfram Sang <wsa@the-dreams.de>
+Cc: Dustin Byford <dustin@cumulusnetworks.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Jean Delvare <jdelvare@suse.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, rjw@rjwysocki.net, "Puustinen, Ismo" <ismo.puustinen@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
+On Fri, Oct 23, 2015 at 12:16:11PM +0200, Wolfram Sang wrote:
+> On Fri, Oct 23, 2015 at 11:40:13AM +0300, Mika Westerberg wrote:
+> > On Thu, Oct 22, 2015 at 02:17:42AM -0700, Dustin Byford wrote:
+> > > Although I2C mux devices are easily enumerated using ACPI (_HID/_CID or
+> > > device property compatible string match), enumerating I2C client devices
+> > > connected through an I2C mux needs a little extra work.
+> > > 
+> > > This change implements a method for describing an I2C device hierarchy that
+> > > includes mux devices by using an ACPI Device() for each mux channel along
+> > > with an _ADR to set the channel number for the device.  See
+> > > Documentation/acpi/i2c-muxes.txt for a simple example.
+> > > 
+> > > To make this work the ismt, i801, and designware pci/platform devs now
+> > > share an ACPI companion with their I2C adapter dev similar to how it's done
+> > > in OF.  This is done on the assumption that power management functions will
+> > > not be called directly on the I2C dev that is sharing the ACPI node.
+> > > 
+> > > Signed-off-by: Dustin Byford <dustin@cumulusnetworks.com>
+> > 
+> > This looks good to me.
+> > 
+> > You did also some stylistic changes to the drivers in question which I
+> > think should be placed to a separate patches.
+> 
+> I am fine with those.
+> 
+> > Regardless of that,
+> > 
+> > Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> 
+> I would love to get a Tested-by for the designware part. Then, I could
+> queue it for 4.4 already.
 
---qi3SIpffvxS/TM8d
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Tested on Intel Baytrail and Skylake and the existing I2C devices
+(touchpad, touchscreen) still work so for the designware part you can
+also add my,
 
-
-> Wolfram, since Lee acknowledged patches 1-3, can you pull them to your tree?
-
-So, I picked patches 1-4 to my for-next. Patch 5 is missing an ACK.
-
-
---qi3SIpffvxS/TM8d
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJWKipLAAoJEBQN5MwUoCm2zfsP+wWii3/v3rhMOXwP5IMTKXZo
-sRevMcP6+pVMT0do9FbjETMDrpjENsfuJEmmuJQFtejo9X+++QLCofWVL+RUktGg
-+gQJOK3TFrr/vbM/YfnUUEHC+jXnfeyoe8YQl36kG4jjodOJ5Q0o3yPj4/V4vezJ
-OJUIP0JrSwRTjY30h/Zys1YXjiDImUU6bURTDloh2fX/0ZuBBJowstQye5bXidg0
-FNXUNRXeVyedAwS8Ss15wjSWCZ1Pf235JtI+t2om1qAto1nqrvsro58pVriQZJ+0
-YxYo7vK6YHeGDfQtRLd0nIVjOoAkKuF/OHFdr0gHL6b5y5T7r9uPMsFPRPJOaaYy
-7WLu0j50JwgIcEwk6g8XeKqNX2/1P/05vAauORh2vvklKSw75MZ08tgaZmrjPvUM
-o4R9ACiAh3eEj/syO7eY8utWzET4eAOibdo+o8hKUY3ixIUMuGjDWUHCUXcgpaLC
-M2OQt0rVg4lkgKa6sjcMyHW8sq57uTxs5KqCrnpwDDFXzvueDRrcshRKjQjoEwAa
-K2gVC5xPkifHQot6Mxr6fE5dx0EoGcbqBjOrN+YeX4/f+NL5ZRaNTviEk/Lb2KIC
-XZ+8HZqfqR2aBwOOReqo2fmTy4ocXQdwLISaagu3+zSV4haFGgR3ylvLsK6X7ghL
-AOBAFPjaGDX0+ki2AmSx
-=bHpy
------END PGP SIGNATURE-----
-
---qi3SIpffvxS/TM8d--
+Tested-by: Mika Westerberg <mika.westerberg@linux.intel.com>
