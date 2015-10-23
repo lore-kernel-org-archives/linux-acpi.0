@@ -1,85 +1,124 @@
-From: Ben Gardner <gardner.ben@gmail.com>
-Subject: Re: ACPI: Can I use I2cSerialBus with a PCI I2C controller?
-Date: Fri, 23 Oct 2015 12:24:06 -0500
-Message-ID: <CAE7DoPbsc28tp9oOYnasTqtREOx=yNAk-xJV7q=jUHBPCPctNg@mail.gmail.com>
-References: <CAE7DoPZs69A5vLzDfrRXuC3q9fpkaXRYna2NQwHZk_BK9gLnvQ@mail.gmail.com>
-	<20151021085056.GV1526@lahna.fi.intel.com>
-	<CAE7DoPak939WjCWaGQw7W6aR0dZOcJCjcQK8gMa9iu+WRmnDDw@mail.gmail.com>
-	<20151022080157.GI1526@lahna.fi.intel.com>
-	<CAE7DoPY8+zw4xw0hWTmPoG4iPgC=2JRCT4bHqeqqaH+BywTWpw@mail.gmail.com>
-	<CAE7DoPZfLDEBmeODQv3oEbs033gpq4oSA=Sx15wMajzVUbUinw@mail.gmail.com>
-	<20151023082054.GP1526@lahna.fi.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-io0-f176.google.com ([209.85.223.176]:35259 "EHLO
-	mail-io0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751080AbbJWRYH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 Oct 2015 13:24:07 -0400
-Received: by iofz202 with SMTP id z202so130821198iof.2
-        for <linux-acpi@vger.kernel.org>; Fri, 23 Oct 2015 10:24:06 -0700 (PDT)
-In-Reply-To: <20151023082054.GP1526@lahna.fi.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: [PATCH v2 1/3] resource: Add @flags to region_intersects()
+Date: Fri, 23 Oct 2015 12:53:57 -0600
+Message-ID: <1445626439-8424-2-git-send-email-toshi.kani@hpe.com>
+References: <1445626439-8424-1-git-send-email-toshi.kani@hpe.com>
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1445626439-8424-1-git-send-email-toshi.kani@hpe.com>
+Sender: owner-linux-mm@kvack.org
+To: akpm@linux-foundation.org, dan.j.williams@intel.com, rjw@rjwysocki.net
+Cc: linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org
 
-On Fri, Oct 23, 2015 at 3:20 AM, Mika Westerberg
-<mika.westerberg@linux.intel.com> wrote:
-> On Thu, Oct 22, 2015 at 12:17:58PM -0500, Ben Gardner wrote:
->> > The next issue is that the I2C-core isn't matching the device to the
->> > "at24" driver, which has the alias "24c02".
->>
->> Here is what I found.
->> i2c-core is creating the device with the ACPI name "24C02:00".
->> The at24 driver uses "24c02" as the alias.
->> i2c-code is matching devices to drivers using strcmp().
->>
->> Result: no match. ("24c02" != "24C02:00").
->>
->> If I modify acpi_i2c_add_device() to cut off the name at the ':' and
->> covert to lowercase when populating info.type, it matches and works.
->> I must be missing something here, because this would have never worked as-is.
->> I'll ask on the I2C mailing list.
->
-> You should either use proper _HID/_CID for the device or put "PRP0001"
-> to the _HID and let the match happen with DT .compatible strings. I've
-> attached a hack that I use locally.
->
-> The corresponding ASL fragment would look like:
->
->
->         Device (AT24)
->         {
->             Name (_HID, "PRP0001")
->
->             Method (_CRS, 0, Serialized) {
->                 Name (UBUF, ResourceTemplate () {
->                     I2cSerialBus (0x50, ControllerInitiated, 0x00061A80,
->                         AddressingMode7Bit, "\\_SB.I2C6",
->                         0x00, ResourceConsumer)
->                 })
->                 Return (UBUF)
->             }
->
->             Name (_DSD, Package () {
->                 ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
->                 Package () {
->                     Package () {"compatible", "atmel,24c02"},
->                     Package () {"size", 256},
->                     Package () {"pagesize", 32},
->                     Package () {"abs-value", 1},
->                 },
->             })
->
->             Method (_STA, 0, NotSerialized)
->             {
->                 Return (0xF)
->             }
->         }
+region_intersects() checks if a specified region partially overlaps
+or fully eclipses a resource identified by @name.  It currently sets
+resource flags statically, which prevents the caller from specifying
+a non-RAM region, such as persistent memory.  Add @flags so that
+any region can be specified to the function.
 
-I like this approach, as one change to the driver will support all ACPI devices.
-I'll give it a try.
+A helper function, region_intersects_ram(), is added so that the
+callers that check a RAM region do not have to specify its iomem
+resource name and flags.  This interface is exported for modules,
+such as the EINJ driver.
 
-Thanks,
-Ben
+Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+---
+ include/linux/mm.h |    4 +++-
+ kernel/memremap.c  |    5 ++---
+ kernel/resource.c  |   23 ++++++++++++++++-------
+ 3 files changed, 21 insertions(+), 11 deletions(-)
+
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index 80001de..699224e 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -358,7 +358,9 @@ enum {
+ 	REGION_MIXED,
+ };
+ 
+-int region_intersects(resource_size_t offset, size_t size, const char *type);
++int region_intersects(resource_size_t offset, size_t size, const char *type,
++			unsigned long flags);
++int region_intersects_ram(resource_size_t offset, size_t size);
+ 
+ /* Support for virtually mapped pages */
+ struct page *vmalloc_to_page(const void *addr);
+diff --git a/kernel/memremap.c b/kernel/memremap.c
+index 72b0c66..2157ea5 100644
+--- a/kernel/memremap.c
++++ b/kernel/memremap.c
+@@ -47,7 +47,7 @@ __weak void __iomem *ioremap_cache(resource_size_t offset, unsigned long size)
+  */
+ void *memremap(resource_size_t offset, size_t size, unsigned long flags)
+ {
+-	int is_ram = region_intersects(offset, size, "System RAM");
++	int is_ram = region_intersects_ram(offset, size);
+ 	void *addr = NULL;
+ 
+ 	if (is_ram == REGION_MIXED) {
+@@ -152,8 +152,7 @@ static void devm_memremap_pages_release(struct device *dev, void *res)
+ 
+ void *devm_memremap_pages(struct device *dev, struct resource *res)
+ {
+-	int is_ram = region_intersects(res->start, resource_size(res),
+-			"System RAM");
++	int is_ram = region_intersects_ram(res->start, resource_size(res));
+ 	struct page_map *page_map;
+ 	int error, nid;
+ 
+diff --git a/kernel/resource.c b/kernel/resource.c
+index f150dbb..15c133e 100644
+--- a/kernel/resource.c
++++ b/kernel/resource.c
+@@ -497,6 +497,7 @@ EXPORT_SYMBOL_GPL(page_is_ram);
+  * @start: region start address
+  * @size: size of region
+  * @name: name of resource (in iomem_resource)
++ * @flags: flags of resource (in iomem_resource)
+  *
+  * Check if the specified region partially overlaps or fully eclipses a
+  * resource identified by @name.  Return REGION_DISJOINT if the region
+@@ -504,15 +505,11 @@ EXPORT_SYMBOL_GPL(page_is_ram);
+  * @type and another resource, and return REGION_INTERSECTS if the
+  * region overlaps @type and no other defined resource. Note, that
+  * REGION_INTERSECTS is also returned in the case when the specified
+- * region overlaps RAM and undefined memory holes.
+- *
+- * region_intersect() is used by memory remapping functions to ensure
+- * the user is not remapping RAM and is a vast speed up over walking
+- * through the resource table page by page.
++ * region overlaps with undefined memory holes.
+  */
+-int region_intersects(resource_size_t start, size_t size, const char *name)
++int region_intersects(resource_size_t start, size_t size, const char *name,
++			unsigned long flags)
+ {
+-	unsigned long flags = IORESOURCE_MEM | IORESOURCE_BUSY;
+ 	resource_size_t end = start + size - 1;
+ 	int type = 0; int other = 0;
+ 	struct resource *p;
+@@ -539,6 +536,18 @@ int region_intersects(resource_size_t start, size_t size, const char *name)
+ 	return REGION_DISJOINT;
+ }
+ 
++/*
++ * region_intersect_ram() is used by memory remapping functions to ensure
++ * the user is not remapping RAM and is a vast speed up over walking
++ * through the resource table page by page.
++ */
++int region_intersects_ram(resource_size_t start, size_t size)
++{
++	return region_intersects(start, size, "System RAM",
++				 IORESOURCE_MEM | IORESOURCE_BUSY);
++}
++EXPORT_SYMBOL_GPL(region_intersects_ram);
++
+ void __weak arch_remove_reservations(struct resource *avail)
+ {
+ }
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
