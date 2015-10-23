@@ -1,32 +1,48 @@
 From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Subject: Re: ACPI: Introduce CPU performance controls using CPPC
-Date: Fri, 23 Oct 2015 04:55:02 -0400
-Message-ID: <CAJ5Y-ea3FRzCbr88r10SR6NcES9mGxC3kMCXr2mjY=wbHL4nsw@mail.gmail.com>
-References: <20151022194928.GA24403@mwanda> <CAJ5Y-ebz5vL7KYFatcNYpdR=z1JkqPpq-8L=pkUXXDYpA132Mg@mail.gmail.com>
- <20151023085209.GC7289@mwanda>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Subject: [PATCH] CPPC: Fix potential ptr leak
+Date: Fri, 23 Oct 2015 05:02:52 -0400
+Message-ID: <1445590972-12331-1-git-send-email-ashwin.chaugule@linaro.org>
+References: <20151022194928.GA24403@mwanda>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f48.google.com ([209.85.215.48]:35660 "EHLO
-	mail-lf0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751687AbbJWIzX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 Oct 2015 04:55:23 -0400
-Received: by lfbn126 with SMTP id n126so41533385lfb.2
-        for <linux-acpi@vger.kernel.org>; Fri, 23 Oct 2015 01:55:22 -0700 (PDT)
-In-Reply-To: <20151023085209.GC7289@mwanda>
+Received: from mail-wi0-f180.google.com ([209.85.212.180]:33436 "EHLO
+	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752022AbbJWJC7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 Oct 2015 05:02:59 -0400
+Received: by wijp11 with SMTP id p11so67662029wij.0
+        for <linux-acpi@vger.kernel.org>; Fri, 23 Oct 2015 02:02:58 -0700 (PDT)
+In-Reply-To: <20151022194928.GA24403@mwanda>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Rafael Wysocki <rafael@kernel.org>, linux acpi <linux-acpi@vger.kernel.org>
+To: rafael@kernel.org, dan.carpenter@oracle.com
+Cc: linux-acpi@vger.kernel.org, Ashwin Chaugule <ashwin.chaugule@linaro.org>
 
-On 23 October 2015 at 04:52, Dan Carpenter <dan.carpenter@oracle.com> wrote:
-> On Fri, Oct 23, 2015 at 04:42:14AM -0400, Ashwin Chaugule wrote:
->> Gah! You're right. This is a left over and should be deleted. I can
->> send the fix to Rafael, if you dont have one ready to send?
->
-> Can you send it?  Please give me a Reported-by tag.
+The patch 337aadff8e45: "ACPI: Introduce CPU performance controls
+using CPPC" from Oct 2, 2015, leads to the following static checker
+warning:
 
-Sure. Will do.
+        drivers/acpi/cppc_acpi.c:527 acpi_cppc_processor_probe()
+        warn: overwrite may leak 'cpc_ptr'
 
-Thanks,
-Ashwin.
+Fix warning by removing bogus per cpu ptr dereference.
+
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+---
+ drivers/acpi/cppc_acpi.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+index 0bbf84b..8ca4c2c 100644
+--- a/drivers/acpi/cppc_acpi.c
++++ b/drivers/acpi/cppc_acpi.c
+@@ -524,7 +524,6 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
+ 	return 0;
+ 
+ out_free:
+-	cpc_ptr = per_cpu(cpc_desc_ptr, pr->id);
+ 	kfree(cpc_ptr);
+ 
+ out_buf_free:
+-- 
+1.9.1
+
