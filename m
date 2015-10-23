@@ -1,59 +1,65 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v6 04/22] of: add function to allow probing a device from
- a OF node
-Date: Fri, 23 Oct 2015 08:54:19 +0900
-Message-ID: <20151022235419.GF29919@sirena.org.uk>
-References: <1442844182-27787-1-git-send-email-tomeu.vizoso@collabora.com>
- <1442844182-27787-5-git-send-email-tomeu.vizoso@collabora.com>
- <10119606.2TraDKGPVy@vostro.rjw.lan>
- <CAAObsKCAX4DQGydQoYjJEYKTOEqpVozXdHnqXWdNYVkLsg7BVg@mail.gmail.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH 3/3] ACPI/APEI/EINJ: Allow memory error injection to NVDIMM
+Date: Thu, 22 Oct 2015 17:14:55 -0700
+Message-ID: <CAPcyv4j9iDrUrS1Xt4sTV8KOg6wsb=stp=XzoOLFBtuqWf+0AQ@mail.gmail.com>
+References: <1445556044-30322-1-git-send-email-toshi.kani@hpe.com>
+	<1445556044-30322-4-git-send-email-toshi.kani@hpe.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="7cm2iqirTL37Ot+N"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:60205 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965593AbbJVXyn (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Oct 2015 19:54:43 -0400
-Content-Disposition: inline
-In-Reply-To: <CAAObsKCAX4DQGydQoYjJEYKTOEqpVozXdHnqXWdNYVkLsg7BVg@mail.gmail.com>
+Received: from mail-wi0-f172.google.com ([209.85.212.172]:36641 "EHLO
+	mail-wi0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757100AbbJWAO5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 22 Oct 2015 20:14:57 -0400
+Received: by wicfx6 with SMTP id fx6so10272824wic.1
+        for <linux-acpi@vger.kernel.org>; Thu, 22 Oct 2015 17:14:56 -0700 (PDT)
+In-Reply-To: <1445556044-30322-4-git-send-email-toshi.kani@hpe.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Thierry Reding <thierry.reding@gmail.com>, Alan Stern <stern@rowland.harvard.edu>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
+To: Toshi Kani <toshi.kani@hpe.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux MM <linux-mm@kvack.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
+On Thu, Oct 22, 2015 at 4:20 PM, Toshi Kani <toshi.kani@hpe.com> wrote:
+> In the case of memory error injection, einj_error_inject() checks
+> if a target address is regular RAM.  Change this check to allow
+> injecting a memory error to both RAM and NVDIMM so that memory
+> errors can be tested on NVDIMM as well.
+>
+> Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+> ---
+>  drivers/acpi/apei/einj.c |   12 ++++++++----
+>  1 file changed, 8 insertions(+), 4 deletions(-)
+>
+> diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
+> index 0431883..696f45a 100644
+> --- a/drivers/acpi/apei/einj.c
+> +++ b/drivers/acpi/apei/einj.c
+> @@ -519,7 +519,7 @@ static int
+(u32 type, u32 flags, u64 param1, u64 param2,
+>                              u64 param3, u64 param4)
+>  {
+>         int rc;
+> -       unsigned long pfn;
+> +       u64 base_addr, size;
+>
+>         /* If user manually set "flags", make sure it is legal */
+>         if (flags && (flags &
+> @@ -545,10 +545,14 @@ static int einj_error_inject(u32 type, u32 flags, u64 param1, u64 param2,
+>         /*
+>          * Disallow crazy address masks that give BIOS leeway to pick
+>          * injection address almost anywhere. Insist on page or
+> -        * better granularity and that target address is normal RAM.
+> +        * better granularity and that target address is normal RAM or
+> +        * NVDIMM.
+>          */
+> -       pfn = PFN_DOWN(param1 & param2);
+> -       if (!page_is_ram(pfn) || ((param2 & PAGE_MASK) != PAGE_MASK))
+> +       base_addr = param1 & param2;
+> +       size = (~param2) + 1;
+> +       if (((!page_is_ram(PFN_DOWN(base_addr))) &&
+> +            (region_intersects_pmem(base_addr, size) != REGION_INTERSECTS)) ||
+> +           ((param2 & PAGE_MASK) != PAGE_MASK))
 
---7cm2iqirTL37Ot+N
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Thu, Oct 22, 2015 at 03:03:37PM +0200, Tomeu Vizoso wrote:
-> On 22 October 2015 at 03:06, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-
-> > Same question as from Greg: How does a subsystem know whether or not to use
-> > this function?
-
-> Maybe I don't understand the comment, but as the commit message says,
-> subsystems can use this when looking up resources for drivers. Or you
-> mean that this information should be in the API docs?
-
-I'm pretty sure what he's suggesting here is changing to "should always"
-(ie, explain the situations when a subsystem would do this, including
-decision criteria if it's optional).
-
---7cm2iqirTL37Ot+N
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJWKXcqAAoJECTWi3JdVIfQoIUH/AqLDwelzoR7SJowYvkLfv1Y
-UZ2nrTLT1Xs64yonbRXmc+odvRUImMbxaFTy+phSb6sxKYXEQQeaTG1UKnqCsXs7
-UR10/8ymjyPqy7regz8otNabTXAz87f/Yf8qiBQ3X/LzQP+U+Q1FVe+dWOICBPgd
-qPD4JAD1iW29SSw1+S6fvHkihXnXZQT7TdPinHZbfKso48gFksYlZqlf4BYRGN7u
-jR4MmoYepEjNESYqWjSgmaKE8qBN/DbC26r0bMpLt/9uqjr/OweoAqHMgATcZMv2
-w98cU1QM5aESLt+LK9dtRekAw6MZP9UNlUHMBGoGs5xq+6rJoargysZzoY2G3OM=
-=NIr/
------END PGP SIGNATURE-----
-
---7cm2iqirTL37Ot+N--
+Hmm, should we also convert the page_is_ram() call to
+region_intersects_ram() so that we check the entire range from
+base_addr to base_addr + size?
