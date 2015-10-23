@@ -1,48 +1,75 @@
-From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Subject: [PATCH] CPPC: Fix potential ptr leak
-Date: Fri, 23 Oct 2015 05:02:52 -0400
-Message-ID: <1445590972-12331-1-git-send-email-ashwin.chaugule@linaro.org>
-References: <20151022194928.GA24403@mwanda>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wi0-f180.google.com ([209.85.212.180]:33436 "EHLO
-	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752022AbbJWJC7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 Oct 2015 05:02:59 -0400
-Received: by wijp11 with SMTP id p11so67662029wij.0
-        for <linux-acpi@vger.kernel.org>; Fri, 23 Oct 2015 02:02:58 -0700 (PDT)
-In-Reply-To: <20151022194928.GA24403@mwanda>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v4 3/5] mfd: intel_quark_i2c_gpio: support devices behind i2c bus
+Date: Fri, 23 Oct 2015 12:16:43 +0300
+Message-ID: <1445591805-28886-4-git-send-email-andriy.shevchenko@linux.intel.com>
+References: <1445591805-28886-1-git-send-email-andriy.shevchenko@linux.intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1445591805-28886-1-git-send-email-andriy.shevchenko@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Wolfram Sang <wsa@the-dreams.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@intel.com>, "Puustinen, Ismo" <ismo.puustinen@intel.com>, linux-kernel@vger.kernel.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: rafael@kernel.org, dan.carpenter@oracle.com
-Cc: linux-acpi@vger.kernel.org, Ashwin Chaugule <ashwin.chaugule@linaro.org>
 
-The patch 337aadff8e45: "ACPI: Introduce CPU performance controls
-using CPPC" from Oct 2, 2015, leads to the following static checker
-warning:
+On Intel Galileo Gen2 the GPIO expanders are connected to the i2c bus. For
+those devices the ACPI table has specific parameters that refer to an actual
+i2c host controller. Since MFD now copes with that specific configuration we
+have to provide a necessary information how to distinguish devices in ACPI
+namespace. Here the _ADR values are provided.
 
-        drivers/acpi/cppc_acpi.c:527 acpi_cppc_processor_probe()
-        warn: overwrite may leak 'cpc_ptr'
-
-Fix warning by removing bogus per cpu ptr dereference.
-
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Acked-by: Lee Jones <lee.jones@linaro.org>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- drivers/acpi/cppc_acpi.c | 1 -
- 1 file changed, 1 deletion(-)
+ drivers/mfd/intel_quark_i2c_gpio.c | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
 
-diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-index 0bbf84b..8ca4c2c 100644
---- a/drivers/acpi/cppc_acpi.c
-+++ b/drivers/acpi/cppc_acpi.c
-@@ -524,7 +524,6 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
- 	return 0;
+diff --git a/drivers/mfd/intel_quark_i2c_gpio.c b/drivers/mfd/intel_quark_i2c_gpio.c
+index 958c134..0421374 100644
+--- a/drivers/mfd/intel_quark_i2c_gpio.c
++++ b/drivers/mfd/intel_quark_i2c_gpio.c
+@@ -31,6 +31,10 @@
+ #define MFD_I2C_BAR		0
+ #define MFD_GPIO_BAR		1
  
- out_free:
--	cpc_ptr = per_cpu(cpc_desc_ptr, pr->id);
- 	kfree(cpc_ptr);
++/* ACPI _ADR value to match the child node */
++#define MFD_ACPI_MATCH_GPIO	0ULL
++#define MFD_ACPI_MATCH_I2C	1ULL
++
+ /* The base GPIO number under GPIOLIB framework */
+ #define INTEL_QUARK_MFD_GPIO_BASE	8
  
- out_buf_free:
+@@ -82,16 +86,25 @@ static struct resource intel_quark_i2c_res[] = {
+ 	},
+ };
+ 
++static struct mfd_cell_acpi_match intel_quark_acpi_match_i2c = {
++	.adr = MFD_ACPI_MATCH_I2C,
++};
++
+ static struct resource intel_quark_gpio_res[] = {
+ 	[INTEL_QUARK_IORES_MEM] = {
+ 		.flags = IORESOURCE_MEM,
+ 	},
+ };
+ 
++static struct mfd_cell_acpi_match intel_quark_acpi_match_gpio = {
++	.adr = MFD_ACPI_MATCH_GPIO,
++};
++
+ static struct mfd_cell intel_quark_mfd_cells[] = {
+ 	{
+ 		.id = MFD_GPIO_BAR,
+ 		.name = "gpio-dwapb",
++		.acpi_match = &intel_quark_acpi_match_gpio,
+ 		.num_resources = ARRAY_SIZE(intel_quark_gpio_res),
+ 		.resources = intel_quark_gpio_res,
+ 		.ignore_resource_conflicts = true,
+@@ -99,6 +112,7 @@ static struct mfd_cell intel_quark_mfd_cells[] = {
+ 	{
+ 		.id = MFD_I2C_BAR,
+ 		.name = "i2c_designware",
++		.acpi_match = &intel_quark_acpi_match_i2c,
+ 		.num_resources = ARRAY_SIZE(intel_quark_i2c_res),
+ 		.resources = intel_quark_i2c_res,
+ 		.ignore_resource_conflicts = true,
 -- 
-1.9.1
-
+2.6.1
