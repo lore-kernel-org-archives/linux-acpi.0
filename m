@@ -1,62 +1,38 @@
-From: =?UTF-8?Q?Daniel_Gl=c3=b6ckner?= <dg@emlix.com>
-Subject: acpi_find_gpio with absent GPIOs
-Date: Fri, 23 Oct 2015 16:56:54 +0200
-Message-ID: <562A4AB6.1010805@emlix.com>
+From: Ben Gardner <gardner.ben@gmail.com>
+Subject: Re: [PATCH v4 4/5] at24: enable ACPI device found on Galileo Gen2
+Date: Fri, 23 Oct 2015 12:20:09 -0500
+Message-ID: <CAE7DoPb01p+iugRv_h9zqGgYggrkJJ=sypP4Rt7jMbi6Xncw+g@mail.gmail.com>
+References: <1445591805-28886-1-git-send-email-andriy.shevchenko@linux.intel.com>
+	<1445591805-28886-5-git-send-email-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-gpio-owner@vger.kernel.org>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, linux-gpio@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ig0-f177.google.com ([209.85.213.177]:33255 "EHLO
+	mail-ig0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751080AbbJWRUK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 Oct 2015 13:20:10 -0400
+In-Reply-To: <1445591805-28886-5-git-send-email-andriy.shevchenko@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, Linux I2C <linux-i2c@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>, Wolfram Sang <wsa@the-dreams.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@intel.com>, "Puustinen, Ismo" <ismo.puustinen@intel.com>, linux-kernel@vger.kernel.org
 
 Hi,
 
-I'm currently trying to use rfkill-gpio with a device that has just a
-single GPIO assigned by ACPI. rfkill-gpio calls acpi_dev_add_driver_gpi=
-os
-to assign names to the ACPI GPIOs and then uses devm_gpiod_get_optional
-to request both of them. The problem is that on the second call to
-devm_gpiod_get_optional acpi_find_gpio falls back to using the GPIO ind=
-ex
-0 (from gpiod_get) in _CRS, which leads to the same GPIO being returned
-as in the first call. Probing the driver then fails with -EBUSY.
+On Fri, Oct 23, 2015 at 4:16 AM, Andy Shevchenko
+<andriy.shevchenko@linux.intel.com> wrote:
+> There is a 24c08 chip connected to i2c bus on Intel Galileo Gen2 board. Enable
+> it via ACPI ID INT3499.
 
-In my opinion it is a bad idea to fall back to indexing the _CRS if the
-con_id was found in the _DSD or the GPIOs added by
-acpi_dev_add_driver_gpios, but I don't know if there are drivers relyin=
-g
-on this behavior.
+I'm looking to do something similar with a 24C02 and would like to
+know if there is an ID already defined for that.
 
-Luckily acpi_get_gpiod_by_index returns -ENODATA if the name can't be
-found and -ENOENT if the GPIO is absent, so we can distinguish the two
-cases. -EPROBE_DEFER also should not make acpi_find_gpio try to use
-another GPIO from the _CRS.
+Is there a master list of ACPI IDs?
 
-There is also the possibility that the GPIO index exceeds the size of
-the package found in _DSD or added with acpi_dev_add_driver_gpios.
-The former will return -EPROTO, the latter will forward the error
-from acpi_dev_get_property_reference (usually -ENODATA). of_find_gpio
-returns -ENOENT in this case.
+The best I found is here: http://www.uefi.org/PNP_ACPI_Registry
+But that doesn't seem to have individual numbers and it indicates that
+the "INT" PNP ID is reserved by INTERPHASE CORPORATION.
+Intel Corp looks to have "ICO" for the PNP ID and ACPI/INTC/INTL for ACPI IDs.
 
-So, what of this should be fixed?
-
-Best regards,
-
-  Daniel
-
---=20
-Dipl.-Math. Daniel Gl=C3=B6ckner, emlix GmbH, http://www.emlix.com
-=46on +49 551 30664-0, Fax +49 551 30664-11,
-Bertha-von-Suttner-Stra=C3=9Fe 9, 37085 G=C3=B6ttingen, Germany
-Sitz der Gesellschaft: G=C3=B6ttingen, Amtsgericht G=C3=B6ttingen HR B =
-3160
-Gesch=C3=A4ftsf=C3=BChrer: Dr. Uwe Kracke, Ust-IdNr.: DE 205 198 055
-
-emlix - your embedded linux partner
---
-To unsubscribe from this list: send the line "unsubscribe linux-gpio" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Ben
