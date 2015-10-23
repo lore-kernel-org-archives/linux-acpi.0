@@ -1,57 +1,49 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v4 0/5] enable I2C devices behind I2C bus on Gen2
-Date: Fri, 23 Oct 2015 12:16:40 +0300
-Message-ID: <1445591805-28886-1-git-send-email-andriy.shevchenko@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Wolfram Sang <wsa@the-dreams.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@intel.com>, "Puustinen, Ismo" <ismo.puustinen@intel.com>, linux-kernel@vger.kernel.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Thierry Reding <thierry.reding@gmail.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: ACPI: Can I use I2cSerialBus with a PCI I2C controller?
+Date: Fri, 23 Oct 2015 12:43:45 +0300
+Message-ID: <20151023094345.GY1526@lahna.fi.intel.com>
+References: <CAE7DoPZs69A5vLzDfrRXuC3q9fpkaXRYna2NQwHZk_BK9gLnvQ@mail.gmail.com>
+ <20151021085056.GV1526@lahna.fi.intel.com>
+ <CAE7DoPak939WjCWaGQw7W6aR0dZOcJCjcQK8gMa9iu+WRmnDDw@mail.gmail.com>
+ <20151022080157.GI1526@lahna.fi.intel.com>
+ <CAE7DoPY8+zw4xw0hWTmPoG4iPgC=2JRCT4bHqeqqaH+BywTWpw@mail.gmail.com>
+ <CAE7DoPZfLDEBmeODQv3oEbs033gpq4oSA=Sx15wMajzVUbUinw@mail.gmail.com>
+ <20151023082054.GP1526@lahna.fi.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:21578 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751609AbbJWJns (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 23 Oct 2015 05:43:48 -0400
+Content-Disposition: inline
+In-Reply-To: <20151023082054.GP1526@lahna.fi.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ben Gardner <gardner.ben@gmail.com>
+Cc: linux-acpi@vger.kernel.org
 
-There is a board in the wild, i.e. Intel Galileo Gen2, that has ACPI enumerated
-devices behind I2C bus. This patch series dedicated to enable those devices.
+On Fri, Oct 23, 2015 at 11:20:54AM +0300, Mika Westerberg wrote:
+> On Thu, Oct 22, 2015 at 12:17:58PM -0500, Ben Gardner wrote:
+> > > The next issue is that the I2C-core isn't matching the device to the
+> > > "at24" driver, which has the alias "24c02".
+> > 
+> > Here is what I found.
+> > i2c-core is creating the device with the ACPI name "24C02:00".
+> > The at24 driver uses "24c02" as the alias.
+> > i2c-code is matching devices to drivers using strcmp().
+> > 
+> > Result: no match. ("24c02" != "24C02:00").
+> > 
+> > If I modify acpi_i2c_add_device() to cut off the name at the ':' and
+> > covert to lowercase when populating info.type, it matches and works.
+> > I must be missing something here, because this would have never worked as-is.
+> > I'll ask on the I2C mailing list.
+> 
+> You should either use proper _HID/_CID for the device or put "PRP0001"
+> to the _HID and let the match happen with DT .compatible strings. I've
+> attached a hack that I use locally.
 
-The MFD framework is also updated to cope with interesting implementation of
-the cell descriptions under ACPI MFD (patch 1).
+Alternatively you can use patch by Andy here:
 
-The patches 5 and 6 are pretty independent and could be applied ahead, though
-they don't make much sense without previous ones.
-
-Wolfram, since Lee acknowledged patches 1-3, can you pull them to your tree?
-
-Tested on the actual Intel Galileo Gen2 by Ismo (gpio expanders) and me (at24).
-
-Cc: Thierry Reding <thierry.reding@gmail.com>
-
-Changelog v4:
-- amend at24 patch to satisfy sparse (Wolfram)
-- drop applied patches
-
-Changelog v3:
-- append ACKs from Rafael (from ACPI angle)
-- drop upstreamed patches (GPIO pca953x)
-
-Changelog v2:
-- append tags
-- re-make patch 3 (suggested by Lee)
-- improve patch 8 (suggested by Thierry)
-
-
-Andy Shevchenko (5):
-  mfd: core: redo ACPI matching of the children devices
-  mfd: intel_quark_i2c_gpio: load gpio driver first
-  mfd: intel_quark_i2c_gpio: support devices behind i2c bus
-  at24: enable ACPI device found on Galileo Gen2
-  pwm-pca9685: enable ACPI device found on Galileo Gen2
-
- Documentation/acpi/enumeration.txt | 11 +++++---
- drivers/mfd/intel_quark_i2c_gpio.c | 33 ++++++++++++++++--------
- drivers/mfd/mfd-core.c             | 52 ++++++++++++++++++++++++++------------
- drivers/misc/eeprom/at24.c         | 22 +++++++++++++---
- drivers/pwm/Kconfig                |  2 +-
- drivers/pwm/pwm-pca9685.c          | 20 ++++++++++++---
- include/linux/mfd/core.h           | 10 ++++++--
- 7 files changed, 111 insertions(+), 39 deletions(-)
-
--- 
-2.6.1
+https://patchwork.ozlabs.org/patch/524923
