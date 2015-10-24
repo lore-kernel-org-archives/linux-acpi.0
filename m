@@ -1,90 +1,89 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: ACPI I2C device-driver matching issue
-Date: Sat, 24 Oct 2015 17:32:29 +0200
-Message-ID: <2863037.enS8LjaQhU@vostro.rjw.lan>
-References: <CAE7DoPbODXiUcsxMD1qRXCvX_o0evf6KsK2qu65g9uxnw5GNAw@mail.gmail.com>
+From: "Chen, Yu C" <yu.c.chen@intel.com>
+Subject: RE: [PATCH 1/3] ACPI: Using correct irq when uninstalling acpi irq
+ handler
+Date: Sat, 24 Oct 2015 16:04:42 +0000
+Message-ID: <36DF59CE26D8EE47B0655C516E9CE6402865EDF2@shsmsx102.ccr.corp.intel.com>
+References: <1445515388-31251-1-git-send-email-yu.c.chen@intel.com>
+ <2653711.REifFj4Vt2@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:52773 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751911AbbJXPDg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 24 Oct 2015 11:03:36 -0400
-In-Reply-To: <CAE7DoPbODXiUcsxMD1qRXCvX_o0evf6KsK2qu65g9uxnw5GNAw@mail.gmail.com>
+Received: from mga14.intel.com ([192.55.52.115]:17940 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751785AbbJXQEy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sat, 24 Oct 2015 12:04:54 -0400
+In-Reply-To: <2653711.REifFj4Vt2@vostro.rjw.lan>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ben Gardner <gardner.ben@gmail.com>
-Cc: Linux I2C <linux-i2c@vger.kernel.org>, linux-acpi@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "lenb@kernel.org" <lenb@kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>
 
-CC: Mika
-
-On Thursday, October 22, 2015 01:05:42 PM Ben Gardner wrote:
-> Hi all,
-> 
-> I have a custom Baytrail board with a M24C02 EEPROM attached to I2C bus 3.
-> I am using coreboot/SeaBIOS, so I have complete control over the ACPI tables.
-> I am using Linux 4.2.3.
-> 
-> I have defined a EEPROM device on I2C3 using I2cSerialBus() and it
-> shows up as expected.
-> 
-> Scope (\_SB.PCI0.I2C3) {
->   Device (EEP0) {
->     Name (_CID, Package() { "24c02" })
->     Name (_CRS, ResourceTemplate () {
->       I2cSerialBus (0x0057, ControllerInitiated, 400000,
->         AddressingMode7Bit, "\\_SB.PCI0.I2C3", 0x00,
->         ResourceConsumer,,)
->     })
->   }
-> }
-> 
-> Everything is nearly working, except that acpi_i2c_add_device() is
-> using the ACPI name to match the driver, which is "24C02:00".
-> The "at42" driver supports the device with the "24c02" alias.
-> i2c_match_id() in i2c-core.c uses strcmp() to match the device.
-> That obviously doesn't match, as "24c02" != "24C02:00".
-> 
-> When I modified acpi_i2c_add_device() to truncate at the colon and
-> convert it to lower case, it matches and works.
-> 
-> 
-> What is the right way to declare a I2C device in ACPI so that it
-> matches existing drivers?
-> 
-> 
-> For reference only, I included the change I made to get it to work below.
-> (Copy/pasted into gmail, so tabs are lost.)
-> 
-> Thanks,
-> Ben Gardner
-> 
-> diff --git a/drivers/i2c/i2c-core.c b/drivers/i2c/i2c-core.c
-> index c83e4d1..64caddc 100644
-> --- a/drivers/i2c/i2c-core.c
-> +++ b/drivers/i2c/i2c-core.c
-> @@ -144,7 +144,13 @@ static acpi_status
-> acpi_i2c_add_device(acpi_handle handle, u32 level,
->                 return AE_OK;
-> 
->         adev->power.flags.ignore_parent = true;
-> -       strlcpy(info.type, dev_name(&adev->dev), sizeof(info.type));
-> +       {
-> +               const char *dn = dev_name(&adev->dev);
-> +               int idx;
-> +               for (idx = 0; idx < sizeof(info.type) - 1 && dn[idx]
-> && dn[idx] != ':'; idx++)
-> +                       info.type[idx] = tolower(dn[idx]);
-> +       }
->         if (!i2c_new_device(adapter, &info)) {
->                 adev->power.flags.ignore_parent = false;
->                 dev_err(&adapter->dev,
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+SGksIFJhZmFlbA0KDQo+IC0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQo+IEZyb206IFJhZmFl
+bCBKLiBXeXNvY2tpIFttYWlsdG86cmp3QHJqd3lzb2NraS5uZXRdDQo+IFNlbnQ6IFNhdHVyZGF5
+LCBPY3RvYmVyIDI0LCAyMDE1IDk6MzIgUE0NCj4gVG86IENoZW4sIFl1IEMNCj4gQ2M6IGxlbmJA
+a2VybmVsLm9yZzsgWmhhbmcsIFJ1aTsgWmhlbmcsIEx2OyBsaW51eC1hY3BpQHZnZXIua2VybmVs
+Lm9yZzsNCj4gbGludXgtcG1Admdlci5rZXJuZWwub3JnOyBsaW51eC1rZXJuZWxAdmdlci5rZXJu
+ZWwub3JnOw0KPiBzdGFibGVAdmdlci5rZXJuZWwub3JnDQo+IFN1YmplY3Q6IFJlOiBbUEFUQ0gg
+MS8zXSBBQ1BJOiBVc2luZyBjb3JyZWN0IGlycSB3aGVuIHVuaW5zdGFsbGluZyBhY3BpIGlycQ0K
+PiBoYW5kbGVyDQo+IA0KPiBPbiBUaHVyc2RheSwgT2N0b2JlciAyMiwgMjAxNSAwODowMzowOCBQ
+TSBDaGVuIFl1IHdyb3RlOg0KPiA+IEN1cnJlbnRseSB3aGVuIHN5c3RlbSBpcyB0cnlpbmcgdG8g
+dW5pbnN0YWxsIHRoZSBhY3BpIGlycSBoYW5kbGVyLCBpdA0KPiA+IHVzZXMgdGhlIGFjcGlfZ2Js
+X0ZBRFQuc2NpX2ludGVycnVwdCBkaXJlY3RseS4NCj4gPiBCdXQgYWNwaSBpcnEgaGFuZGxlciBp
+cyBhY3R1YWxseSBpbnN0YWxsZWQgYnkgbWFwcGVkIGlycSBpbg0KPiA+IGFjcGlfb3NfaW5zdGFs
+bF9pbnRlcnJ1cHRfaGFuZGxlciwgc28gdGhpcyBwYXRjaCBmaXhlcyB0aGlzIHByb2JsZW0gYnkN
+Cj4gPiB1c2luZyB0aGUgbWFwcGVkIGlycSByZXR1cm5lZCBmcm9tIGFjcGlfZ3NpX3RvX2lycS4N
+Cj4gPg0KPiA+IENjOiA8c3RhYmxlQHZnZXIua2VybmVsLm9yZz4gIyAyLjYuMzkrDQo+ID4gQWNr
+ZWQtYnk6IEx2IFpoZW5nIDxsdi56aGVuZ0BpbnRlbC5jb20+DQo+ID4gU2lnbmVkLW9mZi1ieTog
+Q2hlbiBZdSA8eXUuYy5jaGVuQGludGVsLmNvbT4NCj4gPiAtLS0NCj4gPiAgZHJpdmVycy9hY3Bp
+L29zbC5jICAgfCAxMCArKysrKysrLS0tDQo+ID4gIGluY2x1ZGUvbGludXgvYWNwaS5oIHwgIDMg
+KysrDQo+ID4gIDIgZmlsZXMgY2hhbmdlZCwgMTAgaW5zZXJ0aW9ucygrKSwgMyBkZWxldGlvbnMo
+LSkNCj4gPg0KPiA+IGRpZmYgLS1naXQgYS9kcml2ZXJzL2FjcGkvb3NsLmMgYi9kcml2ZXJzL2Fj
+cGkvb3NsLmMgaW5kZXgNCj4gPiA3MzlhNGE2Li4yZTllY2NmIDEwMDY0NA0KPiA+IC0tLSBhL2Ry
+aXZlcnMvYWNwaS9vc2wuYw0KPiA+ICsrKyBiL2RyaXZlcnMvYWNwaS9vc2wuYw0KPiA+IEBAIC04
+MSw2ICs4MSw3IEBAIHN0YXRpYyBzdHJ1Y3Qgd29ya3F1ZXVlX3N0cnVjdCAqa2FjcGlkX3dxOyAg
+c3RhdGljDQo+ID4gc3RydWN0IHdvcmtxdWV1ZV9zdHJ1Y3QgKmthY3BpX25vdGlmeV93cTsgIHN0
+YXRpYyBzdHJ1Y3QNCj4gPiB3b3JrcXVldWVfc3RydWN0ICprYWNwaV9ob3RwbHVnX3dxOyAgc3Rh
+dGljIGJvb2wgYWNwaV9vc19pbml0aWFsaXplZDsNCj4gPiArdW5zaWduZWQgaW50IGFjcGlfc2Np
+X2lycSA9IElOVkFMSURfQUNQSV9JUlE7DQo+ID4NCj4gPiAgLyoNCj4gPiAgICogVGhpcyBsaXN0
+IG9mIHBlcm1hbmVudCBtYXBwaW5ncyBpcyBmb3IgbWVtb3J5IHRoYXQgbWF5IGJlIGFjY2Vzc2Vk
+DQo+ID4gZnJvbSBAQCAtODU2LDE3ICs4NTcsMjAgQEAgYWNwaV9vc19pbnN0YWxsX2ludGVycnVw
+dF9oYW5kbGVyKHUzMiBnc2ksDQo+IGFjcGlfb3NkX2hhbmRsZXIgaGFuZGxlciwNCj4gPiAgCQlh
+Y3BpX2lycV9oYW5kbGVyID0gTlVMTDsNCj4gPiAgCQlyZXR1cm4gQUVfTk9UX0FDUVVJUkVEOw0K
+PiA+ICAJfQ0KPiA+ICsJYWNwaV9zY2lfaXJxID0gaXJxOw0KPiA+DQo+ID4gIAlyZXR1cm4gQUVf
+T0s7DQo+ID4gIH0NCj4gPg0KPiA+IC1hY3BpX3N0YXR1cyBhY3BpX29zX3JlbW92ZV9pbnRlcnJ1
+cHRfaGFuZGxlcih1MzIgaXJxLA0KPiA+IGFjcGlfb3NkX2hhbmRsZXIgaGFuZGxlcikNCj4gPiAr
+YWNwaV9zdGF0dXMgYWNwaV9vc19yZW1vdmVfaW50ZXJydXB0X2hhbmRsZXIodTMyIGdzaSwNCj4g
+PiArYWNwaV9vc2RfaGFuZGxlciBoYW5kbGVyKQ0KPiA+ICB7DQo+ID4gLQlpZiAoaXJxICE9IGFj
+cGlfZ2JsX0ZBRFQuc2NpX2ludGVycnVwdCkNCj4gPiArCWlmICgoZ3NpICE9IGFjcGlfZ2JsX0ZB
+RFQuc2NpX2ludGVycnVwdCkgfHwNCj4gPiArCQkJSVNfSU5WQUxJRF9BQ1BJX0lSUShhY3BpX3Nj
+aV9pcnEpKQ0KPiANCj4gVGhlIHdoaXRlIHNwYWNlIGRvZXNuJ3QgZm9sbG93IHRoZSBrZXJuZWwg
+Y29kaW5nIHN0eWxlLCBzaG91bGQgYmUgc29tZXRoaW5nDQo+IGxpa2UNCj4gDQo+IAlpZiAoKGdz
+aSAhPSBhY3BpX2dibF9GQURULnNjaV9pbnRlcnJ1cHQpIHx8DQo+IAkgICAgSVNfSU5WQUxJRF9B
+Q1BJX0lSUShhY3BpX3NjaV9pcnEpKQ0KPiANCj4gKHNwYWNlcyBpbnN0ZWFkIG9mIHRoZSBzZWNv
+bmQgdGFiKS4NCj4gDQpBaCwgZ290IGl0LCB0aGFua3MuDQoNCj4gQW5vdGhlciBtaW5vciBuaXQg
+aXMgdGhhdCB0aGlzIHByb2JhYmx5IGlzIHRoZSBvbmx5IHBsYWNlIHlvdSBjaGVjayB0aGUNCj4g
+SVNfSU5WQUxJRF9BQ1BJX0lSUShhY3BpX3NjaV9pcnEpIHRoaW5nIHdpdGhvdXQgbG9naWNhbCBu
+ZWdhdGlvbiBhbmQgeW91DQo+IG9ubHkgcGFzcyBhY3BpX3NjaV9pcnEgdG8gSVNfSU5WQUxJRF9B
+Q1BJX0lSUSgpIEFGQUlDUy4NCj4gDQo+IEl0IHdvdWxkIGJlIG1vcmUgc3RyYWlnaHRmb3J3YXJk
+IHRvIGRlZmluZSBzb21ldGhpbmcgbGlrZSBhY3BpX3NjaV9pcnFfdmFsaWQoKQ0KPiBpbnN0ZWFk
+IChzZWUgYmVsb3cpIElNTy4NCj4gDQo+ID4gIAkJcmV0dXJuIEFFX0JBRF9QQVJBTUVURVI7DQo+
+ID4NCj4gPiAtCWZyZWVfaXJxKGlycSwgYWNwaV9pcnEpOw0KPiA+ICsJZnJlZV9pcnEoYWNwaV9z
+Y2lfaXJxLCBhY3BpX2lycSk7DQo+ID4gIAlhY3BpX2lycV9oYW5kbGVyID0gTlVMTDsNCj4gPiAr
+CWFjcGlfc2NpX2lycSA9IElOVkFMSURfQUNQSV9JUlE7DQo+ID4NCj4gPiAgCXJldHVybiBBRV9P
+SzsNCj4gPiAgfQ0KPiA+IGRpZmYgLS1naXQgYS9pbmNsdWRlL2xpbnV4L2FjcGkuaCBiL2luY2x1
+ZGUvbGludXgvYWNwaS5oIGluZGV4DQo+ID4gNDM4NTZkMS4uYmFkMTU5YyAxMDA2NDQNCj4gPiAt
+LS0gYS9pbmNsdWRlL2xpbnV4L2FjcGkuaA0KPiA+ICsrKyBiL2luY2x1ZGUvbGludXgvYWNwaS5o
+DQo+ID4gQEAgLTE5Myw2ICsxOTMsOSBAQCBpbnQgYWNwaV9pb2FwaWNfcmVnaXN0ZXJlZChhY3Bp
+X2hhbmRsZSBoYW5kbGUsIHUzMg0KPiA+IGdzaV9iYXNlKTsgIHZvaWQgYWNwaV9pcnFfc3RhdHNf
+aW5pdCh2b2lkKTsgIGV4dGVybiB1MzINCj4gPiBhY3BpX2lycV9oYW5kbGVkOyAgZXh0ZXJuIHUz
+MiBhY3BpX2lycV9ub3RfaGFuZGxlZDsNCj4gPiArZXh0ZXJuIHVuc2lnbmVkIGludCBhY3BpX3Nj
+aV9pcnE7DQo+ID4gKyNkZWZpbmUgSU5WQUxJRF9BQ1BJX0lSUSAoKHVuc2lnbmVkKS0xKQ0KPiAN
+Cj4gI2RlZmluZSBJTlZBTElEX0FDUElfSVJRCSgodW5zaWduZWQgaW50KS0xKQ0KPiANCj4gPiAr
+I2RlZmluZSBJU19JTlZBTElEX0FDUElfSVJRKHgpIHVubGlrZWx5KCh4KSA9PSBJTlZBTElEX0FD
+UElfSVJRKQ0KPiANCj4gTWF5YmUgc29tZXRoaW5nIGxpa2U6DQo+IA0KPiAJc3RhdGljIGlubGlu
+ZSBib29sIGFjcGlfc2NpX2lycV92YWxpZCh2b2lkKQ0KPiAJew0KPiAJCXJldHVybiBhY3BpX3Nj
+aV9pcnEgIT0gSU5WQUxJRF9BQ1BJX0lSUTsNCj4gCX0NCj4gDQpPSywgd2lsbCBzZW5kIG91dCBh
+IHZlcnNpb24gMiB3aXRoIGJvdGggYW5vdGhlciB0d28gcGF0Y2hlcyBtb2RpZmllZC4NCg0KQmVz
+dCBSZWdhcmRzLA0KWXUNCg==
