@@ -1,72 +1,66 @@
 From: Hanjun Guo <guohanjun@huawei.com>
-Subject: Re: [PATCH V4 0/8] PCI: ACPI: Setting up DMA coherency for PCI device
- from _CCA attribute
-Date: Sat, 24 Oct 2015 15:51:03 +0800
-Message-ID: <562B3867.6020802@huawei.com>
-References: <1445442731-28819-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+Subject: Re: [PATCH V1 10/10] acpi, gicv3, its: Use MADT ITS subtable to do
+ PCI/MSI domain initialization.
+Date: Sat, 24 Oct 2015 18:20:30 +0800
+Message-ID: <562B5B6E.2000305@huawei.com>
+References: <1444917919-21152-1-git-send-email-tn@semihalf.com>
+ <1444917919-21152-11-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1445442731-28819-1-git-send-email-Suravee.Suthikulpanit@amd.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, bhelgaas@google.com, rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com
-Cc: hanjun.guo@linaro.org, thomas.lendacky@amd.com, herbert@gondor.apana.org.au, davem@davemloft.net, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <1444917919-21152-11-git-send-email-tn@semihalf.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Tomasz Nowicki <tn@semihalf.com>, marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com
+Cc: Suravee.Suthikulpanit@amd.com, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, ddaney.cavm@gmail.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 2015/10/21 23:52, Suravee Suthikulpanit wrote:
-> This patch series adds support to setup DMA coherency for PCI device using
-> the ACPI _CCA attribute. According to the ACPI spec, the _CCA attribute
-> is required for ARM64. Therefore, this patch is a pre-req for ACPI PCI
-> support for ARM64 which is currently in development.  Also, this should
-> not affect other architectures that does not define 
-> CONFIG_ACPI_CCA_REQUIRED, since the default value is coherent.
+On 2015/10/15 22:05, Tomasz Nowicki wrote:
+> After refactoring DT code, we let ACPI to build ITS PCI MSI domain
+> and do requester ID to device ID translation using IORT table.
 >
-> In the process, this series also introduces enum dev_dma_attr and a set
-> of APIs to query device DMA attribute. These APIs replace the obsolete
-> device_dma_is_coherent(), and acpi_check_dma().
+> We have now full PCI MSI domain stack, thus we can enable ITS initialization
+> from GICv3 core driver for ACPI scenario.
 >
-> I have also included a patch from Jeremy posted here:
->     http://www.spinics.net/lists/linux-usb/msg128582.html
+> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+> ---
+>  drivers/irqchip/irq-gic-v3-its-pci-msi.c | 48 ++++++++++++++++++++++++++++++--
+>  drivers/irqchip/irq-gic-v3.c             |  3 +-
+>  2 files changed, 47 insertions(+), 4 deletions(-)
 >
-> This patch series  has been tested on AMD Seattle RevB platform.
-> The git tree containing tested code and pre-req patches are posted here:
->
->     http://github.com/ssuthiku/linux.git pci-cca-v4
->
-> Changes from V3: (https://lkml.org/lkml/2015/8/26/389)
->     * Clean up suggested by Bjorn
->     * Introduce enum dev_dma_attr
->     * Replace device_dma_is_coherent() and acpi_check_dma() with
->       new APIs.
->
-> Changes from V2: (https://lkml.org/lkml/2015/8/25/549)
->     * Return -ENOSUPP instead of -1 (per Rafael's suggestion)
->     * Add WARN() when fail to setup DMA for PCI device when booting
->       ACPI (per Arnd's suggestion)
->     * Added Acked-by from Rob.
->     * Minor clean up
->
-> Changes from V1: (https://lkml.org/lkml/2015/8/13/182)
->     * Include patch 1 from Jeremy to enable support for _CCA=0
->     * Clean up acpi_check_dma() per Bjorn suggestions
->     * Split the original V1 patch into two patches (patch 3 and 4)
->
-> Jeremy Linton (1):
->   Honor ACPI _CCA attribute setting
->
-> Suravee Suthikulpanit (7):
->   device property: Introducing enum dev_dma_attr
->   acpi: Adding DMA Attribute APIs for ACPI Device
->   device property: Adding DMA Attribute APIs for Generic Devices
->   device property: acpi: Make use of the new DMA Attribute APIs
->   device property: acpi: Remove unused DMA APIs
->   PCI: OF: Move of_pci_dma_configure() to pci_dma_configure()
->   PCI: ACPI: Add support for PCI device DMA coherency
+> diff --git a/drivers/irqchip/irq-gic-v3-its-pci-msi.c b/drivers/irqchip/irq-gic-v3-its-pci-msi.c
+> index cfd35da..09ae2d8 100644
+> --- a/drivers/irqchip/irq-gic-v3-its-pci-msi.c
+> +++ b/drivers/irqchip/irq-gic-v3-its-pci-msi.c
+> @@ -15,6 +15,8 @@
+>   * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+>   */
+>  
+> +#include <linux/acpi.h>
+> +#include <linux/iort.h>
+>  #include <linux/msi.h>
+>  #include <linux/of.h>
+>  #include <linux/of_irq.h>
+> @@ -59,8 +61,10 @@ static int its_pci_msi_vec_count(struct pci_dev *pdev)
+>  static int its_get_pci_alias(struct pci_dev *pdev, u16 alias, void *data)
+>  {
+>  	struct its_pci_alias *dev_alias = data;
+> +	u32 dev_id;
+>  
+> -	dev_alias->dev_id = alias;
+> +	dev_alias->dev_id = iort_find_pci_id(pdev, alias, &dev_id) == 0 ?
+> +								dev_id : alias;
 
-If the minor comments for patch 7,8 are addressed,
-
-Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
+Hi tomasz, I think we need to re work this patch on top of tip/irq/core
+which has support for "msi-map" and "mai-parent" property support.
 
 Thanks
 Hanjun
