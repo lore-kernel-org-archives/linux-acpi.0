@@ -1,115 +1,51 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 1/3] ACPI: Using correct irq when uninstalling acpi irq handler
-Date: Sat, 24 Oct 2015 15:31:41 +0200
-Message-ID: <2653711.REifFj4Vt2@vostro.rjw.lan>
-References: <1445515388-31251-1-git-send-email-yu.c.chen@intel.com>
+Subject: Re: [PATCH] ACPICA: AcpiGetSleepTypeData: Reduce warnings
+Date: Sat, 24 Oct 2015 15:45:20 +0200
+Message-ID: <2891538.6pWKmWnizq@vostro.rjw.lan>
+References: <1445534238-30447-1-git-send-email-prarit@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:65534 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:47708 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750762AbbJXNCt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 24 Oct 2015 09:02:49 -0400
-In-Reply-To: <1445515388-31251-1-git-send-email-yu.c.chen@intel.com>
+	with SMTP id S1751543AbbJXNQ1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 24 Oct 2015 09:16:27 -0400
+In-Reply-To: <1445534238-30447-1-git-send-email-prarit@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Chen Yu <yu.c.chen@intel.com>
-Cc: lenb@kernel.org, rui.zhang@intel.com, lv.zheng@intel.com, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org
+To: Prarit Bhargava <prarit@redhat.com>
+Cc: linux-acpi@vger.kernel.org, Robert Moore <Robert.Moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <lenb@kernel.org>
 
-On Thursday, October 22, 2015 08:03:08 PM Chen Yu wrote:
-> Currently when system is trying to uninstall the acpi irq
-> handler, it uses the acpi_gbl_FADT.sci_interrupt directly.
-> But acpi irq handler is actually installed by mapped irq
-> in acpi_os_install_interrupt_handler, so this patch fixes
-> this problem by using the mapped irq returned from acpi_gsi_to_irq.
+On Thursday, October 22, 2015 01:17:18 PM Prarit Bhargava wrote:
+> From: Robert Moore <Robert.Moore@intel.com>
 > 
-> Cc: <stable@vger.kernel.org> # 2.6.39+
-> Acked-by: Lv Zheng <lv.zheng@intel.com>
-> Signed-off-by: Chen Yu <yu.c.chen@intel.com>
-> ---
->  drivers/acpi/osl.c   | 10 +++++++---
->  include/linux/acpi.h |  3 +++
->  2 files changed, 10 insertions(+), 3 deletions(-)
+> ACPICA commit 7bb77313091e52a846df4c9c2bea90be31bfb9d8
 > 
-> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-> index 739a4a6..2e9eccf 100644
-> --- a/drivers/acpi/osl.c
-> +++ b/drivers/acpi/osl.c
-> @@ -81,6 +81,7 @@ static struct workqueue_struct *kacpid_wq;
->  static struct workqueue_struct *kacpi_notify_wq;
->  static struct workqueue_struct *kacpi_hotplug_wq;
->  static bool acpi_os_initialized;
-> +unsigned int acpi_sci_irq = INVALID_ACPI_IRQ;
->  
->  /*
->   * This list of permanent mappings is for memory that may be accessed from
-> @@ -856,17 +857,20 @@ acpi_os_install_interrupt_handler(u32 gsi, acpi_osd_handler handler,
->  		acpi_irq_handler = NULL;
->  		return AE_NOT_ACQUIRED;
->  	}
-> +	acpi_sci_irq = irq;
->  
->  	return AE_OK;
->  }
->  
-> -acpi_status acpi_os_remove_interrupt_handler(u32 irq, acpi_osd_handler handler)
-> +acpi_status acpi_os_remove_interrupt_handler(u32 gsi, acpi_osd_handler handler)
->  {
-> -	if (irq != acpi_gbl_FADT.sci_interrupt)
-> +	if ((gsi != acpi_gbl_FADT.sci_interrupt) ||
-> +			IS_INVALID_ACPI_IRQ(acpi_sci_irq))
-
-The white space doesn't follow the kernel coding style, should be something
-like
-
-	if ((gsi != acpi_gbl_FADT.sci_interrupt) ||
-	    IS_INVALID_ACPI_IRQ(acpi_sci_irq))
-
-(spaces instead of the second tab).
-
-Another minor nit is that this probably is the only place you check the
-IS_INVALID_ACPI_IRQ(acpi_sci_irq) thing without logical negation and you
-only pass acpi_sci_irq to IS_INVALID_ACPI_IRQ() AFAICS.
-
-It would be more straightforward to define something like acpi_sci_irq_valid()
-instead (see below) IMO.
-
->  		return AE_BAD_PARAMETER;
->  
-> -	free_irq(irq, acpi_irq);
-> +	free_irq(acpi_sci_irq, acpi_irq);
->  	acpi_irq_handler = NULL;
-> +	acpi_sci_irq = INVALID_ACPI_IRQ;
->  
->  	return AE_OK;
->  }
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 43856d1..bad159c 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -193,6 +193,9 @@ int acpi_ioapic_registered(acpi_handle handle, u32 gsi_base);
->  void acpi_irq_stats_init(void);
->  extern u32 acpi_irq_handled;
->  extern u32 acpi_irq_not_handled;
-> +extern unsigned int acpi_sci_irq;
-> +#define INVALID_ACPI_IRQ ((unsigned)-1)
-
-#define INVALID_ACPI_IRQ	((unsigned int)-1)
-
-> +#define IS_INVALID_ACPI_IRQ(x) unlikely((x) == INVALID_ACPI_IRQ)
-
-Maybe something like:
-
-	static inline bool acpi_sci_irq_valid(void)
-	{
-		return acpi_sci_irq != INVALID_ACPI_IRQ;
-	}
-
->  
->  extern int sbf_port;
->  extern unsigned long acpi_realmode_flags;
+> Eliminate warnings for "not found" _Sx errors, since these
+> are optional. Original NOT_FOUND status is still returned.
 > 
+> Original changes by Prarit Bhargava.
+> ACPICA BZ 1208.
+> 
+> Before patch:
+> 
+> [prarit@prarit linux]$ dmesg | grep "Sleep State"
+> ACPI Exception: AE_NOT_FOUND, While evaluating Sleep State [\_S1_] (20130517/hwxface-571)
+> ACPI Exception: AE_NOT_FOUND, While evaluating Sleep State [\_S2_] (20130517/hwxface-571)
+> 
+> After patch:
+> [prarit@prarit linux]$ dmesg | grep "Sleep State"
+> [prarit@prarit linux]$
+> 
+> Cc: Robert Moore <Robert.Moore@intel.com>
+> Cc: Lv Zheng <lv.zheng@intel.com>
+> Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+> Cc: Len Brown <lenb@kernel.org>
+> 
+> Signed-off-by: Prarit Bhargava <prarit@redhat.com>
+
+I'll wait until this comes to me from upstream ACPICA.
 
 Thanks,
 Rafael
