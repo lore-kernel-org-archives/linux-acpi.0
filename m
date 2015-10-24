@@ -1,36 +1,109 @@
-From: Dustin Byford <dustin@cumulusnetworks.com>
-Subject: Re: [PATCH v5 0/2] i2c: acpi: scan ACPI enumerated I2C mux channels
-Date: Sun, 25 Oct 2015 08:15:25 -0700
-Message-ID: <20151025151525.GA14546@cumulusnetworks.com>
-References: <1439510358-16664-1-git-send-email-dustin@cumulusnetworks.com>
- <1445628427-29244-1-git-send-email-dustin@cumulusnetworks.com>
- <20151025145307.GA9701@katana>
+From: Rob Herring <robh@kernel.org>
+Subject: Re: [PATCH v6 04/22] of: add function to allow probing a device from
+ a OF node
+Date: Sat, 24 Oct 2015 15:09:06 -0500
+Message-ID: <562BE562.8090704@kernel.org>
+References: <1442844182-27787-1-git-send-email-tomeu.vizoso@collabora.com>
+ <10119606.2TraDKGPVy@vostro.rjw.lan>
+ <CAAObsKCAX4DQGydQoYjJEYKTOEqpVozXdHnqXWdNYVkLsg7BVg@mail.gmail.com>
+ <8510008.IC14Fu2Aos@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20151025145307.GA9701@katana>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Wolfram Sang <wsa@the-dreams.de>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Jean Delvare <jdelvare@suse.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, rjw@rjwysocki.net, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Puustinen, Ismo" <ismo.puustinen@intel.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pa0-f49.google.com ([209.85.220.49]:36749 "EHLO
+	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752080AbbJYWyt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 25 Oct 2015 18:54:49 -0400
+In-Reply-To: <8510008.IC14Fu2Aos@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Alan Stern <stern@rowland.harvard.edu>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
 
-On Sun Oct 25 15:53, Wolfram Sang wrote:
-> On Fri, Oct 23, 2015 at 12:27:05PM -0700, Dustin Byford wrote:
-> > v5:
-> > - rebased on i2c/for-next (Jarkko, Wolfram)
-> > - include acpi.h in designware drivers (Mika)
-> > - remove return from void stub function (Mika)
-> > - add acks and tested-by from Mika
+On 10/24/2015 08:55 AM, Rafael J. Wysocki wrote:
+> On Thursday, October 22, 2015 03:03:37 PM Tomeu Vizoso wrote:
+>> On 22 October 2015 at 03:06, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+>>> On Monday, September 21, 2015 04:02:44 PM Tomeu Vizoso wrote:
+>>>> Walks the OF tree up and finds the closest ancestor that has a struct
+>>>> device associated with it, probing it if isn't bound to a driver yet.
+>>>>
+>>>> The above should ensure that the dependency represented by the passed OF
+>>>> node is available, because probing a device should cause its descendants
+>>>> to be probed as well (when they get registered).
+>>>>
+>>>> Subsystems can use this when looking up resources for drivers, to reduce
+>>>> the chances of deferred probes because of the probing order of devices.
+>>>>
+>>>> Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+>>>> ---
+>>>>
+>>>> Changes in v5:
+>>>> - Move the assignment to device_node->device for AMBA devices to another
+>>>>   commit.
+>>>> - Hold a reference to the struct device while it's in use in
+>>>>   of_device_probe().
+>>>>
+>>>> Changes in v4:
+>>>> - Rename of_platform_probe to of_device_probe
+>>>> - Use device_node.device instead of device_node.platform_dev
+>>>>
+>>>> Changes in v3:
+>>>> - Set and use device_node.platform_dev instead of reversing the logic to
+>>>>   find the platform device that encloses a device node.
+>>>> - Drop the fwnode API to probe firmware nodes and add OF-only API for
+>>>>   now. I think this same scheme could be used for machines with ACPI,
+>>>>   but I haven't been able to find one that had to defer its probes because
+>>>>   of the device probe order.
+>>>>
+>>>>  drivers/of/device.c       | 61 +++++++++++++++++++++++++++++++++++++++++++++++
+>>>>  include/linux/of_device.h |  3 +++
+>>>>  2 files changed, 64 insertions(+)
+>>>>
+>>>> diff --git a/drivers/of/device.c b/drivers/of/device.c
+>>>> index 8b91ea241b10..836be71fc90e 100644
+>>>> --- a/drivers/of/device.c
+>>>> +++ b/drivers/of/device.c
+>>>> @@ -286,3 +286,64 @@ int of_device_uevent_modalias(struct device *dev, struct kobj_uevent_env *env)
+>>>>
+>>>>       return 0;
+>>>>  }
+>>>> +
+>>>> +/**
+>>>> + * of_device_probe() - Probe device associated with OF node
+>>>> + * @np: node to probe
+>>>> + *
+>>>> + * Probe the device associated with the passed device node.
+>>>> + */
+>>>> +void of_device_probe(struct device_node *np)
+>>>
+>>> Same question as from Greg: How does a subsystem know whether or not to use
+>>> this function?
+>>
+>> Maybe I don't understand the comment, but as the commit message says,
+>> subsystems can use this when looking up resources for drivers. Or you
+>> mean that this information should be in the API docs?
 > 
-> Applied to for-next, thanks!
+> I'm not really sure this is the only case.
+> 
+> Most likely, you'd end up with that being called by every subsystem using DT
+> just in case.
 
-Thanks for the reviews everyone.
+No, it is binding dependent. If a consumer is looking up the provider
+from the binding, then yes it needs a call. There may be some cases
+where it doesn't make sense. But that is why it is called from the
+binding specific code.
 
-> In the future, when you send new versions, please don't set In-Reply-To
-> to the old version, just leave it empty. I (and most maintainers I know)
-> find it easier to work when patches arrive chronologically.
+> And then each of those subsystems would need to call acpi_device_probe(), and
+> then another_platform_firmware_interface_device_probe() and so on.
+> 
+> Don't you see a problem here?
 
-OK, will do.
+Only for the 3rd firmware interface. ;)
 
-		--Dustin
+Let's get agreement on the flow and structure and how to address other
+issues like suspend, then we can worry about whether this needs to be
+abstracted from subsystems. We can discuss more this week at KS.
+
+Rob
+
