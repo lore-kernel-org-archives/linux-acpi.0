@@ -1,34 +1,49 @@
-From: "Luck, Tony" <tony.luck@intel.com>
-Subject: RE: [PATCH] GHES: Fix cached error-status
-Date: Fri, 23 Oct 2015 23:05:15 +0000
-Message-ID: <3908561D78D1C84285E8C5FCA982C28F32B5DE60@ORSMSX114.amr.corp.intel.com>
-References: <20151019175554.GB3367@linux-uzut.site>
- <20151023225057.GF27292@linux-uzut.site>
+From: Hanjun Guo <guohanjun@huawei.com>
+Subject: Re: [PATCH V4 7/8] PCI: OF: Move of_pci_dma_configure() to pci_dma_configure()
+Date: Sat, 24 Oct 2015 15:44:44 +0800
+Message-ID: <562B36EC.3040406@huawei.com>
+References: <1445442731-28819-1-git-send-email-Suravee.Suthikulpanit@amd.com> <1445442731-28819-8-git-send-email-Suravee.Suthikulpanit@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:5525 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751393AbbJWXFR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 23 Oct 2015 19:05:17 -0400
-In-Reply-To: <20151023225057.GF27292@linux-uzut.site>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1445442731-28819-8-git-send-email-Suravee.Suthikulpanit@amd.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, bhelgaas@google.com, rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com
+Cc: thomas.lendacky@amd.com, herbert@gondor.apana.org.au, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Murali Karicheri <m-karicheri2@ti.com>, hanjun.guo@linaro.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: Davidlohr Bueso <dave@stgolabs.net>, "Huang, Ying" <ying.huang@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Borislav Petkov <bp@suse.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-> ping?
+Hi Suravee,
 
-I'm not actually sure that the code is wrong.  As you say it is a pretty strange loop.
+Some minor comments  below:
 
-We seem to want to look at a bunch of conditions, and use "continue" to ignore
-bits until we find one that we like the look of.  Perhaps as soon as we do, we want
-to believe it to get our return value? Perhaps the code knows that we won't find
-another section that matches all the tests, so it isn't worth going around the loop
-again.
+On 2015/10/21 23:52, Suravee Suthikulpanit wrote:
+[...]
+> diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+> index eea8b42..09264f8 100644
+> --- a/drivers/pci/probe.c
+> +++ b/drivers/pci/probe.c
+> @@ -6,12 +6,14 @@
+>  #include <linux/delay.h>
+>  #include <linux/init.h>
+>  #include <linux/pci.h>
+> -#include <linux/of_pci.h>
+> +#include <linux/of_device.h>
 
-Ying: You wrote this code 4 years ago. Any recollections of why it looks like it does?
+Seems it's needed for GICv2m patch but not this one?
 
--Tony
+>  #include <linux/pci_hotplug.h>
+>  #include <linux/slab.h>
+>  #include <linux/module.h>
+>  #include <linux/cpumask.h>
+>  #include <linux/pci-aspm.h>
+> +#include <linux/acpi.h>
+
+I think acpi.h should be introduced by the next patch.
+
+> +#include <linux/property.h>
+
+And property.h is also not needed for this patch set.
+
+Thanks
+Hanjun
