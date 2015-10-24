@@ -1,66 +1,116 @@
-From: Hanjun Guo <guohanjun@huawei.com>
-Subject: Re: [PATCH V1 10/10] acpi, gicv3, its: Use MADT ITS subtable to do
- PCI/MSI domain initialization.
-Date: Sat, 24 Oct 2015 18:20:30 +0800
-Message-ID: <562B5B6E.2000305@huawei.com>
-References: <1444917919-21152-1-git-send-email-tn@semihalf.com>
- <1444917919-21152-11-git-send-email-tn@semihalf.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 1/3] ACPI: Using correct irq when uninstalling acpi irq handler
+Date: Sat, 24 Oct 2015 15:31:41 +0200
+Message-ID: <2653711.REifFj4Vt2@vostro.rjw.lan>
+References: <1445515388-31251-1-git-send-email-yu.c.chen@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1444917919-21152-11-git-send-email-tn@semihalf.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Tomasz Nowicki <tn@semihalf.com>, marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com
-Cc: Suravee.Suthikulpanit@amd.com, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, ddaney.cavm@gmail.com, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:65534 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1750762AbbJXNCt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 24 Oct 2015 09:02:49 -0400
+In-Reply-To: <1445515388-31251-1-git-send-email-yu.c.chen@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Chen Yu <yu.c.chen@intel.com>
+Cc: lenb@kernel.org, rui.zhang@intel.com, lv.zheng@intel.com, linux-acpi@vger.kernel.org, linux-pm@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org
 
-On 2015/10/15 22:05, Tomasz Nowicki wrote:
-> After refactoring DT code, we let ACPI to build ITS PCI MSI domain
-> and do requester ID to device ID translation using IORT table.
->
-> We have now full PCI MSI domain stack, thus we can enable ITS initialization
-> from GICv3 core driver for ACPI scenario.
->
-> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+On Thursday, October 22, 2015 08:03:08 PM Chen Yu wrote:
+> Currently when system is trying to uninstall the acpi irq
+> handler, it uses the acpi_gbl_FADT.sci_interrupt directly.
+> But acpi irq handler is actually installed by mapped irq
+> in acpi_os_install_interrupt_handler, so this patch fixes
+> this problem by using the mapped irq returned from acpi_gsi_to_irq.
+> 
+> Cc: <stable@vger.kernel.org> # 2.6.39+
+> Acked-by: Lv Zheng <lv.zheng@intel.com>
+> Signed-off-by: Chen Yu <yu.c.chen@intel.com>
 > ---
->  drivers/irqchip/irq-gic-v3-its-pci-msi.c | 48 ++++++++++++++++++++++++++++++--
->  drivers/irqchip/irq-gic-v3.c             |  3 +-
->  2 files changed, 47 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/irqchip/irq-gic-v3-its-pci-msi.c b/drivers/irqchip/irq-gic-v3-its-pci-msi.c
-> index cfd35da..09ae2d8 100644
-> --- a/drivers/irqchip/irq-gic-v3-its-pci-msi.c
-> +++ b/drivers/irqchip/irq-gic-v3-its-pci-msi.c
-> @@ -15,6 +15,8 @@
->   * along with this program.  If not, see <http://www.gnu.org/licenses/>.
->   */
+>  drivers/acpi/osl.c   | 10 +++++++---
+>  include/linux/acpi.h |  3 +++
+>  2 files changed, 10 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+> index 739a4a6..2e9eccf 100644
+> --- a/drivers/acpi/osl.c
+> +++ b/drivers/acpi/osl.c
+> @@ -81,6 +81,7 @@ static struct workqueue_struct *kacpid_wq;
+>  static struct workqueue_struct *kacpi_notify_wq;
+>  static struct workqueue_struct *kacpi_hotplug_wq;
+>  static bool acpi_os_initialized;
+> +unsigned int acpi_sci_irq = INVALID_ACPI_IRQ;
 >  
-> +#include <linux/acpi.h>
-> +#include <linux/iort.h>
->  #include <linux/msi.h>
->  #include <linux/of.h>
->  #include <linux/of_irq.h>
-> @@ -59,8 +61,10 @@ static int its_pci_msi_vec_count(struct pci_dev *pdev)
->  static int its_get_pci_alias(struct pci_dev *pdev, u16 alias, void *data)
+>  /*
+>   * This list of permanent mappings is for memory that may be accessed from
+> @@ -856,17 +857,20 @@ acpi_os_install_interrupt_handler(u32 gsi, acpi_osd_handler handler,
+>  		acpi_irq_handler = NULL;
+>  		return AE_NOT_ACQUIRED;
+>  	}
+> +	acpi_sci_irq = irq;
+>  
+>  	return AE_OK;
+>  }
+>  
+> -acpi_status acpi_os_remove_interrupt_handler(u32 irq, acpi_osd_handler handler)
+> +acpi_status acpi_os_remove_interrupt_handler(u32 gsi, acpi_osd_handler handler)
 >  {
->  	struct its_pci_alias *dev_alias = data;
-> +	u32 dev_id;
+> -	if (irq != acpi_gbl_FADT.sci_interrupt)
+> +	if ((gsi != acpi_gbl_FADT.sci_interrupt) ||
+> +			IS_INVALID_ACPI_IRQ(acpi_sci_irq))
+
+The white space doesn't follow the kernel coding style, should be something
+like
+
+	if ((gsi != acpi_gbl_FADT.sci_interrupt) ||
+	    IS_INVALID_ACPI_IRQ(acpi_sci_irq))
+
+(spaces instead of the second tab).
+
+Another minor nit is that this probably is the only place you check the
+IS_INVALID_ACPI_IRQ(acpi_sci_irq) thing without logical negation and you
+only pass acpi_sci_irq to IS_INVALID_ACPI_IRQ() AFAICS.
+
+It would be more straightforward to define something like acpi_sci_irq_valid()
+instead (see below) IMO.
+
+>  		return AE_BAD_PARAMETER;
 >  
-> -	dev_alias->dev_id = alias;
-> +	dev_alias->dev_id = iort_find_pci_id(pdev, alias, &dev_id) == 0 ?
-> +								dev_id : alias;
+> -	free_irq(irq, acpi_irq);
+> +	free_irq(acpi_sci_irq, acpi_irq);
+>  	acpi_irq_handler = NULL;
+> +	acpi_sci_irq = INVALID_ACPI_IRQ;
+>  
+>  	return AE_OK;
+>  }
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 43856d1..bad159c 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -193,6 +193,9 @@ int acpi_ioapic_registered(acpi_handle handle, u32 gsi_base);
+>  void acpi_irq_stats_init(void);
+>  extern u32 acpi_irq_handled;
+>  extern u32 acpi_irq_not_handled;
+> +extern unsigned int acpi_sci_irq;
+> +#define INVALID_ACPI_IRQ ((unsigned)-1)
 
-Hi tomasz, I think we need to re work this patch on top of tip/irq/core
-which has support for "msi-map" and "mai-parent" property support.
+#define INVALID_ACPI_IRQ	((unsigned int)-1)
 
-Thanks
-Hanjun
+> +#define IS_INVALID_ACPI_IRQ(x) unlikely((x) == INVALID_ACPI_IRQ)
+
+Maybe something like:
+
+	static inline bool acpi_sci_irq_valid(void)
+	{
+		return acpi_sci_irq != INVALID_ACPI_IRQ;
+	}
+
+>  
+>  extern int sbf_port;
+>  extern unsigned long acpi_realmode_flags;
+> 
+
+Thanks,
+Rafael
+
