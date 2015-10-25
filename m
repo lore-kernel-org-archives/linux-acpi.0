@@ -1,94 +1,68 @@
-From: "Chen, Yu C" <yu.c.chen@intel.com>
-Subject: RE: [PATCH 2/3][v2] ACPI: Using correct irq when waiting for events
-Date: Sun, 25 Oct 2015 02:08:29 +0000
-Message-ID: <36DF59CE26D8EE47B0655C516E9CE6402865EE80@shsmsx102.ccr.corp.intel.com>
-References: <1445706156-20203-1-git-send-email-yu.c.chen@intel.com>
- <201510250151.vYKQmll5%fengguang.wu@intel.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v2 3/3] ACPI/APEI/EINJ: Allow memory error injection to
+ NVDIMM
+Date: Sun, 25 Oct 2015 11:45:12 +0100
+Message-ID: <20151025104512.GC6084@nazgul.tnic>
+References: <1445626439-8424-1-git-send-email-toshi.kani@hpe.com>
+ <1445626439-8424-4-git-send-email-toshi.kani@hpe.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:14104 "EHLO mga01.intel.com"
+Received: from mail.skyhub.de ([78.46.96.112]:40852 "EHLO mail.skyhub.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752140AbbJYCIk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 24 Oct 2015 22:08:40 -0400
-In-Reply-To: <201510250151.vYKQmll5%fengguang.wu@intel.com>
-Content-Language: en-US
+	id S1750998AbbJYKpS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 25 Oct 2015 06:45:18 -0400
+Content-Disposition: inline
+In-Reply-To: <1445626439-8424-4-git-send-email-toshi.kani@hpe.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-Cc: "kbuild-all@01.org" <kbuild-all@01.org>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "Zhang, Rui" <rui.zhang@intel.com>, "Zheng, Lv" <lv.zheng@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "stable@vger.kernel.org" <stable@vger.kernel.org>, "Wu, Fengguang" <fengguang.wu@intel.com>, "Li, Philip" <philip.li@intel.com>
+To: Toshi Kani <toshi.kani@hpe.com>
+Cc: akpm@linux-foundation.org, dan.j.williams@intel.com, rjw@rjwysocki.net, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-This should not be a valid warning IMO, 
-because PATCH 2/3 is  based on PATCH 1/3,
-and the warning of implicit declaration is defined 
-in PATCH 1/3.
-
-
-> -----Original Message-----
-> From: lkp
-> Sent: Sunday, October 25, 2015 1:19 AM
-> To: Chen, Yu C
-> Cc: kbuild-all@01.org; rjw@rjwysocki.net; lenb@kernel.org; Zhang, Rui;
-> Zheng, Lv; linux-acpi@vger.kernel.org; linux-kernel@vger.kernel.org; linux-
-> pm@vger.kernel.org; Chen, Yu C; stable@vger.kernel.org
-> Subject: Re: [PATCH 2/3][v2] ACPI: Using correct irq when waiting for events
+On Fri, Oct 23, 2015 at 12:53:59PM -0600, Toshi Kani wrote:
+> In the case of memory error injection, einj_error_inject() checks
+> if a target address is regular RAM.  Update this check to add a call
+> to region_intersects_pmem() to verify if a target address range is
+> NVDIMM.  This allows injecting a memory error to both RAM and NVDIMM
+> for testing.
 > 
-> Hi Chen,
+> Also, the current RAM check, page_is_ram(), is replaced with
+> region_intersects_ram() so that it can verify a target address
+> range with the requested size.
 > 
-> [auto build test ERROR on pm/linux-next -- if it's inappropriate base, please
-> suggest rules for selecting the more suitable base]
-> 
-> url:    https://github.com/0day-ci/linux/commits/Chen-Yu/ACPI-Using-
-> correct-irq-when-waiting-for-events/20151025-010210
-> config: x86_64-randconfig-x015-201543 (attached as .config)
-> reproduce:
->         # save the attached .config to linux build tree
->         make ARCH=x86_64
-> 
-> All error/warnings (new ones prefixed by >>):
-> 
->    In file included from include/uapi/linux/stddef.h:1:0,
->                     from include/linux/stddef.h:4,
->                     from include/uapi/linux/posix_types.h:4,
->                     from include/uapi/linux/types.h:13,
->                     from include/linux/types.h:5,
->                     from include/linux/list.h:4,
->                     from include/linux/module.h:9,
->                     from drivers/acpi/osl.c:26:
->    drivers/acpi/osl.c: In function 'acpi_os_wait_events_complete':
-> >> drivers/acpi/osl.c:1183:6: error: implicit declaration of function
-> 'acpi_sci_irq_valid' [-Werror=implicit-function-declaration]
->      if (acpi_sci_irq_valid())
->          ^
->    include/linux/compiler.h:147:28: note: in definition of macro '__trace_if'
->      if (__builtin_constant_p((cond)) ? !!(cond) :   \
->                                ^
-> >> drivers/acpi/osl.c:1183:2: note: in expansion of macro 'if'
->      if (acpi_sci_irq_valid())
->      ^
-> >> drivers/acpi/osl.c:1184:23: error: 'acpi_sci_irq' undeclared (first use in this
-> function)
->       synchronize_hardirq(acpi_sci_irq);
->                           ^
->    drivers/acpi/osl.c:1184:23: note: each undeclared identifier is reported only
-> once for each function it appears in
->    cc1: some warnings being treated as errors
-> 
-> vim +/acpi_sci_irq_valid +1183 drivers/acpi/osl.c
-> 
->   1177	void acpi_os_wait_events_complete(void)
->   1178	{
->   1179		/*
->   1180		 * Make sure the GPE handler or the fixed event handler is
-> not used
->   1181		 * on another CPU after removal.
->   1182		 */
-> > 1183		if (acpi_sci_irq_valid())
-> > 1184			synchronize_hardirq(acpi_sci_irq);
->   1185		flush_workqueue(kacpid_wq);
->   1186		flush_workqueue(kacpi_notify_wq);
->   1187	}
-> 
+> Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
 > ---
-> 0-DAY kernel test infrastructure                Open Source Technology Center
-> https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
+>  drivers/acpi/apei/einj.c |   12 ++++++++----
+>  1 file changed, 8 insertions(+), 4 deletions(-)
+
+...
+
+> @@ -545,10 +545,14 @@ static int einj_error_inject(u32 type, u32 flags, u64 param1, u64 param2,
+>  	/*
+>  	 * Disallow crazy address masks that give BIOS leeway to pick
+>  	 * injection address almost anywhere. Insist on page or
+> -	 * better granularity and that target address is normal RAM.
+> +	 * better granularity and that target address is normal RAM or
+> +	 * NVDIMM.
+>  	 */
+> -	pfn = PFN_DOWN(param1 & param2);
+> -	if (!page_is_ram(pfn) || ((param2 & PAGE_MASK) != PAGE_MASK))
+> +	base_addr = param1 & param2;
+> +	size = (~param2) + 1;
+
+Just a minor nitpick: please separate assignments from the if-statement
+here with a \n.
+
+> +	if (((region_intersects_ram(base_addr, size) != REGION_INTERSECTS) &&
+> +	     (region_intersects_pmem(base_addr, size) != REGION_INTERSECTS)) ||
+> +	    ((param2 & PAGE_MASK) != PAGE_MASK))
+>  		return -EINVAL;
+>  
+>  inject:
+
+-- 
+Regards/Gruss,
+    Boris.
+
+ECO tip #101: Trim your mails when you reply.
+--
