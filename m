@@ -1,68 +1,57 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v2 3/3] ACPI/APEI/EINJ: Allow memory error injection to
- NVDIMM
-Date: Sun, 25 Oct 2015 11:45:12 +0100
-Message-ID: <20151025104512.GC6084@nazgul.tnic>
-References: <1445626439-8424-1-git-send-email-toshi.kani@hpe.com>
- <1445626439-8424-4-git-send-email-toshi.kani@hpe.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v4 1/2] acpi: add acpi_preset_companion() stub
+Date: Sun, 25 Oct 2015 14:40:10 +0100
+Message-ID: <CAJZ5v0h_u0F_9vXHDT458+qvU0J8jwi0tXWfbLcOtYhDJPQJ_Q@mail.gmail.com>
+References: <1439510358-16664-1-git-send-email-dustin@cumulusnetworks.com>
+	<1445505462-27915-1-git-send-email-dustin@cumulusnetworks.com>
+	<1445505462-27915-2-git-send-email-dustin@cumulusnetworks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.skyhub.de ([78.46.96.112]:40852 "EHLO mail.skyhub.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750998AbbJYKpS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 25 Oct 2015 06:45:18 -0400
-Content-Disposition: inline
-In-Reply-To: <1445626439-8424-4-git-send-email-toshi.kani@hpe.com>
+Received: from mail-lf0-f50.google.com ([209.85.215.50]:33661 "EHLO
+	mail-lf0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751006AbbJYNkM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 25 Oct 2015 09:40:12 -0400
+In-Reply-To: <1445505462-27915-2-git-send-email-dustin@cumulusnetworks.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hpe.com>
-Cc: akpm@linux-foundation.org, dan.j.williams@intel.com, rjw@rjwysocki.net, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Dustin Byford <dustin@cumulusnetworks.com>
+Cc: Wolfram Sang <wsa@the-dreams.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Jean Delvare <jdelvare@suse.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-i2c@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Puustinen, Ismo" <ismo.puustinen@intel.com>
 
-On Fri, Oct 23, 2015 at 12:53:59PM -0600, Toshi Kani wrote:
-> In the case of memory error injection, einj_error_inject() checks
-> if a target address is regular RAM.  Update this check to add a call
-> to region_intersects_pmem() to verify if a target address range is
-> NVDIMM.  This allows injecting a memory error to both RAM and NVDIMM
-> for testing.
-> 
-> Also, the current RAM check, page_is_ram(), is replaced with
-> region_intersects_ram() so that it can verify a target address
-> range with the requested size.
-> 
-> Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+On Thu, Oct 22, 2015 at 11:17 AM, Dustin Byford
+<dustin@cumulusnetworks.com> wrote:
+> Add a stub for acpi_preset_companion().  Fixes build failures when
+> acpi_preset_companion() is used and CONFIG_ACPI is not set.
+>
+> Signed-off-by: Dustin Byford <dustin@cumulusnetworks.com>
+
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+
 > ---
->  drivers/acpi/apei/einj.c |   12 ++++++++----
->  1 file changed, 8 insertions(+), 4 deletions(-)
-
-...
-
-> @@ -545,10 +545,14 @@ static int einj_error_inject(u32 type, u32 flags, u64 param1, u64 param2,
->  	/*
->  	 * Disallow crazy address masks that give BIOS leeway to pick
->  	 * injection address almost anywhere. Insist on page or
-> -	 * better granularity and that target address is normal RAM.
-> +	 * better granularity and that target address is normal RAM or
-> +	 * NVDIMM.
->  	 */
-> -	pfn = PFN_DOWN(param1 & param2);
-> -	if (!page_is_ram(pfn) || ((param2 & PAGE_MASK) != PAGE_MASK))
-> +	base_addr = param1 & param2;
-> +	size = (~param2) + 1;
-
-Just a minor nitpick: please separate assignments from the if-statement
-here with a \n.
-
-> +	if (((region_intersects_ram(base_addr, size) != REGION_INTERSECTS) &&
-> +	     (region_intersects_pmem(base_addr, size) != REGION_INTERSECTS)) ||
-> +	    ((param2 & PAGE_MASK) != PAGE_MASK))
->  		return -EINVAL;
->  
->  inject:
-
--- 
-Regards/Gruss,
-    Boris.
-
-ECO tip #101: Trim your mails when you reply.
---
+>  include/linux/acpi.h | 6 ++++++
+>  1 file changed, 6 insertions(+)
+>
+> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+> index 51a96a8..66564f8 100644
+> --- a/include/linux/acpi.h
+> +++ b/include/linux/acpi.h
+> @@ -505,6 +505,12 @@ static inline bool has_acpi_companion(struct device *dev)
+>         return false;
+>  }
+>
+> +static inline void acpi_preset_companion(struct device *dev,
+> +                                        struct acpi_device *parent, u64 addr)
+> +{
+> +       return;
+> +}
+> +
+>  static inline const char *acpi_dev_name(struct acpi_device *adev)
+>  {
+>         return NULL;
+> --
+> 2.1.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
