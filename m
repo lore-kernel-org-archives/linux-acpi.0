@@ -1,57 +1,27 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v4 1/2] acpi: add acpi_preset_companion() stub
-Date: Sun, 25 Oct 2015 14:40:10 +0100
-Message-ID: <CAJZ5v0h_u0F_9vXHDT458+qvU0J8jwi0tXWfbLcOtYhDJPQJ_Q@mail.gmail.com>
-References: <1439510358-16664-1-git-send-email-dustin@cumulusnetworks.com>
-	<1445505462-27915-1-git-send-email-dustin@cumulusnetworks.com>
-	<1445505462-27915-2-git-send-email-dustin@cumulusnetworks.com>
+From: Rachel Rachael <pan@creget.co.kr>
+Subject: Reply now!
+Date: Sun, 25 Oct 2015 12:25:06 GMT
+Message-ID: <HZGZRAXH-OCG6-UJ6X-1LLB-I1DZ5ZZISFK@creget.co.kr>
+Reply-To: rkigali@hotmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII;
+	format=flowed
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f50.google.com ([209.85.215.50]:33661 "EHLO
-	mail-lf0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751006AbbJYNkM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 25 Oct 2015 09:40:12 -0400
-In-Reply-To: <1445505462-27915-2-git-send-email-dustin@cumulusnetworks.com>
+Received: from [211.218.126.250] ([211.218.126.250]:51934 "EHLO creget.co.kr"
+	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1751874AbbJYNnI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 25 Oct 2015 09:43:08 -0400
+Received: from [11.1.10.189] ([212.52.159.74])
+	(authenticated bits=0)
+	by creget.co.kr (8.13.8/8.13.8) with ESMTP id t9PCJxHa014407
+	for <linux-acpi@vger.kernel.org>; Sun, 25 Oct 2015 21:25:08 +0900
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dustin Byford <dustin@cumulusnetworks.com>
-Cc: Wolfram Sang <wsa@the-dreams.de>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Jean Delvare <jdelvare@suse.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-i2c@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Puustinen, Ismo" <ismo.puustinen@intel.com>
+To: linux-acpi <linux-acpi@vger.kernel.org>
 
-On Thu, Oct 22, 2015 at 11:17 AM, Dustin Byford
-<dustin@cumulusnetworks.com> wrote:
-> Add a stub for acpi_preset_companion().  Fixes build failures when
-> acpi_preset_companion() is used and CONFIG_ACPI is not set.
->
-> Signed-off-by: Dustin Byford <dustin@cumulusnetworks.com>
+I hope you are fine there?
+Reply me immediately is very important.
 
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Rachel
 
-> ---
->  include/linux/acpi.h | 6 ++++++
->  1 file changed, 6 insertions(+)
->
-> diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-> index 51a96a8..66564f8 100644
-> --- a/include/linux/acpi.h
-> +++ b/include/linux/acpi.h
-> @@ -505,6 +505,12 @@ static inline bool has_acpi_companion(struct device *dev)
->         return false;
->  }
->
-> +static inline void acpi_preset_companion(struct device *dev,
-> +                                        struct acpi_device *parent, u64 addr)
-> +{
-> +       return;
-> +}
-> +
->  static inline const char *acpi_dev_name(struct acpi_device *adev)
->  {
->         return NULL;
-> --
-> 2.1.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
