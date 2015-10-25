@@ -1,27 +1,35 @@
-From: Rachel Rachael <pan@creget.co.kr>
-Subject: Reply now!
-Date: Sun, 25 Oct 2015 12:25:06 GMT
-Message-ID: <HZGZRAXH-OCG6-UJ6X-1LLB-I1DZ5ZZISFK@creget.co.kr>
-Reply-To: rkigali@hotmail.com
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v5 1/2] acpi: add acpi_preset_companion() stub
+Date: Sun, 25 Oct 2015 16:00:30 +0100
+Message-ID: <10563412.ltsSVLcQgX@vostro.rjw.lan>
+References: <1439510358-16664-1-git-send-email-dustin@cumulusnetworks.com> <1445628427-29244-2-git-send-email-dustin@cumulusnetworks.com> <20151024164123.GA1583@katana>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII;
-	format=flowed
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from [211.218.126.250] ([211.218.126.250]:51934 "EHLO creget.co.kr"
-	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1751874AbbJYNnI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 25 Oct 2015 09:43:08 -0400
-Received: from [11.1.10.189] ([212.52.159.74])
-	(authenticated bits=0)
-	by creget.co.kr (8.13.8/8.13.8) with ESMTP id t9PCJxHa014407
-	for <linux-acpi@vger.kernel.org>; Sun, 25 Oct 2015 21:25:08 +0900
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-i2c-owner@vger.kernel.org>
+In-Reply-To: <20151024164123.GA1583@katana>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Wolfram Sang <wsa@the-dreams.de>
+Cc: Dustin Byford <dustin@cumulusnetworks.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Jean Delvare <jdelvare@suse.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Puustinen, Ismo" <ismo.puustinen@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi <linux-acpi@vger.kernel.org>
 
-I hope you are fine there?
-Reply me immediately is very important.
+On Saturday, October 24, 2015 06:41:24 PM Wolfram Sang wrote:
+> 
+> --wac7ysb48OaltWcw
+> Content-Type: text/plain; charset=us-ascii
+> Content-Disposition: inline
+> Content-Transfer-Encoding: quoted-printable
+> 
+> On Fri, Oct 23, 2015 at 12:27:06PM -0700, Dustin Byford wrote:
+> > Add a stub for acpi_preset_companion().  Fixes build failures when
+> > acpi_preset_companion() is used and CONFIG_ACPI is not set.
+> >=20
+> > Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> > Signed-off-by: Dustin Byford <dustin@cumulusnetworks.com>
+> 
+> Waiting for Rafael's ack here...
 
-Rachel
+Sent in response to the patch message.
 
+Thanks,
+Rafael
