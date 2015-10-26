@@ -1,92 +1,68 @@
-From: Ben Gardner <gardner.ben@gmail.com>
-Subject: Re: ACPI: Can I use I2cSerialBus with a PCI I2C controller?
-Date: Mon, 26 Oct 2015 14:56:09 -0500
-Message-ID: <CAE7DoPb1kzPNuPbzbG8A2gzSLP0GHVbgZAnXeMZ3=rVCXvkS8w@mail.gmail.com>
-References: <CAE7DoPZs69A5vLzDfrRXuC3q9fpkaXRYna2NQwHZk_BK9gLnvQ@mail.gmail.com>
-	<20151021085056.GV1526@lahna.fi.intel.com>
-	<CAE7DoPak939WjCWaGQw7W6aR0dZOcJCjcQK8gMa9iu+WRmnDDw@mail.gmail.com>
-	<20151022080157.GI1526@lahna.fi.intel.com>
-	<CAE7DoPY8+zw4xw0hWTmPoG4iPgC=2JRCT4bHqeqqaH+BywTWpw@mail.gmail.com>
-	<CAE7DoPZfLDEBmeODQv3oEbs033gpq4oSA=Sx15wMajzVUbUinw@mail.gmail.com>
-	<20151023082054.GP1526@lahna.fi.intel.com>
-	<CAE7DoPbsc28tp9oOYnasTqtREOx=yNAk-xJV7q=jUHBPCPctNg@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ig0-f182.google.com ([209.85.213.182]:37372 "EHLO
-	mail-ig0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752043AbbJZT4J (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 26 Oct 2015 15:56:09 -0400
-Received: by igbhv6 with SMTP id hv6so64540386igb.0
-        for <linux-acpi@vger.kernel.org>; Mon, 26 Oct 2015 12:56:09 -0700 (PDT)
-In-Reply-To: <CAE7DoPbsc28tp9oOYnasTqtREOx=yNAk-xJV7q=jUHBPCPctNg@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: [PATCH v2 UPDATE-2 3/3] ACPI/APEI/EINJ: Allow memory error injection to NVDIMM
+Date: Mon, 26 Oct 2015 15:22:24 -0600
+Message-ID: <1445894544-21382-1-git-send-email-toshi.kani@hpe.com>
+Return-path: <owner-linux-mm@kvack.org>
+Sender: owner-linux-mm@kvack.org
+To: bp@alien8.de, tony.luck@intel.com, akpm@linux-foundation.org, dan.j.williams@intel.com, rjw@rjwysocki.net
+Cc: linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org
 
-On Fri, Oct 23, 2015 at 12:24 PM, Ben Gardner <gardner.ben@gmail.com> wrote:
-> On Fri, Oct 23, 2015 at 3:20 AM, Mika Westerberg
-> <mika.westerberg@linux.intel.com> wrote:
->> On Thu, Oct 22, 2015 at 12:17:58PM -0500, Ben Gardner wrote:
->>> > The next issue is that the I2C-core isn't matching the device to the
->>> > "at24" driver, which has the alias "24c02".
->>>
->>> Here is what I found.
->>> i2c-core is creating the device with the ACPI name "24C02:00".
->>> The at24 driver uses "24c02" as the alias.
->>> i2c-code is matching devices to drivers using strcmp().
->>>
->>> Result: no match. ("24c02" != "24C02:00").
->>>
->>> If I modify acpi_i2c_add_device() to cut off the name at the ':' and
->>> covert to lowercase when populating info.type, it matches and works.
->>> I must be missing something here, because this would have never worked as-is.
->>> I'll ask on the I2C mailing list.
->>
->> You should either use proper _HID/_CID for the device or put "PRP0001"
->> to the _HID and let the match happen with DT .compatible strings. I've
->> attached a hack that I use locally.
->>
->> The corresponding ASL fragment would look like:
->>
->>
->>         Device (AT24)
->>         {
->>             Name (_HID, "PRP0001")
->>
->>             Method (_CRS, 0, Serialized) {
->>                 Name (UBUF, ResourceTemplate () {
->>                     I2cSerialBus (0x50, ControllerInitiated, 0x00061A80,
->>                         AddressingMode7Bit, "\\_SB.I2C6",
->>                         0x00, ResourceConsumer)
->>                 })
->>                 Return (UBUF)
->>             }
->>
->>             Name (_DSD, Package () {
->>                 ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
->>                 Package () {
->>                     Package () {"compatible", "atmel,24c02"},
->>                     Package () {"size", 256},
->>                     Package () {"pagesize", 32},
->>                     Package () {"abs-value", 1},
->>                 },
->>             })
->>
->>             Method (_STA, 0, NotSerialized)
->>             {
->>                 Return (0xF)
->>             }
->>         }
->
-> I like this approach, as one change to the driver will support all ACPI devices.
-> I'll give it a try.
+In the case of memory error injection, einj_error_inject() checks
+if a target address is regular RAM.  Update this check to add a call
+to region_intersects_pmem() to verify if a target address range is
+NVDIMM.  This allows injecting a memory error to both RAM and NVDIMM
+for testing.
 
-This approach works well enough.
+Also, the current RAM check, page_is_ram(), is replaced with
+region_intersects_ram() so that it can verify a target address
+range with the requested size.
 
-Would you mind if I cleaned up the patch and submitted it for inclusion?
-Or is there a reason why this isn't upstream?
+Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+---
+UPDATE:
+ - Add a blank line before if-statement. (Borislav Petkov)
+ - Check the param2 value before target memory type. (Tony Luck)
+---
+ drivers/acpi/apei/einj.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-Thanks,
-Ben
+diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
+index 0431883..5d7c0b4 100644
+--- a/drivers/acpi/apei/einj.c
++++ b/drivers/acpi/apei/einj.c
+@@ -519,7 +519,7 @@ static int einj_error_inject(u32 type, u32 flags, u64 param1, u64 param2,
+ 			     u64 param3, u64 param4)
+ {
+ 	int rc;
+-	unsigned long pfn;
++	u64 base_addr, size;
+ 
+ 	/* If user manually set "flags", make sure it is legal */
+ 	if (flags && (flags &
+@@ -545,10 +545,15 @@ static int einj_error_inject(u32 type, u32 flags, u64 param1, u64 param2,
+ 	/*
+ 	 * Disallow crazy address masks that give BIOS leeway to pick
+ 	 * injection address almost anywhere. Insist on page or
+-	 * better granularity and that target address is normal RAM.
++	 * better granularity and that target address is normal RAM or
++	 * NVDIMM.
+ 	 */
+-	pfn = PFN_DOWN(param1 & param2);
+-	if (!page_is_ram(pfn) || ((param2 & PAGE_MASK) != PAGE_MASK))
++	base_addr = param1 & param2;
++	size = (~param2) + 1;
++
++	if (((param2 & PAGE_MASK) != PAGE_MASK) ||
++	    ((region_intersects_ram(base_addr, size) != REGION_INTERSECTS) &&
++	     (region_intersects_pmem(base_addr, size) != REGION_INTERSECTS)))
+ 		return -EINVAL;
+ 
+ inject:
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
