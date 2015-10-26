@@ -1,60 +1,47 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH v6 04/22] of: add function to allow probing a device from
- a OF node
-Date: Mon, 26 Oct 2015 12:09:12 +0900
-Message-ID: <20151026030912.GD28319@sirena.org.uk>
-References: <1442844182-27787-1-git-send-email-tomeu.vizoso@collabora.com>
- <10119606.2TraDKGPVy@vostro.rjw.lan>
- <CAAObsKCAX4DQGydQoYjJEYKTOEqpVozXdHnqXWdNYVkLsg7BVg@mail.gmail.com>
- <8510008.IC14Fu2Aos@vostro.rjw.lan>
- <562BE562.8090704@kernel.org>
- <20151026001301.GT29919@sirena.org.uk>
- <CAJZ5v0hdO-Qd+yMsv6fvc5+kLBPV9fiy77WC_aRjF=qmb2tQJQ@mail.gmail.com>
+From: "Huang\, Ying" <ying.huang@linux.intel.com>
+Subject: Re: [PATCH] GHES: Fix cached error-status
+Date: Mon, 26 Oct 2015 11:20:35 +0800
+Message-ID: <87611uz56k.fsf@yhuang-dev.intel.com>
+References: <20151019175554.GB3367@linux-uzut.site>
+	<20151023225057.GF27292@linux-uzut.site>
+	<3908561D78D1C84285E8C5FCA982C28F32B5DE60@ORSMSX114.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="bjuZg6miEcdLYP6q"
+Content-Type: text/plain; charset=ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:35734 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752425AbbJZDJk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 25 Oct 2015 23:09:40 -0400
-Content-Disposition: inline
-In-Reply-To: <CAJZ5v0hdO-Qd+yMsv6fvc5+kLBPV9fiy77WC_aRjF=qmb2tQJQ@mail.gmail.com>
+Received: from mga11.intel.com ([192.55.52.93]:20878 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752542AbbJZDUj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 25 Oct 2015 23:20:39 -0400
+In-Reply-To: <3908561D78D1C84285E8C5FCA982C28F32B5DE60@ORSMSX114.amr.corp.intel.com>
+	(Tony Luck's message of "Sat, 24 Oct 2015 07:05:15 +0800")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Rob Herring <robh@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Thierry Reding <thierry.reding@gmail.com>, Alan Stern <stern@rowland.harvard.edu>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>
+To: "Luck, Tony" <tony.luck@intel.com>
+Cc: Davidlohr Bueso <dave@stgolabs.net>, "Huang, Ying" <ying.huang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Borislav Petkov <bp@suse.de>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
+Hi, Tony,
 
---bjuZg6miEcdLYP6q
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+"Luck, Tony" <tony.luck@intel.com> writes:
+>> ping?
+>
+> I'm not actually sure that the code is wrong.  As you say it is a pretty strange loop.
+>
+> We seem to want to look at a bunch of conditions, and use "continue" to ignore
+> bits until we find one that we like the look of.  Perhaps as soon as we do, we want
+> to believe it to get our return value? Perhaps the code knows that we won't find
+> another section that matches all the tests, so it isn't worth going around the loop
+> again.
+>
+> Ying: You wrote this code 4 years ago. Any recollections of why it looks like it does?
 
-On Mon, Oct 26, 2015 at 03:48:44AM +0100, Rafael J. Wysocki wrote:
-> On Mon, Oct 26, 2015 at 1:13 AM, Mark Brown <broonie@kernel.org> wrote:
+Sorry for late.  I read the code again, and found the although the
+original code is a little tricky, it actually works.
 
-> > Should we try to schedule an ad-hoc session today (Monday) for those of
-> > us who are here to talk this over?
+In ghes_estatus_caches[], for caches with same contents, the cache with
+biggest (newest) cache->time_in should be the first.  So if we found one
+cache with too small (old) cache->time_in, we can say there are no cache
+with same contents and bigger (newer) cache->time_in, so that we can
+make decision (break) earlier.
 
-> I won't mind doing that, what about after the Linus+Dirk session?
-
-It's looking hard to round people up...  I asked Ted for a slot
-tomorrow, hopefully we can get one and if not it's probably going to be
-easier to find everyone at once.
-
---bjuZg6miEcdLYP6q
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJWLZlWAAoJECTWi3JdVIfQ59gH+gMfurJ6RRDeGrgzsGB5QSUY
-1wI6UW4WELFIiomG9wnjR9WnUzjQzmVh4YM8xOaexWdQFOFeDu08RxJMGo5mbU8v
-jDMNaVsHRPhhYL5aKox3NW0hKz1q3iaCTN0vAnVoSBqwSE32+ofWgN4wC9Rkqoj0
-p4md4tr+HOVGSF8Yt9Q6hi+sXBMRYA7yE26OajJoZtSemkBWpBWMcJARykacOrQv
-fp+ctrOEk2I4/qpBrbUY6W2GedW/fsY7U1QRyHfqtJ2w7wMORufsEhQ+PgM4wXAR
-OdsbnFEqv5LS1Mm18qNiVozUp2px8UQEnH3Dlwg+basKzkqq1SLHxSz7RKKoUFU=
-=iJqh
------END PGP SIGNATURE-----
-
---bjuZg6miEcdLYP6q--
+Best Regards,
+Huang, Ying
