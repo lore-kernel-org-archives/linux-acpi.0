@@ -1,45 +1,54 @@
-From: Help Desk <jbower@NILP.ORG>
-Subject: Administrative Notice
-Date: Mon, 26 Oct 2015 11:47:48 +0800
-Message-ID: <cc1a164a-c444-4973-8f4e-ca294ece2a34@MAIL.NILP.ORG>
-Reply-To: help.desk.team015@tech-center.com
+From: Borislav Petkov <bp@suse.de>
+Subject: Re: [PATCH] GHES: Fix cached error-status
+Date: Mon, 26 Oct 2015 05:30:21 +0100
+Message-ID: <20151026043021.GA9328@nazgul.tnic>
+References: <20151019175554.GB3367@linux-uzut.site>
+ <20151023225057.GF27292@linux-uzut.site>
+ <3908561D78D1C84285E8C5FCA982C28F32B5DE60@ORSMSX114.amr.corp.intel.com>
+ <87611uz56k.fsf@yhuang-dev.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from 50-247-246-185-static.hfc.comcastbusiness.net ([50.247.246.185]:35264
-	"EHLO MAIL.NILP.ORG" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1752544AbbJZDxU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 25 Oct 2015 23:53:20 -0400
-Content-Description: Mail message body
+Received: from mx2.suse.de ([195.135.220.15]:45857 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750717AbbJZEa2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 26 Oct 2015 00:30:28 -0400
+Content-Disposition: inline
+In-Reply-To: <87611uz56k.fsf@yhuang-dev.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: "Huang, Ying" <ying.huang@linux.intel.com>
+Cc: "Luck, Tony" <tony.luck@intel.com>, Davidlohr Bueso <dave@stgolabs.net>, "Huang, Ying" <ying.huang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Help Desk
+On Mon, Oct 26, 2015 at 11:20:35AM +0800, Huang, Ying wrote:
+> In ghes_estatus_caches[], for caches with same contents, the cache wi=
+th
+> biggest (newest) cache->time_in should be the first.  So if we found =
+one
+> cache with too small (old) cache->time_in, we can say there are no ca=
+che
+> with same contents and bigger (newer) cache->time_in, so that we can
+> make decision (break) earlier.
 
+Well, for starters, this should be documented in the code so that peopl=
+e
+looking at it would not need to scratch their heads over that break
+statement there.
 
-Scheduled Maintenance & Upgrade
+Thanks.
 
-Your account is in the process of being upgraded to a newest  
-Windows-based servers and an enhanced online email interface inline with internet infrastructure Maintenance. The new servers will provide better anti-spam and anti-virus functions, along with IMAP Support for mobile devices to enhance your usage.
+--=20
+Regards/Gruss,
+    Boris.
 
-To ensure that your account is not disrupted but active during and after this upgrade, you are required to kindly confirm your account by stating the details below:
+ECO tip #101: Trim your mails when you reply.
 
-* Domain\user name: 
-* Password: 
-
-This will prompt the upgrade of your account.
-
-Failure to acknowledge the receipt of this notification, might result to a temporary deactivation of your account from our database. Your account shall remain active upon your confirmation of your login details.
-
-During this maintenance window, there may be periods of interruption to email services.  This will include sending and receiving email in Outlook, on webmail, and on mobile devices. Also, if you leave your Mailbox open during the maintenance period, you may be prompted to close and reopen. 
- 
-We appreciate your patience as this maintenance is performed and we do apologize for any inconveniences caused.
-
-Sincerely,
-
-Customer Care Team
-
-
-(c) Copyright 2015, All Rights Reserved.
+SUSE Linux GmbH, GF: Felix Imend=C3=B6rffer, Jane Smithard, Graham Nort=
+on, HRB 21284 (AG N=C3=BCrnberg)
+--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
