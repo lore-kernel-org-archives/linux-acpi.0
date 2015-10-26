@@ -1,48 +1,64 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH] acpi: video: Add a quirk to force acpi-video backlight on Dell XPS L421X
-Date: Mon, 26 Oct 2015 15:20:46 +0100
-Message-ID: <1445869246-29276-1-git-send-email-hdegoede@redhat.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:59064 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754155AbbJZOUx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 26 Oct 2015 10:20:53 -0400
-Sender: linux-acpi-owner@vger.kernel.org
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: Re: [PATCH v2 3/3] ACPI/APEI/EINJ: Allow memory error injection to
+ NVDIMM
+Date: Mon, 26 Oct 2015 08:52:16 -0600
+Message-ID: <1445871136.20657.81.camel@hpe.com>
+References: <1445626439-8424-1-git-send-email-toshi.kani@hpe.com>
+	 <1445626439-8424-4-git-send-email-toshi.kani@hpe.com>
+	 <20151025104512.GC6084@nazgul.tnic>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20151025104512.GC6084@nazgul.tnic>
+Sender: owner-linux-mm@kvack.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: akpm@linux-foundation.org, dan.j.williams@intel.com, rjw@rjwysocki.net, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: stable@vger.kernel.org, Aaron Lu <aaron.lu@intel.com>, linux-acpi@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
 
-Just like the Dell XPS 15 (L521X) the Dell XPS 14 (L421X) needs to use
-the acpi-video backlight interface rather then the native one for backlight
-control to work, add a quirk for this.
+On Sun, 2015-10-25 at 11:45 +0100, Borislav Petkov wrote:
+> On Fri, Oct 23, 2015 at 12:53:59PM -0600, Toshi Kani wrote:
+> > In the case of memory error injection, einj_error_inject() checks
+> > if a target address is regular RAM.  Update this check to add a call
+> > to region_intersects_pmem() to verify if a target address range is
+> > NVDIMM.  This allows injecting a memory error to both RAM and NVDIMM
+> > for testing.
+> > 
+> > Also, the current RAM check, page_is_ram(), is replaced with
+> > region_intersects_ram() so that it can verify a target address
+> > range with the requested size.
+> > 
+> > Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+> > ---
+> >  drivers/acpi/apei/einj.c |   12 ++++++++----
+> >  1 file changed, 8 insertions(+), 4 deletions(-)
+> 
+> ...
+> 
+> > @@ -545,10 +545,14 @@ static int einj_error_inject(u32 type, u32 flags, u64 param1,
+> > u64 param2,
+> >  	/*
+> >  	 * Disallow crazy address masks that give BIOS leeway to pick
+> >  	 * injection address almost anywhere. Insist on page or
+> > -	 * better granularity and that target address is normal RAM.
+> > +	 * better granularity and that target address is normal RAM or
+> > +	 * NVDIMM.
+> >  	 */
+> > -	pfn = PFN_DOWN(param1 & param2);
+> > -	if (!page_is_ram(pfn) || ((param2 & PAGE_MASK) != PAGE_MASK))
+> > +	base_addr = param1 & param2;
+> > +	size = (~param2) + 1;
+> 
+> Just a minor nitpick: please separate assignments from the if-statement
+> here with a \n.
 
-BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1272633
-Cc: stable@vger.kernel.org
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/acpi/video_detect.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
+Sure.  I will send an updated patch for 3/3, "[PATCH v2 UPDATE 3/3]".
 
-diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-index 0d3a384..daaf1c4 100644
---- a/drivers/acpi/video_detect.c
-+++ b/drivers/acpi/video_detect.c
-@@ -233,6 +233,15 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
- 		},
- 	},
- 	{
-+	 /* https://bugzilla.redhat.com/show_bug.cgi?id=1272633 */
-+	 .callback = video_detect_force_video,
-+	 .ident = "Dell XPS14 L421X",
-+	 .matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "XPS L421X"),
-+		},
-+	},
-+	{
- 	 /* https://bugzilla.redhat.com/show_bug.cgi?id=1163574 */
- 	 .callback = video_detect_force_video,
- 	 .ident = "Dell XPS15 L521X",
--- 
-2.5.0
+Thanks,
+-Toshi
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
