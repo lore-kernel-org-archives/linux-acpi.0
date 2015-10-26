@@ -1,40 +1,31 @@
-From: "Huang\, Ying" <ying.huang@linux.intel.com>
-Subject: Re: [PATCH] GHES: Fix cached error-status
-Date: Mon, 26 Oct 2015 13:43:07 +0800
-Message-ID: <87oafmw5g4.fsf@yhuang-dev.intel.com>
-References: <20151019175554.GB3367@linux-uzut.site>
-	<20151023225057.GF27292@linux-uzut.site>
-	<3908561D78D1C84285E8C5FCA982C28F32B5DE60@ORSMSX114.amr.corp.intel.com>
-	<87611uz56k.fsf@yhuang-dev.intel.com>
-	<20151026043021.GA9328@nazgul.tnic>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH v4 0/5] enable I2C devices behind I2C bus on Gen2
+Date: Mon, 26 Oct 2015 08:16:44 +0000
+Message-ID: <20151026081644.GB597@x1>
+References: <1445591805-28886-1-git-send-email-andriy.shevchenko@linux.intel.com>
+ <20151023123835.GN13380@katana>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:30608 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750788AbbJZFnK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 26 Oct 2015 01:43:10 -0400
-In-Reply-To: <20151026043021.GA9328@nazgul.tnic> (Borislav Petkov's message of
-	"Mon, 26 Oct 2015 05:30:21 +0100")
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-i2c-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20151023123835.GN13380@katana>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Wolfram Sang <wsa@the-dreams.de>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@intel.com>, "Puustinen, Ismo" <ismo.puustinen@intel.com>, linux-kernel@vger.kernel.org, Thierry Reding <thierry.reding@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Borislav Petkov <bp@suse.de>
-Cc: "Luck, Tony" <tony.luck@intel.com>, Davidlohr Bueso <dave@stgolabs.net>, "Huang, Ying" <ying.huang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Borislav Petkov <bp@suse.de> writes:
+On Fri, 23 Oct 2015, Wolfram Sang wrote:
+> > Wolfram, since Lee acknowledged patches 1-3, can you pull them to y=
+our tree?
+>=20
+> So, I picked patches 1-4 to my for-next. Patch 5 is missing an ACK.
 
-> On Mon, Oct 26, 2015 at 11:20:35AM +0800, Huang, Ying wrote:
->> In ghes_estatus_caches[], for caches with same contents, the cache with
->> biggest (newest) cache->time_in should be the first.  So if we found one
->> cache with too small (old) cache->time_in, we can say there are no cache
->> with same contents and bigger (newer) cache->time_in, so that we can
->> make decision (break) earlier.
->
-> Well, for starters, this should be documented in the code so that people
-> looking at it would not need to scratch their heads over that break
-> statement there.
+Can you place these patches onto their own branch, tag it and send the
+appropriate pull-request out please?
 
-Yes.  Will do it.
-
-Best Regards,
-Huang, Ying
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
