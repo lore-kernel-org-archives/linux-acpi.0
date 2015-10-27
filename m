@@ -1,93 +1,39 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH V4 0/8] PCI: ACPI: Setting up DMA coherency for PCI device from _CCA attribute
-Date: Tue, 27 Oct 2015 16:27:26 +0100
-Message-ID: <24127028.eJSjD1i70u@vostro.rjw.lan>
-References: <1445442731-28819-1-git-send-email-Suravee.Suthikulpanit@amd.com> <20151027145249.GE8660@localhost>
+Subject: Re: [PATCH v6 03/22] of/platform: Point to struct device from device node
+Date: Tue, 27 Oct 2015 16:43:53 +0100
+Message-ID: <3956941.s3nuWak5tq@vostro.rjw.lan>
+References: <1442844182-27787-1-git-send-email-tomeu.vizoso@collabora.com> <1806288.pmhamH8mKQ@vostro.rjw.lan> <CAAObsKBjNZMhKn2bUMmQO8Lvrqfucnf9dXqmbfQ2DbAc6_GvcQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20151027145249.GE8660@localhost>
+In-Reply-To: <CAAObsKBjNZMhKn2bUMmQO8Lvrqfucnf9dXqmbfQ2DbAc6_GvcQ@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, bhelgaas@google.com, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, hanjun.guo@linaro.org, thomas.lendacky@amd.com, herbert@gondor.apana.org.au, davem@davemloft.net, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Alan Stern <stern@rowland.harvard.edu>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday, October 27, 2015 09:52:50 AM Bjorn Helgaas wrote:
-> Hi Suravee,
+On Tuesday, October 27, 2015 03:48:40 PM Tomeu Vizoso wrote:
+> On 24 October 2015 at 15:57, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+
+[...]
+
+> >
+> > Well, once that has happened, your new device pointer in the given device_node
+> > becomes useless.  Why exactly is that fine?
 > 
-> On Wed, Oct 21, 2015 at 08:52:03AM -0700, Suravee Suthikulpanit wrote:
-> > This patch series adds support to setup DMA coherency for PCI device using
-> > the ACPI _CCA attribute. According to the ACPI spec, the _CCA attribute
-> > is required for ARM64. Therefore, this patch is a pre-req for ACPI PCI
-> > support for ARM64 which is currently in development.  Also, this should
-> > not affect other architectures that does not define 
-> > CONFIG_ACPI_CCA_REQUIRED, since the default value is coherent.
-> > 
-> > In the process, this series also introduces enum dev_dma_attr and a set
-> > of APIs to query device DMA attribute. These APIs replace the obsolete
-> > device_dma_is_coherent(), and acpi_check_dma().
-> > 
-> > I have also included a patch from Jeremy posted here:
-> >     http://www.spinics.net/lists/linux-usb/msg128582.html
-> > 
-> > This patch series  has been tested on AMD Seattle RevB platform.
-> > The git tree containing tested code and pre-req patches are posted here:
-> > 
-> >     http://github.com/ssuthiku/linux.git pci-cca-v4
-> > 
-> > Changes from V3: (https://lkml.org/lkml/2015/8/26/389)
-> >     * Clean up suggested by Bjorn
-> >     * Introduce enum dev_dma_attr
-> >     * Replace device_dma_is_coherent() and acpi_check_dma() with
-> >       new APIs.
-> > 
-> > Changes from V2: (https://lkml.org/lkml/2015/8/25/549)
-> >     * Return -ENOSUPP instead of -1 (per Rafael's suggestion)
-> >     * Add WARN() when fail to setup DMA for PCI device when booting
-> >       ACPI (per Arnd's suggestion)
-> >     * Added Acked-by from Rob.
-> >     * Minor clean up
-> > 
-> > Changes from V1: (https://lkml.org/lkml/2015/8/13/182)
-> >     * Include patch 1 from Jeremy to enable support for _CCA=0
-> >     * Clean up acpi_check_dma() per Bjorn suggestions
-> >     * Split the original V1 patch into two patches (patch 3 and 4)
-> > 
-> > Jeremy Linton (1):
-> >   Honor ACPI _CCA attribute setting
-> > 
-> > Suravee Suthikulpanit (7):
-> >   device property: Introducing enum dev_dma_attr
-> >   acpi: Adding DMA Attribute APIs for ACPI Device
-> >   device property: Adding DMA Attribute APIs for Generic Devices
-> >   device property: acpi: Make use of the new DMA Attribute APIs
-> >   device property: acpi: Remove unused DMA APIs
-> >   PCI: OF: Move of_pci_dma_configure() to pci_dma_configure()
-> >   PCI: ACPI: Add support for PCI device DMA coherency
-> > 
-> >  drivers/acpi/acpi_platform.c              |  7 +++++-
-> >  drivers/acpi/glue.c                       |  8 +++---
-> >  drivers/acpi/scan.c                       | 42 +++++++++++++++++++++++++++++++
-> >  drivers/base/property.c                   | 32 +++++++++++++++++------
-> >  drivers/crypto/ccp/ccp-platform.c         |  9 ++++++-
-> >  drivers/net/ethernet/amd/xgbe/xgbe-main.c |  9 ++++++-
-> >  drivers/of/of_pci.c                       | 20 ---------------
-> >  drivers/pci/probe.c                       | 36 ++++++++++++++++++++++++--
-> >  include/acpi/acpi_bus.h                   | 36 +++-----------------------
-> >  include/linux/acpi.h                      |  7 +++++-
-> >  include/linux/of_pci.h                    |  3 ---
-> >  include/linux/property.h                  | 10 +++++++-
-> >  12 files changed, 145 insertions(+), 74 deletions(-)
-> 
-> I had a couple minor comments.  It's sort of a toss-up, but this feels
-> more ACPI-flavored than PCI, so I assume Rafael will take this whole
-> series unless I hear otherwise.
+> Why do you think it's useless? It's the device that was registered
+> from that device_node. The other one just happens to want to point to
+> the same device_node for whatever other reason, but I don't see how is
+> that relevant.
 
-I'll do that.
+It is useless as a reverse mapping from OF nodes to devices.  It tells us
+which device pointing to the given device node has been found first, but
+that's just it.
 
-> Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+You can't say whether or not it is special in any way with respect to the
+other devices hanging out of the same OF node unless you have some additional
+information on how those devices are related to each other.
 
-Thanks for the help with reviewing this!
-
+Thanks,
 Rafael
