@@ -1,72 +1,84 @@
-From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+From: Boris Ostrovsky <boris.ostrovsky@oracle.com>
 Subject: Re: [Linaro-acpi] [PATCH V1 07/11] XEN / PCI: Remove the dependence
  on arch x86 when PCI_MMCONFIG=y
-Date: Tue, 27 Oct 2015 17:47:04 +0100
-Message-ID: <562FAA88.3020609@linaro.org>
+Date: Tue, 27 Oct 2015 13:25:57 -0400
+Message-ID: <562FB3A5.3050500@oracle.com>
 References: <1445963922-22711-1-git-send-email-tn@semihalf.com>
  <1445963922-22711-8-git-send-email-tn@semihalf.com>
+ <562FAA88.3020609@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1445963922-22711-8-git-send-email-tn@semihalf.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>, bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com
-Cc: linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Boris Ostrovsky <boris.ostrovsky@oracle.com>, linux-pci@vger.kernel.org, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, Narinder.Dhillon@caviumnetworks.com, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, wangyijing@huawei.com, tglx@linutronix.de, jiang.liu@linux.intel.com, linux-arm-kernel@lists.infradead.org, Stefano.Stabellini@eu.citrix.com
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from aserp1040.oracle.com ([141.146.126.69]:49368 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754415AbbJ0R1L (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 27 Oct 2015 13:27:11 -0400
+In-Reply-To: <562FAA88.3020609@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tomasz Nowicki <tomasz.nowicki@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com
+Cc: linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, Narinder.Dhillon@caviumnetworks.com, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, wangyijing@huawei.com, tglx@linutronix.de, jiang.liu@linux.intel.com, linux-arm-kernel@lists.infradead.org, Stefano.Stabellini@eu.citrix.com
 
-+ Stefano
+On 10/27/2015 12:47 PM, Tomasz Nowicki wrote:
+> + Stefano
+>
+> On 27.10.2015 17:38, Tomasz Nowicki wrote:
+>> From: Hanjun Guo <hanjun.guo@linaro.org>
+>>
+>> In drivers/xen/pci.c, there are arch x86 dependent codes when
+>> CONFIG_PCI_MMCONFIG is enabled, since CONFIG_PCI_MMCONFIG
+>> depends on ACPI, so this will prevent XEN PCI running on other
+>> architectures using ACPI with PCI_MMCONFIG enabled (such as ARM64).
+>>
+>> Fortunatly, it can be sloved in a simple way. In drivers/xen/pci.c,
+>> the only x86 dependent code is if ((pci_probe & PCI_PROBE_MMCONF) == 0),
+>> and it's defined in asm/pci_x86.h, the code means that
+>> if the PCI resource is not probed in PCI_PROBE_MMCONF way, just
+>> ingnore the xen mcfg init. Actually this is duplicate, because
+>> if PCI resource is not probed in PCI_PROBE_MMCONF way, the
+>> pci_mmconfig_list will be empty, and the if (list_empty())
+>> after it will do the same job.
+>>
+>> So just remove the arch related code and the head file, this
+>> will be no functional change for x86, and also makes xen/pci.c
+>> usable for other architectures.
+>>
+>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>> CC: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+>> CC: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+>> ---
+>>   drivers/xen/pci.c | 6 ------
+>>   1 file changed, 6 deletions(-)
+>>
+>> diff --git a/drivers/xen/pci.c b/drivers/xen/pci.c
+>> index 6785ebb..9a8dbe3 100644
+>> --- a/drivers/xen/pci.c
+>> +++ b/drivers/xen/pci.c
+>> @@ -28,9 +28,6 @@
+>>   #include <asm/xen/hypervisor.h>
+>>   #include <asm/xen/hypercall.h>
+>>   #include "../pci/pci.h"
+>> -#ifdef CONFIG_PCI_MMCONFIG
+>> -#include <asm/pci_x86.h>
+>> -#endif
 
-On 27.10.2015 17:38, Tomasz Nowicki wrote:
-> From: Hanjun Guo <hanjun.guo@linaro.org>
->
-> In drivers/xen/pci.c, there are arch x86 dependent codes when
-> CONFIG_PCI_MMCONFIG is enabled, since CONFIG_PCI_MMCONFIG
-> depends on ACPI, so this will prevent XEN PCI running on other
-> architectures using ACPI with PCI_MMCONFIG enabled (such as ARM64).
->
-> Fortunatly, it can be sloved in a simple way. In drivers/xen/pci.c,
-> the only x86 dependent code is if ((pci_probe & PCI_PROBE_MMCONF) == 0),
-> and it's defined in asm/pci_x86.h, the code means that
-> if the PCI resource is not probed in PCI_PROBE_MMCONF way, just
-> ingnore the xen mcfg init. Actually this is duplicate, because
-> if PCI resource is not probed in PCI_PROBE_MMCONF way, the
-> pci_mmconfig_list will be empty, and the if (list_empty())
-> after it will do the same job.
->
-> So just remove the arch related code and the head file, this
-> will be no functional change for x86, and also makes xen/pci.c
-> usable for other architectures.
->
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> CC: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-> CC: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-> ---
->   drivers/xen/pci.c | 6 ------
->   1 file changed, 6 deletions(-)
->
-> diff --git a/drivers/xen/pci.c b/drivers/xen/pci.c
-> index 6785ebb..9a8dbe3 100644
-> --- a/drivers/xen/pci.c
-> +++ b/drivers/xen/pci.c
-> @@ -28,9 +28,6 @@
->   #include <asm/xen/hypervisor.h>
->   #include <asm/xen/hypercall.h>
->   #include "../pci/pci.h"
-> -#ifdef CONFIG_PCI_MMCONFIG
-> -#include <asm/pci_x86.h>
-> -#endif
->
->   static bool __read_mostly pci_seg_supported = true;
->
-> @@ -222,9 +219,6 @@ static int __init xen_mcfg_late(void)
->   	if (!xen_initial_domain())
->   		return 0;
->
-> -	if ((pci_probe & PCI_PROBE_MMCONF) == 0)
-> -		return 0;
-> -
->   	if (list_empty(&pci_mmcfg_list))
->   		return 0;
->
->
+Assuming this still compiles on x86 now that this include file is removed
+
+Reviewed-by: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+
+>>
+>>   static bool __read_mostly pci_seg_supported = true;
+>>
+>> @@ -222,9 +219,6 @@ static int __init xen_mcfg_late(void)
+>>       if (!xen_initial_domain())
+>>           return 0;
+>>
+>> -    if ((pci_probe & PCI_PROBE_MMCONF) == 0)
+>> -        return 0;
+>> -
+>>       if (list_empty(&pci_mmcfg_list))
+>>           return 0;
+>>
+>>
+
