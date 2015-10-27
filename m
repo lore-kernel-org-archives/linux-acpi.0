@@ -1,8 +1,8 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V1 08/11] pci, acpi,
- ecam: Add flag to indicate whether ECAM region was hot added or not.
-Date: Tue, 27 Oct 2015 17:38:39 +0100
-Message-ID: <1445963922-22711-9-git-send-email-tn@semihalf.com>
+Subject: [PATCH V1 05/11] x86, pci,
+ ecam: mmconfig_64.c becomes default implementation for ECAM driver.
+Date: Tue, 27 Oct 2015 17:38:36 +0100
+Message-ID: <1445963922-22711-6-git-send-email-tn@semihalf.com>
 References: <1445963922-22711-1-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,52 +22,233 @@ To: bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm
 Cc: linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, Narinder.Dhillon@caviumnetworks.com, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, wangyijing@huawei.com, Tomasz Nowicki <tn@semihalf.com>, tglx@linutronix.de, jiang.liu@linux.intel.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-There are two ways we can get ECAM (aka MCFG) regions using ACPI,
-from MCFG static table and from _CBA method. We cannot remove static
-regions, however regions coming from _CBA should be removed while removing
-bridge device.
+Hosts with custom ECAM hooks (like 32bit x86) should select
+ARCH_HAS_CUSTOM_PCI_ECAM. Otherwise, host will use generic version
+provided by this patch (like 64bit x86 does).
 
-In the light of above we need flag to mark hot added ECAM entries
-so that user should use pci_mmconfig_inject while adding regions from
-_CBA method.
+Note, we leaved x86-specific PCI config accessors in corresponding files.
 
 Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
 ---
- drivers/pci/ecam.c   | 2 ++
- include/linux/ecam.h | 1 +
- 2 files changed, 3 insertions(+)
+ arch/x86/Kconfig               |  1 +
+ arch/x86/include/asm/pci_x86.h |  4 ---
+ arch/x86/pci/mmconfig_64.c     | 55 ---------------------------------------
+ drivers/acpi/mcfg.c            |  2 --
+ drivers/pci/Kconfig            |  3 +++
+ drivers/pci/ecam.c             | 59 +++++++++++++++++++++++++++++++++++++++++-
+ include/linux/ecam.h           |  6 +++++
+ 7 files changed, 68 insertions(+), 62 deletions(-)
 
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index 4ca8134..b4b68eb 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -30,6 +30,7 @@ config X86
+ 	select ARCH_HAS_PMEM_API		if X86_64
+ 	select ARCH_HAS_MMIO_FLUSH
+ 	select ARCH_HAS_SG_CHAIN
++	select ARCH_HAS_CUSTOM_PCI_ECAM		if X86_32
+ 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
+ 	select ARCH_MIGHT_HAVE_ACPI_PDC		if ACPI
+ 	select ARCH_MIGHT_HAVE_PC_PARPORT
+diff --git a/arch/x86/include/asm/pci_x86.h b/arch/x86/include/asm/pci_x86.h
+index 039f69e..c9bda33 100644
+--- a/arch/x86/include/asm/pci_x86.h
++++ b/arch/x86/include/asm/pci_x86.h
+@@ -122,10 +122,6 @@ extern int pci_legacy_init(void);
+ extern void pcibios_fixup_irqs(void);
+ 
+ /* pci-mmconfig.c */
+-extern int __init pci_mmcfg_arch_init(void);
+-extern void __init pci_mmcfg_arch_free(void);
+-extern int pci_mmcfg_arch_map(struct pci_mmcfg_region *cfg);
+-extern void pci_mmcfg_arch_unmap(struct pci_mmcfg_region *cfg);
+ extern int pci_mmconfig_insert(struct device *dev, u16 seg, u8 start, u8 end,
+ 			       phys_addr_t addr);
+ 
+diff --git a/arch/x86/pci/mmconfig_64.c b/arch/x86/pci/mmconfig_64.c
+index d0c48eb..fd356cc 100644
+--- a/arch/x86/pci/mmconfig_64.c
++++ b/arch/x86/pci/mmconfig_64.c
+@@ -90,58 +90,3 @@ int pci_mmcfg_write(unsigned int seg, unsigned int bus,
+ 
+ 	return 0;
+ }
+-
+-static void __iomem *mcfg_ioremap(struct pci_mmcfg_region *cfg)
+-{
+-	void __iomem *addr;
+-	u64 start, size;
+-	int num_buses;
+-
+-	start = cfg->address + PCI_MMCFG_BUS_OFFSET(cfg->start_bus);
+-	num_buses = cfg->end_bus - cfg->start_bus + 1;
+-	size = PCI_MMCFG_BUS_OFFSET(num_buses);
+-	addr = ioremap_nocache(start, size);
+-	if (addr)
+-		addr -= PCI_MMCFG_BUS_OFFSET(cfg->start_bus);
+-	return addr;
+-}
+-
+-int __init pci_mmcfg_arch_init(void)
+-{
+-	struct pci_mmcfg_region *cfg;
+-
+-	list_for_each_entry(cfg, &pci_mmcfg_list, list)
+-		if (pci_mmcfg_arch_map(cfg)) {
+-			pci_mmcfg_arch_free();
+-			return 0;
+-		}
+-
+-	return 1;
+-}
+-
+-void __init pci_mmcfg_arch_free(void)
+-{
+-	struct pci_mmcfg_region *cfg;
+-
+-	list_for_each_entry(cfg, &pci_mmcfg_list, list)
+-		pci_mmcfg_arch_unmap(cfg);
+-}
+-
+-int pci_mmcfg_arch_map(struct pci_mmcfg_region *cfg)
+-{
+-	cfg->virt = mcfg_ioremap(cfg);
+-	if (!cfg->virt) {
+-		pr_err(PREFIX "can't map MMCONFIG at %pR\n", &cfg->res);
+-		return -ENOMEM;
+-	}
+-
+-	return 0;
+-}
+-
+-void pci_mmcfg_arch_unmap(struct pci_mmcfg_region *cfg)
+-{
+-	if (cfg && cfg->virt) {
+-		iounmap(cfg->virt + PCI_MMCFG_BUS_OFFSET(cfg->start_bus));
+-		cfg->virt = NULL;
+-	}
+-}
+diff --git a/drivers/acpi/mcfg.c b/drivers/acpi/mcfg.c
+index fad9917..745b83e 100644
+--- a/drivers/acpi/mcfg.c
++++ b/drivers/acpi/mcfg.c
+@@ -10,8 +10,6 @@
+ #include <linux/acpi.h>
+ #include <linux/ecam.h>
+ 
+-#include <asm/pci_x86.h> /* Temp hack before refactoring arch-specific calls */
+-
+ #define	PREFIX	"MCFG: "
+ 
+ int __init acpi_parse_mcfg(struct acpi_table_header *header)
+diff --git a/drivers/pci/Kconfig b/drivers/pci/Kconfig
+index 9950248..b2e27c8 100644
+--- a/drivers/pci/Kconfig
++++ b/drivers/pci/Kconfig
+@@ -33,6 +33,9 @@ config PCI_ECAM
+ config HAVE_PCI_ECAM
+ 	bool
+ 
++config ARCH_HAS_CUSTOM_PCI_ECAM
++	bool
++
+ config PCI_DEBUG
+ 	bool "PCI Debugging"
+ 	depends on PCI && DEBUG_KERNEL
 diff --git a/drivers/pci/ecam.c b/drivers/pci/ecam.c
-index 8a5eef7..da35b4c 100644
+index d221dba..8a5eef7 100644
 --- a/drivers/pci/ecam.c
 +++ b/drivers/pci/ecam.c
-@@ -131,6 +131,7 @@ struct pci_mmcfg_region *pci_mmconfig_alloc(int segment, int start,
- 	new->segment = segment;
- 	new->start_bus = start;
- 	new->end_bus = end;
-+	new->hot_added = false;
+@@ -16,7 +16,6 @@
+ #include <linux/ecam.h>
  
- 	res = &new->res;
- 	res->start = addr + PCI_MMCFG_BUS_OFFSET(start);
-@@ -221,6 +222,7 @@ int pci_mmconfig_inject(struct pci_mmcfg_region *cfg)
- 		err = -ENOMEM;
- 		goto out;
- 	} else {
-+		cfg->hot_added = true;
- 		list_add_sorted(cfg);
- 		pr_info("MMCONFIG at %pR (base %#lx)\n",
- 			&cfg->res, (unsigned long)cfg->address);
+ #include <asm/io.h>
+-#include <asm/pci_x86.h> /* Temp hack before refactoring arch-specific calls */
+ 
+ #define PREFIX "PCI: "
+ 
+@@ -24,6 +23,64 @@ static DEFINE_MUTEX(pci_mmcfg_lock);
+ 
+ LIST_HEAD(pci_mmcfg_list);
+ 
++#ifndef CONFIG_ARCH_HAS_CUSTOM_PCI_ECAM
++
++static void __iomem *mcfg_ioremap(struct pci_mmcfg_region *cfg)
++{
++	void __iomem *addr;
++	u64 start, size;
++	int num_buses;
++
++	start = cfg->address + PCI_MMCFG_BUS_OFFSET(cfg->start_bus);
++	num_buses = cfg->end_bus - cfg->start_bus + 1;
++	size = PCI_MMCFG_BUS_OFFSET(num_buses);
++	addr = ioremap_nocache(start, size);
++	if (addr)
++		addr -= PCI_MMCFG_BUS_OFFSET(cfg->start_bus);
++	return addr;
++}
++
++int __init pci_mmcfg_arch_init(void)
++{
++	struct pci_mmcfg_region *cfg;
++
++	list_for_each_entry(cfg, &pci_mmcfg_list, list)
++		if (pci_mmcfg_arch_map(cfg)) {
++			pci_mmcfg_arch_free();
++			return 0;
++		}
++
++	return 1;
++}
++
++void __init pci_mmcfg_arch_free(void)
++{
++	struct pci_mmcfg_region *cfg;
++
++	list_for_each_entry(cfg, &pci_mmcfg_list, list)
++		pci_mmcfg_arch_unmap(cfg);
++}
++
++int pci_mmcfg_arch_map(struct pci_mmcfg_region *cfg)
++{
++	cfg->virt = mcfg_ioremap(cfg);
++	if (!cfg->virt) {
++		pr_err(PREFIX "can't map MMCONFIG at %pR\n", &cfg->res);
++		return -ENOMEM;
++	}
++
++	return 0;
++}
++
++void pci_mmcfg_arch_unmap(struct pci_mmcfg_region *cfg)
++{
++	if (cfg && cfg->virt) {
++		iounmap(cfg->virt + PCI_MMCFG_BUS_OFFSET(cfg->start_bus));
++		cfg->virt = NULL;
++	}
++}
++#endif
++
+ static void __init pci_mmconfig_remove(struct pci_mmcfg_region *cfg)
+ {
+ 	if (cfg->res.parent)
 diff --git a/include/linux/ecam.h b/include/linux/ecam.h
-index 813acd1..e0f322e 100644
+index dec3b52..813acd1 100644
 --- a/include/linux/ecam.h
 +++ b/include/linux/ecam.h
-@@ -17,6 +17,7 @@ struct pci_mmcfg_region {
- 	u8 start_bus;
- 	u8 end_bus;
- 	char name[PCI_MMCFG_RESOURCE_NAME_LEN];
-+	bool hot_added;
- };
+@@ -29,6 +29,12 @@ void list_add_sorted(struct pci_mmcfg_region *new);
+ void free_all_mmcfg(void);
+ int pci_mmconfig_delete(u16 seg, u8 start, u8 end);
  
- struct pci_mmcfg_region *pci_mmconfig_lookup(int segment, int bus);
++/* Arch specific calls */
++int pci_mmcfg_arch_init(void);
++void pci_mmcfg_arch_free(void);
++int pci_mmcfg_arch_map(struct pci_mmcfg_region *cfg);
++void pci_mmcfg_arch_unmap(struct pci_mmcfg_region *cfg);
++
+ extern struct list_head pci_mmcfg_list;
+ 
+ #define PCI_MMCFG_BUS_OFFSET(bus)      ((bus) << 20)
 -- 
 1.9.1
