@@ -1,45 +1,58 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v2 5/5] ACPI / processor_idle: Add support for Low Power
- Idle(LPI) states
-Date: Tue, 27 Oct 2015 14:09:34 +0000
-Message-ID: <562F859E.4010105@arm.com>
-References: <1438710406-3822-1-git-send-email-sudeep.holla@arm.com>
- <1442411963-14398-1-git-send-email-sudeep.holla@arm.com>
- <1442411963-14398-6-git-send-email-sudeep.holla@arm.com>
- <CAJ5Y-ebOPE1oamRk31nxL6VkgSdDd6AmEe2Fw1ku5pGt25D2Rg@mail.gmail.com>
- <562EC3A5.2070402@codeaurora.org>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH V4 7/8] PCI: OF: Move of_pci_dma_configure() to
+ pci_dma_configure()
+Date: Tue, 27 Oct 2015 09:38:12 -0500
+Message-ID: <20151027143812.GB8660@localhost>
+References: <1445442731-28819-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+ <1445442731-28819-8-git-send-email-Suravee.Suthikulpanit@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:56646 "EHLO foss.arm.com"
+Received: from mail.kernel.org ([198.145.29.136]:54518 "EHLO mail.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932251AbbJ0OJi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 27 Oct 2015 10:09:38 -0400
-In-Reply-To: <562EC3A5.2070402@codeaurora.org>
+	id S932247AbbJ0OiU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 27 Oct 2015 10:38:20 -0400
+Content-Disposition: inline
+In-Reply-To: <1445442731-28819-8-git-send-email-Suravee.Suthikulpanit@amd.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Prakash, Prashanth" <pprakash@codeaurora.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, linux acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, lkml <linux-kernel@vger.kernel.org>, linux-ia64@vger.kernel.org, x86@kernel.org, Al Stone <al.stone@linaro.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Mahesh Sivasubramanian <msivasub@codeaurora.org>
+To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Cc: bhelgaas@google.com, rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, hanjun.guo@linaro.org, thomas.lendacky@amd.com, herbert@gondor.apana.org.au, davem@davemloft.net, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Murali Karicheri <m-karicheri2@ti.com>
 
-Hi Prashanth,
+Hi Suravee,
 
-On 27/10/15 00:21, Prakash, Prashanth wrote:
-> Hi Sudeep,
->
-> While testing with these patches everything looked fine except that we
-> are flattening all the LPI
-> states even if it is disabled. I added a simple check to fix it. Please
-> let me know if you have any
-> feedback on the same.
->
+On Wed, Oct 21, 2015 at 08:52:10AM -0700, Suravee Suthikulpanit wrote:
+> This patch move of_pci_dma_configure() to a more generic
+> pci_dma_configure(), which can be extended by non-OF code (e.g. ACPI).
 
-Looks good to me and thanks for the nice catch. I completely missed to
-handle that case. Is it OK if I fold this patch into the next version ?
+> -void of_pci_dma_configure(struct pci_dev *pci_dev)
+> -{
+> -	struct device *dev = &pci_dev->dev;
+> -	struct device *bridge = pci_get_host_bridge_device(pci_dev);
+> -
+> -	if (!bridge->parent)
+> -		return;
+> -
+> -	of_dma_configure(dev, bridge->parent->of_node);
+> -	pci_put_host_bridge_device(bridge);
+> -}
 
-I have worked on Ashwin's comments, but was waiting to get some feedback
-from Rafael before I post newer version.
+> +static void pci_dma_configure(struct pci_dev *dev)
+> +{
+> +	struct device *bridge = pci_get_host_bridge_device(dev);
+> +
+> +	if (IS_ENABLED(CONFIG_OF) && dev->dev.of_node) {
+> +		if (!bridge->parent)
+> +			return;
 
--- 
-Regards,
-Sudeep
+Don't we leak a bridge reference here?  This looks like it was a problem in
+the original code, not something you added.  Ideally I guess I would add a
+new patch that only fixes the leak in the original code, followed by this
+patch that moves it from of_pci_dma_configure() to pci_dma_configure().
+
+> +
+> +		of_dma_configure(&dev->dev, bridge->parent->of_node);
+> +	}
+> +
+> +	pci_put_host_bridge_device(bridge);
+> +}
