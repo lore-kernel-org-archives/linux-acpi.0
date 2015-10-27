@@ -1,79 +1,55 @@
-From: Dustin Byford <dustin@cumulusnetworks.com>
-Subject: Re: ACPI: Can I use I2cSerialBus with a PCI I2C controller?
-Date: Tue, 27 Oct 2015 14:11:11 -0700
-Message-ID: <20151027211111.GA6011@cumulusnetworks.com>
-References: <CAE7DoPZs69A5vLzDfrRXuC3q9fpkaXRYna2NQwHZk_BK9gLnvQ@mail.gmail.com>
- <20151021085056.GV1526@lahna.fi.intel.com>
- <CAE7DoPak939WjCWaGQw7W6aR0dZOcJCjcQK8gMa9iu+WRmnDDw@mail.gmail.com>
- <20151022080157.GI1526@lahna.fi.intel.com>
- <CAE7DoPY8+zw4xw0hWTmPoG4iPgC=2JRCT4bHqeqqaH+BywTWpw@mail.gmail.com>
- <CAE7DoPZfLDEBmeODQv3oEbs033gpq4oSA=Sx15wMajzVUbUinw@mail.gmail.com>
- <20151023082054.GP1526@lahna.fi.intel.com>
+From: Rob Herring <robh+dt@kernel.org>
+Subject: Re: [PATCH v6 03/22] of/platform: Point to struct device from device node
+Date: Tue, 27 Oct 2015 16:24:48 -0500
+Message-ID: <CAL_JsqJxqJc=0tDDCxx-2rGLLUVE50u+P3CrvptBCkskHdV2tg@mail.gmail.com>
+References: <1442844182-27787-1-git-send-email-tomeu.vizoso@collabora.com>
+ <1806288.pmhamH8mKQ@vostro.rjw.lan> <CAAObsKBjNZMhKn2bUMmQO8Lvrqfucnf9dXqmbfQ2DbAc6_GvcQ@mail.gmail.com>
+ <3956941.s3nuWak5tq@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f48.google.com ([209.85.220.48]:33140 "EHLO
-	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753810AbbJ0VLM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 27 Oct 2015 17:11:12 -0400
-Received: by pabla5 with SMTP id la5so40196405pab.0
-        for <linux-acpi@vger.kernel.org>; Tue, 27 Oct 2015 14:11:12 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20151023082054.GP1526@lahna.fi.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <3956941.s3nuWak5tq@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Alan Stern <stern@rowland.harvard.edu>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Ben Gardner <gardner.ben@gmail.com>, linux-acpi@vger.kernel.org
 
-Hi Mika,
+On Tue, Oct 27, 2015 at 10:43 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Tuesday, October 27, 2015 03:48:40 PM Tomeu Vizoso wrote:
+>> On 24 October 2015 at 15:57, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+>
+> [...]
+>
+>> >
+>> > Well, once that has happened, your new device pointer in the given device_node
+>> > becomes useless.  Why exactly is that fine?
+>>
+>> Why do you think it's useless? It's the device that was registered
+>> from that device_node. The other one just happens to want to point to
+>> the same device_node for whatever other reason, but I don't see how is
+>> that relevant.
+>
+> It is useless as a reverse mapping from OF nodes to devices.  It tells us
+> which device pointing to the given device node has been found first, but
+> that's just it.
+>
+> You can't say whether or not it is special in any way with respect to the
+> other devices hanging out of the same OF node unless you have some additional
+> information on how those devices are related to each other.
 
-On Fri Oct 23 11:20, Mika Westerberg wrote:
+As Tomeu says this struct device is the one created from scanning the
+DT. There should never be more than one. Now some drivers create sub
+devices and maybe they set the DT node on the child devices, but that
+is wrong. Doing that would also break the current code:
 
-> You should either use proper _HID/_CID for the device or put "PRP0001"
-> to the _HID and let the match happen with DT .compatible strings. I've
-> attached a hack that I use locally.
+struct platform_device *of_find_device_by_node(struct device_node *np)
+{
+        struct device *dev;
 
-I have a similar hack over here.  I have a question though:
+        dev = bus_find_device(&platform_bus_type, NULL, np, of_dev_node_match);
+        return dev ? to_platform_device(dev) : NULL;
+}
 
-> The corresponding ASL fragment would look like:
-> 
-> 
->         Device (AT24)
->         {
->             Name (_HID, "PRP0001")
-> 
->             Method (_CRS, 0, Serialized) {
->                 Name (UBUF, ResourceTemplate () {
->                     I2cSerialBus (0x50, ControllerInitiated, 0x00061A80,
->                         AddressingMode7Bit, "\\_SB.I2C6",
->                         0x00, ResourceConsumer)
->                 })
->                 Return (UBUF)
->             }
-> 
->             Name (_DSD, Package () {
->                 ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
->                 Package () {
->                     Package () {"compatible", "atmel,24c02"},
+I can't think of any other possible cases.
 
-The "c02" in 24c02 also indicates the size.  I've always found it a
-little awkward when you could have a compatible string that disagrees
-with firmware properties.  Should we do something about that?
-
-For example, is the more generic string, "atmel,at24" better?  I'm not
-sure I like that approach in general, but it works well for the at24
-devices.  at25 does it the same way.
-
->                     Package () {"size", 256},
->                     Package () {"pagesize", 32},
->                     Package () {"abs-value", 1},
->                 },
->             })
-> 
->             Method (_STA, 0, NotSerialized)
->             {
->                 Return (0xF)
->             }
->         }
-
-		--Dustin
+Rob
