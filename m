@@ -1,38 +1,67 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH V4 1/8] acpi: Honor ACPI _CCA attribute setting
-Date: Tue, 27 Oct 2015 09:41:24 -0500
-Message-ID: <20151027144123.GC8660@localhost>
-References: <1445442731-28819-1-git-send-email-Suravee.Suthikulpanit@amd.com>
- <1445442731-28819-2-git-send-email-Suravee.Suthikulpanit@amd.com>
+From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Subject: Re: [PATCH v6 04/22] of: add function to allow probing a device from
+ a OF node
+Date: Tue, 27 Oct 2015 15:46:07 +0100
+Message-ID: <CAAObsKCSzBNESu5WGAWPz5Uh41NYaPXkWtBPtL7SVu4NAs6ebw@mail.gmail.com>
+References: <1442844182-27787-1-git-send-email-tomeu.vizoso@collabora.com>
+ <1442844182-27787-5-git-send-email-tomeu.vizoso@collabora.com> <CAMuHMdW=sT9uLbZkwdYF9Yd3ENaAoQ0=qQLfr-Ow6pz11DiU0A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1445442731-28819-2-git-send-email-Suravee.Suthikulpanit@amd.com>
+In-Reply-To: <CAMuHMdW=sT9uLbZkwdYF9Yd3ENaAoQ0=qQLfr-Ow6pz11DiU0A@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Cc: bhelgaas@google.com, rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, hanjun.guo@linaro.org, thomas.lendacky@amd.com, herbert@gondor.apana.org.au, davem@davemloft.net, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Jeremy Linton <jeremy.linton@arm.com>, Rob Herring <robh+dt@kernel.org>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, Stephen Warren <swarren@wwwdotorg.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Linus Walleij <linus.walleij@linaro.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Rob Herring <robh+dt@kernel.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Alan Stern <stern@rowland.harvard.edu>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 List-Id: linux-acpi@vger.kernel.org
 
->From "git log --oneline include/acpi/acpi_bus.h", I see the convention is
-to capitalize "ACPI:" in the summary (also applies to other patches in this
-series).
+On 26 October 2015 at 09:16, Geert Uytterhoeven <geert@linux-m68k.org> wrote:
+> On Mon, Sep 21, 2015 at 4:02 PM, Tomeu Vizoso
+> <tomeu.vizoso@collabora.com> wrote:
+>> Walks the OF tree up and finds the closest ancestor that has a struct
+>> device associated with it, probing it if isn't bound to a driver yet.
+>>
+>> The above should ensure that the dependency represented by the passed OF
+>> node is available, because probing a device should cause its descendants
+>> to be probed as well (when they get registered).
+>>
+>> Subsystems can use this when looking up resources for drivers, to reduce
+>> the chances of deferred probes because of the probing order of devices.
+>>
+>> Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+>
+> Don't know to which response I should post this comment, so I'm responding
+> to the original email.
+>
+> Some subsystems already do this.
+> If you call e.g. syscon_regmap_lookup_by_phandle(), it will call
+> of_syscon_register() if the syscon device pointed to hasn't been registered yet.
 
-On Wed, Oct 21, 2015 at 08:52:04AM -0700, Suravee Suthikulpanit wrote:
-> From: Jeremy Linton <jeremy.linton@arm.com>
-> 
-> ACPI configurations can now mark devices as noncoherent,
-> support that choice.
-> 
-> NOTE: This is required to support USB on ARM Juno Development Board.
-> 
-> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
-> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-> CC: Bjorn Helgaas <bhelgaas@google.com>
-> CC: Catalin Marinas <catalin.marinas@arm.com>
-> CC: Rob Herring <robh+dt@kernel.org>
-> CC: Will Deacon <will.deacon@arm.com>
-> CC: Rafael J. Wysocki <rjw@rjwysocki.net>
-> ---
->  include/acpi/acpi_bus.h | 5 +++--
->  1 file changed, 3 insertions(+), 2 deletions(-)
+Hi Geert,
+
+I think I prefer if devices are registered as early as possible and
+then only probed on-demand, as registration is very much
+device-specific but probing is the same for all devices.
+
+But I think in general we should be doing more things on demand and
+depending less on the order in which we mass initialize stuff
+(devices, classes, drivers, etc).
+
+Regards,
+
+Tomeu
+
+> Gr{oetje,eeting}s,
+>
+>                         Geert
+>
+> --
+> Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+>
+> In personal conversations with technical people, I call myself a hacker. But
+> when I'm talking to journalists I just say "programmer" or something like that.
+>                                 -- Linus Torvalds
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
