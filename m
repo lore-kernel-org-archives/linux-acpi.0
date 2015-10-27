@@ -1,39 +1,79 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v6 03/22] of/platform: Point to struct device from device node
-Date: Tue, 27 Oct 2015 16:43:53 +0100
-Message-ID: <3956941.s3nuWak5tq@vostro.rjw.lan>
-References: <1442844182-27787-1-git-send-email-tomeu.vizoso@collabora.com> <1806288.pmhamH8mKQ@vostro.rjw.lan> <CAAObsKBjNZMhKn2bUMmQO8Lvrqfucnf9dXqmbfQ2DbAc6_GvcQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAAObsKBjNZMhKn2bUMmQO8Lvrqfucnf9dXqmbfQ2DbAc6_GvcQ@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Rob Herring <robh+dt@kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Alan Stern <stern@rowland.harvard.edu>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: [PATCH V1 00/11] MMCONFIG refactoring and ARM64 PCI hostbridge init based on ACPI
+Date: Tue, 27 Oct 2015 17:38:31 +0100
+Message-ID: <1445963922-22711-1-git-send-email-tn@semihalf.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lf0-f46.google.com ([209.85.215.46]:34349 "EHLO
+	mail-lf0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932582AbbJ0QjT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 27 Oct 2015 12:39:19 -0400
+Received: by lfaz124 with SMTP id z124so175669024lfa.1
+        for <linux-acpi@vger.kernel.org>; Tue, 27 Oct 2015 09:39:18 -0700 (PDT)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com
+Cc: jiang.liu@linux.intel.com, robert.richter@caviumnetworks.com, Narinder.Dhillon@caviumnetworks.com, ddaney@caviumnetworks.com, Liviu.Dudau@arm.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, Tomasz Nowicki <tn@semihalf.com>
 
-On Tuesday, October 27, 2015 03:48:40 PM Tomeu Vizoso wrote:
-> On 24 October 2015 at 15:57, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+>From the functionality point of view this series might be split into two logic parts:
+1. Making MMCONFIG code arch-agnostic which allows all architectures to collect
+   PCI config regions and used when necessary.
+2. Using generic MMCONFIG code and introducing ACPI based PCI hostbridge
+   initialization for ARM64
 
-[...]
+Patches has been built on top of:
+[Patch v7 0/7] Consolidate ACPI PCI root common code into ACPI core
+https://lkml.org/lkml/2015/10/14/31
+Git branch can be found here:
+https://git.linaro.org/leg/acpi/acpi.git/shortlog/refs/heads/pci-acpi-upstream
 
-> >
-> > Well, once that has happened, your new device pointer in the given device_node
-> > becomes useless.  Why exactly is that fine?
-> 
-> Why do you think it's useless? It's the device that was registered
-> from that device_node. The other one just happens to want to point to
-> the same device_node for whatever other reason, but I don't see how is
-> that relevant.
+This has been tested on Cavium ThunderX 1 socket server.
+Any help in reviewing and testing is very appreciated.
 
-It is useless as a reverse mapping from OF nodes to devices.  It tells us
-which device pointing to the given device node has been found first, but
-that's just it.
+Hanjun Guo (1):
+  XEN / PCI: Remove the dependence on arch x86 when PCI_MMCONFIG=y
 
-You can't say whether or not it is special in any way with respect to the
-other devices hanging out of the same OF node unless you have some additional
-information on how those devices are related to each other.
+Tomasz Nowicki (10):
+  x86, pci: Reorder logic of pci_mmconfig_insert() function
+  x86, pci, acpi: Move arch-agnostic MMCONFIG (aka ECAM) and ACPI code
+    out of arch/x86/ directory
+  pci, acpi, mcfg: Provide generic implementation of MCFG code
+    initialization.
+  x86, pci: mmconfig_{32,64}.c code refactoring - remove code
+    duplication.
+  x86, pci, ecam: mmconfig_64.c becomes default implementation for ECAM
+    driver.
+  pci, acpi, mcfg: Provide default RAW ACPI PCI config space accessors.
+  pci, acpi, ecam: Add flag to indicate whether ECAM region was hot
+    added or not.
+  x86, pci: Use previously added ECAM hot_added flag to remove ECAM
+    regions.
+  pci, acpi: Provide generic way to assign bus domain number.
+  arm64, pci, acpi: Support for ACPI based PCI hostbridge init
 
-Thanks,
-Rafael
+ arch/arm64/Kconfig             |   6 +
+ arch/arm64/kernel/pci.c        | 208 ++++++++++++++++++++++++++++++++--
+ arch/x86/Kconfig               |   4 +
+ arch/x86/include/asm/pci_x86.h |  28 +----
+ arch/x86/pci/acpi.c            |  17 +--
+ arch/x86/pci/mmconfig-shared.c | 250 +++++++----------------------------------
+ arch/x86/pci/mmconfig_32.c     |  11 +-
+ arch/x86/pci/mmconfig_64.c     |  67 +----------
+ arch/x86/pci/numachip.c        |   1 +
+ drivers/acpi/Makefile          |   1 +
+ drivers/acpi/mcfg.c            | 104 +++++++++++++++++
+ drivers/acpi/pci_root.c        |   2 +-
+ drivers/pci/Kconfig            |  10 ++
+ drivers/pci/Makefile           |   5 +
+ drivers/pci/ecam.c             | 234 ++++++++++++++++++++++++++++++++++++++
+ drivers/pci/pci.c              |  30 ++++-
+ drivers/xen/pci.c              |   7 +-
+ include/linux/acpi.h           |   2 +
+ include/linux/ecam.h           |  44 ++++++++
+ 19 files changed, 691 insertions(+), 340 deletions(-)
+ create mode 100644 drivers/acpi/mcfg.c
+ create mode 100644 drivers/pci/ecam.c
+ create mode 100644 include/linux/ecam.h
+
+-- 
+1.9.1
+
