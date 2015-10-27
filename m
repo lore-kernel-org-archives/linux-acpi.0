@@ -1,55 +1,66 @@
-From: Rob Herring <robh+dt@kernel.org>
-Subject: Re: [PATCH v6 03/22] of/platform: Point to struct device from device node
-Date: Tue, 27 Oct 2015 16:24:48 -0500
-Message-ID: <CAL_JsqJxqJc=0tDDCxx-2rGLLUVE50u+P3CrvptBCkskHdV2tg@mail.gmail.com>
-References: <1442844182-27787-1-git-send-email-tomeu.vizoso@collabora.com>
- <1806288.pmhamH8mKQ@vostro.rjw.lan> <CAAObsKBjNZMhKn2bUMmQO8Lvrqfucnf9dXqmbfQ2DbAc6_GvcQ@mail.gmail.com>
- <3956941.s3nuWak5tq@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <3956941.s3nuWak5tq@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Alan Stern <stern@rowland.harvard.edu>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH v3 0/2] Hotplug support for libnvdimm
+Date: Tue, 27 Oct 2015 16:58:25 -0600
+Message-ID: <1445986707-15395-1-git-send-email-vishal.l.verma@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:8291 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754216AbbJ0W6q (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 27 Oct 2015 18:58:46 -0400
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: Vishal Verma <vishal.l.verma@intel.com>, Dan Williams <dan.j.williams@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-acpi@vger.kernel.org, Jeff Moyer <jmoyer@redhat.com>, Elliott Robert <elliott@hpe.com>, Toshi Kani <toshi.kani@hpe.com>
 
-On Tue, Oct 27, 2015 at 10:43 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Tuesday, October 27, 2015 03:48:40 PM Tomeu Vizoso wrote:
->> On 24 October 2015 at 15:57, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
->
-> [...]
->
->> >
->> > Well, once that has happened, your new device pointer in the given device_node
->> > becomes useless.  Why exactly is that fine?
->>
->> Why do you think it's useless? It's the device that was registered
->> from that device_node. The other one just happens to want to point to
->> the same device_node for whatever other reason, but I don't see how is
->> that relevant.
->
-> It is useless as a reverse mapping from OF nodes to devices.  It tells us
-> which device pointing to the given device node has been found first, but
-> that's just it.
->
-> You can't say whether or not it is special in any way with respect to the
-> other devices hanging out of the same OF node unless you have some additional
-> information on how those devices are related to each other.
+This series adds support for hotplug of NVDIMMs. Upon hotplug, the ACPI
+core calls the .notify callback we register. From this, we evaluate the
+_FIT method which returns an updated NFIT. This is scanned for any new
+tables, and any new regions found from it are registered and made
+available for use.
 
-As Tomeu says this struct device is the one created from scanning the
-DT. There should never be more than one. Now some drivers create sub
-devices and maybe they set the DT node on the child devices, but that
-is wrong. Doing that would also break the current code:
+The series is tested with nfit_test (tools/testing/nvdimm) only, which
+means the parts of getting a notification from the acpi core, and calling
+_FIT are untested.
 
-struct platform_device *of_find_device_by_node(struct device_node *np)
-{
-        struct device *dev;
+Changes from v2->v3:
+ - in acpi_nfit_init, splice off the old contents if to a "prev" list and
+   only check for duplicates when "prev" is not empty (Dan)
+ - in acpi_nfit_init, error out if tables are found to be deleted
+ - locking changes: Use device_lock for .add and .notify. Check if
+   dev->driver is valid during notify to protect against a prior
+   removal (Dan)
+ - Change IS_ERR_OR_NULL to IS_ERR for acpi_nfit_desc_init (Dan)
+ - nfit_test: for the hot-plug DIMM, add a flush hint table too for
+   completeness
 
-        dev = bus_find_device(&platform_bus_type, NULL, np, of_dev_node_match);
-        return dev ? to_platform_device(dev) : NULL;
-}
+Changes from v1->v2:
+ - If a 0-length header is found in the nfit (patch 1), also spew a
+   warning (Jeff)
+ - Don't make a new acpi_evaluate_fit helper - open code a call to
+   acpi_evaluate_object in nfit.c (Dan/Rafael)
+ - Remove a warning for duplicate DCRs (Toshi)
+ - Add an init_lock to protect the notify handler from racing with an
+   'add' or 'remove' (Dan)
+ - The only NVDIMM in a system *could* potentially come from a hotplug,
+   esp in the virtualization case. Refactor how acpi_nfit_desc is
+   initialized to account for this. For the same reason, don't fail when
+   a valid NFIT is not found at driver load time. A by-product of this
+   change is that we need to initialize lists and mutexes manually in
+   nfit test. (Dan)
+ - Remove acpi_nfit_merge (added in v1) as it is now essentially
+   the same as acpi_nfit_init
+ - Reword the commit message for patch 2/2 to say 'hot add' instead of
+   hotplug, making it clearer that hot removal support is not being added
 
-I can't think of any other possible cases.
+Vishal Verma (2):
+  nfit: in acpi_nfit_init, break on a 0-length table
+  acpi: nfit: Add support for hot-add
 
-Rob
+ drivers/acpi/nfit.c              | 307 +++++++++++++++++++++++++++++++--------
+ drivers/acpi/nfit.h              |   2 +
+ tools/testing/nvdimm/test/nfit.c | 164 ++++++++++++++++++++-
+ 3 files changed, 413 insertions(+), 60 deletions(-)
+
+-- 
+2.4.3
+
