@@ -1,84 +1,99 @@
-From: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Subject: Re: [Linaro-acpi] [PATCH V1 07/11] XEN / PCI: Remove the dependence
- on arch x86 when PCI_MMCONFIG=y
-Date: Tue, 27 Oct 2015 13:25:57 -0400
-Message-ID: <562FB3A5.3050500@oracle.com>
-References: <1445963922-22711-1-git-send-email-tn@semihalf.com>
- <1445963922-22711-8-git-send-email-tn@semihalf.com>
- <562FAA88.3020609@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:49368 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754415AbbJ0R1L (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 27 Oct 2015 13:27:11 -0400
-In-Reply-To: <562FAA88.3020609@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Yinghai Lu <yinghai@kernel.org>
+Subject: [PATCH v8 20/61] PCI: Separate realloc list checking after allocation
+Date: Tue, 27 Oct 2015 13:55:12 -0700
+Message-ID: <1445979353-1728-21-git-send-email-yinghai@kernel.org>
+References: <1445979353-1728-1-git-send-email-yinghai@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1445979353-1728-1-git-send-email-yinghai@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <bhelgaas@google.com>, David Miller <davem@davemloft.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Wei Yang <weiyang@linux.vnet.ibm.com>, TJ <linux@iam.tj>, Yijing Wang <wangyijing@huawei.com>, Khalid Aziz <khalid.aziz@oracle.com>
+Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tomasz.nowicki@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com
-Cc: linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, Narinder.Dhillon@caviumnetworks.com, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, wangyijing@huawei.com, tglx@linutronix.de, jiang.liu@linux.intel.com, linux-arm-kernel@lists.infradead.org, Stefano.Stabellini@eu.citrix.com
 
-On 10/27/2015 12:47 PM, Tomasz Nowicki wrote:
-> + Stefano
->
-> On 27.10.2015 17:38, Tomasz Nowicki wrote:
->> From: Hanjun Guo <hanjun.guo@linaro.org>
->>
->> In drivers/xen/pci.c, there are arch x86 dependent codes when
->> CONFIG_PCI_MMCONFIG is enabled, since CONFIG_PCI_MMCONFIG
->> depends on ACPI, so this will prevent XEN PCI running on other
->> architectures using ACPI with PCI_MMCONFIG enabled (such as ARM64).
->>
->> Fortunatly, it can be sloved in a simple way. In drivers/xen/pci.c,
->> the only x86 dependent code is if ((pci_probe & PCI_PROBE_MMCONF) == 0),
->> and it's defined in asm/pci_x86.h, the code means that
->> if the PCI resource is not probed in PCI_PROBE_MMCONF way, just
->> ingnore the xen mcfg init. Actually this is duplicate, because
->> if PCI resource is not probed in PCI_PROBE_MMCONF way, the
->> pci_mmconfig_list will be empty, and the if (list_empty())
->> after it will do the same job.
->>
->> So just remove the arch related code and the head file, this
->> will be no functional change for x86, and also makes xen/pci.c
->> usable for other architectures.
->>
->> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->> CC: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
->> CC: Boris Ostrovsky <boris.ostrovsky@oracle.com>
->> ---
->>   drivers/xen/pci.c | 6 ------
->>   1 file changed, 6 deletions(-)
->>
->> diff --git a/drivers/xen/pci.c b/drivers/xen/pci.c
->> index 6785ebb..9a8dbe3 100644
->> --- a/drivers/xen/pci.c
->> +++ b/drivers/xen/pci.c
->> @@ -28,9 +28,6 @@
->>   #include <asm/xen/hypervisor.h>
->>   #include <asm/xen/hypercall.h>
->>   #include "../pci/pci.h"
->> -#ifdef CONFIG_PCI_MMCONFIG
->> -#include <asm/pci_x86.h>
->> -#endif
+We check the realloc list, as list must be empty after allocation.
 
-Assuming this still compiles on x86 now that this include file is removed
+Separate the realloc list checking to another function.
 
-Reviewed-by: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Add checking that is missed in acpiphp driver.
 
->>
->>   static bool __read_mostly pci_seg_supported = true;
->>
->> @@ -222,9 +219,6 @@ static int __init xen_mcfg_late(void)
->>       if (!xen_initial_domain())
->>           return 0;
->>
->> -    if ((pci_probe & PCI_PROBE_MMCONF) == 0)
->> -        return 0;
->> -
->>       if (list_empty(&pci_mmcfg_list))
->>           return 0;
->>
->>
+-v2: change to WARN_ON according to Rafael.
 
+Signed-off-by: Yinghai Lu <yinghai@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Len Brown <lenb@kernel.org>
+Cc: linux-acpi@vger.kernel.org
+---
+ drivers/pci/hotplug/acpiphp_glue.c |  1 +
+ drivers/pci/pci.h                  |  1 +
+ drivers/pci/setup-bus.c            | 12 +++++++++---
+ 3 files changed, 11 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
+index ff53856..ce9fb21 100644
+--- a/drivers/pci/hotplug/acpiphp_glue.c
++++ b/drivers/pci/hotplug/acpiphp_glue.c
+@@ -507,6 +507,7 @@ static void enable_slot(struct acpiphp_slot *slot)
+ 		}
+ 	}
+ 	__pci_bus_assign_resources(bus, &add_list, NULL);
++	pci_bus_check_realloc(&add_list);
+ 
+ 	acpiphp_sanitize_bus(bus);
+ 	pcie_bus_configure_settings(bus);
+diff --git a/drivers/pci/pci.h b/drivers/pci/pci.h
+index 39d2c50..c34c2aa 100644
+--- a/drivers/pci/pci.h
++++ b/drivers/pci/pci.h
+@@ -238,6 +238,7 @@ void __pci_bus_size_bridges(struct pci_bus *bus,
+ void __pci_bus_assign_resources(const struct pci_bus *bus,
+ 				struct list_head *realloc_head,
+ 				struct list_head *fail_head);
++void pci_bus_check_realloc(struct list_head *realloc_head);
+ bool pci_bus_clip_resource(struct pci_dev *dev, int idx);
+ 
+ void pci_reassigndev_resource_alignment(struct pci_dev *dev);
+diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
+index d49c6e5..53ab81f 100644
+--- a/drivers/pci/setup-bus.c
++++ b/drivers/pci/setup-bus.c
+@@ -280,6 +280,12 @@ out:
+ 	}
+ }
+ 
++void pci_bus_check_realloc(struct list_head *realloc_head)
++{
++	if (WARN_ON(!list_empty(realloc_head)))
++		free_list(realloc_head);
++}
++
+ /**
+  * assign_requested_resources_sorted() - satisfy resource requests
+  *
+@@ -1733,7 +1739,7 @@ again:
+ 	/* Depth last, allocate resources and update the hardware. */
+ 	__pci_bus_assign_resources(bus, add_list, &fail_head);
+ 	if (add_list)
+-		BUG_ON(!list_empty(add_list));
++		pci_bus_check_realloc(add_list);
+ 	tried_times++;
+ 
+ 	/* any device complain? */
+@@ -1808,7 +1814,7 @@ void pci_assign_unassigned_bridge_resources(struct pci_dev *bridge)
+ again:
+ 	__pci_bus_size_bridges(parent, &add_list);
+ 	__pci_bridge_assign_resources(bridge, &add_list, &fail_head);
+-	BUG_ON(!list_empty(&add_list));
++	pci_bus_check_realloc(&add_list);
+ 	tried_times++;
+ 
+ 	if (list_empty(&fail_head))
+@@ -1867,6 +1873,6 @@ void pci_assign_unassigned_bus_resources(struct pci_bus *bus)
+ 							 &add_list);
+ 	up_read(&pci_bus_sem);
+ 	__pci_bus_assign_resources(bus, &add_list, NULL);
+-	BUG_ON(!list_empty(&add_list));
++	pci_bus_check_realloc(&add_list);
+ }
+ EXPORT_SYMBOL_GPL(pci_assign_unassigned_bus_resources);
+-- 
+1.8.4.5
