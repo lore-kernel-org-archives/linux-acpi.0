@@ -1,99 +1,79 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH v8 20/61] PCI: Separate realloc list checking after allocation
-Date: Tue, 27 Oct 2015 13:55:12 -0700
-Message-ID: <1445979353-1728-21-git-send-email-yinghai@kernel.org>
-References: <1445979353-1728-1-git-send-email-yinghai@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1445979353-1728-1-git-send-email-yinghai@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, David Miller <davem@davemloft.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Wei Yang <weiyang@linux.vnet.ibm.com>, TJ <linux@iam.tj>, Yijing Wang <wangyijing@huawei.com>, Khalid Aziz <khalid.aziz@oracle.com>
-Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+From: Dustin Byford <dustin@cumulusnetworks.com>
+Subject: Re: ACPI: Can I use I2cSerialBus with a PCI I2C controller?
+Date: Tue, 27 Oct 2015 14:11:11 -0700
+Message-ID: <20151027211111.GA6011@cumulusnetworks.com>
+References: <CAE7DoPZs69A5vLzDfrRXuC3q9fpkaXRYna2NQwHZk_BK9gLnvQ@mail.gmail.com>
+ <20151021085056.GV1526@lahna.fi.intel.com>
+ <CAE7DoPak939WjCWaGQw7W6aR0dZOcJCjcQK8gMa9iu+WRmnDDw@mail.gmail.com>
+ <20151022080157.GI1526@lahna.fi.intel.com>
+ <CAE7DoPY8+zw4xw0hWTmPoG4iPgC=2JRCT4bHqeqqaH+BywTWpw@mail.gmail.com>
+ <CAE7DoPZfLDEBmeODQv3oEbs033gpq4oSA=Sx15wMajzVUbUinw@mail.gmail.com>
+ <20151023082054.GP1526@lahna.fi.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pa0-f48.google.com ([209.85.220.48]:33140 "EHLO
+	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753810AbbJ0VLM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 27 Oct 2015 17:11:12 -0400
+Received: by pabla5 with SMTP id la5so40196405pab.0
+        for <linux-acpi@vger.kernel.org>; Tue, 27 Oct 2015 14:11:12 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <20151023082054.GP1526@lahna.fi.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Ben Gardner <gardner.ben@gmail.com>, linux-acpi@vger.kernel.org
 
-We check the realloc list, as list must be empty after allocation.
+Hi Mika,
 
-Separate the realloc list checking to another function.
+On Fri Oct 23 11:20, Mika Westerberg wrote:
 
-Add checking that is missed in acpiphp driver.
+> You should either use proper _HID/_CID for the device or put "PRP0001"
+> to the _HID and let the match happen with DT .compatible strings. I've
+> attached a hack that I use locally.
 
--v2: change to WARN_ON according to Rafael.
+I have a similar hack over here.  I have a question though:
 
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
----
- drivers/pci/hotplug/acpiphp_glue.c |  1 +
- drivers/pci/pci.h                  |  1 +
- drivers/pci/setup-bus.c            | 12 +++++++++---
- 3 files changed, 11 insertions(+), 3 deletions(-)
+> The corresponding ASL fragment would look like:
+> 
+> 
+>         Device (AT24)
+>         {
+>             Name (_HID, "PRP0001")
+> 
+>             Method (_CRS, 0, Serialized) {
+>                 Name (UBUF, ResourceTemplate () {
+>                     I2cSerialBus (0x50, ControllerInitiated, 0x00061A80,
+>                         AddressingMode7Bit, "\\_SB.I2C6",
+>                         0x00, ResourceConsumer)
+>                 })
+>                 Return (UBUF)
+>             }
+> 
+>             Name (_DSD, Package () {
+>                 ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+>                 Package () {
+>                     Package () {"compatible", "atmel,24c02"},
 
-diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
-index ff53856..ce9fb21 100644
---- a/drivers/pci/hotplug/acpiphp_glue.c
-+++ b/drivers/pci/hotplug/acpiphp_glue.c
-@@ -507,6 +507,7 @@ static void enable_slot(struct acpiphp_slot *slot)
- 		}
- 	}
- 	__pci_bus_assign_resources(bus, &add_list, NULL);
-+	pci_bus_check_realloc(&add_list);
- 
- 	acpiphp_sanitize_bus(bus);
- 	pcie_bus_configure_settings(bus);
-diff --git a/drivers/pci/pci.h b/drivers/pci/pci.h
-index 39d2c50..c34c2aa 100644
---- a/drivers/pci/pci.h
-+++ b/drivers/pci/pci.h
-@@ -238,6 +238,7 @@ void __pci_bus_size_bridges(struct pci_bus *bus,
- void __pci_bus_assign_resources(const struct pci_bus *bus,
- 				struct list_head *realloc_head,
- 				struct list_head *fail_head);
-+void pci_bus_check_realloc(struct list_head *realloc_head);
- bool pci_bus_clip_resource(struct pci_dev *dev, int idx);
- 
- void pci_reassigndev_resource_alignment(struct pci_dev *dev);
-diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
-index d49c6e5..53ab81f 100644
---- a/drivers/pci/setup-bus.c
-+++ b/drivers/pci/setup-bus.c
-@@ -280,6 +280,12 @@ out:
- 	}
- }
- 
-+void pci_bus_check_realloc(struct list_head *realloc_head)
-+{
-+	if (WARN_ON(!list_empty(realloc_head)))
-+		free_list(realloc_head);
-+}
-+
- /**
-  * assign_requested_resources_sorted() - satisfy resource requests
-  *
-@@ -1733,7 +1739,7 @@ again:
- 	/* Depth last, allocate resources and update the hardware. */
- 	__pci_bus_assign_resources(bus, add_list, &fail_head);
- 	if (add_list)
--		BUG_ON(!list_empty(add_list));
-+		pci_bus_check_realloc(add_list);
- 	tried_times++;
- 
- 	/* any device complain? */
-@@ -1808,7 +1814,7 @@ void pci_assign_unassigned_bridge_resources(struct pci_dev *bridge)
- again:
- 	__pci_bus_size_bridges(parent, &add_list);
- 	__pci_bridge_assign_resources(bridge, &add_list, &fail_head);
--	BUG_ON(!list_empty(&add_list));
-+	pci_bus_check_realloc(&add_list);
- 	tried_times++;
- 
- 	if (list_empty(&fail_head))
-@@ -1867,6 +1873,6 @@ void pci_assign_unassigned_bus_resources(struct pci_bus *bus)
- 							 &add_list);
- 	up_read(&pci_bus_sem);
- 	__pci_bus_assign_resources(bus, &add_list, NULL);
--	BUG_ON(!list_empty(&add_list));
-+	pci_bus_check_realloc(&add_list);
- }
- EXPORT_SYMBOL_GPL(pci_assign_unassigned_bus_resources);
--- 
-1.8.4.5
+The "c02" in 24c02 also indicates the size.  I've always found it a
+little awkward when you could have a compatible string that disagrees
+with firmware properties.  Should we do something about that?
+
+For example, is the more generic string, "atmel,at24" better?  I'm not
+sure I like that approach in general, but it works well for the at24
+devices.  at25 does it the same way.
+
+>                     Package () {"size", 256},
+>                     Package () {"pagesize", 32},
+>                     Package () {"abs-value", 1},
+>                 },
+>             })
+> 
+>             Method (_STA, 0, NotSerialized)
+>             {
+>                 Return (0xF)
+>             }
+>         }
+
+		--Dustin
