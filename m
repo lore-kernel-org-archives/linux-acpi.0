@@ -1,106 +1,100 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH V4 0/8] PCI: ACPI: Setting up DMA coherency for PCI device
- from _CCA attribute
-Date: Wed, 28 Oct 2015 21:54:23 +0800
-Message-ID: <5630D38F.804@linaro.org>
-References: <1445442731-28819-1-git-send-email-Suravee.Suthikulpanit@amd.com>
- <20151027145249.GE8660@localhost> <24127028.eJSjD1i70u@vostro.rjw.lan>
+From: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Subject: Re: [Linaro-acpi] [PATCH V1 07/11] XEN / PCI: Remove the dependence
+ on arch x86 when PCI_MMCONFIG=y
+Date: Wed, 28 Oct 2015 10:07:54 -0400
+Message-ID: <5630D6BA.1080701@oracle.com>
+References: <1445963922-22711-1-git-send-email-tn@semihalf.com>
+ <1445963922-22711-8-git-send-email-tn@semihalf.com>
+ <562FAA88.3020609@linaro.org> <562FB3A5.3050500@oracle.com>
+ <alpine.DEB.2.02.1510281047460.15801@kaball.uk.xensource.com>
+ <5630A9D3.1030607@linaro.org> <5630D179.9050403@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"; Format="flowed"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <24127028.eJSjD1i70u@vostro.rjw.lan>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <helgaas@kernel.org>
-Cc: thomas.lendacky@amd.com, herbert@gondor.apana.org.au, catalin.marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, linux-pci@vger.kernel.org, bhelgaas@google.com, davem@davemloft.net, linux-arm-kernel@lists.infradead.org, lenb@kernel.org
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <5630D179.9050403@linaro.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>
+Cc: Tomasz Nowicki <tn@semihalf.com>, bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, Lorenzo.Pieralisi@arm.com, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, Narinder.Dhillon@caviumnetworks.com, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, wangyijing@huawei.com, tglx@linutronix.de, jiang.liu@linux.intel.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Rafael,
-
-On 10/27/2015 11:27 PM, Rafael J. Wysocki wrote:
-> On Tuesday, October 27, 2015 09:52:50 AM Bjorn Helgaas wrote:
->> Hi Suravee,
+On 10/28/2015 09:45 AM, Hanjun Guo wrote:
+> On 10/28/2015 06:56 PM, Tomasz Nowicki wrote:
+>> On 28.10.2015 11:49, Stefano Stabellini wrote:
+>>> On Tue, 27 Oct 2015, Boris Ostrovsky wrote:
+>>>> On 10/27/2015 12:47 PM, Tomasz Nowicki wrote:
+>>>>> + Stefano
+>>>>>
+>>>>> On 27.10.2015 17:38, Tomasz Nowicki wrote:
+>>>>>> From: Hanjun Guo <hanjun.guo@linaro.org>
+>>>>>>
+>>>>>> In drivers/xen/pci.c, there are arch x86 dependent codes when
+>>>>>> CONFIG_PCI_MMCONFIG is enabled, since CONFIG_PCI_MMCONFIG
+>>>>>> depends on ACPI, so this will prevent XEN PCI running on other
+>>>>>> architectures using ACPI with PCI_MMCONFIG enabled (such as ARM6=
+4).
+>>>>>>
+>>>>>> Fortunatly, it can be sloved in a simple way. In drivers/xen/pci=
+=2Ec,
+>>>>>> the only x86 dependent code is if ((pci_probe & PCI_PROBE_MMCONF=
+)
+>>>>>> =3D=3D 0),
+>>>>>> and it's defined in asm/pci_x86.h, the code means that
+>>>>>> if the PCI resource is not probed in PCI_PROBE_MMCONF way, just
+>>>>>> ingnore the xen mcfg init. Actually this is duplicate, because
+>>>>>> if PCI resource is not probed in PCI_PROBE_MMCONF way, the
+>>>>>> pci_mmconfig_list will be empty, and the if (list_empty())
+>>>>>> after it will do the same job.
+>>>>>>
+>>>>>> So just remove the arch related code and the head file, this
+>>>>>> will be no functional change for x86, and also makes xen/pci.c
+>>>>>> usable for other architectures.
+>>>>>>
+>>>>>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>>>>>> CC: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+>>>>>> CC: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+>>>>>> ---
+>>>>>>    drivers/xen/pci.c | 6 ------
+>>>>>>    1 file changed, 6 deletions(-)
+>>>>>>
+>>>>>> diff --git a/drivers/xen/pci.c b/drivers/xen/pci.c
+>>>>>> index 6785ebb..9a8dbe3 100644
+>>>>>> --- a/drivers/xen/pci.c
+>>>>>> +++ b/drivers/xen/pci.c
+>>>>>> @@ -28,9 +28,6 @@
+>>>>>>    #include <asm/xen/hypervisor.h>
+>>>>>>    #include <asm/xen/hypercall.h>
+>>>>>>    #include "../pci/pci.h"
+>>>>>> -#ifdef CONFIG_PCI_MMCONFIG
+>>>>>> -#include <asm/pci_x86.h>
+>>>>>> -#endif
+>>>>
+>>>> Assuming this still compiles on x86 now that this include file is
+>>>> removed
+>>>>
+>>>> Reviewed-by: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+>>>
+>>> I think it does not:
+>>>
+>>> drivers/xen/pci.c: In function =E2=80=98xen_mcfg_late=E2=80=99:
+>>> drivers/xen/pci.c:221:18: error: =E2=80=98pci_mmcfg_list=E2=80=99 u=
+ndeclared (first
+>>> use in this function)
+>>> drivers/xen/pci.c:221:18: note: each undeclared identifier is repor=
+ted
+>>> only once for each f
 >>
->> On Wed, Oct 21, 2015 at 08:52:03AM -0700, Suravee Suthikulpanit wrote:
->>> This patch series adds support to setup DMA coherency for PCI device using
->>> the ACPI _CCA attribute. According to the ACPI spec, the _CCA attribute
->>> is required for ARM64. Therefore, this patch is a pre-req for ACPI PCI
->>> support for ARM64 which is currently in development.  Also, this should
->>> not affect other architectures that does not define
->>> CONFIG_ACPI_CCA_REQUIRED, since the default value is coherent.
->>>
->>> In the process, this series also introduces enum dev_dma_attr and a set
->>> of APIs to query device DMA attribute. These APIs replace the obsolete
->>> device_dma_is_coherent(), and acpi_check_dma().
->>>
->>> I have also included a patch from Jeremy posted here:
->>>      http://www.spinics.net/lists/linux-usb/msg128582.html
->>>
->>> This patch series  has been tested on AMD Seattle RevB platform.
->>> The git tree containing tested code and pre-req patches are posted here:
->>>
->>>      http://github.com/ssuthiku/linux.git pci-cca-v4
->>>
->>> Changes from V3: (https://lkml.org/lkml/2015/8/26/389)
->>>      * Clean up suggested by Bjorn
->>>      * Introduce enum dev_dma_attr
->>>      * Replace device_dma_is_coherent() and acpi_check_dma() with
->>>        new APIs.
->>>
->>> Changes from V2: (https://lkml.org/lkml/2015/8/25/549)
->>>      * Return -ENOSUPP instead of -1 (per Rafael's suggestion)
->>>      * Add WARN() when fail to setup DMA for PCI device when booting
->>>        ACPI (per Arnd's suggestion)
->>>      * Added Acked-by from Rob.
->>>      * Minor clean up
->>>
->>> Changes from V1: (https://lkml.org/lkml/2015/8/13/182)
->>>      * Include patch 1 from Jeremy to enable support for _CCA=0
->>>      * Clean up acpi_check_dma() per Bjorn suggestions
->>>      * Split the original V1 patch into two patches (patch 3 and 4)
->>>
->>> Jeremy Linton (1):
->>>    Honor ACPI _CCA attribute setting
->>>
->>> Suravee Suthikulpanit (7):
->>>    device property: Introducing enum dev_dma_attr
->>>    acpi: Adding DMA Attribute APIs for ACPI Device
->>>    device property: Adding DMA Attribute APIs for Generic Devices
->>>    device property: acpi: Make use of the new DMA Attribute APIs
->>>    device property: acpi: Remove unused DMA APIs
->>>    PCI: OF: Move of_pci_dma_configure() to pci_dma_configure()
->>>    PCI: ACPI: Add support for PCI device DMA coherency
->>>
->>>   drivers/acpi/acpi_platform.c              |  7 +++++-
->>>   drivers/acpi/glue.c                       |  8 +++---
->>>   drivers/acpi/scan.c                       | 42 +++++++++++++++++++++++++++++++
->>>   drivers/base/property.c                   | 32 +++++++++++++++++------
->>>   drivers/crypto/ccp/ccp-platform.c         |  9 ++++++-
->>>   drivers/net/ethernet/amd/xgbe/xgbe-main.c |  9 ++++++-
->>>   drivers/of/of_pci.c                       | 20 ---------------
->>>   drivers/pci/probe.c                       | 36 ++++++++++++++++++++++++--
->>>   include/acpi/acpi_bus.h                   | 36 +++-----------------------
->>>   include/linux/acpi.h                      |  7 +++++-
->>>   include/linux/of_pci.h                    |  3 ---
->>>   include/linux/property.h                  | 10 +++++++-
->>>   12 files changed, 145 insertions(+), 74 deletions(-)
+>> Right, we need:
+>> +#include <linux/ecam.h>
 >>
->> I had a couple minor comments.  It's sort of a toss-up, but this feels
->> more ACPI-flavored than PCI, so I assume Rafael will take this whole
->> series unless I hear otherwise.
+>> Will fix this in next version, thanks!
 >
-> I'll do that.
+> Hmm, I think we just missed the head file, but the logic
+> of this patch is still right.
+>
 
-If Suravee address the comments and send another version,
-an it be merged into 4.4?
 
-Thanks
-Hanjun
+Yes, removing the test should be safe.
+
+-boris
