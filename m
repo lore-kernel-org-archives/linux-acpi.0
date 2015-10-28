@@ -1,50 +1,34 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI/PAD: power_saving_thread() is not freezable
-Date: Wed, 28 Oct 2015 04:18:52 +0100
-Message-ID: <2245965.qHtce5ZjLr@vostro.rjw.lan>
-References: <alpine.LNX.2.00.1510260358500.21100@pobox.suse.cz>
+Subject: Re: [PATCH 0/3][v2] Fix incorrect using of acpi irq
+Date: Wed, 28 Oct 2015 04:19:49 +0100
+Message-ID: <3737060.CpjVzmXRgF@vostro.rjw.lan>
+References: <1445706127-20110-1-git-send-email-yu.c.chen@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:53930 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754945AbbJ1Ctz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 27 Oct 2015 22:49:55 -0400
-In-Reply-To: <alpine.LNX.2.00.1510260358500.21100@pobox.suse.cz>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1445706127-20110-1-git-send-email-yu.c.chen@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Chen Yu <yu.c.chen@intel.com>
+Cc: lenb@kernel.org, rui.zhang@intel.com, lv.zheng@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-pm@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiri Kosina <jikos@kernel.org>
-Cc: Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Monday, October 26, 2015 04:02:01 AM Jiri Kosina wrote:
-> From: Jiri Kosina <jkosina@suse.cz>
+On Sunday, October 25, 2015 01:02:07 AM Chen Yu wrote:
+> This series of patches are trying to convert codes who use
+> acpi_gbl_FADT.sci_interrupt incorrectly to use the right irq
+> mapped by acpi_gsi_to_irq.
 > 
-> power_saving_thread() calls try_to_freeze(), but the thread doesn't mark
-> itself freezable through set_freezable(), so the try_to_freeze()
-> call is useless.
+> Chen Yu (3):
+>   ACPI: Using correct irq when uninstalling acpi irq handler
+>   ACPI: Using correct irq when waiting for events
+>   ACPI / PM: Fix incorrect wakeup irq setting before suspend-to-idle
 > 
-> Signed-off-by: Jiri Kosina <jkosina@suse.cz>
-> ---
->  drivers/acpi/acpi_pad.c | 2 --
->  1 file changed, 2 deletions(-)
-> 
-> diff --git a/drivers/acpi/acpi_pad.c b/drivers/acpi/acpi_pad.c
-> index ae307ff..8ea8211 100644
-> --- a/drivers/acpi/acpi_pad.c
-> +++ b/drivers/acpi/acpi_pad.c
-> @@ -148,8 +148,6 @@ static int power_saving_thread(void *data)
->  	while (!kthread_should_stop()) {
->  		unsigned long expire_time;
->  
-> -		try_to_freeze();
-> -
->  		/* round robin to cpus */
->  		expire_time = last_jiffies + round_robin_time * HZ;
->  		if (time_before(expire_time, jiffies)) {
-> 
+>  drivers/acpi/osl.c   | 14 +++++++++-----
+>  drivers/acpi/sleep.c |  6 ++++--
+>  include/linux/acpi.h |  6 ++++++
+>  3 files changed, 19 insertions(+), 7 deletions(-)
 
-Applied, thanks!
+Series applied (with some minor changes to patch subjects and changelogs).
 
+Thanks,
 Rafael
-
