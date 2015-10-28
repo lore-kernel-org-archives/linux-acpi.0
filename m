@@ -1,51 +1,47 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] acpi: video: Add a quirk to force native backlight on Lenovo IdeaPad S405
-Date: Wed, 28 Oct 2015 04:16:35 +0100
-Message-ID: <1610867.3KmRdKRgYl@vostro.rjw.lan>
-References: <1445427903-3799-1-git-send-email-hdegoede@redhat.com>
+Subject: Re: [patch] ACPI/CPPC: signedness bug in register_pcc_channel()
+Date: Wed, 28 Oct 2015 04:17:45 +0100
+Message-ID: <5316804.7ejJEpFp8J@vostro.rjw.lan>
+References: <20151022195259.GC24439@mwanda> <CAJ5Y-ebKF1Au2C9Q3vyvmugDEomfqhO89KAgsUrph4sgxT_t9w@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <1445427903-3799-1-git-send-email-hdegoede@redhat.com>
-Sender: stable-owner@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: stable@vger.kernel.org, Aaron Lu <aaron.lu@intel.com>, linux-acpi@vger.kernel.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:56591 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755026AbbJ1Cst (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 27 Oct 2015 22:48:49 -0400
+In-Reply-To: <CAJ5Y-ebKF1Au2C9Q3vyvmugDEomfqhO89KAgsUrph4sgxT_t9w@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Cc: Dan Carpenter <dan.carpenter@oracle.com>, Len Brown <lenb@kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, kernel-janitors@vger.kernel.org
 
-On Wednesday, October 21, 2015 01:45:03 PM Hans de Goede wrote:
-> The Lenovo IdeaPad S405 is a not "Windows8 ready" machine which still has
-> a broken ACPI video backlight implementation. Add a quirk to force use
-> of native backlight on this machine.
+On Friday, October 23, 2015 04:45:09 AM Ashwin Chaugule wrote:
+> On 22 October 2015 at 15:52, Dan Carpenter <dan.carpenter@oracle.com> wrote:
+> > The "pcc_subspace_idx" is -1 if it hasn't been initialized yet.  We need
+> > it to be signed.
+> >
+> > Fixes: 337aadff8e45 ('ACPI: Introduce CPU performance controls using CPPC')
+> > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> >
+> > diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+> > index 0bbf84b..2ed5516 100644
+> > --- a/drivers/acpi/cppc_acpi.c
+> > +++ b/drivers/acpi/cppc_acpi.c
+> > @@ -302,7 +302,7 @@ err_ret:
+> >  }
+> >  EXPORT_SYMBOL_GPL(acpi_get_psd_map);
+> >
+> > -static int register_pcc_channel(unsigned pcc_subspace_idx)
+> > +static int register_pcc_channel(int pcc_subspace_idx)
+> >  {
+> >         struct acpi_pcct_subspace *cppc_ss;
+> >         unsigned int len;
 > 
-> BugLink: https://bugzilla.redhat.com/show_bug.cgi?id=1201530
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> ---
->  drivers/acpi/video_detect.c | 9 +++++++++
->  1 file changed, 9 insertions(+)
-> 
-> diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-> index 2922f1f..0d3a384 100644
-> --- a/drivers/acpi/video_detect.c
-> +++ b/drivers/acpi/video_detect.c
-> @@ -244,6 +244,15 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
->  
->  	/* Non win8 machines which need native backlight nevertheless */
->  	{
-> +	 /* https://bugzilla.redhat.com/show_bug.cgi?id=1201530 */
-> +	 .callback = video_detect_force_native,
-> +	 .ident = "Lenovo Ideapad S405",
-> +	 .matches = {
-> +		DMI_MATCH(DMI_SYS_VENDOR, "LENOVO"),
-> +		DMI_MATCH(DMI_BOARD_NAME, "Lenovo IdeaPad S405"),
-> +		},
-> +	},
-> +	{
->  	 /* https://bugzilla.redhat.com/show_bug.cgi?id=1187004 */
->  	 .callback = video_detect_force_native,
->  	 .ident = "Lenovo Ideapad Z570",
+> Acked-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
 
 Applied, thanks!
 
 Rafael
+
