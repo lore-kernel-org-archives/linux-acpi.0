@@ -1,100 +1,63 @@
-From: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Subject: Re: [Linaro-acpi] [PATCH V1 07/11] XEN / PCI: Remove the dependence
- on arch x86 when PCI_MMCONFIG=y
-Date: Wed, 28 Oct 2015 10:07:54 -0400
-Message-ID: <5630D6BA.1080701@oracle.com>
-References: <1445963922-22711-1-git-send-email-tn@semihalf.com>
- <1445963922-22711-8-git-send-email-tn@semihalf.com>
- <562FAA88.3020609@linaro.org> <562FB3A5.3050500@oracle.com>
- <alpine.DEB.2.02.1510281047460.15801@kaball.uk.xensource.com>
- <5630A9D3.1030607@linaro.org> <5630D179.9050403@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <5630D179.9050403@linaro.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Stefano Stabellini <stefano.stabellini@eu.citrix.com>
-Cc: Tomasz Nowicki <tn@semihalf.com>, bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, Lorenzo.Pieralisi@arm.com, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, Narinder.Dhillon@caviumnetworks.com, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, wangyijing@huawei.com, tglx@linutronix.de, jiang.liu@linux.intel.com, linux-arm-kernel@lists.infradead.org
+From: fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
+Subject: [PATCH RFC 0/3] ACPI, clocksource: add GTDT and ARM memory-mapped timer support
+Date: Wed, 28 Oct 2015 22:32:02 +0800
+Message-ID: <1446042725-5649-1-git-send-email-fu.wei@linaro.org>
+Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, linux-watchdog-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
+Cc: arnd-r2nGTMty4D4@public.gmane.org, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org, jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leo.duran-5C7GfCeVMHo@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org, robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 10/28/2015 09:45 AM, Hanjun Guo wrote:
-> On 10/28/2015 06:56 PM, Tomasz Nowicki wrote:
->> On 28.10.2015 11:49, Stefano Stabellini wrote:
->>> On Tue, 27 Oct 2015, Boris Ostrovsky wrote:
->>>> On 10/27/2015 12:47 PM, Tomasz Nowicki wrote:
->>>>> + Stefano
->>>>>
->>>>> On 27.10.2015 17:38, Tomasz Nowicki wrote:
->>>>>> From: Hanjun Guo <hanjun.guo@linaro.org>
->>>>>>
->>>>>> In drivers/xen/pci.c, there are arch x86 dependent codes when
->>>>>> CONFIG_PCI_MMCONFIG is enabled, since CONFIG_PCI_MMCONFIG
->>>>>> depends on ACPI, so this will prevent XEN PCI running on other
->>>>>> architectures using ACPI with PCI_MMCONFIG enabled (such as ARM6=
-4).
->>>>>>
->>>>>> Fortunatly, it can be sloved in a simple way. In drivers/xen/pci=
-=2Ec,
->>>>>> the only x86 dependent code is if ((pci_probe & PCI_PROBE_MMCONF=
-)
->>>>>> =3D=3D 0),
->>>>>> and it's defined in asm/pci_x86.h, the code means that
->>>>>> if the PCI resource is not probed in PCI_PROBE_MMCONF way, just
->>>>>> ingnore the xen mcfg init. Actually this is duplicate, because
->>>>>> if PCI resource is not probed in PCI_PROBE_MMCONF way, the
->>>>>> pci_mmconfig_list will be empty, and the if (list_empty())
->>>>>> after it will do the same job.
->>>>>>
->>>>>> So just remove the arch related code and the head file, this
->>>>>> will be no functional change for x86, and also makes xen/pci.c
->>>>>> usable for other architectures.
->>>>>>
->>>>>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->>>>>> CC: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
->>>>>> CC: Boris Ostrovsky <boris.ostrovsky@oracle.com>
->>>>>> ---
->>>>>>    drivers/xen/pci.c | 6 ------
->>>>>>    1 file changed, 6 deletions(-)
->>>>>>
->>>>>> diff --git a/drivers/xen/pci.c b/drivers/xen/pci.c
->>>>>> index 6785ebb..9a8dbe3 100644
->>>>>> --- a/drivers/xen/pci.c
->>>>>> +++ b/drivers/xen/pci.c
->>>>>> @@ -28,9 +28,6 @@
->>>>>>    #include <asm/xen/hypervisor.h>
->>>>>>    #include <asm/xen/hypercall.h>
->>>>>>    #include "../pci/pci.h"
->>>>>> -#ifdef CONFIG_PCI_MMCONFIG
->>>>>> -#include <asm/pci_x86.h>
->>>>>> -#endif
->>>>
->>>> Assuming this still compiles on x86 now that this include file is
->>>> removed
->>>>
->>>> Reviewed-by: Boris Ostrovsky <boris.ostrovsky@oracle.com>
->>>
->>> I think it does not:
->>>
->>> drivers/xen/pci.c: In function =E2=80=98xen_mcfg_late=E2=80=99:
->>> drivers/xen/pci.c:221:18: error: =E2=80=98pci_mmcfg_list=E2=80=99 u=
-ndeclared (first
->>> use in this function)
->>> drivers/xen/pci.c:221:18: note: each undeclared identifier is repor=
-ted
->>> only once for each f
->>
->> Right, we need:
->> +#include <linux/ecam.h>
->>
->> Will fix this in next version, thanks!
->
-> Hmm, I think we just missed the head file, but the logic
-> of this patch is still right.
->
+From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
 
+This patchset:
+    (1)Introduce ACPI GTDT parser: drivers/acpi/gtdt.c
+    Parse all kinds of timer in GTDT table of ACPI:arch timer,
+    memory-mapped timer and SBSA Generic Watchdog timer.
+    This driver can help to simplify all the relevant timer drivers,
+    and separate all the ACPI GTDT knowledge from them.
 
-Yes, removing the test should be safe.
+    (2)Simplify ACPI code for arch timer in arm_arch_timer.c
 
--boris
+    (3)Add memory-mapped timer support in arm_arch_timer.c
+
+[PATCH 2/3] and [PATCH 3/3] depend on a patchset
+[PATCH v2 0/5] ACPI probing infrastructure,
+https://lkml.org/lkml/2015/9/13/126, which has been accepted by upstream
+maintainer, and has been merged in linux-next.git, tag: next-20151013.
+
+The SBSA Generic Watchdog info parsing support have been tested with
+a upstreaming SBSA Generic Watchdog driver:
+https://lkml.org/lkml/2015/10/27/466
+on the following platforms:
+    (1)ARM Foundation v8 model
+    (2)AMD Seattle platform
+    
+ARM memory-mapped timer support of this patchset has been tested
+on the following platforms:
+    (1)ARM Foundation v8 model
+    
+Changelog:
+v1: The first upstreaming version.
+
+Fu Wei (3):
+  ACPI: add GTDT table parse driver into ACPI driver
+  clocksource: simplify ACPI code in arm_arch_timer.c
+  clocksource: add memory-mapped timer support in arm_arch_timer.c
+
+ drivers/acpi/Kconfig                 |   9 +
+ drivers/acpi/Makefile                |   1 +
+ drivers/acpi/gtdt.c                  | 367 +++++++++++++++++++++++++++++++++++
+ drivers/clocksource/arm_arch_timer.c | 176 +++++++++++++----
+ include/clocksource/arm_arch_timer.h |  19 ++
+ include/linux/acpi.h                 |  17 ++
+ 6 files changed, 554 insertions(+), 35 deletions(-)
+ create mode 100644 drivers/acpi/gtdt.c
+
+-- 
+2.4.3
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
