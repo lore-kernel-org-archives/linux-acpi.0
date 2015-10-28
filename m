@@ -1,112 +1,107 @@
-From: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Subject: Re: [PATCH v6 22/22] of/platform: Defer probes of registered devices
-Date: Wed, 28 Oct 2015 15:40:31 +0100
-Message-ID: <CAAObsKDR6pTEDK-G+jw+cr9MD-XoZqU8niqvDFHqFM0ve-+Smw@mail.gmail.com>
-References: <1442844182-27787-1-git-send-email-tomeu.vizoso@collabora.com>
- <1442844182-27787-23-git-send-email-tomeu.vizoso@collabora.com>
- <1445406845.701.55.camel@freescale.com> <CAL_JsqLhZmc8cEC+tFJ25KLe0bQZsWmrRWGBMQake9VN6OjvdQ@mail.gmail.com>
- <1445467912.701.90.camel@freescale.com> <CAAObsKAfufBe_SycibUN3ZsE3fOkBfUjZRx1SWEMwVtM6t7inQ@mail.gmail.com>
- <1445549230.701.116.camel@freescale.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH V4 0/8] PCI: ACPI: Setting up DMA coherency for PCI device from _CCA attribute
+Date: Wed, 28 Oct 2015 17:00:02 +0100
+Message-ID: <1545680.eQNYNjjaSj@vostro.rjw.lan>
+References: <1445442731-28819-1-git-send-email-Suravee.Suthikulpanit@amd.com> <24127028.eJSjD1i70u@vostro.rjw.lan> <5630D38F.804@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1445549230.701.116.camel@freescale.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Scott Wood <scottwood@freescale.com>
-Cc: Rob Herring <robh+dt@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, Hu Mingkai-B21284 <Mingkai.Hu@freescale.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:51137 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751631AbbJ1PbF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 28 Oct 2015 11:31:05 -0400
+In-Reply-To: <5630D38F.804@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, bhelgaas@google.com, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, thomas.lendacky@amd.com, herbert@gondor.apana.org.au, davem@davemloft.net, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
-On 22 October 2015 at 23:27, Scott Wood <scottwood@freescale.com> wrote:
-> On Thu, 2015-10-22 at 15:04 +0200, Tomeu Vizoso wrote:
->> On 22 October 2015 at 00:51, Scott Wood <scottwood@freescale.com> wrote:
->> > On Wed, 2015-10-21 at 08:44 -0500, Rob Herring wrote:
->> > > On Wed, Oct 21, 2015 at 12:54 AM, Scott Wood <scottwood@freescale.com>
->> > > wrote:
->> > > > On Mon, 2015-09-21 at 16:03 +0200, Tomeu Vizoso wrote:
->> > > > > Instead of trying to match and probe platform and AMBA devices right
->> > > > > after each is registered, delay their probes until
->> > > > > device_initcall_sync.
->> > > > >
->> > > > > This means that devices will start probing once all built-in drivers
->> > > > > have registered, and after all platform and AMBA devices from the DT
->> > > > > have been registered already.
->> > > > >
->> > > > > This allows us to prevent deferred probes by probing dependencies on
->> > > > > demand.
->> > > > >
->> > > > > Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
->> > > > > ---
->> > > > >
->> > > > > Changes in v4:
->> > > > > - Also defer probes of AMBA devices registered from the DT as they
->> > > > > can
->> > > > >   also request resources.
->> > > > >
->> > > > >  drivers/of/platform.c | 11 ++++++++---
->> > > > >  1 file changed, 8 insertions(+), 3 deletions(-)
->> > > >
->> > > > This breaks arch/powerpc/sysdev/fsl_pci.c.  The PCI bus is an OF
->> > > > platform
->> > > > device, and it must be probed before pcibios_init() which is a
->> > > > subsys_initcall(), or else the PCI bus never gets scanned.
->> > >
->> > > Thanks for the report. This is probably getting dropped, but it could
->> > > be disabled for PPC.
->> >
->> > I don't think that adding another arbitrary arch difference would be the
->> > right solution.
->>
->> I think Rob meant temporarily disable it while things get fixed. At
->> least,
->
-> So, what is the permanent fix for the swiotlb issue (or more generally, the
-> inability to have a late_initcall that runs after non-module, non-hotplug
-> platform devices have been probed)?
+On Wednesday, October 28, 2015 09:54:23 PM Hanjun Guo wrote:
+> Hi Rafael,
+> 
+> On 10/27/2015 11:27 PM, Rafael J. Wysocki wrote:
+> > On Tuesday, October 27, 2015 09:52:50 AM Bjorn Helgaas wrote:
+> >> Hi Suravee,
+> >>
+> >> On Wed, Oct 21, 2015 at 08:52:03AM -0700, Suravee Suthikulpanit wrote:
+> >>> This patch series adds support to setup DMA coherency for PCI device using
+> >>> the ACPI _CCA attribute. According to the ACPI spec, the _CCA attribute
+> >>> is required for ARM64. Therefore, this patch is a pre-req for ACPI PCI
+> >>> support for ARM64 which is currently in development.  Also, this should
+> >>> not affect other architectures that does not define
+> >>> CONFIG_ACPI_CCA_REQUIRED, since the default value is coherent.
+> >>>
+> >>> In the process, this series also introduces enum dev_dma_attr and a set
+> >>> of APIs to query device DMA attribute. These APIs replace the obsolete
+> >>> device_dma_is_coherent(), and acpi_check_dma().
+> >>>
+> >>> I have also included a patch from Jeremy posted here:
+> >>>      http://www.spinics.net/lists/linux-usb/msg128582.html
+> >>>
+> >>> This patch series  has been tested on AMD Seattle RevB platform.
+> >>> The git tree containing tested code and pre-req patches are posted here:
+> >>>
+> >>>      http://github.com/ssuthiku/linux.git pci-cca-v4
+> >>>
+> >>> Changes from V3: (https://lkml.org/lkml/2015/8/26/389)
+> >>>      * Clean up suggested by Bjorn
+> >>>      * Introduce enum dev_dma_attr
+> >>>      * Replace device_dma_is_coherent() and acpi_check_dma() with
+> >>>        new APIs.
+> >>>
+> >>> Changes from V2: (https://lkml.org/lkml/2015/8/25/549)
+> >>>      * Return -ENOSUPP instead of -1 (per Rafael's suggestion)
+> >>>      * Add WARN() when fail to setup DMA for PCI device when booting
+> >>>        ACPI (per Arnd's suggestion)
+> >>>      * Added Acked-by from Rob.
+> >>>      * Minor clean up
+> >>>
+> >>> Changes from V1: (https://lkml.org/lkml/2015/8/13/182)
+> >>>      * Include patch 1 from Jeremy to enable support for _CCA=0
+> >>>      * Clean up acpi_check_dma() per Bjorn suggestions
+> >>>      * Split the original V1 patch into two patches (patch 3 and 4)
+> >>>
+> >>> Jeremy Linton (1):
+> >>>    Honor ACPI _CCA attribute setting
+> >>>
+> >>> Suravee Suthikulpanit (7):
+> >>>    device property: Introducing enum dev_dma_attr
+> >>>    acpi: Adding DMA Attribute APIs for ACPI Device
+> >>>    device property: Adding DMA Attribute APIs for Generic Devices
+> >>>    device property: acpi: Make use of the new DMA Attribute APIs
+> >>>    device property: acpi: Remove unused DMA APIs
+> >>>    PCI: OF: Move of_pci_dma_configure() to pci_dma_configure()
+> >>>    PCI: ACPI: Add support for PCI device DMA coherency
+> >>>
+> >>>   drivers/acpi/acpi_platform.c              |  7 +++++-
+> >>>   drivers/acpi/glue.c                       |  8 +++---
+> >>>   drivers/acpi/scan.c                       | 42 +++++++++++++++++++++++++++++++
+> >>>   drivers/base/property.c                   | 32 +++++++++++++++++------
+> >>>   drivers/crypto/ccp/ccp-platform.c         |  9 ++++++-
+> >>>   drivers/net/ethernet/amd/xgbe/xgbe-main.c |  9 ++++++-
+> >>>   drivers/of/of_pci.c                       | 20 ---------------
+> >>>   drivers/pci/probe.c                       | 36 ++++++++++++++++++++++++--
+> >>>   include/acpi/acpi_bus.h                   | 36 +++-----------------------
+> >>>   include/linux/acpi.h                      |  7 +++++-
+> >>>   include/linux/of_pci.h                    |  3 ---
+> >>>   include/linux/property.h                  | 10 +++++++-
+> >>>   12 files changed, 145 insertions(+), 74 deletions(-)
+> >>
+> >> I had a couple minor comments.  It's sort of a toss-up, but this feels
+> >> more ACPI-flavored than PCI, so I assume Rafael will take this whole
+> >> series unless I hear otherwise.
+> >
+> > I'll do that.
+> 
+> If Suravee address the comments and send another version,
+> an it be merged into 4.4?
 
-If the code in pcibios_init() depends on the PCI bus device having
-probed, then I would recommend making that dependency explicit by
-calling of_device_probe() on the OF node of the PCI controller when
-looking it up.
+Well, it is likely, but not guaranteed.
 
->> I don't see any reason why PPC wouldn't benefit from this
->> series.
->
-> It's not clear to me what the benefit of this is at all, much less for PPC.
-> What is the fundamental problem with deferred probes?  In the cover letter
-> you say this change saves 2.3 seconds, but where is that time being consumed?
->  Are the drivers taking too long in their probe function trying to initialize
-> and then deferring, rather than checking for dependencies up front?  Or are
-> there really so many devices and such a pessimal ordering that most of the
-> time is spent iterating through and reordering the list, with each defer
-> happening quickly?
+We're only a few days from the beginning of the merge window and I'm still
+in Seoul.
 
-The problem is that a device that defers its probe is currently sent
-to the back of the queue, and that's undesired in some use cases in
-which there's a device that should be up as soon as possible during
-boot (and boot takes a long time). So the goal is to change the order
-in which devices with dependencies end up probing.
+Thanks,
+Rafael
 
-> Even if something different does need to be done at this level, forcing all
-> OF platform devices to be probed at the late_initcall level seems quite
-> intrusive.  You limited it to OF because people complained that other things
-> will break.  Things still broke.  Surely there's a better way to address the
-> problem.  Can't the delay be requested by drivers that might otherwise need
-> to defer (which could be done incrementally, focusing on the worst
-> performance problems), rather than enabling it for everything?
-
-Yes, given the amount of breakage that's a sensible option. But in any
-case and even if this series is most likely to be dropped, I recommend
-to make explicit as many implicit dependencies as possible.
-
-Regards,
-
-Tomeu
-
-> -Scott
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
