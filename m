@@ -1,50 +1,48 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] CPPC: Fix potential ptr leak
-Date: Wed, 28 Oct 2015 04:18:06 +0100
-Message-ID: <14755745.R11NDk0xNR@vostro.rjw.lan>
-References: <20151022194928.GA24403@mwanda> <1445590972-12331-1-git-send-email-ashwin.chaugule@linaro.org>
+Subject: Re: [PATCH] ACPI/PAD: power_saving_thread() is not freezable
+Date: Wed, 28 Oct 2015 04:18:52 +0100
+Message-ID: <2245965.qHtce5ZjLr@vostro.rjw.lan>
+References: <alpine.LNX.2.00.1510260358500.21100@pobox.suse.cz>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:65031 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:53930 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754940AbbJ1CtJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 27 Oct 2015 22:49:09 -0400
-In-Reply-To: <1445590972-12331-1-git-send-email-ashwin.chaugule@linaro.org>
+	with SMTP id S1754945AbbJ1Ctz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 27 Oct 2015 22:49:55 -0400
+In-Reply-To: <alpine.LNX.2.00.1510260358500.21100@pobox.suse.cz>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Cc: rafael@kernel.org, dan.carpenter@oracle.com, linux-acpi@vger.kernel.org
+To: Jiri Kosina <jikos@kernel.org>
+Cc: Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Friday, October 23, 2015 05:02:52 AM Ashwin Chaugule wrote:
-> The patch 337aadff8e45: "ACPI: Introduce CPU performance controls
-> using CPPC" from Oct 2, 2015, leads to the following static checker
-> warning:
+On Monday, October 26, 2015 04:02:01 AM Jiri Kosina wrote:
+> From: Jiri Kosina <jkosina@suse.cz>
 > 
->         drivers/acpi/cppc_acpi.c:527 acpi_cppc_processor_probe()
->         warn: overwrite may leak 'cpc_ptr'
+> power_saving_thread() calls try_to_freeze(), but the thread doesn't mark
+> itself freezable through set_freezable(), so the try_to_freeze()
+> call is useless.
 > 
-> Fix warning by removing bogus per cpu ptr dereference.
-> 
-> Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-> Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+> Signed-off-by: Jiri Kosina <jkosina@suse.cz>
 > ---
->  drivers/acpi/cppc_acpi.c | 1 -
->  1 file changed, 1 deletion(-)
+>  drivers/acpi/acpi_pad.c | 2 --
+>  1 file changed, 2 deletions(-)
 > 
-> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
-> index 0bbf84b..8ca4c2c 100644
-> --- a/drivers/acpi/cppc_acpi.c
-> +++ b/drivers/acpi/cppc_acpi.c
-> @@ -524,7 +524,6 @@ int acpi_cppc_processor_probe(struct acpi_processor *pr)
->  	return 0;
+> diff --git a/drivers/acpi/acpi_pad.c b/drivers/acpi/acpi_pad.c
+> index ae307ff..8ea8211 100644
+> --- a/drivers/acpi/acpi_pad.c
+> +++ b/drivers/acpi/acpi_pad.c
+> @@ -148,8 +148,6 @@ static int power_saving_thread(void *data)
+>  	while (!kthread_should_stop()) {
+>  		unsigned long expire_time;
 >  
->  out_free:
-> -	cpc_ptr = per_cpu(cpc_desc_ptr, pr->id);
->  	kfree(cpc_ptr);
->  
->  out_buf_free:
+> -		try_to_freeze();
+> -
+>  		/* round robin to cpus */
+>  		expire_time = last_jiffies + round_robin_time * HZ;
+>  		if (time_before(expire_time, jiffies)) {
+> 
 
 Applied, thanks!
 
