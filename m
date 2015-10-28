@@ -1,63 +1,105 @@
-From: fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
-Subject: [PATCH RFC 0/3] ACPI, clocksource: add GTDT and ARM memory-mapped timer support
-Date: Wed, 28 Oct 2015 22:32:02 +0800
-Message-ID: <1446042725-5649-1-git-send-email-fu.wei@linaro.org>
-Return-path: <linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-watchdog-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: linaro-acpi-cunTk1MwBs8s++Sfvej+rw@public.gmane.org, linux-watchdog-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, daniel.lezcano-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, tglx-hfZtesqFncYOwBW4kG4KsQ@public.gmane.org, hanjun.guo-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org, jeffrey.t.kirsher-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org, richardcochran-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org
-Cc: arnd-r2nGTMty4D4@public.gmane.org, linux-0h96xk9xTtrk1uMJSBkQmQ@public.gmane.org, wim-IQzOog9fTRqzQB+pC5nmwQ@public.gmane.org, jcm-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org, leo.duran-5C7GfCeVMHo@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, Suravee.Suthikulpanit-5C7GfCeVMHo@public.gmane.org, robherring2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+From: fu.wei@linaro.org
+Subject: [PATCH RFC 2/3] clocksource: simplify ACPI code in arm_arch_timer.c
+Date: Wed, 28 Oct 2015 22:32:04 +0800
+Message-ID: <1446042725-5649-3-git-send-email-fu.wei@linaro.org>
+References: <1446042725-5649-1-git-send-email-fu.wei@linaro.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:45221 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965974AbbJ1Odf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 28 Oct 2015 10:33:35 -0400
+In-Reply-To: <1446042725-5649-1-git-send-email-fu.wei@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linaro-acpi@lists.linaro.org, linux-watchdog@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, hanjun.guo@linaro.org, davem@davemloft.net, jeffrey.t.kirsher@intel.com, richardcochran@gmail.com
+Cc: arnd@arndb.de, linux@roeck-us.net, wim@iguana.be, jcm@redhat.com, leo.duran@amd.com, mark.rutland@arm.com, catalin.marinas@arm.com, will.deacon@arm.com, Suravee.Suthikulpanit@amd.com, robherring2@gmail.com, Fu Wei <fu.wei@linaro.org>
 
-From: Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+From: Fu Wei <fu.wei@linaro.org>
 
-This patchset:
-    (1)Introduce ACPI GTDT parser: drivers/acpi/gtdt.c
-    Parse all kinds of timer in GTDT table of ACPI:arch timer,
-    memory-mapped timer and SBSA Generic Watchdog timer.
-    This driver can help to simplify all the relevant timer drivers,
-    and separate all the ACPI GTDT knowledge from them.
+The patch update arm_arch_timer driver to use the function
+provided by the new GTDT driver of ACPI.
+By this way, arm_arch_timer.c can be simplified, and separate
+all the ACPI GTDT knowledge from this timer driver.
 
-    (2)Simplify ACPI code for arch timer in arm_arch_timer.c
+Signed-off-by: Fu Wei <fu.wei@linaro.org>
+Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+---
+ drivers/clocksource/arm_arch_timer.c | 46 +++++++-----------------------------
+ 1 file changed, 9 insertions(+), 37 deletions(-)
 
-    (3)Add memory-mapped timer support in arm_arch_timer.c
-
-[PATCH 2/3] and [PATCH 3/3] depend on a patchset
-[PATCH v2 0/5] ACPI probing infrastructure,
-https://lkml.org/lkml/2015/9/13/126, which has been accepted by upstream
-maintainer, and has been merged in linux-next.git, tag: next-20151013.
-
-The SBSA Generic Watchdog info parsing support have been tested with
-a upstreaming SBSA Generic Watchdog driver:
-https://lkml.org/lkml/2015/10/27/466
-on the following platforms:
-    (1)ARM Foundation v8 model
-    (2)AMD Seattle platform
-    
-ARM memory-mapped timer support of this patchset has been tested
-on the following platforms:
-    (1)ARM Foundation v8 model
-    
-Changelog:
-v1: The first upstreaming version.
-
-Fu Wei (3):
-  ACPI: add GTDT table parse driver into ACPI driver
-  clocksource: simplify ACPI code in arm_arch_timer.c
-  clocksource: add memory-mapped timer support in arm_arch_timer.c
-
- drivers/acpi/Kconfig                 |   9 +
- drivers/acpi/Makefile                |   1 +
- drivers/acpi/gtdt.c                  | 367 +++++++++++++++++++++++++++++++++++
- drivers/clocksource/arm_arch_timer.c | 176 +++++++++++++----
- include/clocksource/arm_arch_timer.h |  19 ++
- include/linux/acpi.h                 |  17 ++
- 6 files changed, 554 insertions(+), 35 deletions(-)
- create mode 100644 drivers/acpi/gtdt.c
-
+diff --git a/drivers/clocksource/arm_arch_timer.c b/drivers/clocksource/arm_arch_timer.c
+index e16fdad..77408fb 100644
+--- a/drivers/clocksource/arm_arch_timer.c
++++ b/drivers/clocksource/arm_arch_timer.c
+@@ -807,59 +807,31 @@ CLOCKSOURCE_OF_DECLARE(armv7_arch_timer_mem, "arm,armv7-timer-mem",
+ 		       arch_timer_mem_init);
+ 
+ #ifdef CONFIG_ACPI
+-static int __init map_generic_timer_interrupt(u32 interrupt, u32 flags)
+-{
+-	int trigger, polarity;
+-
+-	if (!interrupt)
+-		return 0;
+-
+-	trigger = (flags & ACPI_GTDT_INTERRUPT_MODE) ? ACPI_EDGE_SENSITIVE
+-			: ACPI_LEVEL_SENSITIVE;
+-
+-	polarity = (flags & ACPI_GTDT_INTERRUPT_POLARITY) ? ACPI_ACTIVE_LOW
+-			: ACPI_ACTIVE_HIGH;
+-
+-	return acpi_register_gsi(NULL, interrupt, trigger, polarity);
+-}
+-
+ /* Initialize per-processor generic timer */
+ static int __init arch_timer_acpi_init(struct acpi_table_header *table)
+ {
+-	struct acpi_table_gtdt *gtdt;
++	struct arch_timer_data data;
+ 
+ 	if (arch_timers_present & ARCH_CP15_TIMER) {
+ 		pr_warn("arch_timer: already initialized, skipping\n");
+ 		return -EINVAL;
+ 	}
+ 
+-	gtdt = container_of(table, struct acpi_table_gtdt, header);
+-
+ 	arch_timers_present |= ARCH_CP15_TIMER;
+ 
+-	arch_timer_ppi[PHYS_SECURE_PPI] =
+-		map_generic_timer_interrupt(gtdt->secure_el1_interrupt,
+-		gtdt->secure_el1_flags);
+-
+-	arch_timer_ppi[PHYS_NONSECURE_PPI] =
+-		map_generic_timer_interrupt(gtdt->non_secure_el1_interrupt,
+-		gtdt->non_secure_el1_flags);
+-
+-	arch_timer_ppi[VIRT_PPI] =
+-		map_generic_timer_interrupt(gtdt->virtual_timer_interrupt,
+-		gtdt->virtual_timer_flags);
++	if (gtdt_arch_timer_data_init(table, &data))
++		return -EINVAL;
+ 
+-	arch_timer_ppi[HYP_PPI] =
+-		map_generic_timer_interrupt(gtdt->non_secure_el2_interrupt,
+-		gtdt->non_secure_el2_flags);
++	arch_timer_ppi[PHYS_SECURE_PPI] = data.phys_secure_ppi;
++	arch_timer_ppi[PHYS_NONSECURE_PPI] = data.phys_nonsecure_ppi;
++	arch_timer_ppi[VIRT_PPI] = data.virt_ppi;
++	arch_timer_ppi[HYP_PPI] = data.hyp_ppi;
++	arch_timer_c3stop = data.c3stop; /* Always-on capability */
+ 
+ 	/* Get the frequency from CNTFRQ */
+ 	arch_timer_detect_rate(NULL, NULL);
+-
+-	/* Always-on capability */
+-	arch_timer_c3stop = !(gtdt->non_secure_el1_flags & ACPI_GTDT_ALWAYS_ON);
+-
+ 	arch_timer_init();
++
+ 	return 0;
+ }
+ CLOCKSOURCE_ACPI_DECLARE(arch_timer, ACPI_SIG_GTDT, arch_timer_acpi_init);
 -- 
 2.4.3
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-watchdog" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
