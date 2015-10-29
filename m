@@ -1,133 +1,119 @@
-From: Tomasz Nowicki <tn@semihalf.com>
-Subject: Re: [PATCH V1 11/11] arm64, pci, acpi: Support for ACPI based PCI
- hostbridge init
-Date: Thu, 29 Oct 2015 16:53:26 +0100
-Message-ID: <563240F6.2060209@semihalf.com>
-References: <1445963922-22711-1-git-send-email-tn@semihalf.com>
- <1445963922-22711-12-git-send-email-tn@semihalf.com>
- <5631180D.2000902@codeaurora.org> <563131B0.9060305@codeaurora.org>
- <56320538.6000905@semihalf.com> <563234E6.4050109@codeaurora.org>
+From: Scott Wood <scottwood-KZfg59tc24xl57MIdRCFDg@public.gmane.org>
+Subject: Re: [PATCH v6 22/22] of/platform: Defer probes of registered devices
+Date: Thu, 29 Oct 2015 11:06:18 -0500
+Message-ID: <1446134778.701.374.camel@freescale.com>
+References: <1442844182-27787-1-git-send-email-tomeu.vizoso@collabora.com>
+	 <1442844182-27787-23-git-send-email-tomeu.vizoso@collabora.com>
+	 <1445406845.701.55.camel@freescale.com>
+	 <CAL_JsqLhZmc8cEC+tFJ25KLe0bQZsWmrRWGBMQake9VN6OjvdQ@mail.gmail.com>
+	 <1445467912.701.90.camel@freescale.com>
+	 <CAAObsKAfufBe_SycibUN3ZsE3fOkBfUjZRx1SWEMwVtM6t7inQ@mail.gmail.com>
+	 <1445549230.701.116.camel@freescale.com>
+	 <CAAObsKDR6pTEDK-G+jw+cr9MD-XoZqU8niqvDFHqFM0ve-+Smw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f174.google.com ([209.85.217.174]:35533 "EHLO
-	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757214AbbJ2Pxg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Oct 2015 11:53:36 -0400
-Received: by lbbes7 with SMTP id es7so31701948lbb.2
-        for <linux-acpi@vger.kernel.org>; Thu, 29 Oct 2015 08:53:34 -0700 (PDT)
-In-Reply-To: <563234E6.4050109@codeaurora.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <CAAObsKDR6pTEDK-G+jw+cr9MD-XoZqU8niqvDFHqFM0ve-+Smw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Tomeu Vizoso <tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
+Cc: Rob Herring <robh+dt-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Stephen Warren <swarren-3lzwWm7+Weoh9ZMKESR00Q@public.gmane.org>, Javier Martinez Canillas <javier-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Thierry Reding <thierry.reding-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, Alan Stern <stern-nwvwT67g6+6dFdvTe/nMLpVzexx5G7lz@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, Dmitry Torokhov <dmitry.torokhov-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Linus Walleij <linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Arnd Bergmann <arnd-r2nGTMty4D4@public.gmane.org>, linuxppc-dev <linuxppc-dev-uLR06cmDAlY/bJ5BZ2RsiQ@public.gmane.org>, Hu Mingkai-B21284 <Mingkai.Hu-KZfg59tc24xl57MIdRCFDg@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>, bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com
-Cc: jiang.liu@linux.intel.com, robert.richter@caviumnetworks.com, Narinder.Dhillon@caviumnetworks.com, ddaney@caviumnetworks.com, Liviu.Dudau@arm.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-On 29.10.2015 16:01, Sinan Kaya wrote:
->
->
-> On 10/29/2015 7:38 AM, Tomasz Nowicki wrote:
->> On 28.10.2015 21:36, Sinan Kaya wrote:
->>> 1. ACPI code is unable to discover the interrupt numbers when objects
->>> are ordered as follows in the ACPI file
->>>
->>> PNP0A08 object
->>> PNP0C0F INTA object
->>> PNP0C0F INTB object
->>> PNP0C0F INTC object
->>> PNP0C0F INTD object
->>>
->>> This gives me invalid link context error.
->>>
->>> pci 0000:00:00.0: PCI INT A: no GSI
->>> pci 0000:01:00.0: Derived GSI for 0000:01:00.0 INT A from 0000:00:00.0
->>> acpi PNP0C0F:00: Invalid link context
->>>
->>> If I order it like this in the ACPI file,
->>>
->>> PNP0C0F INTA object
->>> PNP0C0F INTB object
->>> PNP0C0F INTC object
->>> PNP0C0F INTD object
->>> PNP0A08 object
->>>
->>> then, the legacy interrupt numbers can be discovered properly.
->>
->> Can you show full content of your PNP0C0F and PNP0A08 objects?
->>
->
-> ACPI table is considered proprietary. I don't think I can get the legal
-> approval in time. I can give you pieces though.
->
-> Here is the _PRT
-> Device (PCI0) { // PCIe port 0
->      Name(_HID, EISAID("PNP0A08"))    // PCI express
->      Name(_CID, EISAID("PNP0A03"))    // Compatible PCI Root Bridge
-> {
->      ....
->      Name(_PRT, Package(){
->          Package(){0x0FFFF, 0, \_SB.LN0A, 0},  // Slot 0, INTA
->          Package(){0x0FFFF, 1, \_SB.LN0B, 0},  // Slot 0, INTB
->          Package(){0x0FFFF, 2, \_SB.LN0C, 0},  // Slot 0, INTC
->          Package(){0x0FFFF, 3, \_SB.LN0D, 0}   // Slot 0, INTD
->      })
-> }
->
-> Here is the PNP0C0F
->
-> Device(LN0A){
->      Name(_HID, EISAID("PNP0C0F")) // PCI interrupt link
->      Name(_UID, 1)
->      Name(_PRS, ResourceTemplate(){
->      Interrupt(ResourceProducer, Level, ActiveHigh, Exclusive, , ,) {0xE8}
->      })
->      Method(_DIS) {}
->      Method(_CRS) { Return (_PRS) }
->      Method(_SRS, 1) {}
-> }
->
+On Wed, 2015-10-28 at 15:40 +0100, Tomeu Vizoso wrote:
+> On 22 October 2015 at 23:27, Scott Wood <scottwood-KZfg59tc24xl57MIdRCFDg@public.gmane.org> wrote:
+> > On Thu, 2015-10-22 at 15:04 +0200, Tomeu Vizoso wrote:
+> > > On 22 October 2015 at 00:51, Scott Wood <scottwood-KZfg59tc24xl57MIdRCFDg@public.gmane.org> wrote:
+> > > > On Wed, 2015-10-21 at 08:44 -0500, Rob Herring wrote:
+> > > > > On Wed, Oct 21, 2015 at 12:54 AM, Scott Wood <
+> > > > > scottwood-KZfg59tc24xl57MIdRCFDg@public.gmane.org>
+> > > > > wrote:
+> > > > > > On Mon, 2015-09-21 at 16:03 +0200, Tomeu Vizoso wrote:
+> > > > > > > Instead of trying to match and probe platform and AMBA devices 
+> > > > > > > right
+> > > > > > > after each is registered, delay their probes until
+> > > > > > > device_initcall_sync.
+> > > > > > > 
+> > > > > > > This means that devices will start probing once all built-in 
+> > > > > > > drivers
+> > > > > > > have registered, and after all platform and AMBA devices from 
+> > > > > > > the DT
+> > > > > > > have been registered already.
+> > > > > > > 
+> > > > > > > This allows us to prevent deferred probes by probing 
+> > > > > > > dependencies on
+> > > > > > > demand.
+> > > > > > > 
+> > > > > > > Signed-off-by: Tomeu Vizoso <tomeu.vizoso-ZGY8ohtN/8qB+jHODAdFcQ@public.gmane.org>
+> > > > > > > ---
+> > > > > > > 
+> > > > > > > Changes in v4:
+> > > > > > > - Also defer probes of AMBA devices registered from the DT as 
+> > > > > > > they
+> > > > > > > can
+> > > > > > >   also request resources.
+> > > > > > > 
+> > > > > > >  drivers/of/platform.c | 11 ++++++++---
+> > > > > > >  1 file changed, 8 insertions(+), 3 deletions(-)
+> > > > > > 
+> > > > > > This breaks arch/powerpc/sysdev/fsl_pci.c.  The PCI bus is an OF
+> > > > > > platform
+> > > > > > device, and it must be probed before pcibios_init() which is a
+> > > > > > subsys_initcall(), or else the PCI bus never gets scanned.
+> > > > > 
+> > > > > Thanks for the report. This is probably getting dropped, but it 
+> > > > > could
+> > > > > be disabled for PPC.
+> > > > 
+> > > > I don't think that adding another arbitrary arch difference would be 
+> > > > the
+> > > > right solution.
+> > > 
+> > > I think Rob meant temporarily disable it while things get fixed. At
+> > > least,
+> > 
+> > So, what is the permanent fix for the swiotlb issue (or more generally, 
+> > the
+> > inability to have a late_initcall that runs after non-module, non-hotplug
+> > platform devices have been probed)?
+> 
+> If the code in pcibios_init() depends on the PCI bus device having
+> probed, then I would recommend making that dependency explicit by
+> calling of_device_probe() on the OF node of the PCI controller when
+> looking it up.
 
-Can you please apply patch below:
+"when looking it up"?  pcibios_init() doesn't do anything with the OF node or 
+know any details about the particular PCI bus host implementation.
 
-diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
-index fec1c91..fe34415 100644
---- a/arch/arm64/kernel/pci.c
-+++ b/arch/arm64/kernel/pci.c
-@@ -48,10 +48,19 @@ resource_size_t pcibios_align_resource(void *data, 
-const struct resource *res,
-   */
-  int pcibios_enable_device(struct pci_dev *dev, int mask)
-  {
-+       int ret;
-+
-         if (pci_has_flag(PCI_PROBE_ONLY))
-                 return 0;
+> > > I don't see any reason why PPC wouldn't benefit from this
+> > > series.
+> > 
+> > It's not clear to me what the benefit of this is at all, much less for 
+> > PPC.
+> > What is the fundamental problem with deferred probes?  In the cover letter
+> > you say this change saves 2.3 seconds, but where is that time being 
+> > consumed?
+> >  Are the drivers taking too long in their probe function trying to 
+> > initialize
+> > and then deferring, rather than checking for dependencies up front?  Or 
+> > are
+> > there really so many devices and such a pessimal ordering that most of the
+> > time is spent iterating through and reordering the list, with each defer
+> > happening quickly?
+> 
+> The problem is that a device that defers its probe is currently sent
+> to the back of the queue, and that's undesired in some use cases in
+> which there's a device that should be up as soon as possible during
+> boot (and boot takes a long time). So the goal is to change the order
+> in which devices with dependencies end up probing.
 
--       return pci_enable_resources(dev, mask);
-+       ret = pci_enable_resources(dev, mask);
-+       if (ret < 0)
-+               return ret;
-+#ifdef CONFIG_ACPI
-+       if (!dev->msi_enabled)
-+               return acpi_pci_irq_enable(dev);
-+#endif
-+       return 0;
-  }
+That doesn't answer my question about where the time is being spent.  Did you 
+profile?
 
-  /*
-@@ -61,10 +70,6 @@ int pcibios_add_device(struct pci_dev *dev)
-  {
-         if (acpi_disabled)
-                 dev->irq = of_irq_parse_and_map_pci(dev, 0, 0);
--#ifdef CONFIG_ACPI
--       else
--               acpi_pci_irq_enable(dev);
--#endif
+-Scott
 
-         return 0;
-  }
 
-and let me know if the order still matter?
-
-Regards,
-Tomasz
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
