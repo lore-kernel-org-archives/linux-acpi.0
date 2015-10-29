@@ -1,101 +1,54 @@
-From: Hanjun Guo <guohanjun@huawei.com>
-Subject: Re: [PATCH V4 0/8] PCI: ACPI: Setting up DMA coherency for PCI device
- from _CCA attribute
-Date: Thu, 29 Oct 2015 14:37:01 +0800
-Message-ID: <5631BE8D.10604@huawei.com>
-References: <1445442731-28819-1-git-send-email-Suravee.Suthikulpanit@amd.com> <24127028.eJSjD1i70u@vostro.rjw.lan> <5630D38F.804@linaro.org> <1545680.eQNYNjjaSj@vostro.rjw.lan>
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: Re: [PATCH V1 11/11] arm64, pci, acpi: Support for ACPI based PCI
+ hostbridge init
+Date: Thu, 29 Oct 2015 12:38:32 +0100
+Message-ID: <56320538.6000905@semihalf.com>
+References: <1445963922-22711-1-git-send-email-tn@semihalf.com>
+ <1445963922-22711-12-git-send-email-tn@semihalf.com>
+ <5631180D.2000902@codeaurora.org> <563131B0.9060305@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1545680.eQNYNjjaSj@vostro.rjw.lan>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Bjorn Helgaas <helgaas@kernel.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, bhelgaas@google.com, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, thomas.lendacky@amd.com, herbert@gondor.apana.org.au, davem@davemloft.net, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lb0-f179.google.com ([209.85.217.179]:34133 "EHLO
+	mail-lb0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751089AbbJ2Lim (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Oct 2015 07:38:42 -0400
+Received: by lbbwb3 with SMTP id wb3so26278216lbb.1
+        for <linux-acpi@vger.kernel.org>; Thu, 29 Oct 2015 04:38:41 -0700 (PDT)
+In-Reply-To: <563131B0.9060305@codeaurora.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sinan Kaya <okaya@codeaurora.org>, bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com
+Cc: jiang.liu@linux.intel.com, robert.richter@caviumnetworks.com, Narinder.Dhillon@caviumnetworks.com, ddaney@caviumnetworks.com, Liviu.Dudau@arm.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-On 2015/10/29 0:00, Rafael J. Wysocki wrote:
-> On Wednesday, October 28, 2015 09:54:23 PM Hanjun Guo wrote:
->> Hi Rafael,
->>
->> On 10/27/2015 11:27 PM, Rafael J. Wysocki wrote:
->>> On Tuesday, October 27, 2015 09:52:50 AM Bjorn Helgaas wrote:
->>>> Hi Suravee,
->>>>
->>>> On Wed, Oct 21, 2015 at 08:52:03AM -0700, Suravee Suthikulpanit wrote:
->>>>> This patch series adds support to setup DMA coherency for PCI device using
->>>>> the ACPI _CCA attribute. According to the ACPI spec, the _CCA attribute
->>>>> is required for ARM64. Therefore, this patch is a pre-req for ACPI PCI
->>>>> support for ARM64 which is currently in development.  Also, this should
->>>>> not affect other architectures that does not define
->>>>> CONFIG_ACPI_CCA_REQUIRED, since the default value is coherent.
->>>>>
->>>>> In the process, this series also introduces enum dev_dma_attr and a set
->>>>> of APIs to query device DMA attribute. These APIs replace the obsolete
->>>>> device_dma_is_coherent(), and acpi_check_dma().
->>>>>
->>>>> I have also included a patch from Jeremy posted here:
->>>>>      http://www.spinics.net/lists/linux-usb/msg128582.html
->>>>>
->>>>> This patch series  has been tested on AMD Seattle RevB platform.
->>>>> The git tree containing tested code and pre-req patches are posted here:
->>>>>
->>>>>      http://github.com/ssuthiku/linux.git pci-cca-v4
->>>>>
->>>>> Changes from V3: (https://lkml.org/lkml/2015/8/26/389)
->>>>>      * Clean up suggested by Bjorn
->>>>>      * Introduce enum dev_dma_attr
->>>>>      * Replace device_dma_is_coherent() and acpi_check_dma() with
->>>>>        new APIs.
->>>>>
->>>>> Changes from V2: (https://lkml.org/lkml/2015/8/25/549)
->>>>>      * Return -ENOSUPP instead of -1 (per Rafael's suggestion)
->>>>>      * Add WARN() when fail to setup DMA for PCI device when booting
->>>>>        ACPI (per Arnd's suggestion)
->>>>>      * Added Acked-by from Rob.
->>>>>      * Minor clean up
->>>>>
->>>>> Changes from V1: (https://lkml.org/lkml/2015/8/13/182)
->>>>>      * Include patch 1 from Jeremy to enable support for _CCA=0
->>>>>      * Clean up acpi_check_dma() per Bjorn suggestions
->>>>>      * Split the original V1 patch into two patches (patch 3 and 4)
->>>>>
->>>>> Jeremy Linton (1):
->>>>>    Honor ACPI _CCA attribute setting
->>>>>
->>>>> Suravee Suthikulpanit (7):
->>>>>    device property: Introducing enum dev_dma_attr
->>>>>    acpi: Adding DMA Attribute APIs for ACPI Device
->>>>>    device property: Adding DMA Attribute APIs for Generic Devices
->>>>>    device property: acpi: Make use of the new DMA Attribute APIs
->>>>>    device property: acpi: Remove unused DMA APIs
->>>>>    PCI: OF: Move of_pci_dma_configure() to pci_dma_configure()
->>>>>    PCI: ACPI: Add support for PCI device DMA coherency
->>>>>
->>>>>   drivers/acpi/acpi_platform.c              |  7 +++++-
->>>>>   drivers/acpi/glue.c                       |  8 +++---
->>>>>   drivers/acpi/scan.c                       | 42 +++++++++++++++++++++++++++++++
->>>>>   drivers/base/property.c                   | 32 +++++++++++++++++------
->>>>>   drivers/crypto/ccp/ccp-platform.c         |  9 ++++++-
->>>>>   drivers/net/ethernet/amd/xgbe/xgbe-main.c |  9 ++++++-
->>>>>   drivers/of/of_pci.c                       | 20 ---------------
->>>>>   drivers/pci/probe.c                       | 36 ++++++++++++++++++++++++--
->>>>>   include/acpi/acpi_bus.h                   | 36 +++-----------------------
->>>>>   include/linux/acpi.h                      |  7 +++++-
->>>>>   include/linux/of_pci.h                    |  3 ---
->>>>>   include/linux/property.h                  | 10 +++++++-
->>>>>   12 files changed, 145 insertions(+), 74 deletions(-)
->>>> I had a couple minor comments.  It's sort of a toss-up, but this feels
->>>> more ACPI-flavored than PCI, so I assume Rafael will take this whole
->>>> series unless I hear otherwise.
->>> I'll do that.
->> If Suravee address the comments and send another version,
->> an it be merged into 4.4?
-> Well, it is likely, but not guaranteed.
+On 28.10.2015 21:36, Sinan Kaya wrote:
+> 1. ACPI code is unable to discover the interrupt numbers when objects
+> are ordered as follows in the ACPI file
 >
-> We're only a few days from the beginning of the merge window and I'm still
-> in Seoul.
+> PNP0A08 object
+> PNP0C0F INTA object
+> PNP0C0F INTB object
+> PNP0C0F INTC object
+> PNP0C0F INTD object
+>
+> This gives me invalid link context error.
+>
+> pci 0000:00:00.0: PCI INT A: no GSI
+> pci 0000:01:00.0: Derived GSI for 0000:01:00.0 INT A from 0000:00:00.0
+> acpi PNP0C0F:00: Invalid link context
+>
+> If I order it like this in the ACPI file,
+>
+> PNP0C0F INTA object
+> PNP0C0F INTB object
+> PNP0C0F INTC object
+> PNP0C0F INTD object
+> PNP0A08 object
+>
+> then, the legacy interrupt numbers can be discovered properly.
 
-No problem, it's up to you :), thanks for the quick response.
+Can you show full content of your PNP0C0F and PNP0A08 objects?
 
-Hanjun
+Regards,
+Tomasz
