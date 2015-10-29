@@ -1,152 +1,117 @@
-From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Subject: [PATCH V5 5/9] device property: ACPI: Make use of the new DMA
- Attribute APIs
-Date: Wed, 28 Oct 2015 15:50:50 -0700
-Message-ID: <1446072654-5608-6-git-send-email-Suravee.Suthikulpanit@amd.com>
-References: <1446072654-5608-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+From: Rob Herring <robh+dt@kernel.org>
+Subject: Re: [PATCH v6 22/22] of/platform: Defer probes of registered devices
+Date: Wed, 28 Oct 2015 23:17:54 -0500
+Message-ID: <CAL_JsqKrRMtapB9D-WnUgB67S+m09LhcNDUx_Uh7aXzphQUc+Q@mail.gmail.com>
+References: <1442844182-27787-1-git-send-email-tomeu.vizoso@collabora.com>
+ <1442844182-27787-23-git-send-email-tomeu.vizoso@collabora.com>
+ <1445406845.701.55.camel@freescale.com> <CAL_JsqLhZmc8cEC+tFJ25KLe0bQZsWmrRWGBMQake9VN6OjvdQ@mail.gmail.com>
+ <1445467912.701.90.camel@freescale.com> <CAAObsKAfufBe_SycibUN3ZsE3fOkBfUjZRx1SWEMwVtM6t7inQ@mail.gmail.com>
+ <1445549230.701.116.camel@freescale.com> <CAAObsKDR6pTEDK-G+jw+cr9MD-XoZqU8niqvDFHqFM0ve-+Smw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1446072654-5608-1-git-send-email-Suravee.Suthikulpanit@amd.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: bhelgaas@google.com, rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com
-Cc: thomas.lendacky@amd.com, herbert@gondor.apana.org.au, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, davem@davemloft.net, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.29.136]:60117 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752450AbbJ2ESU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 29 Oct 2015 00:18:20 -0400
+In-Reply-To: <CAAObsKDR6pTEDK-G+jw+cr9MD-XoZqU8niqvDFHqFM0ve-+Smw@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Cc: Scott Wood <scottwood@freescale.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Stephen Warren <swarren@wwwdotorg.org>, Javier Martinez Canillas <javier@osg.samsung.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Mark Brown <broonie@kernel.org>, Thierry Reding <thierry.reding@gmail.com>, Alan Stern <stern@rowland.harvard.edu>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Dmitry Torokhov <dmitry.torokhov@gmail.com>, "devicetree@vger.kernel.org" <devicetree@vger.kernel.org>, Linus Walleij <linus.walleij@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Arnd Bergmann <arnd@arndb.de>, linuxppc-dev <linuxppc-dev@lists.ozlabs.org>, Hu Mingkai-B21284 <Mingkai.Hu@freescale.com>
 
-Now that we have the new DMA attribute APIs, we can replace the older
-acpi_check_dma() and device_dma_is_coherent().
+On Wed, Oct 28, 2015 at 9:40 AM, Tomeu Vizoso
+<tomeu.vizoso@collabora.com> wrote:
+> On 22 October 2015 at 23:27, Scott Wood <scottwood@freescale.com> wrote:
+>> On Thu, 2015-10-22 at 15:04 +0200, Tomeu Vizoso wrote:
+>>> On 22 October 2015 at 00:51, Scott Wood <scottwood@freescale.com> wrote:
+>>> > On Wed, 2015-10-21 at 08:44 -0500, Rob Herring wrote:
+>>> > > On Wed, Oct 21, 2015 at 12:54 AM, Scott Wood <scottwood@freescale.com>
+>>> > > wrote:
+>>> > > > On Mon, 2015-09-21 at 16:03 +0200, Tomeu Vizoso wrote:
+>>> > > > > Instead of trying to match and probe platform and AMBA devices right
+>>> > > > > after each is registered, delay their probes until
+>>> > > > > device_initcall_sync.
+>>> > > > >
+>>> > > > > This means that devices will start probing once all built-in drivers
+>>> > > > > have registered, and after all platform and AMBA devices from the DT
+>>> > > > > have been registered already.
+>>> > > > >
+>>> > > > > This allows us to prevent deferred probes by probing dependencies on
+>>> > > > > demand.
+>>> > > > >
+>>> > > > > Signed-off-by: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+>>> > > > > ---
+>>> > > > >
+>>> > > > > Changes in v4:
+>>> > > > > - Also defer probes of AMBA devices registered from the DT as they
+>>> > > > > can
+>>> > > > >   also request resources.
+>>> > > > >
+>>> > > > >  drivers/of/platform.c | 11 ++++++++---
+>>> > > > >  1 file changed, 8 insertions(+), 3 deletions(-)
+>>> > > >
+>>> > > > This breaks arch/powerpc/sysdev/fsl_pci.c.  The PCI bus is an OF
+>>> > > > platform
+>>> > > > device, and it must be probed before pcibios_init() which is a
+>>> > > > subsys_initcall(), or else the PCI bus never gets scanned.
+>>> > >
+>>> > > Thanks for the report. This is probably getting dropped, but it could
+>>> > > be disabled for PPC.
+>>> >
+>>> > I don't think that adding another arbitrary arch difference would be the
+>>> > right solution.
+>>>
+>>> I think Rob meant temporarily disable it while things get fixed. At
+>>> least,
+>>
+>> So, what is the permanent fix for the swiotlb issue (or more generally, the
+>> inability to have a late_initcall that runs after non-module, non-hotplug
+>> platform devices have been probed)?
+>
+> If the code in pcibios_init() depends on the PCI bus device having
+> probed, then I would recommend making that dependency explicit by
+> calling of_device_probe() on the OF node of the PCI controller when
+> looking it up.
+>
+>>> I don't see any reason why PPC wouldn't benefit from this
+>>> series.
+>>
+>> It's not clear to me what the benefit of this is at all, much less for PPC.
+>> What is the fundamental problem with deferred probes?  In the cover letter
+>> you say this change saves 2.3 seconds, but where is that time being consumed?
+>>  Are the drivers taking too long in their probe function trying to initialize
+>> and then deferring, rather than checking for dependencies up front?  Or are
+>> there really so many devices and such a pessimal ordering that most of the
+>> time is spent iterating through and reordering the list, with each defer
+>> happening quickly?
+>
+> The problem is that a device that defers its probe is currently sent
+> to the back of the queue, and that's undesired in some use cases in
+> which there's a device that should be up as soon as possible during
+> boot (and boot takes a long time). So the goal is to change the order
+> in which devices with dependencies end up probing.
+>
+>> Even if something different does need to be done at this level, forcing all
+>> OF platform devices to be probed at the late_initcall level seems quite
+>> intrusive.  You limited it to OF because people complained that other things
+>> will break.  Things still broke.  Surely there's a better way to address the
+>> problem.  Can't the delay be requested by drivers that might otherwise need
+>> to defer (which could be done incrementally, focusing on the worst
+>> performance problems), rather than enabling it for everything?
+>
+> Yes, given the amount of breakage that's a sensible option. But in any
+> case and even if this series is most likely to be dropped, I recommend
+> to make explicit as many implicit dependencies as possible.
 
-Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-CC: Rafael J. Wysocki <rjw@rjwysocki.net>
-CC: Tom Lendacky <thomas.lendacky@amd.com>
-CC: Herbert Xu <herbert@gondor.apana.org.au>
-CC: David S. Miller <davem@davemloft.net>
----
- drivers/acpi/acpi_platform.c              |  7 ++++++-
- drivers/acpi/glue.c                       |  8 +++++---
- drivers/crypto/ccp/ccp-platform.c         | 15 +++++++++++----
- drivers/net/ethernet/amd/xgbe/xgbe-main.c |  8 +++++++-
- 4 files changed, 29 insertions(+), 9 deletions(-)
+It is dropped for now, but I expect much of this to still integrate
+with Rafael's proposal. However, it will need to be opt-in it seems.
+That is somewhat unfortunate because things like async probe are
+opt-in and seem to rarely get used. As to how we can make it opt-in, I
+think we can make of_platform_populate() callable multiple times at
+the root level. This will allow a platform to skip calling it and then
+a late call to it can register the devices after drivers have
+registered. This late call will then be a nop for platforms that don't
+opt-in and call of_platform_populate themselves.
 
-diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
-index 06a67d5..296b7a1 100644
---- a/drivers/acpi/acpi_platform.c
-+++ b/drivers/acpi/acpi_platform.c
-@@ -103,7 +103,12 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev)
- 	pdevinfo.res = resources;
- 	pdevinfo.num_res = count;
- 	pdevinfo.fwnode = acpi_fwnode_handle(adev);
--	pdevinfo.dma_mask = acpi_check_dma(adev, NULL) ? DMA_BIT_MASK(32) : 0;
-+
-+	if (acpi_dma_supported(adev))
-+		pdevinfo.dma_mask = DMA_BIT_MASK(32);
-+	else
-+		pdevinfo.dma_mask = 0;
-+
- 	pdev = platform_device_register_full(&pdevinfo);
- 	if (IS_ERR(pdev))
- 		dev_err(&adev->dev, "platform device creation failed: %ld\n",
-diff --git a/drivers/acpi/glue.c b/drivers/acpi/glue.c
-index 1470ae4..5ea5dc2 100644
---- a/drivers/acpi/glue.c
-+++ b/drivers/acpi/glue.c
-@@ -168,7 +168,7 @@ int acpi_bind_one(struct device *dev, struct acpi_device *acpi_dev)
- 	struct list_head *physnode_list;
- 	unsigned int node_id;
- 	int retval = -EINVAL;
--	bool coherent;
-+	enum dev_dma_attr attr;
- 
- 	if (has_acpi_companion(dev)) {
- 		if (acpi_dev) {
-@@ -225,8 +225,10 @@ int acpi_bind_one(struct device *dev, struct acpi_device *acpi_dev)
- 	if (!has_acpi_companion(dev))
- 		ACPI_COMPANION_SET(dev, acpi_dev);
- 
--	if (acpi_check_dma(acpi_dev, &coherent))
--		arch_setup_dma_ops(dev, 0, 0, NULL, coherent);
-+	attr = acpi_get_dma_attr(acpi_dev);
-+	if (attr != DEV_DMA_NOT_SUPPORTED)
-+		arch_setup_dma_ops(dev, 0, 0, NULL,
-+				   attr == DEV_DMA_COHERENT);
- 
- 	acpi_physnode_link_name(physical_node_name, node_id);
- 	retval = sysfs_create_link(&acpi_dev->dev.kobj, &dev->kobj,
-diff --git a/drivers/crypto/ccp/ccp-platform.c b/drivers/crypto/ccp/ccp-platform.c
-index bb241c3..844118c 100644
---- a/drivers/crypto/ccp/ccp-platform.c
-+++ b/drivers/crypto/ccp/ccp-platform.c
-@@ -96,6 +96,7 @@ static int ccp_platform_probe(struct platform_device *pdev)
- 	struct ccp_platform *ccp_platform;
- 	struct device *dev = &pdev->dev;
- 	struct acpi_device *adev = ACPI_COMPANION(dev);
-+	enum dev_dma_attr attr;
- 	struct resource *ior;
- 	int ret;
- 
-@@ -122,18 +123,24 @@ static int ccp_platform_probe(struct platform_device *pdev)
- 	}
- 	ccp->io_regs = ccp->io_map;
- 
--	ret = dma_set_mask_and_coherent(dev, DMA_BIT_MASK(48));
--	if (ret) {
--		dev_err(dev, "dma_set_mask_and_coherent failed (%d)\n", ret);
-+	attr = device_get_dma_attr(dev);
-+	if (attr == DEV_DMA_NOT_SUPPORTED) {
-+		dev_err(dev, "DMA is not supported");
- 		goto e_err;
- 	}
- 
--	ccp_platform->coherent = device_dma_is_coherent(ccp->dev);
-+	ccp_platform->coherent = (attr == DEV_DMA_COHERENT);
- 	if (ccp_platform->coherent)
- 		ccp->axcache = CACHE_WB_NO_ALLOC;
- 	else
- 		ccp->axcache = CACHE_NONE;
- 
-+	ret = dma_set_mask_and_coherent(dev, DMA_BIT_MASK(48));
-+	if (ret) {
-+		dev_err(dev, "dma_set_mask_and_coherent failed (%d)\n", ret);
-+		goto e_err;
-+	}
-+
- 	dev_set_drvdata(dev, ccp);
- 
- 	ret = ccp_init(ccp);
-diff --git a/drivers/net/ethernet/amd/xgbe/xgbe-main.c b/drivers/net/ethernet/amd/xgbe/xgbe-main.c
-index e83bd76..c607b3f 100644
---- a/drivers/net/ethernet/amd/xgbe/xgbe-main.c
-+++ b/drivers/net/ethernet/amd/xgbe/xgbe-main.c
-@@ -342,6 +342,7 @@ static int xgbe_probe(struct platform_device *pdev)
- 	struct resource *res;
- 	const char *phy_mode;
- 	unsigned int i, phy_memnum, phy_irqnum;
-+	enum dev_dma_attr attr;
- 	int ret;
- 
- 	DBGPR("--> xgbe_probe\n");
-@@ -609,7 +610,12 @@ static int xgbe_probe(struct platform_device *pdev)
- 		goto err_io;
- 
- 	/* Set the DMA coherency values */
--	pdata->coherent = device_dma_is_coherent(pdata->dev);
-+	attr = device_get_dma_attr(dev);
-+	if (attr == DEV_DMA_NOT_SUPPORTED) {
-+		dev_err(dev, "DMA is not supported");
-+		goto err_io;
-+	}
-+	pdata->coherent = (attr == DEV_DMA_COHERENT);
- 	if (pdata->coherent) {
- 		pdata->axdomain = XGBE_DMA_OS_AXDOMAIN;
- 		pdata->arcache = XGBE_DMA_OS_ARCACHE;
--- 
-2.1.0
+Rob
