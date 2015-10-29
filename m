@@ -1,54 +1,45 @@
-From: Tomasz Nowicki <tn@semihalf.com>
-Subject: Re: [PATCH V1 11/11] arm64, pci, acpi: Support for ACPI based PCI
- hostbridge init
-Date: Thu, 29 Oct 2015 12:38:32 +0100
-Message-ID: <56320538.6000905@semihalf.com>
-References: <1445963922-22711-1-git-send-email-tn@semihalf.com>
- <1445963922-22711-12-git-send-email-tn@semihalf.com>
- <5631180D.2000902@codeaurora.org> <563131B0.9060305@codeaurora.org>
+From: Shannon Zhao <shannon.zhao@linaro.org>
+Subject: Re: [PATCH 0/3] Add AMBA bus probing support to ACPI
+Date: Thu, 29 Oct 2015 22:47:22 +0800
+Message-ID: <5632317A.40607@linaro.org>
+References: <1443609530-21524-1-git-send-email-graeme.gregory@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f179.google.com ([209.85.217.179]:34133 "EHLO
-	mail-lb0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751089AbbJ2Lim (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Oct 2015 07:38:42 -0400
-Received: by lbbwb3 with SMTP id wb3so26278216lbb.1
-        for <linux-acpi@vger.kernel.org>; Thu, 29 Oct 2015 04:38:41 -0700 (PDT)
-In-Reply-To: <563131B0.9060305@codeaurora.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1443609530-21524-1-git-send-email-graeme.gregory@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Graeme Gregory <graeme.gregory@linaro.org>, linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, Shannon Zhao <zhaoshenglong@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>, bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com
-Cc: jiang.liu@linux.intel.com, robert.richter@caviumnetworks.com, Narinder.Dhillon@caviumnetworks.com, ddaney@caviumnetworks.com, Liviu.Dudau@arm.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-On 28.10.2015 21:36, Sinan Kaya wrote:
-> 1. ACPI code is unable to discover the interrupt numbers when objects
-> are ordered as follows in the ACPI file
->
-> PNP0A08 object
-> PNP0C0F INTA object
-> PNP0C0F INTB object
-> PNP0C0F INTC object
-> PNP0C0F INTD object
->
-> This gives me invalid link context error.
->
-> pci 0000:00:00.0: PCI INT A: no GSI
-> pci 0000:01:00.0: Derived GSI for 0000:01:00.0 INT A from 0000:00:00.0
-> acpi PNP0C0F:00: Invalid link context
->
-> If I order it like this in the ACPI file,
->
-> PNP0C0F INTA object
-> PNP0C0F INTB object
-> PNP0C0F INTC object
-> PNP0C0F INTD object
-> PNP0A08 object
->
-> then, the legacy interrupt numbers can be discovered properly.
 
-Can you show full content of your PNP0C0F and PNP0A08 objects?
 
-Regards,
-Tomasz
+On 2015/9/30 18:38, Graeme Gregory wrote:
+> As discussed when Shannon Zhao sent a patch to add platform_device support
+> to pl061 driver. Russel and other maintainers prefered that ACPI learned
+> how to create AMBA devices rather than converting/adding platform_device
+> support to AMBA drivers.
+>
+> http://comments.gmane.org/gmane.linux.ports.arm.kernel/431364
+>
+> 1) Adds basic AMBA device probing support to ACPI, it uses a whitelist of
+> device IDs as the number of AMBA devices is limited. Currently the two ids
+> present are those used in QEMU for arm64.
+>
+> 2) Adds the plumbing into ACPI probe sequence.
+>
+> 3) From ACPI pl011 is only defined (SBSA document) to be in SBSA mode which has
+> reduced functionality. There may be a better method to do this that I have
+> overlooked.
+>
+Thanks. I test this patchset with PL061 on QEMU for arm64 through below 
+patchset[1]. It works well.
+
+Tested-by: Shannon Zhao <shannon.zhao@linaro.org>
+
+[1] 
+https://git.linaro.org/people/shannon.zhao/qemu.git/shortlog/refs/heads/PowerButton_v2
+
+-- 
+Shannon
