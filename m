@@ -1,104 +1,90 @@
-From: Tomasz Nowicki <tn@semihalf.com>
-Subject: Re: [PATCH V1 11/11] arm64, pci, acpi: Support for ACPI based PCI
- hostbridge init
-Date: Thu, 29 Oct 2015 17:27:07 +0100
-Message-ID: <563248DB.9020900@semihalf.com>
-References: <1445963922-22711-1-git-send-email-tn@semihalf.com>
- <1445963922-22711-12-git-send-email-tn@semihalf.com>
- <5631180D.2000902@codeaurora.org> <563131B0.9060305@codeaurora.org>
- <563233EE.1090907@codeaurora.org>
+From: Duc Dang <dhdang@apm.com>
+Subject: Re: [PATCH V3 0/6] gicv2m: acpi: Add ACPI support for GICv2m MSI
+Date: Thu, 29 Oct 2015 14:25:32 -0700
+Message-ID: <CADaLNDnhn+Lax6aMseA4kPsAfKHG=L0buO6Tf-U8sxfUzn38BA@mail.gmail.com>
+References: <1445453249-32557-1-git-send-email-Suravee.Suthikulpanit@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f180.google.com ([209.85.217.180]:36696 "EHLO
-	mail-lb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757407AbbJ2Q1R (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Oct 2015 12:27:17 -0400
-Received: by lbjm5 with SMTP id m5so32455348lbj.3
-        for <linux-acpi@vger.kernel.org>; Thu, 29 Oct 2015 09:27:15 -0700 (PDT)
-In-Reply-To: <563233EE.1090907@codeaurora.org>
+Received: from mail-oi0-f45.google.com ([209.85.218.45]:33315 "EHLO
+	mail-oi0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965133AbbJ2V0C (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Oct 2015 17:26:02 -0400
+Received: by oiad129 with SMTP id d129so48589368oia.0
+        for <linux-acpi@vger.kernel.org>; Thu, 29 Oct 2015 14:26:01 -0700 (PDT)
+In-Reply-To: <1445453249-32557-1-git-send-email-Suravee.Suthikulpanit@amd.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>, bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com
-Cc: jiang.liu@linux.intel.com, robert.richter@caviumnetworks.com, Narinder.Dhillon@caviumnetworks.com, ddaney@caviumnetworks.com, Liviu.Dudau@arm.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org
+To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Cc: Marc Zyngier <marc.zyngier@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, rjw@rjwysocki.net, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, hanjun.guo@linaro.org, tomasz.nowicki@linaro.org, graeme.gregory@linaro.org, linux-arm <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-On 29.10.2015 15:57, Sinan Kaya wrote:
+Hi Suravee,
+On Wed, Oct 21, 2015 at 11:47 AM, Suravee Suthikulpanit
+<Suravee.Suthikulpanit@amd.com> wrote:
+> This patch series has been forked from the following patch series since
+> it no longer depends on the rest of the patches.
 >
+>   [PATCH v4 00/10] ACPI GIC Self-probing, GICv2m and GICv3 support
+>   https://lkml.org/lkml/2015/7/29/234
 >
-> On 10/28/2015 4:36 PM, Sinan Kaya wrote:
->> 2. The second problem is about the PCIe resources.
->>
->> pci_0000:01:00.0:_can't_enable_device:_BAR_0_[mem_0x80100100000-0x80100101fff_64bit]_not_claimed
->>
->>
->> pci 0000:01:00.0: Can't enable PCI device, BIOS handoff failed.
->> pci 0000:00:00.0: BAR 14: assigned [mem 0x80100100000-0x801003fffff]
->> pci 0000:00:00.0: BAR 13: no space for [io  size 0x1000]
->> pci 0000:00:00.0: BAR 13: failed to assign [io  size 0x1000]
->> pci 0000:00:00.0: BAR 13: no space for [io  size 0x1000]
->> pci 0000:00:00.0: BAR 13: failed to assign [io  size 0x1000]
->> pci 0000:01:00.0: BAR 0: assigned [mem 0x80100100000-0x80100101fff 64bit]
->>
->> For some reason, the kernel is unable to assign resources.
->>
->> I appreciate any pointers you might give.
+> It has been ported to use the newly introduced device fwnode_handle
+> for ACPI irqdmain introduced by Marc in the following patch series:
 >
-> Tomasz,
-> I debugged this part of the problem yesterday night.
+>   [PATCH v2 00/17] Divorcing irqdomain and device_node
+>   http://git.kernel.org/cgit/linux/kernel/git/maz/arm-platforms.git irq/irq-domain-fwnode-v2
 >
-> I have one set up with 4.2 kernel and Mark Salter's original ACPI PCIE
-> patch. His patchwork works fine with our ACPI table.
+> The following git branch contains the submitted patches along with
+> the pre-requsite patches (mainly for ARM64 PCI support for ACPI).
 >
-> This is what IO resource looks like in our table. PCI IO is supported
-> using the ACPI translation attribute on ARM systems.
->
-> QWORDIO(            // produced resource
->      ResourceProducer,    // bit 0 of general flags is 0
->      MinFixed,        // Range is fixed
->      MaxFixed,        // Range is fixed
->      PosDecode,
->      EntireRange,
->      0x0000,            // Granularity
->      0x1000,            // Min,
->      0xFFFF,            // Max
->      0x8FFFFFEF000,        // Translation
->      0xF000,            // Range Length
->      ,, PI00
->   )
->
-> It looks like you are missing the translation support for the IO
-> aperture and Mark Salter's patch has this support.
->
-> Yours is missing in pci_acpi_root_prepare_resources function here.
-> Mark's patch uses the offset argument to reorganize the resource.
->
->
-> +            resource_size_t length = res->end - res->start;
-> +
-> +            err = pci_register_io_range(res->start, length);
-> +            if (err) {
-> +                resource_list_destroy_entry(entry);
-> +                continue;
-> +            }
-> +
-> +            port = pci_address_to_pio(res->start);
-> +            if (port == (unsigned long)-1) {
-> +                resource_list_destroy_entry(entry);
-> +                continue;
-> +            }
-> +
-> +            res->start = port;
-> +            res->end = res->start + length - 1;
-> +
-> +            if (pci_remap_iospace(res, res->start) < 0)
-> +                resource_list_destroy_entry(entry);
->
->
+>   https://github.com/ssuthiku/linux.git v2m-multiframe-v3
 
-Thanks for the heads up, working on it.
+I tried to clone your tree to test on my X-Gene platform but I didn't
+see branch v2m-multiframe-v3.
+I see similar patch set in origin/irq-domain-fwnode-v2-v2m-multiframe.
+Can you please check?
+
+>
+> This has been tested on AMD Seattle (Overdrive) RevB system.
+>
+> NOTE: I have not tested ACPI GICv2m multiframe support since
+> I don't have access to such system. Any helps are appreciated.
+>
+> Thanks,
+> Suravee
+>
+> Changes from V2: (https://lkml.org/lkml/2015/10/14/1010)
+>   - Minor clean up from Tomasz review comment in patch 6/6.
+>
+> Changes from V1: (https://lkml.org/lkml/2015/10/13/859)
+>   - Rebase on top of Marc's patch to addng support for multiple MSI frames
+>     (https://lkml.org/lkml/2015/10/14/271)
+>   - Adding fwnode convenient functions (patch 3 and 4)
+>
+>
+> Suravee Suthikulpanit (6):
+>   pci: msi: Add support to query MSI domain for pci device
+>   acpi: pci: Setup MSI domain for ACPI based pci devices
+>   irqdomain: introduce is_fwnode_irqchip helper
+>   irqdomain: Introduce irq_domain_get_irqchip_fwnode_name helper
+>     function
+>   gicv2m: Refactor to prepare for ACPI support
+>   gicv2m: acpi: Introducing GICv2m ACPI support
+>
+>  drivers/irqchip/irq-gic-v2m.c   | 152 ++++++++++++++++++++++++++++++++++------
+>  drivers/irqchip/irq-gic.c       |   5 +-
+>  drivers/pci/msi.c               |  30 ++++++++
+>  drivers/pci/pci-acpi.c          |  13 ++++
+>  drivers/pci/probe.c             |   2 +
+>  include/linux/irqchip/arm-gic.h |   4 ++
+>  include/linux/irqdomain.h       |   6 ++
+>  include/linux/msi.h             |   7 ++
+>  include/linux/pci.h             |   7 ++
+>  kernel/irq/irqdomain.c          |  20 +++++-
+>  10 files changed, 223 insertions(+), 23 deletions(-)
+>
+> --
+> 2.1.0
+>
 
 Regards,
-Tomasz
-
-
+Duc Dang.
