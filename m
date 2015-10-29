@@ -1,123 +1,92 @@
 From: Sinan Kaya <okaya@codeaurora.org>
 Subject: Re: [PATCH V1 11/11] arm64, pci, acpi: Support for ACPI based PCI
  hostbridge init
-Date: Thu, 29 Oct 2015 10:57:50 -0400
-Message-ID: <563233EE.1090907@codeaurora.org>
+Date: Thu, 29 Oct 2015 11:01:58 -0400
+Message-ID: <563234E6.4050109@codeaurora.org>
 References: <1445963922-22711-1-git-send-email-tn@semihalf.com>
  <1445963922-22711-12-git-send-email-tn@semihalf.com>
  <5631180D.2000902@codeaurora.org> <563131B0.9060305@codeaurora.org>
+ <56320538.6000905@semihalf.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:56627 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757089AbbJ2O6H (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 29 Oct 2015 10:58:07 -0400
-In-Reply-To: <563131B0.9060305@codeaurora.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <56320538.6000905@semihalf.com>
+Sender: linux-pci-owner@vger.kernel.org
 To: Tomasz Nowicki <tn@semihalf.com>, bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com
 Cc: jiang.liu@linux.intel.com, robert.richter@caviumnetworks.com, Narinder.Dhillon@caviumnetworks.com, ddaney@caviumnetworks.com, Liviu.Dudau@arm.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org
+List-Id: linux-acpi@vger.kernel.org
 
 
 
-On 10/28/2015 4:36 PM, Sinan Kaya wrote:
-> 2. The second problem is about the PCIe resources.
+On 10/29/2015 7:38 AM, Tomasz Nowicki wrote:
+> On 28.10.2015 21:36, Sinan Kaya wrote:
+>> 1. ACPI code is unable to discover the interrupt numbers when objects
+>> are ordered as follows in the ACPI file
+>>
+>> PNP0A08 object
+>> PNP0C0F INTA object
+>> PNP0C0F INTB object
+>> PNP0C0F INTC object
+>> PNP0C0F INTD object
+>>
+>> This gives me invalid link context error.
+>>
+>> pci 0000:00:00.0: PCI INT A: no GSI
+>> pci 0000:01:00.0: Derived GSI for 0000:01:00.0 INT A from 0000:00:00.0
+>> acpi PNP0C0F:00: Invalid link context
+>>
+>> If I order it like this in the ACPI file,
+>>
+>> PNP0C0F INTA object
+>> PNP0C0F INTB object
+>> PNP0C0F INTC object
+>> PNP0C0F INTD object
+>> PNP0A08 object
+>>
+>> then, the legacy interrupt numbers can be discovered properly.
 >
-> pci_0000:01:00.0:_can't_enable_device:_BAR_0_[mem_0x80100100000-0x80100101fff_64bit]_not_claimed
+> Can you show full content of your PNP0C0F and PNP0A08 objects?
 >
-> pci 0000:01:00.0: Can't enable PCI device, BIOS handoff failed.
-> pci 0000:00:00.0: BAR 14: assigned [mem 0x80100100000-0x801003fffff]
-> pci 0000:00:00.0: BAR 13: no space for [io  size 0x1000]
-> pci 0000:00:00.0: BAR 13: failed to assign [io  size 0x1000]
-> pci 0000:00:00.0: BAR 13: no space for [io  size 0x1000]
-> pci 0000:00:00.0: BAR 13: failed to assign [io  size 0x1000]
-> pci 0000:01:00.0: BAR 0: assigned [mem 0x80100100000-0x80100101fff 64bit]
->
-> For some reason, the kernel is unable to assign resources.
->
-> I appreciate any pointers you might give.
 
-Tomasz,
-I debugged this part of the problem yesterday night.
+ACPI table is considered proprietary. I don't think I can get the legal 
+approval in time. I can give you pieces though.
 
-I have one set up with 4.2 kernel and Mark Salter's original ACPI PCIE 
-patch. His patchwork works fine with our ACPI table.
+Here is the _PRT
+Device (PCI0) { // PCIe port 0
+	Name(_HID, EISAID("PNP0A08"))	// PCI express
+	Name(_CID, EISAID("PNP0A03"))	// Compatible PCI Root Bridge
+{
+	....
+	Name(_PRT, Package(){
+		Package(){0x0FFFF, 0, \_SB.LN0A, 0},  // Slot 0, INTA
+		Package(){0x0FFFF, 1, \_SB.LN0B, 0},  // Slot 0, INTB
+		Package(){0x0FFFF, 2, \_SB.LN0C, 0},  // Slot 0, INTC
+		Package(){0x0FFFF, 3, \_SB.LN0D, 0}   // Slot 0, INTD
+	})
+}
 
-This is what IO resource looks like in our table. PCI IO is supported 
-using the ACPI translation attribute on ARM systems.
+Here is the PNP0C0F
 
-QWORDIO(			// produced resource
-	ResourceProducer,	// bit 0 of general flags is 0
-	MinFixed,		// Range is fixed
-	MaxFixed,		// Range is fixed
-	PosDecode,
-	EntireRange,
-	0x0000,			// Granularity
-	0x1000,			// Min,
-	0xFFFF,			// Max
-	0x8FFFFFEF000,		// Translation
-	0xF000,			// Range Length
-	,, PI00
-  )
-
-It looks like you are missing the translation support for the IO 
-aperture and Mark Salter's patch has this support.
-
-Yours is missing in pci_acpi_root_prepare_resources function here. 
-Mark's patch uses the offset argument to reorganize the resource.
-
-
-+            resource_size_t length = res->end - res->start;
-+
-+            err = pci_register_io_range(res->start, length);
-+            if (err) {
-+                resource_list_destroy_entry(entry);
-+                continue;
-+            }
-+
-+            port = pci_address_to_pio(res->start);
-+            if (port == (unsigned long)-1) {
-+                resource_list_destroy_entry(entry);
-+                continue;
-+            }
-+
-+            res->start = port;
-+            res->end = res->start + length - 1;
-+
-+            if (pci_remap_iospace(res, res->start) < 0)
-+                resource_list_destroy_entry(entry);
+Device(LN0A){
+	Name(_HID, EISAID("PNP0C0F")) // PCI interrupt link
+	Name(_UID, 1)
+	Name(_PRS, ResourceTemplate(){
+	Interrupt(ResourceProducer, Level, ActiveHigh, Exclusive, , ,) {0xE8}
+	})
+	Method(_DIS) {}
+	Method(_CRS) { Return (_PRS) }
+	Method(_SRS, 1) {}
+}
 
 
 
- > 
-pci_0000:01:00.0:_can't_enable_device:_BAR_0_[mem_0x80100100000-0x80100101fff_64bit]_not_claimed 
-
- >
- > pci 0000:01:00.0: Can't enable PCI device, BIOS handoff failed.
-
-I also found out this problem. This is a resource reclaim order problem 
-with respect to quirks. The card I'm testing is a PCIe USB card. It has 
-a quirk associated with it and it tries to enable and then disable the 
-device here.
-
-DECLARE_PCI_FIXUP_CLASS_FINAL(PCI_ANY_ID, PCI_ANY_ID,
-PCI_CLASS_SERIAL_USB, 8, quirk_usb_early_handoff);
-
-The resources get assigned after this quirk. That's why I see these 
-can't enable messages. I looked at 4.2 kernel. The execution order is 
-reversed.
-
- > pci 0000:00:00.0: BAR 14: assigned [mem 0x80100100000-0x801003fffff]
- > pci 0000:00:00.0: BAR 13: no space for [io  size 0x1000]
- > pci 0000:00:00.0: BAR 13: failed to assign [io  size 0x1000]
- > pci 0000:00:00.0: BAR 13: no space for [io  size 0x1000]
- > pci 0000:00:00.0: BAR 13: failed to assign [io  size 0x1000]
- > pci 0000:01:00.0: BAR 0: assigned [mem 0x80100100000-0x80100101fff 64bit]
-
-
-
+> Regards,
+> Tomasz
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 -- 
 Sinan Kaya
