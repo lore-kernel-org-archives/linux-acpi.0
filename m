@@ -1,129 +1,46 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH] gpio / ACPI: Allow shared GPIO event to be read via operation region
-Date: Fri, 30 Oct 2015 12:02:05 +0200
-Message-ID: <1446199325-48095-1-git-send-email-mika.westerberg@linux.intel.com>
-Return-path: <linux-gpio-owner@vger.kernel.org>
-Sender: linux-gpio-owner@vger.kernel.org
-To: Linus Walleij <linus.walleij@linaro.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Alexandre Courbot <gnurou@gmail.com>, Aaron Lu <aaron.lu@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, linux-acpi@vger.kernel.org, linux-gpio@vger.kernel.org
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: Re: [PATCH v2 UPDATE-2 3/3] ACPI/APEI/EINJ: Allow memory error
+ injection to NVDIMM
+Date: Fri, 30 Oct 2015 07:48:51 -0600
+Message-ID: <1446212931.20657.161.camel@hpe.com>
+References: <1445894544-21382-1-git-send-email-toshi.kani@hpe.com>
+	 <20151030094029.GC20952@pd.tnic>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g1t6216.austin.hp.com ([15.73.96.123]:58631 "EHLO
+	g1t6216.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759233AbbJ3Nws (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 30 Oct 2015 09:52:48 -0400
+In-Reply-To: <20151030094029.GC20952@pd.tnic>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: tony.luck@intel.com, akpm@linux-foundation.org, dan.j.williams@intel.com, rjw@rjwysocki.net, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-In Microsoft Surface3 the GPIO detecting lid state is shared between GPIO
-event and operation region. Below is simplied version of the DSDT from
-Surface3 including relevant parts:
+On Fri, 2015-10-30 at 10:40 +0100, Borislav Petkov wrote:
+> On Mon, Oct 26, 2015 at 03:22:24PM -0600, Toshi Kani wrote:
+> > @@ -545,10 +545,15 @@ static int einj_error_inject(u32 type, u32 flags, u64
+> > param1, u64 param2,
+> >  	/*
+> >  	 * Disallow crazy address masks that give BIOS leeway to pick
+> >  	 * injection address almost anywhere. Insist on page or
+> > -	 * better granularity and that target address is normal RAM.
+> > +	 * better granularity and that target address is normal RAM or
+> > +	 * NVDIMM.
+> >  	 */
+> > -	pfn = PFN_DOWN(param1 & param2);
+> > -	if (!page_is_ram(pfn) || ((param2 & PAGE_MASK) != PAGE_MASK))
+> > +	base_addr = param1 & param2;
+> > +	size = (~param2) + 1;
+> 
+> Hmm, I missed this last time: why are the brackets there?
+> 
+> AFAIK, bitwise NOT has a higher precedence than addition.
 
-    Scope (GPO0)
-    {
-        Name (_AEI, ResourceTemplate ()
-        {
-            GpioInt (Edge, ActiveBoth, Shared, PullNone, 0x0000,
-                "\\_SB.GPO0", 0x00, ResourceConsumer, ,
-                )
-                {   // Pin list
-                    0x004C
-                }
-        })
+Yes, the brackets are not necessary.  I put them as self-explanatory of the
+precedence.  Shall I remove them, and send you an updated patch?
 
-        OperationRegion (GPOR, GeneralPurposeIo, Zero, One)
-        Field (GPOR, ByteAcc, NoLock, Preserve)
-        {
-            Connection (
-                GpioIo (Shared, PullNone, 0x0000, 0x0000,
-                    IoRestrictionNone, "\\_SB.GPO0", 0x00,
-                    ResourceConsumer,,)
-                    {   // Pin list
-                        0x004C
-                    }
-            ),
-            HELD,   1
-        }
-
-        Method (_E4C, 0, Serialized)  // _Exx: Edge-Triggered GPE
-        {
-            If ((HELD == One))
-            {
-                ^^LID.LIDB = One
-            }
-            Else
-            {
-                ^^LID.LIDB = Zero
-                Notify (LID, 0x80) // Status Change
-            }
-
-            Notify (^^PCI0.SPI1.NTRG, One) // Device Check
-        }
-    }
-
-When GPIO 0x4c changes we call ASL method _E4C which tries to read HELD
-field (the same GPIO). This triggers following error on the console:
-
-    ACPI Error: Method parse/execution failed [\_SB.GPO0._E4C]
-        (Node ffff88013f4b4438), AE_ERROR (20150930/psparse-542)
-
-The error happens because ACPI GPIO operation region handler
-(acpi_gpio_adr_space_handler()) tries to acquire the very same GPIO which
-returns an error (-EBUSY) because the GPIO is already reserved for the GPIO
-event.
-
-Fix this so that we "borrow" the event GPIO if we find the GPIO belongs to
-an event. Allow this only for GPIOs that are read.
-
-To be able to go through acpi_gpio->events list for operation region access
-we need to make sure the list is properly initialized whenever GPIO chip is
-registered.
-
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=106571
-Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
----
- drivers/gpio/gpiolib-acpi.c | 21 ++++++++++++++++++++-
- 1 file changed, 20 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-index 143a9bdbaa53..bbcac3af2a7a 100644
---- a/drivers/gpio/gpiolib-acpi.c
-+++ b/drivers/gpio/gpiolib-acpi.c
-@@ -304,7 +304,6 @@ void acpi_gpiochip_request_interrupts(struct gpio_chip *chip)
- 	if (ACPI_FAILURE(status))
- 		return;
- 
--	INIT_LIST_HEAD(&acpi_gpio->events);
- 	acpi_walk_resources(handle, "_AEI",
- 			    acpi_gpiochip_request_interrupt, acpi_gpio);
- }
-@@ -603,6 +602,25 @@ acpi_gpio_adr_space_handler(u32 function, acpi_physical_address address,
- 				break;
- 			}
- 		}
-+
-+		/*
-+		 * The same GPIO can be shared between operation region and
-+		 * event but only if the access here is ACPI_READ. In that
-+		 * case we "borrow" the event GPIO instead.
-+		 */
-+		if (!found && agpio->sharable == ACPI_SHARED &&
-+		     function == ACPI_READ) {
-+			struct acpi_gpio_event *event;
-+
-+			list_for_each_entry(event, &achip->events, node) {
-+				if (event->pin == pin) {
-+					desc = event->desc;
-+					found = true;
-+					break;
-+				}
-+			}
-+		}
-+
- 		if (!found) {
- 			desc = gpiochip_request_own_desc(chip, pin,
- 							 "ACPI:OpRegion");
-@@ -719,6 +737,7 @@ void acpi_gpiochip_add(struct gpio_chip *chip)
- 	}
- 
- 	acpi_gpio->chip = chip;
-+	INIT_LIST_HEAD(&acpi_gpio->events);
- 
- 	status = acpi_attach_data(handle, acpi_gpio_chip_dh, acpi_gpio);
- 	if (ACPI_FAILURE(status)) {
--- 
-2.6.1
-
+Thanks,
+-Toshi
