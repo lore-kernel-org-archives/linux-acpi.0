@@ -1,123 +1,90 @@
-From: Josef Bacik <jbacik@fb.com>
-Subject: [RFC][PATCH] pci: completely disable aspm if it's unsupported
-Date: Fri, 30 Oct 2015 11:47:41 -0400
-Message-ID: <1446220061-28570-1-git-send-email-jbacik@fb.com>
+From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Subject: Re: [PATCH V1 00/11] MMCONFIG refactoring and ARM64 PCI hostbridge
+ init based on ACPI
+Date: Fri, 30 Oct 2015 11:38:54 -0500
+Message-ID: <56339D1E.20605@amd.com>
+References: <1445963922-22711-1-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx0b-00082601.pphosted.com ([67.231.153.30]:61146 "EHLO
-	mx0b-00082601.pphosted.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752472AbbJ3Prt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 30 Oct 2015 11:47:49 -0400
+Received: from mail-bn1bon0077.outbound.protection.outlook.com ([157.56.111.77]:28576
+	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751304AbbJ3QjF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 30 Oct 2015 12:39:05 -0400
+In-Reply-To: <1445963922-22711-1-git-send-email-tn@semihalf.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, bhelgaas@google.com, shli@fb.com, kernel-team@fb.com
+To: Tomasz Nowicki <tn@semihalf.com>, bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com
+Cc: jiang.liu@linux.intel.com, robert.richter@caviumnetworks.com, Narinder.Dhillon@caviumnetworks.com, ddaney@caviumnetworks.com, Liviu.Dudau@arm.com, tglx@linutronix.de, wangyijing@huawei.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-We have some hardware that takes about 30 seconds to setup common clocks for
-ASPM, but our bios'es don't actually allow ASPM.  It seems we had this thing in
-place where we would disable ASPM after the pci bus probe so that we would make
-sure that pre pcie 1.1 devices would be properly skipped during initialization.
-This is because the mechanism to disable ASPM doesn't actually disable the
-setting up of the link state stuff, it just keeps us from changing the link
-state after the fact.  So instead make it so that when we call pcie_no_aspm()
-that we disable ASPM completley, that is we skip setting up the link state and
-everything.  This way we avoid the costly setup for a feature we cannot support
-in the first place and we also make sure we are safe from future tampering with
-the ASPM link state.  Thanks,
+Tested on AMD Seattle platform (Overdrive revB) w/ both MSI and legacy 
+interrupt.
 
-Signed-off-by: Josef Bacik <jbacik@fb.com>
----
- drivers/acpi/pci_root.c | 22 +++++-----------------
- drivers/pci/pcie/aspm.c |  1 +
- 2 files changed, 6 insertions(+), 17 deletions(-)
+Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 
-diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index 393706a..00e164a 100644
---- a/drivers/acpi/pci_root.c
-+++ b/drivers/acpi/pci_root.c
-@@ -419,7 +419,7 @@ out:
- }
- EXPORT_SYMBOL(acpi_pci_osc_control_set);
- 
--static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm)
-+static void negotiate_os_control(struct acpi_pci_root *root)
- {
- 	u32 support, control, requested;
- 	acpi_status status;
-@@ -456,7 +456,7 @@ static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm)
- 	if (ACPI_FAILURE(status)) {
- 		dev_info(&device->dev, "_OSC failed (%s); disabling ASPM\n",
- 			 acpi_format_exception(status));
--		*no_aspm = 1;
-+		pcie_no_aspm();
- 		return;
- 	}
- 
-@@ -495,22 +495,14 @@ static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm)
- 			 * intact and prevent the OS from touching it.
- 			 */
- 			dev_info(&device->dev, "FADT indicates ASPM is unsupported, using BIOS configuration\n");
--			*no_aspm = 1;
-+			pcie_no_aspm();
- 		}
- 	} else {
- 		decode_osc_control(root, "OS requested", requested);
- 		decode_osc_control(root, "platform willing to grant", control);
- 		dev_info(&device->dev, "_OSC failed (%s); disabling ASPM\n",
- 			acpi_format_exception(status));
--
--		/*
--		 * We want to disable ASPM here, but aspm_disabled
--		 * needs to remain in its state from boot so that we
--		 * properly handle PCIe 1.1 devices.  So we set this
--		 * flag here, to defer the action until after the ACPI
--		 * root scan.
--		 */
--		*no_aspm = 1;
-+		pcie_no_aspm();
- 	}
- }
- 
-@@ -522,7 +514,6 @@ static int acpi_pci_root_add(struct acpi_device *device,
- 	int result;
- 	struct acpi_pci_root *root;
- 	acpi_handle handle = device->handle;
--	int no_aspm = 0;
- 	bool hotadd = system_state != SYSTEM_BOOTING;
- 
- 	root = kzalloc(sizeof(struct acpi_pci_root), GFP_KERNEL);
-@@ -581,7 +572,7 @@ static int acpi_pci_root_add(struct acpi_device *device,
- 
- 	root->mcfg_addr = acpi_pci_root_get_mcfg_addr(handle);
- 
--	negotiate_os_control(root, &no_aspm);
-+	negotiate_os_control(root);
- 
- 	/*
- 	 * TBD: Need PCI interface for enumeration/configuration of roots.
-@@ -604,9 +595,6 @@ static int acpi_pci_root_add(struct acpi_device *device,
- 		goto remove_dmar;
- 	}
- 
--	if (no_aspm)
--		pcie_no_aspm();
--
- 	pci_acpi_add_bus_pm_notifier(device);
- 	if (device->wakeup.flags.run_wake)
- 		device_set_run_wake(root->bus->bridge, true);
-diff --git a/drivers/pci/pcie/aspm.c b/drivers/pci/pcie/aspm.c
-index 317e355..5f84af2 100644
---- a/drivers/pci/pcie/aspm.c
-+++ b/drivers/pci/pcie/aspm.c
-@@ -954,6 +954,7 @@ void pcie_no_aspm(void)
- 	if (!aspm_force) {
- 		aspm_policy = POLICY_DEFAULT;
- 		aspm_disabled = 1;
-+		aspm_support_enabled = false;
- 	}
- }
- 
--- 
-2.1.0
+Thanks,
+Suravee
 
+On 10/27/15 11:38, Tomasz Nowicki wrote:
+>  From the functionality point of view this series might be split into two logic parts:
+> 1. Making MMCONFIG code arch-agnostic which allows all architectures to collect
+>     PCI config regions and used when necessary.
+> 2. Using generic MMCONFIG code and introducing ACPI based PCI hostbridge
+>     initialization for ARM64
+>
+> Patches has been built on top of:
+> [Patch v7 0/7] Consolidate ACPI PCI root common code into ACPI core
+> https://lkml.org/lkml/2015/10/14/31
+> Git branch can be found here:
+> https://git.linaro.org/leg/acpi/acpi.git/shortlog/refs/heads/pci-acpi-upstream
+>
+> This has been tested on Cavium ThunderX 1 socket server.
+> Any help in reviewing and testing is very appreciated.
+>
+> Hanjun Guo (1):
+>    XEN / PCI: Remove the dependence on arch x86 when PCI_MMCONFIG=y
+>
+> Tomasz Nowicki (10):
+>    x86, pci: Reorder logic of pci_mmconfig_insert() function
+>    x86, pci, acpi: Move arch-agnostic MMCONFIG (aka ECAM) and ACPI code
+>      out of arch/x86/ directory
+>    pci, acpi, mcfg: Provide generic implementation of MCFG code
+>      initialization.
+>    x86, pci: mmconfig_{32,64}.c code refactoring - remove code
+>      duplication.
+>    x86, pci, ecam: mmconfig_64.c becomes default implementation for ECAM
+>      driver.
+>    pci, acpi, mcfg: Provide default RAW ACPI PCI config space accessors.
+>    pci, acpi, ecam: Add flag to indicate whether ECAM region was hot
+>      added or not.
+>    x86, pci: Use previously added ECAM hot_added flag to remove ECAM
+>      regions.
+>    pci, acpi: Provide generic way to assign bus domain number.
+>    arm64, pci, acpi: Support for ACPI based PCI hostbridge init
+>
+>   arch/arm64/Kconfig             |   6 +
+>   arch/arm64/kernel/pci.c        | 208 ++++++++++++++++++++++++++++++++--
+>   arch/x86/Kconfig               |   4 +
+>   arch/x86/include/asm/pci_x86.h |  28 +----
+>   arch/x86/pci/acpi.c            |  17 +--
+>   arch/x86/pci/mmconfig-shared.c | 250 +++++++----------------------------------
+>   arch/x86/pci/mmconfig_32.c     |  11 +-
+>   arch/x86/pci/mmconfig_64.c     |  67 +----------
+>   arch/x86/pci/numachip.c        |   1 +
+>   drivers/acpi/Makefile          |   1 +
+>   drivers/acpi/mcfg.c            | 104 +++++++++++++++++
+>   drivers/acpi/pci_root.c        |   2 +-
+>   drivers/pci/Kconfig            |  10 ++
+>   drivers/pci/Makefile           |   5 +
+>   drivers/pci/ecam.c             | 234 ++++++++++++++++++++++++++++++++++++++
+>   drivers/pci/pci.c              |  30 ++++-
+>   drivers/xen/pci.c              |   7 +-
+>   include/linux/acpi.h           |   2 +
+>   include/linux/ecam.h           |  44 ++++++++
+>   19 files changed, 691 insertions(+), 340 deletions(-)
+>   create mode 100644 drivers/acpi/mcfg.c
+>   create mode 100644 drivers/pci/ecam.c
+>   create mode 100644 include/linux/ecam.h
+>
