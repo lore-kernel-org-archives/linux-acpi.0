@@ -1,60 +1,180 @@
-From: Duc Dang <dhdang@apm.com>
-Subject: Re: [PATCH V3 0/6] gicv2m: acpi: Add ACPI support for GICv2m MSI
-Date: Fri, 30 Oct 2015 09:53:53 -0700
-Message-ID: <CADaLND=g=Md5YzALGQbtUHYVUSyCcAgLwJ1vAR+7mDDOdDm=_w@mail.gmail.com>
-References: <1445453249-32557-1-git-send-email-Suravee.Suthikulpanit@amd.com>
- <CADaLNDnhn+Lax6aMseA4kPsAfKHG=L0buO6Tf-U8sxfUzn38BA@mail.gmail.com> <563378CB.9090005@amd.com>
+From: Lee Jones <lee.jones@linaro.org>
+Subject: Re: [PATCH v3 2/6] mfd: core: redo ACPI matching of the children
+ devices
+Date: Fri, 30 Oct 2015 18:54:04 +0000
+Message-ID: <20151030185404.GL4058@x1>
+References: <1444213129-29793-1-git-send-email-andriy.shevchenko@linux.intel.com>
+ <1444213129-29793-3-git-send-email-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <563378CB.9090005@amd.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Cc: Marc Zyngier <marc.zyngier@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, rjw@rjwysocki.net, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, G Gregory <graeme.gregory@linaro.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-i2c-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1444213129-29793-3-git-send-email-andriy.shevchenko@linux.intel.com>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, Wolfram Sang <wsa@the-dreams.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@intel.com>, "Puustinen, Ismo" <ismo.puustinen@intel.com>, "Pandruvada, Srinivas" <srinivas.pandruvada@intel.com>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Oct 30, 2015 at 7:03 AM, Suravee Suthikulpanit
-<Suravee.Suthikulpanit@amd.com> wrote:
-> Hi Duc
->
-> On 10/29/15 16:25, Duc Dang wrote:
->>
->> Hi Suravee,
->> On Wed, Oct 21, 2015 at 11:47 AM, Suravee Suthikulpanit
->> <Suravee.Suthikulpanit@amd.com>  wrote:
->>>
->>> >This patch series has been forked from the following patch series since
->>> >it no longer depends on the rest of the patches.
->>> >
->>> >   [PATCH v4 00/10] ACPI GIC Self-probing, GICv2m and GICv3 support
->>> >   https://lkml.org/lkml/2015/7/29/234
->>> >
->>> >It has been ported to use the newly introduced device fwnode_handle
->>> >for ACPI irqdmain introduced by Marc in the following patch series:
->>> >
->>> >   [PATCH v2 00/17] Divorcing irqdomain and device_node
->>> >   http://git.kernel.org/cgit/linux/kernel/git/maz/arm-platforms.git
->>> > irq/irq-domain-fwnode-v2
->>> >
->>> >The following git branch contains the submitted patches along with
->>> >the pre-requsite patches (mainly for ARM64 PCI support for ACPI).
->>> >
->>> >   https://github.com/ssuthiku/linux.git  v2m-multiframe-v3
->>
->> I tried to clone your tree to test on my X-Gene platform but I didn't
->> see branch v2m-multiframe-v3.
->> I see similar patch set in origin/irq-domain-fwnode-v2-v2m-multiframe.
->> Can you please check?
->>
->
-> It should be there now. I might have forgotten to push it to my Github.
-> Sorry for inconvenience, and thanks for testing.
+On Wed, 07 Oct 2015, Andy Shevchenko wrote:
 
-Thanks Suravee. I see branch v2m-multiframe-v3 now. I will test and
-update you soon.
+> There is at least one board on the market, i.e. Intel Galileo Gen2, t=
+hat uses
+> _ADR to distinguish the devices under one actual device. Due to this =
+we have to
+> improve the quirk in the MFD core to handle that board.
+>=20
+> Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> ---
+>  Documentation/acpi/enumeration.txt | 11 +++++---
+>  drivers/mfd/mfd-core.c             | 52 ++++++++++++++++++++++++++--=
+----------
+>  include/linux/mfd/core.h           | 10 ++++++--
+>  3 files changed, 52 insertions(+), 21 deletions(-)
 
->
-> Suravee
+=46or my own reference:
+  Acked-by: Lee Jones <lee.jones@linaro.org>
 
-Regards,
-Duc Dang.
+> diff --git a/Documentation/acpi/enumeration.txt b/Documentation/acpi/=
+enumeration.txt
+> index b731b29..a91ec5a 100644
+> --- a/Documentation/acpi/enumeration.txt
+> +++ b/Documentation/acpi/enumeration.txt
+> @@ -347,13 +347,18 @@ For the first case, the MFD drivers do not need=
+ to do anything. The
+>  resulting child platform device will have its ACPI_COMPANION() set t=
+o point
+>  to the parent device.
+> =20
+> -If the ACPI namespace has a device that we can match using an ACPI i=
+d,
+> -the id should be set like:
+> +If the ACPI namespace has a device that we can match using an ACPI i=
+d or ACPI
+> +adr, the cell should be set like:
+> +
+> +	static struct mfd_cell_acpi_match my_subdevice_cell_acpi_match =3D =
+{
+> +		.pnpid =3D "XYZ0001",
+> +		.adr =3D 0,
+> +	};
+> =20
+>  	static struct mfd_cell my_subdevice_cell =3D {
+>  		.name =3D "my_subdevice",
+>  		/* set the resources relative to the parent */
+> -		.acpi_pnpid =3D "XYZ0001",
+> +		.acpi_match =3D &my_subdevice_cell_acpi_match,
+>  	};
+> =20
+>  The ACPI id "XYZ0001" is then used to lookup an ACPI device directly=
+ under
+> diff --git a/drivers/mfd/mfd-core.c b/drivers/mfd/mfd-core.c
+> index c17635d..60b60dc 100644
+> --- a/drivers/mfd/mfd-core.c
+> +++ b/drivers/mfd/mfd-core.c
+> @@ -82,29 +82,49 @@ static int mfd_platform_add_cell(struct platform_=
+device *pdev,
+>  static void mfd_acpi_add_device(const struct mfd_cell *cell,
+>  				struct platform_device *pdev)
+>  {
+> -	struct acpi_device *parent_adev;
+> +	const struct mfd_cell_acpi_match *match =3D cell->acpi_match;
+> +	struct acpi_device *parent, *child;
+>  	struct acpi_device *adev;
+> =20
+> -	parent_adev =3D ACPI_COMPANION(pdev->dev.parent);
+> -	if (!parent_adev)
+> +	parent =3D ACPI_COMPANION(pdev->dev.parent);
+> +	if (!parent)
+>  		return;
+> =20
+>  	/*
+> -	 * MFD child device gets its ACPI handle either from the ACPI
+> -	 * device directly under the parent that matches the acpi_pnpid or
+> -	 * it will use the parent handle if is no acpi_pnpid is given.
+> +	 * MFD child device gets its ACPI handle either from the ACPI devic=
+e
+> +	 * directly under the parent that matches the either _HID or _CID, =
+or
+> +	 * _ADR or it will use the parent handle if is no ID is given.
+> +	 *
+> +	 * Note that use of _ADR is a grey area in the ACPI specification,
+> +	 * though Intel Galileo Gen2 is using it to distinguish the childre=
+n
+> +	 * devices.
+>  	 */
+> -	adev =3D parent_adev;
+> -	if (cell->acpi_pnpid) {
+> -		struct acpi_device_id ids[2] =3D {};
+> -		struct acpi_device *child_adev;
+> -
+> -		strlcpy(ids[0].id, cell->acpi_pnpid, sizeof(ids[0].id));
+> -		list_for_each_entry(child_adev, &parent_adev->children, node)
+> -			if (acpi_match_device_ids(child_adev, ids)) {
+> -				adev =3D child_adev;
+> -				break;
+> +	adev =3D parent;
+> +	if (match) {
+> +		if (match->pnpid) {
+> +			struct acpi_device_id ids[2] =3D {};
+> +
+> +			strlcpy(ids[0].id, match->pnpid, sizeof(ids[0].id));
+> +			list_for_each_entry(child, &parent->children, node) {
+> +				if (acpi_match_device_ids(child, ids)) {
+> +					adev =3D child;
+> +					break;
+> +				}
+> +			}
+> +		} else {
+> +			unsigned long long adr;
+> +			acpi_status status;
+> +
+> +			list_for_each_entry(child, &parent->children, node) {
+> +				status =3D acpi_evaluate_integer(child->handle,
+> +							       "_ADR", NULL,
+> +							       &adr);
+> +				if (ACPI_SUCCESS(status) && match->adr =3D=3D adr) {
+> +					adev =3D child;
+> +					break;
+> +				}
+>  			}
+> +		}
+>  	}
+> =20
+>  	ACPI_COMPANION_SET(&pdev->dev, adev);
+> diff --git a/include/linux/mfd/core.h b/include/linux/mfd/core.h
+> index a76bc10..27dac3f 100644
+> --- a/include/linux/mfd/core.h
+> +++ b/include/linux/mfd/core.h
+> @@ -18,6 +18,12 @@
+> =20
+>  struct irq_domain;
+> =20
+> +/* Matches ACPI PNP id, either _HID or _CID, or ACPI _ADR */
+> +struct mfd_cell_acpi_match {
+> +	const char			*pnpid;
+> +	const unsigned long long	adr;
+> +};
+> +
+>  /*
+>   * This struct describes the MFD part ("cell").
+>   * After registration the copy of this structure will become the pla=
+tform data
+> @@ -44,8 +50,8 @@ struct mfd_cell {
+>  	 */
+>  	const char		*of_compatible;
+> =20
+> -	/* Matches ACPI PNP id, either _HID or _CID */
+> -	const char		*acpi_pnpid;
+> +	/* Matches ACPI */
+> +	const struct mfd_cell_acpi_match	*acpi_match;
+> =20
+>  	/*
+>  	 * These resources can be specified relative to the parent device.
+
+--=20
+Lee Jones
+Linaro STMicroelectronics Landing Team Lead
+Linaro.org =E2=94=82 Open source software for ARM SoCs
+=46ollow Linaro: Facebook | Twitter | Blog
