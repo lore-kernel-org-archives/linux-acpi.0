@@ -1,135 +1,118 @@
-From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-Subject: Re: [Bugfix v4] PCI, ACPI: Fix regressions caused by resource_size_t
- overflow with 32-bit kernel
-Date: Mon, 2 Nov 2015 16:27:56 +0100
-Message-ID: <563780FC.5070503@linaro.org>
-References: <559107F2.3080701@pr.hu>
- <1436340399-19695-1-git-send-email-jiang.liu@linux.intel.com>
+From: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>
+Subject: Re: [PATCH V5 1/9] ACPI: Honor ACPI _CCA attribute setting
+Date: Mon, 2 Nov 2015 09:51:46 -0600
+Message-ID: <56378692.9060208@amd.com>
+References: <20151102040224.GA16979@arm.org> <56374FF7.6050008@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1436340399-19695-1-git-send-email-jiang.liu@linux.intel.com>
+In-Reply-To: <56374FF7.6050008@linaro.org>
 Sender: linux-pci-owner@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Bjorn Helgaas <bhelgaas@google.com>, Ingo Molnar <mingo@kernel.org>, Boszormenyi Zoltan <zboszor@pr.hu>, Len Brown <lenb@kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, "x86 @ kernel . org" <x86@kernel.org>
+To: Hanjun Guo <hanjun.guo@linaro.org>, Dennis Chen <dennis.chen@arm.com>, bhelgaas@google.com, rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com
+Cc: thomas.lendacky@amd.com, herbert@gondor.apana.org.au, davem@davemloft.net, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, jeremy.linton@arm.com, robh+dt@kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On 08.07.2015 09:26, Jiang Liu wrote:
-> Zoltan Boszormenyi reported this regression:
->    "There's a Realtek RTL8111/8168/8411 (PCI ID 10ec:8168, Subsystem ID
->     1565:230e) network chip on the mainboard. After the r8169 driver loaded
->     the IRQs in the machine went berserk. Keyboard keypressed arrived with
->     considerable latency and duplicated, so no real work was possible.
->     The machine responded to the power button but didn't actually power
->     down. It just stuck at the powering down message. I had to press the
->     power button for 4 seconds to power it down.
->
->     The computer is a POS machine with a big battery inside. Because of this,
->     either ACPI or the Realtek chip kept the bad state and after rebooting,
->     the network chip didn't even show up in lspci. Not even the PXE ROM
->     announced itself during boot. I had to disconnect the battery to beat
->     some sense back to the computer.
->
->     The regression happens with 4.0.5, 4.1.0-rc8 and 4.1.0-final. 3.18.16 was
->     good."
->
-> The regression is caused by commit 593669c2ac0f ("x86/PCI/ACPI: Use common
-> ACPI resource interfaces to simplify implementation"). Since commit
-> 593669c2ac0f, x86 PCI ACPI host bridge driver validates ACPI resources by
-> first converting an ACPI resource to a 'struct resource' structure and
-> then applying checks against the converted resource structure. The 'start'
-> and 'end' fields in 'struct resource' are defined to be type of
-> resource_size_t, which may be 32 bits or 64 bits depending on
-> CONFIG_PHYS_ADDR_T_64BIT.
->
-> This may cause incorrect resource validation results with 32-bit kernels
-> because 64-bit ACPI resource descriptors may get truncated when converting
-> to 32-bit 'start' and 'end' fields in 'struct resource'. It eventually
-> affects PCI resource allocation subsystem and makes some PCI devices and
-> the system behave abnormally due to incorrect resource assignment.
->
-> So enhance the ACPI resource parsing interfaces to ignore ACPI resource
-> descriptors with address/offset above 4G when running in 32-bit mode.
->
-> With the fix applied, the behavior of the machine was restored to how
-> 3.18.16 worked, i.e. the memory range that is over 4GB is ignored again,
-> and lspci -vvxxx shows that everything is at the same memory window as
-> they were with 3.18.16.
->
-> Reported-and-Tested-by: Boszormenyi Zoltan <zboszor@pr.hu>
-> Fixes: 593669c2ac0f ("x86/PCI/ACPI: Use common ACPI resource interfaces to simplify implementation")
-> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-> Cc: stable@vger.kernel.org # 4.0
-> ---
->   drivers/acpi/resource.c |   24 +++++++++++++++---------
->   1 file changed, 15 insertions(+), 9 deletions(-)
->
-> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-> index 10561ce16ed1..e8d281739cbc 100644
-> --- a/drivers/acpi/resource.c
-> +++ b/drivers/acpi/resource.c
-> @@ -194,6 +194,7 @@ static bool acpi_decode_space(struct resource_win *win,
->   	u8 iodec = attr->granularity == 0xfff ? ACPI_DECODE_10 : ACPI_DECODE_16;
->   	bool wp = addr->info.mem.write_protect;
->   	u64 len = attr->address_length;
-> +	u64 start, end, offset = 0;
->   	struct resource *res = &win->res;
->
->   	/*
-> @@ -205,9 +206,6 @@ static bool acpi_decode_space(struct resource_win *win,
->   		pr_debug("ACPI: Invalid address space min_addr_fix %d, max_addr_fix %d, len %llx\n",
->   			 addr->min_address_fixed, addr->max_address_fixed, len);
->
-> -	res->start = attr->minimum;
-> -	res->end = attr->maximum;
-> -
->   	/*
->   	 * For bridges that translate addresses across the bridge,
->   	 * translation_offset is the offset that must be added to the
-> @@ -215,12 +213,22 @@ static bool acpi_decode_space(struct resource_win *win,
->   	 * primary side. Non-bridge devices must list 0 for all Address
->   	 * Translation offset bits.
->   	 */
-> -	if (addr->producer_consumer == ACPI_PRODUCER) {
-> -		res->start += attr->translation_offset;
-> -		res->end += attr->translation_offset;
-> -	} else if (attr->translation_offset) {
-> +	if (addr->producer_consumer == ACPI_PRODUCER)
-> +		offset = attr->translation_offset;
-> +	else if (attr->translation_offset)
->   		pr_debug("ACPI: translation_offset(%lld) is invalid for non-bridge device.\n",
->   			 attr->translation_offset);
-> +	start = attr->minimum + offset;
-> +	end = attr->maximum + offset;
+Hi Dennis / Hanjun,
 
-I still see the issue for this area, I mean ACPI_IO_RANGE. You are 
-adding translation offset to attr->minimum, build resource structure 
-which is then passed to acpi_dev_ioresource_flags and compared against 
-0x10003. It causes some IO ranges to be ignored.
+On 11/2/2015 5:58 AM, Hanjun Guo wrote:
+> Hi Dennis,
+>
+> On 11/02/2015 12:02 PM, Dennis Chen wrote:
+>> On Thu, Oct 29, 2015 at 6:50 AM, Suravee Suthikulpanit
+>> <Suravee.Suthikulpanit@amd.com> wrote:
+>>> From: Jeremy Linton <jeremy.linton@arm.com>
+>>>
+>>> ACPI configurations can now mark devices as noncoherent,
+>>> support that choice.
+>>>
+>>> NOTE: This is required to support USB on ARM Juno Development Board.
+>>>
+>>> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
+>>> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+>>> CC: Bjorn Helgaas <bhelgaas@google.com>
+>>> CC: Catalin Marinas <catalin.marinas@arm.com>
+>>> CC: Rob Herring <robh+dt@kernel.org>
+>>> CC: Will Deacon <will.deacon@arm.com>
+>>> CC: Rafael J. Wysocki <rjw@rjwysocki.net>
+>>> ---
+>>>   include/acpi/acpi_bus.h | 5 +++--
+>>>   1 file changed, 3 insertions(+), 2 deletions(-)
+>>>
+>>> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+>>> index d11eff8..0f131d2 100644
+>>> --- a/include/acpi/acpi_bus.h
+>>> +++ b/include/acpi/acpi_bus.h
+>>> @@ -407,7 +407,7 @@ static inline bool acpi_check_dma(struct
+>>> acpi_device *adev, bool *coherent)
+>>>        * case 1. Do not support and disable DMA.
+>>>        * case 2. Support but rely on arch-specific cache maintenance for
+>>>        *         non-coherence DMA operations.
+>>> -     * Currently, we implement case 1 above.
+>>> +     * Currently, we implement case 2 above.
+>>>        *
+>>>        * For the case when _CCA is missing (i.e. cca_seen=0) and
+>>>        * platform specifies ACPI_CCA_REQUIRED, we do not support DMA,
+>>> @@ -415,7 +415,8 @@ static inline bool acpi_check_dma(struct
+>>> acpi_device *adev, bool *coherent)
+>>>        *
+>>>        * See acpi_init_coherency() for more info.
+>>>        */
+>>> -    if (adev->flags.coherent_dma) {
+>>> +    if (adev->flags.coherent_dma ||
+>>> +        (adev->flags.cca_seen && IS_ENABLED(CONFIG_ARM64))) {
+>>>           ret = true;
+>>>           if (coherent)
+>>>               *coherent = adev->flags.coherent_dma;
+>>
+>> Hi Suravee,
+>>
+>> The acpi_check_dma function has been removed in patch 6 of this patch
+>> set, why it is still be used
+>> here, am I missing something? If the acpi_check_dma will be used in
+>> the future, personally I'd like
+>
+> I think this patch just to let people know that there is
+> case that arch-specific cache maintenance is still needed
+> for ACPI (such as Juno board), and in the later patches will
+> cover this case.
+>
+> acpi_check_dma() will be replaced by acpi_get_dma_attr(),
+> and in acpi_get_dma_attr() will cover that case and will
+> be easily understood. (Suravee, correct me if I'm wrong :) )
 
-> +
-> +	win->offset = offset;
-> +	res->start = start;
-> +	res->end = end;
-> +	if (sizeof(resource_size_t) < sizeof(u64) &&
-> +	    (offset != win->offset || start != res->start || end != res->end)) {
-> +		pr_warn("acpi resource window ([%#llx-%#llx] ignored, not CPU addressable)\n",
-> +			attr->minimum, attr->maximum);
-> +		return false;
->   	}
+Thanks Hanjun for filling in the info.
+
+Yes, this is mainly to document the logic changes required by Juno, 
+which would be more clear than just merging this change in the later patch.
+
+>> to use IS_ENABLED(CONFIG_ACPI_CCA_REQUIRED) while not CONFIG_ARM64
+>> macro here,
+
+We could have used CONFIG_ACPI_CCA_REQUIRED here, but this will be 
+replaced by logic in patch 5, and removed in patch 6 anyways. So, I 
+think it is okay. Eventually, the rest of the logic will be using 
+CONFIG_ACPI_CCA_REQUIRED.
+
+or since _CCA attribute
+>> is arch-specific, it's reasonable to leave the _CCA handling policy to
+>> the arch-specific code. For example,
+>> with a link weak function like acpi_arch_check_dma() as a default
+>> handling if no arch-specific code
+>> provided, the actual _CCA handling will be implemented in the ARM,
+>> Intel or other Arch if required.
 >
->   	switch (addr->resource_type) {
-> @@ -237,8 +245,6 @@ static bool acpi_decode_space(struct resource_win *win,
->   		return false;
->   	}
+> Actually Intel platform don't need _CCA and it's coherent
+> in default, since _CCA is in ACPI spec, I would like it's
+> handled in ACPI core.
 >
-> -	win->offset = attr->translation_offset;
-> -
->   	if (addr->producer_consumer == ACPI_PRODUCER)
->   		res->flags |= IORESOURCE_WINDOW;
->
->
+> Thanks
+> Hanjun
+
+I also agree with Hanjun that the CCA parsing should be handled by the 
+ACPI core driver. Since we are using the CONFIG_ACPI_CCA_REQUIRED, we 
+should not need to have arch-specific code. If the ACPI spec gets more 
+complicate in the future, we can revisit this. :)
 
 Thanks,
-Tomasz
+Suravee
