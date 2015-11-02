@@ -1,94 +1,104 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH V5 0/9] PCI: ACPI: Setting up DMA coherency for PCI device from _CCA attribute
-Date: Mon, 02 Nov 2015 02:01:11 +0100
-Message-ID: <2082841.EuKXHJIeaT@vostro.rjw.lan>
-References: <1446072654-5608-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+Subject: Re: [PATCH v11 0/4] Allow USB devices to remain runtime-suspended when sleeping
+Date: Mon, 02 Nov 2015 02:50:40 +0100
+Message-ID: <2496228.i2Z9PmMBtz@vostro.rjw.lan>
+References: <1445956731-6304-1-git-send-email-tomeu.vizoso@collabora.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1446072654-5608-1-git-send-email-Suravee.Suthikulpanit@amd.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Cc: bhelgaas@google.com, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, hanjun.guo@linaro.org, thomas.lendacky@amd.com, herbert@gondor.apana.org.au, davem@davemloft.net, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-pm-owner@vger.kernel.org>
+In-Reply-To: <1445956731-6304-1-git-send-email-tomeu.vizoso@collabora.com>
+Sender: linux-pm-owner@vger.kernel.org
+To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Cc: linux-pm@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>, martyn.welch@collabora.co.uk, Ulf Hansson <ulf.hansson@linaro.org>, David Airlie <airlied@linux.ie>, Tomas Winkler <tomas.winkler@intel.com>, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Russell King <linux@arm.linux.org.uk>, Len Brown <lenb@kernel.org>, Len Brown <len.brown@intel.com>, Kevin Hilman <khilman@kernel.org>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday, October 28, 2015 03:50:45 PM Suravee Suthikulpanit wrote:
-> This patch series adds support to setup DMA coherency for PCI device using
-> the ACPI _CCA attribute. According to the ACPI spec, the _CCA attribute
-> is required for ARM64. Therefore, this patch is a pre-req for ACPI PCI
-> support for ARM64 which is currently in development.  Also, this should
-> not affect other architectures that does not define 
-> CONFIG_ACPI_CCA_REQUIRED, since the default value is coherent.
+On Tuesday, October 27, 2015 03:38:47 PM Tomeu Vizoso wrote:
+> Hi,
 > 
-> In the process, this series also introduces enum dev_dma_attr and a set
-> of APIs to query device DMA attribute. These APIs replace the obsolete
-> device_dma_is_coherent(), and acpi_check_dma().
+> this is v11 of an attempt to make it easier for devices to remain in
+> runtime PM when the system goes to sleep, mainly to reduce the time
+> spent resuming devices.
 > 
-> I have also included a patch from Jeremy posted here:
->     http://www.spinics.net/lists/linux-usb/msg128582.html
+> For this, we interpret the absence of all PM callback implementations as
+> it being safe to do direct_complete, so their ancestors aren't prevented
+> from remaining runtime-suspended.
 > 
-> This patch series is now rebased from:
->     https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git linux-next
+> Additionally, the prepare() callback of USB devices will return 1 if
+> runtime PM is enabled and the current wakeup settings are correct.
 > 
-> This patch series has been tested on AMD Seattle RevB platform.
-> The git tree containing tested code and pre-req patches is available here:
->     http://github.com/ssuthiku/linux.git pci-cca-v5
+> With these changes, a uvcvideo device (for example) stays in runtime
+> suspend when the system goes to sleep and is left in that state when the
+> system resumes, not delaying it unnecessarily.
 > 
-> Changes from V4: (https://lkml.org/lkml/2015/10/21/535)
->     * Clean up from Hanjun, Bjorn, and Thomas review comments
->     * Rebased on top of Rafael's latest linux-next branch
->     * Added patch 7/9 to fix the  pci_get_host_bridge_device leak
->     * Added Acked-by from Bjorn
->     * Added Reviewed-by from Hanjun
+> Thanks,
 > 
-> Changes from V3: (https://lkml.org/lkml/2015/8/26/389)
->     * Clean up suggested by Bjorn
->     * Introduce enum dev_dma_attr
->     * Replace device_dma_is_coherent() and acpi_check_dma() with
->       new APIs.
+> Tomeu
 > 
-> Changes from V2: (https://lkml.org/lkml/2015/8/25/549)
->     * Return -ENOSUPP instead of -1 (per Rafael's suggestion)
->     * Add WARN() when fail to setup DMA for PCI device when booting
->       ACPI (per Arnd's suggestion)
->     * Added Acked-by from Rob.
->     * Minor clean up
+> Changes in v11:
+> - Move calls to dev_pm_domain_set() out from &dev->power.lock as that
+>   isn't needed for dev->pm_domain.
 > 
-> Changes from V1: (https://lkml.org/lkml/2015/8/13/182)
->     * Include patch 1 from Jeremy to enable support for _CCA=0
->     * Clean up acpi_check_dma() per Bjorn suggestions
->     * Split the original V1 patch into two patches (patch 3 and 4)
+> Changes in v10:
+> - Remove superfluous call to pm_runtime_enabled() as suggested by Alan
 > 
-> Jeremy Linton (1):
->   ACPI: Honor ACPI _CCA attribute setting
+> Changes in v9:
+> - Add docs noting the need for the device lock to be held before calling
+>   device_is_bound()
+> - Add docs noting the need for the device lock to be held before calling
+>   dev_pm_domain_set()
+> - Move to CONFIG_PM_SLEEP as suggested by Rafael and Ulf.
+> - Rename from device_check_pm_callbacks to device_pm_check_callbacks to
+>   follow with the naming convention of existing API.
+> - Re-add calling to device_pm_check_callbacks from device registration
+>   and when updating the PM domain of a device.
 > 
-> Suravee Suthikulpanit (8):
->   device property: Introducing enum dev_dma_attr
->   ACPI: Adding DMA Attribute APIs for ACPI Device
->   device property: Adding DMA Attribute APIs for Generic Devices
->   device property: ACPI: Make use of the new DMA Attribute APIs
->   device property: ACPI: Remove unused DMA APIs
->   of/pci: Fix pci_get_host_bridge_device leak
->   PCI: OF: Move of_pci_dma_configure() to pci_dma_configure()
->   PCI: ACPI: Add support for PCI device DMA coherency
+> Changes in v8:
+> - Add device_is_bound()
+> - Add dev_pm_domain_set() and update code to use it
+> - Move no_pm_callbacks field into CONFIG_PM_SLEEP
+> - Call device_check_pm_callbacks only after a device is bound or unbound
 > 
->  drivers/acpi/acpi_platform.c              |  7 +++++-
->  drivers/acpi/glue.c                       |  8 +++---
->  drivers/acpi/scan.c                       | 42 +++++++++++++++++++++++++++++++
->  drivers/base/property.c                   | 32 +++++++++++++++++------
->  drivers/crypto/ccp/ccp-platform.c         | 15 ++++++++---
->  drivers/net/ethernet/amd/xgbe/xgbe-main.c |  8 +++++-
->  drivers/of/of_pci.c                       | 20 ---------------
->  drivers/pci/probe.c                       | 33 ++++++++++++++++++++++--
->  include/acpi/acpi_bus.h                   | 36 +++-----------------------
->  include/linux/acpi.h                      |  7 +++++-
->  include/linux/of_pci.h                    |  3 ---
->  include/linux/property.h                  | 10 +++++++-
->  12 files changed, 144 insertions(+), 77 deletions(-)
+> Changes in v7:
+> - Reduce indentation by adding a label in device_prepare()
+> 
+> Changes in v6:
+> - Add stub for !CONFIG_PM.
+> - Move implementation of device_check_pm_callbacks to power/main.c as it
+>   doesn't belong to CONFIG_PM_SLEEP.
+> - Take dev->power.lock before modifying flag.
+> 
+> Changes in v5:
+> - Check for all dev_pm_ops instances associated to a device, updating a
+>   no_pm_callbacks flag at the times when that could change.
+> 
+> Tomeu Vizoso (4):
+>   device core: add device_is_bound()
+>   PM / Domains: add setter for dev.pm_domain
+>   PM / sleep: Go direct_complete if driver has no callbacks
+>   USB / PM: Allow USB devices to remain runtime-suspended when sleeping
+> 
+>  arch/arm/mach-omap2/omap_device.c |  7 ++++---
+>  drivers/acpi/acpi_lpss.c          |  5 +++--
+>  drivers/acpi/device_pm.c          |  5 +++--
+>  drivers/base/dd.c                 | 21 +++++++++++++++++++--
+>  drivers/base/power/clock_ops.c    |  5 +++--
+>  drivers/base/power/common.c       | 24 ++++++++++++++++++++++++
+>  drivers/base/power/domain.c       |  8 ++++++--
+>  drivers/base/power/main.c         | 35 +++++++++++++++++++++++++++++++++++
+>  drivers/base/power/power.h        |  3 +++
+>  drivers/gpu/vga/vga_switcheroo.c  | 10 +++++-----
+>  drivers/misc/mei/pci-me.c         |  5 +++--
+>  drivers/misc/mei/pci-txe.c        |  5 +++--
+>  drivers/usb/core/port.c           |  6 ++++++
+>  drivers/usb/core/usb.c            |  8 +++++++-
+>  include/linux/device.h            |  2 ++
+>  include/linux/pm.h                |  1 +
+>  include/linux/pm_domain.h         |  3 +++
+>  17 files changed, 130 insertions(+), 23 deletions(-)
 
-Queued up for v4.4, but I'll include it into my second pull request in the
-second half of the merge window.
+I've queued up this series for the second half of the v4.4 merge window.
 
 Thanks,
 Rafael
+
