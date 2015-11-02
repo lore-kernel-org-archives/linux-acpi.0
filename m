@@ -1,120 +1,94 @@
-From: Eduardo Valentin <edubezval@gmail.com>
-Subject: [GIT PULL] Thermal-SoC management updates for v4.4-rc1 #1
-Date: Sun, 1 Nov 2015 12:30:37 -0800
-Message-ID: <20151101203036.GA9793@localhost.localdomain>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH V5 0/9] PCI: ACPI: Setting up DMA coherency for PCI device from _CCA attribute
+Date: Mon, 02 Nov 2015 02:01:11 +0100
+Message-ID: <2082841.EuKXHJIeaT@vostro.rjw.lan>
+References: <1446072654-5608-1-git-send-email-Suravee.Suthikulpanit@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f53.google.com ([209.85.220.53]:33896 "EHLO
-	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751615AbbKAUal (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 1 Nov 2015 15:30:41 -0500
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1446072654-5608-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Cc: bhelgaas@google.com, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, hanjun.guo@linaro.org, thomas.lendacky@amd.com, herbert@gondor.apana.org.au, davem@davemloft.net, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: Rui Zhang <rui.zhang@intel.com>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-Hello Rui,
+On Wednesday, October 28, 2015 03:50:45 PM Suravee Suthikulpanit wrote:
+> This patch series adds support to setup DMA coherency for PCI device using
+> the ACPI _CCA attribute. According to the ACPI spec, the _CCA attribute
+> is required for ARM64. Therefore, this patch is a pre-req for ACPI PCI
+> support for ARM64 which is currently in development.  Also, this should
+> not affect other architectures that does not define 
+> CONFIG_ACPI_CCA_REQUIRED, since the default value is coherent.
+> 
+> In the process, this series also introduces enum dev_dma_attr and a set
+> of APIs to query device DMA attribute. These APIs replace the obsolete
+> device_dma_is_coherent(), and acpi_check_dma().
+> 
+> I have also included a patch from Jeremy posted here:
+>     http://www.spinics.net/lists/linux-usb/msg128582.html
+> 
+> This patch series is now rebased from:
+>     https://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git linux-next
+> 
+> This patch series has been tested on AMD Seattle RevB platform.
+> The git tree containing tested code and pre-req patches is available here:
+>     http://github.com/ssuthiku/linux.git pci-cca-v5
+> 
+> Changes from V4: (https://lkml.org/lkml/2015/10/21/535)
+>     * Clean up from Hanjun, Bjorn, and Thomas review comments
+>     * Rebased on top of Rafael's latest linux-next branch
+>     * Added patch 7/9 to fix the  pci_get_host_bridge_device leak
+>     * Added Acked-by from Bjorn
+>     * Added Reviewed-by from Hanjun
+> 
+> Changes from V3: (https://lkml.org/lkml/2015/8/26/389)
+>     * Clean up suggested by Bjorn
+>     * Introduce enum dev_dma_attr
+>     * Replace device_dma_is_coherent() and acpi_check_dma() with
+>       new APIs.
+> 
+> Changes from V2: (https://lkml.org/lkml/2015/8/25/549)
+>     * Return -ENOSUPP instead of -1 (per Rafael's suggestion)
+>     * Add WARN() when fail to setup DMA for PCI device when booting
+>       ACPI (per Arnd's suggestion)
+>     * Added Acked-by from Rob.
+>     * Minor clean up
+> 
+> Changes from V1: (https://lkml.org/lkml/2015/8/13/182)
+>     * Include patch 1 from Jeremy to enable support for _CCA=0
+>     * Clean up acpi_check_dma() per Bjorn suggestions
+>     * Split the original V1 patch into two patches (patch 3 and 4)
+> 
+> Jeremy Linton (1):
+>   ACPI: Honor ACPI _CCA attribute setting
+> 
+> Suravee Suthikulpanit (8):
+>   device property: Introducing enum dev_dma_attr
+>   ACPI: Adding DMA Attribute APIs for ACPI Device
+>   device property: Adding DMA Attribute APIs for Generic Devices
+>   device property: ACPI: Make use of the new DMA Attribute APIs
+>   device property: ACPI: Remove unused DMA APIs
+>   of/pci: Fix pci_get_host_bridge_device leak
+>   PCI: OF: Move of_pci_dma_configure() to pci_dma_configure()
+>   PCI: ACPI: Add support for PCI device DMA coherency
+> 
+>  drivers/acpi/acpi_platform.c              |  7 +++++-
+>  drivers/acpi/glue.c                       |  8 +++---
+>  drivers/acpi/scan.c                       | 42 +++++++++++++++++++++++++++++++
+>  drivers/base/property.c                   | 32 +++++++++++++++++------
+>  drivers/crypto/ccp/ccp-platform.c         | 15 ++++++++---
+>  drivers/net/ethernet/amd/xgbe/xgbe-main.c |  8 +++++-
+>  drivers/of/of_pci.c                       | 20 ---------------
+>  drivers/pci/probe.c                       | 33 ++++++++++++++++++++++--
+>  include/acpi/acpi_bus.h                   | 36 +++-----------------------
+>  include/linux/acpi.h                      |  7 +++++-
+>  include/linux/of_pci.h                    |  3 ---
+>  include/linux/property.h                  | 10 +++++++-
+>  12 files changed, 144 insertions(+), 77 deletions(-)
 
-Please pull from
+Queued up for v4.4, but I'll include it into my second pull request in the
+second half of the merge window.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-ther=
-mal linus
-
-to receive Thermal-SoC Management updates for v4.4-rc1 with top-most
-
-8fb2b9ac2aadd6d87f89071c2c85f8c12b41c943:
-
-  thermal: underflow bug in imx_set_trip_temp() (2015-10-30 11:35:50 -0=
-700)
-
-on top of commit 3225031fbeb1e32b269a82eccd815128267a4bfe:
-
-  Merge branch 'stable' of git://git.kernel.org/pub/scm/linux/kernel/gi=
-t/cmetcalf/linux-tile (2015-09-28 12:27:18 -0400)
-
-Specifics:
-- OMAP3 support on TI SoC thermal driver.
-- Devfreq cooling device. This comes with a change in OPP layer Acked b=
-y Viresh K.
-- Fixes on IMX, Armada, and Rockchip thermal drivers.
-- This branch has been compiled tested and boot tested by Linaro bot [1=
-,2].
-
-Apologize for the silent in the past weeks. I had two trips in a row an=
-d had
-limited Internet access. Please let me know if I missed your patch. I t=
-ried
-checking those that were idling in the mailing list and cleaning the pa=
-tchwork,
-but I might have missed some. So, still catching up.
-
-There are still new drivers to be reviewed and merged which is on my ra=
-dar. I
-will be sending updates still to see if they can make this merge window=
-=2E For
-now I would say they will be scheduled for the next one.
-
-[1] - http://kernelci.org/build/evalenti/kernel/v4.3-rc3-52-g8fb2b9ac2a=
-ad/
-[2] - http://kernelci.org/boot/all/job/evalenti/kernel/v4.3-rc3-52-g8fb=
-2b9ac2aad/
-
-BR,
-
-Eduardo Valentin
-----------------------------------------------------------------
-Bai Ping (1):
-      thermal: imx: register irq handler later in probe
-
-Dan Carpenter (1):
-      thermal: underflow bug in imx_set_trip_temp()
-
-Dmitry Torokhov (2):
-      thermal: rockchip: fix handling of invalid readings
-      thermal: rockhip: fix setting thermal shutdown polarity
-
-Eduardo Valentin (1):
-      thermal: ti-soc-thermal: add OMAP36xx support
-
-Javi Merino (2):
-      PM / OPP: get the voltage for all OPPs
-      devfreq_cooling: add trace information
-
-Nadav Haklai (1):
-      thermal: armada: Fix possible overflow in the Armada 380 thermal =
-sensor formula
-
-Pavel Machek (1):
-      ti-soc-thermal: implement omap3 support
-
-=D8rjan Eide (1):
-      thermal: Add devfreq cooling
-
- .../devicetree/bindings/thermal/ti_soc_thermal.txt |  14 +
- drivers/base/power/opp.c                           |   4 +-
- drivers/thermal/Kconfig                            |  14 +
- drivers/thermal/Makefile                           |   3 +
- drivers/thermal/armada_thermal.c                   |   6 +-
- drivers/thermal/devfreq_cooling.c                  | 569 +++++++++++++=
-++++++++
- drivers/thermal/imx_thermal.c                      |  21 +-
- drivers/thermal/rockchip_thermal.c                 |  38 +-
- drivers/thermal/ti-soc-thermal/Kconfig             |  15 +
- drivers/thermal/ti-soc-thermal/Makefile            |   1 +
- .../thermal/ti-soc-thermal/omap3-thermal-data.c    | 176 +++++++
- drivers/thermal/ti-soc-thermal/ti-bandgap.c        |  14 +
- drivers/thermal/ti-soc-thermal/ti-bandgap.h        |  11 +
- include/linux/devfreq_cooling.h                    |  81 +++
- include/trace/events/thermal.h                     |  53 ++
- 15 files changed, 985 insertions(+), 35 deletions(-)
- create mode 100644 drivers/thermal/devfreq_cooling.c
- create mode 100644 drivers/thermal/ti-soc-thermal/omap3-thermal-data.c
- create mode 100644 include/linux/devfreq_cooling.h
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Rafael
