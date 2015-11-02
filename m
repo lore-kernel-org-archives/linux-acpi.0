@@ -1,78 +1,58 @@
-From: Dennis Chen <dennis.chen@arm.com>
-Subject: Re: [PATCH V5 1/9] ACPI: Honor ACPI _CCA attribute setting
-Date: Mon, 2 Nov 2015 12:02:25 +0800
-Message-ID: <20151102040224.GA16979@arm.org>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: ACPI: Can I use I2cSerialBus with a PCI I2C controller?
+Date: Mon, 2 Nov 2015 12:25:02 +0200
+Message-ID: <20151102102502.GC1509@lahna.fi.intel.com>
+References: <CAE7DoPZs69A5vLzDfrRXuC3q9fpkaXRYna2NQwHZk_BK9gLnvQ@mail.gmail.com>
+ <20151021085056.GV1526@lahna.fi.intel.com>
+ <CAE7DoPak939WjCWaGQw7W6aR0dZOcJCjcQK8gMa9iu+WRmnDDw@mail.gmail.com>
+ <20151022080157.GI1526@lahna.fi.intel.com>
+ <CAE7DoPY8+zw4xw0hWTmPoG4iPgC=2JRCT4bHqeqqaH+BywTWpw@mail.gmail.com>
+ <CAE7DoPZfLDEBmeODQv3oEbs033gpq4oSA=Sx15wMajzVUbUinw@mail.gmail.com>
+ <20151023082054.GP1526@lahna.fi.intel.com>
+ <20151027211111.GA6011@cumulusnetworks.com>
+ <20151028090140.GL1548@lahna.fi.intel.com>
+ <CAE7DoPbPuHTEZGvRTPrUXVCWLHwWPow9_1W15kHLTgXWQtwXUw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:3045 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753398AbbKBKZT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 2 Nov 2015 05:25:19 -0500
 Content-Disposition: inline
-Sender: linux-pci-owner@vger.kernel.org
-To: bhelgaas@google.com, rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com
-Cc: hanjun.guo@linaro.org, thomas.lendacky@amd.com, herbert@gondor.apana.org.au, davem@davemloft.net, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, jeremy.linton@arm.com, Suravee.Suthikulpanit@amd.com, robh+dt@kernel.org
+In-Reply-To: <CAE7DoPbPuHTEZGvRTPrUXVCWLHwWPow9_1W15kHLTgXWQtwXUw@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ben Gardner <gardner.ben@gmail.com>
+Cc: Dustin Byford <dustin@cumulusnetworks.com>, linux-acpi@vger.kernel.org
 
-On Thu, Oct 29, 2015 at 6:50 AM, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com> wrote:
-> From: Jeremy Linton <jeremy.linton@arm.com>
+On Fri, Oct 30, 2015 at 11:51:01AM -0500, Ben Gardner wrote:
+> It looks like you are supposed to have the first compatible entry be
+> the exact manufacturer,model.
+> http://devicetree.org/Device_Tree_Usage#Understanding_the_compatible_Property
 > 
-> ACPI configurations can now mark devices as noncoherent,
-> support that choice.
+> I am considering using a generic compatible entry ("linux,at24") to
+> match the Linux at24 driver.
+> In my case, I'm using a M24C02 from ST, so the compatible line would be:
 > 
-> NOTE: This is required to support USB on ARM Juno Development Board.
+>   Package () {"compatible", Package () {"st,m24c02", "linux,at24"}},
+>   Package () {"size", 256},
+>   Package () {"pagesize", 16},
 > 
-> Signed-off-by: Jeremy Linton <jeremy.linton@arm.com>
-> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-> CC: Bjorn Helgaas <bhelgaas@google.com>
-> CC: Catalin Marinas <catalin.marinas@arm.com>
-> CC: Rob Herring <robh+dt@kernel.org>
-> CC: Will Deacon <will.deacon@arm.com>
-> CC: Rafael J. Wysocki <rjw@rjwysocki.net>
-> ---
->  include/acpi/acpi_bus.h | 5 +++--
->  1 file changed, 3 insertions(+), 2 deletions(-)
-> 
-> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-> index d11eff8..0f131d2 100644
-> --- a/include/acpi/acpi_bus.h
-> +++ b/include/acpi/acpi_bus.h
-> @@ -407,7 +407,7 @@ static inline bool acpi_check_dma(struct acpi_device *adev, bool *coherent)
->  	 * case 1. Do not support and disable DMA.
->  	 * case 2. Support but rely on arch-specific cache maintenance for
->  	 *         non-coherence DMA operations.
-> -	 * Currently, we implement case 1 above.
-> +	 * Currently, we implement case 2 above.
->  	 *
->  	 * For the case when _CCA is missing (i.e. cca_seen=0) and
->  	 * platform specifies ACPI_CCA_REQUIRED, we do not support DMA,
-> @@ -415,7 +415,8 @@ static inline bool acpi_check_dma(struct acpi_device *adev, bool *coherent)
->  	 *
->  	 * See acpi_init_coherency() for more info.
->  	 */
-> -	if (adev->flags.coherent_dma) {
-> +	if (adev->flags.coherent_dma ||
-> +	    (adev->flags.cca_seen && IS_ENABLED(CONFIG_ARM64))) {
->  		ret = true;
->  		if (coherent)
->  			*coherent = adev->flags.coherent_dma;
+> The "linux,at24" would require the other properties (size and
+> pagesize) to be present.
+> I've seen something similar done with a few other devices.
 
-Hi Suravee,
+Using "linux,foo" is not a good idea and I'm pretty sure DT maintainers
+will not take such patches. The compatible (and other properties as
+well) should describe hardware not software.
 
-The acpi_check_dma function has been removed in patch 6 of this patch set, why it is still be used
-here, am I missing something? If the acpi_check_dma will be used in the future, personally I'd like
-to use IS_ENABLED(CONFIG_ACPI_CCA_REQUIRED) while not CONFIG_ARM64 macro here, or since _CCA attribute
-is arch-specific, it's reasonable to leave the _CCA handling policy to the arch-specific code. For example,
-with a link weak function like acpi_arch_check_dma() as a default handling if no arch-specific code 
-provided, the actual _CCA handling will be implemented in the ARM, Intel or other Arch if required.
-
-Thanks,
-Dennis
-
-> -- 
-> 2.1.0
+> > Alternatively we may use the same _HID "INT3499" as Andy is doing in his
+> > series with the below properties.
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
+> The only issue with reusing INT3499 is that it is configured to be a
+> 24C08 in the at24 driver.
+> Reusing the 24C08 HID for a 24C02 or other chip might be a bit confusing.
+
+It could default to 24c08 but if it has properties the driver should use
+those to determine size etc.
