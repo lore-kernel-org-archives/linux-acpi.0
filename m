@@ -1,87 +1,279 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: re: ACPICA: Linuxize: Export debugger files to Linux
-Date: Tue, 3 Nov 2015 17:25:37 +0300
-Message-ID: <20151103142537.GC28591@mwanda>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH V1 11/11] arm64, pci, acpi: Support for ACPI based PCI
+ hostbridge init
+Date: Tue, 3 Nov 2015 14:32:14 +0000
+Message-ID: <20151103143214.GD3574@red-moon>
+References: <1445963922-22711-1-git-send-email-tn@semihalf.com>
+ <1445963922-22711-12-git-send-email-tn@semihalf.com>
+ <20151028114940.GL963@e106497-lin.cambridge.arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:37159 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752634AbbKCOZq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Nov 2015 09:25:46 -0500
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-pci-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <20151028114940.GL963@e106497-lin.cambridge.arm.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Liviu.Dudau@arm.com
+Cc: Tomasz Nowicki <tn@semihalf.com>, bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, jiang.liu@linux.intel.com, robert.richter@caviumnetworks.com, Narinder.Dhillon@caviumnetworks.com, ddaney@caviumnetworks.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 List-Id: linux-acpi@vger.kernel.org
-To: lv.zheng@intel.com
-Cc: linux-acpi@vger.kernel.org
 
-Hello Lv Zheng,
+On Wed, Oct 28, 2015 at 11:49:40AM +0000, Liviu.Dudau@arm.com wrote:
+> On Tue, Oct 27, 2015 at 05:38:42PM +0100, Tomasz Nowicki wrote:
 
-This is a semi-automatic email about new static checker warnings.
+[...]
 
-The patch 995751025572: "ACPICA: Linuxize: Export debugger files to 
-Linux" from Oct 19, 2015, leads to the following Smatch complaint:
+> > +static int __init pcibios_assign_resources(void)
+> > +{
+> > +	if (acpi_disabled)
+> > +		return 0;
+> > +
+> > +	pci_assign_unassigned_resources();
+> > +	return 0;
+>=20
+> You can change this function into:
+> {
+> 	if (!acpi_disabled)
+> 		pci_assign_unassigned_resources();
+>=20
+> 	return 0;
+> }
+>=20
+> as the equivalent but shorter form.
 
-drivers/acpi/acpica/dbxface.c:298 acpi_db_single_step()
-	 error: we previously assumed 'walk_state->control_state' could be null (see line 252)
+I do not think it is a matter of code style here, it is a matter
+of understanding when and if we want to reassign resources on ACPI
+systems, it is an open question on ARM64 that must be sorted out (ie we
+ignore FW/BARs set-up entirely).
 
-drivers/acpi/acpica/dbxface.c
-   251			if (parent_op) {
-   252				if ((walk_state->control_state) &&
-                                     ^^^^^^^^^^^^^^^^^^^^^^^^^
-Checked.
+> > +}
+> >  /*
+> > - * raw_pci_read/write - Platform-specific PCI config space access.
+> > + * rootfs_initcall comes after subsys_initcall and fs_initcall_syn=
+c,
+> > + * so we know acpi scan and PCI_FIXUP_FINAL quirks have both run.
+> >   */
+> > -int raw_pci_read(unsigned int domain, unsigned int bus,
+> > -		  unsigned int devfn, int reg, int len, u32 *val)
+>=20
+> What happened with raw_pci_{read,write} ? Why do you remove them?
+>=20
+>=20
+> > +rootfs_initcall(pcibios_assign_resources);
+>=20
+> Would you be so kind and explain to me why you need this initcall?
+> Can you not set the PCI_REASSIGN_ALL_RSRC flag before calling
+> pci_scan_root_bus() ?
 
-   253				    (walk_state->control_state->common.state ==
-   254				     ACPI_CONTROL_PREDICATE_EXECUTING)) {
-   255					/*
-   256					 * We are executing the predicate of an IF or WHILE statement
-   257					 * Search upwards for the containing IF or WHILE so that the
-   258					 * entire predicate can be displayed.
-   259					 */
-   260					while (parent_op) {
-   261						if ((parent_op->common.aml_opcode ==
-   262						     AML_IF_OP)
-   263						    || (parent_op->common.aml_opcode ==
-   264							AML_WHILE_OP)) {
-   265							display_op = parent_op;
-   266							break;
-   267						}
-   268						parent_op = parent_op->common.parent;
-   269					}
-   270				} else {
-   271					while (parent_op) {
-   272						if ((parent_op->common.aml_opcode ==
-   273						     AML_IF_OP)
-   274						    || (parent_op->common.aml_opcode ==
-   275							AML_ELSE_OP)
-   276						    || (parent_op->common.aml_opcode ==
-   277							AML_SCOPE_OP)
-   278						    || (parent_op->common.aml_opcode ==
-   279							AML_METHOD_OP)
-   280						    || (parent_op->common.aml_opcode ==
-   281							AML_WHILE_OP)) {
-   282							break;
-   283						}
-   284						display_op = parent_op;
-   285						parent_op = parent_op->common.parent;
-   286					}
-   287				}
-   288			}
-   289	
-   290			/* Now we can display it */
-   291	
-   292	#ifdef ACPI_DISASSEMBLER
-   293			acpi_dm_disassemble(walk_state, display_op, ACPI_UINT32_MAX);
-   294	#endif
-   295	
-   296			if ((op->common.aml_opcode == AML_IF_OP) ||
-   297			    (op->common.aml_opcode == AML_WHILE_OP)) {
-   298				if (walk_state->control_state->common.value) {
-                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Not checked.
+On what basis ? BTW, PCI core code does not assign unassigned resources
+anyway even if that flag is set, so some policy has to be defined here.
 
-   299					acpi_os_printf
-   300					    ("Predicate = [True], IF block was executed\n");
+Thanks,
+Lorenzo
 
-regards,
-dan carpenter
+> I haven't focused on ACPI before so I'm a bit hazy on the init order =
+when
+> that is enabled. That being said, I don't like adding in the architec=
+ture
+> code initcall hooks just to fix up some dependency orders that could =
+/ should
+> be fixed some other way.
+>=20
+> > +
+> > +static void __iomem *
+> > +pci_mcfg_dev_base(struct pci_bus *bus, unsigned int devfn, int off=
+set)
+> >  {
+> > -	return -ENXIO;
+> > +	struct pci_mmcfg_region *cfg;
+> > +
+> > +	cfg =3D pci_mmconfig_lookup(pci_domain_nr(bus), bus->number);
+> > +	if (cfg && cfg->virt)
+> > +		return cfg->virt +
+> > +			(PCI_MMCFG_BUS_OFFSET(bus->number) | (devfn << 12)) +
+> > +			offset;
+> > +	return NULL;
+> >  }
+> > =20
+> > -int raw_pci_write(unsigned int domain, unsigned int bus,
+> > -		unsigned int devfn, int reg, int len, u32 val)
+> > +struct pci_ops pci_root_ops =3D {
+> > +	.map_bus =3D pci_mcfg_dev_base,
+> > +	.read =3D pci_generic_config_read,
+> > +	.write =3D pci_generic_config_write,
+> > +};
+> > +
+> > +#ifdef CONFIG_PCI_MMCONFIG
+> > +static int pci_add_mmconfig_region(struct acpi_pci_root_info *ci)
+> >  {
+> > -	return -ENXIO;
+> > +	struct pci_mmcfg_region *cfg;
+> > +	struct acpi_pci_root *root;
+> > +	int seg, start, end, err;
+> > +
+> > +	root =3D ci->root;
+> > +	seg =3D root->segment;
+> > +	start =3D root->secondary.start;
+> > +	end =3D root->secondary.end;
+> > +
+> > +	cfg =3D pci_mmconfig_lookup(seg, start);
+> > +	if (cfg)
+> > +		return 0;
+> > +
+> > +	cfg =3D pci_mmconfig_alloc(seg, start, end, root->mcfg_addr);
+> > +	if (!cfg)
+> > +		return -ENOMEM;
+> > +
+> > +	err =3D pci_mmconfig_inject(cfg);
+> > +	return err;
+> >  }
+> > =20
+> > -#ifdef CONFIG_ACPI
+> > +static void pci_remove_mmconfig_region(struct acpi_pci_root_info *=
+ci)
+> > +{
+> > +	struct acpi_pci_root *root =3D ci->root;
+> > +	struct pci_mmcfg_region *cfg;
+> > +
+> > +	cfg =3D pci_mmconfig_lookup(root->segment, root->secondary.start)=
+;
+> > +	if (cfg)
+> > +		return;
+> > +
+> > +	if (cfg->hot_added)
+> > +		pci_mmconfig_delete(root->segment, root->secondary.start,
+> > +				    root->secondary.end);
+> > +}
+> > +#else
+> > +static int pci_add_mmconfig_region(struct acpi_pci_root_info *ci)
+> > +{
+> > +	return 0;
+> > +}
+> > +
+> > +static void pci_remove_mmconfig_region(struct acpi_pci_root_info *=
+ci) { }
+> > +#endif
+> > +
+> > +static int pci_acpi_root_init_info(struct acpi_pci_root_info *ci)
+> > +{
+> > +	return pci_add_mmconfig_region(ci);
+> > +}
+> > +
+> > +static void pci_acpi_root_release_info(struct acpi_pci_root_info *=
+ci)
+> > +{
+> > +	pci_remove_mmconfig_region(ci);
+> > +	kfree(ci);
+> > +}
+> > +
+> > +static int pci_acpi_root_prepare_resources(struct acpi_pci_root_in=
+fo *ci)
+> > +{
+> > +	struct resource_entry *entry, *tmp;
+> > +	int ret;
+> > +
+> > +	ret =3D acpi_pci_probe_root_resources(ci);
+> > +	if (ret < 0)
+> > +		return ret;
+> > +
+> > +	resource_list_for_each_entry_safe(entry, tmp, &ci->resources) {
+> > +		struct resource *res =3D entry->res;
+> > +
+> > +		/*
+> > +		 * Special handling for ARM IO range
+>=20
+> There is nothing ARM specific here. It should apply to any memory map=
+ped IO range.
+>=20
+> > +		 * TODO: need to move pci_register_io_range() function out
+> > +		 * of drivers/of/address.c for both used by DT and ACPI
+> > +		 */
+> > +		if (res->flags & IORESOURCE_IO) {
+> > +			unsigned long port;
+> > +			int err;
+> > +			resource_size_t length =3D res->end - res->start;
+> > +
+> > +			err =3D pci_register_io_range(res->start, length);
+> > +			if (err) {
+> > +				resource_list_destroy_entry(entry);
+> > +				continue;
+> > +			}
+> > +
+> > +			port =3D pci_address_to_pio(res->start);
+> > +			if (port =3D=3D (unsigned long)-1) {
+> > +				resource_list_destroy_entry(entry);
+> > +				continue;
+> > +			}
+> > +
+> > +			res->start =3D port;
+> > +			res->end =3D res->start + length - 1;
+> > +
+> > +			if (pci_remap_iospace(res, res->start) < 0)
+> > +				resource_list_destroy_entry(entry);
+> > +		}
+> > +	}
+> > +
+> > +	return 0;
+> > +}
+> > +
+> > +static struct acpi_pci_root_ops acpi_pci_root_ops =3D {
+> > +	.pci_ops =3D &pci_root_ops,
+> > +	.init_info =3D pci_acpi_root_init_info,
+> > +	.release_info =3D pci_acpi_root_release_info,
+> > +	.prepare_resources =3D pci_acpi_root_prepare_resources,
+> > +};
+> > +
+> >  /* Root bridge scanning */
+> >  struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
+> >  {
+> > -	/* TODO: Should be revisited when implementing PCI on ACPI */
+> > -	return NULL;
+> > +	int node =3D acpi_get_node(root->device->handle);
+> > +	int domain =3D root->segment;
+> > +	int busnum =3D root->secondary.start;
+> > +	struct acpi_pci_root_info *info;
+> > +	struct pci_bus *bus;
+> > +
+> > +	if (domain && !pci_domains_supported) {
+> > +		pr_warn("PCI %04x:%02x: multiple domains not supported.\n",
+> > +			domain, busnum);
+> > +		return NULL;
+> > +	}
+> > +
+> > +	info =3D kzalloc_node(sizeof(*info), GFP_KERNEL, node);
+> > +	if (!info) {
+> > +		dev_err(&root->device->dev,
+> > +			"pci_bus %04x:%02x: ignored (out of memory)\n",
+> > +			domain, busnum);
+> > +		return NULL;
+> > +	}
+> > +
+> > +	bus =3D acpi_pci_root_create(root, &acpi_pci_root_ops, info, root=
+);
+> > +
+> > +	/* After the PCI-E bus has been walked and all devices discovered=
+,
+> > +	 * configure any settings of the fabric that might be necessary.
+> > +	 */
+> > +	if (bus) {
+> > +		struct pci_bus *child;
+> > +
+> > +		list_for_each_entry(child, &bus->children, node)
+> > +			pcie_bus_configure_settings(child);
+> > +	}
+> > +
+> > +	return bus;
+> >  }
+> >  #endif
+> > --=20
+> > 1.9.1
+> >=20
+>=20
+> --=20
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> | I would like to |
+> | fix the world,  |
+> | but they're not |
+> | giving me the   |
+>  \ source code!  /
+>   ---------------
+>     =C2=AF\_(=E3=83=84)_/=C2=AF
