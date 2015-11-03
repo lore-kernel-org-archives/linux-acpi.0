@@ -1,91 +1,98 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH V1 11/11] arm64, pci, acpi: Support for ACPI based PCI
+From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+Subject: RE: [PATCH V1 11/11] arm64, pci, acpi: Support for ACPI based PCI
  hostbridge init
-Date: Tue, 3 Nov 2015 12:43:31 -0500
-Message-ID: <5638F243.2050907@codeaurora.org>
+Date: Tue, 3 Nov 2015 18:00:10 +0000
+Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E1629984F@lhreml503-mbs>
 References: <1445963922-22711-1-git-send-email-tn@semihalf.com>
- <5802577.H74A3Lg5B3@wuerfel> <5638E1CE.9000805@codeaurora.org>
- <3736182.0iiYWufyXZ@wuerfel>
+ <1445963922-22711-12-git-send-email-tn@semihalf.com>
+ <5631180D.2000902@codeaurora.org> <20151103141512.GC3574@red-moon>
+ <5638D07B.2030001@linaro.org> <5638F13D.3080406@caviumnetworks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:34223 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754937AbbKCRng (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Nov 2015 12:43:36 -0500
-In-Reply-To: <3736182.0iiYWufyXZ@wuerfel>
+Received: from lhrrgout.huawei.com ([194.213.3.17]:18262 "EHLO
+	lhrrgout.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754129AbbKCSBd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 3 Nov 2015 13:01:33 -0500
+In-Reply-To: <5638F13D.3080406@caviumnetworks.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Tomasz Nowicki <tn@semihalf.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, bhelgaas@google.com, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, jiang.liu@linux.intel.com, robert.richter@caviumnetworks.com, Narinder.Dhillon@caviumnetworks.com, ddaney@caviumnetworks.com, Liviu.Dudau@arm.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
+To: David Daney <ddaney@caviumnetworks.com>, Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Sinan Kaya <okaya@codeaurora.org>, Tomasz Nowicki <tn@semihalf.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "arnd@arndb.de" <arnd@arndb.de>, "will.deacon@arm.com" <will.deacon@arm.com>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "jiang.liu@linux.intel.com" <jiang.liu@linux.intel.com>, "robert.richter@caviumnetworks.com" <robert.richter@caviumnetworks.com>, "Narinder.Dhillon@caviumnetworks.com" <Narinder.Dhillon@caviumnetworks.com>, "Liviu.Dudau@arm.com" <Liviu.Dudau@arm.com>, "tglx@linutronix.de" <tglx@linutronix.de>, Wangyijing <wangyijing@huawei.com>, "Suravee.Suthikulpanit@amd.com" <Suravee.Suthikulpanit@amd.com>, "msalter@redhat.com" <msalter@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>"linux-arm-kernel@lists.infradead.org" <linu>
 
+Hi David
 
+> -----Original Message-----
+> From: David Daney [mailto:ddaney@caviumnetworks.com]
+> Sent: 03 November 2015 17:39
+> To: Hanjun Guo
+> Cc: Lorenzo Pieralisi; Sinan Kaya; Tomasz Nowicki; bhelgaas@google.com;
+> arnd@arndb.de; will.deacon@arm.com; catalin.marinas@arm.com; rjw@rjwysocki.net;
+> jiang.liu@linux.intel.com; robert.richter@caviumnetworks.com;
+> Narinder.Dhillon@caviumnetworks.com; Liviu.Dudau@arm.com; tglx@linutronix.de;
+> Wangyijing; Suravee.Suthikulpanit@amd.com; msalter@redhat.com; linux-
+> pci@vger.kernel.org; linux-arm-kernel@lists.infradead.org; linux-
+> acpi@vger.kernel.org; linux-kernel@vger.kernel.org; Gabriele Paoloni; Wangzhou
+> (B); liudongdong (C)
+> Subject: Re: [PATCH V1 11/11] arm64, pci, acpi: Support for ACPI based PCI
+> hostbridge init
+> 
+> On 11/03/2015 07:19 AM, Hanjun Guo wrote:
+> > On 11/03/2015 10:15 PM, Lorenzo Pieralisi wrote:
+> >> On Wed, Oct 28, 2015 at 02:46:37PM -0400, Sinan Kaya wrote:
+> >>
+> >> [...]
+> >>
+> >>>> -int raw_pci_write(unsigned int domain, unsigned int bus,
+> >>>> -        unsigned int devfn, int reg, int len, u32 val)
+> >>>> +struct pci_ops pci_root_ops = {
+> >>>> +    .map_bus = pci_mcfg_dev_base,
+> >>>> +    .read = pci_generic_config_read,
+> >>>> +    .write = pci_generic_config_write,
+> >>>
+> >>>
+> >>> Can you change these with pci_generic_config_read32 and
+> >>> pci_generic_config_write32? We have some targets that can only do 32
+> >>> bits PCI config space access.
+> >>
+> >> No.
+> >>
+> >> http://www.spinics.net/lists/linux-pci/msg44869.html
+> >>
+> >> Can you be a bit more specific please ?
+> >>
+> >> Sigh. Looks like we have to start adding platform specific quirks even
+> >> before we merged the generic ACPI PCIe host controller implementation.
+> >
+> > Cc Gab, Zhou, and Dondong who upstream the hip05 (designware) PCIe host
+> > support.
+> >
+> > I think so, some platform may not support ECAM for root complex,
+> > which needs special handling of access config space, we may need
+> > to consider those cases.
+> >
+> 
+> Yes, it is indeed true.  For example, some Cavium ThunderX processors
+> fall into this category.
+> 
+> Some options I thought of are:
+> 
+>   o Use DECLARE_ACPI_MCFG_FIXUP() in the kernel to supply the needed
+> config space accessors.
+> 
+>   o Define additional root_device_ids that imply the needed config space
+> accessors.
 
-On 11/3/2015 11:55 AM, Arnd Bergmann wrote:
-> On Tuesday 03 November 2015 11:33:18 Sinan Kaya wrote:
->>
->> On 11/3/2015 10:59 AM, Arnd Bergmann wrote:
->>> On Tuesday 03 November 2015 10:10:21 Sinan Kaya wrote:
->>>>
->>>> I don't see anywhere in the SBSA spec addendum that the PCI
->>>> configuration space section that unaligned accesses *MUST* be supported.
->>>>
->>>> If this is required, please have this info added to the spec. I can work
->>>> with the designers for the next chip.
->>>>
->>>> Unaligned access on the current hardware returns incomplete values or
->>>> can cause bus faults. The behavior is undefined.
->>>
->>> Unaligned accesses are not allowed, but any PCI compliant device must
->>> support aligned 1, 2 or 4 byte accesses on its configuration space,
->>> though the byte-enable mechanism. In an ECAM host bridge, those are
->>> mapped to load/store accesses from the CPU with the respective width
->>> and natural alignment.
->>
->> As far as I see, the endpoints do not have any problems with unaligned
->> accesses. It is the host bridge itself (stuff that doesn't get on the
->> PCIe bus and uses traditional AXI kind bus internally) has problems with
->> alignment.
->>
->> If Linux is expecting all HW vendors to implement alignment support,
->> this needs to be put in the SBSA spec as a hard requirement.
->
-> As I said, it's not unaligned accesses at all, just 1-byte and aligned
-> 2-byte accesses, and it's not Linux mandating this but the PCI
-> spec. Please read Russell's email again, it is not possible for PCI
-> to work according to the specification unless the host bridge allows
-> sub-32-bit accesses.
+Yes I like this
 
-I'll check back with the hardware designers. Seeing readb/readw/readl 
-made me nervous that we are trying unaligned access from any boundaries.
+it would fit designware too
 
-In any case, the hardware document says 32 bit configuration space 
-access to the host bridge only. I'll get more clarification.
+Gab
 
->
-> You can probably work around this by using the legacy I/O port method
-> rather than ECAM, if the PCI host bridge itself is functional and just
-> the host bus it is connected to is buggy.
+> 
+> 
+> > Thanks
+> > Hanjun
 
- From the sounds of it, we'll need a quirk for config space. We support 
-legacy I/O only to make the endpoints happy. Some endpoints do not get 
-initialized if they don't have a BAR address assigned to all the BAR 
-resources.
-
-I just saw David Daney's email. I like his idea. I think this chip will 
-fit into the same category.
-
->
-> 	Arnd
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
--- 
-Sinan Kaya
-Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a 
-Linux Foundation Collaborative Project
