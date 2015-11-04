@@ -1,45 +1,47 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [GIT PULL] Thermal-SoC management updates for v4.4-rc1 #1
-Date: Tue, 3 Nov 2015 22:14:06 +0100
-Message-ID: <CAJZ5v0h_TekGs1rNcYRsnmDT8Hca5nZVssFDs993frUYzEYbLw@mail.gmail.com>
+From: "Zhang, Rui" <rui.zhang@intel.com>
+Subject: RE: [GIT PULL] Thermal-SoC management updates for v4.4-rc1 #1
+Date: Wed, 4 Nov 2015 02:35:41 +0000
+Message-ID: <744357E9AAD1214791ACBA4B0B9092633A90B792@SHSMSX101.ccr.corp.intel.com>
 References: <20151101203036.GA9793@localhost.localdomain>
 	<744357E9AAD1214791ACBA4B0B9092633A909D91@SHSMSX101.ccr.corp.intel.com>
 	<20151103171341.GA4277@localhost.localdomain>
+ <CAJZ5v0h_TekGs1rNcYRsnmDT8Hca5nZVssFDs993frUYzEYbLw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20151103171341.GA4277@localhost.localdomain>
-Sender: linux-pm-owner@vger.kernel.org
-To: Eduardo Valentin <edubezval@gmail.com>
-Cc: "Zhang, Rui" <rui.zhang@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([192.55.52.115]:11434 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965137AbbKDCfp (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 3 Nov 2015 21:35:45 -0500
+In-Reply-To: <CAJZ5v0h_TekGs1rNcYRsnmDT8Hca5nZVssFDs993frUYzEYbLw@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>, Eduardo Valentin <edubezval@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
 
-HI,
-
-On Tue, Nov 3, 2015 at 6:13 PM, Eduardo Valentin <edubezval@gmail.com> wrote:
-> Rui, Rafael,
->
-> On Tue, Nov 03, 2015 at 03:10:28AM +0000, Zhang, Rui wrote:
->>
->> > Javi Merino (2):
->> >       PM / OPP: get the voltage for all OPPs
->>
->> I think this patch should be took by Rafael, right?
->>
->> Thanks,
->> Rui
->>
->> >  drivers/base/power/opp.c                           |   4 +-
->
-> Well, yes. I included it here because the devfreq support has a
-> (functional) dependency on this change. As it is a small change, and
-> I did not notice any break in linux-next, I included it in my pull
-> request.
->
-> Rafael, I think it is your call. Do you want collect this one and send
-> it via your tree, or are you fine having it going through Ruis?
-
-It can go in through the Rui's tree as far as I'm concerned.
-
-Thanks,
-Rafael
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogbGludXgtYWNwaS1vd25l
+ckB2Z2VyLmtlcm5lbC5vcmcgW21haWx0bzpsaW51eC1hY3BpLQ0KPiBvd25lckB2Z2VyLmtlcm5l
+bC5vcmddIE9uIEJlaGFsZiBPZiBSYWZhZWwgSi4gV3lzb2NraQ0KPiBTZW50OiBXZWRuZXNkYXks
+IE5vdmVtYmVyIDA0LCAyMDE1IDU6MTQgQU0NCj4gVG86IEVkdWFyZG8gVmFsZW50aW4NCj4gQ2M6
+IFpoYW5nLCBSdWk7IFJhZmFlbCBKLiBXeXNvY2tpOyBMaW51eCBBQ1BJOyBMaW51eCBQTTsgTEtN
+TA0KPiBTdWJqZWN0OiBSZTogW0dJVCBQVUxMXSBUaGVybWFsLVNvQyBtYW5hZ2VtZW50IHVwZGF0
+ZXMgZm9yIHY0LjQtcmMxICMxDQo+IEltcG9ydGFuY2U6IEhpZ2gNCj4gDQo+IEhJLA0KPiANCj4g
+T24gVHVlLCBOb3YgMywgMjAxNSBhdCA2OjEzIFBNLCBFZHVhcmRvIFZhbGVudGluIDxlZHViZXp2
+YWxAZ21haWwuY29tPg0KPiB3cm90ZToNCj4gPiBSdWksIFJhZmFlbCwNCj4gPg0KPiA+IE9uIFR1
+ZSwgTm92IDAzLCAyMDE1IGF0IDAzOjEwOjI4QU0gKzAwMDAsIFpoYW5nLCBSdWkgd3JvdGU6DQo+
+ID4+DQo+ID4+ID4gSmF2aSBNZXJpbm8gKDIpOg0KPiA+PiA+ICAgICAgIFBNIC8gT1BQOiBnZXQg
+dGhlIHZvbHRhZ2UgZm9yIGFsbCBPUFBzDQo+ID4+DQo+ID4+IEkgdGhpbmsgdGhpcyBwYXRjaCBz
+aG91bGQgYmUgdG9vayBieSBSYWZhZWwsIHJpZ2h0Pw0KPiA+Pg0KPiA+PiBUaGFua3MsDQo+ID4+
+IFJ1aQ0KPiA+Pg0KPiA+PiA+ICBkcml2ZXJzL2Jhc2UvcG93ZXIvb3BwLmMgICAgICAgICAgICAg
+ICAgICAgICAgICAgICB8ICAgNCArLQ0KPiA+DQo+ID4gV2VsbCwgeWVzLiBJIGluY2x1ZGVkIGl0
+IGhlcmUgYmVjYXVzZSB0aGUgZGV2ZnJlcSBzdXBwb3J0IGhhcyBhDQo+ID4gKGZ1bmN0aW9uYWwp
+IGRlcGVuZGVuY3kgb24gdGhpcyBjaGFuZ2UuIEFzIGl0IGlzIGEgc21hbGwgY2hhbmdlLCBhbmQg
+SQ0KPiA+IGRpZCBub3Qgbm90aWNlIGFueSBicmVhayBpbiBsaW51eC1uZXh0LCBJIGluY2x1ZGVk
+IGl0IGluIG15IHB1bGwNCj4gPiByZXF1ZXN0Lg0KPiA+DQo+ID4gUmFmYWVsLCBJIHRoaW5rIGl0
+IGlzIHlvdXIgY2FsbC4gRG8geW91IHdhbnQgY29sbGVjdCB0aGlzIG9uZSBhbmQgc2VuZA0KPiA+
+IGl0IHZpYSB5b3VyIHRyZWUsIG9yIGFyZSB5b3UgZmluZSBoYXZpbmcgaXQgZ29pbmcgdGhyb3Vn
+aCBSdWlzPw0KPiANCj4gSXQgY2FuIGdvIGluIHRocm91Z2ggdGhlIFJ1aSdzIHRyZWUgYXMgZmFy
+IGFzIEknbSBjb25jZXJuZWQuDQo+IA0KDQpHb29kLCBJIHdpbGwgdGFrZSB0aGlzIHBhdGNoLiBU
+aGFua3MhDQoNCi1SdWkgDQoNCg==
