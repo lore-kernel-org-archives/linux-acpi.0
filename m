@@ -1,61 +1,157 @@
-From: Eduardo Valentin <edubezval@gmail.com>
-Subject: [GIT PULL] Thermal-SoC management updates for v4.4-rc1 #3
-Date: Thu, 5 Nov 2015 09:34:09 -0800
-Message-ID: <20151105173408.GA15781@localhost.localdomain>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [Patch v7 4/7] PCI/ACPI: Add interface acpi_pci_root_create()
+Date: Thu, 5 Nov 2015 18:19:59 +0000
+Message-ID: <20151105181959.GA352@red-moon>
+References: <1444804182-6596-1-git-send-email-jiang.liu@linux.intel.com>
+ <1444804182-6596-5-git-send-email-jiang.liu@linux.intel.com>
+ <563B65EE.7000406@semihalf.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f48.google.com ([209.85.220.48]:35592 "EHLO
-	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932924AbbKEReN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 5 Nov 2015 12:34:13 -0500
+Received: from foss.arm.com ([217.140.101.70]:38440 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1162070AbbKESTR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 5 Nov 2015 13:19:17 -0500
 Content-Disposition: inline
+In-Reply-To: <563B65EE.7000406@semihalf.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Rui Zhang <rui.zhang@intel.com>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
+To: Tomasz Nowicki <tn@semihalf.com>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org
 
-Hello Rui,
+On Thu, Nov 05, 2015 at 03:21:34PM +0100, Tomasz Nowicki wrote:
+> On 14.10.2015 08:29, Jiang Liu wrote:
 
-This is the third and last pull for 4.4-rc1. Please pull from
+[...]
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal linus
-  
-to receive third Thermal-SoC Management updates for v4.4-rc1 with top-most
+> >+static void acpi_pci_root_validate_resources(struct device *dev,
+> >+					     struct list_head *resources,
+> >+					     unsigned long type)
+> >+{
+> >+	LIST_HEAD(list);
+> >+	struct resource *res1, *res2, *root = NULL;
+> >+	struct resource_entry *tmp, *entry, *entry2;
+> >+
+> >+	BUG_ON((type & (IORESOURCE_MEM | IORESOURCE_IO)) == 0);
+> >+	root = (type & IORESOURCE_MEM) ? &iomem_resource : &ioport_resource;
+> >+
+> >+	list_splice_init(resources, &list);
+> >+	resource_list_for_each_entry_safe(entry, tmp, &list) {
+> >+		bool free = false;
+> >+		resource_size_t end;
+> >+
+> >+		res1 = entry->res;
+> >+		if (!(res1->flags & type))
+> >+			goto next;
+> >+
+> >+		/* Exclude non-addressable range or non-addressable portion */
+> >+		end = min(res1->end, root->end);
+> >+		if (end <= res1->start) {
+> >+			dev_info(dev, "host bridge window %pR (ignored, not CPU addressable)\n",
+> >+				 res1);
+> >+			free = true;
+> >+			goto next;
+> >+		} else if (res1->end != end) {
+> >+			dev_info(dev, "host bridge window %pR ([%#llx-%#llx] ignored, not CPU addressable)\n",
+> >+				 res1, (unsigned long long)end + 1,
+> >+				 (unsigned long long)res1->end);
+> >+			res1->end = end;
+> >+		}
+> >+
+> >+		resource_list_for_each_entry(entry2, resources) {
+> >+			res2 = entry2->res;
+> >+			if (!(res2->flags & type))
+> >+				continue;
+> >+
+> >+			/*
+> >+			 * I don't like throwing away windows because then
+> >+			 * our resources no longer match the ACPI _CRS, but
+> >+			 * the kernel resource tree doesn't allow overlaps.
+> >+			 */
+> >+			if (resource_overlaps(res1, res2)) {
+> >+				res2->start = min(res1->start, res2->start);
+> >+				res2->end = max(res1->end, res2->end);
+> >+				dev_info(dev, "host bridge window expanded to %pR; %pR ignored\n",
+> >+					 res2, res1);
+> >+				free = true;
+> >+				goto next;
+> >+			}
+> >+		}
+> >+
+> >+next:
+> >+		resource_list_del(entry);
+> >+		if (free)
+> >+			resource_list_free_entry(entry);
+> >+		else
+> >+			resource_list_add_tail(entry, resources);
+> >+	}
+> >+}
+> >+
+> >+int acpi_pci_probe_root_resources(struct acpi_pci_root_info *info)
+> >+{
+> >+	int ret;
+> >+	struct list_head *list = &info->resources;
+> >+	struct acpi_device *device = info->bridge;
+> >+	struct resource_entry *entry, *tmp;
+> >+	unsigned long flags;
+> >+
+> >+	flags = IORESOURCE_IO | IORESOURCE_MEM | IORESOURCE_MEM_8AND16BIT;
+> >+	ret = acpi_dev_get_resources(device, list,
+> >+				     acpi_dev_filter_resource_type_cb,
+> >+				     (void *)flags);
+> >+	if (ret < 0)
+> >+		dev_warn(&device->dev,
+> >+			 "failed to parse _CRS method, error code %d\n", ret);
+> >+	else if (ret == 0)
+> >+		dev_dbg(&device->dev,
+> >+			"no IO and memory resources present in _CRS\n");
+> >+	else {
+> >+		resource_list_for_each_entry_safe(entry, tmp, list) {
+> >+			if (entry->res->flags & IORESOURCE_DISABLED)
+> >+				resource_list_destroy_entry(entry);
+> >+			else
+> >+				entry->res->name = info->name;
+> >+		}
+> >+		acpi_pci_root_validate_resources(&device->dev, list,
+> >+						 IORESOURCE_MEM);
+> >+		acpi_pci_root_validate_resources(&device->dev, list,
+> >+						 IORESOURCE_IO);
+> 
+> It is not clear to me why we need these two calls above ^^^. We are
+> using pci_acpi_root_add_resources(info) later. Is it not enough?
+> 
+> Also, I cannot use acpi_pci_probe_root_resources() in my ARM64 PCI
+> driver. It is because acpi_dev_get_resources is adding
+> translation_offset to IO ranges start address and then:
+> acpi_pci_root_validate_resources(&device->dev, list,
+> 				 IORESOURCE_IO);
+> rejects that IO regions as it is out of my 0x0-SZ_16M window.
+> 
+> Does acpi_pci_probe_root_resources meant to be x86 specific and I
+> should avoid using it?
 
-e35dbb4d4b4499e8a013564f0753dabc1c49e9d9:
+IIUC, you _have_ to have the proper translation_offset to map the bridge
+window into the IO address space:
 
-  thermal: exynos: Directly return 0 instead of using local ret variable (2015-11-04 11:10:39 -0800)
+http://lists.infradead.org/pipermail/linux-arm-kernel/2015-June/348708.html
 
-on top of commit 7e38a5b1daa12cbaace3c76402999a84460df3e2:
+Then, using the offset, you should do something ia64 does, namely,
+retrieve the CPU address corresponding to IO space (see arch/ia64/pci/pci.c
+- add_io_space()) and map it in the physical address space by using
+pci_remap_iospace(), it is similar to what we have to do with DT.
 
-  thermal: rockchip: support the sleep pinctrl state to avoid glitches in s2r (2015-11-03 09:57:42 -0800)
+It is extremely confusing and I am not sure I got it right myself,
+I am still grokking ia64 code to understand what it really does.
 
-Specifics:
-- Fixes on devfreq cooling device
-- Fixes on exynos thermal driver
-- This branch has been compiled tested and boot tested by Linaro kernelci bot [1,2].
+So basically, the IO bridge window coming from acpi_dev_get_resource()
+should represent the IO space in 0 - 16M, IIUC.
 
-Still checking what is pending. But what comes now should go via next
-rcs or next merge window. If I missed your patch, ping me.
+By using the offset (that was initialized using translation_offset) and
+the resource->start, you can retrieve the cpu address that you need to
+actually map the IO space, since that's what we do on ARM (ie the
+IO resource is an offset into the virtual address space set aside
+for IO).
 
-[1] - http://kernelci.org/boot/all/job/evalenti/kernel/v4.3-rc3-62-ge35dbb4d4b44/ 
-[2] - http://kernelci.org/build/evalenti/kernel/v4.3-rc3-62-ge35dbb4d4b44/ 
+Confusing, to say the least. Jiang, did I get it right ?
 
-BR,
-
-----------------------------------------------------------------
-Dan Carpenter (1):
-      devfreq_cooling: return on allocation failure
-
-Krzysztof Kozlowski (5):
-      thermal: exynos: Fix unbalanced regulator disable on probe failure
-      thermal: exynos: Fix first temperature read after registering sensor
-      thermal: exynos: Use IS_ERR() because regulator cannot be NULL
-      thermal: exynos: Remove unneeded semicolon
-      thermal: exynos: Directly return 0 instead of using local ret variable
-
- drivers/thermal/devfreq_cooling.c    |  2 +-
- drivers/thermal/samsung/exynos_tmu.c | 68 ++++++++++++++++++++----------------
- 2 files changed, 39 insertions(+), 31 deletions(-)
+Lorenzo
