@@ -1,8 +1,8 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH] ACPICA: Delete unnecessary checks before the function call
- "acpi_ut_strupr"
-Date: Thu, 5 Nov 2015 16:22:32 +0100
-Message-ID: <563B7438.6010002@users.sourceforge.net>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH] ACPICA: Delete unnecessary checks before the function
+ call "acpi_ut_strupr"
+Date: Thu, 5 Nov 2015 16:28:39 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37D98E1D4@ORSMSX112.amr.corp.intel.com>
 References: <5307CAA2.8060406@users.sourceforge.net>
  <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6>
  <530A086E.8010901@users.sourceforge.net>
@@ -19,71 +19,53 @@ References: <5307CAA2.8060406@users.sourceforge.net>
  <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6>
  <530DD06F.4090703@users.sourceforge.net>
  <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6>
- <5317A59D.4@users.sourceforge.net>
+ <5317A59D.4@users.sourceforge.net> <563B7438.6010002@users.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.17.11]:57767 "EHLO mout.web.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754933AbbKEPWw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 5 Nov 2015 10:22:52 -0500
-In-Reply-To: <5317A59D.4@users.sourceforge.net>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <563B7438.6010002@users.sourceforge.net>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: SF Markus Elfring <elfring@users.sourceforge.net>, Len Brown <lenb@kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>, Julia Lawall <julia.lawall@lip6.fr>
 List-Id: linux-acpi@vger.kernel.org
-To: Len Brown <lenb@kernel.org>, Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Robert Moore <robert.moore@intel.com>, linux-acpi@vger.kernel.org, devel@acpica.org
-Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Thu, 5 Nov 2015 16:12:32 +0100
-
-The acpi_ut_strupr() function tests whether its argument is NULL
-and then returns immediately. Thus the test around the call is not needed.
-
-This issue was detected by using the Coccinelle software.
-
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
----
- drivers/acpi/acpica/dbcmds.c  | 9 ++-------
- drivers/acpi/acpica/dbinput.c | 5 +----
- 2 files changed, 3 insertions(+), 11 deletions(-)
-
-diff --git a/drivers/acpi/acpica/dbcmds.c b/drivers/acpi/acpica/dbcmds.c
-index 30414b3..7dcc95a 100644
---- a/drivers/acpi/acpica/dbcmds.c
-+++ b/drivers/acpi/acpica/dbcmds.c
-@@ -1131,13 +1131,8 @@ void acpi_db_trace(char *enable_arg, char *method_arg, char *once_arg)
- 	u32 debug_layer = 0;
- 	u32 flags = 0;
- 
--	if (enable_arg) {
--		acpi_ut_strupr(enable_arg);
--	}
--
--	if (once_arg) {
--		acpi_ut_strupr(once_arg);
--	}
-+	acpi_ut_strupr(enable_arg);
-+	acpi_ut_strupr(once_arg);
- 
- 	if (method_arg) {
- 		if (acpi_db_trace_method_name) {
-diff --git a/drivers/acpi/acpica/dbinput.c b/drivers/acpi/acpica/dbinput.c
-index 0480254..aa1dcee 100644
---- a/drivers/acpi/acpica/dbinput.c
-+++ b/drivers/acpi/acpica/dbinput.c
-@@ -622,10 +622,7 @@ static u32 acpi_db_get_line(char *input_buffer)
- 	}
- 
- 	/* Uppercase the actual command */
--
--	if (acpi_gbl_db_args[0]) {
--		acpi_ut_strupr(acpi_gbl_db_args[0]);
--	}
-+	acpi_ut_strupr(acpi_gbl_db_args[0]);
- 
- 	count = i;
- 	if (count) {
--- 
-2.6.2
-
+QWdyZWVkLCB3ZSB3aWxsIGltcGxlbWVudCB5b3VyIHN1Z2dlc3Rpb25zIGluIHRoZSBBQ1BJQ0Eg
+Y29kZSAod2hpY2ggaXMgaW4gYSBkaWZmZXJlbnQgZm9ybWF0IHRoYW4gdGhlIExpbnV4IHZlcnNp
+b24pLg0KDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogU0YgTWFya3Vz
+IEVsZnJpbmcgW21haWx0bzplbGZyaW5nQHVzZXJzLnNvdXJjZWZvcmdlLm5ldF0NCj4gU2VudDog
+VGh1cnNkYXksIE5vdmVtYmVyIDA1LCAyMDE1IDc6MjMgQU0NCj4gVG86IExlbiBCcm93bjsgWmhl
+bmcsIEx2OyBXeXNvY2tpLCBSYWZhZWwgSjsgTW9vcmUsIFJvYmVydDsgbGludXgtDQo+IGFjcGlA
+dmdlci5rZXJuZWwub3JnOyBkZXZlbEBhY3BpY2Eub3JnDQo+IENjOiBMS01MOyBrZXJuZWwtamFu
+aXRvcnNAdmdlci5rZXJuZWwub3JnOyBKdWxpYSBMYXdhbGwNCj4gU3ViamVjdDogW1BBVENIXSBB
+Q1BJQ0E6IERlbGV0ZSB1bm5lY2Vzc2FyeSBjaGVja3MgYmVmb3JlIHRoZSBmdW5jdGlvbg0KPiBj
+YWxsICJhY3BpX3V0X3N0cnVwciINCj4gDQo+IEZyb206IE1hcmt1cyBFbGZyaW5nIDxlbGZyaW5n
+QHVzZXJzLnNvdXJjZWZvcmdlLm5ldD4NCj4gRGF0ZTogVGh1LCA1IE5vdiAyMDE1IDE2OjEyOjMy
+ICswMTAwDQo+IA0KPiBUaGUgYWNwaV91dF9zdHJ1cHIoKSBmdW5jdGlvbiB0ZXN0cyB3aGV0aGVy
+IGl0cyBhcmd1bWVudCBpcyBOVUxMIGFuZCB0aGVuDQo+IHJldHVybnMgaW1tZWRpYXRlbHkuIFRo
+dXMgdGhlIHRlc3QgYXJvdW5kIHRoZSBjYWxsIGlzIG5vdCBuZWVkZWQuDQo+IA0KPiBUaGlzIGlz
+c3VlIHdhcyBkZXRlY3RlZCBieSB1c2luZyB0aGUgQ29jY2luZWxsZSBzb2Z0d2FyZS4NCj4gDQo+
+IFNpZ25lZC1vZmYtYnk6IE1hcmt1cyBFbGZyaW5nIDxlbGZyaW5nQHVzZXJzLnNvdXJjZWZvcmdl
+Lm5ldD4NCj4gLS0tDQo+ICBkcml2ZXJzL2FjcGkvYWNwaWNhL2RiY21kcy5jICB8IDkgKystLS0t
+LS0tDQo+IGRyaXZlcnMvYWNwaS9hY3BpY2EvZGJpbnB1dC5jIHwgNSArLS0tLQ0KPiAgMiBmaWxl
+cyBjaGFuZ2VkLCAzIGluc2VydGlvbnMoKyksIDExIGRlbGV0aW9ucygtKQ0KPiANCj4gZGlmZiAt
+LWdpdCBhL2RyaXZlcnMvYWNwaS9hY3BpY2EvZGJjbWRzLmMgYi9kcml2ZXJzL2FjcGkvYWNwaWNh
+L2RiY21kcy5jDQo+IGluZGV4IDMwNDE0YjMuLjdkY2M5NWEgMTAwNjQ0DQo+IC0tLSBhL2RyaXZl
+cnMvYWNwaS9hY3BpY2EvZGJjbWRzLmMNCj4gKysrIGIvZHJpdmVycy9hY3BpL2FjcGljYS9kYmNt
+ZHMuYw0KPiBAQCAtMTEzMSwxMyArMTEzMSw4IEBAIHZvaWQgYWNwaV9kYl90cmFjZShjaGFyICpl
+bmFibGVfYXJnLCBjaGFyDQo+ICptZXRob2RfYXJnLCBjaGFyICpvbmNlX2FyZykNCj4gIAl1MzIg
+ZGVidWdfbGF5ZXIgPSAwOw0KPiAgCXUzMiBmbGFncyA9IDA7DQo+IA0KPiAtCWlmIChlbmFibGVf
+YXJnKSB7DQo+IC0JCWFjcGlfdXRfc3RydXByKGVuYWJsZV9hcmcpOw0KPiAtCX0NCj4gLQ0KPiAt
+CWlmIChvbmNlX2FyZykgew0KPiAtCQlhY3BpX3V0X3N0cnVwcihvbmNlX2FyZyk7DQo+IC0JfQ0K
+PiArCWFjcGlfdXRfc3RydXByKGVuYWJsZV9hcmcpOw0KPiArCWFjcGlfdXRfc3RydXByKG9uY2Vf
+YXJnKTsNCj4gDQo+ICAJaWYgKG1ldGhvZF9hcmcpIHsNCj4gIAkJaWYgKGFjcGlfZGJfdHJhY2Vf
+bWV0aG9kX25hbWUpIHsNCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9hY3BpY2EvZGJpbnB1
+dC5jIGIvZHJpdmVycy9hY3BpL2FjcGljYS9kYmlucHV0LmMNCj4gaW5kZXggMDQ4MDI1NC4uYWEx
+ZGNlZSAxMDA2NDQNCj4gLS0tIGEvZHJpdmVycy9hY3BpL2FjcGljYS9kYmlucHV0LmMNCj4gKysr
+IGIvZHJpdmVycy9hY3BpL2FjcGljYS9kYmlucHV0LmMNCj4gQEAgLTYyMiwxMCArNjIyLDcgQEAg
+c3RhdGljIHUzMiBhY3BpX2RiX2dldF9saW5lKGNoYXIgKmlucHV0X2J1ZmZlcikNCj4gIAl9DQo+
+IA0KPiAgCS8qIFVwcGVyY2FzZSB0aGUgYWN0dWFsIGNvbW1hbmQgKi8NCj4gLQ0KPiAtCWlmIChh
+Y3BpX2dibF9kYl9hcmdzWzBdKSB7DQo+IC0JCWFjcGlfdXRfc3RydXByKGFjcGlfZ2JsX2RiX2Fy
+Z3NbMF0pOw0KPiAtCX0NCj4gKwlhY3BpX3V0X3N0cnVwcihhY3BpX2dibF9kYl9hcmdzWzBdKTsN
+Cj4gDQo+ICAJY291bnQgPSBpOw0KPiAgCWlmIChjb3VudCkgew0KPiAtLQ0KPiAyLjYuMg0KDQo=
