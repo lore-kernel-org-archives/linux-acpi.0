@@ -1,71 +1,66 @@
-From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: Re: [Patch v7 4/7] PCI/ACPI add interface to acpi_pci
-Date: Fri, 6 Nov 2015 14:44:13 -0600
-Message-ID: <563D111D.80404@arm.com>
-References: <563CE870.3040901@arm.com> <20151106185510.GA10672@red-moon>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8BIT
+From: Jerry Hoemann <jerry.hoemann@hpe.com>
+Subject: [PATCH 0/4] nvdimm: Add an IOCTL pass thru for DSM calls
+Date: Fri,  6 Nov 2015 15:27:27 -0700
+Message-ID: <cover.1446684001.git.jerry.hoemann@hpe.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from eu-smtp-delivery-143.mimecast.com ([207.82.80.143]:40876 "EHLO
-	eu-smtp-delivery-143.mimecast.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1030449AbbKFUoT convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 6 Nov 2015 15:44:19 -0500
-In-Reply-To: <20151106185510.GA10672@red-moon>
+Received: from g1t6225.austin.hp.com ([15.73.96.126]:41555 "EHLO
+	g1t6225.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1033935AbbKFW2K (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 6 Nov 2015 17:28:10 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: jiang.liu@linux.intel.com, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, G Gregory <graeme.gregory@linaro.org>
+To: ross.zwisler@linux.intel.com, rjw@rjwysocki.net, lenb@kernel.org, dan.j.williams@intel.com
+Cc: linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jerry Hoemann <jerry.hoemann@hpe.com>
 
-On 11/06/2015 12:55 PM, Lorenzo Pieralisi wrote:
-> Hi Jeremy,
+The NVDIMM code in the kernel supports an IOCTL interface to user
+space based upon the Intel Example DSM:
 
-> As I said, this is certainly confusing. AFAICT, I read "secondary bus"
-> as secondary bus side of the PCI bridge, I agree there is a mismatch
-> in the ACPI specs between the WordIo specification and the actual
-> Resource descriptors, reading page 366, for an IO resource descriptor,
-> _TTP:
->
-> Bit [4] I/O to Memory Translation, _TTP
-> 1 TypeTranslation: This resource, which is I/O on the secondary
-> 		   side of the bridge, is memory on the primary side
-> 		   of the bridge.
-> 0 TypeStatic: This resource, which is I/O on the secondary side of the
-> 	      bridge, is also I/O on the primary side of the bridge.
->
-> Then (19.6.33):
+	http://pmem.io/documents/NVDIMM_DSM_Interface_Example.pdf
 
-> That reads the other way around :), which one is correct ?
+This interface cannot be used by other NVDIMM DSMs that support
+incompatible functions.
 
-	Well, I just read it for the two hundredth time today, and I'm back to 
-my original position this morning before posting that BS above, that 
-"secondary" refers to the device directed side, and primary is the 
-processor directed side.
+This patch set adds a generic "passthru" IOCTL interface which
+is not tied to a particular DSM.
 
-	For sure its made confusing by the link to the table 6-213, which says 
-basically the opposite of what is said in table 6-214. The difference 
-being that 6-214 is for IO regions (and what we are discussing, and the 
-link in the 6.0 docs is wrong, probably because both tables were on the 
-same page in 5.x).
+A new IOCTL type "P" is added for the pass thru call.
 
-	So your probably right, and the juno is incorrect. That said, I suspect 
-we aren't the only ones, as i tested the juno against the RHEL release 
-which has PCI/ACPI in it (running against all the ARM64 servers, AFAIK), 
-and it was doing the right thing given the juno tables. <sigh> Which 
-back when I was doing them, initially I created the resource with the 
-base address=0, len=7FFFFF and the translate = 5f800000, but it didn't 
-work.
+The new data structure ndn_pkg serves as a wrapper for the passthru
+calls.  This wrapper supplies the data that the kernel needs to
+make the _DSM call.
 
-	Can someone give us a dwordio example from an IA64 machine?
+Unlike the definitions of the _DSM functions themselves, the ndn_pkg
+provides the calling information (input/output sizes) in an uniform
+manner making the kernel marshaling of the arguments straight
+forward.
 
-	But, after reading it over and over, I still don't see how the _TTP bit 
-changes the way the translation is done... The TranslationDensity, yes, 
-but that is set to dense for the two examples so far. Its really in my 
-mind a question of whether the translate is added or subtracted, which 
-comes down to which direction primary and secondary refer to.
+This shifts the marshaling burden from the kernel to the user
+space application while still permitting the kernel to internally
+calling _DSM functions.
+
+To make the resultant kernel code easier to understand the existing
+functions acpi_nfit_ctl and __nd_ioctl were renamed to .*_intel to
+denote calling mechanism as in 4.2 tailored to the Intel Example DSM.
+New functions acpi_nfit_ctl_passthru and __nd_ioctl_passthru were
+created to supply the pass thru interface.
 
 
+These changes are based upon the 4.3 kernel.
 
 
+Jerry Hoemann (4):
+  nvdimm: Add wrapper for IOCTL pass thru.
+  nvdimm: Add IOCTL pass thru
+  nvdimm: Add IOCTL pass thru
+  nvdimm: rename functions that aren't IOCTL passthru
+
+ drivers/acpi/nfit.c        |  91 ++++++++++++++++++++++++++++++++--
+ drivers/nvdimm/bus.c       | 118 +++++++++++++++++++++++++++++++++++++++++----
+ drivers/nvdimm/dimm_devs.c |   6 +--
+ include/linux/libnvdimm.h  |   3 +-
+ include/uapi/linux/ndctl.h |  20 +++++++-
+ 5 files changed, 220 insertions(+), 18 deletions(-)
+
+-- 
+1.7.11.3
 
