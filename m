@@ -1,7 +1,7 @@
 From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: [PATCH 4/4] nvdimm: rename functions that aren't IOCTL passthru
-Date: Fri,  6 Nov 2015 15:27:31 -0700
-Message-ID: <05df97cb6646ebcf5111d5bbf09bfe73370ea782.1446684001.git.jerry.hoemann@hpe.com>
+Subject: [PATCH 3/4] nvdimm: Add IOCTL pass thru
+Date: Fri,  6 Nov 2015 15:27:30 -0700
+Message-ID: <2792786733bc18d561ca352d7a642b3989a370fa.1446684001.git.jerry.hoemann@hpe.com>
 References: <cover.1446684001.git.jerry.hoemann@hpe.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1446684001.git.jerry.hoemann@hpe.com>
@@ -12,148 +12,261 @@ To: ross.zwisler@linux.intel.com, rjw@rjwysocki.net, lenb@kernel.org, dan.j.will
 Cc: linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jerry Hoemann <jerry.hoemann@hpe.com>
 List-Id: linux-acpi@vger.kernel.org
 
-rename functions acpi_nfit_ctl, __nd_ioctl, ndctl, to *_intel to denote
-that the functions implement the Intel example _DSM.
+Add functions acpi_nfit_ctl_passthru and __nd_ioctl_passthru which allow
+kernel to call a nvdimm's _DSM as a passthru without the marshaling code
+of the nd_cmd_desc.
 
 Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
 ---
- drivers/acpi/nfit.c        |  6 +++---
- drivers/nvdimm/bus.c       | 15 ++++++++-------
- drivers/nvdimm/dimm_devs.c |  6 +++---
- include/linux/libnvdimm.h  |  2 +-
- 4 files changed, 15 insertions(+), 14 deletions(-)
+ drivers/acpi/nfit.c  |  85 +++++++++++++++++++++++++++++++++++++++++
+ drivers/nvdimm/bus.c | 105 +++++++++++++++++++++++++++++++++++++++++++++++++--
+ 2 files changed, 186 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index a6b458a..f85200d 100644
+index c1b8d03..a6b458a 100644
 --- a/drivers/acpi/nfit.c
 +++ b/drivers/acpi/nfit.c
-@@ -62,7 +62,7 @@ static struct acpi_device *to_acpi_dev(struct acpi_nfit_desc *acpi_desc)
- 	return to_acpi_device(acpi_desc->dev);
+@@ -190,6 +190,90 @@ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
+ 	return rc;
  }
  
--static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
-+static int acpi_nfit_ctl_intel(struct nvdimm_bus_descriptor *nd_desc,
- 		struct nvdimm *nvdimm, unsigned int cmd, void *buf,
- 		unsigned int buf_len)
++
++static int acpi_nfit_ctl_passthru(struct nvdimm_bus_descriptor *nd_desc,
++		struct nvdimm *nvdimm, unsigned int cmd, void *buf,
++		unsigned int buf_len)
++{
++	struct acpi_nfit_desc *acpi_desc = to_acpi_nfit_desc(nd_desc);
++	union acpi_object in_obj, in_buf, *out_obj;
++	struct device *dev = acpi_desc->dev;
++	const char *dimm_name;
++	acpi_handle handle;
++	const u8 *uuid;
++	int rc = 0;
++	int rev = 0;
++
++	struct ndn_pkg *pkg = buf;
++
++	if (nvdimm) {
++		struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
++		struct acpi_device *adev = nfit_mem->adev;
++
++		if (!adev)
++			return -ENOTTY;
++		dimm_name = nvdimm_name(nvdimm);
++		handle = adev->handle;
++	} else {
++		struct acpi_device *adev = to_acpi_dev(acpi_desc);
++
++		handle = adev->handle;
++		dimm_name = "bus";
++	}
++	uuid = pkg->h.dsm_uuid;
++	rev  = pkg->h.dsm_rev ? pkg->h.dsm_rev : 1;
++
++	in_obj.type = ACPI_TYPE_PACKAGE;
++	in_obj.package.count = 1;
++	in_obj.package.elements = &in_buf;
++	in_buf.type = ACPI_TYPE_BUFFER;
++	in_buf.buffer.pointer = (void *) &pkg->buf;
++
++	in_buf.buffer.length = pkg->h.dsm_in;
++
++	if (IS_ENABLED(CONFIG_ACPI_NFIT_DEBUG)) {
++		dev_dbg(dev, "%s:%s cmd: %d input length: %d\n", __func__,
++				dimm_name, cmd, in_buf.buffer.length);
++		print_hex_dump_debug("cmd: ", DUMP_PREFIX_OFFSET, 4,
++				4, in_buf.buffer.pointer, min_t(u32, 128,
++					in_buf.buffer.length), true);
++	}
++
++	out_obj = acpi_evaluate_dsm(handle, uuid, rev, cmd, &in_obj);
++	if (!out_obj) {
++		dev_dbg(dev, "%s:%s _DSM failed cmd: %d\n", __func__, dimm_name,
++				cmd);
++		return -EINVAL;
++	}
++
++	if (out_obj->package.type != ACPI_TYPE_BUFFER) {
++		dev_dbg(dev, "%s:%s unexpected output object type cmd: %d type: %d\n",
++				__func__, dimm_name, cmd, out_obj->type);
++		rc = -EINVAL;
++		goto out;
++	}
++
++	if (IS_ENABLED(CONFIG_ACPI_NFIT_DEBUG)) {
++		dev_dbg(dev, "%s:%s cmd: %d output length: %d\n", __func__,
++				dimm_name, cmd, out_obj->buffer.length);
++		print_hex_dump_debug("cmd: ", DUMP_PREFIX_OFFSET, 4,
++				4, out_obj->buffer.pointer, min_t(u32, 128,
++					out_obj->buffer.length), true);
++	}
++
++	pkg->h.dsm_size = out_obj->buffer.length;
++	memcpy(pkg->buf + pkg->h.dsm_in,
++			out_obj->buffer.pointer,
++			min(pkg->h.dsm_size, pkg->h.dsm_out));
++
++
++ out:
++	ACPI_FREE(out_obj);
++
++	return rc;
++}
++
++
+ static const char *spa_type_name(u16 type)
  {
-@@ -1352,7 +1352,7 @@ static int acpi_nfit_blk_get_flags(struct nvdimm_bus_descriptor *nd_desc,
- 	int rc;
- 
- 	memset(&flags, 0, sizeof(flags));
--	rc = nd_desc->ndctl(nd_desc, nvdimm, ND_CMD_DIMM_FLAGS, &flags,
-+	rc = nd_desc->ndctl_intel(nd_desc, nvdimm, ND_CMD_DIMM_FLAGS, &flags,
- 			sizeof(flags));
- 
- 	if (rc >= 0 && flags.status == 0)
-@@ -1697,7 +1697,7 @@ static int acpi_nfit_add(struct acpi_device *adev)
- 	acpi_desc->blk_do_io = acpi_nfit_blk_region_do_io;
+ 	static const char *to_name[] = {
+@@ -1614,6 +1698,7 @@ static int acpi_nfit_add(struct acpi_device *adev)
  	nd_desc = &acpi_desc->nd_desc;
  	nd_desc->provider_name = "ACPI.NFIT";
--	nd_desc->ndctl = acpi_nfit_ctl;
-+	nd_desc->ndctl_intel = acpi_nfit_ctl_intel;
- 	nd_desc->ndctl_passthru = acpi_nfit_ctl_passthru;
+ 	nd_desc->ndctl = acpi_nfit_ctl;
++	nd_desc->ndctl_passthru = acpi_nfit_ctl_passthru;
  	nd_desc->attr_groups = acpi_nfit_attribute_groups;
  
+ 	acpi_desc->nvdimm_bus = nvdimm_bus_register(dev, nd_desc);
 diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index cfb10eb..4587d30 100644
+index 7e2c43f..cfb10eb 100644
 --- a/drivers/nvdimm/bus.c
 +++ b/drivers/nvdimm/bus.c
-@@ -479,8 +479,9 @@ static int nd_cmd_clear_to_send(struct nvdimm *nvdimm, unsigned int cmd)
- 	return 0;
+@@ -599,18 +599,103 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
+ 	return rc;
  }
  
--static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
--		int read_only, unsigned int ioctl_cmd, unsigned long arg)
-+static int __nd_ioctl_intel(struct nvdimm_bus *nvdimm_bus,
-+		struct nvdimm *nvdimm, int read_only, unsigned int ioctl_cmd,
-+		unsigned long arg)
- {
- 	struct nvdimm_bus_descriptor *nd_desc = nvdimm_bus->nd_desc;
- 	size_t buf_len = 0, in_len = 0, out_len = 0;
-@@ -587,7 +588,7 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
- 	if (rc)
- 		goto out_unlock;
- 
--	rc = nd_desc->ndctl(nd_desc, nvdimm, cmd, buf, buf_len);
-+	rc = nd_desc->ndctl_intel(nd_desc, nvdimm, cmd, buf, buf_len);
- 	if (rc < 0)
- 		goto out_unlock;
- 	if (copy_to_user(p, buf, buf_len))
-@@ -677,11 +678,11 @@ static int __nd_ioctl_passthru(struct nvdimm_bus *nvdimm_bus,
++
++static int __nd_ioctl_passthru(struct nvdimm_bus *nvdimm_bus,
++		struct nvdimm *nvdimm, int read_only, unsigned
++		int ioctl_cmd, unsigned long arg)
++{
++	struct nvdimm_bus_descriptor *nd_desc = nvdimm_bus->nd_desc;
++	size_t buf_len = 0, in_len = 0, out_len = 0;
++	unsigned int cmd = _IOC_NR(ioctl_cmd);
++	unsigned int size = _IOC_SIZE(ioctl_cmd);
++	void __user *p = (void __user *) arg;
++	struct device *dev = &nvdimm_bus->dev;
++	const char *dimm_name = "";
++	void *buf = NULL;
++	int i, rc;
++	struct ndn_pkg pkg;
++
++	if (nvdimm)
++		dimm_name = dev_name(&nvdimm->dev);
++	else
++		dimm_name = "bus";
++
++	if (copy_from_user(&pkg, p, sizeof(pkg))) {
++		rc = -EFAULT;
++		goto out;
++	}
++
++	for (i = 0; i < ARRAY_SIZE(pkg.h.res); i++)
++		if (pkg.h.res[i])
++			return -EINVAL;
++
++	/* Caller must tell us size of input to _DSM. */
++	/* This may be bigger that the fixed portion of the pakcage */
++	in_len  = pkg.h.dsm_in;
++	out_len = pkg.h.dsm_out;
++	buf_len = sizeof(pkg.h) + in_len + out_len;
++
++
++	dev_dbg(dev, "%s:%s cmd: %d, size: %d, in: %zu, out: %zu len: %zu\n",
++				__func__,
++				dimm_name, cmd, size,
++				in_len, out_len, buf_len);
++
++	if (buf_len > ND_IOCTL_MAX_BUFLEN) {
++		dev_dbg(dev, "%s:%s cmd: %d buf_len: %zu > %d\n", __func__,
++				dimm_name, cmd, buf_len,
++				ND_IOCTL_MAX_BUFLEN);
++		return -EINVAL;
++	}
++
++	buf = vmalloc(buf_len);
++	if (!buf)
++		return -ENOMEM;
++
++	if (copy_from_user(buf, p, buf_len)) {
++		rc = -EFAULT;
++		goto out;
++	}
++
++	nvdimm_bus_lock(&nvdimm_bus->dev);
++	rc = nd_cmd_clear_to_send(nvdimm, cmd);
++	if (rc)
++		goto out_unlock;
++
++	rc = nd_desc->ndctl_passthru(nd_desc, nvdimm, cmd, buf, buf_len);
++	if (rc < 0)
++		goto out_unlock;
++	if (copy_to_user(p, buf, buf_len))
++		rc = -EFAULT;
++ out_unlock:
++	nvdimm_bus_unlock(&nvdimm_bus->dev);
++ out:
++	vfree(buf);
++	return rc;
++}
++
  static long nd_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
  {
  	long id = (long) file->private_data;
+ 	int rc = -ENXIO, read_only;
+ 	struct nvdimm_bus *nvdimm_bus;
++	unsigned int type = _IOC_TYPE(cmd);
+ 
+ 	read_only = (O_RDWR != (file->f_flags & O_ACCMODE));
+ 	mutex_lock(&nvdimm_bus_list_mutex);
+ 	list_for_each_entry(nvdimm_bus, &nvdimm_bus_list, list) {
+-		if (nvdimm_bus->id == id) {
++		if (nvdimm_bus->id != id)
++			continue;
++
++		switch (type) {
++		case NVDIMM_TYPE_INTEL:
+ 			rc = __nd_ioctl(nvdimm_bus, NULL, read_only, cmd, arg);
+ 			break;
++		case NVDIMM_TYPE_PASSTHRU:
++			rc = __nd_ioctl_passthru(nvdimm_bus, NULL, 0, cmd, arg);
++			break;
++		default:
++			rc = -ENOTTY;
+ 		}
+ 	}
+ 	mutex_unlock(&nvdimm_bus_list_mutex);
+@@ -633,10 +718,11 @@ static int match_dimm(struct device *dev, void *data)
+ 
+ static long nvdimm_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ {
 -	int rc = -ENXIO, read_only;
 +	int rc = -ENXIO, ro;
  	struct nvdimm_bus *nvdimm_bus;
- 	unsigned int type = _IOC_TYPE(cmd);
++	unsigned int type = _IOC_TYPE(cmd);
  
 -	read_only = (O_RDWR != (file->f_flags & O_ACCMODE));
 +	ro = (O_RDWR != (file->f_flags & O_ACCMODE));
  	mutex_lock(&nvdimm_bus_list_mutex);
  	list_for_each_entry(nvdimm_bus, &nvdimm_bus_list, list) {
- 		if (nvdimm_bus->id != id)
-@@ -689,7 +690,7 @@ static long nd_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ 		struct device *dev = device_find_child(&nvdimm_bus->dev,
+@@ -647,7 +733,18 @@ static long nvdimm_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ 			continue;
  
- 		switch (type) {
- 		case NVDIMM_TYPE_INTEL:
--			rc = __nd_ioctl(nvdimm_bus, NULL, read_only, cmd, arg);
-+			rc = __nd_ioctl_intel(nvdimm_bus, NULL, ro, cmd, arg);
- 			break;
- 		case NVDIMM_TYPE_PASSTHRU:
- 			rc = __nd_ioctl_passthru(nvdimm_bus, NULL, 0, cmd, arg);
-@@ -736,7 +737,7 @@ static long nvdimm_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- 
- 		switch (type) {
- 		case NVDIMM_TYPE_INTEL:
--			rc = __nd_ioctl(nvdimm_bus, nvdimm, ro, cmd, arg);
-+			rc = __nd_ioctl_intel(nvdimm_bus, nvdimm, ro, cmd, arg);
- 			break;
- 		case NVDIMM_TYPE_PASSTHRU:
- 			rc = __nd_ioctl_passthru(nvdimm_bus, nvdimm, ro, cmd, arg);
-diff --git a/drivers/nvdimm/dimm_devs.c b/drivers/nvdimm/dimm_devs.c
-index 651b8d1..9c0cc23 100644
---- a/drivers/nvdimm/dimm_devs.c
-+++ b/drivers/nvdimm/dimm_devs.c
-@@ -74,7 +74,7 @@ int nvdimm_init_nsarea(struct nvdimm_drvdata *ndd)
- 
- 	memset(cmd, 0, sizeof(*cmd));
- 	nd_desc = nvdimm_bus->nd_desc;
--	return nd_desc->ndctl(nd_desc, to_nvdimm(ndd->dev),
-+	return nd_desc->ndctl_intel(nd_desc, to_nvdimm(ndd->dev),
- 			ND_CMD_GET_CONFIG_SIZE, cmd, sizeof(*cmd));
- }
- 
-@@ -118,7 +118,7 @@ int nvdimm_init_config_data(struct nvdimm_drvdata *ndd)
- 			offset += cmd->in_length) {
- 		cmd->in_length = min(config_size, max_cmd_size);
- 		cmd->in_offset = offset;
--		rc = nd_desc->ndctl(nd_desc, to_nvdimm(ndd->dev),
-+		rc = nd_desc->ndctl_intel(nd_desc, to_nvdimm(ndd->dev),
- 				ND_CMD_GET_CONFIG_DATA, cmd,
- 				cmd->in_length + sizeof(*cmd));
- 		if (rc || cmd->status) {
-@@ -170,7 +170,7 @@ int nvdimm_set_config_data(struct nvdimm_drvdata *ndd, size_t offset,
- 		cmd_size = sizeof(*cmd) + cmd->in_length + sizeof(u32);
- 		status = ((void *) cmd) + cmd_size - sizeof(u32);
- 
--		rc = nd_desc->ndctl(nd_desc, to_nvdimm(ndd->dev),
-+		rc = nd_desc->ndctl_intel(nd_desc, to_nvdimm(ndd->dev),
- 				ND_CMD_SET_CONFIG_DATA, cmd, cmd_size);
- 		if (rc || *status) {
- 			rc = rc ? rc : -ENXIO;
-diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-index 01117e1..594a772 100644
---- a/include/linux/libnvdimm.h
-+++ b/include/linux/libnvdimm.h
-@@ -71,7 +71,7 @@ struct nvdimm_bus_descriptor {
- 	const struct attribute_group **attr_groups;
- 	unsigned long dsm_mask;
- 	char *provider_name;
--	ndctl_fn ndctl;
-+	ndctl_fn ndctl_intel;
- 	ndctl_fn ndctl_passthru;
- };
- 
+ 		nvdimm = to_nvdimm(dev);
+-		rc = __nd_ioctl(nvdimm_bus, nvdimm, read_only, cmd, arg);
++
++		switch (type) {
++		case NVDIMM_TYPE_INTEL:
++			rc = __nd_ioctl(nvdimm_bus, nvdimm, ro, cmd, arg);
++			break;
++		case NVDIMM_TYPE_PASSTHRU:
++			rc = __nd_ioctl_passthru(nvdimm_bus, nvdimm, ro, cmd, arg);
++			break;
++		default:
++			rc = -ENOTTY;
++		}
++
+ 		put_device(dev);
+ 		break;
+ 	}
 -- 
 1.7.11.3
