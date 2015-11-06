@@ -1,91 +1,90 @@
-From: EASYLOANS FINANCIAL LTD <info@outlook.com>
-Subject: =?UTF-8?Q?=CF=80=CF=81=CE=BF=CF=83=CF=86=CE=BF=CF=81=CE=AC=20?=
- =?UTF-8?Q?=CE=B4=CE=B1=CE=BD=CE=B5=CE=AF=CE=BF=CF=85?=
-Date: Fri, 06 Nov 2015 06:22:50 +0100
-Message-ID: <170703d6ccd57196a1d5253030c63dee@multivision.com.ve>
-Reply-To: <easyloans_co@outlook.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mvx1.ifxnw.com.ve ([200.62.27.83]:53203 "EHLO mvx1.ifxnw.com.ve"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750823AbbKFFXB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 6 Nov 2015 00:23:01 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [RFC PATCH v2 0/5] ACPICA / debugger: Add in-kernel AML debugger support
+Date: Fri,  6 Nov 2015 14:46:50 +0800
+Message-ID: <cover.1446790780.git.lv.zheng@intel.com>
+References: <8c1016ca8a570ba7c7a1c9f0f88d73cd83cea490>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <8c1016ca8a570ba7c7a1c9f0f88d73cd83cea490>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
+This patchset enables ACPICA debugger for Linux kernel and implements a
+userspace utility to access it.
 
+A. Build the AML debugger
+In order to build the kernel support of AML debugger, the following kconfig
+items should be enabled:
+ CONFIG_ACPI_DEBUG=y
+ CONFIG_ACPI_DEBUGGER=y
+ CONFIG_DEBUG_FS=y
+ CONFIG_ACPI_DEBUGGER_USER=m
+The userspace tool can be found at tools/power/acpi/tools/acpidbg. To
+build this utility, staying in tools folder and type "make acpi".
 
---=20
-=CE=9A=CE=B1=CE=BB=CE=B7=CE=BC=CE=AD=CF=81=CE=B1 =C2=AB=CE=A4=CE=BF =CF=
-=8C=CE=BD=CE=BF=CE=BC=CE=AC =CE=BC=CE=BF=CF=85 =CE=B5=CE=AF=CE=BD=CE=B1=
-=CE=B9 =CE=9C=CE=B1=CF=81=CE=AF=CE=B1 =CE=9B=CE=AD=CF=89=CE=BD, =CE=BC=CE=
-=B9=CE=B1 =CE=B9=CE=B4=CE=B9=CF=89=CF=84=CE=B9=CE=BA=CE=AE =CE=B5=CF=84=
-=CE=B1=CE=B9=CF=81=CE=B5=CE=AF=CE=B1=20
-=CE=B4=CE=B1=CE=BD=CE=B5=CE=B9=CF=83=CE=BC=CE=BF=CF=8D EASYLOANS =CE=9F=
-=CE=99=CE=9A=CE=9F=CE=9D=CE=9F=CE=9C=CE=99=CE=9A=CE=95=CE=A3 LTD, =CF=80=
-=CE=BF=CF=85 =CE=B5=CE=B4=CF=81=CE=B5=CF=8D=CE=B5=CE=B9 =CF=83=CF=84=CE=
-=B7=CE=BD =CE=91=CE=B3=CE=B3=CE=BB=CE=AF=CE=B1 =CE=BA=CE=B1=CE=B9 =CF=84=
-=CE=B7=CE=BD=20
-=CE=99=CF=84=CE=B1=CE=BB=CE=AF=CE=B1,
-=CE=A0=CF=81=CE=BF=CF=83=CF=86=CE=AD=CF=81=CE=BF=CF=85=CE=BC=CE=B5 =CF=8C=
-=CE=BB=CE=B1 =CF=84=CE=B1 =CE=B5=CE=AF=CE=B4=CE=B7 =CF=84=CF=89=CE=BD =CE=
-=B4=CE=B1=CE=BD=CE=B5=CE=AF=CF=89=CE=BD =CF=80=CF=81=CE=BF=CF=82 =CE=B9=
-=CE=B4=CE=B9=CF=8E=CF=84=CE=B5=CF=82 =CE=BA=CE=B1=CE=B9 =CE=B5=CF=80=CE=
-=B9=CF=87=CE=B5=CE=B9=CF=81=CE=AE=CF=83=CE=B5=CE=B9=CF=82, =CE=BD=CE=B1=
-=20
-=CE=BA=CE=AC=CE=BD=CE=B5=CE=B9 =CF=84=CE=BF=CE=BD =CE=B5=CE=B1=CF=85=CF=
-=84=CF=8C =CF=83=CE=B1=CF=82 =CE=BF=CE=B9=CE=BA=CE=BF=CE=BD=CE=BF=CE=BC=
-=CE=B9=CE=BA=CE=AC
-=CF=83=CF=84=CE=B1=CE=B8=CE=B5=CF=81=CE=AC =CE=B3=CE=B9=CE=B1 =CF=84=CE=
-=B7=CE=BD =CE=B5=CF=80=CE=AF=CF=84=CE=B5=CF=85=CE=BE=CE=B7 =CF=84=CF=89=
-=CE=BD =CE=B4=CE=B1=CE=BD=CE=B5=CE=AF=CF=89=CE=BD =CE=9F=CE=99=CE=9A=CE=
-=9F=CE=9D=CE=9F=CE=9C=CE=99=CE=9A=CE=95=CE=A3 LTD EASYLOANS =CF=83=CF=84=
-=CE=BF 3%=20
-=CE=B5=CF=80=CE=B9=CF=84=CF=8C=CE=BA=CE=B9=CE=BF =CF=84=CF=8C=CF=83=CE=BF=
- =CF=83=CF=8D=CE=BD=CF=84=CE=BF=CE=BC=CE=BF
-=CE=BA=CE=B1=CE=B9 =CE=BC=CE=B1=CE=BA=CF=81=CE=BF=CF=80=CF=81=CF=8C=CE=B8=
-=CE=B5=CF=83=CE=BC=CE=B1 =CE=B4=CE=AC=CE=BD=CE=B5=CE=B9=CE=B1, =CE=B5=CF=
-=80=CE=B9=CF=87=CE=B5=CE=B9=CF=81=CE=B7=CE=BC=CE=B1=CF=84=CE=B9=CE=BA=CE=
-=AC =CE=B4=CE=AC=CE=BD=CE=B5=CE=B9=CE=B1, =CE=B4=CE=AC=CE=BD=CE=B5=CE=B9=
-=CE=B1 =CE=B1=CF=85=CF=84=CE=BF=CE=BA=CE=B9=CE=BD=CE=AE=CF=84=CF=89=CE=BD=
-,=20
-=CF=85=CF=80=CE=BF=CE=B8=CE=AE=CE=BA=CE=B5=CF=82, =CE=B5=CF=80=CE=B9=CF=
-=87=CE=B5=CE=B9=CF=81=CE=B7=CE=BC=CE=B1=CF=84=CE=B9=CE=BA=CE=AC =CE=B4=CE=
-=AC=CE=BD=CE=B5=CE=B9=CE=B1, =CE=BA=CE=BB=CF=80 =CF=83=CF=85=CE=BC=CF=80=
-=CE=BB=CE=B7=CF=81=CF=8E=CF=83=CF=84=CE=B5 =CF=84=CE=BF =CE=AD=CE=BD=CF=
-=84=CF=85=CF=80=CE=BF =CF=84=CE=B7=CF=82 =CE=B1=CE=AF=CF=84=CE=B7=CF=83=
-=CE=B7=CF=82=20
-=CE=B4=CE=B1=CE=BD=CE=B5=CE=AF=CE=BF=CF=85 =CF=80=CE=B1=CF=81=CE=B1=CE=BA=
-=CE=AC=CF=84=CF=89 =CE=B1=CE=BD =CF=83=CE=B1=CF=82 =CE=B5=CE=BD=CE=B4=CE=
-=B9=CE=B1=CF=86=CE=AD=CF=81=CE=B5=CE=B9 =CF=83=CE=B5 =CE=AD=CE=BD=CE=B1=
- =CE=B4=CE=AC=CE=BD=CE=B5=CE=B9=CE=BF,
+B. Load the AML debugger during runtime
+In order to use the in-kernel AML debugger, the following command should be
+executed using root user:
+ # modprobe acpi_dbg
+ # mount -t debugfs none /sys/kernel/debug
+ # acpidbg
 
-* =CE=8C=CE=BD=CE=BF=CE=BC=CE=B1:
-* =CE=95=CE=AF=CE=B4=CE=BF=CF=82:
-=CE=A7=CF=8E=CF=81=CE=B1 / =CE=B4=CE=B9=CE=B5=CF=8D=CE=B8=CF=85=CE=BD=CF=
-=83=CE=B7:
-* =CE=A0=CE=BF=CF=83=CF=8C =CF=80=CE=BF=CF=85 =CE=B1=CF=80=CE=B1=CE=B9=CF=
-=84=CE=B5=CE=AF=CF=84=CE=B1=CE=B9:
-* =CE=94=CE=B9=CE=AC=CF=81=CE=BA=CE=B5=CE=B9=CE=B1 =CF=84=CE=B7=CF=82 =CF=
-=80=CE=AF=CF=83=CF=84=CF=89=CF=83=CE=B7=CF=82:
-* =CE=94=CE=AC=CE=BD=CE=B5=CE=B9=CE=BF =CE=A3=CE=BA=CE=BF=CF=80=CF=8C=CF=
-=82:
-* =CE=A4=CE=B7=CE=BB=CE=AD=CF=86=CF=89=CE=BD=CE=BF:
-=CE=A0=CE=B1=CF=81=CE=B1=CE=BA=CE=B1=CE=BB=CE=BF=CF=8D=CE=BC=CE=B5 =CE=B5=
-=CF=80=CE=B9=CE=BA=CE=BF=CE=B9=CE=BD=CF=89=CE=BD=CE=AE=CF=83=CF=84=CE=B5=
- =CE=BC=CE=B1=CE=B6=CE=AF =CE=BC=CE=B1=CF=82 =CE=BC=CE=AD=CF=83=CF=89 e=
--mail:=20
-easyloans_co@outlook.com
-=CE=A3 '=CE=B5=CF=85=CF=87=CE=B1=CF=81=CE=B9=CF=83=CF=84=CF=8E =CE=BA=CE=
-=B1=CE=B9 =CF=84=CE=B9=CF=82 =CE=BA=CE=B1=CE=BB=CF=8D=CF=84=CE=B5=CF=81=
-=CE=B5=CF=82 =CE=B5=CF=85=CF=87=CE=AD=CF=82.
+C. Batch mode
+In order to support scripts, the userspace utility also supports single
+command batch mode:
+ # acpidbg -b "help"
+ # acpidbg -b "tables"
+ # acpidbg -b "find _LID"
+ # acpidbg -b "execute \_SB.LID0._LID"
+You can find the documentation about the ACPICA debugger commands in:
+ https://acpica.org/sites/acpica/files/acpica-reference_17.pdf
+ (The latest document can be found at https://acpica.org/documentation)
+And refer to the chapter - ACPICA debugger reference to obtain the full
+description of the debugger commands. Note that not all commands are
+supported by an in-kernel AML debugger.
 
-MARIE LEO
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+D. Unload the AML debugger during runtime
+After terminating all acpidbg instances, the following command can be
+executed to remove the AML debugger from kernel:
+ # rmmod acpi_dbg
+
+The following tasks are not completed:
+1. .flush() support in the kernel debugger IO driver.
+2. multi-commands batch mode.
+3. upstream the userspace acpidbg to the ACPICA upstream.
+
+Colin Ian King (1):
+  ACPICA: Debugger: Remove unnecessary status check
+
+Lv Zheng (4):
+  ACPICA: Debugger: Convert some mechanisms to OSPM specific
+  ACPI / debugger: Add IO interface to access debugger functionalities
+  tools/power/acpi: Add userspace AML interface support
+  ACPI / debugger: Add module support for ACPI debugger
+
+ drivers/acpi/Kconfig                     |   13 +-
+ drivers/acpi/Makefile                    |    1 +
+ drivers/acpi/acpi_dbg.c                  |  818 ++++++++++++++++++++++++++++++
+ drivers/acpi/acpica/acdebug.h            |    2 +-
+ drivers/acpi/acpica/acglobal.h           |    5 -
+ drivers/acpi/acpica/dbinput.c            |  100 +---
+ drivers/acpi/acpica/dbxface.c            |   63 +--
+ drivers/acpi/acpica/utmutex.c            |   17 -
+ drivers/acpi/bus.c                       |    1 +
+ drivers/acpi/osl.c                       |  250 ++++++++-
+ include/acpi/acpiosxf.h                  |   18 +-
+ include/acpi/acpixf.h                    |   11 +
+ include/acpi/platform/aclinux.h          |    2 +
+ include/acpi/platform/aclinuxex.h        |    9 +
+ include/linux/acpi.h                     |   71 +++
+ tools/power/acpi/Makefile                |   16 +-
+ tools/power/acpi/tools/acpidbg/Makefile  |   27 +
+ tools/power/acpi/tools/acpidbg/acpidbg.c |  438 ++++++++++++++++
+ 18 files changed, 1699 insertions(+), 163 deletions(-)
+ create mode 100644 drivers/acpi/acpi_dbg.c
+ create mode 100644 tools/power/acpi/tools/acpidbg/Makefile
+ create mode 100644 tools/power/acpi/tools/acpidbg/acpidbg.c
+
+-- 
+1.7.10
