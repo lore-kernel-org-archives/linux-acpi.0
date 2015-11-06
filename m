@@ -1,7 +1,7 @@
 From: Jiang Liu <jiang.liu@linux.intel.com>
 Subject: Re: [Patch v7 4/7] PCI/ACPI: Add interface acpi_pci_root_create()
-Date: Fri, 6 Nov 2015 15:55:24 +0800
-Message-ID: <563C5CEC.4070507@linux.intel.com>
+Date: Fri, 6 Nov 2015 16:52:47 +0800
+Message-ID: <563C6A5F.5030500@linux.intel.com>
 References: <1444804182-6596-1-git-send-email-jiang.liu@linux.intel.com>
  <1444804182-6596-5-git-send-email-jiang.liu@linux.intel.com>
  <563B65EE.7000406@semihalf.com> <20151105181959.GA352@red-moon>
@@ -9,10 +9,10 @@ Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:41606 "EHLO mga09.intel.com"
+Received: from mga14.intel.com ([192.55.52.115]:36048 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1032299AbbKFHz2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 6 Nov 2015 02:55:28 -0500
+	id S1031997AbbKFIwv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 6 Nov 2015 03:52:51 -0500
 In-Reply-To: <20151105181959.GA352@red-moon>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
@@ -154,7 +154,31 @@ On 2015/11/6 2:19, Lorenzo Pieralisi wrote:
 > for IO).
 > 
 > Confusing, to say the least. Jiang, did I get it right ?
-Yes, you are right, but seems I have done something wrong here.
-Currently res->start = acpi_des->start + acpi_des->translation_offset,
-which seems wrong. I will try to check IA64 side again and find
-a fix for this.
+Hi Lorenzo and Tomasz,
+	With a cup of coffee, I got myself awake eventually:)
+Now we are going to talk about IO port on IA64, really a little
+complex:( Actually there are two types of translation.
+1) A PCI domain has a 24-bit IO port address space, there may
+be multiple IO port address spaces in systems with multiple PCI
+domains. So the first type of translation is to translate domain
+specific IO port address into system global IO port address
+(iomem_resource) by
+  res->start = acpi_des->start + acpi_des->translation_offset
+
+2) IA64 needs to map IO port address spaces into MMIO address
+space because it has no instructions to access IO ports directly.
+So IA64 has reserved a MMIO range to map IO port address spaces.
+This type of translation relies on architecture specific information
+instead of ACPI descriptors.
+
+On the other hand, ACPI specification has defined  "I/O to Memory
+Translation" flag and "Memory to I/O Translation" flag in
+ACPI Extended Address Space Descriptor, but current implementation
+doesn't really support such a use case. So we need to find a way
+out here. Could you please help to provide more information about
+PCI host bridge resource descriptor implementation details on
+ARM64?
+
+> 
+> Lorenzo
+> 
