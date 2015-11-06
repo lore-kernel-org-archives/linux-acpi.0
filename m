@@ -1,131 +1,120 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [Patch v7 4/7] PCI/ACPI: Add interface acpi_pci_root_create()
-Date: Fri, 6 Nov 2015 23:44:21 +0800
-Message-ID: <563CCAD5.7080508@linux.intel.com>
-References: <1444804182-6596-1-git-send-email-jiang.liu@linux.intel.com>
- <1444804182-6596-5-git-send-email-jiang.liu@linux.intel.com>
- <563B65EE.7000406@semihalf.com> <20151105181959.GA352@red-moon>
- <563C6A5F.5030500@linux.intel.com> <563C82FA.7050707@semihalf.com>
- <563C930F.4060206@linux.intel.com> <563C9FBE.2090303@semihalf.com>
- <563CA9A6.7050309@linux.intel.com> <20151106144534.GC5146@red-moon>
- <563CC810.3040601@linux.intel.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: [PATCH v2] acpi: Use kstrtoul() instead of
+ strtoul()/simple_strtoul()
+Date: Fri, 6 Nov 2015 16:21:41 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37D991668@ORSMSX112.amr.corp.intel.com>
+References: <1438043542-2960-1-git-send-email-linux@roeck-us.net>
+ <20150802071643.GF32270@amd> <55BDD287.70004@roeck-us.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:54903 "EHLO mga09.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:28974 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751409AbbKFPoZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 6 Nov 2015 10:44:25 -0500
-In-Reply-To: <563CC810.3040601@linux.intel.com>
+	id S1756074AbbKFQWK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 6 Nov 2015 11:22:10 -0500
+In-Reply-To: <55BDD287.70004@roeck-us.net>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Tomasz Nowicki <tn@semihalf.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org
+To: Guenter Roeck <linux@roeck-us.net>, Pavel Machek <pavel@ucw.cz>
+Cc: "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>
 
-On 2015/11/6 23:32, Jiang Liu wrote:
-> On 2015/11/6 22:45, Lorenzo Pieralisi wrote:
->> On Fri, Nov 06, 2015 at 09:22:46PM +0800, Jiang Liu wrote:
->>> On 2015/11/6 20:40, Tomasz Nowicki wrote:
->>>> On 06.11.2015 12:46, Jiang Liu wrote:
->>>>> On 2015/11/6 18:37, Tomasz Nowicki wrote:
->>>>>> On 06.11.2015 09:52, Jiang Liu wrote:
->>>>>> Sure, ARM64 (0-16M IO space) QEMU example:
->>>>>> DWordIO (ResourceProducer, MinFixed, MaxFixed, PosDecode, EntireRange,
->>>>>>           0x00000000,         // Granularity
->>>>>>           0x00000000,         // Range Minimum
->>>>>>           0x0000FFFF,         // Range Maximum
->>>>>>           0x3EFF0000,         // Translation Offset
->>>>>>           0x00010000,         // Length
->>>>>>           ,, , TypeStatic)
->>>>> The above DWordIO resource descriptor doesn't confirm to the ACPI spec.
->>>>> According to my understanding, ARM/ARM64 has no concept of IO port
->>>>> address space, so the PCI host bridge will map IO port on PCI side
->>>>> onto MMIO on host side. In other words, PCI host bridge on ARM64
->>>>> implement a IO Port->MMIO translation instead of a IO Port->IO Port
->>>>> translation. If that's true, it should use 'TypeTranslation' instead
->>>>> of 'TypeStatic'. And kernel ACPI resource parsing interface doesn't
->>>>> support 'TypeTranslation' yet, so we need to find a solution for it.
->>>>
->>>> I think you are right, we need TypeTranslation flag for ARM64 DWordIO
->>>> descriptors and an extra kernel patch to support it.
->>> How about the attached to patch to support TypeTranslation?
->>> It only passes compilation:)
->>
->> Eh, hopefully there are not any ACPI tables out there with that bit
->> set that work _today_ and would not work with the patch attached :)
->>
->> My question is still there: do we want to handle the same problem
->> as ia64 has in a different manner ? Certainly we won't be able
->> to update ia64 platforms ACPI tables, so we would end up with
->> two platforms handling IO resources in different ways unless I am
->> missing something here.
-> There are some difference between IA64 and ARM64.
-> On IA64, it supports 16M IO address space per PCI domain and 256 PCI
-> domains at max. So the system IO address space is 16M * 256 = 4G.
-> So it does two level translations to support IO port
-> 1) translate PCI bus local IO port address into system global IO port
->    address by adding acpi_des->translation_offset.
-> 2) translate the 4G system IO port address space into MMIO address.
->    IA64 has reserved a 4G space for IO port mapping. This translation
->    is done by arch specific method.
-> In other word, IA64 needs two level translation, but ACPI only provides
-> on (trans_type, trans_offset) pair for encoding, so it's used for step 1).
-> 
-> For ARM64, I think currently it only needs step 2).
-> 
->>
->> BTW, why would we add offset to res->start only if TypeTranslation is
->> clear ? Is not that something we would do just to make things "work" ?
->> That flag has no bearing on the offset, only on the resource type AFAIK.
-> It's not a hack, but a way to interpret ACPI spec:)
-> 
-> With current linux resource management framework, we need to allocate
-> both MMIO and IO port address space range for an ACPI resource of type
-> 'TypeTranslation'. And struct resource could be either IO port or MMIO,
-> not both. So the choice is to keep the resource as IO port, and let
-> arch code to build the special MMIO mapping for it. Otherwise it will
-> break too many things if we convert the resource as MMIO.
-> 
-> That said, we need to add translation_offset to convert bus local
-> IO port address into system global IO port address if it's type of
-> TypeStatic, because ioresource_ioport uses system global IO port
-> address.
-> 
-> For an ACPI resource of type TypeTranslation, system global IO port
-> address equals bus local IO port address, and the translation_offset
-> is used to translate IO port address into MMIO address, so we shouldn't
-> add translation_offset to the IO port resource descriptor.
-One note for the TypeTranslation case, the arch code needs to reset
-resource_win->offset to zero after setting up the MMIO map. Sample
-code as below:
-va = ioremap(resource_win->offset + res->start, resource_size(res));
-resource_win->offset = 0;
 
-Otherwise it will break pcibios_resource_to_bus() etc.
+> Subject: Re: [PATCH v2] acpi: Use kstrtoul() instead of
+> strtoul()/simple_strtoul()
 
+So, this would fix the issue(s) (in aclinux.h):
+
+#define strtoul                     kstrtoul
+
+
+
+strtoul is used frequently in with the ACPICA in-kernel AML Debugger:
+
+dbcmds.c(188):        Address = strtoul (InString, NULL, 16);
+dbcmds.c(266):    SleepState = (UINT8) strtoul (ObjectArg, NULL, 0);
+dbcmds.c(1283):    GpeNumber = strtoul (GpeArg, NULL, 0);
+dbcmds.c(1291):        BlockNumber = strtoul (BlockArg, NULL, 0);
+dbdisply.c(213):    Address = strtoul (Target, NULL, 16);
+dbdisply.c(749):    Handle = ACPI_TO_POINTER (strtoul (ObjectArg, NULL, 16));
+dbexec.c(769):    NumThreads = strtoul (NumThreadsArg, NULL, 0);
+dbexec.c(770):    NumLoops = strtoul (NumLoopsArg, NULL, 0);
+dbhistry.c(292):        CmdNum = strtoul (CommandNumArg, NULL, 0);
+dbinput.c(1018):                strtoul (AcpiGbl_DbArgs[1], NULL, 16);
+dbinput.c(1026):            AcpiGbl_DbDebugLevel = strtoul (AcpiGbl_DbArgs[1], NULL, 16);
+dbinput.c(1060):        Temp = strtoul (AcpiGbl_DbArgs[2], NULL, 0);
+dbmethod.c(162):    Address = strtoul (Location, NULL, 16);
+dbmethod.c(249):    Value = strtoul (ValueArg, NULL, 16);
+dbmethod.c(271):    Index = strtoul (IndexArg, NULL, 16);
+dbmethod.c(381):        NumStatements = strtoul (Statements, NULL, 0);
+dbnames.c(334):            MaxDepth = strtoul (DepthArg, NULL, 0);
+dbnames.c(405):    OwnerId = (ACPI_OWNER_ID) strtoul (OwnerArg, NULL, 0);
+dbnames.c(411):        MaxDepth = strtoul (DepthArg, NULL, 0);
+dbnames.c(990):    Address = strtoul (ObjectArg, NULL, 16);
+dbtest.c(1046):        Info.MaxCount = strtoul (CountArg, NULL, 0);
+
+
+
+
+
+
+> -----Original Message-----
+> From: Guenter Roeck [mailto:linux@roeck-us.net]
+> Sent: Sunday, August 02, 2015 1:19 AM
+> To: Pavel Machek
+> Cc: rjw@rjwysocki.net; lenb@kernel.org; Moore, Robert; Zheng, Lv; linux-
+> acpi@vger.kernel.org; linux-kernel@vger.kernel.org; devel@acpica.org
+> Subject: Re: [PATCH v2] acpi: Use kstrtoul() instead of
+> strtoul()/simple_strtoul()
 > 
-> Thanks,
-> Gerry
+> On 08/02/2015 12:16 AM, Pavel Machek wrote:
+> > On Mon 2015-07-27 17:32:22, Guenter Roeck wrote:
+> >> simple_strtoul() is deprecated; replace with kstrtoul() and
+> kstrtouint().
+> >> Return an error if the value passed to the sysfs attribute is not a
+> >> number.
+> >>
+> >> Drop the definition of strtoul() since it is no longer needed.
+> >>
+> >> Signed-off-by: Guenter Roeck <linux@roeck-us.net>
+> >> ---
+> >> v2: An additional use of strtoul() was introduced with commit 4fa4616e.
+> >>      Replace it as well.
+> >>
+> >>   drivers/acpi/acpica/evgpeinit.c | 5 +++--
+> >>   drivers/acpi/sysfs.c            | 8 ++++++--
+> >>   include/acpi/platform/aclinux.h | 1 -
+> >>   3 files changed, 9 insertions(+), 5 deletions(-)
+> >>
+> >> diff --git a/drivers/acpi/acpica/evgpeinit.c
+> >> b/drivers/acpi/acpica/evgpeinit.c index ea4c0d3fca2d..aa1e8c1f2d4a
+> >> 100644
+> >> --- a/drivers/acpi/acpica/evgpeinit.c
+> >> +++ b/drivers/acpi/acpica/evgpeinit.c
+> >> @@ -326,6 +326,7 @@ acpi_ev_match_gpe_method(acpi_handle obj_handle,
+> >>   	u32 gpe_number;
+> >>   	char name[ACPI_NAME_SIZE + 1];
+> >>   	u8 type;
+> >> +	int err;
+> >>
+> >>   	ACPI_FUNCTION_TRACE(ev_match_gpe_method);
+> >>
+> >> @@ -377,8 +378,8 @@ acpi_ev_match_gpe_method(acpi_handle obj_handle,
+> >>
+> >>   	/* 4) The last two characters of the name are the hex GPE Number
+> >> */
+> >>
+> >> -	gpe_number = strtoul(&name[2], NULL, 16);
+> >> -	if (gpe_number == ACPI_UINT32_MAX) {
+> >> +	er = kstrtouint(&name[2], 16, &gpe_number);
+> >> +	if (err < 0 || gpe_number == ACPI_UINT32_MAX) {
+> >
+> > Are you sure you compile-tested this?
+> >
 > 
->>
->> This without taking into account ARM64 systems shipping with ACPI
->> tables that does not set the TypeTranslation at present.
->>
->> On top of that, I noticed that core ACPI code handles Sparse
->> Translation (ie _TRS), that should be considered meaningful only if _TTP
->> is set (and that's not checked).
-> Yes, that's a flaw:(
+> I was, but maybe not ;-). Since the patch was rejected it does not really
+> matter.
 > 
->>
->> Thoughts ?
->>
->> Thanks,
->> Lorenzo
->>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
+> Guenter
+
