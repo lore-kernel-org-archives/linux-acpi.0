@@ -1,107 +1,124 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [Patch v7 4/7] PCI/ACPI add interface to acpi_pci
-Date: Fri, 6 Nov 2015 18:55:10 +0000
-Message-ID: <20151106185510.GA10672@red-moon>
-References: <563CE870.3040901@arm.com>
+From: Chris Bainbridge <chris.bainbridge@gmail.com>
+Subject: [PATCH] Preserve task state in reentrant calls to ___wait_event
+Date: Fri, 6 Nov 2015 20:44:08 +0000
+Message-ID: <20151106204408.GA11609@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:43445 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750985AbbKFSyW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 6 Nov 2015 13:54:22 -0500
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <563CE870.3040901@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: linux-acpi@vger.kernel.org, lv.zheng@intel.com, mingo@redhat.com, peterz@infradead.org, rjw@rjwysocki.net, oleg@redhat.com, aystarik@gmail.com
 List-Id: linux-acpi@vger.kernel.org
-To: Jeremy Linton <jeremy.linton@arm.com>
-Cc: jiang.liu@linux.intel.com, Tomasz Nowicki <tomasz.nowicki@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, G Gregory <graeme.gregory@linaro.org>
 
-Hi Jeremy,
+In the ACPI SBS initialisation, a reentrant call to wait_event_timeout()
+causes an intermittent boot stall of several minutes usually following
+the "Switching to clocksource tsc" message. This stall is caused by:
 
-On Fri, Nov 06, 2015 at 11:50:40AM -0600, Jeremy Linton wrote:
-> Hello,
->=20
-> I just took a quick look at the discussion about the DwordIO ACPI
-> translation, and I have a couple comments (I don't have the whole
-> thread available for some reason..).
->=20
-> First, the "secondary bus" referenced in the ACPI specification is
-> the processor side, rather than the PCI device side. So the
-> minimum/max base address are the MMIO mapped addresses. To get the
-> actual IO address the translation must be subtracted. This means
-> AFAIK that the qemu table is wrong in two ways for ARM64.
+ 1. drivers/acpi/sbshc.c wait_transaction_complete() calls
+    wait_event_timeout():
 
-As I said, this is certainly confusing. AFAICT, I read "secondary bus"
-as secondary bus side of the PCI bridge, I agree there is a mismatch
-in the ACPI specs between the WordIo specification and the actual
-Resource descriptors, reading page 366, for an IO resource descriptor,
-_TTP:
+ 	if (wait_event_timeout(hc->wait, smb_check_done(hc),
+ 			       msecs_to_jiffies(timeout)))
 
-Bit [4] I/O to Memory Translation, _TTP
-1 TypeTranslation: This resource, which is I/O on the secondary
-		   side of the bridge, is memory on the primary side
-		   of the bridge.
-0 TypeStatic: This resource, which is I/O on the secondary side of the
-	      bridge, is also I/O on the primary side of the bridge.
+ 2. ___wait_event sets task state to uninterruptible
 
-Then (19.6.33):
+ 3. ___wait_event calls the "condition" smb_check_done()
 
-"TranslationType is an optional argument that specifies whether the
-resource type on the secondary side of the bus is different (TypeTransl=
-ation)
-from that on the primary side of the bus or the same
-(TypeStatic). If TypeTranslation is specified, then the secondary side
-of the bus is Memory. If TypeStatic is specified, then the secondary si=
-de
-of the bus is I/O. If nothing is specified, then TypeStatic is assumed.
-The 1-bit field DescriptorName._TTP is automatically created to refer t=
-o
-this portion of the resource descriptor, where =E2=80=981=E2=80=99 is T=
-ypeTranslation and =E2=80=980=E2=80=99
-is TypeStatic. See _TTP (page 365) for more information."
+ 4. smb_check_done (sbshc.c) calls through to ec_read() in
+    drivers/acpi/ec.c
 
-That reads the other way around :), which one is correct ?
+ 5. ec_guard() is reached which calls wait_event_timeout()
 
-> So that said, I will reference the juno DwordIo resource which I
-> recently added to the EDK.
->=20
-> DWordIo ( // IO window
-> 	ResourceProducer,
-> 	MinFixed,
-> 	MaxFixed,
-> 	PosDecode,
-> 	EntireRange,
-> 	0x00000000, 	// Granularity
-> 	0x5f800000, 	// Min Base Address
-> 	0x5fffffff,	// Max Base Address
-> 	0x5f800000, 	// Translate
-> 	0x00800000  	// Length
-> )
->=20
-> Which after reading the specification, I realized should be setting
-> the translation type to TypeTranslation. But that really doesn't
-> matter for ARM64 because ARM64 doesn't have a processor accessible
-> IO address range. AKA the TranslationType controls whether the
-> processor is doing an IN/OUT/etc to access the range or actual MMIO
-> read/writes. Since on ARM64 the only choice is MMIO, this field
-> should be ignored, the only behavior difference should possibly be a
-> warning if someone leaves it set to static.
->=20
-> Put another way, the setting of the TranslationType doesn't change
-> the way the "translation" is computed, only how its accessed. AKA it
-> doesn't affect the math..
+ 	if (wait_event_timeout(ec->wait,
+ 			       ec_transaction_completed(ec),
+ 			       guard))
 
-It seems to me that is down to interpretation, and that's not good at
-all.
+    ie. wait_event_timeout() is being called again inside evaluation of
+    the previous wait_event_timeout() condition
 
-We need to raise the point within the ASWG and get this clarified.
+ 5. The EC IRQ handler calls wake_up() and wakes up the sleeping task in
+    ec_guard()
 
-Thanks,
-Lorenzo
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ 6. The task is now in state running even though the wait "condition" is
+    still being evaluated
+
+ 7. The "condition" check returns false so ___wait_event calls
+    schedule_timeout()
+
+ 8. Since the task state is running, the scheduler immediately schedules
+    it again
+
+ 9. This loop repeats for around 250 seconds event though the original
+    wait_event_timeout was only 1000ms.
+
+    This happens because each the call to schedule_timeout() usually
+    returns immediately, taking less than 1ms, so the jiffies timeout
+    counter is not decremented. The task is now stuck in a running
+    state, and so is highly likely to get rescheduled immediately, which
+    takes less than a jiffy.
+
+The root problem is that wait_event_timeout() does not preserve the task
+state when called by tasks that are not running. We fix this by
+preserving and restoring the task state in ___wait_event().
+
+Signed-off-by: Chris Bainbridge <chris.bainbridge@gmail.com>
+---
+I am assuming here that wait_event_timeout() is supposed to support reentrant
+calls. If not, perhaps it should BUG_ON when called with a non-running task
+state, and the SBS HC / ACPI EC code needs to be fixed to stop doing this. If
+reentrant calls are supposed to work, then this patch will preserve the task
+state (there may be a more appropriate way to support reentrant calls than this
+exact patch, suggestions/alternatives are welcome, but this does work).
+---
+ include/linux/wait.h | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/include/linux/wait.h b/include/linux/wait.h
+index 1e1bf9f..a847cf8 100644
+--- a/include/linux/wait.h
++++ b/include/linux/wait.h
+@@ -209,11 +209,12 @@ wait_queue_head_t *bit_waitqueue(void *, int);
+  * otherwise.
+  */
+ 
+-#define ___wait_event(wq, condition, state, exclusive, ret, cmd)	\
++#define ___wait_event(wq, condition, nstate, exclusive, ret, cmd)	\
+ ({									\
+ 	__label__ __out;						\
+ 	wait_queue_t __wait;						\
+ 	long __ret = ret;	/* explicit shadow */			\
++	long ostate = current->state;					\
+ 									\
+ 	INIT_LIST_HEAD(&__wait.task_list);				\
+ 	if (exclusive)							\
+@@ -222,16 +223,16 @@ wait_queue_head_t *bit_waitqueue(void *, int);
+ 		__wait.flags = 0;					\
+ 									\
+ 	for (;;) {							\
+-		long __int = prepare_to_wait_event(&wq, &__wait, state);\
++		long __int = prepare_to_wait_event(&wq, &__wait, nstate);\
+ 									\
+ 		if (condition)						\
+ 			break;						\
+ 									\
+-		if (___wait_is_interruptible(state) && __int) {		\
++		if (___wait_is_interruptible(nstate) && __int) {	\
+ 			__ret = __int;					\
+ 			if (exclusive) {				\
+ 				abort_exclusive_wait(&wq, &__wait,	\
+-						     state, NULL);	\
++						     nstate, NULL);	\
+ 				goto __out;				\
+ 			}						\
+ 			break;						\
+@@ -240,6 +241,7 @@ wait_queue_head_t *bit_waitqueue(void *, int);
+ 		cmd;							\
+ 	}								\
+ 	finish_wait(&wq, &__wait);					\
++	set_current_state(ostate);					\
+ __out:	__ret;								\
+ })
+ 
+-- 
+2.1.4
