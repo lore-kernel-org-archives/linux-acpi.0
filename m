@@ -1,34 +1,55 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [PATCH] Preserve task state in reentrant calls to ___wait_event
-Date: Sat, 7 Nov 2015 10:19:54 +0100
-Message-ID: <20151107091954.GE17308@twins.programming.kicks-ass.net>
-References: <20151106204408.GA11609@localhost>
+From: Dmitry Krivenok <krivenok.dmitry@gmail.com>
+Subject: Re: [PATCH 3/4] nvdimm: Add IOCTL pass thru
+Date: Sat, 7 Nov 2015 17:02:36 +0300
+Message-ID: <CAJN_NGaPbziX=OcyYpcn5TP76HwGQSTsUz-yOVGB2Sh8VxDQjA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:37209 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752393AbbKGJUA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Nov 2015 04:20:00 -0500
-Content-Disposition: inline
-In-Reply-To: <20151106204408.GA11609@localhost>
+Received: from mail-yk0-f174.google.com ([209.85.160.174]:35034 "EHLO
+	mail-yk0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753214AbbKGOCj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 7 Nov 2015 09:02:39 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Chris Bainbridge <chris.bainbridge@gmail.com>
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lv.zheng@intel.com, mingo@redhat.com, rjw@rjwysocki.net, oleg@redhat.com, aystarik@gmail.com
+To: Jerry Hoemann <jerry.hoemann@hpe.com>
+Cc: ross.zwisler@linux.intel.com, rjw@rjwysocki.net, lenb@kernel.org, dan.j.williams@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
 
-On Fri, Nov 06, 2015 at 08:44:08PM +0000, Chris Bainbridge wrote:
-> I am assuming here that wait_event_timeout() is supposed to support reentrant
-> calls.
+> +       if (IS_ENABLED(CONFIG_ACPI_NFIT_DEBUG)) {
+> +               dev_dbg(dev, "%s:%s cmd: %d input length: %d\n", __func__,
+> +                               dimm_name, cmd, in_buf.buffer.length);
+> +               print_hex_dump_debug("cmd: ", DUMP_PREFIX_OFFSET, 4,
+> +                               4, in_buf.buffer.pointer, min_t(u32, 128,
+> +                                       in_buf.buffer.length), true);
+> +       }
 
-Not really. It is sort of allowed, provided the inner one will rarely
-block. And therefore the outer one will mostly work.
+Maybe move this code to a helper function? There are 4 almost
+identical blocks now in acpi_nfit_ctl_passthru and
+acpi_nfit_ctl_intel.
 
-> If not, perhaps it should BUG_ON when called with a non-running task
-> state,
+> +       for (i = 0; i < ARRAY_SIZE(pkg.h.res); i++)
+> +               if (pkg.h.res[i])
+> +                       return -EINVAL;
 
-There is a warning in __might_sleep() that catches some of this.
+I'd rename "res" to "reserved" for clarity.
 
-> and the SBS HC / ACPI EC code needs to be fixed to stop doing this.
+> +       /* This may be bigger that the fixed portion of the pakcage */
 
-Yes.
+s/that/than/
+s/pakcage/package/
+
+> +               switch (type) {
+> +               case NVDIMM_TYPE_INTEL:
+> +                       rc = __nd_ioctl(nvdimm_bus, nvdimm, ro, cmd, arg);
+> +                       break;
+> +               case NVDIMM_TYPE_PASSTHRU:
+> +                       rc = __nd_ioctl_passthru(nvdimm_bus, nvdimm, ro, cmd, arg);
+> +                       break;
+> +               default:
+> +                       rc = -ENOTTY;
+> +               }
+
+The same comment. Identical code in nd_ioctl and nvdimm_ioctl.
+Perhaps move to a helper function?
+
+Thanks,
+Dmitry
