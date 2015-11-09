@@ -1,95 +1,103 @@
-From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: Re: [PATCH 3/4] nvdimm: Add IOCTL pass thru
-Date: Mon, 9 Nov 2015 14:59:04 -0700
-Message-ID: <20151109215904.GB33245@tevye.fc.hp.com>
-References: <CAJN_NGaPbziX=OcyYpcn5TP76HwGQSTsUz-yOVGB2Sh8VxDQjA@mail.gmail.com>
-Reply-To: Jerry.Hoemann@hpe.com
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: Re: [PATCH] acpi: add support for extended IRQ to PCI link
+Date: Mon, 9 Nov 2015 17:29:58 -0500
+Message-ID: <56411E66.2030104@codeaurora.org>
+References: <1446998832-7023-1-git-send-email-okaya@codeaurora.org>
+ <CAHp75VfH9-OpQdX_aoraLEcHewdRPFoR5My8mN2jU30ittS7oA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g2t1383g.austin.hp.com ([15.217.136.92]:6451 "EHLO
-	g2t1383g.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750893AbbKIV7I (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Nov 2015 16:59:08 -0500
-Content-Disposition: inline
-In-Reply-To: <CAJN_NGaPbziX=OcyYpcn5TP76HwGQSTsUz-yOVGB2Sh8VxDQjA@mail.gmail.com>
+Received: from smtp.codeaurora.org ([198.145.29.96]:39577 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751059AbbKIWaB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Nov 2015 17:30:01 -0500
+In-Reply-To: <CAHp75VfH9-OpQdX_aoraLEcHewdRPFoR5My8mN2jU30ittS7oA@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dmitry Krivenok <krivenok.dmitry@gmail.com>
-Cc: ross.zwisler@linux.intel.com, rjw@rjwysocki.net, lenb@kernel.org, dan.j.williams@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
-
-
-Dmitry,
-
-thanks for you review.  Questions in-line.
-
-
-On Sat, Nov 07, 2015 at 05:02:36PM +0300, Dmitry Krivenok wrote:
-> > +       if (IS_ENABLED(CONFIG_ACPI_NFIT_DEBUG)) {
-> > +               dev_dbg(dev, "%s:%s cmd: %d input length: %d\n", __func__,
-> > +                               dimm_name, cmd, in_buf.buffer.length);
-> > +               print_hex_dump_debug("cmd: ", DUMP_PREFIX_OFFSET, 4,
-> > +                               4, in_buf.buffer.pointer, min_t(u32, 128,
-> > +                                       in_buf.buffer.length), true);
-> > +       }
-> 
-> Maybe move this code to a helper function? There are 4 almost
-> identical blocks now in acpi_nfit_ctl_passthru and
-> acpi_nfit_ctl_intel.
-
-
-Is your concern readibility or size of generated code (or both?)
-
-I'll look to consolidating the debug printing in next version as additional patch.
-
-> 
-> > +       for (i = 0; i < ARRAY_SIZE(pkg.h.res); i++)
-> > +               if (pkg.h.res[i])
-> > +                       return -EINVAL;
-> 
-> I'd rename "res" to "reserved" for clarity.
-
-
-Will do.
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, Andy Gross <agross@codeaurora.org>, linux-arm-msm@vger.kernel.org, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
 
 
-> 
-> > +       /* This may be bigger that the fixed portion of the pakcage */
-> 
-> s/that/than/
-> s/pakcage/package/
+On 11/8/2015 3:35 PM, Andy Shevchenko wrote:
+> On Sun, Nov 8, 2015 at 6:07 PM, Sinan Kaya <okaya@codeaurora.org> wro=
+te:
+>> The ACPI compiler uses the extended format when
+>> used interrupt numbers are greater than 256.
+>> The PCI link code currently only supports simple
+>> interrupt format. The IRQ numbers are represented
+>> using 32 bits when extended IRQ syntax. This patch
+>> changes the interrupt number type to 32 bits and
+>> places an upper limit of 1020 as possible interrupt
+>> id. Additional checks have been placed to prevent
+>> out of bounds writes.
+>
+> In commit messages and in comments I see this narrow lines, any reaso=
+n
+> to make them short, except increasing number of lines?
+>
 
+done
 
-Will do.
+>>          if (acpi_irq_balance || !link->irq.active) {
+>> -               /*
+>> -                * Select the best IRQ.  This is done in reverse to =
+promote
+>> -                * the use of IRQs 9, 10, 11, and >15.
+>> -                */
+>> -               for (i =3D (link->irq.possible_count - 1); i >=3D 0;=
+ i--) {
+>> -                       if (acpi_irq_penalty[irq] >
+>> -                           acpi_irq_penalty[link->irq.possible[i]])
+>> -                               irq =3D link->irq.possible[i];
+>> +
+>> +               if (irq < ACPI_MAX_IRQS) {
+>> +                       /*
+>> +                        * Select the best IRQ.  This is done in rev=
+erse to
+>> +                        * promote the use of IRQs 9, 10, 11, and >1=
+5.
+>> +                        */
+>> +                       for (i =3D (link->irq.possible_count - 1); i=
+ >=3D 0;
+>> +                               i--) {
+>
+> Why not
+>
+> if ((acpi_irq_balance || !link->irq.active) && irq < ACPI_MAX_IRQS) {
+>   int i =3D link->irq.possible_count;
+>
+>   while (--i) {
+>   =E2=80=A6
+>   }
+> }
 
+done
 
-> 
-> > +               switch (type) {
-> > +               case NVDIMM_TYPE_INTEL:
-> > +                       rc = __nd_ioctl(nvdimm_bus, nvdimm, ro, cmd, arg);
-> > +                       break;
-> > +               case NVDIMM_TYPE_PASSTHRU:
-> > +                       rc = __nd_ioctl_passthru(nvdimm_bus, nvdimm, ro, cmd, arg);
-> > +                       break;
-> > +               default:
-> > +                       rc = -ENOTTY;
-> > +               }
-> 
-> The same comment. Identical code in nd_ioctl and nvdimm_ioctl.
-> Perhaps move to a helper function?
+>
+>> +                               if ((link->irq.possible[i] < ACPI_MA=
+X_IRQS) &&
+>> +                                   (acpi_irq_penalty[irq] >
+>> +                                   acpi_irq_penalty[link->irq.possi=
+ble[i]]))
+>> +                                       irq =3D link->irq.possible[i=
+];
+>> +                       }
+>>                  }
+>>          }
+>>          if (acpi_irq_penalty[irq] >=3D PIRQ_PENALTY_ISA_ALWAYS) {
+>
 
-
-If we had a longer list, I would definitely say yes.  Not so sure with
-just two types.  I'll take a look for the next version.
-
-
--- 
-
------------------------------------------------------------------------------
-Jerry Hoemann            Software Engineer      Hewlett-Packard Enterprise
-
-3404 E Harmony Rd. MS 36                        phone:  (970) 898-1022
-Ft. Collins, CO 80528                           FAX:    (970) 898-0707
-                                                email:  jerry.hoemann@hpe.com
------------------------------------------------------------------------------
+--=20
+Sinan Kaya
+Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, In=
+c.
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a=20
+Linux Foundation Collaborative Project
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
