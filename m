@@ -1,133 +1,61 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v4 5/5] pwm-pca9685: enable ACPI device found on Galileo
- Gen2
-Date: Mon, 09 Nov 2015 15:53:36 +0200
-Message-ID: <1447077216.31665.73.camel@linux.intel.com>
-References: <1445591805-28886-1-git-send-email-andriy.shevchenko@linux.intel.com>
-	 <1445591805-28886-6-git-send-email-andriy.shevchenko@linux.intel.com>
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: Re: [Patch v7 4/7] PCI/ACPI: Add interface acpi_pci_root_create()
+Date: Mon, 9 Nov 2015 15:07:38 +0100
+Message-ID: <5640A8AA.4000806@semihalf.com>
+References: <1444804182-6596-1-git-send-email-jiang.liu@linux.intel.com>
+ <1444804182-6596-5-git-send-email-jiang.liu@linux.intel.com>
+ <563B65EE.7000406@semihalf.com> <20151105181959.GA352@red-moon>
+ <563C6A5F.5030500@linux.intel.com> <563C82FA.7050707@semihalf.com>
+ <563C930F.4060206@linux.intel.com> <563C9FBE.2090303@semihalf.com>
+ <563CA9A6.7050309@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:16618 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751213AbbKINxg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 9 Nov 2015 08:53:36 -0500
-In-Reply-To: <1445591805-28886-6-git-send-email-andriy.shevchenko@linux.intel.com>
+Received: from mail-lf0-f41.google.com ([209.85.215.41]:33804 "EHLO
+	mail-lf0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752059AbbKIOHw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Nov 2015 09:07:52 -0500
+Received: by lffu14 with SMTP id u14so11402691lff.1
+        for <linux-acpi@vger.kernel.org>; Mon, 09 Nov 2015 06:07:50 -0800 (PST)
+In-Reply-To: <563CA9A6.7050309@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-i2c@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Wolfram Sang <wsa@the-dreams.de>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Mika Westerberg <mika.westerberg@intel.com>, "Puustinen, Ismo" <ismo.puustinen@intel.com>, linux-kernel@vger.kernel.org
-Cc: Thierry Reding <thierry.reding@gmail.com>
+To: Jiang Liu <jiang.liu@linux.intel.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org
 
-On Fri, 2015-10-23 at 12:16 +0300, Andy Shevchenko wrote:
-> There is a chip connected to i2c bus on Intel Galileo Gen2 board.
-> Enable it via
-> ACPI ID INT3492.
+On 06.11.2015 14:22, Jiang Liu wrote:
+> On 2015/11/6 20:40, Tomasz Nowicki wrote:
+>> On 06.11.2015 12:46, Jiang Liu wrote:
+>>> On 2015/11/6 18:37, Tomasz Nowicki wrote:
+>>>> On 06.11.2015 09:52, Jiang Liu wrote:
+>>>> Sure, ARM64 (0-16M IO space) QEMU example:
+>>>> DWordIO (ResourceProducer, MinFixed, MaxFixed, PosDecode, EntireRange,
+>>>>            0x00000000,         // Granularity
+>>>>            0x00000000,         // Range Minimum
+>>>>            0x0000FFFF,         // Range Maximum
+>>>>            0x3EFF0000,         // Translation Offset
+>>>>            0x00010000,         // Length
+>>>>            ,, , TypeStatic)
+>>> The above DWordIO resource descriptor doesn't confirm to the ACPI spec.
+>>> According to my understanding, ARM/ARM64 has no concept of IO port
+>>> address space, so the PCI host bridge will map IO port on PCI side
+>>> onto MMIO on host side. In other words, PCI host bridge on ARM64
+>>> implement a IO Port->MMIO translation instead of a IO Port->IO Port
+>>> translation. If that's true, it should use 'TypeTranslation' instead
+>>> of 'TypeStatic'. And kernel ACPI resource parsing interface doesn't
+>>> support 'TypeTranslation' yet, so we need to find a solution for it.
+>>
+>> I think you are right, we need TypeTranslation flag for ARM64 DWordIO
+>> descriptors and an extra kernel patch to support it.
+> How about the attached to patch to support TypeTranslation?
+> It only passes compilation:)
 
-Thierry, ping?
+Based on the further discussion, your draft patch looks good to me. 
+Lorenzo, do you agree?
 
->=20
-> Cc: Thierry Reding <thierry.reding@gmail.com>
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> ---
-> =C2=A0drivers/pwm/Kconfig=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0|=C2=
-=A0=C2=A02 +-
-> =C2=A0drivers/pwm/pwm-pca9685.c | 20 ++++++++++++++++----
-> =C2=A02 files changed, 17 insertions(+), 5 deletions(-)
->=20
-> diff --git a/drivers/pwm/Kconfig b/drivers/pwm/Kconfig
-> index 062630a..bb114ef 100644
-> --- a/drivers/pwm/Kconfig
-> +++ b/drivers/pwm/Kconfig
-> @@ -242,7 +242,7 @@ config PWM_MXS
-> =C2=A0
-> =C2=A0config PWM_PCA9685
-> =C2=A0	tristate "NXP PCA9685 PWM driver"
-> -	depends on OF && I2C
-> +	depends on I2C
-> =C2=A0	select REGMAP_I2C
-> =C2=A0	help
-> =C2=A0	=C2=A0=C2=A0Generic PWM framework driver for NXP PCA9685 LED
-> controller.
-> diff --git a/drivers/pwm/pwm-pca9685.c b/drivers/pwm/pwm-pca9685.c
-> index 70448a6..117fccf 100644
-> --- a/drivers/pwm/pwm-pca9685.c
-> +++ b/drivers/pwm/pwm-pca9685.c
-> @@ -19,9 +19,11 @@
-> =C2=A0 * this program.=C2=A0=C2=A0If not, see <http://www.gnu.org/lic=
-enses/>.
-> =C2=A0 */
-> =C2=A0
-> +#include <linux/acpi.h>
-> =C2=A0#include <linux/i2c.h>
-> =C2=A0#include <linux/module.h>
-> =C2=A0#include <linux/platform_device.h>
-> +#include <linux/property.h>
-> =C2=A0#include <linux/pwm.h>
-> =C2=A0#include <linux/regmap.h>
-> =C2=A0#include <linux/slab.h>
-> @@ -297,7 +299,6 @@ static const struct regmap_config
-> pca9685_regmap_i2c_config =3D {
-> =C2=A0static int pca9685_pwm_probe(struct i2c_client *client,
-> =C2=A0				const struct i2c_device_id *id)
-> =C2=A0{
-> -	struct device_node *np =3D client->dev.of_node;
-> =C2=A0	struct pca9685 *pca;
-> =C2=A0	int ret;
-> =C2=A0	int mode2;
-> @@ -320,12 +321,12 @@ static int pca9685_pwm_probe(struct i2c_client
-> *client,
-> =C2=A0
-> =C2=A0	regmap_read(pca->regmap, PCA9685_MODE2, &mode2);
-> =C2=A0
-> -	if (of_property_read_bool(np, "invert"))
-> +	if (device_property_read_bool(&client->dev, "invert"))
-> =C2=A0		mode2 |=3D MODE2_INVRT;
-> =C2=A0	else
-> =C2=A0		mode2 &=3D ~MODE2_INVRT;
-> =C2=A0
-> -	if (of_property_read_bool(np, "open-drain"))
-> +	if (device_property_read_bool(&client->dev, "open-drain"))
-> =C2=A0		mode2 &=3D ~MODE2_OUTDRV;
-> =C2=A0	else
-> =C2=A0		mode2 |=3D MODE2_OUTDRV;
-> @@ -363,16 +364,27 @@ static const struct i2c_device_id pca9685_id[]
-> =3D {
-> =C2=A0};
-> =C2=A0MODULE_DEVICE_TABLE(i2c, pca9685_id);
-> =C2=A0
-> +#ifdef CONFIG_ACPI
-> +static const struct acpi_device_id pca9685_acpi_ids[] =3D {
-> +	{ "INT3492", 0 },
-> +	{ /* sentinel */ },
-> +};
-> +MODULE_DEVICE_TABLE(acpi, pca9685_acpi_ids);
-> +#endif
-> +
-> +#ifdef CONFIG_OF
-> =C2=A0static const struct of_device_id pca9685_dt_ids[] =3D {
-> =C2=A0	{ .compatible =3D "nxp,pca9685-pwm", },
-> =C2=A0	{ /* sentinel */ }
-> =C2=A0};
-> =C2=A0MODULE_DEVICE_TABLE(of, pca9685_dt_ids);
-> +#endif
-> =C2=A0
-> =C2=A0static struct i2c_driver pca9685_i2c_driver =3D {
-> =C2=A0	.driver =3D {
-> =C2=A0		.name =3D "pca9685-pwm",
-> -		.of_match_table =3D pca9685_dt_ids,
-> +		.acpi_match_table =3D ACPI_PTR(pca9685_acpi_ids),
-> +		.of_match_table =3D of_match_ptr(pca9685_dt_ids),
-> =C2=A0	},
-> =C2=A0	.probe =3D pca9685_pwm_probe,
-> =C2=A0	.remove =3D pca9685_pwm_remove,
+Gerry, what would be the best way to approach with this, extra patch of 
+your set? or keep it separately, might be part of my set.
 
---=20
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Tomasz
