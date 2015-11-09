@@ -1,57 +1,39 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v3 2/2] acpi: nfit: Add support for hot-add
-Date: Mon, 09 Nov 2015 22:28:37 +0100
-Message-ID: <1598802.EEC0oEGDtq@vostro.rjw.lan>
-References: <1445986707-15395-1-git-send-email-vishal.l.verma@intel.com> <CAPcyv4jK+smY6gVaxPAsWh7iZTo5+ZzrGy9SWqmdM1A4sp+jeA@mail.gmail.com> <1694961.7tam4vTeyJ@vostro.rjw.lan>
+Subject: Re: [PATCH] tree wide: Use kvfree() than conditional kfree()/vfree()
+Date: Mon, 09 Nov 2015 22:48:37 +0100
+Message-ID: <5253459.IxnqkcU2vL@vostro.rjw.lan>
+References: <1447070170-8512-1-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:41233 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750819AbbKIU7T (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Nov 2015 15:59:19 -0500
-In-Reply-To: <1694961.7tam4vTeyJ@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1447070170-8512-1-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp>
+Sender: owner-linux-mm@kvack.org
+To: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+Cc: akpm@linux-foundation.org, linux-mm@kvack.org, Russell King <linux@arm.linux.org.uk>, linux-acpi@vger.kernel.org, drbd-user@lists.linbit.com, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Oleg Drokin <oleg.drokin@intel.com>, Andreas Dilger <andreas.dilger@intel.com>, codalist@coda.cs.cmu.edu, linux-mtd@lists.infradead.org, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, netdev@vger.kernel.org, Tony Luck <tony.luck@intel.com>, Boris Petkov <bp@suse.de>
 List-Id: linux-acpi@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Linux ACPI <linux-acpi@vger.kernel.org>, Jeff Moyer <jmoyer@redhat.com>, Elliott Robert <elliott@hpe.com>, Toshi Kani <toshi.kani@hpe.com>
 
-On Monday, November 09, 2015 10:24:00 PM Rafael J. Wysocki wrote:
-> On Sunday, November 08, 2015 05:26:03 PM Dan Williams wrote:
-> > On Sun, Nov 8, 2015 at 4:49 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> > > On Saturday, November 07, 2015 10:57:17 AM Dan Williams wrote:
-> > >> Rafael, awaiting your ack...
-> > >
-> > > Well, this seems to be entirely NFIT-related.
-> > >
-> > > Is there anything in particular you want me to look at?
-> > >
-> > 
-> > This might be more relevant for a follow-on patch, but I wonder if the
-> > core should be guaranteeing that the ->notify() callback occurs under
-> > device_lock().  In the case of NFIT it seems possible for the notify
-> > event to race ->add() or ->remove(), but maybe I missed some other
-> > guarantee?
+On Monday, November 09, 2015 08:56:10 PM Tetsuo Handa wrote:
+> There are many locations that do
 > 
-> No, you didn't.
+>   if (memory_was_allocated_by_vmalloc)
+>     vfree(ptr);
+>   else
+>     kfree(ptr);
 > 
-> I'd rather drop the ->notify callback completely, because it's kind of
-> confusing, as there are other (non-ACPI) drivers that need to receive
-> ACPI notifications too and they have to use the raw ACPICA's
-> acpi_install_notify_handler() interface.  Having a special interface for
-> that for ACPI drivers only doesn't make much sense to me.
-> 
-> That said, the ACPICA's notify handling code is inherently racy with respect to
-> module unload, so potentially dangerous in any modular code.
-> 
-> IMO, a generic module-safe wrapper around that code is needed, but since I
-> haven't had the time to introduce one for quite a while, I guess it would be
-> fine to add device locking around ->notify in acpi_bus_notify(), at least for
-> the time being.
+> but kvfree() can handle both kmalloc()ed memory and vmalloc()ed memory
+> using is_vmalloc_addr(). Unless callers have special reasons, we can
+> replace this branch with kvfree(). Please check and reply if you found
+> problems.
 
-And in acpi_device_notify() for that matter.
+ACK for the ACPI changes (and CCing Tony and Boris for the heads-up as they
+are way more famailiar with the APEI code than I am).
 
 Thanks,
 Rafael
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
