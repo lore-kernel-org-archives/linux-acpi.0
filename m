@@ -1,61 +1,58 @@
-From: Tomasz Nowicki <tn@semihalf.com>
-Subject: Re: [Patch v7 4/7] PCI/ACPI: Add interface acpi_pci_root_create()
-Date: Mon, 9 Nov 2015 15:07:38 +0100
-Message-ID: <5640A8AA.4000806@semihalf.com>
-References: <1444804182-6596-1-git-send-email-jiang.liu@linux.intel.com>
- <1444804182-6596-5-git-send-email-jiang.liu@linux.intel.com>
- <563B65EE.7000406@semihalf.com> <20151105181959.GA352@red-moon>
- <563C6A5F.5030500@linux.intel.com> <563C82FA.7050707@semihalf.com>
- <563C930F.4060206@linux.intel.com> <563C9FBE.2090303@semihalf.com>
- <563CA9A6.7050309@linux.intel.com>
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH] tree wide: Use kvfree() than conditional kfree()/vfree()
+Date: Mon, 9 Nov 2015 16:07:26 +0000
+Message-ID: <20151109160726.GB8644@n2100.arm.linux.org.uk>
+References: <1447070170-8512-1-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f41.google.com ([209.85.215.41]:33804 "EHLO
-	mail-lf0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752059AbbKIOHw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Nov 2015 09:07:52 -0500
-Received: by lffu14 with SMTP id u14so11402691lff.1
-        for <linux-acpi@vger.kernel.org>; Mon, 09 Nov 2015 06:07:50 -0800 (PST)
-In-Reply-To: <563CA9A6.7050309@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <1447070170-8512-1-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Cc: Andreas Dilger <andreas.dilger@intel.com>, linux-acpi@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, codalist@coda.cs.cmu.edu, Oleg Drokin <oleg.drokin@intel.com>, linux-mm@kvack.org, linux-mtd@lists.infradead.org, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, akpm@linux-foundation.org, drbd-user@lists.linbit.com
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org
 
-On 06.11.2015 14:22, Jiang Liu wrote:
-> On 2015/11/6 20:40, Tomasz Nowicki wrote:
->> On 06.11.2015 12:46, Jiang Liu wrote:
->>> On 2015/11/6 18:37, Tomasz Nowicki wrote:
->>>> On 06.11.2015 09:52, Jiang Liu wrote:
->>>> Sure, ARM64 (0-16M IO space) QEMU example:
->>>> DWordIO (ResourceProducer, MinFixed, MaxFixed, PosDecode, EntireRange,
->>>>            0x00000000,         // Granularity
->>>>            0x00000000,         // Range Minimum
->>>>            0x0000FFFF,         // Range Maximum
->>>>            0x3EFF0000,         // Translation Offset
->>>>            0x00010000,         // Length
->>>>            ,, , TypeStatic)
->>> The above DWordIO resource descriptor doesn't confirm to the ACPI spec.
->>> According to my understanding, ARM/ARM64 has no concept of IO port
->>> address space, so the PCI host bridge will map IO port on PCI side
->>> onto MMIO on host side. In other words, PCI host bridge on ARM64
->>> implement a IO Port->MMIO translation instead of a IO Port->IO Port
->>> translation. If that's true, it should use 'TypeTranslation' instead
->>> of 'TypeStatic'. And kernel ACPI resource parsing interface doesn't
->>> support 'TypeTranslation' yet, so we need to find a solution for it.
->>
->> I think you are right, we need TypeTranslation flag for ARM64 DWordIO
->> descriptors and an extra kernel patch to support it.
-> How about the attached to patch to support TypeTranslation?
-> It only passes compilation:)
-
-Based on the further discussion, your draft patch looks good to me. 
-Lorenzo, do you agree?
-
-Gerry, what would be the best way to approach with this, extra patch of 
-your set? or keep it separately, might be part of my set.
-
-Thanks,
-Tomasz
+T24gTW9uLCBOb3YgMDksIDIwMTUgYXQgMDg6NTY6MTBQTSArMDkwMCwgVGV0c3VvIEhhbmRhIHdy
+b3RlOgo+IFRoZXJlIGFyZSBtYW55IGxvY2F0aW9ucyB0aGF0IGRvCj4gCj4gICBpZiAobWVtb3J5
+X3dhc19hbGxvY2F0ZWRfYnlfdm1hbGxvYykKPiAgICAgdmZyZWUocHRyKTsKPiAgIGVsc2UKPiAg
+ICAga2ZyZWUocHRyKTsKPiAKPiBidXQga3ZmcmVlKCkgY2FuIGhhbmRsZSBib3RoIGttYWxsb2Mo
+KWVkIG1lbW9yeSBhbmQgdm1hbGxvYygpZWQgbWVtb3J5Cj4gdXNpbmcgaXNfdm1hbGxvY19hZGRy
+KCkuIFVubGVzcyBjYWxsZXJzIGhhdmUgc3BlY2lhbCByZWFzb25zLCB3ZSBjYW4KPiByZXBsYWNl
+IHRoaXMgYnJhbmNoIHdpdGgga3ZmcmVlKCkuIFBsZWFzZSBjaGVjayBhbmQgcmVwbHkgaWYgeW91
+IGZvdW5kCj4gcHJvYmxlbXMuCj4gCj4gU2lnbmVkLW9mZi1ieTogVGV0c3VvIEhhbmRhIDxwZW5n
+dWluLWtlcm5lbEBJLWxvdmUuU0FLVVJBLm5lLmpwPgo+IEFja2VkLWJ5OiBNaWNoYWwgSG9ja28g
+PG1ob2Nrb0BzdXNlLmNvbT4KPiBDYzogUnVzc2VsbCBLaW5nIDxsaW51eEBhcm0ubGludXgub3Jn
+LnVrPiAjIGFybQoKQWNrZWQtYnk6IFJ1c3NlbGwgS2luZyA8cm1rK2tlcm5lbEBhcm0ubGludXgu
+b3JnLnVrPgoKSW4gc28gZmFyIGFzIHRoaXMgQVJNIHNwZWNpZmljIGNoYW5nZSBsb29rcyByZWFz
+b25hYmxlLiAgVGhhbmtzLgoKPiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbW0vZG1hLW1hcHBpbmcu
+YyBiL2FyY2gvYXJtL21tL2RtYS1tYXBwaW5nLmMKPiBpbmRleCBlNjI0MDBlLi40OTJiZjNlIDEw
+MDY0NAo+IC0tLSBhL2FyY2gvYXJtL21tL2RtYS1tYXBwaW5nLmMKPiArKysgYi9hcmNoL2FybS9t
+bS9kbWEtbWFwcGluZy5jCj4gQEAgLTEyMDAsMTAgKzEyMDAsNyBAQCBlcnJvcjoKPiAgCXdoaWxl
+IChpLS0pCj4gIAkJaWYgKHBhZ2VzW2ldKQo+ICAJCQlfX2ZyZWVfcGFnZXMocGFnZXNbaV0sIDAp
+Owo+IC0JaWYgKGFycmF5X3NpemUgPD0gUEFHRV9TSVpFKQo+IC0JCWtmcmVlKHBhZ2VzKTsKPiAt
+CWVsc2UKPiAtCQl2ZnJlZShwYWdlcyk7Cj4gKwlrdmZyZWUocGFnZXMpOwo+ICAJcmV0dXJuIE5V
+TEw7Cj4gIH0KPiAgCj4gQEAgLTEyMTEsNyArMTIwOCw2IEBAIHN0YXRpYyBpbnQgX19pb21tdV9m
+cmVlX2J1ZmZlcihzdHJ1Y3QgZGV2aWNlICpkZXYsIHN0cnVjdCBwYWdlICoqcGFnZXMsCj4gIAkJ
+CSAgICAgICBzaXplX3Qgc2l6ZSwgc3RydWN0IGRtYV9hdHRycyAqYXR0cnMpCj4gIHsKPiAgCWlu
+dCBjb3VudCA9IHNpemUgPj4gUEFHRV9TSElGVDsKPiAtCWludCBhcnJheV9zaXplID0gY291bnQg
+KiBzaXplb2Yoc3RydWN0IHBhZ2UgKik7Cj4gIAlpbnQgaTsKPiAgCj4gIAlpZiAoZG1hX2dldF9h
+dHRyKERNQV9BVFRSX0ZPUkNFX0NPTlRJR1VPVVMsIGF0dHJzKSkgewo+IEBAIC0xMjIyLDEwICsx
+MjE4LDcgQEAgc3RhdGljIGludCBfX2lvbW11X2ZyZWVfYnVmZmVyKHN0cnVjdCBkZXZpY2UgKmRl
+diwgc3RydWN0IHBhZ2UgKipwYWdlcywKPiAgCQkJCV9fZnJlZV9wYWdlcyhwYWdlc1tpXSwgMCk7
+Cj4gIAl9Cj4gIAo+IC0JaWYgKGFycmF5X3NpemUgPD0gUEFHRV9TSVpFKQo+IC0JCWtmcmVlKHBh
+Z2VzKTsKPiAtCWVsc2UKPiAtCQl2ZnJlZShwYWdlcyk7Cj4gKwlrdmZyZWUocGFnZXMpOwo+ICAJ
+cmV0dXJuIDA7Cj4gIH0KPiAgCgotLSAKRlRUQyBicm9hZGJhbmQgZm9yIDAuOG1pbGUgbGluZTog
+Y3VycmVudGx5IGF0IDkuNk1icHMgZG93biA0MDBrYnBzIHVwCmFjY29yZGluZyB0byBzcGVlZHRl
+c3QubmV0LgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpk
+cmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0
+cDovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
