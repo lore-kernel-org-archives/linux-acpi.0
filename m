@@ -1,37 +1,127 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v3 2/2] acpi: nfit: Add support for hot-add
-Date: Sun, 8 Nov 2015 17:26:03 -0800
-Message-ID: <CAPcyv4jK+smY6gVaxPAsWh7iZTo5+ZzrGy9SWqmdM1A4sp+jeA@mail.gmail.com>
-References: <1445986707-15395-1-git-send-email-vishal.l.verma@intel.com>
-	<1445986707-15395-3-git-send-email-vishal.l.verma@intel.com>
-	<CAPcyv4gytTTVgU6evY9d+EoxD0wRs4J1D_LS+ucJ5vOju0Kd2A@mail.gmail.com>
-	<13659976.4obepioknq@vostro.rjw.lan>
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: Re: [PATCH] acpi: add support for extended IRQ to PCI link
+Date: Mon, 9 Nov 2015 13:24:51 +0800
+Message-ID: <56402E23.1070805@linux.intel.com>
+References: <1446998832-7023-1-git-send-email-okaya@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f48.google.com ([74.125.82.48]:37641 "EHLO
-	mail-wm0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752029AbbKIB0F (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 8 Nov 2015 20:26:05 -0500
-Received: by wmww144 with SMTP id w144so18931706wmw.0
-        for <linux-acpi@vger.kernel.org>; Sun, 08 Nov 2015 17:26:04 -0800 (PST)
-In-Reply-To: <13659976.4obepioknq@vostro.rjw.lan>
+Received: from mga14.intel.com ([192.55.52.115]:10990 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750814AbbKIFYz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 9 Nov 2015 00:24:55 -0500
+In-Reply-To: <1446998832-7023-1-git-send-email-okaya@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Vishal Verma <vishal.l.verma@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Linux ACPI <linux-acpi@vger.kernel.org>, Jeff Moyer <jmoyer@redhat.com>, Elliott Robert <elliott@hpe.com>, Toshi Kani <toshi.kani@hpe.com>
+To: Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com
+Cc: agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
 
-On Sun, Nov 8, 2015 at 4:49 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Saturday, November 07, 2015 10:57:17 AM Dan Williams wrote:
->> Rafael, awaiting your ack...
->
-> Well, this seems to be entirely NFIT-related.
->
-> Is there anything in particular you want me to look at?
->
+On 2015/11/9 0:07, Sinan Kaya wrote:
+> The ACPI compiler uses the extended format when
+> used interrupt numbers are greater than 256.
+> The PCI link code currently only supports simple
+> interrupt format. The IRQ numbers are represented
+> using 32 bits when extended IRQ syntax. This patch
+> changes the interrupt number type to 32 bits and
+> places an upper limit of 1020 as possible interrupt
+> id. Additional checks have been placed to prevent
+> out of bounds writes.
+> 
+> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+> ---
+>  drivers/acpi/pci_link.c | 35 ++++++++++++++++++++++-------------
+>  1 file changed, 22 insertions(+), 13 deletions(-)
+> 
+> diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+> index 7c8408b..18a9190 100644
+> --- a/drivers/acpi/pci_link.c
+> +++ b/drivers/acpi/pci_link.c
+> @@ -1,6 +1,7 @@
+>  /*
+>   *  pci_link.c - ACPI PCI Interrupt Link Device Driver ($Revision: 34 $)
+>   *
+> + *  Copyright (c) 2015, The Linux Foundation. All rights reserved.
+>   *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
+>   *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
+>   *  Copyright (C) 2002       Dominik Brodowski <devel@brodo.de>
+> @@ -67,12 +68,12 @@ static struct acpi_scan_handler pci_link_handler = {
+>   * later even the link is disable. Instead, we just repick the active irq
+>   */
+>  struct acpi_pci_link_irq {
+> -	u8 active;		/* Current IRQ */
+> +	u32 active;		/* Current IRQ */
+>  	u8 triggering;		/* All IRQs */
+>  	u8 polarity;		/* All IRQs */
+>  	u8 resource_type;
+>  	u8 possible_count;
+> -	u8 possible[ACPI_PCI_LINK_MAX_POSSIBLE];
+> +	u32 possible[ACPI_PCI_LINK_MAX_POSSIBLE];
+>  	u8 initialized:1;
+>  	u8 reserved:7;
+>  };
+Hi Sinan,
+	This data structure become some sort of big, any idea to reduce
+memory consumption?
+Thanks,
+Gerry
 
-This might be more relevant for a follow-on patch, but I wonder if the
-core should be guaranteeing that the ->notify() callback occurs under
-device_lock().  In the case of NFIT it seems possible for the notify
-event to race ->add() or ->remove(), but maybe I missed some other
-guarantee?
+> @@ -437,7 +438,7 @@ static int acpi_pci_link_set(struct acpi_pci_link *link, int irq)
+>   * enabled system.
+>   */
+>  
+> -#define ACPI_MAX_IRQS		256
+> +#define ACPI_MAX_IRQS		1020
+>  #define ACPI_MAX_ISA_IRQ	16
+>  
+>  #define PIRQ_PENALTY_PCI_AVAILABLE	(0)
+> @@ -493,7 +494,8 @@ int __init acpi_irq_penalty_init(void)
+>  					    penalty;
+>  			}
+>  
+> -		} else if (link->irq.active) {
+> +		} else if (link->irq.active &&
+> +			(link->irq.active < ACPI_MAX_IRQS)) {
+>  			acpi_irq_penalty[link->irq.active] +=
+>  			    PIRQ_PENALTY_PCI_POSSIBLE;
+>  		}
+> @@ -542,14 +544,19 @@ static int acpi_pci_link_allocate(struct acpi_pci_link *link)
+>  		irq = link->irq.possible[link->irq.possible_count - 1];
+>  
+>  	if (acpi_irq_balance || !link->irq.active) {
+> -		/*
+> -		 * Select the best IRQ.  This is done in reverse to promote
+> -		 * the use of IRQs 9, 10, 11, and >15.
+> -		 */
+> -		for (i = (link->irq.possible_count - 1); i >= 0; i--) {
+> -			if (acpi_irq_penalty[irq] >
+> -			    acpi_irq_penalty[link->irq.possible[i]])
+> -				irq = link->irq.possible[i];
+> +
+> +		if (irq < ACPI_MAX_IRQS) {
+> +			/*
+> +			 * Select the best IRQ.  This is done in reverse to
+> +			 * promote the use of IRQs 9, 10, 11, and >15.
+> +			 */
+> +			for (i = (link->irq.possible_count - 1); i >= 0;
+> +				i--) {
+> +				if ((link->irq.possible[i] < ACPI_MAX_IRQS) &&
+> +				    (acpi_irq_penalty[irq] >
+> +				    acpi_irq_penalty[link->irq.possible[i]]))
+> +					irq = link->irq.possible[i];
+> +			}
+>  		}
+>  	}
+>  	if (acpi_irq_penalty[irq] >= PIRQ_PENALTY_ISA_ALWAYS) {
+> @@ -568,7 +575,9 @@ static int acpi_pci_link_allocate(struct acpi_pci_link *link)
+>  			    acpi_device_bid(link->device));
+>  		return -ENODEV;
+>  	} else {
+> -		acpi_irq_penalty[link->irq.active] += PIRQ_PENALTY_PCI_USING;
+> +		if (link->irq.active < ACPI_MAX_IRQS)
+> +			acpi_irq_penalty[link->irq.active] +=
+> +				PIRQ_PENALTY_PCI_USING;
+>  		printk(KERN_WARNING PREFIX "%s [%s] enabled at IRQ %d\n",
+>  		       acpi_device_name(link->device),
+>  		       acpi_device_bid(link->device), link->irq.active);
+> 
