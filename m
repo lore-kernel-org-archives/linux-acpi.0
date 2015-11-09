@@ -1,39 +1,27 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] tree wide: Use kvfree() than conditional kfree()/vfree()
-Date: Mon, 09 Nov 2015 22:48:37 +0100
-Message-ID: <5253459.IxnqkcU2vL@vostro.rjw.lan>
-References: <1447070170-8512-1-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp>
+Subject: Re: [PATCH] acpi: add support for extended IRQ to PCI link
+Date: Mon, 09 Nov 2015 22:49:10 +0100
+Message-ID: <1683277.s1uTCxrIbY@vostro.rjw.lan>
+References: <1446998832-7023-1-git-send-email-okaya@codeaurora.org> <563FE2F5.3050802@codeaurora.org> <563FE35C.6020504@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1447070170-8512-1-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp>
-Sender: owner-linux-mm@kvack.org
-To: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
-Cc: akpm@linux-foundation.org, linux-mm@kvack.org, Russell King <linux@arm.linux.org.uk>, linux-acpi@vger.kernel.org, drbd-user@lists.linbit.com, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Oleg Drokin <oleg.drokin@intel.com>, Andreas Dilger <andreas.dilger@intel.com>, codalist@coda.cs.cmu.edu, linux-mtd@lists.infradead.org, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, netdev@vger.kernel.org, Tony Luck <tony.luck@intel.com>, Boris Petkov <bp@suse.de>
+Return-path: <linux-arm-msm-owner@vger.kernel.org>
+In-Reply-To: <563FE35C.6020504@codeaurora.org>
+Sender: linux-arm-msm-owner@vger.kernel.org
+To: Timur Tabi <timur@codeaurora.org>
+Cc: Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, cov@codeaurora.org, jcm@redhat.com, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday, November 09, 2015 08:56:10 PM Tetsuo Handa wrote:
-> There are many locations that do
+On Sunday, November 08, 2015 06:05:48 PM Timur Tabi wrote:
+> Sinan Kaya wrote:
+> >>
+> > 1020 is the maximum interrupt ID that can be directed to an ARM SPI
+> > interrupt according to ARM architecture.
 > 
->   if (memory_was_allocated_by_vmalloc)
->     vfree(ptr);
->   else
->     kfree(ptr);
-> 
-> but kvfree() can handle both kmalloc()ed memory and vmalloc()ed memory
-> using is_vmalloc_addr(). Unless callers have special reasons, we can
-> replace this branch with kvfree(). Please check and reply if you found
-> problems.
+> IMHO, that's something that belongs in the patch description.
 
-ACK for the ACPI changes (and CCing Tony and Boris for the heads-up as they
-are way more famailiar with the APEI code than I am).
+Good point.
 
 Thanks,
 Rafael
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
