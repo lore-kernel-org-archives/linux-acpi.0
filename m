@@ -1,114 +1,46 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [Patch v7 4/7] PCI/ACPI: Add interface acpi_pci_root_create()
-Date: Mon, 09 Nov 2015 21:09:31 +0100
-Message-ID: <6488357.xJV65iBRHq@wuerfel>
-References: <1444804182-6596-1-git-send-email-jiang.liu@linux.intel.com> <5640A8AA.4000806@semihalf.com> <20151109171042.GA11909@red-moon>
+From: "Dilger, Andreas" <andreas.dilger@intel.com>
+Subject: Re: [PATCH] tree wide: Use kvfree() than conditional kfree()/vfree()
+Date: Mon, 9 Nov 2015 20:41:04 +0000
+Message-ID: <D26652E2.1197DE%andreas.dilger@intel.com>
+References: <1447070170-8512-1-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.10]:53503 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751417AbbKIUJw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Nov 2015 15:09:52 -0500
-In-Reply-To: <20151109171042.GA11909@red-moon>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-fsdevel-owner@vger.kernel.org>
+In-Reply-To: <1447070170-8512-1-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp>
+Content-Language: en-US
+Content-ID: <994BD6192472F340B6785C8E6A9E1FA4@intel.com>
+Sender: linux-fsdevel-owner@vger.kernel.org
+To: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>
+Cc: Russell King <linux@arm.linux.org.uk>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "drbd-user@lists.linbit.com" <drbd-user@lists.linbit.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "Drokin, Oleg" <oleg.drokin@intel.com>, "codalist@coda.cs.cmu.edu" <codalist@coda.cs.cmu.edu>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, Jan Kara <jack@suse.com>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Tomasz Nowicki <tn@semihalf.com>, Jiang Liu <jiang.liu@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org
 
-On Monday 09 November 2015 17:10:43 Lorenzo Pieralisi wrote:
-> On Mon, Nov 09, 2015 at 03:07:38PM +0100, Tomasz Nowicki wrote:
-> > On 06.11.2015 14:22, Jiang Liu wrote:
-> > >On 2015/11/6 20:40, Tomasz Nowicki wrote:
-> > >>On 06.11.2015 12:46, Jiang Liu wrote:
-> > >>>On 2015/11/6 18:37, Tomasz Nowicki wrote:
-> > >>>>On 06.11.2015 09:52, Jiang Liu wrote:
-> > >>>>Sure, ARM64 (0-16M IO space) QEMU example:
-> > >>>>DWordIO (ResourceProducer, MinFixed, MaxFixed, PosDecode, EntireRange,
-> > >>>>           0x00000000,         // Granularity
-> > >>>>           0x00000000,         // Range Minimum
-> > >>>>           0x0000FFFF,         // Range Maximum
-> > >>>>           0x3EFF0000,         // Translation Offset
-> > >>>>           0x00010000,         // Length
-> > >>>>           ,, , TypeStatic)
-> > >>>The above DWordIO resource descriptor doesn't confirm to the ACPI spec.
-> > >>>According to my understanding, ARM/ARM64 has no concept of IO port
-> > >>>address space, so the PCI host bridge will map IO port on PCI side
-> > >>>onto MMIO on host side. In other words, PCI host bridge on ARM64
-> > >>>implement a IO Port->MMIO translation instead of a IO Port->IO Port
-> > >>>translation. If that's true, it should use 'TypeTranslation' instead
-> > >>>of 'TypeStatic'. And kernel ACPI resource parsing interface doesn't
-> > >>>support 'TypeTranslation' yet, so we need to find a solution for it.
-> > >>
-> > >>I think you are right, we need TypeTranslation flag for ARM64 DWordIO
-> > >>descriptors and an extra kernel patch to support it.
-> > >How about the attached to patch to support TypeTranslation?
-> > >It only passes compilation:)
-> > 
-> > Based on the further discussion, your draft patch looks good to me.
-> > Lorenzo, do you agree?
-> 
-> No, because I still do not understand the difference between ia64 and
-> arm64 (they both drive IO ports cycles through MMIO so the resource
-> descriptors content must be the same or better they must mean the same
-> thing). On top of that, this is something that was heavily debated for DT:
-> 
-> http://www.spinics.net/lists/arm-kernel/msg345633.html
-> 
-> and I would like to get Arnd and Bjorn opinion on this because we
-> should not "interpret" ACPI specifications, we should understand
-> what they are supposed to describe and write kernel code accordingly.
-> 
-> In particular, I would like to understand, for an eg DWordIO descriptor,
-> what Range Minimum, Range Maximum and Translation Offset represent,
-> they can't mean different things depending on the SW parsing them,
-> this totally defeats the purpose.
+On 2015/11/09, 04:56, "Tetsuo Handa" <penguin-kernel@I-love.SAKURA.ne.jp>
+wrote:
 
-I have no clue about what those mean in ACPI though.
+>There are many locations that do
+>
+>  if (memory_was_allocated_by_vmalloc)
+>    vfree(ptr);
+>  else
+>    kfree(ptr);
+>
+>but kvfree() can handle both kmalloc()ed memory and vmalloc()ed memory
+>using is_vmalloc_addr(). Unless callers have special reasons, we can
+>replace this branch with kvfree(). Please check and reply if you found
+>problems.
+>
+>Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+>Acked-by: Michal Hocko <mhocko@suse.com>
 
-Generally speaking, each PCI domain is expected to have a (normally 64KB)
-range of CPU addresses that gets translated into PCI I/O space the same
-way that config space and memory space are handled.
-This is true for almost every architecture except for x86, which uses
-different CPU instructions for I/O space compared to the other spaces.
+For Lustre part:
+Reviewed-by: Andreas Dilger <andreas.dilger@intel.com>
 
-> By the way, ia64 ioremaps the translation_offset (ie new_space()), so
-> basically that's the CPU physical address at which the PCI host bridge
-> map the IO space transactions), I do not think ia64 is any different from
-> arm64 in this respect, if it is please provide an HW description here from
-> the PCI bus perspective here (also an example of ia64 ACPI PCI host bridge
-> tables would help).
+Cheers, Andreas
+-- 
+Andreas Dilger
 
-The main difference between ia64 and a lot of the other architectures (e.g.
-sparc is different again) is that ia64 defines a logical address range
-in terms of having a small number for each I/O space followed by the
-offset within that space as a 'port number' and uses a mapping function
-that is defined as
+Lustre Principal Engineer
+Intel High Performance Data Division
 
-static inline void *__ia64_mk_io_addr (unsigned long port)
-{
-        struct io_space *space = &io_space[IO_SPACE_NR(port)];
-        return (space->mmio_base | IO_SPACE_PORT(port););
-}
-static inline unsigned int inl(unsigned long port)
-{
-        return *__ia64_mk_io_addr(port);
-}
 
-Most architectures allow only one I/O port range and put it at a fixed
-virtual address so that inl() simply becomes 
-
-static inline u32 inl(unsigned long addr)
-{
-        return readl(PCI_IOBASE + addr);
-}
-
-which noticeably reduces code size.
-
-On some architectures (powerpc, arm, arm64), we then get the same simplified
-definition with a fixed virtual address, and use pci_ioremap_io() or
-something like that to to map a physical address range into this virtual
-address window at the correct io_offset;
-
-	Arnd
