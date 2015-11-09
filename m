@@ -1,31 +1,28 @@
-From: Timur Tabi <timur@codeaurora.org>
-Subject: Re: [PATCH] acpi: add support for extended IRQ to PCI link
-Date: Sun, 8 Nov 2015 18:05:48 -0600
-Message-ID: <563FE35C.6020504@codeaurora.org>
-References: <1446998832-7023-1-git-send-email-okaya@codeaurora.org>
- <563F7418.4050203@codeaurora.org> <563FE2F5.3050802@codeaurora.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v3 2/2] acpi: nfit: Add support for hot-add
+Date: Mon, 09 Nov 2015 01:49:14 +0100
+Message-ID: <13659976.4obepioknq@vostro.rjw.lan>
+References: <1445986707-15395-1-git-send-email-vishal.l.verma@intel.com> <1445986707-15395-3-git-send-email-vishal.l.verma@intel.com> <CAPcyv4gytTTVgU6evY9d+EoxD0wRs4J1D_LS+ucJ5vOju0Kd2A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:60235 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751421AbbKIAFw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 8 Nov 2015 19:05:52 -0500
-In-Reply-To: <563FE2F5.3050802@codeaurora.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:43123 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751421AbbKIAT6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 8 Nov 2015 19:19:58 -0500
+In-Reply-To: <CAPcyv4gytTTVgU6evY9d+EoxD0wRs4J1D_LS+ucJ5vOju0Kd2A@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>, linux-acpi@vger.kernel.org, cov@codeaurora.org, jcm@redhat.com
-Cc: agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Linux ACPI <linux-acpi@vger.kernel.org>, Jeff Moyer <jmoyer@redhat.com>, Elliott Robert <elliott@hpe.com>, Toshi Kani <toshi.kani@hpe.com>
 
-Sinan Kaya wrote:
->>
-> 1020 is the maximum interrupt ID that can be directed to an ARM SPI
-> interrupt according to ARM architecture.
+On Saturday, November 07, 2015 10:57:17 AM Dan Williams wrote:
+> Rafael, awaiting your ack...
 
-IMHO, that's something that belongs in the patch description.
+Well, this seems to be entirely NFIT-related.
 
--- 
-Sent by an employee of the Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the
-Code Aurora Forum, hosted by The Linux Foundation.
+Is there anything in particular you want me to look at?
+
+Rafael
+
