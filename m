@@ -1,58 +1,36 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH] tree wide: Use kvfree() than conditional kfree()/vfree()
-Date: Mon, 9 Nov 2015 16:07:26 +0000
-Message-ID: <20151109160726.GB8644@n2100.arm.linux.org.uk>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] tree wide: Use kvfree() than conditional
+ kfree()/vfree()
+Date: Mon, 09 Nov 2015 11:26:29 -0500 (EST)
+Message-ID: <20151109.112629.1860510744923009883.davem@davemloft.net>
 References: <1447070170-8512-1-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp>
+	<20151109121126.GD11149@quack.suse.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-Content-Disposition: inline
-In-Reply-To: <1447070170-8512-1-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Cc: Andreas Dilger <andreas.dilger@intel.com>, linux-acpi@vger.kernel.org, netdev@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, codalist@coda.cs.cmu.edu, Oleg Drokin <oleg.drokin@intel.com>, linux-mm@kvack.org, linux-mtd@lists.infradead.org, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, akpm@linux-foundation.org, drbd-user@lists.linbit.com
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20151109121126.GD11149@quack.suse.cz>
+Sender: owner-linux-mm@kvack.org
+To: jack@suse.cz
+Cc: penguin-kernel@I-love.SAKURA.ne.jp, akpm@linux-foundation.org, linux-mm@kvack.org, linux@arm.linux.org.uk, linux-acpi@vger.kernel.org, drbd-user@lists.linbit.com, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, oleg.drokin@intel.com, andreas.dilger@intel.com, codalist@coda.cs.cmu.edu, linux-mtd@lists.infradead.org, jack@suse.com, linux-fsdevel@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-T24gTW9uLCBOb3YgMDksIDIwMTUgYXQgMDg6NTY6MTBQTSArMDkwMCwgVGV0c3VvIEhhbmRhIHdy
-b3RlOgo+IFRoZXJlIGFyZSBtYW55IGxvY2F0aW9ucyB0aGF0IGRvCj4gCj4gICBpZiAobWVtb3J5
-X3dhc19hbGxvY2F0ZWRfYnlfdm1hbGxvYykKPiAgICAgdmZyZWUocHRyKTsKPiAgIGVsc2UKPiAg
-ICAga2ZyZWUocHRyKTsKPiAKPiBidXQga3ZmcmVlKCkgY2FuIGhhbmRsZSBib3RoIGttYWxsb2Mo
-KWVkIG1lbW9yeSBhbmQgdm1hbGxvYygpZWQgbWVtb3J5Cj4gdXNpbmcgaXNfdm1hbGxvY19hZGRy
-KCkuIFVubGVzcyBjYWxsZXJzIGhhdmUgc3BlY2lhbCByZWFzb25zLCB3ZSBjYW4KPiByZXBsYWNl
-IHRoaXMgYnJhbmNoIHdpdGgga3ZmcmVlKCkuIFBsZWFzZSBjaGVjayBhbmQgcmVwbHkgaWYgeW91
-IGZvdW5kCj4gcHJvYmxlbXMuCj4gCj4gU2lnbmVkLW9mZi1ieTogVGV0c3VvIEhhbmRhIDxwZW5n
-dWluLWtlcm5lbEBJLWxvdmUuU0FLVVJBLm5lLmpwPgo+IEFja2VkLWJ5OiBNaWNoYWwgSG9ja28g
-PG1ob2Nrb0BzdXNlLmNvbT4KPiBDYzogUnVzc2VsbCBLaW5nIDxsaW51eEBhcm0ubGludXgub3Jn
-LnVrPiAjIGFybQoKQWNrZWQtYnk6IFJ1c3NlbGwgS2luZyA8cm1rK2tlcm5lbEBhcm0ubGludXgu
-b3JnLnVrPgoKSW4gc28gZmFyIGFzIHRoaXMgQVJNIHNwZWNpZmljIGNoYW5nZSBsb29rcyByZWFz
-b25hYmxlLiAgVGhhbmtzLgoKPiBkaWZmIC0tZ2l0IGEvYXJjaC9hcm0vbW0vZG1hLW1hcHBpbmcu
-YyBiL2FyY2gvYXJtL21tL2RtYS1tYXBwaW5nLmMKPiBpbmRleCBlNjI0MDBlLi40OTJiZjNlIDEw
-MDY0NAo+IC0tLSBhL2FyY2gvYXJtL21tL2RtYS1tYXBwaW5nLmMKPiArKysgYi9hcmNoL2FybS9t
-bS9kbWEtbWFwcGluZy5jCj4gQEAgLTEyMDAsMTAgKzEyMDAsNyBAQCBlcnJvcjoKPiAgCXdoaWxl
-IChpLS0pCj4gIAkJaWYgKHBhZ2VzW2ldKQo+ICAJCQlfX2ZyZWVfcGFnZXMocGFnZXNbaV0sIDAp
-Owo+IC0JaWYgKGFycmF5X3NpemUgPD0gUEFHRV9TSVpFKQo+IC0JCWtmcmVlKHBhZ2VzKTsKPiAt
-CWVsc2UKPiAtCQl2ZnJlZShwYWdlcyk7Cj4gKwlrdmZyZWUocGFnZXMpOwo+ICAJcmV0dXJuIE5V
-TEw7Cj4gIH0KPiAgCj4gQEAgLTEyMTEsNyArMTIwOCw2IEBAIHN0YXRpYyBpbnQgX19pb21tdV9m
-cmVlX2J1ZmZlcihzdHJ1Y3QgZGV2aWNlICpkZXYsIHN0cnVjdCBwYWdlICoqcGFnZXMsCj4gIAkJ
-CSAgICAgICBzaXplX3Qgc2l6ZSwgc3RydWN0IGRtYV9hdHRycyAqYXR0cnMpCj4gIHsKPiAgCWlu
-dCBjb3VudCA9IHNpemUgPj4gUEFHRV9TSElGVDsKPiAtCWludCBhcnJheV9zaXplID0gY291bnQg
-KiBzaXplb2Yoc3RydWN0IHBhZ2UgKik7Cj4gIAlpbnQgaTsKPiAgCj4gIAlpZiAoZG1hX2dldF9h
-dHRyKERNQV9BVFRSX0ZPUkNFX0NPTlRJR1VPVVMsIGF0dHJzKSkgewo+IEBAIC0xMjIyLDEwICsx
-MjE4LDcgQEAgc3RhdGljIGludCBfX2lvbW11X2ZyZWVfYnVmZmVyKHN0cnVjdCBkZXZpY2UgKmRl
-diwgc3RydWN0IHBhZ2UgKipwYWdlcywKPiAgCQkJCV9fZnJlZV9wYWdlcyhwYWdlc1tpXSwgMCk7
-Cj4gIAl9Cj4gIAo+IC0JaWYgKGFycmF5X3NpemUgPD0gUEFHRV9TSVpFKQo+IC0JCWtmcmVlKHBh
-Z2VzKTsKPiAtCWVsc2UKPiAtCQl2ZnJlZShwYWdlcyk7Cj4gKwlrdmZyZWUocGFnZXMpOwo+ICAJ
-cmV0dXJuIDA7Cj4gIH0KPiAgCgotLSAKRlRUQyBicm9hZGJhbmQgZm9yIDAuOG1pbGUgbGluZTog
-Y3VycmVudGx5IGF0IDkuNk1icHMgZG93biA0MDBrYnBzIHVwCmFjY29yZGluZyB0byBzcGVlZHRl
-c3QubmV0LgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fXwpk
-cmktZGV2ZWwgbWFpbGluZyBsaXN0CmRyaS1kZXZlbEBsaXN0cy5mcmVlZGVza3RvcC5vcmcKaHR0
-cDovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2RyaS1kZXZlbAo=
+From: Jan Kara <jack@suse.cz>
+Date: Mon, 9 Nov 2015 13:11:26 +0100
+
+> You can add
+> 
+> Acked-by: Jan Kara <jack@suse.com>
+> 
+> for the UDF and fs/xattr.c parts.
+
+Please do not quote and entire large patch just to give an ACK.
+
+Just quote the minimum necessary context, which is usually just
+the commit message.
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
