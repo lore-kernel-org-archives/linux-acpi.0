@@ -1,46 +1,54 @@
-From: "Dilger, Andreas" <andreas.dilger@intel.com>
-Subject: Re: [PATCH] tree wide: Use kvfree() than conditional kfree()/vfree()
-Date: Mon, 9 Nov 2015 20:41:04 +0000
-Message-ID: <D26652E2.1197DE%andreas.dilger@intel.com>
-References: <1447070170-8512-1-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v3 2/2] acpi: nfit: Add support for hot-add
+Date: Mon, 09 Nov 2015 22:24 +0100
+Message-ID: <1694961.7tam4vTeyJ@vostro.rjw.lan>
+References: <1445986707-15395-1-git-send-email-vishal.l.verma@intel.com> <13659976.4obepioknq@vostro.rjw.lan> <CAPcyv4jK+smY6gVaxPAsWh7iZTo5+ZzrGy9SWqmdM1A4sp+jeA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <1447070170-8512-1-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp>
-Content-Language: en-US
-Content-ID: <994BD6192472F340B6785C8E6A9E1FA4@intel.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>, "linux-mm@kvack.org" <linux-mm@kvack.org>
-Cc: Russell King <linux@arm.linux.org.uk>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "drbd-user@lists.linbit.com" <drbd-user@lists.linbit.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>, "Drokin, Oleg" <oleg.drokin@intel.com>, "codalist@coda.cs.cmu.edu" <codalist@coda.cs.cmu.edu>, "linux-mtd@lists.infradead.org" <linux-mtd@lists.infradead.org>, Jan Kara <jack@suse.com>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:45931 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1750959AbbKIUyn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 9 Nov 2015 15:54:43 -0500
+In-Reply-To: <CAPcyv4jK+smY6gVaxPAsWh7iZTo5+ZzrGy9SWqmdM1A4sp+jeA@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Vishal Verma <vishal.l.verma@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Linux ACPI <linux-acpi@vger.kernel.org>, Jeff Moyer <jmoyer@redhat.com>, Elliott Robert <elliott@hpe.com>, Toshi Kani <toshi.kani@hpe.com>
 
-On 2015/11/09, 04:56, "Tetsuo Handa" <penguin-kernel@I-love.SAKURA.ne.jp>
-wrote:
+On Sunday, November 08, 2015 05:26:03 PM Dan Williams wrote:
+> On Sun, Nov 8, 2015 at 4:49 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> > On Saturday, November 07, 2015 10:57:17 AM Dan Williams wrote:
+> >> Rafael, awaiting your ack...
+> >
+> > Well, this seems to be entirely NFIT-related.
+> >
+> > Is there anything in particular you want me to look at?
+> >
+> 
+> This might be more relevant for a follow-on patch, but I wonder if the
+> core should be guaranteeing that the ->notify() callback occurs under
+> device_lock().  In the case of NFIT it seems possible for the notify
+> event to race ->add() or ->remove(), but maybe I missed some other
+> guarantee?
 
->There are many locations that do
->
->  if (memory_was_allocated_by_vmalloc)
->    vfree(ptr);
->  else
->    kfree(ptr);
->
->but kvfree() can handle both kmalloc()ed memory and vmalloc()ed memory
->using is_vmalloc_addr(). Unless callers have special reasons, we can
->replace this branch with kvfree(). Please check and reply if you found
->problems.
->
->Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
->Acked-by: Michal Hocko <mhocko@suse.com>
+No, you didn't.
 
-For Lustre part:
-Reviewed-by: Andreas Dilger <andreas.dilger@intel.com>
+I'd rather drop the ->notify callback completely, because it's kind of
+confusing, as there are other (non-ACPI) drivers that need to receive
+ACPI notifications too and they have to use the raw ACPICA's
+acpi_install_notify_handler() interface.  Having a special interface for
+that for ACPI drivers only doesn't make much sense to me.
 
-Cheers, Andreas
--- 
-Andreas Dilger
+That said, the ACPICA's notify handling code is inherently racy with respect to
+module unload, so potentially dangerous in any modular code.
 
-Lustre Principal Engineer
-Intel High Performance Data Division
+IMO, a generic module-safe wrapper around that code is needed, but since I
+haven't had the time to introduce one for quite a while, I guess it would be
+fine to add device locking around ->notify in acpi_bus_notify(), at least for
+the time being.
 
+Thanks,
+Rafael
 
