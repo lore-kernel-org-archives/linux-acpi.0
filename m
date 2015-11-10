@@ -1,17 +1,19 @@
 From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: [PATCH 0/4] nvdimm: Add an IOCTL pass thru for DSM calls
-Date: Tue, 10 Nov 2015 10:33:29 -0500
-Message-ID: <x49r3jxlvhy.fsf@segfault.boston.devel.redhat.com>
+Subject: Re: [PATCH 3/4] nvdimm: Add IOCTL pass thru
+Date: Tue, 10 Nov 2015 11:24:47 -0500
+Message-ID: <x49io59lt4g.fsf@segfault.boston.devel.redhat.com>
 References: <cover.1446684001.git.jerry.hoemann@hpe.com>
+	<cover.1446684001.git.jerry.hoemann@hpe.com>
+	<2792786733bc18d561ca352d7a642b3989a370fa.1446684001.git.jerry.hoemann@hpe.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:36961 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:37047 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753778AbbKJPdc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 10 Nov 2015 10:33:32 -0500
-In-Reply-To: <cover.1446684001.git.jerry.hoemann@hpe.com> (Jerry Hoemann's
-	message of "Fri, 6 Nov 2015 15:27:27 -0700")
+	id S1753938AbbKJQYt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 10 Nov 2015 11:24:49 -0500
+In-Reply-To: <2792786733bc18d561ca352d7a642b3989a370fa.1446684001.git.jerry.hoemann@hpe.com>
+	(Jerry Hoemann's message of "Fri, 6 Nov 2015 15:27:30 -0700")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Jerry Hoemann <jerry.hoemann@hpe.com>
@@ -19,33 +21,22 @@ Cc: ross.zwisler@linux.intel.com, rjw@rjwysocki.net, lenb@kernel.org, dan.j.will
 
 Jerry Hoemann <jerry.hoemann@hpe.com> writes:
 
-> The NVDIMM code in the kernel supports an IOCTL interface to user
-> space based upon the Intel Example DSM:
->
-> 	http://pmem.io/documents/NVDIMM_DSM_Interface_Example.pdf
->
-> This interface cannot be used by other NVDIMM DSMs that support
-> incompatible functions.
->
-> This patch set adds a generic "passthru" IOCTL interface which
-> is not tied to a particular DSM.
->
-> A new IOCTL type "P" is added for the pass thru call.
->
-> The new data structure ndn_pkg serves as a wrapper for the passthru
-> calls.  This wrapper supplies the data that the kernel needs to
-> make the _DSM call.
+> @@ -633,10 +718,11 @@ static int match_dimm(struct device *dev, void *data)
+>  
+>  static long nvdimm_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+>  {
+> -	int rc = -ENXIO, read_only;
+> +	int rc = -ENXIO, ro;
+>  	struct nvdimm_bus *nvdimm_bus;
+> +	unsigned int type = _IOC_TYPE(cmd);
+>  
+> -	read_only = (O_RDWR != (file->f_flags & O_ACCMODE));
+> +	ro = (O_RDWR != (file->f_flags & O_ACCMODE));
 
-What does 'ndn' stand for?  If it stands for NVDIMM-N, then I think
-that's too narrow a scope.  Anyway, it helps readability if you call out
-what abbreviations mean, especially when it's non-obvious.
-
-> Jerry Hoemann (4):
->   nvdimm: Add wrapper for IOCTL pass thru.
->   nvdimm: Add IOCTL pass thru
->   nvdimm: Add IOCTL pass thru
-
-You should really give each patch a different subject.
+I'm still reviewing the rest of this, but this is bugging me.  The
+existing check for read_only looks pretty fishy to me.  O_WRONLY is a
+thing (even though it's probably not a supportable mode for this ioctl).
+Why not just check for O_RDONLY?
 
 Cheers,
 Jeff
