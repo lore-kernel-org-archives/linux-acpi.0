@@ -1,118 +1,80 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v2 0/7] ACPICA / debugger: Add in-kernel AML debugger support
-Date: Tue, 10 Nov 2015 16:21:30 +0800
-Message-ID: <cover.1447143067.git.lv.zheng@intel.com>
-References: <cover.1446790780.git.lv.zheng@intel.com>
+From: "Williams, Dan J" <dan.j.williams@intel.com>
+Subject: [GIT PULL] libnvdimm for 4.4
+Date: Tue, 10 Nov 2015 09:26:27 +0000
+Message-ID: <1447147587.4739.7.camel@intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:15874 "EHLO mga02.intel.com"
+Received: from mga03.intel.com ([134.134.136.65]:50627 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751822AbbKJIWI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 10 Nov 2015 03:22:08 -0500
-In-Reply-To: <cover.1446790780.git.lv.zheng@intel.com>
+	id S1751861AbbKJJ2N (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 10 Nov 2015 04:28:13 -0500
+Content-Language: en-US
+Content-ID: <E1EC7DB83C73C140A1D1291CA7F6C73D@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "torvalds@linux-foundation.org" <torvalds@linux-foundation.org>, "akpm@linux-foundation.org" <akpm@linux-foundation.org>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-This patchset enables ACPICA debugger for Linux kernel and implements a
-userspace utility to access it.
-
-A. Build the AML debugger
-In order to build the kernel support of AML debugger, the following kconfig
-items should be enabled:
- CONFIG_ACPI_DEBUG=y
- CONFIG_ACPI_DEBUGGER=y
- CONFIG_DEBUG_FS=y
- CONFIG_ACPI_DEBUGGER_USER=m
-The userspace tool can be found at tools/power/acpi/tools/acpidbg. To
-build this utility, staying in tools folder and type "make acpi".
-
-B. Load the AML debugger during runtime
-In order to use the in-kernel AML debugger, the following command should be
-executed using root user:
- # modprobe acpi_dbg
- # mount -t debugfs none /sys/kernel/debug
- # acpidbg
-
-C. Batch mode
-In order to support scripts, the userspace utility also supports single
-command batch mode:
- # acpidbg -b "help"
- # acpidbg -b "tables"
- # acpidbg -b "find _LID"
- # acpidbg -b "execute \_SB.LID0._LID"
-You can find the documentation about the ACPICA debugger commands in:
- https://acpica.org/sites/acpica/files/acpica-reference_17.pdf
- (The latest document can be found at https://acpica.org/documentation)
-And refer to the chapter - ACPICA debugger reference to obtain the full
-description of the debugger commands. Note that not all commands are
-supported by an in-kernel AML debugger.
-
-D. Unload the AML debugger during runtime
-After terminating all acpidbg instances, the following command can be
-executed to remove the AML debugger from kernel:
- # rmmod acpi_dbg
-
-The following tasks are not completed:
-1. .flush() support in the kernel debugger IO driver.
-2. multi-commands batch mode.
-
-v2:
-1. Fix a help message issue for the userspace acpidbg utility (this is a
-   typo fix).
-2. Fix a batch mode issue by adding "\n" to the prompt sequence (this was
-   lost due to too many rebase cycles).
-3. Fix kconfig dependency for an intermediate patch (this is only useful in
-   case the latter patches are reverted).
-4. Add more accurate runtime debugger stub mechanism and remove old
-   ACPI_DEBUGGER_EXEC() stub mechanism.
-5. Add x86 acpi_os_readable() support.
-
-Chen Yu (1):
-  ACPI / x86: introduce acpi_os_readable() support
-
-Colin Ian King (1):
-  ACPICA: Debugger: Remove unnecessary status check
-
-Lv Zheng (5):
-  ACPICA: Debugger: Convert some mechanisms to OSPM specific
-  ACPICA: Debugger: Fix runtime stub issues of ACPI_DEBUGGER_EXEC using
-    different stub mechanism
-  ACPI / debugger: Add IO interface to access debugger functionalities
-  tools/power/acpi: Add userspace AML interface support
-  ACPI / debugger: Add module support for ACPI debugger
-
- arch/x86/Kconfig                         |    1 +
- arch/x86/include/asm/acenv.h             |    1 +
- arch/x86/kernel/acpi/boot.c              |   14 +
- drivers/acpi/Kconfig                     |   16 +-
- drivers/acpi/Makefile                    |    1 +
- drivers/acpi/acpi_dbg.c                  |  818 ++++++++++++++++++++++++++++++
- drivers/acpi/acpica/acdebug.h            |   36 +-
- drivers/acpi/acpica/acglobal.h           |    5 -
- drivers/acpi/acpica/acmacros.h           |   11 -
- drivers/acpi/acpica/dbdisply.c           |   12 +
- drivers/acpi/acpica/dbinput.c            |  100 +---
- drivers/acpi/acpica/dbxface.c            |   93 ++--
- drivers/acpi/acpica/dscontrol.c          |   10 +-
- drivers/acpi/acpica/dsutils.c            |   16 +-
- drivers/acpi/acpica/dswexec.c            |   16 +-
- drivers/acpi/acpica/utmutex.c            |   17 -
- drivers/acpi/bus.c                       |    1 +
- drivers/acpi/osl.c                       |  262 +++++++++-
- include/acpi/acpiosxf.h                  |   18 +-
- include/acpi/acpixf.h                    |   34 ++
- include/acpi/platform/aclinux.h          |    3 +-
- include/acpi/platform/aclinuxex.h        |    8 +-
- include/linux/acpi.h                     |   71 +++
- tools/power/acpi/Makefile                |   16 +-
- tools/power/acpi/tools/acpidbg/Makefile  |   27 +
- tools/power/acpi/tools/acpidbg/acpidbg.c |  438 ++++++++++++++++
- 26 files changed, 1833 insertions(+), 212 deletions(-)
- create mode 100644 drivers/acpi/acpi_dbg.c
- create mode 100644 tools/power/acpi/tools/acpidbg/Makefile
- create mode 100644 tools/power/acpi/tools/acpidbg/acpidbg.c
-
--- 
-1.7.10
-
+SGkgTGludXMsIHBsZWFzZSBwdWxsIGZyb20uLi4NCg0KwqAgZ2l0Oi8vZ2l0Lmtlcm5lbC5vcmcv
+cHViL3NjbS9saW51eC9rZXJuZWwvZ2l0L252ZGltbS9udmRpbW0NCiB0YWdzL2xpYm52ZGltbS1m
+b3ItNC40DQoNCi4uLnRvIHJlY2VpdmUgdGhlIGxpYm52ZGltbSB1cGRhdGUgZm9yIDQuNC4gwqBP
+dXRzaWRlIG9mIHRoZSBuZXcgQUNQSS1ORklUIGhvdC1hZGQgc3VwcG9ydCB0aGlzIHB1bGwgcmVx
+dWVzdCBpcyBtb3JlIG5vdGFibGUgZm9yIHdoYXQgaXQgZG9lcyBub3QgY29udGFpbiwgdGhhbiB3
+aGF0IGl0IGRvZXMuIFRoZXJlIHdlcmUgYSBoYW5kZnVsIG9mIGRldmVsb3BtZW50IHRvcGljcyB0
+aGlzIGN5Y2xlLCBkYXggZ2V0X3VzZXJfcGFnZXMsIGRheCBmc3luYywgYW5kIHJhdyBibG9jayBk
+YXgsIHRoYXQgbmVlZCBtb3JlIG1vcmUgaXRlcmF0aW9uIGFuZCB3aWxsIHdhaXQgZm9yIDQuNS4N
+Cg0KVGhlIHBhdGNoZXMgdG8gbWFrZSBkZXZtIGFuZCB0aGUgcG1lbSBkcml2ZXIgTlVNQSBhd2Fy
+ZSBoYXZlIGJlZW4gaW4NCi1uZXh0IGZvciBzZXZlcmFsIHdlZWtzLiDCoFRoZSBob3QtYWRkIHN1
+cHBvcnQgaGFzIG5vdCwgYnV0IGlzIGNvbnRhaW5lZA0KdG8gdGhlIE5GSVQgZHJpdmVyIGFuZCBp
+cyBwYXNzaW5nIHVuaXQgdGVzdHMuIMKgVGhlIGNvcmVkdW1wIHN1cHBvcnQgaXMNCnN0cmFpZ2h0
+Zm9yd2FyZCBhbmQgd2FzIGxvb2tlZCBvdmVyIGJ5IEplZmYuIMKgQWxsIG9mIGl0IGhhcyByZWNl
+aXZlZCBhDQowZGF5IGJ1aWxkIHN1Y2Nlc3Mgbm90aWZpY2F0aW9uIGFjcm9zcyAxMDcgY29uZmln
+cy4NCg0KVGhlIGZvbGxvd2luZyBjaGFuZ2VzIHNpbmNlIGNvbW1pdCA3Mzc5MDQ3ZDU1ODUxODdk
+MTI4ODQ4NmQ0NjI3ODczMTcwZDAwMDVhOg0KDQrCoCBMaW51eCA0LjMtcmM2ICgyMDE1LTEwLTE4
+IDE2OjA4OjQyIC0wNzAwKQ0KDQphcmUgYXZhaWxhYmxlIGluIHRoZSBnaXQgcmVwb3NpdG9yeSBh
+dDoNCg0KwqAgZ2l0Oi8vZ2l0Lmtlcm5lbC5vcmcvcHViL3NjbS9saW51eC9rZXJuZWwvZ2l0L252
+ZGltbS9udmRpbW0gdGFncy9saWJudmRpbW0tZm9yLTQuNA0KDQpmb3IgeW91IHRvIGZldGNoIGNo
+YW5nZXMgdXAgdG8gYWIyN2E4ZDA0YjMyYjZlZThjMzBjMTRjNGFmZDEwNThlOGFkZGM4MjoNCg0K
+wqAgY29yZWR1bXA6IGFkZCBEQVggZmlsdGVyaW5nIGZvciBGRFBJQyBFTEYgY29yZWR1bXBzICgy
+MDE1LTExLTA5IDEzOjI5OjU0IC0wNTAwKQ0KDQotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tDQpsaWJudmRpbW0gZm9yIDQuNDoN
+Cg0KMS8gQWRkIHN1cHBvcnQgZm9yIHRoZSBBQ1BJIDYuMCBORklUIGhvdCBhZGQgbWVjaGFuaXNt
+IHRvIHByb2Nlc3MNCsKgwqDCoHVwZGF0ZXMgb2YgdGhlIE5GSVQgYXQgcnVudGltZS4NCg0KMi8g
+VGVhY2ggdGhlIGNvcmVkdW1wIGltcGxlbWVudGF0aW9uIGhvdyB0byBmaWx0ZXIgb3V0IERBWCBt
+YXBwaW5ncy4NCg0KMy8gSW50cm9kdWNlIE5VTUEgaGludHMgZm9yIGFsbG9jYXRpb25zIG1hZGUg
+YnkgdGhlIHBtZW0gZHJpdmVyLCBhbmQgYXMNCsKgwqDCoGEgc2lkZSBlZmZlY3QgYWxsIGRldm0g
+YWxsb2NhdGlvbnMgbm93IGhpbnQgdGhlaXIgTlVNQSBub2RlIGJ5DQrCoMKgwqBkZWZhdWx0Lg0K
+DQotLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tDQpEYW4gV2lsbGlhbXMgKDgpOg0KwqDCoMKgwqDCoMKgeDg2LCBtbTogcXVpZXQg
+YXJjaF9hZGRfbWVtb3J5KCkNCsKgwqDCoMKgwqDCoHBtZW06IGtpbGwgbWVtcmVtYXBfcG1lbSgp
+DQrCoMKgwqDCoMKgwqBkZXZtX21lbXVubWFwOiB1c2UgZGV2cmVzX3JlbGVhc2UoKQ0KwqDCoMKg
+wqDCoMKgZGV2bV9tZW1yZW1hcDogY29udmVydCB0byByZXR1cm4gRVJSX1BUUg0KwqDCoMKgwqDC
+oMKgZGV2bTogbWFrZSBhbGxvY2F0aW9ucyBudW1hIGF3YXJlIGJ5IGRlZmF1bHQNCsKgwqDCoMKg
+wqDCoGRldm1fbWVtcmVtYXBfcGFnZXM6IHVzZSBudW1hX21lbV9pZA0KwqDCoMKgwqDCoMKgcG1l
+bSwgbWVtcmVtYXA6IGNvbnZlcnQgdG8gbnVtYSBhd2FyZSBhbGxvY2F0aW9ucw0KwqDCoMKgwqDC
+oMKgTWVyZ2UgYnJhbmNoICdmb3ItNC40L2hvdHBsdWcnIGludG8gbGlibnZkaW1tLWZvci1uZXh0
+DQoNClJvc3MgWndpc2xlciAoMik6DQrCoMKgwqDCoMKgwqBjb3JlZHVtcDogYWRkIERBWCBmaWx0
+ZXJpbmcgZm9yIEVMRiBjb3JlZHVtcHMNCsKgwqDCoMKgwqDCoGNvcmVkdW1wOiBhZGQgREFYIGZp
+bHRlcmluZyBmb3IgRkRQSUMgRUxGIGNvcmVkdW1wcw0KDQpWaXNoYWwgVmVybWEgKDIpOg0KwqDC
+oMKgwqDCoMKgbmZpdDogaW4gYWNwaV9uZml0X2luaXQsIGJyZWFrIG9uIGEgMC1sZW5ndGggdGFi
+bGUNCsKgwqDCoMKgwqDCoGFjcGk6IG5maXQ6IEFkZCBzdXBwb3J0IGZvciBob3QtYWRkDQoNCsKg
+RG9jdW1lbnRhdGlvbi9maWxlc3lzdGVtcy9wcm9jLnR4dCB8wqDCoDIyICstLQ0KwqBhcmNoL3g4
+Ni9tbS9pbml0LmPCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgfMKgwqDCoDQgKy0N
+CsKgYXJjaC94ODYvbW0vaW5pdF82NC5jwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHzCoMKg
+wqA0ICstDQrCoGRyaXZlcnMvYWNwaS9uZml0LmPCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKg
+wqDCoHwgMjk4ICsrKysrKysrKysrKysrKysrKysrKysrKysrKysrKy0tLS0tLS0NCsKgZHJpdmVy
+cy9hY3BpL25maXQuaMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgfMKgwqDCoDIgKw0K
+wqBkcml2ZXJzL2Jhc2UvZGV2cmVzLmPCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgfMKgwqAx
+OSArLS0NCsKgZHJpdmVycy9udmRpbW0vcG1lbS5jwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oHzCoMKgMjggKystLQ0KwqBmcy9iaW5mbXRfZWxmLmPCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgfMKgwqAxMCArKw0KwqBmcy9iaW5mbXRfZWxmX2ZkcGljLmPCoMKgwqDC
+oMKgwqDCoMKgwqDCoMKgwqDCoMKgfMKgwqAxNSArKw0KwqBpbmNsdWRlL2xpbnV4L2RldmljZS5o
+wqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqB8wqDCoDE2ICstDQrCoGluY2x1ZGUvbGludXgvcG1l
+bS5owqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgfMKgwqAyNiArLS0tDQrCoGluY2x1ZGUv
+bGludXgvc2NoZWQuaMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqB8wqDCoMKgNCArLQ0KwqBr
+ZXJuZWwvbWVtcmVtYXAuY8KgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoMKgwqDCoHzCoMKg
+MTYgKy0NCsKgdG9vbHMvdGVzdGluZy9udmRpbW0vdGVzdC9uZml0LmPCoMKgwqB8IDE2NCArKysr
+KysrKysrKysrKysrKysrLQ0KwqAxNCBmaWxlcyBjaGFuZ2VkLCA0OTQgaW5zZXJ0aW9ucygrKSwg
+MTM0IGRlbGV0aW9ucygtKQ==
