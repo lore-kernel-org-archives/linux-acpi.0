@@ -1,41 +1,64 @@
-From: Jeff Moyer <jmoyer@redhat.com>
-Subject: Re: [PATCH 2/4] nvdimm: Add IOCTL pass thru
-Date: Tue, 10 Nov 2015 13:05:20 -0500
-Message-ID: <x494mgtlogv.fsf@segfault.boston.devel.redhat.com>
+From: "Elliott, Robert (Persistent Memory)" <elliott@hpe.com>
+Subject: RE: [PATCH 1/4] nvdimm: Add wrapper for IOCTL pass thru.
+Date: Tue, 10 Nov 2015 19:04:22 +0000
+Message-ID: <94D0CD8314A33A4D9D801C0FE68B40295BE160C5@G4W3202.americas.hpqcorp.net>
 References: <cover.1446684001.git.jerry.hoemann@hpe.com>
-	<cover.1446684001.git.jerry.hoemann@hpe.com>
-	<4f81a8b6fa24723c808c72888290e2368fcdbca0.1446684001.git.jerry.hoemann@hpe.com>
+ <5411049831df211c8280e3239aaf344af033fa25.1446684001.git.jerry.hoemann@hpe.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4f81a8b6fa24723c808c72888290e2368fcdbca0.1446684001.git.jerry.hoemann@hpe.com>
-	(Jerry Hoemann's message of "Fri, 6 Nov 2015 15:27:29 -0700")
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jerry Hoemann <jerry.hoemann@hpe.com>
-Cc: ross.zwisler@linux.intel.com, rjw@rjwysocki.net, lenb@kernel.org, dan.j.williams@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@ml01.01.org
+Content-Type: text/plain; charset="Windows-1252"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g9t5009.houston.hp.com ([15.240.92.67]:49137 "EHLO
+	g9t5009.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750906AbbKJTE6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Nov 2015 14:04:58 -0500
+In-Reply-To: <5411049831df211c8280e3239aaf344af033fa25.1446684001.git.jerry.hoemann@hpe.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Hoemann, Jerry" <jerry.hoemann@hpe.com>, "ross.zwisler@linux.intel.com" <ross.zwisler@linux.intel.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "dan.j.williams@intel.com" <dan.j.williams@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 
-Jerry Hoemann <jerry.hoemann@hpe.com> writes:
+> -----Original Message-----
+> From: Linux-nvdimm [mailto:linux-nvdimm-bounces@lists.01.org] On Behalf Of
+> Hoemann, Jerry
+> Sent: Friday, November 6, 2015 4:27 PM
+> Subject: [PATCH 1/4] nvdimm: Add wrapper for IOCTL pass thru.
+...
+> diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
+...
+> +struct ndn_pkg {
+> +	struct {
+> +		__u8	dsm_uuid[16];
+> +		__u32	dsm_in;			/* size of _DSM input    */
+> +		__u32	dsm_out;		/* size of user buffer   */
+> +		__u32	dsm_rev;		/* revision of dsm call  */
+> +		__u32	res[8];			/* reserved must be zero */
+> +		__u32	dsm_size;		/* size _DSM would write */
+> +	} h;
+> +	unsigned char buf[];
+> +} __packed;
 
-> Add internal data structure for ndctl_passthru call.
->
-> Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
-> ---
->  include/linux/libnvdimm.h | 1 +
->  1 file changed, 1 insertion(+)
->
-> diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
-> index 3f021dc..01117e1 100644
-> --- a/include/linux/libnvdimm.h
-> +++ b/include/linux/libnvdimm.h
-> @@ -72,6 +72,7 @@ struct nvdimm_bus_descriptor {
->  	unsigned long dsm_mask;
->  	char *provider_name;
->  	ndctl_fn ndctl;
-> +	ndctl_fn ndctl_passthru;
+Given that the _DSM arguments are defined as:
+* Arg0 UUID: Buffer of 16 bytes
+* Arg1 Revision ID: Integer (8 bytes)
+* Arg2 Function Index: Integer (8 bytes)
+* Arg3 Package: function-specific
 
-I don't think this is necessary.  Vector off inside of __nd_ioctl.  That
-especially makes sense if you do switch to passthrough as a command
-instead of a type, but it can work either way.
+1. The __u32 for dsm_rev is not big enough to express all
+possible 8 byte Revision IDs.
 
--Jeff
+2. The unsigned int cmd (carried outside this structure)
+is not big enough on all platforms (e.g., 32-bit) to 
+express all possible Function Indexes.
+
+3. The Revision ID and Function Index values passed to 
+the _DSM are defined as little-endian.  Are they
+intended to use native endianness or be little-endian
+in this structure?
+
+---
+Robert Elliott, HPE Persistent Memory
+
+
+
