@@ -1,64 +1,93 @@
-From: "Elliott, Robert (Persistent Memory)" <elliott@hpe.com>
-Subject: RE: [PATCH 1/4] nvdimm: Add wrapper for IOCTL pass thru.
-Date: Tue, 10 Nov 2015 19:04:22 +0000
-Message-ID: <94D0CD8314A33A4D9D801C0FE68B40295BE160C5@G4W3202.americas.hpqcorp.net>
+From: Jerry Hoemann <jerry.hoemann@hpe.com>
+Subject: Re: [PATCH 1/4] nvdimm: Add wrapper for IOCTL pass thru.
+Date: Tue, 10 Nov 2015 12:49:38 -0700
+Message-ID: <20151110194938.GA47666@tevye.fc.hp.com>
 References: <cover.1446684001.git.jerry.hoemann@hpe.com>
+ <cover.1446684001.git.jerry.hoemann@hpe.com>
  <5411049831df211c8280e3239aaf344af033fa25.1446684001.git.jerry.hoemann@hpe.com>
+ <x49d1vhlp34.fsf@segfault.boston.devel.redhat.com>
+Reply-To: Jerry.Hoemann@hpe.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="Windows-1252"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g9t5009.houston.hp.com ([15.240.92.67]:49137 "EHLO
-	g9t5009.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750906AbbKJTE6 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Nov 2015 14:04:58 -0500
-In-Reply-To: <5411049831df211c8280e3239aaf344af033fa25.1446684001.git.jerry.hoemann@hpe.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <x49d1vhlp34.fsf@segfault.boston.devel.redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jeff Moyer <jmoyer@redhat.com>
+Cc: ross.zwisler@linux.intel.com, rjw@rjwysocki.net, lenb@kernel.org, dan.j.williams@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@ml01.01.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Hoemann, Jerry" <jerry.hoemann@hpe.com>, "ross.zwisler@linux.intel.com" <ross.zwisler@linux.intel.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "dan.j.williams@intel.com" <dan.j.williams@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
 
-> -----Original Message-----
-> From: Linux-nvdimm [mailto:linux-nvdimm-bounces@lists.01.org] On Behalf Of
-> Hoemann, Jerry
-> Sent: Friday, November 6, 2015 4:27 PM
-> Subject: [PATCH 1/4] nvdimm: Add wrapper for IOCTL pass thru.
-...
-> diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
-...
-> +struct ndn_pkg {
-> +	struct {
-> +		__u8	dsm_uuid[16];
-> +		__u32	dsm_in;			/* size of _DSM input    */
-> +		__u32	dsm_out;		/* size of user buffer   */
-> +		__u32	dsm_rev;		/* revision of dsm call  */
-> +		__u32	res[8];			/* reserved must be zero */
-> +		__u32	dsm_size;		/* size _DSM would write */
-> +	} h;
-> +	unsigned char buf[];
-> +} __packed;
+On Tue, Nov 10, 2015 at 12:51:59PM -0500, Jeff Moyer wrote:
+> Jerry Hoemann <jerry.hoemann@hpe.com> writes:
+> 
+> > Add IOCTL type 'P' to denote NVDIMM_TYPE_PASSTHRU.
+> 
+> Can't you just make passthrough a separate command?  If you actually add
 
-Given that the _DSM arguments are defined as:
-* Arg0 UUID: Buffer of 16 bytes
-* Arg1 Revision ID: Integer (8 bytes)
-* Arg2 Function Index: Integer (8 bytes)
-* Arg3 Package: function-specific
+There are multiple conflicting NVDIMM _DSM running around, they
+are "device specific".  So, we should plan in general and not just
+for the example DSM that Intel added support for.  These DSM have
+over lapping and incompatible function ids.
 
-1. The __u32 for dsm_rev is not big enough to express all
-possible 8 byte Revision IDs.
+The Intel example is an example,  not standard. They are free to
+change it at will. So, we can't be certain there won't be a
+conflict some time in the future if we try to use their number space.
 
-2. The unsigned int cmd (carried outside this structure)
-is not big enough on all platforms (e.g., 32-bit) to 
-express all possible Function Indexes.
+I'm trying to create a generic pass thru that any vendors can use.  Putting
+this in the Intel function number space doesn't make a lot of sense to me.
 
-3. The Revision ID and Function Index values passed to 
-the _DSM are defined as little-endian.  Are they
-intended to use native endianness or be little-endian
-in this structure?
+> the ioctl definition for passthrough (which you didn't do for some
+> reason?), it looks odd:
 
----
-Robert Elliott, HPE Persistent Memory
+The definition for the IOCTLs are in a user space application.
+These aren't required in the kernel as the kernel is only a
+pass thru.
+
+As the DSM I'm working with isn't yet finalized, I've been told that
+i can't share the user space portion yet.
 
 
+> 
+> #define ND_IOCTL_PASSTHRU        _IOWR(NVDIMM_TYPE_PASSTHRU,, ND_CMD_PASSTHRU, \
+>                                  struct ndn_package)
+> 
+> Care to comment on why you chose a different type instead of specifying
+> a new command?
+> 
+> > +struct ndn_pkg {
+> > +	struct {
+> > +		__u8	dsm_uuid[16];
+> > +		__u32	dsm_in;			/* size of _DSM input    */
+> > +		__u32	dsm_out;		/* size of user buffer   */
+> > +		__u32	dsm_rev;		/* revision of dsm call  */
+> > +		__u32	res[8];			/* reserved must be zero */
+> > +		__u32	dsm_size;		/* size _DSM would write */
+> > +	} h;
+> > +	unsigned char buf[];
+> 
+> Please change that to:
+> 	__u8 *buf;
+> since acpi_object.buffer.pointer is a u8 *.
 
+buf isn't being passed to acpi_evaluate_dsm.  its just being used for pointer offset
+in acpi_nfit_ctl_passthru.  The "payload" that will be passed to acpi_evaluate_dsm
+follows.
+
+> 
+> Note that the size of this structure will be different for 32 vs. 64
+> bit, but I don't think it matters since offsets won't change (the
+> pointer is at the end of the structure).
+
+  I assume you mean size of struct changes if I use the pointer as
+  substitute for the zero sized array?  or are you saying that the
+  packed attribute doesn't affect the layout of the anonymous struct?
+
+-- 
+
+-----------------------------------------------------------------------------
+Jerry Hoemann            Software Engineer      Hewlett-Packard Enterprise
+
+3404 E Harmony Rd. MS 36                        phone:  (970) 898-1022
+Ft. Collins, CO 80528                           FAX:    (970) 898-0707
+                                                email:  jerry.hoemann@hpe.com
+-----------------------------------------------------------------------------
