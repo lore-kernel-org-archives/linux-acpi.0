@@ -1,36 +1,51 @@
-From: Dmitry Krivenok <krivenok.dmitry@gmail.com>
-Subject: Re: [PATCH 3/4] nvdimm: Add IOCTL pass thru
-Date: Tue, 10 Nov 2015 18:05:15 +0300
-Message-ID: <CAJN_NGY0Zop4=_NrW8Y3md7Up9FRq9voQ2UYiTPgXCv9XP8u5A@mail.gmail.com>
-References: <CAJN_NGaPbziX=OcyYpcn5TP76HwGQSTsUz-yOVGB2Sh8VxDQjA@mail.gmail.com>
-	<20151109215904.GB33245@tevye.fc.hp.com>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: [PATCH 0/4] nvdimm: Add an IOCTL pass thru for DSM calls
+Date: Tue, 10 Nov 2015 10:33:29 -0500
+Message-ID: <x49r3jxlvhy.fsf@segfault.boston.devel.redhat.com>
+References: <cover.1446684001.git.jerry.hoemann@hpe.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20151109215904.GB33245@tevye.fc.hp.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jerry Hoemann <Jerry.Hoemann@hpe.com>
-Cc: ross.zwisler@linux.intel.com, rjw@rjwysocki.net, Len Brown <lenb@kernel.org>, dan.j.williams@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@lists.01.org
+Content-Type: text/plain
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:36961 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753778AbbKJPdc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 10 Nov 2015 10:33:32 -0500
+In-Reply-To: <cover.1446684001.git.jerry.hoemann@hpe.com> (Jerry Hoemann's
+	message of "Fri, 6 Nov 2015 15:27:27 -0700")
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jerry Hoemann <jerry.hoemann@hpe.com>
+Cc: ross.zwisler@linux.intel.com, rjw@rjwysocki.net, lenb@kernel.org, dan.j.williams@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@ml01.01.org
 
-> Is your concern readibility or size of generated code (or both?)
+Jerry Hoemann <jerry.hoemann@hpe.com> writes:
+
+> The NVDIMM code in the kernel supports an IOCTL interface to user
+> space based upon the Intel Example DSM:
 >
-> I'll look to consolidating the debug printing in next version as additional patch.
+> 	http://pmem.io/documents/NVDIMM_DSM_Interface_Example.pdf
+>
+> This interface cannot be used by other NVDIMM DSMs that support
+> incompatible functions.
+>
+> This patch set adds a generic "passthru" IOCTL interface which
+> is not tied to a particular DSM.
+>
+> A new IOCTL type "P" is added for the pass thru call.
+>
+> The new data structure ndn_pkg serves as a wrapper for the passthru
+> calls.  This wrapper supplies the data that the kernel needs to
+> make the _DSM call.
 
-Just a minor style comment, not critical.
+What does 'ndn' stand for?  If it stands for NVDIMM-N, then I think
+that's too narrow a scope.  Anyway, it helps readability if you call out
+what abbreviations mean, especially when it's non-obvious.
 
-> If we had a longer list, I would definitely say yes.  Not so sure with
-> just two types.  I'll take a look for the next version.
+> Jerry Hoemann (4):
+>   nvdimm: Add wrapper for IOCTL pass thru.
+>   nvdimm: Add IOCTL pass thru
+>   nvdimm: Add IOCTL pass thru
 
-The same, just a style comment.
+You should really give each patch a different subject.
 
->   list_for_each_entry(nvdimm_bus, &nvdimm_bus_list, list) {
-> - if (nvdimm_bus->id == id) {
-> + if (nvdimm_bus->id != id)
-
-I noticed another minor issue. You have switched from "==" to "!="
-here, but you didn't add "break" after ioctl is handled for the found
-bus.
-
-Thanks,
-Dmitry
+Cheers,
+Jeff
