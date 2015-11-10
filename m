@@ -1,277 +1,513 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [Patch v7 4/7] PCI/ACPI: Add interface acpi_pci_root_create()
-Date: Tue, 10 Nov 2015 13:50:46 +0800
-Message-ID: <564185B6.8040006@linux.intel.com>
-References: <1444804182-6596-1-git-send-email-jiang.liu@linux.intel.com>
- <5640A8AA.4000806@semihalf.com> <20151109171042.GA11909@red-moon>
- <6488357.xJV65iBRHq@wuerfel>
-Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------020604010309010902010902"
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <6488357.xJV65iBRHq@wuerfel>
-Sender: linux-pci-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Tomasz Nowicki <tn@semihalf.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH v2 2/7] ACPICA: Debugger: Convert some mechanisms to OSPM specific
+Date: Tue, 10 Nov 2015 16:21:48 +0800
+Message-ID: <7d7415bfab22911cf66423a6b948c30498f53f2f.1447143067.git.lv.zheng@intel.com>
+References: <cover.1446790780.git.lv.zheng@intel.com> <cover.1447143067.git.lv.zheng@intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:60291 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751822AbbKJIVx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 10 Nov 2015 03:21:53 -0500
+In-Reply-To: <cover.1447143067.git.lv.zheng@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------020604010309010902010902
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+The following mechanisms are OSPM specific:
+1. Redirect output destination to console: no file redirection will be
+   needed by an in-kernel debugger, there is even no file can be accessed
+   when the debugger is running in the kernel mode.
+2. Output command prompts: programs other than acpiexec can have different
+   prompt characters and the prompt characters may be implemented as a
+   special character sequence to form a char device IO protocol.
+3. Command ready/complete handshake: OSPM debugger may wait more conditions
+   to implement OSPM specific semantics (for example, FIFO full/empty
+   conditions for O_NONBLOCK or IO open/close conditions).
+Leaving such OSPM specific stuffs in the ACPICA debugger core blocks
+Linux debugger IO driver implementation.
 
-On 2015/11/10 4:09, Arnd Bergmann wrote:
-> On Monday 09 November 2015 17:10:43 Lorenzo Pieralisi wrote:
->> On Mon, Nov 09, 2015 at 03:07:38PM +0100, Tomasz Nowicki wrote:
->>> On 06.11.2015 14:22, Jiang Liu wrote:
->>>> On 2015/11/6 20:40, Tomasz Nowicki wrote:
->>>>> On 06.11.2015 12:46, Jiang Liu wrote:
->>>>>> On 2015/11/6 18:37, Tomasz Nowicki wrote:
->>>>>>> On 06.11.2015 09:52, Jiang Liu wrote:
->>>>>>> Sure, ARM64 (0-16M IO space) QEMU example:
->>>>>>> DWordIO (ResourceProducer, MinFixed, MaxFixed, PosDecode, EntireRange,
->>>>>>>           0x00000000,         // Granularity
->>>>>>>           0x00000000,         // Range Minimum
->>>>>>>           0x0000FFFF,         // Range Maximum
->>>>>>>           0x3EFF0000,         // Translation Offset
->>>>>>>           0x00010000,         // Length
->>>>>>>           ,, , TypeStatic)
->>>>>> The above DWordIO resource descriptor doesn't confirm to the ACPI spec.
->>>>>> According to my understanding, ARM/ARM64 has no concept of IO port
->>>>>> address space, so the PCI host bridge will map IO port on PCI side
->>>>>> onto MMIO on host side. In other words, PCI host bridge on ARM64
->>>>>> implement a IO Port->MMIO translation instead of a IO Port->IO Port
->>>>>> translation. If that's true, it should use 'TypeTranslation' instead
->>>>>> of 'TypeStatic'. And kernel ACPI resource parsing interface doesn't
->>>>>> support 'TypeTranslation' yet, so we need to find a solution for it.
->>>>>
->>>>> I think you are right, we need TypeTranslation flag for ARM64 DWordIO
->>>>> descriptors and an extra kernel patch to support it.
->>>> How about the attached to patch to support TypeTranslation?
->>>> It only passes compilation:)
->>>
->>> Based on the further discussion, your draft patch looks good to me.
->>> Lorenzo, do you agree?
->>
->> No, because I still do not understand the difference between ia64 and
->> arm64 (they both drive IO ports cycles through MMIO so the resource
->> descriptors content must be the same or better they must mean the same
->> thing). On top of that, this is something that was heavily debated for DT:
->>
->> http://www.spinics.net/lists/arm-kernel/msg345633.html
->>
->> and I would like to get Arnd and Bjorn opinion on this because we
->> should not "interpret" ACPI specifications, we should understand
->> what they are supposed to describe and write kernel code accordingly.
->>
->> In particular, I would like to understand, for an eg DWordIO descriptor,
->> what Range Minimum, Range Maximum and Translation Offset represent,
->> they can't mean different things depending on the SW parsing them,
->> this totally defeats the purpose.
-> 
-> I have no clue about what those mean in ACPI though.
-> 
-> Generally speaking, each PCI domain is expected to have a (normally 64KB)
-> range of CPU addresses that gets translated into PCI I/O space the same
-> way that config space and memory space are handled.
-> This is true for almost every architecture except for x86, which uses
-> different CPU instructions for I/O space compared to the other spaces.
-> 
->> By the way, ia64 ioremaps the translation_offset (ie new_space()), so
->> basically that's the CPU physical address at which the PCI host bridge
->> map the IO space transactions), I do not think ia64 is any different from
->> arm64 in this respect, if it is please provide an HW description here from
->> the PCI bus perspective here (also an example of ia64 ACPI PCI host bridge
->> tables would help).
-> 
-> The main difference between ia64 and a lot of the other architectures (e.g.
-> sparc is different again) is that ia64 defines a logical address range
-> in terms of having a small number for each I/O space followed by the
-> offset within that space as a 'port number' and uses a mapping function
-> that is defined as
-> 
-> static inline void *__ia64_mk_io_addr (unsigned long port)
-> {
->         struct io_space *space = &io_space[IO_SPACE_NR(port)];
->         return (space->mmio_base | IO_SPACE_PORT(port););
-> }
-> static inline unsigned int inl(unsigned long port)
-> {
->         return *__ia64_mk_io_addr(port);
-> }
-> 
-> Most architectures allow only one I/O port range and put it at a fixed
-> virtual address so that inl() simply becomes 
-> 
-> static inline u32 inl(unsigned long addr)
-> {
->         return readl(PCI_IOBASE + addr);
-> }
-> 
-> which noticeably reduces code size.
-> 
-> On some architectures (powerpc, arm, arm64), we then get the same simplified
-> definition with a fixed virtual address, and use pci_ioremap_io() or
-> something like that to to map a physical address range into this virtual
-> address window at the correct io_offset;
-Hi all,
-	Thanks for explanation, I found a way to make the ACPI resource
-parsing interface arch neutral, it should help to address Lorenzo's
-concern. Please refer to the attached patch. (It's still RFC, not tested
-yet).
-Thanks,
-Gerry
+Several new OSL APIs are provided by this patch:
+1. acpi_os_initialize_command_signals: initialize command handshake mechanism
+   or any other OSPM specific stuffs.
+2. acpi_os_terminate_command_signals: reversal of
+   acpi_os_initialize_command_signals.
+3. acpi_os_wait_command_ready: putting debugger task into wait state when a
+   command is not ready. OSPMs can terminate command loop by returning
+   AE_CTRL_TERMINATE from this API. Normally, wait_event() or
+   wait_for_multiple_object() may be used to implement this API.
+4. acpi_os_notify_command_complete: putting user task into running state when a
+   command has been completed. OSPMs can terminate command loop by
+   returning AE_CTRL_TERMINATE from this API. Normally, wake_up() or
+   set_event() may be used to implement this API.
+This patch also converts current command signaling implementation into a
+generic debugger layer (osgendbg.c) to be used by the existing OSPMs or
+acpiexec, in return, Linux can have chance to implement its own command
+handshake mechanism. This patch also implements acpiexec batch mode in a
+multi-threading mode comaptible style as a demo (this can be confirmed by
+configuring acpiexec into DEBUGGER_MULTI_THREADED mode where the batch mode
+is still working). Lv Zheng.
 
---------------020604010309010902010902
-Content-Type: text/plain; charset=UTF-8;
- name="0001-ACPI-PCI-Refine-the-way-to-handle-translation_offset.patch~"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename*0="0001-ACPI-PCI-Refine-the-way-to-handle-translation_offset.pa";
- filename*1="tch~"
+Note that the OSPM specific command handshake mechanism is required by
+Linux kernel because:
+1. Linux kernel trends to use wait queue to synchronize two threads, using
+   mutexes to achieve that will cause false "dead lock" warnings.
+2. The command handshake mechanism implemented by ACPICA is implemented in
+   this way because of a design issue in debugger IO streaming. Debugger IO
+   outputs are simply cached using a giant buffer, this should be tuned by
+   Linux in the future.
 
->From 6521d3c5303b1d9830eecede4c1b778deffe17b0 Mon Sep 17 00:00:00 2001
-From: Liu Jiang <jiang.liu@linux.intel.com>
-Date: Tue, 10 Nov 2015 10:59:11 +0800
-Subject: [PATCH] ACPI, PCI: Refine the way to handle translation_offset for
- ACPI resources
-
-Some architectures, such as IA64 and ARM64, have no instructions to
-directly access PCI IO ports, so they map PCI IO ports into PCI MMIO
-address space. Typically PCI host bridges on those architectures take
-the responsibility to map (translate) PCI IO port transactions into
-Memory-Mapped IO transactions. ACPI specification provides support
-of such a usage case by using resource translation_offset.
-
-But current ACPI resource parsing interface isn't neutral enough,
-it still has some special logic for IA64. So refine the ACPI resource
-parsing interface and IA64 code to neutrally handle translation_offset
-by:
-1) ACPI resource parsing interface doesn't do any translation, it just
-   save the translation_offset to be used by arch code.
-2) Arch code will do the mapping(translation) based on arch specific
-   information. Typically it does:
-2.a) Translate per PCI domain IO port address space into system global
-   IO port address space.
-2.b) Setup MMIO address mapping for IO ports.
-void handle_io_resource(struct resource_entry *io_entry)
-{
-	struct resource *mmio_res;
-
-	mmio_res = kzalloc(sizeof(*mmio_res), GFP_KERNEL);
-	mmio_res->flags = IORESOURCE_MEM;
-	mmio_res->start = io_entry->offset + io_entry->res->start;
-	mmio_res->end = io_entry->offset + io_entry->res->end;
-	insert_resource(&iomem_resource, mmio_res)
-
-	base = map_to_system_ioport_address(entry);
-	io_entry->offset = base;
-	io_entry->res->start += base;
-	io_entry->res->end += base;
-}
-
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- arch/ia64/pci/pci.c     |   26 ++++++++++++++++----------
- drivers/acpi/resource.c |   12 +++++-------
- 2 files changed, 21 insertions(+), 17 deletions(-)
+ drivers/acpi/acpica/acdebug.h     |    2 +-
+ drivers/acpi/acpica/acglobal.h    |    5 --
+ drivers/acpi/acpica/dbinput.c     |   97 ++++++++-----------------------------
+ drivers/acpi/acpica/dbxface.c     |   63 +++++++-----------------
+ drivers/acpi/acpica/utmutex.c     |   17 -------
+ include/acpi/acpiosxf.h           |   18 ++++++-
+ include/acpi/acpixf.h             |   11 +++++
+ include/acpi/platform/aclinux.h   |    4 ++
+ include/acpi/platform/aclinuxex.h |   19 ++++++++
+ 9 files changed, 89 insertions(+), 147 deletions(-)
 
-diff --git a/arch/ia64/pci/pci.c b/arch/ia64/pci/pci.c
-index 8f6ac2f8ae4c..ee84300797d8 100644
---- a/arch/ia64/pci/pci.c
-+++ b/arch/ia64/pci/pci.c
-@@ -154,7 +154,7 @@ static int add_io_space(struct device *dev, struct pci_root_info *info,
- 	struct resource_entry *iospace;
- 	struct resource *resource, *res = entry->res;
- 	char *name;
--	unsigned long base, min, max, base_port;
-+	unsigned long base_mmio, base_port;
- 	unsigned int sparse = 0, space_nr, len;
+diff --git a/drivers/acpi/acpica/acdebug.h b/drivers/acpi/acpica/acdebug.h
+index c928ba4..86474d8 100644
+--- a/drivers/acpi/acpica/acdebug.h
++++ b/drivers/acpi/acpica/acdebug.h
+@@ -257,7 +257,7 @@ acpi_db_command_dispatch(char *input_buffer,
  
- 	len = strlen(info->common.name) + 32;
-@@ -172,12 +172,10 @@ static int add_io_space(struct device *dev, struct pci_root_info *info,
- 		goto free_resource;
+ void ACPI_SYSTEM_XFACE acpi_db_execute_thread(void *context);
  
- 	name = (char *)(iospace + 1);
--	min = res->start - entry->offset;
--	max = res->end - entry->offset;
--	base = __pa(io_space[space_nr].mmio_base);
-+	base_mmio = __pa(io_space[space_nr].mmio_base);
- 	base_port = IO_SPACE_BASE(space_nr);
- 	snprintf(name, len, "%s I/O Ports %08lx-%08lx", info->common.name,
--		 base_port + min, base_port + max);
-+		 base_port + res->start, base_port + res->end);
+-acpi_status acpi_db_user_commands(char prompt, union acpi_parse_object *op);
++acpi_status acpi_db_user_commands(void);
  
- 	/*
- 	 * The SDM guarantees the legacy 0-64K space is sparse, but if the
-@@ -190,19 +188,27 @@ static int add_io_space(struct device *dev, struct pci_root_info *info,
- 	resource = iospace->res;
- 	resource->name  = name;
- 	resource->flags = IORESOURCE_MEM;
--	resource->start = base + (sparse ? IO_SPACE_SPARSE_ENCODING(min) : min);
--	resource->end   = base + (sparse ? IO_SPACE_SPARSE_ENCODING(max) : max);
-+	resource->start = base_mmio;
-+	resource->end = base_mmio;
-+	if (sparse) {
-+		resource->start += IO_SPACE_SPARSE_ENCODING(res->start);
-+		resource->end += IO_SPACE_SPARSE_ENCODING(res->end);
-+	} else {
-+		resource->start += res->start;
-+		resource->end += res->end;
-+	}
- 	if (insert_resource(&iomem_resource, resource)) {
- 		dev_err(dev,
- 			"can't allocate host bridge io space resource  %pR\n",
- 			resource);
- 		goto free_resource;
- 	}
-+	resource_list_add_tail(iospace, &info->io_resources);
+ char *acpi_db_get_next_token(char *string,
+ 			     char **next, acpi_object_type * return_type);
+diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
+index faa9760..3977134 100644
+--- a/drivers/acpi/acpica/acglobal.h
++++ b/drivers/acpi/acpica/acglobal.h
+@@ -326,7 +326,6 @@ ACPI_GLOBAL(struct acpi_external_file *, acpi_gbl_external_file_list);
+ #ifdef ACPI_DEBUGGER
  
-+	/* Adjust base of original IO port resource descriptor */
- 	entry->offset = base_port;
--	res->start = min + base_port;
--	res->end = max + base_port;
--	resource_list_add_tail(iospace, &info->io_resources);
-+	res->start += base_port;
-+	res->end += base_port;
+ ACPI_INIT_GLOBAL(u8, acpi_gbl_abort_method, FALSE);
+-ACPI_INIT_GLOBAL(u8, acpi_gbl_method_executing, FALSE);
+ ACPI_INIT_GLOBAL(acpi_thread_id, acpi_gbl_db_thread_id, ACPI_INVALID_THREAD_ID);
  
- 	return 0;
+ ACPI_GLOBAL(u8, acpi_gbl_db_opt_no_ini_methods);
+@@ -345,7 +344,6 @@ ACPI_GLOBAL(acpi_object_type, acpi_gbl_db_arg_types[ACPI_DEBUGGER_MAX_ARGS]);
  
-diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
-index cdc5c2599beb..6578f68b17be 100644
---- a/drivers/acpi/resource.c
-+++ b/drivers/acpi/resource.c
-@@ -190,8 +190,7 @@ static bool acpi_decode_space(struct resource_win *win,
+ /* These buffers should all be the same size */
+ 
+-ACPI_GLOBAL(char, acpi_gbl_db_line_buf[ACPI_DB_LINE_BUFFER_SIZE]);
+ ACPI_GLOBAL(char, acpi_gbl_db_parsed_buf[ACPI_DB_LINE_BUFFER_SIZE]);
+ ACPI_GLOBAL(char, acpi_gbl_db_scope_buf[ACPI_DB_LINE_BUFFER_SIZE]);
+ ACPI_GLOBAL(char, acpi_gbl_db_debug_filename[ACPI_DB_LINE_BUFFER_SIZE]);
+@@ -360,9 +358,6 @@ ACPI_GLOBAL(u16, acpi_gbl_node_type_count_misc);
+ ACPI_GLOBAL(u32, acpi_gbl_num_nodes);
+ ACPI_GLOBAL(u32, acpi_gbl_num_objects);
+ 
+-ACPI_GLOBAL(acpi_mutex, acpi_gbl_db_command_ready);
+-ACPI_GLOBAL(acpi_mutex, acpi_gbl_db_command_complete);
+-
+ #endif				/* ACPI_DEBUGGER */
+ 
+ /*****************************************************************************
+diff --git a/drivers/acpi/acpica/dbinput.c b/drivers/acpi/acpica/dbinput.c
+index fe93f67..2bf8e6b 100644
+--- a/drivers/acpi/acpica/dbinput.c
++++ b/drivers/acpi/acpica/dbinput.c
+@@ -53,8 +53,6 @@ static u32 acpi_db_get_line(char *input_buffer);
+ 
+ static u32 acpi_db_match_command(char *user_command);
+ 
+-static void acpi_db_single_thread(void);
+-
+ static void acpi_db_display_command_info(char *command, u8 display_all);
+ 
+ static void acpi_db_display_help(char *command);
+@@ -1149,55 +1147,16 @@ acpi_db_command_dispatch(char *input_buffer,
+ 
+ void ACPI_SYSTEM_XFACE acpi_db_execute_thread(void *context)
  {
- 	u8 iodec = attr->granularity == 0xfff ? ACPI_DECODE_10 : ACPI_DECODE_16;
- 	bool wp = addr->info.mem.write_protect;
--	u64 len = attr->address_length;
--	u64 start, end, offset = 0;
-+	u64 len = attr->address_length, offset = 0;
- 	struct resource *res = &win->res;
+-	acpi_status status = AE_OK;
+-	acpi_status Mstatus;
+-
+-	while (status != AE_CTRL_TERMINATE && !acpi_gbl_db_terminate_loop) {
+-		acpi_gbl_method_executing = FALSE;
+-		acpi_gbl_step_to_next_call = FALSE;
+-
+-		Mstatus = acpi_os_acquire_mutex(acpi_gbl_db_command_ready,
+-						ACPI_WAIT_FOREVER);
+-		if (ACPI_FAILURE(Mstatus)) {
+-			return;
+-		}
+-
+-		status =
+-		    acpi_db_command_dispatch(acpi_gbl_db_line_buf, NULL, NULL);
  
- 	/*
-@@ -215,14 +214,13 @@ static bool acpi_decode_space(struct resource_win *win,
- 	else if (attr->translation_offset)
- 		pr_debug("ACPI: translation_offset(%lld) is invalid for non-bridge device.\n",
- 			 attr->translation_offset);
--	start = attr->minimum + offset;
--	end = attr->maximum + offset;
+-		acpi_os_release_mutex(acpi_gbl_db_command_complete);
+-	}
++	(void)acpi_db_user_commands();
+ 	acpi_gbl_db_threads_terminated = TRUE;
+ }
  
- 	win->offset = offset;
--	res->start = start;
--	res->end = end;
-+	res->start = attr->minimum;
-+	res->end = attr->maximum;
- 	if (sizeof(resource_size_t) < sizeof(u64) &&
--	    (offset != win->offset || start != res->start || end != res->end)) {
-+	    (offset != win->offset || attr->minimum != res->start ||
-+	     attr->maximum != res->end)) {
- 		pr_warn("acpi resource window ([%#llx-%#llx] ignored, not CPU addressable)\n",
- 			attr->minimum, attr->maximum);
- 		return false;
+ /*******************************************************************************
+  *
+- * FUNCTION:    acpi_db_single_thread
+- *
+- * PARAMETERS:  None
+- *
+- * RETURN:      None
+- *
+- * DESCRIPTION: Debugger execute thread. Waits for a command line, then
+- *              simply dispatches it.
+- *
+- ******************************************************************************/
+-
+-static void acpi_db_single_thread(void)
+-{
+-
+-	acpi_gbl_method_executing = FALSE;
+-	acpi_gbl_step_to_next_call = FALSE;
+-
+-	(void)acpi_db_command_dispatch(acpi_gbl_db_line_buf, NULL, NULL);
+-}
+-
+-/*******************************************************************************
+- *
+  * FUNCTION:    acpi_db_user_commands
+  *
+- * PARAMETERS:  prompt              - User prompt (depends on mode)
+- *              op                  - Current executing parse op
++ * PARAMETERS:  None
+  *
+  * RETURN:      None
+  *
+@@ -1206,7 +1165,7 @@ static void acpi_db_single_thread(void)
+  *
+  ******************************************************************************/
+ 
+-acpi_status acpi_db_user_commands(char prompt, union acpi_parse_object *op)
++acpi_status acpi_db_user_commands(void)
+ {
+ 	acpi_status status = AE_OK;
+ 
+@@ -1216,49 +1175,31 @@ acpi_status acpi_db_user_commands(char prompt, union acpi_parse_object *op)
+ 
+ 	while (!acpi_gbl_db_terminate_loop) {
+ 
+-		/* Force output to console until a command is entered */
+-
+-		acpi_db_set_output_destination(ACPI_DB_CONSOLE_OUTPUT);
+-
+-		/* Different prompt if method is executing */
+-
+-		if (!acpi_gbl_method_executing) {
+-			acpi_os_printf("%1c ", ACPI_DEBUGGER_COMMAND_PROMPT);
+-		} else {
+-			acpi_os_printf("%1c ", ACPI_DEBUGGER_EXECUTE_PROMPT);
+-		}
+-
+-		/* Get the user input line */
++		/* Wait the readiness of the command */
+ 
+-		status = acpi_os_get_line(acpi_gbl_db_line_buf,
+-					  ACPI_DB_LINE_BUFFER_SIZE, NULL);
++		status = acpi_os_wait_command_ready();
+ 		if (ACPI_FAILURE(status)) {
+-			ACPI_EXCEPTION((AE_INFO, status,
+-					"While parsing command line"));
+-			return (status);
++			break;
+ 		}
+ 
+-		/* Check for single or multithreaded debug */
++		/* Just call to the command line interpreter */
+ 
+-		if (acpi_gbl_debugger_configuration & DEBUGGER_MULTI_THREADED) {
+-			/*
+-			 * Signal the debug thread that we have a command to execute,
+-			 * and wait for the command to complete.
+-			 */
+-			acpi_os_release_mutex(acpi_gbl_db_command_ready);
++		acpi_gbl_method_executing = FALSE;
++		acpi_gbl_step_to_next_call = FALSE;
+ 
+-			status =
+-			    acpi_os_acquire_mutex(acpi_gbl_db_command_complete,
+-						  ACPI_WAIT_FOREVER);
+-			if (ACPI_FAILURE(status)) {
+-				return (status);
+-			}
+-		} else {
+-			/* Just call to the command line interpreter */
++		(void)acpi_db_command_dispatch(acpi_gbl_db_line_buf, NULL,
++					       NULL);
++
++		/* Notify the completion of the command */
+ 
+-			acpi_db_single_thread();
++		status = acpi_os_notify_command_complete();
++		if (ACPI_FAILURE(status)) {
++			break;
+ 		}
+ 	}
+ 
++	if (ACPI_FAILURE(status) && status != AE_CTRL_TERMINATE) {
++		ACPI_EXCEPTION((AE_INFO, status, "While parsing command line"));
++	}
+ 	return (status);
+ }
+diff --git a/drivers/acpi/acpica/dbxface.c b/drivers/acpi/acpica/dbxface.c
+index 342298a..d95e91f 100644
+--- a/drivers/acpi/acpica/dbxface.c
++++ b/drivers/acpi/acpica/dbxface.c
+@@ -85,46 +85,21 @@ acpi_db_start_command(struct acpi_walk_state *walk_state,
+ 
+ 	acpi_gbl_method_executing = TRUE;
+ 	status = AE_CTRL_TRUE;
+-	while (status == AE_CTRL_TRUE) {
+-		if (acpi_gbl_debugger_configuration == DEBUGGER_MULTI_THREADED) {
+-
+-			/* Handshake with the front-end that gets user command lines */
+-
+-			acpi_os_release_mutex(acpi_gbl_db_command_complete);
+-
+-			status =
+-			    acpi_os_acquire_mutex(acpi_gbl_db_command_ready,
+-						  ACPI_WAIT_FOREVER);
+-			if (ACPI_FAILURE(status)) {
+-				return (status);
+-			}
+-		} else {
+-			/* Single threaded, we must get a command line ourselves */
+ 
+-			/* Force output to console until a command is entered */
+-
+-			acpi_db_set_output_destination(ACPI_DB_CONSOLE_OUTPUT);
++	while (status == AE_CTRL_TRUE) {
+ 
+-			/* Different prompt if method is executing */
++		/* Notify the completion of the command */
+ 
+-			if (!acpi_gbl_method_executing) {
+-				acpi_os_printf("%1c ",
+-					       ACPI_DEBUGGER_COMMAND_PROMPT);
+-			} else {
+-				acpi_os_printf("%1c ",
+-					       ACPI_DEBUGGER_EXECUTE_PROMPT);
+-			}
++		status = acpi_os_notify_command_complete();
++		if (ACPI_FAILURE(status)) {
++			goto error_exit;
++		}
+ 
+-			/* Get the user input line */
++		/* Wait the readiness of the command */
+ 
+-			status = acpi_os_get_line(acpi_gbl_db_line_buf,
+-						  ACPI_DB_LINE_BUFFER_SIZE,
+-						  NULL);
+-			if (ACPI_FAILURE(status)) {
+-				ACPI_EXCEPTION((AE_INFO, status,
+-						"While parsing command line"));
+-				return (status);
+-			}
++		status = acpi_os_wait_command_ready();
++		if (ACPI_FAILURE(status)) {
++			goto error_exit;
+ 		}
+ 
+ 		status =
+@@ -134,6 +109,11 @@ acpi_db_start_command(struct acpi_walk_state *walk_state,
+ 
+ 	/* acpi_ut_acquire_mutex (ACPI_MTX_NAMESPACE); */
+ 
++error_exit:
++	if (ACPI_FAILURE(status) && status != AE_CTRL_TERMINATE) {
++		ACPI_EXCEPTION((AE_INFO, status,
++				"While parsing/handling command line"));
++	}
+ 	return (status);
+ }
+ 
+@@ -420,15 +400,7 @@ acpi_status acpi_initialize_debugger(void)
+ 
+ 		/* These were created with one unit, grab it */
+ 
+-		status = acpi_os_acquire_mutex(acpi_gbl_db_command_complete,
+-					       ACPI_WAIT_FOREVER);
+-		if (ACPI_FAILURE(status)) {
+-			acpi_os_printf("Could not get debugger mutex\n");
+-			return_ACPI_STATUS(status);
+-		}
+-
+-		status = acpi_os_acquire_mutex(acpi_gbl_db_command_ready,
+-					       ACPI_WAIT_FOREVER);
++		status = acpi_os_initialize_command_signals();
+ 		if (ACPI_FAILURE(status)) {
+ 			acpi_os_printf("Could not get debugger mutex\n");
+ 			return_ACPI_STATUS(status);
+@@ -473,13 +445,14 @@ void acpi_terminate_debugger(void)
+ 	acpi_gbl_db_terminate_loop = TRUE;
+ 
+ 	if (acpi_gbl_debugger_configuration & DEBUGGER_MULTI_THREADED) {
+-		acpi_os_release_mutex(acpi_gbl_db_command_ready);
+ 
+ 		/* Wait the AML Debugger threads */
+ 
+ 		while (!acpi_gbl_db_threads_terminated) {
+ 			acpi_os_sleep(100);
+ 		}
++
++		acpi_os_terminate_command_signals();
+ 	}
+ 
+ 	if (acpi_gbl_db_buffer) {
+diff --git a/drivers/acpi/acpica/utmutex.c b/drivers/acpi/acpica/utmutex.c
+index ce406e3..ea0c207 100644
+--- a/drivers/acpi/acpica/utmutex.c
++++ b/drivers/acpi/acpica/utmutex.c
+@@ -111,17 +111,6 @@ acpi_status acpi_ut_mutex_initialize(void)
+ 	if (ACPI_FAILURE(status)) {
+ 		return_ACPI_STATUS(status);
+ 	}
+-#ifdef ACPI_DEBUGGER
+-
+-	/* Debugger Support */
+-
+-	status = acpi_os_create_mutex(&acpi_gbl_db_command_ready);
+-	if (ACPI_FAILURE(status)) {
+-		return_ACPI_STATUS(status);
+-	}
+-
+-	status = acpi_os_create_mutex(&acpi_gbl_db_command_complete);
+-#endif
+ 
+ 	return_ACPI_STATUS(status);
+ }
+@@ -162,12 +151,6 @@ void acpi_ut_mutex_terminate(void)
+ 	/* Delete the reader/writer lock */
+ 
+ 	acpi_ut_delete_rw_lock(&acpi_gbl_namespace_rw_lock);
+-
+-#ifdef ACPI_DEBUGGER
+-	acpi_os_delete_mutex(acpi_gbl_db_command_ready);
+-	acpi_os_delete_mutex(acpi_gbl_db_command_complete);
+-#endif
+-
+ 	return_VOID;
+ }
+ 
+diff --git a/include/acpi/acpiosxf.h b/include/acpi/acpiosxf.h
+index fbc2baf..0d824a2 100644
+--- a/include/acpi/acpiosxf.h
++++ b/include/acpi/acpiosxf.h
+@@ -349,12 +349,28 @@ void acpi_os_redirect_output(void *destination);
+ #endif
+ 
+ /*
+- * Debug input
++ * Debug IO
+  */
+ #ifndef ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_get_line
+ acpi_status acpi_os_get_line(char *buffer, u32 buffer_length, u32 *bytes_read);
+ #endif
+ 
++#ifndef ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_initialize_command_signals
++acpi_status acpi_os_initialize_command_signals(void);
++#endif
++
++#ifndef ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_terminate_command_signals
++void acpi_os_terminate_command_signals(void);
++#endif
++
++#ifndef ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_wait_command_ready
++acpi_status acpi_os_wait_command_ready(void);
++#endif
++
++#ifndef ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_notify_command_complete
++acpi_status acpi_os_notify_command_complete(void);
++#endif
++
+ /*
+  * Obtain ACPI table(s)
+  */
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index 3aaaa86..95ebae3 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -264,6 +264,15 @@ ACPI_INIT_GLOBAL(u32, acpi_dbg_level, ACPI_DEBUG_DEFAULT);
+ ACPI_INIT_GLOBAL(u32, acpi_dbg_layer, 0);
+ 
+ /*
++ * Debugger command handshake globals. Host OSes need to access these
++ * variables to implement their own command handshake mechanism.
++ */
++#ifdef ACPI_DEBUGGER
++ACPI_INIT_GLOBAL(u8, acpi_gbl_method_executing, FALSE);
++ACPI_GLOBAL(char, acpi_gbl_db_line_buf[ACPI_DB_LINE_BUFFER_SIZE]);
++#endif
++
++/*
+  * Other miscellaneous globals
+  */
+ ACPI_GLOBAL(struct acpi_table_fadt, acpi_gbl_FADT);
+@@ -929,6 +938,8 @@ ACPI_EXTERNAL_RETURN_STATUS(acpi_status
+ 					       void **data,
+ 					       void (*callback)(void *)))
+ 
++void acpi_run_debugger(char *batch_buffer);
++
+ void acpi_set_debugger_thread_id(acpi_thread_id thread_id);
+ 
+ #endif				/* __ACXFACE_H__ */
+diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
+index 323e5da..69dbae6 100644
+--- a/include/acpi/platform/aclinux.h
++++ b/include/acpi/platform/aclinux.h
+@@ -150,6 +150,10 @@
+  */
+ #define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_readable
+ #define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_writable
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_initialize_command_signals
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_terminate_command_signals
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_wait_command_ready
++#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_notify_command_complete
+ 
+ /*
+  * OSL interfaces used by utilities
+diff --git a/include/acpi/platform/aclinuxex.h b/include/acpi/platform/aclinuxex.h
+index fd6d70f..673fdf4 100644
+--- a/include/acpi/platform/aclinuxex.h
++++ b/include/acpi/platform/aclinuxex.h
+@@ -129,6 +129,25 @@ static inline u8 acpi_os_readable(void *pointer, acpi_size length)
+ 	return TRUE;
+ }
+ 
++static inline acpi_status acpi_os_initialize_command_signals(void)
++{
++	return AE_OK;
++}
++
++static inline void acpi_os_terminate_command_signals(void)
++{
++}
++
++static inline acpi_status acpi_os_wait_command_ready(void)
++{
++	return AE_ERROR;
++}
++
++static inline acpi_status acpi_os_notify_command_complete(void)
++{
++	return AE_ERROR;
++}
++
+ /*
+  * OSL interfaces added by Linux
+  */
 -- 
-1.7.10.4
+1.7.10
 
-
---------------020604010309010902010902--
