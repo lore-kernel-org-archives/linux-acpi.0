@@ -1,43 +1,49 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH 1/4] nvdimm: Add wrapper for IOCTL pass thru.
-Date: Tue, 10 Nov 2015 16:49:17 -0800
-Message-ID: <CAPcyv4h=u7hDWqQ2E92tnMuX=_-SwnWkCSAdJ7vJkDuw1+i1rQ@mail.gmail.com>
+From: Jerry Hoemann <jerry.hoemann@hpe.com>
+Subject: Re: [PATCH 3/4] nvdimm: Add IOCTL pass thru
+Date: Tue, 10 Nov 2015 18:42:38 -0700
+Message-ID: <20151111014238.GA61637@tevye.fc.hp.com>
 References: <cover.1446684001.git.jerry.hoemann@hpe.com>
-	<5411049831df211c8280e3239aaf344af033fa25.1446684001.git.jerry.hoemann@hpe.com>
-	<x49d1vhlp34.fsf@segfault.boston.devel.redhat.com>
-	<20151110194938.GA47666@tevye.fc.hp.com>
-	<x49oaf1k3cx.fsf@segfault.boston.devel.redhat.com>
-	<20151111004425.GG47666@tevye.fc.hp.com>
+ <cover.1446684001.git.jerry.hoemann@hpe.com>
+ <2792786733bc18d561ca352d7a642b3989a370fa.1446684001.git.jerry.hoemann@hpe.com>
+ <x49fv0djzaj.fsf@segfault.boston.devel.redhat.com>
+Reply-To: Jerry.Hoemann@hpe.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f51.google.com ([74.125.82.51]:36000 "EHLO
-	mail-wm0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752121AbbKKAtS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Nov 2015 19:49:18 -0500
-Received: by wmww144 with SMTP id w144so140634490wmw.1
-        for <linux-acpi@vger.kernel.org>; Tue, 10 Nov 2015 16:49:17 -0800 (PST)
-In-Reply-To: <20151111004425.GG47666@tevye.fc.hp.com>
+Received: from g1t5424.austin.hp.com ([15.216.225.54]:50885 "EHLO
+	g1t5424.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751774AbbKKBmn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 10 Nov 2015 20:42:43 -0500
+Content-Disposition: inline
+In-Reply-To: <x49fv0djzaj.fsf@segfault.boston.devel.redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jerry Hoemann <Jerry.Hoemann@hpe.com>
-Cc: Jeff Moyer <jmoyer@redhat.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-nvdimm <linux-nvdimm@ml01.01.org>
+To: Jeff Moyer <jmoyer@redhat.com>
+Cc: ross.zwisler@linux.intel.com, rjw@rjwysocki.net, lenb@kernel.org, dan.j.williams@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@ml01.01.org
 
-On Tue, Nov 10, 2015 at 4:44 PM, Jerry Hoemann <jerry.hoemann@hpe.com> wrote:
-> On Tue, Nov 10, 2015 at 03:26:38PM -0500, Jeff Moyer wrote:
-[..]
->> I see.  I misread that, because you didn't actually make buf a zero
->> length array (see the structure definition quoted above).  I guess you
->> meant to write this:
->>
->>     unsigned char buf[0];
->>
->
-> The ndn_pkg.buf struct uses a flexible array definition.  This is in C99.
-> An explicit zero length array is a gcc extension that has been around much
-> longer.  They behave in a similar fashion, but aren't identical.   In my
-> limited use they behave the same.
+On Tue, Nov 10, 2015 at 04:54:28PM -0500, Jeff Moyer wrote:
+> Jerry Hoemann <jerry.hoemann@hpe.com> writes:
+> 
+> > +	uuid = pkg->h.dsm_uuid;
+> > +	rev  = pkg->h.dsm_rev ? pkg->h.dsm_rev : 1;
+> 
+> Shouldn't revision id be required?
+> 
 
-"buf[0]" is more idiomatic for Linux.  I know I expressed concern
-about compiler compatibility for ACPICA, but this path does not have
-ACPICA interactions.
+Yes it should be.  Good catch.
+
+I was testing use of reclaiming previously unused members of
+the structure.  I should have removed this line.
+
+And this reminds me that I should also add a test that the reserved fields
+of ndn_pkg are actually zero.
+
+I'll address both in version 2.
+
+thanks
+
+-- 
+
+-----------------------------------------------------------------------------
+Jerry Hoemann            Software Engineer      Hewlett-Packard Enterprise
+-----------------------------------------------------------------------------
