@@ -1,94 +1,65 @@
-From: "Chen, Yu C" <yu.c.chen@intel.com>
-Subject: RE: [PATCH v2 5/7] ACPI / x86: introduce acpi_os_readable() support
-Date: Wed, 11 Nov 2015 05:27:32 +0000
-Message-ID: <36DF59CE26D8EE47B0655C516E9CE64028672B74@shsmsx102.ccr.corp.intel.com>
-References: <cover.1446790780.git.lv.zheng@intel.com>
- <cover.1447143067.git.lv.zheng@intel.com>
- <c54877289d7742727b2395147167590ed2f24d8a.1447143067.git.lv.zheng@intel.com>
- <36DF59CE26D8EE47B0655C516E9CE6402867258C@shsmsx102.ccr.corp.intel.com>
- <1AE640813FDE7649BE1B193DEA596E883BADD796@SHSMSX101.ccr.corp.intel.com>
+From: Jeff Moyer <jmoyer@redhat.com>
+Subject: Re: [PATCH 2/4] nvdimm: Add IOCTL pass thru
+Date: Wed, 11 Nov 2015 10:41:37 -0500
+Message-ID: <x49twoslf0u.fsf@segfault.boston.devel.redhat.com>
+References: <cover.1446684001.git.jerry.hoemann@hpe.com>
+	<cover.1446684001.git.jerry.hoemann@hpe.com>
+	<4f81a8b6fa24723c808c72888290e2368fcdbca0.1446684001.git.jerry.hoemann@hpe.com>
+	<x494mgtlogv.fsf@segfault.boston.devel.redhat.com>
+	<20151110221352.GE47666@tevye.fc.hp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:4058 "EHLO mga01.intel.com"
+Received: from mx1.redhat.com ([209.132.183.28]:53150 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750714AbbKKF2G convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 11 Nov 2015 00:28:06 -0500
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E883BADD796@SHSMSX101.ccr.corp.intel.com>
-Content-Language: en-US
+	id S1751826AbbKKPlk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 11 Nov 2015 10:41:40 -0500
+In-Reply-To: <20151110221352.GE47666@tevye.fc.hp.com> (Jerry Hoemann's message
+	of "Tue, 10 Nov 2015 15:13:52 -0700")
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>
+To: Jerry.Hoemann@hpe.com
+Cc: ross.zwisler@linux.intel.com, rjw@rjwysocki.net, lenb@kernel.org, dan.j.williams@intel.com, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-nvdimm@ml01.01.org
 
-Hi, 
+Jerry Hoemann <jerry.hoemann@hpe.com> writes:
 
-> -----Original Message-----
-> From: Zheng, Lv
-> Sent: Wednesday, November 11, 2015 1:07 PM
-> To: Chen, Yu C
-> Cc: Lv Zheng; linux-kernel@vger.kernel.org; linux-acpi@vger.kernel.org;
-> Wysocki, Rafael J; Brown, Len
-> Subject: RE: [PATCH v2 5/7] ACPI / x86: introduce acpi_os_readable() support
-> 
-> Hi, Yu
-> 
-> > From: Chen, Yu C
-> > Sent: Tuesday, November 10, 2015 5:43 PM
-> >
-> > Hi, Lv
-> > Sorry for my late feedback on the patch, one minor nit below:
-> >
-> > > From: Zheng, Lv
-> > > Sent: Tuesday, November 10, 2015 4:22 PM
-> > >
-> > > From: Chen Yu <yu.c.chen@intel.com>
-> > >
-> > > This patch implements acpi_os_readable(). The function is used by
-> > > ACPI AML debugger to validate user specified pointers for the
-> > > dumpable AML operand objects.
-> > >
-> > > Signed-off-by: Chen Yu <yu.c.chen@intel.com>
-> > > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-> > > ---
-> > > +bool __acpi_memory_readable(void *pointer, size_t length) {
-> > > +	unsigned long start_pfn, end_pfn;
-> > > +
-> > We should only check the low memory, otherwise the highmem address
-> > might bring unexpected behavior in this function, I think we should add:
-> > 	if (pointer  >= PAGE_OFFSET)
-> > 		return false;
-> 
-> I think pfn_range_is_mapped() can ensure this.
-virt_to_page might return an invalid page struct if pointer is not a valid kernel address.
-> If you want to add some sanity checks, IMO, virt_addr_valid() could be
-> better.
-Yes, virt_addr_valid is better. 
-> 
-> > > +	start_pfn = page_to_pfn(virt_to_page(pointer));
-> > > +	end_pfn = page_to_pfn(virt_to_page(pointer + length));
-> > Convert pointer to char* first?
-> > end_pfn = page_to_pfn(virt_to_page((char*)pointer + length));
-> 
-> Either a compiler supports such a conversion or a compiler ends up fatal error
-> by complaining unknown sizeof(void *).
-> So there is no need to do this here as the build test has passed.
-> 
-OK, got it, thanks.
+> On Tue, Nov 10, 2015 at 01:05:20PM -0500, Jeff Moyer wrote:
+>> Jerry Hoemann <jerry.hoemann@hpe.com> writes:
+>> 
+>> > Add internal data structure for ndctl_passthru call.
+>> >
+>> > Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
+>> > ---
+>> >  include/linux/libnvdimm.h | 1 +
+>> >  1 file changed, 1 insertion(+)
+>> >
+>> > diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+>> > index 3f021dc..01117e1 100644
+>> > --- a/include/linux/libnvdimm.h
+>> > +++ b/include/linux/libnvdimm.h
+>> > @@ -72,6 +72,7 @@ struct nvdimm_bus_descriptor {
+>> >  	unsigned long dsm_mask;
+>> >  	char *provider_name;
+>> >  	ndctl_fn ndctl;
+>> > +	ndctl_fn ndctl_passthru;
+>> 
+>> I don't think this is necessary.  Vector off inside of __nd_ioctl.  That
+>> especially makes sense if you do switch to passthrough as a command
+>> instead of a type, but it can work either way.
+>> 
+>
+> In an earlier version, I added a "type" argument to ndctl_fn and switched
+> internally based upon that.  I just came to the conclusion that I'd rather
+> have two separate acpi_nfit_ctl functions than one trying to do both sets
+> of argument marshaling.  This is quite different both internally and
+> to the caller.
+>
+> So, I thought it would be less confusing to the next engineer, and that
+> this was a good logical separation point.
 
-> Thanks and best regards
-> -Lv
-> 
-> >
-> > > +	/*
-> > > +	 * Since the acpi address is allocated by kmalloc, we only
-> > > +	 * need to consider the direct-mapping virtual address,
-> > > +	 * rather than the kmap/vmalloc/ioremap address.
-> > > +	 */
-> > > +	return pfn_range_is_mapped(start_pfn, end_pfn) ? true : false; }
-> > > +
-> > Thanks!
-> >
-> > Best Regards,
-> > Yu
+I'll leave this up to Dan.  To me, it doesn't make sense to add a new
+ioctl function for every new type of ioctl that get's added (assuming
+more types will follow).
+
+Cheers,
+Jeff
