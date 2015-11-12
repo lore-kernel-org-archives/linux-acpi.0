@@ -1,127 +1,93 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH] acpi: add support for extended IRQ to PCI link
-Date: Thu, 12 Nov 2015 11:56:23 +0200
-Message-ID: <CAHp75VfHi=p_QTFr-AG06f=7HSH11bPBVvSSHfEnEHqoEvDG5w@mail.gmail.com>
-References: <1447308882-29634-1-git-send-email-okaya@codeaurora.org>
-	<1447308882-29634-2-git-send-email-okaya@codeaurora.org>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [Patch v7 4/7] PCI/ACPI: Add interface acpi_pci_root_create()
+Date: Thu, 12 Nov 2015 12:08:36 +0000
+Message-ID: <20151112120836.GC2657@red-moon>
+References: <1444804182-6596-1-git-send-email-jiang.liu@linux.intel.com>
+ <564185B6.8040006@linux.intel.com>
+ <20151111174647.GA30051@red-moon>
+ <4357616.eloqZ4oI6r@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1447308882-29634-2-git-send-email-okaya@codeaurora.org>
+Content-Disposition: inline
+In-Reply-To: <4357616.eloqZ4oI6r@wuerfel>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, cov@codeaurora.org, jcm@redhat.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, Tomasz Nowicki <tn@semihalf.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Thu, Nov 12, 2015 at 8:14 AM, Sinan Kaya <okaya@codeaurora.org> wrote:
-> The ACPI compiler uses the extended format when used
-> interrupt numbers are greater than 256. The PCI link code
-> currently only supports simple interrupt format. The IRQ
-> numbers are represented using 32 bits when extended IRQ
-> syntax. This patch changes the interrupt number type to
-> 32 bits and places an upper limit of 1020 as possible
-> interrupt id.
->
-> 1020 is the maximum interrupt ID that can be assigned to
-> an ARM SPI interrupt according to ARM architecture.
+On Wed, Nov 11, 2015 at 09:55:37PM +0100, Arnd Bergmann wrote:
+> On Wednesday 11 November 2015 17:46:47 Lorenzo Pieralisi wrote:
+> > On Tue, Nov 10, 2015 at 01:50:46PM +0800, Jiang Liu wrote:
+> > If we go with this approach though, you are not adding the offset to
+> > the resource when parsing the memory spaces in acpi_decode_space(), are we
+> > sure that's what we really want ?
+> > 
+> > In DT, a host bridge range has a:
+> > 
+> > - CPU physical address
+> > - PCI bus address
+> > 
+> > We use that to compute the offset between primary bus (ie CPU physical
+> > address) and secondary bus (ie PCI bus address).
+> > 
+> > The value ending up in the PCI resource struct (for memory space) is
+> > the CPU physical address, if you do not add the offset in acpi_decode_space
+> > that does not hold true on platforms where CPU<->PCI offset != 0 on ACPI,
+> > am I wrong ?
+> 
+> Sinan Kaya pointed out that SBSA mandates a 1:1 mapping for memory space.
 
-I think it worth to put these lines in the code as well.
+acpi_decode_space() is generic code though, it has to work on all arches,
+I was worried about triggering regressions on x86 and ia64 here.
 
->
-> Additional checks have been placed to prevent out of bounds
-> writes.
->
-> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
-> ---
->  drivers/acpi/pci_link.c | 28 +++++++++++++++++-----------
->  1 file changed, 17 insertions(+), 11 deletions(-)
->
-> diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
-> index 7c8408b..a2becab 100644
-> --- a/drivers/acpi/pci_link.c
-> +++ b/drivers/acpi/pci_link.c
-> @@ -1,6 +1,7 @@
->  /*
->   *  pci_link.c - ACPI PCI Interrupt Link Device Driver ($Revision: 34 $)
->   *
-> + *  Copyright (c) 2015, The Linux Foundation. All rights reserved.
->   *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
->   *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
->   *  Copyright (C) 2002       Dominik Brodowski <devel@brodo.de>
-> @@ -67,12 +68,12 @@ static struct acpi_scan_handler pci_link_handler = {
->   * later even the link is disable. Instead, we just repick the active irq
->   */
->  struct acpi_pci_link_irq {
-> -       u8 active;              /* Current IRQ */
-> +       u32 active;             /* Current IRQ */
->         u8 triggering;          /* All IRQs */
->         u8 polarity;            /* All IRQs */
->         u8 resource_type;
->         u8 possible_count;
-> -       u8 possible[ACPI_PCI_LINK_MAX_POSSIBLE];
-> +       u32 possible[ACPI_PCI_LINK_MAX_POSSIBLE];
->         u8 initialized:1;
->         u8 reserved:7;
->  };
-> @@ -437,7 +438,7 @@ static int acpi_pci_link_set(struct acpi_pci_link *link, int irq)
->   * enabled system.
->   */
->
-> -#define ACPI_MAX_IRQS          256
-> +#define ACPI_MAX_IRQS          1020
->  #define ACPI_MAX_ISA_IRQ       16
->
->  #define PIRQ_PENALTY_PCI_AVAILABLE     (0)
-> @@ -493,7 +494,8 @@ int __init acpi_irq_penalty_init(void)
->                                             penalty;
->                         }
->
-> -               } else if (link->irq.active) {
-> +               } else if (link->irq.active &&
-> +                       (link->irq.active < ACPI_MAX_IRQS)) {
->                         acpi_irq_penalty[link->irq.active] +=
->                             PIRQ_PENALTY_PCI_POSSIBLE;
->                 }
-> @@ -541,14 +543,16 @@ static int acpi_pci_link_allocate(struct acpi_pci_link *link)
->         else
->                 irq = link->irq.possible[link->irq.possible_count - 1];
->
-> -       if (acpi_irq_balance || !link->irq.active) {
-> +       if ((acpi_irq_balance || !link->irq.active) && (irq < ACPI_MAX_IRQS)) {
->                 /*
+[...]
 
-> -                * Select the best IRQ.  This is done in reverse to promote
-> -                * the use of IRQs 9, 10, 11, and >15.
-> +                * Select the best IRQ.  This is done in reverse to
-> +                * promote the use of IRQs 9, 10, 11, and >15.
+> > To sum it up for a, say, DWordIo/Memory descriptor:
+> > 
+> > - AddressMinimum, AddressMaximum represent the PCI bus addresses defining
+> >   the resource start..end
+> > - AddressTranslation is the offset that has to be added to AddressMinimum
+> >   and AddressMaximum to get the window in CPU physical address space
+> > 
+> > So:
+> > 
+> > - Either we go with the patch attached (but please check my comment on
+> >   the memory spaces)
+> > - Or we patch acpi_pci_root_validate_resources() to amend the way
+> >   IORESOURCE_IO is currently checked against ioport_resource, it can't
+> >   work on arm64 at present, I described why above
+> > 
+> > Thoughts appreciated it is time we got this sorted and thanks for
+> > the patch.
+> 
+> The easiest way would be to assume that nobody is building a server
+> system that has multiple I/O spaces. SBSA explicitly makes I/O space
+> optional, and really the only reason anyone includes that feature these
+> days is for initializing GPUs through the BIOS POST method, so that
+> is not relevant for servers. Even when you do have multiple PCIe
+> host controllers that all support I/O space, the most logical implementation
+> would be to share one common space.
+> 
+> If that fails, there are still two cases you have to care about, and
+> it really depends on what hardware makers decide to use here (and whether
+> we have any influence over them). The easier way for us to do this is
+> if every hardware sets up the mapping between CPU physical and PCI I/O
+> in a way that the I/O space numbers are non-overlapping between the
+> host controllers. That way we can still make Linux ioport_resource
+> addresses the same as PCI I/O space addresses (using io_offset=0),
+> with the downside being that only the first PCIe host (as enumerated
+> by the bootloader) can have I/O space addresses below 1024 that may
+> be required for ISA compatibility on some hardware.
 
-What was changed here?
+Yes, I think the approach we have in place on arm64 sound, I will work with
+Jiang to make sure we interpret and manage IO space on arm64 the same
+way we do with DT, I do not expect any issue on that side, I was more
+worried about the interpretation of ACPI tables, I really really do not
+want to end up with ACPI tables that are set-up in a way that can cause
+regressions, we have to agree (and make it crystal clear in the ACPI
+specs) what the resource descriptors define and how, then the ACPI kernel
+resource layer should be made compliant.
 
->                  */
-> -               for (i = (link->irq.possible_count - 1); i >= 0; i--) {
-> -                       if (acpi_irq_penalty[irq] >
-> -                           acpi_irq_penalty[link->irq.possible[i]])
-> +               i = link->irq.possible_count;
-> +               while (--i) {
-> +                       if ((link->irq.possible[i] < ACPI_MAX_IRQS) &&
-> +                           (acpi_irq_penalty[irq] >
-> +                           acpi_irq_penalty[link->irq.possible[i]]))
->                                 irq = link->irq.possible[i];
->                 }
->         }
-> @@ -568,7 +572,9 @@ static int acpi_pci_link_allocate(struct acpi_pci_link *link)
->                             acpi_device_bid(link->device));
->                 return -ENODEV;
->         } else {
-> -               acpi_irq_penalty[link->irq.active] += PIRQ_PENALTY_PCI_USING;
-> +               if (link->irq.active < ACPI_MAX_IRQS)
-> +                       acpi_irq_penalty[link->irq.active] +=
-> +                               PIRQ_PENALTY_PCI_USING;
->                 printk(KERN_WARNING PREFIX "%s [%s] enabled at IRQ %d\n",
->                        acpi_device_name(link->device),
->                        acpi_device_bid(link->device), link->irq.active);
-
-
--- 
-With Best Regards,
-Andy Shevchenko
+Thanks,
+Lorenzo
