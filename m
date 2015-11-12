@@ -1,16 +1,18 @@
 From: Sinan Kaya <okaya@codeaurora.org>
-Subject: [PATCH V2] acpi: add support for extended IRQ to PCI link
-Date: Thu, 12 Nov 2015 01:14:41 -0500
-Message-ID: <1447308882-29634-1-git-send-email-okaya@codeaurora.org>
+Subject: [PATCH] acpi: add support for extended IRQ to PCI link
+Date: Thu, 12 Nov 2015 01:14:42 -0500
+Message-ID: <1447308882-29634-2-git-send-email-okaya@codeaurora.org>
+References: <1447308882-29634-1-git-send-email-okaya@codeaurora.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:53781 "EHLO
+Received: from smtp.codeaurora.org ([198.145.29.96]:53805 "EHLO
 	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750812AbbKLGOt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Nov 2015 01:14:49 -0500
+	with ESMTP id S1750931AbbKLGOy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Nov 2015 01:14:54 -0500
+In-Reply-To: <1447308882-29634-1-git-send-email-okaya@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com
-Cc: Sinan Kaya <okaya@codeaurora.org>
+Cc: Sinan Kaya <okaya@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
 
 The ACPI compiler uses the extended format when used
 interrupt numbers are greater than 256. The PCI link code
@@ -26,17 +28,91 @@ an ARM SPI interrupt according to ARM architecture.
 Additional checks have been placed to prevent out of bounds
 writes.
 
-Changes from V1: (https://lkml.org/lkml/2015/11/8/162)
-* change the commit text to include 1020 magic interrupt number
-limitation
-* cleanup multiple levels of if statements
-
-Sinan Kaya (1):
-  acpi: add support for extended IRQ to PCI link
-
+Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+---
  drivers/acpi/pci_link.c | 28 +++++++++++++++++-----------
  1 file changed, 17 insertions(+), 11 deletions(-)
 
+diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+index 7c8408b..a2becab 100644
+--- a/drivers/acpi/pci_link.c
++++ b/drivers/acpi/pci_link.c
+@@ -1,6 +1,7 @@
+ /*
+  *  pci_link.c - ACPI PCI Interrupt Link Device Driver ($Revision: 34 $)
+  *
++ *  Copyright (c) 2015, The Linux Foundation. All rights reserved.
+  *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
+  *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
+  *  Copyright (C) 2002       Dominik Brodowski <devel@brodo.de>
+@@ -67,12 +68,12 @@ static struct acpi_scan_handler pci_link_handler = {
+  * later even the link is disable. Instead, we just repick the active irq
+  */
+ struct acpi_pci_link_irq {
+-	u8 active;		/* Current IRQ */
++	u32 active;		/* Current IRQ */
+ 	u8 triggering;		/* All IRQs */
+ 	u8 polarity;		/* All IRQs */
+ 	u8 resource_type;
+ 	u8 possible_count;
+-	u8 possible[ACPI_PCI_LINK_MAX_POSSIBLE];
++	u32 possible[ACPI_PCI_LINK_MAX_POSSIBLE];
+ 	u8 initialized:1;
+ 	u8 reserved:7;
+ };
+@@ -437,7 +438,7 @@ static int acpi_pci_link_set(struct acpi_pci_link *link, int irq)
+  * enabled system.
+  */
+ 
+-#define ACPI_MAX_IRQS		256
++#define ACPI_MAX_IRQS		1020
+ #define ACPI_MAX_ISA_IRQ	16
+ 
+ #define PIRQ_PENALTY_PCI_AVAILABLE	(0)
+@@ -493,7 +494,8 @@ int __init acpi_irq_penalty_init(void)
+ 					    penalty;
+ 			}
+ 
+-		} else if (link->irq.active) {
++		} else if (link->irq.active &&
++			(link->irq.active < ACPI_MAX_IRQS)) {
+ 			acpi_irq_penalty[link->irq.active] +=
+ 			    PIRQ_PENALTY_PCI_POSSIBLE;
+ 		}
+@@ -541,14 +543,16 @@ static int acpi_pci_link_allocate(struct acpi_pci_link *link)
+ 	else
+ 		irq = link->irq.possible[link->irq.possible_count - 1];
+ 
+-	if (acpi_irq_balance || !link->irq.active) {
++	if ((acpi_irq_balance || !link->irq.active) && (irq < ACPI_MAX_IRQS)) {
+ 		/*
+-		 * Select the best IRQ.  This is done in reverse to promote
+-		 * the use of IRQs 9, 10, 11, and >15.
++		 * Select the best IRQ.  This is done in reverse to
++		 * promote the use of IRQs 9, 10, 11, and >15.
+ 		 */
+-		for (i = (link->irq.possible_count - 1); i >= 0; i--) {
+-			if (acpi_irq_penalty[irq] >
+-			    acpi_irq_penalty[link->irq.possible[i]])
++		i = link->irq.possible_count;
++		while (--i) {
++			if ((link->irq.possible[i] < ACPI_MAX_IRQS) &&
++			    (acpi_irq_penalty[irq] >
++			    acpi_irq_penalty[link->irq.possible[i]]))
+ 				irq = link->irq.possible[i];
+ 		}
+ 	}
+@@ -568,7 +572,9 @@ static int acpi_pci_link_allocate(struct acpi_pci_link *link)
+ 			    acpi_device_bid(link->device));
+ 		return -ENODEV;
+ 	} else {
+-		acpi_irq_penalty[link->irq.active] += PIRQ_PENALTY_PCI_USING;
++		if (link->irq.active < ACPI_MAX_IRQS)
++			acpi_irq_penalty[link->irq.active] +=
++				PIRQ_PENALTY_PCI_USING;
+ 		printk(KERN_WARNING PREFIX "%s [%s] enabled at IRQ %d\n",
+ 		       acpi_device_name(link->device),
+ 		       acpi_device_bid(link->device), link->irq.active);
 -- 
 Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
 Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
