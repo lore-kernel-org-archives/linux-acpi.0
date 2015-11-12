@@ -1,93 +1,152 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+From: Tomasz Nowicki <tn@semihalf.com>
 Subject: Re: [Patch v7 4/7] PCI/ACPI: Add interface acpi_pci_root_create()
-Date: Thu, 12 Nov 2015 12:08:36 +0000
-Message-ID: <20151112120836.GC2657@red-moon>
+Date: Thu, 12 Nov 2015 14:21:10 +0100
+Message-ID: <56449246.2010308@semihalf.com>
 References: <1444804182-6596-1-git-send-email-jiang.liu@linux.intel.com>
- <564185B6.8040006@linux.intel.com>
- <20151111174647.GA30051@red-moon>
- <4357616.eloqZ4oI6r@wuerfel>
+ <5640A8AA.4000806@semihalf.com> <20151109171042.GA11909@red-moon>
+ <6488357.xJV65iBRHq@wuerfel> <564185B6.8040006@linux.intel.com>
+ <20151111174647.GA30051@red-moon> <56445117.8090307@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4357616.eloqZ4oI6r@wuerfel>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Tomasz Nowicki <tn@semihalf.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <56445117.8090307@linux.intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Nov 11, 2015 at 09:55:37PM +0100, Arnd Bergmann wrote:
-> On Wednesday 11 November 2015 17:46:47 Lorenzo Pieralisi wrote:
-> > On Tue, Nov 10, 2015 at 01:50:46PM +0800, Jiang Liu wrote:
-> > If we go with this approach though, you are not adding the offset to
-> > the resource when parsing the memory spaces in acpi_decode_space(), are we
-> > sure that's what we really want ?
-> > 
-> > In DT, a host bridge range has a:
-> > 
-> > - CPU physical address
-> > - PCI bus address
-> > 
-> > We use that to compute the offset between primary bus (ie CPU physical
-> > address) and secondary bus (ie PCI bus address).
-> > 
-> > The value ending up in the PCI resource struct (for memory space) is
-> > the CPU physical address, if you do not add the offset in acpi_decode_space
-> > that does not hold true on platforms where CPU<->PCI offset != 0 on ACPI,
-> > am I wrong ?
-> 
-> Sinan Kaya pointed out that SBSA mandates a 1:1 mapping for memory space.
+On 12.11.2015 09:43, Jiang Liu wrote:
+> On 2015/11/12 1:46, Lorenzo Pieralisi wrote:
+>> On Tue, Nov 10, 2015 at 01:50:46PM +0800, Jiang Liu wrote:
+>>
+>> [...]
+>>
+>>>>> In particular, I would like to understand, for an eg DWordIO descriptor,
+>>>>> what Range Minimum, Range Maximum and Translation Offset represent,
+>>>>> they can't mean different things depending on the SW parsing them,
+>>>>> this totally defeats the purpose.
+>>>>
+>>>> I have no clue about what those mean in ACPI though.
+>>>>
+>>>> Generally speaking, each PCI domain is expected to have a (normally 64KB)
+>>>> range of CPU addresses that gets translated into PCI I/O space the same
+>>>> way that config space and memory space are handled.
+>>>> This is true for almost every architecture except for x86, which uses
+>>>> different CPU instructions for I/O space compared to the other spaces.
+>>>>
+>>>>> By the way, ia64 ioremaps the translation_offset (ie new_space()), so
+>>>>> basically that's the CPU physical address at which the PCI host bridge
+>>>>> map the IO space transactions), I do not think ia64 is any different from
+>>>>> arm64 in this respect, if it is please provide an HW description here from
+>>>>> the PCI bus perspective here (also an example of ia64 ACPI PCI host bridge
+>>>>> tables would help).
+>>>>
+>>>> The main difference between ia64 and a lot of the other architectures (e.g.
+>>>> sparc is different again) is that ia64 defines a logical address range
+>>>> in terms of having a small number for each I/O space followed by the
+>>>> offset within that space as a 'port number' and uses a mapping function
+>>>> that is defined as
+>>>>
+>>>> static inline void *__ia64_mk_io_addr (unsigned long port)
+>>>> {
+>>>>          struct io_space *space = &io_space[IO_SPACE_NR(port)];
+>>>>          return (space->mmio_base | IO_SPACE_PORT(port););
+>>>> }
+>>>> static inline unsigned int inl(unsigned long port)
+>>>> {
+>>>>          return *__ia64_mk_io_addr(port);
+>>>> }
+>>>>
+>>>> Most architectures allow only one I/O port range and put it at a fixed
+>>>> virtual address so that inl() simply becomes
+>>>>
+>>>> static inline u32 inl(unsigned long addr)
+>>>> {
+>>>>          return readl(PCI_IOBASE + addr);
+>>>> }
+>>>>
+>>>> which noticeably reduces code size.
+>>>>
+>>>> On some architectures (powerpc, arm, arm64), we then get the same simplified
+>>>> definition with a fixed virtual address, and use pci_ioremap_io() or
+>>>> something like that to to map a physical address range into this virtual
+>>>> address window at the correct io_offset;
+>>> Hi all,
+>>> 	Thanks for explanation, I found a way to make the ACPI resource
+>>> parsing interface arch neutral, it should help to address Lorenzo's
+>>> concern. Please refer to the attached patch. (It's still RFC, not tested
+>>> yet).
+>>
+>> If we go with this approach though, you are not adding the offset to
+>> the resource when parsing the memory spaces in acpi_decode_space(), are we
+>> sure that's what we really want ?
+>>
+>> In DT, a host bridge range has a:
+>>
+>> - CPU physical address
+>> - PCI bus address
+>>
+>> We use that to compute the offset between primary bus (ie CPU physical
+>> address) and secondary bus (ie PCI bus address).
+>>
+>> The value ending up in the PCI resource struct (for memory space) is
+>> the CPU physical address, if you do not add the offset in acpi_decode_space
+>> that does not hold true on platforms where CPU<->PCI offset != 0 on ACPI,
+>> am I wrong ?
+> Hi Lorenzo,
+> 	I may have found the divergence between us about the design here. You
+> treat it as a one-stage translation but I treat it as a
+> two-stage translation as below:
+> stage 1: map(translate) per-PCI-domain IO port address[0, 16M) into
+> system global IO port address. Here system global IO port address is
+> ioport_resource[0, IO_SPACE_LIMIT).
+> stage 2: map system IO port address into system memory address.
+>
+> We need two objects of struct resource_win to support above two-stage
+> translation. One object, type of IORESOURCE_IO, is used to support
+> stage one, and it will also used to allocate IO port resources
+> for PCI devices. Another object, type of IORESOURCE_MMIO, is used
+> to allocate resource from iomem_resource and setup MMIO mapping
+> to actually access IO ports.
+>
+> For ARM64, it doesn't support multiple per-PCI-domain(bus local)
+> IO port address space yet, so stage one seems to be optional
+> becomes the offset between bus local IO port address and system
+> IO port address is always 0. But we still need two objects of
+> struct resource_win. The first object is
+> 	{
+> 		offset:0,
+> 		start:AddressMinimum,
+> 		end:AddressMaximum,
+> 		flags:IORESOURCE_IO
+> 	}
+> Here it's type of IORESOURCE_IO and offset must be zero because
+> pcibios_resource_to_bus() will access it translate system IO
+> port address into bus local IO port address. With my patch,
+> the struct resource_win object created by the ACPI core will
+> be reused for this.
+>
+> The second object is:
+> 	{
+> 		offset:Translation_Offset,
+> 		start:AddressMinimum + Translation_Offset,
+> 		end:AddressMaximum + Translation_Offset,
+> 		flags:IORESOURCE_MMIO
+> 	}
+> Arch code need to create the second struct resource_win object
+> and actually setup the MMIO mapping.
+>
+> But there's really another bug need to get fixed, funciton
+> acpi_dev_ioresource_flags() assumes bus local IO port address
+> space is size of 64K, which is wrong for IA64 and ARM64.
+>
 
-acpi_decode_space() is generic code though, it has to work on all arches,
-I was worried about triggering regressions on x86 and ia64 here.
+So what would be the Translation_Offset meaning for two cases DWordIo 
+(....,TypeTranslation) vs DWordIo (....,TypeStatic)? And why we did not 
+use TypeTranslation for IA64 so far?
 
-[...]
+I am worried that TypeTranslation fall into the IA64 category but ACPI 
+tables were already written incorrectly.
 
-> > To sum it up for a, say, DWordIo/Memory descriptor:
-> > 
-> > - AddressMinimum, AddressMaximum represent the PCI bus addresses defining
-> >   the resource start..end
-> > - AddressTranslation is the offset that has to be added to AddressMinimum
-> >   and AddressMaximum to get the window in CPU physical address space
-> > 
-> > So:
-> > 
-> > - Either we go with the patch attached (but please check my comment on
-> >   the memory spaces)
-> > - Or we patch acpi_pci_root_validate_resources() to amend the way
-> >   IORESOURCE_IO is currently checked against ioport_resource, it can't
-> >   work on arm64 at present, I described why above
-> > 
-> > Thoughts appreciated it is time we got this sorted and thanks for
-> > the patch.
-> 
-> The easiest way would be to assume that nobody is building a server
-> system that has multiple I/O spaces. SBSA explicitly makes I/O space
-> optional, and really the only reason anyone includes that feature these
-> days is for initializing GPUs through the BIOS POST method, so that
-> is not relevant for servers. Even when you do have multiple PCIe
-> host controllers that all support I/O space, the most logical implementation
-> would be to share one common space.
-> 
-> If that fails, there are still two cases you have to care about, and
-> it really depends on what hardware makers decide to use here (and whether
-> we have any influence over them). The easier way for us to do this is
-> if every hardware sets up the mapping between CPU physical and PCI I/O
-> in a way that the I/O space numbers are non-overlapping between the
-> host controllers. That way we can still make Linux ioport_resource
-> addresses the same as PCI I/O space addresses (using io_offset=0),
-> with the downside being that only the first PCIe host (as enumerated
-> by the bootloader) can have I/O space addresses below 1024 that may
-> be required for ISA compatibility on some hardware.
-
-Yes, I think the approach we have in place on arm64 sound, I will work with
-Jiang to make sure we interpret and manage IO space on arm64 the same
-way we do with DT, I do not expect any issue on that side, I was more
-worried about the interpretation of ACPI tables, I really really do not
-want to end up with ACPI tables that are set-up in a way that can cause
-regressions, we have to agree (and make it crystal clear in the ACPI
-specs) what the resource descriptors define and how, then the ACPI kernel
-resource layer should be made compliant.
-
-Thanks,
-Lorenzo
+Tomasz
