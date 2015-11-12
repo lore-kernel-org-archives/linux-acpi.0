@@ -1,190 +1,127 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: Re: [Patch v7 4/7] PCI/ACPI: Add interface acpi_pci_root_create()
-Date: Thu, 12 Nov 2015 16:43:03 +0800
-Message-ID: <56445117.8090307@linux.intel.com>
-References: <1444804182-6596-1-git-send-email-jiang.liu@linux.intel.com>
- <5640A8AA.4000806@semihalf.com> <20151109171042.GA11909@red-moon>
- <6488357.xJV65iBRHq@wuerfel> <564185B6.8040006@linux.intel.com>
- <20151111174647.GA30051@red-moon>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH] acpi: add support for extended IRQ to PCI link
+Date: Thu, 12 Nov 2015 11:56:23 +0200
+Message-ID: <CAHp75VfHi=p_QTFr-AG06f=7HSH11bPBVvSSHfEnEHqoEvDG5w@mail.gmail.com>
+References: <1447308882-29634-1-git-send-email-okaya@codeaurora.org>
+	<1447308882-29634-2-git-send-email-okaya@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <20151111174647.GA30051@red-moon>
-Sender: linux-pci-owner@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Tomasz Nowicki <tn@semihalf.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1447308882-29634-2-git-send-email-okaya@codeaurora.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, cov@codeaurora.org, jcm@redhat.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 2015/11/12 1:46, Lorenzo Pieralisi wrote:
-> On Tue, Nov 10, 2015 at 01:50:46PM +0800, Jiang Liu wrote:
-> 
-> [...]
-> 
->>>> In particular, I would like to understand, for an eg DWordIO descriptor,
->>>> what Range Minimum, Range Maximum and Translation Offset represent,
->>>> they can't mean different things depending on the SW parsing them,
->>>> this totally defeats the purpose.
->>>
->>> I have no clue about what those mean in ACPI though.
->>>
->>> Generally speaking, each PCI domain is expected to have a (normally 64KB)
->>> range of CPU addresses that gets translated into PCI I/O space the same
->>> way that config space and memory space are handled.
->>> This is true for almost every architecture except for x86, which uses
->>> different CPU instructions for I/O space compared to the other spaces.
->>>
->>>> By the way, ia64 ioremaps the translation_offset (ie new_space()), so
->>>> basically that's the CPU physical address at which the PCI host bridge
->>>> map the IO space transactions), I do not think ia64 is any different from
->>>> arm64 in this respect, if it is please provide an HW description here from
->>>> the PCI bus perspective here (also an example of ia64 ACPI PCI host bridge
->>>> tables would help).
->>>
->>> The main difference between ia64 and a lot of the other architectures (e.g.
->>> sparc is different again) is that ia64 defines a logical address range
->>> in terms of having a small number for each I/O space followed by the
->>> offset within that space as a 'port number' and uses a mapping function
->>> that is defined as
->>>
->>> static inline void *__ia64_mk_io_addr (unsigned long port)
->>> {
->>>         struct io_space *space = &io_space[IO_SPACE_NR(port)];
->>>         return (space->mmio_base | IO_SPACE_PORT(port););
->>> }
->>> static inline unsigned int inl(unsigned long port)
->>> {
->>>         return *__ia64_mk_io_addr(port);
->>> }
->>>
->>> Most architectures allow only one I/O port range and put it at a fixed
->>> virtual address so that inl() simply becomes 
->>>
->>> static inline u32 inl(unsigned long addr)
->>> {
->>>         return readl(PCI_IOBASE + addr);
->>> }
->>>
->>> which noticeably reduces code size.
->>>
->>> On some architectures (powerpc, arm, arm64), we then get the same simplified
->>> definition with a fixed virtual address, and use pci_ioremap_io() or
->>> something like that to to map a physical address range into this virtual
->>> address window at the correct io_offset;
->> Hi all,
->> 	Thanks for explanation, I found a way to make the ACPI resource
->> parsing interface arch neutral, it should help to address Lorenzo's
->> concern. Please refer to the attached patch. (It's still RFC, not tested
->> yet).
-> 
-> If we go with this approach though, you are not adding the offset to
-> the resource when parsing the memory spaces in acpi_decode_space(), are we
-> sure that's what we really want ?
-> 
-> In DT, a host bridge range has a:
-> 
-> - CPU physical address
-> - PCI bus address
-> 
-> We use that to compute the offset between primary bus (ie CPU physical
-> address) and secondary bus (ie PCI bus address).
-> 
-> The value ending up in the PCI resource struct (for memory space) is
-> the CPU physical address, if you do not add the offset in acpi_decode_space
-> that does not hold true on platforms where CPU<->PCI offset != 0 on ACPI,
-> am I wrong ?
-Hi Lorenzo,
-	I may have found the divergence between us about the design here. You
-treat it as a one-stage translation but I treat it as a
-two-stage translation as below:
-stage 1: map(translate) per-PCI-domain IO port address[0, 16M) into
-system global IO port address. Here system global IO port address is
-ioport_resource[0, IO_SPACE_LIMIT).
-stage 2: map system IO port address into system memory address.
+On Thu, Nov 12, 2015 at 8:14 AM, Sinan Kaya <okaya@codeaurora.org> wrote:
+> The ACPI compiler uses the extended format when used
+> interrupt numbers are greater than 256. The PCI link code
+> currently only supports simple interrupt format. The IRQ
+> numbers are represented using 32 bits when extended IRQ
+> syntax. This patch changes the interrupt number type to
+> 32 bits and places an upper limit of 1020 as possible
+> interrupt id.
+>
+> 1020 is the maximum interrupt ID that can be assigned to
+> an ARM SPI interrupt according to ARM architecture.
 
-We need two objects of struct resource_win to support above two-stage
-translation. One object, type of IORESOURCE_IO, is used to support
-stage one, and it will also used to allocate IO port resources
-for PCI devices. Another object, type of IORESOURCE_MMIO, is used
-to allocate resource from iomem_resource and setup MMIO mapping
-to actually access IO ports.
+I think it worth to put these lines in the code as well.
 
-For ARM64, it doesn't support multiple per-PCI-domain(bus local)
-IO port address space yet, so stage one seems to be optional
-becomes the offset between bus local IO port address and system
-IO port address is always 0. But we still need two objects of
-struct resource_win. The first object is
-	{
-		offset:0,
-		start:AddressMinimum,
-		end:AddressMaximum,
-		flags:IORESOURCE_IO
-	}
-Here it's type of IORESOURCE_IO and offset must be zero because
-pcibios_resource_to_bus() will access it translate system IO
-port address into bus local IO port address. With my patch,
-the struct resource_win object created by the ACPI core will
-be reused for this.
+>
+> Additional checks have been placed to prevent out of bounds
+> writes.
+>
+> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+> ---
+>  drivers/acpi/pci_link.c | 28 +++++++++++++++++-----------
+>  1 file changed, 17 insertions(+), 11 deletions(-)
+>
+> diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+> index 7c8408b..a2becab 100644
+> --- a/drivers/acpi/pci_link.c
+> +++ b/drivers/acpi/pci_link.c
+> @@ -1,6 +1,7 @@
+>  /*
+>   *  pci_link.c - ACPI PCI Interrupt Link Device Driver ($Revision: 34 $)
+>   *
+> + *  Copyright (c) 2015, The Linux Foundation. All rights reserved.
+>   *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
+>   *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
+>   *  Copyright (C) 2002       Dominik Brodowski <devel@brodo.de>
+> @@ -67,12 +68,12 @@ static struct acpi_scan_handler pci_link_handler = {
+>   * later even the link is disable. Instead, we just repick the active irq
+>   */
+>  struct acpi_pci_link_irq {
+> -       u8 active;              /* Current IRQ */
+> +       u32 active;             /* Current IRQ */
+>         u8 triggering;          /* All IRQs */
+>         u8 polarity;            /* All IRQs */
+>         u8 resource_type;
+>         u8 possible_count;
+> -       u8 possible[ACPI_PCI_LINK_MAX_POSSIBLE];
+> +       u32 possible[ACPI_PCI_LINK_MAX_POSSIBLE];
+>         u8 initialized:1;
+>         u8 reserved:7;
+>  };
+> @@ -437,7 +438,7 @@ static int acpi_pci_link_set(struct acpi_pci_link *link, int irq)
+>   * enabled system.
+>   */
+>
+> -#define ACPI_MAX_IRQS          256
+> +#define ACPI_MAX_IRQS          1020
+>  #define ACPI_MAX_ISA_IRQ       16
+>
+>  #define PIRQ_PENALTY_PCI_AVAILABLE     (0)
+> @@ -493,7 +494,8 @@ int __init acpi_irq_penalty_init(void)
+>                                             penalty;
+>                         }
+>
+> -               } else if (link->irq.active) {
+> +               } else if (link->irq.active &&
+> +                       (link->irq.active < ACPI_MAX_IRQS)) {
+>                         acpi_irq_penalty[link->irq.active] +=
+>                             PIRQ_PENALTY_PCI_POSSIBLE;
+>                 }
+> @@ -541,14 +543,16 @@ static int acpi_pci_link_allocate(struct acpi_pci_link *link)
+>         else
+>                 irq = link->irq.possible[link->irq.possible_count - 1];
+>
+> -       if (acpi_irq_balance || !link->irq.active) {
+> +       if ((acpi_irq_balance || !link->irq.active) && (irq < ACPI_MAX_IRQS)) {
+>                 /*
 
-The second object is:
-	{
-		offset:Translation_Offset,
-		start:AddressMinimum + Translation_Offset,
-		end:AddressMaximum + Translation_Offset,
-		flags:IORESOURCE_MMIO
-	}
-Arch code need to create the second struct resource_win object
-and actually setup the MMIO mapping.
+> -                * Select the best IRQ.  This is done in reverse to promote
+> -                * the use of IRQs 9, 10, 11, and >15.
+> +                * Select the best IRQ.  This is done in reverse to
+> +                * promote the use of IRQs 9, 10, 11, and >15.
 
-But there's really another bug need to get fixed, funciton
-acpi_dev_ioresource_flags() assumes bus local IO port address
-space is size of 64K, which is wrong for IA64 and ARM64.
+What was changed here?
 
-Thanks,
-Gerry
+>                  */
+> -               for (i = (link->irq.possible_count - 1); i >= 0; i--) {
+> -                       if (acpi_irq_penalty[irq] >
+> -                           acpi_irq_penalty[link->irq.possible[i]])
+> +               i = link->irq.possible_count;
+> +               while (--i) {
+> +                       if ((link->irq.possible[i] < ACPI_MAX_IRQS) &&
+> +                           (acpi_irq_penalty[irq] >
+> +                           acpi_irq_penalty[link->irq.possible[i]]))
+>                                 irq = link->irq.possible[i];
+>                 }
+>         }
+> @@ -568,7 +572,9 @@ static int acpi_pci_link_allocate(struct acpi_pci_link *link)
+>                             acpi_device_bid(link->device));
+>                 return -ENODEV;
+>         } else {
+> -               acpi_irq_penalty[link->irq.active] += PIRQ_PENALTY_PCI_USING;
+> +               if (link->irq.active < ACPI_MAX_IRQS)
+> +                       acpi_irq_penalty[link->irq.active] +=
+> +                               PIRQ_PENALTY_PCI_USING;
+>                 printk(KERN_WARNING PREFIX "%s [%s] enabled at IRQ %d\n",
+>                        acpi_device_name(link->device),
+>                        acpi_device_bid(link->device), link->irq.active);
 
-> 
-> Overall I think the point is related to ioport_resource and its check
-> in acpi_pci_root_validate_resources() which basically that's the
-> problem that started this thread.
-> 
-> On arm64, IO_SPACE_LIMIT is 16M, which, AFAIK is a kernel limit, not
-> a HW one. Comparing the resources parsed from the PCI bridge _CRS against
-> the range 0..IO_SPACE_LIMIT is not necessarily meaningful (or at least
-> not meaningful in its current form), on ia64 it works because IO_SPACE_LIMIT
-> is bumped up to 4G, that's the reason why adding the offset to the ACPI IO
-> resources work on ia64 as far as I understand.
-> 
-> And that's why I pulled Arnd in this discussion since he knows better
-> than me: what does ioport_resource _really_ represent on ARM64 ? It seems
-> to me that it is a range of IO ports values (ie a window that defines
-> the allowed offset in the virtual address space allocated to PCI IO) that
-> has _nothing_ to do with the CPU physical address at which the IO space is
-> actually mapped.
-> 
-> To sum it up for a, say, DWordIo/Memory descriptor:
-> 
-> - AddressMinimum, AddressMaximum represent the PCI bus addresses defining
->   the resource start..end
-> - AddressTranslation is the offset that has to be added to AddressMinimum
->   and AddressMaximum to get the window in CPU physical address space
-> 
-> So:
-> 
-> - Either we go with the patch attached (but please check my comment on
->   the memory spaces)
-> - Or we patch acpi_pci_root_validate_resources() to amend the way
->   IORESOURCE_IO is currently checked against ioport_resource, it can't
->   work on arm64 at present, I described why above
-> 
-> Thoughts appreciated it is time we got this sorted and thanks for
-> the patch.
-> 
-> Thanks,
-> Lorenzo
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
-> 
+
+-- 
+With Best Regards,
+Andy Shevchenko
