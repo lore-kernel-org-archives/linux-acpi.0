@@ -1,89 +1,42 @@
-From: Chris Bainbridge <chris.bainbridge@gmail.com>
-Subject: [PATCH] Revert "ACPI / SBS: Add 5 us delay to fix SBS hangs on
- MacBook"
-Date: Thu, 12 Nov 2015 19:24:47 +0000
-Message-ID: <20151112192447.GA4564@localhost>
-References: <20151106204408.GA11609@localhost>
- <53589361.gQMCOa1UoV@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <53589361.gQMCOa1UoV@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: peterz@infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, lv.zheng@intel.com, aaron.lu@intel.com, aystarik@gmail.com
+From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Subject: [PATCH] CPPC: Use h/w reduced version of the PCCT structure
+Date: Thu, 12 Nov 2015 19:52:30 -0500
+Message-ID: <1447375950-3679-1-git-send-email-ashwin.chaugule@linaro.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qk0-f177.google.com ([209.85.220.177]:33083 "EHLO
+	mail-qk0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754113AbbKMAwn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 12 Nov 2015 19:52:43 -0500
+Received: by qkas77 with SMTP id s77so33217055qka.0
+        for <linux-acpi@vger.kernel.org>; Thu, 12 Nov 2015 16:52:42 -0800 (PST)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: rafael@kernel.org
+Cc: linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, patches@linaro.org, Ashwin Chaugule <ashwin.chaugule@linaro.org>
 
-This reverts commit 3349fb64b2927407017d970dd5c4daf3c5ad69f8.
+CPPC is enabled only on platforms which support
+the h/w reduced ACPI specification. So use the h/w
+reduced version of the PCCT consistently while
+deferencing PCCT contents.
 
-After commit 8848d20cf09c ("ACPI / SMBus: Fix boot stalls / high CPU
-caused by reentrant code") the delay is no longer necessary.
-
-Signed-off-by: Chris Bainbridge <chris.bainbridge@gmail.com>
+Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
 ---
- drivers/acpi/sbshc.c | 22 ----------------------
- 1 file changed, 22 deletions(-)
+ drivers/acpi/cppc_acpi.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/sbshc.c b/drivers/acpi/sbshc.c
-index e2900518cf7e..2fa8304171e0 100644
---- a/drivers/acpi/sbshc.c
-+++ b/drivers/acpi/sbshc.c
-@@ -14,7 +14,6 @@
- #include <linux/delay.h>
- #include <linux/module.h>
- #include <linux/interrupt.h>
--#include <linux/dmi.h>
- #include "sbshc.h"
+diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+index 3c083d2..6730f96 100644
+--- a/drivers/acpi/cppc_acpi.c
++++ b/drivers/acpi/cppc_acpi.c
+@@ -304,7 +304,7 @@ EXPORT_SYMBOL_GPL(acpi_get_psd_map);
  
- #define PREFIX "ACPI: "
-@@ -89,8 +88,6 @@ enum acpi_smb_offset {
- 	ACPI_SMB_ALARM_DATA = 0x26,	/* 2 bytes alarm data */
- };
- 
--static bool macbook;
--
- static inline int smb_hc_read(struct acpi_smb_hc *hc, u8 address, u8 *data)
+ static int register_pcc_channel(int pcc_subspace_idx)
  {
- 	return ec_read(hc->offset + address, data);
-@@ -121,8 +118,6 @@ static int acpi_smbus_transaction(struct acpi_smb_hc *hc, u8 protocol,
+-	struct acpi_pcct_subspace *cppc_ss;
++	struct acpi_pcct_hw_reduced *cppc_ss;
+ 	unsigned int len;
  
- 	mutex_lock(&hc->lock);
- 	hc->done = false;
--	if (macbook)
--		udelay(5);
- 	if (smb_hc_read(hc, ACPI_SMB_PROTOCOL, &temp))
- 		goto end;
- 	if (temp) {
-@@ -250,29 +245,12 @@ extern int acpi_ec_add_query_handler(struct acpi_ec *ec, u8 query_bit,
- 			      acpi_handle handle, acpi_ec_query_func func,
- 			      void *data);
- 
--static int macbook_dmi_match(const struct dmi_system_id *d)
--{
--	pr_debug("Detected MacBook, enabling workaround\n");
--	macbook = true;
--	return 0;
--}
--
--static struct dmi_system_id acpi_smbus_dmi_table[] = {
--	{ macbook_dmi_match, "Apple MacBook", {
--	  DMI_MATCH(DMI_BOARD_VENDOR, "Apple"),
--	  DMI_MATCH(DMI_PRODUCT_NAME, "MacBook") },
--	},
--	{ },
--};
--
- static int acpi_smbus_hc_add(struct acpi_device *device)
- {
- 	int status;
- 	unsigned long long val;
- 	struct acpi_smb_hc *hc;
- 
--	dmi_check_system(acpi_smbus_dmi_table);
--
- 	if (!device)
- 		return -EINVAL;
- 
+ 	if (pcc_subspace_idx >= 0) {
 -- 
-2.1.4
+1.9.1
+
