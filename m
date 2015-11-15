@@ -1,116 +1,114 @@
-From: Christophe Ricard <christophe.ricard@gmail.com>
-Subject: [RFC 1/2] acpi: Rename acpi_gsi_get_irq_type to acpi_get_irq_type and export symbol
-Date: Sun, 15 Nov 2015 11:15:40 +0100
-Message-ID: <1447582541-5630-2-git-send-email-christophe-h.ricard@st.com>
-References: <1447582541-5630-1-git-send-email-christophe-h.ricard@st.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f47.google.com ([74.125.82.47]:37447 "EHLO
-	mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751272AbbKOKPr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 15 Nov 2015 05:15:47 -0500
-Received: by wmww144 with SMTP id w144so82967842wmw.0
-        for <linux-acpi@vger.kernel.org>; Sun, 15 Nov 2015 02:15:46 -0800 (PST)
-In-Reply-To: <1447582541-5630-1-git-send-email-christophe-h.ricard@st.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: [PATCH V3] acpi: add support for extended IRQ to PCI link
+Date: Sun, 15 Nov 2015 15:00:52 -0500
+Message-ID: <1447617653-29743-1-git-send-email-okaya@codeaurora.org>
+Return-path: <linux-arm-msm-owner@vger.kernel.org>
+Sender: linux-arm-msm-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com
+Cc: agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sinan Kaya <okaya@codeaurora.org>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, Christophe Ricard <christophe-h.ricard@st.com>
 
-acpi_gsi_get_irq_type could be use out of gsi purpose.
+The ACPI compiler uses the extended format when used
+interrupt numbers are greater than 256. The PCI link code
+currently only supports simple interrupt format. The IRQ
+numbers are represented using 32 bits when extended IRQ
+syntax. This patch changes the interrupt number type to
+32 bits and places an upper limit of 1020 as possible
+interrupt id.
 
-Rename and make it available as a utility function.
+1020 is the maximum interrupt ID that can be assigned to
+an ARM SPI interrupt according to ARM architecture.
 
-Signed-off-by: Christophe Ricard <christophe-h.ricard@st.com>
+Additional checks have been placed to prevent out of bounds
+writes.
+
+Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
 ---
- drivers/acpi/gsi.c   | 21 +--------------------
- drivers/acpi/utils.c | 21 +++++++++++++++++++++
- include/linux/acpi.h |  2 ++
- 3 files changed, 24 insertions(+), 20 deletions(-)
+ drivers/acpi/pci_link.c | 28 +++++++++++++++++++---------
+ 1 file changed, 19 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/acpi/gsi.c b/drivers/acpi/gsi.c
-index fa4585a..2828351 100644
---- a/drivers/acpi/gsi.c
-+++ b/drivers/acpi/gsi.c
-@@ -17,25 +17,6 @@ enum acpi_irq_model_id acpi_irq_model;
+diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+index 7c8408b..7777c13 100644
+--- a/drivers/acpi/pci_link.c
++++ b/drivers/acpi/pci_link.c
+@@ -1,6 +1,7 @@
+ /*
+  *  pci_link.c - ACPI PCI Interrupt Link Device Driver ($Revision: 34 $)
+  *
++ *  Copyright (c) 2015, The Linux Foundation. All rights reserved.
+  *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
+  *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
+  *  Copyright (C) 2002       Dominik Brodowski <devel@brodo.de>
+@@ -67,12 +68,12 @@ static struct acpi_scan_handler pci_link_handler = {
+  * later even the link is disable. Instead, we just repick the active irq
+  */
+ struct acpi_pci_link_irq {
+-	u8 active;		/* Current IRQ */
++	u32 active;		/* Current IRQ */
+ 	u8 triggering;		/* All IRQs */
+ 	u8 polarity;		/* All IRQs */
+ 	u8 resource_type;
+ 	u8 possible_count;
+-	u8 possible[ACPI_PCI_LINK_MAX_POSSIBLE];
++	u32 possible[ACPI_PCI_LINK_MAX_POSSIBLE];
+ 	u8 initialized:1;
+ 	u8 reserved:7;
+ };
+@@ -437,7 +438,11 @@ static int acpi_pci_link_set(struct acpi_pci_link *link, int irq)
+  * enabled system.
+  */
  
- static struct fwnode_handle *acpi_gsi_domain_id;
+-#define ACPI_MAX_IRQS		256
++/*
++ * 1020 is the maximum interrupt ID that can be assigned to
++ * an ARM SPI interrupt according to ARM architecture.
++ */
++#define ACPI_MAX_IRQS		1020
+ #define ACPI_MAX_ISA_IRQ	16
  
--static unsigned int acpi_gsi_get_irq_type(int trigger, int polarity)
--{
--	switch (polarity) {
--	case ACPI_ACTIVE_LOW:
--		return trigger == ACPI_EDGE_SENSITIVE ?
--		       IRQ_TYPE_EDGE_FALLING :
--		       IRQ_TYPE_LEVEL_LOW;
--	case ACPI_ACTIVE_HIGH:
--		return trigger == ACPI_EDGE_SENSITIVE ?
--		       IRQ_TYPE_EDGE_RISING :
--		       IRQ_TYPE_LEVEL_HIGH;
--	case ACPI_ACTIVE_BOTH:
--		if (trigger == ACPI_EDGE_SENSITIVE)
--			return IRQ_TYPE_EDGE_BOTH;
--	default:
--		return IRQ_TYPE_NONE;
--	}
--}
--
- /**
-  * acpi_gsi_to_irq() - Retrieve the linux irq number for a given GSI
-  * @gsi: GSI IRQ number to map
-@@ -82,7 +63,7 @@ int acpi_register_gsi(struct device *dev, u32 gsi, int trigger,
+ #define PIRQ_PENALTY_PCI_AVAILABLE	(0)
+@@ -493,7 +498,8 @@ int __init acpi_irq_penalty_init(void)
+ 					    penalty;
+ 			}
  
- 	fwspec.fwnode = acpi_gsi_domain_id;
- 	fwspec.param[0] = gsi;
--	fwspec.param[1] = acpi_gsi_get_irq_type(trigger, polarity);
-+	fwspec.param[1] = acpi_get_irq_type(trigger, polarity);
- 	fwspec.param_count = 2;
+-		} else if (link->irq.active) {
++		} else if (link->irq.active &&
++			(link->irq.active < ACPI_MAX_IRQS)) {
+ 			acpi_irq_penalty[link->irq.active] +=
+ 			    PIRQ_PENALTY_PCI_POSSIBLE;
+ 		}
+@@ -541,14 +547,16 @@ static int acpi_pci_link_allocate(struct acpi_pci_link *link)
+ 	else
+ 		irq = link->irq.possible[link->irq.possible_count - 1];
  
- 	return irq_create_fwspec_mapping(&fwspec);
-diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
-index 475c907..715b24b 100644
---- a/drivers/acpi/utils.c
-+++ b/drivers/acpi/utils.c
-@@ -33,6 +33,27 @@
- #define _COMPONENT		ACPI_BUS_COMPONENT
- ACPI_MODULE_NAME("utils");
- 
-+unsigned int acpi_get_irq_type(int trigger, int polarity)
-+{
-+	switch (polarity) {
-+	case ACPI_ACTIVE_LOW:
-+		return trigger == ACPI_EDGE_SENSITIVE ?
-+		       IRQ_TYPE_EDGE_FALLING :
-+		       IRQ_TYPE_LEVEL_LOW;
-+	case ACPI_ACTIVE_HIGH:
-+		return trigger == ACPI_EDGE_SENSITIVE ?
-+		       IRQ_TYPE_EDGE_RISING :
-+		       IRQ_TYPE_LEVEL_HIGH;
-+	case ACPI_ACTIVE_BOTH:
-+		if (trigger == ACPI_EDGE_SENSITIVE)
-+			return IRQ_TYPE_EDGE_BOTH;
-+	default:
-+		return IRQ_TYPE_NONE;
-+	}
-+}
-+EXPORT_SYMBOL_GPL(acpi_get_irq_type);
-+
-+
- /* --------------------------------------------------------------------------
-                             Object Evaluation Helpers
-    -------------------------------------------------------------------------- */
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index d863e12..b0c5a11 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -204,6 +204,8 @@ int acpi_isa_irq_to_gsi (unsigned isa_irq, u32 *gsi);
- void acpi_set_irq_model(enum acpi_irq_model_id model,
- 			struct fwnode_handle *fwnode);
- 
-+unsigned int acpi_get_irq_type(int trigger, int polarity);
-+
- #ifdef CONFIG_X86_IO_APIC
- extern int acpi_get_override_irq(u32 gsi, int *trigger, int *polarity);
- #else
+-	if (acpi_irq_balance || !link->irq.active) {
++	if ((acpi_irq_balance || !link->irq.active) && (irq < ACPI_MAX_IRQS)) {
+ 		/*
+ 		 * Select the best IRQ.  This is done in reverse to promote
+ 		 * the use of IRQs 9, 10, 11, and >15.
+ 		 */
+-		for (i = (link->irq.possible_count - 1); i >= 0; i--) {
+-			if (acpi_irq_penalty[irq] >
+-			    acpi_irq_penalty[link->irq.possible[i]])
++		i = link->irq.possible_count;
++		while (--i) {
++			if ((link->irq.possible[i] < ACPI_MAX_IRQS) &&
++			    (acpi_irq_penalty[irq] >
++			    acpi_irq_penalty[link->irq.possible[i]]))
+ 				irq = link->irq.possible[i];
+ 		}
+ 	}
+@@ -568,7 +576,9 @@ static int acpi_pci_link_allocate(struct acpi_pci_link *link)
+ 			    acpi_device_bid(link->device));
+ 		return -ENODEV;
+ 	} else {
+-		acpi_irq_penalty[link->irq.active] += PIRQ_PENALTY_PCI_USING;
++		if (link->irq.active < ACPI_MAX_IRQS)
++			acpi_irq_penalty[link->irq.active] +=
++				PIRQ_PENALTY_PCI_USING;
+ 		printk(KERN_WARNING PREFIX "%s [%s] enabled at IRQ %d\n",
+ 		       acpi_device_name(link->device),
+ 		       acpi_device_bid(link->device), link->irq.active);
 -- 
-2.1.4
-
+Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
