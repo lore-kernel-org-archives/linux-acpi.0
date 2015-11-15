@@ -1,64 +1,65 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH V3] acpi: add support for extended IRQ to PCI link
-Date: Sun, 15 Nov 2015 22:14:29 +0200
-Message-ID: <CAHp75VeKLG2yVhHqSFixmo+jvNG=9tLk5pBnGjbT6660dy694g@mail.gmail.com>
-References: <1447617653-29743-1-git-send-email-okaya@codeaurora.org>
+From: SF Markus Elfring <elfring@users.sourceforge.net>
+Subject: [PATCH] ACPI-EC: Delete an unnecessary check before the function call
+ "acpi_ec_delete_query"
+Date: Sun, 15 Nov 2015 22:52:30 +0100
+Message-ID: <5648FE9E.5060201@users.sourceforge.net>
+References: <5307CAA2.8060406@users.sourceforge.net>
+ <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6>
+ <530A086E.8010901@users.sourceforge.net>
+ <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6>
+ <530A72AA.3000601@users.sourceforge.net>
+ <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6>
+ <530B5FB6.6010207@users.sourceforge.net>
+ <alpine.DEB.2.10.1402241710370.2074@hadrien>
+ <530C5E18.1020800@users.sourceforge.net>
+ <alpine.DEB.2.10.1402251014170.2080@hadrien>
+ <530CD2C4.4050903@users.sourceforge.net>
+ <alpine.DEB.2.10.1402251840450.7035@hadrien>
+ <530CF8FF.8080600@users.sourceforge.net>
+ <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6>
+ <530DD06F.4090703@users.sourceforge.net>
+ <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6>
+ <5317A59D.4@users.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yk0-f196.google.com ([209.85.160.196]:36520 "EHLO
-	mail-yk0-f196.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750825AbbKOUOa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 15 Nov 2015 15:14:30 -0500
-In-Reply-To: <1447617653-29743-1-git-send-email-okaya@codeaurora.org>
+Received: from mout.web.de ([212.227.15.14]:62406 "EHLO mout.web.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751433AbbKOVwk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 15 Nov 2015 16:52:40 -0500
+In-Reply-To: <5317A59D.4@users.sourceforge.net>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, cov@codeaurora.org, jcm@redhat.com, Andy Gross <agross@codeaurora.org>, linux-arm-msm@vger.kernel.org, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>
 
-On Sun, Nov 15, 2015 at 10:00 PM, Sinan Kaya <okaya@codeaurora.org> wrote:
-> The ACPI compiler uses the extended format when used
-> interrupt numbers are greater than 256. The PCI link code
-> currently only supports simple interrupt format. The IRQ
-> numbers are represented using 32 bits when extended IRQ
-> syntax. This patch changes the interrupt number type to
-> 32 bits and places an upper limit of 1020 as possible
-> interrupt id.
->
-> 1020 is the maximum interrupt ID that can be assigned to
-> an ARM SPI interrupt according to ARM architecture.
->
-> Additional checks have been placed to prevent out of bounds
-> writes.
+From: Markus Elfring <elfring@users.sourceforge.net>
+Date: Sun, 15 Nov 2015 22:42:27 +0100
 
-One comment below.
+The acpi_ec_delete_query() function tests whether its argument is NULL
+and then returns immediately. Thus the test around the call is not needed.
 
-> @@ -541,14 +547,16 @@ static int acpi_pci_link_allocate(struct acpi_pci_link *link)
->         else
->                 irq = link->irq.possible[link->irq.possible_count - 1];
->
-> -       if (acpi_irq_balance || !link->irq.active) {
-> +       if ((acpi_irq_balance || !link->irq.active) && (irq < ACPI_MAX_IRQS)) {
->                 /*
->                  * Select the best IRQ.  This is done in reverse to promote
->                  * the use of IRQs 9, 10, 11, and >15.
->                  */
-> -               for (i = (link->irq.possible_count - 1); i >= 0; i--) {
-> -                       if (acpi_irq_penalty[irq] >
-> -                           acpi_irq_penalty[link->irq.possible[i]])
-> +               i = link->irq.possible_count;
-> +               while (--i) {
+This issue was detected by using the Coccinelle software.
 
-Actually it should be (--i >= 0). Sorry if I misled you.
+Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+---
+ drivers/acpi/ec.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> +                       if ((link->irq.possible[i] < ACPI_MAX_IRQS) &&
-> +                           (acpi_irq_penalty[irq] >
-> +                           acpi_irq_penalty[link->irq.possible[i]]))
->                                 irq = link->irq.possible[i];
->                 }
->         }
-
-
+diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
+index f61a7c8..b420fb4 100644
+--- a/drivers/acpi/ec.c
++++ b/drivers/acpi/ec.c
+@@ -1103,7 +1103,7 @@ static int acpi_ec_query(struct acpi_ec *ec, u8 *data)
+ 	}
+ 
+ err_exit:
+-	if (result && q)
++	if (result)
+ 		acpi_ec_delete_query(q);
+ 	if (data)
+ 		*data = value;
 -- 
-With Best Regards,
-Andy Shevchenko
+2.6.2
+
