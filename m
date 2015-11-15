@@ -1,47 +1,116 @@
 From: Christophe Ricard <christophe.ricard@gmail.com>
-Subject: [RFC 2/2] ACPI / gpio: Add irq_type when a gpio is used as an interrupt
-Date: Sun, 15 Nov 2015 11:15:41 +0100
-Message-ID: <1447582541-5630-3-git-send-email-christophe-h.ricard@st.com>
+Subject: [RFC 1/2] acpi: Rename acpi_gsi_get_irq_type to acpi_get_irq_type and export symbol
+Date: Sun, 15 Nov 2015 11:15:40 +0100
+Message-ID: <1447582541-5630-2-git-send-email-christophe-h.ricard@st.com>
 References: <1447582541-5630-1-git-send-email-christophe-h.ricard@st.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f53.google.com ([74.125.82.53]:35260 "EHLO
-	mail-wm0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751856AbbKOKPt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 15 Nov 2015 05:15:49 -0500
-Received: by wmdw130 with SMTP id w130so77274881wmd.0
-        for <linux-acpi@vger.kernel.org>; Sun, 15 Nov 2015 02:15:48 -0800 (PST)
+Received: from mail-wm0-f47.google.com ([74.125.82.47]:37447 "EHLO
+	mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751272AbbKOKPr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 15 Nov 2015 05:15:47 -0500
+Received: by wmww144 with SMTP id w144so82967842wmw.0
+        for <linux-acpi@vger.kernel.org>; Sun, 15 Nov 2015 02:15:46 -0800 (PST)
 In-Reply-To: <1447582541-5630-1-git-send-email-christophe-h.ricard@st.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: rjw@rjwysocki.net, lenb@kernel.org
 Cc: linux-acpi@vger.kernel.org, Christophe Ricard <christophe-h.ricard@st.com>
 
-When a gpio is used as an interrupt, the irq_type was not available for
-device driver. It is not align with devicetree probing.
+acpi_gsi_get_irq_type could be use out of gsi purpose.
+
+Rename and make it available as a utility function.
 
 Signed-off-by: Christophe Ricard <christophe-h.ricard@st.com>
 ---
- drivers/gpio/gpiolib-acpi.c | 5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+ drivers/acpi/gsi.c   | 21 +--------------------
+ drivers/acpi/utils.c | 21 +++++++++++++++++++++
+ include/linux/acpi.h |  2 ++
+ 3 files changed, 24 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-index bbcac3a..cff8736 100644
---- a/drivers/gpio/gpiolib-acpi.c
-+++ b/drivers/gpio/gpiolib-acpi.c
-@@ -416,9 +416,12 @@ static int acpi_find_gpio(struct acpi_resource *ares, void *data)
- 		 * GpioIo is used then the only way to set the flag is
- 		 * to use _DSD "gpios" property.
- 		 */
--		if (lookup->info.gpioint)
-+		if (lookup->info.gpioint) {
- 			lookup->info.active_low =
- 				agpio->polarity == ACPI_ACTIVE_LOW;
-+			irq_set_irq_type(gpiod_to_irq(lookup->desc),
-+					 acpi_get_irq_type(agpio->triggering, agpio->polarity));
-+		}
- 	}
+diff --git a/drivers/acpi/gsi.c b/drivers/acpi/gsi.c
+index fa4585a..2828351 100644
+--- a/drivers/acpi/gsi.c
++++ b/drivers/acpi/gsi.c
+@@ -17,25 +17,6 @@ enum acpi_irq_model_id acpi_irq_model;
  
- 	return 1;
+ static struct fwnode_handle *acpi_gsi_domain_id;
+ 
+-static unsigned int acpi_gsi_get_irq_type(int trigger, int polarity)
+-{
+-	switch (polarity) {
+-	case ACPI_ACTIVE_LOW:
+-		return trigger == ACPI_EDGE_SENSITIVE ?
+-		       IRQ_TYPE_EDGE_FALLING :
+-		       IRQ_TYPE_LEVEL_LOW;
+-	case ACPI_ACTIVE_HIGH:
+-		return trigger == ACPI_EDGE_SENSITIVE ?
+-		       IRQ_TYPE_EDGE_RISING :
+-		       IRQ_TYPE_LEVEL_HIGH;
+-	case ACPI_ACTIVE_BOTH:
+-		if (trigger == ACPI_EDGE_SENSITIVE)
+-			return IRQ_TYPE_EDGE_BOTH;
+-	default:
+-		return IRQ_TYPE_NONE;
+-	}
+-}
+-
+ /**
+  * acpi_gsi_to_irq() - Retrieve the linux irq number for a given GSI
+  * @gsi: GSI IRQ number to map
+@@ -82,7 +63,7 @@ int acpi_register_gsi(struct device *dev, u32 gsi, int trigger,
+ 
+ 	fwspec.fwnode = acpi_gsi_domain_id;
+ 	fwspec.param[0] = gsi;
+-	fwspec.param[1] = acpi_gsi_get_irq_type(trigger, polarity);
++	fwspec.param[1] = acpi_get_irq_type(trigger, polarity);
+ 	fwspec.param_count = 2;
+ 
+ 	return irq_create_fwspec_mapping(&fwspec);
+diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+index 475c907..715b24b 100644
+--- a/drivers/acpi/utils.c
++++ b/drivers/acpi/utils.c
+@@ -33,6 +33,27 @@
+ #define _COMPONENT		ACPI_BUS_COMPONENT
+ ACPI_MODULE_NAME("utils");
+ 
++unsigned int acpi_get_irq_type(int trigger, int polarity)
++{
++	switch (polarity) {
++	case ACPI_ACTIVE_LOW:
++		return trigger == ACPI_EDGE_SENSITIVE ?
++		       IRQ_TYPE_EDGE_FALLING :
++		       IRQ_TYPE_LEVEL_LOW;
++	case ACPI_ACTIVE_HIGH:
++		return trigger == ACPI_EDGE_SENSITIVE ?
++		       IRQ_TYPE_EDGE_RISING :
++		       IRQ_TYPE_LEVEL_HIGH;
++	case ACPI_ACTIVE_BOTH:
++		if (trigger == ACPI_EDGE_SENSITIVE)
++			return IRQ_TYPE_EDGE_BOTH;
++	default:
++		return IRQ_TYPE_NONE;
++	}
++}
++EXPORT_SYMBOL_GPL(acpi_get_irq_type);
++
++
+ /* --------------------------------------------------------------------------
+                             Object Evaluation Helpers
+    -------------------------------------------------------------------------- */
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index d863e12..b0c5a11 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -204,6 +204,8 @@ int acpi_isa_irq_to_gsi (unsigned isa_irq, u32 *gsi);
+ void acpi_set_irq_model(enum acpi_irq_model_id model,
+ 			struct fwnode_handle *fwnode);
+ 
++unsigned int acpi_get_irq_type(int trigger, int polarity);
++
+ #ifdef CONFIG_X86_IO_APIC
+ extern int acpi_get_override_irq(u32 gsi, int *trigger, int *polarity);
+ #else
 -- 
 2.1.4
 
