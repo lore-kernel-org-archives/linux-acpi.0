@@ -1,44 +1,49 @@
 From: Christophe Ricard <christophe.ricard@gmail.com>
-Subject: [RFC v2 0/2] ACPI: Add irq_type to gpio interrupt
-Date: Mon, 16 Nov 2015 08:36:01 +0100
-Message-ID: <1447659363-19847-1-git-send-email-christophe-h.ricard@st.com>
+Subject: [RFC v2 2/2] ACPI / gpio: Add irq_type when a gpio is used as an interrupt
+Date: Mon, 16 Nov 2015 08:36:03 +0100
+Message-ID: <1447659363-19847-3-git-send-email-christophe-h.ricard@st.com>
+References: <1447659363-19847-1-git-send-email-christophe-h.ricard@st.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f50.google.com ([74.125.82.50]:36148 "EHLO
-	mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751102AbbKPHgM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Nov 2015 02:36:12 -0500
-Received: by wmww144 with SMTP id w144so97769557wmw.1
-        for <linux-acpi@vger.kernel.org>; Sun, 15 Nov 2015 23:36:11 -0800 (PST)
+Received: from mail-wm0-f54.google.com ([74.125.82.54]:37161 "EHLO
+	mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751102AbbKPHgP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Nov 2015 02:36:15 -0500
+Received: by wmww144 with SMTP id w144so106175342wmw.0
+        for <linux-acpi@vger.kernel.org>; Sun, 15 Nov 2015 23:36:14 -0800 (PST)
+In-Reply-To: <1447659363-19847-1-git-send-email-christophe-h.ricard@st.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: rjw@rjwysocki.net, lenb@kernel.org
-Cc: linux-acpi@vger.kernel.org, Christophe Ricard <christophe-h.ricard@st.com>
+Cc: linux-acpi@vger.kernel.org, Christophe Ricard <christophe.ricard@gmail.com>, Christophe Ricard <christophe-h.ricard@st.com>
 
-Hi,
+From: Christophe Ricard <christophe.ricard@gmail.com>
 
-ACPI probing method does not retrieve irq_type from a gpio interrupt declare
-with GpioInt as it is done with devicetree probing.
+When a gpio is used as an interrupt, the irq_type was not available for
+device driver. It is not align with devicetree probing.
 
-Those 2 patches propose a way to retrieve the interrupt polarity/type from a GpioInt
-acpi declaration.
+Signed-off-by: Christophe Ricard <christophe-h.ricard@st.com>
+---
+ drivers/gpio/gpiolib-acpi.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
 
-Best Regards
-Christophe 
-
-v2:
-	- Fix build error reported by kbuild robot.
-
-Christophe Ricard (2):
-  acpi: Rename acpi_gsi_get_irq_type to acpi_get_irq_type and export
-    symbol
-  ACPI / gpio: Add irq_type when a gpio is used as an interrupt
-
- drivers/acpi/gsi.c          | 21 +--------------------
- drivers/acpi/utils.c        | 22 ++++++++++++++++++++++
- drivers/gpio/gpiolib-acpi.c |  5 ++++-
- include/linux/acpi.h        |  2 ++
- 4 files changed, 29 insertions(+), 21 deletions(-)
-
+diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
+index 16a7b68..8cc3c53 100644
+--- a/drivers/gpio/gpiolib-acpi.c
++++ b/drivers/gpio/gpiolib-acpi.c
+@@ -418,9 +418,12 @@ static int acpi_find_gpio(struct acpi_resource *ares, void *data)
+ 		 * GpioIo is used then the only way to set the flag is
+ 		 * to use _DSD "gpios" property.
+ 		 */
+-		if (lookup->info.gpioint)
++		if (lookup->info.gpioint) {
+ 			lookup->info.active_low =
+ 				agpio->polarity == ACPI_ACTIVE_LOW;
++			irq_set_irq_type(gpiod_to_irq(lookup->desc),
++					 acpi_get_irq_type(agpio->triggering, agpio->polarity));
++		}
+ 	}
+ 
+ 	return 1;
 -- 
 2.5.0
 
