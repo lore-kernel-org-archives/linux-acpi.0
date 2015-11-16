@@ -1,75 +1,67 @@
 From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: [PATCH v2 0/3] nvdimm: Add an IOCTL pass thru for DSM calls
-Date: Mon, 16 Nov 2015 11:38:16 -0700
-Message-ID: <cover.1447698598.git.jerry.hoemann@hpe.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t6225.austin.hp.com ([15.73.96.126]:36497 "EHLO
-	g1t6225.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752331AbbKPSig (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Nov 2015 13:38:36 -0500
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Subject: [PATCH v2 1/3] nvdimm: Clean-up access mode check.
+Date: Mon, 16 Nov 2015 11:38:17 -0700
+Message-ID: <37b74929497e6fefe94793ce9ca788e00d386d8a.1447698598.git.jerry.hoemann@hpe.com>
+References: <cover.1447698598.git.jerry.hoemann@hpe.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <cover.1447698598.git.jerry.hoemann@hpe.com>
+In-Reply-To: <cover.1447698598.git.jerry.hoemann@hpe.com>
+References: <cover.1447698598.git.jerry.hoemann@hpe.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: ross.zwisler@linux.intel.com, rjw@rjwysocki.net, lenb@kernel.org, dan.j.williams@intel.com, elliott@hpe.com, jmoyer@redhat.com, krivenok.dmitry@gmail.com, linda.knippers@hpe.com
 Cc: linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jerry Hoemann <jerry.hoemann@hpe.com>
+List-Id: linux-acpi@vger.kernel.org
 
+Change nd_ioctl and nvdimm_ioctl access mode check to use O_RDONLY.
 
-The NVDIMM code in the kernel supports an IOCTL interface to user
-space based upon the Intel Example DSM:
+Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
+---
+ drivers/nvdimm/bus.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-	http://pmem.io/documents/NVDIMM_DSM_Interface_Example.pdf
-
-This interface cannot be used by other NVDIMM DSMs that support
-incompatible functions.
-
-This patch set adds a generic "passthru" IOCTL interface which
-is not tied to a particular DSM.
-
-A new _IOC_NR ND_CMD_PASSTHRU == "100" is added for the pass thru call.
-
-The new data structure nd_passthru_pkg serves as a wrapper for the passthru
-calls.  This wrapper supplies the data that the kernel needs to
-make the _DSM call.
-
-Unlike the definitions of the _DSM functions themselves, the nd_passthru_pkg
-provides the calling information (input/output sizes) in an uniform
-manner making the kernel marshaling of the arguments straight
-forward.
-
-This shifts the marshaling burden from the kernel to the user
-space application while still permitting the kernel to internally
-call _DSM functions.
-
-To make the resultant kernel code easier to understand the existing
-functions acpi_nfit_ctl and __nd_ioctl were renamed to .*_intel to
-denote calling mechanism as in 4.3 tailored to the Intel Example DSM.
-New functions acpi_nfit_ctl_passthru and __nd_ioctl_passthru were
-created to supply the pass thru interface.
-
-
-These changes are based upon the 4.3 kernel.
-
-
-Changes in version 2:
----------------------
-1. Cleanup access mode check in nd_ioctl and nvdimm_ioctl.
-2. Change name of ndn_pkg to nd_passthru_pkg
-3. Adjust sizes in nd_passthru_pkg. DSM intergers are 64 bit.
-4. No new ioctl type, instead tunnel into the existing number space.
-5. Push down one function level where determine ioctl cmd type.
-6. re-work diagnostic print/dump message in pass-thru functions.
-
-
-
-Jerry Hoemann (3):
-  nvdimm: Clean-up access mode check.
-  nvdimm: Add wrapper for IOCTL pass thru
-  nvdimm: Add IOCTL pass thru functions
-
- drivers/acpi/nfit.c        |  93 ++++++++++++++++++++++++++++++++++++++++-
- drivers/nvdimm/bus.c       | 101 +++++++++++++++++++++++++++++++++++++++++----
- include/uapi/linux/ndctl.h |  16 +++++++
- 3 files changed, 202 insertions(+), 8 deletions(-)
-
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index 7e2c43f..1c81203 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -602,14 +602,14 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
+ static long nd_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ {
+ 	long id = (long) file->private_data;
+-	int rc = -ENXIO, read_only;
++	int rc = -ENXIO, ro;
+ 	struct nvdimm_bus *nvdimm_bus;
+ 
+-	read_only = (O_RDWR != (file->f_flags & O_ACCMODE));
++	ro = ((file->f_flags & O_ACCMODE) == O_RDONLY);
+ 	mutex_lock(&nvdimm_bus_list_mutex);
+ 	list_for_each_entry(nvdimm_bus, &nvdimm_bus_list, list) {
+ 		if (nvdimm_bus->id == id) {
+-			rc = __nd_ioctl(nvdimm_bus, NULL, read_only, cmd, arg);
++			rc = __nd_ioctl(nvdimm_bus, NULL, ro, cmd, arg);
+ 			break;
+ 		}
+ 	}
+@@ -633,10 +633,10 @@ static int match_dimm(struct device *dev, void *data)
+ 
+ static long nvdimm_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ {
+-	int rc = -ENXIO, read_only;
++	int rc = -ENXIO, ro;
+ 	struct nvdimm_bus *nvdimm_bus;
+ 
+-	read_only = (O_RDWR != (file->f_flags & O_ACCMODE));
++	ro = ((file->f_flags & O_ACCMODE) == O_RDONLY);
+ 	mutex_lock(&nvdimm_bus_list_mutex);
+ 	list_for_each_entry(nvdimm_bus, &nvdimm_bus_list, list) {
+ 		struct device *dev = device_find_child(&nvdimm_bus->dev,
+@@ -647,7 +647,7 @@ static long nvdimm_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ 			continue;
+ 
+ 		nvdimm = to_nvdimm(dev);
+-		rc = __nd_ioctl(nvdimm_bus, nvdimm, read_only, cmd, arg);
++		rc = __nd_ioctl(nvdimm_bus, nvdimm, ro, cmd, arg);
+ 		put_device(dev);
+ 		break;
+ 	}
 -- 
 1.7.11.3
-
