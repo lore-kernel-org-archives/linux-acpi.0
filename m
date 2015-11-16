@@ -1,65 +1,92 @@
-From: SF Markus Elfring <elfring@users.sourceforge.net>
-Subject: [PATCH] ACPI-EC: Delete an unnecessary check before the function call
- "acpi_ec_delete_query"
-Date: Sun, 15 Nov 2015 22:52:30 +0100
-Message-ID: <5648FE9E.5060201@users.sourceforge.net>
-References: <5307CAA2.8060406@users.sourceforge.net>
- <alpine.DEB.2.02.1402212321410.2043@localhost6.localdomain6>
- <530A086E.8010901@users.sourceforge.net>
- <alpine.DEB.2.02.1402231635510.1985@localhost6.localdomain6>
- <530A72AA.3000601@users.sourceforge.net>
- <alpine.DEB.2.02.1402240658210.2090@localhost6.localdomain6>
- <530B5FB6.6010207@users.sourceforge.net>
- <alpine.DEB.2.10.1402241710370.2074@hadrien>
- <530C5E18.1020800@users.sourceforge.net>
- <alpine.DEB.2.10.1402251014170.2080@hadrien>
- <530CD2C4.4050903@users.sourceforge.net>
- <alpine.DEB.2.10.1402251840450.7035@hadrien>
- <530CF8FF.8080600@users.sourceforge.net>
- <alpine.DEB.2.02.1402252117150.2047@localhost6.localdomain6>
- <530DD06F.4090703@users.sourceforge.net>
- <alpine.DEB.2.02.1402262129250.2221@localhost6.localdomain6>
- <5317A59D.4@users.sourceforge.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: [Bugfix] x86/PCI: Fix regression caused by commit 4d6b4e69a245
+Date: Mon, 16 Nov 2015 12:27:37 +0800
+Message-ID: <1447648057-13644-1-git-send-email-jiang.liu@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.web.de ([212.227.15.14]:62406 "EHLO mout.web.de"
+Received: from mga11.intel.com ([192.55.52.93]:16018 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751433AbbKOVwk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 15 Nov 2015 16:52:40 -0500
-In-Reply-To: <5317A59D.4@users.sourceforge.net>
+	id S1751955AbbKPEXu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 15 Nov 2015 23:23:50 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
-Cc: LKML <linux-kernel@vger.kernel.org>, kernel-janitors@vger.kernel.org, Julia Lawall <julia.lawall@lip6.fr>
+To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Bjorn Helgaas <bhelgaas@google.com>
+Cc: Liu Jiang <jiang.liu@linux.intel.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org, Keith Busch <keith.busch@intel.com>, Arthur Marsh <arthur.marsh@internode.on.net>
 
-From: Markus Elfring <elfring@users.sourceforge.net>
-Date: Sun, 15 Nov 2015 22:42:27 +0100
+From: Liu Jiang <jiang.liu@linux.intel.com>
 
-The acpi_ec_delete_query() function tests whether its argument is NULL
-and then returns immediately. Thus the test around the call is not needed.
+Commit 4d6b4e69a245 ("x86/PCI/ACPI: Use common interface to support
+PCI host bridge") converted x86 to use the common interface
+acpi_pci_root_create, but the conversion missed on code piece in
+arch/x86/pci/bus_numa.c, which causes regression on some legacy
+AMD platforms as reported by Arthur Marsh <arthur.marsh@internode.on.net>.
+The root causes is that acpi_pci_root_create() fails to insert
+host bridge resources into iomem_resource/ioport_resource because
+x86_pci_root_bus_resources() has already inserted those resources.
+So change x86_pci_root_bus_resources() to not insert resources into
+iomem_resource/ioport_resource.
 
-This issue was detected by using the Coccinelle software.
-
-Signed-off-by: Markus Elfring <elfring@users.sourceforge.net>
+Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+Reported-and-tested-by: Arthur Marsh <arthur.marsh@internode.on.net>
+Cc: Keith Busch <keith.busch@intel.com>
+Cc: Arthur Marsh <arthur.marsh@internode.on.net>
 ---
- drivers/acpi/ec.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ arch/x86/pci/bus_numa.c |   16 +++-------------
+ drivers/acpi/pci_root.c |    7 +++++++
+ 2 files changed, 10 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/acpi/ec.c b/drivers/acpi/ec.c
-index f61a7c8..b420fb4 100644
---- a/drivers/acpi/ec.c
-+++ b/drivers/acpi/ec.c
-@@ -1103,7 +1103,7 @@ static int acpi_ec_query(struct acpi_ec *ec, u8 *data)
- 	}
+diff --git a/arch/x86/pci/bus_numa.c b/arch/x86/pci/bus_numa.c
+index 7bcf06a7cd12..ce53b5b64f51 100644
+--- a/arch/x86/pci/bus_numa.c
++++ b/arch/x86/pci/bus_numa.c
+@@ -41,27 +41,17 @@ void x86_pci_root_bus_resources(int bus, struct list_head *resources)
+ 	       bus);
  
- err_exit:
--	if (result && q)
-+	if (result)
- 		acpi_ec_delete_query(q);
- 	if (data)
- 		*data = value;
+ 	/* already added by acpi ? */
+-	resource_list_for_each_entry(window, resources)
++	resource_list_for_each_entry(window, &info->resources)
+ 		if (window->res->flags & IORESOURCE_BUS) {
+ 			found = true;
+ 			break;
+ 		}
+-
+ 	if (!found)
+ 		pci_add_resource(resources, &info->busn);
+ 
+-	list_for_each_entry(root_res, &info->resources, list) {
+-		struct resource *res;
+-		struct resource *root;
++	list_for_each_entry(root_res, &info->resources, list)
++		pci_add_resource(resources, &root_res->res);
+ 
+-		res = &root_res->res;
+-		pci_add_resource(resources, res);
+-		if (res->flags & IORESOURCE_IO)
+-			root = &ioport_resource;
+-		else
+-			root = &iomem_resource;
+-		insert_resource(root, res);
+-	}
+ 	return;
+ 
+ default_resources:
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index 850d7bf0c873..ae3fe4e64203 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -768,6 +768,13 @@ static void pci_acpi_root_add_resources(struct acpi_pci_root_info *info)
+ 		else
+ 			continue;
+ 
++		/*
++		 * Some legacy x86 host bridge drivers use iomem_resource and
++		 * ioport_resource as default resource pool, skip it.
++		 */
++		if (res == root)
++			continue;
++
+ 		conflict = insert_resource_conflict(root, res);
+ 		if (conflict) {
+ 			dev_info(&info->bridge->dev,
 -- 
-2.6.2
+1.7.10.4
 
