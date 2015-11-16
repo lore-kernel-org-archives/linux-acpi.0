@@ -1,92 +1,151 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [Bugfix] x86/PCI: Fix regression caused by commit 4d6b4e69a245
-Date: Mon, 16 Nov 2015 12:27:37 +0800
-Message-ID: <1447648057-13644-1-git-send-email-jiang.liu@linux.intel.com>
+From: Arthur Marsh <arthur.marsh@internode.on.net>
+Subject: Re: [Bugfix] x86/PCI: Fix regression caused by commit 4d6b4e69a245
+Date: Mon, 16 Nov 2015 17:36:30 +1030
+Message-ID: <56498076.7040001@internode.on.net>
+References: <1447648057-13644-1-git-send-email-jiang.liu@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:16018 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751955AbbKPEXu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 15 Nov 2015 23:23:50 -0500
+Received: from ipmail04.adl6.internode.on.net ([150.101.137.141]:48205 "EHLO
+	ipmail04.adl6.internode.on.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751102AbbKPHJF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 16 Nov 2015 02:09:05 -0500
+In-Reply-To: <1447648057-13644-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Bjorn Helgaas <bhelgaas@google.com>
-Cc: Liu Jiang <jiang.liu@linux.intel.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org, Keith Busch <keith.busch@intel.com>, Arthur Marsh <arthur.marsh@internode.on.net>
+To: Jiang Liu <jiang.liu@linux.intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Bjorn Helgaas <bhelgaas@google.com>
+Cc: linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org, Keith Busch <keith.busch@intel.com>
 
+
+
+Jiang Liu wrote on 16/11/15 14:57:
+> From: Liu Jiang <jiang.liu@linux.intel.com>
+>
+> Commit 4d6b4e69a245 ("x86/PCI/ACPI: Use common interface to support
+> PCI host bridge") converted x86 to use the common interface
+> acpi_pci_root_create, but the conversion missed on code piece in
+> arch/x86/pci/bus_numa.c, which causes regression on some legacy
+> AMD platforms as reported by Arthur Marsh <arthur.marsh@internode.on.net>.
+> The root causes is that acpi_pci_root_create() fails to insert
+> host bridge resources into iomem_resource/ioport_resource because
+> x86_pci_root_bus_resources() has already inserted those resources.
+> So change x86_pci_root_bus_resources() to not insert resources into
+> iomem_resource/ioport_resource.
+>
+> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+> Reported-and-tested-by: Arthur Marsh <arthur.marsh@internode.on.net>
+> Cc: Keith Busch <keith.busch@intel.com>
+> Cc: Arthur Marsh <arthur.marsh@internode.on.net>
+> ---
+>   arch/x86/pci/bus_numa.c |   16 +++-------------
+>   drivers/acpi/pci_root.c |    7 +++++++
+>   2 files changed, 10 insertions(+), 13 deletions(-)
+>
+> diff --git a/arch/x86/pci/bus_numa.c b/arch/x86/pci/bus_numa.c
+> index 7bcf06a7cd12..ce53b5b64f51 100644
+> --- a/arch/x86/pci/bus_numa.c
+> +++ b/arch/x86/pci/bus_numa.c
+> @@ -41,27 +41,17 @@ void x86_pci_root_bus_resources(int bus, struct list_head *resources)
+>   	       bus);
+>
+>   	/* already added by acpi ? */
+> -	resource_list_for_each_entry(window, resources)
+> +	resource_list_for_each_entry(window, &info->resources)
+>   		if (window->res->flags & IORESOURCE_BUS) {
+>   			found = true;
+>   			break;
+>   		}
+> -
+>   	if (!found)
+>   		pci_add_resource(resources, &info->busn);
+>
+> -	list_for_each_entry(root_res, &info->resources, list) {
+> -		struct resource *res;
+> -		struct resource *root;
+> +	list_for_each_entry(root_res, &info->resources, list)
+> +		pci_add_resource(resources, &root_res->res);
+>
+> -		res = &root_res->res;
+> -		pci_add_resource(resources, res);
+> -		if (res->flags & IORESOURCE_IO)
+> -			root = &ioport_resource;
+> -		else
+> -			root = &iomem_resource;
+> -		insert_resource(root, res);
+> -	}
+>   	return;
+>
+>   default_resources:
+> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+> index 850d7bf0c873..ae3fe4e64203 100644
+> --- a/drivers/acpi/pci_root.c
+> +++ b/drivers/acpi/pci_root.c
+> @@ -768,6 +768,13 @@ static void pci_acpi_root_add_resources(struct acpi_pci_root_info *info)
+>   		else
+>   			continue;
+>
+> +		/*
+> +		 * Some legacy x86 host bridge drivers use iomem_resource and
+> +		 * ioport_resource as default resource pool, skip it.
+> +		 */
+> +		if (res == root)
+> +			continue;
+> +
+>   		conflict = insert_resource_conflict(root, res);
+>   		if (conflict) {
+>   			dev_info(&info->bridge->dev,
+>
+
+I have not previously seen the patch above and have not been able to 
+successfully boot with it applied against the current Linus' git head.
+
+I had booted successfully with a kernel built with the patch below from 
+9 November 2015, then removed the patch below and applied the patch 
+above from 16 November 2015, and when I booted the resulting kernel, 
+received a lock-up:
+
+http://www.users.on.net/~arthur.marsh/20151116611.jpg
+
+I'd be happy to test further patches.
+
+Arthur.
+
+ From 02818ba34bfa76d93f2a29c85660da0323b0b457 Mon Sep 17 00:00:00 2001
 From: Liu Jiang <jiang.liu@linux.intel.com>
+Date: Mon, 9 Nov 2015 13:36:48 +0800
+Subject: [PATCH]
 
-Commit 4d6b4e69a245 ("x86/PCI/ACPI: Use common interface to support
-PCI host bridge") converted x86 to use the common interface
-acpi_pci_root_create, but the conversion missed on code piece in
-arch/x86/pci/bus_numa.c, which causes regression on some legacy
-AMD platforms as reported by Arthur Marsh <arthur.marsh@internode.on.net>.
-The root causes is that acpi_pci_root_create() fails to insert
-host bridge resources into iomem_resource/ioport_resource because
-x86_pci_root_bus_resources() has already inserted those resources.
-So change x86_pci_root_bus_resources() to not insert resources into
-iomem_resource/ioport_resource.
 
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-Reported-and-tested-by: Arthur Marsh <arthur.marsh@internode.on.net>
-Cc: Keith Busch <keith.busch@intel.com>
-Cc: Arthur Marsh <arthur.marsh@internode.on.net>
+Signed-off-by: Liu Jiang <jiang.liu@linux.intel.com>
 ---
- arch/x86/pci/bus_numa.c |   16 +++-------------
- drivers/acpi/pci_root.c |    7 +++++++
- 2 files changed, 10 insertions(+), 13 deletions(-)
+  arch/x86/pci/bus_numa.c |    3 +++
+  1 file changed, 3 insertions(+)
 
 diff --git a/arch/x86/pci/bus_numa.c b/arch/x86/pci/bus_numa.c
-index 7bcf06a7cd12..ce53b5b64f51 100644
+index 7bcf06a7cd12..022d83158cdb 100644
 --- a/arch/x86/pci/bus_numa.c
 +++ b/arch/x86/pci/bus_numa.c
-@@ -41,27 +41,17 @@ void x86_pci_root_bus_resources(int bus, struct list_head *resources)
- 	       bus);
- 
- 	/* already added by acpi ? */
--	resource_list_for_each_entry(window, resources)
-+	resource_list_for_each_entry(window, &info->resources)
- 		if (window->res->flags & IORESOURCE_BUS) {
- 			found = true;
- 			break;
- 		}
--
- 	if (!found)
- 		pci_add_resource(resources, &info->busn);
- 
--	list_for_each_entry(root_res, &info->resources, list) {
--		struct resource *res;
--		struct resource *root;
-+	list_for_each_entry(root_res, &info->resources, list)
+@@ -51,6 +51,8 @@ void x86_pci_root_bus_resources(int bus, struct 
+list_head *resources)
+  		pci_add_resource(resources, &info->busn);
+
+  	list_for_each_entry(root_res, &info->resources, list) {
 +		pci_add_resource(resources, &root_res->res);
- 
--		res = &root_res->res;
--		pci_add_resource(resources, res);
--		if (res->flags & IORESOURCE_IO)
--			root = &ioport_resource;
--		else
--			root = &iomem_resource;
--		insert_resource(root, res);
--	}
- 	return;
- 
- default_resources:
-diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index 850d7bf0c873..ae3fe4e64203 100644
---- a/drivers/acpi/pci_root.c
-+++ b/drivers/acpi/pci_root.c
-@@ -768,6 +768,13 @@ static void pci_acpi_root_add_resources(struct acpi_pci_root_info *info)
- 		else
- 			continue;
- 
-+		/*
-+		 * Some legacy x86 host bridge drivers use iomem_resource and
-+		 * ioport_resource as default resource pool, skip it.
-+		 */
-+		if (res == root)
-+			continue;
-+
- 		conflict = insert_resource_conflict(root, res);
- 		if (conflict) {
- 			dev_info(&info->bridge->dev,
++#if 0
+  		struct resource *res;
+  		struct resource *root;
+
+@@ -61,6 +63,7 @@ void x86_pci_root_bus_resources(int bus, struct 
+list_head *resources)
+  		else
+  			root = &iomem_resource;
+  		insert_resource(root, res);
++#endif
+  	}
+  	return;
+
 -- 
 1.7.10.4
 
