@@ -1,87 +1,44 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v2 0/3] nvdimm: Add an IOCTL pass thru for DSM calls
-Date: Tue, 17 Nov 2015 09:05:28 -0800
-Message-ID: <CAPcyv4gryw5GT2CLHvgirGMudDrQBJaBojwbjxhgkPqR5Te5pg@mail.gmail.com>
-References: <cover.1447698598.git.jerry.hoemann@hpe.com>
-	<CAPcyv4j_KcwztL3ACRafSFGEiaspCuM_+CwkcSeymVk5s5vYWg@mail.gmail.com>
-	<20151116211011.GC10480@tevye.fc.hp.com>
-	<CAPcyv4jhORsskTr_SPpNO=zJf9V7_zrYNnNn61SMWApnv7TK0g@mail.gmail.com>
-	<20151117165645.GB91690@tevye.fc.hp.com>
+From: Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>
+Subject: [PATCH v2 0/4] ACPI based NUMA support for ARM64
+Date: Tue, 17 Nov 2015 23:55:29 +0530
+Message-ID: <1447784733-10419-1-git-send-email-gkulkarni@caviumnetworks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f54.google.com ([74.125.82.54]:38632 "EHLO
-	mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751807AbbKQRF3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 17 Nov 2015 12:05:29 -0500
-Received: by wmec201 with SMTP id c201so35995036wme.1
-        for <linux-acpi@vger.kernel.org>; Tue, 17 Nov 2015 09:05:28 -0800 (PST)
-In-Reply-To: <20151117165645.GB91690@tevye.fc.hp.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Will.Deacon@arm.com, catalin.marinas@arm.com, grant.likely@linaro.org, leif.lindholm@linaro.org, rfranz@cavium.com, ard.biesheuvel@linaro.org, msalter@redhat.com, robh+dt@kernel.org, steve.capper@linaro.org, hanjun.guo@linaro.org, al.stone@linaro.org, arnd@arndb.de, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, rjw@rjwysocki.net, lenb@kernel.org, marc.zyngier@arm.com, lorenzo.pieralisi@arm.com, tn@semihalf.com, rrichter@cavium.com, Prasun.Kapoor@caviumnetworks.com
+Cc: gpkulkarni@gmail.com
 List-Id: linux-acpi@vger.kernel.org
-To: Jerry Hoemann <Jerry.Hoemann@hpe.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "Elliott, Robert (Persistent Memory)" <elliott@hpe.com>, jmoyer <jmoyer@redhat.com>, Dmitry Krivenok <krivenok.dmitry@gmail.com>, Linda Knippers <linda.knippers@hpe.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Tue, Nov 17, 2015 at 8:56 AM, Jerry Hoemann <jerry.hoemann@hpe.com> wrote:
-> On Mon, Nov 16, 2015 at 05:29:41PM -0800, Dan Williams wrote:
->> On Mon, Nov 16, 2015 at 1:10 PM, Jerry Hoemann <jerry.hoemann@hpe.com> wrote:
->> > On Mon, Nov 16, 2015 at 11:00:20AM -0800, Dan Williams wrote:
->> >> On Mon, Nov 16, 2015 at 10:38 AM, Jerry Hoemann <jerry.hoemann@hpe.com> wrote:
->> >> >
->> >>
->
-> ...
->
->> >> Let's not do the _intel vs _passthru split.  I want to convert the
->> >> existing commands over to this new interface and deprecate the old
->> >> ioctl-command formats.  I.e. it isn't the case that this will be a
->> >> always be a blind "passthru" mechanism, the kernel will need to crack
->> >> open this payload in some circumstances.
->> >
->> >
->> > I'm confused.
->> >
->> > In this version there is only 1 ioctl 'N'.  The pass thru is using
->> > number 100.  This is what I thought you wanted from prior comments.
->>
->> It is indeed, I like that change.
->>
->> > The split are for internal functions that deal specifically w/
->> > the argument marshaling code and copy-in/copy-out.  These mechanisms
->> > are different.
->> >
->> > I understand that you want to switch over, but don't you (at least for
->> > the time being) need to keep the old marshaling code for the current
->> > use case?   I was assuming a sequence like:
->> >         1. The pass thru code gets submitted.
->> >         2. The current tools are converted over to using the pass thru,
->> >         3. The marshaling code using nd_cmd_in_size etc., would then
->> >                 be removed.
->> >
->> > Are you wanting to make one big change and not in separate steps?
->>
->> I want to do it in separate steps, I'd just like to see cmd number 100
->> added to the existing __nd_ioctl and acpi_nfit_ctl routines.  That
->
->    Why?
+ -v2 rebased on arm64-numa v7 patches.
+ http://www.spinics.net/lists/arm-kernel/msg460813.html
 
-Because there's no need for the intel vs passthru distinction, it's
-just yet another command.
+ -v1 initial patches from Hanjun Guo
 
->> plus quibbling about the name "ND_CMD_PASSTHRU".  Given the plans to
->> eventually replace the existing commands we can call it something like
->> 'ND_DSM_GENERIC'.
->
->
->   No problem.  I'll change the name for ndn_passthru_pkg in a similar fashion.
->
->
->   Question:     Are you planning to add other CMDs to the IOCTL in the future?
->                 (eg. ones not directly related to calling _dsm?)
->
->                 Or, is the ultimate goal to have an IOCTL that supports
->                 only the generic DSM call?
+Hanjun Guo (4):
+  acpi, numa: Use pr_fmt() instead of printk
+  acpi, numa: Replace ACPI_DEBUG_PRINT() with pr_debug()
+  arm64, acpi, numa: NUMA support based on SRAT and SLIT
+  acpi, numa: Enable ACPI based NUMA on ARM64
 
-I'm not ruling out the possibility that there may be a non-DSM command
-in the future, but I don't see any need for that on the horizon.  Why
-would it matter?
+ arch/arm64/include/asm/acpi.h |   4 +
+ arch/arm64/kernel/Makefile    |   1 +
+ arch/arm64/kernel/acpi_numa.c | 215 ++++++++++++++++++++++++++++++++++++++++++
+ arch/arm64/mm/numa.c          |   7 +-
+ drivers/acpi/Kconfig          |   4 +-
+ drivers/acpi/numa.c           | 106 ++++++++++++---------
+ include/linux/acpi.h          |  15 +++
+ 7 files changed, 306 insertions(+), 46 deletions(-)
+ create mode 100644 arch/arm64/kernel/acpi_numa.c
+
+-- 
+1.8.1.4
