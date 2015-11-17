@@ -1,104 +1,88 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v2 0/3] nvdimm: Add an IOCTL pass thru for DSM calls
-Date: Mon, 16 Nov 2015 17:29:41 -0800
-Message-ID: <CAPcyv4jhORsskTr_SPpNO=zJf9V7_zrYNnNn61SMWApnv7TK0g@mail.gmail.com>
-References: <cover.1447698598.git.jerry.hoemann@hpe.com>
-	<CAPcyv4j_KcwztL3ACRafSFGEiaspCuM_+CwkcSeymVk5s5vYWg@mail.gmail.com>
-	<20151116211011.GC10480@tevye.fc.hp.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH v2 5/7] ACPI / x86: introduce acpi_os_readable() support
+Date: Tue, 17 Nov 2015 01:49:35 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BADF027@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1446790780.git.lv.zheng@intel.com>
+ <cover.1447143067.git.lv.zheng@intel.com>
+ <c54877289d7742727b2395147167590ed2f24d8a.1447143067.git.lv.zheng@intel.com>
+ <36DF59CE26D8EE47B0655C516E9CE6402867258C@shsmsx102.ccr.corp.intel.com>
+ <1AE640813FDE7649BE1B193DEA596E883BADD796@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f54.google.com ([74.125.82.54]:33736 "EHLO
-	mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752452AbbKQB3m (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 16 Nov 2015 20:29:42 -0500
-Received: by wmec201 with SMTP id c201so204602510wme.0
-        for <linux-acpi@vger.kernel.org>; Mon, 16 Nov 2015 17:29:41 -0800 (PST)
-In-Reply-To: <20151116211011.GC10480@tevye.fc.hp.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E883BADD796@SHSMSX101.ccr.corp.intel.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Chen, Yu C" <yu.c.chen@intel.com>
+Cc: 'Lv Zheng' <zetalog@gmail.com>, "'linux-kernel@vger.kernel.org'" <linux-kernel@vger.kernel.org>, "'linux-acpi@vger.kernel.org'" <linux-acpi@vger.kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Jerry Hoemann <Jerry.Hoemann@hpe.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "Elliott, Robert (Persistent Memory)" <elliott@hpe.com>, jmoyer <jmoyer@redhat.com>, Dmitry Krivenok <krivenok.dmitry@gmail.com>, Linda Knippers <linda.knippers@hpe.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Mon, Nov 16, 2015 at 1:10 PM, Jerry Hoemann <jerry.hoemann@hpe.com> wrote:
-> On Mon, Nov 16, 2015 at 11:00:20AM -0800, Dan Williams wrote:
->> On Mon, Nov 16, 2015 at 10:38 AM, Jerry Hoemann <jerry.hoemann@hpe.com> wrote:
->> >
->> > The NVDIMM code in the kernel supports an IOCTL interface to user
->> > space based upon the Intel Example DSM:
->> >
->> >         http://pmem.io/documents/NVDIMM_DSM_Interface_Example.pdf
->> >
->> > This interface cannot be used by other NVDIMM DSMs that support
->> > incompatible functions.
->> >
->> > This patch set adds a generic "passthru" IOCTL interface which
->> > is not tied to a particular DSM.
->> >
->> > A new _IOC_NR ND_CMD_PASSTHRU == "100" is added for the pass thru call.
->> >
->> > The new data structure nd_passthru_pkg serves as a wrapper for the passthru
->> > calls.  This wrapper supplies the data that the kernel needs to
->> > make the _DSM call.
->> >
->> > Unlike the definitions of the _DSM functions themselves, the nd_passthru_pkg
->> > provides the calling information (input/output sizes) in an uniform
->> > manner making the kernel marshaling of the arguments straight
->> > forward.
->> >
->> > This shifts the marshaling burden from the kernel to the user
->> > space application while still permitting the kernel to internally
->> > call _DSM functions.
->> >
->> > To make the resultant kernel code easier to understand the existing
->> > functions acpi_nfit_ctl and __nd_ioctl were renamed to .*_intel to
->> > denote calling mechanism as in 4.3 tailored to the Intel Example DSM.
->> > New functions acpi_nfit_ctl_passthru and __nd_ioctl_passthru were
->> > created to supply the pass thru interface.
->>
->> Let's not do the _intel vs _passthru split.  I want to convert the
->> existing commands over to this new interface and deprecate the old
->> ioctl-command formats.  I.e. it isn't the case that this will be a
->> always be a blind "passthru" mechanism, the kernel will need to crack
->> open this payload in some circumstances.
->
->
-> I'm confused.
->
-> In this version there is only 1 ioctl 'N'.  The pass thru is using
-> number 100.  This is what I thought you wanted from prior comments.
+Hi, Yu
 
-It is indeed, I like that change.
+> From: Zheng, Lv
+> Sent: Wednesday, November 11, 2015 1:07 PM
+> 
+> Hi, Yu
+> 
+> > From: Chen, Yu C
+> > Sent: Tuesday, November 10, 2015 5:43 PM
+> >
+> > Hi, Lv
+> > Sorry for my late feedback on the patch, one minor nit below:
+> >
+> > > From: Zheng, Lv
+> > > Sent: Tuesday, November 10, 2015 4:22 PM
+> > >
+> > > From: Chen Yu <yu.c.chen@intel.com>
+> > >
+> > > This patch implements acpi_os_readable(). The function is used by ACPI AML
+> > > debugger to validate user specified pointers for the dumpable AML operand
+> > > objects.
+> > >
+> > > Signed-off-by: Chen Yu <yu.c.chen@intel.com>
+> > > Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> > > ---
+> > > +bool __acpi_memory_readable(void *pointer, size_t length) {
+> > > +	unsigned long start_pfn, end_pfn;
+> > > +
+> > We should only check the low memory, otherwise the highmem address might
+> > bring unexpected behavior in this function, I think we should add:
+> > 	if (pointer  >= PAGE_OFFSET)
+> > 		return false;
+> 
+> I think pfn_range_is_mapped() can ensure this.
+> If you want to add some sanity checks, IMO, virt_addr_valid() could be better.
 
-> The split are for internal functions that deal specifically w/
-> the argument marshaling code and copy-in/copy-out.  These mechanisms
-> are different.
->
-> I understand that you want to switch over, but don't you (at least for
-> the time being) need to keep the old marshaling code for the current
-> use case?   I was assuming a sequence like:
->         1. The pass thru code gets submitted.
->         2. The current tools are converted over to using the pass thru,
->         3. The marshaling code using nd_cmd_in_size etc., would then
->                 be removed.
->
-> Are you wanting to make one big change and not in separate steps?
+I confirmed that pfn_range_is_mapped() doesn't cover this for us.
+We need such a check or enhance this in pfn_range_is_mapped().
+I'll remove this patch from this patchset and re-send the rest of the patches in this patchset as v3.
+For acpi_os_readable() support, I'll create a separate RFC patchset with different approaches included.
 
-I want to do it in separate steps, I'd just like to see cmd number 100
-added to the existing __nd_ioctl and acpi_nfit_ctl routines.  That
-plus quibbling about the name "ND_CMD_PASSTHRU".  Given the plans to
-eventually replace the existing commands we can call it something like
-'ND_DSM_GENERIC'.
+Thanks and best regards
+-Lv
 
-> Now I don't currently have provision for "snooping" out specific functions
-> in the pass thru flow. The 4.3 code doesn't do that either per se.  It
-> will do the calls asked of it from the user.
->
-> Snooping is a feature that could be added, but since I'm not sure your
-> plans here, the best I can do at the moment is to put in a hook to
-> a function that is a  no-op.  The meat of this function to be added
-> when plans become more firm.  Do you have more specific info here?
-
-No need to add the snooping support now, I only made the comment in
-reference to the "passthru" name.  We can add snooping support later
-after we finalize this initial marshaling code.
+> 
+> > > +	start_pfn = page_to_pfn(virt_to_page(pointer));
+> > > +	end_pfn = page_to_pfn(virt_to_page(pointer + length));
+> > Convert pointer to char* first?
+> > end_pfn = page_to_pfn(virt_to_page((char*)pointer + length));
+> 
+> Either a compiler supports such a conversion or a compiler ends up fatal error by complaining unknown sizeof(void *).
+> So there is no need to do this here as the build test has passed.
+> 
+> Thanks and best regards
+> -Lv
+> 
+> >
+> > > +	/*
+> > > +	 * Since the acpi address is allocated by kmalloc, we only
+> > > +	 * need to consider the direct-mapping virtual address,
+> > > +	 * rather than the kmap/vmalloc/ioremap address.
+> > > +	 */
+> > > +	return pfn_range_is_mapped(start_pfn, end_pfn) ? true : false; }
+> > > +
+> > Thanks!
+> >
+> > Best Regards,
+> > Yu
