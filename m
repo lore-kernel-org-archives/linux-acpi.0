@@ -1,95 +1,85 @@
-From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: Re: [PATCH v2 0/3] nvdimm: Add an IOCTL pass thru for DSM calls
-Date: Wed, 18 Nov 2015 00:01:32 -0700
-Message-ID: <20151118070132.GA118986@tevye.fc.hp.com>
-References: <cover.1447698598.git.jerry.hoemann@hpe.com>
- <CAPcyv4j_KcwztL3ACRafSFGEiaspCuM_+CwkcSeymVk5s5vYWg@mail.gmail.com>
- <20151116211011.GC10480@tevye.fc.hp.com>
- <CAPcyv4jhORsskTr_SPpNO=zJf9V7_zrYNnNn61SMWApnv7TK0g@mail.gmail.com>
- <20151117165645.GB91690@tevye.fc.hp.com>
- <CAPcyv4gryw5GT2CLHvgirGMudDrQBJaBojwbjxhgkPqR5Te5pg@mail.gmail.com>
-Reply-To: Jerry.Hoemann@hpe.com
+From: Robin Murphy <robin.murphy@arm.com>
+Subject: Re: [PATCH V5 8/9] PCI: OF: Move of_pci_dma_configure() to
+ pci_dma_configure()
+Date: Wed, 18 Nov 2015 12:00:32 +0000
+Message-ID: <564C6860.4000002@arm.com>
+References: <1446072654-5608-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+ <1446072654-5608-9-git-send-email-Suravee.Suthikulpanit@amd.com>
+ <564B4111.6010805@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=WINDOWS-1252; format=flowed
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t3427.houston.hp.com ([15.201.208.55]:34709 "EHLO
-	g4t3427.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752098AbbKRHBg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Nov 2015 02:01:36 -0500
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4gryw5GT2CLHvgirGMudDrQBJaBojwbjxhgkPqR5Te5pg@mail.gmail.com>
+Received: from eu-smtp-delivery-143.mimecast.com ([207.82.80.143]:40282 "EHLO
+	eu-smtp-delivery-143.mimecast.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753173AbbKRMAg convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 18 Nov 2015 07:00:36 -0500
+In-Reply-To: <564B4111.6010805@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "Elliott, Robert (Persistent Memory)" <elliott@hpe.com>, jmoyer <jmoyer@redhat.com>, Dmitry Krivenok <krivenok.dmitry@gmail.com>, Linda Knippers <linda.knippers@hpe.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, bhelgaas@google.com, rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, "arnd@arndb.de" <arnd@arndb.de>
+Cc: thomas.lendacky@amd.com, herbert@gondor.apana.org.au, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org
 
-On Tue, Nov 17, 2015 at 09:05:28AM -0800, Dan Williams wrote:
-> On Tue, Nov 17, 2015 at 8:56 AM, Jerry Hoemann <jerry.hoemann@hpe.com> wrote:
-> > On Mon, Nov 16, 2015 at 05:29:41PM -0800, Dan Williams wrote:
-> >> On Mon, Nov 16, 2015 at 1:10 PM, Jerry Hoemann <jerry.hoemann@hpe.com> wrote:
-> >> > On Mon, Nov 16, 2015 at 11:00:20AM -0800, Dan Williams wrote:
-> >> >> On Mon, Nov 16, 2015 at 10:38 AM, Jerry Hoemann <jerry.hoemann@hpe.com> wrote:
-> >> >> >
-> >> >>
-> >
-> > ...
-> >
-> >> I want to do it in separate steps, I'd just like to see cmd number 100
-> >> added to the existing __nd_ioctl and acpi_nfit_ctl routines.  That
-> >
-> >    Why?
-> 
-> Because there's no need for the intel vs passthru distinction, it's
-> just yet another command.
++Arnd
 
-  Yes and no.  The way the two marshal their arguments in prep for
-  the copy in/copy out is different and are not compatible.
+On 17/11/15 15:00, Robin Murphy wrote:
+> Hi Suravee,
+>
+> On 28/10/15 22:50, Suravee Suthikulpanit wrote:
+>> This patch move of_pci_dma_configure() to a more generic
+>> pci_dma_configure(), which can be extended by non-OF code (e.g. ACPI).
+>>
+>> This has no functional change.
+>
+> Unfortunately, it appears that it does...
+>
+>> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+>> Acked-by: Rob Herring <robh+dt@kernel.org>
+>> Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+>> Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
+>> CC: Rafael J. Wysocki <rjw@rjwysocki.net>
+[...]
+>> +/**
+>> + * pci_dma_configure - Setup DMA configuration
+>> + * @dev: ptr to pci_dev struct of the PCI device
+>> + *
+>> + * Function to update PCI devices's DMA configuration using the same
+>> + * info from the OF node of host bridge's parent (if any).
+>> + */
+>> +static void pci_dma_configure(struct pci_dev *dev)
+>> +{
+>> +    struct device *bridge = pci_get_host_bridge_device(dev);
+>> +
+>> +    if (IS_ENABLED(CONFIG_OF) && dev->dev.of_node) {
+>
+> Previously I was seeing of_dma_configure, and thus of_iommu_configure,
+> called for every PCI device on Juno. The check above now prevents this
+> happening, since the PCI devices are probed directly from the bus and
+> don't have OF nodes of their own. They now get left in some
+> half-configured state where arch_setup_dma_ops isn't called either.
 
-  Also, the existing upstream acpi_nfit_ctl does multiple things that
-  we don't want done in the "semi" passthru case.
+Just to follow up on that, Arnd's patch to tidy up dma_get_ops (now 
+queued[1]) makes this even worse, since preventing arch_setup_dma_ops 
+being called means the PCI devices now get the dummy DMA ops which leave 
+the drivers failing to probe at all, IOMMU hacks or not :(
 
-  To accomodate these differences, I implemented in separate functions.
-  I can merge the functions together, it will not be clean.
+Robin.
 
-  This approach also creates testing issues I didn't have previously.  I
-  was confident w/ code inspection that I wasn't breaking the existing
-  usage case.  I will need your help in testing on hardware that I don't
-  have access to.
+[1]:https://git.kernel.org/cgit/linux/kernel/git/arm64/linux.git/commit/?h=fixes/core&id=1dccb598df549d892b6450c261da54cdd7af44b4
 
-  You expressed a desire to depricate the existing ioctl commands
-  and transition to the semi passthru structure.
+> Should this be checking bridge->parent->of_node rather than
+> dev->dev.of_node (which seems to work), or am I missing something?
+>
+> Sorry I don't really have the bandwidth to look into this in detail
+> myself, right now I'm just trying to get my magic hacks rebased ;)
+>
+> Robin.
+>
+>> +        if (bridge->parent)
+>> +            of_dma_configure(&dev->dev, bridge->parent->of_node);
+>> +    }
+>> +
+>> +    pci_put_host_bridge_device(bridge);
+>> +}
 
-  What do you anticipate that code looking like?
-
-> 
-> >> plus quibbling about the name "ND_CMD_PASSTHRU".  Given the plans to
-> >> eventually replace the existing commands we can call it something like
-> >> 'ND_DSM_GENERIC'.
-> >
-> >
-> >   No problem.  I'll change the name for ndn_passthru_pkg in a similar fashion.
-> >
-> >
-> >   Question:     Are you planning to add other CMDs to the IOCTL in the future?
-> >                 (eg. ones not directly related to calling _dsm?)
-> >
-> >                 Or, is the ultimate goal to have an IOCTL that supports
-> >                 only the generic DSM call?
-> 
-> I'm not ruling out the possibility that there may be a non-DSM command
-> in the future, but I don't see any need for that on the horizon.  Why
-> would it matter?
-
-  Neither the existing upstream apci_nfit_ctl nor the semi pass thru
-  marshal arguments in a traditional straight forward manner.  So likely
-  the marshaling code for any new commands would be different.
-
-  Also, since it doesn't call DSM it wouldn't be doing the evaluate dsm.
-
-
-
--- 
-
------------------------------------------------------------------------------
-Jerry Hoemann            Software Engineer      Hewlett-Packard Enterprise
------------------------------------------------------------------------------
