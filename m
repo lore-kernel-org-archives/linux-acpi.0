@@ -1,71 +1,135 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH V5 8/9] PCI: OF: Move of_pci_dma_configure() to pci_dma_configure()
-Date: Wed, 18 Nov 2015 22:24:52 +0100
-Message-ID: <7324830.G6XBOApVhh@vostro.rjw.lan>
-References: <1446072654-5608-1-git-send-email-Suravee.Suthikulpanit@amd.com> <3822315.uJPjk3L2zB@wuerfel> <564CAD63.3020306@amd.com>
+From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Subject: Re: [RFC PATCH] Fix _FIT vs. NFIT processing breakage
+Date: Wed, 18 Nov 2015 21:07:28 +0000
+Message-ID: <1447880848.30346.9.camel@intel.com>
+References: <20151118175359.GA2209@ljk840.redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:61546 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754683AbbKRUzW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Nov 2015 15:55:22 -0500
-In-Reply-To: <564CAD63.3020306@amd.com>
+Received: from mga09.intel.com ([134.134.136.24]:61250 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933596AbbKRVHa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 18 Nov 2015 16:07:30 -0500
+In-Reply-To: <20151118175359.GA2209@ljk840.redhat.com>
+Content-Language: en-US
+Content-ID: <D79AC6EB1CB8CE4484719C9CB404330F@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Robin Murphy <robin.murphy@arm.com>, bhelgaas@google.com, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, thomas.lendacky@amd.com, herbert@gondor.apana.org.au, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org
+To: "Williams, Dan J" <dan.j.williams@intel.com>, "linda.knippers@hpe.com" <linda.knippers@hpe.com>
+Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "toshi.kani@hpe.com" <toshi.kani@hpe.com>, "jmoyer@redhat.com" <jmoyer@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "elliott@hpe.com" <elliott@hpe.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>
 
-On Wednesday, November 18, 2015 10:54:59 AM Suravee Suthikulanit wrote:
-> Hi All,
-> 
-> On 11/18/2015 6:41 AM, Arnd Bergmann wrote:
-> > On Wednesday 18 November 2015 12:00:32 Robin Murphy wrote:
-> >> On 17/11/15 15:00, Robin Murphy wrote:
-> >>> On 28/10/15 22:50, Suravee Suthikulpanit wrote:
-> >>>> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-> >>>> Acked-by: Rob Herring <robh+dt@kernel.org>
-> >>>> Acked-by: Bjorn Helgaas <bhelgaas@google.com>
-> >>>> Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
-> >>>> CC: Rafael J. Wysocki <rjw@rjwysocki.net>
-> >> [...]
-> >>>> +/**
-> >>>> + * pci_dma_configure - Setup DMA configuration
-> >>>> + * @dev: ptr to pci_dev struct of the PCI device
-> >>>> + *
-> >>>> + * Function to update PCI devices's DMA configuration using the same
-> >>>> + * info from the OF node of host bridge's parent (if any).
-> >>>> + */
-> >>>> +static void pci_dma_configure(struct pci_dev *dev)
-> >>>> +{
-> >>>> +    struct device *bridge = pci_get_host_bridge_device(dev);
-> >>>> +
-> >>>> +    if (IS_ENABLED(CONFIG_OF) && dev->dev.of_node) {
-> >>>
-> >>> Previously I was seeing of_dma_configure, and thus of_iommu_configure,
-> >>> called for every PCI device on Juno. The check above now prevents this
-> >>> happening, since the PCI devices are probed directly from the bus and
-> >>> don't have OF nodes of their own. They now get left in some
-> >>> half-configured state where arch_setup_dma_ops isn't called either.
-> >>
-> >> Just to follow up on that, Arnd's patch to tidy up dma_get_ops (now
-> >> queued[1]) makes this even worse, since preventing arch_setup_dma_ops
-> >> being called means the PCI devices now get the dummy DMA ops which leave
-> >> the drivers failing to probe at all, IOMMU hacks or not
-> >
-> > Ok, glad we found that with my patch then. We really have to
-> > configure the DMA (offset/size/coherency/iommu) for all devices that might
-> > be masters, otherwise things can randomly go wrong.
-> >
-> > 	ARnd
-> 
-> Robin is correct. Thanks for catching the bug. Rafael, do you want me to 
-> submit just the fixed-up patch on top of what we had earlier. Or do you 
-> want a new revision (V6)?
-
-This is in 4.4-rc1, right?  So new revisions surely won't work, will they?
-
-Thanks,
-Rafael
-
+T24gV2VkLCAyMDE1LTExLTE4IGF0IDEyOjU0IC0wNTAwLCBMaW5kYSBLbmlwcGVycyB3cm90ZToN
+Cj4gU2luY2UgY29tbWl0IDIwOTg1MTY0OWRjNGY3OTAwYTZiZmUxZGU1ZTI2NDBhYjJjN2Q5MzEs
+IHdlIG5vIGxvbmdlcg0KPiBzZWUgTlZESU1NIGRldmljZXMgb24gb3VyIHN5c3RlbXMuwqDCoFRo
+ZSBORklUL19GSVQgcHJvY2Vzc2luZyBhdA0KPiBpbml0aWFsaXphdGlvbiBnZXRzIGEgdGFibGUg
+ZnJvbSBfRklUIGJ1dCBkb2Vzbid0IGxpa2UgaXQuDQo+IA0KPiBXaGVuIHN1cHBvcnQgZm9yIF9G
+SVQgd2FzIGFkZGVkLCB0aGUgY29kZSBwcmVzdW1lZCB0aGF0IHRoZSBkYXRhDQo+IHJldHVybmVk
+IGJ5IHRoZSBfRklUIG1ldGhvZCBpcyBpZGVudGljYWwgdG8gdGhlIE5GSVQgdGFibGUsIHdoaWNo
+DQo+IHN0YXJ0cyB3aXRoIGFuIGFjcGlfdGFibGVfaGVhZGVyLsKgwqBIb3dldmVyLCB0aGUgX0ZJ
+VCBpcyBkZWZpbmVkDQo+IHRvIHJldHVybiBhIGRhdGEgaW4gdGhlIGZvcm1hdCBvZiBhIHNlcmll
+cyBvZiBORklUIHR5cGUgc3RydWN0dXJlDQo+IGVudHJpZXMgYW5kIGFzIGEgbWV0aG9kLCBoYXMg
+YW4gYWNwaV9vYmplY3QgaGVhZGVyIHJhdGhlciB0YWhuDQo+IGFuIGFjcGlfdGFibGVfaGVhZGVy
+Lg0KDQpIbSwgSSBjb3VsZG4ndCBmaW5kIGFueSByZWZlcmVuY2UgdG8gdGhpcyBpbiB0aGUgc3Bl
+YyAtIHRoYXQgTkZJVCB3aWxsDQpoYXZlIHRoZSBhY3BpX3RhYmxlX2hlYWRlciBidXQgX0ZJVCB3
+aWxsIGhhdmUgYSBkaWZmZXJlbnQgaGVhZGVyIC0gYnV0DQpJJ20gbm8gQUNQSSBleHBlcnQgLSBp
+cyB0aGlzIHVzdWFsIGNvbnZlbnRpb24/IEFueSBwb2ludGVycyB3aGVyZSBJDQpjb3VsZCBsb29r
+IGF0Pw0KDQo+IA0KPiBUbyBhZGRyZXNzIHRoZSBkaWZmZXJlbmNlcywgZXhwbGljaXRseSBzYXZl
+IHRoZSBhY3BpX3RhYmxlX2hlYWRlcg0KPiBmcm9tIHRoZSBORklULCBzaW5jZSBpdCBpcyBhY2Nl
+c3NpYmxlIHRocm91Z2ggL3N5cywgYW5kIGNoYW5nZQ0KPiB0aGUgbmZpdCBwb2ludGVyIGluIHRo
+ZSBhY3BpX2Rlc2Mgc3RydWN0dXJlIHRvIHBvaW50IHRvIHRoZQ0KPiB0YWJsZSBlbnRyaWVzIHJh
+dGhlciB0aGFuIHRoZSBoZWFkZXJzLg0KPiANCj4gVGhpcyBpcyBhbiBSRkMgcGF0Y2ggZm9yIHNl
+dmVyYWwgcmVhc29ucy4NCj4gMSkgSSd2ZSBvbmx5IHRlc3RlZCB0aGUgYm9vdCBwYXRoLCBub3Qg
+dGhlIGNvZGUgcGF0aCBnZXRzDQo+IGdldHMgYSBfRklUIGxhdGVyLg0KPiAyKSBUaGVyZSBpcyBz
+b21lIGRlYnVnIGluZm9ybWF0aW9uIHRoYXQgd2UgcHJvYmFibHkgZG9uJ3QNCj4gd2FudCB0byBr
+ZWVwIGluIHRoZXJlLg0KPiAzKSBJJ20gbm90IGV2ZW4gc3VyZSB3ZSBzaG91bGQgYmUgY2hlY2tp
+bmcgX0ZJVCBhdCBib290IHRpbWUNCg0KSSB0aGluayB0aGVyZSBpcyBnb29kIHJlYXNvbiB0by4g
+SWYgdGhlIGRyaXZlciBpcyByZWxvYWRlZCBhZnRlciBhDQpob3RwbHVnIGV2ZW50IGJ1dCBwcmlv
+ciB0byBhIGZ1bGwgc3lzdGVtIHJlYm9vdCwgaWYgd2UgZG9uJ3QgY2hlY2sgX0ZJVCwNCndlIHdp
+bGwgZ2V0IHRoZSBzdGFsZSBORklULg0KDQo+IDQpIFdoaWxlIHRoaXMgZml4ZXMgbXkgcGxhdGZv
+cm0sIGl0IHByb2JhYmx5IGJyZWFrcyB0aGUgdGVzdHMNCj4gdGhhdCB3ZXJlIHVzZWQgdG8gdGVz
+dCB0aGUgb3JpZ2luYWwgY29tbWl0Lg0KPiANCj4gSWYgd2UgbmVlZCB0byBoYXZlIGEgbG9uZyBk
+aXNjdXNzaW9uIGFib3V0IHdoZXRoZXIgb3VyIGZpcm13YXJlDQo+IGlzIGNvcnJlY3QsIHRoZW4g
+cGVyaGFwcyB3ZSBjYW4gcmVtb3ZlIHRoZSBfRklUIGNvZGUgZnJvbQ0KPiBhY3BpX25maXRfYWRk
+KCkNCj4gd2hpbGUgd2Ugc29ydCBpdCBvdXQuDQo+IA0KPiBSZXBvcnRlZC1ieTogSmVmZiBNb3ll
+ciAoam1veWVyQHJlZGhhdC5jb20+DQo+IFNpZ25lZC1vZmYtYnk6IExpbmRhIEtuaXBwZXJzIDxs
+aW5kYS5rbmlwcGVyc0BocC5jb20+DQo+IC0tLQ0KPiDCoGRyaXZlcnMvYWNwaS9uZml0LmMgfCA1
+NSArKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKy0tLQ0KPiAtLS0tLS0t
+LS0NCj4gwqBkcml2ZXJzL2FjcGkvbmZpdC5oIHzCoMKgMyArKy0NCj4gwqAyIGZpbGVzIGNoYW5n
+ZWQsIDQ1IGluc2VydGlvbnMoKyksIDEzIGRlbGV0aW9ucygtKQ0KPiANCj4gZGlmZiAtLWdpdCBh
+L2RyaXZlcnMvYWNwaS9uZml0LmMgYi9kcml2ZXJzL2FjcGkvbmZpdC5jDQo+IGluZGV4IGY3ZGFi
+NTMuLmFkOTUxMTMgMTAwNjQ0DQo+IC0tLSBhL2RyaXZlcnMvYWNwaS9uZml0LmMNCj4gKysrIGIv
+ZHJpdmVycy9hY3BpL25maXQuYw0KPiBAQCAtNjU1LDcgKzY1NSw3IEBAIHN0YXRpYyBzc2l6ZV90
+IHJldmlzaW9uX3Nob3coc3RydWN0IGRldmljZSAqZGV2LA0KPiDCoAlzdHJ1Y3QgbnZkaW1tX2J1
+c19kZXNjcmlwdG9yICpuZF9kZXNjID0NCj4gdG9fbmRfZGVzYyhudmRpbW1fYnVzKTsNCj4gwqAJ
+c3RydWN0IGFjcGlfbmZpdF9kZXNjICphY3BpX2Rlc2MgPSB0b19hY3BpX2Rlc2MobmRfZGVzYyk7
+DQo+IMKgDQo+IC0JcmV0dXJuIHNwcmludGYoYnVmLCAiJWRcbiIsIGFjcGlfZGVzYy0+bmZpdC0N
+Cj4gPmhlYWRlci5yZXZpc2lvbik7DQo+ICsJcmV0dXJuIHNwcmludGYoYnVmLCAiJWRcbiIsIGFj
+cGlfZGVzYy0+YWNwaV9oZWFkZXIucmV2aXNpb24pOw0KPiDCoH0NCj4gwqBzdGF0aWMgREVWSUNF
+X0FUVFJfUk8ocmV2aXNpb24pOw0KPiDCoA0KPiBAQCAtMTY1Miw3ICsxNjUyLDYgQEAgaW50IGFj
+cGlfbmZpdF9pbml0KHN0cnVjdCBhY3BpX25maXRfZGVzYw0KPiAqYWNwaV9kZXNjLCBhY3BpX3Np
+emUgc3opDQo+IMKgDQo+IMKgCWRhdGEgPSAodTggKikgYWNwaV9kZXNjLT5uZml0Ow0KPiDCoAll
+bmQgPSBkYXRhICsgc3o7DQo+IC0JZGF0YSArPSBzaXplb2Yoc3RydWN0IGFjcGlfdGFibGVfbmZp
+dCk7DQo+IMKgCXdoaWxlICghSVNfRVJSX09SX05VTEwoZGF0YSkpDQo+IMKgCQlkYXRhID0gYWRk
+X3RhYmxlKGFjcGlfZGVzYywgJnByZXYsIGRhdGEsIGVuZCk7DQo+IMKgDQo+IEBAIC0xNzQ4LDEz
+ICsxNzQ3LDM0IEBAIHN0YXRpYyBpbnQgYWNwaV9uZml0X2FkZChzdHJ1Y3QgYWNwaV9kZXZpY2UN
+Cj4gKmFkZXYpDQo+IMKgCQlyZXR1cm4gUFRSX0VSUihhY3BpX2Rlc2MpOw0KPiDCoAl9DQo+IMKg
+DQo+IC0JYWNwaV9kZXNjLT5uZml0ID0gKHN0cnVjdCBhY3BpX3RhYmxlX25maXQgKikgdGJsOw0K
+PiArCS8qDQo+ICsJwqAqIFNhdmUgdGhlIGFjcGkgaGVhZGVyIGZvciBsYXRlciBhbmQgdGhlbiBz
+a2lwIGl0LCBtYWtlDQo+ICsJwqAqIG5maXQgcG9pbnQgdG8gdGhlIGZpcnN0IG5maXQgdGFibGUg
+aGVhZGVyLg0KPiArCcKgKi8NCj4gKwlhY3BpX2Rlc2MtPmFjcGlfaGVhZGVyID0gKnRibDsNCj4g
+KwlhY3BpX2Rlc2MtPm5maXQgPSAodm9pZCAqKSB0YmwgKyBzaXplb2Yoc3RydWN0DQo+IGFjcGlf
+dGFibGVfbmZpdCk7DQo+ICsJc3ogLT0gc2l6ZW9mKHN0cnVjdCBhY3BpX3RhYmxlX25maXQpOw0K
+PiDCoA0KPiDCoAkvKiBFdmFsdWF0ZSBfRklUIGFuZCBvdmVycmlkZSB3aXRoIHRoYXQgaWYgcHJl
+c2VudCAqLw0KPiDCoAlzdGF0dXMgPSBhY3BpX2V2YWx1YXRlX29iamVjdChhZGV2LT5oYW5kbGUs
+ICJfRklUIiwgTlVMTCwNCj4gJmJ1Zik7DQo+IMKgCWlmIChBQ1BJX1NVQ0NFU1Moc3RhdHVzKSAm
+JiBidWYubGVuZ3RoID4gMCkgew0KPiAtCQlhY3BpX2Rlc2MtPm5maXQgPSAoc3RydWN0IGFjcGlf
+dGFibGVfbmZpdA0KPiAqKWJ1Zi5wb2ludGVyOw0KPiAtCQlzeiA9IGJ1Zi5sZW5ndGg7DQo+ICsJ
+CXVuaW9uIGFjcGlfb2JqZWN0ICpvYmo7DQo+ICsNCj4gKwkJZGV2X2RiZyhkZXYsICIlcyBfRklU
+IHB0ciAlcCwgbGVuZ3RoOiAlZFxuIiwNCj4gKwkJCV9fZnVuY19fLCBidWYucG9pbnRlciwgKGlu
+dClidWYubGVuZ3RoKTsNCj4gKwkJcHJpbnRfaGV4X2R1bXBfZGVidWcoIl9GSVQ6ICIsIERVTVBf
+UFJFRklYX09GRlNFVCwNCj4gMTYsIDEsDQo+ICsJCQlidWYucG9pbnRlciwgYnVmLmxlbmd0aCwg
+dHJ1ZSk7DQo+ICsNCj4gKwkJLyoNCj4gKwkJwqAqIEFkanVzdCBmb3IgdGhlIGFjcGlfb2JqZWN0
+IGhlYWRlciBvZiB0aGUgX0ZJVA0KPiArCQnCoCovDQo+ICsJCW9iaiA9IGJ1Zi5wb2ludGVyOw0K
+PiArCQlpZiAob2JqLT50eXBlID09IEFDUElfVFlQRV9CVUZGRVIpIHsNCj4gKwkJCWFjcGlfZGVz
+Yy0+bmZpdCA9IChzdHJ1Y3QgYWNwaV9uZml0X2hlYWRlcg0KPiAqKW9iai0+YnVmZmVyLnBvaW50
+ZXI7DQo+ICsJCQlzeiA9IG9iai0+YnVmZmVyLmxlbmd0aDsNCj4gKwkJfSBlbHNlDQo+ICsJCQlk
+ZXZfZGJnKGRldiwgIiVzIGludmFsaWQgdHlwZSAlZCwgaWdub3JpbmcNCj4gX0ZJVFxuIiwNCj4g
+KwkJCQlfX2Z1bmNfXywgKGludCkgb2JqLT50eXBlKTsNCj4gwqAJfQ0KPiDCoA0KPiDCoAlyYyA9
+IGFjcGlfbmZpdF9pbml0KGFjcGlfZGVzYywgc3opOw0KPiBAQCAtMTc3Nyw4ICsxNzk2LDkgQEAg
+c3RhdGljIHZvaWQgYWNwaV9uZml0X25vdGlmeShzdHJ1Y3QgYWNwaV9kZXZpY2UNCj4gKmFkZXYs
+IHUzMiBldmVudCkNCj4gwqB7DQo+IMKgCXN0cnVjdCBhY3BpX25maXRfZGVzYyAqYWNwaV9kZXNj
+ID0gZGV2X2dldF9kcnZkYXRhKCZhZGV2LQ0KPiA+ZGV2KTsNCj4gwqAJc3RydWN0IGFjcGlfYnVm
+ZmVyIGJ1ZiA9IHsgQUNQSV9BTExPQ0FURV9CVUZGRVIsIE5VTEwgfTsNCj4gLQlzdHJ1Y3QgYWNw
+aV90YWJsZV9uZml0ICpuZml0X3NhdmVkOw0KPiArCXN0cnVjdCBhY3BpX25maXRfaGVhZGVyICpu
+Zml0X3NhdmVkOw0KPiDCoAlzdHJ1Y3QgZGV2aWNlICpkZXYgPSAmYWRldi0+ZGV2Ow0KPiArCXVu
+aW9uIGFjcGlfb2JqZWN0ICpvYmo7DQo+IMKgCWFjcGlfc3RhdHVzIHN0YXR1czsNCj4gwqAJaW50
+IHJldDsNCj4gwqANCj4gQEAgLTE4MDcsMTMgKzE4MjcsMjQgQEAgc3RhdGljIHZvaWQgYWNwaV9u
+Zml0X25vdGlmeShzdHJ1Y3QNCj4gYWNwaV9kZXZpY2UgKmFkZXYsIHUzMiBldmVudCkNCj4gwqAJ
+CWdvdG8gb3V0X3VubG9jazsNCj4gwqAJfQ0KPiDCoA0KPiArCWRldl9kYmcoZGV2LCAiJXMgX0ZJ
+VCBwdHIgJXAsIGxlbmd0aDogJWRcbiIsDQo+ICsJCV9fZnVuY19fLCBidWYucG9pbnRlciwgKGlu
+dClidWYubGVuZ3RoKTsNCj4gKwlwcmludF9oZXhfZHVtcF9kZWJ1ZygiX0ZJVDogIiwgRFVNUF9Q
+UkVGSVhfT0ZGU0VULCAxNiwgMSwNCj4gKwkJYnVmLnBvaW50ZXIsIGJ1Zi5sZW5ndGgsIHRydWUp
+Ow0KPiArDQo+IMKgCW5maXRfc2F2ZWQgPSBhY3BpX2Rlc2MtPm5maXQ7DQo+IC0JYWNwaV9kZXNj
+LT5uZml0ID0gKHN0cnVjdCBhY3BpX3RhYmxlX25maXQgKilidWYucG9pbnRlcjsNCj4gLQlyZXQg
+PSBhY3BpX25maXRfaW5pdChhY3BpX2Rlc2MsIGJ1Zi5sZW5ndGgpOw0KPiAtCWlmICghcmV0KSB7
+DQo+IC0JCS8qIE1lcmdlIGZhaWxlZCwgcmVzdG9yZSBvbGQgbmZpdCwgYW5kIGV4aXQgKi8NCj4g
+LQkJYWNwaV9kZXNjLT5uZml0ID0gbmZpdF9zYXZlZDsNCj4gLQkJZGV2X2VycihkZXYsICJmYWls
+ZWQgdG8gbWVyZ2UgdXBkYXRlZCBORklUXG4iKTsNCj4gKwlvYmogPSBidWYucG9pbnRlcjsNCj4g
+KwlpZiAob2JqLT50eXBlID09IEFDUElfVFlQRV9CVUZGRVIpIHsNCj4gKwkJYWNwaV9kZXNjLT5u
+Zml0ID0gKHN0cnVjdCBhY3BpX25maXRfaGVhZGVyICopb2JqLQ0KPiA+YnVmZmVyLnBvaW50ZXI7
+DQo+ICsJCXJldCA9IGFjcGlfbmZpdF9pbml0KGFjcGlfZGVzYywgb2JqLT5idWZmZXIubGVuZ3Ro
+KTsNCj4gKwkJaWYgKCFyZXQpIHsNCj4gKwkJCS8qIE1lcmdlIGZhaWxlZCwgcmVzdG9yZSBvbGQg
+bmZpdCwgYW5kIGV4aXQNCj4gKi8NCj4gKwkJCWFjcGlfZGVzYy0+bmZpdCA9IG5maXRfc2F2ZWQ7
+DQo+ICsJCQlkZXZfZXJyKGRldiwgImZhaWxlZCB0byBtZXJnZSB1cGRhdGVkDQo+IE5GSVRcbiIp
+Ow0KPiArCQl9DQo+ICsJfSBlbHNlIHsNCj4gKwkJLyogQmFkIF9GSVQsIHJlc3RvcmUgb2xkIG5m
+aXQgKi8NCj4gKwkJZGV2X2VycihkZXYsICJJbnZhbGlkIF9GSVRcbiIpOw0KPiDCoAl9DQo+IMKg
+CWtmcmVlKGJ1Zi5wb2ludGVyKTsNCj4gwqANCj4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNwaS9u
+Zml0LmggYi9kcml2ZXJzL2FjcGkvbmZpdC5oDQo+IGluZGV4IDJlYTVjMDcuLjNkNTQ5YTMgMTAw
+NjQ0DQo+IC0tLSBhL2RyaXZlcnMvYWNwaS9uZml0LmgNCj4gKysrIGIvZHJpdmVycy9hY3BpL25m
+aXQuaA0KPiBAQCAtOTYsNyArOTYsOCBAQCBzdHJ1Y3QgbmZpdF9tZW0gew0KPiDCoA0KPiDCoHN0
+cnVjdCBhY3BpX25maXRfZGVzYyB7DQo+IMKgCXN0cnVjdCBudmRpbW1fYnVzX2Rlc2NyaXB0b3Ig
+bmRfZGVzYzsNCj4gLQlzdHJ1Y3QgYWNwaV90YWJsZV9uZml0ICpuZml0Ow0KPiArCXN0cnVjdCBh
+Y3BpX3RhYmxlX2hlYWRlciBhY3BpX2hlYWRlcjsNCj4gKwlzdHJ1Y3QgYWNwaV9uZml0X2hlYWRl
+ciAqbmZpdDsNCj4gwqAJc3RydWN0IG11dGV4IHNwYV9tYXBfbXV0ZXg7DQo+IMKgCXN0cnVjdCBt
+dXRleCBpbml0X211dGV4Ow0KPiDCoAlzdHJ1Y3QgbGlzdF9oZWFkIHNwYV9tYXBzOw==
