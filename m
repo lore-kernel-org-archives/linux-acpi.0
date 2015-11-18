@@ -1,178 +1,146 @@
-From: Linda Knippers <linda.knippers@hpe.com>
-Subject: [RFC PATCH] Fix _FIT vs. NFIT processing breakage
-Date: Wed, 18 Nov 2015 12:54:00 -0500
-Message-ID: <20151118175359.GA2209@ljk840.redhat.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH] pci: completely disable aspm if it's unsupported
+Date: Wed, 18 Nov 2015 12:40:38 -0600
+Message-ID: <20151118184038.GA4462@localhost>
+References: <1447856703-2566-1-git-send-email-jbacik@fb.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g2t4625.austin.hp.com ([15.73.212.76]:53942 "EHLO
-	g2t4625.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754016AbbKRRyM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Nov 2015 12:54:12 -0500
-Received: from g2t4622.austin.hp.com (g2t4622.austin.hp.com [15.73.212.79])
-	(using TLSv1.2 with cipher DHE-RSA-AES256-GCM-SHA384 (256/256 bits))
-	(No client certificate requested)
-	by g2t4625.austin.hp.com (Postfix) with ESMTPS id 22AC169D8
-	for <linux-acpi@vger.kernel.org>; Wed, 18 Nov 2015 17:54:12 +0000 (UTC)
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <1447856703-2566-1-git-send-email-jbacik@fb.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Josef Bacik <jbacik@fb.com>
+Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, bhelgaas@google.com, shli@fb.com, kernel-team@fb.com, Matthew Garrett <mjg59@coreos.com>
 List-Id: linux-acpi@vger.kernel.org
-To: dan.j.williams@intel.com, vishal.l.verma@intel.com
-Cc: linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, jmoyer@redhat.com, toshi.kani@hpe.com, elliott@hpe.com, rafael.j.wysocki@intel.com
 
+[+cc Matthew]
 
-Since commit 209851649dc4f7900a6bfe1de5e2640ab2c7d931, we no longer
-see NVDIMM devices on our systems.  The NFIT/_FIT processing at
-initialization gets a table from _FIT but doesn't like it.
+Hi Josef,
 
-When support for _FIT was added, the code presumed that the data
-returned by the _FIT method is identical to the NFIT table, which
-starts with an acpi_table_header.  However, the _FIT is defined
-to return a data in the format of a series of NFIT type structure
-entries and as a method, has an acpi_object header rather tahn
-an acpi_table_header.
+On Wed, Nov 18, 2015 at 09:25:03AM -0500, Josef Bacik wrote:
+> We have some hardware that takes about 30 seconds to setup common clocks for
+> ASPM, but our bios'es don't actually allow ASPM.  It seems we had this thing in
+> place where we would disable ASPM after the pci bus probe so that we would make
+> sure that pre pcie 1.1 devices would be properly skipped during initialization.
+> This is because the mechanism to disable ASPM doesn't actually disable the
+> setting up of the link state stuff, it just keeps us from changing the link
+> state after the fact.  So instead make it so that when we call pcie_no_aspm()
+> that we disable ASPM completley, that is we skip setting up the link state and
+> everything.  This way we avoid the costly setup for a feature we cannot support
+> in the first place and we also make sure we are safe from future tampering with
+> the ASPM link state.  Thanks,
 
-To address the differences, explicitly save the acpi_table_header
-from the NFIT, since it is accessible through /sys, and change
-the nfit pointer in the acpi_desc structure to point to the
-table entries rather than the headers.
+Can you clarify what your BIOS does?  I assume it's an x86 ACPI BIOS.
+Does it enable ASPM before handing off to the OS?  Does it set the
+ACPI_FADT_NO_ASPM bit? (ACPI spec 5.0, sec 5.2.9.3)
 
-This is an RFC patch for several reasons.
-1) I've only tested the boot path, not the code path gets
-gets a _FIT later.
-2) There is some debug information that we probably don't
-want to keep in there.
-3) I'm not even sure we should be checking _FIT at boot time
-4) While this fixes my platform, it probably breaks the tests
-that were used to test the original commit.
+You're changing the _OSC failure path.  Why does _OSC fail?  I know
+there is some sort of unresolved problem there
+(https://bugzilla.kernel.org/show_bug.cgi?id=94661); maybe you're
+tripping over that?
 
-If we need to have a long discussion about whether our firmware
-is correct, then perhaps we can remove the _FIT code from acpi_nfit_add()
-while we sort it out.
+It seems like you're proposing to reverse what Matthew just did with
+387d37577fdd ("PCI: Don't clear ASPM bits when the FADT declares it's
+unsupported").
 
-Reported-by: Jeff Moyer (jmoyer@redhat.com>
-Signed-off-by: Linda Knippers <linda.knippers@hp.com>
----
- drivers/acpi/nfit.c | 55 +++++++++++++++++++++++++++++++++++++++++------------
- drivers/acpi/nfit.h |  3 ++-
- 2 files changed, 45 insertions(+), 13 deletions(-)
+Bjorn
 
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index f7dab53..ad95113 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -655,7 +655,7 @@ static ssize_t revision_show(struct device *dev,
- 	struct nvdimm_bus_descriptor *nd_desc = to_nd_desc(nvdimm_bus);
- 	struct acpi_nfit_desc *acpi_desc = to_acpi_desc(nd_desc);
- 
--	return sprintf(buf, "%d\n", acpi_desc->nfit->header.revision);
-+	return sprintf(buf, "%d\n", acpi_desc->acpi_header.revision);
- }
- static DEVICE_ATTR_RO(revision);
- 
-@@ -1652,7 +1652,6 @@ int acpi_nfit_init(struct acpi_nfit_desc *acpi_desc, acpi_size sz)
- 
- 	data = (u8 *) acpi_desc->nfit;
- 	end = data + sz;
--	data += sizeof(struct acpi_table_nfit);
- 	while (!IS_ERR_OR_NULL(data))
- 		data = add_table(acpi_desc, &prev, data, end);
- 
-@@ -1748,13 +1747,34 @@ static int acpi_nfit_add(struct acpi_device *adev)
- 		return PTR_ERR(acpi_desc);
- 	}
- 
--	acpi_desc->nfit = (struct acpi_table_nfit *) tbl;
-+	/*
-+	 * Save the acpi header for later and then skip it, make
-+	 * nfit point to the first nfit table header.
-+	 */
-+	acpi_desc->acpi_header = *tbl;
-+	acpi_desc->nfit = (void *) tbl + sizeof(struct acpi_table_nfit);
-+	sz -= sizeof(struct acpi_table_nfit);
- 
- 	/* Evaluate _FIT and override with that if present */
- 	status = acpi_evaluate_object(adev->handle, "_FIT", NULL, &buf);
- 	if (ACPI_SUCCESS(status) && buf.length > 0) {
--		acpi_desc->nfit = (struct acpi_table_nfit *)buf.pointer;
--		sz = buf.length;
-+		union acpi_object *obj;
-+
-+		dev_dbg(dev, "%s _FIT ptr %p, length: %d\n",
-+			__func__, buf.pointer, (int)buf.length);
-+		print_hex_dump_debug("_FIT: ", DUMP_PREFIX_OFFSET, 16, 1,
-+			buf.pointer, buf.length, true);
-+
-+		/*
-+		 * Adjust for the acpi_object header of the _FIT
-+		 */
-+		obj = buf.pointer;
-+		if (obj->type == ACPI_TYPE_BUFFER) {
-+			acpi_desc->nfit = (struct acpi_nfit_header *)obj->buffer.pointer;
-+			sz = obj->buffer.length;
-+		} else
-+			dev_dbg(dev, "%s invalid type %d, ignoring _FIT\n",
-+				__func__, (int) obj->type);
- 	}
- 
- 	rc = acpi_nfit_init(acpi_desc, sz);
-@@ -1777,8 +1796,9 @@ static void acpi_nfit_notify(struct acpi_device *adev, u32 event)
- {
- 	struct acpi_nfit_desc *acpi_desc = dev_get_drvdata(&adev->dev);
- 	struct acpi_buffer buf = { ACPI_ALLOCATE_BUFFER, NULL };
--	struct acpi_table_nfit *nfit_saved;
-+	struct acpi_nfit_header *nfit_saved;
- 	struct device *dev = &adev->dev;
-+	union acpi_object *obj;
- 	acpi_status status;
- 	int ret;
- 
-@@ -1807,13 +1827,24 @@ static void acpi_nfit_notify(struct acpi_device *adev, u32 event)
- 		goto out_unlock;
- 	}
- 
-+	dev_dbg(dev, "%s _FIT ptr %p, length: %d\n",
-+		__func__, buf.pointer, (int)buf.length);
-+	print_hex_dump_debug("_FIT: ", DUMP_PREFIX_OFFSET, 16, 1,
-+		buf.pointer, buf.length, true);
-+
- 	nfit_saved = acpi_desc->nfit;
--	acpi_desc->nfit = (struct acpi_table_nfit *)buf.pointer;
--	ret = acpi_nfit_init(acpi_desc, buf.length);
--	if (!ret) {
--		/* Merge failed, restore old nfit, and exit */
--		acpi_desc->nfit = nfit_saved;
--		dev_err(dev, "failed to merge updated NFIT\n");
-+	obj = buf.pointer;
-+	if (obj->type == ACPI_TYPE_BUFFER) {
-+		acpi_desc->nfit = (struct acpi_nfit_header *)obj->buffer.pointer;
-+		ret = acpi_nfit_init(acpi_desc, obj->buffer.length);
-+		if (!ret) {
-+			/* Merge failed, restore old nfit, and exit */
-+			acpi_desc->nfit = nfit_saved;
-+			dev_err(dev, "failed to merge updated NFIT\n");
-+		}
-+	} else {
-+		/* Bad _FIT, restore old nfit */
-+		dev_err(dev, "Invalid _FIT\n");
- 	}
- 	kfree(buf.pointer);
- 
-diff --git a/drivers/acpi/nfit.h b/drivers/acpi/nfit.h
-index 2ea5c07..3d549a3 100644
---- a/drivers/acpi/nfit.h
-+++ b/drivers/acpi/nfit.h
-@@ -96,7 +96,8 @@ struct nfit_mem {
- 
- struct acpi_nfit_desc {
- 	struct nvdimm_bus_descriptor nd_desc;
--	struct acpi_table_nfit *nfit;
-+	struct acpi_table_header acpi_header;
-+	struct acpi_nfit_header *nfit;
- 	struct mutex spa_map_mutex;
- 	struct mutex init_mutex;
- 	struct list_head spa_maps;
--- 
-1.8.3.1
-
-
+> Signed-off-by: Josef Bacik <jbacik@fb.com>
+> ---
+>  drivers/acpi/pci_root.c | 22 +++++-----------------
+>  drivers/pci/pcie/aspm.c |  1 +
+>  2 files changed, 6 insertions(+), 17 deletions(-)
+> 
+> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+> index 393706a..00e164a 100644
+> --- a/drivers/acpi/pci_root.c
+> +++ b/drivers/acpi/pci_root.c
+> @@ -419,7 +419,7 @@ out:
+>  }
+>  EXPORT_SYMBOL(acpi_pci_osc_control_set);
+>  
+> -static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm)
+> +static void negotiate_os_control(struct acpi_pci_root *root)
+>  {
+>  	u32 support, control, requested;
+>  	acpi_status status;
+> @@ -456,7 +456,7 @@ static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm)
+>  	if (ACPI_FAILURE(status)) {
+>  		dev_info(&device->dev, "_OSC failed (%s); disabling ASPM\n",
+>  			 acpi_format_exception(status));
+> -		*no_aspm = 1;
+> +		pcie_no_aspm();
+>  		return;
+>  	}
+>  
+> @@ -495,22 +495,14 @@ static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm)
+>  			 * intact and prevent the OS from touching it.
+>  			 */
+>  			dev_info(&device->dev, "FADT indicates ASPM is unsupported, using BIOS configuration\n");
+> -			*no_aspm = 1;
+> +			pcie_no_aspm();
+>  		}
+>  	} else {
+>  		decode_osc_control(root, "OS requested", requested);
+>  		decode_osc_control(root, "platform willing to grant", control);
+>  		dev_info(&device->dev, "_OSC failed (%s); disabling ASPM\n",
+>  			acpi_format_exception(status));
+> -
+> -		/*
+> -		 * We want to disable ASPM here, but aspm_disabled
+> -		 * needs to remain in its state from boot so that we
+> -		 * properly handle PCIe 1.1 devices.  So we set this
+> -		 * flag here, to defer the action until after the ACPI
+> -		 * root scan.
+> -		 */
+> -		*no_aspm = 1;
+> +		pcie_no_aspm();
+>  	}
+>  }
+>  
+> @@ -522,7 +514,6 @@ static int acpi_pci_root_add(struct acpi_device *device,
+>  	int result;
+>  	struct acpi_pci_root *root;
+>  	acpi_handle handle = device->handle;
+> -	int no_aspm = 0;
+>  	bool hotadd = system_state != SYSTEM_BOOTING;
+>  
+>  	root = kzalloc(sizeof(struct acpi_pci_root), GFP_KERNEL);
+> @@ -581,7 +572,7 @@ static int acpi_pci_root_add(struct acpi_device *device,
+>  
+>  	root->mcfg_addr = acpi_pci_root_get_mcfg_addr(handle);
+>  
+> -	negotiate_os_control(root, &no_aspm);
+> +	negotiate_os_control(root);
+>  
+>  	/*
+>  	 * TBD: Need PCI interface for enumeration/configuration of roots.
+> @@ -604,9 +595,6 @@ static int acpi_pci_root_add(struct acpi_device *device,
+>  		goto remove_dmar;
+>  	}
+>  
+> -	if (no_aspm)
+> -		pcie_no_aspm();
+> -
+>  	pci_acpi_add_bus_pm_notifier(device);
+>  	if (device->wakeup.flags.run_wake)
+>  		device_set_run_wake(root->bus->bridge, true);
+> diff --git a/drivers/pci/pcie/aspm.c b/drivers/pci/pcie/aspm.c
+> index 317e355..5f84af2 100644
+> --- a/drivers/pci/pcie/aspm.c
+> +++ b/drivers/pci/pcie/aspm.c
+> @@ -954,6 +954,7 @@ void pcie_no_aspm(void)
+>  	if (!aspm_force) {
+>  		aspm_policy = POLICY_DEFAULT;
+>  		aspm_disabled = 1;
+> +		aspm_support_enabled = false;
+>  	}
+>  }
+>  
+> -- 
+> 2.1.0
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
