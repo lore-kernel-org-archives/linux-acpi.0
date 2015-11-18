@@ -1,8 +1,8 @@
 From: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>
 Subject: Re: [PATCH V5 8/9] PCI: OF: Move of_pci_dma_configure() to
  pci_dma_configure()
-Date: Wed, 18 Nov 2015 09:10:40 -0600
-Message-ID: <564C94F0.2090902@amd.com>
+Date: Wed, 18 Nov 2015 10:54:59 -0600
+Message-ID: <564CAD63.3020306@amd.com>
 References: <1446072654-5608-1-git-send-email-Suravee.Suthikulpanit@amd.com>
  <564B4111.6010805@arm.com> <564C6860.4000002@arm.com>
  <3822315.uJPjk3L2zB@wuerfel>
@@ -10,16 +10,18 @@ Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-by2on0097.outbound.protection.outlook.com ([207.46.100.97]:53638
-	"EHLO na01-by2-obe.outbound.protection.outlook.com"
+Received: from mail-bl2on0087.outbound.protection.outlook.com ([65.55.169.87]:7168
+	"EHLO na01-bl2-obe.outbound.protection.outlook.com"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754017AbbKRPKu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 18 Nov 2015 10:10:50 -0500
+	id S1751349AbbKRQzI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 18 Nov 2015 11:55:08 -0500
 In-Reply-To: <3822315.uJPjk3L2zB@wuerfel>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Arnd Bergmann <arnd@arndb.de>, Robin Murphy <robin.murphy@arm.com>
 Cc: bhelgaas@google.com, rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, thomas.lendacky@amd.com, herbert@gondor.apana.org.au, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org
+
+Hi All,
 
 On 11/18/2015 6:41 AM, Arnd Bergmann wrote:
 > On Wednesday 18 November 2015 12:00:32 Robin Murphy wrote:
@@ -60,7 +62,11 @@ On 11/18/2015 6:41 AM, Arnd Bergmann wrote:
 > be masters, otherwise things can randomly go wrong.
 >
 > 	ARnd
->
-I'm double checking this and will get back ASAP.
 
+Robin is correct. Thanks for catching the bug. Rafael, do you want me to 
+submit just the fixed-up patch on top of what we had earlier. Or do you 
+want a new revision (V6)?
+
+Thanks,
 Suravee
+
