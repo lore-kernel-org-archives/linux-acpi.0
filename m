@@ -1,145 +1,95 @@
-From: Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>
-Subject: [PATCH v2 4/4] acpi, numa: Enable ACPI based NUMA on ARM64
-Date: Tue, 17 Nov 2015 23:55:33 +0530
-Message-ID: <1447784733-10419-5-git-send-email-gkulkarni@caviumnetworks.com>
-References: <1447784733-10419-1-git-send-email-gkulkarni@caviumnetworks.com>
+From: Jerry Hoemann <jerry.hoemann@hpe.com>
+Subject: Re: [PATCH v2 0/3] nvdimm: Add an IOCTL pass thru for DSM calls
+Date: Wed, 18 Nov 2015 00:01:32 -0700
+Message-ID: <20151118070132.GA118986@tevye.fc.hp.com>
+References: <cover.1447698598.git.jerry.hoemann@hpe.com>
+ <CAPcyv4j_KcwztL3ACRafSFGEiaspCuM_+CwkcSeymVk5s5vYWg@mail.gmail.com>
+ <20151116211011.GC10480@tevye.fc.hp.com>
+ <CAPcyv4jhORsskTr_SPpNO=zJf9V7_zrYNnNn61SMWApnv7TK0g@mail.gmail.com>
+ <20151117165645.GB91690@tevye.fc.hp.com>
+ <CAPcyv4gryw5GT2CLHvgirGMudDrQBJaBojwbjxhgkPqR5Te5pg@mail.gmail.com>
+Reply-To: Jerry.Hoemann@hpe.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1447784733-10419-1-git-send-email-gkulkarni@caviumnetworks.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Will.Deacon@arm.com, catalin.marinas@arm.com, grant.likely@linaro.org, leif.lindholm@linaro.org, rfranz@cavium.com, ard.biesheuvel@linaro.org, msalter@redhat.com, robh+dt@kernel.org, steve.capper@linaro.org, hanjun.guo@linaro.org, al.stone@linaro.org, arnd@arndb.de, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, rjw@rjwysocki.net, lenb@kernel.org, marc.zyngier@arm.com, lorenzo.pieralisi@arm.com, tn@semihalf.com, rrichter@cavium.com, Prasun.Kapoor@caviumnetworks.com
-Cc: gpkulkarni@gmail.com
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g4t3427.houston.hp.com ([15.201.208.55]:34709 "EHLO
+	g4t3427.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752098AbbKRHBg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Nov 2015 02:01:36 -0500
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4gryw5GT2CLHvgirGMudDrQBJaBojwbjxhgkPqR5Te5pg@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "Elliott, Robert (Persistent Memory)" <elliott@hpe.com>, jmoyer <jmoyer@redhat.com>, Dmitry Krivenok <krivenok.dmitry@gmail.com>, Linda Knippers <linda.knippers@hpe.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Add function needed for cpu to node mapping, and enable
-ACPI based NUMA for ARM64 in Kconfig
+On Tue, Nov 17, 2015 at 09:05:28AM -0800, Dan Williams wrote:
+> On Tue, Nov 17, 2015 at 8:56 AM, Jerry Hoemann <jerry.hoemann@hpe.com> wrote:
+> > On Mon, Nov 16, 2015 at 05:29:41PM -0800, Dan Williams wrote:
+> >> On Mon, Nov 16, 2015 at 1:10 PM, Jerry Hoemann <jerry.hoemann@hpe.com> wrote:
+> >> > On Mon, Nov 16, 2015 at 11:00:20AM -0800, Dan Williams wrote:
+> >> >> On Mon, Nov 16, 2015 at 10:38 AM, Jerry Hoemann <jerry.hoemann@hpe.com> wrote:
+> >> >> >
+> >> >>
+> >
+> > ...
+> >
+> >> I want to do it in separate steps, I'd just like to see cmd number 100
+> >> added to the existing __nd_ioctl and acpi_nfit_ctl routines.  That
+> >
+> >    Why?
+> 
+> Because there's no need for the intel vs passthru distinction, it's
+> just yet another command.
 
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
----
- drivers/acpi/Kconfig |  4 ++--
- drivers/acpi/numa.c  | 35 +++++++++++++++++++++++++++++++++++
- include/linux/acpi.h | 15 +++++++++++++++
- 3 files changed, 52 insertions(+), 2 deletions(-)
+  Yes and no.  The way the two marshal their arguments in prep for
+  the copy in/copy out is different and are not compatible.
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 25dbb76..06ea7dc 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -280,8 +280,8 @@ config ACPI_THERMAL
- config ACPI_NUMA
- 	bool "NUMA support"
- 	depends on NUMA
--	depends on (X86 || IA64)
--	default y if IA64_GENERIC || IA64_SGI_SN2
-+	depends on (X86 || IA64 || ARM64)
-+	default y if IA64_GENERIC || IA64_SGI_SN2 || ARM64
- 
- config ACPI_CUSTOM_DSDT_FILE
- 	string "Custom DSDT Table file to include"
-diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
-index 36683d0..807083a 100644
---- a/drivers/acpi/numa.c
-+++ b/drivers/acpi/numa.c
-@@ -175,6 +175,18 @@ acpi_table_print_srat_entry(struct acpi_subtable_header *header)
- 		}
- 		break;
- 
-+	case ACPI_SRAT_TYPE_GICC_AFFINITY:
-+		{
-+			struct acpi_srat_gicc_affinity *p =
-+			    (struct acpi_srat_gicc_affinity *)header;
-+			pr_debug("SRAT Processor (acpi id[0x%04x]) in proximity domain %d %s\n",
-+				 p->acpi_processor_uid,
-+				 p->proximity_domain,
-+				 (p->flags & ACPI_SRAT_GICC_ENABLED) ?
-+				 "enabled" : "disabled");
-+		}
-+		break;
-+
- 	default:
- 		pr_warn("Found unsupported SRAT entry (type = 0x%x)\n",
- 			header->type);
-@@ -260,6 +272,24 @@ acpi_parse_processor_affinity(struct acpi_subtable_header *header,
- 	return 0;
- }
- 
-+static int __init
-+acpi_parse_gicc_affinity(struct acpi_subtable_header *header,
-+			      const unsigned long end)
-+{
-+	struct acpi_srat_gicc_affinity *processor_affinity;
-+
-+	processor_affinity = (struct acpi_srat_gicc_affinity *)header;
-+	if (!processor_affinity)
-+		return -EINVAL;
-+
-+	acpi_table_print_srat_entry(header);
-+
-+	/* let architecture-dependent part to do it */
-+	acpi_numa_gicc_affinity_init(processor_affinity);
-+
-+	return 0;
-+}
-+
- static int __initdata parsed_numa_memblks;
- 
- static int __init
-@@ -304,6 +334,9 @@ int __init acpi_numa_init(void)
- {
- 	int cnt = 0;
- 
-+	if (acpi_disabled)
-+		return -EINVAL;
-+
- 	/*
- 	 * Should not limit number with cpu num that is from NR_CPUS or nr_cpus=
- 	 * SRAT cpu entries could have different order with that in MADT.
-@@ -316,6 +349,8 @@ int __init acpi_numa_init(void)
- 				     acpi_parse_x2apic_affinity, 0);
- 		acpi_table_parse_srat(ACPI_SRAT_TYPE_CPU_AFFINITY,
- 				     acpi_parse_processor_affinity, 0);
-+		acpi_table_parse_srat(ACPI_SRAT_TYPE_GICC_AFFINITY,
-+				     acpi_parse_gicc_affinity, 0);
- 		cnt = acpi_table_parse_srat(ACPI_SRAT_TYPE_MEMORY_AFFINITY,
- 					    acpi_parse_memory_affinity,
- 					    NR_NODE_MEMBLKS);
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 0548339..ff56702 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -170,8 +170,23 @@ void acpi_table_print_madt_entry (struct acpi_subtable_header *madt);
- 
- /* the following four functions are architecture-dependent */
- void acpi_numa_slit_init (struct acpi_table_slit *slit);
-+
-+#if defined(CONFIG_X86) || defined(CONFIG_IA64)
- void acpi_numa_processor_affinity_init (struct acpi_srat_cpu_affinity *pa);
-+#else
-+static inline void
-+acpi_numa_processor_affinity_init(struct acpi_srat_cpu_affinity *pa) { }
-+#endif
-+
- void acpi_numa_x2apic_affinity_init(struct acpi_srat_x2apic_cpu_affinity *pa);
-+
-+#ifdef CONFIG_ARM64
-+void acpi_numa_gicc_affinity_init(struct acpi_srat_gicc_affinity *pa);
-+#else
-+static inline void
-+acpi_numa_gicc_affinity_init(struct acpi_srat_gicc_affinity *pa) { }
-+#endif
-+
- int acpi_numa_memory_affinity_init (struct acpi_srat_mem_affinity *ma);
- void acpi_numa_arch_fixup(void);
- 
+  Also, the existing upstream acpi_nfit_ctl does multiple things that
+  we don't want done in the "semi" passthru case.
+
+  To accomodate these differences, I implemented in separate functions.
+  I can merge the functions together, it will not be clean.
+
+  This approach also creates testing issues I didn't have previously.  I
+  was confident w/ code inspection that I wasn't breaking the existing
+  usage case.  I will need your help in testing on hardware that I don't
+  have access to.
+
+  You expressed a desire to depricate the existing ioctl commands
+  and transition to the semi passthru structure.
+
+  What do you anticipate that code looking like?
+
+> 
+> >> plus quibbling about the name "ND_CMD_PASSTHRU".  Given the plans to
+> >> eventually replace the existing commands we can call it something like
+> >> 'ND_DSM_GENERIC'.
+> >
+> >
+> >   No problem.  I'll change the name for ndn_passthru_pkg in a similar fashion.
+> >
+> >
+> >   Question:     Are you planning to add other CMDs to the IOCTL in the future?
+> >                 (eg. ones not directly related to calling _dsm?)
+> >
+> >                 Or, is the ultimate goal to have an IOCTL that supports
+> >                 only the generic DSM call?
+> 
+> I'm not ruling out the possibility that there may be a non-DSM command
+> in the future, but I don't see any need for that on the horizon.  Why
+> would it matter?
+
+  Neither the existing upstream apci_nfit_ctl nor the semi pass thru
+  marshal arguments in a traditional straight forward manner.  So likely
+  the marshaling code for any new commands would be different.
+
+  Also, since it doesn't call DSM it wouldn't be doing the evaluate dsm.
+
+
+
 -- 
-1.8.1.4
+
+-----------------------------------------------------------------------------
+Jerry Hoemann            Software Engineer      Hewlett-Packard Enterprise
+-----------------------------------------------------------------------------
