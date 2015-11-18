@@ -1,117 +1,66 @@
-From: Josef Bacik <jbacik@fb.com>
-Subject: [PATCH] pci: completely disable aspm if it's unsupported
-Date: Wed, 18 Nov 2015 09:25:03 -0500
-Message-ID: <1447856703-2566-1-git-send-email-jbacik@fb.com>
+From: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>
+Subject: Re: [PATCH V5 8/9] PCI: OF: Move of_pci_dma_configure() to
+ pci_dma_configure()
+Date: Wed, 18 Nov 2015 09:10:40 -0600
+Message-ID: <564C94F0.2090902@amd.com>
+References: <1446072654-5608-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+ <564B4111.6010805@arm.com> <564C6860.4000002@arm.com>
+ <3822315.uJPjk3L2zB@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-pci-owner@vger.kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, bhelgaas@google.com, shli@fb.com, kernel-team@fb.com
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-by2on0097.outbound.protection.outlook.com ([207.46.100.97]:53638
+	"EHLO na01-by2-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754017AbbKRPKu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 18 Nov 2015 10:10:50 -0500
+In-Reply-To: <3822315.uJPjk3L2zB@wuerfel>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>, Robin Murphy <robin.murphy@arm.com>
+Cc: bhelgaas@google.com, rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, thomas.lendacky@amd.com, herbert@gondor.apana.org.au, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, davem@davemloft.net, linux-arm-kernel@lists.infradead.org
 
-We have some hardware that takes about 30 seconds to setup common clocks for
-ASPM, but our bios'es don't actually allow ASPM.  It seems we had this thing in
-place where we would disable ASPM after the pci bus probe so that we would make
-sure that pre pcie 1.1 devices would be properly skipped during initialization.
-This is because the mechanism to disable ASPM doesn't actually disable the
-setting up of the link state stuff, it just keeps us from changing the link
-state after the fact.  So instead make it so that when we call pcie_no_aspm()
-that we disable ASPM completley, that is we skip setting up the link state and
-everything.  This way we avoid the costly setup for a feature we cannot support
-in the first place and we also make sure we are safe from future tampering with
-the ASPM link state.  Thanks,
+On 11/18/2015 6:41 AM, Arnd Bergmann wrote:
+> On Wednesday 18 November 2015 12:00:32 Robin Murphy wrote:
+>> On 17/11/15 15:00, Robin Murphy wrote:
+>>> On 28/10/15 22:50, Suravee Suthikulpanit wrote:
+>>>> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+>>>> Acked-by: Rob Herring <robh+dt@kernel.org>
+>>>> Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+>>>> Reviewed-by: Hanjun Guo <hanjun.guo@linaro.org>
+>>>> CC: Rafael J. Wysocki <rjw@rjwysocki.net>
+>> [...]
+>>>> +/**
+>>>> + * pci_dma_configure - Setup DMA configuration
+>>>> + * @dev: ptr to pci_dev struct of the PCI device
+>>>> + *
+>>>> + * Function to update PCI devices's DMA configuration using the same
+>>>> + * info from the OF node of host bridge's parent (if any).
+>>>> + */
+>>>> +static void pci_dma_configure(struct pci_dev *dev)
+>>>> +{
+>>>> +    struct device *bridge = pci_get_host_bridge_device(dev);
+>>>> +
+>>>> +    if (IS_ENABLED(CONFIG_OF) && dev->dev.of_node) {
+>>>
+>>> Previously I was seeing of_dma_configure, and thus of_iommu_configure,
+>>> called for every PCI device on Juno. The check above now prevents this
+>>> happening, since the PCI devices are probed directly from the bus and
+>>> don't have OF nodes of their own. They now get left in some
+>>> half-configured state where arch_setup_dma_ops isn't called either.
+>>
+>> Just to follow up on that, Arnd's patch to tidy up dma_get_ops (now
+>> queued[1]) makes this even worse, since preventing arch_setup_dma_ops
+>> being called means the PCI devices now get the dummy DMA ops which leave
+>> the drivers failing to probe at all, IOMMU hacks or not
+>
+> Ok, glad we found that with my patch then. We really have to
+> configure the DMA (offset/size/coherency/iommu) for all devices that might
+> be masters, otherwise things can randomly go wrong.
+>
+> 	ARnd
+>
+I'm double checking this and will get back ASAP.
 
-Signed-off-by: Josef Bacik <jbacik@fb.com>
----
- drivers/acpi/pci_root.c | 22 +++++-----------------
- drivers/pci/pcie/aspm.c |  1 +
- 2 files changed, 6 insertions(+), 17 deletions(-)
-
-diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index 393706a..00e164a 100644
---- a/drivers/acpi/pci_root.c
-+++ b/drivers/acpi/pci_root.c
-@@ -419,7 +419,7 @@ out:
- }
- EXPORT_SYMBOL(acpi_pci_osc_control_set);
- 
--static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm)
-+static void negotiate_os_control(struct acpi_pci_root *root)
- {
- 	u32 support, control, requested;
- 	acpi_status status;
-@@ -456,7 +456,7 @@ static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm)
- 	if (ACPI_FAILURE(status)) {
- 		dev_info(&device->dev, "_OSC failed (%s); disabling ASPM\n",
- 			 acpi_format_exception(status));
--		*no_aspm = 1;
-+		pcie_no_aspm();
- 		return;
- 	}
- 
-@@ -495,22 +495,14 @@ static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm)
- 			 * intact and prevent the OS from touching it.
- 			 */
- 			dev_info(&device->dev, "FADT indicates ASPM is unsupported, using BIOS configuration\n");
--			*no_aspm = 1;
-+			pcie_no_aspm();
- 		}
- 	} else {
- 		decode_osc_control(root, "OS requested", requested);
- 		decode_osc_control(root, "platform willing to grant", control);
- 		dev_info(&device->dev, "_OSC failed (%s); disabling ASPM\n",
- 			acpi_format_exception(status));
--
--		/*
--		 * We want to disable ASPM here, but aspm_disabled
--		 * needs to remain in its state from boot so that we
--		 * properly handle PCIe 1.1 devices.  So we set this
--		 * flag here, to defer the action until after the ACPI
--		 * root scan.
--		 */
--		*no_aspm = 1;
-+		pcie_no_aspm();
- 	}
- }
- 
-@@ -522,7 +514,6 @@ static int acpi_pci_root_add(struct acpi_device *device,
- 	int result;
- 	struct acpi_pci_root *root;
- 	acpi_handle handle = device->handle;
--	int no_aspm = 0;
- 	bool hotadd = system_state != SYSTEM_BOOTING;
- 
- 	root = kzalloc(sizeof(struct acpi_pci_root), GFP_KERNEL);
-@@ -581,7 +572,7 @@ static int acpi_pci_root_add(struct acpi_device *device,
- 
- 	root->mcfg_addr = acpi_pci_root_get_mcfg_addr(handle);
- 
--	negotiate_os_control(root, &no_aspm);
-+	negotiate_os_control(root);
- 
- 	/*
- 	 * TBD: Need PCI interface for enumeration/configuration of roots.
-@@ -604,9 +595,6 @@ static int acpi_pci_root_add(struct acpi_device *device,
- 		goto remove_dmar;
- 	}
- 
--	if (no_aspm)
--		pcie_no_aspm();
--
- 	pci_acpi_add_bus_pm_notifier(device);
- 	if (device->wakeup.flags.run_wake)
- 		device_set_run_wake(root->bus->bridge, true);
-diff --git a/drivers/pci/pcie/aspm.c b/drivers/pci/pcie/aspm.c
-index 317e355..5f84af2 100644
---- a/drivers/pci/pcie/aspm.c
-+++ b/drivers/pci/pcie/aspm.c
-@@ -954,6 +954,7 @@ void pcie_no_aspm(void)
- 	if (!aspm_force) {
- 		aspm_policy = POLICY_DEFAULT;
- 		aspm_disabled = 1;
-+		aspm_support_enabled = false;
- 	}
- }
- 
--- 
-2.1.0
+Suravee
