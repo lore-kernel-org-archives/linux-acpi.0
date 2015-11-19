@@ -1,51 +1,64 @@
-From: "Prakash, Prashanth" <pprakash@codeaurora.org>
-Subject: Re: [PATCH v2 5/5] ACPI / processor_idle: Add support for Low Power
- Idle(LPI) states
-Date: Thu, 19 Nov 2015 15:03:33 -0700
-Message-ID: <564E4735.5080609@codeaurora.org>
-References: <1438710406-3822-1-git-send-email-sudeep.holla@arm.com>
- <1442411963-14398-1-git-send-email-sudeep.holla@arm.com>
- <1442411963-14398-6-git-send-email-sudeep.holla@arm.com>
- <CAJ5Y-ebOPE1oamRk31nxL6VkgSdDd6AmEe2Fw1ku5pGt25D2Rg@mail.gmail.com>
- <562EC3A5.2070402@codeaurora.org> <562F859E.4010105@arm.com>
+From: Stephan =?utf-8?Q?G=C3=BCnther?= <moepi@moepi.net>
+Subject: [Apple] MacBook8,1 keyboard/trackpad
+Date: Thu, 19 Nov 2015 23:10:16 +0100
+Message-ID: <47df5f3035c4c23ad05817544273df0d@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:36735 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759227AbbKSWDg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Nov 2015 17:03:36 -0500
-In-Reply-To: <562F859E.4010105@arm.com>
+Received: from freya.moepi.net ([78.46.170.12]:46652 "EHLO freya.moepi.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934234AbbKSWVE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 19 Nov 2015 17:21:04 -0500
+Received: from bifrost.moepi.net (bifrost.moepi.net [129.187.145.241])
+	by freya.moepi.net (Postfix) with ESMTPS id B084330083B4
+	for <linux-acpi@vger.kernel.org>; Thu, 19 Nov 2015 23:11:01 +0100 (CET)
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sudeep Holla <sudeep.holla@arm.com>, Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Cc: linux acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, lkml <linux-kernel@vger.kernel.org>, linux-ia64@vger.kernel.org, x86@kernel.org, Al Stone <al.stone@linaro.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Mahesh Sivasubramanian <msivasub@codeaurora.org>
+To: linux-acpi@vger.kernel.org
 
-Hi Sudeep,
+The MacBook8,1 (12" retina model, not the 13" MacBookPro12,1) released
+in April 2015 has no Linux support for its internal trackpad/keyboard so
+far although the 13" model (MacBookPro12,1) recently got supported.
 
-On 10/27/2015 8:09 AM, Sudeep Holla wrote:
-> Hi Prashanth,
->
-> On 27/10/15 00:21, Prakash, Prashanth wrote:
->> Hi Sudeep,
->>
->> While testing with these patches everything looked fine except that we
->> are flattening all the LPI
->> states even if it is disabled. I added a simple check to fix it. Please
->> let me know if you have any
->> feedback on the same.
->>
->
-> Looks good to me and thanks for the nice catch. I completely missed to
-> handle that case. Is it OK if I fold this patch into the next version ?
->
-> I have worked on Ashwin's comments, but was waiting to get some feedback
-> from Rafael before I post newer version.
->
-Did you had an opportunity to update the LPI patch set? Please let me know
-if you need any help in test/verification of the new patch set.
+The problem is that the internal keyboard/trackpad is connected via SPI,
+which differs from previous models.
 
---
-Thanks,
-Prashanth
+
+However, according to all I figured out the internal keyboard/trackpad
+of the MacBookPro12,1 is connected in precisely the same way:
+
+1) OSX reports both as SPI devices, not USB.
+
+2) Booting Linux the input devices magically show up as USB devices for
+the MacBookPro12,1 but remain completely hidden on the MacBook8,1.
+
+
+I tried to track the problem by mining various kernel modules with
+printks. The result for *both* MacBooks:
+
+1) Input devices are behind pci0000:00/0000:00:15.4 (the Intel Lynxpoint
+/ Wildcat Point-LP SPI controler).
+
+2) In the ACPI namespace the input devices are located at
+PNP0A08:00/INT33C1:00/APP000D:00.
+
+3) __acpi_match_device() is called with the APPLE-SPI-TOPCASE has hwid.
+That is what's behind APP000D:00. But it returns NULL and the device is
+not enabled.
+
+Now, for any reason I do not understand (I have no idea of ACPI)
+anything makes the touchpad controller (bcm5974), which is that
+APPLE-SPI-TOPCASE, show up as USB device on the MacBookPro12,1. But on
+the MacBook8,1 nothing happens.
+
+
+Request for help: is it a firmware problem, a missing identifier in the
+kernel sources, or is there really no Linux support at all? Maybe it is
+not even a problem with ACPI at all...
+
+I can provide you with any logs and even dunps of the DSDT.
+
+
+Best,
+Stephan
