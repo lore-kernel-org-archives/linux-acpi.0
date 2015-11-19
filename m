@@ -1,52 +1,43 @@
-From: David Rientjes <rientjes@google.com>
-Subject: Re: [PATCH] tree wide: Use kvfree() than conditional
- kfree()/vfree()
-Date: Wed, 18 Nov 2015 16:23:37 -0800 (PST)
-Message-ID: <alpine.DEB.2.10.1511181623240.1381@chino.kir.corp.google.com>
-References: <1447070170-8512-1-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp>
+From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Subject: [PATCH] PCI: Fix logic OF logic in pci_dma_configure()
+Date: Wed, 18 Nov 2015 16:49:52 -0800
+Message-ID: <1447894192-17210-1-git-send-email-Suravee.Suthikulpanit@amd.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1447070170-8512-1-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp>
-Sender: owner-linux-mm@kvack.org
-To: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
-Cc: akpm@linux-foundation.org, linux-mm@kvack.org, Russell King <linux@arm.linux.org.uk>, linux-acpi@vger.kernel.org, drbd-user@lists.linbit.com, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Oleg Drokin <oleg.drokin@intel.com>, Andreas Dilger <andreas.dilger@intel.com>, codalist@coda.cs.cmu.edu, linux-mtd@lists.infradead.org, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, netdev@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: rjw@rjwysocki.net, bhelgaas@google.com, robin.murphy@arm.com
+Cc: arnd@arndb.de, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, 9 Nov 2015, Tetsuo Handa wrote:
+This patch fixes a bug introduced by previous commit,
+which incorrectly checkes the of_node of the end-point device.
+Instead, it should check the of_node of the host bridge.
 
-> There are many locations that do
-> 
->   if (memory_was_allocated_by_vmalloc)
->     vfree(ptr);
->   else
->     kfree(ptr);
-> 
-> but kvfree() can handle both kmalloc()ed memory and vmalloc()ed memory
-> using is_vmalloc_addr(). Unless callers have special reasons, we can
-> replace this branch with kvfree(). Please check and reply if you found
-> problems.
-> 
-> Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-> Acked-by: Michal Hocko <mhocko@suse.com>
-> Cc: Russell King <linux@arm.linux.org.uk> # arm
-> Cc: <linux-acpi@vger.kernel.org> # apei
-> Cc: <drbd-user@lists.linbit.com> # drbd
-> Cc: <linux-kernel@vger.kernel.org> # mspec
-> Cc: <dri-devel@lists.freedesktop.org> # drm
-> Cc: Oleg Drokin <oleg.drokin@intel.com> # lustre
-> Cc: Andreas Dilger <andreas.dilger@intel.com> # lustre
-> Cc: <codalist@coda.cs.cmu.edu> # coda
-> Cc: <linux-mtd@lists.infradead.org> # jffs2
-> Cc: Jan Kara <jack@suse.com> # udf
-> Cc: <linux-fsdevel@vger.kernel.org> # xattr
-> Cc: <linux-mm@kvack.org> # ipc + mm
-> Cc: <netdev@vger.kernel.org> # ipv4
+Fixes: 50230713b639 ("PCI: OF: Move of_pci_dma_configure() to pci_dma_configure()")
+Reported-by: Robin Murphy <robin.murphy@arm.com>
+Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>
+---
+ drivers/pci/probe.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Acked-by: David Rientjes <rientjes@google.com>
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+index e735c72..edb1984 100644
+--- a/drivers/pci/probe.c
++++ b/drivers/pci/probe.c
+@@ -1685,8 +1685,8 @@ static void pci_dma_configure(struct pci_dev *dev)
+ {
+ 	struct device *bridge = pci_get_host_bridge_device(dev);
+ 
+-	if (IS_ENABLED(CONFIG_OF) && dev->dev.of_node) {
+-		if (bridge->parent)
++	if (IS_ENABLED(CONFIG_OF) &&
++		bridge->parent && bridge->parent->of_node) {
+ 			of_dma_configure(&dev->dev, bridge->parent->of_node);
+ 	} else if (has_acpi_companion(bridge)) {
+ 		struct acpi_device *adev = to_acpi_device_node(bridge->fwnode);
+-- 
+2.1.0
