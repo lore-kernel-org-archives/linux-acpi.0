@@ -1,62 +1,119 @@
-From: Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: [PATCH] ACPI / scan: set status to 0 if _STA failed
-Date: Thu, 19 Nov 2015 11:05:25 +0800
-Message-ID: <564D3C75.60208@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Cc: ACPI Devel Mailing List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Bastien Nocera <bugzilla-0MeiytkfxGOsTnJN9+BGXg@public.gmane.org>, Stephen Just <stephenjust-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Chen, Yu C" <yu.c.chen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: [PATCH V4] acpi: add support for extended IRQ to PCI link
+Date: Wed, 18 Nov 2015 22:13:38 -0500
+Message-ID: <1447902818-15810-1-git-send-email-okaya@codeaurora.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:50927 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756555AbbKSDNw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Nov 2015 22:13:52 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com
+Cc: Sinan Kaya <okaya@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
 
-Some ACPI node's _STA will touch operation region field, since the
-evaluation of _STA in acpi_bus_type_and_status is very early, the
-operation region handler is not ready yet. Instead of fail that function
-and not creating the acpi_device node consequently, set status to 0 so
-that later when the driver for that device is probing, it can find
-the acpi_device node and proceed normally. And at that time, the
-handler for the operation region is ready and its _STA evaluation will
-succeed, its present status can be checked there.
+The ACPI compiler uses the extended format when used
+interrupt numbers are greater than 256. The PCI link code
+currently only supports simple interrupt format. The IRQ
+numbers are represented using 32 bits when extended IRQ
+syntax. This patch changes the interrupt number type to
+32 bits and places an upper limit of 1020 as possible
+interrupt id.
 
-Even there will be no driver using this node later, it doesn't seem
-hurt to have one more acpi_device node created with status set to 0.
+1020 is the maximum interrupt ID that can be assigned to
+an ARM SPI interrupt according to ARM architecture.
 
-This happens on Microsoft Surface 3, where the SPI device node NTRG's
-_STA touches GPIO fields and the SPI core driver will only enumerate SPI
-devices from ACPI if the acpi_device node is 1: created; 2: _STA
-indicates it's present.
+Additional checks have been placed to prevent out of bounds
+writes.
 
-Note that due to another problem in SPI driver, for NTRG to be actually
-enumerated, some changes have to be made in the SPI layer, which is
-addressed by Mika(not send out yet):
-https://bugzilla.kernel.org/show_bug.cgi?id=104291#c23
-
-Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=104291
-Reported-by: Bastien Nocera <bugzilla-0MeiytkfxGOsTnJN9+BGXg@public.gmane.org>
-Signed-off-by: Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
 ---
- drivers/acpi/scan.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/pci_link.c | 28 +++++++++++++++++++---------
+ 1 file changed, 19 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index 78d5f02a073b..ddfed0d407e5 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -1461,7 +1461,7 @@ static int acpi_bus_type_and_status(acpi_handle handle, int *type,
- 		*type = ACPI_BUS_TYPE_DEVICE;
- 		status = acpi_bus_get_status_handle(handle, sta);
- 		if (ACPI_FAILURE(status))
--			return -ENODEV;
-+			*sta = 0;
- 		break;
- 	case ACPI_TYPE_PROCESSOR:
- 		*type = ACPI_BUS_TYPE_PROCESSOR;
+diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+index 7c8408b..ec7ec16 100644
+--- a/drivers/acpi/pci_link.c
++++ b/drivers/acpi/pci_link.c
+@@ -1,6 +1,7 @@
+ /*
+  *  pci_link.c - ACPI PCI Interrupt Link Device Driver ($Revision: 34 $)
+  *
++ *  Copyright (c) 2015, The Linux Foundation. All rights reserved.
+  *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
+  *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
+  *  Copyright (C) 2002       Dominik Brodowski <devel@brodo.de>
+@@ -67,12 +68,12 @@ static struct acpi_scan_handler pci_link_handler = {
+  * later even the link is disable. Instead, we just repick the active irq
+  */
+ struct acpi_pci_link_irq {
+-	u8 active;		/* Current IRQ */
++	u32 active;		/* Current IRQ */
+ 	u8 triggering;		/* All IRQs */
+ 	u8 polarity;		/* All IRQs */
+ 	u8 resource_type;
+ 	u8 possible_count;
+-	u8 possible[ACPI_PCI_LINK_MAX_POSSIBLE];
++	u32 possible[ACPI_PCI_LINK_MAX_POSSIBLE];
+ 	u8 initialized:1;
+ 	u8 reserved:7;
+ };
+@@ -437,7 +438,11 @@ static int acpi_pci_link_set(struct acpi_pci_link *link, int irq)
+  * enabled system.
+  */
+ 
+-#define ACPI_MAX_IRQS		256
++/*
++ * 1020 is the maximum interrupt ID that can be assigned to
++ * an ARM SPI interrupt according to ARM architecture.
++ */
++#define ACPI_MAX_IRQS		1020
+ #define ACPI_MAX_ISA_IRQ	16
+ 
+ #define PIRQ_PENALTY_PCI_AVAILABLE	(0)
+@@ -493,7 +498,8 @@ int __init acpi_irq_penalty_init(void)
+ 					    penalty;
+ 			}
+ 
+-		} else if (link->irq.active) {
++		} else if (link->irq.active &&
++			(link->irq.active < ACPI_MAX_IRQS)) {
+ 			acpi_irq_penalty[link->irq.active] +=
+ 			    PIRQ_PENALTY_PCI_POSSIBLE;
+ 		}
+@@ -541,14 +547,16 @@ static int acpi_pci_link_allocate(struct acpi_pci_link *link)
+ 	else
+ 		irq = link->irq.possible[link->irq.possible_count - 1];
+ 
+-	if (acpi_irq_balance || !link->irq.active) {
++	if ((acpi_irq_balance || !link->irq.active) && (irq < ACPI_MAX_IRQS)) {
+ 		/*
+ 		 * Select the best IRQ.  This is done in reverse to promote
+ 		 * the use of IRQs 9, 10, 11, and >15.
+ 		 */
+-		for (i = (link->irq.possible_count - 1); i >= 0; i--) {
+-			if (acpi_irq_penalty[irq] >
+-			    acpi_irq_penalty[link->irq.possible[i]])
++		i = link->irq.possible_count;
++		while (--i >= 0) {
++			if ((link->irq.possible[i] < ACPI_MAX_IRQS) &&
++			    (acpi_irq_penalty[irq] >
++			    acpi_irq_penalty[link->irq.possible[i]]))
+ 				irq = link->irq.possible[i];
+ 		}
+ 	}
+@@ -568,7 +576,9 @@ static int acpi_pci_link_allocate(struct acpi_pci_link *link)
+ 			    acpi_device_bid(link->device));
+ 		return -ENODEV;
+ 	} else {
+-		acpi_irq_penalty[link->irq.active] += PIRQ_PENALTY_PCI_USING;
++		if (link->irq.active < ACPI_MAX_IRQS)
++			acpi_irq_penalty[link->irq.active] +=
++				PIRQ_PENALTY_PCI_USING;
+ 		printk(KERN_WARNING PREFIX "%s [%s] enabled at IRQ %d\n",
+ 		       acpi_device_name(link->device),
+ 		       acpi_device_bid(link->device), link->irq.active);
 -- 
-2.5.0
+Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
