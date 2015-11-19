@@ -1,78 +1,79 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH V3 2/6] acpi: pci: Setup MSI domain for ACPI based pci
- devices
-Date: Thu, 19 Nov 2015 12:08:07 +0000
-Message-ID: <20151119120807.07ffd476@arm.com>
-References: <1445453249-32557-1-git-send-email-Suravee.Suthikulpanit@amd.com>
-	<1445453249-32557-3-git-send-email-Suravee.Suthikulpanit@amd.com>
+From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Subject: Re: [PATCH] CPPC: Initialize CPUFreq CPU co-ord type correctly
+Date: Thu, 19 Nov 2015 10:27:42 -0500
+Message-ID: <CAJ5Y-eY=fo=JT11CqYR09Nis--TLpdHtxo+JyC6nh07kVgUrdg@mail.gmail.com>
+References: <1447375974-3736-1-git-send-email-ashwin.chaugule@linaro.org>
+ <CAJ5Y-eZ6LUd31B_oECmm5eV9ZyyFiOO0KNtYCGikuNSbgxCUEA@mail.gmail.com> <2881956.pxlD7qKz8I@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1445453249-32557-3-git-send-email-Suravee.Suthikulpanit@amd.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Cc: tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, hanjun.guo@linaro.org, tomasz.nowicki@linaro.org, graeme.gregory@linaro.org, dhdang@apm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lf0-f46.google.com ([209.85.215.46]:32900 "EHLO
+	mail-lf0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757091AbbKSP2F (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Nov 2015 10:28:05 -0500
+Received: by lfaz4 with SMTP id z4so50465305lfa.0
+        for <linux-acpi@vger.kernel.org>; Thu, 19 Nov 2015 07:28:02 -0800 (PST)
+In-Reply-To: <2881956.pxlD7qKz8I@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Rafael Wysocki <rafael@kernel.org>, linux acpi <linux-acpi@vger.kernel.org>, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Patch Tracking <patches@linaro.org>
 
-On Wed, 21 Oct 2015 11:47:25 -0700
-Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com> wrote:
+Hi Rafael,
 
-Hi Suravee,
+On 13 November 2015 at 19:27, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Friday, November 13, 2015 03:47:43 PM Ashwin Chaugule wrote:
+>> Hi Rafael,
+>>
+>> On 12 November 2015 at 19:52, Ashwin Chaugule
+>> <ashwin.chaugule@linaro.org> wrote:
+>> > The CPU policy struct indicates the co-ordination type
+>> > for all CPUs of a common freq domain. Initialize it
+>> > correctly using the CPU specific data gathered from
+>> > CPPC ACPI lib via acpi_get_psd_map().
+>> >
+>> > Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+>> > ---
+>> >  drivers/cpufreq/cppc_cpufreq.c | 1 +
+>> >  1 file changed, 1 insertion(+)
+>> >
+>> > diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
+>> > index 93c219f..508809b 100644
+>> > --- a/drivers/cpufreq/cppc_cpufreq.c
+>> > +++ b/drivers/cpufreq/cppc_cpufreq.c
+>> > @@ -98,6 +98,7 @@ static int cppc_cpufreq_cpu_init(struct cpufreq_policy *policy)
+>> >         policy->max = cpu->perf_caps.highest_perf;
+>> >         policy->cpuinfo.min_freq = policy->min;
+>> >         policy->cpuinfo.max_freq = policy->max;
+>> > +       policy->shared_type = cpu->shared_type;
+>> >
+>> >         if (policy->shared_type == CPUFREQ_SHARED_TYPE_ANY)
+>> >                 cpumask_copy(policy->cpus, cpu->shared_cpu_map);
+>> > --
+>> > 1.9.1
+>> >
+>>
+>> I apologize for not spotting this earlier, but I seem to have gotten
+>> overzealous cleaning up code here. Can this make it into v4.4-rc1
+>> along with what you've already pushed out?
+>
+> It's too late for -rc1, but I'll queue them up for -rc2.
 
-Sorry it took so long to get to this series. Comments below.
+I was working on a rather quirky system with only one CPU in a domain.
+In such a case the _PSD object doesn't make sense but its also
+supposed to be an optional object. This system had a PSD package with
+Num CPUs = 1. The acpi_get_psd_map() routine (which I adapted from
+acpi_processor_preregister_performance()) rightfully skips trying to
+match PSDs when there is only one CPU. But it also skips reading the
+co-ord type from the PSD if there is one. So what ends up happening is
+that cpu->shared_type is always 0 and the cppc_cpufreq driver will
+fail init on this CPU, since I only support TYPE_ANY. This will happen
+even if there is no PSD object for this CPU.
 
-> This patch introduces pci_host_bridge_acpi_msi_domain(), which returns
-> the MSI domain of the specified PCI host bridge with DOMAIN_BUS_PCI_MSI
-> bus token. Then, it is assigned to pci device.
-> 
-> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-> ---
->  drivers/pci/pci-acpi.c | 13 +++++++++++++
->  drivers/pci/probe.c    |  2 ++
->  include/linux/pci.h    |  7 +++++++
->  3 files changed, 22 insertions(+)
-> 
-> diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-> index a32ba75..0e21ef4 100644
-> --- a/drivers/pci/pci-acpi.c
-> +++ b/drivers/pci/pci-acpi.c
-> @@ -9,7 +9,9 @@
->  
->  #include <linux/delay.h>
->  #include <linux/init.h>
-> +#include <linux/irqdomain.h>
->  #include <linux/pci.h>
-> +#include <linux/msi.h>
->  #include <linux/pci_hotplug.h>
->  #include <linux/module.h>
->  #include <linux/pci-aspm.h>
-> @@ -689,6 +691,17 @@ static struct acpi_bus_type acpi_pci_bus = {
->  	.cleanup = pci_acpi_cleanup,
->  };
->  
-> +struct irq_domain *pci_host_bridge_acpi_msi_domain(struct pci_bus *bus)
-> +{
-> +	struct irq_domain *dom = NULL;
-> +	struct fwnode_handle *fwnode = pci_msi_get_fwnode(&bus->dev);
-> +
-> +	if (fwnode)
-> +		dom = irq_find_matching_fwnode(fwnode,
-> +					       DOMAIN_BUS_PCI_MSI);
-> +	return dom;
-> +}
-> +
+So I think a better way to deal with this is to explicitly check if
+shared_type == CPUFREQ_SHARED_TYPE_ALL then print out the Unsupported
+co-ord type message. I'll send a patch along with this fix as a reply
+to this mail.
 
-Given this, I really question the need for what you define in patch #1
-to be standalone. It is only used by ACPI (DT has its own private
-helpers), and it is so far unlikely that it will be of any use for
-other firmware interfaces.
-
-My suggestion is to get rid of pci_msi_get_fwnode() and move the
-registration helper into this file. That'd be much simpler.
-
-Thanks,
-
-	M.
--- 
-Jazz is not dead. It just smells funny.
+Regards,
+Ashwin.
