@@ -1,7 +1,7 @@
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [PATCH v3 1/5] x86, memhp, numa: Online memory-less nodes at boot time.
-Date: Thu, 19 Nov 2015 12:22:11 +0800
-Message-ID: <1447906935-31899-2-git-send-email-tangchen@cn.fujitsu.com>
+Subject: [PATCH v3 5/5] x86, acpi, cpu-hotplug: Set persistent cpuid <-> nodeid mapping when booting.
+Date: Thu, 19 Nov 2015 12:22:15 +0800
+Message-ID: <1447906935-31899-6-git-send-email-tangchen@cn.fujitsu.com>
 References: <1447906935-31899-1-git-send-email-tangchen@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -9,110 +9,155 @@ Return-path: <owner-linux-mm@kvack.org>
 In-Reply-To: <1447906935-31899-1-git-send-email-tangchen@cn.fujitsu.com>
 Sender: owner-linux-mm@kvack.org
 To: cl@linux.com, tj@kernel.org, jiang.liu@linux.intel.com, mika.j.penttila@gmail.com, mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com
-Cc: tangchen@cn.fujitsu.com, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
+Cc: tangchen@cn.fujitsu.com, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Gu Zheng <guz.fnst@cn.fujitsu.com>
 List-Id: linux-acpi@vger.kernel.org
 
-For now, x86 does not support memory-less node. A node without memory
-will not be onlined, and the cpus on it will be mapped to the other
-online nodes with memory in init_cpu_to_node(). The reason of doing this
-is to ensure each cpu has mapped to a node with memory, so that it will
-be able to allocate local memory for that cpu.
+From: Gu Zheng <guz.fnst@cn.fujitsu.com>
 
-But we don't have to do it in this way.
+This patch finishes step 4.
 
-In this series of patches, we are going to construct cpu <-> node mapping
-for all possible cpus at boot time, which is a 1-1 mapping. It means the
-cpu will be mapped to the node it belongs to, and will never be changed.
-If a node has only cpus but no memory, the cpus on it will be mapped to
-a memory-less node. And the memory-less node should be onlined.
+This patch set the persistent cpuid <-> nodeid mapping for all enabled/disabled
+processors at boot time via an additional acpi namespace walk for processors.
 
-This patch allocate pgdats for all memory-less nodes and online them at
-boot time. Then build zonelists for these nodes. As a result, when cpus
-on these memory-less nodes try to allocate memory from local node, it
-will automatically fall back to the proper zones in the zonelists.
+Signed-off-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
+Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
 ---
- arch/x86/mm/numa.c     | 30 ++++++++++++++++--------------
- include/linux/mmzone.h |  1 +
- mm/page_alloc.c        |  2 +-
- 3 files changed, 18 insertions(+), 15 deletions(-)
+ arch/ia64/kernel/acpi.c       |  2 +-
+ arch/x86/kernel/acpi/boot.c   |  2 +-
+ drivers/acpi/bus.c            |  3 ++
+ drivers/acpi/processor_core.c | 65 +++++++++++++++++++++++++++++++++++++++++++
+ include/linux/acpi.h          |  2 ++
+ 5 files changed, 72 insertions(+), 2 deletions(-)
 
-diff --git a/arch/x86/mm/numa.c b/arch/x86/mm/numa.c
-index c3b3f65..3537c31 100644
---- a/arch/x86/mm/numa.c
-+++ b/arch/x86/mm/numa.c
-@@ -704,22 +704,22 @@ void __init x86_numa_init(void)
- 	numa_init(dummy_numa_init);
- }
- 
--static __init int find_near_online_node(int node)
-+static void __init init_memory_less_node(int nid)
+diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
+index b1698bc..7db5563 100644
+--- a/arch/ia64/kernel/acpi.c
++++ b/arch/ia64/kernel/acpi.c
+@@ -796,7 +796,7 @@ int acpi_isa_irq_to_gsi(unsigned isa_irq, u32 *gsi)
+  *  ACPI based hotplug CPU support
+  */
+ #ifdef CONFIG_ACPI_HOTPLUG_CPU
+-static int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
++int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
  {
--	int n, val;
--	int min_val = INT_MAX;
--	int best_node = -1;
-+	unsigned long zones_size[MAX_NR_ZONES] = {0};
-+	unsigned long zholes_size[MAX_NR_ZONES] = {0};
+ #ifdef CONFIG_ACPI_NUMA
+ 	/*
+diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+index 0ce06ee..7d45261 100644
+--- a/arch/x86/kernel/acpi/boot.c
++++ b/arch/x86/kernel/acpi/boot.c
+@@ -696,7 +696,7 @@ static void __init acpi_set_irq_model_ioapic(void)
+ #ifdef CONFIG_ACPI_HOTPLUG_CPU
+ #include <acpi/processor.h>
  
--	for_each_online_node(n) {
--		val = node_distance(node, n);
-+	/* Allocate and initialize node data. Memory-less node is now online.*/
-+	alloc_node_data(nid);
-+	free_area_init_node(nid, zones_size, 0, zholes_size);
- 
--		if (val < min_val) {
--			min_val = val;
--			best_node = n;
--		}
--	}
--
--	return best_node;
-+	/*
-+	 * Build zonelist so that when the cpus try to allocate memory on local
-+	 * node, which has no memory, it will fall back to the best near node.
-+	 * No need to rebuild zonelist for the other nodes since memory-less
-+	 * node has no memory. And no need to lock at boot time.
-+	 */
-+	build_zonelists(NODE_DATA(nid));
- }
- 
- /*
-@@ -748,8 +748,10 @@ void __init init_cpu_to_node(void)
- 
- 		if (node == NUMA_NO_NODE)
- 			continue;
-+
- 		if (!node_online(node))
--			node = find_near_online_node(node);
-+			init_memory_less_node(node);
-+
- 		numa_set_node(cpu, node);
- 	}
- }
-diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
-index e23a9e7..9c4d4d5 100644
---- a/include/linux/mmzone.h
-+++ b/include/linux/mmzone.h
-@@ -736,6 +736,7 @@ static inline bool is_dev_zone(const struct zone *zone)
- 
- extern struct mutex zonelists_mutex;
- void build_all_zonelists(pg_data_t *pgdat, struct zone *zone);
-+void build_zonelists(pg_data_t *pgdat);
- void wakeup_kswapd(struct zone *zone, int order, enum zone_type classzone_idx);
- bool zone_watermark_ok(struct zone *z, unsigned int order,
- 		unsigned long mark, int classzone_idx, int alloc_flags);
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 17a3c66..761f302 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -4144,7 +4144,7 @@ static void set_zonelist_order(void)
- 		current_zonelist_order = user_zonelist_order;
- }
- 
--static void build_zonelists(pg_data_t *pgdat)
-+void build_zonelists(pg_data_t *pgdat)
+-static void acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
++void acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
  {
- 	int j, node, load;
- 	enum zone_type i;
+ #ifdef CONFIG_ACPI_NUMA
+ 	int nid;
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index a212cef..d59e1cd 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -1094,6 +1094,9 @@ static int __init acpi_init(void)
+ 	acpi_debugfs_init();
+ 	acpi_sleep_proc_init();
+ 	acpi_wakeup_device_init();
++#ifdef CONFIG_ACPI_HOTPLUG_CPU
++	acpi_set_processor_mapping();
++#endif
+ 	return 0;
+ }
+ 
+diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
+index 824b98b..45580ff 100644
+--- a/drivers/acpi/processor_core.c
++++ b/drivers/acpi/processor_core.c
+@@ -261,6 +261,71 @@ int acpi_get_cpuid(acpi_handle handle, int type, u32 acpi_id)
+ }
+ EXPORT_SYMBOL_GPL(acpi_get_cpuid);
+ 
++#ifdef CONFIG_ACPI_HOTPLUG_CPU
++static bool map_processor(acpi_handle handle, int *phys_id, int *cpuid)
++{
++	int type;
++	u32 acpi_id;
++	acpi_status status;
++	acpi_object_type acpi_type;
++	unsigned long long tmp;
++	union acpi_object object = { 0 };
++	struct acpi_buffer buffer = { sizeof(union acpi_object), &object };
++
++	status = acpi_get_type(handle, &acpi_type);
++	if (ACPI_FAILURE(status))
++		return false;
++
++	switch (acpi_type) {
++	case ACPI_TYPE_PROCESSOR:
++		status = acpi_evaluate_object(handle, NULL, NULL, &buffer);
++		if (ACPI_FAILURE(status))
++			return false;
++		acpi_id = object.processor.proc_id;
++		break;
++	case ACPI_TYPE_DEVICE:
++		status = acpi_evaluate_integer(handle, "_UID", NULL, &tmp);
++		if (ACPI_FAILURE(status))
++			return false;
++		acpi_id = tmp;
++		break;
++	default:
++		return false;
++	}
++
++	type = (acpi_type == ACPI_TYPE_DEVICE) ? 1 : 0;
++
++	*phys_id = __acpi_get_phys_id(handle, type, acpi_id, false);
++	*cpuid = acpi_map_cpuid(*phys_id, acpi_id);
++	if (*cpuid == -1)
++		return false;
++
++	return true;
++}
++
++static acpi_status __init
++set_processor_node_mapping(acpi_handle handle, u32 lvl, void *context,
++			   void **rv)
++{
++	u32 apic_id;
++	int cpu_id;
++
++	if (!map_processor(handle, &apic_id, &cpu_id))
++		return AE_ERROR;
++
++	acpi_map_cpu2node(handle, cpu_id, apic_id);
++	return AE_OK;
++}
++
++void __init acpi_set_processor_mapping(void)
++{
++	/* Set persistent cpu <-> node mapping for all processors. */
++	acpi_walk_namespace(ACPI_TYPE_PROCESSOR, ACPI_ROOT_OBJECT,
++			    ACPI_UINT32_MAX, set_processor_node_mapping,
++			    NULL, NULL, NULL);
++}
++#endif
++
+ #ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
+ static int get_ioapic_id(struct acpi_subtable_header *entry, u32 gsi_base,
+ 			 u64 *phys_addr, int *ioapic_id)
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 0548339..c07f541 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -194,6 +194,8 @@ static inline bool invalid_phys_cpuid(phys_cpuid_t phys_id)
+ /* Arch dependent functions for cpu hotplug support */
+ int acpi_map_cpu(acpi_handle handle, phys_cpuid_t physid, int *pcpu);
+ int acpi_unmap_cpu(int cpu);
++void acpi_map_cpu2node(acpi_handle handle, int cpu, int physid);
++void __init acpi_set_processor_mapping(void);
+ #endif /* CONFIG_ACPI_HOTPLUG_CPU */
+ 
+ #ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
 -- 
 1.8.3.1
 
