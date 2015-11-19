@@ -1,556 +1,177 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v3 5/6] tools/power/acpi: Add userspace AML interface support
-Date: Thu, 19 Nov 2015 14:08:53 +0800
-Message-ID: <f1d763595b6fcd60b837d957f1b042047f225923.1447910797.git.lv.zheng@intel.com>
-References: <cover.1446790780.git.lv.zheng@intel.com> <cover.1447910797.git.lv.zheng@intel.com>
+Subject: [PATCH v3] ACPI / x86: introduce acpi_os_readable() support
+Date: Thu, 19 Nov 2015 14:09:09 +0800
+Message-ID: <62ba1a9eee4673fb1f327b499fd2e164b61912b9.1447910981.git.lv.zheng@intel.com>
+References: <cover.1446790780.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1447910797.git.lv.zheng@intel.com>
+In-Reply-To: <cover.1446790780.git.lv.zheng@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Chen Yu <yu.c.chen@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-This patch adds a userspace tool to access Linux kernel AML debugger
-interface.
+From: Chen Yu <yu.c.chen@intel.com>
 
-Tow modes are supported by this tool:
-1. Interactive: Users are able to launch a debugging shell to talk with
-   in-kernel AML debugger.
-   Note that it's user duty to ensure kernel runtime integrity by using
-   this debugging tool:
-   A. Some control methods evaluated by the users may result in kernel
-      panics if those control methods shouldn't be evaluated by the OSPMs
-      according to the current BIOS/OS configurations.
-   B. Currently if a single stepping evaluation couldn't run to an end,
-      then the synchronization primitives acquired by the evaluation may
-      block normal OSPM control method evaluations.
-2. Batch: Users are able to execute debugger commands in a script.
-   Note that in addition to the above duties, it's user duty to ensure
-   script runtime integrity by using this debugging tool in this mode:
-   C. Currently only those commands that are not used for single stepping
-      are suitable to be used in this mode.
-   D. If the execution of the command may cause a failure that could result
-      in an endless kernel execution, the execution of the script may also
-      get blocked.
-To exit the utility, currently "exit/quit" commands are recommended, but
-ctrl-C" can also be used.
+This patch implements acpi_os_readable(). The function is used by ACPICA
+AML debugger to validate user specified pointers for dumping the memory as
+ACPICA descriptor objects.
 
+Signed-off-by: Chen Yu <yu.c.chen@intel.com>
+Tested-by: Lv Zheng <lv.zheng@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- tools/power/acpi/Makefile                |   16 +-
- tools/power/acpi/tools/acpidbg/Makefile  |   27 ++
- tools/power/acpi/tools/acpidbg/acpidbg.c |  438 ++++++++++++++++++++++++++++++
- 3 files changed, 473 insertions(+), 8 deletions(-)
- create mode 100644 tools/power/acpi/tools/acpidbg/Makefile
- create mode 100644 tools/power/acpi/tools/acpidbg/acpidbg.c
+ arch/x86/Kconfig                  |    1 +
+ arch/x86/include/asm/acenv.h      |    1 +
+ arch/x86/kernel/acpi/boot.c       |   44 +++++++++++++++++++++++++++++++++++++
+ drivers/acpi/Kconfig              |    3 +++
+ drivers/acpi/osl.c                |   12 ++++++++++
+ include/acpi/platform/aclinux.h   |    1 -
+ include/acpi/platform/aclinuxex.h |    5 -----
+ 7 files changed, 61 insertions(+), 6 deletions(-)
 
-diff --git a/tools/power/acpi/Makefile b/tools/power/acpi/Makefile
-index e882c83..a8bf908 100644
---- a/tools/power/acpi/Makefile
-+++ b/tools/power/acpi/Makefile
-@@ -10,18 +10,18 @@
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index 96d058a..25585ee 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -19,6 +19,7 @@ config X86
+ 	def_bool y
+ 	select ACPI_LEGACY_TABLES_LOOKUP	if ACPI
+ 	select ACPI_SYSTEM_POWER_STATES_SUPPORT	if ACPI
++	select ACPI_MEMORY_ACCESS_CHECK_SUPPORT	if ACPI
+ 	select ANON_INODES
+ 	select ARCH_CLOCKSOURCE_DATA
+ 	select ARCH_DISCARD_MEMBLOCK
+diff --git a/arch/x86/include/asm/acenv.h b/arch/x86/include/asm/acenv.h
+index 1b010a8..a2a2849 100644
+--- a/arch/x86/include/asm/acenv.h
++++ b/arch/x86/include/asm/acenv.h
+@@ -20,6 +20,7 @@
  
- include ../../scripts/Makefile.include
+ int __acpi_acquire_global_lock(unsigned int *lock);
+ int __acpi_release_global_lock(unsigned int *lock);
++bool __acpi_memory_readable(void *pointer, size_t length);
  
--all: acpidump ec
--clean: acpidump_clean ec_clean
--install: acpidump_install ec_install
--uninstall: acpidump_uninstall ec_uninstall
-+all: acpidbg acpidump ec
-+clean: acpidbg_clean acpidump_clean ec_clean
-+install: acpidbg_install acpidump_install ec_install
-+uninstall: acpidbg_uninstall acpidump_uninstall ec_uninstall
+ #define ACPI_ACQUIRE_GLOBAL_LOCK(facs, Acq) \
+ 	((Acq) = __acpi_acquire_global_lock(&facs->global_lock))
+diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+index e759076..4a5e22e 100644
+--- a/arch/x86/kernel/acpi/boot.c
++++ b/arch/x86/kernel/acpi/boot.c
+@@ -1699,6 +1699,50 @@ int __acpi_release_global_lock(unsigned int *lock)
+ 	return old & 0x1;
+ }
  
--acpidump ec: FORCE
-+acpidbg acpidump ec: FORCE
- 	$(call descend,tools/$@,all)
--acpidump_clean ec_clean:
-+acpidbg_clean acpidump_clean ec_clean:
- 	$(call descend,tools/$(@:_clean=),clean)
--acpidump_install ec_install:
-+acpidbg_install acpidump_install ec_install:
- 	$(call descend,tools/$(@:_install=),install)
--acpidump_uninstall ec_uninstall:
-+acpidbg_uninstall acpidump_uninstall ec_uninstall:
- 	$(call descend,tools/$(@:_uninstall=),uninstall)
++bool __acpi_memory_readable(void *pointer, size_t length)
++{
++	unsigned long obj_start, obj_end;
++	unsigned long start_pfn, end_pfn;
++
++	/*
++	 * All direct mapped PFNs should have been recorded by the mapped
++	 * PFN ranges. But pfn_range_is_mapped() requires the following
++	 * sanity checks to be performed before invoking.
++	 */
++	obj_start = ACPI_TO_INTEGER(pointer);
++	obj_end = obj_start + length;
++
++	/*
++	 * ACPICA core doesn't validate if the object is wrapped over, so
++	 * we should.
++	 */
++	if (length && (obj_end - 1) < obj_start)
++		return false;
++
++	/*
++	 * None direct mapping ranges contain holes. For example, high
++	 * kernel map holes (lower than _text or higher than _brk_end).
++	 * Converting a virtual address that belongs to the high map hole
++	 * results in a valid PFN because its low map has been recorded as
++	 * a mapped range.
++	 */
++	if (obj_start < PAGE_OFFSET ||
++	    obj_start >= (unsigned long)high_memory ||
++	    (length && (obj_end - 1) >= (unsigned long)high_memory))
++		return false;
++
++	/*
++	 * It is required to pass a range (end_pfn - start_pfn > 0) to
++	 * pfn_range_is_mapped().
++	 */
++	start_pfn = PFN_DOWN(__pa(obj_start));
++	end_pfn = PFN_UP(__pa(obj_end));
++	if (unlikely(end_pfn == start_pfn))
++		end_pfn++;
++
++	return pfn_range_is_mapped(start_pfn, end_pfn);
++}
++
+ void __init arch_reserve_mem_area(acpi_physical_address addr, size_t size)
+ {
+ 	e820_add_region(addr, size, E820_ACPI);
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index c4d4a05..73b45f9 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -57,6 +57,9 @@ config ACPI_SYSTEM_POWER_STATES_SUPPORT
+ config ACPI_CCA_REQUIRED
+ 	bool
  
- .PHONY: FORCE
-diff --git a/tools/power/acpi/tools/acpidbg/Makefile b/tools/power/acpi/tools/acpidbg/Makefile
-new file mode 100644
-index 0000000..352df4b
---- /dev/null
-+++ b/tools/power/acpi/tools/acpidbg/Makefile
-@@ -0,0 +1,27 @@
-+# tools/power/acpi/tools/acpidbg/Makefile - ACPI tool Makefile
-+#
-+# Copyright (c) 2015, Intel Corporation
-+#   Author: Lv Zheng <lv.zheng@intel.com>
-+#
-+# This program is free software; you can redistribute it and/or
-+# modify it under the terms of the GNU General Public License
-+# as published by the Free Software Foundation; version 2
-+# of the License.
++config ACPI_MEMORY_ACCESS_CHECK_SUPPORT
++	bool
 +
-+include ../../Makefile.config
-+
-+TOOL = acpidbg
-+vpath %.c \
-+	../../../../../drivers/acpi/acpica\
-+	../../common\
-+	../../os_specific/service_layers\
-+	.
-+CFLAGS += -DACPI_APPLICATION -DACPI_SINGLE_THREAD -DACPI_DEBUGGER\
-+	-I.\
-+	-I../../../../../drivers/acpi/acpica\
-+	-I../../../../../include
-+LDFLAGS += -lpthread
-+TOOL_OBJS = \
-+	acpidbg.o
-+
-+include ../../Makefile.rules
-diff --git a/tools/power/acpi/tools/acpidbg/acpidbg.c b/tools/power/acpi/tools/acpidbg/acpidbg.c
-new file mode 100644
-index 0000000..d070fcc
---- /dev/null
-+++ b/tools/power/acpi/tools/acpidbg/acpidbg.c
-@@ -0,0 +1,438 @@
-+/*
-+ * ACPI AML interfacing userspace utility
-+ *
-+ * Copyright (C) 2015, Intel Corporation
-+ * Authors: Lv Zheng <lv.zheng@intel.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <acpi/acpi.h>
-+
-+/* Headers not included by include/acpi/platform/aclinux.h */
-+#include <stdbool.h>
-+#include <fcntl.h>
-+#include <assert.h>
-+#include <linux/circ_buf.h>
-+
-+#define ACPI_AML_FILE		"/sys/kernel/debug/acpi/acpidbg"
-+#define ACPI_AML_SEC_TICK	1
-+#define ACPI_AML_USEC_PEEK	200
-+#define ACPI_AML_BUF_SIZE	4096
-+
-+#define ACPI_AML_BATCH_WRITE_CMD	0x00 /* Write command to kernel */
-+#define ACPI_AML_BATCH_READ_LOG		0x01 /* Read log from kernel */
-+#define ACPI_AML_BATCH_WRITE_LOG	0x02 /* Write log to console */
-+
-+#define ACPI_AML_LOG_START		0x00
-+#define ACPI_AML_PROMPT_START		0x01
-+#define ACPI_AML_PROMPT_STOP		0x02
-+#define ACPI_AML_LOG_STOP		0x03
-+#define ACPI_AML_PROMPT_ROLL		0x04
-+
-+#define ACPI_AML_INTERACTIVE	0x00
-+#define ACPI_AML_BATCH		0x01
-+
-+#define circ_count(circ) \
-+	(CIRC_CNT((circ)->head, (circ)->tail, ACPI_AML_BUF_SIZE))
-+#define circ_count_to_end(circ) \
-+	(CIRC_CNT_TO_END((circ)->head, (circ)->tail, ACPI_AML_BUF_SIZE))
-+#define circ_space(circ) \
-+	(CIRC_SPACE((circ)->head, (circ)->tail, ACPI_AML_BUF_SIZE))
-+#define circ_space_to_end(circ) \
-+	(CIRC_SPACE_TO_END((circ)->head, (circ)->tail, ACPI_AML_BUF_SIZE))
-+
-+#define acpi_aml_cmd_count()	circ_count(&acpi_aml_cmd_crc)
-+#define acpi_aml_log_count()	circ_count(&acpi_aml_log_crc)
-+#define acpi_aml_cmd_space()	circ_space(&acpi_aml_cmd_crc)
-+#define acpi_aml_log_space()	circ_space(&acpi_aml_log_crc)
-+
-+#define ACPI_AML_DO(_fd, _op, _buf, _ret)				\
-+	do {								\
-+		_ret = acpi_aml_##_op(_fd, &acpi_aml_##_buf##_crc);	\
-+		if (_ret == 0) {					\
-+			fprintf(stderr,					\
-+				"%s %s pipe closed.\n", #_buf, #_op);	\
-+			return;						\
-+		}							\
-+	} while (0)
-+#define ACPI_AML_BATCH_DO(_fd, _op, _buf, _ret)				\
-+	do {								\
-+		_ret = acpi_aml_##_op##_batch_##_buf(_fd,		\
-+			 &acpi_aml_##_buf##_crc);			\
-+		if (_ret == 0)						\
-+			return;						\
-+	} while (0)
-+
-+
-+static char acpi_aml_cmd_buf[ACPI_AML_BUF_SIZE];
-+static char acpi_aml_log_buf[ACPI_AML_BUF_SIZE];
-+static struct circ_buf acpi_aml_cmd_crc = {
-+	.buf = acpi_aml_cmd_buf,
-+	.head = 0,
-+	.tail = 0,
-+};
-+static struct circ_buf acpi_aml_log_crc = {
-+	.buf = acpi_aml_log_buf,
-+	.head = 0,
-+	.tail = 0,
-+};
-+static const char *acpi_aml_file_path = ACPI_AML_FILE;
-+static unsigned long acpi_aml_mode = ACPI_AML_INTERACTIVE;
-+static bool acpi_aml_exit;
-+
-+static bool acpi_aml_batch_drain;
-+static unsigned long acpi_aml_batch_state;
-+static char acpi_aml_batch_prompt;
-+static char acpi_aml_batch_roll;
-+static unsigned long acpi_aml_log_state;
-+static char *acpi_aml_batch_cmd = NULL;
-+static char *acpi_aml_batch_pos = NULL;
-+
-+static int acpi_aml_set_fl(int fd, int flags)
+ config ACPI_DEBUGGER
+ 	bool "In-kernel debugger"
+ 	select ACPI_DEBUG
+diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
+index ce5ac00..edec035 100644
+--- a/drivers/acpi/osl.c
++++ b/drivers/acpi/osl.c
+@@ -1582,6 +1582,18 @@ acpi_status acpi_os_get_line(char *buffer, u32 buffer_length, u32 *bytes_read)
+ }
+ EXPORT_SYMBOL(acpi_os_get_line);
+ 
++#ifdef CONFIG_ACPI_MEMORY_ACCESS_CHECK_SUPPORT
++u8 acpi_os_readable(void *pointer, acpi_size length)
 +{
-+	int ret;
-+
-+	ret = fcntl(fd, F_GETFL, 0);
-+	if (ret < 0) {
-+		perror("fcntl(F_GETFL)");
-+		return ret;
-+	}
-+	flags |= ret;
-+	ret = fcntl(fd, F_SETFL, flags);
-+	if (ret < 0) {
-+		perror("fcntl(F_SETFL)");
-+		return ret;
-+	}
-+	return ret;
++	return __acpi_memory_readable(pointer, length) ? TRUE : FALSE;
 +}
-+
-+static int acpi_aml_set_fd(int fd, int maxfd, fd_set *set)
++#else
++u8 acpi_os_readable(void *pointer, acpi_size length)
 +{
-+	if (fd > maxfd)
-+		maxfd = fd;
-+	FD_SET(fd, set);
-+	return maxfd;
++	return TRUE;
 +}
++#endif
 +
-+static int acpi_aml_read(int fd, struct circ_buf *crc)
-+{
-+	char *p;
-+	int len;
-+
-+	p = &crc->buf[crc->head];
-+	len = circ_space_to_end(crc);
-+	len = read(fd, p, len);
-+	if (len < 0)
-+		perror("read");
-+	else if (len > 0)
-+		crc->head = (crc->head + len) & (ACPI_AML_BUF_SIZE - 1);
-+	return len;
-+}
-+
-+static int acpi_aml_read_batch_cmd(int unused, struct circ_buf *crc)
-+{
-+	char *p;
-+	int len;
-+	int remained = strlen(acpi_aml_batch_pos);
-+
-+	p = &crc->buf[crc->head];
-+	len = circ_space_to_end(crc);
-+	if (len > remained) {
-+		memcpy(p, acpi_aml_batch_pos, remained);
-+		acpi_aml_batch_pos += remained;
-+		len = remained;
-+	} else {
-+		memcpy(p, acpi_aml_batch_pos, len);
-+		acpi_aml_batch_pos += len;
-+	}
-+	if (len > 0)
-+		crc->head = (crc->head + len) & (ACPI_AML_BUF_SIZE - 1);
-+	return len;
-+}
-+
-+static int acpi_aml_read_batch_log(int fd, struct circ_buf *crc)
-+{
-+	char *p;
-+	int len;
-+	int ret = 0;
-+
-+	p = &crc->buf[crc->head];
-+	len = circ_space_to_end(crc);
-+	while (ret < len && acpi_aml_log_state != ACPI_AML_LOG_STOP) {
-+		if (acpi_aml_log_state == ACPI_AML_PROMPT_ROLL) {
-+			*p = acpi_aml_batch_roll;
-+			len = 1;
-+			crc->head = (crc->head + 1) & (ACPI_AML_BUF_SIZE - 1);
-+			ret += 1;
-+			acpi_aml_log_state = ACPI_AML_LOG_START;
-+		} else {
-+			len = read(fd, p, 1);
-+			if (len <= 0) {
-+				if (len < 0)
-+					perror("read");
-+				ret = len;
-+				break;
-+			}
-+		}
-+		switch (acpi_aml_log_state) {
-+		case ACPI_AML_LOG_START:
-+			if (*p == '\n')
-+				acpi_aml_log_state = ACPI_AML_PROMPT_START;
-+			crc->head = (crc->head + 1) & (ACPI_AML_BUF_SIZE - 1);
-+			ret += 1;
-+			break;
-+		case ACPI_AML_PROMPT_START:
-+			if (*p == ACPI_DEBUGGER_COMMAND_PROMPT ||
-+			    *p == ACPI_DEBUGGER_EXECUTE_PROMPT) {
-+				acpi_aml_batch_prompt = *p;
-+				acpi_aml_log_state = ACPI_AML_PROMPT_STOP;
-+			} else {
-+				if (*p != '\n')
-+					acpi_aml_log_state = ACPI_AML_LOG_START;
-+				crc->head = (crc->head + 1) & (ACPI_AML_BUF_SIZE - 1);
-+				ret += 1;
-+			}
-+			break;
-+		case ACPI_AML_PROMPT_STOP:
-+			if (*p == ' ') {
-+				acpi_aml_log_state = ACPI_AML_LOG_STOP;
-+				acpi_aml_exit = true;
-+			} else {
-+				/* Roll back */
-+				acpi_aml_log_state = ACPI_AML_PROMPT_ROLL;
-+				acpi_aml_batch_roll = *p;
-+				*p = acpi_aml_batch_prompt;
-+				crc->head = (crc->head + 1) & (ACPI_AML_BUF_SIZE - 1);
-+				ret += 1;
-+			}
-+			break;
-+		default:
-+			assert(0);
-+			break;
-+		}
-+	}
-+	return ret;
-+}
-+
-+static int acpi_aml_write(int fd, struct circ_buf *crc)
-+{
-+	char *p;
-+	int len;
-+
-+	p = &crc->buf[crc->tail];
-+	len = circ_count_to_end(crc);
-+	len = write(fd, p, len);
-+	if (len < 0)
-+		perror("write");
-+	else if (len > 0)
-+		crc->tail = (crc->tail + len) & (ACPI_AML_BUF_SIZE - 1);
-+	return len;
-+}
-+
-+static int acpi_aml_write_batch_log(int fd, struct circ_buf *crc)
-+{
-+	char *p;
-+	int len;
-+
-+	p = &crc->buf[crc->tail];
-+	len = circ_count_to_end(crc);
-+	if (!acpi_aml_batch_drain) {
-+		len = write(fd, p, len);
-+		if (len < 0)
-+			perror("write");
-+	}
-+	if (len > 0)
-+		crc->tail = (crc->tail + len) & (ACPI_AML_BUF_SIZE - 1);
-+	return len;
-+}
-+
-+static int acpi_aml_write_batch_cmd(int fd, struct circ_buf *crc)
-+{
-+	int len;
-+
-+	len = acpi_aml_write(fd, crc);
-+	if (circ_count_to_end(crc) == 0)
-+		acpi_aml_batch_state = ACPI_AML_BATCH_READ_LOG;
-+	return len;
-+}
-+
-+static void acpi_aml_loop(int fd)
-+{
-+	fd_set rfds;
-+	fd_set wfds;
-+	struct timeval tv;
-+	int ret;
-+	int maxfd = 0;
-+
-+	if (acpi_aml_mode == ACPI_AML_BATCH) {
-+		acpi_aml_log_state = ACPI_AML_LOG_START;
-+		acpi_aml_batch_pos = acpi_aml_batch_cmd;
-+		if (acpi_aml_batch_drain)
-+			acpi_aml_batch_state = ACPI_AML_BATCH_READ_LOG;
-+		else
-+			acpi_aml_batch_state = ACPI_AML_BATCH_WRITE_CMD;
-+	}
-+	acpi_aml_exit = false;
-+	while (!acpi_aml_exit) {
-+		tv.tv_sec = ACPI_AML_SEC_TICK;
-+		tv.tv_usec = 0;
-+		FD_ZERO(&rfds);
-+		FD_ZERO(&wfds);
-+
-+		if (acpi_aml_cmd_space()) {
-+			if (acpi_aml_mode == ACPI_AML_INTERACTIVE)
-+				maxfd = acpi_aml_set_fd(STDIN_FILENO, maxfd, &rfds);
-+			else if (strlen(acpi_aml_batch_pos) &&
-+				 acpi_aml_batch_state == ACPI_AML_BATCH_WRITE_CMD)
-+				ACPI_AML_BATCH_DO(STDIN_FILENO, read, cmd, ret);
-+		}
-+		if (acpi_aml_cmd_count() &&
-+		    (acpi_aml_mode == ACPI_AML_INTERACTIVE ||
-+		     acpi_aml_batch_state == ACPI_AML_BATCH_WRITE_CMD))
-+			maxfd = acpi_aml_set_fd(fd, maxfd, &wfds);
-+		if (acpi_aml_log_space() &&
-+		    (acpi_aml_mode == ACPI_AML_INTERACTIVE ||
-+		     acpi_aml_batch_state == ACPI_AML_BATCH_READ_LOG))
-+			maxfd = acpi_aml_set_fd(fd, maxfd, &rfds);
-+		if (acpi_aml_log_count())
-+			maxfd = acpi_aml_set_fd(STDOUT_FILENO, maxfd, &wfds);
-+
-+		ret = select(maxfd+1, &rfds, &wfds, NULL, &tv);
-+		if (ret < 0) {
-+			perror("select");
-+			break;
-+		}
-+		if (ret > 0) {
-+			if (FD_ISSET(STDIN_FILENO, &rfds))
-+				ACPI_AML_DO(STDIN_FILENO, read, cmd, ret);
-+			if (FD_ISSET(fd, &wfds)) {
-+				if (acpi_aml_mode == ACPI_AML_BATCH)
-+					ACPI_AML_BATCH_DO(fd, write, cmd, ret);
-+				else
-+					ACPI_AML_DO(fd, write, cmd, ret);
-+			}
-+			if (FD_ISSET(fd, &rfds)) {
-+				if (acpi_aml_mode == ACPI_AML_BATCH)
-+					ACPI_AML_BATCH_DO(fd, read, log, ret);
-+				else
-+					ACPI_AML_DO(fd, read, log, ret);
-+			}
-+			if (FD_ISSET(STDOUT_FILENO, &wfds)) {
-+				if (acpi_aml_mode == ACPI_AML_BATCH)
-+					ACPI_AML_BATCH_DO(STDOUT_FILENO, write, log, ret);
-+				else
-+					ACPI_AML_DO(STDOUT_FILENO, write, log, ret);
-+			}
-+		}
-+	}
-+}
-+
-+static bool acpi_aml_readable(int fd)
-+{
-+	fd_set rfds;
-+	struct timeval tv;
-+	int ret;
-+	int maxfd = 0;
-+
-+	tv.tv_sec = 0;
-+	tv.tv_usec = ACPI_AML_USEC_PEEK;
-+	FD_ZERO(&rfds);
-+	maxfd = acpi_aml_set_fd(fd, maxfd, &rfds);
-+	ret = select(maxfd+1, &rfds, NULL, NULL, &tv);
-+	if (ret < 0)
-+		perror("select");
-+	if (ret > 0 && FD_ISSET(fd, &rfds))
-+		return true;
-+	return false;
-+}
-+
-+/*
-+ * This is a userspace IO flush implementation, replying on the prompt
-+ * characters and can be turned into a flush() call after kernel implements
-+ * .flush() filesystem operation.
-+ */
-+static void acpi_aml_flush(int fd)
-+{
-+	while (acpi_aml_readable(fd)) {
-+		acpi_aml_batch_drain = true;
-+		acpi_aml_loop(fd);
-+		acpi_aml_batch_drain = false;
-+	}
-+}
-+
-+void usage(FILE *file, char *progname)
-+{
-+	fprintf(file, "usage: %s [-b cmd] [-f file] [-h]\n", progname);
-+	fprintf(file, "\nOptions:\n");
-+	fprintf(file, "  -b     Specify command to be executed in batch mode\n");
-+	fprintf(file, "  -f     Specify interface file other than");
-+	fprintf(file, "         /sys/kernel/debug/acpi/acpidbg\n");
-+	fprintf(file, "  -h     Print this help message\n");
-+}
-+
-+int main(int argc, char **argv)
-+{
-+	int fd = 0;
-+	int ch;
-+	int len;
-+	int ret = EXIT_SUCCESS;
-+
-+	while ((ch = getopt(argc, argv, "b:f:h")) != -1) {
-+		switch (ch) {
-+		case 'b':
-+			if (acpi_aml_batch_cmd) {
-+				fprintf(stderr, "Already specify %s\n",
-+					acpi_aml_batch_cmd);
-+				ret = EXIT_FAILURE;
-+				goto exit;
-+			}
-+			len = strlen(optarg);
-+			acpi_aml_batch_cmd = calloc(len + 2, 1);
-+			if (!acpi_aml_batch_cmd) {
-+				perror("calloc");
-+				ret = EXIT_FAILURE;
-+				goto exit;
-+			}
-+			memcpy(acpi_aml_batch_cmd, optarg, len);
-+			acpi_aml_batch_cmd[len] = '\n';
-+			acpi_aml_mode = ACPI_AML_BATCH;
-+			break;
-+		case 'f':
-+			acpi_aml_file_path = optarg;
-+			break;
-+		case 'h':
-+			usage(stdout, argv[0]);
-+			goto exit;
-+			break;
-+		case '?':
-+		default:
-+			usage(stderr, argv[0]);
-+			ret = EXIT_FAILURE;
-+			goto exit;
-+			break;
-+		}
-+	}
-+
-+	fd = open(acpi_aml_file_path, O_RDWR | O_NONBLOCK);
-+	if (fd < 0) {
-+		perror("open");
-+		ret = EXIT_FAILURE;
-+		goto exit;
-+	}
-+	acpi_aml_set_fl(STDIN_FILENO, O_NONBLOCK);
-+	acpi_aml_set_fl(STDOUT_FILENO, O_NONBLOCK);
-+
-+	if (acpi_aml_mode == ACPI_AML_BATCH)
-+		acpi_aml_flush(fd);
-+	acpi_aml_loop(fd);
-+
-+exit:
-+	if (fd < 0)
-+		close(fd);
-+	if (acpi_aml_batch_cmd)
-+		free(acpi_aml_batch_cmd);
-+	return ret;
-+}
+ acpi_status acpi_os_wait_command_ready(void)
+ {
+ 	int ret;
+diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
+index e21857d..b3c493e 100644
+--- a/include/acpi/platform/aclinux.h
++++ b/include/acpi/platform/aclinux.h
+@@ -148,7 +148,6 @@
+ /*
+  * OSL interfaces used by debugger/disassembler
+  */
+-#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_readable
+ #define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_writable
+ #define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_initialize_command_signals
+ #define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_terminate_command_signals
+diff --git a/include/acpi/platform/aclinuxex.h b/include/acpi/platform/aclinuxex.h
+index ceea026..94bead6 100644
+--- a/include/acpi/platform/aclinuxex.h
++++ b/include/acpi/platform/aclinuxex.h
+@@ -124,11 +124,6 @@ static inline acpi_thread_id acpi_os_get_thread_id(void)
+ 		lock ? AE_OK : AE_NO_MEMORY; \
+ 	})
+ 
+-static inline u8 acpi_os_readable(void *pointer, acpi_size length)
+-{
+-	return TRUE;
+-}
+-
+ static inline acpi_status acpi_os_initialize_command_signals(void)
+ {
+ 	return AE_OK;
 -- 
 1.7.10
