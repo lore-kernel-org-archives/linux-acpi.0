@@ -1,31 +1,49 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH] PCI: Fix logic OF logic in pci_dma_configure()
-Date: Thu, 19 Nov 2015 09:23:43 +0100
-Message-ID: <4205822.O3dsjd4r6S@wuerfel>
-References: <1447894192-17210-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH] ACPI / scan: set status to 0 if _STA failed
+Date: Thu, 19 Nov 2015 12:11:49 +0200
+Message-ID: <20151119101149.GZ1604@lahna.fi.intel.com>
+References: <564D3C75.60208@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1447894192-17210-1-git-send-email-Suravee.Suthikulpanit@amd.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, rjw@rjwysocki.net, bhelgaas@google.com, robin.murphy@arm.com, linux-pci@vger.kernel.org, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Suravee Suthikulpanit <suravee.suthikulpanit@amd.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:6989 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758209AbbKSKLy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 19 Nov 2015 05:11:54 -0500
+Content-Disposition: inline
+In-Reply-To: <564D3C75.60208@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Aaron Lu <aaron.lu@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Bastien Nocera <bugzilla@hadess.net>, Stephen Just <stephenjust@gmail.com>, "Chen, Yu C" <yu.c.chen@intel.com>, linux-spi@vger.kernel.org
 
-On Wednesday 18 November 2015 16:49:52 Suravee Suthikulpanit wrote:
-> -       if (IS_ENABLED(CONFIG_OF) && dev->dev.of_node) {
-> -               if (bridge->parent)
-> +       if (IS_ENABLED(CONFIG_OF) &&
-> +               bridge->parent && bridge->parent->of_node) {
->                         of_dma_configure(&dev->dev, bridge->parent->of_node);
+On Thu, Nov 19, 2015 at 11:05:25AM +0800, Aaron Lu wrote:
+> Some ACPI node's _STA will touch operation region field, since the
+> evaluation of _STA in acpi_bus_type_and_status is very early, the
+> operation region handler is not ready yet. Instead of fail that function
+> and not creating the acpi_device node consequently, set status to 0 so
+> that later when the driver for that device is probing, it can find
+> the acpi_device node and proceed normally. And at that time, the
+> handler for the operation region is ready and its _STA evaluation will
+> succeed, its present status can be checked there.
 > 
+> Even there will be no driver using this node later, it doesn't seem
+> hurt to have one more acpi_device node created with status set to 0.
+> 
+> This happens on Microsoft Surface 3, where the SPI device node NTRG's
+> _STA touches GPIO fields and the SPI core driver will only enumerate SPI
+> devices from ACPI if the acpi_device node is 1: created; 2: _STA
+> indicates it's present.
+> 
+> Note that due to another problem in SPI driver, for NTRG to be actually
+> enumerated, some changes have to be made in the SPI layer, which is
+> addressed by Mika(not send out yet):
+> https://bugzilla.kernel.org/show_bug.cgi?id=104291#c23
+> 
+> Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=104291
+> Reported-by: Bastien Nocera <bugzilla@hadess.net>
+> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
 
-Acked-by: Arnd Bergmann <arnd@arndb.de>
+I don't know any better solution to this,
 
-I was wondering for a bit whether we should warn about the case where there
-is no of_node pointer, as that would mean we cannot do DMA on that PCI
-device, but on second thought we have to do it exactly like you do, because
-we would otherwise break machines that do not use DT.
-
-	Arnd
+Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
