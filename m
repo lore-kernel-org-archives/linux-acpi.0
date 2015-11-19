@@ -1,62 +1,59 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] CPPC: Initialize and check CPUFreq CPU co-ord type correctly
-Date: Thu, 19 Nov 2015 23:17:12 +0100
-Message-ID: <2207845.vCMVaXtKa3@vostro.rjw.lan>
-References: <CAJ5Y-eY=fo=JT11CqYR09Nis--TLpdHtxo+JyC6nh07kVgUrdg@mail.gmail.com> <1447947607-10822-1-git-send-email-ashwin.chaugule@linaro.org>
+From: Andy Lutomirski <luto@amacapital.net>
+Subject: Re: [PATCH 1/2] acpi: Tidy up _OSC error spacing
+Date: Thu, 19 Nov 2015 13:59:47 -0800
+Message-ID: <CALCETrUV9qbwYT4wSWGHgZ+5uteRMJTeVsJB14FqssbwZqv+nw@mail.gmail.com>
+References: <cover.1447949171.git.luto@kernel.org> <cd180d52de6dc9e217bd0a0aed32efa68d0c73f8.1447949171.git.luto@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:50461 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1759286AbbKSVrj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Nov 2015 16:47:39 -0500
-In-Reply-To: <1447947607-10822-1-git-send-email-ashwin.chaugule@linaro.org>
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:34662 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758006AbbKSWAJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Nov 2015 17:00:09 -0500
+Received: by obbbj7 with SMTP id bj7so71890657obb.1
+        for <linux-acpi@vger.kernel.org>; Thu, 19 Nov 2015 14:00:08 -0800 (PST)
+In-Reply-To: <cd180d52de6dc9e217bd0a0aed32efa68d0c73f8.1447949171.git.luto@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Cc: rafael@kernel.org, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, patches@linaro.org
+To: Andy Lutomirski <luto@kernel.org>
+Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Yijing Wang <wangyijing@huawei.com>, Linux ACPI <linux-acpi@vger.kernel.org>
 
-On Thursday, November 19, 2015 10:40:07 AM Ashwin Chaugule wrote:
-> The CPU policy struct indicates the co-ordination type
-> for all CPUs of a common freq domain. Initialize it
-> correctly using the CPU specific data gathered from
-> CPPC ACPI lib via acpi_get_psd_map().
-> 
-> The PSD object is optional, so the cpu->shared_type
-> can also be 0. So instead of assuming any value other
-> than SW_ANY(0xFD) is unsupported, explictly check
-> if shared_type is SW_ALL and then bail.
-> 
-> Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Forwarding to linux-acpi.
 
-I'm assiming that this is a replacement for https://patchwork.kernel.org/patch/7607581/
-so I'm going to replace that patch with this one, but that means it will go
-into -rc3 instead.
-
+On Thu, Nov 19, 2015 at 8:08 AM, Andy Lutomirski <luto@kernel.org> wrote:
+> The whitespace in _OSC error reports is weird.  Improve it.
+>
+> Signed-off-by: Andy Lutomirski <luto@kernel.org>
 > ---
->  drivers/cpufreq/cppc_cpufreq.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
-> index e8cb334..7c0bdfb 100644
-> --- a/drivers/cpufreq/cppc_cpufreq.c
-> +++ b/drivers/cpufreq/cppc_cpufreq.c
-> @@ -98,10 +98,11 @@ static int cppc_cpufreq_cpu_init(struct cpufreq_policy *policy)
->  	policy->max = cpu->perf_caps.highest_perf;
->  	policy->cpuinfo.min_freq = policy->min;
->  	policy->cpuinfo.max_freq = policy->max;
-> +	policy->shared_type = cpu->shared_type;
->  
->  	if (policy->shared_type == CPUFREQ_SHARED_TYPE_ANY)
->  		cpumask_copy(policy->cpus, cpu->shared_cpu_map);
-> -	else {
-> +	else if (policy->shared_type == CPUFREQ_SHARED_TYPE_ALL) {
->  		/* Support only SW_ANY for now. */
->  		pr_debug("Unsupported CPU co-ord type\n");
->  		return -EFAULT;
-> 
+>  drivers/acpi/bus.c | 6 +++---
+>  1 file changed, 3 insertions(+), 3 deletions(-)
+>
+> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+> index a212cefae524..2177ef0b16e4 100644
+> --- a/drivers/acpi/bus.c
+> +++ b/drivers/acpi/bus.c
+> @@ -182,12 +182,12 @@ static void acpi_print_osc_error(acpi_handle handle,
+>         if (ACPI_FAILURE(acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer)))
+>                 printk(KERN_DEBUG "%s\n", error);
+>         else {
+> -               printk(KERN_DEBUG "%s:%s\n", (char *)buffer.pointer, error);
+> +               printk(KERN_DEBUG "%s: %s\n", (char *)buffer.pointer, error);
+>                 kfree(buffer.pointer);
+>         }
+> -       printk(KERN_DEBUG"_OSC request data:");
+> +       printk(KERN_DEBUG "_OSC request data:");
+>         for (i = 0; i < context->cap.length; i += sizeof(u32))
+> -               printk("%x ", *((u32 *)(context->cap.pointer + i)));
+> +               printk(" %x", *((u32 *)(context->cap.pointer + i)));
+>         printk("\n");
+>  }
+>
+> --
+> 2.5.0
+>
 
-Thanks,
-Rafael
 
+
+-- 
+Andy Lutomirski
+AMA Capital Management, LLC
