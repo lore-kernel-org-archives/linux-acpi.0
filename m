@@ -1,50 +1,51 @@
-From: Andy Lutomirski <luto@amacapital.net>
-Subject: Re: [PATCH 2/2] acpi: Show _OSC UUID when _OSC fails
-Date: Thu, 19 Nov 2015 14:00:21 -0800
-Message-ID: <CALCETrXzkW3x+LWbn2Da9swHO=y5GjE23F4CzcLjztmMGnvnXA@mail.gmail.com>
-References: <cover.1447949171.git.luto@kernel.org> <a89313359d813d955da7235d9193aab01a1c05f9.1447949171.git.luto@kernel.org>
+From: "Prakash, Prashanth" <pprakash@codeaurora.org>
+Subject: Re: [PATCH v2 5/5] ACPI / processor_idle: Add support for Low Power
+ Idle(LPI) states
+Date: Thu, 19 Nov 2015 15:03:33 -0700
+Message-ID: <564E4735.5080609@codeaurora.org>
+References: <1438710406-3822-1-git-send-email-sudeep.holla@arm.com>
+ <1442411963-14398-1-git-send-email-sudeep.holla@arm.com>
+ <1442411963-14398-6-git-send-email-sudeep.holla@arm.com>
+ <CAJ5Y-ebOPE1oamRk31nxL6VkgSdDd6AmEe2Fw1ku5pGt25D2Rg@mail.gmail.com>
+ <562EC3A5.2070402@codeaurora.org> <562F859E.4010105@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <a89313359d813d955da7235d9193aab01a1c05f9.1447949171.git.luto@kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Andy Lutomirski <luto@kernel.org>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, Bjorn Helgaas <bhelgaas@google.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Yijing Wang <wangyijing@huawei.com>, Linux ACPI <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:36735 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759227AbbKSWDg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Nov 2015 17:03:36 -0500
+In-Reply-To: <562F859E.4010105@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sudeep Holla <sudeep.holla@arm.com>, Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Cc: linux acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, lkml <linux-kernel@vger.kernel.org>, linux-ia64@vger.kernel.org, x86@kernel.org, Al Stone <al.stone@linaro.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Mahesh Sivasubramanian <msivasub@codeaurora.org>
 
-Forwarding to linux-acpi.
+Hi Sudeep,
 
-On Thu, Nov 19, 2015 at 8:08 AM, Andy Lutomirski <luto@kernel.org> wrote:
-> When _OSC fails and especially when it fails due to an invalid UUID,
-> it's helpful to show the UUID that we tried.
+On 10/27/2015 8:09 AM, Sudeep Holla wrote:
+> Hi Prashanth,
 >
-> Signed-off-by: Andy Lutomirski <luto@kernel.org>
-> ---
->  drivers/acpi/bus.c | 4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+> On 27/10/15 00:21, Prakash, Prashanth wrote:
+>> Hi Sudeep,
+>>
+>> While testing with these patches everything looked fine except that we
+>> are flattening all the LPI
+>> states even if it is disabled. I added a simple check to fix it. Please
+>> let me know if you have any
+>> feedback on the same.
+>>
 >
-> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-> index 2177ef0b16e4..be2b164f8f2d 100644
-> --- a/drivers/acpi/bus.c
-> +++ b/drivers/acpi/bus.c
-> @@ -180,9 +180,9 @@ static void acpi_print_osc_error(acpi_handle handle,
->         int i;
+> Looks good to me and thanks for the nice catch. I completely missed to
+> handle that case. Is it OK if I fold this patch into the next version ?
 >
->         if (ACPI_FAILURE(acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer)))
-> -               printk(KERN_DEBUG "%s\n", error);
-> +               printk(KERN_DEBUG "%s: %s\n", context->uuid_str, error);
->         else {
-> -               printk(KERN_DEBUG "%s: %s\n", (char *)buffer.pointer, error);
-> +               printk(KERN_DEBUG "%s (%s): %s\n", (char *)buffer.pointer, context->uuid_str, error);
->                 kfree(buffer.pointer);
->         }
->         printk(KERN_DEBUG "_OSC request data:");
-> --
-> 2.5.0
+> I have worked on Ashwin's comments, but was waiting to get some feedback
+> from Rafael before I post newer version.
 >
+Did you had an opportunity to update the LPI patch set? Please let me know
+if you need any help in test/verification of the new patch set.
 
-
-
--- 
-Andy Lutomirski
-AMA Capital Management, LLC
+--
+Thanks,
+Prashanth
