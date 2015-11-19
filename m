@@ -1,49 +1,78 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH] ACPI / scan: set status to 0 if _STA failed
-Date: Thu, 19 Nov 2015 12:11:49 +0200
-Message-ID: <20151119101149.GZ1604@lahna.fi.intel.com>
-References: <564D3C75.60208@intel.com>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: [PATCH V3 2/6] acpi: pci: Setup MSI domain for ACPI based pci
+ devices
+Date: Thu, 19 Nov 2015 12:08:07 +0000
+Message-ID: <20151119120807.07ffd476@arm.com>
+References: <1445453249-32557-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+	<1445453249-32557-3-git-send-email-Suravee.Suthikulpanit@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:6989 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758209AbbKSKLy (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 19 Nov 2015 05:11:54 -0500
-Content-Disposition: inline
-In-Reply-To: <564D3C75.60208@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1445453249-32557-3-git-send-email-Suravee.Suthikulpanit@amd.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Cc: tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, hanjun.guo@linaro.org, tomasz.nowicki@linaro.org, graeme.gregory@linaro.org, dhdang@apm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Bastien Nocera <bugzilla@hadess.net>, Stephen Just <stephenjust@gmail.com>, "Chen, Yu C" <yu.c.chen@intel.com>, linux-spi@vger.kernel.org
 
-On Thu, Nov 19, 2015 at 11:05:25AM +0800, Aaron Lu wrote:
-> Some ACPI node's _STA will touch operation region field, since the
-> evaluation of _STA in acpi_bus_type_and_status is very early, the
-> operation region handler is not ready yet. Instead of fail that function
-> and not creating the acpi_device node consequently, set status to 0 so
-> that later when the driver for that device is probing, it can find
-> the acpi_device node and proceed normally. And at that time, the
-> handler for the operation region is ready and its _STA evaluation will
-> succeed, its present status can be checked there.
-> 
-> Even there will be no driver using this node later, it doesn't seem
-> hurt to have one more acpi_device node created with status set to 0.
-> 
-> This happens on Microsoft Surface 3, where the SPI device node NTRG's
-> _STA touches GPIO fields and the SPI core driver will only enumerate SPI
-> devices from ACPI if the acpi_device node is 1: created; 2: _STA
-> indicates it's present.
-> 
-> Note that due to another problem in SPI driver, for NTRG to be actually
-> enumerated, some changes have to be made in the SPI layer, which is
-> addressed by Mika(not send out yet):
-> https://bugzilla.kernel.org/show_bug.cgi?id=104291#c23
-> 
-> Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=104291
-> Reported-by: Bastien Nocera <bugzilla@hadess.net>
-> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+On Wed, 21 Oct 2015 11:47:25 -0700
+Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com> wrote:
 
-I don't know any better solution to this,
+Hi Suravee,
 
-Reviewed-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Sorry it took so long to get to this series. Comments below.
+
+> This patch introduces pci_host_bridge_acpi_msi_domain(), which returns
+> the MSI domain of the specified PCI host bridge with DOMAIN_BUS_PCI_MSI
+> bus token. Then, it is assigned to pci device.
+> 
+> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+> ---
+>  drivers/pci/pci-acpi.c | 13 +++++++++++++
+>  drivers/pci/probe.c    |  2 ++
+>  include/linux/pci.h    |  7 +++++++
+>  3 files changed, 22 insertions(+)
+> 
+> diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+> index a32ba75..0e21ef4 100644
+> --- a/drivers/pci/pci-acpi.c
+> +++ b/drivers/pci/pci-acpi.c
+> @@ -9,7 +9,9 @@
+>  
+>  #include <linux/delay.h>
+>  #include <linux/init.h>
+> +#include <linux/irqdomain.h>
+>  #include <linux/pci.h>
+> +#include <linux/msi.h>
+>  #include <linux/pci_hotplug.h>
+>  #include <linux/module.h>
+>  #include <linux/pci-aspm.h>
+> @@ -689,6 +691,17 @@ static struct acpi_bus_type acpi_pci_bus = {
+>  	.cleanup = pci_acpi_cleanup,
+>  };
+>  
+> +struct irq_domain *pci_host_bridge_acpi_msi_domain(struct pci_bus *bus)
+> +{
+> +	struct irq_domain *dom = NULL;
+> +	struct fwnode_handle *fwnode = pci_msi_get_fwnode(&bus->dev);
+> +
+> +	if (fwnode)
+> +		dom = irq_find_matching_fwnode(fwnode,
+> +					       DOMAIN_BUS_PCI_MSI);
+> +	return dom;
+> +}
+> +
+
+Given this, I really question the need for what you define in patch #1
+to be standalone. It is only used by ACPI (DT has its own private
+helpers), and it is so far unlikely that it will be of any use for
+other firmware interfaces.
+
+My suggestion is to get rid of pci_msi_get_fwnode() and move the
+registration helper into this file. That'd be much simpler.
+
+Thanks,
+
+	M.
+-- 
+Jazz is not dead. It just smells funny.
