@@ -1,119 +1,235 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: [PATCH V4] acpi: add support for extended IRQ to PCI link
-Date: Wed, 18 Nov 2015 22:13:38 -0500
-Message-ID: <1447902818-15810-1-git-send-email-okaya@codeaurora.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:50927 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756555AbbKSDNw (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 18 Nov 2015 22:13:52 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: [PATCH v3 2/5] x86, acpi, cpu-hotplug: Enable acpi to register all possible cpus at boot time.
+Date: Thu, 19 Nov 2015 12:22:12 +0800
+Message-ID: <1447906935-31899-3-git-send-email-tangchen@cn.fujitsu.com>
+References: <1447906935-31899-1-git-send-email-tangchen@cn.fujitsu.com>
+Mime-Version: 1.0
+Content-Type: text/plain
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1447906935-31899-1-git-send-email-tangchen@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: cl@linux.com, tj@kernel.org, jiang.liu@linux.intel.com, mika.j.penttila@gmail.com, mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com
+Cc: tangchen@cn.fujitsu.com, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Gu Zheng <guz.fnst@cn.fujitsu.com>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com
-Cc: Sinan Kaya <okaya@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
 
-The ACPI compiler uses the extended format when used
-interrupt numbers are greater than 256. The PCI link code
-currently only supports simple interrupt format. The IRQ
-numbers are represented using 32 bits when extended IRQ
-syntax. This patch changes the interrupt number type to
-32 bits and places an upper limit of 1020 as possible
-interrupt id.
+From: Gu Zheng <guz.fnst@cn.fujitsu.com>
 
-1020 is the maximum interrupt ID that can be assigned to
-an ARM SPI interrupt according to ARM architecture.
+[Problem]
 
-Additional checks have been placed to prevent out of bounds
-writes.
+cpuid <-> nodeid mapping is firstly established at boot time. And workqueue caches
+the mapping in wq_numa_possible_cpumask in wq_numa_init() at boot time.
 
-Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+When doing node online/offline, cpuid <-> nodeid mapping is established/destroyed,
+which means, cpuid <-> nodeid mapping will change if node hotplug happens. But
+workqueue does not update wq_numa_possible_cpumask.
+
+So here is the problem:
+
+Assume we have the following cpuid <-> nodeid in the beginning:
+
+  Node | CPU
+------------------------
+node 0 |  0-14, 60-74
+node 1 | 15-29, 75-89
+node 2 | 30-44, 90-104
+node 3 | 45-59, 105-119
+
+and we hot-remove node2 and node3, it becomes:
+
+  Node | CPU
+------------------------
+node 0 |  0-14, 60-74
+node 1 | 15-29, 75-89
+
+and we hot-add node4 and node5, it becomes:
+
+  Node | CPU
+------------------------
+node 0 |  0-14, 60-74
+node 1 | 15-29, 75-89
+node 4 | 30-59
+node 5 | 90-119
+
+But in wq_numa_possible_cpumask, cpu30 is still mapped to node2, and the like.
+
+When a pool workqueue is initialized, if its cpumask belongs to a node, its
+pool->node will be mapped to that node. And memory used by this workqueue will
+also be allocated on that node.
+
+static struct worker_pool *get_unbound_pool(const struct workqueue_attrs *attrs){
+...
+        /* if cpumask is contained inside a NUMA node, we belong to that node */
+        if (wq_numa_enabled) {
+                for_each_node(node) {
+                        if (cpumask_subset(pool->attrs->cpumask,
+                                           wq_numa_possible_cpumask[node])) {
+                                pool->node = node;
+                                break;
+                        }
+                }
+        }
+
+Since wq_numa_possible_cpumask is not updated, it could be mapped to an offline node,
+which will lead to memory allocation failure:
+
+ SLUB: Unable to allocate memory on node 2 (gfp=0x80d0)
+  cache: kmalloc-192, object size: 192, buffer size: 192, default order: 1, min order: 0
+  node 0: slabs: 6172, objs: 259224, free: 245741
+  node 1: slabs: 3261, objs: 136962, free: 127656
+
+It happens here:
+
+create_worker(struct worker_pool *pool)
+ |--> worker = alloc_worker(pool->node);
+
+static struct worker *alloc_worker(int node)
+{
+        struct worker *worker;
+
+        worker = kzalloc_node(sizeof(*worker), GFP_KERNEL, node); --> Here, useing the wrong node.
+
+        ......
+
+        return worker;
+}
+
+[Solution]
+
+There are four mappings in the kernel:
+1. nodeid (logical node id)   <->   pxm
+2. apicid (physical cpu id)   <->   nodeid
+3. cpuid (logical cpu id)     <->   apicid
+4. cpuid (logical cpu id)     <->   nodeid
+
+1. pxm (proximity domain) is provided by ACPI firmware in SRAT, and nodeid <-> pxm
+   mapping is setup at boot time. This mapping is persistent, won't change.
+
+2. apicid <-> nodeid mapping is setup using info in 1. The mapping is setup at boot
+   time and CPU hotadd time, and cleared at CPU hotremove time. This mapping is also
+   persistent.
+
+3. cpuid <-> apicid mapping is setup at boot time and CPU hotadd time. cpuid is
+   allocated, lower ids first, and released at CPU hotremove time, reused for other
+   hotadded CPUs. So this mapping is not persistent.
+
+4. cpuid <-> nodeid mapping is also setup at boot time and CPU hotadd time, and
+   cleared at CPU hotremove time. As a result of 3, this mapping is not persistent.
+
+To fix this problem, we establish cpuid <-> nodeid mapping for all the possible
+cpus at boot time, and make it persistent. And according to init_cpu_to_node(),
+cpuid <-> nodeid mapping is based on apicid <-> nodeid mapping and cpuid <-> apicid
+mapping. So the key point is obtaining all cpus' apicid.
+
+apicid can be obtained by _MAT (Multiple APIC Table Entry) method or found in
+MADT (Multiple APIC Description Table). So we finish the job in the following steps:
+
+1. Enable apic registeration flow to handle both enabled and disabled cpus.
+   This is done by introducing an extra parameter to generic_processor_info to let the
+   caller control if disabled cpus are ignored.
+
+2. Introduce a new array storing all possible cpuid <-> apicid mapping. And also modify
+   the way cpuid is calculated. Establish all possible cpuid <-> apicid mapping when
+   registering local apic. Store the mapping in this array.
+
+3. Enable _MAT and MADT relative apis to return non-presnet or disabled cpus' apicid.
+   This is also done by introducing an extra parameter to these apis to let the caller
+   control if disabled cpus are ignored.
+
+4. Establish all possible cpuid <-> nodeid mapping.
+   This is done via an additional acpi namespace walk for processors.
+
+This patch finished step 1.
+
+Signed-off-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
+Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
 ---
- drivers/acpi/pci_link.c | 28 +++++++++++++++++++---------
- 1 file changed, 19 insertions(+), 9 deletions(-)
+ arch/x86/kernel/apic/apic.c | 26 +++++++++++++++++++-------
+ 1 file changed, 19 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
-index 7c8408b..ec7ec16 100644
---- a/drivers/acpi/pci_link.c
-+++ b/drivers/acpi/pci_link.c
-@@ -1,6 +1,7 @@
- /*
-  *  pci_link.c - ACPI PCI Interrupt Link Device Driver ($Revision: 34 $)
-  *
-+ *  Copyright (c) 2015, The Linux Foundation. All rights reserved.
-  *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
-  *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
-  *  Copyright (C) 2002       Dominik Brodowski <devel@brodo.de>
-@@ -67,12 +68,12 @@ static struct acpi_scan_handler pci_link_handler = {
-  * later even the link is disable. Instead, we just repick the active irq
-  */
- struct acpi_pci_link_irq {
--	u8 active;		/* Current IRQ */
-+	u32 active;		/* Current IRQ */
- 	u8 triggering;		/* All IRQs */
- 	u8 polarity;		/* All IRQs */
- 	u8 resource_type;
- 	u8 possible_count;
--	u8 possible[ACPI_PCI_LINK_MAX_POSSIBLE];
-+	u32 possible[ACPI_PCI_LINK_MAX_POSSIBLE];
- 	u8 initialized:1;
- 	u8 reserved:7;
- };
-@@ -437,7 +438,11 @@ static int acpi_pci_link_set(struct acpi_pci_link *link, int irq)
-  * enabled system.
-  */
+diff --git a/arch/x86/kernel/apic/apic.c b/arch/x86/kernel/apic/apic.c
+index 2f69e3b..29915cf 100644
+--- a/arch/x86/kernel/apic/apic.c
++++ b/arch/x86/kernel/apic/apic.c
+@@ -1988,7 +1988,7 @@ void disconnect_bsp_APIC(int virt_wire_setup)
+ 	apic_write(APIC_LVT1, value);
+ }
  
--#define ACPI_MAX_IRQS		256
-+/*
-+ * 1020 is the maximum interrupt ID that can be assigned to
-+ * an ARM SPI interrupt according to ARM architecture.
-+ */
-+#define ACPI_MAX_IRQS		1020
- #define ACPI_MAX_ISA_IRQ	16
+-int generic_processor_info(int apicid, int version)
++static int __generic_processor_info(int apicid, int version, bool enabled)
+ {
+ 	int cpu, max = nr_cpu_ids;
+ 	bool boot_cpu_detected = physid_isset(boot_cpu_physical_apicid,
+@@ -2022,7 +2022,8 @@ int generic_processor_info(int apicid, int version)
+ 			   " Processor %d/0x%x ignored.\n",
+ 			   thiscpu, apicid);
  
- #define PIRQ_PENALTY_PCI_AVAILABLE	(0)
-@@ -493,7 +498,8 @@ int __init acpi_irq_penalty_init(void)
- 					    penalty;
- 			}
- 
--		} else if (link->irq.active) {
-+		} else if (link->irq.active &&
-+			(link->irq.active < ACPI_MAX_IRQS)) {
- 			acpi_irq_penalty[link->irq.active] +=
- 			    PIRQ_PENALTY_PCI_POSSIBLE;
- 		}
-@@ -541,14 +547,16 @@ static int acpi_pci_link_allocate(struct acpi_pci_link *link)
- 	else
- 		irq = link->irq.possible[link->irq.possible_count - 1];
- 
--	if (acpi_irq_balance || !link->irq.active) {
-+	if ((acpi_irq_balance || !link->irq.active) && (irq < ACPI_MAX_IRQS)) {
- 		/*
- 		 * Select the best IRQ.  This is done in reverse to promote
- 		 * the use of IRQs 9, 10, 11, and >15.
- 		 */
--		for (i = (link->irq.possible_count - 1); i >= 0; i--) {
--			if (acpi_irq_penalty[irq] >
--			    acpi_irq_penalty[link->irq.possible[i]])
-+		i = link->irq.possible_count;
-+		while (--i >= 0) {
-+			if ((link->irq.possible[i] < ACPI_MAX_IRQS) &&
-+			    (acpi_irq_penalty[irq] >
-+			    acpi_irq_penalty[link->irq.possible[i]]))
- 				irq = link->irq.possible[i];
- 		}
- 	}
-@@ -568,7 +576,9 @@ static int acpi_pci_link_allocate(struct acpi_pci_link *link)
- 			    acpi_device_bid(link->device));
+-		disabled_cpus++;
++		if (enabled)
++			disabled_cpus++;
  		return -ENODEV;
- 	} else {
--		acpi_irq_penalty[link->irq.active] += PIRQ_PENALTY_PCI_USING;
-+		if (link->irq.active < ACPI_MAX_IRQS)
-+			acpi_irq_penalty[link->irq.active] +=
-+				PIRQ_PENALTY_PCI_USING;
- 		printk(KERN_WARNING PREFIX "%s [%s] enabled at IRQ %d\n",
- 		       acpi_device_name(link->device),
- 		       acpi_device_bid(link->device), link->irq.active);
+ 	}
+ 
+@@ -2039,7 +2040,8 @@ int generic_processor_info(int apicid, int version)
+ 			" reached. Keeping one slot for boot cpu."
+ 			"  Processor %d/0x%x ignored.\n", max, thiscpu, apicid);
+ 
+-		disabled_cpus++;
++		if (enabled)
++			disabled_cpus++;
+ 		return -ENODEV;
+ 	}
+ 
+@@ -2050,11 +2052,14 @@ int generic_processor_info(int apicid, int version)
+ 			"ACPI: NR_CPUS/possible_cpus limit of %i reached."
+ 			"  Processor %d/0x%x ignored.\n", max, thiscpu, apicid);
+ 
+-		disabled_cpus++;
++		if (enabled)
++			disabled_cpus++;
+ 		return -EINVAL;
+ 	}
+ 
+-	num_processors++;
++	if (enabled)
++		num_processors++;
++
+ 	if (apicid == boot_cpu_physical_apicid) {
+ 		/*
+ 		 * x86_bios_cpu_apicid is required to have processors listed
+@@ -2082,7 +2087,8 @@ int generic_processor_info(int apicid, int version)
+ 			apic_version[boot_cpu_physical_apicid], cpu, version);
+ 	}
+ 
+-	physid_set(apicid, phys_cpu_present_map);
++	if (enabled)
++		physid_set(apicid, phys_cpu_present_map);
+ 	if (apicid > max_physical_apicid)
+ 		max_physical_apicid = apicid;
+ 
+@@ -2095,11 +2101,17 @@ int generic_processor_info(int apicid, int version)
+ 		apic->x86_32_early_logical_apicid(cpu);
+ #endif
+ 	set_cpu_possible(cpu, true);
+-	set_cpu_present(cpu, true);
++	if (enabled)
++		set_cpu_present(cpu, true);
+ 
+ 	return cpu;
+ }
+ 
++int generic_processor_info(int apicid, int version)
++{
++	return __generic_processor_info(apicid, version, true);
++}
++
+ int hard_smp_processor_id(void)
+ {
+ 	return read_apic_id();
 -- 
-Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
+1.8.3.1
 
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
