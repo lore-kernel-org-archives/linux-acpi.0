@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH v3 2/6] ACPICA: Debugger: Convert some mechanisms to OSPM specific
-Date: Thu, 19 Nov 2015 14:08:29 +0800
-Message-ID: <5c3894c1998c66c8e1db5c0b37b44217d8664551.1447910797.git.lv.zheng@intel.com>
+Subject: [PATCH v3 3/6] ACPICA: Debugger: Fix runtime stub issues of ACPI_DEBUGGER_EXEC using different stub mechanism
+Date: Thu, 19 Nov 2015 14:08:35 +0800
+Message-ID: <56066e1e928238e26816e0c8a1ac1de20378f907.1447910797.git.lv.zheng@intel.com>
 References: <cover.1446790780.git.lv.zheng@intel.com> <cover.1447910797.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1447910797.git.lv.zheng@intel.com>
@@ -10,499 +10,324 @@ To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-The following mechanisms are OSPM specific:
-1. Redirect output destination to console: no file redirection will be
-   needed by an in-kernel debugger, there is even no file can be accessed
-   when the debugger is running in the kernel mode.
-2. Output command prompts: programs other than acpiexec can have different
-   prompt characters and the prompt characters may be implemented as a
-   special character sequence to form a char device IO protocol.
-3. Command ready/complete handshake: OSPM debugger may wait more conditions
-   to implement OSPM specific semantics (for example, FIFO full/empty
-   conditions for O_NONBLOCK or IO open/close conditions).
-Leaving such OSPM specific stuffs in the ACPICA debugger core blocks
-Linux debugger IO driver implementation.
+The ACPI_DEBUGGER_EXEC is a problem now when the debugger code is compiled
+but runtime disabled. They actually will get executed in this situation.
+Although such executions are harmless if we can correctly make
+acpi_db_single_step() a runtime stub, users may still do not want to see the
+debugger print messages logged into OSPMs' kernel logs when a debugger
+driver is not loaded to enable the debugger during runtime.
 
-Several new OSL APIs are provided by this patch:
-1. acpi_os_initialize_command_signals: initialize command handshake mechanism
-   or any other OSPM specific stuffs.
-2. acpi_os_terminate_command_signals: reversal of
-   acpi_os_initialize_command_signals.
-3. acpi_os_wait_command_ready: putting debugger task into wait state when a
-   command is not ready. OSPMs can terminate command loop by returning
-   AE_CTRL_TERMINATE from this API. Normally, wait_event() or
-   wait_for_multiple_object() may be used to implement this API.
-4. acpi_os_notify_command_complete: putting user task into running state when a
-   command has been completed. OSPMs can terminate command loop by
-   returning AE_CTRL_TERMINATE from this API. Normally, wake_up() or
-   set_event() may be used to implement this API.
-This patch also converts current command signaling implementation into a
-generic debugger layer (osgendbg.c) to be used by the existing OSPMs or
-acpiexec, in return, Linux can have chance to implement its own command
-handshake mechanism. This patch also implements acpiexec batch mode in a
-multi-threading mode comaptible style as a demo (this can be confirmed by
-configuring acpiexec into DEBUGGER_MULTI_THREADED mode where the batch mode
-is still working). Lv Zheng.
-
-Note that the OSPM specific command handshake mechanism is required by
-Linux kernel because:
-1. Linux kernel trends to use wait queue to synchronize two threads, using
-   mutexes to achieve that will cause false "dead lock" warnings.
-2. The command handshake mechanism implemented by ACPICA is implemented in
-   this way because of a design issue in debugger IO streaming. Debugger IO
-   outputs are simply cached using a giant buffer, this should be tuned by
-   Linux in the future.
+This patch fixes this issue by introducing new stub mechanism instead of
+ACPI_DEBUGGER_EXEC. Lv Zheng.
 
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/acdebug.h     |    2 +-
- drivers/acpi/acpica/acglobal.h    |    5 --
- drivers/acpi/acpica/dbinput.c     |   97 ++++++++-----------------------------
- drivers/acpi/acpica/dbxface.c     |   63 +++++++-----------------
- drivers/acpi/acpica/utmutex.c     |   17 -------
- include/acpi/acpiosxf.h           |   18 ++++++-
- include/acpi/acpixf.h             |   11 +++++
- include/acpi/platform/aclinux.h   |    4 ++
- include/acpi/platform/aclinuxex.h |   19 ++++++++
- 9 files changed, 89 insertions(+), 147 deletions(-)
+ drivers/acpi/acpica/acdebug.h   |   34 ++++++++++++++++++++++++----------
+ drivers/acpi/acpica/acmacros.h  |   11 -----------
+ drivers/acpi/acpica/dbdisply.c  |   12 ++++++++++++
+ drivers/acpi/acpica/dbxface.c   |   30 ++++++++++++++++++++++++++++++
+ drivers/acpi/acpica/dscontrol.c |   10 ++--------
+ drivers/acpi/acpica/dsutils.c   |   16 ++++++++--------
+ drivers/acpi/acpica/dswexec.c   |   16 +++++++---------
+ include/acpi/acpixf.h           |   23 +++++++++++++++++++++++
+ 8 files changed, 106 insertions(+), 46 deletions(-)
 
 diff --git a/drivers/acpi/acpica/acdebug.h b/drivers/acpi/acpica/acdebug.h
-index c928ba4..86474d8 100644
+index 86474d8..dcaa15d 100644
 --- a/drivers/acpi/acpica/acdebug.h
 +++ b/drivers/acpi/acpica/acdebug.h
-@@ -257,7 +257,7 @@ acpi_db_command_dispatch(char *input_buffer,
+@@ -80,9 +80,15 @@ struct acpi_db_execute_walk {
+ /*
+  * dbxface - external debugger interfaces
+  */
+-acpi_status
+-acpi_db_single_step(struct acpi_walk_state *walk_state,
+-		    union acpi_parse_object *op, u32 op_type);
++ACPI_DBR_DEPENDENT_RETURN_OK(acpi_status
++			     acpi_db_single_step(struct acpi_walk_state
++						 *walk_state,
++						 union acpi_parse_object *op,
++						 u32 op_type))
++ ACPI_DBR_DEPENDENT_RETURN_VOID(void
++				acpi_db_signal_break_point(struct
++							   acpi_walk_state
++							   *walk_state))
  
- void ACPI_SYSTEM_XFACE acpi_db_execute_thread(void *context);
+ /*
+  * dbcmds - debug commands and output routines
+@@ -182,11 +188,15 @@ void acpi_db_display_method_info(union acpi_parse_object *op);
  
--acpi_status acpi_db_user_commands(char prompt, union acpi_parse_object *op);
-+acpi_status acpi_db_user_commands(void);
+ void acpi_db_decode_and_display_object(char *target, char *output_type);
  
- char *acpi_db_get_next_token(char *string,
- 			     char **next, acpi_object_type * return_type);
-diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
-index faa9760..3977134 100644
---- a/drivers/acpi/acpica/acglobal.h
-+++ b/drivers/acpi/acpica/acglobal.h
-@@ -326,7 +326,6 @@ ACPI_GLOBAL(struct acpi_external_file *, acpi_gbl_external_file_list);
- #ifdef ACPI_DEBUGGER
+-void
+-acpi_db_display_result_object(union acpi_operand_object *obj_desc,
+-			      struct acpi_walk_state *walk_state);
++ACPI_DBR_DEPENDENT_RETURN_VOID(void
++			       acpi_db_display_result_object(union
++							     acpi_operand_object
++							     *obj_desc,
++							     struct
++							     acpi_walk_state
++							     *walk_state))
  
- ACPI_INIT_GLOBAL(u8, acpi_gbl_abort_method, FALSE);
--ACPI_INIT_GLOBAL(u8, acpi_gbl_method_executing, FALSE);
- ACPI_INIT_GLOBAL(acpi_thread_id, acpi_gbl_db_thread_id, ACPI_INVALID_THREAD_ID);
+-acpi_status acpi_db_display_all_methods(char *display_count_arg);
++ acpi_status acpi_db_display_all_methods(char *display_count_arg);
  
- ACPI_GLOBAL(u8, acpi_gbl_db_opt_no_ini_methods);
-@@ -345,7 +344,6 @@ ACPI_GLOBAL(acpi_object_type, acpi_gbl_db_arg_types[ACPI_DEBUGGER_MAX_ARGS]);
+ void acpi_db_display_arguments(void);
  
- /* These buffers should all be the same size */
+@@ -198,9 +208,13 @@ void acpi_db_display_calling_tree(void);
  
--ACPI_GLOBAL(char, acpi_gbl_db_line_buf[ACPI_DB_LINE_BUFFER_SIZE]);
- ACPI_GLOBAL(char, acpi_gbl_db_parsed_buf[ACPI_DB_LINE_BUFFER_SIZE]);
- ACPI_GLOBAL(char, acpi_gbl_db_scope_buf[ACPI_DB_LINE_BUFFER_SIZE]);
- ACPI_GLOBAL(char, acpi_gbl_db_debug_filename[ACPI_DB_LINE_BUFFER_SIZE]);
-@@ -360,9 +358,6 @@ ACPI_GLOBAL(u16, acpi_gbl_node_type_count_misc);
- ACPI_GLOBAL(u32, acpi_gbl_num_nodes);
- ACPI_GLOBAL(u32, acpi_gbl_num_objects);
+ void acpi_db_display_object_type(char *object_arg);
  
--ACPI_GLOBAL(acpi_mutex, acpi_gbl_db_command_ready);
--ACPI_GLOBAL(acpi_mutex, acpi_gbl_db_command_complete);
+-void
+-acpi_db_display_argument_object(union acpi_operand_object *obj_desc,
+-				struct acpi_walk_state *walk_state);
++ACPI_DBR_DEPENDENT_RETURN_VOID(void
++			       acpi_db_display_argument_object(union
++							       acpi_operand_object
++							       *obj_desc,
++							       struct
++							       acpi_walk_state
++							       *walk_state))
+ 
+ /*
+  * dbexec - debugger control method execution
+diff --git a/drivers/acpi/acpica/acmacros.h b/drivers/acpi/acpica/acmacros.h
+index e85366c..bad5bca 100644
+--- a/drivers/acpi/acpica/acmacros.h
++++ b/drivers/acpi/acpica/acmacros.h
+@@ -401,17 +401,6 @@
+ #endif
+ 
+ /*
+- * Some code only gets executed when the debugger is built in.
+- * Note that this is entirely independent of whether the
+- * DEBUG_PRINT stuff (set by ACPI_DEBUG_OUTPUT) is on, or not.
+- */
+-#ifdef ACPI_DEBUGGER
+-#define ACPI_DEBUGGER_EXEC(a)           a
+-#else
+-#define ACPI_DEBUGGER_EXEC(a)
+-#endif
 -
- #endif				/* ACPI_DEBUGGER */
+-/*
+  * Macros used for ACPICA utilities only
+  */
  
- /*****************************************************************************
-diff --git a/drivers/acpi/acpica/dbinput.c b/drivers/acpi/acpica/dbinput.c
-index fe93f67..2bf8e6b 100644
---- a/drivers/acpi/acpica/dbinput.c
-+++ b/drivers/acpi/acpica/dbinput.c
-@@ -53,8 +53,6 @@ static u32 acpi_db_get_line(char *input_buffer);
- 
- static u32 acpi_db_match_command(char *user_command);
- 
--static void acpi_db_single_thread(void);
--
- static void acpi_db_display_command_info(char *command, u8 display_all);
- 
- static void acpi_db_display_help(char *command);
-@@ -1149,55 +1147,16 @@ acpi_db_command_dispatch(char *input_buffer,
- 
- void ACPI_SYSTEM_XFACE acpi_db_execute_thread(void *context)
+diff --git a/drivers/acpi/acpica/dbdisply.c b/drivers/acpi/acpica/dbdisply.c
+index 672977e..c42ce8a 100644
+--- a/drivers/acpi/acpica/dbdisply.c
++++ b/drivers/acpi/acpica/dbdisply.c
+@@ -679,6 +679,12 @@ acpi_db_display_result_object(union acpi_operand_object *obj_desc,
+ 			      struct acpi_walk_state *walk_state)
  {
--	acpi_status status = AE_OK;
--	acpi_status Mstatus;
--
--	while (status != AE_CTRL_TERMINATE && !acpi_gbl_db_terminate_loop) {
--		acpi_gbl_method_executing = FALSE;
--		acpi_gbl_step_to_next_call = FALSE;
--
--		Mstatus = acpi_os_acquire_mutex(acpi_gbl_db_command_ready,
--						ACPI_WAIT_FOREVER);
--		if (ACPI_FAILURE(Mstatus)) {
--			return;
--		}
--
--		status =
--		    acpi_db_command_dispatch(acpi_gbl_db_line_buf, NULL, NULL);
  
--		acpi_os_release_mutex(acpi_gbl_db_command_complete);
--	}
-+	(void)acpi_db_user_commands();
- 	acpi_gbl_db_threads_terminated = TRUE;
- }
++#ifndef ACPI_APPLICATION
++	if (acpi_gbl_db_thread_id != acpi_os_get_thread_id()) {
++		return;
++	}
++#endif
++
+ 	/* Only display if single stepping */
+ 
+ 	if (!acpi_gbl_cm_single_step) {
+@@ -708,6 +714,12 @@ acpi_db_display_argument_object(union acpi_operand_object *obj_desc,
+ 				struct acpi_walk_state *walk_state)
+ {
+ 
++#ifndef ACPI_APPLICATION
++	if (acpi_gbl_db_thread_id != acpi_os_get_thread_id()) {
++		return;
++	}
++#endif
++
+ 	if (!acpi_gbl_cm_single_step) {
+ 		return;
+ 	}
+diff --git a/drivers/acpi/acpica/dbxface.c b/drivers/acpi/acpica/dbxface.c
+index d95e91f..d7ff58e 100644
+--- a/drivers/acpi/acpica/dbxface.c
++++ b/drivers/acpi/acpica/dbxface.c
+@@ -119,6 +119,36 @@ error_exit:
  
  /*******************************************************************************
   *
-- * FUNCTION:    acpi_db_single_thread
-- *
-- * PARAMETERS:  None
-- *
-- * RETURN:      None
-- *
-- * DESCRIPTION: Debugger execute thread. Waits for a command line, then
-- *              simply dispatches it.
-- *
-- ******************************************************************************/
--
--static void acpi_db_single_thread(void)
--{
--
--	acpi_gbl_method_executing = FALSE;
--	acpi_gbl_step_to_next_call = FALSE;
--
--	(void)acpi_db_command_dispatch(acpi_gbl_db_line_buf, NULL, NULL);
--}
--
--/*******************************************************************************
-- *
-  * FUNCTION:    acpi_db_user_commands
-  *
-- * PARAMETERS:  prompt              - User prompt (depends on mode)
-- *              op                  - Current executing parse op
-+ * PARAMETERS:  None
-  *
-  * RETURN:      None
-  *
-@@ -1206,7 +1165,7 @@ static void acpi_db_single_thread(void)
-  *
-  ******************************************************************************/
- 
--acpi_status acpi_db_user_commands(char prompt, union acpi_parse_object *op)
-+acpi_status acpi_db_user_commands(void)
- {
- 	acpi_status status = AE_OK;
- 
-@@ -1216,49 +1175,31 @@ acpi_status acpi_db_user_commands(char prompt, union acpi_parse_object *op)
- 
- 	while (!acpi_gbl_db_terminate_loop) {
- 
--		/* Force output to console until a command is entered */
--
--		acpi_db_set_output_destination(ACPI_DB_CONSOLE_OUTPUT);
--
--		/* Different prompt if method is executing */
--
--		if (!acpi_gbl_method_executing) {
--			acpi_os_printf("%1c ", ACPI_DEBUGGER_COMMAND_PROMPT);
--		} else {
--			acpi_os_printf("%1c ", ACPI_DEBUGGER_EXECUTE_PROMPT);
--		}
--
--		/* Get the user input line */
-+		/* Wait the readiness of the command */
- 
--		status = acpi_os_get_line(acpi_gbl_db_line_buf,
--					  ACPI_DB_LINE_BUFFER_SIZE, NULL);
-+		status = acpi_os_wait_command_ready();
- 		if (ACPI_FAILURE(status)) {
--			ACPI_EXCEPTION((AE_INFO, status,
--					"While parsing command line"));
--			return (status);
-+			break;
- 		}
- 
--		/* Check for single or multithreaded debug */
-+		/* Just call to the command line interpreter */
- 
--		if (acpi_gbl_debugger_configuration & DEBUGGER_MULTI_THREADED) {
--			/*
--			 * Signal the debug thread that we have a command to execute,
--			 * and wait for the command to complete.
--			 */
--			acpi_os_release_mutex(acpi_gbl_db_command_ready);
-+		acpi_gbl_method_executing = FALSE;
-+		acpi_gbl_step_to_next_call = FALSE;
- 
--			status =
--			    acpi_os_acquire_mutex(acpi_gbl_db_command_complete,
--						  ACPI_WAIT_FOREVER);
--			if (ACPI_FAILURE(status)) {
--				return (status);
--			}
--		} else {
--			/* Just call to the command line interpreter */
-+		(void)acpi_db_command_dispatch(acpi_gbl_db_line_buf, NULL,
-+					       NULL);
++ * FUNCTION:    acpi_db_signal_break_point
++ *
++ * PARAMETERS:  walk_state      - Current walk
++ *
++ * RETURN:      Status
++ *
++ * DESCRIPTION: Called for AML_BREAK_POINT_OP
++ *
++ ******************************************************************************/
 +
-+		/* Notify the completion of the command */
- 
--			acpi_db_single_thread();
-+		status = acpi_os_notify_command_complete();
-+		if (ACPI_FAILURE(status)) {
-+			break;
- 		}
- 	}
- 
-+	if (ACPI_FAILURE(status) && status != AE_CTRL_TERMINATE) {
-+		ACPI_EXCEPTION((AE_INFO, status, "While parsing command line"));
++void acpi_db_signal_break_point(struct acpi_walk_state *walk_state)
++{
++
++#ifndef ACPI_APPLICATION
++	if (acpi_gbl_db_thread_id != acpi_os_get_thread_id()) {
++		return;
 +	}
- 	return (status);
- }
-diff --git a/drivers/acpi/acpica/dbxface.c b/drivers/acpi/acpica/dbxface.c
-index 342298a..d95e91f 100644
---- a/drivers/acpi/acpica/dbxface.c
-+++ b/drivers/acpi/acpica/dbxface.c
-@@ -85,46 +85,21 @@ acpi_db_start_command(struct acpi_walk_state *walk_state,
++#endif
++
++	/*
++	 * Set the single-step flag. This will cause the debugger (if present)
++	 * to break to the console within the AML debugger at the start of the
++	 * next AML instruction.
++	 */
++	acpi_gbl_cm_single_step = TRUE;
++	acpi_os_printf("**break** Executed AML BreakPoint opcode\n");
++}
++
++/*******************************************************************************
++ *
+  * FUNCTION:    acpi_db_single_step
+  *
+  * PARAMETERS:  walk_state      - Current walk
+diff --git a/drivers/acpi/acpica/dscontrol.c b/drivers/acpi/acpica/dscontrol.c
+index 435fc16..06a6f7f 100644
+--- a/drivers/acpi/acpica/dscontrol.c
++++ b/drivers/acpi/acpica/dscontrol.c
+@@ -47,6 +47,7 @@
+ #include "amlcode.h"
+ #include "acdispat.h"
+ #include "acinterp.h"
++#include "acdebug.h"
  
- 	acpi_gbl_method_executing = TRUE;
- 	status = AE_CTRL_TRUE;
--	while (status == AE_CTRL_TRUE) {
--		if (acpi_gbl_debugger_configuration == DEBUGGER_MULTI_THREADED) {
--
--			/* Handshake with the front-end that gets user command lines */
--
--			acpi_os_release_mutex(acpi_gbl_db_command_complete);
--
--			status =
--			    acpi_os_acquire_mutex(acpi_gbl_db_command_ready,
--						  ACPI_WAIT_FOREVER);
--			if (ACPI_FAILURE(status)) {
--				return (status);
--			}
--		} else {
--			/* Single threaded, we must get a command line ourselves */
+ #define _COMPONENT          ACPI_DISPATCHER
+ ACPI_MODULE_NAME("dscontrol")
+@@ -348,14 +349,7 @@ acpi_ds_exec_end_control_op(struct acpi_walk_state * walk_state,
  
--			/* Force output to console until a command is entered */
--
--			acpi_db_set_output_destination(ACPI_DB_CONSOLE_OUTPUT);
-+	while (status == AE_CTRL_TRUE) {
+ 	case AML_BREAK_POINT_OP:
  
--			/* Different prompt if method is executing */
-+		/* Notify the completion of the command */
+-		/*
+-		 * Set the single-step flag. This will cause the debugger (if present)
+-		 * to break to the console within the AML debugger at the start of the
+-		 * next AML instruction.
+-		 */
+-		ACPI_DEBUGGER_EXEC(acpi_gbl_cm_single_step = TRUE);
+-		ACPI_DEBUGGER_EXEC(acpi_os_printf
+-				   ("**break** Executed AML BreakPoint opcode\n"));
++		acpi_db_signal_break_point(walk_state);
  
--			if (!acpi_gbl_method_executing) {
--				acpi_os_printf("%1c ",
--					       ACPI_DEBUGGER_COMMAND_PROMPT);
--			} else {
--				acpi_os_printf("%1c ",
--					       ACPI_DEBUGGER_EXECUTE_PROMPT);
--			}
-+		status = acpi_os_notify_command_complete();
-+		if (ACPI_FAILURE(status)) {
-+			goto error_exit;
-+		}
+ 		/* Call to the OSL in case OS wants a piece of the action */
  
--			/* Get the user input line */
-+		/* Wait the readiness of the command */
- 
--			status = acpi_os_get_line(acpi_gbl_db_line_buf,
--						  ACPI_DB_LINE_BUFFER_SIZE,
--						  NULL);
--			if (ACPI_FAILURE(status)) {
--				ACPI_EXCEPTION((AE_INFO, status,
--						"While parsing command line"));
--				return (status);
--			}
-+		status = acpi_os_wait_command_ready();
-+		if (ACPI_FAILURE(status)) {
-+			goto error_exit;
- 		}
- 
- 		status =
-@@ -134,6 +109,11 @@ acpi_db_start_command(struct acpi_walk_state *walk_state,
- 
- 	/* acpi_ut_acquire_mutex (ACPI_MTX_NAMESPACE); */
- 
-+error_exit:
-+	if (ACPI_FAILURE(status) && status != AE_CTRL_TERMINATE) {
-+		ACPI_EXCEPTION((AE_INFO, status,
-+				"While parsing/handling command line"));
-+	}
- 	return (status);
- }
- 
-@@ -420,15 +400,7 @@ acpi_status acpi_initialize_debugger(void)
- 
- 		/* These were created with one unit, grab it */
- 
--		status = acpi_os_acquire_mutex(acpi_gbl_db_command_complete,
--					       ACPI_WAIT_FOREVER);
--		if (ACPI_FAILURE(status)) {
--			acpi_os_printf("Could not get debugger mutex\n");
--			return_ACPI_STATUS(status);
--		}
--
--		status = acpi_os_acquire_mutex(acpi_gbl_db_command_ready,
--					       ACPI_WAIT_FOREVER);
-+		status = acpi_os_initialize_command_signals();
+diff --git a/drivers/acpi/acpica/dsutils.c b/drivers/acpi/acpica/dsutils.c
+index ebc577b..e4293a8 100644
+--- a/drivers/acpi/acpica/dsutils.c
++++ b/drivers/acpi/acpica/dsutils.c
+@@ -605,8 +605,8 @@ acpi_ds_create_operand(struct acpi_walk_state *walk_state,
  		if (ACPI_FAILURE(status)) {
- 			acpi_os_printf("Could not get debugger mutex\n");
  			return_ACPI_STATUS(status);
-@@ -473,13 +445,14 @@ void acpi_terminate_debugger(void)
- 	acpi_gbl_db_terminate_loop = TRUE;
- 
- 	if (acpi_gbl_debugger_configuration & DEBUGGER_MULTI_THREADED) {
--		acpi_os_release_mutex(acpi_gbl_db_command_ready);
- 
- 		/* Wait the AML Debugger threads */
- 
- 		while (!acpi_gbl_db_threads_terminated) {
- 			acpi_os_sleep(100);
  		}
+-		ACPI_DEBUGGER_EXEC(acpi_db_display_argument_object
+-				   (obj_desc, walk_state));
 +
-+		acpi_os_terminate_command_signals();
++		acpi_db_display_argument_object(obj_desc, walk_state);
+ 	} else {
+ 		/* Check for null name case */
+ 
+@@ -638,10 +638,11 @@ acpi_ds_create_operand(struct acpi_walk_state *walk_state,
+ 			ACPI_DEBUG_PRINT((ACPI_DB_DISPATCH,
+ 					  "Argument previously created, already stacked\n"));
+ 
+-			ACPI_DEBUGGER_EXEC(acpi_db_display_argument_object
+-					   (walk_state->
+-					    operands[walk_state->num_operands -
+-						     1], walk_state));
++			acpi_db_display_argument_object(walk_state->
++							operands[walk_state->
++								 num_operands -
++								 1],
++							walk_state);
+ 
+ 			/*
+ 			 * Use value that was already previously returned
+@@ -685,8 +686,7 @@ acpi_ds_create_operand(struct acpi_walk_state *walk_state,
+ 			return_ACPI_STATUS(status);
+ 		}
+ 
+-		ACPI_DEBUGGER_EXEC(acpi_db_display_argument_object
+-				   (obj_desc, walk_state));
++		acpi_db_display_argument_object(obj_desc, walk_state);
  	}
  
- 	if (acpi_gbl_db_buffer) {
-diff --git a/drivers/acpi/acpica/utmutex.c b/drivers/acpi/acpica/utmutex.c
-index ce406e3..ea0c207 100644
---- a/drivers/acpi/acpica/utmutex.c
-+++ b/drivers/acpi/acpica/utmutex.c
-@@ -111,17 +111,6 @@ acpi_status acpi_ut_mutex_initialize(void)
- 	if (ACPI_FAILURE(status)) {
- 		return_ACPI_STATUS(status);
- 	}
--#ifdef ACPI_DEBUGGER
--
--	/* Debugger Support */
--
--	status = acpi_os_create_mutex(&acpi_gbl_db_command_ready);
--	if (ACPI_FAILURE(status)) {
--		return_ACPI_STATUS(status);
--	}
--
--	status = acpi_os_create_mutex(&acpi_gbl_db_command_complete);
--#endif
+ 	return_ACPI_STATUS(AE_OK);
+diff --git a/drivers/acpi/acpica/dswexec.c b/drivers/acpi/acpica/dswexec.c
+index df54d46..9cc5761 100644
+--- a/drivers/acpi/acpica/dswexec.c
++++ b/drivers/acpi/acpica/dswexec.c
+@@ -178,8 +178,7 @@ cleanup:
  
- 	return_ACPI_STATUS(status);
- }
-@@ -162,12 +151,6 @@ void acpi_ut_mutex_terminate(void)
- 	/* Delete the reader/writer lock */
+ 	/* Break to debugger to display result */
  
- 	acpi_ut_delete_rw_lock(&acpi_gbl_namespace_rw_lock);
--
--#ifdef ACPI_DEBUGGER
--	acpi_os_delete_mutex(acpi_gbl_db_command_ready);
--	acpi_os_delete_mutex(acpi_gbl_db_command_complete);
--#endif
--
- 	return_VOID;
- }
+-	ACPI_DEBUGGER_EXEC(acpi_db_display_result_object
+-			   (local_obj_desc, walk_state));
++	acpi_db_display_result_object(local_obj_desc, walk_state);
  
-diff --git a/include/acpi/acpiosxf.h b/include/acpi/acpiosxf.h
-index fbc2baf..0d824a2 100644
---- a/include/acpi/acpiosxf.h
-+++ b/include/acpi/acpiosxf.h
-@@ -349,12 +349,28 @@ void acpi_os_redirect_output(void *destination);
- #endif
+ 	/*
+ 	 * Delete the predicate result object (we know that
+@@ -386,11 +385,10 @@ acpi_status acpi_ds_exec_end_op(struct acpi_walk_state *walk_state)
  
- /*
-- * Debug input
-+ * Debug IO
-  */
- #ifndef ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_get_line
- acpi_status acpi_os_get_line(char *buffer, u32 buffer_length, u32 *bytes_read);
- #endif
+ 	/* Call debugger for single step support (DEBUG build only) */
  
-+#ifndef ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_initialize_command_signals
-+acpi_status acpi_os_initialize_command_signals(void);
-+#endif
-+
-+#ifndef ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_terminate_command_signals
-+void acpi_os_terminate_command_signals(void);
-+#endif
-+
-+#ifndef ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_wait_command_ready
-+acpi_status acpi_os_wait_command_ready(void);
-+#endif
-+
-+#ifndef ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_notify_command_complete
-+acpi_status acpi_os_notify_command_complete(void);
-+#endif
-+
- /*
-  * Obtain ACPI table(s)
-  */
+-	ACPI_DEBUGGER_EXEC(status =
+-			   acpi_db_single_step(walk_state, op, op_class));
+-	ACPI_DEBUGGER_EXEC(if (ACPI_FAILURE(status)) {
+-			   return_ACPI_STATUS(status);}
+-	) ;
++	status = acpi_db_single_step(walk_state, op, op_class);
++	if (ACPI_FAILURE(status)) {
++		return_ACPI_STATUS(status);
++	}
+ 
+ 	/* Decode the Opcode Class */
+ 
+@@ -728,8 +726,8 @@ cleanup:
+ 
+ 		/* Break to debugger to display result */
+ 
+-		ACPI_DEBUGGER_EXEC(acpi_db_display_result_object
+-				   (walk_state->result_obj, walk_state));
++		acpi_db_display_result_object(walk_state->result_obj,
++					      walk_state);
+ 
+ 		/*
+ 		 * Delete the result op if and only if:
 diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index 3aaaa86..95ebae3 100644
+index 95ebae3..5dfab9c 100644
 --- a/include/acpi/acpixf.h
 +++ b/include/acpi/acpixf.h
-@@ -264,6 +264,15 @@ ACPI_INIT_GLOBAL(u32, acpi_dbg_level, ACPI_DEBUG_DEFAULT);
- ACPI_INIT_GLOBAL(u32, acpi_dbg_layer, 0);
+@@ -375,6 +375,29 @@ ACPI_GLOBAL(u8, acpi_gbl_system_awake_and_running);
  
- /*
-+ * Debugger command handshake globals. Host OSes need to access these
-+ * variables to implement their own command handshake mechanism.
+ #endif				/* ACPI_APPLICATION */
+ 
++/*
++ * Debugger prototypes
++ *
++ * All interfaces used by debugger will be configured
++ * out of the ACPICA build unless the ACPI_DEBUGGER
++ * flag is defined.
 + */
 +#ifdef ACPI_DEBUGGER
-+ACPI_INIT_GLOBAL(u8, acpi_gbl_method_executing, FALSE);
-+ACPI_GLOBAL(char, acpi_gbl_db_line_buf[ACPI_DB_LINE_BUFFER_SIZE]);
-+#endif
++#define ACPI_DBR_DEPENDENT_RETURN_OK(prototype) \
++	ACPI_EXTERNAL_RETURN_OK(prototype)
 +
-+/*
-  * Other miscellaneous globals
-  */
- ACPI_GLOBAL(struct acpi_table_fadt, acpi_gbl_FADT);
-@@ -929,6 +938,8 @@ ACPI_EXTERNAL_RETURN_STATUS(acpi_status
- 					       void **data,
- 					       void (*callback)(void *)))
- 
-+void acpi_run_debugger(char *batch_buffer);
++#define ACPI_DBR_DEPENDENT_RETURN_VOID(prototype) \
++	ACPI_EXTERNAL_RETURN_VOID(prototype)
 +
- void acpi_set_debugger_thread_id(acpi_thread_id thread_id);
- 
- #endif				/* __ACXFACE_H__ */
-diff --git a/include/acpi/platform/aclinux.h b/include/acpi/platform/aclinux.h
-index 323e5da..69dbae6 100644
---- a/include/acpi/platform/aclinux.h
-+++ b/include/acpi/platform/aclinux.h
-@@ -150,6 +150,10 @@
-  */
- #define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_readable
- #define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_writable
-+#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_initialize_command_signals
-+#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_terminate_command_signals
-+#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_wait_command_ready
-+#define ACPI_USE_ALTERNATE_PROTOTYPE_acpi_os_notify_command_complete
- 
- /*
-  * OSL interfaces used by utilities
-diff --git a/include/acpi/platform/aclinuxex.h b/include/acpi/platform/aclinuxex.h
-index fd6d70f..673fdf4 100644
---- a/include/acpi/platform/aclinuxex.h
-+++ b/include/acpi/platform/aclinuxex.h
-@@ -129,6 +129,25 @@ static inline u8 acpi_os_readable(void *pointer, acpi_size length)
- 	return TRUE;
- }
- 
-+static inline acpi_status acpi_os_initialize_command_signals(void)
-+{
-+	return AE_OK;
-+}
++#else
++#define ACPI_DBR_DEPENDENT_RETURN_OK(prototype) \
++	static ACPI_INLINE prototype {return(AE_OK);}
 +
-+static inline void acpi_os_terminate_command_signals(void)
-+{
-+}
++#define ACPI_DBR_DEPENDENT_RETURN_VOID(prototype) \
++	static ACPI_INLINE prototype {return;}
 +
-+static inline acpi_status acpi_os_wait_command_ready(void)
-+{
-+	return AE_ERROR;
-+}
++#endif				/* ACPI_DEBUGGER */
 +
-+static inline acpi_status acpi_os_notify_command_complete(void)
-+{
-+	return AE_ERROR;
-+}
-+
- /*
-  * OSL interfaces added by Linux
-  */
+ /*****************************************************************************
+  *
+  * ACPICA public interface prototypes
 -- 
 1.7.10
