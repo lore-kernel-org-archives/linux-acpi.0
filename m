@@ -1,41 +1,62 @@
-From: Linda Knippers <linda.knippers@hpe.com>
-Subject: Re: [RFC PATCH] Fix _FIT vs. NFIT processing breakage
-Date: Thu, 19 Nov 2015 15:16:37 -0500
-Message-ID: <564E2E25.2050705@hpe.com>
-References: <20151118175359.GA2209@ljk840.redhat.com>		 <1447880848.30346.9.camel@intel.com> <564CED90.5000501@hpe.com>		 <1447885355.21443.159.camel@hpe.com> <1447890234.30346.20.camel@intel.com>	 <564DF807.7080208@hpe.com> <1447960056.30346.28.camel@intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] CPPC: Initialize and check CPUFreq CPU co-ord type correctly
+Date: Thu, 19 Nov 2015 23:17:12 +0100
+Message-ID: <2207845.vCMVaXtKa3@vostro.rjw.lan>
+References: <CAJ5Y-eY=fo=JT11CqYR09Nis--TLpdHtxo+JyC6nh07kVgUrdg@mail.gmail.com> <1447947607-10822-1-git-send-email-ashwin.chaugule@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t6214.austin.hp.com ([15.73.96.122]:45915 "EHLO
-	g1t6214.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161428AbbKSUQj (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Nov 2015 15:16:39 -0500
-In-Reply-To: <1447960056.30346.28.camel@intel.com>
+Received: from v094114.home.net.pl ([79.96.170.134]:50461 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1759286AbbKSVrj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 19 Nov 2015 16:47:39 -0500
+In-Reply-To: <1447947607-10822-1-git-send-email-ashwin.chaugule@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Verma, Vishal L" <vishal.l.verma@intel.com>, "Williams, Dan J" <dan.j.williams@intel.com>, "toshi.kani@hpe.com" <toshi.kani@hpe.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "jmoyer@redhat.com" <jmoyer@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "elliott@hpe.com" <elliott@hpe.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>
+To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Cc: rafael@kernel.org, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, patches@linaro.org
 
-On 11/19/2015 2:07 PM, Verma, Vishal L wrote:
-> On Thu, 2015-11-19 at 11:25 -0500, Linda Knippers wrote:
->
-> <>
->> Yes, I will do that.  I've only tested the boot path of the patch though.
->> Is there an easy way for me to trigger the notification so I can test the
->> other code path?
->>
->
-> Hm, I don't believe there is an easy way yet. I believe KVM enabling for
-> NVDIMMS using the NFIT is under way, and once they are ready we might have a
-> way to test that path, but for now I just tested acpi_nfit_init onward using
-> the test framework in tools/testing/nvdimm.
+On Thursday, November 19, 2015 10:40:07 AM Ashwin Chaugule wrote:
+> The CPU policy struct indicates the co-ordination type
+> for all CPUs of a common freq domain. Initialize it
+> correctly using the CPU specific data gathered from
+> CPPC ACPI lib via acpi_get_psd_map().
+> 
+> The PSD object is optional, so the cpu->shared_type
+> can also be 0. So instead of assuming any value other
+> than SW_ANY(0xFD) is unsupported, explictly check
+> if shared_type is SW_ALL and then bail.
+> 
+> Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
 
-After looking around for some generic way to get an ACPI device
-notify function called and failing miserably, I ended up just hacking the
-nfit.c revision_show() function to call the notify function any time I look
-at the /sys/.../nfit/revision file.
+I'm assiming that this is a replacement for https://patchwork.kernel.org/patch/7607581/
+so I'm going to replace that patch with this one, but that means it will go
+into -rc3 instead.
 
-It's complaining that the new nfit deletes entries so I'm looking into that.
+> ---
+>  drivers/cpufreq/cppc_cpufreq.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/cpufreq/cppc_cpufreq.c b/drivers/cpufreq/cppc_cpufreq.c
+> index e8cb334..7c0bdfb 100644
+> --- a/drivers/cpufreq/cppc_cpufreq.c
+> +++ b/drivers/cpufreq/cppc_cpufreq.c
+> @@ -98,10 +98,11 @@ static int cppc_cpufreq_cpu_init(struct cpufreq_policy *policy)
+>  	policy->max = cpu->perf_caps.highest_perf;
+>  	policy->cpuinfo.min_freq = policy->min;
+>  	policy->cpuinfo.max_freq = policy->max;
+> +	policy->shared_type = cpu->shared_type;
+>  
+>  	if (policy->shared_type == CPUFREQ_SHARED_TYPE_ANY)
+>  		cpumask_copy(policy->cpus, cpu->shared_cpu_map);
+> -	else {
+> +	else if (policy->shared_type == CPUFREQ_SHARED_TYPE_ALL) {
+>  		/* Support only SW_ANY for now. */
+>  		pr_debug("Unsupported CPU co-ord type\n");
+>  		return -EFAULT;
+> 
 
--- ljk
+Thanks,
+Rafael
+
