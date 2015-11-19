@@ -1,61 +1,52 @@
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Subject: Re: [RFC PATCH] Fix _FIT vs. NFIT processing breakage
-Date: Wed, 18 Nov 2015 23:43:54 +0000
-Message-ID: <1447890234.30346.20.camel@intel.com>
-References: <20151118175359.GA2209@ljk840.redhat.com>
-	 <1447880848.30346.9.camel@intel.com> <564CED90.5000501@hpe.com>
-	 <1447885355.21443.159.camel@hpe.com>
+From: David Rientjes <rientjes@google.com>
+Subject: Re: [PATCH] tree wide: Use kvfree() than conditional
+ kfree()/vfree()
+Date: Wed, 18 Nov 2015 16:23:37 -0800 (PST)
+Message-ID: <alpine.DEB.2.10.1511181623240.1381@chino.kir.corp.google.com>
+References: <1447070170-8512-1-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:27787 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756094AbbKRXoD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 18 Nov 2015 18:44:03 -0500
-In-Reply-To: <1447885355.21443.159.camel@hpe.com>
-Content-Language: en-US
-Content-ID: <7F5C9AD4114F704480A4A5073A6FC2AC@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1447070170-8512-1-git-send-email-penguin-kernel@I-love.SAKURA.ne.jp>
+Sender: owner-linux-mm@kvack.org
+To: Tetsuo Handa <penguin-kernel@i-love.sakura.ne.jp>
+Cc: akpm@linux-foundation.org, linux-mm@kvack.org, Russell King <linux@arm.linux.org.uk>, linux-acpi@vger.kernel.org, drbd-user@lists.linbit.com, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Oleg Drokin <oleg.drokin@intel.com>, Andreas Dilger <andreas.dilger@intel.com>, codalist@coda.cs.cmu.edu, linux-mtd@lists.infradead.org, Jan Kara <jack@suse.com>, linux-fsdevel@vger.kernel.org, netdev@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Williams, Dan J" <dan.j.williams@intel.com>, "linda.knippers@hpe.com" <linda.knippers@hpe.com>, "toshi.kani@hpe.com" <toshi.kani@hpe.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "jmoyer@redhat.com" <jmoyer@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "elliott@hpe.com" <elliott@hpe.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>
 
-T24gV2VkLCAyMDE1LTExLTE4IGF0IDE1OjIyIC0wNzAwLCBUb3NoaSBLYW5pIHdyb3RlOg0KPiBP
-biBXZWQsIDIwMTUtMTEtMTggYXQgMTY6MjggLTA1MDAsIExpbmRhIEtuaXBwZXJzIHdyb3RlOg0K
-PiA+IE9uIDExLzE4LzIwMTUgNDowNyBQTSwgVmVybWEsIFZpc2hhbCBMIHdyb3RlOg0KPiA+ID4g
-T24gV2VkLCAyMDE1LTExLTE4IGF0IDEyOjU0IC0wNTAwLCBMaW5kYSBLbmlwcGVycyB3cm90ZToN
-Cj4gPiA+ID4gU2luY2UgY29tbWl0IDIwOTg1MTY0OWRjNGY3OTAwYTZiZmUxZGU1ZTI2NDBhYjJj
-N2Q5MzEsIHdlIG5vDQo+ID4gPiA+IGxvbmdlcg0KPiA+ID4gPiBzZWUgTlZESU1NIGRldmljZXMg
-b24gb3VyIHN5c3RlbXMuwqDCoFRoZSBORklUL19GSVQgcHJvY2Vzc2luZyBhdA0KPiA+ID4gPiBp
-bml0aWFsaXphdGlvbiBnZXRzIGEgdGFibGUgZnJvbSBfRklUIGJ1dCBkb2Vzbid0IGxpa2UgaXQu
-DQo+ID4gPiA+IA0KPiA+ID4gPiBXaGVuIHN1cHBvcnQgZm9yIF9GSVQgd2FzIGFkZGVkLCB0aGUg
-Y29kZSBwcmVzdW1lZCB0aGF0IHRoZSBkYXRhDQo+ID4gPiA+IHJldHVybmVkIGJ5IHRoZSBfRklU
-IG1ldGhvZCBpcyBpZGVudGljYWwgdG8gdGhlIE5GSVQgdGFibGUsDQo+ID4gPiA+IHdoaWNoDQo+
-ID4gPiA+IHN0YXJ0cyB3aXRoIGFuIGFjcGlfdGFibGVfaGVhZGVyLsKgwqBIb3dldmVyLCB0aGUg
-X0ZJVCBpcyBkZWZpbmVkDQo+ID4gPiA+IHRvIHJldHVybiBhIGRhdGEgaW4gdGhlIGZvcm1hdCBv
-ZiBhIHNlcmllcyBvZiBORklUIHR5cGUNCj4gPiA+ID4gc3RydWN0dXJlDQo+ID4gPiA+IGVudHJp
-ZXMgYW5kIGFzIGEgbWV0aG9kLCBoYXMgYW4gYWNwaV9vYmplY3QgaGVhZGVyIHJhdGhlciB0YWhu
-DQo+ID4gPiA+IGFuIGFjcGlfdGFibGVfaGVhZGVyLg0KPiA+ID4gDQo+ID4gPiBIbSwgSSBjb3Vs
-ZG4ndCBmaW5kIGFueSByZWZlcmVuY2UgdG8gdGhpcyBpbiB0aGUgc3BlYyAtIHRoYXQgTkZJVA0K
-PiA+ID4gd2lsbA0KPiA+ID4gaGF2ZSB0aGUgYWNwaV90YWJsZV9oZWFkZXIgYnV0IF9GSVQgd2ls
-bCBoYXZlIGEgZGlmZmVyZW50IGhlYWRlciAtDQo+ID4gPiBidXQNCj4gPiA+IEknbSBubyBBQ1BJ
-IGV4cGVydCAtIGlzIHRoaXMgdXN1YWwgY29udmVudGlvbj8gQW55IHBvaW50ZXJzIHdoZXJlDQo+
-ID4gPiBJDQo+ID4gPiBjb3VsZCBsb29rIGF0Pw0KPiA+IA0KPiA+IEknbSBubyBBQ1BJIGV4cGVy
-dCBlaXRoZXIgc28gbWF5YmUgVG9zaGkgb3Igc29tZW9uZSBlbHNlIHdpbGwgaGVscA0KPiA+IG1l
-DQo+ID4gaGVyZSBidXQgYWNjb3JkaW5nIHRvIHRoZSBGVyBkZXZlbG9wZXIsIHRoZSBjb252ZW50
-aW9uIGlzIHRoYXQgdGhlcmUNCj4gPiBpcw0KPiA+IG5vIEFDUEkgdGFibGUgaGVhZGVyIGJlY2F1
-c2UgeW91IGFscmVhZHkga25vdyB3aGF0IHRoZSB0YWJsZSBpcy4NCj4gDQo+IG1hcF9tYXRfZW50
-cnkoKSBoYW5kbGVzIF9NQVQgZm9yIHByb2Nlc3NvciBvYmplY3RzLCB3aGljaCBleHBlY3RzIG5v
-DQo+IE1BRFQgaGVhZGVyDQo+IHRhYmxlLg0KDQpPaywgdGhhbmtzIGZvciB0aGUgY2xhcmlmaWNh
-dGlvbnMuIEknbSBmaW5lIHdpdGggdGhlIGZpeC4gQ291bGQgeW91DQpyZXNlbmQgYW4gdXBkYXRl
-ZCBwYXRjaCB3aXRob3V0IHRoZSBleHRyYSBkZWJ1Zy4gV2UnZCBhbHNvIGhhdmUgdG8NCnVwZGF0
-ZSB0aGUgdW5pdCB0ZXN0IGZyYW1ld29yayAtIGluIHRvb2xzL3Rlc3RpbmcvbnZkaW1tL3Rlc3Qv
-bmZpdC5jLCBpbg0KbmZpdF90ZXN0MF9zZXR1cCwgYmFzZWQgb24gd2hldGhlciBpdCBpcyBiZWlu
-ZyBjYWxsZWQgd2l0aCB0aGUgaG90cGx1Zw0KZmxhZyBvciBub3QsIGRlY2lkZSB3aGljaCBoZWFk
-ZXIgdG8gaW5jbHVkZS4NCg0KVGhhbmtzLA0KCS1WaXNoYWwNCg0KPiANCj4gVGhhbmtzLA0KPiAt
-VG9zaGkgDQo+IA0KPiA+IEFsc28sIGlmIHlvdSBsb29rIGF0IHRoZSBORklUIGRlZmluaXRpb24g
-KHRhYmxlIDUtMTI2KSAsIHRoZQ0KPiA+IGRlZmluaXRpb24NCj4gPiBleHBsaWNpdGx5IGluY2x1
-ZGVzIHRoZSBBUENJIHRhYmxlIGhlYWRlciBidXQgdGhlIF9GSVQgZGVmaW5pdGlvbg0KPiA+IGRv
-ZXMgbm90Lg0KPiA+IEl0IGp1c3Qgc2F5cyBpdCdzIGEgc2VyaWVzIG9mIE5GSVQgVHlwZXMgc3Ry
-dWN0dXJlIGVudHJpZXMuDQo+ID4gDQo+IA==
+On Mon, 9 Nov 2015, Tetsuo Handa wrote:
+
+> There are many locations that do
+> 
+>   if (memory_was_allocated_by_vmalloc)
+>     vfree(ptr);
+>   else
+>     kfree(ptr);
+> 
+> but kvfree() can handle both kmalloc()ed memory and vmalloc()ed memory
+> using is_vmalloc_addr(). Unless callers have special reasons, we can
+> replace this branch with kvfree(). Please check and reply if you found
+> problems.
+> 
+> Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+> Acked-by: Michal Hocko <mhocko@suse.com>
+> Cc: Russell King <linux@arm.linux.org.uk> # arm
+> Cc: <linux-acpi@vger.kernel.org> # apei
+> Cc: <drbd-user@lists.linbit.com> # drbd
+> Cc: <linux-kernel@vger.kernel.org> # mspec
+> Cc: <dri-devel@lists.freedesktop.org> # drm
+> Cc: Oleg Drokin <oleg.drokin@intel.com> # lustre
+> Cc: Andreas Dilger <andreas.dilger@intel.com> # lustre
+> Cc: <codalist@coda.cs.cmu.edu> # coda
+> Cc: <linux-mtd@lists.infradead.org> # jffs2
+> Cc: Jan Kara <jack@suse.com> # udf
+> Cc: <linux-fsdevel@vger.kernel.org> # xattr
+> Cc: <linux-mm@kvack.org> # ipc + mm
+> Cc: <netdev@vger.kernel.org> # ipv4
+
+Acked-by: David Rientjes <rientjes@google.com>
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
