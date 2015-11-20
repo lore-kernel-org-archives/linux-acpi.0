@@ -1,99 +1,93 @@
-From: Stefano Stabellini <stefano.stabellini-mvvWK6WmYclDPfheJLI6IQ@public.gmane.org>
-Subject: Re: [PATCH 01/13] Xen : Hide UART used by Xen
-Date: Fri, 20 Nov 2015 16:07:26 +0000
-Message-ID: <alpine.DEB.2.02.1511201541040.1107@kaball.uk.xensource.com>
-References: <1447754231-7772-1-git-send-email-shannon.zhao@linaro.org>
- <1447754231-7772-2-git-send-email-shannon.zhao@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <1447754231-7772-2-git-send-email-shannon.zhao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: shannon.zhao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
-Cc: Ian Campbell <ian.campbell-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org>, stefano.stabellini-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, julien.grall-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org, ard.biesheuvel-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, xen-devel-GuqFBffKawuEi8DpZVb4nw@public.gmane.org, christoffer.dall-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, peter.huangpeng-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, zhaoshenglong-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, hangaohuai-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+From: Javier Martinez Canillas <javier@osg.samsung.com>
+Subject: [PATCH] ACPI: Fix build errors due objects compiled unconditionally
+Date: Fri, 20 Nov 2015 14:35:02 -0300
+Message-ID: <1448040902-1349-1-git-send-email-javier@osg.samsung.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from lists.s-osg.org ([54.187.51.154]:38145 "EHLO lists.s-osg.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760833AbbKTRfN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 20 Nov 2015 12:35:13 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-kernel@vger.kernel.org
+Cc: Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Al Stone <al.stone@linaro.org>, Len Brown <lenb@kernel.org>, Javier Martinez Canillas <javier@osg.samsung.com>
 
-CC'ing ACPI maintainers.
+If the CONFIG_ACPI Kconfig symbol is not enabled and a partial build is
+attempted, compile errors will happen due missing types and identifiers.
 
-Please use ./scripts/get_maintainer.pl to retrieve a list of maintainers
-to CC for each patch.
+This can be easily reproduced with the following commands:
 
+$ export CROSS_COMPILE="arm-linux-gnueabihf-" ARCH=arm
+$ make allmodconfig
+$ make M=drivers/acpi/
+  CC      drivers/acpi//tables.o
+drivers/acpi//tables.c:235:3: warning: 'struct acpi_subtable_proc' declared inside parameter list
+   unsigned int max_entries)
+   ^
+drivers/acpi//tables.c:235:3: warning: its scope is only this definition or declaration, which is probably not what you want
+drivers/acpi//tables.c: In function 'acpi_parse_entries_array':
+drivers/acpi//tables.c:269:4: error: invalid use of undefined type 'struct acpi_subtable_proc'
+...
+scripts/Makefile.build:258: recipe for target 'drivers/acpi//tables.o' failed
+make[1]: *** [drivers/acpi//tables.o] Error 1
+Makefile:1401: recipe for target '_module_drivers/acpi/' failed
+make: *** [_module_drivers/acpi/] Error 2
 
-On Tue, 17 Nov 2015, shannon.zhao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org wrote:
-> From: Shannon Zhao <shannon.zhao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> 
-> According to the STAO table, hide UART used by Xen from Dom0.
-> 
-> Signed-off-by: Shannon Zhao <shannon.zhao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> ---
->  drivers/acpi/bus.c | 22 ++++++++++++++++++++++
->  1 file changed, 22 insertions(+)
-> 
-> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-> index a212cef..e93806b 100644
-> --- a/drivers/acpi/bus.c
-> +++ b/drivers/acpi/bus.c
-> @@ -46,6 +46,7 @@ ACPI_MODULE_NAME("bus");
->  struct acpi_device *acpi_root;
->  struct proc_dir_entry *acpi_root_dir;
->  EXPORT_SYMBOL(acpi_root_dir);
-> +static u64 uart_addr;
+This is because objects are tried to be built unconditionally even when
+CONFIG_ACPI is not enabled. This is usually not a problem since arches'
+Kconfig sources drivers/acpi/Kconfig directly and also selects ACPI but
+the Makefile should conditionally build the objects as well to prevent
+these build errors.
 
-I would call this spcr_addr or spcr_uart_addr because there are many
-uarts on the system but only one spcr. It might make sense to initialize
-this to 0xffffffffffffffff rather than 0, which could actually be a
-correct uart address.
+Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
+---
+Hello,
 
->  #ifdef CONFIG_X86
->  #ifdef CONFIG_ACPI_CUSTOM_DSDT
-> @@ -93,6 +94,16 @@ acpi_status acpi_bus_get_status_handle(acpi_handle handle,
->  {
->  	acpi_status status;
->
-> +	if (uart_addr) {
-> +		u64 addr;
-> +		status = acpi_evaluate_integer(handle, METHOD_NAME__ADR, NULL,
-> +					       &addr);
-> +		if (ACPI_SUCCESS(status) && (addr == uart_addr)) {
-> +			*sta = 0;
-> +			return AE_OK;
-> +		}
-> +	}
-> +
->  	status = acpi_evaluate_integer(handle, "_STA", NULL, sta);
->  	if (ACPI_SUCCESS(status))
->  		return AE_OK;
-> @@ -1069,6 +1080,7 @@ EXPORT_SYMBOL_GPL(acpi_kobj);
->  static int __init acpi_init(void)
->  {
->  	int result;
-> +	struct acpi_table_stao *stao_ptr;
->  
->  	if (acpi_disabled) {
->  		printk(KERN_INFO PREFIX "Interpreter disabled.\n");
-> @@ -1081,6 +1093,16 @@ static int __init acpi_init(void)
->  		acpi_kobj = NULL;
->  	}
->  
-> +	acpi_get_table(ACPI_SIG_STAO, 1,
-> +		       (struct acpi_table_header **)&stao_ptr);
-> +	if(stao_ptr->ignore_uart)
-> +	{
+I posted this patch first as an RFC more than a month ago [0]
+and got no feedback, so I'm resending without the RFC tag.
 
-Please follow the linux coding style. You can use
-./scripts/checkpatch.pl to check for coding style errors.
+[0]: https://lkml.org/lkml/2015/10/12/859
 
+Best regards,
+Javier
 
-> +		struct acpi_table_spcr *spcr_ptr;
-> +		acpi_get_table(ACPI_SIG_SPCR, 1,
-> +			       (struct acpi_table_header **)&spcr_ptr);
-> +		uart_addr = spcr_ptr->serial_port.address;
-> +	}
-> +
->  	init_acpi_device_notify();
->  	result = acpi_bus_init();
->  	if (result) {
-> -- 
-> 2.1.0
-> 
+ drivers/acpi/Makefile | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index 675eaf337178..73ec23ca7db1 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -8,13 +8,13 @@ ccflags-$(CONFIG_ACPI_DEBUG)	+= -DACPI_DEBUG_OUTPUT
+ #
+ # ACPI Boot-Time Table Parsing
+ #
+-obj-y				+= tables.o
++obj-$(CONFIG_ACPI)		+= tables.o
+ obj-$(CONFIG_X86)		+= blacklist.o
+ 
+ #
+ # ACPI Core Subsystem (Interpreter)
+ #
+-obj-y				+= acpi.o \
++obj-$(CONFIG_ACPI)		+= acpi.o \
+ 					acpica/
+ 
+ # All the builtin files are in the "acpi." module_param namespace.
+@@ -66,10 +66,10 @@ obj-$(CONFIG_ACPI_FAN)		+= fan.o
+ obj-$(CONFIG_ACPI_VIDEO)	+= video.o
+ obj-$(CONFIG_ACPI_PCI_SLOT)	+= pci_slot.o
+ obj-$(CONFIG_ACPI_PROCESSOR)	+= processor.o
+-obj-y				+= container.o
++obj-$(CONFIG_ACPI)		+= container.o
+ obj-$(CONFIG_ACPI_THERMAL)	+= thermal.o
+ obj-$(CONFIG_ACPI_NFIT)		+= nfit.o
+-obj-y				+= acpi_memhotplug.o
++obj-$(CONFIG_ACPI)		+= acpi_memhotplug.o
+ obj-$(CONFIG_ACPI_HOTPLUG_IOAPIC) += ioapic.o
+ obj-$(CONFIG_ACPI_BATTERY)	+= battery.o
+ obj-$(CONFIG_ACPI_SBS)		+= sbshc.o
+-- 
+2.4.3
+
