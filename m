@@ -1,124 +1,99 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] Power management and ACPI updates for v4.4-rc2
-Date: Fri, 20 Nov 2015 15:46:09 +0100
-Message-ID: <CAJZ5v0juTw+mUuKhX=g=Rg2Fb2s09UCBCZPbOFEkSguA20GYYg@mail.gmail.com>
+From: Stefano Stabellini <stefano.stabellini-mvvWK6WmYclDPfheJLI6IQ@public.gmane.org>
+Subject: Re: [PATCH 01/13] Xen : Hide UART used by Xen
+Date: Fri, 20 Nov 2015 16:07:26 +0000
+Message-ID: <alpine.DEB.2.02.1511201541040.1107@kaball.uk.xensource.com>
+References: <1447754231-7772-1-git-send-email-shannon.zhao@linaro.org>
+ <1447754231-7772-2-git-send-email-shannon.zhao@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f175.google.com ([209.85.217.175]:34193 "EHLO
-	mail-lb0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751593AbbKTOqM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Nov 2015 09:46:12 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="US-ASCII"
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1447754231-7772-2-git-send-email-shannon.zhao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: shannon.zhao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org
+Cc: Ian Campbell <ian.campbell-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org>, stefano.stabellini-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org, catalin.marinas-5wv7dgnIgG8@public.gmane.org, will.deacon-5wv7dgnIgG8@public.gmane.org, julien.grall-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org, ard.biesheuvel-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, mark.rutland-5wv7dgnIgG8@public.gmane.org, linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, xen-devel-GuqFBffKawuEi8DpZVb4nw@public.gmane.org, christoffer.dall-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, peter.huangpeng-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, zhaoshenglong-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, hangaohuai-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Hi Linus,
+CC'ing ACPI maintainers.
 
-Please pull from
-
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- pm+acpi-4.4-rc2
-
-to receive power management and ACPI material for v4.4-rc2 with
-top-most commit a3767e3c9da514e63e898772b72b932f9eb3b062
-
- Merge branches 'acpi-smbus', 'acpi-ec' and 'acpi-pci'
-
-on top of commit 8005c49d9aea74d382f474ce11afbbc7d7130bec
-
- Linux 4.4-rc1
-
-These are mostly fixes and cleanups (ACPI core, PM core, cpufreq,
-ACPI EC driver, device properties) including three reverts of recent
-intel_pstate driver commits due to a regression introduced by one
-of them plus support for Atom Airmont cores in intel_pstate (which
-really boils down to adding new frequency tables for Airmont) and
-additional turbostat updates.
-
-Specifics:
-
- - Revert three recent intel_pstate driver commits one of which
-   introduced a regression and the remaining two depend on the
-   problematic one (Rafael Wysocki).
-
- - Fix breakage related to the recently introduced ACPI _CCA object
-   support in the PCI DMA setup code (Suravee Suthikulpanit).
-
- - Fix up the recently introduced ACPI CPPC support to only
-   use the hardware-reduced version of the PCCT structure as
-   the only architecture to support it (ARM64) will only use
-   hardware-reduced ACPI anyway (Ashwin Chaugule).
-
- - Fix a cpufreq mediatek driver build problem (Arnd Bergmann).
-
- - Fix the SMBus transaction handling implementation in the ACPI
-   core to avoid re-entrant calls to wait_event_timeout() which
-   makes intermittent boot stalls related to the Smart Battery
-   Subsystem initialization go away and revert a workaround of
-   another problem with the same underlying root cause (Chris
-   Bainbridge).
-
- - Fix the generic wakeup interrupts framework to avoid using
-   invalid IRQ numbers (Dmitry Torokhov).
-
- - Remove a redundant check from the ACPI EC driver (Markus Elfring).
-
- - Modify the intel_pstate driver so it can support more Atom flavors
-   than just one (Baytrail) and add support for Atom Airmont cores
-   (which require new freqnency tables) to it (Philippe Longepe).
-
- - Clean up MSR-related symbols in turbostat (Len Brown).
-
-Thanks!
+Please use ./scripts/get_maintainer.pl to retrieve a list of maintainers
+to CC for each patch.
 
 
----------------
+On Tue, 17 Nov 2015, shannon.zhao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org wrote:
+> From: Shannon Zhao <shannon.zhao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> 
+> According to the STAO table, hide UART used by Xen from Dom0.
+> 
+> Signed-off-by: Shannon Zhao <shannon.zhao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> ---
+>  drivers/acpi/bus.c | 22 ++++++++++++++++++++++
+>  1 file changed, 22 insertions(+)
+> 
+> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+> index a212cef..e93806b 100644
+> --- a/drivers/acpi/bus.c
+> +++ b/drivers/acpi/bus.c
+> @@ -46,6 +46,7 @@ ACPI_MODULE_NAME("bus");
+>  struct acpi_device *acpi_root;
+>  struct proc_dir_entry *acpi_root_dir;
+>  EXPORT_SYMBOL(acpi_root_dir);
+> +static u64 uart_addr;
 
-Arnd Bergmann (1):
-      cpufreq: mediatek: fix build error
+I would call this spcr_addr or spcr_uart_addr because there are many
+uarts on the system but only one spcr. It might make sense to initialize
+this to 0xffffffffffffffff rather than 0, which could actually be a
+correct uart address.
 
-Ashwin Chaugule (1):
-      ACPI / CPPC: Use h/w reduced version of the PCCT structure
 
-Chris Bainbridge (2):
-      ACPI / SMBus: Fix boot stalls / high CPU caused by reentrant code
-      Revert "ACPI / SBS: Add 5 us delay to fix SBS hangs on MacBook"
+>  #ifdef CONFIG_X86
+>  #ifdef CONFIG_ACPI_CUSTOM_DSDT
+> @@ -93,6 +94,16 @@ acpi_status acpi_bus_get_status_handle(acpi_handle handle,
+>  {
+>  	acpi_status status;
+>
+> +	if (uart_addr) {
+> +		u64 addr;
+> +		status = acpi_evaluate_integer(handle, METHOD_NAME__ADR, NULL,
+> +					       &addr);
+> +		if (ACPI_SUCCESS(status) && (addr == uart_addr)) {
+> +			*sta = 0;
+> +			return AE_OK;
+> +		}
+> +	}
+> +
+>  	status = acpi_evaluate_integer(handle, "_STA", NULL, sta);
+>  	if (ACPI_SUCCESS(status))
+>  		return AE_OK;
+> @@ -1069,6 +1080,7 @@ EXPORT_SYMBOL_GPL(acpi_kobj);
+>  static int __init acpi_init(void)
+>  {
+>  	int result;
+> +	struct acpi_table_stao *stao_ptr;
+>  
+>  	if (acpi_disabled) {
+>  		printk(KERN_INFO PREFIX "Interpreter disabled.\n");
+> @@ -1081,6 +1093,16 @@ static int __init acpi_init(void)
+>  		acpi_kobj = NULL;
+>  	}
+>  
+> +	acpi_get_table(ACPI_SIG_STAO, 1,
+> +		       (struct acpi_table_header **)&stao_ptr);
+> +	if(stao_ptr->ignore_uart)
+> +	{
 
-Dmitry Torokhov (1):
-      PM / wakeirq: check that wake IRQ is valid before accepting it
+Please follow the linux coding style. You can use
+./scripts/checkpatch.pl to check for coding style errors.
 
-Len Brown (2):
-      tools/power turbostat: use new name for MSR_PLATFORM_INFO
-      x86: remove unused definition of MSR_NHM_PLATFORM_INFO
 
-Markus Elfring (1):
-      ACPI-EC: Drop unnecessary check made before calling acpi_ec_delete_query()
-
-Philippe Longepe (2):
-      cpufreq: intel_pstate: Replace BYT with ATOM
-      cpufreq: intel_pstate: Add separate support for Airmont cores
-
-Rafael J. Wysocki (3):
-      Revert "cpufreq: intel_pstate: Avoid calculation for max/min"
-      Revert "cpufreq: intel_pstate: Use ACPI perf configuration"
-      Revert "Documentation: kernel_parameters for Intel P state driver"
-
-Suravee Suthikulpanit (1):
-      PCI: Fix OF logic in pci_dma_configure()
-
----------------
-
- Documentation/kernel-parameters.txt   |   3 -
- arch/x86/include/asm/msr-index.h      |   3 +-
- drivers/acpi/cppc_acpi.c              |   2 +-
- drivers/acpi/ec.c                     |   2 +-
- drivers/acpi/sbshc.c                  |  48 +-----
- drivers/base/power/wakeirq.c          |   6 +
- drivers/cpufreq/Kconfig.arm           |   1 +
- drivers/cpufreq/Kconfig.x86           |   1 -
- drivers/cpufreq/intel_pstate.c        | 316 ++++++++--------------------------
- drivers/pci/probe.c                   |   4 +-
- tools/power/x86/turbostat/turbostat.c |   8 +-
- 11 files changed, 95 insertions(+), 299 deletions(-)
+> +		struct acpi_table_spcr *spcr_ptr;
+> +		acpi_get_table(ACPI_SIG_SPCR, 1,
+> +			       (struct acpi_table_header **)&spcr_ptr);
+> +		uart_addr = spcr_ptr->serial_port.address;
+> +	}
+> +
+>  	init_acpi_device_notify();
+>  	result = acpi_bus_init();
+>  	if (result) {
+> -- 
+> 2.1.0
+> 
