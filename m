@@ -1,131 +1,128 @@
-From: Linda Knippers <linda.knippers@hpe.com>
-Subject: [PATCH 1/3] nfit: Account for table size length variation
-Date: Fri, 20 Nov 2015 19:05:47 -0500
-Message-ID: <e65332cc9dbb7eff02f739aa5ba357d4097b4e6a.1448045168.git.linda.knippers@hpe.com>
-References: <cover.1448045168.git.linda.knippers@hpe.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g2t4623.austin.hp.com ([15.73.212.78]:59901 "EHLO
-	g2t4623.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759991AbbKUAGR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Nov 2015 19:06:17 -0500
-In-Reply-To: <cover.1448045168.git.linda.knippers@hpe.com>
-In-Reply-To: <cover.1448045168.git.linda.knippers@hpe.com>
-References: <cover.1448045168.git.linda.knippers@hpe.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: Re: [PATCH V4] acpi: add support for extended IRQ to PCI link
+Date: Sat, 21 Nov 2015 13:44:40 -0500
+Message-ID: <5650BB98.20708@codeaurora.org>
+References: <1447902818-15810-1-git-send-email-okaya@codeaurora.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1447902818-15810-1-git-send-email-okaya@codeaurora.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: dan.j.williams@intel.com, vishal.l.verma@intel.com
-Cc: linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, jmoyer@redhat.com, toshi.kani@hpe.com, elliott@hpe.com, rafael.j.wysocki@intel.com
 
-The size of NFIT tables don't necessarily match the size of the
-data structures that we use for them.  For example, the NVDIMM
-Control Region Structure table is shorter for a device with
-no block control windows than for a device with block control windows.
-Other tables, such as Flush Hint Address Structure and the Interleave
-Structure are variable length by definition.
+On 11/18/2015 10:13 PM, Sinan Kaya wrote:
+> The ACPI compiler uses the extended format when used
+> interrupt numbers are greater than 256. The PCI link code
+> currently only supports simple interrupt format. The IRQ
+> numbers are represented using 32 bits when extended IRQ
+> syntax. This patch changes the interrupt number type to
+> 32 bits and places an upper limit of 1020 as possible
+> interrupt id.
+> 
+> 1020 is the maximum interrupt ID that can be assigned to
+> an ARM SPI interrupt according to ARM architecture.
+> 
+> Additional checks have been placed to prevent out of bounds
+> writes.
+> 
+> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+> ---
+>  drivers/acpi/pci_link.c | 28 +++++++++++++++++++---------
+>  1 file changed, 19 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+> index 7c8408b..ec7ec16 100644
+> --- a/drivers/acpi/pci_link.c
+> +++ b/drivers/acpi/pci_link.c
+> @@ -1,6 +1,7 @@
+>  /*
+>   *  pci_link.c - ACPI PCI Interrupt Link Device Driver ($Revision: 34 $)
+>   *
+> + *  Copyright (c) 2015, The Linux Foundation. All rights reserved.
+>   *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
+>   *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
+>   *  Copyright (C) 2002       Dominik Brodowski <devel@brodo.de>
+> @@ -67,12 +68,12 @@ static struct acpi_scan_handler pci_link_handler = {
+>   * later even the link is disable. Instead, we just repick the active irq
+>   */
+>  struct acpi_pci_link_irq {
+> -	u8 active;		/* Current IRQ */
+> +	u32 active;		/* Current IRQ */
+>  	u8 triggering;		/* All IRQs */
+>  	u8 polarity;		/* All IRQs */
+>  	u8 resource_type;
+>  	u8 possible_count;
+> -	u8 possible[ACPI_PCI_LINK_MAX_POSSIBLE];
+> +	u32 possible[ACPI_PCI_LINK_MAX_POSSIBLE];
+>  	u8 initialized:1;
+>  	u8 reserved:7;
+>  };
+> @@ -437,7 +438,11 @@ static int acpi_pci_link_set(struct acpi_pci_link *link, int irq)
+>   * enabled system.
+>   */
+>  
+> -#define ACPI_MAX_IRQS		256
+> +/*
+> + * 1020 is the maximum interrupt ID that can be assigned to
+> + * an ARM SPI interrupt according to ARM architecture.
+> + */
+> +#define ACPI_MAX_IRQS		1020
+>  #define ACPI_MAX_ISA_IRQ	16
+>  
+>  #define PIRQ_PENALTY_PCI_AVAILABLE	(0)
+> @@ -493,7 +498,8 @@ int __init acpi_irq_penalty_init(void)
+>  					    penalty;
+>  			}
+>  
+> -		} else if (link->irq.active) {
+> +		} else if (link->irq.active &&
+> +			(link->irq.active < ACPI_MAX_IRQS)) {
+>  			acpi_irq_penalty[link->irq.active] +=
+>  			    PIRQ_PENALTY_PCI_POSSIBLE;
+>  		}
+> @@ -541,14 +547,16 @@ static int acpi_pci_link_allocate(struct acpi_pci_link *link)
+>  	else
+>  		irq = link->irq.possible[link->irq.possible_count - 1];
+>  
+> -	if (acpi_irq_balance || !link->irq.active) {
+> +	if ((acpi_irq_balance || !link->irq.active) && (irq < ACPI_MAX_IRQS)) {
+>  		/*
+>  		 * Select the best IRQ.  This is done in reverse to promote
+>  		 * the use of IRQs 9, 10, 11, and >15.
+>  		 */
+> -		for (i = (link->irq.possible_count - 1); i >= 0; i--) {
+> -			if (acpi_irq_penalty[irq] >
+> -			    acpi_irq_penalty[link->irq.possible[i]])
+> +		i = link->irq.possible_count;
+> +		while (--i >= 0) {
+> +			if ((link->irq.possible[i] < ACPI_MAX_IRQS) &&
+> +			    (acpi_irq_penalty[irq] >
+> +			    acpi_irq_penalty[link->irq.possible[i]]))
+>  				irq = link->irq.possible[i];
+>  		}
+>  	}
+> @@ -568,7 +576,9 @@ static int acpi_pci_link_allocate(struct acpi_pci_link *link)
+>  			    acpi_device_bid(link->device));
+>  		return -ENODEV;
+>  	} else {
+> -		acpi_irq_penalty[link->irq.active] += PIRQ_PENALTY_PCI_USING;
+> +		if (link->irq.active < ACPI_MAX_IRQS)
+> +			acpi_irq_penalty[link->irq.active] +=
+> +				PIRQ_PENALTY_PCI_USING;
+>  		printk(KERN_WARNING PREFIX "%s [%s] enabled at IRQ %d\n",
+>  		       acpi_device_name(link->device),
+>  		       acpi_device_bid(link->device), link->irq.active);
+> 
 
-Account for the size difference when comparing table entries by
-using the actual table size from the table header if it's less
-than the structure size.  
+Can I have an ACK if everybody is OK with this version?
 
-Signed-off-by: Linda Knippers <linda.knippers@hpe.com>
----
- drivers/acpi/nfit.c | 36 ++++++++++++++++++++++++++++++------
- 1 file changed, 30 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index f7dab53..710092a 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -235,9 +235,13 @@ static bool add_spa(struct acpi_nfit_desc *acpi_desc,
- {
- 	struct device *dev = acpi_desc->dev;
- 	struct nfit_spa *nfit_spa;
-+	size_t length = sizeof(*spa);
-+
-+	if (length > spa->header.length)
-+		length = spa->header.length;
- 
- 	list_for_each_entry(nfit_spa, &prev->spas, list) {
--		if (memcmp(nfit_spa->spa, spa, sizeof(*spa)) == 0) {
-+		if (memcmp(nfit_spa->spa, spa, length) == 0) {
- 			list_move_tail(&nfit_spa->list, &acpi_desc->spas);
- 			return true;
- 		}
-@@ -261,9 +265,13 @@ static bool add_memdev(struct acpi_nfit_desc *acpi_desc,
- {
- 	struct device *dev = acpi_desc->dev;
- 	struct nfit_memdev *nfit_memdev;
-+	size_t length = sizeof(*memdev);
-+
-+	if (length > memdev->header.length)
-+		length = memdev->header.length;
- 
- 	list_for_each_entry(nfit_memdev, &prev->memdevs, list)
--		if (memcmp(nfit_memdev->memdev, memdev, sizeof(*memdev)) == 0) {
-+		if (memcmp(nfit_memdev->memdev, memdev, length) == 0) {
- 			list_move_tail(&nfit_memdev->list, &acpi_desc->memdevs);
- 			return true;
- 		}
-@@ -286,9 +294,13 @@ static bool add_dcr(struct acpi_nfit_desc *acpi_desc,
- {
- 	struct device *dev = acpi_desc->dev;
- 	struct nfit_dcr *nfit_dcr;
-+	size_t length = sizeof(*dcr);
-+
-+	if (length > dcr->header.length)
-+		length = dcr->header.length;
- 
- 	list_for_each_entry(nfit_dcr, &prev->dcrs, list)
--		if (memcmp(nfit_dcr->dcr, dcr, sizeof(*dcr)) == 0) {
-+		if (memcmp(nfit_dcr->dcr, dcr, length) == 0) {
- 			list_move_tail(&nfit_dcr->list, &acpi_desc->dcrs);
- 			return true;
- 		}
-@@ -310,9 +322,13 @@ static bool add_bdw(struct acpi_nfit_desc *acpi_desc,
- {
- 	struct device *dev = acpi_desc->dev;
- 	struct nfit_bdw *nfit_bdw;
-+	size_t length = sizeof(*bdw);
-+
-+	if (length > bdw->header.length)
-+		length = bdw->header.length;
- 
- 	list_for_each_entry(nfit_bdw, &prev->bdws, list)
--		if (memcmp(nfit_bdw->bdw, bdw, sizeof(*bdw)) == 0) {
-+		if (memcmp(nfit_bdw->bdw, bdw, length) == 0) {
- 			list_move_tail(&nfit_bdw->list, &acpi_desc->bdws);
- 			return true;
- 		}
-@@ -334,9 +350,13 @@ static bool add_idt(struct acpi_nfit_desc *acpi_desc,
- {
- 	struct device *dev = acpi_desc->dev;
- 	struct nfit_idt *nfit_idt;
-+	size_t length = sizeof(*idt);
-+
-+	if (length > idt->header.length)
-+		length = idt->header.length;
- 
- 	list_for_each_entry(nfit_idt, &prev->idts, list)
--		if (memcmp(nfit_idt->idt, idt, sizeof(*idt)) == 0) {
-+		if (memcmp(nfit_idt->idt, idt, length) == 0) {
- 			list_move_tail(&nfit_idt->list, &acpi_desc->idts);
- 			return true;
- 		}
-@@ -358,9 +378,13 @@ static bool add_flush(struct acpi_nfit_desc *acpi_desc,
- {
- 	struct device *dev = acpi_desc->dev;
- 	struct nfit_flush *nfit_flush;
-+	size_t length = sizeof(*flush);
-+
-+	if (length > flush->header.length)
-+		length = flush->header.length;
- 
- 	list_for_each_entry(nfit_flush, &prev->flushes, list)
--		if (memcmp(nfit_flush->flush, flush, sizeof(*flush)) == 0) {
-+		if (memcmp(nfit_flush->flush, flush, length) == 0) {
- 			list_move_tail(&nfit_flush->list, &acpi_desc->flushes);
- 			return true;
- 		}
+
 -- 
-1.8.3.1
-
+Sinan Kaya
+Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a
+Linux Foundation Collaborative Project
