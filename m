@@ -1,93 +1,52 @@
-From: Javier Martinez Canillas <javier@osg.samsung.com>
-Subject: [PATCH] ACPI: Fix build errors due objects compiled unconditionally
-Date: Fri, 20 Nov 2015 14:35:02 -0300
-Message-ID: <1448040902-1349-1-git-send-email-javier@osg.samsung.com>
+From: Linda Knippers <linda.knippers@hpe.com>
+Subject: [PATCH 0/3] fix NVDIMM hotplug changes
+Date: Fri, 20 Nov 2015 19:05:46 -0500
+Message-ID: <cover.1448045168.git.linda.knippers@hpe.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from lists.s-osg.org ([54.187.51.154]:38145 "EHLO lists.s-osg.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760833AbbKTRfN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 20 Nov 2015 12:35:13 -0500
+Received: from g2t4620.austin.hp.com ([15.73.212.81]:45993 "EHLO
+	g2t4620.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759822AbbKUAGL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 20 Nov 2015 19:06:11 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Cc: Hanjun Guo <hanjun.guo@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Al Stone <al.stone@linaro.org>, Len Brown <lenb@kernel.org>, Javier Martinez Canillas <javier@osg.samsung.com>
+To: dan.j.williams@intel.com, vishal.l.verma@intel.com
+Cc: linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, jmoyer@redhat.com, toshi.kani@hpe.com, elliott@hpe.com, rafael.j.wysocki@intel.com
 
-If the CONFIG_ACPI Kconfig symbol is not enabled and a partial build is
-attempted, compile errors will happen due missing types and identifiers.
+Since commit 209851649dc4f7900a6bfe1de5e2640ab2c7d931 
+("acpi: nfit: Add support for hot-add"), we no longer see 
+NVDIMM devices on our NVDIMM-N systems.  The NFIT/_FIT processing 
+at initialization gets a table from _FIT but thinks it is 
+malformed and exits, leaving us with no NFIT at all.
 
-This can be easily reproduced with the following commands:
+This series fixes the problem caused by a difference in ACPI
+spec interpretation regarding the layout of the _FIT vs. NFIT
+tables.  In addition to changing the code, we are proposing
+wording changes to the ACPI spec.
 
-$ export CROSS_COMPILE="arm-linux-gnueabihf-" ARCH=arm
-$ make allmodconfig
-$ make M=drivers/acpi/
-  CC      drivers/acpi//tables.o
-drivers/acpi//tables.c:235:3: warning: 'struct acpi_subtable_proc' declared inside parameter list
-   unsigned int max_entries)
-   ^
-drivers/acpi//tables.c:235:3: warning: its scope is only this definition or declaration, which is probably not what you want
-drivers/acpi//tables.c: In function 'acpi_parse_entries_array':
-drivers/acpi//tables.c:269:4: error: invalid use of undefined type 'struct acpi_subtable_proc'
-...
-scripts/Makefile.build:258: recipe for target 'drivers/acpi//tables.o' failed
-make[1]: *** [drivers/acpi//tables.o] Error 1
-Makefile:1401: recipe for target '_module_drivers/acpi/' failed
-make: *** [_module_drivers/acpi/] Error 2
+While testing the notify code path, I discovered that the 
+way the old and new tables were compared didn't take into account
+that there is some variation in table length.  I also determined
+that the check for whether the NFIT merge was successful was
+backwards.
 
-This is because objects are tried to be built unconditionally even when
-CONFIG_ACPI is not enabled. This is usually not a problem since arches'
-Kconfig sources drivers/acpi/Kconfig directly and also selects ACPI but
-the Makefile should conditionally build the objects as well to prevent
-these build errors.
+I couldn't find a generic way to invoke the notify function
+so my testing was done with a change to the the revision_show()
+function that calls acpi_nfit_notify() any time the sysfs
+nfit/revision file is read.  That change is not included here.
 
-Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
+These patches were tested on a system with NVDIMM-N hardware
+so changes related to NFIT tables not provided on a NVDIMM-N
+system have only been compile-tested.  
 
----
-Hello,
+Linda Knippers (3):
+  nfit: Account for table size length variation
+  nfit: Fix the check for a successful NFIT merge
+  nfit: Adjust for different _FIT and NFIT headers
 
-I posted this patch first as an RFC more than a month ago [0]
-and got no feedback, so I'm resending without the RFC tag.
+ drivers/acpi/nfit.c | 83 +++++++++++++++++++++++++++++++++++++++++------------
+ drivers/acpi/nfit.h |  3 +-
+ 2 files changed, 67 insertions(+), 19 deletions(-)
 
-[0]: https://lkml.org/lkml/2015/10/12/859
-
-Best regards,
-Javier
-
- drivers/acpi/Makefile | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index 675eaf337178..73ec23ca7db1 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -8,13 +8,13 @@ ccflags-$(CONFIG_ACPI_DEBUG)	+= -DACPI_DEBUG_OUTPUT
- #
- # ACPI Boot-Time Table Parsing
- #
--obj-y				+= tables.o
-+obj-$(CONFIG_ACPI)		+= tables.o
- obj-$(CONFIG_X86)		+= blacklist.o
- 
- #
- # ACPI Core Subsystem (Interpreter)
- #
--obj-y				+= acpi.o \
-+obj-$(CONFIG_ACPI)		+= acpi.o \
- 					acpica/
- 
- # All the builtin files are in the "acpi." module_param namespace.
-@@ -66,10 +66,10 @@ obj-$(CONFIG_ACPI_FAN)		+= fan.o
- obj-$(CONFIG_ACPI_VIDEO)	+= video.o
- obj-$(CONFIG_ACPI_PCI_SLOT)	+= pci_slot.o
- obj-$(CONFIG_ACPI_PROCESSOR)	+= processor.o
--obj-y				+= container.o
-+obj-$(CONFIG_ACPI)		+= container.o
- obj-$(CONFIG_ACPI_THERMAL)	+= thermal.o
- obj-$(CONFIG_ACPI_NFIT)		+= nfit.o
--obj-y				+= acpi_memhotplug.o
-+obj-$(CONFIG_ACPI)		+= acpi_memhotplug.o
- obj-$(CONFIG_ACPI_HOTPLUG_IOAPIC) += ioapic.o
- obj-$(CONFIG_ACPI_BATTERY)	+= battery.o
- obj-$(CONFIG_ACPI_SBS)		+= sbshc.o
 -- 
-2.4.3
+1.8.3.1
 
