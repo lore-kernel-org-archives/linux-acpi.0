@@ -1,174 +1,181 @@
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Subject: Re: [PATCH 3/3] nfit: Adjust for different _FIT and NFIT headers
-Date: Mon, 23 Nov 2015 23:26:56 +0000
-Message-ID: <1448321216.27481.7.camel@intel.com>
-References: <cover.1448045168.git.linda.knippers@hpe.com>
-	 <03fba073944c91810f89e321cb7fa024f8e9e2c1.1448045168.git.linda.knippers@hpe.com>
+From: Lukas Wunner <lukas@wunner.de>
+Subject: Re: [PATCH 1/5] ACPICA: Add acpi_dev_present
+Date: Tue, 24 Nov 2015 00:32:34 +0100
+Message-ID: <20151123233234.GA26361@wunner.de>
+References: <cover.1448282995.git.lukas@wunner.de>
+ <d66501819cfa8f3d3b07708d3f20e3e20d07e4f8.1448282995.git.lukas@wunner.de>
+ <2726545.001oM5V9lv@vostro.rjw.lan>
+ <94F2FBAB4432B54E8AACC7DFDE6C92E37D998D0C@ORSMSX112.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:27388 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753145AbbKWX1M (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 23 Nov 2015 18:27:12 -0500
-In-Reply-To: <03fba073944c91810f89e321cb7fa024f8e9e2c1.1448045168.git.linda.knippers@hpe.com>
-Content-Language: en-US
-Content-ID: <84962B2592295A42A661A66FA2DEEF44@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37D998D0C@ORSMSX112.amr.corp.intel.com>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, Darren Hart <dvhart@infradead.org>, Corentin Chary <corentin.chary@gmail.com>, "Lee, Chun-Yi" <jlee@suse.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Takashi Iwai <tiwai@suse.de>, Hui Wang <hui.wang@canonical.com>, Mark Brown <broonie@kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, David Box <david.e.box@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Williams, Dan J" <dan.j.williams@intel.com>, "linda.knippers@hpe.com" <linda.knippers@hpe.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "toshi.kani@hpe.com" <toshi.kani@hpe.com>, "jmoyer@redhat.com" <jmoyer@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "elliott@hpe.com" <elliott@hpe.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>
 
-T24gRnJpLCAyMDE1LTExLTIwIGF0IDE5OjA1IC0wNTAwLCBMaW5kYSBLbmlwcGVycyB3cm90ZToN
-Cj4gV2hlbiBzdXBwb3J0IGZvciBfRklUIHdhcyBhZGRlZCwgdGhlIGNvZGUgcHJlc3VtZWQgdGhh
-dCB0aGUgZGF0YQ0KPiByZXR1cm5lZCBieSB0aGUgX0ZJVCBtZXRob2QgaXMgaWRlbnRpY2FsIHRv
-IHRoZSBORklUIHRhYmxlLCB3aGljaA0KPiBzdGFydHMgd2l0aCBhbiBhY3BpX3RhYmxlX2hlYWRl
-ci7CoMKgSG93ZXZlciwgdGhlIF9GSVQgaXMgZGVmaW5lZA0KPiB0byByZXR1cm4gYSBkYXRhIGlu
-IHRoZSBmb3JtYXQgb2YgYSBzZXJpZXMgb2YgTkZJVCB0eXBlIHN0cnVjdHVyZQ0KPiBlbnRyaWVz
-IGFuZCBhcyBhIG1ldGhvZCwgaGFzIGFuIGFjcGlfb2JqZWN0IGhlYWRlciByYXRoZXIgdGFobg0K
-PiBhbiBhY3BpX3RhYmxlX2hlYWRlci4NCj4gDQo+IFRvIGFkZHJlc3MgdGhlIGRpZmZlcmVuY2Vz
-LCBleHBsaWNpdGx5IHNhdmUgdGhlIGFjcGlfdGFibGVfaGVhZGVyDQo+IGZyb20gdGhlIE5GSVQs
-IHNpbmNlIGl0IGlzIGFjY2Vzc2libGUgdGhyb3VnaCAvc3lzLCBhbmQgY2hhbmdlDQo+IHRoZSBu
-Zml0IHBvaW50ZXIgaW4gdGhlIGFjcGlfZGVzYyBzdHJ1Y3R1cmUgdG8gcG9pbnQgdG8gdGhlDQo+
-IHRhYmxlIGVudHJpZXMgcmF0aGVyIHRoYW4gdGhlIGhlYWRlcnMuDQo+IA0KPiBSZXBvcnRlZC1i
-eTogSmVmZiBNb3llciAoam1veWVyQHJlZGhhdC5jb20+DQo+IFNpZ25lZC1vZmYtYnk6IExpbmRh
-IEtuaXBwZXJzIDxsaW5kYS5rbmlwcGVyc0BocGUuY29tPg0KPiAtLS0NCj4gwqBkcml2ZXJzL2Fj
-cGkvbmZpdC5jIHwgNDcgKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKystLS0tLS0t
-LS0NCj4gLS0tDQo+IMKgZHJpdmVycy9hY3BpL25maXQuaCB8wqDCoDMgKystDQo+IMKgMiBmaWxl
-cyBjaGFuZ2VkLCAzNyBpbnNlcnRpb25zKCspLCAxMyBkZWxldGlvbnMoLSkNCj4gDQoNClRoaXMg
-cGF0Y2ggbG9va3MgZ29vZCwgYnV0IHRoZSBmYWN0IHRoYXQgd2UncmUgZG9pbmcgdGhlIGhlYWRl
-cg0KcHJvY2Vzc2luZyBlYXJsaWVyIChiZWZvcmUgYWNwaV9uZml0X2luaXQpIG1lYW5zIHRoYXQg
-dGhlIG5maXQgc3VwcGxpZWQNCmJ5IHRoZSBuZml0X3Rlc3QgZnJhbWV3b3JrICh0b29scy90ZXN0
-aW5nL252ZGltbS90ZXN0KSBjYW4gbm8gbG9uZ2VyDQpoYXZlIGEgaGVhZGVyLiBUaGUgZm9sbG93
-aW5nIHBhdGNoIGZpeGVzIHRoaXMuDQoNCkFwYXJ0IGZyb20gdGhhdCwgYW5kIHRoZSBvcGVuIHF1
-ZXN0aW9uIGZvciBwYXRjaCAxLCBmb3IgdGhlIHNlcmllcywNCg0KUmV2aWV3ZWQtYnk6IFZpc2hh
-bCBWZXJtYSA8dmlzaGFsLmwudmVybWFAaW50ZWwuY29tPg0KDQoNCg0KODwtLS0tLQ0KDQpGcm9t
-IGRhMmZkNTczMGJjNTEyNWM3MjEwMWE2YjU1Yjg1ZmNlOTc2NjNlNDAgTW9uIFNlcCAxNyAwMDow
-MDowMCAyMDAxDQpGcm9tOiBWaXNoYWwgVmVybWEgPHZpc2hhbC5sLnZlcm1hQGludGVsLmNvbT4N
-CkRhdGU6IE1vbiwgMjMgTm92IDIwMTUgMTU6NDE6MDAgLTA3MDANClN1YmplY3Q6IFtQQVRDSF0g
-bmZpdF90ZXN0OiBGaXggbmZpdCBnZW5lcmF0aW9uIGZvciB0ZXN0IGZyYW1ld29yaw0KDQpUaGUg
-aG90cGx1ZyBmaXhlcyBtb3ZlIGhlYWRlciBwYXJzaW5nIHRvIGhhcHBlbiBlYXJsaWVyLA0KYW5k
-IHRoZSB3YXkgbmZpdF90ZXN0IGNhbGxzIGludG8gdGhlIG5maXQgaW5pdGlhbGl6YXRpb24gY29k
-ZSwNCmEgaGVhZGVyIGlzIG5vIGxvbmdlciBuZWVkZWQuIFJlbW92ZSB0aGUgaGVhZGVyIGZyb20g
-dGhlIHRhYmxlDQpnZW5lcmF0ZWQgYnkgbmZpdF90ZXN0IGVudGlyZWx5Lg0KDQpTaWduZWQtb2Zm
-LWJ5OiBWaXNoYWwgVmVybWEgPHZpc2hhbC5sLnZlcm1hQGludGVsLmNvbT4NCi0tLQ0KwqB0b29s
-cy90ZXN0aW5nL252ZGltbS90ZXN0L25maXQuYyB8IDQ2ICsrKysrKysrKysrKy0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0NCsKgMSBmaWxlIGNoYW5nZWQsIDE0IGluc2VydGlvbnMoKyksIDMy
-IGRlbGV0aW9ucygtKQ0KDQpkaWZmIC0tZ2l0IGEvdG9vbHMvdGVzdGluZy9udmRpbW0vdGVzdC9u
-Zml0LmMgYi90b29scy90ZXN0aW5nL252ZGltbS90ZXN0L25maXQuYw0KaW5kZXggNDBhYjQ0Ny4u
-M2Y5MmQ3ZiAxMDA2NDQNCi0tLSBhL3Rvb2xzL3Rlc3RpbmcvbnZkaW1tL3Rlc3QvbmZpdC5jDQor
-KysgYi90b29scy90ZXN0aW5nL252ZGltbS90ZXN0L25maXQuYw0KQEAgLTQyMCw4ICs0MjAsNyBA
-QCBzdGF0aWMgc3RydWN0IG5maXRfdGVzdF9yZXNvdXJjZSAqbmZpdF90ZXN0X2xvb2t1cChyZXNv
-dXJjZV9zaXplX3QgYWRkcikNCsKgDQrCoHN0YXRpYyBpbnQgbmZpdF90ZXN0MF9hbGxvYyhzdHJ1
-Y3QgbmZpdF90ZXN0ICp0KQ0KwqB7DQotCXNpemVfdCBuZml0X3NpemUgPSBzaXplb2Yoc3RydWN0
-IGFjcGlfdGFibGVfbmZpdCkNCi0JCQkrIHNpemVvZihzdHJ1Y3QgYWNwaV9uZml0X3N5c3RlbV9h
-ZGRyZXNzKSAqIE5VTV9TUEENCisJc2l6ZV90IG5maXRfc2l6ZSA9IHNpemVvZihzdHJ1Y3QgYWNw
-aV9uZml0X3N5c3RlbV9hZGRyZXNzKSAqIE5VTV9TUEENCsKgCQkJKyBzaXplb2Yoc3RydWN0IGFj
-cGlfbmZpdF9tZW1vcnlfbWFwKSAqIE5VTV9NRU0NCsKgCQkJKyBzaXplb2Yoc3RydWN0IGFjcGlf
-bmZpdF9jb250cm9sX3JlZ2lvbikgKiBOVU1fRENSDQrCoAkJCSsgc2l6ZW9mKHN0cnVjdCBhY3Bp
-X25maXRfZGF0YV9yZWdpb24pICogTlVNX0JEVw0KQEAgLTQ3MSw4ICs0NzAsNyBAQCBzdGF0aWMg
-aW50IG5maXRfdGVzdDBfYWxsb2Moc3RydWN0IG5maXRfdGVzdCAqdCkNCsKgDQrCoHN0YXRpYyBp
-bnQgbmZpdF90ZXN0MV9hbGxvYyhzdHJ1Y3QgbmZpdF90ZXN0ICp0KQ0KwqB7DQotCXNpemVfdCBu
-Zml0X3NpemUgPSBzaXplb2Yoc3RydWN0IGFjcGlfdGFibGVfbmZpdCkNCi0JCSsgc2l6ZW9mKHN0
-cnVjdCBhY3BpX25maXRfc3lzdGVtX2FkZHJlc3MpDQorCXNpemVfdCBuZml0X3NpemUgPSBzaXpl
-b2Yoc3RydWN0IGFjcGlfbmZpdF9zeXN0ZW1fYWRkcmVzcykNCsKgCQkrIHNpemVvZihzdHJ1Y3Qg
-YWNwaV9uZml0X21lbW9yeV9tYXApDQrCoAkJKyBzaXplb2Yoc3RydWN0IGFjcGlfbmZpdF9jb250
-cm9sX3JlZ2lvbik7DQrCoA0KQEAgLTQ4OCwxOCArNDg2LDYgQEAgc3RhdGljIGludCBuZml0X3Rl
-c3QxX2FsbG9jKHN0cnVjdCBuZml0X3Rlc3QgKnQpDQrCoAlyZXR1cm4gMDsNCsKgfQ0KwqANCi1z
-dGF0aWMgdm9pZCBuZml0X3Rlc3RfaW5pdF9oZWFkZXIoc3RydWN0IGFjcGlfdGFibGVfbmZpdCAq
-bmZpdCwgc2l6ZV90IHNpemUpDQotew0KLQltZW1jcHkobmZpdC0+aGVhZGVyLnNpZ25hdHVyZSwg
-QUNQSV9TSUdfTkZJVCwgNCk7DQotCW5maXQtPmhlYWRlci5sZW5ndGggPSBzaXplOw0KLQluZml0
-LT5oZWFkZXIucmV2aXNpb24gPSAxOw0KLQltZW1jcHkobmZpdC0+aGVhZGVyLm9lbV9pZCwgIkxJ
-Qk5EIiwgNik7DQotCW1lbWNweShuZml0LT5oZWFkZXIub2VtX3RhYmxlX2lkLCAiVEVTVCIsIDUp
-Ow0KLQluZml0LT5oZWFkZXIub2VtX3JldmlzaW9uID0gMTsNCi0JbWVtY3B5KG5maXQtPmhlYWRl
-ci5hc2xfY29tcGlsZXJfaWQsICJUU1QiLCA0KTsNCi0JbmZpdC0+aGVhZGVyLmFzbF9jb21waWxl
-cl9yZXZpc2lvbiA9IDE7DQotfQ0KLQ0KwqBzdGF0aWMgdm9pZCBuZml0X3Rlc3QwX3NldHVwKHN0
-cnVjdCBuZml0X3Rlc3QgKnQpDQrCoHsNCsKgCXN0cnVjdCBudmRpbW1fYnVzX2Rlc2NyaXB0b3Ig
-Km5kX2Rlc2M7DQpAQCAtNTEzLDE0ICs0OTksMTIgQEAgc3RhdGljIHZvaWQgbmZpdF90ZXN0MF9z
-ZXR1cChzdHJ1Y3QgbmZpdF90ZXN0ICp0KQ0KwqAJc3RydWN0IGFjcGlfbmZpdF9mbHVzaF9hZGRy
-ZXNzICpmbHVzaDsNCsKgCXVuc2lnbmVkIGludCBvZmZzZXQ7DQrCoA0KLQluZml0X3Rlc3RfaW5p
-dF9oZWFkZXIobmZpdF9idWYsIHNpemUpOw0KLQ0KwqAJLyoNCsKgCcKgKiBzcGEwIChpbnRlcmxl
-YXZlIGZpcnN0IGhhbGYgb2YgZGltbTAgYW5kIGRpbW0xLCBub3RlIHN0b3JhZ2UNCsKgCcKgKiBk
-b2VzIG5vdCBhY3R1YWxseSBhbGlhcyB0aGUgcmVsYXRlZCBibG9jay1kYXRhLXdpbmRvdw0KwqAJ
-wqAqIHJlZ2lvbnMpDQrCoAnCoCovDQotCXNwYSA9IG5maXRfYnVmICsgc2l6ZW9mKHN0cnVjdCBh
-Y3BpX3RhYmxlX25maXQpOw0KKwlzcGEgPSBuZml0X2J1ZjsNCsKgCXNwYS0+aGVhZGVyLnR5cGUg
-PSBBQ1BJX05GSVRfVFlQRV9TWVNURU1fQUREUkVTUzsNCsKgCXNwYS0+aGVhZGVyLmxlbmd0aCA9
-IHNpemVvZigqc3BhKTsNCsKgCW1lbWNweShzcGEtPnJhbmdlX2d1aWQsIHRvX25maXRfdXVpZChO
-RklUX1NQQV9QTSksIDE2KTsNCkBAIC01MzMsNyArNTE3LDcgQEAgc3RhdGljIHZvaWQgbmZpdF90
-ZXN0MF9zZXR1cChzdHJ1Y3QgbmZpdF90ZXN0ICp0KQ0KwqAJwqAqIGRvZXMgbm90IGFjdHVhbGx5
-IGFsaWFzIHRoZSByZWxhdGVkIGJsb2NrLWRhdGEtd2luZG93DQrCoAnCoCogcmVnaW9ucykNCsKg
-CcKgKi8NCi0Jc3BhID0gbmZpdF9idWYgKyBzaXplb2Yoc3RydWN0IGFjcGlfdGFibGVfbmZpdCkg
-KyBzaXplb2YoKnNwYSk7DQorCXNwYSA9IG5maXRfYnVmICsgc2l6ZW9mKCpzcGEpOw0KwqAJc3Bh
-LT5oZWFkZXIudHlwZSA9IEFDUElfTkZJVF9UWVBFX1NZU1RFTV9BRERSRVNTOw0KwqAJc3BhLT5o
-ZWFkZXIubGVuZ3RoID0gc2l6ZW9mKCpzcGEpOw0KwqAJbWVtY3B5KHNwYS0+cmFuZ2VfZ3VpZCwg
-dG9fbmZpdF91dWlkKE5GSVRfU1BBX1BNKSwgMTYpOw0KQEAgLTU0Miw3ICs1MjYsNyBAQCBzdGF0
-aWMgdm9pZCBuZml0X3Rlc3QwX3NldHVwKHN0cnVjdCBuZml0X3Rlc3QgKnQpDQrCoAlzcGEtPmxl
-bmd0aCA9IFNQQTFfU0laRTsNCsKgDQrCoAkvKiBzcGEyIChkY3IwKSBkaW1tMCAqLw0KLQlzcGEg
-PSBuZml0X2J1ZiArIHNpemVvZihzdHJ1Y3QgYWNwaV90YWJsZV9uZml0KSArIHNpemVvZigqc3Bh
-KSAqIDI7DQorCXNwYSA9IG5maXRfYnVmICsgc2l6ZW9mKCpzcGEpICogMjsNCsKgCXNwYS0+aGVh
-ZGVyLnR5cGUgPSBBQ1BJX05GSVRfVFlQRV9TWVNURU1fQUREUkVTUzsNCsKgCXNwYS0+aGVhZGVy
-Lmxlbmd0aCA9IHNpemVvZigqc3BhKTsNCsKgCW1lbWNweShzcGEtPnJhbmdlX2d1aWQsIHRvX25m
-aXRfdXVpZChORklUX1NQQV9EQ1IpLCAxNik7DQpAQCAtNTUxLDcgKzUzNSw3IEBAIHN0YXRpYyB2
-b2lkIG5maXRfdGVzdDBfc2V0dXAoc3RydWN0IG5maXRfdGVzdCAqdCkNCsKgCXNwYS0+bGVuZ3Ro
-ID0gRENSX1NJWkU7DQrCoA0KwqAJLyogc3BhMyAoZGNyMSkgZGltbTEgKi8NCi0Jc3BhID0gbmZp
-dF9idWYgKyBzaXplb2Yoc3RydWN0IGFjcGlfdGFibGVfbmZpdCkgKyBzaXplb2YoKnNwYSkgKiAz
-Ow0KKwlzcGEgPSBuZml0X2J1ZiArIHNpemVvZigqc3BhKSAqIDM7DQrCoAlzcGEtPmhlYWRlci50
-eXBlID0gQUNQSV9ORklUX1RZUEVfU1lTVEVNX0FERFJFU1M7DQrCoAlzcGEtPmhlYWRlci5sZW5n
-dGggPSBzaXplb2YoKnNwYSk7DQrCoAltZW1jcHkoc3BhLT5yYW5nZV9ndWlkLCB0b19uZml0X3V1
-aWQoTkZJVF9TUEFfRENSKSwgMTYpOw0KQEAgLTU2MCw3ICs1NDQsNyBAQCBzdGF0aWMgdm9pZCBu
-Zml0X3Rlc3QwX3NldHVwKHN0cnVjdCBuZml0X3Rlc3QgKnQpDQrCoAlzcGEtPmxlbmd0aCA9IERD
-Ul9TSVpFOw0KwqANCsKgCS8qIHNwYTQgKGRjcjIpIGRpbW0yICovDQotCXNwYSA9IG5maXRfYnVm
-ICsgc2l6ZW9mKHN0cnVjdCBhY3BpX3RhYmxlX25maXQpICsgc2l6ZW9mKCpzcGEpICogNDsNCisJ
-c3BhID0gbmZpdF9idWYgKyBzaXplb2YoKnNwYSkgKiA0Ow0KwqAJc3BhLT5oZWFkZXIudHlwZSA9
-IEFDUElfTkZJVF9UWVBFX1NZU1RFTV9BRERSRVNTOw0KwqAJc3BhLT5oZWFkZXIubGVuZ3RoID0g
-c2l6ZW9mKCpzcGEpOw0KwqAJbWVtY3B5KHNwYS0+cmFuZ2VfZ3VpZCwgdG9fbmZpdF91dWlkKE5G
-SVRfU1BBX0RDUiksIDE2KTsNCkBAIC01NjksNyArNTUzLDcgQEAgc3RhdGljIHZvaWQgbmZpdF90
-ZXN0MF9zZXR1cChzdHJ1Y3QgbmZpdF90ZXN0ICp0KQ0KwqAJc3BhLT5sZW5ndGggPSBEQ1JfU0la
-RTsNCsKgDQrCoAkvKiBzcGE1IChkY3IzKSBkaW1tMyAqLw0KLQlzcGEgPSBuZml0X2J1ZiArIHNp
-emVvZihzdHJ1Y3QgYWNwaV90YWJsZV9uZml0KSArIHNpemVvZigqc3BhKSAqIDU7DQorCXNwYSA9
-IG5maXRfYnVmICsgc2l6ZW9mKCpzcGEpICogNTsNCsKgCXNwYS0+aGVhZGVyLnR5cGUgPSBBQ1BJ
-X05GSVRfVFlQRV9TWVNURU1fQUREUkVTUzsNCsKgCXNwYS0+aGVhZGVyLmxlbmd0aCA9IHNpemVv
-Zigqc3BhKTsNCsKgCW1lbWNweShzcGEtPnJhbmdlX2d1aWQsIHRvX25maXRfdXVpZChORklUX1NQ
-QV9EQ1IpLCAxNik7DQpAQCAtNTc4LDcgKzU2Miw3IEBAIHN0YXRpYyB2b2lkIG5maXRfdGVzdDBf
-c2V0dXAoc3RydWN0IG5maXRfdGVzdCAqdCkNCsKgCXNwYS0+bGVuZ3RoID0gRENSX1NJWkU7DQrC
-oA0KwqAJLyogc3BhNiAoYmR3IGZvciBkY3IwKSBkaW1tMCAqLw0KLQlzcGEgPSBuZml0X2J1ZiAr
-IHNpemVvZihzdHJ1Y3QgYWNwaV90YWJsZV9uZml0KSArIHNpemVvZigqc3BhKSAqIDY7DQorCXNw
-YSA9IG5maXRfYnVmICsgc2l6ZW9mKCpzcGEpICogNjsNCsKgCXNwYS0+aGVhZGVyLnR5cGUgPSBB
-Q1BJX05GSVRfVFlQRV9TWVNURU1fQUREUkVTUzsNCsKgCXNwYS0+aGVhZGVyLmxlbmd0aCA9IHNp
-emVvZigqc3BhKTsNCsKgCW1lbWNweShzcGEtPnJhbmdlX2d1aWQsIHRvX25maXRfdXVpZChORklU
-X1NQQV9CRFcpLCAxNik7DQpAQCAtNTg3LDcgKzU3MSw3IEBAIHN0YXRpYyB2b2lkIG5maXRfdGVz
-dDBfc2V0dXAoc3RydWN0IG5maXRfdGVzdCAqdCkNCsKgCXNwYS0+bGVuZ3RoID0gRElNTV9TSVpF
-Ow0KwqANCsKgCS8qIHNwYTcgKGJkdyBmb3IgZGNyMSkgZGltbTEgKi8NCi0Jc3BhID0gbmZpdF9i
-dWYgKyBzaXplb2Yoc3RydWN0IGFjcGlfdGFibGVfbmZpdCkgKyBzaXplb2YoKnNwYSkgKiA3Ow0K
-KwlzcGEgPSBuZml0X2J1ZiArIHNpemVvZigqc3BhKSAqIDc7DQrCoAlzcGEtPmhlYWRlci50eXBl
-ID0gQUNQSV9ORklUX1RZUEVfU1lTVEVNX0FERFJFU1M7DQrCoAlzcGEtPmhlYWRlci5sZW5ndGgg
-PSBzaXplb2YoKnNwYSk7DQrCoAltZW1jcHkoc3BhLT5yYW5nZV9ndWlkLCB0b19uZml0X3V1aWQo
-TkZJVF9TUEFfQkRXKSwgMTYpOw0KQEAgLTU5Niw3ICs1ODAsNyBAQCBzdGF0aWMgdm9pZCBuZml0
-X3Rlc3QwX3NldHVwKHN0cnVjdCBuZml0X3Rlc3QgKnQpDQrCoAlzcGEtPmxlbmd0aCA9IERJTU1f
-U0laRTsNCsKgDQrCoAkvKiBzcGE4IChiZHcgZm9yIGRjcjIpIGRpbW0yICovDQotCXNwYSA9IG5m
-aXRfYnVmICsgc2l6ZW9mKHN0cnVjdCBhY3BpX3RhYmxlX25maXQpICsgc2l6ZW9mKCpzcGEpICog
-ODsNCisJc3BhID0gbmZpdF9idWYgKyBzaXplb2YoKnNwYSkgKiA4Ow0KwqAJc3BhLT5oZWFkZXIu
-dHlwZSA9IEFDUElfTkZJVF9UWVBFX1NZU1RFTV9BRERSRVNTOw0KwqAJc3BhLT5oZWFkZXIubGVu
-Z3RoID0gc2l6ZW9mKCpzcGEpOw0KwqAJbWVtY3B5KHNwYS0+cmFuZ2VfZ3VpZCwgdG9fbmZpdF91
-dWlkKE5GSVRfU1BBX0JEVyksIDE2KTsNCkBAIC02MDUsNyArNTg5LDcgQEAgc3RhdGljIHZvaWQg
-bmZpdF90ZXN0MF9zZXR1cChzdHJ1Y3QgbmZpdF90ZXN0ICp0KQ0KwqAJc3BhLT5sZW5ndGggPSBE
-SU1NX1NJWkU7DQrCoA0KwqAJLyogc3BhOSAoYmR3IGZvciBkY3IzKSBkaW1tMyAqLw0KLQlzcGEg
-PSBuZml0X2J1ZiArIHNpemVvZihzdHJ1Y3QgYWNwaV90YWJsZV9uZml0KSArIHNpemVvZigqc3Bh
-KSAqIDk7DQorCXNwYSA9IG5maXRfYnVmICsgc2l6ZW9mKCpzcGEpICogOTsNCsKgCXNwYS0+aGVh
-ZGVyLnR5cGUgPSBBQ1BJX05GSVRfVFlQRV9TWVNURU1fQUREUkVTUzsNCsKgCXNwYS0+aGVhZGVy
-Lmxlbmd0aCA9IHNpemVvZigqc3BhKTsNCsKgCW1lbWNweShzcGEtPnJhbmdlX2d1aWQsIHRvX25m
-aXRfdXVpZChORklUX1NQQV9CRFcpLCAxNik7DQpAQCAtNjEzLDcgKzU5Nyw3IEBAIHN0YXRpYyB2
-b2lkIG5maXRfdGVzdDBfc2V0dXAoc3RydWN0IG5maXRfdGVzdCAqdCkNCsKgCXNwYS0+YWRkcmVz
-cyA9IHQtPmRpbW1fZG1hWzNdOw0KwqAJc3BhLT5sZW5ndGggPSBESU1NX1NJWkU7DQrCoA0KLQlv
-ZmZzZXQgPSBzaXplb2Yoc3RydWN0IGFjcGlfdGFibGVfbmZpdCkgKyBzaXplb2YoKnNwYSkgKiAx
-MDsNCisJb2Zmc2V0ID0gc2l6ZW9mKCpzcGEpICogMTA7DQrCoAkvKiBtZW0tcmVnaW9uMCAoc3Bh
-MCwgZGltbTApICovDQrCoAltZW1kZXYgPSBuZml0X2J1ZiArIG9mZnNldDsNCsKgCW1lbWRldi0+
-aGVhZGVyLnR5cGUgPSBBQ1BJX05GSVRfVFlQRV9NRU1PUllfTUFQOw0KQEAgLTExMDYsOSArMTA5
-MCw3IEBAIHN0YXRpYyB2b2lkIG5maXRfdGVzdDFfc2V0dXAoc3RydWN0IG5maXRfdGVzdCAqdCkN
-CsKgCXN0cnVjdCBhY3BpX25maXRfY29udHJvbF9yZWdpb24gKmRjcjsNCsKgCXN0cnVjdCBhY3Bp
-X25maXRfc3lzdGVtX2FkZHJlc3MgKnNwYTsNCsKgDQotCW5maXRfdGVzdF9pbml0X2hlYWRlcihu
-Zml0X2J1Ziwgc2l6ZSk7DQotDQotCW9mZnNldCA9IHNpemVvZihzdHJ1Y3QgYWNwaV90YWJsZV9u
-Zml0KTsNCisJb2Zmc2V0ID0gMDsNCsKgCS8qIHNwYTAgKGZsYXQgcmFuZ2Ugd2l0aCBubyBiZHcg
-YWxpYXNpbmcpICovDQrCoAlzcGEgPSBuZml0X2J1ZiArIG9mZnNldDsNCsKgCXNwYS0+aGVhZGVy
-LnR5cGUgPSBBQ1BJX05GSVRfVFlQRV9TWVNURU1fQUREUkVTUzsNCi0tIA0KMi41LjA=
+Hi Robert,
+
+On Mon, Nov 23, 2015 at 10:22:27PM +0000, Moore, Robert wrote:
+> >>acpi_dev_present
+> 
+> Do you really want to be walking the ACPICA namespace for every call?
+
+That's what the drivers currently do. Typically this is called only once
+on initialization by the driver's ->probe callback.
+
+What did you have in mind instead, cache the result? Or store the HIDs
+in the namespace in a hash that can be queried faster?
+
+Sorry for not cc'ing you right away, if you want to take a look at the
+patches for the drivers they're browsable on GitHub or in the acpica.org
+mailing list archive:
+https://github.com/l1k/linux/commits/acpi_dev_present
+https://lists.acpica.org/pipermail/devel/2015-November/000851.html
+
+Patches [0/5] and [1/5] are not visible in the mailing list archive:
+They landed in the moderation queue because they had too many recipients.
+I guess if I had cc'ed you all, none of the patches would have come
+through.
+
+Thanks,
+
+Lukas
+
+> 
+> > -----Original Message-----
+> > From: Rafael J. Wysocki [mailto:rjw@rjwysocki.net]
+> > Sent: Monday, November 23, 2015 2:35 PM
+> > To: Lukas Wunner
+> > Cc: linux-acpi@vger.kernel.org; devel@acpica.org; platform-driver-
+> > x86@vger.kernel.org; Darren Hart; Corentin Chary; Lee, Chun-Yi; alsa-
+> > devel@alsa-project.org; Takashi Iwai; Hui Wang; Mark Brown; Zheng, Lv;
+> > Moore, Robert; David Box
+> > Subject: Re: [PATCH 1/5] ACPICA: Add acpi_dev_present
+> > 
+> > On Monday, November 23, 2015 03:34:55 PM Lukas Wunner wrote:
+> > > There are 7 drivers which call acpi_get_devices to check for the
+> > > presence of a particular ACPI HID, each defining its own copy of a
+> > > mostly identical callback.
+> > >
+> > > Add acpi_dev_present, the ACPI equivalent to pci_dev_present, allowing
+> > > us to deduplicate all that boilerplate in the drivers.
+> > >
+> > > Signed-off-by: Lukas Wunner <lukas@wunner.de>
+> > 
+> > We have a general rule for ACPICA patches that they go in through upstream
+> > ACPICA.
+> > 
+> > So if you really want this changes in ACPICA, this is the way to handle
+> > it.
+> > 
+> > Now, of course, for that to happen, you should have CCed the ACPICA
+> > maintainers too (now done).
+> > 
+> > Thanks,
+> > Rafael
+> > 
+> > 
+> > > ---
+> > >  drivers/acpi/acpica/nsxfeval.c | 46
+> > ++++++++++++++++++++++++++++++++++++++++++
+> > >  include/acpi/acpixf.h          |  7 +++++++
+> > >  2 files changed, 53 insertions(+)
+> > >
+> > > diff --git a/drivers/acpi/acpica/nsxfeval.c
+> > > b/drivers/acpi/acpica/nsxfeval.c index 6ee1e52..19293fa 100644
+> > > --- a/drivers/acpi/acpica/nsxfeval.c
+> > > +++ b/drivers/acpi/acpica/nsxfeval.c
+> > > @@ -828,6 +828,52 @@ ACPI_EXPORT_SYMBOL(acpi_get_devices)
+> > >
+> > >
+> > /*************************************************************************
+> > ******
+> > >   *
+> > > + * FUNCTION:    acpi_ns_dev_present_callback
+> > > + *
+> > > + * PARAMETERS:  Callback from acpi_get_devices
+> > > + *
+> > > + * RETURN:      Status
+> > > + *
+> > > + * DESCRIPTION: Minimal callback to be passed to acpi_get_devices which
+> > > + *              performs no further filtering and terminates the search
+> > > + *              immediately.
+> > > + *
+> > > +
+> > > +*********************************************************************
+> > > +*********/ static acpi_status
+> > > +acpi_ns_dev_present_callback(acpi_handle handle, u32 level,
+> > > +						void *context, void **retval)
+> > > +{
+> > > +	*(bool *)context = true;
+> > > +	return AE_CTRL_TERMINATE;
+> > > +}
+> > > +
+> > > +/********************************************************************
+> > > +***********
+> > > + *
+> > > + * FUNCTION:    acpi_dev_present
+> > > + *
+> > > + * PARAMETERS:  HID                 - HID to search for.
+> > > + *
+> > > + * RETURNS      True if a matching object of type Device was found.
+> > > + *
+> > > + * DESCRIPTION: Performs a walk of the namespace tree. When a matching
+> > object
+> > > + *              of type Device is found, the search is terminated
+> > immediately.
+> > > + *
+> > > +
+> > > +*********************************************************************
+> > > +*********/
+> > > +
+> > > +bool
+> > > +acpi_dev_present(const char *HID)
+> > > +{
+> > > +	acpi_status status;
+> > > +	bool found = false;
+> > > +
+> > > +	status = acpi_get_devices(HID, acpi_ns_dev_present_callback, &found,
+> > > +				  NULL);
+> > > +	return ACPI_SUCCESS(status) && found; }
+> > > +
+> > > +ACPI_EXPORT_SYMBOL(acpi_dev_present)
+> > > +
+> > > +/********************************************************************
+> > > +***********
+> > > + *
+> > >   * FUNCTION:    acpi_attach_data
+> > >   *
+> > >   * PARAMETERS:  obj_handle          - Namespace node
+> > > diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h index
+> > > 3aaaa86..f299347 100644
+> > > --- a/include/acpi/acpixf.h
+> > > +++ b/include/acpi/acpixf.h
+> > > @@ -115,6 +115,11 @@
+> > >  	prototype;
+> > >  #endif
+> > >
+> > > +#ifndef ACPI_EXTERNAL_RETURN_BOOL
+> > > +#define ACPI_EXTERNAL_RETURN_BOOL(prototype) \
+> > > +	prototype;
+> > > +#endif
+> > > +
+> > >
+> > /*************************************************************************
+> > ****
+> > >   *
+> > >   * Public globals and runtime configuration options @@ -483,6 +488,8
+> > > @@ ACPI_EXTERNAL_RETURN_STATUS(acpi_status
+> > >  					      acpi_walk_callback user_function,
+> > >  					      void *context,
+> > >  					      void **return_value))
+> > > +ACPI_EXTERNAL_RETURN_BOOL(bool
+> > > +			     acpi_dev_present(const char *HID))
+> > >  ACPI_EXTERNAL_RETURN_STATUS(acpi_status
+> > >  			     acpi_get_name(acpi_handle object, u32 name_type,
+> > >  					   struct acpi_buffer *ret_path_ptr))
+> > >
+> 
