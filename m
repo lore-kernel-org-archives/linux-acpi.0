@@ -1,60 +1,56 @@
-From: Darren Hart <dvhart@infradead.org>
-Subject: Re: [PATCH 2/5] eeepc-wmi: Use acpi_dev_present
-Date: Mon, 23 Nov 2015 13:00:51 -0800
-Message-ID: <20151123210051.GB30134@malice.jf.intel.com>
-References: <cover.1448282995.git.lukas@wunner.de>
- <bdff67293ead344ccec77f55437085561b1ad88d.1448282995.git.lukas@wunner.de>
- <20151123190413.GU7413@malice.jf.intel.com>
- <20151123195527.GA26288@wunner.de>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCH v3 0/5] Make cpuid <-> nodeid mapping persistent.
+Date: Mon, 23 Nov 2015 17:04:51 -0500
+Message-ID: <20151123220451.GG19072@mtj.duckdns.org>
+References: <1447906935-31899-1-git-send-email-tangchen@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:40724 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752975AbbKWVA6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Nov 2015 16:00:58 -0500
+Received: from mail-yk0-f181.google.com ([209.85.160.181]:36061 "EHLO
+	mail-yk0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752384AbbKWWEz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Nov 2015 17:04:55 -0500
 Content-Disposition: inline
-In-Reply-To: <20151123195527.GA26288@wunner.de>
+In-Reply-To: <1447906935-31899-1-git-send-email-tangchen@cn.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lukas Wunner <lukas@wunner.de>
-Cc: Rafael Wysocki <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, devel@acpica.org, platform-driver-x86@vger.kernel.org, Corentin Chary <corentin.chary@gmail.com>, Mark Brown <broonie@kernel.org>
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: cl@linux.com, jiang.liu@linux.intel.com, mika.j.penttila@gmail.com, mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
 
-On Mon, Nov 23, 2015 at 08:55:27PM +0100, Lukas Wunner wrote:
-> Hi Darren,
-> 
-> On Mon, Nov 23, 2015 at 11:04:13AM -0800, Darren Hart wrote:
-> > On Mon, Nov 23, 2015 at 03:34:55PM +0100, Lukas Wunner wrote:
-> > > Use shiny new acpi_dev_present and remove all the boilerplate to search
-> > > for a particular ACPI device. No functional change.
-> > 
-> > You did add a pr_warn, which is technically a functional change. Did you intend
-> > to leave that in?
-> 
-> That's not an addition of mine, I moved it from eeepc_wmi_parse_device()
-> to eeepc_wmi_probe() so that everything behaves exactly as before.
-> (See the deleted lines further up in the patch.)
+Hello,
 
-Ah, apologies.
+On Thu, Nov 19, 2015 at 12:22:10PM +0800, Tang Chen wrote:
+> [Solution]
+> 
+> There are four mappings in the kernel:
+> 1. nodeid (logical node id)   <->   pxm
+> 2. apicid (physical cpu id)   <->   nodeid
+> 3. cpuid (logical cpu id)     <->   apicid
+> 4. cpuid (logical cpu id)     <->   nodeid
+> 
+> 1. pxm (proximity domain) is provided by ACPI firmware in SRAT, and nodeid <-> pxm
+>    mapping is setup at boot time. This mapping is persistent, won't change.
+> 
+> 2. apicid <-> nodeid mapping is setup using info in 1. The mapping is setup at boot
+>    time and CPU hotadd time, and cleared at CPU hotremove time. This mapping is also
+>    persistent.
+> 
+> 3. cpuid <-> apicid mapping is setup at boot time and CPU hotadd time. cpuid is
+>    allocated, lower ids first, and released at CPU hotremove time, reused for other
+>    hotadded CPUs. So this mapping is not persistent.
+> 
+> 4. cpuid <-> nodeid mapping is also setup at boot time and CPU hotadd time, and
+>    cleared at CPU hotremove time. As a result of 3, this mapping is not persistent.
+> 
+> To fix this problem, we establish cpuid <-> nodeid mapping for all the possible
+> cpus at boot time, and make it persistent. And according to init_cpu_to_node(),
+> cpuid <-> nodeid mapping is based on apicid <-> nodeid mapping and cpuid <-> apicid
+> mapping. So the key point is obtaining all cpus' apicid.
 
-> 
-> 
-> > Rafael, I assume you will pick this up along with the acpi_dev_present ACPI
-> > change if you take that. Pleaes let me know if not.
-> 
-> The last patch in the series concerned Intel ASoC (sound/soc/intel/)
-> and the maintainer Mark Brown <broonie@kernel.org> has replied that
-> "This will collide with some other work done on the Intel code in -next I
-> expect, probably best to merge this via ASoC (so pulling a shared branch
-> for the new API) or just wait till 4.5 to do the conversion."
-> [full quote of his message as it wasn't cc: platform-driver-x86]
-> 
-> So I guess Mark might pull it in, haven't heard back from the ACPI
-> maintainers yet.
-> 
+I don't know much about acpi so can't actually review the patches but
+the overall approach looks good to me.
 
-I'll defer to Rafael's preference here.
+Thanks.
 
 -- 
-Darren Hart
-Intel Open Source Technology Center
+tejun
