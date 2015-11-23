@@ -1,67 +1,145 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [PATCH 5/5] ASoC: Intel: Use acpi_dev_present
-Date: Mon, 23 Nov 2015 14:48:36 +0000
-Message-ID: <20151123144836.GJ1929@sirena.org.uk>
-References: <cover.1448282995.git.lukas@wunner.de>
- <b7bd5f48fd254fb743b99d5c3e63f95ea8dfd8a7.1448282995.git.lukas@wunner.de>
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: Re: [Patch v7 4/7] PCI/ACPI: Add interface acpi_pci_root_create()
+Date: Mon, 23 Nov 2015 10:23:15 -0500
+Message-ID: <56532F63.7000304@codeaurora.org>
+References: <1444804182-6596-1-git-send-email-jiang.liu@linux.intel.com>
+ <1444804182-6596-5-git-send-email-jiang.liu@linux.intel.com>
+ <563B65EE.7000406@semihalf.com> <20151105181959.GA352@red-moon>
+ <563C6A5F.5030500@linux.intel.com> <563C82FA.7050707@semihalf.com>
+ <563C930F.4060206@linux.intel.com> <563C9FBE.2090303@semihalf.com>
+ <563CA9A6.7050309@linux.intel.com> <20151106144534.GC5146@red-moon>
+ <563CC810.3040601@linux.intel.com> <563CCAD5.7080508@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="===============4360483921248136309=="
-Return-path: <alsa-devel-bounces@alsa-project.org>
-In-Reply-To: <b7bd5f48fd254fb743b99d5c3e63f95ea8dfd8a7.1448282995.git.lukas@wunner.de>
-List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
-List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
-List-Post: <mailto:alsa-devel@alsa-project.org>
-List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
-List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
- <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
-Errors-To: alsa-devel-bounces@alsa-project.org
-Sender: alsa-devel-bounces@alsa-project.org
-To: Lukas Wunner <lukas@wunner.de>
-Cc: Takashi Iwai <tiwai@suse.de>, linux-acpi@vger.kernel.org, alsa-devel@alsa-project.org, devel@acpica.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <563CCAD5.7080508@linux.intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Tomasz Nowicki <tn@semihalf.com>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
+On 11/6/2015 10:44 AM, Jiang Liu wrote:
+> On 2015/11/6 23:32, Jiang Liu wrote:
+>> On 2015/11/6 22:45, Lorenzo Pieralisi wrote:
+>>> On Fri, Nov 06, 2015 at 09:22:46PM +0800, Jiang Liu wrote:
+>>>> On 2015/11/6 20:40, Tomasz Nowicki wrote:
+>>>>> On 06.11.2015 12:46, Jiang Liu wrote:
+>>>>>> On 2015/11/6 18:37, Tomasz Nowicki wrote:
+>>>>>>> On 06.11.2015 09:52, Jiang Liu wrote:
+>>>>>>> Sure, ARM64 (0-16M IO space) QEMU example:
+>>>>>>> DWordIO (ResourceProducer, MinFixed, MaxFixed, PosDecode, EntireRange,
+>>>>>>>           0x00000000,         // Granularity
+>>>>>>>           0x00000000,         // Range Minimum
+>>>>>>>           0x0000FFFF,         // Range Maximum
+>>>>>>>           0x3EFF0000,         // Translation Offset
+>>>>>>>           0x00010000,         // Length
+>>>>>>>           ,, , TypeStatic)
+>>>>>> The above DWordIO resource descriptor doesn't confirm to the ACPI spec.
+>>>>>> According to my understanding, ARM/ARM64 has no concept of IO port
+>>>>>> address space, so the PCI host bridge will map IO port on PCI side
+>>>>>> onto MMIO on host side. In other words, PCI host bridge on ARM64
+>>>>>> implement a IO Port->MMIO translation instead of a IO Port->IO Port
+>>>>>> translation. If that's true, it should use 'TypeTranslation' instead
+>>>>>> of 'TypeStatic'. And kernel ACPI resource parsing interface doesn't
+>>>>>> support 'TypeTranslation' yet, so we need to find a solution for it.
+>>>>>
+>>>>> I think you are right, we need TypeTranslation flag for ARM64 DWordIO
+>>>>> descriptors and an extra kernel patch to support it.
+>>>> How about the attached to patch to support TypeTranslation?
+>>>> It only passes compilation:)
+>>>
+>>> Eh, hopefully there are not any ACPI tables out there with that bit
+>>> set that work _today_ and would not work with the patch attached :)
+>>>
+>>> My question is still there: do we want to handle the same problem
+>>> as ia64 has in a different manner ? Certainly we won't be able
+>>> to update ia64 platforms ACPI tables, so we would end up with
+>>> two platforms handling IO resources in different ways unless I am
+>>> missing something here.
+>> There are some difference between IA64 and ARM64.
+>> On IA64, it supports 16M IO address space per PCI domain and 256 PCI
+>> domains at max. So the system IO address space is 16M * 256 = 4G.
+>> So it does two level translations to support IO port
+>> 1) translate PCI bus local IO port address into system global IO port
+>>    address by adding acpi_des->translation_offset.
+>> 2) translate the 4G system IO port address space into MMIO address.
+>>    IA64 has reserved a 4G space for IO port mapping. This translation
+>>    is done by arch specific method.
+>> In other word, IA64 needs two level translation, but ACPI only provides
+>> on (trans_type, trans_offset) pair for encoding, so it's used for step 1).
+>>
+>> For ARM64, I think currently it only needs step 2).
+>>
+>>>
+>>> BTW, why would we add offset to res->start only if TypeTranslation is
+>>> clear ? Is not that something we would do just to make things "work" ?
+>>> That flag has no bearing on the offset, only on the resource type AFAIK.
+>> It's not a hack, but a way to interpret ACPI spec:)
+>>
+>> With current linux resource management framework, we need to allocate
+>> both MMIO and IO port address space range for an ACPI resource of type
+>> 'TypeTranslation'. And struct resource could be either IO port or MMIO,
+>> not both. So the choice is to keep the resource as IO port, and let
+>> arch code to build the special MMIO mapping for it. Otherwise it will
+>> break too many things if we convert the resource as MMIO.
+>>
+>> That said, we need to add translation_offset to convert bus local
+>> IO port address into system global IO port address if it's type of
+>> TypeStatic, because ioresource_ioport uses system global IO port
+>> address.
+>>
+>> For an ACPI resource of type TypeTranslation, system global IO port
+>> address equals bus local IO port address, and the translation_offset
+>> is used to translate IO port address into MMIO address, so we shouldn't
+>> add translation_offset to the IO port resource descriptor.
+> One note for the TypeTranslation case, the arch code needs to reset
+> resource_win->offset to zero after setting up the MMIO map. Sample
+> code as below:
+> va = ioremap(resource_win->offset + res->start, resource_size(res));
+> resource_win->offset = 0;
+> 
+> Otherwise it will break pcibios_resource_to_bus() etc.
+> 
+>>
+>> Thanks,
+>> Gerry
+>>
+>>>
+>>> This without taking into account ARM64 systems shipping with ACPI
+>>> tables that does not set the TypeTranslation at present.
+>>>
+>>> On top of that, I noticed that core ACPI code handles Sparse
+>>> Translation (ie _TRS), that should be considered meaningful only if _TTP
+>>> is set (and that's not checked).
+>> Yes, that's a flaw:(
+>>
+>>>
+>>> Thoughts ?
+>>>
+>>> Thanks,
+>>> Lorenzo
+>>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> Please read the FAQ at  http://www.tux.org/lkml/
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
---===============4360483921248136309==
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="/0U0QBNx7JIUZLHm"
-Content-Disposition: inline
+Tomasz, Lorenzo;
+I have an ARMv8 platform with IO address support where I can test this
+implementation. Let me know if there is any patch that I can try.
+Sinan
 
 
---/0U0QBNx7JIUZLHm
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Mon, Nov 23, 2015 at 03:34:55PM +0100, Lukas Wunner wrote:
-> Use shiny new acpi_dev_present and remove all the boilerplate to search
-> for a particular ACPI device. No functional change.
-
-This will collide with some other work done on the Intel code in -next I
-expect, probably best to merge this via ASoC (so pulling a shared branch
-for the new API) or just wait till 4.5 to do the conversion.
-
---/0U0QBNx7JIUZLHm
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJWUydDAAoJECTWi3JdVIfQBaEH/3RPvMmzRdZ0X5gz8n01wCBe
-gG1Ri0ZJx61GdWCMCnM73LcsluJCtKz+fM3XHakmfHeWZixBK0eWu9o9/+x2Wfg4
-ULaMru3NtBWlGKkvdrya5vfAnO4qWJmxwPoREQcTO+Fkg6GYirnJHWigh7z6fb7/
-/gk9UUYHBkNgcXcoNrePhfyDn79+HK9LjvkV0gUcq7hn7YZ9AeNiQWYq7RchVVSb
-Z2PYrTEipQ4qz+AYyZ41mK1064H+0V/01CTC6NY0KIrC1hf6Xm6dzdemwfdo6Cdt
-VMjyrMksKcVYCJzM/TGmLjAf0Wlr0HVODSVSSiFcjsx8q8gZTRaJ3sDp8tY1uLE=
-=Lof4
------END PGP SIGNATURE-----
-
---/0U0QBNx7JIUZLHm--
-
---===============4360483921248136309==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-
---===============4360483921248136309==--
+-- 
+Sinan Kaya
+Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a
+Linux Foundation Collaborative Project
