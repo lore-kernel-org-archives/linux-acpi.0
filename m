@@ -1,124 +1,45 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 1/5] ACPICA: Add acpi_dev_present
-Date: Mon, 23 Nov 2015 23:34:38 +0100
-Message-ID: <2726545.001oM5V9lv@vostro.rjw.lan>
-References: <cover.1448282995.git.lukas@wunner.de> <d66501819cfa8f3d3b07708d3f20e3e20d07e4f8.1448282995.git.lukas@wunner.de>
+Subject: Re: [PATCH 2/5] eeepc-wmi: Use acpi_dev_present
+Date: Mon, 23 Nov 2015 23:35:55 +0100
+Message-ID: <1776557.hOTai0RnF7@vostro.rjw.lan>
+References: <cover.1448282995.git.lukas@wunner.de> <bdff67293ead344ccec77f55437085561b1ad88d.1448282995.git.lukas@wunner.de> <20151123190413.GU7413@malice.jf.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <d66501819cfa8f3d3b07708d3f20e3e20d07e4f8.1448282995.git.lukas@wunner.de>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Lukas Wunner <lukas@wunner.de>
-Cc: linux-acpi@vger.kernel.org, devel@acpica.org, platform-driver-x86@vger.kernel.org, Darren Hart <dvhart@infradead.org>, Corentin Chary <corentin.chary@gmail.com>, "Lee, Chun-Yi" <jlee@suse.com>, alsa-devel@alsa-project.org, Takashi Iwai <tiwai@suse.de>, Hui Wang <hui.wang@canonical.com>, Mark Brown <broonie@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, David Box <david.e.box@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:44633 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751400AbbKWWGR (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Nov 2015 17:06:17 -0500
+In-Reply-To: <20151123190413.GU7413@malice.jf.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Darren Hart <dvhart@infradead.org>
+Cc: Lukas Wunner <lukas@wunner.de>, linux-acpi@vger.kernel.org, devel@acpica.org, platform-driver-x86@vger.kernel.org, Corentin Chary <corentin.chary@gmail.com>
 
-On Monday, November 23, 2015 03:34:55 PM Lukas Wunner wrote:
-> There are 7 drivers which call acpi_get_devices to check for the
-> presence of a particular ACPI HID, each defining its own copy of
-> a mostly identical callback.
+On Monday, November 23, 2015 11:04:13 AM Darren Hart wrote:
+> On Mon, Nov 23, 2015 at 03:34:55PM +0100, Lukas Wunner wrote:
+> > Use shiny new acpi_dev_present and remove all the boilerplate to search
+> > for a particular ACPI device. No functional change.
 > 
-> Add acpi_dev_present, the ACPI equivalent to pci_dev_present,
-> allowing us to deduplicate all that boilerplate in the drivers.
+> You did add a pr_warn, which is technically a functional change. Did you intend
+> to leave that in?
 > 
-> Signed-off-by: Lukas Wunner <lukas@wunner.de>
+> I have no objection for platform-drivers-x86, but please include all maintainers
+> listed by get_maintainer.pl for the fastest response.
+> 
+> +Rafael
+> 
+> Rafael, I assume you will pick this up along with the acpi_dev_present ACPI
+> change if you take that. Pleaes let me know if not.
+> 
+> Otherwise,
+> 
+> Acked-by: Darren Hart <dvhart@linux.intel.com>
 
-We have a general rule for ACPICA patches that they go in through upstream ACPICA.
-
-So if you really want this changes in ACPICA, this is the way to handle it.
-
-Now, of course, for that to happen, you should have CCed the ACPICA maintainers
-too (now done).
+In fact, patch [1/5] as is needs to go in through upstream ACPICA, so I'm not
+taking this series and please don't take it too.
 
 Thanks,
 Rafael
 
-
-> ---
->  drivers/acpi/acpica/nsxfeval.c | 46 ++++++++++++++++++++++++++++++++++++++++++
->  include/acpi/acpixf.h          |  7 +++++++
->  2 files changed, 53 insertions(+)
-> 
-> diff --git a/drivers/acpi/acpica/nsxfeval.c b/drivers/acpi/acpica/nsxfeval.c
-> index 6ee1e52..19293fa 100644
-> --- a/drivers/acpi/acpica/nsxfeval.c
-> +++ b/drivers/acpi/acpica/nsxfeval.c
-> @@ -828,6 +828,52 @@ ACPI_EXPORT_SYMBOL(acpi_get_devices)
->  
->  /*******************************************************************************
->   *
-> + * FUNCTION:    acpi_ns_dev_present_callback
-> + *
-> + * PARAMETERS:  Callback from acpi_get_devices
-> + *
-> + * RETURN:      Status
-> + *
-> + * DESCRIPTION: Minimal callback to be passed to acpi_get_devices which
-> + *              performs no further filtering and terminates the search
-> + *              immediately.
-> + *
-> + ******************************************************************************/
-> +static acpi_status acpi_ns_dev_present_callback(acpi_handle handle, u32 level,
-> +						void *context, void **retval)
-> +{
-> +	*(bool *)context = true;
-> +	return AE_CTRL_TERMINATE;
-> +}
-> +
-> +/*******************************************************************************
-> + *
-> + * FUNCTION:    acpi_dev_present
-> + *
-> + * PARAMETERS:  HID                 - HID to search for.
-> + *
-> + * RETURNS      True if a matching object of type Device was found.
-> + *
-> + * DESCRIPTION: Performs a walk of the namespace tree. When a matching object
-> + *              of type Device is found, the search is terminated immediately.
-> + *
-> + ******************************************************************************/
-> +
-> +bool
-> +acpi_dev_present(const char *HID)
-> +{
-> +	acpi_status status;
-> +	bool found = false;
-> +
-> +	status = acpi_get_devices(HID, acpi_ns_dev_present_callback, &found,
-> +				  NULL);
-> +	return ACPI_SUCCESS(status) && found;
-> +}
-> +
-> +ACPI_EXPORT_SYMBOL(acpi_dev_present)
-> +
-> +/*******************************************************************************
-> + *
->   * FUNCTION:    acpi_attach_data
->   *
->   * PARAMETERS:  obj_handle          - Namespace node
-> diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-> index 3aaaa86..f299347 100644
-> --- a/include/acpi/acpixf.h
-> +++ b/include/acpi/acpixf.h
-> @@ -115,6 +115,11 @@
->  	prototype;
->  #endif
->  
-> +#ifndef ACPI_EXTERNAL_RETURN_BOOL
-> +#define ACPI_EXTERNAL_RETURN_BOOL(prototype) \
-> +	prototype;
-> +#endif
-> +
->  /*****************************************************************************
->   *
->   * Public globals and runtime configuration options
-> @@ -483,6 +488,8 @@ ACPI_EXTERNAL_RETURN_STATUS(acpi_status
->  					      acpi_walk_callback user_function,
->  					      void *context,
->  					      void **return_value))
-> +ACPI_EXTERNAL_RETURN_BOOL(bool
-> +			     acpi_dev_present(const char *HID))
->  ACPI_EXTERNAL_RETURN_STATUS(acpi_status
->  			     acpi_get_name(acpi_handle object, u32 name_type,
->  					   struct acpi_buffer *ret_path_ptr))
-> 
