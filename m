@@ -1,60 +1,65 @@
 From: Lukas Wunner <lukas@wunner.de>
-Subject: [PATCH 2/5] eeepc-wmi: Use acpi_dev_present
+Subject: [PATCH 4/5] ALSA: hda - Use acpi_dev_present
 Date: Mon, 23 Nov 2015 15:34:55 +0100
-Message-ID: <bdff67293ead344ccec77f55437085561b1ad88d.1448282995.git.lukas@wunner.de>
+Message-ID: <515643b09b28cd6b4445a1ff194bf62b0d02989c.1448282995.git.lukas@wunner.de>
 References: <cover.1448282995.git.lukas@wunner.de>
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <alsa-devel-bounces@alsa-project.org>
 In-Reply-To: <cover.1448282995.git.lukas@wunner.de>
-Sender: platform-driver-x86-owner@vger.kernel.org
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
 To: linux-acpi@vger.kernel.org, devel@acpica.org
-Cc: platform-driver-x86@vger.kernel.org, Darren Hart <dvhart@infradead.org>, Corentin Chary <corentin.chary@gmail.com>
+Cc: Takashi Iwai <tiwai@suse.de>, Hui Wang <hui.wang@canonical.com>, alsa-devel@alsa-project.org
 List-Id: linux-acpi@vger.kernel.org
 
 Use shiny new acpi_dev_present and remove all the boilerplate to search
 for a particular ACPI device. No functional change.
 
-Cc: Corentin Chary <corentin.chary@gmail.com>
+Cc: Hui Wang <hui.wang@canonical.com>
+Cc: Takashi Iwai <tiwai@suse.de>
 Signed-off-by: Lukas Wunner <lukas@wunner.de>
 ---
- drivers/platform/x86/eeepc-wmi.c | 24 ++----------------------
- 1 file changed, 2 insertions(+), 22 deletions(-)
+ sound/pci/hda/thinkpad_helper.c | 17 ++---------------
+ 1 file changed, 2 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/platform/x86/eeepc-wmi.c b/drivers/platform/x86/eeepc-wmi.c
-index 14fd2ec..e1490db 100644
---- a/drivers/platform/x86/eeepc-wmi.c
-+++ b/drivers/platform/x86/eeepc-wmi.c
-@@ -204,30 +204,10 @@ static void eeepc_wmi_key_filter(struct asus_wmi_driver *asus_wmi, int *code,
- 	}
+diff --git a/sound/pci/hda/thinkpad_helper.c b/sound/pci/hda/thinkpad_helper.c
+index 0a4ad5f..59ab6ce 100644
+--- a/sound/pci/hda/thinkpad_helper.c
++++ b/sound/pci/hda/thinkpad_helper.c
+@@ -10,23 +10,10 @@
+ static int (*led_set_func)(int, bool);
+ static void (*old_vmaster_hook)(void *, int);
+ 
+-static acpi_status acpi_check_cb(acpi_handle handle, u32 lvl, void *context,
+-				 void **rv)
+-{
+-	bool *found = context;
+-	*found = true;
+-	return AE_OK;
+-}
+-
+ static bool is_thinkpad(struct hda_codec *codec)
+ {
+-	bool found = false;
+-	if (codec->core.subsystem_id >> 16 != 0x17aa)
+-		return false;
+-	if (ACPI_SUCCESS(acpi_get_devices("LEN0068", acpi_check_cb, &found, NULL)) && found)
+-		return true;
+-	found = false;
+-	return ACPI_SUCCESS(acpi_get_devices("IBM0068", acpi_check_cb, &found, NULL)) && found;
++	return (codec->core.subsystem_id >> 16 == 0x17aa) &&
++	       (acpi_dev_present("LEN0068") || acpi_dev_present("IBM0068"));
  }
  
--static acpi_status eeepc_wmi_parse_device(acpi_handle handle, u32 level,
--						 void *context, void **retval)
--{
--	pr_warn("Found legacy ATKD device (%s)\n", EEEPC_ACPI_HID);
--	*(bool *)context = true;
--	return AE_CTRL_TERMINATE;
--}
--
--static int eeepc_wmi_check_atkd(void)
--{
--	acpi_status status;
--	bool found = false;
--
--	status = acpi_get_devices(EEEPC_ACPI_HID, eeepc_wmi_parse_device,
--				  &found, NULL);
--
--	if (ACPI_FAILURE(status) || !found)
--		return 0;
--	return -1;
--}
--
- static int eeepc_wmi_probe(struct platform_device *pdev)
- {
--	if (eeepc_wmi_check_atkd()) {
-+	if (acpi_dev_present(EEEPC_ACPI_HID)) {
-+		pr_warn("Found legacy ATKD device (%s)\n", EEEPC_ACPI_HID);
- 		pr_warn("WMI device present, but legacy ATKD device is also "
- 			"present and enabled\n");
- 		pr_warn("You probably booted with acpi_osi=\"Linux\" or "
+ static void update_tpacpi_mute_led(void *private_data, int enabled)
 -- 
 1.8.5.2 (Apple Git-48)
