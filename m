@@ -1,57 +1,67 @@
-From: Lukas Wunner <lukas@wunner.de>
-Subject: [PATCH 3/5] acer-wmi: Use acpi_dev_present
-Date: Mon, 23 Nov 2015 15:34:55 +0100
-Message-ID: <16567313cc5fe318e4738ecd9442c04432f7e8cb.1448282995.git.lukas@wunner.de>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [PATCH 5/5] ASoC: Intel: Use acpi_dev_present
+Date: Mon, 23 Nov 2015 14:48:36 +0000
+Message-ID: <20151123144836.GJ1929@sirena.org.uk>
 References: <cover.1448282995.git.lukas@wunner.de>
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <cover.1448282995.git.lukas@wunner.de>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, devel@acpica.org
-Cc: platform-driver-x86@vger.kernel.org, Darren Hart <dvhart@infradead.org>, "Lee, Chun-Yi" <jlee@suse.com>
+ <b7bd5f48fd254fb743b99d5c3e63f95ea8dfd8a7.1448282995.git.lukas@wunner.de>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="===============4360483921248136309=="
+Return-path: <alsa-devel-bounces@alsa-project.org>
+In-Reply-To: <b7bd5f48fd254fb743b99d5c3e63f95ea8dfd8a7.1448282995.git.lukas@wunner.de>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: Lukas Wunner <lukas@wunner.de>
+Cc: Takashi Iwai <tiwai@suse.de>, linux-acpi@vger.kernel.org, alsa-devel@alsa-project.org, devel@acpica.org
 List-Id: linux-acpi@vger.kernel.org
 
-Use shiny new acpi_dev_present and remove all the boilerplate to search
-for a particular ACPI device. No functional change.
 
-Cc: Lee, Chun-Yi <jlee@suse.com>
-Signed-off-by: Lukas Wunner <lukas@wunner.de>
----
- drivers/platform/x86/acer-wmi.c | 16 ++++------------
- 1 file changed, 4 insertions(+), 12 deletions(-)
+--===============4360483921248136309==
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="/0U0QBNx7JIUZLHm"
+Content-Disposition: inline
 
-diff --git a/drivers/platform/x86/acer-wmi.c b/drivers/platform/x86/acer-wmi.c
-index 1062fa4..3deadd5 100644
---- a/drivers/platform/x86/acer-wmi.c
-+++ b/drivers/platform/x86/acer-wmi.c
-@@ -793,15 +793,6 @@ static acpi_status __init AMW0_find_mailled(void)
- 	return AE_OK;
- }
- 
--static int AMW0_set_cap_acpi_check_device_found __initdata;
--
--static acpi_status __init AMW0_set_cap_acpi_check_device_cb(acpi_handle handle,
--	u32 level, void *context, void **retval)
--{
--	AMW0_set_cap_acpi_check_device_found = 1;
--	return AE_OK;
--}
--
- static const struct acpi_device_id norfkill_ids[] __initconst = {
- 	{ "VPC2004", 0},
- 	{ "IBM0068", 0},
-@@ -816,9 +807,10 @@ static int __init AMW0_set_cap_acpi_check_device(void)
- 	const struct acpi_device_id *id;
- 
- 	for (id = norfkill_ids; id->id[0]; id++)
--		acpi_get_devices(id->id, AMW0_set_cap_acpi_check_device_cb,
--				NULL, NULL);
--	return AMW0_set_cap_acpi_check_device_found;
-+		if (acpi_dev_present(id->id))
-+			return true;
-+
-+	return false;
- }
- 
- static acpi_status __init AMW0_set_capabilities(void)
--- 
-1.8.5.2 (Apple Git-48)
+
+--/0U0QBNx7JIUZLHm
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+
+On Mon, Nov 23, 2015 at 03:34:55PM +0100, Lukas Wunner wrote:
+> Use shiny new acpi_dev_present and remove all the boilerplate to search
+> for a particular ACPI device. No functional change.
+
+This will collide with some other work done on the Intel code in -next I
+expect, probably best to merge this via ASoC (so pulling a shared branch
+for the new API) or just wait till 4.5 to do the conversion.
+
+--/0U0QBNx7JIUZLHm
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJWUydDAAoJECTWi3JdVIfQBaEH/3RPvMmzRdZ0X5gz8n01wCBe
+gG1Ri0ZJx61GdWCMCnM73LcsluJCtKz+fM3XHakmfHeWZixBK0eWu9o9/+x2Wfg4
+ULaMru3NtBWlGKkvdrya5vfAnO4qWJmxwPoREQcTO+Fkg6GYirnJHWigh7z6fb7/
+/gk9UUYHBkNgcXcoNrePhfyDn79+HK9LjvkV0gUcq7hn7YZ9AeNiQWYq7RchVVSb
+Z2PYrTEipQ4qz+AYyZ41mK1064H+0V/01CTC6NY0KIrC1hf6Xm6dzdemwfdo6Cdt
+VMjyrMksKcVYCJzM/TGmLjAf0Wlr0HVODSVSSiFcjsx8q8gZTRaJ3sDp8tY1uLE=
+=Lof4
+-----END PGP SIGNATURE-----
+
+--/0U0QBNx7JIUZLHm--
+
+--===============4360483921248136309==
+Content-Type: text/plain; charset="us-ascii"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+
+
+--===============4360483921248136309==--
