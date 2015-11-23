@@ -1,104 +1,77 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH V3 2/6] acpi: pci: Setup MSI domain for ACPI based pci
- devices
-Date: Sun, 22 Nov 2015 11:35:53 +0000
-Message-ID: <20151122113553.4fd81185@arm.com>
-References: <1445453249-32557-1-git-send-email-Suravee.Suthikulpanit@amd.com>
-	<1445453249-32557-3-git-send-email-Suravee.Suthikulpanit@amd.com>
-	<20151119120807.07ffd476@arm.com>
-	<5650DFB5.2010809@amd.com>
+From: Lukas Wunner <lukas@wunner.de>
+Subject: [PATCH 0/5] Add acpi_dev_present
+Date: Mon, 23 Nov 2015 15:34:55 +0100
+Message-ID: <cover.1448282995.git.lukas@wunner.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:51846 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751474AbbKVLgG (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 22 Nov 2015 06:36:06 -0500
-In-Reply-To: <5650DFB5.2010809@amd.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <alsa-devel-bounces@alsa-project.org>
+List-Unsubscribe: <http://mailman.alsa-project.org/mailman/options/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=unsubscribe>
+List-Archive: <http://mailman.alsa-project.org/pipermail/alsa-devel/>
+List-Post: <mailto:alsa-devel@alsa-project.org>
+List-Help: <mailto:alsa-devel-request@alsa-project.org?subject=help>
+List-Subscribe: <http://mailman.alsa-project.org/mailman/listinfo/alsa-devel>,
+ <mailto:alsa-devel-request@alsa-project.org?subject=subscribe>
+Errors-To: alsa-devel-bounces@alsa-project.org
+Sender: alsa-devel-bounces@alsa-project.org
+To: linux-acpi@vger.kernel.org, devel@acpica.org
+Cc: Hui Wang <hui.wang@canonical.com>, alsa-devel@alsa-project.org, Takashi Iwai <tiwai@suse.de>, platform-driver-x86@vger.kernel.org, "Lee,
+ Chun-Yi" <jlee@suse.com>, Mark Brown <broonie@kernel.org>, Corentin Chary <corentin.chary@gmail.com>, Darren Hart <dvhart@infradead.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Cc: tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, hanjun.guo@linaro.org, tomasz.nowicki@linaro.org, graeme.gregory@linaro.org, dhdang@apm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-On Sat, 21 Nov 2015 15:18:45 -0600
-Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com> wrote:
+Hi everyone,
 
-> Hi Marc,
-> 
-> On 11/19/15 06:08, Marc Zyngier wrote:
-> > On Wed, 21 Oct 2015 11:47:25 -0700
-> > Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com> wrote:
-> >
-> > Hi Suravee,
-> >
-> > Sorry it took so long to get to this series. Comments below.
-> 
-> No worry.
-> 
-> >
-> >> This patch introduces pci_host_bridge_acpi_msi_domain(), which returns
-> >> the MSI domain of the specified PCI host bridge with DOMAIN_BUS_PCI_MSI
-> >> bus token. Then, it is assigned to pci device.
-> >>
-> >> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-> >> ---
-> >>   drivers/pci/pci-acpi.c | 13 +++++++++++++
-> >>   drivers/pci/probe.c    |  2 ++
-> >>   include/linux/pci.h    |  7 +++++++
-> >>   3 files changed, 22 insertions(+)
-> >>
-> >> diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-> >> index a32ba75..0e21ef4 100644
-> >> --- a/drivers/pci/pci-acpi.c
-> >> +++ b/drivers/pci/pci-acpi.c
-> >> @@ -9,7 +9,9 @@
-> >>
-> >>   #include <linux/delay.h>
-> >>   #include <linux/init.h>
-> >> +#include <linux/irqdomain.h>
-> >>   #include <linux/pci.h>
-> >> +#include <linux/msi.h>
-> >>   #include <linux/pci_hotplug.h>
-> >>   #include <linux/module.h>
-> >>   #include <linux/pci-aspm.h>
-> >> @@ -689,6 +691,17 @@ static struct acpi_bus_type acpi_pci_bus = {
-> >>   	.cleanup = pci_acpi_cleanup,
-> >>   };
-> >>
-> >> +struct irq_domain *pci_host_bridge_acpi_msi_domain(struct pci_bus *bus)
-> >> +{
-> >> +	struct irq_domain *dom = NULL;
-> >> +	struct fwnode_handle *fwnode = pci_msi_get_fwnode(&bus->dev);
-> >> +
-> >> +	if (fwnode)
-> >> +		dom = irq_find_matching_fwnode(fwnode,
-> >> +					       DOMAIN_BUS_PCI_MSI);
-> >> +	return dom;
-> >> +}
-> >> +
-> >
-> > Given this, I really question the need for what you define in patch #1
-> > to be standalone. It is only used by ACPI (DT has its own private
-> > helpers), and it is so far unlikely that it will be of any use for
-> > other firmware interfaces.
-> >
-> > My suggestion is to get rid of pci_msi_get_fwnode() and move the
-> > registration helper into this file. That'd be much simpler.
-> >
-> > Thanks,
-> >
-> > 	M.
-> >
-> 
-> Ok, I'll take care of this. I assume the rest of the patches looks ok.
+I need to detect the presence of apple-gmux (ACPI HID "APP000B")
+in several DRM drivers to handle backlight, runtime pm and
+deferred probing properly.
 
-I still need to finish going through it (I have minor comments so far
-on some of the other patches), but I want to get the core ACPI stuff in
-shape before doing anything else.
+There's an idiom in use by 7 other drivers to detect presence of
+a particular ACPI HID which involves calling acpi_get_devices()
+and passing it a minimal callback that does no further filtering.
+However this approach results in lots of duplicate code.
+
+This series adds acpi_dev_present(), the ACPI equivalent to
+pci_dev_present(). It takes a HID string and returns a bool,
+allowing us to simplify the drivers considerably by removing
+all the duplicate callbacks and other boilerplate.
+
+I've pushed these patches to GitHub to ease reviewing:
+https://github.com/l1k/linux/commits/acpi_dev_present
+
+Should this series find acceptance, it would probably be best if
+we could agree to merge everything through a single repository,
+e.g. acpi (git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm).
+or alternatively alsa (which contains 5 of the 7 drivers involved).
+Consequently I would like to invite the driver maintainers to
+kindly provide acks (or raise objections, if any).
+
+The series should not result in any functional changes, however
+I lack the hardware to actually verify this for every driver
+involved. I did test it with apple-gmux though.
 
 Thanks,
 
-	M.
+Lukas
+
+
+Lukas Wunner (5):
+  ACPICA: Add acpi_dev_present
+  eeepc-wmi: Use acpi_dev_present
+  acer-wmi: Use acpi_dev_present
+  ALSA: hda - Use acpi_dev_present
+  ASoC: Intel: Use acpi_dev_present
+
+ drivers/acpi/acpica/nsxfeval.c               | 46 ++++++++++++++++++++++++++++
+ drivers/platform/x86/acer-wmi.c              | 16 +++-------
+ drivers/platform/x86/eeepc-wmi.c             | 24 ++-------------
+ include/acpi/acpixf.h                        |  7 +++++
+ sound/pci/hda/thinkpad_helper.c              | 17 ++--------
+ sound/soc/intel/atom/sst/sst_acpi.c          | 12 +-------
+ sound/soc/intel/boards/cht_bsw_max98090_ti.c | 17 ++--------
+ sound/soc/intel/boards/cht_bsw_rt5645.c      | 13 +-------
+ sound/soc/intel/common/sst-acpi.c            | 12 +-------
+ 9 files changed, 66 insertions(+), 98 deletions(-)
+
 -- 
-Jazz is not dead. It just smells funny.
+1.8.5.2 (Apple Git-48)
