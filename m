@@ -1,45 +1,63 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 2/5] eeepc-wmi: Use acpi_dev_present
-Date: Mon, 23 Nov 2015 23:35:55 +0100
-Message-ID: <1776557.hOTai0RnF7@vostro.rjw.lan>
-References: <cover.1448282995.git.lukas@wunner.de> <bdff67293ead344ccec77f55437085561b1ad88d.1448282995.git.lukas@wunner.de> <20151123190413.GU7413@malice.jf.intel.com>
+Subject: Re: [PATCH 5/5] ASoC: Intel: Use acpi_dev_present
+Date: Mon, 23 Nov 2015 23:37:14 +0100
+Message-ID: <2021675.v2py4IEzgb@vostro.rjw.lan>
+References: <cover.1448282995.git.lukas@wunner.de> <b7bd5f48fd254fb743b99d5c3e63f95ea8dfd8a7.1448282995.git.lukas@wunner.de> <20151123144836.GJ1929@sirena.org.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: multipart/signed; boundary="nextPart4873364.aXPVcA1JXl"; micalg="pgp-sha256"; protocol="application/pgp-signature"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:44633 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:44145 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751400AbbKWWGR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Nov 2015 17:06:17 -0500
-In-Reply-To: <20151123190413.GU7413@malice.jf.intel.com>
+	with SMTP id S1750987AbbKWWHl (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Nov 2015 17:07:41 -0500
+In-Reply-To: <20151123144836.GJ1929@sirena.org.uk>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Darren Hart <dvhart@infradead.org>
-Cc: Lukas Wunner <lukas@wunner.de>, linux-acpi@vger.kernel.org, devel@acpica.org, platform-driver-x86@vger.kernel.org, Corentin Chary <corentin.chary@gmail.com>
+To: Mark Brown <broonie@kernel.org>
+Cc: Lukas Wunner <lukas@wunner.de>, linux-acpi@vger.kernel.org, devel@acpica.org, alsa-devel@alsa-project.org, Takashi Iwai <tiwai@suse.de>
 
-On Monday, November 23, 2015 11:04:13 AM Darren Hart wrote:
+
+--nextPart4873364.aXPVcA1JXl
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="utf-8"
+
+On Monday, November 23, 2015 02:48:36 PM Mark Brown wrote:
 > On Mon, Nov 23, 2015 at 03:34:55PM +0100, Lukas Wunner wrote:
 > > Use shiny new acpi_dev_present and remove all the boilerplate to search
 > > for a particular ACPI device. No functional change.
 > 
-> You did add a pr_warn, which is technically a functional change. Did you intend
-> to leave that in?
-> 
-> I have no objection for platform-drivers-x86, but please include all maintainers
-> listed by get_maintainer.pl for the fastest response.
-> 
-> +Rafael
-> 
-> Rafael, I assume you will pick this up along with the acpi_dev_present ACPI
-> change if you take that. Pleaes let me know if not.
-> 
-> Otherwise,
-> 
-> Acked-by: Darren Hart <dvhart@linux.intel.com>
+> This will collide with some other work done on the Intel code in -next I
+> expect, probably best to merge this via ASoC (so pulling a shared branch
+> for the new API) or just wait till 4.5 to do the conversion.
 
-In fact, patch [1/5] as is needs to go in through upstream ACPICA, so I'm not
-taking this series and please don't take it too.
+If patch [1/5] is done the way it is, then it needs to go to upstream ACPICA
+first and from there to Linux, so I guess no worries for now. :-)
 
 Thanks,
 Rafael
+
+--nextPart4873364.aXPVcA1JXl
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part.
+Content-Transfer-Encoding: 7Bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.22 (GNU/Linux)
+
+iQIcBAABCAAGBQJWU5UfAAoJEILEb/54YlRxfA8P+wRcG7MPs3/pD8q7xOYahK2N
+F74TMOCN6Qct2WhCUI0UPZbF8OTvnRuR+UnaVpARcnURzeeX7AGa9n6XcK20aHsJ
+Ra9NWVoz6+yL6OZZZnTWvHhhvgdPIgFFTxfvNTpEOLzZ1Z8DSWEb5wCeeGmrGCt5
+YX+iVRaWgHCOuCyi2pbbOH+e6bid2OR/ozHAxPikysaF33NP06EEt2ownn20/Wf5
+Nn54KqxK+1qHwo5qMmkvP+pSnmhI+h42OsAUS/qFum8KsQ+20e5bHtkS6f0vJCj1
+tsr4m0nxpZ1T/xbjBZ32MYNVhutAcPV0E5jNgSVVO+q/3vbGyCS/ghhDCoFh3hJA
+LFDKl1PXXU/l949sF36Bn6N7paPuUyGSZc+IqOw9dRiQ+9EenSipzfp7pKU5ROMs
+Fhk3oDtHPFbShNq6mbS11wpnySgbZa+/8LBl03gYCnICEl5yhdCOtklPGupcO7IK
+ZDpRxnldau9gzHwj70Gl00OXnECaIB3AEeXgHkUENF4JjzAtZ04z7W5vEwwvW3Xa
+FzGgQzYza1G6oUfXR53wikUK9vOd4dB1IZD8ysrAh6vRuY7AK8HzlurvfyhT07kv
+MeC1PPSVoGfHGUek2ZqbnHu0HLYFNswWRTiwWSPzt/lSpZIUN+YiuheehhfF3dRI
+QxlUvtR29YqukP4KUbq8
+=VqmI
+-----END PGP SIGNATURE-----
+
+--nextPart4873364.aXPVcA1JXl--
 
