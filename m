@@ -1,56 +1,124 @@
-From: Tejun Heo <tj@kernel.org>
-Subject: Re: [PATCH v3 0/5] Make cpuid <-> nodeid mapping persistent.
-Date: Mon, 23 Nov 2015 17:04:51 -0500
-Message-ID: <20151123220451.GG19072@mtj.duckdns.org>
-References: <1447906935-31899-1-git-send-email-tangchen@cn.fujitsu.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 1/5] ACPICA: Add acpi_dev_present
+Date: Mon, 23 Nov 2015 23:34:38 +0100
+Message-ID: <2726545.001oM5V9lv@vostro.rjw.lan>
+References: <cover.1448282995.git.lukas@wunner.de> <d66501819cfa8f3d3b07708d3f20e3e20d07e4f8.1448282995.git.lukas@wunner.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yk0-f181.google.com ([209.85.160.181]:36061 "EHLO
-	mail-yk0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752384AbbKWWEz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 23 Nov 2015 17:04:55 -0500
-Content-Disposition: inline
-In-Reply-To: <1447906935-31899-1-git-send-email-tangchen@cn.fujitsu.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <d66501819cfa8f3d3b07708d3f20e3e20d07e4f8.1448282995.git.lukas@wunner.de>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Lukas Wunner <lukas@wunner.de>
+Cc: linux-acpi@vger.kernel.org, devel@acpica.org, platform-driver-x86@vger.kernel.org, Darren Hart <dvhart@infradead.org>, Corentin Chary <corentin.chary@gmail.com>, "Lee, Chun-Yi" <jlee@suse.com>, alsa-devel@alsa-project.org, Takashi Iwai <tiwai@suse.de>, Hui Wang <hui.wang@canonical.com>, Mark Brown <broonie@kernel.org>, Lv Zheng <lv.zheng@intel.com>, Robert Moore <robert.moore@intel.com>, David Box <david.e.box@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: cl@linux.com, jiang.liu@linux.intel.com, mika.j.penttila@gmail.com, mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
 
-Hello,
+On Monday, November 23, 2015 03:34:55 PM Lukas Wunner wrote:
+> There are 7 drivers which call acpi_get_devices to check for the
+> presence of a particular ACPI HID, each defining its own copy of
+> a mostly identical callback.
+> 
+> Add acpi_dev_present, the ACPI equivalent to pci_dev_present,
+> allowing us to deduplicate all that boilerplate in the drivers.
+> 
+> Signed-off-by: Lukas Wunner <lukas@wunner.de>
 
-On Thu, Nov 19, 2015 at 12:22:10PM +0800, Tang Chen wrote:
-> [Solution]
-> 
-> There are four mappings in the kernel:
-> 1. nodeid (logical node id)   <->   pxm
-> 2. apicid (physical cpu id)   <->   nodeid
-> 3. cpuid (logical cpu id)     <->   apicid
-> 4. cpuid (logical cpu id)     <->   nodeid
-> 
-> 1. pxm (proximity domain) is provided by ACPI firmware in SRAT, and nodeid <-> pxm
->    mapping is setup at boot time. This mapping is persistent, won't change.
-> 
-> 2. apicid <-> nodeid mapping is setup using info in 1. The mapping is setup at boot
->    time and CPU hotadd time, and cleared at CPU hotremove time. This mapping is also
->    persistent.
-> 
-> 3. cpuid <-> apicid mapping is setup at boot time and CPU hotadd time. cpuid is
->    allocated, lower ids first, and released at CPU hotremove time, reused for other
->    hotadded CPUs. So this mapping is not persistent.
-> 
-> 4. cpuid <-> nodeid mapping is also setup at boot time and CPU hotadd time, and
->    cleared at CPU hotremove time. As a result of 3, this mapping is not persistent.
-> 
-> To fix this problem, we establish cpuid <-> nodeid mapping for all the possible
-> cpus at boot time, and make it persistent. And according to init_cpu_to_node(),
-> cpuid <-> nodeid mapping is based on apicid <-> nodeid mapping and cpuid <-> apicid
-> mapping. So the key point is obtaining all cpus' apicid.
+We have a general rule for ACPICA patches that they go in through upstream ACPICA.
 
-I don't know much about acpi so can't actually review the patches but
-the overall approach looks good to me.
+So if you really want this changes in ACPICA, this is the way to handle it.
 
-Thanks.
+Now, of course, for that to happen, you should have CCed the ACPICA maintainers
+too (now done).
 
--- 
-tejun
+Thanks,
+Rafael
+
+
+> ---
+>  drivers/acpi/acpica/nsxfeval.c | 46 ++++++++++++++++++++++++++++++++++++++++++
+>  include/acpi/acpixf.h          |  7 +++++++
+>  2 files changed, 53 insertions(+)
+> 
+> diff --git a/drivers/acpi/acpica/nsxfeval.c b/drivers/acpi/acpica/nsxfeval.c
+> index 6ee1e52..19293fa 100644
+> --- a/drivers/acpi/acpica/nsxfeval.c
+> +++ b/drivers/acpi/acpica/nsxfeval.c
+> @@ -828,6 +828,52 @@ ACPI_EXPORT_SYMBOL(acpi_get_devices)
+>  
+>  /*******************************************************************************
+>   *
+> + * FUNCTION:    acpi_ns_dev_present_callback
+> + *
+> + * PARAMETERS:  Callback from acpi_get_devices
+> + *
+> + * RETURN:      Status
+> + *
+> + * DESCRIPTION: Minimal callback to be passed to acpi_get_devices which
+> + *              performs no further filtering and terminates the search
+> + *              immediately.
+> + *
+> + ******************************************************************************/
+> +static acpi_status acpi_ns_dev_present_callback(acpi_handle handle, u32 level,
+> +						void *context, void **retval)
+> +{
+> +	*(bool *)context = true;
+> +	return AE_CTRL_TERMINATE;
+> +}
+> +
+> +/*******************************************************************************
+> + *
+> + * FUNCTION:    acpi_dev_present
+> + *
+> + * PARAMETERS:  HID                 - HID to search for.
+> + *
+> + * RETURNS      True if a matching object of type Device was found.
+> + *
+> + * DESCRIPTION: Performs a walk of the namespace tree. When a matching object
+> + *              of type Device is found, the search is terminated immediately.
+> + *
+> + ******************************************************************************/
+> +
+> +bool
+> +acpi_dev_present(const char *HID)
+> +{
+> +	acpi_status status;
+> +	bool found = false;
+> +
+> +	status = acpi_get_devices(HID, acpi_ns_dev_present_callback, &found,
+> +				  NULL);
+> +	return ACPI_SUCCESS(status) && found;
+> +}
+> +
+> +ACPI_EXPORT_SYMBOL(acpi_dev_present)
+> +
+> +/*******************************************************************************
+> + *
+>   * FUNCTION:    acpi_attach_data
+>   *
+>   * PARAMETERS:  obj_handle          - Namespace node
+> diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+> index 3aaaa86..f299347 100644
+> --- a/include/acpi/acpixf.h
+> +++ b/include/acpi/acpixf.h
+> @@ -115,6 +115,11 @@
+>  	prototype;
+>  #endif
+>  
+> +#ifndef ACPI_EXTERNAL_RETURN_BOOL
+> +#define ACPI_EXTERNAL_RETURN_BOOL(prototype) \
+> +	prototype;
+> +#endif
+> +
+>  /*****************************************************************************
+>   *
+>   * Public globals and runtime configuration options
+> @@ -483,6 +488,8 @@ ACPI_EXTERNAL_RETURN_STATUS(acpi_status
+>  					      acpi_walk_callback user_function,
+>  					      void *context,
+>  					      void **return_value))
+> +ACPI_EXTERNAL_RETURN_BOOL(bool
+> +			     acpi_dev_present(const char *HID))
+>  ACPI_EXTERNAL_RETURN_STATUS(acpi_status
+>  			     acpi_get_name(acpi_handle object, u32 name_type,
+>  					   struct acpi_buffer *ret_path_ptr))
+> 
