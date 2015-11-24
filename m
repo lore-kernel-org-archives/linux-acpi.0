@@ -1,48 +1,70 @@
 From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH v3 0/3] Allow EINJ to inject memory error to NVDIMM
-Date: Tue, 24 Nov 2015 15:33:35 -0700
-Message-ID: <1448404418-28800-1-git-send-email-toshi.kani@hpe.com>
+Subject: [PATCH v3 2/3] resource: Add region_intersects_pmem()
+Date: Tue, 24 Nov 2015 15:33:37 -0700
+Message-ID: <1448404418-28800-3-git-send-email-toshi.kani@hpe.com>
+References: <1448404418-28800-1-git-send-email-toshi.kani@hpe.com>
 Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1448404418-28800-1-git-send-email-toshi.kani@hpe.com>
 Sender: owner-linux-mm@kvack.org
 To: akpm@linux-foundation.org, rjw@rjwysocki.net, dan.j.williams@intel.com
-Cc: tony.luck@intel.com, bp@alien8.de, vishal.l.verma@intel.com, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: tony.luck@intel.com, bp@alien8.de, vishal.l.verma@intel.com, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
 List-Id: linux-acpi@vger.kernel.org
 
-This patch-set extends the EINJ driver to allow injecting a memory
-error to NVDIMM.  It first extends iomem resource interface to support
-checking a NVDIMM region.
+Add region_intersects_pmem(), which checks if a specified address
+range is persistent memory registered as "Persistent Memory" in
+the iomem_resource list.
 
-Patch 1/3 changes region_intersects() to accept non-RAM regions, and
-adds region_intersects_ram().
+Note, it does not support legacy persistent memory registered as
+"Persistent Memory (legacy)".  It can be supported by extending
+this function or a separate function, if necessary.
 
-Patch 2/3 adds region_intersects_pmem() to check a NVDIMM region.
+This interface is exported so that it can be called from modules,
+such as the EINJ driver.
 
-Patch 3/3 changes the EINJ driver to allow injecting a memory error
-to NVDIMM.
-
+Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
 ---
-v3:
- - Check the param2 value before target memory type. (Tony Luck)
- - Add a blank line before if-statement. Remove an unnecessary brakets.
-   (Borislav Petkov)
+ include/linux/mm.h |    1 +
+ kernel/resource.c  |   12 ++++++++++++
+ 2 files changed, 13 insertions(+)
 
-v2:
- - Change the EINJ driver to call region_intersects_ram() for checking
-   RAM with a specified size. (Dan Williams)
- - Add export to region_intersects_ram().
-
----
-Toshi Kani (3):
- 1/3 resource: Add @flags to region_intersects()
- 2/3 resource: Add region_intersects_pmem()
- 3/3 ACPI/APEI/EINJ: Allow memory error injection to NVDIMM
-
----
- drivers/acpi/apei/einj.c | 12 ++++++++----
- include/linux/mm.h       |  5 ++++-
- kernel/memremap.c        |  5 ++---
- kernel/resource.c        | 35 ++++++++++++++++++++++++++++-------
- 4 files changed, 42 insertions(+), 15 deletions(-)
+diff --git a/include/linux/mm.h b/include/linux/mm.h
+index c776af3..3825879 100644
+--- a/include/linux/mm.h
++++ b/include/linux/mm.h
+@@ -365,6 +365,7 @@ enum {
+ int region_intersects(resource_size_t offset, size_t size, const char *type,
+ 			unsigned long flags);
+ int region_intersects_ram(resource_size_t offset, size_t size);
++int region_intersects_pmem(resource_size_t offset, size_t size);
+ 
+ /* Support for virtually mapped pages */
+ struct page *vmalloc_to_page(const void *addr);
+diff --git a/kernel/resource.c b/kernel/resource.c
+index 15c133e..5230e63 100644
+--- a/kernel/resource.c
++++ b/kernel/resource.c
+@@ -548,6 +548,18 @@ int region_intersects_ram(resource_size_t start, size_t size)
+ }
+ EXPORT_SYMBOL_GPL(region_intersects_ram);
+ 
++/*
++ * region_intersects_pmem() checks if a specified address range is
++ * persistent memory, registered as "Persistent Memory", in the
++ * iomem_resource list.
++ */
++int region_intersects_pmem(resource_size_t start, size_t size)
++{
++	return region_intersects(start, size, "Persistent Memory",
++				 IORESOURCE_MEM);
++}
++EXPORT_SYMBOL_GPL(region_intersects_pmem);
++
+ void __weak arch_remove_reservations(struct resource *avail)
+ {
+ }
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
