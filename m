@@ -1,29 +1,140 @@
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Subject: Re: [PATCH 3/3] nfit: Adjust for different _FIT and NFIT headers
-Date: Tue, 24 Nov 2015 17:52:33 +0000
-Message-ID: <1448387553.27481.14.camel@intel.com>
-References: <cover.1448045168.git.linda.knippers@hpe.com>
-		 <03fba073944c91810f89e321cb7fa024f8e9e2c1.1448045168.git.linda.knippers@hpe.com>
-	 <1448321216.27481.7.camel@intel.com> <565490D1.8020304@hpe.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH V4] acpi: add support for extended IRQ to PCI link
+Date: Tue, 24 Nov 2015 12:11:50 -0600
+Message-ID: <20151124181150.GA27957@localhost>
+References: <1447902818-15810-1-git-send-email-okaya@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:64523 "EHLO mga09.intel.com"
+Received: from mail.kernel.org ([198.145.29.136]:55773 "EHLO mail.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752829AbbKXRwf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 24 Nov 2015 12:52:35 -0500
-In-Reply-To: <565490D1.8020304@hpe.com>
-Content-Language: en-US
-Content-ID: <ACD7C2BA99F4A84BAFB1EDED2647998F@intel.com>
+	id S1753009AbbKXSLz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 24 Nov 2015 13:11:55 -0500
+Content-Disposition: inline
+In-Reply-To: <1447902818-15810-1-git-send-email-okaya@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Williams, Dan J" <dan.j.williams@intel.com>, "linda.knippers@hpe.com" <linda.knippers@hpe.com>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "toshi.kani@hpe.com" <toshi.kani@hpe.com>, "jmoyer@redhat.com" <jmoyer@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "elliott@hpe.com" <elliott@hpe.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
 
-T24gVHVlLCAyMDE1LTExLTI0IGF0IDExOjMxIC0wNTAwLCBMaW5kYSBLbmlwcGVycyB3cm90ZToN
-Cj4gDQo+IEkgd291bGQgcmVhbGx5IGxpa2UgdG8gc2VlIHRoaXMgc2VyaWVzIGdvIGluIHNvb24g
-YmVjYXVzZSBzaW5jZSB0aGUNCj4gaG90cGx1ZyBjb2RlIHdlbnQgaW4gSSBjYW4ndCBydW4gYW4g
-dXBzdHJlYW0ga2VybmVsIG9uIG15IGhhcmR3YXJlLg0KPiANCkFncmVlZCAtIEknbSBndWVzc2lu
-ZyBEYW4gd2lsbCBxdWV1ZSB0aGlzIGZvciB0aGUgbmV4dCAtcmMgcHVsbCByZXF1ZXN0Lg0KVGhh
-bmtzIGZvciB0aGUgZml4ZXMh
+Hi Sinan,
+
+On Wed, Nov 18, 2015 at 10:13:38PM -0500, Sinan Kaya wrote:
+> The ACPI compiler uses the extended format when used
+> interrupt numbers are greater than 256. The PCI link code
+> currently only supports simple interrupt format. The IRQ
+> numbers are represented using 32 bits when extended IRQ
+> syntax. This patch changes the interrupt number type to
+> 32 bits and places an upper limit of 1020 as possible
+> interrupt id.
+> 
+> 1020 is the maximum interrupt ID that can be assigned to
+> an ARM SPI interrupt according to ARM architecture.
+> 
+> Additional checks have been placed to prevent out of bounds
+> writes.
+
+As Andy mentioned, please wrap this text to use more of an 80-column
+line.  I fill changelogs to 75 columns (vi textwidth=75), which fits
+perfectly when "git log" inserts 4 leading spaces.
+
+> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+> ---
+>  drivers/acpi/pci_link.c | 28 +++++++++++++++++++---------
+>  1 file changed, 19 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+> index 7c8408b..ec7ec16 100644
+> --- a/drivers/acpi/pci_link.c
+> +++ b/drivers/acpi/pci_link.c
+> @@ -1,6 +1,7 @@
+>  /*
+>   *  pci_link.c - ACPI PCI Interrupt Link Device Driver ($Revision: 34 $)
+>   *
+> + *  Copyright (c) 2015, The Linux Foundation. All rights reserved.
+>   *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
+>   *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
+>   *  Copyright (C) 2002       Dominik Brodowski <devel@brodo.de>
+> @@ -67,12 +68,12 @@ static struct acpi_scan_handler pci_link_handler = {
+>   * later even the link is disable. Instead, we just repick the active irq
+>   */
+>  struct acpi_pci_link_irq {
+> -	u8 active;		/* Current IRQ */
+> +	u32 active;		/* Current IRQ */
+>  	u8 triggering;		/* All IRQs */
+>  	u8 polarity;		/* All IRQs */
+>  	u8 resource_type;
+>  	u8 possible_count;
+> -	u8 possible[ACPI_PCI_LINK_MAX_POSSIBLE];
+> +	u32 possible[ACPI_PCI_LINK_MAX_POSSIBLE];
+>  	u8 initialized:1;
+>  	u8 reserved:7;
+>  };
+> @@ -437,7 +438,11 @@ static int acpi_pci_link_set(struct acpi_pci_link *link, int irq)
+>   * enabled system.
+>   */
+>  
+> -#define ACPI_MAX_IRQS		256
+> +/*
+> + * 1020 is the maximum interrupt ID that can be assigned to
+> + * an ARM SPI interrupt according to ARM architecture.
+> + */
+> +#define ACPI_MAX_IRQS		1020
+>  #define ACPI_MAX_ISA_IRQ	16
+>  
+>  #define PIRQ_PENALTY_PCI_AVAILABLE	(0)
+> @@ -493,7 +498,8 @@ int __init acpi_irq_penalty_init(void)
+>  					    penalty;
+>  			}
+>  
+> -		} else if (link->irq.active) {
+> +		} else if (link->irq.active &&
+> +			(link->irq.active < ACPI_MAX_IRQS)) {
+>  			acpi_irq_penalty[link->irq.active] +=
+>  			    PIRQ_PENALTY_PCI_POSSIBLE;
+>  		}
+> @@ -541,14 +547,16 @@ static int acpi_pci_link_allocate(struct acpi_pci_link *link)
+>  	else
+>  		irq = link->irq.possible[link->irq.possible_count - 1];
+>  
+> -	if (acpi_irq_balance || !link->irq.active) {
+> +	if ((acpi_irq_balance || !link->irq.active) && (irq < ACPI_MAX_IRQS)) {
+>  		/*
+>  		 * Select the best IRQ.  This is done in reverse to promote
+>  		 * the use of IRQs 9, 10, 11, and >15.
+>  		 */
+> -		for (i = (link->irq.possible_count - 1); i >= 0; i--) {
+> -			if (acpi_irq_penalty[irq] >
+> -			    acpi_irq_penalty[link->irq.possible[i]])
+> +		i = link->irq.possible_count;
+> +		while (--i >= 0) {
+> +			if ((link->irq.possible[i] < ACPI_MAX_IRQS) &&
+> +			    (acpi_irq_penalty[irq] >
+> +			    acpi_irq_penalty[link->irq.possible[i]]))
+>  				irq = link->irq.possible[i];
+>  		}
+>  	}
+> @@ -568,7 +576,9 @@ static int acpi_pci_link_allocate(struct acpi_pci_link *link)
+>  			    acpi_device_bid(link->device));
+>  		return -ENODEV;
+>  	} else {
+> -		acpi_irq_penalty[link->irq.active] += PIRQ_PENALTY_PCI_USING;
+> +		if (link->irq.active < ACPI_MAX_IRQS)
+> +			acpi_irq_penalty[link->irq.active] +=
+> +				PIRQ_PENALTY_PCI_USING;
+
+These changes are basically all bounds-checking link->irq.possible[i]
+and link->irq.active.  What if you put that checking at the point
+where we *initialize* those fields instead, i.e., in
+acpi_pci_link_check_possible() and acpi_pci_link_get_current()?  Then 
+you'd only have to check each field in one place, and you could easily
+add a message if we see an ID that's too large.
+
+I think the current code for ACPI_RESOURCE_TYPE_EXTENDED_IRQ is buggy
+because it silently truncates IDs to 8 bits.
+
+Bjorn
+
+>  		printk(KERN_WARNING PREFIX "%s [%s] enabled at IRQ %d\n",
+>  		       acpi_device_name(link->device),
+>  		       acpi_device_bid(link->device), link->irq.active);
