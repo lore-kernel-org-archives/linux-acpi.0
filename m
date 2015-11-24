@@ -1,34 +1,116 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH 1/3] nfit: Account for table size length variation
-Date: Tue, 24 Nov 2015 08:31:24 -0800
-Message-ID: <CAPcyv4jC5DURXdyny7gOkMRv62koSabn_KJpCr8O7MqMrjcy5g@mail.gmail.com>
-References: <cover.1448045168.git.linda.knippers@hpe.com>
-	<e65332cc9dbb7eff02f739aa5ba357d4097b4e6a.1448045168.git.linda.knippers@hpe.com>
-	<1448320884.27481.2.camel@intel.com>
-	<56548F20.7090407@hpe.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [Bugfix] x86/PCI: Fix regression caused by commit 4d6b4e69a245
+Date: Tue, 24 Nov 2015 10:49:07 -0600
+Message-ID: <20151124164907.GA24819@localhost>
+References: <1447648057-13644-1-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f48.google.com ([74.125.82.48]:38203 "EHLO
-	mail-wm0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753531AbbKXQbZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Nov 2015 11:31:25 -0500
-Received: by wmec201 with SMTP id c201so34469530wme.1
-        for <linux-acpi@vger.kernel.org>; Tue, 24 Nov 2015 08:31:24 -0800 (PST)
-In-Reply-To: <56548F20.7090407@hpe.com>
+Received: from mail.kernel.org ([198.145.29.136]:48794 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752459AbbKXQtL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 24 Nov 2015 11:49:11 -0500
+Content-Disposition: inline
+In-Reply-To: <1447648057-13644-1-git-send-email-jiang.liu@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linda Knippers <linda.knippers@hpe.com>
-Cc: "Verma, Vishal L" <vishal.l.verma@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "toshi.kani@hpe.com" <toshi.kani@hpe.com>, "jmoyer@redhat.com" <jmoyer@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "elliott@hpe.com" <elliott@hpe.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org, Keith Busch <keith.busch@intel.com>, Arthur Marsh <arthur.marsh@internode.on.net>
 
-On Tue, Nov 24, 2015 at 8:24 AM, Linda Knippers <linda.knippers@hpe.com> wrote:
-[..]
-> If we want to be more paranoid about buggy FW when we're comparing old
-> and new tables, we could compare based on the length of the old and new
-> tables since we have both pieces of information.  That would let you catch
-> the case where a table size changes during a hotplug event or whenever the
-> _FIT is processed.  Since you were comparing based on structure size instead
-> of header length, I didn't change that.
+On Mon, Nov 16, 2015 at 12:27:37PM +0800, Jiang Liu wrote:
+> From: Liu Jiang <jiang.liu@linux.intel.com>
+> 
+> Commit 4d6b4e69a245 ("x86/PCI/ACPI: Use common interface to support
+> PCI host bridge") converted x86 to use the common interface
+> acpi_pci_root_create, but the conversion missed on code piece in
+> arch/x86/pci/bus_numa.c, which causes regression on some legacy
+> AMD platforms as reported by Arthur Marsh <arthur.marsh@internode.on.net>.
+> The root causes is that acpi_pci_root_create() fails to insert
+> host bridge resources into iomem_resource/ioport_resource because
+> x86_pci_root_bus_resources() has already inserted those resources.
+> So change x86_pci_root_bus_resources() to not insert resources into
+> iomem_resource/ioport_resource.
 
-Comparing that the size didn't change sounds like a good incremental
-change to tag on later.
+Fixes: 4d6b4e69a245 ("x86/PCI/ACPI: Use common interface to support PCI host bridge")
+
+> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+> Reported-and-tested-by: Arthur Marsh <arthur.marsh@internode.on.net>
+
+What's the status of this?  It looks like a regression we need to fix
+for v4.4.
+
+AFAICT, Arthur did *not* test this patch (rather, his response says he
+did test it and the test failed).
+
+4d6b4e69a245 was merged by Rafael, and I assume he'll merge the fix
+unless I hear otherwise.
+
+Bjorn
+
+> Cc: Keith Busch <keith.busch@intel.com>
+> Cc: Arthur Marsh <arthur.marsh@internode.on.net>
+> ---
+>  arch/x86/pci/bus_numa.c |   16 +++-------------
+>  drivers/acpi/pci_root.c |    7 +++++++
+>  2 files changed, 10 insertions(+), 13 deletions(-)
+> 
+> diff --git a/arch/x86/pci/bus_numa.c b/arch/x86/pci/bus_numa.c
+> index 7bcf06a7cd12..ce53b5b64f51 100644
+> --- a/arch/x86/pci/bus_numa.c
+> +++ b/arch/x86/pci/bus_numa.c
+> @@ -41,27 +41,17 @@ void x86_pci_root_bus_resources(int bus, struct list_head *resources)
+>  	       bus);
+>  
+>  	/* already added by acpi ? */
+> -	resource_list_for_each_entry(window, resources)
+> +	resource_list_for_each_entry(window, &info->resources)
+>  		if (window->res->flags & IORESOURCE_BUS) {
+>  			found = true;
+>  			break;
+>  		}
+> -
+>  	if (!found)
+>  		pci_add_resource(resources, &info->busn);
+>  
+> -	list_for_each_entry(root_res, &info->resources, list) {
+> -		struct resource *res;
+> -		struct resource *root;
+> +	list_for_each_entry(root_res, &info->resources, list)
+> +		pci_add_resource(resources, &root_res->res);
+>  
+> -		res = &root_res->res;
+> -		pci_add_resource(resources, res);
+> -		if (res->flags & IORESOURCE_IO)
+> -			root = &ioport_resource;
+> -		else
+> -			root = &iomem_resource;
+> -		insert_resource(root, res);
+> -	}
+>  	return;
+>  
+>  default_resources:
+> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+> index 850d7bf0c873..ae3fe4e64203 100644
+> --- a/drivers/acpi/pci_root.c
+> +++ b/drivers/acpi/pci_root.c
+> @@ -768,6 +768,13 @@ static void pci_acpi_root_add_resources(struct acpi_pci_root_info *info)
+>  		else
+>  			continue;
+>  
+> +		/*
+> +		 * Some legacy x86 host bridge drivers use iomem_resource and
+> +		 * ioport_resource as default resource pool, skip it.
+> +		 */
+> +		if (res == root)
+> +			continue;
+> +
+>  		conflict = insert_resource_conflict(root, res);
+>  		if (conflict) {
+>  			dev_info(&info->bridge->dev,
+> -- 
+> 1.7.10.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
