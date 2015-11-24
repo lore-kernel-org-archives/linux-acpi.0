@@ -1,60 +1,54 @@
 From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v1 00/13] intel-lpss: support non-ACPI platforms
-Date: Tue, 24 Nov 2015 23:17:27 +0100
-Message-ID: <CAJZ5v0iXX_co4XbQ0aZR5S74aWM3gSaPKedZhtUT1k88ZEPU3A@mail.gmail.com>
-References: <1448360579-79260-1-git-send-email-andriy.shevchenko@linux.intel.com>
-	<2529008.Qej2ZWi12S@wuerfel>
+Subject: Re: [Bugfix] x86/PCI: Fix regression caused by commit 4d6b4e69a245
+Date: Tue, 24 Nov 2015 23:19:34 +0100
+Message-ID: <CAJZ5v0irOUq6C9eSfCfmzyOiY1n1rUSxyUeUbvS9Nj0jNT2JrQ@mail.gmail.com>
+References: <1447648057-13644-1-git-send-email-jiang.liu@linux.intel.com>
+	<20151124164907.GA24819@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2529008.Qej2ZWi12S@wuerfel>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, linux-i2c@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Kevin Fenzi <kevin@scrye.com>, Wolfram Sang <wsa@the-dreams.de>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lf0-f52.google.com ([209.85.215.52]:32999 "EHLO
+	mail-lf0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754196AbbKXWTg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Nov 2015 17:19:36 -0500
+In-Reply-To: <20151124164907.GA24819@localhost>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Jiang Liu <jiang.liu@linux.intel.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, x86@kernel.org, Keith Busch <keith.busch@intel.com>, Arthur Marsh <arthur.marsh@internode.on.net>
 
-On Tue, Nov 24, 2015 at 9:00 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> On Tuesday 24 November 2015 12:22:46 Andy Shevchenko wrote:
->> This series includes few logical sets that bring a support of non-ACPI
->> platforms for Intel Skylake.
+On Tue, Nov 24, 2015 at 5:49 PM, Bjorn Helgaas <helgaas@kernel.org> wrote:
+> On Mon, Nov 16, 2015 at 12:27:37PM +0800, Jiang Liu wrote:
+>> From: Liu Jiang <jiang.liu@linux.intel.com>
 >>
->> First part is a refactoring of built-in device properties support:
->>  - keep single value inside the structure
->>  - provide helper macros to define built-in properties
->>  - fall back to secondary fwnode if primary has no asked property
->>
->> Second one is modifications to MFD code and intel-lpss.c driver in particular
->> to define and pass built-in properties to the individual drivers.
->>
->> Last part is a fix for I2C bug found on Lenovo Yoga hardware and a first
->> converted user.
->>
->> Built-in device properties is an alternative to platform data. It provides a
->> unified API that drivers can use to cover all cases at once: DT, ACPI, and
->> built-in properties.
->>
->> With this series applied platform data can be considered obsolete. Moreover,
->> built-in device properties allows to adjust existing configuration, for
->> example, in cases when ACPI values are wrong on some platforms.
->>
->> The series has been tested on available hardware and doesn't break current
->> behaviour. But we ask you, Kevin, to apply the series on your side and check
->> with Lenovo hardware.
+>> Commit 4d6b4e69a245 ("x86/PCI/ACPI: Use common interface to support
+>> PCI host bridge") converted x86 to use the common interface
+>> acpi_pci_root_create, but the conversion missed on code piece in
+>> arch/x86/pci/bus_numa.c, which causes regression on some legacy
+>> AMD platforms as reported by Arthur Marsh <arthur.marsh@internode.on.net>.
+>> The root causes is that acpi_pci_root_create() fails to insert
+>> host bridge resources into iomem_resource/ioport_resource because
+>> x86_pci_root_bus_resources() has already inserted those resources.
+>> So change x86_pci_root_bus_resources() to not insert resources into
+>> iomem_resource/ioport_resource.
 >
-> I agree with Rafael, this looks really nice. I found one small thing that
-> could be improved, see the comment on patch 11.
+> Fixes: 4d6b4e69a245 ("x86/PCI/ACPI: Use common interface to support PCI host bridge")
 >
-> Aside from that, I think we should have a nicer way to pass a property
-> list through platform_device_info when calling
-> platform_device_register_full(). You don't do that here because the drivers
-> you change are based on MFD cells rather than direct platform devices,
-> but it would fit in the series and should be easy enough to do.
+>> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+>> Reported-and-tested-by: Arthur Marsh <arthur.marsh@internode.on.net>
 >
-> I don't know why Rafael didn't do that for the initial series already, maybe
-> he had a good reason.
+> What's the status of this?  It looks like a regression we need to fix
+> for v4.4.
+>
+> AFAICT, Arthur did *not* test this patch (rather, his response says he
+> did test it and the test failed).
+>
+> 4d6b4e69a245 was merged by Rafael, and I assume he'll merge the fix
+> unless I hear otherwise.
 
-I was focusing on the generics rather than on any particular
-individual bus type.
+Quite frankly, I'm more likely to revert the offending commit at this
+point as that's not the only regression reported against it and the
+fix only helps in one case (out of three known to me).
 
 Thanks,
 Rafael
