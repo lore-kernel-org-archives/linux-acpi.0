@@ -1,70 +1,60 @@
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH v3 3/3] ACPI/APEI/EINJ: Allow memory error injection to NVDIMM
-Date: Tue, 24 Nov 2015 15:33:38 -0700
-Message-ID: <1448404418-28800-4-git-send-email-toshi.kani@hpe.com>
-References: <1448404418-28800-1-git-send-email-toshi.kani@hpe.com>
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1448404418-28800-1-git-send-email-toshi.kani@hpe.com>
-Sender: owner-linux-mm@kvack.org
-To: akpm@linux-foundation.org, rjw@rjwysocki.net, dan.j.williams@intel.com
-Cc: tony.luck@intel.com, bp@alien8.de, vishal.l.verma@intel.com, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v1 00/13] intel-lpss: support non-ACPI platforms
+Date: Tue, 24 Nov 2015 23:17:27 +0100
+Message-ID: <CAJZ5v0iXX_co4XbQ0aZR5S74aWM3gSaPKedZhtUT1k88ZEPU3A@mail.gmail.com>
+References: <1448360579-79260-1-git-send-email-andriy.shevchenko@linux.intel.com>
+	<2529008.Qej2ZWi12S@wuerfel>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <2529008.Qej2ZWi12S@wuerfel>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, linux-i2c@vger.kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Lee Jones <lee.jones@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Kevin Fenzi <kevin@scrye.com>, Wolfram Sang <wsa@the-dreams.de>
 List-Id: linux-acpi@vger.kernel.org
 
-In the case of memory error injection, einj_error_inject() checks
-if a target address is regular RAM.  Update this check to add a call
-to region_intersects_pmem() to verify if a target address range is
-NVDIMM.  This allows injecting a memory error to both RAM and NVDIMM
-for testing.
+On Tue, Nov 24, 2015 at 9:00 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Tuesday 24 November 2015 12:22:46 Andy Shevchenko wrote:
+>> This series includes few logical sets that bring a support of non-ACPI
+>> platforms for Intel Skylake.
+>>
+>> First part is a refactoring of built-in device properties support:
+>>  - keep single value inside the structure
+>>  - provide helper macros to define built-in properties
+>>  - fall back to secondary fwnode if primary has no asked property
+>>
+>> Second one is modifications to MFD code and intel-lpss.c driver in particular
+>> to define and pass built-in properties to the individual drivers.
+>>
+>> Last part is a fix for I2C bug found on Lenovo Yoga hardware and a first
+>> converted user.
+>>
+>> Built-in device properties is an alternative to platform data. It provides a
+>> unified API that drivers can use to cover all cases at once: DT, ACPI, and
+>> built-in properties.
+>>
+>> With this series applied platform data can be considered obsolete. Moreover,
+>> built-in device properties allows to adjust existing configuration, for
+>> example, in cases when ACPI values are wrong on some platforms.
+>>
+>> The series has been tested on available hardware and doesn't break current
+>> behaviour. But we ask you, Kevin, to apply the series on your side and check
+>> with Lenovo hardware.
+>
+> I agree with Rafael, this looks really nice. I found one small thing that
+> could be improved, see the comment on patch 11.
+>
+> Aside from that, I think we should have a nicer way to pass a property
+> list through platform_device_info when calling
+> platform_device_register_full(). You don't do that here because the drivers
+> you change are based on MFD cells rather than direct platform devices,
+> but it would fit in the series and should be easy enough to do.
+>
+> I don't know why Rafael didn't do that for the initial series already, maybe
+> he had a good reason.
 
-In addition, the current RAM check, page_is_ram(), is replaced with
-region_intersects_ram() so that it can verify a target address range
-with the requested size.
+I was focusing on the generics rather than on any particular
+individual bus type.
 
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-Acked-by: Tony Luck <tony.luck@intel.com>
-Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
----
- drivers/acpi/apei/einj.c |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
-index 0431883..52792d2 100644
---- a/drivers/acpi/apei/einj.c
-+++ b/drivers/acpi/apei/einj.c
-@@ -519,7 +519,7 @@ static int einj_error_inject(u32 type, u32 flags, u64 param1, u64 param2,
- 			     u64 param3, u64 param4)
- {
- 	int rc;
--	unsigned long pfn;
-+	u64 base_addr, size;
- 
- 	/* If user manually set "flags", make sure it is legal */
- 	if (flags && (flags &
-@@ -545,10 +545,15 @@ static int einj_error_inject(u32 type, u32 flags, u64 param1, u64 param2,
- 	/*
- 	 * Disallow crazy address masks that give BIOS leeway to pick
- 	 * injection address almost anywhere. Insist on page or
--	 * better granularity and that target address is normal RAM.
-+	 * better granularity and that target address is normal RAM or
-+	 * NVDIMM.
- 	 */
--	pfn = PFN_DOWN(param1 & param2);
--	if (!page_is_ram(pfn) || ((param2 & PAGE_MASK) != PAGE_MASK))
-+	base_addr = param1 & param2;
-+	size = ~param2 + 1;
-+
-+	if (((param2 & PAGE_MASK) != PAGE_MASK) ||
-+	    ((region_intersects_ram(base_addr, size) != REGION_INTERSECTS) &&
-+	     (region_intersects_pmem(base_addr, size) != REGION_INTERSECTS)))
- 		return -EINVAL;
- 
- inject:
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Thanks,
+Rafael
