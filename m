@@ -1,52 +1,80 @@
-From: Darren Hart <dvhart@infradead.org>
-Subject: Re: [PATCH 2/5] eeepc-wmi: Use acpi_dev_present
-Date: Tue, 24 Nov 2015 09:08:19 -0800
-Message-ID: <20151124170819.GC30134@malice.jf.intel.com>
-References: <cover.1448282995.git.lukas@wunner.de>
- <bdff67293ead344ccec77f55437085561b1ad88d.1448282995.git.lukas@wunner.de>
- <20151123190413.GU7413@malice.jf.intel.com>
- <1776557.hOTai0RnF7@vostro.rjw.lan>
+From: Eduardo Valentin <edubezval@gmail.com>
+Subject: [GIT PULL] Thermal-SoC management updates for v4.4-rc3
+Date: Tue, 24 Nov 2015 09:29:55 -0800
+Message-ID: <20151124172953.GB14845@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:43614 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751256AbbKXRI0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Nov 2015 12:08:26 -0500
+Return-path: <linux-pm-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1776557.hOTai0RnF7@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Sender: linux-pm-owner@vger.kernel.org
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Rui Zhang <rui.zhang@intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Lukas Wunner <lukas@wunner.de>, linux-acpi@vger.kernel.org, devel@acpica.org, platform-driver-x86@vger.kernel.org, Corentin Chary <corentin.chary@gmail.com>
 
-On Mon, Nov 23, 2015 at 11:35:55PM +0100, Rafael Wysocki wrote:
-> On Monday, November 23, 2015 11:04:13 AM Darren Hart wrote:
-> > On Mon, Nov 23, 2015 at 03:34:55PM +0100, Lukas Wunner wrote:
-> > > Use shiny new acpi_dev_present and remove all the boilerplate to search
-> > > for a particular ACPI device. No functional change.
-> > 
-> > You did add a pr_warn, which is technically a functional change. Did you intend
-> > to leave that in?
-> > 
-> > I have no objection for platform-drivers-x86, but please include all maintainers
-> > listed by get_maintainer.pl for the fastest response.
-> > 
-> > +Rafael
-> > 
-> > Rafael, I assume you will pick this up along with the acpi_dev_present ACPI
-> > change if you take that. Pleaes let me know if not.
-> > 
-> > Otherwise,
-> > 
-> > Acked-by: Darren Hart <dvhart@linux.intel.com>
-> 
-> In fact, patch [1/5] as is needs to go in through upstream ACPICA, so I'm not
-> taking this series and please don't take it too.
+Hello Rui,
 
-Ah, thanks, my mistake.
+Please pull from
 
+  git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal fixes
 
--- 
-Darren Hart
-Intel Open Source Technology Center
+to receive Thermal-SoC Management updates for v4.4-rc3 with top-most
+
+a2291badc355d58ead5c19ae0609468947416040:
+
+  imx: thermal: use CPU temperature grade info for thresholds (2015-11-23 16:38:40 -0800)
+
+on top of commit 5d50ac70fe98518dbf620bfba8184254663125eb:
+
+  Merge tag 'xfs-for-linus-4.4' of git://git.kernel.org/pub/scm/linux/kernel/git/dgc/linux-xfs (2015-11-11 20:18:48 -0800)
+
+Specifics in this pull request:
+- Several fixes and cleanups on Rockchip thermal drivers.
+- On top of fixes, Rockchip driver also learned how to handle RK3368.
+- Small fixes on: of-thermal, power_allocator, rcar driver, IMX, and QCOM drivers.
+  Also, compilation fixes, on thermal.h, when thermal is not selected.
+- Build/boot tests powered by KernelCI [1,2] \o/
+
+This pull request contains extra fixes on top of the rc pull request. Essentially
+the same pull, with a couple of extra fixes. The reason is because the content
+of my pull for rc2 was not merged, so resending.
+
+[1] - http://kernelci.org/boot/all/job/evalenti/kernel/v4.3-11641-ge07efb9b60d4/
+[2] - http://kernelci.org/build/evalenti/kernel/v4.3-11641-ge07efb9b60d4/
+
+BR,
+
+Eduardo Valentin
+----------------------------------------------------------------
+Arnd Bergmann (2):
+      Revert "thermal: qcom_spmi: allow compile test"
+      thermal: fix thermal_zone_bind_cooling_device prototype
+
+Caesar Wang (7):
+      dt-bindings: rockchip-thermal: Support the RK3368 SoCs compatible
+      thermal: rockchip: better to compatible the driver for different SoCs
+      thermal: rockchip: trivial: fix typo in commit
+      thermal: rockchip: improve the conversion function
+      thermal: rockchip: Add the sort mode for adc value increment or decrement
+      thermal: rockchip: consistently use int for temperatures
+      thermal: rockchip: Support the RK3368 SoCs in thermal driver
+
+Jiada Wang (1):
+      thermal: of-thermal: Reduce log level for message when can't fine thermal zone
+
+Kapileshwar Singh (1):
+      thermal: power_allocator: Use temperature reading from tz
+
+Kuninori Morimoto (1):
+      thermal: rcar_thermal: remove redundant operation
+
+Tim Harvey (1):
+      imx: thermal: use CPU temperature grade info for thresholds
+
+ .../bindings/thermal/rockchip-thermal.txt          |   4 +-
+ drivers/thermal/Kconfig                            |   2 +-
+ drivers/thermal/imx_thermal.c                      |  56 +++-
+ drivers/thermal/of-thermal.c                       |   2 +-
+ drivers/thermal/power_allocator.c                  |  24 +-
+ drivers/thermal/rcar_thermal.c                     |  49 ++-
+ drivers/thermal/rockchip_thermal.c                 | 328 +++++++++++++++------
+ include/linux/thermal.h                            |   3 +-
+ 8 files changed, 316 insertions(+), 152 deletions(-)
