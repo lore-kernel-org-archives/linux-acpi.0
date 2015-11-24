@@ -1,39 +1,64 @@
-From: Hanjun Guo <guohanjun@huawei.com>
-Subject: Re: [PATCH 1/5] ACPICA: Add acpi_dev_present
-Date: Tue, 24 Nov 2015 12:40:51 +0800
-Message-ID: <5653EA53.8040909@huawei.com>
-References: <cover.1448282995.git.lukas@wunner.de> <d66501819cfa8f3d3b07708d3f20e3e20d07e4f8.1448282995.git.lukas@wunner.de> <2726545.001oM5V9lv@vostro.rjw.lan> <94F2FBAB4432B54E8AACC7DFDE6C92E37D998D0C@ORSMSX112.amr.corp.intel.com> <20151123233234.GA26361@wunner.de>
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: Re: [PATCH v3 0/5] Make cpuid <-> nodeid mapping persistent.
+Date: Tue, 24 Nov 2015 15:13:28 +0800
+Message-ID: <56540E18.3030109@cn.fujitsu.com>
+References: <1447906935-31899-1-git-send-email-tangchen@cn.fujitsu.com> <20151123220451.GG19072@mtj.duckdns.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <20151123233234.GA26361@wunner.de>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Lukas Wunner <lukas@wunner.de>, "Moore, Robert" <robert.moore@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, Darren Hart <dvhart@infradead.org>, Corentin Chary <corentin.chary@gmail.com>, "Lee, Chun-Yi" <jlee@suse.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Takashi Iwai <tiwai@suse.de>, Hui Wang <hui.wang@canonical.com>, Mark Brown <broonie@kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, David Box <david.e.box@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cn.fujitsu.com ([59.151.112.132]:9358 "EHLO
+	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752295AbbKXHQn (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Nov 2015 02:16:43 -0500
+In-Reply-To: <20151123220451.GG19072@mtj.duckdns.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tejun Heo <tj@kernel.org>
+Cc: cl@linux.com, jiang.liu@linux.intel.com, mika.j.penttila@gmail.com, mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
 
-On 2015/11/24 7:32, Lukas Wunner wrote:
-> Hi Robert,
+
+On 11/24/2015 06:04 AM, Tejun Heo wrote:
+> Hello,
 >
-> On Mon, Nov 23, 2015 at 10:22:27PM +0000, Moore, Robert wrote:
->>>> acpi_dev_present
->> Do you really want to be walking the ACPICA namespace for every call?
-> That's what the drivers currently do. Typically this is called only once
-> on initialization by the driver's ->probe callback.
+> On Thu, Nov 19, 2015 at 12:22:10PM +0800, Tang Chen wrote:
+>> [Solution]
+>>
+>> There are four mappings in the kernel:
+>> 1. nodeid (logical node id)   <->   pxm
+>> 2. apicid (physical cpu id)   <->   nodeid
+>> 3. cpuid (logical cpu id)     <->   apicid
+>> 4. cpuid (logical cpu id)     <->   nodeid
+>>
+>> 1. pxm (proximity domain) is provided by ACPI firmware in SRAT, and nodeid <-> pxm
+>>     mapping is setup at boot time. This mapping is persistent, won't change.
+>>
+>> 2. apicid <-> nodeid mapping is setup using info in 1. The mapping is setup at boot
+>>     time and CPU hotadd time, and cleared at CPU hotremove time. This mapping is also
+>>     persistent.
+>>
+>> 3. cpuid <-> apicid mapping is setup at boot time and CPU hotadd time. cpuid is
+>>     allocated, lower ids first, and released at CPU hotremove time, reused for other
+>>     hotadded CPUs. So this mapping is not persistent.
+>>
+>> 4. cpuid <-> nodeid mapping is also setup at boot time and CPU hotadd time, and
+>>     cleared at CPU hotremove time. As a result of 3, this mapping is not persistent.
+>>
+>> To fix this problem, we establish cpuid <-> nodeid mapping for all the possible
+>> cpus at boot time, and make it persistent. And according to init_cpu_to_node(),
+>> cpuid <-> nodeid mapping is based on apicid <-> nodeid mapping and cpuid <-> apicid
+>> mapping. So the key point is obtaining all cpus' apicid.
+> I don't know much about acpi so can't actually review the patches but
+> the overall approach looks good to me.
+
+Thank you, TJ. Will test it recently.
+
 >
-> What did you have in mind instead, cache the result? Or store the HIDs
-> in the namespace in a hash that can be queried faster?
+> Thanks.
+>
 
-Will those drivers be loaded before the acpi namespace is scanned? if not, I think
-those IDs already cached, in acpi_init_device_object(),
 
-INIT_LIST_HEAD(&device->pnp.ids);
-...
-acpi_set_pnp_ids(handle, &device->pnp, type);
+-- 
+This message has been scanned for viruses and
+dangerous content by Fujitsu, and is believed to be clean.
 
-please see API acpi_device_hid(), so I think you can introduce a API with
-acpi_device and HID passed as arguments in scan.c
-
-Thanks
-Hanjun
