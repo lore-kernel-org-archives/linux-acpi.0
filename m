@@ -1,116 +1,52 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [Bugfix] x86/PCI: Fix regression caused by commit 4d6b4e69a245
-Date: Tue, 24 Nov 2015 10:49:07 -0600
-Message-ID: <20151124164907.GA24819@localhost>
-References: <1447648057-13644-1-git-send-email-jiang.liu@linux.intel.com>
+From: Darren Hart <dvhart@infradead.org>
+Subject: Re: [PATCH 2/5] eeepc-wmi: Use acpi_dev_present
+Date: Tue, 24 Nov 2015 09:08:19 -0800
+Message-ID: <20151124170819.GC30134@malice.jf.intel.com>
+References: <cover.1448282995.git.lukas@wunner.de>
+ <bdff67293ead344ccec77f55437085561b1ad88d.1448282995.git.lukas@wunner.de>
+ <20151123190413.GU7413@malice.jf.intel.com>
+ <1776557.hOTai0RnF7@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:48794 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752459AbbKXQtL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 24 Nov 2015 11:49:11 -0500
+Received: from bombadil.infradead.org ([198.137.202.9]:43614 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751256AbbKXRI0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Nov 2015 12:08:26 -0500
 Content-Disposition: inline
-In-Reply-To: <1447648057-13644-1-git-send-email-jiang.liu@linux.intel.com>
+In-Reply-To: <1776557.hOTai0RnF7@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-kernel@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, x86@kernel.org, Keith Busch <keith.busch@intel.com>, Arthur Marsh <arthur.marsh@internode.on.net>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Lukas Wunner <lukas@wunner.de>, linux-acpi@vger.kernel.org, devel@acpica.org, platform-driver-x86@vger.kernel.org, Corentin Chary <corentin.chary@gmail.com>
 
-On Mon, Nov 16, 2015 at 12:27:37PM +0800, Jiang Liu wrote:
-> From: Liu Jiang <jiang.liu@linux.intel.com>
+On Mon, Nov 23, 2015 at 11:35:55PM +0100, Rafael Wysocki wrote:
+> On Monday, November 23, 2015 11:04:13 AM Darren Hart wrote:
+> > On Mon, Nov 23, 2015 at 03:34:55PM +0100, Lukas Wunner wrote:
+> > > Use shiny new acpi_dev_present and remove all the boilerplate to search
+> > > for a particular ACPI device. No functional change.
+> > 
+> > You did add a pr_warn, which is technically a functional change. Did you intend
+> > to leave that in?
+> > 
+> > I have no objection for platform-drivers-x86, but please include all maintainers
+> > listed by get_maintainer.pl for the fastest response.
+> > 
+> > +Rafael
+> > 
+> > Rafael, I assume you will pick this up along with the acpi_dev_present ACPI
+> > change if you take that. Pleaes let me know if not.
+> > 
+> > Otherwise,
+> > 
+> > Acked-by: Darren Hart <dvhart@linux.intel.com>
 > 
-> Commit 4d6b4e69a245 ("x86/PCI/ACPI: Use common interface to support
-> PCI host bridge") converted x86 to use the common interface
-> acpi_pci_root_create, but the conversion missed on code piece in
-> arch/x86/pci/bus_numa.c, which causes regression on some legacy
-> AMD platforms as reported by Arthur Marsh <arthur.marsh@internode.on.net>.
-> The root causes is that acpi_pci_root_create() fails to insert
-> host bridge resources into iomem_resource/ioport_resource because
-> x86_pci_root_bus_resources() has already inserted those resources.
-> So change x86_pci_root_bus_resources() to not insert resources into
-> iomem_resource/ioport_resource.
+> In fact, patch [1/5] as is needs to go in through upstream ACPICA, so I'm not
+> taking this series and please don't take it too.
 
-Fixes: 4d6b4e69a245 ("x86/PCI/ACPI: Use common interface to support PCI host bridge")
+Ah, thanks, my mistake.
 
-> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-> Reported-and-tested-by: Arthur Marsh <arthur.marsh@internode.on.net>
 
-What's the status of this?  It looks like a regression we need to fix
-for v4.4.
-
-AFAICT, Arthur did *not* test this patch (rather, his response says he
-did test it and the test failed).
-
-4d6b4e69a245 was merged by Rafael, and I assume he'll merge the fix
-unless I hear otherwise.
-
-Bjorn
-
-> Cc: Keith Busch <keith.busch@intel.com>
-> Cc: Arthur Marsh <arthur.marsh@internode.on.net>
-> ---
->  arch/x86/pci/bus_numa.c |   16 +++-------------
->  drivers/acpi/pci_root.c |    7 +++++++
->  2 files changed, 10 insertions(+), 13 deletions(-)
-> 
-> diff --git a/arch/x86/pci/bus_numa.c b/arch/x86/pci/bus_numa.c
-> index 7bcf06a7cd12..ce53b5b64f51 100644
-> --- a/arch/x86/pci/bus_numa.c
-> +++ b/arch/x86/pci/bus_numa.c
-> @@ -41,27 +41,17 @@ void x86_pci_root_bus_resources(int bus, struct list_head *resources)
->  	       bus);
->  
->  	/* already added by acpi ? */
-> -	resource_list_for_each_entry(window, resources)
-> +	resource_list_for_each_entry(window, &info->resources)
->  		if (window->res->flags & IORESOURCE_BUS) {
->  			found = true;
->  			break;
->  		}
-> -
->  	if (!found)
->  		pci_add_resource(resources, &info->busn);
->  
-> -	list_for_each_entry(root_res, &info->resources, list) {
-> -		struct resource *res;
-> -		struct resource *root;
-> +	list_for_each_entry(root_res, &info->resources, list)
-> +		pci_add_resource(resources, &root_res->res);
->  
-> -		res = &root_res->res;
-> -		pci_add_resource(resources, res);
-> -		if (res->flags & IORESOURCE_IO)
-> -			root = &ioport_resource;
-> -		else
-> -			root = &iomem_resource;
-> -		insert_resource(root, res);
-> -	}
->  	return;
->  
->  default_resources:
-> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-> index 850d7bf0c873..ae3fe4e64203 100644
-> --- a/drivers/acpi/pci_root.c
-> +++ b/drivers/acpi/pci_root.c
-> @@ -768,6 +768,13 @@ static void pci_acpi_root_add_resources(struct acpi_pci_root_info *info)
->  		else
->  			continue;
->  
-> +		/*
-> +		 * Some legacy x86 host bridge drivers use iomem_resource and
-> +		 * ioport_resource as default resource pool, skip it.
-> +		 */
-> +		if (res == root)
-> +			continue;
-> +
->  		conflict = insert_resource_conflict(root, res);
->  		if (conflict) {
->  			dev_info(&info->bridge->dev,
-> -- 
-> 1.7.10.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Darren Hart
+Intel Open Source Technology Center
