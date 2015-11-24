@@ -1,45 +1,48 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v1 11/13] mfd: intel-lpss: Pass HSUART configuration via
- properties
-Date: Tue, 24 Nov 2015 13:13:50 +0200
-Message-ID: <20151124111350.GK1587@lahna.fi.intel.com>
-References: <1448360579-79260-12-git-send-email-andriy.shevchenko@linux.intel.com>
- <201511241832.3nOM8ymb%fengguang.wu@intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 1/5] ACPICA: Add acpi_dev_present
+Date: Tue, 24 Nov 2015 15:22:18 +0100
+Message-ID: <2460979.tXaWt9xg5Q@vostro.rjw.lan>
+References: <cover.1448282995.git.lukas@wunner.de> <20151123233234.GA26361@wunner.de> <5653EA53.8040909@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:47272 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753786AbbKXLOP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 24 Nov 2015 06:14:15 -0500
-Content-Disposition: inline
-In-Reply-To: <201511241832.3nOM8ymb%fengguang.wu@intel.com>
+Received: from v094114.home.net.pl ([79.96.170.134]:41899 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753749AbbKXNwk (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Nov 2015 08:52:40 -0500
+In-Reply-To: <5653EA53.8040909@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: kbuild test robot <lkp@intel.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, kbuild-all@01.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Kevin Fenzi <kevin@scrye.com>, Arnd Bergmann <arnd@arndb.de>, Wolfram Sang <wsa@the-dreams.de>
+To: Hanjun Guo <guohanjun@huawei.com>
+Cc: Lukas Wunner <lukas@wunner.de>, "Moore, Robert" <robert.moore@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "devel@acpica.org" <devel@acpica.org>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, Darren Hart <dvhart@infradead.org>, Corentin Chary <corentin.chary@gmail.com>, "Lee, Chun-Yi" <jlee@suse.com>, "alsa-devel@alsa-project.org" <alsa-devel@alsa-project.org>, Takashi Iwai <tiwai@suse.de>, Hui Wang <hui.wang@canonical.com>, Mark Brown <broonie@kernel.org>, "Zheng, Lv" <lv.zheng@intel.com>, David Box <david.e.box@linux.intel.com>
 
-On Tue, Nov 24, 2015 at 06:44:53PM +0800, kbuild test robot wrote:
-> Hi Mika,
+On Tuesday, November 24, 2015 12:40:51 PM Hanjun Guo wrote:
+> On 2015/11/24 7:32, Lukas Wunner wrote:
+> > Hi Robert,
+> >
+> > On Mon, Nov 23, 2015 at 10:22:27PM +0000, Moore, Robert wrote:
+> >>>> acpi_dev_present
+> >> Do you really want to be walking the ACPICA namespace for every call?
+> > That's what the drivers currently do. Typically this is called only once
+> > on initialization by the driver's ->probe callback.
+> >
+> > What did you have in mind instead, cache the result? Or store the HIDs
+> > in the namespace in a hash that can be queried faster?
 > 
-> [auto build test ERROR on v4.4-rc2]
-> [also build test ERROR on next-20151124]
-> [cannot apply to ljones-mfd/for-mfd-next]
+> Will those drivers be loaded before the acpi namespace is scanned? if not, I think
+> those IDs already cached, in acpi_init_device_object(),
 > 
-> url:    https://github.com/0day-ci/linux/commits/Andy-Shevchenko/device-property-always-check-for-fwnode-type/20151124-183221
-> config: x86_64-randconfig-x019-11241713 (attached as .config)
-> reproduce:
->         # save the attached .config to linux build tree
->         make ARCH=x86_64 
+> INIT_LIST_HEAD(&device->pnp.ids);
+> ...
+> acpi_set_pnp_ids(handle, &device->pnp, type);
 > 
-> All error/warnings (new ones prefixed by >>):
-> 
-> >> drivers/mfd/intel-lpss-pci.c:68:30: error: array type has incomplete element type 'struct property_entry'
->     static struct property_entry uart_properties[] = {
+> please see API acpi_device_hid(), so I think you can introduce a API with
+> acpi_device and HID passed as arguments in scan.c
 
-Thanks kbuild robot!
+I'd prefer that to go to utils.c to be honest, even if the namespace needs to
+be walked.
 
-This patch misses include of <linux/property.h>. It seems that it got
-added by a subsequent patch which was not sent out.
+Thanks,
+Rafael
 
-We will fix this.
