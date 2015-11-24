@@ -1,81 +1,244 @@
 From: Linda Knippers <linda.knippers@hpe.com>
-Subject: Re: [PATCH 1/3] nfit: Account for table size length variation
-Date: Tue, 24 Nov 2015 11:24:00 -0500
-Message-ID: <56548F20.7090407@hpe.com>
-References: <cover.1448045168.git.linda.knippers@hpe.com>	 <e65332cc9dbb7eff02f739aa5ba357d4097b4e6a.1448045168.git.linda.knippers@hpe.com> <1448320884.27481.2.camel@intel.com>
+Subject: Re: [PATCH 3/3] nfit: Adjust for different _FIT and NFIT headers
+Date: Tue, 24 Nov 2015 11:31:13 -0500
+Message-ID: <565490D1.8020304@hpe.com>
+References: <cover.1448045168.git.linda.knippers@hpe.com>	 <03fba073944c91810f89e321cb7fa024f8e9e2c1.1448045168.git.linda.knippers@hpe.com> <1448321216.27481.7.camel@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g2t4623.austin.hp.com ([15.73.212.78]:58425 "EHLO
-	g2t4623.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754366AbbKXQYD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Nov 2015 11:24:03 -0500
-In-Reply-To: <1448320884.27481.2.camel@intel.com>
+Received: from g1t6216.austin.hp.com ([15.73.96.123]:42620 "EHLO
+	g1t6216.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753531AbbKXQbP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 24 Nov 2015 11:31:15 -0500
+In-Reply-To: <1448321216.27481.7.camel@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Verma, Vishal L" <vishal.l.verma@intel.com>, "Williams, Dan J" <dan.j.williams@intel.com>
 Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "toshi.kani@hpe.com" <toshi.kani@hpe.com>, "jmoyer@redhat.com" <jmoyer@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "elliott@hpe.com" <elliott@hpe.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>
 
-On 11/23/2015 6:21 PM, Verma, Vishal L wrote:
+On 11/23/2015 6:26 PM, Verma, Vishal L wrote:
 > On Fri, 2015-11-20 at 19:05 -0500, Linda Knippers wrote:
->> The size of NFIT tables don't necessarily match the size of the
->> data structures that we use for them.  For example, the NVDIMM
->> Control Region Structure table is shorter for a device with
->> no block control windows than for a device with block control windows.
->> Other tables, such as Flush Hint Address Structure and the Interleave
->> Structure are variable length by definition.
+>> When support for _FIT was added, the code presumed that the data
+>> returned by the _FIT method is identical to the NFIT table, which
+>> starts with an acpi_table_header.  However, the _FIT is defined
+>> to return a data in the format of a series of NFIT type structure
+>> entries and as a method, has an acpi_object header rather tahn
+>> an acpi_table_header.
 >>
->> Account for the size difference when comparing table entries by
->> using the actual table size from the table header if it's less
->> than the structure size.
+>> To address the differences, explicitly save the acpi_table_header
+>> from the NFIT, since it is accessible through /sys, and change
+>> the nfit pointer in the acpi_desc structure to point to the
+>> table entries rather than the headers.
+>>
+>> Reported-by: Jeff Moyer (jmoyer@redhat.com>
+>> Signed-off-by: Linda Knippers <linda.knippers@hpe.com>
+>> ---
+>>   drivers/acpi/nfit.c | 47 +++++++++++++++++++++++++++++++++++---------
+>> ---
+>>   drivers/acpi/nfit.h |  3 ++-
+>>   2 files changed, 37 insertions(+), 13 deletions(-)
 >>
 >
-> Agreed about the variable length tables - Flush Hint and Interleave. But
-> for the others, this makes it possible for a buggy bios implementation
-> to have a *really* small table - one that doesn't even have enough
-> fields to work - to pass the add_tables stage where it might have failed
-> previously.
+> This patch looks good, but the fact that we're doing the header
+> processing earlier (before acpi_nfit_init) means that the nfit supplied
+> by the nfit_test framework (tools/testing/nvdimm/test) can no longer
+> have a header. The following patch fixes this.
 >
-> I feel there may be need for an ACPI clarification for this specifying
-> whether if certain fields are irrelevant, they can be excluded entirely.
+> Apart from that, and the open question for patch 1, for the series,
 >
-> For example, the DCR wording is:
-> Number of Block Control Windows must match the
-> corresponding number of Block Data Windows. Fields that
-> follow this field are valid only if the number of Block Control
-> Windows is non-zero.
->
-> This leads me to believe that those fields should be 'present' but
-> ignored in the case of zero block windows.
+> Reviewed-by: Vishal Verma <vishal.l.verma@intel.com>
 
-Actually, the spec is pretty clear in this case.  If you look at the
-length definition for that table (5-133) it says:
+Thanks Vishal.
 
-	Length in bytes for entire structure.
-	The length of this structure is either 32 bytes or 80 bytes. The
-	length of the structure can be 32 bytes only if the Number of
-	Block Control Windows field has a value of 0.
+I hope I've addressed your question on patch 1.  I think patch 1 works
+as well as the original code did so if you have concerns about making
+the code more bullet proof in the face of buggy firmware, perhaps we can
+address that separately from this series.
 
-The structure is 80 bytes but it is legal to have a 32-byte table.
-We hit a similar problem with the original NFIT code.  We could
-explicitly check for a size of 32 but we didn't before.
-
-> If we make add_tables process only header.length and accept the
-> shortened table, there is nothing to tell future code that the structure
-> that piece of memory is casted to is a truncated one.
->
-> Thoughts?
-
-If we want to be more paranoid about buggy FW when we're comparing old
-and new tables, we could compare based on the length of the old and new
-tables since we have both pieces of information.  That would let you catch
-the case where a table size changes during a hotplug event or whenever the
-_FIT is processed.  Since you were comparing based on structure size instead
-of header length, I didn't change that.
+I would really like to see this series go in soon because since the
+hotplug code went in I can't run an upstream kernel on my hardware.
 
 -- ljk
 >
-> 	-Vishal
+>
+>
+> 8<-----
+>
+>  From da2fd5730bc5125c72101a6b55b85fce97663e40 Mon Sep 17 00:00:00 2001
+> From: Vishal Verma <vishal.l.verma@intel.com>
+> Date: Mon, 23 Nov 2015 15:41:00 -0700
+> Subject: [PATCH] nfit_test: Fix nfit generation for test framework
+>
+> The hotplug fixes move header parsing to happen earlier,
+> and the way nfit_test calls into the nfit initialization code,
+> a header is no longer needed. Remove the header from the table
+> generated by nfit_test entirely.
+>
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+> ---
+>   tools/testing/nvdimm/test/nfit.c | 46 ++++++++++++----------------------------
+>   1 file changed, 14 insertions(+), 32 deletions(-)
+>
+> diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+> index 40ab447..3f92d7f 100644
+> --- a/tools/testing/nvdimm/test/nfit.c
+> +++ b/tools/testing/nvdimm/test/nfit.c
+> @@ -420,8 +420,7 @@ static struct nfit_test_resource *nfit_test_lookup(resource_size_t addr)
+>
+>   static int nfit_test0_alloc(struct nfit_test *t)
+>   {
+> -	size_t nfit_size = sizeof(struct acpi_table_nfit)
+> -			+ sizeof(struct acpi_nfit_system_address) * NUM_SPA
+> +	size_t nfit_size = sizeof(struct acpi_nfit_system_address) * NUM_SPA
+>   			+ sizeof(struct acpi_nfit_memory_map) * NUM_MEM
+>   			+ sizeof(struct acpi_nfit_control_region) * NUM_DCR
+>   			+ sizeof(struct acpi_nfit_data_region) * NUM_BDW
+> @@ -471,8 +470,7 @@ static int nfit_test0_alloc(struct nfit_test *t)
+>
+>   static int nfit_test1_alloc(struct nfit_test *t)
+>   {
+> -	size_t nfit_size = sizeof(struct acpi_table_nfit)
+> -		+ sizeof(struct acpi_nfit_system_address)
+> +	size_t nfit_size = sizeof(struct acpi_nfit_system_address)
+>   		+ sizeof(struct acpi_nfit_memory_map)
+>   		+ sizeof(struct acpi_nfit_control_region);
+>
+> @@ -488,18 +486,6 @@ static int nfit_test1_alloc(struct nfit_test *t)
+>   	return 0;
+>   }
+>
+> -static void nfit_test_init_header(struct acpi_table_nfit *nfit, size_t size)
+> -{
+> -	memcpy(nfit->header.signature, ACPI_SIG_NFIT, 4);
+> -	nfit->header.length = size;
+> -	nfit->header.revision = 1;
+> -	memcpy(nfit->header.oem_id, "LIBND", 6);
+> -	memcpy(nfit->header.oem_table_id, "TEST", 5);
+> -	nfit->header.oem_revision = 1;
+> -	memcpy(nfit->header.asl_compiler_id, "TST", 4);
+> -	nfit->header.asl_compiler_revision = 1;
+> -}
+> -
+>   static void nfit_test0_setup(struct nfit_test *t)
+>   {
+>   	struct nvdimm_bus_descriptor *nd_desc;
+> @@ -513,14 +499,12 @@ static void nfit_test0_setup(struct nfit_test *t)
+>   	struct acpi_nfit_flush_address *flush;
+>   	unsigned int offset;
+>
+> -	nfit_test_init_header(nfit_buf, size);
+> -
+>   	/*
+>   	 * spa0 (interleave first half of dimm0 and dimm1, note storage
+>   	 * does not actually alias the related block-data-window
+>   	 * regions)
+>   	 */
+> -	spa = nfit_buf + sizeof(struct acpi_table_nfit);
+> +	spa = nfit_buf;
+>   	spa->header.type = ACPI_NFIT_TYPE_SYSTEM_ADDRESS;
+>   	spa->header.length = sizeof(*spa);
+>   	memcpy(spa->range_guid, to_nfit_uuid(NFIT_SPA_PM), 16);
+> @@ -533,7 +517,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+>   	 * does not actually alias the related block-data-window
+>   	 * regions)
+>   	 */
+> -	spa = nfit_buf + sizeof(struct acpi_table_nfit) + sizeof(*spa);
+> +	spa = nfit_buf + sizeof(*spa);
+>   	spa->header.type = ACPI_NFIT_TYPE_SYSTEM_ADDRESS;
+>   	spa->header.length = sizeof(*spa);
+>   	memcpy(spa->range_guid, to_nfit_uuid(NFIT_SPA_PM), 16);
+> @@ -542,7 +526,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+>   	spa->length = SPA1_SIZE;
+>
+>   	/* spa2 (dcr0) dimm0 */
+> -	spa = nfit_buf + sizeof(struct acpi_table_nfit) + sizeof(*spa) * 2;
+> +	spa = nfit_buf + sizeof(*spa) * 2;
+>   	spa->header.type = ACPI_NFIT_TYPE_SYSTEM_ADDRESS;
+>   	spa->header.length = sizeof(*spa);
+>   	memcpy(spa->range_guid, to_nfit_uuid(NFIT_SPA_DCR), 16);
+> @@ -551,7 +535,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+>   	spa->length = DCR_SIZE;
+>
+>   	/* spa3 (dcr1) dimm1 */
+> -	spa = nfit_buf + sizeof(struct acpi_table_nfit) + sizeof(*spa) * 3;
+> +	spa = nfit_buf + sizeof(*spa) * 3;
+>   	spa->header.type = ACPI_NFIT_TYPE_SYSTEM_ADDRESS;
+>   	spa->header.length = sizeof(*spa);
+>   	memcpy(spa->range_guid, to_nfit_uuid(NFIT_SPA_DCR), 16);
+> @@ -560,7 +544,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+>   	spa->length = DCR_SIZE;
+>
+>   	/* spa4 (dcr2) dimm2 */
+> -	spa = nfit_buf + sizeof(struct acpi_table_nfit) + sizeof(*spa) * 4;
+> +	spa = nfit_buf + sizeof(*spa) * 4;
+>   	spa->header.type = ACPI_NFIT_TYPE_SYSTEM_ADDRESS;
+>   	spa->header.length = sizeof(*spa);
+>   	memcpy(spa->range_guid, to_nfit_uuid(NFIT_SPA_DCR), 16);
+> @@ -569,7 +553,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+>   	spa->length = DCR_SIZE;
+>
+>   	/* spa5 (dcr3) dimm3 */
+> -	spa = nfit_buf + sizeof(struct acpi_table_nfit) + sizeof(*spa) * 5;
+> +	spa = nfit_buf + sizeof(*spa) * 5;
+>   	spa->header.type = ACPI_NFIT_TYPE_SYSTEM_ADDRESS;
+>   	spa->header.length = sizeof(*spa);
+>   	memcpy(spa->range_guid, to_nfit_uuid(NFIT_SPA_DCR), 16);
+> @@ -578,7 +562,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+>   	spa->length = DCR_SIZE;
+>
+>   	/* spa6 (bdw for dcr0) dimm0 */
+> -	spa = nfit_buf + sizeof(struct acpi_table_nfit) + sizeof(*spa) * 6;
+> +	spa = nfit_buf + sizeof(*spa) * 6;
+>   	spa->header.type = ACPI_NFIT_TYPE_SYSTEM_ADDRESS;
+>   	spa->header.length = sizeof(*spa);
+>   	memcpy(spa->range_guid, to_nfit_uuid(NFIT_SPA_BDW), 16);
+> @@ -587,7 +571,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+>   	spa->length = DIMM_SIZE;
+>
+>   	/* spa7 (bdw for dcr1) dimm1 */
+> -	spa = nfit_buf + sizeof(struct acpi_table_nfit) + sizeof(*spa) * 7;
+> +	spa = nfit_buf + sizeof(*spa) * 7;
+>   	spa->header.type = ACPI_NFIT_TYPE_SYSTEM_ADDRESS;
+>   	spa->header.length = sizeof(*spa);
+>   	memcpy(spa->range_guid, to_nfit_uuid(NFIT_SPA_BDW), 16);
+> @@ -596,7 +580,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+>   	spa->length = DIMM_SIZE;
+>
+>   	/* spa8 (bdw for dcr2) dimm2 */
+> -	spa = nfit_buf + sizeof(struct acpi_table_nfit) + sizeof(*spa) * 8;
+> +	spa = nfit_buf + sizeof(*spa) * 8;
+>   	spa->header.type = ACPI_NFIT_TYPE_SYSTEM_ADDRESS;
+>   	spa->header.length = sizeof(*spa);
+>   	memcpy(spa->range_guid, to_nfit_uuid(NFIT_SPA_BDW), 16);
+> @@ -605,7 +589,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+>   	spa->length = DIMM_SIZE;
+>
+>   	/* spa9 (bdw for dcr3) dimm3 */
+> -	spa = nfit_buf + sizeof(struct acpi_table_nfit) + sizeof(*spa) * 9;
+> +	spa = nfit_buf + sizeof(*spa) * 9;
+>   	spa->header.type = ACPI_NFIT_TYPE_SYSTEM_ADDRESS;
+>   	spa->header.length = sizeof(*spa);
+>   	memcpy(spa->range_guid, to_nfit_uuid(NFIT_SPA_BDW), 16);
+> @@ -613,7 +597,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+>   	spa->address = t->dimm_dma[3];
+>   	spa->length = DIMM_SIZE;
+>
+> -	offset = sizeof(struct acpi_table_nfit) + sizeof(*spa) * 10;
+> +	offset = sizeof(*spa) * 10;
+>   	/* mem-region0 (spa0, dimm0) */
+>   	memdev = nfit_buf + offset;
+>   	memdev->header.type = ACPI_NFIT_TYPE_MEMORY_MAP;
+> @@ -1106,9 +1090,7 @@ static void nfit_test1_setup(struct nfit_test *t)
+>   	struct acpi_nfit_control_region *dcr;
+>   	struct acpi_nfit_system_address *spa;
+>
+> -	nfit_test_init_header(nfit_buf, size);
+> -
+> -	offset = sizeof(struct acpi_table_nfit);
+> +	offset = 0;
+>   	/* spa0 (flat range with no bdw aliasing) */
+>   	spa = nfit_buf + offset;
+>   	spa->header.type = ACPI_NFIT_TYPE_SYSTEM_ADDRESS;
 >
 
