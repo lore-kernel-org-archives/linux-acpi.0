@@ -1,38 +1,73 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v1 11/13] mfd: intel-lpss: Pass HSUART configuration via
- properties
-Date: Wed, 25 Nov 2015 14:12:52 +0200
-Message-ID: <20151125121252.GY1587@lahna.fi.intel.com>
-References: <1448360579-79260-1-git-send-email-andriy.shevchenko@linux.intel.com>
- <1448360579-79260-12-git-send-email-andriy.shevchenko@linux.intel.com>
- <6720400.mTdslW7yXO@wuerfel>
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Subject: Re: [Bugfix] x86/PCI: Fix regression caused by commit 4d6b4e69a245
+Date: Wed, 25 Nov 2015 14:11:46 +0100
+Message-ID: <5655B392.7070701@intel.com>
+References: <1447648057-13644-1-git-send-email-jiang.liu@linux.intel.com>
+ <20151124164907.GA24819@localhost>
+ <CAJZ5v0irOUq6C9eSfCfmzyOiY1n1rUSxyUeUbvS9Nj0jNT2JrQ@mail.gmail.com>
+ <56556D89.6020801@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:42690 "EHLO mga03.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:32776 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752411AbbKYMQD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 25 Nov 2015 07:16:03 -0500
-Content-Disposition: inline
-In-Reply-To: <6720400.mTdslW7yXO@wuerfel>
+	id S1751732AbbKYNM0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 25 Nov 2015 08:12:26 -0500
+In-Reply-To: <56556D89.6020801@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Kevin Fenzi <kevin@scrye.com>, Wolfram Sang <wsa@the-dreams.de>
+To: Jiang Liu <jiang.liu@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Bjorn Helgaas <helgaas@kernel.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, x86@kernel.org, Keith Busch <keith.busch@intel.com>, Arthur Marsh <arthur.marsh@internode.on.net>
 
-On Tue, Nov 24, 2015 at 08:53:04PM +0100, Arnd Bergmann wrote:
-> On Tuesday 24 November 2015 12:22:57 Andy Shevchenko wrote:
-> > +static struct property_entry uart_properties[] = {
-> > +       PROPERTY_ENTRY_U32("reg-io-width", 4),
-> > +       PROPERTY_ENTRY_U32("reg-shift", 2),
-> > +       PROPERTY_ENTRY_U8("snps,uart-16550-compatible", 1),
-> > +       { },
-> > 
-> 
-> If I read the binding correctly, the "snps,uart-16550-compatible" property
-> is meant to be boolean, meaning true if present and zero-length or false
-> if absent. Using a u8 propert instead feels wrong.
-> 
-> Maybe we can have a PROPERTY_ENTRY_BOOL() for that?
+On 11/25/2015 9:12 AM, Jiang Liu wrote:
+> On 2015/11/25 6:19, Rafael J. Wysocki wrote:
+>> On Tue, Nov 24, 2015 at 5:49 PM, Bjorn Helgaas <helgaas@kernel.org> wrote:
+>>> On Mon, Nov 16, 2015 at 12:27:37PM +0800, Jiang Liu wrote:
+>>>> From: Liu Jiang <jiang.liu@linux.intel.com>
+>>>>
+>>>> Commit 4d6b4e69a245 ("x86/PCI/ACPI: Use common interface to support
+>>>> PCI host bridge") converted x86 to use the common interface
+>>>> acpi_pci_root_create, but the conversion missed on code piece in
+>>>> arch/x86/pci/bus_numa.c, which causes regression on some legacy
+>>>> AMD platforms as reported by Arthur Marsh <arthur.marsh@internode.on.net>.
+>>>> The root causes is that acpi_pci_root_create() fails to insert
+>>>> host bridge resources into iomem_resource/ioport_resource because
+>>>> x86_pci_root_bus_resources() has already inserted those resources.
+>>>> So change x86_pci_root_bus_resources() to not insert resources into
+>>>> iomem_resource/ioport_resource.
+>>> Fixes: 4d6b4e69a245 ("x86/PCI/ACPI: Use common interface to support PCI host bridge")
+>>>
+>>>> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+>>>> Reported-and-tested-by: Arthur Marsh <arthur.marsh@internode.on.net>
+>>> What's the status of this?  It looks like a regression we need to fix
+>>> for v4.4.
+>>>
+>>> AFAICT, Arthur did *not* test this patch (rather, his response says he
+>>> did test it and the test failed).
+>>>
+>>> 4d6b4e69a245 was merged by Rafael, and I assume he'll merge the fix
+>>> unless I hear otherwise.
+>> Quite frankly, I'm more likely to revert the offending commit at this
+>> point as that's not the only regression reported against it and the
+>> fix only helps in one case (out of three known to me).
+> Hi Rafael,
+> 	I got regression report from Hans de Bruin<jmdebruin@xmsnet.nl>,
+> Keith Busch <keith.busch@intel.com>, and Arthur Marsh
+> <arthur.marsh@internode.on.net>. Hans and Keith also reports
+> the patch fixes the regression. For Arthur's case, the debug
+> patch works for him, but the formal patch based on the debug
+> patch fails, so I need to do more investigation about this.
+> Is there any other report related to commit 4d6b4e69a245 so
+> I could help to investigate?
 
-That's a good idea. We'll add it to the next revision of the series.
+OK, so the proposed bug fix works for everybody, right?
+
+In that case there's no reason not to apply it.
+
+If there's anyone who can reproduce the problem and for whom that patch 
+doesn't work, please let me know.
+
+Thanks,
+Rafael
+
