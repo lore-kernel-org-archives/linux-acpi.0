@@ -1,113 +1,84 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: [PATCH V6] acpi: add support for extended IRQ to PCI link
-Date: Wed, 25 Nov 2015 13:52:38 -0500
-Message-ID: <1448477558-12310-1-git-send-email-okaya@codeaurora.org>
+From: Lukas Wunner <lukas@wunner.de>
+Subject: [PATCH v2 0/2] Add acpi_dev_present
+Date: Wed, 25 Nov 2015 21:19:55 +0100
+Message-ID: <cover.1448480385.git.lukas@wunner.de>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:51065 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752114AbbKYSwq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Nov 2015 13:52:46 -0500
+Received: from mailout2.hostsharing.net ([83.223.90.233]:45328 "EHLO
+	mailout2.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752504AbbKYUUB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Nov 2015 15:20:01 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, helgaas@kernel.org
-Cc: Sinan Kaya <okaya@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
+To: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: devel@acpica.org, Hanjun Guo <guohanjun@huawei.com>, Robert Moore <robert.moore@intel.com>, Mark Brown <broonie@kernel.org>, Hui Wang <hui.wang@canonical.com>, Darren Hart <dvhart@infradead.org>
 
-The ACPI compiler uses the extended format when used interrupt numbers
-are greater than 256. The extended IRQ numbers use 32 bits for storing
-interrupts. The code already supports parsing extended IRQ type but is
-limited by 256 due to used data structure type (u8). This patch changes
-the interrupt number type to 32 bits and places an upper limit of 1020
-as possible interrupt id. 1020 is the maximum interrupt ID that can be
-assigned to an ARM SPI interrupt according to ARM architecture.
+Hi,
 
-Additional checks have been placed to return an error when ACPI_MAX_IRQS
-is exceeded.
+On Tue, Nov 24, 2015 at 12:40:51 +0800, Hanjun Guo wrote:
+> I think those IDs already cached, in acpi_init_device_object(),
+> INIT_LIST_HEAD(&device->pnp.ids);
+> ...
+> acpi_set_pnp_ids(handle, &device->pnp, type);
+> please see API acpi_device_hid(), so I think you can introduce a API =
+with
+> acpi_device and HID passed as arguments in scan.c
 
-Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
----
- drivers/acpi/pci_link.c | 29 ++++++++++++++++++++++++-----
- 1 file changed, 24 insertions(+), 5 deletions(-)
+Thank you for your feedback, I've reworked the patch to iterate over
+acpi_bus_id_list instead of walking the namespace.
 
-diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
-index 7c8408b..5ab83dc 100644
---- a/drivers/acpi/pci_link.c
-+++ b/drivers/acpi/pci_link.c
-@@ -4,6 +4,7 @@
-  *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
-  *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
-  *  Copyright (C) 2002       Dominik Brodowski <devel@brodo.de>
-+ *  Copyright (c) 2015, The Linux Foundation. All rights reserved.
-  *
-  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  *
-@@ -47,6 +48,14 @@ ACPI_MODULE_NAME("pci_link");
- #define ACPI_PCI_LINK_FILE_STATUS	"state"
- #define ACPI_PCI_LINK_MAX_POSSIBLE	16
- 
-+/*
-+ * 1020 is the maximum interrupt ID that can be assigned to
-+ * an ARM SPI interrupt according to ARM architecture.
-+ */
-+#define ACPI_MAX_IRQS		1020
-+#define ACPI_MAX_ISA_IRQ	16
-+
-+
- static int acpi_pci_link_add(struct acpi_device *device,
- 			     const struct acpi_device_id *not_used);
- static void acpi_pci_link_remove(struct acpi_device *device);
-@@ -67,12 +76,12 @@ static struct acpi_scan_handler pci_link_handler = {
-  * later even the link is disable. Instead, we just repick the active irq
-  */
- struct acpi_pci_link_irq {
--	u8 active;		/* Current IRQ */
-+	u32 active;		/* Current IRQ */
- 	u8 triggering;		/* All IRQs */
- 	u8 polarity;		/* All IRQs */
- 	u8 resource_type;
- 	u8 possible_count;
--	u8 possible[ACPI_PCI_LINK_MAX_POSSIBLE];
-+	u32 possible[ACPI_PCI_LINK_MAX_POSSIBLE];
- 	u8 initialized:1;
- 	u8 reserved:7;
- };
-@@ -147,6 +156,13 @@ static acpi_status acpi_pci_link_check_possible(struct acpi_resource *resource,
- 					       p->interrupts[i]);
- 					continue;
- 				}
-+				if (p->interrupts[i] >= ACPI_MAX_IRQS) {
-+					dev_warn(&link->device->dev,
-+						"Ignoring IRQ(%d) as it exceeds max(%d)\n",
-+						p->interrupts[i],
-+						ACPI_MAX_IRQS - 1);
-+					continue;
-+				}
- 				link->irq.possible[i] = p->interrupts[i];
- 				link->irq.possible_count++;
- 			}
-@@ -279,6 +295,12 @@ static int acpi_pci_link_get_current(struct acpi_pci_link *link)
- 		result = -ENODEV;
- 	}
- 
-+	if (irq >= ACPI_MAX_IRQS) {
-+		dev_err(&link->device->dev,
-+			"Ignoring IRQ(%d) as it exceeds max(%d)\n",
-+			irq,  ACPI_MAX_IRQS - 1);
-+		result = -ENODEV;
-+	}
- 	link->irq.active = irq;
- 
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Link at IRQ %d \n", link->irq.active));
-@@ -437,9 +459,6 @@ static int acpi_pci_link_set(struct acpi_pci_link *link, int irq)
-  * enabled system.
-  */
- 
--#define ACPI_MAX_IRQS		256
--#define ACPI_MAX_ISA_IRQ	16
--
- #define PIRQ_PENALTY_PCI_AVAILABLE	(0)
- #define PIRQ_PENALTY_PCI_POSSIBLE	(16*16)
- #define PIRQ_PENALTY_PCI_USING		(16*16*16)
--- 
-Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
+An alternative approach would have been to traverse the acpi_device
+tree but it would have been more code. If you would prefer that over
+the solution I've settled on please let me know. It would be useful
+for stuff like this to have a function that traverses the acpi_device
+tree and invokes a callback for each node, =E0 la acpi_ns_walk_namespac=
+e().
+Does such a thing exist already? If so I've missed it.
 
+
+> Will those drivers be loaded before the acpi namespace is scanned?
+
+I verified that all 7 existing users invoke the new API from initcall
+level "device". The bus is scanned in initcall level "subsystem",
+i.e. earlier. So we're on the safe side here. I added a note in the
+kernel-doc that the function may not be called from a subsys_initcall()
+or earlier, this will hopefully make it foolproof. (If you feel this is
+over the top then just leave it out if/when merging.)
+
+
+On Tue, Nov 24, 2015 at 15:22:18 +0100, Rafael J. Wysocki wrote:
+> I'd prefer that to go to utils.c to be honest, even if the namespace
+> needs to be walked.
+
+Done. Since this is not part of ACPICA, would it be okay to merge via
+ASoC as requested by Mark Brown?
+
+I've pushed the new version of the series to GitHub for more convenient
+reviewing. All driver patches except the one for Mark have acks now:
+https://github.com/l1k/linux/commits/acpi_dev_present
+
+Thanks,
+
+Lukas
+
+
+Lukas Wunner (2):
+  ACPI / scan: Fix acpi_bus_id_list bookkeeping
+  ACPI / utils: Add acpi_dev_present()
+
+ drivers/acpi/internal.h |  8 ++++++++
+ drivers/acpi/scan.c     | 22 +++++++++++++++-------
+ drivers/acpi/utils.c    | 31 +++++++++++++++++++++++++++++++
+ include/acpi/acpi_bus.h |  2 ++
+ 4 files changed, 56 insertions(+), 7 deletions(-)
+
+--=20
+1.8.5.2 (Apple Git-48)
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
