@@ -1,126 +1,137 @@
-From: Sinan Kaya <okaya@codeaurora.org>
+From: Bjorn Helgaas <helgaas@kernel.org>
 Subject: Re: [PATCH V5] acpi: add support for extended IRQ to PCI link
-Date: Wed, 25 Nov 2015 09:27:41 -0500
-Message-ID: <5655C55D.80206@codeaurora.org>
+Date: Wed, 25 Nov 2015 11:27:04 -0600
+Message-ID: <20151125172704.GE1380@localhost>
 References: <1448395843-23112-1-git-send-email-okaya@codeaurora.org>
+ <5655C55D.80206@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1448395843-23112-1-git-send-email-okaya@codeaurora.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, helgaas@kernel.org
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.29.136]:56368 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751119AbbKYR1I (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 25 Nov 2015 12:27:08 -0500
+Content-Disposition: inline
+In-Reply-To: <5655C55D.80206@codeaurora.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
 
-On 11/24/2015 3:10 PM, Sinan Kaya wrote:
-> The ACPI compiler uses the extended format when used interrupt numbers
-> are greater than 256. The extended IRQ numbers use 32 bits for storing
-> interrupts. The code already supports parsing extended IRQ type but is
-> limited by 256 due to used data structure type (u8). This patch changes
-> the interrupt number type to 32 bits and places an upper limit of 1020
-> as possible interrupt id. 1020 is the maximum interrupt ID that can be
-> assigned to an ARM SPI interrupt according to ARM architecture.
+Hi Sinan,
+
+On Wed, Nov 25, 2015 at 09:27:41AM -0500, Sinan Kaya wrote:
+> On 11/24/2015 3:10 PM, Sinan Kaya wrote:
+> > The ACPI compiler uses the extended format when used interrupt numbers
+> > are greater than 256. The extended IRQ numbers use 32 bits for storing
+> > interrupts. The code already supports parsing extended IRQ type but is
+> > limited by 256 due to used data structure type (u8). This patch changes
+> > the interrupt number type to 32 bits and places an upper limit of 1020
+> > as possible interrupt id. 1020 is the maximum interrupt ID that can be
+> > assigned to an ARM SPI interrupt according to ARM architecture.
+> > 
+> > Additional checks have been placed to return an error when ACPI_MAX_IRQS
+> > is exceeded.
+> > 
+> > Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+> > ---
+> >  drivers/acpi/pci_link.c | 27 ++++++++++++++++++++++-----
+> >  1 file changed, 22 insertions(+), 5 deletions(-)
+> > 
+> > diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+> > index 7c8408b..8fe4e6f 100644
+> > --- a/drivers/acpi/pci_link.c
+> > +++ b/drivers/acpi/pci_link.c
+> > @@ -1,6 +1,7 @@
+> >  /*
+> >   *  pci_link.c - ACPI PCI Interrupt Link Device Driver ($Revision: 34 $)
+> >   *
+> > + *  Copyright (c) 2015, The Linux Foundation. All rights reserved.
+> >   *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
+> >   *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
+> >   *  Copyright (C) 2002       Dominik Brodowski <devel@brodo.de>
+> > @@ -47,6 +48,14 @@ ACPI_MODULE_NAME("pci_link");
+> >  #define ACPI_PCI_LINK_FILE_STATUS	"state"
+> >  #define ACPI_PCI_LINK_MAX_POSSIBLE	16
+> >  
+> > +/*
+> > + * 1020 is the maximum interrupt ID that can be assigned to
+> > + * an ARM SPI interrupt according to ARM architecture.
+> > + */
+> > +#define ACPI_MAX_IRQS		1020
+> > +#define ACPI_MAX_ISA_IRQ	16
+> > +
+> > +
+> >  static int acpi_pci_link_add(struct acpi_device *device,
+> >  			     const struct acpi_device_id *not_used);
+> >  static void acpi_pci_link_remove(struct acpi_device *device);
+> > @@ -67,12 +76,12 @@ static struct acpi_scan_handler pci_link_handler = {
+> >   * later even the link is disable. Instead, we just repick the active irq
+> >   */
+> >  struct acpi_pci_link_irq {
+> > -	u8 active;		/* Current IRQ */
+> > +	u32 active;		/* Current IRQ */
+> >  	u8 triggering;		/* All IRQs */
+> >  	u8 polarity;		/* All IRQs */
+> >  	u8 resource_type;
+> >  	u8 possible_count;
+> > -	u8 possible[ACPI_PCI_LINK_MAX_POSSIBLE];
+> > +	u32 possible[ACPI_PCI_LINK_MAX_POSSIBLE];
+> >  	u8 initialized:1;
+> >  	u8 reserved:7;
+> >  };
+> > @@ -147,6 +156,12 @@ static acpi_status acpi_pci_link_check_possible(struct acpi_resource *resource,
+> >  					       p->interrupts[i]);
+> >  					continue;
+> >  				}
+> > +				if (p->interrupts[i] > ACPI_MAX_IRQS) {
 > 
-> Additional checks have been placed to return an error when ACPI_MAX_IRQS
-> is exceeded.
+> this should have been >=
+> > +					pr_warn("IRQ %d exceeds max (%d)\n",
+> > +						p->interrupts[i],
+> > +						ACPI_MAX_IRQS);
+> > +					continue;
+> > +				}
+> >  				link->irq.possible[i] = p->interrupts[i];
+> >  				link->irq.possible_count++;
+> >  			}
+> > @@ -279,6 +294,11 @@ static int acpi_pci_link_get_current(struct acpi_pci_link *link)
+> >  		result = -ENODEV;
+> >  	}
+> >  
 > 
-> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
-> ---
->  drivers/acpi/pci_link.c | 27 ++++++++++++++++++++++-----
->  1 file changed, 22 insertions(+), 5 deletions(-)
+> this should have been >=
 > 
-> diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
-> index 7c8408b..8fe4e6f 100644
-> --- a/drivers/acpi/pci_link.c
-> +++ b/drivers/acpi/pci_link.c
-> @@ -1,6 +1,7 @@
->  /*
->   *  pci_link.c - ACPI PCI Interrupt Link Device Driver ($Revision: 34 $)
->   *
-> + *  Copyright (c) 2015, The Linux Foundation. All rights reserved.
->   *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
->   *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
->   *  Copyright (C) 2002       Dominik Brodowski <devel@brodo.de>
-> @@ -47,6 +48,14 @@ ACPI_MODULE_NAME("pci_link");
->  #define ACPI_PCI_LINK_FILE_STATUS	"state"
->  #define ACPI_PCI_LINK_MAX_POSSIBLE	16
->  
-> +/*
-> + * 1020 is the maximum interrupt ID that can be assigned to
-> + * an ARM SPI interrupt according to ARM architecture.
-> + */
-> +#define ACPI_MAX_IRQS		1020
-> +#define ACPI_MAX_ISA_IRQ	16
-> +
-> +
->  static int acpi_pci_link_add(struct acpi_device *device,
->  			     const struct acpi_device_id *not_used);
->  static void acpi_pci_link_remove(struct acpi_device *device);
-> @@ -67,12 +76,12 @@ static struct acpi_scan_handler pci_link_handler = {
->   * later even the link is disable. Instead, we just repick the active irq
->   */
->  struct acpi_pci_link_irq {
-> -	u8 active;		/* Current IRQ */
-> +	u32 active;		/* Current IRQ */
->  	u8 triggering;		/* All IRQs */
->  	u8 polarity;		/* All IRQs */
->  	u8 resource_type;
->  	u8 possible_count;
-> -	u8 possible[ACPI_PCI_LINK_MAX_POSSIBLE];
-> +	u32 possible[ACPI_PCI_LINK_MAX_POSSIBLE];
->  	u8 initialized:1;
->  	u8 reserved:7;
->  };
-> @@ -147,6 +156,12 @@ static acpi_status acpi_pci_link_check_possible(struct acpi_resource *resource,
->  					       p->interrupts[i]);
->  					continue;
->  				}
-> +				if (p->interrupts[i] > ACPI_MAX_IRQS) {
-
-this should have been >=
-> +					pr_warn("IRQ %d exceeds max (%d)\n",
-> +						p->interrupts[i],
-> +						ACPI_MAX_IRQS);
-> +					continue;
-> +				}
->  				link->irq.possible[i] = p->interrupts[i];
->  				link->irq.possible_count++;
->  			}
-> @@ -279,6 +294,11 @@ static int acpi_pci_link_get_current(struct acpi_pci_link *link)
->  		result = -ENODEV;
->  	}
->  
-
-this should have been >=
-
-> +	if (irq > ACPI_MAX_IRQS) {
-> +		pr_err("IRQ %d number exceed max IRQ (%d)\n", irq,
-> +			ACPI_MAX_IRQS);
-> +		result = -ENODEV;
-> +	}
->  	link->irq.active = irq;
->  
->  	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Link at IRQ %d \n", link->irq.active));
-> @@ -437,9 +457,6 @@ static int acpi_pci_link_set(struct acpi_pci_link *link, int irq)
->   * enabled system.
->   */
->  
-> -#define ACPI_MAX_IRQS		256
-> -#define ACPI_MAX_ISA_IRQ	16
-> -
->  #define PIRQ_PENALTY_PCI_AVAILABLE	(0)
->  #define PIRQ_PENALTY_PCI_POSSIBLE	(16*16)
->  #define PIRQ_PENALTY_PCI_USING		(16*16*16)
+> > +	if (irq > ACPI_MAX_IRQS) {
+> > +		pr_err("IRQ %d number exceed max IRQ (%d)\n", irq,
+> > +			ACPI_MAX_IRQS);
+> > +		result = -ENODEV;
+> > +	}
+> >  	link->irq.active = irq;
+> >  
+> >  	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Link at IRQ %d \n", link->irq.active));
+> > @@ -437,9 +457,6 @@ static int acpi_pci_link_set(struct acpi_pci_link *link, int irq)
+> >   * enabled system.
+> >   */
+> >  
+> > -#define ACPI_MAX_IRQS		256
+> > -#define ACPI_MAX_ISA_IRQ	16
+> > -
+> >  #define PIRQ_PENALTY_PCI_AVAILABLE	(0)
+> >  #define PIRQ_PENALTY_PCI_POSSIBLE	(16*16)
+> >  #define PIRQ_PENALTY_PCI_USING		(16*16*16)
+> > 
 > 
+> Bjorn,
+> Does this look like what you were thinking?
 
-Bjorn,
-Does this look like what you were thinking?
-Sinan
+Yes, exactly.  I think it's much nicer if we can avoid putting invalid
+data into the list in the first place.
 
+Maybe reword the diagnostic to make it clear that we're ignoring this
+IRQ information.  It'd really be nice if the message had a clue about
+what it applies to, i.e., the ACPI device path or something, but I
+don't know how hard that is, and none of the other messages from that
+driver include that information either.
 
--- 
-Sinan Kaya
-Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a
-Linux Foundation Collaborative Project
+Bjorn
