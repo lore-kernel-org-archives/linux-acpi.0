@@ -1,39 +1,113 @@
 From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH V5] acpi: add support for extended IRQ to PCI link
-Date: Wed, 25 Nov 2015 13:28:06 -0500
-Message-ID: <5655FDB6.1020608@codeaurora.org>
-References: <1448395843-23112-1-git-send-email-okaya@codeaurora.org>
- <5655C55D.80206@codeaurora.org> <20151125172704.GE1380@localhost>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH V6] acpi: add support for extended IRQ to PCI link
+Date: Wed, 25 Nov 2015 13:52:38 -0500
+Message-ID: <1448477558-12310-1-git-send-email-okaya@codeaurora.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:49382 "EHLO
+Received: from smtp.codeaurora.org ([198.145.29.96]:51065 "EHLO
 	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750832AbbKYS2J (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Nov 2015 13:28:09 -0500
-In-Reply-To: <20151125172704.GE1380@localhost>
+	with ESMTP id S1752114AbbKYSwq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Nov 2015 13:52:46 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
+To: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, helgaas@kernel.org
+Cc: Sinan Kaya <okaya@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
 
-On 11/25/2015 12:27 PM, Bjorn Helgaas wrote:
-> Maybe reword the diagnostic to make it clear that we're ignoring this
-> IRQ information.  It'd really be nice if the message had a clue about
-> what it applies to, i.e., the ACPI device path or something,
+The ACPI compiler uses the extended format when used interrupt numbers
+are greater than 256. The extended IRQ numbers use 32 bits for storing
+interrupts. The code already supports parsing extended IRQ type but is
+limited by 256 due to used data structure type (u8). This patch changes
+the interrupt number type to 32 bits and places an upper limit of 1020
+as possible interrupt id. 1020 is the maximum interrupt ID that can be
+assigned to an ARM SPI interrupt according to ARM architecture.
 
-Are we OK with print strings exceeding 80 characters to include detailed
-information? Chris Covington pointed out to me that there are exceptions
-to 80 characters when it comes to print format strings.
+Additional checks have been placed to return an error when ACPI_MAX_IRQS
+is exceeded.
 
-"The limit on the length of lines is 80 columns and this is a strongly
-preferred limit. ... However, never break user-visible strings such as
-printk messages, because that breaks the ability to grep for them."
+Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+---
+ drivers/acpi/pci_link.c | 29 ++++++++++++++++++++++++-----
+ 1 file changed, 24 insertions(+), 5 deletions(-)
 
-
+diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+index 7c8408b..5ab83dc 100644
+--- a/drivers/acpi/pci_link.c
++++ b/drivers/acpi/pci_link.c
+@@ -4,6 +4,7 @@
+  *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
+  *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
+  *  Copyright (C) 2002       Dominik Brodowski <devel@brodo.de>
++ *  Copyright (c) 2015, The Linux Foundation. All rights reserved.
+  *
+  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  *
+@@ -47,6 +48,14 @@ ACPI_MODULE_NAME("pci_link");
+ #define ACPI_PCI_LINK_FILE_STATUS	"state"
+ #define ACPI_PCI_LINK_MAX_POSSIBLE	16
+ 
++/*
++ * 1020 is the maximum interrupt ID that can be assigned to
++ * an ARM SPI interrupt according to ARM architecture.
++ */
++#define ACPI_MAX_IRQS		1020
++#define ACPI_MAX_ISA_IRQ	16
++
++
+ static int acpi_pci_link_add(struct acpi_device *device,
+ 			     const struct acpi_device_id *not_used);
+ static void acpi_pci_link_remove(struct acpi_device *device);
+@@ -67,12 +76,12 @@ static struct acpi_scan_handler pci_link_handler = {
+  * later even the link is disable. Instead, we just repick the active irq
+  */
+ struct acpi_pci_link_irq {
+-	u8 active;		/* Current IRQ */
++	u32 active;		/* Current IRQ */
+ 	u8 triggering;		/* All IRQs */
+ 	u8 polarity;		/* All IRQs */
+ 	u8 resource_type;
+ 	u8 possible_count;
+-	u8 possible[ACPI_PCI_LINK_MAX_POSSIBLE];
++	u32 possible[ACPI_PCI_LINK_MAX_POSSIBLE];
+ 	u8 initialized:1;
+ 	u8 reserved:7;
+ };
+@@ -147,6 +156,13 @@ static acpi_status acpi_pci_link_check_possible(struct acpi_resource *resource,
+ 					       p->interrupts[i]);
+ 					continue;
+ 				}
++				if (p->interrupts[i] >= ACPI_MAX_IRQS) {
++					dev_warn(&link->device->dev,
++						"Ignoring IRQ(%d) as it exceeds max(%d)\n",
++						p->interrupts[i],
++						ACPI_MAX_IRQS - 1);
++					continue;
++				}
+ 				link->irq.possible[i] = p->interrupts[i];
+ 				link->irq.possible_count++;
+ 			}
+@@ -279,6 +295,12 @@ static int acpi_pci_link_get_current(struct acpi_pci_link *link)
+ 		result = -ENODEV;
+ 	}
+ 
++	if (irq >= ACPI_MAX_IRQS) {
++		dev_err(&link->device->dev,
++			"Ignoring IRQ(%d) as it exceeds max(%d)\n",
++			irq,  ACPI_MAX_IRQS - 1);
++		result = -ENODEV;
++	}
+ 	link->irq.active = irq;
+ 
+ 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Link at IRQ %d \n", link->irq.active));
+@@ -437,9 +459,6 @@ static int acpi_pci_link_set(struct acpi_pci_link *link, int irq)
+  * enabled system.
+  */
+ 
+-#define ACPI_MAX_IRQS		256
+-#define ACPI_MAX_ISA_IRQ	16
+-
+ #define PIRQ_PENALTY_PCI_AVAILABLE	(0)
+ #define PIRQ_PENALTY_PCI_POSSIBLE	(16*16)
+ #define PIRQ_PENALTY_PCI_USING		(16*16*16)
 -- 
-Sinan Kaya
 Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a
-Linux Foundation Collaborative Project
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
+
