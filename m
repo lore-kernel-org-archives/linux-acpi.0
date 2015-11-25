@@ -1,50 +1,66 @@
-From: "Chen, Yu C" <yu.c.chen@intel.com>
-Subject: Re: [PATCH 1/1] thermal: setup monitor only once after handling
- trips
-Date: Wed, 25 Nov 2015 07:16:08 +0000
-Message-ID: <1448435910.15712.22.camel@localhost>
-References: <1448424468-18736-1-git-send-email-edubezval@gmail.com>
+From: Jiang Liu <jiang.liu@linux.intel.com>
+Subject: Re: [Bugfix] x86/PCI: Fix regression caused by commit 4d6b4e69a245
+Date: Wed, 25 Nov 2015 16:12:57 +0800
+Message-ID: <56556D89.6020801@linux.intel.com>
+References: <1447648057-13644-1-git-send-email-jiang.liu@linux.intel.com>
+ <20151124164907.GA24819@localhost>
+ <CAJZ5v0irOUq6C9eSfCfmzyOiY1n1rUSxyUeUbvS9Nj0jNT2JrQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:26961 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752977AbbKYHQU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 25 Nov 2015 02:16:20 -0500
-In-Reply-To: <1448424468-18736-1-git-send-email-edubezval@gmail.com>
-Content-Language: en-US
-Content-ID: <2C1456D83D585F41AB728841003DDE10@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <CAJZ5v0irOUq6C9eSfCfmzyOiY1n1rUSxyUeUbvS9Nj0jNT2JrQ@mail.gmail.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>, Bjorn Helgaas <helgaas@kernel.org>
+Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, x86@kernel.org, Keith Busch <keith.busch@intel.com>, Arthur Marsh <arthur.marsh@internode.on.net>
 List-Id: linux-acpi@vger.kernel.org
-To: "edubezval@gmail.com" <edubezval@gmail.com>
-Cc: "Zhang, Rui" <rui.zhang@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-SGksDQpPbiBUdWUsIDIwMTUtMTEtMjQgYXQgMjA6MDcgLTA4MDAsIEVkdWFyZG8gVmFsZW50aW4g
-d3JvdGU6DQo+IEluc3RlYWQgb2YgY2hhbmdpbmcgdGhlIG1vbml0b3Jpbmcgc2V0dXAgZXZlcnkg
-dGltZSBhZnRlcg0KPiBoYW5kbGluZyBlYWNoIHRyaXAsIHRoaXMgcGF0Y2ggc2ltcGxpZmllcyB0
-aGUgbW9uaXRvcmluZw0KPiBzZXR1cCBieSBtb3ZpbmcgdGhlIHNldHVwIGNhbGwgdG8gYSBwbGFj
-ZSB3aGVyZSBhbGwNCj4gdHJpcHMgaGF2ZSBiZWVuIHRyZWF0ZWQgYWxyZWFkeS4NCj4gDQo+IENj
-OiBaaGFuZyBSdWkgPHJ1aS56aGFuZ0BpbnRlbC5jb20+DQo+IENjOiBsaW51eC1wbUB2Z2VyLmtl
-cm5lbC5vcmcNCj4gQ2M6IGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmcNCj4gU2lnbmVkLW9m
-Zi1ieTogRWR1YXJkbyBWYWxlbnRpbiA8ZWR1YmV6dmFsQGdtYWlsLmNvbT4NCj4gLS0tDQo+ICBk
-cml2ZXJzL3RoZXJtYWwvdGhlcm1hbF9jb3JlLmMgfCAxMSArKysrKystLS0tLQ0KPiAgMSBmaWxl
-IGNoYW5nZWQsIDYgaW5zZXJ0aW9ucygrKSwgNSBkZWxldGlvbnMoLSkNCj4gDQo+IGRpZmYgLS1n
-aXQgYS9kcml2ZXJzL3RoZXJtYWwvdGhlcm1hbF9jb3JlLmMgYi9kcml2ZXJzL3RoZXJtYWwvdGhl
-cm1hbF9jb3JlLmMNCj4gaW5kZXggZDllNTI1Yy4uNmRlYmI1NCAxMDA2NDQNCj4gLS0tIGEvZHJp
-dmVycy90aGVybWFsL3RoZXJtYWxfY29yZS5jDQo+ICsrKyBiL2RyaXZlcnMvdGhlcm1hbC90aGVy
-bWFsX2NvcmUuYw0KPiBAQCAtNDU3LDExICs0NTcsNiBAQCBzdGF0aWMgdm9pZCBoYW5kbGVfdGhl
-cm1hbF90cmlwKHN0cnVjdCB0aGVybWFsX3pvbmVfZGV2aWNlICp0eiwgaW50IHRyaXApDQo+ICAJ
-CWhhbmRsZV9jcml0aWNhbF90cmlwcyh0eiwgdHJpcCwgdHlwZSk7DQo+ICAJZWxzZQ0KPiAgCQlo
-YW5kbGVfbm9uX2NyaXRpY2FsX3RyaXBzKHR6LCB0cmlwLCB0eXBlKTsNCj4gLQkvKg0KPiAtCSAq
-IEFscmlnaHQsIHdlIGhhbmRsZWQgdGhpcyB0cmlwIHN1Y2Nlc3NmdWxseS4NCj4gLQkgKiBTbywg
-c3RhcnQgbW9uaXRvcmluZyBhZ2Fpbi4NCj4gLQkgKi8NCj4gLQltb25pdG9yX3RoZXJtYWxfem9u
-ZSh0eik7DQo+ICB9DQo+ICANCj4gIC8qKg0KPiBAQCAtNTQ3LDYgKzU0MiwxMiBAQCB2b2lkIHRo
-ZXJtYWxfem9uZV9kZXZpY2VfdXBkYXRlKHN0cnVjdCB0aGVybWFsX3pvbmVfZGV2aWNlICp0eikN
-Cj4gIA0KPiAgCWZvciAoY291bnQgPSAwOyBjb3VudCA8IHR6LT50cmlwczsgY291bnQrKykNCj4g
-IAkJaGFuZGxlX3RoZXJtYWxfdHJpcCh0eiwgY291bnQpOw0KPiArDQo+ICsJLyoNCj4gKwkgKiBB
-bHJpZ2h0LCB3ZSBoYW5kbGVkIHRoaXMgdHJpcCBzdWNjZXNzZnVsbHkuDQpzL3RoZXNlIHRyaXBz
-ID8NCj4gKwkgKiBTbywgc3RhcnQgbW9uaXRvcmluZyBhZ2Fpbi4NCj4gKwkgKi8NCj4gKwltb25p
-dG9yX3RoZXJtYWxfem9uZSh0eik7DQo+ICB9DQo+ICBFWFBPUlRfU1lNQk9MX0dQTCh0aGVybWFs
-X3pvbmVfZGV2aWNlX3VwZGF0ZSk7DQo+ICANCkJUVywgdGhlcm1hbF9ub3RpZnlfZnJhbWV3b3Jr
-IG1pZ2h0IG5lZWQgYmUgYWZmZWN0ZWQ/IA0KDQp0aGFua3MsDQpZdQ0K
+On 2015/11/25 6:19, Rafael J. Wysocki wrote:
+> On Tue, Nov 24, 2015 at 5:49 PM, Bjorn Helgaas <helgaas@kernel.org> wrote:
+>> On Mon, Nov 16, 2015 at 12:27:37PM +0800, Jiang Liu wrote:
+>>> From: Liu Jiang <jiang.liu@linux.intel.com>
+>>>
+>>> Commit 4d6b4e69a245 ("x86/PCI/ACPI: Use common interface to support
+>>> PCI host bridge") converted x86 to use the common interface
+>>> acpi_pci_root_create, but the conversion missed on code piece in
+>>> arch/x86/pci/bus_numa.c, which causes regression on some legacy
+>>> AMD platforms as reported by Arthur Marsh <arthur.marsh@internode.on.net>.
+>>> The root causes is that acpi_pci_root_create() fails to insert
+>>> host bridge resources into iomem_resource/ioport_resource because
+>>> x86_pci_root_bus_resources() has already inserted those resources.
+>>> So change x86_pci_root_bus_resources() to not insert resources into
+>>> iomem_resource/ioport_resource.
+>>
+>> Fixes: 4d6b4e69a245 ("x86/PCI/ACPI: Use common interface to support PCI host bridge")
+>>
+>>> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+>>> Reported-and-tested-by: Arthur Marsh <arthur.marsh@internode.on.net>
+>>
+>> What's the status of this?  It looks like a regression we need to fix
+>> for v4.4.
+>>
+>> AFAICT, Arthur did *not* test this patch (rather, his response says he
+>> did test it and the test failed).
+>>
+>> 4d6b4e69a245 was merged by Rafael, and I assume he'll merge the fix
+>> unless I hear otherwise.
+> 
+> Quite frankly, I'm more likely to revert the offending commit at this
+> point as that's not the only regression reported against it and the
+> fix only helps in one case (out of three known to me).
+Hi Rafael,
+	I got regression report from Hans de Bruin<jmdebruin@xmsnet.nl>,
+Keith Busch <keith.busch@intel.com>, and Arthur Marsh
+<arthur.marsh@internode.on.net>. Hans and Keith also reports
+the patch fixes the regression. For Arthur's case, the debug
+patch works for him, but the formal patch based on the debug
+patch fails, so I need to do more investigation about this.
+Is there any other report related to commit 4d6b4e69a245 so
+I could help to investigate?
+Thanks,
+Gerry
+
+> 
+> Thanks,
+> Rafael
+> 
