@@ -1,73 +1,126 @@
-From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
-Subject: Re: [Bugfix] x86/PCI: Fix regression caused by commit 4d6b4e69a245
-Date: Wed, 25 Nov 2015 14:11:46 +0100
-Message-ID: <5655B392.7070701@intel.com>
-References: <1447648057-13644-1-git-send-email-jiang.liu@linux.intel.com>
- <20151124164907.GA24819@localhost>
- <CAJZ5v0irOUq6C9eSfCfmzyOiY1n1rUSxyUeUbvS9Nj0jNT2JrQ@mail.gmail.com>
- <56556D89.6020801@linux.intel.com>
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: Re: [PATCH V5] acpi: add support for extended IRQ to PCI link
+Date: Wed, 25 Nov 2015 09:27:41 -0500
+Message-ID: <5655C55D.80206@codeaurora.org>
+References: <1448395843-23112-1-git-send-email-okaya@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:32776 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751732AbbKYNM0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 25 Nov 2015 08:12:26 -0500
-In-Reply-To: <56556D89.6020801@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1448395843-23112-1-git-send-email-okaya@codeaurora.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, helgaas@kernel.org
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>, Bjorn Helgaas <helgaas@kernel.org>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, x86@kernel.org, Keith Busch <keith.busch@intel.com>, Arthur Marsh <arthur.marsh@internode.on.net>
 
-On 11/25/2015 9:12 AM, Jiang Liu wrote:
-> On 2015/11/25 6:19, Rafael J. Wysocki wrote:
->> On Tue, Nov 24, 2015 at 5:49 PM, Bjorn Helgaas <helgaas@kernel.org> wrote:
->>> On Mon, Nov 16, 2015 at 12:27:37PM +0800, Jiang Liu wrote:
->>>> From: Liu Jiang <jiang.liu@linux.intel.com>
->>>>
->>>> Commit 4d6b4e69a245 ("x86/PCI/ACPI: Use common interface to support
->>>> PCI host bridge") converted x86 to use the common interface
->>>> acpi_pci_root_create, but the conversion missed on code piece in
->>>> arch/x86/pci/bus_numa.c, which causes regression on some legacy
->>>> AMD platforms as reported by Arthur Marsh <arthur.marsh@internode.on.net>.
->>>> The root causes is that acpi_pci_root_create() fails to insert
->>>> host bridge resources into iomem_resource/ioport_resource because
->>>> x86_pci_root_bus_resources() has already inserted those resources.
->>>> So change x86_pci_root_bus_resources() to not insert resources into
->>>> iomem_resource/ioport_resource.
->>> Fixes: 4d6b4e69a245 ("x86/PCI/ACPI: Use common interface to support PCI host bridge")
->>>
->>>> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
->>>> Reported-and-tested-by: Arthur Marsh <arthur.marsh@internode.on.net>
->>> What's the status of this?  It looks like a regression we need to fix
->>> for v4.4.
->>>
->>> AFAICT, Arthur did *not* test this patch (rather, his response says he
->>> did test it and the test failed).
->>>
->>> 4d6b4e69a245 was merged by Rafael, and I assume he'll merge the fix
->>> unless I hear otherwise.
->> Quite frankly, I'm more likely to revert the offending commit at this
->> point as that's not the only regression reported against it and the
->> fix only helps in one case (out of three known to me).
-> Hi Rafael,
-> 	I got regression report from Hans de Bruin<jmdebruin@xmsnet.nl>,
-> Keith Busch <keith.busch@intel.com>, and Arthur Marsh
-> <arthur.marsh@internode.on.net>. Hans and Keith also reports
-> the patch fixes the regression. For Arthur's case, the debug
-> patch works for him, but the formal patch based on the debug
-> patch fails, so I need to do more investigation about this.
-> Is there any other report related to commit 4d6b4e69a245 so
-> I could help to investigate?
+On 11/24/2015 3:10 PM, Sinan Kaya wrote:
+> The ACPI compiler uses the extended format when used interrupt numbers
+> are greater than 256. The extended IRQ numbers use 32 bits for storing
+> interrupts. The code already supports parsing extended IRQ type but is
+> limited by 256 due to used data structure type (u8). This patch changes
+> the interrupt number type to 32 bits and places an upper limit of 1020
+> as possible interrupt id. 1020 is the maximum interrupt ID that can be
+> assigned to an ARM SPI interrupt according to ARM architecture.
+> 
+> Additional checks have been placed to return an error when ACPI_MAX_IRQS
+> is exceeded.
+> 
+> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+> ---
+>  drivers/acpi/pci_link.c | 27 ++++++++++++++++++++++-----
+>  1 file changed, 22 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+> index 7c8408b..8fe4e6f 100644
+> --- a/drivers/acpi/pci_link.c
+> +++ b/drivers/acpi/pci_link.c
+> @@ -1,6 +1,7 @@
+>  /*
+>   *  pci_link.c - ACPI PCI Interrupt Link Device Driver ($Revision: 34 $)
+>   *
+> + *  Copyright (c) 2015, The Linux Foundation. All rights reserved.
+>   *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
+>   *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
+>   *  Copyright (C) 2002       Dominik Brodowski <devel@brodo.de>
+> @@ -47,6 +48,14 @@ ACPI_MODULE_NAME("pci_link");
+>  #define ACPI_PCI_LINK_FILE_STATUS	"state"
+>  #define ACPI_PCI_LINK_MAX_POSSIBLE	16
+>  
+> +/*
+> + * 1020 is the maximum interrupt ID that can be assigned to
+> + * an ARM SPI interrupt according to ARM architecture.
+> + */
+> +#define ACPI_MAX_IRQS		1020
+> +#define ACPI_MAX_ISA_IRQ	16
+> +
+> +
+>  static int acpi_pci_link_add(struct acpi_device *device,
+>  			     const struct acpi_device_id *not_used);
+>  static void acpi_pci_link_remove(struct acpi_device *device);
+> @@ -67,12 +76,12 @@ static struct acpi_scan_handler pci_link_handler = {
+>   * later even the link is disable. Instead, we just repick the active irq
+>   */
+>  struct acpi_pci_link_irq {
+> -	u8 active;		/* Current IRQ */
+> +	u32 active;		/* Current IRQ */
+>  	u8 triggering;		/* All IRQs */
+>  	u8 polarity;		/* All IRQs */
+>  	u8 resource_type;
+>  	u8 possible_count;
+> -	u8 possible[ACPI_PCI_LINK_MAX_POSSIBLE];
+> +	u32 possible[ACPI_PCI_LINK_MAX_POSSIBLE];
+>  	u8 initialized:1;
+>  	u8 reserved:7;
+>  };
+> @@ -147,6 +156,12 @@ static acpi_status acpi_pci_link_check_possible(struct acpi_resource *resource,
+>  					       p->interrupts[i]);
+>  					continue;
+>  				}
+> +				if (p->interrupts[i] > ACPI_MAX_IRQS) {
 
-OK, so the proposed bug fix works for everybody, right?
+this should have been >=
+> +					pr_warn("IRQ %d exceeds max (%d)\n",
+> +						p->interrupts[i],
+> +						ACPI_MAX_IRQS);
+> +					continue;
+> +				}
+>  				link->irq.possible[i] = p->interrupts[i];
+>  				link->irq.possible_count++;
+>  			}
+> @@ -279,6 +294,11 @@ static int acpi_pci_link_get_current(struct acpi_pci_link *link)
+>  		result = -ENODEV;
+>  	}
+>  
 
-In that case there's no reason not to apply it.
+this should have been >=
 
-If there's anyone who can reproduce the problem and for whom that patch 
-doesn't work, please let me know.
+> +	if (irq > ACPI_MAX_IRQS) {
+> +		pr_err("IRQ %d number exceed max IRQ (%d)\n", irq,
+> +			ACPI_MAX_IRQS);
+> +		result = -ENODEV;
+> +	}
+>  	link->irq.active = irq;
+>  
+>  	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Link at IRQ %d \n", link->irq.active));
+> @@ -437,9 +457,6 @@ static int acpi_pci_link_set(struct acpi_pci_link *link, int irq)
+>   * enabled system.
+>   */
+>  
+> -#define ACPI_MAX_IRQS		256
+> -#define ACPI_MAX_ISA_IRQ	16
+> -
+>  #define PIRQ_PENALTY_PCI_AVAILABLE	(0)
+>  #define PIRQ_PENALTY_PCI_POSSIBLE	(16*16)
+>  #define PIRQ_PENALTY_PCI_USING		(16*16*16)
+> 
 
-Thanks,
-Rafael
+Bjorn,
+Does this look like what you were thinking?
+Sinan
 
+
+-- 
+Sinan Kaya
+Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a
+Linux Foundation Collaborative Project
