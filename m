@@ -1,89 +1,38 @@
-From: Arthur Marsh <arthur.marsh@internode.on.net>
-Subject: Re: [Bugfix] x86/PCI: Fix regression caused by commit 4d6b4e69a245
-Date: Wed, 25 Nov 2015 20:42:55 +1030
-Message-ID: <565589A7.50104@internode.on.net>
-References: <1447648057-13644-1-git-send-email-jiang.liu@linux.intel.com>
- <20151124164907.GA24819@localhost>
- <CAJZ5v0irOUq6C9eSfCfmzyOiY1n1rUSxyUeUbvS9Nj0jNT2JrQ@mail.gmail.com>
- <20151124230413.GA11608@localhost.localdomain>
- <5655019C.7070700@internode.on.net> <565570E5.5080906@linux.intel.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v1 11/13] mfd: intel-lpss: Pass HSUART configuration via
+ properties
+Date: Wed, 25 Nov 2015 14:12:52 +0200
+Message-ID: <20151125121252.GY1587@lahna.fi.intel.com>
+References: <1448360579-79260-1-git-send-email-andriy.shevchenko@linux.intel.com>
+ <1448360579-79260-12-git-send-email-andriy.shevchenko@linux.intel.com>
+ <6720400.mTdslW7yXO@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <565570E5.5080906@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>, Keith Busch <keith.busch@intel.com>, "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Bjorn Helgaas <helgaas@kernel.org>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, x86@kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([134.134.136.65]:42690 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752411AbbKYMQD (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 25 Nov 2015 07:16:03 -0500
+Content-Disposition: inline
+In-Reply-To: <6720400.mTdslW7yXO@wuerfel>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Kevin Fenzi <kevin@scrye.com>, Wolfram Sang <wsa@the-dreams.de>
 
+On Tue, Nov 24, 2015 at 08:53:04PM +0100, Arnd Bergmann wrote:
+> On Tuesday 24 November 2015 12:22:57 Andy Shevchenko wrote:
+> > +static struct property_entry uart_properties[] = {
+> > +       PROPERTY_ENTRY_U32("reg-io-width", 4),
+> > +       PROPERTY_ENTRY_U32("reg-shift", 2),
+> > +       PROPERTY_ENTRY_U8("snps,uart-16550-compatible", 1),
+> > +       { },
+> > 
+> 
+> If I read the binding correctly, the "snps,uart-16550-compatible" property
+> is meant to be boolean, meaning true if present and zero-length or false
+> if absent. Using a u8 propert instead feels wrong.
+> 
+> Maybe we can have a PROPERTY_ENTRY_BOOL() for that?
 
-
-Jiang Liu wrote on 25/11/15 18:57:
-
-> Hi Arthur,
-> 	Thanks for reminder again!
-> It's a little strange, the formal patch "[Bugfix] x86/PCI: Fix
-> regression caused by commit 4d6b4e69a245" is based on the debug patch
-> I sent to you at 9 November 2015.
-> 	Could you please help to try the attached patch again?
-> Thanks,
-> Gerry
-
-OK, I'm booting alright now with git diff reporting the following (just 
-the patch that Jiang Liu posted in the parent):
-
-diff --git a/arch/x86/pci/bus_numa.c b/arch/x86/pci/bus_numa.c
-index 7bcf06a..6eb3c8a 100644
---- a/arch/x86/pci/bus_numa.c
-+++ b/arch/x86/pci/bus_numa.c
-@@ -50,18 +50,9 @@ void x86_pci_root_bus_resources(int bus, struct 
-list_head *resources)
-  	if (!found)
-  		pci_add_resource(resources, &info->busn);
-
--	list_for_each_entry(root_res, &info->resources, list) {
--		struct resource *res;
--		struct resource *root;
-+	list_for_each_entry(root_res, &info->resources, list)
-+		pci_add_resource(resources, &root_res->res);
-
--		res = &root_res->res;
--		pci_add_resource(resources, res);
--		if (res->flags & IORESOURCE_IO)
--			root = &ioport_resource;
--		else
--			root = &iomem_resource;
--		insert_resource(root, res);
--	}
-  	return;
-
-  default_resources:
-diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index 850d7bf..ae3fe4e 100644
---- a/drivers/acpi/pci_root.c
-+++ b/drivers/acpi/pci_root.c
-@@ -768,6 +768,13 @@ static void pci_acpi_root_add_resources(struct 
-acpi_pci_root_info *info)
-  		else
-  			continue;
-
-+		/*
-+		 * Some legacy x86 host bridge drivers use iomem_resource and
-+		 * ioport_resource as default resource pool, skip it.
-+		 */
-+		if (res == root)
-+			continue;
-+
-  		conflict = insert_resource_conflict(root, res);
-  		if (conflict) {
-  			dev_info(&info->bridge->dev,
-####
-
-
-There have been at least two gcc-5 updates on this machine since 
-originally reporting the problem so that may have affected results.
-
-Thanks to all for help with this.
-
-Arthur.
+That's a good idea. We'll add it to the next revision of the series.
