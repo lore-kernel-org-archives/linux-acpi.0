@@ -1,93 +1,90 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 1/7] device core: add BUS_NOTIFY_BIND_DRIVER_ERROR notification
-Date: Fri, 27 Nov 2015 00:09:09 +0100
-Message-ID: <10826039.DB5kcb9LL1@vostro.rjw.lan>
-References: <1448551153-84719-1-git-send-email-andriy.shevchenko@linux.intel.com> <1448551153-84719-2-git-send-email-andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH v2 2/7] ACPI / LPSS: allow to use specific PM domain during ->probe()
+Date: Fri, 27 Nov 2015 00:15:51 +0100
+Message-ID: <10907323.ZOUAMFPIfU@vostro.rjw.lan>
+References: <1448551153-84719-1-git-send-email-andriy.shevchenko@linux.intel.com> <565733A2.6050900@linux.intel.com> <1448556317.15393.77.camel@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:56726 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:59983 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752893AbbKZWj1 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Nov 2015 17:39:27 -0500
-In-Reply-To: <1448551153-84719-2-git-send-email-andriy.shevchenko@linux.intel.com>
+	with SMTP id S1752850AbbKZWqJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Nov 2015 17:46:09 -0500
+In-Reply-To: <1448556317.15393.77.camel@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: linux-acpi@vger.kernel.org, Vinod Koul <vinod.koul@intel.com>, dmaengine@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Jarkko Nikula <jarkko.nikula@linux.intel.com>, linux-acpi@vger.kernel.org, Vinod Koul <vinod.koul@intel.com>, dmaengine@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-On Thursday, November 26, 2015 05:19:07 PM Andy Shevchenko wrote:
-> In case ->probe() fails the notifier does not inform a subscriber about this.
-> In the result it might happend that some resources that had been allocated will
-> stay allocated and therefore lead to resource leak.
+On Thursday, November 26, 2015 06:45:17 PM Andy Shevchenko wrote:
+> On Thu, 2015-11-26 at 18:30 +0200, Jarkko Nikula wrote:
+> > On 11/26/2015 05:19 PM, Andy Shevchenko wrote:
+> > > This is an amendment to previously pushed commit 01ac170ba29a (ACPI
+> > > / LPSS:
+> > > allow to use specific PM domain during ->probe()). We can't assign
+> > > anything to
+> > > the platform device on ADD_DEVICE stage since it might be changed
+> > > during
+> > > unbound / bind cycle.
+> > > 
+> > > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> > > ---
+> > >   drivers/acpi/acpi_lpss.c | 9 +++++++--
+> > >   1 file changed, 7 insertions(+), 2 deletions(-)
+> > > 
+> > > diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+> > > index f9e0d09..e840229 100644
+> > > --- a/drivers/acpi/acpi_lpss.c
+> > > +++ b/drivers/acpi/acpi_lpss.c
+> > > @@ -705,8 +705,14 @@ static int acpi_lpss_platform_notify(struct
+> > > notifier_block *nb,
+> > >   	}
+> > > 
+> > >   	switch (action) {
+> > > -	case BUS_NOTIFY_ADD_DEVICE:
+> > > +	case BUS_NOTIFY_BIND_DRIVER:
+> > >   		pdev->dev.pm_domain = &acpi_lpss_pm_domain;
+> > > +		break;
+> > > +	case BUS_NOTIFY_BIND_DRIVER_ERROR:
+> > > +	case BUS_NOTIFY_UNBOUND_DRIVER:
+> > > +		pdev->dev.pm_domain = NULL;
+> > > +		break;
+> > > +	case BUS_NOTIFY_ADD_DEVICE:
+> > 
+> > This won't fix like revert of original commit does.
+
+Which commit exactly are you talking about, for reference?
+
+> > Primary problem here 
+> > is that there is no explicit power on at all during LPSS device probe
+> > because dev->pm_domain is set before probing.
 > 
-> Introduce a new notification to inform the subscriber that ->probe() failed.
+> And we can't do this as in very original code of acpi_lpss.c since DMA
+> has to be sure it's powered on while probing. We could guarantee this
+> only in case when PM domain is assigned already and we do our quirk for
+> it.
 > 
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-
-I'd rather say the problem is that the users of BUS_NOTIFY_BIND_DRIVER have no
-chance to do any cleanup in case of a probe failure (there may be problems even
-if resources aren't leaked).
-
-> ---
->  drivers/base/dd.c      | 8 ++++++--
->  include/linux/device.h | 1 +
->  2 files changed, 7 insertions(+), 2 deletions(-)
+> From my point of view we have to fix hang first since it's most painful
+> case for users and their experience. Though I'm open to any better
+> solution if you have any in mind.
 > 
-> diff --git a/drivers/base/dd.c b/drivers/base/dd.c
-> index a641cf3..ac071a5 100644
-> --- a/drivers/base/dd.c
-> +++ b/drivers/base/dd.c
-> @@ -290,7 +290,7 @@ static int really_probe(struct device *dev, struct device_driver *drv)
->  	/* If using pinctrl, bind pins now before probing */
->  	ret = pinctrl_bind_pins(dev);
->  	if (ret)
-> -		goto probe_failed;
-> +		goto pinctrl_bind_failed;
->  
->  	if (driver_sysfs_add(dev)) {
->  		printk(KERN_ERR "%s: driver_sysfs_add(%s) failed\n",
-> @@ -334,6 +334,11 @@ static int really_probe(struct device *dev, struct device_driver *drv)
->  	goto done;
->  
->  probe_failed:
-> +	if (dev->bus)
-> +		blocking_notifier_call_chain(&dev->bus->p->bus_notifier,
-> +					     BUS_NOTIFY_BIND_DRIVER_ERROR,
-> +					     dev);
+> > 
+> > driver_probe_device
+> >    platform_drv_prove
+> >      dev_pm_domain_attach
+> >        acpi_dev_pm_attach
+> >          returns instantly because of dev->pm_domain is set
 
-Well, if we do that, device_bind_driver() needs to send that notification too
-in case it doesn't call driver_bound().
+This looks like a candidate for the new PM domain callbacks, ->activate and
+->dismiss.
 
-> +pinctrl_bind_failed:
->  	devres_release_all(dev);
->  	driver_sysfs_remove(dev);
->  	dev->driver = NULL;
-> @@ -701,7 +706,6 @@ static void __device_release_driver(struct device *dev)
->  			blocking_notifier_call_chain(&dev->bus->p->bus_notifier,
->  						     BUS_NOTIFY_UNBOUND_DRIVER,
->  						     dev);
-> -
->  	}
->  }
->  
-> diff --git a/include/linux/device.h b/include/linux/device.h
-> index b8f411b..87cf423 100644
-> --- a/include/linux/device.h
-> +++ b/include/linux/device.h
-> @@ -191,6 +191,7 @@ extern int bus_unregister_notifier(struct bus_type *bus,
->  						      unbound */
->  #define BUS_NOTIFY_UNBOUND_DRIVER	0x00000007 /* driver is unbound
->  						      from the device */
-> +#define BUS_NOTIFY_BIND_DRIVER_ERROR	0x80000004 /* driver fails to be bound */
+->activate() is called before the probe, so it may power up things.
 
-I'd call it BUS_NOTIFY_DRIVER_NOT_BOUND.
+->dismiss() in turn is called in the failed probe case, so it can do the
+cleanup.
 
->  
->  extern struct kset *bus_get_kset(struct bus_type *bus);
->  extern struct klist *bus_get_device_klist(struct bus_type *bus);
-> 
+Have you considered using these?
 
 Thanks,
 Rafael
