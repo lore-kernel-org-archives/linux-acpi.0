@@ -1,89 +1,94 @@
-From: "Shevchenko, Andriy" <andriy.shevchenko@intel.com>
-Subject: Re: [PATCH v2 5/7] dmaengine: dw: platform: power on device on
- shutdown
-Date: Thu, 26 Nov 2015 18:11:09 +0000
-Message-ID: <1448561479.15393.95.camel@intel.com>
-References: <1448551153-84719-1-git-send-email-andriy.shevchenko@linux.intel.com>
-	 <1448551153-84719-6-git-send-email-andriy.shevchenko@linux.intel.com>
-	 <20151126170105.GE2309@localhost>
-	 <1448558688.15393.85.camel@linux.intel.com>
-	 <20151126174157.GI2309@localhost>
-	 <1448560712.15393.93.camel@linux.intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v2 1/7] device core: add BUS_NOTIFY_BIND_DRIVER_ERROR notification
+Date: Fri, 27 Nov 2015 00:09:09 +0100
+Message-ID: <10826039.DB5kcb9LL1@vostro.rjw.lan>
+References: <1448551153-84719-1-git-send-email-andriy.shevchenko@linux.intel.com> <1448551153-84719-2-git-send-email-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:57478 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753328AbbKZSLN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 26 Nov 2015 13:11:13 -0500
-In-Reply-To: <1448560712.15393.93.camel@linux.intel.com>
-Content-Language: en-US
-Content-ID: <E208940D9A313B47889F6DB1B8023C4F@intel.com>
+Received: from v094114.home.net.pl ([79.96.170.134]:56726 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752893AbbKZWj1 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 26 Nov 2015 17:39:27 -0500
+In-Reply-To: <1448551153-84719-2-git-send-email-andriy.shevchenko@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Koul, Vinod" <vinod.koul@intel.com>
-Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "dmaengine@vger.kernel.org" <dmaengine@vger.kernel.org>, "mika.westerberg@linux.intel.com" <mika.westerberg@linux.intel.com>, "jarkko.nikula@linux.intel.com" <jarkko.nikula@linux.intel.com>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, Vinod Koul <vinod.koul@intel.com>, dmaengine@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-T24gVGh1LCAyMDE1LTExLTI2IGF0IDE5OjU4ICswMjAwLCBBbmR5IFNoZXZjaGVua28gd3JvdGU6
-DQo+IE9uIFRodSwgMjAxNS0xMS0yNiBhdCAyMzoxMSArMDUzMCwgVmlub2QgS291bCB3cm90ZToN
-Cj4gPiBPbiBUaHUsIE5vdiAyNiwgMjAxNSBhdCAwNzoyNDo0OFBNICswMjAwLCBBbmR5IFNoZXZj
-aGVua28gd3JvdGU6DQo+ID4gPiBPbiBUaHUsIDIwMTUtMTEtMjYgYXQgMjI6MzEgKzA1MzAsIFZp
-bm9kIEtvdWwgd3JvdGU6DQo+ID4gPiA+IE9uIFRodSwgTm92IDI2LCAyMDE1IGF0IDA1OjE5OjEx
-UE0gKzAyMDAsIEFuZHkgU2hldmNoZW5rbw0KPiA+ID4gPiB3cm90ZToNCj4gPiA+ID4gPiBXZSBo
-YXZlIHRvIGNhbGwgZHdfZG1hX2Rpc2FibGUoKSB0byBzdG9wIGFueSBvbmdvaW5nDQo+ID4gPiA+
-ID4gdHJhbnNmZXIuDQo+ID4gPiA+IA0KPiA+ID4gPiBPaw0KPiA+ID4gPiANCj4gPiA+ID4gPiBP
-biBzb21lIHBsYXRmb3JtcyB3ZSBjYW4ndCBkbyB0aGF0IHNpbmNlIERNQSBkZXZpY2UgaXMNCj4g
-PiA+ID4gPiBwb3dlcmVkDQo+ID4gPiA+ID4gb2ZmLg0KPiA+ID4gPiANCj4gPiA+ID4gVW1tLCB5
-b3Ugc2FpZCB3ZSBoYXZlIG9uZ29pbmcgdHJhbnNmZXIgd2hpY2ggbWVhbnMgRE1BIHNob3VsZA0K
-PiA+ID4gPiBiZQ0KPiA+ID4gPiBvbi4uISENCj4gPiA+IA0KPiA+ID4gWWVzLCB0aGF0J3MgdHJ1
-ZSBmb3IgSFNXL0JEVyBhbmQgbm9uLWFmZmVjdGVkIEJZVC9DSFQuDQo+ID4gDQo+ID4gQ2FuIHlv
-dSBwbGVhc2UgZXhwbGFpbiBldmVuIHdoZW4gRE1BIGlzIGluIHVzZSBob3cgY2FuIGRldmljZSBi
-ZQ0KPiA+IHBvd2VyZWQNCj4gPiBvZmY/IFRoYXQgZG9lcyBub3Qgc291bmQgcmlnaHQgdG8gbWUu
-IA0KPiANCj4gSXQgY2FuJ3QsIGJ1dCB0aGUgcHJvYmxlbSBpcyB3ZSBjYW4ndCBkaXN0aW5ndWlz
-aCB0aGF0IGluIHRoaXMNCj4gcm91dGluZSENCj4gV2Ugc2ltcGxlIGRvICpub3QqIGtub3cgdGhl
-IGFjdHVhbCBwb3dlciBzdGF0ZSBvZiBETUEuDQo+IA0KPiBUaGVzZSBjYWxscyAqZW5zdXJlcyog
-dGhhdCBETUEgaXMgcG93ZXJlZCBvbi4gWWVzLCB0aGUgY2FsbCB0bw0KPiBkd19kbWFfb2ZmKCkg
-d2hlbiBpdCB1c2VkIHRvIGJlIHBvd2VyZWQgb2ZmIHNvdW5kcyBzaWxseSwgSSBhZ3JlZSwNCj4g
-dGhvdWdoIEkgc2VlIG5vIHVwc3RyZWFtYWJsZSAobm9uLWhhY2tpc2gpIHNvbHV0aW9uIGZvciB0
-aGF0Lg0KPiANCj4gUHJldmlvdXNseSBJIHByb3Bvc2VkIHRvIHJlbW92ZSAuc2h1dGRvd24gaG9v
-ayBjb21wbGV0ZWx5LCB5b3Ugd2VyZQ0KPiBvYmplY3RpbmcuDQoNCkFuZCBzZWNvbmQgYXBwcm9h
-Y2ggd2l0aCBQTUMgaW52b2x2ZWQgd2FzIGFsc28gcmVqZWN0ZWQgYnkgeW91IHNpbmNlIGl0DQp3
-YXMgdG9vIGhhY2tpc2gsIHdoaWNoIEkgY29tcGxldGVseSBhZ3JlZSB3aXRoLg0KDQo+IA0KPiA+
-IElzIHRoaXMgb24gR1AgRE1BIG9uIEJZVC9DSFQgb3INCj4gPiBzb21ldGhpbmcgZWxzZT8NCj4g
-DQo+IENvcnJlY3QuIEFmZmVjdGVkIHBsYXRmb3JtcyBhcmUgQllULVQgYW5kIHNvbWUgb3IgYWxs
-IG9mIEJTVy9DSFQNCj4gZGVwZW5kaW5nIG9uIGZpcm13YXJlIGluIHVzZS4NCj4gDQo+ID4gwqAN
-Cj4gPiA+IExpa2UgSSBtZW50aW9uZWQgaGVyZSBpcyBubyBwb3NzaWJpbGl0eSB0byBrbm93IHdo
-aWNoIHBsYXRmb3JtIHdlDQo+ID4gPiBydW4NCj4gPiA+IG9uLg0KPiA+ID4gDQo+ID4gPiBXb3Vs
-ZCB5b3UgbGlrZSB0byB0ZXN0IHRoaXMgb24gYSByZWFsIGRldmljZT8gV2UgY2FuIHByb3ZpZGUg
-eW91DQo+ID4gPiBhDQo+ID4gPiBsb2dpbi4NCj4gPiA+IA0KPiA+ID4gPiANCj4gPiA+ID4gPiBN
-b3Jlb3ZlciB3ZSBoYXZlIG5vDQo+ID4gPiA+ID4gcG9zc2liaWxpdHkgYXQgdGhhdCBwb2ludCB0
-byBjaGVjayBpZiB0aGUgcGxhdGZvcm0gaXMNCj4gPiA+ID4gPiBhZmZlY3RlZA0KPiA+ID4gPiA+
-IG9yDQo+ID4gPiA+ID4gbm90LiBUaGF0J3MNCj4gPiA+ID4gPiB3aHkgd2UgY2FsbCBwbV9ydW50
-aW1lX2dldF9zeW5jKCkgLyBwbV9ydW50aW1lX3B1dCgpDQo+ID4gPiA+ID4gdW5jb25kaXRpb25h
-bGx5LiBPbiB0aGUNCj4gPiA+ID4gPiBvdGhlciBoYW5kIHdlIGNhbid0IHVzZSBwbV9ydW50aW1l
-X3N1c3BlbmRlZCgpIGJlY2F1c2UNCj4gPiA+ID4gPiBydW50aW1lDQo+ID4gPiA+ID4gUE0NCj4g
-PiA+ID4gPiBmcmFtZXdvcmsgaXMNCj4gPiA+ID4gPiBub3QgZnVsbHkgdXNlZCBieSB0aGUgZHJp
-dmVyLg0KPiA+ID4gPiANCj4gPiA+ID4gU2hvdWxkbid0IHRoYXQgYmUgZml4ZWQ/DQo+ID4gPiAN
-Cj4gPiA+IERvIHlvdSBoYXZlIGFueSBzb2x1dGlvbiBob3c/DQo+ID4gPiANCj4gPiA+IFJvdWdo
-IGFwcHJvYWNoIGlzIHRvIHR1cm4gb24gaXQgb24gY2hhbm5lbCBhbGxvY2F0aW9uIGFuZCB0dXJu
-DQo+ID4gPiBvZmYNCj4gPiA+IG9uDQo+ID4gPiBmcmVlaW5nIHJlc291cmNlcy4gVGhlIG9idmlv
-dXMgZG93bnNpZGUgb2YgdGhpcyBzb2x1dGlvbiBpcyBwb3dlcg0KPiA+ID4gY29uc3VtcHRpb24g
-b2YgaWRsaW5nIGRldmljZS4NCj4gPiANCj4gPiBCdXQgaW4gdGhhdCBjYXNlLCB0aGUgY2xpZW50
-cyBzaG91bGQgbm90IGhvbGQgcmVmIG9mIGRtYSBjaGFuIHdoZW4NCj4gPiBpZGxlIGFuZA0KPiA+
-IGFsbG9jYXRlIG9ubHkgd2hlbiByZXF1aXJlZCB3aGljaCBpcyBhIHJlc29uYWJsZSBleHBlY3Rh
-dGlvbg0KPiANCj4gVGhlcmUgaXMgbm90IHRoZSBjYXNlIGZvciBmZXcgZHJpdmVycy4gQXQgbGVh
-c3QgZm9yIHVzIGl0J3Mgc3BpLQ0KPiBweGEyeHgNCj4gb25lLiBJdCByZXF1aXJlcyBjaGFubmVs
-cyBvbiBpdHMgLT5wcm9iZSgpIHN0YWdlLiBKYXJra28gaXMgQ2MnZWQNCj4gaGVyZSwNCj4geW91
-IG1heSBhc2sgaGltIGFzIGhlIGlzIG91ciBtYWludGFpbmVyIGZvciB0aGUgU1BJLg0KPiANCg0K
-LS0gDQpBbmR5IFNoZXZjaGVua28gPGFuZHJpeS5zaGV2Y2hlbmtvQGludGVsLmNvbT4NCkludGVs
-IEZpbmxhbmQgT3kNCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpJbnRlbCBGaW5sYW5kIE95ClJlZ2lzdGVyZWQgQWRk
-cmVzczogUEwgMjgxLCAwMDE4MSBIZWxzaW5raSAKQnVzaW5lc3MgSWRlbnRpdHkgQ29kZTogMDM1
-NzYwNiAtIDQgCkRvbWljaWxlZCBpbiBIZWxzaW5raSAKClRoaXMgZS1tYWlsIGFuZCBhbnkgYXR0
-YWNobWVudHMgbWF5IGNvbnRhaW4gY29uZmlkZW50aWFsIG1hdGVyaWFsIGZvcgp0aGUgc29sZSB1
-c2Ugb2YgdGhlIGludGVuZGVkIHJlY2lwaWVudChzKS4gQW55IHJldmlldyBvciBkaXN0cmlidXRp
-b24KYnkgb3RoZXJzIGlzIHN0cmljdGx5IHByb2hpYml0ZWQuIElmIHlvdSBhcmUgbm90IHRoZSBp
-bnRlbmRlZApyZWNpcGllbnQsIHBsZWFzZSBjb250YWN0IHRoZSBzZW5kZXIgYW5kIGRlbGV0ZSBh
-bGwgY29waWVzLgo=
+On Thursday, November 26, 2015 05:19:07 PM Andy Shevchenko wrote:
+> In case ->probe() fails the notifier does not inform a subscriber about this.
+> In the result it might happend that some resources that had been allocated will
+> stay allocated and therefore lead to resource leak.
+> 
+> Introduce a new notification to inform the subscriber that ->probe() failed.
+> 
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+
+I'd rather say the problem is that the users of BUS_NOTIFY_BIND_DRIVER have no
+chance to do any cleanup in case of a probe failure (there may be problems even
+if resources aren't leaked).
+
+> ---
+>  drivers/base/dd.c      | 8 ++++++--
+>  include/linux/device.h | 1 +
+>  2 files changed, 7 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/base/dd.c b/drivers/base/dd.c
+> index a641cf3..ac071a5 100644
+> --- a/drivers/base/dd.c
+> +++ b/drivers/base/dd.c
+> @@ -290,7 +290,7 @@ static int really_probe(struct device *dev, struct device_driver *drv)
+>  	/* If using pinctrl, bind pins now before probing */
+>  	ret = pinctrl_bind_pins(dev);
+>  	if (ret)
+> -		goto probe_failed;
+> +		goto pinctrl_bind_failed;
+>  
+>  	if (driver_sysfs_add(dev)) {
+>  		printk(KERN_ERR "%s: driver_sysfs_add(%s) failed\n",
+> @@ -334,6 +334,11 @@ static int really_probe(struct device *dev, struct device_driver *drv)
+>  	goto done;
+>  
+>  probe_failed:
+> +	if (dev->bus)
+> +		blocking_notifier_call_chain(&dev->bus->p->bus_notifier,
+> +					     BUS_NOTIFY_BIND_DRIVER_ERROR,
+> +					     dev);
+
+Well, if we do that, device_bind_driver() needs to send that notification too
+in case it doesn't call driver_bound().
+
+> +pinctrl_bind_failed:
+>  	devres_release_all(dev);
+>  	driver_sysfs_remove(dev);
+>  	dev->driver = NULL;
+> @@ -701,7 +706,6 @@ static void __device_release_driver(struct device *dev)
+>  			blocking_notifier_call_chain(&dev->bus->p->bus_notifier,
+>  						     BUS_NOTIFY_UNBOUND_DRIVER,
+>  						     dev);
+> -
+>  	}
+>  }
+>  
+> diff --git a/include/linux/device.h b/include/linux/device.h
+> index b8f411b..87cf423 100644
+> --- a/include/linux/device.h
+> +++ b/include/linux/device.h
+> @@ -191,6 +191,7 @@ extern int bus_unregister_notifier(struct bus_type *bus,
+>  						      unbound */
+>  #define BUS_NOTIFY_UNBOUND_DRIVER	0x00000007 /* driver is unbound
+>  						      from the device */
+> +#define BUS_NOTIFY_BIND_DRIVER_ERROR	0x80000004 /* driver fails to be bound */
+
+I'd call it BUS_NOTIFY_DRIVER_NOT_BOUND.
+
+>  
+>  extern struct kset *bus_get_kset(struct bus_type *bus);
+>  extern struct klist *bus_get_device_klist(struct bus_type *bus);
+> 
+
+Thanks,
+Rafael
 
