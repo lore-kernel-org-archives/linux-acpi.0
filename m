@@ -1,150 +1,61 @@
-From: Lukas Wunner <lukas@wunner.de>
-Subject: [PATCH v2 2/2] ACPI / utils: Add acpi_dev_present()
-Date: Wed, 25 Nov 2015 21:19:55 +0100
-Message-ID: <e6b4c58be0bc78dbc9ca8b14acf0448eda6b325c.1448480385.git.lukas@wunner.de>
-References: <cover.1448480385.git.lukas@wunner.de>
+From: Andy Lutomirski <luto@amacapital.net>
+Subject: Re: [PATCH] wmi: Set wmi devices' parents
+Date: Wed, 25 Nov 2015 17:28:54 -0800
+Message-ID: <CALCETrW8SuyZkzogg01gb6SXhPUU__H5_697EavwkEGorG9uJw@mail.gmail.com>
+References: <7c58f0a208e0c903008989aec457230e5e58608e.1448306649.git.luto@kernel.org>
+ <20151123193709.GZ7413@malice.jf.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout2.hostsharing.net ([83.223.90.233]:44458 "EHLO
-	mailout2.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752261AbbKYUUq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Nov 2015 15:20:46 -0500
-In-Reply-To: <cover.1448480385.git.lukas@wunner.de>
+Received: from mail-oi0-f54.google.com ([209.85.218.54]:35686 "EHLO
+	mail-oi0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751349AbbKZB3O (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Nov 2015 20:29:14 -0500
+Received: by oige206 with SMTP id e206so39224772oig.2
+        for <linux-acpi@vger.kernel.org>; Wed, 25 Nov 2015 17:29:13 -0800 (PST)
+In-Reply-To: <20151123193709.GZ7413@malice.jf.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: devel@acpica.org, Hanjun Guo <guohanjun@huawei.com>, Robert Moore <robert.moore@intel.com>, Mark Brown <broonie@kernel.org>, Hui Wang <hui.wang@canonical.com>, Darren Hart <dvhart@infradead.org>
+To: Darren Hart <dvhart@infradead.org>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Len Brown <len.brown@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Andy Lutomirski <luto@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Linux ACPI <linux-acpi@vger.kernel.org>, platform-driver-x86@vger.kernel.org
 
-There's an idiom in use by 7 Linux drivers to detect the presence of a
-particular ACPI HID by walking the namespace with acpi_get_devices().
-The callback passed to acpi_get_devices() is mostly identical across
-the drivers, leading to lots of duplicate code.
+On Mon, Nov 23, 2015 at 11:37 AM, Darren Hart <dvhart@infradead.org> wrote:
+> On Mon, Nov 23, 2015 at 11:25:30AM -0800, Andy Lutomirski wrote:
+>> Without this patch, wmi devices are in /sys/virtual/wmi.  They're
+>> logically children of the ACPI WMI device, so slot them into the
+>> device hierarchy.  With this change, on my laptop, they end up in
+>> /sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0C14:00/wmi and
+>> /sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0C14:01/wmi.
+>>
+>> Signed-off-by: Andy Lutomirski <luto@kernel.org>
+>
+> I'd like to hear from some of the main contributors to this driver:
+>
+> Matthew?
+> Carlos?
+> Len?
+>
+> Any cocnerns on this change?
+>
+> My initial concern is about changign how we expose this to userspace, but I
+> believe where it appears in the /sys/devices FS is NOT part of the
+> kernel-userspace interface commitment (per sysfs-rules.txt).
 
-Add acpi_dev_present(), the ACPI equivalent to pci_dev_present(),
-allowing us to deduplicate all that boilerplate in the drivers.
 
-v2: * Instead of walking the namespace, iterate over acpi_bus_id_list
-      which has all HIDs cached (Hanjun Guo, Robert Moore).
-    * Move to utils.c (Rafael J. Wysocki). This necessitates non-static
-      declaration of acpi_bus_id_list.
+Let's drop this, actually.  I have mostly-working patches to make wmi
+into an actual bus driver, and this intermediate step seems like it'll
+just confuse people.
 
-Cc: Hanjun Guo <guohanjun@huawei.com>
-Cc: Robert Moore <robert.moore@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Signed-off-by: Lukas Wunner <lukas@wunner.de>
----
- drivers/acpi/internal.h |  8 ++++++++
- drivers/acpi/scan.c     |  8 +-------
- drivers/acpi/utils.c    | 31 +++++++++++++++++++++++++++++++
- include/acpi/acpi_bus.h |  2 ++
- 4 files changed, 42 insertions(+), 7 deletions(-)
+Question, though: where do the WMI devices belong?  Multiple choice:
 
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index 11d87bf..60bda0d 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -86,6 +86,14 @@ bool acpi_scan_is_offline(struct acpi_device *adev, bool uevent);
- #define ACPI_STA_DEFAULT (ACPI_STA_DEVICE_PRESENT | ACPI_STA_DEVICE_ENABLED | \
- 			  ACPI_STA_DEVICE_UI | ACPI_STA_DEVICE_FUNCTIONING)
- 
-+extern struct list_head acpi_bus_id_list;
-+
-+struct acpi_device_bus_id{
-+	char bus_id[15];
-+	unsigned int instance_no;
-+	struct list_head node;
-+};
-+
- int acpi_device_add(struct acpi_device *device,
- 		    void (*release)(struct device *));
- void acpi_init_device_object(struct acpi_device *device, acpi_handle handle,
-diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-index a0e942b..4be2179 100644
---- a/drivers/acpi/scan.c
-+++ b/drivers/acpi/scan.c
-@@ -39,7 +39,7 @@ static const char *dummy_hid = "device";
- 
- static LIST_HEAD(acpi_dep_list);
- static DEFINE_MUTEX(acpi_dep_list_lock);
--static LIST_HEAD(acpi_bus_id_list);
-+LIST_HEAD(acpi_bus_id_list);
- static DEFINE_MUTEX(acpi_scan_lock);
- static LIST_HEAD(acpi_scan_handlers_list);
- DEFINE_MUTEX(acpi_device_lock);
-@@ -52,12 +52,6 @@ struct acpi_dep_data {
- 	acpi_handle slave;
- };
- 
--struct acpi_device_bus_id{
--	char bus_id[15];
--	unsigned int instance_no;
--	struct list_head node;
--};
--
- void acpi_scan_lock_acquire(void)
- {
- 	mutex_lock(&acpi_scan_lock);
-diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
-index 475c907..f2f9873 100644
---- a/drivers/acpi/utils.c
-+++ b/drivers/acpi/utils.c
-@@ -29,6 +29,7 @@
- #include <linux/dynamic_debug.h>
- 
- #include "internal.h"
-+#include "sleep.h"
- 
- #define _COMPONENT		ACPI_BUS_COMPONENT
- ACPI_MODULE_NAME("utils");
-@@ -709,6 +710,36 @@ bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, int rev, u64 funcs)
- }
- EXPORT_SYMBOL(acpi_check_dsm);
- 
-+/**
-+ * acpi_dev_present - Detect presence of a given ACPI device in the system.
-+ * @hid: Hardware ID of the device.
-+ *
-+ * Return %true if the device was present at the moment of invocation.
-+ * Note that if the device is pluggable, it may since have disappeared.
-+ *
-+ * For this function to work, acpi_bus_scan() must have been executed
-+ * which happens in the subsys_initcall() subsection. Hence, do not
-+ * call from a subsys_initcall() or earlier (use acpi_get_devices()
-+ * instead). Calling from module_init() is fine (which is synonymous
-+ * with device_initcall()).
-+ */
-+bool acpi_dev_present(const char *hid)
-+{
-+	struct acpi_device_bus_id *acpi_device_bus_id;
-+	bool found = false;
-+
-+	mutex_lock(&acpi_device_lock);
-+	list_for_each_entry(acpi_device_bus_id, &acpi_bus_id_list, node)
-+		if (!strcmp(acpi_device_bus_id->bus_id, hid)) {
-+			found = true;
-+			break;
-+		}
-+	mutex_unlock(&acpi_device_lock);
-+
-+	return found;
-+}
-+EXPORT_SYMBOL(acpi_dev_present);
-+
- /*
-  * acpi_backlight= handling, this is done here rather then in video_detect.c
-  * because __setup cannot be used in modules.
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index ad0a5ff..0fe7bab 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -87,6 +87,8 @@ acpi_evaluate_dsm_typed(acpi_handle handle, const u8 *uuid, int rev, int func,
- 	  .package.elements = (eles)			\
- 	}
- 
-+bool acpi_dev_present(const char *hid);
-+
- #ifdef CONFIG_ACPI
- 
- #include <linux/proc_fs.h>
--- 
-1.8.5.2 (Apple Git-48)
+/sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0C14:01/[GUID]
 
+/sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0C14:01/wmi/[GUID]
+
+/sys/devices/platform/PNP0C14:01/[GUID]
+
+/sys/devices/platform/PNP0C14:01/wmi/[GUID]
+
+Currently I've implemented the first one because it's the smallest diff.
+
+--Andy
