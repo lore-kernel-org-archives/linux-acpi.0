@@ -1,67 +1,62 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] wmi: Set wmi devices' parents
-Date: Thu, 26 Nov 2015 15:09:29 +0100
-Message-ID: <18585447.G9NSpqgJyj@vostro.rjw.lan>
-References: <7c58f0a208e0c903008989aec457230e5e58608e.1448306649.git.luto@kernel.org> <20151123193709.GZ7413@malice.jf.intel.com> <CALCETrW8SuyZkzogg01gb6SXhPUU__H5_697EavwkEGorG9uJw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <CALCETrW8SuyZkzogg01gb6SXhPUU__H5_697EavwkEGorG9uJw@mail.gmail.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Andy Lutomirski <luto@amacapital.net>
-Cc: Darren Hart <dvhart@infradead.org>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Len Brown <len.brown@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andy Lutomirski <luto@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Linux ACPI <linux-acpi@vger.kernel.org>, platform-driver-x86@vger.kernel.org
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v2 0/7] ACPI / LPSS: fix system hangup on BYT/BSW/CHT
+Date: Thu, 26 Nov 2015 17:19:06 +0200
+Message-ID: <1448551153-84719-1-git-send-email-andriy.shevchenko@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga01.intel.com ([192.55.52.88]:9601 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751198AbbKZPTS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 26 Nov 2015 10:19:18 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Vinod Koul <vinod.koul@intel.com>, dmaengine@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-On Wednesday, November 25, 2015 05:28:54 PM Andy Lutomirski wrote:
-> On Mon, Nov 23, 2015 at 11:37 AM, Darren Hart <dvhart@infradead.org> wrote:
-> > On Mon, Nov 23, 2015 at 11:25:30AM -0800, Andy Lutomirski wrote:
-> >> Without this patch, wmi devices are in /sys/virtual/wmi.  They're
-> >> logically children of the ACPI WMI device, so slot them into the
-> >> device hierarchy.  With this change, on my laptop, they end up in
-> >> /sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0C14:00/wmi and
-> >> /sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0C14:01/wmi.
-> >>
-> >> Signed-off-by: Andy Lutomirski <luto@kernel.org>
-> >
-> > I'd like to hear from some of the main contributors to this driver:
-> >
-> > Matthew?
-> > Carlos?
-> > Len?
-> >
-> > Any cocnerns on this change?
-> >
-> > My initial concern is about changign how we expose this to userspace, but I
-> > believe where it appears in the /sys/devices FS is NOT part of the
-> > kernel-userspace interface commitment (per sysfs-rules.txt).
-> 
-> 
-> Let's drop this, actually.  I have mostly-working patches to make wmi
-> into an actual bus driver, and this intermediate step seems like it'll
-> just confuse people.
-> 
-> Question, though: where do the WMI devices belong?  Multiple choice:
-> 
-> /sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0C14:01/[GUID]
-> 
-> /sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0C14:01/wmi/[GUID]
-> 
-> /sys/devices/platform/PNP0C14:01/[GUID]
-> 
-> /sys/devices/platform/PNP0C14:01/wmi/[GUID]
-> 
-> Currently I've implemented the first one because it's the smallest diff.
+Here is a next generation (previous one is [1]) of the long standing power
+issue fix regarding to LPSS on Intel Baytrail and Braswell SoCs, in
+particularly ASuS T100TA. There are few bugs already opened on kernel.org's and
+RedHat's bugzilla sites.
 
-That probably is not the right choice, though.
+The series depends on the patch submitted earlier [2].
 
-ACPI "devices" are counterparts of DT device nodes and having other things
-exported under them would be quite confusing.  In fact, you can argue that
-the whole /sys/devices/LNXSYSTM:00/ directory should be located under
-/sys/firmware/acpi, but it turns out to be difficult to move it there
-for various reasons.
+The patch 1 brings a new notification to handle the case when ->probe() of the
+driver fails. It allows to avoid a potential resource leak. I've noticed couple
+of drivers that are using that in assumption that ->probe() never fails.
 
-Personally, I'd go for the last one.
+The patch 2 is needed to fix an I2C issue which Jarkko is currently
+investigating.
 
-Thanks,
-Rafael
+It seems the best way to push it through linux-pm tree. Thus, it would be good
+to get ACKs from the rest of maintainers.
+
+Rafael, it would be nice to have an immutable branch or tag for this sice I
+have more patches coming for dw_dmac driver which are based on top of this
+series.
+
+The patches have been tested on ASuS T100TA, Intel Cherrytrail, and Intel
+Braswell SoCs.
+
+[1] http://www.spinics.net/lists/linux-acpi/msg53963.html
+[2] http://www.spinics.net/lists/kernel/msg2119229.html
+
+Andy Shevchenko (7):
+  device core: add BUS_NOTIFY_BIND_DRIVER_ERROR notification
+  ACPI / LPSS: allow to use specific PM domain during ->probe()
+  ACPI / LPSS: do delay for all LPSS devices when D3->D0
+  ACPI / LPSS: override power state for LPSS DMA device
+  dmaengine: dw: platform: power on device on shutdown
+  dmaengine: dw: return immediately from IRQ when DMA isn't in use
+  Revert "dmaengine: dw: platform: provide platform data for Intel"
+
+ arch/x86/Kconfig                |   3 +-
+ arch/x86/include/asm/iosf_mbi.h |   2 +
+ drivers/acpi/acpi_lpss.c        | 184 ++++++++++++++++++++++++++++++++++++----
+ drivers/base/dd.c               |   8 +-
+ drivers/dma/dw/core.c           |   9 +-
+ drivers/dma/dw/platform.c       |  29 +++----
+ include/linux/device.h          |   1 +
+ 7 files changed, 198 insertions(+), 38 deletions(-)
+
+-- 
+2.6.2
+
