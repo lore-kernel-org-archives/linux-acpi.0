@@ -1,106 +1,89 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+From: "Shevchenko, Andriy" <andriy.shevchenko@intel.com>
 Subject: Re: [PATCH v2 5/7] dmaengine: dw: platform: power on device on
  shutdown
-Date: Thu, 26 Nov 2015 19:58:32 +0200
-Message-ID: <1448560712.15393.93.camel@linux.intel.com>
+Date: Thu, 26 Nov 2015 18:11:09 +0000
+Message-ID: <1448561479.15393.95.camel@intel.com>
 References: <1448551153-84719-1-git-send-email-andriy.shevchenko@linux.intel.com>
 	 <1448551153-84719-6-git-send-email-andriy.shevchenko@linux.intel.com>
 	 <20151126170105.GE2309@localhost>
 	 <1448558688.15393.85.camel@linux.intel.com>
 	 <20151126174157.GI2309@localhost>
+	 <1448560712.15393.93.camel@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:43368 "EHLO mga01.intel.com"
+Received: from mga03.intel.com ([134.134.136.65]:57478 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752664AbbKZSCk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 26 Nov 2015 13:02:40 -0500
-In-Reply-To: <20151126174157.GI2309@localhost>
+	id S1753328AbbKZSLN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 26 Nov 2015 13:11:13 -0500
+In-Reply-To: <1448560712.15393.93.camel@linux.intel.com>
+Content-Language: en-US
+Content-ID: <E208940D9A313B47889F6DB1B8023C4F@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Vinod Koul <vinod.koul@intel.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, dmaengine@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
+To: "Koul, Vinod" <vinod.koul@intel.com>
+Cc: "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "dmaengine@vger.kernel.org" <dmaengine@vger.kernel.org>, "mika.westerberg@linux.intel.com" <mika.westerberg@linux.intel.com>, "jarkko.nikula@linux.intel.com" <jarkko.nikula@linux.intel.com>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Thu, 2015-11-26 at 23:11 +0530, Vinod Koul wrote:
-> On Thu, Nov 26, 2015 at 07:24:48PM +0200, Andy Shevchenko wrote:
-> > On Thu, 2015-11-26 at 22:31 +0530, Vinod Koul wrote:
-> > > On Thu, Nov 26, 2015 at 05:19:11PM +0200, Andy Shevchenko wrote:
-> > > > We have to call dw_dma_disable() to stop any ongoing transfer.
-> > >=20
-> > > Ok
-> > >=20
-> > > > On some platforms we can't do that since DMA device is powered
-> > > > off.
-> > >=20
-> > > Umm, you said we have ongoing transfer which means DMA should be
-> > > on..!!
-> >=20
-> > Yes, that's true for HSW/BDW and non-affected BYT/CHT.
->=20
-> Can you please explain even when DMA is in use how can device be
-> powered
-> off? That does not sound right to me.=20
+T24gVGh1LCAyMDE1LTExLTI2IGF0IDE5OjU4ICswMjAwLCBBbmR5IFNoZXZjaGVua28gd3JvdGU6
+DQo+IE9uIFRodSwgMjAxNS0xMS0yNiBhdCAyMzoxMSArMDUzMCwgVmlub2QgS291bCB3cm90ZToN
+Cj4gPiBPbiBUaHUsIE5vdiAyNiwgMjAxNSBhdCAwNzoyNDo0OFBNICswMjAwLCBBbmR5IFNoZXZj
+aGVua28gd3JvdGU6DQo+ID4gPiBPbiBUaHUsIDIwMTUtMTEtMjYgYXQgMjI6MzEgKzA1MzAsIFZp
+bm9kIEtvdWwgd3JvdGU6DQo+ID4gPiA+IE9uIFRodSwgTm92IDI2LCAyMDE1IGF0IDA1OjE5OjEx
+UE0gKzAyMDAsIEFuZHkgU2hldmNoZW5rbw0KPiA+ID4gPiB3cm90ZToNCj4gPiA+ID4gPiBXZSBo
+YXZlIHRvIGNhbGwgZHdfZG1hX2Rpc2FibGUoKSB0byBzdG9wIGFueSBvbmdvaW5nDQo+ID4gPiA+
+ID4gdHJhbnNmZXIuDQo+ID4gPiA+IA0KPiA+ID4gPiBPaw0KPiA+ID4gPiANCj4gPiA+ID4gPiBP
+biBzb21lIHBsYXRmb3JtcyB3ZSBjYW4ndCBkbyB0aGF0IHNpbmNlIERNQSBkZXZpY2UgaXMNCj4g
+PiA+ID4gPiBwb3dlcmVkDQo+ID4gPiA+ID4gb2ZmLg0KPiA+ID4gPiANCj4gPiA+ID4gVW1tLCB5
+b3Ugc2FpZCB3ZSBoYXZlIG9uZ29pbmcgdHJhbnNmZXIgd2hpY2ggbWVhbnMgRE1BIHNob3VsZA0K
+PiA+ID4gPiBiZQ0KPiA+ID4gPiBvbi4uISENCj4gPiA+IA0KPiA+ID4gWWVzLCB0aGF0J3MgdHJ1
+ZSBmb3IgSFNXL0JEVyBhbmQgbm9uLWFmZmVjdGVkIEJZVC9DSFQuDQo+ID4gDQo+ID4gQ2FuIHlv
+dSBwbGVhc2UgZXhwbGFpbiBldmVuIHdoZW4gRE1BIGlzIGluIHVzZSBob3cgY2FuIGRldmljZSBi
+ZQ0KPiA+IHBvd2VyZWQNCj4gPiBvZmY/IFRoYXQgZG9lcyBub3Qgc291bmQgcmlnaHQgdG8gbWUu
+IA0KPiANCj4gSXQgY2FuJ3QsIGJ1dCB0aGUgcHJvYmxlbSBpcyB3ZSBjYW4ndCBkaXN0aW5ndWlz
+aCB0aGF0IGluIHRoaXMNCj4gcm91dGluZSENCj4gV2Ugc2ltcGxlIGRvICpub3QqIGtub3cgdGhl
+IGFjdHVhbCBwb3dlciBzdGF0ZSBvZiBETUEuDQo+IA0KPiBUaGVzZSBjYWxscyAqZW5zdXJlcyog
+dGhhdCBETUEgaXMgcG93ZXJlZCBvbi4gWWVzLCB0aGUgY2FsbCB0bw0KPiBkd19kbWFfb2ZmKCkg
+d2hlbiBpdCB1c2VkIHRvIGJlIHBvd2VyZWQgb2ZmIHNvdW5kcyBzaWxseSwgSSBhZ3JlZSwNCj4g
+dGhvdWdoIEkgc2VlIG5vIHVwc3RyZWFtYWJsZSAobm9uLWhhY2tpc2gpIHNvbHV0aW9uIGZvciB0
+aGF0Lg0KPiANCj4gUHJldmlvdXNseSBJIHByb3Bvc2VkIHRvIHJlbW92ZSAuc2h1dGRvd24gaG9v
+ayBjb21wbGV0ZWx5LCB5b3Ugd2VyZQ0KPiBvYmplY3RpbmcuDQoNCkFuZCBzZWNvbmQgYXBwcm9h
+Y2ggd2l0aCBQTUMgaW52b2x2ZWQgd2FzIGFsc28gcmVqZWN0ZWQgYnkgeW91IHNpbmNlIGl0DQp3
+YXMgdG9vIGhhY2tpc2gsIHdoaWNoIEkgY29tcGxldGVseSBhZ3JlZSB3aXRoLg0KDQo+IA0KPiA+
+IElzIHRoaXMgb24gR1AgRE1BIG9uIEJZVC9DSFQgb3INCj4gPiBzb21ldGhpbmcgZWxzZT8NCj4g
+DQo+IENvcnJlY3QuIEFmZmVjdGVkIHBsYXRmb3JtcyBhcmUgQllULVQgYW5kIHNvbWUgb3IgYWxs
+IG9mIEJTVy9DSFQNCj4gZGVwZW5kaW5nIG9uIGZpcm13YXJlIGluIHVzZS4NCj4gDQo+ID4gwqAN
+Cj4gPiA+IExpa2UgSSBtZW50aW9uZWQgaGVyZSBpcyBubyBwb3NzaWJpbGl0eSB0byBrbm93IHdo
+aWNoIHBsYXRmb3JtIHdlDQo+ID4gPiBydW4NCj4gPiA+IG9uLg0KPiA+ID4gDQo+ID4gPiBXb3Vs
+ZCB5b3UgbGlrZSB0byB0ZXN0IHRoaXMgb24gYSByZWFsIGRldmljZT8gV2UgY2FuIHByb3ZpZGUg
+eW91DQo+ID4gPiBhDQo+ID4gPiBsb2dpbi4NCj4gPiA+IA0KPiA+ID4gPiANCj4gPiA+ID4gPiBN
+b3Jlb3ZlciB3ZSBoYXZlIG5vDQo+ID4gPiA+ID4gcG9zc2liaWxpdHkgYXQgdGhhdCBwb2ludCB0
+byBjaGVjayBpZiB0aGUgcGxhdGZvcm0gaXMNCj4gPiA+ID4gPiBhZmZlY3RlZA0KPiA+ID4gPiA+
+IG9yDQo+ID4gPiA+ID4gbm90LiBUaGF0J3MNCj4gPiA+ID4gPiB3aHkgd2UgY2FsbCBwbV9ydW50
+aW1lX2dldF9zeW5jKCkgLyBwbV9ydW50aW1lX3B1dCgpDQo+ID4gPiA+ID4gdW5jb25kaXRpb25h
+bGx5LiBPbiB0aGUNCj4gPiA+ID4gPiBvdGhlciBoYW5kIHdlIGNhbid0IHVzZSBwbV9ydW50aW1l
+X3N1c3BlbmRlZCgpIGJlY2F1c2UNCj4gPiA+ID4gPiBydW50aW1lDQo+ID4gPiA+ID4gUE0NCj4g
+PiA+ID4gPiBmcmFtZXdvcmsgaXMNCj4gPiA+ID4gPiBub3QgZnVsbHkgdXNlZCBieSB0aGUgZHJp
+dmVyLg0KPiA+ID4gPiANCj4gPiA+ID4gU2hvdWxkbid0IHRoYXQgYmUgZml4ZWQ/DQo+ID4gPiAN
+Cj4gPiA+IERvIHlvdSBoYXZlIGFueSBzb2x1dGlvbiBob3c/DQo+ID4gPiANCj4gPiA+IFJvdWdo
+IGFwcHJvYWNoIGlzIHRvIHR1cm4gb24gaXQgb24gY2hhbm5lbCBhbGxvY2F0aW9uIGFuZCB0dXJu
+DQo+ID4gPiBvZmYNCj4gPiA+IG9uDQo+ID4gPiBmcmVlaW5nIHJlc291cmNlcy4gVGhlIG9idmlv
+dXMgZG93bnNpZGUgb2YgdGhpcyBzb2x1dGlvbiBpcyBwb3dlcg0KPiA+ID4gY29uc3VtcHRpb24g
+b2YgaWRsaW5nIGRldmljZS4NCj4gPiANCj4gPiBCdXQgaW4gdGhhdCBjYXNlLCB0aGUgY2xpZW50
+cyBzaG91bGQgbm90IGhvbGQgcmVmIG9mIGRtYSBjaGFuIHdoZW4NCj4gPiBpZGxlIGFuZA0KPiA+
+IGFsbG9jYXRlIG9ubHkgd2hlbiByZXF1aXJlZCB3aGljaCBpcyBhIHJlc29uYWJsZSBleHBlY3Rh
+dGlvbg0KPiANCj4gVGhlcmUgaXMgbm90IHRoZSBjYXNlIGZvciBmZXcgZHJpdmVycy4gQXQgbGVh
+c3QgZm9yIHVzIGl0J3Mgc3BpLQ0KPiBweGEyeHgNCj4gb25lLiBJdCByZXF1aXJlcyBjaGFubmVs
+cyBvbiBpdHMgLT5wcm9iZSgpIHN0YWdlLiBKYXJra28gaXMgQ2MnZWQNCj4gaGVyZSwNCj4geW91
+IG1heSBhc2sgaGltIGFzIGhlIGlzIG91ciBtYWludGFpbmVyIGZvciB0aGUgU1BJLg0KPiANCg0K
+LS0gDQpBbmR5IFNoZXZjaGVua28gPGFuZHJpeS5zaGV2Y2hlbmtvQGludGVsLmNvbT4NCkludGVs
+IEZpbmxhbmQgT3kNCi0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQpJbnRlbCBGaW5sYW5kIE95ClJlZ2lzdGVyZWQgQWRk
+cmVzczogUEwgMjgxLCAwMDE4MSBIZWxzaW5raSAKQnVzaW5lc3MgSWRlbnRpdHkgQ29kZTogMDM1
+NzYwNiAtIDQgCkRvbWljaWxlZCBpbiBIZWxzaW5raSAKClRoaXMgZS1tYWlsIGFuZCBhbnkgYXR0
+YWNobWVudHMgbWF5IGNvbnRhaW4gY29uZmlkZW50aWFsIG1hdGVyaWFsIGZvcgp0aGUgc29sZSB1
+c2Ugb2YgdGhlIGludGVuZGVkIHJlY2lwaWVudChzKS4gQW55IHJldmlldyBvciBkaXN0cmlidXRp
+b24KYnkgb3RoZXJzIGlzIHN0cmljdGx5IHByb2hpYml0ZWQuIElmIHlvdSBhcmUgbm90IHRoZSBp
+bnRlbmRlZApyZWNpcGllbnQsIHBsZWFzZSBjb250YWN0IHRoZSBzZW5kZXIgYW5kIGRlbGV0ZSBh
+bGwgY29waWVzLgo=
 
-It can't, but the problem is we can't distinguish that in this routine!
-We simple do *not* know the actual power state of DMA.
-
-These calls *ensures* that DMA is powered on. Yes, the call to
-dw_dma_off() when it used to be powered off sounds silly, I agree,
-though I see no upstreamable (non-hackish) solution for that.
-
-Previously I proposed to remove .shutdown hook completely, you were
-objecting.
-
-> Is this on GP DMA on BYT/CHT or
-> something else?
-
-Correct. Affected platforms are BYT-T and some or all of BSW/CHT
-depending on firmware in use.
-
->=C2=A0
-> > Like I mentioned here is no possibility to know which platform we
-> > run
-> > on.
-> >=20
-> > Would you like to test this on a real device? We can provide you a
-> > login.
-> >=20
-> > >=20
-> > > > Moreover we have no
-> > > > possibility at that point to check if the platform is affected
-> > > > or
-> > > > not. That's
-> > > > why we call pm_runtime_get_sync() / pm_runtime_put()
-> > > > unconditionally. On the
-> > > > other hand we can't use pm_runtime_suspended() because runtime
-> > > > PM
-> > > > framework is
-> > > > not fully used by the driver.
-> > >=20
-> > > Shouldn't that be fixed?
-> >=20
-> > Do you have any solution how?
-> >=20
-> > Rough approach is to turn on it on channel allocation and turn off
-> > on
-> > freeing resources. The obvious downside of this solution is power
-> > consumption of idling device.
->=20
-> But in that case, the clients should not hold ref of dma chan when
-> idle and
-> allocate only when required which is a resonable expectation
-
-There is not the case for few drivers. At least for us it's spi-pxa2xx
-one. It requires channels on its ->probe() stage. Jarkko is Cc'ed here,
-you may ask him as he is our maintainer for the SPI.
-
---=20
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
