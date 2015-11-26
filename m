@@ -1,61 +1,55 @@
-From: Andy Lutomirski <luto@amacapital.net>
-Subject: Re: [PATCH] wmi: Set wmi devices' parents
-Date: Wed, 25 Nov 2015 17:28:54 -0800
-Message-ID: <CALCETrW8SuyZkzogg01gb6SXhPUU__H5_697EavwkEGorG9uJw@mail.gmail.com>
-References: <7c58f0a208e0c903008989aec457230e5e58608e.1448306649.git.luto@kernel.org>
- <20151123193709.GZ7413@malice.jf.intel.com>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [PATCH v2 5/5] ACPI / processor_idle: Add support for Low Power
+ Idle(LPI) states
+Date: Thu, 26 Nov 2015 11:09:15 +0000
+Message-ID: <5656E85B.2090908@arm.com>
+References: <1438710406-3822-1-git-send-email-sudeep.holla@arm.com>
+ <1442411963-14398-1-git-send-email-sudeep.holla@arm.com>
+ <1442411963-14398-6-git-send-email-sudeep.holla@arm.com>
+ <CAJ5Y-ebOPE1oamRk31nxL6VkgSdDd6AmEe2Fw1ku5pGt25D2Rg@mail.gmail.com>
+ <562EC3A5.2070402@codeaurora.org> <562F859E.4010105@arm.com>
+ <564E4735.5080609@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f54.google.com ([209.85.218.54]:35686 "EHLO
-	mail-oi0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751349AbbKZB3O (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 25 Nov 2015 20:29:14 -0500
-Received: by oige206 with SMTP id e206so39224772oig.2
-        for <linux-acpi@vger.kernel.org>; Wed, 25 Nov 2015 17:29:13 -0800 (PST)
-In-Reply-To: <20151123193709.GZ7413@malice.jf.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <564E4735.5080609@codeaurora.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Prakash, Prashanth" <pprakash@codeaurora.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, linux acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, lkml <linux-kernel@vger.kernel.org>, linux-ia64@vger.kernel.org, x86@kernel.org, Al Stone <al.stone@linaro.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Mahesh Sivasubramanian <msivasub@codeaurora.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Darren Hart <dvhart@infradead.org>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Len Brown <len.brown@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Andy Lutomirski <luto@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Linux ACPI <linux-acpi@vger.kernel.org>, platform-driver-x86@vger.kernel.org
 
-On Mon, Nov 23, 2015 at 11:37 AM, Darren Hart <dvhart@infradead.org> wrote:
-> On Mon, Nov 23, 2015 at 11:25:30AM -0800, Andy Lutomirski wrote:
->> Without this patch, wmi devices are in /sys/virtual/wmi.  They're
->> logically children of the ACPI WMI device, so slot them into the
->> device hierarchy.  With this change, on my laptop, they end up in
->> /sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0C14:00/wmi and
->> /sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0C14:01/wmi.
+Hi Prashanth,
+
+On 19/11/15 22:03, Prakash, Prashanth wrote:
+> Hi Sudeep,
+>
+> On 10/27/2015 8:09 AM, Sudeep Holla wrote:
+>> Hi Prashanth,
 >>
->> Signed-off-by: Andy Lutomirski <luto@kernel.org>
+>> On 27/10/15 00:21, Prakash, Prashanth wrote:
+>>> Hi Sudeep,
+>>>
+>>> While testing with these patches everything looked fine except that we
+>>> are flattening all the LPI
+>>> states even if it is disabled. I added a simple check to fix it. Please
+>>> let me know if you have any
+>>> feedback on the same.
+>>>
+>>
+>> Looks good to me and thanks for the nice catch. I completely missed to
+>> handle that case. Is it OK if I fold this patch into the next version ?
+>>
+>> I have worked on Ashwin's comments, but was waiting to get some feedback
+>> from Rafael before I post newer version.
+>>
+> Did you had an opportunity to update the LPI patch set? Please let me know
+> if you need any help in test/verification of the new patch set.
 >
-> I'd like to hear from some of the main contributors to this driver:
->
-> Matthew?
-> Carlos?
-> Len?
->
-> Any cocnerns on this change?
->
-> My initial concern is about changign how we expose this to userspace, but I
-> believe where it appears in the /sys/devices FS is NOT part of the
-> kernel-userspace interface commitment (per sysfs-rules.txt).
 
+Sorry for the late response, was off for 3 weeks. I will post the new
+version early next week after some testing.
 
-Let's drop this, actually.  I have mostly-working patches to make wmi
-into an actual bus driver, and this intermediate step seems like it'll
-just confuse people.
-
-Question, though: where do the WMI devices belong?  Multiple choice:
-
-/sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0C14:01/[GUID]
-
-/sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0C14:01/wmi/[GUID]
-
-/sys/devices/platform/PNP0C14:01/[GUID]
-
-/sys/devices/platform/PNP0C14:01/wmi/[GUID]
-
-Currently I've implemented the first one because it's the smallest diff.
-
---Andy
+-- 
+Regards,
+Sudeep
