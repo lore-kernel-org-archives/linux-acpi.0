@@ -1,7 +1,7 @@
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v2 1/7] device core: add BUS_NOTIFY_BIND_DRIVER_ERROR notification
-Date: Thu, 26 Nov 2015 17:19:07 +0200
-Message-ID: <1448551153-84719-2-git-send-email-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v2 7/7] Revert "dmaengine: dw: platform: provide platform data for Intel"
+Date: Thu, 26 Nov 2015 17:19:13 +0200
+Message-ID: <1448551153-84719-8-git-send-email-andriy.shevchenko@linux.intel.com>
 References: <1448551153-84719-1-git-send-email-andriy.shevchenko@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1448551153-84719-1-git-send-email-andriy.shevchenko@linux.intel.com>
@@ -10,62 +10,58 @@ To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Vinod K
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-In case ->probe() fails the notifier does not inform a subscriber about this.
-In the result it might happend that some resources that had been allocated will
-stay allocated and therefore lead to resource leak.
+Since we have a work around to prevent a system hangup we don't need to provide
+a platform data explicitly anymore.
 
-Introduce a new notification to inform the subscriber that ->probe() failed.
+This reverts commit 175267b389f781748e2bbb6c737e76b5c9bc4c88.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- drivers/base/dd.c      | 8 ++++++--
- include/linux/device.h | 1 +
- 2 files changed, 7 insertions(+), 2 deletions(-)
+ drivers/dma/dw/platform.c | 17 +----------------
+ 1 file changed, 1 insertion(+), 16 deletions(-)
 
-diff --git a/drivers/base/dd.c b/drivers/base/dd.c
-index a641cf3..ac071a5 100644
---- a/drivers/base/dd.c
-+++ b/drivers/base/dd.c
-@@ -290,7 +290,7 @@ static int really_probe(struct device *dev, struct device_driver *drv)
- 	/* If using pinctrl, bind pins now before probing */
- 	ret = pinctrl_bind_pins(dev);
- 	if (ret)
--		goto probe_failed;
-+		goto pinctrl_bind_failed;
+diff --git a/drivers/dma/dw/platform.c b/drivers/dma/dw/platform.c
+index d0734e9..127093a 100644
+--- a/drivers/dma/dw/platform.c
++++ b/drivers/dma/dw/platform.c
+@@ -155,7 +155,6 @@ static int dw_probe(struct platform_device *pdev)
+ 	struct dw_dma_chip *chip;
+ 	struct device *dev = &pdev->dev;
+ 	struct resource *mem;
+-	const struct acpi_device_id *id;
+ 	struct dw_dma_platform_data *pdata;
+ 	int err;
  
- 	if (driver_sysfs_add(dev)) {
- 		printk(KERN_ERR "%s: driver_sysfs_add(%s) failed\n",
-@@ -334,6 +334,11 @@ static int really_probe(struct device *dev, struct device_driver *drv)
- 	goto done;
+@@ -179,11 +178,6 @@ static int dw_probe(struct platform_device *pdev)
+ 	pdata = dev_get_platdata(dev);
+ 	if (!pdata)
+ 		pdata = dw_dma_parse_dt(pdev);
+-	if (!pdata && has_acpi_companion(dev)) {
+-		id = acpi_match_device(dev->driver->acpi_match_table, dev);
+-		if (id)
+-			pdata = (struct dw_dma_platform_data *)id->driver_data;
+-	}
  
- probe_failed:
-+	if (dev->bus)
-+		blocking_notifier_call_chain(&dev->bus->p->bus_notifier,
-+					     BUS_NOTIFY_BIND_DRIVER_ERROR,
-+					     dev);
-+pinctrl_bind_failed:
- 	devres_release_all(dev);
- 	driver_sysfs_remove(dev);
- 	dev->driver = NULL;
-@@ -701,7 +706,6 @@ static void __device_release_driver(struct device *dev)
- 			blocking_notifier_call_chain(&dev->bus->p->bus_notifier,
- 						     BUS_NOTIFY_UNBOUND_DRIVER,
- 						     dev);
+ 	chip->dev = dev;
+ 
+@@ -264,17 +258,8 @@ MODULE_DEVICE_TABLE(of, dw_dma_of_id_table);
+ #endif
+ 
+ #ifdef CONFIG_ACPI
+-static struct dw_dma_platform_data dw_dma_acpi_pdata = {
+-	.nr_channels = 8,
+-	.is_private = true,
+-	.chan_allocation_order = CHAN_ALLOCATION_ASCENDING,
+-	.chan_priority = CHAN_PRIORITY_ASCENDING,
+-	.block_size = 4095,
+-	.nr_masters = 2,
+-};
 -
- 	}
- }
- 
-diff --git a/include/linux/device.h b/include/linux/device.h
-index b8f411b..87cf423 100644
---- a/include/linux/device.h
-+++ b/include/linux/device.h
-@@ -191,6 +191,7 @@ extern int bus_unregister_notifier(struct bus_type *bus,
- 						      unbound */
- #define BUS_NOTIFY_UNBOUND_DRIVER	0x00000007 /* driver is unbound
- 						      from the device */
-+#define BUS_NOTIFY_BIND_DRIVER_ERROR	0x80000004 /* driver fails to be bound */
- 
- extern struct kset *bus_get_kset(struct bus_type *bus);
- extern struct klist *bus_get_device_klist(struct bus_type *bus);
+ static const struct acpi_device_id dw_dma_acpi_id_table[] = {
+-	{ "INTL9C60", (kernel_ulong_t)&dw_dma_acpi_pdata },
++	{ "INTL9C60", 0 },
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(acpi, dw_dma_acpi_id_table);
 -- 
 2.6.2
