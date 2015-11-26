@@ -1,7 +1,7 @@
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v2 7/7] Revert "dmaengine: dw: platform: provide platform data for Intel"
-Date: Thu, 26 Nov 2015 17:19:13 +0200
-Message-ID: <1448551153-84719-8-git-send-email-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v2 6/7] dmaengine: dw: return immediately from IRQ when DMA isn't in use
+Date: Thu, 26 Nov 2015 17:19:12 +0200
+Message-ID: <1448551153-84719-7-git-send-email-andriy.shevchenko@linux.intel.com>
 References: <1448551153-84719-1-git-send-email-andriy.shevchenko@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1448551153-84719-1-git-send-email-andriy.shevchenko@linux.intel.com>
@@ -10,58 +10,37 @@ To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Vinod K
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Since we have a work around to prevent a system hangup we don't need to provide
-a platform data explicitly anymore.
-
-This reverts commit 175267b389f781748e2bbb6c737e76b5c9bc4c88.
+There is no need to bother the hardware when all channels are idle. We have not
+to get any interrupts.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- drivers/dma/dw/platform.c | 17 +----------------
- 1 file changed, 1 insertion(+), 16 deletions(-)
+ drivers/dma/dw/core.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/dma/dw/platform.c b/drivers/dma/dw/platform.c
-index d0734e9..127093a 100644
---- a/drivers/dma/dw/platform.c
-+++ b/drivers/dma/dw/platform.c
-@@ -155,7 +155,6 @@ static int dw_probe(struct platform_device *pdev)
- 	struct dw_dma_chip *chip;
- 	struct device *dev = &pdev->dev;
- 	struct resource *mem;
--	const struct acpi_device_id *id;
- 	struct dw_dma_platform_data *pdata;
- 	int err;
+diff --git a/drivers/dma/dw/core.c b/drivers/dma/dw/core.c
+index 7067b6d..8b20930 100644
+--- a/drivers/dma/dw/core.c
++++ b/drivers/dma/dw/core.c
+@@ -622,12 +622,17 @@ static void dw_dma_tasklet(unsigned long data)
+ static irqreturn_t dw_dma_interrupt(int irq, void *dev_id)
+ {
+ 	struct dw_dma *dw = dev_id;
+-	u32 status = dma_readl(dw, STATUS_INT);
++	u32 status;
  
-@@ -179,11 +178,6 @@ static int dw_probe(struct platform_device *pdev)
- 	pdata = dev_get_platdata(dev);
- 	if (!pdata)
- 		pdata = dw_dma_parse_dt(pdev);
--	if (!pdata && has_acpi_companion(dev)) {
--		id = acpi_match_device(dev->driver->acpi_match_table, dev);
--		if (id)
--			pdata = (struct dw_dma_platform_data *)id->driver_data;
--	}
++	/* Check if we have any interrupt from the DMAC which is not in use */
++	if (!dw->in_use)
++		return IRQ_NONE;
++
++	status = dma_readl(dw, STATUS_INT);
+ 	dev_vdbg(dw->dma.dev, "%s: status=0x%x\n", __func__, status);
  
- 	chip->dev = dev;
+ 	/* Check if we have any interrupt from the DMAC */
+-	if (!status || !dw->in_use)
++	if (!status)
+ 		return IRQ_NONE;
  
-@@ -264,17 +258,8 @@ MODULE_DEVICE_TABLE(of, dw_dma_of_id_table);
- #endif
- 
- #ifdef CONFIG_ACPI
--static struct dw_dma_platform_data dw_dma_acpi_pdata = {
--	.nr_channels = 8,
--	.is_private = true,
--	.chan_allocation_order = CHAN_ALLOCATION_ASCENDING,
--	.chan_priority = CHAN_PRIORITY_ASCENDING,
--	.block_size = 4095,
--	.nr_masters = 2,
--};
--
- static const struct acpi_device_id dw_dma_acpi_id_table[] = {
--	{ "INTL9C60", (kernel_ulong_t)&dw_dma_acpi_pdata },
-+	{ "INTL9C60", 0 },
- 	{ }
- };
- MODULE_DEVICE_TABLE(acpi, dw_dma_acpi_id_table);
+ 	/*
 -- 
 2.6.2
