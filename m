@@ -1,96 +1,74 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v2 2/7] ACPI / LPSS: allow to use specific PM domain
- during ->probe()
-Date: Thu, 26 Nov 2015 18:45:17 +0200
-Message-ID: <1448556317.15393.77.camel@linux.intel.com>
+From: Vinod Koul <vinod.koul@intel.com>
+Subject: Re: [PATCH v2 5/7] dmaengine: dw: platform: power on device on
+ shutdown
+Date: Thu, 26 Nov 2015 22:31:05 +0530
+Message-ID: <20151126170105.GE2309@localhost>
 References: <1448551153-84719-1-git-send-email-andriy.shevchenko@linux.intel.com>
-	 <1448551153-84719-3-git-send-email-andriy.shevchenko@linux.intel.com>
-	 <565733A2.6050900@linux.intel.com>
+ <1448551153-84719-6-git-send-email-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:4479 "EHLO mga03.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:30318 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752056AbbKZQrR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 26 Nov 2015 11:47:17 -0500
-In-Reply-To: <565733A2.6050900@linux.intel.com>
+	id S1752056AbbKZQ5Y (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 26 Nov 2015 11:57:24 -0500
+Content-Disposition: inline
+In-Reply-To: <1448551153-84719-6-git-send-email-andriy.shevchenko@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Vinod Koul <vinod.koul@intel.com>, dmaengine@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, dmaengine@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-On Thu, 2015-11-26 at 18:30 +0200, Jarkko Nikula wrote:
-> On 11/26/2015 05:19 PM, Andy Shevchenko wrote:
-> > This is an amendment to previously pushed commit 01ac170ba29a (ACPI
-> > / LPSS:
-> > allow to use specific PM domain during ->probe()). We can't assign
-> > anything to
-> > the platform device on ADD_DEVICE stage since it might be changed
-> > during
-> > unbound / bind cycle.
-> >=20
-> > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> > ---
-> > =C2=A0 drivers/acpi/acpi_lpss.c | 9 +++++++--
-> > =C2=A0 1 file changed, 7 insertions(+), 2 deletions(-)
-> >=20
-> > diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-> > index f9e0d09..e840229 100644
-> > --- a/drivers/acpi/acpi_lpss.c
-> > +++ b/drivers/acpi/acpi_lpss.c
-> > @@ -705,8 +705,14 @@ static int acpi_lpss_platform_notify(struct
-> > notifier_block *nb,
-> > =C2=A0=C2=A0	}
-> >=20
-> > =C2=A0=C2=A0	switch (action) {
-> > -	case BUS_NOTIFY_ADD_DEVICE:
-> > +	case BUS_NOTIFY_BIND_DRIVER:
-> > =C2=A0=C2=A0		pdev->dev.pm_domain =3D &acpi_lpss_pm_domain;
-> > +		break;
-> > +	case BUS_NOTIFY_BIND_DRIVER_ERROR:
-> > +	case BUS_NOTIFY_UNBOUND_DRIVER:
-> > +		pdev->dev.pm_domain =3D NULL;
-> > +		break;
-> > +	case BUS_NOTIFY_ADD_DEVICE:
->=20
-> This won't fix like revert of original commit does. Primary problem
-> here=20
-> is that there is no explicit power on at all during LPSS device probe
-> because dev->pm_domain is set before probing.
+On Thu, Nov 26, 2015 at 05:19:11PM +0200, Andy Shevchenko wrote:
+> We have to call dw_dma_disable() to stop any ongoing transfer.
 
-And we can't do this as in very original code of acpi_lpss.c since DMA
-has to be sure it's powered on while probing. We could guarantee this
-only in case when PM domain is assigned already and we do our quirk for
-it.
+Ok
 
-=46rom my point of view we have to fix hang first since it's most painf=
-ul
-case for users and their experience. Though I'm open to any better
-solution if you have any in mind.
+> On some platforms we can't do that since DMA device is powered off.
 
->=20
-> driver_probe_device
-> =C2=A0=C2=A0=C2=A0platform_drv_prove
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0dev_pm_domain_attach
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0acpi_dev_pm_attach
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0returns instant=
-ly because of dev->pm_domain is set
->=20
-> Problem got unnoticed because devices are on during boot but=20
-> rmmod/modprobe cycle will hit it.
->=20
-> With this patch situation remains the same but works if you assign
-> the=20
-> domain after probing when BUS_NOTIFY_BOUND_DRIVER notification comes=20
-> (s/BUS_NOTIFY_BIND_DRIVER/BUS_NOTIFY_BOUND_DRIVER/ above).
->=20
+Umm, you said we have ongoing transfer which means DMA should be on..!!
 
---=20
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+> Moreover we have no
+> possibility at that point to check if the platform is affected or not. That's
+> why we call pm_runtime_get_sync() / pm_runtime_put() unconditionally. On the
+> other hand we can't use pm_runtime_suspended() because runtime PM framework is
+> not fully used by the driver.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Shouldn't that be fixed?
+
+> 
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> ---
+>  drivers/dma/dw/platform.c | 12 ++++++++++++
+>  1 file changed, 12 insertions(+)
+> 
+> diff --git a/drivers/dma/dw/platform.c b/drivers/dma/dw/platform.c
+> index 68a4815..d0734e9 100644
+> --- a/drivers/dma/dw/platform.c
+> +++ b/drivers/dma/dw/platform.c
+> @@ -239,7 +239,19 @@ static void dw_shutdown(struct platform_device *pdev)
+>  {
+>  	struct dw_dma_chip *chip = platform_get_drvdata(pdev);
+>  
+> +	/*
+> +	 * We have to call dw_dma_disable() to stop any ongoing transfer. On
+> +	 * some platforms we can't do that since DMA device is powered off.
+> +	 * Moreover we have no possibility to check if the platform is affected
+> +	 * or not. That's why we call pm_runtime_get_sync() / pm_runtime_put()
+> +	 * unconditionally. On the other hand we can't use
+> +	 * pm_runtime_suspended() because runtime PM framework is not fully
+> +	 * used by the driver.
+> +	 */
+> +	pm_runtime_get_sync(chip->dev);
+>  	dw_dma_disable(chip);
+> +	pm_runtime_put_sync_suspend(chip->dev);
+> +
+>  	clk_disable_unprepare(chip->clk);
+>  }
+>  
+> -- 
+> 2.6.2
+> 
+
+-- 
+~Vinod
