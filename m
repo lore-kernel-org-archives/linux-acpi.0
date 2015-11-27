@@ -1,109 +1,77 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v2 2/7] ACPI / LPSS: allow to use specific PM domain
- during ->probe()
-Date: Fri, 27 Nov 2015 12:01:25 +0200
-Message-ID: <1448618485.15393.108.camel@linux.intel.com>
-References: <1448551153-84719-1-git-send-email-andriy.shevchenko@linux.intel.com>
-	 <1448551153-84719-3-git-send-email-andriy.shevchenko@linux.intel.com>
-	 <565733A2.6050900@linux.intel.com>
-	 <1448556317.15393.77.camel@linux.intel.com>
-	 <565800CA.4040003@linux.intel.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH v2 0/4] ACPI based NUMA support for ARM64
+Date: Fri, 27 Nov 2015 21:28:31 +0800
+Message-ID: <56585A7F.3010505@linaro.org>
+References: <1447784733-10419-1-git-send-email-gkulkarni@caviumnetworks.com> <56582195.80306@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <565800CA.4040003@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jarkko Nikula <jarkko.nikula@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Vinod Koul <vinod.koul@intel.com>, dmaengine@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pa0-f49.google.com ([209.85.220.49]:34508 "EHLO
+	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751504AbbK0N2f (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Nov 2015 08:28:35 -0500
+Received: by padhx2 with SMTP id hx2so115517555pad.1
+        for <linux-acpi@vger.kernel.org>; Fri, 27 Nov 2015 05:28:34 -0800 (PST)
+In-Reply-To: <56582195.80306@huawei.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Shannon Zhao <zhaoshenglong@huawei.com>, Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Will.Deacon@arm.com, catalin.marinas@arm.com, grant.likely@linaro.org, leif.lindholm@linaro.org, rfranz@cavium.com, ard.biesheuvel@linaro.org, msalter@redhat.com, robh+dt@kernel.org, steve.capper@linaro.org, al.stone@linaro.org, arnd@arndb.de, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, rjw@rjwysocki.net, lenb@kernel.org, marc.zyngier@arm.com, lorenzo.pieralisi@arm.com, tn@semihalf.com, rrichter@cavium.com, Prasun.Kapoor@caviumnetworks.com
+Cc: gpkulkarni@gmail.com
 
-On Fri, 2015-11-27 at 09:05 +0200, Jarkko Nikula wrote:
-> On 11/26/2015 06:45 PM, Andy Shevchenko wrote:
-> > On Thu, 2015-11-26 at 18:30 +0200, Jarkko Nikula wrote:
-> > > On 11/26/2015 05:19 PM, Andy Shevchenko wrote:
-> > > > This is an amendment to previously pushed commit 01ac170ba29a
-> > > > (ACPI
-> > > > / LPSS:
-> > > > allow to use specific PM domain during ->probe()). We can't
-> > > > assign
-> > > > anything to
-> > > > the platform device on ADD_DEVICE stage since it might be
-> > > > changed
-> > > > during
-> > > > unbound / bind cycle.
-> > > >=20
-> > > > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.c
-> > > > om>
-> > > > ---
-> > > > =C2=A0=C2=A0=C2=A0drivers/acpi/acpi_lpss.c | 9 +++++++--
-> > > > =C2=A0=C2=A0=C2=A01 file changed, 7 insertions(+), 2 deletions(=
--)
-> > > >=20
-> > > > diff --git a/drivers/acpi/acpi_lpss.c
-> > > > b/drivers/acpi/acpi_lpss.c
-> > > > index f9e0d09..e840229 100644
-> > > > --- a/drivers/acpi/acpi_lpss.c
-> > > > +++ b/drivers/acpi/acpi_lpss.c
-> > > > @@ -705,8 +705,14 @@ static int
-> > > > acpi_lpss_platform_notify(struct
-> > > > notifier_block *nb,
-> > > > =C2=A0=C2=A0=C2=A0	}
-> > > >=20
-> > > > =C2=A0=C2=A0=C2=A0	switch (action) {
-> > > > -	case BUS_NOTIFY_ADD_DEVICE:
-> > > > +	case BUS_NOTIFY_BIND_DRIVER:
-> > > > =C2=A0=C2=A0=C2=A0		pdev->dev.pm_domain =3D &acpi_lpss_pm_domai=
-n;
-> > > > +		break;
-> > > > +	case BUS_NOTIFY_BIND_DRIVER_ERROR:
-> > > > +	case BUS_NOTIFY_UNBOUND_DRIVER:
-> > > > +		pdev->dev.pm_domain =3D NULL;
-> > > > +		break;
-> > > > +	case BUS_NOTIFY_ADD_DEVICE:
-> > >=20
-> > > This won't fix like revert of original commit does. Primary
-> > > problem
-> > > here
-> > > is that there is no explicit power on at all during LPSS device
-> > > probe
-> > > because dev->pm_domain is set before probing.
-> >=20
-> > And we can't do this as in very original code of acpi_lpss.c since
-> > DMA
-> > has to be sure it's powered on while probing. We could guarantee
-> > this
-> > only in case when PM domain is assigned already and we do our quirk
-> > for
-> > it.
-> >=20
-> I'm not sure do I follow here. Is the power on chain different for
-> LPSS=20
-> DMA because setting the domain at BIND stage prevents the call to=20
-> acpi_dev_pm_full_power() before driver probe? See below.
->=20
-> driver_probe_device
-> =C2=A0=C2=A0=C2=A0really_probe
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0driver_sysfs_add -> BUS_NOTIFY_BIND_DRI=
-VER
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0-> platform_drv_prove
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0dev_pm_domain_attach
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0acpi_dev_pm_att=
-ach
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0if =
-(dev->pm_domain) return -EEXIST;
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0...
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0if =
-(power_on) { acpi_dev_pm_full_power(adev);... }
+On 11/27/2015 05:25 PM, Shannon Zhao wrote:
+>
+>
+> On 2015/11/18 2:25, Ganapatrao Kulkarni wrote:
+>>   -v2 rebased on arm64-numa v7 patches.
+>>   http://www.spinics.net/lists/arm-kernel/msg460813.html
+>>
+>>   -v1 initial patches from Hanjun Guo
+>>
+>> Hanjun Guo (4):
+>>    acpi, numa: Use pr_fmt() instead of printk
+>>    acpi, numa: Replace ACPI_DEBUG_PRINT() with pr_debug()
+>>    arm64, acpi, numa: NUMA support based on SRAT and SLIT
+>>    acpi, numa: Enable ACPI based NUMA on ARM64
+>>
+>>   arch/arm64/include/asm/acpi.h |   4 +
+>>   arch/arm64/kernel/Makefile    |   1 +
+>>   arch/arm64/kernel/acpi_numa.c | 215 ++++++++++++++++++++++++++++++++++++++++++
+>>   arch/arm64/mm/numa.c          |   7 +-
+>>   drivers/acpi/Kconfig          |   4 +-
+>>   drivers/acpi/numa.c           | 106 ++++++++++++---------
+>>   include/linux/acpi.h          |  15 +++
+>>   7 files changed, 306 insertions(+), 46 deletions(-)
+>>   create mode 100644 arch/arm64/kernel/acpi_numa.c
+>>
+>
+> I've tested this patch set on QEMU VM and guest prints below log:
+>
+> ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0x0 -> Node 0 cpu 1
+> ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0x1 -> Node 0 cpu 2
+> ACPI: NUMA: SRAT: PXM 1 -> MPIDR 0x2 -> Node 1 cpu 3
+> ACPI: NUMA: SRAT: PXM 1 -> MPIDR 0x3 -> Node 1 cpu 4
+> ACPI: NUMA: SRAT: Node 0 PXM 0 [mem 0x40000000-0x5fffffff]
+> NUMA: Adding memblock [0x40000000 - 0x5fffffff] on node 0
+> ACPI: NUMA: SRAT: Node 1 PXM 1 [mem 0x60000000-0x7fffffff]
+> NUMA: Adding memblock [0x60000000 - 0x7fffffff] on node 1
+> Initmem setup node 0 [mem 0x40000000-0x5fffffff]
+>    NODE_DATA [mem 0x5fffe400-0x5fffffff]
+> Initmem setup node 1 [mem 0x60000000-0x7fffffff]
+>    NODE_DATA [mem 0x7effd400-0x7effefff]
+> Zone ranges:
+>    DMA      [mem 0x0000000040000000-0x000000007fffffff]
+>    Normal   empty
+> Movable zone start for each node
+> Early memory node ranges
+>    node   0: [mem 0x0000000040000000-0x000000005fffffff]
+>    node   1: [mem 0x0000000060000000-0x000000007fffffff]
+> Initmem setup node 0 [mem 0x0000000040000000-0x000000005fffffff]
+> Initmem setup node 1 [mem 0x0000000060000000-0x000000007fffffff]
+>
+> So, Tested-by: Shannon Zhao <shannon.zhao@linaro.org>
 
-And how exactly does it enable a power on DMA controller that doesn't
-have _PS0 / _PS3 / _PSC methods?
+Hi Shannon, thanks a lot!
 
-Maybe I missed something obvious.
-
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0-> probe
-> =C2=A0=C2=A0=C2=A0driver_bound -> BUS_NOTIFY_BOUND_DRIVER
-
-
---=20
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+Thanks
+Hanjun
