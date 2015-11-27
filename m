@@ -1,77 +1,92 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v2 0/4] ACPI based NUMA support for ARM64
-Date: Fri, 27 Nov 2015 21:28:31 +0800
-Message-ID: <56585A7F.3010505@linaro.org>
-References: <1447784733-10419-1-git-send-email-gkulkarni@caviumnetworks.com> <56582195.80306@huawei.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] x86/PCI: Fix regression caused by commit 4d6b4e69a245
+Date: Fri, 27 Nov 2015 17:06:01 +0100
+Message-ID: <8206751.4eTpiUuo7l@vostro.rjw.lan>
+References: <5655B392.7070701@intel.com> <1448593953-12364-1-git-send-email-jiang.liu@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f49.google.com ([209.85.220.49]:34508 "EHLO
-	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751504AbbK0N2f (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Nov 2015 08:28:35 -0500
-Received: by padhx2 with SMTP id hx2so115517555pad.1
-        for <linux-acpi@vger.kernel.org>; Fri, 27 Nov 2015 05:28:34 -0800 (PST)
-In-Reply-To: <56582195.80306@huawei.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1448593953-12364-1-git-send-email-jiang.liu@linux.intel.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Keith Busch <keith.busch@intel.com>, Arthur Marsh <arthur.marsh@internode.on.net>, Hans de Bruin <jmdebruin@xmsnet.nl>
 List-Id: linux-acpi@vger.kernel.org
-To: Shannon Zhao <zhaoshenglong@huawei.com>, Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Will.Deacon@arm.com, catalin.marinas@arm.com, grant.likely@linaro.org, leif.lindholm@linaro.org, rfranz@cavium.com, ard.biesheuvel@linaro.org, msalter@redhat.com, robh+dt@kernel.org, steve.capper@linaro.org, al.stone@linaro.org, arnd@arndb.de, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, rjw@rjwysocki.net, lenb@kernel.org, marc.zyngier@arm.com, lorenzo.pieralisi@arm.com, tn@semihalf.com, rrichter@cavium.com, Prasun.Kapoor@caviumnetworks.com
-Cc: gpkulkarni@gmail.com
 
-On 11/27/2015 05:25 PM, Shannon Zhao wrote:
->
->
-> On 2015/11/18 2:25, Ganapatrao Kulkarni wrote:
->>   -v2 rebased on arm64-numa v7 patches.
->>   http://www.spinics.net/lists/arm-kernel/msg460813.html
->>
->>   -v1 initial patches from Hanjun Guo
->>
->> Hanjun Guo (4):
->>    acpi, numa: Use pr_fmt() instead of printk
->>    acpi, numa: Replace ACPI_DEBUG_PRINT() with pr_debug()
->>    arm64, acpi, numa: NUMA support based on SRAT and SLIT
->>    acpi, numa: Enable ACPI based NUMA on ARM64
->>
->>   arch/arm64/include/asm/acpi.h |   4 +
->>   arch/arm64/kernel/Makefile    |   1 +
->>   arch/arm64/kernel/acpi_numa.c | 215 ++++++++++++++++++++++++++++++++++++++++++
->>   arch/arm64/mm/numa.c          |   7 +-
->>   drivers/acpi/Kconfig          |   4 +-
->>   drivers/acpi/numa.c           | 106 ++++++++++++---------
->>   include/linux/acpi.h          |  15 +++
->>   7 files changed, 306 insertions(+), 46 deletions(-)
->>   create mode 100644 arch/arm64/kernel/acpi_numa.c
->>
->
-> I've tested this patch set on QEMU VM and guest prints below log:
->
-> ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0x0 -> Node 0 cpu 1
-> ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0x1 -> Node 0 cpu 2
-> ACPI: NUMA: SRAT: PXM 1 -> MPIDR 0x2 -> Node 1 cpu 3
-> ACPI: NUMA: SRAT: PXM 1 -> MPIDR 0x3 -> Node 1 cpu 4
-> ACPI: NUMA: SRAT: Node 0 PXM 0 [mem 0x40000000-0x5fffffff]
-> NUMA: Adding memblock [0x40000000 - 0x5fffffff] on node 0
-> ACPI: NUMA: SRAT: Node 1 PXM 1 [mem 0x60000000-0x7fffffff]
-> NUMA: Adding memblock [0x60000000 - 0x7fffffff] on node 1
-> Initmem setup node 0 [mem 0x40000000-0x5fffffff]
->    NODE_DATA [mem 0x5fffe400-0x5fffffff]
-> Initmem setup node 1 [mem 0x60000000-0x7fffffff]
->    NODE_DATA [mem 0x7effd400-0x7effefff]
-> Zone ranges:
->    DMA      [mem 0x0000000040000000-0x000000007fffffff]
->    Normal   empty
-> Movable zone start for each node
-> Early memory node ranges
->    node   0: [mem 0x0000000040000000-0x000000005fffffff]
->    node   1: [mem 0x0000000060000000-0x000000007fffffff]
-> Initmem setup node 0 [mem 0x0000000040000000-0x000000005fffffff]
-> Initmem setup node 1 [mem 0x0000000060000000-0x000000007fffffff]
->
-> So, Tested-by: Shannon Zhao <shannon.zhao@linaro.org>
+On Friday, November 27, 2015 11:12:33 AM Jiang Liu wrote:
+> From: Liu Jiang <jiang.liu@linux.intel.com>
+> 
+> Commit 4d6b4e69a245 ("x86/PCI/ACPI: Use common interface to support
+> PCI host bridge") converted x86 to use the common interface
+> acpi_pci_root_create, but the conversion missed on code piece in
+> arch/x86/pci/bus_numa.c, which causes regression on some legacy
+> AMD platforms as reported by Arthur Marsh <arthur.marsh@internode.on.net>.
+> The root causes is that acpi_pci_root_create() fails to insert
+> host bridge resources into iomem_resource/ioport_resource because
+> x86_pci_root_bus_resources() has already inserted those resources.
+> So change x86_pci_root_bus_resources() to not insert resources into
+> iomem_resource/ioport_resource.
+> 
+> Fixes: 4d6b4e69a245 ("x86/PCI/ACPI: Use common interface to support PCI host bridge")
+> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+> Reported-and-tested-by: Arthur Marsh <arthur.marsh@internode.on.net>
+> Cc: Keith Busch <keith.busch@intel.com>
+> Cc: Arthur Marsh <arthur.marsh@internode.on.net>
+> Cc: Hans de Bruin <jmdebruin@xmsnet.nl>
 
-Hi Shannon, thanks a lot!
+What exactly has changed between this version and the previous one?
 
-Thanks
-Hanjun
+
+> ---
+>  arch/x86/pci/bus_numa.c |   13 ++-----------
+>  drivers/acpi/pci_root.c |    7 +++++++
+>  2 files changed, 9 insertions(+), 11 deletions(-)
+> 
+> diff --git a/arch/x86/pci/bus_numa.c b/arch/x86/pci/bus_numa.c
+> index 7bcf06a7cd12..6eb3c8af96e2 100644
+> --- a/arch/x86/pci/bus_numa.c
+> +++ b/arch/x86/pci/bus_numa.c
+> @@ -50,18 +50,9 @@ void x86_pci_root_bus_resources(int bus, struct list_head *resources)
+>  	if (!found)
+>  		pci_add_resource(resources, &info->busn);
+>  
+> -	list_for_each_entry(root_res, &info->resources, list) {
+> -		struct resource *res;
+> -		struct resource *root;
+> +	list_for_each_entry(root_res, &info->resources, list)
+> +		pci_add_resource(resources, &root_res->res);
+>  
+> -		res = &root_res->res;
+> -		pci_add_resource(resources, res);
+> -		if (res->flags & IORESOURCE_IO)
+> -			root = &ioport_resource;
+> -		else
+> -			root = &iomem_resource;
+> -		insert_resource(root, res);
+> -	}
+>  	return;
+>  
+>  default_resources:
+> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+> index 850d7bf0c873..ae3fe4e64203 100644
+> --- a/drivers/acpi/pci_root.c
+> +++ b/drivers/acpi/pci_root.c
+> @@ -768,6 +768,13 @@ static void pci_acpi_root_add_resources(struct acpi_pci_root_info *info)
+>  		else
+>  			continue;
+>  
+> +		/*
+> +		 * Some legacy x86 host bridge drivers use iomem_resource and
+> +		 * ioport_resource as default resource pool, skip it.
+> +		 */
+> +		if (res == root)
+> +			continue;
+> +
+>  		conflict = insert_resource_conflict(root, res);
+>  		if (conflict) {
+>  			dev_info(&info->bridge->dev,
+> 
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
