@@ -1,86 +1,58 @@
-From: Jiang Liu <jiang.liu@linux.intel.com>
-Subject: [PATCH] x86/PCI: Fix regression caused by commit 4d6b4e69a245
-Date: Fri, 27 Nov 2015 11:12:33 +0800
-Message-ID: <1448593953-12364-1-git-send-email-jiang.liu@linux.intel.com>
-References: <5655B392.7070701@intel.com>
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: Re: [Patch v7 4/7] PCI/ACPI: Add interface acpi_pci_root_create()
+Date: Fri, 27 Nov 2015 07:59:22 +0100
+Message-ID: <5657FF4A.2080804@semihalf.com>
+References: <564185B6.8040006@linux.intel.com>
+ <20151111174647.GA30051@red-moon> <56445117.8090307@linux.intel.com>
+ <56449246.2010308@semihalf.com> <56449C55.2090001@linux.intel.com>
+ <5644A613.2010304@semihalf.com> <5644AAB9.6010700@linux.intel.com>
+ <5645DE3A.7040406@semihalf.com> <20151113170316.GB15253@red-moon>
+ <56462294.3060701@linux.intel.com> <20151120101840.GD15819@red-moon>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:44297 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753718AbbK0DJB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 26 Nov 2015 22:09:01 -0500
-In-Reply-To: <5655B392.7070701@intel.com>
+Received: from mail-lf0-f47.google.com ([209.85.215.47]:34108 "EHLO
+	mail-lf0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751544AbbK0HBJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Nov 2015 02:01:09 -0500
+Received: by lffu14 with SMTP id u14so119108237lff.1
+        for <linux-acpi@vger.kernel.org>; Thu, 26 Nov 2015 23:01:07 -0800 (PST)
+In-Reply-To: <20151120101840.GD15819@red-moon>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Liu Jiang <jiang.liu@linux.intel.com>, Keith Busch <keith.busch@intel.com>, Arthur Marsh <arthur.marsh@internode.on.net>, Hans de Bruin <jmdebruin@xmsnet.nl>
+To: Jiang Liu <jiang.liu@linux.intel.com>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, Bjorn Helgaas <bhelgaas@google.com>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Marc Zyngier <marc.zyngier@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Liviu Dudau <Liviu.Dudau@arm.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, x86@kernel.org
 
-From: Liu Jiang <jiang.liu@linux.intel.com>
+On 20.11.2015 11:18, Lorenzo Pieralisi wrote:
+> Hi Jiang,
+>
+> On Sat, Nov 14, 2015 at 01:49:08AM +0800, Jiang Liu wrote:
+>
+> [...]
+>
+>>> Not really. My concern is that there might be platforms out there with
+>>> an offset between the CPU and PCI physical address spaces, and if we
+>>> remove the offset value in acpi_decode_space we can break them,
+>>> because in the kernel struct resource data we have to have CPU physical
+>>> addresses, not PCI ones. If offset == 0, we are home and dry, I do not
+>>> understand why that's a given, which is what we would assume if Jiang's
+>>> patch is merged as-is unless I am mistaken.
+>> We try to exclude offset from struct resource in generic ACPI code,
+>> and it's the arch's responsibility to decide how to manipulate struct
+>> resource object if offset is not zero.
+>>
+>> Currently offset is always zero for x86, and IA64 has arch specific
+>> code to handle non-zero offset. So we should be safe without breaking
+>> existing code. For ARM64, it's a little different from IA64 so it's
+>> hard to share code between IA64 and ARM64.
+>
+> Can you drop the patch on the mailing lists please, we actually need it
+> to get ACPI ARM64 PCIe support in the kernel, please let me know how
+> you want to handle this and if you need any help.
+>
 
-Commit 4d6b4e69a245 ("x86/PCI/ACPI: Use common interface to support
-PCI host bridge") converted x86 to use the common interface
-acpi_pci_root_create, but the conversion missed on code piece in
-arch/x86/pci/bus_numa.c, which causes regression on some legacy
-AMD platforms as reported by Arthur Marsh <arthur.marsh@internode.on.net>.
-The root causes is that acpi_pci_root_create() fails to insert
-host bridge resources into iomem_resource/ioport_resource because
-x86_pci_root_bus_resources() has already inserted those resources.
-So change x86_pci_root_bus_resources() to not insert resources into
-iomem_resource/ioport_resource.
+Kindly reminder.
 
-Fixes: 4d6b4e69a245 ("x86/PCI/ACPI: Use common interface to support PCI host bridge")
-Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-Reported-and-tested-by: Arthur Marsh <arthur.marsh@internode.on.net>
-Cc: Keith Busch <keith.busch@intel.com>
-Cc: Arthur Marsh <arthur.marsh@internode.on.net>
-Cc: Hans de Bruin <jmdebruin@xmsnet.nl>
----
- arch/x86/pci/bus_numa.c |   13 ++-----------
- drivers/acpi/pci_root.c |    7 +++++++
- 2 files changed, 9 insertions(+), 11 deletions(-)
-
-diff --git a/arch/x86/pci/bus_numa.c b/arch/x86/pci/bus_numa.c
-index 7bcf06a7cd12..6eb3c8af96e2 100644
---- a/arch/x86/pci/bus_numa.c
-+++ b/arch/x86/pci/bus_numa.c
-@@ -50,18 +50,9 @@ void x86_pci_root_bus_resources(int bus, struct list_head *resources)
- 	if (!found)
- 		pci_add_resource(resources, &info->busn);
- 
--	list_for_each_entry(root_res, &info->resources, list) {
--		struct resource *res;
--		struct resource *root;
-+	list_for_each_entry(root_res, &info->resources, list)
-+		pci_add_resource(resources, &root_res->res);
- 
--		res = &root_res->res;
--		pci_add_resource(resources, res);
--		if (res->flags & IORESOURCE_IO)
--			root = &ioport_resource;
--		else
--			root = &iomem_resource;
--		insert_resource(root, res);
--	}
- 	return;
- 
- default_resources:
-diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index 850d7bf0c873..ae3fe4e64203 100644
---- a/drivers/acpi/pci_root.c
-+++ b/drivers/acpi/pci_root.c
-@@ -768,6 +768,13 @@ static void pci_acpi_root_add_resources(struct acpi_pci_root_info *info)
- 		else
- 			continue;
- 
-+		/*
-+		 * Some legacy x86 host bridge drivers use iomem_resource and
-+		 * ioport_resource as default resource pool, skip it.
-+		 */
-+		if (res == root)
-+			continue;
-+
- 		conflict = insert_resource_conflict(root, res);
- 		if (conflict) {
- 			dev_info(&info->bridge->dev,
--- 
-1.7.10.4
-
+Regards,
+Tomasz
