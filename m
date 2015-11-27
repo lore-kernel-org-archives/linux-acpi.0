@@ -1,87 +1,56 @@
-From: Jarkko Nikula <jarkko.nikula@linux.intel.com>
-Subject: Re: [PATCH v2 2/7] ACPI / LPSS: allow to use specific PM domain
- during ->probe()
-Date: Fri, 27 Nov 2015 09:05:46 +0200
-Message-ID: <565800CA.4040003@linux.intel.com>
-References: <1448551153-84719-1-git-send-email-andriy.shevchenko@linux.intel.com>
- <1448551153-84719-3-git-send-email-andriy.shevchenko@linux.intel.com>
- <565733A2.6050900@linux.intel.com>
- <1448556317.15393.77.camel@linux.intel.com>
+From: Shannon Zhao <zhaoshenglong@huawei.com>
+Subject: Re: [PATCH v2 3/4] arm64, acpi, numa: NUMA support based on SRAT
+ and SLIT
+Date: Fri, 27 Nov 2015 15:54:55 +0800
+Message-ID: <56580C4F.4050903@huawei.com>
+References: <1447784733-10419-1-git-send-email-gkulkarni@caviumnetworks.com> <1447784733-10419-4-git-send-email-gkulkarni@caviumnetworks.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1448556317.15393.77.camel@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Vinod Koul <vinod.koul@intel.com>, dmaengine@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga02-in.huawei.com ([119.145.14.65]:7598 "EHLO
+	szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751213AbbK0H53 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Nov 2015 02:57:29 -0500
+In-Reply-To: <1447784733-10419-4-git-send-email-gkulkarni@caviumnetworks.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Will.Deacon@arm.com, catalin.marinas@arm.com, grant.likely@linaro.org, leif.lindholm@linaro.org, rfranz@cavium.com, ard.biesheuvel@linaro.org, msalter@redhat.com, robh+dt@kernel.org, steve.capper@linaro.org, hanjun.guo@linaro.org, al.stone@linaro.org, arnd@arndb.de, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, rjw@rjwysocki.net, lenb@kernel.org, marc.zyngier@arm.com, lorenzo.pieralisi@arm.com, tn@semihalf.com, rrichter@cavium.com, Prasun.Kapoor@caviumnetworks.com
+Cc: gpkulkarni@gmail.com
 
-On 11/26/2015 06:45 PM, Andy Shevchenko wrote:
-> On Thu, 2015-11-26 at 18:30 +0200, Jarkko Nikula wrote:
->> On 11/26/2015 05:19 PM, Andy Shevchenko wrote:
->>> This is an amendment to previously pushed commit 01ac170ba29a (ACPI
->>> / LPSS:
->>> allow to use specific PM domain during ->probe()). We can't assign
->>> anything to
->>> the platform device on ADD_DEVICE stage since it might be changed
->>> during
->>> unbound / bind cycle.
->>>
->>> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
->>> ---
->>>    drivers/acpi/acpi_lpss.c | 9 +++++++--
->>>    1 file changed, 7 insertions(+), 2 deletions(-)
->>>
->>> diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
->>> index f9e0d09..e840229 100644
->>> --- a/drivers/acpi/acpi_lpss.c
->>> +++ b/drivers/acpi/acpi_lpss.c
->>> @@ -705,8 +705,14 @@ static int acpi_lpss_platform_notify(struct
->>> notifier_block *nb,
->>>    	}
->>>
->>>    	switch (action) {
->>> -	case BUS_NOTIFY_ADD_DEVICE:
->>> +	case BUS_NOTIFY_BIND_DRIVER:
->>>    		pdev->dev.pm_domain = &acpi_lpss_pm_domain;
->>> +		break;
->>> +	case BUS_NOTIFY_BIND_DRIVER_ERROR:
->>> +	case BUS_NOTIFY_UNBOUND_DRIVER:
->>> +		pdev->dev.pm_domain = NULL;
->>> +		break;
->>> +	case BUS_NOTIFY_ADD_DEVICE:
->>
->> This won't fix like revert of original commit does. Primary problem
->> here
->> is that there is no explicit power on at all during LPSS device probe
->> because dev->pm_domain is set before probing.
->
-> And we can't do this as in very original code of acpi_lpss.c since DMA
-> has to be sure it's powered on while probing. We could guarantee this
-> only in case when PM domain is assigned already and we do our quirk for
-> it.
->
-I'm not sure do I follow here. Is the power on chain different for LPSS 
-DMA because setting the domain at BIND stage prevents the call to 
-acpi_dev_pm_full_power() before driver probe? See below.
+Hi,
 
-driver_probe_device
-   really_probe
-     driver_sysfs_add -> BUS_NOTIFY_BIND_DRIVER
-     -> platform_drv_prove
-       dev_pm_domain_attach
-         acpi_dev_pm_attach
-           if (dev->pm_domain) return -EEXIST;
-           ...
-           if (power_on) { acpi_dev_pm_full_power(adev);... }
-       -> probe
-   driver_bound -> BUS_NOTIFY_BOUND_DRIVER
+On 2015/11/18 2:25, Ganapatrao Kulkarni wrote:
+> +/* Callback for Proximity Domain -> ACPI processor UID mapping */
+> +void __init acpi_numa_gicc_affinity_init(struct acpi_srat_gicc_affinity *pa)
+> +{
+> +	int pxm, node;
+> +	u64 mpidr;
+> +	static int cpus_in_srat;
+> +
+> +	if (srat_disabled())
+> +		return;
+> +
+> +	if (pa->header.length < sizeof(struct acpi_srat_gicc_affinity)) {
+> +		bad_srat();
+> +		return;
+> +	}
+> +
+> +	if (!(pa->flags & ACPI_SRAT_GICC_ENABLED))
+> +		return;
+> +
+> +	if (cpus_in_srat >= NR_CPUS) {
+> +		pr_warn_once("SRAT: cpu_to_node_map[%ld] is too small, may not be able to use all cpus\n",
+> +			     NR_CPUS);
+> +		return;
+> +	}
 
->  From my point of view we have to fix hang first since it's most painful
-> case for users and their experience. Though I'm open to any better
-> solution if you have any in mind.
->
-Sure.
+arch/arm64/kernel/acpi_numa.c: In function 'acpi_numa_gicc_affinity_init':
+arch/arm64/kernel/acpi_numa.c:137:3: warning: format '%ld' expects
+argument of type 'long int', but argument 2 has type 'int' [-Wformat=]
+   pr_warn_once("SRAT: cpu_to_node_map[%ld] is too small, may not be
+able to use all cpus\n",
 
 -- 
-Jarkko
+Shannon
+
