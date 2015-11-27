@@ -1,73 +1,132 @@
-From: Shannon Zhao <zhaoshenglong@huawei.com>
-Subject: Re: [PATCH v2 0/4] ACPI based NUMA support for ARM64
-Date: Fri, 27 Nov 2015 17:25:41 +0800
-Message-ID: <56582195.80306@huawei.com>
-References: <1447784733-10419-1-git-send-email-gkulkarni@caviumnetworks.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH v2 1/7] device core: add BUS_NOTIFY_BIND_DRIVER_ERROR
+ notification
+Date: Fri, 27 Nov 2015 11:46:20 +0200
+Message-ID: <1448617580.15393.99.camel@linux.intel.com>
+References: <1448551153-84719-1-git-send-email-andriy.shevchenko@linux.intel.com>
+	 <1448551153-84719-2-git-send-email-andriy.shevchenko@linux.intel.com>
+	 <10826039.DB5kcb9LL1@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([58.251.152.64]:35314 "EHLO
-	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754467AbbK0Jbt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Nov 2015 04:31:49 -0500
-In-Reply-To: <1447784733-10419-1-git-send-email-gkulkarni@caviumnetworks.com>
+Received: from mga11.intel.com ([192.55.52.93]:40995 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754040AbbK0JqM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 27 Nov 2015 04:46:12 -0500
+In-Reply-To: <10826039.DB5kcb9LL1@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Will.Deacon@arm.com, catalin.marinas@arm.com, grant.likely@linaro.org, leif.lindholm@linaro.org, rfranz@cavium.com, ard.biesheuvel@linaro.org, msalter@redhat.com, robh+dt@kernel.org, steve.capper@linaro.org, hanjun.guo@linaro.org, al.stone@linaro.org, arnd@arndb.de, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, rjw@rjwysocki.net, lenb@kernel.org, marc.zyngier@arm.com, lorenzo.pieralisi@arm.com, tn@semihalf.com, rrichter@cavium.com, Prasun.Kapoor@caviumnetworks.com
-Cc: gpkulkarni@gmail.com
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, Vinod Koul <vinod.koul@intel.com>, dmaengine@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 
+On Fri, 2015-11-27 at 00:09 +0100, Rafael J. Wysocki wrote:
+> On Thursday, November 26, 2015 05:19:07 PM Andy Shevchenko wrote:
+> > In case ->probe() fails the notifier does not inform a subscriber
+> > about this.
+> > In the result it might happend that some resources that had been
+> > allocated will
+> > stay allocated and therefore lead to resource leak.
+> >=20
+> > Introduce a new notification to inform the subscriber that
+> > ->probe() failed.
+> >=20
+> > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+>=20
+> I'd rather say the problem is that the users of
+> BUS_NOTIFY_BIND_DRIVER have no
+> chance to do any cleanup in case of a probe failure (there may be
+> problems even
+> if resources aren't leaked).
 
+Thanks, Rafael, all of your comments sound reasonable for me. Will be
+taken into consideration in next version.
 
-On 2015/11/18 2:25, Ganapatrao Kulkarni wrote:
->  -v2 rebased on arm64-numa v7 patches.
->  http://www.spinics.net/lists/arm-kernel/msg460813.html
-> 
->  -v1 initial patches from Hanjun Guo
-> 
-> Hanjun Guo (4):
->   acpi, numa: Use pr_fmt() instead of printk
->   acpi, numa: Replace ACPI_DEBUG_PRINT() with pr_debug()
->   arm64, acpi, numa: NUMA support based on SRAT and SLIT
->   acpi, numa: Enable ACPI based NUMA on ARM64
-> 
->  arch/arm64/include/asm/acpi.h |   4 +
->  arch/arm64/kernel/Makefile    |   1 +
->  arch/arm64/kernel/acpi_numa.c | 215 ++++++++++++++++++++++++++++++++++++++++++
->  arch/arm64/mm/numa.c          |   7 +-
->  drivers/acpi/Kconfig          |   4 +-
->  drivers/acpi/numa.c           | 106 ++++++++++++---------
->  include/linux/acpi.h          |  15 +++
->  7 files changed, 306 insertions(+), 46 deletions(-)
->  create mode 100644 arch/arm64/kernel/acpi_numa.c
-> 
+>=20
+> > ---
+> > =C2=A0drivers/base/dd.c=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0| 8 ++++=
+++--
+> > =C2=A0include/linux/device.h | 1 +
+> > =C2=A02 files changed, 7 insertions(+), 2 deletions(-)
+> >=20
+> > diff --git a/drivers/base/dd.c b/drivers/base/dd.c
+> > index a641cf3..ac071a5 100644
+> > --- a/drivers/base/dd.c
+> > +++ b/drivers/base/dd.c
+> > @@ -290,7 +290,7 @@ static int really_probe(struct device *dev,
+> > struct device_driver *drv)
+> > =C2=A0	/* If using pinctrl, bind pins now before probing */
+> > =C2=A0	ret =3D pinctrl_bind_pins(dev);
+> > =C2=A0	if (ret)
+> > -		goto probe_failed;
+> > +		goto pinctrl_bind_failed;
+> > =C2=A0
+> > =C2=A0	if (driver_sysfs_add(dev)) {
+> > =C2=A0		printk(KERN_ERR "%s: driver_sysfs_add(%s)
+> > failed\n",
+> > @@ -334,6 +334,11 @@ static int really_probe(struct device *dev,
+> > struct device_driver *drv)
+> > =C2=A0	goto done;
+> > =C2=A0
+> > =C2=A0probe_failed:
+> > +	if (dev->bus)
+> > +		blocking_notifier_call_chain(&dev->bus->p-
+> > >bus_notifier,
+> > +					=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0BUS_NOTIFY_BIND_DRIVE
+> > R_ERROR,
+> > +					=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0dev);
+>=20
+> Well, if we do that, device_bind_driver() needs to send that
+> notification too
+> in case it doesn't call driver_bound().
+>=20
+> > +pinctrl_bind_failed:
+> > =C2=A0	devres_release_all(dev);
+> > =C2=A0	driver_sysfs_remove(dev);
+> > =C2=A0	dev->driver =3D NULL;
+> > @@ -701,7 +706,6 @@ static void __device_release_driver(struct
+> > device *dev)
+> > =C2=A0			blocking_notifier_call_chain(&dev->bus->p-
+> > >bus_notifier,
+> > =C2=A0						=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0BUS_NOTIFY_UN
+> > BOUND_DRIVER,
+> > =C2=A0						=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0dev);
+> > -
+> > =C2=A0	}
+> > =C2=A0}
+> > =C2=A0
+> > diff --git a/include/linux/device.h b/include/linux/device.h
+> > index b8f411b..87cf423 100644
+> > --- a/include/linux/device.h
+> > +++ b/include/linux/device.h
+> > @@ -191,6 +191,7 @@ extern int bus_unregister_notifier(struct
+> > bus_type *bus,
+> > =C2=A0						=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0unbound */
+> > =C2=A0#define BUS_NOTIFY_UNBOUND_DRIVER	0x00000007 /* driver is
+> > unbound
+> > =C2=A0						=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0from the
+> > device */
+> > +#define BUS_NOTIFY_BIND_DRIVER_ERROR	0x80000004 /* driver
+> > fails to be bound */
+>=20
+> I'd call it BUS_NOTIFY_DRIVER_NOT_BOUND.
+>=20
+> > =C2=A0
+> > =C2=A0extern struct kset *bus_get_kset(struct bus_type *bus);
+> > =C2=A0extern struct klist *bus_get_device_klist(struct bus_type *bu=
+s);
+> >=20
+>=20
+> Thanks,
+> Rafael
+>=20
 
-I've tested this patch set on QEMU VM and guest prints below log:
+--=20
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
 
-ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0x0 -> Node 0 cpu 1
-ACPI: NUMA: SRAT: PXM 0 -> MPIDR 0x1 -> Node 0 cpu 2
-ACPI: NUMA: SRAT: PXM 1 -> MPIDR 0x2 -> Node 1 cpu 3
-ACPI: NUMA: SRAT: PXM 1 -> MPIDR 0x3 -> Node 1 cpu 4
-ACPI: NUMA: SRAT: Node 0 PXM 0 [mem 0x40000000-0x5fffffff]
-NUMA: Adding memblock [0x40000000 - 0x5fffffff] on node 0
-ACPI: NUMA: SRAT: Node 1 PXM 1 [mem 0x60000000-0x7fffffff]
-NUMA: Adding memblock [0x60000000 - 0x7fffffff] on node 1
-Initmem setup node 0 [mem 0x40000000-0x5fffffff]
-  NODE_DATA [mem 0x5fffe400-0x5fffffff]
-Initmem setup node 1 [mem 0x60000000-0x7fffffff]
-  NODE_DATA [mem 0x7effd400-0x7effefff]
-Zone ranges:
-  DMA      [mem 0x0000000040000000-0x000000007fffffff]
-  Normal   empty
-Movable zone start for each node
-Early memory node ranges
-  node   0: [mem 0x0000000040000000-0x000000005fffffff]
-  node   1: [mem 0x0000000060000000-0x000000007fffffff]
-Initmem setup node 0 [mem 0x0000000040000000-0x000000005fffffff]
-Initmem setup node 1 [mem 0x0000000060000000-0x000000007fffffff]
-
-So, Tested-by: Shannon Zhao <shannon.zhao@linaro.org>
-
--- 
-Shannon
-
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
