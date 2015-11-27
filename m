@@ -1,92 +1,84 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] x86/PCI: Fix regression caused by commit 4d6b4e69a245
-Date: Fri, 27 Nov 2015 17:06:01 +0100
-Message-ID: <8206751.4eTpiUuo7l@vostro.rjw.lan>
-References: <5655B392.7070701@intel.com> <1448593953-12364-1-git-send-email-jiang.liu@linux.intel.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] Power management and ACPI fixes for v4.4-rc3
+Date: Fri, 27 Nov 2015 16:43:55 +0100
+Message-ID: <CAJZ5v0jrdjtozg1gYKi5GB+HFRUEnWyQNQ-2CYR6sRyjjaWFfA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1448593953-12364-1-git-send-email-jiang.liu@linux.intel.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Jiang Liu <jiang.liu@linux.intel.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Keith Busch <keith.busch@intel.com>, Arthur Marsh <arthur.marsh@internode.on.net>, Hans de Bruin <jmdebruin@xmsnet.nl>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lf0-f44.google.com ([209.85.215.44]:36404 "EHLO
+	mail-lf0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754265AbbK0Pn5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 27 Nov 2015 10:43:57 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Friday, November 27, 2015 11:12:33 AM Jiang Liu wrote:
-> From: Liu Jiang <jiang.liu@linux.intel.com>
-> 
-> Commit 4d6b4e69a245 ("x86/PCI/ACPI: Use common interface to support
-> PCI host bridge") converted x86 to use the common interface
-> acpi_pci_root_create, but the conversion missed on code piece in
-> arch/x86/pci/bus_numa.c, which causes regression on some legacy
-> AMD platforms as reported by Arthur Marsh <arthur.marsh@internode.on.net>.
-> The root causes is that acpi_pci_root_create() fails to insert
-> host bridge resources into iomem_resource/ioport_resource because
-> x86_pci_root_bus_resources() has already inserted those resources.
-> So change x86_pci_root_bus_resources() to not insert resources into
-> iomem_resource/ioport_resource.
-> 
-> Fixes: 4d6b4e69a245 ("x86/PCI/ACPI: Use common interface to support PCI host bridge")
-> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
-> Reported-and-tested-by: Arthur Marsh <arthur.marsh@internode.on.net>
-> Cc: Keith Busch <keith.busch@intel.com>
-> Cc: Arthur Marsh <arthur.marsh@internode.on.net>
-> Cc: Hans de Bruin <jmdebruin@xmsnet.nl>
+Hi Linus,
 
-What exactly has changed between this version and the previous one?
+Please pull from
+
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ pm+acpi-4.4-rc3
+
+to receive power management and ACPI fixes for v4.4-rc3 with
+top-most commit f28a1b0df7adcc981e5ce5a5daf3d638dd019c0e
+
+ Merge branches 'pm-cpufreq' and 'acpi-cppc'
+
+on top of commit 1ec218373b8ebda821aec00bb156a9c94fad9cd4
+
+ Linux 4.4-rc2
+
+These fix one recent regression (cpufreq core), fix up two features
+added recently (ACPI CPPC support, SCPI support in the arm_big_little
+cpufreq driver) and fix three older bugs in the intel_pstate driver.
+
+Specifics:
+
+ - Fix a recent regression in the cpufreq core causing it to fail
+   to clean up sysfs directories properly on cpufreq driver removal
+   (Viresh Kumar).
+
+ - Fix a build problem in the SCPI support code recently added to
+   the arm_big_little cpufreq driver (Punit Agrawal).
+
+ - Fix up the recently added CPPC cpufreq frontend to process the
+   CPU coordination information provided by the platform firmware
+   correctly (Ashwin Chaugule).
+
+ - Fix the intel_pstate driver to behave as intended when switched
+   over to the "performance" mode via sysfs if hardware-driven
+   P-state selection (HWP) is enabled (Alexandra Yates).
+
+ - Fix two rounding errors in the intel_pstate driver that sometimes
+   cause it to use lower P-states than requested (Prarit Bhargava).
+
+Thanks!
 
 
-> ---
->  arch/x86/pci/bus_numa.c |   13 ++-----------
->  drivers/acpi/pci_root.c |    7 +++++++
->  2 files changed, 9 insertions(+), 11 deletions(-)
-> 
-> diff --git a/arch/x86/pci/bus_numa.c b/arch/x86/pci/bus_numa.c
-> index 7bcf06a7cd12..6eb3c8af96e2 100644
-> --- a/arch/x86/pci/bus_numa.c
-> +++ b/arch/x86/pci/bus_numa.c
-> @@ -50,18 +50,9 @@ void x86_pci_root_bus_resources(int bus, struct list_head *resources)
->  	if (!found)
->  		pci_add_resource(resources, &info->busn);
->  
-> -	list_for_each_entry(root_res, &info->resources, list) {
-> -		struct resource *res;
-> -		struct resource *root;
-> +	list_for_each_entry(root_res, &info->resources, list)
-> +		pci_add_resource(resources, &root_res->res);
->  
-> -		res = &root_res->res;
-> -		pci_add_resource(resources, res);
-> -		if (res->flags & IORESOURCE_IO)
-> -			root = &ioport_resource;
-> -		else
-> -			root = &iomem_resource;
-> -		insert_resource(root, res);
-> -	}
->  	return;
->  
->  default_resources:
-> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-> index 850d7bf0c873..ae3fe4e64203 100644
-> --- a/drivers/acpi/pci_root.c
-> +++ b/drivers/acpi/pci_root.c
-> @@ -768,6 +768,13 @@ static void pci_acpi_root_add_resources(struct acpi_pci_root_info *info)
->  		else
->  			continue;
->  
-> +		/*
-> +		 * Some legacy x86 host bridge drivers use iomem_resource and
-> +		 * ioport_resource as default resource pool, skip it.
-> +		 */
-> +		if (res == root)
-> +			continue;
-> +
->  		conflict = insert_resource_conflict(root, res);
->  		if (conflict) {
->  			dev_info(&info->bridge->dev,
-> 
+---------------
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Alexandra Yates (1):
+      intel_pstate: Fix "performance" mode behavior with HWP enabled
+
+Ashwin Chaugule (1):
+      cpufreq: CPPC: Initialize and check CPUFreq CPU co-ord type correctly
+
+Prarit Bhargava (2):
+      cpufreq: intel_pstate: Fix limits->max_policy_pct rounding error
+      cpufreq: intel_pstate: Fix limits->max_perf rounding error
+
+Punit Agrawal (1):
+      cpufreq: SCPI: Depend on SCPI clk driver
+
+Viresh Kumar (1):
+      cpufreq: Always remove sysfs cpuX/cpufreq link on ->remove_dev()
+
+---------------
+
+ drivers/cpufreq/Kconfig.arm    | 2 +-
+ drivers/cpufreq/cppc_cpufreq.c | 3 ++-
+ drivers/cpufreq/cpufreq.c      | 7 ++-----
+ drivers/cpufreq/intel_pstate.c | 6 +++++-
+ 4 files changed, 10 insertions(+), 8 deletions(-)
