@@ -1,125 +1,119 @@
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v2 1/7] device core: add BUS_NOTIFY_BIND_DRIVER_ERROR
- notification
-Date: Fri, 27 Nov 2015 11:46:20 +0200
-Message-ID: <1448617580.15393.99.camel@linux.intel.com>
+Subject: Re: [PATCH v2 2/7] ACPI / LPSS: allow to use specific PM domain
+ during ->probe()
+Date: Fri, 27 Nov 2015 11:56:13 +0200
+Message-ID: <1448618173.15393.104.camel@linux.intel.com>
 References: <1448551153-84719-1-git-send-email-andriy.shevchenko@linux.intel.com>
-	 <1448551153-84719-2-git-send-email-andriy.shevchenko@linux.intel.com>
-	 <10826039.DB5kcb9LL1@vostro.rjw.lan>
+	 <565733A2.6050900@linux.intel.com>
+	 <1448556317.15393.77.camel@linux.intel.com>
+	 <10907323.ZOUAMFPIfU@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:40995 "EHLO mga11.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:22028 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754040AbbK0JqM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 27 Nov 2015 04:46:12 -0500
-In-Reply-To: <10826039.DB5kcb9LL1@vostro.rjw.lan>
+	id S1750978AbbK0J4H (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 27 Nov 2015 04:56:07 -0500
+In-Reply-To: <10907323.ZOUAMFPIfU@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-acpi@vger.kernel.org, Vinod Koul <vinod.koul@intel.com>, dmaengine@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Jarkko Nikula <jarkko.nikula@linux.intel.com>, linux-acpi@vger.kernel.org, Vinod Koul <vinod.koul@intel.com>, dmaengine@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-On Fri, 2015-11-27 at 00:09 +0100, Rafael J. Wysocki wrote:
-> On Thursday, November 26, 2015 05:19:07 PM Andy Shevchenko wrote:
-> > In case ->probe() fails the notifier does not inform a subscriber
-> > about this.
-> > In the result it might happend that some resources that had been
-> > allocated will
-> > stay allocated and therefore lead to resource leak.
-> >=20
-> > Introduce a new notification to inform the subscriber that
-> > ->probe() failed.
-> >=20
-> > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+On Fri, 2015-11-27 at 00:15 +0100, Rafael J. Wysocki wrote:
+> On Thursday, November 26, 2015 06:45:17 PM Andy Shevchenko wrote:
+> > On Thu, 2015-11-26 at 18:30 +0200, Jarkko Nikula wrote:
+> > > On 11/26/2015 05:19 PM, Andy Shevchenko wrote:
+> > > > This is an amendment to previously pushed commit 01ac170ba29a
+> > > > (ACPI
+> > > > / LPSS:
+> > > > allow to use specific PM domain during ->probe()). We can't
+> > > > assign
+> > > > anything to
+> > > > the platform device on ADD_DEVICE stage since it might be
+> > > > changed
+> > > > during
+> > > > unbound / bind cycle.
+> > > >=20
+> > > > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.c
+> > > > om>
+> > > > ---
+> > > > =C2=A0 drivers/acpi/acpi_lpss.c | 9 +++++++--
+> > > > =C2=A0 1 file changed, 7 insertions(+), 2 deletions(-)
+> > > >=20
+> > > > diff --git a/drivers/acpi/acpi_lpss.c
+> > > > b/drivers/acpi/acpi_lpss.c
+> > > > index f9e0d09..e840229 100644
+> > > > --- a/drivers/acpi/acpi_lpss.c
+> > > > +++ b/drivers/acpi/acpi_lpss.c
+> > > > @@ -705,8 +705,14 @@ static int
+> > > > acpi_lpss_platform_notify(struct
+> > > > notifier_block *nb,
+> > > > =C2=A0=C2=A0	}
+> > > >=20
+> > > > =C2=A0=C2=A0	switch (action) {
+> > > > -	case BUS_NOTIFY_ADD_DEVICE:
+> > > > +	case BUS_NOTIFY_BIND_DRIVER:
+> > > > =C2=A0=C2=A0		pdev->dev.pm_domain =3D &acpi_lpss_pm_domain;
+> > > > +		break;
+> > > > +	case BUS_NOTIFY_BIND_DRIVER_ERROR:
+> > > > +	case BUS_NOTIFY_UNBOUND_DRIVER:
+> > > > +		pdev->dev.pm_domain =3D NULL;
+> > > > +		break;
+> > > > +	case BUS_NOTIFY_ADD_DEVICE:
+> > >=20
+> > > This won't fix like revert of original commit does.
 >=20
-> I'd rather say the problem is that the users of
-> BUS_NOTIFY_BIND_DRIVER have no
-> chance to do any cleanup in case of a probe failure (there may be
-> problems even
-> if resources aren't leaked).
+> Which commit exactly are you talking about, for reference?
 
-Thanks, Rafael, all of your comments sound reasonable for me. Will be
-taken into consideration in next version.
+commit 01ac170ba29a9903ee590e1ef2d8e6b27b49a16c
+Author: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Date:=C2=A0=C2=A0=C2=A0Wed Nov 5 18:34:46 2014 +0200
 
->=20
-> > ---
-> > =C2=A0drivers/base/dd.c=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0| 8 ++++=
-++--
-> > =C2=A0include/linux/device.h | 1 +
-> > =C2=A02 files changed, 7 insertions(+), 2 deletions(-)
+=C2=A0=C2=A0=C2=A0=C2=A0ACPI / LPSS: allow to use specific PM domain du=
+ring ->probe()
+=C2=A0 =C2=A0=C2=A0
+
+> > > Primary problem here=20
+> > > is that there is no explicit power on at all during LPSS device
+> > > probe
+> > > because dev->pm_domain is set before probing.
 > >=20
-> > diff --git a/drivers/base/dd.c b/drivers/base/dd.c
-> > index a641cf3..ac071a5 100644
-> > --- a/drivers/base/dd.c
-> > +++ b/drivers/base/dd.c
-> > @@ -290,7 +290,7 @@ static int really_probe(struct device *dev,
-> > struct device_driver *drv)
-> > =C2=A0	/* If using pinctrl, bind pins now before probing */
-> > =C2=A0	ret =3D pinctrl_bind_pins(dev);
-> > =C2=A0	if (ret)
-> > -		goto probe_failed;
-> > +		goto pinctrl_bind_failed;
-> > =C2=A0
-> > =C2=A0	if (driver_sysfs_add(dev)) {
-> > =C2=A0		printk(KERN_ERR "%s: driver_sysfs_add(%s)
-> > failed\n",
-> > @@ -334,6 +334,11 @@ static int really_probe(struct device *dev,
-> > struct device_driver *drv)
-> > =C2=A0	goto done;
-> > =C2=A0
-> > =C2=A0probe_failed:
-> > +	if (dev->bus)
-> > +		blocking_notifier_call_chain(&dev->bus->p-
-> > >bus_notifier,
-> > +					=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0BUS_NOTIFY_BIND_DRIVE
-> > R_ERROR,
-> > +					=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0dev);
->=20
-> Well, if we do that, device_bind_driver() needs to send that
-> notification too
-> in case it doesn't call driver_bound().
->=20
-> > +pinctrl_bind_failed:
-> > =C2=A0	devres_release_all(dev);
-> > =C2=A0	driver_sysfs_remove(dev);
-> > =C2=A0	dev->driver =3D NULL;
-> > @@ -701,7 +706,6 @@ static void __device_release_driver(struct
-> > device *dev)
-> > =C2=A0			blocking_notifier_call_chain(&dev->bus->p-
-> > >bus_notifier,
-> > =C2=A0						=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0BUS_NOTIFY_UN
-> > BOUND_DRIVER,
-> > =C2=A0						=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0dev);
-> > -
-> > =C2=A0	}
-> > =C2=A0}
-> > =C2=A0
-> > diff --git a/include/linux/device.h b/include/linux/device.h
-> > index b8f411b..87cf423 100644
-> > --- a/include/linux/device.h
-> > +++ b/include/linux/device.h
-> > @@ -191,6 +191,7 @@ extern int bus_unregister_notifier(struct
-> > bus_type *bus,
-> > =C2=A0						=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0unbound */
-> > =C2=A0#define BUS_NOTIFY_UNBOUND_DRIVER	0x00000007 /* driver is
-> > unbound
-> > =C2=A0						=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0from the
-> > device */
-> > +#define BUS_NOTIFY_BIND_DRIVER_ERROR	0x80000004 /* driver
-> > fails to be bound */
->=20
-> I'd call it BUS_NOTIFY_DRIVER_NOT_BOUND.
->=20
-> > =C2=A0
-> > =C2=A0extern struct kset *bus_get_kset(struct bus_type *bus);
-> > =C2=A0extern struct klist *bus_get_device_klist(struct bus_type *bu=
-s);
+> > And we can't do this as in very original code of acpi_lpss.c since
+> > DMA
+> > has to be sure it's powered on while probing. We could guarantee
+> > this
+> > only in case when PM domain is assigned already and we do our quirk
+> > for
+> > it.
 > >=20
+> > From my point of view we have to fix hang first since it's most
+> > painful
+> > case for users and their experience. Though I'm open to any better
+> > solution if you have any in mind.
+> >=20
+> > >=20
+> > > driver_probe_device
+> > > =C2=A0=C2=A0=C2=A0platform_drv_prove
+> > > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0dev_pm_domain_attach
+> > > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0acpi_dev_pm_attach
+> > > =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0returns ins=
+tantly because of dev->pm_domain is set
 >=20
-> Thanks,
-> Rafael
+> This looks like a candidate for the new PM domain callbacks,
+> ->activate and
+> ->dismiss.
 >=20
+> ->activate() is called before the probe, so it may power up things.
+>=20
+> ->dismiss() in turn is called in the failed probe case, so it can do
+> the
+> cleanup.
+>=20
+> Have you considered using these?
+
+Thanks for the hint. We will check this.
 
 --=20
 Andy Shevchenko <andriy.shevchenko@linux.intel.com>
