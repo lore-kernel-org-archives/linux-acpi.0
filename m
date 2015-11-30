@@ -1,52 +1,78 @@
-From: Keith Busch <keith.busch@intel.com>
-Subject: Re: [PATCH] x86/PCI: Fix regression caused by commit 4d6b4e69a245
-Date: Mon, 30 Nov 2015 17:39:42 +0000
-Message-ID: <20151130173941.GA25958@localhost.localdomain>
-References: <5655B392.7070701@intel.com>
- <8206751.4eTpiUuo7l@vostro.rjw.lan>
- <565BA446.7080003@linux.intel.com>
- <2099144.E7yRfeyfk4@vostro.rjw.lan>
+From: Darren Hart <dvhart@infradead.org>
+Subject: Re: [PATCH] wmi: Set wmi devices' parents
+Date: Mon, 30 Nov 2015 10:51:26 -0800
+Message-ID: <20151130185126.GB30553@malice.jf.intel.com>
+References: <7c58f0a208e0c903008989aec457230e5e58608e.1448306649.git.luto@kernel.org>
+ <20151123193709.GZ7413@malice.jf.intel.com>
+ <CALCETrW8SuyZkzogg01gb6SXhPUU__H5_697EavwkEGorG9uJw@mail.gmail.com>
+ <18585447.G9NSpqgJyj@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:12175 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751896AbbK3Rjn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 30 Nov 2015 12:39:43 -0500
+Received: from bombadil.infradead.org ([198.137.202.9]:49009 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754061AbbK3Svc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Nov 2015 13:51:32 -0500
 Content-Disposition: inline
-In-Reply-To: <2099144.E7yRfeyfk4@vostro.rjw.lan>
+In-Reply-To: <18585447.G9NSpqgJyj@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Jiang Liu <jiang.liu@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Hans de Bruin <jmdebruin@xmsnet.nl>, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Arthur Marsh <arthur.marsh@internode.on.net>
+Cc: Andy Lutomirski <luto@amacapital.net>, Carlos Corbacho <carlos@strangeworlds.co.uk>, Len Brown <len.brown@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andy Lutomirski <luto@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Linux ACPI <linux-acpi@vger.kernel.org>, platform-driver-x86@vger.kernel.org
 
-On Mon, Nov 30, 2015 at 03:11:14AM +0100, Rafael J. Wysocki wrote:
-> On Monday, November 30, 2015 09:20:06 AM Jiang Liu wrote:
-> > Hi Rafael,
-> > 	I have removed following changes against the original patch
-> > posted at Nov 16.
-> >  	       bus);
+On Thu, Nov 26, 2015 at 03:09:29PM +0100, Rafael Wysocki wrote:
+> On Wednesday, November 25, 2015 05:28:54 PM Andy Lutomirski wrote:
+> > On Mon, Nov 23, 2015 at 11:37 AM, Darren Hart <dvhart@infradead.org> wrote:
+> > > On Mon, Nov 23, 2015 at 11:25:30AM -0800, Andy Lutomirski wrote:
+> > >> Without this patch, wmi devices are in /sys/virtual/wmi.  They're
+> > >> logically children of the ACPI WMI device, so slot them into the
+> > >> device hierarchy.  With this change, on my laptop, they end up in
+> > >> /sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0C14:00/wmi and
+> > >> /sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0C14:01/wmi.
+> > >>
+> > >> Signed-off-by: Andy Lutomirski <luto@kernel.org>
+> > >
+> > > I'd like to hear from some of the main contributors to this driver:
+> > >
+> > > Matthew?
+> > > Carlos?
+> > > Len?
+> > >
+> > > Any cocnerns on this change?
+> > >
+> > > My initial concern is about changign how we expose this to userspace, but I
+> > > believe where it appears in the /sys/devices FS is NOT part of the
+> > > kernel-userspace interface commitment (per sysfs-rules.txt).
 > > 
-> >  	/* already added by acpi ? */
-> > -	resource_list_for_each_entry(window, resources)
-> > +	resource_list_for_each_entry(window, &info->resources)
-> >  		if (window->res->flags & IORESOURCE_BUS) {
-> >  			found = true;
-> >  			break;
-> >  		}
-> > -
-> >  	if (!found)
-> >  		pci_add_resource(resources, &info->busn);
 > > 
-> > And I only refined the commit message based on the test patch
-> > I sent to Authur as an attachment at Nov 25.
+> > Let's drop this, actually.  I have mostly-working patches to make wmi
+> > into an actual bus driver, and this intermediate step seems like it'll
+> > just confuse people.
+> > 
+> > Question, though: where do the WMI devices belong?  Multiple choice:
+> > 
+> > /sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0C14:01/[GUID]
+> > 
+> > /sys/devices/LNXSYSTM:00/LNXSYBUS:00/PNP0C14:01/wmi/[GUID]
+> > 
+> > /sys/devices/platform/PNP0C14:01/[GUID]
+> > 
+> > /sys/devices/platform/PNP0C14:01/wmi/[GUID]
+> > 
+> > Currently I've implemented the first one because it's the smallest diff.
 > 
-> OK, thanks.
+> That probably is not the right choice, though.
 > 
-> Keith, Hans, can you test this version too please?
+> ACPI "devices" are counterparts of DT device nodes and having other things
+> exported under them would be quite confusing.  In fact, you can argue that
+> the whole /sys/devices/LNXSYSTM:00/ directory should be located under
+> /sys/firmware/acpi, but it turns out to be difficult to move it there
+> for various reasons.
+> 
+> Personally, I'd go for the last one.
 
-Thanks, works for me!
+That looks like a logical place to me.
 
-Tested-by: Keith Busch <keith.busch@intel.com>
- 
-> Bjorn, any more comments from you on this one?
+-- 
+Darren Hart
+Intel Open Source Technology Center
