@@ -1,114 +1,114 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: [PATCH V7] ACPI, PCI, irq: support IRQ numbers greater than 256
-Date: Mon, 30 Nov 2015 18:39:01 -0500
-Message-ID: <1448926742-24308-1-git-send-email-okaya@codeaurora.org>
+From: Andy Lutomirski <luto@amacapital.net>
+Subject: Re: ACPI device without physical node (pnpacpi oddity?)
+Date: Mon, 30 Nov 2015 15:45:15 -0800
+Message-ID: <CALCETrWNsaj3KhNeyQDSWSVyXGnwXs7yRw-pXGb9=c1Uyo6Qqw@mail.gmail.com>
+References: <CALCETrXcJN-nKLVzuWj_pbqwO+g0i1sfg2vCr=Y6_Gn_7XT=gw@mail.gmail.com>
+ <CALCETrVSywZt9=_axGu9GYarkezd+j7mKJJ_TS9NXZZg7qAZ0A@mail.gmail.com> <1516170.Kd599zLure@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:58138 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752821AbbK3XjJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Nov 2015 18:39:09 -0500
+Received: from mail-oi0-f46.google.com ([209.85.218.46]:36566 "EHLO
+	mail-oi0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752821AbbK3Xpf (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Nov 2015 18:45:35 -0500
+Received: by oiww189 with SMTP id w189so106001708oiw.3
+        for <linux-acpi@vger.kernel.org>; Mon, 30 Nov 2015 15:45:34 -0800 (PST)
+In-Reply-To: <1516170.Kd599zLure@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, helgaas@kernel.org
-Cc: Sinan Kaya <okaya@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>
 
-The ACPI compiler uses the extended format when used interrupt numbers
-are greater than 15. The extended IRQ is 32 bits according to the ACPI
-spec. The code supports parsing the extended interrupt numbers. However,
-due to used data structure type; the code silently truncates interrupt
-numbers greater than 256.
+On Nov 30, 2015 2:40 PM, "Rafael J. Wysocki" <rjw@rjwysocki.net> wrote:
+>
+> On Monday, November 30, 2015 12:15:27 PM Andy Lutomirski wrote:
+> > On Sun, Nov 29, 2015 at 9:19 PM, Andy Lutomirski <luto@amacapital.net> wrote:
+>
+> [cut]
+>
+> > > From inspection of the code, acpi_pnp.c determines that the device is
+> > > a pnp device because pnp0c02 is in acpi_pnp_device_ids.  This causes
+> > > the device to have a concrete handler, so no platform device is
+> > > created.  However, pnpacpi/core.c rejects it because it has no _CRS
+> > > method.  As a result, it's in limbo.
+> > >
+> > > What's the right thing to do here?  I could modify acpi_pnp.c to
+> > > reject the device, which will let the generic platform fallback claim
+> > > it.
+>
+> pnp0c02 is a special device ID.  It is defined by MS as "General ID for
+> reserving resources required by PnP motherboard", so having no _CRS for
+> that particular device ID doesn't really make sense.
+>
+> Moreover, we have a PNP driver that (normally) binds to that device ID,
+> so a PNP device object should be created for it.
 
-This patch changes the interrupt number type to 32 bits and places an
-upper limit of 1020 as possible interrupt id. 1020 is the maximum
-interrupt ID that can be assigned to an ARM SPI interrupt according to
-ARM architecture.
+Given that the pnpacpi driver is going to reject it anyway, it could
+make sense to keep it from binding at all (and maybe warn?) so that
+the platform fallback code picks it up, though.
 
-Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
----
- drivers/acpi/pci_link.c | 30 +++++++++++++++++++++++++-----
- 1 file changed, 25 insertions(+), 5 deletions(-)
+>
+> > > I could modify pnpacpi to accept the device despite the lack of
+> > > _CRS, so a pnp device will be created.
+>
+> I'm not sure if that's going to work, you'd need to try it.
+>
+> The PNP layer is built around resources management, so the lack of resources
+> to manage may uncover some dusty corners in it.
+>
+> > > I could bind directly as an
+> > > ACPI driver (somewhat suboptimal because apparently that's frowned
+> > > upon).
+>
+> The policy here is "avoid that if reasonably possible", but in this particular
+> case there should be a PNP device.
+>
+> > > I could also write *both* an ACPI driver and platform driver
+> > > and call acpi_create_platform_device from the ACPI driver, but that
+> > > seems a bit ugly.
+> > >
+> > > Thoughts?
+> >
+> > If this is firmware bug (the ACPI spec suggests that _CRS may be
+> > mandatory for non-natively-enumerable things like this), then there's
+> > also a chance that the vendor will fix it.  On the other hand, maybe
+> > this is already compliant and we should just interpret missing _CRS as
+> > an empty set of resources.  (By inspection of the ASL, it really does
+> > look like this thing has no resources beyond the ACPI methods in it.)
+>
+> OK, so it this in the context of the WMI bus type you're working on?
 
-diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
-index 7c8408b..faa37cd 100644
---- a/drivers/acpi/pci_link.c
-+++ b/drivers/acpi/pci_link.c
-@@ -4,6 +4,7 @@
-  *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
-  *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
-  *  Copyright (C) 2002       Dominik Brodowski <devel@brodo.de>
-+ *  Copyright (c) 2015, The Linux Foundation. All rights reserved.
-  *
-  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  *
-@@ -47,6 +48,14 @@ ACPI_MODULE_NAME("pci_link");
- #define ACPI_PCI_LINK_FILE_STATUS	"state"
- #define ACPI_PCI_LINK_MAX_POSSIBLE	16
- 
-+/*
-+ * 1020 is the maximum interrupt ID that can be assigned to
-+ * an ARM SPI interrupt according to ARM architecture.
-+ */
-+#define ACPI_MAX_IRQS		1020
-+#define ACPI_MAX_ISA_IRQ	16
-+
-+
- static int acpi_pci_link_add(struct acpi_device *device,
- 			     const struct acpi_device_id *not_used);
- static void acpi_pci_link_remove(struct acpi_device *device);
-@@ -67,12 +76,12 @@ static struct acpi_scan_handler pci_link_handler = {
-  * later even the link is disable. Instead, we just repick the active irq
-  */
- struct acpi_pci_link_irq {
--	u8 active;		/* Current IRQ */
-+	u32 active;		/* Current IRQ */
- 	u8 triggering;		/* All IRQs */
- 	u8 polarity;		/* All IRQs */
- 	u8 resource_type;
- 	u8 possible_count;
--	u8 possible[ACPI_PCI_LINK_MAX_POSSIBLE];
-+	u32 possible[ACPI_PCI_LINK_MAX_POSSIBLE];
- 	u8 initialized:1;
- 	u8 reserved:7;
- };
-@@ -147,6 +156,13 @@ static acpi_status acpi_pci_link_check_possible(struct acpi_resource *resource,
- 					       p->interrupts[i]);
- 					continue;
- 				}
-+				if (p->interrupts[i] >= ACPI_MAX_IRQS) {
-+					dev_warn(&link->device->dev,
-+						 "Ignoring IRQ(%d) as it exceeds max(%d)\n",
-+						 p->interrupts[i],
-+						 ACPI_MAX_IRQS - 1);
-+					continue;
-+				}
- 				link->irq.possible[i] = p->interrupts[i];
- 				link->irq.possible_count++;
- 			}
-@@ -279,6 +295,13 @@ static int acpi_pci_link_get_current(struct acpi_pci_link *link)
- 		result = -ENODEV;
- 	}
- 
-+	if (irq >= ACPI_MAX_IRQS) {
-+		dev_err(&link->device->dev,
-+			"Ignoring IRQ(%d) as it exceeds max(%d)\n",
-+			irq,  ACPI_MAX_IRQS - 1);
-+		result = -ENODEV;
-+		goto end;
-+	}
- 	link->irq.active = irq;
- 
- 	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Link at IRQ %d \n", link->irq.active));
-@@ -437,9 +460,6 @@ static int acpi_pci_link_set(struct acpi_pci_link *link, int irq)
-  * enabled system.
-  */
- 
--#define ACPI_MAX_IRQS		256
--#define ACPI_MAX_ISA_IRQ	16
--
- #define PIRQ_PENALTY_PCI_AVAILABLE	(0)
- #define PIRQ_PENALTY_PCI_POSSIBLE	(16*16)
- #define PIRQ_PENALTY_PCI_USING		(16*16*16)
--- 
-Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
+Actually, no.  It's another magic pure ACPI device on the same laptop, though.
 
+My current draft has:
+
+/*
+ * Unfortunately, some systems fail to enumerate our device as a
+ * platform device.  Force the issue.
+ */
+static acpi_status __init
+check_acpi_dev(acpi_handle handle, u32 lvl, void *context, void **rv)
+{
+    const struct acpi_device_id *ids = context;
+    struct acpi_device *dev;
+
+    if (acpi_bus_get_device(handle, &dev) != 0)
+        return AE_OK;
+
+    if (acpi_match_device_ids(dev, ids) == 0)
+        if (acpi_create_platform_device(dev))
+            dev_info(&dev->dev,
+                 "created platform device\n");
+
+    return AE_OK;
+}
+
+...
+
+    acpi_walk_namespace(ACPI_TYPE_DEVICE, ACPI_ROOT_OBJECT,
+                ACPI_UINT32_MAX, check_acpi_dev, NULL,
+                (void *)ids, NULL);
+
+It works, but it's not fantastic.
+
+--Andy
