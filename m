@@ -1,143 +1,42 @@
-From: Andy Lutomirski <luto@amacapital.net>
-Subject: ACPI device without physical node (pnpacpi oddity?)
-Date: Sun, 29 Nov 2015 21:19:51 -0800
-Message-ID: <CALCETrXcJN-nKLVzuWj_pbqwO+g0i1sfg2vCr=Y6_Gn_7XT=gw@mail.gmail.com>
+From: Hanjun Guo <guohanjun@huawei.com>
+Subject: Re: [PATCH v2 1/2] ACPI / scan: Fix acpi_bus_id_list bookkeeping
+Date: Mon, 30 Nov 2015 14:27:49 +0800
+Message-ID: <565BEC65.90409@huawei.com>
+References: <cover.1448480385.git.lukas@wunner.de> <994278b96189033970d0a2add95645110c716fbb.1448480385.git.lukas@wunner.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f50.google.com ([209.85.218.50]:33018 "EHLO
-	mail-oi0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750740AbbK3FUL (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Nov 2015 00:20:11 -0500
-Received: by oixx65 with SMTP id x65so88744223oix.0
-        for <linux-acpi@vger.kernel.org>; Sun, 29 Nov 2015 21:20:11 -0800 (PST)
+Received: from szxga01-in.huawei.com ([58.251.152.64]:34498 "EHLO
+	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751907AbbK3G3N (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Nov 2015 01:29:13 -0500
+In-Reply-To: <994278b96189033970d0a2add95645110c716fbb.1448480385.git.lukas@wunner.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linux ACPI <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+To: Lukas Wunner <lukas@wunner.de>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: devel@acpica.org, Robert Moore <robert.moore@intel.com>, Mark Brown <broonie@kernel.org>, Hui Wang <hui.wang@canonical.com>, Darren Hart <dvhart@infradead.org>
 
-I have this device:
+Hi Lucas,
 
-        Device (HIDD)
-        {
-            Name (_HID, "INT33D5")  // _HID: Hardware ID
-            Name (_CID, "PNP0C02" /* PNP Motherboard Resources */)  //
-_CID: Compatible ID
-            Name (HBSY, Zero)
-            Name (HIDX, Zero)
-            Name (HMDE, Zero)
-            Name (HRDY, Zero)
-            Method (_STA, 0, Serialized)  // _STA: Status
-            {
-                If ((OIDE () < One))
-                {
-                    Return (Zero)
-                }
+Sorry for the late reply, please see comments below.
 
-                Return (0x0F)
-            }
+On 2015/11/26 4:19, Lukas Wunner wrote:
+> acpi_device_add() allocates and adds an element to acpi_bus_id_list
+> (or increments the instance count if the device's HID is already
+> present in the list), but the element is never deleted from the list
+> nor freed. Fix it.
 
-            Method (HDDM, 0, Serialized)
-            {
-                Name (DPKG, Package (0x04)
-                {
-                    0x11111111,
-                    0x22222222,
-                    0x33333333,
-                    0x44444444
-                })
-                Return (DPKG) /* \_SB_.HIDD.HDDM.DPKG */
-            }
+Hmm, I didn't get it here. Seems the device's ID already freed in device core:
 
-            Method (HDEM, 0, Serialized)
-            {
-                HBSY = Zero
-                If ((HMDE == Zero))
-                {
-                    Return (HIDX) /* \_SB_.HIDD.HIDX */
-                }
+ In acpi_add_single_object(), acpi_device_release() registered as a callback,
+...
+  result = acpi_device_add(device, acpi_device_release);
+...
 
-                Return (HMDE) /* \_SB_.HIDD.HMDE */
-            }
+And in acpi_device_release(), it will call acpi_free_pnp_ids() to free the
+IDs, did I miss some something?
 
-            Method (HDMM, 0, Serialized)
-            {
-                Return (HMDE) /* \_SB_.HIDD.HMDE */
-            }
+Thanks
+Hanjun
 
-            Method (HDSM, 1, Serialized)
-            {
-                HRDY = Arg0
-            }
-
-            Method (HPEM, 1, Serialized)
-            {
-                HBSY = One
-                If ((HMDE == Zero))
-                {
-                    HIDX = Arg0
-                }
-                Else
-                {
-                    HIDX = Arg0
-                }
-
-                Notify (HIDD, 0xC0) // Hardware-Specific
-                Local0 = Zero
-                While (((Local0 < 0xFA) && HBSY))
-                {
-                    Sleep (0x04)
-                    Local0++
-                }
-
-                If ((HBSY == One))
-                {
-                    HBSY = Zero
-                    HIDX = Zero
-                    Return (One)
-                }
-                Else
-                {
-                    Return (Zero)
-                }
-            }
-
-            Method (NRBT, 2, NotSerialized)
-            {
-                If ((OIDE () >= One))
-                {
-                    If ((HRDY == One))
-                    {
-                        HIDX = 0x08
-                        Notify (HIDD, 0xC0) // Hardware-Specific
-                    }
-                }
-            }
-        }
-
-_STA returns 0x0f, and the device is functional if I attach to it
-directly.  But I want to write a proper driver for it and to attach to
-the correct device, and the ACPI and PnP bus code isn't cooperating.
-
->From inspection of the code, acpi_pnp.c determines that the device is
-a pnp device because pnp0c02 is in acpi_pnp_device_ids.  This causes
-the device to have a concrete handler, so no platform device is
-created.  However, pnpacpi/core.c rejects it because it has no _CRS
-method.  As a result, it's in limbo.
-
-What's the right thing to do here?  I could modify acpi_pnp.c to
-reject the device, which will let the generic platform fallback claim
-it.  I could modify pnpacpi to accept the device despite the lack of
-_CRS, so a pnp device will be created.  I could bind directly as an
-ACPI driver (somewhat suboptimal because apparently that's frowned
-upon).  I could also write *both* an ACPI driver and platform driver
-and call acpi_create_platform_device from the ACPI driver, but that
-seems a bit ugly.
-
-Thoughts?
-
---Andy
-
-
--- 
-Andy Lutomirski
-AMA Capital Management, LLC
