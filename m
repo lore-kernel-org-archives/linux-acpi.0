@@ -1,74 +1,40 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
+From: Daniel J Blueman <daniel@numascale.com>
 Subject: RE: overriding ACPI _CRS method
-Date: Mon, 30 Nov 2015 03:09:14 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BAFA0F9@SHSMSX101.ccr.corp.intel.com>
+Date: Mon, 30 Nov 2015 11:23:21 +0800
+Message-ID: <1448853801.18315.0@outlook-emeawest.office365.com>
 References: <1448794735.18592.0@outlook-emeawest.office365.com>
+	<1AE640813FDE7649BE1B193DEA596E883BAFA0F9@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset="utf-8"; format=flowed
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:48693 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751730AbbK3DJS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 29 Nov 2015 22:09:18 -0500
-In-Reply-To: <1448794735.18592.0@outlook-emeawest.office365.com>
-Content-Language: en-US
+Received: from mail-am1on0105.outbound.protection.outlook.com ([157.56.112.105]:4500
+	"EHLO emea01-am1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750736AbbK3DXl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 29 Nov 2015 22:23:41 -0500
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E883BAFA0F9@SHSMSX101.ccr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Daniel J Blueman <daniel@numascale.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>
-Cc: Steffen Persvold <sp@numascale.com>, Myron Stowe <myron.stowe@redhat.com>
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Steffen Persvold <sp@numascale.com>, Myron Stowe <myron.stowe@redhat.com>
 
-SGksDQoNCklNTywgaWYgeW91IHdhbnQgdGhlIG5ldyBfQ1JTIHRvIGJlIGFwcGxpZWQgZHVyaW5n
-IHRoZSBMaW51eCBlYXJseSBib290IHN0YWdlLCB5b3UgY2FuIG92ZXJyaWRlIHRoZSB0YWJsZSB1
-c2luZyBpbml0cmQgb3ZlcnJpZGUgb3IgRFNEVCBvdmVycmlkZSBtZWNoYW5pc20uDQpQbGVhc2Ug
-c2VlIERvY3VtZW50YXRpb24vYWNwaS9pbml0cmRfdGFibGVfb3ZlcnJpZGUudHh0IG9yIERvY3Vt
-ZW50YXRpb24vYWNwaS9kc2R0LW92ZXJyaWRlLnR4dC4NCg0KSWYgeW91IHdhbnQgdGhlIG5ldyBf
-Q1JTIHRvIGJlIGFwcGxpZWQgZHVyaW5nIExpbnV4IHJ1bnRpbWUsIHlvdSBjYW4gb3ZlcnJpZGUg
-aXQgdXNpbmcgbWV0aG9kIGN1c3RvbWl6YXRpb24gbWVjaGFuaXNtLg0KUGxlYXNlIHNlZSBEb2N1
-bWVudGF0aW9uL2FjcGkvbWV0aG9kLWN1c3RvbWl6aW5nLnR4dA0KDQpUaGFua3MgYW5kIGJlc3Qg
-cmVnYXJkcw0KLUx2DQoNCi0tLS0tT3JpZ2luYWwgTWVzc2FnZS0tLS0tDQpGcm9tOiBsaW51eC1h
-Y3BpLW93bmVyQHZnZXIua2VybmVsLm9yZyBbbWFpbHRvOmxpbnV4LWFjcGktb3duZXJAdmdlci5r
-ZXJuZWwub3JnXSBPbiBCZWhhbGYgT2YgRGFuaWVsIEogQmx1ZW1hbg0KU2VudDogU3VuZGF5LCBO
-b3ZlbWJlciAyOSwgMjAxNSA2OjU5IFBNDQpUbzogbGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmc7
-IExLTUwgPGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmc+DQpDYzogU3RlZmZlbiBQZXJzdm9s
-ZCA8c3BAbnVtYXNjYWxlLmNvbT47IE15cm9uIFN0b3dlIDxteXJvbi5zdG93ZUByZWRoYXQuY29t
-Pg0KU3ViamVjdDogb3ZlcnJpZGluZyBBQ1BJIF9DUlMgbWV0aG9kDQoNCkluIGZpcm13YXJlIHRo
-YXQgaXMgbG9hZGVkIGFmdGVyIHRoZSBCSU9TLCBJIG5lZWQgdG8gdHJpbSB0aGUgcm9vdCBidXMg
-cmVzb3VyY2UgKDB4NDAwMDAwMDAtMHhkZmZmZmZmZikgY292ZXJpbmcgdGhlIE1NSU8gd2luZG93
-IFsxXSwgc28gSSBjYW4gYXR0YWNoIGZ1cnRoZXIgUENJIGRvbWFpbnMuDQoNCk9uZSBzdHJhdGVn
-eSBpcyB0byBvdmVycmlkZSB0aGUgQklPUydzIERTRFQgWzJdIF9TQi5QQ0kwLl9DUlMgbWV0aG9k
-OyBldmVuIHdoZW4gbXkgZmlybXdhcmUgYXBwZW5kcyB0aGUgYnl0ZWNvZGUgZm9yIGEgbmV3IF9D
-UlMgbWV0aG9kIFszXSwgYWxhcyBJIHNlZSBBRV9BTFJFQURZX0VYSVNUUyBbNF0uDQoNCkkgdW5k
-ZXJzdG9vZCBtZXRob2RzIHdlcmUgb3ZlcnJpZGVhYmxlIHdpdGhpbiB0aGUgc2FtZSB0YWJsZSAo
-ZWcgbm90IGZyb20gYW4gU1NEVCksIGJ1dCBwZXJoYXBzIGFtIG1pc3Npbmcgc29tZXRoaW5nPyBP
-ciBhbnkgYmV0dGVyIGFwcHJvYWNoIHRvIHJlZHVjZSB0aGUgc2NvcGUgb2YgdGhlIFBDSSBkb21h
-aW4gMDAwMCByb290IGJ1cz8NCg0KVGhhbmtzIQ0KICBEYW5pZWwNCg0KLS0gWzFdDQoNCnBjaV9i
-dXMgMDAwMDowMDogcm9vdCBidXMgcmVzb3VyY2UgW2lvICAweDAwMDAtMHgwM2FmIHdpbmRvd10g
-cGNpX2J1cyAwMDAwOjAwOiByb290IGJ1cyByZXNvdXJjZSBbaW8gIDB4MDNlMC0weDBjZjcgd2lu
-ZG93XSBwY2lfYnVzIDAwMDA6MDA6IHJvb3QgYnVzIHJlc291cmNlIFtpbyAgMHgwM2IwLTB4MDNi
-YiB3aW5kb3ddIHBjaV9idXMgMDAwMDowMDogcm9vdCBidXMgcmVzb3VyY2UgW2lvICAweDAzYzAt
-MHgwM2RmIHdpbmRvd10gcGNpX2J1cyAwMDAwOjAwOiByb290IGJ1cyByZXNvdXJjZSBbaW8gIDB4
-ODAwMC0weGRmZmYgd2luZG93XSBwY2lfYnVzIDAwMDA6MDA6IHJvb3QgYnVzIHJlc291cmNlIFtt
-ZW0gMHgwMDBhMDAwMC0weDAwMGJmZmZmIHdpbmRvd10gcGNpX2J1cyAwMDAwOjAwOiByb290IGJ1
-cyByZXNvdXJjZSBbbWVtIDB4ZjAwMDAwMDAtMHhmZmZmZmZmZiB3aW5kb3ddIHBjaV9idXMgMDAw
-MDowMDogcm9vdCBidXMgcmVzb3VyY2UgW21lbSAweDAwMGQwMDAwLTB4MDAwZGZmZmYgd2luZG93
-XSBwY2lfYnVzIDAwMDA6MDA6IHJvb3QgYnVzIHJlc291cmNlIFttZW0gMHg0MDAwMDAwMC0weGRm
-ZmZmZmZmIHdpbmRvd10gcGNpX2J1cyAwMDAwOjAwOiByb290IGJ1cyByZXNvdXJjZSBbYnVzIDAw
-LTA0XQ0KDQpbMl0gaHR0cHM6Ly9yZXNvdXJjZXMubnVtYXNjYWxlLmNvbS9EU0RULmRzbA0KWzNd
-IGh0dHBzOi8vcmVzb3VyY2VzLm51bWFzY2FsZS5jb20vRFNEVC1leHRyYS5kc2wNCg0KLS0gWzRd
-DQoNCkFDUEk6IENvcmUgcmV2aXNpb24gMjAxNTA5MzANCkFDUEkgRXJyb3I6IFtfQ1JTXSBOYW1l
-c3BhY2UgbG9va3VwIGZhaWx1cmUsIEFFX0FMUkVBRFlfRVhJU1RTDQooMjAxNTA5MzAvZHN3bG9h
-ZC0zNzgpDQpBQ1BJIEV4Y2VwdGlvbjogQUVfQUxSRUFEWV9FWElTVFMsIER1cmluZyBuYW1lIGxv
-b2t1cC9jYXRhbG9nDQooMjAxNTA5MzAvcHNvYmplY3QtMjI3KQ0KQUNQSSBFeGNlcHRpb246IEFF
-X0FMUkVBRFlfRVhJU1RTLCBbRFNEVF0gdGFibGUgbG9hZCBmYWlsZWQNCigyMDE1MDkzMC90Ynhm
-bG9hZC0xNjMpDQpBQ1BJIEVycm9yOiBbXF9QUl8uUDAwMV0gTmFtZXNwYWNlIGxvb2t1cCBmYWls
-dXJlLCBBRV9OT1RfRk9VTkQNCigyMDE1MDkzMC9kc3dsb2FkLTIxMCkNCkFDUEkgRXhjZXB0aW9u
-OiBBRV9OT1RfRk9VTkQsIER1cmluZyBuYW1lIGxvb2t1cC9jYXRhbG9nDQooMjAxNTA5MzAvcHNv
-YmplY3QtMjI3KQ0KQUNQSSBFeGNlcHRpb246IEFFX05PVF9GT1VORCwgKFNTRFQ6UE9XRVJOT1cp
-IHdoaWxlIGxvYWRpbmcgdGFibGUNCigyMDE1MDkzMC90YnhmbG9hZC0xOTMpDQpBQ1BJIEVycm9y
-OiAyIHRhYmxlIGxvYWQgZmFpbHVyZXMsIDAgc3VjY2Vzc2Z1bCAoMjAxNTA5MzAvdGJ4ZmxvYWQt
-MjE0KQ0KLS0NCkRhbmllbCBKIEJsdWVtYW4NClByaW5jaXBhbCBTb2Z0d2FyZSBFbmdpbmVlciwg
-TnVtYXNjYWxlDQoNCi0tDQpUbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUg
-bGluZSAidW5zdWJzY3JpYmUgbGludXgtYWNwaSIgaW4gdGhlIGJvZHkgb2YgYSBtZXNzYWdlIHRv
-IG1ham9yZG9tb0B2Z2VyLmtlcm5lbC5vcmcgTW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAgaHR0cDov
-L3ZnZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sDQo=
+On Mon, Nov 30, 2015 at 11:09 AM, Zheng, Lv <lv.zheng@intel.com> wrote:
+> Hi,
+> 
+> IMO, if you want the new _CRS to be applied during the Linux early 
+> boot stage, you can override the table using initrd override or DSDT 
+> override mechanism.
+> Please see Documentation/acpi/initrd_table_override.txt or 
+> Documentation/acpi/dsdt-override.txt.
+> 
+> If you want the new _CRS to be applied during Linux runtime, you can 
+> override it using method customization mechanism.
+> Please see Documentation/acpi/method-customizing.txt
+
+The reason I'm trying to adjust this in firmware, is to deliver the 
+right behaviour with pre-built/distro kernels, so I can't use that 
+approach.
+
+Thanks Lv,
+  Daniel
+
