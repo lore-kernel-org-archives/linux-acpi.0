@@ -1,40 +1,143 @@
-From: Daniel J Blueman <daniel@numascale.com>
-Subject: RE: overriding ACPI _CRS method
-Date: Mon, 30 Nov 2015 11:23:21 +0800
-Message-ID: <1448853801.18315.0@outlook-emeawest.office365.com>
-References: <1448794735.18592.0@outlook-emeawest.office365.com>
-	<1AE640813FDE7649BE1B193DEA596E883BAFA0F9@SHSMSX101.ccr.corp.intel.com>
+From: Andy Lutomirski <luto@amacapital.net>
+Subject: ACPI device without physical node (pnpacpi oddity?)
+Date: Sun, 29 Nov 2015 21:19:51 -0800
+Message-ID: <CALCETrXcJN-nKLVzuWj_pbqwO+g0i1sfg2vCr=Y6_Gn_7XT=gw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-am1on0105.outbound.protection.outlook.com ([157.56.112.105]:4500
-	"EHLO emea01-am1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750736AbbK3DXl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 29 Nov 2015 22:23:41 -0500
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E883BAFA0F9@SHSMSX101.ccr.corp.intel.com>
+Received: from mail-oi0-f50.google.com ([209.85.218.50]:33018 "EHLO
+	mail-oi0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750740AbbK3FUL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 30 Nov 2015 00:20:11 -0500
+Received: by oixx65 with SMTP id x65so88744223oix.0
+        for <linux-acpi@vger.kernel.org>; Sun, 29 Nov 2015 21:20:11 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Steffen Persvold <sp@numascale.com>, Myron Stowe <myron.stowe@redhat.com>
+To: Linux ACPI <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 
-On Mon, Nov 30, 2015 at 11:09 AM, Zheng, Lv <lv.zheng@intel.com> wrote:
-> Hi,
-> 
-> IMO, if you want the new _CRS to be applied during the Linux early 
-> boot stage, you can override the table using initrd override or DSDT 
-> override mechanism.
-> Please see Documentation/acpi/initrd_table_override.txt or 
-> Documentation/acpi/dsdt-override.txt.
-> 
-> If you want the new _CRS to be applied during Linux runtime, you can 
-> override it using method customization mechanism.
-> Please see Documentation/acpi/method-customizing.txt
+I have this device:
 
-The reason I'm trying to adjust this in firmware, is to deliver the 
-right behaviour with pre-built/distro kernels, so I can't use that 
-approach.
+        Device (HIDD)
+        {
+            Name (_HID, "INT33D5")  // _HID: Hardware ID
+            Name (_CID, "PNP0C02" /* PNP Motherboard Resources */)  //
+_CID: Compatible ID
+            Name (HBSY, Zero)
+            Name (HIDX, Zero)
+            Name (HMDE, Zero)
+            Name (HRDY, Zero)
+            Method (_STA, 0, Serialized)  // _STA: Status
+            {
+                If ((OIDE () < One))
+                {
+                    Return (Zero)
+                }
 
-Thanks Lv,
-  Daniel
+                Return (0x0F)
+            }
 
+            Method (HDDM, 0, Serialized)
+            {
+                Name (DPKG, Package (0x04)
+                {
+                    0x11111111,
+                    0x22222222,
+                    0x33333333,
+                    0x44444444
+                })
+                Return (DPKG) /* \_SB_.HIDD.HDDM.DPKG */
+            }
+
+            Method (HDEM, 0, Serialized)
+            {
+                HBSY = Zero
+                If ((HMDE == Zero))
+                {
+                    Return (HIDX) /* \_SB_.HIDD.HIDX */
+                }
+
+                Return (HMDE) /* \_SB_.HIDD.HMDE */
+            }
+
+            Method (HDMM, 0, Serialized)
+            {
+                Return (HMDE) /* \_SB_.HIDD.HMDE */
+            }
+
+            Method (HDSM, 1, Serialized)
+            {
+                HRDY = Arg0
+            }
+
+            Method (HPEM, 1, Serialized)
+            {
+                HBSY = One
+                If ((HMDE == Zero))
+                {
+                    HIDX = Arg0
+                }
+                Else
+                {
+                    HIDX = Arg0
+                }
+
+                Notify (HIDD, 0xC0) // Hardware-Specific
+                Local0 = Zero
+                While (((Local0 < 0xFA) && HBSY))
+                {
+                    Sleep (0x04)
+                    Local0++
+                }
+
+                If ((HBSY == One))
+                {
+                    HBSY = Zero
+                    HIDX = Zero
+                    Return (One)
+                }
+                Else
+                {
+                    Return (Zero)
+                }
+            }
+
+            Method (NRBT, 2, NotSerialized)
+            {
+                If ((OIDE () >= One))
+                {
+                    If ((HRDY == One))
+                    {
+                        HIDX = 0x08
+                        Notify (HIDD, 0xC0) // Hardware-Specific
+                    }
+                }
+            }
+        }
+
+_STA returns 0x0f, and the device is functional if I attach to it
+directly.  But I want to write a proper driver for it and to attach to
+the correct device, and the ACPI and PnP bus code isn't cooperating.
+
+>From inspection of the code, acpi_pnp.c determines that the device is
+a pnp device because pnp0c02 is in acpi_pnp_device_ids.  This causes
+the device to have a concrete handler, so no platform device is
+created.  However, pnpacpi/core.c rejects it because it has no _CRS
+method.  As a result, it's in limbo.
+
+What's the right thing to do here?  I could modify acpi_pnp.c to
+reject the device, which will let the generic platform fallback claim
+it.  I could modify pnpacpi to accept the device despite the lack of
+_CRS, so a pnp device will be created.  I could bind directly as an
+ACPI driver (somewhat suboptimal because apparently that's frowned
+upon).  I could also write *both* an ACPI driver and platform driver
+and call acpi_create_platform_device from the ACPI driver, but that
+seems a bit ugly.
+
+Thoughts?
+
+--Andy
+
+
+-- 
+Andy Lutomirski
+AMA Capital Management, LLC
