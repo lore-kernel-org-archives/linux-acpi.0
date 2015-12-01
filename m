@@ -1,79 +1,55 @@
-From: Andy Lutomirski <luto@kernel.org>
-Subject: [PATCH v2 3/3] dell-wmi: Improve unknown hotkey handling
-Date: Mon, 30 Nov 2015 17:02:01 -0800
-Message-ID: <b409d60963f81611e398b492a73ffd998414cd68.1448931589.git.luto@kernel.org>
-References: <cover.1448931589.git.luto@kernel.org>
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <cover.1448931589.git.luto@kernel.org>
-In-Reply-To: <cover.1448931589.git.luto@kernel.org>
-References: <cover.1448931589.git.luto@kernel.org>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Darren Hart <dvhart@infradead.org>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, Mario Limonciello <mario_limonciello@dell.com>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, Andy Lutomirski <luto@kernel.org>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [PATCH v3 0/2] ACPI: Add irq_type to gpio interrupt
+Date: Tue, 1 Dec 2015 02:03:30 +0100
+Message-ID: <20151201010330.GE2064@katana>
+References: <1448923673-2582-1-git-send-email-christophe-h.ricard@st.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="RpqchZ26BWispMcB"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from sauhun.de ([89.238.76.85]:46756 "EHLO pokefinder.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752024AbbLABDh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 30 Nov 2015 20:03:37 -0500
+Content-Disposition: inline
+In-Reply-To: <1448923673-2582-1-git-send-email-christophe-h.ricard@st.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Christophe Ricard <christophe.ricard@gmail.com>
+Cc: rjw@rjwysocki.net, lenb@kernel.org, linus.walleij@linaro.org, gnurou@gmail.com, andriy.shevchenko@linux.intel.com, mika.westerberg@linux.intel.com, linux-i2c@vger.kernel.org, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, Christophe Ricard <christophe-h.ricard@st.com>
 
-If DMI lists a hotkey that we don't recognize, log and ignore it
-instead of trying to map it to keycode 0.  I haven't seen this happen,
-but it will help maintain the key map in the future and it will help
-avoid sending bogus events.
 
-This also improves the message that we log when we get an unknown key
-event.
+--RpqchZ26BWispMcB
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Signed-off-by: Andy Lutomirski <luto@kernel.org>
----
- drivers/platform/x86/dell-wmi.c | 25 +++++++++++++++++++++----
- 1 file changed, 21 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/platform/x86/dell-wmi.c b/drivers/platform/x86/dell-wmi.c
-index baff658a3621..7c3ebda811ca 100644
---- a/drivers/platform/x86/dell-wmi.c
-+++ b/drivers/platform/x86/dell-wmi.c
-@@ -118,6 +118,7 @@ struct dell_bios_hotkey_table {
- 
- static const struct dell_bios_hotkey_table *dell_bios_hotkey_table;
- 
-+/* Uninitialized entries here are KEY_RESERVED == 0. */
- static const u16 bios_to_linux_keycode[256] __initconst = {
- 	[0]	= KEY_MEDIA,
- 	[1]	= KEY_NEXTSONG,
-@@ -191,7 +192,8 @@ static void dell_wmi_process_key(int reported_key)
- 	key = sparse_keymap_entry_from_scancode(dell_wmi_input_dev,
- 						reported_key);
- 	if (!key) {
--		pr_info("Unknown key %x pressed\n", reported_key);
-+		pr_info("Unknown key with scancode 0x%x pressed\n",
-+			reported_key);
- 		return;
- 	}
- 
-@@ -350,9 +352,24 @@ static const struct key_entry * __init dell_wmi_prepare_new_keymap(void)
- 	for (i = 0; i < hotkey_num; i++) {
- 		const struct dell_bios_keymap_entry *bios_entry =
- 					&dell_bios_hotkey_table->keymap[i];
--		u16 keycode = bios_entry->keycode < 256 ?
--				    bios_to_linux_keycode[bios_entry->keycode] :
--				    KEY_RESERVED;
-+
-+		/* Uninitialized entries are 0 aka KEY_RESERVED. */
-+		u16 keycode = (bios_entry->keycode <
-+			       ARRAY_SIZE(bios_to_linux_keycode)) ?
-+			bios_to_linux_keycode[bios_entry->keycode] :
-+			KEY_RESERVED;
-+		BUILD_BUG_ON(KEY_RESERVED != 0);
-+
-+		/*
-+		 * Log if we find an entry in the DMI table that we don't
-+		 * understand.  If this happens, we should figure out what
-+		 * the entry means and add it to bios_to_linux_keycode.
-+		 */
-+		if (keycode == KEY_RESERVED) {
-+			pr_info("firmware scancode 0x%x maps to unrecognized keycode 0x%x\n",
-+				bios_entry->scancode, bios_entry->keycode);
-+			continue;
-+		}
- 
- 		if (keycode == KEY_KBDILLUMTOGGLE)
- 			keymap[pos].type = KE_IGNORE;
--- 
-2.5.0
+> This serie only move from RFC to final. I am also adding gpio folks for potential
+> feedback.
+
+Why is this relevant for I2C?
+
+
+--RpqchZ26BWispMcB
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJWXPHiAAoJEBQN5MwUoCm2xjMQAJKdyzgnruhEz9bXQj+Ny3hT
+dFW7H1IKzKKdDUQFhdWl4DC4xG6FWtfOBZXlC9NFuZnGqkW0JGnxrI/0cvdD7Spx
+OxcNgf7WuyGOY2VEblKYG0Hs5SWemktLHSpaXu2NrdL4LsE92Nh1jt3WoePhYC39
+gIu/xOkMxdP1f0J7iVq5T94qzzEQlIJ06r69y57WEX0RL8JzLB3M780v1D2aVCgI
+3sSwOQx/mX9uJq4U/R4EExHfBH9BfzZXyYP5s2WmWauOG/8hcptB1SPNUtu75h2h
+Md+Dd9hCE0NSimwgFeCE+wyuwC4Il4YWvVlrzQrt7J4MH+h+IqhF7cnIc+lhVoYz
+CAMRxPaLq9nQn66apNopYLcOaOOBDpLfBvm20nTN6R3t4ig+WCBsv49L7yI8YrH7
+QGJwdGUcg5ixhSIpqjsRkryP+OJcaV0l8prM/nyPREz05Dt0jGeaahe4fgPbBKzD
+kOOFtIDbbn82Rm2/XIDJH3IzPJp7eCDlvZTgt1sx7W1jwWFEYpXBQbJmOEdnKw1k
+bw+WVq22dXVHhvbgTOqGCeND1s+6Ajf83oH0pE275Q2/gdBiZd+NdDIEXQdR0RpF
+on8oB48QeS+KyxwnQUun9XOCLNhchLLf1NLLA7Yp13qv/+prrpxUzSdOywdxpOoD
+Auu1tXl4v2wXW6H9m6FQ
+=xhsb
+-----END PGP SIGNATURE-----
+
+--RpqchZ26BWispMcB--
