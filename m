@@ -1,188 +1,201 @@
 From: Andy Lutomirski <luto@kernel.org>
-Subject: [PATCH 04/14] wmi: Track wmi devices per ACPI device
-Date: Mon, 30 Nov 2015 17:05:54 -0800
-Message-ID: <1f46c6ccd05508b4fdf1537373df48d8b6c06e81.1448931782.git.luto@kernel.org>
+Subject: [PATCH 08/14] wmi: Probe data objects for read and write capabilities
+Date: Mon, 30 Nov 2015 17:05:58 -0800
+Message-ID: <6027f0563e82e3ca5265c6b29777636a9b8dc244.1448931782.git.luto@kernel.org>
 References: <cover.1448931782.git.luto@kernel.org>
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.29.136]:46796 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755075AbbLABGU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 30 Nov 2015 20:06:20 -0500
 In-Reply-To: <cover.1448931782.git.luto@kernel.org>
 In-Reply-To: <cover.1448931782.git.luto@kernel.org>
 References: <cover.1448931782.git.luto@kernel.org>
-Sender: platform-driver-x86-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Darren Hart <dvhart@infradead.org>
 Cc: Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, Mario Limonciello <mario_limonciello@dell.com>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, Andy Lutomirski <luto@kernel.org>
-List-Id: linux-acpi@vger.kernel.org
 
-Currently we free all devices when we detach from any ACPI node.
-Instead, keep track of which node WMI devices are attached to and
-free them only as needed.  While we're at it, match up notifications
-with the device they came from correctly.
+My laptop has one RW data object, one RO data object, and one
+totally inaccessible data object.  Check for the existence of the
+accessor methods and report in sysfs.
 
-This will make our behavior more straightforward on systems with
-more than one WMI node in the ACPI tables (e.g. the Dell XPS 13
-9350).
-
-This also adds a warning when GUIDs aren't unique.
-
-NB: The guid_string parameter in guid_already_parsed was a
-little-endian binary GUID, not a string.
+The docs also permit WQxx getters for single-instance objects to
+take no parameters.  Probe for that as well to avoid ACPICA warnings
+about mismatched signatures.
 
 Signed-off-by: Andy Lutomirski <luto@kernel.org>
 ---
- drivers/platform/x86/wmi.c | 58 ++++++++++++++++++++++++++++------------------
- 1 file changed, 36 insertions(+), 22 deletions(-)
+ drivers/platform/x86/wmi.c | 94 ++++++++++++++++++++++++++++++++++++++++++++--
+ include/linux/wmi.h        |  6 +++
+ 2 files changed, 96 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/platform/x86/wmi.c b/drivers/platform/x86/wmi.c
-index fc1f339b7431..dcb34a5f5669 100644
+index 5571ae7354a1..49be61207c4a 100644
 --- a/drivers/platform/x86/wmi.c
 +++ b/drivers/platform/x86/wmi.c
-@@ -63,7 +63,7 @@ struct guid_block {
- struct wmi_block {
- 	struct list_head list;
- 	struct guid_block gblock;
--	acpi_handle handle;
-+	struct acpi_device *acpi_device;
+@@ -66,6 +66,8 @@ struct wmi_block {
+ 	struct acpi_device *acpi_device;
  	wmi_notify_handler handler;
  	void *handler_data;
- 	struct device dev;
-@@ -225,7 +225,7 @@ static acpi_status wmi_method_enable(struct wmi_block *wblock, int enable)
- 	acpi_handle handle;
++
++	bool read_takes_no_args;	/* only defined if readable */
+ };
  
- 	block = &wblock->gblock;
--	handle = wblock->handle;
-+	handle = wblock->acpi_device->handle;
  
- 	snprintf(method, 5, "WE%02X", block->notify_id);
- 	status = acpi_execute_simple_method(handle, method, enable);
-@@ -264,7 +264,7 @@ u32 method_id, const struct acpi_buffer *in, struct acpi_buffer *out)
- 		return AE_ERROR;
- 
- 	block = &wblock->gblock;
--	handle = wblock->handle;
-+	handle = wblock->acpi_device->handle;
- 
- 	if (!(block->flags & ACPI_WMI_METHOD))
- 		return AE_BAD_DATA;
-@@ -326,7 +326,7 @@ struct acpi_buffer *out)
- 		return AE_ERROR;
- 
- 	block = &wblock->gblock;
--	handle = wblock->handle;
-+	handle = wblock->acpi_device->handle;
- 
- 	if (block->instance_count < instance)
- 		return AE_BAD_PARAMETER;
-@@ -399,7 +399,7 @@ const struct acpi_buffer *in)
- 		return AE_ERROR;
- 
- 	block = &wblock->gblock;
--	handle = wblock->handle;
-+	handle = wblock->acpi_device->handle;
- 
- 	if (block->instance_count < instance)
- 		return AE_BAD_PARAMETER;
-@@ -603,8 +603,8 @@ acpi_status wmi_get_event_data(u32 event, struct acpi_buffer *out)
- 
- 		if ((gblock->flags & ACPI_WMI_EVENT) &&
- 			(gblock->notify_id == event))
--			return acpi_evaluate_object(wblock->handle, "_WED",
--				&input, out);
-+			return acpi_evaluate_object(wblock->acpi_device->handle,
-+				"_WED", &input, out);
- 	}
- 
- 	return AE_NOT_FOUND;
-@@ -696,27 +696,40 @@ static int wmi_create_device(const struct guid_block *gblock,
- 	return device_register(&wblock->dev);
- }
- 
--static void wmi_free_devices(void)
-+static void wmi_free_devices(struct acpi_device *device)
- {
- 	struct wmi_block *wblock, *next;
- 
- 	/* Delete devices for all the GUIDs */
- 	list_for_each_entry_safe(wblock, next, &wmi_block_list, list) {
--		list_del(&wblock->list);
--		if (wblock->dev.class)
--			device_unregister(&wblock->dev);
--		else
--			kfree(wblock);
-+		if (wblock->acpi_device == device) {
-+			list_del(&wblock->list);
-+			if (wblock->dev.class)
-+				device_unregister(&wblock->dev);
-+			else
-+				kfree(wblock);
-+		}
- 	}
- }
- 
--static bool guid_already_parsed(const char *guid_string)
-+static bool guid_already_parsed(struct acpi_device *device,
-+				const u8 *guid)
- {
- 	struct wmi_block *wblock;
- 
--	list_for_each_entry(wblock, &wmi_block_list, list)
--		if (memcmp(wblock->gblock.guid, guid_string, 16) == 0)
-+	list_for_each_entry(wblock, &wmi_block_list, list) {
-+		if (memcmp(wblock->gblock.guid, guid, 16) == 0) {
-+			/*
-+			 * Because we historically didn't track the relationship
-+			 * between GUIDs and ACPI nodes, we don't know whether
-+			 * we need to suppress GUIDs that are unique on a
-+			 * given node but duplicated across nodes.
-+			 */
-+			dev_warn(&device->dev, "duplicate WMI GUID %pUL (first instance was on %s)\n",
-+				 guid, dev_name(&wblock->acpi_device->dev));
- 			return true;
-+		}
-+	}
- 
+@@ -216,6 +218,25 @@ static bool find_guid(const char *guid_string, struct wmi_block **out)
  	return false;
  }
-@@ -758,7 +771,7 @@ static int parse_wdg(struct acpi_device *device)
- 		if (!wblock)
- 			return -ENOMEM;
  
--		wblock->handle = device->handle;
-+		wblock->acpi_device = device;
- 		wblock->gblock = gblock[i];
- 
- 		/*
-@@ -767,10 +780,10 @@ static int parse_wdg(struct acpi_device *device)
- 		  case yet, so for now, we'll just ignore the duplicate
- 		  for device creation.
- 		*/
--		if (!guid_already_parsed(gblock[i].guid)) {
-+		if (!guid_already_parsed(device, gblock[i].guid)) {
- 			retval = wmi_create_device(&gblock[i], wblock, device);
- 			if (retval) {
--				wmi_free_devices();
-+				wmi_free_devices(device);
- 				goto out_free_pointer;
- 			}
- 		}
-@@ -845,8 +858,9 @@ static void acpi_wmi_notify(struct acpi_device *device, u32 event)
- 		wblock = list_entry(p, struct wmi_block, list);
- 		block = &wblock->gblock;
- 
--		if ((block->flags & ACPI_WMI_EVENT) &&
--			(block->notify_id == event)) {
-+		if (wblock->acpi_device == device &&
-+		    (block->flags & ACPI_WMI_EVENT) &&
-+		    (block->notify_id == event)) {
- 			if (wblock->handler)
- 				wblock->handler(event, wblock->handler_data);
- 			if (debug_event) {
-@@ -866,7 +880,7 @@ static int acpi_wmi_remove(struct acpi_device *device)
++static int get_subobj_info(acpi_handle handle, const char *pathname,
++			   struct acpi_device_info *info)
++{
++	acpi_handle subobj_handle;
++	acpi_status status;
++
++	status = acpi_get_handle(handle, (char *)pathname, &subobj_handle);
++	if (status == AE_NOT_FOUND)
++		return -ENOENT;
++	else if (ACPI_FAILURE(status))
++		return -EIO;
++
++	status = acpi_get_object_info(subobj_handle, &info);
++	if (ACPI_FAILURE(status))
++		return -EIO;
++
++	return 0;
++}
++
+ static acpi_status wmi_method_enable(struct wmi_block *wblock, int enable)
  {
- 	acpi_remove_address_space_handler(device->handle,
- 				ACPI_ADR_SPACE_EC, &acpi_wmi_ec_space_handler);
--	wmi_free_devices();
-+	wmi_free_devices(device);
+ 	struct guid_block *block = NULL;
+@@ -339,6 +360,9 @@ struct acpi_buffer *out)
+ 	wq_params[0].type = ACPI_TYPE_INTEGER;
+ 	wq_params[0].integer.value = instance;
  
- 	return 0;
++	if (instance == 0 && wblock->read_takes_no_args)
++		input.count = 0;
++
+ 	/*
+ 	 * If ACPI_WMI_EXPENSIVE, call the relevant WCxx method first to
+ 	 * enable collection.
+@@ -706,11 +730,37 @@ static ssize_t object_id_show(struct device *dev, struct device_attribute *attr,
  }
+ static DEVICE_ATTR_RO(object_id);
+ 
+-static struct attribute *wmi_data_or_method_attrs[] = {
++static ssize_t readable_show(struct device *dev, struct device_attribute *attr,
++			     char *buf)
++{
++	struct wmi_device *wdev = dev_to_wdev(dev);
++
++	return sprintf(buf, "%d\n", (int)wdev->readable);
++}
++static DEVICE_ATTR_RO(readable);
++
++static ssize_t writeable_show(struct device *dev, struct device_attribute *attr,
++			      char *buf)
++{
++	struct wmi_device *wdev = dev_to_wdev(dev);
++
++	return sprintf(buf, "%d\n", (int)wdev->writeable);
++}
++static DEVICE_ATTR_RO(writeable);
++
++static struct attribute *wmi_data_attrs[] = {
+ 	&dev_attr_object_id.attr,
++	&dev_attr_readable.attr,
++	&dev_attr_writeable.attr,
+ 	NULL,
+ };
+-ATTRIBUTE_GROUPS(wmi_data_or_method);
++ATTRIBUTE_GROUPS(wmi_data);
++
++static struct attribute *wmi_method_attrs[] = {
++	&dev_attr_object_id.attr,
++	NULL,
++};
++ATTRIBUTE_GROUPS(wmi_method);
+ 
+ static int wmi_dev_uevent(struct device *dev, struct kobj_uevent_env *env)
+ {
+@@ -809,13 +859,13 @@ static struct device_type wmi_type_event = {
+ 
+ static struct device_type wmi_type_method = {
+ 	.name = "method",
+-	.groups = wmi_data_or_method_groups,
++	.groups = wmi_method_groups,
+ 	.release = wmi_dev_release,
+ };
+ 
+ static struct device_type wmi_type_data = {
+ 	.name = "data",
+-	.groups = wmi_data_or_method_groups,
++	.groups = wmi_data_groups,
+ 	.release = wmi_dev_release,
+ };
+ 
+@@ -834,7 +884,43 @@ static int wmi_create_device(struct device *wmi_bus_dev,
+ 	} else if (gblock->flags & ACPI_WMI_METHOD) {
+ 		wblock->dev.dev.type = &wmi_type_method;
+ 	} else {
++		struct acpi_device_info info;
++		char method[5];
++		int result;
++
+ 		wblock->dev.dev.type = &wmi_type_data;
++
++		strcpy(method, "WQ");
++		strncat(method, wblock->gblock.object_id, 2);
++		result = get_subobj_info(device->handle, method, &info);
++
++		if (result == 0) {
++			wblock->dev.readable = true;
++
++			/*
++			 * The Microsoft documentation specifically states:
++			 *
++			 *   Data blocks registered with only a single instance
++			 *   can ignore the parameter.
++			 *
++			 * ACPICA will get mad at us if we call the method
++			 * with the wrong number of arguments, so check what
++			 * our method expects.  (On some Dell laptops, WQxx
++			 * may not be a method at all.)
++			 */
++			if (info.type != ACPI_TYPE_METHOD ||
++			    info.param_count == 0)
++				wblock->read_takes_no_args = true;
++		}
++
++		strcpy(method, "WS");
++		strncat(method, wblock->gblock.object_id, 2);
++		result = get_subobj_info(device->handle, method, &info);
++
++		if (result == 0) {
++			wblock->dev.writeable = true;
++		}
++
+ 	}
+ 
+ 	return device_register(&wblock->dev.dev);
+diff --git a/include/linux/wmi.h b/include/linux/wmi.h
+index 29ed34b4dae1..53095006821e 100644
+--- a/include/linux/wmi.h
++++ b/include/linux/wmi.h
+@@ -21,6 +21,12 @@
+ 
+ struct wmi_device {
+ 	struct device dev;
++
++	/*
++	 * These are true for data objects that support reads and writes,
++	 * respectively.
++	 */
++	bool readable, writeable;
+ };
+ 
+ struct wmi_device_id {
 -- 
 2.5.0
+
