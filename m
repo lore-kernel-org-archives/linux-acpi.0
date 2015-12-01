@@ -1,33 +1,57 @@
-From: Hans de Bruin <jmdebruin@xmsnet.nl>
-Subject: Re: [PATCH] x86/PCI: Fix regression caused by commit 4d6b4e69a245
-Date: Tue, 1 Dec 2015 20:00:50 +0100
-Message-ID: <565DEE62.9080105@xmsnet.nl>
-References: <5655B392.7070701@intel.com> <8206751.4eTpiUuo7l@vostro.rjw.lan>
- <565BA446.7080003@linux.intel.com> <2099144.E7yRfeyfk4@vostro.rjw.lan>
+From: Blibbet <blibbet@gmail.com>
+Subject: Re: [PATCH] acpi: Better describe ACPI_DEBUGGER
+Date: Tue, 1 Dec 2015 13:45:50 -0800
+Message-ID: <565E150E.5010401@gmail.com>
+References: <20151130213215.GC3816@twins.programming.kicks-ass.net>
+ <1645670.Yj5okVLt1U@vostro.rjw.lan>
+ <20151130223908.GH3816@twins.programming.kicks-ass.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <2099144.E7yRfeyfk4@vostro.rjw.lan>
-Sender: linux-pci-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jiang Liu <jiang.liu@linux.intel.com>, Bjorn Helgaas <bhelgaas@google.com>, Keith Busch <keith.busch@intel.com>
-Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Arthur Marsh <arthur.marsh@internode.on.net>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pa0-f44.google.com ([209.85.220.44]:36071 "EHLO
+	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756358AbbLAVpx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Dec 2015 16:45:53 -0500
+Received: by pacdm15 with SMTP id dm15so17493825pac.3
+        for <linux-acpi@vger.kernel.org>; Tue, 01 Dec 2015 13:45:52 -0800 (PST)
+In-Reply-To: <20151130223908.GH3816@twins.programming.kicks-ass.net>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Peter Zijlstra <peterz@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, acpi@linux.intel.com
 
-On 11/30/2015 03:11 AM, Rafael J. Wysocki wrote:
-> On Monday, November 30, 2015 09:20:06 AM Jiang Liu wrote:
->> On 2015/11/28 0:06, Rafael J. Wysocki wrote:
-...
->>
->> And I only refined the commit message based on the test patch
->> I sent to Authur as an attachment at Nov 25.
+On 11/30/2015 02:39 PM, Peter Zijlstra wrote:
+> On Mon, Nov 30, 2015 at 11:43:26PM +0100, Rafael J. Wysocki wrote:
+>> On Monday, November 30, 2015 10:32:15 PM Peter Zijlstra wrote:
+[...]
+> n/p, for a brief moment I thought about things like a GDB stub running
+> in SMM -- which would be entirely awesome if it had dedicated IO through
+> a BMC or simple serial.
 >
-> OK, thanks.
->
-> Keith, Hans, can you test this version too please?
->
+> Then I thought about all the kvm-gdb-stub fail I've encountered over the
+> years and figured this would never work, seeing how BIOSes are never
+> updated/fixed.
 
-This version of the patch works on my laptop too.
+FYI, at Usenix WOOT'15, Intel talked about using a GDB stub to test SMM,
+along with S2E, KLEE, OpenOCD, and Minnow. I *think* Intel is going to
+be open-sourcing the resulting test project next quarter. Unclear if
+this will impact ACPI.
 
--- 
-Hans
+https://www.usenix.org/conference/woot15/workshop-program/presentation/bazhaniuk
+
+"Symbolic Execution for BIOS Security: We are building a tool that uses
+symbolic execution to search for BIOS security vulnerabilities including
+dangerous memory references (call outs) by SMM interrupt handlers in
+UEFI-compliant implementations of BIOS. Our tool currently applies only
+to interrupt handlers for SMM variables. Given a snapshot of SMRAM, the
+base address of SMRAM, and the address of the variable interrupt handler
+in SMRAM, the tool uses S2E to run the KLEE symbolic execution engine to
+search for concrete examples of a call to the interrupt handler that
+causes the handler to read memory outside of SMRAM. This is a work in
+progress. We discuss our approach, our current status, our plans for the
+tool, and the obstacles we face."
+
+Thanks,
+Lee
+RSS: http://firmwaresecurity.com/feed
