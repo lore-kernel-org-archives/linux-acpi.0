@@ -1,69 +1,56 @@
-From: Lukas Wunner <lukas@wunner.de>
-Subject: Re: [PATCH v2 2/2] ACPI / utils: Add acpi_dev_present()
-Date: Tue, 1 Dec 2015 13:58:14 +0100
-Message-ID: <20151201125814.GA28094@wunner.de>
-References: <cover.1448480385.git.lukas@wunner.de>
- <e6b4c58be0bc78dbc9ca8b14acf0448eda6b325c.1448480385.git.lukas@wunner.de>
- <565C086B.4000000@huawei.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v3 0/2] ACPI: Add irq_type to gpio interrupt
+Date: Tue, 1 Dec 2015 15:03:24 +0200
+Message-ID: <20151201130324.GE1593@lahna.fi.intel.com>
+References: <1448923673-2582-1-git-send-email-christophe-h.ricard@st.com>
+ <20151201112127.GA1593@lahna.fi.intel.com>
+ <CALD+uuxJw5tQ2XY99nHigXdNkcXGnng+r9NZ8H9TqUF9GbgW=A@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout1.hostsharing.net ([83.223.95.204]:45283 "EHLO
-	mailout1.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753644AbbLAM6T (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Dec 2015 07:58:19 -0500
+Received: from mga01.intel.com ([192.55.52.88]:7043 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754681AbbLAND3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 1 Dec 2015 08:03:29 -0500
 Content-Disposition: inline
-In-Reply-To: <565C086B.4000000@huawei.com>
+In-Reply-To: <CALD+uuxJw5tQ2XY99nHigXdNkcXGnng+r9NZ8H9TqUF9GbgW=A@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <guohanjun@huawei.com>
-Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, devel@acpica.org, Robert Moore <robert.moore@intel.com>, Mark Brown <broonie@kernel.org>, Hui Wang <hui.wang@canonical.com>, Darren Hart <dvhart@infradead.org>
+To: Christophe Ricard <christophe.ricard@gmail.com>
+Cc: rjw@rjwysocki.net, Len Brown <lenb@kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, andriy.shevchenko@linux.intel.com, linux-i2c@vger.kernel.org, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, Christophe Ricard <christophe-h.ricard@st.com>
 
-Hi Hanjun Guo,
+On Tue, Dec 01, 2015 at 01:25:50PM +0100, Christophe Ricard wrote:
+>    For example during an i2c_device_probe where an i2c slave device
+>    describe in devicetree has an interrupts property.
+>    i2c_device_probe (drivers/i2c/i2c-core.c), retrieves irq property from
+>    of_irq_get which will looks for an "interrupts" property in
+>    of_irq_parse_of (drivers/of/irq.c).
+>    of_irq_get will then call irq_create_mapping (kernel/irq/irqdomain.c)
+>    which will set the irq_type retrieved during the interrupts node
+>    parsing.
 
-thank you for taking a look at the patches.
+Found it now thanks.
 
-On Mon, Nov 30, 2015 at 04:27:23PM +0800, Hanjun Guo wrote:
-> If the driver can't pass the "dev" as the argument form acpi device or
-> platform device, this is the way to match HIDs.
-> 
-> But if we get the pointer to acpi device or platform device structure
-> before calling this function, I think acpi_match_device_ids() can match
-> what you need, and we don't need to invent another function.
+>    This will allow from an i2c slave drivers to configure an interrupt
+>    handler matching the exact devicetree data for the interrupts property
+>    of the i2c slave node.
 
-Of the 7 users,
+Makes sense.
 
-* 4 detect the presence of a particular HID to activate platform-
-  specific quirks (acer-wmi.c, eeepc-wmi.c, thinkpad_helper.c,
-  cht_bsw_max98090_ti.c). The drivers never obtain a pointer to the
-  struct acpi_device. This is also the reason why I need to detect
-  the presence of apple-gmux in several DRM drivers, to activate
-  quirks specific to MacBook Pros with dual GPUs, and the one thing
-  they have in common is the presence of the gmux controller.
-  The DRM drivers likewise never have a need to hold a pointer to
-  apple-gmux' struct acpi_device.
+>    Now for the same kind of i2c driver using acpi description, the GpioInt
+>    polarity/type is at the moment never kept in the irq property.
+>    It is possible to check that following about the same path...
+>    i2c_device_probe (drivers/i2c/i2c-core.c), retrieves irq property from
+>    acpi_dev_gpio_irq_get but does not save the irq_type.
+>    This would allow not to have to use an additional gpio field and all
+>    the configuration step to configure the gpio interrupt correctly in a
+>    device driver and taking a real benefit of the GpioInt acpi keyword
+>    compare to GpioIo keyword.
+>    Most the of the drivers based on acpi description retrieve gpio number
+>    to assign an interrupt and a fix polarity. I believe my patchset
+>    proposal would improve this and allow to
+>    be much closer with devicetree.
+>    Do you see any issue with this ?
 
-* 2 detect the presence of a particular HID and *afterwards*
-  instantiate a platform_device (atom/sst/sst_acpi.c and
-  common/sst-acpi.c). So we can't use acpi_match_device_ids()
-  there either.
-
-* 1 is a driver for a platform_device (cht_bsw_rt5645.c) which was
-  instantiated by atom/sst/sst_acpi.c. The driver is responsible
-  for two chips and differentiates between the two by detecting the
-  presence of a particular HID. It would be possible to refactor the
-  code so that atom/sst/sst_acpi.c passes down the matched HID to
-  cht_bsw_rt5645.c, then it wouldn't be necessary to match for a
-  second time. Also, the only difference between the two chipsets
-  seems to be a minute change in struct snd_soc_dapm_route, so I'm
-  wondering if it's necessary to differentiate between the chipsets
-  at all. Mark Brown may want to poke the developers of the driver to
-  refactor the code.
-
-TL;DR: 6 of the 7 users can't use acpi_match_device_ids() and the
-7th could be refactored so that it doesn't have to detect the presence
-of a specific HID at all.
-
-Best regards,
-
-Lukas
+No, but I wonder if it would be better to do this in acpi_dev_gpio_irq_get()
+instead of acpi_find_gpio() which gets called everytime a GPIO is looked up?
