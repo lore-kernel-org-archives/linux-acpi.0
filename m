@@ -1,78 +1,54 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v3 1/3] resource: Add @flags to region_intersects()
-Date: Tue, 1 Dec 2015 14:50:01 +0100
-Message-ID: <20151201135000.GB4341@pd.tnic>
-References: <1448404418-28800-1-git-send-email-toshi.kani@hpe.com>
- <1448404418-28800-2-git-send-email-toshi.kani@hpe.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1448404418-28800-2-git-send-email-toshi.kani@hpe.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Toshi Kani <toshi.kani@hpe.com>
-Cc: akpm@linux-foundation.org, rjw@rjwysocki.net, dan.j.williams@intel.com, tony.luck@intel.com, vishal.l.verma@intel.com, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: [PATCH] ACPI/Kconfig: Make ACPI_NFIT depend on EFI_STUB on X86
+Date: Tue,  1 Dec 2015 09:20:21 -0700
+Message-ID: <1448986821-8065-1-git-send-email-toshi.kani@hpe.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g9t5008.houston.hp.com ([15.240.92.66]:38862 "EHLO
+	g9t5008.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750790AbbLAPZW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Dec 2015 10:25:22 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: rjw@rjwysocki.net, dan.j.williams@intel.com
+Cc: elliott@hpe.com, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
 
-On Tue, Nov 24, 2015 at 03:33:36PM -0700, Toshi Kani wrote:
-> region_intersects() checks if a specified region partially overlaps
-> or fully eclipses a resource identified by @name.  It currently sets
-> resource flags statically, which prevents the caller from specifying
-> a non-RAM region, such as persistent memory.  Add @flags so that
-> any region can be specified to the function.
-> 
-> A helper function, region_intersects_ram(), is added so that the
-> callers that check a RAM region do not have to specify its iomem
-> resource name and flags.  This interface is exported for modules,
-> such as the EINJ driver.
-> 
-> Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-> Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-> Cc: Andrew Morton <akpm@linux-foundation.org>
-> Cc: Vishal Verma <vishal.l.verma@intel.com>
-> ---
->  include/linux/mm.h |    4 +++-
->  kernel/memremap.c  |    5 ++---
->  kernel/resource.c  |   23 ++++++++++++++++-------
->  3 files changed, 21 insertions(+), 11 deletions(-)
-> 
-> diff --git a/include/linux/mm.h b/include/linux/mm.h
-> index 00bad77..c776af3 100644
-> --- a/include/linux/mm.h
-> +++ b/include/linux/mm.h
-> @@ -362,7 +362,9 @@ enum {
->  	REGION_MIXED,
->  };
->  
-> -int region_intersects(resource_size_t offset, size_t size, const char *type);
-> +int region_intersects(resource_size_t offset, size_t size, const char *type,
-> +			unsigned long flags);
-> +int region_intersects_ram(resource_size_t offset, size_t size);
->  
->  /* Support for virtually mapped pages */
->  struct page *vmalloc_to_page(const void *addr);
-> diff --git a/kernel/memremap.c b/kernel/memremap.c
-> index 7658d32..98f52f1 100644
-> --- a/kernel/memremap.c
-> +++ b/kernel/memremap.c
-> @@ -57,7 +57,7 @@ static void *try_ram_remap(resource_size_t offset, size_t size)
->   */
->  void *memremap(resource_size_t offset, size_t size, unsigned long flags)
->  {
-> -	int is_ram = region_intersects(offset, size, "System RAM");
+ACPI 6.0 defines NFIT table and new persistent memory types for
+EFI memory table (EFI_PERSISTENT_MEMORY) and e820 table (E820_PMEM).
 
-Ok, question: why do those resource things types gets identified with
-a string?! We have here "System RAM" and next patch adds "Persistent
-Memory".
+setup_e820() enabled by EFI_STUB converts EFI_PERSISTENT_MEMORY to
+E820_PMEM for the e820_map table on x86.  When EFI_STUB is disabled,
+x86 kernels rely on the bootloader to perform this conversion.
 
-And "persistent memory" or "System RaM" won't work and this is just
-silly.
+It was found that the upstream grub bootloader since 2012 has a bug
+that converts EFI_PERSISTENT_MEMORY (or any new type) to E820_RAM,
+which causes the kernel to use persistent memory ranges as regular
+memory and corrupts the data in NVDIMM.
 
-Couldn't struct resource have gained some typedef flags instead which we
-can much easily test? Using the strings looks really yucky.
+Change ACPI_NFIT to depend on EFI_STUB on x86.  This assures that
+ACPI_NFIT kernels are self-contained and do not rely on the bootloader
+to support ACPI 6.0.
 
--- 
-Regards/Gruss,
-    Boris.
+Note, X86_PMEM_LEGACY allows the kernel to use the pmem driver on
+pre-ACPI 6.0 platforms, and does not require ACPI_NFIT enabled.
 
-ECO tip #101: Trim your mails when you reply.
+References: http://www.mail-archive.com/grub-devel@gnu.org/msg23961.html
+Reported-by: Robert Elliott <elliott@hpe.com>
+Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+Cc: Dan Williams <dan.j.williams@intel.com>
+---
+ drivers/acpi/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 25dbb76..a58041c 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -441,6 +441,7 @@ config ACPI_NFIT
+ 	depends on PHYS_ADDR_T_64BIT
+ 	depends on BLK_DEV
+ 	depends on ARCH_HAS_MMIO_FLUSH
++	depends on !X86 || (X86 && EFI_STUB)
+ 	select LIBNVDIMM
+ 	help
+ 	  Infrastructure to probe ACPI 6 compliant platforms for
