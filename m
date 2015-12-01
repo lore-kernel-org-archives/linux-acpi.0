@@ -1,71 +1,78 @@
-From: Lukas Wunner <lukas@wunner.de>
-Subject: Re: [PATCH v2 1/2] ACPI / scan: Fix acpi_bus_id_list bookkeeping
-Date: Tue, 1 Dec 2015 14:08:29 +0100
-Message-ID: <20151201130829.GB28094@wunner.de>
-References: <cover.1448480385.git.lukas@wunner.de>
- <994278b96189033970d0a2add95645110c716fbb.1448480385.git.lukas@wunner.de>
- <565BEC65.90409@huawei.com>
- <565C0568.90905@huawei.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v3 1/3] resource: Add @flags to region_intersects()
+Date: Tue, 1 Dec 2015 14:50:01 +0100
+Message-ID: <20151201135000.GB4341@pd.tnic>
+References: <1448404418-28800-1-git-send-email-toshi.kani@hpe.com>
+ <1448404418-28800-2-git-send-email-toshi.kani@hpe.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mailout1.hostsharing.net ([83.223.95.204]:46893 "EHLO
-	mailout1.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756436AbbLANId (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Dec 2015 08:08:33 -0500
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <565C0568.90905@huawei.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <1448404418-28800-2-git-send-email-toshi.kani@hpe.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Toshi Kani <toshi.kani@hpe.com>
+Cc: akpm@linux-foundation.org, rjw@rjwysocki.net, dan.j.williams@intel.com, tony.luck@intel.com, vishal.l.verma@intel.com, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hanjun Guo <guohanjun@huawei.com>
-Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, devel@acpica.org, Robert Moore <robert.moore@intel.com>, Mark Brown <broonie@kernel.org>, Hui Wang <hui.wang@canonical.com>, Darren Hart <dvhart@infradead.org>
 
-Hi,
-
-On Mon, Nov 30, 2015 at 04:14:32PM +0800, Hanjun Guo wrote:
-> On 2015/11/30 14:27, Hanjun Guo wrote:
-> > On 2015/11/26 4:19, Lukas Wunner wrote:
-> >> acpi_device_add() allocates and adds an element to acpi_bus_id_list
-> >> (or increments the instance count if the device's HID is already
-> >> present in the list), but the element is never deleted from the list
-> >> nor freed. Fix it.
-> > Hmm, I didn't get it here. Seems the device's ID already freed in device core:
-> >
-> >  In acpi_add_single_object(), acpi_device_release() registered as a callback,
-> > ...
-> >   result = acpi_device_add(device, acpi_device_release);
-> > ...
-> >
-> > And in acpi_device_release(), it will call acpi_free_pnp_ids() to free the
-> > IDs, did I miss some something?
+On Tue, Nov 24, 2015 at 03:33:36PM -0700, Toshi Kani wrote:
+> region_intersects() checks if a specified region partially overlaps
+> or fully eclipses a resource identified by @name.  It currently sets
+> resource flags statically, which prevents the caller from specifying
+> a non-RAM region, such as persistent memory.  Add @flags so that
+> any region can be specified to the function.
 > 
-> Sorry, I misread the code, I thought it was the pnn ids connect to the ACPI device,
-> actually you are referring to HIDs connecting to acpi_bus_id_list, sorry for the noise.
+> A helper function, region_intersects_ram(), is added so that the
+> callers that check a RAM region do not have to specify its iomem
+> resource name and flags.  This interface is exported for modules,
+> such as the EINJ driver.
+> 
+> Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+> Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+> Cc: Andrew Morton <akpm@linux-foundation.org>
+> Cc: Vishal Verma <vishal.l.verma@intel.com>
+> ---
+>  include/linux/mm.h |    4 +++-
+>  kernel/memremap.c  |    5 ++---
+>  kernel/resource.c  |   23 ++++++++++++++++-------
+>  3 files changed, 21 insertions(+), 11 deletions(-)
+> 
+> diff --git a/include/linux/mm.h b/include/linux/mm.h
+> index 00bad77..c776af3 100644
+> --- a/include/linux/mm.h
+> +++ b/include/linux/mm.h
+> @@ -362,7 +362,9 @@ enum {
+>  	REGION_MIXED,
+>  };
+>  
+> -int region_intersects(resource_size_t offset, size_t size, const char *type);
+> +int region_intersects(resource_size_t offset, size_t size, const char *type,
+> +			unsigned long flags);
+> +int region_intersects_ram(resource_size_t offset, size_t size);
+>  
+>  /* Support for virtually mapped pages */
+>  struct page *vmalloc_to_page(const void *addr);
+> diff --git a/kernel/memremap.c b/kernel/memremap.c
+> index 7658d32..98f52f1 100644
+> --- a/kernel/memremap.c
+> +++ b/kernel/memremap.c
+> @@ -57,7 +57,7 @@ static void *try_ram_remap(resource_size_t offset, size_t size)
+>   */
+>  void *memremap(resource_size_t offset, size_t size, unsigned long flags)
+>  {
+> -	int is_ram = region_intersects(offset, size, "System RAM");
 
-Yes, I should have been more clear about this in the first place:
+Ok, question: why do those resource things types gets identified with
+a string?! We have here "System RAM" and next patch adds "Persistent
+Memory".
 
-When the bus is scanned and acpi_device_add() is called for each device,
-not only do we initialize a struct acpi_device and attach it to the
-device tree, but we also add an element to acpi_bus_id_list.
+And "persistent memory" or "System RaM" won't work and this is just
+silly.
 
-Hence there are two ways to detect the presence of a HID: By traversing
-the device tree or by iterating over the list. I chose the latter because
-it is obviously cheaper and requires less code.
+Couldn't struct resource have gained some typedef flags instead which we
+can much easily test? Using the strings looks really yucky.
 
-However elements only ever get added to the list, never deleted. I'm not
-sure if hotpluggable ACPI devices exist but if they do, this is a bug
-which is fixed by this patch.
+-- 
+Regards/Gruss,
+    Boris.
 
-The list was added with e49bd2dd5a50 ("ACPI: use PNPID:instance_no as
-bus_id of ACPI device") 9 years ago and the author even mentioned that
-the list elements are never freed:
-
-   "NOTE:       Now I don't take the memory free work in charge.
-        If necessary, I can add a reference count in
-        struct acpi_device_bus_id, and check the reference and
-        when unregister a device, i.e. memory is freed when
-        the reference count of a given PNPID is 0."
-
-Best regards,
-
-Lukas
+ECO tip #101: Trim your mails when you reply.
