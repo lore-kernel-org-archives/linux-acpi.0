@@ -1,101 +1,69 @@
-From: Graeme Gregory <gg@slimlogic.co.uk>
-Subject: Re: [PATCH 3/3] serial: amba-pl011: add ACPI support to AMBA probe
-Date: Tue, 1 Dec 2015 12:21:00 +0000
-Message-ID: <20151201122100.GB4036@xora-haswell.xora.org.uk>
-References: <1443609530-21524-1-git-send-email-graeme.gregory@linaro.org>
- <1443609530-21524-4-git-send-email-graeme.gregory@linaro.org>
- <14968240.IklpWf8GZo@vostro.rjw.lan>
+From: Lukas Wunner <lukas@wunner.de>
+Subject: Re: [PATCH v2 2/2] ACPI / utils: Add acpi_dev_present()
+Date: Tue, 1 Dec 2015 13:58:14 +0100
+Message-ID: <20151201125814.GA28094@wunner.de>
+References: <cover.1448480385.git.lukas@wunner.de>
+ <e6b4c58be0bc78dbc9ca8b14acf0448eda6b325c.1448480385.git.lukas@wunner.de>
+ <565C086B.4000000@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out4-smtp.messagingengine.com ([66.111.4.28]:33900 "EHLO
-	out4-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755157AbbLAMVD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Dec 2015 07:21:03 -0500
-Received: from compute4.internal (compute4.nyi.internal [10.202.2.44])
-	by mailout.nyi.internal (Postfix) with ESMTP id E669620E69
-	for <linux-acpi@vger.kernel.org>; Tue,  1 Dec 2015 07:21:02 -0500 (EST)
+Received: from mailout1.hostsharing.net ([83.223.95.204]:45283 "EHLO
+	mailout1.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753644AbbLAM6T (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Dec 2015 07:58:19 -0500
 Content-Disposition: inline
-In-Reply-To: <14968240.IklpWf8GZo@vostro.rjw.lan>
+In-Reply-To: <565C086B.4000000@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Graeme Gregory <graeme.gregory@linaro.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, shannon.zhao@linaro.org, Len Brown <lenb@kernel.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: Hanjun Guo <guohanjun@huawei.com>
+Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, devel@acpica.org, Robert Moore <robert.moore@intel.com>, Mark Brown <broonie@kernel.org>, Hui Wang <hui.wang@canonical.com>, Darren Hart <dvhart@infradead.org>
 
-On Tue, Dec 01, 2015 at 03:21:47AM +0100, Rafael J. Wysocki wrote:
-> On Wednesday, September 30, 2015 11:38:50 AM Graeme Gregory wrote:
-> > In ACPI this device is only defined in SBSA mode so
-> > if we are probing from ACPI use this mode.
-> > 
-> > Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-> > Cc: Len Brown <lenb@kernel.org>
-> > Cc: Russell King <linux@arm.linux.org.uk>
-> > Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> > Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
-> > ---
-> >  drivers/tty/serial/amba-pl011.c | 32 +++++++++++++++++++++-----------
-> >  1 file changed, 21 insertions(+), 11 deletions(-)
-> > 
-> > diff --git a/drivers/tty/serial/amba-pl011.c b/drivers/tty/serial/amba-pl011.c
-> > index fd27e98..55209aa 100644
-> > --- a/drivers/tty/serial/amba-pl011.c
-> > +++ b/drivers/tty/serial/amba-pl011.c
-> > @@ -2368,18 +2368,28 @@ static int pl011_probe(struct amba_device *dev, const struct amba_id *id)
-> >  	if (!uap)
-> >  		return -ENOMEM;
-> >  
-> > -	uap->clk = devm_clk_get(&dev->dev, NULL);
-> > -	if (IS_ERR(uap->clk))
-> > -		return PTR_ERR(uap->clk);
-> > -
-> > -	uap->vendor = vendor;
-> > -	uap->lcrh_rx = vendor->lcrh_rx;
-> > -	uap->lcrh_tx = vendor->lcrh_tx;
-> > -	uap->fifosize = vendor->get_fifosize(dev);
-> > +	/* ACPI only defines SBSA variant */
-> > +	if (!ACPI_COMPANION(&dev->dev)) {
+Hi Hanjun Guo,
+
+thank you for taking a look at the patches.
+
+On Mon, Nov 30, 2015 at 04:27:23PM +0800, Hanjun Guo wrote:
+> If the driver can't pass the "dev" as the argument form acpi device or
+> platform device, this is the way to match HIDs.
 > 
-> It would read more straightforward if you did
-> 
-> 	if (ACPI_COMPANION(&dev->dev)) {
-> 		<handle the ACPI case>
-> 	} else {
-> 		<handle the non-ACPI case>
-> 	}
-> 
+> But if we get the pointer to acpi device or platform device structure
+> before calling this function, I think acpi_match_device_ids() can match
+> what you need, and we don't need to invent another function.
 
-This was something I debated about whether to put the ACPI case or the
-common case first. I can certainly reverse it.
+Of the 7 users,
 
-> > +		uap->clk = devm_clk_get(&dev->dev, NULL);
-> > +		if (IS_ERR(uap->clk))
-> > +			return PTR_ERR(uap->clk);
-> > +
-> > +		uap->vendor = vendor;
-> > +		uap->lcrh_rx = vendor->lcrh_rx;
-> > +		uap->lcrh_tx = vendor->lcrh_tx;
-> > +		uap->fifosize = vendor->get_fifosize(dev);
-> > +		uap->port.ops = &amba_pl011_pops;
-> > +		snprintf(uap->type, sizeof(uap->type), "PL011 rev%u",
-> > +				amba_rev(dev));
-> > +	 } else {
-> > +		uap->vendor	= &vendor_sbsa;
-> > +		uap->fifosize	= 32;
-> > +		uap->port.ops	= &sbsa_uart_pops;
-> > +		uap->fixed_baud = 115200;
-> > +
-> > +		snprintf(uap->type, sizeof(uap->type), "SBSA");
-> 
-> This looks sort of heavy-handed.
-> 
-> Is this the only possible configuration of the device in the ACPI case?
-> 
+* 4 detect the presence of a particular HID to activate platform-
+  specific quirks (acer-wmi.c, eeepc-wmi.c, thinkpad_helper.c,
+  cht_bsw_max98090_ti.c). The drivers never obtain a pointer to the
+  struct acpi_device. This is also the reason why I need to detect
+  the presence of apple-gmux in several DRM drivers, to activate
+  quirks specific to MacBook Pros with dual GPUs, and the one thing
+  they have in common is the presence of the gmux controller.
+  The DRM drivers likewise never have a need to hold a pointer to
+  apple-gmux' struct acpi_device.
 
-As far as I can tell yes, but ARM haven't actually published a document
-to state that as fact.
+* 2 detect the presence of a particular HID and *afterwards*
+  instantiate a platform_device (atom/sst/sst_acpi.c and
+  common/sst-acpi.c). So we can't use acpi_match_device_ids()
+  there either.
 
-This does replace the platform_probe that Russel was unhappy about for
-the ACPI case.
+* 1 is a driver for a platform_device (cht_bsw_rt5645.c) which was
+  instantiated by atom/sst/sst_acpi.c. The driver is responsible
+  for two chips and differentiates between the two by detecting the
+  presence of a particular HID. It would be possible to refactor the
+  code so that atom/sst/sst_acpi.c passes down the matched HID to
+  cht_bsw_rt5645.c, then it wouldn't be necessary to match for a
+  second time. Also, the only difference between the two chipsets
+  seems to be a minute change in struct snd_soc_dapm_route, so I'm
+  wondering if it's necessary to differentiate between the chipsets
+  at all. Mark Brown may want to poke the developers of the driver to
+  refactor the code.
 
-Graeme
+TL;DR: 6 of the 7 users can't use acpi_match_device_ids() and the
+7th could be refactored so that it doesn't have to detect the presence
+of a specific HID at all.
 
+Best regards,
+
+Lukas
