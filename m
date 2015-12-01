@@ -1,32 +1,49 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: MAINTAINERS: update a file name in drivers/acpi/
-Date: Tue, 1 Dec 2015 11:58:40 +0300
-Message-ID: <20151201085840.GA26852@mwanda>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v2 16/16] i2c: designware: Convert to use unified device
+ property API
+Date: Tue, 1 Dec 2015 11:08:33 +0200
+Message-ID: <20151201090833.GF7422@lahna.fi.intel.com>
+References: <1448896304-87928-1-git-send-email-andriy.shevchenko@linux.intel.com>
+ <1448896304-87928-17-git-send-email-andriy.shevchenko@linux.intel.com>
+ <20151130195858.GB16446@katana>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <kernel-janitors-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:27500 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754776AbbLAJIr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 1 Dec 2015 04:08:47 -0500
 Content-Disposition: inline
-Sender: kernel-janitors-owner@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>, Hans de Goede <hdegoede@redhat.com>, Zhang Rui <rui.zhang@intel.com>
-Cc: linux-acpi@vger.kernel.org, kernel-janitors@vger.kernel.org
+In-Reply-To: <20151130195858.GB16446@katana>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Wolfram Sang <wsa@the-dreams.de>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Kevin Fenzi <kevin@scrye.com>, Arnd Bergmann <arnd@arndb.de>
 
-We renamed drivers/acpi/video.c to drivers/acpi/acpi_video.c in commit
-14ca7a47d0ab ('acpi-video-detect: video: Make video_detect code part of
-the video module').
+On Mon, Nov 30, 2015 at 08:58:58PM +0100, Wolfram Sang wrote:
+> On Mon, Nov 30, 2015 at 05:11:44PM +0200, Andy Shevchenko wrote:
+> > From: Mika Westerberg <mika.westerberg@linux.intel.com>
+> > 
+> > With ACPI _DSD (introduced in ACPI v5.1) it is now possible to pass device
+> > configuration information from ACPI in addition to DT. In order to support
+> > this, convert the driver to use the unified device property accessors
+> > instead of DT specific.
+> > 
+> > Change to ordering a bit so that we first try platform data and if that's
+> > not available look from device properties. ACPI *CNT methods are then used
+> > as last resort to override everything else.
+> > 
+> > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> > Acked-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
+> 
+> What is the bug fix here described in the cover letter?
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+The bug fix is actually in patch [14/16] "mfd: intel-lpss: Pass SDA hold
+time to I2C host controller driver".
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index f3de001..736a103 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -318,7 +318,7 @@ M:	Zhang Rui <rui.zhang@intel.com>
- L:	linux-acpi@vger.kernel.org
- W:	https://01.org/linux-acpi
- S:	Supported
--F:	drivers/acpi/video.c
-+F:	drivers/acpi/acpi_video.c
- 
- ACPI WMI DRIVER
- L:	platform-driver-x86@vger.kernel.org
+> And shall this go via I2C or via the rest of the series?
+
+Either way works. This should compile and work fine without the rest but
+of course fix for the issue with Lenovo Yoga 900 toucpad still requires
+all the patches.
