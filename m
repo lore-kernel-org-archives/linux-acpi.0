@@ -1,133 +1,87 @@
-From: Mario Limonciello <mario_limonciello@dell.com>
-Subject: Re: [PATCH v2 2/3] dell-wmi: Support new hotkeys on the XPS 13 9350
- (Skylake)
-Date: Tue, 1 Dec 2015 10:38:15 -0600
-Message-ID: <565DCCF7.6070503@dell.com>
-References: <cover.1448931589.git.luto@kernel.org>
- <d9ff5adc7e496b7714202785f8279af313bbcc59.1448931589.git.luto@kernel.org>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH v3 1/3] resource: Add @flags to region_intersects()
+Date: Tue, 1 Dec 2015 08:54:23 -0800
+Message-ID: <CAPcyv4g2n9yTWye2aVvKMP0X7mrm_NLKmGd5WBO2SesTj77gbg@mail.gmail.com>
+References: <1448404418-28800-1-git-send-email-toshi.kani@hpe.com>
+	<1448404418-28800-2-git-send-email-toshi.kani@hpe.com>
+	<20151201135000.GB4341@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from ausc60ps301.us.dell.com ([143.166.148.206]:25002 "EHLO
-	ausc60ps301.us.dell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755940AbbLAQtr (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Dec 2015 11:49:47 -0500
-In-Reply-To: <d9ff5adc7e496b7714202785f8279af313bbcc59.1448931589.git.luto@kernel.org>
+Received: from mail-yk0-f177.google.com ([209.85.160.177]:36065 "EHLO
+	mail-yk0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751704AbbLAQyY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Dec 2015 11:54:24 -0500
+Received: by ykdr82 with SMTP id r82so14220841ykd.3
+        for <linux-acpi@vger.kernel.org>; Tue, 01 Dec 2015 08:54:23 -0800 (PST)
+In-Reply-To: <20151201135000.GB4341@pd.tnic>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Lutomirski <luto@kernel.org>, Darren Hart <dvhart@infradead.org>
-Cc: Matthew Garrett <mjg59@srcf.ucam.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "platform-driver-x86@vger.kernel.org" <platform-driver-x86@vger.kernel.org>, =?UTF-8?Q?Pali_Roh=c3=a1r?= <pali.rohar@gmail.com>
+To: Borislav Petkov <bp@alien8.de>
+Cc: Toshi Kani <toshi.kani@hpe.com>, Andrew Morton <akpm@linux-foundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Vishal L Verma <vishal.l.verma@intel.com>, Linux MM <linux-mm@kvack.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
+On Tue, Dec 1, 2015 at 5:50 AM, Borislav Petkov <bp@alien8.de> wrote:
+> On Tue, Nov 24, 2015 at 03:33:36PM -0700, Toshi Kani wrote:
+>> region_intersects() checks if a specified region partially overlaps
+>> or fully eclipses a resource identified by @name.  It currently sets
+>> resource flags statically, which prevents the caller from specifying
+>> a non-RAM region, such as persistent memory.  Add @flags so that
+>> any region can be specified to the function.
+>>
+>> A helper function, region_intersects_ram(), is added so that the
+>> callers that check a RAM region do not have to specify its iomem
+>> resource name and flags.  This interface is exported for modules,
+>> such as the EINJ driver.
+>>
+>> Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+>> Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+>> Cc: Andrew Morton <akpm@linux-foundation.org>
+>> Cc: Vishal Verma <vishal.l.verma@intel.com>
+>> ---
+>>  include/linux/mm.h |    4 +++-
+>>  kernel/memremap.c  |    5 ++---
+>>  kernel/resource.c  |   23 ++++++++++++++++-------
+>>  3 files changed, 21 insertions(+), 11 deletions(-)
+>>
+>> diff --git a/include/linux/mm.h b/include/linux/mm.h
+>> index 00bad77..c776af3 100644
+>> --- a/include/linux/mm.h
+>> +++ b/include/linux/mm.h
+>> @@ -362,7 +362,9 @@ enum {
+>>       REGION_MIXED,
+>>  };
+>>
+>> -int region_intersects(resource_size_t offset, size_t size, const char *type);
+>> +int region_intersects(resource_size_t offset, size_t size, const char *type,
+>> +                     unsigned long flags);
+>> +int region_intersects_ram(resource_size_t offset, size_t size);
+>>
+>>  /* Support for virtually mapped pages */
+>>  struct page *vmalloc_to_page(const void *addr);
+>> diff --git a/kernel/memremap.c b/kernel/memremap.c
+>> index 7658d32..98f52f1 100644
+>> --- a/kernel/memremap.c
+>> +++ b/kernel/memremap.c
+>> @@ -57,7 +57,7 @@ static void *try_ram_remap(resource_size_t offset, size_t size)
+>>   */
+>>  void *memremap(resource_size_t offset, size_t size, unsigned long flags)
+>>  {
+>> -     int is_ram = region_intersects(offset, size, "System RAM");
+>
+> Ok, question: why do those resource things types gets identified with
+> a string?! We have here "System RAM" and next patch adds "Persistent
+> Memory".
+>
+> And "persistent memory" or "System RaM" won't work and this is just
+> silly.
+>
+> Couldn't struct resource have gained some typedef flags instead which we
+> can much easily test? Using the strings looks really yucky.
+>
 
+At least in the case of region_intersects() I was just following
+existing strcmp() convention from walk_system_ram_range.
 
-On 11/30/2015 07:02 PM, Andy Lutomirski wrote:
-> The XPS 13 9350 sends WMI keypress events that aren't enumerated in
-> the DMI table.  Add a table listing them.  To avoid breaking things
-> that worked before, these un-enumerated hotkeys won't be used if the
-> DMI table maps them to something else.
->
-> FWIW, it appears that the DMI table may be a legacy thing and we
-> might want to rethink how we handle events in general.  As an
-> example, a whole lot of things map to KEY_PROG3 via the DMI table.
->
-> So far, this doesn't send keypress events for any of the new
-> events.  Depnding on whether we figure out exactly what needs to
-> happen to get the wireless button working in time for Linux 4.5,
-> we might want to temporarily handle it in dell-wmi.
->
-> Signed-off-by: Andy Lutomirski <luto@kernel.org>
-> ---
->  drivers/platform/x86/dell-wmi.c | 59 ++++++++++++++++++++++++++++++++++++-----
->  1 file changed, 52 insertions(+), 7 deletions(-)
->
-> diff --git a/drivers/platform/x86/dell-wmi.c b/drivers/platform/x86/dell-wmi.c
-> index ad6e965c5862..baff658a3621 100644
-> --- a/drivers/platform/x86/dell-wmi.c
-> +++ b/drivers/platform/x86/dell-wmi.c
-> @@ -161,6 +161,27 @@ static const u16 bios_to_linux_keycode[256] __initconst = {
->  	[255]	= KEY_PROG3,
->  };
->  
-> +/* These are applied if the hk table is present and doesn't override them. */
-> +static const struct key_entry dell_wmi_extra_keymap[] __initconst = {
-> +	/* Fn-lock */
-> +	{ KE_IGNORE, 0x151, { KEY_RESERVED } },
-> +
-> +	/* Change keyboard illumination */
-> +	{ KE_IGNORE, 0x152, { KEY_KBDILLUMTOGGLE } },
-> +
-> +	/*
-> +	 * Radio disable (notify only -- there is no model for which the
-> +	 * WMI event is supposed to trigger an action.
-> +	 */
-> +	{ KE_IGNORE, 0x153, { KEY_RFKILL } },
-> +
-> +	/* RGB keyboard backlight control */
-> +	{ KE_IGNORE, 0x154, { KEY_RESERVED } },
-> +
-> +	/* Stealth mode toggle */
-> +	{ KE_IGNORE, 0x155, { KEY_RESERVED } },
-> +};
-> +
->  static struct input_dev *dell_wmi_input_dev;
->  
->  static void dell_wmi_process_key(int reported_key)
-> @@ -319,9 +340,10 @@ static const struct key_entry * __init dell_wmi_prepare_new_keymap(void)
->  	int hotkey_num = (dell_bios_hotkey_table->header.length - 4) /
->  				sizeof(struct dell_bios_keymap_entry);
->  	struct key_entry *keymap;
-> -	int i;
-> +	int i, pos = 0, num_bios_keys;
->  
-> -	keymap = kcalloc(hotkey_num + 1, sizeof(struct key_entry), GFP_KERNEL);
-> +	keymap = kcalloc(hotkey_num + ARRAY_SIZE(dell_wmi_extra_keymap),
-> +			 sizeof(struct key_entry), GFP_KERNEL);
->  	if (!keymap)
->  		return NULL;
->  
-> @@ -333,14 +355,37 @@ static const struct key_entry * __init dell_wmi_prepare_new_keymap(void)
->  				    KEY_RESERVED;
->  
->  		if (keycode == KEY_KBDILLUMTOGGLE)
-> -			keymap[i].type = KE_IGNORE;
-> +			keymap[pos].type = KE_IGNORE;
->  		else
-> -			keymap[i].type = KE_KEY;
-> -		keymap[i].code = bios_entry->scancode;
-> -		keymap[i].keycode = keycode;
-> +			keymap[pos].type = KE_KEY;
-> +		keymap[pos].code = bios_entry->scancode;
-> +		keymap[pos].keycode = keycode;
-> +
-> +		pos++;
-> +	}
-> +
-> +	num_bios_keys = pos;
-> +
-> +	for (i = 0; i < ARRAY_SIZE(dell_wmi_extra_keymap); i++) {
-> +		int j;
-> +
-> +		/*
-> +		 * Check if we've already found this scancode.  This takes
-> +		 * quadratic time, but it doesn't matter unless the list
-> +		 * of extra keys gets very long.
-> +		 */
-> +		for (j = 0; j < num_bios_keys; j++)
-> +			if (keymap[j].code == dell_wmi_extra_keymap[i].code)
-> +				goto skip;
-> +
-> +		keymap[pos] = dell_wmi_extra_keymap[i];
-> +		pos++;
-> +
-> +skip:
-> +		;
->  	}
->  
-> -	keymap[hotkey_num].type = KE_END;
-> +	keymap[pos].type = KE_END;
->  
->  	return keymap;
->  }
-I agree, if you don't come up with a solution for using INT33D5 for 4.5,
-you may as well repurpose the WMI notification temporarily.
+We could define 'const char *system_ram = "System RAM"' somewhere and
+then do pointer comparisons to cut down on the thrash of adding new
+flags to 'struct resource'?
