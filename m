@@ -1,56 +1,71 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v3 0/2] ACPI: Add irq_type to gpio interrupt
-Date: Tue, 1 Dec 2015 15:03:24 +0200
-Message-ID: <20151201130324.GE1593@lahna.fi.intel.com>
-References: <1448923673-2582-1-git-send-email-christophe-h.ricard@st.com>
- <20151201112127.GA1593@lahna.fi.intel.com>
- <CALD+uuxJw5tQ2XY99nHigXdNkcXGnng+r9NZ8H9TqUF9GbgW=A@mail.gmail.com>
+From: Lukas Wunner <lukas@wunner.de>
+Subject: Re: [PATCH v2 1/2] ACPI / scan: Fix acpi_bus_id_list bookkeeping
+Date: Tue, 1 Dec 2015 14:08:29 +0100
+Message-ID: <20151201130829.GB28094@wunner.de>
+References: <cover.1448480385.git.lukas@wunner.de>
+ <994278b96189033970d0a2add95645110c716fbb.1448480385.git.lukas@wunner.de>
+ <565BEC65.90409@huawei.com>
+ <565C0568.90905@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:7043 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754681AbbLAND3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 1 Dec 2015 08:03:29 -0500
+Received: from mailout1.hostsharing.net ([83.223.95.204]:46893 "EHLO
+	mailout1.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756436AbbLANId (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Dec 2015 08:08:33 -0500
 Content-Disposition: inline
-In-Reply-To: <CALD+uuxJw5tQ2XY99nHigXdNkcXGnng+r9NZ8H9TqUF9GbgW=A@mail.gmail.com>
+In-Reply-To: <565C0568.90905@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Christophe Ricard <christophe.ricard@gmail.com>
-Cc: rjw@rjwysocki.net, Len Brown <lenb@kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, andriy.shevchenko@linux.intel.com, linux-i2c@vger.kernel.org, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, Christophe Ricard <christophe-h.ricard@st.com>
+To: Hanjun Guo <guohanjun@huawei.com>
+Cc: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, devel@acpica.org, Robert Moore <robert.moore@intel.com>, Mark Brown <broonie@kernel.org>, Hui Wang <hui.wang@canonical.com>, Darren Hart <dvhart@infradead.org>
 
-On Tue, Dec 01, 2015 at 01:25:50PM +0100, Christophe Ricard wrote:
->    For example during an i2c_device_probe where an i2c slave device
->    describe in devicetree has an interrupts property.
->    i2c_device_probe (drivers/i2c/i2c-core.c), retrieves irq property from
->    of_irq_get which will looks for an "interrupts" property in
->    of_irq_parse_of (drivers/of/irq.c).
->    of_irq_get will then call irq_create_mapping (kernel/irq/irqdomain.c)
->    which will set the irq_type retrieved during the interrupts node
->    parsing.
+Hi,
 
-Found it now thanks.
+On Mon, Nov 30, 2015 at 04:14:32PM +0800, Hanjun Guo wrote:
+> On 2015/11/30 14:27, Hanjun Guo wrote:
+> > On 2015/11/26 4:19, Lukas Wunner wrote:
+> >> acpi_device_add() allocates and adds an element to acpi_bus_id_list
+> >> (or increments the instance count if the device's HID is already
+> >> present in the list), but the element is never deleted from the list
+> >> nor freed. Fix it.
+> > Hmm, I didn't get it here. Seems the device's ID already freed in device core:
+> >
+> >  In acpi_add_single_object(), acpi_device_release() registered as a callback,
+> > ...
+> >   result = acpi_device_add(device, acpi_device_release);
+> > ...
+> >
+> > And in acpi_device_release(), it will call acpi_free_pnp_ids() to free the
+> > IDs, did I miss some something?
+> 
+> Sorry, I misread the code, I thought it was the pnn ids connect to the ACPI device,
+> actually you are referring to HIDs connecting to acpi_bus_id_list, sorry for the noise.
 
->    This will allow from an i2c slave drivers to configure an interrupt
->    handler matching the exact devicetree data for the interrupts property
->    of the i2c slave node.
+Yes, I should have been more clear about this in the first place:
 
-Makes sense.
+When the bus is scanned and acpi_device_add() is called for each device,
+not only do we initialize a struct acpi_device and attach it to the
+device tree, but we also add an element to acpi_bus_id_list.
 
->    Now for the same kind of i2c driver using acpi description, the GpioInt
->    polarity/type is at the moment never kept in the irq property.
->    It is possible to check that following about the same path...
->    i2c_device_probe (drivers/i2c/i2c-core.c), retrieves irq property from
->    acpi_dev_gpio_irq_get but does not save the irq_type.
->    This would allow not to have to use an additional gpio field and all
->    the configuration step to configure the gpio interrupt correctly in a
->    device driver and taking a real benefit of the GpioInt acpi keyword
->    compare to GpioIo keyword.
->    Most the of the drivers based on acpi description retrieve gpio number
->    to assign an interrupt and a fix polarity. I believe my patchset
->    proposal would improve this and allow to
->    be much closer with devicetree.
->    Do you see any issue with this ?
+Hence there are two ways to detect the presence of a HID: By traversing
+the device tree or by iterating over the list. I chose the latter because
+it is obviously cheaper and requires less code.
 
-No, but I wonder if it would be better to do this in acpi_dev_gpio_irq_get()
-instead of acpi_find_gpio() which gets called everytime a GPIO is looked up?
+However elements only ever get added to the list, never deleted. I'm not
+sure if hotpluggable ACPI devices exist but if they do, this is a bug
+which is fixed by this patch.
+
+The list was added with e49bd2dd5a50 ("ACPI: use PNPID:instance_no as
+bus_id of ACPI device") 9 years ago and the author even mentioned that
+the list elements are never freed:
+
+   "NOTE:       Now I don't take the memory free work in charge.
+        If necessary, I can add a reference count in
+        struct acpi_device_bus_id, and check the reference and
+        when unregister a device, i.e. memory is freed when
+        the reference count of a given PNPID is 0."
+
+Best regards,
+
+Lukas
