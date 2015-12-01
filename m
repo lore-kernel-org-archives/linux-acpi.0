@@ -1,54 +1,146 @@
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH] ACPI/Kconfig: Make ACPI_NFIT depend on EFI_STUB on X86
-Date: Tue,  1 Dec 2015 09:20:21 -0700
-Message-ID: <1448986821-8065-1-git-send-email-toshi.kani@hpe.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH V7] ACPI, PCI, irq: support IRQ numbers greater than 256
+Date: Tue, 1 Dec 2015 09:30:31 -0600
+Message-ID: <20151201153031.GD9306@localhost>
+References: <1448926742-24308-1-git-send-email-okaya@codeaurora.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g9t5008.houston.hp.com ([15.240.92.66]:38862 "EHLO
-	g9t5008.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750790AbbLAPZW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Dec 2015 10:25:22 -0500
+Received: from mail.kernel.org ([198.145.29.136]:45658 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752260AbbLAPak (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 1 Dec 2015 10:30:40 -0500
+Content-Disposition: inline
+In-Reply-To: <1448926742-24308-1-git-send-email-okaya@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, dan.j.williams@intel.com
-Cc: elliott@hpe.com, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
 
-ACPI 6.0 defines NFIT table and new persistent memory types for
-EFI memory table (EFI_PERSISTENT_MEMORY) and e820 table (E820_PMEM).
+Hi Sinan,
 
-setup_e820() enabled by EFI_STUB converts EFI_PERSISTENT_MEMORY to
-E820_PMEM for the e820_map table on x86.  When EFI_STUB is disabled,
-x86 kernels rely on the bootloader to perform this conversion.
+On Mon, Nov 30, 2015 at 06:39:01PM -0500, Sinan Kaya wrote:
+> The ACPI compiler uses the extended format when used interrupt numbers
+> are greater than 15. The extended IRQ is 32 bits according to the ACPI
+> spec. The code supports parsing the extended interrupt numbers. However,
+> due to used data structure type; the code silently truncates interrupt
+> numbers greater than 256.
+> 
+> This patch changes the interrupt number type to 32 bits and places an
+> upper limit of 1020 as possible interrupt id. 1020 is the maximum
+> interrupt ID that can be assigned to an ARM SPI interrupt according to
+> ARM architecture.
+> 
+> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+> ---
+>  drivers/acpi/pci_link.c | 30 +++++++++++++++++++++++++-----
+>  1 file changed, 25 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+> index 7c8408b..faa37cd 100644
+> --- a/drivers/acpi/pci_link.c
+> +++ b/drivers/acpi/pci_link.c
+> @@ -4,6 +4,7 @@
+>   *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
+>   *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
+>   *  Copyright (C) 2002       Dominik Brodowski <devel@brodo.de>
+> + *  Copyright (c) 2015, The Linux Foundation. All rights reserved.
+>   *
+>   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+>   *
+> @@ -47,6 +48,14 @@ ACPI_MODULE_NAME("pci_link");
+>  #define ACPI_PCI_LINK_FILE_STATUS	"state"
+>  #define ACPI_PCI_LINK_MAX_POSSIBLE	16
+>  
+> +/*
+> + * 1020 is the maximum interrupt ID that can be assigned to
+> + * an ARM SPI interrupt according to ARM architecture.
+> + */
+> +#define ACPI_MAX_IRQS		1020
+> +#define ACPI_MAX_ISA_IRQ	16
 
-It was found that the upstream grub bootloader since 2012 has a bug
-that converts EFI_PERSISTENT_MEMORY (or any new type) to E820_RAM,
-which causes the kernel to use persistent memory ranges as regular
-memory and corrupts the data in NVDIMM.
+Not sure whether you saw my earlier response about this:
 
-Change ACPI_NFIT to depend on EFI_STUB on x86.  This assures that
-ACPI_NFIT kernels are self-contained and do not rely on the bootloader
-to support ACPI 6.0.
+  ACPI_MAX_IRQS is only used to size the acpi_irq_penalty[] table (and
+  after your patch, to validate IRQ numbers from ACPI).  But I think
+  the acpi_irq_penalty[] table is a design we've outgrown.  I *think*
+  we only care about penalties for IRQs 0-15, so even a 256-entry
+  table is more than we need.
 
-Note, X86_PMEM_LEGACY allows the kernel to use the pmem driver on
-pre-ACPI 6.0 platforms, and does not require ACPI_NFIT enabled.
+  If we could make acpi_irq_penalty[] a fixed size of 16 entries or
+  replace it with a linked list, I think we could get rid of
+  ACPI_MAX_IRQS completely.  Then the validation checks you add below
+  would be unnecessary and we could handle any interrupt number
+  supplied from ACPI.
 
-References: http://www.mail-archive.com/grub-devel@gnu.org/msg23961.html
-Reported-by: Robert Elliott <elliott@hpe.com>
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-Cc: Dan Williams <dan.j.williams@intel.com>
----
- drivers/acpi/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+I think it would be really nice to get rid of the arbitrary maximum
+interrupt ID (1020).
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index 25dbb76..a58041c 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -441,6 +441,7 @@ config ACPI_NFIT
- 	depends on PHYS_ADDR_T_64BIT
- 	depends on BLK_DEV
- 	depends on ARCH_HAS_MMIO_FLUSH
-+	depends on !X86 || (X86 && EFI_STUB)
- 	select LIBNVDIMM
- 	help
- 	  Infrastructure to probe ACPI 6 compliant platforms for
+Bjorn
+
+> +
+> +
+>  static int acpi_pci_link_add(struct acpi_device *device,
+>  			     const struct acpi_device_id *not_used);
+>  static void acpi_pci_link_remove(struct acpi_device *device);
+> @@ -67,12 +76,12 @@ static struct acpi_scan_handler pci_link_handler = {
+>   * later even the link is disable. Instead, we just repick the active irq
+>   */
+>  struct acpi_pci_link_irq {
+> -	u8 active;		/* Current IRQ */
+> +	u32 active;		/* Current IRQ */
+>  	u8 triggering;		/* All IRQs */
+>  	u8 polarity;		/* All IRQs */
+>  	u8 resource_type;
+>  	u8 possible_count;
+> -	u8 possible[ACPI_PCI_LINK_MAX_POSSIBLE];
+> +	u32 possible[ACPI_PCI_LINK_MAX_POSSIBLE];
+>  	u8 initialized:1;
+>  	u8 reserved:7;
+>  };
+> @@ -147,6 +156,13 @@ static acpi_status acpi_pci_link_check_possible(struct acpi_resource *resource,
+>  					       p->interrupts[i]);
+>  					continue;
+>  				}
+> +				if (p->interrupts[i] >= ACPI_MAX_IRQS) {
+> +					dev_warn(&link->device->dev,
+> +						 "Ignoring IRQ(%d) as it exceeds max(%d)\n",
+> +						 p->interrupts[i],
+> +						 ACPI_MAX_IRQS - 1);
+> +					continue;
+> +				}
+>  				link->irq.possible[i] = p->interrupts[i];
+>  				link->irq.possible_count++;
+>  			}
+> @@ -279,6 +295,13 @@ static int acpi_pci_link_get_current(struct acpi_pci_link *link)
+>  		result = -ENODEV;
+>  	}
+>  
+> +	if (irq >= ACPI_MAX_IRQS) {
+> +		dev_err(&link->device->dev,
+> +			"Ignoring IRQ(%d) as it exceeds max(%d)\n",
+> +			irq,  ACPI_MAX_IRQS - 1);
+> +		result = -ENODEV;
+> +		goto end;
+> +	}
+>  	link->irq.active = irq;
+>  
+>  	ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Link at IRQ %d \n", link->irq.active));
+> @@ -437,9 +460,6 @@ static int acpi_pci_link_set(struct acpi_pci_link *link, int irq)
+>   * enabled system.
+>   */
+>  
+> -#define ACPI_MAX_IRQS		256
+> -#define ACPI_MAX_ISA_IRQ	16
+> -
+>  #define PIRQ_PENALTY_PCI_AVAILABLE	(0)
+>  #define PIRQ_PENALTY_PCI_POSSIBLE	(16*16)
+>  #define PIRQ_PENALTY_PCI_USING		(16*16*16)
+> -- 
+> Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
+> Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
