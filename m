@@ -1,28 +1,32 @@
-From: Christophe Ricard <christophe.ricard@gmail.com>
-Subject: Re: [PATCH v3 0/2] ACPI: Add irq_type to gpio interrupt
-Date: Tue, 1 Dec 2015 08:03:59 +0100
-Message-ID: <565D465F.6090703@gmail.com>
-References: <1448923673-2582-1-git-send-email-christophe-h.ricard@st.com>
- <20151201010330.GE2064@katana>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: MAINTAINERS: update a file name in drivers/acpi/
+Date: Tue, 1 Dec 2015 11:58:40 +0300
+Message-ID: <20151201085840.GA26852@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <20151201010330.GE2064@katana>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Wolfram Sang <wsa@the-dreams.de>
-Cc: rjw@rjwysocki.net, lenb@kernel.org, linus.walleij@linaro.org, gnurou@gmail.com, andriy.shevchenko@linux.intel.com, mika.westerberg@linux.intel.com, linux-i2c@vger.kernel.org, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, Christophe Ricard <christophe-h.ricard@st.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <kernel-janitors-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: kernel-janitors-owner@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>, Hans de Goede <hdegoede@redhat.com>, Zhang Rui <rui.zhang@intel.com>
+Cc: linux-acpi@vger.kernel.org, kernel-janitors@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Wolfram,
+We renamed drivers/acpi/video.c to drivers/acpi/acpi_video.c in commit
+14ca7a47d0ab ('acpi-video-detect: video: Make video_detect code part of
+the video module').
 
-This is correct that this serie does not impact i2c core at all.
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-Best Regards
-Christophe
-
-On 01/12/2015 02:03, Wolfram Sang wrote:
->> This serie only move from RFC to final. I am also adding gpio folks for potential
->> feedback.
-> Why is this relevant for I2C?
->
+diff --git a/MAINTAINERS b/MAINTAINERS
+index f3de001..736a103 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -318,7 +318,7 @@ M:	Zhang Rui <rui.zhang@intel.com>
+ L:	linux-acpi@vger.kernel.org
+ W:	https://01.org/linux-acpi
+ S:	Supported
+-F:	drivers/acpi/video.c
++F:	drivers/acpi/acpi_video.c
+ 
+ ACPI WMI DRIVER
+ L:	platform-driver-x86@vger.kernel.org
