@@ -1,171 +1,300 @@
 From: Andy Lutomirski <luto@kernel.org>
-Subject: [PATCH 13/14] wmi: Bind the platform device, not the ACPI node
-Date: Mon, 30 Nov 2015 17:06:03 -0800
-Message-ID: <a881575be17fd4f3ceb7294a8b87b759cdf9e62d.1448931782.git.luto@kernel.org>
+Subject: [PATCH 14/14] dell-wmi: Convert to the WMI bus infrastructure
+Date: Mon, 30 Nov 2015 17:06:04 -0800
+Message-ID: <37ea7ee002b3dcf50b2cdb22c94f8d25251109d2.1448931782.git.luto@kernel.org>
 References: <cover.1448931782.git.luto@kernel.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:46928 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755373AbbLABG2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 30 Nov 2015 20:06:28 -0500
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
 In-Reply-To: <cover.1448931782.git.luto@kernel.org>
 In-Reply-To: <cover.1448931782.git.luto@kernel.org>
 References: <cover.1448931782.git.luto@kernel.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: platform-driver-x86-owner@vger.kernel.org
 To: Darren Hart <dvhart@infradead.org>
 Cc: Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, Mario Limonciello <mario_limonciello@dell.com>, =?UTF-8?q?Pali=20Roh=C3=A1r?= <pali.rohar@gmail.com>, Andy Lutomirski <luto@kernel.org>
-
-We already have the PNP glue to instantiate platform devices for the
-ACPI devices that WMI drives.  WMI should therefore attach to the
-platform device, not the ACPI node.
+List-Id: linux-acpi@vger.kernel.org
 
 Signed-off-by: Andy Lutomirski <luto@kernel.org>
 ---
- drivers/platform/x86/wmi.c | 57 +++++++++++++++++++++++++++-------------------
- 1 file changed, 33 insertions(+), 24 deletions(-)
+ drivers/platform/x86/dell-wmi.c | 132 ++++++++++++++++++++--------------------
+ 1 file changed, 66 insertions(+), 66 deletions(-)
 
-diff --git a/drivers/platform/x86/wmi.c b/drivers/platform/x86/wmi.c
-index 88265b28430c..100130895fe2 100644
---- a/drivers/platform/x86/wmi.c
-+++ b/drivers/platform/x86/wmi.c
-@@ -37,6 +37,7 @@
+diff --git a/drivers/platform/x86/dell-wmi.c b/drivers/platform/x86/dell-wmi.c
+index 7c3ebda811ca..48423e53bf94 100644
+--- a/drivers/platform/x86/dell-wmi.c
++++ b/drivers/platform/x86/dell-wmi.c
+@@ -35,6 +35,7 @@
  #include <linux/acpi.h>
- #include <linux/slab.h>
- #include <linux/module.h>
-+#include <linux/platform_device.h>
- #include <linux/wmi.h>
+ #include <linux/string.h>
+ #include <linux/dmi.h>
++#include <linux/wmi.h>
+ #include <acpi/video.h>
  
- ACPI_MODULE_NAME("wmi");
-@@ -90,8 +91,8 @@ module_param(debug_dump_wdg, bool, 0444);
- MODULE_PARM_DESC(debug_dump_wdg,
- 		 "Dump available WMI interfaces [0/1]");
+ MODULE_AUTHOR("Matthew Garrett <mjg@redhat.com>");
+@@ -47,13 +48,17 @@ static int acpi_video;
  
--static int acpi_wmi_remove(struct acpi_device *device);
--static int acpi_wmi_add(struct acpi_device *device);
-+static int acpi_wmi_remove(struct platform_device *device);
-+static int acpi_wmi_probe(struct platform_device *device);
+ MODULE_ALIAS("wmi:"DELL_EVENT_GUID);
  
- static const struct acpi_device_id wmi_device_ids[] = {
- 	{"PNP0C14", 0},
-@@ -100,14 +101,13 @@ static const struct acpi_device_id wmi_device_ids[] = {
- };
- MODULE_DEVICE_TABLE(acpi, wmi_device_ids);
- 
--static struct acpi_driver acpi_wmi_driver = {
--	.name = "acpi-wmi",
--	.owner = THIS_MODULE,
--	.ids = wmi_device_ids,
--	.ops = {
--		.add = acpi_wmi_add,
--		.remove = acpi_wmi_remove,
-+static struct platform_driver acpi_wmi_driver = {
-+	.driver = {
-+		.name = "acpi-wmi",
-+		.acpi_match_table = wmi_device_ids,
- 	},
-+	.probe = acpi_wmi_probe,
-+	.remove = acpi_wmi_remove,
- };
- 
++struct dell_wmi_priv {
++	struct input_dev *input_dev;
++};
++
  /*
-@@ -1184,26 +1184,34 @@ static void acpi_wmi_notify_handler(acpi_handle handle, u32 event,
+  * Certain keys are flagged as KE_IGNORE. All of these are either
+  * notifications (rather than requests for change) or are also sent
+  * via the keyboard controller so should not be sent again.
+  */
  
+-static const struct key_entry dell_wmi_legacy_keymap[] __initconst = {
++static const struct key_entry dell_wmi_legacy_keymap[] = {
+ 	{ KE_IGNORE, 0x003a, { KEY_CAPSLOCK } },
+ 
+ 	{ KE_KEY, 0xe045, { KEY_PROG1 } },
+@@ -119,7 +124,7 @@ struct dell_bios_hotkey_table {
+ static const struct dell_bios_hotkey_table *dell_bios_hotkey_table;
+ 
+ /* Uninitialized entries here are KEY_RESERVED == 0. */
+-static const u16 bios_to_linux_keycode[256] __initconst = {
++static const u16 bios_to_linux_keycode[256] = {
+ 	[0]	= KEY_MEDIA,
+ 	[1]	= KEY_NEXTSONG,
+ 	[2]	= KEY_PLAYPAUSE,
+@@ -163,7 +168,7 @@ static const u16 bios_to_linux_keycode[256] __initconst = {
+ };
+ 
+ /* These are applied if the hk table is present and doesn't override them. */
+-static const struct key_entry dell_wmi_extra_keymap[] __initconst = {
++static const struct key_entry dell_wmi_extra_keymap[] = {
+ 	/* Fn-lock */
+ 	{ KE_IGNORE, 0x151, { KEY_RESERVED } },
+ 
+@@ -183,13 +188,12 @@ static const struct key_entry dell_wmi_extra_keymap[] __initconst = {
+ 	{ KE_IGNORE, 0x155, { KEY_RESERVED } },
+ };
+ 
+-static struct input_dev *dell_wmi_input_dev;
+-
+-static void dell_wmi_process_key(int reported_key)
++static void dell_wmi_process_key(struct wmi_device *wdev, int reported_key)
+ {
++	struct dell_wmi_priv *priv = dev_get_drvdata(&wdev->dev);
+ 	const struct key_entry *key;
+ 
+-	key = sparse_keymap_entry_from_scancode(dell_wmi_input_dev,
++	key = sparse_keymap_entry_from_scancode(priv->input_dev,
+ 						reported_key);
+ 	if (!key) {
+ 		pr_info("Unknown key with scancode 0x%x pressed\n",
+@@ -204,33 +208,18 @@ static void dell_wmi_process_key(int reported_key)
+ 	     key->keycode == KEY_BRIGHTNESSDOWN) && acpi_video)
+ 		return;
+ 
+-	sparse_keymap_report_entry(dell_wmi_input_dev, key, 1, true);
++	sparse_keymap_report_entry(priv->input_dev, key, 1, true);
  }
  
--static int acpi_wmi_remove(struct acpi_device *device)
-+static int acpi_wmi_remove(struct platform_device *device)
+-static void dell_wmi_notify(u32 value, void *context)
++static void dell_wmi_notify(struct wmi_device *wdev,
++			    union acpi_object *obj)
  {
--	acpi_remove_notify_handler(device->handle, ACPI_DEVICE_NOTIFY,
-+	struct acpi_device *acpi_device = ACPI_COMPANION(&device->dev);
-+
-+	acpi_remove_notify_handler(acpi_device->handle, ACPI_DEVICE_NOTIFY,
- 				   acpi_wmi_notify_handler);
--	acpi_remove_address_space_handler(device->handle,
-+	acpi_remove_address_space_handler(acpi_device->handle,
- 				ACPI_ADR_SPACE_EC, &acpi_wmi_ec_space_handler);
--	wmi_free_devices(device);
--	device_unregister((struct device *)acpi_driver_data(device));
--	device->driver_data = NULL;
-+	wmi_free_devices(acpi_device);
-+	device_unregister((struct device *)dev_get_drvdata(&device->dev));
+-	struct acpi_buffer response = { ACPI_ALLOCATE_BUFFER, NULL };
+-	union acpi_object *obj;
+-	acpi_status status;
+ 	acpi_size buffer_size;
+ 	u16 *buffer_entry, *buffer_end;
+ 	int len, i;
+ 
+-	status = wmi_get_event_data(value, &response);
+-	if (status != AE_OK) {
+-		pr_warn("bad event status 0x%x\n", status);
+-		return;
+-	}
+-
+-	obj = (union acpi_object *)response.pointer;
+-	if (!obj) {
+-		pr_warn("no response\n");
+-		return;
+-	}
+-
+ 	if (obj->type != ACPI_TYPE_BUFFER) {
+ 		pr_warn("bad response type %x\n", obj->type);
+-		kfree(obj);
+ 		return;
+ 	}
+ 
+@@ -242,12 +231,11 @@ static void dell_wmi_notify(u32 value, void *context)
+ 
+ 	if (!dell_new_hk_type) {
+ 		if (buffer_size >= 3 && buffer_entry[1] == 0x0)
+-			dell_wmi_process_key(buffer_entry[2]);
++			dell_wmi_process_key(wdev, buffer_entry[2]);
+ 		else if (buffer_size >= 2)
+-			dell_wmi_process_key(buffer_entry[1]);
++			dell_wmi_process_key(wdev, buffer_entry[1]);
+ 		else
+ 			pr_info("Received unknown WMI event\n");
+-		kfree(obj);
+ 		return;
+ 	}
+ 
+@@ -293,7 +281,7 @@ static void dell_wmi_notify(u32 value, void *context)
+ 		case 0x10:
+ 			/* Keys pressed */
+ 			for (i = 2; i < len; ++i)
+-				dell_wmi_process_key(buffer_entry[i]);
++				dell_wmi_process_key(wdev, buffer_entry[i]);
+ 			break;
+ 		case 0x11:
+ 			for (i = 2; i < len; ++i) {
+@@ -334,7 +322,6 @@ static void dell_wmi_notify(u32 value, void *context)
+ 
+ 	}
+ 
+-	kfree(obj);
+ }
+ 
+ static const struct key_entry * __init dell_wmi_prepare_new_keymap(void)
+@@ -407,17 +394,18 @@ skip:
+ 	return keymap;
+ }
+ 
+-static int __init dell_wmi_input_setup(void)
++static int dell_wmi_input_setup(struct wmi_device *wdev)
+ {
+ 	int err;
++	struct dell_wmi_priv *priv = dev_get_drvdata(&wdev->dev);
+ 
+-	dell_wmi_input_dev = input_allocate_device();
+-	if (!dell_wmi_input_dev)
++	priv->input_dev = input_allocate_device();
++	if (!priv->input_dev)
+ 		return -ENOMEM;
+ 
+-	dell_wmi_input_dev->name = "Dell WMI hotkeys";
+-	dell_wmi_input_dev->phys = "wmi/input0";
+-	dell_wmi_input_dev->id.bustype = BUS_HOST;
++	priv->input_dev->name = "Dell WMI hotkeys";
++	priv->input_dev->id.bustype = BUS_HOST;
++	priv->input_dev->dev.parent = &wdev->dev;
+ 
+ 	if (dell_new_hk_type) {
+ 		const struct key_entry *keymap = dell_wmi_prepare_new_keymap();
+@@ -426,7 +414,7 @@ static int __init dell_wmi_input_setup(void)
+ 			goto err_free_dev;
+ 		}
+ 
+-		err = sparse_keymap_setup(dell_wmi_input_dev, keymap, NULL);
++		err = sparse_keymap_setup(priv->input_dev, keymap, NULL);
+ 
+ 		/*
+ 		 * Sparse keymap library makes a copy of keymap so we
+@@ -434,29 +422,31 @@ static int __init dell_wmi_input_setup(void)
+ 		 */
+ 		kfree(keymap);
+ 	} else {
+-		err = sparse_keymap_setup(dell_wmi_input_dev,
++		err = sparse_keymap_setup(priv->input_dev,
+ 					  dell_wmi_legacy_keymap, NULL);
+ 	}
+ 	if (err)
+ 		goto err_free_dev;
+ 
+-	err = input_register_device(dell_wmi_input_dev);
++	err = input_register_device(priv->input_dev);
+ 	if (err)
+ 		goto err_free_keymap;
  
  	return 0;
+ 
+  err_free_keymap:
+-	sparse_keymap_free(dell_wmi_input_dev);
++	sparse_keymap_free(priv->input_dev);
+  err_free_dev:
+-	input_free_device(dell_wmi_input_dev);
++	input_free_device(priv->input_dev);
+ 	return err;
  }
  
--static int acpi_wmi_add(struct acpi_device *device)
-+static int acpi_wmi_probe(struct platform_device *device)
+-static void dell_wmi_input_destroy(void)
++static void dell_wmi_input_destroy(struct wmi_device *wdev)
  {
-+	struct acpi_device *acpi_device;
- 	struct device *wmi_bus_dev;
- 	acpi_status status;
- 	int error;
- 
--	status = acpi_install_address_space_handler(device->handle,
-+	acpi_device = ACPI_COMPANION(&device->dev);
-+	if (!acpi_device) {
-+		dev_err(&device->dev, "ACPI companion is missing\n");
-+		return -ENODEV;
-+	}
+-	sparse_keymap_free(dell_wmi_input_dev);
+-	input_unregister_device(dell_wmi_input_dev);
++	struct dell_wmi_priv *priv = dev_get_drvdata(&wdev->dev);
 +
-+	status = acpi_install_address_space_handler(acpi_device->handle,
- 						    ACPI_ADR_SPACE_EC,
- 						    &acpi_wmi_ec_space_handler,
- 						    NULL, NULL);
-@@ -1212,7 +1220,8 @@ static int acpi_wmi_add(struct acpi_device *device)
- 		return -ENODEV;
- 	}
- 
--	status = acpi_install_notify_handler(device->handle, ACPI_DEVICE_NOTIFY,
-+	status = acpi_install_notify_handler(acpi_device->handle,
-+					     ACPI_DEVICE_NOTIFY,
- 					     acpi_wmi_notify_handler,
- 					     NULL);
- 	if (ACPI_FAILURE(status)) {
-@@ -1227,9 +1236,9 @@ static int acpi_wmi_add(struct acpi_device *device)
- 		error = PTR_ERR(wmi_bus_dev);
- 		goto err_remove_notify_handler;
- 	}
--	device->driver_data = wmi_bus_dev;
-+	dev_set_drvdata(&device->dev, wmi_bus_dev);
- 
--	error = parse_wdg(wmi_bus_dev, device);
-+	error = parse_wdg(wmi_bus_dev, acpi_device);
- 	if (error) {
- 		pr_err("Failed to parse WDG method\n");
- 		goto err_remove_busdev;
-@@ -1242,11 +1251,11 @@ err_remove_busdev:
- 	put_device(wmi_bus_dev);
- 
- err_remove_notify_handler:
--	acpi_remove_notify_handler(device->handle, ACPI_DEVICE_NOTIFY,
-+	acpi_remove_notify_handler(acpi_device->handle, ACPI_DEVICE_NOTIFY,
- 				   acpi_wmi_notify_handler);
- 
- err_remove_ec_handler:
--	acpi_remove_address_space_handler(device->handle,
-+	acpi_remove_address_space_handler(acpi_device->handle,
- 					  ACPI_ADR_SPACE_EC,
- 					  &acpi_wmi_ec_space_handler);
- 
-@@ -1284,7 +1293,7 @@ static int __init acpi_wmi_init(void)
- 	if (error)
- 		goto err_unreg_class;
- 
--	error = acpi_bus_register_driver(&acpi_wmi_driver);
-+	error = platform_driver_register(&acpi_wmi_driver);
- 	if (error) {
- 		pr_err("Error loading mapper\n");
- 		goto err_unreg_bus;
-@@ -1303,7 +1312,7 @@ err_unreg_bus:
- 
- static void __exit acpi_wmi_exit(void)
- {
--	acpi_bus_unregister_driver(&acpi_wmi_driver);
-+	platform_driver_unregister(&acpi_wmi_driver);
- 	class_unregister(&wmi_bus_class);
- 	bus_unregister(&wmi_bus_type);
++	sparse_keymap_free(priv->input_dev);
++	input_unregister_device(priv->input_dev);
  }
+ 
+ static void __init find_hk_type(const struct dmi_header *dm, void *dummy)
+@@ -468,38 +458,48 @@ static void __init find_hk_type(const struct dmi_header *dm, void *dummy)
+ 	}
+ }
+ 
+-static int __init dell_wmi_init(void)
++static int dell_wmi_probe(struct wmi_device *wdev)
+ {
+-	int err;
+-	acpi_status status;
++	struct dell_wmi_priv *priv = devm_kzalloc(
++		&wdev->dev, sizeof(struct dell_wmi_priv), GFP_KERNEL);
+ 
+-	if (!wmi_has_guid(DELL_EVENT_GUID)) {
+-		pr_warn("No known WMI GUID found\n");
+-		return -ENODEV;
+-	}
++	dev_set_drvdata(&wdev->dev, priv);
++
++	return dell_wmi_input_setup(wdev);
++}
+ 
++static int dell_wmi_remove(struct wmi_device *wdev)
++{
++	dell_wmi_input_destroy(wdev);
++	return 0;
++}
++
++static const struct wmi_device_id dell_wmi_id_table[] = {
++	{ .guid_string = DELL_EVENT_GUID },
++	{ },
++};
++
++static struct wmi_driver dell_wmi_driver = {
++	.driver = {
++		.name = "dell-wmi",
++	},
++	.id_table = dell_wmi_id_table,
++	.probe = dell_wmi_probe,
++	.remove = dell_wmi_remove,
++	.notify = dell_wmi_notify,
++};
++
++static int __init dell_wmi_init(void)
++{
+ 	dmi_walk(find_hk_type, NULL);
+ 	acpi_video = acpi_video_get_backlight_type() != acpi_backlight_vendor;
+ 
+-	err = dell_wmi_input_setup();
+-	if (err)
+-		return err;
+-
+-	status = wmi_install_notify_handler(DELL_EVENT_GUID,
+-					 dell_wmi_notify, NULL);
+-	if (ACPI_FAILURE(status)) {
+-		dell_wmi_input_destroy();
+-		pr_err("Unable to register notify handler - %d\n", status);
+-		return -ENODEV;
+-	}
+-
+-	return 0;
++	return wmi_driver_register(&dell_wmi_driver);
+ }
+ module_init(dell_wmi_init);
+ 
+ static void __exit dell_wmi_exit(void)
+ {
+-	wmi_remove_notify_handler(DELL_EVENT_GUID);
+-	dell_wmi_input_destroy();
++	wmi_driver_unregister(&dell_wmi_driver);
+ }
+ module_exit(dell_wmi_exit);
 -- 
 2.5.0
-
