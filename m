@@ -1,57 +1,84 @@
-From: Blibbet <blibbet@gmail.com>
-Subject: Re: [PATCH] acpi: Better describe ACPI_DEBUGGER
-Date: Tue, 1 Dec 2015 13:45:50 -0800
-Message-ID: <565E150E.5010401@gmail.com>
-References: <20151130213215.GC3816@twins.programming.kicks-ass.net>
- <1645670.Yj5okVLt1U@vostro.rjw.lan>
- <20151130223908.GH3816@twins.programming.kicks-ass.net>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: ACPI device without physical node (pnpacpi oddity?)
+Date: Wed, 02 Dec 2015 01:48:41 +0100
+Message-ID: <2306632.Ddb0M2gLJC@vostro.rjw.lan>
+References: <CALCETrXcJN-nKLVzuWj_pbqwO+g0i1sfg2vCr=Y6_Gn_7XT=gw@mail.gmail.com> <2355752.R19tF0KgU6@vostro.rjw.lan> <CALCETrX24s2wzXs4bz4GH-XAi8COk2nKUkXYY2i81MV=r5H_PQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f44.google.com ([209.85.220.44]:36071 "EHLO
-	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756358AbbLAVpx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Dec 2015 16:45:53 -0500
-Received: by pacdm15 with SMTP id dm15so17493825pac.3
-        for <linux-acpi@vger.kernel.org>; Tue, 01 Dec 2015 13:45:52 -0800 (PST)
-In-Reply-To: <20151130223908.GH3816@twins.programming.kicks-ass.net>
+Received: from v094114.home.net.pl ([79.96.170.134]:56181 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S932279AbbLBASv (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Dec 2015 19:18:51 -0500
+In-Reply-To: <CALCETrX24s2wzXs4bz4GH-XAi8COk2nKUkXYY2i81MV=r5H_PQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Peter Zijlstra <peterz@infradead.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, acpi@linux.intel.com
+To: Andy Lutomirski <luto@amacapital.net>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, Zhang Rui <rui.zhang@intel.com>
 
-On 11/30/2015 02:39 PM, Peter Zijlstra wrote:
-> On Mon, Nov 30, 2015 at 11:43:26PM +0100, Rafael J. Wysocki wrote:
->> On Monday, November 30, 2015 10:32:15 PM Peter Zijlstra wrote:
-[...]
-> n/p, for a brief moment I thought about things like a GDB stub running
-> in SMM -- which would be entirely awesome if it had dedicated IO through
-> a BMC or simple serial.
->
-> Then I thought about all the kvm-gdb-stub fail I've encountered over the
-> years and figured this would never work, seeing how BIOSes are never
-> updated/fixed.
+On Monday, November 30, 2015 06:23:26 PM Andy Lutomirski wrote:
+> On Nov 30, 2015 5:41 PM, "Rafael J. Wysocki" <rjw@rjwysocki.net> wrote:
+> >
+> > On Monday, November 30, 2015 03:45:15 PM Andy Lutomirski wrote:
+> > > On Nov 30, 2015 2:40 PM, "Rafael J. Wysocki" <rjw@rjwysocki.net> wrote:
+> > > >
+> > > > On Monday, November 30, 2015 12:15:27 PM Andy Lutomirski wrote:
+> > > > > On Sun, Nov 29, 2015 at 9:19 PM, Andy Lutomirski <luto@amacapital.net> wrote:
+> > > >
+> > > > [cut]
+> > > >
+> > > > > > From inspection of the code, acpi_pnp.c determines that the device is
+> > > > > > a pnp device because pnp0c02 is in acpi_pnp_device_ids.  This causes
+> > > > > > the device to have a concrete handler, so no platform device is
+> > > > > > created.  However, pnpacpi/core.c rejects it because it has no _CRS
+> > > > > > method.  As a result, it's in limbo.
+> > > > > >
+> > > > > > What's the right thing to do here?  I could modify acpi_pnp.c to
+> > > > > > reject the device, which will let the generic platform fallback claim
+> > > > > > it.
+> > > >
+> > > > pnp0c02 is a special device ID.  It is defined by MS as "General ID for
+> > > > reserving resources required by PnP motherboard", so having no _CRS for
+> > > > that particular device ID doesn't really make sense.
+> > > >
+> > > > Moreover, we have a PNP driver that (normally) binds to that device ID,
+> > > > so a PNP device object should be created for it.
+> > >
+> > > Given that the pnpacpi driver is going to reject it anyway, it could
+> > > make sense to keep it from binding at all (and maybe warn?) so that
+> > > the platform fallback code picks it up, though.
+> >
+> > The point is that we'll create a PNP device for the same device ID on other
+> > platforms and that's going to be confusing, isn't it?
+> >
+> > I guess one option might be to hack the driver in question to accept a
+> > device without _CRS and then do what you need to be done for that device.
+> >
+> 
+> The driver being the one I'm writing or the pnpacpi driver?
+> 
+> Maybe I should ask the vendor if they're willing to drop the pnp0c02
+> cid.  This thing is an event-generating device, not a
+> resource-managing device.
 
-FYI, at Usenix WOOT'15, Intel talked about using a GDB stub to test SMM,
-along with S2E, KLEE, OpenOCD, and Minnow. I *think* Intel is going to
-be open-sourcing the resulting test project next quarter. Unclear if
-this will impact ACPI.
+[cut]
 
-https://www.usenix.org/conference/woot15/workshop-program/presentation/bazhaniuk
+OK, I see what's the problem now.
 
-"Symbolic Execution for BIOS Security: We are building a tool that uses
-symbolic execution to search for BIOS security vulnerabilities including
-dangerous memory references (call outs) by SMM interrupt handlers in
-UEFI-compliant implementations of BIOS. Our tool currently applies only
-to interrupt handlers for SMM variables. Given a snapshot of SMRAM, the
-base address of SMRAM, and the address of the variable interrupt handler
-in SMRAM, the tool uses S2E to run the KLEE symbolic execution engine to
-search for concrete examples of a call to the interrupt handler that
-causes the handler to read memory outside of SMRAM. This is a work in
-progress. We discuss our approach, our current status, our plans for the
-tool, and the obstacles we face."
+> >
+> > What exactly do you need that platform device for?
+> 
+> I want some kind of physical device to bind my driver to.  I probably
+> want suspend/resume callbacks, too.
+
+I see.
+
+For your use case we could make the PNP layer ignore the pnp0c02 device id if
+(a) _CRS is missing and (b) pnp0c02 is in the _CID list (not a _HID).
+
+We have a deeper problem here, but let me discuss that with Rui.
 
 Thanks,
-Lee
-RSS: http://firmwaresecurity.com/feed
+Rafael
+
