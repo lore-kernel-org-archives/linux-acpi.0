@@ -1,105 +1,69 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [RFC PATCH 4/4] mfd: syscon: add ACPI support
-Date: Wed, 02 Dec 2015 11:44:51 +0100
-Message-ID: <2299982.06P4iKpkWk@wuerfel>
-References: <1449047368-5768-1-git-send-email-wangkefeng.wang@huawei.com> <1449047368-5768-5-git-send-email-wangkefeng.wang@huawei.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [RFC PATCH 0/4] add ACPI support for syscon
+Date: Wed, 2 Dec 2015 10:50:09 +0000
+Message-ID: <20151202105009.GA18981@red-moon>
+References: <1449047368-5768-1-git-send-email-wangkefeng.wang@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.17.13]:50200 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751085AbbLBKp0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Dec 2015 05:45:26 -0500
-In-Reply-To: <1449047368-5768-5-git-send-email-wangkefeng.wang@huawei.com>
+Received: from foss.arm.com ([217.140.101.70]:41461 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752466AbbLBKtC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 2 Dec 2015 05:49:02 -0500
+Content-Disposition: inline
+In-Reply-To: <1449047368-5768-1-git-send-email-wangkefeng.wang@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Hanjun Guo <hanjun.guo@linaro.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Arnd Bergmann <arnd@arndb.de>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org
 
-On Wednesday 02 December 2015 17:09:28 Kefeng Wang wrote:
-> This enables syscon with ACPI support.
-> syscon_regmap_lookup_by_dev_property() function was added. With helper
-> device_get_reference_node() and acpi_dev_find_plat_dev(), it can be used
-> in both DT and ACPI.
+On Wed, Dec 02, 2015 at 05:09:24PM +0800, Kefeng Wang wrote:
+> Lots of drivers begin to support both OF and ACPI now, but some drivers depend on syscon,
+
+Define "lots of drivers" please and in the process point me at what
+they are, thanks.
+
+> so syscon need to support ACPI firstly.
+
+I do not think so, that's exactly what I do NOT want to happen, namely
+rewriting DT management in ACPI _entirely_.
+
+The rules for using _DSD properties are described here:
+
+https://lists.acpica.org/pipermail/dsd/2015-September/000026.html
+
+So, first thing, tell us why you need this patchset and what's its
+aim (ie using syscon to control what ?).
+
+Thanks,
+Lorenzo
+
+> Add ACPI support for syscon, and introduce syscon_regmap_lookup_by_dev_property()
+> helper when the driver need to get a regmap handle from syscon, it can used in
+> both OF and ACPI.
 > 
-> The device driver can obtain syscon using _DSD method in DSDT, an example
-> is shown below.
+> Kefeng Wang (4):
+>   acpi: property: Introduce helper acpi_dev_get_reference_device()
+>   device property: Introduce helper device_get_reference_node()
+>   ACPI/platform: Introduce helper acpi_dev_find_plat_dev()
+>   mfd: syscon: add ACPI support
 > 
->     Device(CTL0) {
->           Name(_HID, "HISI0061")
->           Name(_CRS, ResourceTemplate() {
->                   Memory32Fixed(ReadWrite, 0x80000000, 0x10000)
->           })
->     }
+>  drivers/acpi/acpi_platform.c | 25 ++++++++++++++++++++++
+>  drivers/acpi/property.c      | 23 ++++++++++++++++++++
+>  drivers/base/property.c      | 40 +++++++++++++++++++++++++++++++++++
+>  drivers/mfd/syscon.c         | 50 ++++++++++++++++++++++++++++++++++++++++++++
+>  include/linux/acpi.h         | 13 ++++++++++++
+>  include/linux/mfd/syscon.h   |  8 +++++++
+>  include/linux/property.h     |  6 ++++++
+>  7 files changed, 165 insertions(+)
 > 
->     Device(DEV0) {
->           Name(_HID, "HISI00B1")
->           Name(_CRS, ResourceTemplate() {
->                   Memory32Fixed(ReadWrite, 0x8c030000, 0x10000)
->                   Interrupt(ResourceConsumer, Level, ActiveHigh, Exclusive){ 192 }
->           })
+> -- 
+> 1.7.12.4
 > 
->           Name (_DSD, Package () {
->               ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
->               Package () {
->                   Package () {"syscon",Package() {\_SB.CTL0} }
->               }
->           })
->     }
 > 
-> Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-
-This sounds like a bad idea:
-
-syscon is basically a hack to let us access register that the SoC designer
-couldn't fit in anywhere sane. We need something like this with devicetree
-because we decided not to have any interpreted bytecode to do this behind
-our back.
-
-With ACPI, the same thing is done with AML, which is actually nicer than
-syscon (once you have to deal with all the problems introduced by AML).
-
-Use that instead.
-
-> +               pdev = acpi_dev_find_plat_dev(adev);
-> +               if (!pdev)
-> +                       return ERR_PTR(-ENODEV);
-> +               syscon = platform_get_drvdata(pdev);
-
-This still requires the syscon device to be probed first, which is
-something we shouldn't really need any more.
-
-A lot of syscon users depend on the regmap to be available before
-device drivers are loaded, so we have changed the code to just look up
-the device_node that is already present and ignore the device.
-
-Once clps711x has been converted to DT, I think we can rip out the
-syscon_regmap_lookup_by_pdevname() interface and separate the syscon
-regmap handling from the device handling that we only really need
-for debugfs.
-
-> @@ -216,9 +259,16 @@ static const struct platform_device_id syscon_ids[] = {
->  	{ }
->  };
->  
-> +static const struct acpi_device_id syscon_acpi_match[] = {
-> +	{ "HISI0061", 0 }, /* better to use generic ACPI ID */
-> +	{ }
-> +};
-> +MODULE_DEVICE_TABLE(acpi, syscon_acpi_match);
-> +
->  static struct platform_driver syscon_driver = {
->  	.driver = {
->  		.name = "syscon",
-> +		.acpi_match_table = ACPI_PTR(syscon_acpi_match),
->  	},
->  	.probe		= syscon_probe,
->  	.id_table	= syscon_ids,
-
-We certainly don't want to list specific devices, so the other problem
-aside, we wouldn't merge it until there is an official ACPI way to
-specify "random crap register areas" that does not depend on a vendor
-specific ID.
-
-	Arnd
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+> 
