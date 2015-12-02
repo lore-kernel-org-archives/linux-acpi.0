@@ -1,64 +1,56 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 3/3] serial: amba-pl011: add ACPI support to AMBA probe
-Date: Wed, 02 Dec 2015 02:25:30 +0100
-Message-ID: <2178575.bCf8IHH3MB@vostro.rjw.lan>
-References: <1443609530-21524-1-git-send-email-graeme.gregory@linaro.org> <14968240.IklpWf8GZo@vostro.rjw.lan> <20151201122100.GB4036@xora-haswell.xora.org.uk>
+Subject: Re: [PATCH v2 16/16] i2c: designware: Convert to use unified device property API
+Date: Wed, 02 Dec 2015 02:28:29 +0100
+Message-ID: <3465575.VLD33ozkzD@vostro.rjw.lan>
+References: <1448896304-87928-1-git-send-email-andriy.shevchenko@linux.intel.com> <20151130195858.GB16446@katana> <1448966031.15393.131.camel@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:42852 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:51007 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S932196AbbLBAzk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Dec 2015 19:55:40 -0500
-In-Reply-To: <20151201122100.GB4036@xora-haswell.xora.org.uk>
+	with SMTP id S1757188AbbLBA6j (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Dec 2015 19:58:39 -0500
+In-Reply-To: <1448966031.15393.131.camel@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Graeme Gregory <gg@slimlogic.co.uk>
-Cc: Graeme Gregory <graeme.gregory@linaro.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, shannon.zhao@linaro.org, Len Brown <lenb@kernel.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Wolfram Sang <wsa@the-dreams.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Kevin Fenzi <kevin@scrye.com>, Arnd Bergmann <arnd@arndb.de>
 
-On Tuesday, December 01, 2015 12:21:00 PM Graeme Gregory wrote:
-> On Tue, Dec 01, 2015 at 03:21:47AM +0100, Rafael J. Wysocki wrote:
-> > On Wednesday, September 30, 2015 11:38:50 AM Graeme Gregory wrote:
-> > > In ACPI this device is only defined in SBSA mode so
-> > > if we are probing from ACPI use this mode.
-
-[cut]
-
-> > > +		uap->clk = devm_clk_get(&dev->dev, NULL);
-> > > +		if (IS_ERR(uap->clk))
-> > > +			return PTR_ERR(uap->clk);
-> > > +
-> > > +		uap->vendor = vendor;
-> > > +		uap->lcrh_rx = vendor->lcrh_rx;
-> > > +		uap->lcrh_tx = vendor->lcrh_tx;
-> > > +		uap->fifosize = vendor->get_fifosize(dev);
-> > > +		uap->port.ops = &amba_pl011_pops;
-> > > +		snprintf(uap->type, sizeof(uap->type), "PL011 rev%u",
-> > > +				amba_rev(dev));
-> > > +	 } else {
-> > > +		uap->vendor	= &vendor_sbsa;
-> > > +		uap->fifosize	= 32;
-> > > +		uap->port.ops	= &sbsa_uart_pops;
-> > > +		uap->fixed_baud = 115200;
-> > > +
-> > > +		snprintf(uap->type, sizeof(uap->type), "SBSA");
+On Tuesday, December 01, 2015 12:33:51 PM Andy Shevchenko wrote:
+> On Mon, 2015-11-30 at 20:58 +0100, Wolfram Sang wrote:
+> > On Mon, Nov 30, 2015 at 05:11:44PM +0200, Andy Shevchenko wrote:
+> > > From: Mika Westerberg <mika.westerberg@linux.intel.com>
+> > > 
+> > > With ACPI _DSD (introduced in ACPI v5.1) it is now possible to pass
+> > > device
+> > > configuration information from ACPI in addition to DT. In order to
+> > > support
+> > > this, convert the driver to use the unified device property
+> > > accessors
+> > > instead of DT specific.
+> > > 
+> > > Change to ordering a bit so that we first try platform data and if
+> > > that's
+> > > not available look from device properties. ACPI *CNT methods are
+> > > then used
+> > > as last resort to override everything else.
+> > > 
+> > > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+> > > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> > > Acked-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
 > > 
-> > This looks sort of heavy-handed.
-> > 
-> > Is this the only possible configuration of the device in the ACPI case?
-> > 
+> > What is the bug fix here described in the cover letter?
 > 
-> As far as I can tell yes, but ARM haven't actually published a document
-> to state that as fact.
+> The cover letter mentioned 'last part' which I refer to as patches 14,
+> 15 (though this is for UART), and 16.
 
-At least a comment explaining what kind of information this is based on would
-be useful.  Otherwise one has to wonder where this is coming from.
+Hmm.
 
-> This does replace the platform_probe that Russel was unhappy about for
-> the ACPI case.
+So may I assume that patches [1-13/16] are for me and the rest is to be applied
+by the other respective maintainers?
 
-I can't really comment on that.
+That should be easiest logistically IMHO.
 
 Thanks,
 Rafael
