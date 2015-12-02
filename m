@@ -1,74 +1,186 @@
 From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: [PATCH v3 0/5] ACPI / processor_idle: Add ACPI v6.0 LPI support
-Date: Wed,  2 Dec 2015 14:10:41 +0000
-Message-ID: <1449065446-26115-1-git-send-email-sudeep.holla@arm.com>
+Subject: [PATCH v3 2/5] ACPI / sleep: move acpi_processor_sleep to sleep.c
+Date: Wed,  2 Dec 2015 14:10:43 +0000
+Message-ID: <1449065446-26115-3-git-send-email-sudeep.holla@arm.com>
+References: <1449065446-26115-1-git-send-email-sudeep.holla@arm.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1449065446-26115-1-git-send-email-sudeep.holla@arm.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: Sudeep Holla <sudeep.holla@arm.com>, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, x86@kernel.org, Al Stone <al.stone@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Mahesh Sivasubramanian <msivasub@codeaurora.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Prashanth Prakash <pprakash@codeaurora.org>
 List-Id: linux-acpi@vger.kernel.org
 
-ACPI 6.0 introduced LPI(Low Power Idle) states that provides an alternate
-method to describe processor idle states. It extends the specification
-to allow the expression of idle states like C-states selectable by the
-OSPM when a processor goes idle, but may affect more than one processor,
-and may affect other system components.
+acpi_processor_sleep is neither related nor used by CPUIdle framework.
+It's used in system suspend/resume path as a syscore operation. It makes
+more sense to move it to acpi/sleep.c where all the S-state transition
+(a.k.a. Linux system suspend/hiberate) related code are present.
 
-LPI extensions leverages the processor container device(again introduced
-in ACPI 6.0) allowing to express which parts of the system are affected
-by a given LPI state. It defines the local power states for each node
-in a hierarchical processor topology. The OSPM can use _LPI object to
-select a local power state for each level of processor hierarchy in the
-system. They used to produce a composite power state request that is
-presented to the platform by the OSPM.
+Also make it depend on CONFIG_ACPI_SYSTEM_POWER_STATES_SUPPORT so that
+it's not compiled on architecture like ARM64 where S-states are not
+yet defined in ACPI.
 
-Since multiple processors affect the idle state for any non-leaf hierarchy
-node, coordination of idle state requests between the processors is
-required. ACPI supports two different coordination schemes: Platform
-coordinated and  OS initiated.
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+---
+ drivers/acpi/processor_driver.c |  2 --
+ drivers/acpi/processor_idle.c   | 37 -------------------------------------
+ drivers/acpi/sleep.c            | 35 +++++++++++++++++++++++++++++++++++
+ include/acpi/processor.h        |  8 --------
+ 4 files changed, 35 insertions(+), 47 deletions(-)
 
-This series aims at providing basic and initial support for platform
-coordinated LPI states.
-
-v2[2]->v3:
-	- rebased against v4.4-rc3
-	- fixed couple of issues reported by Prashanth and review comments
-	  from Ashwin
-
-v1[1]->v2[2]:
-	- Fixed support for ACPI0010 processor container
-	- moved sleep state code out of processor_idle
-
-Note the ARM64 specific changes are not part of this series as it's still
-WIP and there are other consolidation happening in there. For reference
-and testing, I have pushed a branch[3]
-
-Regards,
-Sudeep
-
-[1] https://lkml.org/lkml/2015/8/4/789
-[2] https://lkml.org/lkml/2015/9/16/422
-[3] git://git.kernel.org/pub/scm/linux/kernel/git/sudeep.holla/linux.git arm64_lpi_testing
-
-
-Sudeep Holla (5):
-  ACPI / processor : add support for ACPI0010 processor container
-  ACPI / sleep: move acpi_processor_sleep to sleep.c
-  ACPI / processor_idle: replace PREFIX with pr_fmt
-  ACPI / processor_idle : introduce ARCH_SUPPORTS_ACPI_PROCESSOR_CSTATE
-  ACPI / processor_idle: Add support for Low Power Idle(LPI) states
-
- arch/ia64/Kconfig               |   1 +
- arch/x86/Kconfig                |   1 +
- drivers/acpi/Kconfig            |   6 +
- drivers/acpi/acpi_processor.c   |  17 ++
- drivers/acpi/bus.c              |   8 +-
- drivers/acpi/processor_driver.c |   4 +-
- drivers/acpi/processor_idle.c   | 553 ++++++++++++++++++++++++++++++++--------
- drivers/acpi/sleep.c            |  35 +++
- include/acpi/processor.h        |  42 ++-
- include/linux/acpi.h            |   4 +
- 10 files changed, 545 insertions(+), 126 deletions(-)
-
+diff --git a/drivers/acpi/processor_driver.c b/drivers/acpi/processor_driver.c
+index f4e02ae93f58..29f787b2493f 100644
+--- a/drivers/acpi/processor_driver.c
++++ b/drivers/acpi/processor_driver.c
+@@ -313,7 +313,6 @@ static int __init acpi_processor_driver_init(void)
+ 	if (result < 0)
+ 		return result;
+ 
+-	acpi_processor_syscore_init();
+ 	register_hotcpu_notifier(&acpi_cpu_notifier);
+ 	acpi_thermal_cpufreq_init();
+ 	acpi_processor_ppc_init();
+@@ -329,7 +328,6 @@ static void __exit acpi_processor_driver_exit(void)
+ 	acpi_processor_ppc_exit();
+ 	acpi_thermal_cpufreq_exit();
+ 	unregister_hotcpu_notifier(&acpi_cpu_notifier);
+-	acpi_processor_syscore_exit();
+ 	driver_unregister(&acpi_processor_driver);
+ }
+ 
+diff --git a/drivers/acpi/processor_idle.c b/drivers/acpi/processor_idle.c
+index 175c86bee3a9..a24067b850d2 100644
+--- a/drivers/acpi/processor_idle.c
++++ b/drivers/acpi/processor_idle.c
+@@ -30,7 +30,6 @@
+ #include <linux/sched.h>       /* need_resched() */
+ #include <linux/tick.h>
+ #include <linux/cpuidle.h>
+-#include <linux/syscore_ops.h>
+ #include <acpi/processor.h>
+ 
+ /*
+@@ -194,42 +193,6 @@ static void lapic_timer_state_broadcast(struct acpi_processor *pr,
+ 
+ #endif
+ 
+-#ifdef CONFIG_PM_SLEEP
+-static u32 saved_bm_rld;
+-
+-static int acpi_processor_suspend(void)
+-{
+-	acpi_read_bit_register(ACPI_BITREG_BUS_MASTER_RLD, &saved_bm_rld);
+-	return 0;
+-}
+-
+-static void acpi_processor_resume(void)
+-{
+-	u32 resumed_bm_rld = 0;
+-
+-	acpi_read_bit_register(ACPI_BITREG_BUS_MASTER_RLD, &resumed_bm_rld);
+-	if (resumed_bm_rld == saved_bm_rld)
+-		return;
+-
+-	acpi_write_bit_register(ACPI_BITREG_BUS_MASTER_RLD, saved_bm_rld);
+-}
+-
+-static struct syscore_ops acpi_processor_syscore_ops = {
+-	.suspend = acpi_processor_suspend,
+-	.resume = acpi_processor_resume,
+-};
+-
+-void acpi_processor_syscore_init(void)
+-{
+-	register_syscore_ops(&acpi_processor_syscore_ops);
+-}
+-
+-void acpi_processor_syscore_exit(void)
+-{
+-	unregister_syscore_ops(&acpi_processor_syscore_ops);
+-}
+-#endif /* CONFIG_PM_SLEEP */
+-
+ #if defined(CONFIG_X86)
+ static void tsc_check_state(int state)
+ {
+diff --git a/drivers/acpi/sleep.c b/drivers/acpi/sleep.c
+index 0d94621dc856..73604d8ccfad 100644
+--- a/drivers/acpi/sleep.c
++++ b/drivers/acpi/sleep.c
+@@ -19,6 +19,7 @@
+ #include <linux/reboot.h>
+ #include <linux/acpi.h>
+ #include <linux/module.h>
++#include <linux/syscore_ops.h>
+ #include <asm/io.h>
+ #include <trace/events/power.h>
+ 
+@@ -677,6 +678,39 @@ static void acpi_sleep_suspend_setup(void)
+ static inline void acpi_sleep_suspend_setup(void) {}
+ #endif /* !CONFIG_SUSPEND */
+ 
++#ifdef CONFIG_PM_SLEEP
++static u32 saved_bm_rld;
++
++static int acpi_processor_suspend(void)
++{
++	acpi_read_bit_register(ACPI_BITREG_BUS_MASTER_RLD, &saved_bm_rld);
++	return 0;
++}
++
++static void acpi_processor_resume(void)
++{
++	u32 resumed_bm_rld = 0;
++
++	acpi_read_bit_register(ACPI_BITREG_BUS_MASTER_RLD, &resumed_bm_rld);
++	if (resumed_bm_rld == saved_bm_rld)
++		return;
++
++	acpi_write_bit_register(ACPI_BITREG_BUS_MASTER_RLD, saved_bm_rld);
++}
++
++static struct syscore_ops acpi_processor_syscore_ops = {
++	.suspend = acpi_processor_suspend,
++	.resume = acpi_processor_resume,
++};
++
++void acpi_processor_syscore_init(void)
++{
++	register_syscore_ops(&acpi_processor_syscore_ops);
++}
++#else
++static inline void acpi_processor_syscore_init(void) {}
++#endif /* CONFIG_PM_SLEEP */
++
+ #ifdef CONFIG_HIBERNATION
+ static unsigned long s4_hardware_signature;
+ static struct acpi_table_facs *facs;
+@@ -839,6 +873,7 @@ int __init acpi_sleep_init(void)
+ 
+ 	sleep_states[ACPI_STATE_S0] = 1;
+ 
++	acpi_processor_syscore_init();
+ 	acpi_sleep_suspend_setup();
+ 	acpi_sleep_hibernate_setup();
+ 
+diff --git a/include/acpi/processor.h b/include/acpi/processor.h
+index 54d7860cac11..6f1805dd5d3c 100644
+--- a/include/acpi/processor.h
++++ b/include/acpi/processor.h
+@@ -395,14 +395,6 @@ static inline int acpi_processor_hotplug(struct acpi_processor *pr)
+ }
+ #endif /* CONFIG_ACPI_PROCESSOR_IDLE */
+ 
+-#if defined(CONFIG_PM_SLEEP) & defined(CONFIG_ACPI_PROCESSOR_IDLE)
+-void acpi_processor_syscore_init(void);
+-void acpi_processor_syscore_exit(void);
+-#else
+-static inline void acpi_processor_syscore_init(void) {}
+-static inline void acpi_processor_syscore_exit(void) {}
+-#endif
+-
+ /* in processor_thermal.c */
+ int acpi_processor_get_limit_info(struct acpi_processor *pr);
+ extern const struct thermal_cooling_device_ops processor_cooling_ops;
 -- 
 1.9.1
