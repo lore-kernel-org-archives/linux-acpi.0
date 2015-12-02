@@ -1,90 +1,105 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH v2 16/16] i2c: designware: Convert to use unified device
- property API
-Date: Wed, 2 Dec 2015 10:53:39 +0100
-Message-ID: <20151202095339.GC1555@katana>
-References: <1448896304-87928-1-git-send-email-andriy.shevchenko@linux.intel.com>
- <20151130195858.GB16446@katana>
- <1448966031.15393.131.camel@linux.intel.com>
- <3465575.VLD33ozkzD@vostro.rjw.lan>
- <1449048220.15393.141.camel@linux.intel.com>
- <20151202093341.GM1593@lahna.fi.intel.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [RFC PATCH 4/4] mfd: syscon: add ACPI support
+Date: Wed, 02 Dec 2015 11:44:51 +0100
+Message-ID: <2299982.06P4iKpkWk@wuerfel>
+References: <1449047368-5768-1-git-send-email-wangkefeng.wang@huawei.com> <1449047368-5768-5-git-send-email-wangkefeng.wang@huawei.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="7gGkHNMELEOhSGF6"
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from sauhun.de ([89.238.76.85]:43439 "EHLO pokefinder.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756450AbbLBJxs (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 2 Dec 2015 04:53:48 -0500
-Content-Disposition: inline
-In-Reply-To: <20151202093341.GM1593@lahna.fi.intel.com>
+Received: from mout.kundenserver.de ([212.227.17.13]:50200 "EHLO
+	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751085AbbLBKp0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Dec 2015 05:45:26 -0500
+In-Reply-To: <1449047368-5768-5-git-send-email-wangkefeng.wang@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Kevin Fenzi <kevin@scrye.com>, Arnd Bergmann <arnd@arndb.de>
+To: Kefeng Wang <wangkefeng.wang@huawei.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Hanjun Guo <hanjun.guo@linaro.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 
+On Wednesday 02 December 2015 17:09:28 Kefeng Wang wrote:
+> This enables syscon with ACPI support.
+> syscon_regmap_lookup_by_dev_property() function was added. With helper
+> device_get_reference_node() and acpi_dev_find_plat_dev(), it can be used
+> in both DT and ACPI.
+> 
+> The device driver can obtain syscon using _DSD method in DSDT, an example
+> is shown below.
+> 
+>     Device(CTL0) {
+>           Name(_HID, "HISI0061")
+>           Name(_CRS, ResourceTemplate() {
+>                   Memory32Fixed(ReadWrite, 0x80000000, 0x10000)
+>           })
+>     }
+> 
+>     Device(DEV0) {
+>           Name(_HID, "HISI00B1")
+>           Name(_CRS, ResourceTemplate() {
+>                   Memory32Fixed(ReadWrite, 0x8c030000, 0x10000)
+>                   Interrupt(ResourceConsumer, Level, ActiveHigh, Exclusive){ 192 }
+>           })
+> 
+>           Name (_DSD, Package () {
+>               ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+>               Package () {
+>                   Package () {"syscon",Package() {\_SB.CTL0} }
+>               }
+>           })
+>     }
+> 
+> Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
 
---7gGkHNMELEOhSGF6
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+This sounds like a bad idea:
 
-On Wed, Dec 02, 2015 at 11:33:41AM +0200, Mika Westerberg wrote:
-> On Wed, Dec 02, 2015 at 11:23:40AM +0200, Andy Shevchenko wrote:
-> > On Wed, 2015-12-02 at 02:28 +0100, Rafael J. Wysocki wrote:
-> > > On Tuesday, December 01, 2015 12:33:51 PM Andy Shevchenko wrote:
-> > > > On Mon, 2015-11-30 at 20:58 +0100, Wolfram Sang wrote:
-> > > > > On Mon, Nov 30, 2015 at 05:11:44PM +0200, Andy Shevchenko wrote:
-> >=20
-> >=20
-> >=20
-> > > > > What is the bug fix here described in the cover letter?
-> > > >=20
-> > > > The cover letter mentioned 'last part' which I refer to as patches
-> > > > 14,
-> > > > 15 (though this is for UART), and 16.
-> > >=20
-> > > Hmm.
-> > >=20
-> > > So may I assume that patches [1-13/16] are for me and the rest is to
-> > > be applied
-> > > by the other respective maintainers?
-> > >=20
-> > > That should be easiest logistically IMHO.
-> >=20
-> > Have no objections.
->=20
-> Unfortunately the patches (except this one) depend on each other so they
-> cannot be applied separately.
+syscon is basically a hack to let us access register that the SoC designer
+couldn't fit in anywhere sane. We need something like this with devicetree
+because we decided not to have any interpreted bytecode to do this behind
+our back.
 
-So, why not let all of them go in in one go?
+With ACPI, the same thing is done with AML, which is actually nicer than
+syscon (once you have to deal with all the problems introduced by AML).
 
-For this patch:
+Use that instead.
 
-Acked-by: Wolfram Sang <wsa@the-dreams.de>
+> +               pdev = acpi_dev_find_plat_dev(adev);
+> +               if (!pdev)
+> +                       return ERR_PTR(-ENODEV);
+> +               syscon = platform_get_drvdata(pdev);
 
+This still requires the syscon device to be probed first, which is
+something we shouldn't really need any more.
 
---7gGkHNMELEOhSGF6
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+A lot of syscon users depend on the regmap to be available before
+device drivers are loaded, so we have changed the code to just look up
+the device_node that is already present and ignore the device.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
+Once clps711x has been converted to DT, I think we can rip out the
+syscon_regmap_lookup_by_pdevname() interface and separate the syscon
+regmap handling from the device handling that we only really need
+for debugfs.
 
-iQIcBAEBAgAGBQJWXr+jAAoJEBQN5MwUoCm2b1AP/1Iyh8gCzMaNeydZHmvUb7rb
-2zWS+0M+uGgANpLGoKds2LpkmBlxrXByrSnC+1b+bRd/BsM3G6vCLealzpgBKelL
-/DxNHt51e1zgJf7NOm+tSTF0R0+nMyEYTs3MIuDufyGRT9V6SDDXAP2GjaUrScjb
-3TwRM5kOWNbscEsA4jzSTsyJwquPoT4dJnStWEvRRZ4jGoU2zB+6y+Zzz+cjmmTe
-lizsQUNFD8vwMtk2B4e7TeiqglgipbhpcswYSlQDuLSdYLTPamfvWu+UyvHXG09k
-rBjpklgC1evzmN1UsN8FbipPqjyzutkKc+Sp4louEp/N13TxNqq/eysm6//iUmF+
-yDexu6H2GFnEJeOMwHy8eXyYGzUgdIFls5UsKy5ZafzHHpwO/fE7J3O1fIUaGOuZ
-/PBgcLrJRyJ6d9Y14D8oquK8HgRizcR+0786Q5OW66CMGDF/vpK4WCzM3LfSvuTP
-KzIUKpzf8CytfJF26AyDXad1iVYNkTqcmw2LCLzu1w1VmwZNiG1T7K0EyFPKpF7Z
-AOb0rI/XUrhxlxelqtpXPQ8L/7FqHj1LmcYteYxdRW6ZoGDCBw4P5lft5lgQmyu7
-TSiCGvTV5dwhcBB3FQ6qFYJfnmysIqXGMHw2Tk6QJINUyotpG6oHUj1F5B7+eCB/
-8WMgrzvSxFCb08ZZ24k2
-=tDse
------END PGP SIGNATURE-----
+> @@ -216,9 +259,16 @@ static const struct platform_device_id syscon_ids[] = {
+>  	{ }
+>  };
+>  
+> +static const struct acpi_device_id syscon_acpi_match[] = {
+> +	{ "HISI0061", 0 }, /* better to use generic ACPI ID */
+> +	{ }
+> +};
+> +MODULE_DEVICE_TABLE(acpi, syscon_acpi_match);
+> +
+>  static struct platform_driver syscon_driver = {
+>  	.driver = {
+>  		.name = "syscon",
+> +		.acpi_match_table = ACPI_PTR(syscon_acpi_match),
+>  	},
+>  	.probe		= syscon_probe,
+>  	.id_table	= syscon_ids,
 
---7gGkHNMELEOhSGF6--
+We certainly don't want to list specific devices, so the other problem
+aside, we wouldn't merge it until there is an official ACPI way to
+specify "random crap register areas" that does not depend on a vendor
+specific ID.
+
+	Arnd
