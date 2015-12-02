@@ -1,57 +1,72 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 16/16] i2c: designware: Convert to use unified device property API
-Date: Wed, 02 Dec 2015 02:28:29 +0100
-Message-ID: <3465575.VLD33ozkzD@vostro.rjw.lan>
-References: <1448896304-87928-1-git-send-email-andriy.shevchenko@linux.intel.com> <20151130195858.GB16446@katana> <1448966031.15393.131.camel@linux.intel.com>
+From: Andy Lutomirski <luto@amacapital.net>
+Subject: Re: ACPI device without physical node (pnpacpi oddity?)
+Date: Tue, 1 Dec 2015 17:04:33 -0800
+Message-ID: <CALCETrVMDHbazy8YqbdDkDLoVvgQOmJ2f57Wc5LZZKrF3X2Q0A@mail.gmail.com>
+References: <CALCETrXcJN-nKLVzuWj_pbqwO+g0i1sfg2vCr=Y6_Gn_7XT=gw@mail.gmail.com>
+ <CALCETrX24s2wzXs4bz4GH-XAi8COk2nKUkXYY2i81MV=r5H_PQ@mail.gmail.com>
+ <744357E9AAD1214791ACBA4B0B9092633A91E855@SHSMSX101.ccr.corp.intel.com> <2125838.NE6T2gi0bX@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:51007 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1757188AbbLBA6j (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Dec 2015 19:58:39 -0500
-In-Reply-To: <1448966031.15393.131.camel@linux.intel.com>
+Received: from mail-ob0-f180.google.com ([209.85.214.180]:36068 "EHLO
+	mail-ob0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752249AbbLBBEx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 1 Dec 2015 20:04:53 -0500
+Received: by obcse5 with SMTP id se5so16838343obc.3
+        for <linux-acpi@vger.kernel.org>; Tue, 01 Dec 2015 17:04:53 -0800 (PST)
+In-Reply-To: <2125838.NE6T2gi0bX@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Wolfram Sang <wsa@the-dreams.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Kevin Fenzi <kevin@scrye.com>, Arnd Bergmann <arnd@arndb.de>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "Zhang, Rui" <rui.zhang@intel.com>, Linux ACPI <linux-acpi@vger.kernel.org>
 
-On Tuesday, December 01, 2015 12:33:51 PM Andy Shevchenko wrote:
-> On Mon, 2015-11-30 at 20:58 +0100, Wolfram Sang wrote:
-> > On Mon, Nov 30, 2015 at 05:11:44PM +0200, Andy Shevchenko wrote:
-> > > From: Mika Westerberg <mika.westerberg@linux.intel.com>
-> > > 
-> > > With ACPI _DSD (introduced in ACPI v5.1) it is now possible to pass
-> > > device
-> > > configuration information from ACPI in addition to DT. In order to
-> > > support
-> > > this, convert the driver to use the unified device property
-> > > accessors
-> > > instead of DT specific.
-> > > 
-> > > Change to ordering a bit so that we first try platform data and if
-> > > that's
-> > > not available look from device properties. ACPI *CNT methods are
-> > > then used
-> > > as last resort to override everything else.
-> > > 
-> > > Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> > > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> > > Acked-by: Jarkko Nikula <jarkko.nikula@linux.intel.com>
-> > 
-> > What is the bug fix here described in the cover letter?
-> 
-> The cover letter mentioned 'last part' which I refer to as patches 14,
-> 15 (though this is for UART), and 16.
+On Tue, Dec 1, 2015 at 5:18 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Tuesday, December 01, 2015 03:25:41 AM Zhang, Rui wrote:
+>> Hi, all,
+>>
+>> The problem here is that the ACPI device node has
+>>             Name (_HID, "INT33D5")  // _HID: Hardware ID
+>>             Name (_CID, "PNP0C02" /* PNP Motherboard Resources */)  //
+>> _CID: Compatible ID
+>>
+>> Andy wants to write a driver for INT33D5 device, but unfortunately
+>> 1. _CID "PNP0C02" makes it impossible to bind via platform bus
+>> 2. Lacking of _CRS makes it impossible to bind via PNP bus.
+>>
+>> I've seen similar problem before, and the solution is to ask BIOS people to remove the _CID "PNP0C02".
+>
+> What if they refuse?
+>
+>> IMO, such AML code does not make sense at all (even if _CRS is provided), because in this case, the _CID and the _HID of the same ACPI device node actually represent two totally different devices.
+>
+> That's correct.  I guess this is a hack for Windows to prevent it from
+> displaying "yellow bangs" for devices without "real" drivers.
+>
+>> OR, a clean way to fix this in Linux is to make the motherboard resource reservation stuff a function call instead of a driver, and invoke the function call in either PNP or ACPI bus code by checking "PNP0C02". In this case, only the device id that represents the physical device (INT33D5 in this case) can be used for device enumeration and driver probing.
+>
+> OK, but we need to keep the current ordering or there will be regressions in
+> some odball configurations.
+>
+> What about walking (a) creating a list of things that have "PNP0C02" in their
+> list of PNP IDs and (b) walking that list after we've completed the initial
+> scan and reserving the resources for the ones that still have no drivers?
+>
 
-Hmm.
+I'm not really sure how this can work.  The driver might be
+demand-loaded (maybe even after we're done with initramfs) as a result
+of a modalias.
 
-So may I assume that patches [1-13/16] are for me and the rest is to be applied
-by the other respective maintainers?
+Could we just change acpi_pnp_attach to return 0 for devices that have
+HID != "PNP0C02" and don't have _CRS?
 
-That should be easiest logistically IMHO.
+We could also consider something crazy like allowing ACPI platform
+drivers (platform drivers with .acpi_match_table set) to bind pnp
+devices.  I find it a bit odd that we have two different busses that
+have non-natively-enumerable things that come from ACPI.
 
-Thanks,
-Rafael
+Or we could have a more general kind of driver interface that can bind
+both platform and pnp devices.  (It should presumably bind any other
+similar busses.)  It would match solely based on ACPI/OF data.
 
+--Andy
