@@ -1,73 +1,67 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: [PATCH v3 1/5] ACPI / processor : add support for ACPI0010 processor container
-Date: Wed,  2 Dec 2015 14:10:42 +0000
-Message-ID: <1449065446-26115-2-git-send-email-sudeep.holla@arm.com>
-References: <1449065446-26115-1-git-send-email-sudeep.holla@arm.com>
+From: Jerry Hoemann <jerry.hoemann@hpe.com>
+Subject: [PATCH v3 1/3] nvdimm: Clean-up access mode check.
+Date: Wed,  2 Dec 2015 14:05:19 -0700
+Message-ID: <e34ab0a631f856562cff746bd4df8f20ff655162.1449089647.git.jerry.hoemann@hpe.com>
+References: <cover.1449089647.git.jerry.hoemann@hpe.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1449065446-26115-1-git-send-email-sudeep.holla@arm.com>
+In-Reply-To: <cover.1449089647.git.jerry.hoemann@hpe.com>
+In-Reply-To: <cover.1449089647.git.jerry.hoemann@hpe.com>
+References: <cover.1449089647.git.jerry.hoemann@hpe.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, x86@kernel.org, Al Stone <al.stone@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Mahesh Sivasubramanian <msivasub@codeaurora.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Prashanth Prakash <pprakash@codeaurora.org>
+To: ross.zwisler@linux.intel.com, rjw@rjwysocki.net, lenb@kernel.org, dan.j.williams@intel.com, elliott@hpe.com, jmoyer@redhat.com, krivenok.dmitry@gmail.com, linda.knippers@hpe.com
+Cc: linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jerry Hoemann <jerry.hoemann@hpe.com>
 List-Id: linux-acpi@vger.kernel.org
 
-ACPI 6.0 adds support for optional processor container device which may
-contain child objects that are either processor devices or other processor
-containers. This allows representing hierarchical processor topologies.
+Change nd_ioctl and nvdimm_ioctl access mode check to use O_RDONLY.
 
-It is declared using the _HID of ACPI0010. It is an abstract container
-used to represent CPU topology and should not be used to hotplug
-purposes.
-
-This patch enables the support for these ACPI processor containers and
-ensures the generic container/module devices are not created for them.
-
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Signed-off-by: Sudeep Holla <sudeep.holla@arm.com>
+Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
 ---
- drivers/acpi/acpi_processor.c | 17 +++++++++++++++++
- include/acpi/processor.h      |  1 +
- 2 files changed, 18 insertions(+)
+ drivers/nvdimm/bus.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/acpi/acpi_processor.c b/drivers/acpi/acpi_processor.c
-index 6979186dbd4b..b5e54f2da53d 100644
---- a/drivers/acpi/acpi_processor.c
-+++ b/drivers/acpi/acpi_processor.c
-@@ -514,7 +514,24 @@ static struct acpi_scan_handler processor_handler = {
- 	},
- };
- 
-+static int acpi_processor_container_attach(struct acpi_device *dev,
-+					   const struct acpi_device_id *id)
-+{
-+	return 1;
-+}
-+
-+static const struct acpi_device_id processor_container_ids[] = {
-+	{ ACPI_PROCESSOR_CONTAINER_HID, },
-+	{ }
-+};
-+
-+static struct acpi_scan_handler processor_container_handler = {
-+	.ids = processor_container_ids,
-+	.attach = acpi_processor_container_attach,
-+};
-+
- void __init acpi_processor_init(void)
+diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+index 7e2c43f..1c81203 100644
+--- a/drivers/nvdimm/bus.c
++++ b/drivers/nvdimm/bus.c
+@@ -602,14 +602,14 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
+ static long nd_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
  {
- 	acpi_scan_add_handler_with_hotplug(&processor_handler, "processor");
-+	acpi_scan_add_handler(&processor_container_handler);
- }
-diff --git a/include/acpi/processor.h b/include/acpi/processor.h
-index 07fb100bcc68..54d7860cac11 100644
---- a/include/acpi/processor.h
-+++ b/include/acpi/processor.h
-@@ -9,6 +9,7 @@
- #define ACPI_PROCESSOR_CLASS		"processor"
- #define ACPI_PROCESSOR_DEVICE_NAME	"Processor"
- #define ACPI_PROCESSOR_DEVICE_HID	"ACPI0007"
-+#define ACPI_PROCESSOR_CONTAINER_HID	"ACPI0010"
+ 	long id = (long) file->private_data;
+-	int rc = -ENXIO, read_only;
++	int rc = -ENXIO, ro;
+ 	struct nvdimm_bus *nvdimm_bus;
  
- #define ACPI_PROCESSOR_BUSY_METRIC	10
+-	read_only = (O_RDWR != (file->f_flags & O_ACCMODE));
++	ro = ((file->f_flags & O_ACCMODE) == O_RDONLY);
+ 	mutex_lock(&nvdimm_bus_list_mutex);
+ 	list_for_each_entry(nvdimm_bus, &nvdimm_bus_list, list) {
+ 		if (nvdimm_bus->id == id) {
+-			rc = __nd_ioctl(nvdimm_bus, NULL, read_only, cmd, arg);
++			rc = __nd_ioctl(nvdimm_bus, NULL, ro, cmd, arg);
+ 			break;
+ 		}
+ 	}
+@@ -633,10 +633,10 @@ static int match_dimm(struct device *dev, void *data)
  
+ static long nvdimm_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ {
+-	int rc = -ENXIO, read_only;
++	int rc = -ENXIO, ro;
+ 	struct nvdimm_bus *nvdimm_bus;
+ 
+-	read_only = (O_RDWR != (file->f_flags & O_ACCMODE));
++	ro = ((file->f_flags & O_ACCMODE) == O_RDONLY);
+ 	mutex_lock(&nvdimm_bus_list_mutex);
+ 	list_for_each_entry(nvdimm_bus, &nvdimm_bus_list, list) {
+ 		struct device *dev = device_find_child(&nvdimm_bus->dev,
+@@ -647,7 +647,7 @@ static long nvdimm_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ 			continue;
+ 
+ 		nvdimm = to_nvdimm(dev);
+-		rc = __nd_ioctl(nvdimm_bus, nvdimm, read_only, cmd, arg);
++		rc = __nd_ioctl(nvdimm_bus, nvdimm, ro, cmd, arg);
+ 		put_device(dev);
+ 		break;
+ 	}
 -- 
-1.9.1
+1.7.11.3
