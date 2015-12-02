@@ -1,40 +1,48 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: ACPI device without physical node (pnpacpi oddity?)
-Date: Wed, 02 Dec 2015 13:25 +0100
-Message-ID: <5754530.CdtynUQlbJ@vostro.rjw.lan>
-References: <CALCETrXcJN-nKLVzuWj_pbqwO+g0i1sfg2vCr=Y6_Gn_7XT=gw@mail.gmail.com> <1449021653.22321.6.camel@rzhang1-mobl4> <CALCETrV6F=FcXaoDGeb=x+ebSzopR3ib5PsK2Ckupr6z+80+aQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+From: Colin King <colin.king@canonical.com>
+Subject: [PATCH] ACPI / extlog: don't dereference extlog_l1_addr if it is null
+Date: Wed,  2 Dec 2015 11:58:28 +0000
+Message-ID: <1449057508-10172-1-git-send-email-colin.king@canonical.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:44954 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1757229AbbLBLzK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Dec 2015 06:55:10 -0500
-In-Reply-To: <CALCETrV6F=FcXaoDGeb=x+ebSzopR3ib5PsK2Ckupr6z+80+aQ@mail.gmail.com>
+Received: from youngberry.canonical.com ([91.189.89.112]:41097 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754604AbbLBL6d (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Dec 2015 06:58:33 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Lutomirski <luto@amacapital.net>
-Cc: Zhang Rui <rui.zhang@intel.com>, Linux ACPI <linux-acpi@vger.kernel.org>
+To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 
-On Tuesday, December 01, 2015 06:03:31 PM Andy Lutomirski wrote:
-> On Tue, Dec 1, 2015 at 6:00 PM, Zhang Rui <rui.zhang@intel.com> wrote:
-> > On Wed, 2015-12-02 at 01:48 +0100, Rafael J. Wysocki wrote:
-> >> For your use case we could make the PNP layer ignore the pnp0c02 device id if
-> >> (a) _CRS is missing and (b) pnp0c02 is in the _CID list (not a _HID).
-> >>
-> > Yes, this could work.
-> > But I'm concerning another case, say, a device with both _CRS and _CID
-> > "PNP0C02", we don't have a way to probe the device via _HID.
-> 
-> Doesn't .acpi_match_table do exactly this?
+From: Colin Ian King <colin.king@canonical.com>
 
-It does, but then we'll create a PNP device which isn't going to be handled
-by a platform driver.
+There is a check to see if extlog_l1_addr is null before calling
+acpi_os_unmap_iomem, however, before that call there is a
+dereference on this that could trip an oops.  Move the
+extlog_l1_addr dereference so it occurs only if it is not null.
 
-So (as I said before) we need to ensure that we'll consistently create the
-same type of a device for the given device ID every time we see it.
+Found by static analysis by smatch.
 
-Thanks,
-Rafael
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ drivers/acpi/acpi_extlog.c | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/acpi/acpi_extlog.c b/drivers/acpi/acpi_extlog.c
+index b3842ff..183b7b2 100644
+--- a/drivers/acpi/acpi_extlog.c
++++ b/drivers/acpi/acpi_extlog.c
+@@ -309,9 +309,10 @@ static void __exit extlog_exit(void)
+ {
+ 	set_edac_report_status(old_edac_report_status);
+ 	mce_unregister_decode_chain(&extlog_mce_dec);
+-	((struct extlog_l1_head *)extlog_l1_addr)->flags &= ~FLAG_OS_OPTIN;
+-	if (extlog_l1_addr)
++	if (extlog_l1_addr) {
++		((struct extlog_l1_head *)extlog_l1_addr)->flags &= ~FLAG_OS_OPTIN;
+ 		acpi_os_unmap_iomem(extlog_l1_addr, l1_size);
++	}
+ 	if (elog_addr)
+ 		acpi_os_unmap_iomem(elog_addr, elog_size);
+ 	release_mem_region(elog_base, elog_size);
+-- 
+2.6.2
 
