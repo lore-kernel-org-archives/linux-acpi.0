@@ -1,75 +1,74 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: ACPI device without physical node (pnpacpi oddity?)
-Date: Wed, 02 Dec 2015 15:37:22 +0100
-Message-ID: <1511399.A7Ia5eFWOM@vostro.rjw.lan>
-References: <CALCETrXcJN-nKLVzuWj_pbqwO+g0i1sfg2vCr=Y6_Gn_7XT=gw@mail.gmail.com> <1449023684.22697.14.camel@rzhang1-mobl4> <13177559.3ZmjZKOO1k@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:54004 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1757791AbbLBOHd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Dec 2015 09:07:33 -0500
-In-Reply-To: <13177559.3ZmjZKOO1k@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: [PATCH v3 0/5] ACPI / processor_idle: Add ACPI v6.0 LPI support
+Date: Wed,  2 Dec 2015 14:10:41 +0000
+Message-ID: <1449065446-26115-1-git-send-email-sudeep.holla@arm.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, x86@kernel.org, Al Stone <al.stone@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Mahesh Sivasubramanian <msivasub@codeaurora.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Prashanth Prakash <pprakash@codeaurora.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Zhang Rui <rui.zhang@intel.com>
-Cc: Andy Lutomirski <luto@amacapital.net>, Linux ACPI <linux-acpi@vger.kernel.org>
 
-On Wednesday, December 02, 2015 01:22:16 PM Rafael J. Wysocki wrote:
-> On Wednesday, December 02, 2015 10:34:44 AM Zhang Rui wrote:
-> > On Wed, 2015-12-02 at 02:18 +0100, Rafael J. Wysocki wrote:
-> > > On Tuesday, December 01, 2015 03:25:41 AM Zhang, Rui wrote:
-> > > > Hi, all,
-> > > > 
-> > > > The problem here is that the ACPI device node has
-> > > >             Name (_HID, "INT33D5")  // _HID: Hardware ID
-> > > >             Name (_CID, "PNP0C02" /* PNP Motherboard Resources */)  //
-> > > > _CID: Compatible ID
-> > > > 
-> > > > Andy wants to write a driver for INT33D5 device, but unfortunately
-> > > > 1. _CID "PNP0C02" makes it impossible to bind via platform bus
-> > > > 2. Lacking of _CRS makes it impossible to bind via PNP bus.
-> > > > 
-> > > > I've seen similar problem before, and the solution is to ask BIOS people to remove the _CID "PNP0C02".
-> > > 
-> > > What if they refuse?
-> > 
-> > Well, we don't have a kernel solution for this case so far.
-> > > 
-> > > > IMO, such AML code does not make sense at all (even if _CRS is provided), because in this case, the _CID and the _HID of the same ACPI device node actually represent two totally different devices.
-> > > 
-> > > That's correct.  I guess this is a hack for Windows to prevent it from
-> > > displaying "yellow bangs" for devices without "real" drivers.
-> > 
-> > Does this mean that the Windows "PNP0C02" driver won't prevent any other
-> > driver from probing its devices?
-> > > 
-> > > > OR, a clean way to fix this in Linux is to make the motherboard resource reservation stuff a function call instead of a driver, and invoke the function call in either PNP or ACPI bus code by checking "PNP0C02". In this case, only the device id that represents the physical device (INT33D5 in this case) can be used for device enumeration and driver probing.
-> > > 
-> > > OK, but we need to keep the current ordering or there will be regressions in
-> > > some odball configurations.
-> > > 
-> > > What about walking (a) creating a list of things that have "PNP0C02" in their
-> > > list of PNP IDs and (b) walking that list after we've completed the initial
-> > > scan and reserving the resources for the ones that still have no drivers?
-> > > 
-> > hmmm, first of all, a question, say, for a device have _CID "PNP0C02"
-> > and _HID, if we want to bind the _HID, what should we do?
-> > should we reserve the resources before loading the _HID driver, and free
-> > the resources after unloading the _HID driver?
-> 
-> No, we shouldn't.  Handling the resources is up to the driver then.
+ACPI 6.0 introduced LPI(Low Power Idle) states that provides an alternate
+method to describe processor idle states. It extends the specification
+to allow the expression of idle states like C-states selectable by the
+OSPM when a processor goes idle, but may affect more than one processor,
+and may affect other system components.
 
-Actually, scratch that.
+LPI extensions leverages the processor container device(again introduced
+in ACPI 6.0) allowing to express which parts of the system are affected
+by a given LPI state. It defines the local power states for each node
+in a hierarchical processor topology. The OSPM can use _LPI object to
+select a local power state for each level of processor hierarchy in the
+system. They used to produce a composite power state request that is
+presented to the platform by the OSPM.
 
-We should register IO and memory resources for everything with _CRS to prevent
-them from being allocated to something else (and possibly use _PRS/_SRS if
-available to resolve conflicts).
+Since multiple processors affect the idle state for any non-leaf hierarchy
+node, coordination of idle state requests between the processors is
+required. ACPI supports two different coordination schemes: Platform
+coordinated and  OS initiated.
 
-If we do that, we won't need the special driver for "PNP0C02" at all.
+This series aims at providing basic and initial support for platform
+coordinated LPI states.
 
-Thanks,
-Rafael
+v2[2]->v3:
+	- rebased against v4.4-rc3
+	- fixed couple of issues reported by Prashanth and review comments
+	  from Ashwin
 
+v1[1]->v2[2]:
+	- Fixed support for ACPI0010 processor container
+	- moved sleep state code out of processor_idle
+
+Note the ARM64 specific changes are not part of this series as it's still
+WIP and there are other consolidation happening in there. For reference
+and testing, I have pushed a branch[3]
+
+Regards,
+Sudeep
+
+[1] https://lkml.org/lkml/2015/8/4/789
+[2] https://lkml.org/lkml/2015/9/16/422
+[3] git://git.kernel.org/pub/scm/linux/kernel/git/sudeep.holla/linux.git arm64_lpi_testing
+
+
+Sudeep Holla (5):
+  ACPI / processor : add support for ACPI0010 processor container
+  ACPI / sleep: move acpi_processor_sleep to sleep.c
+  ACPI / processor_idle: replace PREFIX with pr_fmt
+  ACPI / processor_idle : introduce ARCH_SUPPORTS_ACPI_PROCESSOR_CSTATE
+  ACPI / processor_idle: Add support for Low Power Idle(LPI) states
+
+ arch/ia64/Kconfig               |   1 +
+ arch/x86/Kconfig                |   1 +
+ drivers/acpi/Kconfig            |   6 +
+ drivers/acpi/acpi_processor.c   |  17 ++
+ drivers/acpi/bus.c              |   8 +-
+ drivers/acpi/processor_driver.c |   4 +-
+ drivers/acpi/processor_idle.c   | 553 ++++++++++++++++++++++++++++++++--------
+ drivers/acpi/sleep.c            |  35 +++
+ include/acpi/processor.h        |  42 ++-
+ include/linux/acpi.h            |   4 +
+ 10 files changed, 545 insertions(+), 126 deletions(-)
+
+-- 
+1.9.1
