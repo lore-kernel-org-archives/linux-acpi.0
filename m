@@ -1,118 +1,51 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [RFC PATCH 4/4] mfd: syscon: add ACPI support
-Date: Thu, 3 Dec 2015 15:56:12 +0000
-Message-ID: <20151203155612.GA2935@red-moon>
-References: <1449047368-5768-1-git-send-email-wangkefeng.wang@huawei.com>
- <1449047368-5768-5-git-send-email-wangkefeng.wang@huawei.com>
- <2299982.06P4iKpkWk@wuerfel>
- <20151203104131.GA11655@xora-haswell.xora.org.uk>
- <56603D17.4080707@huawei.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH] pci: completely disable aspm if it's unsupported
+Date: Thu, 3 Dec 2015 10:40:07 -0600
+Message-ID: <20151203164007.GA16669@localhost>
+References: <1447856703-2566-1-git-send-email-jbacik@fb.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:49872 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757189AbbLCPzE (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 3 Dec 2015 10:55:04 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <56603D17.4080707@huawei.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <1447856703-2566-1-git-send-email-jbacik@fb.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Josef Bacik <jbacik@fb.com>
+Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, bhelgaas@google.com, shli@fb.com, kernel-team@fb.com
 List-Id: linux-acpi@vger.kernel.org
-To: Kefeng Wang <wangkefeng.wang@huawei.com>
-Cc: Graeme Gregory <gg@slimlogic.co.uk>, Arnd Bergmann <arnd@arndb.de>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org
 
-On Thu, Dec 03, 2015 at 09:01:11PM +0800, Kefeng Wang wrote:
-> Hi Graeme, Arnd, and Lorenzo,
+On Wed, Nov 18, 2015 at 09:25:03AM -0500, Josef Bacik wrote:
+> We have some hardware that takes about 30 seconds to setup common clocks for
+> ASPM, but our bios'es don't actually allow ASPM.  It seems we had this thing in
+> place where we would disable ASPM after the pci bus probe so that we would make
+> sure that pre pcie 1.1 devices would be properly skipped during initialization.
+> This is because the mechanism to disable ASPM doesn't actually disable the
+> setting up of the link state stuff, it just keeps us from changing the link
+> state after the fact.  So instead make it so that when we call pcie_no_aspm()
+> that we disable ASPM completley, that is we skip setting up the link state and
+> everything.  This way we avoid the costly setup for a feature we cannot support
+> in the first place and we also make sure we are safe from future tampering with
+> the ASPM link state.  Thanks,
+
+> diff --git a/drivers/pci/pcie/aspm.c b/drivers/pci/pcie/aspm.c
+> index 317e355..5f84af2 100644
+> --- a/drivers/pci/pcie/aspm.c
+> +++ b/drivers/pci/pcie/aspm.c
+> @@ -954,6 +954,7 @@ void pcie_no_aspm(void)
+>  	if (!aspm_force) {
+>  		aspm_policy = POLICY_DEFAULT;
+>  		aspm_disabled = 1;
+> +		aspm_support_enabled = false;
+
+After this patch, I think aspm_disabled and aspm_support_enabled are
+equivalent.  If that's the case, we should get rid of one of them.
+
+>  	}
+>  }
+>  
+> -- 
+> 2.1.0
 > 
-> Firstly, we absolutely agree with the point which use AML to do some "special"
-> initialisation and configuration.
-
-Good.
-
-> SAS and NIC driver were accepted by linux in hisilicon hip05 chip, and the drivers
-> reset the control by syscon, we want to use "_RST" method, which is introduced by
-> ACPI 6.0 spec in "7.3.25 _RST (Device Reset)", is it reasonable and standard for us?
-
-Can you point me at the drivers you are referring to please ?
-
-> But here is a scene, we can not find a suitable way to support ACPI. There is no
-> independent memory region in some module(the driver not upstreamed), that is,
-> when write and read the module's register, we must r/w by syscon. Any advice?
-
-What do you mean ? You mean that the reset control is a piece of HW
-that is shared between multiple "components" ? What's your concern
-about AML code driving those registers here ?
-
-Thanks,
-Lorenzo
-
-> 
-> Thanks,
-> Kefeng
-> 
-> On 2015/12/3 18:41, Graeme Gregory wrote:
-> > On Wed, Dec 02, 2015 at 11:44:51AM +0100, Arnd Bergmann wrote:
-> >> On Wednesday 02 December 2015 17:09:28 Kefeng Wang wrote:
-> >>> This enables syscon with ACPI support.
-> >>> syscon_regmap_lookup_by_dev_property() function was added. With helper
-> >>> device_get_reference_node() and acpi_dev_find_plat_dev(), it can be used
-> >>> in both DT and ACPI.
-> >>>
-> >>> The device driver can obtain syscon using _DSD method in DSDT, an example
-> >>> is shown below.
-> >>>
-> >>>     Device(CTL0) {
-> >>>           Name(_HID, "HISI0061")
-> >>>           Name(_CRS, ResourceTemplate() {
-> >>>                   Memory32Fixed(ReadWrite, 0x80000000, 0x10000)
-> >>>           })
-> >>>     }
-> >>>
-> >>>     Device(DEV0) {
-> >>>           Name(_HID, "HISI00B1")
-> >>>           Name(_CRS, ResourceTemplate() {
-> >>>                   Memory32Fixed(ReadWrite, 0x8c030000, 0x10000)
-> >>>                   Interrupt(ResourceConsumer, Level, ActiveHigh, Exclusive){ 192 }
-> >>>           })
-> >>>
-> >>>           Name (_DSD, Package () {
-> >>>               ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-> >>>               Package () {
-> >>>                   Package () {"syscon",Package() {\_SB.CTL0} }
-> >>>               }
-> >>>           })
-> >>>     }
-> >>>
-> >>> Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
-> >>
-> >> This sounds like a bad idea:
-> >>
-> >> syscon is basically a hack to let us access register that the SoC designer
-> >> couldn't fit in anywhere sane. We need something like this with devicetree
-> >> because we decided not to have any interpreted bytecode to do this behind
-> >> our back.
-> >>
-> >> With ACPI, the same thing is done with AML, which is actually nicer than
-> >> syscon (once you have to deal with all the problems introduced by AML).
-> >>
-> >> Use that instead.
-> >>
-> > 
-> > I have to agree with Arnd here, this is specifically why it was chosen
-> > to use ACPI on machines to move all these "hacks" to AML.
-> > 
-> > This leaves your driver being generic and any "special" initialisation
-> > can be supplied by the OEM through the ACPI tables.
-> > 
-> > Graeme
-> > 
-> > 
-> > .
-> > 
-> 
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
-> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
