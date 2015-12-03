@@ -1,51 +1,110 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH] pci: completely disable aspm if it's unsupported
-Date: Thu, 3 Dec 2015 10:40:07 -0600
-Message-ID: <20151203164007.GA16669@localhost>
-References: <1447856703-2566-1-git-send-email-jbacik@fb.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1447856703-2566-1-git-send-email-jbacik@fb.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Josef Bacik <jbacik@fb.com>
-Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, bhelgaas@google.com, shli@fb.com, kernel-team@fb.com
+From: fu.wei@linaro.org
+Subject: [PATCH v3] acpi, apei, arm64: APEI initial support for aarch64.
+Date: Fri,  4 Dec 2015 01:15:03 +0800
+Message-ID: <1449162903-11203-1-git-send-email-fu.wei@linaro.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:44320 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752424AbbLCRP0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 3 Dec 2015 12:15:26 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, jon.zhixiong.zhang@gmail.com, tomasz.nowicki@linaro.org, tn@semihalf.com, rjw@rjwysocki.net, lenb@kernel.org, jarkko.nikula@linux.intel.com
+Cc: graeme.gregory@linaro.org, al.stone@linaro.org, hanjun.guo@linaro.org, jcm@redhat.com, mark.rutland@arm.com, catalin.marinas@arm.com, will.deacon@arm.com, msalter@redhat.com, Marc.Zyngier@arm.com, grant.likely@linaro.org, rrichter@cavium.com, lorenzo.pieralisi@arm.com, rruigrok@codeaurora.org, harba@qti.qualcomm.com, Fu Wei <fu.wei@linaro.org>
 
-On Wed, Nov 18, 2015 at 09:25:03AM -0500, Josef Bacik wrote:
-> We have some hardware that takes about 30 seconds to setup common clocks for
-> ASPM, but our bios'es don't actually allow ASPM.  It seems we had this thing in
-> place where we would disable ASPM after the pci bus probe so that we would make
-> sure that pre pcie 1.1 devices would be properly skipped during initialization.
-> This is because the mechanism to disable ASPM doesn't actually disable the
-> setting up of the link state stuff, it just keeps us from changing the link
-> state after the fact.  So instead make it so that when we call pcie_no_aspm()
-> that we disable ASPM completley, that is we skip setting up the link state and
-> everything.  This way we avoid the costly setup for a feature we cannot support
-> in the first place and we also make sure we are safe from future tampering with
-> the ASPM link state.  Thanks,
+From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
 
-> diff --git a/drivers/pci/pcie/aspm.c b/drivers/pci/pcie/aspm.c
-> index 317e355..5f84af2 100644
-> --- a/drivers/pci/pcie/aspm.c
-> +++ b/drivers/pci/pcie/aspm.c
-> @@ -954,6 +954,7 @@ void pcie_no_aspm(void)
->  	if (!aspm_force) {
->  		aspm_policy = POLICY_DEFAULT;
->  		aspm_disabled = 1;
-> +		aspm_support_enabled = false;
+This commit provides APEI arch-specific bits for aarch64
 
-After this patch, I think aspm_disabled and aspm_support_enabled are
-equivalent.  If that's the case, we should get rid of one of them.
+The reason for wrapping "acpi_disable_cmcff" by 
+"#if defined(__i386__) || defined(__x86_64__)" in hest.c is:
+according to ACPI spec CMC(Corrected Machine Check) is only for IA-32
+Architecture.
 
->  	}
->  }
->  
-> -- 
-> 2.1.0
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Changelog:
+v3: Remove "acpi_disable_cmcff" from arm64 code,
+    and wrap it in hest.c by "#if defined(__i386__) || defined(__x86_64__)"
+
+v2: https://lkml.org/lkml/2015/12/2/432
+    Rebase to latest kernel version(4.4-rc3).
+    Move arch_apei_flush_tlb_one() to arch/arm64/kernel/acpi.c
+
+v1: https://lkml.org/lkml/2015/8/14/199
+    Move arch_apei_flush_tlb_one() to arch/arm64/include/asm/apci.h.
+    Delete arch/arm64/kernel/apei.c.
+    Add "#ifdef CONFIG_ACPI_APEI" for "acpi_disable_cmcff".
+
+Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Tested-by: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
+Signed-off-by: Fu Wei <fu.wei@linaro.org>
+---
+ arch/arm64/Kconfig            | 1 +
+ arch/arm64/include/asm/acpi.h | 1 +
+ arch/arm64/kernel/acpi.c      | 6 ++++++
+ drivers/acpi/apei/hest.c      | 2 ++
+ 4 files changed, 10 insertions(+)
+
+diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+index 871f217..58c8992 100644
+--- a/arch/arm64/Kconfig
++++ b/arch/arm64/Kconfig
+@@ -3,6 +3,7 @@ config ARM64
+ 	select ACPI_CCA_REQUIRED if ACPI
+ 	select ACPI_GENERIC_GSI if ACPI
+ 	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
++	select HAVE_ACPI_APEI if ACPI
+ 	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
+ 	select ARCH_HAS_ELF_RANDOMIZE
+ 	select ARCH_HAS_GCOV_PROFILE_ALL
+diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+index caafd63..7207f8e 100644
+--- a/arch/arm64/include/asm/acpi.h
++++ b/arch/arm64/include/asm/acpi.h
+@@ -94,6 +94,7 @@ static inline const char *acpi_get_enable_method(int cpu)
+ 
+ #ifdef	CONFIG_ACPI_APEI
+ pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr);
++void arch_apei_flush_tlb_one(unsigned long addr);
+ #endif
+ 
+ #endif /*_ASM_ACPI_H*/
+diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+index d1ce8e2..7a742e7 100644
+--- a/arch/arm64/kernel/acpi.c
++++ b/arch/arm64/kernel/acpi.c
+@@ -32,6 +32,7 @@
+ #ifdef CONFIG_ACPI_APEI
+ # include <linux/efi.h>
+ # include <asm/pgtable.h>
++# include <asm/tlbflush.h>
+ #endif
+ 
+ int acpi_noirq = 1;		/* skip ACPI IRQ initialization */
+@@ -233,4 +234,9 @@ pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr)
+ 		return __pgprot(PROT_NORMAL_NC);
+ 	return __pgprot(PROT_DEVICE_nGnRnE);
+ }
++
++void arch_apei_flush_tlb_one(unsigned long addr)
++{
++	flush_tlb_kernel_range(addr, addr + PAGE_SIZE);
++}
+ #endif
+diff --git a/drivers/acpi/apei/hest.c b/drivers/acpi/apei/hest.c
+index 20b3fcf..4ead747 100644
+--- a/drivers/acpi/apei/hest.c
++++ b/drivers/acpi/apei/hest.c
+@@ -232,8 +232,10 @@ void __init acpi_hest_init(void)
+ 		goto err;
+ 	}
+ 
++#if defined(__i386__) || defined(__x86_64__)
+ 	if (!acpi_disable_cmcff)
+ 		apei_hest_parse(hest_parse_cmc, NULL);
++#endif
+ 
+ 	if (!ghes_disable) {
+ 		rc = apei_hest_parse(hest_parse_ghes_count, &ghes_count);
+-- 
+2.5.0
+
