@@ -1,404 +1,86 @@
-From: yankejian <yankejian@huawei.com>
-Subject: [PATCH] ACPI: Add phylib support code for mdio
-Date: Thu, 3 Dec 2015 09:54:43 +0800
-Message-ID: <1449107683-69717-1-git-send-email-yankejian@huawei.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: ACPICA serialized objects?
+Date: Thu, 3 Dec 2015 01:42:20 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BAFAE98@SHSMSX101.ccr.corp.intel.com>
+References: <CALCETrWFSs0Ornr9airzqL=9ph06WDghOUaKmA_8cAorrw1Kpw@mail.gmail.com>
+ <CAJZ5v0gxE2kN75K4F9TxNAhz1Xb0zoi1CMn_R36OPeBHuQ9-Qw@mail.gmail.com>
+ <CALCETrXnbVCnisYrq_+GrT0PPqi6tG51TBtcx1rnQTdbLetK0A@mail.gmail.com>
+ <CAJZ5v0jygkagyqwvEmtXPKXkhEFnspTj9XPgjeRowfsV5_Kjvw@mail.gmail.com>
+ <CALCETrVE9De-o29seijHRUwTMYGx4As_zOin=xQkTjbGviCUJA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([58.251.152.64]:56350 "EHLO
-	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757932AbbLCBje (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 2 Dec 2015 20:39:34 -0500
+Received: from mga01.intel.com ([192.55.52.88]:34201 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756467AbbLCBmY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 2 Dec 2015 20:42:24 -0500
+In-Reply-To: <CALCETrVE9De-o29seijHRUwTMYGx4As_zOin=xQkTjbGviCUJA@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org, davem@davemloft.net, liguozhu@huawei.com, yisen.zhuang@huawei.com, huangdaode@hisilicon.com, lipeng321@huawei.com, yankejian@huawei.com
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linuxarm@huawei.com
+To: Andy Lutomirski <luto@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
 
-Add support for getting the PHY devices on an MDIO bus by ACPI.
-Currently many of the ethernet drivers are open coding a solution
-for reading data out of ACPI to find the correct PHY device.
-This patch implements a set of common routines are similar to of_mdio.c
-
-Signed-off-by: yankejian <yankejian@huawei.com>
----
- drivers/acpi/Makefile     |   3 +
- drivers/acpi/acpi_mdio.c  | 263 ++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/acpi_mdio.h |  68 ++++++++++++
- 3 files changed, 334 insertions(+)
- create mode 100644 drivers/acpi/acpi_mdio.c
- create mode 100644 include/linux/acpi_mdio.h
-
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index 675eaf3..832e7d6 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -35,6 +35,7 @@ acpi-y				+= bus.o glue.o
- acpi-y				+= scan.o
- acpi-y				+= resource.o
- acpi-y				+= acpi_processor.o
-+acpi-y				+= acpi_mdio.o
- acpi-y				+= processor_core.o
- acpi-$(CONFIG_ARCH_MIGHT_HAVE_ACPI_PDC) += processor_pdc.o
- acpi-y				+= ec.o
-@@ -65,6 +66,7 @@ obj-$(CONFIG_ACPI_BUTTON)	+= button.o
- obj-$(CONFIG_ACPI_FAN)		+= fan.o
- obj-$(CONFIG_ACPI_VIDEO)	+= video.o
- obj-$(CONFIG_ACPI_PCI_SLOT)	+= pci_slot.o
-+obj-$(CONFIG_PCI_MMCONFIG)	+= mcfg.o
- obj-$(CONFIG_ACPI_PROCESSOR)	+= processor.o
- obj-y				+= container.o
- obj-$(CONFIG_ACPI_THERMAL)	+= thermal.o
-@@ -79,6 +81,7 @@ obj-$(CONFIG_ACPI_EC_DEBUGFS)	+= ec_sys.o
- obj-$(CONFIG_ACPI_CUSTOM_METHOD)+= custom_method.o
- obj-$(CONFIG_ACPI_BGRT)		+= bgrt.o
- obj-$(CONFIG_ACPI_CPPC_LIB)	+= cppc_acpi.o
-+obj-$(CONFIG_IORT_TABLE) 	+= iort.o
- 
- # processor has its own "processor." module_param namespace
- processor-y			:= processor_driver.o
-diff --git a/drivers/acpi/acpi_mdio.c b/drivers/acpi/acpi_mdio.c
-new file mode 100644
-index 0000000..3a5871d
---- /dev/null
-+++ b/drivers/acpi/acpi_mdio.c
-@@ -0,0 +1,263 @@
-+/*
-+ * Copyright (c) 2015 Hisilicon Limited.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#include <linux/acpi.h>
-+#include <linux/acpi_mdio.h>
-+#include <linux/device.h>
-+#include <linux/errno.h>
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/netdevice.h>
-+#include <linux/phy.h>
-+#include <linux/phy_fixed.h>
-+#include <linux/platform_device.h>
-+#include <linux/spinlock_types.h>
-+
-+static
-+int acpi_mdiobus_register_phy(struct mii_bus *mdio, struct fwnode_handle *child,
-+			      u32 addr)
-+{
-+	struct phy_device *phy;
-+	const char *phy_type;
-+	bool is_c45;
-+	int rc;
-+
-+	rc = fwnode_property_read_string(child, "ethernet-phy", &phy_type);
-+	if (rc < 0)
-+		return rc;
-+
-+	if (!strncmp(phy_type, "ethernet-phy-ieee802.3-c45",
-+		     sizeof("ethernet-phy-ieee802.3-c45")))
-+		is_c45 = 1;
-+	else if (!strncmp(phy_type, "ethernet-phy-ieee802.3-c22",
-+			  sizeof("ethernet-phy-ieee802.3-c22")))
-+		is_c45 = 0;
-+	else
-+		return -ENODATA;
-+
-+	phy = get_phy_device(mdio, addr, is_c45);
-+	if (!phy || IS_ERR(phy))
-+		return 1;
-+
-+	/* Associate the fw node with the device structure so it
-+	 * can be looked up later
-+	 */
-+	phy->dev.fwnode = child;
-+
-+	if (mdio->irq)
-+		phy->irq = mdio->irq[addr];
-+
-+	if (fwnode_property_read_bool(child, "broken-turn-around"))
-+		mdio->phy_ignore_ta_mask |= 1 << addr;
-+
-+	/* All data is now stored in the phy struct;
-+	 * register it
-+	 */
-+	rc = phy_device_register(phy);
-+	if (rc) {
-+		phy_device_free(phy);
-+		return 1;
-+	}
-+
-+	dev_dbg(&mdio->dev, "registered phy at address %i\n", addr);
-+
-+	return 0;
-+}
-+
-+int acpi_mdio_parse_addr(struct device *dev, struct fwnode_handle *fwnode)
-+{
-+	u32 addr;
-+	int ret;
-+
-+	ret = fwnode_property_read_u32(fwnode, "phy-addr", &addr);
-+	if (ret < 0) {
-+		dev_err(dev, "has invalid PHY address ret:%d\n", ret);
-+		return ret;
-+	}
-+
-+	if (addr >= PHY_MAX_ADDR) {
-+		dev_err(dev, "PHY address %i is too large\n", addr);
-+		return -EINVAL;
-+	}
-+
-+	return addr;
-+}
-+EXPORT_SYMBOL(acpi_mdio_parse_addr);
-+
-+/**
-+ * acpi_mdiobus_register - Register mii_bus and create PHYs
-+ * @mdio: pointer to mii_bus structure
-+ * @fwnode: pointer to framework node of MDIO bus.
-+ *
-+ * This function registers the mii_bus structure and registers a phy_device
-+ * for each child node of mdio device.
-+ */
-+int acpi_mdiobus_register(struct mii_bus *mdio, struct fwnode_handle *fwnode)
-+{
-+	struct fwnode_handle *child;
-+	struct acpi_device *adev;
-+	bool scanphys = false;
-+	int addr, rc, i;
-+
-+	/* Mask out all PHYs from auto probing.  Instead the PHYs listed in
-+	 * the framework node are populated after the bus has been registered
-+	 */
-+	mdio->phy_mask = ~0;
-+
-+	/* Clear all the IRQ properties */
-+	if (mdio->irq)
-+		for (i = 0; i < PHY_MAX_ADDR; i++)
-+			mdio->irq[i] = PHY_POLL;
-+
-+	mdio->dev.fwnode = fwnode;
-+
-+	/* Register the MDIO bus */
-+	rc = mdiobus_register(mdio);
-+	if (rc)
-+		return rc;
-+
-+	/* Loop over the child nodes and register a phy_device for each one */
-+	device_for_each_child_node(&mdio->dev, child) {
-+		adev = to_acpi_device_node(child);
-+		if (!adev)
-+			continue;
-+
-+		addr = acpi_mdio_parse_addr(&adev->dev, child);
-+		if (addr < 0) {
-+			scanphys = true;
-+			continue;
-+		}
-+
-+		rc = acpi_mdiobus_register_phy(mdio, child, addr);
-+		dev_dbg(&mdio->dev, "acpi reg phy rc:%#x addr:%#x\n", rc, addr);
-+		if (rc)
-+			continue;
-+	}
-+
-+	if (!scanphys)
-+		return 0;
-+
-+	/* auto scan for PHYs with empty reg property */
-+	device_for_each_child_node(&mdio->dev, child) {
-+		/* Skip PHYs with reg property set */
-+		if (!fwnode_property_present(child, "reg"))
-+			continue;
-+
-+		for (addr = 0; addr < PHY_MAX_ADDR; addr++) {
-+			/* skip already registered PHYs */
-+			if (mdio->phy_map[addr])
-+				continue;
-+
-+			/* be noisy to encourage people to set reg property */
-+			dev_info(&mdio->dev, "scan phy %s at address %i\n",
-+				 acpi_dev_name(to_acpi_device_node(child)),
-+				 addr);
-+
-+			rc = acpi_mdiobus_register_phy(mdio, child, addr);
-+			if (rc)
-+				continue;
-+		}
-+	}
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(acpi_mdiobus_register);
-+
-+/* Helper function for acpi_phy_find_device */
-+static int acpi_phy_match(struct device *dev, void *phy_fwnode)
-+{
-+	return dev->fwnode == phy_fwnode;
-+}
-+
-+/**
-+ * acpi_phy_find_device - Give a PHY node, find the phy_device
-+ * @phy_fwnode: Pointer to the phy's framework node
-+ *
-+ * If successful, returns a pointer to the phy_device with the embedded
-+ * struct device refcount incremented by one, or NULL on failure.
-+ */
-+struct phy_device *acpi_phy_find_device(struct fwnode_handle *phy_fwnode)
-+{
-+	struct device *d;
-+
-+	if (!phy_fwnode)
-+		return NULL;
-+
-+	d = bus_find_device(&mdio_bus_type, NULL, phy_fwnode, acpi_phy_match);
-+
-+	return d ? to_phy_device(d) : NULL;
-+}
-+EXPORT_SYMBOL(acpi_phy_find_device);
-+
-+/**
-+ * acpi_phy_attach - Attach to a PHY without starting the state machine
-+ * @dev: pointer to net_device claiming the phy
-+ * @phy_fwnode: framework Node pointer for the PHY
-+ * @flags: flags to pass to the PHY
-+ * @iface: PHY data interface type
-+ *
-+ * If successful, returns a pointer to the phy_device with the embedded
-+ * struct device refcount incremented by one, or NULL on failure. The
-+ * refcount must be dropped by calling phy_disconnect() or phy_detach().
-+ */
-+struct phy_device *acpi_phy_attach(struct net_device *dev,
-+				   struct fwnode_handle *phy_fwnode, u32 flags,
-+				   phy_interface_t iface)
-+{
-+	struct phy_device *phy = acpi_phy_find_device(phy_fwnode);
-+	int ret;
-+
-+	if (!phy)
-+		return NULL;
-+
-+	ret = phy_attach_direct(dev, phy, flags, iface);
-+
-+	/* refcount is held by phy_attach_direct() on success */
-+	put_device(&phy->dev);
-+
-+	return ret ? NULL : phy;
-+}
-+EXPORT_SYMBOL(acpi_phy_attach);
-+
-+/**
-+ * acpi_phy_connect - Connect to the phy described
-+ * @dev: pointer to net_device claiming the phy
-+ * @phy_fwnode: Pointer to framework node for the PHY
-+ * @hndlr: Link state callback for the network device
-+ * @iface: PHY data interface type
-+ *
-+ * If successful, returns a pointer to the phy_device with the embedded
-+ * struct device refcount incremented by one, or NULL on failure. The
-+ * refcount must be dropped by calling phy_disconnect() or phy_detach().
-+ */
-+struct phy_device *acpi_phy_connect(struct net_device *dev,
-+				    struct fwnode_handle *phy_fwnode,
-+				    void (*hndlr)(struct net_device *),
-+				    u32 flags,
-+				    phy_interface_t iface)
-+{
-+	struct phy_device *phy = acpi_phy_find_device(phy_fwnode);
-+	int ret;
-+
-+	if (!phy)
-+		return NULL;
-+
-+	phy->dev_flags = flags;
-+
-+	ret = phy_connect_direct(dev, phy, hndlr, iface);
-+
-+	/* refcount is held by phy_connect_direct() on success */
-+	put_device(&phy->dev);
-+
-+	return ret ? NULL : phy;
-+}
-+EXPORT_SYMBOL(acpi_phy_connect);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Huawei Tech. Co., Ltd.");
-diff --git a/include/linux/acpi_mdio.h b/include/linux/acpi_mdio.h
-new file mode 100644
-index 0000000..82b5be5
---- /dev/null
-+++ b/include/linux/acpi_mdio.h
-@@ -0,0 +1,68 @@
-+/*
-+ * Copyright (c) 2015 Hisilicon Limited.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#ifndef __LINUX_ACPI_MDIO_H
-+#define __LINUX_ACPI_MDIO_H
-+
-+#include <linux/phy.h>
-+
-+#ifdef CONFIG_ACPI
-+
-+int acpi_mdio_parse_addr(struct device *dev, struct fwnode_handle *fwnode);
-+int acpi_mdiobus_register(struct mii_bus *mdio, struct fwnode_handle *fwnode);
-+struct phy_device *acpi_phy_find_device(struct fwnode_handle *phy_fwnode);
-+struct phy_device *acpi_phy_attach(struct net_device *dev,
-+				   struct fwnode_handle *phy_fwnode, u32 flags,
-+				   phy_interface_t iface);
-+struct phy_device *acpi_phy_connect(struct net_device *dev,
-+				    struct fwnode_handle *phy_fwnode,
-+				    void (*hndlr)(struct net_device *),
-+				    u32 flags,
-+				    phy_interface_t iface);
-+
-+#else
-+static inline int acpi_mdio_parse_addr(struct device *dev,
-+				       struct fwnode_handle *fwnode)
-+{
-+	return -ENXIO;
-+}
-+
-+static inline int acpi_mdiobus_register(struct mii_bus *mdio,
-+					struct fwnode_handle *fwnode)
-+{
-+	return -ENXIO;
-+}
-+
-+static inline
-+struct phy_device *acpi_phy_find_device(struct fwnode_handle *phy_fwnode)
-+{
-+	return NULL;
-+}
-+
-+static inline
-+struct phy_device *acpi_phy_attach(struct net_device *dev,
-+				   struct fwnode_handle *phy_fwnode, u32 flags,
-+				   phy_interface_t iface)
-+{
-+	return NULL;
-+}
-+
-+static inline
-+struct phy_device *acpi_phy_connect(struct net_device *dev,
-+				    struct fwnode_handle *phy_fwnode,
-+				    void (*hndlr)(struct net_device *),
-+				    u32 flags,
-+				    phy_interface_t iface)
-+{
-+	return NULL;
-+}
-+
-+#endif
-+
-+#endif /* __LINUX_ACPI_MDIO_H */
--- 
-1.9.1
-
+SGksIEFuZHkNCg0KU29ycnkgZm9yIHRoZSBkZWxheSBvZiByZXBseS4NCg0KPiBGcm9tOiBBbmR5
+IEx1dG9taXJza2kgW21haWx0bzpsdXRvQGtlcm5lbC5vcmddDQo+IFNlbnQ6IFRodXJzZGF5LCBE
+ZWNlbWJlciAzLCAyMDE1IDk6MjkgQU0NCj4gDQo+IE9uIFdlZCwgRGVjIDIsIDIwMTUgYXQgNToy
+NiBQTSwgUmFmYWVsIEouIFd5c29ja2kgPHJhZmFlbEBrZXJuZWwub3JnPiB3cm90ZToNCj4gPiBP
+biBUaHUsIERlYyAzLCAyMDE1IGF0IDI6MjIgQU0sIEFuZHkgTHV0b21pcnNraSA8bHV0b0BrZXJu
+ZWwub3JnPiB3cm90ZToNCj4gPj4gT24gV2VkLCBEZWMgMiwgMjAxNSBhdCA1OjEzIFBNLCBSYWZh
+ZWwgSi4gV3lzb2NraSA8cmFmYWVsQGtlcm5lbC5vcmc+DQo+IHdyb3RlOg0KPiA+Pj4gSGksDQo+
+ID4+Pg0KPiA+Pj4gT24gVGh1LCBEZWMgMywgMjAxNSBhdCAxOjM3IEFNLCBBbmR5IEx1dG9taXJz
+a2kgPGx1dG9AYW1hY2FwaXRhbC5uZXQ+DQo+IHdyb3RlOg0KPiA+Pj4+IFtyZXNlbmQgYXMgcGxh
+aW4gdGV4dF0NCj4gPj4+Pg0KPiA+Pj4+IEkgd2FudCB0byBidW5kbGUgdXAgYW4gYXJiaXRyYXJ5
+IEFDUElfT0JKRUNUIGludG8gYSBjb3B5YWJsZSBzdHJlYW0gb2YNCj4gPj4+PiBieXRlcywgaXMg
+dGhlcmUgc29tZSBzdGFuZGFyZCB3YXkgdG8gZG8gdGhpcz8NCj4gPj4+Pg0KPiA+Pj4+IEknbSBh
+c2tpbmcgYmVjYXVzZSBJIHdhbnQgdG8gdHJ5IHRvIHVwc3RyZWFtIHNvbWV0aGluZyByZXNlbWJs
+aW5nIHRoZQ0KPiA+Pj4+IHJ1c3R5IG9sZCBhY3BpX2NhbGwgbW9kdWxlIHRvIGFsbG93IHVzZXJz
+IHdpdGggZGVidWdmcyBhY2Nlc3Mgd2hvIGFyZQ0KPiA+Pj4+IHdpbGxpbmcgdG8gdGFpbnQgdGhl
+aXIga2VybmVsIHRvIGV2YWx1YXRlIEFDUEkgb2JqZWN0cyBmcm9tIHVzZXJzcGFjZS4NCj4gPj4+
+PiBQcmVzdW1hYmx5IHRoZXJlIHdvdWxkIGJlIGEgdXNlciB0b29sIHRvIGdldCBvYmplY3QgaW5m
+byBhbmQgdG8NCj4gPj4+PiBldmFsdWF0ZSBtZXRob2RzLCBhbmQgd2UgY291bGQgaGFuZGxlIHRy
+YW5zbGF0aW9uIHRvL2Zyb20gc3RyaW5ncyBpbg0KPiA+Pj4+IHVzZXJzcGFjZSwgYnV0IEkgc3Rp
+bGwgbmVlZCBzb21lIHdheSB0byBzaG92ZSB0aGUgZGF0YSBiYWNrIGFuZCBmb3J0aC4NCj4gPj4+
+DQo+ID4+PiBQbGVhc2UgZG9uJ3QgZG8gdGhhdCwgdGhpcyBpcyBicm9rZW4gYXMgYSBjb25jZXB0
+Lg0KPiA+Pj4NCj4gPj4+IFVzZXIgc3BhY2UgaGFzIG5vIGlkZWEgd2hhdHNvZXZlciBhYm91dCB3
+aGVuIGFuZCBpdCB3aGF0IGNvbmRpdGlvbnMgYQ0KPiA+Pj4gZ2l2ZW4gQU1MIGNhbiBiZSBleGVj
+dXRlZCBpbiB0aGUgZmlyc3QgcGxhY2UsIHNvIGluIGFkZGl0aW9uIHRvDQo+ID4+PiB0YWludGlu
+ZyB0aGUga2VybmVsIGl0IG1heSBqdXN0IG91dHJpZ2h0IGJyZWFrIHRoaW5ncy4NCj4gPj4+DQo+
+ID4+PiBOb3QgdG8gbWVudGlvbiB0aGUgcG9zc2liaWxpdHkgb2YgY29uZnVzaW5nIHRoZSBrZXJu
+ZWwncyByZWZlcmVuY2UNCj4gPj4+IGNvdW50aW5nIGFuZCBicmVha2luZyBhc3N1bXB0aW9ucyBt
+YWRlIGJ5IGl0IG9uIHRoZSBjdXJyZW50IHN0YXRlIG9mDQo+ID4+PiB0aGluZ3MgYmFzZWQgb24g
+d2hhdCBBTUwgaGFzIGJlZW4gYWxyZWFkeSBleGVjdXRlZC4NCj4gPj4NCj4gPj4gVGhpcyBpcyBz
+b21ldGhpbmcgdGhhdCBJIHdhbnQgYXMgYSByZWFkZXIgb2YgZGVjb21waWxlZCBEU0RUcyBhbmQg
+YQ0KPiA+PiB3cml0ZXIgb2YgZHJpdmVycy4gIEkgdGhpbmsgd2UgY291bGQgZG8gaXQgaW4gYSB3
+YXkgdGhhdCBpdCBkb2Vzbid0DQo+ID4+IGdldCB1c2VkIGZvciBldmlsLiAgRm9yIGV4YW1wbGUs
+IG1ha2UgaXQgYSBtb2R1bGUsIHRhaW50IHRoZSBrZXJuZWwgaWYNCj4gPj4gaXQncyBsb2FkZWQg
+YW5kIGVuYWJsZWQsIG9ubHkgZXhwb3NlIHRoZSBpbnRlcmZhY2UgaWYgYW4gYWN0dWFsICpib290
+Kg0KPiA+PiBwYXJhbWV0ZXIgYWxsb3dfdXNlcl9hY3BpX2NhbGxzPTEgaXMgc2V0LCBlbmNvdXJh
+Z2UgZGlzdHJvcyB0bw0KPiA+PiBzZXJpb3VzbHkgY29uc2lkZXIgbm90IGJ1aWxkaW5nIHRoZSBt
+b2R1bGUsIGRpc2FsbG93IGl0IGVudGlyZWx5IHVuZGVyDQo+ID4+IHNlY3VyZSBib290LCBldGMu
+DQo+ID4+DQo+ID4+IEkgd2FudCB0byB1c2UgaXQgZm9yIHRoaW5ncyBsaWtlICJoZXksIGl0IGxv
+b2tzIGxpa2UgXE5FWFAgbWlnaHQgaGF2ZQ0KPiA+PiBhIGZ1bm55IHZhbHVlIC0tIGxldCdzIHNl
+ZSB3aGF0J3MgdGhlcmUgd2l0aG91dCBtYW51YWxseSBmaWd1cmluZyBvdXQNCj4gPj4gaG93IHRv
+IHBlZWsgYXQgdGhlIHJlbGV2YW50IE9wUmVnaW9uIi4NCj4gPg0KPiA+IFNvIHBsZWFzZSBjaGVj
+ayB0aGUgZGVidWdnZXIgdGhpbmcuDQo+ID4NCj4gPiBMdiwgY2FuIHlvdSBwbGVhc2UgaGVscCBB
+bmR5IHdpdGggdGhpcz8NCj4gPg0KPiANCj4gT29oLCB0aGF0J3MgcmVhbGx5IGNvb2whICBJdCBs
+b29rcyBsaWtlIGFjcGlkYmcgLWIgImV4ZWN1dGUgXFdIQVRFVkVSIg0KPiBpcyAqZXhhY3RseSog
+d2hhdCBJIHdhbnQuICBJcyB0aGVyZSBhIGdpdCB0cmVlIG9yIHVwLXRvLWRhdGUgcGF0Y2hzZXQN
+Cj4gdGhhdCB3b3Jrcz8gIEl0IGxvb2tzIGxpa2UgNC40LXJjMyBoYXMgc29tZSBidXQgbm90IGFs
+bCBvZiB0aGUgcGllY2VzDQo+IG5lZWRlZC4NCltMdiBaaGVuZ10gDQpZb3UgY2FuIGZpbmQgdGhl
+bSBoZXJlOg0KaHR0cHM6Ly9wYXRjaHdvcmsua2VybmVsLm9yZy9wcm9qZWN0L2xpbnV4LWFjcGkv
+bGlzdC8NClRoZSBwYXRjaGVzIGFyZToNClt2M10gQUNQSSAvIHg4NjogaW50cm9kdWNlIGFjcGlf
+b3NfcmVhZGFibGUoKSBzdXBwb3J0DQpbdjMsNi82XSBBQ1BJIC8gZGVidWdnZXI6IEFkZCBtb2R1
+bGUgc3VwcG9ydCBmb3IgQUNQSSBkZWJ1Z2dlcg0KW3YzLDUvNl0gdG9vbHMvcG93ZXIvYWNwaTog
+QWRkIHVzZXJzcGFjZSBBTUwgaW50ZXJmYWNlIHN1cHBvcnQNClt2Myw0LzZdIEFDUEkgLyBkZWJ1
+Z2dlcjogQWRkIElPIGludGVyZmFjZSB0byBhY2Nlc3MgZGVidWdnZXIgZnVuY3Rpb25hbGl0aWVz
+DQpbdjMsMy82XSBBQ1BJQ0E6IERlYnVnZ2VyOiBGaXggcnVudGltZSBzdHViIGlzc3VlcyBvZiBB
+Q1BJX0RFQlVHR0VSX0VYRUMgdXNpbmcgZGlmZmVyZW50IHN0dWIgbWVjaGFuaXNtDQpbdjMsMi82
+XSBBQ1BJQ0E6IERlYnVnZ2VyOiBDb252ZXJ0IHNvbWUgbWVjaGFuaXNtcyB0byBPU1BNIHNwZWNp
+ZmljDQpbdjMsMS82XSBBQ1BJQ0E6IERlYnVnZ2VyOiBSZW1vdmUgdW5uZWNlc3Nhcnkgc3RhdHVz
+IGNoZWNrDQoNCkl0IGlzIGJhc2VkIG9uIGxpbnV4LXBtL2xpbnV4LW5leHQgdHJlZS4NCkknbSBn
+b2luZyB0byBzZW5kIGFuIHVwZGF0ZSBiZWNhdXNlIHRvIGVsaW1pbmF0ZSBzb21lIHJlY2VudCBp
+bnRyb2R1Y2VkIGNvbmZsaWN0cy4NCkknbGwgQ2MgeW91IHdoZW4gdGhlIG5ldyB2ZXJzaW9uIGlz
+IHNlbnQgb3V0Lg0KDQpUaGFua3MgYW5kIGJlc3QgcmVnYXJkcw0KLUx2DQoNCj4gDQo+IC0tQW5k
+eQ0K
