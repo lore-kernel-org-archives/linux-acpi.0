@@ -1,79 +1,70 @@
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: Re: [PATCH v3 1/3] resource: Add @flags to region_intersects()
-Date: Thu, 03 Dec 2015 13:35:25 -0700
-Message-ID: <1449174925.9855.83.camel@hpe.com>
-References: <1448404418-28800-1-git-send-email-toshi.kani@hpe.com>
-	 <1448404418-28800-2-git-send-email-toshi.kani@hpe.com>
-	 <20151201135000.GB4341@pd.tnic>
-	 <CAPcyv4g2n9yTWye2aVvKMP0X7mrm_NLKmGd5WBO2SesTj77gbg@mail.gmail.com>
-	 <20151201171322.GD4341@pd.tnic>
-	 <CA+55aFw22JD8W2cy3w=5VcU9-ENXSP9utmhGB2NeiDVqwpnUSw@mail.gmail.com>
-	 <1449168859.9855.54.camel@hpe.com> <20151203184051.GE3213@pd.tnic>
-	 <CA+55aFy4WQrWexC4u2LxX9Mw2NVoznw7p3Yh=iF4Xtf7zKWnRw@mail.gmail.com>
+From: Timur Tabi <timur@codeaurora.org>
+Subject: Re: [PATCH 3/3] serial: amba-pl011: add ACPI support to AMBA probe
+Date: Thu, 3 Dec 2015 14:06:27 -0600
+Message-ID: <CAOZdJXXWyYsn5g4S=L_gkPSRaANwB3=UMazdQHq5Jv4b7oQZpg@mail.gmail.com>
+References: <1443609530-21524-1-git-send-email-graeme.gregory@linaro.org>
+	<1443609530-21524-4-git-send-email-graeme.gregory@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <CA+55aFy4WQrWexC4u2LxX9Mw2NVoznw7p3Yh=iF4Xtf7zKWnRw@mail.gmail.com>
-Sender: owner-linux-mm@kvack.org
-To: Linus Torvalds <torvalds@linux-foundation.org>, Borislav Petkov <bp@alien8.de>
-Cc: Dan Williams <dan.j.williams@intel.com>, Andrew Morton <akpm@linux-foundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Vishal L Verma <vishal.l.verma@intel.com>, Linux MM <linux-mm@kvack.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:50537 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753428AbbLCUG3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Dec 2015 15:06:29 -0500
+In-Reply-To: <1443609530-21524-4-git-send-email-graeme.gregory@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Graeme Gregory <graeme.gregory@linaro.org>
+Cc: linux-acpi@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, linux-serial@vger.kernel.org, shannon.zhao@linaro.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
-On Thu, 2015-12-03 at 11:01 -0800, Linus Torvalds wrote:
-> On Thu, Dec 3, 2015 at 10:40 AM, Borislav Petkov <bp@alien8.de> wrote:
-> > On Thu, Dec 03, 2015 at 11:54:19AM -0700, Toshi Kani wrote:
-> > > Adding a new type for regular memory will require inspecting the 
-> > > codes using IORESOURCE_MEM currently, and modify them to use the new 
-> > > type if their target ranges are regular memory.  There are many 
-> > > references to this type across multiple architectures and drivers, 
-> > > which make this inspection and testing challenging.
-> > 
-> > What's wrong with adding a new type_flags to struct resource and not
-> > touching IORESOURCE_* at all?
-> 
-> Bah. Both of these ideas are bogus.
-> 
-> Just add a new flag. The bits are already modifiers that you can
-> *combine* to show what kind of resource it is, and we already have
-> things like IORESOURCE_PREFETCH etc, that are in *addition* to the
-> normal IORESOURCE_MEM bit.
-> 
-> Just add another modifier: IORESOURCE_RAM.
-> 
-> So it would still show up as IORESOURCE_MEM, but it would have
-> additional information specifying that it's actually RAM.
-> 
-> If somebody does something like
-> 
->      if (res->flags == IORESOURCE_MEM)
-> 
-> then they are already completely broken and won't work *anyway*. It's
-> a bitmask, bit a set of values.
+On Wed, Sep 30, 2015 at 5:38 AM, Graeme Gregory
+<graeme.gregory@linaro.org> wrote:
 
-Yes, if we can assign new modifiers, that will be quite simple. :-)  I
-assume we can allocate new bits from the remaining free bits as follows.
+> @@ -2368,18 +2368,28 @@ static int pl011_probe(struct amba_device *dev, const struct amba_id *id)
+>         if (!uap)
+>                 return -ENOMEM;
+>
+> -       uap->clk = devm_clk_get(&dev->dev, NULL);
+> -       if (IS_ERR(uap->clk))
+> -               return PTR_ERR(uap->clk);
+> -
+> -       uap->vendor = vendor;
+> -       uap->lcrh_rx = vendor->lcrh_rx;
+> -       uap->lcrh_tx = vendor->lcrh_tx;
+> -       uap->fifosize = vendor->get_fifosize(dev);
+> +       /* ACPI only defines SBSA variant */
+> +       if (!ACPI_COMPANION(&dev->dev)) {
+> +               uap->clk = devm_clk_get(&dev->dev, NULL);
+> +               if (IS_ERR(uap->clk))
+> +                       return PTR_ERR(uap->clk);
+> +
+> +               uap->vendor = vendor;
+> +               uap->lcrh_rx = vendor->lcrh_rx;
+> +               uap->lcrh_tx = vendor->lcrh_tx;
+> +               uap->fifosize = vendor->get_fifosize(dev);
+> +               uap->port.ops = &amba_pl011_pops;
+> +               snprintf(uap->type, sizeof(uap->type), "PL011 rev%u",
+> +                               amba_rev(dev));
+> +        } else {
+> +               uap->vendor     = &vendor_sbsa;
+> +               uap->fifosize   = 32;
+> +               uap->port.ops   = &sbsa_uart_pops;
+> +               uap->fixed_baud = 115200;
+> +
+> +               snprintf(uap->type, sizeof(uap->type), "SBSA");
+> +       }
+>         uap->port.irq = dev->irq[0];
+> -       uap->port.ops = &amba_pl011_pops;
+> -
+> -       snprintf(uap->type, sizeof(uap->type), "PL011 rev%u", amba_rev(dev));
 
-+#define IORESOURCE_SYSTEM_RAM  0x01000000      /* System RAM */
-+#define IORESOURCE_PMEM        0x02000000      /* Persistent memory */
- #define IORESOURCE_EXCLUSIVE   0x08000000      /* Userland may not map
-this resource */
+I'm confused.  We already have ACPI support in amba-pl011 driver, and
+pl011_probe() is never called on an SBSA system.  That's what
+sbsa_uart_probe() is for.  You even added this patch:
 
-Note, SYSTEM_RAM represents the OS memory, i.e. "System RAM", not any RAM
-ranges.
+        drivers: PL011: add ACPI probing for SBSA UART
 
-With the new modifiers, region_intersect() can check these ranges.  One
-caveat is that the modifiers are not very extensible for new types as they
-are bit maps.  region_intersect() will no longer be capable of checking any
-regions with any given name.  I think this is OK since this function was
-introduced recently, and is only used for checking "System RAM" and
-"Persistent Memory" (with this patch series).
-
-Thanks,
--Toshi
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+-- 
+Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
+a Linux Foundation Collaborative Project.
