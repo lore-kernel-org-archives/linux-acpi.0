@@ -1,76 +1,79 @@
-From: "Shevchenko, Andriy" <andriy.shevchenko@intel.com>
-Subject: Re: [PATCH v2 2/7] ACPI / LPSS: allow to use specific PM domain
- during ->probe()
-Date: Thu, 3 Dec 2015 19:29:55 +0000
-Message-ID: <1449171008.15393.158.camel@intel.com>
-References: <1448551153-84719-1-git-send-email-andriy.shevchenko@linux.intel.com>
-	 <565733A2.6050900@linux.intel.com>
-	 <1448556317.15393.77.camel@linux.intel.com>
-	 <10907323.ZOUAMFPIfU@vostro.rjw.lan>
-	 <1448618173.15393.104.camel@linux.intel.com>
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: Re: [PATCH v3 1/3] resource: Add @flags to region_intersects()
+Date: Thu, 03 Dec 2015 13:35:25 -0700
+Message-ID: <1449174925.9855.83.camel@hpe.com>
+References: <1448404418-28800-1-git-send-email-toshi.kani@hpe.com>
+	 <1448404418-28800-2-git-send-email-toshi.kani@hpe.com>
+	 <20151201135000.GB4341@pd.tnic>
+	 <CAPcyv4g2n9yTWye2aVvKMP0X7mrm_NLKmGd5WBO2SesTj77gbg@mail.gmail.com>
+	 <20151201171322.GD4341@pd.tnic>
+	 <CA+55aFw22JD8W2cy3w=5VcU9-ENXSP9utmhGB2NeiDVqwpnUSw@mail.gmail.com>
+	 <1449168859.9855.54.camel@hpe.com> <20151203184051.GE3213@pd.tnic>
+	 <CA+55aFy4WQrWexC4u2LxX9Mw2NVoznw7p3Yh=iF4Xtf7zKWnRw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1448618173.15393.104.camel@linux.intel.com>
-Content-Language: en-US
-Content-ID: <73A9168C73415D4D9748B0EEB8FA9104@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "rjw@rjwysocki.net" <rjw@rjwysocki.net>
-Cc: "Koul, Vinod" <vinod.koul@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "dmaengine@vger.kernel.org" <dmaengine@vger.kernel.org>, "jarkko.nikula@linux.intel.com" <jarkko.nikula@linux.intel.com>, "mika.westerberg@linux.intel.com" <mika.westerberg@linux.intel.com>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <CA+55aFy4WQrWexC4u2LxX9Mw2NVoznw7p3Yh=iF4Xtf7zKWnRw@mail.gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: Linus Torvalds <torvalds@linux-foundation.org>, Borislav Petkov <bp@alien8.de>
+Cc: Dan Williams <dan.j.williams@intel.com>, Andrew Morton <akpm@linux-foundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Tony Luck <tony.luck@intel.com>, Vishal L Verma <vishal.l.verma@intel.com>, Linux MM <linux-mm@kvack.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-T24gRnJpLCAyMDE1LTExLTI3IGF0IDExOjU2ICswMjAwLCBBbmR5IFNoZXZjaGVua28gd3JvdGU6
-DQo+ID4gPiA+ID7CoA0KPiBPbiBGcmksIDIwMTUtMTEtMjcgYXQgMDA6MTUgKzAxMDAsIFJhZmFl
-bCBKLiBXeXNvY2tpIHdyb3RlOg0KPiA+IE9uIFRodXJzZGF5LCBOb3ZlbWJlciAyNiwgMjAxNSAw
-Njo0NToxNyBQTSBBbmR5IFNoZXZjaGVua28gd3JvdGU6DQo+ID4gPiBPbiBUaHUsIDIwMTUtMTEt
-MjYgYXQgMTg6MzAgKzAyMDAsIEphcmtrbyBOaWt1bGEgd3JvdGU6DQo+ID4gPiA+IE9uIDExLzI2
-LzIwMTUgMDU6MTkgUE0sIEFuZHkgU2hldmNoZW5rbyB3cm90ZToNCj4gPiA+ID4gVGhpcyB3b24n
-dCBmaXggbGlrZSByZXZlcnQgb2Ygb3JpZ2luYWwgY29tbWl0IGRvZXMuDQoNCkphcmtrbywgSSB3
-aWxsIHNwbGl0IHRoaXMgb25lIHRvIHRoZSByZXZlcnQgKHdpdGggRml4ZXMgdGFnKSBhbmQgbmV3
-DQpwYXRjaCB0byB0YXJnZXQgRE1BIGlzc3VlLg0KwqAgwqDCoA0KDQo+ID4gPiA+IFByaW1hcnkg
-cHJvYmxlbSBoZXJlIA0KPiA+ID4gPiBpcyB0aGF0IHRoZXJlIGlzIG5vIGV4cGxpY2l0IHBvd2Vy
-IG9uIGF0IGFsbCBkdXJpbmcgTFBTUyBkZXZpY2UNCj4gPiA+ID4gcHJvYmUNCj4gPiA+ID4gYmVj
-YXVzZSBkZXYtPnBtX2RvbWFpbiBpcyBzZXQgYmVmb3JlIHByb2JpbmcuDQo+ID4gPiANCj4gPiA+
-IEFuZCB3ZSBjYW4ndCBkbyB0aGlzIGFzIGluIHZlcnkgb3JpZ2luYWwgY29kZSBvZiBhY3BpX2xw
-c3MuYw0KPiA+ID4gc2luY2UNCj4gPiA+IERNQQ0KPiA+ID4gaGFzIHRvIGJlIHN1cmUgaXQncyBw
-b3dlcmVkIG9uIHdoaWxlIHByb2JpbmcuIFdlIGNvdWxkIGd1YXJhbnRlZQ0KPiA+ID4gdGhpcw0K
-PiA+ID4gb25seSBpbiBjYXNlIHdoZW4gUE0gZG9tYWluIGlzIGFzc2lnbmVkIGFscmVhZHkgYW5k
-IHdlIGRvIG91cg0KPiA+ID4gcXVpcmsNCj4gPiA+IGZvcg0KPiA+ID4gaXQuDQo+ID4gPiANCj4g
-PiA+IEZyb20gbXkgcG9pbnQgb2YgdmlldyB3ZSBoYXZlIHRvIGZpeCBoYW5nIGZpcnN0IHNpbmNl
-IGl0J3MgbW9zdA0KPiA+ID4gcGFpbmZ1bA0KPiA+ID4gY2FzZSBmb3IgdXNlcnMgYW5kIHRoZWly
-IGV4cGVyaWVuY2UuIFRob3VnaCBJJ20gb3BlbiB0byBhbnkNCj4gPiA+IGJldHRlcg0KPiA+ID4g
-c29sdXRpb24gaWYgeW91IGhhdmUgYW55IGluIG1pbmQuDQo+ID4gPiANCj4gPiA+ID4gDQo+ID4g
-PiA+IGRyaXZlcl9wcm9iZV9kZXZpY2UNCj4gPiA+ID4gwqDCoMKgcGxhdGZvcm1fZHJ2X3Byb3Zl
-DQo+ID4gPiA+IMKgwqDCoMKgwqBkZXZfcG1fZG9tYWluX2F0dGFjaA0KPiA+ID4gPiDCoMKgwqDC
-oMKgwqDCoGFjcGlfZGV2X3BtX2F0dGFjaA0KPiA+ID4gPiDCoMKgwqDCoMKgwqDCoMKgwqByZXR1
-cm5zIGluc3RhbnRseSBiZWNhdXNlIG9mIGRldi0+cG1fZG9tYWluIGlzIHNldA0KPiA+IA0KPiA+
-IFRoaXMgbG9va3MgbGlrZSBhIGNhbmRpZGF0ZSBmb3IgdGhlIG5ldyBQTSBkb21haW4gY2FsbGJh
-Y2tzLA0KPiA+IC0+YWN0aXZhdGUgYW5kDQo+ID4gLT5kaXNtaXNzLg0KPiA+IA0KPiA+IC0+YWN0
-aXZhdGUoKSBpcyBjYWxsZWQgYmVmb3JlIHRoZSBwcm9iZSwgc28gaXQgbWF5IHBvd2VyIHVwIHRo
-aW5ncy4NCj4gPiANCj4gPiAtPmRpc21pc3MoKSBpbiB0dXJuIGlzIGNhbGxlZCBpbiB0aGUgZmFp
-bGVkIHByb2JlIGNhc2UsIHNvIGl0IGNhbg0KPiA+IGRvDQo+ID4gdGhlDQo+ID4gY2xlYW51cC4N
-Cj4gPiANCj4gPiBIYXZlIHlvdSBjb25zaWRlcmVkIHVzaW5nIHRoZXNlPw0KPiANCj4gVGhhbmtz
-IGZvciB0aGUgaGludC4gV2Ugd2lsbCBjaGVjayB0aGlzLg0KDQpJIGJyaWVmbHkgY2hlY2tlZCB0
-aGlzIGZvciBETUEgaXNzdWUuIEl0IHdpbGwgbm90IGhlbHAgYW55aG93LCBzbyB3ZQ0KKmhhdmUg
-dG8qIG1vdmUgYSBwb3dlciBkb21haW4gYXNzaWdubWVudCB0byB0aGUgQklORCBzdGFnZS4NCg0K
-Rm9yIEkyQyBhbmQgcmVzdCBMUFNTIGRldmljZXMgdGhpcyBtaWdodCBoZWxwICh0aG91Z2ggZGlk
-bid0IGxvb2sNCmRlZXBseSkuIE15IHVuZGVyc3RhbmRpbmcgdGhhdCB3ZSBhc3NpZ24gdGhvc2Ug
-Y2FsbGJhY2tzIGluIHRoZSBMUFNTDQpjdXN0b20gUE0gZG9tYWluIGFuZCBjYWxsIHRoZW0gZXhw
-bGljaXRseSBpbiBhY3BpX2xwc3MuYy4NCg0KVGhlIGNvZGUgd2lsbCBiZSB0aGUgc2FtZSBhcyB3
-ZSBhcmUgdXNpbmcgbm93IHRvIGJyaW5nIGRldmljZSBmcm9tDQpydW50aW1lIHN1c3BlbmQgcmVz
-dW1lLiBUaGlzIG1lYW5zIHdoZW5ldmVyIHdlIGNhbGwgcHJvYmUgZm9yIGUuZy4gSTJDDQp3ZSBl
-bmQgdXAgaW4gYSBzZXF1ZW5jZSBzaW1pbGFyIHRvOg0KwqBwbV9ydW50aW1lX3Jlc3VtZShJMkMp
-Ow0KwqAtPnByb2JlKEkyQyk7DQrCoHBtX3J1bnRpbWVfc3VzcGVuZChJMkMpOw0KDQpJIHdpbGwg
-dHJ5IHRvIG1vY2sgdXAgdGhpcyBhbmQgY2hlY2sgaWYgaXQgd2lsbCB3b3JrLCB0aG91Z2ggaGF2
-ZSBubw0KaWRlYSB3aGF0IHRvIGRvIGlmIEkyQyBkdXJpbmcgcHJvYmUgY2FsbHMgcG1fcnVudGlt
-ZV9mb3JiaWQoKS4NCg0KSmFya2tvLCB3aGF0IGRvIHlvdSB0aGluaz8NCg0KLS0gDQpBbmR5IFNo
-ZXZjaGVua28gPGFuZHJpeS5zaGV2Y2hlbmtvQGludGVsLmNvbT4NCkludGVsIEZpbmxhbmQgT3kN
-Ci0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tLQpJbnRlbCBGaW5sYW5kIE95ClJlZ2lzdGVyZWQgQWRkcmVzczogUEwgMjgx
-LCAwMDE4MSBIZWxzaW5raSAKQnVzaW5lc3MgSWRlbnRpdHkgQ29kZTogMDM1NzYwNiAtIDQgCkRv
-bWljaWxlZCBpbiBIZWxzaW5raSAKClRoaXMgZS1tYWlsIGFuZCBhbnkgYXR0YWNobWVudHMgbWF5
-IGNvbnRhaW4gY29uZmlkZW50aWFsIG1hdGVyaWFsIGZvcgp0aGUgc29sZSB1c2Ugb2YgdGhlIGlu
-dGVuZGVkIHJlY2lwaWVudChzKS4gQW55IHJldmlldyBvciBkaXN0cmlidXRpb24KYnkgb3RoZXJz
-IGlzIHN0cmljdGx5IHByb2hpYml0ZWQuIElmIHlvdSBhcmUgbm90IHRoZSBpbnRlbmRlZApyZWNp
-cGllbnQsIHBsZWFzZSBjb250YWN0IHRoZSBzZW5kZXIgYW5kIGRlbGV0ZSBhbGwgY29waWVzLgo=
+On Thu, 2015-12-03 at 11:01 -0800, Linus Torvalds wrote:
+> On Thu, Dec 3, 2015 at 10:40 AM, Borislav Petkov <bp@alien8.de> wrote:
+> > On Thu, Dec 03, 2015 at 11:54:19AM -0700, Toshi Kani wrote:
+> > > Adding a new type for regular memory will require inspecting the 
+> > > codes using IORESOURCE_MEM currently, and modify them to use the new 
+> > > type if their target ranges are regular memory.  There are many 
+> > > references to this type across multiple architectures and drivers, 
+> > > which make this inspection and testing challenging.
+> > 
+> > What's wrong with adding a new type_flags to struct resource and not
+> > touching IORESOURCE_* at all?
+> 
+> Bah. Both of these ideas are bogus.
+> 
+> Just add a new flag. The bits are already modifiers that you can
+> *combine* to show what kind of resource it is, and we already have
+> things like IORESOURCE_PREFETCH etc, that are in *addition* to the
+> normal IORESOURCE_MEM bit.
+> 
+> Just add another modifier: IORESOURCE_RAM.
+> 
+> So it would still show up as IORESOURCE_MEM, but it would have
+> additional information specifying that it's actually RAM.
+> 
+> If somebody does something like
+> 
+>      if (res->flags == IORESOURCE_MEM)
+> 
+> then they are already completely broken and won't work *anyway*. It's
+> a bitmask, bit a set of values.
+
+Yes, if we can assign new modifiers, that will be quite simple. :-)  I
+assume we can allocate new bits from the remaining free bits as follows.
+
++#define IORESOURCE_SYSTEM_RAM  0x01000000      /* System RAM */
++#define IORESOURCE_PMEM        0x02000000      /* Persistent memory */
+ #define IORESOURCE_EXCLUSIVE   0x08000000      /* Userland may not map
+this resource */
+
+Note, SYSTEM_RAM represents the OS memory, i.e. "System RAM", not any RAM
+ranges.
+
+With the new modifiers, region_intersect() can check these ranges.  One
+caveat is that the modifiers are not very extensible for new types as they
+are bit maps.  region_intersect() will no longer be capable of checking any
+regions with any given name.  I think this is OK since this function was
+introduced recently, and is only used for checking "System RAM" and
+"Persistent Memory" (with this patch series).
+
+Thanks,
+-Toshi
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
