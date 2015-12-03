@@ -1,36 +1,56 @@
-From: Andy Lutomirski <luto@amacapital.net>
-Subject: Re: [PATCH v4 4/7] ACPI / debugger: Add IO interface to access
- debugger functionalities
-Date: Thu, 3 Dec 2015 14:27:41 -0800
-Message-ID: <CALCETrUjb199X4cFkcr2upH1kTx1mrwxwzPPxZGCYkqpV-8GRQ@mail.gmail.com>
-References: <cover.1446790780.git.lv.zheng@intel.com> <cover.1449108825.git.lv.zheng@intel.com>
- <38be30c67ffbea7618e65fbf1f62bf666a50e56c.1449108826.git.lv.zheng@intel.com>
+From: Pavel Machek <pavel@ucw.cz>
+Subject: Re: [PATCH] pci: completely disable aspm if it's unsupported
+Date: Thu, 3 Dec 2015 23:40:13 +0100
+Message-ID: <20151203224013.GG14427@amd>
+References: <1447856703-2566-1-git-send-email-jbacik@fb.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ig0-f178.google.com ([209.85.213.178]:34388 "EHLO
-	mail-ig0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751129AbbLCW2C (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Dec 2015 17:28:02 -0500
-Received: by igvg19 with SMTP id g19so23671037igv.1
-        for <linux-acpi@vger.kernel.org>; Thu, 03 Dec 2015 14:28:01 -0800 (PST)
-In-Reply-To: <38be30c67ffbea7618e65fbf1f62bf666a50e56c.1449108826.git.lv.zheng@intel.com>
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:38099 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751243AbbLCWkQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Dec 2015 17:40:16 -0500
+Content-Disposition: inline
+In-Reply-To: <1447856703-2566-1-git-send-email-jbacik@fb.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Andy Lutomirski <luto@kernel.org>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
+To: Josef Bacik <jbacik@fb.com>
+Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, bhelgaas@google.com, shli@fb.com, kernel-team@fb.com
 
-On Wed, Dec 2, 2015 at 6:43 PM, Lv Zheng <lv.zheng@intel.com> wrote:
-> This patch adds /sys/kernel/debug/acpi/acpidbg, which can be used by
-> userspace programs to access ACPICA debugger functionalities.
+Hi!
 
-What's this one generated against?  My Kconfig contains:
+> We have some hardware that takes about 30 seconds to setup common clocks for
+> ASPM, but our bios'es don't actually allow ASPM.  It seems we had this thing in
+> place where we would disable ASPM after the pci bus probe so that we would make
+> sure that pre pcie 1.1 devices would be properly skipped during initialization.
+> This is because the mechanism to disable ASPM doesn't actually disable the
+> setting up of the link state stuff, it just keeps us from changing the link
+> state after the fact.  So instead make it so that when we call pcie_no_aspm()
+> that we disable ASPM completley, that is we skip setting up the link state and
+> everything.  This way we avoid the costly setup for a feature we cannot support
+> in the first place and we also make sure we are safe from future tampering with
+> the ASPM link state.  Thanks,
 
-config ACPI_DEBUGGER
-    bool "In-kernel debugger (EXPERIMENTAL)"
-    select ACPI_DEBUG
+On thinkpad x60, I have similar problem.
 
-which isn't quite the same as what you generated this against.  I'm
-starting with 4.4-rc3.
+I'm carying this for long long time now:
 
---Andy
+diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+index a32ba75..5eb7621 100644
+--- a/drivers/pci/pci-acpi.c
++++ b/drivers/pci/pci-acpi.c
+@@ -700,7 +700,7 @@ static int __init acpi_pci_init(void)
+ 
+ 	if (acpi_gbl_FADT.boot_flags & ACPI_FADT_NO_ASPM) {
+ 		pr_info("ACPI FADT declares the system doesn't support PCIe ASPM, so disable it\n");
+-		pcie_no_aspm();
++//		pcie_no_aspm();
+ 	}
+ 
+ 	ret = register_acpi_bus_type(&acpi_pci_bus);
+
+
+
+-- 
+(english) http://www.livejournal.com/~pavelmachek
+(cesky, pictures) http://atrey.karlin.mff.cuni.cz/~pavel/picture/horses/blog.html
