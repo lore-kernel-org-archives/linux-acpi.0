@@ -1,70 +1,102 @@
-From: Timur Tabi <timur@codeaurora.org>
-Subject: Re: [PATCH 3/3] serial: amba-pl011: add ACPI support to AMBA probe
-Date: Thu, 3 Dec 2015 14:06:27 -0600
-Message-ID: <CAOZdJXXWyYsn5g4S=L_gkPSRaANwB3=UMazdQHq5Jv4b7oQZpg@mail.gmail.com>
-References: <1443609530-21524-1-git-send-email-graeme.gregory@linaro.org>
-	<1443609530-21524-4-git-send-email-graeme.gregory@linaro.org>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [RFC PATCH 1/2] PCI/ACPI: Add ACPI support for non ECAM Host Bridge Controllers
+Date: Thu, 03 Dec 2015 21:58:14 +0100
+Message-ID: <5018756.5lEEeJVMod@wuerfel>
+References: <1449155999-220955-1-git-send-email-gabriele.paoloni@huawei.com> <1449155999-220955-2-git-send-email-gabriele.paoloni@huawei.com> <20151203175826.GB2935@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:50537 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753428AbbLCUG3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Dec 2015 15:06:29 -0500
-In-Reply-To: <1443609530-21524-4-git-send-email-graeme.gregory@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20151203175826.GB2935@red-moon>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, catalin.marinas@arm.com, linaro-acpi@lists.linaro.org, Liviu.Dudau@arm.com, linux-kernel@vger.kernel.org, will.deacon@arm.com, wangyijing@huawei.com, wangzhou1@hisilicon.com, hanjun.guo@linaro.org, liudongdong3@huawei.com, tn@semihalf.com, bhelgaas@google.com, tglx@linutronix.de, xuwei5@hisilicon.com, liguozhu@hisilicon.com, jiang.liu@linux.intel.com
 List-Id: linux-acpi@vger.kernel.org
-To: Graeme Gregory <graeme.gregory@linaro.org>
-Cc: linux-acpi@vger.kernel.org, lkml <linux-kernel@vger.kernel.org>, linux-serial@vger.kernel.org, shannon.zhao@linaro.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
-On Wed, Sep 30, 2015 at 5:38 AM, Graeme Gregory
-<graeme.gregory@linaro.org> wrote:
+On Thursday 03 December 2015 17:58:26 Lorenzo Pieralisi wrote:
+> On Thu, Dec 03, 2015 at 11:19:58PM +0800, Gabriele Paoloni wrote:
+> > +void acpi_arm64_quirks(void)
+> > +{
+> > +	int i = 0;
+> > +
+> > +	while (quirks_array[i]) {
+> > +		acpi_scan_add_handler(quirks_array[i]);
+> > +		i++;
+> > +	}
+> > +
+> > +}
+> 
+> This code is not arm64 specific, and this is part of a wider complaint
+> I have about this patchset and PCI/ACPI code I see in general.
 
-> @@ -2368,18 +2368,28 @@ static int pl011_probe(struct amba_device *dev, const struct amba_id *id)
->         if (!uap)
->                 return -ENOMEM;
->
-> -       uap->clk = devm_clk_get(&dev->dev, NULL);
-> -       if (IS_ERR(uap->clk))
-> -               return PTR_ERR(uap->clk);
-> -
-> -       uap->vendor = vendor;
-> -       uap->lcrh_rx = vendor->lcrh_rx;
-> -       uap->lcrh_tx = vendor->lcrh_tx;
-> -       uap->fifosize = vendor->get_fifosize(dev);
-> +       /* ACPI only defines SBSA variant */
-> +       if (!ACPI_COMPANION(&dev->dev)) {
-> +               uap->clk = devm_clk_get(&dev->dev, NULL);
-> +               if (IS_ERR(uap->clk))
-> +                       return PTR_ERR(uap->clk);
-> +
-> +               uap->vendor = vendor;
-> +               uap->lcrh_rx = vendor->lcrh_rx;
-> +               uap->lcrh_tx = vendor->lcrh_tx;
-> +               uap->fifosize = vendor->get_fifosize(dev);
-> +               uap->port.ops = &amba_pl011_pops;
-> +               snprintf(uap->type, sizeof(uap->type), "PL011 rev%u",
-> +                               amba_rev(dev));
-> +        } else {
-> +               uap->vendor     = &vendor_sbsa;
-> +               uap->fifosize   = 32;
-> +               uap->port.ops   = &sbsa_uart_pops;
-> +               uap->fixed_baud = 115200;
-> +
-> +               snprintf(uap->type, sizeof(uap->type), "SBSA");
-> +       }
->         uap->port.irq = dev->irq[0];
-> -       uap->port.ops = &amba_pl011_pops;
-> -
-> -       snprintf(uap->type, sizeof(uap->type), "PL011 rev%u", amba_rev(dev));
+Agreed. We certainly should try to reduce the number of architecture
+specific hacks in arch/arm64/kernel/pci.c instead of adding to it.
 
-I'm confused.  We already have ACPI support in amba-pl011 driver, and
-pl011_probe() is never called on an SBSA system.  That's what
-sbsa_uart_probe() is for.  You even added this patch:
+Ideally we will remove that file soon after the existing align_resource,
+enabled_device and add_device hacks can be removed.
 
-        drivers: PL011: add ACPI probing for SBSA UART
+> > @@ -253,6 +291,9 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
+> >  		return NULL;
+> >  	}
+> >  
+> > +	if (vendor_specific_ops)
+> > +		acpi_pci_root_ops.pci_ops = vendor_specific_ops;
+> 
+> You are relying on the scan handlers calling ordering here, which as far
+> as I know depends on the ACPI tables layout, this is not acceptable,
+> we need to find a more robust implementation.
+> 
+> Let's first rewind a bit though, to summarize:
+> 
+> 1) we need a way to configure a "generic host controller" with host
+>    controller specific config methods (ie ECAM, even though is a PCI
+>    standard it is not standard enough for some designers)
 
--- 
-Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project.
+That code already exists, see drivers/acpi/pci_*.c
+
+> 2) we keep the generic "PNP0A03" matching to declare a host bridge and
+>    related resources (?). Maybe we can have an HID matching the
+>    "real" device (eg "HISI0081" and related DSD) and a CID set to "PNP0A03" ?
+>    I do not want to end up with two device objects in the ACPI tables.
+> 
+> I think that all this code belongs in:
+> 
+> drivers/pci/host/pci-host-generic.c
+
+I disagree:
+
+> and the quirks scan should be done _within_ the pci_acpi_scan_root()
+> that should be placed in drivers/pci/host/pci-host-generic.c (ACPI probe
+> path, to be created) so that, if quirks for config space have to be applied
+> they are applied there before calling acpi_pci_root_create() so that
+> ordering is guaranteed.
+
+pci-host-generic.c is just for standard PCI implementations, and it has
+zero code that would be shared with ACPI: Most of the implementation
+deals with parsing DT properties, and all that code is entirely differnet
+for ACPI and already exists in drivers/acpi. The one thing that could be
+shared is the ECAM config space access, but ACPI already needs something
+else here because it requires access to the config space at early boot
+time, way before we even load that driver, see raw_pci_read/raw_pci_write.
+
+If there are parts missing in drivers/acpi to make it access PCI hosts,
+they can be added there, possibly inside "#ifndef CONFIG_X86".
+
+> I will put together a proposal to define the way we specify HID and
+> related DSD properties for PCI host controllers and send it to
+> the ACPI working group for review.
+
+That also requires a change to SBSA, right? Today, SBSA assumes that
+we have a standard PCI host that will work with any hardware independent
+PCI implementation in an OS. We either have to give up on SBSA saying
+much about how PCI hosts are implemented, or stop assuming that hardware
+is SBSA compliant.
+
+> Second, I am against merging _any_ ACPI/PCI code for arm64 before we
+> define a way for the kernel to detect if resources should be reassigned
+> or just claimed as they are, as set-up by BIOS.
+
+Why would it ever reassign anything that has been set up by the BIOS?
+We are still talking about server systems, right?
+
+	Arnd
