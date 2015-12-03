@@ -1,86 +1,127 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: ACPICA serialized objects?
-Date: Thu, 3 Dec 2015 01:42:20 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BAFAE98@SHSMSX101.ccr.corp.intel.com>
-References: <CALCETrWFSs0Ornr9airzqL=9ph06WDghOUaKmA_8cAorrw1Kpw@mail.gmail.com>
- <CAJZ5v0gxE2kN75K4F9TxNAhz1Xb0zoi1CMn_R36OPeBHuQ9-Qw@mail.gmail.com>
- <CALCETrXnbVCnisYrq_+GrT0PPqi6tG51TBtcx1rnQTdbLetK0A@mail.gmail.com>
- <CAJZ5v0jygkagyqwvEmtXPKXkhEFnspTj9XPgjeRowfsV5_Kjvw@mail.gmail.com>
- <CALCETrVE9De-o29seijHRUwTMYGx4As_zOin=xQkTjbGviCUJA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+From: Lv Zheng <lv.zheng@intel.com>
+Subject: [PATCH v4 0/7] ACPICA / debugger: Add in-kernel AML debugger support
+Date: Thu,  3 Dec 2015 10:40:00 +0800
+Message-ID: <cover.1449108825.git.lv.zheng@intel.com>
+References: <cover.1446790780.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:34201 "EHLO mga01.intel.com"
+Received: from mga01.intel.com ([192.55.52.88]:52420 "EHLO mga01.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756467AbbLCBmY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 2 Dec 2015 20:42:24 -0500
-In-Reply-To: <CALCETrVE9De-o29seijHRUwTMYGx4As_zOin=xQkTjbGviCUJA@mail.gmail.com>
-Content-Language: en-US
+	id S1758016AbbLCCkJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 2 Dec 2015 21:40:09 -0500
+In-Reply-To: <cover.1446790780.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Lutomirski <luto@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Linux ACPI <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>
+To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Andy Lutomirski <luto@kernel.org>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-SGksIEFuZHkNCg0KU29ycnkgZm9yIHRoZSBkZWxheSBvZiByZXBseS4NCg0KPiBGcm9tOiBBbmR5
-IEx1dG9taXJza2kgW21haWx0bzpsdXRvQGtlcm5lbC5vcmddDQo+IFNlbnQ6IFRodXJzZGF5LCBE
-ZWNlbWJlciAzLCAyMDE1IDk6MjkgQU0NCj4gDQo+IE9uIFdlZCwgRGVjIDIsIDIwMTUgYXQgNToy
-NiBQTSwgUmFmYWVsIEouIFd5c29ja2kgPHJhZmFlbEBrZXJuZWwub3JnPiB3cm90ZToNCj4gPiBP
-biBUaHUsIERlYyAzLCAyMDE1IGF0IDI6MjIgQU0sIEFuZHkgTHV0b21pcnNraSA8bHV0b0BrZXJu
-ZWwub3JnPiB3cm90ZToNCj4gPj4gT24gV2VkLCBEZWMgMiwgMjAxNSBhdCA1OjEzIFBNLCBSYWZh
-ZWwgSi4gV3lzb2NraSA8cmFmYWVsQGtlcm5lbC5vcmc+DQo+IHdyb3RlOg0KPiA+Pj4gSGksDQo+
-ID4+Pg0KPiA+Pj4gT24gVGh1LCBEZWMgMywgMjAxNSBhdCAxOjM3IEFNLCBBbmR5IEx1dG9taXJz
-a2kgPGx1dG9AYW1hY2FwaXRhbC5uZXQ+DQo+IHdyb3RlOg0KPiA+Pj4+IFtyZXNlbmQgYXMgcGxh
-aW4gdGV4dF0NCj4gPj4+Pg0KPiA+Pj4+IEkgd2FudCB0byBidW5kbGUgdXAgYW4gYXJiaXRyYXJ5
-IEFDUElfT0JKRUNUIGludG8gYSBjb3B5YWJsZSBzdHJlYW0gb2YNCj4gPj4+PiBieXRlcywgaXMg
-dGhlcmUgc29tZSBzdGFuZGFyZCB3YXkgdG8gZG8gdGhpcz8NCj4gPj4+Pg0KPiA+Pj4+IEknbSBh
-c2tpbmcgYmVjYXVzZSBJIHdhbnQgdG8gdHJ5IHRvIHVwc3RyZWFtIHNvbWV0aGluZyByZXNlbWJs
-aW5nIHRoZQ0KPiA+Pj4+IHJ1c3R5IG9sZCBhY3BpX2NhbGwgbW9kdWxlIHRvIGFsbG93IHVzZXJz
-IHdpdGggZGVidWdmcyBhY2Nlc3Mgd2hvIGFyZQ0KPiA+Pj4+IHdpbGxpbmcgdG8gdGFpbnQgdGhl
-aXIga2VybmVsIHRvIGV2YWx1YXRlIEFDUEkgb2JqZWN0cyBmcm9tIHVzZXJzcGFjZS4NCj4gPj4+
-PiBQcmVzdW1hYmx5IHRoZXJlIHdvdWxkIGJlIGEgdXNlciB0b29sIHRvIGdldCBvYmplY3QgaW5m
-byBhbmQgdG8NCj4gPj4+PiBldmFsdWF0ZSBtZXRob2RzLCBhbmQgd2UgY291bGQgaGFuZGxlIHRy
-YW5zbGF0aW9uIHRvL2Zyb20gc3RyaW5ncyBpbg0KPiA+Pj4+IHVzZXJzcGFjZSwgYnV0IEkgc3Rp
-bGwgbmVlZCBzb21lIHdheSB0byBzaG92ZSB0aGUgZGF0YSBiYWNrIGFuZCBmb3J0aC4NCj4gPj4+
-DQo+ID4+PiBQbGVhc2UgZG9uJ3QgZG8gdGhhdCwgdGhpcyBpcyBicm9rZW4gYXMgYSBjb25jZXB0
-Lg0KPiA+Pj4NCj4gPj4+IFVzZXIgc3BhY2UgaGFzIG5vIGlkZWEgd2hhdHNvZXZlciBhYm91dCB3
-aGVuIGFuZCBpdCB3aGF0IGNvbmRpdGlvbnMgYQ0KPiA+Pj4gZ2l2ZW4gQU1MIGNhbiBiZSBleGVj
-dXRlZCBpbiB0aGUgZmlyc3QgcGxhY2UsIHNvIGluIGFkZGl0aW9uIHRvDQo+ID4+PiB0YWludGlu
-ZyB0aGUga2VybmVsIGl0IG1heSBqdXN0IG91dHJpZ2h0IGJyZWFrIHRoaW5ncy4NCj4gPj4+DQo+
-ID4+PiBOb3QgdG8gbWVudGlvbiB0aGUgcG9zc2liaWxpdHkgb2YgY29uZnVzaW5nIHRoZSBrZXJu
-ZWwncyByZWZlcmVuY2UNCj4gPj4+IGNvdW50aW5nIGFuZCBicmVha2luZyBhc3N1bXB0aW9ucyBt
-YWRlIGJ5IGl0IG9uIHRoZSBjdXJyZW50IHN0YXRlIG9mDQo+ID4+PiB0aGluZ3MgYmFzZWQgb24g
-d2hhdCBBTUwgaGFzIGJlZW4gYWxyZWFkeSBleGVjdXRlZC4NCj4gPj4NCj4gPj4gVGhpcyBpcyBz
-b21ldGhpbmcgdGhhdCBJIHdhbnQgYXMgYSByZWFkZXIgb2YgZGVjb21waWxlZCBEU0RUcyBhbmQg
-YQ0KPiA+PiB3cml0ZXIgb2YgZHJpdmVycy4gIEkgdGhpbmsgd2UgY291bGQgZG8gaXQgaW4gYSB3
-YXkgdGhhdCBpdCBkb2Vzbid0DQo+ID4+IGdldCB1c2VkIGZvciBldmlsLiAgRm9yIGV4YW1wbGUs
-IG1ha2UgaXQgYSBtb2R1bGUsIHRhaW50IHRoZSBrZXJuZWwgaWYNCj4gPj4gaXQncyBsb2FkZWQg
-YW5kIGVuYWJsZWQsIG9ubHkgZXhwb3NlIHRoZSBpbnRlcmZhY2UgaWYgYW4gYWN0dWFsICpib290
-Kg0KPiA+PiBwYXJhbWV0ZXIgYWxsb3dfdXNlcl9hY3BpX2NhbGxzPTEgaXMgc2V0LCBlbmNvdXJh
-Z2UgZGlzdHJvcyB0bw0KPiA+PiBzZXJpb3VzbHkgY29uc2lkZXIgbm90IGJ1aWxkaW5nIHRoZSBt
-b2R1bGUsIGRpc2FsbG93IGl0IGVudGlyZWx5IHVuZGVyDQo+ID4+IHNlY3VyZSBib290LCBldGMu
-DQo+ID4+DQo+ID4+IEkgd2FudCB0byB1c2UgaXQgZm9yIHRoaW5ncyBsaWtlICJoZXksIGl0IGxv
-b2tzIGxpa2UgXE5FWFAgbWlnaHQgaGF2ZQ0KPiA+PiBhIGZ1bm55IHZhbHVlIC0tIGxldCdzIHNl
-ZSB3aGF0J3MgdGhlcmUgd2l0aG91dCBtYW51YWxseSBmaWd1cmluZyBvdXQNCj4gPj4gaG93IHRv
-IHBlZWsgYXQgdGhlIHJlbGV2YW50IE9wUmVnaW9uIi4NCj4gPg0KPiA+IFNvIHBsZWFzZSBjaGVj
-ayB0aGUgZGVidWdnZXIgdGhpbmcuDQo+ID4NCj4gPiBMdiwgY2FuIHlvdSBwbGVhc2UgaGVscCBB
-bmR5IHdpdGggdGhpcz8NCj4gPg0KPiANCj4gT29oLCB0aGF0J3MgcmVhbGx5IGNvb2whICBJdCBs
-b29rcyBsaWtlIGFjcGlkYmcgLWIgImV4ZWN1dGUgXFdIQVRFVkVSIg0KPiBpcyAqZXhhY3RseSog
-d2hhdCBJIHdhbnQuICBJcyB0aGVyZSBhIGdpdCB0cmVlIG9yIHVwLXRvLWRhdGUgcGF0Y2hzZXQN
-Cj4gdGhhdCB3b3Jrcz8gIEl0IGxvb2tzIGxpa2UgNC40LXJjMyBoYXMgc29tZSBidXQgbm90IGFs
-bCBvZiB0aGUgcGllY2VzDQo+IG5lZWRlZC4NCltMdiBaaGVuZ10gDQpZb3UgY2FuIGZpbmQgdGhl
-bSBoZXJlOg0KaHR0cHM6Ly9wYXRjaHdvcmsua2VybmVsLm9yZy9wcm9qZWN0L2xpbnV4LWFjcGkv
-bGlzdC8NClRoZSBwYXRjaGVzIGFyZToNClt2M10gQUNQSSAvIHg4NjogaW50cm9kdWNlIGFjcGlf
-b3NfcmVhZGFibGUoKSBzdXBwb3J0DQpbdjMsNi82XSBBQ1BJIC8gZGVidWdnZXI6IEFkZCBtb2R1
-bGUgc3VwcG9ydCBmb3IgQUNQSSBkZWJ1Z2dlcg0KW3YzLDUvNl0gdG9vbHMvcG93ZXIvYWNwaTog
-QWRkIHVzZXJzcGFjZSBBTUwgaW50ZXJmYWNlIHN1cHBvcnQNClt2Myw0LzZdIEFDUEkgLyBkZWJ1
-Z2dlcjogQWRkIElPIGludGVyZmFjZSB0byBhY2Nlc3MgZGVidWdnZXIgZnVuY3Rpb25hbGl0aWVz
-DQpbdjMsMy82XSBBQ1BJQ0E6IERlYnVnZ2VyOiBGaXggcnVudGltZSBzdHViIGlzc3VlcyBvZiBB
-Q1BJX0RFQlVHR0VSX0VYRUMgdXNpbmcgZGlmZmVyZW50IHN0dWIgbWVjaGFuaXNtDQpbdjMsMi82
-XSBBQ1BJQ0E6IERlYnVnZ2VyOiBDb252ZXJ0IHNvbWUgbWVjaGFuaXNtcyB0byBPU1BNIHNwZWNp
-ZmljDQpbdjMsMS82XSBBQ1BJQ0E6IERlYnVnZ2VyOiBSZW1vdmUgdW5uZWNlc3Nhcnkgc3RhdHVz
-IGNoZWNrDQoNCkl0IGlzIGJhc2VkIG9uIGxpbnV4LXBtL2xpbnV4LW5leHQgdHJlZS4NCkknbSBn
-b2luZyB0byBzZW5kIGFuIHVwZGF0ZSBiZWNhdXNlIHRvIGVsaW1pbmF0ZSBzb21lIHJlY2VudCBp
-bnRyb2R1Y2VkIGNvbmZsaWN0cy4NCkknbGwgQ2MgeW91IHdoZW4gdGhlIG5ldyB2ZXJzaW9uIGlz
-IHNlbnQgb3V0Lg0KDQpUaGFua3MgYW5kIGJlc3QgcmVnYXJkcw0KLUx2DQoNCj4gDQo+IC0tQW5k
-eQ0K
+This patchset enables ACPICA debugger for Linux kernel and implements a
+userspace utility to access it.
+
+A. Build the AML debugger
+In order to build the kernel support of AML debugger, the following kconfig
+items should be enabled:
+ CONFIG_ACPI_DEBUG=y
+ CONFIG_ACPI_DEBUGGER=y
+ CONFIG_DEBUG_FS=y
+ CONFIG_ACPI_DEBUGGER_USER=m
+The userspace tool can be found at tools/power/acpi/tools/acpidbg. To
+build this utility, staying in tools folder and type "make acpi".
+
+B. Load the AML debugger during runtime
+In order to use the in-kernel AML debugger, the following command should be
+executed using root user:
+ # modprobe acpi_dbg
+ # mount -t debugfs none /sys/kernel/debug
+ # acpidbg
+
+C. Batch mode
+In order to support scripts, the userspace utility also supports single
+command batch mode:
+ # acpidbg -b "help"
+ # acpidbg -b "tables"
+ # acpidbg -b "find _LID"
+ # acpidbg -b "execute \_SB.LID0._LID"
+You can find the documentation about the ACPICA debugger commands in:
+ https://acpica.org/sites/acpica/files/acpica-reference_17.pdf
+ (The latest document can be found at https://acpica.org/documentation)
+And refer to the chapter - ACPICA debugger reference to obtain the full
+description of the debugger commands. Note that not all commands are
+supported by an in-kernel AML debugger.
+
+D. Unload the AML debugger during runtime
+After terminating all acpidbg instances, the following command can be
+executed to remove the AML debugger from kernel:
+ # rmmod acpi_dbg
+
+The following tasks are not completed:
+1. .flush() support in the kernel debugger IO driver.
+2. multi-commands batch mode.
+
+v2:
+1. Fix a help message issue for the userspace acpidbg utility (this is a
+   typo fix).
+2. Fix a batch mode issue by adding "\n" to the prompt sequence (this was
+   lost due to too many rebase cycles).
+3. Fix kconfig dependency for an intermediate patch (this is only useful in
+   case the latter patches are reverted).
+4. Add more accurate runtime debugger stub mechanism and remove old
+   ACPI_DEBUGGER_EXEC() stub mechanism.
+5. Add x86 acpi_os_readable() support.
+
+v3:
+1. Remove acpi_os_readable() support from this patchset. It's sent separately.
+2. Delete some deprecated comments.
+
+v4:
+1. Rebase patch 4/6 because of Kconfig changes.
+2. Include acpi_os_readable() back as no objections, also test result is
+   positive.
+
+Chen Yu (1):
+  ACPI / x86: introduce acpi_os_readable() support
+
+Colin Ian King (1):
+  ACPICA: Debugger: Remove unnecessary status check
+
+Lv Zheng (5):
+  ACPICA: Debugger: Convert some mechanisms to OSPM specific
+  ACPICA: Debugger: Fix runtime stub issues of ACPI_DEBUGGER_EXEC using
+    different stub mechanism
+  ACPI / debugger: Add IO interface to access debugger functionalities
+  tools/power/acpi: Add userspace AML interface support
+  ACPI / debugger: Add module support for ACPI debugger
+
+ arch/x86/Kconfig                         |    1 +
+ arch/x86/include/asm/acenv.h             |    1 +
+ arch/x86/kernel/acpi/boot.c              |   44 ++
+ drivers/acpi/Kconfig                     |   20 +-
+ drivers/acpi/Makefile                    |    1 +
+ drivers/acpi/acpi_dbg.c                  |  805 ++++++++++++++++++++++++++++++
+ drivers/acpi/acpica/acdebug.h            |   36 +-
+ drivers/acpi/acpica/acglobal.h           |    5 -
+ drivers/acpi/acpica/acmacros.h           |   11 -
+ drivers/acpi/acpica/dbdisply.c           |   12 +
+ drivers/acpi/acpica/dbinput.c            |  100 +---
+ drivers/acpi/acpica/dbxface.c            |   93 ++--
+ drivers/acpi/acpica/dscontrol.c          |   10 +-
+ drivers/acpi/acpica/dsutils.c            |   16 +-
+ drivers/acpi/acpica/dswexec.c            |   16 +-
+ drivers/acpi/acpica/utmutex.c            |   17 -
+ drivers/acpi/bus.c                       |    1 +
+ drivers/acpi/osl.c                       |  262 +++++++++-
+ include/acpi/acpiosxf.h                  |   18 +-
+ include/acpi/acpixf.h                    |   34 ++
+ include/acpi/platform/aclinux.h          |    3 +-
+ include/acpi/platform/aclinuxex.h        |    8 +-
+ include/linux/acpi.h                     |   71 +++
+ tools/power/acpi/Makefile                |   16 +-
+ tools/power/acpi/tools/acpidbg/Makefile  |   27 +
+ tools/power/acpi/tools/acpidbg/acpidbg.c |  438 ++++++++++++++++
+ 26 files changed, 1852 insertions(+), 214 deletions(-)
+ create mode 100644 drivers/acpi/acpi_dbg.c
+ create mode 100644 tools/power/acpi/tools/acpidbg/Makefile
+ create mode 100644 tools/power/acpi/tools/acpidbg/acpidbg.c
+
+-- 
+1.7.10
+
