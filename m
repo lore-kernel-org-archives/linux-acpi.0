@@ -1,63 +1,40 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [RFC PATCH 2/4] device property: Introduce helper device_get_reference_node()
-Date: Fri, 04 Dec 2015 00:29:12 +0100
-Message-ID: <21014512.b9662OruTx@vostro.rjw.lan>
-References: <1449047368-5768-1-git-send-email-wangkefeng.wang@huawei.com> <1449047368-5768-3-git-send-email-wangkefeng.wang@huawei.com> <20151203152842.GO8644@n2100.arm.linux.org.uk>
+Subject: Re: [PATCH v4 4/7] ACPI / debugger: Add IO interface to access debugger functionalities
+Date: Fri, 04 Dec 2015 00:34:10 +0100
+Message-ID: <14360198.FgS2FrizGL@vostro.rjw.lan>
+References: <cover.1446790780.git.lv.zheng@intel.com> <38be30c67ffbea7618e65fbf1f62bf666a50e56c.1449108826.git.lv.zheng@intel.com> <CALCETrUjb199X4cFkcr2upH1kTx1mrwxwzPPxZGCYkqpV-8GRQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:47493 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:52531 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751037AbbLCW7U (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Dec 2015 17:59:20 -0500
-In-Reply-To: <20151203152842.GO8644@n2100.arm.linux.org.uk>
+	with SMTP id S1751448AbbLCXES (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Dec 2015 18:04:18 -0500
+In-Reply-To: <CALCETrUjb199X4cFkcr2upH1kTx1mrwxwzPPxZGCYkqpV-8GRQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Kefeng Wang <wangkefeng.wang@huawei.com>, Arnd Bergmann <arnd@arndb.de>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org
+To: Andy Lutomirski <luto@amacapital.net>
+Cc: Lv Zheng <lv.zheng@intel.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Andy Lutomirski <luto@kernel.org>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
 
-On Thursday, December 03, 2015 03:28:42 PM Russell King - ARM Linux wrote:
-> On Wed, Dec 02, 2015 at 05:09:26PM +0800, Kefeng Wang wrote:
-> > With of_parse_phandle() and acpi_dev_get_reference_device(), we can introduce
-> > a universal helper device_get_reference_node() to read and parse a device
-> > property and return a pointer to the resulting firmware node.
+On Thursday, December 03, 2015 02:27:41 PM Andy Lutomirski wrote:
+> On Wed, Dec 2, 2015 at 6:43 PM, Lv Zheng <lv.zheng@intel.com> wrote:
+> > This patch adds /sys/kernel/debug/acpi/acpidbg, which can be used by
+> > userspace programs to access ACPICA debugger functionalities.
 > 
-> What's happening to make this fwnode stuff actually usable?  Whenever
-> I've looked at it from the DT perspective, it looks very much like a
-> half-baked train wreck - although the struct device_node contains a
-> fwnode, of_node_init() initialises it partially, and we have a way to
-> convert _from_ a fwnode to a device_node (to_of_node), nothing sets
-> the struct device fwnode pointer.
+> What's this one generated against?  My Kconfig contains:
 > 
-> Whenever I've looked at this, it's always led me to the conclusion
-> that the way that fwnode stuff has currently been written, I'm
-> supposed to get the device_node, and then use the embedded fwnode
-> directly, which I'm pretty sure misses the point of fwnode (as it
-> means any driver code making use of this is tied to DT.)
+> config ACPI_DEBUGGER
+>     bool "In-kernel debugger (EXPERIMENTAL)"
+>     select ACPI_DEBUG
 > 
-> This patch seems to confirm my suspicions that it's just wrong -
-> trying to use device_get_reference_node() here will fail in a DT
-> based setup, because (I assume) dev_fwnode(dev) returns dev->fwnode
-> which is NULL there.
-> 
-> I don't know, maybe there is an intention that fwnode should not be
-> used for DT?
+> which isn't quite the same as what you generated this against.  I'm
+> starting with 4.4-rc3.
 
-No, there isn't.
+Probably on top of linux-next (or my linux-next branch).
 
-> Maybe someone who knows what the intentions are behind this fwnode stuff
-> can enlighten the situation, and maybe sort out this apparent oversight
-> which IMHO should've been spotted in the initial fwnode review?
-
-At that time there was a plan (or maybe just and intention, I'm not sure to
-be honest) to introduce and accessor macro for the of_node pointer in struct
-device and make the users of it access it via that macro, which then would
-make it possible to switch over to using dev->fwnode in the DT case (by
-changing the implementation of that macro).
-
-That hasn't materialized as clearly visible, but still can be done AFAICS,
-although finding a volunteer for that work may be hard I suppose.
+There's a fix commit against Kconfig in my tree which is going to be pushed
+for 4.4-rc4 tomorrow.
 
 Thanks,
 Rafael
