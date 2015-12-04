@@ -1,72 +1,82 @@
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v3 0/9] ACPI / LPSS: fix system hangup on BYT/BSW/CHT
-Date: Fri,  4 Dec 2015 23:49:16 +0200
-Message-ID: <1449265765-9393-1-git-send-email-andriy.shevchenko@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:48309 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755127AbbLDVta (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 4 Dec 2015 16:49:30 -0500
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Subject: [PATCH v3 1/9] device core: add BUS_NOTIFY_DRIVER_NOT_BOUND notification
+Date: Fri,  4 Dec 2015 23:49:17 +0200
+Message-ID: <1449265765-9393-2-git-send-email-andriy.shevchenko@linux.intel.com>
+References: <1449265765-9393-1-git-send-email-andriy.shevchenko@linux.intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1449265765-9393-1-git-send-email-andriy.shevchenko@linux.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Vinod Koul <vinod.koul@intel.com>, dmaengine@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+List-Id: linux-acpi@vger.kernel.org
 
-Here is a v3 of the next generation (previous one is [1]) of the long standing
-power issue fix regarding to LPSS on Intel Baytrail and Braswell SoCs, in
-particularly ASuS T100TA. There are few bugs already opened on kernel.org's and
-RedHat's bugzilla sites.
+The users of BUS_NOTIFY_BIND_DRIVER have no chance to do any cleanup in case of
+a probe failure. In the result there might be problems, such as some resources
+that had been allocated will continue to be allocated and therefore lead to a
+resource leak.
 
-The series depends on the patch submitted earlier [2].
+Introduce a new notification to inform the subscriber that ->probe() failed. Do
+the same in case of failed device_bind_driver() call.
 
-The patch 1 brings a new notification to handle the case when ->probe() of the
-driver fails. It allows to avoid a potential problems. I've noticed couple of
-drivers that are using that in assumption that ->probe() never fails.
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/base/dd.c      | 10 ++++++++--
+ include/linux/device.h |  1 +
+ 2 files changed, 9 insertions(+), 2 deletions(-)
 
-The patches 2 & 4 are needed to fix an I2C issue which Jarkko is currently
-investigating.
-
-It seems the best way to push it through linux-pm tree. Thus, it would be good
-to get ACKs from the rest of maintainers.
-
-Rafael, it would be nice to have an immutable branch or tag for this sice I
-have more patches coming for dw_dmac driver which are based on top of this
-series.
-
-The patches have been tested on ASuS T100TA, Intel Cherrytrail, and Intel
-Braswell SoCs.
-
-[1] http://www.spinics.net/lists/linux-acpi/msg53963.html
-[2] http://www.spinics.net/lists/kernel/msg2119229.html
-
-Changelog v3:
-- patch 2 is split to pure revert with Fixes tag for stable and new change in
-  patch 3
-- add patch 4 to resolve an issue when I2C can't be probed and SDHCI leaves
-  devices in D0
-- address comments from Rafael
-- quirk functions moved under CONFIG_PM
-
-Andy Shevchenko (9):
-  device core: add BUS_NOTIFY_DRIVER_NOT_BOUND notification
-  Revert "ACPI / LPSS: allow to use specific PM domain during ->probe()"
-  ACPI / LPSS: allow to use specific PM domain during ->probe()
-  ACPI / LPSS: power on when probe() and otherwise when remove()
-  ACPI / LPSS: do delay for all LPSS devices when D3->D0
-  ACPI / LPSS: override power state for LPSS DMA device
-  dmaengine: dw: platform: power on device on shutdown
-  dmaengine: dw: return immediately from IRQ when DMA isn't in use
-  Revert "dmaengine: dw: platform: provide platform data for Intel"
-
- arch/x86/Kconfig                |   3 +-
- arch/x86/include/asm/iosf_mbi.h |   2 +
- drivers/acpi/acpi_lpss.c        | 213 +++++++++++++++++++++++++++++++++++++---
- drivers/base/dd.c               |  10 +-
- drivers/dma/dw/core.c           |   9 +-
- drivers/dma/dw/platform.c       |  29 +++---
- include/linux/device.h          |   1 +
- 7 files changed, 231 insertions(+), 36 deletions(-)
-
+diff --git a/drivers/base/dd.c b/drivers/base/dd.c
+index 8d4eb4d..7399be7 100644
+--- a/drivers/base/dd.c
++++ b/drivers/base/dd.c
+@@ -299,6 +299,9 @@ int device_bind_driver(struct device *dev)
+ 	ret = driver_sysfs_add(dev);
+ 	if (!ret)
+ 		driver_bound(dev);
++	else if (dev->bus)
++		blocking_notifier_call_chain(&dev->bus->p->bus_notifier,
++					     BUS_NOTIFY_DRIVER_NOT_BOUND, dev);
+ 	return ret;
+ }
+ EXPORT_SYMBOL_GPL(device_bind_driver);
+@@ -332,7 +335,7 @@ static int really_probe(struct device *dev, struct device_driver *drv)
+ 	/* If using pinctrl, bind pins now before probing */
+ 	ret = pinctrl_bind_pins(dev);
+ 	if (ret)
+-		goto probe_failed;
++		goto pinctrl_bind_failed;
+ 
+ 	if (driver_sysfs_add(dev)) {
+ 		printk(KERN_ERR "%s: driver_sysfs_add(%s) failed\n",
+@@ -376,6 +379,10 @@ static int really_probe(struct device *dev, struct device_driver *drv)
+ 	goto done;
+ 
+ probe_failed:
++	if (dev->bus)
++		blocking_notifier_call_chain(&dev->bus->p->bus_notifier,
++					     BUS_NOTIFY_DRIVER_NOT_BOUND, dev);
++pinctrl_bind_failed:
+ 	devres_release_all(dev);
+ 	driver_sysfs_remove(dev);
+ 	dev->driver = NULL;
+@@ -749,7 +756,6 @@ static void __device_release_driver(struct device *dev)
+ 			blocking_notifier_call_chain(&dev->bus->p->bus_notifier,
+ 						     BUS_NOTIFY_UNBOUND_DRIVER,
+ 						     dev);
+-
+ 	}
+ }
+ 
+diff --git a/include/linux/device.h b/include/linux/device.h
+index b8f411b..f627ba2 100644
+--- a/include/linux/device.h
++++ b/include/linux/device.h
+@@ -191,6 +191,7 @@ extern int bus_unregister_notifier(struct bus_type *bus,
+ 						      unbound */
+ #define BUS_NOTIFY_UNBOUND_DRIVER	0x00000007 /* driver is unbound
+ 						      from the device */
++#define BUS_NOTIFY_DRIVER_NOT_BOUND	0x00000008 /* driver fails to be bound */
+ 
+ extern struct kset *bus_get_kset(struct bus_type *bus);
+ extern struct klist *bus_get_device_klist(struct bus_type *bus);
 -- 
 2.6.2
-
