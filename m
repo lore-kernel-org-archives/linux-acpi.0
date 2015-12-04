@@ -1,7 +1,7 @@
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v3 5/9] ACPI / LPSS: do delay for all LPSS devices when D3->D0
-Date: Fri,  4 Dec 2015 23:49:21 +0200
-Message-ID: <1449265765-9393-6-git-send-email-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v3 9/9] Revert "dmaengine: dw: platform: provide platform data for Intel"
+Date: Fri,  4 Dec 2015 23:49:25 +0200
+Message-ID: <1449265765-9393-10-git-send-email-andriy.shevchenko@linux.intel.com>
 References: <1449265765-9393-1-git-send-email-andriy.shevchenko@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1449265765-9393-1-git-send-email-andriy.shevchenko@linux.intel.com>
@@ -10,70 +10,58 @@ To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Vinod 
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-The LPSS DMA device has no context to save, though it requires the same delay
-like the rest of LPSS devices when power state is changed from D3 to D0.
+Since we have a work around to prevent a system hangup we don't need to provide
+a platform data explicitly anymore.
 
-Do delay for the DMA device as well.
+This reverts commit 175267b389f781748e2bbb6c737e76b5c9bc4c88.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- drivers/acpi/acpi_lpss.c | 23 +++++++++++++++--------
- 1 file changed, 15 insertions(+), 8 deletions(-)
+ drivers/dma/dw/platform.c | 17 +----------------
+ 1 file changed, 1 insertion(+), 16 deletions(-)
 
-diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-index c5f12f3..a10c2d6 100644
---- a/drivers/acpi/acpi_lpss.c
-+++ b/drivers/acpi/acpi_lpss.c
-@@ -574,6 +574,17 @@ static void acpi_lpss_restore_ctx(struct device *dev,
- {
- 	unsigned int i;
+diff --git a/drivers/dma/dw/platform.c b/drivers/dma/dw/platform.c
+index d0734e9..127093a 100644
+--- a/drivers/dma/dw/platform.c
++++ b/drivers/dma/dw/platform.c
+@@ -155,7 +155,6 @@ static int dw_probe(struct platform_device *pdev)
+ 	struct dw_dma_chip *chip;
+ 	struct device *dev = &pdev->dev;
+ 	struct resource *mem;
+-	const struct acpi_device_id *id;
+ 	struct dw_dma_platform_data *pdata;
+ 	int err;
  
-+	for (i = 0; i < LPSS_PRV_REG_COUNT; i++) {
-+		unsigned long offset = i * sizeof(u32);
-+
-+		__lpss_reg_write(pdata->prv_reg_ctx[i], pdata, offset);
-+		dev_dbg(dev, "restoring 0x%08x to LPSS reg at offset 0x%02lx\n",
-+			pdata->prv_reg_ctx[i], offset);
-+	}
-+}
-+
-+static void acpi_lpss_d3_to_d0_delay(struct lpss_private_data *pdata)
-+{
- 	/*
- 	 * The following delay is needed or the subsequent write operations may
- 	 * fail. The LPSS devices are actually PCI devices and the PCI spec
-@@ -586,14 +597,6 @@ static void acpi_lpss_restore_ctx(struct device *dev,
- 		delay = 0;
- 
- 	msleep(delay);
--
--	for (i = 0; i < LPSS_PRV_REG_COUNT; i++) {
--		unsigned long offset = i * sizeof(u32);
--
--		__lpss_reg_write(pdata->prv_reg_ctx[i], pdata, offset);
--		dev_dbg(dev, "restoring 0x%08x to LPSS reg at offset 0x%02lx\n",
--			pdata->prv_reg_ctx[i], offset);
+@@ -179,11 +178,6 @@ static int dw_probe(struct platform_device *pdev)
+ 	pdata = dev_get_platdata(dev);
+ 	if (!pdata)
+ 		pdata = dw_dma_parse_dt(pdev);
+-	if (!pdata && has_acpi_companion(dev)) {
+-		id = acpi_match_device(dev->driver->acpi_match_table, dev);
+-		if (id)
+-			pdata = (struct dw_dma_platform_data *)id->driver_data;
 -	}
- }
  
- static int acpi_lpss_activate(struct device *dev)
-@@ -649,6 +652,8 @@ static int acpi_lpss_resume_early(struct device *dev)
- 	if (ret)
- 		return ret;
+ 	chip->dev = dev;
  
-+	acpi_lpss_d3_to_d0_delay(pdata);
-+
- 	if (pdata->dev_desc->flags & LPSS_SAVE_CTX)
- 		acpi_lpss_restore_ctx(dev, pdata);
+@@ -264,17 +258,8 @@ MODULE_DEVICE_TABLE(of, dw_dma_of_id_table);
+ #endif
  
-@@ -680,6 +685,8 @@ static int acpi_lpss_runtime_resume(struct device *dev)
- 	if (ret)
- 		return ret;
- 
-+	acpi_lpss_d3_to_d0_delay(pdata);
-+
- 	if (pdata->dev_desc->flags & LPSS_SAVE_CTX)
- 		acpi_lpss_restore_ctx(dev, pdata);
- 
+ #ifdef CONFIG_ACPI
+-static struct dw_dma_platform_data dw_dma_acpi_pdata = {
+-	.nr_channels = 8,
+-	.is_private = true,
+-	.chan_allocation_order = CHAN_ALLOCATION_ASCENDING,
+-	.chan_priority = CHAN_PRIORITY_ASCENDING,
+-	.block_size = 4095,
+-	.nr_masters = 2,
+-};
+-
+ static const struct acpi_device_id dw_dma_acpi_id_table[] = {
+-	{ "INTL9C60", (kernel_ulong_t)&dw_dma_acpi_pdata },
++	{ "INTL9C60", 0 },
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(acpi, dw_dma_acpi_id_table);
 -- 
 2.6.2
