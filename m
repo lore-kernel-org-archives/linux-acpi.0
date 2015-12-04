@@ -1,70 +1,68 @@
-From: Darren Hart <dvhart@infradead.org>
-Subject: Re: [PATCH v2 3/3] dell-wmi: Improve unknown hotkey handling
-Date: Thu, 3 Dec 2015 16:21:34 -0800
-Message-ID: <20151204002134.GH1800@malice.jf.intel.com>
-References: <cover.1448931589.git.luto@kernel.org>
- <b409d60963f81611e398b492a73ffd998414cd68.1448931589.git.luto@kernel.org>
- <20151203233856.GC1800@malice.jf.intel.com>
- <CALCETrXq3MNAWLWRR47-dW4XhOZCdsMOX=Jz7-frCCb88C8Czg@mail.gmail.com>
- <20151204000721.GF1800@malice.jf.intel.com>
- <CALCETrXg7=4v6_YkuJ_-MFL7q5WmC5FMOBVpyvrqTnYuCEs2SQ@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [RFC PATCH 2/4] device property: Introduce helper device_get_reference_node()
+Date: Fri, 04 Dec 2015 02:02:50 +0100
+Message-ID: <3758717.EIXdfl3l2U@vostro.rjw.lan>
+References: <1449047368-5768-1-git-send-email-wangkefeng.wang@huawei.com> <20151203152842.GO8644@n2100.arm.linux.org.uk> <21014512.b9662OruTx@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:43874 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752137AbbLDAVi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Dec 2015 19:21:38 -0500
-Content-Disposition: inline
-In-Reply-To: <CALCETrXg7=4v6_YkuJ_-MFL7q5WmC5FMOBVpyvrqTnYuCEs2SQ@mail.gmail.com>
+Received: from v094114.home.net.pl ([79.96.170.134]:55632 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753682AbbLDAc6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 3 Dec 2015 19:32:58 -0500
+In-Reply-To: <21014512.b9662OruTx@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Lutomirski <luto@amacapital.net>
-Cc: Andy Lutomirski <luto@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Linux ACPI <linux-acpi@vger.kernel.org>, platform-driver-x86@vger.kernel.org, Mario Limonciello <mario_limonciello@dell.com>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>, Arnd Bergmann <arnd@arndb.de>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, linux-arm-kernel@lists.infradead.org
 
-On Thu, Dec 03, 2015 at 04:10:49PM -0800, Andy Lutomirski wrote:
-> On Thu, Dec 3, 2015 at 4:07 PM, Darren Hart <dvhart@infradead.org> wrote:
-> > On Thu, Dec 03, 2015 at 03:45:11PM -0800, Andy Lutomirski wrote:
-> >> On Thu, Dec 3, 2015 at 3:38 PM, Darren Hart <dvhart@infradead.org> wrote:
-> >> > On Mon, Nov 30, 2015 at 05:02:01PM -0800, Andy Lutomirski wrote:
-> >> >> If DMI lists a hotkey that we don't recognize, log and ignore it
-> >> >> instead of trying to map it to keycode 0.  I haven't seen this happen,
-> >> >> but it will help maintain the key map in the future and it will help
-> >> >> avoid sending bogus events.
-> >> >>
-> >> >> This also improves the message that we log when we get an unknown key
-> >> >> event.
-> >> >>
-> >> >> Signed-off-by: Andy Lutomirski <luto@kernel.org>
-> >> >> ---
-> >> >
-> >> > Please include the individual patch changelogs here under --- in the patch
-> >> > itself - this helps me build confidence that I am indeed looking at the right
-> >> > patch and the expected changes are here.
-> >>
-> >> Will do in the future -- different maintainers have different
-> >> preferences here, I think.
-> >
-> > Oh really?
-> >
-> > This is the documented process in Documentation/SubmittingPatches Section 14)
-> > The canonical patch format...
-> >
+On Friday, December 04, 2015 12:29:12 AM Rafael J. Wysocki wrote:
+> On Thursday, December 03, 2015 03:28:42 PM Russell King - ARM Linux wrote:
+> > On Wed, Dec 02, 2015 at 05:09:26PM +0800, Kefeng Wang wrote:
+> > > With of_parse_phandle() and acpi_dev_get_reference_device(), we can introduce
+> > > a universal helper device_get_reference_node() to read and parse a device
+> > > property and return a pointer to the resulting firmware node.
+> > 
+> > What's happening to make this fwnode stuff actually usable?  Whenever
+> > I've looked at it from the DT perspective, it looks very much like a
+> > half-baked train wreck - although the struct device_node contains a
+> > fwnode, of_node_init() initialises it partially, and we have a way to
+> > convert _from_ a fwnode to a device_node (to_of_node), nothing sets
+> > the struct device fwnode pointer.
+> > 
+> > Whenever I've looked at this, it's always led me to the conclusion
+> > that the way that fwnode stuff has currently been written, I'm
+> > supposed to get the device_node, and then use the embedded fwnode
+> > directly, which I'm pretty sure misses the point of fwnode (as it
+> > means any driver code making use of this is tied to DT.)
+> > 
+> > This patch seems to confirm my suspicions that it's just wrong -
+> > trying to use device_get_reference_node() here will fail in a DT
+> > based setup, because (I assume) dev_fwnode(dev) returns dev->fwnode
+> > which is NULL there.
+> > 
+> > I don't know, maybe there is an intention that fwnode should not be
+> > used for DT?
 > 
-> Ingo and the other -tip maintainers seem to like all the comments up
-> front on the cover letter.  Or at least they haven't complained yet.
+> No, there isn't.
 > 
+> > Maybe someone who knows what the intentions are behind this fwnode stuff
+> > can enlighten the situation, and maybe sort out this apparent oversight
+> > which IMHO should've been spotted in the initial fwnode review?
+> 
+> At that time there was a plan (or maybe just and intention, I'm not sure to
+> be honest) to introduce and accessor macro for the of_node pointer in struct
+> device and make the users of it access it via that macro, which then would
+> make it possible to switch over to using dev->fwnode in the DT case (by
+> changing the implementation of that macro).
+> 
+> That hasn't materialized as clearly visible, but still can be done AFAICS,
+> although finding a volunteer for that work may be hard I suppose.
 
-Ugh, well, I don't like to ask contributors to treat this subsystem special by
-sticking to the documentation as much as possible. I really do find the
-per-patch changelog to be very useful. Thanks for working with me on that.
+That said if there are real problems with this (other than aesthetics),
+I actually may go off and do it, but I can't promise that to happen soon.
 
-> Anyway, I'm giving 'git notes' a try to generate nice change comments for v3.
+Thanks,
+Rafael
 
-If you get a good solution, that would be nice to add to the documentation to
-help automate the process. Anything we can do to avoid mechanical errors here is
-goodness.
-
--- 
-Darren Hart
-Intel Open Source Technology Center
