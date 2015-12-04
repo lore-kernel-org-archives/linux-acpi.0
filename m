@@ -1,56 +1,81 @@
-From: Sebastian Herbszt <herbszt@gmx.de>
-Subject: Re: 4.4-rc2: NMI watchdog: BUG: soft lockup - CPU#0 stuck for 23s!
-Date: Fri, 4 Dec 2015 23:19:31 +0100
-Message-ID: <20151204231931.000014f6@localhost>
-References: <20151129155213.00004e71@localhost>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v3 0/9] ACPI / LPSS: fix system hangup on BYT/BSW/CHT
+Date: Sat, 05 Dec 2015 00:07:58 +0100
+Message-ID: <1838591.lmJz0NSQxf@vostro.rjw.lan>
+References: <1449265765-9393-1-git-send-email-andriy.shevchenko@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.15]:61117 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754120AbbLDWTn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 4 Dec 2015 17:19:43 -0500
-In-Reply-To: <20151129155213.00004e71@localhost>
+Received: from v094114.home.net.pl ([79.96.170.134]:61051 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751813AbbLDWiF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Dec 2015 17:38:05 -0500
+In-Reply-To: <1449265765-9393-1-git-send-email-andriy.shevchenko@linux.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: Sebastian Herbszt <herbszt@gmx.de>, Jeff Mahoney <jeffm@suse.com>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: linux-acpi@vger.kernel.org, Vinod Koul <vinod.koul@intel.com>, dmaengine@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
 
-I wrote:
-> Linux kernel 4.4-rc2 (openSUSE:Kernel of the day) fails to boot on my
-> FUJITSU SIEMENS ESPRIMO E. Both kernel-default-4.4.rc2-1.1.g7eabae5.i586
-> and kernel-vanilla-4.4.rc2-1.1.g7eabae5.i686 generate the following
-> transcribed log:
+On Friday, December 04, 2015 11:49:16 PM Andy Shevchenko wrote:
+> Here is a v3 of the next generation (previous one is [1]) of the long standing
+> power issue fix regarding to LPSS on Intel Baytrail and Braswell SoCs, in
+> particularly ASuS T100TA. There are few bugs already opened on kernel.org's and
+> RedHat's bugzilla sites.
 > 
-> [ 0.159147] SCSI subsystem initialized
-> [content scrolled of screen?]
-> [28.076000] NMI watchdog: BUG: soft lockup - CPU#0 stuck for 23s! [swapper/0
-> [content scrolled of screen]
-> [28.076000] 0003f6ee f623d760 3f6ee000 f000c000 f68e5eec c0249225 00000173
-> [28.076000] 00000002 f68e5edc 00000000 c09d2644 f60e5ed4 3f6ee000 00000173
-> [28.076000] Call Trace:
-> [28.076000]  [<c051742f>] ? ioremap_page_range+0xef/0x160
-> [28.076000]  [<c0249225>] __ioremap_caller+0x285/0x350
-> [28.076000]  [<c0b2c293>] ? print_filtered+0x5c/0x5c
-> [28.076000]  [<c024930b>] ioremap_nocache+0x1b/0x20
-> [28.076000]  [<c0b2c2eb>] ? dmi_init+0x58/0xec
-> [28.076000]  [<c0b2c2eb>] dmi_init+0x58/0xec
-> [28.076000]  [<c0b2c293>] ? print_filtered+0x5c/0x5c
-> [28.076000]  [<c020048a>] do_one_initcall+0xaa/0x200
-> [28.076000]  [<c0b2c293>] ? print_filtered+0x5c/0x5c
-> [28.076000]  [<c027187f>] ? parse_args+0x2bf/0x560
-> [28.076000]  [<c0aeec81>] kernel_init_freeable+0x137/0x1b9
-> [28.076000]  [<c07dd890>] kernel_init+0x10/0xe0
-> [28.076000]  [<c027df81>] ? schedule_tail+0x11/0x50
-> [28.076000]  [<c07e3051>] ret_from_kernel_thread+0x21/0x40
-> [28.076000]  [<c07dd880>] ? rest_init+0x70/0x70
+> The series depends on the patch submitted earlier [2].
 > 
-> kernel-debug-4.4.rc2-1.1.g7eabae5.i686 does not exhibit this issue.
-> kernel-vanilla-4.4.rc2-1.1.g7eabae5.i686 with acpi=off also boots fine.
+> The patch 1 brings a new notification to handle the case when ->probe() of the
+> driver fails. It allows to avoid a potential problems. I've noticed couple of
+> drivers that are using that in assumption that ->probe() never fails.
+> 
+> The patches 2 & 4 are needed to fix an I2C issue which Jarkko is currently
+> investigating.
+> 
+> It seems the best way to push it through linux-pm tree. Thus, it would be good
+> to get ACKs from the rest of maintainers.
+> 
+> Rafael, it would be nice to have an immutable branch or tag for this sice I
+> have more patches coming for dw_dmac driver which are based on top of this
+> series.
+> 
+> The patches have been tested on ASuS T100TA, Intel Cherrytrail, and Intel
+> Braswell SoCs.
+> 
+> [1] http://www.spinics.net/lists/linux-acpi/msg53963.html
+> [2] http://www.spinics.net/lists/kernel/msg2119229.html
+> 
+> Changelog v3:
+> - patch 2 is split to pure revert with Fixes tag for stable and new change in
+>   patch 3
+> - add patch 4 to resolve an issue when I2C can't be probed and SDHCI leaves
+>   devices in D0
+> - address comments from Rafael
+> - quirk functions moved under CONFIG_PM
+> 
+> Andy Shevchenko (9):
+>   device core: add BUS_NOTIFY_DRIVER_NOT_BOUND notification
+>   Revert "ACPI / LPSS: allow to use specific PM domain during ->probe()"
+>   ACPI / LPSS: allow to use specific PM domain during ->probe()
+>   ACPI / LPSS: power on when probe() and otherwise when remove()
+>   ACPI / LPSS: do delay for all LPSS devices when D3->D0
+>   ACPI / LPSS: override power state for LPSS DMA device
+>   dmaengine: dw: platform: power on device on shutdown
+>   dmaengine: dw: return immediately from IRQ when DMA isn't in use
+>   Revert "dmaengine: dw: platform: provide platform data for Intel"
+> 
+>  arch/x86/Kconfig                |   3 +-
+>  arch/x86/include/asm/iosf_mbi.h |   2 +
+>  drivers/acpi/acpi_lpss.c        | 213 +++++++++++++++++++++++++++++++++++++---
+>  drivers/base/dd.c               |  10 +-
+>  drivers/dma/dw/core.c           |   9 +-
+>  drivers/dma/dw/platform.c       |  29 +++---
+>  include/linux/device.h          |   1 +
+>  7 files changed, 231 insertions(+), 36 deletions(-)
 
-The issue seems fixed with kernel-vanilla-4.4.rc3-1.1.g3d7391b.i686
-but not with kernel-default-4.4.rc3-1.1.g3d7391b.i586. That one still
-needs acpi=off.
+The series generally looks good to me, but patch [1/9] needs an ACK from Greg
+and the dmaengine ones need ACKs from Vinod.
 
-Sebastian
+Thanks,
+Rafael
+
