@@ -1,50 +1,38 @@
-From: Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH v2 2/3] dell-wmi: Support new hotkeys on the XPS 13 9350
- (Skylake)
-Date: Fri, 4 Dec 2015 10:03:46 +0100
-Message-ID: <20151204090346.GO10982@pali>
-References: <cover.1448931589.git.luto@kernel.org>
- <d9ff5adc7e496b7714202785f8279af313bbcc59.1448931589.git.luto@kernel.org>
+From: Huang Rui <ray.huang@amd.com>
+Subject: Re: [PATCH 1/9] ACPI: Add support for AMBA bus type
+Date: Fri, 4 Dec 2015 17:17:40 +0800
+Message-ID: <20151204091738.GA6572@hr-amur2>
+References: <1449199466-6081-1-git-send-email-annie.wang@amd.com>
+ <1449199466-6081-2-git-send-email-annie.wang@amd.com>
+ <20151204085023.GE1593@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f48.google.com ([74.125.82.48]:35553 "EHLO
-	mail-wm0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754335AbbLDJDt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Dec 2015 04:03:49 -0500
+Content-Type: text/plain; charset="us-ascii"
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <d9ff5adc7e496b7714202785f8279af313bbcc59.1448931589.git.luto@kernel.org>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <20151204085023.GE1593@lahna.fi.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>, Graeme Gregory <graeme.gregory@linaro.org>
+Cc: Wang Hongcheng <annie.wang@amd.com>, Vinod Koul <vinod.koul@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, dmaengine@vger.kernel.org, iommu@lists.linux-foundation.org, Borislav Petkov <bp@alien8.de>, Wan Zongshun <vincent.wan@amd.com>, Ken Xue <ken.xue@amd.com>, Tony Li <tony.li@amd.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Lutomirski <luto@kernel.org>
-Cc: Darren Hart <dvhart@infradead.org>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, Mario Limonciello <mario_limonciello@dell.com>
 
-On Monday 30 November 2015 17:02:00 Andy Lutomirski wrote:
-> +		/*
-> +		 * Check if we've already found this scancode.  This takes
-> +		 * quadratic time, but it doesn't matter unless the list
-> +		 * of extra keys gets very long.
-> +		 */
-> +		for (j =3D 0; j < num_bios_keys; j++)
-> +			if (keymap[j].code =3D=3D dell_wmi_extra_keymap[i].code)
-> +				goto skip;
-> +
+On Fri, Dec 04, 2015 at 10:50:23AM +0200, Mika Westerberg wrote:
+> On Fri, Dec 04, 2015 at 11:24:18AM +0800, Wang Hongcheng wrote:
+> > From: Huang Rui <ray.huang@amd.com>
+> > 
+> > Inspired by acpi platform bus type, to make driver "porting" more
+> > straightforward, this patch introduces ACPI support to the AMBA bus
+> > type. Instead of writing ACPI "glue" drivers for the exiting AMBA
+> > drivers.
+> 
+> Hmm, isn't there already similar patch series bringing AMBA ACPI
+> support?
+> 
+> https://lkml.org/lkml/2015/9/30/394
 
-Still, my comment about moving this loop into function is valid...
+Err, I see the patch for the first time...
 
-> +		keymap[pos] =3D dell_wmi_extra_keymap[i];
-> +		pos++;
-> +
-> +skip:
-> +		;
->  	}
+But looks like it isn't accepted till now. Will he continue to work on
+it?
 
---=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+Rui
