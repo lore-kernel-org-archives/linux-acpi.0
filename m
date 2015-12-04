@@ -1,61 +1,161 @@
-From: G Gregory <graeme.gregory@linaro.org>
-Subject: Re: [PATCH 1/9] ACPI: Add support for AMBA bus type
-Date: Fri, 4 Dec 2015 10:23:57 +0000
-Message-ID: <CAGCh1+=KXUGwdpFWG6+bywoPcy8aQ3uDWmvxuAjZYG6De_-irA@mail.gmail.com>
-References: <1449199466-6081-1-git-send-email-annie.wang@amd.com>
-	<1449199466-6081-2-git-send-email-annie.wang@amd.com>
-	<20151204085023.GE1593@lahna.fi.intel.com>
-	<20151204091738.GA6572@hr-amur2>
-	<56616021.3050704@huawei.com>
-	<CAGCh1+mteHUM-MPjxhgu_sXbBQdz1fLAfAHYOo9rp-cxyt8dkw@mail.gmail.com>
-	<20151204102012.GA6789@hr-amur2>
+From: Igor Mammedov <imammedo@redhat.com>
+Subject: Re: [PATCH] x86_64: enable SWIOTLB if system has SRAT memory
+ regions above MAX_DMA32_PFN
+Date: Fri, 4 Dec 2015 12:08:56 +0100
+Message-ID: <20151204120856.5cbd06c8@nial.brq.redhat.com>
+References: <1448904938-92922-1-git-send-email-imammedo@redhat.com>
+	<20151204082049.GA27096@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f43.google.com ([209.85.218.43]:36592 "EHLO
-	mail-oi0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751214AbbLDKX6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Dec 2015 05:23:58 -0500
-Received: by oiww189 with SMTP id w189so65334722oiw.3
-        for <linux-acpi@vger.kernel.org>; Fri, 04 Dec 2015 02:23:58 -0800 (PST)
-In-Reply-To: <20151204102012.GA6789@hr-amur2>
+Received: from mx1.redhat.com ([209.132.183.28]:50896 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751817AbbLDLJC (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 4 Dec 2015 06:09:02 -0500
+In-Reply-To: <20151204082049.GA27096@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Huang Rui <ray.huang@amd.com>
-Cc: Hanjun Guo <guohanjun@huawei.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Wang Hongcheng <annie.wang@amd.com>, Vinod Koul <vinod.koul@intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-serial@vger.kernel.org, dmaengine@vger.kernel.org, iommu@lists.linux-foundation.org, Borislav Petkov <bp@alien8.de>, Wan Zongshun <vincent.wan@amd.com>, Ken Xue <ken.xue@amd.com>, Tony Li <tony.li@amd.com>
+To: Ingo Molnar <mingo@kernel.org>
+Cc: linux-kernel@vger.kernel.org, tglx@linutronix.de, mingo@redhat.com, hpa@zytor.com, konrad.wilk@oracle.com, rjw@rjwysocki.net, lenb@kernel.org, linux-acpi@vger.kernel.org, akataria@vmware.com, fujita.tomonori@lab.ntt.co.jp, revers@redhat.com
 
-On 4 December 2015 at 10:20, Huang Rui <ray.huang@amd.com> wrote:
-> On Fri, Dec 04, 2015 at 09:59:28AM +0000, G Gregory wrote:
->> On 4 December 2015 at 09:42, Hanjun Guo <guohanjun@huawei.com> wrote:
->> > On 2015/12/4 17:17, Huang Rui wrote:
->> >> On Fri, Dec 04, 2015 at 10:50:23AM +0200, Mika Westerberg wrote:
->> >>> On Fri, Dec 04, 2015 at 11:24:18AM +0800, Wang Hongcheng wrote:
->> >>>> From: Huang Rui <ray.huang@amd.com>
->> >>>>
->> >>>> Inspired by acpi platform bus type, to make driver "porting" more
->> >>>> straightforward, this patch introduces ACPI support to the AMBA bus
->> >>>> type. Instead of writing ACPI "glue" drivers for the exiting AMBA
->> >>>> drivers.
->> >>> Hmm, isn't there already similar patch series bringing AMBA ACPI
->> >>> support?
->> >>>
->> >>> https://lkml.org/lkml/2015/9/30/394
->> >> Err, I see the patch for the first time...
->> >>
->> >> But looks like it isn't accepted till now. Will he continue to work on
->> >> it?
->> >
->> > Sure, Graeme is working on the updated version now :)
->> >
->> Yes, as Hanjun said I am planning a v2. I've just been caught up in
->> other business this week and probably next week.
->>
->
-> OK, thanks to clarify it. Could you please take care of AMD use case
-> that we need a configurable fix_rate clk, periphid, and platform data?
->
-I will take a look at your patch in detail when I redo my series.
+On Fri, 4 Dec 2015 09:20:50 +0100
+Ingo Molnar <mingo@kernel.org> wrote:
 
-Thanks
+> 
+> * Igor Mammedov <imammedo@redhat.com> wrote:
+> 
+> > diff --git a/arch/x86/include/asm/acpi.h b/arch/x86/include/asm/acpi.h
+> > index 94c18eb..53d7951 100644
+> > --- a/arch/x86/include/asm/acpi.h
+> > +++ b/arch/x86/include/asm/acpi.h
+> > @@ -147,6 +147,7 @@ static inline void disable_acpi(void) { }
+> >  #ifdef CONFIG_ACPI_NUMA
+> >  extern int acpi_numa;
+> >  extern int x86_acpi_numa_init(void);
+> > +unsigned long acpi_get_max_possible_pfn(void);
+> >  #endif /* CONFIG_ACPI_NUMA */
+> >  
+> >  #define acpi_unlazy_tlb(x)	leave_mm(x)
+> > @@ -170,4 +171,8 @@ static inline pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr)
+> >  }
+> >  #endif
+> >  
+> > +#ifdef CONFIG_ACPI_HOTPLUG_MEMORY
+> > +extern bool acpi_no_memhotplug;
+> > +#endif /* CONFIG_ACPI_HOTPLUG_MEMORY */
+> > +
+> >  #endif /* _ASM_X86_ACPI_H */
+> > diff --git a/arch/x86/kernel/pci-swiotlb.c b/arch/x86/kernel/pci-swiotlb.c
+> > index adf0392..61d5ba5 100644
+> > --- a/arch/x86/kernel/pci-swiotlb.c
+> > +++ b/arch/x86/kernel/pci-swiotlb.c
+> > @@ -88,7 +88,11 @@ int __init pci_swiotlb_detect_4gb(void)
+> >  {
+> >  	/* don't initialize swiotlb if iommu=off (no_iommu=1) */
+> >  #ifdef CONFIG_X86_64
+> > +#ifdef CONFIG_ACPI_NUMA
+> > +	if (!no_iommu && acpi_get_max_possible_pfn() > MAX_DMA32_PFN)
+> > +#else
+> >  	if (!no_iommu && max_pfn > MAX_DMA32_PFN)
+> > +#endif
+> >  		swiotlb = 1;
+> >  #endif
+> >  	return swiotlb;
+> > diff --git a/arch/x86/mm/srat.c b/arch/x86/mm/srat.c
+> > index c2aea63..21b33f0 100644
+> > --- a/arch/x86/mm/srat.c
+> > +++ b/arch/x86/mm/srat.c
+> > @@ -153,10 +153,20 @@ acpi_numa_processor_affinity_init(struct acpi_srat_cpu_affinity *pa)
+> >  
+> >  #ifdef CONFIG_MEMORY_HOTPLUG
+> >  static inline int save_add_info(void) {return 1;}
+> > +static unsigned long max_possible_pfn __initdata;
+> >  #else
+> >  static inline int save_add_info(void) {return 0;}
+> >  #endif
+> >  
+> > +unsigned long __init acpi_get_max_possible_pfn(void)
+> > +{
+> > +#ifdef CONFIG_ACPI_HOTPLUG_MEMORY
+> > +	if (!acpi_no_memhotplug)
+> > +		return max_possible_pfn;
+> > +#endif
+> > +	return max_pfn;
+> > +}
+> > +
+> >  /* Callback for parsing of the Proximity Domain <-> Memory Area mappings */
+> >  int __init
+> >  acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
+> > @@ -203,6 +213,11 @@ acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
+> >  		pr_warn("SRAT: Failed to mark hotplug range [mem %#010Lx-%#010Lx] in memblock\n",
+> >  			(unsigned long long)start, (unsigned long long)end - 1);
+> >  
+> > +#ifdef CONFIG_MEMORY_HOTPLUG
+> > +	if (max_possible_pfn < PFN_UP(end - 1))
+> > +		max_possible_pfn = PFN_UP(end - 1);
+> > +#endif
+> > +
+> >  	return 0;
+> >  out_err_bad_srat:
+> >  	bad_srat();
+> > diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+> > index 6b0d3ef..ae38f57 100644
+> > --- a/drivers/acpi/acpi_memhotplug.c
+> > +++ b/drivers/acpi/acpi_memhotplug.c
+> > @@ -357,7 +357,7 @@ static void acpi_memory_device_remove(struct acpi_device *device)
+> >  	acpi_memory_device_free(mem_device);
+> >  }
+> >  
+> > -static bool __initdata acpi_no_memhotplug;
+> > +bool __initdata acpi_no_memhotplug;
+> >  
+> >  void __init acpi_memory_hotplug_init(void)
+> >  {
+> 
+> So I don't disagree with the fix in principle, but the implementation here is 
+> rather ugly - it spreads new non-obvious #ifdefs across various critical parts of 
+> the kernel.
+> 
+> For example this:
+> 
+> >  #ifdef CONFIG_X86_64
+> > +#ifdef CONFIG_ACPI_NUMA
+> > +	if (!no_iommu && acpi_get_max_possible_pfn() > MAX_DMA32_PFN)
+> > +#else
+> >  	if (!no_iommu && max_pfn > MAX_DMA32_PFN)
+> > +#endif
+> >  		swiotlb = 1;
+> >  #endif
+> 
+> could be cleaned up by introducing a proper max_possible_pfn variable, and setting 
+> it from the ACPI code - instead of exporting acpi_get_max_possible_pfn().
+Thanks for review,
+I'll try to drop #ifdefs as suggested and split it
+in several patches.
 
-Graeme
+> 
+> Another pattern is:
+> 
+> > +#ifdef CONFIG_ACPI_HOTPLUG_MEMORY
+> > +	if (!acpi_no_memhotplug)
+on the second thought,
+we don't need need this knob to force disabling
+SWIOTLB initialization since there is an existing
+"no_iommu" option to do it, so I'll drop this check.
+
+
+> > +		return max_possible_pfn;
+> > +#endif
+> 
+> this should be driven from the acpi_no_memhotplug knob, instead of spreading 
+> acpi_no_memhotplug uses to other callsites.
+> 
+> Furthermore, please split these various steps up into multiple steps (and first do 
+> the preparatory changes, then fix the bug in the end) - to make it easier to 
+> bisect and analyze if we regress existing functionality somewhere.
+> 
+> Thanks,
+> 
+> 	Ingo
+
