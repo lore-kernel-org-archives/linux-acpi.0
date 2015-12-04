@@ -1,67 +1,89 @@
-From: Jeremy Linton <jeremy.linton@arm.com>
-Subject: Re: [RFC PATCH 1/2] PCI/ACPI: Add ACPI support for non ECAM Host
- Bridge Controllers
-Date: Fri, 4 Dec 2015 16:48:48 -0600
-Message-ID: <56621850.4070009@arm.com>
-References: <1449155999-220955-1-git-send-email-gabriele.paoloni@huawei.com>
- <5018756.5lEEeJVMod@wuerfel> <5661FB9B.20201@arm.com>
- <2425021.SWJx48r3Ls@wuerfel>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH v3 0/9] ACPI / LPSS: fix system hangup on BYT/BSW/CHT
+Date: Sat, 5 Dec 2015 01:15:59 +0200
+Message-ID: <CAHp75VeJ+Qc4c+n69WXQu3_r5=GZr2MtK02XCm1xtEs==Kiihw@mail.gmail.com>
+References: <1449265765-9393-1-git-send-email-andriy.shevchenko@linux.intel.com>
+	<1838591.lmJz0NSQxf@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=WINDOWS-1252; format=flowed
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <2425021.SWJx48r3Ls@wuerfel>
-Sender: linux-pci-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-arm-kernel@lists.infradead.org, liguozhu@hisilicon.com, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, linaro-acpi@lists.linaro.org, catalin.marinas@arm.com, Liviu.Dudau@arm.com, linux-kernel@vger.kernel.org, will.deacon@arm.com, linux-acpi@vger.kernel.org, wangzhou1@hisilicon.com, hanjun.guo@linaro.org, liudongdong3@huawei.com, linux-pci@vger.kernel.org, wangyijing@huawei.com, tn@semihalf.com, tglx@linutronix.de, xuwei5@hisilicon.com, bhelgaas@google.com, jiang.liu@linux.intel.com
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1838591.lmJz0NSQxf@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Vinod Koul <vinod.koul@intel.com>, dmaengine <dmaengine@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 12/04/2015 03:34 PM, Arnd Bergmann wrote:
-> On Friday 04 December 2015 14:46:19 Jeremy Linton wrote:
->> On 12/03/2015 02:58 PM, Arnd Bergmann wrote:
->>> On Thursday 03 December 2015 17:58:26 Lorenzo Pieralisi wrote:
->>>> I will put together a proposal to define the way we specify HID and
->>>> related DSD properties for PCI host controllers and send it to
->>>> the ACPI working group for review.
->>>
->>> That also requires a change to SBSA, right? Today, SBSA assumes that
->>> we have a standard PCI host that will work with any hardware independent
->>> PCI implementation in an OS. We either have to give up on SBSA saying
->>> much about how PCI hosts are implemented, or stop assuming that hardware
->>> is SBSA compliant.
+On Sat, Dec 5, 2015 at 1:07 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Friday, December 04, 2015 11:49:16 PM Andy Shevchenko wrote:
+>> Here is a v3 of the next generation (previous one is [1]) of the long standing
+>> power issue fix regarding to LPSS on Intel Baytrail and Braswell SoCs, in
+>> particularly ASuS T100TA. There are few bugs already opened on kernel.org's and
+>> RedHat's bugzilla sites.
 >>
->> Which would be standardizing nonstandard hardware. It would surprise me
->> if that got much traction.
+>> The series depends on the patch submitted earlier [2].
+>>
+>> The patch 1 brings a new notification to handle the case when ->probe() of the
+>> driver fails. It allows to avoid a potential problems. I've noticed couple of
+>> drivers that are using that in assumption that ->probe() never fails.
+>>
+>> The patches 2 & 4 are needed to fix an I2C issue which Jarkko is currently
+>> investigating.
+>>
+>> It seems the best way to push it through linux-pm tree. Thus, it would be good
+>> to get ACKs from the rest of maintainers.
+>>
+>> Rafael, it would be nice to have an immutable branch or tag for this sice I
+>> have more patches coming for dw_dmac driver which are based on top of this
+>> series.
+>>
+>> The patches have been tested on ASuS T100TA, Intel Cherrytrail, and Intel
+>> Braswell SoCs.
+>>
+>> [1] http://www.spinics.net/lists/linux-acpi/msg53963.html
+>> [2] http://www.spinics.net/lists/kernel/msg2119229.html
+>>
+>> Changelog v3:
+>> - patch 2 is split to pure revert with Fixes tag for stable and new change in
+>>   patch 3
+>> - add patch 4 to resolve an issue when I2C can't be probed and SDHCI leaves
+>>   devices in D0
+>> - address comments from Rafael
+>> - quirk functions moved under CONFIG_PM
+>>
+>> Andy Shevchenko (9):
+>>   device core: add BUS_NOTIFY_DRIVER_NOT_BOUND notification
+>>   Revert "ACPI / LPSS: allow to use specific PM domain during ->probe()"
+>>   ACPI / LPSS: allow to use specific PM domain during ->probe()
+>>   ACPI / LPSS: power on when probe() and otherwise when remove()
+>>   ACPI / LPSS: do delay for all LPSS devices when D3->D0
+>>   ACPI / LPSS: override power state for LPSS DMA device
+>>   dmaengine: dw: platform: power on device on shutdown
+>>   dmaengine: dw: return immediately from IRQ when DMA isn't in use
+>>   Revert "dmaengine: dw: platform: provide platform data for Intel"
+>>
+>>  arch/x86/Kconfig                |   3 +-
+>>  arch/x86/include/asm/iosf_mbi.h |   2 +
+>>  drivers/acpi/acpi_lpss.c        | 213 +++++++++++++++++++++++++++++++++++++---
+>>  drivers/base/dd.c               |  10 +-
+>>  drivers/dma/dw/core.c           |   9 +-
+>>  drivers/dma/dw/platform.c       |  29 +++---
+>>  include/linux/device.h          |   1 +
+>>  7 files changed, 231 insertions(+), 36 deletions(-)
 >
-> What do you suggest instead?
+> The series generally looks good to me, but patch [1/9] needs an ACK from Greg
+> and the dmaengine ones need ACKs from Vinod.
 
-Arnd,
+Thank you!
+Greg, Vinod, what is your opinion?
 
-Well... I'm simply trying to say that IMHO involving a standards 
-committee to get involved with quirky hardware is a little unusual. They 
-didn't have to get involved for the dozens of pieces of hardware already 
-quirked by the PCI paths in linux.
+Just noticed we have to exchange patches 4 and 5 (5 should go before 4
+due to bisectability).
 
-So, in the end I think its more a question of finding an acceptable 
-solution given linux's bus/driver model. In that case I am 100% open to 
-constructive suggestions that will result in something that will be 
-accepted into mainline. AKA if someone says "do it this way and I will 
-take it" then I will go off an make that work. Put another way, I don't 
-think anyone likes the need for the existing quirking/blacklisting/etc 
-mechanisms for dealing with "buggy" hardware but that doesn't stop them 
-from being in the kernel.
+Also I would like to ask you to comment and maybe Ack (seems we have
+no powercap maintainers) the mentioned patch for dependency [2].
 
-For this particular problem, in the case of the APM part I have there 
-are probably a handful of ways to get it working. Mark Salter posted a 
-patch last year (based on ACPI OEM id) which could be rebased. That is 
-where I started recently, but deviated because of complaints on kernel 
-lists about it. Right now, I've been trying to delay the quirk detection 
-until after the scan has started so that I can use the root pcie VID/PID 
-and restart the scan once the correct ops functions have been installed.
+>> [2] http://www.spinics.net/lists/kernel/msg2119229.html
 
-Anyway, these two patches (and my unposted one) all have something in 
-common vs much of the existing quirk infrastructure. We are trying to 
-add a dynamic registration system so the quirks are isolated to the host 
-driver rather than hard-coded into the pcie subsystem. I think that is a 
-good thing. I can model them on the CRS quirks but I'm pretty sure that 
-is worse.
+-- 
+With Best Regards,
+Andy Shevchenko
