@@ -1,89 +1,60 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH v3 0/9] ACPI / LPSS: fix system hangup on BYT/BSW/CHT
-Date: Sat, 5 Dec 2015 01:15:59 +0200
-Message-ID: <CAHp75VeJ+Qc4c+n69WXQu3_r5=GZr2MtK02XCm1xtEs==Kiihw@mail.gmail.com>
-References: <1449265765-9393-1-git-send-email-andriy.shevchenko@linux.intel.com>
-	<1838591.lmJz0NSQxf@vostro.rjw.lan>
+From: Christophe Ricard <christophe.ricard@gmail.com>
+Subject: Re: [PATCH v3 0/2] ACPI: Add irq_type to gpio interrupt
+Date: Sat, 5 Dec 2015 00:36:19 +0100
+Message-ID: <56622373.7020406@gmail.com>
+References: <1448923673-2582-1-git-send-email-christophe-h.ricard@st.com>
+ <20151201112127.GA1593@lahna.fi.intel.com>
+ <CALD+uuxJw5tQ2XY99nHigXdNkcXGnng+r9NZ8H9TqUF9GbgW=A@mail.gmail.com>
+ <20151201130324.GE1593@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1838591.lmJz0NSQxf@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Vinod Koul <vinod.koul@intel.com>, dmaengine <dmaengine@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner@vger.kernel.org>
+In-Reply-To: <20151201130324.GE1593@lahna.fi.intel.com>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: rjw@rjwysocki.net, Len Brown <lenb@kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, andriy.shevchenko@linux.intel.com, linux-i2c@vger.kernel.org, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, Christophe Ricard <christophe-h.ricard@st.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Dec 5, 2015 at 1:07 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Friday, December 04, 2015 11:49:16 PM Andy Shevchenko wrote:
->> Here is a v3 of the next generation (previous one is [1]) of the long standing
->> power issue fix regarding to LPSS on Intel Baytrail and Braswell SoCs, in
->> particularly ASuS T100TA. There are few bugs already opened on kernel.org's and
->> RedHat's bugzilla sites.
->>
->> The series depends on the patch submitted earlier [2].
->>
->> The patch 1 brings a new notification to handle the case when ->probe() of the
->> driver fails. It allows to avoid a potential problems. I've noticed couple of
->> drivers that are using that in assumption that ->probe() never fails.
->>
->> The patches 2 & 4 are needed to fix an I2C issue which Jarkko is currently
->> investigating.
->>
->> It seems the best way to push it through linux-pm tree. Thus, it would be good
->> to get ACKs from the rest of maintainers.
->>
->> Rafael, it would be nice to have an immutable branch or tag for this sice I
->> have more patches coming for dw_dmac driver which are based on top of this
->> series.
->>
->> The patches have been tested on ASuS T100TA, Intel Cherrytrail, and Intel
->> Braswell SoCs.
->>
->> [1] http://www.spinics.net/lists/linux-acpi/msg53963.html
->> [2] http://www.spinics.net/lists/kernel/msg2119229.html
->>
->> Changelog v3:
->> - patch 2 is split to pure revert with Fixes tag for stable and new change in
->>   patch 3
->> - add patch 4 to resolve an issue when I2C can't be probed and SDHCI leaves
->>   devices in D0
->> - address comments from Rafael
->> - quirk functions moved under CONFIG_PM
->>
->> Andy Shevchenko (9):
->>   device core: add BUS_NOTIFY_DRIVER_NOT_BOUND notification
->>   Revert "ACPI / LPSS: allow to use specific PM domain during ->probe()"
->>   ACPI / LPSS: allow to use specific PM domain during ->probe()
->>   ACPI / LPSS: power on when probe() and otherwise when remove()
->>   ACPI / LPSS: do delay for all LPSS devices when D3->D0
->>   ACPI / LPSS: override power state for LPSS DMA device
->>   dmaengine: dw: platform: power on device on shutdown
->>   dmaengine: dw: return immediately from IRQ when DMA isn't in use
->>   Revert "dmaengine: dw: platform: provide platform data for Intel"
->>
->>  arch/x86/Kconfig                |   3 +-
->>  arch/x86/include/asm/iosf_mbi.h |   2 +
->>  drivers/acpi/acpi_lpss.c        | 213 +++++++++++++++++++++++++++++++++++++---
->>  drivers/base/dd.c               |  10 +-
->>  drivers/dma/dw/core.c           |   9 +-
->>  drivers/dma/dw/platform.c       |  29 +++---
->>  include/linux/device.h          |   1 +
->>  7 files changed, 231 insertions(+), 36 deletions(-)
->
-> The series generally looks good to me, but patch [1/9] needs an ACK from Greg
-> and the dmaengine ones need ACKs from Vinod.
+Hi Mika,
 
-Thank you!
-Greg, Vinod, what is your opinion?
 
-Just noticed we have to exchange patches 4 and 5 (5 should go before 4
-due to bisectability).
+On 01/12/2015 14:03, Mika Westerberg wrote:
+[...]
+>>     Now for the same kind of i2c driver using acpi description, the GpioInt
+>>     polarity/type is at the moment never kept in the irq property.
+>>     It is possible to check that following about the same path...
+>>     i2c_device_probe (drivers/i2c/i2c-core.c), retrieves irq property from
+>>     acpi_dev_gpio_irq_get but does not save the irq_type.
+>>     This would allow not to have to use an additional gpio field and all
+>>     the configuration step to configure the gpio interrupt correctly in a
+>>     device driver and taking a real benefit of the GpioInt acpi keyword
+>>     compare to GpioIo keyword.
+>>     Most the of the drivers based on acpi description retrieve gpio number
+>>     to assign an interrupt and a fix polarity. I believe my patchset
+>>     proposal would improve this and allow to
+>>     be much closer with devicetree.
+>>     Do you see any issue with this ?
+> No, but I wonder if it would be better to do this in acpi_dev_gpio_irq_get()
+> instead of acpi_find_gpio() which gets called everytime a GPIO is looked up?
+I believe, setting the irq type requires triggering and polarity data 
+stored into a struct acpi_resource_gpio.
 
-Also I would like to ask you to comment and maybe Ack (seems we have
-no powercap maintainers) the mentioned patch for dependency [2].
+acpi_dev_gpio_irq_get call acpi_get_gpiod_by_index which run acpi_find_gpio.
 
->> [2] http://www.spinics.net/lists/kernel/msg2119229.html
+Actually acpi_dev_gpio_irq_get is called everytime an i2c device slave 
+is probed, acpi_find_gpio will get called to "register" gpios.
+If done correctly, i think this will be done only once...
 
--- 
-With Best Regards,
-Andy Shevchenko
+The only improvement i may see would be to add an extra field in the 
+acpi_gpio_info structure in drivers/gpio/gpiolib.h (for example int 
+irq_type).
+And call irq_set_irq_type in acpi_dev_gpio_irq_get if the gpio is an 
+interrupt.
+
+I guess the current proposal and this one are equivalent...
+
+What do you think ?
+
+Best Regards
+Christophe
