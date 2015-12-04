@@ -1,52 +1,32 @@
 From: Jeremy Linton <jeremy.linton@arm.com>
 Subject: Re: [RFC PATCH 1/2] PCI/ACPI: Add ACPI support for non ECAM Host
  Bridge Controllers
-Date: Fri, 4 Dec 2015 14:38:53 -0600
-Message-ID: <5661F9DD.7060303@arm.com>
+Date: Fri, 4 Dec 2015 14:46:19 -0600
+Message-ID: <5661FB9B.20201@arm.com>
 References: <1449155999-220955-1-git-send-email-gabriele.paoloni@huawei.com>
  <1449155999-220955-2-git-send-email-gabriele.paoloni@huawei.com>
+ <20151203175826.GB2935@red-moon> <5018756.5lEEeJVMod@wuerfel>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=WINDOWS-1252; format=flowed
 Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from eu-smtp-delivery-143.mimecast.com ([146.101.78.143]:28072 "EHLO
-	eu-smtp-delivery-143.mimecast.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753824AbbLDUjG convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 4 Dec 2015 15:39:06 -0500
-In-Reply-To: <1449155999-220955-2-git-send-email-gabriele.paoloni@huawei.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <5018756.5lEEeJVMod@wuerfel>
+Sender: linux-pci-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org
+Cc: liguozhu@hisilicon.com, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Gabriele Paoloni <gabriele.paoloni@huawei.com>, linaro-acpi@lists.linaro.org, catalin.marinas@arm.com, Liviu.Dudau@arm.com, linux-kernel@vger.kernel.org, will.deacon@arm.com, linux-acpi@vger.kernel.org, wangzhou1@hisilicon.com, hanjun.guo@linaro.org, liudongdong3@huawei.com, linux-pci@vger.kernel.org, wangyijing@huawei.com, tn@semihalf.com, tglx@linutronix.de, xuwei5@hisilicon.com, bhelgaas@google.com, jiang.liu@linux.intel.com
 List-Id: linux-acpi@vger.kernel.org
-To: Gabriele Paoloni <gabriele.paoloni@huawei.com>, bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, Liviu.Dudau@arm.com, tn@semihalf.com
-Cc: linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, xuwei5@hisilicon.com, linux-acpi@vger.kernel.org, wangzhou1@hisilicon.com, liudongdong3@huawei.com, wangyijing@huawei.com, tglx@linutronix.de, liguozhu@hisilicon.com, jiang.liu@linux.intel.com, linux-arm-kernel@lists.infradead.org
 
-On 12/03/2015 09:19 AM, Gabriele Paoloni wrote:
-> This patch modifies the ARM64 architecure specific PCI framework to
-> support Host Bridge specific quirks. these quirks are need for
-> host bridge controllers that are not fully ECAM compliant.
-> The quirks array allows each vendor to define his own
-> acpi_scan_handler where its own pci_ops can be defined
-> and the global pointer "vendor_specific_ops" should be
-> set to them accordingly.
+On 12/03/2015 02:58 PM, Arnd Bergmann wrote:
+> On Thursday 03 December 2015 17:58:26 Lorenzo Pieralisi wrote:
+>> I will put together a proposal to define the way we specify HID and
+>> related DSD properties for PCI host controllers and send it to
+>> the ACPI working group for review.
+>
+> That also requires a change to SBSA, right? Today, SBSA assumes that
+> we have a standard PCI host that will work with any hardware independent
+> PCI implementation in an OS. We either have to give up on SBSA saying
+> much about how PCI hosts are implemented, or stop assuming that hardware
+> is SBSA compliant.
 
-I have a similar set of changes working for a APM based platform. That 
-platform has the same problem, that the default config space access 
-methods don't work.
-
-The one comment I have is that I've tried hard to set it up as a generic 
-quirk system for which the ACPI/PCI subsystem makes the decision about 
-which hardware quirk is being enabled. But its hard because the platform 
-in question claims PNP0A08 too, which IMHO is completely wrong if your 
-not actually compliant. OTOH, I don't want to base it off the DMI data 
-because I don't want it to be tied to a particular implementation.
-
-Lucky, the host bridge VID/PID _CAN_ be read with the default ECAM 
-accessor. The only gocha is that the rescan needs to be restarted once 
-the ops are replaced.
-
-So my question, is does that work for this device as well?
-
-
-
-
-
+Which would be standardizing nonstandard hardware. It would surprise me 
+if that got much traction.
