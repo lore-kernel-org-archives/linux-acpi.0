@@ -1,50 +1,111 @@
-From: Jarkko Nikula <jarkko.nikula@linux.intel.com>
-Subject: Re: [PATCH v2 2/7] ACPI / LPSS: allow to use specific PM domain
- during ->probe()
-Date: Fri, 4 Dec 2015 15:04:07 +0200
-Message-ID: <56618F47.9080205@linux.intel.com>
-References: <1448551153-84719-1-git-send-email-andriy.shevchenko@linux.intel.com>
- <565733A2.6050900@linux.intel.com>
- <1448556317.15393.77.camel@linux.intel.com>
- <10907323.ZOUAMFPIfU@vostro.rjw.lan>
- <1448618173.15393.104.camel@linux.intel.com>
- <1449171008.15393.158.camel@intel.com>
+From: Graeme Gregory <gg@slimlogic.co.uk>
+Subject: Re: [PATCH 3/9] ACPI: add struct acpi_amba_quirk for AMD pl330
+ specific device config
+Date: Fri, 4 Dec 2015 13:16:19 +0000
+Message-ID: <20151204131619.GC11655@xora-haswell.xora.org.uk>
+References: <1449199466-6081-1-git-send-email-annie.wang@amd.com>
+ <1449199466-6081-4-git-send-email-annie.wang@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:4004 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754197AbbLDNGX (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 4 Dec 2015 08:06:23 -0500
-In-Reply-To: <1449171008.15393.158.camel@intel.com>
+Received: from out4-smtp.messagingengine.com ([66.111.4.28]:47603 "EHLO
+	out4-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752346AbbLDNQW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 4 Dec 2015 08:16:22 -0500
+Received: from compute3.internal (compute3.nyi.internal [10.202.2.43])
+	by mailout.nyi.internal (Postfix) with ESMTP id A0FCF20893
+	for <linux-acpi@vger.kernel.org>; Fri,  4 Dec 2015 08:16:21 -0500 (EST)
+Content-Disposition: inline
+In-Reply-To: <1449199466-6081-4-git-send-email-annie.wang@amd.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Shevchenko, Andriy" <andriy.shevchenko@intel.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>
-Cc: "Koul, Vinod" <vinod.koul@intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "tglx@linutronix.de" <tglx@linutronix.de>, "dmaengine@vger.kernel.org" <dmaengine@vger.kernel.org>, "mika.westerberg@linux.intel.com" <mika.westerberg@linux.intel.com>, "gregkh@linuxfoundation.org" <gregkh@linuxfoundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Wang Hongcheng <annie.wang@amd.com>
+Cc: Vinod Koul <vinod.koul@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, dmaengine@vger.kernel.org, iommu@lists.linux-foundation.org, Borislav Petkov <bp@alien8.de>, Huang Rui <ray.huang@amd.com>, Wan Zongshun <vincent.wan@amd.com>, Ken Xue <ken.xue@amd.com>, Tony Li <tony.li@amd.com>
 
-On 12/03/2015 09:29 PM, Shevchenko, Andriy wrote:
-> I briefly checked this for DMA issue. It will not help anyhow, so we
-> *have to* move a power domain assignment to the BIND stage.
->
-> For I2C and rest LPSS devices this might help (though didn't look
-> deeply). My understanding that we assign those callbacks in the LPSS
-> custom PM domain and call them explicitly in acpi_lpss.c.
->
-> The code will be the same as we are using now to bring device from
-> runtime suspend resume. This means whenever we call probe for e.g. I2C
-> we end up in a sequence similar to:
->   pm_runtime_resume(I2C);
->   ->probe(I2C);
->   pm_runtime_suspend(I2C);
->
-> I will try to mock up this and check if it will work, though have no
-> idea what to do if I2C during probe calls pm_runtime_forbid().
->
-> Jarkko, what do you think?
->
-I suppose device core will handle it. If the runtime PM is forbidden or 
-not initialized at all the device shouldn't idle.
+On Fri, Dec 04, 2015 at 11:24:20AM +0800, Wang Hongcheng wrote:
+> AMD pl330 is a UART DMA device, it shares one ACPI item with UART. So
+> a platform device and an acpi device will be created according to
+> AMD0020 ACPI dev. And its mem base address must have an offset. As a
+> result, MULTI_ATTACHED_QUIRK and MULTI_ATTACHED_QUIRK are used.
+> 
+> Signed-off-by: Wang Hongcheng <annie.wang@amd.com>
+> ---
+>  drivers/acpi/acpi_amba.c | 31 +++++++++++++++++++++++----
+>  drivers/acpi/acpi_apd.c  | 56 +++++++++++++++++++++++++++++++++++++-----------
+>  include/linux/acpi.h     | 13 +++++++++--
+>  3 files changed, 81 insertions(+), 19 deletions(-)
+> 
+> diff --git a/drivers/acpi/acpi_amba.c b/drivers/acpi/acpi_amba.c
+> index 4f0366a..8a5269c 100644
+> --- a/drivers/acpi/acpi_amba.c
+> +++ b/drivers/acpi/acpi_amba.c
+> @@ -31,6 +31,8 @@ ACPI_MODULE_NAME("amba");
+>   * @periphid: AMBA device periphid.
+>   * @fixed_rate: Clock frequency.
+>   * @pdata: Platform data specific to the device.
+> + * @quirk: Specific device config, including device multiattach.
+> + * and mem base offset.
+>   *
+>   * Check if the given @adev can be represented as an AMBA device and, if
+>   * that's the case, create and register an AMBA device, populate its
+> @@ -42,7 +44,8 @@ ACPI_MODULE_NAME("amba");
+>  struct amba_device *acpi_create_amba_device(struct acpi_device *adev,
+>  					    unsigned int periphid,
+>  					    unsigned long fixed_rate,
+> -					    void *pdata)
+> +					    void *pdata,
+> +					    struct acpi_amba_quirk *quirk)
+>  {
+>  	struct amba_device *amba_dev = NULL;
+>  	struct device *parent;
+> @@ -54,12 +57,14 @@ struct amba_device *acpi_create_amba_device(struct acpi_device *adev,
+>  	unsigned int i;
+>  	unsigned int irq[AMBA_NR_IRQS];
+>  	struct clk *clk = ERR_PTR(-ENODEV);
+> +	char amba_devname[100];
+>  
+>  	/*
+>  	 * If the ACPI node already has a physical device attached,
+> -	 * skip it.
+> +	 * skip it. Except some special devices such as AMD0020 which
+> +	 * needs attach physical devices two times.
+>  	 */
+> -	if (adev->physical_node_count)
+> +	if (adev->physical_node_count && !(quirk->quirk & MULTI_ATTACHED_QUIRK))
+>  		return NULL;
+>  
+>  	INIT_LIST_HEAD(&resource_list);
+> @@ -85,7 +90,24 @@ struct amba_device *acpi_create_amba_device(struct acpi_device *adev,
+>  			memcpy(resource, rentry->res, sizeof(struct resource));
+>  	}
+>  
+> -	amba_dev = amba_device_alloc(dev_name(&adev->dev),
+> +	/*
+> +	 * The memory address of AMD pl330 has an offset of ACPI
+> +	 * mem resource.
+> +	 */
+> +	if (quirk->quirk & BASE_OFFSET_QUIRK)
+> +		resource->start += quirk->base_offset;
+> +
+> +	/*
+> +	 * If the ACPI device already has a node attached. It must be
+> +	 * renamed.
+> +	 */
+> +	if (quirk->quirk & MULTI_ATTACHED_QUIRK)
+> +		sprintf(amba_devname, "%s%s", dev_name(&adev->dev), "DMA");
+> +	else
+> +		memcpy(amba_devname, dev_name(&adev->dev),
+> +		       strlen(dev_name(&adev->dev)));
+> +
+> +	amba_dev = amba_device_alloc(amba_devname,
+>  				     resource->start,
+>  				     resource_size(resource));
+>  
 
--- 
-Jarkko
+Isn't this basially an MFD in a rather odd fashion?
+
+I would have though having a device which just splits the resources then
+creates 2 children would be a whole lot simpler?
+
+Graeme
+
