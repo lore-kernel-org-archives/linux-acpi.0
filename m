@@ -1,7 +1,7 @@
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v3 8/9] dmaengine: dw: return immediately from IRQ when DMA isn't in use
-Date: Fri,  4 Dec 2015 23:49:24 +0200
-Message-ID: <1449265765-9393-9-git-send-email-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v3 5/9] ACPI / LPSS: do delay for all LPSS devices when D3->D0
+Date: Fri,  4 Dec 2015 23:49:21 +0200
+Message-ID: <1449265765-9393-6-git-send-email-andriy.shevchenko@linux.intel.com>
 References: <1449265765-9393-1-git-send-email-andriy.shevchenko@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1449265765-9393-1-git-send-email-andriy.shevchenko@linux.intel.com>
@@ -10,37 +10,70 @@ To: "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Vinod 
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-There is no need to bother the hardware when all channels are idle. We have not
-to get any interrupts.
+The LPSS DMA device has no context to save, though it requires the same delay
+like the rest of LPSS devices when power state is changed from D3 to D0.
+
+Do delay for the DMA device as well.
 
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- drivers/dma/dw/core.c | 9 +++++++--
- 1 file changed, 7 insertions(+), 2 deletions(-)
+ drivers/acpi/acpi_lpss.c | 23 +++++++++++++++--------
+ 1 file changed, 15 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/dma/dw/core.c b/drivers/dma/dw/core.c
-index 7067b6d..8b20930 100644
---- a/drivers/dma/dw/core.c
-+++ b/drivers/dma/dw/core.c
-@@ -622,12 +622,17 @@ static void dw_dma_tasklet(unsigned long data)
- static irqreturn_t dw_dma_interrupt(int irq, void *dev_id)
+diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+index c5f12f3..a10c2d6 100644
+--- a/drivers/acpi/acpi_lpss.c
++++ b/drivers/acpi/acpi_lpss.c
+@@ -574,6 +574,17 @@ static void acpi_lpss_restore_ctx(struct device *dev,
  {
- 	struct dw_dma *dw = dev_id;
--	u32 status = dma_readl(dw, STATUS_INT);
-+	u32 status;
+ 	unsigned int i;
  
-+	/* Check if we have any interrupt from the DMAC which is not in use */
-+	if (!dw->in_use)
-+		return IRQ_NONE;
++	for (i = 0; i < LPSS_PRV_REG_COUNT; i++) {
++		unsigned long offset = i * sizeof(u32);
 +
-+	status = dma_readl(dw, STATUS_INT);
- 	dev_vdbg(dw->dma.dev, "%s: status=0x%x\n", __func__, status);
- 
- 	/* Check if we have any interrupt from the DMAC */
--	if (!status || !dw->in_use)
-+	if (!status)
- 		return IRQ_NONE;
- 
++		__lpss_reg_write(pdata->prv_reg_ctx[i], pdata, offset);
++		dev_dbg(dev, "restoring 0x%08x to LPSS reg at offset 0x%02lx\n",
++			pdata->prv_reg_ctx[i], offset);
++	}
++}
++
++static void acpi_lpss_d3_to_d0_delay(struct lpss_private_data *pdata)
++{
  	/*
+ 	 * The following delay is needed or the subsequent write operations may
+ 	 * fail. The LPSS devices are actually PCI devices and the PCI spec
+@@ -586,14 +597,6 @@ static void acpi_lpss_restore_ctx(struct device *dev,
+ 		delay = 0;
+ 
+ 	msleep(delay);
+-
+-	for (i = 0; i < LPSS_PRV_REG_COUNT; i++) {
+-		unsigned long offset = i * sizeof(u32);
+-
+-		__lpss_reg_write(pdata->prv_reg_ctx[i], pdata, offset);
+-		dev_dbg(dev, "restoring 0x%08x to LPSS reg at offset 0x%02lx\n",
+-			pdata->prv_reg_ctx[i], offset);
+-	}
+ }
+ 
+ static int acpi_lpss_activate(struct device *dev)
+@@ -649,6 +652,8 @@ static int acpi_lpss_resume_early(struct device *dev)
+ 	if (ret)
+ 		return ret;
+ 
++	acpi_lpss_d3_to_d0_delay(pdata);
++
+ 	if (pdata->dev_desc->flags & LPSS_SAVE_CTX)
+ 		acpi_lpss_restore_ctx(dev, pdata);
+ 
+@@ -680,6 +685,8 @@ static int acpi_lpss_runtime_resume(struct device *dev)
+ 	if (ret)
+ 		return ret;
+ 
++	acpi_lpss_d3_to_d0_delay(pdata);
++
+ 	if (pdata->dev_desc->flags & LPSS_SAVE_CTX)
+ 		acpi_lpss_restore_ctx(dev, pdata);
+ 
 -- 
 2.6.2
