@@ -1,106 +1,116 @@
-From: Tomasz Nowicki <tn@semihalf.com>
-Subject: Re: [PATCH V3 2/6] acpi: pci: Setup MSI domain for ACPI based pci
- devices
-Date: Sun, 6 Dec 2015 19:03:18 +0100
-Message-ID: <56647866.8080802@semihalf.com>
-References: <1445453249-32557-1-git-send-email-Suravee.Suthikulpanit@amd.com>
- <1445453249-32557-3-git-send-email-Suravee.Suthikulpanit@amd.com>
- <20151119120807.07ffd476@arm.com> <5650DFB5.2010809@amd.com>
- <20151122113553.4fd81185@arm.com>
+From: Lukas Wunner <lukas@wunner.de>
+Subject: Re: [PATCH v2 1/2] ACPI / scan: Fix acpi_bus_id_list bookkeeping
+Date: Sun, 6 Dec 2015 22:09:19 +0100
+Message-ID: <20151206210919.GA29070@wunner.de>
+References: <cover.1448480385.git.lukas@wunner.de>
+ <994278b96189033970d0a2add95645110c716fbb.1448480385.git.lukas@wunner.de>
+ <565BEC65.90409@huawei.com>
+ <565C0568.90905@huawei.com>
+ <20151201130829.GB28094@wunner.de>
+ <565EB24F.8070005@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f175.google.com ([209.85.217.175]:33556 "EHLO
-	mail-lb0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752937AbbLFSDX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Dec 2015 13:03:23 -0500
-Received: by lbbkw15 with SMTP id kw15so44469898lbb.0
-        for <linux-acpi@vger.kernel.org>; Sun, 06 Dec 2015 10:03:21 -0800 (PST)
-In-Reply-To: <20151122113553.4fd81185@arm.com>
+Received: from mailout2.hostsharing.net ([83.223.90.233]:58280 "EHLO
+	mailout2.hostsharing.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754384AbbLFVJZ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Dec 2015 16:09:25 -0500
+Content-Disposition: inline
+In-Reply-To: <565EB24F.8070005@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, hanjun.guo@linaro.org, tomasz.nowicki@linaro.org, graeme.gregory@linaro.org, dhdang@apm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, devel@acpica.org, Robert Moore <robert.moore@intel.com>, Mark Brown <broonie@kernel.org>, Hui Wang <hui.wang@canonical.com>, Darren Hart <dvhart@infradead.org>, Hanjun Guo <guohanjun@huawei.com>
 
-Hi Marc,
+Hi Rafael,
 
+a gentle ping, not sure if you just haven't had time to look at this
+thread or if it's fallen between the cracks.
 
-On 11/22/2015 12:35 PM, Marc Zyngier wrote:
-> On Sat, 21 Nov 2015 15:18:45 -0600
-> Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com> wrote:
->
->> Hi Marc,
->>
->> On 11/19/15 06:08, Marc Zyngier wrote:
->>> On Wed, 21 Oct 2015 11:47:25 -0700
->>> Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com> wrote:
->>>
->>> Hi Suravee,
->>>
->>> Sorry it took so long to get to this series. Comments below.
->> No worry.
->>
->>>> This patch introduces pci_host_bridge_acpi_msi_domain(), which returns
->>>> the MSI domain of the specified PCI host bridge with DOMAIN_BUS_PCI_MSI
->>>> bus token. Then, it is assigned to pci device.
->>>>
->>>> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
->>>> ---
->>>>    drivers/pci/pci-acpi.c | 13 +++++++++++++
->>>>    drivers/pci/probe.c    |  2 ++
->>>>    include/linux/pci.h    |  7 +++++++
->>>>    3 files changed, 22 insertions(+)
->>>>
->>>> diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
->>>> index a32ba75..0e21ef4 100644
->>>> --- a/drivers/pci/pci-acpi.c
->>>> +++ b/drivers/pci/pci-acpi.c
->>>> @@ -9,7 +9,9 @@
->>>>
->>>>    #include <linux/delay.h>
->>>>    #include <linux/init.h>
->>>> +#include <linux/irqdomain.h>
->>>>    #include <linux/pci.h>
->>>> +#include <linux/msi.h>
->>>>    #include <linux/pci_hotplug.h>
->>>>    #include <linux/module.h>
->>>>    #include <linux/pci-aspm.h>
->>>> @@ -689,6 +691,17 @@ static struct acpi_bus_type acpi_pci_bus = {
->>>>    	.cleanup = pci_acpi_cleanup,
->>>>    };
->>>>
->>>> +struct irq_domain *pci_host_bridge_acpi_msi_domain(struct pci_bus *bus)
->>>> +{
->>>> +	struct irq_domain *dom = NULL;
->>>> +	struct fwnode_handle *fwnode = pci_msi_get_fwnode(&bus->dev);
->>>> +
->>>> +	if (fwnode)
->>>> +		dom = irq_find_matching_fwnode(fwnode,
->>>> +					       DOMAIN_BUS_PCI_MSI);
->>>> +	return dom;
->>>> +}
->>>> +
->>> Given this, I really question the need for what you define in patch #1
->>> to be standalone. It is only used by ACPI (DT has its own private
->>> helpers), and it is so far unlikely that it will be of any use for
->>> other firmware interfaces.
->>>
->>> My suggestion is to get rid of pci_msi_get_fwnode() and move the
->>> registration helper into this file. That'd be much simpler.
->>>
->>> Thanks,
->>>
->>> 	M.
->>>
->> Ok, I'll take care of this. I assume the rest of the patches looks ok.
-> I still need to finish going through it (I have minor comments so far
-> on some of the other patches), but I want to get the core ACPI stuff in
-> shape before doing anything else.
-I am trying to do similar thing for GICv3 & ITS, can you please have a look:
-http://lkml.iu.edu/hypermail/linux/kernel/1510.1/06139.html
+(Further comments from me below.)
 
-Can you please explain what ACPI core changes do you mean?
+On Wed, Dec 02, 2015 at 04:56:47PM +0800, Hanjun Guo wrote:
+> On 2015/12/1 21:08, Lukas Wunner wrote:
+> > Hi,
+> >
+> > On Mon, Nov 30, 2015 at 04:14:32PM +0800, Hanjun Guo wrote:
+> >> On 2015/11/30 14:27, Hanjun Guo wrote:
+> >>> On 2015/11/26 4:19, Lukas Wunner wrote:
+> >>>> acpi_device_add() allocates and adds an element to acpi_bus_id_list
+> >>>> (or increments the instance count if the device's HID is already
+> >>>> present in the list), but the element is never deleted from the list
+> >>>> nor freed. Fix it.
+> >>> Hmm, I didn't get it here. Seems the device's ID already freed in device core:
+> >>>
+> >>>  In acpi_add_single_object(), acpi_device_release() registered as a callback,
+> >>> ...
+> >>>   result = acpi_device_add(device, acpi_device_release);
+> >>> ...
+> >>>
+> >>> And in acpi_device_release(), it will call acpi_free_pnp_ids() to free the
+> >>> IDs, did I miss some something?
+> >> Sorry, I misread the code, I thought it was the pnn ids connect to the ACPI device,
+> >> actually you are referring to HIDs connecting to acpi_bus_id_list, sorry for the noise.
+> > Yes, I should have been more clear about this in the first place:
+> >
+> > When the bus is scanned and acpi_device_add() is called for each device,
+> > not only do we initialize a struct acpi_device and attach it to the
+> > device tree, but we also add an element to acpi_bus_id_list.
+> >
+> > Hence there are two ways to detect the presence of a HID: By traversing
+> > the device tree or by iterating over the list. I chose the latter because
+> > it is obviously cheaper and requires less code.
+> >
+> > However elements only ever get added to the list, never deleted. I'm not
+> > sure if hotpluggable ACPI devices exist but if they do, this is a bug
+> > which is fixed by this patch.
+> 
+> ACPI devices can be hotpluggable :) , but it will have no memory leak I think, it
+> only increase the instance number for ACPI devices removed and hot-added later,
+> I don't know if it make sense to do that, for example, if you remove device A and
+> B with same HID (such as ACPI0007) with your patch added:
+> 
+> remove processor 0, the sysfs for device A /sys/bus/acpi/devices/ACPI0007:00 will be
+> removed;
+> 
+> remove processer 1, the sysfs for device B /sys/bus/acpi/devices/ACPI0007:01 will be
+> removed;
+> 
+> But if we add it in reverse with your patch:
+> 
+> Add dprocesser 1, the sysfs /sys/bus/acpi/devices/ACPI0007:00 will be created,
+> 
+> add processor 0...
+> 
+> I'm not sure it will confuse user space or not.
+> 
+> Rafael, what's your opinion here?
 
-Regards,
-Tomasz
+Yes, with this patch the instance number is no longer strictly increasing
+and if devices are unplugged and replaced, instance numbers are recycled
+for the newly plugged devices. I have no idea if this can break things.
+
+If this patch is not acceptable, the semantics of patch [v2 2/2] change
+in that acpi_dev_present() doesn't return the presence of a HID at the
+time of invocation, but rather whether such a device has ever been present
+since boot. It wouldn't be a problem because acpi_dev_present() is
+meant for presence detection of devices which are built into the system
+(same goes for the PCI counterpart pci_dev_present(), see the kerneldoc
+in drivers/pci/search.c). I'd have to adjust the kerneldoc though to
+reflect the changed semantics.
+
+The other option would be to traverse the acpi_device tree instead of
+iterating over acpi_bus_id_list, then it would be possible to retain
+the semantics of detecting presence at the moment of invocation.
+
+Please let me know which of these options makes the most sense to you
+so that I can adjust the patches.
+
+Thank you,
+
+Lukas
+
+> 
+> Thanks
+> Hanjun
+> 
