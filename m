@@ -1,49 +1,118 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v3 1/9] device core: add BUS_NOTIFY_DRIVER_NOT_BOUND notification
-Date: Mon, 07 Dec 2015 02:31:25 +0100
-Message-ID: <3490462.ARevfiQkZD@vostro.rjw.lan>
-References: <1449265765-9393-1-git-send-email-andriy.shevchenko@linux.intel.com> <CAHp75VfaqaXVx+Y4zvLXHJ9KR0zmZo+fzU36-CToioHYKYReyg@mail.gmail.com> <20151205163622.GA2237@kroah.com>
+Subject: Re: [PATCH v2 1/2] ACPI / scan: Fix acpi_bus_id_list bookkeeping
+Date: Mon, 07 Dec 2015 02:39:17 +0100
+Message-ID: <2186235.0HReUg0eSH@vostro.rjw.lan>
+References: <cover.1448480385.git.lukas@wunner.de> <565EB24F.8070005@huawei.com> <20151206210919.GA29070@wunner.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:46383 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:62750 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754051AbbLGBB3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Dec 2015 20:01:29 -0500
-In-Reply-To: <20151205163622.GA2237@kroah.com>
+	with SMTP id S1753026AbbLGBJV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 6 Dec 2015 20:09:21 -0500
+In-Reply-To: <20151206210919.GA29070@wunner.de>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Vinod Koul <vinod.koul@intel.com>, dmaengine <dmaengine@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
+To: Lukas Wunner <lukas@wunner.de>
+Cc: linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>, devel@acpica.org, Robert Moore <robert.moore@intel.com>, Mark Brown <broonie@kernel.org>, Hui Wang <hui.wang@canonical.com>, Darren Hart <dvhart@infradead.org>, Hanjun Guo <guohanjun@huawei.com>
 
-On Saturday, December 05, 2015 08:36:22 AM Greg Kroah-Hartman wrote:
-> On Sat, Dec 05, 2015 at 06:24:05PM +0200, Andy Shevchenko wrote:
-> > On Sat, Dec 5, 2015 at 6:14 PM, Greg Kroah-Hartman
-> > <gregkh@linuxfoundation.org> wrote:
-> > > On Fri, Dec 04, 2015 at 11:49:17PM +0200, Andy Shevchenko wrote:
-> > >> The users of BUS_NOTIFY_BIND_DRIVER have no chance to do any cleanup in case of
-> > >> a probe failure. In the result there might be problems, such as some resources
-> > >> that had been allocated will continue to be allocated and therefore lead to a
-> > >> resource leak.
-> > >>
-> > >> Introduce a new notification to inform the subscriber that ->probe() failed. Do
-> > >> the same in case of failed device_bind_driver() call.
+On Sunday, December 06, 2015 10:09:19 PM Lukas Wunner wrote:
+> Hi Rafael,
+
+Hi,
+ 
+> a gentle ping, not sure if you just haven't had time to look at this
+> thread or if it's fallen between the cracks.
+
+Neither of these.
+
+I'm actually going to apply your patches.
+
+> (Further comments from me below.)
+>
+> On Wed, Dec 02, 2015 at 04:56:47PM +0800, Hanjun Guo wrote:
+> > On 2015/12/1 21:08, Lukas Wunner wrote:
+> > > Hi,
 > > >
-> > > Ugh, I hate all these notifiers, but this one does make sense...
+> > > On Mon, Nov 30, 2015 at 04:14:32PM +0800, Hanjun Guo wrote:
+> > >> On 2015/11/30 14:27, Hanjun Guo wrote:
+> > >>> On 2015/11/26 4:19, Lukas Wunner wrote:
+> > >>>> acpi_device_add() allocates and adds an element to acpi_bus_id_list
+> > >>>> (or increments the instance count if the device's HID is already
+> > >>>> present in the list), but the element is never deleted from the list
+> > >>>> nor freed. Fix it.
+> > >>> Hmm, I didn't get it here. Seems the device's ID already freed in device core:
+> > >>>
+> > >>>  In acpi_add_single_object(), acpi_device_release() registered as a callback,
+> > >>> ...
+> > >>>   result = acpi_device_add(device, acpi_device_release);
+> > >>> ...
+> > >>>
+> > >>> And in acpi_device_release(), it will call acpi_free_pnp_ids() to free the
+> > >>> IDs, did I miss some something?
+> > >> Sorry, I misread the code, I thought it was the pnn ids connect to the ACPI device,
+> > >> actually you are referring to HIDs connecting to acpi_bus_id_list, sorry for the noise.
+> > > Yes, I should have been more clear about this in the first place:
+> > >
+> > > When the bus is scanned and acpi_device_add() is called for each device,
+> > > not only do we initialize a struct acpi_device and attach it to the
+> > > device tree, but we also add an element to acpi_bus_id_list.
+> > >
+> > > Hence there are two ways to detect the presence of a HID: By traversing
+> > > the device tree or by iterating over the list. I chose the latter because
+> > > it is obviously cheaper and requires less code.
+> > >
+> > > However elements only ever get added to the list, never deleted. I'm not
+> > > sure if hotpluggable ACPI devices exist but if they do, this is a bug
+> > > which is fixed by this patch.
 > > 
-> > Yeah, I'm not a fan of them either.
+> > ACPI devices can be hotpluggable :) , but it will have no memory leak I think, it
+> > only increase the instance number for ACPI devices removed and hot-added later,
+> > I don't know if it make sense to do that, for example, if you remove device A and
+> > B with same HID (such as ACPI0007) with your patch added:
 > > 
-> > > Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> > remove processor 0, the sysfs for device A /sys/bus/acpi/devices/ACPI0007:00 will be
+> > removed;
 > > 
-> > You meant Acked-by, didn't you?
+> > remove processer 1, the sysfs for device B /sys/bus/acpi/devices/ACPI0007:01 will be
+> > removed;
+> > 
+> > But if we add it in reverse with your patch:
+> > 
+> > Add dprocesser 1, the sysfs /sys/bus/acpi/devices/ACPI0007:00 will be created,
+> > 
+> > add processor 0...
+> > 
+> > I'm not sure it will confuse user space or not.
+> > 
+> > Rafael, what's your opinion here?
 > 
-> Either works :)
+> Yes, with this patch the instance number is no longer strictly increasing
+> and if devices are unplugged and replaced, instance numbers are recycled
+> for the newly plugged devices. I have no idea if this can break things.
 
-Thanks!
+Maybe.  I guess it may confuse user space on some systems if it cached
+the old device names somehow, but since the instance numbers change right
+now anyway, that is unlikely.
 
-Andy, what about if I put patches [1-6/9] into my queue for v4.5 now and
-the remaining ones will wait for Vinod to comment?
+> If this patch is not acceptable, the semantics of patch [v2 2/2] change
+> in that acpi_dev_present() doesn't return the presence of a HID at the
+> time of invocation, but rather whether such a device has ever been present
+> since boot. It wouldn't be a problem because acpi_dev_present() is
+> meant for presence detection of devices which are built into the system
+> (same goes for the PCI counterpart pci_dev_present(), see the kerneldoc
+> in drivers/pci/search.c). I'd have to adjust the kerneldoc though to
+> reflect the changed semantics.
+> 
+> The other option would be to traverse the acpi_device tree instead of
+> iterating over acpi_bus_id_list, then it would be possible to retain
+> the semantics of detecting presence at the moment of invocation.
+> 
+> Please let me know which of these options makes the most sense to you
+> so that I can adjust the patches.
+
+The simplest one that works for all of the users in question should be fine.
 
 Thanks,
 Rafael
