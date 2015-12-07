@@ -1,59 +1,61 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 1/1] ACPI: Support D3 COLD device for old BIOS
-Date: Mon, 07 Dec 2015 23:48:56 +0100
-Message-ID: <3822904.Z6rtg8lMJ5@vostro.rjw.lan>
-References: <1449463473.2175.13.camel@kxue-X58A-UD3R>
+Subject: Re: [PATCH v3 1/9] device core: add BUS_NOTIFY_DRIVER_NOT_BOUND notification
+Date: Mon, 07 Dec 2015 23:59:42 +0100
+Message-ID: <1633564.Gyf7bPvX3K@vostro.rjw.lan>
+References: <1449265765-9393-1-git-send-email-andriy.shevchenko@linux.intel.com> <3490462.ARevfiQkZD@vostro.rjw.lan> <1449485853.15393.193.camel@linux.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1449463473.2175.13.camel@kxue-X58A-UD3R>
+In-Reply-To: <1449485853.15393.193.camel@linux.intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Ken Xue <ken.xue@amd.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, SPG_Linux_Kernel@amd.com, mika.westerberg@linux.intel.com, Andy Shevchenko <andy.shevchenko@gmail.com>, Ivan.Zheng@amd.com, Alex.Chuang@amd.com
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andy Shevchenko <andy.shevchenko@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Vinod Koul <vinod.koul@intel.com>, dmaengine <dmaengine@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday, December 07, 2015 12:44:33 PM Ken Xue wrote:
-> D3cold is only regarded as valid if the "_PR3" object is present
-> for the given device after the commit <20dacb71ad28>
-> (ACPI/PM: Reworkdevice power management to follow ACPI 6).
+On Monday, December 07, 2015 12:57:33 PM Andy Shevchenko wrote:
+> On Mon, 2015-12-07 at 02:31 +0100, Rafael J. Wysocki wrote:
+> > On Saturday, December 05, 2015 08:36:22 AM Greg Kroah-Hartman wrote:
+> > > On Sat, Dec 05, 2015 at 06:24:05PM +0200, Andy Shevchenko wrote:
+> > > > On Sat, Dec 5, 2015 at 6:14 PM, Greg Kroah-Hartman
+> > > > <gregkh@linuxfoundation.org> wrote:
+> > > > > On Fri, Dec 04, 2015 at 11:49:17PM +0200, Andy Shevchenko
+> > > > > wrote:
+> > > > > > The users of BUS_NOTIFY_BIND_DRIVER have no chance to do any
+> > > > > > cleanup in case of
+> > > > > > a probe failure. In the result there might be problems, such
+> > > > > > as some resources
+> > > > > > that had been allocated will continue to be allocated and
+> > > > > > therefore lead to a
+> > > > > > resource leak.
+> > > > > > 
+> > > > > > Introduce a new notification to inform the subscriber that
+> > > > > > ->probe() failed. Do
+> > > > > > the same in case of failed device_bind_driver() call.
+> > > > > 
+> > > > > Ugh, I hate all these notifiers, but this one does make
+> > > > > sense...
+> > > > 
+> > > > Yeah, I'm not a fan of them either.
+> > > > 
+> > > > > Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> > > > 
+> > > > You meant Acked-by, didn't you?
+> > > 
+> > > Either works :)
+> > 
+> > Thanks!
+> > 
+> > Andy, what about if I put patches [1-6/9] into my queue for v4.5 now
+> > and
+> > the remaining ones will wait for Vinod to comment?
 > 
-> But some old BIOS only defined "_PS3" for the D3COLD device.
-> And old kernel also believes the device has "_PS3" is a
-> D3COLD device.
-> 
-> So, add some logics for supporting D3 COLD device for old BIOS
-> which is compatible with earlier ACPI spec.
-> 
-> Signed-off-by: Ken Xue <Ken.Xue@amd.com>
-> Reported-and-tested-by: Gang Long <Gang.Long@amd.com>
+> Yes, it's possible, but please don't forget the patch from http://www.s
+> pinics.net/lists/kernel/msg2119229.html. There also formally Acks from
+> Thomas and Ong, Boon Leong.
 
-Well, what really is the problem?
+Well, if Thomas prefers to take this one into tip, I guess the series should
+go along with it or wait for when that one is merged.
 
-acpi_device_set_power() has a special case specifically for D3cold and
-falls back to D3hot if D3cold has been requested but is not "valid".
-
-> ---
->  drivers/acpi/scan.c | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
-> index 01136b8..85c16bb 100644
-> --- a/drivers/acpi/scan.c
-> +++ b/drivers/acpi/scan.c
-> @@ -979,7 +979,9 @@ static void acpi_bus_get_power_flags(struct acpi_device *device)
->  		acpi_bus_init_power_state(device, i);
->  
->  	INIT_LIST_HEAD(&device->power.states[ACPI_STATE_D3_COLD].resources);
-> -	if (!list_empty(&device->power.states[ACPI_STATE_D3_HOT].resources))
-> +	if (!list_empty(&device->power.states[ACPI_STATE_D3_HOT].resources) ||
-> +		((acpi_gbl_FADT.header.revision < 6) &&
-> +		device->power.states[ACPI_STATE_D3_HOT].flags.explicit_set))
->  		device->power.states[ACPI_STATE_D3_COLD].flags.valid = 1;
->  
->  	/* Set defaults for D0 and D3hot states (always valid) */
-> 
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Thanks,
+Rafael
