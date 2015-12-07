@@ -1,132 +1,47 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v3] acpi, apei, arm64: APEI initial support for aarch64.
-Date: Mon, 07 Dec 2015 17:36:07 +0800
-Message-ID: <56655307.2010305@linaro.org>
-References: <1449162903-11203-1-git-send-email-fu.wei@linaro.org>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v3 0/2] ACPI: Add irq_type to gpio interrupt
+Date: Mon, 7 Dec 2015 12:52:21 +0200
+Message-ID: <20151207105221.GI16813@lahna.fi.intel.com>
+References: <1448923673-2582-1-git-send-email-christophe-h.ricard@st.com>
+ <20151201112127.GA1593@lahna.fi.intel.com>
+ <CALD+uuxJw5tQ2XY99nHigXdNkcXGnng+r9NZ8H9TqUF9GbgW=A@mail.gmail.com>
+ <20151201130324.GE1593@lahna.fi.intel.com>
+ <56622373.7020406@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f46.google.com ([74.125.82.46]:37709 "EHLO
-	mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754392AbbLGJgM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Dec 2015 04:36:12 -0500
-Received: by wmww144 with SMTP id w144so142045536wmw.0
-        for <linux-acpi@vger.kernel.org>; Mon, 07 Dec 2015 01:36:11 -0800 (PST)
-In-Reply-To: <1449162903-11203-1-git-send-email-fu.wei@linaro.org>
+Received: from mga11.intel.com ([192.55.52.93]:5911 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754981AbbLGKw0 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 7 Dec 2015 05:52:26 -0500
+Content-Disposition: inline
+In-Reply-To: <56622373.7020406@gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: fu.wei@linaro.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, jon.zhixiong.zhang@gmail.com, tomasz.nowicki@linaro.org, tn@semihalf.com, rjw@rjwysocki.net, lenb@kernel.org, jarkko.nikula@linux.intel.com
-Cc: graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, mark.rutland@arm.com, catalin.marinas@arm.com, will.deacon@arm.com, msalter@redhat.com, Marc.Zyngier@arm.com, grant.likely@linaro.org, rrichter@cavium.com, lorenzo.pieralisi@arm.com, rruigrok@codeaurora.org, harba@qti.qualcomm.com
+To: Christophe Ricard <christophe.ricard@gmail.com>
+Cc: rjw@rjwysocki.net, Len Brown <lenb@kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, andriy.shevchenko@linux.intel.com, linux-i2c@vger.kernel.org, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, Christophe Ricard <christophe-h.ricard@st.com>
 
-Hi Fu Wei,
+On Sat, Dec 05, 2015 at 12:36:19AM +0100, Christophe Ricard wrote:
+> >No, but I wonder if it would be better to do this in acpi_dev_gpio_irq_get()
+> >instead of acpi_find_gpio() which gets called everytime a GPIO is looked up?
+> I believe, setting the irq type requires triggering and polarity data stored
+> into a struct acpi_resource_gpio.
+> 
+> acpi_dev_gpio_irq_get call acpi_get_gpiod_by_index which run acpi_find_gpio.
+> 
+> Actually acpi_dev_gpio_irq_get is called everytime an i2c device slave is
+> probed, acpi_find_gpio will get called to "register" gpios.
+> If done correctly, i think this will be done only once...
+> 
+> The only improvement i may see would be to add an extra field in the
+> acpi_gpio_info structure in drivers/gpio/gpiolib.h (for example int
+> irq_type).
+> And call irq_set_irq_type in acpi_dev_gpio_irq_get if the gpio is an
+> interrupt.
+> 
+> I guess the current proposal and this one are equivalent...
+> 
+> What do you think ?
 
-On 12/04/2015 01:15 AM, fu.wei@linaro.org wrote:
-> From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
->
-> This commit provides APEI arch-specific bits for aarch64
->
-> The reason for wrapping "acpi_disable_cmcff" by
-> "#if defined(__i386__) || defined(__x86_64__)" in hest.c is:
-> according to ACPI spec CMC(Corrected Machine Check) is only for IA-32
-> Architecture.
->
-> Changelog:
-> v3: Remove "acpi_disable_cmcff" from arm64 code,
->      and wrap it in hest.c by "#if defined(__i386__) || defined(__x86_64__)"
->
-> v2: https://lkml.org/lkml/2015/12/2/432
->      Rebase to latest kernel version(4.4-rc3).
->      Move arch_apei_flush_tlb_one() to arch/arm64/kernel/acpi.c
->
-> v1: https://lkml.org/lkml/2015/8/14/199
->      Move arch_apei_flush_tlb_one() to arch/arm64/include/asm/apci.h.
->      Delete arch/arm64/kernel/apei.c.
->      Add "#ifdef CONFIG_ACPI_APEI" for "acpi_disable_cmcff".
-
-The version updates is not belong here, if you need to add
-it, please place it under "---" below.
-
->
-> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-> Tested-by: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
-> Signed-off-by: Fu Wei <fu.wei@linaro.org>
-> ---
-
-...just here.
-
->   arch/arm64/Kconfig            | 1 +
->   arch/arm64/include/asm/acpi.h | 1 +
->   arch/arm64/kernel/acpi.c      | 6 ++++++
->   drivers/acpi/apei/hest.c      | 2 ++
->   4 files changed, 10 insertions(+)
->
-> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-> index 871f217..58c8992 100644
-> --- a/arch/arm64/Kconfig
-> +++ b/arch/arm64/Kconfig
-> @@ -3,6 +3,7 @@ config ARM64
->   	select ACPI_CCA_REQUIRED if ACPI
->   	select ACPI_GENERIC_GSI if ACPI
->   	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
-> +	select HAVE_ACPI_APEI if ACPI
->   	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
->   	select ARCH_HAS_ELF_RANDOMIZE
->   	select ARCH_HAS_GCOV_PROFILE_ALL
-> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-> index caafd63..7207f8e 100644
-> --- a/arch/arm64/include/asm/acpi.h
-> +++ b/arch/arm64/include/asm/acpi.h
-> @@ -94,6 +94,7 @@ static inline const char *acpi_get_enable_method(int cpu)
->
->   #ifdef	CONFIG_ACPI_APEI
->   pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr);
-> +void arch_apei_flush_tlb_one(unsigned long addr);
->   #endif
->
->   #endif /*_ASM_ACPI_H*/
-> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
-> index d1ce8e2..7a742e7 100644
-> --- a/arch/arm64/kernel/acpi.c
-> +++ b/arch/arm64/kernel/acpi.c
-> @@ -32,6 +32,7 @@
->   #ifdef CONFIG_ACPI_APEI
->   # include <linux/efi.h>
->   # include <asm/pgtable.h>
-> +# include <asm/tlbflush.h>
->   #endif
->
->   int acpi_noirq = 1;		/* skip ACPI IRQ initialization */
-> @@ -233,4 +234,9 @@ pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr)
->   		return __pgprot(PROT_NORMAL_NC);
->   	return __pgprot(PROT_DEVICE_nGnRnE);
->   }
-> +
-> +void arch_apei_flush_tlb_one(unsigned long addr)
-> +{
-> +	flush_tlb_kernel_range(addr, addr + PAGE_SIZE);
-> +}
-
-Maybe just a static inline function in arch/arm64/include/asm/acpi.h
-will be good?
-
->   #endif
-> diff --git a/drivers/acpi/apei/hest.c b/drivers/acpi/apei/hest.c
-> index 20b3fcf..4ead747 100644
-> --- a/drivers/acpi/apei/hest.c
-> +++ b/drivers/acpi/apei/hest.c
-> @@ -232,8 +232,10 @@ void __init acpi_hest_init(void)
->   		goto err;
->   	}
->
-> +#if defined(__i386__) || defined(__x86_64__)
->   	if (!acpi_disable_cmcff)
->   		apei_hest_parse(hest_parse_cmc, NULL);
-> +#endif
-
-How about put it together into a function, and
-introduce a stub function when no __i386__ and
-__x86_64__ case?
-
-Thanks
-Hanjun
+Actually I think it may be useful to add triggering flags to
+acpi_gpio_info.
