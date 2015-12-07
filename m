@@ -1,84 +1,59 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH V1 00/11] MMCONFIG refactoring and ARM64 PCI hostbridge
- init based on ACPI
-Date: Mon, 7 Dec 2015 14:31:17 -0600
-Message-ID: <20151207203117.GB14429@localhost>
-References: <1445963922-22711-1-git-send-email-tn@semihalf.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH 1/1] ACPI: Support D3 COLD device for old BIOS
+Date: Mon, 07 Dec 2015 23:48:56 +0100
+Message-ID: <3822904.Z6rtg8lMJ5@vostro.rjw.lan>
+References: <1449463473.2175.13.camel@kxue-X58A-UD3R>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:41318 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932690AbbLGUbe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 7 Dec 2015 15:31:34 -0500
-Content-Disposition: inline
-In-Reply-To: <1445963922-22711-1-git-send-email-tn@semihalf.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1449463473.2175.13.camel@kxue-X58A-UD3R>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Ken Xue <ken.xue@amd.com>
+Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, SPG_Linux_Kernel@amd.com, mika.westerberg@linux.intel.com, Andy Shevchenko <andy.shevchenko@gmail.com>, Ivan.Zheng@amd.com, Alex.Chuang@amd.com
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>
-Cc: bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, jiang.liu@linux.intel.com, robert.richter@caviumnetworks.com, Narinder.Dhillon@caviumnetworks.com, ddaney@caviumnetworks.com, Liviu.Dudau@arm.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-On Tue, Oct 27, 2015 at 05:38:31PM +0100, Tomasz Nowicki wrote:
-> From the functionality point of view this series might be split into two logic parts:
-> 1. Making MMCONFIG code arch-agnostic which allows all architectures to collect
->    PCI config regions and used when necessary.
-> 2. Using generic MMCONFIG code and introducing ACPI based PCI hostbridge
->    initialization for ARM64
+On Monday, December 07, 2015 12:44:33 PM Ken Xue wrote:
+> D3cold is only regarded as valid if the "_PR3" object is present
+> for the given device after the commit <20dacb71ad28>
+> (ACPI/PM: Reworkdevice power management to follow ACPI 6).
 > 
-> Patches has been built on top of:
-> [Patch v7 0/7] Consolidate ACPI PCI root common code into ACPI core
-> https://lkml.org/lkml/2015/10/14/31
-> Git branch can be found here:
-> https://git.linaro.org/leg/acpi/acpi.git/shortlog/refs/heads/pci-acpi-upstream
+> But some old BIOS only defined "_PS3" for the D3COLD device.
+> And old kernel also believes the device has "_PS3" is a
+> D3COLD device.
 > 
-> This has been tested on Cavium ThunderX 1 socket server.
-> Any help in reviewing and testing is very appreciated.
+> So, add some logics for supporting D3 COLD device for old BIOS
+> which is compatible with earlier ACPI spec.
 > 
-> Hanjun Guo (1):
->   XEN / PCI: Remove the dependence on arch x86 when PCI_MMCONFIG=y
-> 
-> Tomasz Nowicki (10):
->   x86, pci: Reorder logic of pci_mmconfig_insert() function
->   x86, pci, acpi: Move arch-agnostic MMCONFIG (aka ECAM) and ACPI code
->     out of arch/x86/ directory
->   pci, acpi, mcfg: Provide generic implementation of MCFG code
->     initialization.
->   x86, pci: mmconfig_{32,64}.c code refactoring - remove code
->     duplication.
->   x86, pci, ecam: mmconfig_64.c becomes default implementation for ECAM
->     driver.
->   pci, acpi, mcfg: Provide default RAW ACPI PCI config space accessors.
->   pci, acpi, ecam: Add flag to indicate whether ECAM region was hot
->     added or not.
->   x86, pci: Use previously added ECAM hot_added flag to remove ECAM
->     regions.
->   pci, acpi: Provide generic way to assign bus domain number.
->   arm64, pci, acpi: Support for ACPI based PCI hostbridge init
-> 
->  arch/arm64/Kconfig             |   6 +
->  arch/arm64/kernel/pci.c        | 208 ++++++++++++++++++++++++++++++++--
->  arch/x86/Kconfig               |   4 +
->  arch/x86/include/asm/pci_x86.h |  28 +----
->  arch/x86/pci/acpi.c            |  17 +--
->  arch/x86/pci/mmconfig-shared.c | 250 +++++++----------------------------------
->  arch/x86/pci/mmconfig_32.c     |  11 +-
->  arch/x86/pci/mmconfig_64.c     |  67 +----------
->  arch/x86/pci/numachip.c        |   1 +
->  drivers/acpi/Makefile          |   1 +
->  drivers/acpi/mcfg.c            | 104 +++++++++++++++++
->  drivers/acpi/pci_root.c        |   2 +-
->  drivers/pci/Kconfig            |  10 ++
->  drivers/pci/Makefile           |   5 +
->  drivers/pci/ecam.c             | 234 ++++++++++++++++++++++++++++++++++++++
->  drivers/pci/pci.c              |  30 ++++-
->  drivers/xen/pci.c              |   7 +-
->  include/linux/acpi.h           |   2 +
->  include/linux/ecam.h           |  44 ++++++++
->  19 files changed, 691 insertions(+), 340 deletions(-)
->  create mode 100644 drivers/acpi/mcfg.c
->  create mode 100644 drivers/pci/ecam.c
->  create mode 100644 include/linux/ecam.h
+> Signed-off-by: Ken Xue <Ken.Xue@amd.com>
+> Reported-and-tested-by: Gang Long <Gang.Long@amd.com>
 
-Waiting for an updated version after all the discussion.
+Well, what really is the problem?
 
-Bjorn
+acpi_device_set_power() has a special case specifically for D3cold and
+falls back to D3hot if D3cold has been requested but is not "valid".
+
+> ---
+>  drivers/acpi/scan.c | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+> index 01136b8..85c16bb 100644
+> --- a/drivers/acpi/scan.c
+> +++ b/drivers/acpi/scan.c
+> @@ -979,7 +979,9 @@ static void acpi_bus_get_power_flags(struct acpi_device *device)
+>  		acpi_bus_init_power_state(device, i);
+>  
+>  	INIT_LIST_HEAD(&device->power.states[ACPI_STATE_D3_COLD].resources);
+> -	if (!list_empty(&device->power.states[ACPI_STATE_D3_HOT].resources))
+> +	if (!list_empty(&device->power.states[ACPI_STATE_D3_HOT].resources) ||
+> +		((acpi_gbl_FADT.header.revision < 6) &&
+> +		device->power.states[ACPI_STATE_D3_HOT].flags.explicit_set))
+>  		device->power.states[ACPI_STATE_D3_COLD].flags.valid = 1;
+>  
+>  	/* Set defaults for D0 and D3hot states (always valid) */
+> 
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
