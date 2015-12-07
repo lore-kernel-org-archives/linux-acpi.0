@@ -1,110 +1,132 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH V3 2/6] acpi: pci: Setup MSI domain for ACPI based pci
- devices
-Date: Mon, 07 Dec 2015 08:55:29 +0000
-Message-ID: <56654981.9020301@arm.com>
-References: <1445453249-32557-1-git-send-email-Suravee.Suthikulpanit@amd.com> <1445453249-32557-3-git-send-email-Suravee.Suthikulpanit@amd.com> <20151119120807.07ffd476@arm.com> <5650DFB5.2010809@amd.com> <20151122113553.4fd81185@arm.com> <56647866.8080802@semihalf.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH v3] acpi, apei, arm64: APEI initial support for aarch64.
+Date: Mon, 07 Dec 2015 17:36:07 +0800
+Message-ID: <56655307.2010305@linaro.org>
+References: <1449162903-11203-1-git-send-email-fu.wei@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:35097 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752764AbbLGIze (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 7 Dec 2015 03:55:34 -0500
-In-Reply-To: <56647866.8080802@semihalf.com>
+Received: from mail-wm0-f46.google.com ([74.125.82.46]:37709 "EHLO
+	mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754392AbbLGJgM (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Dec 2015 04:36:12 -0500
+Received: by wmww144 with SMTP id w144so142045536wmw.0
+        for <linux-acpi@vger.kernel.org>; Mon, 07 Dec 2015 01:36:11 -0800 (PST)
+In-Reply-To: <1449162903-11203-1-git-send-email-fu.wei@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>
-Cc: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, hanjun.guo@linaro.org, tomasz.nowicki@linaro.org, graeme.gregory@linaro.org, dhdang@apm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: fu.wei@linaro.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, jon.zhixiong.zhang@gmail.com, tomasz.nowicki@linaro.org, tn@semihalf.com, rjw@rjwysocki.net, lenb@kernel.org, jarkko.nikula@linux.intel.com
+Cc: graeme.gregory@linaro.org, al.stone@linaro.org, jcm@redhat.com, mark.rutland@arm.com, catalin.marinas@arm.com, will.deacon@arm.com, msalter@redhat.com, Marc.Zyngier@arm.com, grant.likely@linaro.org, rrichter@cavium.com, lorenzo.pieralisi@arm.com, rruigrok@codeaurora.org, harba@qti.qualcomm.com
 
-Hi Tomasz,
+Hi Fu Wei,
 
-On 06/12/15 18:03, Tomasz Nowicki wrote:
-> Hi Marc,
-> 
-> 
-> On 11/22/2015 12:35 PM, Marc Zyngier wrote:
->> On Sat, 21 Nov 2015 15:18:45 -0600
->> Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com> wrote:
->>
->>> Hi Marc,
->>>
->>> On 11/19/15 06:08, Marc Zyngier wrote:
->>>> On Wed, 21 Oct 2015 11:47:25 -0700
->>>> Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com> wrote:
->>>>
->>>> Hi Suravee,
->>>>
->>>> Sorry it took so long to get to this series. Comments below.
->>> No worry.
->>>
->>>>> This patch introduces pci_host_bridge_acpi_msi_domain(), which returns
->>>>> the MSI domain of the specified PCI host bridge with DOMAIN_BUS_PCI_MSI
->>>>> bus token. Then, it is assigned to pci device.
->>>>>
->>>>> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
->>>>> ---
->>>>>    drivers/pci/pci-acpi.c | 13 +++++++++++++
->>>>>    drivers/pci/probe.c    |  2 ++
->>>>>    include/linux/pci.h    |  7 +++++++
->>>>>    3 files changed, 22 insertions(+)
->>>>>
->>>>> diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
->>>>> index a32ba75..0e21ef4 100644
->>>>> --- a/drivers/pci/pci-acpi.c
->>>>> +++ b/drivers/pci/pci-acpi.c
->>>>> @@ -9,7 +9,9 @@
->>>>>
->>>>>    #include <linux/delay.h>
->>>>>    #include <linux/init.h>
->>>>> +#include <linux/irqdomain.h>
->>>>>    #include <linux/pci.h>
->>>>> +#include <linux/msi.h>
->>>>>    #include <linux/pci_hotplug.h>
->>>>>    #include <linux/module.h>
->>>>>    #include <linux/pci-aspm.h>
->>>>> @@ -689,6 +691,17 @@ static struct acpi_bus_type acpi_pci_bus = {
->>>>>    	.cleanup = pci_acpi_cleanup,
->>>>>    };
->>>>>
->>>>> +struct irq_domain *pci_host_bridge_acpi_msi_domain(struct pci_bus *bus)
->>>>> +{
->>>>> +	struct irq_domain *dom = NULL;
->>>>> +	struct fwnode_handle *fwnode = pci_msi_get_fwnode(&bus->dev);
->>>>> +
->>>>> +	if (fwnode)
->>>>> +		dom = irq_find_matching_fwnode(fwnode,
->>>>> +					       DOMAIN_BUS_PCI_MSI);
->>>>> +	return dom;
->>>>> +}
->>>>> +
->>>> Given this, I really question the need for what you define in patch #1
->>>> to be standalone. It is only used by ACPI (DT has its own private
->>>> helpers), and it is so far unlikely that it will be of any use for
->>>> other firmware interfaces.
->>>>
->>>> My suggestion is to get rid of pci_msi_get_fwnode() and move the
->>>> registration helper into this file. That'd be much simpler.
->>>>
->>>> Thanks,
->>>>
->>>> 	M.
->>>>
->>> Ok, I'll take care of this. I assume the rest of the patches looks ok.
->> I still need to finish going through it (I have minor comments so far
->> on some of the other patches), but I want to get the core ACPI stuff in
->> shape before doing anything else.
-> I am trying to do similar thing for GICv3 & ITS, can you please have a look:
-> http://lkml.iu.edu/hypermail/linux/kernel/1510.1/06139.html
-> 
-> Can you please explain what ACPI core changes do you mean?
+On 12/04/2015 01:15 AM, fu.wei@linaro.org wrote:
+> From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+>
+> This commit provides APEI arch-specific bits for aarch64
+>
+> The reason for wrapping "acpi_disable_cmcff" by
+> "#if defined(__i386__) || defined(__x86_64__)" in hest.c is:
+> according to ACPI spec CMC(Corrected Machine Check) is only for IA-32
+> Architecture.
+>
+> Changelog:
+> v3: Remove "acpi_disable_cmcff" from arm64 code,
+>      and wrap it in hest.c by "#if defined(__i386__) || defined(__x86_64__)"
+>
+> v2: https://lkml.org/lkml/2015/12/2/432
+>      Rebase to latest kernel version(4.4-rc3).
+>      Move arch_apei_flush_tlb_one() to arch/arm64/kernel/acpi.c
+>
+> v1: https://lkml.org/lkml/2015/8/14/199
+>      Move arch_apei_flush_tlb_one() to arch/arm64/include/asm/apci.h.
+>      Delete arch/arm64/kernel/apei.c.
+>      Add "#ifdef CONFIG_ACPI_APEI" for "acpi_disable_cmcff".
 
-I mean the code in patches 1 and 2 in Suravee's series. This should form
-the basics for being able to assign MSI domains to devices.
+The version updates is not belong here, if you need to add
+it, please place it under "---" below.
 
-Thanks,
+>
+> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+> Tested-by: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
+> Signed-off-by: Fu Wei <fu.wei@linaro.org>
+> ---
 
-	M.
--- 
-Jazz is not dead. It just smells funny...
+...just here.
+
+>   arch/arm64/Kconfig            | 1 +
+>   arch/arm64/include/asm/acpi.h | 1 +
+>   arch/arm64/kernel/acpi.c      | 6 ++++++
+>   drivers/acpi/apei/hest.c      | 2 ++
+>   4 files changed, 10 insertions(+)
+>
+> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+> index 871f217..58c8992 100644
+> --- a/arch/arm64/Kconfig
+> +++ b/arch/arm64/Kconfig
+> @@ -3,6 +3,7 @@ config ARM64
+>   	select ACPI_CCA_REQUIRED if ACPI
+>   	select ACPI_GENERIC_GSI if ACPI
+>   	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
+> +	select HAVE_ACPI_APEI if ACPI
+>   	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
+>   	select ARCH_HAS_ELF_RANDOMIZE
+>   	select ARCH_HAS_GCOV_PROFILE_ALL
+> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+> index caafd63..7207f8e 100644
+> --- a/arch/arm64/include/asm/acpi.h
+> +++ b/arch/arm64/include/asm/acpi.h
+> @@ -94,6 +94,7 @@ static inline const char *acpi_get_enable_method(int cpu)
+>
+>   #ifdef	CONFIG_ACPI_APEI
+>   pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr);
+> +void arch_apei_flush_tlb_one(unsigned long addr);
+>   #endif
+>
+>   #endif /*_ASM_ACPI_H*/
+> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
+> index d1ce8e2..7a742e7 100644
+> --- a/arch/arm64/kernel/acpi.c
+> +++ b/arch/arm64/kernel/acpi.c
+> @@ -32,6 +32,7 @@
+>   #ifdef CONFIG_ACPI_APEI
+>   # include <linux/efi.h>
+>   # include <asm/pgtable.h>
+> +# include <asm/tlbflush.h>
+>   #endif
+>
+>   int acpi_noirq = 1;		/* skip ACPI IRQ initialization */
+> @@ -233,4 +234,9 @@ pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr)
+>   		return __pgprot(PROT_NORMAL_NC);
+>   	return __pgprot(PROT_DEVICE_nGnRnE);
+>   }
+> +
+> +void arch_apei_flush_tlb_one(unsigned long addr)
+> +{
+> +	flush_tlb_kernel_range(addr, addr + PAGE_SIZE);
+> +}
+
+Maybe just a static inline function in arch/arm64/include/asm/acpi.h
+will be good?
+
+>   #endif
+> diff --git a/drivers/acpi/apei/hest.c b/drivers/acpi/apei/hest.c
+> index 20b3fcf..4ead747 100644
+> --- a/drivers/acpi/apei/hest.c
+> +++ b/drivers/acpi/apei/hest.c
+> @@ -232,8 +232,10 @@ void __init acpi_hest_init(void)
+>   		goto err;
+>   	}
+>
+> +#if defined(__i386__) || defined(__x86_64__)
+>   	if (!acpi_disable_cmcff)
+>   		apei_hest_parse(hest_parse_cmc, NULL);
+> +#endif
+
+How about put it together into a function, and
+introduce a stub function when no __i386__ and
+__x86_64__ case?
+
+Thanks
+Hanjun
