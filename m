@@ -1,141 +1,76 @@
-From: Fu Wei <fu.wei@linaro.org>
-Subject: Re: [PATCH v3] acpi, apei, arm64: APEI initial support for aarch64.
-Date: Mon, 7 Dec 2015 15:27:35 +0800
-Message-ID: <CADyBb7vzio6O0kBeCu0FtCu-FUmiXese4BMXtMhT80a8-kb53Q@mail.gmail.com>
-References: <1449162903-11203-1-git-send-email-fu.wei@linaro.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+From: fu.wei@linaro.org
+Subject: [PATCH] acpi, apei, hest: Move HEST table initialization where it belongs.
+Date: Mon,  7 Dec 2015 16:43:17 +0800
+Message-ID: <1449477797-12086-1-git-send-email-fu.wei@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f169.google.com ([209.85.214.169]:32818 "EHLO
-	mail-ob0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752967AbbLGH1g (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Dec 2015 02:27:36 -0500
-Received: by obbww6 with SMTP id ww6so109478178obb.0
-        for <linux-acpi@vger.kernel.org>; Sun, 06 Dec 2015 23:27:35 -0800 (PST)
-In-Reply-To: <1449162903-11203-1-git-send-email-fu.wei@linaro.org>
+Received: from mx1.redhat.com ([209.132.183.28]:45647 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753310AbbLGInr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 7 Dec 2015 03:43:47 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: LKML <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Jonathan Zhang <jon.zhixiong.zhang@gmail.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Rafael Wysocki <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, jarkko.nikula@linux.intel.com
-Cc: G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, Jon Masters <jcm@redhat.com>, Mark Rutland <mark.rutland@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Salter <msalter@redhat.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Grant Likely <grant.likely@linaro.org>, rrichter@cavium.com, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, rruigrok@codeaurora.org, "Abdulhamid, Harb" <harba@qti.qualcomm.com>, Fu Wei <fu.wei@linaro.org>
+To: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, tomasz.nowicki@linaro.org, tn@semihalf.com, rjw@rjwysocki.net, lenb@kernel.org
+Cc: graeme.gregory@linaro.org, al.stone@linaro.org, hanjun.guo@linaro.org, jcm@redhat.com, rruigrok@codeaurora.org, harba@qti.qualcomm.com, Fu Wei <fu.wei@linaro.org>
 
-Hi all,
+From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
 
-On 4 December 2015 at 01:15,  <fu.wei@linaro.org> wrote:
-> From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
->
-> This commit provides APEI arch-specific bits for aarch64
->
-> The reason for wrapping "acpi_disable_cmcff" by
-> "#if defined(__i386__) || defined(__x86_64__)" in hest.c is:
-> according to ACPI spec CMC(Corrected Machine Check) is only for IA-32
-> Architecture.
->
-> Changelog:
-> v3: Remove "acpi_disable_cmcff" from arm64 code,
->     and wrap it in hest.c by "#if defined(__i386__) || defined(__x86_64__)"
->
-> v2: https://lkml.org/lkml/2015/12/2/432
->     Rebase to latest kernel version(4.4-rc3).
->     Move arch_apei_flush_tlb_one() to arch/arm64/kernel/acpi.c
->
-> v1: https://lkml.org/lkml/2015/8/14/199
->     Move arch_apei_flush_tlb_one() to arch/arm64/include/asm/apci.h.
->     Delete arch/arm64/kernel/apei.c.
->     Add "#ifdef CONFIG_ACPI_APEI" for "acpi_disable_cmcff".
->
-> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
-> Tested-by: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
-> Signed-off-by: Fu Wei <fu.wei@linaro.org>
-> ---
->  arch/arm64/Kconfig            | 1 +
->  arch/arm64/include/asm/acpi.h | 1 +
->  arch/arm64/kernel/acpi.c      | 6 ++++++
->  drivers/acpi/apei/hest.c      | 2 ++
->  4 files changed, 10 insertions(+)
->
-> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-> index 871f217..58c8992 100644
-> --- a/arch/arm64/Kconfig
-> +++ b/arch/arm64/Kconfig
-> @@ -3,6 +3,7 @@ config ARM64
->         select ACPI_CCA_REQUIRED if ACPI
->         select ACPI_GENERIC_GSI if ACPI
->         select ACPI_REDUCED_HARDWARE_ONLY if ACPI
-> +       select HAVE_ACPI_APEI if ACPI
->         select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
->         select ARCH_HAS_ELF_RANDOMIZE
->         select ARCH_HAS_GCOV_PROFILE_ALL
-> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-> index caafd63..7207f8e 100644
-> --- a/arch/arm64/include/asm/acpi.h
-> +++ b/arch/arm64/include/asm/acpi.h
-> @@ -94,6 +94,7 @@ static inline const char *acpi_get_enable_method(int cpu)
->
->  #ifdef CONFIG_ACPI_APEI
->  pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr);
-> +void arch_apei_flush_tlb_one(unsigned long addr);
->  #endif
->
->  #endif /*_ASM_ACPI_H*/
-> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
-> index d1ce8e2..7a742e7 100644
-> --- a/arch/arm64/kernel/acpi.c
-> +++ b/arch/arm64/kernel/acpi.c
-> @@ -32,6 +32,7 @@
->  #ifdef CONFIG_ACPI_APEI
->  # include <linux/efi.h>
->  # include <asm/pgtable.h>
-> +# include <asm/tlbflush.h>
->  #endif
->
->  int acpi_noirq = 1;            /* skip ACPI IRQ initialization */
-> @@ -233,4 +234,9 @@ pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr)
->                 return __pgprot(PROT_NORMAL_NC);
->         return __pgprot(PROT_DEVICE_nGnRnE);
->  }
-> +
-> +void arch_apei_flush_tlb_one(unsigned long addr)
-> +{
-> +       flush_tlb_kernel_range(addr, addr + PAGE_SIZE);
-> +}
->  #endif
-> diff --git a/drivers/acpi/apei/hest.c b/drivers/acpi/apei/hest.c
-> index 20b3fcf..4ead747 100644
-> --- a/drivers/acpi/apei/hest.c
-> +++ b/drivers/acpi/apei/hest.c
-> @@ -232,8 +232,10 @@ void __init acpi_hest_init(void)
->                 goto err;
->         }
->
-> +#if defined(__i386__) || defined(__x86_64__)
->         if (!acpi_disable_cmcff)
->                 apei_hest_parse(hest_parse_cmc, NULL);
-> +#endif
+Since HEST (hardware error sources table) can describe more than PCI
+specific errors, it needs to be moved out of acpi_pci_root_init.
 
-Another thought is moving acpi_disable_cmcff to drivers/acpi/apei/hest.c
-I am not sure which one is best, but AFAIK CMC(Corrected Machine Check)
-is only for IA-32 Architecture, so I thinks we can comment out this code
-in other architectures, even with "hest_parse_cmc".
+Changelog:
+v1: This patch - the first upstream patch to linux mailing lists.
+    Fu Wei:
+    (1)Rebase to v4.4-rc4;
+    (2)Remove "#include <acpi/apei.h>" from drivers/acpi/pci_root.c]
 
-Any suggestion?
+Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Signed-off-by: Fu Wei <fu.wei@linaro.org>
+---
+ drivers/acpi/pci_root.c | 2 --
+ drivers/acpi/scan.c     | 3 +++
+ 2 files changed, 3 insertions(+), 2 deletions(-)
 
->
->         if (!ghes_disable) {
->                 rc = apei_hest_parse(hest_parse_ghes_count, &ghes_count);
-> --
-> 2.5.0
->
-
-
-
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index ae3fe4e..a35dd23 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -33,7 +33,6 @@
+ #include <linux/acpi.h>
+ #include <linux/slab.h>
+ #include <linux/dmi.h>
+-#include <acpi/apei.h>	/* for acpi_hest_init() */
+ 
+ #include "internal.h"
+ 
+@@ -865,7 +864,6 @@ out_release_info:
+ 
+ void __init acpi_pci_root_init(void)
+ {
+-	acpi_hest_init();
+ 	if (acpi_pci_disabled)
+ 		return;
+ 
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 78d5f02..a52e776 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -13,6 +13,8 @@
+ #include <linux/nls.h>
+ #include <linux/dma-mapping.h>
+ 
++#include <acpi/apei.h> /* for acpi_hest_init() */
++
+ #include <asm/pgtable.h>
+ 
+ #include "internal.h"
+@@ -1912,6 +1914,7 @@ int __init acpi_scan_init(void)
+ {
+ 	int result;
+ 
++	acpi_hest_init();
+ 	acpi_pci_root_init();
+ 	acpi_pci_link_init();
+ 	acpi_processor_init();
 -- 
-Best regards,
+2.5.0
 
-Fu Wei
-Software Engineer
-Red Hat Software (Beijing) Co.,Ltd.Shanghai Branch
-Ph: +86 21 61221326(direct)
-Ph: +86 186 2020 4684 (mobile)
-Room 1512, Regus One Corporate Avenue,Level 15,
-One Corporate Avenue,222 Hubin Road,Huangpu District,
-Shanghai,China 200021
