@@ -1,165 +1,94 @@
-From: Fu Wei <fu.wei@linaro.org>
-Subject: Re: [PATCH v3] acpi, apei, arm64: APEI initial support for aarch64.
-Date: Mon, 7 Dec 2015 21:06:29 +0800
-Message-ID: <CADyBb7uN3yftHdwWDZ34L6aArjNZ6Ai6bmbx-BoFn9xQdcqXvQ@mail.gmail.com>
-References: <1449162903-11203-1-git-send-email-fu.wei@linaro.org>
-	<56655307.2010305@linaro.org>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH] PCI: constify pci_platform_pm_ops structure
+Date: Mon, 7 Dec 2015 10:06:49 -0600
+Message-ID: <20151207160649.GG7994@localhost>
+References: <1449419625-29045-1-git-send-email-Julia.Lawall@lip6.fr>
+ <1556686.IXJIjFBvQx@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <56655307.2010305@linaro.org>
+Content-Disposition: inline
+In-Reply-To: <1556686.IXJIjFBvQx@vostro.rjw.lan>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Jonathan Zhang <jon.zhixiong.zhang@gmail.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Rafael Wysocki <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, jarkko.nikula@linux.intel.com, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Jon Masters <jcm@redhat.com>, Mark Rutland <mark.rutland@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Mark Salter <msalter@redhat.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Grant Likely <grant.likely@linaro.org>, rrichter@cavium.com, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, rruigrok@codeaurora.org, "Abdulhamid, Harb" <harba@qti.qualcomm.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Julia Lawall <Julia.Lawall@lip6.fr>, Bjorn Helgaas <bhelgaas@google.com>, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Hanjun,
+On Mon, Dec 07, 2015 at 02:41:34AM +0100, Rafael J. Wysocki wrote:
+> On Sunday, December 06, 2015 05:33:45 PM Julia Lawall wrote:
+> > The pci_platform_pm_ops structure is never modified, so declare it as
+> > const.
+> > 
+> > Done with the help of Coccinelle.
+> > 
+> > Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+> 
+> OK
+> 
+> Bjorn, do you want me to handle this one?
 
-On 7 December 2015 at 17:36, Hanjun Guo <hanjun.guo@linaro.org> wrote:
-> Hi Fu Wei,
->
-> On 12/04/2015 01:15 AM, fu.wei@linaro.org wrote:
->>
->> From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
->>
->> This commit provides APEI arch-specific bits for aarch64
->>
->> The reason for wrapping "acpi_disable_cmcff" by
->> "#if defined(__i386__) || defined(__x86_64__)" in hest.c is:
->> according to ACPI spec CMC(Corrected Machine Check) is only for IA-32
->> Architecture.
->>
->> Changelog:
->> v3: Remove "acpi_disable_cmcff" from arm64 code,
->>      and wrap it in hest.c by "#if defined(__i386__) ||
->> defined(__x86_64__)"
->>
->> v2: https://lkml.org/lkml/2015/12/2/432
->>      Rebase to latest kernel version(4.4-rc3).
->>      Move arch_apei_flush_tlb_one() to arch/arm64/kernel/acpi.c
->>
->> v1: https://lkml.org/lkml/2015/8/14/199
->>      Move arch_apei_flush_tlb_one() to arch/arm64/include/asm/apci.h.
->>      Delete arch/arm64/kernel/apei.c.
->>      Add "#ifdef CONFIG_ACPI_APEI" for "acpi_disable_cmcff".
->
->
-> The version updates is not belong here, if you need to add
-> it, please place it under "---" below.
->
->>
->> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
->> Tested-by: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
->> Signed-off-by: Fu Wei <fu.wei@linaro.org>
->> ---
->
->
-> ...just here.
+Sure, sounds good to me.
 
-OK , thanks
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
 
->
->
->>   arch/arm64/Kconfig            | 1 +
->>   arch/arm64/include/asm/acpi.h | 1 +
->>   arch/arm64/kernel/acpi.c      | 6 ++++++
->>   drivers/acpi/apei/hest.c      | 2 ++
->>   4 files changed, 10 insertions(+)
->>
->> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
->> index 871f217..58c8992 100644
->> --- a/arch/arm64/Kconfig
->> +++ b/arch/arm64/Kconfig
->> @@ -3,6 +3,7 @@ config ARM64
->>         select ACPI_CCA_REQUIRED if ACPI
->>         select ACPI_GENERIC_GSI if ACPI
->>         select ACPI_REDUCED_HARDWARE_ONLY if ACPI
->> +       select HAVE_ACPI_APEI if ACPI
->>         select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
->>         select ARCH_HAS_ELF_RANDOMIZE
->>         select ARCH_HAS_GCOV_PROFILE_ALL
->> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
->> index caafd63..7207f8e 100644
->> --- a/arch/arm64/include/asm/acpi.h
->> +++ b/arch/arm64/include/asm/acpi.h
->> @@ -94,6 +94,7 @@ static inline const char *acpi_get_enable_method(int
->> cpu)
->>
->>   #ifdef        CONFIG_ACPI_APEI
->>   pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr);
->> +void arch_apei_flush_tlb_one(unsigned long addr);
->>   #endif
->>
->>   #endif /*_ASM_ACPI_H*/
->> diff --git a/arch/arm64/kernel/acpi.c b/arch/arm64/kernel/acpi.c
->> index d1ce8e2..7a742e7 100644
->> --- a/arch/arm64/kernel/acpi.c
->> +++ b/arch/arm64/kernel/acpi.c
->> @@ -32,6 +32,7 @@
->>   #ifdef CONFIG_ACPI_APEI
->>   # include <linux/efi.h>
->>   # include <asm/pgtable.h>
->> +# include <asm/tlbflush.h>
->>   #endif
->>
->>   int acpi_noirq = 1;           /* skip ACPI IRQ initialization */
->> @@ -233,4 +234,9 @@ pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr)
->>                 return __pgprot(PROT_NORMAL_NC);
->>         return __pgprot(PROT_DEVICE_nGnRnE);
->>   }
->> +
->> +void arch_apei_flush_tlb_one(unsigned long addr)
->> +{
->> +       flush_tlb_kernel_range(addr, addr + PAGE_SIZE);
->> +}
->
->
-> Maybe just a static inline function in arch/arm64/include/asm/acpi.h
-> will be good?
-
-yes, this suggestion makes sense, it is just one line.
-And I also understood the reason why the original author make this
-code like that:
-coordinating with x86 code.
-
-let's improve it this time.
-
->
->>   #endif
->> diff --git a/drivers/acpi/apei/hest.c b/drivers/acpi/apei/hest.c
->> index 20b3fcf..4ead747 100644
->> --- a/drivers/acpi/apei/hest.c
->> +++ b/drivers/acpi/apei/hest.c
->> @@ -232,8 +232,10 @@ void __init acpi_hest_init(void)
->>                 goto err;
->>         }
->>
->> +#if defined(__i386__) || defined(__x86_64__)
->>         if (!acpi_disable_cmcff)
->>                 apei_hest_parse(hest_parse_cmc, NULL);
->> +#endif
-
-OK, that makes sense, will do
-
->
->
-> How about put it together into a function, and
-> introduce a stub function when no __i386__ and
-> __x86_64__ case?
->
-> Thanks
-> Hanjun
-
-
-
--- 
-Best regards,
-
-Fu Wei
-Software Engineer
-Red Hat Software (Beijing) Co.,Ltd.Shanghai Branch
-Ph: +86 21 61221326(direct)
-Ph: +86 186 2020 4684 (mobile)
-Room 1512, Regus One Corporate Avenue,Level 15,
-One Corporate Avenue,222 Hubin Road,Huangpu District,
-Shanghai,China 200021
+> > ---
+> >  drivers/pci/pci-acpi.c |    2 +-
+> >  drivers/pci/pci.c      |    4 ++--
+> >  drivers/pci/pci.h      |    2 +-
+> >  3 files changed, 4 insertions(+), 4 deletions(-)
+> > 
+> > diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+> > index a32ba75..8400f80 100644
+> > --- a/drivers/pci/pci-acpi.c
+> > +++ b/drivers/pci/pci-acpi.c
+> > @@ -529,7 +529,7 @@ static bool acpi_pci_need_resume(struct pci_dev *dev)
+> >  	return !!adev->power.flags.dsw_present;
+> >  }
+> >  
+> > -static struct pci_platform_pm_ops acpi_pci_platform_pm = {
+> > +static const struct pci_platform_pm_ops acpi_pci_platform_pm = {
+> >  	.is_manageable = acpi_pci_power_manageable,
+> >  	.set_state = acpi_pci_set_power_state,
+> >  	.choose_state = acpi_pci_choose_state,
+> > diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+> > index 314db8c..d1a7105 100644
+> > --- a/drivers/pci/pci.c
+> > +++ b/drivers/pci/pci.c
+> > @@ -527,9 +527,9 @@ static void pci_restore_bars(struct pci_dev *dev)
+> >  		pci_update_resource(dev, i);
+> >  }
+> >  
+> > -static struct pci_platform_pm_ops *pci_platform_pm;
+> > +static const struct pci_platform_pm_ops *pci_platform_pm;
+> >  
+> > -int pci_set_platform_pm(struct pci_platform_pm_ops *ops)
+> > +int pci_set_platform_pm(const struct pci_platform_pm_ops *ops)
+> >  {
+> >  	if (!ops->is_manageable || !ops->set_state || !ops->choose_state
+> >  	    || !ops->sleep_wake)
+> > diff --git a/drivers/pci/pci.h b/drivers/pci/pci.h
+> > index d390fc1..f6f151a 100644
+> > --- a/drivers/pci/pci.h
+> > +++ b/drivers/pci/pci.h
+> > @@ -68,7 +68,7 @@ struct pci_platform_pm_ops {
+> >  	bool (*need_resume)(struct pci_dev *dev);
+> >  };
+> >  
+> > -int pci_set_platform_pm(struct pci_platform_pm_ops *ops);
+> > +int pci_set_platform_pm(const struct pci_platform_pm_ops *ops);
+> >  void pci_update_current_state(struct pci_dev *dev, pci_power_t state);
+> >  void pci_power_up(struct pci_dev *dev);
+> >  void pci_disable_enabled_device(struct pci_dev *dev);
+> > 
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> -- 
+> I speak only for myself.
+> Rafael J. Wysocki, Intel Open Source Technology Center.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
