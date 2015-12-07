@@ -1,61 +1,114 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v3 1/9] device core: add BUS_NOTIFY_DRIVER_NOT_BOUND notification
-Date: Mon, 07 Dec 2015 23:59:42 +0100
-Message-ID: <1633564.Gyf7bPvX3K@vostro.rjw.lan>
-References: <1449265765-9393-1-git-send-email-andriy.shevchenko@linux.intel.com> <3490462.ARevfiQkZD@vostro.rjw.lan> <1449485853.15393.193.camel@linux.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1449485853.15393.193.camel@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andy Shevchenko <andy.shevchenko@gmail.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Vinod Koul <vinod.koul@intel.com>, dmaengine <dmaengine@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
+From: Christophe Ricard <christophe.ricard@gmail.com>
+Subject: [PATCH v4 1/3] acpi: Rename acpi_gsi_get_irq_type to acpi_get_irq_type and export symbol
+Date: Mon,  7 Dec 2015 23:39:10 +0100
+Message-ID: <1449527952-8399-2-git-send-email-christophe-h.ricard@st.com>
+References: <1449527952-8399-1-git-send-email-christophe-h.ricard@st.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wm0-f43.google.com ([74.125.82.43]:37550 "EHLO
+	mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933357AbbLGWjV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 7 Dec 2015 17:39:21 -0500
+In-Reply-To: <1449527952-8399-1-git-send-email-christophe-h.ricard@st.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: rjw@rjwysocki.net, lenb@kernel.org, linus.walleij@linaro.org, gnurou@gmail.com, andriy.shevchenko@linux.intel.com, mika.westerberg@linux.intel.com, broonie@kernel.org
+Cc: linux-spi@vger.kernel.org, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, Christophe Ricard <christophe-h.ricard@st.com>
 
-On Monday, December 07, 2015 12:57:33 PM Andy Shevchenko wrote:
-> On Mon, 2015-12-07 at 02:31 +0100, Rafael J. Wysocki wrote:
-> > On Saturday, December 05, 2015 08:36:22 AM Greg Kroah-Hartman wrote:
-> > > On Sat, Dec 05, 2015 at 06:24:05PM +0200, Andy Shevchenko wrote:
-> > > > On Sat, Dec 5, 2015 at 6:14 PM, Greg Kroah-Hartman
-> > > > <gregkh@linuxfoundation.org> wrote:
-> > > > > On Fri, Dec 04, 2015 at 11:49:17PM +0200, Andy Shevchenko
-> > > > > wrote:
-> > > > > > The users of BUS_NOTIFY_BIND_DRIVER have no chance to do any
-> > > > > > cleanup in case of
-> > > > > > a probe failure. In the result there might be problems, such
-> > > > > > as some resources
-> > > > > > that had been allocated will continue to be allocated and
-> > > > > > therefore lead to a
-> > > > > > resource leak.
-> > > > > > 
-> > > > > > Introduce a new notification to inform the subscriber that
-> > > > > > ->probe() failed. Do
-> > > > > > the same in case of failed device_bind_driver() call.
-> > > > > 
-> > > > > Ugh, I hate all these notifiers, but this one does make
-> > > > > sense...
-> > > > 
-> > > > Yeah, I'm not a fan of them either.
-> > > > 
-> > > > > Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-> > > > 
-> > > > You meant Acked-by, didn't you?
-> > > 
-> > > Either works :)
-> > 
-> > Thanks!
-> > 
-> > Andy, what about if I put patches [1-6/9] into my queue for v4.5 now
-> > and
-> > the remaining ones will wait for Vinod to comment?
-> 
-> Yes, it's possible, but please don't forget the patch from http://www.s
-> pinics.net/lists/kernel/msg2119229.html. There also formally Acks from
-> Thomas and Ong, Boon Leong.
+acpi_gsi_get_irq_type could be use out of gsi purpose.
 
-Well, if Thomas prefers to take this one into tip, I guess the series should
-go along with it or wait for when that one is merged.
+Rename and make it available as a utility function.
 
-Thanks,
-Rafael
+Signed-off-by: Christophe Ricard <christophe-h.ricard@st.com>
+---
+ drivers/acpi/gsi.c   | 21 +--------------------
+ drivers/acpi/utils.c | 21 +++++++++++++++++++++
+ include/linux/acpi.h |  2 ++
+ 3 files changed, 24 insertions(+), 20 deletions(-)
+
+diff --git a/drivers/acpi/gsi.c b/drivers/acpi/gsi.c
+index fa4585a..2828351 100644
+--- a/drivers/acpi/gsi.c
++++ b/drivers/acpi/gsi.c
+@@ -17,25 +17,6 @@ enum acpi_irq_model_id acpi_irq_model;
+ 
+ static struct fwnode_handle *acpi_gsi_domain_id;
+ 
+-static unsigned int acpi_gsi_get_irq_type(int trigger, int polarity)
+-{
+-	switch (polarity) {
+-	case ACPI_ACTIVE_LOW:
+-		return trigger == ACPI_EDGE_SENSITIVE ?
+-		       IRQ_TYPE_EDGE_FALLING :
+-		       IRQ_TYPE_LEVEL_LOW;
+-	case ACPI_ACTIVE_HIGH:
+-		return trigger == ACPI_EDGE_SENSITIVE ?
+-		       IRQ_TYPE_EDGE_RISING :
+-		       IRQ_TYPE_LEVEL_HIGH;
+-	case ACPI_ACTIVE_BOTH:
+-		if (trigger == ACPI_EDGE_SENSITIVE)
+-			return IRQ_TYPE_EDGE_BOTH;
+-	default:
+-		return IRQ_TYPE_NONE;
+-	}
+-}
+-
+ /**
+  * acpi_gsi_to_irq() - Retrieve the linux irq number for a given GSI
+  * @gsi: GSI IRQ number to map
+@@ -82,7 +63,7 @@ int acpi_register_gsi(struct device *dev, u32 gsi, int trigger,
+ 
+ 	fwspec.fwnode = acpi_gsi_domain_id;
+ 	fwspec.param[0] = gsi;
+-	fwspec.param[1] = acpi_gsi_get_irq_type(trigger, polarity);
++	fwspec.param[1] = acpi_get_irq_type(trigger, polarity);
+ 	fwspec.param_count = 2;
+ 
+ 	return irq_create_fwspec_mapping(&fwspec);
+diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+index 475c907..715b24b 100644
+--- a/drivers/acpi/utils.c
++++ b/drivers/acpi/utils.c
+@@ -33,6 +33,27 @@
+ #define _COMPONENT		ACPI_BUS_COMPONENT
+ ACPI_MODULE_NAME("utils");
+ 
++unsigned int acpi_get_irq_type(int trigger, int polarity)
++{
++	switch (polarity) {
++	case ACPI_ACTIVE_LOW:
++		return trigger == ACPI_EDGE_SENSITIVE ?
++		       IRQ_TYPE_EDGE_FALLING :
++		       IRQ_TYPE_LEVEL_LOW;
++	case ACPI_ACTIVE_HIGH:
++		return trigger == ACPI_EDGE_SENSITIVE ?
++		       IRQ_TYPE_EDGE_RISING :
++		       IRQ_TYPE_LEVEL_HIGH;
++	case ACPI_ACTIVE_BOTH:
++		if (trigger == ACPI_EDGE_SENSITIVE)
++			return IRQ_TYPE_EDGE_BOTH;
++	default:
++		return IRQ_TYPE_NONE;
++	}
++}
++EXPORT_SYMBOL_GPL(acpi_get_irq_type);
++
++
+ /* --------------------------------------------------------------------------
+                             Object Evaluation Helpers
+    -------------------------------------------------------------------------- */
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index d863e12..b0c5a11 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -204,6 +204,8 @@ int acpi_isa_irq_to_gsi (unsigned isa_irq, u32 *gsi);
+ void acpi_set_irq_model(enum acpi_irq_model_id model,
+ 			struct fwnode_handle *fwnode);
+ 
++unsigned int acpi_get_irq_type(int trigger, int polarity);
++
+ #ifdef CONFIG_X86_IO_APIC
+ extern int acpi_get_override_irq(u32 gsi, int *trigger, int *polarity);
+ #else
+-- 
+2.1.4
+
