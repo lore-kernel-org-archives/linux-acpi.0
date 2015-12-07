@@ -1,50 +1,112 @@
-From: Michal Marek <mmarek@suse.com>
-Subject: Re: [PATCH v2 8/8] treewide: Remove newlines inside DEFINE_PER_CPU()
- macros
-Date: Mon, 7 Dec 2015 18:19:21 +0100
-Message-ID: <5665BF99.3090508@suse.com>
-References: <1449242787-16598-1-git-send-email-mmarek@suse.com>
- <1449242787-16598-9-git-send-email-mmarek@suse.com>
- <063D6719AE5E284EB5DD2968C1650D6D1CBE695F@AcuExch.aculab.com>
- <5665B9A0.5060009@suse.com> <1449507861.7162.1.camel@perches.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH 00/11] ARM64 PCI hostbridge init based on ACPI
+Date: Mon, 7 Dec 2015 14:29:42 -0600
+Message-ID: <20151207202942.GA14429@localhost>
+References: <1432644564-24746-1-git-send-email-hanjun.guo@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-ia64-owner@vger.kernel.org>
-In-Reply-To: <1449507861.7162.1.camel@perches.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: Joe Perches <joe@perches.com>
-Cc: David Laight <David.Laight@ACULAB.COM>, "linux-kbuild@vger.kernel.org" <linux-kbuild@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-ia64@vger.kernel.org" <linux-ia64@vger.kernel.org>, "xen-devel@lists.xenproject.org" <xen-devel@lists.xenproject.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "rds-devel@oss.oracle.com" <rds-devel@oss.oracle.com>, "netdev@vger.kernel.org" <netdev@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.29.136]:41221 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932690AbbLGU37 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 7 Dec 2015 15:29:59 -0500
+Content-Disposition: inline
+In-Reply-To: <1432644564-24746-1-git-send-email-hanjun.guo@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Bjorn Helgaas <bhelgaas@google.com>, Arnd Bergmann <arnd@arndb.de>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Jiang Liu <jiang.liu@linux.intel.com>, Liviu Dudau <Liviu.Dudau@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Yijing Wang <wangyijing@huawei.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Mark Salter <msalter@redhat.com>, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-On 2015-12-07 18:04, Joe Perches wrote:
-> On Mon, 2015-12-07 at 17:53 +0100, Michal Marek wrote:
->> On 2015-12-07 17:33, David Laight wrote:
->>> From: Michal Marek
->>>> Sent: 04 December 2015 15:26
->>>> Otherwise make tags can't parse them:
->>>>
->>>> ctags: Warning: arch/ia64/kernel/smp.c:60: null expansion of name pattern "\1"
->>> ...
->>>
->>> Seems to me you need to fix ctags.
->>
->> I'm sure the maintainers of ctags and etags would accept patches to
->> describe a custom context-free grammar via commandline options, but
->> until then, let's continue using the regular expressions in tags.sh and
->> remove newlines in macros that tags.sh is trying to expand.
->>
+On Tue, May 26, 2015 at 08:49:13PM +0800, Hanjun Guo wrote:
+> This patch set is introducing ARM64 PCI hostbridge init based on ACPI,
+> which based on Jiang Liu's patch set "Consolidate ACPI PCI root common
+> code into ACPI core":
 > 
-> Do you have a list of the most common macros?
+> https://lkml.org/lkml/2015/5/14/98
+> 
+> This patch set including three parts:
+> 
+>   - the first part is PATCH 1, which should be merged into Jiang Liu's 
+>     patch set to fix the compile error on ARM64 when ACPI enabled.
+> 
+>   - the senconed part is the refactoring of mmconfig to let that mechanism
+>     can be used for ARM64 too, it's Tomasz's work but he is moving to other
+>     work and pretty busy for now, so I will take care of those patches, 
+>     Tomasz will show up when some comments need to be addressed :)
+> 
+>     In this version of mmconfig refactor patches, I removed the rename
+>     of mmconfig -> ecam patch, because mmconfig is in multi places, and need
+>     much more effort to convert them all to ecam, Bjorn, if you don't
+>     like it, I can add them back.
+> 
+>   - The third part is about the ARM64 PCI hostbridge init based on ACPI,
+>     first I fixed a compile error for XEN PCI on ARM64 when PCI_MMCONFIG=y,
+>     and then introduce PCI init based on Jiang Liu and Tomasz's patch set.
+> 
+> patch for ARM64 ACPI PCI still reserve the bus sysdata to get the domain
+> number, because Yijing's patch set is still under review, will be removed
+> when Yijing's patch set hits upstream.
+> 
+> This patch set was tested by Suravee on Seattle board with legacy interrupt
+> (not MSI), and it works, also tested on qemu by Graeme.
+> 
+> You can get the code from:
+> git://git.linaro.org/leg/acpi/acpi.git, devel branch
+> 
+> Comments are welcomed.
+> 
+> Thanks
+> Hanjun
+> 
+> 
+> Hanjun Guo (3):
+>   ARM64 / PCI: introduce struct pci_controller for ACPI
+>   XEN / PCI: Remove the dependence on arch x86 when PCI_MMCONFIG=y
+>   ARM64 / PCI / ACPI: support for ACPI based PCI hostbridge init
+> 
+> Tomasz Nowicki (8):
+>   x86, pci: Clean up comment about buggy MMIO config space access for
+>     AMD Fam10h CPUs.
+>   x86, pci: Abstract PCI config accessors and use AMD Fam10h workaround
+>     exclusively.
+>   x86, pci: Reorder logic of pci_mmconfig_insert() function
+>   x86, pci, acpi: Move arch-agnostic MMCONFIG (aka ECAM) and ACPI code
+>     out of arch/x86/ directory
+>   pci, acpi, mcfg: Provide generic implementation of MCFG code
+>     initialization.
+>   x86, pci: mmconfig_{32,64}.c code refactoring - remove code
+>     duplication.
+>   x86, pci, ecam: mmconfig_64.c becomes default implementation for ECAM
+>     driver.
+>   pci, acpi, mcfg: Share ACPI PCI config space accessors.
+> 
+>  arch/arm64/Kconfig             |   7 +
+>  arch/arm64/include/asm/pci.h   |  10 ++
+>  arch/arm64/kernel/pci.c        | 245 ++++++++++++++++++++++++++--
+>  arch/x86/Kconfig               |   4 +
+>  arch/x86/include/asm/pci_x86.h |  34 +---
+>  arch/x86/pci/Makefile          |   4 +-
+>  arch/x86/pci/acpi.c            |   1 +
+>  arch/x86/pci/mmconfig-shared.c | 301 +++++++++++-----------------------
+>  arch/x86/pci/mmconfig_32.c     |  35 +---
+>  arch/x86/pci/mmconfig_64.c     | 153 ------------------
+>  arch/x86/pci/numachip.c        |  25 +--
+>  drivers/acpi/Makefile          |   1 +
+>  drivers/acpi/mcfg.c            | 103 ++++++++++++
+>  drivers/pci/Kconfig            |  10 ++
+>  drivers/pci/Makefile           |   5 +
+>  drivers/pci/ecam.c             | 358 +++++++++++++++++++++++++++++++++++++++++
+>  drivers/pci/pci.c              |  26 +--
+>  drivers/xen/pci.c              |   7 +-
+>  include/linux/acpi.h           |   2 +
+>  include/linux/ecam.h           |  56 +++++++
+>  20 files changed, 923 insertions(+), 464 deletions(-)
+>  delete mode 100644 arch/x86/pci/mmconfig_64.c
+>  create mode 100644 drivers/acpi/mcfg.c
+>  create mode 100644 drivers/pci/ecam.c
+>  create mode 100644 include/linux/ecam.h
 
-In practice, it's only DEFINE_PER_CPU and its sibling
-DEFINE_PER_CPU_SHARED_ALIGNED, where we try to pick the second argument
-to the macro and the first argument can be lengthy.
+There was a fair amount of unresolved discussion about this series,
+so I'm going to wait for an update.
 
-
-> Perhaps it'd be good to add exceptions to checkpatch
-> 80 column line rules for them.
-
-Your call. But this is a fairly rare occurrence -- 10 cases so far.
-
-Michal
+Bjorn
