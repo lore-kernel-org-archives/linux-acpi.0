@@ -1,70 +1,31 @@
-From: Ken Xue <ken.xue@amd.com>
-Subject: Re: [PATCH 1/2] acpi:apd: Add APM X-Gene ACPI I2C device support
-Date: Tue, 8 Dec 2015 10:49:08 +0800
-Message-ID: <1449542948.2175.41.camel@kxue-X58A-UD3R>
-References: <1449533774-22672-1-git-send-email-lho@apm.com>
-	 <1449533774-22672-2-git-send-email-lho@apm.com>
+From: Jacob Pan <jacob.jun.pan@linux.intel.com>
+Subject: Re: [PATCH v3 0/9] ACPI / LPSS: fix system hangup on BYT/BSW/CHT
+Date: Mon, 7 Dec 2015 20:39:47 -0800
+Message-ID: <20151207203947.7c62ce3a@yairi>
+References: <1449265765-9393-1-git-send-email-andriy.shevchenko@linux.intel.com>
+	<1838591.lmJz0NSQxf@vostro.rjw.lan>
+	<CAHp75VeJ+Qc4c+n69WXQu3_r5=GZr2MtK02XCm1xtEs==Kiihw@mail.gmail.com>
+	<CAJZ5v0gO5BhqMv6QFAjL-PkAT8_kKiQN6XHq41W4tFk74ArCdw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-by2on0059.outbound.protection.outlook.com ([207.46.100.59]:9872
-	"EHLO na01-by2-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755267AbbLHCyx (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 7 Dec 2015 21:54:53 -0500
-In-Reply-To: <1449533774-22672-2-git-send-email-lho@apm.com>
+Received: from mga03.intel.com ([134.134.136.65]:54732 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755124AbbLHEjt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 7 Dec 2015 23:39:49 -0500
+In-Reply-To: <CAJZ5v0gO5BhqMv6QFAjL-PkAT8_kKiQN6XHq41W4tFk74ArCdw@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Loc Ho <lho@apm.com>
-Cc: wsa@the-dreams.de, rjw@rjwysocki.net, mika.westerberg@linux.intel.com, lenb@kernel.org, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, jcm@redhat.com, patches@apm.com, Annie.Wang@amd.com
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Vinod Koul <vinod.koul@intel.com>, dmaengine <dmaengine@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, jacob.jun.pan@linux.intel.com
 
-On Mon, 2015-12-07 at 17:16 -0700, Loc Ho wrote:
-> Add APM X-Gene ACPI I2C device support by hooks into existent
-> ACPI apd driver. To fully enable support, require another
-> patch to add the X-Gene ACPI node into the DW I2C driver.
+On Sat, 5 Dec 2015 01:07:47 +0100
+"Rafael J. Wysocki" <rafael@kernel.org> wrote:
+
+> >>> [2] http://www.spinics.net/lists/kernel/msg2119229.html  
 > 
-> Signed-off-by: Loc Ho <lho@apm.com>
-> ---
->  drivers/acpi/acpi_apd.c |    8 +++++++-
->  1 files changed, 7 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
-> index a450e7a..6a9cb8d 100644
-> --- a/drivers/acpi/acpi_apd.c
-> +++ b/drivers/acpi/acpi_apd.c
-> @@ -51,7 +51,7 @@ struct apd_private_data {
->  	const struct apd_device_desc *dev_desc;
->  };
->  
-> -#ifdef CONFIG_X86_AMD_PLATFORM_DEVICE
-> +#if defined(CONFIG_X86_AMD_PLATFORM_DEVICE) || defined(CONFIG_ARM64)
->  #define APD_ADDR(desc)	((unsigned long)&desc)
->  
->  static int acpi_apd_setup(struct apd_private_data *pdata)
-> @@ -76,6 +76,11 @@ static struct apd_device_desc cz_i2c_desc = {
->  	.fixed_clk_rate = 133000000,
->  };
->  
-> +static struct apd_device_desc xgene_i2c_desc = {
-> +	.setup = acpi_apd_setup,
-> +	.fixed_clk_rate = 100000000,
-> +};
-> +
->  static struct apd_device_desc cz_uart_desc = {
->  	.setup = acpi_apd_setup,
->  	.fixed_clk_rate = 48000000,
-> @@ -135,6 +140,7 @@ static const struct acpi_device_id acpi_apd_device_ids[] = {
->  	{ "AMD0010", APD_ADDR(cz_i2c_desc) },
->  	{ "AMD0020", APD_ADDR(cz_uart_desc) },
->  	{ "AMD0030", },
-> +	{ "APMC0D0F", APD_ADDR(xgene_i2c_desc) },
-It is better to split AMD devices and ARM devices with macros:
-CONFIG_X86_AMD_PLATFORM_DEVICE and CONFIG_ARM64.
+> I'm the top-level powercap maintainer, but the RAPL driver is
+> maintained by Jacob.  Please ask him for an ACK.
 
-
->  	{ }
->  };
->  
-
-
+looks good to me. no functional change to the driver.
