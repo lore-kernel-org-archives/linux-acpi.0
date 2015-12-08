@@ -1,31 +1,132 @@
-From: Jacob Pan <jacob.jun.pan@linux.intel.com>
-Subject: Re: [PATCH v3 0/9] ACPI / LPSS: fix system hangup on BYT/BSW/CHT
-Date: Mon, 7 Dec 2015 20:39:47 -0800
-Message-ID: <20151207203947.7c62ce3a@yairi>
-References: <1449265765-9393-1-git-send-email-andriy.shevchenko@linux.intel.com>
-	<1838591.lmJz0NSQxf@vostro.rjw.lan>
-	<CAHp75VeJ+Qc4c+n69WXQu3_r5=GZr2MtK02XCm1xtEs==Kiihw@mail.gmail.com>
-	<CAJZ5v0gO5BhqMv6QFAjL-PkAT8_kKiQN6XHq41W4tFk74ArCdw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+From: fu.wei@linaro.org
+Subject: [PATCH v4] acpi, apei, arm64: APEI initial support for aarch64.
+Date: Tue,  8 Dec 2015 15:03:03 +0800
+Message-ID: <1449558183-12259-1-git-send-email-fu.wei@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:54732 "EHLO mga03.intel.com"
+Received: from mx1.redhat.com ([209.132.183.28]:60264 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755124AbbLHEjt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 7 Dec 2015 23:39:49 -0500
-In-Reply-To: <CAJZ5v0gO5BhqMv6QFAjL-PkAT8_kKiQN6XHq41W4tFk74ArCdw@mail.gmail.com>
+	id S933155AbbLHHEB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 8 Dec 2015 02:04:01 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Vinod Koul <vinod.koul@intel.com>, dmaengine <dmaengine@vger.kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, jacob.jun.pan@linux.intel.com
+To: tomasz.nowicki@linaro.org, tn@semihalf.com, rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, graeme.gregory@linaro.org, al.stone@linaro.org, hanjun.guo@linaro.org, mark.rutland@arm.com, Marc.Zyngier@arm.com, lorenzo.pieralisi@arm.com, rruigrok@codeaurora.org, harba@qti.qualcomm.com, jcm@redhat.com, msalter@redhat.com, grant.likely@linaro.org, rrichter@cavium.com, jarkko.nikula@linux.intel.com, jon.zhixiong.zhang@gmail.com, Fu Wei <fu.wei@linaro.org>
 
-On Sat, 5 Dec 2015 01:07:47 +0100
-"Rafael J. Wysocki" <rafael@kernel.org> wrote:
+From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
 
-> >>> [2] http://www.spinics.net/lists/kernel/msg2119229.html  
-> 
-> I'm the top-level powercap maintainer, but the RAPL driver is
-> maintained by Jacob.  Please ask him for an ACK.
+This commit provides APEI arch-specific bits for aarch64
 
-looks good to me. no functional change to the driver.
+Meanwhile, add a new subfunction "hest_ia_init" for
+"acpi_disable_cmcff" which is used by IA-32 Architecture
+Corrected Machine Check (CMC).
+
+Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Tested-by: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
+Signed-off-by: Fu Wei <fu.wei@linaro.org>
+---
+Changelog:
+v4: Rebase to latest kernel version(4.4-rc4).
+    Move arch_apei_flush_tlb_one into header file as a inline function
+    Add a new subfunction "hest_ia_init" for "acpi_disable_cmcff".
+
+v3: https://lkml.org/lkml/2015/12/3/521
+    Remove "acpi_disable_cmcff" from arm64 code,
+    and wrap it in hest.c by "#if defined(__i386__) || defined(__x86_64__)"
+
+v2: https://lkml.org/lkml/2015/12/2/432
+    Rebase to latest kernel version(4.4-rc3).
+    Move arch_apei_flush_tlb_one() to arch/arm64/kernel/acpi.c
+
+v1: https://lkml.org/lkml/2015/8/14/199
+    Move arch_apei_flush_tlb_one() to arch/arm64/include/asm/apci.h.
+    Delete arch/arm64/kernel/apei.c.
+    Add "#ifdef CONFIG_ACPI_APEI" for "acpi_disable_cmcff".
+
+ arch/arm64/Kconfig            |  1 +
+ arch/arm64/include/asm/acpi.h |  5 +++++
+ drivers/acpi/apei/hest.c      | 19 ++++++++++++++++---
+ 3 files changed, 22 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+index 871f217..58c8992 100644
+--- a/arch/arm64/Kconfig
++++ b/arch/arm64/Kconfig
+@@ -3,6 +3,7 @@ config ARM64
+ 	select ACPI_CCA_REQUIRED if ACPI
+ 	select ACPI_GENERIC_GSI if ACPI
+ 	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
++	select HAVE_ACPI_APEI if ACPI
+ 	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
+ 	select ARCH_HAS_ELF_RANDOMIZE
+ 	select ARCH_HAS_GCOV_PROFILE_ALL
+diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+index caafd63..31d3d9a 100644
+--- a/arch/arm64/include/asm/acpi.h
++++ b/arch/arm64/include/asm/acpi.h
+@@ -17,6 +17,7 @@
+ 
+ #include <asm/cputype.h>
+ #include <asm/smp_plat.h>
++#include <asm/tlbflush.h>
+ 
+ /* Macros for consistency checks of the GICC subtable of MADT */
+ #define ACPI_MADT_GICC_LENGTH	\
+@@ -94,6 +95,10 @@ static inline const char *acpi_get_enable_method(int cpu)
+ 
+ #ifdef	CONFIG_ACPI_APEI
+ pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr);
++static inline void arch_apei_flush_tlb_one(unsigned long addr)
++{
++	flush_tlb_kernel_range(addr, addr + PAGE_SIZE);
++}
+ #endif
+ 
+ #endif /*_ASM_ACPI_H*/
+diff --git a/drivers/acpi/apei/hest.c b/drivers/acpi/apei/hest.c
+index 20b3fcf..715c58b 100644
+--- a/drivers/acpi/apei/hest.c
++++ b/drivers/acpi/apei/hest.c
+@@ -117,15 +117,27 @@ int apei_hest_parse(apei_hest_func_t func, void *data)
+ }
+ EXPORT_SYMBOL_GPL(apei_hest_parse);
+ 
++#if defined(__i386__) || defined(__x86_64__)
+ /*
+  * Check if firmware advertises firmware first mode. We need FF bit to be set
+  * along with a set of MC banks which work in FF mode.
+  */
+ static int __init hest_parse_cmc(struct acpi_hest_header *hest_hdr, void *data)
+ {
+-	return arch_apei_enable_cmcff(hest_hdr, data);
++	if (!acpi_disable_cmcff)
++		return !arch_apei_enable_cmcff(hest_hdr, data);
++
++	return 0;
+ }
+ 
++static inline int __init hest_ia_init(void)
++{
++	return apei_hest_parse(hest_parse_cmc, NULL);
++}
++#else
++static inline int __init hest_ia_init(void) { return 0; }
++#endif
++
+ struct ghes_arr {
+ 	struct platform_device **ghes_devs;
+ 	unsigned int count;
+@@ -232,8 +244,9 @@ void __init acpi_hest_init(void)
+ 		goto err;
+ 	}
+ 
+-	if (!acpi_disable_cmcff)
+-		apei_hest_parse(hest_parse_cmc, NULL);
++	rc = hest_ia_init();
++	if (rc)
++		goto err;
+ 
+ 	if (!ghes_disable) {
+ 		rc = apei_hest_parse(hest_parse_ghes_count, &ghes_count);
+-- 
+2.5.0
+
