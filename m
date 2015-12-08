@@ -1,138 +1,52 @@
-From: Fu Wei <fu.wei@linaro.org>
+From: Hanjun Guo <hanjun.guo@linaro.org>
 Subject: Re: [PATCH v4] acpi, apei, arm64: APEI initial support for aarch64.
-Date: Tue, 8 Dec 2015 20:45:48 +0800
-Message-ID: <CADyBb7t2MgXLA2=DrXTuCVoi63e3GMQNuUvUyzwvocMBX2mSDA@mail.gmail.com>
-References: <1449558183-12259-1-git-send-email-fu.wei@linaro.org>
-	<5666BE62.7090409@linaro.org>
+Date: Tue, 08 Dec 2015 20:52:28 +0800
+Message-ID: <5666D28C.4090305@linaro.org>
+References: <1449558183-12259-1-git-send-email-fu.wei@linaro.org> <20151208123433.GB404@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5666BE62.7090409@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Tomasz Nowicki <tomasz.nowicki@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Rafael Wysocki <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, LKML <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, rruigrok@codeaurora.org, "Abdulhamid, Harb" <harba@qti.qualcomm.com>, Jon Masters <jcm@redhat.com>, Mark Salter <msalter@redhat.com>, Grant Likely <grant.likely@linaro.org>, rrichter@cavium.com, jarkko.nikula@linux.intel.com, Jonathan Zhang <jon.zhixiong.zhang@gmail.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wm0-f41.google.com ([74.125.82.41]:32886 "EHLO
+	mail-wm0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932432AbbLHMwb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Dec 2015 07:52:31 -0500
+Received: by wmec201 with SMTP id c201so210973390wme.0
+        for <linux-acpi@vger.kernel.org>; Tue, 08 Dec 2015 04:52:30 -0800 (PST)
+In-Reply-To: <20151208123433.GB404@red-moon>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, fu.wei@linaro.org
+Cc: tomasz.nowicki@linaro.org, tn@semihalf.com, rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, graeme.gregory@linaro.org, al.stone@linaro.org, mark.rutland@arm.com, Marc.Zyngier@arm.com, rruigrok@codeaurora.org, harba@qti.qualcomm.com, jcm@redhat.com, msalter@redhat.com, grant.likely@linaro.org, rrichter@cavium.com, jarkko.nikula@linux.intel.com, jon.zhixiong.zhang@gmail.com
 
-Hi Hanjun,
+Hi Lorenzo,
 
-On 8 December 2015 at 19:26, Hanjun Guo <hanjun.guo@linaro.org> wrote:
-> Hi Fu Wei,
->
->
-> On 12/08/2015 03:03 PM, fu.wei@linaro.org wrote:
->>
+On 12/08/2015 08:34 PM, Lorenzo Pieralisi wrote:
+> On Tue, Dec 08, 2015 at 03:03:03PM +0800, fu.wei@linaro.org wrote:
 >> From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
->>
->> This commit provides APEI arch-specific bits for aarch64
->>
->> Meanwhile, add a new subfunction "hest_ia_init" for
->> "acpi_disable_cmcff" which is used by IA-32 Architecture
->> Corrected Machine Check (CMC).
->>
->> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
->> Tested-by: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
->> Signed-off-by: Fu Wei <fu.wei@linaro.org>
->> ---
->> Changelog:
->> v4: Rebase to latest kernel version(4.4-rc4).
->>      Move arch_apei_flush_tlb_one into header file as a inline function
->>      Add a new subfunction "hest_ia_init" for "acpi_disable_cmcff".
->>
->> v3: https://lkml.org/lkml/2015/12/3/521
->>      Remove "acpi_disable_cmcff" from arm64 code,
->>      and wrap it in hest.c by "#if defined(__i386__) ||
->> defined(__x86_64__)"
->>
->> v2: https://lkml.org/lkml/2015/12/2/432
->>      Rebase to latest kernel version(4.4-rc3).
->>      Move arch_apei_flush_tlb_one() to arch/arm64/kernel/acpi.c
->>
->> v1: https://lkml.org/lkml/2015/8/14/199
->>      Move arch_apei_flush_tlb_one() to arch/arm64/include/asm/apci.h.
->>      Delete arch/arm64/kernel/apei.c.
->>      Add "#ifdef CONFIG_ACPI_APEI" for "acpi_disable_cmcff".
->>
->>   arch/arm64/Kconfig            |  1 +
->>   arch/arm64/include/asm/acpi.h |  5 +++++
->>   drivers/acpi/apei/hest.c      | 19 ++++++++++++++++---
->>   3 files changed, 22 insertions(+), 3 deletions(-)
->>
->> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
->> index 871f217..58c8992 100644
->> --- a/arch/arm64/Kconfig
->> +++ b/arch/arm64/Kconfig
->> @@ -3,6 +3,7 @@ config ARM64
->>         select ACPI_CCA_REQUIRED if ACPI
->>         select ACPI_GENERIC_GSI if ACPI
->>         select ACPI_REDUCED_HARDWARE_ONLY if ACPI
->> +       select HAVE_ACPI_APEI if ACPI
->>         select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
->>         select ARCH_HAS_ELF_RANDOMIZE
->>         select ARCH_HAS_GCOV_PROFILE_ALL
->> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
->> index caafd63..31d3d9a 100644
->> --- a/arch/arm64/include/asm/acpi.h
->> +++ b/arch/arm64/include/asm/acpi.h
->> @@ -17,6 +17,7 @@
->>
->>   #include <asm/cputype.h>
->>   #include <asm/smp_plat.h>
->> +#include <asm/tlbflush.h>
->>
->>   /* Macros for consistency checks of the GICC subtable of MADT */
->>   #define ACPI_MADT_GICC_LENGTH \
->> @@ -94,6 +95,10 @@ static inline const char *acpi_get_enable_method(int
->> cpu)
->>
->>   #ifdef        CONFIG_ACPI_APEI
->>   pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr);
 >
+> [...]
 >
-> How bout adding a empty line here?
-
-np, done
-
-
-diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
-index 31d3d9a..da657a9 100644
---- a/arch/arm64/include/asm/acpi.h
-+++ b/arch/arm64/include/asm/acpi.h
-@@ -95,10 +95,10 @@ static inline const char *acpi_get_enable_method(int cpu)
-
- #ifdef CONFIG_ACPI_APEI
- pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr);
-+
- static inline void arch_apei_flush_tlb_one(unsigned long addr)
- {
-        flush_tlb_kernel_range(addr, addr + PAGE_SIZE);
- }
--#endif
--
-+#endif /* CONFIG_ACPI_APEI */
- #endif /*_ASM_ACPI_H*/
-
-
+>> +#if defined(__i386__) || defined(__x86_64__)
+>>   /*
+>>    * Check if firmware advertises firmware first mode. We need FF bit to be set
+>>    * along with a set of MC banks which work in FF mode.
+>>    */
+>>   static int __init hest_parse_cmc(struct acpi_hest_header *hest_hdr, void *data)
+>>   {
+>> -	return arch_apei_enable_cmcff(hest_hdr, data);
+>> +	if (!acpi_disable_cmcff)
 >
-> Except that,
->
-> Acked-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Why do not you define the flag above in this file (move it out of x86 -
+> that's what I was aiming at in my previous reply) and remove this ifdeffery
+> altogether (First firmware handling could apply to arm64 too according to
+> specs and ACPI on arm64 guidelines) ?
 
-Great thanks for your review :-)
+If I understand it correctly, CMC (Corrected Machine Check) is for IA32
+only, see section 18.3.2.1 IA-32 Architecture Machine Check Exception
+in ACPI 6.0. for ARM64, we can use other type of error source for
+firmware first handling, such as Generic Hardware Error Source, did
+I miss something?
 
->
-> Thanks
-> Hanjun
-
-
-
--- 
-Best regards,
-
-Fu Wei
-Software Engineer
-Red Hat Software (Beijing) Co.,Ltd.Shanghai Branch
-Ph: +86 21 61221326(direct)
-Ph: +86 186 2020 4684 (mobile)
-Room 1512, Regus One Corporate Avenue,Level 15,
-One Corporate Avenue,222 Hubin Road,Huangpu District,
-Shanghai,China 200021
+Thanks
+Hanjun
