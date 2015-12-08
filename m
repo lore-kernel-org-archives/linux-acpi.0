@@ -1,24 +1,48 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH 2/2] i2c:dw: Add APM X-Gene ACPI I2C device support
-Date: Tue, 8 Dec 2015 13:36:02 +0200
-Message-ID: <20151208113602.GL1766@lahna.fi.intel.com>
-References: <1449533774-22672-1-git-send-email-lho@apm.com>
- <1449533774-22672-3-git-send-email-lho@apm.com>
+Subject: Re: [PATCH v4 3/3] ACPI / spi: attach gpio irq from acpi description
+ to spi device
+Date: Tue, 8 Dec 2015 13:59:17 +0200
+Message-ID: <20151208115917.GN1766@lahna.fi.intel.com>
+References: <1449527952-8399-1-git-send-email-christophe-h.ricard@st.com>
+ <1449527952-8399-4-git-send-email-christophe-h.ricard@st.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner@vger.kernel.org>
+Return-path: <linux-gpio-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1449533774-22672-3-git-send-email-lho@apm.com>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Loc Ho <lho@apm.com>
-Cc: wsa@the-dreams.de, Ken.Xue@amd.com, Jeff.Wu@amd.com, rjw@rjwysocki.net, lenb@kernel.org, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, jcm@redhat.com, patches@apm.com
+In-Reply-To: <1449527952-8399-4-git-send-email-christophe-h.ricard@st.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: Christophe Ricard <christophe.ricard@gmail.com>
+Cc: rjw@rjwysocki.net, lenb@kernel.org, linus.walleij@linaro.org, gnurou@gmail.com, andriy.shevchenko@linux.intel.com, broonie@kernel.org, linux-spi@vger.kernel.org, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, Christophe Ricard <christophe-h.ricard@st.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Dec 07, 2015 at 05:16:14PM -0700, Loc Ho wrote:
-> Enable APM X-Gene ACPI I2C device support by adding the
-> corresponding ACPI ID. The platform ACPI APD corresponding
-> change is required to provide the proper clock frequency input.
+On Mon, Dec 07, 2015 at 11:39:12PM +0100, Christophe Ricard wrote:
+> spi->irq was ignoring GpioInt property setting it to -1.
+> acpi_dev_gpio_irq_get returns and configure the slave irq  according to
+> the acpi slave node description.
+> It is now inline with devicetree behavior.
 > 
-> Signed-off-by: Loc Ho <lho@apm.com>
+> Signed-off-by: Christophe Ricard <christophe-h.ricard@st.com>
+> ---
+>  drivers/spi/spi.c | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
+> index a5f53de..5c10815 100644
+> --- a/drivers/spi/spi.c
+> +++ b/drivers/spi/spi.c
+> @@ -1534,7 +1534,7 @@ static acpi_status acpi_spi_add_device(acpi_handle handle, u32 level,
+>  	}
+>  
+>  	ACPI_COMPANION_SET(&spi->dev, adev);
+> -	spi->irq = -1;
+> +	spi->irq = acpi_dev_gpio_irq_get(ACPI_COMPANION(&spi->dev), 0);
 
-Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Also I think we should first check for the normal Interrupt() resource
+(like what we are already doing in acpi_spi_add_resource()) and only
+then resort back to use GPIO
+
+>  
+>  	INIT_LIST_HEAD(&resource_list);
+>  	ret = acpi_dev_get_resources(adev, &resource_list,
+> -- 
+> 2.1.4
