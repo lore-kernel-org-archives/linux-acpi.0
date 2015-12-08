@@ -1,54 +1,138 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 1/1] ACPI: Support D3 COLD device for old BIOS
-Date: Tue, 08 Dec 2015 14:14:17 +0100
-Message-ID: <1717488.DiPkR8HF9g@vostro.rjw.lan>
-References: <1449463473.2175.13.camel@kxue-X58A-UD3R> <3822904.Z6rtg8lMJ5@vostro.rjw.lan> <1449538676.2175.35.camel@kxue-X58A-UD3R>
+From: Fu Wei <fu.wei@linaro.org>
+Subject: Re: [PATCH v4] acpi, apei, arm64: APEI initial support for aarch64.
+Date: Tue, 8 Dec 2015 20:45:48 +0800
+Message-ID: <CADyBb7t2MgXLA2=DrXTuCVoi63e3GMQNuUvUyzwvocMBX2mSDA@mail.gmail.com>
+References: <1449558183-12259-1-git-send-email-fu.wei@linaro.org>
+	<5666BE62.7090409@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:60790 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S932224AbbLHMoT (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Dec 2015 07:44:19 -0500
-In-Reply-To: <1449538676.2175.35.camel@kxue-X58A-UD3R>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5666BE62.7090409@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Tomasz Nowicki <tomasz.nowicki@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Rafael Wysocki <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, LKML <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Marc Zyngier <Marc.Zyngier@arm.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, rruigrok@codeaurora.org, "Abdulhamid, Harb" <harba@qti.qualcomm.com>, Jon Masters <jcm@redhat.com>, Mark Salter <msalter@redhat.com>, Grant Likely <grant.likely@linaro.org>, rrichter@cavium.com, jarkko.nikula@linux.intel.com, Jonathan Zhang <jon.zhixiong.zhang@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Ken Xue <ken.xue@amd.com>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, SPG_Linux_Kernel@amd.com, mika.westerberg@linux.intel.com, Andy Shevchenko <andy.shevchenko@gmail.com>, Ivan.Zheng@amd.com, Alex.Chuang@amd.com
 
-On Tuesday, December 08, 2015 09:37:56 AM Ken Xue wrote:
-> On Mon, 2015-12-07 at 23:48 +0100, Rafael J. Wysocki wrote:
-> > On Monday, December 07, 2015 12:44:33 PM Ken Xue wrote:
-> > > D3cold is only regarded as valid if the "_PR3" object is present
-> > > for the given device after the commit <20dacb71ad28>
-> > > (ACPI/PM: Reworkdevice power management to follow ACPI 6).
-> > > 
-> > > But some old BIOS only defined "_PS3" for the D3COLD device.
-> > > And old kernel also believes the device has "_PS3" is a
-> > > D3COLD device.
-> > > 
-> > > So, add some logics for supporting D3 COLD device for old BIOS
-> > > which is compatible with earlier ACPI spec.
-> > > 
-> > > Signed-off-by: Ken Xue <Ken.Xue@amd.com>
-> > > Reported-and-tested-by: Gang Long <Gang.Long@amd.com>
-> > 
-> > Well, what really is the problem?
-> 
-> My problem is that
-> "acpi_device_can_poweroff" is called by "zpodd_init" in libata-zpodd.c. 
-> And ZPODD feature only can be enabled when D3_COLD is valid.
+Hi Hanjun,
 
-This means that acpi_device_can_poweroff() needs to be updated.  What about
-like this:
+On 8 December 2015 at 19:26, Hanjun Guo <hanjun.guo@linaro.org> wrote:
+> Hi Fu Wei,
+>
+>
+> On 12/08/2015 03:03 PM, fu.wei@linaro.org wrote:
+>>
+>> From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+>>
+>> This commit provides APEI arch-specific bits for aarch64
+>>
+>> Meanwhile, add a new subfunction "hest_ia_init" for
+>> "acpi_disable_cmcff" which is used by IA-32 Architecture
+>> Corrected Machine Check (CMC).
+>>
+>> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+>> Tested-by: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
+>> Signed-off-by: Fu Wei <fu.wei@linaro.org>
+>> ---
+>> Changelog:
+>> v4: Rebase to latest kernel version(4.4-rc4).
+>>      Move arch_apei_flush_tlb_one into header file as a inline function
+>>      Add a new subfunction "hest_ia_init" for "acpi_disable_cmcff".
+>>
+>> v3: https://lkml.org/lkml/2015/12/3/521
+>>      Remove "acpi_disable_cmcff" from arm64 code,
+>>      and wrap it in hest.c by "#if defined(__i386__) ||
+>> defined(__x86_64__)"
+>>
+>> v2: https://lkml.org/lkml/2015/12/2/432
+>>      Rebase to latest kernel version(4.4-rc3).
+>>      Move arch_apei_flush_tlb_one() to arch/arm64/kernel/acpi.c
+>>
+>> v1: https://lkml.org/lkml/2015/8/14/199
+>>      Move arch_apei_flush_tlb_one() to arch/arm64/include/asm/apci.h.
+>>      Delete arch/arm64/kernel/apei.c.
+>>      Add "#ifdef CONFIG_ACPI_APEI" for "acpi_disable_cmcff".
+>>
+>>   arch/arm64/Kconfig            |  1 +
+>>   arch/arm64/include/asm/acpi.h |  5 +++++
+>>   drivers/acpi/apei/hest.c      | 19 ++++++++++++++++---
+>>   3 files changed, 22 insertions(+), 3 deletions(-)
+>>
+>> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+>> index 871f217..58c8992 100644
+>> --- a/arch/arm64/Kconfig
+>> +++ b/arch/arm64/Kconfig
+>> @@ -3,6 +3,7 @@ config ARM64
+>>         select ACPI_CCA_REQUIRED if ACPI
+>>         select ACPI_GENERIC_GSI if ACPI
+>>         select ACPI_REDUCED_HARDWARE_ONLY if ACPI
+>> +       select HAVE_ACPI_APEI if ACPI
+>>         select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
+>>         select ARCH_HAS_ELF_RANDOMIZE
+>>         select ARCH_HAS_GCOV_PROFILE_ALL
+>> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+>> index caafd63..31d3d9a 100644
+>> --- a/arch/arm64/include/asm/acpi.h
+>> +++ b/arch/arm64/include/asm/acpi.h
+>> @@ -17,6 +17,7 @@
+>>
+>>   #include <asm/cputype.h>
+>>   #include <asm/smp_plat.h>
+>> +#include <asm/tlbflush.h>
+>>
+>>   /* Macros for consistency checks of the GICC subtable of MADT */
+>>   #define ACPI_MADT_GICC_LENGTH \
+>> @@ -94,6 +95,10 @@ static inline const char *acpi_get_enable_method(int
+>> cpu)
+>>
+>>   #ifdef        CONFIG_ACPI_APEI
+>>   pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr);
+>
+>
+> How bout adding a empty line here?
 
-static inline bool acpi_device_can_poweroff(struct acpi_device *adev)
-{
-	return adev->power.states[ACPI_STATE_D3_COLD].flags.valid
-		|| adev->power.states[ACPI_STATE_D3_HOT].flags.explicit_set;
-}
+np, done
 
-Thanks,
-Rafael
 
+diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+index 31d3d9a..da657a9 100644
+--- a/arch/arm64/include/asm/acpi.h
++++ b/arch/arm64/include/asm/acpi.h
+@@ -95,10 +95,10 @@ static inline const char *acpi_get_enable_method(int cpu)
+
+ #ifdef CONFIG_ACPI_APEI
+ pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr);
++
+ static inline void arch_apei_flush_tlb_one(unsigned long addr)
+ {
+        flush_tlb_kernel_range(addr, addr + PAGE_SIZE);
+ }
+-#endif
+-
++#endif /* CONFIG_ACPI_APEI */
+ #endif /*_ASM_ACPI_H*/
+
+
+>
+> Except that,
+>
+> Acked-by: Hanjun Guo <hanjun.guo@linaro.org>
+
+Great thanks for your review :-)
+
+>
+> Thanks
+> Hanjun
+
+
+
+-- 
+Best regards,
+
+Fu Wei
+Software Engineer
+Red Hat Software (Beijing) Co.,Ltd.Shanghai Branch
+Ph: +86 21 61221326(direct)
+Ph: +86 186 2020 4684 (mobile)
+Room 1512, Regus One Corporate Avenue,Level 15,
+One Corporate Avenue,222 Hubin Road,Huangpu District,
+Shanghai,China 200021
