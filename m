@@ -1,29 +1,40 @@
-From: Vinod Koul <vinod.koul@intel.com>
-Subject: Re: [PATCH v3 9/9] Revert "dmaengine: dw: platform: provide platform
- data for Intel"
-Date: Tue, 8 Dec 2015 22:57:37 +0530
-Message-ID: <20151208172737.GW1854@localhost>
-References: <1449265765-9393-1-git-send-email-andriy.shevchenko@linux.intel.com>
- <1449265765-9393-10-git-send-email-andriy.shevchenko@linux.intel.com>
+From: Jeremy Linton <jeremy.linton@arm.com>
+Subject: Re: [PATCH V1 00/11] MMCONFIG refactoring and ARM64 PCI hostbridge
+ init based on ACPI
+Date: Tue, 8 Dec 2015 11:43:33 -0600
+Message-ID: <566716C5.50902@arm.com>
+References: <1445963922-22711-1-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=WINDOWS-1252; format=flowed
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:23186 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751133AbbLHRYd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 8 Dec 2015 12:24:33 -0500
-Content-Disposition: inline
-In-Reply-To: <1449265765-9393-10-git-send-email-andriy.shevchenko@linux.intel.com>
+Received: from eu-smtp-delivery-143.mimecast.com ([146.101.78.143]:53055 "EHLO
+	eu-smtp-delivery-143.mimecast.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751521AbbLHRnp convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 8 Dec 2015 12:43:45 -0500
+In-Reply-To: <1445963922-22711-1-git-send-email-tn@semihalf.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, dmaengine@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, linux-kernel@vger.kernel.org, Mika Westerberg <mika.westerberg@linux.intel.com>
+To: Tomasz Nowicki <tn@semihalf.com>, bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com
+Cc: linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, Narinder.Dhillon@caviumnetworks.com, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, wangyijing@huawei.com, tglx@linutronix.de, jiang.liu@linux.intel.com, linux-arm-kernel@lists.infradead.org
 
-On Fri, Dec 04, 2015 at 11:49:25PM +0200, Andy Shevchenko wrote:
-> Since we have a work around to prevent a system hangup we don't need to provide
-> a platform data explicitly anymore.
+On 10/27/2015 11:38 AM, Tomasz Nowicki wrote:
+>  From the functionality point of view this series might be split into two logic parts:
+> 1. Making MMCONFIG code arch-agnostic which allows all architectures to collect
+>     PCI config regions and used when necessary.
+> 2. Using generic MMCONFIG code and introducing ACPI based PCI hostbridge
+>     initialization for ARM64
 
-Acked-by: Vinod Koul <vinod.koul@intel.com>
 
--- 
-~Vinod
+Tested with legacy interrupts on ARM Juno R1, HP m400 (APM Potenza), and 
+APM mustang. The latter two platforms have an additional pci quirk patch 
+applied (to be posted shortly) to fix their problems with the config 
+space accessors.
+
+Tested-by: Jeremy Linton <jeremy.linton@arm.com>
+
+Thanks!
+
+
+
