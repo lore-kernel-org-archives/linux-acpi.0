@@ -1,76 +1,167 @@
 From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Subject: [PATCH v4 0/5] gicv2m: acpi: Add ACPI support for GICv2m MSI
-Date: Tue, 8 Dec 2015 12:19:00 -0800
-Message-ID: <1449605945-10707-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+Subject: [PATCH v4 4/5] gicv2m: Refactor to prepare for ACPI support
+Date: Tue, 8 Dec 2015 12:19:04 -0800
+Message-ID: <1449605945-10707-5-git-send-email-Suravee.Suthikulpanit@amd.com>
+References: <1449605945-10707-1-git-send-email-Suravee.Suthikulpanit@amd.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-by2on0091.outbound.protection.outlook.com ([207.46.100.91]:37835
+Received: from mail-by2on0067.outbound.protection.outlook.com ([207.46.100.67]:10432
 	"EHLO na01-by2-obe.outbound.protection.outlook.com"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752456AbbLHUTW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 8 Dec 2015 15:19:22 -0500
+	id S1752661AbbLHUT3 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 8 Dec 2015 15:19:29 -0500
+In-Reply-To: <1449605945-10707-1-git-send-email-Suravee.Suthikulpanit@amd.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net
 Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, hanjun.guo@linaro.org, tomasz.nowicki@linaro.org, graeme.gregory@linaro.org, dhdang@apm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 
-This patch series has been forked from the following patch series since
-it no longer depends on the rest of the patches.
+This patch replaces the struct device_node with struct fwnode_handle
+since this structure is common between DT and ACPI.
 
-  [PATCH v4 00/10] ACPI GIC Self-probing, GICv2m and GICv3 support
-  https://lkml.org/lkml/2015/7/29/234
+It also refactors gicv2m_init_one() to prepare for ACPI support.
+There should be no functional changes.
 
-It has been ported to use the newly introduced device fwnode_handle 
-for ACPI irqdmain introduced by Marc in the following patch series:
+Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+---
+ drivers/irqchip/irq-gic-v2m.c | 57 +++++++++++++++++++++++++++----------------
+ 1 file changed, 36 insertions(+), 21 deletions(-)
 
-  [PATCH v2 00/17] Divorcing irqdomain and device_node
-  http://git.kernel.org/cgit/linux/kernel/git/maz/arm-platforms.git irq/irq-domain-fwnode-v2
-
-The following git branch contains the submitted patches along with
-the pre-requsite patches (mainly for ARM64 PCI support for ACPI).
-
-  https://github.com/ssuthiku/linux.git	v2m-multiframe-v4
-
-This has been tested on AMD Seattle (Overdrive) RevB system. 
-
-NOTE: I have not tested ACPI GICv2m multiframe support since
-I don't have access to such system. Any helps are appreciated.
-
-Thanks,
-Suravee
-
-Changes from V3: (https://lkml.org/lkml/2015/10/21/691)
-  - Merged patch 2 into 1, and got rid off pci_msi_get_fwnode()
-    since only ACPI will likely use this. (per Marc suggestion)
-  - Rebased to 4.4.0-rc4
-
-Changes from V2: (https://lkml.org/lkml/2015/10/14/1010)
-  - Minor clean up from Tomasz review comment in patch 6/6.
-
-Changes from V1: (https://lkml.org/lkml/2015/10/13/859)
-  - Rebase on top of Marc's patch to addng support for multiple MSI frames
-    (https://lkml.org/lkml/2015/10/14/271)
-  - Adding fwnode convenient functions (patch 3 and 4)
-
-Suravee Suthikulpanit (5):
-  acpi: pci: Setup MSI domain for ACPI based pci devices
-  irqdomain: introduce is_fwnode_irqchip helper
-  irqdomain: Introduce irq_domain_get_irqchip_fwnode_name helper
-    function
-  gicv2m: Refactor to prepare for ACPI support
-  gicv2m: acpi: Introducing GICv2m ACPI support
-
- drivers/irqchip/irq-gic-v2m.c   | 152 ++++++++++++++++++++++++++++++++++------
- drivers/irqchip/irq-gic.c       |   5 +-
- drivers/pci/pci-acpi.c          |  32 +++++++++
- drivers/pci/probe.c             |   2 +
- include/linux/irqchip/arm-gic.h |   4 ++
- include/linux/irqdomain.h       |   6 ++
- include/linux/pci.h             |  10 +++
- kernel/irq/irqdomain.c          |  20 +++++-
- 8 files changed, 208 insertions(+), 23 deletions(-)
-
+diff --git a/drivers/irqchip/irq-gic-v2m.c b/drivers/irqchip/irq-gic-v2m.c
+index 87f8d10..7e60f7e 100644
+--- a/drivers/irqchip/irq-gic-v2m.c
++++ b/drivers/irqchip/irq-gic-v2m.c
+@@ -55,7 +55,7 @@ static DEFINE_SPINLOCK(v2m_lock);
+ 
+ struct v2m_data {
+ 	struct list_head entry;
+-	struct device_node *node;
++	struct fwnode_handle *fwnode;
+ 	struct resource res;	/* GICv2m resource */
+ 	void __iomem *base;	/* GICv2m virt address */
+ 	u32 spi_start;		/* The SPI number that MSIs start */
+@@ -254,7 +254,7 @@ static void gicv2m_teardown(void)
+ 		list_del(&v2m->entry);
+ 		kfree(v2m->bm);
+ 		iounmap(v2m->base);
+-		of_node_put(v2m->node);
++		of_node_put(to_of_node(v2m->fwnode));
+ 		kfree(v2m);
+ 	}
+ }
+@@ -268,7 +268,7 @@ static int gicv2m_allocate_domains(struct irq_domain *parent)
+ 	if (!v2m)
+ 		return 0;
+ 
+-	inner_domain = irq_domain_create_tree(of_node_to_fwnode(v2m->node),
++	inner_domain = irq_domain_create_tree(v2m->fwnode,
+ 					      &gicv2m_domain_ops, v2m);
+ 	if (!inner_domain) {
+ 		pr_err("Failed to create GICv2m domain\n");
+@@ -277,10 +277,10 @@ static int gicv2m_allocate_domains(struct irq_domain *parent)
+ 
+ 	inner_domain->bus_token = DOMAIN_BUS_NEXUS;
+ 	inner_domain->parent = parent;
+-	pci_domain = pci_msi_create_irq_domain(of_node_to_fwnode(v2m->node),
++	pci_domain = pci_msi_create_irq_domain(v2m->fwnode,
+ 					       &gicv2m_msi_domain_info,
+ 					       inner_domain);
+-	plat_domain = platform_msi_create_irq_domain(of_node_to_fwnode(v2m->node),
++	plat_domain = platform_msi_create_irq_domain(v2m->fwnode,
+ 						     &gicv2m_pmsi_domain_info,
+ 						     inner_domain);
+ 	if (!pci_domain || !plat_domain) {
+@@ -296,11 +296,13 @@ static int gicv2m_allocate_domains(struct irq_domain *parent)
+ 	return 0;
+ }
+ 
+-static int __init gicv2m_init_one(struct device_node *node,
+-				  struct irq_domain *parent)
++static int __init gicv2m_init_one(struct fwnode_handle *fwnode,
++				  u32 spi_start, u32 nr_spis,
++				  struct resource *res)
+ {
+ 	int ret;
+ 	struct v2m_data *v2m;
++	const char *name = NULL;
+ 
+ 	v2m = kzalloc(sizeof(struct v2m_data), GFP_KERNEL);
+ 	if (!v2m) {
+@@ -309,13 +311,9 @@ static int __init gicv2m_init_one(struct device_node *node,
+ 	}
+ 
+ 	INIT_LIST_HEAD(&v2m->entry);
+-	v2m->node = node;
++	v2m->fwnode = fwnode;
+ 
+-	ret = of_address_to_resource(node, 0, &v2m->res);
+-	if (ret) {
+-		pr_err("Failed to allocate v2m resource.\n");
+-		goto err_free_v2m;
+-	}
++	memcpy(&v2m->res, res, sizeof(struct resource));
+ 
+ 	v2m->base = ioremap(v2m->res.start, resource_size(&v2m->res));
+ 	if (!v2m->base) {
+@@ -324,10 +322,9 @@ static int __init gicv2m_init_one(struct device_node *node,
+ 		goto err_free_v2m;
+ 	}
+ 
+-	if (!of_property_read_u32(node, "arm,msi-base-spi", &v2m->spi_start) &&
+-	    !of_property_read_u32(node, "arm,msi-num-spis", &v2m->nr_spis)) {
+-		pr_info("Overriding V2M MSI_TYPER (base:%u, num:%u)\n",
+-			v2m->spi_start, v2m->nr_spis);
++	if (spi_start && nr_spis) {
++		v2m->spi_start = spi_start;
++		v2m->nr_spis = nr_spis;
+ 	} else {
+ 		u32 typer = readl_relaxed(v2m->base + V2M_MSI_TYPER);
+ 
+@@ -359,10 +356,13 @@ static int __init gicv2m_init_one(struct device_node *node,
+ 	}
+ 
+ 	list_add_tail(&v2m->entry, &v2m_nodes);
+-	pr_info("Node %s: range[%#lx:%#lx], SPI[%d:%d]\n", node->name,
+-		(unsigned long)v2m->res.start, (unsigned long)v2m->res.end,
+-		v2m->spi_start, (v2m->spi_start + v2m->nr_spis));
+ 
++	if (to_of_node(fwnode))
++		name = to_of_node(fwnode)->name;
++
++	pr_info("Frame %s: range[%#lx:%#lx], SPI[%d:%d]\n", name,
++		(unsigned long)res->start, (unsigned long)res->end,
++		v2m->spi_start, (v2m->spi_start + v2m->nr_spis));
+ 	return 0;
+ 
+ err_iounmap:
+@@ -384,10 +384,25 @@ int __init gicv2m_of_init(struct device_node *node, struct irq_domain *parent)
+ 
+ 	for (child = of_find_matching_node(node, gicv2m_device_id); child;
+ 	     child = of_find_matching_node(child, gicv2m_device_id)) {
++		u32 spi_start = 0, nr_spis = 0;
++		struct resource res;
++
+ 		if (!of_find_property(child, "msi-controller", NULL))
+ 			continue;
+ 
+-		ret = gicv2m_init_one(child, parent);
++		ret = of_address_to_resource(child, 0, &res);
++		if (ret) {
++			pr_err("Failed to allocate v2m resource.\n");
++			break;
++		}
++
++		if (!of_property_read_u32(child, "arm,msi-base-spi",
++					  &spi_start) &&
++		    !of_property_read_u32(child, "arm,msi-num-spis", &nr_spis))
++			pr_info("DT overriding V2M MSI_TYPER (base:%u, num:%u)\n",
++				spi_start, nr_spis);
++
++		ret = gicv2m_init_one(&child->fwnode, spi_start, nr_spis, &res);
+ 		if (ret) {
+ 			of_node_put(node);
+ 			break;
 -- 
 2.1.0
 
