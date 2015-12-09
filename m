@@ -1,170 +1,311 @@
-From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Subject: [PATCH v5 4/5] gicv2m: Refactor to prepare for ACPI support
-Date: Tue, 8 Dec 2015 17:48:05 -0800
-Message-ID: <1449625686-5594-5-git-send-email-Suravee.Suthikulpanit@amd.com>
-References: <1449625686-5594-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH v3 3/3] nvdimm: Add IOCTL pass thru functions
+Date: Tue, 8 Dec 2015 18:10:20 -0800
+Message-ID: <CAPcyv4gFNnsbyTy8u-_jBF9JPYH_0a9dNX_R1oj2EH2sdrb=-g@mail.gmail.com>
+References: <cover.1449089647.git.jerry.hoemann@hpe.com>
+	<f8e838fb666b7d05e5e1f7527d643181c6f6ba4d.1449089647.git.jerry.hoemann@hpe.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-In-Reply-To: <1449625686-5594-1-git-send-email-Suravee.Suthikulpanit@amd.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, graeme.gregory@linaro.org, Catalin Marinas <Catalin.Marinas@arm.com>, dhdang@apm.com, Will Deacon <will.deacon@arm.com>, linux-kernel@vger.kernel.org, tomasz.nowicki@linaro.org, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qg0-f51.google.com ([209.85.192.51]:33090 "EHLO
+	mail-qg0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752853AbbLICKX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Dec 2015 21:10:23 -0500
+Received: by qgea14 with SMTP id a14so51643628qge.0
+        for <linux-acpi@vger.kernel.org>; Tue, 08 Dec 2015 18:10:20 -0800 (PST)
+In-Reply-To: <f8e838fb666b7d05e5e1f7527d643181c6f6ba4d.1449089647.git.jerry.hoemann@hpe.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jerry Hoemann <jerry.hoemann@hpe.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "Elliott, Robert (Persistent Memory)" <elliott@hpe.com>, jmoyer <jmoyer@redhat.com>, Dmitry Krivenok <krivenok.dmitry@gmail.com>, Linda Knippers <linda.knippers@hpe.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-This patch replaces the struct device_node with struct fwnode_handle
-since this structure is common between DT and ACPI.
+On Wed, Dec 2, 2015 at 1:05 PM, Jerry Hoemann <jerry.hoemann@hpe.com> wrote:
+> Add ioctl command ND_CMD_CALL_DSM to acpi_nfit_ctl and __nd_ioctl which
+> allow kernel to call a nvdimm's _DSM as a passthru without using the
+> marshaling code of the nd_cmd_desc.
+>
+> Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
+> ---
+>  drivers/acpi/nfit.c  | 109 ++++++++++++++++++++++++++++++++-------------------
+>  drivers/nvdimm/bus.c |  61 +++++++++++++++++++++-------
+>  2 files changed, 115 insertions(+), 55 deletions(-)
+>
 
-It also refactors gicv2m_init_one() to prepare for ACPI support.
-There should be no functional changes.
+In general I'd like to see this patch remove the need to sprinkle "if
+(dsm_call)" throughout the implementation ... specific examples below:
 
-Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
----
- drivers/irqchip/irq-gic-v2m.c | 57 +++++++++++++++++++++++++++----------------
- 1 file changed, 36 insertions(+), 21 deletions(-)
+> diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+> index c1b8d03..e509145 100644
+> --- a/drivers/acpi/nfit.c
+> +++ b/drivers/acpi/nfit.c
+> @@ -75,7 +75,11 @@ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
+>         acpi_handle handle;
+>         const u8 *uuid;
+>         u32 offset;
+> -       int rc, i;
+> +       int rc = 0, i;
+> +       __u64 rev = 1, func = cmd;
 
-diff --git a/drivers/irqchip/irq-gic-v2m.c b/drivers/irqchip/irq-gic-v2m.c
-index 87f8d10..7e60f7e 100644
---- a/drivers/irqchip/irq-gic-v2m.c
-+++ b/drivers/irqchip/irq-gic-v2m.c
-@@ -55,7 +55,7 @@ static DEFINE_SPINLOCK(v2m_lock);
- 
- struct v2m_data {
- 	struct list_head entry;
--	struct device_node *node;
-+	struct fwnode_handle *fwnode;
- 	struct resource res;	/* GICv2m resource */
- 	void __iomem *base;	/* GICv2m virt address */
- 	u32 spi_start;		/* The SPI number that MSIs start */
-@@ -254,7 +254,7 @@ static void gicv2m_teardown(void)
- 		list_del(&v2m->entry);
- 		kfree(v2m->bm);
- 		iounmap(v2m->base);
--		of_node_put(v2m->node);
-+		of_node_put(to_of_node(v2m->fwnode));
- 		kfree(v2m);
- 	}
- }
-@@ -268,7 +268,7 @@ static int gicv2m_allocate_domains(struct irq_domain *parent)
- 	if (!v2m)
- 		return 0;
- 
--	inner_domain = irq_domain_create_tree(of_node_to_fwnode(v2m->node),
-+	inner_domain = irq_domain_create_tree(v2m->fwnode,
- 					      &gicv2m_domain_ops, v2m);
- 	if (!inner_domain) {
- 		pr_err("Failed to create GICv2m domain\n");
-@@ -277,10 +277,10 @@ static int gicv2m_allocate_domains(struct irq_domain *parent)
- 
- 	inner_domain->bus_token = DOMAIN_BUS_NEXUS;
- 	inner_domain->parent = parent;
--	pci_domain = pci_msi_create_irq_domain(of_node_to_fwnode(v2m->node),
-+	pci_domain = pci_msi_create_irq_domain(v2m->fwnode,
- 					       &gicv2m_msi_domain_info,
- 					       inner_domain);
--	plat_domain = platform_msi_create_irq_domain(of_node_to_fwnode(v2m->node),
-+	plat_domain = platform_msi_create_irq_domain(v2m->fwnode,
- 						     &gicv2m_pmsi_domain_info,
- 						     inner_domain);
- 	if (!pci_domain || !plat_domain) {
-@@ -296,11 +296,13 @@ static int gicv2m_allocate_domains(struct irq_domain *parent)
- 	return 0;
- }
- 
--static int __init gicv2m_init_one(struct device_node *node,
--				  struct irq_domain *parent)
-+static int __init gicv2m_init_one(struct fwnode_handle *fwnode,
-+				  u32 spi_start, u32 nr_spis,
-+				  struct resource *res)
- {
- 	int ret;
- 	struct v2m_data *v2m;
-+	const char *name = NULL;
- 
- 	v2m = kzalloc(sizeof(struct v2m_data), GFP_KERNEL);
- 	if (!v2m) {
-@@ -309,13 +311,9 @@ static int __init gicv2m_init_one(struct device_node *node,
- 	}
- 
- 	INIT_LIST_HEAD(&v2m->entry);
--	v2m->node = node;
-+	v2m->fwnode = fwnode;
- 
--	ret = of_address_to_resource(node, 0, &v2m->res);
--	if (ret) {
--		pr_err("Failed to allocate v2m resource.\n");
--		goto err_free_v2m;
--	}
-+	memcpy(&v2m->res, res, sizeof(struct resource));
- 
- 	v2m->base = ioremap(v2m->res.start, resource_size(&v2m->res));
- 	if (!v2m->base) {
-@@ -324,10 +322,9 @@ static int __init gicv2m_init_one(struct device_node *node,
- 		goto err_free_v2m;
- 	}
- 
--	if (!of_property_read_u32(node, "arm,msi-base-spi", &v2m->spi_start) &&
--	    !of_property_read_u32(node, "arm,msi-num-spis", &v2m->nr_spis)) {
--		pr_info("Overriding V2M MSI_TYPER (base:%u, num:%u)\n",
--			v2m->spi_start, v2m->nr_spis);
-+	if (spi_start && nr_spis) {
-+		v2m->spi_start = spi_start;
-+		v2m->nr_spis = nr_spis;
- 	} else {
- 		u32 typer = readl_relaxed(v2m->base + V2M_MSI_TYPER);
- 
-@@ -359,10 +356,13 @@ static int __init gicv2m_init_one(struct device_node *node,
- 	}
- 
- 	list_add_tail(&v2m->entry, &v2m_nodes);
--	pr_info("Node %s: range[%#lx:%#lx], SPI[%d:%d]\n", node->name,
--		(unsigned long)v2m->res.start, (unsigned long)v2m->res.end,
--		v2m->spi_start, (v2m->spi_start + v2m->nr_spis));
- 
-+	if (to_of_node(fwnode))
-+		name = to_of_node(fwnode)->name;
-+
-+	pr_info("Frame %s: range[%#lx:%#lx], SPI[%d:%d]\n", name,
-+		(unsigned long)res->start, (unsigned long)res->end,
-+		v2m->spi_start, (v2m->spi_start + v2m->nr_spis));
- 	return 0;
- 
- err_iounmap:
-@@ -384,10 +384,25 @@ int __init gicv2m_of_init(struct device_node *node, struct irq_domain *parent)
- 
- 	for (child = of_find_matching_node(node, gicv2m_device_id); child;
- 	     child = of_find_matching_node(child, gicv2m_device_id)) {
-+		u32 spi_start = 0, nr_spis = 0;
-+		struct resource res;
-+
- 		if (!of_find_property(child, "msi-controller", NULL))
- 			continue;
- 
--		ret = gicv2m_init_one(child, parent);
-+		ret = of_address_to_resource(child, 0, &res);
-+		if (ret) {
-+			pr_err("Failed to allocate v2m resource.\n");
-+			break;
-+		}
-+
-+		if (!of_property_read_u32(child, "arm,msi-base-spi",
-+					  &spi_start) &&
-+		    !of_property_read_u32(child, "arm,msi-num-spis", &nr_spis))
-+			pr_info("DT overriding V2M MSI_TYPER (base:%u, num:%u)\n",
-+				spi_start, nr_spis);
-+
-+		ret = gicv2m_init_one(&child->fwnode, spi_start, nr_spis, &res);
- 		if (ret) {
- 			of_node_put(node);
- 			break;
--- 
-2.1.0
+Why __u64 and not int for these?  acpi_evaluate_dsm() takes an int for
+both so a bigger type here will be truncated down.
+
+> +
+> +       struct nd_cmd_dsmcall_pkg *pkg = buf;
+> +       int dsm_call = (cmd == ND_CMD_CALL_DSM);
+>
+>         if (nvdimm) {
+>                 struct nfit_mem *nfit_mem = nvdimm_provider_data(nvdimm);
+> @@ -85,48 +89,62 @@ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
+>                         return -ENOTTY;
+>                 dimm_name = nvdimm_name(nvdimm);
+>                 cmd_name = nvdimm_cmd_name(cmd);
+> -               dsm_mask = nfit_mem->dsm_mask;
+> +               if (!dsm_call)
+> +                       dsm_mask = nfit_mem->dsm_mask;
+
+Unpack the function id from the dsm_call so we can do the standard
+check against dsm_mask.  Something like introduce 'dsm_func_id' that
+is equal to 'cmd' in the legacy case.  That change to be explicit
+about when we are referring to the "ioctl command number" vs the "dsm
+function number" can be done in a lead in patch
+
+>                 desc = nd_cmd_dimm_desc(cmd);
+> -               uuid = to_nfit_uuid(NFIT_DEV_DIMM);
+> +               if (!dsm_call)
+> +                       uuid = to_nfit_uuid(NFIT_DEV_DIMM);
+>                 handle = adev->handle;
+>         } else {
+>                 struct acpi_device *adev = to_acpi_dev(acpi_desc);
+>
+>                 cmd_name = nvdimm_bus_cmd_name(cmd);
+> -               dsm_mask = nd_desc->dsm_mask;
+> +               if (!dsm_call)
+> +                       dsm_mask = nd_desc->dsm_mask;
+>                 desc = nd_cmd_bus_desc(cmd);
+> -               uuid = to_nfit_uuid(NFIT_DEV_BUS);
+> +               if (!dsm_call)
+> +                       uuid = to_nfit_uuid(NFIT_DEV_BUS);
+>                 handle = adev->handle;
+>                 dimm_name = "bus";
+>         }
+>
+> -       if (!desc || (cmd && (desc->out_num + desc->in_num == 0)))
+> -               return -ENOTTY;
+> +       if (!dsm_call) {
+> +               if (!desc || (cmd && (desc->out_num + desc->in_num == 0)))
+> +                       return -ENOTTY;
+
+Any reason to not create an nd_cmd_{dimm|bus}_desc() entry for this
+command and reuse this check?
+
+>
+> -       if (!test_bit(cmd, &dsm_mask))
+> -               return -ENOTTY;
+> +               if (!test_bit(cmd, &dsm_mask))
+> +                       return -ENOTTY;
+> +       }
+>
+>         in_obj.type = ACPI_TYPE_PACKAGE;
+>         in_obj.package.count = 1;
+>         in_obj.package.elements = &in_buf;
+>         in_buf.type = ACPI_TYPE_BUFFER;
+> -       in_buf.buffer.pointer = buf;
+>         in_buf.buffer.length = 0;
+>
+> -       /* libnvdimm has already validated the input envelope */
+> -       for (i = 0; i < desc->in_num; i++)
+> -               in_buf.buffer.length += nd_cmd_in_size(nvdimm, cmd, desc,
+> +       if (dsm_call) {
+> +               in_buf.buffer.pointer = (void *) &pkg->dsm_buf;
+> +               in_buf.buffer.length = pkg->h.dsm_in;
+> +               uuid = pkg->h.dsm_uuid;
+
+'uuid' is determined above.
+
+> +               rev  = pkg->h.dsm_rev;
+> +               func = pkg->h.dsm_fun_idx;
+
+This can be unified with the legacy case when func == cmd.
+
+> +       } else {
+> +               /* libnvdimm has already validated the input envelope */
+> +               in_buf.buffer.pointer = buf;
+> +               for (i = 0; i < desc->in_num; i++)
+> +                       in_buf.buffer.length += nd_cmd_in_size(nvdimm, cmd, desc,
+>                                 i, buf);
+> +       }
+>
+>         if (IS_ENABLED(CONFIG_ACPI_NFIT_DEBUG)) {
+> -               dev_dbg(dev, "%s:%s cmd: %s input length: %d\n", __func__,
+> -                               dimm_name, cmd_name, in_buf.buffer.length);
+> -               print_hex_dump_debug(cmd_name, DUMP_PREFIX_OFFSET, 4,
+> -                               4, in_buf.buffer.pointer, min_t(u32, 128,
+> -                                       in_buf.buffer.length), true);
+> +               dev_dbg(dev, "%s:%s cmd: %d: %llu input length: %d\n", __func__,
+> +                               dimm_name, cmd, func, in_buf.buffer.length);
+> +               print_hex_dump_debug("nvdimm in  ", DUMP_PREFIX_OFFSET, 4, 4,
+> +                       in_buf.buffer.pointer,
+> +                       min_t(u32, 256, in_buf.buffer.length), true);
+
+Would be nice to have both the cmd name and the dsm function name in
+the debug output.  Something like:
+
+dev_dbg("%s %s\n", cmd_name, cmd == func ? "" : func_name)
+
+>         }
+>
+> -       out_obj = acpi_evaluate_dsm(handle, uuid, 1, cmd, &in_obj);
+> +       out_obj = acpi_evaluate_dsm(handle, uuid, rev, func, &in_obj);
+>         if (!out_obj) {
+>                 dev_dbg(dev, "%s:%s _DSM failed cmd: %s\n", __func__, dimm_name,
+>                                 cmd_name);
+> @@ -134,21 +152,28 @@ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
+>         }
+>
+>         if (out_obj->package.type != ACPI_TYPE_BUFFER) {
+> -               dev_dbg(dev, "%s:%s unexpected output object type cmd: %s type: %d\n",
+> -                               __func__, dimm_name, cmd_name, out_obj->type);
+> +               dev_dbg(dev, "%s:%s unexpected output object type cmd: %s %llu, type: %d\n",
+> +                               __func__, dimm_name, cmd_name, func, out_obj->type);
+>                 rc = -EINVAL;
+>                 goto out;
+>         }
+>
+>         if (IS_ENABLED(CONFIG_ACPI_NFIT_DEBUG)) {
+> -               dev_dbg(dev, "%s:%s cmd: %s output length: %d\n", __func__,
+> -                               dimm_name, cmd_name, out_obj->buffer.length);
+> -               print_hex_dump_debug(cmd_name, DUMP_PREFIX_OFFSET, 4,
+> -                               4, out_obj->buffer.pointer, min_t(u32, 128,
+> -                                       out_obj->buffer.length), true);
+> +               dev_dbg(dev, "%s:%s cmd %d: %llu output length %d\n", __func__,
+> +                               dimm_name, cmd, func, out_obj->buffer.length);
+> +               print_hex_dump_debug("nvdimm out ", DUMP_PREFIX_OFFSET, 4, 4,
+> +                       out_obj->buffer.pointer,
+> +                       min_t(u32, 256, out_obj->buffer.length), true);
+>         }
+>
+> -       for (i = 0, offset = 0; i < desc->out_num; i++) {
+> +       if (dsm_call) {
+> +               pkg->h.dsm_size = out_obj->buffer.length;
+> +               memcpy(pkg->dsm_buf + pkg->h.dsm_in,
+> +                       out_obj->buffer.pointer,
+> +                       min(pkg->h.dsm_size, pkg->h.dsm_out));
+
+Reuse nd_cmd_out_size()?  It already supports variable-size fields.
+
+> +
+> +       } else {
+> +               for (i = 0, offset = 0; i < desc->out_num; i++) {
+>                 u32 out_size = nd_cmd_out_size(nvdimm, cmd, desc, i, buf,
+>                                 (u32 *) out_obj->buffer.pointer);
+>
+> @@ -167,22 +192,23 @@ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
+>                 memcpy(buf + in_buf.buffer.length + offset,
+>                                 out_obj->buffer.pointer + offset, out_size);
+>                 offset += out_size;
+> -       }
+> -       if (offset + in_buf.buffer.length < buf_len) {
+> -               if (i >= 1) {
+> -                       /*
+> -                        * status valid, return the number of bytes left
+> -                        * unfilled in the output buffer
+> -                        */
+> -                       rc = buf_len - offset - in_buf.buffer.length;
+> -               } else {
+> -                       dev_err(dev, "%s:%s underrun cmd: %s buf_len: %d out_len: %d\n",
+> +               }
+> +               if (offset + in_buf.buffer.length < buf_len) {
+> +                       if (i >= 1) {
+> +                               /*
+> +                                * status valid, return the number of bytes left
+> +                                * unfilled in the output buffer
+> +                                */
+> +                               rc = buf_len - offset - in_buf.buffer.length;
+> +                       } else {
+> +                               dev_err(dev, "%s:%s underrun cmd: %s buf_len: %d out_len: %d\n",
+>                                         __func__, dimm_name, cmd_name, buf_len,
+>                                         offset);
+> -                       rc = -ENXIO;
+> -               }
+> -       } else
+> -               rc = 0;
+> +                               rc = -ENXIO;
+> +                       }
+> +               } else
+> +                       rc = 0;
+> +       }
+>
+>   out:
+>         ACPI_FREE(out_obj);
+> @@ -190,6 +216,7 @@ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
+>         return rc;
+>  }
+>
+> +
+>  static const char *spa_type_name(u16 type)
+>  {
+>         static const char *to_name[] = {
+> diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
+> index 1c81203..83900d50 100644
+> --- a/drivers/nvdimm/bus.c
+> +++ b/drivers/nvdimm/bus.c
+> @@ -492,31 +492,38 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
+>         struct device *dev = &nvdimm_bus->dev;
+>         const char *cmd_name, *dimm_name;
+>         unsigned long dsm_mask;
+> -       void *buf;
+> +       void *buf = NULL;
+>         int rc, i;
+>
+> +       struct nd_cmd_dsmcall_pkg pkg;
+> +       int dsm_call = (cmd == ND_CMD_CALL_DSM);
+> +
+>         if (nvdimm) {
+>                 desc = nd_cmd_dimm_desc(cmd);
+>                 cmd_name = nvdimm_cmd_name(cmd);
+> -               dsm_mask = nvdimm->dsm_mask ? *(nvdimm->dsm_mask) : 0;
+> +               if (!dsm_call)
+> +                       dsm_mask = nvdimm->dsm_mask ? *(nvdimm->dsm_mask) : 0;
+>                 dimm_name = dev_name(&nvdimm->dev);
+>         } else {
+>                 desc = nd_cmd_bus_desc(cmd);
+>                 cmd_name = nvdimm_bus_cmd_name(cmd);
+> -               dsm_mask = nd_desc->dsm_mask;
+> +               if (!dsm_call)
+> +                       dsm_mask = nd_desc->dsm_mask;
+>                 dimm_name = "bus";
+>         }
+>
+> -       if (!desc || (desc->out_num + desc->in_num == 0) ||
+> -                       !test_bit(cmd, &dsm_mask))
+> -               return -ENOTTY;
+> +       if (!dsm_call)
+> +               if (!desc || (desc->out_num + desc->in_num == 0) ||
+> +                               !test_bit(cmd, &dsm_mask))
+> +                       return -ENOTTY;
+
+Same comments as the acpi_nfit_ctl path.
+
+>
+>         /* fail write commands (when read-only) */
+>         if (read_only)
+> -               switch (ioctl_cmd) {
+> -               case ND_IOCTL_VENDOR:
+> -               case ND_IOCTL_SET_CONFIG_DATA:
+> -               case ND_IOCTL_ARS_START:
+> +               switch (cmd) {
+> +               case ND_CMD_VENDOR:
+> +               case ND_CMD_SET_CONFIG_DATA:
+> +               case ND_CMD_ARS_START:
+> +               case ND_CMD_CALL_DSM:
+
+I agree with your comment in the cover letter that this change should
+be a separate patch.
+
+It bothers me that we'll block all ND_CMD_CALL_DSM in the read_only
+case.  Let's leave ND_CMD_CALL_DSM out of this selection for now.
+
+I think we'll need to delete the protection going forward because we
+won't be teaching the kernel about new DSM function numbers.  For
+security purposes I'm looking at adding a mechanism for userspace to
+disable commands by function number until next reboot.
