@@ -1,60 +1,53 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH V2] ACPI: Support D3 COLD device in old BIOS for ZPODD
-Date: Thu, 10 Dec 2015 00:07:27 +0100
-Message-ID: <2607233.VlpZS8z9ty@vostro.rjw.lan>
-References: <1449649050.2175.59.camel@kxue-X58A-UD3R>
+Subject: Re: [PATCH] ACPI: Fix build errors due objects compiled unconditionally
+Date: Thu, 10 Dec 2015 00:13:22 +0100
+Message-ID: <12725891.QmF251BB6I@vostro.rjw.lan>
+References: <1448040902-1349-1-git-send-email-javier@osg.samsung.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:60415 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:45903 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753677AbbLIWh3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Dec 2015 17:37:29 -0500
-In-Reply-To: <1449649050.2175.59.camel@kxue-X58A-UD3R>
+	with SMTP id S1750904AbbLIWnX (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Dec 2015 17:43:23 -0500
+In-Reply-To: <1448040902-1349-1-git-send-email-javier@osg.samsung.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ken Xue <ken.xue@amd.com>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, SPG_Linux_Kernel@amd.com, mika.westerberg@linux.intel.com, Andy Shevchenko <andy.shevchenko@gmail.com>, Ivan.Zheng@amd.com, Alex.Chuang@amd.com, tj@kernel.org, stern@rowland.harvard.edu
+To: Javier Martinez Canillas <javier@osg.samsung.com>
+Cc: linux-kernel@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, Al Stone <al.stone@linaro.org>, Len Brown <lenb@kernel.org>
 
-On Wednesday, December 09, 2015 04:17:30 PM Ken Xue wrote:
-> D3cold is only regarded as valid if the "_PR3" object is
-> present for the given device after the commit 20dacb71ad28
-> ("ACPI/PM: Rework device power management to follow ACPI 6").
+On Friday, November 20, 2015 02:35:02 PM Javier Martinez Canillas wrote:
+> If the CONFIG_ACPI Kconfig symbol is not enabled and a partial build is
+> attempted, compile errors will happen due missing types and identifiers.
 > 
-> But some old BIOS only defined "_PS3" for the D3COLD device,
-> such as ZPODD device. And old kernel also believes the device with
-> "_PS3" is a D3COLD device.
+> This can be easily reproduced with the following commands:
 > 
-> So, add some logics for supporting D3 COLD device with old BIOS
-> which is compatible with earlier ACPI spec and kernel behavior.
+> $ export CROSS_COMPILE="arm-linux-gnueabihf-" ARCH=arm
+> $ make allmodconfig
+> $ make M=drivers/acpi/
+>   CC      drivers/acpi//tables.o
+> drivers/acpi//tables.c:235:3: warning: 'struct acpi_subtable_proc' declared inside parameter list
+>    unsigned int max_entries)
+>    ^
+> drivers/acpi//tables.c:235:3: warning: its scope is only this definition or declaration, which is probably not what you want
+> drivers/acpi//tables.c: In function 'acpi_parse_entries_array':
+> drivers/acpi//tables.c:269:4: error: invalid use of undefined type 'struct acpi_subtable_proc'
+> ...
+> scripts/Makefile.build:258: recipe for target 'drivers/acpi//tables.o' failed
+> make[1]: *** [drivers/acpi//tables.o] Error 1
+> Makefile:1401: recipe for target '_module_drivers/acpi/' failed
+> make: *** [_module_drivers/acpi/] Error 2
 > 
-> Reference:
-> http://marc.info/?l=linux-acpi&m=144946938709759&w=2
+> This is because objects are tried to be built unconditionally even when
+> CONFIG_ACPI is not enabled. This is usually not a problem since arches'
+> Kconfig sources drivers/acpi/Kconfig directly and also selects ACPI but
+> the Makefile should conditionally build the objects as well to prevent
+> these build errors.
 > 
-> Signed-off-by: Ken Xue <Ken.Xue@amd.com>
-> Reported-and-tested-by: Gang Long <Gang.Long@amd.com>
-> ---
->  include/acpi/acpi_bus.h | 4 +++-
->  1 file changed, 3 insertions(+), 1 deletion(-)
-> 
-> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-> index ad0a5ff..9894b75 100644
-> --- a/include/acpi/acpi_bus.h
-> +++ b/include/acpi/acpi_bus.h
-> @@ -631,7 +631,9 @@ static inline bool acpi_device_can_wakeup(struct acpi_device *adev)
->  
->  static inline bool acpi_device_can_poweroff(struct acpi_device *adev)
->  {
-> -	return adev->power.states[ACPI_STATE_D3_COLD].flags.valid;
-> +	return adev->power.states[ACPI_STATE_D3_COLD].flags.valid ||
-> +		((acpi_gbl_FADT.header.revision < 6) &&
-> +		adev->power.states[ACPI_STATE_D3_HOT].flags.explicit_set);
->  }
->  
->  #else	/* CONFIG_ACPI */
+> Signed-off-by: Javier Martinez Canillas <javier@osg.samsung.com>
 
-This is fine by me, but _PS3 is allowed to remove power from the device even by ACPI 6.
+OK, I think this shouldn't hurt anyone.
 
 Queued up for 4.5, thanks!
 
