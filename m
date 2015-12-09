@@ -1,86 +1,289 @@
-From: Dan Williams <dan.j.williams@gmail.com>
-Subject: Re: [PATCH v3 1/3] resource: Add @flags to region_intersects()
-Date: Wed, 9 Dec 2015 08:25:58 -0800
-Message-ID: <CAA9_cmeDbpQg3XmsKaEb1f+hSVxq5+3DpLm004wiagf_uwbFMw@mail.gmail.com>
-References: <1448404418-28800-1-git-send-email-toshi.kani@hpe.com>
-	<1448404418-28800-2-git-send-email-toshi.kani@hpe.com>
-	<20151201135000.GB4341@pd.tnic>
-	<CAPcyv4g2n9yTWye2aVvKMP0X7mrm_NLKmGd5WBO2SesTj77gbg@mail.gmail.com>
-	<20151201171322.GD4341@pd.tnic>
-	<CA+55aFw22JD8W2cy3w=5VcU9-ENXSP9utmhGB2NeiDVqwpnUSw@mail.gmail.com>
-	<1449168859.9855.54.camel@hpe.com>
-	<20151203184051.GE3213@pd.tnic>
-	<CA+55aFy4WQrWexC4u2LxX9Mw2NVoznw7p3Yh=iF4Xtf7zKWnRw@mail.gmail.com>
-	<1449174925.9855.83.camel@hpe.com>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH V9 1/2] ACPI, PCI, irq: remove interrupt count restriction
+Date: Wed, 9 Dec 2015 18:59:19 +0200
+Message-ID: <CAHp75VeW7wizf_FUc=O5+PEdfibYRL1G7gqpdDxUALwXJsnBAA@mail.gmail.com>
+References: <1449677909-12432-1-git-send-email-okaya@codeaurora.org>
+	<1449677909-12432-2-git-send-email-okaya@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qg0-f47.google.com ([209.85.192.47]:33168 "EHLO
-	mail-qg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751989AbbLIQZ7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Dec 2015 11:25:59 -0500
-In-Reply-To: <1449174925.9855.83.camel@hpe.com>
+Received: from mail-vk0-f41.google.com ([209.85.213.41]:35101 "EHLO
+	mail-vk0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751874AbbLIQ7U (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Dec 2015 11:59:20 -0500
+In-Reply-To: <1449677909-12432-2-git-send-email-okaya@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hpe.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Borislav Petkov <bp@alien8.de>, Tony Luck <tony.luck@intel.com>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Andrew Morton <akpm@linux-foundation.org>
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, cov@codeaurora.org, jcm@redhat.com, helgaas@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Thu, Dec 3, 2015 at 12:35 PM, Toshi Kani <toshi.kani@hpe.com> wrote:
-> On Thu, 2015-12-03 at 11:01 -0800, Linus Torvalds wrote:
->> On Thu, Dec 3, 2015 at 10:40 AM, Borislav Petkov <bp@alien8.de> wrote:
->> > On Thu, Dec 03, 2015 at 11:54:19AM -0700, Toshi Kani wrote:
->> > > Adding a new type for regular memory will require inspecting the
->> > > codes using IORESOURCE_MEM currently, and modify them to use the new
->> > > type if their target ranges are regular memory.  There are many
->> > > references to this type across multiple architectures and drivers,
->> > > which make this inspection and testing challenging.
->> >
->> > What's wrong with adding a new type_flags to struct resource and not
->> > touching IORESOURCE_* at all?
->>
->> Bah. Both of these ideas are bogus.
->>
->> Just add a new flag. The bits are already modifiers that you can
->> *combine* to show what kind of resource it is, and we already have
->> things like IORESOURCE_PREFETCH etc, that are in *addition* to the
->> normal IORESOURCE_MEM bit.
->>
->> Just add another modifier: IORESOURCE_RAM.
->>
->> So it would still show up as IORESOURCE_MEM, but it would have
->> additional information specifying that it's actually RAM.
->>
->> If somebody does something like
->>
->>      if (res->flags == IORESOURCE_MEM)
->>
->> then they are already completely broken and won't work *anyway*. It's
->> a bitmask, bit a set of values.
+On Wed, Dec 9, 2015 at 6:18 PM, Sinan Kaya <okaya@codeaurora.org> wrote:
+> Code currently supports 256 maximum interrupts at this moment. The patch is
+> reconfiguring the penalty array as a dynamic list to remove this
+> limitation.
 >
-> Yes, if we can assign new modifiers, that will be quite simple. :-)  I
-> assume we can allocate new bits from the remaining free bits as follows.
+> A new penalty linklist has been added for all other interrupts greater than
+> 16. If an IRQ is not found in the link list, an IRQ info structure will be
+> dynamically allocated on the first access and will be placed on the list
+> for further reuse. The list will grow by the number of supported interrupts
+> in the ACPI table rather than having a 256 hard limitation.
 >
-> +#define IORESOURCE_SYSTEM_RAM  0x01000000      /* System RAM */
-> +#define IORESOURCE_PMEM        0x02000000      /* Persistent memory */
->  #define IORESOURCE_EXCLUSIVE   0x08000000      /* Userland may not map
-> this resource */
->
-> Note, SYSTEM_RAM represents the OS memory, i.e. "System RAM", not any RAM
-> ranges.
->
-> With the new modifiers, region_intersect() can check these ranges.  One
-> caveat is that the modifiers are not very extensible for new types as they
-> are bit maps.  region_intersect() will no longer be capable of checking any
-> regions with any given name.  I think this is OK since this function was
-> introduced recently, and is only used for checking "System RAM" and
-> "Persistent Memory" (with this patch series).
+> Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
 
-IORESOURCE_PMEM is not descriptive enough for the two different types
-of pmem in the kernel.  How about we go with just
-IORESOURCE_SYSTEM_RAM for now since "is_ram()" checks are common.  Let
-the rest continue to be checked by strcmp().
+Few nitpicks, though if Bjorn is okay with this one, you may ignore below.
 
-For example the nvdimm-e820 driver cares about "Persistent Memory
-(legacy)", while other forms of pmem may just be "reserved" and only
-the driver knows that it is pmem.  An IORESOURCE_PMEM would not be
-reliable nor descriptive enough.
+> ---
+>  drivers/acpi/pci_link.c | 136 ++++++++++++++++++++++++++++++++++++------------
+>  1 file changed, 102 insertions(+), 34 deletions(-)
+>
+> diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
+> index 7c8408b..0286f17 100644
+> --- a/drivers/acpi/pci_link.c
+> +++ b/drivers/acpi/pci_link.c
+> @@ -4,6 +4,7 @@
+>   *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
+>   *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
+>   *  Copyright (C) 2002       Dominik Brodowski <devel@brodo.de>
+> + *  Copyright (c) 2015, The Linux Foundation. All rights reserved.
+>   *
+>   * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+>   *
+> @@ -437,7 +438,6 @@ static int acpi_pci_link_set(struct acpi_pci_link *link, int irq)
+>   * enabled system.
+>   */
+>
+> -#define ACPI_MAX_IRQS          256
+>  #define ACPI_MAX_ISA_IRQ       16
+>
+>  #define PIRQ_PENALTY_PCI_AVAILABLE     (0)
+> @@ -447,7 +447,7 @@ static int acpi_pci_link_set(struct acpi_pci_link *link, int irq)
+>  #define PIRQ_PENALTY_ISA_USED          (16*16*16*16*16)
+>  #define PIRQ_PENALTY_ISA_ALWAYS                (16*16*16*16*16*16)
+>
+> -static int acpi_irq_penalty[ACPI_MAX_IRQS] = {
+> +static int acpi_irq_isa_penalty[ACPI_MAX_ISA_IRQ] = {
+>         PIRQ_PENALTY_ISA_ALWAYS,        /* IRQ0 timer */
+>         PIRQ_PENALTY_ISA_ALWAYS,        /* IRQ1 keyboard */
+>         PIRQ_PENALTY_ISA_ALWAYS,        /* IRQ2 cascade */
+> @@ -464,9 +464,68 @@ static int acpi_irq_penalty[ACPI_MAX_IRQS] = {
+>         PIRQ_PENALTY_ISA_USED,          /* IRQ13 fpe, sometimes */
+>         PIRQ_PENALTY_ISA_USED,          /* IRQ14 ide0 */
+>         PIRQ_PENALTY_ISA_USED,          /* IRQ15 ide1 */
+> -       /* >IRQ15 */
+>  };
+>
+> +struct irq_penalty_info {
+> +       int irq;
+> +       int penalty;
+> +       struct list_head node;
+> +};
+> +
+> +static LIST_HEAD(acpi_irq_penalty_list);
+> +
+> +static int acpi_irq_get_penalty(int irq)
+> +{
+> +       struct irq_penalty_info *irq_info;
+> +
+> +       if (irq < ACPI_MAX_ISA_IRQ)
+> +               return acpi_irq_isa_penalty[irq];
+> +
+> +       list_for_each_entry(irq_info, &acpi_irq_penalty_list, node) {
+> +               if (irq_info->irq == irq)
+> +                       return irq_info->penalty;
+> +       }
+> +
+> +       return 0;
+> +}
+> +
+> +static int acpi_irq_set_penalty(int irq, int new_penalty)
+> +{
+> +       struct irq_penalty_info *irq_info;
+> +
+> +       /* see if this is a ISA IRQ */
+> +       if (irq < ACPI_MAX_ISA_IRQ) {
+> +               acpi_irq_isa_penalty[irq] = new_penalty;
+> +               return 0;
+> +       }
+> +
+> +       /* next, try to locate from the dynamic list */
+> +       list_for_each_entry(irq_info, &acpi_irq_penalty_list, node) {
+> +               if (irq_info->irq == irq) {
+> +                       irq_info->penalty  = new_penalty;
+> +                       return 0;
+> +               }
+> +       }
+> +
+> +       /* nope, let's allocate a slot for this IRQ */
+> +       irq_info = kzalloc(sizeof(*irq_info), GFP_KERNEL);
+
+Maybe a comment to explain why we don't have a symmetric free() option.
+
+> +       if (!irq_info)
+> +               return -ENOMEM;
+> +
+> +       irq_info->irq = irq;
+> +       irq_info->penalty = new_penalty;
+> +       list_add_tail(&irq_info->node, &acpi_irq_penalty_list);
+> +
+> +       return 0;
+> +}
+> +
+> +static void acpi_irq_add_penalty(int irq, int penalty)
+> +{
+
+> +       int curpen = acpi_irq_get_penalty(irq);
+> +
+> +       acpi_irq_set_penalty(irq, curpen + penalty);
+
+Can it be one line?
+
+> +}
+> +
+>  int __init acpi_irq_penalty_init(void)
+>  {
+>         struct acpi_pci_link *link;
+> @@ -487,15 +546,16 @@ int __init acpi_irq_penalty_init(void)
+>                             link->irq.possible_count;
+>
+>                         for (i = 0; i < link->irq.possible_count; i++) {
+> -                               if (link->irq.possible[i] < ACPI_MAX_ISA_IRQ)
+> -                                       acpi_irq_penalty[link->irq.
+> -                                                        possible[i]] +=
+> -                                           penalty;
+> +                               if (link->irq.possible[i] < ACPI_MAX_ISA_IRQ) {
+> +                                       int irqpos = link->irq.possible[i];
+> +
+> +                                       acpi_irq_add_penalty(irqpos, penalty);
+> +                               }
+>                         }
+>
+>                 } else if (link->irq.active) {
+> -                       acpi_irq_penalty[link->irq.active] +=
+> -                           PIRQ_PENALTY_PCI_POSSIBLE;
+> +                       acpi_irq_add_penalty(link->irq.active,
+> +                                            PIRQ_PENALTY_PCI_POSSIBLE);
+>                 }
+>         }
+>
+> @@ -547,12 +607,12 @@ static int acpi_pci_link_allocate(struct acpi_pci_link *link)
+>                  * the use of IRQs 9, 10, 11, and >15.
+>                  */
+>                 for (i = (link->irq.possible_count - 1); i >= 0; i--) {
+> -                       if (acpi_irq_penalty[irq] >
+> -                           acpi_irq_penalty[link->irq.possible[i]])
+> +                       if (acpi_irq_get_penalty(irq) >
+> +                           acpi_irq_get_penalty(link->irq.possible[i]))
+>                                 irq = link->irq.possible[i];
+>                 }
+>         }
+> -       if (acpi_irq_penalty[irq] >= PIRQ_PENALTY_ISA_ALWAYS) {
+> +       if (acpi_irq_get_penalty(irq) >= PIRQ_PENALTY_ISA_ALWAYS) {
+>                 printk(KERN_ERR PREFIX "No IRQ available for %s [%s]. "
+>                             "Try pci=noacpi or acpi=off\n",
+>                             acpi_device_name(link->device),
+> @@ -568,7 +628,8 @@ static int acpi_pci_link_allocate(struct acpi_pci_link *link)
+>                             acpi_device_bid(link->device));
+>                 return -ENODEV;
+>         } else {
+> -               acpi_irq_penalty[link->irq.active] += PIRQ_PENALTY_PCI_USING;
+> +               acpi_irq_add_penalty(link->irq.active, PIRQ_PENALTY_PCI_USING);
+> +
+>                 printk(KERN_WARNING PREFIX "%s [%s] enabled at IRQ %d\n",
+>                        acpi_device_name(link->device),
+>                        acpi_device_bid(link->device), link->irq.active);
+> @@ -778,7 +839,7 @@ static void acpi_pci_link_remove(struct acpi_device *device)
+>  }
+>
+>  /*
+> - * modify acpi_irq_penalty[] from cmdline
+> + * modify penalty from cmdline
+>   */
+>  static int __init acpi_irq_penalty_update(char *str, int used)
+>  {
+> @@ -796,13 +857,10 @@ static int __init acpi_irq_penalty_update(char *str, int used)
+>                 if (irq < 0)
+>                         continue;
+>
+> -               if (irq >= ARRAY_SIZE(acpi_irq_penalty))
+> -                       continue;
+> -
+>                 if (used)
+> -                       acpi_irq_penalty[irq] += PIRQ_PENALTY_ISA_USED;
+> +                       acpi_irq_add_penalty(irq, PIRQ_PENALTY_ISA_USED);
+>                 else
+> -                       acpi_irq_penalty[irq] = PIRQ_PENALTY_PCI_AVAILABLE;
+> +                       acpi_irq_set_penalty(irq, PIRQ_PENALTY_PCI_AVAILABLE);
+>
+>                 if (retval != 2)        /* no next number */
+>                         break;
+> @@ -819,18 +877,23 @@ static int __init acpi_irq_penalty_update(char *str, int used)
+>   */
+>  void acpi_penalize_isa_irq(int irq, int active)
+>  {
+> -       if (irq >= 0 && irq < ARRAY_SIZE(acpi_irq_penalty)) {
+> -               if (active)
+> -                       acpi_irq_penalty[irq] += PIRQ_PENALTY_ISA_USED;
+> -               else
+> -                       acpi_irq_penalty[irq] += PIRQ_PENALTY_PCI_USING;
+> -       }
+> +       int penalty;
+> +
+> +       if (irq < 0)
+> +               return;
+> +
+> +       if (active)
+> +               penalty = PIRQ_PENALTY_ISA_USED;
+> +       else
+> +               penalty = PIRQ_PENALTY_PCI_USING;
+> +
+> +       acpi_irq_add_penalty(irq, penalty);
+
+Same as below
+
+>  }
+>
+>  bool acpi_isa_irq_available(int irq)
+>  {
+> -       return irq >= 0 && (irq >= ARRAY_SIZE(acpi_irq_penalty) ||
+> -                           acpi_irq_penalty[irq] < PIRQ_PENALTY_ISA_ALWAYS);
+> +       return irq >= 0 &&
+> +               (acpi_irq_get_penalty(irq) < PIRQ_PENALTY_ISA_ALWAYS);
+>  }
+>
+>  /*
+> @@ -840,13 +903,18 @@ bool acpi_isa_irq_available(int irq)
+>   */
+>  void acpi_penalize_sci_irq(int irq, int trigger, int polarity)
+>  {
+> -       if (irq >= 0 && irq < ARRAY_SIZE(acpi_irq_penalty)) {
+> -               if (trigger != ACPI_MADT_TRIGGER_LEVEL ||
+> -                   polarity != ACPI_MADT_POLARITY_ACTIVE_LOW)
+> -                       acpi_irq_penalty[irq] += PIRQ_PENALTY_ISA_ALWAYS;
+> -               else
+> -                       acpi_irq_penalty[irq] += PIRQ_PENALTY_PCI_USING;
+> -       }
+> +       int penalty;
+> +
+> +       if (irq < 0)
+> +               return;
+> +
+> +       if (trigger != ACPI_MADT_TRIGGER_LEVEL ||
+> +           polarity != ACPI_MADT_POLARITY_ACTIVE_LOW)
+> +               penalty = PIRQ_PENALTY_ISA_ALWAYS;
+> +       else
+> +               penalty = PIRQ_PENALTY_PCI_USING;
+> +
+> +       acpi_irq_add_penalty(irq, penalty);
+
+Why not to change in place? I think a common sense rule is not to
+change something existing if it doesn't add any significant value.
+
+-               acpi_irq_penalty[irq] += PIRQ_PENALTY_PCI_USING;
++              acpi_irq_add_penalty(irq, PIRQ_PENALTY_PCI_USING);
+
+>  }
+
+-- 
+With Best Regards,
+Andy Shevchenko
