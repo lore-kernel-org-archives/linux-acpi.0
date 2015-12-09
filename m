@@ -1,56 +1,79 @@
-From: Ken Xue <ken.xue@amd.com>
-Subject: Re: [PATCH 1/1] ACPI: Support D3 COLD device for old BIOS
-Date: Wed, 9 Dec 2015 09:18:29 +0800
-Message-ID: <1449623909.2175.48.camel@kxue-X58A-UD3R>
-References: <1449463473.2175.13.camel@kxue-X58A-UD3R>
-	 <3822904.Z6rtg8lMJ5@vostro.rjw.lan>
-	 <1449538676.2175.35.camel@kxue-X58A-UD3R>
-	 <1717488.DiPkR8HF9g@vostro.rjw.lan>
+From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Subject: [PATCH v5 0/5] gicv2m: acpi: Add ACPI support for GICv2m MSI
+Date: Tue, 8 Dec 2015 17:48:01 -0800
+Message-ID: <1449625686-5594-1-git-send-email-Suravee.Suthikulpanit@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1717488.DiPkR8HF9g@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, SPG_Linux_Kernel@amd.com, mika.westerberg@linux.intel.com, Andy Shevchenko <andy.shevchenko@gmail.com>, Ivan.Zheng@amd.com, Alex.Chuang@amd.com
+Content-Type: text/plain
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-by2on0079.outbound.protection.outlook.com ([207.46.100.79]:2560
+	"EHLO na01-by2-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752074AbbLIBsY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 8 Dec 2015 20:48:24 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, hanjun.guo@linaro.org, tomasz.nowicki@linaro.org, graeme.gregory@linaro.org, dhdang@apm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 
-On Tue, 2015-12-08 at 14:14 +0100, Rafael J. Wysocki wrote:
-> On Tuesday, December 08, 2015 09:37:56 AM Ken Xue wrote:
-> > On Mon, 2015-12-07 at 23:48 +0100, Rafael J. Wysocki wrote:
-> > > On Monday, December 07, 2015 12:44:33 PM Ken Xue wrote:
-> > > > D3cold is only regarded as valid if the "_PR3" object is present
-> > > > for the given device after the commit <20dacb71ad28>
-> > > > (ACPI/PM: Reworkdevice power management to follow ACPI 6).
-> > > > 
-> > > > But some old BIOS only defined "_PS3" for the D3COLD device.
-> > > > And old kernel also believes the device has "_PS3" is a
-> > > > D3COLD device.
-> > > > 
-> > > > So, add some logics for supporting D3 COLD device for old BIOS
-> > > > which is compatible with earlier ACPI spec.
-> > > > 
-> > > > Signed-off-by: Ken Xue <Ken.Xue@amd.com>
-> > > > Reported-and-tested-by: Gang Long <Gang.Long@amd.com>
-> > > 
-> > > Well, what really is the problem?
-> > 
-> > My problem is that
-> > "acpi_device_can_poweroff" is called by "zpodd_init" in libata-zpodd.c. 
-> > And ZPODD feature only can be enabled when D3_COLD is valid.
-> 
-> This means that acpi_device_can_poweroff() needs to be updated.  What about
-> like this:
-> 
-> static inline bool acpi_device_can_poweroff(struct acpi_device *adev)
-> {
-> 	return adev->power.states[ACPI_STATE_D3_COLD].flags.valid ||
-		((acpi_gbl_FADT.header.revision < 6) &&
-> 		 adev->power.states[ACPI_STATE_D3_HOT].flags.explicit_set);
-> }
+This patch series has been forked from the following patch series since
+it no longer depends on the rest of the patches.
 
-It also could work by refining "acpi_device_can_poweroff".
-But ZPODD exactly requests D3 Cold support, So, checking ACPI version
-should be necessary when D3 hot is explicit_set.
-If you do not have other concern, I will submit new Patch later.
+  [PATCH v4 00/10] ACPI GIC Self-probing, GICv2m and GICv3 support
+  https://lkml.org/lkml/2015/7/29/234
+
+It has been ported to use the newly introduced device fwnode_handle 
+for ACPI irqdmain introduced by Marc in the following patch series:
+
+  [PATCH v2 00/17] Divorcing irqdomain and device_node
+  http://git.kernel.org/cgit/linux/kernel/git/maz/arm-platforms.git irq/irq-domain-fwnode-v2
+
+The following git branch contains the submitted patches along with
+the pre-requsite patches (mainly for ARM64 PCI support for ACPI).
+
+  https://github.com/ssuthiku/linux.git	v2m-multiframe-v5
+
+This has been tested on AMD Seattle (Overdrive) RevB system. 
+
+NOTE: I have not tested ACPI GICv2m multiframe support since
+I don't have access to such system. Any helps are appreciated.
+
+Thanks,
+Suravee
+
+Changes from V4: (https://lkml.org/lkml/2015/12/08/613)
+  - Fix build error when not specifying CONFIG_IRQ_DOMAIN.
+
+Changes from V3: (https://lkml.org/lkml/2015/10/21/691)
+  - Merged patch 2 into 1, and got rid off pci_msi_get_fwnode()
+    since only ACPI will likely use this. (per Marc suggestion)
+  - Rebased to 4.4.0-rc4
+
+Changes from V2: (https://lkml.org/lkml/2015/10/14/1010)
+  - Minor clean up from Tomasz review comment in patch 6/6.
+
+Changes from V1: (https://lkml.org/lkml/2015/10/13/859)
+  - Rebase on top of Marc's patch to addng support for multiple MSI frames
+    (https://lkml.org/lkml/2015/10/14/271)
+  - Adding fwnode convenient functions (patch 3 and 4)
+
+Suravee Suthikulpanit (5):
+  acpi: pci: Setup MSI domain for ACPI based pci devices
+  irqdomain: introduce is_fwnode_irqchip helper
+  irqdomain: Introduce irq_domain_get_irqchip_fwnode_name helper
+    function
+  gicv2m: Refactor to prepare for ACPI support
+  gicv2m: acpi: Introducing GICv2m ACPI support
+
+ drivers/irqchip/irq-gic-v2m.c   | 152 ++++++++++++++++++++++++++++++++++------
+ drivers/irqchip/irq-gic.c       |   5 +-
+ drivers/pci/pci-acpi.c          |  32 +++++++++
+ drivers/pci/probe.c             |   2 +
+ include/linux/irqchip/arm-gic.h |   4 ++
+ include/linux/irqdomain.h       |  11 +++
+ include/linux/pci.h             |  10 +++
+ kernel/irq/irqdomain.c          |  20 +++++-
+ 8 files changed, 213 insertions(+), 23 deletions(-)
+
+-- 
+2.1.0
+
