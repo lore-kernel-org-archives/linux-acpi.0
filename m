@@ -1,54 +1,82 @@
-From: Bastien Nocera <hadess@hadess.net>
-Subject: Re: [PATCH] ACPI / scan: set status to 0 if _STA failed
-Date: Wed, 09 Dec 2015 16:40:22 +0100
-Message-ID: <1449675622.3723.4.camel@hadess.net>
-References: <564D3C75.60208@intel.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH V1 00/11] MMCONFIG refactoring and ARM64 PCI hostbridge
+ init based on ACPI
+Date: Wed, 9 Dec 2015 15:55:11 +0000
+Message-ID: <20151209155511.GB21048@red-moon>
+References: <1445963922-22711-1-git-send-email-tn@semihalf.com>
+ <20151207203117.GB14429@localhost>
+ <20151209100125.GA12632@jayachandranc.netlogicmicro.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from slow1-d.mail.gandi.net ([217.70.178.86]:50456 "EHLO
-	slow1-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751856AbbLIPn6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Dec 2015 10:43:58 -0500
-In-Reply-To: <564D3C75.60208@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20151209100125.GA12632@jayachandranc.netlogicmicro.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Jayachandran C." <jchandra@broadcom.com>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, Tomasz Nowicki <tn@semihalf.com>, bhelgaas@google.com, arnd@arndb.de, rjw@rjwysocki.net, hanjun.guo@linaro.org, jiang.liu@linux.intel.com, ddaney@caviumnetworks.com, Liviu.Dudau@arm.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aaron Lu <aaron.lu@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Stephen Just <stephenjust@gmail.com>, "Chen, Yu C" <yu.c.chen@intel.com>, linux-spi@vger.kernel.org
 
-On Thu, 2015-11-19 at 11:05 +0800, Aaron Lu wrote:
-> Some ACPI node's _STA will touch operation region field, since the
-> evaluation of _STA in acpi_bus_type_and_status is very early, the
-> operation region handler is not ready yet. Instead of fail that
-> function
-> and not creating the acpi_device node consequently, set status to 0
-> so
-> that later when the driver for that device is probing, it can find
-> the acpi_device node and proceed normally. And at that time, the
-> handler for the operation region is ready and its _STA evaluation
-> will
-> succeed, its present status can be checked there.
+On Wed, Dec 09, 2015 at 03:31:41PM +0530, Jayachandran C. wrote:
+> [trimmed the cc list a bit]
+> On Mon, Dec 07, 2015 at 02:31:17PM -0600, Bjorn Helgaas wrote:
+> > On Tue, Oct 27, 2015 at 05:38:31PM +0100, Tomasz Nowicki wrote:
+> [...]
+> > > 
+> > > Tomasz Nowicki (10):
+> > >   x86, pci: Reorder logic of pci_mmconfig_insert() function
+> > >   x86, pci, acpi: Move arch-agnostic MMCONFIG (aka ECAM) and ACPI code
+> > >     out of arch/x86/ directory
+> > >   pci, acpi, mcfg: Provide generic implementation of MCFG code
+> > >     initialization.
+> > >   x86, pci: mmconfig_{32,64}.c code refactoring - remove code
+> > >     duplication.
+> > >   x86, pci, ecam: mmconfig_64.c becomes default implementation for ECAM
+> > >     driver.
+> > >   pci, acpi, mcfg: Provide default RAW ACPI PCI config space accessors.
+> > >   pci, acpi, ecam: Add flag to indicate whether ECAM region was hot
+> > >     added or not.
+> > >   x86, pci: Use previously added ECAM hot_added flag to remove ECAM
+> > >     regions.
+> [...]
+> > 
+> > Waiting for an updated version after all the discussion.
 > 
-> Even there will be no driver using this node later, it doesn't seem
-> hurt to have one more acpi_device node created with status set to 0.
+> Hi Bjorn,
 > 
-> This happens on Microsoft Surface 3, where the SPI device node NTRG's
-> _STA touches GPIO fields and the SPI core driver will only enumerate
-> SPI
-> devices from ACPI if the acpi_device node is 1: created; 2: _STA
-> indicates it's present.
+> After looking thru the code, I don't think moving the mmconfig code out
+> of x86 and using it in ARM64 is a good idea.
 > 
-> Note that due to another problem in SPI driver, for NTRG to be
-> actually
-> enumerated, some changes have to be made in the SPI layer, which is
-> addressed by Mika(not send out yet):
-> https://bugzilla.kernel.org/show_bug.cgi?id=104291#c23
+> The code maintains a list of mapping of ECAM regions which can modified
+> at run time, and ends doing this sequence for doing a config access:
 > 
-> Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=104291
-> Reported-by: Bastien Nocera <bugzilla@hadess.net>
-> Signed-off-by: Aaron Lu <aaron.lu@intel.com>
+>         rcu_read_lock();
+>         addr = pci_dev_base(seg, bus, devfn);
+> 	        list_for_each_entry_rcu(cfg, &pci_mmcfg_list, list)
+> 			...find mapping...
+> 	do pci operation
+> 	rcu_read_unlock();
+> 
+> A lot of the complexity in mmconfig_*.c is to maintain and validate
+> the pci_mmcfg_list which seems to be unecessary.
 
-Worked for me with the additional SPI patch on a Surface 3.
+That list is there to manage hotplug bridges, what makes you think
+it is not necessary ? Jiang (in CC) can certainly comment on that and
+how that list handling can be updated/simplified, if possible.
 
-Tested-by: Bastien Nocera <hadess@hadess.net>
+> The better way would be to keep the mapping of ECAM region in the PCI
+> host bridge sysdata like pci-host-generic and directly access using
+> map_bus/read/write.
+> 
+> I see that early raw_pci_read/raw_pci_write may need to be supported.
+> I am not sure if this is needed in ARM64 - and if it is, we can handle
+> this by taking an early mapping for ECAM regions until the PCI host
+> bridges are setup, and dropping the mapping at that point.
+
+I do not think it is needed (and if it is it can be added later, it
+should not block this series), this was already debated in previous
+threads (and in the ASWG, where basically nobody could provide a reason
+why those raw accessors in ACPICA are meant to exist, they are there for
+AML to access config space, why that has to be happen before PCI busses
+are enumerated is still a mystery to me).
+
+Lorenzo
