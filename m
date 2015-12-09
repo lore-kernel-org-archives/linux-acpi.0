@@ -1,52 +1,36 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v3 1/9] device core: add BUS_NOTIFY_DRIVER_NOT_BOUND notification
-Date: Wed, 09 Dec 2015 02:20:25 +0100
-Message-ID: <1860832.P1KhQB5H7z@vostro.rjw.lan>
-References: <1449265765-9393-1-git-send-email-andriy.shevchenko@linux.intel.com> <4559667.zZkzgz1dlB@vostro.rjw.lan> <CAHp75VcRHogfSfQQSvcQhU2eW8rWzY1AJPGTSK7KYh69gKgHXA@mail.gmail.com>
+Subject: Re: [PATCH] PCI: constify pci_platform_pm_ops structure
+Date: Wed, 09 Dec 2015 02:21:21 +0100
+Message-ID: <11604085.iKre2i4LQp@vostro.rjw.lan>
+References: <1449419625-29045-1-git-send-email-Julia.Lawall@lip6.fr> <1556686.IXJIjFBvQx@vostro.rjw.lan> <20151207160649.GG7994@localhost>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CAHp75VcRHogfSfQQSvcQhU2eW8rWzY1AJPGTSK7KYh69gKgHXA@mail.gmail.com>
+In-Reply-To: <20151207160649.GG7994@localhost>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Thomas Gleixner <tglx@linutronix.de>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Vinod Koul <vinod.koul@intel.com>, dmaengine <dmaengine@vger.kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Julia Lawall <Julia.Lawall@lip6.fr>, Bjorn Helgaas <bhelgaas@google.com>, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org, linux-pci@vger.kernel.org, linux-acpi@vger.kernel.org, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tuesday, December 08, 2015 03:50:06 PM Andy Shevchenko wrote:
-> On Tue, Dec 8, 2015 at 4:05 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> > On Tuesday, December 08, 2015 02:32:00 PM Thomas Gleixner wrote:
-> >> On Mon, 7 Dec 2015, Rafael J. Wysocki wrote:
-> >> > On Monday, December 07, 2015 12:57:33 PM Andy Shevchenko wrote:
-> >> > > > Andy, what about if I put patches [1-6/9] into my queue for v4.5 now
-> >> > > > and
-> >> > > > the remaining ones will wait for Vinod to comment?
-> >> > >
-> >> > > Yes, it's possible, but please don't forget the patch from http://www.s
-> >> > > pinics.net/lists/kernel/msg2119229.html. There also formally Acks from
-> >> > > Thomas and Ong, Boon Leong.
-> >> >
-> >> > Well, if Thomas prefers to take this one into tip, I guess the series should
-> >> > go along with it or wait for when that one is merged.
-> >>
-> >> Works either way. I have no changes pending against that iosf_mbi stuff.
-> >
+On Monday, December 07, 2015 10:06:49 AM Bjorn Helgaas wrote:
+> On Mon, Dec 07, 2015 at 02:41:34AM +0100, Rafael J. Wysocki wrote:
+> > On Sunday, December 06, 2015 05:33:45 PM Julia Lawall wrote:
+> > > The pci_platform_pm_ops structure is never modified, so declare it as
+> > > const.
+> > > 
+> > > Done with the help of Coccinelle.
+> > > 
+> > > Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+> > 
+> > OK
+> > 
+> > Bjorn, do you want me to handle this one?
 > 
-> Thanks, Thomas!
+> Sure, sounds good to me.
 > 
-> > Cool.  I'll take that patch and the series then.
-> 
-> Please, also put patch 5 before patch 4. It will go smoothly,
+> Acked-by: Bjorn Helgaas <bhelgaas@google.com>
 
-It didn't, but that's not a big deal.
+OK, queued up for 4.5, thanks!
 
-> or I can send an updated version.
-
-No need.
-
-I've put the entire series (including the three last patches with Vinod's ACKs)
-into my bleeding-edge branch, please check it in there and let me know if
-anything is not right.
-
-Thanks,
 Rafael
