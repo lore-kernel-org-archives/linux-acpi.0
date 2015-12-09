@@ -1,109 +1,62 @@
-From: Loc Ho <lho@apm.com>
-Subject: Re: [PATCH 1/2] acpi:apd: Add APM X-Gene ACPI I2C device support
-Date: Wed, 9 Dec 2015 14:03:59 -0800
-Message-ID: <CAPw-ZTkxhdEmOP_DN=Cv1MmPw5UsZHcd-kLVbqYFJU8-6=sc+A@mail.gmail.com>
-References: <1449533774-22672-1-git-send-email-lho@apm.com>
-	<1449533774-22672-2-git-send-email-lho@apm.com>
-	<1449542948.2175.41.camel@kxue-X58A-UD3R>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH V2] ACPI: Support D3 COLD device in old BIOS for ZPODD
+Date: Thu, 10 Dec 2015 00:07:27 +0100
+Message-ID: <2607233.VlpZS8z9ty@vostro.rjw.lan>
+References: <1449649050.2175.59.camel@kxue-X58A-UD3R>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <1449542948.2175.41.camel@kxue-X58A-UD3R>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Ken Xue <ken.xue@amd.com>
-Cc: wsa@the-dreams.de, rjw@rjwysocki.net, mika.westerberg@linux.intel.com, Len Brown <lenb@kernel.org>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Jon Masters <jcm@redhat.com>, "patches@apm.com" <patches@apm.com>, Annie.Wang@amd.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:60415 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753677AbbLIWh3 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Dec 2015 17:37:29 -0500
+In-Reply-To: <1449649050.2175.59.camel@kxue-X58A-UD3R>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ken Xue <ken.xue@amd.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, SPG_Linux_Kernel@amd.com, mika.westerberg@linux.intel.com, Andy Shevchenko <andy.shevchenko@gmail.com>, Ivan.Zheng@amd.com, Alex.Chuang@amd.com, tj@kernel.org, stern@rowland.harvard.edu
 
-Hi Ken,
+On Wednesday, December 09, 2015 04:17:30 PM Ken Xue wrote:
+> D3cold is only regarded as valid if the "_PR3" object is
+> present for the given device after the commit 20dacb71ad28
+> ("ACPI/PM: Rework device power management to follow ACPI 6").
+> 
+> But some old BIOS only defined "_PS3" for the D3COLD device,
+> such as ZPODD device. And old kernel also believes the device with
+> "_PS3" is a D3COLD device.
+> 
+> So, add some logics for supporting D3 COLD device with old BIOS
+> which is compatible with earlier ACPI spec and kernel behavior.
+> 
+> Reference:
+> http://marc.info/?l=linux-acpi&m=144946938709759&w=2
+> 
+> Signed-off-by: Ken Xue <Ken.Xue@amd.com>
+> Reported-and-tested-by: Gang Long <Gang.Long@amd.com>
+> ---
+>  include/acpi/acpi_bus.h | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+> 
+> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> index ad0a5ff..9894b75 100644
+> --- a/include/acpi/acpi_bus.h
+> +++ b/include/acpi/acpi_bus.h
+> @@ -631,7 +631,9 @@ static inline bool acpi_device_can_wakeup(struct acpi_device *adev)
+>  
+>  static inline bool acpi_device_can_poweroff(struct acpi_device *adev)
+>  {
+> -	return adev->power.states[ACPI_STATE_D3_COLD].flags.valid;
+> +	return adev->power.states[ACPI_STATE_D3_COLD].flags.valid ||
+> +		((acpi_gbl_FADT.header.revision < 6) &&
+> +		adev->power.states[ACPI_STATE_D3_HOT].flags.explicit_set);
+>  }
+>  
+>  #else	/* CONFIG_ACPI */
 
-On Mon, Dec 7, 2015 at 6:49 PM, Ken Xue <ken.xue@amd.com> wrote:
->
-> On Mon, 2015-12-07 at 17:16 -0700, Loc Ho wrote:
-> > Add APM X-Gene ACPI I2C device support by hooks into existent
-> > ACPI apd driver. To fully enable support, require another
-> > patch to add the X-Gene ACPI node into the DW I2C driver.
-> >
-> > Signed-off-by: Loc Ho <lho@apm.com>
-> > ---
-> >  drivers/acpi/acpi_apd.c |    8 +++++++-
-> >  1 files changed, 7 insertions(+), 1 deletions(-)
-> >
-> > diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
-> > index a450e7a..6a9cb8d 100644
-> > --- a/drivers/acpi/acpi_apd.c
-> > +++ b/drivers/acpi/acpi_apd.c
-> > @@ -51,7 +51,7 @@ struct apd_private_data {
-> >       const struct apd_device_desc *dev_desc;
-> >  };
-> >
-> > -#ifdef CONFIG_X86_AMD_PLATFORM_DEVICE
-> > +#if defined(CONFIG_X86_AMD_PLATFORM_DEVICE) || defined(CONFIG_ARM64)
-> >  #define APD_ADDR(desc)       ((unsigned long)&desc)
-> >
-> >  static int acpi_apd_setup(struct apd_private_data *pdata)
-> > @@ -76,6 +76,11 @@ static struct apd_device_desc cz_i2c_desc = {
-> >       .fixed_clk_rate = 133000000,
-> >  };
-> >
-> > +static struct apd_device_desc xgene_i2c_desc = {
-> > +     .setup = acpi_apd_setup,
-> > +     .fixed_clk_rate = 100000000,
-> > +};
-> > +
-> >  static struct apd_device_desc cz_uart_desc = {
-> >       .setup = acpi_apd_setup,
-> >       .fixed_clk_rate = 48000000,
-> > @@ -135,6 +140,7 @@ static const struct acpi_device_id acpi_apd_device_ids[] = {
-> >       { "AMD0010", APD_ADDR(cz_i2c_desc) },
-> >       { "AMD0020", APD_ADDR(cz_uart_desc) },
-> >       { "AMD0030", },
-> > +     { "APMC0D0F", APD_ADDR(xgene_i2c_desc) },
-> It is better to split AMD devices and ARM devices with macros:
-> CONFIG_X86_AMD_PLATFORM_DEVICE and CONFIG_ARM64.
+This is fine by me, but _PS3 is allowed to remove power from the device even by ACPI 6.
 
-This gets pretty ugly to me with define as it would look like this:
+Queued up for 4.5, thanks!
 
-#if defined(CONFIG_X86_AMD_PLATFORM_DEVICE) || defined(CONFIG_ARM64)
-#define APD_ADDR(desc) ((unsigned long)&desc)
+Rafael
 
-static int acpi_apd_setup(struct apd_private_data *pdata)
-{
-   .....
-}
-
-#ifdef CONFIG_X86_AMD_PLATFORM_DEVICE
-static struct apd_device_desc cz_i2c_desc = {
-    ....
-};
-
-static struct apd_device_desc xgene_i2c_desc = {
-    ...
-};
-#endif
-
-#ifdef CONFIG_ARM64
-static struct apd_device_desc cz_uart_desc = {
-    ....
-};
-#endif
-
-#else
-
-#define APD_ADDR(desc) (0UL)
-
-#endif /* CONFIG_X86_AMD_PLATFORM_DEVICE */
-
-And...
-
-#ifdef CONFIG_X86_AMD_PLATFORM_DEVICE
-{ "AMD0010", APD_ADDR(cz_i2c_desc) },
-{ "AMD0020", APD_ADDR(cz_uart_desc) },
-{ "AMD0030", },
-#endif
-#ifdef CONFIG_ARM64
-{ "APMC0D0F", APD_ADDR(xgene_i2c_desc) },
-#endif
-
-Sure you want this?
-
--Loc
