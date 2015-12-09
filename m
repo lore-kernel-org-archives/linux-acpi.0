@@ -1,267 +1,46 @@
 From: Sinan Kaya <okaya@codeaurora.org>
-Subject: [PATCH V9 1/2] ACPI, PCI, irq: remove interrupt count restriction
-Date: Wed,  9 Dec 2015 11:18:27 -0500
-Message-ID: <1449677909-12432-2-git-send-email-okaya@codeaurora.org>
+Subject: [PATCH V9 2/2] ACPI, PCI, irq: remove interrupt number restriction
+Date: Wed,  9 Dec 2015 11:18:28 -0500
+Message-ID: <1449677909-12432-3-git-send-email-okaya@codeaurora.org>
 References: <1449677909-12432-1-git-send-email-okaya@codeaurora.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:50818 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750994AbbLIQSh (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Dec 2015 11:18:37 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1449677909-12432-1-git-send-email-okaya@codeaurora.org>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com, helgaas@kernel.org
 Cc: Sinan Kaya <okaya@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-Code currently supports 256 maximum interrupts at this moment. The patch is
-reconfiguring the penalty array as a dynamic list to remove this
-limitation.
-
-A new penalty linklist has been added for all other interrupts greater than
-16. If an IRQ is not found in the link list, an IRQ info structure will be
-dynamically allocated on the first access and will be placed on the list
-for further reuse. The list will grow by the number of supported interrupts
-in the ACPI table rather than having a 256 hard limitation.
+The ACPI compiler uses the extended format when used interrupt numbers
+are greater than 15. The extended IRQ syntax is 32 bits according to the
+ACPI spec. The code supports parsing the extended interrupt numbers.
+However, due to used data structure type; the code silently truncates
+interrupt numbers greater than 256.
 
 Acked-by: Bjorn Helgaas <bhelgaas@google.com>
 Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
 ---
- drivers/acpi/pci_link.c | 136 ++++++++++++++++++++++++++++++++++++------------
- 1 file changed, 102 insertions(+), 34 deletions(-)
+ drivers/acpi/pci_link.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/drivers/acpi/pci_link.c b/drivers/acpi/pci_link.c
-index 7c8408b..0286f17 100644
+index 0286f17..5114d80 100644
 --- a/drivers/acpi/pci_link.c
 +++ b/drivers/acpi/pci_link.c
-@@ -4,6 +4,7 @@
-  *  Copyright (C) 2001, 2002 Andy Grover <andrew.grover@intel.com>
-  *  Copyright (C) 2001, 2002 Paul Diefenbaugh <paul.s.diefenbaugh@intel.com>
-  *  Copyright (C) 2002       Dominik Brodowski <devel@brodo.de>
-+ *  Copyright (c) 2015, The Linux Foundation. All rights reserved.
-  *
-  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  *
-@@ -437,7 +438,6 @@ static int acpi_pci_link_set(struct acpi_pci_link *link, int irq)
-  * enabled system.
+@@ -68,12 +68,12 @@ static struct acpi_scan_handler pci_link_handler = {
+  * later even the link is disable. Instead, we just repick the active irq
   */
- 
--#define ACPI_MAX_IRQS		256
- #define ACPI_MAX_ISA_IRQ	16
- 
- #define PIRQ_PENALTY_PCI_AVAILABLE	(0)
-@@ -447,7 +447,7 @@ static int acpi_pci_link_set(struct acpi_pci_link *link, int irq)
- #define PIRQ_PENALTY_ISA_USED		(16*16*16*16*16)
- #define PIRQ_PENALTY_ISA_ALWAYS		(16*16*16*16*16*16)
- 
--static int acpi_irq_penalty[ACPI_MAX_IRQS] = {
-+static int acpi_irq_isa_penalty[ACPI_MAX_ISA_IRQ] = {
- 	PIRQ_PENALTY_ISA_ALWAYS,	/* IRQ0 timer */
- 	PIRQ_PENALTY_ISA_ALWAYS,	/* IRQ1 keyboard */
- 	PIRQ_PENALTY_ISA_ALWAYS,	/* IRQ2 cascade */
-@@ -464,9 +464,68 @@ static int acpi_irq_penalty[ACPI_MAX_IRQS] = {
- 	PIRQ_PENALTY_ISA_USED,		/* IRQ13 fpe, sometimes */
- 	PIRQ_PENALTY_ISA_USED,		/* IRQ14 ide0 */
- 	PIRQ_PENALTY_ISA_USED,		/* IRQ15 ide1 */
--	/* >IRQ15 */
+ struct acpi_pci_link_irq {
+-	u8 active;		/* Current IRQ */
++	u32 active;		/* Current IRQ */
+ 	u8 triggering;		/* All IRQs */
+ 	u8 polarity;		/* All IRQs */
+ 	u8 resource_type;
+ 	u8 possible_count;
+-	u8 possible[ACPI_PCI_LINK_MAX_POSSIBLE];
++	u32 possible[ACPI_PCI_LINK_MAX_POSSIBLE];
+ 	u8 initialized:1;
+ 	u8 reserved:7;
  };
- 
-+struct irq_penalty_info {
-+	int irq;
-+	int penalty;
-+	struct list_head node;
-+};
-+
-+static LIST_HEAD(acpi_irq_penalty_list);
-+
-+static int acpi_irq_get_penalty(int irq)
-+{
-+	struct irq_penalty_info *irq_info;
-+
-+	if (irq < ACPI_MAX_ISA_IRQ)
-+		return acpi_irq_isa_penalty[irq];
-+
-+	list_for_each_entry(irq_info, &acpi_irq_penalty_list, node) {
-+		if (irq_info->irq == irq)
-+			return irq_info->penalty;
-+	}
-+
-+	return 0;
-+}
-+
-+static int acpi_irq_set_penalty(int irq, int new_penalty)
-+{
-+	struct irq_penalty_info *irq_info;
-+
-+	/* see if this is a ISA IRQ */
-+	if (irq < ACPI_MAX_ISA_IRQ) {
-+		acpi_irq_isa_penalty[irq] = new_penalty;
-+		return 0;
-+	}
-+
-+	/* next, try to locate from the dynamic list */
-+	list_for_each_entry(irq_info, &acpi_irq_penalty_list, node) {
-+		if (irq_info->irq == irq) {
-+			irq_info->penalty  = new_penalty;
-+			return 0;
-+		}
-+	}
-+
-+	/* nope, let's allocate a slot for this IRQ */
-+	irq_info = kzalloc(sizeof(*irq_info), GFP_KERNEL);
-+	if (!irq_info)
-+		return -ENOMEM;
-+
-+	irq_info->irq = irq;
-+	irq_info->penalty = new_penalty;
-+	list_add_tail(&irq_info->node, &acpi_irq_penalty_list);
-+
-+	return 0;
-+}
-+
-+static void acpi_irq_add_penalty(int irq, int penalty)
-+{
-+	int curpen = acpi_irq_get_penalty(irq);
-+
-+	acpi_irq_set_penalty(irq, curpen + penalty);
-+}
-+
- int __init acpi_irq_penalty_init(void)
- {
- 	struct acpi_pci_link *link;
-@@ -487,15 +546,16 @@ int __init acpi_irq_penalty_init(void)
- 			    link->irq.possible_count;
- 
- 			for (i = 0; i < link->irq.possible_count; i++) {
--				if (link->irq.possible[i] < ACPI_MAX_ISA_IRQ)
--					acpi_irq_penalty[link->irq.
--							 possible[i]] +=
--					    penalty;
-+				if (link->irq.possible[i] < ACPI_MAX_ISA_IRQ) {
-+					int irqpos = link->irq.possible[i];
-+
-+					acpi_irq_add_penalty(irqpos, penalty);
-+				}
- 			}
- 
- 		} else if (link->irq.active) {
--			acpi_irq_penalty[link->irq.active] +=
--			    PIRQ_PENALTY_PCI_POSSIBLE;
-+			acpi_irq_add_penalty(link->irq.active,
-+					     PIRQ_PENALTY_PCI_POSSIBLE);
- 		}
- 	}
- 
-@@ -547,12 +607,12 @@ static int acpi_pci_link_allocate(struct acpi_pci_link *link)
- 		 * the use of IRQs 9, 10, 11, and >15.
- 		 */
- 		for (i = (link->irq.possible_count - 1); i >= 0; i--) {
--			if (acpi_irq_penalty[irq] >
--			    acpi_irq_penalty[link->irq.possible[i]])
-+			if (acpi_irq_get_penalty(irq) >
-+			    acpi_irq_get_penalty(link->irq.possible[i]))
- 				irq = link->irq.possible[i];
- 		}
- 	}
--	if (acpi_irq_penalty[irq] >= PIRQ_PENALTY_ISA_ALWAYS) {
-+	if (acpi_irq_get_penalty(irq) >= PIRQ_PENALTY_ISA_ALWAYS) {
- 		printk(KERN_ERR PREFIX "No IRQ available for %s [%s]. "
- 			    "Try pci=noacpi or acpi=off\n",
- 			    acpi_device_name(link->device),
-@@ -568,7 +628,8 @@ static int acpi_pci_link_allocate(struct acpi_pci_link *link)
- 			    acpi_device_bid(link->device));
- 		return -ENODEV;
- 	} else {
--		acpi_irq_penalty[link->irq.active] += PIRQ_PENALTY_PCI_USING;
-+		acpi_irq_add_penalty(link->irq.active, PIRQ_PENALTY_PCI_USING);
-+
- 		printk(KERN_WARNING PREFIX "%s [%s] enabled at IRQ %d\n",
- 		       acpi_device_name(link->device),
- 		       acpi_device_bid(link->device), link->irq.active);
-@@ -778,7 +839,7 @@ static void acpi_pci_link_remove(struct acpi_device *device)
- }
- 
- /*
-- * modify acpi_irq_penalty[] from cmdline
-+ * modify penalty from cmdline
-  */
- static int __init acpi_irq_penalty_update(char *str, int used)
- {
-@@ -796,13 +857,10 @@ static int __init acpi_irq_penalty_update(char *str, int used)
- 		if (irq < 0)
- 			continue;
- 
--		if (irq >= ARRAY_SIZE(acpi_irq_penalty))
--			continue;
--
- 		if (used)
--			acpi_irq_penalty[irq] += PIRQ_PENALTY_ISA_USED;
-+			acpi_irq_add_penalty(irq, PIRQ_PENALTY_ISA_USED);
- 		else
--			acpi_irq_penalty[irq] = PIRQ_PENALTY_PCI_AVAILABLE;
-+			acpi_irq_set_penalty(irq, PIRQ_PENALTY_PCI_AVAILABLE);
- 
- 		if (retval != 2)	/* no next number */
- 			break;
-@@ -819,18 +877,23 @@ static int __init acpi_irq_penalty_update(char *str, int used)
-  */
- void acpi_penalize_isa_irq(int irq, int active)
- {
--	if (irq >= 0 && irq < ARRAY_SIZE(acpi_irq_penalty)) {
--		if (active)
--			acpi_irq_penalty[irq] += PIRQ_PENALTY_ISA_USED;
--		else
--			acpi_irq_penalty[irq] += PIRQ_PENALTY_PCI_USING;
--	}
-+	int penalty;
-+
-+	if (irq < 0)
-+		return;
-+
-+	if (active)
-+		penalty = PIRQ_PENALTY_ISA_USED;
-+	else
-+		penalty = PIRQ_PENALTY_PCI_USING;
-+
-+	acpi_irq_add_penalty(irq, penalty);
- }
- 
- bool acpi_isa_irq_available(int irq)
- {
--	return irq >= 0 && (irq >= ARRAY_SIZE(acpi_irq_penalty) ||
--			    acpi_irq_penalty[irq] < PIRQ_PENALTY_ISA_ALWAYS);
-+	return irq >= 0 &&
-+		(acpi_irq_get_penalty(irq) < PIRQ_PENALTY_ISA_ALWAYS);
- }
- 
- /*
-@@ -840,13 +903,18 @@ bool acpi_isa_irq_available(int irq)
-  */
- void acpi_penalize_sci_irq(int irq, int trigger, int polarity)
- {
--	if (irq >= 0 && irq < ARRAY_SIZE(acpi_irq_penalty)) {
--		if (trigger != ACPI_MADT_TRIGGER_LEVEL ||
--		    polarity != ACPI_MADT_POLARITY_ACTIVE_LOW)
--			acpi_irq_penalty[irq] += PIRQ_PENALTY_ISA_ALWAYS;
--		else
--			acpi_irq_penalty[irq] += PIRQ_PENALTY_PCI_USING;
--	}
-+	int penalty;
-+
-+	if (irq < 0)
-+		return;
-+
-+	if (trigger != ACPI_MADT_TRIGGER_LEVEL ||
-+	    polarity != ACPI_MADT_POLARITY_ACTIVE_LOW)
-+		penalty = PIRQ_PENALTY_ISA_ALWAYS;
-+	else
-+		penalty = PIRQ_PENALTY_PCI_USING;
-+
-+	acpi_irq_add_penalty(irq, penalty);
- }
- 
- /*
 -- 
 Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
 Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
-
