@@ -1,220 +1,95 @@
-From: Yasuaki Ishimatsu <yasu.isimatu@gmail.com>
-Subject: Re: [PATCH v3 0/5] Make cpuid <-> nodeid mapping persistent.
-Date: Wed, 09 Dec 2015 13:10:48 -0800 (PST)
-Message-ID: <566898d8.4a568c0a.de487.5860@mx.google.com>
-References: <1447906935-31899-1-git-send-email-tangchen@cn.fujitsu.com>
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: Re: [PATCH v3 1/3] resource: Add @flags to region_intersects()
+Date: Wed, 09 Dec 2015 14:44:15 -0700
+Message-ID: <1449697455.29051.6.camel@hpe.com>
+References: <1448404418-28800-1-git-send-email-toshi.kani@hpe.com>
+	 <1448404418-28800-2-git-send-email-toshi.kani@hpe.com>
+	 <20151201135000.GB4341@pd.tnic>
+	 <CAPcyv4g2n9yTWye2aVvKMP0X7mrm_NLKmGd5WBO2SesTj77gbg@mail.gmail.com>
+	 <20151201171322.GD4341@pd.tnic>
+	 <CA+55aFw22JD8W2cy3w=5VcU9-ENXSP9utmhGB2NeiDVqwpnUSw@mail.gmail.com>
+	 <1449168859.9855.54.camel@hpe.com> <20151203184051.GE3213@pd.tnic>
+	 <CA+55aFy4WQrWexC4u2LxX9Mw2NVoznw7p3Yh=iF4Xtf7zKWnRw@mail.gmail.com>
+	 <1449174925.9855.83.camel@hpe.com>
+	 <CAA9_cmeDbpQg3XmsKaEb1f+hSVxq5+3DpLm004wiagf_uwbFMw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1447906935-31899-1-git-send-email-tangchen@cn.fujitsu.com>
+In-Reply-To: <CAA9_cmeDbpQg3XmsKaEb1f+hSVxq5+3DpLm004wiagf_uwbFMw@mail.gmail.com>
 Sender: owner-linux-mm@kvack.org
-To: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: cl@linux.com, tj@kernel.org, jiang.liu@linux.intel.com, mika.j.penttila@gmail.com, mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
+To: Dan Williams <dan.j.williams@gmail.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>, Borislav Petkov <bp@alien8.de>, Tony Luck <tony.luck@intel.com>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Andrew Morton <akpm@linux-foundation.org>
 List-Id: linux-acpi@vger.kernel.org
 
-Hi Tang,
+On Wed, 2015-12-09 at 08:25 -0800, Dan Williams wrote:
+> On Thu, Dec 3, 2015 at 12:35 PM, Toshi Kani <toshi.kani@hpe.com> wrote:
+> > On Thu, 2015-12-03 at 11:01 -0800, Linus Torvalds wrote:
+> > > On Thu, Dec 3, 2015 at 10:40 AM, Borislav Petkov <bp@alien8.de>
+> > > wrote:
+> > > > On Thu, Dec 03, 2015 at 11:54:19AM -0700, Toshi Kani wrote:
+> > > > > Adding a new type for regular memory will require inspecting the
+> > > > > codes using IORESOURCE_MEM currently, and modify them to use the 
+> > > > > new type if their target ranges are regular memory.  There are 
+> > > > > many references to this type across multiple architectures and
+> > > > > drivers, which make this inspection and testing challenging.
+> > > > 
+> > > > What's wrong with adding a new type_flags to struct resource and 
+> > > > not touching IORESOURCE_* at all?
+> > > 
+> > > Bah. Both of these ideas are bogus.
+> > > 
+> > > Just add a new flag. The bits are already modifiers that you can
+> > > *combine* to show what kind of resource it is, and we already have
+> > > things like IORESOURCE_PREFETCH etc, that are in *addition* to the
+> > > normal IORESOURCE_MEM bit.
+> > > 
+> > > Just add another modifier: IORESOURCE_RAM.
+> > > 
+> > > So it would still show up as IORESOURCE_MEM, but it would have
+> > > additional information specifying that it's actually RAM.
+> > > 
+> > > If somebody does something like
+> > > 
+> > >      if (res->flags == IORESOURCE_MEM)
+> > > 
+> > > then they are already completely broken and won't work *anyway*. It's
+> > > a bitmask, bit a set of values.
+> > 
+> > Yes, if we can assign new modifiers, that will be quite simple. :-)  I
+> > assume we can allocate new bits from the remaining free bits as
+> > follows.
+> > 
+> > +#define IORESOURCE_SYSTEM_RAM  0x01000000      /* System RAM */
+> > +#define IORESOURCE_PMEM        0x02000000      /* Persistent memory */
+> >  #define IORESOURCE_EXCLUSIVE   0x08000000      /* Userland may not map
+> > this resource */
+> > 
+> > Note, SYSTEM_RAM represents the OS memory, i.e. "System RAM", not any 
+> > RAM ranges.
+> > 
+> > With the new modifiers, region_intersect() can check these ranges.  One
+> > caveat is that the modifiers are not very extensible for new types as 
+> > they are bit maps.  region_intersect() will no longer be capable of 
+> > checking any regions with any given name.  I think this is OK since 
+> > this function was introduced recently, and is only used for checking 
+> > "System RAM" and "Persistent Memory" (with this patch series).
+> 
+> IORESOURCE_PMEM is not descriptive enough for the two different types
+> of pmem in the kernel.  How about we go with just
+> IORESOURCE_SYSTEM_RAM for now since "is_ram()" checks are common.  Let
+> the rest continue to be checked by strcmp().
+> 
+> For example the nvdimm-e820 driver cares about "Persistent Memory
+> (legacy)", while other forms of pmem may just be "reserved" and only
+> the driver knows that it is pmem.  An IORESOURCE_PMEM would not be
+> reliable nor descriptive enough.
 
-I applied your patches into linux-4.4.0-rc4 and tried to boot up
-the system with mem= boot option, but system does not boot up.
-Unfortunately boot messages were not shown. So I cannot find out
-the reason.
-
-The reason of using the mem= boot option is to limit memory and
-create memoryless node on purpose since your patches support
-memoryless node.
-
-Here is an example method to create memoryless node on purpose.
-
-My box has the following SRAT:
-
-SRAT: Node 0 PXM 0 [mem 0x00000000-0x5fffffff]
-SRAT: Node 0 PXM 0 [mem 0x100000000-0x109fffffff]
-SRAT: Node 1 PXM 1 [mem 0x10a0000000-0x209fffffff]
-SRAT: Node 2 PXM 2 [mem 0x20a0000000-0x309fffffff]
-SRAT: Node 3 PXM 3 [mem 0x30a0000000-0x409fffffff]
-
-So when booting up the system with mem=0x20a0000000, Memory of
-Node 2 and 3 are ignored and the Nodes become memoryless node.
+Agreed.  I will introduce a new type for System RAM, and leave the strcmp
+check for other types.
 
 Thanks,
-Yasuaki Ishimatsu
-On Thu, 19 Nov 2015 12:22:10 +0800
-Tang Chen <tangchen@cn.fujitsu.com> wrote:
-
-> [Problem]
-> 
-> cpuid <-> nodeid mapping is firstly established at boot time. And workqueue caches
-> the mapping in wq_numa_possible_cpumask in wq_numa_init() at boot time.
-> 
-> When doing node online/offline, cpuid <-> nodeid mapping is established/destroyed,
-> which means, cpuid <-> nodeid mapping will change if node hotplug happens. But
-> workqueue does not update wq_numa_possible_cpumask.
-> 
-> So here is the problem:
-> 
-> Assume we have the following cpuid <-> nodeid in the beginning:
-> 
->   Node | CPU
-> ------------------------
-> node 0 |  0-14, 60-74
-> node 1 | 15-29, 75-89
-> node 2 | 30-44, 90-104
-> node 3 | 45-59, 105-119
-> 
-> and we hot-remove node2 and node3, it becomes:
-> 
->   Node | CPU
-> ------------------------
-> node 0 |  0-14, 60-74
-> node 1 | 15-29, 75-89
-> 
-> and we hot-add node4 and node5, it becomes:
-> 
->   Node | CPU
-> ------------------------
-> node 0 |  0-14, 60-74
-> node 1 | 15-29, 75-89
-> node 4 | 30-59
-> node 5 | 90-119
-> 
-> But in wq_numa_possible_cpumask, cpu30 is still mapped to node2, and the like.
-> 
-> When a pool workqueue is initialized, if its cpumask belongs to a node, its
-> pool->node will be mapped to that node. And memory used by this workqueue will
-> also be allocated on that node.
-> 
-> static struct worker_pool *get_unbound_pool(const struct workqueue_attrs *attrs){
-> ...
->         /* if cpumask is contained inside a NUMA node, we belong to that node */
->         if (wq_numa_enabled) {
->                 for_each_node(node) {
->                         if (cpumask_subset(pool->attrs->cpumask,
->                                            wq_numa_possible_cpumask[node])) {
->                                 pool->node = node;
->                                 break;
->                         }
->                 }
->         }
-> 
-> Since wq_numa_possible_cpumask is not updated, it could be mapped to an offline node,
-> which will lead to memory allocation failure:
-> 
->  SLUB: Unable to allocate memory on node 2 (gfp=0x80d0)
->   cache: kmalloc-192, object size: 192, buffer size: 192, default order: 1, min order: 0
->   node 0: slabs: 6172, objs: 259224, free: 245741
->   node 1: slabs: 3261, objs: 136962, free: 127656
-> 
-> It happens here:
-> 
-> create_worker(struct worker_pool *pool)
->  |--> worker = alloc_worker(pool->node);
-> 
-> static struct worker *alloc_worker(int node)
-> {
->         struct worker *worker;
-> 
->         worker = kzalloc_node(sizeof(*worker), GFP_KERNEL, node); --> Here, useing the wrong node.
-> 
->         ......
-> 
->         return worker;
-> }
-> 
-> 
-> [Solution]
-> 
-> There are four mappings in the kernel:
-> 1. nodeid (logical node id)   <->   pxm
-> 2. apicid (physical cpu id)   <->   nodeid
-> 3. cpuid (logical cpu id)     <->   apicid
-> 4. cpuid (logical cpu id)     <->   nodeid
-> 
-> 1. pxm (proximity domain) is provided by ACPI firmware in SRAT, and nodeid <-> pxm
->    mapping is setup at boot time. This mapping is persistent, won't change.
-> 
-> 2. apicid <-> nodeid mapping is setup using info in 1. The mapping is setup at boot
->    time and CPU hotadd time, and cleared at CPU hotremove time. This mapping is also
->    persistent.
-> 
-> 3. cpuid <-> apicid mapping is setup at boot time and CPU hotadd time. cpuid is
->    allocated, lower ids first, and released at CPU hotremove time, reused for other
->    hotadded CPUs. So this mapping is not persistent.
-> 
-> 4. cpuid <-> nodeid mapping is also setup at boot time and CPU hotadd time, and
->    cleared at CPU hotremove time. As a result of 3, this mapping is not persistent.
-> 
-> To fix this problem, we establish cpuid <-> nodeid mapping for all the possible
-> cpus at boot time, and make it persistent. And according to init_cpu_to_node(),
-> cpuid <-> nodeid mapping is based on apicid <-> nodeid mapping and cpuid <-> apicid
-> mapping. So the key point is obtaining all cpus' apicid.
-> 
-> apicid can be obtained by _MAT (Multiple APIC Table Entry) method or found in
-> MADT (Multiple APIC Description Table). So we finish the job in the following steps:
-> 
-> 1. Enable apic registeration flow to handle both enabled and disabled cpus.
->    This is done by introducing an extra parameter to generic_processor_info to let the
->    caller control if disabled cpus are ignored.
-> 
-> 2. Introduce a new array storing all possible cpuid <-> apicid mapping. And also modify
->    the way cpuid is calculated. Establish all possible cpuid <-> apicid mapping when
->    registering local apic. Store the mapping in this array.
-> 
-> 3. Enable _MAT and MADT relative apis to return non-presnet or disabled cpus' apicid.
->    This is also done by introducing an extra parameter to these apis to let the caller
->    control if disabled cpus are ignored.
-> 
-> 4. Establish all possible cpuid <-> nodeid mapping.
->    This is done via an additional acpi namespace walk for processors.
-> 
-> 
-> For previous discussion, please refer to:
-> https://lkml.org/lkml/2015/2/27/145
-> https://lkml.org/lkml/2015/3/25/989
-> https://lkml.org/lkml/2015/5/14/244
-> https://lkml.org/lkml/2015/7/7/200
-> https://lkml.org/lkml/2015/9/27/209
-> 
-> 
-> Change log v2 -> v3:
-> 1. Online memory-less nodes at boot time to map cpus of memory-less nodes.
-> 2. Build zonelists for memory-less nodes so that memory allocator will fall 
->    back to proper nodes automatically.
-> 
-> Change log v1 -> v2:
-> 1. Split code movement and actual changes. Add patch 1.
-> 2. Synchronize best near online node record when node hotplug happens. In patch 2.
-> 3. Fix some comment.
-> 
-> 
-> Gu Zheng (4):
->   x86, acpi, cpu-hotplug: Enable acpi to register all possible cpus at
->     boot time.
->   x86, acpi, cpu-hotplug: Introduce cpuid_to_apicid[] array to store
->     persistent cpuid <-> apicid mapping.
->   x86, acpi, cpu-hotplug: Enable MADT APIs to return disabled apicid.
->   x86, acpi, cpu-hotplug: Set persistent cpuid <-> nodeid mapping when
->     booting.
-> 
-> Tang Chen (1):
->   x86, memhp, numa: Online memory-less nodes at boot time.
-> 
->  arch/ia64/kernel/acpi.c       |   2 +-
->  arch/x86/include/asm/mpspec.h |   1 +
->  arch/x86/kernel/acpi/boot.c   |   8 ++-
->  arch/x86/kernel/apic/apic.c   |  85 +++++++++++++++++++++++++----
->  arch/x86/mm/numa.c            |  30 ++++++-----
->  drivers/acpi/acpi_processor.c |   5 +-
->  drivers/acpi/bus.c            |   3 ++
->  drivers/acpi/processor_core.c | 122 ++++++++++++++++++++++++++++++++++--------
->  include/linux/acpi.h          |   2 +
->  include/linux/mmzone.h        |   1 +
->  mm/page_alloc.c               |   2 +-
->  11 files changed, 209 insertions(+), 52 deletions(-)
-> 
-> -- 
-> 1.8.3.1
-> 
+-Toshi
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
