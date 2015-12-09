@@ -1,161 +1,223 @@
-From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Subject: [PATCH v6 3/4] gicv2m: Refactor to prepare for ACPI support
-Date: Wed, 9 Dec 2015 11:24:33 -0800
-Message-ID: <1449689074-30609-4-git-send-email-Suravee.Suthikulpanit@amd.com>
-References: <1449689074-30609-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+From: Yasuaki Ishimatsu <yasu.isimatu@gmail.com>
+Subject: Re: [PATCH v3 0/5] Make cpuid <-> nodeid mapping persistent.
+Date: Wed, 09 Dec 2015 13:10:48 -0800 (PST)
+Message-ID: <566898d8.4a568c0a.de487.5860@mx.google.com>
+References: <1447906935-31899-1-git-send-email-tangchen@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bn1on0082.outbound.protection.outlook.com ([157.56.110.82]:8736
-	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753830AbbLITZB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 9 Dec 2015 14:25:01 -0500
-In-Reply-To: <1449689074-30609-1-git-send-email-Suravee.Suthikulpanit@amd.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1447906935-31899-1-git-send-email-tangchen@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: cl@linux.com, tj@kernel.org, jiang.liu@linux.intel.com, mika.j.penttila@gmail.com, mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
 List-Id: linux-acpi@vger.kernel.org
-To: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, hanjun.guo@linaro.org, tomasz.nowicki@linaro.org, graeme.gregory@linaro.org, dhdang@apm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 
-This patch replaces the struct device_node with struct fwnode_handle
-since this structure is common between DT and ACPI.
+Hi Tang,
 
-It also refactors gicv2m_init_one() to prepare for ACPI support.
-The only functional change is removing the node name from pr_info.
+I applied your patches into linux-4.4.0-rc4 and tried to boot up
+the system with mem= boot option, but system does not boot up.
+Unfortunately boot messages were not shown. So I cannot find out
+the reason.
 
-Reviewed-by: Marc Zyngier <marc.zyngier@arm.com>
-Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
----
- drivers/irqchip/irq-gic-v2m.c | 53 ++++++++++++++++++++++++++-----------------
- 1 file changed, 32 insertions(+), 21 deletions(-)
+The reason of using the mem= boot option is to limit memory and
+create memoryless node on purpose since your patches support
+memoryless node.
 
-diff --git a/drivers/irqchip/irq-gic-v2m.c b/drivers/irqchip/irq-gic-v2m.c
-index 87f8d10..779c390 100644
---- a/drivers/irqchip/irq-gic-v2m.c
-+++ b/drivers/irqchip/irq-gic-v2m.c
-@@ -55,7 +55,7 @@ static DEFINE_SPINLOCK(v2m_lock);
- 
- struct v2m_data {
- 	struct list_head entry;
--	struct device_node *node;
-+	struct fwnode_handle *fwnode;
- 	struct resource res;	/* GICv2m resource */
- 	void __iomem *base;	/* GICv2m virt address */
- 	u32 spi_start;		/* The SPI number that MSIs start */
-@@ -254,7 +254,7 @@ static void gicv2m_teardown(void)
- 		list_del(&v2m->entry);
- 		kfree(v2m->bm);
- 		iounmap(v2m->base);
--		of_node_put(v2m->node);
-+		of_node_put(to_of_node(v2m->fwnode));
- 		kfree(v2m);
- 	}
- }
-@@ -268,7 +268,7 @@ static int gicv2m_allocate_domains(struct irq_domain *parent)
- 	if (!v2m)
- 		return 0;
- 
--	inner_domain = irq_domain_create_tree(of_node_to_fwnode(v2m->node),
-+	inner_domain = irq_domain_create_tree(v2m->fwnode,
- 					      &gicv2m_domain_ops, v2m);
- 	if (!inner_domain) {
- 		pr_err("Failed to create GICv2m domain\n");
-@@ -277,10 +277,10 @@ static int gicv2m_allocate_domains(struct irq_domain *parent)
- 
- 	inner_domain->bus_token = DOMAIN_BUS_NEXUS;
- 	inner_domain->parent = parent;
--	pci_domain = pci_msi_create_irq_domain(of_node_to_fwnode(v2m->node),
-+	pci_domain = pci_msi_create_irq_domain(v2m->fwnode,
- 					       &gicv2m_msi_domain_info,
- 					       inner_domain);
--	plat_domain = platform_msi_create_irq_domain(of_node_to_fwnode(v2m->node),
-+	plat_domain = platform_msi_create_irq_domain(v2m->fwnode,
- 						     &gicv2m_pmsi_domain_info,
- 						     inner_domain);
- 	if (!pci_domain || !plat_domain) {
-@@ -296,8 +296,9 @@ static int gicv2m_allocate_domains(struct irq_domain *parent)
- 	return 0;
- }
- 
--static int __init gicv2m_init_one(struct device_node *node,
--				  struct irq_domain *parent)
-+static int __init gicv2m_init_one(struct fwnode_handle *fwnode,
-+				  u32 spi_start, u32 nr_spis,
-+				  struct resource *res)
- {
- 	int ret;
- 	struct v2m_data *v2m;
-@@ -309,13 +310,9 @@ static int __init gicv2m_init_one(struct device_node *node,
- 	}
- 
- 	INIT_LIST_HEAD(&v2m->entry);
--	v2m->node = node;
-+	v2m->fwnode = fwnode;
- 
--	ret = of_address_to_resource(node, 0, &v2m->res);
--	if (ret) {
--		pr_err("Failed to allocate v2m resource.\n");
--		goto err_free_v2m;
--	}
-+	memcpy(&v2m->res, res, sizeof(struct resource));
- 
- 	v2m->base = ioremap(v2m->res.start, resource_size(&v2m->res));
- 	if (!v2m->base) {
-@@ -324,10 +321,9 @@ static int __init gicv2m_init_one(struct device_node *node,
- 		goto err_free_v2m;
- 	}
- 
--	if (!of_property_read_u32(node, "arm,msi-base-spi", &v2m->spi_start) &&
--	    !of_property_read_u32(node, "arm,msi-num-spis", &v2m->nr_spis)) {
--		pr_info("Overriding V2M MSI_TYPER (base:%u, num:%u)\n",
--			v2m->spi_start, v2m->nr_spis);
-+	if (spi_start && nr_spis) {
-+		v2m->spi_start = spi_start;
-+		v2m->nr_spis = nr_spis;
- 	} else {
- 		u32 typer = readl_relaxed(v2m->base + V2M_MSI_TYPER);
- 
-@@ -359,10 +355,10 @@ static int __init gicv2m_init_one(struct device_node *node,
- 	}
- 
- 	list_add_tail(&v2m->entry, &v2m_nodes);
--	pr_info("Node %s: range[%#lx:%#lx], SPI[%d:%d]\n", node->name,
--		(unsigned long)v2m->res.start, (unsigned long)v2m->res.end,
--		v2m->spi_start, (v2m->spi_start + v2m->nr_spis));
- 
-+	pr_info("range[%#lx:%#lx], SPI[%d:%d]\n",
-+		(unsigned long)res->start, (unsigned long)res->end,
-+		v2m->spi_start, (v2m->spi_start + v2m->nr_spis));
- 	return 0;
- 
- err_iounmap:
-@@ -384,10 +380,25 @@ int __init gicv2m_of_init(struct device_node *node, struct irq_domain *parent)
- 
- 	for (child = of_find_matching_node(node, gicv2m_device_id); child;
- 	     child = of_find_matching_node(child, gicv2m_device_id)) {
-+		u32 spi_start = 0, nr_spis = 0;
-+		struct resource res;
-+
- 		if (!of_find_property(child, "msi-controller", NULL))
- 			continue;
- 
--		ret = gicv2m_init_one(child, parent);
-+		ret = of_address_to_resource(child, 0, &res);
-+		if (ret) {
-+			pr_err("Failed to allocate v2m resource.\n");
-+			break;
-+		}
-+
-+		if (!of_property_read_u32(child, "arm,msi-base-spi",
-+					  &spi_start) &&
-+		    !of_property_read_u32(child, "arm,msi-num-spis", &nr_spis))
-+			pr_info("DT overriding V2M MSI_TYPER (base:%u, num:%u)\n",
-+				spi_start, nr_spis);
-+
-+		ret = gicv2m_init_one(&child->fwnode, spi_start, nr_spis, &res);
- 		if (ret) {
- 			of_node_put(node);
- 			break;
--- 
-2.1.0
+Here is an example method to create memoryless node on purpose.
 
+My box has the following SRAT:
+
+SRAT: Node 0 PXM 0 [mem 0x00000000-0x5fffffff]
+SRAT: Node 0 PXM 0 [mem 0x100000000-0x109fffffff]
+SRAT: Node 1 PXM 1 [mem 0x10a0000000-0x209fffffff]
+SRAT: Node 2 PXM 2 [mem 0x20a0000000-0x309fffffff]
+SRAT: Node 3 PXM 3 [mem 0x30a0000000-0x409fffffff]
+
+So when booting up the system with mem=0x20a0000000, Memory of
+Node 2 and 3 are ignored and the Nodes become memoryless node.
+
+Thanks,
+Yasuaki Ishimatsu
+On Thu, 19 Nov 2015 12:22:10 +0800
+Tang Chen <tangchen@cn.fujitsu.com> wrote:
+
+> [Problem]
+> 
+> cpuid <-> nodeid mapping is firstly established at boot time. And workqueue caches
+> the mapping in wq_numa_possible_cpumask in wq_numa_init() at boot time.
+> 
+> When doing node online/offline, cpuid <-> nodeid mapping is established/destroyed,
+> which means, cpuid <-> nodeid mapping will change if node hotplug happens. But
+> workqueue does not update wq_numa_possible_cpumask.
+> 
+> So here is the problem:
+> 
+> Assume we have the following cpuid <-> nodeid in the beginning:
+> 
+>   Node | CPU
+> ------------------------
+> node 0 |  0-14, 60-74
+> node 1 | 15-29, 75-89
+> node 2 | 30-44, 90-104
+> node 3 | 45-59, 105-119
+> 
+> and we hot-remove node2 and node3, it becomes:
+> 
+>   Node | CPU
+> ------------------------
+> node 0 |  0-14, 60-74
+> node 1 | 15-29, 75-89
+> 
+> and we hot-add node4 and node5, it becomes:
+> 
+>   Node | CPU
+> ------------------------
+> node 0 |  0-14, 60-74
+> node 1 | 15-29, 75-89
+> node 4 | 30-59
+> node 5 | 90-119
+> 
+> But in wq_numa_possible_cpumask, cpu30 is still mapped to node2, and the like.
+> 
+> When a pool workqueue is initialized, if its cpumask belongs to a node, its
+> pool->node will be mapped to that node. And memory used by this workqueue will
+> also be allocated on that node.
+> 
+> static struct worker_pool *get_unbound_pool(const struct workqueue_attrs *attrs){
+> ...
+>         /* if cpumask is contained inside a NUMA node, we belong to that node */
+>         if (wq_numa_enabled) {
+>                 for_each_node(node) {
+>                         if (cpumask_subset(pool->attrs->cpumask,
+>                                            wq_numa_possible_cpumask[node])) {
+>                                 pool->node = node;
+>                                 break;
+>                         }
+>                 }
+>         }
+> 
+> Since wq_numa_possible_cpumask is not updated, it could be mapped to an offline node,
+> which will lead to memory allocation failure:
+> 
+>  SLUB: Unable to allocate memory on node 2 (gfp=0x80d0)
+>   cache: kmalloc-192, object size: 192, buffer size: 192, default order: 1, min order: 0
+>   node 0: slabs: 6172, objs: 259224, free: 245741
+>   node 1: slabs: 3261, objs: 136962, free: 127656
+> 
+> It happens here:
+> 
+> create_worker(struct worker_pool *pool)
+>  |--> worker = alloc_worker(pool->node);
+> 
+> static struct worker *alloc_worker(int node)
+> {
+>         struct worker *worker;
+> 
+>         worker = kzalloc_node(sizeof(*worker), GFP_KERNEL, node); --> Here, useing the wrong node.
+> 
+>         ......
+> 
+>         return worker;
+> }
+> 
+> 
+> [Solution]
+> 
+> There are four mappings in the kernel:
+> 1. nodeid (logical node id)   <->   pxm
+> 2. apicid (physical cpu id)   <->   nodeid
+> 3. cpuid (logical cpu id)     <->   apicid
+> 4. cpuid (logical cpu id)     <->   nodeid
+> 
+> 1. pxm (proximity domain) is provided by ACPI firmware in SRAT, and nodeid <-> pxm
+>    mapping is setup at boot time. This mapping is persistent, won't change.
+> 
+> 2. apicid <-> nodeid mapping is setup using info in 1. The mapping is setup at boot
+>    time and CPU hotadd time, and cleared at CPU hotremove time. This mapping is also
+>    persistent.
+> 
+> 3. cpuid <-> apicid mapping is setup at boot time and CPU hotadd time. cpuid is
+>    allocated, lower ids first, and released at CPU hotremove time, reused for other
+>    hotadded CPUs. So this mapping is not persistent.
+> 
+> 4. cpuid <-> nodeid mapping is also setup at boot time and CPU hotadd time, and
+>    cleared at CPU hotremove time. As a result of 3, this mapping is not persistent.
+> 
+> To fix this problem, we establish cpuid <-> nodeid mapping for all the possible
+> cpus at boot time, and make it persistent. And according to init_cpu_to_node(),
+> cpuid <-> nodeid mapping is based on apicid <-> nodeid mapping and cpuid <-> apicid
+> mapping. So the key point is obtaining all cpus' apicid.
+> 
+> apicid can be obtained by _MAT (Multiple APIC Table Entry) method or found in
+> MADT (Multiple APIC Description Table). So we finish the job in the following steps:
+> 
+> 1. Enable apic registeration flow to handle both enabled and disabled cpus.
+>    This is done by introducing an extra parameter to generic_processor_info to let the
+>    caller control if disabled cpus are ignored.
+> 
+> 2. Introduce a new array storing all possible cpuid <-> apicid mapping. And also modify
+>    the way cpuid is calculated. Establish all possible cpuid <-> apicid mapping when
+>    registering local apic. Store the mapping in this array.
+> 
+> 3. Enable _MAT and MADT relative apis to return non-presnet or disabled cpus' apicid.
+>    This is also done by introducing an extra parameter to these apis to let the caller
+>    control if disabled cpus are ignored.
+> 
+> 4. Establish all possible cpuid <-> nodeid mapping.
+>    This is done via an additional acpi namespace walk for processors.
+> 
+> 
+> For previous discussion, please refer to:
+> https://lkml.org/lkml/2015/2/27/145
+> https://lkml.org/lkml/2015/3/25/989
+> https://lkml.org/lkml/2015/5/14/244
+> https://lkml.org/lkml/2015/7/7/200
+> https://lkml.org/lkml/2015/9/27/209
+> 
+> 
+> Change log v2 -> v3:
+> 1. Online memory-less nodes at boot time to map cpus of memory-less nodes.
+> 2. Build zonelists for memory-less nodes so that memory allocator will fall 
+>    back to proper nodes automatically.
+> 
+> Change log v1 -> v2:
+> 1. Split code movement and actual changes. Add patch 1.
+> 2. Synchronize best near online node record when node hotplug happens. In patch 2.
+> 3. Fix some comment.
+> 
+> 
+> Gu Zheng (4):
+>   x86, acpi, cpu-hotplug: Enable acpi to register all possible cpus at
+>     boot time.
+>   x86, acpi, cpu-hotplug: Introduce cpuid_to_apicid[] array to store
+>     persistent cpuid <-> apicid mapping.
+>   x86, acpi, cpu-hotplug: Enable MADT APIs to return disabled apicid.
+>   x86, acpi, cpu-hotplug: Set persistent cpuid <-> nodeid mapping when
+>     booting.
+> 
+> Tang Chen (1):
+>   x86, memhp, numa: Online memory-less nodes at boot time.
+> 
+>  arch/ia64/kernel/acpi.c       |   2 +-
+>  arch/x86/include/asm/mpspec.h |   1 +
+>  arch/x86/kernel/acpi/boot.c   |   8 ++-
+>  arch/x86/kernel/apic/apic.c   |  85 +++++++++++++++++++++++++----
+>  arch/x86/mm/numa.c            |  30 ++++++-----
+>  drivers/acpi/acpi_processor.c |   5 +-
+>  drivers/acpi/bus.c            |   3 ++
+>  drivers/acpi/processor_core.c | 122 ++++++++++++++++++++++++++++++++++--------
+>  include/linux/acpi.h          |   2 +
+>  include/linux/mmzone.h        |   1 +
+>  mm/page_alloc.c               |   2 +-
+>  11 files changed, 209 insertions(+), 52 deletions(-)
+> 
+> -- 
+> 1.8.3.1
+> 
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
