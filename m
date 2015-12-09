@@ -1,79 +1,75 @@
 From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Subject: [PATCH v5 0/5] gicv2m: acpi: Add ACPI support for GICv2m MSI
-Date: Tue, 8 Dec 2015 17:48:01 -0800
-Message-ID: <1449625686-5594-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+Subject: [PATCH v5 2/5] irqdomain: introduce is_fwnode_irqchip helper
+Date: Tue, 8 Dec 2015 17:48:03 -0800
+Message-ID: <1449625686-5594-3-git-send-email-Suravee.Suthikulpanit@amd.com>
+References: <1449625686-5594-1-git-send-email-Suravee.Suthikulpanit@amd.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-by2on0079.outbound.protection.outlook.com ([207.46.100.79]:2560
+Received: from mail-by2on0093.outbound.protection.outlook.com ([207.46.100.93]:36016
 	"EHLO na01-by2-obe.outbound.protection.outlook.com"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752074AbbLIBsY (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 8 Dec 2015 20:48:24 -0500
+	id S1752594AbbLIBs2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 8 Dec 2015 20:48:28 -0500
+In-Reply-To: <1449625686-5594-1-git-send-email-Suravee.Suthikulpanit@amd.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net
 Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, hanjun.guo@linaro.org, tomasz.nowicki@linaro.org, graeme.gregory@linaro.org, dhdang@apm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 
-This patch series has been forked from the following patch series since
-it no longer depends on the rest of the patches.
+Since there will be several places checking if fwnode.type
+is equal FWNODE_IRQCHIP, this patch adds a convenient function
+for this purpose.
 
-  [PATCH v4 00/10] ACPI GIC Self-probing, GICv2m and GICv3 support
-  https://lkml.org/lkml/2015/7/29/234
+Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+---
+ drivers/irqchip/irq-gic.c | 2 +-
+ include/linux/irqdomain.h | 5 +++++
+ kernel/irq/irqdomain.c    | 2 +-
+ 3 files changed, 7 insertions(+), 2 deletions(-)
 
-It has been ported to use the newly introduced device fwnode_handle 
-for ACPI irqdmain introduced by Marc in the following patch series:
-
-  [PATCH v2 00/17] Divorcing irqdomain and device_node
-  http://git.kernel.org/cgit/linux/kernel/git/maz/arm-platforms.git irq/irq-domain-fwnode-v2
-
-The following git branch contains the submitted patches along with
-the pre-requsite patches (mainly for ARM64 PCI support for ACPI).
-
-  https://github.com/ssuthiku/linux.git	v2m-multiframe-v5
-
-This has been tested on AMD Seattle (Overdrive) RevB system. 
-
-NOTE: I have not tested ACPI GICv2m multiframe support since
-I don't have access to such system. Any helps are appreciated.
-
-Thanks,
-Suravee
-
-Changes from V4: (https://lkml.org/lkml/2015/12/08/613)
-  - Fix build error when not specifying CONFIG_IRQ_DOMAIN.
-
-Changes from V3: (https://lkml.org/lkml/2015/10/21/691)
-  - Merged patch 2 into 1, and got rid off pci_msi_get_fwnode()
-    since only ACPI will likely use this. (per Marc suggestion)
-  - Rebased to 4.4.0-rc4
-
-Changes from V2: (https://lkml.org/lkml/2015/10/14/1010)
-  - Minor clean up from Tomasz review comment in patch 6/6.
-
-Changes from V1: (https://lkml.org/lkml/2015/10/13/859)
-  - Rebase on top of Marc's patch to addng support for multiple MSI frames
-    (https://lkml.org/lkml/2015/10/14/271)
-  - Adding fwnode convenient functions (patch 3 and 4)
-
-Suravee Suthikulpanit (5):
-  acpi: pci: Setup MSI domain for ACPI based pci devices
-  irqdomain: introduce is_fwnode_irqchip helper
-  irqdomain: Introduce irq_domain_get_irqchip_fwnode_name helper
-    function
-  gicv2m: Refactor to prepare for ACPI support
-  gicv2m: acpi: Introducing GICv2m ACPI support
-
- drivers/irqchip/irq-gic-v2m.c   | 152 ++++++++++++++++++++++++++++++++++------
- drivers/irqchip/irq-gic.c       |   5 +-
- drivers/pci/pci-acpi.c          |  32 +++++++++
- drivers/pci/probe.c             |   2 +
- include/linux/irqchip/arm-gic.h |   4 ++
- include/linux/irqdomain.h       |  11 +++
- include/linux/pci.h             |  10 +++
- kernel/irq/irqdomain.c          |  20 +++++-
- 8 files changed, 213 insertions(+), 23 deletions(-)
-
+diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
+index abf2ffa..fcd327f 100644
+--- a/drivers/irqchip/irq-gic.c
++++ b/drivers/irqchip/irq-gic.c
+@@ -972,7 +972,7 @@ static int gic_irq_domain_translate(struct irq_domain *d,
+ 		return 0;
+ 	}
+ 
+-	if (fwspec->fwnode->type == FWNODE_IRQCHIP) {
++	if (is_fwnode_irqchip(fwspec->fwnode)) {
+ 		if(fwspec->param_count != 2)
+ 			return -EINVAL;
+ 
+diff --git a/include/linux/irqdomain.h b/include/linux/irqdomain.h
+index a06feda..d72fabc 100644
+--- a/include/linux/irqdomain.h
++++ b/include/linux/irqdomain.h
+@@ -211,6 +211,11 @@ static inline struct fwnode_handle *of_node_to_fwnode(struct device_node *node)
+ 	return node ? &node->fwnode : NULL;
+ }
+ 
++static inline bool is_fwnode_irqchip(struct fwnode_handle *fwnode)
++{
++	return fwnode && fwnode->type == FWNODE_IRQCHIP;
++}
++
+ static inline struct irq_domain *irq_find_matching_host(struct device_node *node,
+ 							enum irq_domain_bus_token bus_token)
+ {
+diff --git a/kernel/irq/irqdomain.c b/kernel/irq/irqdomain.c
+index 22aa961..7f34d98 100644
+--- a/kernel/irq/irqdomain.c
++++ b/kernel/irq/irqdomain.c
+@@ -70,7 +70,7 @@ void irq_domain_free_fwnode(struct fwnode_handle *fwnode)
+ {
+ 	struct irqchip_fwid *fwid;
+ 
+-	if (WARN_ON(fwnode->type != FWNODE_IRQCHIP))
++	if (WARN_ON(!is_fwnode_irqchip(fwnode)))
+ 		return;
+ 
+ 	fwid = container_of(fwnode, struct irqchip_fwid, fwnode);
 -- 
 2.1.0
 
