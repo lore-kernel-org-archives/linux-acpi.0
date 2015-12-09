@@ -1,64 +1,52 @@
-From: Darren Hart <dvhart@infradead.org>
-Subject: Re: [PATCH v2 3/3] dell-wmi: Improve unknown hotkey handling
-Date: Tue, 8 Dec 2015 16:33:59 -0800
-Message-ID: <20151209003359.GC11972@malice.jf.intel.com>
-References: <cover.1448931589.git.luto@kernel.org>
- <b409d60963f81611e398b492a73ffd998414cd68.1448931589.git.luto@kernel.org>
- <20151203233856.GC1800@malice.jf.intel.com>
- <20151204083923.GL10982@pali>
- <CALCETrW51LBvqiho+rs63ng3Jihvssm_Ky=+e+acM4Vq7R-WiQ@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v3 1/9] device core: add BUS_NOTIFY_DRIVER_NOT_BOUND notification
+Date: Wed, 09 Dec 2015 02:20:25 +0100
+Message-ID: <1860832.P1KhQB5H7z@vostro.rjw.lan>
+References: <1449265765-9393-1-git-send-email-andriy.shevchenko@linux.intel.com> <4559667.zZkzgz1dlB@vostro.rjw.lan> <CAHp75VcRHogfSfQQSvcQhU2eW8rWzY1AJPGTSK7KYh69gKgHXA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:48616 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751934AbbLIAeC (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 8 Dec 2015 19:34:02 -0500
-Content-Disposition: inline
-In-Reply-To: <CALCETrW51LBvqiho+rs63ng3Jihvssm_Ky=+e+acM4Vq7R-WiQ@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <CAHp75VcRHogfSfQQSvcQhU2eW8rWzY1AJPGTSK7KYh69gKgHXA@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: Thomas Gleixner <tglx@linutronix.de>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Vinod Koul <vinod.koul@intel.com>, dmaengine <dmaengine@vger.kernel.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Mika Westerberg <mika.westerberg@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Lutomirski <luto@amacapital.net>
-Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Andy Lutomirski <luto@kernel.org>, Matthew Garrett <mjg59@srcf.ucam.org>, Linux ACPI <linux-acpi@vger.kernel.org>, platform-driver-x86@vger.kernel.org, Mario Limonciello <mario_limonciello@dell.com>
 
-On Fri, Dec 04, 2015 at 08:15:04AM -0800, Andy Lutomirski wrote:
-> On Fri, Dec 4, 2015 at 12:39 AM, Pali Roh=E1r <pali.rohar@gmail.com> =
-wrote:
-> > On Thursday 03 December 2015 15:38:56 Darren Hart wrote:
-> >> Pali, this appears to have the one change you asked for (0x%x inst=
-ead of %d).
-> >> I've added the Reviewed-by: Pali Roh=E1r <pali.rohar@gmail.com> yo=
-u provided
-> >> previously pending this change.
+On Tuesday, December 08, 2015 03:50:06 PM Andy Shevchenko wrote:
+> On Tue, Dec 8, 2015 at 4:05 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> > On Tuesday, December 08, 2015 02:32:00 PM Thomas Gleixner wrote:
+> >> On Mon, 7 Dec 2015, Rafael J. Wysocki wrote:
+> >> > On Monday, December 07, 2015 12:57:33 PM Andy Shevchenko wrote:
+> >> > > > Andy, what about if I put patches [1-6/9] into my queue for v4.5 now
+> >> > > > and
+> >> > > > the remaining ones will wait for Vinod to comment?
+> >> > >
+> >> > > Yes, it's possible, but please don't forget the patch from http://www.s
+> >> > > pinics.net/lists/kernel/msg2119229.html. There also formally Acks from
+> >> > > Thomas and Ong, Boon Leong.
+> >> >
+> >> > Well, if Thomas prefers to take this one into tip, I guess the series should
+> >> > go along with it or wait for when that one is merged.
+> >>
+> >> Works either way. I have no changes pending against that iosf_mbi stuff.
 > >
-> > Ok.
-> >
-> >> > +           /* Uninitialized entries are 0 aka KEY_RESERVED. */
-> >> > +           u16 keycode =3D (bios_entry->keycode <
-> >> > +                          ARRAY_SIZE(bios_to_linux_keycode)) ?
-> >> > +                   bios_to_linux_keycode[bios_entry->keycode] :
-> >> > +                   KEY_RESERVED;
-> >> > +           BUILD_BUG_ON(KEY_RESERVED !=3D 0);
-> >
-> > Anyway, Darren what do you think is that BUILD_BUG_ON check needed?
-> >
->=20
-> Sorry, my bad.  IIRC Darren made that change, I made the other change=
-,
-> and then I resent and we lost this one.
->=20
-> Darren, want to fix it in your tree?  If not, I'll include the
-> BUILD_BUG_ON deletion in v3.
+> 
+> Thanks, Thomas!
+> 
+> > Cool.  I'll take that patch and the series then.
+> 
+> Please, also put patch 5 before patch 4. It will go smoothly,
 
-Thanks for the catch Pali. I've removed this in my tree. No need to res=
-end.
+It didn't, but that's not a big deal.
 
---=20
-Darren Hart
-Intel Open Source Technology Center
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> or I can send an updated version.
+
+No need.
+
+I've put the entire series (including the three last patches with Vinod's ACKs)
+into my bleeding-edge branch, please check it in there and let me know if
+anything is not right.
+
+Thanks,
+Rafael
