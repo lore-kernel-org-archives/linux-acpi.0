@@ -1,51 +1,85 @@
-From: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>
-Subject: Re: [PATCH v5 5/5] gicv2m: acpi: Introducing GICv2m ACPI support
-Date: Wed, 9 Dec 2015 12:51:31 -0600
-Message-ID: <56687833.6040706@amd.com>
-References: <1449625686-5594-1-git-send-email-Suravee.Suthikulpanit@amd.com>
- <1449625686-5594-6-git-send-email-Suravee.Suthikulpanit@amd.com>
- <20151209103806.41488405@why.wild-wind.fr.eu.org> <56686C9F.6060804@amd.com>
- <56687008.3020703@arm.com>
+From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Subject: [PATCH v6 0/4] gicv2m: acpi: Add ACPI support for GICv2m MSI
+Date: Wed, 9 Dec 2015 11:24:30 -0800
+Message-ID: <1449689074-30609-1-git-send-email-Suravee.Suthikulpanit@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-by2on0086.outbound.protection.outlook.com ([207.46.100.86]:45296
-	"EHLO na01-by2-obe.outbound.protection.outlook.com"
+Received: from mail-bn1on0074.outbound.protection.outlook.com ([157.56.110.74]:11808
+	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753280AbbLISvk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 9 Dec 2015 13:51:40 -0500
-In-Reply-To: <56687008.3020703@arm.com>
+	id S1753302AbbLITYv (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 9 Dec 2015 14:24:51 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, hanjun.guo@linaro.org, tomasz.nowicki@linaro.org, graeme.gregory@linaro.org, dhdang@apm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, hanjun.guo@linaro.org, tomasz.nowicki@linaro.org, graeme.gregory@linaro.org, dhdang@apm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 
-On 12/9/2015 12:16 PM, Marc Zyngier wrote:
->>>> diff --git a/drivers/irqchip/irq-gic-v2m.c b/drivers/irqchip/irq-gic-v2m.c
->>>> >>>[...]
->>>> >>>@@ -359,6 +368,8 @@ static int __init gicv2m_init_one(struct fwnode_handle *fwnode,
->>>> >>>
->>>> >>>   	if (to_of_node(fwnode))
->>>> >>>   		name = to_of_node(fwnode)->name;
->>>> >>>+	else
->>>> >>>+		name = irq_domain_get_irqchip_fwnode_name(fwnode);
->>> >>
->>> >>Don't bother with that, the name associated with the domain is
->>> >>absolutely meaningless. You are already printing the frame address,
->>> >>which is enough to identify it, should someone need to debug this.
->>> >>
->>> >>Drop the name from the previous patch as well, and that will make one
->>> >>less difference to care about. Patch #3 can die as well.
->>> >>
->> >
->> >Ok. I'll just leave them blank (i.e. const char *name ="")
-> No, just remove name altogether. Nobody reads that anyway, and if they
-> want to find out, there is the address that's clear enough.
->
-> Thanks,
->
-> 	M.
+This patch series has been forked from the following patch series since
+it no longer depends on the rest of the patches.
 
-Ok.
+  [PATCH v4 00/10] ACPI GIC Self-probing, GICv2m and GICv3 support
+  https://lkml.org/lkml/2015/7/29/234
+
+It has been ported to use the newly introduced device fwnode_handle 
+for ACPI irqdmain introduced by Marc in the following patch series:
+
+  [PATCH v2 00/17] Divorcing irqdomain and device_node
+
+The following git branch contains the submitted patches along with
+the pre-requsite patches (mainly for ARM64 PCI support for ACPI).
+
+  https://github.com/ssuthiku/linux.git	v2m-multiframe-v6
+
+This has been tested on AMD Seattle (Overdrive) RevB system. 
+
+NOTE: I have not tested ACPI GICv2m multiframe support since
+I don't have access to such system. Any helps are appreciated.
+
+Thanks,
 Suravee
+
+Changes from V5: (https://lkml.org/lkml/2015/12/08/763)
+  - Remove previous patch 3
+  - Clean up based on Marc's review (patch 1.4)
+  - Add Ackedb-by and Reviewed-by (Patch 1,2,3)
+  - Expose single gicv2m_init() function for both OF and ACPI
+    (per Marc's suggestion)
+  - Remove gicv2m name from pr_info since this is no longer useful
+    (in patch 3) (per Marc's suggestion)
+
+Changes from V4: (https://lkml.org/lkml/2015/12/08/613)
+  - Fix build error when not specifying CONFIG_IRQ_DOMAIN.
+
+Changes from V3: (https://lkml.org/lkml/2015/10/21/691)
+  - Merged patch 2 into 1, and got rid off pci_msi_get_fwnode()
+    since only ACPI will likely use this. (per Marc suggestion)
+  - Rebased to 4.4.0-rc4
+
+Changes from V2: (https://lkml.org/lkml/2015/10/14/1010)
+  - Minor clean up from Tomasz review comment in patch 6/6.
+
+Changes from V1: (https://lkml.org/lkml/2015/10/13/859)
+  - Rebase on top of Marc's patch to addng support for multiple MSI frames
+    (https://lkml.org/lkml/2015/10/14/271)
+  - Adding fwnode convenient functions (patch 3 and 4)
+
+Suravee Suthikulpanit (4):
+  acpi: pci: Setup MSI domain for ACPI based pci devices
+  irqdomain: introduce is_fwnode_irqchip helper
+  gicv2m: Refactor to prepare for ACPI support
+  gicv2m: acpi: Introducing GICv2m ACPI support
+
+ drivers/irqchip/irq-gic-v2m.c   | 167 ++++++++++++++++++++++++++++++++++------
+ drivers/irqchip/irq-gic.c       |   8 +-
+ drivers/pci/pci-acpi.c          |  42 ++++++++++
+ drivers/pci/probe.c             |   2 +
+ include/linux/irqchip/arm-gic.h |   3 +-
+ include/linux/irqdomain.h       |  10 +++
+ include/linux/pci.h             |  10 +++
+ kernel/irq/irqdomain.c          |   2 +-
+ 8 files changed, 218 insertions(+), 26 deletions(-)
+
+-- 
+2.1.0
+
