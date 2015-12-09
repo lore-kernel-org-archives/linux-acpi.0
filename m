@@ -1,79 +1,172 @@
-From: Jayachandran C. <jchandra@broadcom.com>
-Subject: Re: [PATCH V1 00/11] MMCONFIG refactoring and ARM64 PCI hostbridge
- init based on ACPI
-Date: Wed, 9 Dec 2015 15:31:41 +0530
-Message-ID: <20151209100125.GA12632@jayachandranc.netlogicmicro.com>
-References: <1445963922-22711-1-git-send-email-tn@semihalf.com>
- <20151207203117.GB14429@localhost>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: [PATCH v5 1/5] acpi: pci: Setup MSI domain for ACPI based pci
+ devices
+Date: Wed, 9 Dec 2015 10:13:55 +0000
+Message-ID: <20151209101355.68eab0cc@why.wild-wind.fr.eu.org>
+References: <1449625686-5594-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+	<1449625686-5594-2-git-send-email-Suravee.Suthikulpanit@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <20151207203117.GB14429@localhost>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Lorenzo.Pieralisi@arm.com, arnd@arndb.de, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Tomasz Nowicki <tn@semihalf.com>, linaro-acpi@lists.linaro.org, rjw@rjwysocki.net, ddaney@caviumnetworks.com, linux-kernel@vger.kernel.org, wangyijing@huawei.com, tglx@linutronix.de, hanjun.guo@linaro.org, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, bhelgaas@google.com, Liviu.Dudau@arm.com, jiang.liu@linux.intel.com, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1449625686-5594-2-git-send-email-Suravee.Suthikulpanit@amd.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Cc: tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, hanjun.guo@linaro.org, tomasz.nowicki@linaro.org, graeme.gregory@linaro.org, dhdang@apm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-[trimmed the cc list a bit]
-On Mon, Dec 07, 2015 at 02:31:17PM -0600, Bjorn Helgaas wrote:
-> On Tue, Oct 27, 2015 at 05:38:31PM +0100, Tomasz Nowicki wrote:
-[...]
-> > 
-> > Tomasz Nowicki (10):
-> >   x86, pci: Reorder logic of pci_mmconfig_insert() function
-> >   x86, pci, acpi: Move arch-agnostic MMCONFIG (aka ECAM) and ACPI code
-> >     out of arch/x86/ directory
-> >   pci, acpi, mcfg: Provide generic implementation of MCFG code
-> >     initialization.
-> >   x86, pci: mmconfig_{32,64}.c code refactoring - remove code
-> >     duplication.
-> >   x86, pci, ecam: mmconfig_64.c becomes default implementation for ECAM
-> >     driver.
-> >   pci, acpi, mcfg: Provide default RAW ACPI PCI config space accessors.
-> >   pci, acpi, ecam: Add flag to indicate whether ECAM region was hot
-> >     added or not.
-> >   x86, pci: Use previously added ECAM hot_added flag to remove ECAM
-> >     regions.
-[...]
+On Tue, 8 Dec 2015 17:48:02 -0800
+Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com> wrote:
+
+> This patch introduces pci_msi_register_fwnode_provider() for irqchip
+> to register a callback, to provide a way to determine appropriate MSI
+> domain for a pci device.
 > 
-> Waiting for an updated version after all the discussion.
+> It also introduces pci_host_bridge_acpi_msi_domain(), which returns
+> the MSI domain of the specified PCI host bridge with DOMAIN_BUS_PCI_MSI
+> bus token. Then, it is assigned to pci device.
+> 
+> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+> ---
+>  drivers/pci/pci-acpi.c    | 32 ++++++++++++++++++++++++++++++++
+>  drivers/pci/probe.c       |  2 ++
+>  include/linux/irqdomain.h |  5 +++++
+>  include/linux/pci.h       | 10 ++++++++++
+>  4 files changed, 49 insertions(+)
+> 
+> diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+> index a32ba75..a555d7e 100644
+> --- a/drivers/pci/pci-acpi.c
+> +++ b/drivers/pci/pci-acpi.c
+> @@ -9,7 +9,9 @@
+>  
+>  #include <linux/delay.h>
+>  #include <linux/init.h>
+> +#include <linux/irqdomain.h>
+>  #include <linux/pci.h>
+> +#include <linux/msi.h>
+>  #include <linux/pci_hotplug.h>
+>  #include <linux/module.h>
+>  #include <linux/pci-aspm.h>
+> @@ -689,6 +691,36 @@ static struct acpi_bus_type acpi_pci_bus = {
+>  	.cleanup = pci_acpi_cleanup,
+>  };
+>  
+> +
+> +static struct fwnode_handle *(*pci_msi_get_fwnode_cb)(struct device *dev);
+> +
+> +/**
+> + * pci_msi_register_fwnode_provider - Register callback to retrieve fwnode
+> + * @fn:		The interrupt domain to retrieve
 
-Hi Bjorn,
+This is the wrong description. Maybe something like@
 
-After looking thru the code, I don't think moving the mmconfig code out
-of x86 and using it in ARM64 is a good idea.
+  * @fn: Callback matching a device to a fwnode that identifies a PCI
+    MSI domain
 
-The code maintains a list of mapping of ECAM regions which can modified
-at run time, and ends doing this sequence for doing a config access:
+Or something along those lines.
 
-        rcu_read_lock();
-        addr = pci_dev_base(seg, bus, devfn);
-	        list_for_each_entry_rcu(cfg, &pci_mmcfg_list, list)
-			...find mapping...
-	do pci operation
-	rcu_read_unlock();
+> + *
+> + * This should be called by irqchip driver, which is the parent of
+> + * the MSI domain to provide callback interface to query fwnode.
+> + */
+> +void
+> +pci_msi_register_fwnode_provider(struct fwnode_handle *(*fn)(struct device *))
+> +{
+> +	pci_msi_get_fwnode_cb = fn;
+> +}
+> +
+> +struct irq_domain *pci_host_bridge_acpi_msi_domain(struct pci_bus *bus)
+> +{
 
-A lot of the complexity in mmconfig_*.c is to maintain and validate
-the pci_mmcfg_list which seems to be unecessary.
+Documentation?
 
-The better way would be to keep the mapping of ECAM region in the PCI
-host bridge sysdata like pci-host-generic and directly access using
-map_bus/read/write.
+> +	struct irq_domain *dom = NULL;
+> +	struct fwnode_handle *fwnode = NULL;
+> +
+> +	if (pci_msi_get_fwnode_cb)
+> +		fwnode = pci_msi_get_fwnode_cb(&bus->dev);
+> +
+> +	if (fwnode)
+> +		dom = irq_find_matching_fwnode(fwnode,
+> +					       DOMAIN_BUS_PCI_MSI);
+> +	return dom;
+> +}
+> +
 
-I see that early raw_pci_read/raw_pci_write may need to be supported.
-I am not sure if this is needed in ARM64 - and if it is, we can handle
-this by taking an early mapping for ECAM regions until the PCI host
-bridges are setup, and dropping the mapping at that point.
+Suggestion:
 
-Thanks,
-JC.
+	struct fwnode_handle *fwnode;
+
+	if (!pci_msi_get_fwnode_cb)
+		return NULL;
+
+	fwnode = pci_msi_get_fwnode_cb(&bus->dev);
+	if (!fwnode)
+		return NULL;
+
+	return irq_find_matching_fwnode(...);
+
+My own personal taste, though.
+
+>  static int __init acpi_pci_init(void)
+>  {
+>  	int ret;
+> diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+> index edb1984..553a029 100644
+> --- a/drivers/pci/probe.c
+> +++ b/drivers/pci/probe.c
+> @@ -672,6 +672,8 @@ static struct irq_domain *pci_host_bridge_msi_domain(struct pci_bus *bus)
+>  	 * should be called from here.
+>  	 */
+>  	d = pci_host_bridge_of_msi_domain(bus);
+> +	if (!d)
+> +		d = pci_host_bridge_acpi_msi_domain(bus);
+>  
+>  	return d;
+>  }
+> diff --git a/include/linux/irqdomain.h b/include/linux/irqdomain.h
+> index d5e5c5b..a06feda 100644
+> --- a/include/linux/irqdomain.h
+> +++ b/include/linux/irqdomain.h
+> @@ -410,6 +410,11 @@ static inline bool irq_domain_is_hierarchy(struct irq_domain *domain)
+>  static inline void irq_dispose_mapping(unsigned int virq) { }
+>  static inline void irq_domain_activate_irq(struct irq_data *data) { }
+>  static inline void irq_domain_deactivate_irq(struct irq_data *data) { }
+> +static inline struct irq_domain *irq_find_matching_fwnode(
+> +	struct fwnode_handle *fwnode, enum irq_domain_bus_token bus_token)
+> +{
+> +	return NULL;
+> +}
+>  #endif /* !CONFIG_IRQ_DOMAIN */
+>  
+>  #endif /* _LINUX_IRQDOMAIN_H */
+> diff --git a/include/linux/pci.h b/include/linux/pci.h
+> index 6ae25aa..d86378c 100644
+> --- a/include/linux/pci.h
+> +++ b/include/linux/pci.h
+> @@ -1946,6 +1946,16 @@ static inline struct irq_domain *
+>  pci_host_bridge_of_msi_domain(struct pci_bus *bus) { return NULL; }
+>  #endif  /* CONFIG_OF */
+>  
+> +#ifdef CONFIG_ACPI
+> +struct irq_domain *pci_host_bridge_acpi_msi_domain(struct pci_bus *bus);
+> +
+> +void
+> +pci_msi_register_fwnode_provider(struct fwnode_handle *(*fn)(struct device *));
+> +#else
+> +static inline struct irq_domain *
+> +pci_host_bridge_acpi_msi_domain(struct pci_bus *bus) { return NULL; }
+> +#endif
+> +
+>  #ifdef CONFIG_EEH
+>  static inline struct eeh_dev *pci_dev_to_eeh_dev(struct pci_dev *pdev)
+>  {
+
+Other than the couple of nits above:
+
+Reviewed-by: Marc Zyngier <marc.zyngier@arm.com>
+
+	M.
+-- 
+Without deviation from the norm, progress is not possible.
