@@ -1,58 +1,79 @@
-From: Ken Xue <ken.xue@amd.com>
-Subject: [PATCH V2] ACPI: Support D3 COLD device in old BIOS for ZPODD
-Date: Wed, 9 Dec 2015 16:17:30 +0800
-Message-ID: <1449649050.2175.59.camel@kxue-X58A-UD3R>
+From: Jayachandran C. <jchandra@broadcom.com>
+Subject: Re: [PATCH V1 00/11] MMCONFIG refactoring and ARM64 PCI hostbridge
+ init based on ACPI
+Date: Wed, 9 Dec 2015 15:31:41 +0530
+Message-ID: <20151209100125.GA12632@jayachandranc.netlogicmicro.com>
+References: <1445963922-22711-1-git-send-email-tn@semihalf.com>
+ <20151207203117.GB14429@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bl2on0056.outbound.protection.outlook.com ([65.55.169.56]:13831
-	"EHLO na01-bl2-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751281AbbLIIXM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 9 Dec 2015 03:23:12 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <20151207203117.GB14429@localhost>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Lorenzo.Pieralisi@arm.com, arnd@arndb.de, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Tomasz Nowicki <tn@semihalf.com>, linaro-acpi@lists.linaro.org, rjw@rjwysocki.net, ddaney@caviumnetworks.com, linux-kernel@vger.kernel.org, wangyijing@huawei.com, tglx@linutronix.de, hanjun.guo@linaro.org, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, bhelgaas@google.com, Liviu.Dudau@arm.com, jiang.liu@linux.intel.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, rjw@rjwysocki.net
-Cc: lenb@kernel.org, SPG_Linux_Kernel@amd.com, mika.westerberg@linux.intel.com, Andy Shevchenko <andy.shevchenko@gmail.com>, Ivan.Zheng@amd.com, Alex.Chuang@amd.com, tj@kernel.org, stern@rowland.harvard.edu
 
-D3cold is only regarded as valid if the "_PR3" object is
-present for the given device after the commit 20dacb71ad28
-("ACPI/PM: Rework device power management to follow ACPI 6").
+[trimmed the cc list a bit]
+On Mon, Dec 07, 2015 at 02:31:17PM -0600, Bjorn Helgaas wrote:
+> On Tue, Oct 27, 2015 at 05:38:31PM +0100, Tomasz Nowicki wrote:
+[...]
+> > 
+> > Tomasz Nowicki (10):
+> >   x86, pci: Reorder logic of pci_mmconfig_insert() function
+> >   x86, pci, acpi: Move arch-agnostic MMCONFIG (aka ECAM) and ACPI code
+> >     out of arch/x86/ directory
+> >   pci, acpi, mcfg: Provide generic implementation of MCFG code
+> >     initialization.
+> >   x86, pci: mmconfig_{32,64}.c code refactoring - remove code
+> >     duplication.
+> >   x86, pci, ecam: mmconfig_64.c becomes default implementation for ECAM
+> >     driver.
+> >   pci, acpi, mcfg: Provide default RAW ACPI PCI config space accessors.
+> >   pci, acpi, ecam: Add flag to indicate whether ECAM region was hot
+> >     added or not.
+> >   x86, pci: Use previously added ECAM hot_added flag to remove ECAM
+> >     regions.
+[...]
+> 
+> Waiting for an updated version after all the discussion.
 
-But some old BIOS only defined "_PS3" for the D3COLD device,
-such as ZPODD device. And old kernel also believes the device with
-"_PS3" is a D3COLD device.
+Hi Bjorn,
 
-So, add some logics for supporting D3 COLD device with old BIOS
-which is compatible with earlier ACPI spec and kernel behavior.
+After looking thru the code, I don't think moving the mmconfig code out
+of x86 and using it in ARM64 is a good idea.
 
-Reference:
-http://marc.info/?l=linux-acpi&m=144946938709759&w=2
+The code maintains a list of mapping of ECAM regions which can modified
+at run time, and ends doing this sequence for doing a config access:
 
-Signed-off-by: Ken Xue <Ken.Xue@amd.com>
-Reported-and-tested-by: Gang Long <Gang.Long@amd.com>
----
- include/acpi/acpi_bus.h | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+        rcu_read_lock();
+        addr = pci_dev_base(seg, bus, devfn);
+	        list_for_each_entry_rcu(cfg, &pci_mmcfg_list, list)
+			...find mapping...
+	do pci operation
+	rcu_read_unlock();
 
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index ad0a5ff..9894b75 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -631,7 +631,9 @@ static inline bool acpi_device_can_wakeup(struct acpi_device *adev)
- 
- static inline bool acpi_device_can_poweroff(struct acpi_device *adev)
- {
--	return adev->power.states[ACPI_STATE_D3_COLD].flags.valid;
-+	return adev->power.states[ACPI_STATE_D3_COLD].flags.valid ||
-+		((acpi_gbl_FADT.header.revision < 6) &&
-+		adev->power.states[ACPI_STATE_D3_HOT].flags.explicit_set);
- }
- 
- #else	/* CONFIG_ACPI */
--- 
-1.9.1
+A lot of the complexity in mmconfig_*.c is to maintain and validate
+the pci_mmcfg_list which seems to be unecessary.
 
+The better way would be to keep the mapping of ECAM region in the PCI
+host bridge sysdata like pci-host-generic and directly access using
+map_bus/read/write.
 
+I see that early raw_pci_read/raw_pci_write may need to be supported.
+I am not sure if this is needed in ARM64 - and if it is, we can handle
+this by taking an early mapping for ECAM regions until the PCI host
+bridges are setup, and dropping the mapping at that point.
 
+Thanks,
+JC.
