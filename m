@@ -1,98 +1,109 @@
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: Re: [PATCH v3 1/3] resource: Add @flags to region_intersects()
-Date: Wed, 09 Dec 2015 14:44:15 -0700
-Message-ID: <1449697455.29051.6.camel@hpe.com>
-References: <1448404418-28800-1-git-send-email-toshi.kani@hpe.com>
-	 <1448404418-28800-2-git-send-email-toshi.kani@hpe.com>
-	 <20151201135000.GB4341@pd.tnic>
-	 <CAPcyv4g2n9yTWye2aVvKMP0X7mrm_NLKmGd5WBO2SesTj77gbg@mail.gmail.com>
-	 <20151201171322.GD4341@pd.tnic>
-	 <CA+55aFw22JD8W2cy3w=5VcU9-ENXSP9utmhGB2NeiDVqwpnUSw@mail.gmail.com>
-	 <1449168859.9855.54.camel@hpe.com> <20151203184051.GE3213@pd.tnic>
-	 <CA+55aFy4WQrWexC4u2LxX9Mw2NVoznw7p3Yh=iF4Xtf7zKWnRw@mail.gmail.com>
-	 <1449174925.9855.83.camel@hpe.com>
-	 <CAA9_cmeDbpQg3XmsKaEb1f+hSVxq5+3DpLm004wiagf_uwbFMw@mail.gmail.com>
+From: Loc Ho <lho@apm.com>
+Subject: Re: [PATCH 1/2] acpi:apd: Add APM X-Gene ACPI I2C device support
+Date: Wed, 9 Dec 2015 14:03:59 -0800
+Message-ID: <CAPw-ZTkxhdEmOP_DN=Cv1MmPw5UsZHcd-kLVbqYFJU8-6=sc+A@mail.gmail.com>
+References: <1449533774-22672-1-git-send-email-lho@apm.com>
+	<1449533774-22672-2-git-send-email-lho@apm.com>
+	<1449542948.2175.41.camel@kxue-X58A-UD3R>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <CAA9_cmeDbpQg3XmsKaEb1f+hSVxq5+3DpLm004wiagf_uwbFMw@mail.gmail.com>
-Sender: owner-linux-mm@kvack.org
-To: Dan Williams <dan.j.williams@gmail.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Borislav Petkov <bp@alien8.de>, Tony Luck <tony.luck@intel.com>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux MM <linux-mm@kvack.org>, Andrew Morton <akpm@linux-foundation.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-i2c-owner@vger.kernel.org>
+In-Reply-To: <1449542948.2175.41.camel@kxue-X58A-UD3R>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Ken Xue <ken.xue@amd.com>
+Cc: wsa@the-dreams.de, rjw@rjwysocki.net, mika.westerberg@linux.intel.com, Len Brown <lenb@kernel.org>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Jon Masters <jcm@redhat.com>, "patches@apm.com" <patches@apm.com>, Annie.Wang@amd.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, 2015-12-09 at 08:25 -0800, Dan Williams wrote:
-> On Thu, Dec 3, 2015 at 12:35 PM, Toshi Kani <toshi.kani@hpe.com> wrote:
-> > On Thu, 2015-12-03 at 11:01 -0800, Linus Torvalds wrote:
-> > > On Thu, Dec 3, 2015 at 10:40 AM, Borislav Petkov <bp@alien8.de>
-> > > wrote:
-> > > > On Thu, Dec 03, 2015 at 11:54:19AM -0700, Toshi Kani wrote:
-> > > > > Adding a new type for regular memory will require inspecting the
-> > > > > codes using IORESOURCE_MEM currently, and modify them to use the 
-> > > > > new type if their target ranges are regular memory.  There are 
-> > > > > many references to this type across multiple architectures and
-> > > > > drivers, which make this inspection and testing challenging.
-> > > > 
-> > > > What's wrong with adding a new type_flags to struct resource and 
-> > > > not touching IORESOURCE_* at all?
-> > > 
-> > > Bah. Both of these ideas are bogus.
-> > > 
-> > > Just add a new flag. The bits are already modifiers that you can
-> > > *combine* to show what kind of resource it is, and we already have
-> > > things like IORESOURCE_PREFETCH etc, that are in *addition* to the
-> > > normal IORESOURCE_MEM bit.
-> > > 
-> > > Just add another modifier: IORESOURCE_RAM.
-> > > 
-> > > So it would still show up as IORESOURCE_MEM, but it would have
-> > > additional information specifying that it's actually RAM.
-> > > 
-> > > If somebody does something like
-> > > 
-> > >      if (res->flags == IORESOURCE_MEM)
-> > > 
-> > > then they are already completely broken and won't work *anyway*. It's
-> > > a bitmask, bit a set of values.
-> > 
-> > Yes, if we can assign new modifiers, that will be quite simple. :-)  I
-> > assume we can allocate new bits from the remaining free bits as
-> > follows.
-> > 
-> > +#define IORESOURCE_SYSTEM_RAM  0x01000000      /* System RAM */
-> > +#define IORESOURCE_PMEM        0x02000000      /* Persistent memory */
-> >  #define IORESOURCE_EXCLUSIVE   0x08000000      /* Userland may not map
-> > this resource */
-> > 
-> > Note, SYSTEM_RAM represents the OS memory, i.e. "System RAM", not any 
-> > RAM ranges.
-> > 
-> > With the new modifiers, region_intersect() can check these ranges.  One
-> > caveat is that the modifiers are not very extensible for new types as 
-> > they are bit maps.  region_intersect() will no longer be capable of 
-> > checking any regions with any given name.  I think this is OK since 
-> > this function was introduced recently, and is only used for checking 
-> > "System RAM" and "Persistent Memory" (with this patch series).
-> 
-> IORESOURCE_PMEM is not descriptive enough for the two different types
-> of pmem in the kernel.  How about we go with just
-> IORESOURCE_SYSTEM_RAM for now since "is_ram()" checks are common.  Let
-> the rest continue to be checked by strcmp().
-> 
-> For example the nvdimm-e820 driver cares about "Persistent Memory
-> (legacy)", while other forms of pmem may just be "reserved" and only
-> the driver knows that it is pmem.  An IORESOURCE_PMEM would not be
-> reliable nor descriptive enough.
+Hi Ken,
 
-Agreed.  I will introduce a new type for System RAM, and leave the strcmp
-check for other types.
+On Mon, Dec 7, 2015 at 6:49 PM, Ken Xue <ken.xue@amd.com> wrote:
+>
+> On Mon, 2015-12-07 at 17:16 -0700, Loc Ho wrote:
+> > Add APM X-Gene ACPI I2C device support by hooks into existent
+> > ACPI apd driver. To fully enable support, require another
+> > patch to add the X-Gene ACPI node into the DW I2C driver.
+> >
+> > Signed-off-by: Loc Ho <lho@apm.com>
+> > ---
+> >  drivers/acpi/acpi_apd.c |    8 +++++++-
+> >  1 files changed, 7 insertions(+), 1 deletions(-)
+> >
+> > diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
+> > index a450e7a..6a9cb8d 100644
+> > --- a/drivers/acpi/acpi_apd.c
+> > +++ b/drivers/acpi/acpi_apd.c
+> > @@ -51,7 +51,7 @@ struct apd_private_data {
+> >       const struct apd_device_desc *dev_desc;
+> >  };
+> >
+> > -#ifdef CONFIG_X86_AMD_PLATFORM_DEVICE
+> > +#if defined(CONFIG_X86_AMD_PLATFORM_DEVICE) || defined(CONFIG_ARM64)
+> >  #define APD_ADDR(desc)       ((unsigned long)&desc)
+> >
+> >  static int acpi_apd_setup(struct apd_private_data *pdata)
+> > @@ -76,6 +76,11 @@ static struct apd_device_desc cz_i2c_desc = {
+> >       .fixed_clk_rate = 133000000,
+> >  };
+> >
+> > +static struct apd_device_desc xgene_i2c_desc = {
+> > +     .setup = acpi_apd_setup,
+> > +     .fixed_clk_rate = 100000000,
+> > +};
+> > +
+> >  static struct apd_device_desc cz_uart_desc = {
+> >       .setup = acpi_apd_setup,
+> >       .fixed_clk_rate = 48000000,
+> > @@ -135,6 +140,7 @@ static const struct acpi_device_id acpi_apd_device_ids[] = {
+> >       { "AMD0010", APD_ADDR(cz_i2c_desc) },
+> >       { "AMD0020", APD_ADDR(cz_uart_desc) },
+> >       { "AMD0030", },
+> > +     { "APMC0D0F", APD_ADDR(xgene_i2c_desc) },
+> It is better to split AMD devices and ARM devices with macros:
+> CONFIG_X86_AMD_PLATFORM_DEVICE and CONFIG_ARM64.
 
-Thanks,
--Toshi
+This gets pretty ugly to me with define as it would look like this:
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+#if defined(CONFIG_X86_AMD_PLATFORM_DEVICE) || defined(CONFIG_ARM64)
+#define APD_ADDR(desc) ((unsigned long)&desc)
+
+static int acpi_apd_setup(struct apd_private_data *pdata)
+{
+   .....
+}
+
+#ifdef CONFIG_X86_AMD_PLATFORM_DEVICE
+static struct apd_device_desc cz_i2c_desc = {
+    ....
+};
+
+static struct apd_device_desc xgene_i2c_desc = {
+    ...
+};
+#endif
+
+#ifdef CONFIG_ARM64
+static struct apd_device_desc cz_uart_desc = {
+    ....
+};
+#endif
+
+#else
+
+#define APD_ADDR(desc) (0UL)
+
+#endif /* CONFIG_X86_AMD_PLATFORM_DEVICE */
+
+And...
+
+#ifdef CONFIG_X86_AMD_PLATFORM_DEVICE
+{ "AMD0010", APD_ADDR(cz_i2c_desc) },
+{ "AMD0020", APD_ADDR(cz_uart_desc) },
+{ "AMD0030", },
+#endif
+#ifdef CONFIG_ARM64
+{ "APMC0D0F", APD_ADDR(xgene_i2c_desc) },
+#endif
+
+Sure you want this?
+
+-Loc
