@@ -1,146 +1,164 @@
 From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Subject: [PATCH v7 1/4] acpi: pci: Setup MSI domain for ACPI based pci devices
-Date: Thu, 10 Dec 2015 08:55:27 -0800
-Message-ID: <1449766530-16935-2-git-send-email-Suravee.Suthikulpanit@amd.com>
+Subject: [PATCH v7 3/4] gicv2m: Refactor to prepare for ACPI support
+Date: Thu, 10 Dec 2015 08:55:29 -0800
+Message-ID: <1449766530-16935-4-git-send-email-Suravee.Suthikulpanit@amd.com>
 References: <1449766530-16935-1-git-send-email-Suravee.Suthikulpanit@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1449766530-16935-1-git-send-email-Suravee.Suthikulpanit@amd.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, bhelgaas@google.com
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, hanjun.guo@linaro.org, tomasz.nowicki@linaro.org, graeme.gregory@linaro.org, dhdang@apm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, graeme.gregory@linaro.org, Catalin Marinas <Catalin.Marinas@arm.com>, dhdang@apm.com, Will Deacon <will.deacon@arm.com>, linux-kernel@vger.kernel.org, tomasz.nowicki@linaro.org, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-This patch introduces pci_msi_register_fwnode_provider() for irqchip
-to register a callback, to provide a way to determine appropriate MSI
-domain for a pci device.
+This patch replaces the struct device_node with struct fwnode_handle
+since this structure is common between DT and ACPI.
 
-It also introduces pci_host_bridge_acpi_msi_domain(), which returns
-the MSI domain of the specified PCI host bridge with DOMAIN_BUS_PCI_MSI
-bus token. Then, it is assigned to pci device.
+It also refactors gicv2m_init_one() to prepare for ACPI support.
+The only functional change is removing the node name from pr_info.
 
 Reviewed-by: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Bjorn Helgaas <bhelgaas@google.com>
-Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
 Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 ---
- drivers/pci/pci-acpi.c    | 42 ++++++++++++++++++++++++++++++++++++++++++
- drivers/pci/probe.c       |  2 ++
- include/linux/irqdomain.h |  5 +++++
- include/linux/pci.h       | 10 ++++++++++
- 4 files changed, 59 insertions(+)
+ drivers/irqchip/irq-gic-v2m.c | 53 ++++++++++++++++++++++++++-----------------
+ 1 file changed, 32 insertions(+), 21 deletions(-)
 
-diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-index a32ba75..d3f32d6 100644
---- a/drivers/pci/pci-acpi.c
-+++ b/drivers/pci/pci-acpi.c
-@@ -9,7 +9,9 @@
+diff --git a/drivers/irqchip/irq-gic-v2m.c b/drivers/irqchip/irq-gic-v2m.c
+index 87f8d10..779c390 100644
+--- a/drivers/irqchip/irq-gic-v2m.c
++++ b/drivers/irqchip/irq-gic-v2m.c
+@@ -55,7 +55,7 @@ static DEFINE_SPINLOCK(v2m_lock);
  
- #include <linux/delay.h>
- #include <linux/init.h>
-+#include <linux/irqdomain.h>
- #include <linux/pci.h>
-+#include <linux/msi.h>
- #include <linux/pci_hotplug.h>
- #include <linux/module.h>
- #include <linux/pci-aspm.h>
-@@ -689,6 +691,46 @@ static struct acpi_bus_type acpi_pci_bus = {
- 	.cleanup = pci_acpi_cleanup,
- };
- 
-+
-+static struct fwnode_handle *(*pci_msi_get_fwnode_cb)(struct device *dev);
-+
-+/**
-+ * pci_msi_register_fwnode_provider - Register callback to retrieve fwnode
-+ * @fn:       Callback matching a device to a fwnode that identifies a PCI
-+ *            MSI domain.
-+ *
-+ * This should be called by irqchip driver, which is the parent of
-+ * the MSI domain to provide callback interface to query fwnode.
-+ */
-+void
-+pci_msi_register_fwnode_provider(struct fwnode_handle *(*fn)(struct device *))
-+{
-+	pci_msi_get_fwnode_cb = fn;
-+}
-+
-+/**
-+ * pci_host_bridge_acpi_msi_domain - Retrieve MSI domain of a PCI host bridge
-+ * @bus:      The PCI host bridge bus.
-+ *
-+ * This function uses the callback function registered by
-+ * pci_msi_register_fwnode_provider() to retrieve the irq_domain with
-+ * type DOMAIN_BUS_PCI_MSI of the specified host bridge bus.
-+ * This returns NULL on error or when the domain is not found.
-+ */
-+struct irq_domain *pci_host_bridge_acpi_msi_domain(struct pci_bus *bus)
-+{
+ struct v2m_data {
+ 	struct list_head entry;
+-	struct device_node *node;
 +	struct fwnode_handle *fwnode;
-+
-+	if (!pci_msi_get_fwnode_cb)
-+		return NULL;
-+
-+	fwnode = pci_msi_get_fwnode_cb(&bus->dev);
-+	if (!fwnode)
-+		return NULL;
-+
-+	return irq_find_matching_fwnode(fwnode, DOMAIN_BUS_PCI_MSI);
-+}
-+
- static int __init acpi_pci_init(void)
+ 	struct resource res;	/* GICv2m resource */
+ 	void __iomem *base;	/* GICv2m virt address */
+ 	u32 spi_start;		/* The SPI number that MSIs start */
+@@ -254,7 +254,7 @@ static void gicv2m_teardown(void)
+ 		list_del(&v2m->entry);
+ 		kfree(v2m->bm);
+ 		iounmap(v2m->base);
+-		of_node_put(v2m->node);
++		of_node_put(to_of_node(v2m->fwnode));
+ 		kfree(v2m);
+ 	}
+ }
+@@ -268,7 +268,7 @@ static int gicv2m_allocate_domains(struct irq_domain *parent)
+ 	if (!v2m)
+ 		return 0;
+ 
+-	inner_domain = irq_domain_create_tree(of_node_to_fwnode(v2m->node),
++	inner_domain = irq_domain_create_tree(v2m->fwnode,
+ 					      &gicv2m_domain_ops, v2m);
+ 	if (!inner_domain) {
+ 		pr_err("Failed to create GICv2m domain\n");
+@@ -277,10 +277,10 @@ static int gicv2m_allocate_domains(struct irq_domain *parent)
+ 
+ 	inner_domain->bus_token = DOMAIN_BUS_NEXUS;
+ 	inner_domain->parent = parent;
+-	pci_domain = pci_msi_create_irq_domain(of_node_to_fwnode(v2m->node),
++	pci_domain = pci_msi_create_irq_domain(v2m->fwnode,
+ 					       &gicv2m_msi_domain_info,
+ 					       inner_domain);
+-	plat_domain = platform_msi_create_irq_domain(of_node_to_fwnode(v2m->node),
++	plat_domain = platform_msi_create_irq_domain(v2m->fwnode,
+ 						     &gicv2m_pmsi_domain_info,
+ 						     inner_domain);
+ 	if (!pci_domain || !plat_domain) {
+@@ -296,8 +296,9 @@ static int gicv2m_allocate_domains(struct irq_domain *parent)
+ 	return 0;
+ }
+ 
+-static int __init gicv2m_init_one(struct device_node *node,
+-				  struct irq_domain *parent)
++static int __init gicv2m_init_one(struct fwnode_handle *fwnode,
++				  u32 spi_start, u32 nr_spis,
++				  struct resource *res)
  {
  	int ret;
-diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-index edb1984..553a029 100644
---- a/drivers/pci/probe.c
-+++ b/drivers/pci/probe.c
-@@ -672,6 +672,8 @@ static struct irq_domain *pci_host_bridge_msi_domain(struct pci_bus *bus)
- 	 * should be called from here.
- 	 */
- 	d = pci_host_bridge_of_msi_domain(bus);
-+	if (!d)
-+		d = pci_host_bridge_acpi_msi_domain(bus);
+ 	struct v2m_data *v2m;
+@@ -309,13 +310,9 @@ static int __init gicv2m_init_one(struct device_node *node,
+ 	}
  
- 	return d;
- }
-diff --git a/include/linux/irqdomain.h b/include/linux/irqdomain.h
-index d5e5c5b..a06feda 100644
---- a/include/linux/irqdomain.h
-+++ b/include/linux/irqdomain.h
-@@ -410,6 +410,11 @@ static inline bool irq_domain_is_hierarchy(struct irq_domain *domain)
- static inline void irq_dispose_mapping(unsigned int virq) { }
- static inline void irq_domain_activate_irq(struct irq_data *data) { }
- static inline void irq_domain_deactivate_irq(struct irq_data *data) { }
-+static inline struct irq_domain *irq_find_matching_fwnode(
-+	struct fwnode_handle *fwnode, enum irq_domain_bus_token bus_token)
-+{
-+	return NULL;
-+}
- #endif /* !CONFIG_IRQ_DOMAIN */
+ 	INIT_LIST_HEAD(&v2m->entry);
+-	v2m->node = node;
++	v2m->fwnode = fwnode;
  
- #endif /* _LINUX_IRQDOMAIN_H */
-diff --git a/include/linux/pci.h b/include/linux/pci.h
-index 6ae25aa..d86378c 100644
---- a/include/linux/pci.h
-+++ b/include/linux/pci.h
-@@ -1946,6 +1946,16 @@ static inline struct irq_domain *
- pci_host_bridge_of_msi_domain(struct pci_bus *bus) { return NULL; }
- #endif  /* CONFIG_OF */
+-	ret = of_address_to_resource(node, 0, &v2m->res);
+-	if (ret) {
+-		pr_err("Failed to allocate v2m resource.\n");
+-		goto err_free_v2m;
+-	}
++	memcpy(&v2m->res, res, sizeof(struct resource));
  
-+#ifdef CONFIG_ACPI
-+struct irq_domain *pci_host_bridge_acpi_msi_domain(struct pci_bus *bus);
+ 	v2m->base = ioremap(v2m->res.start, resource_size(&v2m->res));
+ 	if (!v2m->base) {
+@@ -324,10 +321,9 @@ static int __init gicv2m_init_one(struct device_node *node,
+ 		goto err_free_v2m;
+ 	}
+ 
+-	if (!of_property_read_u32(node, "arm,msi-base-spi", &v2m->spi_start) &&
+-	    !of_property_read_u32(node, "arm,msi-num-spis", &v2m->nr_spis)) {
+-		pr_info("Overriding V2M MSI_TYPER (base:%u, num:%u)\n",
+-			v2m->spi_start, v2m->nr_spis);
++	if (spi_start && nr_spis) {
++		v2m->spi_start = spi_start;
++		v2m->nr_spis = nr_spis;
+ 	} else {
+ 		u32 typer = readl_relaxed(v2m->base + V2M_MSI_TYPER);
+ 
+@@ -359,10 +355,10 @@ static int __init gicv2m_init_one(struct device_node *node,
+ 	}
+ 
+ 	list_add_tail(&v2m->entry, &v2m_nodes);
+-	pr_info("Node %s: range[%#lx:%#lx], SPI[%d:%d]\n", node->name,
+-		(unsigned long)v2m->res.start, (unsigned long)v2m->res.end,
+-		v2m->spi_start, (v2m->spi_start + v2m->nr_spis));
+ 
++	pr_info("range[%#lx:%#lx], SPI[%d:%d]\n",
++		(unsigned long)res->start, (unsigned long)res->end,
++		v2m->spi_start, (v2m->spi_start + v2m->nr_spis));
+ 	return 0;
+ 
+ err_iounmap:
+@@ -384,10 +380,25 @@ int __init gicv2m_of_init(struct device_node *node, struct irq_domain *parent)
+ 
+ 	for (child = of_find_matching_node(node, gicv2m_device_id); child;
+ 	     child = of_find_matching_node(child, gicv2m_device_id)) {
++		u32 spi_start = 0, nr_spis = 0;
++		struct resource res;
 +
-+void
-+pci_msi_register_fwnode_provider(struct fwnode_handle *(*fn)(struct device *));
-+#else
-+static inline struct irq_domain *
-+pci_host_bridge_acpi_msi_domain(struct pci_bus *bus) { return NULL; }
-+#endif
+ 		if (!of_find_property(child, "msi-controller", NULL))
+ 			continue;
+ 
+-		ret = gicv2m_init_one(child, parent);
++		ret = of_address_to_resource(child, 0, &res);
++		if (ret) {
++			pr_err("Failed to allocate v2m resource.\n");
++			break;
++		}
 +
- #ifdef CONFIG_EEH
- static inline struct eeh_dev *pci_dev_to_eeh_dev(struct pci_dev *pdev)
- {
++		if (!of_property_read_u32(child, "arm,msi-base-spi",
++					  &spi_start) &&
++		    !of_property_read_u32(child, "arm,msi-num-spis", &nr_spis))
++			pr_info("DT overriding V2M MSI_TYPER (base:%u, num:%u)\n",
++				spi_start, nr_spis);
++
++		ret = gicv2m_init_one(&child->fwnode, spi_start, nr_spis, &res);
+ 		if (ret) {
+ 			of_node_put(node);
+ 			break;
 -- 
 2.1.0
