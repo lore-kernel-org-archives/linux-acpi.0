@@ -1,70 +1,47 @@
-From: Will Deacon <will.deacon@arm.com>
-Subject: Re: [PATCH v4] acpi, apei, arm64: APEI initial support for aarch64.
-Date: Thu, 10 Dec 2015 11:01:35 +0000
-Message-ID: <20151210110135.GC21134@arm.com>
-References: <1449558183-12259-1-git-send-email-fu.wei@linaro.org>
- <20151208123433.GB404@red-moon>
- <5666D28C.4090305@linaro.org>
- <CADyBb7tByoke4PGZqcx_jHvgCK0xNTneod8WoVv7VmoSYii+hg@mail.gmail.com>
- <20151208140720.GA2395@red-moon>
- <CADyBb7sLAJdiC=2UzKFsHQ=+Tfuwd6FGi80O9H+1sj70qtCiPg@mail.gmail.com>
- <CADyBb7vVaPsNZeKp=XQ0zwd-qH1mwuECCtCfkpqm0jDyFTzDcg@mail.gmail.com>
+From: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>
+Subject: Re: [PATCH v6 4/4] gicv2m: acpi: Introducing GICv2m ACPI support
+Date: Thu, 10 Dec 2015 10:11:01 -0600
+Message-ID: <5669A415.60300@amd.com>
+References: <1449689074-30609-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+ <1449689074-30609-5-git-send-email-Suravee.Suthikulpanit@amd.com>
+ <56694272.5050706@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:54416 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751537AbbLJLBf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 10 Dec 2015 06:01:35 -0500
-Content-Disposition: inline
-In-Reply-To: <CADyBb7vVaPsNZeKp=XQ0zwd-qH1mwuECCtCfkpqm0jDyFTzDcg@mail.gmail.com>
+Received: from mail-by2on0096.outbound.protection.outlook.com ([207.46.100.96]:19264
+	"EHLO na01-by2-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750790AbbLJQLJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 10 Dec 2015 11:11:09 -0500
+In-Reply-To: <56694272.5050706@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Fu Wei <fu.wei@linaro.org>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Rafael Wysocki <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, LKML <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Marc Zyngier <Marc.Zyngier@arm.com>, rruigrok@codeaurora.org, "Abdulhamid, Harb" <harba@qti.qualcomm.com>, Jon Masters <jcm@redhat.com>, Mark Salter <msalter@redhat.com>, Grant Likely <grant.likely@linaro.org>, rrichter@cavium.com, jarkko.nikula@linux.intel.com, Jonathan Zhang <jon.zhixiong.zhang@gmail.com>, bp@suse.de
+To: Marc Zyngier <marc.zyngier@arm.com>, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, hanjun.guo@linaro.org, tomasz.nowicki@linaro.org, graeme.gregory@linaro.org, dhdang@apm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
-[adding Boris, as he might know how this works]
+On 12/10/2015 3:14 AM, Marc Zyngier wrote:
+>> +int __init gicv2m_init(struct fwnode_handle *parent_handle,
+>> >+		       struct irq_domain *parent)
+>> >+{
+>> >+	int ret = gicv2m_of_init(parent_handle, parent);
+>> >+
+>> >+	if (ret)
+>> >+		ret = gicv2m_acpi_init(parent);
+>> >+	return ret;
+> This should really read:
+>
+> 	if (is_of_node(parent_handle))
+> 		return gicv2m_of_init(parent_handle, parent);
+> 	
+> 	return gicv2m_acpi_init(parent);
+>
+> and you can loose the test for NULL in gicv2m_of_init().
+>
 
-On Thu, Dec 10, 2015 at 10:02:39AM +0800, Fu Wei wrote:
-> On 9 December 2015 at 11:25, Fu Wei <fu.wei@linaro.org> wrote:
-> > On 8 December 2015 at 22:07, Lorenzo Pieralisi
-> > <lorenzo.pieralisi@arm.com> wrote:
-> >> Side note: I wonder if there is a way to make the TLB flushing API common
-> >> across architectures therefore avoiding this arch_apei_flush_tlb* churn.
-> >
-> > yes, make sense, I will think about this today , thanks for your suggestion.
-> 
-> I do some investigation on this "tlb" problem(actually not just tlb,
-> but also "get_mem_attribute") today,
-> I think we need to
-> (1)have a common API in tlbflush.h (at least for flushing one page)
-> across architectures(at least in x86 and arm64)
+Right... Your style of returning which is cleaner ;)
 
-It's not about flushing one page, flush_tlb_kernel_range (which is called
-by unmap_kernel_range) already takes care of that. The problem is that
-the unmap is called from irq/nmi context, so the IPIs required for
-broadcasting the TLB maintenance on x86 cannot be safely executed.
+I'll update in V7 and send it out shortly.
 
-So, if you're going to introduce anything in the way of TLB API, then it
-should be a generic form of the local_flush_tlb_* functions that we already
-have on ARM, imo. That sounds like a lot of work for this one problem.
-
-You could call flush_tlb_page with a fake vma/mm, but it's pretty ugly.
-
-> (2)use this API in drivers/acpi/apei/gest.c instead of arch_apei_flush_tlb_one
-> (3)delete the old function from arm64 and x86
-
-Ideally, I think the ghes code would just use unmap_kernel_range unless
-the architecture specifically says that doesn't work in irq context. In
-that case, we don't need to implement the arch_apei_flush_tlb_one callback
-on arm64.
-
-One thing I don't fully grok about the code: since the page is mapped
-using ioremap_page_range, doesn't that allow other CPUs to speculatively
-fill their TLB with entries corresponding to the page mapped by the IRQ
-handler on another core? If the core with the speculative entries then
-takes an APEI exception, what guarantees do we have that it's looking at
-the right page? I think, for x86, we need a local invalidation on map,
-too.
-
-Will
+Thanks,
+Suravee
