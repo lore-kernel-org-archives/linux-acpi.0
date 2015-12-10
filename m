@@ -1,86 +1,147 @@
-From: "Prakash, Prashanth" <pprakash@codeaurora.org>
-Subject: Re: [PATCH v3 0/5] ACPI / processor_idle: Add ACPI v6.0 LPI support
-Date: Wed, 9 Dec 2015 15:52:15 -0700
-Message-ID: <5668B09F.70201@codeaurora.org>
-References: <1449065446-26115-1-git-send-email-sudeep.holla@arm.com>
+From: Jerry Hoemann <jerry.hoemann@hpe.com>
+Subject: Re: [PATCH v3 3/3] nvdimm: Add IOCTL pass thru functions
+Date: Wed, 9 Dec 2015 17:24:42 -0700
+Message-ID: <20151210002442.GA104756@tevye.fc.hp.com>
+References: <cover.1449089647.git.jerry.hoemann@hpe.com>
+ <f8e838fb666b7d05e5e1f7527d643181c6f6ba4d.1449089647.git.jerry.hoemann@hpe.com>
+ <CAPcyv4gFNnsbyTy8u-_jBF9JPYH_0a9dNX_R1oj2EH2sdrb=-g@mail.gmail.com>
+Reply-To: Jerry.Hoemann@hpe.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1449065446-26115-1-git-send-email-sudeep.holla@arm.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sudeep Holla <sudeep.holla@arm.com>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, x86@kernel.org, Al Stone <al.stone@linaro.org>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Mahesh Sivasubramanian <msivasub@codeaurora.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g9t5009.houston.hp.com ([15.240.92.67]:59917 "EHLO
+	g9t5009.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750849AbbLJAYq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Dec 2015 19:24:46 -0500
+Content-Disposition: inline
+In-Reply-To: <CAPcyv4gFNnsbyTy8u-_jBF9JPYH_0a9dNX_R1oj2EH2sdrb=-g@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Dan Williams <dan.j.williams@intel.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "Elliott, Robert (Persistent Memory)" <elliott@hpe.com>, jmoyer <jmoyer@redhat.com>, Dmitry Krivenok <krivenok.dmitry@gmail.com>, Linda Knippers <linda.knippers@hpe.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Reviewed the patch-set and tested it on an ARM platform over the last couple
-of days without any issues, so
 
-Tested-by: Prashanth Prakash <pprakash@codeaurora.org>
+On Tue, Dec 08, 2015 at 06:10:20PM -0800, Dan Williams wrote:
+> On Wed, Dec 2, 2015 at 1:05 PM, Jerry Hoemann <jerry.hoemann@hpe.com> wrote:
+> > Add ioctl command ND_CMD_CALL_DSM to acpi_nfit_ctl and __nd_ioctl which
+> > allow kernel to call a nvdimm's _DSM as a passthru without using the
+> > marshaling code of the nd_cmd_desc.
+> >
+> > Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
+> > ---
+> >  drivers/acpi/nfit.c  | 109 ++++++++++++++++++++++++++++++++-------------------
+> >  drivers/nvdimm/bus.c |  61 +++++++++++++++++++++-------
+> >  2 files changed, 115 insertions(+), 55 deletions(-)
+> >
+> 
+> In general I'd like to see this patch remove the need to sprinkle "if
+> (dsm_call)" throughout the implementation ... specific examples below:
 
-Thanks,
-Prashanth
 
-On 12/2/2015 7:10 AM, Sudeep Holla wrote:
-> ACPI 6.0 introduced LPI(Low Power Idle) states that provides an alternate
-> method to describe processor idle states. It extends the specification
-> to allow the expression of idle states like C-states selectable by the
-> OSPM when a processor goes idle, but may affect more than one processor,
-> and may affect other system components.
->
-> LPI extensions leverages the processor container device(again introduced
-> in ACPI 6.0) allowing to express which parts of the system are affected
-> by a given LPI state. It defines the local power states for each node
-> in a hierarchical processor topology. The OSPM can use _LPI object to
-> select a local power state for each level of processor hierarchy in the
-> system. They used to produce a composite power state request that is
-> presented to the platform by the OSPM.
->
-> Since multiple processors affect the idle state for any non-leaf hierarchy
-> node, coordination of idle state requests between the processors is
-> required. ACPI supports two different coordination schemes: Platform
-> coordinated and  OS initiated.
->
-> This series aims at providing basic and initial support for platform
-> coordinated LPI states.
->
-> v2[2]->v3:
-> 	- rebased against v4.4-rc3
-> 	- fixed couple of issues reported by Prashanth and review comments
-> 	  from Ashwin
->
-> v1[1]->v2[2]:
-> 	- Fixed support for ACPI0010 processor container
-> 	- moved sleep state code out of processor_idle
->
-> Note the ARM64 specific changes are not part of this series as it's still
-> WIP and there are other consolidation happening in there. For reference
-> and testing, I have pushed a branch[3]
->
-> Regards,
-> Sudeep
->
-> [1] https://lkml.org/lkml/2015/8/4/789
-> [2] https://lkml.org/lkml/2015/9/16/422
-> [3] git://git.kernel.org/pub/scm/linux/kernel/git/sudeep.holla/linux.git arm64_lpi_testing
->
->
-> Sudeep Holla (5):
->   ACPI / processor : add support for ACPI0010 processor container
->   ACPI / sleep: move acpi_processor_sleep to sleep.c
->   ACPI / processor_idle: replace PREFIX with pr_fmt
->   ACPI / processor_idle : introduce ARCH_SUPPORTS_ACPI_PROCESSOR_CSTATE
->   ACPI / processor_idle: Add support for Low Power Idle(LPI) states
->
->  arch/ia64/Kconfig               |   1 +
->  arch/x86/Kconfig                |   1 +
->  drivers/acpi/Kconfig            |   6 +
->  drivers/acpi/acpi_processor.c   |  17 ++
->  drivers/acpi/bus.c              |   8 +-
->  drivers/acpi/processor_driver.c |   4 +-
->  drivers/acpi/processor_idle.c   | 553 ++++++++++++++++++++++++++++++++--------
->  drivers/acpi/sleep.c            |  35 +++
->  include/acpi/processor.h        |  42 ++-
->  include/linux/acpi.h            |   4 +
->  10 files changed, 545 insertions(+), 126 deletions(-)
->
+ The current code is exporting a very different interface
+ for calling _DSM from the pass thru I'm proposing.
+
+ The current code explicitly knows the calling structure of each _DSM function.
+ It knows the number and size of each input and output field.  For variable
+ size output functions the current kernel code knows which field describes
+ the size of the output.  The current code knows the dsm_mask for the _DSM.
+
+ For the pass thru that I'm proposing the kernel wouldn't need to know any
+ of this.  The information needed to make the _DSM call would be passed in by
+ the caller.  [ Yes, there are cases where some calls are made from within
+ the kernel.  But it would be those callers who use the data that needs to
+ know about the data. ]
+
+ So the use of dsm_call marks where there is a fundamental difference
+ in the two approaches.  This is one reason why I didn't try to integrate
+ these functions in my original submittal.
+
+ You previously expressed an interest in converting the user application
+ to use a pass thru mode and deprecate the current ioctl.  Is this something
+ you're still interested in doing?
+
+ If yes, the work we need to do to integrate these two different approaches
+ will just need to be undone.  Further if we deprecate the current IOCTLs,
+ then the nd_cmd_desc tables and related nd_cmd_in_size and nd_cmd_out_size
+ could then be removed.
+
+
+
+> 
+> > diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+> > index c1b8d03..e509145 100644
+> > --- a/drivers/acpi/nfit.c
+> > +++ b/drivers/acpi/nfit.c
+> > @@ -75,7 +75,11 @@ static int acpi_nfit_ctl(struct nvdimm_bus_descriptor *nd_desc,
+
+ ...
+
+> > +       __u64 rev = 1, func = cmd;
+> 
+> Why __u64 and not int for these?  acpi_evaluate_dsm() takes an int for
+> both so a bigger type here will be truncated down.
+
+
+ACPI defines arguments to a _DSM as 64 bit quantities. We want the interface
+exported to the user to follow the ACPI spec.  The variables above collect
+the value of rev or func from the two different sources (wrapper or legacy)
+and then passes to acpi_evaluate_dsm which defines the parameters as simple
+ints.
+
+So, going from user interface to call of acpi_evaluate_dsm there will be
+a truncation somewhere.
+
+Looking at acpi_evaluate_dsm(), it uses union acpi_object and fills in
+.integer.value for both rev and func.  These are defined as u64.
+
+So patching acpi_evaluate_dsm to make the rev and func parameters u64 might
+be do'able, but we'd still have potential sign issues with other callers
+to acpi_evaluate_dsm which look to be using simple ints in the call.
+
+Do you want me to look at patching acpi_evaluate_dsm (and possibly
+its callers) as part of this patch set?
+
+
+...
+
+
+
+> >
+> >         /* fail write commands (when read-only) */
+> >         if (read_only)
+> > -               switch (ioctl_cmd) {
+> > -               case ND_IOCTL_VENDOR:
+> > -               case ND_IOCTL_SET_CONFIG_DATA:
+> > -               case ND_IOCTL_ARS_START:
+> > +               switch (cmd) {
+> > +               case ND_CMD_VENDOR:
+> > +               case ND_CMD_SET_CONFIG_DATA:
+> > +               case ND_CMD_ARS_START:
+> > +               case ND_CMD_CALL_DSM:
+> 
+> I agree with your comment in the cover letter that this change should
+> be a separate patch.
+
+  Will do.
+
+> 
+> It bothers me that we'll block all ND_CMD_CALL_DSM in the read_only
+> case.  Let's leave ND_CMD_CALL_DSM out of this selection for now.
+
+  Not thrilled here either, but it is the conservative approach for
+  the kernel.
+
+  Since ND_CMD_CALL_DSM is a pass thru,  the kernel
+  doesn't have the knowledge whether the call being made
+  is "read only" or not.  Having ND_CMD_CALL_DSM in
+  the switch doesn't prevent the user from making such
+  calls, it only requires s/he opens the device for write.
+
+
+-- 
+
+-----------------------------------------------------------------------------
+Jerry Hoemann                  Software Engineer   Hewlett Packard Enterprise
+-----------------------------------------------------------------------------
+
+-- 
