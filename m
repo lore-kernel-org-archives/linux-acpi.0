@@ -1,56 +1,70 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH v6 0/4] gicv2m: acpi: Add ACPI support for GICv2m MSI
-Date: Thu, 10 Dec 2015 09:26:46 +0000
-Message-ID: <56694556.3030809@arm.com>
-References: <1449689074-30609-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+From: Will Deacon <will.deacon@arm.com>
+Subject: Re: [PATCH v4] acpi, apei, arm64: APEI initial support for aarch64.
+Date: Thu, 10 Dec 2015 11:01:35 +0000
+Message-ID: <20151210110135.GC21134@arm.com>
+References: <1449558183-12259-1-git-send-email-fu.wei@linaro.org>
+ <20151208123433.GB404@red-moon>
+ <5666D28C.4090305@linaro.org>
+ <CADyBb7tByoke4PGZqcx_jHvgCK0xNTneod8WoVv7VmoSYii+hg@mail.gmail.com>
+ <20151208140720.GA2395@red-moon>
+ <CADyBb7sLAJdiC=2UzKFsHQ=+Tfuwd6FGi80O9H+1sj70qtCiPg@mail.gmail.com>
+ <CADyBb7vVaPsNZeKp=XQ0zwd-qH1mwuECCtCfkpqm0jDyFTzDcg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:53985 "EHLO foss.arm.com"
+Received: from foss.arm.com ([217.140.101.70]:54416 "EHLO foss.arm.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753200AbbLJJ0u (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 10 Dec 2015 04:26:50 -0500
-In-Reply-To: <1449689074-30609-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+	id S1751537AbbLJLBf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 10 Dec 2015 06:01:35 -0500
+Content-Disposition: inline
+In-Reply-To: <CADyBb7vVaPsNZeKp=XQ0zwd-qH1mwuECCtCfkpqm0jDyFTzDcg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, hanjun.guo@linaro.org, tomasz.nowicki@linaro.org, graeme.gregory@linaro.org, dhdang@apm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: Fu Wei <fu.wei@linaro.org>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Rafael Wysocki <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, LKML <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Marc Zyngier <Marc.Zyngier@arm.com>, rruigrok@codeaurora.org, "Abdulhamid, Harb" <harba@qti.qualcomm.com>, Jon Masters <jcm@redhat.com>, Mark Salter <msalter@redhat.com>, Grant Likely <grant.likely@linaro.org>, rrichter@cavium.com, jarkko.nikula@linux.intel.com, Jonathan Zhang <jon.zhixiong.zhang@gmail.com>, bp@suse.de
 
-On 09/12/15 19:24, Suravee Suthikulpanit wrote:
-> This patch series has been forked from the following patch series since
-> it no longer depends on the rest of the patches.
-> 
->   [PATCH v4 00/10] ACPI GIC Self-probing, GICv2m and GICv3 support
->   https://lkml.org/lkml/2015/7/29/234
-> 
-> It has been ported to use the newly introduced device fwnode_handle 
-> for ACPI irqdmain introduced by Marc in the following patch series:
-> 
->   [PATCH v2 00/17] Divorcing irqdomain and device_node
-> 
-> The following git branch contains the submitted patches along with
-> the pre-requsite patches (mainly for ARM64 PCI support for ACPI).
-> 
->   https://github.com/ssuthiku/linux.git	v2m-multiframe-v6
-> 
-> This has been tested on AMD Seattle (Overdrive) RevB system. 
-> 
-> NOTE: I have not tested ACPI GICv2m multiframe support since
-> I don't have access to such system. Any helps are appreciated.
+[adding Boris, as he might know how this works]
 
-Suravee,
+On Thu, Dec 10, 2015 at 10:02:39AM +0800, Fu Wei wrote:
+> On 9 December 2015 at 11:25, Fu Wei <fu.wei@linaro.org> wrote:
+> > On 8 December 2015 at 22:07, Lorenzo Pieralisi
+> > <lorenzo.pieralisi@arm.com> wrote:
+> >> Side note: I wonder if there is a way to make the TLB flushing API common
+> >> across architectures therefore avoiding this arch_apei_flush_tlb* churn.
+> >
+> > yes, make sense, I will think about this today , thanks for your suggestion.
+> 
+> I do some investigation on this "tlb" problem(actually not just tlb,
+> but also "get_mem_attribute") today,
+> I think we need to
+> (1)have a common API in tlbflush.h (at least for flushing one page)
+> across architectures(at least in x86 and arm64)
 
-This is starting to look OK, and you should be able to quickly fix the
-last patch. Now, I'm not sure how you want to get that merged.
+It's not about flushing one page, flush_tlb_kernel_range (which is called
+by unmap_kernel_range) already takes care of that. The problem is that
+the unmap is called from irq/nmi context, so the IPIs required for
+broadcasting the TLB maintenance on x86 cannot be safely executed.
 
-The first patch touches both ACPI and PCI, so it would at least requires
-Acks from Rafael and Bjorn (which is not cc-ed, and you may want to fix
-that in your next post, adding linux-pci for a good measure). If they
-are both happy with the change, I can pick up the series as a whole.
+So, if you're going to introduce anything in the way of TLB API, then it
+should be a generic form of the local_flush_tlb_* functions that we already
+have on ARM, imo. That sounds like a lot of work for this one problem.
 
-Thanks,
+You could call flush_tlb_page with a fake vma/mm, but it's pretty ugly.
 
-	M.
--- 
-Jazz is not dead. It just smells funny...
+> (2)use this API in drivers/acpi/apei/gest.c instead of arch_apei_flush_tlb_one
+> (3)delete the old function from arm64 and x86
+
+Ideally, I think the ghes code would just use unmap_kernel_range unless
+the architecture specifically says that doesn't work in irq context. In
+that case, we don't need to implement the arch_apei_flush_tlb_one callback
+on arm64.
+
+One thing I don't fully grok about the code: since the page is mapped
+using ioremap_page_range, doesn't that allow other CPUs to speculatively
+fill their TLB with entries corresponding to the page mapped by the IRQ
+handler on another core? If the core with the speculative entries then
+takes an APEI exception, what guarantees do we have that it's looking at
+the right page? I think, for x86, we need a local invalidation on map,
+too.
+
+Will
