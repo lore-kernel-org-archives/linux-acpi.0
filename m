@@ -1,160 +1,102 @@
-From: Fu Wei <fu.wei@linaro.org>
-Subject: Re: [PATCH v4] acpi, apei, arm64: APEI initial support for aarch64.
-Date: Thu, 10 Dec 2015 10:02:39 +0800
-Message-ID: <CADyBb7vVaPsNZeKp=XQ0zwd-qH1mwuECCtCfkpqm0jDyFTzDcg@mail.gmail.com>
-References: <1449558183-12259-1-git-send-email-fu.wei@linaro.org>
-	<20151208123433.GB404@red-moon>
-	<5666D28C.4090305@linaro.org>
-	<CADyBb7tByoke4PGZqcx_jHvgCK0xNTneod8WoVv7VmoSYii+hg@mail.gmail.com>
-	<20151208140720.GA2395@red-moon>
-	<CADyBb7sLAJdiC=2UzKFsHQ=+Tfuwd6FGi80O9H+1sj70qtCiPg@mail.gmail.com>
+From: Duc Dang <dhdang@apm.com>
+Subject: Re: [PATCH v6 0/4] gicv2m: acpi: Add ACPI support for GICv2m MSI
+Date: Wed, 9 Dec 2015 18:20:18 -0800
+Message-ID: <CADaLNDkF_-6Odo6ygyuUVSNdcq93stC-pyGTXEoBDUizPzd99Q@mail.gmail.com>
+References: <1449689074-30609-1-git-send-email-Suravee.Suthikulpanit@amd.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f175.google.com ([209.85.214.175]:36525 "EHLO
-	mail-ob0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751804AbbLJCCk (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Dec 2015 21:02:40 -0500
-Received: by obcse5 with SMTP id se5so49774359obc.3
-        for <linux-acpi@vger.kernel.org>; Wed, 09 Dec 2015 18:02:40 -0800 (PST)
-In-Reply-To: <CADyBb7sLAJdiC=2UzKFsHQ=+Tfuwd6FGi80O9H+1sj70qtCiPg@mail.gmail.com>
+Received: from mail-ob0-f179.google.com ([209.85.214.179]:35263 "EHLO
+	mail-ob0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751141AbbLJCUs (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 9 Dec 2015 21:20:48 -0500
+Received: by obc18 with SMTP id 18so48740759obc.2
+        for <linux-acpi@vger.kernel.org>; Wed, 09 Dec 2015 18:20:47 -0800 (PST)
+In-Reply-To: <1449689074-30609-1-git-send-email-Suravee.Suthikulpanit@amd.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, Rafael Wysocki <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, LKML <linux-kernel@vger.kernel.org>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Marc Zyngier <Marc.Zyngier@arm.com>, rruigrok@codeaurora.org, "Abdulhamid, Harb" <harba@qti.qualcomm.com>, Jon Masters <jcm@redhat.com>, Mark Salter <msalter@redhat.com>, Grant Likely <grant.likely@linaro.org>, rrichter@cavium.com, jarkko.nikula@linux.intel.com, Jonathan Zhang <jon.zhixiong.zhang@gmail.com>
+To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Cc: Marc Zyngier <marc.zyngier@arm.com>, Thomas Gleixner <tglx@linutronix.de>, Jason Cooper <jason@lakedaemon.net>, rjw@rjwysocki.net, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, G Gregory <graeme.gregory@linaro.org>, linux-arm <linux-arm-kernel@lists.infradead.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org
 
-Hi Lorenzo,
+On Wed, Dec 9, 2015 at 11:24 AM, Suravee Suthikulpanit
+<Suravee.Suthikulpanit@amd.com> wrote:
+>
+> This patch series has been forked from the following patch series since
+> it no longer depends on the rest of the patches.
+>
+>   [PATCH v4 00/10] ACPI GIC Self-probing, GICv2m and GICv3 support
+>   https://lkml.org/lkml/2015/7/29/234
+>
+> It has been ported to use the newly introduced device fwnode_handle
+> for ACPI irqdmain introduced by Marc in the following patch series:
+>
+>   [PATCH v2 00/17] Divorcing irqdomain and device_node
+>
+> The following git branch contains the submitted patches along with
+> the pre-requsite patches (mainly for ARM64 PCI support for ACPI).
+>
+>   https://github.com/ssuthiku/linux.git v2m-multiframe-v6
+>
+> This has been tested on AMD Seattle (Overdrive) RevB system.
+>
+> NOTE: I have not tested ACPI GICv2m multiframe support since
+> I don't have access to such system. Any helps are appreciated.
 
-On 9 December 2015 at 11:25, Fu Wei <fu.wei@linaro.org> wrote:
-> Hi Lorenzo,
->
-> On 8 December 2015 at 22:07, Lorenzo Pieralisi
-> <lorenzo.pieralisi@arm.com> wrote:
->> On Tue, Dec 08, 2015 at 09:08:24PM +0800, Fu Wei wrote:
->>> Hi Lorenzo,
->>>
->>>
->>>
->>> On 8 December 2015 at 20:52, Hanjun Guo <hanjun.guo@linaro.org> wrote:
->>> > Hi Lorenzo,
->>> >
->>> > On 12/08/2015 08:34 PM, Lorenzo Pieralisi wrote:
->>> >>
->>> >> On Tue, Dec 08, 2015 at 03:03:03PM +0800, fu.wei@linaro.org wrote:
->>> >>>
->>> >>> From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
->>> >>
->>> >>
->>> >> [...]
->>> >>
->>> >>> +#if defined(__i386__) || defined(__x86_64__)
->>> >>>   /*
->>> >>>    * Check if firmware advertises firmware first mode. We need FF bit to
->>> >>> be set
->>> >>>    * along with a set of MC banks which work in FF mode.
->>> >>>    */
->>> >>>   static int __init hest_parse_cmc(struct acpi_hest_header *hest_hdr,
->>> >>> void *data)
->>> >>>   {
->>> >>> -       return arch_apei_enable_cmcff(hest_hdr, data);
->>> >>> +       if (!acpi_disable_cmcff)
->>> >>
->>> >>
->>> >> Why do not you define the flag above in this file (move it out of x86 -
->>> >> that's what I was aiming at in my previous reply) and remove this
->>> >> ifdeffery
->>> >> altogether (First firmware handling could apply to arm64 too according to
->>> >> specs and ACPI on arm64 guidelines) ?
->>> >
->>> >
->>> > If I understand it correctly, CMC (Corrected Machine Check) is for IA32
->>> > only, see section 18.3.2.1 IA-32 Architecture Machine Check Exception
->>> > in ACPI 6.0. for ARM64, we can use other type of error source for
->>> > firmware first handling, such as Generic Hardware Error Source, did
->>> > I miss something?
->>>
->>> yes, that is why I try to use "#if defined(__i386__) ||
->>> defined(__x86_64__)" instead of moving acpi_disable_cmcff out of x86
->>> code to here.
->>>
->>> And I thinks we also can do "arch_apei_enable_cmcff" -->
->>> "apei_enable_ia_cmcff" because that is IA32 only.
->>>
->>> Please correct me if I misunderstand something.  Thanks :-)
->>
->> No you are right, I was confused by the arch_apei_enable_cmcff __weak
->> function declaration, I am not sure that makes much sense, as you say.
->>
->
-> Thanks :-)
->
->
->> Side note: I wonder if there is a way to make the TLB flushing API common
->> across architectures therefore avoiding this arch_apei_flush_tlb* churn.
->
-> yes, make sense, I will think about this today , thanks for your suggestion.
+Hi Suravee,
 
-I do some investigation on this "tlb" problem(actually not just tlb,
-but also "get_mem_attribute") today,
-I think we need to
-(1)have a common API in tlbflush.h (at least for flushing one page)
-across architectures(at least in x86 and arm64)
-(2)use this API in drivers/acpi/apei/gest.c instead of arch_apei_flush_tlb_one
-(3)delete the old function from arm64 and x86
+I tested your v2m-multiframe-v6 branch with APM X-Gene 2 that has
+multiple GICv2m frames and it worked.
 
-So maybe we can have the another patchset to solve this problem, make
-this patch just enable APEI for arm64 first. :-)
+Please feel free to add:
+Tested-by: Duc Dang <dhdang@apm.com>
 
 >
->>
->> Thanks,
->> Lorenzo
->>
->>> Great thanks for your feedback :-)
->>>
->>> >
->>> > Thanks
->>> > Hanjun
->>>
->>>
->>>
->>> --
->>> Best regards,
->>>
->>> Fu Wei
->>> Software Engineer
->>> Red Hat Software (Beijing) Co.,Ltd.Shanghai Branch
->>> Ph: +86 21 61221326(direct)
->>> Ph: +86 186 2020 4684 (mobile)
->>> Room 1512, Regus One Corporate Avenue,Level 15,
->>> One Corporate Avenue,222 Hubin Road,Huangpu District,
->>> Shanghai,China 200021
->>>
+> Thanks,
+> Suravee
 >
+> Changes from V5: (https://lkml.org/lkml/2015/12/08/763)
+>   - Remove previous patch 3
+>   - Clean up based on Marc's review (patch 1.4)
+>   - Add Ackedb-by and Reviewed-by (Patch 1,2,3)
+>   - Expose single gicv2m_init() function for both OF and ACPI
+>     (per Marc's suggestion)
+>   - Remove gicv2m name from pr_info since this is no longer useful
+>     (in patch 3) (per Marc's suggestion)
 >
+> Changes from V4: (https://lkml.org/lkml/2015/12/08/613)
+>   - Fix build error when not specifying CONFIG_IRQ_DOMAIN.
+>
+> Changes from V3: (https://lkml.org/lkml/2015/10/21/691)
+>   - Merged patch 2 into 1, and got rid off pci_msi_get_fwnode()
+>     since only ACPI will likely use this. (per Marc suggestion)
+>   - Rebased to 4.4.0-rc4
+>
+> Changes from V2: (https://lkml.org/lkml/2015/10/14/1010)
+>   - Minor clean up from Tomasz review comment in patch 6/6.
+>
+> Changes from V1: (https://lkml.org/lkml/2015/10/13/859)
+>   - Rebase on top of Marc's patch to addng support for multiple MSI frames
+>     (https://lkml.org/lkml/2015/10/14/271)
+>   - Adding fwnode convenient functions (patch 3 and 4)
+>
+> Suravee Suthikulpanit (4):
+>   acpi: pci: Setup MSI domain for ACPI based pci devices
+>   irqdomain: introduce is_fwnode_irqchip helper
+>   gicv2m: Refactor to prepare for ACPI support
+>   gicv2m: acpi: Introducing GICv2m ACPI support
+>
+>  drivers/irqchip/irq-gic-v2m.c   | 167 ++++++++++++++++++++++++++++++++++------
+>  drivers/irqchip/irq-gic.c       |   8 +-
+>  drivers/pci/pci-acpi.c          |  42 ++++++++++
+>  drivers/pci/probe.c             |   2 +
+>  include/linux/irqchip/arm-gic.h |   3 +-
+>  include/linux/irqdomain.h       |  10 +++
+>  include/linux/pci.h             |  10 +++
+>  kernel/irq/irqdomain.c          |   2 +-
+>  8 files changed, 218 insertions(+), 26 deletions(-)
 >
 > --
-> Best regards,
+> 2.1.0
 >
-> Fu Wei
-> Software Engineer
-> Red Hat Software (Beijing) Co.,Ltd.Shanghai Branch
-> Ph: +86 21 61221326(direct)
-> Ph: +86 186 2020 4684 (mobile)
-> Room 1512, Regus One Corporate Avenue,Level 15,
-> One Corporate Avenue,222 Hubin Road,Huangpu District,
-> Shanghai,China 200021
-
-
-
--- 
-Best regards,
-
-Fu Wei
-Software Engineer
-Red Hat Software (Beijing) Co.,Ltd.Shanghai Branch
-Ph: +86 21 61221326(direct)
-Ph: +86 186 2020 4684 (mobile)
-Room 1512, Regus One Corporate Avenue,Level 15,
-One Corporate Avenue,222 Hubin Road,Huangpu District,
-Shanghai,China 200021
+Thanks,
+Duc Dang.
