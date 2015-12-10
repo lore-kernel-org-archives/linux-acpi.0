@@ -1,92 +1,134 @@
-From: "Wang, Annie" <Annie.Wang@amd.com>
-Subject: RE: [PATCH 4/9] dmaengine: pl330: add new items for pl330 private
- data
-Date: Thu, 10 Dec 2015 06:38:09 +0000
-Message-ID: <BLUPR12MB0433B81BB0AEB2D84505B55881E90@BLUPR12MB0433.namprd12.prod.outlook.com>
-References: <1449199466-6081-1-git-send-email-annie.wang@amd.com>
- <1449199466-6081-5-git-send-email-annie.wang@amd.com>
- <20151210040909.GM1854@localhost>
+From: Loc Ho <lho@apm.com>
+Subject: Re: [PATCH 1/2] acpi:apd: Add APM X-Gene ACPI I2C device support
+Date: Wed, 9 Dec 2015 22:57:47 -0800
+Message-ID: <CAPw-ZTnReGBAJWyj13=bov=A7WX5oZnrW8MDzUUVTjHkd3xkKg@mail.gmail.com>
+References: <1449533774-22672-1-git-send-email-lho@apm.com>
+	<1449533774-22672-2-git-send-email-lho@apm.com>
+	<1449542948.2175.41.camel@kxue-X58A-UD3R>
+	<CAPw-ZTkxhdEmOP_DN=Cv1MmPw5UsZHcd-kLVbqYFJU8-6=sc+A@mail.gmail.com>
+	<1449728072.4557.22.camel@kxue-X58A-UD3R>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bn1on0084.outbound.protection.outlook.com ([157.56.110.84]:16528
-	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751884AbbLJGiO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Dec 2015 01:38:14 -0500
-In-Reply-To: <20151210040909.GM1854@localhost>
-Content-Language: en-US
+Received: from mail-lf0-f51.google.com ([209.85.215.51]:33322 "EHLO
+	mail-lf0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753072AbbLJG5t (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 10 Dec 2015 01:57:49 -0500
+Received: by lfaz4 with SMTP id z4so50231463lfa.0
+        for <linux-acpi@vger.kernel.org>; Wed, 09 Dec 2015 22:57:47 -0800 (PST)
+In-Reply-To: <1449728072.4557.22.camel@kxue-X58A-UD3R>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Vinod Koul <vinod.koul@intel.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "dmaengine@vger.kernel.org" <dmaengine@vger.kernel.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, Borislav Petkov <bp@alien8.de>, "Huang, Ray" <Ray.Huang@amd.com>, "Wan, Vincent" <Vincent.Wan@amd.com>, "Xue, Ken" <Ken.Xue@amd.com>, "Li, Tony" <Tony.Li@amd.com>
+To: Ken Xue <ken.xue@amd.com>
+Cc: wsa@the-dreams.de, rjw@rjwysocki.net, mika.westerberg@linux.intel.com, Len Brown <lenb@kernel.org>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Jon Masters <jcm@redhat.com>, "patches@apm.com" <patches@apm.com>, Annie.Wang@amd.com
 
->-----Original Message-----
->From: Vinod Koul [mailto:vinod.koul@intel.com]
->Sent: Thursday, December 10, 2015 12:09 PM
->To: Wang, Annie
->Cc: Mika Westerberg; Joerg Roedel; Greg Kroah-Hartman; Rafael J. Wysocki;
->linux-acpi@vger.kernel.org; linux-kernel@vger.kernel.org; linux-
->serial@vger.kernel.org; dmaengine@vger.kernel.org; iommu@lists.linux-
->foundation.org; Borislav Petkov; Huang, Ray; Wan, Vincent; Xue, Ken; Li, Tony
->Subject: Re: [PATCH 4/9] dmaengine: pl330: add new items for pl330 private data
->
->On Fri, Dec 04, 2015 at 11:24:21AM +0800, Wang Hongcheng wrote:
->> has_no_cap_mask means this device has no preset cap mask.
->> mcbuf_sz means bytes to allocate for MC buffer.
->
->MC ?
-Size of MicroCode buffers for each channel. I will update the comment.
+Hi,
 
->> flags is for irq sharing, default is non-shared, in AMD Carrizo, pl330
->> shares IRQ with its corresponding UART device.
+On Wed, Dec 9, 2015 at 10:14 PM, Ken Xue <ken.xue@amd.com> wrote:
+> On Wed, 2015-12-09 at 14:03 -0800, Loc Ho wrote:
+>> Hi Ken,
 >>
->> Signed-off-by: Wang Hongcheng <annie.wang@amd.com>
->> ---
->>  drivers/acpi/acpi_apd.c    | 13 ++++++++++++-
->>  drivers/dma/pl330.c        | 19 +++++++++++++------
->>  include/linux/amba/pl330.h |  3 +++
->>  3 files changed, 28 insertions(+), 7 deletions(-)
+>> On Mon, Dec 7, 2015 at 6:49 PM, Ken Xue <ken.xue@amd.com> wrote:
+>> >
+>> > On Mon, 2015-12-07 at 17:16 -0700, Loc Ho wrote:
+>> > > Add APM X-Gene ACPI I2C device support by hooks into existent
+>> > > ACPI apd driver. To fully enable support, require another
+>> > > patch to add the X-Gene ACPI node into the DW I2C driver.
+>> > >
+>> > > Signed-off-by: Loc Ho <lho@apm.com>
+>> > > ---
+>> > >  drivers/acpi/acpi_apd.c |    8 +++++++-
+>> > >  1 files changed, 7 insertions(+), 1 deletions(-)
+>> > >
+>> > > diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
+>> > > index a450e7a..6a9cb8d 100644
+>> > > --- a/drivers/acpi/acpi_apd.c
+>> > > +++ b/drivers/acpi/acpi_apd.c
+>> > > @@ -51,7 +51,7 @@ struct apd_private_data {
+>> > >       const struct apd_device_desc *dev_desc;
+>> > >  };
+>> > >
+>> > > -#ifdef CONFIG_X86_AMD_PLATFORM_DEVICE
+>> > > +#if defined(CONFIG_X86_AMD_PLATFORM_DEVICE) || defined(CONFIG_ARM64)
+>> > >  #define APD_ADDR(desc)       ((unsigned long)&desc)
+>> > >
+>> > >  static int acpi_apd_setup(struct apd_private_data *pdata)
+>> > > @@ -76,6 +76,11 @@ static struct apd_device_desc cz_i2c_desc = {
+>> > >       .fixed_clk_rate = 133000000,
+>> > >  };
+>> > >
+>> > > +static struct apd_device_desc xgene_i2c_desc = {
+>> > > +     .setup = acpi_apd_setup,
+>> > > +     .fixed_clk_rate = 100000000,
+>> > > +};
+>> > > +
+>> > >  static struct apd_device_desc cz_uart_desc = {
+>> > >       .setup = acpi_apd_setup,
+>> > >       .fixed_clk_rate = 48000000,
+>> > > @@ -135,6 +140,7 @@ static const struct acpi_device_id acpi_apd_device_ids[] = {
+>> > >       { "AMD0010", APD_ADDR(cz_i2c_desc) },
+>> > >       { "AMD0020", APD_ADDR(cz_uart_desc) },
+>> > >       { "AMD0030", },
+>> > > +     { "APMC0D0F", APD_ADDR(xgene_i2c_desc) },
+>> > It is better to split AMD devices and ARM devices with macros:
+>> > CONFIG_X86_AMD_PLATFORM_DEVICE and CONFIG_ARM64.
 >>
->> diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c index
->> eb3316a..7a582f5 100644
->> --- a/drivers/acpi/acpi_apd.c
->> +++ b/drivers/acpi/acpi_apd.c
->> @@ -21,6 +21,7 @@
->>  #include <linux/amba/bus.h>
->>  #include <linux/kernel.h>
->>  #include <linux/sizes.h>
->> +#include <linux/amba/pl330.h>
->>  #include <linux/interrupt.h>
+>> This gets pretty ugly to me with define as it would look like this:
 >>
->>  #include "internal.h"
->> @@ -35,6 +36,16 @@ struct apd_private_data;
->>  #define ACPI_APD_SYSFS	BIT(0)
->>  #define ACPI_APD_PM	BIT(1)
+>> #if defined(CONFIG_X86_AMD_PLATFORM_DEVICE) || defined(CONFIG_ARM64)
+>> #define APD_ADDR(desc) ((unsigned long)&desc)
 >>
->> +static u8 peri_id[2] = { 0, 1 };
->> +
->> +static struct dma_pl330_platdata amd_pl330 = {
->> +	.nr_valid_peri = 2,
->> +	.peri_id = peri_id,
->> +	.has_no_cap_mask = true,
->> +	.mcbuf_sz = 0,
->> +	.flags = IRQF_SHARED,
->> +};
+>> static int acpi_apd_setup(struct apd_private_data *pdata)
+>> {
+>>    .....
+>> }
+>>
+>> #ifdef CONFIG_X86_AMD_PLATFORM_DEVICE
+>> static struct apd_device_desc cz_i2c_desc = {
+>>     ....
+>> };
+>>
+>> static struct apd_device_desc xgene_i2c_desc = {
+>>     ...
+>> };
+>> #endif
+>>
+>> #ifdef CONFIG_ARM64
+>> static struct apd_device_desc cz_uart_desc = {
+>>     ....
+>> };
+>> #endif
+>>
+>> #else
+>>
+>> #define APD_ADDR(desc) (0UL)
+>>
+>> #endif /* CONFIG_X86_AMD_PLATFORM_DEVICE */
+>>
+>> And...
+>>
+>> #ifdef CONFIG_X86_AMD_PLATFORM_DEVICE
+>> { "AMD0010", APD_ADDR(cz_i2c_desc) },
+>> { "AMD0020", APD_ADDR(cz_uart_desc) },
+>> { "AMD0030", },
+>> #endif
+>> #ifdef CONFIG_ARM64
+>> { "APMC0D0F", APD_ADDR(xgene_i2c_desc) },
+>> #endif
+>>
+>> Sure you want this?
+> Yes. Even though it may look like too much macros for just several
+> devices now. But I think AMD and other ARM socs may also try to leverage
+> APD for more and more ACPI devices.
+> It is a good direction that 1)improve efficiency of matching ACPI
+> handler 2) split devices and potential hook routines into different
+> classes clearly
 >
->Why not DT or ACPI for this?
+> It also will be more convenient to move ARM devices out of APD if there
+> is a new design for ARM ACPI device.
 >
->--
->~Vinod
 
-We choose to use private data, as pl330 already has  struct dma_pl330_platdata. 
-Physically DMA share ACPI device with UART, however, BIOS believes DMA and UART is one device.
-We can't  get irq share info from ACPI. And we don't use DT. 
+Okay... I will generate v2 when ready. One more question, does AMD
+ARM64 SoC need it later?
 
-Regards,
-Annie
-
-
-
-
+-Loc
