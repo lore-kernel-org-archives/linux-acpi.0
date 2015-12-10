@@ -1,249 +1,55 @@
 From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH v6 4/4] gicv2m: acpi: Introducing GICv2m ACPI support
-Date: Thu, 10 Dec 2015 09:14:26 +0000
-Message-ID: <56694272.5050706@arm.com>
-References: <1449689074-30609-1-git-send-email-Suravee.Suthikulpanit@amd.com> <1449689074-30609-5-git-send-email-Suravee.Suthikulpanit@amd.com>
+Subject: Re: [PATCH v6 0/4] gicv2m: acpi: Add ACPI support for GICv2m MSI
+Date: Thu, 10 Dec 2015 09:26:46 +0000
+Message-ID: <56694556.3030809@arm.com>
+References: <1449689074-30609-1-git-send-email-Suravee.Suthikulpanit@amd.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:53905 "EHLO foss.arm.com"
+Received: from foss.arm.com ([217.140.101.70]:53985 "EHLO foss.arm.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751097AbbLJJOb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 10 Dec 2015 04:14:31 -0500
-In-Reply-To: <1449689074-30609-5-git-send-email-Suravee.Suthikulpanit@amd.com>
+	id S1753200AbbLJJ0u (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 10 Dec 2015 04:26:50 -0500
+In-Reply-To: <1449689074-30609-1-git-send-email-Suravee.Suthikulpanit@amd.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net
 Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, hanjun.guo@linaro.org, tomasz.nowicki@linaro.org, graeme.gregory@linaro.org, dhdang@apm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 
 On 09/12/15 19:24, Suravee Suthikulpanit wrote:
-> This patch introduces gicv2m_acpi_init(), which uses information
-> in MADT GIC MSI frames structure to initialize GICv2m driver.
-> It also exposes gicv2m_init() function, which simplifies callers
-> to a single GICv2m init function.
+> This patch series has been forked from the following patch series since
+> it no longer depends on the rest of the patches.
 > 
-> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> ---
->  drivers/irqchip/irq-gic-v2m.c   | 114 +++++++++++++++++++++++++++++++++++++++-
->  drivers/irqchip/irq-gic.c       |   6 ++-
->  include/linux/irqchip/arm-gic.h |   3 +-
->  3 files changed, 120 insertions(+), 3 deletions(-)
+>   [PATCH v4 00/10] ACPI GIC Self-probing, GICv2m and GICv3 support
+>   https://lkml.org/lkml/2015/7/29/234
 > 
-> diff --git a/drivers/irqchip/irq-gic-v2m.c b/drivers/irqchip/irq-gic-v2m.c
-> index 779c390..e01a495 100644
-> --- a/drivers/irqchip/irq-gic-v2m.c
-> +++ b/drivers/irqchip/irq-gic-v2m.c
-> @@ -15,9 +15,11 @@
->  
->  #define pr_fmt(fmt) "GICv2m: " fmt
->  
-> +#include <linux/acpi.h>
->  #include <linux/irq.h>
->  #include <linux/irqdomain.h>
->  #include <linux/kernel.h>
-> +#include <linux/msi.h>
->  #include <linux/of_address.h>
->  #include <linux/of_pci.h>
->  #include <linux/slab.h>
-> @@ -138,6 +140,11 @@ static int gicv2m_irq_gic_domain_alloc(struct irq_domain *domain,
->  		fwspec.param[0] = 0;
->  		fwspec.param[1] = hwirq - 32;
->  		fwspec.param[2] = IRQ_TYPE_EDGE_RISING;
-> +	} else if (is_fwnode_irqchip(domain->parent->fwnode)) {
-> +		fwspec.fwnode = domain->parent->fwnode;
-> +		fwspec.param_count = 2;
-> +		fwspec.param[0] = hwirq;
-> +		fwspec.param[1] = IRQ_TYPE_EDGE_RISING;
->  	} else {
->  		return -EINVAL;
->  	}
-> @@ -255,6 +262,8 @@ static void gicv2m_teardown(void)
->  		kfree(v2m->bm);
->  		iounmap(v2m->base);
->  		of_node_put(to_of_node(v2m->fwnode));
-> +		if (is_fwnode_irqchip(v2m->fwnode))
-> +			irq_domain_free_fwnode(v2m->fwnode);
->  		kfree(v2m);
->  	}
->  }
-> @@ -373,11 +382,16 @@ static struct of_device_id gicv2m_device_id[] = {
->  	{},
->  };
->  
-> -int __init gicv2m_of_init(struct device_node *node, struct irq_domain *parent)
-> +static int __init gicv2m_of_init(struct fwnode_handle *parent_handle,
-> +				 struct irq_domain *parent)
->  {
->  	int ret = 0;
-> +	struct device_node *node = to_of_node(parent_handle);
->  	struct device_node *child;
->  
-> +	if (!node)
-> +		return -EINVAL;
-> +
-
-I don't think we need this, see below.
-
->  	for (child = of_find_matching_node(node, gicv2m_device_id); child;
->  	     child = of_find_matching_node(child, gicv2m_device_id)) {
->  		u32 spi_start = 0, nr_spis = 0;
-> @@ -411,3 +425,101 @@ int __init gicv2m_of_init(struct device_node *node, struct irq_domain *parent)
->  		gicv2m_teardown();
->  	return ret;
->  }
-> +
-> +#ifdef CONFIG_ACPI
-> +static int acpi_num_msi;
-> +
-> +static struct fwnode_handle *gicv2m_get_fwnode(struct device *dev)
-> +{
-> +	struct v2m_data *data;
-> +
-> +	if (WARN_ON(acpi_num_msi <= 0))
-> +		return NULL;
-> +
-> +	/* We only return the fwnode of the first MSI frame. */
-> +	data = list_first_entry_or_null(&v2m_nodes, struct v2m_data, entry);
-> +	if (!data)
-> +		return NULL;
-> +
-> +	return data->fwnode;
-> +}
-> +
-> +static int __init
-> +acpi_parse_madt_msi(struct acpi_subtable_header *header,
-> +		    const unsigned long end)
-> +{
-> +	int ret;
-> +	struct resource res;
-> +	u32 spi_start = 0, nr_spis = 0;
-> +	struct acpi_madt_generic_msi_frame *m;
-> +	struct fwnode_handle *fwnode;
-> +
-> +	m = (struct acpi_madt_generic_msi_frame *)header;
-> +	if (BAD_MADT_ENTRY(m, end))
-> +		return -EINVAL;
-> +
-> +	res.start = m->base_address;
-> +	res.end = m->base_address + SZ_4K;
-> +
-> +	if (m->flags & ACPI_MADT_OVERRIDE_SPI_VALUES) {
-> +		spi_start = m->spi_base;
-> +		nr_spis = m->spi_count;
-> +
-> +		pr_info("ACPI overriding V2M MSI_TYPER (base:%u, num:%u)\n",
-> +			spi_start, nr_spis);
-> +	}
-> +
-> +	fwnode = irq_domain_alloc_fwnode((void *)m->base_address);
-> +	if (!fwnode) {
-> +		pr_err("Unable to allocate GICv2m domain token\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	ret = gicv2m_init_one(fwnode, spi_start, nr_spis, &res);
-> +	if (ret)
-> +		irq_domain_free_fwnode(fwnode);
-> +
-> +	return ret;
-> +}
-> +
-> +static int __init gicv2m_acpi_init(struct irq_domain *parent)
-> +{
-> +	int ret;
-> +
-> +	if (acpi_num_msi > 0)
-> +		return 0;
-> +
-> +	acpi_num_msi = acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_MSI_FRAME,
-> +				      acpi_parse_madt_msi, 0);
-> +
-> +	if (acpi_num_msi <= 0)
-> +		goto err_out;
-> +
-> +	ret = gicv2m_allocate_domains(parent);
-> +	if (ret)
-> +		goto err_out;
-> +
-> +	pci_msi_register_fwnode_provider(&gicv2m_get_fwnode);
-> +
-> +	return 0;
-> +
-> +err_out:
-> +	gicv2m_teardown();
-> +	return -EINVAL;
-> +}
-> +#else /* CONFIG_ACPI */
-> +static int __init gicv2m_acpi_init(struct irq_domain *parent)
-> +{
-> +	return -EINVAL;
-> +}
-> +#endif /* CONFIG_ACPI */
-> +
-> +int __init gicv2m_init(struct fwnode_handle *parent_handle,
-> +		       struct irq_domain *parent)
-> +{
-> +	int ret = gicv2m_of_init(parent_handle, parent);
-> +
-> +	if (ret)
-> +		ret = gicv2m_acpi_init(parent);
-> +	return ret;
-
-This should really read:
-
-	if (is_of_node(parent_handle))
-		return gicv2m_of_init(parent_handle, parent);
-	
-	return gicv2m_acpi_init(parent);
-
-and you can loose the test for NULL in gicv2m_of_init().
-
-> +}
-> diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
-> index fcd327f..644e8bb 100644
-> --- a/drivers/irqchip/irq-gic.c
-> +++ b/drivers/irqchip/irq-gic.c
-> @@ -1234,7 +1234,7 @@ gic_of_init(struct device_node *node, struct device_node *parent)
->  	}
->  
->  	if (IS_ENABLED(CONFIG_ARM_GIC_V2M))
-> -		gicv2m_of_init(node, gic_data[gic_cnt].domain);
-> +		gicv2m_init(&node->fwnode, gic_data[gic_cnt].domain);
->  
->  	gic_cnt++;
->  	return 0;
-> @@ -1359,6 +1359,10 @@ static int __init gic_v2_acpi_init(struct acpi_subtable_header *header,
->  	__gic_init_bases(0, -1, dist_base, cpu_base, 0, domain_handle);
->  
->  	acpi_set_irq_model(ACPI_IRQ_MODEL_GIC, domain_handle);
-> +
-> +	if (IS_ENABLED(CONFIG_ARM_GIC_V2M))
-> +		gicv2m_init(NULL, gic_data[0].domain);
-> +
->  	return 0;
->  }
->  IRQCHIP_ACPI_DECLARE(gic_v2, ACPI_MADT_TYPE_GENERIC_DISTRIBUTOR,
-> diff --git a/include/linux/irqchip/arm-gic.h b/include/linux/irqchip/arm-gic.h
-> index bae69e5..febc6c3 100644
-> --- a/include/linux/irqchip/arm-gic.h
-> +++ b/include/linux/irqchip/arm-gic.h
-> @@ -106,7 +106,8 @@ int gic_cpu_if_down(unsigned int gic_nr);
->  void gic_init(unsigned int nr, int start,
->  	      void __iomem *dist , void __iomem *cpu);
->  
-> -int gicv2m_of_init(struct device_node *node, struct irq_domain *parent);
-> +int gicv2m_init(struct fwnode_handle *parent_handle,
-> +		struct irq_domain *parent);
->  
->  void gic_send_sgi(unsigned int cpu_id, unsigned int irq);
->  int gic_get_cpu_id(unsigned int cpu);
+> It has been ported to use the newly introduced device fwnode_handle 
+> for ACPI irqdmain introduced by Marc in the following patch series:
 > 
+>   [PATCH v2 00/17] Divorcing irqdomain and device_node
+> 
+> The following git branch contains the submitted patches along with
+> the pre-requsite patches (mainly for ARM64 PCI support for ACPI).
+> 
+>   https://github.com/ssuthiku/linux.git	v2m-multiframe-v6
+> 
+> This has been tested on AMD Seattle (Overdrive) RevB system. 
+> 
+> NOTE: I have not tested ACPI GICv2m multiframe support since
+> I don't have access to such system. Any helps are appreciated.
 
-Apart from the fairly minor issue above:
+Suravee,
 
-Reviewed-by: Marc Zyngier <marc.zyngier@arm.com>
+This is starting to look OK, and you should be able to quickly fix the
+last patch. Now, I'm not sure how you want to get that merged.
+
+The first patch touches both ACPI and PCI, so it would at least requires
+Acks from Rafael and Bjorn (which is not cc-ed, and you may want to fix
+that in your next post, adding linux-pci for a good measure). If they
+are both happy with the change, I can pick up the series as a whole.
+
+Thanks,
 
 	M.
 -- 
