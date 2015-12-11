@@ -1,72 +1,40 @@
-From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: Re: [PATCH v3 3/3] nvdimm: Add IOCTL pass thru functions
-Date: Fri, 11 Dec 2015 12:00:05 -0700
-Message-ID: <20151211190005.GA58528@tevye.fc.hp.com>
-References: <cover.1449089647.git.jerry.hoemann@hpe.com>
- <f8e838fb666b7d05e5e1f7527d643181c6f6ba4d.1449089647.git.jerry.hoemann@hpe.com>
- <CAPcyv4gFNnsbyTy8u-_jBF9JPYH_0a9dNX_R1oj2EH2sdrb=-g@mail.gmail.com>
- <20151210002442.GA104756@tevye.fc.hp.com>
- <CAPcyv4guEsT0KKivDkKP3YiW=8Ps8cDkjzY0seQuec3mkg0wMg@mail.gmail.com>
- <20151211180950.GA57513@tevye.fc.hp.com>
- <CAPcyv4h-8bm4nxO=5K6vRb3720rtaW8A-VHWRaZAhyw0_tjrvg@mail.gmail.com>
-Reply-To: Jerry.Hoemann@hpe.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CAPcyv4h-8bm4nxO=5K6vRb3720rtaW8A-VHWRaZAhyw0_tjrvg@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "Elliott, Robert (Persistent Memory)" <elliott@hpe.com>, jmoyer <jmoyer@redhat.com>, Dmitry Krivenok <krivenok.dmitry@gmail.com>, Linda Knippers <linda.knippers@hpe.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+From: Alexey Khoroshilov <khoroshilov@ispras.ru>
+Subject: [PATCH] nfit: acpi_nfit_notify(): Do not leave device locked
+Date: Fri, 11 Dec 2015 23:24:10 +0300
+Message-ID: <1449865450-8145-1-git-send-email-khoroshilov@ispras.ru>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.ispras.ru ([83.149.199.45]:48074 "EHLO mail.ispras.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755419AbbLKUYW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 11 Dec 2015 15:24:22 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Ross Zwisler <ross.zwisler@linux.intel.com>, Vishal Verma <vishal.l.verma@intel.com>
+Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, ldv-project@linuxtesting.org
 
-On Fri, Dec 11, 2015 at 10:18:59AM -0800, Dan Williams wrote:
-> On Fri, Dec 11, 2015 at 10:09 AM, Jerry Hoemann <jerry.hoemann@hpe.com> wrote:
-> > On Wed, Dec 09, 2015 at 04:48:55PM -0800, Dan Williams wrote:
-> >> Yes, updating the acpi_evaluate_dsm() definition seems the best choice.
-> >>
-> >
-> > I have a patch for this.  While not big (6 files), these files are
-> > outside of nvdimm and will have a two line of over a dozen reviewers/lists
-> > not previously reviewing this series.
-> 
-> For an acpi change no need to cc all those folks and lists.  Just cc
-> the following for that change:
-> 
-> Bob Moore <robert.moore@intel.com>
-> Lv Zheng <lv.zheng@intel.com>
-> Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> <linux-acpi@vger.kernel.org>
-> 
-> Why 6 files and not 2 for a prototype update?  I wouldn't go touch
-> existing callers of acpi_evaluate_dsm() if they have been living with
-> the potential truncation all this time there's no need to change.
+Even if dev->driver is null because we are being removed,
+it is safer to not leave device locked.
 
+Found by Linux Driver Verification project (linuxtesting.org).
 
-Wasn't sure the level of lint checking being done on the linux kernel.
-The examples were all of the variety of a caller using and int that
-would be passed to a function with a parameter that would now be
-an u64.  I think Lint can detect such issues.
+Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
+---
+ drivers/acpi/nfit.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-In addition to acpi_evaluate_dsm,  there are also:
-acpi_check_dsm, acpi_evaluate_dsm_typed using int for these.
-
-Then there were other functions outside of acpica that passed
-value in ints that went to one of the three functions above.
-
-But, I can certainly limit the change to the acpica function
-declaration/definition.  From what I could see the other
-code would still work, just have potential lint issues.
-
-> 
-> > Do you want me to send this patch as one of this series (w/ the
-> > extra reviewers?)
-> 
-> Yes, send that patch with the series so the acpi developers have the
-> context for what motivated the change.
-
+diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+index e7ed39bab97d..aa45d4802707 100644
+--- a/drivers/acpi/nfit.c
++++ b/drivers/acpi/nfit.c
+@@ -1810,7 +1810,7 @@ static void acpi_nfit_notify(struct acpi_device *adev, u32 event)
+ 	if (!dev->driver) {
+ 		/* dev->driver may be null if we're being removed */
+ 		dev_dbg(dev, "%s: no driver found for dev\n", __func__);
+-		return;
++		goto out_unlock;
+ 	}
+ 
+ 	if (!acpi_desc) {
 -- 
+1.9.1
 
------------------------------------------------------------------------------
-Jerry Hoemann                  Software Engineer   Hewlett Packard Enterprise
------------------------------------------------------------------------------
