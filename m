@@ -1,64 +1,99 @@
-From: Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Subject: Re: [PATCH 3/9] ACPI: add struct acpi_amba_quirk for AMD pl330
-	specific device config
-Date: Fri, 11 Dec 2015 15:01:49 +0530
-Message-ID: <20151211093148.GX1854@localhost>
-References: <1449199466-6081-1-git-send-email-annie.wang@amd.com>
-	<1449199466-6081-4-git-send-email-annie.wang@amd.com>
-	<20151204131619.GC11655@xora-haswell.xora.org.uk>
-	<BLUPR12MB04339648B98F07977B6FA61F81EA0@BLUPR12MB0433.namprd12.prod.outlook.com>
+From: Zhangfei Gao <zhangfei.gao@gmail.com>
+Subject: Re: [RFC PATCH 4/4] mfd: syscon: add ACPI support
+Date: Fri, 11 Dec 2015 18:35:17 +0800
+Message-ID: <CAMj5BkiAToBCvnOSkW=41po5OHpg5uSzxNTNJ_=gLK__BLa1Sw@mail.gmail.com>
+References: <1449047368-5768-1-git-send-email-wangkefeng.wang@huawei.com>
+	<1449047368-5768-5-git-send-email-wangkefeng.wang@huawei.com>
+	<2299982.06P4iKpkWk@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <BLUPR12MB04339648B98F07977B6FA61F81EA0-7LeqcoF/hwrdEWIfrEWxYwdYzm3356FpvxpqHgZTriW3zl9H0oFU5g@public.gmane.org>
-List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
-List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
-List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
-List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
-	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
-Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
-To: "Wang, Annie" <Annie.Wang-5C7GfCeVMHo@public.gmane.org>
-Cc: "Li, Tony" <Tony.Li-5C7GfCeVMHo@public.gmane.org>, "Wan, Vincent" <Vincent.Wan-5C7GfCeVMHo@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org" <iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>, "Huang, Ray" <Ray.Huang-5C7GfCeVMHo@public.gmane.org>, Borislav Petkov <bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org>, Graeme Gregory <gg-kDsPt+C1G03kYMGBc/C6ZA@public.gmane.org>, "linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, "Xue,
-	Ken" <Ken.Xue-5C7GfCeVMHo@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-qg0-f43.google.com ([209.85.192.43]:36022 "EHLO
+	mail-qg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752152AbbLKKfS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Dec 2015 05:35:18 -0500
+Received: by qgcc31 with SMTP id c31so193292807qgc.3
+        for <linux-acpi@vger.kernel.org>; Fri, 11 Dec 2015 02:35:17 -0800 (PST)
+In-Reply-To: <2299982.06P4iKpkWk@wuerfel>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Kefeng Wang <wangkefeng.wang@huawei.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Hanjun Guo <hanjun.guo@linaro.org>, linux-acpi@vger.kernel.org, linux-arm-kernel <linux-arm-kernel@lists.infradead.org>
 
-On Fri, Dec 11, 2015 at 06:57:51AM +0000, Wang, Annie wrote:
-> >> +	/*
-> >> +	 * If the ACPI device already has a node attached. It must be
-> >> +	 * renamed.
-> >> +	 */
-> >> +	if (quirk->quirk & MULTI_ATTACHED_QUIRK)
-> >> +		sprintf(amba_devname, "%s%s", dev_name(&adev->dev),
-> >"DMA");
-> >> +	else
-> >> +		memcpy(amba_devname, dev_name(&adev->dev),
-> >> +		       strlen(dev_name(&adev->dev)));
-> >> +
-> >> +	amba_dev = amba_device_alloc(amba_devname,
-> >>  				     resource->start,
-> >>  				     resource_size(resource));
-> >>
-> >
-> >Isn't this basially an MFD in a rather odd fashion?
+Hi, Arnd
 
-MFD yes, odd perhaps made out here!
-> >
-> >I would have though having a device which just splits the resources then creates 2
-> >children would be a whole lot simpler?
-> >
-Yup!
+On Wed, Dec 2, 2015 at 6:44 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Wednesday 02 December 2015 17:09:28 Kefeng Wang wrote:
+>> This enables syscon with ACPI support.
+>> syscon_regmap_lookup_by_dev_property() function was added. With helper
+>> device_get_reference_node() and acpi_dev_find_plat_dev(), it can be used
+>> in both DT and ACPI.
+>>
+>> The device driver can obtain syscon using _DSD method in DSDT, an example
+>> is shown below.
+>>
+>>     Device(CTL0) {
+>>           Name(_HID, "HISI0061")
+>>           Name(_CRS, ResourceTemplate() {
+>>                   Memory32Fixed(ReadWrite, 0x80000000, 0x10000)
+>>           })
+>>     }
+>>
+>>     Device(DEV0) {
+>>           Name(_HID, "HISI00B1")
+>>           Name(_CRS, ResourceTemplate() {
+>>                   Memory32Fixed(ReadWrite, 0x8c030000, 0x10000)
+>>                   Interrupt(ResourceConsumer, Level, ActiveHigh, Exclusive){ 192 }
+>>           })
+>>
+>>           Name (_DSD, Package () {
+>>               ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+>>               Package () {
+>>                   Package () {"syscon",Package() {\_SB.CTL0} }
+>>               }
+>>           })
+>>     }
+>>
+>> Signed-off-by: Kefeng Wang <wangkefeng.wang@huawei.com>
+>
+> This sounds like a bad idea:
+>
+> syscon is basically a hack to let us access register that the SoC designer
+> couldn't fit in anywhere sane. We need something like this with devicetree
+> because we decided not to have any interpreted bytecode to do this behind
+> our back.
+>
+> With ACPI, the same thing is done with AML, which is actually nicer than
+> syscon (once you have to deal with all the problems introduced by AML).
+>
+> Use that instead.
+>
 
-> 
-> It seems more complex, if I  trans an ACPI device to pdev, then attach 2 platform child nodes,
-> and create an amba device refer to one of the childs. Too many trans. 
+Would you mind clarifying AML method, still not understand.
+Is is means realize the operation in uefi/bootloader and call some
+interface from kernel?
 
-Sorry but I dont think that is right assumption, it will simper and PM would
-become easy
+The issue here is we want to access some common registers,
+which we do not want to ioremap for many times in each driver.
 
--- 
-~Vinod
+In hisi platforms, we have many common registers shared by many components.
+
+Thanks.
+
+
+>> +               pdev = acpi_dev_find_plat_dev(adev);
+>> +               if (!pdev)
+>> +                       return ERR_PTR(-ENODEV);
+>> +               syscon = platform_get_drvdata(pdev);
+>
+> This still requires the syscon device to be probed first, which is
+> something we shouldn't really need any more.
+>
+> A lot of syscon users depend on the regmap to be available before
+> device drivers are loaded, so we have changed the code to just look up
+> the device_node that is already present and ignore the device.
+>
+> Once clps711x has been converted to DT, I think we can rip out the
+> syscon_regmap_lookup_by_pdevname() interface and separate the syscon
+> regmap handling from the device handling that we only really need
+> for debugfs.
