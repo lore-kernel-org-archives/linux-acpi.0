@@ -1,99 +1,132 @@
-From: Yinghai Lu <yinghai@kernel.org>
-Subject: [PATCH v9 19/60] PCI: Separate realloc list checking after allocation
-Date: Thu, 10 Dec 2015 21:06:15 -0800
-Message-ID: <1449810416-2950-20-git-send-email-yinghai@kernel.org>
-References: <1449810416-2950-1-git-send-email-yinghai@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1449810416-2950-1-git-send-email-yinghai@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <bhelgaas@google.com>, David Miller <davem@davemloft.net>, Benjamin Herrenschmidt <benh@kernel.crashing.org>, Wei Yang <weiyang@linux.vnet.ibm.com>, TJ <linux@iam.tj>, Yijing Wang <wangyijing@huawei.com>, Khalid Aziz <khalid.aziz@oracle.com>
-Cc: linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, Yinghai Lu <yinghai@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+From: "Wang, Annie" <Annie.Wang@amd.com>
+Subject: RE: [PATCH 3/9] ACPI: add struct acpi_amba_quirk for AMD pl330
+ specific device config
+Date: Fri, 11 Dec 2015 06:57:51 +0000
+Message-ID: <BLUPR12MB04339648B98F07977B6FA61F81EA0@BLUPR12MB0433.namprd12.prod.outlook.com>
+References: <1449199466-6081-1-git-send-email-annie.wang@amd.com>
+ <1449199466-6081-4-git-send-email-annie.wang@amd.com>
+ <20151204131619.GC11655@xora-haswell.xora.org.uk>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-bn1bon0086.outbound.protection.outlook.com ([157.56.111.86]:6752
+	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750724AbbLKG55 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 11 Dec 2015 01:57:57 -0500
+In-Reply-To: <20151204131619.GC11655@xora-haswell.xora.org.uk>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Graeme Gregory <gg@slimlogic.co.uk>
+Cc: Vinod Koul <vinod.koul@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "dmaengine@vger.kernel.org" <dmaengine@vger.kernel.org>, "iommu@lists.linux-foundation.org" <iommu@lists.linux-foundation.org>, Borislav Petkov <bp@alien8.de>, "Huang, Ray" <Ray.Huang@amd.com>, "Wan, Vincent" <Vincent.Wan@amd.com>, "Xue, Ken" <Ken.Xue@amd.com>, "Li, Tony" <Tony.Li@amd.com>
 
-We check the realloc list, as list must be empty after allocation.
+>-----Original Message-----
+>From: Graeme Gregory [mailto:gg@slimlogic.co.uk]
+>Sent: Friday, December 04, 2015 9:16 PM
+>To: Wang, Annie
+>Cc: Vinod Koul; Mika Westerberg; Joerg Roedel; Greg Kroah-Hartman; Rafael J.
+>Wysocki; linux-acpi@vger.kernel.org; linux-kernel@vger.kernel.org; linux-
+>serial@vger.kernel.org; dmaengine@vger.kernel.org; iommu@lists.linux-
+>foundation.org; Borislav Petkov; Huang, Ray; Wan, Vincent; Xue, Ken; Li, Tony
+>Subject: Re: [PATCH 3/9] ACPI: add struct acpi_amba_quirk for AMD pl330
+>specific device config
+>
+>On Fri, Dec 04, 2015 at 11:24:20AM +0800, Wang Hongcheng wrote:
+>> AMD pl330 is a UART DMA device, it shares one ACPI item with UART. So
+>> a platform device and an acpi device will be created according to
+>> AMD0020 ACPI dev. And its mem base address must have an offset. As a
+>> result, MULTI_ATTACHED_QUIRK and MULTI_ATTACHED_QUIRK are used.
+>>
+>> Signed-off-by: Wang Hongcheng <annie.wang@amd.com>
+>> ---
+>>  drivers/acpi/acpi_amba.c | 31 +++++++++++++++++++++++----
+>> drivers/acpi/acpi_apd.c  | 56 +++++++++++++++++++++++++++++++++++++------
+>-----
+>>  include/linux/acpi.h     | 13 +++++++++--
+>>  3 files changed, 81 insertions(+), 19 deletions(-)
+>>
+>> diff --git a/drivers/acpi/acpi_amba.c b/drivers/acpi/acpi_amba.c index
+>> 4f0366a..8a5269c 100644
+>> --- a/drivers/acpi/acpi_amba.c
+>> +++ b/drivers/acpi/acpi_amba.c
+>> @@ -31,6 +31,8 @@ ACPI_MODULE_NAME("amba");
+>>   * @periphid: AMBA device periphid.
+>>   * @fixed_rate: Clock frequency.
+>>   * @pdata: Platform data specific to the device.
+>> + * @quirk: Specific device config, including device multiattach.
+>> + * and mem base offset.
+>>   *
+>>   * Check if the given @adev can be represented as an AMBA device and, if
+>>   * that's the case, create and register an AMBA device, populate its
+>> @@ -42,7 +44,8 @@ ACPI_MODULE_NAME("amba");  struct amba_device
+>> *acpi_create_amba_device(struct acpi_device *adev,
+>>  					    unsigned int periphid,
+>>  					    unsigned long fixed_rate,
+>> -					    void *pdata)
+>> +					    void *pdata,
+>> +					    struct acpi_amba_quirk *quirk)
+>>  {
+>>  	struct amba_device *amba_dev = NULL;
+>>  	struct device *parent;
+>> @@ -54,12 +57,14 @@ struct amba_device *acpi_create_amba_device(struct
+>acpi_device *adev,
+>>  	unsigned int i;
+>>  	unsigned int irq[AMBA_NR_IRQS];
+>>  	struct clk *clk = ERR_PTR(-ENODEV);
+>> +	char amba_devname[100];
+>>
+>>  	/*
+>>  	 * If the ACPI node already has a physical device attached,
+>> -	 * skip it.
+>> +	 * skip it. Except some special devices such as AMD0020 which
+>> +	 * needs attach physical devices two times.
+>>  	 */
+>> -	if (adev->physical_node_count)
+>> +	if (adev->physical_node_count && !(quirk->quirk &
+>> +MULTI_ATTACHED_QUIRK))
+>>  		return NULL;
+>>
+>>  	INIT_LIST_HEAD(&resource_list);
+>> @@ -85,7 +90,24 @@ struct amba_device *acpi_create_amba_device(struct
+>acpi_device *adev,
+>>  			memcpy(resource, rentry->res, sizeof(struct resource));
+>>  	}
+>>
+>> -	amba_dev = amba_device_alloc(dev_name(&adev->dev),
+>> +	/*
+>> +	 * The memory address of AMD pl330 has an offset of ACPI
+>> +	 * mem resource.
+>> +	 */
+>> +	if (quirk->quirk & BASE_OFFSET_QUIRK)
+>> +		resource->start += quirk->base_offset;
+>> +
+>> +	/*
+>> +	 * If the ACPI device already has a node attached. It must be
+>> +	 * renamed.
+>> +	 */
+>> +	if (quirk->quirk & MULTI_ATTACHED_QUIRK)
+>> +		sprintf(amba_devname, "%s%s", dev_name(&adev->dev),
+>"DMA");
+>> +	else
+>> +		memcpy(amba_devname, dev_name(&adev->dev),
+>> +		       strlen(dev_name(&adev->dev)));
+>> +
+>> +	amba_dev = amba_device_alloc(amba_devname,
+>>  				     resource->start,
+>>  				     resource_size(resource));
+>>
+>
+>Isn't this basially an MFD in a rather odd fashion?
+>
+>I would have though having a device which just splits the resources then creates 2
+>children would be a whole lot simpler?
+>
+>Graeme
 
-Separate the realloc list checking to another function.
+It seems more complex, if I  trans an ACPI device to pdev, then attach 2 platform child nodes,
+and create an amba device refer to one of the childs. Too many trans. 
 
-Add checking that is missed in acpiphp driver.
-
--v2: change to WARN_ON according to Rafael.
-
-Signed-off-by: Yinghai Lu <yinghai@kernel.org>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
----
- drivers/pci/hotplug/acpiphp_glue.c |  1 +
- drivers/pci/pci.h                  |  1 +
- drivers/pci/setup-bus.c            | 12 +++++++++---
- 3 files changed, 11 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
-index ff53856..ce9fb21 100644
---- a/drivers/pci/hotplug/acpiphp_glue.c
-+++ b/drivers/pci/hotplug/acpiphp_glue.c
-@@ -507,6 +507,7 @@ static void enable_slot(struct acpiphp_slot *slot)
- 		}
- 	}
- 	__pci_bus_assign_resources(bus, &add_list, NULL);
-+	pci_bus_check_realloc(&add_list);
- 
- 	acpiphp_sanitize_bus(bus);
- 	pcie_bus_configure_settings(bus);
-diff --git a/drivers/pci/pci.h b/drivers/pci/pci.h
-index d6e8c0c..51f38d3 100644
---- a/drivers/pci/pci.h
-+++ b/drivers/pci/pci.h
-@@ -240,6 +240,7 @@ void __pci_bus_size_bridges(struct pci_bus *bus,
- void __pci_bus_assign_resources(const struct pci_bus *bus,
- 				struct list_head *realloc_head,
- 				struct list_head *fail_head);
-+void pci_bus_check_realloc(struct list_head *realloc_head);
- bool pci_bus_clip_resource(struct pci_dev *dev, int idx);
- 
- void pci_reassigndev_resource_alignment(struct pci_dev *dev);
-diff --git a/drivers/pci/setup-bus.c b/drivers/pci/setup-bus.c
-index 1ad5d8f..fcc6d62 100644
---- a/drivers/pci/setup-bus.c
-+++ b/drivers/pci/setup-bus.c
-@@ -280,6 +280,12 @@ out:
- 	}
- }
- 
-+void pci_bus_check_realloc(struct list_head *realloc_head)
-+{
-+	if (WARN_ON(!list_empty(realloc_head)))
-+		free_list(realloc_head);
-+}
-+
- /**
-  * assign_requested_resources_sorted() - satisfy resource requests
-  *
-@@ -1777,7 +1783,7 @@ again:
- 	/* Depth last, allocate resources and update the hardware. */
- 	__pci_bus_assign_resources(bus, add_list, &fail_head);
- 	if (add_list)
--		BUG_ON(!list_empty(add_list));
-+		pci_bus_check_realloc(add_list);
- 	tried_times++;
- 
- 	/* any device complain? */
-@@ -1852,7 +1858,7 @@ void pci_assign_unassigned_bridge_resources(struct pci_dev *bridge)
- again:
- 	__pci_bus_size_bridges(parent, &add_list);
- 	__pci_bridge_assign_resources(bridge, &add_list, &fail_head);
--	BUG_ON(!list_empty(&add_list));
-+	pci_bus_check_realloc(&add_list);
- 	tried_times++;
- 
- 	if (list_empty(&fail_head))
-@@ -1911,6 +1917,6 @@ void pci_assign_unassigned_bus_resources(struct pci_bus *bus)
- 							 &add_list);
- 	up_read(&pci_bus_sem);
- 	__pci_bus_assign_resources(bus, &add_list, NULL);
--	BUG_ON(!list_empty(&add_list));
-+	pci_bus_check_realloc(&add_list);
- }
- EXPORT_SYMBOL_GPL(pci_assign_unassigned_bus_resources);
--- 
-1.8.4.5
+Thanks,
+Hongcheng(Annie)
