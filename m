@@ -1,66 +1,38 @@
-From: linux-acpi-owner@vger.kernel.org
-Subject: URGENT MAIL FOR YOU...
-Date: Sun, 13 Dec 2015 05:04:12 -0500
-Message-ID: <DB4PR06MB361DAF153761C3837B9CE29B8EC0@DB4PR06MB361.eurprd06.prod.outlook.com>
-Reply-To: <imfonlinedepartmen@qq.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-am1hn0251.outbound.protection.outlook.com ([157.56.112.251]:28601
-	"EHLO emea01-am1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751496AbbLMKEb convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 13 Dec 2015 05:04:31 -0500
-Content-Description: Mail message body
-Sender: linux-acpi-owner@vger.kernel.org
+From: Christophe Ricard <christophe.ricard@gmail.com>
+Subject: [PATCH v6 3/3] ACPI / spi: attach gpio irq from acpi description to spi device
+Date: Sun, 13 Dec 2015 12:15:55 +0100
+Message-ID: <1450005355-6633-4-git-send-email-christophe-h.ricard@st.com>
+References: <1450005355-6633-1-git-send-email-christophe-h.ricard@st.com>
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <1450005355-6633-1-git-send-email-christophe-h.ricard@st.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: rjw@rjwysocki.net, lenb@kernel.org, linus.walleij@linaro.org, gnurou@gmail.com, andriy.shevchenko@linux.intel.com, mika.westerberg@linux.intel.com, broonie@kernel.org
+Cc: linux-spi@vger.kernel.org, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, Christophe Ricard <christophe-h.ricard@st.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Recipients@vger.kernel.org
 
-Dear ,
-=20
+spi->irq was ignoring GpioInt property setting it to -1.
+acpi_dev_gpio_irq_get returns and configure the slave irq according to
+the acpi slave node description.
+It is now inline with devicetree behavior.
 
-My name is Mrs. Bella Holbrook and I work with the International Moneta=
-ry Fund (IMF), I am writing you to let you know that finally your ATM C=
-ard worth $650,000.00 USD has been delivered through UPS to Mr. Hart Le=
-roy, who works with the IMF where it is going to be activated before fi=
-nal delivery to your home address. You can use the tracking number with=
- the tracking site below to track the ATM Card to be sure it has been d=
-elivered to Mr. Hart, for activation.
-=20
+Signed-off-by: Christophe Ricard <christophe-h.ricard@st.com>
+---
+ drivers/spi/spi.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-UPS Tracking number: 1z2876490390947593
-UPS tracking site: http://www.ups.com/index.html
-=20
+diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
+index a5f53de..d67c6fa 100644
+--- a/drivers/spi/spi.c
++++ b/drivers/spi/spi.c
+@@ -1506,6 +1506,8 @@ static int acpi_spi_add_resource(struct acpi_resource *ares, void *data)
+ 
+ 		if (acpi_dev_resource_interrupt(ares, 0, &r))
+ 			spi->irq = r.start;
++		else
++			spi->irq = acpi_dev_gpio_irq_get(ACPI_COMPANION(&spi->dev), 0);
+ 	}
+ 
+ 	/* Always tell the ACPI core to skip this resource */
+-- 
+2.1.4
 
-Below is the contact information to Mr. Hart Leroy
-=20
-
-Contact Name: Mr. Hart Leroy
-Contact E-mail: imfonlinedepartmen@qq.com
-Contact Number: +1505-240-6112
-=20
-
-You are to contact Mr. Hart with his email address above then he will g=
-uide you on how your Card will be activated and delivered to your home =
-address.
-=20
-=20
-
-Note: The only fee you are to send for the activation fee is just $250 =
-USD so make sure you don=E2=80=99t send him more than $250 USD. Your ca=
-rd is already with him and you can track it with the tracking details g=
-iven to you above for confirmation.
-=20
-
-Congratulations once more.
-=20
-
-Best Regards,
-Mrs. Bella Holbrook
-International Monetary Fund (IMF)
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
