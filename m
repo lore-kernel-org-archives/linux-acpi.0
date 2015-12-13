@@ -1,159 +1,156 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH v5 2/3] ACPI / gpio: Add irq_type when a gpio is used as
- an interrupt
-Date: Sun, 13 Dec 2015 02:35:15 +0200
-Message-ID: <CAHp75VcKp8tSisAE_b1ab5K87LG4cCcmK0eiXhEYfR9ucnRx4w@mail.gmail.com>
-References: <1449963004-8391-1-git-send-email-christophe-h.ricard@st.com>
-	<1449963004-8391-3-git-send-email-christophe-h.ricard@st.com>
+From: Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH 5/9] dmaengine: pl330: provide ACPI dmaengine interface
+Date: Sun, 13 Dec 2015 04:21:57 +0200
+Message-ID: <CAHp75VdZyr=zZptJtTUJE+fVrC=6gpYod47SLxdGyfQx2QvZdA@mail.gmail.com>
+References: <1449199466-6081-1-git-send-email-annie.wang@amd.com>
+	<1449199466-6081-6-git-send-email-annie.wang@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qk0-f174.google.com ([209.85.220.174]:33567 "EHLO
-	mail-qk0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751039AbbLMAfQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Dec 2015 19:35:16 -0500
-In-Reply-To: <1449963004-8391-3-git-send-email-christophe-h.ricard@st.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <1449199466-6081-6-git-send-email-annie.wang-5C7GfCeVMHo@public.gmane.org>
+List-Unsubscribe: <https://lists.linuxfoundation.org/mailman/options/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linuxfoundation.org/pipermail/iommu/>
+List-Post: <mailto:iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linuxfoundation.org/mailman/listinfo/iommu>,
+	<mailto:iommu-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: iommu-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+To: Wang Hongcheng <annie.wang-5C7GfCeVMHo@public.gmane.org>
+Cc: Tony Li <tony.li-5C7GfCeVMHo@public.gmane.org>, Wan Zongshun <vincent.wan-5C7GfCeVMHo@public.gmane.org>, Vinod Koul <vinod.koul-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, Greg Kroah-Hartman <gregkh-hQyY1W1yCW8ekmWlsbkhG0B+6BGkLq7r@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, iommu-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org, Huang Rui <ray.huang-5C7GfCeVMHo@public.gmane.org>, Borislav Petkov <bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org>, "linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-serial-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, dmaengine <dmaengine-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Ken Xue <ken.xue-5C7GfCeVMHo@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Christophe Ricard <christophe.ricard@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Linus Walleij <linus.walleij@linaro.org>, Alexandre Courbot <gnurou@gmail.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Mark Brown <broonie@kernel.org>, linux-spi <linux-spi@vger.kernel.org>, "linux-gpio@vger.kernel.org" <linux-gpio@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Christophe Ricard <christophe-h.ricard@st.com>
 
-On Sun, Dec 13, 2015 at 1:30 AM, Christophe Ricard
-<christophe.ricard@gmail.com> wrote:
-> When a gpio is used as an interrupt in acpi, the irq_type was not
-> available for device driver.
+On Fri, Dec 4, 2015 at 5:24 AM, Wang Hongcheng <annie.wang-5C7GfCeVMHo@public.gmane.org> wrote:
+> register acpi_dma controller, so ACPI devices can request pl330 DMA
+> channel.
+> A filter is added in private data for Carrizo specific hardware
+> design
 >
-> Make available polarity and triggering information in acpi_find_gpio by
-> renaming acpi_gpio_info field active_low  to polarity and adding triggering
-> field (edge/level).
-> For sanity, in gpiolib.c replace info.active_low by
-> "info.polarity == GPIO_ACTIVE_LOW".
->
-> Set the irq_type if necessary in acpi_dev_gpio_irq_get.
-
-Same question about types here. If it's not about hardware no need to
-have them as u*.
-
-
->
-> Signed-off-by: Christophe Ricard <christophe-h.ricard@st.com>
+> Signed-off-by: Wang Hongcheng <annie.wang-5C7GfCeVMHo@public.gmane.org>
 > ---
->  drivers/gpio/gpiolib-acpi.c | 28 ++++++++++++++++++++++------
->  drivers/gpio/gpiolib.c      |  4 ++--
->  drivers/gpio/gpiolib.h      |  6 ++++--
->  3 files changed, 28 insertions(+), 10 deletions(-)
+>  drivers/acpi/acpi_apd.c    | 12 ++++++++++++
+>  drivers/dma/pl330.c        | 38 ++++++++++++++++++++++++++++++++++++++
+>  include/linux/amba/pl330.h |  1 +
+>  3 files changed, 51 insertions(+)
 >
-> diff --git a/drivers/gpio/gpiolib-acpi.c b/drivers/gpio/gpiolib-acpi.c
-> index bbcac3a..04aa69e 100644
-> --- a/drivers/gpio/gpiolib-acpi.c
-> +++ b/drivers/gpio/gpiolib-acpi.c
-> @@ -416,9 +416,10 @@ static int acpi_find_gpio(struct acpi_resource *ares, void *data)
->                  * GpioIo is used then the only way to set the flag is
->                  * to use _DSD "gpios" property.
->                  */
-> -               if (lookup->info.gpioint)
-> -                       lookup->info.active_low =
-> -                               agpio->polarity == ACPI_ACTIVE_LOW;
-> +               if (lookup->info.gpioint) {
-> +                       lookup->info.polarity = agpio->polarity;
-> +                       lookup->info.triggering = agpio->triggering;
-> +               }
->         }
+> diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
+> index 7a582f5..906a20f 100644
+> --- a/drivers/acpi/acpi_apd.c
+> +++ b/drivers/acpi/acpi_apd.c
+> @@ -38,12 +38,15 @@ struct apd_private_data;
 >
->         return 1;
-> @@ -510,7 +511,7 @@ struct gpio_desc *acpi_get_gpiod_by_index(struct acpi_device *adev,
->         if (lookup.desc && info) {
->                 *info = lookup.info;
->                 if (active_low)
-> -                       info->active_low = active_low;
-> +                       info->polarity = active_low;
->         }
+>  static u8 peri_id[2] = { 0, 1 };
 >
->         return lookup.desc ? lookup.desc : ERR_PTR(-ENOENT);
-> @@ -530,6 +531,7 @@ struct gpio_desc *acpi_get_gpiod_by_index(struct acpi_device *adev,
->  int acpi_dev_gpio_irq_get(struct acpi_device *adev, int index)
->  {
->         int idx, i;
-> +       u32 irq_flags;
->
->         for (i = 0, idx = 0; idx <= index; i++) {
->                 struct acpi_gpio_info info;
-> @@ -538,8 +540,22 @@ int acpi_dev_gpio_irq_get(struct acpi_device *adev, int index)
->                 desc = acpi_get_gpiod_by_index(adev, NULL, i, &info);
->                 if (IS_ERR(desc))
->                         break;
-> -               if (info.gpioint && idx++ == index)
-> -                       return gpiod_to_irq(desc);
-> +               if (info.gpioint && idx++ == index) {
-> +                       int irq = gpiod_to_irq(desc);
+> +static int apd_acpi_xlate_filter(int slave_id, struct device *dev);
 > +
-> +                       if (irq < 0)
-> +                               return irq;
-> +
-> +                       irq_flags = acpi_dev_get_irq_type(info.triggering,
-> +                                                         info.polarity);
-> +
-> +                       /* Set type if specified and different than the current one */
-> +                       if (irq_flags != IRQ_TYPE_NONE &&
-> +                           irq_flags != irq_get_trigger_type(irq))
-> +                               irq_set_irq_type(irq, irq_flags);
-> +
-> +                       return irq;
-> +               }
->         }
->         return -ENOENT;
->  }
-> diff --git a/drivers/gpio/gpiolib.c b/drivers/gpio/gpiolib.c
-> index 6798355..90e737f 100644
-> --- a/drivers/gpio/gpiolib.c
-> +++ b/drivers/gpio/gpiolib.c
-> @@ -1873,7 +1873,7 @@ static struct gpio_desc *acpi_find_gpio(struct device *dev, const char *con_id,
->                         return desc;
->         }
->
-> -       if (info.active_low)
-> +       if (info.polarity == GPIO_ACTIVE_LOW)
->                 *flags |= GPIO_ACTIVE_LOW;
->
->         return desc;
-> @@ -2212,7 +2212,7 @@ struct gpio_desc *fwnode_get_named_gpiod(struct fwnode_handle *fwnode,
->                 desc = acpi_get_gpiod_by_index(to_acpi_node(fwnode), propname, 0,
->                                                &info);
->                 if (!IS_ERR(desc))
-> -                       active_low = info.active_low;
-> +                       active_low = info.polarity == GPIO_ACTIVE_LOW;
->         }
->
->         if (IS_ERR(desc))
-> diff --git a/drivers/gpio/gpiolib.h b/drivers/gpio/gpiolib.h
-> index 78e634d..57063d2 100644
-> --- a/drivers/gpio/gpiolib.h
-> +++ b/drivers/gpio/gpiolib.h
-> @@ -22,11 +22,13 @@ struct acpi_device;
->  /**
->   * struct acpi_gpio_info - ACPI GPIO specific information
->   * @gpioint: if %true this GPIO is of type GpioInt otherwise type is GpioIo
-> - * @active_low: in case of @gpioint, the pin is active low
-> + * @polarity: in case of @gpioint, the pin is active low
-> + * @triggering: in case of @gpioint, interrupt triggering mode (edge or level)
->   */
->  struct acpi_gpio_info {
->         bool gpioint;
-> -       bool active_low;
-> +       u32 polarity;
-> +       u32 triggering;
+>  static struct dma_pl330_platdata amd_pl330 = {
+>         .nr_valid_peri = 2,
+>         .peri_id = peri_id,
+>         .has_no_cap_mask = true,
+>         .mcbuf_sz = 0,
+>         .flags = IRQF_SHARED,
+> +       .acpi_xlate_filter = apd_acpi_xlate_filter,
 >  };
 >
->  /* gpio suffixes used for ACPI and device tree lookup */
-> --
-> 2.1.4
+>  /**
+> @@ -68,6 +71,15 @@ struct apd_private_data {
+>         const struct apd_device_desc *dev_desc;
+>  };
 >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +int apd_acpi_xlate_filter(int slave_id, struct device *dev)
+> +{
+> +       if (((slave_id == 1) && (!strcmp(dev_name(dev), "AMD0020:00DMA")))
+> +           || ((slave_id == 2) && (!strcmp(dev_name(dev), "AMD0020:01DMA"))))
+> +               return 0;
 
+First of all, too many parens. No need to have them here: (!strcmp()),
+for example.
 
+Second, looks like you actually compare slave_id with device _UID, am
+I right? In that case maybe better to check device's _HID, _UID and
+eventually slave_id.
+
+> +
+> +       return 1;
+> +}
+> +
+>  #ifdef CONFIG_X86_AMD_PLATFORM_DEVICE
+>  #define APD_ADDR(desc) ((unsigned long)&desc)
+>
+> diff --git a/drivers/dma/pl330.c b/drivers/dma/pl330.c
+> index 8300969..9d7af0d 100644
+> --- a/drivers/dma/pl330.c
+> +++ b/drivers/dma/pl330.c
+> @@ -2079,6 +2079,35 @@ static struct dma_chan *of_dma_pl330_xlate(struct of_phandle_args *dma_spec,
+>         return dma_get_slave_channel(&pl330->peripherals[chan_id].chan);
+>  }
+>
+> +static struct dma_chan *acpi_dma_pl330_xlate(struct acpi_dma_spec *dma_spec,
+> +                                            struct acpi_dma *adma)
+> +{
+> +       struct pl330_dmac *pl330 = adma->data;
+> +       struct dma_pl330_platdata *pdat;
+> +       unsigned int chan_id;
+> +       int ret;
+> +
+> +       if (!dma_spec)
+> +               return NULL;
+
+AFAIR dma_spec is guaranteed not to be NULL.
+
+> +
+> +       if (!adma)
+> +               return NULL;
+
+Ditto.
+
+> +
+> +       pdat = dev_get_platdata(adma->dev);
+> +
+> +       chan_id = dma_spec->chan_id;
+> +       if (chan_id >= pl330->num_peripherals)
+> +               return NULL;
+> +
+> +       if (pdat->acpi_xlate_filter) {
+> +               ret = pdat->acpi_xlate_filter(dma_spec->slave_id, adma->dev);
+> +               if (ret)
+> +                       return NULL;
+> +       }
+> +
+> +       return dma_get_slave_channel(&pl330->peripherals[chan_id].chan);
+> +}
+> +
+>  static int pl330_alloc_chan_resources(struct dma_chan *chan)
+>  {
+>         struct dma_pl330_chan *pch = to_pchan(chan);
+> @@ -2918,6 +2947,15 @@ pl330_probe(struct amba_device *adev, const struct amba_id *id)
+>                 }
+>         }
+>
+> +       if (ACPI_HANDLE(&adev->dev)) {
+
+I suspect where did you get this, but it's already updated. You better use
+has_acpi_companion() instead.
+
+> +               ret = acpi_dma_controller_register(&adev->dev,
+> +                                                  acpi_dma_pl330_xlate, pl330);
+
+So, someone has either to provide CSRT (which is mostly foreign to
+ACPI tables), or to provide those resources somehow else (request line
+base and number). In the latter case you would need to add the hook
+into acpi_dma_controller_register().
+
+> +               if (ret) {
+> +                       dev_err(&adev->dev,
+> +                               "unable to register DMA to the generic ACPI DMA helpers\n");
+> +               }
+> +       }
+> +
+>         adev->dev.dma_parms = &pl330->dma_parms;
+>
+>         /*
 
 -- 
 With Best Regards,
