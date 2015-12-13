@@ -1,91 +1,66 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH 0/9] 8250: AMD Carrizo UART PL300 DMA enablement
-Date: Sun, 13 Dec 2015 04:32:15 +0200
-Message-ID: <CAHp75Vcvn+8A=PPbUQURJmUyUELt5FmFj-rrb0h3uQRMeOXcSQ@mail.gmail.com>
-References: <1449199466-6081-1-git-send-email-annie.wang@amd.com>
+From: linux-acpi-owner@vger.kernel.org
+Subject: URGENT MAIL FOR YOU...
+Date: Sun, 13 Dec 2015 05:04:12 -0500
+Message-ID: <DB4PR06MB361DAF153761C3837B9CE29B8EC0@DB4PR06MB361.eurprd06.prod.outlook.com>
+Reply-To: <imfonlinedepartmen@qq.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qk0-f169.google.com ([209.85.220.169]:34269 "EHLO
-	mail-qk0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751341AbbLMCcQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 12 Dec 2015 21:32:16 -0500
-In-Reply-To: <1449199466-6081-1-git-send-email-annie.wang@amd.com>
+Received: from mail-am1hn0251.outbound.protection.outlook.com ([157.56.112.251]:28601
+	"EHLO emea01-am1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751496AbbLMKEb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 13 Dec 2015 05:04:31 -0500
+Content-Description: Mail message body
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Wang Hongcheng <annie.wang@amd.com>
-Cc: Vinod Koul <vinod.koul@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Joerg Roedel <joro@8bytes.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, dmaengine <dmaengine@vger.kernel.org>, iommu@lists.linux-foundation.org, Borislav Petkov <bp@alien8.de>, Huang Rui <ray.huang@amd.com>, Wan Zongshun <vincent.wan@amd.com>, Ken Xue <ken.xue@amd.com>, Tony Li <tony.li@amd.com>
+To: Recipients@vger.kernel.org
 
-On Fri, Dec 4, 2015 at 5:24 AM, Wang Hongcheng <annie.wang@amd.com> wrote:
-> Hi all,
->
-> As AMD carrizo UART device is compatible with 8250 and has pl330 DMA
-> IP, our uart driver is serial:8250 and DMA engines are registered by
-> driver/dma/pl330. The following patches are made, in order to enable
-> DMA.
->
-> Firstly, we add an universal ACPI amba glue layer to create an amba
-> device based on ACPI table. Then we alter 8250/Kconfig to support
-> AMD 8250 device and add quirk for AMD specific request.
-> Secondly, since pl330 driver only provides dma engine for platform
-> devices, we add an acpi dma engine interface.
-> Then we add a new port type for AMD carrizo and set UART registers
-> and dma rx size as hardware requirement.
-> In the end, we make our IOMMU driver to support non-pci device, so
-> UART DMA really works.
->
+Dear ,
+=20
 
-I commented on a few patches, thoughI might miss something in the rest.
-Include me in Cc list next version.
+My name is Mrs. Bella Holbrook and I work with the International Moneta=
+ry Fund (IMF), I am writing you to let you know that finally your ATM C=
+ard worth $650,000.00 USD has been delivered through UPS to Mr. Hart Le=
+roy, who works with the IMF where it is going to be activated before fi=
+nal delivery to your home address. You can use the tracking number with=
+ the tracking site below to track the ATM Card to be sure it has been d=
+elivered to Mr. Hart, for activation.
+=20
 
-> Thanks,
-> Hongcheng
->
-> Huang Rui (1):
->   ACPI: Add support for AMBA bus type
->
-> Wan Zongshun (2):
->   Documentation: Add ivrs_acpihid kernel parameter description
->   iommu/amd: Add ACPI HID named devices IOMMU driver support
->
-> Wang Hongcheng (6):
->   8250/Kconfig: add config option CONFIG_SERIAL_8250_AMD
->   ACPI: add struct acpi_amba_quirk for AMD pl330 specific device config
->   dmaengine: pl330: add new items for pl330 private data
->   dmaengine: pl330: provide ACPI dmaengine interface
->   dmaengine:pl330: set segment_boundary_mask = 0cffffffff
->   Serial:8250: New Port Type PORT_AMD_8250
->
->  Documentation/kernel-parameters.txt |   7 ++
->  drivers/acpi/Makefile               |   1 +
->  drivers/acpi/acpi_amba.c            | 180 ++++++++++++++++++++++++++++++++++++
->  drivers/acpi/acpi_apd.c             |  89 +++++++++++++++---
->  drivers/dma/pl330.c                 |  61 ++++++++++--
->  drivers/iommu/amd_iommu.c           | 165 +++++++++++++++++++++++++++++----
->  drivers/iommu/amd_iommu_init.c      | 123 +++++++++++++++++++++++-
->  drivers/iommu/amd_iommu_types.h     |  11 +++
->  drivers/tty/serial/8250/8250_dw.c   |  16 ++++
->  drivers/tty/serial/8250/8250_port.c |   9 ++
->  drivers/tty/serial/8250/Kconfig     |   8 ++
->  include/linux/acpi.h                |  30 ++++++
->  include/linux/amba/pl330.h          |   4 +
->  include/linux/serial_8250.h         |   4 +
->  include/uapi/linux/serial_core.h    |   3 +-
->  include/uapi/linux/serial_reg.h     |   2 +
->  16 files changed, 673 insertions(+), 40 deletions(-)
->  create mode 100644 drivers/acpi/acpi_amba.c
->
-> --
-> 1.9.1
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
+UPS Tracking number: 1z2876490390947593
+UPS tracking site: http://www.ups.com/index.html
+=20
 
+Below is the contact information to Mr. Hart Leroy
+=20
 
+Contact Name: Mr. Hart Leroy
+Contact E-mail: imfonlinedepartmen@qq.com
+Contact Number: +1505-240-6112
+=20
 
--- 
-With Best Regards,
-Andy Shevchenko
+You are to contact Mr. Hart with his email address above then he will g=
+uide you on how your Card will be activated and delivered to your home =
+address.
+=20
+=20
+
+Note: The only fee you are to send for the activation fee is just $250 =
+USD so make sure you don=E2=80=99t send him more than $250 USD. Your ca=
+rd is already with him and you can track it with the tracking details g=
+iven to you above for confirmation.
+=20
+
+Congratulations once more.
+=20
+
+Best Regards,
+Mrs. Bella Holbrook
+International Monetary Fund (IMF)
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
