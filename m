@@ -1,42 +1,55 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v7 1/4] acpi: pci: Setup MSI domain for ACPI based pci devices
-Date: Mon, 14 Dec 2015 22:29:43 +0100
-Message-ID: <2013286.NCRgLU1HGi@vostro.rjw.lan>
-References: <1449766530-16935-1-git-send-email-Suravee.Suthikulpanit@amd.com> <1449766530-16935-2-git-send-email-Suravee.Suthikulpanit@amd.com> <566EDCAC.1080401@arm.com>
+From: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+Subject: Re: [PATCH] ACPI / scan: set status to 0 if _STA failed
+Date: Tue, 15 Dec 2015 00:42:21 +0100
+Message-ID: <5288517.rYC1Fmx4Ls@vostro.rjw.lan>
+References: <564D3C75.60208@intel.com> <20151119101149.GZ1604@lahna.fi.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <566EDCAC.1080401@arm.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, tglx@linutronix.de, jason@lakedaemon.net, bhelgaas@google.com, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, hanjun.guo@linaro.org, tomasz.nowicki@linaro.org, graeme.gregory@linaro.org, dhdang@apm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20151119101149.GZ1604-3PARRvDOhMZrdx17CPfAsdBPR1lH4CV8@public.gmane.org>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+Cc: ACPI Devel Mailing List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bastien Nocera <bugzilla-0MeiytkfxGOsTnJN9+BGXg@public.gmane.org>, Stephen Just <stephenjust-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Chen, Yu C" <yu.c.chen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday, December 14, 2015 03:13:48 PM Marc Zyngier wrote:
-> On 10/12/15 16:55, Suravee Suthikulpanit wrote:
-> > This patch introduces pci_msi_register_fwnode_provider() for irqchip
-> > to register a callback, to provide a way to determine appropriate MSI
-> > domain for a pci device.
+On Thursday, November 19, 2015 12:11:49 PM Mika Westerberg wrote:
+> On Thu, Nov 19, 2015 at 11:05:25AM +0800, Aaron Lu wrote:
+> > Some ACPI node's _STA will touch operation region field, since the
+> > evaluation of _STA in acpi_bus_type_and_status is very early, the
+> > operation region handler is not ready yet. Instead of fail that function
+> > and not creating the acpi_device node consequently, set status to 0 so
+> > that later when the driver for that device is probing, it can find
+> > the acpi_device node and proceed normally. And at that time, the
+> > handler for the operation region is ready and its _STA evaluation will
+> > succeed, its present status can be checked there.
 > > 
-> > It also introduces pci_host_bridge_acpi_msi_domain(), which returns
-> > the MSI domain of the specified PCI host bridge with DOMAIN_BUS_PCI_MSI
-> > bus token. Then, it is assigned to pci device.
+> > Even there will be no driver using this node later, it doesn't seem
+> > hurt to have one more acpi_device node created with status set to 0.
 > > 
-> > Reviewed-by: Marc Zyngier <marc.zyngier@arm.com>
-> > Cc: Bjorn Helgaas <bhelgaas@google.com>
-> > Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-> > Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+> > This happens on Microsoft Surface 3, where the SPI device node NTRG's
+> > _STA touches GPIO fields and the SPI core driver will only enumerate SPI
+> > devices from ACPI if the acpi_device node is 1: created; 2: _STA
+> > indicates it's present.
+> > 
+> > Note that due to another problem in SPI driver, for NTRG to be actually
+> > enumerated, some changes have to be made in the SPI layer, which is
+> > addressed by Mika(not send out yet):
+> > https://bugzilla.kernel.org/show_bug.cgi?id=104291#c23
+> > 
+> > Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=104291
+> > Reported-by: Bastien Nocera <bugzilla-0MeiytkfxGOsTnJN9+BGXg@public.gmane.org>
+> > Signed-off-by: Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
 > 
-> Bjorn, Rafael,
+> I don't know any better solution to this,
 > 
-> Do you have any comment on this?
-> 
-> I was hoping to queue this work (and the 3 patches that depend on it)
-> for 4.5, but if you don't have the bandwidth to review it, I'll postpone
-> it to the following merge window.
+> Reviewed-by: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
 
-How much time do we have to look at it before it is postponed?
+Applied, thanks!
 
-Thanks,
 Rafael
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
