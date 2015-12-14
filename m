@@ -1,55 +1,42 @@
-From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: Re: [PATCH v4 0/6] nvdimm: Add an IOCTL pass thru for DSM calls
-Date: Mon, 14 Dec 2015 10:33:07 -0700
-Message-ID: <20151214173307.GA47566@tevye.fc.hp.com>
-References: <cover.1450036445.git.jerry.hoemann@hpe.com>
-Reply-To: Jerry.Hoemann@hpe.com
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v7 1/4] acpi: pci: Setup MSI domain for ACPI based pci devices
+Date: Mon, 14 Dec 2015 22:29:43 +0100
+Message-ID: <2013286.NCRgLU1HGi@vostro.rjw.lan>
+References: <1449766530-16935-1-git-send-email-Suravee.Suthikulpanit@amd.com> <1449766530-16935-2-git-send-email-Suravee.Suthikulpanit@amd.com> <566EDCAC.1080401@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g1t5425.austin.hp.com ([15.216.225.55]:58551 "EHLO
-	g1t5425.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752043AbbLNRdM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Dec 2015 12:33:12 -0500
-Content-Disposition: inline
-In-Reply-To: <cover.1450036445.git.jerry.hoemann@hpe.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <566EDCAC.1080401@arm.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, tglx@linutronix.de, jason@lakedaemon.net, bhelgaas@google.com, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, hanjun.guo@linaro.org, tomasz.nowicki@linaro.org, graeme.gregory@linaro.org, dhdang@apm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ross.zwisler@linux.intel.com, rjw@rjwysocki.net, lenb@kernel.org, dan.j.williams@intel.com, elliott@hpe.com, jmoyer@redhat.com, krivenok.dmitry@gmail.com, linda.knippers@hpe.com
-Cc: robert.moore@intel.com, lv.zheng@intel.com, rafael.j.wysocki@intel.com, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Sun, Dec 13, 2015 at 06:54:21PM -0700, Jerry Hoemann wrote:
+On Monday, December 14, 2015 03:13:48 PM Marc Zyngier wrote:
+> On 10/12/15 16:55, Suravee Suthikulpanit wrote:
+> > This patch introduces pci_msi_register_fwnode_provider() for irqchip
+> > to register a callback, to provide a way to determine appropriate MSI
+> > domain for a pci device.
+> > 
+> > It also introduces pci_host_bridge_acpi_msi_domain(), which returns
+> > the MSI domain of the specified PCI host bridge with DOMAIN_BUS_PCI_MSI
+> > bus token. Then, it is assigned to pci device.
+> > 
+> > Reviewed-by: Marc Zyngier <marc.zyngier@arm.com>
+> > Cc: Bjorn Helgaas <bhelgaas@google.com>
+> > Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+> > Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 > 
-> The NVDIMM code in the kernel supports an IOCTL interface to user
-> space based upon the Intel Example DSM:
+> Bjorn, Rafael,
 > 
-> 	http://pmem.io/documents/NVDIMM_DSM_Interface_Example.pdf
+> Do you have any comment on this?
 > 
-> This interface cannot be used by other NVDIMM DSMs that support
-> incompatible functions.
-> 
-> This patch set adds a generic "passthru" IOCTL interface which
-> is not tied to a particular DSM.
-> 
+> I was hoping to queue this work (and the 3 patches that depend on it)
+> for 4.5, but if you don't have the bandwidth to review it, I'll postpone
+> it to the following merge window.
 
-  ...
+How much time do we have to look at it before it is postponed?
 
-
-> 
-> Changes in version 4:
-> ---------------------
-
-...
-
-
-Sorry, forgot to update version number in the email title. 
-
-This is version 4 of this patch series.
-
-
-
--- 
-
------------------------------------------------------------------------------
-Jerry Hoemann                  Software Engineer   Hewlett Packard Enterprise
------------------------------------------------------------------------------
+Thanks,
+Rafael
