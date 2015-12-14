@@ -1,93 +1,71 @@
 From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH 00/11] Support System RAM resource type and EINJ to NVDIMM
-Date: Mon, 14 Dec 2015 16:37:15 -0700
-Message-ID: <1450136235-17012-1-git-send-email-toshi.kani@hpe.com>
+Subject: [PATCH 11/11] ACPI/EINJ: Allow memory error injection to NVDIMM
+Date: Mon, 14 Dec 2015 16:37:26 -0700
+Message-ID: <1450136246-17053-11-git-send-email-toshi.kani@hpe.com>
+References: <1450136246-17053-1-git-send-email-toshi.kani@hpe.com>
 Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1450136246-17053-1-git-send-email-toshi.kani@hpe.com>
 Sender: owner-linux-mm@kvack.org
 To: akpm@linux-foundation.org, bp@alien8.de
-Cc: torvalds@linux-foundation.org, rafael.j.wysocki@intel.com, dan.j.williams@intel.com, x86@kernel.org, konrad.wilk@oracle.com, xen-devel@lists.xenproject.org, dyoung@redhat.com, vgoyal@redhat.com, tangchen@cn.fujitsu.com, kgene@kernel.org, k.kozlowski@samsung.com, linux-samsung-soc@vger.kernel.org, vishal.l.verma@intel.com, tony.luck@intel.com, linux-arch@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: linux-arch@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Vishal Verma <vishal.l.verma@intel.com>, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
 List-Id: linux-acpi@vger.kernel.org
 
-This patch-set introduces a new I/O resource type, IORESOURCE_SYSTEM_RAM,
-for System RAM while keeping the current IORESOURCE_MEM type bit set for
-all memory-mapped ranges (including System RAM) for backward compatibility.
-With the new System RAM type, walking through the iomem resource table
-no longer requires to test with strcmp() against "System RAM".  After this
-infrastructure update, this patch changes EINJ to support NVDIMM.
+In the case of memory error injection, einj_error_inject() checks
+if a target address is System RAM.  Change this check to allow
+injecting a memory error to NVDIMM by calling region_intersects()
+with "Persistent Memory".  This enables memory error testing on
+both System RAM and NVDIMM.
 
-Patches 1-2 add a new System RAM type, and make resource interfaces work
-with resource flags with modifier bits set.
+In addition, page_is_ram() is replaced with region_intersects()
+with IORESOURCE_SYSTEM_RAM, so that it can verify a target address
+range with the requested size.
 
-Patches 3-7 set the System RAM type to System RAM ranges.
-
-Patches 8-10 extend resource interfaces to check System RAM ranges with
-the System RAM type.
-
-Patch 11 changes the EINJ driver to allow injecting a memory error to
-NVDIMM.
-
+Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+Cc: Borislav Petkov <bp@alien8.de>
+Cc: Vishal Verma <vishal.l.verma@intel.com>
+Cc: linux-nvdimm@lists.01.org
+Cc: linux-acpi@vger.kernel.org
+Acked-by: Tony Luck <tony.luck@intel.com>
+Reviewed-by: Dan Williams <dan.j.williams@intel.com>
+Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
 ---
-v1:
- - Searching for System RAM in the resource table should not require
-   strcmp(). (Borislav Petkov)
- - Add a new System RAM type as a modifier to IORESOURCE_MEM.
-   (Linus Torvalds)
- - NVDIMM check should remain with strcmp() against "Persistent Memory".
-   (Dan Williams)
- - Reset patch version.
+ drivers/acpi/apei/einj.c |   15 +++++++++++----
+ 1 file changed, 11 insertions(+), 4 deletions(-)
 
-prev-v3:
- - Check the param2 value before target memory type. (Tony Luck)
- - Add a blank line before if-statement. Remove an unnecessary brakets.
-   (Borislav Petkov)
-
-prev-v2:
- - Change the EINJ driver to call region_intersects_ram() for checking
-   RAM with a specified size. (Dan Williams)
-
----
-Toshi Kani (11):
- 01/11 resource: Add System RAM resource type
- 02/11 resource: make resource flags handled properly
- 03/11 x86/e820: Set IORESOURCE_SYSTEM_RAM to System RAM
- 04/11 arch: Set IORESOURCE_SYSTEM_RAM to System RAM
- 05/11 xen: Set IORESOURCE_SYSTEM_RAM to System RAM
- 06/11 kexec: Set IORESOURCE_SYSTEM_RAM to System RAM
- 07/11 memory-hotplug: Set IORESOURCE_SYSTEM_RAM to System RAM
- 08/11 memremap: Change region_intersects() to use System RAM type
- 09/11 resource: Change walk_system_ram to use System RAM type
- 10/11 arm/samsung: Change s3c_pm_run_res() to use System RAM type
- 11/11 ACPI/EINJ: Allow memory error injection to NVDIMM
-
----
- arch/arm/kernel/setup.c          |  6 ++---
- arch/arm/plat-samsung/pm-check.c |  4 +--
- arch/arm64/kernel/setup.c        |  6 ++---
- arch/avr32/kernel/setup.c        |  6 ++---
- arch/ia64/kernel/efi.c           |  6 +++--
- arch/ia64/kernel/setup.c         |  6 ++---
- arch/m32r/kernel/setup.c         |  4 +--
- arch/mips/kernel/setup.c         | 10 +++++---
- arch/parisc/mm/init.c            |  6 ++---
- arch/powerpc/mm/mem.c            |  2 +-
- arch/s390/kernel/setup.c         |  8 +++---
- arch/score/kernel/setup.c        |  2 +-
- arch/sh/kernel/setup.c           |  8 +++---
- arch/sparc/mm/init_64.c          |  8 +++---
- arch/tile/kernel/setup.c         | 11 +++++---
- arch/unicore32/kernel/setup.c    |  6 ++---
- arch/x86/kernel/e820.c           | 18 +++++++++++++-
- arch/x86/kernel/setup.c          |  6 ++---
- drivers/acpi/apei/einj.c         | 15 ++++++++---
- drivers/xen/balloon.c            |  2 +-
- include/linux/ioport.h           | 11 ++++++++
- include/linux/mm.h               |  3 ++-
- kernel/kexec_core.c              |  6 ++---
- kernel/kexec_file.c              |  2 +-
- kernel/memremap.c                | 13 +++++-----
- kernel/resource.c                | 54 +++++++++++++++++++++-------------------
- mm/memory_hotplug.c              |  2 +-
- 27 files changed, 140 insertions(+), 91 deletions(-)
+diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
+index 0431883..cad6fd7 100644
+--- a/drivers/acpi/apei/einj.c
++++ b/drivers/acpi/apei/einj.c
+@@ -519,7 +519,7 @@ static int einj_error_inject(u32 type, u32 flags, u64 param1, u64 param2,
+ 			     u64 param3, u64 param4)
+ {
+ 	int rc;
+-	unsigned long pfn;
++	u64 base_addr, size;
+ 
+ 	/* If user manually set "flags", make sure it is legal */
+ 	if (flags && (flags &
+@@ -545,10 +545,17 @@ static int einj_error_inject(u32 type, u32 flags, u64 param1, u64 param2,
+ 	/*
+ 	 * Disallow crazy address masks that give BIOS leeway to pick
+ 	 * injection address almost anywhere. Insist on page or
+-	 * better granularity and that target address is normal RAM.
++	 * better granularity and that target address is normal RAM or
++	 * NVDIMM.
+ 	 */
+-	pfn = PFN_DOWN(param1 & param2);
+-	if (!page_is_ram(pfn) || ((param2 & PAGE_MASK) != PAGE_MASK))
++	base_addr = param1 & param2;
++	size = ~param2 + 1;
++
++	if (((param2 & PAGE_MASK) != PAGE_MASK) ||
++	    ((region_intersects(base_addr, size, IORESOURCE_SYSTEM_RAM,
++				NULL) != REGION_INTERSECTS) &&
++	     (region_intersects(base_addr, size, IORESOURCE_MEM,
++				"Persistent Memory") != REGION_INTERSECTS)))
+ 		return -EINVAL;
+ 
+ inject:
 
 --
 To unsubscribe, send a message with 'unsubscribe linux-mm' in
