@@ -1,104 +1,81 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v4 0/7] ACPICA / debugger: Add in-kernel AML debugger support
-Date: Tue, 15 Dec 2015 00:44:39 +0100
-Message-ID: <3622599.bM9Ou77SfB@vostro.rjw.lan>
+From: Andy Lutomirski <luto@amacapital.net>
+Subject: Re: [PATCH v4 7/7] ACPI / x86: introduce acpi_os_readable() support
+Date: Mon, 14 Dec 2015 15:28:19 -0800
+Message-ID: <CALCETrXeoGZhrNr9OmqFB+i7-tbM+d3sO8uCNnMx40JfDsjoEw@mail.gmail.com>
 References: <cover.1446790780.git.lv.zheng@intel.com> <cover.1449108825.git.lv.zheng@intel.com>
+ <af8b1799e7eec686fbb3bf239f6f400adb3b8082.1449108826.git.lv.zheng@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:51284 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753635AbbLNXOd (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Dec 2015 18:14:33 -0500
-In-Reply-To: <cover.1449108825.git.lv.zheng@intel.com>
+Received: from mail-ob0-f178.google.com ([209.85.214.178]:34106 "EHLO
+	mail-ob0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932508AbbLNX2k (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Dec 2015 18:28:40 -0500
+Received: by obciw8 with SMTP id iw8so144770762obc.1
+        for <linux-acpi@vger.kernel.org>; Mon, 14 Dec 2015 15:28:39 -0800 (PST)
+In-Reply-To: <af8b1799e7eec686fbb3bf239f6f400adb3b8082.1449108826.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Andy Lutomirski <luto@kernel.org>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Andy Lutomirski <luto@kernel.org>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Chen Yu <yu.c.chen@intel.com>
 
-On Thursday, December 03, 2015 10:40:00 AM Lv Zheng wrote:
-> This patchset enables ACPICA debugger for Linux kernel and implements a
-> userspace utility to access it.
-> 
-> A. Build the AML debugger
-> In order to build the kernel support of AML debugger, the following kconfig
-> items should be enabled:
->  CONFIG_ACPI_DEBUG=y
->  CONFIG_ACPI_DEBUGGER=y
->  CONFIG_DEBUG_FS=y
->  CONFIG_ACPI_DEBUGGER_USER=m
-> The userspace tool can be found at tools/power/acpi/tools/acpidbg. To
-> build this utility, staying in tools folder and type "make acpi".
-> 
-> B. Load the AML debugger during runtime
-> In order to use the in-kernel AML debugger, the following command should be
-> executed using root user:
->  # modprobe acpi_dbg
->  # mount -t debugfs none /sys/kernel/debug
->  # acpidbg
-> 
-> C. Batch mode
-> In order to support scripts, the userspace utility also supports single
-> command batch mode:
->  # acpidbg -b "help"
->  # acpidbg -b "tables"
->  # acpidbg -b "find _LID"
->  # acpidbg -b "execute \_SB.LID0._LID"
-> You can find the documentation about the ACPICA debugger commands in:
->  https://acpica.org/sites/acpica/files/acpica-reference_17.pdf
->  (The latest document can be found at https://acpica.org/documentation)
-> And refer to the chapter - ACPICA debugger reference to obtain the full
-> description of the debugger commands. Note that not all commands are
-> supported by an in-kernel AML debugger.
-> 
-> D. Unload the AML debugger during runtime
-> After terminating all acpidbg instances, the following command can be
-> executed to remove the AML debugger from kernel:
->  # rmmod acpi_dbg
-> 
-> The following tasks are not completed:
-> 1. .flush() support in the kernel debugger IO driver.
-> 2. multi-commands batch mode.
-> 
-> v2:
-> 1. Fix a help message issue for the userspace acpidbg utility (this is a
->    typo fix).
-> 2. Fix a batch mode issue by adding "\n" to the prompt sequence (this was
->    lost due to too many rebase cycles).
-> 3. Fix kconfig dependency for an intermediate patch (this is only useful in
->    case the latter patches are reverted).
-> 4. Add more accurate runtime debugger stub mechanism and remove old
->    ACPI_DEBUGGER_EXEC() stub mechanism.
-> 5. Add x86 acpi_os_readable() support.
-> 
-> v3:
-> 1. Remove acpi_os_readable() support from this patchset. It's sent separately.
-> 2. Delete some deprecated comments.
-> 
-> v4:
-> 1. Rebase patch 4/6 because of Kconfig changes.
-> 2. Include acpi_os_readable() back as no objections, also test result is
->    positive.
-> 
-> Chen Yu (1):
->   ACPI / x86: introduce acpi_os_readable() support
-> 
-> Colin Ian King (1):
->   ACPICA: Debugger: Remove unnecessary status check
-> 
-> Lv Zheng (5):
->   ACPICA: Debugger: Convert some mechanisms to OSPM specific
->   ACPICA: Debugger: Fix runtime stub issues of ACPI_DEBUGGER_EXEC using
->     different stub mechanism
->   ACPI / debugger: Add IO interface to access debugger functionalities
->   tools/power/acpi: Add userspace AML interface support
->   ACPI / debugger: Add module support for ACPI debugger
+On Wed, Dec 2, 2015 at 6:43 PM, Lv Zheng <lv.zheng@intel.com> wrote:
+> From: Chen Yu <yu.c.chen@intel.com>
+>
+> This patch implements acpi_os_readable(). The function is used by ACPICA
+> AML debugger to validate user specified pointers for dumping the memory as
+> ACPICA descriptor objects.
+>
+> Signed-off-by: Chen Yu <yu.c.chen@intel.com>
+> Tested-by: Lv Zheng <lv.zheng@intel.com>
+> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+> ---
+>  arch/x86/Kconfig                  |    1 +
+>  arch/x86/include/asm/acenv.h      |    1 +
+>  arch/x86/kernel/acpi/boot.c       |   44 +++++++++++++++++++++++++++++++++++++
+>  drivers/acpi/Kconfig              |    3 +++
+>  drivers/acpi/osl.c                |   12 ++++++++++
+>  include/acpi/platform/aclinux.h   |    1 -
+>  include/acpi/platform/aclinuxex.h |    5 -----
+>  7 files changed, 61 insertions(+), 6 deletions(-)
+>
+> diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+> index db3622f..6593b6a 100644
+> --- a/arch/x86/Kconfig
+> +++ b/arch/x86/Kconfig
+> @@ -19,6 +19,7 @@ config X86
+>         def_bool y
+>         select ACPI_LEGACY_TABLES_LOOKUP        if ACPI
+>         select ACPI_SYSTEM_POWER_STATES_SUPPORT if ACPI
+> +       select ACPI_MEMORY_ACCESS_CHECK_SUPPORT if ACPI
+>         select ANON_INODES
+>         select ARCH_CLOCKSOURCE_DATA
+>         select ARCH_DISCARD_MEMBLOCK
+> diff --git a/arch/x86/include/asm/acenv.h b/arch/x86/include/asm/acenv.h
+> index 1b010a8..a2a2849 100644
+> --- a/arch/x86/include/asm/acenv.h
+> +++ b/arch/x86/include/asm/acenv.h
+> @@ -20,6 +20,7 @@
+>
+>  int __acpi_acquire_global_lock(unsigned int *lock);
+>  int __acpi_release_global_lock(unsigned int *lock);
+> +bool __acpi_memory_readable(void *pointer, size_t length);
+>
+>  #define ACPI_ACQUIRE_GLOBAL_LOCK(facs, Acq) \
+>         ((Acq) = __acpi_acquire_global_lock(&facs->global_lock))
+> diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
+> index e759076..4a5e22e 100644
+> --- a/arch/x86/kernel/acpi/boot.c
+> +++ b/arch/x86/kernel/acpi/boot.c
+> @@ -1699,6 +1699,50 @@ int __acpi_release_global_lock(unsigned int *lock)
+>         return old & 0x1;
+>  }
+>
+> +bool __acpi_memory_readable(void *pointer, size_t length)
+> +{
+> +       unsigned long obj_start, obj_end;
+> +       unsigned long start_pfn, end_pfn;
 
-OK, I'm queuing up [1-6/7] for 4.5.
+What does "readable" mean in this context?
 
-The [7/7] needs at least to be looked at by the x86 maintainers.
-
-Thanks,
-Rafael
-
+--Andy
