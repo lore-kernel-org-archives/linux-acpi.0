@@ -1,53 +1,131 @@
-From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: Re: [PATCH v3 1/6] acpica: Correct parameter type to
- acpi_evaluate_dsm
-Date: Sun, 13 Dec 2015 20:20:58 -0700
-Message-ID: <20151214032058.GA19337@tevye.fc.hp.com>
-References: <cover.1450036445.git.jerry.hoemann@hpe.com>
- <260ee0c6c9481ceae79b967a95b5e9fe76c2eabc.1450036445.git.jerry.hoemann@hpe.com>
- <CAJZ5v0jiR80vFxLUN-L7hcChb8m6gasf77TMV6onOprSh_CVHA@mail.gmail.com>
-Reply-To: Jerry.Hoemann@hpe.com
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v4] acpi, apei, arm64: APEI initial support for aarch64.
+Date: Mon, 14 Dec 2015 11:46:26 +0100
+Message-ID: <20151214104626.GB11638@pd.tnic>
+References: <1449558183-12259-1-git-send-email-fu.wei@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g4t3426.houston.hp.com ([15.201.208.54]:5421 "EHLO
-	g4t3426.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751838AbbLNDVD (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 13 Dec 2015 22:21:03 -0500
+Received: from mail.skyhub.de ([78.46.96.112]:33923 "EHLO mail.skyhub.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932200AbbLNKqc (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 14 Dec 2015 05:46:32 -0500
 Content-Disposition: inline
-In-Reply-To: <CAJZ5v0jiR80vFxLUN-L7hcChb8m6gasf77TMV6onOprSh_CVHA@mail.gmail.com>
+In-Reply-To: <1449558183-12259-1-git-send-email-fu.wei@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Dan Williams <dan.j.williams@intel.com>, elliott@hpe.com, jmoyer <jmoyer@redhat.com>, krivenok.dmitry@gmail.com, linda.knippers@hpe.com, Robert Moore <robert.moore@intel.com>, Lv <lv.zheng@intel.com>, Rafael Wysocki <rafael.j.wysocki@intel.com>, linux-nvdimm@lists.01.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: fu.wei@linaro.org
+Cc: tomasz.nowicki@linaro.org, tn@semihalf.com, rjw@rjwysocki.net, lenb@kernel.org, catalin.marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org, graeme.gregory@linaro.org, al.stone@linaro.org, hanjun.guo@linaro.org, mark.rutland@arm.com, Marc.Zyngier@arm.com, lorenzo.pieralisi@arm.com, rruigrok@codeaurora.org, harba@qti.qualcomm.com, jcm@redhat.com, msalter@redhat.com, grant.likely@linaro.org, rrichter@cavium.com, jarkko.nikula@linux.intel.com, jon.zhixiong.zhang@gmail.com
 
-On Mon, Dec 14, 2015 at 03:07:22AM +0100, Rafael J. Wysocki wrote:
-> On Mon, Dec 14, 2015 at 2:54 AM, Jerry Hoemann <jerry.hoemann@hpe.com> wrote:
-> > The ACPI spec speicifies that arguments "Revision ID" and
-> > "Function Index" to a _DSM are type "Integer."  Type Integers
-> > are 64 bit quantities.
-> >
-> > The function evaluate_dsm specifies these types as simple "int"
-> > which are 32 bits.  Correct type passed to acpi_evaluate_dsm
-> > and its callers and derived callers to pass correct type.
-> >
-> > acpi_check_dsm and acpi_evaluate_dsm_typed had similar issue
-> > and were corrected as well.
-> >
-> > Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
+On Tue, Dec 08, 2015 at 03:03:03PM +0800, fu.wei@linaro.org wrote:
+> From: Tomasz Nowicki <tomasz.nowicki@linaro.org>
 > 
-> The changes look OK to me, but this is not ACPICA material.
+> This commit provides APEI arch-specific bits for aarch64
 > 
-> Please change the subject to something like "ACPI / utils: Fix
-> acpi_evaluate_dsm() argument type".
+> Meanwhile, add a new subfunction "hest_ia_init" for
+> "acpi_disable_cmcff" which is used by IA-32 Architecture
+> Corrected Machine Check (CMC).
 > 
-> Thanks,
-> Rafael
+> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+> Tested-by: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
+> Signed-off-by: Fu Wei <fu.wei@linaro.org>
+> ---
+> Changelog:
+> v4: Rebase to latest kernel version(4.4-rc4).
+>     Move arch_apei_flush_tlb_one into header file as a inline function
+>     Add a new subfunction "hest_ia_init" for "acpi_disable_cmcff".
+> 
+> v3: https://lkml.org/lkml/2015/12/3/521
+>     Remove "acpi_disable_cmcff" from arm64 code,
+>     and wrap it in hest.c by "#if defined(__i386__) || defined(__x86_64__)"
+> 
+> v2: https://lkml.org/lkml/2015/12/2/432
+>     Rebase to latest kernel version(4.4-rc3).
+>     Move arch_apei_flush_tlb_one() to arch/arm64/kernel/acpi.c
+> 
+> v1: https://lkml.org/lkml/2015/8/14/199
+>     Move arch_apei_flush_tlb_one() to arch/arm64/include/asm/apci.h.
+>     Delete arch/arm64/kernel/apei.c.
+>     Add "#ifdef CONFIG_ACPI_APEI" for "acpi_disable_cmcff".
+> 
+>  arch/arm64/Kconfig            |  1 +
+>  arch/arm64/include/asm/acpi.h |  5 +++++
+>  drivers/acpi/apei/hest.c      | 19 ++++++++++++++++---
+>  3 files changed, 22 insertions(+), 3 deletions(-)
+> 
+> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+> index 871f217..58c8992 100644
+> --- a/arch/arm64/Kconfig
+> +++ b/arch/arm64/Kconfig
+> @@ -3,6 +3,7 @@ config ARM64
+>  	select ACPI_CCA_REQUIRED if ACPI
+>  	select ACPI_GENERIC_GSI if ACPI
+>  	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
+> +	select HAVE_ACPI_APEI if ACPI
+>  	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
+>  	select ARCH_HAS_ELF_RANDOMIZE
+>  	select ARCH_HAS_GCOV_PROFILE_ALL
+> diff --git a/arch/arm64/include/asm/acpi.h b/arch/arm64/include/asm/acpi.h
+> index caafd63..31d3d9a 100644
+> --- a/arch/arm64/include/asm/acpi.h
+> +++ b/arch/arm64/include/asm/acpi.h
+> @@ -17,6 +17,7 @@
+>  
+>  #include <asm/cputype.h>
+>  #include <asm/smp_plat.h>
+> +#include <asm/tlbflush.h>
+>  
+>  /* Macros for consistency checks of the GICC subtable of MADT */
+>  #define ACPI_MADT_GICC_LENGTH	\
+> @@ -94,6 +95,10 @@ static inline const char *acpi_get_enable_method(int cpu)
+>  
+>  #ifdef	CONFIG_ACPI_APEI
+>  pgprot_t arch_apei_get_mem_attribute(phys_addr_t addr);
+> +static inline void arch_apei_flush_tlb_one(unsigned long addr)
+> +{
+> +	flush_tlb_kernel_range(addr, addr + PAGE_SIZE);
+> +}
+>  #endif
+>  
+>  #endif /*_ASM_ACPI_H*/
+> diff --git a/drivers/acpi/apei/hest.c b/drivers/acpi/apei/hest.c
+> index 20b3fcf..715c58b 100644
+> --- a/drivers/acpi/apei/hest.c
+> +++ b/drivers/acpi/apei/hest.c
+> @@ -117,15 +117,27 @@ int apei_hest_parse(apei_hest_func_t func, void *data)
+>  }
+>  EXPORT_SYMBOL_GPL(apei_hest_parse);
+>  
+> +#if defined(__i386__) || defined(__x86_64__)
+>  /*
+>   * Check if firmware advertises firmware first mode. We need FF bit to be set
+>   * along with a set of MC banks which work in FF mode.
+>   */
+>  static int __init hest_parse_cmc(struct acpi_hest_header *hest_hdr, void *data)
+>  {
+> -	return arch_apei_enable_cmcff(hest_hdr, data);
+> +	if (!acpi_disable_cmcff)
+> +		return !arch_apei_enable_cmcff(hest_hdr, data);
+> +
+> +	return 0;
 
-  Will do.  thanks.
+So the proper way to do this is to leave the code still do this check
+(in arch/x86/kernel/acpi/apei.c:arch_apei_enable_cmcff()):
+
+	if (hest_hdr->type != ACPI_HEST_TYPE_IA32_CORRECTED_CHECK)
+		return 0;
+
+which should JustWork(tm) on ARM too because if ARM doesn't support IA32
+CMCI, then that header type should be different and the function will
+return 0.
+
+For that to work, though, the check should be moved to a generic place,
+like drivers/acpi/apei/hest.c:hest_parse_cmc() for example.
+
+No crazy ifdeffery and no redundant Kconfig symbols please.
 
 -- 
+Regards/Gruss,
+    Boris.
 
------------------------------------------------------------------------------
-Jerry Hoemann                  Software Engineer   Hewlett Packard Enterprise
------------------------------------------------------------------------------
+ECO tip #101: Trim your mails when you reply.
