@@ -1,55 +1,35 @@
-From: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
-Subject: Re: [PATCH] ACPI / scan: set status to 0 if _STA failed
-Date: Tue, 15 Dec 2015 00:42:21 +0100
-Message-ID: <5288517.rYC1Fmx4Ls@vostro.rjw.lan>
-References: <564D3C75.60208@intel.com> <20151119101149.GZ1604@lahna.fi.intel.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v4 7/7] ACPI / x86: introduce acpi_os_readable() support
+Date: Tue, 15 Dec 2015 00:43:38 +0100
+Message-ID: <2219149.L6btt78o4y@vostro.rjw.lan>
+References: <cover.1446790780.git.lv.zheng@intel.com> <cover.1449108825.git.lv.zheng@intel.com> <af8b1799e7eec686fbb3bf239f6f400adb3b8082.1449108826.git.lv.zheng@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <20151119101149.GZ1604-3PARRvDOhMZrdx17CPfAsdBPR1lH4CV8@public.gmane.org>
-Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>, Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
-Cc: ACPI Devel Mailing List <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, Bastien Nocera <bugzilla-0MeiytkfxGOsTnJN9+BGXg@public.gmane.org>, Stephen Just <stephenjust-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>, "Chen, Yu C" <yu.c.chen-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:56195 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753404AbbLNXNc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Dec 2015 18:13:32 -0500
+In-Reply-To: <af8b1799e7eec686fbb3bf239f6f400adb3b8082.1449108826.git.lv.zheng@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Andy Lutomirski <luto@kernel.org>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Chen Yu <yu.c.chen@intel.com>
 
-On Thursday, November 19, 2015 12:11:49 PM Mika Westerberg wrote:
-> On Thu, Nov 19, 2015 at 11:05:25AM +0800, Aaron Lu wrote:
-> > Some ACPI node's _STA will touch operation region field, since the
-> > evaluation of _STA in acpi_bus_type_and_status is very early, the
-> > operation region handler is not ready yet. Instead of fail that function
-> > and not creating the acpi_device node consequently, set status to 0 so
-> > that later when the driver for that device is probing, it can find
-> > the acpi_device node and proceed normally. And at that time, the
-> > handler for the operation region is ready and its _STA evaluation will
-> > succeed, its present status can be checked there.
-> > 
-> > Even there will be no driver using this node later, it doesn't seem
-> > hurt to have one more acpi_device node created with status set to 0.
-> > 
-> > This happens on Microsoft Surface 3, where the SPI device node NTRG's
-> > _STA touches GPIO fields and the SPI core driver will only enumerate SPI
-> > devices from ACPI if the acpi_device node is 1: created; 2: _STA
-> > indicates it's present.
-> > 
-> > Note that due to another problem in SPI driver, for NTRG to be actually
-> > enumerated, some changes have to be made in the SPI layer, which is
-> > addressed by Mika(not send out yet):
-> > https://bugzilla.kernel.org/show_bug.cgi?id=104291#c23
-> > 
-> > Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=104291
-> > Reported-by: Bastien Nocera <bugzilla-0MeiytkfxGOsTnJN9+BGXg@public.gmane.org>
-> > Signed-off-by: Aaron Lu <aaron.lu-ral2JQCrhuEAvxtiuMwx3w@public.gmane.org>
+On Thursday, December 03, 2015 10:43:21 AM Lv Zheng wrote:
+> From: Chen Yu <yu.c.chen@intel.com>
 > 
-> I don't know any better solution to this,
+> This patch implements acpi_os_readable(). The function is used by ACPICA
+> AML debugger to validate user specified pointers for dumping the memory as
+> ACPICA descriptor objects.
 > 
-> Reviewed-by: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>
+> Signed-off-by: Chen Yu <yu.c.chen@intel.com>
+> Tested-by: Lv Zheng <lv.zheng@intel.com>
+> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 
-Applied, thanks!
+This has to be resent with CCs to the x86 maintainers.
 
+Thanks,
 Rafael
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
