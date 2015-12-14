@@ -1,81 +1,96 @@
-From: Andy Lutomirski <luto@amacapital.net>
-Subject: Re: [PATCH v4 7/7] ACPI / x86: introduce acpi_os_readable() support
-Date: Mon, 14 Dec 2015 15:28:19 -0800
-Message-ID: <CALCETrXeoGZhrNr9OmqFB+i7-tbM+d3sO8uCNnMx40JfDsjoEw@mail.gmail.com>
-References: <cover.1446790780.git.lv.zheng@intel.com> <cover.1449108825.git.lv.zheng@intel.com>
- <af8b1799e7eec686fbb3bf239f6f400adb3b8082.1449108826.git.lv.zheng@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f178.google.com ([209.85.214.178]:34106 "EHLO
-	mail-ob0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932508AbbLNX2k (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 14 Dec 2015 18:28:40 -0500
-Received: by obciw8 with SMTP id iw8so144770762obc.1
-        for <linux-acpi@vger.kernel.org>; Mon, 14 Dec 2015 15:28:39 -0800 (PST)
-In-Reply-To: <af8b1799e7eec686fbb3bf239f6f400adb3b8082.1449108826.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: [PATCH 00/11] Support System RAM resource type and EINJ to NVDIMM
+Date: Mon, 14 Dec 2015 16:37:15 -0700
+Message-ID: <1450136235-17012-1-git-send-email-toshi.kani@hpe.com>
+Return-path: <owner-linux-mm@kvack.org>
+Sender: owner-linux-mm@kvack.org
+To: akpm@linux-foundation.org, bp@alien8.de
+Cc: torvalds@linux-foundation.org, rafael.j.wysocki@intel.com, dan.j.williams@intel.com, x86@kernel.org, konrad.wilk@oracle.com, xen-devel@lists.xenproject.org, dyoung@redhat.com, vgoyal@redhat.com, tangchen@cn.fujitsu.com, kgene@kernel.org, k.kozlowski@samsung.com, linux-samsung-soc@vger.kernel.org, vishal.l.verma@intel.com, tony.luck@intel.com, linux-arch@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lv Zheng <lv.zheng@intel.com>
-Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Andy Lutomirski <luto@kernel.org>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Chen Yu <yu.c.chen@intel.com>
 
-On Wed, Dec 2, 2015 at 6:43 PM, Lv Zheng <lv.zheng@intel.com> wrote:
-> From: Chen Yu <yu.c.chen@intel.com>
->
-> This patch implements acpi_os_readable(). The function is used by ACPICA
-> AML debugger to validate user specified pointers for dumping the memory as
-> ACPICA descriptor objects.
->
-> Signed-off-by: Chen Yu <yu.c.chen@intel.com>
-> Tested-by: Lv Zheng <lv.zheng@intel.com>
-> Signed-off-by: Lv Zheng <lv.zheng@intel.com>
-> ---
->  arch/x86/Kconfig                  |    1 +
->  arch/x86/include/asm/acenv.h      |    1 +
->  arch/x86/kernel/acpi/boot.c       |   44 +++++++++++++++++++++++++++++++++++++
->  drivers/acpi/Kconfig              |    3 +++
->  drivers/acpi/osl.c                |   12 ++++++++++
->  include/acpi/platform/aclinux.h   |    1 -
->  include/acpi/platform/aclinuxex.h |    5 -----
->  7 files changed, 61 insertions(+), 6 deletions(-)
->
-> diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-> index db3622f..6593b6a 100644
-> --- a/arch/x86/Kconfig
-> +++ b/arch/x86/Kconfig
-> @@ -19,6 +19,7 @@ config X86
->         def_bool y
->         select ACPI_LEGACY_TABLES_LOOKUP        if ACPI
->         select ACPI_SYSTEM_POWER_STATES_SUPPORT if ACPI
-> +       select ACPI_MEMORY_ACCESS_CHECK_SUPPORT if ACPI
->         select ANON_INODES
->         select ARCH_CLOCKSOURCE_DATA
->         select ARCH_DISCARD_MEMBLOCK
-> diff --git a/arch/x86/include/asm/acenv.h b/arch/x86/include/asm/acenv.h
-> index 1b010a8..a2a2849 100644
-> --- a/arch/x86/include/asm/acenv.h
-> +++ b/arch/x86/include/asm/acenv.h
-> @@ -20,6 +20,7 @@
->
->  int __acpi_acquire_global_lock(unsigned int *lock);
->  int __acpi_release_global_lock(unsigned int *lock);
-> +bool __acpi_memory_readable(void *pointer, size_t length);
->
->  #define ACPI_ACQUIRE_GLOBAL_LOCK(facs, Acq) \
->         ((Acq) = __acpi_acquire_global_lock(&facs->global_lock))
-> diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-> index e759076..4a5e22e 100644
-> --- a/arch/x86/kernel/acpi/boot.c
-> +++ b/arch/x86/kernel/acpi/boot.c
-> @@ -1699,6 +1699,50 @@ int __acpi_release_global_lock(unsigned int *lock)
->         return old & 0x1;
->  }
->
-> +bool __acpi_memory_readable(void *pointer, size_t length)
-> +{
-> +       unsigned long obj_start, obj_end;
-> +       unsigned long start_pfn, end_pfn;
+This patch-set introduces a new I/O resource type, IORESOURCE_SYSTEM_RAM,
+for System RAM while keeping the current IORESOURCE_MEM type bit set for
+all memory-mapped ranges (including System RAM) for backward compatibility.
+With the new System RAM type, walking through the iomem resource table
+no longer requires to test with strcmp() against "System RAM".  After this
+infrastructure update, this patch changes EINJ to support NVDIMM.
 
-What does "readable" mean in this context?
+Patches 1-2 add a new System RAM type, and make resource interfaces work
+with resource flags with modifier bits set.
 
---Andy
+Patches 3-7 set the System RAM type to System RAM ranges.
+
+Patches 8-10 extend resource interfaces to check System RAM ranges with
+the System RAM type.
+
+Patch 11 changes the EINJ driver to allow injecting a memory error to
+NVDIMM.
+
+---
+v1:
+ - Searching for System RAM in the resource table should not require
+   strcmp(). (Borislav Petkov)
+ - Add a new System RAM type as a modifier to IORESOURCE_MEM.
+   (Linus Torvalds)
+ - NVDIMM check should remain with strcmp() against "Persistent Memory".
+   (Dan Williams)
+ - Reset patch version.
+
+prev-v3:
+ - Check the param2 value before target memory type. (Tony Luck)
+ - Add a blank line before if-statement. Remove an unnecessary brakets.
+   (Borislav Petkov)
+
+prev-v2:
+ - Change the EINJ driver to call region_intersects_ram() for checking
+   RAM with a specified size. (Dan Williams)
+
+---
+Toshi Kani (11):
+ 01/11 resource: Add System RAM resource type
+ 02/11 resource: make resource flags handled properly
+ 03/11 x86/e820: Set IORESOURCE_SYSTEM_RAM to System RAM
+ 04/11 arch: Set IORESOURCE_SYSTEM_RAM to System RAM
+ 05/11 xen: Set IORESOURCE_SYSTEM_RAM to System RAM
+ 06/11 kexec: Set IORESOURCE_SYSTEM_RAM to System RAM
+ 07/11 memory-hotplug: Set IORESOURCE_SYSTEM_RAM to System RAM
+ 08/11 memremap: Change region_intersects() to use System RAM type
+ 09/11 resource: Change walk_system_ram to use System RAM type
+ 10/11 arm/samsung: Change s3c_pm_run_res() to use System RAM type
+ 11/11 ACPI/EINJ: Allow memory error injection to NVDIMM
+
+---
+ arch/arm/kernel/setup.c          |  6 ++---
+ arch/arm/plat-samsung/pm-check.c |  4 +--
+ arch/arm64/kernel/setup.c        |  6 ++---
+ arch/avr32/kernel/setup.c        |  6 ++---
+ arch/ia64/kernel/efi.c           |  6 +++--
+ arch/ia64/kernel/setup.c         |  6 ++---
+ arch/m32r/kernel/setup.c         |  4 +--
+ arch/mips/kernel/setup.c         | 10 +++++---
+ arch/parisc/mm/init.c            |  6 ++---
+ arch/powerpc/mm/mem.c            |  2 +-
+ arch/s390/kernel/setup.c         |  8 +++---
+ arch/score/kernel/setup.c        |  2 +-
+ arch/sh/kernel/setup.c           |  8 +++---
+ arch/sparc/mm/init_64.c          |  8 +++---
+ arch/tile/kernel/setup.c         | 11 +++++---
+ arch/unicore32/kernel/setup.c    |  6 ++---
+ arch/x86/kernel/e820.c           | 18 +++++++++++++-
+ arch/x86/kernel/setup.c          |  6 ++---
+ drivers/acpi/apei/einj.c         | 15 ++++++++---
+ drivers/xen/balloon.c            |  2 +-
+ include/linux/ioport.h           | 11 ++++++++
+ include/linux/mm.h               |  3 ++-
+ kernel/kexec_core.c              |  6 ++---
+ kernel/kexec_file.c              |  2 +-
+ kernel/memremap.c                | 13 +++++-----
+ kernel/resource.c                | 54 +++++++++++++++++++++-------------------
+ mm/memory_hotplug.c              |  2 +-
+ 27 files changed, 140 insertions(+), 91 deletions(-)
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
