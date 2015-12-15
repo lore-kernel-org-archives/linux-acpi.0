@@ -1,45 +1,53 @@
-From: "Chen, Yu C" <yu.c.chen@intel.com>
-Subject: RE: [PATCH v4 7/7] ACPI / x86: introduce acpi_os_readable() support
-Date: Tue, 15 Dec 2015 06:13:19 +0000
-Message-ID: <36DF59CE26D8EE47B0655C516E9CE64028686D35@shsmsx102.ccr.corp.intel.com>
-References: <cover.1446790780.git.lv.zheng@intel.com>
- <cover.1449108825.git.lv.zheng@intel.com>
- <af8b1799e7eec686fbb3bf239f6f400adb3b8082.1449108826.git.lv.zheng@intel.com>
- <CALCETrXeoGZhrNr9OmqFB+i7-tbM+d3sO8uCNnMx40JfDsjoEw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <CALCETrXeoGZhrNr9OmqFB+i7-tbM+d3sO8uCNnMx40JfDsjoEw@mail.gmail.com>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Andy Lutomirski <luto@amacapital.net>, "Zheng, Lv" <lv.zheng@intel.com>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Andy Lutomirski <luto@kernel.org>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
+From: Christophe Ricard <christophe.ricard@gmail.com>
+Subject: [PATCH v7 0/3] ACPI: Add irq_type to gpio interrupt
+Date: Tue, 15 Dec 2015 08:11:30 +0100
+Message-ID: <1450163493-4938-1-git-send-email-christophe-h.ricard@st.com>
+Return-path: <linux-gpio-owner@vger.kernel.org>
+Sender: linux-gpio-owner@vger.kernel.org
+To: rjw@rjwysocki.net, lenb@kernel.org, linus.walleij@linaro.org, gnurou@gmail.com, andriy.shevchenko@linux.intel.com, mika.westerberg@linux.intel.com, broonie@kernel.org
+Cc: linux-spi@vger.kernel.org, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, Christophe Ricard <christophe-h.ricard@st.com>
 List-Id: linux-acpi@vger.kernel.org
 
-SGksIEFuZHkNCg0KPiAtLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBBbmR5IEx1
-dG9taXJza2kgW21haWx0bzpsdXRvQGFtYWNhcGl0YWwubmV0XQ0KPiBTZW50OiBUdWVzZGF5LCBE
-ZWNlbWJlciAxNSwgMjAxNSA3OjI4IEFNDQo+IFRvOiBaaGVuZywgTHYNCj4gQ2M6IFd5c29ja2ks
-IFJhZmFlbCBKOyBCcm93biwgTGVuOyBBbmR5IEx1dG9taXJza2k7IEx2IFpoZW5nOyBsaW51eC0N
-Cj4ga2VybmVsQHZnZXIua2VybmVsLm9yZzsgTGludXggQUNQSTsgQ2hlbiwgWXUgQw0KPiBTdWJq
-ZWN0OiBSZTogW1BBVENIIHY0IDcvN10gQUNQSSAvIHg4NjogaW50cm9kdWNlIGFjcGlfb3NfcmVh
-ZGFibGUoKSBzdXBwb3J0DQo+IA0KPiBPbiBXZWQsIERlYyAyLCAyMDE1IGF0IDY6NDMgUE0sIEx2
-IFpoZW5nIDxsdi56aGVuZ0BpbnRlbC5jb20+IHdyb3RlOg0KPiA+IEZyb206IENoZW4gWXUgPHl1
-LmMuY2hlbkBpbnRlbC5jb20+DQo+ID4NCj4gPiBUaGlzIHBhdGNoIGltcGxlbWVudHMgYWNwaV9v
-c19yZWFkYWJsZSgpLiBUaGUgZnVuY3Rpb24gaXMgdXNlZCBieQ0KPiA+IEFDUElDQSBBTUwgZGVi
-dWdnZXIgdG8gdmFsaWRhdGUgdXNlciBzcGVjaWZpZWQgcG9pbnRlcnMgZm9yIGR1bXBpbmcNCj4g
-PiB0aGUgbWVtb3J5IGFzIEFDUElDQSBkZXNjcmlwdG9yIG9iamVjdHMuDQo+ID4NCltjdXRdDQo+
-ID4NCj4gPiArYm9vbCBfX2FjcGlfbWVtb3J5X3JlYWRhYmxlKHZvaWQgKnBvaW50ZXIsIHNpemVf
-dCBsZW5ndGgpIHsNCj4gPiArICAgICAgIHVuc2lnbmVkIGxvbmcgb2JqX3N0YXJ0LCBvYmpfZW5k
-Ow0KPiA+ICsgICAgICAgdW5zaWduZWQgbG9uZyBzdGFydF9wZm4sIGVuZF9wZm47DQo+IA0KPiBX
-aGF0IGRvZXMgInJlYWRhYmxlIiBtZWFuIGluIHRoaXMgY29udGV4dD8NCidyZWFkYWJsZScgbWVh
-bnMgOiAgdGhlIGFkZHJlc3MgcHJvdmlkZWQgYnkgdGhlIHVzZXIsIA0KaXMgYSBkeW5hbWljYWxs
-eSBhbGxvY2F0ZWQgIHZpcnR1YWwgYWRkcmVzcyAtDQpiZWNhdXNlICB0aGUgIGFjcGkgYWRkcmVz
-cyBzcGFjZSBhcmUgYWxsb2NhdGVkIGJ5ICdrbWFsbG9jJywNCmFjcGkgZGVidWdnZXIgbXVzdCBj
-aGVjayBpZiB0aGlzIGFkZHJlc3MgaXMgYSB2YWxpZCAna21hbGxvYycNCmFkZHJlc3MgYmVmb3Jl
-IGFjY2Vzc2luZyBpdC4NCg0KVGhpcyBmdW5jdGlvbiBkb2VzIHRoZSBzYW5pdHkgY2hlY2sgdGhh
-dCwgdGhlIHZpdHVhbCBhZGRyZXNzIGlzIGE6DQoxLiAgIGR5bmFtaWNhbGx5IGFsbG9jYXRlZCBh
-ZGRyZXNzIChiZXlvbmQgUEFHRV9PRkZTRVQgLCBidXQgbG93ZXINCnRoYW4gaGlnaF9tZW1vcnks
-IFZNQUxMT0NfU1RBUlQsIGVnKQ0KMi4gIGJlc2lkZXMsIHRoZSBwaHlzaWNhbCBhZGRyZXNzIG11
-c3QgYmUgZGlyZWN0LW1hcHBlZChzbyBpdCB3b3VsZCBub3QgYmUgYSBob2xlKS4NCg0KVGhhbmtz
-LA0KeXUNCg0K
+Hi,
+
+ACPI probing method does not retrieve irq_type from a gpio interrupt declared
+with GpioInt as it is done with devicetree probing. In other terms, irq_get_trigger_type
+will always send back 0.
+
+Those 3 patches propose a way to retrieve the correct interrupt polarity/type from a GpioInt
+acpi declaration when using irq_get_trigger_type.
+
+Since v4 after Mika and Andy's feedbacks:
+- acpi_gpio_info active_low field got renamed polarity. Note that polarity/active_low is having sense
+also when a gpio is not mapped as an interrupt but as an output (For example: check gpiod_set_value
+in drivers/gpio/gpiolib.c).
+- acpi_gsi_get_irq_type is now renamed acpi_dev_get_irq_type and moved to drivers/acpi/resource.c
+- The irq described in the acpi spi slave node is now set once we fall back to retrieve normal interrupt.
+
+Since v5 after Andy's feedbacks:
+- Make sure we are not using u* type but pure C type for non hardware value.
+
+Since v6:
+- Patches now applies on top of Raphael tree tag linux-next
+
+Best Regards
+Christophe 
+
+Christophe Ricard (3):
+  acpi: Rename acpi_gsi_get_irq_type to acpi_dev_get_irq_type and export
+    symbol
+  ACPI / gpio: Add irq_type when a gpio is used as an interrupt
+  ACPI / spi: attach gpio irq from acpi description to spi device
+
+ drivers/acpi/gsi.c          | 21 +--------------------
+ drivers/acpi/resource.c     | 26 ++++++++++++++++++++++++++
+ drivers/gpio/gpiolib-acpi.c | 30 ++++++++++++++++++++++++------
+ drivers/gpio/gpiolib.c      |  4 ++--
+ drivers/gpio/gpiolib.h      |  3 ++-
+ drivers/spi/spi.c           |  2 ++
+ include/linux/acpi.h        |  1 +
+ 7 files changed, 58 insertions(+), 29 deletions(-)
+
+-- 
+2.1.4
+
