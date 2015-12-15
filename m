@@ -1,42 +1,55 @@
-From: Andy Lutomirski <luto@kernel.org>
-Subject: [PATCH v2 2/2] acpi: Show _OSC UUID when _OSC fails
-Date: Tue, 15 Dec 2015 08:37:40 -0800
-Message-ID: <bee26622c19d06b6f59f8bd994fadde2dc95a906.1450197207.git.luto@kernel.org>
-References: <cover.1450197207.git.luto@kernel.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1450197207.git.luto@kernel.org>
-In-Reply-To: <cover.1450197207.git.luto@kernel.org>
-References: <cover.1450197207.git.luto@kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
-Cc: linux-kernel@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, Yijing Wang <wangyijing@huawei.com>, Andy Lutomirski <luto@kernel.org>
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: [PATCH RESEND] ACPI/Kconfig: Make ACPI_NFIT depend on EFI_STUB on X86
+Date: Tue, 15 Dec 2015 09:59:06 -0700
+Message-ID: <1450198746-14161-1-git-send-email-toshi.kani@hpe.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g4t3426.houston.hp.com ([15.201.208.54]:31041 "EHLO
+	g4t3426.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751121AbbLOQ7V (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Dec 2015 11:59:21 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: rjw@rjwysocki.net, dan.j.williams@intel.com
+Cc: elliott@hpe.com, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
 
-When _OSC fails and especially when it fails due to an invalid UUID,
-it's helpful to show the UUID that we tried.
+ACPI 6.0 defines NFIT table and new persistent memory types for
+EFI memory table (EFI_PERSISTENT_MEMORY) and e820 table (E820_PMEM).
 
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
-Signed-off-by: Andy Lutomirski <luto@kernel.org>
+setup_e820() enabled by EFI_STUB converts EFI_PERSISTENT_MEMORY to
+E820_PMEM for the e820_map table on x86 EFI platforms.  When EFI_STUB
+is disabled, x86 kernels rely on the bootloader to perform this
+conversion.
+
+It was found that the upstream grub bootloader since 2012 has a bug
+that converts EFI_PERSISTENT_MEMORY (or any new type) to E820_RAM,
+which causes the kernel to use persistent memory ranges as regular
+memory and corrupts the data in NVDIMM.
+
+Therefore, this patch sets ACPI_NFIT to depend on EFI_STUB on x86.
+This assures that ACPI_NFIT kernels are self-contained and are
+protected from the upstream grub bug on x86.
+
+Note, X86_PMEM_LEGACY allows the kernel to use the pmem driver on
+pre-ACPI 6.0 platforms, and does not require ACPI_NFIT enabled.
+
+References: http://www.mail-archive.com/grub-devel@gnu.org/msg23961.html
+Reported-by: Robert Elliott <elliott@hpe.com>
+Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+Cc: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/acpi/bus.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+ drivers/acpi/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index 2177ef0b16e4..fcfdf6cbc6a8 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -180,9 +180,10 @@ static void acpi_print_osc_error(acpi_handle handle,
- 	int i;
- 
- 	if (ACPI_FAILURE(acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer)))
--		printk(KERN_DEBUG "%s\n", error);
-+		printk(KERN_DEBUG "%s: %s\n", context->uuid_str, error);
- 	else {
--		printk(KERN_DEBUG "%s: %s\n", (char *)buffer.pointer, error);
-+		printk(KERN_DEBUG "%s (%s): %s\n",
-+		       (char *)buffer.pointer, context->uuid_str, error);
- 		kfree(buffer.pointer);
- 	}
- 	printk(KERN_DEBUG "_OSC request data:");
--- 
-2.5.0
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 5eef4cb..5368baa 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -441,6 +441,7 @@ config ACPI_NFIT
+ 	depends on PHYS_ADDR_T_64BIT
+ 	depends on BLK_DEV
+ 	depends on ARCH_HAS_MMIO_FLUSH
++	depends on !X86 || (X86 && EFI_STUB)
+ 	select LIBNVDIMM
+ 	help
+ 	  Infrastructure to probe ACPI 6 compliant platforms for
