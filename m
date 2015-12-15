@@ -1,74 +1,88 @@
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH 11/11] ACPI/EINJ: Allow memory error injection to NVDIMM
-Date: Mon, 14 Dec 2015 16:37:26 -0700
-Message-ID: <1450136246-17053-11-git-send-email-toshi.kani@hpe.com>
-References: <1450136246-17053-1-git-send-email-toshi.kani@hpe.com>
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1450136246-17053-1-git-send-email-toshi.kani@hpe.com>
-Sender: owner-linux-mm@kvack.org
-To: akpm@linux-foundation.org, bp@alien8.de
-Cc: linux-arch@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Vishal Verma <vishal.l.verma@intel.com>, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
+From: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>
+Subject: Re: [PATCH v2 0/2] i2c:dw: Add APM X-Gene ACPI I2C device support
+Date: Mon, 14 Dec 2015 18:53:25 -0600
+Message-ID: <566F6485.2000508@amd.com>
+References: <1449782357-22982-1-git-send-email-lho@apm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-bl2on0081.outbound.protection.outlook.com ([65.55.169.81]:51840
+	"EHLO na01-bl2-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S932655AbbLOAxf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 14 Dec 2015 19:53:35 -0500
+In-Reply-To: <1449782357-22982-1-git-send-email-lho@apm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Loc Ho <lho@apm.com>, wsa@the-dreams.de, Ken.Xue@amd.com, Jeff.Wu@amd.com, rjw@rjwysocki.net, mika.westerberg@linux.intel.com, lenb@kernel.org
+Cc: linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, jcm@redhat.com, patches@apm.com, "Hurwitz, Sherry" <sherry.hurwitz@amd.com>, "Duran, Leo" <leo.duran@amd.com>, Hanjun Guo <hanjun.guo@linaro.org>, Al Stone <al.stone@linaro.org>
 
-In the case of memory error injection, einj_error_inject() checks
-if a target address is System RAM.  Change this check to allow
-injecting a memory error to NVDIMM by calling region_intersects()
-with "Persistent Memory".  This enables memory error testing on
-both System RAM and NVDIMM.
+Hi,
 
-In addition, page_is_ram() is replaced with region_intersects()
-with IORESOURCE_SYSTEM_RAM, so that it can verify a target address
-range with the requested size.
+I'm not sure if this has been discussed earlier. But after looking at 
+the the acpi_apd driver, all we need is just the platform-specific input 
+clock frequency value used by the 
+drivers/i2c/busses/i2c-designware-core.c: i2c_dw_init() to calculate the 
+values to program into the DW_IC_SS_SCL_HCNT and DW_IC_SS_SCL_LCNT 
+registers.
 
-Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org
-Acked-by: Tony Luck <tony.luck@intel.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
----
- drivers/acpi/apei/einj.c |   15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+So, instead of hard-coding this value into the driver/acpi/acpi_apd.c 
+(which really has nothing to do with the I2C driver), what if we 
+introduce a new ACPI key-value pair in the ACPI DSDT such as:
 
-diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
-index 0431883..cad6fd7 100644
---- a/drivers/acpi/apei/einj.c
-+++ b/drivers/acpi/apei/einj.c
-@@ -519,7 +519,7 @@ static int einj_error_inject(u32 type, u32 flags, u64 param1, u64 param2,
- 			     u64 param3, u64 param4)
- {
- 	int rc;
--	unsigned long pfn;
-+	u64 base_addr, size;
- 
- 	/* If user manually set "flags", make sure it is legal */
- 	if (flags && (flags &
-@@ -545,10 +545,17 @@ static int einj_error_inject(u32 type, u32 flags, u64 param1, u64 param2,
- 	/*
- 	 * Disallow crazy address masks that give BIOS leeway to pick
- 	 * injection address almost anywhere. Insist on page or
--	 * better granularity and that target address is normal RAM.
-+	 * better granularity and that target address is normal RAM or
-+	 * NVDIMM.
- 	 */
--	pfn = PFN_DOWN(param1 & param2);
--	if (!page_is_ram(pfn) || ((param2 & PAGE_MASK) != PAGE_MASK))
-+	base_addr = param1 & param2;
-+	size = ~param2 + 1;
-+
-+	if (((param2 & PAGE_MASK) != PAGE_MASK) ||
-+	    ((region_intersects(base_addr, size, IORESOURCE_SYSTEM_RAM,
-+				NULL) != REGION_INTERSECTS) &&
-+	     (region_intersects(base_addr, size, IORESOURCE_MEM,
-+				"Persistent Memory") != REGION_INTERSECTS)))
- 		return -EINVAL;
- 
- inject:
+     Device(I2C0)    // I2C controller
+     {
+       Name(_HID, "AMDI0510")
+       Name(_UID, 0)
+       Name(_CRS, ResourceTemplate() {
+         Memory32Fixed (ReadWrite, 0xE1000000, 0x1000)
+         Interrupt (ResourceConsumer, Level, ActiveHigh, Exclusive,,,) { 
+389 } // GSIV
+       })
+       Name (_DSD, Package () {
+         ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+         Package () {
+           Package (2) {"clock-source-frequency", 100000000 }
+         }
+       }) // _DSD()
+     }
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+
+Then, in the drivers/i2c/busses/i2c-designware-platdrv.c, we can add the 
+code to parse this information. This way, the I2C driver can just 
+retrieve this value from the ACPI table of each platform, which should 
+make it easier to manage. Eventually, we can free I2C driver from the 
+driver/acpi/acpi_apd.c, which is currently only used by AMD x86 platform.
+
+Also, this approach would allow the I2C drivers in other OSes to use 
+this same information in the ACPI table. If this approach is okay, I can 
+provide a patch to implement this.
+
+Thanks,
+Suravee
+
+On 12/10/2015 3:19 PM, Loc Ho wrote:
+> Add APM X-Gene ACPI I2C device support. These patches follow
+> the same implementation as AMD I2C driver - changes in ACPI APD
+> and Designware I2C drivers.
+>
+> v2:
+> * Spilt the acpi_apd change with defines for AMD and X-Gene I2C's
+>
+> Signed-off-by: Loc Ho <lho@apm.com>
+> ---
+> Loc Ho (2):
+>    acpi:apd: Add APM X-Gene ACPI I2C device support
+>    i2c:dw: Add APM X-Gene ACPI I2C device support
+>
+>   drivers/acpi/acpi_apd.c                     |   16 +++++++++++++++-
+>   drivers/i2c/busses/i2c-designware-platdrv.c |    1 +
+>   2 files changed, 16 insertions(+), 1 deletions(-)
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+
