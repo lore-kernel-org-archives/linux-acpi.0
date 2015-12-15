@@ -1,88 +1,87 @@
-From: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>
-Subject: Re: [PATCH v2 0/2] i2c:dw: Add APM X-Gene ACPI I2C device support
-Date: Mon, 14 Dec 2015 18:53:25 -0600
-Message-ID: <566F6485.2000508@amd.com>
-References: <1449782357-22982-1-git-send-email-lho@apm.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH v4 0/7] ACPICA / debugger: Add in-kernel AML debugger
+ support
+Date: Tue, 15 Dec 2015 02:55:32 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BB0851B@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1446790780.git.lv.zheng@intel.com>
+ <cover.1449108825.git.lv.zheng@intel.com> <3622599.bM9Ou77SfB@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bl2on0081.outbound.protection.outlook.com ([65.55.169.81]:51840
-	"EHLO na01-bl2-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S932655AbbLOAxf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 14 Dec 2015 19:53:35 -0500
-In-Reply-To: <1449782357-22982-1-git-send-email-lho@apm.com>
+Received: from mga03.intel.com ([134.134.136.65]:28589 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750934AbbLOCzh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 14 Dec 2015 21:55:37 -0500
+In-Reply-To: <3622599.bM9Ou77SfB@vostro.rjw.lan>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Loc Ho <lho@apm.com>, wsa@the-dreams.de, Ken.Xue@amd.com, Jeff.Wu@amd.com, rjw@rjwysocki.net, mika.westerberg@linux.intel.com, lenb@kernel.org
-Cc: linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, jcm@redhat.com, patches@apm.com, "Hurwitz, Sherry" <sherry.hurwitz@amd.com>, "Duran, Leo" <leo.duran@amd.com>, Hanjun Guo <hanjun.guo@linaro.org>, Al Stone <al.stone@linaro.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Andy Lutomirski <luto@kernel.org>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-Hi,
-
-I'm not sure if this has been discussed earlier. But after looking at 
-the the acpi_apd driver, all we need is just the platform-specific input 
-clock frequency value used by the 
-drivers/i2c/busses/i2c-designware-core.c: i2c_dw_init() to calculate the 
-values to program into the DW_IC_SS_SCL_HCNT and DW_IC_SS_SCL_LCNT 
-registers.
-
-So, instead of hard-coding this value into the driver/acpi/acpi_apd.c 
-(which really has nothing to do with the I2C driver), what if we 
-introduce a new ACPI key-value pair in the ACPI DSDT such as:
-
-     Device(I2C0)    // I2C controller
-     {
-       Name(_HID, "AMDI0510")
-       Name(_UID, 0)
-       Name(_CRS, ResourceTemplate() {
-         Memory32Fixed (ReadWrite, 0xE1000000, 0x1000)
-         Interrupt (ResourceConsumer, Level, ActiveHigh, Exclusive,,,) { 
-389 } // GSIV
-       })
-       Name (_DSD, Package () {
-         ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-         Package () {
-           Package (2) {"clock-source-frequency", 100000000 }
-         }
-       }) // _DSD()
-     }
-
-
-Then, in the drivers/i2c/busses/i2c-designware-platdrv.c, we can add the 
-code to parse this information. This way, the I2C driver can just 
-retrieve this value from the ACPI table of each platform, which should 
-make it easier to manage. Eventually, we can free I2C driver from the 
-driver/acpi/acpi_apd.c, which is currently only used by AMD x86 platform.
-
-Also, this approach would allow the I2C drivers in other OSes to use 
-this same information in the ACPI table. If this approach is okay, I can 
-provide a patch to implement this.
-
-Thanks,
-Suravee
-
-On 12/10/2015 3:19 PM, Loc Ho wrote:
-> Add APM X-Gene ACPI I2C device support. These patches follow
-> the same implementation as AMD I2C driver - changes in ACPI APD
-> and Designware I2C drivers.
->
-> v2:
-> * Spilt the acpi_apd change with defines for AMD and X-Gene I2C's
->
-> Signed-off-by: Loc Ho <lho@apm.com>
-> ---
-> Loc Ho (2):
->    acpi:apd: Add APM X-Gene ACPI I2C device support
->    i2c:dw: Add APM X-Gene ACPI I2C device support
->
->   drivers/acpi/acpi_apd.c                     |   16 +++++++++++++++-
->   drivers/i2c/busses/i2c-designware-platdrv.c |    1 +
->   2 files changed, 16 insertions(+), 1 deletions(-)
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
-
+SGksIFJhZmFlbA0KDQo+IEZyb206IFJhZmFlbCBKLiBXeXNvY2tpIFttYWlsdG86cmp3QHJqd3lz
+b2NraS5uZXRdDQo+IFNlbnQ6IFR1ZXNkYXksIERlY2VtYmVyIDE1LCAyMDE1IDc6NDUgQU0NCj4g
+DQo+IE9uIFRodXJzZGF5LCBEZWNlbWJlciAwMywgMjAxNSAxMDo0MDowMCBBTSBMdiBaaGVuZyB3
+cm90ZToNCj4gPiBUaGlzIHBhdGNoc2V0IGVuYWJsZXMgQUNQSUNBIGRlYnVnZ2VyIGZvciBMaW51
+eCBrZXJuZWwgYW5kIGltcGxlbWVudHMgYQ0KPiA+IHVzZXJzcGFjZSB1dGlsaXR5IHRvIGFjY2Vz
+cyBpdC4NCj4gPg0KPiA+IEEuIEJ1aWxkIHRoZSBBTUwgZGVidWdnZXINCj4gPiBJbiBvcmRlciB0
+byBidWlsZCB0aGUga2VybmVsIHN1cHBvcnQgb2YgQU1MIGRlYnVnZ2VyLCB0aGUgZm9sbG93aW5n
+IGtjb25maWcNCj4gPiBpdGVtcyBzaG91bGQgYmUgZW5hYmxlZDoNCj4gPiAgQ09ORklHX0FDUElf
+REVCVUc9eQ0KPiA+ICBDT05GSUdfQUNQSV9ERUJVR0dFUj15DQo+ID4gIENPTkZJR19ERUJVR19G
+Uz15DQo+ID4gIENPTkZJR19BQ1BJX0RFQlVHR0VSX1VTRVI9bQ0KPiA+IFRoZSB1c2Vyc3BhY2Ug
+dG9vbCBjYW4gYmUgZm91bmQgYXQgdG9vbHMvcG93ZXIvYWNwaS90b29scy9hY3BpZGJnLiBUbw0K
+PiA+IGJ1aWxkIHRoaXMgdXRpbGl0eSwgc3RheWluZyBpbiB0b29scyBmb2xkZXIgYW5kIHR5cGUg
+Im1ha2UgYWNwaSIuDQo+ID4NCj4gPiBCLiBMb2FkIHRoZSBBTUwgZGVidWdnZXIgZHVyaW5nIHJ1
+bnRpbWUNCj4gPiBJbiBvcmRlciB0byB1c2UgdGhlIGluLWtlcm5lbCBBTUwgZGVidWdnZXIsIHRo
+ZSBmb2xsb3dpbmcgY29tbWFuZCBzaG91bGQNCj4gYmUNCj4gPiBleGVjdXRlZCB1c2luZyByb290
+IHVzZXI6DQo+ID4gICMgbW9kcHJvYmUgYWNwaV9kYmcNCj4gPiAgIyBtb3VudCAtdCBkZWJ1Z2Zz
+IG5vbmUgL3N5cy9rZXJuZWwvZGVidWcNCj4gPiAgIyBhY3BpZGJnDQo+ID4NCj4gPiBDLiBCYXRj
+aCBtb2RlDQo+ID4gSW4gb3JkZXIgdG8gc3VwcG9ydCBzY3JpcHRzLCB0aGUgdXNlcnNwYWNlIHV0
+aWxpdHkgYWxzbyBzdXBwb3J0cyBzaW5nbGUNCj4gPiBjb21tYW5kIGJhdGNoIG1vZGU6DQo+ID4g
+ICMgYWNwaWRiZyAtYiAiaGVscCINCj4gPiAgIyBhY3BpZGJnIC1iICJ0YWJsZXMiDQo+ID4gICMg
+YWNwaWRiZyAtYiAiZmluZCBfTElEIg0KPiA+ICAjIGFjcGlkYmcgLWIgImV4ZWN1dGUgXF9TQi5M
+SUQwLl9MSUQiDQo+ID4gWW91IGNhbiBmaW5kIHRoZSBkb2N1bWVudGF0aW9uIGFib3V0IHRoZSBB
+Q1BJQ0EgZGVidWdnZXIgY29tbWFuZHMgaW46DQo+ID4gIGh0dHBzOi8vYWNwaWNhLm9yZy9zaXRl
+cy9hY3BpY2EvZmlsZXMvYWNwaWNhLXJlZmVyZW5jZV8xNy5wZGYNCj4gPiAgKFRoZSBsYXRlc3Qg
+ZG9jdW1lbnQgY2FuIGJlIGZvdW5kIGF0IGh0dHBzOi8vYWNwaWNhLm9yZy9kb2N1bWVudGF0aW9u
+KQ0KPiA+IEFuZCByZWZlciB0byB0aGUgY2hhcHRlciAtIEFDUElDQSBkZWJ1Z2dlciByZWZlcmVu
+Y2UgdG8gb2J0YWluIHRoZSBmdWxsDQo+ID4gZGVzY3JpcHRpb24gb2YgdGhlIGRlYnVnZ2VyIGNv
+bW1hbmRzLiBOb3RlIHRoYXQgbm90IGFsbCBjb21tYW5kcyBhcmUNCj4gPiBzdXBwb3J0ZWQgYnkg
+YW4gaW4ta2VybmVsIEFNTCBkZWJ1Z2dlci4NCj4gPg0KPiA+IEQuIFVubG9hZCB0aGUgQU1MIGRl
+YnVnZ2VyIGR1cmluZyBydW50aW1lDQo+ID4gQWZ0ZXIgdGVybWluYXRpbmcgYWxsIGFjcGlkYmcg
+aW5zdGFuY2VzLCB0aGUgZm9sbG93aW5nIGNvbW1hbmQgY2FuIGJlDQo+ID4gZXhlY3V0ZWQgdG8g
+cmVtb3ZlIHRoZSBBTUwgZGVidWdnZXIgZnJvbSBrZXJuZWw6DQo+ID4gICMgcm1tb2QgYWNwaV9k
+YmcNCj4gPg0KPiA+IFRoZSBmb2xsb3dpbmcgdGFza3MgYXJlIG5vdCBjb21wbGV0ZWQ6DQo+ID4g
+MS4gLmZsdXNoKCkgc3VwcG9ydCBpbiB0aGUga2VybmVsIGRlYnVnZ2VyIElPIGRyaXZlci4NCj4g
+PiAyLiBtdWx0aS1jb21tYW5kcyBiYXRjaCBtb2RlLg0KPiA+DQo+ID4gdjI6DQo+ID4gMS4gRml4
+IGEgaGVscCBtZXNzYWdlIGlzc3VlIGZvciB0aGUgdXNlcnNwYWNlIGFjcGlkYmcgdXRpbGl0eSAo
+dGhpcyBpcyBhDQo+ID4gICAgdHlwbyBmaXgpLg0KPiA+IDIuIEZpeCBhIGJhdGNoIG1vZGUgaXNz
+dWUgYnkgYWRkaW5nICJcbiIgdG8gdGhlIHByb21wdCBzZXF1ZW5jZSAodGhpcyB3YXMNCj4gPiAg
+ICBsb3N0IGR1ZSB0byB0b28gbWFueSByZWJhc2UgY3ljbGVzKS4NCj4gPiAzLiBGaXgga2NvbmZp
+ZyBkZXBlbmRlbmN5IGZvciBhbiBpbnRlcm1lZGlhdGUgcGF0Y2ggKHRoaXMgaXMgb25seSB1c2Vm
+dWwgaW4NCj4gPiAgICBjYXNlIHRoZSBsYXR0ZXIgcGF0Y2hlcyBhcmUgcmV2ZXJ0ZWQpLg0KPiA+
+IDQuIEFkZCBtb3JlIGFjY3VyYXRlIHJ1bnRpbWUgZGVidWdnZXIgc3R1YiBtZWNoYW5pc20gYW5k
+IHJlbW92ZSBvbGQNCj4gPiAgICBBQ1BJX0RFQlVHR0VSX0VYRUMoKSBzdHViIG1lY2hhbmlzbS4N
+Cj4gPiA1LiBBZGQgeDg2IGFjcGlfb3NfcmVhZGFibGUoKSBzdXBwb3J0Lg0KPiA+DQo+ID4gdjM6
+DQo+ID4gMS4gUmVtb3ZlIGFjcGlfb3NfcmVhZGFibGUoKSBzdXBwb3J0IGZyb20gdGhpcyBwYXRj
+aHNldC4gSXQncyBzZW50IHNlcGFyYXRlbHkuDQo+ID4gMi4gRGVsZXRlIHNvbWUgZGVwcmVjYXRl
+ZCBjb21tZW50cy4NCj4gPg0KPiA+IHY0Og0KPiA+IDEuIFJlYmFzZSBwYXRjaCA0LzYgYmVjYXVz
+ZSBvZiBLY29uZmlnIGNoYW5nZXMuDQo+ID4gMi4gSW5jbHVkZSBhY3BpX29zX3JlYWRhYmxlKCkg
+YmFjayBhcyBubyBvYmplY3Rpb25zLCBhbHNvIHRlc3QgcmVzdWx0IGlzDQo+ID4gICAgcG9zaXRp
+dmUuDQo+ID4NCj4gPiBDaGVuIFl1ICgxKToNCj4gPiAgIEFDUEkgLyB4ODY6IGludHJvZHVjZSBh
+Y3BpX29zX3JlYWRhYmxlKCkgc3VwcG9ydA0KPiA+DQo+ID4gQ29saW4gSWFuIEtpbmcgKDEpOg0K
+PiA+ICAgQUNQSUNBOiBEZWJ1Z2dlcjogUmVtb3ZlIHVubmVjZXNzYXJ5IHN0YXR1cyBjaGVjaw0K
+PiA+DQo+ID4gTHYgWmhlbmcgKDUpOg0KPiA+ICAgQUNQSUNBOiBEZWJ1Z2dlcjogQ29udmVydCBz
+b21lIG1lY2hhbmlzbXMgdG8gT1NQTSBzcGVjaWZpYw0KPiA+ICAgQUNQSUNBOiBEZWJ1Z2dlcjog
+Rml4IHJ1bnRpbWUgc3R1YiBpc3N1ZXMgb2YgQUNQSV9ERUJVR0dFUl9FWEVDIHVzaW5nDQo+ID4g
+ICAgIGRpZmZlcmVudCBzdHViIG1lY2hhbmlzbQ0KPiA+ICAgQUNQSSAvIGRlYnVnZ2VyOiBBZGQg
+SU8gaW50ZXJmYWNlIHRvIGFjY2VzcyBkZWJ1Z2dlciBmdW5jdGlvbmFsaXRpZXMNCj4gPiAgIHRv
+b2xzL3Bvd2VyL2FjcGk6IEFkZCB1c2Vyc3BhY2UgQU1MIGludGVyZmFjZSBzdXBwb3J0DQo+ID4g
+ICBBQ1BJIC8gZGVidWdnZXI6IEFkZCBtb2R1bGUgc3VwcG9ydCBmb3IgQUNQSSBkZWJ1Z2dlcg0K
+PiANCj4gT0ssIEknbSBxdWV1aW5nIHVwIFsxLTYvN10gZm9yIDQuNS4NCltMdiBaaGVuZ10gDQpU
+aGFua3MhDQoNCj4gDQo+IFRoZSBbNy83XSBuZWVkcyBhdCBsZWFzdCB0byBiZSBsb29rZWQgYXQg
+YnkgdGhlIHg4NiBtYWludGFpbmVycy4NCltMdiBaaGVuZ10gDQpPSywgd2UnbGwgcmUtc2VuZCB0
+aGlzIHBhdGNoIHRvIGJvdGggeDg2L2FjcGkgbWFpbGluZyBsaXN0IHdpdGggYW4gYWRkaXRpb25h
+bCB0ZXN0IHBhdGNoIGluY2x1ZGVkIHRvIG1ha2UgaXQgY2xlYXJlci4NCg0KVGhhbmtzIGFuZCBi
+ZXN0IHJlZ2FyZHMNCi1Mdg0K
