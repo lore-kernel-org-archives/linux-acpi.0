@@ -1,50 +1,33 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v2 0/2] i2c:dw: Add APM X-Gene ACPI I2C device support
-Date: Tue, 15 Dec 2015 16:59:53 +0200
-Message-ID: <20151215145953.GK1762@lahna.fi.intel.com>
-References: <1449782357-22982-1-git-send-email-lho@apm.com>
- <566F6485.2000508@amd.com>
- <20151215132721.GJ1762@lahna.fi.intel.com>
- <56702923.9010305@amd.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <56702923.9010305@amd.com>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Cc: Loc Ho <lho@apm.com>, wsa@the-dreams.de, Ken.Xue@amd.com, Jeff.Wu@amd.com, rjw@rjwysocki.net, lenb@kernel.org, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, jcm@redhat.com, patches@apm.com, "Hurwitz, Sherry" <sherry.hurwitz@amd.com>, "Duran, Leo" <leo.duran@amd.com>, Hanjun Guo <hanjun.guo@linaro.org>, Al Stone <al.stone@linaro.org>
+From: Andy Lutomirski <luto@kernel.org>
+Subject: [PATCH v2 0/2] Minor _OSC error handling improvements
+Date: Tue, 15 Dec 2015 08:37:38 -0800
+Message-ID: <cover.1450197207.git.luto@kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.29.136]:43220 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754115AbbLOQho (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 15 Dec 2015 11:37:44 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: linux-kernel@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, Yijing Wang <wangyijing@huawei.com>, Andy Lutomirski <luto@kernel.org>
 
-On Tue, Dec 15, 2015 at 08:52:19AM -0600, Suravee Suthikulpanit wrote:
-> 
-> 
-> On 12/15/2015 07:27 AM, Mika Westerberg wrote:
-> >On Mon, Dec 14, 2015 at 06:53:25PM -0600, Suravee Suthikulanit wrote:
-> >>>I'm not sure if this has been discussed earlier. But after looking at the
-> >>>the acpi_apd driver, all we need is just the platform-specific input clock
-> >>>frequency value used by the drivers/i2c/busses/i2c-designware-core.c:
-> >>>i2c_dw_init() to calculate the values to program into the DW_IC_SS_SCL_HCNT
-> >>>and DW_IC_SS_SCL_LCNT registers.
-> >There is a way to pass *CNT values already from ACPI to the driver -- It
-> >looks for method called FMCN (or SSCN) and retrieves the values from
-> >there if found.
-> 
-> Right, I also noticed this afterward. By the way, are FMCN and SSCN
-> documented anywhere in the ACPI spec?  I am trying to figure out how to
-> update the ACPI table to add this information for the AMD Seattle (ARM64)
-> platform, and I will also submit a patch to add the new HID for this driver.
+This time, I think I'm sending to the right people.
 
-No, they are Intel inventions for the Windows I2C driver.
+This doesn't fix any bugs, but it makes the debugging output a
+little more useful.
 
-Here is what I know about it:
-  SSCN - Standard Mode CNTs
-  FMCN - Fast Mode CNTs
+Changes from v1:
+ - Added Bjorn's acks
+ - Split an overly long line
 
-They both return a package:
+Andy Lutomirski (2):
+  acpi: Tidy up _OSC error spacing
+  acpi: Show _OSC UUID when _OSC fails
 
-  Package() {
-    HCNT,
-    LCNT,
-    SDA_hold_time,
-  }
+ drivers/acpi/bus.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+-- 
+2.5.0
+
