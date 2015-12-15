@@ -1,57 +1,57 @@
-From: Marc Zyngier <marc.zyngier@arm.com>
-Subject: Re: [PATCH v7 1/4] acpi: pci: Setup MSI domain for ACPI based pci
- devices
-Date: Tue, 15 Dec 2015 09:52:29 +0000
-Message-ID: <566FE2DD.6080308@arm.com>
-References: <1449766530-16935-1-git-send-email-Suravee.Suthikulpanit@amd.com> <1449766530-16935-2-git-send-email-Suravee.Suthikulpanit@amd.com> <566EDCAC.1080401@arm.com> <2013286.NCRgLU1HGi@vostro.rjw.lan>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v2 0/2] i2c:dw: Add APM X-Gene ACPI I2C device support
+Date: Tue, 15 Dec 2015 15:27:21 +0200
+Message-ID: <20151215132721.GJ1762@lahna.fi.intel.com>
+References: <1449782357-22982-1-git-send-email-lho@apm.com>
+ <566F6485.2000508@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2013286.NCRgLU1HGi@vostro.rjw.lan>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, tglx@linutronix.de, jason@lakedaemon.net, bhelgaas@google.com, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, hanjun.guo@linaro.org, tomasz.nowicki@linaro.org, graeme.gregory@linaro.org, dhdang@apm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-i2c-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <566F6485.2000508@amd.com>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>
+Cc: Loc Ho <lho@apm.com>, wsa@the-dreams.de, Ken.Xue@amd.com, Jeff.Wu@amd.com, rjw@rjwysocki.net, lenb@kernel.org, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, jcm@redhat.com, patches@apm.com, "Hurwitz, Sherry" <sherry.hurwitz@amd.com>, "Duran, Leo" <leo.duran@amd.com>, Hanjun Guo <hanjun.guo@linaro.org>, Al Stone <al.stone@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 14/12/15 21:29, Rafael J. Wysocki wrote:
-> On Monday, December 14, 2015 03:13:48 PM Marc Zyngier wrote:
->> On 10/12/15 16:55, Suravee Suthikulpanit wrote:
->>> This patch introduces pci_msi_register_fwnode_provider() for irqchip
->>> to register a callback, to provide a way to determine appropriate MSI
->>> domain for a pci device.
->>>
->>> It also introduces pci_host_bridge_acpi_msi_domain(), which returns
->>> the MSI domain of the specified PCI host bridge with DOMAIN_BUS_PCI_MSI
->>> bus token. Then, it is assigned to pci device.
->>>
->>> Reviewed-by: Marc Zyngier <marc.zyngier@arm.com>
->>> Cc: Bjorn Helgaas <bhelgaas@google.com>
->>> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
->>> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
->>
->> Bjorn, Rafael,
->>
->> Do you have any comment on this?
->>
->> I was hoping to queue this work (and the 3 patches that depend on it)
->> for 4.5, but if you don't have the bandwidth to review it, I'll postpone
->> it to the following merge window.
+On Mon, Dec 14, 2015 at 06:53:25PM -0600, Suravee Suthikulanit wrote:
+> I'm not sure if this has been discussed earlier. But after looking at the
+> the acpi_apd driver, all we need is just the platform-specific input clock
+> frequency value used by the drivers/i2c/busses/i2c-designware-core.c:
+> i2c_dw_init() to calculate the values to program into the DW_IC_SS_SCL_HCNT
+> and DW_IC_SS_SCL_LCNT registers.
+
+There is a way to pass *CNT values already from ACPI to the driver -- It
+looks for method called FMCN (or SSCN) and retrieves the values from
+there if found.
+
+The driver could be modified not to require clock if it already knows
+*CNT values.
+
+> So, instead of hard-coding this value into the driver/acpi/acpi_apd.c (which
+> really has nothing to do with the I2C driver), what if we introduce a new
+> ACPI key-value pair in the ACPI DSDT such as:
 > 
-> How much time do we have to look at it before it is postponed?
+>     Device(I2C0)    // I2C controller
+>     {
+>       Name(_HID, "AMDI0510")
+>       Name(_UID, 0)
+>       Name(_CRS, ResourceTemplate() {
+>         Memory32Fixed (ReadWrite, 0xE1000000, 0x1000)
+>         Interrupt (ResourceConsumer, Level, ActiveHigh, Exclusive,,,) { 389
+> } // GSIV
+>       })
+>       Name (_DSD, Package () {
+>         ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
+>         Package () {
+>           Package (2) {"clock-source-frequency", 100000000 }
 
-Realistically, I'm going to stop queuing stuff Wednesday next week (I'll
-be travelling, and without access to enough HW to follow up on potential
-regressions), and I'd expect Thomas to stop pulling stuff even earlier
-than that.
+If this is to be done then I think it is better to use Linux clk
+framework to provide the clock (with corresponding properties in place).
 
-So we basically have a week to decide whether or not we want this for
-the next merge window. I appreciate this is a busy time for everyone and
-that this series took a long time to reach that stage, so any way is
-fine by me.
+But ACPI specification wants clocks as PowerResources and those do not
+have support for reading rate of the clock.
 
-Thanks,
-
-	M.
--- 
-Jazz is not dead. It just smells funny...
+>         }
+>       }) // _DSD()
+>     }
