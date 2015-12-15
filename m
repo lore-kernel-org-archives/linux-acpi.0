@@ -1,33 +1,44 @@
 From: Andy Lutomirski <luto@kernel.org>
-Subject: [PATCH v2 0/2] Minor _OSC error handling improvements
-Date: Tue, 15 Dec 2015 08:37:38 -0800
-Message-ID: <cover.1450197207.git.luto@kernel.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:43220 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754115AbbLOQho (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 15 Dec 2015 11:37:44 -0500
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Subject: [PATCH v2 1/2] acpi: Tidy up _OSC error spacing
+Date: Tue, 15 Dec 2015 08:37:39 -0800
+Message-ID: <a330d9ae4e086f4d55931cbc247d083ece1e43f6.1450197207.git.luto@kernel.org>
+References: <cover.1450197207.git.luto@kernel.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <cover.1450197207.git.luto@kernel.org>
+In-Reply-To: <cover.1450197207.git.luto@kernel.org>
+References: <cover.1450197207.git.luto@kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
 Cc: linux-kernel@vger.kernel.org, Matthew Garrett <mjg59@srcf.ucam.org>, Bjorn Helgaas <bhelgaas@google.com>, linux-pci@vger.kernel.org, Yijing Wang <wangyijing@huawei.com>, Andy Lutomirski <luto@kernel.org>
+List-Id: linux-acpi@vger.kernel.org
 
-This time, I think I'm sending to the right people.
+The whitespace in _OSC error reports is weird.  Improve it.
 
-This doesn't fix any bugs, but it makes the debugging output a
-little more useful.
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+Signed-off-by: Andy Lutomirski <luto@kernel.org>
+---
+ drivers/acpi/bus.c | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-Changes from v1:
- - Added Bjorn's acks
- - Split an overly long line
-
-Andy Lutomirski (2):
-  acpi: Tidy up _OSC error spacing
-  acpi: Show _OSC UUID when _OSC fails
-
- drivers/acpi/bus.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
-
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index a212cefae524..2177ef0b16e4 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -182,12 +182,12 @@ static void acpi_print_osc_error(acpi_handle handle,
+ 	if (ACPI_FAILURE(acpi_get_name(handle, ACPI_FULL_PATHNAME, &buffer)))
+ 		printk(KERN_DEBUG "%s\n", error);
+ 	else {
+-		printk(KERN_DEBUG "%s:%s\n", (char *)buffer.pointer, error);
++		printk(KERN_DEBUG "%s: %s\n", (char *)buffer.pointer, error);
+ 		kfree(buffer.pointer);
+ 	}
+-	printk(KERN_DEBUG"_OSC request data:");
++	printk(KERN_DEBUG "_OSC request data:");
+ 	for (i = 0; i < context->cap.length; i += sizeof(u32))
+-		printk("%x ", *((u32 *)(context->cap.pointer + i)));
++		printk(" %x", *((u32 *)(context->cap.pointer + i)));
+ 	printk("\n");
+ }
+ 
 -- 
 2.5.0
-
