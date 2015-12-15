@@ -1,38 +1,78 @@
-From: Christophe Ricard <christophe.ricard@gmail.com>
-Subject: [PATCH v7 3/3] ACPI / spi: attach gpio irq from acpi description to spi device
-Date: Tue, 15 Dec 2015 08:11:33 +0100
-Message-ID: <1450163493-4938-4-git-send-email-christophe-h.ricard@st.com>
-References: <1450163493-4938-1-git-send-email-christophe-h.ricard@st.com>
-Return-path: <linux-gpio-owner@vger.kernel.org>
-In-Reply-To: <1450163493-4938-1-git-send-email-christophe-h.ricard@st.com>
-Sender: linux-gpio-owner@vger.kernel.org
-To: rjw@rjwysocki.net, lenb@kernel.org, linus.walleij@linaro.org, gnurou@gmail.com, andriy.shevchenko@linux.intel.com, mika.westerberg@linux.intel.com, broonie@kernel.org
-Cc: linux-spi@vger.kernel.org, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, Christophe Ricard <christophe-h.ricard@st.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH v4 7/7] ACPI / x86: introduce acpi_os_readable() support
+Date: Tue, 15 Dec 2015 08:52:30 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BB08722@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1446790780.git.lv.zheng@intel.com>
+ <cover.1449108825.git.lv.zheng@intel.com>
+ <af8b1799e7eec686fbb3bf239f6f400adb3b8082.1449108826.git.lv.zheng@intel.com>
+ <CALCETrXeoGZhrNr9OmqFB+i7-tbM+d3sO8uCNnMx40JfDsjoEw@mail.gmail.com>
+ <36DF59CE26D8EE47B0655C516E9CE64028686D35@shsmsx102.ccr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <36DF59CE26D8EE47B0655C516E9CE64028686D35@shsmsx102.ccr.corp.intel.com>
+Content-Language: en-US
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Chen, Yu C" <yu.c.chen@intel.com>, Andy Lutomirski <luto@amacapital.net>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Andy Lutomirski <luto@kernel.org>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-spi->irq was ignoring GpioInt property setting it to -1.
-acpi_dev_gpio_irq_get returns and configure the slave irq according to
-the acpi slave node description.
-It is now inline with devicetree behavior.
-
-Signed-off-by: Christophe Ricard <christophe-h.ricard@st.com>
----
- drivers/spi/spi.c | 2 ++
- 1 file changed, 2 insertions(+)
-
-diff --git a/drivers/spi/spi.c b/drivers/spi/spi.c
-index 2b0a8ec..6e5d1f7 100644
---- a/drivers/spi/spi.c
-+++ b/drivers/spi/spi.c
-@@ -1583,6 +1583,8 @@ static int acpi_spi_add_resource(struct acpi_resource *ares, void *data)
- 
- 		if (acpi_dev_resource_interrupt(ares, 0, &r))
- 			spi->irq = r.start;
-+		else
-+			spi->irq = acpi_dev_gpio_irq_get(ACPI_COMPANION(&spi->dev), 0);
- 	}
- 
- 	/* Always tell the ACPI core to skip this resource */
--- 
-2.1.4
-
+SGksDQoNCj4gRnJvbTogQ2hlbiwgWXUgQw0KPiBTZW50OiBUdWVzZGF5LCBEZWNlbWJlciAxNSwg
+MjAxNSAyOjEzIFBNDQo+IA0KPiBIaSwgQW5keQ0KPiANCj4gPiBGcm9tOiBBbmR5IEx1dG9taXJz
+a2kgW21haWx0bzpsdXRvQGFtYWNhcGl0YWwubmV0XQ0KPiA+IFNlbnQ6IFR1ZXNkYXksIERlY2Vt
+YmVyIDE1LCAyMDE1IDc6MjggQU0NCj4gPg0KPiA+IE9uIFdlZCwgRGVjIDIsIDIwMTUgYXQgNjo0
+MyBQTSwgTHYgWmhlbmcgPGx2LnpoZW5nQGludGVsLmNvbT4gd3JvdGU6DQo+ID4gPiBGcm9tOiBD
+aGVuIFl1IDx5dS5jLmNoZW5AaW50ZWwuY29tPg0KPiA+ID4NCj4gPiA+IFRoaXMgcGF0Y2ggaW1w
+bGVtZW50cyBhY3BpX29zX3JlYWRhYmxlKCkuIFRoZSBmdW5jdGlvbiBpcyB1c2VkIGJ5DQo+ID4g
+PiBBQ1BJQ0EgQU1MIGRlYnVnZ2VyIHRvIHZhbGlkYXRlIHVzZXIgc3BlY2lmaWVkIHBvaW50ZXJz
+IGZvciBkdW1waW5nDQo+ID4gPiB0aGUgbWVtb3J5IGFzIEFDUElDQSBkZXNjcmlwdG9yIG9iamVj
+dHMuDQo+ID4gPg0KPiBbY3V0XQ0KPiA+ID4NCj4gPiA+ICtib29sIF9fYWNwaV9tZW1vcnlfcmVh
+ZGFibGUodm9pZCAqcG9pbnRlciwgc2l6ZV90IGxlbmd0aCkgew0KPiA+ID4gKyAgICAgICB1bnNp
+Z25lZCBsb25nIG9ial9zdGFydCwgb2JqX2VuZDsNCj4gPiA+ICsgICAgICAgdW5zaWduZWQgbG9u
+ZyBzdGFydF9wZm4sIGVuZF9wZm47DQo+ID4NCj4gPiBXaGF0IGRvZXMgInJlYWRhYmxlIiBtZWFu
+IGluIHRoaXMgY29udGV4dD8NCg0KW0x2IFpoZW5nXSANClRoZSBmdW5jdGlvbiBpcyB1c2VkIGJ5
+IEFDUElDQSAiZHVtcCIgY29tbWFuZC4NCkl0IGFjY2VwdHMgYW4gYXJiaXRyYXJ5IGFkZHJlc3Ms
+IGFuZCB0cmllcyB0byBkdW1wIHRoZSBtZW1vcnkgYmxvY2sgc3BlY2lmaWVkIGJ5IHRoZSBhZGRy
+ZXNzIGFzIGFuIGFjcGlfb2JqZWN0Lg0KWW91IGNhbiB0cnk6ICJoZWxwIGR1bXAiIGluIHRoZSBp
+bnRlcmFjdGl2ZSBtb2RlIHRvIGNvbmZpcm0uDQpXaGlsZSBhY3BpX29iamVjdCBpcyBhY3R1YWxs
+eSBhbGwgY3JlYXRlZCBieSBrbWFsbG9jLg0KU28gd2UganVzdCBjaGVjayBpZiB0aGUgc3BlY2lm
+aWVkIG1lbW9yeSBibG9jayBiZWxvbmdzIHRvIHRoZSBrZXJuZWwgaGVhcC4NClRoZSByZWFkYWJs
+ZS93cml0ZWFibGUgaXMgbm90IHNvIG1lYW5pbmdmdWwgaGVyZSBhcyB0aGUga2VybmVsIGhlYXAg
+c2hvdWxkIGFsd2F5cyBiZSBib3RoIHJlYWRhYmxlIGFuZCB3cml0ZWFibGUuDQoNCldlIGRvIGEg
+bG90IG9mIGNoZWNrcyBpbiB0aGlzIGZ1bmN0aW9uIGluIG9yZGVyIHRvIGFsbG93IGl0IHRvOg0K
+MS4gcmV0dXJuIHRydWUgaWYgInBvaW50ZXIiIGJlbG9uZ3MgdG8ga2VybmVsIGhlYXAgd2hlbiAi
+bGVuZ3RoIiBpcyAwOw0KMi4gcmV0dXJuIGZhbHNlIGlmICJwb2ludGVyIiBkb2Vzbid0IGJlbG9u
+ZyB0byBrZXJuZWwgaGVhcCB3aGVuICJsZW5ndGgiIGlzIDA7DQozLiByZXR1cm4gdHJ1ZSBpZiAi
+cG9pbnRlciB+IHBvaW50ZXIrbGVuZ3RoLTEiIGJlbG9uZ3MgdG8gYSBrZXJuZWwgaGVhcCByYW5n
+ZTsNCjQuIHJldHVybiBmYWxzZSBpZiAicG9pbnRlciB+IHBvaW50ZXIrbGVuZ3RoLTEiIGRvZXNu
+J3QgYmVsb25nIHRvIGFueSBrZXJuZWwgaGVhcCByYW5nZS4NCg0KVGhlc2UgY2hlY2tzIGFyZSB3
+ZWFrLCBidXQgY2FuIGhlbHAgdG8gYXZvaWQgcGFuaWNzIGlmIHVzZXJzIHNwZWNpZnkgd3Jvbmcg
+cG9pbnRlcnMgZm9yIHRoZSAiZHVtcCIgY29tbWFuZC4NCg0KPiAncmVhZGFibGUnIG1lYW5zIDog
+IHRoZSBhZGRyZXNzIHByb3ZpZGVkIGJ5IHRoZSB1c2VyLA0KPiBpcyBhIGR5bmFtaWNhbGx5IGFs
+bG9jYXRlZCAgdmlydHVhbCBhZGRyZXNzIC0NCj4gYmVjYXVzZSAgdGhlICBhY3BpIGFkZHJlc3Mg
+c3BhY2UgYXJlIGFsbG9jYXRlZCBieSAna21hbGxvYycsDQo+IGFjcGkgZGVidWdnZXIgbXVzdCBj
+aGVjayBpZiB0aGlzIGFkZHJlc3MgaXMgYSB2YWxpZCAna21hbGxvYycNCj4gYWRkcmVzcyBiZWZv
+cmUgYWNjZXNzaW5nIGl0Lg0KPiANCj4gVGhpcyBmdW5jdGlvbiBkb2VzIHRoZSBzYW5pdHkgY2hl
+Y2sgdGhhdCwgdGhlIHZpdHVhbCBhZGRyZXNzIGlzIGE6DQo+IDEuICAgZHluYW1pY2FsbHkgYWxs
+b2NhdGVkIGFkZHJlc3MgKGJleW9uZCBQQUdFX09GRlNFVCAsIGJ1dCBsb3dlcg0KPiB0aGFuIGhp
+Z2hfbWVtb3J5LCBWTUFMTE9DX1NUQVJULCBlZykNCj4gMi4gIGJlc2lkZXMsIHRoZSBwaHlzaWNh
+bCBhZGRyZXNzIG11c3QgYmUgZGlyZWN0LW1hcHBlZChzbyBpdCB3b3VsZCBub3QgYmUgYQ0KPiBo
+b2xlKS4NCg0KW0x2IFpoZW5nXSANClRoZXJlIGlzIGEgc3BlY2lhbCBjYXNlIChwb3NzaWJseSBo
+YWNraXNoKSBvbiB4ODZfNjQuDQp4ODZfNjQga2VybmVsIG1hcHMga2VybmVsIGltYWdlIHR3aWNl
+Lg0KT25lIGlzIGNhbGxlZCBhcyBoaWdoIG1hcCBhbmQgdGhlIG90aGVyIGlzIGNhbGxlZCBhcyBs
+b3cgbWFwLg0KDQpTaW5jZSB3ZSB1c2UgX19wYSgpIHRvIGNvbnZlcnQgYSB2aXJ0dWFsIGFkZHJl
+c3MsDQpJZiB0aGUgdmlydHVhbCBhZGRyZXNzIGJlbG9uZ3MgdG8gdGhlIGhpZ2ggbWFwIHJhbmdl
+LCBfX3BhKCkgd2hpY2ggdGFrZXMgY2FyZSBvZiBjb252ZXJ0aW5nIGhpZ2ggbWFwIGFkZHJlc3Nl
+cyBhY3R1YWxseSByZXR1cm5zIGEgcGh5c2ljYWwgYWRkcmVzcyB3aGVyZSB0aGVyZSBzaG91bGQg
+YWxzbyBiZSBsb3cgbWFwIG1hcHBpbmdzIHJlYWR5IGZvciBpdC4NClRodXMgdGhlIGNvbnZlcnRl
+ZCBQRk4gZnJvbSB0aGUgcmVzdWx0IG9mIF9fcGEoKSB3aWxsIGJlIHRyZWF0ZWQgYXMgdmFsaWQu
+DQoNCkJ1dCB0aGlzIGRvZXNuJ3QgbWVhbiB0aGVyZSBpcyBhIGhpZ2ggbWFwIGZvciB0aGlzIHZp
+cnR1YWwgYWRkcmVzcy4NCng4Nl82NCBrZXJuZWwgZHJvcHMgc2V2ZXJhbCBwYWdlcyBmcm9tIGhp
+Z2ggbWFwIGluIGNsZWFudXBfaGlnaG1hcCgpLg0KU28gYWNjZXNzaW5nIGEgdmlydHVhbCBhZGRy
+ZXNzIHRoYXQgYmVsb25ncyB0byB0aGUgaG9sZXMgd2hvc2UgcGFnZSBtYXBwaW5ncyBoYXZlIGJl
+ZW4gZHJvcHBlZCBpbiB0aGlzIGZ1bmN0aW9uIGNvdWxkIHN0aWxsIHJlc3VsdCBpbiBwYW5pYyBk
+dWUgdG8gbm8gbWFwcGluZ3MuDQpCeSBlbmZvcmNpbmcgdGhpcyBjaGVjaywgd2UgY2FuIGF2b2lk
+IHN1Y2ggYSBjYXNlLg0KQWN0dWFsbHkgbm8gYWNwaV9vYmplY3QncyB2aXJ0dWFsIGFkZHJlc3Mg
+d2lsbCBiZWxvbmcgdG8gaGlnaCBtYXAgcmFuZ2UuDQoNClRoYW5rcyBhbmQgYmVzdCByZWdhcmRz
+DQotTHYNCg==
