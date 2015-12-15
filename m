@@ -1,62 +1,56 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH RESEND] ACPI/Kconfig: Make ACPI_NFIT depend on EFI_STUB on X86
-Date: Tue, 15 Dec 2015 10:05:22 -0800
-Message-ID: <CAPcyv4iuMDgQbKtt2Gy_VEdATKEFxN4M1hUn7n6sDDYoRMJKyw@mail.gmail.com>
-References: <1450198746-14161-1-git-send-email-toshi.kani@hpe.com>
-	<CAPcyv4i_uRBsceQ1bqd02orKwZ47qB_ggwRQFL0HQ0x=w1DPfQ@mail.gmail.com>
-	<1450201779.29051.28.camel@hpe.com>
-	<CAPcyv4iC+UXptC5OJ21SyGuVhiOyHAq6dRT5v3dn_J0+6ySe2A@mail.gmail.com>
-	<1450202219.29051.30.camel@hpe.com>
+From: Loc Ho <lho@apm.com>
+Subject: Re: [PATCH v2 0/2] i2c:dw: Add APM X-Gene ACPI I2C device support
+Date: Tue, 15 Dec 2015 11:20:03 -0800
+Message-ID: <CAPw-ZT=TcvneyS69GjWe8sFR2hBTpHUUabu8Y5Feup89MwQWQQ@mail.gmail.com>
+References: <1449782357-22982-1-git-send-email-lho@apm.com>
+	<566F6485.2000508@amd.com>
+	<20151215132721.GJ1762@lahna.fi.intel.com>
+	<56702923.9010305@amd.com>
+	<20151215145953.GK1762@lahna.fi.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qk0-f179.google.com ([209.85.220.179]:36718 "EHLO
-	mail-qk0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932296AbbLOSFW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Dec 2015 13:05:22 -0500
-Received: by mail-qk0-f179.google.com with SMTP id t125so25793849qkh.3
-        for <linux-acpi@vger.kernel.org>; Tue, 15 Dec 2015 10:05:22 -0800 (PST)
-In-Reply-To: <1450202219.29051.30.camel@hpe.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-i2c-owner@vger.kernel.org>
+In-Reply-To: <20151215145953.GK1762@lahna.fi.intel.com>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, wsa@the-dreams.de, Ken Xue <Ken.Xue@amd.com>, Jeff.Wu@amd.com, rjw@rjwysocki.net, Len Brown <lenb@kernel.org>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Jon Masters <jcm@redhat.com>, "patches@apm.com" <patches@apm.com>, "Hurwitz, Sherry" <sherry.hurwitz@amd.com>, "Duran, Leo" <leo.duran@amd.com>, Hanjun Guo <hanjun.guo@linaro.org>, Al Stone <al.stone@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Toshi Kani <toshi.kani@hpe.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, "Elliott, Robert (Persistent Memory)" <elliott@hpe.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Tue, Dec 15, 2015 at 9:56 AM, Toshi Kani <toshi.kani@hpe.com> wrote:
-> On Tue, 2015-12-15 at 09:53 -0800, Dan Williams wrote:
-[..]
->> > > > diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
->> > > > index 5eef4cb..5368baa 100644
->> > > > --- a/drivers/acpi/Kconfig
->> > > > +++ b/drivers/acpi/Kconfig
->> > > > @@ -441,6 +441,7 @@ config ACPI_NFIT
->> > > >         depends on PHYS_ADDR_T_64BIT
->> > > >         depends on BLK_DEV
->> > > >         depends on ARCH_HAS_MMIO_FLUSH
->> > > > +       depends on !X86 || (X86 && EFI_STUB)
->> > > >         select LIBNVDIMM
->> > > >         help
->> > > >           Infrastructure to probe ACPI 6 compliant platforms for
->> > >
->> > > This seems wrong to me.
->> > >
->> > > In general Kconfig "depends on" are only about compile-time code
->> > > dependency, not about working around random bugs in external
->> > > projects.
->> >
->> > I agree that they do not have a compile dependency, and it looks rather
->> > odd.  On the other hand, proper support of the ACPI NFIT extensions has
->> > a
->> > functional dependency to setup_e820() as this is the only code that can
->> > handle the EFI_PERSISTENT_MEMORY type today.
+Hi,
+
 >>
->> What about non-EFI/legeacy-boot systems that only emit e820-type-7?
->> We lose support for them with this patch, right?
+>> On 12/15/2015 07:27 AM, Mika Westerberg wrote:
+>> >On Mon, Dec 14, 2015 at 06:53:25PM -0600, Suravee Suthikulanit wrote:
+>> >>>I'm not sure if this has been discussed earlier. But after looking at the
+>> >>>the acpi_apd driver, all we need is just the platform-specific input clock
+>> >>>frequency value used by the drivers/i2c/busses/i2c-designware-core.c:
+>> >>>i2c_dw_init() to calculate the values to program into the DW_IC_SS_SCL_HCNT
+>> >>>and DW_IC_SS_SCL_LCNT registers.
+>> >There is a way to pass *CNT values already from ACPI to the driver -- It
+>> >looks for method called FMCN (or SSCN) and retrieves the values from
+>> >there if found.
+>>
+>> Right, I also noticed this afterward. By the way, are FMCN and SSCN
+>> documented anywhere in the ACPI spec?  I am trying to figure out how to
+>> update the ACPI table to add this information for the AMD Seattle (ARM64)
+>> platform, and I will also submit a patch to add the new HID for this driver.
 >
-> No, having EFI_STUB does not break the legacy BIOS boot.
+> No, they are Intel inventions for the Windows I2C driver.
 >
+> Here is what I know about it:
+>   SSCN - Standard Mode CNTs
+>   FMCN - Fast Mode CNTs
+>
+> They both return a package:
+>
+>   Package() {
+>     HCNT,
+>     LCNT,
+>     SDA_hold_time,
+>   }
 
-Sorry let me clarify.  A kernel compiled without EFI_STUB loses NFIT
-support.  Non-EFI and legacy-boot systems don't have this grub bug to
-worry about, so the dependency is overly restrictive, "breaks", those
-environments.
+Can we not just add an AML method that will return the operation clock
+frequency that the I2C driver can use? If the method doesn't existed,
+we will just bail and do nothing or assume what ever default behavior?
+
+-Loc
