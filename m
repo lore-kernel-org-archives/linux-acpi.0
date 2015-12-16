@@ -1,49 +1,90 @@
-From: Al Stone <ahs3@redhat.com>
-Subject: question on possible functionality...
-Date: Tue, 15 Dec 2015 17:20:22 -0700
-Message-ID: <5670AE46.1000107@redhat.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH v4 7/7] ACPI / x86: introduce acpi_os_readable() support
+Date: Wed, 16 Dec 2015 00:25:09 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BB08C24@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1446790780.git.lv.zheng@intel.com>
+ <cover.1449108825.git.lv.zheng@intel.com>
+ <af8b1799e7eec686fbb3bf239f6f400adb3b8082.1449108826.git.lv.zheng@intel.com>
+ <CALCETrXeoGZhrNr9OmqFB+i7-tbM+d3sO8uCNnMx40JfDsjoEw@mail.gmail.com>
+ <36DF59CE26D8EE47B0655C516E9CE64028686D35@shsmsx102.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:46311 "EHLO mx1.redhat.com"
+Received: from mga14.intel.com ([192.55.52.115]:52262 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754395AbbLPAUW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 15 Dec 2015 19:20:22 -0500
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (Postfix) with ESMTPS id B6395AA0DB
-	for <linux-acpi@vger.kernel.org>; Wed, 16 Dec 2015 00:20:22 +0000 (UTC)
-Received: from fidelio.ahs3 (ovpn-113-60.phx2.redhat.com [10.3.113.60])
-	by int-mx10.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id tBG0KMDq031232
-	for <linux-acpi@vger.kernel.org>; Tue, 15 Dec 2015 19:20:22 -0500
+	id S1751873AbbLPAZM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 15 Dec 2015 19:25:12 -0500
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
+To: "Chen, Yu C" <yu.c.chen@intel.com>, Andy Lutomirski <luto@amacapital.net>, "Moore, Robert" <robert.moore@intel.com>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Andy Lutomirski <luto@kernel.org>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
 
-Howdy.
-
-I have run into a couple of cases now where is would like to do something
-like the following:
-
-   $ iasl --acpi-version=5.1 apic.asl
-
-to build a 5.1-compliant FADT, as compared to:
-
-   $ iasl apic.asl
-
-which always expects a very recent definition of the tables being defined.
-
-Is anyone working on such a thing?  Or has it been contemplated in the past
-and discarded for some reason?
-
-Thanks.
-
--- 
-ciao,
-al
------------------------------------
-Al Stone
-Software Engineer
-Red Hat, Inc.
-ahs3@redhat.com
------------------------------------
+SGksIEFuZHkgYW5kIFl1DQoNCj4gRnJvbTogWmhlbmcsIEx2DQo+IFNlbnQ6IFR1ZXNkYXksIERl
+Y2VtYmVyIDE1LCAyMDE1IDQ6NTIgUE0NCj4gDQo+IEhpLA0KPiANCj4gPiBGcm9tOiBDaGVuLCBZ
+dSBDDQo+ID4gU2VudDogVHVlc2RheSwgRGVjZW1iZXIgMTUsIDIwMTUgMjoxMyBQTQ0KPiA+DQo+
+ID4gSGksIEFuZHkNCj4gPg0KPiA+ID4gRnJvbTogQW5keSBMdXRvbWlyc2tpIFttYWlsdG86bHV0
+b0BhbWFjYXBpdGFsLm5ldF0NCj4gPiA+IFNlbnQ6IFR1ZXNkYXksIERlY2VtYmVyIDE1LCAyMDE1
+IDc6MjggQU0NCj4gPiA+DQo+ID4gPiBPbiBXZWQsIERlYyAyLCAyMDE1IGF0IDY6NDMgUE0sIEx2
+IFpoZW5nIDxsdi56aGVuZ0BpbnRlbC5jb20+IHdyb3RlOg0KPiA+ID4gPiBGcm9tOiBDaGVuIFl1
+IDx5dS5jLmNoZW5AaW50ZWwuY29tPg0KPiA+ID4gPg0KPiA+ID4gPiBUaGlzIHBhdGNoIGltcGxl
+bWVudHMgYWNwaV9vc19yZWFkYWJsZSgpLiBUaGUgZnVuY3Rpb24gaXMgdXNlZCBieQ0KPiA+ID4g
+PiBBQ1BJQ0EgQU1MIGRlYnVnZ2VyIHRvIHZhbGlkYXRlIHVzZXIgc3BlY2lmaWVkIHBvaW50ZXJz
+IGZvciBkdW1waW5nDQo+ID4gPiA+IHRoZSBtZW1vcnkgYXMgQUNQSUNBIGRlc2NyaXB0b3Igb2Jq
+ZWN0cy4NCj4gPiA+ID4NCj4gPiBbY3V0XQ0KPiA+ID4gPg0KPiA+ID4gPiArYm9vbCBfX2FjcGlf
+bWVtb3J5X3JlYWRhYmxlKHZvaWQgKnBvaW50ZXIsIHNpemVfdCBsZW5ndGgpIHsNCj4gPiA+ID4g
+KyAgICAgICB1bnNpZ25lZCBsb25nIG9ial9zdGFydCwgb2JqX2VuZDsNCj4gPiA+ID4gKyAgICAg
+ICB1bnNpZ25lZCBsb25nIHN0YXJ0X3BmbiwgZW5kX3BmbjsNCj4gPiA+DQo+ID4gPiBXaGF0IGRv
+ZXMgInJlYWRhYmxlIiBtZWFuIGluIHRoaXMgY29udGV4dD8NCj4gDQo+IFtMdiBaaGVuZ10NCj4g
+VGhlIGZ1bmN0aW9uIGlzIHVzZWQgYnkgQUNQSUNBICJkdW1wIiBjb21tYW5kLg0KPiBJdCBhY2Nl
+cHRzIGFuIGFyYml0cmFyeSBhZGRyZXNzLCBhbmQgdHJpZXMgdG8gZHVtcCB0aGUgbWVtb3J5IGJs
+b2NrIHNwZWNpZmllZA0KPiBieSB0aGUgYWRkcmVzcyBhcyBhbiBhY3BpX29iamVjdC4NCj4gWW91
+IGNhbiB0cnk6ICJoZWxwIGR1bXAiIGluIHRoZSBpbnRlcmFjdGl2ZSBtb2RlIHRvIGNvbmZpcm0u
+DQo+IFdoaWxlIGFjcGlfb2JqZWN0IGlzIGFjdHVhbGx5IGFsbCBjcmVhdGVkIGJ5IGttYWxsb2Mu
+DQpbTHYgWmhlbmddIA0KVGhpcyBzdGF0ZW1lbnQgbWlnaHQgYmUgd3JvbmcsIExldCBtZSBDYyBC
+b2IgdG8gY29uZmlybS4NCg0KSGksIEJvYg0KDQpEbyB3ZSBoYXZlIHN0YXRpY2FsbHkgYWxsb2Nh
+dGVkIGFjcGlfb2JqZWN0cz8NCklmIHdlIGhhdmUsIHdlIG5lZWQgdG8gY2hhbmdlIHRoaXMgcGF0
+Y2ggdG8gYWxsb3cgaGlnaCBtYXAgLmRhdGEvLmJzcyBzZWdtZW50cyBhZGRyZXNzZXMgdG8gcGFz
+cyB0aGlzIGNoZWNrLg0KDQpUaGFua3MgYW5kIGJlc3QgcmVnYXJkcw0KLUx2DQoNCj4gU28gd2Ug
+anVzdCBjaGVjayBpZiB0aGUgc3BlY2lmaWVkIG1lbW9yeSBibG9jayBiZWxvbmdzIHRvIHRoZSBr
+ZXJuZWwgaGVhcC4NCj4gVGhlIHJlYWRhYmxlL3dyaXRlYWJsZSBpcyBub3Qgc28gbWVhbmluZ2Z1
+bCBoZXJlIGFzIHRoZSBrZXJuZWwgaGVhcCBzaG91bGQNCj4gYWx3YXlzIGJlIGJvdGggcmVhZGFi
+bGUgYW5kIHdyaXRlYWJsZS4NCj4gDQo+IFdlIGRvIGEgbG90IG9mIGNoZWNrcyBpbiB0aGlzIGZ1
+bmN0aW9uIGluIG9yZGVyIHRvIGFsbG93IGl0IHRvOg0KPiAxLiByZXR1cm4gdHJ1ZSBpZiAicG9p
+bnRlciIgYmVsb25ncyB0byBrZXJuZWwgaGVhcCB3aGVuICJsZW5ndGgiIGlzIDA7DQo+IDIuIHJl
+dHVybiBmYWxzZSBpZiAicG9pbnRlciIgZG9lc24ndCBiZWxvbmcgdG8ga2VybmVsIGhlYXAgd2hl
+biAibGVuZ3RoIiBpcyAwOw0KPiAzLiByZXR1cm4gdHJ1ZSBpZiAicG9pbnRlciB+IHBvaW50ZXIr
+bGVuZ3RoLTEiIGJlbG9uZ3MgdG8gYSBrZXJuZWwgaGVhcCByYW5nZTsNCj4gNC4gcmV0dXJuIGZh
+bHNlIGlmICJwb2ludGVyIH4gcG9pbnRlcitsZW5ndGgtMSIgZG9lc24ndCBiZWxvbmcgdG8gYW55
+IGtlcm5lbCBoZWFwDQo+IHJhbmdlLg0KPiANCj4gVGhlc2UgY2hlY2tzIGFyZSB3ZWFrLCBidXQg
+Y2FuIGhlbHAgdG8gYXZvaWQgcGFuaWNzIGlmIHVzZXJzIHNwZWNpZnkgd3JvbmcNCj4gcG9pbnRl
+cnMgZm9yIHRoZSAiZHVtcCIgY29tbWFuZC4NCj4gDQo+ID4gJ3JlYWRhYmxlJyBtZWFucyA6ICB0
+aGUgYWRkcmVzcyBwcm92aWRlZCBieSB0aGUgdXNlciwNCj4gPiBpcyBhIGR5bmFtaWNhbGx5IGFs
+bG9jYXRlZCAgdmlydHVhbCBhZGRyZXNzIC0NCj4gPiBiZWNhdXNlICB0aGUgIGFjcGkgYWRkcmVz
+cyBzcGFjZSBhcmUgYWxsb2NhdGVkIGJ5ICdrbWFsbG9jJywNCj4gPiBhY3BpIGRlYnVnZ2VyIG11
+c3QgY2hlY2sgaWYgdGhpcyBhZGRyZXNzIGlzIGEgdmFsaWQgJ2ttYWxsb2MnDQo+ID4gYWRkcmVz
+cyBiZWZvcmUgYWNjZXNzaW5nIGl0Lg0KPiA+DQo+ID4gVGhpcyBmdW5jdGlvbiBkb2VzIHRoZSBz
+YW5pdHkgY2hlY2sgdGhhdCwgdGhlIHZpdHVhbCBhZGRyZXNzIGlzIGE6DQo+ID4gMS4gICBkeW5h
+bWljYWxseSBhbGxvY2F0ZWQgYWRkcmVzcyAoYmV5b25kIFBBR0VfT0ZGU0VUICwgYnV0IGxvd2Vy
+DQo+ID4gdGhhbiBoaWdoX21lbW9yeSwgVk1BTExPQ19TVEFSVCwgZWcpDQo+ID4gMi4gIGJlc2lk
+ZXMsIHRoZSBwaHlzaWNhbCBhZGRyZXNzIG11c3QgYmUgZGlyZWN0LW1hcHBlZChzbyBpdCB3b3Vs
+ZCBub3QgYmUgYQ0KPiA+IGhvbGUpLg0KPiANCj4gW0x2IFpoZW5nXQ0KPiBUaGVyZSBpcyBhIHNw
+ZWNpYWwgY2FzZSAocG9zc2libHkgaGFja2lzaCkgb24geDg2XzY0Lg0KPiB4ODZfNjQga2VybmVs
+IG1hcHMga2VybmVsIGltYWdlIHR3aWNlLg0KPiBPbmUgaXMgY2FsbGVkIGFzIGhpZ2ggbWFwIGFu
+ZCB0aGUgb3RoZXIgaXMgY2FsbGVkIGFzIGxvdyBtYXAuDQo+IA0KPiBTaW5jZSB3ZSB1c2UgX19w
+YSgpIHRvIGNvbnZlcnQgYSB2aXJ0dWFsIGFkZHJlc3MsDQo+IElmIHRoZSB2aXJ0dWFsIGFkZHJl
+c3MgYmVsb25ncyB0byB0aGUgaGlnaCBtYXAgcmFuZ2UsIF9fcGEoKSB3aGljaCB0YWtlcyBjYXJl
+IG9mDQo+IGNvbnZlcnRpbmcgaGlnaCBtYXAgYWRkcmVzc2VzIGFjdHVhbGx5IHJldHVybnMgYSBw
+aHlzaWNhbCBhZGRyZXNzIHdoZXJlIHRoZXJlDQo+IHNob3VsZCBhbHNvIGJlIGxvdyBtYXAgbWFw
+cGluZ3MgcmVhZHkgZm9yIGl0Lg0KPiBUaHVzIHRoZSBjb252ZXJ0ZWQgUEZOIGZyb20gdGhlIHJl
+c3VsdCBvZiBfX3BhKCkgd2lsbCBiZSB0cmVhdGVkIGFzIHZhbGlkLg0KPiANCj4gQnV0IHRoaXMg
+ZG9lc24ndCBtZWFuIHRoZXJlIGlzIGEgaGlnaCBtYXAgZm9yIHRoaXMgdmlydHVhbCBhZGRyZXNz
+Lg0KPiB4ODZfNjQga2VybmVsIGRyb3BzIHNldmVyYWwgcGFnZXMgZnJvbSBoaWdoIG1hcCBpbiBj
+bGVhbnVwX2hpZ2htYXAoKS4NCj4gU28gYWNjZXNzaW5nIGEgdmlydHVhbCBhZGRyZXNzIHRoYXQg
+YmVsb25ncyB0byB0aGUgaG9sZXMgd2hvc2UgcGFnZSBtYXBwaW5ncw0KPiBoYXZlIGJlZW4gZHJv
+cHBlZCBpbiB0aGlzIGZ1bmN0aW9uIGNvdWxkIHN0aWxsIHJlc3VsdCBpbiBwYW5pYyBkdWUgdG8g
+bm8gbWFwcGluZ3MuDQo+IEJ5IGVuZm9yY2luZyB0aGlzIGNoZWNrLCB3ZSBjYW4gYXZvaWQgc3Vj
+aCBhIGNhc2UuDQo+IEFjdHVhbGx5IG5vIGFjcGlfb2JqZWN0J3MgdmlydHVhbCBhZGRyZXNzIHdp
+bGwgYmVsb25nIHRvIGhpZ2ggbWFwIHJhbmdlLg0KPiANCj4gVGhhbmtzIGFuZCBiZXN0IHJlZ2Fy
+ZHMNCj4gLUx2DQo=
