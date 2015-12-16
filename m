@@ -1,117 +1,162 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V2 00/23] MMCONFIG refactoring and support for ARM64 PCI hostbridge init based on ACPI
-Date: Wed, 16 Dec 2015 16:16:10 +0100
-Message-ID: <1450278993-12664-1-git-send-email-tn@semihalf.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
+Subject: [PATCH V2 04/23] x86, pci: mmconfig_{32,64}.c code refactoring - remove code duplication.
+Date: Wed, 16 Dec 2015 16:16:14 +0100
+Message-ID: <1450278993-12664-5-git-send-email-tn@semihalf.com>
+References: <1450278993-12664-1-git-send-email-tn@semihalf.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wm0-f54.google.com ([74.125.82.54]:35488 "EHLO
+	mail-wm0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965716AbbLPPRr (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2015 10:17:47 -0500
+Received: by mail-wm0-f54.google.com with SMTP id l126so43168043wml.0
+        for <linux-acpi@vger.kernel.org>; Wed, 16 Dec 2015 07:17:46 -0800 (PST)
+In-Reply-To: <1450278993-12664-1-git-send-email-tn@semihalf.com>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, Stefano.Stabellini@eu.citrix.com
 Cc: robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com, Tomasz Nowicki <tn@semihalf.com>
-List-Id: linux-acpi@vger.kernel.org
 
->From the functionality point of view this series might be split into the
-following logic parts:
-1. Make MMCONFIG code arch-agnostic which allows all architectures to collect
-   PCI config regions and used when necessary.
-2. Move non-arch specific bits to the core code.
-3. Use MMCONFIG code and implement generic ACPI based PCI host
-   controller driver.
-4. Enable above driver on ARM64
+mmconfig_64.c version is going to be default implementation for low-level
+operation on mmconfig regions. However, now it initializes raw_pci_ext_ops pointer which is specific for
+x86 only. Moreover, mmconfig_32.c is doing the same thing at the same time.
+So lets move it to mmconfig_shared.c so it becomes common for both and
+mmconfig_64.c turns out to be purely arch agnostic.
 
-Patches has been built on top of 4.4-rc4 and can be found here:
-git@github.com:semihalf-nowicki-tomasz/linux.git (pci-acpi-v2)
+Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+---
+ arch/x86/include/asm/pci_x86.h |  5 +++++
+ arch/x86/pci/mmconfig-shared.c | 10 ++++++++--
+ arch/x86/pci/mmconfig_32.c     | 10 ++--------
+ arch/x86/pci/mmconfig_64.c     | 11 ++---------
+ 4 files changed, 17 insertions(+), 19 deletions(-)
 
-NOTE, this patch set depends on Matthew's patches:
-http://www.spinics.net/lists/linux-pci/msg45950.html
-https://github.com/Vality/linux/tree/pci-fixes
-
-This has been tested on Cavium ThunderX 1 socket server and QEMU.
-Any help in reviewing and testing is very appreciated.
-
-v1 -> v2
-- moved non-arch specific piece of code to dirver/acpi/ directory
-- fixed IO resource handling
-- introduced PCI config accessors quirks matching
-- moved ACPI_COMPANION_SET to generic code
-
-Liu Jiang (1):
-  ACPI, PCI: Refine the way to handle translation_offset for ACPI
-    resources
-
-Tomasz Nowicki (22):
-  x86, pci: Reorder logic of pci_mmconfig_insert() function
-  x86, pci, acpi: Move arch-agnostic MMCONFIG (aka ECAM) and ACPI code
-    out of arch/x86/ directory
-  pci, acpi, mcfg: Provide generic implementation of MCFG code
-    initialization.
-  x86, pci: mmconfig_{32,64}.c code refactoring - remove code
-    duplication.
-  x86, pci, ecam: mmconfig_64.c becomes default implementation for ECAM
-    driver.
-  XEN / PCI: Remove the dependence on arch x86 when PCI_MMCONFIG=y
-  pci, acpi, mcfg: Provide default RAW ACPI PCI config space accessors.
-  arm64, acpi: Use empty PCI config space accessors from mcfg.c file.
-  pci, acpi, ecam: Add flag to indicate whether ECAM region was hot
-    added or not.
-  x86, pci: Cleanup platform specific MCFG data using previously added
-    ECAM hot_added flag.
-  arm64, pci: Remove useless boot time IRQ assignment when booting with
-    DT.
-  pci, acpi: Move ACPI host bridge device companion assignment to core
-    code.
-  x86, ia64, pci: Remove ACPI companion device from platform specific
-    data.
-  pci, acpi: Provide generic way to assign bus domain number.
-  x86, ia64, pci: Convert arches to use PCI_DOMAINS_GENERIC.
-  x86, ia64: Include acpi_pci_{add|remove}_bus to the default
-    pcibios_{add|remove}_bus implementation.
-  acpi, mcfg: Implement two calls that might be used to inject/remove
-    MCFG region.
-  x86, acpi, pci: Use equivalent function introduced in previous patch.
-  acpi, mcfg: Add default PCI config accessors implementation and
-    initial support for related quirks.
-  pci, acpi: Support for ACPI based PCI hostbridge init
-  pci, acpi: Match PCI config space accessors against platfrom specific
-    quirks.
-  arm64, pci, acpi: Start using ACPI based PCI host bridge driver for
-    ARM64.
-
- arch/arm64/Kconfig                |  10 ++
- arch/arm64/kernel/pci.c           |  35 ------
- arch/ia64/Kconfig                 |   3 +
- arch/ia64/include/asm/pci.h       |   3 -
- arch/ia64/pci/pci.c               |  53 +++-----
- arch/x86/Kconfig                  |   7 ++
- arch/x86/include/asm/pci.h        |  10 --
- arch/x86/include/asm/pci_x86.h    |  28 +----
- arch/x86/pci/acpi.c               |  43 ++-----
- arch/x86/pci/common.c             |  10 --
- arch/x86/pci/irq.c                |  10 --
- arch/x86/pci/mmconfig-shared.c    | 250 ++++++--------------------------------
- arch/x86/pci/mmconfig_32.c        |  11 +-
- arch/x86/pci/mmconfig_64.c        |  67 +---------
- arch/x86/pci/numachip.c           |   1 +
- drivers/acpi/Makefile             |   1 +
- drivers/acpi/mcfg.c               | 203 +++++++++++++++++++++++++++++++
- drivers/acpi/pci_root.c           |   5 +-
- drivers/acpi/resource.c           |  12 +-
- drivers/pci/Kconfig               |  10 ++
- drivers/pci/Makefile              |   5 +
- drivers/pci/ecam.c                | 234 +++++++++++++++++++++++++++++++++++
- drivers/pci/host/Kconfig          |   6 +
- drivers/pci/host/Makefile         |   1 +
- drivers/pci/host/pci-host-acpi.c  | 138 +++++++++++++++++++++
- drivers/pci/pci.c                 |  29 ++++-
- drivers/pci/probe.c               |   5 +
- drivers/xen/pci.c                 |   7 +-
- include/asm-generic/vmlinux.lds.h |   7 ++
- include/linux/acpi.h              |   2 +
- include/linux/ecam.h              |  61 ++++++++++
- include/linux/pci-acpi.h          |  17 +++
- 32 files changed, 817 insertions(+), 467 deletions(-)
- create mode 100644 drivers/acpi/mcfg.c
- create mode 100644 drivers/pci/ecam.c
- create mode 100644 drivers/pci/host/pci-host-acpi.c
- create mode 100644 include/linux/ecam.h
-
+diff --git a/arch/x86/include/asm/pci_x86.h b/arch/x86/include/asm/pci_x86.h
+index c1c0f37..0482807 100644
+--- a/arch/x86/include/asm/pci_x86.h
++++ b/arch/x86/include/asm/pci_x86.h
+@@ -130,6 +130,11 @@ extern void pci_mmcfg_arch_unmap(struct pci_mmcfg_region *cfg);
+ extern int pci_mmconfig_insert(struct device *dev, u16 seg, u8 start, u8 end,
+ 			       phys_addr_t addr);
+ 
++int pci_mmcfg_read(unsigned int seg, unsigned int bus, unsigned int devfn,
++		   int reg, int len, u32 *value);
++int pci_mmcfg_write(unsigned int seg, unsigned int bus, unsigned int devfn,
++		    int reg, int len, u32 value);
++
+ /*
+  * AMD Fam10h CPUs are buggy, and cannot access MMIO config space
+  * on their northbrige except through the * %eax register. As such, you MUST
+diff --git a/arch/x86/pci/mmconfig-shared.c b/arch/x86/pci/mmconfig-shared.c
+index ce2c2e4..980f304 100644
+--- a/arch/x86/pci/mmconfig-shared.c
++++ b/arch/x86/pci/mmconfig-shared.c
+@@ -29,6 +29,11 @@
+ static bool pci_mmcfg_running_state;
+ static bool pci_mmcfg_arch_init_failed;
+ 
++const struct pci_raw_ops pci_mmcfg = {
++	.read =		pci_mmcfg_read,
++	.write =	pci_mmcfg_write,
++};
++
+ static const char *__init pci_mmcfg_e7520(void)
+ {
+ 	u32 win;
+@@ -512,9 +517,10 @@ static void __init __pci_mmcfg_init(int early)
+ 		}
+ 	}
+ 
+-	if (pci_mmcfg_arch_init())
++	if (pci_mmcfg_arch_init()) {
++		raw_pci_ext_ops = &pci_mmcfg;
+ 		pci_probe = (pci_probe & ~PCI_PROBE_MASK) | PCI_PROBE_MMCONF;
+-	else {
++	} else {
+ 		free_all_mmcfg();
+ 		pci_mmcfg_arch_init_failed = true;
+ 	}
+diff --git a/arch/x86/pci/mmconfig_32.c b/arch/x86/pci/mmconfig_32.c
+index 246f135..2ded56f 100644
+--- a/arch/x86/pci/mmconfig_32.c
++++ b/arch/x86/pci/mmconfig_32.c
+@@ -50,7 +50,7 @@ static void pci_exp_set_dev_base(unsigned int base, int bus, int devfn)
+ 	}
+ }
+ 
+-static int pci_mmcfg_read(unsigned int seg, unsigned int bus,
++int pci_mmcfg_read(unsigned int seg, unsigned int bus,
+ 			  unsigned int devfn, int reg, int len, u32 *value)
+ {
+ 	unsigned long flags;
+@@ -89,7 +89,7 @@ err:		*value = -1;
+ 	return 0;
+ }
+ 
+-static int pci_mmcfg_write(unsigned int seg, unsigned int bus,
++int pci_mmcfg_write(unsigned int seg, unsigned int bus,
+ 			   unsigned int devfn, int reg, int len, u32 value)
+ {
+ 	unsigned long flags;
+@@ -126,15 +126,9 @@ static int pci_mmcfg_write(unsigned int seg, unsigned int bus,
+ 	return 0;
+ }
+ 
+-const struct pci_raw_ops pci_mmcfg = {
+-	.read =		pci_mmcfg_read,
+-	.write =	pci_mmcfg_write,
+-};
+-
+ int __init pci_mmcfg_arch_init(void)
+ {
+ 	printk(KERN_INFO "PCI: Using MMCONFIG for extended config space\n");
+-	raw_pci_ext_ops = &pci_mmcfg;
+ 	return 1;
+ }
+ 
+diff --git a/arch/x86/pci/mmconfig_64.c b/arch/x86/pci/mmconfig_64.c
+index b14fcd3..d0c48eb 100644
+--- a/arch/x86/pci/mmconfig_64.c
++++ b/arch/x86/pci/mmconfig_64.c
+@@ -25,7 +25,7 @@ static char __iomem *pci_dev_base(unsigned int seg, unsigned int bus, unsigned i
+ 	return NULL;
+ }
+ 
+-static int pci_mmcfg_read(unsigned int seg, unsigned int bus,
++int pci_mmcfg_read(unsigned int seg, unsigned int bus,
+ 			  unsigned int devfn, int reg, int len, u32 *value)
+ {
+ 	char __iomem *addr;
+@@ -59,7 +59,7 @@ err:		*value = -1;
+ 	return 0;
+ }
+ 
+-static int pci_mmcfg_write(unsigned int seg, unsigned int bus,
++int pci_mmcfg_write(unsigned int seg, unsigned int bus,
+ 			   unsigned int devfn, int reg, int len, u32 value)
+ {
+ 	char __iomem *addr;
+@@ -91,11 +91,6 @@ static int pci_mmcfg_write(unsigned int seg, unsigned int bus,
+ 	return 0;
+ }
+ 
+-const struct pci_raw_ops pci_mmcfg = {
+-	.read =		pci_mmcfg_read,
+-	.write =	pci_mmcfg_write,
+-};
+-
+ static void __iomem *mcfg_ioremap(struct pci_mmcfg_region *cfg)
+ {
+ 	void __iomem *addr;
+@@ -121,8 +116,6 @@ int __init pci_mmcfg_arch_init(void)
+ 			return 0;
+ 		}
+ 
+-	raw_pci_ext_ops = &pci_mmcfg;
+-
+ 	return 1;
+ }
+ 
 -- 
 1.9.1
+
