@@ -1,34 +1,117 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH] i2c: designware: Do not require clock when SSCN and FFCN
- are provided
-Date: Wed, 16 Dec 2015 17:04:46 +0200
-Message-ID: <20151216150446.GY1762@lahna.fi.intel.com>
-References: <1450219138-5868-1-git-send-email-Suravee.Suthikulpanit@amd.com>
- <20151216094202.GR1762@lahna.fi.intel.com>
- <56717100.3020602@amd.com>
- <20151216142810.GW1762@lahna.fi.intel.com>
- <567178D2.30002@amd.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <567178D2.30002@amd.com>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Cc: wsa@the-dreams.de, lho@apm.com, Ken.Xue@amd.com, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: [PATCH V2 00/23] MMCONFIG refactoring and support for ARM64 PCI hostbridge init based on ACPI
+Date: Wed, 16 Dec 2015 16:16:10 +0100
+Message-ID: <1450278993-12664-1-git-send-email-tn@semihalf.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, Stefano.Stabellini@eu.citrix.com
+Cc: robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com, Tomasz Nowicki <tn@semihalf.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Dec 16, 2015 at 08:44:34AM -0600, Suravee Suthikulpanit wrote:
-> I am trying to avoid having to hard-coded clock frequency value in the
-> driver. Would it be alright to not return w/ error, and just do the
-> following?
-> 
-> 	dev->clk = devm_clk_get(&pdev->dev, NULL);
-> 	if (!IS_ERR(dev->clk))
-> 		dev->get_clk_rate_khz = i2c_dw_get_clk_rate_khz;
-> 
-> This should work for the Intel case when clock is also provided.
+>From the functionality point of view this series might be split into the
+following logic parts:
+1. Make MMCONFIG code arch-agnostic which allows all architectures to collect
+   PCI config regions and used when necessary.
+2. Move non-arch specific bits to the core code.
+3. Use MMCONFIG code and implement generic ACPI based PCI host
+   controller driver.
+4. Enable above driver on ARM64
 
-Does it also work when clk_prepare_enable()/disable() is called for the
-clock (in PM callbacks for example)? If yes, then I don't see problems
-with what you are suggesting.
+Patches has been built on top of 4.4-rc4 and can be found here:
+git@github.com:semihalf-nowicki-tomasz/linux.git (pci-acpi-v2)
+
+NOTE, this patch set depends on Matthew's patches:
+http://www.spinics.net/lists/linux-pci/msg45950.html
+https://github.com/Vality/linux/tree/pci-fixes
+
+This has been tested on Cavium ThunderX 1 socket server and QEMU.
+Any help in reviewing and testing is very appreciated.
+
+v1 -> v2
+- moved non-arch specific piece of code to dirver/acpi/ directory
+- fixed IO resource handling
+- introduced PCI config accessors quirks matching
+- moved ACPI_COMPANION_SET to generic code
+
+Liu Jiang (1):
+  ACPI, PCI: Refine the way to handle translation_offset for ACPI
+    resources
+
+Tomasz Nowicki (22):
+  x86, pci: Reorder logic of pci_mmconfig_insert() function
+  x86, pci, acpi: Move arch-agnostic MMCONFIG (aka ECAM) and ACPI code
+    out of arch/x86/ directory
+  pci, acpi, mcfg: Provide generic implementation of MCFG code
+    initialization.
+  x86, pci: mmconfig_{32,64}.c code refactoring - remove code
+    duplication.
+  x86, pci, ecam: mmconfig_64.c becomes default implementation for ECAM
+    driver.
+  XEN / PCI: Remove the dependence on arch x86 when PCI_MMCONFIG=y
+  pci, acpi, mcfg: Provide default RAW ACPI PCI config space accessors.
+  arm64, acpi: Use empty PCI config space accessors from mcfg.c file.
+  pci, acpi, ecam: Add flag to indicate whether ECAM region was hot
+    added or not.
+  x86, pci: Cleanup platform specific MCFG data using previously added
+    ECAM hot_added flag.
+  arm64, pci: Remove useless boot time IRQ assignment when booting with
+    DT.
+  pci, acpi: Move ACPI host bridge device companion assignment to core
+    code.
+  x86, ia64, pci: Remove ACPI companion device from platform specific
+    data.
+  pci, acpi: Provide generic way to assign bus domain number.
+  x86, ia64, pci: Convert arches to use PCI_DOMAINS_GENERIC.
+  x86, ia64: Include acpi_pci_{add|remove}_bus to the default
+    pcibios_{add|remove}_bus implementation.
+  acpi, mcfg: Implement two calls that might be used to inject/remove
+    MCFG region.
+  x86, acpi, pci: Use equivalent function introduced in previous patch.
+  acpi, mcfg: Add default PCI config accessors implementation and
+    initial support for related quirks.
+  pci, acpi: Support for ACPI based PCI hostbridge init
+  pci, acpi: Match PCI config space accessors against platfrom specific
+    quirks.
+  arm64, pci, acpi: Start using ACPI based PCI host bridge driver for
+    ARM64.
+
+ arch/arm64/Kconfig                |  10 ++
+ arch/arm64/kernel/pci.c           |  35 ------
+ arch/ia64/Kconfig                 |   3 +
+ arch/ia64/include/asm/pci.h       |   3 -
+ arch/ia64/pci/pci.c               |  53 +++-----
+ arch/x86/Kconfig                  |   7 ++
+ arch/x86/include/asm/pci.h        |  10 --
+ arch/x86/include/asm/pci_x86.h    |  28 +----
+ arch/x86/pci/acpi.c               |  43 ++-----
+ arch/x86/pci/common.c             |  10 --
+ arch/x86/pci/irq.c                |  10 --
+ arch/x86/pci/mmconfig-shared.c    | 250 ++++++--------------------------------
+ arch/x86/pci/mmconfig_32.c        |  11 +-
+ arch/x86/pci/mmconfig_64.c        |  67 +---------
+ arch/x86/pci/numachip.c           |   1 +
+ drivers/acpi/Makefile             |   1 +
+ drivers/acpi/mcfg.c               | 203 +++++++++++++++++++++++++++++++
+ drivers/acpi/pci_root.c           |   5 +-
+ drivers/acpi/resource.c           |  12 +-
+ drivers/pci/Kconfig               |  10 ++
+ drivers/pci/Makefile              |   5 +
+ drivers/pci/ecam.c                | 234 +++++++++++++++++++++++++++++++++++
+ drivers/pci/host/Kconfig          |   6 +
+ drivers/pci/host/Makefile         |   1 +
+ drivers/pci/host/pci-host-acpi.c  | 138 +++++++++++++++++++++
+ drivers/pci/pci.c                 |  29 ++++-
+ drivers/pci/probe.c               |   5 +
+ drivers/xen/pci.c                 |   7 +-
+ include/asm-generic/vmlinux.lds.h |   7 ++
+ include/linux/acpi.h              |   2 +
+ include/linux/ecam.h              |  61 ++++++++++
+ include/linux/pci-acpi.h          |  17 +++
+ 32 files changed, 817 insertions(+), 467 deletions(-)
+ create mode 100644 drivers/acpi/mcfg.c
+ create mode 100644 drivers/pci/ecam.c
+ create mode 100644 drivers/pci/host/pci-host-acpi.c
+ create mode 100644 include/linux/ecam.h
+
+-- 
+1.9.1
