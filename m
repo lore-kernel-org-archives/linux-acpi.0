@@ -1,51 +1,77 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: Incorrect ACPI error on Dell XPS 13 9350?
-Date: Wed, 16 Dec 2015 02:59:02 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BB08D08@SHSMSX101.ccr.corp.intel.com>
-References: <CALCETrW-GTC0gTtRjbzxgiNepOxWNYMbGqmC9iqGXOMscMNg1A@mail.gmail.com>
+From: Heiner Kallweit <hkallweit1@gmail.com>
+Subject: [PATCH] pnp: respect PNP_DRIVER_RES_DO_NOT_CHANGE when detaching
+Date: Wed, 16 Dec 2015 07:33:22 +0100
+Message-ID: <567105B2.3080109@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:30980 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753657AbbLPC7E (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 15 Dec 2015 21:59:04 -0500
-In-Reply-To: <CALCETrW-GTC0gTtRjbzxgiNepOxWNYMbGqmC9iqGXOMscMNg1A@mail.gmail.com>
-Content-Language: en-US
+Received: from mail-wm0-f44.google.com ([74.125.82.44]:32811 "EHLO
+	mail-wm0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754650AbbLPGdl (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2015 01:33:41 -0500
+Received: by mail-wm0-f44.google.com with SMTP id n186so126566688wmn.0
+        for <linux-acpi@vger.kernel.org>; Tue, 15 Dec 2015 22:33:41 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Lutomirski <luto@amacapital.net>, Linux ACPI <linux-acpi@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
+Cc: rafael@kernel.org
 
-SGksIEFuZHkNCg0KSSBjYW4gb25seSBmaW5kIEZOQ0wgaW4gdGhlIHByb3ZpZGVkIEFTTCBzb3Vy
-Y2UuDQpUaGlzIGlzIG5vdCBzdWZmaWNpZW50Lg0KQ291bGQgeW91IHByb3ZpZGUgZnVsbCBhY3Bp
-ZHVtcC9kbWVzZyBmb3IgdXMgdG8gY2hlY2s/DQoNClRoYW5rcyBhbmQgYmVzdCByZWdhcmRzDQot
-THYNCg0KPiBGcm9tOiBsaW51eC1hY3BpLW93bmVyQHZnZXIua2VybmVsLm9yZyBbbWFpbHRvOmxp
-bnV4LWFjcGktDQo+IG93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIEFuZHkgTHV0
-b21pcnNraQ0KPiANCj4gSSdtIGdldHRpbmcgdGhpcyBlcnJvciBvbiBib290IG9uIG15IFhQUyAx
-MyA5MzUwIHdpdGggdGhlIGxhdGVzdA0KPiAoMS4xLjcpIGZpcm13YXJlLg0KPiANCj4gWyAgKzAu
-MDA0NTg1XSBBQ1BJIEVycm9yOiBbXF9TQl8uUENJMC5MUENCLkhfRUMuRUNBVl0gTmFtZXNwYWNl
-IGxvb2t1cA0KPiBmYWlsdXJlLCBBRV9OT1RfRk9VTkQgKDIwMTUwOTMwL3BzYXJncy0zNTkpDQo+
-IA0KPiBbICArMC4wMDAwMDldDQo+ICAgICAgICAgICAgICAgSW5pdGlhbGl6ZWQgTG9jYWwgVmFy
-aWFibGVzIGZvciBtZXRob2QgW0ZOQ0xdOg0KPiBbICArMC4wMDAwMDFdICAgTG9jYWwwOiBmZmZm
-ODgwMDc0ZTE4MzE4IDxPYmo+ICAgICAgICAgICBJbnRlZ2VyDQo+IDAwMDAwMDAwMDAwMDAwMDEN
-Cj4gWyAgKzAuMDAwMDA0XSAgIExvY2FsMTogZmZmZjg4MDA3NGUxODVlOCA8T2JqPiAgICAgICAg
-ICAgSW50ZWdlcg0KPiAwMDAwMDAwMDAwMDAwMDAwDQo+IFsgICswLjAwMDAwM10gICBMb2NhbDI6
-IGZmZmY4ODAwNzRlMTg0ODAgPE9iaj4gICAgICAgICAgIEludGVnZXINCj4gMDAwMDAwMDAwMDAw
-MDAwMA0KPiBbICArMC4wMDAwMDNdICAgTG9jYWwzOiBmZmZmODgwMDc0ZTE4NDM4IDxPYmo+ICAg
-ICAgICAgICBJbnRlZ2VyDQo+IDAwMDAwMDAwMDAwMDAwMDANCj4gWyAgKzAuMDAwMDAyXSAgIExv
-Y2FsNDogZmZmZjg4MDA3NGUxODUxMCA8T2JqPiAgICAgICAgICAgSW50ZWdlcg0KPiAwMDAwMDAw
-MDAwMDAwMDAwDQo+IFsgICswLjAwMDAwM10gICBMb2NhbDU6IGZmZmY4ODAwNzRlMTg2MzAgPE9i
-aj4gICAgICAgICAgIEludGVnZXINCj4gMDAwMDAwMDAwMDAwMDAwMA0KPiBbICArMC4wMDAwMDNd
-ICAgTG9jYWw2OiBmZmZmODgwMDc0ZTE4M2YwIDxPYmo+ICAgICAgICAgICBJbnRlZ2VyDQo+IDAw
-MDAwMDAwMDAwMDAwMDANCj4gDQo+IFsgICswLjAwMDAwNF0gTm8gQXJndW1lbnRzIGFyZSBpbml0
-aWFsaXplZCBmb3IgbWV0aG9kIFtGTkNMXQ0KPiANCj4gWyAgKzAuMDAwMDAyXSBBQ1BJIEVycm9y
-OiBNZXRob2QgcGFyc2UvZXhlY3V0aW9uIGZhaWxlZCBbXF9UWi5GTkNMXQ0KPiAoTm9kZSBmZmZm
-ODgwMjc4MTFmNGQ4KSwgQUVfTk9UX0ZPVU5EICgyMDE1MDkzMC9wc3BhcnNlLTU0MikNCj4gWyAg
-KzAuMDAwMDA2XSBBQ1BJIEVycm9yOiBNZXRob2QgcGFyc2UvZXhlY3V0aW9uIGZhaWxlZA0KPiBb
-XF9UWi5GTjAwLl9PTl0gKE5vZGUgZmZmZjg4MDI3ODBlZWVkOCksIEFFX05PVF9GT1VORA0KPiAo
-MjAxNTA5MzAvcHNwYXJzZS01NDIpDQo+IA0KPiBJJ20gSSdtIHVuZGVyc3RhbmRpbmcgdGhlIG1l
-c3NhZ2UgY29ycmVjdGx5LCB0aGlzIG1lYW5zIHRoYXQgRUNBVg0KPiBjYW4ndCBiZSBmb3VuZCwg
-YnV0IEVDQVYgYXBwZWFycyB0byBiZSBkZWNsYXJlZC4NCj4gDQo+IFRoaXMgc3R1ZmYgaXMgaW4g
-U1NEVDQsIGF0dGFjaGVkLg0KPiANCj4gQW0gSSByZWFkaW5nIGl0IGNvcnJlY3RseT8gIFRoaXMg
-aXMgTGludXggNC40LXJjMy4NCj4gDQo+IC0tQW5keQ0K
+I have a device (Nuvoton 6779D Super-IO IR RC with nuvoton-cir driver)
+which works after initial boot but not any longer if I unload and
+re-load the driver module.
+
+Digging into the issue I found that unloading the driver calls
+pnp_disable_dev although the driver has flag PNP_DRIVER_RES_DO_NOT_CHANGE
+set. IMHO this is not right.
+
+Let's have a look at the call chain when probing a device:
+pnp_device_probe
+1. attaches the device
+2. if it's not active and PNP_DRIVER_RES_DO_NOT_CHANGE is not set
+   it gets activated
+3. probes driver
+
+I think pnp_device_remove should do it in reverse order and also
+respect PNP_DRIVER_RES_DO_NOT_CHANGE. Therefore:
+1. call drivers remove callback
+2. if device is active and PNP_DRIVER_RES_DO_NOT_CHANGE is not set
+   disable it
+3. detach device
+
+The change works for me and sounds logical to me.
+However I don't know the pnp driver in detail so I might be wrong.
+
+Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
+---
+ drivers/pnp/driver.c | 6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/pnp/driver.c b/drivers/pnp/driver.c
+index 153a493..74b201d 100644
+--- a/drivers/pnp/driver.c
++++ b/drivers/pnp/driver.c
+@@ -74,7 +74,6 @@ void pnp_device_detach(struct pnp_dev *pnp_dev)
+ 	if (pnp_dev->status == PNP_ATTACHED)
+ 		pnp_dev->status = PNP_READY;
+ 	mutex_unlock(&pnp_lock);
+-	pnp_disable_dev(pnp_dev);
+ }
+ 
+ static int pnp_device_probe(struct device *dev)
+@@ -131,6 +130,11 @@ static int pnp_device_remove(struct device *dev)
+ 			drv->remove(pnp_dev);
+ 		pnp_dev->driver = NULL;
+ 	}
++
++	if (pnp_dev->active &&
++	    (!drv || !(drv->flags & PNP_DRIVER_RES_DO_NOT_CHANGE)))
++		pnp_disable_dev(pnp_dev);
++
+ 	pnp_device_detach(pnp_dev);
+ 	return 0;
+ }
+-- 
+2.6.2
+
+
