@@ -1,41 +1,51 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: question on possible functionality...
-Date: Wed, 16 Dec 2015 04:18:32 +0100
-Message-ID: <2082437.3D9tUlxHqv@vostro.rjw.lan>
-References: <5670AE46.1000107@redhat.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: Incorrect ACPI error on Dell XPS 13 9350?
+Date: Wed, 16 Dec 2015 02:59:02 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BB08D08@SHSMSX101.ccr.corp.intel.com>
+References: <CALCETrW-GTC0gTtRjbzxgiNepOxWNYMbGqmC9iqGXOMscMNg1A@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:47791 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751445AbbLPCsX (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 15 Dec 2015 21:48:23 -0500
-In-Reply-To: <5670AE46.1000107@redhat.com>
+Received: from mga01.intel.com ([192.55.52.88]:30980 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753657AbbLPC7E (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 15 Dec 2015 21:59:04 -0500
+In-Reply-To: <CALCETrW-GTC0gTtRjbzxgiNepOxWNYMbGqmC9iqGXOMscMNg1A@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Al Stone <ahs3@redhat.com>
-Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, David Box <david.e.box@linux.intel.com>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>
+To: Andy Lutomirski <luto@amacapital.net>, Linux ACPI <linux-acpi@vger.kernel.org>
 
-On Tuesday, December 15, 2015 05:20:22 PM Al Stone wrote:
-> Howdy.
-> 
-> I have run into a couple of cases now where is would like to do something
-> like the following:
-> 
->    $ iasl --acpi-version=5.1 apic.asl
-> 
-> to build a 5.1-compliant FADT, as compared to:
-> 
->    $ iasl apic.asl
-> 
-> which always expects a very recent definition of the tables being defined.
-> 
-> Is anyone working on such a thing?  Or has it been contemplated in the past
-> and discarded for some reason?
-
-CCing the ACPICA maintainers.
-
-Thanks,
-Rafael
-
+SGksIEFuZHkNCg0KSSBjYW4gb25seSBmaW5kIEZOQ0wgaW4gdGhlIHByb3ZpZGVkIEFTTCBzb3Vy
+Y2UuDQpUaGlzIGlzIG5vdCBzdWZmaWNpZW50Lg0KQ291bGQgeW91IHByb3ZpZGUgZnVsbCBhY3Bp
+ZHVtcC9kbWVzZyBmb3IgdXMgdG8gY2hlY2s/DQoNClRoYW5rcyBhbmQgYmVzdCByZWdhcmRzDQot
+THYNCg0KPiBGcm9tOiBsaW51eC1hY3BpLW93bmVyQHZnZXIua2VybmVsLm9yZyBbbWFpbHRvOmxp
+bnV4LWFjcGktDQo+IG93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIEFuZHkgTHV0
+b21pcnNraQ0KPiANCj4gSSdtIGdldHRpbmcgdGhpcyBlcnJvciBvbiBib290IG9uIG15IFhQUyAx
+MyA5MzUwIHdpdGggdGhlIGxhdGVzdA0KPiAoMS4xLjcpIGZpcm13YXJlLg0KPiANCj4gWyAgKzAu
+MDA0NTg1XSBBQ1BJIEVycm9yOiBbXF9TQl8uUENJMC5MUENCLkhfRUMuRUNBVl0gTmFtZXNwYWNl
+IGxvb2t1cA0KPiBmYWlsdXJlLCBBRV9OT1RfRk9VTkQgKDIwMTUwOTMwL3BzYXJncy0zNTkpDQo+
+IA0KPiBbICArMC4wMDAwMDldDQo+ICAgICAgICAgICAgICAgSW5pdGlhbGl6ZWQgTG9jYWwgVmFy
+aWFibGVzIGZvciBtZXRob2QgW0ZOQ0xdOg0KPiBbICArMC4wMDAwMDFdICAgTG9jYWwwOiBmZmZm
+ODgwMDc0ZTE4MzE4IDxPYmo+ICAgICAgICAgICBJbnRlZ2VyDQo+IDAwMDAwMDAwMDAwMDAwMDEN
+Cj4gWyAgKzAuMDAwMDA0XSAgIExvY2FsMTogZmZmZjg4MDA3NGUxODVlOCA8T2JqPiAgICAgICAg
+ICAgSW50ZWdlcg0KPiAwMDAwMDAwMDAwMDAwMDAwDQo+IFsgICswLjAwMDAwM10gICBMb2NhbDI6
+IGZmZmY4ODAwNzRlMTg0ODAgPE9iaj4gICAgICAgICAgIEludGVnZXINCj4gMDAwMDAwMDAwMDAw
+MDAwMA0KPiBbICArMC4wMDAwMDNdICAgTG9jYWwzOiBmZmZmODgwMDc0ZTE4NDM4IDxPYmo+ICAg
+ICAgICAgICBJbnRlZ2VyDQo+IDAwMDAwMDAwMDAwMDAwMDANCj4gWyAgKzAuMDAwMDAyXSAgIExv
+Y2FsNDogZmZmZjg4MDA3NGUxODUxMCA8T2JqPiAgICAgICAgICAgSW50ZWdlcg0KPiAwMDAwMDAw
+MDAwMDAwMDAwDQo+IFsgICswLjAwMDAwM10gICBMb2NhbDU6IGZmZmY4ODAwNzRlMTg2MzAgPE9i
+aj4gICAgICAgICAgIEludGVnZXINCj4gMDAwMDAwMDAwMDAwMDAwMA0KPiBbICArMC4wMDAwMDNd
+ICAgTG9jYWw2OiBmZmZmODgwMDc0ZTE4M2YwIDxPYmo+ICAgICAgICAgICBJbnRlZ2VyDQo+IDAw
+MDAwMDAwMDAwMDAwMDANCj4gDQo+IFsgICswLjAwMDAwNF0gTm8gQXJndW1lbnRzIGFyZSBpbml0
+aWFsaXplZCBmb3IgbWV0aG9kIFtGTkNMXQ0KPiANCj4gWyAgKzAuMDAwMDAyXSBBQ1BJIEVycm9y
+OiBNZXRob2QgcGFyc2UvZXhlY3V0aW9uIGZhaWxlZCBbXF9UWi5GTkNMXQ0KPiAoTm9kZSBmZmZm
+ODgwMjc4MTFmNGQ4KSwgQUVfTk9UX0ZPVU5EICgyMDE1MDkzMC9wc3BhcnNlLTU0MikNCj4gWyAg
+KzAuMDAwMDA2XSBBQ1BJIEVycm9yOiBNZXRob2QgcGFyc2UvZXhlY3V0aW9uIGZhaWxlZA0KPiBb
+XF9UWi5GTjAwLl9PTl0gKE5vZGUgZmZmZjg4MDI3ODBlZWVkOCksIEFFX05PVF9GT1VORA0KPiAo
+MjAxNTA5MzAvcHNwYXJzZS01NDIpDQo+IA0KPiBJJ20gSSdtIHVuZGVyc3RhbmRpbmcgdGhlIG1l
+c3NhZ2UgY29ycmVjdGx5LCB0aGlzIG1lYW5zIHRoYXQgRUNBVg0KPiBjYW4ndCBiZSBmb3VuZCwg
+YnV0IEVDQVYgYXBwZWFycyB0byBiZSBkZWNsYXJlZC4NCj4gDQo+IFRoaXMgc3R1ZmYgaXMgaW4g
+U1NEVDQsIGF0dGFjaGVkLg0KPiANCj4gQW0gSSByZWFkaW5nIGl0IGNvcnJlY3RseT8gIFRoaXMg
+aXMgTGludXggNC40LXJjMy4NCj4gDQo+IC0tQW5keQ0K
