@@ -1,79 +1,135 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V2 14/23] pci, acpi: Provide generic way to assign bus domain number.
-Date: Wed, 16 Dec 2015 16:16:24 +0100
-Message-ID: <1450278993-12664-15-git-send-email-tn@semihalf.com>
+Subject: [PATCH V2 13/23] x86, ia64, pci: Remove ACPI companion device from platform specific data.
+Date: Wed, 16 Dec 2015 16:16:23 +0100
+Message-ID: <1450278993-12664-14-git-send-email-tn@semihalf.com>
 References: <1450278993-12664-1-git-send-email-tn@semihalf.com>
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wm0-f45.google.com ([74.125.82.45]:38653 "EHLO
+	mail-wm0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934031AbbLPPSE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2015 10:18:04 -0500
+Received: by mail-wm0-f45.google.com with SMTP id l126so42576717wml.1
+        for <linux-acpi@vger.kernel.org>; Wed, 16 Dec 2015 07:18:03 -0800 (PST)
 In-Reply-To: <1450278993-12664-1-git-send-email-tn@semihalf.com>
-Sender: linux-pci-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, Stefano.Stabellini@eu.citrix.com
 Cc: robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com, Tomasz Nowicki <tn@semihalf.com>
-List-Id: linux-acpi@vger.kernel.org
 
-As we now have valid PCI host bridge device reference we can
-introduce code that is going to find its bus domain number using
-ACPI _SEG method.
-
-Note that _SEG method is optional, therefore _SEG absence means
-that all PCI buses belong to domain 0.
+Since PCI core code is setting ACPI companion device for us now,
+platform specific ACPI companion device setting turns out to be dead now.
+Therefore we can get rid of it, including related companion reference
+from PCI sysdata structure.
 
 Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-Reviewed-by: Liviu Dudau <Liviu.Dudau@arm.com>
-Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 ---
- drivers/pci/pci.c | 29 +++++++++++++++++++++++++----
- 1 file changed, 25 insertions(+), 4 deletions(-)
+ arch/ia64/include/asm/pci.h |  1 -
+ arch/ia64/pci/pci.c         | 16 ----------------
+ arch/x86/include/asm/pci.h  |  3 ---
+ arch/x86/pci/acpi.c         |  2 --
+ arch/x86/pci/irq.c          | 10 ----------
+ 5 files changed, 32 deletions(-)
 
-diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
-index 7274006..39a985b 100644
---- a/drivers/pci/pci.c
-+++ b/drivers/pci/pci.c
-@@ -25,6 +25,7 @@
- #include <linux/device.h>
- #include <linux/pm_runtime.h>
- #include <linux/pci_hotplug.h>
-+#include <linux/acpi.h>
- #include <asm-generic/pci-bridge.h>
- #include <asm/setup.h>
- #include <linux/aer.h>
-@@ -4796,14 +4797,34 @@ void pci_bus_assign_domain_nr(struct pci_bus *bus, struct device *parent)
- 	 * API and update the use_dt_domains value to keep track of method we
- 	 * are using to assign domain numbers (use_dt_domains = 0).
- 	 *
-+	 * IF ACPI, we expect non-DT method (use_dt_domains == -1)
-+	 * and call _SEG method for corresponding host bridge device.
-+	 * If _SEG method does not exist, following ACPI spec (6.5.6)
-+	 * all PCI buses belong to domain 0.
-+	 *
- 	 * All other combinations imply we have a platform that is trying
--	 * to mix domain numbers obtained from DT and pci_get_new_domain_nr(),
--	 * which is a recipe for domain mishandling and it is prevented by
--	 * invalidating the domain value (domain = -1) and printing a
--	 * corresponding error.
-+	 * to mix domain numbers obtained from DT, ACPI and
-+	 * pci_get_new_domain_nr(), which is a recipe for domain mishandling and
-+	 * it is prevented by invalidating the domain value (domain = -1) and
-+	 * printing a corresponding error.
- 	 */
-+
- 	if (domain >= 0 && use_dt_domains) {
- 		use_dt_domains = 1;
-+#ifdef CONFIG_ACPI
-+	} else if (!acpi_disabled && use_dt_domains == -1) {
-+		struct acpi_device *acpi_dev = to_acpi_device(parent);
-+		unsigned long long segment = 0;
-+		acpi_status status;
-+
-+		status = acpi_evaluate_integer(acpi_dev->handle,
-+					       METHOD_NAME__SEG, NULL,
-+					       &segment);
-+		if (ACPI_FAILURE(status) && status != AE_NOT_FOUND)
-+			dev_err(&acpi_dev->dev,  "can't evaluate _SEG\n");
-+
-+		domain = segment;
-+#endif
- 	} else if (domain < 0 && use_dt_domains != 1) {
- 		use_dt_domains = 0;
- 		domain = pci_get_new_domain_nr();
+diff --git a/arch/ia64/include/asm/pci.h b/arch/ia64/include/asm/pci.h
+index 07039d1..5050748 100644
+--- a/arch/ia64/include/asm/pci.h
++++ b/arch/ia64/include/asm/pci.h
+@@ -65,7 +65,6 @@ extern int pci_mmap_legacy_page_range(struct pci_bus *bus,
+ #define pci_legacy_write platform_pci_legacy_write
+ 
+ struct pci_controller {
+-	struct acpi_device *companion;
+ 	void *iommu;
+ 	int segment;
+ 	int node;		/* nearest node with memory or NUMA_NO_NODE for global allocation */
+diff --git a/arch/ia64/pci/pci.c b/arch/ia64/pci/pci.c
+index 8f6ac2f..978d6af 100644
+--- a/arch/ia64/pci/pci.c
++++ b/arch/ia64/pci/pci.c
+@@ -301,28 +301,12 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
+ 	}
+ 
+ 	info->controller.segment = root->segment;
+-	info->controller.companion = device;
+ 	info->controller.node = acpi_get_node(device->handle);
+ 	INIT_LIST_HEAD(&info->io_resources);
+ 	return acpi_pci_root_create(root, &pci_acpi_root_ops,
+ 				    &info->common, &info->controller);
+ }
+ 
+-int pcibios_root_bridge_prepare(struct pci_host_bridge *bridge)
+-{
+-	/*
+-	 * We pass NULL as parent to pci_create_root_bus(), so if it is not NULL
+-	 * here, pci_create_root_bus() has been called by someone else and
+-	 * sysdata is likely to be different from what we expect.  Let it go in
+-	 * that case.
+-	 */
+-	if (!bridge->dev.parent) {
+-		struct pci_controller *controller = bridge->bus->sysdata;
+-		ACPI_COMPANION_SET(&bridge->dev, controller->companion);
+-	}
+-	return 0;
+-}
+-
+ void pcibios_fixup_device_resources(struct pci_dev *dev)
+ {
+ 	int idx;
+diff --git a/arch/x86/include/asm/pci.h b/arch/x86/include/asm/pci.h
+index 4625943..a98c022 100644
+--- a/arch/x86/include/asm/pci.h
++++ b/arch/x86/include/asm/pci.h
+@@ -14,9 +14,6 @@
+ struct pci_sysdata {
+ 	int		domain;		/* PCI domain */
+ 	int		node;		/* NUMA node */
+-#ifdef CONFIG_ACPI
+-	struct acpi_device *companion;	/* ACPI companion device */
+-#endif
+ #ifdef CONFIG_X86_64
+ 	void		*iommu;		/* IOMMU private data */
+ #endif
+diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
+index 56714a9..286e0f5 100644
+--- a/arch/x86/pci/acpi.c
++++ b/arch/x86/pci/acpi.c
+@@ -333,7 +333,6 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
+ 		struct pci_sysdata sd = {
+ 			.domain = domain,
+ 			.node = node,
+-			.companion = root->device
+ 		};
+ 
+ 		memcpy(bus->sysdata, &sd, sizeof(sd));
+@@ -348,7 +347,6 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
+ 		else {
+ 			info->sd.domain = domain;
+ 			info->sd.node = node;
+-			info->sd.companion = root->device;
+ 			bus = acpi_pci_root_create(root, &acpi_pci_root_ops,
+ 						   &info->common, &info->sd);
+ 		}
+diff --git a/arch/x86/pci/irq.c b/arch/x86/pci/irq.c
+index 7032798..cc62226 100644
+--- a/arch/x86/pci/irq.c
++++ b/arch/x86/pci/irq.c
+@@ -1153,16 +1153,6 @@ void __init pcibios_irq_init(void)
+ 
+ int pcibios_root_bridge_prepare(struct pci_host_bridge *bridge)
+ {
+-	/*
+-	 * We pass NULL as parent to pci_create_root_bus(), so if it is not NULL
+-	 * here, pci_create_root_bus() has been called by someone else and
+-	 * sysdata is likely to be different from what we expect.  Let it go in
+-	 * that case.
+-	 */
+-	if (!bridge->dev.parent) {
+-		struct pci_sysdata *sd = bridge->bus->sysdata;
+-		ACPI_COMPANION_SET(&bridge->dev, sd->companion);
+-	}
+ 	bridge->map_irq = pci_map_irq;
+ 	return 0;
+ }
 -- 
 1.9.1
+
