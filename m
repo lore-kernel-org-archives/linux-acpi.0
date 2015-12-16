@@ -1,106 +1,62 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V2 10/23] x86, pci: Cleanup platform specific MCFG data using previously added ECAM hot_added flag.
-Date: Wed, 16 Dec 2015 16:16:20 +0100
-Message-ID: <1450278993-12664-11-git-send-email-tn@semihalf.com>
+Subject: [PATCH V2 09/23] pci, acpi, ecam: Add flag to indicate whether ECAM region was hot added or not.
+Date: Wed, 16 Dec 2015 16:16:19 +0100
+Message-ID: <1450278993-12664-10-git-send-email-tn@semihalf.com>
 References: <1450278993-12664-1-git-send-email-tn@semihalf.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f52.google.com ([74.125.82.52]:36875 "EHLO
-	mail-wm0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933908AbbLPPR7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2015 10:17:59 -0500
-Received: by mail-wm0-f52.google.com with SMTP id p187so5610397wmp.0
-        for <linux-acpi@vger.kernel.org>; Wed, 16 Dec 2015 07:17:58 -0800 (PST)
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <1450278993-12664-1-git-send-email-tn@semihalf.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-pci-owner@vger.kernel.org
 To: bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, Stefano.Stabellini@eu.citrix.com
 Cc: robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com, Tomasz Nowicki <tn@semihalf.com>
+List-Id: linux-acpi@vger.kernel.org
 
-Now that we have hot_added flag and all information in struct acpi_pci_root
-we need, we can get rid of arch specific mcfg data from struct pci_root_info.
+There are two ways we can get ECAM (aka MCFG) regions using ACPI,
+from MCFG static table and from _CBA method. We cannot remove static
+regions, however regions coming from _CBA should be removed while removing
+bridge device.
+
+In the light of above we need flag to mark hot added ECAM entries
+so that user should use pci_mmconfig_inject while adding regions from
+_CBA method.
 
 Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
 Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 ---
- arch/x86/pci/acpi.c | 36 ++++++++++++++----------------------
- 1 file changed, 14 insertions(+), 22 deletions(-)
+ drivers/pci/ecam.c   | 2 ++
+ include/linux/ecam.h | 1 +
+ 2 files changed, 3 insertions(+)
 
-diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
-index 64caf2b..56714a9 100644
---- a/arch/x86/pci/acpi.c
-+++ b/arch/x86/pci/acpi.c
-@@ -12,11 +12,6 @@
- struct pci_root_info {
- 	struct acpi_pci_root_info common;
- 	struct pci_sysdata sd;
--#ifdef	CONFIG_PCI_MMCONFIG
--	bool mcfg_added;
--	u8 start_bus;
--	u8 end_bus;
--#endif
+diff --git a/drivers/pci/ecam.c b/drivers/pci/ecam.c
+index 8a5eef7..da35b4c 100644
+--- a/drivers/pci/ecam.c
++++ b/drivers/pci/ecam.c
+@@ -131,6 +131,7 @@ struct pci_mmcfg_region *pci_mmconfig_alloc(int segment, int start,
+ 	new->segment = segment;
+ 	new->start_bus = start;
+ 	new->end_bus = end;
++	new->hot_added = false;
+ 
+ 	res = &new->res;
+ 	res->start = addr + PCI_MMCFG_BUS_OFFSET(start);
+@@ -221,6 +222,7 @@ int pci_mmconfig_inject(struct pci_mmcfg_region *cfg)
+ 		err = -ENOMEM;
+ 		goto out;
+ 	} else {
++		cfg->hot_added = true;
+ 		list_add_sorted(cfg);
+ 		pr_info("MMCONFIG at %pR (base %#lx)\n",
+ 			&cfg->res, (unsigned long)cfg->address);
+diff --git a/include/linux/ecam.h b/include/linux/ecam.h
+index 813acd1..e0f322e 100644
+--- a/include/linux/ecam.h
++++ b/include/linux/ecam.h
+@@ -17,6 +17,7 @@ struct pci_mmcfg_region {
+ 	u8 start_bus;
+ 	u8 end_bus;
+ 	char name[PCI_MMCFG_RESOURCE_NAME_LEN];
++	bool hot_added;
  };
  
- static bool pci_use_crs = true;
-@@ -180,16 +175,13 @@ static int check_segment(u16 seg, struct device *dev, char *estr)
- 
- static int setup_mcfg_map(struct acpi_pci_root_info *ci)
- {
--	int result, seg;
--	struct pci_root_info *info;
-+	int result, seg, start, end;
- 	struct acpi_pci_root *root = ci->root;
- 	struct device *dev = &ci->bridge->dev;
- 
--	info = container_of(ci, struct pci_root_info, common);
--	info->start_bus = (u8)root->secondary.start;
--	info->end_bus = (u8)root->secondary.end;
--	info->mcfg_added = false;
--	seg = info->sd.domain;
-+	seg = root->segment;
-+	start = root->secondary.start;
-+	end = root->secondary.end;
- 
- 	/* return success if MMCFG is not in use */
- 	if (raw_pci_ext_ops && raw_pci_ext_ops != &pci_mmcfg)
-@@ -198,13 +190,11 @@ static int setup_mcfg_map(struct acpi_pci_root_info *ci)
- 	if (!(pci_probe & PCI_PROBE_MMCONF))
- 		return check_segment(seg, dev, "MMCONFIG is disabled,");
- 
--	result = pci_mmconfig_insert(dev, seg, info->start_bus, info->end_bus,
--				     root->mcfg_addr);
-+	result = pci_mmconfig_insert(dev, seg, start, end, root->mcfg_addr);
- 	if (result == 0) {
- 		/* enable MMCFG if it hasn't been enabled yet */
- 		if (raw_pci_ext_ops == NULL)
- 			raw_pci_ext_ops = &pci_mmcfg;
--		info->mcfg_added = true;
- 	} else if (result != -EEXIST)
- 		return check_segment(seg, dev,
- 			 "fail to add MMCONFIG information,");
-@@ -214,14 +204,16 @@ static int setup_mcfg_map(struct acpi_pci_root_info *ci)
- 
- static void teardown_mcfg_map(struct acpi_pci_root_info *ci)
- {
--	struct pci_root_info *info;
-+	struct acpi_pci_root *root = ci->root;
-+	struct pci_mmcfg_region *cfg;
- 
--	info = container_of(ci, struct pci_root_info, common);
--	if (info->mcfg_added) {
--		pci_mmconfig_delete(info->sd.domain,
--				    info->start_bus, info->end_bus);
--		info->mcfg_added = false;
--	}
-+	cfg = pci_mmconfig_lookup(root->segment, root->secondary.start);
-+	if (!cfg)
-+		return;
-+
-+	if (cfg->hot_added)
-+		pci_mmconfig_delete(root->segment, root->secondary.start,
-+				    root->secondary.end);
- }
- #else
- static int setup_mcfg_map(struct acpi_pci_root_info *ci)
+ struct pci_mmcfg_region *pci_mmconfig_lookup(int segment, int bus);
 -- 
 1.9.1
-
