@@ -1,63 +1,81 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V2 03/23] pci, acpi, mcfg: Provide generic implementation of MCFG code initialization.
-Date: Wed, 16 Dec 2015 16:16:13 +0100
-Message-ID: <1450278993-12664-4-git-send-email-tn@semihalf.com>
+Subject: [PATCH V2 08/23] arm64, acpi: Use empty PCI config space accessors from mcfg.c file.
+Date: Wed, 16 Dec 2015 16:16:18 +0100
+Message-ID: <1450278993-12664-9-git-send-email-tn@semihalf.com>
 References: <1450278993-12664-1-git-send-email-tn@semihalf.com>
-Return-path: <linux-pci-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wm0-f43.google.com ([74.125.82.43]:33161 "EHLO
+	mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965764AbbLPPRz (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2015 10:17:55 -0500
+Received: by mail-wm0-f43.google.com with SMTP id p187so5700333wmp.0
+        for <linux-acpi@vger.kernel.org>; Wed, 16 Dec 2015 07:17:54 -0800 (PST)
 In-Reply-To: <1450278993-12664-1-git-send-email-tn@semihalf.com>
-Sender: linux-pci-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, Stefano.Stabellini@eu.citrix.com
 Cc: robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com, Tomasz Nowicki <tn@semihalf.com>
-List-Id: linux-acpi@vger.kernel.org
 
-First function acpi_mcfg_check_entry() does not apply any quirks by default.
-
-Last two functions are required by ACPI subsystem to make PCI config
-space accessible. Generic code assume to do nothing for early init call but
-late init call does as follow:
-- parse MCFG table and add regions to ECAM resource list
-- map regions
-- add regions to iomem_resource
+We can now use previously prepared empty ACPI RAW accessors
+and cleanup a bit before adding full support for PCI host bridge driver.
 
 Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
 Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 ---
- drivers/acpi/mcfg.c | 26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
+ arch/arm64/Kconfig      |  6 ++++++
+ arch/arm64/kernel/pci.c | 15 ---------------
+ 2 files changed, 6 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/acpi/mcfg.c b/drivers/acpi/mcfg.c
-index 5ecef20..fad9917 100644
---- a/drivers/acpi/mcfg.c
-+++ b/drivers/acpi/mcfg.c
-@@ -57,3 +57,29 @@ int __init acpi_parse_mcfg(struct acpi_table_header *header)
+diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+index 871f217..d65d315 100644
+--- a/arch/arm64/Kconfig
++++ b/arch/arm64/Kconfig
+@@ -92,6 +92,7 @@ config ARM64
+ 	select SPARSE_IRQ
+ 	select SYSCTL_EXCEPTION_TRACE
+ 	select HAVE_CONTEXT_TRACKING
++	select HAVE_PCI_ECAM
+ 	help
+ 	  ARM 64-bit (AArch64) Linux support.
  
+@@ -207,6 +208,11 @@ source "drivers/pci/Kconfig"
+ source "drivers/pci/pcie/Kconfig"
+ source "drivers/pci/hotplug/Kconfig"
+ 
++config PCI_MMCONFIG
++	def_bool y
++	select PCI_ECAM
++	depends on ACPI
++
+ endmenu
+ 
+ menu "Kernel Features"
+diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
+index b3d098b..023b983 100644
+--- a/arch/arm64/kernel/pci.c
++++ b/arch/arm64/kernel/pci.c
+@@ -61,21 +61,6 @@ int pcibios_add_device(struct pci_dev *dev)
  	return 0;
  }
-+
-+int __init __weak acpi_mcfg_check_entry(struct acpi_table_mcfg *mcfg,
-+					struct acpi_mcfg_allocation *cfg)
-+{
-+	return 0;
-+}
-+
-+void __init __weak pci_mmcfg_early_init(void)
-+{
-+
-+}
-+
-+void __init __weak pci_mmcfg_late_init(void)
-+{
-+	struct pci_mmcfg_region *cfg;
-+
-+	acpi_table_parse(ACPI_SIG_MCFG, acpi_parse_mcfg);
-+
-+	if (list_empty(&pci_mmcfg_list))
-+		return;
-+	if (!pci_mmcfg_arch_init())
-+		free_all_mmcfg();
-+
-+	list_for_each_entry(cfg, &pci_mmcfg_list, list)
-+		insert_resource(&iomem_resource, &cfg->res);
-+}
+ 
+-/*
+- * raw_pci_read/write - Platform-specific PCI config space access.
+- */
+-int raw_pci_read(unsigned int domain, unsigned int bus,
+-		  unsigned int devfn, int reg, int len, u32 *val)
+-{
+-	return -ENXIO;
+-}
+-
+-int raw_pci_write(unsigned int domain, unsigned int bus,
+-		unsigned int devfn, int reg, int len, u32 val)
+-{
+-	return -ENXIO;
+-}
+-
+ #ifdef CONFIG_ACPI
+ /* Root bridge scanning */
+ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
 -- 
 1.9.1
+
