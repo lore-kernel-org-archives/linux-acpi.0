@@ -1,44 +1,60 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH V1 00/11] MMCONFIG refactoring and ARM64 PCI hostbridge
- init based on ACPI
-Date: Wed, 16 Dec 2015 14:05:56 +0000
-Message-ID: <20151216140556.GC22916@red-moon>
-References: <1445963922-22711-1-git-send-email-tn@semihalf.com>
- <20151207203117.GB14429@localhost>
- <20151209100125.GA12632@jayachandranc.netlogicmicro.com>
- <20151209155511.GB21048@red-moon>
- <20151216125136.GE5890@jayachandranc.netlogicmicro.com>
+From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Subject: Re: [PATCH] i2c: designware: Do not require clock when SSCN and FFCN
+ are provided
+Date: Wed, 16 Dec 2015 08:11:12 -0600
+Message-ID: <56717100.3020602@amd.com>
+References: <1450219138-5868-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+ <20151216094202.GR1762@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:55653 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752333AbbLPOEj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 16 Dec 2015 09:04:39 -0500
-Content-Disposition: inline
-In-Reply-To: <20151216125136.GE5890@jayachandranc.netlogicmicro.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20151216094202.GR1762@lahna.fi.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: wsa@the-dreams.de, lho@apm.com, Ken.Xue@amd.com, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Jayachandran C." <jchandra@broadcom.com>, tn@semihalf.com
-Cc: Bjorn Helgaas <helgaas@kernel.org>, bhelgaas@google.com, arnd@arndb.de, rjw@rjwysocki.net, hanjun.guo@linaro.org, jiang.liu@linux.intel.com, ddaney@caviumnetworks.com, Liviu.Dudau@arm.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-On Wed, Dec 16, 2015 at 06:21:37PM +0530, Jayachandran C. wrote:
+Hi Mika,
 
-[...]
+On 12/16/2015 03:42 AM, Mika Westerberg wrote:
+> +Jarkko and Andy
+>
+> On Tue, Dec 15, 2015 at 04:38:58PM -0600, Suravee Suthikulpanit wrote:
+>> The current driver uses input clock source frequency to calculate
+>> values for [SS|FS]_[HC|LC] registers. However, when booting ACPI, we do not
+>> currently have a good way to provide the frequency information.
+>> Instead, we can leverage the SSCN and FFCN ACPI methods, which can be used
+>> to directly provide these values.
+>>
+>> So, this patch removes the clock requirement when SSCN and FFCN
+>> are provided.
+>
+> Actually I think the only thing you need to change is i2c_dw_init() so
+> that it does not call dev->get_clk_rate_khz(dev) if *CNT values are
+> already provided.
 
-> > That list is there to manage hotplug bridges, what makes you think
-> > it is not necessary ? Jiang (in CC) can certainly comment on that and
-> > how that list handling can be updated/simplified, if possible.
-> 
-> Looking thru the code, I think moving the MCFG code to common can be
-> done in a simpler way. I have posted a new patchset for this.
-> (And I don't see how the hotplug case needs the list, but that is not
->  relevant now)
+Please see below.
 
-You must work with Tomasz and come up with a unified patchset that
-implements ACPI PCIe support for ARM64. We do not need more churn, we
-need a working set, period. Posting separate RFCs just adds to the
-confusion and to maintainers' review backlog, with the end result of
-confusing everyone and achieving nothing.
+>
+> The clk framework should work fine if the returned clock is NULL (which
+> I think is your case).
+>
+> The driver gates clocks when the device is suspended and on Intel LPSS
+> there actually is a clock that gets gated.
+>
+>> [..]
+>> @@ -203,13 +223,11 @@ static int dw_i2c_plat_probe(struct platform_device *pdev)
+>>   		dev->master_cfg =  DW_IC_CON_MASTER | DW_IC_CON_SLAVE_DISABLE |
+>>   			DW_IC_CON_RESTART_EN | DW_IC_CON_SPEED_FAST;
+>>
+>> -	dev->clk = devm_clk_get(&pdev->dev, NULL);
+>> -	dev->get_clk_rate_khz = i2c_dw_get_clk_rate_khz;
+>> -	if (IS_ERR(dev->clk))
+>> -		return PTR_ERR(dev->clk);
 
-Lorenzo
+Actually, if we don't provide the clock (which is the case for ACPI), 
+this would also return and cause the probing to fail.
+
+Thanks,
+Suravee
