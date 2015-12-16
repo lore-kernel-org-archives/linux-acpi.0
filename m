@@ -1,61 +1,167 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V2 12/23] pci, acpi: Move ACPI host bridge device companion assignment to core code.
-Date: Wed, 16 Dec 2015 16:16:22 +0100
-Message-ID: <1450278993-12664-13-git-send-email-tn@semihalf.com>
+Subject: [PATCH V2 22/23] pci, acpi: Match PCI config space accessors against platfrom specific quirks.
+Date: Wed, 16 Dec 2015 16:16:32 +0100
+Message-ID: <1450278993-12664-23-git-send-email-tn@semihalf.com>
 References: <1450278993-12664-1-git-send-email-tn@semihalf.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wm0-f44.google.com ([74.125.82.44]:36064 "EHLO
+	mail-wm0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965878AbbLPPSU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2015 10:18:20 -0500
+Received: by mail-wm0-f44.google.com with SMTP id p187so5678447wmp.1
+        for <linux-acpi@vger.kernel.org>; Wed, 16 Dec 2015 07:18:20 -0800 (PST)
 In-Reply-To: <1450278993-12664-1-git-send-email-tn@semihalf.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, Stefano.Stabellini@eu.citrix.com
 Cc: robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com, Tomasz Nowicki <tn@semihalf.com>
-List-Id: linux-acpi@vger.kernel.org
 
-Currently we have two platforms (x86 & ia64) capable of PCI ACPI host
-bridge initialization. They both use sysdata pill to pass down parent
-device reference and both relay on NULL parent in pci_create_root_bus()
-to validate sysdata content.
+Some platforms may not be fully compliant with generic set of PCI config
+accessors. For these cases we implement the way to overwrite accessors
+set before PCI buses enumeration. Algorithm that overwrite accessors
+matches against platform ID (DMI), domain and bus number, hopefully
+enough for all cases. All quirks can be defined using:
+DECLARE_ACPI_MCFG_FIXUP() and keep self contained.
 
-It looks hacky and prevent us from getting some frimware specific
-info for PCI host controller e.g. bus domain number.
-However, it seems we can overcome that blocker by passing down parent
-device via pci_create_root_bus parameter (as the ACPI device type)
-and using ACPI_COMPANION_SET in core code for ACPI boot method.
-ACPI_COMPANION_SET is safe to run for all cases DT, ACPI and DT&ACPI.
+example:
+
+static const struct dmi_system_id yyy[] = {
+	{
+		.ident = "<Platform ident string>",
+		.callback = <handler>,
+		.matches = {
+			DMI_MATCH(DMI_SYS_VENDOR, "<system vendor>"),
+			DMI_MATCH(DMI_PRODUCT_NAME, "<product name>"),
+			DMI_MATCH(DMI_PRODUCT_VERSION, "product version"),
+		},
+	},
+	{ }
+};
+
+static struct pci_ops ecam_pci_ops = {
+	.map_bus = pci_mcfg_dev_base,
+	.read = xxxx_ecam_config_read,
+	.write = xxxx_ecam_config_write,
+};
+DECLARE_ACPI_MCFG_FIXUP(yyy, &ecam_pci_ops, <domain_nr>, <bus_nr>);
+
+Note, that more custom actions can be done via DMI callback hook.
 
 Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
 ---
- drivers/acpi/pci_root.c | 5 ++++-
- drivers/pci/probe.c     | 2 ++
- 2 files changed, 6 insertions(+), 1 deletion(-)
+ drivers/acpi/mcfg.c               | 35 +++++++++++++++++++++++++++++++++--
+ include/asm-generic/vmlinux.lds.h |  7 +++++++
+ include/linux/ecam.h              | 17 +++++++++++++++++
+ 3 files changed, 57 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index ae3fe4e..a65c8c2 100644
---- a/drivers/acpi/pci_root.c
-+++ b/drivers/acpi/pci_root.c
-@@ -846,7 +846,10 @@ struct pci_bus *acpi_pci_root_create(struct acpi_pci_root *root,
+diff --git a/drivers/acpi/mcfg.c b/drivers/acpi/mcfg.c
+index a9b2231..6d0194d 100644
+--- a/drivers/acpi/mcfg.c
++++ b/drivers/acpi/mcfg.c
+@@ -8,6 +8,7 @@
+  */
  
- 	pci_acpi_root_add_resources(info);
- 	pci_add_resource(&info->resources, &root->secondary);
--	bus = pci_create_root_bus(NULL, busnum, ops->pci_ops,
+ #include <linux/acpi.h>
++#include <linux/dmi.h>
+ #include <linux/ecam.h>
+ #include <linux/pci.h>
+ #include <linux/pci-acpi.h>
+@@ -34,6 +35,31 @@ int __weak raw_pci_write(unsigned int domain, unsigned int bus,
+ 	return PCIBIOS_DEVICE_NOT_FOUND;
+ }
+ 
++extern struct pci_mcfg_fixup __start_acpi_mcfg_fixups[];
++extern struct pci_mcfg_fixup __end_acpi_mcfg_fixups[];
 +
-+	/* Root bridge device needs to be sure of parent ACPI type */
-+	ACPI_COMPANION_SET(&device->dev, device);
-+	bus = pci_create_root_bus(&device->dev, busnum, ops->pci_ops,
- 				  sysdata, &info->resources);
- 	if (!bus)
- 		goto out_release_info;
-diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-index 553a029..cad836f 100644
---- a/drivers/pci/probe.c
-+++ b/drivers/pci/probe.c
-@@ -2107,6 +2107,8 @@ struct pci_bus *pci_create_root_bus(struct device *parent, int bus,
- 	bridge->dev.parent = parent;
- 	bridge->dev.release = pci_release_host_bridge_dev;
- 	dev_set_name(&bridge->dev, "pci%04x:%02x", pci_domain_nr(b), bus);
-+	ACPI_COMPANION_SET(&bridge->dev,
-+			   parent ? to_acpi_device_node(parent->fwnode) : NULL);
- 	error = pcibios_root_bridge_prepare(bridge);
- 	if (error) {
- 		kfree(bridge);
++static struct pci_ops *pci_mcfg_check_quirks(int domain, int bus_number)
++{
++	struct pci_mcfg_fixup *fixup;
++
++	fixup = __start_acpi_mcfg_fixups;
++	while (fixup < __end_acpi_mcfg_fixups) {
++		if (dmi_check_system(fixup->system) &&
++		    (fixup->domain == domain ||
++		     fixup->domain == PCI_MCFG_DOMAIN_ANY) &&
++		    (fixup->bus_number == bus_number ||
++		     fixup->bus_number == PCI_MCFG_BUS_ANY)) {
++			pr_info(PREFIX "Fixup applied: Platform [%s] domain [%d] bus number [%d]\n",
++				fixup->system->ident, fixup->domain,
++				fixup->bus_number);
++			return fixup->ops;
++		}
++		++fixup;
++	}
++
++	return NULL;
++}
++
+ void __iomem *
+ pci_mcfg_dev_base(struct pci_bus *bus, unsigned int devfn, int offset)
+ {
+@@ -56,10 +82,15 @@ static struct pci_ops default_pci_mcfg_ops = {
+ 
+ struct pci_ops *pci_mcfg_get_ops(int domain, int bus)
+ {
++	struct pci_ops *pci_mcfg_ops_quirk;
++
+ 	/*
+-	 * TODO: Match against platform specific quirks and return
+-	 * corresponding PCI config space accessor set.
++	 * Match against platform specific quirks and return corresponding
++	 * PCI config space accessor set.
+ 	 */
++	pci_mcfg_ops_quirk = pci_mcfg_check_quirks(domain, bus);
++	if (pci_mcfg_ops_quirk)
++		return pci_mcfg_ops_quirk;
+ 
+ 	return &default_pci_mcfg_ops;
+ }
+diff --git a/include/asm-generic/vmlinux.lds.h b/include/asm-generic/vmlinux.lds.h
+index c4bd0e2..c93fc97 100644
+--- a/include/asm-generic/vmlinux.lds.h
++++ b/include/asm-generic/vmlinux.lds.h
+@@ -298,6 +298,13 @@
+ 		VMLINUX_SYMBOL(__end_pci_fixups_suspend_late) = .;	\
+ 	}								\
+ 									\
++	/* ACPI MCFG quirks */						\
++	.acpi_fixup        : AT(ADDR(.acpi_fixup) - LOAD_OFFSET) {	\
++		VMLINUX_SYMBOL(__start_acpi_mcfg_fixups) = .;		\
++		*(.acpi_fixup_mcfg)					\
++		VMLINUX_SYMBOL(__end_acpi_mcfg_fixups) = .;		\
++	}								\
++									\
+ 	/* Built-in firmware blobs */					\
+ 	.builtin_fw        : AT(ADDR(.builtin_fw) - LOAD_OFFSET) {	\
+ 		VMLINUX_SYMBOL(__start_builtin_fw) = .;			\
+diff --git a/include/linux/ecam.h b/include/linux/ecam.h
+index e0f322e..1319fa8 100644
+--- a/include/linux/ecam.h
++++ b/include/linux/ecam.h
+@@ -20,6 +20,23 @@ struct pci_mmcfg_region {
+ 	bool hot_added;
+ };
+ 
++struct pci_mcfg_fixup {
++	const struct dmi_system_id *system;
++	struct pci_ops *ops;
++	int domain;
++	int bus_number;
++};
++
++#define PCI_MCFG_DOMAIN_ANY	-1
++#define PCI_MCFG_BUS_ANY	-1
++
++/* Designate a routine to fix up buggy MCFG */
++#define DECLARE_ACPI_MCFG_FIXUP(system, ops, dom, bus)			\
++	static const struct pci_mcfg_fixup __mcfg_fixup_##system##dom##bus\
++	 __used	__attribute__((__section__(".acpi_fixup_mcfg"),		\
++				aligned((sizeof(void *))))) =		\
++	{ system, ops, dom, bus };
++
+ struct pci_mmcfg_region *pci_mmconfig_lookup(int segment, int bus);
+ struct pci_mmcfg_region *pci_mmconfig_alloc(int segment, int start,
+ 						   int end, u64 addr);
 -- 
 1.9.1
+
