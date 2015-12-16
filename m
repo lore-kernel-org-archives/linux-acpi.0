@@ -1,110 +1,49 @@
-From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Subject: [PATCH] i2c: designware: Do not require clock when SSCN and FFCN are provided
-Date: Tue, 15 Dec 2015 16:38:58 -0600
-Message-ID: <1450219138-5868-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+From: Al Stone <ahs3@redhat.com>
+Subject: question on possible functionality...
+Date: Tue, 15 Dec 2015 17:20:22 -0700
+Message-ID: <5670AE46.1000107@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bn1on0078.outbound.protection.outlook.com ([157.56.110.78]:30336
-	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S965407AbbLOWjW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 15 Dec 2015 17:39:22 -0500
+Received: from mx1.redhat.com ([209.132.183.28]:46311 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754395AbbLPAUW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 15 Dec 2015 19:20:22 -0500
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (Postfix) with ESMTPS id B6395AA0DB
+	for <linux-acpi@vger.kernel.org>; Wed, 16 Dec 2015 00:20:22 +0000 (UTC)
+Received: from fidelio.ahs3 (ovpn-113-60.phx2.redhat.com [10.3.113.60])
+	by int-mx10.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id tBG0KMDq031232
+	for <linux-acpi@vger.kernel.org>; Tue, 15 Dec 2015 19:20:22 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: mika.westerberg@linux.intel.com, wsa@the-dreams.de
-Cc: lho@apm.com, Ken.Xue@amd.com, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+To: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>
 
-The current driver uses input clock source frequency to calculate
-values for [SS|FS]_[HC|LC] registers. However, when booting ACPI, we do not
-currently have a good way to provide the frequency information.
-Instead, we can leverage the SSCN and FFCN ACPI methods, which can be used
-to directly provide these values.
+Howdy.
 
-So, this patch removes the clock requirement when SSCN and FFCN
-are provided.
+I have run into a couple of cases now where is would like to do something
+like the following:
 
-Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
----
+   $ iasl --acpi-version=5.1 apic.asl
 
-Note: This has been tested on AMD Seattle RevB for both DT and ACPI.
+to build a 5.1-compliant FADT, as compared to:
 
- drivers/i2c/busses/i2c-designware-core.c    |  5 +++--
- drivers/i2c/busses/i2c-designware-platdrv.c | 30 +++++++++++++++++++++++------
- 2 files changed, 27 insertions(+), 8 deletions(-)
+   $ iasl apic.asl
 
-diff --git a/drivers/i2c/busses/i2c-designware-core.c b/drivers/i2c/busses/i2c-designware-core.c
-index 8c48b27..ec458ec 100644
---- a/drivers/i2c/busses/i2c-designware-core.c
-+++ b/drivers/i2c/busses/i2c-designware-core.c
-@@ -281,7 +281,7 @@ static void __i2c_dw_enable(struct dw_i2c_dev *dev, bool enable)
-  */
- int i2c_dw_init(struct dw_i2c_dev *dev)
- {
--	u32 input_clock_khz;
-+	u32 input_clock_khz = 0;
- 	u32 hcnt, lcnt;
- 	u32 reg;
- 	u32 sda_falling_time, scl_falling_time;
-@@ -295,7 +295,8 @@ int i2c_dw_init(struct dw_i2c_dev *dev)
- 		}
- 	}
- 
--	input_clock_khz = dev->get_clk_rate_khz(dev);
-+	if (dev->get_clk_rate_khz)
-+		input_clock_khz = dev->get_clk_rate_khz(dev);
- 
- 	reg = dw_readl(dev, DW_IC_COMP_TYPE);
- 	if (reg == ___constant_swab32(DW_IC_COMP_TYPE_VALUE)) {
-diff --git a/drivers/i2c/busses/i2c-designware-platdrv.c b/drivers/i2c/busses/i2c-designware-platdrv.c
-index 809579e..57f623b 100644
---- a/drivers/i2c/busses/i2c-designware-platdrv.c
-+++ b/drivers/i2c/busses/i2c-designware-platdrv.c
-@@ -127,6 +127,26 @@ static inline int dw_i2c_acpi_configure(struct platform_device *pdev)
- }
- #endif
- 
-+static int dw_i2c_configure_clk(struct platform_device *pdev,
-+				struct dw_i2c_dev *dev)
-+{
-+	/* For ACPI, if SSCN and FMCN is provided, we should not
-+	 * need the clock value.
-+	 */
-+	if (has_acpi_companion(&pdev->dev) &&
-+	    dev->ss_hcnt && dev->ss_lcnt &&
-+	    dev->fs_hcnt && dev->fs_lcnt)
-+		return 0;
-+
-+	dev->clk = devm_clk_get(&pdev->dev, NULL);
-+	dev->get_clk_rate_khz = i2c_dw_get_clk_rate_khz;
-+	if (IS_ERR(dev->clk))
-+		return PTR_ERR(dev->clk);
-+	clk_prepare_enable(dev->clk);
-+
-+	return 0;
-+}
-+
- static int dw_i2c_plat_probe(struct platform_device *pdev)
- {
- 	struct dw_i2c_dev *dev;
-@@ -203,13 +223,11 @@ static int dw_i2c_plat_probe(struct platform_device *pdev)
- 		dev->master_cfg =  DW_IC_CON_MASTER | DW_IC_CON_SLAVE_DISABLE |
- 			DW_IC_CON_RESTART_EN | DW_IC_CON_SPEED_FAST;
- 
--	dev->clk = devm_clk_get(&pdev->dev, NULL);
--	dev->get_clk_rate_khz = i2c_dw_get_clk_rate_khz;
--	if (IS_ERR(dev->clk))
--		return PTR_ERR(dev->clk);
--	clk_prepare_enable(dev->clk);
-+	r = dw_i2c_configure_clk(pdev, dev);
-+	if (r)
-+		return r;
- 
--	if (!dev->sda_hold_time && ht) {
-+	if (!dev->sda_hold_time && ht && dev->get_clk_rate_khz) {
- 		u32 ic_clk = dev->get_clk_rate_khz(dev);
- 
- 		dev->sda_hold_time = div_u64((u64)ic_clk * ht + 500000,
+which always expects a very recent definition of the tables being defined.
+
+Is anyone working on such a thing?  Or has it been contemplated in the past
+and discarded for some reason?
+
+Thanks.
+
 -- 
-2.5.0
-
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Red Hat, Inc.
+ahs3@redhat.com
+-----------------------------------
