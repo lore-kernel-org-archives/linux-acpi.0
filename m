@@ -1,135 +1,41 @@
-From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V2 13/23] x86, ia64, pci: Remove ACPI companion device from platform specific data.
-Date: Wed, 16 Dec 2015 16:16:23 +0100
-Message-ID: <1450278993-12664-14-git-send-email-tn@semihalf.com>
-References: <1450278993-12664-1-git-send-email-tn@semihalf.com>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: question on possible functionality...
+Date: Wed, 16 Dec 2015 15:34:57 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37DA71480@ORSMSX112.amr.corp.intel.com>
+References: <5670AE46.1000107@redhat.com> <2082437.3D9tUlxHqv@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f45.google.com ([74.125.82.45]:38653 "EHLO
-	mail-wm0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934031AbbLPPSE (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2015 10:18:04 -0500
-Received: by mail-wm0-f45.google.com with SMTP id l126so42576717wml.1
-        for <linux-acpi@vger.kernel.org>; Wed, 16 Dec 2015 07:18:03 -0800 (PST)
-In-Reply-To: <1450278993-12664-1-git-send-email-tn@semihalf.com>
+Received: from mga04.intel.com ([192.55.52.120]:6320 "EHLO mga04.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932664AbbLPPe6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 16 Dec 2015 10:34:58 -0500
+In-Reply-To: <2082437.3D9tUlxHqv@vostro.rjw.lan>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, Stefano.Stabellini@eu.citrix.com
-Cc: robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com, Tomasz Nowicki <tn@semihalf.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Al Stone <ahs3@redhat.com>
+Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, David Box <david.e.box@linux.intel.com>, "Zheng, Lv" <lv.zheng@intel.com>
 
-Since PCI core code is setting ACPI companion device for us now,
-platform specific ACPI companion device setting turns out to be dead now.
-Therefore we can get rid of it, including related companion reference
-from PCI sysdata structure.
-
-Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
----
- arch/ia64/include/asm/pci.h |  1 -
- arch/ia64/pci/pci.c         | 16 ----------------
- arch/x86/include/asm/pci.h  |  3 ---
- arch/x86/pci/acpi.c         |  2 --
- arch/x86/pci/irq.c          | 10 ----------
- 5 files changed, 32 deletions(-)
-
-diff --git a/arch/ia64/include/asm/pci.h b/arch/ia64/include/asm/pci.h
-index 07039d1..5050748 100644
---- a/arch/ia64/include/asm/pci.h
-+++ b/arch/ia64/include/asm/pci.h
-@@ -65,7 +65,6 @@ extern int pci_mmap_legacy_page_range(struct pci_bus *bus,
- #define pci_legacy_write platform_pci_legacy_write
- 
- struct pci_controller {
--	struct acpi_device *companion;
- 	void *iommu;
- 	int segment;
- 	int node;		/* nearest node with memory or NUMA_NO_NODE for global allocation */
-diff --git a/arch/ia64/pci/pci.c b/arch/ia64/pci/pci.c
-index 8f6ac2f..978d6af 100644
---- a/arch/ia64/pci/pci.c
-+++ b/arch/ia64/pci/pci.c
-@@ -301,28 +301,12 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
- 	}
- 
- 	info->controller.segment = root->segment;
--	info->controller.companion = device;
- 	info->controller.node = acpi_get_node(device->handle);
- 	INIT_LIST_HEAD(&info->io_resources);
- 	return acpi_pci_root_create(root, &pci_acpi_root_ops,
- 				    &info->common, &info->controller);
- }
- 
--int pcibios_root_bridge_prepare(struct pci_host_bridge *bridge)
--{
--	/*
--	 * We pass NULL as parent to pci_create_root_bus(), so if it is not NULL
--	 * here, pci_create_root_bus() has been called by someone else and
--	 * sysdata is likely to be different from what we expect.  Let it go in
--	 * that case.
--	 */
--	if (!bridge->dev.parent) {
--		struct pci_controller *controller = bridge->bus->sysdata;
--		ACPI_COMPANION_SET(&bridge->dev, controller->companion);
--	}
--	return 0;
--}
--
- void pcibios_fixup_device_resources(struct pci_dev *dev)
- {
- 	int idx;
-diff --git a/arch/x86/include/asm/pci.h b/arch/x86/include/asm/pci.h
-index 4625943..a98c022 100644
---- a/arch/x86/include/asm/pci.h
-+++ b/arch/x86/include/asm/pci.h
-@@ -14,9 +14,6 @@
- struct pci_sysdata {
- 	int		domain;		/* PCI domain */
- 	int		node;		/* NUMA node */
--#ifdef CONFIG_ACPI
--	struct acpi_device *companion;	/* ACPI companion device */
--#endif
- #ifdef CONFIG_X86_64
- 	void		*iommu;		/* IOMMU private data */
- #endif
-diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
-index 56714a9..286e0f5 100644
---- a/arch/x86/pci/acpi.c
-+++ b/arch/x86/pci/acpi.c
-@@ -333,7 +333,6 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
- 		struct pci_sysdata sd = {
- 			.domain = domain,
- 			.node = node,
--			.companion = root->device
- 		};
- 
- 		memcpy(bus->sysdata, &sd, sizeof(sd));
-@@ -348,7 +347,6 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
- 		else {
- 			info->sd.domain = domain;
- 			info->sd.node = node;
--			info->sd.companion = root->device;
- 			bus = acpi_pci_root_create(root, &acpi_pci_root_ops,
- 						   &info->common, &info->sd);
- 		}
-diff --git a/arch/x86/pci/irq.c b/arch/x86/pci/irq.c
-index 7032798..cc62226 100644
---- a/arch/x86/pci/irq.c
-+++ b/arch/x86/pci/irq.c
-@@ -1153,16 +1153,6 @@ void __init pcibios_irq_init(void)
- 
- int pcibios_root_bridge_prepare(struct pci_host_bridge *bridge)
- {
--	/*
--	 * We pass NULL as parent to pci_create_root_bus(), so if it is not NULL
--	 * here, pci_create_root_bus() has been called by someone else and
--	 * sysdata is likely to be different from what we expect.  Let it go in
--	 * that case.
--	 */
--	if (!bridge->dev.parent) {
--		struct pci_sysdata *sd = bridge->bus->sysdata;
--		ACPI_COMPANION_SET(&bridge->dev, sd->companion);
--	}
- 	bridge->map_irq = pci_map_irq;
- 	return 0;
- }
--- 
-1.9.1
-
+WWVzLCB0aGlzIGlzIHN1cHBvcnRlZC4gQ2hhbmdlIHRoZSBGQURUIHZlcnNpb24gbnVtYmVyIHRv
+IDUsIGFuZCByZW1vdmUgdGhlIHZlcnNpb24gNiBmaWVsZCAoSHlwZXJ2aXNvciBJZGVudGl0eSkg
+ZnJvbSB0aGUgc291cmNlLg0KDQpbMDAwNF0gICAgICAgICAgICAgICAgICAgICAgICAgIFNpZ25h
+dHVyZSA6ICJGQUNQIiAgICBbRml4ZWQgQUNQSSBEZXNjcmlwdGlvbiBUYWJsZSAoRkFEVCldDQpb
+MDAwNF0gICAgICAgICAgICAgICAgICAgICAgIFRhYmxlIExlbmd0aCA6IDAwMDAwMTE0DQpbMDAw
+MV0gICAgICAgICAgICAgICAgICAgICAgICAgICBSZXZpc2lvbiA6IDA1DQoNCg0KPiAtLS0tLU9y
+aWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPiBGcm9tOiBSYWZhZWwgSi4gV3lzb2NraSBbbWFpbHRvOnJq
+d0Byand5c29ja2kubmV0XQ0KPiBTZW50OiBUdWVzZGF5LCBEZWNlbWJlciAxNSwgMjAxNSA3OjE5
+IFBNDQo+IFRvOiBBbCBTdG9uZQ0KPiBDYzogQUNQSSBEZXZlbCBNYWlsaW5nIExpc3Q7IERhdmlk
+IEJveDsgTW9vcmUsIFJvYmVydDsgWmhlbmcsIEx2DQo+IFN1YmplY3Q6IFJlOiBxdWVzdGlvbiBv
+biBwb3NzaWJsZSBmdW5jdGlvbmFsaXR5Li4uDQo+IA0KPiBPbiBUdWVzZGF5LCBEZWNlbWJlciAx
+NSwgMjAxNSAwNToyMDoyMiBQTSBBbCBTdG9uZSB3cm90ZToNCj4gPiBIb3dkeS4NCj4gPg0KPiA+
+IEkgaGF2ZSBydW4gaW50byBhIGNvdXBsZSBvZiBjYXNlcyBub3cgd2hlcmUgaXMgd291bGQgbGlr
+ZSB0byBkbw0KPiA+IHNvbWV0aGluZyBsaWtlIHRoZSBmb2xsb3dpbmc6DQo+ID4NCj4gPiAgICAk
+IGlhc2wgLS1hY3BpLXZlcnNpb249NS4xIGFwaWMuYXNsDQo+ID4NCj4gPiB0byBidWlsZCBhIDUu
+MS1jb21wbGlhbnQgRkFEVCwgYXMgY29tcGFyZWQgdG86DQo+ID4NCj4gPiAgICAkIGlhc2wgYXBp
+Yy5hc2wNCj4gPg0KPiA+IHdoaWNoIGFsd2F5cyBleHBlY3RzIGEgdmVyeSByZWNlbnQgZGVmaW5p
+dGlvbiBvZiB0aGUgdGFibGVzIGJlaW5nDQo+IGRlZmluZWQuDQo+ID4NCj4gPiBJcyBhbnlvbmUg
+d29ya2luZyBvbiBzdWNoIGEgdGhpbmc/ICBPciBoYXMgaXQgYmVlbiBjb250ZW1wbGF0ZWQgaW4g
+dGhlDQo+ID4gcGFzdCBhbmQgZGlzY2FyZGVkIGZvciBzb21lIHJlYXNvbj8NCj4gDQo+IENDaW5n
+IHRoZSBBQ1BJQ0EgbWFpbnRhaW5lcnMuDQo+IA0KPiBUaGFua3MsDQo+IFJhZmFlbA0KDQo=
