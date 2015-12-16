@@ -1,122 +1,80 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH] i2c: designware: Do not require clock when SSCN and FFCN
- are provided
-Date: Wed, 16 Dec 2015 11:42:02 +0200
-Message-ID: <20151216094202.GR1762@lahna.fi.intel.com>
-References: <1450219138-5868-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+From: Jayachandran C <jchandra@broadcom.com>
+Subject: [RFC PATCH v3 0/5] Simple ACPI based PCI support for arm64
+Date: Wed, 16 Dec 2015 18:12:30 +0530
+Message-ID: <1450269755-21420-1-git-send-email-jchandra@broadcom.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1450219138-5868-1-git-send-email-Suravee.Suthikulpanit@amd.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Cc: wsa@the-dreams.de, lho@apm.com, Ken.Xue@amd.com, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Content-Type: text/plain
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-gw1-out.broadcom.com ([216.31.210.62]:55097 "EHLO
+	mail-gw1-out.broadcom.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932681AbbLPMUa (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2015 07:20:30 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-pci@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org
+Cc: Jayachandran C <jchandra@broadcom.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tn@semihalf.com>
 
-+Jarkko and Andy
+This patchset provides a generic ACPI based PCI host controller
+implementation and uses it on arm64.
 
-On Tue, Dec 15, 2015 at 04:38:58PM -0600, Suravee Suthikulpanit wrote:
-> The current driver uses input clock source frequency to calculate
-> values for [SS|FS]_[HC|LC] registers. However, when booting ACPI, we do not
-> currently have a good way to provide the frequency information.
-> Instead, we can leverage the SSCN and FFCN ACPI methods, which can be used
-> to directly provide these values.
-> 
-> So, this patch removes the clock requirement when SSCN and FFCN
-> are provided.
+The first patch moves the common code to handle MCFG ACPI table from
+arch/x86 to drivers/acpi/pci_mcfg.c. The last patch in the patchset
+provides the generic PCI host controller with a new file
+driver/pci/host/pci-host-acpi.c. The other patches are to fix
+up arm64 and ACPI code to work with these two patches.
 
-Actually I think the only thing you need to change is i2c_dw_init() so
-that it does not call dev->get_clk_rate_khz(dev) if *CNT values are
-already provided.
+The pci-host-acpi implementation keeps a reference to pci_mmcfg_region
+entry so that config space access is done with a simple mapping and
+generic PCI config read/write. There is also an implementation of
+raw_pci_read/raw_pci_write provided by walking the pci_mmcfg_list
 
-The clk framework should work fine if the returned clock is NULL (which
-I think is your case).
+This is tested with arm64 QEMU and OVMF and on x86 with qemu.
+Comments are very welcome.
 
-The driver gates clocks when the device is suspended and on Intel LPSS
-there actually is a clock that gets gated.
+Thanks,
+JC.
 
-> 
-> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-> ---
-> 
-> Note: This has been tested on AMD Seattle RevB for both DT and ACPI.
-> 
->  drivers/i2c/busses/i2c-designware-core.c    |  5 +++--
->  drivers/i2c/busses/i2c-designware-platdrv.c | 30 +++++++++++++++++++++++------
->  2 files changed, 27 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/i2c/busses/i2c-designware-core.c b/drivers/i2c/busses/i2c-designware-core.c
-> index 8c48b27..ec458ec 100644
-> --- a/drivers/i2c/busses/i2c-designware-core.c
-> +++ b/drivers/i2c/busses/i2c-designware-core.c
-> @@ -281,7 +281,7 @@ static void __i2c_dw_enable(struct dw_i2c_dev *dev, bool enable)
->   */
->  int i2c_dw_init(struct dw_i2c_dev *dev)
->  {
-> -	u32 input_clock_khz;
-> +	u32 input_clock_khz = 0;
->  	u32 hcnt, lcnt;
->  	u32 reg;
->  	u32 sda_falling_time, scl_falling_time;
-> @@ -295,7 +295,8 @@ int i2c_dw_init(struct dw_i2c_dev *dev)
->  		}
->  	}
->  
-> -	input_clock_khz = dev->get_clk_rate_khz(dev);
-> +	if (dev->get_clk_rate_khz)
-> +		input_clock_khz = dev->get_clk_rate_khz(dev);
->  
->  	reg = dw_readl(dev, DW_IC_COMP_TYPE);
->  	if (reg == ___constant_swab32(DW_IC_COMP_TYPE_VALUE)) {
-> diff --git a/drivers/i2c/busses/i2c-designware-platdrv.c b/drivers/i2c/busses/i2c-designware-platdrv.c
-> index 809579e..57f623b 100644
-> --- a/drivers/i2c/busses/i2c-designware-platdrv.c
-> +++ b/drivers/i2c/busses/i2c-designware-platdrv.c
-> @@ -127,6 +127,26 @@ static inline int dw_i2c_acpi_configure(struct platform_device *pdev)
->  }
->  #endif
->  
-> +static int dw_i2c_configure_clk(struct platform_device *pdev,
-> +				struct dw_i2c_dev *dev)
-> +{
-> +	/* For ACPI, if SSCN and FMCN is provided, we should not
-> +	 * need the clock value.
-> +	 */
-> +	if (has_acpi_companion(&pdev->dev) &&
-> +	    dev->ss_hcnt && dev->ss_lcnt &&
-> +	    dev->fs_hcnt && dev->fs_lcnt)
-> +		return 0;
-> +
-> +	dev->clk = devm_clk_get(&pdev->dev, NULL);
-> +	dev->get_clk_rate_khz = i2c_dw_get_clk_rate_khz;
-> +	if (IS_ERR(dev->clk))
-> +		return PTR_ERR(dev->clk);
-> +	clk_prepare_enable(dev->clk);
-> +
-> +	return 0;
-> +}
-> +
->  static int dw_i2c_plat_probe(struct platform_device *pdev)
->  {
->  	struct dw_i2c_dev *dev;
-> @@ -203,13 +223,11 @@ static int dw_i2c_plat_probe(struct platform_device *pdev)
->  		dev->master_cfg =  DW_IC_CON_MASTER | DW_IC_CON_SLAVE_DISABLE |
->  			DW_IC_CON_RESTART_EN | DW_IC_CON_SPEED_FAST;
->  
-> -	dev->clk = devm_clk_get(&pdev->dev, NULL);
-> -	dev->get_clk_rate_khz = i2c_dw_get_clk_rate_khz;
-> -	if (IS_ERR(dev->clk))
-> -		return PTR_ERR(dev->clk);
-> -	clk_prepare_enable(dev->clk);
-> +	r = dw_i2c_configure_clk(pdev, dev);
-> +	if (r)
-> +		return r;
->  
-> -	if (!dev->sda_hold_time && ht) {
-> +	if (!dev->sda_hold_time && ht && dev->get_clk_rate_khz) {
->  		u32 ic_clk = dev->get_clk_rate_khz(dev);
->  
->  		dev->sda_hold_time = div_u64((u64)ic_clk * ht + 500000,
-> -- 
-> 2.5.0
+v2->v3:
+ - Move maintainence of the pci_mmcfg_list to drivers/acpi/pci_mcfg.c
+   without changing x86 logic
+ - use the pci_mmcfg_list in ARM64 implementation
+ - provide raw_pci_read/raw_pci_write
+
+v1->v2:
+ - use CONFIG_PCI_MMCONFIG on arm64, provide a weak implementation
+   of pci_mmcfg_late_init for arm64.
+ - The real implementation of pci_mmcfg_late_init is in pci-host-acpi.c
+   and it will save the MCFG table entries to an array. Earlier this
+   was done with an arch_init call
+ - remove unneeded pci_bus_add_devices call and fix MCFG saving code
+ - Added a patch to ACPI pci_root.c to handle arm64 PCI IO resources
+
+Jayachandran C (5):
+  APCI: MCFG: Move mmcfg_list management to drivers/acpi
+  arm64: pci: Add ACPI support
+  PCI: Handle NULL parent in pci_bus_assign_domain_nr
+  ACPI: PCI: Support platforms that need pci_remap_iospace
+  PCI: ACPI: Add a generic ACPI based host controller
+
+ arch/arm64/Kconfig               |   3 +
+ arch/arm64/kernel/pci.c          |  65 ++++++++-
+ arch/x86/include/asm/pci_x86.h   |  24 +---
+ arch/x86/pci/mmconfig-shared.c   | 269 +++++------------------------------
+ arch/x86/pci/mmconfig_32.c       |   1 +
+ arch/x86/pci/mmconfig_64.c       |   1 +
+ drivers/acpi/Makefile            |   1 +
+ drivers/acpi/pci_mcfg.c          | 298 +++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/pci_root.c          |  62 +++++++-
+ drivers/acpi/resource.c          |   2 +
+ drivers/pci/host/Kconfig         |   7 +
+ drivers/pci/host/Makefile        |   1 +
+ drivers/pci/host/pci-host-acpi.c | 193 +++++++++++++++++++++++++
+ drivers/pci/pci.c                |   7 +-
+ include/linux/pci-acpi.h         |  33 +++++
+ 15 files changed, 701 insertions(+), 266 deletions(-)
+ create mode 100644 drivers/acpi/pci_mcfg.c
+ create mode 100644 drivers/pci/host/pci-host-acpi.c
+
+-- 
+1.9.1
+
