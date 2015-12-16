@@ -1,77 +1,31 @@
-From: Heiner Kallweit <hkallweit1@gmail.com>
-Subject: [PATCH] pnp: respect PNP_DRIVER_RES_DO_NOT_CHANGE when detaching
-Date: Wed, 16 Dec 2015 07:33:22 +0100
-Message-ID: <567105B2.3080109@gmail.com>
+From: Mika Westerberg <mika.westerberg@linux.intel.com>
+Subject: Re: [PATCH v2 0/2] i2c:dw: Add APM X-Gene ACPI I2C device support
+Date: Wed, 16 Dec 2015 11:04:54 +0200
+Message-ID: <20151216090454.GL1762@lahna.fi.intel.com>
+References: <1449782357-22982-1-git-send-email-lho@apm.com>
+ <566F6485.2000508@amd.com>
+ <20151215132721.GJ1762@lahna.fi.intel.com>
+ <56702923.9010305@amd.com>
+ <20151215145953.GK1762@lahna.fi.intel.com>
+ <CAPw-ZT=TcvneyS69GjWe8sFR2hBTpHUUabu8Y5Feup89MwQWQQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f44.google.com ([74.125.82.44]:32811 "EHLO
-	mail-wm0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754650AbbLPGdl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2015 01:33:41 -0500
-Received: by mail-wm0-f44.google.com with SMTP id n186so126566688wmn.0
-        for <linux-acpi@vger.kernel.org>; Tue, 15 Dec 2015 22:33:41 -0800 (PST)
+Received: from mga01.intel.com ([192.55.52.88]:39816 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933857AbbLPJFA (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 16 Dec 2015 04:05:00 -0500
+Content-Disposition: inline
+In-Reply-To: <CAPw-ZT=TcvneyS69GjWe8sFR2hBTpHUUabu8Y5Feup89MwQWQQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: rafael@kernel.org
+To: Loc Ho <lho@apm.com>
+Cc: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, wsa@the-dreams.de, Ken Xue <Ken.Xue@amd.com>, Jeff.Wu@amd.com, rjw@rjwysocki.net, Len Brown <lenb@kernel.org>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Jon Masters <jcm@redhat.com>, "patches@apm.com" <patches@apm.com>, "Hurwitz, Sherry" <sherry.hurwitz@amd.com>, "Duran, Leo" <leo.duran@amd.com>, Hanjun Guo <hanjun.guo@linaro.org>, Al Stone <al.stone@linaro.org>
 
-I have a device (Nuvoton 6779D Super-IO IR RC with nuvoton-cir driver)
-which works after initial boot but not any longer if I unload and
-re-load the driver module.
+On Tue, Dec 15, 2015 at 11:20:03AM -0800, Loc Ho wrote:
+> Can we not just add an AML method that will return the operation clock
+> frequency that the I2C driver can use? If the method doesn't existed,
+> we will just bail and do nothing or assume what ever default behavior?
 
-Digging into the issue I found that unloading the driver calls
-pnp_disable_dev although the driver has flag PNP_DRIVER_RES_DO_NOT_CHANGE
-set. IMHO this is not right.
-
-Let's have a look at the call chain when probing a device:
-pnp_device_probe
-1. attaches the device
-2. if it's not active and PNP_DRIVER_RES_DO_NOT_CHANGE is not set
-   it gets activated
-3. probes driver
-
-I think pnp_device_remove should do it in reverse order and also
-respect PNP_DRIVER_RES_DO_NOT_CHANGE. Therefore:
-1. call drivers remove callback
-2. if device is active and PNP_DRIVER_RES_DO_NOT_CHANGE is not set
-   disable it
-3. detach device
-
-The change works for me and sounds logical to me.
-However I don't know the pnp driver in detail so I might be wrong.
-
-Signed-off-by: Heiner Kallweit <hkallweit1@gmail.com>
----
- drivers/pnp/driver.c | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/pnp/driver.c b/drivers/pnp/driver.c
-index 153a493..74b201d 100644
---- a/drivers/pnp/driver.c
-+++ b/drivers/pnp/driver.c
-@@ -74,7 +74,6 @@ void pnp_device_detach(struct pnp_dev *pnp_dev)
- 	if (pnp_dev->status == PNP_ATTACHED)
- 		pnp_dev->status = PNP_READY;
- 	mutex_unlock(&pnp_lock);
--	pnp_disable_dev(pnp_dev);
- }
- 
- static int pnp_device_probe(struct device *dev)
-@@ -131,6 +130,11 @@ static int pnp_device_remove(struct device *dev)
- 			drv->remove(pnp_dev);
- 		pnp_dev->driver = NULL;
- 	}
-+
-+	if (pnp_dev->active &&
-+	    (!drv || !(drv->flags & PNP_DRIVER_RES_DO_NOT_CHANGE)))
-+		pnp_disable_dev(pnp_dev);
-+
- 	pnp_device_detach(pnp_dev);
- 	return 0;
- }
--- 
-2.6.2
-
-
+Why would you add yet another method? There already are existing ACPI
+*CNT methods that you can use, and are used in systems out there.
