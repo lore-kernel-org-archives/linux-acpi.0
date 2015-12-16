@@ -1,34 +1,44 @@
-From: Jarkko Nikula <jarkko.nikula@linux.intel.com>
-Subject: Re: [PATCH v2 0/2] i2c:dw: Add APM X-Gene ACPI I2C device support
-Date: Wed, 16 Dec 2015 14:53:02 +0200
-Message-ID: <56715EAE.4080006@linux.intel.com>
-References: <1449782357-22982-1-git-send-email-lho@apm.com>
- <566F6485.2000508@amd.com> <20151215132721.GJ1762@lahna.fi.intel.com>
- <56702923.9010305@amd.com> <20151215145953.GK1762@lahna.fi.intel.com>
- <CAPw-ZT=TcvneyS69GjWe8sFR2hBTpHUUabu8Y5Feup89MwQWQQ@mail.gmail.com>
- <20151216090454.GL1762@lahna.fi.intel.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH V1 00/11] MMCONFIG refactoring and ARM64 PCI hostbridge
+ init based on ACPI
+Date: Wed, 16 Dec 2015 14:05:56 +0000
+Message-ID: <20151216140556.GC22916@red-moon>
+References: <1445963922-22711-1-git-send-email-tn@semihalf.com>
+ <20151207203117.GB14429@localhost>
+ <20151209100125.GA12632@jayachandranc.netlogicmicro.com>
+ <20151209155511.GB21048@red-moon>
+ <20151216125136.GE5890@jayachandranc.netlogicmicro.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <20151216090454.GL1762@lahna.fi.intel.com>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>, Loc Ho <lho@apm.com>
-Cc: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, wsa@the-dreams.de, Ken Xue <Ken.Xue@amd.com>, Jeff.Wu@amd.com, rjw@rjwysocki.net, Len Brown <lenb@kernel.org>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Jon Masters <jcm@redhat.com>, "patches@apm.com" <patches@apm.com>, "Hurwitz, Sherry" <sherry.hurwitz@amd.com>, "Duran, Leo" <leo.duran@amd.com>, Hanjun Guo <hanjun.guo@linaro.org>, Al Stone <al.stone@linaro.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:55653 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752333AbbLPOEj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 16 Dec 2015 09:04:39 -0500
+Content-Disposition: inline
+In-Reply-To: <20151216125136.GE5890@jayachandranc.netlogicmicro.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Jayachandran C." <jchandra@broadcom.com>, tn@semihalf.com
+Cc: Bjorn Helgaas <helgaas@kernel.org>, bhelgaas@google.com, arnd@arndb.de, rjw@rjwysocki.net, hanjun.guo@linaro.org, jiang.liu@linux.intel.com, ddaney@caviumnetworks.com, Liviu.Dudau@arm.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-On 12/16/2015 11:04 AM, Mika Westerberg wrote:
-> On Tue, Dec 15, 2015 at 11:20:03AM -0800, Loc Ho wrote:
->> Can we not just add an AML method that will return the operation clock
->> frequency that the I2C driver can use? If the method doesn't existed,
->> we will just bail and do nothing or assume what ever default behavior?
->
-> Why would you add yet another method? There already are existing ACPI
-> *CNT methods that you can use, and are used in systems out there.
+On Wed, Dec 16, 2015 at 06:21:37PM +0530, Jayachandran C. wrote:
 
-One thing to remember that *CNT methods allow more precise machine and 
-per bus specific tunings against different HW characteristics like 
-pull-up resistance, line load, propagation delay, etc.
+[...]
 
--- 
-Jarkko
+> > That list is there to manage hotplug bridges, what makes you think
+> > it is not necessary ? Jiang (in CC) can certainly comment on that and
+> > how that list handling can be updated/simplified, if possible.
+> 
+> Looking thru the code, I think moving the MCFG code to common can be
+> done in a simpler way. I have posted a new patchset for this.
+> (And I don't see how the hotplug case needs the list, but that is not
+>  relevant now)
+
+You must work with Tomasz and come up with a unified patchset that
+implements ACPI PCIe support for ARM64. We do not need more churn, we
+need a working set, period. Posting separate RFCs just adds to the
+confusion and to maintainers' review backlog, with the end result of
+confusing everyone and achieving nothing.
+
+Lorenzo
