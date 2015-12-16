@@ -1,90 +1,109 @@
-From: "Zheng, Lv" <lv.zheng@intel.com>
-Subject: RE: [PATCH v4 7/7] ACPI / x86: introduce acpi_os_readable() support
-Date: Wed, 16 Dec 2015 00:25:09 +0000
-Message-ID: <1AE640813FDE7649BE1B193DEA596E883BB08C24@SHSMSX101.ccr.corp.intel.com>
-References: <cover.1446790780.git.lv.zheng@intel.com>
- <cover.1449108825.git.lv.zheng@intel.com>
- <af8b1799e7eec686fbb3bf239f6f400adb3b8082.1449108826.git.lv.zheng@intel.com>
- <CALCETrXeoGZhrNr9OmqFB+i7-tbM+d3sO8uCNnMx40JfDsjoEw@mail.gmail.com>
- <36DF59CE26D8EE47B0655C516E9CE64028686D35@shsmsx102.ccr.corp.intel.com>
+From: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+Subject: Re: [PATCH] mmc: sdhci-acpi: set non-removable in ACPI table
+Date: Wed, 16 Dec 2015 02:17:28 +0100
+Message-ID: <5670BBA8.5040900@intel.com>
+References: <1449150480-1173-1-git-send-email-pelcan@codeaurora.org>
+ <5669E72C.4090701@codeaurora.org> <566A868E.8080808@intel.com>
+ <2610121.hCKXuUzvHo@vostro.rjw.lan> <567087F3.7030308@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:52262 "EHLO mga14.intel.com"
+Received: from mga09.intel.com ([134.134.136.24]:53608 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751873AbbLPAZM (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 15 Dec 2015 19:25:12 -0500
-Content-Language: en-US
+	id S932800AbbLPBRe (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 15 Dec 2015 20:17:34 -0500
+In-Reply-To: <567087F3.7030308@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Chen, Yu C" <yu.c.chen@intel.com>, Andy Lutomirski <luto@amacapital.net>, "Moore, Robert" <robert.moore@intel.com>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Andy Lutomirski <luto@kernel.org>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
+To: Philip Elcan <pelcan@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Adrian Hunter <adrian.hunter@intel.com>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>, linux-mmc@vger.kernel.org, linux-kernel@vger.kernel.org, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, linux-arm-msm@vger.kernel.org, Timur Tabi <timur@codeaurora.org>, Jon Masters <jcm@redhat.org>, Mark Langsdorf <mlangsdo@redhat.com>, harba@codeaurora.org
 
-SGksIEFuZHkgYW5kIFl1DQoNCj4gRnJvbTogWmhlbmcsIEx2DQo+IFNlbnQ6IFR1ZXNkYXksIERl
-Y2VtYmVyIDE1LCAyMDE1IDQ6NTIgUE0NCj4gDQo+IEhpLA0KPiANCj4gPiBGcm9tOiBDaGVuLCBZ
-dSBDDQo+ID4gU2VudDogVHVlc2RheSwgRGVjZW1iZXIgMTUsIDIwMTUgMjoxMyBQTQ0KPiA+DQo+
-ID4gSGksIEFuZHkNCj4gPg0KPiA+ID4gRnJvbTogQW5keSBMdXRvbWlyc2tpIFttYWlsdG86bHV0
-b0BhbWFjYXBpdGFsLm5ldF0NCj4gPiA+IFNlbnQ6IFR1ZXNkYXksIERlY2VtYmVyIDE1LCAyMDE1
-IDc6MjggQU0NCj4gPiA+DQo+ID4gPiBPbiBXZWQsIERlYyAyLCAyMDE1IGF0IDY6NDMgUE0sIEx2
-IFpoZW5nIDxsdi56aGVuZ0BpbnRlbC5jb20+IHdyb3RlOg0KPiA+ID4gPiBGcm9tOiBDaGVuIFl1
-IDx5dS5jLmNoZW5AaW50ZWwuY29tPg0KPiA+ID4gPg0KPiA+ID4gPiBUaGlzIHBhdGNoIGltcGxl
-bWVudHMgYWNwaV9vc19yZWFkYWJsZSgpLiBUaGUgZnVuY3Rpb24gaXMgdXNlZCBieQ0KPiA+ID4g
-PiBBQ1BJQ0EgQU1MIGRlYnVnZ2VyIHRvIHZhbGlkYXRlIHVzZXIgc3BlY2lmaWVkIHBvaW50ZXJz
-IGZvciBkdW1waW5nDQo+ID4gPiA+IHRoZSBtZW1vcnkgYXMgQUNQSUNBIGRlc2NyaXB0b3Igb2Jq
-ZWN0cy4NCj4gPiA+ID4NCj4gPiBbY3V0XQ0KPiA+ID4gPg0KPiA+ID4gPiArYm9vbCBfX2FjcGlf
-bWVtb3J5X3JlYWRhYmxlKHZvaWQgKnBvaW50ZXIsIHNpemVfdCBsZW5ndGgpIHsNCj4gPiA+ID4g
-KyAgICAgICB1bnNpZ25lZCBsb25nIG9ial9zdGFydCwgb2JqX2VuZDsNCj4gPiA+ID4gKyAgICAg
-ICB1bnNpZ25lZCBsb25nIHN0YXJ0X3BmbiwgZW5kX3BmbjsNCj4gPiA+DQo+ID4gPiBXaGF0IGRv
-ZXMgInJlYWRhYmxlIiBtZWFuIGluIHRoaXMgY29udGV4dD8NCj4gDQo+IFtMdiBaaGVuZ10NCj4g
-VGhlIGZ1bmN0aW9uIGlzIHVzZWQgYnkgQUNQSUNBICJkdW1wIiBjb21tYW5kLg0KPiBJdCBhY2Nl
-cHRzIGFuIGFyYml0cmFyeSBhZGRyZXNzLCBhbmQgdHJpZXMgdG8gZHVtcCB0aGUgbWVtb3J5IGJs
-b2NrIHNwZWNpZmllZA0KPiBieSB0aGUgYWRkcmVzcyBhcyBhbiBhY3BpX29iamVjdC4NCj4gWW91
-IGNhbiB0cnk6ICJoZWxwIGR1bXAiIGluIHRoZSBpbnRlcmFjdGl2ZSBtb2RlIHRvIGNvbmZpcm0u
-DQo+IFdoaWxlIGFjcGlfb2JqZWN0IGlzIGFjdHVhbGx5IGFsbCBjcmVhdGVkIGJ5IGttYWxsb2Mu
-DQpbTHYgWmhlbmddIA0KVGhpcyBzdGF0ZW1lbnQgbWlnaHQgYmUgd3JvbmcsIExldCBtZSBDYyBC
-b2IgdG8gY29uZmlybS4NCg0KSGksIEJvYg0KDQpEbyB3ZSBoYXZlIHN0YXRpY2FsbHkgYWxsb2Nh
-dGVkIGFjcGlfb2JqZWN0cz8NCklmIHdlIGhhdmUsIHdlIG5lZWQgdG8gY2hhbmdlIHRoaXMgcGF0
-Y2ggdG8gYWxsb3cgaGlnaCBtYXAgLmRhdGEvLmJzcyBzZWdtZW50cyBhZGRyZXNzZXMgdG8gcGFz
-cyB0aGlzIGNoZWNrLg0KDQpUaGFua3MgYW5kIGJlc3QgcmVnYXJkcw0KLUx2DQoNCj4gU28gd2Ug
-anVzdCBjaGVjayBpZiB0aGUgc3BlY2lmaWVkIG1lbW9yeSBibG9jayBiZWxvbmdzIHRvIHRoZSBr
-ZXJuZWwgaGVhcC4NCj4gVGhlIHJlYWRhYmxlL3dyaXRlYWJsZSBpcyBub3Qgc28gbWVhbmluZ2Z1
-bCBoZXJlIGFzIHRoZSBrZXJuZWwgaGVhcCBzaG91bGQNCj4gYWx3YXlzIGJlIGJvdGggcmVhZGFi
-bGUgYW5kIHdyaXRlYWJsZS4NCj4gDQo+IFdlIGRvIGEgbG90IG9mIGNoZWNrcyBpbiB0aGlzIGZ1
-bmN0aW9uIGluIG9yZGVyIHRvIGFsbG93IGl0IHRvOg0KPiAxLiByZXR1cm4gdHJ1ZSBpZiAicG9p
-bnRlciIgYmVsb25ncyB0byBrZXJuZWwgaGVhcCB3aGVuICJsZW5ndGgiIGlzIDA7DQo+IDIuIHJl
-dHVybiBmYWxzZSBpZiAicG9pbnRlciIgZG9lc24ndCBiZWxvbmcgdG8ga2VybmVsIGhlYXAgd2hl
-biAibGVuZ3RoIiBpcyAwOw0KPiAzLiByZXR1cm4gdHJ1ZSBpZiAicG9pbnRlciB+IHBvaW50ZXIr
-bGVuZ3RoLTEiIGJlbG9uZ3MgdG8gYSBrZXJuZWwgaGVhcCByYW5nZTsNCj4gNC4gcmV0dXJuIGZh
-bHNlIGlmICJwb2ludGVyIH4gcG9pbnRlcitsZW5ndGgtMSIgZG9lc24ndCBiZWxvbmcgdG8gYW55
-IGtlcm5lbCBoZWFwDQo+IHJhbmdlLg0KPiANCj4gVGhlc2UgY2hlY2tzIGFyZSB3ZWFrLCBidXQg
-Y2FuIGhlbHAgdG8gYXZvaWQgcGFuaWNzIGlmIHVzZXJzIHNwZWNpZnkgd3JvbmcNCj4gcG9pbnRl
-cnMgZm9yIHRoZSAiZHVtcCIgY29tbWFuZC4NCj4gDQo+ID4gJ3JlYWRhYmxlJyBtZWFucyA6ICB0
-aGUgYWRkcmVzcyBwcm92aWRlZCBieSB0aGUgdXNlciwNCj4gPiBpcyBhIGR5bmFtaWNhbGx5IGFs
-bG9jYXRlZCAgdmlydHVhbCBhZGRyZXNzIC0NCj4gPiBiZWNhdXNlICB0aGUgIGFjcGkgYWRkcmVz
-cyBzcGFjZSBhcmUgYWxsb2NhdGVkIGJ5ICdrbWFsbG9jJywNCj4gPiBhY3BpIGRlYnVnZ2VyIG11
-c3QgY2hlY2sgaWYgdGhpcyBhZGRyZXNzIGlzIGEgdmFsaWQgJ2ttYWxsb2MnDQo+ID4gYWRkcmVz
-cyBiZWZvcmUgYWNjZXNzaW5nIGl0Lg0KPiA+DQo+ID4gVGhpcyBmdW5jdGlvbiBkb2VzIHRoZSBz
-YW5pdHkgY2hlY2sgdGhhdCwgdGhlIHZpdHVhbCBhZGRyZXNzIGlzIGE6DQo+ID4gMS4gICBkeW5h
-bWljYWxseSBhbGxvY2F0ZWQgYWRkcmVzcyAoYmV5b25kIFBBR0VfT0ZGU0VUICwgYnV0IGxvd2Vy
-DQo+ID4gdGhhbiBoaWdoX21lbW9yeSwgVk1BTExPQ19TVEFSVCwgZWcpDQo+ID4gMi4gIGJlc2lk
-ZXMsIHRoZSBwaHlzaWNhbCBhZGRyZXNzIG11c3QgYmUgZGlyZWN0LW1hcHBlZChzbyBpdCB3b3Vs
-ZCBub3QgYmUgYQ0KPiA+IGhvbGUpLg0KPiANCj4gW0x2IFpoZW5nXQ0KPiBUaGVyZSBpcyBhIHNw
-ZWNpYWwgY2FzZSAocG9zc2libHkgaGFja2lzaCkgb24geDg2XzY0Lg0KPiB4ODZfNjQga2VybmVs
-IG1hcHMga2VybmVsIGltYWdlIHR3aWNlLg0KPiBPbmUgaXMgY2FsbGVkIGFzIGhpZ2ggbWFwIGFu
-ZCB0aGUgb3RoZXIgaXMgY2FsbGVkIGFzIGxvdyBtYXAuDQo+IA0KPiBTaW5jZSB3ZSB1c2UgX19w
-YSgpIHRvIGNvbnZlcnQgYSB2aXJ0dWFsIGFkZHJlc3MsDQo+IElmIHRoZSB2aXJ0dWFsIGFkZHJl
-c3MgYmVsb25ncyB0byB0aGUgaGlnaCBtYXAgcmFuZ2UsIF9fcGEoKSB3aGljaCB0YWtlcyBjYXJl
-IG9mDQo+IGNvbnZlcnRpbmcgaGlnaCBtYXAgYWRkcmVzc2VzIGFjdHVhbGx5IHJldHVybnMgYSBw
-aHlzaWNhbCBhZGRyZXNzIHdoZXJlIHRoZXJlDQo+IHNob3VsZCBhbHNvIGJlIGxvdyBtYXAgbWFw
-cGluZ3MgcmVhZHkgZm9yIGl0Lg0KPiBUaHVzIHRoZSBjb252ZXJ0ZWQgUEZOIGZyb20gdGhlIHJl
-c3VsdCBvZiBfX3BhKCkgd2lsbCBiZSB0cmVhdGVkIGFzIHZhbGlkLg0KPiANCj4gQnV0IHRoaXMg
-ZG9lc24ndCBtZWFuIHRoZXJlIGlzIGEgaGlnaCBtYXAgZm9yIHRoaXMgdmlydHVhbCBhZGRyZXNz
-Lg0KPiB4ODZfNjQga2VybmVsIGRyb3BzIHNldmVyYWwgcGFnZXMgZnJvbSBoaWdoIG1hcCBpbiBj
-bGVhbnVwX2hpZ2htYXAoKS4NCj4gU28gYWNjZXNzaW5nIGEgdmlydHVhbCBhZGRyZXNzIHRoYXQg
-YmVsb25ncyB0byB0aGUgaG9sZXMgd2hvc2UgcGFnZSBtYXBwaW5ncw0KPiBoYXZlIGJlZW4gZHJv
-cHBlZCBpbiB0aGlzIGZ1bmN0aW9uIGNvdWxkIHN0aWxsIHJlc3VsdCBpbiBwYW5pYyBkdWUgdG8g
-bm8gbWFwcGluZ3MuDQo+IEJ5IGVuZm9yY2luZyB0aGlzIGNoZWNrLCB3ZSBjYW4gYXZvaWQgc3Vj
-aCBhIGNhc2UuDQo+IEFjdHVhbGx5IG5vIGFjcGlfb2JqZWN0J3MgdmlydHVhbCBhZGRyZXNzIHdp
-bGwgYmVsb25nIHRvIGhpZ2ggbWFwIHJhbmdlLg0KPiANCj4gVGhhbmtzIGFuZCBiZXN0IHJlZ2Fy
-ZHMNCj4gLUx2DQo=
+On 12/15/2015 10:36 PM, Philip Elcan wrote:
+> On 12/11/2015 05:53 PM, Rafael J. Wysocki wrote:
+>> On Friday, December 11, 2015 10:17:18 AM Adrian Hunter wrote:
+>>> On 10/12/15 22:57, Philip Elcan wrote:
+>>>> On 12/07/2015 03:30 AM, Adrian Hunter wrote:
+>>>>> On 04/12/15 17:40, Philip Elcan wrote:
+>>>>>> On 12/03/2015 09:14 AM, Adrian Hunter wrote:
+>>>>>>> On 03/12/15 15:48, Philip Elcan wrote:
+>>>>>>>> This allows setting an SDHC controller as non-removable
+>>>>>>>> by using the _RMV method in the ACPI table. It doesn't
+>>>>>>> Is that _RMV on the host controller?  Shouldn't it be on the card i.e. child
+>>>>>>> device node?
+>>>>>> Yes, this is on the host controller. The ACPI table only describes the
+>>>>>> host controller, not the child nodes.
+>>>>>>
+>>>>> If you look at Intel devices, the _RMV is on the child e.g.
+>>>>>
+>>>>>          Device (SDHA)
+>>>>>          {
+>>>>>              Name (_HID, "80860F14")  // _HID: Hardware ID
+>>>>>              Name (_CID, "PNP0D40")  // _CID: Compatible ID
+>>>>>              Name (_DDN, "Intel(R) eMMC Controller - 80860F14")  // _DDN: DOS Device Name
+>>>>> 	    ...
+>>>>>              Device (EMMD)
+>>>>>              {
+>>>>> 		...
+>>>>>                  Method (_RMV, 0, NotSerialized)  // _RMV: Removal Status
+>>>>>                  {
+>>>>>                      Return (Zero)
+>>>>>                  }
+>>>>>              }
+>>>>>          }
+>>>>>
+>>>>> I am not an ACPI expert but that seems like the correct place for it.
+>>>> My understanding is that in ACPI you don't generally create child devices on buses that are discoverable.
+>>> I've cc'ed Rafael and the linux-acpi mailing list.  Maybe someone there can
+>>> comment.
+>> The context here is a bit unclear to me.
+>>
+>> Quite frankly, I don't see now _RMV above is useful for anything.  As per the
+>> spec, _RMV is only necessary for devices that *can* be removed from the system
+>> and where there's no eject mechanism controlled by software.  For those
+>> devices _RMV is intended to indicate that it is safe to remove the device
+>> at the time _RMV is evaluated.  Devices that can never be removed don't
+>> need _RMV at all.
+>>
+>> Thanks,
+>> Rafael
+>>
+> Maybe I'm misinterpreting something, but the spec says that "_RMV object indicates
+> to OSPM whether the device can be removed while the system is in the working state
+> and does not require any ACPI system firmware actions to be performed for the device
+> to be safely removed from the system." That sounds exactly like what I'm trying to
+> do. And from Adrian's example, it sounds like others are using this to indicate if
+> a devices is removeable.
+
+It also says "Any such removable device that does not have _LCK or _EJx 
+control methods must have and _RMV object."
+
+Which clearly implies that _RMV is not required for devices that cannot 
+be removed at all.  Indeed, it is redundant in those cases as stated above.
+
+> However, if I follow your paradigm, I can just test if the _RMV object exists, and if
+> it doesn't, I can assume the device is not removable?
+
+That's correct as far as I can say.
+
+> I'm concerned not all firmware will have this object implemented.
+
+That's correct too.
+
+It only is intended for devices that may be removed in a 
+surprise-removal fashion and it is rarely used in general.
+
+> Is there something else you suggest I use in the ACPI table to designate an SD/MMC
+> device is removable?
+
+If you want to say "this device is removable", then there should be 
+either _LCK/_EJx or _RMV object present for it.  The latter indicates 
+that the device can be removed at any time in principle, but it is only 
+safe to remove it if/when 1 is returned by _RMV. That is, the OS can't 
+prevent the user from removing the device, but it can indicate to the 
+user (this way or another) when it is safe to remove it.  The decision 
+whether or not to do that is still up to the user.
+
+Thanks,
+Rafael
+
