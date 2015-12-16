@@ -1,164 +1,55 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH v7 1/4] acpi: pci: Setup MSI domain for ACPI based pci
- devices
-Date: Wed, 16 Dec 2015 16:15:41 -0600
-Message-ID: <20151216221541.GA31633@localhost>
-References: <1449766530-16935-1-git-send-email-Suravee.Suthikulpanit@amd.com>
- <1449766530-16935-2-git-send-email-Suravee.Suthikulpanit@amd.com>
+From: Fu Wei <fu.wei@linaro.org>
+Subject: Re: [PATCH v2 0/3] ACPI, clocksource: add GTDT and ARM memory-mapped
+ timer support
+Date: Thu, 17 Dec 2015 07:18:27 +0800
+Message-ID: <CADyBb7sRuCOLZ4_X4o8h7vTmbo0KihyxHWpr-0LxsQr2dMoY-Q@mail.gmail.com>
+References: <1449034984-12075-1-git-send-email-fu.wei@linaro.org>
+	<56719201.2020801@linaro.org>
+	<567196DC.4060202@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:54394 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S966011AbbLPWPo (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 16 Dec 2015 17:15:44 -0500
-Content-Disposition: inline
-In-Reply-To: <1449766530-16935-2-git-send-email-Suravee.Suthikulpanit@amd.com>
+Received: from mail-ob0-f171.google.com ([209.85.214.171]:35121 "EHLO
+	mail-ob0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755366AbbLPXS2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2015 18:18:28 -0500
+Received: by mail-ob0-f171.google.com with SMTP id 18so44604528obc.2
+        for <linux-acpi@vger.kernel.org>; Wed, 16 Dec 2015 15:18:28 -0800 (PST)
+In-Reply-To: <567196DC.4060202@arm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Cc: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, bhelgaas@google.com, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, hanjun.guo@linaro.org, tomasz.nowicki@linaro.org, graeme.gregory@linaro.org, dhdang@apm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
+To: Marc Zyngier <marc.zyngier@arm.com>
+Cc: Daniel Lezcano <daniel.lezcano@linaro.org>, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, linux-watchdog@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rafael Wysocki <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Hanjun Guo <hanjun.guo@linaro.org>, davem@davemloft.net, jeffrey.t.kirsher@intel.com, richardcochran@gmail.com, Arnd Bergmann <arnd@arndb.de>, Wim Van Sebroeck <wim@iguana.be>, Jon Masters <jcm@redhat.com>, Leo Duran <leo.duran@amd.com>, Mark Rutland <mark.rutland@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Rob Herring <robherring2@gmail.com>
 
-On Thu, Dec 10, 2015 at 08:55:27AM -0800, Suravee Suthikulpanit wrote:
-> This patch introduces pci_msi_register_fwnode_provider() for irqchip
-> to register a callback, to provide a way to determine appropriate MSI
-> domain for a pci device.
-> 
-> It also introduces pci_host_bridge_acpi_msi_domain(), which returns
-> the MSI domain of the specified PCI host bridge with DOMAIN_BUS_PCI_MSI
-> bus token. Then, it is assigned to pci device.
-> 
-> Reviewed-by: Marc Zyngier <marc.zyngier@arm.com>
-> Cc: Bjorn Helgaas <bhelgaas@google.com>
-> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Hi  Daniel, Marc,
 
-Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+Thanks for your time.
 
-I assume the whole series will be queued via a non-PCI tree.
+Any feedback would be  highly appreciated!
 
-> ---
->  drivers/pci/pci-acpi.c    | 42 ++++++++++++++++++++++++++++++++++++++++++
->  drivers/pci/probe.c       |  2 ++
->  include/linux/irqdomain.h |  5 +++++
->  include/linux/pci.h       | 10 ++++++++++
->  4 files changed, 59 insertions(+)
-> 
-> diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
-> index a32ba75..d3f32d6 100644
-> --- a/drivers/pci/pci-acpi.c
-> +++ b/drivers/pci/pci-acpi.c
-> @@ -9,7 +9,9 @@
->  
->  #include <linux/delay.h>
->  #include <linux/init.h>
-> +#include <linux/irqdomain.h>
->  #include <linux/pci.h>
-> +#include <linux/msi.h>
->  #include <linux/pci_hotplug.h>
->  #include <linux/module.h>
->  #include <linux/pci-aspm.h>
-> @@ -689,6 +691,46 @@ static struct acpi_bus_type acpi_pci_bus = {
->  	.cleanup = pci_acpi_cleanup,
->  };
->  
-> +
-> +static struct fwnode_handle *(*pci_msi_get_fwnode_cb)(struct device *dev);
-> +
-> +/**
-> + * pci_msi_register_fwnode_provider - Register callback to retrieve fwnode
-> + * @fn:       Callback matching a device to a fwnode that identifies a PCI
-> + *            MSI domain.
-> + *
-> + * This should be called by irqchip driver, which is the parent of
-> + * the MSI domain to provide callback interface to query fwnode.
-> + */
-> +void
-> +pci_msi_register_fwnode_provider(struct fwnode_handle *(*fn)(struct device *))
-> +{
-> +	pci_msi_get_fwnode_cb = fn;
-> +}
-> +
-> +/**
-> + * pci_host_bridge_acpi_msi_domain - Retrieve MSI domain of a PCI host bridge
-> + * @bus:      The PCI host bridge bus.
-> + *
-> + * This function uses the callback function registered by
-> + * pci_msi_register_fwnode_provider() to retrieve the irq_domain with
-> + * type DOMAIN_BUS_PCI_MSI of the specified host bridge bus.
-> + * This returns NULL on error or when the domain is not found.
-> + */
-> +struct irq_domain *pci_host_bridge_acpi_msi_domain(struct pci_bus *bus)
-> +{
-> +	struct fwnode_handle *fwnode;
-> +
-> +	if (!pci_msi_get_fwnode_cb)
-> +		return NULL;
-> +
-> +	fwnode = pci_msi_get_fwnode_cb(&bus->dev);
-> +	if (!fwnode)
-> +		return NULL;
-> +
-> +	return irq_find_matching_fwnode(fwnode, DOMAIN_BUS_PCI_MSI);
-> +}
-> +
->  static int __init acpi_pci_init(void)
->  {
->  	int ret;
-> diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-> index edb1984..553a029 100644
-> --- a/drivers/pci/probe.c
-> +++ b/drivers/pci/probe.c
-> @@ -672,6 +672,8 @@ static struct irq_domain *pci_host_bridge_msi_domain(struct pci_bus *bus)
->  	 * should be called from here.
->  	 */
->  	d = pci_host_bridge_of_msi_domain(bus);
-> +	if (!d)
-> +		d = pci_host_bridge_acpi_msi_domain(bus);
->  
->  	return d;
->  }
-> diff --git a/include/linux/irqdomain.h b/include/linux/irqdomain.h
-> index d5e5c5b..a06feda 100644
-> --- a/include/linux/irqdomain.h
-> +++ b/include/linux/irqdomain.h
-> @@ -410,6 +410,11 @@ static inline bool irq_domain_is_hierarchy(struct irq_domain *domain)
->  static inline void irq_dispose_mapping(unsigned int virq) { }
->  static inline void irq_domain_activate_irq(struct irq_data *data) { }
->  static inline void irq_domain_deactivate_irq(struct irq_data *data) { }
-> +static inline struct irq_domain *irq_find_matching_fwnode(
-> +	struct fwnode_handle *fwnode, enum irq_domain_bus_token bus_token)
-> +{
-> +	return NULL;
-> +}
->  #endif /* !CONFIG_IRQ_DOMAIN */
->  
->  #endif /* _LINUX_IRQDOMAIN_H */
-> diff --git a/include/linux/pci.h b/include/linux/pci.h
-> index 6ae25aa..d86378c 100644
-> --- a/include/linux/pci.h
-> +++ b/include/linux/pci.h
-> @@ -1946,6 +1946,16 @@ static inline struct irq_domain *
->  pci_host_bridge_of_msi_domain(struct pci_bus *bus) { return NULL; }
->  #endif  /* CONFIG_OF */
->  
-> +#ifdef CONFIG_ACPI
-> +struct irq_domain *pci_host_bridge_acpi_msi_domain(struct pci_bus *bus);
-> +
-> +void
-> +pci_msi_register_fwnode_provider(struct fwnode_handle *(*fn)(struct device *));
-> +#else
-> +static inline struct irq_domain *
-> +pci_host_bridge_acpi_msi_domain(struct pci_bus *bus) { return NULL; }
-> +#endif
-> +
->  #ifdef CONFIG_EEH
->  static inline struct eeh_dev *pci_dev_to_eeh_dev(struct pci_dev *pdev)
->  {
-> -- 
-> 2.1.0
-> 
+On 17 December 2015 at 00:52, Marc Zyngier <marc.zyngier@arm.com> wrote:
+> On 16/12/15 16:32, Daniel Lezcano wrote:
+>>
+>> Marc,
+>>
+>> can you have a look ?
+>
+> Thanks for putting me in the loop. I'll look at it.
+>
+>         M.
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Jazz is not dead. It just smells funny...
+
+
+
+-- 
+Best regards,
+
+Fu Wei
+Software Engineer
+Red Hat Software (Beijing) Co.,Ltd.Shanghai Branch
+Ph: +86 21 61221326(direct)
+Ph: +86 186 2020 4684 (mobile)
+Room 1512, Regus One Corporate Avenue,Level 15,
+One Corporate Avenue,222 Hubin Road,Huangpu District,
+Shanghai,China 200021
