@@ -1,77 +1,92 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V2 06/23] XEN / PCI: Remove the dependence on arch x86 when
- PCI_MMCONFIG=y
-Date: Wed, 16 Dec 2015 16:16:16 +0100
-Message-ID: <1450278993-12664-7-git-send-email-tn@semihalf.com>
+Subject: [PATCH V2 19/23] acpi, mcfg: Add default PCI config accessors implementation and initial support for related quirks.
+Date: Wed, 16 Dec 2015 16:16:29 +0100
+Message-ID: <1450278993-12664-20-git-send-email-tn@semihalf.com>
 References: <1450278993-12664-1-git-send-email-tn@semihalf.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <1450278993-12664-1-git-send-email-tn@semihalf.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-pci-owner@vger.kernel.org
 To: bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, Stefano.Stabellini@eu.citrix.com
-Cc: jchandra@broadcom.com, jcm@redhat.com, linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, wangyijing@huawei.com, Tomasz Nowicki <tn@semihalf.com>, tglx@linutronix.de, mw@semihalf.com, Boris Ostrovsky <boris.ostrovsky@oracle.com>, linux-arm-kernel@lists.infradead.org
+Cc: robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com, Tomasz Nowicki <tn@semihalf.com>
 List-Id: linux-acpi@vger.kernel.org
 
-In drivers/xen/pci.c, there are arch x86 dependent codes when
-CONFIG_PCI_MMCONFIG is enabled, since CONFIG_PCI_MMCONFIG
-depends on ACPI, so this will prevent XEN PCI running on other
-architectures using ACPI with PCI_MMCONFIG enabled (such as ARM64).
+We use generic accessors from access.c by default. However, we already
+know platforms that need special handling while accessing to PCI config
+space. These platforms will need different accessors set matched against
+platform ID, domain, bus touple. Therefore we are going to add (in future)
+DECLARE_ACPI_MCFG_FIXUP which will register platform specific custom
+accessors. For now we let pci_mcfg_get_ops takes domain and bus arguments
+and left some space for matching algorithm.
 
-Fortunatly, it can be sloved in a simple way. In drivers/xen/pci.c,
-the only x86 dependent code is if ((pci_probe & PCI_PROBE_MMCONF) == 0),
-and it's defined in asm/pci_x86.h, the code means that
-if the PCI resource is not probed in PCI_PROBE_MMCONF way, just
-ingnore the xen mcfg init. Actually this is duplicate, because
-if PCI resource is not probed in PCI_PROBE_MMCONF way, the
-pci_mmconfig_list will be empty, and the if (list_empty())
-after it will do the same job.
-
-So just remove the arch related code and the head file, this
-will be no functional change for x86, and also makes xen/pci.c
-usable for other architectures.
-
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-CC: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-CC: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Cc: Stefano Stabellini <Stefano.Stabellini@eu.citrix.com>
-Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
 ---
- drivers/xen/pci.c | 6 ------
- 1 file changed, 6 deletions(-)
+ drivers/acpi/mcfg.c      | 30 ++++++++++++++++++++++++++++++
+ include/linux/pci-acpi.h |  8 ++++++++
+ 2 files changed, 38 insertions(+)
 
-diff --git a/drivers/xen/pci.c b/drivers/xen/pci.c
-index 6785ebb..9a8dbe3 100644
---- a/drivers/xen/pci.c
-+++ b/drivers/xen/pci.c
-@@ -28,9 +28,6 @@
- #include <asm/xen/hypervisor.h>
- #include <asm/xen/hypercall.h>
- #include "../pci/pci.h"
--#ifdef CONFIG_PCI_MMCONFIG
--#include <asm/pci_x86.h>
--#endif
+diff --git a/drivers/acpi/mcfg.c b/drivers/acpi/mcfg.c
+index dca4c4e..a9b2231 100644
+--- a/drivers/acpi/mcfg.c
++++ b/drivers/acpi/mcfg.c
+@@ -34,6 +34,36 @@ int __weak raw_pci_write(unsigned int domain, unsigned int bus,
+ 	return PCIBIOS_DEVICE_NOT_FOUND;
+ }
  
- static bool __read_mostly pci_seg_supported = true;
++void __iomem *
++pci_mcfg_dev_base(struct pci_bus *bus, unsigned int devfn, int offset)
++{
++	struct pci_mmcfg_region *cfg;
++
++	cfg = pci_mmconfig_lookup(pci_domain_nr(bus), bus->number);
++	if (cfg && cfg->virt)
++		return cfg->virt +
++			(PCI_MMCFG_BUS_OFFSET(bus->number) | (devfn << 12)) +
++			offset;
++	return NULL;
++}
++
++/* Default generic PCI config accessors */
++static struct pci_ops default_pci_mcfg_ops = {
++	.map_bus = pci_mcfg_dev_base,
++	.read = pci_generic_config_read,
++	.write = pci_generic_config_write,
++};
++
++struct pci_ops *pci_mcfg_get_ops(int domain, int bus)
++{
++	/*
++	 * TODO: Match against platform specific quirks and return
++	 * corresponding PCI config space accessor set.
++	 */
++
++	return &default_pci_mcfg_ops;
++}
++
+ int __init acpi_parse_mcfg(struct acpi_table_header *header)
+ {
+ 	struct acpi_table_mcfg *mcfg;
+diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
+index c277415..3790197 100644
+--- a/include/linux/pci-acpi.h
++++ b/include/linux/pci-acpi.h
+@@ -82,10 +82,18 @@ void acpi_pci_remove_bus(struct pci_bus *bus);
+ #ifdef	CONFIG_PCI_MMCONFIG
+ int pci_mmcfg_setup_map(struct acpi_pci_root_info *ci);
+ void pci_mmcfg_teardown_map(struct acpi_pci_root_info *ci);
++struct pci_ops *pci_mcfg_get_ops(int domain, int bus);
++void __iomem *
++pci_mcfg_dev_base(struct pci_bus *bus, unsigned int devfn, int offset);
+ #else
+ static inline int pci_mmcfg_setup_map(struct acpi_pci_root_info *ci)
+ { return 0; }
+ static inline void pci_mmcfg_teardown_map(struct acpi_pci_root_info *ci) { }
++static inline struct pci_ops *pci_mcfg_get_ops(int domain, int bus)
++{ return NULL; }
++void __iomem *
++pci_mcfg_dev_base(struct pci_bus *bus, unsigned int devfn, int offset)
++{ return NULL; }
+ #endif
  
-@@ -222,9 +219,6 @@ static int __init xen_mcfg_late(void)
- 	if (!xen_initial_domain())
- 		return 0;
- 
--	if ((pci_probe & PCI_PROBE_MMCONF) == 0)
--		return 0;
--
- 	if (list_empty(&pci_mmcfg_list))
- 		return 0;
- 
+ #ifdef	CONFIG_ACPI_PCI_SLOT
 -- 
 1.9.1
