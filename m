@@ -1,105 +1,133 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V2 16/23] x86, ia64: Include acpi_pci_{add|remove}_bus to the default pcibios_{add|remove}_bus implementation.
-Date: Wed, 16 Dec 2015 16:16:26 +0100
-Message-ID: <1450278993-12664-17-git-send-email-tn@semihalf.com>
+Subject: [PATCH V2 15/23] x86, ia64, pci: Convert arches to use PCI_DOMAINS_GENERIC.
+Date: Wed, 16 Dec 2015 16:16:25 +0100
+Message-ID: <1450278993-12664-16-git-send-email-tn@semihalf.com>
 References: <1450278993-12664-1-git-send-email-tn@semihalf.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f52.google.com ([74.125.82.52]:34943 "EHLO
-	mail-wm0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965814AbbLPPSJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2015 10:18:09 -0500
-Received: by mail-wm0-f52.google.com with SMTP id l126so43184350wml.0
-        for <linux-acpi@vger.kernel.org>; Wed, 16 Dec 2015 07:18:08 -0800 (PST)
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1450278993-12664-1-git-send-email-tn@semihalf.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, Stefano.Stabellini@eu.citrix.com
 Cc: robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com, Tomasz Nowicki <tn@semihalf.com>
+List-Id: linux-acpi@vger.kernel.org
 
-Arches in subject are the only one who use pcibios_{add|remove}_bus hooks
-and implement it in the same way. Moreover ARM64 is going to do the same.
-So it seams that acpi_pci_{add|remove}_bus is generic enough to be default
-option for pcibios_{add|remove}_bus hooks. Also, it is always safe to run
-acpi_pci_{add|remove}_bus as they have empty stubs for !ACPI case and
-return if ACPI has been switched off in run time.
-
-After all we can remove x86 and ia64 pcibios_{add|remove}_bus
-implementation.
+Since we have now generic way to retrieve domain number using _SEG method,
+x86 and ia64 can take advantage of it and forget about another
+platform specific data from pci_sysdata.
 
 Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
 ---
- arch/ia64/pci/pci.c   | 10 ----------
- arch/x86/pci/common.c | 10 ----------
- drivers/pci/probe.c   |  3 +++
- 3 files changed, 3 insertions(+), 20 deletions(-)
+ arch/ia64/Kconfig           | 3 +++
+ arch/ia64/include/asm/pci.h | 2 --
+ arch/ia64/pci/pci.c         | 1 -
+ arch/x86/Kconfig            | 3 +++
+ arch/x86/include/asm/pci.h  | 7 -------
+ arch/x86/pci/acpi.c         | 2 --
+ 6 files changed, 6 insertions(+), 12 deletions(-)
 
+diff --git a/arch/ia64/Kconfig b/arch/ia64/Kconfig
+index eb0249e..6fecd04 100644
+--- a/arch/ia64/Kconfig
++++ b/arch/ia64/Kconfig
+@@ -572,6 +572,9 @@ config PCI
+ config PCI_DOMAINS
+ 	def_bool PCI
+ 
++config PCI_DOMAINS_GENERIC
++	def_bool PCI
++
+ config PCI_SYSCALL
+ 	def_bool PCI
+ 
+diff --git a/arch/ia64/include/asm/pci.h b/arch/ia64/include/asm/pci.h
+index 5050748..4214be1 100644
+--- a/arch/ia64/include/asm/pci.h
++++ b/arch/ia64/include/asm/pci.h
+@@ -66,7 +66,6 @@ extern int pci_mmap_legacy_page_range(struct pci_bus *bus,
+ 
+ struct pci_controller {
+ 	void *iommu;
+-	int segment;
+ 	int node;		/* nearest node with memory or NUMA_NO_NODE for global allocation */
+ 
+ 	void *platform_data;
+@@ -74,7 +73,6 @@ struct pci_controller {
+ 
+ 
+ #define PCI_CONTROLLER(busdev) ((struct pci_controller *) busdev->sysdata)
+-#define pci_domain_nr(busdev)    (PCI_CONTROLLER(busdev)->segment)
+ 
+ extern struct pci_ops pci_root_ops;
+ 
 diff --git a/arch/ia64/pci/pci.c b/arch/ia64/pci/pci.c
-index fe96bc9..c1e8ed5 100644
+index 978d6af..fe96bc9 100644
 --- a/arch/ia64/pci/pci.c
 +++ b/arch/ia64/pci/pci.c
-@@ -357,16 +357,6 @@ void pcibios_fixup_bus(struct pci_bus *b)
- 	platform_pci_fixup_bus(b);
- }
+@@ -300,7 +300,6 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
+ 		return NULL;
+ 	}
  
--void pcibios_add_bus(struct pci_bus *bus)
+-	info->controller.segment = root->segment;
+ 	info->controller.node = acpi_get_node(device->handle);
+ 	INIT_LIST_HEAD(&info->io_resources);
+ 	return acpi_pci_root_create(root, &pci_acpi_root_ops,
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index 102d7d1..63cc4b7 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -2383,6 +2383,9 @@ config PCI_DOMAINS
+ 	def_bool y
+ 	depends on PCI
+ 
++config PCI_DOMAINS_GENERIC
++	def_bool PCI
++
+ config PCI_MMCONFIG
+ 	bool "Support mmconfig PCI config space access"
+ 	select PCI_ECAM
+diff --git a/arch/x86/include/asm/pci.h b/arch/x86/include/asm/pci.h
+index a98c022..1dc1ba1 100644
+--- a/arch/x86/include/asm/pci.h
++++ b/arch/x86/include/asm/pci.h
+@@ -12,7 +12,6 @@
+ #ifdef __KERNEL__
+ 
+ struct pci_sysdata {
+-	int		domain;		/* PCI domain */
+ 	int		node;		/* NUMA node */
+ #ifdef CONFIG_X86_64
+ 	void		*iommu;		/* IOMMU private data */
+@@ -26,12 +25,6 @@ extern int noioapicreroute;
+ #ifdef CONFIG_PCI
+ 
+ #ifdef CONFIG_PCI_DOMAINS
+-static inline int pci_domain_nr(struct pci_bus *bus)
 -{
--	acpi_pci_add_bus(bus);
+-	struct pci_sysdata *sd = bus->sysdata;
+-	return sd->domain;
 -}
 -
--void pcibios_remove_bus(struct pci_bus *bus)
--{
--	acpi_pci_remove_bus(bus);
--}
--
- void pcibios_set_master (struct pci_dev *dev)
+ static inline int pci_proc_domain(struct pci_bus *bus)
  {
- 	/* No special bus mastering setup handling */
-diff --git a/arch/x86/pci/common.c b/arch/x86/pci/common.c
-index eccd4d9..ed3236d 100644
---- a/arch/x86/pci/common.c
-+++ b/arch/x86/pci/common.c
-@@ -171,16 +171,6 @@ void pcibios_fixup_bus(struct pci_bus *b)
- 		pcibios_fixup_device_resources(dev);
- }
+ 	return pci_domain_nr(bus);
+diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
+index 286e0f5..5f78595 100644
+--- a/arch/x86/pci/acpi.c
++++ b/arch/x86/pci/acpi.c
+@@ -331,7 +331,6 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
+ 		 * its bus->sysdata.
+ 		 */
+ 		struct pci_sysdata sd = {
+-			.domain = domain,
+ 			.node = node,
+ 		};
  
--void pcibios_add_bus(struct pci_bus *bus)
--{
--	acpi_pci_add_bus(bus);
--}
--
--void pcibios_remove_bus(struct pci_bus *bus)
--{
--	acpi_pci_remove_bus(bus);
--}
--
- /*
-  * Only use DMI information to set this if nothing was passed
-  * on the kernel command line (which was parsed earlier).
-diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-index cad836f..2fbf840 100644
---- a/drivers/pci/probe.c
-+++ b/drivers/pci/probe.c
-@@ -12,6 +12,7 @@
- #include <linux/slab.h>
- #include <linux/module.h>
- #include <linux/cpumask.h>
-+#include <linux/pci-acpi.h>
- #include <linux/pci-aspm.h>
- #include <linux/aer.h>
- #include <linux/acpi.h>
-@@ -2067,10 +2068,12 @@ int __weak pcibios_root_bridge_prepare(struct pci_host_bridge *bridge)
- 
- void __weak pcibios_add_bus(struct pci_bus *bus)
- {
-+	acpi_pci_add_bus(bus);
- }
- 
- void __weak pcibios_remove_bus(struct pci_bus *bus)
- {
-+	acpi_pci_remove_bus(bus);
- }
- 
- struct pci_bus *pci_create_root_bus(struct device *parent, int bus,
+@@ -345,7 +344,6 @@ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
+ 				"pci_bus %04x:%02x: ignored (out of memory)\n",
+ 				domain, busnum);
+ 		else {
+-			info->sd.domain = domain;
+ 			info->sd.node = node;
+ 			bus = acpi_pci_root_create(root, &acpi_pci_root_ops,
+ 						   &info->common, &info->sd);
 -- 
 1.9.1
-
