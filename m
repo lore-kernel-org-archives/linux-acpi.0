@@ -1,63 +1,75 @@
-From: Tomasz Nowicki <tn@semihalf.com>
-Subject: Re: [PATCH V2 02/10] irqchip / GICv3: Add ACPI support for GICv3+
- initialization
-Date: Thu, 17 Dec 2015 16:12:32 +0100
-Message-ID: <5672D0E0.3020209@semihalf.com>
-References: <201512172109.NUSKIrEK%fengguang.wu@intel.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH v7 3/4] gicv2m: Refactor to prepare for ACPI support
+Date: Thu, 17 Dec 2015 10:57:14 -0600
+Message-ID: <20151217165713.GA23549@localhost>
+References: <1449766530-16935-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+ <1449766530-16935-4-git-send-email-Suravee.Suthikulpanit@amd.com>
+ <20151216221208.GC27791@localhost>
+ <56720095.70004@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f52.google.com ([74.125.82.52]:35211 "EHLO
-	mail-wm0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934585AbbLQPOZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Dec 2015 10:14:25 -0500
-Received: by mail-wm0-f52.google.com with SMTP id l126so25854077wml.0
-        for <linux-acpi@vger.kernel.org>; Thu, 17 Dec 2015 07:14:25 -0800 (PST)
-In-Reply-To: <201512172109.NUSKIrEK%fengguang.wu@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <56720095.70004@amd.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>
+Cc: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, bhelgaas@google.com, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, hanjun.guo@linaro.org, tomasz.nowicki@linaro.org, graeme.gregory@linaro.org, dhdang@apm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: kbuild test robot <lkp@intel.com>
-Cc: kbuild-all@01.org, marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, guohanjun@huawei.com, Suravee.Suthikulpanit@amd.com, mw@semihalf.com, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, linux-arm-kernel@lists.infradead.org, ddaney.cavm@gmail.com
 
-On 17.12.2015 14:44, kbuild test robot wrote:
-> Hi Tomasz,
->
-> [auto build test ERROR on v4.4-rc4]
-> [also build test ERROR on next-20151217]
-> [cannot apply to tip/irq/core v4.4-rc5]
->
-> url:    https://github.com/0day-ci/linux/commits/Tomasz-Nowicki/Introduce-ACPI-world-to-GICv3-ITS-irqchip/20151217-195910
-> config: arm-allyesconfig (attached as .config)
-> reproduce:
->          wget https://git.kernel.org/cgit/linux/kernel/git/wfg/lkp-tests.git/plain/sbin/make.cross -O ~/bin/make.cross
->          chmod +x ~/bin/make.cross
->          # save the attached .config to linux build tree
->          make.cross ARCH=arm
->
-> All errors (new ones prefixed by >>):
->
->     drivers/irqchip/irq-gic-v3.c: In function 'gic_irq_domain_translate':
->>> drivers/irqchip/irq-gic-v3.c:768:2: error: implicit declaration of function 'is_fwnode_irqchip' [-Werror=implicit-function-declaration]
->       if (is_fwnode_irqchip(fwspec->fwnode)) {
->       ^
->     cc1: some warnings being treated as errors
->
-> vim +/is_fwnode_irqchip +768 drivers/irqchip/irq-gic-v3.c
->
->     762			}
->     763	
->     764			*type = fwspec->param[2] & IRQ_TYPE_SENSE_MASK;
->     765			return 0;
->     766		}
->     767	
->   > 768		if (is_fwnode_irqchip(fwspec->fwnode)) {
->     769			if(fwspec->param_count != 2)
->     770				return -EINVAL;
->     771	
->
+On Wed, Dec 16, 2015 at 06:23:49PM -0600, Suravee Suthikulanit wrote:
+> Hi Bjorn,
+> 
+> Thanks for your review. Please see my comments below.
+> 
+> On 12/16/2015 4:12 PM, Bjorn Helgaas wrote:
+> >On Thu, Dec 10, 2015 at 08:55:29AM -0800, Suravee Suthikulpanit wrote:
+> >>This patch replaces the struct device_node with struct fwnode_handle
+> >>since this structure is common between DT and ACPI.
+> >>
+> >>It also refactors gicv2m_init_one() to prepare for ACPI support.
+> >>The only functional change is removing the node name from pr_info.
+> >>
+> >>Reviewed-by: Marc Zyngier <marc.zyngier@arm.com>
+> >>Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+> >
+> >>@@ -359,10 +355,10 @@ static int __init gicv2m_init_one(struct device_node *node,
+> >>  	}
+> >>
+> >>  	list_add_tail(&v2m->entry, &v2m_nodes);
+> >>-	pr_info("Node %s: range[%#lx:%#lx], SPI[%d:%d]\n", node->name,
+> >>-		(unsigned long)v2m->res.start, (unsigned long)v2m->res.end,
+> >>-		v2m->spi_start, (v2m->spi_start + v2m->nr_spis));
+> >>
+> >>+	pr_info("range[%#lx:%#lx], SPI[%d:%d]\n",
+> >>+		(unsigned long)res->start, (unsigned long)res->end,
+> >>+		v2m->spi_start, (v2m->spi_start + v2m->nr_spis));
+> >
+> >You didn't change this, but I don't think this message has enough
+> >context.  It's pretty cryptic all by itself.  It'd be nice if it could
+> >at least include a device name, e.g., if you could use dev_info().
+> 
+> Here is the example of the information printed:
+> [    0.000000] GICv2m: range[0xe1180000:0xe1181000], SPI[64:320]
+> 
+> Basically, the v2m is just an extension of the GIC. Here, we are
+> printing the memory range that it is covering, which can be used to
+> identify different V2m frame and the associate interrupt range
+> (SPI). The node name is not really providing any values. So, we are
+> removing it.
 
-It is because I missed irqdomain.h header for irq-gic-v3.c and 
-irq-gic-v3-its.c files. Fixed in version 3.
+I noticed the pr_fmt definition later; that adds some useful context I
+didn't know about.  I guess there's no struct device for the GIC?  I
+don't see one in struct device_node.  Seems like this piece of
+hardware that apparently responds to a memory range *could* have a
+struct device, but I'm a little fuzzy on how we handle ACPI and OF
+device descriptions in that regard.
 
-Tomasz
+I hadn't noticed the memory range part; maybe you could use %pR there?
+
+Just to double-check, there's no off-by-one error in the SPI range, is
+there?  The pattern I usually expect is "start, start + nr_items - 1".
+
+I'm just kibbitzing here; this isn't PCI code, and you don't need my
+ack, so just consider these as random observations.
+
+Bjorn
