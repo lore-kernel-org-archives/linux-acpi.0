@@ -1,47 +1,63 @@
-From: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>
-Subject: Re: [PATCH v2] i2c: designware: Do not require clock when SSCN and
- FFCN are provided
-Date: Wed, 16 Dec 2015 21:01:53 -0600
-Message-ID: <567225A1.7020001@amd.com>
-References: <1450319025-19120-1-git-send-email-Suravee.Suthikulpanit@amd.com>
- <CAPw-ZTkMm1c6tLkEMiDrE=TENeUe3bm+U+CFHw231ngzWMqPuQ@mail.gmail.com>
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: Re: [PATCH V2 06/23] XEN / PCI: Remove the dependence on arch x86
+ when PCI_MMCONFIG=y
+Date: Thu, 17 Dec 2015 11:25:52 +0100
+Message-ID: <56728DB0.2080800@semihalf.com>
+References: <1450278993-12664-1-git-send-email-tn@semihalf.com>
+ <1450278993-12664-7-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bn1bon0076.outbound.protection.outlook.com ([157.56.111.76]:21870
-	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1756074AbbLQDCF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 16 Dec 2015 22:02:05 -0500
-In-Reply-To: <CAPw-ZTkMm1c6tLkEMiDrE=TENeUe3bm+U+CFHw231ngzWMqPuQ@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1450278993-12664-7-git-send-email-tn@semihalf.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Stefano.Stabellini@eu.citrix.com
+Cc: bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Loc Ho <lho@apm.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, wsa@the-dreams.de, jarkko.nikula@linux.intel.com, andriy.shevchenko@linux.intel.com, Ken Xue <Ken.Xue@amd.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On 12/16/2015 8:56 PM, Loc Ho wrote:
-> Hi,
+On 16.12.2015 16:16, Tomasz Nowicki wrote:
+> In drivers/xen/pci.c, there are arch x86 dependent codes when
+> CONFIG_PCI_MMCONFIG is enabled, since CONFIG_PCI_MMCONFIG
+> depends on ACPI, so this will prevent XEN PCI running on other
+> architectures using ACPI with PCI_MMCONFIG enabled (such as ARM64).
 >
->> The current driver uses input clock source frequency to calculate
->> values for [SS|FS]_[HC|LC] registers. However, when booting ACPI, we do not
->> currently have a good way to provide the frequency information.
->> Instead, we can leverage the SSCN and FFCN ACPI methods, which can be used
->> to directly provide these values. So, the clock information should
->> no longer be required during probing.
->>
->> However, since clk can be invalid, additional checks must be done where
->> we are making use of it.
->>
->> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
->> ---
->>
->> Note: This has been tested on AMD Seattle RevB for both DT and ACPI.
+> Fortunatly, it can be sloved in a simple way. In drivers/xen/pci.c,
+> the only x86 dependent code is if ((pci_probe & PCI_PROBE_MMCONF) == 0),
+> and it's defined in asm/pci_x86.h, the code means that
+> if the PCI resource is not probed in PCI_PROBE_MMCONF way, just
+> ingnore the xen mcfg init. Actually this is duplicate, because
+> if PCI resource is not probed in PCI_PROBE_MMCONF way, the
+> pci_mmconfig_list will be empty, and the if (list_empty())
+> after it will do the same job.
 >
-> Tested on X-Gene hardware also.
+> So just remove the arch related code and the head file, this
+> will be no functional change for x86, and also makes xen/pci.c
+> usable for other architectures.
 >
-> -Loc
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> CC: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+> CC: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+> Cc: Stefano Stabellini <Stefano.Stabellini@eu.citrix.com>
+> Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+> ---
+>   drivers/xen/pci.c | 6 ------
+>   1 file changed, 6 deletions(-)
 >
+> diff --git a/drivers/xen/pci.c b/drivers/xen/pci.c
+> index 6785ebb..9a8dbe3 100644
+> --- a/drivers/xen/pci.c
+> +++ b/drivers/xen/pci.c
+> @@ -28,9 +28,6 @@
+>   #include <asm/xen/hypervisor.h>
+>   #include <asm/xen/hypercall.h>
+>   #include "../pci/pci.h"
+> -#ifdef CONFIG_PCI_MMCONFIG
+> -#include <asm/pci_x86.h>
+> -#endif
 
-Thanks for quick response.
-Suravee
+I noticed that I forgot about:
++#include <linux/ecam.h>
+
+Sorry.
+
+Tomasz
