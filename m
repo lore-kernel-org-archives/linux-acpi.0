@@ -1,41 +1,47 @@
-From: Loc Ho <lho@apm.com>
+From: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>
 Subject: Re: [PATCH v2] i2c: designware: Do not require clock when SSCN and
  FFCN are provided
-Date: Wed, 16 Dec 2015 18:56:54 -0800
-Message-ID: <CAPw-ZTkMm1c6tLkEMiDrE=TENeUe3bm+U+CFHw231ngzWMqPuQ@mail.gmail.com>
+Date: Wed, 16 Dec 2015 21:01:53 -0600
+Message-ID: <567225A1.7020001@amd.com>
 References: <1450319025-19120-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+ <CAPw-ZTkMm1c6tLkEMiDrE=TENeUe3bm+U+CFHw231ngzWMqPuQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f51.google.com ([209.85.215.51]:35255 "EHLO
-	mail-lf0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753185AbbLQC4z (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2015 21:56:55 -0500
-Received: by mail-lf0-f51.google.com with SMTP id l133so42544683lfd.2
-        for <linux-acpi@vger.kernel.org>; Wed, 16 Dec 2015 18:56:54 -0800 (PST)
-In-Reply-To: <1450319025-19120-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+Received: from mail-bn1bon0076.outbound.protection.outlook.com ([157.56.111.76]:21870
+	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1756074AbbLQDCF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 16 Dec 2015 22:02:05 -0500
+In-Reply-To: <CAPw-ZTkMm1c6tLkEMiDrE=TENeUe3bm+U+CFHw231ngzWMqPuQ@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+To: Loc Ho <lho@apm.com>
 Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, wsa@the-dreams.de, jarkko.nikula@linux.intel.com, andriy.shevchenko@linux.intel.com, Ken Xue <Ken.Xue@amd.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Hi,
-
-> The current driver uses input clock source frequency to calculate
-> values for [SS|FS]_[HC|LC] registers. However, when booting ACPI, we do not
-> currently have a good way to provide the frequency information.
-> Instead, we can leverage the SSCN and FFCN ACPI methods, which can be used
-> to directly provide these values. So, the clock information should
-> no longer be required during probing.
+On 12/16/2015 8:56 PM, Loc Ho wrote:
+> Hi,
 >
-> However, since clk can be invalid, additional checks must be done where
-> we are making use of it.
+>> The current driver uses input clock source frequency to calculate
+>> values for [SS|FS]_[HC|LC] registers. However, when booting ACPI, we do not
+>> currently have a good way to provide the frequency information.
+>> Instead, we can leverage the SSCN and FFCN ACPI methods, which can be used
+>> to directly provide these values. So, the clock information should
+>> no longer be required during probing.
+>>
+>> However, since clk can be invalid, additional checks must be done where
+>> we are making use of it.
+>>
+>> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+>> ---
+>>
+>> Note: This has been tested on AMD Seattle RevB for both DT and ACPI.
 >
-> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-> ---
+> Tested on X-Gene hardware also.
 >
-> Note: This has been tested on AMD Seattle RevB for both DT and ACPI.
+> -Loc
+>
 
-Tested on X-Gene hardware also.
-
--Loc
+Thanks for quick response.
+Suravee
