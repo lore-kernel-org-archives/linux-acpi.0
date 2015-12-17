@@ -1,55 +1,71 @@
-From: Fu Wei <fu.wei@linaro.org>
-Subject: Re: [PATCH v2 0/3] ACPI, clocksource: add GTDT and ARM memory-mapped
- timer support
-Date: Thu, 17 Dec 2015 07:18:27 +0800
-Message-ID: <CADyBb7sRuCOLZ4_X4o8h7vTmbo0KihyxHWpr-0LxsQr2dMoY-Q@mail.gmail.com>
-References: <1449034984-12075-1-git-send-email-fu.wei@linaro.org>
-	<56719201.2020801@linaro.org>
-	<567196DC.4060202@arm.com>
+From: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>
+Subject: Re: [PATCH v7 3/4] gicv2m: Refactor to prepare for ACPI support
+Date: Wed, 16 Dec 2015 18:23:49 -0600
+Message-ID: <56720095.70004@amd.com>
+References: <1449766530-16935-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+ <1449766530-16935-4-git-send-email-Suravee.Suthikulpanit@amd.com>
+ <20151216221208.GC27791@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f171.google.com ([209.85.214.171]:35121 "EHLO
-	mail-ob0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755366AbbLPXS2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 16 Dec 2015 18:18:28 -0500
-Received: by mail-ob0-f171.google.com with SMTP id 18so44604528obc.2
-        for <linux-acpi@vger.kernel.org>; Wed, 16 Dec 2015 15:18:28 -0800 (PST)
-In-Reply-To: <567196DC.4060202@arm.com>
+Received: from mail-bl2on0053.outbound.protection.outlook.com ([65.55.169.53]:22436
+	"EHLO na01-bl2-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752330AbbLQAX7 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 16 Dec 2015 19:23:59 -0500
+In-Reply-To: <20151216221208.GC27791@localhost>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>
-Cc: Daniel Lezcano <daniel.lezcano@linaro.org>, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, linux-watchdog@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Rafael Wysocki <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Thomas Gleixner <tglx@linutronix.de>, Hanjun Guo <hanjun.guo@linaro.org>, davem@davemloft.net, jeffrey.t.kirsher@intel.com, richardcochran@gmail.com, Arnd Bergmann <arnd@arndb.de>, Wim Van Sebroeck <wim@iguana.be>, Jon Masters <jcm@redhat.com>, Leo Duran <leo.duran@amd.com>, Mark Rutland <mark.rutland@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Rob Herring <robherring2@gmail.com>
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, bhelgaas@google.com, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, hanjun.guo@linaro.org, tomasz.nowicki@linaro.org, graeme.gregory@linaro.org, dhdang@apm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
 
-Hi  Daniel, Marc,
+Hi Bjorn,
 
-Thanks for your time.
+Thanks for your review. Please see my comments below.
 
-Any feedback would be  highly appreciated!
-
-On 17 December 2015 at 00:52, Marc Zyngier <marc.zyngier@arm.com> wrote:
-> On 16/12/15 16:32, Daniel Lezcano wrote:
+On 12/16/2015 4:12 PM, Bjorn Helgaas wrote:
+> On Thu, Dec 10, 2015 at 08:55:29AM -0800, Suravee Suthikulpanit wrote:
+>> This patch replaces the struct device_node with struct fwnode_handle
+>> since this structure is common between DT and ACPI.
 >>
->> Marc,
+>> It also refactors gicv2m_init_one() to prepare for ACPI support.
+>> The only functional change is removing the node name from pr_info.
 >>
->> can you have a look ?
+>> Reviewed-by: Marc Zyngier <marc.zyngier@arm.com>
+>> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 >
-> Thanks for putting me in the loop. I'll look at it.
+>> @@ -359,10 +355,10 @@ static int __init gicv2m_init_one(struct device_node *node,
+>>   	}
+>>
+>>   	list_add_tail(&v2m->entry, &v2m_nodes);
+>> -	pr_info("Node %s: range[%#lx:%#lx], SPI[%d:%d]\n", node->name,
+>> -		(unsigned long)v2m->res.start, (unsigned long)v2m->res.end,
+>> -		v2m->spi_start, (v2m->spi_start + v2m->nr_spis));
+>>
+>> +	pr_info("range[%#lx:%#lx], SPI[%d:%d]\n",
+>> +		(unsigned long)res->start, (unsigned long)res->end,
+>> +		v2m->spi_start, (v2m->spi_start + v2m->nr_spis));
 >
->         M.
-> --
-> Jazz is not dead. It just smells funny...
+> You didn't change this, but I don't think this message has enough
+> context.  It's pretty cryptic all by itself.  It'd be nice if it could
+> at least include a device name, e.g., if you could use dev_info().
+
+Here is the example of the information printed:
+[    0.000000] GICv2m: range[0xe1180000:0xe1181000], SPI[64:320]
+
+Basically, the v2m is just an extension of the GIC. Here, we are 
+printing the memory range that it is covering, which can be used to 
+identify different V2m frame and the associate interrupt range (SPI). 
+The node name is not really providing any values. So, we are removing it.
+
+Thanks,
+Suravee
+
+> If that's possible, I guess a separate patch would be appropriate,
+> since there are other similar things in this file.
+> j
+> Bjorn
 
 
 
--- 
-Best regards,
-
-Fu Wei
-Software Engineer
-Red Hat Software (Beijing) Co.,Ltd.Shanghai Branch
-Ph: +86 21 61221326(direct)
-Ph: +86 186 2020 4684 (mobile)
-Room 1512, Regus One Corporate Avenue,Level 15,
-One Corporate Avenue,222 Hubin Road,Huangpu District,
-Shanghai,China 200021
