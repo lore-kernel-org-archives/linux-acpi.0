@@ -1,75 +1,134 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH v7 3/4] gicv2m: Refactor to prepare for ACPI support
-Date: Thu, 17 Dec 2015 10:57:14 -0600
-Message-ID: <20151217165713.GA23549@localhost>
-References: <1449766530-16935-1-git-send-email-Suravee.Suthikulpanit@amd.com>
- <1449766530-16935-4-git-send-email-Suravee.Suthikulpanit@amd.com>
- <20151216221208.GC27791@localhost>
- <56720095.70004@amd.com>
+From: Andy Lutomirski <luto@amacapital.net>
+Subject: Re: [PATCH v4 7/7] ACPI / x86: introduce acpi_os_readable() support
+Date: Thu, 17 Dec 2015 08:59:32 -0800
+Message-ID: <CALCETrWzn_9wL_7zL4GdHrFB3c9qaAjnEbLdU+bppLf-GVsx3w@mail.gmail.com>
+References: <cover.1446790780.git.lv.zheng@intel.com> <cover.1449108825.git.lv.zheng@intel.com>
+ <af8b1799e7eec686fbb3bf239f6f400adb3b8082.1449108826.git.lv.zheng@intel.com>
+ <CALCETrXeoGZhrNr9OmqFB+i7-tbM+d3sO8uCNnMx40JfDsjoEw@mail.gmail.com>
+ <36DF59CE26D8EE47B0655C516E9CE64028686D35@shsmsx102.ccr.corp.intel.com> <1AE640813FDE7649BE1B193DEA596E883BB08C24@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <56720095.70004@amd.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>
-Cc: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, bhelgaas@google.com, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, hanjun.guo@linaro.org, tomasz.nowicki@linaro.org, graeme.gregory@linaro.org, dhdang@apm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-oi0-f50.google.com ([209.85.218.50]:33040 "EHLO
+	mail-oi0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751382AbbLQQ7w (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Dec 2015 11:59:52 -0500
+Received: by mail-oi0-f50.google.com with SMTP id y66so46077632oig.0
+        for <linux-acpi@vger.kernel.org>; Thu, 17 Dec 2015 08:59:52 -0800 (PST)
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E883BB08C24@SHSMSX101.ccr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: "Chen, Yu C" <yu.c.chen@intel.com>, "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Andy Lutomirski <luto@kernel.org>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Borislav Petkov <bp@alien8.de>
 
-On Wed, Dec 16, 2015 at 06:23:49PM -0600, Suravee Suthikulanit wrote:
-> Hi Bjorn,
-> 
-> Thanks for your review. Please see my comments below.
-> 
-> On 12/16/2015 4:12 PM, Bjorn Helgaas wrote:
-> >On Thu, Dec 10, 2015 at 08:55:29AM -0800, Suravee Suthikulpanit wrote:
-> >>This patch replaces the struct device_node with struct fwnode_handle
-> >>since this structure is common between DT and ACPI.
-> >>
-> >>It also refactors gicv2m_init_one() to prepare for ACPI support.
-> >>The only functional change is removing the node name from pr_info.
-> >>
-> >>Reviewed-by: Marc Zyngier <marc.zyngier@arm.com>
-> >>Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-> >
-> >>@@ -359,10 +355,10 @@ static int __init gicv2m_init_one(struct device_node *node,
-> >>  	}
-> >>
-> >>  	list_add_tail(&v2m->entry, &v2m_nodes);
-> >>-	pr_info("Node %s: range[%#lx:%#lx], SPI[%d:%d]\n", node->name,
-> >>-		(unsigned long)v2m->res.start, (unsigned long)v2m->res.end,
-> >>-		v2m->spi_start, (v2m->spi_start + v2m->nr_spis));
-> >>
-> >>+	pr_info("range[%#lx:%#lx], SPI[%d:%d]\n",
-> >>+		(unsigned long)res->start, (unsigned long)res->end,
-> >>+		v2m->spi_start, (v2m->spi_start + v2m->nr_spis));
-> >
-> >You didn't change this, but I don't think this message has enough
-> >context.  It's pretty cryptic all by itself.  It'd be nice if it could
-> >at least include a device name, e.g., if you could use dev_info().
-> 
-> Here is the example of the information printed:
-> [    0.000000] GICv2m: range[0xe1180000:0xe1181000], SPI[64:320]
-> 
-> Basically, the v2m is just an extension of the GIC. Here, we are
-> printing the memory range that it is covering, which can be used to
-> identify different V2m frame and the associate interrupt range
-> (SPI). The node name is not really providing any values. So, we are
-> removing it.
+On Tue, Dec 15, 2015 at 4:25 PM, Zheng, Lv <lv.zheng@intel.com> wrote:
+> Hi, Andy and Yu
+>
+>> From: Zheng, Lv
+>> Sent: Tuesday, December 15, 2015 4:52 PM
+>>
+>> Hi,
+>>
+>> > From: Chen, Yu C
+>> > Sent: Tuesday, December 15, 2015 2:13 PM
+>> >
+>> > Hi, Andy
+>> >
+>> > > From: Andy Lutomirski [mailto:luto@amacapital.net]
+>> > > Sent: Tuesday, December 15, 2015 7:28 AM
+>> > >
+>> > > On Wed, Dec 2, 2015 at 6:43 PM, Lv Zheng <lv.zheng@intel.com> wrote:
+>> > > > From: Chen Yu <yu.c.chen@intel.com>
+>> > > >
+>> > > > This patch implements acpi_os_readable(). The function is used by
+>> > > > ACPICA AML debugger to validate user specified pointers for dumping
+>> > > > the memory as ACPICA descriptor objects.
+>> > > >
+>> > [cut]
+>> > > >
+>> > > > +bool __acpi_memory_readable(void *pointer, size_t length) {
+>> > > > +       unsigned long obj_start, obj_end;
+>> > > > +       unsigned long start_pfn, end_pfn;
+>> > >
+>> > > What does "readable" mean in this context?
+>>
+>> [Lv Zheng]
+>> The function is used by ACPICA "dump" command.
+>> It accepts an arbitrary address, and tries to dump the memory block specified
+>> by the address as an acpi_object.
+>> You can try: "help dump" in the interactive mode to confirm.
+>> While acpi_object is actually all created by kmalloc.
+> [Lv Zheng]
+> This statement might be wrong, Let me Cc Bob to confirm.
+>
+> Hi, Bob
+>
+> Do we have statically allocated acpi_objects?
+> If we have, we need to change this patch to allow high map .data/.bss segments addresses to pass this check.
+>
 
-I noticed the pr_fmt definition later; that adds some useful context I
-didn't know about.  I guess there's no struct device for the GIC?  I
-don't see one in struct device_node.  Seems like this piece of
-hardware that apparently responds to a memory range *could* have a
-struct device, but I'm a little fuzzy on how we handle ACPI and OF
-device descriptions in that regard.
+I think that hpa or Borislav [cc'd] could address the memory map
+details better than I could.  However, this functionality seems
+strange.
 
-I hadn't noticed the memory range part; maybe you could use %pR there?
+Are these physical addresses or virtual addresses that are being
+dumped?  In either case, ISTM that using something iike page_is_ram
+might be a lot simpler.
 
-Just to double-check, there's no off-by-one error in the SPI range, is
-there?  The pattern I usually expect is "start, start + nr_items - 1".
+--Andy
 
-I'm just kibbitzing here; this isn't PCI code, and you don't need my
-ack, so just consider these as random observations.
+> Thanks and best regards
+> -Lv
+>
+>> So we just check if the specified memory block belongs to the kernel heap.
+>> The readable/writeable is not so meaningful here as the kernel heap should
+>> always be both readable and writeable.
+>>
+>> We do a lot of checks in this function in order to allow it to:
+>> 1. return true if "pointer" belongs to kernel heap when "length" is 0;
+>> 2. return false if "pointer" doesn't belong to kernel heap when "length" is 0;
+>> 3. return true if "pointer ~ pointer+length-1" belongs to a kernel heap range;
+>> 4. return false if "pointer ~ pointer+length-1" doesn't belong to any kernel heap
+>> range.
+>>
+>> These checks are weak, but can help to avoid panics if users specify wrong
+>> pointers for the "dump" command.
+>>
+>> > 'readable' means :  the address provided by the user,
+>> > is a dynamically allocated  virtual address -
+>> > because  the  acpi address space are allocated by 'kmalloc',
+>> > acpi debugger must check if this address is a valid 'kmalloc'
+>> > address before accessing it.
+>> >
+>> > This function does the sanity check that, the vitual address is a:
+>> > 1.   dynamically allocated address (beyond PAGE_OFFSET , but lower
+>> > than high_memory, VMALLOC_START, eg)
+>> > 2.  besides, the physical address must be direct-mapped(so it would not be a
+>> > hole).
+>>
+>> [Lv Zheng]
+>> There is a special case (possibly hackish) on x86_64.
+>> x86_64 kernel maps kernel image twice.
+>> One is called as high map and the other is called as low map.
+>>
+>> Since we use __pa() to convert a virtual address,
+>> If the virtual address belongs to the high map range, __pa() which takes care of
+>> converting high map addresses actually returns a physical address where there
+>> should also be low map mappings ready for it.
+>> Thus the converted PFN from the result of __pa() will be treated as valid.
+>>
+>> But this doesn't mean there is a high map for this virtual address.
+>> x86_64 kernel drops several pages from high map in cleanup_highmap().
+>> So accessing a virtual address that belongs to the holes whose page mappings
+>> have been dropped in this function could still result in panic due to no mappings.
+>> By enforcing this check, we can avoid such a case.
+>> Actually no acpi_object's virtual address will belong to high map range.
+>>
+>> Thanks and best regards
+>> -Lv
 
-Bjorn
+
+
+-- 
+Andy Lutomirski
+AMA Capital Management, LLC
