@@ -1,120 +1,210 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V2 08/10] irqchip, gicv3, its: Probe ITS in the ACPI way.
-Date: Thu, 17 Dec 2015 12:52:11 +0100
-Message-ID: <1450353133-15992-9-git-send-email-tn@semihalf.com>
+Subject: [PATCH V2 02/10] irqchip / GICv3: Add ACPI support for GICv3+
+ initialization
+Date: Thu, 17 Dec 2015 12:52:05 +0100
+Message-ID: <1450353133-15992-3-git-send-email-tn@semihalf.com>
 References: <1450353133-15992-1-git-send-email-tn@semihalf.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1450353133-15992-1-git-send-email-tn@semihalf.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, guohanjun@huawei.com, Suravee.Suthikulpanit@amd.com
-Cc: mw@semihalf.com, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, linux-arm-kernel@lists.infradead.org, ddaney.cavm@gmail.com, Tomasz Nowicki <tn@semihalf.com>
+Cc: graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, ddaney.cavm@gmail.com, Tomasz Nowicki <tn@semihalf.com>, mw@semihalf.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-Since we prepared ITS for being initialized different that via DT,
-it is now possible to parse MADT and pass mandatory info to
-firmware-agnostic ITS init call.
+With the refator of gic_of_init(), GICv3/4 can be initialized
+by gic_init_bases() with gic distributor base address and gic
+redistributor region(s).
 
-Note that we are using here IORT lib to keep track of allocated
-domain handler which will be used to build PCI MSI domain on top
-in the later patches.
+So get the redistributor region base addresses from MADT GIC
+redistributor subtable, and the distributor base address from
+GICD subtable to init GICv3 irqchip in ACPI way.
+
+Note: GIC redistributor base address may also be provided in
+GICC structures on systems supporting GICv3 and above if the GIC
+Redistributors are not in the always-on power domain, this
+patch didn't implement such feature yet.
+Also, ACPI ITS initialization will be added in the following patches.
 
 Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- drivers/irqchip/irq-gic-v3-its.c | 56 +++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 55 insertions(+), 1 deletion(-)
+ drivers/irqchip/irq-gic-v3.c | 142 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 142 insertions(+)
 
-diff --git a/drivers/irqchip/irq-gic-v3-its.c b/drivers/irqchip/irq-gic-v3-its.c
-index fecb7a6..2adb220 100644
---- a/drivers/irqchip/irq-gic-v3-its.c
-+++ b/drivers/irqchip/irq-gic-v3-its.c
-@@ -15,10 +15,12 @@
+diff --git a/drivers/irqchip/irq-gic-v3.c b/drivers/irqchip/irq-gic-v3.c
+index 31205c7..c4b929c 100644
+--- a/drivers/irqchip/irq-gic-v3.c
++++ b/drivers/irqchip/irq-gic-v3.c
+@@ -15,6 +15,7 @@
   * along with this program.  If not, see <http://www.gnu.org/licenses/>.
   */
  
 +#include <linux/acpi.h>
- #include <linux/bitmap.h>
  #include <linux/cpu.h>
+ #include <linux/cpu_pm.h>
  #include <linux/delay.h>
- #include <linux/interrupt.h>
-+#include <linux/iort.h>
- #include <linux/log2.h>
- #include <linux/mm.h>
- #include <linux/msi.h>
-@@ -1272,6 +1274,11 @@ static int its_irq_gic_domain_alloc(struct irq_domain *domain,
- 		fwspec.param[0] = GIC_IRQ_TYPE_LPI;
- 		fwspec.param[1] = hwirq;
- 		fwspec.param[2] = IRQ_TYPE_EDGE_RISING;
-+	} else if (is_fwnode_irqchip(domain->parent->fwnode)) {
-+		fwspec.fwnode = domain->parent->fwnode;
-+		fwspec.param_count = 2;
-+		fwspec.param[0] = hwirq;
-+		fwspec.param[1] = IRQ_TYPE_EDGE_RISING;
- 	} else {
- 		return -EINVAL;
+@@ -764,6 +765,15 @@ static int gic_irq_domain_translate(struct irq_domain *d,
+ 		return 0;
  	}
-@@ -1594,6 +1601,52 @@ int its_cpu_init(void)
- 	return 0;
+ 
++	if (is_fwnode_irqchip(fwspec->fwnode)) {
++		if(fwspec->param_count != 2)
++			return -EINVAL;
++
++		*hwirq = fwspec->param[0];
++		*type = fwspec->param[1];
++		return 0;
++	}
++
+ 	return -EINVAL;
  }
  
+@@ -951,3 +961,135 @@ out_unmap_dist:
+ }
+ 
+ IRQCHIP_DECLARE(gic_v3, "arm,gic-v3", gic_of_init);
++
 +#ifdef CONFIG_ACPI
-+
-+#define ACPI_GICV3_ITS_MEM_SIZE (2 * SZ_64K)
-+
-+static struct irq_domain *its_parent __initdata;
++static struct redist_region *redist_regs __initdata;
++static u32 nr_redist_regions __initdata;
 +
 +static int __init
-+gic_acpi_parse_madt_its(struct acpi_subtable_header *header,
-+			const unsigned long end)
++gic_acpi_register_redist(phys_addr_t phys_base, u64 size)
 +{
-+	struct acpi_madt_generic_translator *its_entry;
-+	struct fwnode_handle *domain_handle;
-+	int err;
++	void __iomem *redist_base;
++	static int count = 0;
 +
-+	its_entry = (struct acpi_madt_generic_translator *)header;
-+	domain_handle = irq_domain_alloc_fwnode((void *)its_entry->base_address);
-+	if (!domain_handle) {
-+		pr_err("Unable to allocate GICv2m domain token\n");
++	redist_base = ioremap(phys_base, size);
++	if (!redist_base) {
++		pr_err("Couldn't map GICR region @%llx\n", phys_base);
 +		return -ENOMEM;
 +	}
 +
-+	/* ITS works as msi controller in ACPI case */
-+	err = its_probe_one(its_entry->base_address, ACPI_GICV3_ITS_MEM_SIZE,
-+			    its_parent, true, domain_handle);
-+	if (err) {
-+		irq_domain_free_fwnode(domain_handle);
-+		return err;
-+	}
-+	iort_register_domain_token(its_entry->translation_id, domain_handle);
++	redist_regs[count].phys_base = phys_base;
++	redist_regs[count++].redist_base = redist_base;
 +	return 0;
 +}
 +
-+void __init its_acpi_probe(struct irq_domain *parent_domain)
++static int __init
++gic_acpi_parse_madt_redist(struct acpi_subtable_header *header,
++			   const unsigned long end)
 +{
++	struct acpi_madt_generic_redistributor *redist =
++			(struct acpi_madt_generic_redistributor *)header;
++
++	return gic_acpi_register_redist(redist->base_address, redist->length);
++}
++
++static int __init gic_acpi_match_gicr(struct acpi_subtable_header *header,
++				  const unsigned long end)
++{
++	/* Subtable presence means that redist exists, that's it */
++	return 0;
++}
++
++static bool __init acpi_validate_gic_table(struct acpi_subtable_header *header,
++					   struct acpi_probe_entry *ape)
++{
++	struct acpi_madt_generic_distributor *dist;
 +	int count;
 +
-+	its_parent = parent_domain;
-+	count = acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_TRANSLATOR,
-+				      gic_acpi_parse_madt_its, 0);
-+	if (count <= 0)
-+		pr_info("No valid GIC ITS entries exist\n");
-+}
-+#else
-+static inline void __init its_acpi_probe(struct irq_domain *parent_domain) { }
-+#endif
++	dist = (struct acpi_madt_generic_distributor *)header;
++	if (dist->version != ape->driver_data)
++		return false;
 +
- static struct of_device_id its_device_id[] = {
- 	{	.compatible	= "arm,gic-v3-its",	},
- 	{},
-@@ -1610,7 +1663,8 @@ int __init its_init(struct fwnode_handle *handle, struct rdists *rdists,
- 		     np = of_find_matching_node(np, its_device_id)) {
- 			its_of_probe(np, parent_domain);
- 		}
--	}
-+	} else
-+		its_acpi_probe(parent_domain);
- 
- 	if (list_empty(&its_nodes)) {
- 		pr_warn("ITS: No ITS available, not enabling LPIs\n");
++	/* We need to do that exercise anyway, the sooner the better */
++	count = acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_REDISTRIBUTOR,
++				      gic_acpi_match_gicr, 0);
++	if (count <= 0)
++		return false;
++
++	nr_redist_regions = count;
++	return true;
++}
++
++#define ACPI_GICV3_DIST_MEM_SIZE (SZ_64K)
++
++static int __init
++gic_acpi_init(struct acpi_subtable_header *header, const unsigned long end)
++{
++	struct acpi_madt_generic_distributor *dist;
++	struct fwnode_handle *domain_handle;
++	void __iomem *dist_base;
++	int i, err, count;
++
++	/* Get distributor base address */
++	dist = (struct acpi_madt_generic_distributor *)header;
++	dist_base = ioremap(dist->base_address, ACPI_GICV3_DIST_MEM_SIZE);
++	if (!dist_base) {
++		pr_err("Unable to map GICD registers\n");
++		return -ENOMEM;
++	}
++
++	err = gic_validate_dist_version(dist_base);
++	if (err) {
++		pr_err("No distributor detected at @%p, giving up", dist_base);
++		goto out_dist_unmap;
++	}
++
++	redist_regs = kzalloc(sizeof(*redist_regs) * nr_redist_regions,
++			      GFP_KERNEL);
++	if (!redist_regs) {
++		err = -ENOMEM;
++		goto out_dist_unmap;
++	}
++
++	count = acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_REDISTRIBUTOR,
++				      gic_acpi_parse_madt_redist, 0);
++	if (count <= 0) {
++		err = -ENODEV;
++		goto out_redist_unmap;
++	}
++
++	domain_handle = irq_domain_alloc_fwnode(dist_base);
++	if (!domain_handle) {
++		err = -ENOMEM;
++		goto out_redist_unmap;
++	}
++
++	err = gic_init_bases(dist_base, redist_regs, nr_redist_regions, 0,
++			     domain_handle);
++	if (err)
++		goto out_fwhandle_free;
++
++	acpi_set_irq_model(ACPI_IRQ_MODEL_GIC, domain_handle);
++	return 0;
++
++out_fwhandle_free:
++	irq_domain_free_fwnode(domain_handle);
++out_redist_unmap:
++	for (i = 0; i < nr_redist_regions; i++)
++		if (redist_regs[i].redist_base)
++			iounmap(redist_regs[i].redist_base);
++	kfree(redist_regs);
++out_dist_unmap:
++	iounmap(dist_base);
++	return err;
++}
++IRQCHIP_ACPI_DECLARE(gic_v3, ACPI_MADT_TYPE_GENERIC_DISTRIBUTOR,
++		     acpi_validate_gic_table, ACPI_MADT_GIC_VERSION_V3,
++		     gic_acpi_init);
++IRQCHIP_ACPI_DECLARE(gic_v3_maybe, ACPI_MADT_TYPE_GENERIC_DISTRIBUTOR,
++		     acpi_validate_gic_table, ACPI_MADT_GIC_VERSION_NONE,
++		     gic_acpi_init);
++IRQCHIP_ACPI_DECLARE(gic_v4, ACPI_MADT_TYPE_GENERIC_DISTRIBUTOR,
++		     acpi_validate_gic_table, ACPI_MADT_GIC_VERSION_V4,
++		     gic_acpi_init);
++#endif
 -- 
 1.9.1
