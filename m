@@ -1,46 +1,66 @@
 From: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>
-Subject: Re: [PATCH v7 1/4] acpi: pci: Setup MSI domain for ACPI based pci
- devices
-Date: Wed, 16 Dec 2015 18:25:07 -0600
-Message-ID: <567200E3.1070405@amd.com>
-References: <1449766530-16935-1-git-send-email-Suravee.Suthikulpanit@amd.com>
- <1449766530-16935-2-git-send-email-Suravee.Suthikulpanit@amd.com>
- <20151216221541.GA31633@localhost>
+Subject: Re: [PATCH] i2c: designware: Add support for AMD Seattle I2C
+Date: Wed, 16 Dec 2015 18:49:59 -0600
+Message-ID: <567206B7.1050405@amd.com>
+References: <1450216553-5641-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+ <5670C90A.5020305@amd.com> <20151216091652.GN1762@lahna.fi.intel.com>
+ <56717552.4060203@amd.com> <20151216145401.GX1762@lahna.fi.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-by2on0071.outbound.protection.outlook.com ([207.46.100.71]:52619
-	"EHLO na01-by2-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753240AbbLQAZT (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 16 Dec 2015 19:25:19 -0500
-In-Reply-To: <20151216221541.GA31633@localhost>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20151216145401.GX1762@lahna.fi.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: wsa@the-dreams.de, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, bhelgaas@google.com, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, hanjun.guo@linaro.org, tomasz.nowicki@linaro.org, graeme.gregory@linaro.org, dhdang@apm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
 
-On 12/16/2015 4:15 PM, Bjorn Helgaas wrote:
-> On Thu, Dec 10, 2015 at 08:55:27AM -0800, Suravee Suthikulpanit wrote:
->> >This patch introduces pci_msi_register_fwnode_provider() for irqchip
->> >to register a callback, to provide a way to determine appropriate MSI
->> >domain for a pci device.
+Mika,
+
+On 12/16/2015 8:54 AM, Mika Westerberg wrote:
+> On Wed, Dec 16, 2015 at 08:29:38AM -0600, Suravee Suthikulpanit wrote:
 >> >
->> >It also introduces pci_host_bridge_acpi_msi_domain(), which returns
->> >the MSI domain of the specified PCI host bridge with DOMAIN_BUS_PCI_MSI
->> >bus token. Then, it is assigned to pci device.
 >> >
->> >Reviewed-by: Marc Zyngier<marc.zyngier@arm.com>
->> >Cc: Bjorn Helgaas<bhelgaas@google.com>
->> >Cc: Rafael J. Wysocki<rjw@rjwysocki.net>
->> >Signed-off-by: Suravee Suthikulpanit<Suravee.Suthikulpanit@amd.com>
-> Acked-by: Bjorn Helgaas<bhelgaas@google.com>
+>> >On 12/16/2015 03:16 AM, Mika Westerberg wrote:
+>>> > >On Tue, Dec 15, 2015 at 08:14:34PM -0600, Suravee Suthikulpanit wrote:
+>>>> > >>Hi Mika,
+>>>> > >>
+>>>> > >>On 12/15/15 15:55, Suravee Suthikulpanit wrote:
+>>>>> > >>>Add device HID AMDI0510 to match the I2C controlers on AMD Seattle platform
+>>>>> > >>>
+>>>>> > >>>Signed-off-by: Suravee Suthikulpanit<Suravee.Suthikulpanit@amd.com>
+>>>>> > >>>---
+>>>>> > >>>  drivers/i2c/busses/i2c-designware-platdrv.c | 1 +
+>>>>> > >>>  1 file changed, 1 insertion(+)
+>>>>> > >>>
+>>>>> > >>>diff --git a/drivers/i2c/busses/i2c-designware-platdrv.c b/drivers/i2c/busses/i2c-designware-platdrv.c
+>>>>> > >>>index 57f623b..a027154 100644
+>>>>> > >>>--- a/drivers/i2c/busses/i2c-designware-platdrv.c
+>>>>> > >>>+++ b/drivers/i2c/busses/i2c-designware-platdrv.c
+>>>>> > >>>@@ -117,6 +117,7 @@ static const struct acpi_device_id dw_i2c_acpi_match[] = {
+>>>>> > >>>  	{ "80860F41", 0 },
+>>>>> > >>>  	{ "808622C1", 0 },
+>>>>> > >>>  	{ "AMD0010", 0 },
+>>>>> > >>>+	{ "AMDI0510", 0 },
+>>>>> > >>>  	{ }
+>>>> > >>
+>>>> > >>Since this driver seems to be used by several SOCs, and we have been adding
+>>>> > >>the HID from various SOC vendors. Do you think it would be better to assign
+>>>> > >>a CID so that each SOC vendor can specify in their ACPI DSDT and we can
+>>>> > >>match them here?
+>>> > >
+>>> > >Sure _CID would work here.
+>> >
+>> >Do you know if Synopsys has already provided a CID that we can use for this?
+> No.
 >
-> I assume the whole series will be queued via a non-PCI tree.
+>> >If not, who do you think should provide this?
+> Why can't you make _CID for AMD part only? For Intel we are going to get
+> new IDs for every major SoC release no matter what.
 >
+Actually, after discussed with the team. We have decided to go with the 
+AMDI0510 at this point, and we will reuse this as CID in future SOC if 
+it contains compatible I2C controller.
 
-Thank you, Bjorn. I think Marc is planning to pull this in once all 
-parties have acked the patch series.
-
+Thanks,
 Suravee
