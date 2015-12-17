@@ -1,83 +1,66 @@
-From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Subject: [PATCH v2] i2c: designware: Do not require clock when SSCN and FFCN are provided
-Date: Wed, 16 Dec 2015 20:23:45 -0600
-Message-ID: <1450319025-19120-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: Incorrect ACPI error on Dell XPS 13 9350?
+Date: Thu, 17 Dec 2015 02:50:50 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BB090A7@SHSMSX101.ccr.corp.intel.com>
+References: <CALCETrW-GTC0gTtRjbzxgiNepOxWNYMbGqmC9iqGXOMscMNg1A@mail.gmail.com>
+ <1AE640813FDE7649BE1B193DEA596E883BB08D08@SHSMSX101.ccr.corp.intel.com>
+ <CALCETrVyB=iq2A4Dg2mwMCD3dLZwvC6-5N+xdk+NupO3f4noFw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-i2c-owner@vger.kernel.org>
-Sender: linux-i2c-owner@vger.kernel.org
-To: mika.westerberg@linux.intel.com, wsa@the-dreams.de
-Cc: jarkko.nikula@linux.intel.com, andriy.shevchenko@linux.intel.com, lho@apm.com, Ken.Xue@amd.com, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga02.intel.com ([134.134.136.20]:25613 "EHLO mga02.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756022AbbLQCux (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 16 Dec 2015 21:50:53 -0500
+In-Reply-To: <CALCETrVyB=iq2A4Dg2mwMCD3dLZwvC6-5N+xdk+NupO3f4noFw@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andy Lutomirski <luto@amacapital.net>
+Cc: Linux ACPI <linux-acpi@vger.kernel.org>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Zhang, Rui" <rui.zhang@intel.com>
 
-The current driver uses input clock source frequency to calculate
-values for [SS|FS]_[HC|LC] registers. However, when booting ACPI, we do not
-currently have a good way to provide the frequency information.
-Instead, we can leverage the SSCN and FFCN ACPI methods, which can be used
-to directly provide these values. So, the clock information should
-no longer be required during probing.
-
-However, since clk can be invalid, additional checks must be done where
-we are making use of it.
-
-Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
----
-
-Note: This has been tested on AMD Seattle RevB for both DT and ACPI.
-
-Changes in V2:
-    In v1, I disregarded the clock if SSCN and FMCN are provided,
-    assuming that it was not needed. That was incorrect assumption,
-    and is now fixed in v2.
-
- drivers/i2c/busses/i2c-designware-platdrv.c | 14 +++++++++-----
- 1 file changed, 9 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/i2c/busses/i2c-designware-platdrv.c b/drivers/i2c/busses/i2c-designware-platdrv.c
-index 8ffc36b..4615fe3 100644
---- a/drivers/i2c/busses/i2c-designware-platdrv.c
-+++ b/drivers/i2c/busses/i2c-designware-platdrv.c
-@@ -44,6 +44,9 @@
- 
- static u32 i2c_dw_get_clk_rate_khz(struct dw_i2c_dev *dev)
- {
-+	if (IS_ERR(dev->clk))
-+		return 0;
-+
- 	return clk_get_rate(dev->clk)/1000;
- }
- 
-@@ -206,9 +209,8 @@ static int dw_i2c_plat_probe(struct platform_device *pdev)
- 
- 	dev->clk = devm_clk_get(&pdev->dev, NULL);
- 	dev->get_clk_rate_khz = i2c_dw_get_clk_rate_khz;
--	if (IS_ERR(dev->clk))
--		return PTR_ERR(dev->clk);
--	clk_prepare_enable(dev->clk);
-+	if (!IS_ERR(dev->clk))
-+		clk_prepare_enable(dev->clk);
- 
- 	if (!dev->sda_hold_time && ht) {
- 		u32 ic_clk = dev->get_clk_rate_khz(dev);
-@@ -297,7 +299,8 @@ static int dw_i2c_plat_suspend(struct device *dev)
- 	struct dw_i2c_dev *i_dev = platform_get_drvdata(pdev);
- 
- 	i2c_dw_disable(i_dev);
--	clk_disable_unprepare(i_dev->clk);
-+	if (!IS_ERR(i_dev->clk))
-+		clk_disable_unprepare(i_dev->clk);
- 
- 	return 0;
- }
-@@ -307,7 +310,8 @@ static int dw_i2c_plat_resume(struct device *dev)
- 	struct platform_device *pdev = to_platform_device(dev);
- 	struct dw_i2c_dev *i_dev = platform_get_drvdata(pdev);
- 
--	clk_prepare_enable(i_dev->clk);
-+	if (!IS_ERR(i_dev->clk))
-+		clk_prepare_enable(i_dev->clk);
- 
- 	if (!i_dev->pm_runtime_disabled)
- 		i2c_dw_init(i_dev);
--- 
-2.5.0
+SGksIEFuZHkNCg0KSSBqdXN0IGhlbHBlZCB0byBmaWxlIGEgYnVnIG9uIGtlcm5lbCBCdWd6aWxs
+YSBmb3IgdGhpcy4NCmh0dHBzOi8vYnVnemlsbGEua2VybmVsLm9yZy9zaG93X2J1Zy5jZ2k/aWQ9
+MTA5NTExDQpXZSBjYW4gdHJhY2sgdGhpbmdzIHRoZXJlIHRvIGhhdmUgbW9yZSBBQ1BJIGRldmVs
+b3BlcnMgaW52b2x2ZWQuDQoNClRoYW5rcyBhbmQgYmVzdCByZWdhcmRzDQotTHYNCg0KPiBGcm9t
+OiBBbmR5IEx1dG9taXJza2kgW21haWx0bzpsdXRvQGFtYWNhcGl0YWwubmV0XQ0KPiBTZW50OiBX
+ZWRuZXNkYXksIERlY2VtYmVyIDE2LCAyMDE1IDE6NTggUE0NCj4gDQo+IE9uIFR1ZSwgRGVjIDE1
+LCAyMDE1IGF0IDY6NTkgUE0sIFpoZW5nLCBMdiA8bHYuemhlbmdAaW50ZWwuY29tPiB3cm90ZToN
+Cj4gPiBIaSwgQW5keQ0KPiA+DQo+ID4gSSBjYW4gb25seSBmaW5kIEZOQ0wgaW4gdGhlIHByb3Zp
+ZGVkIEFTTCBzb3VyY2UuDQo+ID4gVGhpcyBpcyBub3Qgc3VmZmljaWVudC4NCj4gPiBDb3VsZCB5
+b3UgcHJvdmlkZSBmdWxsIGFjcGlkdW1wL2RtZXNnIGZvciB1cyB0byBjaGVjaz8NCj4gDQo+IEhl
+cmUgeW91IGdvLg0KPiANCj4gLS1BbmR5DQo+IA0KPiA+DQo+ID4gVGhhbmtzIGFuZCBiZXN0IHJl
+Z2FyZHMNCj4gPiAtTHYNCj4gPg0KPiA+PiBGcm9tOiBsaW51eC1hY3BpLW93bmVyQHZnZXIua2Vy
+bmVsLm9yZyBbbWFpbHRvOmxpbnV4LWFjcGktDQo+ID4+IG93bmVyQHZnZXIua2VybmVsLm9yZ10g
+T24gQmVoYWxmIE9mIEFuZHkgTHV0b21pcnNraQ0KPiA+Pg0KPiA+PiBJJ20gZ2V0dGluZyB0aGlz
+IGVycm9yIG9uIGJvb3Qgb24gbXkgWFBTIDEzIDkzNTAgd2l0aCB0aGUgbGF0ZXN0DQo+ID4+ICgx
+LjEuNykgZmlybXdhcmUuDQo+ID4+DQo+ID4+IFsgICswLjAwNDU4NV0gQUNQSSBFcnJvcjogW1xf
+U0JfLlBDSTAuTFBDQi5IX0VDLkVDQVZdIE5hbWVzcGFjZSBsb29rdXANCj4gPj4gZmFpbHVyZSwg
+QUVfTk9UX0ZPVU5EICgyMDE1MDkzMC9wc2FyZ3MtMzU5KQ0KPiA+Pg0KPiA+PiBbICArMC4wMDAw
+MDldDQo+ID4+ICAgICAgICAgICAgICAgSW5pdGlhbGl6ZWQgTG9jYWwgVmFyaWFibGVzIGZvciBt
+ZXRob2QgW0ZOQ0xdOg0KPiA+PiBbICArMC4wMDAwMDFdICAgTG9jYWwwOiBmZmZmODgwMDc0ZTE4
+MzE4IDxPYmo+ICAgICAgICAgICBJbnRlZ2VyDQo+ID4+IDAwMDAwMDAwMDAwMDAwMDENCj4gPj4g
+WyAgKzAuMDAwMDA0XSAgIExvY2FsMTogZmZmZjg4MDA3NGUxODVlOCA8T2JqPiAgICAgICAgICAg
+SW50ZWdlcg0KPiA+PiAwMDAwMDAwMDAwMDAwMDAwDQo+ID4+IFsgICswLjAwMDAwM10gICBMb2Nh
+bDI6IGZmZmY4ODAwNzRlMTg0ODAgPE9iaj4gICAgICAgICAgIEludGVnZXINCj4gPj4gMDAwMDAw
+MDAwMDAwMDAwMA0KPiA+PiBbICArMC4wMDAwMDNdICAgTG9jYWwzOiBmZmZmODgwMDc0ZTE4NDM4
+IDxPYmo+ICAgICAgICAgICBJbnRlZ2VyDQo+ID4+IDAwMDAwMDAwMDAwMDAwMDANCj4gPj4gWyAg
+KzAuMDAwMDAyXSAgIExvY2FsNDogZmZmZjg4MDA3NGUxODUxMCA8T2JqPiAgICAgICAgICAgSW50
+ZWdlcg0KPiA+PiAwMDAwMDAwMDAwMDAwMDAwDQo+ID4+IFsgICswLjAwMDAwM10gICBMb2NhbDU6
+IGZmZmY4ODAwNzRlMTg2MzAgPE9iaj4gICAgICAgICAgIEludGVnZXINCj4gPj4gMDAwMDAwMDAw
+MDAwMDAwMA0KPiA+PiBbICArMC4wMDAwMDNdICAgTG9jYWw2OiBmZmZmODgwMDc0ZTE4M2YwIDxP
+Ymo+ICAgICAgICAgICBJbnRlZ2VyDQo+ID4+IDAwMDAwMDAwMDAwMDAwMDANCj4gPj4NCj4gPj4g
+WyAgKzAuMDAwMDA0XSBObyBBcmd1bWVudHMgYXJlIGluaXRpYWxpemVkIGZvciBtZXRob2QgW0ZO
+Q0xdDQo+ID4+DQo+ID4+IFsgICswLjAwMDAwMl0gQUNQSSBFcnJvcjogTWV0aG9kIHBhcnNlL2V4
+ZWN1dGlvbiBmYWlsZWQgW1xfVFouRk5DTF0NCj4gPj4gKE5vZGUgZmZmZjg4MDI3ODExZjRkOCks
+IEFFX05PVF9GT1VORCAoMjAxNTA5MzAvcHNwYXJzZS01NDIpDQo+ID4+IFsgICswLjAwMDAwNl0g
+QUNQSSBFcnJvcjogTWV0aG9kIHBhcnNlL2V4ZWN1dGlvbiBmYWlsZWQNCj4gPj4gW1xfVFouRk4w
+MC5fT05dIChOb2RlIGZmZmY4ODAyNzgwZWVlZDgpLCBBRV9OT1RfRk9VTkQNCj4gPj4gKDIwMTUw
+OTMwL3BzcGFyc2UtNTQyKQ0KPiA+Pg0KPiA+PiBJJ20gSSdtIHVuZGVyc3RhbmRpbmcgdGhlIG1l
+c3NhZ2UgY29ycmVjdGx5LCB0aGlzIG1lYW5zIHRoYXQgRUNBVg0KPiA+PiBjYW4ndCBiZSBmb3Vu
+ZCwgYnV0IEVDQVYgYXBwZWFycyB0byBiZSBkZWNsYXJlZC4NCj4gPj4NCj4gPj4gVGhpcyBzdHVm
+ZiBpcyBpbiBTU0RUNCwgYXR0YWNoZWQuDQo+ID4+DQo+ID4+IEFtIEkgcmVhZGluZyBpdCBjb3Jy
+ZWN0bHk/ICBUaGlzIGlzIExpbnV4IDQuNC1yYzMuDQo+ID4+DQo+ID4+IC0tQW5keQ0KPiANCj4g
+DQo+IA0KPiAtLQ0KPiBBbmR5IEx1dG9taXJza2kNCj4gQU1BIENhcGl0YWwgTWFuYWdlbWVudCwg
+TExDDQo=
