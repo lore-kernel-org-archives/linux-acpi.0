@@ -1,60 +1,96 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V2 05/10] irqchip, gicv3, its: Mark its_init() and its children as __init
-Date: Thu, 17 Dec 2015 12:52:08 +0100
-Message-ID: <1450353133-15992-6-git-send-email-tn@semihalf.com>
+Subject: [PATCH V2 09/10] acpi, gicv3, msi: Factor out code that might be reused for ACPI equivalent.
+Date: Thu, 17 Dec 2015 12:52:12 +0100
+Message-ID: <1450353133-15992-10-git-send-email-tn@semihalf.com>
 References: <1450353133-15992-1-git-send-email-tn@semihalf.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wm0-f43.google.com ([74.125.82.43]:36724 "EHLO
+	mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933296AbbLQLwp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 17 Dec 2015 06:52:45 -0500
+Received: by mail-wm0-f43.google.com with SMTP id p187so17541275wmp.1
+        for <linux-acpi@vger.kernel.org>; Thu, 17 Dec 2015 03:52:45 -0800 (PST)
 In-Reply-To: <1450353133-15992-1-git-send-email-tn@semihalf.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, guohanjun@huawei.com, Suravee.Suthikulpanit@amd.com
 Cc: mw@semihalf.com, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, linux-arm-kernel@lists.infradead.org, ddaney.cavm@gmail.com, Tomasz Nowicki <tn@semihalf.com>
-List-Id: linux-acpi@vger.kernel.org
 
-gicv3_init_bases() is the only caller for its_init(),
-also it is a __init function, so mark its_init() as __init too,
-then recursively mark the functions called as __init.
+Firmware agnostic code lands in separate function which do necessary
+domain initialization based on unique domain handler.
 
-This will help to introduce ITS initialization using ACPI tables as
-we will use acpi_table_parse_entries family functions there which
-belong to __init section as well.
-
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
 ---
- drivers/irqchip/irq-gic-v3-its.c | 7 ++++---
- 1 file changed, 4 insertions(+), 3 deletions(-)
+ drivers/irqchip/irq-gic-v3-its-pci-msi.c | 43 +++++++++++++++++++++-----------
+ 1 file changed, 28 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/irqchip/irq-gic-v3-its.c b/drivers/irqchip/irq-gic-v3-its.c
-index 7ca7f9a..2bbed18 100644
---- a/drivers/irqchip/irq-gic-v3-its.c
-+++ b/drivers/irqchip/irq-gic-v3-its.c
-@@ -669,7 +669,7 @@ static int its_chunk_to_lpi(int chunk)
- 	return (chunk << IRQS_PER_CHUNK_SHIFT) + 8192;
- }
- 
--static int its_lpi_init(u32 id_bits)
-+static int __init its_lpi_init(u32 id_bits)
- {
- 	lpi_chunks = its_lpi_to_chunk(1UL << id_bits);
- 
-@@ -1424,7 +1424,8 @@ static void its_enable_quirks(struct its_node *its)
- 	gic_enable_quirks(iidr, its_quirks, its);
- }
- 
--static int its_probe(struct device_node *node, struct irq_domain *parent)
-+static int __init its_probe(struct device_node *node,
-+			    struct irq_domain *parent)
- {
- 	struct resource res;
- 	struct its_node *its;
-@@ -1585,7 +1586,7 @@ static struct of_device_id its_device_id[] = {
+diff --git a/drivers/irqchip/irq-gic-v3-its-pci-msi.c b/drivers/irqchip/irq-gic-v3-its-pci-msi.c
+index aee60ed..06165cb 100644
+--- a/drivers/irqchip/irq-gic-v3-its-pci-msi.c
++++ b/drivers/irqchip/irq-gic-v3-its-pci-msi.c
+@@ -106,34 +106,47 @@ static struct of_device_id its_device_id[] = {
  	{},
  };
  
--int its_init(struct device_node *node, struct rdists *rdists,
-+int __init its_init(struct device_node *node, struct rdists *rdists,
- 	     struct irq_domain *parent_domain)
+-static int __init its_pci_msi_init(void)
++static int __init its_pci_msi_init_one(struct fwnode_handle *handle)
  {
- 	struct device_node *np;
+-	struct device_node *np;
+ 	struct irq_domain *parent;
+ 
++	parent = irq_find_matching_fwnode(handle, DOMAIN_BUS_NEXUS);
++	if (!parent || !msi_get_domain_info(parent)) {
++		pr_err("Unable to locate ITS domain\n");
++		return -ENXIO;
++	}
++
++	if (!pci_msi_create_irq_domain(handle, &its_pci_msi_domain_info,
++				       parent)) {
++		pr_err("Unable to create PCI domain\n");
++		return -ENOMEM;
++	}
++
++	return 0;
++}
++
++static int __init its_pci_of_msi_init(void)
++{
++	struct device_node *np;
++
+ 	for (np = of_find_matching_node(NULL, its_device_id); np;
+ 	     np = of_find_matching_node(np, its_device_id)) {
+ 		if (!of_property_read_bool(np, "msi-controller"))
+ 			continue;
+ 
+-		parent = irq_find_matching_host(np, DOMAIN_BUS_NEXUS);
+-		if (!parent || !msi_get_domain_info(parent)) {
+-			pr_err("%s: unable to locate ITS domain\n",
+-			       np->full_name);
++		if (its_pci_msi_init_one(of_node_to_fwnode(np)))
+ 			continue;
+-		}
+-
+-		if (!pci_msi_create_irq_domain(of_node_to_fwnode(np),
+-					       &its_pci_msi_domain_info,
+-					       parent)) {
+-			pr_err("%s: unable to create PCI domain\n",
+-			       np->full_name);
+-			continue;
+-		}
+ 
+ 		pr_info("PCI/MSI: %s domain created\n", np->full_name);
+ 	}
+ 
+ 	return 0;
+ }
++
++static int __init its_pci_msi_init(void)
++{
++	its_pci_of_msi_init();
++	return 0;
++}
++
+ early_initcall(its_pci_msi_init);
 -- 
 1.9.1
+
