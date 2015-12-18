@@ -1,330 +1,222 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v2 3/4] arm64, acpi, numa: NUMA support based on SRAT and
- SLIT
-Date: Fri, 18 Dec 2015 16:23:36 +0000
-Message-ID: <20151218162336.GA25024@red-moon>
-References: <1447784733-10419-1-git-send-email-gkulkarni@caviumnetworks.com>
- <1447784733-10419-4-git-send-email-gkulkarni@caviumnetworks.com>
+From: okaya@codeaurora.org
+Subject: Re: [PATCH V2 00/23] MMCONFIG refactoring and support for ARM64 PCI
+ hostbridge init based on ACPI
+Date: Fri, 18 Dec 2015 18:56:39 -0000
+Message-ID: <4bccc2de7668dde04436ac9c19aac25d.squirrel@www.codeaurora.org>
+References: <1450278993-12664-1-git-send-email-tn@semihalf.com>
+    <5673281E.7020204@codeaurora.org> <5673FB6C.80008@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:41674 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753603AbbLRQWU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 18 Dec 2015 11:22:20 -0500
-Content-Disposition: inline
-In-Reply-To: <1447784733-10419-4-git-send-email-gkulkarni@caviumnetworks.com>
+Received: from smtp.codeaurora.org ([198.145.29.96]:50907 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932892AbbLRS4r (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Dec 2015 13:56:47 -0500
+In-Reply-To: <5673FB6C.80008@semihalf.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Will.Deacon@arm.com, catalin.marinas@arm.com, grant.likely@linaro.org, leif.lindholm@linaro.org, rfranz@cavium.com, ard.biesheuvel@linaro.org, msalter@redhat.com, robh+dt@kernel.org, steve.capper@linaro.org, hanjun.guo@linaro.org, al.stone@linaro.org, arnd@arndb.de, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, rjw@rjwysocki.net, lenb@kernel.org, marc.zyngier@arm.com, tn@semihalf.com, rrichter@cavium.com, Prasun.Kapoor@caviumnetworks.com, gpkulkarni@gmail.com
+To: Tomasz Nowicki <tn@semihalf.com>
+Cc: Sinan Kaya <okaya@codeaurora.org>, bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, lorenzo.pieralisi@arm.com, jiang.liu@linux.intel.com, stefano.stabellini@eu.citrix.com, robert.richter@caviumnetworks.com, mw@semihalf.com, liviu.dudau@arm.com, ddaney@caviumnetworks.com, tglx@linutronix.de, wangyijing@huawei.com, suravee.suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com
 
-On Tue, Nov 17, 2015 at 11:55:32PM +0530, Ganapatrao Kulkarni wrote:
+> On 17.12.2015 22:24, Sinan Kaya wrote:
+>> Hi Tomasz,
+>>
+>> On 12/16/2015 10:16 AM, Tomasz Nowicki wrote:
+>>>  From the functionality point of view this series might be split into
+>>> the
+>>> following logic parts:
+>>> 1. Make MMCONFIG code arch-agnostic which allows all architectures to
+>>> collect
+>>>     PCI config regions and used when necessary.
+>>> 2. Move non-arch specific bits to the core code.
+>>> 3. Use MMCONFIG code and implement generic ACPI based PCI host
+>>>     controller driver.
+>>> 4. Enable above driver on ARM64
+>>>
+>>> Patches has been built on top of 4.4-rc4 and can be found here:
+>>> git@github.com:semihalf-nowicki-tomasz/linux.git (pci-acpi-v2)
+>>>
+>>> NOTE, this patch set depends on Matthew's patches:
+>>> http://www.spinics.net/lists/linux-pci/msg45950.html
+>>> https://github.com/Vality/linux/tree/pci-fixes
+>>>
+>>> This has been tested on Cavium ThunderX 1 socket server and QEMU.
+>>> Any help in reviewing and testing is very appreciated.
+>>>
+>>> v1 -> v2
+>>> - moved non-arch specific piece of code to dirver/acpi/ directory
+>>> - fixed IO resource handling
+>>> - introduced PCI config accessors quirks matching
+>>> - moved ACPI_COMPANION_SET to generic code
+>>>
+>>
+>> Just tested your series. I'm seeing a resource assignment problem below.
+>> The bus addresses show as memory addresses and memory addresses show as
+>> bus addresses and IO resource did not show up.
+>>
+>>
+>> Tomasz V2
+>>
+>> [    2.520852] ACPI: PCI Interrupt Link [LN1C] (IRQs *238)
+>> [    2.535472] ACPI: PCI Interrupt Link [LN1D] (IRQs *239)
+>> [    2.550562] ACPI: PCI Root Bridge [PCI2] (domain 0002 [bus 00-1f])
+>> [    2.567813] acpi PNP0A08:02: _OSC: OS supports [ExtendedConfig ASPM
+>> ClockPM Segments MSI]
+>> [    2.591270] acpi PNP0A08:02: _OSC: platform does not support
+>> [PCIeHotplug]
+>> [    2.611144] acpi PNP0A08:02: _OSC: OS now controls [PME AER
+>> PCIeCapability]
+>> [    2.630299] ACPI: IORT: can't find node related to (null) device
+>> [    2.647184]_acpi_PNP0A08:02:_PCI_host_bridge_to_bus_0002:00
+>> [    2.662663] pci_bus 0002:00: root bus resource [mem
+>> 0x00100000-0x3fffffff window] (bus address
+>> [0xfffff5ff00100000-0xfffff5ff3fffffff])
+>> [    2.703561] pci_bus 0002:00: root bus resource [mem
+>> 0x40000000-0x7fffffff window] (bus address
+>> [0xfffff5fe80000000-0xfffff5febfffffff])
+>> [    2.737737] pci_bus 0002:00: root bus resource [mem
+>> 0x80000000-0xffffffff window] (bus address
+>> [0xfffff5fe00000000-0xfffff5fe7fffffff])
+>> [    2.794961] pci_bus 0002:00: root bus resource [bus 00-1f]
+>>
+>> Mark Salter's patches
+>>
+>> [    2.730011] ACPI: PCI Interrupt Link [LN1C] (IRQs *238)
+>> [    2.744648] ACPI: PCI Interrupt Link [LN1D] (IRQs *239)
+>> [    2.759330] ACPI: PCI Root Bridge [PCI2] (domain 0002 [bus 00-1f])
+>> [    2.783295] acpi PNP0A08:02: _OSC: OS supports [ExtendedConfig ASPM
+>> ClockPM Segments MSI]
+>> [    2.806726] acpi PNP0A08:02: _OSC: platform does not support
+>> [PCIeHotplug]
+>> [    2.826005] acpi PNP0A08:02: _OSC: OS now controls [PME AER
+>> PCIeCapability]
+>> [    2.845361] PCI host bridge to bus 0002:00
+>> [    2.856719]_pci_bus_0002:00:_root_bus_resource_[bus_00-1f]
+>> [    2.872056] pci_bus 0002:00: root bus resource [mem
+>> 0xa0100100000-0xa013fffffff] (bus address [0x00100000-0x3fffffff])
+>> [    2.902008] pci_bus 0002:00: root bus resource [mem
+>> 0xa0200000000-0xa023fffffff] (bus address [0x40000000-0x7fffffff])
+>> [    2.932396] pci_bus 0002:00: root bus resource [mem
+>> 0xa0300000000-0xa037fffffff] (bus address [0x80000000-0xffffffff])
+>> [    2.983827] pci_bus 0002:00: root bus resource [io  0x0000-0xffff]
+>>
+>> Here is how the ACPI table looks like:
+>>
+>> 		QWORDMemory(			// Consumed-And-prodced resource(all of memory space)
+>> 			ResourceProducer,	// bit 0 of general flags is 0
+>> 			PosDecode,		// positive Decode:  		_DEC
+>> 			MinFixed,		// Range is fixed:   		_MIF
+>> 			MaxFixed,		// Range is fixed:   		_MAF
+>> 			NonCacheable,		// 				_MEM
+>> 			ReadWrite,		// 				_RW
+>> 			0x00000000,		// Granularity: 	   	_GRA
+>> 			0x00100000,		// Min - PCI Memory start: 	_MIN
+>> 			0x3FFFFFFF,		// Max - PCI Memory end:   	_MAX
+>> 			0xA0100000000,		// Translation: 		_TRA
+>> 			0x3FF00000,		// Range Length: 		_LEN
+>> 			,			// Optional field left blank
+>> 			,			// Optional field left blank
+>> 			MEM0,			// Name declaration for this descriptor
+>> 			AddressRangeMemory,
+>> 			TypeStatic
+>> 			)
+>>
+>>
+>> Any thoughts?
+>>
+>>
+>
+> Yes, this is because of:
+> [PATCH V2 20/23] ACPI, PCI: Refine the way to handle translation_offset
+> for ACPI resources
+> which should have RFC tag. I posted this patch to re-trigger discussion
+> on this.
+>
+> The patch does not add Translation offset to the MMIO type resource
+> start address and for acpi_pci_probe_root_resources(ci) causes problems
+> like that. Indeed MMIO has to be fixed.
 
-[...]
+OK. I assume you'll post a patch for this soon similar to what Liu Jiang
+is doing in IA64 directory (arch/ia64/pci/pci.c) as I can't proceed with
+my testing without this bugfix.
+>
+> But IO resource type is more problematic. Actually, how
+> acpi_decode_space() should parse resources and which ACPI IO descriptor
+> should be used for ARM64: QWORDIO (offset == 0 vs offset != 0), DWordIO
+> (TypeStatic vs TypeTranslation) + backward compatibility with IA64...
+>
+> Please refer to:
+> https://lkml.org/lkml/2015/11/5/581
+>
+> As Lorenzo pointed out, we *all* need to agree upon the IO resource ACPI
+> descriptor and its parsing method.
 
-> diff --git a/arch/arm64/kernel/Makefile b/arch/arm64/kernel/Makefile
-> index 7987763..555c4a5 100644
-> --- a/arch/arm64/kernel/Makefile
-> +++ b/arch/arm64/kernel/Makefile
-> @@ -42,6 +42,7 @@ arm64-obj-$(CONFIG_PCI)			+= pci.o
->  arm64-obj-$(CONFIG_ARMV8_DEPRECATED)	+= armv8_deprecated.o
->  arm64-obj-$(CONFIG_ACPI)		+= acpi.o
->  arm64-obj-$(CONFIG_OF_NUMA)		+= of_numa.o
-> +arm64-obj-$(CONFIG_ACPI_NUMA)		+= acpi_numa.o
+Here is what I have as an IO resource.
 
-Isn't it better to merge ACPI and DT support in one file (a bit like
-what we did for smp.c) to remove some of this iffdeffery ?
+		QWORDIO(			//Consumed-And-produced resource
+			ResourceProducer,	// bit 0 of general flags is 0
+			MinFixed,		// Range is fixed
+			MaxFixed,		// Range is fixed
+			PosDecode,
+			EntireRange,
+			0x0000,			// Granularity
+			0x1000,		// Min, 0 is not accepted
+			0x10FFF,		// Max
+			0x8FFFFFEF000,	// Translation
+			0x10000,		// Range Length
+			,, PI00
+		 )
 
->  
->  obj-y					+= $(arm64-obj-y) vdso/
->  obj-m					+= $(arm64-obj-m)
-> diff --git a/arch/arm64/kernel/acpi_numa.c b/arch/arm64/kernel/acpi_numa.c
-> new file mode 100644
-> index 0000000..8aee205
-> --- /dev/null
-> +++ b/arch/arm64/kernel/acpi_numa.c
-> @@ -0,0 +1,215 @@
-> +/*
-> + * ACPI 5.1 based NUMA setup for ARM64
-> + * Lots of code was borrowed from arch/x86/mm/srat.c
-> + *
-> + * Copyright 2004 Andi Kleen, SuSE Labs.
-> + * Copyright (C) 2013-2014, Linaro Ltd.
-> + *		Author: Hanjun Guo <hanjun.guo@linaro.org>
-> + *
-> + * Reads the ACPI SRAT table to figure out what memory belongs to which CPUs.
-> + *
-> + * Called from acpi_numa_init while reading the SRAT and SLIT tables.
-> + * Assumes all memory regions belonging to a single proximity domain
-> + * are in one chunk. Holes between them will be included in the node.
-> + */
-> +
-> +#define pr_fmt(fmt) "ACPI: NUMA: " fmt
-> +
-> +#include <linux/acpi.h>
-> +#include <linux/bitmap.h>
-> +#include <linux/bootmem.h>
-> +#include <linux/kernel.h>
-> +#include <linux/mm.h>
-> +#include <linux/memblock.h>
-> +#include <linux/mmzone.h>
-> +#include <linux/module.h>
-> +#include <linux/topology.h>
-> +
-> +#include <acpi/processor.h>
-> +#include <asm/numa.h>
-> +
-> +int acpi_numa __initdata;
-> +
-> +static __init int setup_node(int pxm)
-> +{
-> +	return acpi_map_pxm_to_node(pxm);
-> +}
+I don't have any type specified.
 
-This function is not that useful given how it is used in the patch.
+I agree with Lorenzo's assessment. The min and max values represent the
+PCI IO bus addresses. The translation offset is added to these values to
+figure out the CPU view of the PCI IO range.
 
-> +
-> +static __init void bad_srat(void)
-> +{
-> +	pr_err("SRAT not used.\n");
-> +	acpi_numa = -1;
-> +}
-> +
-> +static __init inline int srat_disabled(void)
-> +{
-> +	return acpi_numa < 0;
-> +}
-> +
-> +/*
-> + * Callback for SLIT parsing.
-> + * It will get the distance information presented by SLIT
-> + * and init the distance matrix of numa nodes
-> + */
-> +void __init acpi_numa_slit_init(struct acpi_table_slit *slit)
-> +{
-> +	int i, j;
-> +
-> +	for (i = 0; i < slit->locality_count; i++) {
-> +		const int from_node = pxm_to_node(i);
-> +
-> +		if (from_node == NUMA_NO_NODE)
-> +			continue;
-> +
-> +		for (j = 0; j < slit->locality_count; j++) {
-> +			const int to_node = pxm_to_node(j);
-> +
-> +			if (to_node == NUMA_NO_NODE)
-> +				continue;
-> +
-> +			pr_info("SLIT: Distance[%d][%d] = %d\n",
-> +					from_node, to_node,
-> +					slit->entry[
-> +					slit->locality_count * i + j]);
-> +			numa_set_distance(from_node, to_node,
-> +				slit->entry[slit->locality_count * i + j]);
-> +		}
-> +	}
-> +}
+The endpoints BAR addresses are programmed with IO addresses ranging
+between 0x1000 and 0x10FFF for this example above.
 
-This function is an x86 copy'n'paste. ia64 just requires this callback
-to save a slit table pointer (that can be moved to generic code and it is
-initdata anyway), so my question is, do we really need to duplicate it ?
+Here is another question. Chris Covington and I asked this question on a
+private email to you but we didn't hear back.
 
-> +static int __init get_mpidr_in_madt(int acpi_id, u64 *mpidr)
-> +{
+We were referring to a Linaro IO hack patch as we were not sure whether
+this was a limitation of the hack or a general expectation for ARM64 PCI
+in general.
 
-Looks familiar. I guess you can't reuse the code in drivers/acpi
-(acpi_map_cpuid()) only because that implies permanent table mappings to be
-in place and you need to call this function before acpi_gbl_permanent_mmap
-is set ?
+I'll repeat it here.
 
-> +	unsigned long madt_end, entry;
-> +	struct acpi_table_madt *madt;
-> +	acpi_size tbl_size;
-> +
-> +	if (ACPI_FAILURE(acpi_get_table_with_size(ACPI_SIG_MADT, 0,
-> +			(struct acpi_table_header **)&madt, &tbl_size)))
-> +		return -ENODEV;
-> +
-> +	entry = (unsigned long)madt;
-> +	madt_end = entry + madt->header.length;
-> +
-> +	/* Parse all entries looking for a match. */
-> +	entry += sizeof(struct acpi_table_madt);
-> +	while (entry + sizeof(struct acpi_subtable_header) < madt_end) {
-> +		struct acpi_subtable_header *header =
-> +			(struct acpi_subtable_header *)entry;
-> +
-> +		if (header->type == ACPI_MADT_TYPE_GENERIC_INTERRUPT) {
-> +			struct acpi_madt_generic_interrupt *gicc =
-> +				container_of(header,
-> +				struct acpi_madt_generic_interrupt, header);
-> +
-> +			if ((gicc->flags & ACPI_MADT_ENABLED) &&
-> +			    (gicc->uid == acpi_id)) {
-> +				*mpidr = gicc->arm_mpidr;
-> +				early_acpi_os_unmap_memory(madt, tbl_size);
-> +				return 0;
-> +			}
-> +		}
-> +		entry += header->length;
-> +	}
-> +
-> +	early_acpi_os_unmap_memory(madt, tbl_size);
-> +	return -ENODEV;
-> +}
-> +
-> +/* Callback for Proximity Domain -> ACPI processor UID mapping */
-> +void __init acpi_numa_gicc_affinity_init(struct acpi_srat_gicc_affinity *pa)
-> +{
-> +	int pxm, node;
-> +	u64 mpidr;
-> +	static int cpus_in_srat;
-> +
-> +	if (srat_disabled())
-> +		return;
-> +
-> +	if (pa->header.length < sizeof(struct acpi_srat_gicc_affinity)) {
-> +		bad_srat();
-> +		return;
-> +	}
-> +
-> +	if (!(pa->flags & ACPI_SRAT_GICC_ENABLED))
-> +		return;
-> +
-> +	if (cpus_in_srat >= NR_CPUS) {
-> +		pr_warn_once("SRAT: cpu_to_node_map[%ld] is too small, may not be able to use all cpus\n",
-> +			     NR_CPUS);
-> +		return;
-> +	}
-> +
-> +	pxm = pa->proximity_domain;
-> +	node = setup_node(pxm);
-> +
-> +	if (node == NUMA_NO_NODE || node >= MAX_NUMNODES) {
-> +		pr_err("SRAT: Too many proximity domains %d\n", pxm);
-> +		bad_srat();
-> +		return;
-> +	}
-> +
-> +	if (get_mpidr_in_madt(pa->acpi_processor_uid, &mpidr)) {
-> +		pr_warn("SRAT: PXM %d with ACPI ID %d has no valid MPIDR in MADT\n",
-> +			pxm, pa->acpi_processor_uid);
-> +		bad_srat();
-> +		return;
-> +	}
-> +
-> +	cpu_to_node_map[cpus_in_srat] = node;
+I have multiple root ports with the same IO port configuration in the
+current ACPI table.
 
-This looks wrong. cpus_in_srat is a logical index, but I do not see why
-it has to be sequential. You retrieve the mpidr for a given SRAT entry
-and with that value you should retrieve the cpu_logical index that
-corresponds to it (get_logical_index()), or maybe I am missing something
-from the ACPI specs that enforce a SRAT entries ordering, on which we
-should not rely upon anyway.
+Root port 0 = IO range 0x1000-0x10FFF
+Root port 1 = IO range 0x1000-0x10FFF
+Root port 2 = IO range 0x1000-0x10FFF
 
-> +	node_set(node, numa_nodes_parsed);
-> +	acpi_numa = 1;
+Each root port can have the same IO address range configuration, are we
+expecting IO port numbers to be unique across the whole system for ARM64?
 
-What's the point if you are checking for < 0 in srat_disabled() ?
+Something like
 
-> +	cpus_in_srat++;
-> +	pr_info("SRAT: PXM %d -> MPIDR 0x%Lx -> Node %d cpu %d\n",
-> +			pxm, mpidr, node, cpus_in_srat);
-> +}
-> +
-> +/* Callback for parsing of the Proximity Domain <-> Memory Area mappings */
-> +int __init acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
-> +{
-> +	u64 start, end;
-> +	int node, pxm;
-> +
-> +	if (srat_disabled())
-> +		return -EINVAL;
-> +
-> +	if (ma->header.length != sizeof(struct acpi_srat_mem_affinity)) {
-> +		bad_srat();
-> +		return -EINVAL;
-> +	}
-> +
-> +	start = ma->base_address;
-> +	end = start + ma->length;
-> +	pxm = ma->proximity_domain;
-> +
-> +	node = setup_node(pxm);
-> +
-> +	if (node == NUMA_NO_NODE || node >= MAX_NUMNODES) {
-> +		pr_err("SRAT: Too many proximity domains.\n");
-> +		bad_srat();
-> +		return -EINVAL;
-> +	}
-> +
-> +	pr_info("SRAT: Node %u PXM %u [mem %#010Lx-%#010Lx]\n",
-> +		node, pxm,
-> +		(unsigned long long) start, (unsigned long long) end - 1);
-> +
-> +	if (numa_add_memblk(node, start, (end - start)) < 0) {
-> +		bad_srat();
-> +		return -EINVAL;
-> +	}
-> +
-> +	return 0;
-> +}
+Root port 0 = IO range 0x1000-0x10FFF
+Root port 1 = IO range 0x11000-0x20FFF
+Root port 2 = IO range 0x21000-0x30FFF
 
-I do not see again any major changes compared to x86, numa_add_memblk()
-has a different interface (size vs end) but apart from that it would
-be nice to avoid rewriting the same code time and again.
+since the IO addresses are being remapped into PCI IO range printed during
+boot.
 
-> +
-> +void __init acpi_numa_arch_fixup(void) { }
+PCI I/O : 0xffff7ffffae00000 - 0xffff7ffffbe00000   (    16 MB)
 
-Sigh. How many of these useless callbacks are we forced to define ?
+and each root port would remap to 64k of the 16MB range.
 
-> +
-> +int __init arm64_acpi_numa_init(void)
-> +{
-> +	int ret;
-> +
-> +	ret = acpi_numa_init();
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	return srat_disabled() ? -EINVAL : 0;
-> +}
-> diff --git a/arch/arm64/mm/numa.c b/arch/arm64/mm/numa.c
-> index 209c7a9..c2950fc 100644
-> --- a/arch/arm64/mm/numa.c
-> +++ b/arch/arm64/mm/numa.c
-> @@ -17,6 +17,7 @@
->   * along with this program.  If not, see <http://www.gnu.org/licenses/>.
->   */
->  
-> +#include <linux/acpi.h>
->  #include <linux/bootmem.h>
->  #include <linux/ctype.h>
->  #include <linux/init.h>
-> @@ -383,9 +384,13 @@ void __init arm64_numa_init(void)
->  	int ret = -ENODEV;
->  
->  #ifdef CONFIG_OF_NUMA
-> -	if (!numa_off)
-> +	if (!numa_off && acpi_disabled)
->  		ret = numa_init(arm64_of_numa_init);
->  #endif
-> +#ifdef CONFIG_ACPI_NUMA
-> +	if (!numa_off && !acpi_disabled)
-> +		ret = numa_init(arm64_acpi_numa_init);
-> +#endif
+>
+> Any comments are very appreciated!
+>
+> Tomasz
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-See my comment above on DT/ACPI, this ifdeffery does not look great.
 
-Thanks,
-Lorenzo
-
->  
->  	if (ret)
->  		numa_init(dummy_numa_init);
-> -- 
-> 1.8.1.4
-> 
