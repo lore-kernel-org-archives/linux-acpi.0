@@ -1,45 +1,24 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [RFC PATCH v3 5/5] PCI: ACPI: Add a generic ACPI based host controller
-Date: Fri, 18 Dec 2015 11:35:03 +0100
-Message-ID: <2016693.gtbtd8TMEz@wuerfel>
-References: <1450269755-21420-1-git-send-email-jchandra@broadcom.com> <1450269755-21420-6-git-send-email-jchandra@broadcom.com>
+From: Hanjun Guo <guohanjun@huawei.com>
+Subject: Re: [PATCH V2 06/10] irqchip/GICv3/ITS: Refator ITS dt init code
+ to prepare for ACPI.
+Date: Fri, 18 Dec 2015 18:57:05 +0800
+Message-ID: <5673E681.7060603@huawei.com>
+References: <1450353133-15992-1-git-send-email-tn@semihalf.com> <1450353133-15992-7-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <1450269755-21420-6-git-send-email-jchandra@broadcom.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org
-Cc: Jayachandran C <jchandra@broadcom.com>, linux-pci@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-acpi@vger.kernel.org, Tomasz Nowicki <tn@semihalf.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1450353133-15992-7-git-send-email-tn@semihalf.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tomasz Nowicki <tn@semihalf.com>, marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, Suravee.Suthikulpanit@amd.com
+Cc: mw@semihalf.com, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, linux-arm-kernel@lists.infradead.org, ddaney.cavm@gmail.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Wednesday 16 December 2015 18:12:35 Jayachandran C wrote:
-> Add a simple ACPI based PCI host controller. This is done by
-> providing a simple implementation for pci_acpi_scan_root().
-> 
-> The pci_mmcfg_list handling is done by the ACPI code, we
-> keep a reference to the pci_mmcfg_region which is already
-> mapped.
-> 
-> This is enabled only for ARM64 now.
-> 
-> Signed-off-by: Jayachandran C <jchandra@broadcom.com>
-> ---
->  drivers/pci/host/Kconfig         |   7 ++
->  drivers/pci/host/Makefile        |   1 +
->  drivers/pci/host/pci-host-acpi.c | 193 +++++++++++++++++++++++++++++++++++++++
->  3 files changed, 201 insertions(+)
->  create mode 100644 drivers/pci/host/pci-host-acpi.c
+On 2015/12/17 19:52, Tomasz Nowicki wrote:
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
 
-(just noticed this got stuck in my outbox, sending it late)
+Missing change log here?
 
-I think this would be better put into drivers/acpi/pci_root.c, it directly
-interacts with the code that is already there, and it's by no means
-a standalone driver.
-
-Also, there is no need for a Kconfig symbol that way.
-
-You can put it into #if !(defined(CONFIG_X86) || defined(CONFIG_IA64))
-if the code cannot be shared with the other architectures at the moment.
-
-	Arnd
+Thanks
+Hanjun
