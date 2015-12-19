@@ -1,222 +1,76 @@
-From: okaya@codeaurora.org
-Subject: Re: [PATCH V2 00/23] MMCONFIG refactoring and support for ARM64 PCI
- hostbridge init based on ACPI
-Date: Fri, 18 Dec 2015 18:56:39 -0000
-Message-ID: <4bccc2de7668dde04436ac9c19aac25d.squirrel@www.codeaurora.org>
-References: <1450278993-12664-1-git-send-email-tn@semihalf.com>
-    <5673281E.7020204@codeaurora.org> <5673FB6C.80008@semihalf.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] Power management fixes for v4.4-rc6
+Date: Sat, 19 Dec 2015 04:45:20 +0100
+Message-ID: <CAJZ5v0i=-hZODTu6FiER3A5=oLOMycxh-zMtDb0PVKcfjgrzfQ@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:50907 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932892AbbLRS4r (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 18 Dec 2015 13:56:47 -0500
-In-Reply-To: <5673FB6C.80008@semihalf.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>
-Cc: Sinan Kaya <okaya@codeaurora.org>, bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, lorenzo.pieralisi@arm.com, jiang.liu@linux.intel.com, stefano.stabellini@eu.citrix.com, robert.richter@caviumnetworks.com, mw@semihalf.com, liviu.dudau@arm.com, ddaney@caviumnetworks.com, tglx@linutronix.de, wangyijing@huawei.com, suravee.suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com
 
-> On 17.12.2015 22:24, Sinan Kaya wrote:
->> Hi Tomasz,
->>
->> On 12/16/2015 10:16 AM, Tomasz Nowicki wrote:
->>>  From the functionality point of view this series might be split into
->>> the
->>> following logic parts:
->>> 1. Make MMCONFIG code arch-agnostic which allows all architectures to
->>> collect
->>>     PCI config regions and used when necessary.
->>> 2. Move non-arch specific bits to the core code.
->>> 3. Use MMCONFIG code and implement generic ACPI based PCI host
->>>     controller driver.
->>> 4. Enable above driver on ARM64
->>>
->>> Patches has been built on top of 4.4-rc4 and can be found here:
->>> git@github.com:semihalf-nowicki-tomasz/linux.git (pci-acpi-v2)
->>>
->>> NOTE, this patch set depends on Matthew's patches:
->>> http://www.spinics.net/lists/linux-pci/msg45950.html
->>> https://github.com/Vality/linux/tree/pci-fixes
->>>
->>> This has been tested on Cavium ThunderX 1 socket server and QEMU.
->>> Any help in reviewing and testing is very appreciated.
->>>
->>> v1 -> v2
->>> - moved non-arch specific piece of code to dirver/acpi/ directory
->>> - fixed IO resource handling
->>> - introduced PCI config accessors quirks matching
->>> - moved ACPI_COMPANION_SET to generic code
->>>
->>
->> Just tested your series. I'm seeing a resource assignment problem below.
->> The bus addresses show as memory addresses and memory addresses show as
->> bus addresses and IO resource did not show up.
->>
->>
->> Tomasz V2
->>
->> [    2.520852] ACPI: PCI Interrupt Link [LN1C] (IRQs *238)
->> [    2.535472] ACPI: PCI Interrupt Link [LN1D] (IRQs *239)
->> [    2.550562] ACPI: PCI Root Bridge [PCI2] (domain 0002 [bus 00-1f])
->> [    2.567813] acpi PNP0A08:02: _OSC: OS supports [ExtendedConfig ASPM
->> ClockPM Segments MSI]
->> [    2.591270] acpi PNP0A08:02: _OSC: platform does not support
->> [PCIeHotplug]
->> [    2.611144] acpi PNP0A08:02: _OSC: OS now controls [PME AER
->> PCIeCapability]
->> [    2.630299] ACPI: IORT: can't find node related to (null) device
->> [    2.647184]_acpi_PNP0A08:02:_PCI_host_bridge_to_bus_0002:00
->> [    2.662663] pci_bus 0002:00: root bus resource [mem
->> 0x00100000-0x3fffffff window] (bus address
->> [0xfffff5ff00100000-0xfffff5ff3fffffff])
->> [    2.703561] pci_bus 0002:00: root bus resource [mem
->> 0x40000000-0x7fffffff window] (bus address
->> [0xfffff5fe80000000-0xfffff5febfffffff])
->> [    2.737737] pci_bus 0002:00: root bus resource [mem
->> 0x80000000-0xffffffff window] (bus address
->> [0xfffff5fe00000000-0xfffff5fe7fffffff])
->> [    2.794961] pci_bus 0002:00: root bus resource [bus 00-1f]
->>
->> Mark Salter's patches
->>
->> [    2.730011] ACPI: PCI Interrupt Link [LN1C] (IRQs *238)
->> [    2.744648] ACPI: PCI Interrupt Link [LN1D] (IRQs *239)
->> [    2.759330] ACPI: PCI Root Bridge [PCI2] (domain 0002 [bus 00-1f])
->> [    2.783295] acpi PNP0A08:02: _OSC: OS supports [ExtendedConfig ASPM
->> ClockPM Segments MSI]
->> [    2.806726] acpi PNP0A08:02: _OSC: platform does not support
->> [PCIeHotplug]
->> [    2.826005] acpi PNP0A08:02: _OSC: OS now controls [PME AER
->> PCIeCapability]
->> [    2.845361] PCI host bridge to bus 0002:00
->> [    2.856719]_pci_bus_0002:00:_root_bus_resource_[bus_00-1f]
->> [    2.872056] pci_bus 0002:00: root bus resource [mem
->> 0xa0100100000-0xa013fffffff] (bus address [0x00100000-0x3fffffff])
->> [    2.902008] pci_bus 0002:00: root bus resource [mem
->> 0xa0200000000-0xa023fffffff] (bus address [0x40000000-0x7fffffff])
->> [    2.932396] pci_bus 0002:00: root bus resource [mem
->> 0xa0300000000-0xa037fffffff] (bus address [0x80000000-0xffffffff])
->> [    2.983827] pci_bus 0002:00: root bus resource [io  0x0000-0xffff]
->>
->> Here is how the ACPI table looks like:
->>
->> 		QWORDMemory(			// Consumed-And-prodced resource(all of memory space)
->> 			ResourceProducer,	// bit 0 of general flags is 0
->> 			PosDecode,		// positive Decode:  		_DEC
->> 			MinFixed,		// Range is fixed:   		_MIF
->> 			MaxFixed,		// Range is fixed:   		_MAF
->> 			NonCacheable,		// 				_MEM
->> 			ReadWrite,		// 				_RW
->> 			0x00000000,		// Granularity: 	   	_GRA
->> 			0x00100000,		// Min - PCI Memory start: 	_MIN
->> 			0x3FFFFFFF,		// Max - PCI Memory end:   	_MAX
->> 			0xA0100000000,		// Translation: 		_TRA
->> 			0x3FF00000,		// Range Length: 		_LEN
->> 			,			// Optional field left blank
->> 			,			// Optional field left blank
->> 			MEM0,			// Name declaration for this descriptor
->> 			AddressRangeMemory,
->> 			TypeStatic
->> 			)
->>
->>
->> Any thoughts?
->>
->>
->
-> Yes, this is because of:
-> [PATCH V2 20/23] ACPI, PCI: Refine the way to handle translation_offset
-> for ACPI resources
-> which should have RFC tag. I posted this patch to re-trigger discussion
-> on this.
->
-> The patch does not add Translation offset to the MMIO type resource
-> start address and for acpi_pci_probe_root_resources(ci) causes problems
-> like that. Indeed MMIO has to be fixed.
+Hi Linus,
 
-OK. I assume you'll post a patch for this soon similar to what Liu Jiang
-is doing in IA64 directory (arch/ia64/pci/pci.c) as I can't proceed with
-my testing without this bugfix.
->
-> But IO resource type is more problematic. Actually, how
-> acpi_decode_space() should parse resources and which ACPI IO descriptor
-> should be used for ARM64: QWORDIO (offset == 0 vs offset != 0), DWordIO
-> (TypeStatic vs TypeTranslation) + backward compatibility with IA64...
->
-> Please refer to:
-> https://lkml.org/lkml/2015/11/5/581
->
-> As Lorenzo pointed out, we *all* need to agree upon the IO resource ACPI
-> descriptor and its parsing method.
+Please pull from
 
-Here is what I have as an IO resource.
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ pm+acpi-4.4-rc6
 
-		QWORDIO(			//Consumed-And-produced resource
-			ResourceProducer,	// bit 0 of general flags is 0
-			MinFixed,		// Range is fixed
-			MaxFixed,		// Range is fixed
-			PosDecode,
-			EntireRange,
-			0x0000,			// Granularity
-			0x1000,		// Min, 0 is not accepted
-			0x10FFF,		// Max
-			0x8FFFFFEF000,	// Translation
-			0x10000,		// Range Length
-			,, PI00
-		 )
+to receive power management fixes for v4.4-rc6 with top-most commit
+f1b9fc591e437ec07626ba84e1d81be19cb00eb6
 
-I don't have any type specified.
+ Merge branches 'powercap', 'pm-cpufreq' and 'pm-domains'
 
-I agree with Lorenzo's assessment. The min and max values represent the
-PCI IO bus addresses. The translation offset is added to these values to
-figure out the CPU view of the PCI IO range.
+on top of commit 9f9499ae8e6415cefc4fe0a96ad0e27864353c89
 
-The endpoints BAR addresses are programmed with IO addresses ranging
-between 0x1000 and 0x10FFF for this example above.
+ Linux 4.4-rc5
 
-Here is another question. Chris Covington and I asked this question on a
-private email to you but we didn't hear back.
+These fix a potential regression introduced during the 4.3 cycle
+(generic power domains framework), a nasty bug that has been present
+forever (power capping RAPL driver), a build issue (Tegra cpufreq
+driver) and a minor ugliness introduced recently (intel_pstate).
 
-We were referring to a Linaro IO hack patch as we were not sure whether
-this was a limitation of the hack or a general expectation for ARM64 PCI
-in general.
+Specifics:
 
-I'll repeat it here.
+ - Fix a potential regression in the generic power domains
+   framework introduced during the 4.3 development cycle that
+   may lead to spurious failures of system suspend in certain
+   situations (Ulf Hansson).
 
-I have multiple root ports with the same IO port configuration in the
-current ACPI table.
+ - Fix a problem in the power capping RAPL (Running Average
+   Power Limits) driver that causes it to initialize successfully
+   on some systems where it is not supposed to do that which is
+   due to an incorrect check in an initialization routine (Prarit
+   Bhargava).
 
-Root port 0 = IO range 0x1000-0x10FFF
-Root port 1 = IO range 0x1000-0x10FFF
-Root port 2 = IO range 0x1000-0x10FFF
+ - Fix a build problem in the cpufreq Tegra driver that depends
+   on the regulator framework, but that dependency is not reflected
+   in Kconfig (Arnd Bergmann).
 
-Each root port can have the same IO address range configuration, are we
-expecting IO port numbers to be unique across the whole system for ARM64?
+ - Fix a recent mistake in the intel_pstate driver where a numeric
+   constant is used directly instead of a symbol defined specifically
+   for the case in question (Prarit Bhargava).
 
-Something like
-
-Root port 0 = IO range 0x1000-0x10FFF
-Root port 1 = IO range 0x11000-0x20FFF
-Root port 2 = IO range 0x21000-0x30FFF
-
-since the IO addresses are being remapped into PCI IO range printed during
-boot.
-
-PCI I/O : 0xffff7ffffae00000 - 0xffff7ffffbe00000   (    16 MB)
-
-and each root port would remap to 64k of the 16MB range.
-
->
-> Any comments are very appreciated!
->
-> Tomasz
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+Thanks!
 
 
+---------------
+
+Arnd Bergmann (1):
+      cpufreq: tegra: add regulator dependency for T124
+
+Prarit Bhargava (2):
+      cpufreq: intel_pstate: Minor cleanup for FRAC_BITS
+      powercap / RAPL: fix BIOS lock check
+
+Ulf Hansson (1):
+      PM / Domains: Allow runtime PM callbacks to be re-used during system PM
+
+---------------
+
+ drivers/base/power/domain.c    | 33 ++++++++++++++++++++++-----------
+ drivers/cpufreq/Kconfig.arm    |  2 +-
+ drivers/cpufreq/intel_pstate.c |  2 +-
+ drivers/powercap/intel_rapl.c  |  7 +++++--
+ 4 files changed, 29 insertions(+), 15 deletions(-)
