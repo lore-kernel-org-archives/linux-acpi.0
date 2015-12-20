@@ -1,7 +1,7 @@
 From: vishal@kernel.org
-Subject: [PATCH 3/3] pmem: Use the poison list to expose badblocks
-Date: Sun, 20 Dec 2015 02:18:42 -0700
-Message-ID: <1450603122-7205-4-git-send-email-vishal@kernel.org>
+Subject: [PATCH 2/3] libnvdimm: Add a poison list
+Date: Sun, 20 Dec 2015 02:18:41 -0700
+Message-ID: <1450603122-7205-3-git-send-email-vishal@kernel.org>
 References: <1450603122-7205-1-git-send-email-vishal@kernel.org>
 Return-path: <linux-fsdevel-owner@vger.kernel.org>
 In-Reply-To: <1450603122-7205-1-git-send-email-vishal@kernel.org>
@@ -12,178 +12,369 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Vishal Verma <vishal.l.verma@intel.com>
 
-Enable the gendisk badblocks feature for pmem namespaces.
-If the pmem namespace being created has any known poison associated with
-its physical address space, convert the poison ranges to bad sectors
-exposed using the badblocks interface.
+During region creation, perform Address Range Scrubs (ARS) for the SPA
+(System Physical Address) ranges to retrieve known poison locations from
+firmware. Add a new data structure 'nd_poison' which is used as a list
+in nvdimm_bus to store these poison locations for subsequent consumption
+by the pmem driver.
 
 Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- drivers/nvdimm/pmem.c | 124 ++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 124 insertions(+)
+ drivers/acpi/nfit.c       | 193 ++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/nvdimm/core.c     |  63 +++++++++++++++
+ drivers/nvdimm/nd-core.h  |   1 +
+ drivers/nvdimm/nd.h       |   6 ++
+ include/linux/libnvdimm.h |   2 +
+ 5 files changed, 265 insertions(+)
 
-diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
-index 8ee7989..462570f 100644
---- a/drivers/nvdimm/pmem.c
-+++ b/drivers/nvdimm/pmem.c
-@@ -19,14 +19,18 @@
- #include <linux/blkdev.h>
- #include <linux/hdreg.h>
- #include <linux/init.h>
-+#include <linux/list.h>
- #include <linux/platform_device.h>
+diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+index e7ed39b..bd8726d 100644
+--- a/drivers/acpi/nfit.c
++++ b/drivers/acpi/nfit.c
+@@ -15,6 +15,7 @@
  #include <linux/module.h>
- #include <linux/memory_hotplug.h>
- #include <linux/moduleparam.h>
-+#include <linux/libnvdimm.h>
- #include <linux/vmalloc.h>
-+#include <linux/blkdev.h>
- #include <linux/slab.h>
- #include <linux/pmem.h>
- #include <linux/nd.h>
-+#include "nd-core.h"
- #include "pfn.h"
- #include "nd.h"
- 
-@@ -163,11 +167,122 @@ static void pmem_detach_disk(struct pmem_device *pmem)
- 	blk_cleanup_queue(pmem->pmem_queue);
+ #include <linux/mutex.h>
+ #include <linux/ndctl.h>
++#include <linux/delay.h>
+ #include <linux/list.h>
+ #include <linux/acpi.h>
+ #include <linux/sort.h>
+@@ -1473,6 +1474,195 @@ static void acpi_nfit_blk_region_disable(struct nvdimm_bus *nvdimm_bus,
+ 	/* devm will free nfit_blk */
  }
  
-+/**
-+ * pmem_add_badblock_range() - Convert a physical address range to bad sectors
-+ * @disk:	the disk associated with the pmem namespace
-+ * @start:	start of the physical address range
-+ * @length:	number of bytes of poison to be added
-+ *
-+ * This assumes that the range provided with (start, length) is already within
-+ * the bounds of physical addresses for this namespace, i.e. lies in the
-+ * interval [pmem->phys_addr, pmem->phys_addr + pmem->size)
-+ */
-+static int pmem_add_badblock_range(struct gendisk *disk, u64 start, u64 length)
++static int ars_get_cap(struct nvdimm_bus_descriptor *nd_desc,
++		struct nd_cmd_ars_cap *cmd, u64 addr, u64 length)
 +{
-+	unsigned int sector_size = queue_logical_block_size(disk->queue);
-+	struct pmem_device *pmem = disk->private_data;
-+	sector_t start_sector;
-+	u64 num_sectors;
-+	u32 rem;
++	cmd->address = addr;
++	cmd->length = length;
 +
-+	start_sector = div_u64(start - pmem->phys_addr, sector_size);
-+	num_sectors = div_u64_rem(length, sector_size, &rem);
-+	if (rem)
-+		num_sectors++;
-+
-+	if (unlikely(num_sectors > (u64)INT_MAX)) {
-+		u64 remaining = num_sectors;
-+		sector_t s = start_sector;
-+		int rc;
-+
-+		while (remaining) {
-+			int done = min_t(u64, remaining, INT_MAX);
-+
-+			rc = disk_set_badblocks(disk, s, done);
-+			if (rc)
-+				return rc;
-+			remaining -= done;
-+			s += done;
-+		}
-+		return 0;
-+	} else
-+		return disk_set_badblocks(disk, start_sector, num_sectors);
++	return nd_desc->ndctl(nd_desc, NULL, ND_CMD_ARS_CAP, cmd,
++			sizeof(*cmd));
 +}
 +
-+/*
-+ * The poison list generated during NFIT initialization may contain multiple,
-+ * possibly overlapping ranges in the SPA (System Physical Address) space.
-+ * Compare each of these ranges to the pmem namespace currently being
-+ * initialized, and add badblocks for the sub-ranges that match
-+ */
-+static int pmem_add_poison(struct gendisk *disk, struct nvdimm_bus *nvdimm_bus)
++static int ars_do_start(struct nvdimm_bus_descriptor *nd_desc,
++		struct nd_cmd_ars_start *cmd, u64 addr, u64 length)
 +{
-+	struct pmem_device *pmem = disk->private_data;
-+	struct list_head *poison_list;
-+	struct nd_poison *pl;
 +	int rc;
 +
-+	poison_list = nvdimm_bus_get_poison_list(nvdimm_bus);
-+	if (list_empty(poison_list))
-+		return 0;
++	cmd->address = addr;
++	cmd->length = length;
++	cmd->type = ND_ARS_PERSISTENT;
 +
-+	list_for_each_entry(pl, poison_list, list) {
-+		u64 pl_end = pl->start + pl->length - 1;
-+		u64 pmem_end = pmem->phys_addr + pmem->size - 1;
-+
-+		/* Discard intervals with no intersection */
-+		if (pl_end < pmem->phys_addr)
-+			continue;
-+		if (pl->start > pmem_end)
-+			continue;
-+		/* Deal with any overlap after start of the pmem range */
-+		if (pl->start >= pmem->phys_addr) {
-+			u64 start = pl->start;
-+			u64 len;
-+
-+			if (pl_end <= pmem_end)
-+				len = pl->length;
-+			else
-+				len = pmem->phys_addr + pmem->size - pl->start;
-+
-+			rc = pmem_add_badblock_range(disk, start, len);
-+			if (rc)
-+				return rc;
-+			dev_info(&nvdimm_bus->dev,
-+				"Found a poison range (0x%llx, 0x%llx)\n",
-+				start, len);
-+			continue;
++	while (1) {
++		rc = nd_desc->ndctl(nd_desc, NULL, ND_CMD_ARS_START, cmd,
++				sizeof(*cmd));
++		if (rc)
++			return rc;
++		switch (cmd->status) {
++		case 0:
++			return 0;
++		case 1:
++			/* ARS unsupported, but we should never get here */
++			return 0;
++		case 2:
++			return -EINVAL;
++		case 3:
++			/* ARS is in progress */
++			msleep(1000);
++			break;
++		default:
++			return -ENXIO;
 +		}
-+		/* Deal with overlap for poison starting before pmem range */
-+		if (pl->start < pmem->phys_addr) {
-+			u64 start = pmem->phys_addr;
-+			u64 len;
++	}
++}
 +
-+			if (pl_end < pmem_end)
-+				len = pl->start + pl->length - pmem->phys_addr;
-+			else
-+				len = pmem->size;
++static int ars_get_status(struct nvdimm_bus_descriptor *nd_desc,
++		struct nd_cmd_ars_status *cmd)
++{
++	int rc;
 +
-+			rc = pmem_add_badblock_range(disk, start, len);
-+			if (rc)
-+				return rc;
-+			dev_info(&nvdimm_bus->dev,
-+				"Found a poison range (0x%llx, 0x%llx)\n",
-+				start, len);
++	while (1) {
++		rc = nd_desc->ndctl(nd_desc, NULL, ND_CMD_ARS_STATUS, cmd,
++			sizeof(*cmd));
++		if (rc || cmd->status & 0xffff)
++			return -ENXIO;
++
++		/* Check extended status (Upper two bytes) */
++		switch (cmd->status & 0xffff0000) {
++		case 0:
++			return 0;
++		case 1:
++			/* ARS is in progress */
++			msleep(1000);
++			break;
++		case 2:
++			/* No ARS performed for the current boot */
++		default:
++			return -ENXIO;
 +		}
++	}
++}
++
++static int ars_status_process_records(struct nvdimm_bus *nvdimm_bus,
++		struct nd_cmd_ars_status *ars_status, u64 start)
++{
++	int rc;
++	u32 i;
++
++	/*
++	 * The address field returned by ars_status should be either
++	 * less than or equal to the address we last started ARS for.
++	 * The (start, length) returned by ars_status should also have
++	 * non-zero overlap with the range we started ARS for.
++	 * If this is not the case, bail.
++	 */
++	if (ars_status->address > start ||
++			(ars_status->address + ars_status->length < start))
++		return -ENXIO;
++
++	for (i = 0; i < ars_status->num_records; i++) {
++		rc = nvdimm_bus_add_poison(nvdimm_bus,
++				ars_status->records[i].err_address,
++				ars_status->records[i].length);
++		if (rc)
++			return rc;
 +	}
 +
 +	return 0;
 +}
 +
- static int pmem_attach_disk(struct device *dev,
- 		struct nd_namespace_common *ndns, struct pmem_device *pmem)
++static int acpi_nfit_find_poison(struct acpi_nfit_desc *acpi_desc,
++		struct nd_region_desc *ndr_desc)
++{
++	struct nvdimm_bus_descriptor *nd_desc = &acpi_desc->nd_desc;
++	struct nvdimm_bus *nvdimm_bus = acpi_desc->nvdimm_bus;
++	struct nd_cmd_ars_status *ars_status = NULL;
++	struct nd_cmd_ars_start *ars_start = NULL;
++	struct nd_cmd_ars_cap *ars_cap = NULL;
++	u64 start, len, cur, remaining;
++	int rc;
++
++	ars_cap = kzalloc(sizeof(*ars_cap), GFP_KERNEL);
++	if (!ars_cap)
++		return -ENOMEM;
++
++	start = ndr_desc->res->start;
++	len = ndr_desc->res->end - ndr_desc->res->start + 1;
++
++	rc = ars_get_cap(nd_desc, ars_cap, start, len);
++	if (rc)
++		goto out;
++
++	/* If ARS is unsupported, skip this but continue initialization */
++	if (ars_cap->status & 0xffff) {
++		dev_warn(acpi_desc->dev,
++			"ARS unsupported, won't construct an error list\n");
++		goto out;
++	}
++
++	/*
++	 * Check if a full-range ARS has been run. If so, use those results
++	 * without having to start a new ARS.
++	 */
++	ars_status = kzalloc(ars_cap->max_ars_out + sizeof(*ars_status),
++			GFP_KERNEL);
++	if (!ars_status) {
++		rc = -ENOMEM;
++		goto out;
++	}
++
++	rc = ars_get_status(nd_desc, ars_status);
++	if (rc)
++		goto out;
++
++	if (ars_status->address <= start &&
++		(ars_status->address + ars_status->length >= start + len)) {
++		rc = ars_status_process_records(nvdimm_bus, ars_status, start);
++		goto out;
++	}
++
++	/*
++	 * ARS_STATUS can overflow if the number of poison entries found is
++	 * greater than the maximum buffer size (ars_cap->max_ars_out)
++	 * To detect overflow, check if the length field of ars_status
++	 * is less than the length we supplied. If so, process the
++	 * error entries we got, adjust the start point, and start again
++	 */
++	ars_start = kzalloc(sizeof(*ars_start), GFP_KERNEL);
++	if (!ars_start)
++		return -ENOMEM;
++
++	cur = start;
++	remaining = len;
++	do {
++		u64 done, end;
++
++		rc = ars_do_start(nd_desc, ars_start, cur, remaining);
++		if (rc)
++			goto out;
++
++		rc = ars_get_status(nd_desc, ars_status);
++		if (rc)
++			goto out;
++
++		rc = ars_status_process_records(nvdimm_bus, ars_status, cur);
++		if (rc)
++			goto out;
++
++		end = min(cur + remaining,
++			ars_status->address + ars_status->length);
++		done = end - cur;
++		cur += done;
++		remaining -= done;
++	} while (remaining);
++
++ out:
++	kfree(ars_cap);
++	kfree(ars_start);
++	kfree(ars_status);
++	return rc;
++}
++
+ static int acpi_nfit_init_mapping(struct acpi_nfit_desc *acpi_desc,
+ 		struct nd_mapping *nd_mapping, struct nd_region_desc *ndr_desc,
+ 		struct acpi_nfit_memory_map *memdev,
+@@ -1585,6 +1775,9 @@ static int acpi_nfit_register_region(struct acpi_nfit_desc *acpi_desc,
+ 
+ 	nvdimm_bus = acpi_desc->nvdimm_bus;
+ 	if (nfit_spa_type(spa) == NFIT_SPA_PM) {
++		rc = acpi_nfit_find_poison(acpi_desc, ndr_desc);
++		if (rc)
++			return rc;
+ 		if (!nvdimm_pmem_region_create(nvdimm_bus, ndr_desc))
+ 			return -ENOMEM;
+ 	} else if (nfit_spa_type(spa) == NFIT_SPA_VOLATILE) {
+diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
+index 82c49bb..8c882c8 100644
+--- a/drivers/nvdimm/core.c
++++ b/drivers/nvdimm/core.c
+@@ -325,6 +325,7 @@ struct nvdimm_bus *__nvdimm_bus_register(struct device *parent,
+ 	if (!nvdimm_bus)
+ 		return NULL;
+ 	INIT_LIST_HEAD(&nvdimm_bus->list);
++	INIT_LIST_HEAD(&nvdimm_bus->poison_list);
+ 	init_waitqueue_head(&nvdimm_bus->probe_wait);
+ 	nvdimm_bus->id = ida_simple_get(&nd_ida, 0, 0, GFP_KERNEL);
+ 	mutex_init(&nvdimm_bus->reconfig_mutex);
+@@ -359,6 +360,67 @@ struct nvdimm_bus *__nvdimm_bus_register(struct device *parent,
+ }
+ EXPORT_SYMBOL_GPL(__nvdimm_bus_register);
+ 
++struct list_head *nvdimm_bus_get_poison_list(struct nvdimm_bus *nvdimm_bus)
++{
++	return &nvdimm_bus->poison_list;
++}
++EXPORT_SYMBOL_GPL(nvdimm_bus_get_poison_list);
++
++static int __add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length)
++{
++	struct nd_poison *pl;
++
++	pl = kzalloc(sizeof(*pl), GFP_KERNEL);
++	if (!pl)
++		return -ENOMEM;
++
++	pl->start = addr;
++	pl->length = length;
++	list_add_tail(&pl->list, &nvdimm_bus->poison_list);
++
++	return 0;
++}
++
++int nvdimm_bus_add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length)
++{
++	struct nd_poison *pl;
++
++	if (list_empty(&nvdimm_bus->poison_list))
++		return __add_poison(nvdimm_bus, addr, length);
++
++	/*
++	 * There is a chance this is a duplicate, check for those first.
++	 * This will be the common case as ARS_STATUS returns all known
++	 * errors in the SPA space, and we can't query it per region
++	 */
++	list_for_each_entry(pl, &nvdimm_bus->poison_list, list)
++		if (pl->start == addr) {
++			/* If length has changed, update this list entry */
++			if (pl->length != length)
++				pl->length = length;
++			return 0;
++		}
++
++	/*
++	 * If not a duplicate or a simple length update, add the entry as is,
++	 * as any overlapping ranges will get resolved when the list is consumed
++	 * and converted to badblocks
++	 */
++	return __add_poison(nvdimm_bus, addr, length);
++}
++EXPORT_SYMBOL_GPL(nvdimm_bus_add_poison);
++
++static void free_poison_list(struct list_head *poison_list)
++{
++	struct nd_poison *pl, *next;
++
++	list_for_each_entry_safe(pl, next, poison_list, list) {
++		list_del(&pl->list);
++		kfree(pl);
++	}
++	list_del_init(poison_list);
++}
++
+ static int child_unregister(struct device *dev, void *data)
  {
-+	struct nd_region *nd_region = to_nd_region(dev->parent);
-+	struct nvdimm_bus *nvdimm_bus;
- 	int nid = dev_to_node(dev);
- 	struct gendisk *disk;
-+	int ret;
+ 	/*
+@@ -385,6 +447,7 @@ void nvdimm_bus_unregister(struct nvdimm_bus *nvdimm_bus)
  
- 	pmem->pmem_queue = blk_alloc_queue_node(GFP_KERNEL, nid);
- 	if (!pmem->pmem_queue)
-@@ -196,6 +311,15 @@ static int pmem_attach_disk(struct device *dev,
- 	set_capacity(disk, (pmem->size - pmem->data_offset) / 512);
- 	pmem->pmem_disk = disk;
+ 	nd_synchronize();
+ 	device_for_each_child(&nvdimm_bus->dev, NULL, child_unregister);
++	free_poison_list(&nvdimm_bus->poison_list);
+ 	nvdimm_bus_destroy_ndctl(nvdimm_bus);
  
-+	ret = disk_alloc_badblocks(disk);
-+	if (ret)
-+		return ret;
+ 	device_unregister(&nvdimm_bus->dev);
+diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
+index 159aed5..29acdaa 100644
+--- a/drivers/nvdimm/nd-core.h
++++ b/drivers/nvdimm/nd-core.h
+@@ -30,6 +30,7 @@ struct nvdimm_bus {
+ 	struct list_head list;
+ 	struct device dev;
+ 	int id, probe_active;
++	struct list_head poison_list;
+ 	struct mutex reconfig_mutex;
+ };
+ 
+diff --git a/drivers/nvdimm/nd.h b/drivers/nvdimm/nd.h
+index 417e521..ba91fcd 100644
+--- a/drivers/nvdimm/nd.h
++++ b/drivers/nvdimm/nd.h
+@@ -38,6 +38,12 @@ enum {
+ #endif
+ };
+ 
++struct nd_poison {
++	u64 start;
++	u64 length;
++	struct list_head list;
++};
 +
-+	nvdimm_bus = to_nvdimm_bus(nd_region->dev.parent);
-+	ret = pmem_add_poison(disk, nvdimm_bus);
-+	if (ret)
-+		return ret;
-+
- 	add_disk(disk);
- 	revalidate_disk(disk);
+ struct nvdimm_drvdata {
+ 	struct device *dev;
+ 	int nsindex_size;
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index 3f021dc..43b82a0 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -116,6 +116,8 @@ static inline struct nd_blk_region_desc *to_blk_region_desc(
  
+ }
+ 
++struct list_head *nvdimm_bus_get_poison_list(struct nvdimm_bus *nvdimm_bus);
++int nvdimm_bus_add_poison(struct nvdimm_bus *nvdimm_bus, u64 addr, u64 length);
+ struct nvdimm_bus *__nvdimm_bus_register(struct device *parent,
+ 		struct nvdimm_bus_descriptor *nfit_desc, struct module *module);
+ #define nvdimm_bus_register(parent, desc) \
 -- 
 2.5.0
 
