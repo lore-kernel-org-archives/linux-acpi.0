@@ -1,12 +1,14 @@
 From: vishal@kernel.org
-Subject: [PATCH 0/3] Expose known poison in SPA ranges to the block layer
-Date: Sun, 20 Dec 2015 02:18:39 -0700
-Message-ID: <1450603122-7205-1-git-send-email-vishal@kernel.org>
+Subject: [PATCH 1/3] nfit_test: Enable DSMs for all test NFITs
+Date: Sun, 20 Dec 2015 02:18:40 -0700
+Message-ID: <1450603122-7205-2-git-send-email-vishal@kernel.org>
+References: <1450603122-7205-1-git-send-email-vishal@kernel.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:36826 "EHLO mail.kernel.org"
+Received: from mail.kernel.org ([198.145.29.136]:36868 "EHLO mail.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754146AbbLTJTK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Sun, 20 Dec 2015 04:19:10 -0500
+	id S1754146AbbLTJTP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 20 Dec 2015 04:19:15 -0500
+In-Reply-To: <1450603122-7205-1-git-send-email-vishal@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-nvdimm@lists.01.org
@@ -14,34 +16,41 @@ Cc: Vishal Verma <vishal.l.verma@intel.com>, linux-acpi@vger.kernel.org, linux-f
 
 From: Vishal Verma <vishal.l.verma@intel.com>
 
-This series does a few things:
-- Retrieve all known poison in the system physical address (SPA) space
-  using ARS (Address Range Scrub) commands to firmware
-- Store this poison in a new 'nd_poison' structure
-- In pmem, consume the poison list and expose the ranges as bad sectors
+In preparation for getting a poison list using ARS DSMs, enable DSMs for
+all manufactured NFITs supplied by the test framework.
 
-This depends on the badblocks series sent out previously[1]
+Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+---
+ tools/testing/nvdimm/test/nfit.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-This was tested using nfit_test to add poison at specific address ranges.
-More testing, specially on NVDIMM-N hardware is much appreciated!
-
-
-[1]: https://lists.01.org/pipermail/linux-nvdimm/2015-December/003239.html
-
-Vishal Verma (3):
-  nfit_test: Enable DSMs for all test NFITs
-  libnvdimm: Add a poison list
-  pmem: Use the poison list to expose badblocks
-
- drivers/acpi/nfit.c              | 193 +++++++++++++++++++++++++++++++++++++++
- drivers/nvdimm/core.c            |  63 +++++++++++++
- drivers/nvdimm/nd-core.h         |   1 +
- drivers/nvdimm/nd.h              |   6 ++
- drivers/nvdimm/pmem.c            | 124 +++++++++++++++++++++++++
- include/linux/libnvdimm.h        |   2 +
- tools/testing/nvdimm/test/nfit.c |   9 ++
- 7 files changed, 398 insertions(+)
-
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index 51cf825..298805a 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -1088,6 +1088,8 @@ static void nfit_test1_setup(struct nfit_test *t)
+ 	struct acpi_nfit_memory_map *memdev;
+ 	struct acpi_nfit_control_region *dcr;
+ 	struct acpi_nfit_system_address *spa;
++	struct nvdimm_bus_descriptor *nd_desc;
++	struct acpi_nfit_desc *acpi_desc;
+ 
+ 	offset = 0;
+ 	/* spa0 (flat range with no bdw aliasing) */
+@@ -1135,6 +1137,13 @@ static void nfit_test1_setup(struct nfit_test *t)
+ 	dcr->command_size = 0;
+ 	dcr->status_offset = 0;
+ 	dcr->status_size = 0;
++
++	acpi_desc = &t->acpi_desc;
++	set_bit(ND_CMD_ARS_CAP, &acpi_desc->bus_dsm_force_en);
++	set_bit(ND_CMD_ARS_START, &acpi_desc->bus_dsm_force_en);
++	set_bit(ND_CMD_ARS_STATUS, &acpi_desc->bus_dsm_force_en);
++	nd_desc = &acpi_desc->nd_desc;
++	nd_desc->ndctl = nfit_test_ctl;
+ }
+ 
+ static int nfit_test_blk_do_io(struct nd_blk_region *ndbr, resource_size_t dpa,
 -- 
 2.5.0
 
