@@ -1,74 +1,85 @@
-From: Aleksey Makarov <aleksey.makarov@linaro.org>
-Subject: [PATCH v2 3/3] serial: amba-pl011: add ACPI support to AMBA probe
-Date: Mon, 21 Dec 2015 17:49:57 +0300
-Message-ID: <1450709399-7246-4-git-send-email-aleksey.makarov@linaro.org>
-References: <1450709399-7246-1-git-send-email-aleksey.makarov@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1450709399-7246-1-git-send-email-aleksey.makarov@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Aleksey Makarov <aleksey.makarov@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Shannon Zhao <shannon.zhao@linaro.org>, Jiri Slaby <jslaby@suse.com>
+From: Okaya@codeaurora.org
+Subject: Re: [PATCH V2 00/23] MMCONFIG refactoring and support for ARM64 PCI
+ hostbridge init based on ACPI
+Date: Mon, 21 Dec 2015 15:26:14 -0000
+Message-ID: <b3750d7918712f6035ea875d90c25471.squirrel@www.codeaurora.org>
+References: <1450278993-12664-1-git-send-email-tn@semihalf.com>
+    <20151221121050.GB11145@red-moon> <5677F3C8.8040200@semihalf.com>
+    <201512211515.55447.arnd@arndb.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from smtp.codeaurora.org ([198.145.29.96]:38208 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750984AbbLUP0Q (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Dec 2015 10:26:16 -0500
+In-Reply-To: <201512211515.55447.arnd@arndb.de>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Tomasz Nowicki <tn@semihalf.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, okaya@codeaurora.org, bhelgaas@google.com, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, jiang.liu@linux.intel.com, stefano.stabellini@eu.citrix.com, robert.richter@caviumnetworks.com, mw@semihalf.com, liviu.dudau@arm.com, ddaney@caviumnetworks.com, tglx@linutronix.de, wangyijing@huawei.com, suravee.suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com
 
-From: Graeme Gregory <graeme.gregory@linaro.org>
+> On Monday 21 December 2015, Tomasz Nowicki wrote:
+>> On 21.12.2015 13:10, Lorenzo Pieralisi wrote:
+>> > On Fri, Dec 18, 2015 at 06:56:39PM +0000, okaya@codeaurora.org wrote:
+>
+>> >> I have multiple root ports with the same IO port configuration in the
+>> >> current ACPI table.
+>> >>
+>> >> Root port 0 = IO range 0x1000-0x10FFF
+>> >> Root port 1 = IO range 0x1000-0x10FFF
+>> >> Root port 2 = IO range 0x1000-0x10FFF
+>> >
+>> > It is fine. You end up mapping for each of those a 4k window of the
+>> > virtual address space allocated to IO and that's what you will have in
+>> > the kernel PCI resources (not in the HW BARs though). If that was a
+>> problem
+>> > it would be even for the current DT host controllers eg:
+>> >
+>> > arch/arm64/boot/dts/apm/apm-storm.dtsi
+>> >
+>> > it should not be (again I will let Arnd comment on this since he may
+>> be
+>> > aware of issues encountered on other arches/platforms).
+>> >
+>>
+>> Root port 0 = IO range 0x1000-0x10FFF
+>> Root port 1 = IO range 0x1000-0x10FFF
+>> Root port 2 = IO range 0x1000-0x10FFF
+>>
+>> If above ranges are mapped into different CPU windows, then yes, it is
+>> fine.
+>
+> Ideally, they should all be the same CPU address so we only have to map
+> the window
+> once, each device gets an address below 64K, and you can have legacy port
+> numbers
+> (below 4K) on any bus, which is required to make certain GPUs work.
+>
+> I haven't actually seen anyone do that on ARM though, every implementation
+> so
+> far has a separate mapping per host bridge, and we can cope with that too,
+> and we can live with either overlapping bus addresses or unique bus
+> addresses,
+> any of them can be expressed by the PCI core in Linux, we just have to
+> make sure
+> that we correctly translate the firmware tables into our internal
+> structures.
+>
+> 	Arnd
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-In ACPI this device is only defined in SBSA mode so
-if we are coming from ACPI use this mode.
+Thanks, I won't be touching the acpi tables then and I will assume the
+hack had a problem. It was trying to remap the io range of the second root
+port  to the first port io address map.
 
-Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
-Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
----
- drivers/tty/serial/amba-pl011.c | 37 ++++++++++++++++++++++++++-----------
- 1 file changed, 26 insertions(+), 11 deletions(-)
+I was getting a warning from resource.c
 
-diff --git a/drivers/tty/serial/amba-pl011.c b/drivers/tty/serial/amba-pl011.c
-index 899a771..766ce4f 100644
---- a/drivers/tty/serial/amba-pl011.c
-+++ b/drivers/tty/serial/amba-pl011.c
-@@ -2368,18 +2368,33 @@ static int pl011_probe(struct amba_device *dev, const struct amba_id *id)
- 	if (!uap)
- 		return -ENOMEM;
- 
--	uap->clk = devm_clk_get(&dev->dev, NULL);
--	if (IS_ERR(uap->clk))
--		return PTR_ERR(uap->clk);
--
--	uap->vendor = vendor;
--	uap->lcrh_rx = vendor->lcrh_rx;
--	uap->lcrh_tx = vendor->lcrh_tx;
--	uap->fifosize = vendor->get_fifosize(dev);
--	uap->port.irq = dev->irq[0];
--	uap->port.ops = &amba_pl011_pops;
-+	/* ACPI only defines SBSA variant */
-+	if (ACPI_COMPANION(&dev->dev)) {
-+		/*
-+		 * According to ARM ARMH0011 is currently the only mapping
-+		 * of pl011 in ACPI and it's mapped to SBSA UART mode
-+		 */
-+		uap->vendor	= &vendor_sbsa;
-+		uap->fifosize	= 32;
-+		uap->port.ops	= &sbsa_uart_pops;
-+		uap->fixed_baud = 115200;
- 
--	snprintf(uap->type, sizeof(uap->type), "PL011 rev%u", amba_rev(dev));
-+		snprintf(uap->type, sizeof(uap->type), "SBSA");
-+	} else {
-+		uap->clk = devm_clk_get(&dev->dev, NULL);
-+		if (IS_ERR(uap->clk))
-+			return PTR_ERR(uap->clk);
-+
-+		uap->vendor = vendor;
-+		uap->lcrh_rx = vendor->lcrh_rx;
-+		uap->lcrh_tx = vendor->lcrh_tx;
-+		uap->fifosize = vendor->get_fifosize(dev);
-+		uap->port.ops = &amba_pl011_pops;
-+
-+		snprintf(uap->type, sizeof(uap->type), "PL011 rev%u",
-+				amba_rev(dev));
-+	}
-+	uap->port.irq = dev->irq[0];
- 
- 	ret = pl011_setup_port(&dev->dev, uap, &dev->res, portnr);
- 	if (ret)
--- 
-2.6.4
+Btw, when I tested the io ranges before, kernel didn't accept anything
+below 1k like 0. That is why my range starts at 1k.
+
