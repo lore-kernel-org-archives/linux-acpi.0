@@ -1,233 +1,44 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v7 4/4] gicv2m: acpi: Introducing GICv2m ACPI support
-Date: Mon, 21 Dec 2015 04:04:13 +0100
-Message-ID: <27927867.pbQ7Vf8UQe@vostro.rjw.lan>
-References: <1449766530-16935-1-git-send-email-Suravee.Suthikulpanit@amd.com> <1449766530-16935-5-git-send-email-Suravee.Suthikulpanit@amd.com>
+From: Jon Masters <jonathan@jonmasters.org>
+Subject: Re: overriding ACPI _CRS method
+Date: Mon, 21 Dec 2015 02:59:49 -0500
+Message-ID: <5677B175.6040800@jonmasters.org>
+References: <1448794735.18592.0@outlook-emeawest.office365.com>	<1AE640813FDE7649BE1B193DEA596E883BAFA0F9@SHSMSX101.ccr.corp.intel.com> <1448853801.18315.0@outlook-emeawest.office365.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:60184 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751153AbbLUCd6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 20 Dec 2015 21:33:58 -0500
-In-Reply-To: <1449766530-16935-5-git-send-email-Suravee.Suthikulpanit@amd.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1448853801.18315.0@outlook-emeawest.office365.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Daniel J Blueman <daniel@numascale.com>, "Zheng, Lv" <lv.zheng@intel.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Steffen Persvold <sp@numascale.com>, Myron Stowe <myron.stowe@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Cc: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, bhelgaas@google.com, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, hanjun.guo@linaro.org, tomasz.nowicki@linaro.org, graeme.gregory@linaro.org, dhdang@apm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
 
-On Thursday, December 10, 2015 08:55:30 AM Suravee Suthikulpanit wrote:
-> This patch introduces gicv2m_acpi_init(), which uses information
-> in MADT GIC MSI frames structure to initialize GICv2m driver.
-> It also exposes gicv2m_init() function, which simplifies callers
-> to a single GICv2m init function.
-> 
-> Reviewed-by: Marc Zyngier <marc.zyngier@arm.com>
-> Tested-by: Duc Dang <dhdang@apm.com>
-> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+On 11/29/15, 10:23 PM, Daniel J Blueman wrote:
+> On Mon, Nov 30, 2015 at 11:09 AM, Zheng, Lv <lv.zheng@intel.com> wrote:
+>> Hi,
+>>
+>> IMO, if you want the new _CRS to be applied during the Linux early
+>> boot stage, you can override the table using initrd override or DSDT
+>> override mechanism.
+>> Please see Documentation/acpi/initrd_table_override.txt or
+>> Documentation/acpi/dsdt-override.txt.
+>>
+>> If you want the new _CRS to be applied during Linux runtime, you can
+>> override it using method customization mechanism.
+>> Please see Documentation/acpi/method-customizing.txt
+>
+> The reason I'm trying to adjust this in firmware, is to deliver the
+> right behaviour with pre-built/distro kernels, so I can't use that
+> approach.
 
-I don't see anything objectionable here, so please feel free to add my ACK
-for the ACPI part to this.
+The initrd method prepends an override initrd so you can use the stock 
+distro one (obviously any such modification might impact whether a 
+system vendor will support you in any case). This is in fact why I use 
+an initrd override method on ARM servers to test ACPI fixes.
 
-> ---
->  drivers/irqchip/irq-gic-v2m.c   | 110 +++++++++++++++++++++++++++++++++++++++-
->  drivers/irqchip/irq-gic.c       |   6 ++-
->  include/linux/irqchip/arm-gic.h |   3 +-
->  3 files changed, 116 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/irqchip/irq-gic-v2m.c b/drivers/irqchip/irq-gic-v2m.c
-> index 779c390..7e2975d 100644
-> --- a/drivers/irqchip/irq-gic-v2m.c
-> +++ b/drivers/irqchip/irq-gic-v2m.c
-> @@ -15,9 +15,11 @@
->  
->  #define pr_fmt(fmt) "GICv2m: " fmt
->  
-> +#include <linux/acpi.h>
->  #include <linux/irq.h>
->  #include <linux/irqdomain.h>
->  #include <linux/kernel.h>
-> +#include <linux/msi.h>
->  #include <linux/of_address.h>
->  #include <linux/of_pci.h>
->  #include <linux/slab.h>
-> @@ -138,6 +140,11 @@ static int gicv2m_irq_gic_domain_alloc(struct irq_domain *domain,
->  		fwspec.param[0] = 0;
->  		fwspec.param[1] = hwirq - 32;
->  		fwspec.param[2] = IRQ_TYPE_EDGE_RISING;
-> +	} else if (is_fwnode_irqchip(domain->parent->fwnode)) {
-> +		fwspec.fwnode = domain->parent->fwnode;
-> +		fwspec.param_count = 2;
-> +		fwspec.param[0] = hwirq;
-> +		fwspec.param[1] = IRQ_TYPE_EDGE_RISING;
->  	} else {
->  		return -EINVAL;
->  	}
-> @@ -255,6 +262,8 @@ static void gicv2m_teardown(void)
->  		kfree(v2m->bm);
->  		iounmap(v2m->base);
->  		of_node_put(to_of_node(v2m->fwnode));
-> +		if (is_fwnode_irqchip(v2m->fwnode))
-> +			irq_domain_free_fwnode(v2m->fwnode);
->  		kfree(v2m);
->  	}
->  }
-> @@ -373,9 +382,11 @@ static struct of_device_id gicv2m_device_id[] = {
->  	{},
->  };
->  
-> -int __init gicv2m_of_init(struct device_node *node, struct irq_domain *parent)
-> +static int __init gicv2m_of_init(struct fwnode_handle *parent_handle,
-> +				 struct irq_domain *parent)
->  {
->  	int ret = 0;
-> +	struct device_node *node = to_of_node(parent_handle);
->  	struct device_node *child;
->  
->  	for (child = of_find_matching_node(node, gicv2m_device_id); child;
-> @@ -411,3 +422,100 @@ int __init gicv2m_of_init(struct device_node *node, struct irq_domain *parent)
->  		gicv2m_teardown();
->  	return ret;
->  }
-> +
-> +#ifdef CONFIG_ACPI
-> +static int acpi_num_msi;
-> +
-> +static struct fwnode_handle *gicv2m_get_fwnode(struct device *dev)
-> +{
-> +	struct v2m_data *data;
-> +
-> +	if (WARN_ON(acpi_num_msi <= 0))
-> +		return NULL;
-> +
-> +	/* We only return the fwnode of the first MSI frame. */
-> +	data = list_first_entry_or_null(&v2m_nodes, struct v2m_data, entry);
-> +	if (!data)
-> +		return NULL;
-> +
-> +	return data->fwnode;
-> +}
-> +
-> +static int __init
-> +acpi_parse_madt_msi(struct acpi_subtable_header *header,
-> +		    const unsigned long end)
-> +{
-> +	int ret;
-> +	struct resource res;
-> +	u32 spi_start = 0, nr_spis = 0;
-> +	struct acpi_madt_generic_msi_frame *m;
-> +	struct fwnode_handle *fwnode;
-> +
-> +	m = (struct acpi_madt_generic_msi_frame *)header;
-> +	if (BAD_MADT_ENTRY(m, end))
-> +		return -EINVAL;
-> +
-> +	res.start = m->base_address;
-> +	res.end = m->base_address + SZ_4K;
-> +
-> +	if (m->flags & ACPI_MADT_OVERRIDE_SPI_VALUES) {
-> +		spi_start = m->spi_base;
-> +		nr_spis = m->spi_count;
-> +
-> +		pr_info("ACPI overriding V2M MSI_TYPER (base:%u, num:%u)\n",
-> +			spi_start, nr_spis);
-> +	}
-> +
-> +	fwnode = irq_domain_alloc_fwnode((void *)m->base_address);
-> +	if (!fwnode) {
-> +		pr_err("Unable to allocate GICv2m domain token\n");
-> +		return -EINVAL;
-> +	}
-> +
-> +	ret = gicv2m_init_one(fwnode, spi_start, nr_spis, &res);
-> +	if (ret)
-> +		irq_domain_free_fwnode(fwnode);
-> +
-> +	return ret;
-> +}
-> +
-> +static int __init gicv2m_acpi_init(struct irq_domain *parent)
-> +{
-> +	int ret;
-> +
-> +	if (acpi_num_msi > 0)
-> +		return 0;
-> +
-> +	acpi_num_msi = acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_MSI_FRAME,
-> +				      acpi_parse_madt_msi, 0);
-> +
-> +	if (acpi_num_msi <= 0)
-> +		goto err_out;
-> +
-> +	ret = gicv2m_allocate_domains(parent);
-> +	if (ret)
-> +		goto err_out;
-> +
-> +	pci_msi_register_fwnode_provider(&gicv2m_get_fwnode);
-> +
-> +	return 0;
-> +
-> +err_out:
-> +	gicv2m_teardown();
-> +	return -EINVAL;
-> +}
-> +#else /* CONFIG_ACPI */
-> +static int __init gicv2m_acpi_init(struct irq_domain *parent)
-> +{
-> +	return -EINVAL;
-> +}
-> +#endif /* CONFIG_ACPI */
-> +
-> +int __init gicv2m_init(struct fwnode_handle *parent_handle,
-> +		       struct irq_domain *parent)
-> +{
-> +	if (is_of_node(parent_handle))
-> +		return gicv2m_of_init(parent_handle, parent);
-> +
-> +	return gicv2m_acpi_init(parent);
-> +}
-> diff --git a/drivers/irqchip/irq-gic.c b/drivers/irqchip/irq-gic.c
-> index fcd327f..644e8bb 100644
-> --- a/drivers/irqchip/irq-gic.c
-> +++ b/drivers/irqchip/irq-gic.c
-> @@ -1234,7 +1234,7 @@ gic_of_init(struct device_node *node, struct device_node *parent)
->  	}
->  
->  	if (IS_ENABLED(CONFIG_ARM_GIC_V2M))
-> -		gicv2m_of_init(node, gic_data[gic_cnt].domain);
-> +		gicv2m_init(&node->fwnode, gic_data[gic_cnt].domain);
->  
->  	gic_cnt++;
->  	return 0;
-> @@ -1359,6 +1359,10 @@ static int __init gic_v2_acpi_init(struct acpi_subtable_header *header,
->  	__gic_init_bases(0, -1, dist_base, cpu_base, 0, domain_handle);
->  
->  	acpi_set_irq_model(ACPI_IRQ_MODEL_GIC, domain_handle);
-> +
-> +	if (IS_ENABLED(CONFIG_ARM_GIC_V2M))
-> +		gicv2m_init(NULL, gic_data[0].domain);
-> +
->  	return 0;
->  }
->  IRQCHIP_ACPI_DECLARE(gic_v2, ACPI_MADT_TYPE_GENERIC_DISTRIBUTOR,
-> diff --git a/include/linux/irqchip/arm-gic.h b/include/linux/irqchip/arm-gic.h
-> index bae69e5..febc6c3 100644
-> --- a/include/linux/irqchip/arm-gic.h
-> +++ b/include/linux/irqchip/arm-gic.h
-> @@ -106,7 +106,8 @@ int gic_cpu_if_down(unsigned int gic_nr);
->  void gic_init(unsigned int nr, int start,
->  	      void __iomem *dist , void __iomem *cpu);
->  
-> -int gicv2m_of_init(struct device_node *node, struct irq_domain *parent);
-> +int gicv2m_init(struct fwnode_handle *parent_handle,
-> +		struct irq_domain *parent);
->  
->  void gic_send_sgi(unsigned int cpu_id, unsigned int irq);
->  int gic_get_cpu_id(unsigned int cpu);
-> 
+The other option you have is to use the "acpi" command in GRUB to 
+provide an override set of tables pre-OS boot. Depending upon your OS, 
+you might need to regenerate your (dracut) initramfs with that via the 
+GRUB configuration file(s).
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+Jon.
