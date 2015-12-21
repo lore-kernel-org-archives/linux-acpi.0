@@ -1,215 +1,225 @@
-From: Tomasz Nowicki <tn@semihalf.com>
-Subject: Re: [PATCH V2 00/23] MMCONFIG refactoring and support for ARM64 PCI
- hostbridge init based on ACPI
-Date: Mon, 21 Dec 2015 11:37:31 +0100
-Message-ID: <5677D66B.2070909@semihalf.com>
+From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+Subject: RE: [PATCH V2 22/23] pci, acpi: Match PCI config space accessors
+ against platfrom specific quirks.
+Date: Mon, 21 Dec 2015 11:47:48 +0000
+Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E1EC14C0F@lhreml503-mbb>
 References: <1450278993-12664-1-git-send-email-tn@semihalf.com>
- <5673281E.7020204@codeaurora.org> <5673FB6C.80008@semihalf.com>
- <4bccc2de7668dde04436ac9c19aac25d.squirrel@www.codeaurora.org>
+ <1450278993-12664-23-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f48.google.com ([74.125.82.48]:33249 "EHLO
-	mail-wm0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751191AbbLUKjZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Dec 2015 05:39:25 -0500
-Received: by mail-wm0-f48.google.com with SMTP id p187so62241765wmp.0
-        for <linux-acpi@vger.kernel.org>; Mon, 21 Dec 2015 02:39:25 -0800 (PST)
-In-Reply-To: <4bccc2de7668dde04436ac9c19aac25d.squirrel@www.codeaurora.org>
+Received: from lhrrgout.huawei.com ([194.213.3.17]:42589 "EHLO
+	lhrrgout.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751145AbbLULtU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Dec 2015 06:49:20 -0500
+In-Reply-To: <1450278993-12664-23-git-send-email-tn@semihalf.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: okaya@codeaurora.org, bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com
-Cc: catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, lorenzo.pieralisi@arm.com, jiang.liu@linux.intel.com, stefano.stabellini@eu.citrix.com, robert.richter@caviumnetworks.com, mw@semihalf.com, liviu.dudau@arm.com, ddaney@caviumnetworks.com, tglx@linutronix.de, wangyijing@huawei.com, suravee.suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com
+To: Tomasz Nowicki <tn@semihalf.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "arnd@arndb.de" <arnd@arndb.de>, "will.deacon@arm.com" <will.deacon@arm.com>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "Lorenzo.Pieralisi@arm.com" <Lorenzo.Pieralisi@arm.com>, "okaya@codeaurora.org" <okaya@codeaurora.org>, "jiang.liu@linux.intel.com" <jiang.liu@linux.intel.com>, "Stefano.Stabellini@eu.citrix.com" <Stefano.Stabellini@eu.citrix.com>
+Cc: "robert.richter@caviumnetworks.com" <robert.richter@caviumnetworks.com>, "mw@semihalf.com" <mw@semihalf.com>, "Liviu.Dudau@arm.com" <Liviu.Dudau@arm.com>, "ddaney@caviumnetworks.com" <ddaney@caviumnetworks.com>, "tglx@linutronix.de" <tglx@linutronix.de>, Wangyijing <wangyijing@huawei.com>, "Suravee.Suthikulpanit@amd.com" <Suravee.Suthikulpanit@amd.com>, "msalter@redhat.com" <msalter@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "jchandra@broadcom.com" <jchandra@broadcom.com>, "jcm@redhat.com" <jcm@redhat.com>
 
-On 18.12.2015 19:56, okaya@codeaurora.org wrote:
->> On 17.12.2015 22:24, Sinan Kaya wrote:
->>> Hi Tomasz,
->>>
->>> On 12/16/2015 10:16 AM, Tomasz Nowicki wrote:
->>>>   From the functionality point of view this series might be split into
->>>> the
->>>> following logic parts:
->>>> 1. Make MMCONFIG code arch-agnostic which allows all architectures to
->>>> collect
->>>>      PCI config regions and used when necessary.
->>>> 2. Move non-arch specific bits to the core code.
->>>> 3. Use MMCONFIG code and implement generic ACPI based PCI host
->>>>      controller driver.
->>>> 4. Enable above driver on ARM64
->>>>
->>>> Patches has been built on top of 4.4-rc4 and can be found here:
->>>> git@github.com:semihalf-nowicki-tomasz/linux.git (pci-acpi-v2)
->>>>
->>>> NOTE, this patch set depends on Matthew's patches:
->>>> http://www.spinics.net/lists/linux-pci/msg45950.html
->>>> https://github.com/Vality/linux/tree/pci-fixes
->>>>
->>>> This has been tested on Cavium ThunderX 1 socket server and QEMU.
->>>> Any help in reviewing and testing is very appreciated.
->>>>
->>>> v1 -> v2
->>>> - moved non-arch specific piece of code to dirver/acpi/ directory
->>>> - fixed IO resource handling
->>>> - introduced PCI config accessors quirks matching
->>>> - moved ACPI_COMPANION_SET to generic code
->>>>
->>>
->>> Just tested your series. I'm seeing a resource assignment problem below.
->>> The bus addresses show as memory addresses and memory addresses show as
->>> bus addresses and IO resource did not show up.
->>>
->>>
->>> Tomasz V2
->>>
->>> [    2.520852] ACPI: PCI Interrupt Link [LN1C] (IRQs *238)
->>> [    2.535472] ACPI: PCI Interrupt Link [LN1D] (IRQs *239)
->>> [    2.550562] ACPI: PCI Root Bridge [PCI2] (domain 0002 [bus 00-1f])
->>> [    2.567813] acpi PNP0A08:02: _OSC: OS supports [ExtendedConfig ASPM
->>> ClockPM Segments MSI]
->>> [    2.591270] acpi PNP0A08:02: _OSC: platform does not support
->>> [PCIeHotplug]
->>> [    2.611144] acpi PNP0A08:02: _OSC: OS now controls [PME AER
->>> PCIeCapability]
->>> [    2.630299] ACPI: IORT: can't find node related to (null) device
->>> [    2.647184]_acpi_PNP0A08:02:_PCI_host_bridge_to_bus_0002:00
->>> [    2.662663] pci_bus 0002:00: root bus resource [mem
->>> 0x00100000-0x3fffffff window] (bus address
->>> [0xfffff5ff00100000-0xfffff5ff3fffffff])
->>> [    2.703561] pci_bus 0002:00: root bus resource [mem
->>> 0x40000000-0x7fffffff window] (bus address
->>> [0xfffff5fe80000000-0xfffff5febfffffff])
->>> [    2.737737] pci_bus 0002:00: root bus resource [mem
->>> 0x80000000-0xffffffff window] (bus address
->>> [0xfffff5fe00000000-0xfffff5fe7fffffff])
->>> [    2.794961] pci_bus 0002:00: root bus resource [bus 00-1f]
->>>
->>> Mark Salter's patches
->>>
->>> [    2.730011] ACPI: PCI Interrupt Link [LN1C] (IRQs *238)
->>> [    2.744648] ACPI: PCI Interrupt Link [LN1D] (IRQs *239)
->>> [    2.759330] ACPI: PCI Root Bridge [PCI2] (domain 0002 [bus 00-1f])
->>> [    2.783295] acpi PNP0A08:02: _OSC: OS supports [ExtendedConfig ASPM
->>> ClockPM Segments MSI]
->>> [    2.806726] acpi PNP0A08:02: _OSC: platform does not support
->>> [PCIeHotplug]
->>> [    2.826005] acpi PNP0A08:02: _OSC: OS now controls [PME AER
->>> PCIeCapability]
->>> [    2.845361] PCI host bridge to bus 0002:00
->>> [    2.856719]_pci_bus_0002:00:_root_bus_resource_[bus_00-1f]
->>> [    2.872056] pci_bus 0002:00: root bus resource [mem
->>> 0xa0100100000-0xa013fffffff] (bus address [0x00100000-0x3fffffff])
->>> [    2.902008] pci_bus 0002:00: root bus resource [mem
->>> 0xa0200000000-0xa023fffffff] (bus address [0x40000000-0x7fffffff])
->>> [    2.932396] pci_bus 0002:00: root bus resource [mem
->>> 0xa0300000000-0xa037fffffff] (bus address [0x80000000-0xffffffff])
->>> [    2.983827] pci_bus 0002:00: root bus resource [io  0x0000-0xffff]
->>>
->>> Here is how the ACPI table looks like:
->>>
->>> 		QWORDMemory(			// Consumed-And-prodced resource(all of memory space)
->>> 			ResourceProducer,	// bit 0 of general flags is 0
->>> 			PosDecode,		// positive Decode:  		_DEC
->>> 			MinFixed,		// Range is fixed:   		_MIF
->>> 			MaxFixed,		// Range is fixed:   		_MAF
->>> 			NonCacheable,		// 				_MEM
->>> 			ReadWrite,		// 				_RW
->>> 			0x00000000,		// Granularity: 	   	_GRA
->>> 			0x00100000,		// Min - PCI Memory start: 	_MIN
->>> 			0x3FFFFFFF,		// Max - PCI Memory end:   	_MAX
->>> 			0xA0100000000,		// Translation: 		_TRA
->>> 			0x3FF00000,		// Range Length: 		_LEN
->>> 			,			// Optional field left blank
->>> 			,			// Optional field left blank
->>> 			MEM0,			// Name declaration for this descriptor
->>> 			AddressRangeMemory,
->>> 			TypeStatic
->>> 			)
->>>
->>>
->>> Any thoughts?
->>>
->>>
->>
->> Yes, this is because of:
->> [PATCH V2 20/23] ACPI, PCI: Refine the way to handle translation_offset
->> for ACPI resources
->> which should have RFC tag. I posted this patch to re-trigger discussion
->> on this.
->>
->> The patch does not add Translation offset to the MMIO type resource
->> start address and for acpi_pci_probe_root_resources(ci) causes problems
->> like that. Indeed MMIO has to be fixed.
->
-> OK. I assume you'll post a patch for this soon similar to what Liu Jiang
-> is doing in IA64 directory (arch/ia64/pci/pci.c) as I can't proceed with
-> my testing without this bugfix.
->>
->> But IO resource type is more problematic. Actually, how
->> acpi_decode_space() should parse resources and which ACPI IO descriptor
->> should be used for ARM64: QWORDIO (offset == 0 vs offset != 0), DWordIO
->> (TypeStatic vs TypeTranslation) + backward compatibility with IA64...
->>
->> Please refer to:
->> https://lkml.org/lkml/2015/11/5/581
->>
->> As Lorenzo pointed out, we *all* need to agree upon the IO resource ACPI
->> descriptor and its parsing method.
->
-> Here is what I have as an IO resource.
->
-> 		QWORDIO(			//Consumed-And-produced resource
-> 			ResourceProducer,	// bit 0 of general flags is 0
-> 			MinFixed,		// Range is fixed
-> 			MaxFixed,		// Range is fixed
-> 			PosDecode,
-> 			EntireRange,
-> 			0x0000,			// Granularity
-> 			0x1000,		// Min, 0 is not accepted
-> 			0x10FFF,		// Max
-> 			0x8FFFFFEF000,	// Translation
-> 			0x10000,		// Range Length
-> 			,, PI00
-> 		 )
->
-> I don't have any type specified.
->
-> I agree with Lorenzo's assessment. The min and max values represent the
-> PCI IO bus addresses. The translation offset is added to these values to
-> figure out the CPU view of the PCI IO range.
->
-> The endpoints BAR addresses are programmed with IO addresses ranging
-> between 0x1000 and 0x10FFF for this example above.
->
-> Here is another question. Chris Covington and I asked this question on a
-> private email to you but we didn't hear back.
+Hi Tomasz
 
-I have not seen any mails like that in my mail box, unless you sent it 
-to linaro one, which is not accessible for me any more. Please use @semihalf
+> -----Original Message-----
+> From: linux-kernel-owner@vger.kernel.org [mailto:linux-kernel-
+> owner@vger.kernel.org] On Behalf Of Tomasz Nowicki
+> Sent: 16 December 2015 15:17
+> To: bhelgaas@google.com; arnd@arndb.de; will.deacon@arm.com;
+> catalin.marinas@arm.com; rjw@rjwysocki.net; hanjun.guo@linaro.org;
+> Lorenzo.Pieralisi@arm.com; okaya@codeaurora.org;
+> jiang.liu@linux.intel.com; Stefano.Stabellini@eu.citrix.com
+> Cc: robert.richter@caviumnetworks.com; mw@semihalf.com;
+> Liviu.Dudau@arm.com; ddaney@caviumnetworks.com; tglx@linutronix.de;
+> Wangyijing; Suravee.Suthikulpanit@amd.com; msalter@redhat.com; linux-
+> pci@vger.kernel.org; linux-arm-kernel@lists.infradead.org; linux-
+> acpi@vger.kernel.org; linux-kernel@vger.kernel.org; linaro-
+> acpi@lists.linaro.org; jchandra@broadcom.com; jcm@redhat.com; Tomasz
+> Nowicki
+> Subject: [PATCH V2 22/23] pci, acpi: Match PCI config space accessors
+> against platfrom specific quirks.
+> 
+> Some platforms may not be fully compliant with generic set of PCI
+> config accessors. For these cases we implement the way to overwrite
+> accessors set before PCI buses enumeration. Algorithm that overwrite
+> accessors matches against platform ID (DMI), domain and bus number,
+> hopefully enough for all cases. All quirks can be defined using:
+> DECLARE_ACPI_MCFG_FIXUP() and keep self contained.
 
->
-> We were referring to a Linaro IO hack patch as we were not sure whether
-> this was a limitation of the hack or a general expectation for ARM64 PCI
-> in general.
->
-> I'll repeat it here.
->
-> I have multiple root ports with the same IO port configuration in the
-> current ACPI table.
->
-> Root port 0 = IO range 0x1000-0x10FFF
-> Root port 1 = IO range 0x1000-0x10FFF
-> Root port 2 = IO range 0x1000-0x10FFF
->
-> Each root port can have the same IO address range configuration, are we
-> expecting IO port numbers to be unique across the whole system for ARM64?
+I've got a couple of comments/questions about this patch..
 
-Looking at pci_register_io_range which is currently used on ARM64 I 
-would say, no you can't have the same CPU addressable IO ranges.
+1) So according to this mechanism quirks would be supported only by 
+   vendors whose BIOS are SMBIOS compliant. Now personally I am ok
+   with this but I don't know if this is OK in general as it would 
+   narrow down the number of platforms that would be able to define
+   the quirks...
+   Lorenzo, Arnd what is your opinion here?
 
-pci_register_io_range does not allow to use regions which overlap each 
-other.
+2) In the quirk mechanism you proposed, I see that the callback function
+   allows to do some preparation work for the host bridge. For example in
+   Hisilicon hip05 case we would need to read some values from the ACPI 
+   table (see acpi_pci_root_hisi_add() function in 
+   https://lkml.org/lkml/2015/12/3/426). 
+   I am quite new to ACPI and I wonder if it is OK to add such "Packages"
+   to the  PCI host bridge ACPI device...or maybe we need to declare a new
+   one...?
 
-Bjorn, Arnd, Will, any opinion on this apart from current code restrictions?
+Many Thanks
 
-Tomasz
+Gab
+
+> 
+> example:
+> 
+> static const struct dmi_system_id yyy[] = {
+> 	{
+> 		.ident = "<Platform ident string>",
+> 		.callback = <handler>,
+> 		.matches = {
+> 			DMI_MATCH(DMI_SYS_VENDOR, "<system vendor>"),
+> 			DMI_MATCH(DMI_PRODUCT_NAME, "<product name>"),
+> 			DMI_MATCH(DMI_PRODUCT_VERSION, "product version"),
+> 		},
+> 	},
+> 	{ }
+> };
+> 
+> static struct pci_ops ecam_pci_ops = {
+> 	.map_bus = pci_mcfg_dev_base,
+> 	.read = xxxx_ecam_config_read,
+> 	.write = xxxx_ecam_config_write,
+> };
+> DECLARE_ACPI_MCFG_FIXUP(yyy, &ecam_pci_ops, <domain_nr>, <bus_nr>);
+> 
+> Note, that more custom actions can be done via DMI callback hook.
+> 
+> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+> ---
+>  drivers/acpi/mcfg.c               | 35
+> +++++++++++++++++++++++++++++++++--
+>  include/asm-generic/vmlinux.lds.h |  7 +++++++
+>  include/linux/ecam.h              | 17 +++++++++++++++++
+>  3 files changed, 57 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/acpi/mcfg.c b/drivers/acpi/mcfg.c index
+> a9b2231..6d0194d 100644
+> --- a/drivers/acpi/mcfg.c
+> +++ b/drivers/acpi/mcfg.c
+> @@ -8,6 +8,7 @@
+>   */
+> 
+>  #include <linux/acpi.h>
+> +#include <linux/dmi.h>
+>  #include <linux/ecam.h>
+>  #include <linux/pci.h>
+>  #include <linux/pci-acpi.h>
+> @@ -34,6 +35,31 @@ int __weak raw_pci_write(unsigned int domain,
+> unsigned int bus,
+>  	return PCIBIOS_DEVICE_NOT_FOUND;
+>  }
+> 
+> +extern struct pci_mcfg_fixup __start_acpi_mcfg_fixups[]; extern struct
+> +pci_mcfg_fixup __end_acpi_mcfg_fixups[];
+> +
+> +static struct pci_ops *pci_mcfg_check_quirks(int domain, int
+> +bus_number) {
+> +	struct pci_mcfg_fixup *fixup;
+> +
+> +	fixup = __start_acpi_mcfg_fixups;
+> +	while (fixup < __end_acpi_mcfg_fixups) {
+> +		if (dmi_check_system(fixup->system) &&
+> +		    (fixup->domain == domain ||
+> +		     fixup->domain == PCI_MCFG_DOMAIN_ANY) &&
+> +		    (fixup->bus_number == bus_number ||
+> +		     fixup->bus_number == PCI_MCFG_BUS_ANY)) {
+> +			pr_info(PREFIX "Fixup applied: Platform [%s] domain
+> [%d] bus number [%d]\n",
+> +				fixup->system->ident, fixup->domain,
+> +				fixup->bus_number);
+> +			return fixup->ops;
+> +		}
+> +		++fixup;
+> +	}
+> +
+> +	return NULL;
+> +}
+> +
+>  void __iomem *
+>  pci_mcfg_dev_base(struct pci_bus *bus, unsigned int devfn, int offset)
+> { @@ -56,10 +82,15 @@ static struct pci_ops default_pci_mcfg_ops = {
+> 
+>  struct pci_ops *pci_mcfg_get_ops(int domain, int bus)  {
+> +	struct pci_ops *pci_mcfg_ops_quirk;
+> +
+>  	/*
+> -	 * TODO: Match against platform specific quirks and return
+> -	 * corresponding PCI config space accessor set.
+> +	 * Match against platform specific quirks and return
+> corresponding
+> +	 * PCI config space accessor set.
+>  	 */
+> +	pci_mcfg_ops_quirk = pci_mcfg_check_quirks(domain, bus);
+> +	if (pci_mcfg_ops_quirk)
+> +		return pci_mcfg_ops_quirk;
+> 
+>  	return &default_pci_mcfg_ops;
+>  }
+> diff --git a/include/asm-generic/vmlinux.lds.h b/include/asm-
+> generic/vmlinux.lds.h
+> index c4bd0e2..c93fc97 100644
+> --- a/include/asm-generic/vmlinux.lds.h
+> +++ b/include/asm-generic/vmlinux.lds.h
+> @@ -298,6 +298,13 @@
+>  		VMLINUX_SYMBOL(__end_pci_fixups_suspend_late) = .;	\
+>  	}								\
+>  									\
+> +	/* ACPI MCFG quirks */						\
+> +	.acpi_fixup        : AT(ADDR(.acpi_fixup) - LOAD_OFFSET) {	\
+> +		VMLINUX_SYMBOL(__start_acpi_mcfg_fixups) = .;		\
+> +		*(.acpi_fixup_mcfg)					\
+> +		VMLINUX_SYMBOL(__end_acpi_mcfg_fixups) = .;		\
+> +	}								\
+> +									\
+>  	/* Built-in firmware blobs */					\
+>  	.builtin_fw        : AT(ADDR(.builtin_fw) - LOAD_OFFSET) {	\
+>  		VMLINUX_SYMBOL(__start_builtin_fw) = .;			\
+> diff --git a/include/linux/ecam.h b/include/linux/ecam.h index
+> e0f322e..1319fa8 100644
+> --- a/include/linux/ecam.h
+> +++ b/include/linux/ecam.h
+> @@ -20,6 +20,23 @@ struct pci_mmcfg_region {
+>  	bool hot_added;
+>  };
+> 
+> +struct pci_mcfg_fixup {
+> +	const struct dmi_system_id *system;
+> +	struct pci_ops *ops;
+> +	int domain;
+> +	int bus_number;
+> +};
+> +
+> +#define PCI_MCFG_DOMAIN_ANY	-1
+> +#define PCI_MCFG_BUS_ANY	-1
+> +
+> +/* Designate a routine to fix up buggy MCFG */
+> +#define DECLARE_ACPI_MCFG_FIXUP(system, ops, dom, bus)
+> 	\
+> +	static const struct pci_mcfg_fixup
+> __mcfg_fixup_##system##dom##bus\
+> +	 __used	__attribute__((__section__(".acpi_fixup_mcfg"),
+> 	\
+> +				aligned((sizeof(void *))))) =		\
+> +	{ system, ops, dom, bus };
+> +
+>  struct pci_mmcfg_region *pci_mmconfig_lookup(int segment, int bus);
+> struct pci_mmcfg_region *pci_mmconfig_alloc(int segment, int start,
+>  						   int end, u64 addr);
+> --
+> 1.9.1
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel"
+> in the body of a message to majordomo@vger.kernel.org More majordomo
+> info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
