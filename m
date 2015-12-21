@@ -1,48 +1,59 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH V2 22/23] pci, acpi: Match PCI config space accessors against platfrom specific quirks.
-Date: Mon, 21 Dec 2015 15:10:31 +0100
-Message-ID: <201512211510.32029.arnd@arndb.de>
-References: <1450278993-12664-1-git-send-email-tn@semihalf.com> <1450278993-12664-23-git-send-email-tn@semihalf.com> <EE11001F9E5DDD47B7634E2F8A612F2E1EC14C0F@lhreml503-mbb>
+Subject: Re: [PATCH V2 00/23] MMCONFIG refactoring and support for ARM64 PCI hostbridge init based on ACPI
+Date: Mon, 21 Dec 2015 15:15:54 +0100
+Message-ID: <201512211515.55447.arnd@arndb.de>
+References: <1450278993-12664-1-git-send-email-tn@semihalf.com> <20151221121050.GB11145@red-moon> <5677F3C8.8040200@semihalf.com>
 Mime-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
+  charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.187]:62997 "EHLO
+Received: from mout.kundenserver.de ([212.227.126.187]:61949 "EHLO
 	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750914AbbLUOL4 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Dec 2015 09:11:56 -0500
-In-Reply-To: <EE11001F9E5DDD47B7634E2F8A612F2E1EC14C0F@lhreml503-mbb>
+	with ESMTP id S1751123AbbLUORQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Dec 2015 09:17:16 -0500
+In-Reply-To: <5677F3C8.8040200@semihalf.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Cc: Tomasz Nowicki <tn@semihalf.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "Lorenzo.Pieralisi@arm.com" <Lorenzo.Pieralisi@arm.com>, "okaya@codeaurora.org" <okaya@codeaurora.org>, "jiang.liu@linux.intel.com" <jiang.liu@linux.intel.com>, "Stefano.Stabellini@eu.citrix.com" <Stefano.Stabellini@eu.citrix.com>, "robert.richter@caviumnetworks.com" <robert.richter@caviumnetworks.com>, "mw@semihalf.com" <mw@semihalf.com>, "Liviu.Dudau@arm.com" <Liviu.Dudau@arm.com>, "ddaney@caviumnetworks.com" <ddaney@caviumnetworks.com>, "tglx@linutronix.de" <tglx@linutronix.de>, Wangyijing <wangyijing@huawei.com>, "Suravee.Suthikulpanit@amd.com" <Suravee.Suthikulpanit@amd.com>
+To: Tomasz Nowicki <tn@semihalf.com>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, okaya@codeaurora.org, bhelgaas@google.com, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, jiang.liu@linux.intel.com, stefano.stabellini@eu.citrix.com, robert.richter@caviumnetworks.com, mw@semihalf.com, liviu.dudau@arm.com, ddaney@caviumnetworks.com, tglx@linutronix.de, wangyijing@huawei.com, suravee.suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com
 
-On Monday 21 December 2015, Gabriele Paoloni wrote:
-> > -----Original Message-----
-> > From: linux-kernel-owner@vger.kernel.org [mailto:linux-kernel-
-> > owner@vger.kernel.org] On Behalf Of Tomasz Nowicki
+On Monday 21 December 2015, Tomasz Nowicki wrote:
+> On 21.12.2015 13:10, Lorenzo Pieralisi wrote:
+> > On Fri, Dec 18, 2015 at 06:56:39PM +0000, okaya@codeaurora.org wrote:
 
-> > Some platforms may not be fully compliant with generic set of PCI
-> > config accessors. For these cases we implement the way to overwrite
-> > accessors set before PCI buses enumeration. Algorithm that overwrite
-> > accessors matches against platform ID (DMI), domain and bus number,
-> > hopefully enough for all cases. All quirks can be defined using:
-> > DECLARE_ACPI_MCFG_FIXUP() and keep self contained.
+> >> I have multiple root ports with the same IO port configuration in the
+> >> current ACPI table.
+> >>
+> >> Root port 0 = IO range 0x1000-0x10FFF
+> >> Root port 1 = IO range 0x1000-0x10FFF
+> >> Root port 2 = IO range 0x1000-0x10FFF
+> >
+> > It is fine. You end up mapping for each of those a 4k window of the
+> > virtual address space allocated to IO and that's what you will have in
+> > the kernel PCI resources (not in the HW BARs though). If that was a problem
+> > it would be even for the current DT host controllers eg:
+> >
+> > arch/arm64/boot/dts/apm/apm-storm.dtsi
+> >
+> > it should not be (again I will let Arnd comment on this since he may be
+> > aware of issues encountered on other arches/platforms).
+> >
 > 
-> I've got a couple of comments/questions about this patch..
+> Root port 0 = IO range 0x1000-0x10FFF
+> Root port 1 = IO range 0x1000-0x10FFF
+> Root port 2 = IO range 0x1000-0x10FFF
 > 
-> 1) So according to this mechanism quirks would be supported only by 
->    vendors whose BIOS are SMBIOS compliant. Now personally I am ok
->    with this but I don't know if this is OK in general as it would 
->    narrow down the number of platforms that would be able to define
->    the quirks...
->    Lorenzo, Arnd what is your opinion here?
+> If above ranges are mapped into different CPU windows, then yes, it is fine.
 
-I'd rather not see the quirks in mainline at all, and only support
-SBSA compliant machines, or require the BIOS to work around the hardware
-quirks differently (e.g. by trapping config space access through secure
-firmware, or going through an AML method to be defined). I'm certainly
-ok with making it depend on SMBIOS if we are going to use something like this.
+Ideally, they should all be the same CPU address so we only have to map the window
+once, each device gets an address below 64K, and you can have legacy port numbers
+(below 4K) on any bus, which is required to make certain GPUs work.
+
+I haven't actually seen anyone do that on ARM though, every implementation so
+far has a separate mapping per host bridge, and we can cope with that too,
+and we can live with either overlapping bus addresses or unique bus addresses,
+any of them can be expressed by the PCI core in Linux, we just have to make sure
+that we correctly translate the firmware tables into our internal structures.
 
 	Arnd
