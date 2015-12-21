@@ -1,43 +1,158 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH 3/3] pmem: Use the poison list to expose badblocks
-Date: Sun, 20 Dec 2015 17:20:52 -0800
-Message-ID: <CAPcyv4je_6LPzfULJrGdkDRnc0mzc_ftd=t9942N2UO9rQZe0A@mail.gmail.com>
-References: <1450603122-7205-1-git-send-email-vishal@kernel.org>
-	<1450603122-7205-4-git-send-email-vishal@kernel.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v7 1/4] acpi: pci: Setup MSI domain for ACPI based pci devices
+Date: Mon, 21 Dec 2015 04:02:34 +0100
+Message-ID: <161215641.FWtaEPFn08@vostro.rjw.lan>
+References: <1449766530-16935-1-git-send-email-Suravee.Suthikulpanit@amd.com> <1449766530-16935-2-git-send-email-Suravee.Suthikulpanit@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yk0-f172.google.com ([209.85.160.172]:36476 "EHLO
-	mail-yk0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751344AbbLUBUx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 20 Dec 2015 20:20:53 -0500
-Received: by mail-yk0-f172.google.com with SMTP id x184so117547409yka.3
-        for <linux-acpi@vger.kernel.org>; Sun, 20 Dec 2015 17:20:53 -0800 (PST)
-In-Reply-To: <1450603122-7205-4-git-send-email-vishal@kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:44497 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751165AbbLUCcT (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 20 Dec 2015 21:32:19 -0500
+In-Reply-To: <1449766530-16935-2-git-send-email-Suravee.Suthikulpanit@amd.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Vishal Verma <vishal@kernel.org>
-Cc: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Vishal Verma <vishal.l.verma@intel.com>, Linux ACPI <linux-acpi@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, Jeff Moyer <jmoyer@redhat.com>, Linda Knippers <linda.knippers@hpe.com>
+To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Cc: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, bhelgaas@google.com, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, hanjun.guo@linaro.org, tomasz.nowicki@linaro.org, graeme.gregory@linaro.org, dhdang@apm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
 
-On Sun, Dec 20, 2015 at 1:18 AM,  <vishal@kernel.org> wrote:
-> From: Vishal Verma <vishal.l.verma@intel.com>
->
-> Enable the gendisk badblocks feature for pmem namespaces.
-> If the pmem namespace being created has any known poison associated with
-> its physical address space, convert the poison ranges to bad sectors
-> exposed using the badblocks interface.
->
-> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+On Thursday, December 10, 2015 08:55:27 AM Suravee Suthikulpanit wrote:
+> This patch introduces pci_msi_register_fwnode_provider() for irqchip
+> to register a callback, to provide a way to determine appropriate MSI
+> domain for a pci device.
+> 
+> It also introduces pci_host_bridge_acpi_msi_domain(), which returns
+> the MSI domain of the specified PCI host bridge with DOMAIN_BUS_PCI_MSI
+> bus token. Then, it is assigned to pci device.
+> 
+> Reviewed-by: Marc Zyngier <marc.zyngier@arm.com>
+> Cc: Bjorn Helgaas <bhelgaas@google.com>
+> Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+
 > ---
->  drivers/nvdimm/pmem.c | 124 ++++++++++++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 124 insertions(+)
+>  drivers/pci/pci-acpi.c    | 42 ++++++++++++++++++++++++++++++++++++++++++
+>  drivers/pci/probe.c       |  2 ++
+>  include/linux/irqdomain.h |  5 +++++
+>  include/linux/pci.h       | 10 ++++++++++
+>  4 files changed, 59 insertions(+)
+> 
+> diff --git a/drivers/pci/pci-acpi.c b/drivers/pci/pci-acpi.c
+> index a32ba75..d3f32d6 100644
+> --- a/drivers/pci/pci-acpi.c
+> +++ b/drivers/pci/pci-acpi.c
+> @@ -9,7 +9,9 @@
+>  
+>  #include <linux/delay.h>
+>  #include <linux/init.h>
+> +#include <linux/irqdomain.h>
+>  #include <linux/pci.h>
+> +#include <linux/msi.h>
+>  #include <linux/pci_hotplug.h>
+>  #include <linux/module.h>
+>  #include <linux/pci-aspm.h>
+> @@ -689,6 +691,46 @@ static struct acpi_bus_type acpi_pci_bus = {
+>  	.cleanup = pci_acpi_cleanup,
+>  };
+>  
+> +
+> +static struct fwnode_handle *(*pci_msi_get_fwnode_cb)(struct device *dev);
+> +
+> +/**
+> + * pci_msi_register_fwnode_provider - Register callback to retrieve fwnode
+> + * @fn:       Callback matching a device to a fwnode that identifies a PCI
+> + *            MSI domain.
+> + *
+> + * This should be called by irqchip driver, which is the parent of
+> + * the MSI domain to provide callback interface to query fwnode.
+> + */
+> +void
+> +pci_msi_register_fwnode_provider(struct fwnode_handle *(*fn)(struct device *))
+> +{
+> +	pci_msi_get_fwnode_cb = fn;
+> +}
+> +
+> +/**
+> + * pci_host_bridge_acpi_msi_domain - Retrieve MSI domain of a PCI host bridge
+> + * @bus:      The PCI host bridge bus.
+> + *
+> + * This function uses the callback function registered by
+> + * pci_msi_register_fwnode_provider() to retrieve the irq_domain with
+> + * type DOMAIN_BUS_PCI_MSI of the specified host bridge bus.
+> + * This returns NULL on error or when the domain is not found.
+> + */
+> +struct irq_domain *pci_host_bridge_acpi_msi_domain(struct pci_bus *bus)
+> +{
+> +	struct fwnode_handle *fwnode;
+> +
+> +	if (!pci_msi_get_fwnode_cb)
+> +		return NULL;
+> +
+> +	fwnode = pci_msi_get_fwnode_cb(&bus->dev);
+> +	if (!fwnode)
+> +		return NULL;
+> +
+> +	return irq_find_matching_fwnode(fwnode, DOMAIN_BUS_PCI_MSI);
+> +}
+> +
+>  static int __init acpi_pci_init(void)
+>  {
+>  	int ret;
+> diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+> index edb1984..553a029 100644
+> --- a/drivers/pci/probe.c
+> +++ b/drivers/pci/probe.c
+> @@ -672,6 +672,8 @@ static struct irq_domain *pci_host_bridge_msi_domain(struct pci_bus *bus)
+>  	 * should be called from here.
+>  	 */
+>  	d = pci_host_bridge_of_msi_domain(bus);
+> +	if (!d)
+> +		d = pci_host_bridge_acpi_msi_domain(bus);
+>  
+>  	return d;
+>  }
+> diff --git a/include/linux/irqdomain.h b/include/linux/irqdomain.h
+> index d5e5c5b..a06feda 100644
+> --- a/include/linux/irqdomain.h
+> +++ b/include/linux/irqdomain.h
+> @@ -410,6 +410,11 @@ static inline bool irq_domain_is_hierarchy(struct irq_domain *domain)
+>  static inline void irq_dispose_mapping(unsigned int virq) { }
+>  static inline void irq_domain_activate_irq(struct irq_data *data) { }
+>  static inline void irq_domain_deactivate_irq(struct irq_data *data) { }
+> +static inline struct irq_domain *irq_find_matching_fwnode(
+> +	struct fwnode_handle *fwnode, enum irq_domain_bus_token bus_token)
+> +{
+> +	return NULL;
+> +}
+>  #endif /* !CONFIG_IRQ_DOMAIN */
+>  
+>  #endif /* _LINUX_IRQDOMAIN_H */
+> diff --git a/include/linux/pci.h b/include/linux/pci.h
+> index 6ae25aa..d86378c 100644
+> --- a/include/linux/pci.h
+> +++ b/include/linux/pci.h
+> @@ -1946,6 +1946,16 @@ static inline struct irq_domain *
+>  pci_host_bridge_of_msi_domain(struct pci_bus *bus) { return NULL; }
+>  #endif  /* CONFIG_OF */
+>  
+> +#ifdef CONFIG_ACPI
+> +struct irq_domain *pci_host_bridge_acpi_msi_domain(struct pci_bus *bus);
+> +
+> +void
+> +pci_msi_register_fwnode_provider(struct fwnode_handle *(*fn)(struct device *));
+> +#else
+> +static inline struct irq_domain *
+> +pci_host_bridge_acpi_msi_domain(struct pci_bus *bus) { return NULL; }
+> +#endif
+> +
+>  #ifdef CONFIG_EEH
+>  static inline struct eeh_dev *pci_dev_to_eeh_dev(struct pci_dev *pdev)
+>  {
+> 
 
-I think we should move this new functionality to the core because
-there is not much pmem driver specific.  It's all generic nvdimm-core
-and block-core functionality.  The only missing information the core
-routine needs is the gendisk and a data offset (if sector-zero is at
-an offset from the base address range of the namespace).  Something
-like:
-
-nvdimm_namespace_disk_poison(struct nd_namespace_common *ndns,
-    resource_size_t offset, struct gendisk *disk)
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
