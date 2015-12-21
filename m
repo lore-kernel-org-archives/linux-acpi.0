@@ -1,55 +1,87 @@
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Subject: Re: [PATCH 3/3] pmem: Use the poison list to expose badblocks
-Date: Mon, 21 Dec 2015 18:50:54 +0000
-Message-ID: <1450723855.5616.15.camel@intel.com>
-References: <1450603122-7205-1-git-send-email-vishal@kernel.org>
-	 <1450603122-7205-4-git-send-email-vishal@kernel.org>
-	 <CAPcyv4je_6LPzfULJrGdkDRnc0mzc_ftd=t9942N2UO9rQZe0A@mail.gmail.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: Re: [PATCH v1 1/1] ACPI / LPSS: change 'does not' to 'does' in
+ comment
+Date: Mon, 21 Dec 2015 21:09:59 +0200
+Message-ID: <1450724999.30729.251.camel@linux.intel.com>
+References: <1450720245-67575-1-git-send-email-andriy.shevchenko@linux.intel.com>
+	 <56783DEB.7040304@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:4591 "EHLO mga11.intel.com"
+Received: from mga14.intel.com ([192.55.52.115]:6719 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750914AbbLUSu5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 21 Dec 2015 13:50:57 -0500
-In-Reply-To: <CAPcyv4je_6LPzfULJrGdkDRnc0mzc_ftd=t9942N2UO9rQZe0A@mail.gmail.com>
-Content-Language: en-US
-Content-ID: <6BF8A6551E555D4E8CC4927018774BFB@intel.com>
+	id S1751673AbbLUTJm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 21 Dec 2015 14:09:42 -0500
+In-Reply-To: <56783DEB.7040304@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Williams, Dan J" <dan.j.williams@intel.com>
-Cc: "ross.zwisler@linux.intel.com" <ross.zwisler@linux.intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "jmoyer@redhat.com" <jmoyer@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linda.knippers@hpe.com" <linda.knippers@hpe.com>
+To: Al Stone <ahs3@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
 
-T24gU3VuLCAyMDE1LTEyLTIwIGF0IDE3OjIwIC0wODAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
-IE9uIFN1biwgRGVjIDIwLCAyMDE1IGF0IDE6MTggQU0swqDCoDx2aXNoYWxAa2VybmVsLm9yZz4g
-d3JvdGU6DQo+ID4gRnJvbTogVmlzaGFsIFZlcm1hIDx2aXNoYWwubC52ZXJtYUBpbnRlbC5jb20+
-DQo+ID4gDQo+ID4gRW5hYmxlIHRoZSBnZW5kaXNrIGJhZGJsb2NrcyBmZWF0dXJlIGZvciBwbWVt
-IG5hbWVzcGFjZXMuDQo+ID4gSWYgdGhlIHBtZW0gbmFtZXNwYWNlIGJlaW5nIGNyZWF0ZWQgaGFz
-IGFueSBrbm93biBwb2lzb24gYXNzb2NpYXRlZA0KPiA+IHdpdGgNCj4gPiBpdHMgcGh5c2ljYWwg
-YWRkcmVzcyBzcGFjZSwgY29udmVydCB0aGUgcG9pc29uIHJhbmdlcyB0byBiYWQgc2VjdG9ycw0K
-PiA+IGV4cG9zZWQgdXNpbmcgdGhlIGJhZGJsb2NrcyBpbnRlcmZhY2UuDQo+ID4gDQo+ID4gU2ln
-bmVkLW9mZi1ieTogVmlzaGFsIFZlcm1hIDx2aXNoYWwubC52ZXJtYUBpbnRlbC5jb20+DQo+ID4g
-LS0tDQo+ID4gwqBkcml2ZXJzL252ZGltbS9wbWVtLmMgfCAxMjQNCj4gPiArKysrKysrKysrKysr
-KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKw0KPiA+IMKgMSBmaWxlIGNoYW5n
-ZWQsIDEyNCBpbnNlcnRpb25zKCspDQo+IA0KPiBJIHRoaW5rIHdlIHNob3VsZCBtb3ZlIHRoaXMg
-bmV3IGZ1bmN0aW9uYWxpdHkgdG8gdGhlIGNvcmUgYmVjYXVzZQ0KPiB0aGVyZSBpcyBub3QgbXVj
-aCBwbWVtIGRyaXZlciBzcGVjaWZpYy7CoMKgSXQncyBhbGwgZ2VuZXJpYyBudmRpbW0tY29yZQ0K
-PiBhbmQgYmxvY2stY29yZSBmdW5jdGlvbmFsaXR5LsKgwqBUaGUgb25seSBtaXNzaW5nIGluZm9y
-bWF0aW9uIHRoZSBjb3JlDQo+IHJvdXRpbmUgbmVlZHMgaXMgdGhlIGdlbmRpc2sgYW5kIGEgZGF0
-YSBvZmZzZXQgKGlmIHNlY3Rvci16ZXJvIGlzIGF0DQo+IGFuIG9mZnNldCBmcm9tIHRoZSBiYXNl
-IGFkZHJlc3MgcmFuZ2Ugb2YgdGhlIG5hbWVzcGFjZSkuwqDCoFNvbWV0aGluZw0KPiBsaWtlOg0K
-PiANCj4gbnZkaW1tX25hbWVzcGFjZV9kaXNrX3BvaXNvbihzdHJ1Y3QgbmRfbmFtZXNwYWNlX2Nv
-bW1vbiAqbmRucywNCj4gwqDCoMKgwqByZXNvdXJjZV9zaXplX3Qgb2Zmc2V0LCBzdHJ1Y3QgZ2Vu
-ZGlzayAqZGlzaykNCg0KVGhpcyBzaG91bGQgYmUgZWFzeSB0byBkbywgaG93ZXZlciBpc24ndCBp
-dCBhIGJpdCBjb3VudGVyLWludHVpdGl2ZSB0bw0KbW92ZSB0aGlzIGludG8gY29yZT8gVGhlIGxv
-d2VyIGxldmVsIGRyaXZlcnMgcG1lbS9ibGsvYnR0IGFyZSBhbGwgb3duZXJzDQpvZiB0aGVpciBy
-ZXNwZWN0aXZlIGdlbmRpc2tzLCBhbmQgc28gZG9lc24ndCBpdCBtYWtlIG1vcmUgc2Vuc2UgZm9y
-IHRoZW0NCnRvIGJlIGluIGNvbnRyb2wgb2YgbWFuaXB1bGF0aW5nIHRoZWlyIGdlbmRpc2sgZGF0
-YS4gQWxzbywgSSBjYW4gc2VlDQptb3ZpbmcgdGhlbSBpZiB0aGlzIHdhcyBhIGNvbW1vbiBvcGVy
-YXRpb24sIGJ1dCBvbmx5IHBtZW0gd2lsbCBldmVyIG5lZWQNCnRvIGRvIHRoaXMuLg0KDQpJJ20g
-bm90IHRvbyBzdHJvbmdseSBvcHBvc2VkIHRvIHRoaXMgaG93ZXZlciAtIHRoZSBvbmUgdGhpbmcg
-dGhhdCBkaWQNCmZlZWwgYSBiaXQgYXdrd2FyZCBiZWluZyBpbiBwbWVtIHdhcyB0aGF0IHdlIGFz
-ayBjb3JlIGZvciBhIHN0cnVjdA0KbGlzdF9oZWFkIGFuZCB0aGVuIHdhbGsgaXQgb3Vyc2VsdmVz
-IC0gcG1lbSBkb2Vzbid0IG5vcm1hbGx5IGtub3cgYWJvdXQNCnRoZSBpbnRlcm5hbHMgb2YgbnZk
-aW1tX2J1cywgYnV0IHdpdGggdGhpcyB3ZSBpbXBsaWNpdGx5IG1ha2UgaXQgYXdhcmUu
+On Mon, 2015-12-21 at 10:59 -0700, Al Stone wrote:
+> On 12/21/2015 10:50 AM, Andy Shevchenko wrote:
+> > The LPSS DMA device does have neither _PS0 nor _PS3 method. Fix the
+> > wording in
+> > the comment line.
+> >=20
+> > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+> > ---
+> > =C2=A0drivers/acpi/acpi_lpss.c | 2 +-
+> > =C2=A01 file changed, 1 insertion(+), 1 deletion(-)
+> >=20
+> > diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
+> > index 84d3d90..6c6661d 100644
+> > --- a/drivers/acpi/acpi_lpss.c
+> > +++ b/drivers/acpi/acpi_lpss.c
+> > @@ -95,7 +95,7 @@ static unsigned int lpss_quirks;
+> > =C2=A0/*
+> > =C2=A0 * LPSS_QUIRK_ALWAYS_POWER_ON: override power state for LPSS =
+DMA
+> > device.
+> > =C2=A0 *
+> > - * The LPSS DMA controller does not have neither _PS0 nor _PS3
+> > method. Moreover
+> > + * The LPSS DMA controller does have neither _PS0 nor _PS3 method.
+> > Moreover
+>=20
+> Neither of the above are very clear.=C2=A0=C2=A0I think proper Englis=
+h would
+> be:
+>=20
+> =C2=A0=C2=A0=C2=A0=C2=A0The LPSS DMA controller has neither a _PS0 no=
+r a _PS3 method.
+>=20
+> or, alternatively:
+>=20
+> =C2=A0=C2=A0=C2=A0=C2=A0The LPSS DMA controller does not have either =
+a _PS0 or a _PS3
+> method.
+>=20
+> This assumes that the point of the statement is to say that _PS0 and
+> _PS3
+> methods do not exist for the LPSS DMA controller.
+
+Thanks! Will update this.
+
+>=20
+> > =C2=A0 * it can be powered off automatically whenever the last LPSS
+> > device goes down.
+> > =C2=A0 * In case of no power any access to the DMA controller will =
+hang
+> > the system.
+> > =C2=A0 * The behaviour is reproduced on some HP laptops based on In=
+tel
+> > BayTrail as
+> >=20
+>=20
+>=20
+
+--=20
+Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Intel Finland Oy
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
