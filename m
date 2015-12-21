@@ -1,87 +1,67 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v1 1/1] ACPI / LPSS: change 'does not' to 'does' in
- comment
-Date: Mon, 21 Dec 2015 21:09:59 +0200
-Message-ID: <1450724999.30729.251.camel@linux.intel.com>
-References: <1450720245-67575-1-git-send-email-andriy.shevchenko@linux.intel.com>
-	 <56783DEB.7040304@redhat.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH 3/3] pmem: Use the poison list to expose badblocks
+Date: Mon, 21 Dec 2015 11:10:49 -0800
+Message-ID: <CAPcyv4jm6LTZR25xZJpVkjUPn2=Uu3XDOYtQ0GXo=kD2xLcoHA@mail.gmail.com>
+References: <1450603122-7205-1-git-send-email-vishal@kernel.org>
+	<1450603122-7205-4-git-send-email-vishal@kernel.org>
+	<CAPcyv4je_6LPzfULJrGdkDRnc0mzc_ftd=t9942N2UO9rQZe0A@mail.gmail.com>
+	<1450723855.5616.15.camel@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:6719 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751673AbbLUTJm (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 21 Dec 2015 14:09:42 -0500
-In-Reply-To: <56783DEB.7040304@redhat.com>
+Received: from mail-yk0-f175.google.com ([209.85.160.175]:34548 "EHLO
+	mail-yk0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751387AbbLUTKu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Dec 2015 14:10:50 -0500
+Received: by mail-yk0-f175.google.com with SMTP id p130so139850042yka.1
+        for <linux-acpi@vger.kernel.org>; Mon, 21 Dec 2015 11:10:50 -0800 (PST)
+In-Reply-To: <1450723855.5616.15.camel@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Al Stone <ahs3@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
+To: "Verma, Vishal L" <vishal.l.verma@intel.com>
+Cc: "ross.zwisler@linux.intel.com" <ross.zwisler@linux.intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "jmoyer@redhat.com" <jmoyer@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linda.knippers@hpe.com" <linda.knippers@hpe.com>
 
-On Mon, 2015-12-21 at 10:59 -0700, Al Stone wrote:
-> On 12/21/2015 10:50 AM, Andy Shevchenko wrote:
-> > The LPSS DMA device does have neither _PS0 nor _PS3 method. Fix the
-> > wording in
-> > the comment line.
-> >=20
-> > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> > ---
-> > =C2=A0drivers/acpi/acpi_lpss.c | 2 +-
-> > =C2=A01 file changed, 1 insertion(+), 1 deletion(-)
-> >=20
-> > diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-> > index 84d3d90..6c6661d 100644
-> > --- a/drivers/acpi/acpi_lpss.c
-> > +++ b/drivers/acpi/acpi_lpss.c
-> > @@ -95,7 +95,7 @@ static unsigned int lpss_quirks;
-> > =C2=A0/*
-> > =C2=A0 * LPSS_QUIRK_ALWAYS_POWER_ON: override power state for LPSS =
-DMA
-> > device.
-> > =C2=A0 *
-> > - * The LPSS DMA controller does not have neither _PS0 nor _PS3
-> > method. Moreover
-> > + * The LPSS DMA controller does have neither _PS0 nor _PS3 method.
-> > Moreover
->=20
-> Neither of the above are very clear.=C2=A0=C2=A0I think proper Englis=
-h would
-> be:
->=20
-> =C2=A0=C2=A0=C2=A0=C2=A0The LPSS DMA controller has neither a _PS0 no=
-r a _PS3 method.
->=20
-> or, alternatively:
->=20
-> =C2=A0=C2=A0=C2=A0=C2=A0The LPSS DMA controller does not have either =
-a _PS0 or a _PS3
-> method.
->=20
-> This assumes that the point of the statement is to say that _PS0 and
-> _PS3
-> methods do not exist for the LPSS DMA controller.
+On Mon, Dec 21, 2015 at 10:50 AM, Verma, Vishal L
+<vishal.l.verma@intel.com> wrote:
+> On Sun, 2015-12-20 at 17:20 -0800, Dan Williams wrote:
+>> On Sun, Dec 20, 2015 at 1:18 AM,  <vishal@kernel.org> wrote:
+>> > From: Vishal Verma <vishal.l.verma@intel.com>
+>> >
+>> > Enable the gendisk badblocks feature for pmem namespaces.
+>> > If the pmem namespace being created has any known poison associated
+>> > with
+>> > its physical address space, convert the poison ranges to bad sectors
+>> > exposed using the badblocks interface.
+>> >
+>> > Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+>> > ---
+>> >  drivers/nvdimm/pmem.c | 124
+>> > ++++++++++++++++++++++++++++++++++++++++++++++++++
+>> >  1 file changed, 124 insertions(+)
+>>
+>> I think we should move this new functionality to the core because
+>> there is not much pmem driver specific.  It's all generic nvdimm-core
+>> and block-core functionality.  The only missing information the core
+>> routine needs is the gendisk and a data offset (if sector-zero is at
+>> an offset from the base address range of the namespace).  Something
+>> like:
+>>
+>> nvdimm_namespace_disk_poison(struct nd_namespace_common *ndns,
+>>     resource_size_t offset, struct gendisk *disk)
+>
+> This should be easy to do, however isn't it a bit counter-intuitive to
+> move this into core? The lower level drivers pmem/blk/btt are all owners
+> of their respective gendisks, and so doesn't it make more sense for them
+> to be in control of manipulating their gendisk data. Also, I can see
+> moving them if this was a common operation, but only pmem will ever need
+> to do this..
+>
+> I'm not too strongly opposed to this however - the one thing that did
+> feel a bit awkward being in pmem was that we ask core for a struct
+> list_head and then walk it ourselves - pmem doesn't normally know about
+> the internals of nvdimm_bus, but with this we implicitly make it aware.
 
-Thanks! Will update this.
-
->=20
-> > =C2=A0 * it can be powered off automatically whenever the last LPSS
-> > device goes down.
-> > =C2=A0 * In case of no power any access to the DMA controller will =
-hang
-> > the system.
-> > =C2=A0 * The behaviour is reproduced on some HP laptops based on In=
-tel
-> > BayTrail as
-> >=20
->=20
->=20
-
---=20
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Yeah, it's borderline, but teaching pmem how to walk a list that the
+core built up is what triggered the suggestion.  It's true that the
+pmem driver owns its gendisk, but that's why it gets to make the
+decision to call the library helper or not.
