@@ -1,59 +1,59 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH V2 00/23] MMCONFIG refactoring and support for ARM64 PCI hostbridge init based on ACPI
-Date: Mon, 21 Dec 2015 15:15:54 +0100
-Message-ID: <201512211515.55447.arnd@arndb.de>
-References: <1450278993-12664-1-git-send-email-tn@semihalf.com> <20151221121050.GB11145@red-moon> <5677F3C8.8040200@semihalf.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="windows-1252"
-Content-Transfer-Encoding: 7bit
+From: Aleksey Makarov <aleksey.makarov@linaro.org>
+Subject: [PATCH v2 0/3] Add AMBA bus probing support to ACPI
+Date: Mon, 21 Dec 2015 17:49:54 +0300
+Message-ID: <1450709399-7246-1-git-send-email-aleksey.makarov@linaro.org>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([212.227.126.187]:61949 "EHLO
-	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751123AbbLUORQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Dec 2015 09:17:16 -0500
-In-Reply-To: <5677F3C8.8040200@semihalf.com>
+Received: from mail-lf0-f46.google.com ([209.85.215.46]:36064 "EHLO
+	mail-lf0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751833AbbLUOvy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Dec 2015 09:51:54 -0500
+Received: by mail-lf0-f46.google.com with SMTP id z124so107617165lfa.3
+        for <linux-acpi@vger.kernel.org>; Mon, 21 Dec 2015 06:51:53 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, okaya@codeaurora.org, bhelgaas@google.com, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, jiang.liu@linux.intel.com, stefano.stabellini@eu.citrix.com, robert.richter@caviumnetworks.com, mw@semihalf.com, liviu.dudau@arm.com, ddaney@caviumnetworks.com, tglx@linutronix.de, wangyijing@huawei.com, suravee.suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com
+To: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Aleksey Makarov <aleksey.makarov@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Shannon Zhao <shannon.zhao@linaro.org>
 
-On Monday 21 December 2015, Tomasz Nowicki wrote:
-> On 21.12.2015 13:10, Lorenzo Pieralisi wrote:
-> > On Fri, Dec 18, 2015 at 06:56:39PM +0000, okaya@codeaurora.org wrote:
+As discussed when Shannon Zhao sent a patch to add platform_device support
+to pl061 driver. Russel and other maintainers prefered that ACPI learned
+how to create AMBA devices rather than converting/adding platform_device
+support to AMBA drivers.
 
-> >> I have multiple root ports with the same IO port configuration in the
-> >> current ACPI table.
-> >>
-> >> Root port 0 = IO range 0x1000-0x10FFF
-> >> Root port 1 = IO range 0x1000-0x10FFF
-> >> Root port 2 = IO range 0x1000-0x10FFF
-> >
-> > It is fine. You end up mapping for each of those a 4k window of the
-> > virtual address space allocated to IO and that's what you will have in
-> > the kernel PCI resources (not in the HW BARs though). If that was a problem
-> > it would be even for the current DT host controllers eg:
-> >
-> > arch/arm64/boot/dts/apm/apm-storm.dtsi
-> >
-> > it should not be (again I will let Arnd comment on this since he may be
-> > aware of issues encountered on other arches/platforms).
-> >
-> 
-> Root port 0 = IO range 0x1000-0x10FFF
-> Root port 1 = IO range 0x1000-0x10FFF
-> Root port 2 = IO range 0x1000-0x10FFF
-> 
-> If above ranges are mapped into different CPU windows, then yes, it is fine.
+http://comments.gmane.org/gmane.linux.ports.arm.kernel/431364
 
-Ideally, they should all be the same CPU address so we only have to map the window
-once, each device gets an address below 64K, and you can have legacy port numbers
-(below 4K) on any bus, which is required to make certain GPUs work.
+1) Adds basic AMBA device probing support to ACPI, it uses a whitelist of
+device IDs as the number of AMBA devices is limited. Currently the two ids
+present are those used in QEMU for arm64.
 
-I haven't actually seen anyone do that on ARM though, every implementation so
-far has a separate mapping per host bridge, and we can cope with that too,
-and we can live with either overlapping bus addresses or unique bus addresses,
-any of them can be expressed by the PCI core in Linux, we just have to make sure
-that we correctly translate the firmware tables into our internal structures.
+2) Adds the plumbing into ACPI probe sequence.
 
-	Arnd
+3) From ACPI pl011 is only defined (SBSA document) to be in SBSA mode which has
+reduced functionality. There may be a better method to do this that I have
+overlooked.
+
+v2:
+- A new ACPI scan handler for AMBA devices has been implemented
+- The order of `if` branches in amba-pl011.c has been changed
+- A couple of `static`s have been added
+- The compilation of the acpi_amba.c unit has made conditional
+- A comment on SBSA UART has been added
+
+v1:
+https://lkml.kernel.org/g/1443609530-21524-1-git-send-email-graeme.gregory@linaro.org
+
+Graeme Gregory (3):
+  ACPI: amba bus probing support
+  ACPI: scan add in amba probing
+  serial: amba-pl011: add ACPI support to AMBA probe
+
+ drivers/acpi/Makefile           |   1 +
+ drivers/acpi/acpi_amba.c        | 149 ++++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/internal.h         |   5 ++
+ drivers/acpi/scan.c             |   1 +
+ drivers/tty/serial/amba-pl011.c |  37 +++++++---
+ 5 files changed, 182 insertions(+), 11 deletions(-)
+ create mode 100644 drivers/acpi/acpi_amba.c
+
+-- 
+2.6.4
+
