@@ -1,81 +1,64 @@
-From: Aleksey Makarov <aleksey.makarov@linaro.org>
-Subject: [PATCH v3 3/3] serial: amba-pl011: add ACPI support to AMBA probe
-Date: Mon, 21 Dec 2015 19:41:38 +0300
-Message-ID: <1450716100-13688-4-git-send-email-aleksey.makarov@linaro.org>
-References: <1450716100-13688-1-git-send-email-aleksey.makarov@linaro.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f49.google.com ([209.85.215.49]:36316 "EHLO
-	mail-lf0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751448AbbLUQn6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Dec 2015 11:43:58 -0500
-Received: by mail-lf0-f49.google.com with SMTP id z124so109701626lfa.3
-        for <linux-acpi@vger.kernel.org>; Mon, 21 Dec 2015 08:43:57 -0800 (PST)
-In-Reply-To: <1450716100-13688-1-git-send-email-aleksey.makarov@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+From: David Daney <ddaney@caviumnetworks.com>
+Subject: Re: [PATCH V2 22/23] pci, acpi: Match PCI config space accessors
+ against platfrom specific quirks.
+Date: Mon, 21 Dec 2015 09:29:47 -0800
+Message-ID: <5678370B.1030102@caviumnetworks.com>
+References: <1450278993-12664-1-git-send-email-tn@semihalf.com> <1450278993-12664-23-git-send-email-tn@semihalf.com> <EE11001F9E5DDD47B7634E2F8A612F2E1EC14C0F@lhreml503-mbb> <201512211510.32029.arnd@arndb.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <201512211510.32029.arnd@arndb.de>
+Sender: linux-pci-owner@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Gabriele Paoloni <gabriele.paoloni@huawei.com>, Tomasz Nowicki <tn@semihalf.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "Lorenzo.Pieralisi@arm.com" <Lorenzo.Pieralisi@arm.com>, "okaya@codeaurora.org" <okaya@codeaurora.org>, "jiang.liu@linux.intel.com" <jiang.liu@linux.intel.com>, "Stefano.Stabellini@eu.citrix.com" <Stefano.Stabellini@eu.citrix.com>, "robert.richter@caviumnetworks.com" <robert.richter@caviumnetworks.com>, "mw@semihalf.com" <mw@semihalf.com>, "Liviu.Dudau@arm.com" <Liviu.Dudau@arm.com>, "tglx@linutronix.de" <tglx@linutronix.de>, Wangyijing <wangyijing@huawei.com>, "Suravee.Suthikulpanit@amd.com" <Suravee.Suthikulpanit@amd.com>, "msalter@redhat.com" <msalter@r>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Aleksey Makarov <aleksey.makarov@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Shannon Zhao <shannon.zhao@linaro.org>, Jiri Slaby <jslaby@suse.com>
 
-From: Graeme Gregory <graeme.gregory@linaro.org>
+On 12/21/2015 06:10 AM, Arnd Bergmann wrote:
+> On Monday 21 December 2015, Gabriele Paoloni wrote:
+>>> -----Original Message-----
+>>> From: linux-kernel-owner@vger.kernel.org [mailto:linux-kernel-
+>>> owner@vger.kernel.org] On Behalf Of Tomasz Nowicki
+>
+>>> Some platforms may not be fully compliant with generic set of PCI
+>>> config accessors. For these cases we implement the way to overwrite
+>>> accessors set before PCI buses enumeration. Algorithm that overwrite
+>>> accessors matches against platform ID (DMI), domain and bus number,
+>>> hopefully enough for all cases. All quirks can be defined using:
+>>> DECLARE_ACPI_MCFG_FIXUP() and keep self contained.
+>>
+>> I've got a couple of comments/questions about this patch..
+>>
+>> 1) So according to this mechanism quirks would be supported only by
+>>     vendors whose BIOS are SMBIOS compliant. Now personally I am ok
+>>     with this but I don't know if this is OK in general as it would
+>>     narrow down the number of platforms that would be able to define
+>>     the quirks...
+>>     Lorenzo, Arnd what is your opinion here?
+>
+> I'd rather not see the quirks in mainline at all, and only support
+> SBSA compliant machines,
 
-In ACPI this device is only defined in SBSA mode so
-if we are coming from ACPI use this mode.
+There seems to exist a class of systems that were intended to be SBSA 
+compliant, but after they were manufactured turn out to not be fully 
+complaint.  It would be nice to have Linux kernel support for some of 
+these systems
 
-Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
-Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
----
- drivers/tty/serial/amba-pl011.c | 37 ++++++++++++++++++++++++++-----------
- 1 file changed, 26 insertions(+), 11 deletions(-)
+There also seems to be historical precedent for quirk frameworks in 
+various kernel subsystems to handle systems and devices that are not 
+fully "Spec. Compliant".
 
-diff --git a/drivers/tty/serial/amba-pl011.c b/drivers/tty/serial/amba-pl011.c
-index 899a771..766ce4f 100644
---- a/drivers/tty/serial/amba-pl011.c
-+++ b/drivers/tty/serial/amba-pl011.c
-@@ -2368,18 +2368,33 @@ static int pl011_probe(struct amba_device *dev, const struct amba_id *id)
- 	if (!uap)
- 		return -ENOMEM;
- 
--	uap->clk = devm_clk_get(&dev->dev, NULL);
--	if (IS_ERR(uap->clk))
--		return PTR_ERR(uap->clk);
--
--	uap->vendor = vendor;
--	uap->lcrh_rx = vendor->lcrh_rx;
--	uap->lcrh_tx = vendor->lcrh_tx;
--	uap->fifosize = vendor->get_fifosize(dev);
--	uap->port.irq = dev->irq[0];
--	uap->port.ops = &amba_pl011_pops;
-+	/* ACPI only defines SBSA variant */
-+	if (ACPI_COMPANION(&dev->dev)) {
-+		/*
-+		 * According to ARM ARMH0011 is currently the only mapping
-+		 * of pl011 in ACPI and it's mapped to SBSA UART mode
-+		 */
-+		uap->vendor	= &vendor_sbsa;
-+		uap->fifosize	= 32;
-+		uap->port.ops	= &sbsa_uart_pops;
-+		uap->fixed_baud = 115200;
- 
--	snprintf(uap->type, sizeof(uap->type), "PL011 rev%u", amba_rev(dev));
-+		snprintf(uap->type, sizeof(uap->type), "SBSA");
-+	} else {
-+		uap->clk = devm_clk_get(&dev->dev, NULL);
-+		if (IS_ERR(uap->clk))
-+			return PTR_ERR(uap->clk);
-+
-+		uap->vendor = vendor;
-+		uap->lcrh_rx = vendor->lcrh_rx;
-+		uap->lcrh_tx = vendor->lcrh_tx;
-+		uap->fifosize = vendor->get_fifosize(dev);
-+		uap->port.ops = &amba_pl011_pops;
-+
-+		snprintf(uap->type, sizeof(uap->type), "PL011 rev%u",
-+				amba_rev(dev));
-+	}
-+	uap->port.irq = dev->irq[0];
- 
- 	ret = pl011_setup_port(&dev->dev, uap, &dev->res, portnr);
- 	if (ret)
--- 
-2.6.4
+> or require the BIOS to work around the hardware
+> quirks differently (e.g. by trapping config space access through secure
+> firmware, or going through an AML method to be defined).
 
+Some systems don't seem to have this capability.  For example, in ARMv8 
+(A.K.A. arm64), I haven't been able to figure out how to trap these 
+accesses to EL3 for emulation.  The specification is 5700 pages long 
+though, so perhaps I missed that bit.
+
+> I'm certainly
+> ok with making it depend on SMBIOS if we are going to use something like this.
+>
+> 	Arnd
+>
