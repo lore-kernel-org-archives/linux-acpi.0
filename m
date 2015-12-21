@@ -1,65 +1,102 @@
-From: Al Stone <ahs3@redhat.com>
-Subject: Re: [PATCH v1 1/1] ACPI / LPSS: change 'does not' to 'does' in
- comment
-Date: Mon, 21 Dec 2015 10:59:07 -0700
-Message-ID: <56783DEB.7040304@redhat.com>
-References: <1450720245-67575-1-git-send-email-andriy.shevchenko@linux.intel.com>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH v2 3/3] serial: amba-pl011: add ACPI support to AMBA probe
+Date: Mon, 21 Dec 2015 20:11:32 +0200
+Message-ID: <CAHp75VcLGTMemaDyezgtxjtPa+tEUGm8ULJE8feY8FX4FEqU6g@mail.gmail.com>
+References: <1450709399-7246-1-git-send-email-aleksey.makarov@linaro.org>
+	<1450709399-7246-4-git-send-email-aleksey.makarov@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:46672 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750965AbbLUR7I (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 21 Dec 2015 12:59:08 -0500
-In-Reply-To: <1450720245-67575-1-git-send-email-andriy.shevchenko@linux.intel.com>
+Received: from mail-yk0-f176.google.com ([209.85.160.176]:34292 "EHLO
+	mail-yk0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750870AbbLUSLd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 21 Dec 2015 13:11:33 -0500
+In-Reply-To: <1450709399-7246-4-git-send-email-aleksey.makarov@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
+To: Aleksey Makarov <aleksey.makarov@linaro.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, Graeme Gregory <graeme.gregory@linaro.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Shannon Zhao <shannon.zhao@linaro.org>, Jiri Slaby <jslaby@suse.com>
 
-On 12/21/2015 10:50 AM, Andy Shevchenko wrote:
-> The LPSS DMA device does have neither _PS0 nor _PS3 method. Fix the wording in
-> the comment line.
-> 
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+On Mon, Dec 21, 2015 at 4:49 PM, Aleksey Makarov
+<aleksey.makarov@linaro.org> wrote:
+> From: Graeme Gregory <graeme.gregory@linaro.org>
+>
+> In ACPI this device is only defined in SBSA mode so
+> if we are coming from ACPI use this mode.
+>
+> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
+> Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
 > ---
->  drivers/acpi/acpi_lpss.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/acpi_lpss.c b/drivers/acpi/acpi_lpss.c
-> index 84d3d90..6c6661d 100644
-> --- a/drivers/acpi/acpi_lpss.c
-> +++ b/drivers/acpi/acpi_lpss.c
-> @@ -95,7 +95,7 @@ static unsigned int lpss_quirks;
->  /*
->   * LPSS_QUIRK_ALWAYS_POWER_ON: override power state for LPSS DMA device.
->   *
-> - * The LPSS DMA controller does not have neither _PS0 nor _PS3 method. Moreover
-> + * The LPSS DMA controller does have neither _PS0 nor _PS3 method. Moreover
+>  drivers/tty/serial/amba-pl011.c | 37 ++++++++++++++++++++++++++-----------
+>  1 file changed, 26 insertions(+), 11 deletions(-)
+>
+> diff --git a/drivers/tty/serial/amba-pl011.c b/drivers/tty/serial/amba-pl011.c
+> index 899a771..766ce4f 100644
+> --- a/drivers/tty/serial/amba-pl011.c
+> +++ b/drivers/tty/serial/amba-pl011.c
+> @@ -2368,18 +2368,33 @@ static int pl011_probe(struct amba_device *dev, const struct amba_id *id)
+>         if (!uap)
+>                 return -ENOMEM;
+>
+> -       uap->clk = devm_clk_get(&dev->dev, NULL);
+> -       if (IS_ERR(uap->clk))
+> -               return PTR_ERR(uap->clk);
+> -
+> -       uap->vendor = vendor;
+> -       uap->lcrh_rx = vendor->lcrh_rx;
+> -       uap->lcrh_tx = vendor->lcrh_tx;
+> -       uap->fifosize = vendor->get_fifosize(dev);
+> -       uap->port.irq = dev->irq[0];
+> -       uap->port.ops = &amba_pl011_pops;
+> +       /* ACPI only defines SBSA variant */
+> +       if (ACPI_COMPANION(&dev->dev)) {
 
-Neither of the above are very clear.  I think proper English would be:
+has_acpi_companion()
 
-    The LPSS DMA controller has neither a _PS0 nor a _PS3 method.
+> +               /*
+> +                * According to ARM ARMH0011 is currently the only mapping
+> +                * of pl011 in ACPI and it's mapped to SBSA UART mode
+> +                */
+> +               uap->vendor     = &vendor_sbsa;
+> +               uap->fifosize   = 32;
+> +               uap->port.ops   = &sbsa_uart_pops;
+> +               uap->fixed_baud = 115200;
 
-or, alternatively:
+Shouldn't you match by ID and provide the custom values if any?
+On the other hand have you checked if it's possible to use _DSD in this case?
 
-    The LPSS DMA controller does not have either a _PS0 or a _PS3 method.
+>
+> -       snprintf(uap->type, sizeof(uap->type), "PL011 rev%u", amba_rev(dev));
+> +               snprintf(uap->type, sizeof(uap->type), "SBSA");
+> +       } else {
+> +               uap->clk = devm_clk_get(&dev->dev, NULL);
+> +               if (IS_ERR(uap->clk))
+> +                       return PTR_ERR(uap->clk);
+> +
+> +               uap->vendor = vendor;
+> +               uap->lcrh_rx = vendor->lcrh_rx;
+> +               uap->lcrh_tx = vendor->lcrh_tx;
+> +               uap->fifosize = vendor->get_fifosize(dev);
+> +               uap->port.ops = &amba_pl011_pops;
+> +
+> +               snprintf(uap->type, sizeof(uap->type), "PL011 rev%u",
+> +                               amba_rev(dev));
+> +       }
+> +       uap->port.irq = dev->irq[0];
+>
+>         ret = pl011_setup_port(&dev->dev, uap, &dev->res, portnr);
+>         if (ret)
+> --
+> 2.6.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
 
-This assumes that the point of the statement is to say that _PS0 and _PS3
-methods do not exist for the LPSS DMA controller.
-
->   * it can be powered off automatically whenever the last LPSS device goes down.
->   * In case of no power any access to the DMA controller will hang the system.
->   * The behaviour is reproduced on some HP laptops based on Intel BayTrail as
-> 
 
 
 -- 
-ciao,
-al
------------------------------------
-Al Stone
-Software Engineer
-Red Hat, Inc.
-ahs3@redhat.com
------------------------------------
+With Best Regards,
+Andy Shevchenko
