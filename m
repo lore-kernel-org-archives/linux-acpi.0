@@ -1,40 +1,55 @@
 From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Subject: Re: [PATCH 0/3] Expose known poison in SPA ranges to the block layer
-Date: Mon, 21 Dec 2015 18:34:15 +0000
-Message-ID: <1450722855.5616.9.camel@intel.com>
+Subject: Re: [PATCH 3/3] pmem: Use the poison list to expose badblocks
+Date: Mon, 21 Dec 2015 18:50:54 +0000
+Message-ID: <1450723855.5616.15.camel@intel.com>
 References: <1450603122-7205-1-git-send-email-vishal@kernel.org>
+	 <1450603122-7205-4-git-send-email-vishal@kernel.org>
+	 <CAPcyv4je_6LPzfULJrGdkDRnc0mzc_ftd=t9942N2UO9rQZe0A@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:44050 "EHLO mga01.intel.com"
+Received: from mga11.intel.com ([192.55.52.93]:4591 "EHLO mga11.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750870AbbLUSeS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 21 Dec 2015 13:34:18 -0500
-In-Reply-To: <1450603122-7205-1-git-send-email-vishal@kernel.org>
+	id S1750914AbbLUSu5 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 21 Dec 2015 13:50:57 -0500
+In-Reply-To: <CAPcyv4je_6LPzfULJrGdkDRnc0mzc_ftd=t9942N2UO9rQZe0A@mail.gmail.com>
 Content-Language: en-US
-Content-ID: <CC15DE5C96F3364F9C68192B97735734@intel.com>
+Content-ID: <6BF8A6551E555D4E8CC4927018774BFB@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
-Cc: "Williams, Dan J" <dan.j.williams@intel.com>, "ross.zwisler@linux.intel.com" <ross.zwisler@linux.intel.com>, "linda.knippers@hpe.com" <linda.knippers@hpe.com>, "jmoyer@redhat.com" <jmoyer@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>
+To: "Williams, Dan J" <dan.j.williams@intel.com>
+Cc: "ross.zwisler@linux.intel.com" <ross.zwisler@linux.intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "jmoyer@redhat.com" <jmoyer@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linda.knippers@hpe.com" <linda.knippers@hpe.com>
 
-T24gU3VuLCAyMDE1LTEyLTIwIGF0IDAyOjE4IC0wNzAwLCB2aXNoYWxAa2VybmVsLm9yZyB3cm90
-ZToNCj4gRnJvbTogVmlzaGFsIFZlcm1hIDx2aXNoYWwubC52ZXJtYUBpbnRlbC5jb20+DQo+IA0K
-PiBUaGlzIHNlcmllcyBkb2VzIGEgZmV3IHRoaW5nczoNCj4gLSBSZXRyaWV2ZSBhbGwga25vd24g
-cG9pc29uIGluIHRoZSBzeXN0ZW0gcGh5c2ljYWwgYWRkcmVzcyAoU1BBKSBzcGFjZQ0KPiDCoCB1
-c2luZyBBUlMgKEFkZHJlc3MgUmFuZ2UgU2NydWIpIGNvbW1hbmRzIHRvIGZpcm13YXJlDQo+IC0g
-U3RvcmUgdGhpcyBwb2lzb24gaW4gYSBuZXcgJ25kX3BvaXNvbicgc3RydWN0dXJlDQo+IC0gSW4g
-cG1lbSwgY29uc3VtZSB0aGUgcG9pc29uIGxpc3QgYW5kIGV4cG9zZSB0aGUgcmFuZ2VzIGFzIGJh
-ZA0KPiBzZWN0b3JzDQo+IA0KPiBUaGlzIGRlcGVuZHMgb24gdGhlIGJhZGJsb2NrcyBzZXJpZXMg
-c2VudCBvdXQgcHJldmlvdXNseVsxXQ0KPiANCj4gVGhpcyB3YXMgdGVzdGVkIHVzaW5nIG5maXRf
-dGVzdCB0byBhZGQgcG9pc29uIGF0IHNwZWNpZmljIGFkZHJlc3MNCj4gcmFuZ2VzLg0KPiBNb3Jl
-IHRlc3RpbmcsIHNwZWNpYWxseSBvbiBOVkRJTU0tTiBoYXJkd2FyZSBpcyBtdWNoIGFwcHJlY2lh
-dGVkIQ0KPiANCj4gDQo+IFsxXTogaHR0cHM6Ly9saXN0cy4wMS5vcmcvcGlwZXJtYWlsL2xpbnV4
-LW52ZGltbS8yMDE1LURlY2VtYmVyLzAwMzIzOS4NCj4gaHRtbA0KPiANClRoYW5rcyB0byBMaW5k
-YSBmb3IgcG9pbnRpbmcgdGhpcyBvdXQgLS0gdGhlIGFib3ZlIGxpbmsgaXMgdG8gYW4gb2xkZXIN
-CnZlcnNpb24gb2YgdGhlIGJhZGJsb2NrcyBwYXRjaHNldC4NClRoZSBsYXRlc3QgdmVyc2lvbiAo
-djQpIGlzIGF0Og0KaHR0cHM6Ly9saXN0cy4wMS5vcmcvcGlwZXJtYWlsL2xpbnV4LW52ZGltbS8y
-MDE1LURlY2VtYmVyLzAwMzI1NS5odG1sDQoNClRoZSAwLWRheSBmYWlsdXJlcyBhcmUsIG9mIGNv
-dXJzZSwgZHVlIHRvIHRoaXMgbWlzc2luZyBkZXBlbmRlbmN5Lg0KDQpUaGFua3MsDQoJLVZpc2hh
-bA==
+T24gU3VuLCAyMDE1LTEyLTIwIGF0IDE3OjIwIC0wODAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
+IE9uIFN1biwgRGVjIDIwLCAyMDE1IGF0IDE6MTggQU0swqDCoDx2aXNoYWxAa2VybmVsLm9yZz4g
+d3JvdGU6DQo+ID4gRnJvbTogVmlzaGFsIFZlcm1hIDx2aXNoYWwubC52ZXJtYUBpbnRlbC5jb20+
+DQo+ID4gDQo+ID4gRW5hYmxlIHRoZSBnZW5kaXNrIGJhZGJsb2NrcyBmZWF0dXJlIGZvciBwbWVt
+IG5hbWVzcGFjZXMuDQo+ID4gSWYgdGhlIHBtZW0gbmFtZXNwYWNlIGJlaW5nIGNyZWF0ZWQgaGFz
+IGFueSBrbm93biBwb2lzb24gYXNzb2NpYXRlZA0KPiA+IHdpdGgNCj4gPiBpdHMgcGh5c2ljYWwg
+YWRkcmVzcyBzcGFjZSwgY29udmVydCB0aGUgcG9pc29uIHJhbmdlcyB0byBiYWQgc2VjdG9ycw0K
+PiA+IGV4cG9zZWQgdXNpbmcgdGhlIGJhZGJsb2NrcyBpbnRlcmZhY2UuDQo+ID4gDQo+ID4gU2ln
+bmVkLW9mZi1ieTogVmlzaGFsIFZlcm1hIDx2aXNoYWwubC52ZXJtYUBpbnRlbC5jb20+DQo+ID4g
+LS0tDQo+ID4gwqBkcml2ZXJzL252ZGltbS9wbWVtLmMgfCAxMjQNCj4gPiArKysrKysrKysrKysr
+KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKw0KPiA+IMKgMSBmaWxlIGNoYW5n
+ZWQsIDEyNCBpbnNlcnRpb25zKCspDQo+IA0KPiBJIHRoaW5rIHdlIHNob3VsZCBtb3ZlIHRoaXMg
+bmV3IGZ1bmN0aW9uYWxpdHkgdG8gdGhlIGNvcmUgYmVjYXVzZQ0KPiB0aGVyZSBpcyBub3QgbXVj
+aCBwbWVtIGRyaXZlciBzcGVjaWZpYy7CoMKgSXQncyBhbGwgZ2VuZXJpYyBudmRpbW0tY29yZQ0K
+PiBhbmQgYmxvY2stY29yZSBmdW5jdGlvbmFsaXR5LsKgwqBUaGUgb25seSBtaXNzaW5nIGluZm9y
+bWF0aW9uIHRoZSBjb3JlDQo+IHJvdXRpbmUgbmVlZHMgaXMgdGhlIGdlbmRpc2sgYW5kIGEgZGF0
+YSBvZmZzZXQgKGlmIHNlY3Rvci16ZXJvIGlzIGF0DQo+IGFuIG9mZnNldCBmcm9tIHRoZSBiYXNl
+IGFkZHJlc3MgcmFuZ2Ugb2YgdGhlIG5hbWVzcGFjZSkuwqDCoFNvbWV0aGluZw0KPiBsaWtlOg0K
+PiANCj4gbnZkaW1tX25hbWVzcGFjZV9kaXNrX3BvaXNvbihzdHJ1Y3QgbmRfbmFtZXNwYWNlX2Nv
+bW1vbiAqbmRucywNCj4gwqDCoMKgwqByZXNvdXJjZV9zaXplX3Qgb2Zmc2V0LCBzdHJ1Y3QgZ2Vu
+ZGlzayAqZGlzaykNCg0KVGhpcyBzaG91bGQgYmUgZWFzeSB0byBkbywgaG93ZXZlciBpc24ndCBp
+dCBhIGJpdCBjb3VudGVyLWludHVpdGl2ZSB0bw0KbW92ZSB0aGlzIGludG8gY29yZT8gVGhlIGxv
+d2VyIGxldmVsIGRyaXZlcnMgcG1lbS9ibGsvYnR0IGFyZSBhbGwgb3duZXJzDQpvZiB0aGVpciBy
+ZXNwZWN0aXZlIGdlbmRpc2tzLCBhbmQgc28gZG9lc24ndCBpdCBtYWtlIG1vcmUgc2Vuc2UgZm9y
+IHRoZW0NCnRvIGJlIGluIGNvbnRyb2wgb2YgbWFuaXB1bGF0aW5nIHRoZWlyIGdlbmRpc2sgZGF0
+YS4gQWxzbywgSSBjYW4gc2VlDQptb3ZpbmcgdGhlbSBpZiB0aGlzIHdhcyBhIGNvbW1vbiBvcGVy
+YXRpb24sIGJ1dCBvbmx5IHBtZW0gd2lsbCBldmVyIG5lZWQNCnRvIGRvIHRoaXMuLg0KDQpJJ20g
+bm90IHRvbyBzdHJvbmdseSBvcHBvc2VkIHRvIHRoaXMgaG93ZXZlciAtIHRoZSBvbmUgdGhpbmcg
+dGhhdCBkaWQNCmZlZWwgYSBiaXQgYXdrd2FyZCBiZWluZyBpbiBwbWVtIHdhcyB0aGF0IHdlIGFz
+ayBjb3JlIGZvciBhIHN0cnVjdA0KbGlzdF9oZWFkIGFuZCB0aGVuIHdhbGsgaXQgb3Vyc2VsdmVz
+IC0gcG1lbSBkb2Vzbid0IG5vcm1hbGx5IGtub3cgYWJvdXQNCnRoZSBpbnRlcm5hbHMgb2YgbnZk
+aW1tX2J1cywgYnV0IHdpdGggdGhpcyB3ZSBpbXBsaWNpdGx5IG1ha2UgaXQgYXdhcmUu
