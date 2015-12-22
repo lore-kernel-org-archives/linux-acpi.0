@@ -1,105 +1,108 @@
-From: Darren Hart <dvhart@infradead.org>
-Subject: Re: [PATCH 4/5] acpi-video: Add a module option to disable the
- reporting of keypresses
-Date: Tue, 22 Dec 2015 12:09:32 -0800
-Message-ID: <20151222200932.GO7244@malice.jf.intel.com>
-References: <1450807792-4980-1-git-send-email-hdegoede@redhat.com>
- <1450807792-4980-5-git-send-email-hdegoede@redhat.com>
+From: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>
+Subject: Re: [PATCH v2] i2c: designware: Do not require clock when SSCN and
+ FFCN are provided
+Date: Tue, 22 Dec 2015 14:51:13 -0600
+Message-ID: <5679B7C1.6010408@amd.com>
+References: <1450319025-19120-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+ <20151218101348.GG1762@lahna.fi.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:37917 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964800AbbLVUJg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Dec 2015 15:09:36 -0500
-Content-Disposition: inline
-In-Reply-To: <1450807792-4980-5-git-send-email-hdegoede@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner@vger.kernel.org>
+In-Reply-To: <20151218101348.GG1762@lahna.fi.intel.com>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Mika Westerberg <mika.westerberg@linux.intel.com>
+Cc: wsa@the-dreams.de, jarkko.nikula@linux.intel.com, andriy.shevchenko@linux.intel.com, lho@apm.com, Ken.Xue@amd.com, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Corentin Chary <corentin.chary@gmail.com>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, =?utf-8?B?TWljaGHFgiBLxJlwaWXFhA==?= <kernel@kempniu.pl>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, acpi4asus-user@lists.sourceforge.net, ibm-acpi-devel@lists.sourceforge.net
 
-On Tue, Dec 22, 2015 at 07:09:51PM +0100, Hans de Goede wrote:
-> Add a module option to disable the reporting of keypresses, in some buggy
-> firmware implementatinon, the reported events are wrong. E.g. they lag
-> reality by one event in the case triggering the writing of this patch.
-> 
-> In this case it is better to not forward these wrong events to userspace
-> (esp.) when there is another source of the same events which is not buggy.
-> 
-> Note this is only intended to work around implementations which send
-> events which are plain wrong. In some cases we get double events, e.g.
-> from both acpi-video and the atkbd driver, in this case acpi-video is
-> considered the canonical source, and the events from the other source
-> should be filtered (using e.g. /lib/udev/hwdb.d/60-keyboard.hwdb).
-> 
-> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> ---
->  drivers/acpi/acpi_video.c | 14 +++++++++++---
->  1 file changed, 11 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/acpi/acpi_video.c b/drivers/acpi/acpi_video.c
-> index 2a649f3e..2971154 100644
-> --- a/drivers/acpi/acpi_video.c
-> +++ b/drivers/acpi/acpi_video.c
-> @@ -77,6 +77,13 @@ module_param(allow_duplicates, bool, 0644);
->  static int disable_backlight_sysfs_if = -1;
->  module_param(disable_backlight_sysfs_if, int, 0444);
->  
-> +#define REPORT_OUTPUT_KEY_EVENTS		0x01
-> +#define REPORT_BRIGHTNESS_KEY_EVENTS		0x02
+Hi Mika,
 
-Since report_key_events is used as a bitmask, it might be preferable to use
-bitops.
+On 12/18/2015 4:13 AM, Mika Westerberg wrote:
+> [....]
+> So instead of this, what if we do not assign dev->get_clk_rate_khz at
+> all and then do something like below in the core driver?
 
-> +static int report_key_events = -1;
-> +module_param(report_key_events, int, 0644);
-> +MODULE_PARM_DESC(report_key_events,
-> +	"0: none, 1: output changes, 2: brightness changes, 3: all");
+I like the changes below since it is clear to see within the core file 
+how things are handled when get_clk_rate_khz is not assigned (i.e. 
+input_clock_hz = 0), and not necessary relying on the platform driver to 
+return 0 in this case.
+
+So, at this point, I can re-submit the V3 and combine these changes, and 
+we both can sign-off. How does that sound?
+
+Thanks,
+Suravee
+
+> Of course we still need the other changes you did in this patch to cope
+> with the missing clock.
+>
+> diff --git a/drivers/i2c/busses/i2c-designware-core.c b/drivers/i2c/busses/i2c-designware-core.c
+> index 8c48b27ba059..25dccd8df772 100644
+> --- a/drivers/i2c/busses/i2c-designware-core.c
+> +++ b/drivers/i2c/busses/i2c-designware-core.c
+> @@ -271,6 +271,17 @@ static void __i2c_dw_enable(struct dw_i2c_dev *dev, bool enable)
+>   		 enable ? "en" : "dis");
+>   }
+>
+> +static unsigned long i2c_dw_clk_rate(struct dw_i2c_dev *dev)
+> +{
+> +	/*
+> +	 * Clock is not necessary if we got LCNT/HCNT values directly from
+> +	 * the platform code.
+> +	 */
+> +	if (WARN_ON_ONCE(!dev->get_clk_rate_khz))
+> +		return 0;
+> +	return dev->get_clk_rate_khz(dev);
+> +}
 > +
->  static bool device_id_scheme = false;
->  module_param(device_id_scheme, bool, 0444);
->  
-> @@ -1480,7 +1487,7 @@ static void acpi_video_bus_notify(struct acpi_device *device, u32 event)
->  		/* Something vetoed the keypress. */
->  		keycode = 0;
->  
-> -	if (keycode) {
-> +	if (keycode && (report_key_events & REPORT_OUTPUT_KEY_EVENTS)) {
->  		input_report_key(input, keycode, 1);
->  		input_sync(input);
->  		input_report_key(input, keycode, 0);
-> @@ -1544,7 +1551,7 @@ static void acpi_video_device_notify(acpi_handle handle, u32 event, void *data)
->  
->  	acpi_notifier_call_chain(device, event, 0);
->  
-> -	if (keycode) {
-> +	if (keycode && (report_key_events & REPORT_BRIGHTNESS_KEY_EVENTS)) {
-
-This and the above test would be more explicit if written as:
-
-if (keycode && (report_key_events & BIT(REPORT_BRIGHTNESS_KEY_EVENTS))
-
-Do you have a preference Rafael?
-
->  		input_report_key(input, keycode, 1);
->  		input_sync(input);
->  		input_report_key(input, keycode, 0);
-> @@ -2080,7 +2087,8 @@ bool acpi_video_handles_brightness_key_presses(void)
->  	have_video_busses = !list_empty(&video_bus_head);
->  	mutex_unlock(&video_list_lock);
->  
-> -	return have_video_busses;
-> +	return have_video_busses &&
-> +	       (report_key_events & REPORT_BRIGHTNESS_KEY_EVENTS);
->  }
->  EXPORT_SYMBOL(acpi_video_handles_brightness_key_presses);
->  
-> -- 
-> 2.5.0
-> 
-> 
-
--- 
-Darren Hart
-Intel Open Source Technology Center
+>   /**
+>    * i2c_dw_init() - initialize the designware i2c master hardware
+>    * @dev: device private data
+> @@ -281,7 +292,6 @@ static void __i2c_dw_enable(struct dw_i2c_dev *dev, bool enable)
+>    */
+>   int i2c_dw_init(struct dw_i2c_dev *dev)
+>   {
+> -	u32 input_clock_khz;
+>   	u32 hcnt, lcnt;
+>   	u32 reg;
+>   	u32 sda_falling_time, scl_falling_time;
+> @@ -295,8 +305,6 @@ int i2c_dw_init(struct dw_i2c_dev *dev)
+>   		}
+>   	}
+>
+> -	input_clock_khz = dev->get_clk_rate_khz(dev);
+> -
+>   	reg = dw_readl(dev, DW_IC_COMP_TYPE);
+>   	if (reg == ___constant_swab32(DW_IC_COMP_TYPE_VALUE)) {
+>   		/* Configure register endianess access */
+> @@ -325,12 +333,12 @@ int i2c_dw_init(struct dw_i2c_dev *dev)
+>   		hcnt = dev->ss_hcnt;
+>   		lcnt = dev->ss_lcnt;
+>   	} else {
+> -		hcnt = i2c_dw_scl_hcnt(input_clock_khz,
+> +		hcnt = i2c_dw_scl_hcnt(i2c_dw_clk_rate(dev),
+>   					4000,	/* tHD;STA = tHIGH = 4.0 us */
+>   					sda_falling_time,
+>   					0,	/* 0: DW default, 1: Ideal */
+>   					0);	/* No offset */
+> -		lcnt = i2c_dw_scl_lcnt(input_clock_khz,
+> +		lcnt = i2c_dw_scl_lcnt(i2c_dw_clk_rate(dev),
+>   					4700,	/* tLOW = 4.7 us */
+>   					scl_falling_time,
+>   					0);	/* No offset */
+> @@ -344,12 +352,12 @@ int i2c_dw_init(struct dw_i2c_dev *dev)
+>   		hcnt = dev->fs_hcnt;
+>   		lcnt = dev->fs_lcnt;
+>   	} else {
+> -		hcnt = i2c_dw_scl_hcnt(input_clock_khz,
+> +		hcnt = i2c_dw_scl_hcnt(i2c_dw_clk_rate(dev),
+>   					600,	/* tHD;STA = tHIGH = 0.6 us */
+>   					sda_falling_time,
+>   					0,	/* 0: DW default, 1: Ideal */
+>   					0);	/* No offset */
+> -		lcnt = i2c_dw_scl_lcnt(input_clock_khz,
+> +		lcnt = i2c_dw_scl_lcnt(i2c_dw_clk_rate(dev),
+>   					1300,	/* tLOW = 1.3 us */
+>   					scl_falling_time,
+>   					0);	/* No offset */
+>
