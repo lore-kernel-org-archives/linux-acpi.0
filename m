@@ -1,78 +1,72 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: re: ACPI / debugger: Add IO interface to access debugger
- functionalities
-Date: Tue, 22 Dec 2015 22:48:40 +0300
-Message-ID: <20151222194840.GA13871@mwanda>
+From: Darren Hart <dvhart@infradead.org>
+Subject: Re: [PATCH 2/5] dell-wmi: Use
+ acpi_video_handles_brightness_key_presses()
+Date: Tue, 22 Dec 2015 11:53:19 -0800
+Message-ID: <20151222195319.GN7244@malice.jf.intel.com>
+References: <1450807792-4980-1-git-send-email-hdegoede@redhat.com>
+ <1450807792-4980-3-git-send-email-hdegoede@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:47742 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753295AbbLVTss (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Dec 2015 14:48:48 -0500
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <1450807792-4980-3-git-send-email-hdegoede@redhat.com>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>, Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Corentin Chary <corentin.chary@gmail.com>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, =?utf-8?B?TWljaGHFgiBLxJlwaWXFhA==?= <kernel@kempniu.pl>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, acpi4asus-user@lists.sourceforge.net, ibm-acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
-To: lv.zheng@intel.com
-Cc: linux-acpi@vger.kernel.org
 
-Hello Lv Zheng,
+On Tue, Dec 22, 2015 at 07:09:49PM +0100, Hans de Goede wrote:
 
-The patch 8cfb0cdf07e2: "ACPI / debugger: Add IO interface to access
-debugger functionalities" from Dec 3, 2015, leads to the following
-static checker warning:
++ Pali
 
-	drivers/acpi/acpi_dbg.c:533 acpi_aml_open()
-	error: double unlock 'mutex:&acpi_aml_io.lock'
+> Use the new acpi_video_handles_brightness_key_presses function to check
+> if we should report brightness key-presses.
+> 
+> This makes the code both easier to read and makes it properly report
+> key-presses when acpi-video is not reporting them for reasons other
+> then the backlight type being vendor.
+> 
+> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+> ---
+>  drivers/platform/x86/dell-wmi.c | 6 ++----
+>  1 file changed, 2 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/platform/x86/dell-wmi.c b/drivers/platform/x86/dell-wmi.c
+> index f2d77fe..cb8a9c2 100644
+> --- a/drivers/platform/x86/dell-wmi.c
+> +++ b/drivers/platform/x86/dell-wmi.c
+> @@ -43,8 +43,6 @@ MODULE_LICENSE("GPL");
+>  
+>  #define DELL_EVENT_GUID "9DBB5994-A997-11DA-B012-B622A1EF5492"
+>  
+> -static int acpi_video;
+> -
+>  MODULE_ALIAS("wmi:"DELL_EVENT_GUID);
+>  
+>  /*
+> @@ -159,7 +157,8 @@ static void dell_wmi_process_key(int reported_key)
+>  
+>  	/* Don't report brightness notifications that will also come via ACPI */
+>  	if ((key->keycode == KEY_BRIGHTNESSUP ||
+> -	     key->keycode == KEY_BRIGHTNESSDOWN) && acpi_video)
+> +	     key->keycode == KEY_BRIGHTNESSDOWN) &&
+> +	    acpi_video_handles_brightness_key_presses())
+>  		return;
+>  
+>  	sparse_keymap_report_entry(dell_wmi_input_dev, key, 1, true);
+> @@ -398,7 +397,6 @@ static int __init dell_wmi_init(void)
+>  	}
+>  
+>  	dmi_walk(find_hk_type, NULL);
+> -	acpi_video = acpi_video_get_backlight_type() != acpi_backlight_vendor;
+>  
+>  	err = dell_wmi_input_setup();
+>  	if (err)
+> -- 
+> 2.5.0
+> 
+> 
 
-drivers/acpi/acpi_dbg.c
-   498          } else {
-   499                  /*
-   500                   * No writer is allowed unless the debugger thread is
-   501                   * ready.
-   502                   */
-   503                  if (!(acpi_aml_io.flags & ACPI_AML_OPENED)) {
-   504                          ret = -ENODEV;
-   505                          goto err_lock;
-
-Holding lock.
-
-   506                  }
-   507          }
-   508          if (acpi_aml_active_reader == file) {
-   509                  pr_debug("Opening debugger interface.\n");
-   510                  mutex_unlock(&acpi_aml_io.lock);
-   511  
-   512                  pr_debug("Initializing debugger thread.\n");
-   513                  status = acpi_initialize_debugger();
-   514                  if (ACPI_FAILURE(status)) {
-   515                          pr_err("Failed to initialize debugger.\n");
-   516                          ret = -EINVAL;
-   517                          goto err_lock;
-
-Not holding lock.
-
-   518                  }
-   519                  acpi_aml_io.flags |= ACPI_AML_OPENED;
-   520                  pr_debug("Debugger thread initialized.\n");
-   521  
-   522                  mutex_lock(&acpi_aml_io.lock);
-   523                  acpi_aml_io.out_crc.head = acpi_aml_io.out_crc.tail = 0;
-   524                  acpi_aml_io.in_crc.head = acpi_aml_io.in_crc.tail = 0;
-   525                  pr_debug("Debugger interface opened.\n");
-   526          }
-   527          acpi_aml_io.users++;
-   528  err_lock:
-   529          if (IS_ERR_VALUE(ret)) {
-   530                  if (acpi_aml_active_reader == file)
-   531                          acpi_aml_active_reader = NULL;
-   532          }
-   533          mutex_unlock(&acpi_aml_io.lock);
-
-Double onlock.
-
-   534          return ret;
-   535  }
-
-regards,
-dan carpenter
+-- 
+Darren Hart
+Intel Open Source Technology Center
