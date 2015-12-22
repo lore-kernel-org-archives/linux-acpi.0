@@ -1,44 +1,166 @@
-From: Darren Hart <dvhart@infradead.org>
-Subject: Re: [PATCH 0/5] acpi-video and platform/x86 driver fixes
-Date: Tue, 22 Dec 2015 13:00:59 -0800
-Message-ID: <20151222210059.GP7244@malice.jf.intel.com>
-References: <1450807792-4980-1-git-send-email-hdegoede@redhat.com>
+From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Subject: [PATCH v3] i2c: designware: Do not require clock when SSCN and FFCN are provided
+Date: Tue, 22 Dec 2015 15:35:41 -0600
+Message-ID: <1450820141-1720-1-git-send-email-Suravee.Suthikulpanit@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1450807792-4980-1-git-send-email-hdegoede@redhat.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Corentin Chary <corentin.chary@gmail.com>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, =?utf-8?B?TWljaGHFgiBLxJlwaWXFhA==?= <kernel@kempniu.pl>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, acpi4asus-user@lists.sourceforge.net, ibm-acpi-devel@lists.sourceforge.net
+Content-Type: text/plain
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-bn1bon0058.outbound.protection.outlook.com ([157.56.111.58]:9208
+	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S932397AbbLVVgW (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 22 Dec 2015 16:36:22 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: mika.westerberg@linux.intel.com, wsa@the-dreams.de
+Cc: jarkko.nikula@linux.intel.com, andriy.shevchenko@linux.intel.com, lho@apm.com, Ken.Xue@amd.com, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 
-On Tue, Dec 22, 2015 at 07:09:47PM +0100, Hans de Goede wrote:
-> Hi All,
-> 
-> This patch-set is the result of the discussion surrounding the
-> backlight issues on the Dell Vostro V131. The first 3 patches
-> cleanup how some platform/x86 drivers detect if acpi-video
-> is handling brightness key presses and that they should
-> not report duplicate events. This is a cleanup which I wanted
-> to do for a while already and the Vostro V131 fix actually
-> benefits from this.
-> 
-> The last 2 patches together actually fix the issues on the
-> Vostro V131. Since the 2 platform patches in this set depend
-> on an acpi patch, I believe that it would be best if this
-> entire set gets merged via the acpi tree with acks
-> from the platform driver maintainer.
+The current driver uses input clock source frequency to calculate
+values for [SS|FS]_[HC|LC] registers. However, when booting ACPI, we do not
+currently have a good way to provide the frequency information.
+Instead, we can leverage the SSCN and FFCN ACPI methods, which can be used
+to directly provide these values. So, the clock information should
+no longer be required during probing.
 
-Agreed on the path. For this situation, the addition of the module parameter
-will facilitate identifying similarly broken paltforms to the Vostro V131, and
-provide users with a temporary solution until the DMI match can be added. Very
-practical.
+However, since clk can be invalid, additional checks must be done where
+we are making use of it.
 
-I have no objection to the changes in platform-drivers-x86.
+Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+---
+Note: This has been tested on AMD Seattle RevB for both DT and ACPI.
 
-Reviewed-by: Darren Hart <dvhart@linux.intel.com>
+Changes from V2 (https://lkml.org/lkml/2015/12/22/584):
+    * Add the i2c_dw_clk_rate from Mika.
+    * Add check if get_clk_rate_khz is set before setting sda_hold_time
 
+Changes from V1 (https://lkml.org/lkml/2015/12/15/792):
+    In v1, I disregarded the clock if SSCN and FMCN are provided,
+    assuming that it was not needed. That was incorrect assumption,
+    and is now fixed in v2.
+
+ drivers/i2c/busses/i2c-designware-core.c    | 22 +++++++++++++++-------
+ drivers/i2c/busses/i2c-designware-platdrv.c | 24 ++++++++++++------------
+ 2 files changed, 27 insertions(+), 19 deletions(-)
+
+diff --git a/drivers/i2c/busses/i2c-designware-core.c b/drivers/i2c/busses/i2c-designware-core.c
+index 8c48b27..25dccd8 100644
+--- a/drivers/i2c/busses/i2c-designware-core.c
++++ b/drivers/i2c/busses/i2c-designware-core.c
+@@ -271,6 +271,17 @@ static void __i2c_dw_enable(struct dw_i2c_dev *dev, bool enable)
+ 		 enable ? "en" : "dis");
+ }
+ 
++static unsigned long i2c_dw_clk_rate(struct dw_i2c_dev *dev)
++{
++	/*
++	 * Clock is not necessary if we got LCNT/HCNT values directly from
++	 * the platform code.
++	 */
++	if (WARN_ON_ONCE(!dev->get_clk_rate_khz))
++		return 0;
++	return dev->get_clk_rate_khz(dev);
++}
++
+ /**
+  * i2c_dw_init() - initialize the designware i2c master hardware
+  * @dev: device private data
+@@ -281,7 +292,6 @@ static void __i2c_dw_enable(struct dw_i2c_dev *dev, bool enable)
+  */
+ int i2c_dw_init(struct dw_i2c_dev *dev)
+ {
+-	u32 input_clock_khz;
+ 	u32 hcnt, lcnt;
+ 	u32 reg;
+ 	u32 sda_falling_time, scl_falling_time;
+@@ -295,8 +305,6 @@ int i2c_dw_init(struct dw_i2c_dev *dev)
+ 		}
+ 	}
+ 
+-	input_clock_khz = dev->get_clk_rate_khz(dev);
+-
+ 	reg = dw_readl(dev, DW_IC_COMP_TYPE);
+ 	if (reg == ___constant_swab32(DW_IC_COMP_TYPE_VALUE)) {
+ 		/* Configure register endianess access */
+@@ -325,12 +333,12 @@ int i2c_dw_init(struct dw_i2c_dev *dev)
+ 		hcnt = dev->ss_hcnt;
+ 		lcnt = dev->ss_lcnt;
+ 	} else {
+-		hcnt = i2c_dw_scl_hcnt(input_clock_khz,
++		hcnt = i2c_dw_scl_hcnt(i2c_dw_clk_rate(dev),
+ 					4000,	/* tHD;STA = tHIGH = 4.0 us */
+ 					sda_falling_time,
+ 					0,	/* 0: DW default, 1: Ideal */
+ 					0);	/* No offset */
+-		lcnt = i2c_dw_scl_lcnt(input_clock_khz,
++		lcnt = i2c_dw_scl_lcnt(i2c_dw_clk_rate(dev),
+ 					4700,	/* tLOW = 4.7 us */
+ 					scl_falling_time,
+ 					0);	/* No offset */
+@@ -344,12 +352,12 @@ int i2c_dw_init(struct dw_i2c_dev *dev)
+ 		hcnt = dev->fs_hcnt;
+ 		lcnt = dev->fs_lcnt;
+ 	} else {
+-		hcnt = i2c_dw_scl_hcnt(input_clock_khz,
++		hcnt = i2c_dw_scl_hcnt(i2c_dw_clk_rate(dev),
+ 					600,	/* tHD;STA = tHIGH = 0.6 us */
+ 					sda_falling_time,
+ 					0,	/* 0: DW default, 1: Ideal */
+ 					0);	/* No offset */
+-		lcnt = i2c_dw_scl_lcnt(input_clock_khz,
++		lcnt = i2c_dw_scl_lcnt(i2c_dw_clk_rate(dev),
+ 					1300,	/* tLOW = 1.3 us */
+ 					scl_falling_time,
+ 					0);	/* No offset */
+diff --git a/drivers/i2c/busses/i2c-designware-platdrv.c b/drivers/i2c/busses/i2c-designware-platdrv.c
+index 8ffc36b..04edd09 100644
+--- a/drivers/i2c/busses/i2c-designware-platdrv.c
++++ b/drivers/i2c/busses/i2c-designware-platdrv.c
+@@ -205,16 +205,14 @@ static int dw_i2c_plat_probe(struct platform_device *pdev)
+ 			DW_IC_CON_RESTART_EN | DW_IC_CON_SPEED_FAST;
+ 
+ 	dev->clk = devm_clk_get(&pdev->dev, NULL);
+-	dev->get_clk_rate_khz = i2c_dw_get_clk_rate_khz;
+-	if (IS_ERR(dev->clk))
+-		return PTR_ERR(dev->clk);
+-	clk_prepare_enable(dev->clk);
+-
+-	if (!dev->sda_hold_time && ht) {
+-		u32 ic_clk = dev->get_clk_rate_khz(dev);
+-
+-		dev->sda_hold_time = div_u64((u64)ic_clk * ht + 500000,
+-					     1000000);
++	if (!IS_ERR(dev->clk)) {
++		dev->get_clk_rate_khz = i2c_dw_get_clk_rate_khz;
++		clk_prepare_enable(dev->clk);
++
++		if (!dev->sda_hold_time && ht)
++			dev->sda_hold_time = div_u64(
++				(u64)dev->get_clk_rate_khz(dev) * ht + 500000,
++				1000000);
+ 	}
+ 
+ 	if (!dev->tx_fifo_depth) {
+@@ -297,7 +295,8 @@ static int dw_i2c_plat_suspend(struct device *dev)
+ 	struct dw_i2c_dev *i_dev = platform_get_drvdata(pdev);
+ 
+ 	i2c_dw_disable(i_dev);
+-	clk_disable_unprepare(i_dev->clk);
++	if (!IS_ERR(i_dev->clk))
++		clk_disable_unprepare(i_dev->clk);
+ 
+ 	return 0;
+ }
+@@ -307,7 +306,8 @@ static int dw_i2c_plat_resume(struct device *dev)
+ 	struct platform_device *pdev = to_platform_device(dev);
+ 	struct dw_i2c_dev *i_dev = platform_get_drvdata(pdev);
+ 
+-	clk_prepare_enable(i_dev->clk);
++	if (!IS_ERR(i_dev->clk))
++		clk_prepare_enable(i_dev->clk);
+ 
+ 	if (!i_dev->pm_runtime_disabled)
+ 		i2c_dw_init(i_dev);
 -- 
-Darren Hart
-Intel Open Source Technology Center
+2.5.0
+
