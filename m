@@ -1,51 +1,67 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH v3 1/3] ACPI: amba bus probing support
-Date: Tue, 22 Dec 2015 11:47:15 +0200
-Message-ID: <CAHp75VfiUJymwxxHxr-Cw3cSBDfVBm1aj=T5o+=1G4CcACq5kw@mail.gmail.com>
-References: <1450716100-13688-1-git-send-email-aleksey.makarov@linaro.org>
-	<1450716100-13688-2-git-send-email-aleksey.makarov@linaro.org>
-	<56789147.8070602@mleia.com>
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: Re: [PATCH V2 22/23] pci, acpi: Match PCI config space accessors
+ against platfrom specific quirks.
+Date: Tue, 22 Dec 2015 11:20:02 +0100
+Message-ID: <567923D2.2010202@semihalf.com>
+References: <1450278993-12664-1-git-send-email-tn@semihalf.com>
+ <1450278993-12664-23-git-send-email-tn@semihalf.com>
+ <EE11001F9E5DDD47B7634E2F8A612F2E1EC14C0F@lhreml503-mbb>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yk0-f174.google.com ([209.85.160.174]:35460 "EHLO
-	mail-yk0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751282AbbLVJrQ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Dec 2015 04:47:16 -0500
-In-Reply-To: <56789147.8070602@mleia.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <EE11001F9E5DDD47B7634E2F8A612F2E1EC14C0F@lhreml503-mbb>
+Sender: linux-pci-owner@vger.kernel.org
+To: Gabriele Paoloni <gabriele.paoloni@huawei.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "arnd@arndb.de" <arnd@arndb.de>, "will.deacon@arm.com" <will.deacon@arm.com>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "Lorenzo.Pieralisi@arm.com" <Lorenzo.Pieralisi@arm.com>, "okaya@codeaurora.org" <okaya@codeaurora.org>, "jiang.liu@linux.intel.com" <jiang.liu@linux.intel.com>, "Stefano.Stabellini@eu.citrix.com" <Stefano.Stabellini@eu.citrix.com>
+Cc: "robert.richter@caviumnetworks.com" <robert.richter@caviumnetworks.com>, "mw@semihalf.com" <mw@semihalf.com>, "Liviu.Dudau@arm.com" <Liviu.Dudau@arm.com>, "ddaney@caviumnetworks.com" <ddaney@caviumnetworks.com>, "tglx@linutronix.de" <tglx@linutronix.de>, Wangyijing <wangyijing@huawei.com>, "Suravee.Suthikulpanit@amd.com" <Suravee.Suthikulpanit@amd.com>, "msalter@redhat.com" <msalter@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "jchandra@broadcom.com" <jchandra@broadcom.com>, "jcm@redhat.com" <jcm@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Vladimir Zapolskiy <vz@mleia.com>
-Cc: Aleksey Makarov <aleksey.makarov@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Graeme Gregory <graeme.gregory@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Shannon Zhao <shannon.zhao@linaro.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
 
-On Tue, Dec 22, 2015 at 1:54 AM, Vladimir Zapolskiy <vz@mleia.com> wrote:
-> On 21.12.2015 18:41, Aleksey Makarov wrote:
+On 21.12.2015 12:47, Gabriele Paoloni wrote:
+> 2) In the quirk mechanism you proposed, I see that the callback function
+>     allows to do some preparation work for the host bridge. For example in
+>     Hisilicon hip05 case we would need to read some values from the ACPI
+>     table (see acpi_pci_root_hisi_add() function in
+>     https://lkml.org/lkml/2015/12/3/426).
+>     I am quite new to ACPI and I wonder if it is OK to add such "Packages"
+>     to the  PCI host bridge ACPI device...or maybe we need to declare a new
+>     one...?
 
->> +static int amba_handler_attach(struct acpi_device *adev,
->> +                             const struct acpi_device_id *id)
->> +{
->> +     struct amba_device *dev = NULL;
->> +     struct acpi_device *acpi_parent;
->> +     struct resource_entry *rentry;
->> +     struct list_head resource_list;
->> +     struct resource *resources = NULL;
->> +     bool address_found = false;
->> +     int ret, count, irq_no = 0;
->> +
->> +     /* If the ACPI node already has a physical device attached, skip it. */
->> +     if (adev->physical_node_count)
->> +             return 0;
->> +
->> +     amba_register_dummy_clk();
->
-> Since it is a single time dummy clock registration, may be it is better
-> to move it to acpi_amba_init() or somewhere else? I understand that
-> "apb_pclk" is wanted, but I'm not sure that this driver should serve as
-> a clock provider.
+I may miss sth so please correct me in that case.
 
-Depends on actual hardware topology. Intel HW has few drivers that are
-clock providers because they are really ones.
+https://lkml.org/lkml/2015/12/3/426 shows that you need special handling 
+for root->secondary.start bus number only, right? So how about creating 
+special MCFG region <rc-base:rc-base+rc-size> only for <segment,bus>. 
+Like that:
 
--- 
-With Best Regards,
-Andy Shevchenko
+[0008]                       Base Address : <rc-base>
+[0002]               Segment Group Number : <segment>
+[0001]                   Start Bus Number : <root->secondary.start>
+[0001]                     End Bus Number : <root->secondary.start>
+[0004]                           Reserved : 00000000
+
+
+static const struct dmi_system_id hisi_quirk[] = {
+	{
+		.ident = "HiSi...",
+		.matches = {
+			DMI_MATCH(<whatever you need to match your platform>),
+		},
+	},
+	{ }
+};
+
+static struct pci_ops hisi_ecam_pci_ops = {
+	.map_bus = pci_mcfg_dev_base,
+	.read = hisi_pcie_cfg_read,
+	.write = hisi_pcie_cfg_write,
+};
+
+DECLARE_ACPI_MCFG_FIXUP(hisi_quirk, &hisi_ecam_pci_ops,
+			<segment>, <bus>);
+
+With above code you can use your custom PCI config accessor only for 
+that region.
+
+Let me know if that is not enough for you.
+
+Tomasz
