@@ -1,83 +1,51 @@
-From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Subject: RE: [PATCH V2 22/23] pci, acpi: Match PCI config space accessors
- against platfrom specific quirks.
-Date: Tue, 22 Dec 2015 09:29:02 +0000
-Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E1EC17CAC@lhreml503-mbb>
-References: <1450278993-12664-1-git-send-email-tn@semihalf.com>
- <1450278993-12664-23-git-send-email-tn@semihalf.com>
- <EE11001F9E5DDD47B7634E2F8A612F2E1EC14C0F@lhreml503-mbb>
- <201512211510.32029.arnd@arndb.de>
- <335CDE2E-B588-43A8-8665-6023AFD0EA04@redhat.com>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH v3 1/3] ACPI: amba bus probing support
+Date: Tue, 22 Dec 2015 11:47:15 +0200
+Message-ID: <CAHp75VfiUJymwxxHxr-Cw3cSBDfVBm1aj=T5o+=1G4CcACq5kw@mail.gmail.com>
+References: <1450716100-13688-1-git-send-email-aleksey.makarov@linaro.org>
+	<1450716100-13688-2-git-send-email-aleksey.makarov@linaro.org>
+	<56789147.8070602@mleia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <335CDE2E-B588-43A8-8665-6023AFD0EA04@redhat.com>
-Content-Language: en-US
-Sender: linux-pci-owner@vger.kernel.org
-To: Jon Masters <jcm@redhat.com>, Arnd Bergmann <arnd@arndb.de>
-Cc: Tomasz Nowicki <tn@semihalf.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "Lorenzo.Pieralisi@arm.com" <Lorenzo.Pieralisi@arm.com>, "okaya@codeaurora.org" <okaya@codeaurora.org>, "jiang.liu@linux.intel.com" <jiang.liu@linux.intel.com>, "Stefano.Stabellini@eu.citrix.com" <Stefano.Stabellini@eu.citrix.com>, "robert.richter@caviumnetworks.com" <robert.richter@caviumnetworks.com>, "mw@semihalf.com" <mw@semihalf.com>, "Liviu.Dudau@arm.com" <Liviu.Dudau@arm.com>, "ddaney@caviumnetworks.com" <ddaney@caviumnetworks.com>, "tglx@linutronix.de" <tglx@linutronix.de>, Wangyijing <wangyijing@huawei.com>, "Suravee.Suthikulpanit@amd.com" <Suravee.Suthikulpanit@amd.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-yk0-f174.google.com ([209.85.160.174]:35460 "EHLO
+	mail-yk0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751282AbbLVJrQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Dec 2015 04:47:16 -0500
+In-Reply-To: <56789147.8070602@mleia.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Vladimir Zapolskiy <vz@mleia.com>
+Cc: Aleksey Makarov <aleksey.makarov@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Graeme Gregory <graeme.gregory@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Shannon Zhao <shannon.zhao@linaro.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
 
-Hi Jon, thanks for replying
+On Tue, Dec 22, 2015 at 1:54 AM, Vladimir Zapolskiy <vz@mleia.com> wrote:
+> On 21.12.2015 18:41, Aleksey Makarov wrote:
 
-> -----Original Message-----
-> From: Jon Masters [mailto:jcm@redhat.com]
-> Sent: 21 December 2015 23:11
-> To: Arnd Bergmann
-> Cc: Gabriele Paoloni; Tomasz Nowicki; bhelgaas@google.com;
-> will.deacon@arm.com; catalin.marinas@arm.com; rjw@rjwysocki.net;
-> hanjun.guo@linaro.org; Lorenzo.Pieralisi@arm.com; okaya@codeaurora.org;
-> jiang.liu@linux.intel.com; Stefano.Stabellini@eu.citrix.com;
-> robert.richter@caviumnetworks.com; mw@semihalf.com; Liviu.Dudau@arm.com;
-> ddaney@caviumnetworks.com; tglx@linutronix.de; Wangyijing;
-> Suravee.Suthikulpanit@amd.com; msalter@redhat.com; linux-
-> pci@vger.kernel.org; linux-arm-kernel@lists.infradead.org; linux-
-> acpi@vger.kernel.org; linux-kernel@vger.kernel.org; linaro-
-> acpi@lists.linaro.org; jchandra@broadcom.com
-> Subject: Re: [PATCH V2 22/23] pci, acpi: Match PCI config space
-> accessors against platfrom specific quirks.
-> 
-> Sorry for top-posting. A quick note that SMBIOS3 is required by SBBR so
-> it can be presumed that compliant platforms will provide quirks via DMI.
+>> +static int amba_handler_attach(struct acpi_device *adev,
+>> +                             const struct acpi_device_id *id)
+>> +{
+>> +     struct amba_device *dev = NULL;
+>> +     struct acpi_device *acpi_parent;
+>> +     struct resource_entry *rentry;
+>> +     struct list_head resource_list;
+>> +     struct resource *resources = NULL;
+>> +     bool address_found = false;
+>> +     int ret, count, irq_no = 0;
+>> +
+>> +     /* If the ACPI node already has a physical device attached, skip it. */
+>> +     if (adev->physical_node_count)
+>> +             return 0;
+>> +
+>> +     amba_register_dummy_clk();
+>
+> Since it is a single time dummy clock registration, may be it is better
+> to move it to acpi_amba_init() or somewhere else? I understand that
+> "apb_pclk" is wanted, but I'm not sure that this driver should serve as
+> a clock provider.
 
-Ok so you completely clarified my question 1). Many Thanks for this
+Depends on actual hardware topology. Intel HW has few drivers that are
+clock providers because they are really ones.
 
-Gab
-
-> 
-> --
-> Computer Architect | Sent from my 64-bit #ARM Powered phone
-> 
-> > On Dec 21, 2015, at 09:11, Arnd Bergmann <arnd@arndb.de> wrote:
-> >
-> > On Monday 21 December 2015, Gabriele Paoloni wrote:
-> >>> -----Original Message-----
-> >>> From: linux-kernel-owner@vger.kernel.org [mailto:linux-kernel-
-> >>> owner@vger.kernel.org] On Behalf Of Tomasz Nowicki
-> >
-> >>> Some platforms may not be fully compliant with generic set of PCI
-> >>> config accessors. For these cases we implement the way to overwrite
-> >>> accessors set before PCI buses enumeration. Algorithm that
-> overwrite
-> >>> accessors matches against platform ID (DMI), domain and bus number,
-> >>> hopefully enough for all cases. All quirks can be defined using:
-> >>> DECLARE_ACPI_MCFG_FIXUP() and keep self contained.
-> >>
-> >> I've got a couple of comments/questions about this patch..
-> >>
-> >> 1) So according to this mechanism quirks would be supported only by
-> >>   vendors whose BIOS are SMBIOS compliant. Now personally I am ok
-> >>   with this but I don't know if this is OK in general as it would
-> >>   narrow down the number of platforms that would be able to define
-> >>   the quirks...
-> >>   Lorenzo, Arnd what is your opinion here?
-> >
-> > I'd rather not see the quirks in mainline at all, and only support
-> > SBSA compliant machines, or require the BIOS to work around the
-> > hardware quirks differently (e.g. by trapping config space access
-> > through secure firmware, or going through an AML method to be
-> > defined). I'm certainly ok with making it depend on SMBIOS if we are
-> going to use something like this.
-> >
-> >    Arnd
+-- 
+With Best Regards,
+Andy Shevchenko
