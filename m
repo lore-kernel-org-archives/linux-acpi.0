@@ -1,50 +1,33 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: Re: [PATCH V2 06/23] XEN / PCI: Remove the dependence on arch x86
- when PCI_MMCONFIG=y
-Date: Tue, 22 Dec 2015 09:34:00 +0100
-Message-ID: <56790AF8.9080807@semihalf.com>
+Subject: Re: [PATCH V2 22/23] pci, acpi: Match PCI config space accessors
+ against platfrom specific quirks.
+Date: Tue, 22 Dec 2015 09:45:28 +0100
+Message-ID: <56790DA8.6050606@semihalf.com>
 References: <1450278993-12664-1-git-send-email-tn@semihalf.com>
- <1450278993-12664-7-git-send-email-tn@semihalf.com>
- <alpine.DEB.2.02.1512211811550.3096@kaball.uk.xensource.com>
+ <1450278993-12664-23-git-send-email-tn@semihalf.com>
+ <EE11001F9E5DDD47B7634E2F8A612F2E1EC14C0F@lhreml503-mbb>
+ <201512211510.32029.arnd@arndb.de>
+ <335CDE2E-B588-43A8-8665-6023AFD0EA04@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.02.1512211811550.3096@kaball.uk.xensource.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
-Cc: bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lb0-f176.google.com ([209.85.217.176]:32895 "EHLO
+	mail-lb0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751859AbbLVIrW (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 22 Dec 2015 03:47:22 -0500
+Received: by mail-lb0-f176.google.com with SMTP id sv6so20638907lbb.0
+        for <linux-acpi@vger.kernel.org>; Tue, 22 Dec 2015 00:47:21 -0800 (PST)
+In-Reply-To: <335CDE2E-B588-43A8-8665-6023AFD0EA04@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Jon Masters <jcm@redhat.com>, Arnd Bergmann <arnd@arndb.de>
+Cc: Gabriele Paoloni <gabriele.paoloni@huawei.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "will.deacon@arm.com" <will.deacon@arm.com>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "hanjun.guo@linaro.org" <hanjun.guo@linaro.org>, "Lorenzo.Pieralisi@arm.com" <Lorenzo.Pieralisi@arm.com>, "okaya@codeaurora.org" <okaya@codeaurora.org>, "jiang.liu@linux.intel.com" <jiang.liu@linux.intel.com>, "Stefano.Stabellini@eu.citrix.com" <Stefano.Stabellini@eu.citrix.com>, "robert.richter@caviumnetworks.com" <robert.richter@caviumnetworks.com>, "mw@semihalf.com" <mw@semihalf.com>, "Liviu.Dudau@arm.com" <Liviu.Dudau@arm.com>, "ddaney@caviumnetworks.com" <ddaney@caviumnetworks.com>, "tglx@linutronix.de" <tglx@linutronix.de>, Wangyijing <wangyijing@huawei.com>, "Suravee.Suthikulpanit@amd.com" <Suravee.Suthikulpanit@amd.com>, msalter
 
-On 21.12.2015 19:12, Stefano Stabellini wrote:
-> On Wed, 16 Dec 2015, Tomasz Nowicki wrote:
->> In drivers/xen/pci.c, there are arch x86 dependent codes when
->> CONFIG_PCI_MMCONFIG is enabled, since CONFIG_PCI_MMCONFIG
->> depends on ACPI, so this will prevent XEN PCI running on other
->> architectures using ACPI with PCI_MMCONFIG enabled (such as ARM64).
->>
->> Fortunatly, it can be sloved in a simple way. In drivers/xen/pci.c,
->> the only x86 dependent code is if ((pci_probe & PCI_PROBE_MMCONF) == 0),
->> and it's defined in asm/pci_x86.h, the code means that
->> if the PCI resource is not probed in PCI_PROBE_MMCONF way, just
->> ingnore the xen mcfg init. Actually this is duplicate, because
->> if PCI resource is not probed in PCI_PROBE_MMCONF way, the
->> pci_mmconfig_list will be empty, and the if (list_empty())
->> after it will do the same job.
->>
->> So just remove the arch related code and the head file, this
->> will be no functional change for x86, and also makes xen/pci.c
->> usable for other architectures.
->>
->> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->> CC: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
->> CC: Boris Ostrovsky <boris.ostrovsky@oracle.com>
->> Cc: Stefano Stabellini <Stefano.Stabellini@eu.citrix.com>
->> Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
->
-> Acked-by: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
+On 22.12.2015 00:10, Jon Masters wrote:
+> Sorry for top-posting. A quick note that SMBIOS3 is required by SBBR so it can be presumed that compliant platforms will provide quirks via DMI.
 >
 
-Thanks Stefano.
+Thanks Jon for confirmation.
 
 Tomasz
