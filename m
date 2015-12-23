@@ -1,75 +1,107 @@
-From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Subject: [PATCH] gicv2m: Miscellaneous fixes for V2m resources and SPI ranges
-Date: Tue, 22 Dec 2015 16:24:23 -0800
-Message-ID: <1450830263-28914-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [PATCH v4 7/7] ACPI / x86: introduce acpi_os_readable() support
+Date: Wed, 23 Dec 2015 03:25:08 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BB0A29B@SHSMSX101.ccr.corp.intel.com>
+References: <cover.1446790780.git.lv.zheng@intel.com>
+ <cover.1449108825.git.lv.zheng@intel.com>
+ <af8b1799e7eec686fbb3bf239f6f400adb3b8082.1449108826.git.lv.zheng@intel.com>
+ <CALCETrXeoGZhrNr9OmqFB+i7-tbM+d3sO8uCNnMx40JfDsjoEw@mail.gmail.com>
+ <36DF59CE26D8EE47B0655C516E9CE64028686D35@shsmsx102.ccr.corp.intel.com>
+ <1AE640813FDE7649BE1B193DEA596E883BB08C24@SHSMSX101.ccr.corp.intel.com>
+ <CALCETrWzn_9wL_7zL4GdHrFB3c9qaAjnEbLdU+bppLf-GVsx3w@mail.gmail.com>
+ <36DF59CE26D8EE47B0655C516E9CE640286886D1@shsmsx102.ccr.corp.intel.com>
+ <CALCETrVcYbqNpVi4J_iQL1WPYCA1zPJAs+csx73CaQvYziDY1g@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-by2on0056.outbound.protection.outlook.com ([207.46.100.56]:16608
-	"EHLO na01-by2-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S933603AbbLWAYh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 22 Dec 2015 19:24:37 -0500
+Received: from mga03.intel.com ([134.134.136.65]:44960 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754580AbbLWDZS (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 22 Dec 2015 22:25:18 -0500
+In-Reply-To: <CALCETrVcYbqNpVi4J_iQL1WPYCA1zPJAs+csx73CaQvYziDY1g@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, bhelgaas@google.com
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, hanjun.guo@linaro.org, tomasz.nowicki@linaro.org, graeme.gregory@linaro.org, dhdang@apm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+To: Andy Lutomirski <luto@amacapital.net>, "Chen, Yu C" <yu.c.chen@intel.com>
+Cc: "Moore, Robert" <robert.moore@intel.com>, "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Andy Lutomirski <luto@kernel.org>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "H. Peter Anvin" <hpa@zytor.com>, Borislav Petkov <bp@alien8.de>
 
-This patch contain fixes for v2m resources and SPI ranges:
-
-  * Fix off-by-one error when set up v2m resource end range in
-    gicv2m_acpi_init().
-
-  * Fix the off-by-one print error for SPI range.
-
-  * Use %pR to properly print resource range information.
-
-Both ACPI and DT should now print:
-
-  GICv2m: range[mem 0xe1180000-0xe1180fff], SPI[64:319]
-
-Suggested-by: Bjorn Helgaas <bhelgaas@google.com>
-Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
----
-
- Hi Marc,
-
- Sorry for this minor last minute fixup. This should go on top
- of the V7 of the GICv2m ACPI patch series. Although, this is
- not urgent.
-
- Thanks,
- Suravee
-
- drivers/irqchip/irq-gic-v2m.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/irqchip/irq-gic-v2m.c b/drivers/irqchip/irq-gic-v2m.c
-index 7e2975d..5f346ea 100644
---- a/drivers/irqchip/irq-gic-v2m.c
-+++ b/drivers/irqchip/irq-gic-v2m.c
-@@ -365,9 +365,8 @@ static int __init gicv2m_init_one(struct fwnode_handle *fwnode,
- 
- 	list_add_tail(&v2m->entry, &v2m_nodes);
- 
--	pr_info("range[%#lx:%#lx], SPI[%d:%d]\n",
--		(unsigned long)res->start, (unsigned long)res->end,
--		v2m->spi_start, (v2m->spi_start + v2m->nr_spis));
-+	pr_info("range%pR, SPI[%d:%d]\n", res,
-+		v2m->spi_start, (v2m->spi_start + v2m->nr_spis - 1));
- 	return 0;
- 
- err_iounmap:
-@@ -456,7 +455,8 @@ acpi_parse_madt_msi(struct acpi_subtable_header *header,
- 		return -EINVAL;
- 
- 	res.start = m->base_address;
--	res.end = m->base_address + SZ_4K;
-+	res.end = m->base_address + SZ_4K - 1;
-+	res.flags = IORESOURCE_MEM;
- 
- 	if (m->flags & ACPI_MADT_OVERRIDE_SPI_VALUES) {
- 		spi_start = m->spi_base;
--- 
-2.1.0
-
+SGksIEFuZHkNCg0KPiBGcm9tOiBsaW51eC1hY3BpLW93bmVyQHZnZXIua2VybmVsLm9yZyBbbWFp
+bHRvOmxpbnV4LWFjcGktDQo+IG93bmVyQHZnZXIua2VybmVsLm9yZ10gT24gQmVoYWxmIE9mIEFu
+ZHkgTHV0b21pcnNraQ0KPiBTZW50OiBXZWRuZXNkYXksIERlY2VtYmVyIDIzLCAyMDE1IDY6NDkg
+QU0NCj4gU3ViamVjdDogUmU6IFtQQVRDSCB2NCA3LzddIEFDUEkgLyB4ODY6IGludHJvZHVjZSBh
+Y3BpX29zX3JlYWRhYmxlKCkgc3VwcG9ydA0KPiANCj4gT24gTW9uLCBEZWMgMjEsIDIwMTUgYXQg
+NTowMyBQTSwgQ2hlbiwgWXUgQyA8eXUuYy5jaGVuQGludGVsLmNvbT4gd3JvdGU6DQo+ID4gSGkg
+QW5keSwNCj4gPiB0aGFua3MgZm9yIHlvdXIgcmV2aWV3LA0KPiA+DQo+ID4+IC0tLS0tT3JpZ2lu
+YWwgTWVzc2FnZS0tLS0tDQo+ID4+IEZyb206IEFuZHkgTHV0b21pcnNraSBbbWFpbHRvOmx1dG9A
+YW1hY2FwaXRhbC5uZXRdDQo+ID4+IFNlbnQ6IEZyaWRheSwgRGVjZW1iZXIgMTgsIDIwMTUgMTow
+MCBBTQ0KPiA+PiBUbzogWmhlbmcsIEx2DQo+ID4+IENjOiBDaGVuLCBZdSBDOyBNb29yZSwgUm9i
+ZXJ0OyBXeXNvY2tpLCBSYWZhZWwgSjsgQnJvd24sIExlbjsgQW5keQ0KPiA+PiBMdXRvbWlyc2tp
+OyBMdiBaaGVuZzsgbGludXgta2VybmVsQHZnZXIua2VybmVsLm9yZzsgTGludXggQUNQSTsgSC4g
+UGV0ZXINCj4gPj4gQW52aW47IEJvcmlzbGF2IFBldGtvdg0KPiA+PiBTdWJqZWN0OiBSZTogW1BB
+VENIIHY0IDcvN10gQUNQSSAvIHg4NjogaW50cm9kdWNlIGFjcGlfb3NfcmVhZGFibGUoKQ0KPiBz
+dXBwb3J0DQo+ID4+DQo+ID4gW2N1dF0NCj4gPj4NCj4gPj4gSSB0aGluayB0aGF0IGhwYSBvciBC
+b3Jpc2xhdiBbY2MnZF0gY291bGQgYWRkcmVzcyB0aGUgbWVtb3J5IG1hcCBkZXRhaWxzDQo+ID4+
+IGJldHRlciB0aGFuIEkgY291bGQuICBIb3dldmVyLCB0aGlzIGZ1bmN0aW9uYWxpdHkgc2VlbXMg
+c3RyYW5nZS4NCj4gPj4NCj4gPj4gQXJlIHRoZXNlIHBoeXNpY2FsIGFkZHJlc3NlcyBvciB2aXJ0
+dWFsIGFkZHJlc3NlcyB0aGF0IGFyZSBiZWluZyBkdW1wZWQ/DQo+ID4gW1l1XSBUaGV5IGFyZSAg
+dmlydHVhbCBhZGRyZXNzZXMgdG8gYmUgZHVtcGVkLg0KPiA+PiBJbiAgZWl0aGVyIGNhc2UsIElT
+VE0gdGhhdCB1c2luZyBzb21ldGhpbmcgaWlrZSBwYWdlX2lzX3JhbSBtaWdodCBiZSBhIGxvdA0K
+PiA+PiBzaW1wbGVyLg0KPiA+IFtZdV0gaWYgaSB1bmRlcnN0YW5kIGNvcnJlY3RseSwgdGhpcyBB
+UEkgaXMgdXNlZCB0byBjaGVjayBpZiB0aGUgYWRkcmVzcyBpcyBhIHZhbGlkDQo+ID4gJ2ttYWxs
+b2MnIHN0eWxlIGFkZHJlc3MsIGJ1dCBub3QgJ2ttYXAnIG9yICd2bWFsbG9jJyBhZGRyZXNzLCBh
+bmQgcGFnZV9pc19yYW0NCj4gPiBtaWdodCB0cmVhdCB0aGUgbGF0dGVyIGFzIHZhbGlkIGFkZHJl
+c3M/DQo+ID4NCj4gDQo+IEknbSBhIGJpdCBwdXp6bGVkIGFzIHRvIHdoeSB0aGlzIG1hdHRlcnMs
+IGJ1dCBJIGhhdmUgbm8gZnVuZGFtZW50YWwgb2JqZWN0aW9uIHRvIGRvaW5nIGl0IHRoYXQgd2F5
+Lg0KW0x2IFpoZW5nXSANCklNTywgdXNpbmcgcGFnZV9pc19yYW0oKSBvciBzb21ldGhpbmcgc2lt
+aWxhciwgdGhlIHByb2JsZW0gaXMgd2hhdCB3ZSBuZWVkIHRvIHNvbHZlIGluIHRoZSBjdXJyZW50
+IGFwcHJvYWNoIHN0aWxsIG5lZWQgdG8gYmUgc29sdmVkOg0KMS4gSG93IGNhbiB3ZSBjb252ZXJ0
+IGEgdmlydHVhbCBhZGRyZXNzIGludG8gYSAic3RydWN0IHBhZ2UiPw0KICAgIFRoZXJlIGlzIG5v
+IGtlcm5lbCBBUEkgdG8gY29udmVydCBhbnkgdmlydHVhbCBhZGRyZXNzIGludG8gc3RydWN0IHBh
+Z2UuDQogICAgRXZlbiB0aGVyZSBpcyBzdWNoIGEga2VybmVsIEFQSSB0byBjb252ZXJ0IGttYXAv
+dm1hbGxvYyBhZGRyZXNzZXMsIHdlIHN0aWxsIGNvdWxkbid0IHVzZSBpdC4NCiAgICBCZWNhdXNl
+IGlmIHdlIHdhbnQgdG8gdmFsaWRhdGUga21hcC92bWFsb2MgcGFnZXMsIHdlIG5lZWQgMiBBUElz
+IHJhdGhlciB0aGFuIDEgQVBJIHdoaWxlIEFDUElDQSBvbmx5IHByb3ZpZGVzIDEgQVBJIGZvciB0
+aGlzIHB1cnBvc2UuDQogICAgVGhlIDIgQVBJcyBzaG91bGQgYmUgZ2V0L3B1dCBzdHlsZSB0byBw
+aW5nIHRoZSBwYWdlIG1hcHBpbmdzIGFzIHRoZSBtYXBwaW5ncyBvdGhlciB0aGFuIHRoZSBkaXJl
+Y3QgbWFwcGluZ3Mgd2lsbCBub3QgYmUgc3RhdGlvbmFyeSBpbiB0aGUga2VybmVsIGFkZHJlc3Mg
+c3BhY2UuDQogICAgRm9ydHVuYXRlbHkgd2UgbmVlZG4ndCB0YWtlIGNhcmUgb2YgdGhlIG1hcHBp
+bmdzIG90aGVyIHRoYW4gdGhlIGRpcmVjdCBtYXBwaW5ncyAocmVhc29ucyBhcmUgaW4gdGhlIDJu
+ZCBjb21tZW50KS4NCiAgICBTbyB3ZSBzdGlsbCBuZWVkIHRvIHVzZSB0aGUgZGlyZWN0IG1hcHBp
+bmcgQVBJcyBoZXJlLg0KMi4gSG93IGNhbiB3ZSBlbnN1cmUgdGhlIHBhZ2UgaXMgYSBkaXJlY3Qg
+bWFwcGluZyBwYWdlPw0KICAgIEkgdGhpbmsgWXUgc2hvdWxkIGNvbmZpcm0gaWYgdGhlcmUgaXMg
+c3VjaCBhIGNvbW1vbiBrZXJuZWwgQVBJLg0KICAgIElmIHRoZXJlIGlzIHN1Y2ggYW4gQVBJLCB3
+ZSBzaG91bGQgdXNlIGl0IHNvIHRoYXQgd2UgY2FuIHJlbW92ZSB0aGUgYXJjaCBzcGVjaWZpYyBz
+dHVmZnMuDQoNCj4gV2hhdCdzIHRoZSB1c2UgY2FzZSwgdGhvdWdoPw0KW0x2IFpoZW5nXSANCkZv
+cnR1bmF0ZWx5LCBjdXJyZW50bHkgQUNQSUNBIG9ubHkgdXNlcyB0aGlzIEFQSSB0byB2YWxpZGF0
+ZSBpZiBhIG5hbWVzcGFjZSBub2RlLCBhbiBvcGVyYW5kIG9iamVjdCBvciBhIHBhcnNlciBvYmpl
+Y3QgaXMgcmVhZGFibGUuDQpTZWUgZHJpdmVycy9hY3BpL2FjcGljYS9kYmRpc3BsYXkuYyBhbmQg
+ZHJpdmVycy9hY3BpL2FjcGljYS9kYmNtZHMuYy4NCg0KPiAgVGhhdCBpcywgd2hhdCBnb2VzIHdy
+b25nIGlmIHRoZSBmdW5jdGlvbiBqdXN0IGFsd2F5cyByZXR1cm5zIGZhbHNlPw0KW0x2IFpoZW5n
+XSANCjEuIElmIGl0IGFsd2F5cyByZXR1cm5zIGZhbHNlLCB0aGVuIG1hbnkgQUNQSUNBIGRlYnVn
+Z2VyIGludGVybmFsIG9iamVjdCBjb252ZXJzaW9uL2R1bXAgZnVuY3Rpb25hbGl0aWVzIHdvbid0
+IGJlIGZ1bmN0aW9uaW5nLg0KICAgIEZvciBleGFtcGxlLCB5b3UgY2FuIHRyeSB0byB0eXBlIOKA
+nGR1bXAgXF9TQiIgaW4gYWNwaWRiZyBzaGVsbCBhbmQgaXQgd2lsbCByZXR1cm4gYW4gZXJyb3I6
+DQogICAgICAiSW52YWxpZCBuYW1lZCBvYmplY3QgYXQgYWRkcmVzcyB4eHh4eHh4eHh4eHh4eHh4
+Ig0KMi4gV2hpbGUgaWYgdGhpcyBmdW5jdGlvbiBhbHdheXMgcmV0dXJucyB0cnVlIChjdXJyZW50
+IGxpbnV4LXBtL2xpbnV4LW5leHQgbWVyZ2VkIHN0dWZmcyksIHdlIGNhbiBzZWUgc3VjaCBhIHJl
+c3VsdDoNCiAgICAgIE9iamVjdCAoZmZmZnh4eHh4eHh4eHh4eCkgUGF0aG5hbWU6IFxfU0INCiAg
+ICAgICAgICBOYW1lIDogX1NCXw0KICAgICAgICAgIFR5cGUgOiAwNiBbRGV2aWNlXQ0KICAgICAg
+ICAgIC4uLg0KMy4gQnV0IGlmIGl0IGFsd2F5cyByZXR1cm5zIHRydWUsIHRoZW4gdGhlcmUgd2ls
+bCBiZSBhbm90aGVyIHByb2JsZW06DQogICAgVXNlciBjYW4gdHlwZSBhbiBpbnZhbGlkIGFkZHJl
+c3MsIGZvciBleGFtcGxlLCAiZHVtcCAweEZGRkZGRkZGRkZGRkZGRkYiLg0KICAgIEFuZCBBQ1BJ
+Q0EgZGVidWdnZXIgd2lsbCB0cnkgdG8gYWNjZXNzIHRoaXMgaW52YWxpZCB2aXJ0dWFsIGFkZHJl
+c3MgYW5kIGZpbmFsbHkgcmVzdWx0IGluIGEgcGFuaWMuDQogICAgU28gd2UgbmVlZCB0byBpbXBs
+ZW1lbnQgYWNwaV9vc19yZWFkYWJsZSgpIHRvIGhhcmRlbiB0aGUgY2hlY2suDQoNCltMdiBaaGVu
+Z10NCkxldCBtZSBzYXkgbW9yZSBhYm91dCB0aGlzIHBhdGNoLg0KQ3VycmVudGx5IHRoaXMgcGF0
+Y2ggbG9va3Mgd3JvbmcuDQpUaG91Z2gsIG1vc3Qgb2YgdGhlIGFjcGlfb2JqZWN0KHMpIGFyZSBr
+bWFsbG9jZWQgaW4gdGhlIGtlcm5lbCBoZWFwLCBhcyBmYXIgYXMgSSBrbm93LCBhdCBsZWFzdCB0
+aGUgbmFtZXNwYWNlIHJvb3QgaXMgYSBzdGF0aWNhbGx5IGFsbG9jYXRlZCBvYmplY3QgaW4gQUNQ
+SUNBLg0KTWF5YmUgIk9uZSIvIk9uZXMiLyJaZXJvIiBvcGVyYW5kcyBhcmUgYWxsIHN0YXRpY2Fs
+bHkgYWxsb2NhdGVkIG9iamVjdHMuDQoNClNvIHdlIG5lZWQgdG8gbW9kaWZ5IHRoaXMgZnVuY3Rp
+b24gdG8gcmV0dXJuIHRydWUgZm9yIHRoZSBhZGRyZXNzZXMgdGhhdCBiZWxvbmcgdG8gLmRhdGEv
+LmJzcyBzZWN0aW9ucyBmb3IgeDg2XzY0IGtlcm5lbHMuDQpZb3UgY2FuIGNvbmZpcm0gdGhpcyBi
+eSB0eXBpbmcgImR1bXAgXCIgaW4gdGhlIGFjcGlkYmcgc2hlbGwsIGl0IG5vdyByZXR1cm5zOg0K
+ICJJbnZhbGlkIG5hbWVkIG9iamVjdCBhdCBhZGRyZXNzIGZmZmZmZmZmOHh4eHh4eHgiLg0KV2Un
+bGwgdXBkYXRlIGl0IGFuZCBzZW5kIGl0IGFmdGVyIHRlc3RpbmcuDQoNClRoYW5rcyBhbmQgYmVz
+dCByZWdhcmRzDQotTHYNCg==
