@@ -1,7 +1,7 @@
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v2 3/3] device property: avoid allocations of 0 length
-Date: Wed, 23 Dec 2015 15:34:44 +0200
-Message-ID: <1450877684-76316-4-git-send-email-andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v2 2/3] device property: the secondary fwnode needs to depend on the primary
+Date: Wed, 23 Dec 2015 15:34:43 +0200
+Message-ID: <1450877684-76316-3-git-send-email-andriy.shevchenko@linux.intel.com>
 References: <1450877684-76316-1-git-send-email-andriy.shevchenko@linux.intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1450877684-76316-1-git-send-email-andriy.shevchenko@linux.intel.com>
@@ -10,41 +10,57 @@ To: Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, akpm@li
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Arrays can not have zero elements by definition of the unified device
-properties. If such property comes from outside we should not allow it to pass.
-Otherwise memory allocation on 0 length will return non-NULL value, which we
-currently don't check.
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
 
-Prevent memory allocations of 0 length.
+This fixes NULL pointer dereference when the primary fwnode handle
+does not exist, for example with PCI devices that do not have ACPI
+companion.
 
+Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
 Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- drivers/base/property.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+ drivers/base/property.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/drivers/base/property.c b/drivers/base/property.c
-index 6c04d18..7e2061b 100644
+index 0b22c8a..6c04d18 100644
 --- a/drivers/base/property.c
 +++ b/drivers/base/property.c
-@@ -653,6 +653,9 @@ int fwnode_property_match_string(struct fwnode_handle *fwnode,
- 	if (nval < 0)
- 		return nval;
+@@ -218,7 +218,7 @@ bool fwnode_property_present(struct fwnode_handle *fwnode, const char *propname)
+ 	bool ret;
  
-+	if (nval == 0)
-+		return -ENODATA;
-+
- 	values = kcalloc(nval, sizeof(*values), GFP_KERNEL);
- 	if (!values)
- 		return -ENOMEM;
-@@ -718,6 +721,9 @@ static int pset_copy_entry(struct property_entry *dst,
- 		return -ENOMEM;
+ 	ret = __fwnode_property_present(fwnode, propname);
+-	if (ret == false && fwnode->secondary)
++	if (ret == false && fwnode && fwnode->secondary)
+ 		ret = __fwnode_property_present(fwnode->secondary, propname);
+ 	return ret;
+ }
+@@ -423,7 +423,7 @@ EXPORT_SYMBOL_GPL(device_property_match_string);
+ 	int _ret_;									\
+ 	_ret_ = FWNODE_PROP_READ(_fwnode_, _propname_, _type_, _proptype_,		\
+ 				 _val_, _nval_);					\
+-	if (_ret_ == -EINVAL && _fwnode_->secondary)					\
++	if (_ret_ == -EINVAL && fwnode && _fwnode_->secondary)				\
+ 		_ret_ = FWNODE_PROP_READ(_fwnode_->secondary, _propname_, _type_,	\
+ 				_proptype_, _val_, _nval_);				\
+ 	_ret_;										\
+@@ -593,7 +593,7 @@ int fwnode_property_read_string_array(struct fwnode_handle *fwnode,
+ 	int ret;
  
- 	if (src->is_array) {
-+		if (!src->length)
-+			return -ENODATA;
-+
- 		if (src->is_string) {
- 			nval = src->length / sizeof(const char *);
- 			dst->pointer.str = kcalloc(nval, sizeof(const char *),
+ 	ret = __fwnode_property_read_string_array(fwnode, propname, val, nval);
+-	if (ret == -EINVAL && fwnode->secondary)
++	if (ret == -EINVAL && fwnode && fwnode->secondary)
+ 		ret = __fwnode_property_read_string_array(fwnode->secondary,
+ 							  propname, val, nval);
+ 	return ret;
+@@ -621,7 +621,7 @@ int fwnode_property_read_string(struct fwnode_handle *fwnode,
+ 	int ret;
+ 
+ 	ret = __fwnode_property_read_string(fwnode, propname, val);
+-	if (ret == -EINVAL && fwnode->secondary)
++	if (ret == -EINVAL && fwnode && fwnode->secondary)
+ 		ret = __fwnode_property_read_string(fwnode->secondary,
+ 						    propname, val);
+ 	return ret;
 -- 
 2.6.4
