@@ -1,66 +1,72 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v2 2/3] device property: the secondary fwnode needs to depend on the primary
-Date: Wed, 23 Dec 2015 15:34:43 +0200
-Message-ID: <1450877684-76316-3-git-send-email-andriy.shevchenko@linux.intel.com>
-References: <1450877684-76316-1-git-send-email-andriy.shevchenko@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1450877684-76316-1-git-send-email-andriy.shevchenko@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, heikki.krogerus@linux.intel.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+From: Aleksey Makarov <aleksey.makarov@linaro.org>
+Subject: [PATCH v4 0/3] Add AMBA bus probing support to ACPI
+Date: Wed, 23 Dec 2015 17:19:39 +0300
+Message-ID: <1450880383-29560-1-git-send-email-aleksey.makarov@linaro.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lf0-f54.google.com ([209.85.215.54]:33860 "EHLO
+	mail-lf0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754789AbbLWOWG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Dec 2015 09:22:06 -0500
+Received: by mail-lf0-f54.google.com with SMTP id y184so147613061lfc.1
+        for <linux-acpi@vger.kernel.org>; Wed, 23 Dec 2015 06:22:04 -0800 (PST)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Aleksey Makarov <aleksey.makarov@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Shannon Zhao <shannon.zhao@linaro.org>, Andy Shevchenko <andy.shevchenko@gmail.com>, Vladimir Zapolskiy <vz@mleia.com>
 
-From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+As discussed when Shannon Zhao sent a patch to add platform_device support
+to pl061 driver. Russel and other maintainers prefered that ACPI learned
+how to create AMBA devices rather than converting/adding platform_device
+support to AMBA drivers.
 
-This fixes NULL pointer dereference when the primary fwnode handle
-does not exist, for example with PCI devices that do not have ACPI
-companion.
+http://comments.gmane.org/gmane.linux.ports.arm.kernel/431364
 
-Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- drivers/base/property.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+1) Adds basic AMBA device probing support to ACPI, it uses a whitelist of
+device IDs as the number of AMBA devices is limited. Currently the two ids
+present are those used in QEMU for arm64.
 
-diff --git a/drivers/base/property.c b/drivers/base/property.c
-index 0b22c8a..6c04d18 100644
---- a/drivers/base/property.c
-+++ b/drivers/base/property.c
-@@ -218,7 +218,7 @@ bool fwnode_property_present(struct fwnode_handle *fwnode, const char *propname)
- 	bool ret;
- 
- 	ret = __fwnode_property_present(fwnode, propname);
--	if (ret == false && fwnode->secondary)
-+	if (ret == false && fwnode && fwnode->secondary)
- 		ret = __fwnode_property_present(fwnode->secondary, propname);
- 	return ret;
- }
-@@ -423,7 +423,7 @@ EXPORT_SYMBOL_GPL(device_property_match_string);
- 	int _ret_;									\
- 	_ret_ = FWNODE_PROP_READ(_fwnode_, _propname_, _type_, _proptype_,		\
- 				 _val_, _nval_);					\
--	if (_ret_ == -EINVAL && _fwnode_->secondary)					\
-+	if (_ret_ == -EINVAL && fwnode && _fwnode_->secondary)				\
- 		_ret_ = FWNODE_PROP_READ(_fwnode_->secondary, _propname_, _type_,	\
- 				_proptype_, _val_, _nval_);				\
- 	_ret_;										\
-@@ -593,7 +593,7 @@ int fwnode_property_read_string_array(struct fwnode_handle *fwnode,
- 	int ret;
- 
- 	ret = __fwnode_property_read_string_array(fwnode, propname, val, nval);
--	if (ret == -EINVAL && fwnode->secondary)
-+	if (ret == -EINVAL && fwnode && fwnode->secondary)
- 		ret = __fwnode_property_read_string_array(fwnode->secondary,
- 							  propname, val, nval);
- 	return ret;
-@@ -621,7 +621,7 @@ int fwnode_property_read_string(struct fwnode_handle *fwnode,
- 	int ret;
- 
- 	ret = __fwnode_property_read_string(fwnode, propname, val);
--	if (ret == -EINVAL && fwnode->secondary)
-+	if (ret == -EINVAL && fwnode && fwnode->secondary)
- 		ret = __fwnode_property_read_string(fwnode->secondary,
- 						    propname, val);
- 	return ret;
+2) Adds the plumbing into ACPI probe sequence.
+
+3) From ACPI pl011 is only defined (SBSA document) to be in SBSA mode which has
+reduced functionality. There may be a better method to do this that I have
+overlooked.
+
+v4:
+- A memory leak has been fixed (Vladimir Zapolskiy)
+- ACPI_COMPANION() -> has_acpi_companion() (Andy Shevchenko)
+- pr_err() -> dev_err() (Andy Shevchenko)
+- The call to amba_register_dummy_clk() has been moved to to acpi_amba_init()
+  (Vladimir Zapolskiy)
+- Return value has been fixed (Vladimir Zapolskiy)
+
+v3:
+https://lkml.kernel.org/g/1450716100-13688-1-git-send-email-aleksey.makarov@linaro.org
+- Compilation without CONFIG_ARM_AMBA has been fixed
+
+v2:
+https://lkml.kernel.org/g/1450709399-7246-1-git-send-email-aleksey.makarov@linaro.org
+- A new ACPI scan handler for AMBA devices has been implemented
+- The order of `if` branches in amba-pl011.c has been changed
+- A couple of `static`s have been added
+- The compilation of the acpi_amba.c unit has made conditional
+- A comment on SBSA UART has been added
+
+v1:
+https://lkml.kernel.org/g/1443609530-21524-1-git-send-email-graeme.gregory@linaro.org
+
+Graeme Gregory (3):
+  ACPI: amba bus probing support
+  ACPI: scan add in amba probing
+  serial: amba-pl011: add ACPI support to AMBA probe
+
+ drivers/acpi/Makefile           |   1 +
+ drivers/acpi/acpi_amba.c        | 140 ++++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/internal.h         |   5 ++
+ drivers/acpi/scan.c             |   1 +
+ drivers/tty/serial/amba-pl011.c |  37 +++++++----
+ 5 files changed, 173 insertions(+), 11 deletions(-)
+ create mode 100644 drivers/acpi/acpi_amba.c
+
 -- 
 2.6.4
+
