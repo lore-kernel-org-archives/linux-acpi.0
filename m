@@ -1,53 +1,67 @@
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
+From: Dan Williams <dan.j.williams@intel.com>
 Subject: Re: [PATCH 3/3] pmem: Use the poison list to expose badblocks
-Date: Wed, 23 Dec 2015 20:32:39 +0000
-Message-ID: <1450902759.5616.29.camel@intel.com>
+Date: Wed, 23 Dec 2015 12:38:43 -0800
+Message-ID: <CAPcyv4jsQ1kMd-rkTJHbMdu0iKspdp1Ume=RMw1W0Y6rbOeBPQ@mail.gmail.com>
 References: <1450603122-7205-1-git-send-email-vishal@kernel.org>
-	 <1450603122-7205-4-git-send-email-vishal@kernel.org>
-	 <CAPcyv4ibCPhqAm-612CvQNEeZrpSsuhw8eH5xBdJtr4BHpPZ2Q@mail.gmail.com>
+	<1450603122-7205-4-git-send-email-vishal@kernel.org>
+	<CAPcyv4ibCPhqAm-612CvQNEeZrpSsuhw8eH5xBdJtr4BHpPZ2Q@mail.gmail.com>
+	<1450902759.5616.29.camel@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:6856 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934192AbbLWUcl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 23 Dec 2015 15:32:41 -0500
-In-Reply-To: <CAPcyv4ibCPhqAm-612CvQNEeZrpSsuhw8eH5xBdJtr4BHpPZ2Q@mail.gmail.com>
-Content-Language: en-US
-Content-ID: <7FE59D5B063DFF4891B3E4366A7058D7@intel.com>
+Received: from mail-yk0-f181.google.com ([209.85.160.181]:33678 "EHLO
+	mail-yk0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934176AbbLWUio (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Dec 2015 15:38:44 -0500
+Received: by mail-yk0-f181.google.com with SMTP id 140so205302312ykp.0
+        for <linux-acpi@vger.kernel.org>; Wed, 23 Dec 2015 12:38:43 -0800 (PST)
+In-Reply-To: <1450902759.5616.29.camel@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Williams, Dan J" <dan.j.williams@intel.com>
+To: "Verma, Vishal L" <vishal.l.verma@intel.com>
 Cc: "ross.zwisler@linux.intel.com" <ross.zwisler@linux.intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "jmoyer@redhat.com" <jmoyer@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linda.knippers@hpe.com" <linda.knippers@hpe.com>
 
-T24gV2VkLCAyMDE1LTEyLTIzIGF0IDEyOjI4IC0wODAwLCBEYW4gV2lsbGlhbXMgd3JvdGU6DQo+
-IE9uIFN1biwgRGVjIDIwLCAyMDE1IGF0IDE6MTggQU0swqDCoDx2aXNoYWxAa2VybmVsLm9yZz4g
-d3JvdGU6DQo+ID4gRnJvbTogVmlzaGFsIFZlcm1hIDx2aXNoYWwubC52ZXJtYUBpbnRlbC5jb20+
-DQo+ID4gDQo+ID4gRW5hYmxlIHRoZSBnZW5kaXNrIGJhZGJsb2NrcyBmZWF0dXJlIGZvciBwbWVt
-IG5hbWVzcGFjZXMuDQo+ID4gSWYgdGhlIHBtZW0gbmFtZXNwYWNlIGJlaW5nIGNyZWF0ZWQgaGFz
-IGFueSBrbm93biBwb2lzb24gYXNzb2NpYXRlZA0KPiA+IHdpdGgNCj4gPiBpdHMgcGh5c2ljYWwg
-YWRkcmVzcyBzcGFjZSwgY29udmVydCB0aGUgcG9pc29uIHJhbmdlcyB0byBiYWQgc2VjdG9ycw0K
-PiA+IGV4cG9zZWQgdXNpbmcgdGhlIGJhZGJsb2NrcyBpbnRlcmZhY2UuDQo+ID4gDQo+ID4gU2ln
-bmVkLW9mZi1ieTogVmlzaGFsIFZlcm1hIDx2aXNoYWwubC52ZXJtYUBpbnRlbC5jb20+DQo+ID4g
-LS0tDQo+ID4gwqBkcml2ZXJzL252ZGltbS9wbWVtLmMgfCAxMjQNCj4gPiArKysrKysrKysrKysr
-KysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKysrKw0KPiA+IMKgMSBmaWxlIGNoYW5n
-ZWQsIDEyNCBpbnNlcnRpb25zKCspDQo+ID4gDQo+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvbnZk
-aW1tL3BtZW0uYyBiL2RyaXZlcnMvbnZkaW1tL3BtZW0uYw0KPiA+IGluZGV4IDhlZTc5ODkuLjQ2
-MjU3MGYgMTAwNjQ0DQo+ID4gLS0tIGEvZHJpdmVycy9udmRpbW0vcG1lbS5jDQo+ID4gKysrIGIv
-ZHJpdmVycy9udmRpbW0vcG1lbS5jDQo+IFsuLl0NCj4gPiBAQCAtMTk2LDYgKzMxMSwxNSBAQCBz
-dGF0aWMgaW50IHBtZW1fYXR0YWNoX2Rpc2soc3RydWN0IGRldmljZSAqZGV2LA0KPiA+IMKgwqDC
-oMKgwqDCoMKgwqBzZXRfY2FwYWNpdHkoZGlzaywgKHBtZW0tPnNpemUgLSBwbWVtLT5kYXRhX29m
-ZnNldCkgLyA1MTIpOw0KPiA+IMKgwqDCoMKgwqDCoMKgwqBwbWVtLT5wbWVtX2Rpc2sgPSBkaXNr
-Ow0KPiA+IA0KPiA+ICvCoMKgwqDCoMKgwqDCoHJldCA9IGRpc2tfYWxsb2NfYmFkYmxvY2tzKGRp
-c2spOw0KPiA+ICvCoMKgwqDCoMKgwqDCoGlmIChyZXQpDQo+ID4gK8KgwqDCoMKgwqDCoMKgwqDC
-oMKgwqDCoMKgwqDCoHJldHVybiByZXQ7DQo+IA0KPiBJIHRoaW5rIHdlIHNob3VsZCBza2lwIGFs
-bG9jYXRpbmcgYSBiYWQgYmxvY2sgbGlzdCBpbiB0aGUgY2FzZSB3ZSBmaW5kDQo+IG5vIHBvaXNv
-bi7CoMKgVGhlbiB3ZSBjYW4gZG8gYSBzaW1wbGUgImlmIChkaXNrLT5iYikiIHRvIGNoZWNrIGlm
-IHRoZXJlDQo+IGFyZSBhbnkgYmFkIGJsb2Nrcy4NCg0KU291bmRzIGdvb2QgLSBJJ2xsIG1vdmUg
-dGhpcyBhbGxvY2F0aW9uIGludG8gdGhlICh3aGF0IHdpbGwgYmUgYSBjb3JlKQ0Kcm91dGluZSB0
-aGF0IHRyYXZlcnNlcyB0aGUgbGlzdCwgYW5kIG1ha2UgaXQgc3VjaCB0aGF0IHdlIGFsbG9jYXRl
-DQpkaXNrLT5iYiBpZmYgYSBwb2lzb24gZW50cnkgaXMgZm91bmQgZm9yIF90aGlzXyBwbWVtIHJh
-bmdlLg0KDQpJdCB3aWxsIG1lYW4gYSBjaGVjayBhdCBldmVyeSBsaXN0IG5vZGUsIGJ1dCB0aGF0
-IHNob3VsZG4ndCBtYXR0ZXIgYXMNCnRoaXMgaXMganVzdCBpbml0LXRpbWUgb3ZlcmhlYWQuDQoN
-CgktVmlzaGFs
+On Wed, Dec 23, 2015 at 12:32 PM, Verma, Vishal L
+<vishal.l.verma@intel.com> wrote:
+> On Wed, 2015-12-23 at 12:28 -0800, Dan Williams wrote:
+>> On Sun, Dec 20, 2015 at 1:18 AM,  <vishal@kernel.org> wrote:
+>> > From: Vishal Verma <vishal.l.verma@intel.com>
+>> >
+>> > Enable the gendisk badblocks feature for pmem namespaces.
+>> > If the pmem namespace being created has any known poison associated
+>> > with
+>> > its physical address space, convert the poison ranges to bad sectors
+>> > exposed using the badblocks interface.
+>> >
+>> > Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+>> > ---
+>> >  drivers/nvdimm/pmem.c | 124
+>> > ++++++++++++++++++++++++++++++++++++++++++++++++++
+>> >  1 file changed, 124 insertions(+)
+>> >
+>> > diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
+>> > index 8ee7989..462570f 100644
+>> > --- a/drivers/nvdimm/pmem.c
+>> > +++ b/drivers/nvdimm/pmem.c
+>> [..]
+>> > @@ -196,6 +311,15 @@ static int pmem_attach_disk(struct device *dev,
+>> >         set_capacity(disk, (pmem->size - pmem->data_offset) / 512);
+>> >         pmem->pmem_disk = disk;
+>> >
+>> > +       ret = disk_alloc_badblocks(disk);
+>> > +       if (ret)
+>> > +               return ret;
+>>
+>> I think we should skip allocating a bad block list in the case we find
+>> no poison.  Then we can do a simple "if (disk->bb)" to check if there
+>> are any bad blocks.
+>
+> Sounds good - I'll move this allocation into the (what will be a core)
+> routine that traverses the list, and make it such that we allocate
+> disk->bb iff a poison entry is found for _this_ pmem range.
+>
+> It will mean a check at every list node, but that shouldn't matter as
+> this is just init-time overhead.
+>
+
+...or free it on "no poison found".
