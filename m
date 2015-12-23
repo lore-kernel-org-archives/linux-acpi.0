@@ -1,23 +1,103 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v2] i2c: designware: Do not require clock when SSCN and
- FFCN are provided
-Date: Wed, 23 Dec 2015 10:44:10 +0200
-Message-ID: <20151223084410.GH1758@lahna.fi.intel.com>
-References: <1450319025-19120-1-git-send-email-Suravee.Suthikulpanit@amd.com>
- <20151218101348.GG1762@lahna.fi.intel.com>
- <5679B7C1.6010408@amd.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH V2 22/23] pci, acpi: Match PCI config space accessors
+ against platfrom specific quirks.
+Date: Wed, 23 Dec 2015 17:38:45 +0800
+Message-ID: <567A6BA5.1030408@linaro.org>
+References: <1450278993-12664-1-git-send-email-tn@semihalf.com>
+ <1450278993-12664-23-git-send-email-tn@semihalf.com>
+ <EE11001F9E5DDD47B7634E2F8A612F2E1EC14C0F@lhreml503-mbb>
+ <567923D2.2010202@semihalf.com>
+ <EE11001F9E5DDD47B7634E2F8A612F2E1EC183BD@lhreml503-mbb>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <5679B7C1.6010408@amd.com>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>
-Cc: wsa@the-dreams.de, jarkko.nikula@linux.intel.com, andriy.shevchenko@linux.intel.com, lho@apm.com, Ken.Xue@amd.com, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <EE11001F9E5DDD47B7634E2F8A612F2E1EC183BD@lhreml503-mbb>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Gabriele Paoloni <gabriele.paoloni@huawei.com>, Tomasz Nowicki <tn@semihalf.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "arnd@arndb.de" <arnd@arndb.de>, "will.deacon@arm.com" <will.deacon@arm.com>, "catalin.marinas@arm.com" <catalin.marinas@arm.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "Lorenzo.Pieralisi@arm.com" <Lorenzo.Pieralisi@arm.com>, "okaya@codeaurora.org" <okaya@codeaurora.org>, "jiang.liu@linux.intel.com" <jiang.liu@linux.intel.com>, "Stefano.Stabellini@eu.citrix.com" <Stefano.Stabellini@eu.citrix.com>, "liudongdong (C)" <liudongdong3@huawei.com>
+Cc: "robert.richter@caviumnetworks.com" <robert.richter@caviumnetworks.com>, "mw@semihalf.com" <mw@semihalf.com>, "Liviu.Dudau@arm.com" <Liviu.Dudau@arm.com>, "ddaney@caviumnetworks.com" <ddaney@caviumnetworks.com>, "tglx@linutronix.de" <tglx@linutronix.de>, Wangyijing <wangyijing@huawei.com>, "Suravee.Suthikulpanit@amd.com" <Suravee.Suthikulpanit@amd.com>, "msalter@redhat.com" <msalter@redhat.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linaro-acpi@lists.linaro.org" <linaro-acpi@lists.linaro.org>, "jchandra@broadcom.com" <jchandra@broadcom.com>, "jcm@redhat.com" <jcm@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Dec 22, 2015 at 02:51:13PM -0600, Suravee Suthikulanit wrote:
-> So, at this point, I can re-submit the V3 and combine these changes, and we
-> both can sign-off. How does that sound?
+On 12/22/2015 10:48 PM, Gabriele Paoloni wrote:
+> Hi Tomasz
+>
+>> -----Original Message-----
+>> From: linux-kernel-owner@vger.kernel.org [mailto:linux-kernel-
+>> owner@vger.kernel.org] On Behalf Of Tomasz Nowicki
+>> Sent: 22 December 2015 10:20
+>> To: Gabriele Paoloni; bhelgaas@google.com; arnd@arndb.de;
+>> will.deacon@arm.com; catalin.marinas@arm.com; rjw@rjwysocki.net;
+>> hanjun.guo@linaro.org; Lorenzo.Pieralisi@arm.com; okaya@codeaurora.org;
+>> jiang.liu@linux.intel.com; Stefano.Stabellini@eu.citrix.com
+>> Cc: robert.richter@caviumnetworks.com; mw@semihalf.com;
+>> Liviu.Dudau@arm.com; ddaney@caviumnetworks.com; tglx@linutronix.de;
+>> Wangyijing; Suravee.Suthikulpanit@amd.com; msalter@redhat.com; linux-
+>> pci@vger.kernel.org; linux-arm-kernel@lists.infradead.org; linux-
+>> acpi@vger.kernel.org; linux-kernel@vger.kernel.org; linaro-
+>> acpi@lists.linaro.org; jchandra@broadcom.com; jcm@redhat.com
+>> Subject: Re: [PATCH V2 22/23] pci, acpi: Match PCI config space
+>> accessors against platfrom specific quirks.
+>>
+>> On 21.12.2015 12:47, Gabriele Paoloni wrote:
+>>> 2) In the quirk mechanism you proposed, I see that the callback
+>> function
+>>>      allows to do some preparation work for the host bridge. For
+>> example in
+>>>      Hisilicon hip05 case we would need to read some values from the
+>> ACPI
+>>>      table (see acpi_pci_root_hisi_add() function in
+>>>      https://lkml.org/lkml/2015/12/3/426).
+>>>      I am quite new to ACPI and I wonder if it is OK to add such
+>> "Packages"
+>>>      to the  PCI host bridge ACPI device...or maybe we need to declare
+>> a new
+>>>      one...?
+>>
+>> I may miss sth so please correct me in that case.
+>>
+>> https://lkml.org/lkml/2015/12/3/426 shows that you need special
+>> handling for root->secondary.start bus number only, right? So how about
+>> creating special MCFG region <rc-base:rc-base+rc-size> only for
+>> <segment,bus>.
+>> Like that:
+>>
+>> [0008]                       Base Address : <rc-base>
+>> [0002]               Segment Group Number : <segment>
+>> [0001]                   Start Bus Number : <root->secondary.start>
+>> [0001]                     End Bus Number : <root->secondary.start>
+>> [0004]                           Reserved : 00000000
+>>
+>>
+>> static const struct dmi_system_id hisi_quirk[] = {
+>> 	{
+>> 		.ident = "HiSi...",
+>> 		.matches = {
+>> 			DMI_MATCH(<whatever you need to match your platform>),
+>> 		},
+>> 	},
+>> 	{ }
+>> };
+>>
+>> static struct pci_ops hisi_ecam_pci_ops = {
+>> 	.map_bus = pci_mcfg_dev_base,
+>> 	.read = hisi_pcie_cfg_read,
+>> 	.write = hisi_pcie_cfg_write,
+>> };
+>>
+>> DECLARE_ACPI_MCFG_FIXUP(hisi_quirk, &hisi_ecam_pci_ops,
+>> 			<segment>, <bus>);
+>>
+>> With above code you can use your custom PCI config accessor only for
+>> that region.
+>>
+>> Let me know if that is not enough for you.
+>
+> In principle I think it can work...
+>
+> Liudongdong, Guo Hanjun what is your opinion about?
 
-Sounds good to me :)
+Let me and Dongdong prepare a patch for Hip05 and then will
+back to this discussion to see if we met some problems.
+
+Thanks
+Hanjun
