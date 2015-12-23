@@ -1,93 +1,75 @@
-From: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>
-Subject: Re: [PATCH v7 3/4] gicv2m: Refactor to prepare for ACPI support
-Date: Tue, 22 Dec 2015 17:04:15 -0600
-Message-ID: <5679D6EF.6000002@amd.com>
-References: <1449766530-16935-1-git-send-email-Suravee.Suthikulpanit@amd.com>
- <1449766530-16935-4-git-send-email-Suravee.Suthikulpanit@amd.com>
- <20151216221208.GC27791@localhost> <56720095.70004@amd.com>
- <20151217165713.GA23549@localhost>
+From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Subject: [PATCH] gicv2m: Miscellaneous fixes for V2m resources and SPI ranges
+Date: Tue, 22 Dec 2015 16:24:23 -0800
+Message-ID: <1450830263-28914-1-git-send-email-Suravee.Suthikulpanit@amd.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20151217165713.GA23549@localhost>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, bhelgaas@google.com, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, hanjun.guo@linaro.org, tomasz.nowicki@linaro.org, graeme.gregory@linaro.org, dhdang@apm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-by2on0056.outbound.protection.outlook.com ([207.46.100.56]:16608
+	"EHLO na01-by2-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S933603AbbLWAYh (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 22 Dec 2015 19:24:37 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, bhelgaas@google.com
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <Catalin.Marinas@arm.com>, hanjun.guo@linaro.org, tomasz.nowicki@linaro.org, graeme.gregory@linaro.org, dhdang@apm.com, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 
-On 12/17/2015 10:57 AM, Bjorn Helgaas wrote:
-> On Wed, Dec 16, 2015 at 06:23:49PM -0600, Suravee Suthikulanit wrote:
->> Hi Bjorn,
->>
->> Thanks for your review. Please see my comments below.
->>
->> On 12/16/2015 4:12 PM, Bjorn Helgaas wrote:
->>> On Thu, Dec 10, 2015 at 08:55:29AM -0800, Suravee Suthikulpanit wrote:
->>>> This patch replaces the struct device_node with struct fwnode_handle
->>>> since this structure is common between DT and ACPI.
->>>>
->>>> It also refactors gicv2m_init_one() to prepare for ACPI support.
->>>> The only functional change is removing the node name from pr_info.
->>>>
->>>> Reviewed-by: Marc Zyngier <marc.zyngier@arm.com>
->>>> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
->>>
->>>> @@ -359,10 +355,10 @@ static int __init gicv2m_init_one(struct device_node *node,
->>>>   	}
->>>>
->>>>   	list_add_tail(&v2m->entry, &v2m_nodes);
->>>> -	pr_info("Node %s: range[%#lx:%#lx], SPI[%d:%d]\n", node->name,
->>>> -		(unsigned long)v2m->res.start, (unsigned long)v2m->res.end,
->>>> -		v2m->spi_start, (v2m->spi_start + v2m->nr_spis));
->>>>
->>>> +	pr_info("range[%#lx:%#lx], SPI[%d:%d]\n",
->>>> +		(unsigned long)res->start, (unsigned long)res->end,
->>>> +		v2m->spi_start, (v2m->spi_start + v2m->nr_spis));
->>>
->>> You didn't change this, but I don't think this message has enough
->>> context.  It's pretty cryptic all by itself.  It'd be nice if it could
->>> at least include a device name, e.g., if you could use dev_info().
->>
->> Here is the example of the information printed:
->> [    0.000000] GICv2m: range[0xe1180000:0xe1181000], SPI[64:320]
->>
->> Basically, the v2m is just an extension of the GIC. Here, we are
->> printing the memory range that it is covering, which can be used to
->> identify different V2m frame and the associate interrupt range
->> (SPI). The node name is not really providing any values. So, we are
->> removing it.
->
-> I noticed the pr_fmt definition later; that adds some useful context I
-> didn't know about.  I guess there's no struct device for the GIC?  I
-> don't see one in struct device_node.  Seems like this piece of
-> hardware that apparently responds to a memory range *could* have a
-> struct device,but I'm a little fuzzy on how we handle ACPI and OF
-> device descriptions in that regard.
+This patch contain fixes for v2m resources and SPI ranges:
 
-For DT, v2m is advertised as a sub-node inside GIC. So, both of them has 
-the struct device_node references. IIUC, GIC node is match as irqchip, 
-and not as a traditional platform bus device.
+  * Fix off-by-one error when set up v2m resource end range in
+    gicv2m_acpi_init().
 
-Similarly, for ACPI, v2m is advertised as a sub-table inside MADT, and 
-we are using the fwnode_handle to reference to.
+  * Fix the off-by-one print error for SPI range.
 
-> I hadn't noticed the memory range part; maybe you could use %pR there?
+  * Use %pR to properly print resource range information.
 
-I guess we could have :) I can send a separate patch to clean this up.
+Both ACPI and DT should now print:
 
-> Just to double-check, there's no off-by-one error in the SPI range, is
-> there?  The pattern I usually expect is "start, start + nr_items - 1".
+  GICv2m: range[mem 0xe1180000-0xe1180fff], SPI[64:319]
 
-In that case, this should have been [64:319]. I'll send a small patch to 
-clean this up.
+Suggested-by: Bjorn Helgaas <bhelgaas@google.com>
+Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+---
 
-> I'm just kibbitzing here; this isn't PCI code, and you don't need my
-> ack, so just consider these as random observations.
->
-> Bjorn
->
+ Hi Marc,
 
-Thanks for sharing your observation. It's always been good ones :)
+ Sorry for this minor last minute fixup. This should go on top
+ of the V7 of the GICv2m ACPI patch series. Although, this is
+ not urgent.
 
-Suravee
+ Thanks,
+ Suravee
+
+ drivers/irqchip/irq-gic-v2m.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/irqchip/irq-gic-v2m.c b/drivers/irqchip/irq-gic-v2m.c
+index 7e2975d..5f346ea 100644
+--- a/drivers/irqchip/irq-gic-v2m.c
++++ b/drivers/irqchip/irq-gic-v2m.c
+@@ -365,9 +365,8 @@ static int __init gicv2m_init_one(struct fwnode_handle *fwnode,
+ 
+ 	list_add_tail(&v2m->entry, &v2m_nodes);
+ 
+-	pr_info("range[%#lx:%#lx], SPI[%d:%d]\n",
+-		(unsigned long)res->start, (unsigned long)res->end,
+-		v2m->spi_start, (v2m->spi_start + v2m->nr_spis));
++	pr_info("range%pR, SPI[%d:%d]\n", res,
++		v2m->spi_start, (v2m->spi_start + v2m->nr_spis - 1));
+ 	return 0;
+ 
+ err_iounmap:
+@@ -456,7 +455,8 @@ acpi_parse_madt_msi(struct acpi_subtable_header *header,
+ 		return -EINVAL;
+ 
+ 	res.start = m->base_address;
+-	res.end = m->base_address + SZ_4K;
++	res.end = m->base_address + SZ_4K - 1;
++	res.flags = IORESOURCE_MEM;
+ 
+ 	if (m->flags & ACPI_MADT_OVERRIDE_SPI_VALUES) {
+ 		spi_start = m->spi_base;
+-- 
+2.1.0
+
