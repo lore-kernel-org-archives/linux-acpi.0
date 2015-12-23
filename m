@@ -1,67 +1,122 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH 3/3] pmem: Use the poison list to expose badblocks
-Date: Wed, 23 Dec 2015 12:38:43 -0800
-Message-ID: <CAPcyv4jsQ1kMd-rkTJHbMdu0iKspdp1Ume=RMw1W0Y6rbOeBPQ@mail.gmail.com>
-References: <1450603122-7205-1-git-send-email-vishal@kernel.org>
-	<1450603122-7205-4-git-send-email-vishal@kernel.org>
-	<CAPcyv4ibCPhqAm-612CvQNEeZrpSsuhw8eH5xBdJtr4BHpPZ2Q@mail.gmail.com>
-	<1450902759.5616.29.camel@intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yk0-f181.google.com ([209.85.160.181]:33678 "EHLO
-	mail-yk0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934176AbbLWUio (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 23 Dec 2015 15:38:44 -0500
-Received: by mail-yk0-f181.google.com with SMTP id 140so205302312ykp.0
-        for <linux-acpi@vger.kernel.org>; Wed, 23 Dec 2015 12:38:43 -0800 (PST)
-In-Reply-To: <1450902759.5616.29.camel@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Christophe Ricard <christophe.ricard@gmail.com>
+Subject: [PATCH v8 1/3] acpi: Rename acpi_gsi_get_irq_type to acpi_dev_get_irq_type and export symbol
+Date: Wed, 23 Dec 2015 23:25:33 +0100
+Message-ID: <1450909535-32138-2-git-send-email-christophe-h.ricard@st.com>
+References: <1450909535-32138-1-git-send-email-christophe-h.ricard@st.com>
+Return-path: <linux-gpio-owner@vger.kernel.org>
+In-Reply-To: <1450909535-32138-1-git-send-email-christophe-h.ricard@st.com>
+Sender: linux-gpio-owner@vger.kernel.org
+To: rjw@rjwysocki.net, lenb@kernel.org, linus.walleij@linaro.org, gnurou@gmail.com, andriy.shevchenko@linux.intel.com, mika.westerberg@linux.intel.com, broonie@kernel.org
+Cc: linux-spi@vger.kernel.org, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, Christophe Ricard <christophe-h.ricard@st.com>
 List-Id: linux-acpi@vger.kernel.org
-To: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Cc: "ross.zwisler@linux.intel.com" <ross.zwisler@linux.intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, "jmoyer@redhat.com" <jmoyer@redhat.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "linda.knippers@hpe.com" <linda.knippers@hpe.com>
 
-On Wed, Dec 23, 2015 at 12:32 PM, Verma, Vishal L
-<vishal.l.verma@intel.com> wrote:
-> On Wed, 2015-12-23 at 12:28 -0800, Dan Williams wrote:
->> On Sun, Dec 20, 2015 at 1:18 AM,  <vishal@kernel.org> wrote:
->> > From: Vishal Verma <vishal.l.verma@intel.com>
->> >
->> > Enable the gendisk badblocks feature for pmem namespaces.
->> > If the pmem namespace being created has any known poison associated
->> > with
->> > its physical address space, convert the poison ranges to bad sectors
->> > exposed using the badblocks interface.
->> >
->> > Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
->> > ---
->> >  drivers/nvdimm/pmem.c | 124
->> > ++++++++++++++++++++++++++++++++++++++++++++++++++
->> >  1 file changed, 124 insertions(+)
->> >
->> > diff --git a/drivers/nvdimm/pmem.c b/drivers/nvdimm/pmem.c
->> > index 8ee7989..462570f 100644
->> > --- a/drivers/nvdimm/pmem.c
->> > +++ b/drivers/nvdimm/pmem.c
->> [..]
->> > @@ -196,6 +311,15 @@ static int pmem_attach_disk(struct device *dev,
->> >         set_capacity(disk, (pmem->size - pmem->data_offset) / 512);
->> >         pmem->pmem_disk = disk;
->> >
->> > +       ret = disk_alloc_badblocks(disk);
->> > +       if (ret)
->> > +               return ret;
->>
->> I think we should skip allocating a bad block list in the case we find
->> no poison.  Then we can do a simple "if (disk->bb)" to check if there
->> are any bad blocks.
->
-> Sounds good - I'll move this allocation into the (what will be a core)
-> routine that traverses the list, and make it such that we allocate
-> disk->bb iff a poison entry is found for _this_ pmem range.
->
-> It will mean a check at every list node, but that shouldn't matter as
-> this is just init-time overhead.
->
+acpi_gsi_get_irq_type could be use out of gsi purpose.
 
-...or free it on "no poison found".
+Rename and make it available as a resource function.
+
+Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+Signed-off-by: Christophe Ricard <christophe-h.ricard@st.com>
+---
+ drivers/acpi/gsi.c      | 21 +--------------------
+ drivers/acpi/resource.c | 26 ++++++++++++++++++++++++++
+ include/linux/acpi.h    |  1 +
+ 3 files changed, 28 insertions(+), 20 deletions(-)
+
+diff --git a/drivers/acpi/gsi.c b/drivers/acpi/gsi.c
+index fa4585a..ee9e0f2 100644
+--- a/drivers/acpi/gsi.c
++++ b/drivers/acpi/gsi.c
+@@ -17,25 +17,6 @@ enum acpi_irq_model_id acpi_irq_model;
+ 
+ static struct fwnode_handle *acpi_gsi_domain_id;
+ 
+-static unsigned int acpi_gsi_get_irq_type(int trigger, int polarity)
+-{
+-	switch (polarity) {
+-	case ACPI_ACTIVE_LOW:
+-		return trigger == ACPI_EDGE_SENSITIVE ?
+-		       IRQ_TYPE_EDGE_FALLING :
+-		       IRQ_TYPE_LEVEL_LOW;
+-	case ACPI_ACTIVE_HIGH:
+-		return trigger == ACPI_EDGE_SENSITIVE ?
+-		       IRQ_TYPE_EDGE_RISING :
+-		       IRQ_TYPE_LEVEL_HIGH;
+-	case ACPI_ACTIVE_BOTH:
+-		if (trigger == ACPI_EDGE_SENSITIVE)
+-			return IRQ_TYPE_EDGE_BOTH;
+-	default:
+-		return IRQ_TYPE_NONE;
+-	}
+-}
+-
+ /**
+  * acpi_gsi_to_irq() - Retrieve the linux irq number for a given GSI
+  * @gsi: GSI IRQ number to map
+@@ -82,7 +63,7 @@ int acpi_register_gsi(struct device *dev, u32 gsi, int trigger,
+ 
+ 	fwspec.fwnode = acpi_gsi_domain_id;
+ 	fwspec.param[0] = gsi;
+-	fwspec.param[1] = acpi_gsi_get_irq_type(trigger, polarity);
++	fwspec.param[1] = acpi_dev_get_irq_type(trigger, polarity);
+ 	fwspec.param_count = 2;
+ 
+ 	return irq_create_fwspec_mapping(&fwspec);
+diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+index cdc5c25..d02fd53 100644
+--- a/drivers/acpi/resource.c
++++ b/drivers/acpi/resource.c
+@@ -23,6 +23,7 @@
+ #include <linux/export.h>
+ #include <linux/ioport.h>
+ #include <linux/slab.h>
++#include <linux/irq.h>
+ 
+ #ifdef CONFIG_X86
+ #define valid_IRQ(i) (((i) != 0) && ((i) != 2))
+@@ -336,6 +337,31 @@ unsigned long acpi_dev_irq_flags(u8 triggering, u8 polarity, u8 shareable)
+ }
+ EXPORT_SYMBOL_GPL(acpi_dev_irq_flags);
+ 
++/**
++ * acpi_dev_get_irq_type - Determine irq type.
++ * @triggering: Triggering type as provided by ACPI.
++ * @polarity: Interrupt polarity as provided by ACPI.
++ */
++unsigned int acpi_dev_get_irq_type(int triggering, int polarity)
++{
++	switch (polarity) {
++	case ACPI_ACTIVE_LOW:
++		return triggering == ACPI_EDGE_SENSITIVE ?
++		       IRQ_TYPE_EDGE_FALLING :
++		       IRQ_TYPE_LEVEL_LOW;
++	case ACPI_ACTIVE_HIGH:
++		return triggering == ACPI_EDGE_SENSITIVE ?
++		       IRQ_TYPE_EDGE_RISING :
++		       IRQ_TYPE_LEVEL_HIGH;
++	case ACPI_ACTIVE_BOTH:
++		if (triggering == ACPI_EDGE_SENSITIVE)
++			return IRQ_TYPE_EDGE_BOTH;
++	default:
++		return IRQ_TYPE_NONE;
++	}
++}
++EXPORT_SYMBOL_GPL(acpi_dev_get_irq_type);
++
+ static void acpi_dev_irqresource_disabled(struct resource *res, u32 gsi)
+ {
+ 	res->start = gsi;
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 1991aea..42adb80 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -318,6 +318,7 @@ bool acpi_dev_resource_address_space(struct acpi_resource *ares,
+ bool acpi_dev_resource_ext_address_space(struct acpi_resource *ares,
+ 					 struct resource_win *win);
+ unsigned long acpi_dev_irq_flags(u8 triggering, u8 polarity, u8 shareable);
++unsigned int acpi_dev_get_irq_type(int triggering, int polarity);
+ bool acpi_dev_resource_interrupt(struct acpi_resource *ares, int index,
+ 				 struct resource *res);
+ 
+-- 
+2.1.4
+
