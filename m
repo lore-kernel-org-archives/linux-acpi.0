@@ -1,42 +1,43 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v2 0/2] i2c:dw: Add APM X-Gene ACPI I2C device support
-Date: Wed, 23 Dec 2015 13:40:09 +0200
-Message-ID: <20151223114009.GM1758@lahna.fi.intel.com>
-References: <1449782357-22982-1-git-send-email-lho@apm.com>
- <566F6485.2000508@amd.com>
- <20151215132721.GJ1762@lahna.fi.intel.com>
- <56702923.9010305@amd.com>
- <20151215145953.GK1762@lahna.fi.intel.com>
- <1450863241.7740.30.camel@kxue-X58A-UD3R>
- <20151223095237.GJ1758@lahna.fi.intel.com>
- <BLUPR12MB0451770284D7788418640F699DE60@BLUPR12MB0451.namprd12.prod.outlook.com>
- <20151223100959.GK1758@lahna.fi.intel.com>
- <BLUPR12MB0451852E89B0848DA16067609DE60@BLUPR12MB0451.namprd12.prod.outlook.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-i2c-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <BLUPR12MB0451852E89B0848DA16067609DE60@BLUPR12MB0451.namprd12.prod.outlook.com>
-Sender: linux-i2c-owner@vger.kernel.org
-To: "Zheng, Ivan" <Ivan.Zheng@amd.com>
-Cc: "Xue, Ken" <Ken.Xue@amd.com>, "wsa@the-dreams.de" <wsa@the-dreams.de>, "Suthikulpanit, Suravee" <Suravee.Suthikulpanit@amd.com>, Loc Ho <lho@apm.com>, "rjw@rjwysocki.net" <rjw@rjwysocki.net>, "lenb@kernel.org" <lenb@kernel.org>, "linux-i2c@vger.kernel.org" <linux-i2c@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "jcm@redhat.com" <jcm@redhat.com>, "patches@apm.com" <patches@apm.com>, "Hurwitz, Sherry" <sherry.hurwitz@amd.com>, "Duran, Leo" <leo.duran@amd.com>, Hanjun Guo <hanjun.guo@linaro.org>, Al Stone <al.stone@linaro.org>, "Yu, Xiangliang" <Xiangliang.Yu@amd.com>
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v2 0/3] device property: post merge fixes
+Date: Wed, 23 Dec 2015 15:34:41 +0200
+Message-ID: <1450877684-76316-1-git-send-email-andriy.shevchenko@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([134.134.136.65]:5399 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751766AbbLWNey (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 23 Dec 2015 08:34:54 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, heikki.krogerus@linux.intel.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-On Wed, Dec 23, 2015 at 11:24:44AM +0000, Zheng, Ivan wrote:
-> I'm a BIOS engineer and my point is that such non-ACPI defined methods
-> rely on BIOS implementation, so how the generic I2C driver works on a
-> platform without such methods? Should the vendor implement their own
-> driver in such case?
+Three fixes to device property API.
 
-Those methods are by *no* means meant for generic driver. They are
-specific to DesignWare I2C driver.
+Patch 1 is a simple style fix to be folded into previous Andrew's patch to
+allow old gcc to build.
 
-If you need to specify bus speed that the device is supposed to use,
-you put it to the I2cSerialBus() resource (ConnectionSpeed)...
+There is a crash in linux-next
+ BUG: unable to handle kernel NULL pointer dereference at 0000000000000008
+ IP: [<ffffffff8145e8a6>] fwnode_property_present+0x16/0x30
 
-> I think Windows driver use ConnectionSpeed field in I2CSerialBus
-> declaration for a certain device and it's defined in ACPI 5.0.
+Check for fwnode pointer before dereference (patch 2).
 
-..like you say here.
+Patch 3 prevents to allocate buffers with 0 length (the result maybe surprising
+to someone).
 
-We just need to add support for ConnectionSpeed to Linux I2C core.
+
+Andy Shevchenko (2):
+  device property: add spaces to PROPERTY_ENTRY_STRING macro
+  device property: avoid allocations of 0 length
+
+Heikki Krogerus (1):
+  device property: the secondary fwnode needs to depend on the primary
+
+ drivers/base/property.c  | 14 ++++++++++----
+ include/linux/property.h |  2 +-
+ 2 files changed, 11 insertions(+), 5 deletions(-)
+
+-- 
+2.6.4
+
