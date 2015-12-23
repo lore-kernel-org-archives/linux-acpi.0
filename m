@@ -1,63 +1,39 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v2 0/2] i2c:dw: Add APM X-Gene ACPI I2C device support
-Date: Wed, 23 Dec 2015 12:17:28 +0200
-Message-ID: <20151223101728.GL1758@lahna.fi.intel.com>
-References: <1449782357-22982-1-git-send-email-lho@apm.com>
- <566F6485.2000508@amd.com>
- <20151215132721.GJ1762@lahna.fi.intel.com>
- <56702923.9010305@amd.com>
- <20151215145953.GK1762@lahna.fi.intel.com>
- <1450863241.7740.30.camel@kxue-X58A-UD3R>
- <20151223095237.GJ1758@lahna.fi.intel.com>
- <1450864789.7740.35.camel@kxue-X58A-UD3R>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH v1 1/1] device property: add spaces to PROPERTY_ENTRY_STRING macro
+Date: Wed, 23 Dec 2015 12:46:45 +0200
+Message-ID: <1450867605-1984-1-git-send-email-andriy.shevchenko@linux.intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:46161 "EHLO mga11.intel.com"
+Received: from mga03.intel.com ([134.134.136.65]:11090 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933814AbbLWKRf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 23 Dec 2015 05:17:35 -0500
-Content-Disposition: inline
-In-Reply-To: <1450864789.7740.35.camel@kxue-X58A-UD3R>
+	id S1754643AbbLWKqu (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 23 Dec 2015 05:46:50 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ken Xue <ken.xue@amd.com>
-Cc: wsa@the-dreams.de, Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Loc Ho <lho@apm.com>, rjw@rjwysocki.net, lenb@kernel.org, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, jcm@redhat.com, patches@apm.com, "Hurwitz, Sherry" <sherry.hurwitz@amd.com>, "Duran, Leo" <leo.duran@amd.com>, Hanjun Guo <hanjun.guo@linaro.org>, Al Stone <al.stone@linaro.org>, Ivan.Zheng@amd.com, Xiangliang.Yu@amd.com
+To: Andrew Morton <akpm@linux-foundation.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-On Wed, Dec 23, 2015 at 05:59:49PM +0800, Ken Xue wrote:
-> On Wed, 2015-12-23 at 11:52 +0200, Mika Westerberg wrote:
-> > On Wed, Dec 23, 2015 at 05:34:01PM +0800, Ken Xue wrote:
-> > > 1) Regarding
-> > > https://msdn.microsoft.com/en-us/library/windows/hardware/dn919852(v=vs.85).aspx
-> > > , Window I2C driver should pass MITT test. There are 5 I2C devices
-> > > connect to one I2C bus for test. And those devices defined different
-> > > "ConnectionSpeed" over the I2C bus by ACPI resource "I2CSerialBus".
-> > > 
-> > > During test, I2C bus should run in different "ConnectionSpeed" of
-> > > device.
-> > > 
-> > > That means windows driver can modify I2C bus speed to match the
-> > > "ConnectionSpeed" of device on-the-fly. Static value from SSCN and FMCN
-> > > can not work for WITT test cases.
-> > 
-> > That is why there are *CNT methods for all supported I2C modes:
-> > 
-> >   - SSCN() - returns for standard mode (100kHz)
-> >   - FMCN() - returns for fast mode (400kHz)
-> >   - FPCN() - returns for fast mode+ (1MHz)
-> >  
-> > for High-speed mode I'm not sure what the method name is ;-)
-> > 
-> > Then the Windows driver switches between those based on what the
-> > ConnectionSpeed is in the ACPI I2C connector.
-> 
-> Window driver can set Bus speed based on "ConnectionSpeed". But Current
-> Linux driver only sets Bus speed during probe. How can Linux diver
-> determine which Bus speed should be applied, if all *CNT methods return
-> non-zero? 
+Just a style fix, no functional changes.
 
-By default Linux driver uses 400kHz so it picks values returned from
-FMCN(). You can hack clk_freq in the driver to use 100kHz which then
-picks SSCN().
+To be folded to Andrew's patch.
 
-There is no support for reading ConnectionSpeed in Linux yet.
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ include/linux/property.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/linux/property.h b/include/linux/property.h
+index b8c4e42..b51fcd3 100644
+--- a/include/linux/property.h
++++ b/include/linux/property.h
+@@ -230,7 +230,7 @@ struct property_entry {
+ 	.name = _name_,					\
+ 	.length = sizeof(_val_),			\
+ 	.is_string = true,				\
+-	{ .value = {.str = _val_} },			\
++	{ .value = { .str = _val_ } },			\
+ }
+ 
+ #define PROPERTY_ENTRY_BOOL(_name_)		\
+-- 
+2.6.4
+
