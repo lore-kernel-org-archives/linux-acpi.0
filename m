@@ -1,43 +1,46 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH] ACPI / debugger: Fix an issue a flag is modified without locking
-Date: Thu, 24 Dec 2015 14:16:26 +0800
-Message-ID: <e23c86107f37c1c173056d55aded280c67244723.1450937683.git.lv.zheng@intel.com>
-References: <cover.1446790780.git.lv.zheng@intel.com>
+From: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: [patch 1/2] ACPI / debugger: remove some unneeded conditions
+Date: Thu, 24 Dec 2015 10:23:03 +0300
+Message-ID: <20151224072303.GA29642@mwanda>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:16910 "EHLO mga04.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932251AbbLXGQa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 24 Dec 2015 01:16:30 -0500
-In-Reply-To: <cover.1446790780.git.lv.zheng@intel.com>
+Received: from aserp1040.oracle.com ([141.146.126.69]:41718 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752172AbbLXHXi (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Dec 2015 02:23:38 -0500
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lv Zheng <lv.zheng@intel.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
 
-There is one line of code, executed out of locking due to rebase mistakes.
-This patch fixes this issue.
+"count" is unsigned so checking for less than zero here causes a static
+checker warning.  And really it's better to let the access_ok() check
+fail if the user passes in a NULL "buf" pointer because -EFAULT is the
+correct error code.
 
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- drivers/acpi/acpi_dbg.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
 diff --git a/drivers/acpi/acpi_dbg.c b/drivers/acpi/acpi_dbg.c
-index 381beb2..fa18bd0 100644
+index 381beb2..f2c92ab 100644
 --- a/drivers/acpi/acpi_dbg.c
 +++ b/drivers/acpi/acpi_dbg.c
-@@ -516,10 +516,10 @@ static int acpi_aml_open(struct inode *inode, struct file *file)
- 			ret = -EINVAL;
- 			goto err_lock;
- 		}
--		acpi_aml_io.flags |= ACPI_AML_OPENED;
- 		pr_debug("Debugger thread initialized.\n");
+@@ -610,8 +610,6 @@ static ssize_t acpi_aml_read(struct file *file, char __user *buf,
+ 	int ret = 0;
+ 	int size = 0;
  
- 		mutex_lock(&acpi_aml_io.lock);
-+		acpi_aml_io.flags |= ACPI_AML_OPENED;
- 		acpi_aml_io.out_crc.head = acpi_aml_io.out_crc.tail = 0;
- 		acpi_aml_io.in_crc.head = acpi_aml_io.in_crc.tail = 0;
- 		pr_debug("Debugger interface opened.\n");
--- 
-1.7.10
-
+-	if (!buf || count < 0)
+-		return -EINVAL;
+ 	if (!count)
+ 		return 0;
+ 	if (!access_ok(VERIFY_WRITE, buf, count))
+@@ -681,8 +679,6 @@ static ssize_t acpi_aml_write(struct file *file, const char __user *buf,
+ 	int ret = 0;
+ 	int size = 0;
+ 
+-	if (!buf || count < 0)
+-		return -EINVAL;
+ 	if (!count)
+ 		return 0;
+ 	if (!access_ok(VERIFY_READ, buf, count))
