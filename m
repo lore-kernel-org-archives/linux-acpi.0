@@ -1,57 +1,101 @@
-From: Pali =?utf-8?q?Roh=C3=A1r?= <pali.rohar@gmail.com>
-Subject: Re: [PATCH 2/5] dell-wmi: Use acpi_video_handles_brightness_key_presses()
-Date: Thu, 24 Dec 2015 11:04:05 +0100
-Message-ID: <201512241104.06427@pali>
-References: <1450807792-4980-1-git-send-email-hdegoede@redhat.com> <1450807792-4980-3-git-send-email-hdegoede@redhat.com> <20151222195319.GN7244@malice.jf.intel.com>
+From: Jayachandran C <jchandra@broadcom.com>
+Subject: [PATCH v4 0/5] ACPI based PCI support for arm64
+Date: Thu, 24 Dec 2015 17:27:27 +0530
+Message-ID: <1450958252-29892-1-git-send-email-jchandra@broadcom.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed;
-  boundary="nextPart725487516.WvkxoVGbNW";
-  protocol="application/pgp-signature";
-  micalg=pgp-sha1
-Content-Transfer-Encoding: 7bit
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <20151222195319.GN7244@malice.jf.intel.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Darren Hart <dvhart@infradead.org>
-Cc: Hans de Goede <hdegoede@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Corentin Chary <corentin.chary@gmail.com>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, =?utf-8?q?Micha=C5=82_K=C4=99pie=C5=84?= <kernel@kempniu.pl>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, acpi4asus-user@lists.sourceforge.net, ibm-acpi-devel@lists.sourceforge.net
+Content-Type: text/plain
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-gw1-out.broadcom.com ([216.31.210.62]:62593 "EHLO
+	mail-gw1-out.broadcom.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752965AbbLXLes (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Dec 2015 06:34:48 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-pci@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Jayachandran C <jchandra@broadcom.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tn@semihalf.com>
 
---nextPart725487516.WvkxoVGbNW
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: quoted-printable
+This patchset provides a generic ACPI based PCI host controller
+implementation and uses it on arm64.
 
-On Tuesday 22 December 2015 20:53:19 Darren Hart wrote:
-> On Tue, Dec 22, 2015 at 07:09:49PM +0100, Hans de Goede wrote:
->=20
-> + Pali
->=20
-> > Use the new acpi_video_handles_brightness_key_presses function to
-> > check if we should report brightness key-presses.
-> >=20
-> > This makes the code both easier to read and makes it properly
-> > report key-presses when acpi-video is not reporting them for
-> > reasons other then the backlight type being vendor.
-> >=20
-> > Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+The first patch moves the common code to handle MCFG ACPI table from
+arch/x86 to drivers/acpi/pci_mcfg.c. The last patch in the patchset
+provides the generic implementation of an ACPI based PCI host
+controller with a new file drivers/acpi/pci_host_acpi.c. The other
+patches are to fix up arm64 and ACPI code to work with these two
+patches.
 
-After discussion I'm fine with this patch. Add my
-Acked-by: Pali Roh=C3=A1r <pali.rohar@gmail.com>
+The pci host controller implementation keeps a reference to
+pci_mmcfg_region entry so that config space access is done with a
+simple mapping and generic PCI config read/write. There is also an
+implementation of raw_pci_read/raw_pci_write provided by walking the
+pci_mmcfg_list
 
-=2D-=20
-Pali Roh=C3=A1r
-pali.rohar@gmail.com
+The patchset is against 4.4-rc6, but it can be applied to pci/next
+with a very minor fixup.  This is tested with arm64 QEMU and OVMF
+and on x86 with qemu.
 
---nextPart725487516.WvkxoVGbNW
-Content-Type: application/pgp-signature; name=signature.asc 
-Content-Description: This is a digitally signed message part.
+More testing or comments are welcome. The idea is to provide a
+simpler alternative for ACPI PCI support in arm64, any feedback
+from PCI or ACPI maintainers would be appreciated on this front.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+Thanks,
+JC.
 
-iEYEABECAAYFAlZ7wxYACgkQi/DJPQPkQ1ID6ACgjNMUfUCgBP6RHLzCEKp09YID
-sn0An0IS7qCDQk3cO2PxXhIEXZsofEl4
-=CixW
------END PGP SIGNATURE-----
+v3->v4:
+ - Handle suggestions from Arnd Bergmann <arnd@arndb.de>
+    * move the implementation of host controller to drivers/acpi
+      under config option CONFIG_ACPI_PCI_HOST_GENERIC
+    * remove unnecessary arch hooks (this done as much as possible
+      without affecting the scope of the patch, will need another
+      separate patchset for the rest).
+    * remove pcibios_assign_resources fs_initcall that was added
+ - fixup domain_nr assignment code, and move ACPI companion set
+   to PCI code.
+ - Call map resource correctly in setup code
+ - fix kbuild robot report
+ - More testing
 
---nextPart725487516.WvkxoVGbNW--
+v2->v3:
+ - Move maintenance of the pci_mmcfg_list to drivers/acpi/pci_mcfg.c
+   without changing x86 logic
+ - use the pci_mmcfg_list in ARM64 implementation
+ - provide raw_pci_read/raw_pci_write
+
+v1->v2:
+ - use CONFIG_PCI_MMCONFIG on arm64, provide a weak implementation
+   of pci_mmcfg_late_init for arm64.
+ - The real implementation of pci_mmcfg_late_init is in pci-host-acpi.c
+   and it will save the MCFG table entries to an array. Earlier this
+   was done with an arch_init call
+ - remove unneeded pci_bus_add_devices call and fix MCFG saving code
+ - Added a patch to ACPI pci_root.c to handle arm64 PCI IO resources
+
+Jayachandran C (5):
+  APCI: MCFG: Move mmcfg_list management to drivers/acpi
+  PCI: Handle NULL parent in pci_bus_assign_domain_nr
+  ACPI: PCI: Support platforms that need pci_remap_iospace
+  arm64: pci: Add ACPI support
+  PCI: ACPI: Add a generic ACPI based host controller
+
+ arch/arm64/Kconfig             |   3 +
+ arch/arm64/kernel/pci.c        |  34 ++++-
+ arch/x86/include/asm/pci_x86.h |  24 +---
+ arch/x86/pci/mmconfig-shared.c | 269 +++++-----------------------------
+ arch/x86/pci/mmconfig_32.c     |   1 +
+ arch/x86/pci/mmconfig_64.c     |   1 +
+ drivers/acpi/Kconfig           |   8 ++
+ drivers/acpi/Makefile          |   2 +
+ drivers/acpi/pci_host_acpi.c   | 186 ++++++++++++++++++++++++
+ drivers/acpi/pci_mcfg.c        | 317 +++++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/pci_root.c        |  62 +++++++-
+ drivers/acpi/resource.c        |   2 +
+ drivers/pci/pci.c              |  19 ++-
+ drivers/pci/probe.c            |   2 +
+ include/linux/pci-acpi.h       |  59 ++++++++
+ 15 files changed, 724 insertions(+), 265 deletions(-)
+ create mode 100644 drivers/acpi/pci_host_acpi.c
+ create mode 100644 drivers/acpi/pci_mcfg.c
+
+-- 
+1.9.1
+
