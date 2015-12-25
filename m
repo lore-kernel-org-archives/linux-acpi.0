@@ -1,44 +1,69 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH] ACPI / debugger: Fix a redundant mutex unlock issue in acpi_aml_open()
-Date: Fri, 25 Dec 2015 11:22:32 +0800
-Message-ID: <75c5d460bbe5f0d55c442c2d2e144adfc4fe7da2.1451013194.git.lv.zheng@intel.com>
-References: <cover.1446790780.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1446790780.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: [patch 2/2] ACPI / debugger: copy_to_user doesn't return errors
+Date: Fri, 25 Dec 2015 03:25:19 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BB0A8E8@SHSMSX101.ccr.corp.intel.com>
+References: <20151224072437.GB29642@mwanda>
+ <alpine.DEB.2.02.1512240838170.2053@localhost6.localdomain6>
+ <20151224191548.GB5284@mwanda>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga03.intel.com ([134.134.136.65]:15044 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753343AbbLYDZX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Dec 2015 22:25:23 -0500
+In-Reply-To: <20151224191548.GB5284@mwanda>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Dan Carpenter <dan.carpenter@oracle.com>, Julia Lawall <julia.lawall@lip6.fr>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "kernel-janitors@vger.kernel.org" <kernel-janitors@vger.kernel.org>
 
-Fix a double mutex_unlock() issue where acpi_initialize_debugger() is
-called with the mutex already unlocked.
+Hi,
 
-Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- drivers/acpi/acpi_dbg.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+> From: Dan Carpenter [mailto:dan.carpenter@oracle.com]
+> Sent: Friday, December 25, 2015 3:16 AM
+> Subject: Re: [patch 2/2] ACPI / debugger: copy_to_user doesn't return errors
+> 
+> On Thu, Dec 24, 2015 at 08:39:06AM +0100, Julia Lawall wrote:
+> > On Thu, 24 Dec 2015, Dan Carpenter wrote:
+> >
+> > > The copy_to/from_user() functions don't return error codes, they return
+> > > the number of bytes remaining.  We had intended to return -EFUALT here.
+> > > We actually have already checked access_ok() in an earlier function so
+> > > I don't think these functions will fail but let's fix it anyway.
+> > >
+> > > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> > >
+> > > diff --git a/drivers/acpi/acpi_dbg.c b/drivers/acpi/acpi_dbg.c
+> > > index f2c92ab..2a1777b 100644
+> > > --- a/drivers/acpi/acpi_dbg.c
+> > > +++ b/drivers/acpi/acpi_dbg.c
+> > > @@ -592,9 +592,10 @@ static int acpi_aml_read_user(char __user *buf,
+> int len)
+> > >  	smp_rmb();
+> > >  	p = &crc->buf[crc->tail];
+> > >  	n = min(len, circ_count_to_end(crc));
+> > > -	ret = copy_to_user(buf, p, n);
+> > > -	if (IS_ERR_VALUE(ret))
+> >
+> > I'm not familiar with IS_ERR_VALUE.  Is it to allow functions that
+> > return unsigned values to also return negative error codes?
+> 
+> Yes, but here it is used as a substitue for checking if (ret < 0) or if
+> (ret >= 0).  I would have prefered to open code it.  Also I prefer
+> if (ret) for when the value is either zero or negative error codes but
+> here we have standardized on IS_ERR_VALUE(ret) for everything.
+[Lv Zheng] 
+This patch looks correct.
+It's good for me to know the rule for copy_to/from_user().
+Thanks for pointing out.
 
-diff --git a/drivers/acpi/acpi_dbg.c b/drivers/acpi/acpi_dbg.c
-index fa18bd0..9c31b08 100644
---- a/drivers/acpi/acpi_dbg.c
-+++ b/drivers/acpi/acpi_dbg.c
-@@ -514,7 +514,7 @@ static int acpi_aml_open(struct inode *inode, struct file *file)
- 		if (ACPI_FAILURE(status)) {
- 			pr_err("Failed to initialize debugger.\n");
- 			ret = -EINVAL;
--			goto err_lock;
-+			goto err_exit;
- 		}
- 		pr_debug("Debugger thread initialized.\n");
- 
-@@ -531,6 +531,7 @@ err_lock:
- 			acpi_aml_active_reader = NULL;
- 	}
- 	mutex_unlock(&acpi_aml_io.lock);
-+err_exit:
- 	return ret;
- }
- 
--- 
-1.7.10
+Thanks and best regards
+-Lv
+
+> 
+> regards,
+> dan carpenter
+
