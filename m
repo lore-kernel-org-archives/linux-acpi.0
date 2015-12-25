@@ -1,52 +1,100 @@
-From: Dan Carpenter <dan.carpenter@oracle.com>
-Subject: Re: [patch 2/2] ACPI / debugger: copy_to_user doesn't return errors
-Date: Thu, 24 Dec 2015 22:15:48 +0300
-Message-ID: <20151224191548.GB5284@mwanda>
-References: <20151224072437.GB29642@mwanda>
- <alpine.DEB.2.02.1512240838170.2053@localhost6.localdomain6>
+From: "Zheng, Lv" <lv.zheng@intel.com>
+Subject: RE: ACPI / debugger: Add IO interface to access debugger
+ functionalities
+Date: Fri, 25 Dec 2015 00:21:42 +0000
+Message-ID: <1AE640813FDE7649BE1B193DEA596E883BB0A839@SHSMSX101.ccr.corp.intel.com>
+References: <20151222194840.GA13871@mwanda>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:21601 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753536AbbLXTPx (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Dec 2015 14:15:53 -0500
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.2.02.1512240838170.2053@localhost6.localdomain6>
+Received: from mga14.intel.com ([192.55.52.115]:9023 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752474AbbLYAVv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 24 Dec 2015 19:21:51 -0500
+In-Reply-To: <20151222194840.GA13871@mwanda>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Julia Lawall <julia.lawall@lip6.fr>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Lv Zheng <lv.zheng@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, kernel-janitors@vger.kernel.org
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Thu, Dec 24, 2015 at 08:39:06AM +0100, Julia Lawall wrote:
-> On Thu, 24 Dec 2015, Dan Carpenter wrote:
+Hi,
+
+> From: linux-acpi-owner@vger.kernel.org [mailto:linux-acpi-
+> owner@vger.kernel.org] On Behalf Of Dan Carpenter
+> Subject: re: ACPI / debugger: Add IO interface to access debugger
+> functionalities
 > 
-> > The copy_to/from_user() functions don't return error codes, they return
-> > the number of bytes remaining.  We had intended to return -EFUALT here.
-> > We actually have already checked access_ok() in an earlier function so
-> > I don't think these functions will fail but let's fix it anyway.
-> > 
-> > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> > 
-> > diff --git a/drivers/acpi/acpi_dbg.c b/drivers/acpi/acpi_dbg.c
-> > index f2c92ab..2a1777b 100644
-> > --- a/drivers/acpi/acpi_dbg.c
-> > +++ b/drivers/acpi/acpi_dbg.c
-> > @@ -592,9 +592,10 @@ static int acpi_aml_read_user(char __user *buf, int len)
-> >  	smp_rmb();
-> >  	p = &crc->buf[crc->tail];
-> >  	n = min(len, circ_count_to_end(crc));
-> > -	ret = copy_to_user(buf, p, n);
-> > -	if (IS_ERR_VALUE(ret))
+> Hello Lv Zheng,
 > 
-> I'm not familiar with IS_ERR_VALUE.  Is it to allow functions that
-> return unsigned values to also return negative error codes?
+> The patch 8cfb0cdf07e2: "ACPI / debugger: Add IO interface to access
+> debugger functionalities" from Dec 3, 2015, leads to the following
+> static checker warning:
+> 
+> 	drivers/acpi/acpi_dbg.c:533 acpi_aml_open()
+> 	error: double unlock 'mutex:&acpi_aml_io.lock'
+> 
+> drivers/acpi/acpi_dbg.c
+>    498          } else {
+>    499                  /*
+>    500                   * No writer is allowed unless the debugger thread is
+>    501                   * ready.
+>    502                   */
+>    503                  if (!(acpi_aml_io.flags & ACPI_AML_OPENED)) {
+>    504                          ret = -ENODEV;
+>    505                          goto err_lock;
+> 
+> Holding lock.
+> 
+>    506                  }
+>    507          }
+>    508          if (acpi_aml_active_reader == file) {
+>    509                  pr_debug("Opening debugger interface.\n");
+>    510                  mutex_unlock(&acpi_aml_io.lock);
+>    511
+>    512                  pr_debug("Initializing debugger thread.\n");
+>    513                  status = acpi_initialize_debugger();
+>    514                  if (ACPI_FAILURE(status)) {
+>    515                          pr_err("Failed to initialize debugger.\n");
+>    516                          ret = -EINVAL;
+>    517                          goto err_lock;
+> 
+> Not holding lock.
+[Lv Zheng] 
+Oops.
+This is indeed a problem.
+I'll send another fix for this.
 
-Yes, but here it is used as a substitue for checking if (ret < 0) or if
-(ret >= 0).  I would have prefered to open code it.  Also I prefer
-if (ret) for when the value is either zero or negative error codes but
-here we have standardized on IS_ERR_VALUE(ret) for everything.
+Thanks and best regards
+-Lv
 
-regards,
-dan carpenter
-
+> 
+>    518                  }
+>    519                  acpi_aml_io.flags |= ACPI_AML_OPENED;
+>    520                  pr_debug("Debugger thread initialized.\n");
+>    521
+>    522                  mutex_lock(&acpi_aml_io.lock);
+>    523                  acpi_aml_io.out_crc.head = acpi_aml_io.out_crc.tail = 0;
+>    524                  acpi_aml_io.in_crc.head = acpi_aml_io.in_crc.tail = 0;
+>    525                  pr_debug("Debugger interface opened.\n");
+>    526          }
+>    527          acpi_aml_io.users++;
+>    528  err_lock:
+>    529          if (IS_ERR_VALUE(ret)) {
+>    530                  if (acpi_aml_active_reader == file)
+>    531                          acpi_aml_active_reader = NULL;
+>    532          }
+>    533          mutex_unlock(&acpi_aml_io.lock);
+> 
+> Double onlock.
+> 
+>    534          return ret;
+>    535  }
+> 
+> regards,
+> dan carpenter
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
