@@ -1,40 +1,64 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: Static check result
-Date: Sat, 26 Dec 2015 02:18:04 +0100
-Message-ID: <25920301.U4PzIWVMv8@vostro.rjw.lan>
-References: <1AE640813FDE7649BE1B193DEA596E883BB0C17F@SHSMSX101.ccr.corp.intel.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] Power management and ACPI fixes for v4.4-rc7
+Date: Sat, 26 Dec 2015 22:40:01 +0100
+Message-ID: <CAJZ5v0gX65pDn-h-XG0JBRJvm+RuvSOgwNU52BbcAPxr2VvCyg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:46229 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754054AbbLZArl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Dec 2015 19:47:41 -0500
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E883BB0C17F@SHSMSX101.ccr.corp.intel.com>
+Received: from mail-lf0-f45.google.com ([209.85.215.45]:36054 "EHLO
+	mail-lf0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751601AbbLZVkE (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 26 Dec 2015 16:40:04 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Dan Carpenter (dan.carpenter@oracle.com)" <dan.carpenter@oracle.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Friday, December 25, 2015 05:07:09 AM Zheng, Lv wrote:
-> Hi, Rafael
-> 
-> Dan has reported several issues related in acpi_dbg.c.
-> They were caught by the static checkers.
-> And the fixes are here:
-> https://patchwork.kernel.org/patch/7915401/
-> https://patchwork.kernel.org/patch/7915441/
-> https://patchwork.kernel.org/patch/7915461/
-> https://patchwork.kernel.org/patch/7920421/
-> Hope you can take a look when you have time.
+Hi Linus,
 
-Yes, I will, thanks!
+Please pull from
 
-> Thanks in advance.
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ pm+acpi-4.4-rc7
 
-No problem.
+to receive power management and ACPI fixes for v4.4-rc7 with top-most
+commit 43b28ca8dfb07f2faa44204b3b3e7cb016468847
 
-Thanks,
-Rafael
+ Merge branches 'acpi-processor' and 'pm-cpufreq'
 
+on top of commit 4ef7675344d687a0ef5b0d7c0cee12da005870c0
+
+ Linux 4.4-rc6
+
+These fix an ACPI processor driver regression introduced during
+the 4.3 cycle and a mistake in the recently added SCPI support
+in the arm_big_little cpufreq driver.
+
+Specifics:
+
+ - Fix a thermal management issue introduced by an ACPI processor
+   driver change made during the 4.3 development cycle that failed
+   to return 0 from a function on success which triggered an error
+   cleanup path every time it had been called that deleted useful
+   data structures created previously (Srinivas Pandruvada).
+
+ - Fix a variable data type issue in the arm_big_little cpufreq
+   driver's SCPI support code added recently that prevents error
+   handling in there from working correctly (Dan Carpenter).
+
+Thanks!
+
+
+---------------
+
+Dan Carpenter (1):
+      cpufreq: scpi-cpufreq: signedness bug in scpi_get_dvfs_info()
+
+Srinivas Pandruvada (1):
+      ACPI / processor: Fix thermal cooling device regression
+
+---------------
+
+ drivers/acpi/processor_driver.c | 3 ++-
+ drivers/cpufreq/scpi-cpufreq.c  | 2 +-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
