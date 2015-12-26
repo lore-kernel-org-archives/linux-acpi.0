@@ -1,76 +1,40 @@
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH v2 16/16] ACPI/EINJ: Allow memory error injection to NVDIMM
-Date: Fri, 25 Dec 2015 15:09:25 -0700
-Message-ID: <1451081365-15190-16-git-send-email-toshi.kani@hpe.com>
-References: <1451081365-15190-1-git-send-email-toshi.kani@hpe.com>
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1451081365-15190-1-git-send-email-toshi.kani@hpe.com>
-Sender: owner-linux-mm@kvack.org
-To: akpm@linux-foundation.org, bp@alien8.de
-Cc: linux-arch@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Vishal Verma <vishal.l.verma@intel.com>, Tony Luck <tony.luck@intel.com>, Dan Williams <dan.j.williams@intel.com>, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: Static check result
+Date: Sat, 26 Dec 2015 02:18:04 +0100
+Message-ID: <25920301.U4PzIWVMv8@vostro.rjw.lan>
+References: <1AE640813FDE7649BE1B193DEA596E883BB0C17F@SHSMSX101.ccr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:46229 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754054AbbLZArl (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 25 Dec 2015 19:47:41 -0500
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E883BB0C17F@SHSMSX101.ccr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Dan Carpenter (dan.carpenter@oracle.com)" <dan.carpenter@oracle.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-In the case of memory error injection, einj_error_inject() checks
-if a target address is System RAM.  Change this check to allow
-injecting a memory error to NVDIMM by calling region_intersects()
-with IORES_DESC_PERSISTENT_MEMORY.  This enables memory error
-testing on both System RAM and NVDIMM.
+On Friday, December 25, 2015 05:07:09 AM Zheng, Lv wrote:
+> Hi, Rafael
+> 
+> Dan has reported several issues related in acpi_dbg.c.
+> They were caught by the static checkers.
+> And the fixes are here:
+> https://patchwork.kernel.org/patch/7915401/
+> https://patchwork.kernel.org/patch/7915441/
+> https://patchwork.kernel.org/patch/7915461/
+> https://patchwork.kernel.org/patch/7920421/
+> Hope you can take a look when you have time.
 
-In addition, page_is_ram() is replaced with region_intersects()
-with IORESOURCE_SYSTEM_RAM, so that it can verify a target address
-range with the requested size.
+Yes, I will, thanks!
 
-Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
-Cc: Borislav Petkov <bp@alien8.de>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Cc: Tony Luck <tony.luck@intel.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org
-Acked-by: Tony Luck <tony.luck@intel.com>
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
----
- drivers/acpi/apei/einj.c |   15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
+> Thanks in advance.
 
-diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
-index 0431883..16cae66 100644
---- a/drivers/acpi/apei/einj.c
-+++ b/drivers/acpi/apei/einj.c
-@@ -519,7 +519,7 @@ static int einj_error_inject(u32 type, u32 flags, u64 param1, u64 param2,
- 			     u64 param3, u64 param4)
- {
- 	int rc;
--	unsigned long pfn;
-+	u64 base_addr, size;
- 
- 	/* If user manually set "flags", make sure it is legal */
- 	if (flags && (flags &
-@@ -545,10 +545,17 @@ static int einj_error_inject(u32 type, u32 flags, u64 param1, u64 param2,
- 	/*
- 	 * Disallow crazy address masks that give BIOS leeway to pick
- 	 * injection address almost anywhere. Insist on page or
--	 * better granularity and that target address is normal RAM.
-+	 * better granularity and that target address is normal RAM or
-+	 * NVDIMM.
- 	 */
--	pfn = PFN_DOWN(param1 & param2);
--	if (!page_is_ram(pfn) || ((param2 & PAGE_MASK) != PAGE_MASK))
-+	base_addr = param1 & param2;
-+	size = ~param2 + 1;
-+
-+	if (((param2 & PAGE_MASK) != PAGE_MASK) ||
-+	    ((region_intersects(base_addr, size, IORESOURCE_SYSTEM_RAM,
-+			IORES_DESC_NONE) != REGION_INTERSECTS) &&
-+	     (region_intersects(base_addr, size, IORESOURCE_MEM,
-+			IORES_DESC_PERSISTENT_MEMORY) != REGION_INTERSECTS)))
- 		return -EINVAL;
- 
- inject:
+No problem.
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Thanks,
+Rafael
+
