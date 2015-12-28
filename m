@@ -1,31 +1,42 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v8 3/3] ACPI / spi: attach gpio irq from acpi description
- to spi device
-Date: Mon, 28 Dec 2015 13:36:28 +0200
-Message-ID: <20151228113628.GS1758@lahna.fi.intel.com>
-References: <1450909535-32138-1-git-send-email-christophe-h.ricard@st.com>
- <1450909535-32138-4-git-send-email-christophe-h.ricard@st.com>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [PATCH v2 09/16] drivers: Initialize resource entry to zero
+Date: Tue, 29 Dec 2015 08:37:33 +1100
+Message-ID: <20151228213733.GA16152@verge.net.au>
+References: <1451081365-15190-1-git-send-email-toshi.kani@hpe.com>
+ <1451081365-15190-9-git-send-email-toshi.kani@hpe.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:24791 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751433AbbL1Lgj (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 28 Dec 2015 06:36:39 -0500
+Return-path: <owner-linux-mm@kvack.org>
 Content-Disposition: inline
-In-Reply-To: <1450909535-32138-4-git-send-email-christophe-h.ricard@st.com>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <1451081365-15190-9-git-send-email-toshi.kani@hpe.com>
+Sender: owner-linux-mm@kvack.org
+To: Toshi Kani <toshi.kani@hpe.com>
+Cc: akpm@linux-foundation.org, bp@alien8.de, linux-arch@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Christophe Ricard <christophe.ricard@gmail.com>
-Cc: rjw@rjwysocki.net, lenb@kernel.org, linus.walleij@linaro.org, gnurou@gmail.com, andriy.shevchenko@linux.intel.com, broonie@kernel.org, linux-spi@vger.kernel.org, linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, Christophe Ricard <christophe-h.ricard@st.com>
 
-On Wed, Dec 23, 2015 at 11:25:35PM +0100, Christophe Ricard wrote:
-> spi->irq was ignoring GpioInt property setting it to -1.
-> acpi_dev_gpio_irq_get returns and configure the slave irq according to
-> the acpi slave node description.
-> It is now inline with devicetree behavior.
+On Fri, Dec 25, 2015 at 03:09:18PM -0700, Toshi Kani wrote:
+> I/O resource descriptor, 'desc' added to struct resource, needs
+> to be initialized to zero by default.  Some drivers call kmalloc()
+> to allocate a resource entry, but does not initialize it to zero
+> by memset().  Change these drivers to call kzalloc(), instead.
 > 
-> Acked-by: Mark Brown <broonie@kernel.org>
-> Signed-off-by: Christophe Ricard <christophe-h.ricard@st.com>
+> Cc: linux-acpi@vger.kernel.org
+> Cc: linux-parisc@vger.kernel.org
+> Cc: linux-sh@vger.kernel.org
+> Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+> ---
+>  drivers/acpi/acpi_platform.c       |    2 +-
+>  drivers/parisc/eisa_enumerator.c   |    4 ++--
+>  drivers/rapidio/rio.c              |    8 ++++----
+>  drivers/sh/superhyway/superhyway.c |    2 +-
+>  4 files changed, 8 insertions(+), 8 deletions(-)
 
-Acked-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+drivers/sh/ portion:
+
+Acked-by: Simon Horman <horms+renesas@verge.net.au>
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
