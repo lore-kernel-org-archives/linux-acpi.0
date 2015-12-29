@@ -1,262 +1,1003 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 00/42] ACPICA: 20151218 Release
-Date: Tue, 29 Dec 2015 13:52:19 +0800
-Message-ID: <cover.1451367388.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:42394 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750906AbbL2Fwb (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 29 Dec 2015 00:52:31 -0500
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Subject: [PATCH 01/42] ACPICA: Linuxize: reduce divergences for 20151218 release
+Date: Tue, 29 Dec 2015 13:52:32 +0800
+Message-ID: <317d7a6cfd4482e27ae4386b61e1044067bd7f11.1451367388.git.lv.zheng@intel.com>
+References: <cover.1451367388.git.lv.zheng@intel.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <cover.1451367388.git.lv.zheng@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-The 20151218 ACPICA kernel-resident subsystem updates are linuxized based
-on the linux-pm/linux-next branch.
+The patch reduces source code differences between the Linux kernel and the
+ACPICA upstream so that the linuxized ACPICA 20151218 release can be
+applied with reduced human intervention.
 
-The patchset has passed the following build/boot tests.
-Build tests are performed as follows:
-1. i386 + allyes
-2. i386 + allno
-3. i386 + default + ACPI_DEBUGGER=y
-4. i386 + default + ACPI_DEBUGGER=n + ACPI_DEBUG=y
-5. i386 + default + ACPI_DEBUG=n + ACPI=y
-6. i386 + default + ACPI=n
-7. x86_64 + allyes
-8. x86_64 + allno
-9. x86_64 + default + ACPI_DEBUGGER=y
-10.x86_64 + default + ACPI_DEBUGGER=n + ACPI_DEBUG=y
-11.x86_64 + default + ACPI_DEBUG=n + ACPI=y
-12.x86_64 + default + ACPI=n
-Boot tests are performed as follows:
-1. i386 + default + ACPI_DEBUGGER=y
-2. x86_64 + default + ACPI_DEBUGGER=y
-Where:
-1. i386: machine named as "Dell Inspiron Mini 1010"
-2. x86_64: machine named as "HP Compaq 8200 Elite SFF PC"
-3. default: kernel configuration with following items enabled:
-   All hardware drivers related to the machines of i386/x86_64
-   All "drivers/acpi" configurations
-   All "drivers/platform" drivers
-   All other drivers that link the APIs provided by ACPICA subsystem
+The pscode.c has already been out of sync for months, and it becomes more
+and more difficult to merge pscode.c changes, so instead of update the
+affected lines of pscode.c, this patch synchronizes entire pscode.c file.
 
-The divergences checking result:
-Before applying (20150930 Release):
-  517 lines
-After applying (20151218 Release):
-  506 lines
+Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+---
+ drivers/acpi/acpica/dsfield.c     |    8 +-
+ drivers/acpi/acpica/dsutils.c     |    4 +-
+ drivers/acpi/acpica/exconvrt.c    |    4 +-
+ drivers/acpi/acpica/excreate.c    |    5 +-
+ drivers/acpi/acpica/exfield.c     |    2 +-
+ drivers/acpi/acpica/exmutex.c     |    2 +-
+ drivers/acpi/acpica/exoparg3.c    |    6 +-
+ drivers/acpi/acpica/hwgpe.c       |    1 +
+ drivers/acpi/acpica/nsrepair2.c   |    2 +-
+ drivers/acpi/acpica/psopcode.c    |  604 ++++++++++++++++++-------------------
+ drivers/acpi/acpica/rsmisc.c      |    6 +-
+ drivers/acpi/acpica/utobject.c    |    4 +-
+ include/acpi/platform/aclinuxex.h |    1 +
+ 13 files changed, 325 insertions(+), 324 deletions(-)
 
-Bob Moore (25):
-  ACPICA: exmutex: General cleanup, restructured some code
-  ACPICA: Core: Major update for code formatting, no functional changes
-  ACPICA: Split interpreter tracing functions to a new file
-  ACPICA: acpiexec: Add support for AML files containing multiple
-    tables
-  ACPICA: Disassembler/tools: Support for multiple ACPI tables in one
-    file
-  ACPICA: iasl/acpiexec: Update input file handling and verification
-  ACPICA: Revert "acpi_get_object_info: Add support for ACPI 5.0 _SUB
-    method."
-  ACPICA: Add comment explaining _SUB removal
-  ACPICA: acpiexec/acpinames: Update for error checking macros
-  ACPICA: Concatenate operator: Add extensions to support all ACPI
-    objects
-  ACPICA: Debug Object: Cleanup output
-  ACPICA: Debug object: Fix output for a NULL object
-  ACPICA: Update for output of the Debug Object
-  ACPICA: getopt: Comment update, no functional change
-  ACPICA: Add new exception code, AE_IO_ERROR
-  ACPICA: iasl/Disassembler: Support ASL ElseIf operator
-  ACPICA: Parser: Add constants for internal namepath function
-  ACPICA: Parser: Fix for SuperName method invocation
-  ACPICA: Update parameter type for ObjectType operator
-  ACPICA: Update internal #defines for ObjectType operator. No
-    functional change
-  ACPICA: Update for CondRefOf and RefOf operators
-  ACPICA: Cleanup code related to the per-table module level
-    improvement
-  ACPICA: Add "root node" case to the ACPI name repair code
-  ACPICA: Add per-table execution of module-level code
-  ACPICA: Update version to 20151218
-
-Colin Ian King (1):
-  ACPICA: Tools: Add spacing and missing options in acpibin tool
-
-David E. Box (1):
-  ACPICA: Fix SyncLevel support interaction with method
-    auto-serialization
-
-LABBE Corentin (1):
-  ACPICA: Add "const" to some functions that return fixed strings
-
-Lv Zheng (12):
-  ACPICA: Linuxize: reduce divergences for 20151218 release
-  ACPICA: Namespace: Fix wrong error log
-  ACPICA: Debugger: reduce old external path format
-  ACPICA: Namespace: Add scope information to the simple object repair
-    mechanism
-  ACPICA: Namespace: Add String -> ObjectReference conversion support
-  ACPICA: Events: Deploys acpi_ev_find_region_handler()
-  ACPICA: Events: Uses common_notify for address space handlers
-  ACPICA: Utilities: Reorder initialization code
-  ACPICA: Events: Fix an issue that region object is re-attached to
-    another scope when it is already attached
-  ACPICA: Events: Split acpi_ev_associate_reg_method() from region
-    initialization code
-  ACPICA: Events: Enhance acpi_ev_execute_reg_method() to ensure no
-    _REG evaluations can happen during OS early boot stages
-  ACPICA: Events: Introduce ACPI_REG_DISCONNECT invocation to
-    acpi_ev_execute_reg_methods()
-
-Markus Elfring (1):
-  ACPICA: Debugger: Remove some unecessary NULL checks
-
-Prarit Bhargava (1):
-  ACPICA: acpi_get_sleep_type_data: Reduce warnings
-
- drivers/acpi/acpica/Makefile                       |    4 +-
- drivers/acpi/acpica/acapps.h                       |   58 +-
- drivers/acpi/acpica/acdebug.h                      |    5 +-
- drivers/acpi/acpica/acevents.h                     |   11 +-
- drivers/acpi/acpica/acglobal.h                     |    3 +-
- drivers/acpi/acpica/aclocal.h                      |   12 +-
- drivers/acpi/acpica/acnamesp.h                     |   12 +-
- drivers/acpi/acpica/acobject.h                     |    7 +-
- drivers/acpi/acpica/acopcode.h                     |   10 +-
- drivers/acpi/acpica/acparser.h                     |    8 +-
- drivers/acpi/acpica/acutils.h                      |   26 +-
- drivers/acpi/acpica/amlcode.h                      |    5 +-
- drivers/acpi/acpica/dbcmds.c                       |   11 +-
- drivers/acpi/acpica/dbdisply.c                     |   84 ++-
- drivers/acpi/acpica/dbfileio.c                     |  123 +---
- drivers/acpi/acpica/dbinput.c                      |   22 +-
- drivers/acpi/acpica/dbnames.c                      |    2 +-
- drivers/acpi/acpica/dbstats.c                      |    1 +
- drivers/acpi/acpica/dbtest.c                       |    2 +-
- drivers/acpi/acpica/dbutils.c                      |    1 +
- drivers/acpi/acpica/dsargs.c                       |    7 +-
- drivers/acpi/acpica/dsdebug.c                      |    5 +-
- drivers/acpi/acpica/dsfield.c                      |   39 +-
- drivers/acpi/acpica/dsinit.c                       |    2 +-
- drivers/acpi/acpica/dsmethod.c                     |   39 +-
- drivers/acpi/acpica/dsmthdat.c                     |   20 +-
- drivers/acpi/acpica/dsobject.c                     |   19 +-
- drivers/acpi/acpica/dsopcode.c                     |   21 +-
- drivers/acpi/acpica/dsutils.c                      |   29 +-
- drivers/acpi/acpica/dswexec.c                      |   19 +-
- drivers/acpi/acpica/dswload.c                      |   10 +-
- drivers/acpi/acpica/dswload2.c                     |   10 +-
- drivers/acpi/acpica/dswscope.c                     |    1 +
- drivers/acpi/acpica/evgpe.c                        |    2 +-
- drivers/acpi/acpica/evgpeblk.c                     |    1 +
- drivers/acpi/acpica/evgpeutil.c                    |    1 +
- drivers/acpi/acpica/evhandler.c                    |  165 +++---
- drivers/acpi/acpica/evmisc.c                       |    5 +-
- drivers/acpi/acpica/evregion.c                     |  114 +++-
- drivers/acpi/acpica/evrgnini.c                     |  115 ++--
- drivers/acpi/acpica/evxface.c                      |    9 +-
- drivers/acpi/acpica/evxfregn.c                     |   38 +-
- drivers/acpi/acpica/exconfig.c                     |    8 +-
- drivers/acpi/acpica/exconvrt.c                     |    9 +-
- drivers/acpi/acpica/excreate.c                     |   20 +-
- drivers/acpi/acpica/exdebug.c                      |  403 ++-----------
- drivers/acpi/acpica/exdump.c                       |    6 +-
- drivers/acpi/acpica/exfield.c                      |   74 +--
- drivers/acpi/acpica/exfldio.c                      |   35 +-
- drivers/acpi/acpica/exmisc.c                       |   49 +-
- drivers/acpi/acpica/exmutex.c                      |   82 ++-
- drivers/acpi/acpica/exnames.c                      |    4 +-
- drivers/acpi/acpica/exoparg1.c                     |   33 +-
- drivers/acpi/acpica/exoparg2.c                     |   12 +-
- drivers/acpi/acpica/exoparg3.c                     |   25 +-
- drivers/acpi/acpica/exoparg6.c                     |    1 +
- drivers/acpi/acpica/exprep.c                       |   25 +-
- drivers/acpi/acpica/exregion.c                     |   13 +-
- drivers/acpi/acpica/exresnte.c                     |    2 +-
- drivers/acpi/acpica/exresolv.c                     |   10 +-
- drivers/acpi/acpica/exresop.c                      |   43 +-
- drivers/acpi/acpica/exstore.c                      |   17 +-
- drivers/acpi/acpica/exstorob.c                     |    7 +-
- drivers/acpi/acpica/exsystem.c                     |    6 +-
- drivers/acpi/acpica/extrace.c                      |  377 ++++++++++++
- drivers/acpi/acpica/exutils.c                      |    7 +-
- drivers/acpi/acpica/hwesleep.c                     |    4 +-
- drivers/acpi/acpica/hwgpe.c                        |    6 +-
- drivers/acpi/acpica/hwsleep.c                      |    4 +-
- drivers/acpi/acpica/hwxface.c                      |   24 +-
- drivers/acpi/acpica/hwxfsleep.c                    |    1 +
- drivers/acpi/acpica/nsconvert.c                    |  105 +++-
- drivers/acpi/acpica/nsdump.c                       |    5 +-
- drivers/acpi/acpica/nseval.c                       |    2 +-
- drivers/acpi/acpica/nsinit.c                       |    3 +-
- drivers/acpi/acpica/nsload.c                       |   18 +-
- drivers/acpi/acpica/nsnames.c                      |    6 +-
- drivers/acpi/acpica/nsparse.c                      |    5 +-
- drivers/acpi/acpica/nsprepkg.c                     |   10 +-
- drivers/acpi/acpica/nsrepair.c                     |   19 +-
- drivers/acpi/acpica/nsrepair2.c                    |   24 +-
- drivers/acpi/acpica/nssearch.c                     |    2 +-
- drivers/acpi/acpica/nsutils.c                      |    8 +-
- drivers/acpi/acpica/nsxfeval.c                     |    4 +-
- drivers/acpi/acpica/nsxfname.c                     |   39 +-
- drivers/acpi/acpica/nsxfobj.c                      |    6 +-
- drivers/acpi/acpica/psargs.c                       |   19 +-
- drivers/acpi/acpica/psloop.c                       |   12 +-
- drivers/acpi/acpica/psopcode.c                     |  606 ++++++++++----------
- drivers/acpi/acpica/psparse.c                      |    8 +-
- drivers/acpi/acpica/psutils.c                      |    4 +-
- drivers/acpi/acpica/pswalk.c                       |    1 +
- drivers/acpi/acpica/rsaddr.c                       |    4 +-
- drivers/acpi/acpica/rscalc.c                       |   81 +--
- drivers/acpi/acpica/rscreate.c                     |   32 +-
- drivers/acpi/acpica/rsdump.c                       |    6 +
- drivers/acpi/acpica/rslist.c                       |    9 +-
- drivers/acpi/acpica/rsmisc.c                       |   22 +-
- drivers/acpi/acpica/rsutils.c                      |   42 +-
- drivers/acpi/acpica/rsxface.c                      |    2 +-
- drivers/acpi/acpica/tbdata.c                       |    1 +
- drivers/acpi/acpica/tbinstal.c                     |    4 +-
- drivers/acpi/acpica/tbprint.c                      |    1 +
- drivers/acpi/acpica/tbutils.c                      |   10 +-
- drivers/acpi/acpica/tbxfload.c                     |    3 +-
- drivers/acpi/acpica/utaddress.c                    |    5 +-
- drivers/acpi/acpica/utcopy.c                       |   23 +-
- drivers/acpi/acpica/utdecode.c                     |   32 +-
- drivers/acpi/acpica/utdelete.c                     |    5 +-
- drivers/acpi/acpica/uterror.c                      |   10 +-
- drivers/acpi/acpica/utfileio.c                     |  334 -----------
- drivers/acpi/acpica/uthex.c                        |    2 +-
- drivers/acpi/acpica/utids.c                        |   67 ---
- drivers/acpi/acpica/utinit.c                       |    1 -
- drivers/acpi/acpica/utmath.c                       |   10 +-
- drivers/acpi/acpica/utmisc.c                       |   11 +-
- drivers/acpi/acpica/utmutex.c                      |    5 +-
- drivers/acpi/acpica/utnonansi.c                    |    4 +-
- drivers/acpi/acpica/utobject.c                     |   24 +-
- drivers/acpi/acpica/utosi.c                        |   11 +-
- drivers/acpi/acpica/utownerid.c                    |   12 +-
- drivers/acpi/acpica/utpredef.c                     |    6 +-
- drivers/acpi/acpica/utprint.c                      |   15 +-
- drivers/acpi/acpica/utresrc.c                      |    8 +-
- drivers/acpi/acpica/utstate.c                      |    3 +
- drivers/acpi/acpica/utstring.c                     |    9 +
- drivers/acpi/acpica/uttrack.c                      |   50 +-
- drivers/acpi/acpica/utxface.c                      |    2 -
- drivers/acpi/acpica/utxferror.c                    |    1 +
- drivers/acpi/acpica/utxfinit.c                     |   47 +-
- drivers/acpi/acpica/utxfmutex.c                    |    6 +-
- include/acpi/acexcep.h                             |    6 +-
- include/acpi/acpixf.h                              |   11 +-
- include/acpi/actypes.h                             |    6 +-
- include/acpi/platform/aclinuxex.h                  |    1 +
- tools/power/acpi/common/getopt.c                   |    2 +
- .../acpi/os_specific/service_layers/oslibcfs.c     |    3 +
- tools/power/acpi/tools/acpidump/apfiles.c          |   13 +
- 138 files changed, 2113 insertions(+), 2140 deletions(-)
- create mode 100644 drivers/acpi/acpica/extrace.c
- delete mode 100644 drivers/acpi/acpica/utfileio.c
-
+diff --git a/drivers/acpi/acpica/dsfield.c b/drivers/acpi/acpica/dsfield.c
+index 20de148..37e11a3 100644
+--- a/drivers/acpi/acpica/dsfield.c
++++ b/drivers/acpi/acpica/dsfield.c
+@@ -310,8 +310,8 @@ acpi_ds_get_field_names(struct acpi_create_field_info *info,
+ 		switch (arg->common.aml_opcode) {
+ 		case AML_INT_RESERVEDFIELD_OP:
+ 
+-			position = (u64) info->field_bit_position
+-			    + (u64) arg->common.value.size;
++			position = (u64)info->field_bit_position
++			    + (u64)arg->common.value.size;
+ 
+ 			if (position > ACPI_UINT32_MAX) {
+ 				ACPI_ERROR((AE_INFO,
+@@ -425,8 +425,8 @@ acpi_ds_get_field_names(struct acpi_create_field_info *info,
+ 
+ 			/* Keep track of bit position for the next field */
+ 
+-			position = (u64) info->field_bit_position
+-			    + (u64) arg->common.value.size;
++			position = (u64)info->field_bit_position
++			    + (u64)arg->common.value.size;
+ 
+ 			if (position > ACPI_UINT32_MAX) {
+ 				ACPI_ERROR((AE_INFO,
+diff --git a/drivers/acpi/acpica/dsutils.c b/drivers/acpi/acpica/dsutils.c
+index e4293a8..cecba39 100644
+--- a/drivers/acpi/acpica/dsutils.c
++++ b/drivers/acpi/acpica/dsutils.c
+@@ -504,8 +504,8 @@ acpi_ds_create_operand(struct acpi_walk_state *walk_state,
+ 		if ((walk_state->deferred_node) &&
+ 		    (walk_state->deferred_node->type == ACPI_TYPE_BUFFER_FIELD)
+ 		    && (arg_index ==
+-			(u32) ((walk_state->opcode ==
+-				AML_CREATE_FIELD_OP) ? 3 : 2))) {
++			(u32)((walk_state->opcode ==
++			       AML_CREATE_FIELD_OP) ? 3 : 2))) {
+ 			obj_desc =
+ 			    ACPI_CAST_PTR(union acpi_operand_object,
+ 					  walk_state->deferred_node);
+diff --git a/drivers/acpi/acpica/exconvrt.c b/drivers/acpi/acpica/exconvrt.c
+index 1e4c5b6..145de28 100644
+--- a/drivers/acpi/acpica/exconvrt.c
++++ b/drivers/acpi/acpica/exconvrt.c
+@@ -355,8 +355,8 @@ acpi_ex_convert_to_ascii(u64 integer, u16 base, u8 *string, u8 data_width)
+ 			/* Get one hex digit, most significant digits first */
+ 
+ 			string[k] =
+-			    (u8) acpi_ut_hex_to_ascii_char(integer,
+-							   ACPI_MUL_4(j));
++			    (u8)acpi_ut_hex_to_ascii_char(integer,
++							  ACPI_MUL_4(j));
+ 			k++;
+ 		}
+ 		break;
+diff --git a/drivers/acpi/acpica/excreate.c b/drivers/acpi/acpica/excreate.c
+index ccb7219..95fe464 100644
+--- a/drivers/acpi/acpica/excreate.c
++++ b/drivers/acpi/acpica/excreate.c
+@@ -492,10 +492,9 @@ acpi_ex_create_method(u8 * aml_start,
+ 	 * Disassemble the method flags. Split off the arg_count, Serialized
+ 	 * flag, and sync_level for efficiency.
+ 	 */
+-	method_flags = (u8) operand[1]->integer.value;
+-
++	method_flags = (u8)operand[1]->integer.value;
+ 	obj_desc->method.param_count =
+-	    (u8) (method_flags & AML_METHOD_ARG_COUNT);
++	    (u8)(method_flags & AML_METHOD_ARG_COUNT);
+ 
+ 	/*
+ 	 * Get the sync_level. If method is serialized, a mutex will be
+diff --git a/drivers/acpi/acpica/exfield.c b/drivers/acpi/acpica/exfield.c
+index 61fd9c7..c95fd18 100644
+--- a/drivers/acpi/acpica/exfield.c
++++ b/drivers/acpi/acpica/exfield.c
+@@ -439,7 +439,7 @@ acpi_ex_write_data_to_field(union acpi_operand_object *source_desc,
+ 		 * same buffer)
+ 		 */
+ 		status = acpi_ex_access_region(obj_desc, 0,
+-					       (u64 *) buffer, function);
++					       (u64 *)buffer, function);
+ 		acpi_ex_release_global_lock(obj_desc->common_field.field_flags);
+ 
+ 		*result_desc = buffer_desc;
+diff --git a/drivers/acpi/acpica/exmutex.c b/drivers/acpi/acpica/exmutex.c
+index 472030f..a97f520 100644
+--- a/drivers/acpi/acpica/exmutex.c
++++ b/drivers/acpi/acpica/exmutex.c
+@@ -254,7 +254,7 @@ acpi_ex_acquire_mutex(union acpi_operand_object *time_desc,
+ 		return_ACPI_STATUS(AE_AML_MUTEX_ORDER);
+ 	}
+ 
+-	status = acpi_ex_acquire_mutex_object((u16) time_desc->integer.value,
++	status = acpi_ex_acquire_mutex_object((u16)time_desc->integer.value,
+ 					      obj_desc,
+ 					      walk_state->thread->thread_id);
+ 	if (ACPI_SUCCESS(status) && obj_desc->mutex.acquisition_depth == 1) {
+diff --git a/drivers/acpi/acpica/exoparg3.c b/drivers/acpi/acpica/exoparg3.c
+index fa100b3..351b82a 100644
+--- a/drivers/acpi/acpica/exoparg3.c
++++ b/drivers/acpi/acpica/exoparg3.c
+@@ -96,9 +96,9 @@ acpi_status acpi_ex_opcode_3A_0T_0R(struct acpi_walk_state *walk_state)
+ 
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+ 				  "FatalOp: Type %X Code %X Arg %X <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n",
+-				  (u32) operand[0]->integer.value,
+-				  (u32) operand[1]->integer.value,
+-				  (u32) operand[2]->integer.value));
++				  (u32)operand[0]->integer.value,
++				  (u32)operand[1]->integer.value,
++				  (u32)operand[2]->integer.value));
+ 
+ 		fatal = ACPI_ALLOCATE(sizeof(struct acpi_signal_fatal_info));
+ 		if (fatal) {
+diff --git a/drivers/acpi/acpica/hwgpe.c b/drivers/acpi/acpica/hwgpe.c
+index 73cfa59..da4a923 100644
+--- a/drivers/acpi/acpica/hwgpe.c
++++ b/drivers/acpi/acpica/hwgpe.c
+@@ -298,6 +298,7 @@ acpi_hw_gpe_enable_write(u8 enable_mask,
+ 
+ 	gpe_register_info->enable_mask = enable_mask;
+ 	status = acpi_hw_write(enable_mask, &gpe_register_info->enable_address);
++
+ 	return (status);
+ }
+ 
+diff --git a/drivers/acpi/acpica/nsrepair2.c b/drivers/acpi/acpica/nsrepair2.c
+index 0515a70..7ca8f2b 100644
+--- a/drivers/acpi/acpica/nsrepair2.c
++++ b/drivers/acpi/acpica/nsrepair2.c
+@@ -710,7 +710,7 @@ acpi_ns_repair_PSS(struct acpi_evaluate_info *info,
+ 		elements = (*outer_elements)->package.elements;
+ 		obj_desc = elements[1];	/* Index1 = power_dissipation */
+ 
+-		if ((u32) obj_desc->integer.value > previous_value) {
++		if ((u32)obj_desc->integer.value > previous_value) {
+ 			ACPI_WARN_PREDEFINED((AE_INFO, info->full_pathname,
+ 					      info->node_flags,
+ 					      "SubPackage[%u,%u] - suspicious power dissipation values",
+diff --git a/drivers/acpi/acpica/psopcode.c b/drivers/acpi/acpica/psopcode.c
+index ed90fdd..c3005bd 100644
+--- a/drivers/acpi/acpica/psopcode.c
++++ b/drivers/acpi/acpica/psopcode.c
+@@ -185,458 +185,458 @@ const struct acpi_opcode_info acpi_gbl_aml_op_info[AML_NUM_OPCODES] = {
+ /* Index           Name                 Parser Args               Interpreter Args                ObjectType                    Class                      Type                  Flags */
+ 
+ /* 00 */ ACPI_OP("Zero", ARGP_ZERO_OP, ARGI_ZERO_OP, ACPI_TYPE_INTEGER,
+-		 AML_CLASS_ARGUMENT, AML_TYPE_CONSTANT, AML_CONSTANT),
++			 AML_CLASS_ARGUMENT, AML_TYPE_CONSTANT, AML_CONSTANT),
+ /* 01 */ ACPI_OP("One", ARGP_ONE_OP, ARGI_ONE_OP, ACPI_TYPE_INTEGER,
+-		 AML_CLASS_ARGUMENT, AML_TYPE_CONSTANT, AML_CONSTANT),
++			 AML_CLASS_ARGUMENT, AML_TYPE_CONSTANT, AML_CONSTANT),
+ /* 02 */ ACPI_OP("Alias", ARGP_ALIAS_OP, ARGI_ALIAS_OP,
+-		 ACPI_TYPE_LOCAL_ALIAS, AML_CLASS_NAMED_OBJECT,
+-		 AML_TYPE_NAMED_SIMPLE,
+-		 AML_HAS_ARGS | AML_NSOBJECT | AML_NSOPCODE |
+-		 AML_NSNODE | AML_NAMED),
++			 ACPI_TYPE_LOCAL_ALIAS, AML_CLASS_NAMED_OBJECT,
++			 AML_TYPE_NAMED_SIMPLE,
++			 AML_HAS_ARGS | AML_NSOBJECT | AML_NSOPCODE |
++			 AML_NSNODE | AML_NAMED),
+ /* 03 */ ACPI_OP("Name", ARGP_NAME_OP, ARGI_NAME_OP, ACPI_TYPE_ANY,
+-		 AML_CLASS_NAMED_OBJECT, AML_TYPE_NAMED_COMPLEX,
+-		 AML_HAS_ARGS | AML_NSOBJECT | AML_NSOPCODE |
+-		 AML_NSNODE | AML_NAMED),
++			 AML_CLASS_NAMED_OBJECT, AML_TYPE_NAMED_COMPLEX,
++			 AML_HAS_ARGS | AML_NSOBJECT | AML_NSOPCODE |
++			 AML_NSNODE | AML_NAMED),
+ /* 04 */ ACPI_OP("ByteConst", ARGP_BYTE_OP, ARGI_BYTE_OP,
+-		 ACPI_TYPE_INTEGER, AML_CLASS_ARGUMENT,
+-		 AML_TYPE_LITERAL, AML_CONSTANT),
++			 ACPI_TYPE_INTEGER, AML_CLASS_ARGUMENT,
++			 AML_TYPE_LITERAL, AML_CONSTANT),
+ /* 05 */ ACPI_OP("WordConst", ARGP_WORD_OP, ARGI_WORD_OP,
+-		 ACPI_TYPE_INTEGER, AML_CLASS_ARGUMENT,
+-		 AML_TYPE_LITERAL, AML_CONSTANT),
++			 ACPI_TYPE_INTEGER, AML_CLASS_ARGUMENT,
++			 AML_TYPE_LITERAL, AML_CONSTANT),
+ /* 06 */ ACPI_OP("DwordConst", ARGP_DWORD_OP, ARGI_DWORD_OP,
+-		 ACPI_TYPE_INTEGER, AML_CLASS_ARGUMENT,
+-		 AML_TYPE_LITERAL, AML_CONSTANT),
++			 ACPI_TYPE_INTEGER, AML_CLASS_ARGUMENT,
++			 AML_TYPE_LITERAL, AML_CONSTANT),
+ /* 07 */ ACPI_OP("String", ARGP_STRING_OP, ARGI_STRING_OP,
+-		 ACPI_TYPE_STRING, AML_CLASS_ARGUMENT,
+-		 AML_TYPE_LITERAL, AML_CONSTANT),
++			 ACPI_TYPE_STRING, AML_CLASS_ARGUMENT,
++			 AML_TYPE_LITERAL, AML_CONSTANT),
+ /* 08 */ ACPI_OP("Scope", ARGP_SCOPE_OP, ARGI_SCOPE_OP,
+-		 ACPI_TYPE_LOCAL_SCOPE, AML_CLASS_NAMED_OBJECT,
+-		 AML_TYPE_NAMED_NO_OBJ,
+-		 AML_HAS_ARGS | AML_NSOBJECT | AML_NSOPCODE |
+-		 AML_NSNODE | AML_NAMED),
++			 ACPI_TYPE_LOCAL_SCOPE, AML_CLASS_NAMED_OBJECT,
++			 AML_TYPE_NAMED_NO_OBJ,
++			 AML_HAS_ARGS | AML_NSOBJECT | AML_NSOPCODE |
++			 AML_NSNODE | AML_NAMED),
+ /* 09 */ ACPI_OP("Buffer", ARGP_BUFFER_OP, ARGI_BUFFER_OP,
+-		 ACPI_TYPE_BUFFER, AML_CLASS_CREATE,
+-		 AML_TYPE_CREATE_OBJECT,
+-		 AML_HAS_ARGS | AML_DEFER | AML_CONSTANT),
++			 ACPI_TYPE_BUFFER, AML_CLASS_CREATE,
++			 AML_TYPE_CREATE_OBJECT,
++			 AML_HAS_ARGS | AML_DEFER | AML_CONSTANT),
+ /* 0A */ ACPI_OP("Package", ARGP_PACKAGE_OP, ARGI_PACKAGE_OP,
+-		 ACPI_TYPE_PACKAGE, AML_CLASS_CREATE,
+-		 AML_TYPE_CREATE_OBJECT,
+-		 AML_HAS_ARGS | AML_DEFER | AML_CONSTANT),
++			 ACPI_TYPE_PACKAGE, AML_CLASS_CREATE,
++			 AML_TYPE_CREATE_OBJECT,
++			 AML_HAS_ARGS | AML_DEFER | AML_CONSTANT),
+ /* 0B */ ACPI_OP("Method", ARGP_METHOD_OP, ARGI_METHOD_OP,
+-		 ACPI_TYPE_METHOD, AML_CLASS_NAMED_OBJECT,
+-		 AML_TYPE_NAMED_COMPLEX,
+-		 AML_HAS_ARGS | AML_NSOBJECT | AML_NSOPCODE |
+-		 AML_NSNODE | AML_NAMED | AML_DEFER),
++			 ACPI_TYPE_METHOD, AML_CLASS_NAMED_OBJECT,
++			 AML_TYPE_NAMED_COMPLEX,
++			 AML_HAS_ARGS | AML_NSOBJECT | AML_NSOPCODE |
++			 AML_NSNODE | AML_NAMED | AML_DEFER),
+ /* 0C */ ACPI_OP("Local0", ARGP_LOCAL0, ARGI_LOCAL0,
+-		 ACPI_TYPE_LOCAL_REFERENCE, AML_CLASS_ARGUMENT,
+-		 AML_TYPE_LOCAL_VARIABLE, 0),
++			 ACPI_TYPE_LOCAL_REFERENCE, AML_CLASS_ARGUMENT,
++			 AML_TYPE_LOCAL_VARIABLE, 0),
+ /* 0D */ ACPI_OP("Local1", ARGP_LOCAL1, ARGI_LOCAL1,
+-		 ACPI_TYPE_LOCAL_REFERENCE, AML_CLASS_ARGUMENT,
+-		 AML_TYPE_LOCAL_VARIABLE, 0),
++			 ACPI_TYPE_LOCAL_REFERENCE, AML_CLASS_ARGUMENT,
++			 AML_TYPE_LOCAL_VARIABLE, 0),
+ /* 0E */ ACPI_OP("Local2", ARGP_LOCAL2, ARGI_LOCAL2,
+-		 ACPI_TYPE_LOCAL_REFERENCE, AML_CLASS_ARGUMENT,
+-		 AML_TYPE_LOCAL_VARIABLE, 0),
++			 ACPI_TYPE_LOCAL_REFERENCE, AML_CLASS_ARGUMENT,
++			 AML_TYPE_LOCAL_VARIABLE, 0),
+ /* 0F */ ACPI_OP("Local3", ARGP_LOCAL3, ARGI_LOCAL3,
+-		 ACPI_TYPE_LOCAL_REFERENCE, AML_CLASS_ARGUMENT,
+-		 AML_TYPE_LOCAL_VARIABLE, 0),
++			 ACPI_TYPE_LOCAL_REFERENCE, AML_CLASS_ARGUMENT,
++			 AML_TYPE_LOCAL_VARIABLE, 0),
+ /* 10 */ ACPI_OP("Local4", ARGP_LOCAL4, ARGI_LOCAL4,
+-		 ACPI_TYPE_LOCAL_REFERENCE, AML_CLASS_ARGUMENT,
+-		 AML_TYPE_LOCAL_VARIABLE, 0),
++			 ACPI_TYPE_LOCAL_REFERENCE, AML_CLASS_ARGUMENT,
++			 AML_TYPE_LOCAL_VARIABLE, 0),
+ /* 11 */ ACPI_OP("Local5", ARGP_LOCAL5, ARGI_LOCAL5,
+-		 ACPI_TYPE_LOCAL_REFERENCE, AML_CLASS_ARGUMENT,
+-		 AML_TYPE_LOCAL_VARIABLE, 0),
++			 ACPI_TYPE_LOCAL_REFERENCE, AML_CLASS_ARGUMENT,
++			 AML_TYPE_LOCAL_VARIABLE, 0),
+ /* 12 */ ACPI_OP("Local6", ARGP_LOCAL6, ARGI_LOCAL6,
+-		 ACPI_TYPE_LOCAL_REFERENCE, AML_CLASS_ARGUMENT,
+-		 AML_TYPE_LOCAL_VARIABLE, 0),
++			 ACPI_TYPE_LOCAL_REFERENCE, AML_CLASS_ARGUMENT,
++			 AML_TYPE_LOCAL_VARIABLE, 0),
+ /* 13 */ ACPI_OP("Local7", ARGP_LOCAL7, ARGI_LOCAL7,
+-		 ACPI_TYPE_LOCAL_REFERENCE, AML_CLASS_ARGUMENT,
+-		 AML_TYPE_LOCAL_VARIABLE, 0),
++			 ACPI_TYPE_LOCAL_REFERENCE, AML_CLASS_ARGUMENT,
++			 AML_TYPE_LOCAL_VARIABLE, 0),
+ /* 14 */ ACPI_OP("Arg0", ARGP_ARG0, ARGI_ARG0,
+-		 ACPI_TYPE_LOCAL_REFERENCE, AML_CLASS_ARGUMENT,
+-		 AML_TYPE_METHOD_ARGUMENT, 0),
++			 ACPI_TYPE_LOCAL_REFERENCE, AML_CLASS_ARGUMENT,
++			 AML_TYPE_METHOD_ARGUMENT, 0),
+ /* 15 */ ACPI_OP("Arg1", ARGP_ARG1, ARGI_ARG1,
+-		 ACPI_TYPE_LOCAL_REFERENCE, AML_CLASS_ARGUMENT,
+-		 AML_TYPE_METHOD_ARGUMENT, 0),
++			 ACPI_TYPE_LOCAL_REFERENCE, AML_CLASS_ARGUMENT,
++			 AML_TYPE_METHOD_ARGUMENT, 0),
+ /* 16 */ ACPI_OP("Arg2", ARGP_ARG2, ARGI_ARG2,
+-		 ACPI_TYPE_LOCAL_REFERENCE, AML_CLASS_ARGUMENT,
+-		 AML_TYPE_METHOD_ARGUMENT, 0),
++			 ACPI_TYPE_LOCAL_REFERENCE, AML_CLASS_ARGUMENT,
++			 AML_TYPE_METHOD_ARGUMENT, 0),
+ /* 17 */ ACPI_OP("Arg3", ARGP_ARG3, ARGI_ARG3,
+-		 ACPI_TYPE_LOCAL_REFERENCE, AML_CLASS_ARGUMENT,
+-		 AML_TYPE_METHOD_ARGUMENT, 0),
++			 ACPI_TYPE_LOCAL_REFERENCE, AML_CLASS_ARGUMENT,
++			 AML_TYPE_METHOD_ARGUMENT, 0),
+ /* 18 */ ACPI_OP("Arg4", ARGP_ARG4, ARGI_ARG4,
+-		 ACPI_TYPE_LOCAL_REFERENCE, AML_CLASS_ARGUMENT,
+-		 AML_TYPE_METHOD_ARGUMENT, 0),
++			 ACPI_TYPE_LOCAL_REFERENCE, AML_CLASS_ARGUMENT,
++			 AML_TYPE_METHOD_ARGUMENT, 0),
+ /* 19 */ ACPI_OP("Arg5", ARGP_ARG5, ARGI_ARG5,
+-		 ACPI_TYPE_LOCAL_REFERENCE, AML_CLASS_ARGUMENT,
+-		 AML_TYPE_METHOD_ARGUMENT, 0),
++			 ACPI_TYPE_LOCAL_REFERENCE, AML_CLASS_ARGUMENT,
++			 AML_TYPE_METHOD_ARGUMENT, 0),
+ /* 1A */ ACPI_OP("Arg6", ARGP_ARG6, ARGI_ARG6,
+-		 ACPI_TYPE_LOCAL_REFERENCE, AML_CLASS_ARGUMENT,
+-		 AML_TYPE_METHOD_ARGUMENT, 0),
++			 ACPI_TYPE_LOCAL_REFERENCE, AML_CLASS_ARGUMENT,
++			 AML_TYPE_METHOD_ARGUMENT, 0),
+ /* 1B */ ACPI_OP("Store", ARGP_STORE_OP, ARGI_STORE_OP, ACPI_TYPE_ANY,
+-		 AML_CLASS_EXECUTE, AML_TYPE_EXEC_1A_1T_1R,
+-		 AML_FLAGS_EXEC_1A_1T_1R),
++			 AML_CLASS_EXECUTE, AML_TYPE_EXEC_1A_1T_1R,
++			 AML_FLAGS_EXEC_1A_1T_1R),
+ /* 1C */ ACPI_OP("RefOf", ARGP_REF_OF_OP, ARGI_REF_OF_OP, ACPI_TYPE_ANY,
+-		 AML_CLASS_EXECUTE, AML_TYPE_EXEC_1A_0T_1R,
+-		 AML_FLAGS_EXEC_1A_0T_1R),
++			 AML_CLASS_EXECUTE, AML_TYPE_EXEC_1A_0T_1R,
++			 AML_FLAGS_EXEC_1A_0T_1R),
+ /* 1D */ ACPI_OP("Add", ARGP_ADD_OP, ARGI_ADD_OP, ACPI_TYPE_ANY,
+-		 AML_CLASS_EXECUTE, AML_TYPE_EXEC_2A_1T_1R,
+-		 AML_FLAGS_EXEC_2A_1T_1R | AML_MATH | AML_CONSTANT),
++			 AML_CLASS_EXECUTE, AML_TYPE_EXEC_2A_1T_1R,
++			 AML_FLAGS_EXEC_2A_1T_1R | AML_MATH | AML_CONSTANT),
+ /* 1E */ ACPI_OP("Concatenate", ARGP_CONCAT_OP, ARGI_CONCAT_OP,
+-		 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
+-		 AML_TYPE_EXEC_2A_1T_1R,
+-		 AML_FLAGS_EXEC_2A_1T_1R | AML_CONSTANT),
++			 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
++			 AML_TYPE_EXEC_2A_1T_1R,
++			 AML_FLAGS_EXEC_2A_1T_1R | AML_CONSTANT),
+ /* 1F */ ACPI_OP("Subtract", ARGP_SUBTRACT_OP, ARGI_SUBTRACT_OP,
+-		 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
+-		 AML_TYPE_EXEC_2A_1T_1R,
+-		 AML_FLAGS_EXEC_2A_1T_1R | AML_MATH | AML_CONSTANT),
++			 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
++			 AML_TYPE_EXEC_2A_1T_1R,
++			 AML_FLAGS_EXEC_2A_1T_1R | AML_MATH | AML_CONSTANT),
+ /* 20 */ ACPI_OP("Increment", ARGP_INCREMENT_OP, ARGI_INCREMENT_OP,
+-		 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
+-		 AML_TYPE_EXEC_1A_0T_1R,
+-		 AML_FLAGS_EXEC_1A_0T_1R | AML_CONSTANT),
++			 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
++			 AML_TYPE_EXEC_1A_0T_1R,
++			 AML_FLAGS_EXEC_1A_0T_1R | AML_CONSTANT),
+ /* 21 */ ACPI_OP("Decrement", ARGP_DECREMENT_OP, ARGI_DECREMENT_OP,
+-		 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
+-		 AML_TYPE_EXEC_1A_0T_1R,
+-		 AML_FLAGS_EXEC_1A_0T_1R | AML_CONSTANT),
++			 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
++			 AML_TYPE_EXEC_1A_0T_1R,
++			 AML_FLAGS_EXEC_1A_0T_1R | AML_CONSTANT),
+ /* 22 */ ACPI_OP("Multiply", ARGP_MULTIPLY_OP, ARGI_MULTIPLY_OP,
+-		 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
+-		 AML_TYPE_EXEC_2A_1T_1R,
+-		 AML_FLAGS_EXEC_2A_1T_1R | AML_MATH | AML_CONSTANT),
++			 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
++			 AML_TYPE_EXEC_2A_1T_1R,
++			 AML_FLAGS_EXEC_2A_1T_1R | AML_MATH | AML_CONSTANT),
+ /* 23 */ ACPI_OP("Divide", ARGP_DIVIDE_OP, ARGI_DIVIDE_OP,
+-		 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
+-		 AML_TYPE_EXEC_2A_2T_1R,
+-		 AML_FLAGS_EXEC_2A_2T_1R | AML_CONSTANT),
++			 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
++			 AML_TYPE_EXEC_2A_2T_1R,
++			 AML_FLAGS_EXEC_2A_2T_1R | AML_CONSTANT),
+ /* 24 */ ACPI_OP("ShiftLeft", ARGP_SHIFT_LEFT_OP, ARGI_SHIFT_LEFT_OP,
+-		 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
+-		 AML_TYPE_EXEC_2A_1T_1R,
+-		 AML_FLAGS_EXEC_2A_1T_1R | AML_MATH | AML_CONSTANT),
++			 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
++			 AML_TYPE_EXEC_2A_1T_1R,
++			 AML_FLAGS_EXEC_2A_1T_1R | AML_MATH | AML_CONSTANT),
+ /* 25 */ ACPI_OP("ShiftRight", ARGP_SHIFT_RIGHT_OP, ARGI_SHIFT_RIGHT_OP,
+-		 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
+-		 AML_TYPE_EXEC_2A_1T_1R,
+-		 AML_FLAGS_EXEC_2A_1T_1R | AML_MATH | AML_CONSTANT),
++			 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
++			 AML_TYPE_EXEC_2A_1T_1R,
++			 AML_FLAGS_EXEC_2A_1T_1R | AML_MATH | AML_CONSTANT),
+ /* 26 */ ACPI_OP("And", ARGP_BIT_AND_OP, ARGI_BIT_AND_OP, ACPI_TYPE_ANY,
+-		 AML_CLASS_EXECUTE, AML_TYPE_EXEC_2A_1T_1R,
+-		 AML_FLAGS_EXEC_2A_1T_1R | AML_MATH | AML_CONSTANT),
++			 AML_CLASS_EXECUTE, AML_TYPE_EXEC_2A_1T_1R,
++			 AML_FLAGS_EXEC_2A_1T_1R | AML_MATH | AML_CONSTANT),
+ /* 27 */ ACPI_OP("NAnd", ARGP_BIT_NAND_OP, ARGI_BIT_NAND_OP,
+-		 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
+-		 AML_TYPE_EXEC_2A_1T_1R,
+-		 AML_FLAGS_EXEC_2A_1T_1R | AML_MATH | AML_CONSTANT),
++			 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
++			 AML_TYPE_EXEC_2A_1T_1R,
++			 AML_FLAGS_EXEC_2A_1T_1R | AML_MATH | AML_CONSTANT),
+ /* 28 */ ACPI_OP("Or", ARGP_BIT_OR_OP, ARGI_BIT_OR_OP, ACPI_TYPE_ANY,
+-		 AML_CLASS_EXECUTE, AML_TYPE_EXEC_2A_1T_1R,
+-		 AML_FLAGS_EXEC_2A_1T_1R | AML_MATH | AML_CONSTANT),
++			 AML_CLASS_EXECUTE, AML_TYPE_EXEC_2A_1T_1R,
++			 AML_FLAGS_EXEC_2A_1T_1R | AML_MATH | AML_CONSTANT),
+ /* 29 */ ACPI_OP("NOr", ARGP_BIT_NOR_OP, ARGI_BIT_NOR_OP, ACPI_TYPE_ANY,
+-		 AML_CLASS_EXECUTE, AML_TYPE_EXEC_2A_1T_1R,
+-		 AML_FLAGS_EXEC_2A_1T_1R | AML_MATH | AML_CONSTANT),
++			 AML_CLASS_EXECUTE, AML_TYPE_EXEC_2A_1T_1R,
++			 AML_FLAGS_EXEC_2A_1T_1R | AML_MATH | AML_CONSTANT),
+ /* 2A */ ACPI_OP("XOr", ARGP_BIT_XOR_OP, ARGI_BIT_XOR_OP, ACPI_TYPE_ANY,
+-		 AML_CLASS_EXECUTE, AML_TYPE_EXEC_2A_1T_1R,
+-		 AML_FLAGS_EXEC_2A_1T_1R | AML_MATH | AML_CONSTANT),
++			 AML_CLASS_EXECUTE, AML_TYPE_EXEC_2A_1T_1R,
++			 AML_FLAGS_EXEC_2A_1T_1R | AML_MATH | AML_CONSTANT),
+ /* 2B */ ACPI_OP("Not", ARGP_BIT_NOT_OP, ARGI_BIT_NOT_OP, ACPI_TYPE_ANY,
+-		 AML_CLASS_EXECUTE, AML_TYPE_EXEC_1A_1T_1R,
+-		 AML_FLAGS_EXEC_1A_1T_1R | AML_CONSTANT),
++			 AML_CLASS_EXECUTE, AML_TYPE_EXEC_1A_1T_1R,
++			 AML_FLAGS_EXEC_1A_1T_1R | AML_CONSTANT),
+ /* 2C */ ACPI_OP("FindSetLeftBit", ARGP_FIND_SET_LEFT_BIT_OP,
+-		 ARGI_FIND_SET_LEFT_BIT_OP, ACPI_TYPE_ANY,
+-		 AML_CLASS_EXECUTE, AML_TYPE_EXEC_1A_1T_1R,
+-		 AML_FLAGS_EXEC_1A_1T_1R | AML_CONSTANT),
++			 ARGI_FIND_SET_LEFT_BIT_OP, ACPI_TYPE_ANY,
++			 AML_CLASS_EXECUTE, AML_TYPE_EXEC_1A_1T_1R,
++			 AML_FLAGS_EXEC_1A_1T_1R | AML_CONSTANT),
+ /* 2D */ ACPI_OP("FindSetRightBit", ARGP_FIND_SET_RIGHT_BIT_OP,
+-		 ARGI_FIND_SET_RIGHT_BIT_OP, ACPI_TYPE_ANY,
+-		 AML_CLASS_EXECUTE, AML_TYPE_EXEC_1A_1T_1R,
+-		 AML_FLAGS_EXEC_1A_1T_1R | AML_CONSTANT),
++			 ARGI_FIND_SET_RIGHT_BIT_OP, ACPI_TYPE_ANY,
++			 AML_CLASS_EXECUTE, AML_TYPE_EXEC_1A_1T_1R,
++			 AML_FLAGS_EXEC_1A_1T_1R | AML_CONSTANT),
+ /* 2E */ ACPI_OP("DerefOf", ARGP_DEREF_OF_OP, ARGI_DEREF_OF_OP,
+-		 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
+-		 AML_TYPE_EXEC_1A_0T_1R, AML_FLAGS_EXEC_1A_0T_1R),
++			 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
++			 AML_TYPE_EXEC_1A_0T_1R, AML_FLAGS_EXEC_1A_0T_1R),
+ /* 2F */ ACPI_OP("Notify", ARGP_NOTIFY_OP, ARGI_NOTIFY_OP,
+-		 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
+-		 AML_TYPE_EXEC_2A_0T_0R, AML_FLAGS_EXEC_2A_0T_0R),
++			 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
++			 AML_TYPE_EXEC_2A_0T_0R, AML_FLAGS_EXEC_2A_0T_0R),
+ /* 30 */ ACPI_OP("SizeOf", ARGP_SIZE_OF_OP, ARGI_SIZE_OF_OP,
+-		 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
+-		 AML_TYPE_EXEC_1A_0T_1R,
+-		 AML_FLAGS_EXEC_1A_0T_1R | AML_NO_OPERAND_RESOLVE),
++			 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
++			 AML_TYPE_EXEC_1A_0T_1R,
++			 AML_FLAGS_EXEC_1A_0T_1R | AML_NO_OPERAND_RESOLVE),
+ /* 31 */ ACPI_OP("Index", ARGP_INDEX_OP, ARGI_INDEX_OP, ACPI_TYPE_ANY,
+-		 AML_CLASS_EXECUTE, AML_TYPE_EXEC_2A_1T_1R,
+-		 AML_FLAGS_EXEC_2A_1T_1R),
++			 AML_CLASS_EXECUTE, AML_TYPE_EXEC_2A_1T_1R,
++			 AML_FLAGS_EXEC_2A_1T_1R),
+ /* 32 */ ACPI_OP("Match", ARGP_MATCH_OP, ARGI_MATCH_OP, ACPI_TYPE_ANY,
+-		 AML_CLASS_EXECUTE, AML_TYPE_EXEC_6A_0T_1R,
+-		 AML_FLAGS_EXEC_6A_0T_1R | AML_CONSTANT),
++			 AML_CLASS_EXECUTE, AML_TYPE_EXEC_6A_0T_1R,
++			 AML_FLAGS_EXEC_6A_0T_1R | AML_CONSTANT),
+ /* 33 */ ACPI_OP("CreateDWordField", ARGP_CREATE_DWORD_FIELD_OP,
+-		 ARGI_CREATE_DWORD_FIELD_OP,
+-		 ACPI_TYPE_BUFFER_FIELD, AML_CLASS_CREATE,
+-		 AML_TYPE_CREATE_FIELD,
+-		 AML_HAS_ARGS | AML_NSOBJECT | AML_NSNODE |
+-		 AML_DEFER | AML_CREATE),
++			 ARGI_CREATE_DWORD_FIELD_OP,
++			 ACPI_TYPE_BUFFER_FIELD, AML_CLASS_CREATE,
++			 AML_TYPE_CREATE_FIELD,
++			 AML_HAS_ARGS | AML_NSOBJECT | AML_NSNODE |
++			 AML_DEFER | AML_CREATE),
+ /* 34 */ ACPI_OP("CreateWordField", ARGP_CREATE_WORD_FIELD_OP,
+-		 ARGI_CREATE_WORD_FIELD_OP,
+-		 ACPI_TYPE_BUFFER_FIELD, AML_CLASS_CREATE,
+-		 AML_TYPE_CREATE_FIELD,
+-		 AML_HAS_ARGS | AML_NSOBJECT | AML_NSNODE |
+-		 AML_DEFER | AML_CREATE),
++			 ARGI_CREATE_WORD_FIELD_OP,
++			 ACPI_TYPE_BUFFER_FIELD, AML_CLASS_CREATE,
++			 AML_TYPE_CREATE_FIELD,
++			 AML_HAS_ARGS | AML_NSOBJECT | AML_NSNODE |
++			 AML_DEFER | AML_CREATE),
+ /* 35 */ ACPI_OP("CreateByteField", ARGP_CREATE_BYTE_FIELD_OP,
+-		 ARGI_CREATE_BYTE_FIELD_OP,
+-		 ACPI_TYPE_BUFFER_FIELD, AML_CLASS_CREATE,
+-		 AML_TYPE_CREATE_FIELD,
+-		 AML_HAS_ARGS | AML_NSOBJECT | AML_NSNODE |
+-		 AML_DEFER | AML_CREATE),
++			 ARGI_CREATE_BYTE_FIELD_OP,
++			 ACPI_TYPE_BUFFER_FIELD, AML_CLASS_CREATE,
++			 AML_TYPE_CREATE_FIELD,
++			 AML_HAS_ARGS | AML_NSOBJECT | AML_NSNODE |
++			 AML_DEFER | AML_CREATE),
+ /* 36 */ ACPI_OP("CreateBitField", ARGP_CREATE_BIT_FIELD_OP,
+-		 ARGI_CREATE_BIT_FIELD_OP,
+-		 ACPI_TYPE_BUFFER_FIELD, AML_CLASS_CREATE,
+-		 AML_TYPE_CREATE_FIELD,
+-		 AML_HAS_ARGS | AML_NSOBJECT | AML_NSNODE |
+-		 AML_DEFER | AML_CREATE),
++			 ARGI_CREATE_BIT_FIELD_OP,
++			 ACPI_TYPE_BUFFER_FIELD, AML_CLASS_CREATE,
++			 AML_TYPE_CREATE_FIELD,
++			 AML_HAS_ARGS | AML_NSOBJECT | AML_NSNODE |
++			 AML_DEFER | AML_CREATE),
+ /* 37 */ ACPI_OP("ObjectType", ARGP_TYPE_OP, ARGI_TYPE_OP,
+-		 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
+-		 AML_TYPE_EXEC_1A_0T_1R,
+-		 AML_FLAGS_EXEC_1A_0T_1R | AML_NO_OPERAND_RESOLVE),
++			 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
++			 AML_TYPE_EXEC_1A_0T_1R,
++			 AML_FLAGS_EXEC_1A_0T_1R | AML_NO_OPERAND_RESOLVE),
+ /* 38 */ ACPI_OP("LAnd", ARGP_LAND_OP, ARGI_LAND_OP, ACPI_TYPE_ANY,
+-		 AML_CLASS_EXECUTE, AML_TYPE_EXEC_2A_0T_1R,
++			 AML_CLASS_EXECUTE, AML_TYPE_EXEC_2A_0T_1R,
+ 			 AML_FLAGS_EXEC_2A_0T_1R | AML_LOGICAL_NUMERIC |
+ 			 AML_CONSTANT),
+ /* 39 */ ACPI_OP("LOr", ARGP_LOR_OP, ARGI_LOR_OP, ACPI_TYPE_ANY,
+-		 AML_CLASS_EXECUTE, AML_TYPE_EXEC_2A_0T_1R,
+-		 	 AML_FLAGS_EXEC_2A_0T_1R | AML_LOGICAL_NUMERIC |
++			 AML_CLASS_EXECUTE, AML_TYPE_EXEC_2A_0T_1R,
++			 AML_FLAGS_EXEC_2A_0T_1R | AML_LOGICAL_NUMERIC |
+ 			 AML_CONSTANT),
+ /* 3A */ ACPI_OP("LNot", ARGP_LNOT_OP, ARGI_LNOT_OP, ACPI_TYPE_ANY,
+-		 AML_CLASS_EXECUTE, AML_TYPE_EXEC_1A_0T_1R,
+-		 AML_FLAGS_EXEC_1A_0T_1R | AML_CONSTANT),
++			 AML_CLASS_EXECUTE, AML_TYPE_EXEC_1A_0T_1R,
++			 AML_FLAGS_EXEC_1A_0T_1R | AML_CONSTANT),
+ /* 3B */ ACPI_OP("LEqual", ARGP_LEQUAL_OP, ARGI_LEQUAL_OP,
+-		 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
+-		 AML_TYPE_EXEC_2A_0T_1R,
+-		 AML_FLAGS_EXEC_2A_0T_1R | AML_LOGICAL | AML_CONSTANT),
++			 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
++			 AML_TYPE_EXEC_2A_0T_1R,
++			 AML_FLAGS_EXEC_2A_0T_1R | AML_LOGICAL | AML_CONSTANT),
+ /* 3C */ ACPI_OP("LGreater", ARGP_LGREATER_OP, ARGI_LGREATER_OP,
+-		 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
+-		 AML_TYPE_EXEC_2A_0T_1R,
+-		 AML_FLAGS_EXEC_2A_0T_1R | AML_LOGICAL | AML_CONSTANT),
++			 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
++			 AML_TYPE_EXEC_2A_0T_1R,
++			 AML_FLAGS_EXEC_2A_0T_1R | AML_LOGICAL | AML_CONSTANT),
+ /* 3D */ ACPI_OP("LLess", ARGP_LLESS_OP, ARGI_LLESS_OP, ACPI_TYPE_ANY,
+-		 AML_CLASS_EXECUTE, AML_TYPE_EXEC_2A_0T_1R,
+-		 AML_FLAGS_EXEC_2A_0T_1R | AML_LOGICAL | AML_CONSTANT),
++			 AML_CLASS_EXECUTE, AML_TYPE_EXEC_2A_0T_1R,
++			 AML_FLAGS_EXEC_2A_0T_1R | AML_LOGICAL | AML_CONSTANT),
+ /* 3E */ ACPI_OP("If", ARGP_IF_OP, ARGI_IF_OP, ACPI_TYPE_ANY,
+-		 AML_CLASS_CONTROL, AML_TYPE_CONTROL, AML_HAS_ARGS),
++			 AML_CLASS_CONTROL, AML_TYPE_CONTROL, AML_HAS_ARGS),
+ /* 3F */ ACPI_OP("Else", ARGP_ELSE_OP, ARGI_ELSE_OP, ACPI_TYPE_ANY,
+-		 AML_CLASS_CONTROL, AML_TYPE_CONTROL, AML_HAS_ARGS),
++			 AML_CLASS_CONTROL, AML_TYPE_CONTROL, AML_HAS_ARGS),
+ /* 40 */ ACPI_OP("While", ARGP_WHILE_OP, ARGI_WHILE_OP, ACPI_TYPE_ANY,
+-		 AML_CLASS_CONTROL, AML_TYPE_CONTROL, AML_HAS_ARGS),
++			 AML_CLASS_CONTROL, AML_TYPE_CONTROL, AML_HAS_ARGS),
+ /* 41 */ ACPI_OP("Noop", ARGP_NOOP_OP, ARGI_NOOP_OP, ACPI_TYPE_ANY,
+-		 AML_CLASS_CONTROL, AML_TYPE_CONTROL, 0),
++			 AML_CLASS_CONTROL, AML_TYPE_CONTROL, 0),
+ /* 42 */ ACPI_OP("Return", ARGP_RETURN_OP, ARGI_RETURN_OP,
+-		 ACPI_TYPE_ANY, AML_CLASS_CONTROL,
+-		 AML_TYPE_CONTROL, AML_HAS_ARGS),
++			 ACPI_TYPE_ANY, AML_CLASS_CONTROL,
++			 AML_TYPE_CONTROL, AML_HAS_ARGS),
+ /* 43 */ ACPI_OP("Break", ARGP_BREAK_OP, ARGI_BREAK_OP, ACPI_TYPE_ANY,
+-		 AML_CLASS_CONTROL, AML_TYPE_CONTROL, 0),
++			 AML_CLASS_CONTROL, AML_TYPE_CONTROL, 0),
+ /* 44 */ ACPI_OP("BreakPoint", ARGP_BREAK_POINT_OP, ARGI_BREAK_POINT_OP,
+-		 ACPI_TYPE_ANY, AML_CLASS_CONTROL, AML_TYPE_CONTROL, 0),
++			 ACPI_TYPE_ANY, AML_CLASS_CONTROL, AML_TYPE_CONTROL, 0),
+ /* 45 */ ACPI_OP("Ones", ARGP_ONES_OP, ARGI_ONES_OP, ACPI_TYPE_INTEGER,
+-		 AML_CLASS_ARGUMENT, AML_TYPE_CONSTANT, AML_CONSTANT),
++			 AML_CLASS_ARGUMENT, AML_TYPE_CONSTANT, AML_CONSTANT),
+ 
+ /* Prefixed opcodes (Two-byte opcodes with a prefix op) */
+ 
+ /* 46 */ ACPI_OP("Mutex", ARGP_MUTEX_OP, ARGI_MUTEX_OP, ACPI_TYPE_MUTEX,
+-		 AML_CLASS_NAMED_OBJECT, AML_TYPE_NAMED_SIMPLE,
+-		 AML_HAS_ARGS | AML_NSOBJECT | AML_NSOPCODE |
+-		 AML_NSNODE | AML_NAMED),
++			 AML_CLASS_NAMED_OBJECT, AML_TYPE_NAMED_SIMPLE,
++			 AML_HAS_ARGS | AML_NSOBJECT | AML_NSOPCODE |
++			 AML_NSNODE | AML_NAMED),
+ /* 47 */ ACPI_OP("Event", ARGP_EVENT_OP, ARGI_EVENT_OP, ACPI_TYPE_EVENT,
+-		 AML_CLASS_NAMED_OBJECT, AML_TYPE_NAMED_SIMPLE,
+-		 AML_NSOBJECT | AML_NSOPCODE | AML_NSNODE | AML_NAMED),
++			 AML_CLASS_NAMED_OBJECT, AML_TYPE_NAMED_SIMPLE,
++			 AML_NSOBJECT | AML_NSOPCODE | AML_NSNODE | AML_NAMED),
+ /* 48 */ ACPI_OP("CondRefOf", ARGP_COND_REF_OF_OP, ARGI_COND_REF_OF_OP,
+-		 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
+-		 AML_TYPE_EXEC_1A_1T_1R, AML_FLAGS_EXEC_1A_1T_1R),
++			 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
++			 AML_TYPE_EXEC_1A_1T_1R, AML_FLAGS_EXEC_1A_1T_1R),
+ /* 49 */ ACPI_OP("CreateField", ARGP_CREATE_FIELD_OP,
+-		 ARGI_CREATE_FIELD_OP, ACPI_TYPE_BUFFER_FIELD,
+-		 AML_CLASS_CREATE, AML_TYPE_CREATE_FIELD,
+-		 AML_HAS_ARGS | AML_NSOBJECT | AML_NSNODE |
+-		 AML_DEFER | AML_FIELD | AML_CREATE),
++			 ARGI_CREATE_FIELD_OP, ACPI_TYPE_BUFFER_FIELD,
++			 AML_CLASS_CREATE, AML_TYPE_CREATE_FIELD,
++			 AML_HAS_ARGS | AML_NSOBJECT | AML_NSNODE |
++			 AML_DEFER | AML_FIELD | AML_CREATE),
+ /* 4A */ ACPI_OP("Load", ARGP_LOAD_OP, ARGI_LOAD_OP, ACPI_TYPE_ANY,
+-		 AML_CLASS_EXECUTE, AML_TYPE_EXEC_1A_1T_0R,
+-		 AML_FLAGS_EXEC_1A_1T_0R),
++			 AML_CLASS_EXECUTE, AML_TYPE_EXEC_1A_1T_0R,
++			 AML_FLAGS_EXEC_1A_1T_0R),
+ /* 4B */ ACPI_OP("Stall", ARGP_STALL_OP, ARGI_STALL_OP, ACPI_TYPE_ANY,
+-		 AML_CLASS_EXECUTE, AML_TYPE_EXEC_1A_0T_0R,
+-		 AML_FLAGS_EXEC_1A_0T_0R),
++			 AML_CLASS_EXECUTE, AML_TYPE_EXEC_1A_0T_0R,
++			 AML_FLAGS_EXEC_1A_0T_0R),
+ /* 4C */ ACPI_OP("Sleep", ARGP_SLEEP_OP, ARGI_SLEEP_OP, ACPI_TYPE_ANY,
+-		 AML_CLASS_EXECUTE, AML_TYPE_EXEC_1A_0T_0R,
+-		 AML_FLAGS_EXEC_1A_0T_0R),
++			 AML_CLASS_EXECUTE, AML_TYPE_EXEC_1A_0T_0R,
++			 AML_FLAGS_EXEC_1A_0T_0R),
+ /* 4D */ ACPI_OP("Acquire", ARGP_ACQUIRE_OP, ARGI_ACQUIRE_OP,
+-		 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
+-		 AML_TYPE_EXEC_2A_0T_1R, AML_FLAGS_EXEC_2A_0T_1R),
++			 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
++			 AML_TYPE_EXEC_2A_0T_1R, AML_FLAGS_EXEC_2A_0T_1R),
+ /* 4E */ ACPI_OP("Signal", ARGP_SIGNAL_OP, ARGI_SIGNAL_OP,
+-		 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
+-		 AML_TYPE_EXEC_1A_0T_0R, AML_FLAGS_EXEC_1A_0T_0R),
++			 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
++			 AML_TYPE_EXEC_1A_0T_0R, AML_FLAGS_EXEC_1A_0T_0R),
+ /* 4F */ ACPI_OP("Wait", ARGP_WAIT_OP, ARGI_WAIT_OP, ACPI_TYPE_ANY,
+-		 AML_CLASS_EXECUTE, AML_TYPE_EXEC_2A_0T_1R,
+-		 AML_FLAGS_EXEC_2A_0T_1R),
++			 AML_CLASS_EXECUTE, AML_TYPE_EXEC_2A_0T_1R,
++			 AML_FLAGS_EXEC_2A_0T_1R),
+ /* 50 */ ACPI_OP("Reset", ARGP_RESET_OP, ARGI_RESET_OP, ACPI_TYPE_ANY,
+-		 AML_CLASS_EXECUTE, AML_TYPE_EXEC_1A_0T_0R,
+-		 AML_FLAGS_EXEC_1A_0T_0R),
++			 AML_CLASS_EXECUTE, AML_TYPE_EXEC_1A_0T_0R,
++			 AML_FLAGS_EXEC_1A_0T_0R),
+ /* 51 */ ACPI_OP("Release", ARGP_RELEASE_OP, ARGI_RELEASE_OP,
+-		 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
+-		 AML_TYPE_EXEC_1A_0T_0R, AML_FLAGS_EXEC_1A_0T_0R),
++			 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
++			 AML_TYPE_EXEC_1A_0T_0R, AML_FLAGS_EXEC_1A_0T_0R),
+ /* 52 */ ACPI_OP("FromBCD", ARGP_FROM_BCD_OP, ARGI_FROM_BCD_OP,
+-		 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
+-		 AML_TYPE_EXEC_1A_1T_1R,
+-		 AML_FLAGS_EXEC_1A_1T_1R | AML_CONSTANT),
++			 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
++			 AML_TYPE_EXEC_1A_1T_1R,
++			 AML_FLAGS_EXEC_1A_1T_1R | AML_CONSTANT),
+ /* 53 */ ACPI_OP("ToBCD", ARGP_TO_BCD_OP, ARGI_TO_BCD_OP, ACPI_TYPE_ANY,
+-		 AML_CLASS_EXECUTE, AML_TYPE_EXEC_1A_1T_1R,
+-		 AML_FLAGS_EXEC_1A_1T_1R | AML_CONSTANT),
++			 AML_CLASS_EXECUTE, AML_TYPE_EXEC_1A_1T_1R,
++			 AML_FLAGS_EXEC_1A_1T_1R | AML_CONSTANT),
+ /* 54 */ ACPI_OP("Unload", ARGP_UNLOAD_OP, ARGI_UNLOAD_OP,
+-		 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
+-		 AML_TYPE_EXEC_1A_0T_0R, AML_FLAGS_EXEC_1A_0T_0R),
++			 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
++			 AML_TYPE_EXEC_1A_0T_0R, AML_FLAGS_EXEC_1A_0T_0R),
+ /* 55 */ ACPI_OP("Revision", ARGP_REVISION_OP, ARGI_REVISION_OP,
+-		 ACPI_TYPE_INTEGER, AML_CLASS_ARGUMENT,
+-		 AML_TYPE_CONSTANT, 0),
++			 ACPI_TYPE_INTEGER, AML_CLASS_ARGUMENT,
++			 AML_TYPE_CONSTANT, 0),
+ /* 56 */ ACPI_OP("Debug", ARGP_DEBUG_OP, ARGI_DEBUG_OP,
+-		 ACPI_TYPE_LOCAL_REFERENCE, AML_CLASS_ARGUMENT,
+-		 AML_TYPE_CONSTANT, 0),
++			 ACPI_TYPE_LOCAL_REFERENCE, AML_CLASS_ARGUMENT,
++			 AML_TYPE_CONSTANT, 0),
+ /* 57 */ ACPI_OP("Fatal", ARGP_FATAL_OP, ARGI_FATAL_OP, ACPI_TYPE_ANY,
+-		 AML_CLASS_EXECUTE, AML_TYPE_EXEC_3A_0T_0R,
+-		 AML_FLAGS_EXEC_3A_0T_0R),
++			 AML_CLASS_EXECUTE, AML_TYPE_EXEC_3A_0T_0R,
++			 AML_FLAGS_EXEC_3A_0T_0R),
+ /* 58 */ ACPI_OP("OperationRegion", ARGP_REGION_OP, ARGI_REGION_OP,
+-		 ACPI_TYPE_REGION, AML_CLASS_NAMED_OBJECT,
+-		 AML_TYPE_NAMED_COMPLEX,
+-		 AML_HAS_ARGS | AML_NSOBJECT | AML_NSOPCODE |
+-		 AML_NSNODE | AML_NAMED | AML_DEFER),
++			 ACPI_TYPE_REGION, AML_CLASS_NAMED_OBJECT,
++			 AML_TYPE_NAMED_COMPLEX,
++			 AML_HAS_ARGS | AML_NSOBJECT | AML_NSOPCODE |
++			 AML_NSNODE | AML_NAMED | AML_DEFER),
+ /* 59 */ ACPI_OP("Field", ARGP_FIELD_OP, ARGI_FIELD_OP, ACPI_TYPE_ANY,
+-		 AML_CLASS_NAMED_OBJECT, AML_TYPE_NAMED_FIELD,
++			 AML_CLASS_NAMED_OBJECT, AML_TYPE_NAMED_FIELD,
+ 			 AML_HAS_ARGS | AML_NSOBJECT | AML_NSOPCODE |
+ 			 AML_FIELD),
+ /* 5A */ ACPI_OP("Device", ARGP_DEVICE_OP, ARGI_DEVICE_OP,
+-		 ACPI_TYPE_DEVICE, AML_CLASS_NAMED_OBJECT,
+-		 AML_TYPE_NAMED_NO_OBJ,
+-		 AML_HAS_ARGS | AML_NSOBJECT | AML_NSOPCODE |
+-		 AML_NSNODE | AML_NAMED),
++			 ACPI_TYPE_DEVICE, AML_CLASS_NAMED_OBJECT,
++			 AML_TYPE_NAMED_NO_OBJ,
++			 AML_HAS_ARGS | AML_NSOBJECT | AML_NSOPCODE |
++			 AML_NSNODE | AML_NAMED),
+ /* 5B */ ACPI_OP("Processor", ARGP_PROCESSOR_OP, ARGI_PROCESSOR_OP,
+-		 ACPI_TYPE_PROCESSOR, AML_CLASS_NAMED_OBJECT,
+-		 AML_TYPE_NAMED_SIMPLE,
+-		 AML_HAS_ARGS | AML_NSOBJECT | AML_NSOPCODE |
+-		 AML_NSNODE | AML_NAMED),
++			 ACPI_TYPE_PROCESSOR, AML_CLASS_NAMED_OBJECT,
++			 AML_TYPE_NAMED_SIMPLE,
++			 AML_HAS_ARGS | AML_NSOBJECT | AML_NSOPCODE |
++			 AML_NSNODE | AML_NAMED),
+ /* 5C */ ACPI_OP("PowerResource", ARGP_POWER_RES_OP, ARGI_POWER_RES_OP,
+-		 ACPI_TYPE_POWER, AML_CLASS_NAMED_OBJECT,
+-		 AML_TYPE_NAMED_SIMPLE,
+-		 AML_HAS_ARGS | AML_NSOBJECT | AML_NSOPCODE |
+-		 AML_NSNODE | AML_NAMED),
++			 ACPI_TYPE_POWER, AML_CLASS_NAMED_OBJECT,
++			 AML_TYPE_NAMED_SIMPLE,
++			 AML_HAS_ARGS | AML_NSOBJECT | AML_NSOPCODE |
++			 AML_NSNODE | AML_NAMED),
+ /* 5D */ ACPI_OP("ThermalZone", ARGP_THERMAL_ZONE_OP,
+-		 ARGI_THERMAL_ZONE_OP, ACPI_TYPE_THERMAL,
+-		 AML_CLASS_NAMED_OBJECT, AML_TYPE_NAMED_NO_OBJ,
+-		 AML_HAS_ARGS | AML_NSOBJECT | AML_NSOPCODE |
+-		 AML_NSNODE | AML_NAMED),
++			 ARGI_THERMAL_ZONE_OP, ACPI_TYPE_THERMAL,
++			 AML_CLASS_NAMED_OBJECT, AML_TYPE_NAMED_NO_OBJ,
++			 AML_HAS_ARGS | AML_NSOBJECT | AML_NSOPCODE |
++			 AML_NSNODE | AML_NAMED),
+ /* 5E */ ACPI_OP("IndexField", ARGP_INDEX_FIELD_OP, ARGI_INDEX_FIELD_OP,
+-		 ACPI_TYPE_ANY, AML_CLASS_NAMED_OBJECT,
+-		 AML_TYPE_NAMED_FIELD,
+-		 	 AML_HAS_ARGS | AML_NSOBJECT | AML_NSOPCODE |
++			 ACPI_TYPE_ANY, AML_CLASS_NAMED_OBJECT,
++			 AML_TYPE_NAMED_FIELD,
++			 AML_HAS_ARGS | AML_NSOBJECT | AML_NSOPCODE |
+ 			 AML_FIELD),
+ /* 5F */ ACPI_OP("BankField", ARGP_BANK_FIELD_OP, ARGI_BANK_FIELD_OP,
+-		 	 ACPI_TYPE_LOCAL_BANK_FIELD,
++			 ACPI_TYPE_LOCAL_BANK_FIELD,
+ 			 AML_CLASS_NAMED_OBJECT, AML_TYPE_NAMED_FIELD,
+-		 	 AML_HAS_ARGS | AML_NSOBJECT | AML_NSOPCODE |
++			 AML_HAS_ARGS | AML_NSOBJECT | AML_NSOPCODE |
+ 			 AML_FIELD | AML_DEFER),
+ 
+ /* Internal opcodes that map to invalid AML opcodes */
+ 
+ /* 60 */ ACPI_OP("LNotEqual", ARGP_LNOTEQUAL_OP, ARGI_LNOTEQUAL_OP,
+-		 ACPI_TYPE_ANY, AML_CLASS_INTERNAL,
+-		 AML_TYPE_BOGUS, AML_HAS_ARGS | AML_CONSTANT),
++			 ACPI_TYPE_ANY, AML_CLASS_INTERNAL,
++			 AML_TYPE_BOGUS, AML_HAS_ARGS | AML_CONSTANT),
+ /* 61 */ ACPI_OP("LLessEqual", ARGP_LLESSEQUAL_OP, ARGI_LLESSEQUAL_OP,
+-		 ACPI_TYPE_ANY, AML_CLASS_INTERNAL,
+-		 AML_TYPE_BOGUS, AML_HAS_ARGS | AML_CONSTANT),
++			 ACPI_TYPE_ANY, AML_CLASS_INTERNAL,
++			 AML_TYPE_BOGUS, AML_HAS_ARGS | AML_CONSTANT),
+ /* 62 */ ACPI_OP("LGreaterEqual", ARGP_LGREATEREQUAL_OP,
+-		 ARGI_LGREATEREQUAL_OP, ACPI_TYPE_ANY,
+-		 AML_CLASS_INTERNAL, AML_TYPE_BOGUS,
+-		 AML_HAS_ARGS | AML_CONSTANT),
++			 ARGI_LGREATEREQUAL_OP, ACPI_TYPE_ANY,
++			 AML_CLASS_INTERNAL, AML_TYPE_BOGUS,
++			 AML_HAS_ARGS | AML_CONSTANT),
+ /* 63 */ ACPI_OP("-NamePath-", ARGP_NAMEPATH_OP, ARGI_NAMEPATH_OP,
+-		 ACPI_TYPE_LOCAL_REFERENCE, AML_CLASS_ARGUMENT,
+-		 AML_TYPE_LITERAL, AML_NSOBJECT | AML_NSNODE),
++			 ACPI_TYPE_LOCAL_REFERENCE, AML_CLASS_ARGUMENT,
++			 AML_TYPE_LITERAL, AML_NSOBJECT | AML_NSNODE),
+ /* 64 */ ACPI_OP("-MethodCall-", ARGP_METHODCALL_OP, ARGI_METHODCALL_OP,
+-		 ACPI_TYPE_METHOD, AML_CLASS_METHOD_CALL,
+-		 AML_TYPE_METHOD_CALL,
+-		 AML_HAS_ARGS | AML_NSOBJECT | AML_NSNODE),
++			 ACPI_TYPE_METHOD, AML_CLASS_METHOD_CALL,
++			 AML_TYPE_METHOD_CALL,
++			 AML_HAS_ARGS | AML_NSOBJECT | AML_NSNODE),
+ /* 65 */ ACPI_OP("-ByteList-", ARGP_BYTELIST_OP, ARGI_BYTELIST_OP,
+-		 ACPI_TYPE_ANY, AML_CLASS_ARGUMENT,
+-		 AML_TYPE_LITERAL, 0),
++			 ACPI_TYPE_ANY, AML_CLASS_ARGUMENT,
++			 AML_TYPE_LITERAL, 0),
+ /* 66 */ ACPI_OP("-ReservedField-", ARGP_RESERVEDFIELD_OP,
+-		 ARGI_RESERVEDFIELD_OP, ACPI_TYPE_ANY,
+-		 AML_CLASS_INTERNAL, AML_TYPE_BOGUS, 0),
++			 ARGI_RESERVEDFIELD_OP, ACPI_TYPE_ANY,
++			 AML_CLASS_INTERNAL, AML_TYPE_BOGUS, 0),
+ /* 67 */ ACPI_OP("-NamedField-", ARGP_NAMEDFIELD_OP, ARGI_NAMEDFIELD_OP,
+-		 ACPI_TYPE_ANY, AML_CLASS_INTERNAL,
+-		 AML_TYPE_BOGUS,
+-		 AML_NSOBJECT | AML_NSOPCODE | AML_NSNODE | AML_NAMED),
++			 ACPI_TYPE_ANY, AML_CLASS_INTERNAL,
++			 AML_TYPE_BOGUS,
++			 AML_NSOBJECT | AML_NSOPCODE | AML_NSNODE | AML_NAMED),
+ /* 68 */ ACPI_OP("-AccessField-", ARGP_ACCESSFIELD_OP,
+-		 ARGI_ACCESSFIELD_OP, ACPI_TYPE_ANY,
+-		 AML_CLASS_INTERNAL, AML_TYPE_BOGUS, 0),
++			 ARGI_ACCESSFIELD_OP, ACPI_TYPE_ANY,
++			 AML_CLASS_INTERNAL, AML_TYPE_BOGUS, 0),
+ /* 69 */ ACPI_OP("-StaticString", ARGP_STATICSTRING_OP,
+-		 ARGI_STATICSTRING_OP, ACPI_TYPE_ANY,
+-		 AML_CLASS_INTERNAL, AML_TYPE_BOGUS, 0),
++			 ARGI_STATICSTRING_OP, ACPI_TYPE_ANY,
++			 AML_CLASS_INTERNAL, AML_TYPE_BOGUS, 0),
+ /* 6A */ ACPI_OP("-Return Value-", ARG_NONE, ARG_NONE, ACPI_TYPE_ANY,
+-		 AML_CLASS_RETURN_VALUE, AML_TYPE_RETURN,
+-		 AML_HAS_ARGS | AML_HAS_RETVAL),
++			 AML_CLASS_RETURN_VALUE, AML_TYPE_RETURN,
++			 AML_HAS_ARGS | AML_HAS_RETVAL),
+ /* 6B */ ACPI_OP("-UNKNOWN_OP-", ARG_NONE, ARG_NONE, ACPI_TYPE_INVALID,
+-		 AML_CLASS_UNKNOWN, AML_TYPE_BOGUS, AML_HAS_ARGS),
++			 AML_CLASS_UNKNOWN, AML_TYPE_BOGUS, AML_HAS_ARGS),
+ /* 6C */ ACPI_OP("-ASCII_ONLY-", ARG_NONE, ARG_NONE, ACPI_TYPE_ANY,
+-		 AML_CLASS_ASCII, AML_TYPE_BOGUS, AML_HAS_ARGS),
++			 AML_CLASS_ASCII, AML_TYPE_BOGUS, AML_HAS_ARGS),
+ /* 6D */ ACPI_OP("-PREFIX_ONLY-", ARG_NONE, ARG_NONE, ACPI_TYPE_ANY,
+-		 AML_CLASS_PREFIX, AML_TYPE_BOGUS, AML_HAS_ARGS),
++			 AML_CLASS_PREFIX, AML_TYPE_BOGUS, AML_HAS_ARGS),
+ 
+ /* ACPI 2.0 opcodes */
+ 
+ /* 6E */ ACPI_OP("QwordConst", ARGP_QWORD_OP, ARGI_QWORD_OP,
+-		 ACPI_TYPE_INTEGER, AML_CLASS_ARGUMENT,
+-		 AML_TYPE_LITERAL, AML_CONSTANT),
++			 ACPI_TYPE_INTEGER, AML_CLASS_ARGUMENT,
++			 AML_TYPE_LITERAL, AML_CONSTANT),
+ 	/* 6F */ ACPI_OP("Package", /* Var */ ARGP_VAR_PACKAGE_OP,
+ 			 ARGI_VAR_PACKAGE_OP, ACPI_TYPE_PACKAGE,
+ 			 AML_CLASS_CREATE, AML_TYPE_CREATE_OBJECT,
+ 			 AML_HAS_ARGS | AML_DEFER),
+ /* 70 */ ACPI_OP("ConcatenateResTemplate", ARGP_CONCAT_RES_OP,
+-		 ARGI_CONCAT_RES_OP, ACPI_TYPE_ANY,
+-		 AML_CLASS_EXECUTE, AML_TYPE_EXEC_2A_1T_1R,
+-		 AML_FLAGS_EXEC_2A_1T_1R | AML_CONSTANT),
++			 ARGI_CONCAT_RES_OP, ACPI_TYPE_ANY,
++			 AML_CLASS_EXECUTE, AML_TYPE_EXEC_2A_1T_1R,
++			 AML_FLAGS_EXEC_2A_1T_1R | AML_CONSTANT),
+ /* 71 */ ACPI_OP("Mod", ARGP_MOD_OP, ARGI_MOD_OP, ACPI_TYPE_ANY,
+-		 AML_CLASS_EXECUTE, AML_TYPE_EXEC_2A_1T_1R,
+-		 AML_FLAGS_EXEC_2A_1T_1R | AML_CONSTANT),
++			 AML_CLASS_EXECUTE, AML_TYPE_EXEC_2A_1T_1R,
++			 AML_FLAGS_EXEC_2A_1T_1R | AML_CONSTANT),
+ /* 72 */ ACPI_OP("CreateQWordField", ARGP_CREATE_QWORD_FIELD_OP,
+-		 ARGI_CREATE_QWORD_FIELD_OP,
+-		 ACPI_TYPE_BUFFER_FIELD, AML_CLASS_CREATE,
+-		 AML_TYPE_CREATE_FIELD,
+-		 AML_HAS_ARGS | AML_NSOBJECT | AML_NSNODE |
+-		 AML_DEFER | AML_CREATE),
++			 ARGI_CREATE_QWORD_FIELD_OP,
++			 ACPI_TYPE_BUFFER_FIELD, AML_CLASS_CREATE,
++			 AML_TYPE_CREATE_FIELD,
++			 AML_HAS_ARGS | AML_NSOBJECT | AML_NSNODE |
++			 AML_DEFER | AML_CREATE),
+ /* 73 */ ACPI_OP("ToBuffer", ARGP_TO_BUFFER_OP, ARGI_TO_BUFFER_OP,
+-		 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
+-		 AML_TYPE_EXEC_1A_1T_1R,
+-		 AML_FLAGS_EXEC_1A_1T_1R | AML_CONSTANT),
++			 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
++			 AML_TYPE_EXEC_1A_1T_1R,
++			 AML_FLAGS_EXEC_1A_1T_1R | AML_CONSTANT),
+ /* 74 */ ACPI_OP("ToDecimalString", ARGP_TO_DEC_STR_OP,
+-		 ARGI_TO_DEC_STR_OP, ACPI_TYPE_ANY,
+-		 AML_CLASS_EXECUTE, AML_TYPE_EXEC_1A_1T_1R,
+-		 AML_FLAGS_EXEC_1A_1T_1R | AML_CONSTANT),
++			 ARGI_TO_DEC_STR_OP, ACPI_TYPE_ANY,
++			 AML_CLASS_EXECUTE, AML_TYPE_EXEC_1A_1T_1R,
++			 AML_FLAGS_EXEC_1A_1T_1R | AML_CONSTANT),
+ /* 75 */ ACPI_OP("ToHexString", ARGP_TO_HEX_STR_OP, ARGI_TO_HEX_STR_OP,
+-		 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
+-		 AML_TYPE_EXEC_1A_1T_1R,
+-		 AML_FLAGS_EXEC_1A_1T_1R | AML_CONSTANT),
++			 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
++			 AML_TYPE_EXEC_1A_1T_1R,
++			 AML_FLAGS_EXEC_1A_1T_1R | AML_CONSTANT),
+ /* 76 */ ACPI_OP("ToInteger", ARGP_TO_INTEGER_OP, ARGI_TO_INTEGER_OP,
+-		 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
+-		 AML_TYPE_EXEC_1A_1T_1R,
+-		 AML_FLAGS_EXEC_1A_1T_1R | AML_CONSTANT),
++			 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
++			 AML_TYPE_EXEC_1A_1T_1R,
++			 AML_FLAGS_EXEC_1A_1T_1R | AML_CONSTANT),
+ /* 77 */ ACPI_OP("ToString", ARGP_TO_STRING_OP, ARGI_TO_STRING_OP,
+-		 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
+-		 AML_TYPE_EXEC_2A_1T_1R,
+-		 AML_FLAGS_EXEC_2A_1T_1R | AML_CONSTANT),
++			 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
++			 AML_TYPE_EXEC_2A_1T_1R,
++			 AML_FLAGS_EXEC_2A_1T_1R | AML_CONSTANT),
+ /* 78 */ ACPI_OP("CopyObject", ARGP_COPY_OP, ARGI_COPY_OP,
+-		 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
+-		 AML_TYPE_EXEC_1A_1T_1R, AML_FLAGS_EXEC_1A_1T_1R),
++			 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
++			 AML_TYPE_EXEC_1A_1T_1R, AML_FLAGS_EXEC_1A_1T_1R),
+ /* 79 */ ACPI_OP("Mid", ARGP_MID_OP, ARGI_MID_OP, ACPI_TYPE_ANY,
+-		 AML_CLASS_EXECUTE, AML_TYPE_EXEC_3A_1T_1R,
+-		 AML_FLAGS_EXEC_3A_1T_1R | AML_CONSTANT),
++			 AML_CLASS_EXECUTE, AML_TYPE_EXEC_3A_1T_1R,
++			 AML_FLAGS_EXEC_3A_1T_1R | AML_CONSTANT),
+ /* 7A */ ACPI_OP("Continue", ARGP_CONTINUE_OP, ARGI_CONTINUE_OP,
+-		 ACPI_TYPE_ANY, AML_CLASS_CONTROL, AML_TYPE_CONTROL, 0),
++			 ACPI_TYPE_ANY, AML_CLASS_CONTROL, AML_TYPE_CONTROL, 0),
+ /* 7B */ ACPI_OP("LoadTable", ARGP_LOAD_TABLE_OP, ARGI_LOAD_TABLE_OP,
+-		 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
+-		 AML_TYPE_EXEC_6A_0T_1R, AML_FLAGS_EXEC_6A_0T_1R),
++			 ACPI_TYPE_ANY, AML_CLASS_EXECUTE,
++			 AML_TYPE_EXEC_6A_0T_1R, AML_FLAGS_EXEC_6A_0T_1R),
+ /* 7C */ ACPI_OP("DataTableRegion", ARGP_DATA_REGION_OP,
+-		 ARGI_DATA_REGION_OP, ACPI_TYPE_REGION,
+-		 AML_CLASS_NAMED_OBJECT, AML_TYPE_NAMED_COMPLEX,
+-		 AML_HAS_ARGS | AML_NSOBJECT | AML_NSOPCODE |
+-		 AML_NSNODE | AML_NAMED | AML_DEFER),
++			 ARGI_DATA_REGION_OP, ACPI_TYPE_REGION,
++			 AML_CLASS_NAMED_OBJECT, AML_TYPE_NAMED_COMPLEX,
++			 AML_HAS_ARGS | AML_NSOBJECT | AML_NSOPCODE |
++			 AML_NSNODE | AML_NAMED | AML_DEFER),
+ /* 7D */ ACPI_OP("[EvalSubTree]", ARGP_SCOPE_OP, ARGI_SCOPE_OP,
+-		 ACPI_TYPE_ANY, AML_CLASS_NAMED_OBJECT,
+-		 AML_TYPE_NAMED_NO_OBJ,
+-		 	 AML_HAS_ARGS | AML_NSOBJECT | AML_NSOPCODE |
++			 ACPI_TYPE_ANY, AML_CLASS_NAMED_OBJECT,
++			 AML_TYPE_NAMED_NO_OBJ,
++			 AML_HAS_ARGS | AML_NSOBJECT | AML_NSOPCODE |
+ 			 AML_NSNODE),
+ 
+ /* ACPI 3.0 opcodes */
+ 
+ /* 7E */ ACPI_OP("Timer", ARGP_TIMER_OP, ARGI_TIMER_OP, ACPI_TYPE_ANY,
+-		 AML_CLASS_EXECUTE, AML_TYPE_EXEC_0A_0T_1R,
++			 AML_CLASS_EXECUTE, AML_TYPE_EXEC_0A_0T_1R,
+ 			 AML_FLAGS_EXEC_0A_0T_1R),
+ 
+ /* ACPI 5.0 opcodes */
+diff --git a/drivers/acpi/acpica/rsmisc.c b/drivers/acpi/acpica/rsmisc.c
+index ac37852..b528ed90 100644
+--- a/drivers/acpi/acpica/rsmisc.c
++++ b/drivers/acpi/acpica/rsmisc.c
+@@ -446,7 +446,7 @@ exit:
+ 		/* Round the resource struct length up to the next boundary (32 or 64) */
+ 
+ 		resource->length =
+-		    (u32) ACPI_ROUND_UP_TO_NATIVE_WORD(resource->length);
++		    (u32)ACPI_ROUND_UP_TO_NATIVE_WORD(resource->length);
+ 	}
+ 	return_ACPI_STATUS(AE_OK);
+ }
+@@ -551,8 +551,8 @@ acpi_rs_convert_resource_to_aml(struct acpi_resource *resource,
+ 			ACPI_SET8(destination, item_count);
+ 
+ 			aml_length =
+-			    (u16) (aml_length +
+-				   (info->value * (item_count - 1)));
++			    (u16)(aml_length +
++				  (info->value * (item_count - 1)));
+ 			break;
+ 
+ 		case ACPI_RSC_COUNT16:
+diff --git a/drivers/acpi/acpica/utobject.c b/drivers/acpi/acpica/utobject.c
+index 7d83efe..c7e11cc 100644
+--- a/drivers/acpi/acpica/utobject.c
++++ b/drivers/acpi/acpica/utobject.c
+@@ -253,7 +253,7 @@ union acpi_operand_object *acpi_ut_create_buffer_object(acpi_size buffer_size)
+ 		buffer = ACPI_ALLOCATE_ZEROED(buffer_size);
+ 		if (!buffer) {
+ 			ACPI_ERROR((AE_INFO, "Could not allocate size %u",
+-				    (u32) buffer_size));
++				    (u32)buffer_size));
+ 			acpi_ut_remove_reference(buffer_desc);
+ 			return_PTR(NULL);
+ 		}
+@@ -305,7 +305,7 @@ union acpi_operand_object *acpi_ut_create_string_object(acpi_size string_size)
+ 	string = ACPI_ALLOCATE_ZEROED(string_size + 1);
+ 	if (!string) {
+ 		ACPI_ERROR((AE_INFO, "Could not allocate size %u",
+-			    (u32) string_size));
++			    (u32)string_size));
+ 		acpi_ut_remove_reference(string_desc);
+ 		return_PTR(NULL);
+ 	}
+diff --git a/include/acpi/platform/aclinuxex.h b/include/acpi/platform/aclinuxex.h
+index ceea026..f903fe6 100644
+--- a/include/acpi/platform/aclinuxex.h
++++ b/include/acpi/platform/aclinuxex.h
+@@ -136,6 +136,7 @@ static inline acpi_status acpi_os_initialize_command_signals(void)
+ 
+ static inline void acpi_os_terminate_command_signals(void)
+ {
++	return;
+ }
+ 
+ /*
 -- 
 1.7.10
-
