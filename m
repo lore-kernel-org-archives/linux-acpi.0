@@ -1,71 +1,110 @@
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v3 2/3] device property: the secondary fwnode needs to depend on the primary
-Date: Tue, 29 Dec 2015 13:07:49 +0200
-Message-ID: <1451387271-56535-3-git-send-email-andriy.shevchenko@linux.intel.com>
-References: <1451387271-56535-1-git-send-email-andriy.shevchenko@linux.intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:52889 "EHLO mga04.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752104AbbL2LIK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 29 Dec 2015 06:08:10 -0500
-In-Reply-To: <1451387271-56535-1-git-send-email-andriy.shevchenko@linux.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH 3/5] thinkpad_acpi: Use
+ acpi_video_handles_brightness_key_presses()
+Date: Tue, 29 Dec 2015 13:27:43 +0100
+Message-ID: <56827C3F.8090509@redhat.com>
+References: <1450807792-4980-1-git-send-email-hdegoede@redhat.com>
+ <1450807792-4980-4-git-send-email-hdegoede@redhat.com>
+ <20151227230812.GA8731@khazad-dum.debian.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <20151227230812.GA8731@khazad-dum.debian.net>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Darren Hart <dvhart@infradead.org>, Corentin Chary <corentin.chary@gmail.com>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, =?UTF-8?B?TWljaGHFgiBLxJlwaWXFhA==?= <kernel@kempniu.pl>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, acpi4asus-user@lists.sourceforge.net, ibm-acpi-devel@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
-To: Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, heikki.krogerus@linux.intel.com, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Hi,
 
-This fixes NULL pointer dereference when the primary fwnode handle
-does not exist, for example with PCI devices that do not have ACPI
-companion.
+On 28-12-15 00:08, Henrique de Moraes Holschuh wrote:
+> On Tue, 22 Dec 2015, Hans de Goede wrote:
+>> Use the new acpi_video_handles_brightness_key_presses function to check
+>> if we should report brightness key-presses.
+>>
+>> This makes the code both easier to read and makes it properly report
+>> key-presses when acpi-video is not reporting them for reasons other
+>> then the backlight type being vendor.
+>
+> If this new function will return false when acpi video is not reporting
+> keypresses *BUT* still allowing any sort of brightness changes (e.g. through
+> sysfs), I don't think it is safe in thinkpad-acpi's case.
 
-Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- drivers/base/property.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+Have you closely looked at the patch? It only applies to this bit of
+thinkpad-acpi code:
 
-diff --git a/drivers/base/property.c b/drivers/base/property.c
-index 0b22c8a..b3429cc 100644
---- a/drivers/base/property.c
-+++ b/drivers/base/property.c
-@@ -218,7 +218,7 @@ bool fwnode_property_present(struct fwnode_handle *fwnode, const char *propname)
- 	bool ret;
- 
- 	ret = __fwnode_property_present(fwnode, propname);
--	if (ret == false && fwnode->secondary)
-+	if (ret == false && fwnode && fwnode->secondary)
- 		ret = __fwnode_property_present(fwnode->secondary, propname);
- 	return ret;
- }
-@@ -423,7 +423,7 @@ EXPORT_SYMBOL_GPL(device_property_match_string);
- 	int _ret_;									\
- 	_ret_ = FWNODE_PROP_READ(_fwnode_, _propname_, _type_, _proptype_,		\
- 				 _val_, _nval_);					\
--	if (_ret_ == -EINVAL && _fwnode_->secondary)					\
-+	if (_ret_ == -EINVAL && _fwnode_ && _fwnode_->secondary)			\
- 		_ret_ = FWNODE_PROP_READ(_fwnode_->secondary, _propname_, _type_,	\
- 				_proptype_, _val_, _nval_);				\
- 	_ret_;										\
-@@ -593,7 +593,7 @@ int fwnode_property_read_string_array(struct fwnode_handle *fwnode,
- 	int ret;
- 
- 	ret = __fwnode_property_read_string_array(fwnode, propname, val, nval);
--	if (ret == -EINVAL && fwnode->secondary)
-+	if (ret == -EINVAL && fwnode && fwnode->secondary)
- 		ret = __fwnode_property_read_string_array(fwnode->secondary,
- 							  propname, val, nval);
- 	return ret;
-@@ -621,7 +621,7 @@ int fwnode_property_read_string(struct fwnode_handle *fwnode,
- 	int ret;
- 
- 	ret = __fwnode_property_read_string(fwnode, propname, val);
--	if (ret == -EINVAL && fwnode->secondary)
-+	if (ret == -EINVAL && fwnode && fwnode->secondary)
- 		ret = __fwnode_property_read_string(fwnode->secondary,
- 						    propname, val);
- 	return ret;
--- 
-2.6.4
+         /* Do not issue duplicate brightness change events to
+          * userspace. tpacpi_detect_brightness_capabilities() must have
+          * been called before this point  */
+         if (acpi_video_handles_brightness_key_presses()) {
+                 pr_info("This ThinkPad has standard ACPI backlight "
+                         "brightness control, supported by the ACPI "
+                         "video driver\n");
+                 pr_notice("Disabling thinkpad-acpi brightness events "
+                           "by default...\n");
 
+                 /* Disable brightness up/down on Lenovo thinkpads when
+                  * ACPI is handling them, otherwise it is plain impossible
+                  * for userspace to do something even remotely sane */
+                 hotkey_reserved_mask |=
+                         (1 << TP_ACPI_HOTKEYSCAN_FNHOME)
+                         | (1 << TP_ACPI_HOTKEYSCAN_FNEND);
+                 hotkey_unmap(TP_ACPI_HOTKEYSCAN_FNHOME);
+                 hotkey_unmap(TP_ACPI_HOTKEYSCAN_FNEND);
+         }
+
+So it only disables hotkey press reporting, not to the thinkpad_acpi
+backlight handling code, that still is using acpi_video_get_backlight_type()  :
+
+         if (acpi_video_get_backlight_type() != acpi_backlight_vendor) {
+                 if (brightness_enable > 1) {
+                         pr_info("Standard ACPI backlight interface "
+                                 "available, not loading native one\n");
+                         return 1;
+                 } else if (brightness_enable == 1) {
+                         pr_warn("Cannot enable backlight brightness support, "
+                                 "ACPI is already handling it.  Refer to the "
+                                 "acpi_backlight kernel parameter.\n");
+                         return 1;
+                 }
+         } else if (tp_features.bright_acpimode && brightness_enable > 1) {
+                 pr_notice("Standard ACPI backlight interface not "
+                           "available, thinkpad_acpi native "
+                           "brightness control enabled\n");
+         }
+
+> So, will it return false in any situation whether acpi-video attached to the
+> backlight class?
+
+When the new video.report_key_events kernel cmdline option gets manually set to
+a non default value then yes it may report false while acpi-video is attached
+to the backlight class. By default, no it will never return false when acpi-video
+is attached to the backlight class.
+
+This should not matter though, as said this new function is only used to suppress
+the reporting of key-presses. I realize that doing so will also cause
+tpacpi_driver_event() to get called on brightness hotkey presses, but that has:
+
+         if (ibm_backlight_device) {
+                 switch (hkey_event) {
+                 case TP_HKEY_EV_BRGHT_UP:
+                 case TP_HKEY_EV_BRGHT_DOWN:
+                         tpacpi_brightness_notify_change();
+                 }
+         }
+
+And the creating of ibm_backlight_device is still protected by
+
+if (acpi_video_get_backlight_type() != acpi_backlight_vendor) return 1;
+
+So this new check really does nothing other then NOT suppress the hotkey presses
+reported by thinkpad-acpi when for some reason a user has asked acpi-video to
+suppress its reporting of hotkey presses, which is exactly what it should do.
+
+IMHO this only shows that having a separate function to detect if acpi-video
+is reporting keypresses is the right thing to do.
+
+Regards,
+
+Hans
