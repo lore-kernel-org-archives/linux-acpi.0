@@ -1,44 +1,71 @@
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v3 0/3] device property: post merge fixes
-Date: Tue, 29 Dec 2015 13:07:47 +0200
-Message-ID: <1451387271-56535-1-git-send-email-andriy.shevchenko@linux.intel.com>
-Return-path: <linux-next-owner@vger.kernel.org>
-Sender: linux-next-owner@vger.kernel.org
+Subject: [PATCH v3 2/3] device property: the secondary fwnode needs to depend on the primary
+Date: Tue, 29 Dec 2015 13:07:49 +0200
+Message-ID: <1451387271-56535-3-git-send-email-andriy.shevchenko@linux.intel.com>
+References: <1451387271-56535-1-git-send-email-andriy.shevchenko@linux.intel.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga04.intel.com ([192.55.52.120]:52889 "EHLO mga04.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752104AbbL2LIK (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 29 Dec 2015 06:08:10 -0500
+In-Reply-To: <1451387271-56535-1-git-send-email-andriy.shevchenko@linux.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, heikki.krogerus@linux.intel.com, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-List-Id: linux-acpi@vger.kernel.org
 
-Three fixes to device property API.
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
 
-Patch 1 is a simple style fix to be folded into previous Andrew's patch to
-allow old gcc to build (see commit message for the details).
+This fixes NULL pointer dereference when the primary fwnode handle
+does not exist, for example with PCI devices that do not have ACPI
+companion.
 
-There is a crash in linux-next
- BUG: unable to handle kernel NULL pointer dereference at 0000000000000008
- IP: [<ffffffff8145e8a6>] fwnode_property_present+0x16/0x30
+Signed-off-by: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/base/property.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-Check for fwnode pointer before dereference (patch 2).
-
-Patch 3 prevents to allocate buffers with 0 length (the result maybe surprising
-to someone).
-
-Changelog v3:
-- fix typo in Heikki's patch (patch 2)
-- update commit message for patch 1 to explain what is the fixup for
-
-Changelog v2:
-- added patches 2 and 3
-
-Andy Shevchenko (2):
-  device property: add spaces to PROPERTY_ENTRY_STRING macro
-  device property: avoid allocations of 0 length
-
-Heikki Krogerus (1):
-  device property: the secondary fwnode needs to depend on the primary
-
- drivers/base/property.c  | 14 ++++++++++----
- include/linux/property.h |  2 +-
- 2 files changed, 11 insertions(+), 5 deletions(-)
-
+diff --git a/drivers/base/property.c b/drivers/base/property.c
+index 0b22c8a..b3429cc 100644
+--- a/drivers/base/property.c
++++ b/drivers/base/property.c
+@@ -218,7 +218,7 @@ bool fwnode_property_present(struct fwnode_handle *fwnode, const char *propname)
+ 	bool ret;
+ 
+ 	ret = __fwnode_property_present(fwnode, propname);
+-	if (ret == false && fwnode->secondary)
++	if (ret == false && fwnode && fwnode->secondary)
+ 		ret = __fwnode_property_present(fwnode->secondary, propname);
+ 	return ret;
+ }
+@@ -423,7 +423,7 @@ EXPORT_SYMBOL_GPL(device_property_match_string);
+ 	int _ret_;									\
+ 	_ret_ = FWNODE_PROP_READ(_fwnode_, _propname_, _type_, _proptype_,		\
+ 				 _val_, _nval_);					\
+-	if (_ret_ == -EINVAL && _fwnode_->secondary)					\
++	if (_ret_ == -EINVAL && _fwnode_ && _fwnode_->secondary)			\
+ 		_ret_ = FWNODE_PROP_READ(_fwnode_->secondary, _propname_, _type_,	\
+ 				_proptype_, _val_, _nval_);				\
+ 	_ret_;										\
+@@ -593,7 +593,7 @@ int fwnode_property_read_string_array(struct fwnode_handle *fwnode,
+ 	int ret;
+ 
+ 	ret = __fwnode_property_read_string_array(fwnode, propname, val, nval);
+-	if (ret == -EINVAL && fwnode->secondary)
++	if (ret == -EINVAL && fwnode && fwnode->secondary)
+ 		ret = __fwnode_property_read_string_array(fwnode->secondary,
+ 							  propname, val, nval);
+ 	return ret;
+@@ -621,7 +621,7 @@ int fwnode_property_read_string(struct fwnode_handle *fwnode,
+ 	int ret;
+ 
+ 	ret = __fwnode_property_read_string(fwnode, propname, val);
+-	if (ret == -EINVAL && fwnode->secondary)
++	if (ret == -EINVAL && fwnode && fwnode->secondary)
+ 		ret = __fwnode_property_read_string(fwnode->secondary,
+ 						    propname, val);
+ 	return ret;
 -- 
 2.6.4
+
