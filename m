@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 34/42] ACPICA: Events: Uses common_notify for address space handlers
-Date: Tue, 29 Dec 2015 14:02:08 +0800
-Message-ID: <6464465c6920edd88a36e738e7719a1fd29330b0.1451367389.git.lv.zheng@intel.com>
+Subject: [PATCH 33/42] ACPICA: Events: Deploys acpi_ev_find_region_handler()
+Date: Tue, 29 Dec 2015 14:02:00 +0800
+Message-ID: <f88563ef5520f9aaef9d30199b14c5a47de59f41.1451367389.git.lv.zheng@intel.com>
 References: <cover.1451367388.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1451367388.git.lv.zheng@intel.com>
@@ -10,140 +10,273 @@ To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-ACPICA commit 5ea0fb75fdf1aa7c0aba067dfa4d5dc3a9279461
+ACPICA commit b916a0a0ae9e81db1a85523c63ec6aa32d5c70c8
 
-The address space handlers can be attached to not only Device but also
-Processor/thermal_zone objects, so it is better to use their common
-class 'CommonNotify' instead. Lv Zheng.
+There are code fragments that can be substituted by
+acpi_ev_find_region_handler().
+This patch cleans up these code fragments. Lv Zheng.
 
-Link: https://github.com/acpica/acpica/commit/5ea0fb75
+Link: https://github.com/acpica/acpica/commit/b916a0a0
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/dbdisply.c  |    6 +++---
- drivers/acpi/acpica/evhandler.c |   12 +++++++-----
- drivers/acpi/acpica/evrgnini.c  |   10 +---------
- drivers/acpi/acpica/evxfregn.c  |    4 ++--
- 4 files changed, 13 insertions(+), 19 deletions(-)
+ drivers/acpi/acpica/acevents.h  |    5 +++
+ drivers/acpi/acpica/dbdisply.c  |   30 ++++++++--------
+ drivers/acpi/acpica/evhandler.c |   58 ++++++++++++++-----------------
+ drivers/acpi/acpica/evrgnini.c  |   73 +++++++++++++++++----------------------
+ 4 files changed, 75 insertions(+), 91 deletions(-)
 
+diff --git a/drivers/acpi/acpica/acevents.h b/drivers/acpi/acpica/acevents.h
+index 228704b7..42975ab 100644
+--- a/drivers/acpi/acpica/acevents.h
++++ b/drivers/acpi/acpica/acevents.h
+@@ -161,6 +161,11 @@ acpi_ev_delete_gpe_handlers(struct acpi_gpe_xrupt_info *gpe_xrupt_info,
+ /*
+  * evhandler - Address space handling
+  */
++union acpi_operand_object *acpi_ev_find_region_handler(acpi_adr_space_type
++						       space_id,
++						       union acpi_operand_object
++						       *handler_obj);
++
+ u8
+ acpi_ev_has_default_handler(struct acpi_namespace_node *node,
+ 			    acpi_adr_space_type space_id);
 diff --git a/drivers/acpi/acpica/dbdisply.c b/drivers/acpi/acpica/dbdisply.c
-index a66b4ae..1965b48 100644
+index 390a7ca..a66b4ae 100644
 --- a/drivers/acpi/acpica/dbdisply.c
 +++ b/drivers/acpi/acpica/dbdisply.c
-@@ -957,7 +957,7 @@ void acpi_db_display_handlers(void)
+@@ -48,6 +48,7 @@
+ #include "acnamesp.h"
+ #include "acparser.h"
+ #include "acinterp.h"
++#include "acevents.h"
+ #include "acdebug.h"
  
- 			handler_obj =
- 			    acpi_ev_find_region_handler(space_id,
--							obj_desc->device.
-+							obj_desc->common_notify.
- 							handler);
- 			if (handler_obj) {
- 				acpi_os_printf(ACPI_HANDLER_PRESENT_STRING,
-@@ -980,7 +980,7 @@ found_handler:		;
+ #define _COMPONENT          ACPI_CA_DEBUGGER
+@@ -949,28 +950,25 @@ void acpi_db_display_handlers(void)
+ 	if (obj_desc) {
+ 		for (i = 0; i < ACPI_ARRAY_LENGTH(acpi_gbl_space_id_list); i++) {
+ 			space_id = acpi_gbl_space_id_list[i];
+-			handler_obj = obj_desc->device.handler;
  
- 		/* Find all handlers for user-defined space_IDs */
+ 			acpi_os_printf(ACPI_PREDEFINED_PREFIX,
+ 				       acpi_ut_get_region_name((u8)space_id),
+ 				       space_id);
  
--		handler_obj = obj_desc->device.handler;
-+		handler_obj = obj_desc->common_notify.handler;
- 		while (handler_obj) {
- 			if (handler_obj->address_space.space_id >=
- 			    ACPI_USER_REGION_BEGIN) {
-@@ -1082,7 +1082,7 @@ acpi_db_display_non_root_handlers(acpi_handle obj_handle,
+-			while (handler_obj) {
+-				if (acpi_gbl_space_id_list[i] ==
+-				    handler_obj->address_space.space_id) {
+-					acpi_os_printf
+-					    (ACPI_HANDLER_PRESENT_STRING,
+-					     (handler_obj->address_space.
+-					      handler_flags &
+-					      ACPI_ADDR_HANDLER_DEFAULT_INSTALLED)
+-					     ? "Default" : "User",
+-					     handler_obj->address_space.
+-					     handler);
+-
+-					goto found_handler;
+-				}
++			handler_obj =
++			    acpi_ev_find_region_handler(space_id,
++							obj_desc->device.
++							handler);
++			if (handler_obj) {
++				acpi_os_printf(ACPI_HANDLER_PRESENT_STRING,
++					       (handler_obj->address_space.
++						handler_flags &
++						ACPI_ADDR_HANDLER_DEFAULT_INSTALLED)
++					       ? "Default" : "User",
++					       handler_obj->address_space.
++					       handler);
  
- 	/* Display all handlers associated with this device */
+-				handler_obj = handler_obj->address_space.next;
++				goto found_handler;
+ 			}
  
--	handler_obj = obj_desc->device.handler;
-+	handler_obj = obj_desc->common_notify.handler;
- 	while (handler_obj) {
- 		acpi_os_printf(ACPI_PREDEFINED_PREFIX,
- 			       acpi_ut_get_region_name((u8)handler_obj->
+ 			/* There is no handler for this space_id */
 diff --git a/drivers/acpi/acpica/evhandler.c b/drivers/acpi/acpica/evhandler.c
-index 6a7fc11..709419c 100644
+index 5d6a3b5..6a7fc11 100644
 --- a/drivers/acpi/acpica/evhandler.c
 +++ b/drivers/acpi/acpica/evhandler.c
-@@ -159,7 +159,7 @@ acpi_ev_has_default_handler(struct acpi_namespace_node *node,
+@@ -55,10 +55,6 @@ static acpi_status
+ acpi_ev_install_handler(acpi_handle obj_handle,
+ 			u32 level, void *context, void **return_value);
  
- 	obj_desc = acpi_ns_get_attached_object(node);
- 	if (obj_desc) {
--		handler_obj = obj_desc->device.handler;
-+		handler_obj = obj_desc->common_notify.handler;
+-static union acpi_operand_object
+-    *acpi_ev_find_region_handler(acpi_adr_space_type space_id,
+-				 union acpi_operand_object *handler_obj);
+-
+ /* These are the address spaces that will get default handlers */
  
- 		/* Walk the linked list of handlers for this object */
+ u8 acpi_gbl_default_address_spaces[ACPI_NUM_DEFAULT_SPACES] = {
+@@ -251,35 +247,30 @@ acpi_ev_install_handler(acpi_handle obj_handle,
  
-@@ -250,7 +250,8 @@ acpi_ev_install_handler(acpi_handle obj_handle,
- 		next_handler_obj =
- 		    acpi_ev_find_region_handler(handler_obj->address_space.
- 						space_id,
--						obj_desc->device.handler);
-+						obj_desc->common_notify.
-+						handler);
- 		if (next_handler_obj) {
+ 		/* Check if this Device already has a handler for this address space */
+ 
+-		next_handler_obj = obj_desc->device.handler;
+-		while (next_handler_obj) {
++		next_handler_obj =
++		    acpi_ev_find_region_handler(handler_obj->address_space.
++						space_id,
++						obj_desc->device.handler);
++		if (next_handler_obj) {
  
  			/* Found a handler, is it for the same address space? */
-@@ -444,7 +445,8 @@ acpi_ev_install_space_handler(struct acpi_namespace_node * node,
- 		 * the handler is not already installed.
- 		 */
- 		handler_obj = acpi_ev_find_region_handler(space_id,
--							  obj_desc->device.
-+							  obj_desc->
-+							  common_notify.
- 							  handler);
  
- 		if (handler_obj) {
-@@ -531,13 +533,13 @@ acpi_ev_install_space_handler(struct acpi_namespace_node * node,
+-			if (next_handler_obj->address_space.space_id ==
+-			    handler_obj->address_space.space_id) {
+-				ACPI_DEBUG_PRINT((ACPI_DB_OPREGION,
+-						  "Found handler for region [%s] in device %p(%p) "
+-						  "handler %p\n",
+-						  acpi_ut_get_region_name
+-						  (handler_obj->address_space.
+-						   space_id), obj_desc,
+-						  next_handler_obj,
+-						  handler_obj));
+-
+-				/*
+-				 * Since the object we found it on was a device, then it
+-				 * means that someone has already installed a handler for
+-				 * the branch of the namespace from this device on. Just
+-				 * bail out telling the walk routine to not traverse this
+-				 * branch. This preserves the scoping rule for handlers.
+-				 */
+-				return (AE_CTRL_DEPTH);
+-			}
+-
+-			/* Walk the linked list of handlers attached to this device */
+-
+-			next_handler_obj = next_handler_obj->address_space.next;
++			ACPI_DEBUG_PRINT((ACPI_DB_OPREGION,
++					  "Found handler for region [%s] in device %p(%p) handler %p\n",
++					  acpi_ut_get_region_name(handler_obj->
++								  address_space.
++								  space_id),
++					  obj_desc, next_handler_obj,
++					  handler_obj));
++
++			/*
++			 * Since the object we found it on was a device, then it means
++			 * that someone has already installed a handler for the branch
++			 * of the namespace from this device on. Just bail out telling
++			 * the walk routine to not traverse this branch. This preserves
++			 * the scoping rule for handlers.
++			 */
++			return (AE_CTRL_DEPTH);
+ 		}
  
- 	/* Install at head of Device.address_space list */
+ 		/*
+@@ -325,9 +316,10 @@ acpi_ev_install_handler(acpi_handle obj_handle,
+  *
+  ******************************************************************************/
  
--	handler_obj->address_space.next = obj_desc->device.handler;
-+	handler_obj->address_space.next = obj_desc->common_notify.handler;
+-static union acpi_operand_object
+-    *acpi_ev_find_region_handler(acpi_adr_space_type space_id,
+-				 union acpi_operand_object *handler_obj)
++union acpi_operand_object *acpi_ev_find_region_handler(acpi_adr_space_type
++						       space_id,
++						       union acpi_operand_object
++						       *handler_obj)
+ {
  
- 	/*
- 	 * The Device object is the first reference on the handler_obj.
- 	 * Each region that uses the handler adds a reference.
- 	 */
--	obj_desc->device.handler = handler_obj;
-+	obj_desc->common_notify.handler = handler_obj;
- 
- 	/*
- 	 * Walk the namespace finding all of the regions this handler will
+ 	/* Walk the handler list for this device */
 diff --git a/drivers/acpi/acpica/evrgnini.c b/drivers/acpi/acpica/evrgnini.c
-index 4df81b5..024689d 100644
+index 6181f5a..4df81b5 100644
 --- a/drivers/acpi/acpica/evrgnini.c
 +++ b/drivers/acpi/acpica/evrgnini.c
-@@ -566,18 +566,10 @@ acpi_ev_initialize_region(union acpi_operand_object *region_obj,
- 
- 			switch (node->type) {
- 			case ACPI_TYPE_DEVICE:
--
--				handler_obj = obj_desc->device.handler;
--				break;
--
- 			case ACPI_TYPE_PROCESSOR:
--
--				handler_obj = obj_desc->processor.handler;
--				break;
--
- 			case ACPI_TYPE_THERMAL:
- 
--				handler_obj = obj_desc->thermal_zone.handler;
-+				handler_obj = obj_desc->common_notify.handler;
+@@ -602,60 +602,49 @@ acpi_ev_initialize_region(union acpi_operand_object *region_obj,
  				break;
+ 			}
  
- 			case ACPI_TYPE_METHOD:
-diff --git a/drivers/acpi/acpica/evxfregn.c b/drivers/acpi/acpica/evxfregn.c
-index dbd9f16..3c90508 100644
---- a/drivers/acpi/acpica/evxfregn.c
-+++ b/drivers/acpi/acpica/evxfregn.c
-@@ -216,8 +216,8 @@ acpi_remove_address_space_handler(acpi_handle device,
+-			while (handler_obj) {
++			handler_obj =
++			    acpi_ev_find_region_handler(space_id, handler_obj);
++			if (handler_obj) {
  
- 	/* Find the address handler the user requested */
+-				/* Is this handler of the correct type? */
++				/* Found correct handler */
  
--	handler_obj = obj_desc->device.handler;
--	last_obj_ptr = &obj_desc->device.handler;
-+	handler_obj = obj_desc->common_notify.handler;
-+	last_obj_ptr = &obj_desc->common_notify.handler;
- 	while (handler_obj) {
+-				if (handler_obj->address_space.space_id ==
+-				    space_id) {
++				ACPI_DEBUG_PRINT((ACPI_DB_OPREGION,
++						  "Found handler %p for region %p in obj %p\n",
++						  handler_obj, region_obj,
++						  obj_desc));
  
- 		/* We have a handler, see if user requested this one */
+-					/* Found correct handler */
+-
+-					ACPI_DEBUG_PRINT((ACPI_DB_OPREGION,
+-							  "Found handler %p for region %p in obj %p\n",
+-							  handler_obj,
++				status =
++				    acpi_ev_attach_region(handler_obj,
+ 							  region_obj,
+-							  obj_desc));
++							  acpi_ns_locked);
+ 
++				/*
++				 * Tell all users that this region is usable by
++				 * running the _REG method
++				 */
++				if (acpi_ns_locked) {
+ 					status =
+-					    acpi_ev_attach_region(handler_obj,
+-								  region_obj,
+-								  acpi_ns_locked);
+-
+-					/*
+-					 * Tell all users that this region is usable by
+-					 * running the _REG method
+-					 */
+-					if (acpi_ns_locked) {
+-						status =
+-						    acpi_ut_release_mutex
+-						    (ACPI_MTX_NAMESPACE);
+-						if (ACPI_FAILURE(status)) {
+-							return_ACPI_STATUS
+-							    (status);
+-						}
++					    acpi_ut_release_mutex
++					    (ACPI_MTX_NAMESPACE);
++					if (ACPI_FAILURE(status)) {
++						return_ACPI_STATUS(status);
+ 					}
++				}
+ 
++				status =
++				    acpi_ev_execute_reg_method(region_obj,
++							       ACPI_REG_CONNECT);
++
++				if (acpi_ns_locked) {
+ 					status =
+-					    acpi_ev_execute_reg_method
+-					    (region_obj, ACPI_REG_CONNECT);
+-
+-					if (acpi_ns_locked) {
+-						status =
+-						    acpi_ut_acquire_mutex
+-						    (ACPI_MTX_NAMESPACE);
+-						if (ACPI_FAILURE(status)) {
+-							return_ACPI_STATUS
+-							    (status);
+-						}
++					    acpi_ut_acquire_mutex
++					    (ACPI_MTX_NAMESPACE);
++					if (ACPI_FAILURE(status)) {
++						return_ACPI_STATUS(status);
+ 					}
+-
+-					return_ACPI_STATUS(AE_OK);
+ 				}
+ 
+-				/* Try next handler in the list */
+-
+-				handler_obj = handler_obj->address_space.next;
++				return_ACPI_STATUS(AE_OK);
+ 			}
+ 		}
+ 
 -- 
 1.7.10
