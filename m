@@ -1,45 +1,52 @@
-From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 42/42] ACPICA: Update version to 20151218
-Date: Tue, 29 Dec 2015 14:04:28 +0800
-Message-ID: <cbfb863c5f4383167a83a2e24322d589de96b6fb.1451367389.git.lv.zheng@intel.com>
-References: <cover.1451367388.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:45516 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750873AbbL2GEi (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 29 Dec 2015 01:04:38 -0500
-In-Reply-To: <cover.1451367388.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Heikki Krogerus <heikki.krogerus@linux.intel.com>
+Subject: Re: [PATCH v2 2/3] device property: the secondary fwnode needs to
+ depend on the primary
+Date: Tue, 29 Dec 2015 10:40:21 +0200
+Message-ID: <20151229084020.GA19870@kuha.fi.intel.com>
+References: <1450877684-76316-1-git-send-email-andriy.shevchenko@linux.intel.com>
+ <1450877684-76316-3-git-send-email-andriy.shevchenko@linux.intel.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-next-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1450877684-76316-3-git-send-email-andriy.shevchenko@linux.intel.com>
+Sender: linux-next-owner@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-From: Bob Moore <robert.moore@intel.com>
+Hi Andy,
 
-ACPICA commit e81cedadd3a847d40f30bc9c52dfe441620ed12f
+Found a bug from my code..
 
-Version 20151218.
+> diff --git a/drivers/base/property.c b/drivers/base/property.c
+> index 0b22c8a..6c04d18 100644
+> --- a/drivers/base/property.c
+> +++ b/drivers/base/property.c
+> @@ -218,7 +218,7 @@ bool fwnode_property_present(struct fwnode_handle *fwnode, const char *propname)
+>  	bool ret;
+>  
+>  	ret = __fwnode_property_present(fwnode, propname);
+> -	if (ret == false && fwnode->secondary)
+> +	if (ret == false && fwnode && fwnode->secondary)
+>  		ret = __fwnode_property_present(fwnode->secondary, propname);
+>  	return ret;
+>  }
+> @@ -423,7 +423,7 @@ EXPORT_SYMBOL_GPL(device_property_match_string);
+>  	int _ret_;									\
+>  	_ret_ = FWNODE_PROP_READ(_fwnode_, _propname_, _type_, _proptype_,		\
+>  				 _val_, _nval_);					\
+> -	if (_ret_ == -EINVAL && _fwnode_->secondary)					\
+> +	if (_ret_ == -EINVAL && fwnode && _fwnode_->secondary)				\
 
-Link: https://github.com/acpica/acpica/commit/e81cedad
-Signed-off-by: Bob Moore <robert.moore@intel.com>
-Signed-off-by: Lv Zheng <lv.zheng@intel.com>
----
- include/acpi/acpixf.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+This should be .._fwnode_ && _fwnode_->secondary)
 
-diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index 8c95e82..1b462d8 100644
---- a/include/acpi/acpixf.h
-+++ b/include/acpi/acpixf.h
-@@ -46,7 +46,7 @@
- 
- /* Current ACPICA subsystem version in YYYYMMDD format */
- 
--#define ACPI_CA_VERSION                 0x20150930
-+#define ACPI_CA_VERSION                 0x20151218
- 
- #include <acpi/acconfig.h>
- #include <acpi/actypes.h>
+>  		_ret_ = FWNODE_PROP_READ(_fwnode_->secondary, _propname_, _type_,	\
+>  				_proptype_, _val_, _nval_);				\
+>  	_ret_;										\
+
+
+Cheers,
+
 -- 
-1.7.10
-
+heikki
