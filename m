@@ -1,109 +1,175 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 17/42] ACPICA: Concatenate operator: Add extensions to support all ACPI objects
-Date: Tue, 29 Dec 2015 13:56:53 +0800
-Message-ID: <f217529b5408ab3ac44b3cd91713383c44069f2d.1451367389.git.lv.zheng@intel.com>
+Subject: [PATCH 18/42] ACPICA: Debug Object: Cleanup output
+Date: Tue, 29 Dec 2015 13:57:01 +0800
+Message-ID: <fe085827f51b133f1afb8c3308a1da36d44ad920.1451367389.git.lv.zheng@intel.com>
 References: <cover.1451367388.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:48994 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753513AbbL2F5F (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 29 Dec 2015 00:57:05 -0500
 In-Reply-To: <cover.1451367388.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
-List-Id: linux-acpi@vger.kernel.org
 
 From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit 3420c1f5e6c6dd4fe51be4d98da69b3197d608df
+ACPICA commit 05492c4a7d1e106eb871a5e1357ed564d25740e5
 
-Emits strings for all the object types besides int/str/buf.
-This simplifies and extends the usefulness of the Printf macros.
+1) Make the timer value output optional
+2) Allow empty lines via null string or simple newline
+3) No need for the object type name for strings and integers
+4) Miscellaneous cleanup of output
 
-Link: https://github.com/acpica/acpica/commit/3420c1f5
+Link: https://github.com/acpica/acpica/commit/05492c4a
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/acpica/acopcode.h |    2 +-
- drivers/acpi/acpica/exmisc.c   |   41 +++++++++++++++++++++++++++++++++++-----
- 2 files changed, 37 insertions(+), 6 deletions(-)
+ drivers/acpi/acpica/exdebug.c |   67 +++++++++++++++++++++++++++++------------
+ include/acpi/acpixf.h         |    4 +++
+ 2 files changed, 51 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/acpi/acpica/acopcode.h b/drivers/acpi/acpica/acopcode.h
-index f9acf92..db71b02 100644
---- a/drivers/acpi/acpica/acopcode.h
-+++ b/drivers/acpi/acpica/acopcode.h
-@@ -223,7 +223,7 @@
- #define ARGI_BUFFER_OP                  ARGI_LIST1 (ARGI_INTEGER)
- #define ARGI_BYTE_OP                    ARGI_INVALID_OPCODE
- #define ARGI_BYTELIST_OP                ARGI_INVALID_OPCODE
--#define ARGI_CONCAT_OP                  ARGI_LIST3 (ARGI_COMPUTEDATA,ARGI_COMPUTEDATA,   ARGI_TARGETREF)
-+#define ARGI_CONCAT_OP                  ARGI_LIST3 (ARGI_ANYTYPE,    ARGI_ANYTYPE,       ARGI_TARGETREF)
- #define ARGI_CONCAT_RES_OP              ARGI_LIST3 (ARGI_BUFFER,     ARGI_BUFFER,        ARGI_TARGETREF)
- #define ARGI_COND_REF_OF_OP             ARGI_LIST2 (ARGI_OBJECT_REF, ARGI_TARGETREF)
- #define ARGI_CONNECTFIELD_OP            ARGI_INVALID_OPCODE
-diff --git a/drivers/acpi/acpica/exmisc.c b/drivers/acpi/acpica/exmisc.c
-index a8ce8a8..f598b39 100644
---- a/drivers/acpi/acpica/exmisc.c
-+++ b/drivers/acpi/acpica/exmisc.c
-@@ -247,6 +247,7 @@ acpi_ex_do_concatenate(union acpi_operand_object *operand0,
- 	union acpi_operand_object *local_operand1 = operand1;
- 	union acpi_operand_object *return_desc;
- 	char *new_buf;
-+	const char *type_string;
- 	acpi_status status;
+diff --git a/drivers/acpi/acpica/exdebug.c b/drivers/acpi/acpica/exdebug.c
+index 815442b..a203335 100644
+--- a/drivers/acpi/acpica/exdebug.c
++++ b/drivers/acpi/acpica/exdebug.c
+@@ -88,20 +88,39 @@ acpi_ex_do_debug_object(union acpi_operand_object *source_desc,
+ 		return_VOID;
+ 	}
  
- 	ACPI_FUNCTION_TRACE(ex_do_concatenate);
-@@ -266,10 +267,41 @@ acpi_ex_do_concatenate(union acpi_operand_object *operand0,
- 		break;
+-	/*
+-	 * We will emit the current timer value (in microseconds) with each
+-	 * debug output. Only need the lower 26 bits. This allows for 67
+-	 * million microseconds or 67 seconds before rollover.
+-	 */
+-	timer = ((u32)acpi_os_get_timer() / 10);	/* (100 nanoseconds to microseconds) */
+-	timer &= 0x03FFFFFF;
++	/* Null string or newline -- don't emit the line header */
++
++	if ((ACPI_GET_DESCRIPTOR_TYPE(source_desc) == ACPI_DESC_TYPE_OPERAND) &&
++	    (source_desc->common.type == ACPI_TYPE_STRING)) {
++		if ((source_desc->string.length == 0) ||
++		    ((source_desc->string.length == 1) &&
++		     (*source_desc->string.pointer == '\n'))) {
++			acpi_os_printf("\n");
++			return_VOID;
++		}
++	}
+ 
+ 	/*
+ 	 * Print line header as long as we are not in the middle of an
+ 	 * object display
+ 	 */
+ 	if (!((level > 0) && index == 0)) {
+-		acpi_os_printf("[ACPI Debug %.8u] %*s", timer, level, " ");
++		if (acpi_gbl_display_debug_timer) {
++			/*
++			 * We will emit the current timer value (in microseconds) with each
++			 * debug output. Only need the lower 26 bits. This allows for 67
++			 * million microseconds or 67 seconds before rollover.
++			 *
++			 * Convert 100 nanosecond units to microseconds
++			 */
++			timer = ((u32)acpi_os_get_timer() / 10);
++			timer &= 0x03FFFFFF;
++
++			acpi_os_printf("[ACPI Debug T=0x%8.8X] %*s", timer,
++				       level, " ");
++		} else {
++			acpi_os_printf("[ACPI Debug] %*s", level, " ");
++		}
+ 	}
+ 
+ 	/* Display the index for package output only */
+@@ -116,8 +135,15 @@ acpi_ex_do_debug_object(union acpi_operand_object *source_desc,
+ 	}
+ 
+ 	if (ACPI_GET_DESCRIPTOR_TYPE(source_desc) == ACPI_DESC_TYPE_OPERAND) {
+-		acpi_os_printf("%s ",
+-			       acpi_ut_get_object_type_name(source_desc));
++
++		/* No object type prefix needed for integers and strings */
++
++		if ((source_desc->common.type != ACPI_TYPE_INTEGER) &&
++		    (source_desc->common.type != ACPI_TYPE_STRING)) {
++			acpi_os_printf("%s ",
++				       acpi_ut_get_object_type_name
++				       (source_desc));
++		}
+ 
+ 		if (!acpi_ut_valid_internal_object(source_desc)) {
+ 			acpi_os_printf("%p, Invalid Internal Object!\n",
+@@ -126,7 +152,7 @@ acpi_ex_do_debug_object(union acpi_operand_object *source_desc,
+ 		}
+ 	} else if (ACPI_GET_DESCRIPTOR_TYPE(source_desc) ==
+ 		   ACPI_DESC_TYPE_NAMED) {
+-		acpi_os_printf("%s: %p\n",
++		acpi_os_printf("%s (Node %p)\n",
+ 			       acpi_ut_get_type_name(((struct
+ 						       acpi_namespace_node *)
+ 						      source_desc)->type),
+@@ -164,14 +190,12 @@ acpi_ex_do_debug_object(union acpi_operand_object *source_desc,
  
  	case ACPI_TYPE_STRING:
-+		/*
-+		 * Per the ACPI spec, Concatenate only supports int/str/buf.
-+		 * However, we support all objects here as an extension.
-+		 * This improves the usefulness of the Printf() macro.
-+		 * 12/2015.
-+		 */
-+		switch (operand1->common.type) {
-+		case ACPI_TYPE_INTEGER:
-+		case ACPI_TYPE_STRING:
-+		case ACPI_TYPE_BUFFER:
-+
-+			status =
-+			    acpi_ex_convert_to_string(operand1, &local_operand1,
-+						      ACPI_IMPLICIT_CONVERT_HEX);
-+			break;
  
--		status =
--		    acpi_ex_convert_to_string(operand1, &local_operand1,
--					      ACPI_IMPLICIT_CONVERT_HEX);
-+		default:
-+			/*
-+			 * Just emit a string containing the object type.
-+			 */
-+			type_string =
-+			    acpi_ut_get_type_name(operand1->common.type);
-+
-+			local_operand1 = acpi_ut_create_string_object(((acpi_size) strlen(type_string) + 9));	/* 9 For "[Object]" */
-+			if (!local_operand1) {
-+				status = AE_NO_MEMORY;
-+				goto cleanup;
-+			}
-+
-+			strcpy(local_operand1->string.pointer, "[");
-+			strcat(local_operand1->string.pointer, type_string);
-+			strcat(local_operand1->string.pointer, " Object]");
-+			status = AE_OK;
-+			break;
-+		}
+-		acpi_os_printf("[0x%.2X] \"%s\"\n",
+-			       source_desc->string.length,
+-			       source_desc->string.pointer);
++		acpi_os_printf("\"%s\"\n", source_desc->string.pointer);
  		break;
  
- 	case ACPI_TYPE_BUFFER:
-@@ -348,8 +380,7 @@ acpi_ex_do_concatenate(union acpi_operand_object *operand0,
- 		/* Concatenate the strings */
+ 	case ACPI_TYPE_PACKAGE:
  
- 		strcpy(new_buf, operand0->string.pointer);
--		strcpy(new_buf + operand0->string.length,
--		       local_operand1->string.pointer);
-+		strcat(new_buf, local_operand1->string.pointer);
+-		acpi_os_printf("[Contains 0x%.2X Elements]\n",
++		acpi_os_printf("(Contains 0x%.2X Elements):\n",
+ 			       source_desc->package.count);
+ 
+ 		/* Output the entire contents of the package */
+@@ -250,11 +274,14 @@ acpi_ex_do_debug_object(union acpi_operand_object *source_desc,
+ 			if (ACPI_GET_DESCRIPTOR_TYPE
+ 			    (source_desc->reference.object) ==
+ 			    ACPI_DESC_TYPE_NAMED) {
+-				acpi_ex_do_debug_object(((struct
+-							  acpi_namespace_node *)
++
++				/* Reference object is a namespace node */
++
++				acpi_ex_do_debug_object(ACPI_CAST_PTR
++							(union
++							 acpi_operand_object,
+ 							 source_desc->reference.
+-							 object)->object,
+-							level + 4, 0);
++							 object), level + 4, 0);
+ 			} else {
+ 				object_desc = source_desc->reference.object;
+ 				value = source_desc->reference.value;
+@@ -300,7 +327,7 @@ acpi_ex_do_debug_object(union acpi_operand_object *source_desc,
+ 
+ 	default:
+ 
+-		acpi_os_printf("%p\n", source_desc);
++		acpi_os_printf("(Descriptor %p)\n", source_desc);
  		break;
+ 	}
  
- 	case ACPI_TYPE_BUFFER:
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index 5dfab9c..d60507b7 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -263,6 +263,10 @@ ACPI_INIT_GLOBAL(u32, acpi_gbl_trace_dbg_layer, ACPI_TRACE_LAYER_DEFAULT);
+ ACPI_INIT_GLOBAL(u32, acpi_dbg_level, ACPI_DEBUG_DEFAULT);
+ ACPI_INIT_GLOBAL(u32, acpi_dbg_layer, 0);
+ 
++/* Optionally enable timer output with Debug Object output */
++
++ACPI_INIT_GLOBAL(u8, acpi_gbl_display_debug_timer, FALSE);
++
+ /*
+  * Debugger command handshake globals. Host OSes need to access these
+  * variables to implement their own command handshake mechanism.
 -- 
 1.7.10
+
