@@ -1,204 +1,163 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 38/42] ACPICA: Events: Enhance acpi_ev_execute_reg_method() to ensure no _REG evaluations can happen during OS early boot stages
-Date: Tue, 29 Dec 2015 14:03:08 +0800
-Message-ID: <ff7df012fbc0628131b14aa7368dc428ca6dbdbe.1451367389.git.lv.zheng@intel.com>
+Subject: [PATCH 39/42] ACPICA: Events: Introduce ACPI_REG_DISCONNECT invocation to acpi_ev_execute_reg_methods()
+Date: Tue, 29 Dec 2015 14:03:43 +0800
+Message-ID: <a56cc4605d89c00d0494bf6c94d18467c8fb844c.1451367389.git.lv.zheng@intel.com>
 References: <cover.1451367388.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga09.intel.com ([134.134.136.24]:15152 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752557AbbL2GDw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 29 Dec 2015 01:03:52 -0500
 In-Reply-To: <cover.1451367388.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
-List-Id: linux-acpi@vger.kernel.org
 
-ACPICA commit 31178590dde82368fdb0f6b0e466b6c0add96c57
+ACPICA commit 1cf1a1e090f61f0c27f1dcf1905c7cc79a9c51c8
 
-We can ensure no early _REG evaluations by ensuring the following rules in
-acpi_ev_execute_reg_method():
-1. If an address space handler is installed during early stage,
-   _REG(CONNECT) evaluations are blocked. This is achieved using
-   acpi_gbl_reg_methods_enabled which is renamed from
-   acpi_gbl_reg_methods_executed.
-2. If _REG(CONNECT) has never been evalauted for the region object,
-   _REG(DISCONNECT) evaluations are blocked. This is achieved by a new
-   region object flag: AOPOBJ_REG_CONNECTED.
-Note that, after applying this patch, we can ensure _REG(DISCONNECT) is
-always paired to _REG(CONNECT). Lv Zheng
+It is likely that we should synchronously invoke _REG(DISCONNECT) only when
+the acpi_remove_address_space_handler() is invoked because of dependencies.
+If it is invoked when the object is not referenced, problem may occur
+if the operation region fields accessed in _REG are no longer driven by any
+device driver.
 
-Link: https://github.com/acpica/acpica/commit/31178590
+Noticed that _REG(CONNECT)/_REG(DISCONNECT) only mean to inform the AML of
+the handler availability, no return value is required for the caller.
+
+This patch only introduces ACPI_REG_DISCONNECT invaocation, but doesn't
+introduce a real change. Lv Zheng.
+
+Link: https://github.com/acpica/acpica/commit/1cf1a1e0
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/acglobal.h |    2 +-
- drivers/acpi/acpica/acobject.h |    7 ++++---
- drivers/acpi/acpica/evregion.c |   25 ++++++++++++++++++++++---
- drivers/acpi/acpica/evxfregn.c |   33 ---------------------------------
- drivers/acpi/acpica/excreate.c |    3 ++-
- drivers/acpi/acpica/utinit.c   |    1 -
- drivers/acpi/acpica/utxfinit.c |    1 +
- 7 files changed, 30 insertions(+), 42 deletions(-)
+ drivers/acpi/acpica/acevents.h |    4 ++--
+ drivers/acpi/acpica/aclocal.h  |    1 +
+ drivers/acpi/acpica/evregion.c |   26 +++++++++++++-------------
+ drivers/acpi/acpica/evxfregn.c |    2 +-
+ 4 files changed, 17 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/acpi/acpica/acglobal.h b/drivers/acpi/acpica/acglobal.h
-index ef0abf4..73462ca 100644
---- a/drivers/acpi/acpica/acglobal.h
-+++ b/drivers/acpi/acpica/acglobal.h
-@@ -165,7 +165,7 @@ ACPI_GLOBAL(u8, acpi_gbl_next_owner_id_offset);
+diff --git a/drivers/acpi/acpica/acevents.h b/drivers/acpi/acpica/acevents.h
+index 772ee3c..d18f184 100644
+--- a/drivers/acpi/acpica/acevents.h
++++ b/drivers/acpi/acpica/acevents.h
+@@ -200,9 +200,9 @@ acpi_ev_detach_region(union acpi_operand_object *region_obj,
  
- /* Initialization sequencing */
+ void acpi_ev_associate_reg_method(union acpi_operand_object *region_obj);
  
--ACPI_GLOBAL(u8, acpi_gbl_reg_methods_executed);
-+ACPI_INIT_GLOBAL(u8, acpi_gbl_reg_methods_enabled, FALSE);
+-acpi_status
++void
+ acpi_ev_execute_reg_methods(struct acpi_namespace_node *node,
+-			    acpi_adr_space_type space_id);
++			    acpi_adr_space_type space_id, u32 function);
  
- /* Misc */
+ acpi_status
+ acpi_ev_execute_reg_method(union acpi_operand_object *region_obj, u32 function);
+diff --git a/drivers/acpi/acpica/aclocal.h b/drivers/acpi/acpica/aclocal.h
+index 034402d..24928ec 100644
+--- a/drivers/acpi/acpica/aclocal.h
++++ b/drivers/acpi/acpica/aclocal.h
+@@ -428,6 +428,7 @@ struct acpi_simple_repair_info {
  
-diff --git a/drivers/acpi/acpica/acobject.h b/drivers/acpi/acpica/acobject.h
-index 0bd02c4..2b154cf 100644
---- a/drivers/acpi/acpica/acobject.h
-+++ b/drivers/acpi/acpica/acobject.h
-@@ -93,9 +93,10 @@
- #define AOPOBJ_AML_CONSTANT         0x01	/* Integer is an AML constant */
- #define AOPOBJ_STATIC_POINTER       0x02	/* Data is part of an ACPI table, don't delete */
- #define AOPOBJ_DATA_VALID           0x04	/* Object is initialized and data is valid */
--#define AOPOBJ_OBJECT_INITIALIZED   0x08	/* Region is initialized, _REG was run */
--#define AOPOBJ_SETUP_COMPLETE       0x10	/* Region setup is complete */
--#define AOPOBJ_INVALID              0x20	/* Host OS won't allow a Region address */
-+#define AOPOBJ_OBJECT_INITIALIZED   0x08	/* Region is initialized */
-+#define AOPOBJ_REG_CONNECTED        0x10	/* _REG was run */
-+#define AOPOBJ_SETUP_COMPLETE       0x20	/* Region setup is complete */
-+#define AOPOBJ_INVALID              0x40	/* Host OS won't allow a Region address */
+ struct acpi_reg_walk_info {
+ 	acpi_adr_space_type space_id;
++	u32 function;
+ 	u32 reg_run_count;
+ };
  
- /******************************************************************************
-  *
 diff --git a/drivers/acpi/acpica/evregion.c b/drivers/acpi/acpica/evregion.c
-index 432b810..cf6e878 100644
+index cf6e878..a43178f 100644
 --- a/drivers/acpi/acpica/evregion.c
 +++ b/drivers/acpi/acpica/evregion.c
-@@ -104,8 +104,6 @@ acpi_status acpi_ev_initialize_op_regions(void)
+@@ -97,10 +97,9 @@ acpi_status acpi_ev_initialize_op_regions(void)
+ 		if (acpi_ev_has_default_handler(acpi_gbl_root_node,
+ 						acpi_gbl_default_address_spaces
+ 						[i])) {
+-			status =
+-			    acpi_ev_execute_reg_methods(acpi_gbl_root_node,
+-							acpi_gbl_default_address_spaces
+-							[i]);
++			acpi_ev_execute_reg_methods(acpi_gbl_root_node,
++						    acpi_gbl_default_address_spaces
++						    [i], ACPI_REG_CONNECT);
  		}
  	}
  
--	acpi_gbl_reg_methods_executed = TRUE;
--
- 	(void)acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
- 	return_ACPI_STATUS(status);
+@@ -683,24 +682,25 @@ cleanup1:
+  *
+  * PARAMETERS:  node            - Namespace node for the device
+  *              space_id        - The address space ID
++ *              function        - Passed to _REG: On (1) or Off (0)
+  *
+- * RETURN:      Status
++ * RETURN:      None
+  *
+  * DESCRIPTION: Run all _REG methods for the input Space ID;
+  *              Note: assumes namespace is locked, or system init time.
+  *
+  ******************************************************************************/
+ 
+-acpi_status
++void
+ acpi_ev_execute_reg_methods(struct acpi_namespace_node *node,
+-			    acpi_adr_space_type space_id)
++			    acpi_adr_space_type space_id, u32 function)
+ {
+-	acpi_status status;
+ 	struct acpi_reg_walk_info info;
+ 
+ 	ACPI_FUNCTION_TRACE(ev_execute_reg_methods);
+ 
+ 	info.space_id = space_id;
++	info.function = function;
+ 	info.reg_run_count = 0;
+ 
+ 	ACPI_DEBUG_PRINT_RAW((ACPI_DB_NAMES,
+@@ -713,9 +713,9 @@ acpi_ev_execute_reg_methods(struct acpi_namespace_node *node,
+ 	 * regions and _REG methods. (i.e. handlers must be installed for all
+ 	 * regions of this Space ID before we can run any _REG methods)
+ 	 */
+-	status = acpi_ns_walk_namespace(ACPI_TYPE_ANY, node, ACPI_UINT32_MAX,
+-					ACPI_NS_WALK_UNLOCK, acpi_ev_reg_run,
+-					NULL, &info, NULL);
++	(void)acpi_ns_walk_namespace(ACPI_TYPE_ANY, node, ACPI_UINT32_MAX,
++				     ACPI_NS_WALK_UNLOCK, acpi_ev_reg_run, NULL,
++				     &info, NULL);
+ 
+ 	/* Special case for EC: handle "orphan" _REG methods with no region */
+ 
+@@ -728,7 +728,7 @@ acpi_ev_execute_reg_methods(struct acpi_namespace_node *node,
+ 			      info.reg_run_count,
+ 			      acpi_ut_get_region_name(info.space_id)));
+ 
+-	return_ACPI_STATUS(status);
++	return_VOID;
  }
-@@ -601,7 +599,18 @@ acpi_ev_execute_reg_method(union acpi_operand_object *region_obj, u32 function)
- 		return_ACPI_STATUS(AE_NOT_EXIST);
+ 
+ /*******************************************************************************
+@@ -787,7 +787,7 @@ acpi_ev_reg_run(acpi_handle obj_handle,
  	}
  
--	if (region_obj2->extra.method_REG == NULL) {
-+	if (region_obj2->extra.method_REG == NULL ||
-+	    region_obj->region.handler == NULL ||
-+	    !acpi_gbl_reg_methods_enabled) {
-+		return_ACPI_STATUS(AE_OK);
-+	}
-+
-+	/* _REG(DISCONNECT) should be paired with _REG(CONNECT) */
-+
-+	if ((function == ACPI_REG_CONNECT &&
-+	     region_obj->common.flags & AOPOBJ_REG_CONNECTED) ||
-+	    (function == ACPI_REG_DISCONNECT &&
-+	     !(region_obj->common.flags & AOPOBJ_REG_CONNECTED))) {
- 		return_ACPI_STATUS(AE_OK);
- 	}
- 
-@@ -650,6 +659,16 @@ acpi_ev_execute_reg_method(union acpi_operand_object *region_obj, u32 function)
- 	status = acpi_ns_evaluate(info);
- 	acpi_ut_remove_reference(args[1]);
- 
-+	if (ACPI_FAILURE(status)) {
-+		goto cleanup2;
-+	}
-+
-+	if (function == ACPI_REG_CONNECT) {
-+		region_obj->common.flags |= AOPOBJ_REG_CONNECTED;
-+	} else {
-+		region_obj->common.flags &= ~AOPOBJ_REG_CONNECTED;
-+	}
-+
- cleanup2:
- 	acpi_ut_remove_reference(args[0]);
+ 	info->reg_run_count++;
+-	status = acpi_ev_execute_reg_method(obj_desc, ACPI_REG_CONNECT);
++	status = acpi_ev_execute_reg_method(obj_desc, info->function);
+ 	return (status);
+ }
  
 diff --git a/drivers/acpi/acpica/evxfregn.c b/drivers/acpi/acpica/evxfregn.c
-index 3c90508..29f9f39 100644
+index 29f9f39..35f9e60 100644
 --- a/drivers/acpi/acpica/evxfregn.c
 +++ b/drivers/acpi/acpica/evxfregn.c
-@@ -112,39 +112,6 @@ acpi_install_address_space_handler(acpi_handle device,
- 		goto unlock_and_exit;
- 	}
+@@ -114,7 +114,7 @@ acpi_install_address_space_handler(acpi_handle device,
  
--	/*
--	 * For the default space_IDs, (the IDs for which there are default region handlers
--	 * installed) Only execute the _REG methods if the global initialization _REG
--	 * methods have already been run (via acpi_initialize_objects). In other words,
--	 * we will defer the execution of the _REG methods for these space_IDs until
--	 * execution of acpi_initialize_objects. This is done because we need the handlers
--	 * for the default spaces (mem/io/pci/table) to be installed before we can run
--	 * any control methods (or _REG methods). There is known BIOS code that depends
--	 * on this.
--	 *
--	 * For all other space_IDs, we can safely execute the _REG methods immediately.
--	 * This means that for IDs like embedded_controller, this function should be called
--	 * only after acpi_enable_subsystem has been called.
--	 */
--	switch (space_id) {
--	case ACPI_ADR_SPACE_SYSTEM_MEMORY:
--	case ACPI_ADR_SPACE_SYSTEM_IO:
--	case ACPI_ADR_SPACE_PCI_CONFIG:
--	case ACPI_ADR_SPACE_DATA_TABLE:
--
--		if (!acpi_gbl_reg_methods_executed) {
--
--			/* We will defer execution of the _REG methods for this space */
--
--			goto unlock_and_exit;
--		}
--		break;
--
--	default:
--
--		break;
--	}
--
  	/* Run all _REG methods for this address space */
  
- 	status = acpi_ev_execute_reg_methods(node, space_id);
-diff --git a/drivers/acpi/acpica/excreate.c b/drivers/acpi/acpica/excreate.c
-index 6a1396e..46be5a2 100644
---- a/drivers/acpi/acpica/excreate.c
-+++ b/drivers/acpi/acpica/excreate.c
-@@ -345,7 +345,8 @@ acpi_ex_create_region(u8 * aml_start,
- 	obj_desc->region.node = node;
- 	obj_desc->region.handler = NULL;
- 	obj_desc->common.flags &=
--	    ~(AOPOBJ_SETUP_COMPLETE | AOPOBJ_OBJECT_INITIALIZED);
-+	    ~(AOPOBJ_SETUP_COMPLETE | AOPOBJ_REG_CONNECTED |
-+	      AOPOBJ_OBJECT_INITIALIZED);
+-	status = acpi_ev_execute_reg_methods(node, space_id);
++	acpi_ev_execute_reg_methods(node, space_id, ACPI_REG_CONNECT);
  
- 	/* Install the new region object in the parent Node */
- 
-diff --git a/drivers/acpi/acpica/utinit.c b/drivers/acpi/acpica/utinit.c
-index ccd0745..fd82a12 100644
---- a/drivers/acpi/acpica/utinit.c
-+++ b/drivers/acpi/acpica/utinit.c
-@@ -206,7 +206,6 @@ acpi_status acpi_ut_init_globals(void)
- 	acpi_gbl_next_owner_id_offset = 0;
- 	acpi_gbl_debugger_configuration = DEBUGGER_THREADING;
- 	acpi_gbl_osi_mutex = NULL;
--	acpi_gbl_reg_methods_executed = FALSE;
- 	acpi_gbl_max_loop_iterations = 0xFFFF;
- 
- 	/* Hardware oriented */
-diff --git a/drivers/acpi/acpica/utxfinit.c b/drivers/acpi/acpica/utxfinit.c
-index 7d8eb60..1c7ed49 100644
---- a/drivers/acpi/acpica/utxfinit.c
-+++ b/drivers/acpi/acpica/utxfinit.c
-@@ -267,6 +267,7 @@ acpi_status __init acpi_initialize_objects(u32 flags)
- 	 * initialized, even if they contain executable AML (see the call to
- 	 * acpi_ns_initialize_objects below).
- 	 */
-+	acpi_gbl_reg_methods_enabled = TRUE;
- 	if (!(flags & ACPI_NO_ADDRESS_SPACE_INIT)) {
- 		ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
- 				  "[Init] Executing _REG OpRegion methods\n"));
+ unlock_and_exit:
+ 	(void)acpi_ut_release_mutex(ACPI_MTX_NAMESPACE);
 -- 
 1.7.10
+
