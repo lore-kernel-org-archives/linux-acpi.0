@@ -1,83 +1,43 @@
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: Re: [PATCH v2 2/3] device property: the secondary fwnode needs to
- depend on the primary
-Date: Tue, 29 Dec 2015 12:57:03 +0200
-Message-ID: <1451386623.30729.353.camel@linux.intel.com>
-References: <1450877684-76316-1-git-send-email-andriy.shevchenko@linux.intel.com>
-	 <1450877684-76316-3-git-send-email-andriy.shevchenko@linux.intel.com>
-	 <20151229084020.GA19870@kuha.fi.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:2557 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751198AbbL2K4o (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 29 Dec 2015 05:56:44 -0500
-In-Reply-To: <20151229084020.GA19870@kuha.fi.intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Subject: [PATCH v3 1/3] device property: add spaces to PROPERTY_ENTRY_STRING macro
+Date: Tue, 29 Dec 2015 13:07:48 +0200
+Message-ID: <1451387271-56535-2-git-send-email-andriy.shevchenko@linux.intel.com>
+References: <1451387271-56535-1-git-send-email-andriy.shevchenko@linux.intel.com>
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <1451387271-56535-1-git-send-email-andriy.shevchenko@linux.intel.com>
+Sender: linux-next-owner@vger.kernel.org
+To: Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, heikki.krogerus@linux.intel.com, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
 
-On Tue, 2015-12-29 at 10:40 +0200, Heikki Krogerus wrote:
-> Hi Andy,
->=20
-> Found a bug from my code..
->=20
-> > diff --git a/drivers/base/property.c b/drivers/base/property.c
-> > index 0b22c8a..6c04d18 100644
-> > --- a/drivers/base/property.c
-> > +++ b/drivers/base/property.c
-> > @@ -218,7 +218,7 @@ bool fwnode_property_present(struct
-> > fwnode_handle *fwnode, const char *propname)
-> > =C2=A0	bool ret;
-> > =C2=A0
-> > =C2=A0	ret =3D __fwnode_property_present(fwnode, propname);
-> > -	if (ret =3D=3D false && fwnode->secondary)
-> > +	if (ret =3D=3D false && fwnode && fwnode->secondary)
-> > =C2=A0		ret =3D __fwnode_property_present(fwnode->secondary,=20
-> > propname);
-> > =C2=A0	return ret;
-> > =C2=A0}
-> > @@ -423,7 +423,7 @@
-> > EXPORT_SYMBOL_GPL(device_property_match_string);
-> > =C2=A0	int _ret_;						=09
-> > 		\
-> > =C2=A0	_ret_ =3D FWNODE_PROP_READ(_fwnode_, _propname_, _type_,
-> > _proptype_,		\
-> > =C2=A0				=C2=A0_val_, _nval_);		=09
-> > 		\
-> > -	if (_ret_ =3D=3D -EINVAL && _fwnode_->secondary)	=09
-> > 			\
-> > +	if (_ret_ =3D=3D -EINVAL && fwnode && _fwnode_->secondary)=09
-> > 			\
->=20
-> This should be .._fwnode_ && _fwnode_->secondary)
+Just a style fix, no functional changes.
 
-Yeah, we compiled it correctly due to fwnode presents in all
-occurrences of this macro.
+To be folded to Andrew's patch [1].
 
-I will fix and resend a new version.
+[1] http://comments.gmane.org/gmane.linux.kernel.commits.mm/97592
 
->=20
-> > =C2=A0		_ret_ =3D FWNODE_PROP_READ(_fwnode_->secondary,
-> > _propname_, _type_,	\
-> > =C2=A0				_proptype_, _val_, _nval_);=09
-> > 			\
-> > =C2=A0	_ret_;						=09
-> > 			\
->=20
->=20
-> Cheers,
->=20
+Or in linux next:
 
---=20
-Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Intel Finland Oy
+e39ece7 include-linux-propertyh-fix-build-issues-with-gcc-444-fix
+40bb8a1 include/linux/property.h: fix build issues with gcc-4.4.4
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ include/linux/property.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/linux/property.h b/include/linux/property.h
+index b8c4e42..b51fcd3 100644
+--- a/include/linux/property.h
++++ b/include/linux/property.h
+@@ -230,7 +230,7 @@ struct property_entry {
+ 	.name = _name_,					\
+ 	.length = sizeof(_val_),			\
+ 	.is_string = true,				\
+-	{ .value = {.str = _val_} },			\
++	{ .value = { .str = _val_ } },			\
+ }
+ 
+ #define PROPERTY_ENTRY_BOOL(_name_)		\
+-- 
+2.6.4
