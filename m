@@ -1,128 +1,172 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 21/42] ACPICA: Namespace: Add scope information to the simple object repair mechanism
-Date: Tue, 29 Dec 2015 13:57:38 +0800
-Message-ID: <266ec49a71ad7b372a8fabb1e12888219ebd4735.1451367389.git.lv.zheng@intel.com>
+Subject: [PATCH 22/42] ACPICA: Namespace: Add String -> ObjectReference conversion support
+Date: Tue, 29 Dec 2015 13:58:02 +0800
+Message-ID: <df8691b1dcf18baf9ac7110370d036571415f10c.1451367389.git.lv.zheng@intel.com>
 References: <cover.1451367388.git.lv.zheng@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:54361 "EHLO mga03.intel.com"
+Received: from mga02.intel.com ([134.134.136.20]:43459 "EHLO mga02.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753362AbbL2F5n (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 29 Dec 2015 00:57:43 -0500
+	id S1753248AbbL2F6G (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 29 Dec 2015 00:58:06 -0500
 In-Reply-To: <cover.1451367388.git.lv.zheng@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
 
-ACPICA commit 51cbd324420ca5e381cb2c57ce95139053518a35
+ACPICA commit 80e60d72959bb51c5d08c8500d978607a42ed81d
 
-The acpi_object_converter callbacks are lack in scope information to
-convert name_string. This patch fixes this issue by passing the evaluation
-method/object node to the converter callbacks. Lv Zheng.
+BIOS developers may accidently put the quotes around the name strings,
+which converts the object references in the packages indicated by the name
+strings into the data objects (strings). Such kind of error has been seen
+in _DEP control methods on some platforms. This patch implements a
+workaround to correct it. Reported by Bastien Nocera. Fixed by Lv Zheng.
 
-Link: https://github.com/acpica/acpica/commit/51cbd324
+Link: https://github.com/acpica/acpica/commit/80e60d72
+Reference: https://bugzilla.kernel.org/show_bug.cgi?id=106231
+Reported-and-tested-by: Bastien Nocera <bugzilla@hadess.net>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/aclocal.h   |    3 ++-
- drivers/acpi/acpica/acnamesp.h  |    6 ++++--
- drivers/acpi/acpica/nsconvert.c |   12 ++++++++----
- drivers/acpi/acpica/nsrepair.c  |    4 ++--
- 4 files changed, 16 insertions(+), 9 deletions(-)
+ drivers/acpi/acpica/acnamesp.h  |    6 ++++
+ drivers/acpi/acpica/nsconvert.c |   75 +++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/acpica/nsrepair.c  |    9 ++++-
+ 3 files changed, 89 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/acpica/aclocal.h b/drivers/acpi/acpica/aclocal.h
-index 4fd5040..351a1cd 100644
---- a/drivers/acpi/acpica/aclocal.h
-+++ b/drivers/acpi/acpica/aclocal.h
-@@ -395,7 +395,8 @@ union acpi_predefined_info {
- 
- /* Return object auto-repair info */
- 
--typedef acpi_status(*acpi_object_converter) (union acpi_operand_object
-+typedef acpi_status(*acpi_object_converter) (struct acpi_namespace_node * scope,
-+					     union acpi_operand_object
- 					     *original_object,
- 					     union acpi_operand_object
- 					     **converted_object);
 diff --git a/drivers/acpi/acpica/acnamesp.h b/drivers/acpi/acpica/acnamesp.h
-index 5d261c9..1f42c3c 100644
+index 1f42c3c..d082e62 100644
 --- a/drivers/acpi/acpica/acnamesp.h
 +++ b/drivers/acpi/acpica/acnamesp.h
-@@ -183,11 +183,13 @@ acpi_ns_convert_to_buffer(union acpi_operand_object *original_object,
- 			  union acpi_operand_object **return_object);
+@@ -77,6 +77,7 @@
+ /* Object is not a package element */
  
- acpi_status
--acpi_ns_convert_to_unicode(union acpi_operand_object *original_object,
-+acpi_ns_convert_to_unicode(struct acpi_namespace_node *scope,
-+			   union acpi_operand_object *original_object,
- 			   union acpi_operand_object **return_object);
+ #define ACPI_NOT_PACKAGE_ELEMENT    ACPI_UINT32_MAX
++#define ACPI_ALL_PACKAGE_ELEMENTS   (ACPI_UINT32_MAX-1)
  
- acpi_status
--acpi_ns_convert_to_resource(union acpi_operand_object *original_object,
-+acpi_ns_convert_to_resource(struct acpi_namespace_node *scope,
-+			    union acpi_operand_object *original_object,
+ /* Always emit warning message, not dependent on node flags */
+ 
+@@ -192,6 +193,11 @@ acpi_ns_convert_to_resource(struct acpi_namespace_node *scope,
+ 			    union acpi_operand_object *original_object,
  			    union acpi_operand_object **return_object);
  
++acpi_status
++acpi_ns_convert_to_reference(struct acpi_namespace_node *scope,
++			     union acpi_operand_object *original_object,
++			     union acpi_operand_object **return_object);
++
  /*
+  * nsdump - Namespace dump/print utilities
+  */
 diff --git a/drivers/acpi/acpica/nsconvert.c b/drivers/acpi/acpica/nsconvert.c
-index 749a189..ab47a50 100644
+index ab47a50..f21568b 100644
 --- a/drivers/acpi/acpica/nsconvert.c
 +++ b/drivers/acpi/acpica/nsconvert.c
-@@ -306,7 +306,8 @@ acpi_ns_convert_to_buffer(union acpi_operand_object *original_object,
-  *
-  * FUNCTION:    acpi_ns_convert_to_unicode
-  *
-- * PARAMETERS:  original_object     - ASCII String Object to be converted
-+ * PARAMETERS:  scope               - Namespace node for the method/object
-+ *              original_object     - ASCII String Object to be converted
-  *              return_object       - Where the new converted object is returned
-  *
-  * RETURN:      Status. AE_OK if conversion was successful.
-@@ -316,7 +317,8 @@ acpi_ns_convert_to_buffer(union acpi_operand_object *original_object,
-  ******************************************************************************/
- 
- acpi_status
--acpi_ns_convert_to_unicode(union acpi_operand_object *original_object,
-+acpi_ns_convert_to_unicode(struct acpi_namespace_node * scope,
-+			   union acpi_operand_object *original_object,
- 			   union acpi_operand_object **return_object)
- {
- 	union acpi_operand_object *new_object;
-@@ -370,7 +372,8 @@ acpi_ns_convert_to_unicode(union acpi_operand_object *original_object,
-  *
-  * FUNCTION:    acpi_ns_convert_to_resource
-  *
-- * PARAMETERS:  original_object     - Object to be converted
+@@ -446,3 +446,78 @@ acpi_ns_convert_to_resource(struct acpi_namespace_node * scope,
+ 	*return_object = new_object;
+ 	return (AE_OK);
+ }
++
++/*******************************************************************************
++ *
++ * FUNCTION:    acpi_ns_convert_to_reference
++ *
 + * PARAMETERS:  scope               - Namespace node for the method/object
 + *              original_object     - Object to be converted
-  *              return_object       - Where the new converted object is returned
-  *
-  * RETURN:      Status. AE_OK if conversion was successful
-@@ -381,7 +384,8 @@ acpi_ns_convert_to_unicode(union acpi_operand_object *original_object,
-  ******************************************************************************/
- 
- acpi_status
--acpi_ns_convert_to_resource(union acpi_operand_object *original_object,
-+acpi_ns_convert_to_resource(struct acpi_namespace_node * scope,
-+			    union acpi_operand_object *original_object,
- 			    union acpi_operand_object **return_object)
- {
- 	union acpi_operand_object *new_object;
++ *              return_object       - Where the new converted object is returned
++ *
++ * RETURN:      Status. AE_OK if conversion was successful
++ *
++ * DESCRIPTION: Attempt to convert a Integer object to a object_reference.
++ *              Buffer.
++ *
++ ******************************************************************************/
++
++acpi_status
++acpi_ns_convert_to_reference(struct acpi_namespace_node * scope,
++			     union acpi_operand_object *original_object,
++			     union acpi_operand_object **return_object)
++{
++	union acpi_operand_object *new_object = NULL;
++	acpi_status status;
++	struct acpi_namespace_node *node;
++	union acpi_generic_state scope_info;
++	char *name;
++
++	ACPI_FUNCTION_NAME(ns_convert_to_reference);
++
++	/* Convert path into internal presentation */
++
++	status =
++	    acpi_ns_internalize_name(original_object->string.pointer, &name);
++	if (ACPI_FAILURE(status)) {
++		return_ACPI_STATUS(status);
++	}
++
++	/* Find the namespace node */
++
++	scope_info.scope.node =
++	    ACPI_CAST_PTR(struct acpi_namespace_node, scope);
++	status =
++	    acpi_ns_lookup(&scope_info, name, ACPI_TYPE_ANY, ACPI_IMODE_EXECUTE,
++			   ACPI_NS_SEARCH_PARENT | ACPI_NS_DONT_OPEN_SCOPE,
++			   NULL, &node);
++	if (ACPI_FAILURE(status)) {
++
++		/* Check if we are resolving a named reference within a package */
++
++		ACPI_ERROR_NAMESPACE(original_object->string.pointer, status);
++		goto error_exit;
++	}
++
++	/* Create and init a new internal ACPI object */
++
++	new_object = acpi_ut_create_internal_object(ACPI_TYPE_LOCAL_REFERENCE);
++	if (!new_object) {
++		status = AE_NO_MEMORY;
++		goto error_exit;
++	}
++	new_object->reference.node = node;
++	new_object->reference.object = node->object;
++	new_object->reference.class = ACPI_REFCLASS_NAME;
++
++	/*
++	 * Increase reference of the object if needed (the object is likely a
++	 * null for device nodes).
++	 */
++	acpi_ut_add_reference(node->object);
++
++error_exit:
++	ACPI_FREE(name);
++	*return_object = new_object;
++	return (AE_OK);
++}
 diff --git a/drivers/acpi/acpica/nsrepair.c b/drivers/acpi/acpica/nsrepair.c
-index 360e3ab..4b7dbff 100644
+index 4b7dbff..6418863 100644
 --- a/drivers/acpi/acpica/nsrepair.c
 +++ b/drivers/acpi/acpica/nsrepair.c
-@@ -172,8 +172,8 @@ acpi_ns_simple_repair(struct acpi_evaluate_info *info,
- 					      "Missing expected return value"));
- 		}
+@@ -116,6 +116,11 @@ static const struct acpi_simple_repair_info acpi_object_repair_info[] = {
+ 	 ACPI_NOT_PACKAGE_ELEMENT,
+ 	 acpi_ns_convert_to_resource},
  
--		status =
--		    predefined->object_converter(return_object, &new_object);
-+		status = predefined->object_converter(info->node, return_object,
-+						      &new_object);
- 		if (ACPI_FAILURE(status)) {
++	/* Object reference conversions */
++
++	{"_DEP", ACPI_RTYPE_STRING, ACPI_ALL_PACKAGE_ELEMENTS,
++	 acpi_ns_convert_to_reference},
++
+ 	/* Unicode conversions */
  
- 			/* A fatal error occurred during a conversion */
+ 	{"_MLS", ACPI_RTYPE_STRING, 1,
+@@ -360,7 +365,9 @@ static const struct acpi_simple_repair_info *acpi_ns_match_simple_repair(struct
+ 			/* Check if we can actually repair this name/type combination */
+ 
+ 			if ((return_btype & this_name->unexpected_btypes) &&
+-			    (package_index == this_name->package_index)) {
++			    (this_name->package_index ==
++			     ACPI_ALL_PACKAGE_ELEMENTS
++			     || package_index == this_name->package_index)) {
+ 				return (this_name);
+ 			}
+ 
 -- 
 1.7.10
 
