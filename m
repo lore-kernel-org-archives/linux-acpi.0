@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 25/42] ACPICA: Add new exception code, AE_IO_ERROR
-Date: Tue, 29 Dec 2015 13:59:34 +0800
-Message-ID: <cefbbee399a756e5e42e1dfaace23ba5a8793f90.1451367389.git.lv.zheng@intel.com>
+Subject: [PATCH 27/42] ACPICA: Parser: Add constants for internal namepath function
+Date: Tue, 29 Dec 2015 14:00:07 +0800
+Message-ID: <b02476b3396f5400cbb1d599cde23581d0b8217d.1451367389.git.lv.zheng@intel.com>
 References: <cover.1451367388.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1451367388.git.lv.zheng@intel.com>
@@ -12,42 +12,79 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Bob Moore <robert.moore@intel.com>
 
-ACPICA commit dcaeaddfc11544f03e6323be4ac8ff8a1e014956
+ACPICA commit b216e39fe85feee955d29fe0a7190dd811e181ea
 
-The intent for this exception is for low-level I/O operations,
-especially Clib functions.
+Add true/false constants for the "PossibleMethodCall" parameter
+for acpi_ps_get_next_namepath.
 
-Link: https://github.com/acpica/acpica/commit/dcaeaddf
+Link: https://github.com/acpica/acpica/commit/b216e39f
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- include/acpi/acexcep.h |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ drivers/acpi/acpica/acparser.h |    8 +++++++-
+ drivers/acpi/acpica/psargs.c   |    4 ++--
+ drivers/acpi/acpica/psloop.c   |    8 ++++----
+ 3 files changed, 13 insertions(+), 7 deletions(-)
 
-diff --git a/include/acpi/acexcep.h b/include/acpi/acexcep.h
-index 204f581..cd84b12 100644
---- a/include/acpi/acexcep.h
-+++ b/include/acpi/acexcep.h
-@@ -126,8 +126,9 @@ struct acpi_exception_info {
- #define AE_OWNER_ID_LIMIT               EXCEP_ENV (0x001B)
- #define AE_NOT_CONFIGURED               EXCEP_ENV (0x001C)
- #define AE_ACCESS                       EXCEP_ENV (0x001D)
-+#define AE_IO_ERROR                     EXCEP_ENV (0x001E)
+diff --git a/drivers/acpi/acpica/acparser.h b/drivers/acpi/acpica/acparser.h
+index 8fc8c7c..96d510a 100644
+--- a/drivers/acpi/acpica/acparser.h
++++ b/drivers/acpi/acpica/acparser.h
+@@ -92,7 +92,13 @@ acpi_ps_get_next_simple_arg(struct acpi_parse_state *parser_state,
+ acpi_status
+ acpi_ps_get_next_namepath(struct acpi_walk_state *walk_state,
+ 			  struct acpi_parse_state *parser_state,
+-			  union acpi_parse_object *arg, u8 method_call);
++			  union acpi_parse_object *arg,
++			  u8 possible_method_call);
++
++/* Values for u8 above */
++
++#define ACPI_NOT_METHOD_CALL            FALSE
++#define ACPI_POSSIBLE_METHOD_CALL       TRUE
  
--#define AE_CODE_ENV_MAX                 0x001D
-+#define AE_CODE_ENV_MAX                 0x001E
+ acpi_status
+ acpi_ps_get_next_arg(struct acpi_walk_state *walk_state,
+diff --git a/drivers/acpi/acpica/psargs.c b/drivers/acpi/acpica/psargs.c
+index 3f0ffee..0fdb7fc 100644
+--- a/drivers/acpi/acpica/psargs.c
++++ b/drivers/acpi/acpica/psargs.c
+@@ -821,7 +821,7 @@ acpi_ps_get_next_arg(struct acpi_walk_state *walk_state,
+ 				status =
+ 				    acpi_ps_get_next_namepath(walk_state,
+ 							      parser_state, arg,
+-							      1);
++							      ACPI_POSSIBLE_METHOD_CALL);
  
- /*
-  * Programmer exceptions
-@@ -263,7 +264,8 @@ static const struct acpi_exception_info acpi_gbl_exception_names_env[] = {
- 		  "There are no more Owner IDs available for ACPI tables or control methods"),
- 	EXCEP_TXT("AE_NOT_CONFIGURED",
- 		  "The interface is not part of the current subsystem configuration"),
--	EXCEP_TXT("AE_ACCESS", "Permission denied for the requested operation")
-+	EXCEP_TXT("AE_ACCESS", "Permission denied for the requested operation"),
-+	EXCEP_TXT("AE_IO_ERROR", "An I/O error occurred")
- };
+ 				/*
+ 				 * If the super_name arg of Unload is a method call,
+@@ -836,7 +836,7 @@ acpi_ps_get_next_arg(struct acpi_walk_state *walk_state,
+ 				status =
+ 				    acpi_ps_get_next_namepath(walk_state,
+ 							      parser_state, arg,
+-							      0);
++							      ACPI_NOT_METHOD_CALL);
+ 			}
+ 		} else {
+ 			/* Single complex argument, nothing returned */
+diff --git a/drivers/acpi/acpica/psloop.c b/drivers/acpi/acpica/psloop.c
+index c660006..a57f473 100644
+--- a/drivers/acpi/acpica/psloop.c
++++ b/drivers/acpi/acpica/psloop.c
+@@ -109,10 +109,10 @@ acpi_ps_get_arguments(struct acpi_walk_state *walk_state,
  
- static const struct acpi_exception_info acpi_gbl_exception_names_pgm[] = {
+ 	case AML_INT_NAMEPATH_OP:	/* AML_NAMESTRING_ARG */
+ 
+-		status =
+-		    acpi_ps_get_next_namepath(walk_state,
+-					      &(walk_state->parser_state), op,
+-					      1);
++		status = acpi_ps_get_next_namepath(walk_state,
++						   &(walk_state->parser_state),
++						   op,
++						   ACPI_POSSIBLE_METHOD_CALL);
+ 		if (ACPI_FAILURE(status)) {
+ 			return_ACPI_STATUS(status);
+ 		}
 -- 
 1.7.10
