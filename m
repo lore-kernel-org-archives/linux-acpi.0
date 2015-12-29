@@ -1,50 +1,44 @@
 From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH v3 3/3] device property: avoid allocations of 0 length
-Date: Tue, 29 Dec 2015 13:07:50 +0200
-Message-ID: <1451387271-56535-4-git-send-email-andriy.shevchenko@linux.intel.com>
-References: <1451387271-56535-1-git-send-email-andriy.shevchenko@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1451387271-56535-1-git-send-email-andriy.shevchenko@linux.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Subject: [PATCH v3 0/3] device property: post merge fixes
+Date: Tue, 29 Dec 2015 13:07:47 +0200
+Message-ID: <1451387271-56535-1-git-send-email-andriy.shevchenko@linux.intel.com>
+Return-path: <linux-next-owner@vger.kernel.org>
+Sender: linux-next-owner@vger.kernel.org
 To: Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, akpm@linux-foundation.org, linux-kernel@vger.kernel.org, heikki.krogerus@linux.intel.com, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
 Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Arrays can not have zero elements by definition of the unified device
-properties. If such property comes from outside we should not allow it to pass.
-Otherwise memory allocation on 0 length will return non-NULL value, which we
-currently don't check.
+Three fixes to device property API.
 
-Prevent memory allocations of 0 length.
+Patch 1 is a simple style fix to be folded into previous Andrew's patch to
+allow old gcc to build (see commit message for the details).
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- drivers/base/property.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+There is a crash in linux-next
+ BUG: unable to handle kernel NULL pointer dereference at 0000000000000008
+ IP: [<ffffffff8145e8a6>] fwnode_property_present+0x16/0x30
 
-diff --git a/drivers/base/property.c b/drivers/base/property.c
-index b3429cc..c359351 100644
---- a/drivers/base/property.c
-+++ b/drivers/base/property.c
-@@ -653,6 +653,9 @@ int fwnode_property_match_string(struct fwnode_handle *fwnode,
- 	if (nval < 0)
- 		return nval;
- 
-+	if (nval == 0)
-+		return -ENODATA;
-+
- 	values = kcalloc(nval, sizeof(*values), GFP_KERNEL);
- 	if (!values)
- 		return -ENOMEM;
-@@ -718,6 +721,9 @@ static int pset_copy_entry(struct property_entry *dst,
- 		return -ENOMEM;
- 
- 	if (src->is_array) {
-+		if (!src->length)
-+			return -ENODATA;
-+
- 		if (src->is_string) {
- 			nval = src->length / sizeof(const char *);
- 			dst->pointer.str = kcalloc(nval, sizeof(const char *),
+Check for fwnode pointer before dereference (patch 2).
+
+Patch 3 prevents to allocate buffers with 0 length (the result maybe surprising
+to someone).
+
+Changelog v3:
+- fix typo in Heikki's patch (patch 2)
+- update commit message for patch 1 to explain what is the fixup for
+
+Changelog v2:
+- added patches 2 and 3
+
+Andy Shevchenko (2):
+  device property: add spaces to PROPERTY_ENTRY_STRING macro
+  device property: avoid allocations of 0 length
+
+Heikki Krogerus (1):
+  device property: the secondary fwnode needs to depend on the primary
+
+ drivers/base/property.c  | 14 ++++++++++----
+ include/linux/property.h |  2 +-
+ 2 files changed, 11 insertions(+), 5 deletions(-)
+
 -- 
 2.6.4
