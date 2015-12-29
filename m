@@ -1,84 +1,63 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 35/42] ACPICA: Utilities: Reorder initialization code
-Date: Tue, 29 Dec 2015 14:02:18 +0800
-Message-ID: <e37cdfb3c1ae7ae79ad85f93172e8cb4d34ee078.1451367389.git.lv.zheng@intel.com>
+Subject: [PATCH 36/42] ACPICA: Events: Fix an issue that region object is re-attached to another scope when it is already attached
+Date: Tue, 29 Dec 2015 14:02:50 +0800
+Message-ID: <f00dcbaa25961f22cf1955b550e034240017eb77.1451367389.git.lv.zheng@intel.com>
 References: <cover.1451367388.git.lv.zheng@intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga14.intel.com ([192.55.52.115]:5261 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753125AbbL2GCz (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 29 Dec 2015 01:02:55 -0500
 In-Reply-To: <cover.1451367388.git.lv.zheng@intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
-List-Id: linux-acpi@vger.kernel.org
 
-ACPICA commit 3894fa9d071343e6ebc7ea480255fa4f27a290be
+ACPICA commit 6ebcb24d3225b6c7715a3ce061c327b4c3a6b76e
 
-This patch re-orders initialization code in acpi_enable_subsystem()
-so that all hardware reduced stuffs can be collected together.
+The logic in acpi_ev_attach_region() is not correct, it can break address
+space handler link. This patch fixes this problem. But be aware that this
+fix must be applied along with a region object race issue fix. Lv Zheng.
 
-Note this patch contains code from the following 2 ACPICA upstream commits
-so that the changes can be made clearer for the reviewers:
- https://github.com/acpica/acpica/commit/071eff73
- https://github.com/acpica/acpica/commit/3894fa9d
-And additional change to remove the global variable and unused code
-fragments due to the test result. Lv Zheng.
-
-Link: https://github.com/acpica/acpica/commit/3894fa9d
+Link: https://github.com/acpica/acpica/commit/6ebcb24d
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 Signed-off-by: Bob Moore <robert.moore@intel.com>
 ---
- drivers/acpi/acpica/utxfinit.c |   31 +++++++++++++++----------------
- 1 file changed, 15 insertions(+), 16 deletions(-)
+ drivers/acpi/acpica/evregion.c |   13 ++++++-------
+ 1 file changed, 6 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/acpi/acpica/utxfinit.c b/drivers/acpi/acpica/utxfinit.c
-index 8586260..7d8eb60 100644
---- a/drivers/acpi/acpica/utxfinit.c
-+++ b/drivers/acpi/acpica/utxfinit.c
-@@ -154,6 +154,21 @@ acpi_status __init acpi_enable_subsystem(u32 flags)
- 	 */
- 	acpi_gbl_early_initialization = FALSE;
+diff --git a/drivers/acpi/acpica/evregion.c b/drivers/acpi/acpica/evregion.c
+index 6717e57..19a4e69 100644
+--- a/drivers/acpi/acpica/evregion.c
++++ b/drivers/acpi/acpica/evregion.c
+@@ -504,6 +504,12 @@ acpi_ev_attach_region(union acpi_operand_object *handler_obj,
  
-+	/*
-+	 * Install the default operation region handlers. These are the
-+	 * handlers that are defined by the ACPI specification to be
-+	 * "always accessible" -- namely, system_memory, system_IO, and
-+	 * PCI_Config. This also means that no _REG methods need to be
-+	 * run for these address spaces. We need to have these handlers
-+	 * installed before any AML code can be executed, especially any
-+	 * module-level code (11/2015).
-+	 */
-+	status = acpi_ev_install_region_handlers();
-+	if (ACPI_FAILURE(status)) {
-+		ACPI_EXCEPTION((AE_INFO, status,
-+				"During Region initialization"));
-+		return_ACPI_STATUS(status);
+ 	ACPI_FUNCTION_TRACE(ev_attach_region);
+ 
++	/* Install the region's handler */
++
++	if (region_obj->region.handler) {
++		return_ACPI_STATUS(AE_ALREADY_EXISTS);
 +	}
- #if (!ACPI_REDUCED_HARDWARE)
++
+ 	ACPI_DEBUG_PRINT((ACPI_DB_OPREGION,
+ 			  "Adding Region [%4.4s] %p to address handler %p [%s]\n",
+ 			  acpi_ut_get_node_name(region_obj->region.node),
+@@ -515,13 +521,6 @@ acpi_ev_attach_region(union acpi_operand_object *handler_obj,
  
- 	/* Enable ACPI mode */
-@@ -182,24 +197,8 @@ acpi_status __init acpi_enable_subsystem(u32 flags)
- 			return_ACPI_STATUS(status);
- 		}
- 	}
--#endif				/* !ACPI_REDUCED_HARDWARE */
- 
- 	/*
--	 * Install the default op_region handlers. These are installed unless
--	 * other handlers have already been installed via the
--	 * install_address_space_handler interface.
--	 */
--	if (!(flags & ACPI_NO_ADDRESS_SPACE_INIT)) {
--		ACPI_DEBUG_PRINT((ACPI_DB_EXEC,
--				  "[Init] Installing default address space handlers\n"));
+ 	region_obj->region.next = handler_obj->address_space.region_list;
+ 	handler_obj->address_space.region_list = region_obj;
 -
--		status = acpi_ev_install_region_handlers();
--		if (ACPI_FAILURE(status)) {
--			return_ACPI_STATUS(status);
--		}
+-	/* Install the region's handler */
+-
+-	if (region_obj->region.handler) {
+-		return_ACPI_STATUS(AE_ALREADY_EXISTS);
 -	}
--#if (!ACPI_REDUCED_HARDWARE)
--	/*
- 	 * Initialize ACPI Event handling (Fixed and General Purpose)
- 	 *
- 	 * Note1: We must have the hardware and events initialized before we can
+-
+ 	region_obj->region.handler = handler_obj;
+ 	acpi_ut_add_reference(handler_obj);
+ 
 -- 
 1.7.10
+
