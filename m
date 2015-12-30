@@ -1,119 +1,59 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH v2 1/3] device property: add spaces to
- PROPERTY_ENTRY_STRING macro
-Date: Tue, 29 Dec 2015 17:24:53 -0800
-Message-ID: <20151229172453.b8bf71ef.akpm@linux-foundation.org>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH v2 1/3] device property: add spaces to PROPERTY_ENTRY_STRING
+ macro
+Date: Wed, 30 Dec 2015 03:29:56 +0200
+Message-ID: <CAHp75VfqpTKhe2pduZ0ySnkMfCUrgt7XVXNGuVbejC70Vf14ww@mail.gmail.com>
 References: <1450877684-76316-1-git-send-email-andriy.shevchenko@linux.intel.com>
 	<4285778.gtB2L18Hsx@vostro.rjw.lan>
 	<1451301853.30729.326.camel@linux.intel.com>
 	<1627434.AfSeGfofYv@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:46720 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753903AbbL3BZH (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Dec 2015 20:25:07 -0500
+Received: from mail-yk0-f180.google.com ([209.85.160.180]:33017 "EHLO
+	mail-yk0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753903AbbL3B35 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Dec 2015 20:29:57 -0500
 In-Reply-To: <1627434.AfSeGfofYv@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, heikki.krogerus@linux.intel.com, linux-acpi@vger.kernel.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next <linux-next@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Krogerus, Heikki" <heikki.krogerus@linux.intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On Wed, 30 Dec 2015 02:49:26 +0100 "Rafael J. Wysocki" <rjw@rjwysocki.net> wrote:
-
+On Wed, Dec 30, 2015 at 3:49 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
 > On Monday, December 28, 2015 01:24:13 PM Andy Shevchenko wrote:
-> > On Mon, 2015-12-28 at 02:12 +0100, Rafael J. Wysocki wrote:
-> > > On Wednesday, December 23, 2015 03:34:42 PM Andy Shevchenko wrote:
-> > > > Just a style fix, no functional changes.
-> > > > 
-> > > > To be folded to Andrew's patch.
-> > > 
-> > > What patch?
-> > 
-> > In linux-next from Andrew:
-> > 
-> > e39ece7 include-linux-propertyh-fix-build-issues-with-gcc-444-fix
-> > 40bb8a1 include/linux/property.h: fix build issues with gcc-4.4.4
-> 
+>> On Mon, 2015-12-28 at 02:12 +0100, Rafael J. Wysocki wrote:
+>> > On Wednesday, December 23, 2015 03:34:42 PM Andy Shevchenko wrote:
+>> > > Just a style fix, no functional changes.
+>> > >
+>> > > To be folded to Andrew's patch.
+>> >
+>> > What patch?
+>>
+>> In linux-next from Andrew:
+>>
+>> e39ece7 include-linux-propertyh-fix-build-issues-with-gcc-444-fix
+>> 40bb8a1 include/linux/property.h: fix build issues with gcc-4.4.4
+>
 > Any pointers to the original patch submission(s)?
 
-I think it was discussed in some followup to something else, I forget.
+Yes, I found one [1] and added to v3 of this patch [2]
 
-This:
+[1] http://comments.gmane.org/gmane.linux.kernel.commits.mm/97592
+[2] http://www.spinics.net/lists/kernel/msg2151801.html
 
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: include/linux/property.h: fix build issues with gcc-4.4.4
+>
+> Thanks,
+> Rafael
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
 
-gcc-4.4.4 has problems with initialization of anonymous unions:
 
-drivers/mfd/intel-lpss-acpi.c:30: error: unknown field 'value' specified in initializer
 
-work around this by crafting the initializers in a manner which the
-compiler can handle.
-
-Cc: Kevin Fenzi <kevin@scrye.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
-
- include/linux/property.h |   16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
-
-diff -puN include/linux/property.h~include-linux-propertyh-fix-build-issues-with-gcc-444 include/linux/property.h
---- a/include/linux/property.h~include-linux-propertyh-fix-build-issues-with-gcc-444
-+++ a/include/linux/property.h
-@@ -175,12 +175,19 @@ struct property_entry {
- 	};
- };
- 
-+/*
-+ * Note: the below four initializers for the anonymous union are carefully
-+ * crafted to avoid gcc-4.4.4's problems with initialization of anon unions
-+ * and structs.
-+ */
-+
- #define PROPERTY_ENTRY_INTEGER_ARRAY(_name_, _type_, _val_)	\
- {								\
- 	.name = _name_,						\
- 	.length = ARRAY_SIZE(_val_) * sizeof(_type_),		\
- 	.is_array = true,					\
--	.pointer._type_##_data = _val_,				\
-+	.is_string = false,					\
-+	{ .pointer = _type_##_data = _val_ } },			\
- }
- 
- #define PROPERTY_ENTRY_U8_ARRAY(_name_, _val_)			\
-@@ -198,14 +205,15 @@ struct property_entry {
- 	.length = ARRAY_SIZE(_val_) * sizeof(const char *),	\
- 	.is_array = true,					\
- 	.is_string = true,					\
--	.pointer.str = _val_,					\
-+	{ .pointer = { .str = _val_ } },			\
- }
- 
- #define PROPERTY_ENTRY_INTEGER(_name_, _type_, _val_)	\
- {							\
- 	.name = _name_,					\
- 	.length = sizeof(_type_),			\
--	.value._type_##_data = _val_,			\
-+	.is_string = false,				\
-+	{ .value = { ._type_##_data = _val_ } },	\
- }
- 
- #define PROPERTY_ENTRY_U8(_name_, _val_)		\
-@@ -222,7 +230,7 @@ struct property_entry {
- 	.name = _name_,					\
- 	.length = sizeof(_val_),			\
- 	.is_string = true,				\
--	.value.str = _val_,				\
-+	{ .value = {.str = _val_} },			\
- }
- 
- #define PROPERTY_ENTRY_BOOL(_name_)		\
-_
-
+-- 
+With Best Regards,
+Andy Shevchenko
