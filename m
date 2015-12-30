@@ -1,52 +1,53 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH V9 1/2] ACPI, PCI, irq: remove interrupt count restriction
-Date: Wed, 30 Dec 2015 15:28:24 +0200
-Message-ID: <CAHp75Ve5x3xmHpC4Ku4OXiXW6UHQqi1vLyzE7XSBhh+=zeeGgQ@mail.gmail.com>
-References: <1449677909-12432-1-git-send-email-okaya@codeaurora.org>
-	<1449677909-12432-2-git-send-email-okaya@codeaurora.org>
-	<CAHp75VeW7wizf_FUc=O5+PEdfibYRL1G7gqpdDxUALwXJsnBAA@mail.gmail.com>
-	<56686037.70109@codeaurora.org>
-	<56686171.5060102@codeaurora.org>
-	<5683DAD3.4080006@codeaurora.org>
+From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
+Subject: Re: [PATCH 3/5] thinkpad_acpi: Use
+ acpi_video_handles_brightness_key_presses()
+Date: Wed, 30 Dec 2015 15:28:17 -0200
+Message-ID: <1451496497.3131362.479322962.48D393C4@webmail.messagingengine.com>
+References: <1450807792-4980-1-git-send-email-hdegoede@redhat.com>
+ <1450807792-4980-4-git-send-email-hdegoede@redhat.com>
+ <20151227230812.GA8731@khazad-dum.debian.net>
+ <56827C3F.8090509@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5683DAD3.4080006@codeaurora.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>
-Cc: Christopher Covington <cov@codeaurora.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, jcm@redhat.com, helgaas@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
+In-Reply-To: <56827C3F.8090509@redhat.com>
+Sender: platform-driver-x86-owner@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Darren Hart <dvhart@infradead.org>, Corentin Chary <corentin.chary@gmail.com>, =?utf-8?Q?Micha=C5=82=20K=C4=99pie=C5=84?= <kernel@kempniu.pl>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, acpi4asus-user@lists.sourceforge.net
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Dec 30, 2015 at 3:23 PM, Sinan Kaya <okaya@codeaurora.org> wrote:
-> On 12/9/2015 12:14 PM, Christopher Covington wrote:
->>> On 12/9/2015 11:59 AM, Andy Shevchenko wrote:
+On Tue, Dec 29, 2015, at 10:27, Hans de Goede wrote:
+> So it only disables hotkey press reporting, not to the thinkpad_acpi
+> backlight handling code, that still is using
+> acpi_video_get_backlight_type()  :
 
->>>>> +       if (trigger != ACPI_MADT_TRIGGER_LEVEL ||
->>>>>> +           polarity != ACPI_MADT_POLARITY_ACTIVE_LOW)
->>>>>> +               penalty = PIRQ_PENALTY_ISA_ALWAYS;
->>>>>> +       else
->>>>>> +               penalty = PIRQ_PENALTY_PCI_USING;
->>>>>> +
->>>>>> +       acpi_irq_add_penalty(irq, penalty);
+...
 
->>>> Why not to change in place? I think a common sense rule is not to
->>>> change something existing if it doesn't add any significant value.
+> This should not matter though, as said this new function is only used to
+> suppress
+> the reporting of key-presses. I realize that doing so will also cause
+> tpacpi_driver_event() to get called on brightness hotkey presses, but
+> that has:
+> 
+>          if (ibm_backlight_device) {
+>                  switch (hkey_event) {
+>                  case TP_HKEY_EV_BRGHT_UP:
+>                  case TP_HKEY_EV_BRGHT_DOWN:
+>                          tpacpi_brightness_notify_change();
+>                  }
+>          }
+> 
+> And the creating of ibm_backlight_device is still protected by
+> 
+> if (acpi_video_get_backlight_type() != acpi_backlight_vendor) return 1;
 
->>>> -               acpi_irq_penalty[irq] += PIRQ_PENALTY_PCI_USING;
->>>> +              acpi_irq_add_penalty(irq, PIRQ_PENALTY_PCI_USING);
->>
->> I think Andy was suggesting that you make the change without introducing
->> the penalty variable.
+Indeed.  I have no objections to the patch, then.
 
-> Is Chris' interpretation correct?
-
-Yep, I meant not to use an additional variable.
-
-> BTW, I suggest you spend some time around checkpatch for contributions. I could
-> have caught most of the issues you are generally concerned before submitting a patch.
-
-Is it a question?
+Acked-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
 
 -- 
-With Best Regards,
-Andy Shevchenko
+  "One disk to rule them all, One disk to find them. One disk to bring
+  them all and in the darkness grind them. In the Land of Redmond
+  where the shadows lie." -- The Silicon Valley Tarot
+  Henrique Holschuh
