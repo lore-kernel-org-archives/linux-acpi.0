@@ -1,53 +1,75 @@
-From: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-Subject: Re: [PATCH 3/5] thinkpad_acpi: Use
- acpi_video_handles_brightness_key_presses()
-Date: Wed, 30 Dec 2015 15:28:17 -0200
-Message-ID: <1451496497.3131362.479322962.48D393C4@webmail.messagingengine.com>
-References: <1450807792-4980-1-git-send-email-hdegoede@redhat.com>
- <1450807792-4980-4-git-send-email-hdegoede@redhat.com>
- <20151227230812.GA8731@khazad-dum.debian.net>
- <56827C3F.8090509@redhat.com>
+From: Christophe Ricard <christophe.ricard-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH v8 0/3] ACPI: Add irq_type to gpio interrupt
+Date: Wed, 30 Dec 2015 18:40:21 +0100
+Message-ID: <56841705.5030508@gmail.com>
+References: <1450909535-32138-1-git-send-email-christophe-h.ricard@st.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-In-Reply-To: <56827C3F.8090509@redhat.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, Darren Hart <dvhart@infradead.org>, Corentin Chary <corentin.chary@gmail.com>, =?utf-8?Q?Micha=C5=82=20K=C4=99pie=C5=84?= <kernel@kempniu.pl>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, acpi4asus-user@lists.sourceforge.net
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <1450909535-32138-1-git-send-email-christophe-h.ricard-qxv4g6HH51o@public.gmane.org>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org, lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org
+Cc: linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christophe Ricard <christophe-h.ricard-qxv4g6HH51o@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Dec 29, 2015, at 10:27, Hans de Goede wrote:
-> So it only disables hotkey press reporting, not to the thinkpad_acpi
-> backlight handling code, that still is using
-> acpi_video_get_backlight_type()  :
+Hi,
 
-...
+Do you expect any other update from me ?
+Is there Anything else needed to this patchset to hit 4.5 release ?
 
-> This should not matter though, as said this new function is only used to
-> suppress
-> the reporting of key-presses. I realize that doing so will also cause
-> tpacpi_driver_event() to get called on brightness hotkey presses, but
-> that has:
-> 
->          if (ibm_backlight_device) {
->                  switch (hkey_event) {
->                  case TP_HKEY_EV_BRGHT_UP:
->                  case TP_HKEY_EV_BRGHT_DOWN:
->                          tpacpi_brightness_notify_change();
->                  }
->          }
-> 
-> And the creating of ibm_backlight_device is still protected by
-> 
-> if (acpi_video_get_backlight_type() != acpi_backlight_vendor) return 1;
+Best Regards
+Christophe
 
-Indeed.  I have no objections to the patch, then.
+On 23/12/2015 23:25, Christophe Ricard wrote:
+> Hi,
+>
+> ACPI probing method does not retrieve irq_type from a gpio interrupt declared
+> with GpioInt as it is done with devicetree probing. In other terms, irq_get_trigger_type
+> will always send back 0.
+>
+> Those 3 patches propose a way to retrieve the correct interrupt polarity/type from a GpioInt
+> acpi declaration when using irq_get_trigger_type.
+>
+> Since v4 after Mika and Andy's feedbacks:
+> - acpi_gpio_info active_low field got renamed polarity. Note that polarity/active_low is having sense
+> also when a gpio is not mapped as an interrupt but as an output (For example: check gpiod_set_value
+> in drivers/gpio/gpiolib.c).
+> - acpi_gsi_get_irq_type is now renamed acpi_dev_get_irq_type and moved to drivers/acpi/resource.c
+> - The irq described in the acpi spi slave node is now set once we fall back to retrieve normal interrupt.
+>
+> Since v5 after Andy's feedbacks:
+> - Make sure we are not using u* type but pure C type for non hardware value.
+>
+> Since v6:
+> - Patches now applies on top of Raphael tree tag linux-next
+>
+> Since v7:
+> - Added "Acked-by: Mika Westerberg <mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org>" to patch 1.
+> - Added "Acked-by: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>" to patch 3.
+> - Patch 3 got reworked following Mika's feedback.
+> - Patch 2 added few comment in acpi_find_gpio following Mika's feedback.
+>
+> Best Regards
+> Christophe
+>
+> Christophe Ricard (3):
+>    acpi: Rename acpi_gsi_get_irq_type to acpi_dev_get_irq_type and export
+>      symbol
+>    ACPI / gpio: Add irq_type when a gpio is used as an interrupt
+>    ACPI / spi: attach gpio irq from acpi description to spi device
+>
+>   drivers/acpi/gsi.c          | 21 +--------------------
+>   drivers/acpi/resource.c     | 26 ++++++++++++++++++++++++++
+>   drivers/gpio/gpiolib-acpi.c | 33 +++++++++++++++++++++++++++------
+>   drivers/gpio/gpiolib.c      |  4 ++--
+>   drivers/gpio/gpiolib.h      |  3 ++-
+>   drivers/spi/spi.c           |  3 +++
+>   include/linux/acpi.h        |  1 +
+>   7 files changed, 62 insertions(+), 29 deletions(-)
+>
 
-Acked-by: Henrique de Moraes Holschuh <hmh@hmh.eng.br>
-
--- 
-  "One disk to rule them all, One disk to find them. One disk to bring
-  them all and in the darkness grind them. In the Land of Redmond
-  where the shadows lie." -- The Silicon Valley Tarot
-  Henrique Holschuh
+--
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
