@@ -1,105 +1,52 @@
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCH v2 1/3] device property: add spaces to
- PROPERTY_ENTRY_STRING macro
-Date: Tue, 29 Dec 2015 17:44:48 -0800
-Message-ID: <20151229174448.dba9a7ab.akpm@linux-foundation.org>
-References: <1450877684-76316-1-git-send-email-andriy.shevchenko@linux.intel.com>
-	<1627434.AfSeGfofYv@vostro.rjw.lan>
-	<20151229172453.b8bf71ef.akpm@linux-foundation.org>
-	<1850926.j60LlceTNY@vostro.rjw.lan>
+From: Aaron Lu <aaron.lu@intel.com>
+Subject: [PATCH] ACPI / video: Add a quirk to force acpi-video backlight on
+ SAMSUNG 530U4E/540U4E
+Date: Wed, 30 Dec 2015 13:11:24 +0800
+Message-ID: <5683677C.1030407@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:48646 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753903AbbL3BpB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 29 Dec 2015 20:45:01 -0500
-In-Reply-To: <1850926.j60LlceTNY@vostro.rjw.lan>
+Received: from mga03.intel.com ([134.134.136.65]:42841 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750798AbbL3FL1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 30 Dec 2015 00:11:27 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, heikki.krogerus@linux.intel.com, linux-acpi@vger.kernel.org
+Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, adam bk <adamdd55@gmail.com>, Jani Nikula <jani.nikula@linux.intel.com>
 
-On Wed, 30 Dec 2015 03:06:23 +0100 "Rafael J. Wysocki" <rjw@rjwysocki.net> wrote:
+The native interface on SAMSUNG 530U4E/540U4E doesn't work even though
+the firmware claims Win8 compatible while the acpi_video interface
+works, add a quirk for this.
 
-> I'll apply it to my tree if you don't mind with the Andy's [1/3] on top
-> so we have all of that in one place.
-
-That version needed a fix.  Here's the one to apply:
-
-
-From: Andrew Morton <akpm@linux-foundation.org>
-Subject: include/linux/property.h: fix build issues with gcc-4.4.4
-
-gcc-4.4.4 has problems with initialization of anonymous unions:
-
-drivers/mfd/intel-lpss-acpi.c:30: error: unknown field 'value' specified in initializer
-
-work around this by crafting the initializers in a manner which the
-compiler can handle.
-
-Cc: Kevin Fenzi <kevin@scrye.com>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-Cc: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=108971
+Reported-and-tested-by: adam bk <adamdd55@gmail.com>
+Signed-off-by: Aaron Lu <aaron.lu@intel.com>
 ---
+ drivers/acpi/video_detect.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
 
- include/linux/property.h |   16 ++++++++++++----
- 1 file changed, 12 insertions(+), 4 deletions(-)
-
-diff -puN include/linux/property.h~include-linux-propertyh-fix-build-issues-with-gcc-444 include/linux/property.h
---- a/include/linux/property.h~include-linux-propertyh-fix-build-issues-with-gcc-444
-+++ a/include/linux/property.h
-@@ -175,12 +175,19 @@ struct property_entry {
- 	};
- };
+diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
+index daaf1c4e1e0f..518f9cdc929d 100644
+--- a/drivers/acpi/video_detect.c
++++ b/drivers/acpi/video_detect.c
+@@ -250,6 +250,15 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
+ 		DMI_MATCH(DMI_PRODUCT_NAME, "XPS L521X"),
+ 		},
+ 	},
++	{
++	 /* https://bugzilla.kernel.org/show_bug.cgi?id=108971 */
++	 .callback = video_detect_force_video,
++	 .ident = "SAMSUNG 530U4E/540U4E",
++	 .matches = {
++		DMI_MATCH(DMI_SYS_VENDOR, "SAMSUNG ELECTRONICS CO., LTD."),
++		DMI_MATCH(DMI_PRODUCT_NAME, "530U4E/540U4E"),
++		},
++	},
  
-+/*
-+ * Note: the below four initializers for the anonymous union are carefully
-+ * crafted to avoid gcc-4.4.4's problems with initialization of anon unions
-+ * and structs.
-+ */
-+
- #define PROPERTY_ENTRY_INTEGER_ARRAY(_name_, _type_, _val_)	\
- {								\
- 	.name = _name_,						\
- 	.length = ARRAY_SIZE(_val_) * sizeof(_type_),		\
- 	.is_array = true,					\
--	.pointer._type_##_data = _val_,				\
-+	.is_string = false,					\
-+	{ .pointer = { _type_##_data = _val_ } },		\
- }
- 
- #define PROPERTY_ENTRY_U8_ARRAY(_name_, _val_)			\
-@@ -198,14 +205,15 @@ struct property_entry {
- 	.length = ARRAY_SIZE(_val_) * sizeof(const char *),	\
- 	.is_array = true,					\
- 	.is_string = true,					\
--	.pointer.str = _val_,					\
-+	{ .pointer = { .str = _val_ } },			\
- }
- 
- #define PROPERTY_ENTRY_INTEGER(_name_, _type_, _val_)	\
- {							\
- 	.name = _name_,					\
- 	.length = sizeof(_type_),			\
--	.value._type_##_data = _val_,			\
-+	.is_string = false,				\
-+	{ .value = { ._type_##_data = _val_ } },	\
- }
- 
- #define PROPERTY_ENTRY_U8(_name_, _val_)		\
-@@ -222,7 +230,7 @@ struct property_entry {
- 	.name = _name_,					\
- 	.length = sizeof(_val_),			\
- 	.is_string = true,				\
--	.value.str = _val_,				\
-+	{ .value = {.str = _val_} },			\
- }
- 
- #define PROPERTY_ENTRY_BOOL(_name_)		\
-_
+ 	/* Non win8 machines which need native backlight nevertheless */
+ 	{
+-- 
+2.5.0
 
