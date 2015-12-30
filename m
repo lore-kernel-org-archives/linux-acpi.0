@@ -1,52 +1,68 @@
-From: Aaron Lu <aaron.lu@intel.com>
-Subject: [PATCH] ACPI / video: Add a quirk to force acpi-video backlight on
- SAMSUNG 530U4E/540U4E
-Date: Wed, 30 Dec 2015 13:11:24 +0800
-Message-ID: <5683677C.1030407@intel.com>
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: Re: [PATCH V9 1/2] ACPI, PCI, irq: remove interrupt count restriction
+Date: Wed, 30 Dec 2015 08:23:31 -0500
+Message-ID: <5683DAD3.4080006@codeaurora.org>
+References: <1449677909-12432-1-git-send-email-okaya@codeaurora.org>
+ <1449677909-12432-2-git-send-email-okaya@codeaurora.org>
+ <CAHp75VeW7wizf_FUc=O5+PEdfibYRL1G7gqpdDxUALwXJsnBAA@mail.gmail.com>
+ <56686037.70109@codeaurora.org> <56686171.5060102@codeaurora.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:42841 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750798AbbL3FL1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 30 Dec 2015 00:11:27 -0500
+Received: from smtp.codeaurora.org ([198.145.29.96]:35018 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754022AbbL3NXS (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 30 Dec 2015 08:23:18 -0500
+In-Reply-To: <56686171.5060102@codeaurora.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: ACPI Devel Mailing List <linux-acpi@vger.kernel.org>, adam bk <adamdd55@gmail.com>, Jani Nikula <jani.nikula@linux.intel.com>
+To: Christopher Covington <cov@codeaurora.org>, Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, jcm@redhat.com, helgaas@kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-The native interface on SAMSUNG 530U4E/540U4E doesn't work even though
-the firmware claims Win8 compatible while the acpi_video interface
-works, add a quirk for this.
+Hi Bjorn, Andy;
 
-Buglink: https://bugzilla.kernel.org/show_bug.cgi?id=108971
-Reported-and-tested-by: adam bk <adamdd55@gmail.com>
-Signed-off-by: Aaron Lu <aaron.lu@intel.com>
----
- drivers/acpi/video_detect.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
+On 12/9/2015 12:14 PM, Christopher Covington wrote:
+> Hi Sinan,
+> 
+> On 12/09/2015 12:09 PM, Sinan Kaya wrote:
+>> On 12/9/2015 11:59 AM, Andy Shevchenko wrote:
+>>>> +       if (trigger != ACPI_MADT_TRIGGER_LEVEL ||
+>>>>> +           polarity != ACPI_MADT_POLARITY_ACTIVE_LOW)
+>>>>> +               penalty = PIRQ_PENALTY_ISA_ALWAYS;
+>>>>> +       else
+>>>>> +               penalty = PIRQ_PENALTY_PCI_USING;
+>>>>> +
+>>>>> +       acpi_irq_add_penalty(irq, penalty);
+>>> Why not to change in place? I think a common sense rule is not to
+>>> change something existing if it doesn't add any significant value.
+>>>
+>> Sorry, I didn't understand what you mean. Are you asking why we are
+>> changing lines like above?
+>>
+>> If yes, acpi_irq_penalty used to be an array of 256 entries. Now,
+>> acpi_irq_penalty doesn't exist anymore as it was replaced with a linklist.
+>>
+>>> -               acpi_irq_penalty[irq] += PIRQ_PENALTY_PCI_USING;
+>>> +              acpi_irq_add_penalty(irq, PIRQ_PENALTY_PCI_USING);
+> 
+> I think Andy was suggesting that you make the change without introducing
+> the penalty variable.
+> 
+> Christopher Covington
+> 
 
-diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
-index daaf1c4e1e0f..518f9cdc929d 100644
---- a/drivers/acpi/video_detect.c
-+++ b/drivers/acpi/video_detect.c
-@@ -250,6 +250,15 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
- 		DMI_MATCH(DMI_PRODUCT_NAME, "XPS L521X"),
- 		},
- 	},
-+	{
-+	 /* https://bugzilla.kernel.org/show_bug.cgi?id=108971 */
-+	 .callback = video_detect_force_video,
-+	 .ident = "SAMSUNG 530U4E/540U4E",
-+	 .matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "SAMSUNG ELECTRONICS CO., LTD."),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "530U4E/540U4E"),
-+		},
-+	},
- 
- 	/* Non win8 machines which need native backlight nevertheless */
- 	{
+Andy,
+Is Chris' interpretation correct?
+
+BTW, I suggest you spend some time around checkpatch for contributions. I could
+have caught most of the issues you are generally concerned before submitting a patch.
+
+Bjorn,
+Is there any other question you need me to address on this patch? 
+
+
 -- 
-2.5.0
-
+Sinan Kaya
+Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
