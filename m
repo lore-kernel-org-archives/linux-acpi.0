@@ -1,119 +1,66 @@
-From: "Verma, Vishal L" <vishal.l.verma@intel.com>
-Subject: Re: [PATCH v2 0/2] Expose known poison in SPA ranges to the block
- layer
-Date: Wed, 30 Dec 2015 21:13:40 +0000
-Message-ID: <D2A994BA.2903A%vishal.l.verma@intel.com>
-References: <1451010103-11462-1-git-send-email-vishal.l.verma@intel.com>
+From: Eduardo Valentin <edubezval@gmail.com>
+Subject: [GIT PULL] Thermal-SoC management updates for v4.4-rc8
+Date: Thu, 31 Dec 2015 10:07:11 -0800
+Message-ID: <20151231180709.GA13780@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-fsdevel-owner@vger.kernel.org>
-In-Reply-To: <1451010103-11462-1-git-send-email-vishal.l.verma@intel.com>
-Content-Language: en-US
-Content-ID: <F6E938A9A47C214CA8F596932200488B@intel.com>
-Sender: linux-fsdevel-owner@vger.kernel.org
-To: "Verma, Vishal L" <vishal.l.verma@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-fsdevel@vger.kernel.org" <linux-fsdevel@vger.kernel.org>, "Williams, Dan J" <dan.j.williams@intel.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Jeff Moyer <jmoyer@redhat.com>, Linda Knippers <linda.knippers@hpe.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-pf0-f181.google.com ([209.85.192.181]:35376 "EHLO
+	mail-pf0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751600AbbLaSHP (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Dec 2015 13:07:15 -0500
+Content-Disposition: inline
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PM <linux-pm@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, Rui Zhang <rui.zhang@intel.com>
 
-On 12/24/15, 19:21, "Verma, Vishal L" <vishal.l.verma@intel.com> wrote:
+Hello Rui,
 
->v2:
->  - Move poison list walking from pmem to core (Dan)
->  - If the pmem namespace starts at an offset, account for that (Dan)
->  - Fix a bug in extended status checking for ars_status
->  - Remove a duplicate include in pmem.c (only introduced in v1)
->  - When doing an ars_status, don't error out if an ARS has not yet
->    been performed.
->  - When checking if ARS is supported, also check the extended status
->    and make sure ARS for persistent memory is supported (as opposed to
->    just volatile memory)
->  - Print a dev_err message if find_poison fails
->  - Collapse patches 2 and 3 into a single patch
->
->This series does a few things:
->- Retrieve all known poison in the system physical address (SPA) space
->  using ARS (Address Range Scrub) commands to firmware
->- Store this poison in a new 'nd_poison' structure
->- In pmem, consume the poison list and expose the ranges as bad sectors
->
->This depends on the badblocks series sent out previously.
->A tree with the latest revisions of both the badblocks patchset and this
->can be found at:
->https://git.kernel.org/cgit/linux/kernel/git/vishal/nvdimm.git/log/?h=err_
->handling_latest
->
->
->Vishal Verma (2):
->  nfit_test: Enable DSMs for all test NFITs
->  libnvdimm: Add a poison list and export badblocks
->
-> drivers/acpi/nfit.c              | 203
->+++++++++++++++++++++++++++++++++++++++
-> drivers/nvdimm/core.c            | 187
->++++++++++++++++++++++++++++++++++++
-> drivers/nvdimm/nd-core.h         |   3 +
-> drivers/nvdimm/nd.h              |   6 ++
-> drivers/nvdimm/pmem.c            |   6 ++
-> include/linux/libnvdimm.h        |   1 +
-> tools/testing/nvdimm/test/nfit.c |   9 ++
-> 7 files changed, 415 insertions(+)
->
->-- 
->2.5.0
->
->
+Please pull from
 
-Dan reported that these patches fail the nfit_test unit tests, and it
-turns out that I had missed setting the ars_status 'address' and 'length'
-fields in these patches, causing the nfit driver to fail initialization.
-I didn't catch this in my testing as I have a patch to nfit test to
-add error records in the ars_status reply for testing, and that does this
-correctly.
+  git://git.kernel.org/pub/scm/linux/kernel/git/evalenti/linux-soc-thermal fixes
 
-The following patch (can be squashed into patch 1, or be left by itself as
-a new patch 2) fixes this:
+to receive Thermal-SoC Management updates for v4.4-rc8 with top-most
 
-I've also updated the tree at:
-https://git.kernel.org/cgit/linux/kernel/git/vishal/nvdimm.git/log/?h=err_h
-andling_latest
+ebe580748d7c33bfd308f09b825dff15fa2eccf2:
 
+  thermal: trip_point_temp_store() calls thermal_zone_device_update() (2015-12-31 09:41:52 -0800)
 
-8<-----
+on top of commit c6169202e40868fd00de7ce35ee16c81b1f9e123:
 
->From e46d46f5da9913da180da6553bf744fe6a7d9ecb Mon Sep 17 00:00:00 2001
-From: Vishal Verma <vishal.l.verma@intel.com>
-Date: Wed, 30 Dec 2015 13:49:55 -0700
-Subject: [PATCH] nfit_test: fix ars_status replies from nfit_test
+  Merge branch 'for-linus' of git://git.kernel.dk/linux-block (2015-12-30 10:26:20 -0800)
 
-ars_status needs to reply with a valid address and length if the test
-module advertises ARS as supported. Without these fields populated, the
-nfit driver would fail initialization.
+Specifics in this pull request:
+- Several fixes and cleanups on Rockchip thermal drivers.
+- Several fixes and cleanups on RCAR thermal drivers.
+- Build/boot tests powered by KernelCI [1,2] \o/
 
-Reported-by: Dan Williams <dan.j.williams@intel.com>
-Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
----
- tools/testing/nvdimm/test/nfit.c | 2 ++
- 1 file changed, 2 insertions(+)
+BTW, I have rebase my -fixes branch on top of linus master branch, as you reported
+merge conflict. Please let me know if this branch causes troubles for you.
 
-diff --git a/tools/testing/nvdimm/test/nfit.c
-b/tools/testing/nvdimm/test/nfit.c
-index 298805a..90bd2ea 100644
---- a/tools/testing/nvdimm/test/nfit.c
-+++ b/tools/testing/nvdimm/test/nfit.c
-@@ -248,6 +248,8 @@ static int nfit_test_cmd_ars_status(struct
-nd_cmd_ars_status *nd_cmd,
- 
+[1] - https://kernelci.org/boot/all/job/evalenti/kernel/v4.4-rc5-27-gce0265dd6f8e/
+[2] - https://kernelci.org/build/evalenti/kernel/v4.4-rc5-27-gce0265dd6f8e/
 
-	nd_cmd->out_length = 256;
-	nd_cmd->num_records = 0;
-+	nd_cmd->address = 0;
-+	nd_cmd->length = -1ULL;
-	nd_cmd->status = 0;
+BR,
 
- 
-	return 0;
--- 
-2.5.0
+Eduardo Valentin
 
+----------------------------------------------------------------
+Caesar Wang (4):
+      thermal: rockchip: fix a trivial typo
+      dt-bindings: rockchip-thermal: Support the RK3228/RK3399 SoCs compatible
+      thermal: rockchip: Support the RK3228 SoCs in thermal driver
+      thermal: rockchip: Support the RK3399 SoCs in thermal driver
 
+Kuninori Morimoto (5):
+      thermal: rcar: move rcar_thermal_dt_ids to upside
+      thermal: rcar: check every rcar_thermal_update_temp() return value
+      thermal: rcar: check irq possibility in rcar_thermal_irq_xxx()
+      thermal: rcar: rcar_thermal_get_temp() return error if strange temp
+      thermal: trip_point_temp_store() calls thermal_zone_device_update()
+
+ .../bindings/thermal/rockchip-thermal.txt          |   2 +
+ drivers/thermal/rcar_thermal.c                     |  53 ++++---
+ drivers/thermal/rockchip_thermal.c                 | 172 +++++++++++++++++++--
+ drivers/thermal/thermal_core.c                     |   6 +-
+ 4 files changed, 200 insertions(+), 33 deletions(-)
