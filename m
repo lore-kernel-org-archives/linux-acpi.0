@@ -1,29 +1,32 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 1/3] device property: add spaces to PROPERTY_ENTRY_STRING macro
-Date: Fri, 01 Jan 2016 01:53:01 +0100
-Message-ID: <3371918.nJUnVMK5ih@vostro.rjw.lan>
-References: <1450877684-76316-1-git-send-email-andriy.shevchenko@linux.intel.com> <1850926.j60LlceTNY@vostro.rjw.lan> <20151229174448.dba9a7ab.akpm@linux-foundation.org>
+From: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+Subject: Re: [PATCH v8 0/3] ACPI: Add irq_type to gpio interrupt
+Date: Fri, 01 Jan 2016 01:55:33 +0100
+Message-ID: <22359653.XfSnrDyVLr@vostro.rjw.lan>
+References: <1450909535-32138-1-git-send-email-christophe-h.ricard@st.com> <56841705.5030508@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:55511 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751015AbcAAAW2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Dec 2015 19:22:28 -0500
-In-Reply-To: <20151229174448.dba9a7ab.akpm@linux-foundation.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <56841705.5030508-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Christophe Ricard <christophe.ricard-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linus.walleij-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, gnurou-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, andriy.shevchenko-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, mika.westerberg-VuQAYsv1563Yd54FQh9/CA@public.gmane.org, broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org, linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-gpio-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Christophe Ricard <christophe-h.ricard-qxv4g6HH51o@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, heikki.krogerus@linux.intel.com, linux-acpi@vger.kernel.org
 
-On Tuesday, December 29, 2015 05:44:48 PM Andrew Morton wrote:
-> On Wed, 30 Dec 2015 03:06:23 +0100 "Rafael J. Wysocki" <rjw@rjwysocki.net> wrote:
+On Wednesday, December 30, 2015 06:40:21 PM Christophe Ricard wrote:
+> Hi,
 > 
-> > I'll apply it to my tree if you don't mind with the Andy's [1/3] on top
-> > so we have all of that in one place.
-> 
-> That version needed a fix.  Here's the one to apply:
+> Do you expect any other update from me ?
+> Is there Anything else needed to this patchset to hit 4.5 release ?
 
-OK, thanks!
+No.
 
+I'm going to add it to my queue for 4.5 shortly.
+
+Thanks,
+Rafael
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
