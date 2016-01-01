@@ -1,56 +1,29 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH V9 1/2] ACPI, PCI, irq: remove interrupt count restriction
-Date: Fri, 01 Jan 2016 01:48:40 +0100
-Message-ID: <6338540.F7x0ET9vtV@vostro.rjw.lan>
-References: <1449677909-12432-1-git-send-email-okaya@codeaurora.org> <56842DDF.6040109@codeaurora.org> <CAHp75VePLCAP8L3ve4F4745Nnes+kYa5QHHKQos4=0iHw0Ah0Q@mail.gmail.com>
+Subject: Re: [PATCH v2 1/3] device property: add spaces to PROPERTY_ENTRY_STRING macro
+Date: Fri, 01 Jan 2016 01:53:01 +0100
+Message-ID: <3371918.nJUnVMK5ih@vostro.rjw.lan>
+References: <1450877684-76316-1-git-send-email-andriy.shevchenko@linux.intel.com> <1850926.j60LlceTNY@vostro.rjw.lan> <20151229174448.dba9a7ab.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:58417 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:55511 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750977AbcAAASI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Dec 2015 19:18:08 -0500
-In-Reply-To: <CAHp75VePLCAP8L3ve4F4745Nnes+kYa5QHHKQos4=0iHw0Ah0Q@mail.gmail.com>
+	with SMTP id S1751015AbcAAAW2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 31 Dec 2015 19:22:28 -0500
+In-Reply-To: <20151229174448.dba9a7ab.akpm@linux-foundation.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Sinan Kaya <okaya@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, jcm@redhat.com, helgaas@kernel.org, Len Brown <lenb@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Stephen Rothwell <sfr@canb.auug.org.au>, linux-next@vger.kernel.org, linux-kernel@vger.kernel.org, heikki.krogerus@linux.intel.com, linux-acpi@vger.kernel.org
 
-On Wednesday, December 30, 2015 09:55:35 PM Andy Shevchenko wrote:
-> On Wed, Dec 30, 2015 at 9:17 PM, Sinan Kaya <okaya@codeaurora.org> wr=
-ote:
-> > On 12/30/2015 8:28 AM, Andy Shevchenko wrote:
-> >> Yep, I meant not to use an additional variable.
-> >>
-> >>> > BTW, I suggest you spend some time around checkpatch for contri=
-butions. I could
-> >>> > have caught most of the issues you are generally concerned befo=
-re submitting a patch.
-> >> Is it a question?
-> >
-> > It is a request not a question. I hate wasting your time and my tim=
-e with things that I could
-> > have fixed before submitting a patch.
-> >
-> > I ran the checkpatch and it said I'm good to go. But, obviously I'm=
- not.
->=20
-> Hmm=E2=80=A6 checkpatch.pl is just a small helper to fix style issues=
-=2E Here is
-> just a common sense rule, or kind of Occam's razor: no need to have
-> more variables then needed if it doesn't improve something really
-> significantly.
+On Tuesday, December 29, 2015 05:44:48 PM Andrew Morton wrote:
+> On Wed, 30 Dec 2015 03:06:23 +0100 "Rafael J. Wysocki" <rjw@rjwysocki.net> wrote:
+> 
+> > I'll apply it to my tree if you don't mind with the Andy's [1/3] on top
+> > so we have all of that in one place.
+> 
+> That version needed a fix.  Here's the one to apply:
 
-That said, compilers optimize things anyway, so using an extra local va=
-riable
-shouldn't matter for the resulting machine code.
+OK, thanks!
 
-Thanks,
-Rafael
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
