@@ -1,48 +1,70 @@
 From: Colin King <colin.king@canonical.com>
-Subject: [PATCH] ACPI / SBS: fix inconsistent indenting inside if statement
-Date: Fri,  1 Jan 2016 23:53:45 +0000
-Message-ID: <1451692425-4667-1-git-send-email-colin.king@canonical.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:52600 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752524AbcAAXxt (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 1 Jan 2016 18:53:49 -0500
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org
+Subject: [PATCH] PCI: acpiphp_ibm: fix null dereferences on null ibm_slot
+Date: Sat,  2 Jan 2016 00:27:01 +0000
+Message-ID: <1451694421-5277-1-git-send-email-colin.king@canonical.com>
+Return-path: <linux-pci-owner@vger.kernel.org>
+Sender: linux-pci-owner@vger.kernel.org
+To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
 From: Colin Ian King <colin.king@canonical.com>
 
-The indenting in acpi_battery_set_alarm is inconsistent and has been
-so since 2007; commit 94f6c0860139da9219255b8ff45ad42117dda859
-("ACPI: SBS: Add support for power_supply class (and sysfs)"). Minor
-fix for this, no code functionality change.
+ibm_slot_from_id can return null if the des header signature is
+not aPCI or if the kmalloc for the return acpi descriptore fails,
+causing potential null pointer dereferences on the return null
+descriptor.
+
+Handle the null case with appropriate check and error return.
 
 Signed-off-by: Colin Ian King <colin.king@canonical.com>
 ---
- drivers/acpi/sbs.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/pci/hotplug/acpiphp_ibm.c | 17 ++++++++++++++---
+ 1 file changed, 14 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
-index cb3dedb..ad0b13a 100644
---- a/drivers/acpi/sbs.c
-+++ b/drivers/acpi/sbs.c
-@@ -417,11 +417,11 @@ static int acpi_battery_set_alarm(struct acpi_battery *battery)
- 		if ((value & 0xf000) != sel) {
- 			value &= 0x0fff;
- 			value |= sel;
--		ret = acpi_smbus_write(sbs->hc, SMBUS_WRITE_WORD,
-+			ret = acpi_smbus_write(sbs->hc, SMBUS_WRITE_WORD,
- 					 ACPI_SBS_MANAGER,
- 					 0x01, (u8 *)&value, 2);
--		if (ret)
--			goto end;
-+			if (ret)
-+				goto end;
- 		}
+diff --git a/drivers/pci/hotplug/acpiphp_ibm.c b/drivers/pci/hotplug/acpiphp_ibm.c
+index 6ca2399..9d16c9d 100644
+--- a/drivers/pci/hotplug/acpiphp_ibm.c
++++ b/drivers/pci/hotplug/acpiphp_ibm.c
+@@ -154,7 +154,8 @@ static union apci_descriptor *ibm_slot_from_id(int id)
+ ibm_slot_done:
+ 	if (ret) {
+ 		ret = kmalloc(sizeof(union apci_descriptor), GFP_KERNEL);
+-		memcpy(ret, des, sizeof(union apci_descriptor));
++		if (ret)
++			memcpy(ret, des, sizeof(union apci_descriptor));
  	}
- 	ret = acpi_smbus_write(sbs->hc, SMBUS_WRITE_WORD, ACPI_SBS_BATTERY,
+ 	kfree(table);
+ 	return ret;
+@@ -175,8 +176,13 @@ static int ibm_set_attention_status(struct hotplug_slot *slot, u8 status)
+ 	acpi_status stat;
+ 	unsigned long long rc;
+ 	union apci_descriptor *ibm_slot;
++	int id = hpslot_to_sun(slot);
+ 
+-	ibm_slot = ibm_slot_from_id(hpslot_to_sun(slot));
++	ibm_slot = ibm_slot_from_id(id);
++	if (!ibm_slot) {
++		pr_err("APLS null ACPI descriptor for slot %d\n", id);
++		return -ENODEV;
++	}
+ 
+ 	pr_debug("%s: set slot %d (%d) attention status to %d\n", __func__,
+ 			ibm_slot->slot.slot_num, ibm_slot->slot.slot_id,
+@@ -215,8 +221,13 @@ static int ibm_set_attention_status(struct hotplug_slot *slot, u8 status)
+ static int ibm_get_attention_status(struct hotplug_slot *slot, u8 *status)
+ {
+ 	union apci_descriptor *ibm_slot;
++	int id = hpslot_to_sun(slot);
+ 
+-	ibm_slot = ibm_slot_from_id(hpslot_to_sun(slot));
++	ibm_slot = ibm_slot_from_id(id);
++	if (!ibm_slot) {
++		pr_err("APLS null ACPI descriptor for slot %d\n", id);
++		return -ENODEV;
++	}
+ 
+ 	if (ibm_slot->slot.attn & 0xa0 || ibm_slot->slot.status[1] & 0x08)
+ 		*status = 1;
 -- 
 2.6.4
-
