@@ -1,71 +1,120 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v4 0/3] Add AMBA bus probing support to ACPI
-Date: Sun, 03 Jan 2016 01:39:22 +0100
-Message-ID: <2297330.oDddnOnJb4@vostro.rjw.lan>
-References: <1450880383-29560-1-git-send-email-aleksey.makarov@linaro.org>
+Subject: Re: [PATCH 00/42] ACPICA: 20151218 Release
+Date: Sun, 03 Jan 2016 01:49:58 +0100
+Message-ID: <17523812.FOgb0vn0TI@vostro.rjw.lan>
+References: <cover.1451367388.git.lv.zheng@intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:50997 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751047AbcACAIq (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 2 Jan 2016 19:08:46 -0500
-In-Reply-To: <1450880383-29560-1-git-send-email-aleksey.makarov@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <cover.1451367388.git.lv.zheng@intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Lv Zheng <lv.zheng@intel.com>
+Cc: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aleksey Makarov <aleksey.makarov@linaro.org>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Graeme Gregory <graeme.gregory@linaro.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Shannon Zhao <shannon.zhao@linaro.org>, Andy Shevchenko <andy.shevchenko@gmail.com>, Vladimir Zapolskiy <vz@mleia.com>
 
-On Wednesday, December 23, 2015 05:19:39 PM Aleksey Makarov wrote:
-> As discussed when Shannon Zhao sent a patch to add platform_device support
-> to pl061 driver. Russel and other maintainers prefered that ACPI learned
-> how to create AMBA devices rather than converting/adding platform_device
-> support to AMBA drivers.
+On Tuesday, December 29, 2015 01:52:19 PM Lv Zheng wrote:
+> The 20151218 ACPICA kernel-resident subsystem updates are linuxized based
+> on the linux-pm/linux-next branch.
 > 
-> http://comments.gmane.org/gmane.linux.ports.arm.kernel/431364
+> The patchset has passed the following build/boot tests.
+> Build tests are performed as follows:
+> 1. i386 + allyes
+> 2. i386 + allno
+> 3. i386 + default + ACPI_DEBUGGER=y
+> 4. i386 + default + ACPI_DEBUGGER=n + ACPI_DEBUG=y
+> 5. i386 + default + ACPI_DEBUG=n + ACPI=y
+> 6. i386 + default + ACPI=n
+> 7. x86_64 + allyes
+> 8. x86_64 + allno
+> 9. x86_64 + default + ACPI_DEBUGGER=y
+> 10.x86_64 + default + ACPI_DEBUGGER=n + ACPI_DEBUG=y
+> 11.x86_64 + default + ACPI_DEBUG=n + ACPI=y
+> 12.x86_64 + default + ACPI=n
+> Boot tests are performed as follows:
+> 1. i386 + default + ACPI_DEBUGGER=y
+> 2. x86_64 + default + ACPI_DEBUGGER=y
+> Where:
+> 1. i386: machine named as "Dell Inspiron Mini 1010"
+> 2. x86_64: machine named as "HP Compaq 8200 Elite SFF PC"
+> 3. default: kernel configuration with following items enabled:
+>    All hardware drivers related to the machines of i386/x86_64
+>    All "drivers/acpi" configurations
+>    All "drivers/platform" drivers
+>    All other drivers that link the APIs provided by ACPICA subsystem
 > 
-> 1) Adds basic AMBA device probing support to ACPI, it uses a whitelist of
-> device IDs as the number of AMBA devices is limited. Currently the two ids
-> present are those used in QEMU for arm64.
+> The divergences checking result:
+> Before applying (20150930 Release):
+>   517 lines
+> After applying (20151218 Release):
+>   506 lines
 > 
-> 2) Adds the plumbing into ACPI probe sequence.
+> Bob Moore (25):
+>   ACPICA: exmutex: General cleanup, restructured some code
+>   ACPICA: Core: Major update for code formatting, no functional changes
+>   ACPICA: Split interpreter tracing functions to a new file
+>   ACPICA: acpiexec: Add support for AML files containing multiple
+>     tables
+>   ACPICA: Disassembler/tools: Support for multiple ACPI tables in one
+>     file
+>   ACPICA: iasl/acpiexec: Update input file handling and verification
+>   ACPICA: Revert "acpi_get_object_info: Add support for ACPI 5.0 _SUB
+>     method."
+>   ACPICA: Add comment explaining _SUB removal
+>   ACPICA: acpiexec/acpinames: Update for error checking macros
+>   ACPICA: Concatenate operator: Add extensions to support all ACPI
+>     objects
+>   ACPICA: Debug Object: Cleanup output
+>   ACPICA: Debug object: Fix output for a NULL object
+>   ACPICA: Update for output of the Debug Object
+>   ACPICA: getopt: Comment update, no functional change
+>   ACPICA: Add new exception code, AE_IO_ERROR
+>   ACPICA: iasl/Disassembler: Support ASL ElseIf operator
+>   ACPICA: Parser: Add constants for internal namepath function
+>   ACPICA: Parser: Fix for SuperName method invocation
+>   ACPICA: Update parameter type for ObjectType operator
+>   ACPICA: Update internal #defines for ObjectType operator. No
+>     functional change
+>   ACPICA: Update for CondRefOf and RefOf operators
+>   ACPICA: Cleanup code related to the per-table module level
+>     improvement
+>   ACPICA: Add "root node" case to the ACPI name repair code
+>   ACPICA: Add per-table execution of module-level code
+>   ACPICA: Update version to 20151218
 > 
-> 3) From ACPI pl011 is only defined (SBSA document) to be in SBSA mode which has
-> reduced functionality. There may be a better method to do this that I have
-> overlooked.
+> Colin Ian King (1):
+>   ACPICA: Tools: Add spacing and missing options in acpibin tool
 > 
-> v4:
-> - A memory leak has been fixed (Vladimir Zapolskiy)
-> - ACPI_COMPANION() -> has_acpi_companion() (Andy Shevchenko)
-> - pr_err() -> dev_err() (Andy Shevchenko)
-> - The call to amba_register_dummy_clk() has been moved to to acpi_amba_init()
->   (Vladimir Zapolskiy)
-> - Return value has been fixed (Vladimir Zapolskiy)
+> David E. Box (1):
+>   ACPICA: Fix SyncLevel support interaction with method
+>     auto-serialization
 > 
-> v3:
-> https://lkml.kernel.org/g/1450716100-13688-1-git-send-email-aleksey.makarov@linaro.org
-> - Compilation without CONFIG_ARM_AMBA has been fixed
+> LABBE Corentin (1):
+>   ACPICA: Add "const" to some functions that return fixed strings
 > 
-> v2:
-> https://lkml.kernel.org/g/1450709399-7246-1-git-send-email-aleksey.makarov@linaro.org
-> - A new ACPI scan handler for AMBA devices has been implemented
-> - The order of `if` branches in amba-pl011.c has been changed
-> - A couple of `static`s have been added
-> - The compilation of the acpi_amba.c unit has made conditional
-> - A comment on SBSA UART has been added
+> Lv Zheng (12):
+>   ACPICA: Linuxize: reduce divergences for 20151218 release
+>   ACPICA: Namespace: Fix wrong error log
+>   ACPICA: Debugger: reduce old external path format
+>   ACPICA: Namespace: Add scope information to the simple object repair
+>     mechanism
+>   ACPICA: Namespace: Add String -> ObjectReference conversion support
+>   ACPICA: Events: Deploys acpi_ev_find_region_handler()
+>   ACPICA: Events: Uses common_notify for address space handlers
+>   ACPICA: Utilities: Reorder initialization code
+>   ACPICA: Events: Fix an issue that region object is re-attached to
+>     another scope when it is already attached
+>   ACPICA: Events: Split acpi_ev_associate_reg_method() from region
+>     initialization code
+>   ACPICA: Events: Enhance acpi_ev_execute_reg_method() to ensure no
+>     _REG evaluations can happen during OS early boot stages
+>   ACPICA: Events: Introduce ACPI_REG_DISCONNECT invocation to
+>     acpi_ev_execute_reg_methods()
 > 
-> v1:
-> https://lkml.kernel.org/g/1443609530-21524-1-git-send-email-graeme.gregory@linaro.org
+> Markus Elfring (1):
+>   ACPICA: Debugger: Remove some unecessary NULL checks
 > 
-> Graeme Gregory (3):
->   ACPI: amba bus probing support
->   ACPI: scan add in amba probing
->   serial: amba-pl011: add ACPI support to AMBA probe
+> Prarit Bhargava (1):
+>   ACPICA: acpi_get_sleep_type_data: Reduce warnings
 
-The ACPI part looks OK to me, but I'd really like to know whether or not the
-ARM maintainers like this series too.
-
-Thanks,
-Rafael
-
+Series applied, thanks!
