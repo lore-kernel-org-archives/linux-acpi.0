@@ -1,39 +1,51 @@
-From: "Jeff Skoll" <s_w9gc9x@uni-kassel.de>
-Subject: Charity Donation
-Date: Sun, 03 Jan 2016 06:43:27 -0500
-Message-ID: <auto-000000791375@mailadmin.uni-kassel.de>
-Reply-To: jeff.skoll@skollcharity.org
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Subject: Re: [PATCH v4 1/3] ACPI: amba bus probing support
+Date: Sun, 3 Jan 2016 13:36:46 +0000
+Message-ID: <20160103133645.GC5779@n2100.arm.linux.org.uk>
+References: <1450880383-29560-1-git-send-email-aleksey.makarov@linaro.org>
+ <1450880383-29560-2-git-send-email-aleksey.makarov@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx4.its.uni-kassel.de ([141.51.12.63]:20597 "EHLO
-	mx4.its.uni-kassel.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751696AbcACLv7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sun, 3 Jan 2016 06:51:59 -0500
-Content-Description: Mail message body
+Received: from pandora.arm.linux.org.uk ([78.32.30.218]:37569 "EHLO
+	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751366AbcACNhB (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 3 Jan 2016 08:37:01 -0500
+Content-Disposition: inline
+In-Reply-To: <1450880383-29560-2-git-send-email-aleksey.makarov@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Me <s_w9gc9x@uni-kassel.de>
+To: Aleksey Makarov <aleksey.makarov@linaro.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-serial@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Graeme Gregory <graeme.gregory@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Shannon Zhao <shannon.zhao@linaro.org>, Andy Shevchenko <andy.shevchenko@gmail.com>, Vladimir Zapolskiy <vz@mleia.com>, Len Brown <lenb@kernel.org>
 
-Hi,
-My name is Jeffrey Skoll, a philanthropist and the founder of one of th=
-e largest private foundations in the world. I believe strongly in =E2=80=
-=98giving while living.=E2=80=99 I had one idea that never changed in m=
-y mind =E2=80=94 that you should use your wealth to help people and I h=
-ave decided to secretly give USD2.498 Million to a randomly selected in=
-dividual. On receipt of this email, you should count yourself as the in=
-dividual. Kindly get back to me at your earliest convenience, so I know=
- your email address is valid.
+On Wed, Dec 23, 2015 at 05:19:40PM +0300, Aleksey Makarov wrote:
+> +	dev = amba_device_alloc(NULL, 0, 0);
+> +	if (!dev) {
+> +		dev_err(&adev->dev, "%s(): amba_device_alloc() failed\n",
+> +			__func__);
+> +		return -ENOMEM;
+> +	}
+...
+> +	/*
+> +	 * If the ACPI node has a parent and that parent has a physical device
+> +	 * attached to it, that physical device should be the parent of the
+> +	 * platform device we are about to create.
+> +	 */
+> +	dev->dev.parent = NULL;
 
-Visit the web page to know more about me: http://www.theglobeandmail.co=
-m/news/national/meet-the-canadian-billionaire-whos-giving-it-all-away/a=
-rticle4209888/ or you can read an article of me on Wikipedia.
+No need to initialise this; amba_device_alloc() uses kzalloc(), and so
+dev->dev.parent will already be NULL.
 
-Regards,
-Jeffrey Skoll.
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+...
+> +	dev_set_name(&dev->dev, "%s", dev_name(&adev->dev));
+
+Is there a reason not to use:
+
+	dev = amba_device_alloc(dev_name(&adev->dev), 0, 0);
+
+above?
+
+-- 
+RMK's Patch system: http://www.arm.linux.org.uk/developer/patches/
+FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
+according to speedtest.net.
