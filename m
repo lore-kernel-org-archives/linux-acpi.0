@@ -1,76 +1,89 @@
-From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Subject: Re: [PATCH] i2c: designware: Add support for AMD Seattle I2C
-Date: Sun, 3 Jan 2016 16:54:47 -0600
-Message-ID: <5689A6B7.7010401@amd.com>
-References: <1450216553-5641-1-git-send-email-Suravee.Suthikulpanit@amd.com>
- <5670C90A.5020305@amd.com> <20151216091652.GN1762@lahna.fi.intel.com>
- <56717552.4060203@amd.com> <20151216145401.GX1762@lahna.fi.intel.com>
- <567206B7.1050405@amd.com> <20160103184555.GG1522@katana>
+From: Olle Englund <realdiskdoc@gmail.com>
+Subject: Re: [HP Compaq 6715s] Updating kernel renders system unbootable
+Date: Mon, 4 Jan 2016 01:51:16 +0200
+Message-ID: <CAHii-dGm27WvZ1iCU-4P6v8SmqZMGKQECmjMA2Yhq2rSCydqWw@mail.gmail.com>
+References: <CAHii-dEo0D9QkmpXaQoz-XKai8omx_TrGgHcmk3t7AwE8+DZ8Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160103184555.GG1522@katana>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Wolfram Sang <wsa@the-dreams.de>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ig0-f173.google.com ([209.85.213.173]:35537 "EHLO
+	mail-ig0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751350AbcACXv4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 3 Jan 2016 18:51:56 -0500
+Received: by mail-ig0-f173.google.com with SMTP id to4so233402373igc.0
+        for <linux-acpi@vger.kernel.org>; Sun, 03 Jan 2016 15:51:56 -0800 (PST)
+In-Reply-To: <CAHii-dEo0D9QkmpXaQoz-XKai8omx_TrGgHcmk3t7AwE8+DZ8Q@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: lv.zheng@intel.com, rafael.j.wysocki@intel.com, robert.moore@intel.com
+Cc: linux-acpi@vger.kernel.org
 
-Hi Wolfram,
+[1] Summary
 
-On 01/03/2016 12:45 PM, Wolfram Sang wrote:
-> On Wed, Dec 16, 2015 at 06:49:59PM -0600, Suravee Suthikulanit wrote:
->> Mika,
->>
->> On 12/16/2015 8:54 AM, Mika Westerberg wrote:
->>> On Wed, Dec 16, 2015 at 08:29:38AM -0600, Suravee Suthikulpanit wrote:
->>>>>
->>>>>
->>>>> On 12/16/2015 03:16 AM, Mika Westerberg wrote:
->>>>>>> On Tue, Dec 15, 2015 at 08:14:34PM -0600, Suravee Suthikulpanit wrote:
->>>>>>>>> Hi Mika,
->>>>>>>>>
->>>>>>>>> On 12/15/15 15:55, Suravee Suthikulpanit wrote:
->>>>>>>>>>> Add device HID AMDI0510 to match the I2C controlers on AMD Seattle platform
->>>>>>>>>>>
->>>>>>>>>>> Signed-off-by: Suravee Suthikulpanit<Suravee.Suthikulpanit@amd.com>
->>>>>>>>>>> ---
->>>>>>>>>>>   drivers/i2c/busses/i2c-designware-platdrv.c | 1 +
->>>>>>>>>>>   1 file changed, 1 insertion(+)
->>>>>>>>>>>
->>>>>>>>>>> diff --git a/drivers/i2c/busses/i2c-designware-platdrv.c b/drivers/i2c/busses/i2c-designware-platdrv.c
->>>>>>>>>>> index 57f623b..a027154 100644
->>>>>>>>>>> --- a/drivers/i2c/busses/i2c-designware-platdrv.c
->>>>>>>>>>> +++ b/drivers/i2c/busses/i2c-designware-platdrv.c
->>>>>>>>>>> @@ -117,6 +117,7 @@ static const struct acpi_device_id dw_i2c_acpi_match[] = {
->>>>>>>>>>>   	{ "80860F41", 0 },
->>>>>>>>>>>   	{ "808622C1", 0 },
->>>>>>>>>>>   	{ "AMD0010", 0 },
->>>>>>>>>>> +	{ "AMDI0510", 0 },
->>>>>>>>>>>   	{ }
->>>>>>>>>
->>>>>>>>> Since this driver seems to be used by several SOCs, and we have been adding
->>>>>>>>> the HID from various SOC vendors. Do you think it would be better to assign
->>>>>>>>> a CID so that each SOC vendor can specify in their ACPI DSDT and we can
->>>>>>>>> match them here?
->>>>>>>
->>>>>>> Sure _CID would work here.
->>>>>
->>>>> Do you know if Synopsys has already provided a CID that we can use for this?
->>> No.
->>>
->>>>> If not, who do you think should provide this?
->>> Why can't you make _CID for AMD part only? For Intel we are going to get
->>> new IDs for every major SoC release no matter what.
->>>
->> Actually, after discussed with the team. We have decided to go with the
->> AMDI0510 at this point, and we will reuse this as CID in future SOC if it
->> contains compatible I2C controller.
->
-> So, can I take the patch as is?
->
+[HP Compaq 6715s] Updating kernel renders system unbootable
 
-Yes, please pull this as is.
+[2] Description
 
-Thank you,
-Suravee
+On 4.4.0-040400rc7:
+
+- Message about loading image.
+- Screen goes black.
+- Fan goes to full speed.
+- HD light lit for about 15 seconds or so, then goes dark.
+
+Disect:
+
+between 3.19.0-25.26 and 3.19.0-26.27 in the Ubuntu kernel tree:
+
+commit 19114b5458510b757cd2801e64094e4062e4067f
+Author: Lv Zheng <lv.zheng@intel.com>
+Date: Wed Jul 1 14:43:34 2015 +0800
+
+    ACPICA: Tables: Enable default 64-bit FADT addresses favor
+
+    BugLink: http://bugs.launchpad.net/bugs/1479048
+
+    commit 0ea61381788a37d864f9841b0fe97d40f7058f3b upstream.
+
+    ACPICA commit 4da56eeae0749dfe8491285c1e1fad48f6efafd8
+
+    The following commit temporarily disables correct 64-bit FADT addresses
+    favor during the period the root cause of the bug is not fixed:
+     Commit: 85dbd5801f62b66e2aa7826aaefcaebead44c8a6
+     ACPICA: Tables: Restore old behavor to favor 32-bit FADT addresses.
+
+    With enough protections, this patch re-enables 64-bit FADT addresses by
+    default. If regressions are reported against such change, this patch should
+    be bisected and reverted.
+    Note that 64-bit FACS favor and 64-bit firmware waking vector favor are
+    excluded by this commit in order not to break OSPMs. Lv Zheng.
+
+    Link: https://bugzilla.kernel.org/show_bug.cgi?id=74021
+    Link: https://github.com/acpica/acpica/commit/4da56eea
+    Reported-and-tested-by: Oswald Buddenhagen <ossi@kde.org>
+    Signed-off-by: Lv Zheng <lv.zheng@intel.com>
+    Signed-off-by: Bob Moore <robert.moore@intel.com>
+    Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+    Signed-off-by: Kamal Mostafa <kamal@canonical.com>
+    Signed-off-by: Luis Henriques <luis.henriques@canonical.com>
+
+:040000 040000 0b002dc7d6e5abe0ded978926361d88efd5a0f88
+27c36ea102b1622ded7beecbca477f62fa33922a M include
+
+[7] Environment
+
+Description:    Ubuntu 14.04.3 LTS
+Release:    14.04
+
+[X] Notes
+
+Please forgive any oversights in my report, it is my first in this
+format. I left out many sections/numbers since I could not boot with
+the latest mainline kernel. Also, I had to send the report again since
+Google apparently hid some HTML in my mail.
+
+Original report: https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1529381
+
+Thanks,
+
+Carl
