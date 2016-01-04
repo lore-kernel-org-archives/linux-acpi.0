@@ -1,48 +1,36 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [HP Compaq 6715s] Updating kernel renders system unbootable
-Date: Mon, 04 Jan 2016 14:12:47 +0100
-Message-ID: <2361922.kuCIB6L7YG@vostro.rjw.lan>
-References: <CAHii-dEo0D9QkmpXaQoz-XKai8omx_TrGgHcmk3t7AwE8+DZ8Q@mail.gmail.com> <CAHii-dGm27WvZ1iCU-4P6v8SmqZMGKQECmjMA2Yhq2rSCydqWw@mail.gmail.com>
+Subject: Re: [PATCH 00/42] ACPICA: 20151218 Release
+Date: Mon, 04 Jan 2016 14:16:43 +0100
+Message-ID: <17293424.TNTMLZyvxc@vostro.rjw.lan>
+References: <cover.1451367388.git.lv.zheng@intel.com> <alpine.DEB.2.02.1601022243520.20790@nftneq.ynat.uz> <1AE640813FDE7649BE1B193DEA596E883BB1A94A@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:58964 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752476AbcADMmJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Jan 2016 07:42:09 -0500
-In-Reply-To: <CAHii-dGm27WvZ1iCU-4P6v8SmqZMGKQECmjMA2Yhq2rSCydqWw@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E883BB1A94A@SHSMSX101.ccr.corp.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>, David Lang <david@lang.hm>
+Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Olle Englund <realdiskdoc@gmail.com>
-Cc: lv.zheng@intel.com, rafael.j.wysocki@intel.com, robert.moore@intel.com, linux-acpi@vger.kernel.org
 
-On Monday, January 04, 2016 01:51:16 AM Olle Englund wrote:
-> [1] Summary
+On Monday, January 04, 2016 02:27:43 AM Zheng, Lv wrote:
+> Hi,
 > 
-> [HP Compaq 6715s] Updating kernel renders system unbootable
-> 
-> [2] Description
-> 
-> On 4.4.0-040400rc7:
-> 
-> - Message about loading image.
-> - Screen goes black.
-> - Fan goes to full speed.
-> - HD light lit for about 15 seconds or so, then goes dark.
-> 
-> Disect:
+> > From: David Lang [mailto:david@lang.hm]
+> > Sent: Sunday, January 3, 2016 2:45 PM
+> > 
+> > what is ACPICA and why should we care about divergence between it and the
+> > linux
+> > upstream? Where is it to be found?
+> [Lv Zheng] 
+> You can find ACPICA at: https://acpica.org.
+> Source code of ACPICA can be found at: https://github.com/acpica/acpica/
 
-Bisect?
+Also, there is an ACPICA entry in MAINTAINERS with links to various places
+where more information can be found.
 
-> between 3.19.0-25.26 and 3.19.0-26.27 in the Ubuntu kernel tree:
-> 
-> commit 19114b5458510b757cd2801e64094e4062e4067f
-
-This isn't a mainline kernel commit, so it looks like a backport.
-
-Are you able to reproduce the problem with the mainline kernel?
+That said it is a good idea to document the release process under
+Documentation/acpi/.
 
 Thanks,
 Rafael
-
