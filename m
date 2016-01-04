@@ -1,54 +1,98 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH] i2c: designware: Add support for AMD Seattle I2C
-Date: Mon, 4 Jan 2016 20:25:47 +0100
-Message-ID: <20160104192547.GB1522@katana>
-References: <1450216553-5641-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v2 2/2] memory-hotplug: keep the request_resource() error code
+Date: Mon, 04 Jan 2016 23:20:59 +0100
+Message-ID: <4170830.hdYNCvcyyd@vostro.rjw.lan>
+References: <1451924251-4189-1-git-send-email-vkuznets@redhat.com> <1451924251-4189-3-git-send-email-vkuznets@redhat.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="p4qYPpj5QlsIQJ0K"
-Return-path: <linux-i2c-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1450216553-5641-1-git-send-email-Suravee.Suthikulpanit@amd.com>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Cc: mika.westerberg@linux.intel.com, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1451924251-4189-3-git-send-email-vkuznets@redhat.com>
+Sender: owner-linux-mm@kvack.org
+To: Vitaly Kuznetsov <vkuznets@redhat.com>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, David Rientjes <rientjes@google.com>, Tang Chen <tangchen@cn.fujitsu.com>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, Dan Williams <dan.j.williams@intel.com>, David Vrabel <david.vrabel@citrix.com>, Igor Mammedov <imammedo@redhat.com>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
+On Monday, January 04, 2016 05:17:31 PM Vitaly Kuznetsov wrote:
+> Don't overwrite the request_resource() return value with -EEXIST in
+> register_memory_resource(), just propagate the return value. As we return
+> -EBUSY instead of -EEXIST when the desired resource is already occupied
+> now we need to adapt acpi_memory_enable_device(). -EBUSY is currently the
+> only possible error returned by request_resource() so this is just a
+> cleanup, no functional changes intended.
+> 
+> Cc: Andrew Morton <akpm@linux-foundation.org>
+> Cc: David Rientjes <rientjes@google.com>
+> Cc: Tang Chen <tangchen@cn.fujitsu.com>
+> Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+> Cc: Dan Williams <dan.j.williams@intel.com>
+> Cc: David Vrabel <david.vrabel@citrix.com>
+> Cc: Igor Mammedov <imammedo@redhat.com>
+> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+> Cc: Len Brown <lenb@kernel.org>
+> Suggested-by: Andrew Morton <akpm@linux-foundation.org>
+> Signed-off-by: Vitaly Kuznetsov <vkuznets@redhat.com>
 
---p4qYPpj5QlsIQJ0K
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-On Tue, Dec 15, 2015 at 03:55:53PM -0600, Suravee Suthikulpanit wrote:
-> Add device HID AMDI0510 to match the I2C controlers on AMD Seattle platfo=
-rm
->=20
-> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+for the ACPI part and I'm assumig that this will go in through the mm tree.
 
-Applied to for-next, thanks!
+> ---
+>  drivers/acpi/acpi_memhotplug.c | 4 ++--
+>  mm/memory_hotplug.c            | 6 ++++--
+>  2 files changed, 6 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+> index 6b0d3ef..e367e4b 100644
+> --- a/drivers/acpi/acpi_memhotplug.c
+> +++ b/drivers/acpi/acpi_memhotplug.c
+> @@ -232,10 +232,10 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
+>  
+>  		/*
+>  		 * If the memory block has been used by the kernel, add_memory()
+> -		 * returns -EEXIST. If add_memory() returns the other error, it
+> +		 * returns -EBUSY. If add_memory() returns the other error, it
+>  		 * means that this memory block is not used by the kernel.
+>  		 */
+> -		if (result && result != -EEXIST)
+> +		if (result && result != -EBUSY)
+>  			continue;
+>  
+>  		result = acpi_bind_memory_blocks(info, mem_device->device);
+> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+> index 92f9595..07eab2c 100644
+> --- a/mm/memory_hotplug.c
+> +++ b/mm/memory_hotplug.c
+> @@ -130,6 +130,7 @@ void mem_hotplug_done(void)
+>  static struct resource *register_memory_resource(u64 start, u64 size)
+>  {
+>  	struct resource *res;
+> +	int ret;
+>  	res = kzalloc(sizeof(struct resource), GFP_KERNEL);
+>  	if (!res)
+>  		return ERR_PTR(-ENOMEM);
+> @@ -138,10 +139,11 @@ static struct resource *register_memory_resource(u64 start, u64 size)
+>  	res->start = start;
+>  	res->end = start + size - 1;
+>  	res->flags = IORESOURCE_MEM | IORESOURCE_BUSY;
+> -	if (request_resource(&iomem_resource, res) < 0) {
+> +	ret = request_resource(&iomem_resource, res);
+> +	if (ret < 0) {
+>  		pr_debug("System RAM resource %pR cannot be added\n", res);
+>  		kfree(res);
+> -		return ERR_PTR(-EEXIST);
+> +		return ERR_PTR(ret);
+>  	}
+>  	return res;
+>  }
+> 
 
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
 
---p4qYPpj5QlsIQJ0K
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJWisc6AAoJEBQN5MwUoCm2icwP/28h29E0p7nYXj15Ygb0Mzvz
-mLUuEsRJrW2tvWIkWWWEhoetoF08TLtoAG7HTQ0a/44sjjRdJGFs0W02R1XZXd1I
-MsuGo4ge0yOaarkMBulvWLM/SaxYAn6b+w/ksbfRnfz7U1/Ex7UWN1oh/NGBulos
-5N9aSbHt1TrTUYymtBFo0+olHPIN7k77cOB1oFz8CPQrbzT70UQ2fyE2BahZc4cB
-LH+0Urfm/4KxsxpxSe4ef8vXJdRXuknCKT942gDwls7BLi/FKKrde16g7H5tPYhL
-2+SCLKapeNO8LRNlUyjnFvH2Eb8uKQ0VzPYaRO6okNCzbsg2WPktPRRVUBeo8Ikx
-3GIqGp1f2OICLuBFrWWwWdDFvV6w2J1LB65ATDWfDnplnzxt5eftAQNast0Rcp7f
-zRqn8DmkWw+jNAnGZzekRXFYPJFuVujnWrBmJYLvdIEWYHIaYXCJAdKVo4ZK9D8t
-qw+uS7FBI4ajiWY1REjTgaf0Djs5QBEjdrd0HPjLC+HJ8dxy8+BUDryPRWKYCYUW
-nmBmQ4wgmHb7MQnDTzjDDgmWOo2XeKDjsH+qn4HErZCL0arE6Qpvfhax1uxpbkDU
-jux5i2F+xregxdyIG/s4O7uGv3e6R0eOyxUA4W7ptEuYDhRF6zoraB1cQToSDvu2
-2WmmaHrLe1dhGn/ZTeY8
-=V+9V
------END PGP SIGNATURE-----
-
---p4qYPpj5QlsIQJ0K--
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
