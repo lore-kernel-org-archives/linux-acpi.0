@@ -1,76 +1,54 @@
-From: Vitaly Kuznetsov <vkuznets@redhat.com>
-Subject: [PATCH v2 1/2] memory-hotplug: don't BUG() in register_memory_resource()
-Date: Mon,  4 Jan 2016 17:17:30 +0100
-Message-ID: <1451924251-4189-2-git-send-email-vkuznets@redhat.com>
-References: <1451924251-4189-1-git-send-email-vkuznets@redhat.com>
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1451924251-4189-1-git-send-email-vkuznets@redhat.com>
-Sender: owner-linux-mm@kvack.org
-To: linux-mm@kvack.org
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, David Rientjes <rientjes@google.com>, Tang Chen <tangchen@cn.fujitsu.com>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, Xishi Qiu <qiuxishi@huawei.com>, Sheng Yong <shengyong1@huawei.com>, Zhu Guihua <zhugh.fnst@cn.fujitsu.com>, Dan Williams <dan.j.williams@intel.com>, David Vrabel <david.vrabel@citrix.com>, Igor Mammedov <imammedo@redhat.com>
+From: Wolfram Sang <wsa@the-dreams.de>
+Subject: Re: [PATCH] i2c: designware: Add support for AMD Seattle I2C
+Date: Mon, 4 Jan 2016 20:25:47 +0100
+Message-ID: <20160104192547.GB1522@katana>
+References: <1450216553-5641-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="p4qYPpj5QlsIQJ0K"
+Return-path: <linux-i2c-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1450216553-5641-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Cc: mika.westerberg@linux.intel.com, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Out of memory condition is not a bug and while we can't add new memory in
-such case crashing the system seems wrong. Propagating the return value
-from register_memory_resource() requires interface change.
 
-Signed-off-by: Vitaly Kuznetsov <vkuznets@redhat.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: David Rientjes <rientjes@google.com>
-Cc: Tang Chen <tangchen@cn.fujitsu.com>
-Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
-Cc: Xishi Qiu <qiuxishi@huawei.com>
-Cc: Sheng Yong <shengyong1@huawei.com>
-Cc: Zhu Guihua <zhugh.fnst@cn.fujitsu.com>
-Cc: Dan Williams <dan.j.williams@intel.com>
-Cc: David Vrabel <david.vrabel@citrix.com>
-Cc: Igor Mammedov <imammedo@redhat.com>
----
-Changes since v1:
-- Use ERR_PTR/PTR_ERR/IS_ERR() [David Rientjes]
----
- mm/memory_hotplug.c | 9 +++++----
- 1 file changed, 5 insertions(+), 4 deletions(-)
+--p4qYPpj5QlsIQJ0K
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index a042a9d..92f9595 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -131,7 +131,8 @@ static struct resource *register_memory_resource(u64 start, u64 size)
- {
- 	struct resource *res;
- 	res = kzalloc(sizeof(struct resource), GFP_KERNEL);
--	BUG_ON(!res);
-+	if (!res)
-+		return ERR_PTR(-ENOMEM);
- 
- 	res->name = "System RAM";
- 	res->start = start;
-@@ -140,7 +141,7 @@ static struct resource *register_memory_resource(u64 start, u64 size)
- 	if (request_resource(&iomem_resource, res) < 0) {
- 		pr_debug("System RAM resource %pR cannot be added\n", res);
- 		kfree(res);
--		res = NULL;
-+		return ERR_PTR(-EEXIST);
- 	}
- 	return res;
- }
-@@ -1312,8 +1313,8 @@ int __ref add_memory(int nid, u64 start, u64 size)
- 	int ret;
- 
- 	res = register_memory_resource(start, size);
--	if (!res)
--		return -EEXIST;
-+	if (IS_ERR(res))
-+		return PTR_ERR(res);
- 
- 	ret = add_memory_resource(nid, res);
- 	if (ret < 0)
--- 
-2.4.3
+On Tue, Dec 15, 2015 at 03:55:53PM -0600, Suravee Suthikulpanit wrote:
+> Add device HID AMDI0510 to match the I2C controlers on AMD Seattle platfo=
+rm
+>=20
+> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Applied to for-next, thanks!
+
+
+--p4qYPpj5QlsIQJ0K
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQIcBAEBAgAGBQJWisc6AAoJEBQN5MwUoCm2icwP/28h29E0p7nYXj15Ygb0Mzvz
+mLUuEsRJrW2tvWIkWWWEhoetoF08TLtoAG7HTQ0a/44sjjRdJGFs0W02R1XZXd1I
+MsuGo4ge0yOaarkMBulvWLM/SaxYAn6b+w/ksbfRnfz7U1/Ex7UWN1oh/NGBulos
+5N9aSbHt1TrTUYymtBFo0+olHPIN7k77cOB1oFz8CPQrbzT70UQ2fyE2BahZc4cB
+LH+0Urfm/4KxsxpxSe4ef8vXJdRXuknCKT942gDwls7BLi/FKKrde16g7H5tPYhL
+2+SCLKapeNO8LRNlUyjnFvH2Eb8uKQ0VzPYaRO6okNCzbsg2WPktPRRVUBeo8Ikx
+3GIqGp1f2OICLuBFrWWwWdDFvV6w2J1LB65ATDWfDnplnzxt5eftAQNast0Rcp7f
+zRqn8DmkWw+jNAnGZzekRXFYPJFuVujnWrBmJYLvdIEWYHIaYXCJAdKVo4ZK9D8t
+qw+uS7FBI4ajiWY1REjTgaf0Djs5QBEjdrd0HPjLC+HJ8dxy8+BUDryPRWKYCYUW
+nmBmQ4wgmHb7MQnDTzjDDgmWOo2XeKDjsH+qn4HErZCL0arE6Qpvfhax1uxpbkDU
+jux5i2F+xregxdyIG/s4O7uGv3e6R0eOyxUA4W7ptEuYDhRF6zoraB1cQToSDvu2
+2WmmaHrLe1dhGn/ZTeY8
+=V+9V
+-----END PGP SIGNATURE-----
+
+--p4qYPpj5QlsIQJ0K--
