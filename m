@@ -1,193 +1,49 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH 5/6] dmaengine: pl330: provide ACPI dmaengine interface
-Date: Mon, 4 Jan 2016 16:46:51 +0200
-Message-ID: <CAHp75Vf+Tq6Z9bs5ZV3ybkVXY4uQaQK9R2h6GgybQAZjkAVkVw@mail.gmail.com>
-References: <1451885501-2710-1-git-send-email-annie.wang@amd.com>
-	<1451885501-2710-6-git-send-email-annie.wang@amd.com>
+From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Subject: Re: [PATCH v3] i2c: designware: Do not require clock when SSCN and
+ FFCN are provided
+Date: Mon, 4 Jan 2016 09:17:26 -0600
+Message-ID: <568A8D06.2010901@amd.com>
+References: <1450820141-1720-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+ <1450895221.30729.322.camel@linux.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1451885501-2710-6-git-send-email-annie.wang@amd.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Wang Hongcheng <annie.wang@amd.com>
-Cc: Vinod Koul <vinod.koul@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, dmaengine <dmaengine@vger.kernel.org>, Borislav Petkov <bp@alien8.de>, Huang Rui <ray.huang@amd.com>, Wan Zongshun <vincent.wan@amd.com>, Ken Xue <ken.xue@amd.com>, Robin Murphy <robin.murphy@arm.com>, Graeme Gregory <gg@slimlogic.co.uk>, Tony Li <tony.li@amd.com>, Xiangliang Yu <Xiangliang.Yu@amd.com>
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-i2c-owner@vger.kernel.org>
+In-Reply-To: <1450895221.30729.322.camel@linux.intel.com>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, mika.westerberg@linux.intel.com, wsa@the-dreams.de
+Cc: jarkko.nikula@linux.intel.com, lho@apm.com, Ken.Xue@amd.com, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jan 4, 2016 at 7:31 AM, Wang Hongcheng <annie.wang@amd.com> wrote:
-> register acpi_dma controller, so ACPI devices can request pl330 DMA
-> channel. Request line info is get from private data.
+Hi Andy,
+
+On 12/23/2015 12:27 PM, Andy Shevchenko wrote:
+>> diff --git a/drivers/i2c/busses/i2c-designware-platdrv.c
+>> >b/drivers/i2c/busses/i2c-designware-platdrv.c
+>> >index 8ffc36b..04edd09 100644
+>> >--- a/drivers/i2c/busses/i2c-designware-platdrv.c
+>> >+++ b/drivers/i2c/busses/i2c-designware-platdrv.c
+> Can we introduce
 >
-> Signed-off-by: Wang Hongcheng <annie.wang@amd.com>
-> ---
->  drivers/acpi/acpi_apd.c    | 34 +++++++++++++++++++++++++---------
->  drivers/dma/pl330.c        | 27 +++++++++++++++++++++++++++
->  include/linux/amba/pl330.h |  4 ++++
->  3 files changed, 56 insertions(+), 9 deletions(-)
+> static int i2c_dw_plat_prepare_clk(struct dw_i2c_dev *i_dev, bool
+> prepare)
+> {
+> 	if (IS_ERR(i_dev->clk))
+> 		return PTR_ERR(i_dev->clk);
 >
-> diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c
-> index 4d71a65..1f16cca 100644
-> --- a/drivers/acpi/acpi_apd.c
-> +++ b/drivers/acpi/acpi_apd.c
-> @@ -38,11 +38,23 @@ struct apd_private_data;
+> 	if (prepare)
+> /* REMOVEME: Yes, you have to check return value and this is one
+> benefit of this change */
+> 		return clk_prepare_enable(i_dev->clk);
 >
->  static u8 peri_id[2] = { 0, 1 };
+> 	clk_disable_unprepare(i_dev->clk);
+> 	return 0;
+> }
 >
-> -static struct dma_pl330_platdata amd_pl330 = {
-> -       .nr_valid_peri = 2,
-> -       .peri_id = peri_id,
-> -       .mcbuf_sz = 0,
-> -       .flags = IRQF_SHARED,
-
-Agreed with bot, those two looks like WIP. Please, unite them in one
-clean patch.
-
-> +static struct dma_pl330_platdata amd_pl330[] = {
-> +       {
-> +               .nr_valid_peri = 2,
-> +               .peri_id = peri_id,
-> +               .mcbuf_sz = 0,
-> +               .flags = IRQF_SHARED,
-
-> +               .base_request_line = 1,
-> +               .num = 0,
-
-(1)
-
-> +       },
-
-> +       {
-> +               .nr_valid_peri = 2,
-> +               .peri_id = peri_id,
-> +               .mcbuf_sz = 0,
-> +               .flags = IRQF_SHARED,
-
-> +               .base_request_line = 2,
-> +               .num = 0,
-
-(2)
-
-(1) and (2) seem use wrong interpretation of the parameters. num is an
-amount of request lines in the range:
-base_request_line..base_request_line + num - 1.
-
-> +       }
->  };
->  /**
->   * struct apd_device_desc - a descriptor for apd device
-> @@ -101,6 +113,7 @@ static int acpi_apd_setup_quirks(struct apd_private_data *pdata)
->         unsigned int irq[AMBA_NR_IRQS];
->         struct clk *clk = ERR_PTR(-ENODEV);
->         char amba_devname[100];
-> +       int devnum;
->
->         resource = kzalloc(sizeof(*resource), GFP_KERNEL);
->         if (!resource)
-> @@ -131,8 +144,11 @@ static int acpi_apd_setup_quirks(struct apd_private_data *pdata)
->         if (!amba_dev)
->                 goto amba_alloc_err;
->
-> +       devnum = amba_devname[strlen(dev_name(&pdev->dev)) - 1] - '0';
-
-This looks error prone.
-
-> +
->         amba_dev->dev.coherent_dma_mask
->                 = acpi_dma_supported(ACPI_COMPANION(&pdev->dev)) ? DMA_BIT_MASK(64) : 0;
-> +       amba_dev->dev.platform_data = &amd_pl330[devnum];
->         amba_dev->dev.fwnode = acpi_fwnode_handle(ACPI_COMPANION(&pdev->dev));
->
->         amba_dev->dev.parent = &pdev->dev;
-> @@ -162,10 +178,10 @@ static int acpi_apd_setup_quirks(struct apd_private_data *pdata)
->
->         kfree(resource);
->
-> -       dma_cap_set(DMA_MEMCPY, amd_pl330.cap_mask);
-> -       dma_cap_set(DMA_SLAVE, amd_pl330.cap_mask);
-> -       dma_cap_set(DMA_CYCLIC, amd_pl330.cap_mask);
-> -       dma_cap_set(DMA_PRIVATE, amd_pl330.cap_mask);
-> +       dma_cap_set(DMA_MEMCPY, amd_pl330[devnum].cap_mask);
-> +       dma_cap_set(DMA_SLAVE, amd_pl330[devnum].cap_mask);
-> +       dma_cap_set(DMA_CYCLIC, amd_pl330[devnum].cap_mask);
-> +       dma_cap_set(DMA_PRIVATE, amd_pl330[devnum].cap_mask);
->
->         return 0;
->
-> diff --git a/drivers/dma/pl330.c b/drivers/dma/pl330.c
-> index 5e5fb46..e0e0b6e 100644
-> --- a/drivers/dma/pl330.c
-> +++ b/drivers/dma/pl330.c
-> @@ -2079,6 +2079,22 @@ static struct dma_chan *of_dma_pl330_xlate(struct of_phandle_args *dma_spec,
->         return dma_get_slave_channel(&pl330->peripherals[chan_id].chan);
->  }
->
-> +static struct dma_chan *acpi_dma_pl330_xlate(struct acpi_dma_spec *dma_spec,
-> +                                            struct acpi_dma *adma)
-> +{
-> +       struct pl330_dmac *pl330 = adma->data;
-> +       struct dma_pl330_platdata *pdat;
-> +       unsigned int chan_id;
-> +
-
-> +       pdat = dev_get_platdata(adma->dev);
-
-This could be part of the definition block above
-
-> +
-> +       chan_id = dma_spec->chan_id;
-> +       if (chan_id >= pl330->num_peripherals)
-> +               return NULL;
-> +
-> +       return dma_get_slave_channel(&pl330->peripherals[chan_id].chan);
-> +}
-> +
->  static int pl330_alloc_chan_resources(struct dma_chan *chan)
->  {
->         struct dma_pl330_chan *pch = to_pchan(chan);
-> @@ -2918,6 +2934,17 @@ pl330_probe(struct amba_device *adev, const struct amba_id *id)
->                 }
->         }
->
-> +       if (has_acpi_companion(&adev->dev)) {
-> +               ret = acpi_dma_controller_register(&adev->dev,
-> +                                                  acpi_dma_pl330_xlate,
-> +                                                  pdat->base_request_line,
-> +                                                  pdat->num, pl330);
-> +               if (ret) {
-> +                       dev_err(&adev->dev,
-> +                               "unable to register DMA to the generic ACPI DMA helpers\n");
-> +               }
-> +       }
-> +
->         adev->dev.dma_parms = &pl330->dma_parms;
->
->         /*
-> diff --git a/include/linux/amba/pl330.h b/include/linux/amba/pl330.h
-> index cdc80f0..1190f69 100644
-> --- a/include/linux/amba/pl330.h
-> +++ b/include/linux/amba/pl330.h
-> @@ -31,6 +31,10 @@ struct dma_pl330_platdata {
->         unsigned mcbuf_sz;
->         /*flags for irq sharing, default is non-shared*/
->         unsigned flags;
-> +       /*device base request line*/
-
-Spaces and capital letters. Keep one style.
-
-> +       unsigned short base_request_line;
-> +       /*device request line range*/
-
-Ditto.
-
-> +       unsigned short num;
->  };
->
->  extern bool pl330_filter(struct dma_chan *chan, void *param);
-> --
-> 1.9.1
+> and=E2=80=A6
 >
 
+Yes, I think this change. I'll put this in the V4, and send out soon.
 
-
--- 
-With Best Regards,
-Andy Shevchenko
+Suravee
