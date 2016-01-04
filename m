@@ -1,36 +1,310 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 00/42] ACPICA: 20151218 Release
-Date: Mon, 04 Jan 2016 14:16:43 +0100
-Message-ID: <17293424.TNTMLZyvxc@vostro.rjw.lan>
-References: <cover.1451367388.git.lv.zheng@intel.com> <alpine.DEB.2.02.1601022243520.20790@nftneq.ynat.uz> <1AE640813FDE7649BE1B193DEA596E883BB1A94A@SHSMSX101.ccr.corp.intel.com>
+Subject: Re: [PATCH] ACPICA: Drop Linux-specific waking vector functions
+Date: Mon, 04 Jan 2016 14:28:29 +0100
+Message-ID: <2309714.2Ul7Wnc4sH@vostro.rjw.lan>
+References: <1672897.3KviH2SFad@vostro.rjw.lan> <1AE640813FDE7649BE1B193DEA596E883BB1AB15@SHSMSX101.ccr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1AE640813FDE7649BE1B193DEA596E883BB1A94A@SHSMSX101.ccr.corp.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Zheng, Lv" <lv.zheng@intel.com>, David Lang <david@lang.hm>
-Cc: "Wysocki, Rafael J" <rafael.j.wysocki@intel.com>, "Brown, Len" <len.brown@intel.com>, Lv Zheng <zetalog@gmail.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:43549 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751522AbcADM5w (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Jan 2016 07:57:52 -0500
+In-Reply-To: <1AE640813FDE7649BE1B193DEA596E883BB1AB15@SHSMSX101.ccr.corp.intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Zheng, Lv" <lv.zheng@intel.com>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "Moore, Robert" <robert.moore@intel.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Monday, January 04, 2016 02:27:43 AM Zheng, Lv wrote:
-> Hi,
+On Monday, January 04, 2016 07:33:55 AM Zheng, Lv wrote:
+> Hi, Rafael
 > 
-> > From: David Lang [mailto:david@lang.hm]
-> > Sent: Sunday, January 3, 2016 2:45 PM
-> > 
-> > what is ACPICA and why should we care about divergence between it and the
-> > linux
-> > upstream? Where is it to be found?
-> [Lv Zheng] 
-> You can find ACPICA at: https://acpica.org.
-> Source code of ACPICA can be found at: https://github.com/acpica/acpica/
+> Acke-by: Lv Zheng <lv.zheng@intel.com>
+> 
+> One more improvement is:
+> After applying this patch, I can still detect the following diff blocks using ACPICA's divergence checking utility:
+> diff -E -b -w -B -rpuN linux-acpica/drivers/acpi/acpica/hwxfsleep.c acpica-linuxized/drivers/acpi/acpica/hwxfsleep.c
+> --- linux-acpica/drivers/acpi/acpica/hwxfsleep.c	2016-01-04 15:16:31.000000000 +0800
+> +++ acpica-linuxized/drivers/acpi/acpica/hwxfsleep.c	2016-01-04 15:17:19.000000000 +0800
+> @@ -90,9 +90,9 @@ static struct acpi_sleep_functions acpi_
+>   *
+>   * PARAMETERS:  facs                - Pointer to FACS table
+>   *              physical_address    - 32-bit physical address of ACPI real mode
+> - *                                    entry point.
+> + *                                    entry point
+>   *              physical_address64  - 64-bit physical address of ACPI protected
+> - *                                    mode entry point.
+> + *                                    entry point
+>   *
+>   * RETURN:      Status
+>   *
+> @@ -141,9 +140,9 @@ acpi_hw_set_firmware_waking_vector(struc
+>   * FUNCTION:    acpi_set_firmware_waking_vector
+>   *
+>   * PARAMETERS:  physical_address    - 32-bit physical address of ACPI real mode
+> - *                                    entry point.
+> + *                                    entry point
+>   *              physical_address64  - 64-bit physical address of ACPI protected
+> - *                                    mode entry point.
+> + *                                    entry point
+>   *
+>   * RETURN:      Status
+>   *
+> This seems to be added recently in ACPICA upstream.
+> Hope you can help to reduce this in the same patch.
+> Thanks in advance.
 
-Also, there is an ACPICA entry in MAINTAINERS with links to various places
-where more information can be found.
+So the periods seem to have gone away, right?
 
-That said it is a good idea to document the release process under
-Documentation/acpi/.
+OK, what about the following one?
 
-Thanks,
-Rafael
+---
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Subject: [PATCH] ACPICA: Drop Linux-specific waking vector functions
+
+Commit f06147f9fbf1 (ACPICA: Hardware: Enable firmware waking vector
+for both 32-bit and 64-bit FACS) added three functions that aren't
+present in upstream ACPICA, acpi_hw_set_firmware_waking_vectors(),
+acpi_set_firmware_waking_vectors() and acpi_set_firmware_waking_vector64(),
+to allow Linux to use the previously existing API for setting the
+platform firmware waking vector.
+
+However, that wasn't necessary, since the ACPI sleep support code
+in Linux can be modified to use the upstream ACPICA's API easily
+and the additional functions may be dropped which reduces the code
+size and puts the kernel's ACPICA code more in line with the upstream.
+
+Make the changes as per the above.  While at it, make the relevant
+function desctiption comments reflect the upstream ACPICA's ones.
+
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Acked-by: Lv Zheng <lv.zheng@intel.com>
+---
+ drivers/acpi/acpica/hwxfsleep.c |   96 +++++++---------------------------------
+ drivers/acpi/sleep.c            |    4 -
+ drivers/acpi/sleep.h            |    6 ++
+ include/acpi/acpixf.h           |   10 ----
+ 4 files changed, 28 insertions(+), 88 deletions(-)
+
+Index: linux-pm/drivers/acpi/acpica/hwxfsleep.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/acpica/hwxfsleep.c
++++ linux-pm/drivers/acpi/acpica/hwxfsleep.c
+@@ -52,9 +52,9 @@ ACPI_MODULE_NAME("hwxfsleep")
+ /* Local prototypes */
+ #if (!ACPI_REDUCED_HARDWARE)
+ static acpi_status
+-acpi_hw_set_firmware_waking_vectors(struct acpi_table_facs *facs,
+-				    acpi_physical_address physical_address,
+-				    acpi_physical_address physical_address64);
++acpi_hw_set_firmware_waking_vector(struct acpi_table_facs *facs,
++				   acpi_physical_address physical_address,
++				   acpi_physical_address physical_address64);
+ #endif
+ 
+ static acpi_status acpi_hw_sleep_dispatch(u8 sleep_state, u32 function_id);
+@@ -79,22 +79,20 @@ static struct acpi_sleep_functions acpi_
+ 
+ /*
+  * These functions are removed for the ACPI_REDUCED_HARDWARE case:
+- *      acpi_set_firmware_waking_vectors
+  *      acpi_set_firmware_waking_vector
+- *      acpi_set_firmware_waking_vector64
+  *      acpi_enter_sleep_state_s4bios
+  */
+ 
+ #if (!ACPI_REDUCED_HARDWARE)
+ /*******************************************************************************
+  *
+- * FUNCTION:    acpi_hw_set_firmware_waking_vectors
++ * FUNCTION:    acpi_hw_set_firmware_waking_vector
+  *
+  * PARAMETERS:  facs                - Pointer to FACS table
+  *              physical_address    - 32-bit physical address of ACPI real mode
+- *                                    entry point.
++ *                                    entry point
+  *              physical_address64  - 64-bit physical address of ACPI protected
+- *                                    mode entry point.
++ *                                    mode entry point
+  *
+  * RETURN:      Status
+  *
+@@ -103,11 +101,11 @@ static struct acpi_sleep_functions acpi_
+  ******************************************************************************/
+ 
+ static acpi_status
+-acpi_hw_set_firmware_waking_vectors(struct acpi_table_facs *facs,
+-				    acpi_physical_address physical_address,
+-				    acpi_physical_address physical_address64)
++acpi_hw_set_firmware_waking_vector(struct acpi_table_facs *facs,
++				   acpi_physical_address physical_address,
++				   acpi_physical_address physical_address64)
+ {
+-	ACPI_FUNCTION_TRACE(acpi_hw_set_firmware_waking_vectors);
++	ACPI_FUNCTION_TRACE(acpi_hw_set_firmware_waking_vector);
+ 
+ 
+ 	/*
+@@ -140,12 +138,12 @@ acpi_hw_set_firmware_waking_vectors(stru
+ 
+ /*******************************************************************************
+  *
+- * FUNCTION:    acpi_set_firmware_waking_vectors
++ * FUNCTION:    acpi_set_firmware_waking_vector
+  *
+  * PARAMETERS:  physical_address    - 32-bit physical address of ACPI real mode
+- *                                    entry point.
++ *                                    entry point
+  *              physical_address64  - 64-bit physical address of ACPI protected
+- *                                    mode entry point.
++ *                                    mode entry point
+  *
+  * RETURN:      Status
+  *
+@@ -154,79 +152,23 @@ acpi_hw_set_firmware_waking_vectors(stru
+  ******************************************************************************/
+ 
+ acpi_status
+-acpi_set_firmware_waking_vectors(acpi_physical_address physical_address,
+-				 acpi_physical_address physical_address64)
++acpi_set_firmware_waking_vector(acpi_physical_address physical_address,
++				acpi_physical_address physical_address64)
+ {
+ 
+-	ACPI_FUNCTION_TRACE(acpi_set_firmware_waking_vectors);
++	ACPI_FUNCTION_TRACE(acpi_set_firmware_waking_vector);
+ 
+ 	if (acpi_gbl_FACS) {
+-		(void)acpi_hw_set_firmware_waking_vectors(acpi_gbl_FACS,
+-							  physical_address,
+-							  physical_address64);
++		(void)acpi_hw_set_firmware_waking_vector(acpi_gbl_FACS,
++							 physical_address,
++							 physical_address64);
+ 	}
+ 
+ 	return_ACPI_STATUS(AE_OK);
+ }
+ 
+-ACPI_EXPORT_SYMBOL(acpi_set_firmware_waking_vectors)
+-
+-/*******************************************************************************
+- *
+- * FUNCTION:    acpi_set_firmware_waking_vector
+- *
+- * PARAMETERS:  physical_address    - 32-bit physical address of ACPI real mode
+- *                                    entry point.
+- *
+- * RETURN:      Status
+- *
+- * DESCRIPTION: Sets the 32-bit firmware_waking_vector field of the FACS
+- *
+- ******************************************************************************/
+-acpi_status acpi_set_firmware_waking_vector(u32 physical_address)
+-{
+-	acpi_status status;
+-
+-	ACPI_FUNCTION_TRACE(acpi_set_firmware_waking_vector);
+-
+-	status = acpi_set_firmware_waking_vectors((acpi_physical_address)
+-						  physical_address, 0);
+-
+-	return_ACPI_STATUS(status);
+-}
+-
+ ACPI_EXPORT_SYMBOL(acpi_set_firmware_waking_vector)
+ 
+-#if ACPI_MACHINE_WIDTH == 64
+-/*******************************************************************************
+- *
+- * FUNCTION:    acpi_set_firmware_waking_vector64
+- *
+- * PARAMETERS:  physical_address    - 64-bit physical address of ACPI protected
+- *                                    mode entry point.
+- *
+- * RETURN:      Status
+- *
+- * DESCRIPTION: Sets the 64-bit X_firmware_waking_vector field of the FACS, if
+- *              it exists in the table. This function is intended for use with
+- *              64-bit host operating systems.
+- *
+- ******************************************************************************/
+-acpi_status acpi_set_firmware_waking_vector64(u64 physical_address)
+-{
+-	acpi_status status;
+-
+-	ACPI_FUNCTION_TRACE(acpi_set_firmware_waking_vector64);
+-
+-	status = acpi_set_firmware_waking_vectors(0,
+-						  (acpi_physical_address)
+-						  physical_address);
+-
+-	return_ACPI_STATUS(status);
+-}
+-
+-ACPI_EXPORT_SYMBOL(acpi_set_firmware_waking_vector64)
+-#endif
+ /*******************************************************************************
+  *
+  * FUNCTION:    acpi_enter_sleep_state_s4bios
+Index: linux-pm/include/acpi/acpixf.h
+===================================================================
+--- linux-pm.orig/include/acpi/acpixf.h
++++ linux-pm/include/acpi/acpixf.h
+@@ -863,17 +863,9 @@ ACPI_EXTERNAL_RETURN_STATUS(acpi_status
+ ACPI_EXTERNAL_RETURN_STATUS(acpi_status acpi_leave_sleep_state(u8 sleep_state))
+ 
+ ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status
+-				acpi_set_firmware_waking_vectors
++				acpi_set_firmware_waking_vector
+ 				(acpi_physical_address physical_address,
+ 				 acpi_physical_address physical_address64))
+-ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status
+-				 acpi_set_firmware_waking_vector(u32
+-								 physical_address))
+-#if ACPI_MACHINE_WIDTH == 64
+-ACPI_HW_DEPENDENT_RETURN_STATUS(acpi_status
+-				acpi_set_firmware_waking_vector64(u64
+-								  physical_address))
+-#endif
+ /*
+  * ACPI Timer interfaces
+  */
+Index: linux-pm/drivers/acpi/sleep.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/sleep.c
++++ linux-pm/drivers/acpi/sleep.c
+@@ -61,7 +61,7 @@ static int acpi_sleep_prepare(u32 acpi_s
+ 	if (acpi_state == ACPI_STATE_S3) {
+ 		if (!acpi_wakeup_address)
+ 			return -EFAULT;
+-		acpi_set_firmware_waking_vector(acpi_wakeup_address);
++		acpi_set_waking_vector(acpi_wakeup_address);
+ 
+ 	}
+ 	ACPI_FLUSH_CPU_CACHE();
+@@ -410,7 +410,7 @@ static void acpi_pm_finish(void)
+ 	acpi_leave_sleep_state(acpi_state);
+ 
+ 	/* reset firmware waking vector */
+-	acpi_set_firmware_waking_vector((acpi_physical_address) 0);
++	acpi_set_waking_vector(0);
+ 
+ 	acpi_target_sleep_state = ACPI_STATE_S0;
+ 
+Index: linux-pm/drivers/acpi/sleep.h
+===================================================================
+--- linux-pm.orig/drivers/acpi/sleep.h
++++ linux-pm/drivers/acpi/sleep.h
+@@ -6,3 +6,9 @@ extern struct list_head acpi_wakeup_devi
+ extern struct mutex acpi_device_lock;
+ 
+ extern void acpi_resume_power_resources(void);
++
++static inline acpi_status acpi_set_waking_vector(u32 wakeup_address)
++{
++	return acpi_set_firmware_waking_vector(
++				(acpi_physical_address)wakeup_address, 0);
++}
+
