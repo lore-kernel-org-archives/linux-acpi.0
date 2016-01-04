@@ -1,106 +1,48 @@
-From: Sedat Dilek <sedat.dilek@gmail.com>
-Subject: Re: Thoughts about introducing OPTIMIZATION_CFLAG
-Date: Mon, 4 Jan 2016 12:47:42 +0100
-Message-ID: <CA+icZUUAoG0VeY06r_=c7aNGbuSkHp5VRHNSB=bQGTiTHShGtQ@mail.gmail.com>
-References: <CA+icZUVEs_+XiWeqtJ+34HBSx5LJYyEgoo2DLFzVr6yc9oxx2Q@mail.gmail.com>
-	<20160104113318.700a9ed0@lxorguk.ukuu.org.uk>
-Reply-To: sedat.dilek@gmail.com
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [HP Compaq 6715s] Updating kernel renders system unbootable
+Date: Mon, 04 Jan 2016 14:12:47 +0100
+Message-ID: <2361922.kuCIB6L7YG@vostro.rjw.lan>
+References: <CAHii-dEo0D9QkmpXaQoz-XKai8omx_TrGgHcmk3t7AwE8+DZ8Q@mail.gmail.com> <CAHii-dGm27WvZ1iCU-4P6v8SmqZMGKQECmjMA2Yhq2rSCydqWw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kbuild-owner@vger.kernel.org>
-In-Reply-To: <20160104113318.700a9ed0@lxorguk.ukuu.org.uk>
-Sender: linux-kbuild-owner@vger.kernel.org
-To: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>, Andrew Morton <akpm@linux-foundation.org>, Michal Marek <mmarek@suse.cz>, Sam Ravnborg <sam@ravnborg.org>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, Arnd Bergmann <arnd@arndb.de>, Ingo Molnar <mingo@redhat.com>, linux-kbuild@vger.kernel.org, Linux ACPI <linux-acpi@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>, the arch/x86 maintainers <x86@kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:58964 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752476AbcADMmJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Jan 2016 07:42:09 -0500
+In-Reply-To: <CAHii-dGm27WvZ1iCU-4P6v8SmqZMGKQECmjMA2Yhq2rSCydqWw@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Olle Englund <realdiskdoc@gmail.com>
+Cc: lv.zheng@intel.com, rafael.j.wysocki@intel.com, robert.moore@intel.com, linux-acpi@vger.kernel.org
 
-On Mon, Jan 4, 2016 at 12:33 PM, One Thousand Gnomes
-<gnomes@lxorguk.ukuu.org.uk> wrote:
->> As said... I checked only for x86 and acpi only.
->>
->> For example '-Os' is hardcoded in...
->>
->> arch/x86/Makefile
->> arch/x86/purgatory/Makefile
->>
->> drivers/acpi/Makefile
->> drivers/acpi/acpica/Makefile
->>
->> For acpi part we have currently both used '-O2' and '-Os' ('-Oz' for
->> llvmlinux) in approx 200 make-lines.
->
-> Certain parts of the kernel are built in particular ways for specific
-> reasons where the tradeoffs vary, or where people happen to know that -Os
-> is the best choice with gcc. Of course those may not be the same trade
-> offs for llvm.
->
->>
->> $ grep '\-O2' build-log_4.4.0-rc8-2-llvmlinux-amd64.txt | grep acpi | wc -l
->> 226
->> $ grep '\-Oz' build-log_4.4.0-rc8-2-llvmlinux-amd64.txt | grep acpi |
->> grep '\-O2' | wc -l
->> 200
->>
->> So, which optimization-cflags is now used if I have both in one
->> make-line (and how can I check this)?
->
-> Consult the documentation for your compiler. GCC has an 810 page manual
-> that answers your question quite specifically
->
->   "If you use multiple -O options with or without level numbers, the last
->    such option is the one that is effective"
->
->
-> Don't assume they are contradictory options either. If you have other
-> optimnisations directly set then if those are after it they will take
-> effect
->
-> eg -Os -fprefetch-loop-arrays
->
-> is quite valid.
->
-> The GCC manual lists each optimisation it supports and documents exactly
-> which ones are enabled for each option. From that you should be able to
-> match them up with llvm.
->
->> How can I switch a optimization-cflags for certain code-parts in the
->> Linux-kernel (with or without the kbuild-system)?
->> ( So the default optimization-cflags is '-O2' whereas parts wants '-Os'. )
->
-> Not sure I follow - that's exactly what the current Makefiles are doing.
->
->> What to do when using CONFIG_CC_OPTIMIZE_FOR_SIZE=y which sets '-Os' explicitly?
->
-> That's something you'd need to work out as you regression test and profile
-> the codebase. A first guess would be to echo what gcc does but deal with
-> the unfortunate option difference between llvm and gcc.
->
-> It may also depend what "optimising for size" means to llvm. Some
-> compilers take it as a hint to favour smaller but still fast code, others
-> take it as an instruction to generate very tight but way slower code.
-> That will change which bits need which options.
->
+On Monday, January 04, 2016 01:51:16 AM Olle Englund wrote:
+> [1] Summary
+> 
+> [HP Compaq 6715s] Updating kernel renders system unbootable
+> 
+> [2] Description
+> 
+> On 4.4.0-040400rc7:
+> 
+> - Message about loading image.
+> - Screen goes black.
+> - Fan goes to full speed.
+> - HD light lit for about 15 seconds or so, then goes dark.
+> 
+> Disect:
 
-Thanks for your reply.
+Bisect?
 
-But I think you did not get my problem - to have two different
-optimization-levels for a compiler in *one* make-line makes no sense
-to me.
+> between 3.19.0-25.26 and 3.19.0-26.27 in the Ubuntu kernel tree:
+> 
+> commit 19114b5458510b757cd2801e64094e4062e4067f
 
-So, the kbuild-system adds optimization compiler-flags automatically -
-see the upper/root Makefile.
-Sort of "inheritance".
+This isn't a mainline kernel commit, so it looks like a backport.
 
-My question is how to set *one* optimization-level for whatever
-compiler I use to build my Linux-kernel source.
+Are you able to reproduce the problem with the mainline kernel?
 
--O1 || -O2 || -O3 || -O4 || -Os ('1..4' and 's' are so-called "optlevels")
+Thanks,
+Rafael
 
-It's still not clear if my problem is a compiler bug or not (see [1]
-for the details).
-
-Now a bit clearer?
-
-- Sedat -
-
-[1] http://marc.info/?t=144179442100006&r=1&w=1
