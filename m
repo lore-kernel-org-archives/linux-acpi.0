@@ -1,80 +1,76 @@
 From: Vitaly Kuznetsov <vkuznets@redhat.com>
-Subject: [PATCH v2 2/2] memory-hotplug: keep the request_resource() error code
-Date: Mon,  4 Jan 2016 17:17:31 +0100
-Message-ID: <1451924251-4189-3-git-send-email-vkuznets@redhat.com>
+Subject: [PATCH v2 1/2] memory-hotplug: don't BUG() in register_memory_resource()
+Date: Mon,  4 Jan 2016 17:17:30 +0100
+Message-ID: <1451924251-4189-2-git-send-email-vkuznets@redhat.com>
 References: <1451924251-4189-1-git-send-email-vkuznets@redhat.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <owner-linux-mm@kvack.org>
 In-Reply-To: <1451924251-4189-1-git-send-email-vkuznets@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: owner-linux-mm@kvack.org
 To: linux-mm@kvack.org
-Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, David Rientjes <rientjes@google.com>, Tang Chen <tangchen@cn.fujitsu.com>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, Dan Williams <dan.j.williams@intel.com>, David Vrabel <david.vrabel@citrix.com>, Igor Mammedov <imammedo@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, David Rientjes <rientjes@google.com>, Tang Chen <tangchen@cn.fujitsu.com>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, Xishi Qiu <qiuxishi@huawei.com>, Sheng Yong <shengyong1@huawei.com>, Zhu Guihua <zhugh.fnst@cn.fujitsu.com>, Dan Williams <dan.j.williams@intel.com>, David Vrabel <david.vrabel@citrix.com>, Igor Mammedov <imammedo@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Don't overwrite the request_resource() return value with -EEXIST in
-register_memory_resource(), just propagate the return value. As we return
--EBUSY instead of -EEXIST when the desired resource is already occupied
-now we need to adapt acpi_memory_enable_device(). -EBUSY is currently the
-only possible error returned by request_resource() so this is just a
-cleanup, no functional changes intended.
+Out of memory condition is not a bug and while we can't add new memory in
+such case crashing the system seems wrong. Propagating the return value
+from register_memory_resource() requires interface change.
 
+Signed-off-by: Vitaly Kuznetsov <vkuznets@redhat.com>
 Cc: Andrew Morton <akpm@linux-foundation.org>
 Cc: David Rientjes <rientjes@google.com>
 Cc: Tang Chen <tangchen@cn.fujitsu.com>
 Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
+Cc: Sheng Yong <shengyong1@huawei.com>
+Cc: Zhu Guihua <zhugh.fnst@cn.fujitsu.com>
 Cc: Dan Williams <dan.j.williams@intel.com>
 Cc: David Vrabel <david.vrabel@citrix.com>
 Cc: Igor Mammedov <imammedo@redhat.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Len Brown <lenb@kernel.org>
-Suggested-by: Andrew Morton <akpm@linux-foundation.org>
-Signed-off-by: Vitaly Kuznetsov <vkuznets@redhat.com>
 ---
- drivers/acpi/acpi_memhotplug.c | 4 ++--
- mm/memory_hotplug.c            | 6 ++++--
- 2 files changed, 6 insertions(+), 4 deletions(-)
+Changes since v1:
+- Use ERR_PTR/PTR_ERR/IS_ERR() [David Rientjes]
+---
+ mm/memory_hotplug.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-index 6b0d3ef..e367e4b 100644
---- a/drivers/acpi/acpi_memhotplug.c
-+++ b/drivers/acpi/acpi_memhotplug.c
-@@ -232,10 +232,10 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
- 
- 		/*
- 		 * If the memory block has been used by the kernel, add_memory()
--		 * returns -EEXIST. If add_memory() returns the other error, it
-+		 * returns -EBUSY. If add_memory() returns the other error, it
- 		 * means that this memory block is not used by the kernel.
- 		 */
--		if (result && result != -EEXIST)
-+		if (result && result != -EBUSY)
- 			continue;
- 
- 		result = acpi_bind_memory_blocks(info, mem_device->device);
 diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index 92f9595..07eab2c 100644
+index a042a9d..92f9595 100644
 --- a/mm/memory_hotplug.c
 +++ b/mm/memory_hotplug.c
-@@ -130,6 +130,7 @@ void mem_hotplug_done(void)
- static struct resource *register_memory_resource(u64 start, u64 size)
+@@ -131,7 +131,8 @@ static struct resource *register_memory_resource(u64 start, u64 size)
  {
  	struct resource *res;
-+	int ret;
  	res = kzalloc(sizeof(struct resource), GFP_KERNEL);
- 	if (!res)
- 		return ERR_PTR(-ENOMEM);
-@@ -138,10 +139,11 @@ static struct resource *register_memory_resource(u64 start, u64 size)
+-	BUG_ON(!res);
++	if (!res)
++		return ERR_PTR(-ENOMEM);
+ 
+ 	res->name = "System RAM";
  	res->start = start;
- 	res->end = start + size - 1;
- 	res->flags = IORESOURCE_MEM | IORESOURCE_BUSY;
--	if (request_resource(&iomem_resource, res) < 0) {
-+	ret = request_resource(&iomem_resource, res);
-+	if (ret < 0) {
+@@ -140,7 +141,7 @@ static struct resource *register_memory_resource(u64 start, u64 size)
+ 	if (request_resource(&iomem_resource, res) < 0) {
  		pr_debug("System RAM resource %pR cannot be added\n", res);
  		kfree(res);
--		return ERR_PTR(-EEXIST);
-+		return ERR_PTR(ret);
+-		res = NULL;
++		return ERR_PTR(-EEXIST);
  	}
  	return res;
  }
+@@ -1312,8 +1313,8 @@ int __ref add_memory(int nid, u64 start, u64 size)
+ 	int ret;
+ 
+ 	res = register_memory_resource(start, size);
+-	if (!res)
+-		return -EEXIST;
++	if (IS_ERR(res))
++		return PTR_ERR(res);
+ 
+ 	ret = add_memory_resource(nid, res);
+ 	if (ret < 0)
 -- 
 2.4.3
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
