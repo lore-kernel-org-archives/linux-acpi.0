@@ -1,90 +1,118 @@
-From: Laura Abbott <labbott@redhat.com>
-Subject: Re: [PATCH v2 00/16] intel-lpss: support non-ACPI platforms
-Date: Tue, 5 Jan 2016 09:57:35 -0800
-Message-ID: <568C040F.2070000@redhat.com>
-References: <1448896304-87928-1-git-send-email-andriy.shevchenko@linux.intel.com>
- <1488447.PO5a3v7KWa@vostro.rjw.lan>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <1488447.PO5a3v7KWa@vostro.rjw.lan>
-Sender: linux-i2c-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Kevin Fenzi <kevin@scrye.com>, Arnd Bergmann <arnd@arndb.de>, Wolfram Sang <wsa@the-dreams.de>
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: [PATCH v3 00/17] Enhance iomem search interfaces and support EINJ to NVDIMM
+Date: Tue,  5 Jan 2016 11:54:28 -0700
+Message-ID: <1452020068-26492-1-git-send-email-toshi.kani@hpe.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g9t5009.houston.hp.com ([15.240.92.67]:43307 "EHLO
+	g9t5009.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751669AbcAESzJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Jan 2016 13:55:09 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: akpm@linux-foundation.org, bp@alien8.de
+Cc: torvalds@linux-foundation.org, rafael.j.wysocki@intel.com, dan.j.williams@intel.com, dyoung@redhat.com, x86@kernel.org, linux-ia64@vger.kernel.org, linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org, kexec@lists.infradead.org, xen-devel@lists.xenproject.org, linux-samsung-soc@vger.kernel.org, linux-arch@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On 12/06/2015 05:44 PM, Rafael J. Wysocki wrote:
-> On Monday, November 30, 2015 05:11:28 PM Andy Shevchenko wrote:
->> This series includes few logical sets that bring a support of non-ACPI
->> platforms for Intel Skylake.
->>
->> First part is a refactoring of built-in device properties support:
->> - keep single value inside the structure
->> - provide helper macros to define built-in properties
->> - fall back to secondary fwnode if primary has no asked property
->>
->> Second is a propagating built-in device properties in platform core.
->>
->> Third one is modifications to MFD code and intel-lpss.c driver in particular
->> to define and pass built-in properties to the individual drivers.
->>
->> And last part is a fix for I2C bug found on Lenovo Yoga hardware and a first
->> converted user.
->>
->> Built-in device properties is an alternative to platform data. It provides a
->> unified API that drivers can use to cover all cases at once: DT, ACPI, and
->> built-in properties.
->>
->> With this series applied a platform data can be considered obsolete. Moreover,
->> built-in device properties allow to adjust the existing configuration, for
->> example, in cases when ACPI values are wrong on some platforms.
->>
->> The series has been tested on available hardware and doesn't break current
->> behaviour. But we ask people who have the affected hardware to apply the series
->> on your side and check with Lenovo hardware.
->>
->> Changelog v2:
->> - fix isuues found by kbuild bot (kbuild)
->> - append a patch to propagate device properties in polatform code (Arnd)
->> - update few existing and add couple of new patches due to above
->> - check with kmemleak
->>
->> Andy Shevchenko (9):
->>    device property: always check for fwnode type
->>    device property: rename helper functions
->>    device property: refactor built-in properties support
->>    device property: keep single value inplace
->>    device property: improve readability of macros
->>    device property: return -EINVAL when property isn't found in ACPI
->>    device property: Fallback to secondary fwnode if primary misses the
->>      property
->>    mfd: core: propagate device properties to sub devices drivers
->>    mfd: intel-lpss: Pass HSUART configuration via properties
->>
->> Heikki Krogerus (1):
->>    device property: helper macros for property entry creation
->>
->> Mika Westerberg (6):
->>    device property: Take a copy of the property set
->>    driver core: platform: Add support for built-in device properties
->>    driver core: Do not overwrite secondary fwnode with NULL if it is set
->>    mfd: intel-lpss: Add support for passing device properties
->>    mfd: intel-lpss: Pass SDA hold time to I2C host controller driver
->>    i2c: designware: Convert to use unified device property API
->
-> I'm going to queue up this series for v4.5.
->
-> If there are any problems with it or objections from anyone, please let me know.
->
+This patch-set enhances the iomem table and its search interfacs, and
+then changes EINJ to support NVDIMM.
 
+ - Patches 1-2 add a new System RAM type, IORESOURCE_SYSTEM_RAM, and
+   make the iomem search interfaces work with resource flags with
+   modifier bits set.  IORESOURCE_SYSTEM_RAM has IORESOURCE_MEM bit set
+   for backward compatibility.
 
-Raising an old thread, I pulled this series into Fedora rawhide and
-while it worked for Lenovo Yoga we received a report that it caused
-a regression on the Dell Inspiron 7559 (see
-https://bugzilla.redhat.com/show_bug.cgi?id=1275718#c27) . I haven't
-asked the reporter about bisecting to see which patch broke it.
-Were there any known follow up patches?
+ - Patch 3 adds a new field, I/O resource descriptor, into struct resource.
+   Drivers can assign their unique descritor to a range when they support
+   the iomem search interfaces.
 
-Thanks,
-Laura
+ - Patches 4-9 changes initializations of resource entries.  They set
+   the System RAM type to System RAM ranges, set I/O resource descriptors
+   to the regions targeted by the iomem search interfaces, and change
+   to call kzalloc() where kmalloc() is used to allocate struct resource
+   ranges.
+
+ - Patches 10-14 extend the iomem interfaces to check System RAM ranges
+   with the System RAM type and the I/O resource descriptor.
+
+ - Patch 15-16 remove deprecated walk_iomem_res().
+
+ - Patch 17 changes the EINJ driver to allow injecting a memory error
+   to NVDIMM.
+
+---
+v3:
+ - Remove the walk_iomem_res() call with "GART" in crash.c since it is
+   no longer needed. Then kill walk_iomem_res(). (Borislav Petkov,
+   Dave Young)
+ - Change to use crashk_res.desc at the walk_iomem_res_desc() call in
+   kexec_add_buffer(). (Minfei Huang)
+
+v2:
+ - Add 'desc' to struct resource, and add a new iomem interface to
+   search with the desc. (Borislav Petkov)
+ - Add a check to checkpatch.pl to warn on new use of walk_iomem_res().
+   (Borislav Petkov)
+
+v1:
+ - Searching for System RAM in the resource table should not require
+   strcmp(). (Borislav Petkov)
+ - Add a new System RAM type as a modifier to IORESOURCE_MEM.
+   (Linus Torvalds)
+ - NVDIMM check needs to be able to distinguish legacy and NFIT pmem
+   ranges. (Dan Williams)
+
+---
+Toshi Kani (17):
+ 01/17 resource: Add System RAM resource type
+ 02/17 resource: make resource flags handled properly
+ 03/17 resource: Add I/O resource descriptor
+ 04/17 x86/e820: Set System RAM type and descriptor
+ 05/17 ia64: Set System RAM type and descriptor
+ 06/17 arch: Set IORESOURCE_SYSTEM_RAM to System RAM
+ 07/17 kexec: Set IORESOURCE_SYSTEM_RAM to System RAM
+ 08/17 xen, mm: Set IORESOURCE_SYSTEM_RAM to System RAM
+ 09/17 drivers: Initialize resource entry to zero
+ 10/17 resource: Change walk_system_ram to use System RAM type
+ 11/17 arm/samsung: Change s3c_pm_run_res() to use System RAM type
+ 12/17 memremap: Change region_intersects() to take @flags and @desc
+ 13/17 resource: Add walk_iomem_res_desc()
+ 14/17 x86,nvdimm,kexec: Use walk_iomem_res_desc() for iomem search
+ 15/17 x86/kexec: Remove walk_iomem_res() call with GART
+ 16/17 resource: Kill walk_iomem_res()
+ 17/17 ACPI/EINJ: Allow memory error injection to NVDIMM
+
+---
+ arch/arm/kernel/setup.c            |  6 +--
+ arch/arm/plat-samsung/pm-check.c   |  4 +-
+ arch/arm64/kernel/setup.c          |  6 +--
+ arch/avr32/kernel/setup.c          |  6 +--
+ arch/ia64/kernel/efi.c             | 13 ++++--
+ arch/ia64/kernel/setup.c           |  6 +--
+ arch/m32r/kernel/setup.c           |  4 +-
+ arch/mips/kernel/setup.c           | 10 +++--
+ arch/parisc/mm/init.c              |  6 +--
+ arch/powerpc/mm/mem.c              |  2 +-
+ arch/s390/kernel/setup.c           |  8 ++--
+ arch/score/kernel/setup.c          |  2 +-
+ arch/sh/kernel/setup.c             |  8 ++--
+ arch/sparc/mm/init_64.c            |  8 ++--
+ arch/tile/kernel/setup.c           | 11 +++--
+ arch/unicore32/kernel/setup.c      |  6 +--
+ arch/x86/kernel/crash.c            | 41 ++-----------------
+ arch/x86/kernel/e820.c             | 38 ++++++++++++++++-
+ arch/x86/kernel/pmem.c             |  4 +-
+ arch/x86/kernel/setup.c            |  6 +--
+ drivers/acpi/acpi_platform.c       |  2 +-
+ drivers/acpi/apei/einj.c           | 15 +++++--
+ drivers/nvdimm/e820.c              |  2 +-
+ drivers/parisc/eisa_enumerator.c   |  4 +-
+ drivers/rapidio/rio.c              |  8 ++--
+ drivers/sh/superhyway/superhyway.c |  2 +-
+ drivers/xen/balloon.c              |  2 +-
+ include/linux/ioport.h             | 33 ++++++++++++++-
+ include/linux/mm.h                 |  3 +-
+ kernel/kexec_core.c                |  8 ++--
+ kernel/kexec_file.c                |  8 ++--
+ kernel/memremap.c                  | 13 +++---
+ kernel/resource.c                  | 83 ++++++++++++++++++++++----------------
+ mm/memory_hotplug.c                |  2 +-
+ 34 files changed, 225 insertions(+), 155 deletions(-)
