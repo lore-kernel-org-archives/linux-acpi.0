@@ -1,42 +1,44 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v11 0/4] Allow USB devices to remain runtime-suspended when sleeping
-Date: Tue, 05 Jan 2016 13:48:26 +0100
-Message-ID: <1791136.5K3qHuXCRE@vostro.rjw.lan>
-References: <1445956731-6304-1-git-send-email-tomeu.vizoso@collabora.com> <2496228.i2Z9PmMBtz@vostro.rjw.lan> <20160105021052.GA32392@google.com>
+Subject: Re: [PATCH] ACPI / video: driver must be registered before checking for keypresses
+Date: Tue, 05 Jan 2016 13:51:17 +0100
+Message-ID: <5472545.fTVKdflT9H@vostro.rjw.lan>
+References: <1451946148-24948-1-git-send-email-adrien+dev@schischi.me> <568BAC7A.5040907@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <20160105021052.GA32392@google.com>
-Sender: linux-pm-owner@vger.kernel.org
-To: Derek Basehore <dbasehore@chromium.org>
-Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>, Len Brown <len.brown@intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, Russell King <linux@arm.linux.org.uk>, martyn.welch@collabora.co.uk, linux-pm@vger.kernel.org, David Airlie <airlied@linux.ie>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Alan Stern <stern@rowland.harvard.edu>, Pavel Machek <pavel@ucw.cz>, Tomas Winkler <tomas.winkler@intel.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@kernel.org>, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>, djkurtz@chromium.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <568BAC7A.5040907@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Adrien Schildknecht <adrien+dev@schischi.me>, rui.zhang@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Pali =?ISO-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, jmmahler@gmail.com, ibm-acpi@hmh.eng.br
 List-Id: linux-acpi@vger.kernel.org
 
-On Monday, January 04, 2016 06:27:18 PM Derek Basehore wrote:
-> On Mon, Nov 02, 2015 at 02:50:40AM +0100, Rafael J. Wysocki wrote:
-> > 
-> > I've queued up this series for the second half of the v4.4 merge window.
-> > 
-> > Thanks,
-> > Rafael
-> > 
-> > 
-> > _______________________________________________
-> > linux-arm-kernel mailing list
-> > linux-arm-kernel@lists.infradead.org
-> > http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+On Tuesday, January 05, 2016 12:43:54 PM Hans de Goede wrote:
+> Hi,
 > 
-> What's the status of this patch series? I haven't seen the patches
-> posted for v4.4, plus there's the issue that Dan found that needs to be
-> addressed.
+> On 04-01-16 23:22, Adrien Schildknecht wrote:
+> > acpi_video_handles_brightness_key_presses() may use an uninitialized mutex.
+> > The error has been reported by lockdep: DEBUG_LOCKS_WARN_ON(l->magic != l).
+> > The function assumes that the video driver has been registered before being
+> > called. As explained in the comment of acpi_video_init(), the registration
+> > of the video class may be defered and thus may not take place in the init
+> > function of the module.
+> >
+> > Use completion mechanisms to make sure that
+> > acpi_video_handles_brightness_key_presses() wait for the completion of
+> > acpi_video_register() before using the mutex.
+> > Also get rid of register_count since task completion can replace it.
+> >
+> > Signed-off-by: Adrien Schildknecht <adrien+dev@schischi.me>
 > 
-> Is there a new revision of the patch series being worked on?
+> Thanks for the fix, my first instinct was that there should be an easier
+> fix, but thinking more about it this and how this function is used
+> in thinkpad_acpi. this is indeed the correct way to fix this:
+> 
+> Reviewed-by: Hans de Goede <hdegoede@redhat.com>
+> 
+> Rafael, can you please add this fix to acpi-next ?
 
-Tomeu is not working on one AFAICS, but I may just revive his series.
+I will, thanks!
 
-Do you have a pointer to the Dan's report?
-
-Thanks,
 Rafael
-
