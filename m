@@ -1,126 +1,101 @@
-From: Toshi Kani <toshi.kani@hpe.com>
-Subject: [PATCH v3 UPDATE 09/17] drivers: Initialize resource entry to zero
-Date: Tue,  5 Jan 2016 14:15:37 -0700
-Message-ID: <1452028537-27365-1-git-send-email-toshi.kani@hpe.com>
-Return-path: <owner-linux-mm@kvack.org>
-Sender: owner-linux-mm@kvack.org
-To: akpm@linux-foundation.org, bp@alien8.de
-Cc: linux-arch@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, Matt Porter <mporter@kernel.crashing.org>, Alexandre Bounine <alexandre.bounine@idt.com>, linux-acpi@vger.kernel.org, linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v2 00/16] intel-lpss: support non-ACPI platforms
+Date: Wed, 06 Jan 2016 00:59:43 +0100
+Message-ID: <1855560.2DW9QAnCKL@vostro.rjw.lan>
+References: <1448896304-87928-1-git-send-email-andriy.shevchenko@linux.intel.com> <1488447.PO5a3v7KWa@vostro.rjw.lan> <568C040F.2070000@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:56786 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751587AbcAEX3E (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Jan 2016 18:29:04 -0500
+In-Reply-To: <568C040F.2070000@redhat.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Laura Abbott <labbott@redhat.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Kevin Fenzi <kevin@scrye.com>, Arnd Bergmann <arnd@arndb.de>, Wolfram Sang <wsa@the-dreams.de>
 
-I/O resource descriptor, 'desc' in struct resource, needs to be
-initialized to zero by default.  Some drivers call kmalloc() to
-allocate a resource entry, but does not initialize it to zero by
-memset().  Change these drivers to call kzalloc(), instead.
+On Tuesday, January 05, 2016 09:57:35 AM Laura Abbott wrote:
+> On 12/06/2015 05:44 PM, Rafael J. Wysocki wrote:
+> > On Monday, November 30, 2015 05:11:28 PM Andy Shevchenko wrote:
+> >> This series includes few logical sets that bring a support of non-ACPI
+> >> platforms for Intel Skylake.
+> >>
+> >> First part is a refactoring of built-in device properties support:
+> >> - keep single value inside the structure
+> >> - provide helper macros to define built-in properties
+> >> - fall back to secondary fwnode if primary has no asked property
+> >>
+> >> Second is a propagating built-in device properties in platform core.
+> >>
+> >> Third one is modifications to MFD code and intel-lpss.c driver in particular
+> >> to define and pass built-in properties to the individual drivers.
+> >>
+> >> And last part is a fix for I2C bug found on Lenovo Yoga hardware and a first
+> >> converted user.
+> >>
+> >> Built-in device properties is an alternative to platform data. It provides a
+> >> unified API that drivers can use to cover all cases at once: DT, ACPI, and
+> >> built-in properties.
+> >>
+> >> With this series applied a platform data can be considered obsolete. Moreover,
+> >> built-in device properties allow to adjust the existing configuration, for
+> >> example, in cases when ACPI values are wrong on some platforms.
+> >>
+> >> The series has been tested on available hardware and doesn't break current
+> >> behaviour. But we ask people who have the affected hardware to apply the series
+> >> on your side and check with Lenovo hardware.
+> >>
+> >> Changelog v2:
+> >> - fix isuues found by kbuild bot (kbuild)
+> >> - append a patch to propagate device properties in polatform code (Arnd)
+> >> - update few existing and add couple of new patches due to above
+> >> - check with kmemleak
+> >>
+> >> Andy Shevchenko (9):
+> >>    device property: always check for fwnode type
+> >>    device property: rename helper functions
+> >>    device property: refactor built-in properties support
+> >>    device property: keep single value inplace
+> >>    device property: improve readability of macros
+> >>    device property: return -EINVAL when property isn't found in ACPI
+> >>    device property: Fallback to secondary fwnode if primary misses the
+> >>      property
+> >>    mfd: core: propagate device properties to sub devices drivers
+> >>    mfd: intel-lpss: Pass HSUART configuration via properties
+> >>
+> >> Heikki Krogerus (1):
+> >>    device property: helper macros for property entry creation
+> >>
+> >> Mika Westerberg (6):
+> >>    device property: Take a copy of the property set
+> >>    driver core: platform: Add support for built-in device properties
+> >>    driver core: Do not overwrite secondary fwnode with NULL if it is set
+> >>    mfd: intel-lpss: Add support for passing device properties
+> >>    mfd: intel-lpss: Pass SDA hold time to I2C host controller driver
+> >>    i2c: designware: Convert to use unified device property API
+> >
+> > I'm going to queue up this series for v4.5.
+> >
+> > If there are any problems with it or objections from anyone, please let me know.
+> >
+> 
+> 
+> Raising an old thread, I pulled this series into Fedora rawhide and
+> while it worked for Lenovo Yoga we received a report that it caused
+> a regression on the Dell Inspiron 7559 (see
+> https://bugzilla.redhat.com/show_bug.cgi?id=1275718#c27) . I haven't
+> asked the reporter about bisecting to see which patch broke it.
+> Were there any known follow up patches?
 
-Cc: Matt Porter <mporter@kernel.crashing.org>
-Cc: Alexandre Bounine <alexandre.bounine@idt.com>
-Cc: linux-acpi@vger.kernel.org
-Cc: linux-parisc@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Acked-by: Simon Horman <horms+renesas@verge.net.au> # sh
-Acked-by: Helge Deller <deller@gmx.de> # parisc
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
----
-v3 UPDATE: Add cc to RAPIDIO maintainers that was missing.
----
- drivers/acpi/acpi_platform.c       |    2 +-
- drivers/parisc/eisa_enumerator.c   |    4 ++--
- drivers/rapidio/rio.c              |    8 ++++----
- drivers/sh/superhyway/superhyway.c |    2 +-
- 4 files changed, 8 insertions(+), 8 deletions(-)
+There were a few.
 
-diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
-index 296b7a1..b6f7fa3 100644
---- a/drivers/acpi/acpi_platform.c
-+++ b/drivers/acpi/acpi_platform.c
-@@ -62,7 +62,7 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev)
- 	if (count < 0) {
- 		return NULL;
- 	} else if (count > 0) {
--		resources = kmalloc(count * sizeof(struct resource),
-+		resources = kzalloc(count * sizeof(struct resource),
- 				    GFP_KERNEL);
- 		if (!resources) {
- 			dev_err(&adev->dev, "No memory for resources\n");
-diff --git a/drivers/parisc/eisa_enumerator.c b/drivers/parisc/eisa_enumerator.c
-index a656d9e..21905fe 100644
---- a/drivers/parisc/eisa_enumerator.c
-+++ b/drivers/parisc/eisa_enumerator.c
-@@ -91,7 +91,7 @@ static int configure_memory(const unsigned char *buf,
- 	for (i=0;i<HPEE_MEMORY_MAX_ENT;i++) {
- 		c = get_8(buf+len);
- 		
--		if (NULL != (res = kmalloc(sizeof(struct resource), GFP_KERNEL))) {
-+		if (NULL != (res = kzalloc(sizeof(struct resource), GFP_KERNEL))) {
- 			int result;
- 			
- 			res->name = name;
-@@ -183,7 +183,7 @@ static int configure_port(const unsigned char *buf, struct resource *io_parent,
- 	for (i=0;i<HPEE_PORT_MAX_ENT;i++) {
- 		c = get_8(buf+len);
- 		
--		if (NULL != (res = kmalloc(sizeof(struct resource), GFP_KERNEL))) {
-+		if (NULL != (res = kzalloc(sizeof(struct resource), GFP_KERNEL))) {
- 			res->name = board;
- 			res->start = get_16(buf+len+1);
- 			res->end = get_16(buf+len+1)+(c&HPEE_PORT_SIZE_MASK)+1;
-diff --git a/drivers/rapidio/rio.c b/drivers/rapidio/rio.c
-index d7b87c6..e220edc 100644
---- a/drivers/rapidio/rio.c
-+++ b/drivers/rapidio/rio.c
-@@ -117,7 +117,7 @@ int rio_request_inb_mbox(struct rio_mport *mport,
- 	if (mport->ops->open_inb_mbox == NULL)
- 		goto out;
- 
--	res = kmalloc(sizeof(struct resource), GFP_KERNEL);
-+	res = kzalloc(sizeof(struct resource), GFP_KERNEL);
- 
- 	if (res) {
- 		rio_init_mbox_res(res, mbox, mbox);
-@@ -185,7 +185,7 @@ int rio_request_outb_mbox(struct rio_mport *mport,
- 	if (mport->ops->open_outb_mbox == NULL)
- 		goto out;
- 
--	res = kmalloc(sizeof(struct resource), GFP_KERNEL);
-+	res = kzalloc(sizeof(struct resource), GFP_KERNEL);
- 
- 	if (res) {
- 		rio_init_mbox_res(res, mbox, mbox);
-@@ -285,7 +285,7 @@ int rio_request_inb_dbell(struct rio_mport *mport,
- {
- 	int rc = 0;
- 
--	struct resource *res = kmalloc(sizeof(struct resource), GFP_KERNEL);
-+	struct resource *res = kzalloc(sizeof(struct resource), GFP_KERNEL);
- 
- 	if (res) {
- 		rio_init_dbell_res(res, start, end);
-@@ -360,7 +360,7 @@ int rio_release_inb_dbell(struct rio_mport *mport, u16 start, u16 end)
- struct resource *rio_request_outb_dbell(struct rio_dev *rdev, u16 start,
- 					u16 end)
- {
--	struct resource *res = kmalloc(sizeof(struct resource), GFP_KERNEL);
-+	struct resource *res = kzalloc(sizeof(struct resource), GFP_KERNEL);
- 
- 	if (res) {
- 		rio_init_dbell_res(res, start, end);
-diff --git a/drivers/sh/superhyway/superhyway.c b/drivers/sh/superhyway/superhyway.c
-index 2d9e7f3..bb1fb771 100644
---- a/drivers/sh/superhyway/superhyway.c
-+++ b/drivers/sh/superhyway/superhyway.c
-@@ -66,7 +66,7 @@ int superhyway_add_device(unsigned long base, struct superhyway_device *sdev,
- 	superhyway_read_vcr(dev, base, &dev->vcr);
- 
- 	if (!dev->resource) {
--		dev->resource = kmalloc(sizeof(struct resource), GFP_KERNEL);
-+		dev->resource = kzalloc(sizeof(struct resource), GFP_KERNEL);
- 		if (!dev->resource) {
- 			kfree(dev);
- 			return -ENOMEM;
+All of them are in my linux-next branch if you can try this one.
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+Alternatively, I can expose a branch with these to you to test.
+
+Thanks,
+Rafael
+
