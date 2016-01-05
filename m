@@ -1,70 +1,41 @@
-From: Timur Tabi <timur@codeaurora.org>
-Subject: Re: [PATCH v4 3/3] serial: amba-pl011: add ACPI support to AMBA probe
-Date: Mon, 4 Jan 2016 17:13:08 -0600
-Message-ID: <CAOZdJXUpjWi7Dy=GFi7_58FqD_UZxxrw_QKJ4sdHLKVOLCyNAA@mail.gmail.com>
-References: <1450880383-29560-1-git-send-email-aleksey.makarov@linaro.org>
-	<1450880383-29560-4-git-send-email-aleksey.makarov@linaro.org>
+From: Derek Basehore <dbasehore@chromium.org>
+Subject: Re: Re: [PATCH v11 0/4] Allow USB devices to remain
+ runtime-suspended when sleeping
+Date: Mon, 4 Jan 2016 18:27:18 -0800
+Message-ID: <20160105021052.GA32392@google.com>
+References: <1445956731-6304-1-git-send-email-tomeu.vizoso@collabora.com>
+ <2496228.i2Z9PmMBtz@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:37590 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752012AbcADXNK (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Jan 2016 18:13:10 -0500
-In-Reply-To: <1450880383-29560-4-git-send-email-aleksey.makarov@linaro.org>
+Received: from mail-pf0-f173.google.com ([209.85.192.173]:35993 "EHLO
+	mail-pf0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753964AbcAEC1Z (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 4 Jan 2016 21:27:25 -0500
+Received: by mail-pf0-f173.google.com with SMTP id 65so166660890pff.3
+        for <linux-acpi@vger.kernel.org>; Mon, 04 Jan 2016 18:27:25 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <2496228.i2Z9PmMBtz@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aleksey Makarov <aleksey.makarov@linaro.org>
-Cc: linux-acpi@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Graeme Gregory <graeme.gregory@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andy Shevchenko <andy.shevchenko@gmail.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, lkml <linux-kernel@vger.kernel.org>, Vladimir Zapolskiy <vz@mleia.com>, Shannon Zhao <shannon.zhao@linaro.org>, linux-serial@vger.kernel.org, Jiri Slaby <jslaby@suse.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>, Len Brown <len.brown@intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, Russell King <linux@arm.linux.org.uk>, martyn.welch@collabora.co.uk, linux-pm@vger.kernel.org, David Airlie <airlied@linux.ie>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Alan Stern <stern@rowland.harvard.edu>, Pavel Machek <pavel@ucw.cz>, Tomas Winkler <tomas.winkler@intel.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@kernel.org>, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>, djkurtz@chromium.org
 
-On Wed, Dec 23, 2015 at 8:19 AM, Aleksey Makarov
-<aleksey.makarov@linaro.org> wrote:
-> From: Graeme Gregory <graeme.gregory@linaro.org>
->
-> In ACPI this device is only defined in SBSA mode so
-> if we are coming from ACPI use this mode.
->
-> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
-> Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
-> ---
->  drivers/tty/serial/amba-pl011.c | 37 ++++++++++++++++++++++++++-----------
->  1 file changed, 26 insertions(+), 11 deletions(-)
->
-> diff --git a/drivers/tty/serial/amba-pl011.c b/drivers/tty/serial/amba-pl011.c
-> index 899a771..974cb9e 100644
-> --- a/drivers/tty/serial/amba-pl011.c
-> +++ b/drivers/tty/serial/amba-pl011.c
-> @@ -2368,18 +2368,33 @@ static int pl011_probe(struct amba_device *dev, const struct amba_id *id)
->         if (!uap)
->                 return -ENOMEM;
->
-> -       uap->clk = devm_clk_get(&dev->dev, NULL);
-> -       if (IS_ERR(uap->clk))
-> -               return PTR_ERR(uap->clk);
-> -
-> -       uap->vendor = vendor;
-> -       uap->lcrh_rx = vendor->lcrh_rx;
-> -       uap->lcrh_tx = vendor->lcrh_tx;
-> -       uap->fifosize = vendor->get_fifosize(dev);
-> -       uap->port.irq = dev->irq[0];
-> -       uap->port.ops = &amba_pl011_pops;
-> +       /* ACPI only defines SBSA variant */
-> +       if (has_acpi_companion(&dev->dev)) {
-> +               /*
-> +                * According to ARM ARMH0011 is currently the only mapping
-> +                * of pl011 in ACPI and it's mapped to SBSA UART mode
-> +                */
-> +               uap->vendor     = &vendor_sbsa;
-> +               uap->fifosize   = 32;
-> +               uap->port.ops   = &sbsa_uart_pops;
-> +               uap->fixed_baud = 115200;
+On Mon, Nov 02, 2015 at 02:50:40AM +0100, Rafael J. Wysocki wrote:
+> 
+> I've queued up this series for the second half of the v4.4 merge window.
+> 
+> Thanks,
+> Rafael
+> 
+> 
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
 
-I'm confused by this patch.  We already have code like this in
-tty-next, in the form of sbsa_uart_probe():
+What's the status of this patch series? I haven't seen the patches
+posted for v4.4, plus there's the issue that Dan found that needs to be
+addressed.
 
-https://kernel.googlesource.com/pub/scm/linux/kernel/git/gregkh/tty/+/tty-next/drivers/tty/serial/amba-pl011.c#2553
-
--- 
-Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum,
-a Linux Foundation Collaborative Project.
+Is there a new revision of the patch series being worked on?
