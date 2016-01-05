@@ -1,44 +1,29 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] ACPI / video: driver must be registered before checking for keypresses
-Date: Tue, 05 Jan 2016 13:51:17 +0100
-Message-ID: <5472545.fTVKdflT9H@vostro.rjw.lan>
-References: <1451946148-24948-1-git-send-email-adrien+dev@schischi.me> <568BAC7A.5040907@redhat.com>
+Subject: Re: [PATCH resend] ACPI / PNP: constify device IDs
+Date: Tue, 05 Jan 2016 13:58:33 +0100
+Message-ID: <7062442.hJxWv2aY9W@vostro.rjw.lan>
+References: <1451730609-2722-1-git-send-email-minipli@googlemail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <568BAC7A.5040907@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Adrien Schildknecht <adrien+dev@schischi.me>, rui.zhang@intel.com, lenb@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Pali =?ISO-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, jmmahler@gmail.com, ibm-acpi@hmh.eng.br
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:65255 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751608AbcAEM1x (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Jan 2016 07:27:53 -0500
+In-Reply-To: <1451730609-2722-1-git-send-email-minipli@googlemail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Mathias Krause <minipli@googlemail.com>
+Cc: Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
 
-On Tuesday, January 05, 2016 12:43:54 PM Hans de Goede wrote:
-> Hi,
+On Saturday, January 02, 2016 11:30:09 AM Mathias Krause wrote:
+> Instead of re-creating the array on the stack each time
+> is_cmos_rtc_device() gets called, make the array 'static const'.
 > 
-> On 04-01-16 23:22, Adrien Schildknecht wrote:
-> > acpi_video_handles_brightness_key_presses() may use an uninitialized mutex.
-> > The error has been reported by lockdep: DEBUG_LOCKS_WARN_ON(l->magic != l).
-> > The function assumes that the video driver has been registered before being
-> > called. As explained in the comment of acpi_video_init(), the registration
-> > of the video class may be defered and thus may not take place in the init
-> > function of the module.
-> >
-> > Use completion mechanisms to make sure that
-> > acpi_video_handles_brightness_key_presses() wait for the completion of
-> > acpi_video_register() before using the mutex.
-> > Also get rid of register_count since task completion can replace it.
-> >
-> > Signed-off-by: Adrien Schildknecht <adrien+dev@schischi.me>
-> 
-> Thanks for the fix, my first instinct was that there should be an easier
-> fix, but thinking more about it this and how this function is used
-> in thinkpad_acpi. this is indeed the correct way to fix this:
-> 
-> Reviewed-by: Hans de Goede <hdegoede@redhat.com>
-> 
-> Rafael, can you please add this fix to acpi-next ?
+> Signed-off-by: Mathias Krause <minipli@googlemail.com>
 
-I will, thanks!
+Applied, thanks!
 
 Rafael
+
