@@ -1,79 +1,40 @@
-From: G Gregory <graeme.gregory@linaro.org>
-Subject: Re: [PATCH v4 3/3] serial: amba-pl011: add ACPI support to AMBA probe
-Date: Tue, 5 Jan 2016 08:55:25 +0000
-Message-ID: <CAGCh1+ksWFLkE8Y_a5SW98tpgGBWdVH5TYJAoS17EExuPd65oQ@mail.gmail.com>
-References: <1450880383-29560-1-git-send-email-aleksey.makarov@linaro.org>
-	<1450880383-29560-4-git-send-email-aleksey.makarov@linaro.org>
-	<CAOZdJXUpjWi7Dy=GFi7_58FqD_UZxxrw_QKJ4sdHLKVOLCyNAA@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f51.google.com ([209.85.218.51]:35820 "EHLO
-	mail-oi0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751503AbcAEIz0 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 5 Jan 2016 03:55:26 -0500
-Received: by mail-oi0-f51.google.com with SMTP id l9so242693190oia.2
-        for <linux-acpi@vger.kernel.org>; Tue, 05 Jan 2016 00:55:25 -0800 (PST)
-In-Reply-To: <CAOZdJXUpjWi7Dy=GFi7_58FqD_UZxxrw_QKJ4sdHLKVOLCyNAA@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Colin King <colin.king@canonical.com>
+Subject: [PATCH] ACPI, PCI, irq: remove redundant check for null string pointer
+Date: Tue,  5 Jan 2016 10:57:11 +0000
+Message-ID: <1451991431-8342-1-git-send-email-colin.king@canonical.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Timur Tabi <timur@codeaurora.org>
-Cc: Aleksey Makarov <aleksey.makarov@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Andy Shevchenko <andy.shevchenko@gmail.com>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, lkml <linux-kernel@vger.kernel.org>, Vladimir Zapolskiy <vz@mleia.com>, Shannon Zhao <shannon.zhao@linaro.org>, linux-serial@vger.kernel.org, Jiri Slaby <jslaby@suse.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
 
-On 4 January 2016 at 23:13, Timur Tabi <timur@codeaurora.org> wrote:
-> On Wed, Dec 23, 2015 at 8:19 AM, Aleksey Makarov
-> <aleksey.makarov@linaro.org> wrote:
->> From: Graeme Gregory <graeme.gregory@linaro.org>
->>
->> In ACPI this device is only defined in SBSA mode so
->> if we are coming from ACPI use this mode.
->>
->> Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
->> Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
->> ---
->>  drivers/tty/serial/amba-pl011.c | 37 ++++++++++++++++++++++++++-----------
->>  1 file changed, 26 insertions(+), 11 deletions(-)
->>
->> diff --git a/drivers/tty/serial/amba-pl011.c b/drivers/tty/serial/amba-pl011.c
->> index 899a771..974cb9e 100644
->> --- a/drivers/tty/serial/amba-pl011.c
->> +++ b/drivers/tty/serial/amba-pl011.c
->> @@ -2368,18 +2368,33 @@ static int pl011_probe(struct amba_device *dev, const struct amba_id *id)
->>         if (!uap)
->>                 return -ENOMEM;
->>
->> -       uap->clk = devm_clk_get(&dev->dev, NULL);
->> -       if (IS_ERR(uap->clk))
->> -               return PTR_ERR(uap->clk);
->> -
->> -       uap->vendor = vendor;
->> -       uap->lcrh_rx = vendor->lcrh_rx;
->> -       uap->lcrh_tx = vendor->lcrh_tx;
->> -       uap->fifosize = vendor->get_fifosize(dev);
->> -       uap->port.irq = dev->irq[0];
->> -       uap->port.ops = &amba_pl011_pops;
->> +       /* ACPI only defines SBSA variant */
->> +       if (has_acpi_companion(&dev->dev)) {
->> +               /*
->> +                * According to ARM ARMH0011 is currently the only mapping
->> +                * of pl011 in ACPI and it's mapped to SBSA UART mode
->> +                */
->> +               uap->vendor     = &vendor_sbsa;
->> +               uap->fifosize   = 32;
->> +               uap->port.ops   = &sbsa_uart_pops;
->> +               uap->fixed_baud = 115200;
->
-> I'm confused by this patch.  We already have code like this in
-> tty-next, in the form of sbsa_uart_probe():
->
-> https://kernel.googlesource.com/pub/scm/linux/kernel/git/gregkh/tty/+/tty-next/drivers/tty/serial/amba-pl011.c#2553
->
-Because Russell expressed unhappiness at that code existing. So this
-is an alternative method to do same thing with ACPI.
+From: Colin Ian King <colin.king@canonical.com>
 
-If the "arm,sbsa-uart" id was added to drivers/of/platform.c as an
-AMBA id then the same could be done for DT as well.
+source is decleared as a 4 byte char array in struct acpi_pci_routing_table
+so !prt->source is a redundant null string pointer check. Detected with
+smatch:
 
-Ultimately this patch is optional depending on maintainers opinion!
+drivers/acpi/pci_irq.c:134 do_prt_fixups() warn: this array is probably
+  non-NULL. 'prt->source'
 
-Graeme
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ drivers/acpi/pci_irq.c | 3 ---
+ 1 file changed, 3 deletions(-)
+
+diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
+index c933675..d30184c 100644
+--- a/drivers/acpi/pci_irq.c
++++ b/drivers/acpi/pci_irq.c
+@@ -131,9 +131,6 @@ static void do_prt_fixups(struct acpi_prt_entry *entry,
+ 		quirk = &prt_quirks[i];
+ 
+ 		/* All current quirks involve link devices, not GSIs */
+-		if (!prt->source)
+-			continue;
+-
+ 		if (dmi_check_system(quirk->system) &&
+ 		    entry->id.segment == quirk->segment &&
+ 		    entry->id.bus == quirk->bus &&
+-- 
+2.6.4
