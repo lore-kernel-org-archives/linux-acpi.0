@@ -1,72 +1,139 @@
-From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: [PATCH v5 2/6] nvdimm: Clean-up access mode check.
-Date: Wed,  6 Jan 2016 16:03:39 -0700
-Message-ID: <824aaf9da87202317e6d9fee01c4eeb79ce13688.1452121277.git.jerry.hoemann@hpe.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH v5 0/6] nvdimm: Add an IOCTL pass thru for DSM calls
+Date: Wed, 6 Jan 2016 15:58:22 -0800
+Message-ID: <CAPcyv4h_Oc3VVwtjp=+onSVq-Kuidd1r+9fbR-uo+DF_=e+jhg@mail.gmail.com>
 References: <cover.1452121277.git.jerry.hoemann@hpe.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from g2t4625.austin.hp.com ([15.73.212.76]:59550 "EHLO
-	g2t4625.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752297AbcAFXDy (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Jan 2016 18:03:54 -0500
+Received: from mail-qk0-f174.google.com ([209.85.220.174]:33752 "EHLO
+	mail-qk0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752494AbcAFX6Y (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Jan 2016 18:58:24 -0500
+Received: by mail-qk0-f174.google.com with SMTP id p186so88084944qke.0
+        for <linux-acpi@vger.kernel.org>; Wed, 06 Jan 2016 15:58:22 -0800 (PST)
 In-Reply-To: <cover.1452121277.git.jerry.hoemann@hpe.com>
-In-Reply-To: <cover.1452121277.git.jerry.hoemann@hpe.com>
-References: <cover.1452121277.git.jerry.hoemann@hpe.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: ross.zwisler@linux.intel.com, rjw@rjwysocki.net, lenb@kernel.org, dan.j.williams@intel.com, elliott@hpe.com, jmoyer@redhat.com, krivenok.dmitry@gmail.com, linda.knippers@hpe.com
-Cc: robert.moore@intel.com, lv.zheng@intel.com, rafael.j.wysocki@intel.com, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jerry Hoemann <jerry.hoemann@hpe.com>
+To: Jerry Hoemann <jerry.hoemann@hpe.com>
+Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "Elliott, Robert (Persistent Memory)" <elliott@hpe.com>, jmoyer <jmoyer@redhat.com>, Dmitry Krivenok <krivenok.dmitry@gmail.com>, Linda Knippers <linda.knippers@hpe.com>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Rafael J Wysocki <rafael.j.wysocki@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-Change nd_ioctl and nvdimm_ioctl access mode check to use O_RDONLY.
+On Wed, Jan 6, 2016 at 3:03 PM, Jerry Hoemann <jerry.hoemann@hpe.com> wrote:
+> The NVDIMM code in the kernel supports an IOCTL interface to user
+> space based upon the Intel Example DSM:
+>
+>         http://pmem.io/documents/NVDIMM_DSM_Interface_Example.pdf
+>
+> This interface cannot be used by other NVDIMM DSMs that support
+> incompatible functions.
+>
+> This patch set adds a generic "passthru" IOCTL interface which
+> is not tied to a particular DSM.
+>
+> A new _IOC_NR ND_CMD_CALL_DSM == "10" is added for the pass thru call.
+>
+> The new data structure nd_cmd_dsmcall_pkg serves as a wrapper for
+> the passthru calls.  This wrapper supplies the data that the kernel
+> needs to make the _DSM call.
+>
+> Unlike the definitions of the _DSM functions themselves, the nd_cmd_dsmcall_pkg
+> provides the calling information (input/output sizes) in an uniform
+> manner making the kernel marshaling of the arguments straight
+> forward.
+>
+> This shifts the marshaling burden from the kernel to the user
+> space application while still permitting the kernel to internally
+> call _DSM functions.
+>
+> The kernel functions __nd_ioctl and acpi_nfit_ctl were modified
+> to accomodate ND_CMD_CALL_DSM.
+>
+>
+> Changes in version 5:
+> ---------------------
+> 0. Fixed submit comment for drivers/acpi/utils.c.
+>
+>
+> Changes in version 4:
+> ---------------------
+> 0. Added patch to correct parameter type passed to acpi_evaluate_dsm
+>    ACPI defines arguments rev and fun as 64 bit quanties and the ioctl
+>    exports to user face rev and func. We want those to match the ACPI spec.
+>
+>    Also modified acpi_evaluate_dsm_typed and acpi_check dsm which had
+>    similar issue.
+>
+> 1. nd_cmd_dsmcall_pkg rearange a reserve and rounded up total size
+>    to 16 byte boundary.
+>
+> 2. Created stand alone patch for the pre-existing security issue related
+>    to "read only" IOCTL calls.
+>
+> 3. Added patch for increasing envelope size of IOCTL.  Needed to
+>    be able to read in the wrapper to know remaining size to copy in.
+>
+>    Note: in_env, out_env are statics sized based upon this change.
+>
+> 4. Moved copyin code to table driven nd_cmd_desc
+>
+>   Note, the last 40 lines or so of acpi_nfit_ctl will not return _DSM
+>   data unless the size allocated in user space buffer equals
+>   out_obj->buffer.length.
+>
+>   The semantic we want in the pass thru case is to return as much
+>   of the _DSM data as the user space buffer would accomodate.
+>
+>   Hence, in acpi_nfit_ctl I have retained the line:
+>
+>                 memcpy(pkg->dsm_buf + pkg->h.dsm_in,
+>                         out_obj->buffer.pointer,
+>                         min(pkg->h.dsm_size, pkg->h.dsm_out));
+>
+>   and the early return from the function.
+>
+>
+>
+>
+> Changes in version 3:
+> ---------------------
+> 1. Changed name ND_CMD_PASSTHRU to ND_CMD_CALL_DSM.
+>
+> 2. Value of ND_CMD_CALL_DSM is 10, not 100.
+>
+> 3. Changed name of nd_passthru_pkg to nd_cmd_dsmcall_pkg.
+>
+> 4. Removed separate functions for handling ND_CMD_CALL_DSM.
+>    Moved functionality to __nd_ioctl and acpi_nfit_ctl proper.
+>    The resultant code looks very different from prior versions.
+>
+> 5. BUGFIX: __nd_ioctl: Change the if read_only switch to use
+>          _IOC_NR cmd (not ioctl_cmd) for better protection.
+>
+>         Do we want to make a stand alone patch for this issue?
+>
+>
+> Changes in version 2:
+> ---------------------
+> 1. Cleanup access mode check in nd_ioctl and nvdimm_ioctl.
+> 2. Change name of ndn_pkg to nd_passthru_pkg
+> 3. Adjust sizes in nd_passthru_pkg. DSM intergers are 64 bit.
+> 4. No new ioctl type, instead tunnel into the existing number space.
+> 5. Push down one function level where determine ioctl cmd type.
+> 6. re-work diagnostic print/dump message in pass-thru functions.
+>
+>
+>
+>
+> Jerry Hoemann (6):
+>   ACPI / util: Fix acpi_evaluate_dsm() argument type
+>   nvdimm: Clean-up access mode check.
+>   nvdimm: Add wrapper for IOCTL pass thru
+>   nvdimm: Fix security issue with DSM IOCTL.
+>   nvdimm: Increase max envelope size for IOCTL
+>   nvdimm: Add IOCTL pass thru functions
 
-Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
----
- drivers/nvdimm/bus.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+These look good to me.
 
-diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index 7e2c43f..1c81203 100644
---- a/drivers/nvdimm/bus.c
-+++ b/drivers/nvdimm/bus.c
-@@ -602,14 +602,14 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
- static long nd_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- {
- 	long id = (long) file->private_data;
--	int rc = -ENXIO, read_only;
-+	int rc = -ENXIO, ro;
- 	struct nvdimm_bus *nvdimm_bus;
- 
--	read_only = (O_RDWR != (file->f_flags & O_ACCMODE));
-+	ro = ((file->f_flags & O_ACCMODE) == O_RDONLY);
- 	mutex_lock(&nvdimm_bus_list_mutex);
- 	list_for_each_entry(nvdimm_bus, &nvdimm_bus_list, list) {
- 		if (nvdimm_bus->id == id) {
--			rc = __nd_ioctl(nvdimm_bus, NULL, read_only, cmd, arg);
-+			rc = __nd_ioctl(nvdimm_bus, NULL, ro, cmd, arg);
- 			break;
- 		}
- 	}
-@@ -633,10 +633,10 @@ static int match_dimm(struct device *dev, void *data)
- 
- static long nvdimm_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- {
--	int rc = -ENXIO, read_only;
-+	int rc = -ENXIO, ro;
- 	struct nvdimm_bus *nvdimm_bus;
- 
--	read_only = (O_RDWR != (file->f_flags & O_ACCMODE));
-+	ro = ((file->f_flags & O_ACCMODE) == O_RDONLY);
- 	mutex_lock(&nvdimm_bus_list_mutex);
- 	list_for_each_entry(nvdimm_bus, &nvdimm_bus_list, list) {
- 		struct device *dev = device_find_child(&nvdimm_bus->dev,
-@@ -647,7 +647,7 @@ static long nvdimm_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
- 			continue;
- 
- 		nvdimm = to_nvdimm(dev);
--		rc = __nd_ioctl(nvdimm_bus, nvdimm, read_only, cmd, arg);
-+		rc = __nd_ioctl(nvdimm_bus, nvdimm, ro, cmd, arg);
- 		put_device(dev);
- 		break;
- 	}
--- 
-1.7.11.3
+I'll tag "nvdimm: Fix security issue with DSM IOCTL." for -stable.
 
+Thanks Jerry!
