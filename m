@@ -1,49 +1,39 @@
-From: "dbasehore ." <dbasehore@chromium.org>
-Subject: Re: [PATCH v11 0/4] Allow USB devices to remain runtime-suspended
- when sleeping
-Date: Tue, 5 Jan 2016 15:38:25 -0800
-Message-ID: <CAGAzgsrdw8pmntQYrLbWsFzO7epp7JX84FN2Y-KkuZOfA18gmg@mail.gmail.com>
-References: <1445956731-6304-1-git-send-email-tomeu.vizoso@collabora.com>
-	<2496228.i2Z9PmMBtz@vostro.rjw.lan>
-	<20160105021052.GA32392@google.com>
-	<1791136.5K3qHuXCRE@vostro.rjw.lan>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v3 UPDATE 09/17] drivers: Initialize resource entry to zero
+Date: Wed, 06 Jan 2016 03:07:03 +0100
+Message-ID: <4132474.rE6EsOfV8R@vostro.rjw.lan>
+References: <1452028537-27365-1-git-send-email-toshi.kani@hpe.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pm-owner@vger.kernel.org>
-In-Reply-To: <1791136.5K3qHuXCRE@vostro.rjw.lan>
-Sender: linux-pm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>, Len Brown <len.brown@intel.com>, Ulf Hansson <ulf.hansson@linaro.org>, Russell King <linux@arm.linux.org.uk>, martyn.welch@collabora.co.uk, Linux-pm mailing list <linux-pm@vger.kernel.org>, David Airlie <airlied@linux.ie>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-usb@vger.kernel.org, linux-kernel <linux-kernel@vger.kernel.org>, dri-devel@lists.freedesktop.org, linux-acpi@vger.kernel.org, Tony Lindgren <tony@atomide.com>, Alan Stern <stern@rowland.harvard.edu>, Pavel Machek <pavel@ucw.cz>, Tomas Winkler <tomas.winkler@intel.com>, linux-omap@vger.kernel.org, Kevin Hilman <khilman@kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>, Daniel Kurtz <djkurtz@chromium.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <1452028537-27365-1-git-send-email-toshi.kani@hpe.com>
+Sender: owner-linux-mm@kvack.org
+To: Toshi Kani <toshi.kani@hpe.com>
+Cc: akpm@linux-foundation.org, bp@alien8.de, linux-arch@vger.kernel.org, linux-mm@kvack.org, linux-kernel@vger.kernel.org, Matt Porter <mporter@kernel.crashing.org>, Alexandre Bounine <alexandre.bounine@idt.com>, linux-acpi@vger.kernel.org, linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Tue, Jan 5, 2016 at 4:48 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> On Monday, January 04, 2016 06:27:18 PM Derek Basehore wrote:
->> On Mon, Nov 02, 2015 at 02:50:40AM +0100, Rafael J. Wysocki wrote:
->> >
->> > I've queued up this series for the second half of the v4.4 merge window.
->> >
->> > Thanks,
->> > Rafael
->> >
->> >
->> > _______________________________________________
->> > linux-arm-kernel mailing list
->> > linux-arm-kernel@lists.infradead.org
->> > http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
->>
->> What's the status of this patch series? I haven't seen the patches
->> posted for v4.4, plus there's the issue that Dan found that needs to be
->> addressed.
->>
->> Is there a new revision of the patch series being worked on?
->
-> Tomeu is not working on one AFAICS, but I may just revive his series.
->
-> Do you have a pointer to the Dan's report?
->
-> Thanks,
-> Rafael
->
+On Tuesday, January 05, 2016 02:15:37 PM Toshi Kani wrote:
+> I/O resource descriptor, 'desc' in struct resource, needs to be
+> initialized to zero by default.  Some drivers call kmalloc() to
+> allocate a resource entry, but does not initialize it to zero by
+> memset().  Change these drivers to call kzalloc(), instead.
+> 
+> Cc: Matt Porter <mporter@kernel.crashing.org>
+> Cc: Alexandre Bounine <alexandre.bounine@idt.com>
+> Cc: linux-acpi@vger.kernel.org
+> Cc: linux-parisc@vger.kernel.org
+> Cc: linux-sh@vger.kernel.org
+> Acked-by: Simon Horman <horms+renesas@verge.net.au> # sh
+> Acked-by: Helge Deller <deller@gmx.de> # parisc
+> Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
 
-It was a reply to the second patch in the series. Here's a link to it
-https://lkml.org/lkml/2015/11/10/107
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+
+for the ACPI part.
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
