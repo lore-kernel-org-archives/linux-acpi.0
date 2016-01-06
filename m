@@ -1,47 +1,72 @@
 From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: [PATCH v5 4/6] nvdimm: Fix security issue with DSM IOCTL.
-Date: Wed,  6 Jan 2016 16:03:41 -0700
-Message-ID: <912e263c7dab19a6bcc918806c249a2929274d5f.1452121277.git.jerry.hoemann@hpe.com>
+Subject: [PATCH v5 2/6] nvdimm: Clean-up access mode check.
+Date: Wed,  6 Jan 2016 16:03:39 -0700
+Message-ID: <824aaf9da87202317e6d9fee01c4eeb79ce13688.1452121277.git.jerry.hoemann@hpe.com>
 References: <cover.1452121277.git.jerry.hoemann@hpe.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g2t4625.austin.hp.com ([15.73.212.76]:59550 "EHLO
+	g2t4625.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752297AbcAFXDy (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Jan 2016 18:03:54 -0500
 In-Reply-To: <cover.1452121277.git.jerry.hoemann@hpe.com>
 In-Reply-To: <cover.1452121277.git.jerry.hoemann@hpe.com>
 References: <cover.1452121277.git.jerry.hoemann@hpe.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: ross.zwisler@linux.intel.com, rjw@rjwysocki.net, lenb@kernel.org, dan.j.williams@intel.com, elliott@hpe.com, jmoyer@redhat.com, krivenok.dmitry@gmail.com, linda.knippers@hpe.com
 Cc: robert.moore@intel.com, lv.zheng@intel.com, rafael.j.wysocki@intel.com, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jerry Hoemann <jerry.hoemann@hpe.com>
-List-Id: linux-acpi@vger.kernel.org
 
-Code attempts to prevent certain IOCTL DSM from being called
-when device is opened read only.  This security feature can
-be trivially overcome by changing the size portion of the
-ioctl_command which isn't used.
-
-Check only the _IOC_NR (i.e. the command).
+Change nd_ioctl and nvdimm_ioctl access mode check to use O_RDONLY.
 
 Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
 ---
- drivers/nvdimm/bus.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/nvdimm/bus.c | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
 
 diff --git a/drivers/nvdimm/bus.c b/drivers/nvdimm/bus.c
-index 1c81203..87fe545 100644
+index 7e2c43f..1c81203 100644
 --- a/drivers/nvdimm/bus.c
 +++ b/drivers/nvdimm/bus.c
-@@ -513,10 +513,10 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
+@@ -602,14 +602,14 @@ static int __nd_ioctl(struct nvdimm_bus *nvdimm_bus, struct nvdimm *nvdimm,
+ static long nd_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ {
+ 	long id = (long) file->private_data;
+-	int rc = -ENXIO, read_only;
++	int rc = -ENXIO, ro;
+ 	struct nvdimm_bus *nvdimm_bus;
  
- 	/* fail write commands (when read-only) */
- 	if (read_only)
--		switch (ioctl_cmd) {
--		case ND_IOCTL_VENDOR:
--		case ND_IOCTL_SET_CONFIG_DATA:
--		case ND_IOCTL_ARS_START:
-+		switch (cmd) {
-+		case ND_CMD_VENDOR:
-+		case ND_CMD_SET_CONFIG_DATA:
-+		case ND_CMD_ARS_START:
- 			dev_dbg(&nvdimm_bus->dev, "'%s' command while read-only.\n",
- 					nvdimm ? nvdimm_cmd_name(cmd)
- 					: nvdimm_bus_cmd_name(cmd));
+-	read_only = (O_RDWR != (file->f_flags & O_ACCMODE));
++	ro = ((file->f_flags & O_ACCMODE) == O_RDONLY);
+ 	mutex_lock(&nvdimm_bus_list_mutex);
+ 	list_for_each_entry(nvdimm_bus, &nvdimm_bus_list, list) {
+ 		if (nvdimm_bus->id == id) {
+-			rc = __nd_ioctl(nvdimm_bus, NULL, read_only, cmd, arg);
++			rc = __nd_ioctl(nvdimm_bus, NULL, ro, cmd, arg);
+ 			break;
+ 		}
+ 	}
+@@ -633,10 +633,10 @@ static int match_dimm(struct device *dev, void *data)
+ 
+ static long nvdimm_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ {
+-	int rc = -ENXIO, read_only;
++	int rc = -ENXIO, ro;
+ 	struct nvdimm_bus *nvdimm_bus;
+ 
+-	read_only = (O_RDWR != (file->f_flags & O_ACCMODE));
++	ro = ((file->f_flags & O_ACCMODE) == O_RDONLY);
+ 	mutex_lock(&nvdimm_bus_list_mutex);
+ 	list_for_each_entry(nvdimm_bus, &nvdimm_bus_list, list) {
+ 		struct device *dev = device_find_child(&nvdimm_bus->dev,
+@@ -647,7 +647,7 @@ static long nvdimm_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ 			continue;
+ 
+ 		nvdimm = to_nvdimm(dev);
+-		rc = __nd_ioctl(nvdimm_bus, nvdimm, read_only, cmd, arg);
++		rc = __nd_ioctl(nvdimm_bus, nvdimm, ro, cmd, arg);
+ 		put_device(dev);
+ 		break;
+ 	}
 -- 
 1.7.11.3
+
