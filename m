@@ -1,121 +1,72 @@
-From: "Wang, Annie" <Annie.Wang@amd.com>
-Subject: RE: [PATCH 3/6] ACPI: add 2 parameters to function acpi dma
- controller register
-Date: Wed, 6 Jan 2016 06:46:37 +0000
-Message-ID: <BLUPR12MB0433A702DB5903D6A20232B781F40@BLUPR12MB0433.namprd12.prod.outlook.com>
-References: <1451885501-2710-1-git-send-email-annie.wang@amd.com>
- <1451885501-2710-4-git-send-email-annie.wang@amd.com>
- <20160104144534.GB1770@lahna.fi.intel.com>
+From: "Jan Beulich" <JBeulich@suse.com>
+Subject: Re: [PATCH] ACPI/APEI: correct/extend pgprot_t retrieval to
+ map GHES memory
+Date: Wed, 06 Jan 2016 01:43:25 -0700
+Message-ID: <568CE1BD02000078000C3CCE@prv-mh.provo.novell.com>
+References: <56797F6502000078000C2525@suse.com>
+ <20151229122836.GA2328@codeblueprint.co.uk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bn1on0074.outbound.protection.outlook.com ([157.56.110.74]:54554
-	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751272AbcAFGql convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Jan 2016 01:46:41 -0500
-In-Reply-To: <20160104144534.GB1770@lahna.fi.intel.com>
-Content-Language: en-US
+Received: from prv-mh.provo.novell.com ([137.65.248.74]:59040 "EHLO
+	prv-mh.provo.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751798AbcAFIn3 convert rfc822-to-8bit (ORCPT
+	<rfc822;groupwise-linux-acpi@vger.kernel.org:6:1>);
+	Wed, 6 Jan 2016 03:43:29 -0500
+In-Reply-To: <20151229122836.GA2328@codeblueprint.co.uk>
+Content-Disposition: inline
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>, Andy Shevchenko <andy.shevchenko@gmail.com>
-Cc: Vinod Koul <vinod.koul@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "dmaengine@vger.kernel.org" <dmaengine@vger.kernel.org>, Borislav Petkov <bp@alien8.de>, "Huang, Ray" <Ray.Huang@amd.com>, "Wan, Vincent" <Vincent.Wan@amd.com>, "Xue, Ken" <Ken.Xue@amd.com>, Robin Murphy <robin.murphy@arm.com>, Graeme Gregory <gg@slimlogic.co.uk>, "Li, Tony" <Tony.Li@amd.com>, "Yu, Xiangliang" <Xiangliang.Yu@amd.com>
+To: Matt Fleming <mfleming@suse.com>
+Cc: Borislav Petkov <bp@alien8.de>, zjzhang@codeaurora.org, Ingo Molnar <mingo@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
 
-Hi Mika,
+>>> On 29.12.15 at 13:28, <mfleming@suse.com> wrote:
+> On Tue, 22 Dec, at 03:50:45PM, Jan Beulich wrote:
+>> Commit 8ece249a81 ("acpi/apei: Use appropriate pgprot_t to map GHES
+>> memory") adjusted ghes_ioremap_pfn_irq() but left ghes_ioremap_pfn_nmi()
+>> alone, and while doing the adjustment it introduced an at least latent
+>> truncation issue on ix86 (using "unsigned long" for a physical address).
+>  
+> Good catch, but I don't think this is the correct fix. 'paddr' should
+> be u64 because that's the data type used in ghes_copy_tofrom_phys(),
+> and because the value is read from ACPI. The firmware dictates the
+> data types.
 
->-----Original Message-----
->From: Mika Westerberg [mailto:mika.westerberg@linux.intel.com]
->Sent: Monday, January 04, 2016 10:46 PM
->To: Wang, Annie
->Cc: Andy Shevchenko; Vinod Koul; Greg Kroah-Hartman; Rafael J. Wysocki; linux-
->acpi@vger.kernel.org; linux-kernel@vger.kernel.org; linux-serial@vger.kernel.org;
->dmaengine@vger.kernel.org; Borislav Petkov; Huang, Ray; Wan, Vincent; Xue,
->Ken; Robin Murphy; Graeme Gregory; Li, Tony; Yu, Xiangliang
->Subject: Re: [PATCH 3/6] ACPI: add 2 parameters to function acpi dma controller
->register
->
->On Mon, Jan 04, 2016 at 01:31:38PM +0800, Wang Hongcheng wrote:
->> As CSRT table will not always work, 2 arguments, base_request_line and
->> num are added to acpi dma controller register as another way to get
->> device request line.
->>
->> Signed-off-by: Wang Hongcheng <annie.wang@amd.com>
->> ---
->>  drivers/dma/acpi-dma.c    | 25 ++++++++++++++++++++-----
->>  drivers/dma/dw/platform.c |  2 +-
->>  include/linux/acpi_dma.h  |  6 ++++++
->>  3 files changed, 27 insertions(+), 6 deletions(-)
->>
->> diff --git a/drivers/dma/acpi-dma.c b/drivers/dma/acpi-dma.c index
->> 16d0daa..e2c27c3 100644
->> --- a/drivers/dma/acpi-dma.c
->> +++ b/drivers/dma/acpi-dma.c
->> @@ -105,7 +105,7 @@ static int acpi_dma_parse_resource_group(const struct
->acpi_csrt_group *grp,
->>   * We are using this table to get the request line range of the specific DMA
->>   * controller to be used later.
->>   */
->> -static void acpi_dma_parse_csrt(struct acpi_device *adev, struct
->> acpi_dma *adma)
->> +static int acpi_dma_parse_csrt(struct acpi_device *adev, struct
->> +acpi_dma *adma)
+Making paddr u64 won't be of any use when phys_addr_t is only
+32 bits, since passing the value to arch_apei_get_mem_attribute()
+and ioremap_page_range() would still cause truncation.
+
+>> --- 4.4-rc6/drivers/acpi/apei/ghes.c
+>> +++ 4.4-rc6-ACPI-GHES-ioremap/drivers/acpi/apei/ghes.c
+>> @@ -147,17 +147,23 @@ static void ghes_ioremap_exit(void)
+>>  static void __iomem *ghes_ioremap_pfn_nmi(u64 pfn)
 >>  {
->>  	struct acpi_csrt_group *grp, *end;
->>  	struct acpi_table_csrt *csrt;
->> @@ -117,7 +117,7 @@ static void acpi_dma_parse_csrt(struct acpi_device
->*adev, struct acpi_dma *adma)
->>  	if (ACPI_FAILURE(status)) {
->>  		if (status != AE_NOT_FOUND)
->>  			dev_warn(&adev->dev, "failed to get the CSRT table\n");
->> -		return;
->> +		return -ENOENT;
->>  	}
->>
->>  	grp = (struct acpi_csrt_group *)(csrt + 1); @@ -128,11 +128,12 @@
->> static void acpi_dma_parse_csrt(struct acpi_device *adev, struct acpi_dma
->*adma)
->>  		if (ret < 0) {
->>  			dev_warn(&adev->dev,
->>  				 "error in parsing resource group\n");
->> -			return;
->> +			return -EINVAL;
->>  		}
->>
->>  		grp = (struct acpi_csrt_group *)((void *)grp + grp->length);
->>  	}
->> +	return 0;
+>>  	unsigned long vaddr;
+>> +	phys_addr_t paddr;
+>> +	pgprot_t prot;
+>>  
+>>  	vaddr = (unsigned long)GHES_IOREMAP_NMI_PAGE(ghes_ioremap_area->addr);
+>> -	ioremap_page_range(vaddr, vaddr + PAGE_SIZE,
+>> -			   pfn << PAGE_SHIFT, PAGE_KERNEL);
+>> +
+>> +	paddr = pfn << PAGE_SHIFT;
+>> +	prot = arch_apei_get_mem_attribute(paddr);
+>> +
+>> +	ioremap_page_range(vaddr, vaddr + PAGE_SIZE, paddr, prot);
+>>  
+>>  	return (void __iomem *)vaddr;
 >>  }
->>
->>  /**
->> @@ -140,6 +141,8 @@ static void acpi_dma_parse_csrt(struct acpi_device
->*adev, struct acpi_dma *adma)
->>   * @dev:		struct device of DMA controller
->>   * @acpi_dma_xlate:	translation function which converts a dma specifier
->>   *			into a dma_chan structure
->> + * @base_request_line:  device request line base
->> + * @num:                device request line range
->>   * @data		pointer to controller specific data to be used by
->>   *			translation function
->>   *
->> @@ -152,10 +155,13 @@ static void acpi_dma_parse_csrt(struct
->> acpi_device *adev, struct acpi_dma *adma)  int
->acpi_dma_controller_register(struct device *dev,
->>  		struct dma_chan *(*acpi_dma_xlate)
->>  		(struct acpi_dma_spec *, struct acpi_dma *),
->> +		unsigned short base_request_line,
->> +		unsigned short num,
->>  		void *data)
->
->Can you instead provide custom acpi_dma_xlate when you register the DMA
->controller? That function can then use whatever translation scheme is suitable for
->your platform to get the correct channel.
+>   
+> Did you test this change? I didn't suggest fixing this function up
+> originally because it isn't used on arm64.
 
-Acpi_dma_xlate  mainly converts an  acpi_dma  structure into a dma_chan structure.
-Without proper request line, wrong acpi_dma structure may be get. 
+Do you see anything wrong here? I can't see the change do
+anything that could break things. And the function - used there
+or not - is being compiled for ARM64, and even from an
+abstract perspective it seems wrong to use
+arch_apei_get_mem_attribute() in its non-NMI counterpart but
+not here.
 
-And as Andy says in http://article.gmane.org/gmane.linux.kernel.iommu/11675 
-How about add a hook into acpi_dma_controller_register?
+Jan
 
-Regards,
-Hongcheng (Annie)
