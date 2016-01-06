@@ -1,74 +1,73 @@
-From: Jayachandran C. <jchandra@broadcom.com>
-Subject: Re: [PATCH v5 0/5] ACPI based PCI support for arm64
-Date: Wed, 6 Jan 2016 22:26:56 +0530
-Message-ID: <20160106165655.GA23326@jayachandranc.netlogicmicro.com>
-References: <1451884403-21437-1-git-send-email-jchandra@broadcom.com>
- <568A125A.9090608@linaro.org>
+From: Linda Knippers <linda.knippers@hpe.com>
+Subject: Re: [PATCH] nfit: add a module parameter to ignore ars errors
+Date: Wed, 06 Jan 2016 12:12:06 -0500
+Message-ID: <568D4AE6.5020601@hpe.com>
+References: <1451946883-28092-1-git-send-email-vishal.l.verma@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-Content-Disposition: inline
-In-Reply-To: <568A125A.9090608@linaro.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Arnd Bergmann <arnd@arndb.de>, linux-pci@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Tomasz Nowicki <tn@semihalf.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-arm-kernel@lists.infradead.org
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g2t4619.austin.hp.com ([15.73.212.82]:48475 "EHLO
+	g2t4619.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751572AbcAFRMK (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Jan 2016 12:12:10 -0500
+In-Reply-To: <1451946883-28092-1-git-send-email-vishal.l.verma@intel.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Vishal Verma <vishal.l.verma@intel.com>, linux-nvdimm@lists.01.org
+Cc: linux-acpi@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, Jeff Moyer <jmoyer@redhat.com>
 
-Hi Hanjun,
-
-On Mon, Jan 04, 2016 at 02:34:02PM +0800, Hanjun Guo wrote:
-> Hi JC,
+On 1/4/2016 5:34 PM, Vishal Verma wrote:
+> Normally, if a platform does not advertise support for Address Range
+> Scrub (ARS), we skip it. But if ARS is advertised, it is expected to
+> always succeed. If it fails, we normally fail initialization at that
+> point.
 > 
-> On 2016/1/4 13:13, Jayachandran C wrote:
-> >This patchset provides a generic ACPI based PCI host controller
-> >implementation and uses it on arm64.
-> >
-> >The first patch moves the common code to handle MCFG ACPI table from
-> >arch/x86 to drivers/acpi/pci_mcfg.c. The last patch in the patchset
-> >provides the generic implementation of an ACPI based PCI host
-> >controller with a new file drivers/acpi/pci_host_acpi.c. The other
-> >patches are to fix up arm64 and ACPI code to work with these two
-> >patches.
-> >
-> >The pci host controller implementation keeps a reference to
-> >pci_mmcfg_region entry so that config space access is done with a
-> >simple mapping and generic PCI config read/write. There is also an
-> >implementation of raw_pci_read/raw_pci_write provided by walking the
-> >pci_mmcfg_list
-> >
-> >The patchset is against 4.4-rc6, but it can be applied to pci/next
-> >with a very minor fixup.  This is tested with arm64 QEMU and OVMF
-> >and on x86 with qemu.
+> Add a module parameter to nfit that lets it ignore ARS failures and
+> continue with initialization for debugging.
+
+Could ARS be so broken that you might want to just ignore it altogether
+and not even make the requests?
+
+-- ljk
 > 
-> Are there any specific problems that Tomasz didn't address in this
-> patch set?
+> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
+> ---
 > 
-> https://lkml.org/lkml/2015/12/16/246
+> This applies on top of both of the previous error handling series
+> (badblocks and libnvdimm poison list). The tree at:
+> https://git.kernel.org/cgit/linux/kernel/git/vishal/nvdimm.git/log/?h=err_handling_latest
+> has been updated with this patch.
+> 
+>  drivers/acpi/nfit.c | 9 ++++++++-
+>  1 file changed, 8 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+> index ad6d8c6..0a152f1 100644
+> --- a/drivers/acpi/nfit.c
+> +++ b/drivers/acpi/nfit.c
+> @@ -34,6 +34,10 @@ static bool force_enable_dimms;
+>  module_param(force_enable_dimms, bool, S_IRUGO|S_IWUSR);
+>  MODULE_PARM_DESC(force_enable_dimms, "Ignore _STA (ACPI DIMM device) status");
+>  
+> +static bool ignore_ars;
+> +module_param(ignore_ars, bool, S_IRUGO|S_IWUSR);
+> +MODULE_PARM_DESC(ignore_ars, "Ignore ARS (Address Range Scrub) failures");
+> +
+>  struct nfit_table_prev {
+>  	struct list_head spas;
+>  	struct list_head memdevs;
+> @@ -1786,7 +1790,10 @@ static int acpi_nfit_register_region(struct acpi_nfit_desc *acpi_desc,
+>  			dev_err(acpi_desc->dev,
+>  				"error while performing ARS to find poison: %d\n",
+>  				rc);
+> -			return rc;
+> +			if (ignore_ars)
+> +				; /* continue initialization */
+> +			else
+> +				return rc;
+>  		}
+>  		if (!nvdimm_pmem_region_create(nvdimm_bus, ndr_desc))
+>  			return -ENOMEM;
+> 
 
-It is not any specific problem, I don't think such extensive changes are
-not needed for doing this. If you go thru my patchset, you should see that
-it is much easier to review (I have ensured that the intel code flow is
-unchanged), it should be much easier to backport and does not have any
-dependendices.
-
-> As Lorenzo pointed out, that patch set was going several rounds and
-> addressed lots of comments, why not comment on it and push it forward
-> together?
-
-I started my patchset when the status of Tomasz patchset was not clear.
-Like I said earlier, I will be perfectly happy if Tomasz patchset makes
-it to the kernel, my backing will not make a difference.
-
-Until there is a solution in the kernel, I thought I will post the
-solution we use, since I feel that it is pretty decent approach.
-
-JC.
