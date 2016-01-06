@@ -1,78 +1,45 @@
 From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: [PATCH v5 3/6] nvdimm: Add wrapper for IOCTL pass thru
-Date: Wed,  6 Jan 2016 16:03:40 -0700
-Message-ID: <4b5f3468377cfd05e2da6127743b66f281aebeee.1452121277.git.jerry.hoemann@hpe.com>
+Subject: [PATCH v5 5/6] nvdimm: Increase max envelope size for IOCTL
+Date: Wed,  6 Jan 2016 16:03:42 -0700
+Message-ID: <02c051f9c9d6af286c29e0899c65acb42064a725.1452121277.git.jerry.hoemann@hpe.com>
 References: <cover.1452121277.git.jerry.hoemann@hpe.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from g1t6225.austin.hp.com ([15.73.96.126]:34808 "EHLO
+	g1t6225.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752487AbcAFXD6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Jan 2016 18:03:58 -0500
 In-Reply-To: <cover.1452121277.git.jerry.hoemann@hpe.com>
 In-Reply-To: <cover.1452121277.git.jerry.hoemann@hpe.com>
 References: <cover.1452121277.git.jerry.hoemann@hpe.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: ross.zwisler@linux.intel.com, rjw@rjwysocki.net, lenb@kernel.org, dan.j.williams@intel.com, elliott@hpe.com, jmoyer@redhat.com, krivenok.dmitry@gmail.com, linda.knippers@hpe.com
 Cc: robert.moore@intel.com, lv.zheng@intel.com, rafael.j.wysocki@intel.com, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jerry Hoemann <jerry.hoemann@hpe.com>
-List-Id: linux-acpi@vger.kernel.org
 
-Add struct nd_passthru_pkg which serves as a warapper for
-the data being passed via a pass thru to a NVDIMM DSM.
-This wrapper specifies the extra information in a uniform
-manner allowing the kenrel to call a DSM without knowing
-specifics of the DSM.
+In __nd_ioctl must first read in the fixed sized portion of an ioctl
+so that it can then determine the size of the variable part.
 
-Add dsm_call command to nvdimm_bus_cmd_name and nvdimm_cmd_name.
+Prepare for ND_CMD_CALL_DSM calls which have larger fixed portion
+wrapper.
 
 Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
 ---
- include/uapi/linux/ndctl.h | 19 +++++++++++++++++++
- 1 file changed, 19 insertions(+)
+ include/linux/libnvdimm.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
-index 5b4a4be..6823af3 100644
---- a/include/uapi/linux/ndctl.h
-+++ b/include/uapi/linux/ndctl.h
-@@ -109,6 +109,7 @@ enum {
- 	ND_CMD_VENDOR_EFFECT_LOG_SIZE = 7,
- 	ND_CMD_VENDOR_EFFECT_LOG = 8,
- 	ND_CMD_VENDOR = 9,
-+	ND_CMD_CALL_DSM = 10,
- };
+diff --git a/include/linux/libnvdimm.h b/include/linux/libnvdimm.h
+index 3f021dc..b0a2f60 100644
+--- a/include/linux/libnvdimm.h
++++ b/include/linux/libnvdimm.h
+@@ -27,7 +27,7 @@ enum {
+ 	/* need to set a limit somewhere, but yes, this is likely overkill */
+ 	ND_IOCTL_MAX_BUFLEN = SZ_4M,
+ 	ND_CMD_MAX_ELEM = 4,
+-	ND_CMD_MAX_ENVELOPE = 16,
++	ND_CMD_MAX_ENVELOPE = 256,
+ 	ND_CMD_ARS_STATUS_MAX = SZ_4K,
+ 	ND_MAX_MAPPINGS = 32,
  
- enum {
-@@ -122,6 +123,7 @@ static inline const char *nvdimm_bus_cmd_name(unsigned cmd)
- 		[ND_CMD_ARS_CAP] = "ars_cap",
- 		[ND_CMD_ARS_START] = "ars_start",
- 		[ND_CMD_ARS_STATUS] = "ars_status",
-+		[ND_CMD_CALL_DSM] = "dsm_call",
- 	};
- 
- 	if (cmd < ARRAY_SIZE(names) && names[cmd])
-@@ -141,6 +143,7 @@ static inline const char *nvdimm_cmd_name(unsigned cmd)
- 		[ND_CMD_VENDOR_EFFECT_LOG_SIZE] = "effect_size",
- 		[ND_CMD_VENDOR_EFFECT_LOG] = "effect_log",
- 		[ND_CMD_VENDOR] = "vendor",
-+		[ND_CMD_CALL_DSM] = "dsm_call",
- 	};
- 
- 	if (cmd < ARRAY_SIZE(names) && names[cmd])
-@@ -204,4 +207,20 @@ enum ars_masks {
- 	ARS_STATUS_MASK = 0x0000FFFF,
- 	ARS_EXT_STATUS_SHIFT = 16,
- };
-+
-+
-+struct nd_cmd_dsmcall_pkg {
-+	struct {
-+		__u8	dsm_uuid[16];
-+		__u64	reserved1;		/* reserved should be zero */
-+		__u64	dsm_rev;		/* revision of dsm call  */
-+		__u64	dsm_fun_idx;		/* DSM function id	 */
-+		__u32	dsm_in;			/* size of _DSM input	 */
-+		__u32	dsm_out;		/* size of user buffer	 */
-+		__u32	reserved2[23];		/* reserved must be zero */
-+		__u32	dsm_size;		/* size _DSM would write */
-+	} h;
-+	unsigned char dsm_buf[];		/* Contents of DSM call	 */
-+};
-+
- #endif /* __NDCTL_H__ */
 -- 
 1.7.11.3
+
