@@ -1,7 +1,7 @@
 From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: [PATCH v5 1/6] ACPI / util: Fix acpi_evaluate_dsm() argument type
-Date: Wed,  6 Jan 2016 16:03:38 -0700
-Message-ID: <37cf7fc6c93496b84fa3984d94d689d8337a176b.1452121277.git.jerry.hoemann@hpe.com>
+Subject: [PATCH v5 3/6] nvdimm: Add wrapper for IOCTL pass thru
+Date: Wed,  6 Jan 2016 16:03:40 -0700
+Message-ID: <4b5f3468377cfd05e2da6127743b66f281aebeee.1452121277.git.jerry.hoemann@hpe.com>
 References: <cover.1452121277.git.jerry.hoemann@hpe.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1452121277.git.jerry.hoemann@hpe.com>
@@ -12,64 +12,67 @@ To: ross.zwisler@linux.intel.com, rjw@rjwysocki.net, lenb@kernel.org, dan.j.will
 Cc: robert.moore@intel.com, lv.zheng@intel.com, rafael.j.wysocki@intel.com, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Jerry Hoemann <jerry.hoemann@hpe.com>
 List-Id: linux-acpi@vger.kernel.org
 
-The ACPI spec speicifies that arguments "Revision ID" and
-"Function Index" to a _DSM are type "Integer."  Type Integers
-are 64 bit quantities.
+Add struct nd_passthru_pkg which serves as a warapper for
+the data being passed via a pass thru to a NVDIMM DSM.
+This wrapper specifies the extra information in a uniform
+manner allowing the kenrel to call a DSM without knowing
+specifics of the DSM.
 
-The function evaluate_dsm specifies these types as simple "int"
-which are 32 bits.  Correct type passed to acpi_evaluate_dsm
-and its callers and derived callers to pass correct type.
-
-acpi_check_dsm and acpi_evaluate_dsm_typed had similar issue
-and were corrected as well.
+Add dsm_call command to nvdimm_bus_cmd_name and nvdimm_cmd_name.
 
 Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
 ---
- drivers/acpi/utils.c    | 4 ++--
- include/acpi/acpi_bus.h | 6 +++---
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ include/uapi/linux/ndctl.h | 19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
 
-diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
-index 475c907..049cba4 100644
---- a/drivers/acpi/utils.c
-+++ b/drivers/acpi/utils.c
-@@ -628,7 +628,7 @@ acpi_status acpi_evaluate_lck(acpi_handle handle, int lock)
-  * some old BIOSes do expect a buffer or an integer etc.
-  */
- union acpi_object *
--acpi_evaluate_dsm(acpi_handle handle, const u8 *uuid, int rev, int func,
-+acpi_evaluate_dsm(acpi_handle handle, const u8 *uuid, u64 rev, u64 func,
- 		  union acpi_object *argv4)
- {
- 	acpi_status ret;
-@@ -677,7 +677,7 @@ EXPORT_SYMBOL(acpi_evaluate_dsm);
-  * functions. Currently only support 64 functions at maximum, should be
-  * enough for now.
-  */
--bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, int rev, u64 funcs)
-+bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, u64 rev, u64 funcs)
- {
- 	int i;
- 	u64 mask = 0;
-diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-index ad0a5ff..8e6abcf 100644
---- a/include/acpi/acpi_bus.h
-+++ b/include/acpi/acpi_bus.h
-@@ -61,12 +61,12 @@ bool acpi_ata_match(acpi_handle handle);
- bool acpi_bay_match(acpi_handle handle);
- bool acpi_dock_match(acpi_handle handle);
+diff --git a/include/uapi/linux/ndctl.h b/include/uapi/linux/ndctl.h
+index 5b4a4be..6823af3 100644
+--- a/include/uapi/linux/ndctl.h
++++ b/include/uapi/linux/ndctl.h
+@@ -109,6 +109,7 @@ enum {
+ 	ND_CMD_VENDOR_EFFECT_LOG_SIZE = 7,
+ 	ND_CMD_VENDOR_EFFECT_LOG = 8,
+ 	ND_CMD_VENDOR = 9,
++	ND_CMD_CALL_DSM = 10,
+ };
  
--bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, int rev, u64 funcs);
-+bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, u64 rev, u64 funcs);
- union acpi_object *acpi_evaluate_dsm(acpi_handle handle, const u8 *uuid,
--			int rev, int func, union acpi_object *argv4);
-+			u64 rev, u64 func, union acpi_object *argv4);
+ enum {
+@@ -122,6 +123,7 @@ static inline const char *nvdimm_bus_cmd_name(unsigned cmd)
+ 		[ND_CMD_ARS_CAP] = "ars_cap",
+ 		[ND_CMD_ARS_START] = "ars_start",
+ 		[ND_CMD_ARS_STATUS] = "ars_status",
++		[ND_CMD_CALL_DSM] = "dsm_call",
+ 	};
  
- static inline union acpi_object *
--acpi_evaluate_dsm_typed(acpi_handle handle, const u8 *uuid, int rev, int func,
-+acpi_evaluate_dsm_typed(acpi_handle handle, const u8 *uuid, u64 rev, u64 func,
- 			union acpi_object *argv4, acpi_object_type type)
- {
- 	union acpi_object *obj;
+ 	if (cmd < ARRAY_SIZE(names) && names[cmd])
+@@ -141,6 +143,7 @@ static inline const char *nvdimm_cmd_name(unsigned cmd)
+ 		[ND_CMD_VENDOR_EFFECT_LOG_SIZE] = "effect_size",
+ 		[ND_CMD_VENDOR_EFFECT_LOG] = "effect_log",
+ 		[ND_CMD_VENDOR] = "vendor",
++		[ND_CMD_CALL_DSM] = "dsm_call",
+ 	};
+ 
+ 	if (cmd < ARRAY_SIZE(names) && names[cmd])
+@@ -204,4 +207,20 @@ enum ars_masks {
+ 	ARS_STATUS_MASK = 0x0000FFFF,
+ 	ARS_EXT_STATUS_SHIFT = 16,
+ };
++
++
++struct nd_cmd_dsmcall_pkg {
++	struct {
++		__u8	dsm_uuid[16];
++		__u64	reserved1;		/* reserved should be zero */
++		__u64	dsm_rev;		/* revision of dsm call  */
++		__u64	dsm_fun_idx;		/* DSM function id	 */
++		__u32	dsm_in;			/* size of _DSM input	 */
++		__u32	dsm_out;		/* size of user buffer	 */
++		__u32	reserved2[23];		/* reserved must be zero */
++		__u32	dsm_size;		/* size _DSM would write */
++	} h;
++	unsigned char dsm_buf[];		/* Contents of DSM call	 */
++};
++
+ #endif /* __NDCTL_H__ */
 -- 
 1.7.11.3
