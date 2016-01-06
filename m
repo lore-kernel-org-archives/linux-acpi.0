@@ -1,72 +1,73 @@
-From: "Jan Beulich" <JBeulich@suse.com>
-Subject: Re: [PATCH] ACPI/APEI: correct/extend pgprot_t retrieval to
- map GHES memory
-Date: Wed, 06 Jan 2016 01:43:25 -0700
-Message-ID: <568CE1BD02000078000C3CCE@prv-mh.provo.novell.com>
-References: <56797F6502000078000C2525@suse.com>
- <20151229122836.GA2328@codeblueprint.co.uk>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH 1/6] 8250/Kconfig: add config option
+ CONFIG_SERIAL_8250_AMD
+Date: Wed, 6 Jan 2016 11:46:02 +0100
+Message-ID: <20160106104602.GA19507@pd.tnic>
+References: <1451885501-2710-1-git-send-email-annie.wang@amd.com>
+ <1451885501-2710-2-git-send-email-annie.wang@amd.com>
+ <20160104144118.GJ22941@pd.tnic>
+ <BLUPR12MB0433ABAC5C5D27D3FD0F4BF381F40@BLUPR12MB0433.namprd12.prod.outlook.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=utf-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from prv-mh.provo.novell.com ([137.65.248.74]:59040 "EHLO
-	prv-mh.provo.novell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751798AbcAFIn3 convert rfc822-to-8bit (ORCPT
-	<rfc822;groupwise-linux-acpi@vger.kernel.org:6:1>);
-	Wed, 6 Jan 2016 03:43:29 -0500
-In-Reply-To: <20151229122836.GA2328@codeblueprint.co.uk>
+Received: from mail.skyhub.de ([78.46.96.112]:49470 "EHLO mail.skyhub.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752776AbcAFKqH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 6 Jan 2016 05:46:07 -0500
 Content-Disposition: inline
+In-Reply-To: <BLUPR12MB0433ABAC5C5D27D3FD0F4BF381F40@BLUPR12MB0433.namprd12.prod.outlook.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Matt Fleming <mfleming@suse.com>
-Cc: Borislav Petkov <bp@alien8.de>, zjzhang@codeaurora.org, Ingo Molnar <mingo@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org
+To: "Wang, Annie" <Annie.Wang@amd.com>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, Vinod Koul <vinod.koul@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "dmaengine@vger.kernel.org" <dmaengine@vger.kernel.org>, "Huang, Ray" <Ray.Huang@amd.com>, "Wan, Vincent" <Vincent.Wan@amd.com>, "Xue, Ken" <Ken.Xue@amd.com>, Robin Murphy <robin.murphy@arm.com>, Graeme Gregory <gg@slimlogic.co.uk>, "Li, Tony" <Tony.Li@amd.com>, "Yu, Xiangliang" <Xiangliang.Yu@amd.com>
 
->>> On 29.12.15 at 13:28, <mfleming@suse.com> wrote:
-> On Tue, 22 Dec, at 03:50:45PM, Jan Beulich wrote:
->> Commit 8ece249a81 ("acpi/apei: Use appropriate pgprot_t to map GHES
->> memory") adjusted ghes_ioremap_pfn_irq() but left ghes_ioremap_pfn_nmi()
->> alone, and while doing the adjustment it introduced an at least latent
->> truncation issue on ix86 (using "unsigned long" for a physical address).
->  
-> Good catch, but I don't think this is the correct fix. 'paddr' should
-> be u64 because that's the data type used in ghes_copy_tofrom_phys(),
-> and because the value is read from ACPI. The firmware dictates the
-> data types.
+On Wed, Jan 06, 2016 at 02:08:18AM +0000, Wang, Annie wrote:
+> How about I add select ARM_AMBA and SERIAL_8250 in arch/x86/Kconfig?
 
-Making paddr u64 won't be of any use when phys_addr_t is only
-32 bits, since passing the value to arch_apei_get_mem_attribute()
-and ioremap_page_range() would still cause truncation.
+Yeah, select sounds good in that case, except in that particular case ...
 
->> --- 4.4-rc6/drivers/acpi/apei/ghes.c
->> +++ 4.4-rc6-ACPI-GHES-ioremap/drivers/acpi/apei/ghes.c
->> @@ -147,17 +147,23 @@ static void ghes_ioremap_exit(void)
->>  static void __iomem *ghes_ioremap_pfn_nmi(u64 pfn)
->>  {
->>  	unsigned long vaddr;
->> +	phys_addr_t paddr;
->> +	pgprot_t prot;
->>  
->>  	vaddr = (unsigned long)GHES_IOREMAP_NMI_PAGE(ghes_ioremap_area->addr);
->> -	ioremap_page_range(vaddr, vaddr + PAGE_SIZE,
->> -			   pfn << PAGE_SHIFT, PAGE_KERNEL);
->> +
->> +	paddr = pfn << PAGE_SHIFT;
->> +	prot = arch_apei_get_mem_attribute(paddr);
->> +
->> +	ioremap_page_range(vaddr, vaddr + PAGE_SIZE, paddr, prot);
->>  
->>  	return (void __iomem *)vaddr;
->>  }
->   
-> Did you test this change? I didn't suggest fixing this function up
-> originally because it isn't used on arm64.
+> 
+> diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+> index db3622f..0fe6657 100644
+> --- a/arch/x86/Kconfig
+> +++ b/arch/x86/Kconfig
+> @@ -537,11 +537,15 @@ config X86_AMD_PLATFORM_DEVICE
+>         depends on ACPI
+>         select COMMON_CLK
+>         select PINCTRL
+> +       select SERIAL_8250
+> +       select ARM_AMBA
 
-Do you see anything wrong here? I can't see the change do
-anything that could break things. And the function - used there
-or not - is being compiled for ARM64, and even from an
-abstract perspective it seems wrong to use
-arch_apei_get_mem_attribute() in its non-NMI counterpart but
-not here.
+... that's a X86_AMD_PLATFORM_DEVICE which selects ARM thing? i.e.,
+ARM_AMBA. Can that even work?
 
-Jan
+[ Rant on the side: And that ARM_AMBA thing has, of course, no effing
+  help text. Dammit, people need to start explaining those cryptic
+  abbreviations. Somewhere in the code I found "Advanced Microcontroller
+  Bus Architecture". This is clearly suboptimal. ]
 
+So why does the X86 platform device need to select the AMBA crap?
+
+>         ---help---
+>           Select to interpret AMD specific ACPI device to platform device
+>           such as I2C, UART, GPIO found on AMD Carrizo and later chipsets.
+>           I2C and UART depend on COMMON_CLK to set clock. GPIO driver is
+> -         implemented under PINCTRL subsystem.
+> +         implemented under PINCTRL subsystem. Carrizo's UART is implemented
+> +         under SERIAL_8250. Carrizo's UART DMA device is an amba device,
+> +         it selects ARM_AMBA option.
+
+As I already said before, please refrain from using platform names like
+Carrizo because people have no clue what those are. Only the marketing
+people do. Use CPU family + models instead.
+
+> CPU_SUP_AMD is only configured in X86 arch. AMD future  ARM64 processors may
+> also need acpi to platform support.
+
+So this code is going to be shared between X86 and ARM64?
+
+-- 
+Regards/Gruss,
+    Boris.
+
+ECO tip #101: Trim your mails when you reply.
