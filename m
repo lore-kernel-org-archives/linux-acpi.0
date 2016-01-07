@@ -1,139 +1,55 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v5 0/6] nvdimm: Add an IOCTL pass thru for DSM calls
-Date: Wed, 6 Jan 2016 15:58:22 -0800
-Message-ID: <CAPcyv4h_Oc3VVwtjp=+onSVq-Kuidd1r+9fbR-uo+DF_=e+jhg@mail.gmail.com>
-References: <cover.1452121277.git.jerry.hoemann@hpe.com>
+From: Loc Ho <lho@apm.com>
+Subject: Re: [PATCH v4] i2c: designware: Do not require clock when SSCN and
+ FFCN are provided
+Date: Wed, 6 Jan 2016 16:31:35 -0800
+Message-ID: <CAPw-ZTkkjaWNUmYfB-Wgh6tp6vb9NxzuDSzKROn8xXkxNf31Sg@mail.gmail.com>
+References: <1451920655-10798-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+	<20160104161525.GC1599@katana>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qk0-f174.google.com ([209.85.220.174]:33752 "EHLO
-	mail-qk0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752494AbcAFX6Y (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 6 Jan 2016 18:58:24 -0500
-Received: by mail-qk0-f174.google.com with SMTP id p186so88084944qke.0
-        for <linux-acpi@vger.kernel.org>; Wed, 06 Jan 2016 15:58:22 -0800 (PST)
-In-Reply-To: <cover.1452121277.git.jerry.hoemann@hpe.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-i2c-owner@vger.kernel.org>
+In-Reply-To: <20160104161525.GC1599@katana>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Wolfram Sang <wsa@the-dreams.de>
+Cc: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, jarkko.nikula@linux.intel.com, andriy.shevchenko@linux.intel.com, Ken Xue <Ken.Xue@amd.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Jerry Hoemann <jerry.hoemann@hpe.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "Elliott, Robert (Persistent Memory)" <elliott@hpe.com>, jmoyer <jmoyer@redhat.com>, Dmitry Krivenok <krivenok.dmitry@gmail.com>, Linda Knippers <linda.knippers@hpe.com>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Rafael J Wysocki <rafael.j.wysocki@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On Wed, Jan 6, 2016 at 3:03 PM, Jerry Hoemann <jerry.hoemann@hpe.com> wrote:
-> The NVDIMM code in the kernel supports an IOCTL interface to user
-> space based upon the Intel Example DSM:
->
->         http://pmem.io/documents/NVDIMM_DSM_Interface_Example.pdf
->
-> This interface cannot be used by other NVDIMM DSMs that support
-> incompatible functions.
->
-> This patch set adds a generic "passthru" IOCTL interface which
-> is not tied to a particular DSM.
->
-> A new _IOC_NR ND_CMD_CALL_DSM == "10" is added for the pass thru call.
->
-> The new data structure nd_cmd_dsmcall_pkg serves as a wrapper for
-> the passthru calls.  This wrapper supplies the data that the kernel
-> needs to make the _DSM call.
->
-> Unlike the definitions of the _DSM functions themselves, the nd_cmd_dsmcall_pkg
-> provides the calling information (input/output sizes) in an uniform
-> manner making the kernel marshaling of the arguments straight
-> forward.
->
-> This shifts the marshaling burden from the kernel to the user
-> space application while still permitting the kernel to internally
-> call _DSM functions.
->
-> The kernel functions __nd_ioctl and acpi_nfit_ctl were modified
-> to accomodate ND_CMD_CALL_DSM.
->
->
-> Changes in version 5:
-> ---------------------
-> 0. Fixed submit comment for drivers/acpi/utils.c.
->
->
-> Changes in version 4:
-> ---------------------
-> 0. Added patch to correct parameter type passed to acpi_evaluate_dsm
->    ACPI defines arguments rev and fun as 64 bit quanties and the ioctl
->    exports to user face rev and func. We want those to match the ACPI spec.
->
->    Also modified acpi_evaluate_dsm_typed and acpi_check dsm which had
->    similar issue.
->
-> 1. nd_cmd_dsmcall_pkg rearange a reserve and rounded up total size
->    to 16 byte boundary.
->
-> 2. Created stand alone patch for the pre-existing security issue related
->    to "read only" IOCTL calls.
->
-> 3. Added patch for increasing envelope size of IOCTL.  Needed to
->    be able to read in the wrapper to know remaining size to copy in.
->
->    Note: in_env, out_env are statics sized based upon this change.
->
-> 4. Moved copyin code to table driven nd_cmd_desc
->
->   Note, the last 40 lines or so of acpi_nfit_ctl will not return _DSM
->   data unless the size allocated in user space buffer equals
->   out_obj->buffer.length.
->
->   The semantic we want in the pass thru case is to return as much
->   of the _DSM data as the user space buffer would accomodate.
->
->   Hence, in acpi_nfit_ctl I have retained the line:
->
->                 memcpy(pkg->dsm_buf + pkg->h.dsm_in,
->                         out_obj->buffer.pointer,
->                         min(pkg->h.dsm_size, pkg->h.dsm_out));
->
->   and the early return from the function.
->
->
->
->
-> Changes in version 3:
-> ---------------------
-> 1. Changed name ND_CMD_PASSTHRU to ND_CMD_CALL_DSM.
->
-> 2. Value of ND_CMD_CALL_DSM is 10, not 100.
->
-> 3. Changed name of nd_passthru_pkg to nd_cmd_dsmcall_pkg.
->
-> 4. Removed separate functions for handling ND_CMD_CALL_DSM.
->    Moved functionality to __nd_ioctl and acpi_nfit_ctl proper.
->    The resultant code looks very different from prior versions.
->
-> 5. BUGFIX: __nd_ioctl: Change the if read_only switch to use
->          _IOC_NR cmd (not ioctl_cmd) for better protection.
->
->         Do we want to make a stand alone patch for this issue?
->
->
-> Changes in version 2:
-> ---------------------
-> 1. Cleanup access mode check in nd_ioctl and nvdimm_ioctl.
-> 2. Change name of ndn_pkg to nd_passthru_pkg
-> 3. Adjust sizes in nd_passthru_pkg. DSM intergers are 64 bit.
-> 4. No new ioctl type, instead tunnel into the existing number space.
-> 5. Push down one function level where determine ioctl cmd type.
-> 6. re-work diagnostic print/dump message in pass-thru functions.
->
->
->
->
-> Jerry Hoemann (6):
->   ACPI / util: Fix acpi_evaluate_dsm() argument type
->   nvdimm: Clean-up access mode check.
->   nvdimm: Add wrapper for IOCTL pass thru
->   nvdimm: Fix security issue with DSM IOCTL.
->   nvdimm: Increase max envelope size for IOCTL
->   nvdimm: Add IOCTL pass thru functions
+Hi All,
 
-These look good to me.
+>> The current driver uses input clock source frequency to calculate
+>> values for [SS|FS]_[HC|LC] registers. However, when booting ACPI, we do not
+>> currently have a good way to provide the frequency information.
+>> Instead, we can leverage the SSCN and FFCN ACPI methods, which can be used
+>> to directly provide these values. So, the clock information should
+>> no longer be required during probing.
+>>
+>> However, since clk can be invalid, additional checks must be done where
+>> we are making use of it.
+>>
+>> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
+>> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+>> Tested-by: Loc Ho <lho@apm.com>
+>> ---
+>>
+>> Note: This has been tested on AMD Seattle RevB for both DT and ACPI.
+>>
+>> Changes from V3 (https://lkml.org/lkml/2015/12/22/596):
+>>     * Add i2c_dw_plat_prepare_clk() per Andy's suggestion
+>>     * Add tested-by Loc Ho.
+>
+> The changes from V3 are big enough that I'd appreciate a new Tested-by
+> tag.
 
-I'll tag "nvdimm: Fix security issue with DSM IOCTL." for -stable.
+I had tested this via this mixes of test cases:
 
-Thanks Jerry!
+a. NO APD driver + this patch ==> HCNT/LCNT as expected
+b. with APD driver + this patch ==> HCNT/LCNT as expected
+c. with APD driver + this patch + double the frequency APD driver ==>
+HCNT/LCNT as expected
+d. with APD driver + this patch + double the frequency APD driver +
+comment out the ACPI parameter retrieve ==> HCNT/LCNT changed as
+expected
+
+Therefore, you can add my - Tested-by: Loc Ho <lho@apm.com>
+
+-Loc
