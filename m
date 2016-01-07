@@ -1,32 +1,34 @@
 From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: Re: [PATCH v2 00/16] intel-lpss: support non-ACPI platforms
-Date: Thu, 7 Jan 2016 10:43:22 +0200
-Message-ID: <20160107084322.GU1770@lahna.fi.intel.com>
-References: <1448896304-87928-1-git-send-email-andriy.shevchenko@linux.intel.com>
- <1488447.PO5a3v7KWa@vostro.rjw.lan>
- <568C040F.2070000@redhat.com>
- <1855560.2DW9QAnCKL@vostro.rjw.lan>
- <568D3EA5.7040207@redhat.com>
+Subject: Re: [PATCH 3/6] ACPI: add 2 parameters to function acpi dma
+ controller register
+Date: Thu, 7 Jan 2016 11:52:38 +0200
+Message-ID: <20160107095238.GY1770@lahna.fi.intel.com>
+References: <1451885501-2710-1-git-send-email-annie.wang@amd.com>
+ <1451885501-2710-4-git-send-email-annie.wang@amd.com>
+ <20160104144534.GB1770@lahna.fi.intel.com>
+ <BLUPR12MB0433A702DB5903D6A20232B781F40@BLUPR12MB0433.namprd12.prod.outlook.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:64334 "EHLO mga03.intel.com"
+Received: from mga03.intel.com ([134.134.136.65]:49671 "EHLO mga03.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750809AbcAGIpf (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 7 Jan 2016 03:45:35 -0500
+	id S1751545AbcAGJy6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 7 Jan 2016 04:54:58 -0500
 Content-Disposition: inline
-In-Reply-To: <568D3EA5.7040207@redhat.com>
+In-Reply-To: <BLUPR12MB0433A702DB5903D6A20232B781F40@BLUPR12MB0433.namprd12.prod.outlook.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Laura Abbott <labbott@redhat.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Kevin Fenzi <kevin@scrye.com>, Arnd Bergmann <arnd@arndb.de>, Wolfram Sang <wsa@the-dreams.de>, Hans de Goede <hdegoede@redhat.com>
+To: "Wang, Annie" <Annie.Wang@amd.com>
+Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, Vinod Koul <vinod.koul@intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "dmaengine@vger.kernel.org" <dmaengine@vger.kernel.org>, Borislav Petkov <bp@alien8.de>, "Huang, Ray" <Ray.Huang@amd.com>, "Wan, Vincent" <Vincent.Wan@amd.com>, "Xue, Ken" <Ken.Xue@amd.com>, Robin Murphy <robin.murphy@arm.com>, Graeme Gregory <gg@slimlogic.co.uk>, "Li, Tony" <Tony.Li@amd.com>, "Yu, Xiangliang" <Xiangliang.Yu@amd.com>
 
-On Wed, Jan 06, 2016 at 08:19:49AM -0800, Laura Abbott wrote:
-> I picked up all the patches from the device-properties merge but the
-> problem still shows up. Are there others I should pick up? Hardware
-> details about the touchpad are at https://bugzilla.redhat.com/show_bug.cgi?id=1275718#c34
+On Wed, Jan 06, 2016 at 06:46:37AM +0000, Wang, Annie wrote:
+> Acpi_dma_xlate  mainly converts an  acpi_dma  structure into a dma_chan structure.
+> Without proper request line, wrong acpi_dma structure may be get. 
+>
+> And as Andy says in http://article.gmane.org/gmane.linux.kernel.iommu/11675 
+> How about add a hook into acpi_dma_controller_register?
 
-Can you get full dmesg of the failure and acpidump as well? I did not
-find those from the bug report.
-
-Also dmesg of non-failure case would be nice.
+Hmm, you can pass custom data in acpi_dma_controller_register() which
+will be assigned to adma->data. If you put your request line
+information there, I think your custom acpi_dma_xlate() should be able
+to use that information to find proper channel, no?
