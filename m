@@ -1,130 +1,251 @@
-From: Florian Bruhin <me@the-compiler.org>
-Subject: Can't wake up screen after blanking
-Date: Thu, 7 Jan 2016 18:13:32 +0100
-Message-ID: <20160107171332.GS13305@tonks>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256; protocol="application/pgp-signature"; boundary="=_mehl.schokokeks.org-22862-1452186814-0001-2"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mehl.schokokeks.org ([46.4.40.247]:54579 "EHLO
-	mehl.schokokeks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751709AbcAGRSi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Jan 2016 12:18:38 -0500
-Content-Disposition: inline
-Sender: linux-acpi-owner@vger.kernel.org
+From: Vitaly Kuznetsov <vkuznets@redhat.com>
+Subject: [PATCH v3] memory-hotplug: add automatic onlining policy for the newly added memory
+Date: Thu,  7 Jan 2016 18:23:41 +0100
+Message-ID: <1452187421-15747-1-git-send-email-vkuznets@redhat.com>
+Return-path: <owner-linux-mm@kvack.org>
+Sender: owner-linux-mm@kvack.org
+To: linux-mm@kvack.org
+Cc: linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Daniel Kiper <daniel.kiper@oracle.com>, Dan Williams <dan.j.williams@intel.com>, Tang Chen <tangchen@cn.fujitsu.com>, David Vrabel <david.vrabel@citrix.com>, David Rientjes <rientjes@google.com>, Andrew Morton <akpm@linux-foundation.org>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, Xishi Qiu <qiuxishi@huawei.com>, Mel Gorman <mgorman@techsingularity.net>, "K. Y. Srinivasan" <kys@microsoft.com>, Igor Mammedov <imammedo@redhat.com>, Kay Sievers <kay@vrfy.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
-This is a MIME-formatted message.  If you see this text it means that your
-E-mail software does not support MIME-formatted messages.
+Currently, all newly added memory blocks remain in 'offline' state unless
+someone onlines them, some linux distributions carry special udev rules
+like:
 
---=_mehl.schokokeks.org-22862-1452186814-0001-2
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+SUBSYSTEM=="memory", ACTION=="add", ATTR{state}=="offline", ATTR{state}="online"
 
-Hi!
+to make this happen automatically. This is not a great solution for virtual
+machines where memory hotplug is being used to address high memory pressure
+situations as such onlining is slow and a userspace process doing this
+(udev) has a chance of being killed by the OOM killer as it will probably
+require to allocate some memory.
 
-I'm currently having trouble with a Kontron COMe-cBT6 module[1]: As
-soon as the screen blanks (after a few minutes), I can't get it to
-turn on again by a keypress.
+Introduce default policy for the newly added memory blocks in
+/sys/devices/system/memory/auto_online_blocks file with two possible
+values: "offline" which preserves the current behavior and "online" which
+causes all newly added memory blocks to go online as soon as they're added.
+The default is "offline".
 
-I'm testing this with a Fedora 23 with a 4.2.3 kernel. The CPU is a
-Intel Atom E3845.
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Daniel Kiper <daniel.kiper@oracle.com>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: David Vrabel <david.vrabel@citrix.com>
+Cc: David Rientjes <rientjes@google.com>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
+Cc: Xishi Qiu <qiuxishi@huawei.com>
+Cc: Mel Gorman <mgorman@techsingularity.net>
+Cc: "K. Y. Srinivasan" <kys@microsoft.com>
+Cc: Igor Mammedov <imammedo@redhat.com>
+Cc: Kay Sievers <kay@vrfy.org>
+Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Signed-off-by: Vitaly Kuznetsov <vkuznets@redhat.com>
+---
+- Changes since 'v2':
+  - Remove config option, revert to 'offline' by default [Andrew Morton,
+    David Rientjes]
+  - Rename 'hotplug_autoonline' to 'auto_online_blocks' [David Rientjes]
 
-It works fine on Windows 8 on the same hardware.
-I'm not entirely sure if it's an ACPI issue, but I suspect it is?
+- Changes since 'v1':
+  Add 'online' parameter to add_memory_resource() as it is being used by
+  xen ballon driver and it adds "empty" memory pages [David Vrabel].
+  (I don't completely understand what prevents manual onlining in this
+   case as we still have all newly added blocks in sysfs ... this is the
+   discussion point.)
 
-dmesg doesn't show anything suspicious after the screen is blank, but
-displays some interesting things during boot:
+- Changes since 'RFC':
+  It seems nobody is strongly opposed to the idea, thus non-RFC.
+  Change memhp_autoonline to bool, we support only MMOP_ONLINE_KEEP
+  and MMOP_OFFLINE for the auto-onlining policy, eliminate 'unknown'
+  from show_memhp_autoonline(). [Daniel Kiper]
+  Put everything under CONFIG_MEMORY_HOTPLUG_AUTOONLINE, enable the
+  feature by default (when the config option is selected) and add
+  kernel parameter (nomemhp_autoonline) to disable the functionality
+  upon boot when needed.
 
-    [    0.131449] ACPI Exception: AE_NOT_FOUND, While evaluating Sleep Sta=
-te [\_S1_] (20150619/hwxface-580)
-    [    0.131459] ACPI Exception: AE_NOT_FOUND, While evaluating Sleep Sta=
-te [\_S2_] (20150619/hwxface-580)
+- RFC:
+  I was able to find previous attempts to fix the issue, e.g.:
+  http://marc.info/?l=linux-kernel&m=137425951924598&w=2
+  http://marc.info/?l=linux-acpi&m=127186488905382
+  but I'm not completely sure why it didn't work out and the solution
+  I suggest is not 'smart enough', thus 'RFC'.
+---
+ Documentation/memory-hotplug.txt | 19 +++++++++++++++----
+ drivers/base/memory.c            | 32 ++++++++++++++++++++++++++++++++
+ drivers/xen/balloon.c            |  2 +-
+ include/linux/memory_hotplug.h   |  4 +++-
+ mm/memory_hotplug.c              | 12 ++++++++++--
+ 5 files changed, 61 insertions(+), 8 deletions(-)
 
-    [    0.176059] acpi PNP0A08:00: _OSC: OS supports [ExtendedConfig ASPM =
-ClockPM Segments MSI]
-    [    0.176305] \_SB_.PCI0:_OSC invalid UUID
-    [    0.176308] _OSC request data:1 1f 0=20
-    [    0.176317] acpi PNP0A08:00: _OSC failed (AE_ERROR); disabling ASPM
-    [    0.176592] acpi PNP0A08:00: [Firmware Info]: MMCONFIG for domain 00=
-00 [bus 00-3f] only partially covers this bridge
-    [    0.176918] PCI host bridge to bus 0000:00
+diff --git a/Documentation/memory-hotplug.txt b/Documentation/memory-hotplug.txt
+index ce2cfcf..ceaf40c 100644
+--- a/Documentation/memory-hotplug.txt
++++ b/Documentation/memory-hotplug.txt
+@@ -254,12 +254,23 @@ If the memory block is online, you'll read "online".
+ If the memory block is offline, you'll read "offline".
+ 
+ 
+-5.2. How to online memory
++5.2. Memory onlining
+ ------------
+-Even if the memory is hot-added, it is not at ready-to-use state.
+-For using newly added memory, you have to "online" the memory block.
++When the memory is hot-added, the kernel decides whether or not to "online"
++it according to the policy which can be read from "auto_online_blocks" file:
+ 
+-For onlining, you have to write "online" to the memory block's state file as:
++% cat /sys/devices/system/memory/auto_online_blocks
++
++The default is "offline" which means the newly added memory is not in a
++ready-to-use state and you have to "online" the newly added memory blocks
++manually. Automatic onlining can be requested by writing "online" to
++"auto_online_blocks" file:
++
++% echo online > /sys/devices/system/memory/auto_online_blocks
++
++If the automatic onlining wasn't requested or some memory block was offlined
++it is possible to change the individual block's state by writing to the "state"
++file:
+ 
+ % echo online > /sys/devices/system/memory/memoryXXX/state
+ 
+diff --git a/drivers/base/memory.c b/drivers/base/memory.c
+index 25425d3..44a618d 100644
+--- a/drivers/base/memory.c
++++ b/drivers/base/memory.c
+@@ -439,6 +439,37 @@ print_block_size(struct device *dev, struct device_attribute *attr,
+ static DEVICE_ATTR(block_size_bytes, 0444, print_block_size, NULL);
+ 
+ /*
++ * Memory auto online policy.
++ */
++
++static ssize_t
++show_auto_online_blocks(struct device *dev, struct device_attribute *attr,
++			char *buf)
++{
++	if (memhp_auto_online)
++		return sprintf(buf, "online\n");
++	else
++		return sprintf(buf, "offline\n");
++}
++
++static ssize_t
++store_auto_online_blocks(struct device *dev, struct device_attribute *attr,
++			 const char *buf, size_t count)
++{
++	if (sysfs_streq(buf, "online"))
++		memhp_auto_online = true;
++	else if (sysfs_streq(buf, "offline"))
++		memhp_auto_online = false;
++	else
++		return -EINVAL;
++
++	return count;
++}
++
++static DEVICE_ATTR(auto_online_blocks, 0644, show_auto_online_blocks,
++		   store_auto_online_blocks);
++
++/*
+  * Some architectures will have custom drivers to do this, and
+  * will not need to do it from userspace.  The fake hot-add code
+  * as well as ppc64 will do all of their discovery in userspace
+@@ -737,6 +768,7 @@ static struct attribute *memory_root_attrs[] = {
+ #endif
+ 
+ 	&dev_attr_block_size_bytes.attr,
++	&dev_attr_auto_online_blocks.attr,
+ 	NULL
+ };
+ 
+diff --git a/drivers/xen/balloon.c b/drivers/xen/balloon.c
+index 12eab50..890c3b5 100644
+--- a/drivers/xen/balloon.c
++++ b/drivers/xen/balloon.c
+@@ -338,7 +338,7 @@ static enum bp_state reserve_additional_memory(void)
+ 	}
+ #endif
+ 
+-	rc = add_memory_resource(nid, resource);
++	rc = add_memory_resource(nid, resource, false);
+ 	if (rc) {
+ 		pr_warn("Cannot add additional memory (%i)\n", rc);
+ 		goto err;
+diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
+index 2ea574f..4b7949a 100644
+--- a/include/linux/memory_hotplug.h
++++ b/include/linux/memory_hotplug.h
+@@ -99,6 +99,8 @@ extern void __online_page_free(struct page *page);
+ 
+ extern int try_online_node(int nid);
+ 
++extern bool memhp_auto_online;
++
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+ extern bool is_pageblock_removable_nolock(struct page *page);
+ extern int arch_remove_memory(u64 start, u64 size);
+@@ -267,7 +269,7 @@ static inline void remove_memory(int nid, u64 start, u64 size) {}
+ extern int walk_memory_range(unsigned long start_pfn, unsigned long end_pfn,
+ 		void *arg, int (*func)(struct memory_block *, void *));
+ extern int add_memory(int nid, u64 start, u64 size);
+-extern int add_memory_resource(int nid, struct resource *resource);
++extern int add_memory_resource(int nid, struct resource *resource, bool online);
+ extern int zone_for_memory(int nid, u64 start, u64 size, int zone_default,
+ 		bool for_device);
+ extern int arch_add_memory(int nid, u64 start, u64 size, bool for_device);
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index a042a9d..0ecf860 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -76,6 +76,9 @@ static struct {
+ #define memhp_lock_acquire()      lock_map_acquire(&mem_hotplug.dep_map)
+ #define memhp_lock_release()      lock_map_release(&mem_hotplug.dep_map)
+ 
++bool memhp_auto_online;
++EXPORT_SYMBOL_GPL(memhp_auto_online);
++
+ void get_online_mems(void)
+ {
+ 	might_sleep();
+@@ -1232,7 +1235,7 @@ int zone_for_memory(int nid, u64 start, u64 size, int zone_default,
+ }
+ 
+ /* we are OK calling __meminit stuff here - we have CONFIG_MEMORY_HOTPLUG */
+-int __ref add_memory_resource(int nid, struct resource *res)
++int __ref add_memory_resource(int nid, struct resource *res, bool online)
+ {
+ 	u64 start, size;
+ 	pg_data_t *pgdat = NULL;
+@@ -1292,6 +1295,11 @@ int __ref add_memory_resource(int nid, struct resource *res)
+ 	/* create new memmap entry */
+ 	firmware_map_add_hotplug(start, start + size, "System RAM");
+ 
++	/* online pages if requested */
++	if (online)
++		online_pages(start >> PAGE_SHIFT, size >> PAGE_SHIFT,
++			     MMOP_ONLINE_KEEP);
++
+ 	goto out;
+ 
+ error:
+@@ -1315,7 +1323,7 @@ int __ref add_memory(int nid, u64 start, u64 size)
+ 	if (!res)
+ 		return -EEXIST;
+ 
+-	ret = add_memory_resource(nid, res);
++	ret = add_memory_resource(nid, res, memhp_auto_online);
+ 	if (ret < 0)
+ 		release_memory_resource(res);
+ 	return ret;
+-- 
+2.4.3
 
-    [    4.269813] [Firmware Bug]: ACPI(PEGP) defines _DOD but not _DOS
-    [    4.271140] ACPI: Video Device [PEGP] (multi-head: yes  rom: no  pos=
-t: no)
-    [    4.271155] ACPI Error: [\_SB_.PCI0.GFX0.DD02._BCL] Namespace lookup=
- failure, AE_NOT_FOUND (20150619/psargs-359)
-    [    4.271165] ACPI Error: Method parse/execution failed [\_SB_.PCI0.RP=
-01.PEGP.DD02._BCL] (Node ffff88017b0c2208), AE_NOT_FOUND (20150619/psparse-=
-536)
-    [    4.271370] ACPI Error: [\_SB_.PCI0.GFX0.DD02._BCL] Namespace lookup=
- failure, AE_NOT_FOUND (20150619/psargs-359)
-    [    4.271380] ACPI Error: Method parse/execution failed [\_SB_.PCI0.RP=
-01.PEGP.DD02._BCL] (Node ffff88017b0c2208), AE_NOT_FOUND (20150619/psparse-=
-536)
-
-    [   11.432121] ACPI Warning: SystemIO range 0x0000000000003000-0x000000=
-000000301F conflicts with OpRegion 0x0000000000003000-0x000000000000300F (\=
-_SB_.PCI0.SBUS.SBU0) (20150619/utaddress-254)
-    [   11.432134] ACPI: If an ACPI driver is available for this device, yo=
-u should use it instead of the native driver
-
-Full dmesg log: [2]
-
-I tried "xset dpms force on" after the screen blanks, but that didn't help
-either.
-
-    $ lspci | grep VGA
-    00:02.0 VGA compatible controller: Intel Corporation Atom Processor Z36=
-xxx/Z37xxx Series Graphics & Display (rev 11)
-
-    $ uname -a
-    Linux localhost 4.2.3-300.fc23.x86_64 #1 SMP Mon Oct 5 15:42:54 UTC 201=
-5 x86_64 x86_64 x86_64 GNU/Linux
-
-acpidump after the screen blank: [3]
-
-Please let me know if there's any other useful information I could
-provide - or what a better place to post this would be if it isn't
-actually an ACPI issue.
-
-Thanks!
-
-Florian
-
-[1] http://www.kontron.com/products/boards-and-standard-form-factors/com-ex=
-press/com-express-compact/come-cbt6.html
-[2] http://paste.the-compiler.org/view/d2c13712
-[3] http://paste.the-compiler.org/view/efb11d4a
-
---=20
-http://www.the-compiler.org | me@the-compiler.org (Mail/XMPP)
-   GPG: 916E B0C8 FD55 A072 | http://the-compiler.org/pubkey.asc
-         I love long mails! | http://email.is-not-s.ms/
-
---=_mehl.schokokeks.org-22862-1452186814-0001-2
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Transfer-Encoding: 7bit
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQIcBAEBCAAGBQJWjpy7AAoJEJFusMj9VaBysL8P+QGCgCehNwBBVCuu6/IQb0Ff
-IthgjAb9dTYnLheQEtsvLBEVUTibB9R6orKmY7355PoIA7vJNlAiuGiW2FcH8MOr
-SOSjt1Au8b+R3Stou60dzf1zuutSgA2m5yjjmzz7G7oFIMeH4KAHbbAa48dWVYcW
-GDHf7UotMHWhi/ktEISzsC82kludJq3uNsTj5+FkKdOnXZTa5v9m3LyXZaanXjcJ
-0JgHVDUcQol4yabZWgWJROH/logSJslTnqzNstyHmjC/6m42AXiCJcMV3MhbBUj2
-XC4fK5nh9/klwyNfV03HdiuXbckac2JAQ+xSMj1jc9iThvaRiDcV0n3uPqdjGB9J
-2y4QOOrKWEfILk1qub7Qdm0Zonh74h2t5gXHn6ZOanz7JgVMnPlG3ZJ8G31ptcKh
-RZkN4odnDa376zcARhiIbYtJn0rPU+pd1s8iPAorL6Qdbhvzq8d5qwHGIdPUYA6t
-YcaK9+CRbsPjV2aK7u3n7iDxIZBZ1vap5dUpCfsGXYkOsCLBUy11BnORDL6s0WIc
-yAEE8oX5aN9ggHYt8gpBGqNB4Qr6c3R9vVqK5W/0bLiCbfUIxiMh6NuQXFB3m6o/
-KnKmjBaCbQ9Q4tgmX1bEgh2bznQJH/ciFafPSQO6SQjlMUnGX6fr5hClvzah3kGr
-PHGFsPg1SuunygVbfRa3
-=Y8PO
------END PGP SIGNATURE-----
-
---=_mehl.schokokeks.org-22862-1452186814-0001-2--
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
