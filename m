@@ -1,55 +1,45 @@
-From: Loc Ho <lho@apm.com>
-Subject: Re: [PATCH v4] i2c: designware: Do not require clock when SSCN and
- FFCN are provided
-Date: Wed, 6 Jan 2016 16:31:35 -0800
-Message-ID: <CAPw-ZTkkjaWNUmYfB-Wgh6tp6vb9NxzuDSzKROn8xXkxNf31Sg@mail.gmail.com>
-References: <1451920655-10798-1-git-send-email-Suravee.Suthikulpanit@amd.com>
-	<20160104161525.GC1599@katana>
+From: Vishal Verma <vishal@kernel.org>
+Subject: Re: [PATCH] nfit: add a module parameter to ignore ars errors
+Date: Wed, 06 Jan 2016 20:01:57 -0700
+Message-ID: <1452135717.23678.2.camel@kernel.org>
+References: <1451946883-28092-1-git-send-email-vishal.l.verma@intel.com>
+	 <568D4AE6.5020601@hpe.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <20160104161525.GC1599@katana>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Wolfram Sang <wsa@the-dreams.de>
-Cc: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, jarkko.nikula@linux.intel.com, andriy.shevchenko@linux.intel.com, Ken Xue <Ken.Xue@amd.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.29.136]:52090 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751924AbcAGDCB (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 6 Jan 2016 22:02:01 -0500
+In-Reply-To: <568D4AE6.5020601@hpe.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linda Knippers <linda.knippers@hpe.com>, Vishal Verma <vishal.l.verma@intel.com>, linux-nvdimm@lists.01.org
+Cc: linux-acpi@vger.kernel.org
 
-Hi All,
+On Wed, 2016-01-06 at 12:12 -0500, Linda Knippers wrote:
+> On 1/4/2016 5:34 PM, Vishal Verma wrote:
+> > Normally, if a platform does not advertise support for Address
+> > Range
+> > Scrub (ARS), we skip it. But if ARS is advertised, it is expected
+> > to
+> > always succeed. If it fails, we normally fail initialization at
+> > that
+> > point.
+> > 
+> > Add a module parameter to nfit that lets it ignore ARS failures and
+> > continue with initialization for debugging.
+> 
+> Could ARS be so broken that you might want to just ignore it
+> altogether
+> and not even make the requests?
+> 
 
->> The current driver uses input clock source frequency to calculate
->> values for [SS|FS]_[HC|LC] registers. However, when booting ACPI, we do not
->> currently have a good way to provide the frequency information.
->> Instead, we can leverage the SSCN and FFCN ACPI methods, which can be used
->> to directly provide these values. So, the clock information should
->> no longer be required during probing.
->>
->> However, since clk can be invalid, additional checks must be done where
->> we are making use of it.
->>
->> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
->> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
->> Tested-by: Loc Ho <lho@apm.com>
->> ---
->>
->> Note: This has been tested on AMD Seattle RevB for both DT and ACPI.
->>
->> Changes from V3 (https://lkml.org/lkml/2015/12/22/596):
->>     * Add i2c_dw_plat_prepare_clk() per Andy's suggestion
->>     * Add tested-by Loc Ho.
->
-> The changes from V3 are big enough that I'd appreciate a new Tested-by
-> tag.
+That is a possibility, and I considered it, but I thought it might be
+better to see how it fails and then just ignore the errors..
+It boils down to how much we trust the firmware, and hopefully if it
+advertises ARS as implemented, it should not be completely broken..
 
-I had tested this via this mixes of test cases:
+Dan, thoughts?
 
-a. NO APD driver + this patch ==> HCNT/LCNT as expected
-b. with APD driver + this patch ==> HCNT/LCNT as expected
-c. with APD driver + this patch + double the frequency APD driver ==>
-HCNT/LCNT as expected
-d. with APD driver + this patch + double the frequency APD driver +
-comment out the ACPI parameter retrieve ==> HCNT/LCNT changed as
-expected
-
-Therefore, you can add my - Tested-by: Loc Ho <lho@apm.com>
-
--Loc
