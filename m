@@ -1,70 +1,52 @@
-From: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Subject: Re: [PATCH v4] i2c: designware: Do not require clock when SSCN and
- FFCN are provided
-Date: Wed, 6 Jan 2016 23:05:14 -0600
-Message-ID: <568DF20A.3060504@amd.com>
-References: <1451920655-10798-1-git-send-email-Suravee.Suthikulpanit@amd.com>
- <20160104161525.GC1599@katana>
- <CAPw-ZTkkjaWNUmYfB-Wgh6tp6vb9NxzuDSzKROn8xXkxNf31Sg@mail.gmail.com>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: Re: [PATCH] nfit: add a module parameter to ignore ars errors
+Date: Wed, 6 Jan 2016 21:34:49 -0800
+Message-ID: <CAPcyv4i3NoioXFRGjyVA=jMOnUw1sx4p7U0_tniRBpo4TJYJiA@mail.gmail.com>
+References: <1451946883-28092-1-git-send-email-vishal.l.verma@intel.com>
+	<568D4AE6.5020601@hpe.com>
+	<1452135717.23678.2.camel@kernel.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bn1bon0080.outbound.protection.outlook.com ([157.56.111.80]:6016
-	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750707AbcAGFF1 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 7 Jan 2016 00:05:27 -0500
-In-Reply-To: <CAPw-ZTkkjaWNUmYfB-Wgh6tp6vb9NxzuDSzKROn8xXkxNf31Sg@mail.gmail.com>
+Received: from mail-yk0-f179.google.com ([209.85.160.179]:36551 "EHLO
+	mail-yk0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750732AbcAGFeu (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Jan 2016 00:34:50 -0500
+Received: by mail-yk0-f179.google.com with SMTP id v14so235876670ykd.3
+        for <linux-acpi@vger.kernel.org>; Wed, 06 Jan 2016 21:34:49 -0800 (PST)
+In-Reply-To: <1452135717.23678.2.camel@kernel.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Loc Ho <lho@apm.com>, Wolfram Sang <wsa@the-dreams.de>
-Cc: Mika Westerberg <mika.westerberg@linux.intel.com>, jarkko.nikula@linux.intel.com, andriy.shevchenko@linux.intel.com, Ken Xue <Ken.Xue@amd.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Vishal Verma <vishal@kernel.org>
+Cc: Linda Knippers <linda.knippers@hpe.com>, Vishal Verma <vishal.l.verma@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>
 
-Hi,
-
-On 01/06/2016 06:31 PM, Loc Ho wrote:
-> Hi All,
->
->>> The current driver uses input clock source frequency to calculate
->>> values for [SS|FS]_[HC|LC] registers. However, when booting ACPI, we do not
->>> currently have a good way to provide the frequency information.
->>> Instead, we can leverage the SSCN and FFCN ACPI methods, which can be used
->>> to directly provide these values. So, the clock information should
->>> no longer be required during probing.
->>>
->>> However, since clk can be invalid, additional checks must be done where
->>> we are making use of it.
->>>
->>> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
->>> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
->>> Tested-by: Loc Ho <lho@apm.com>
->>> ---
->>>
->>> Note: This has been tested on AMD Seattle RevB for both DT and ACPI.
->>>
->>> Changes from V3 (https://lkml.org/lkml/2015/12/22/596):
->>>      * Add i2c_dw_plat_prepare_clk() per Andy's suggestion
->>>      * Add tested-by Loc Ho.
+On Wed, Jan 6, 2016 at 7:01 PM, Vishal Verma <vishal@kernel.org> wrote:
+> On Wed, 2016-01-06 at 12:12 -0500, Linda Knippers wrote:
+>> On 1/4/2016 5:34 PM, Vishal Verma wrote:
+>> > Normally, if a platform does not advertise support for Address
+>> > Range
+>> > Scrub (ARS), we skip it. But if ARS is advertised, it is expected
+>> > to
+>> > always succeed. If it fails, we normally fail initialization at
+>> > that
+>> > point.
+>> >
+>> > Add a module parameter to nfit that lets it ignore ARS failures and
+>> > continue with initialization for debugging.
 >>
->> The changes from V3 are big enough that I'd appreciate a new Tested-by
->> tag.
+>> Could ARS be so broken that you might want to just ignore it
+>> altogether
+>> and not even make the requests?
+>>
 >
-> I had tested this via this mixes of test cases:
+> That is a possibility, and I considered it, but I thought it might be
+> better to see how it fails and then just ignore the errors..
+> It boils down to how much we trust the firmware, and hopefully if it
+> advertises ARS as implemented, it should not be completely broken..
 >
-> a. NO APD driver + this patch ==> HCNT/LCNT as expected
-> b. with APD driver + this patch ==> HCNT/LCNT as expected
-> c. with APD driver + this patch + double the frequency APD driver ==>
-> HCNT/LCNT as expected
-> d. with APD driver + this patch + double the frequency APD driver +
-> comment out the ACPI parameter retrieve ==> HCNT/LCNT changed as
-> expected
->
-> Therefore, you can add my - Tested-by: Loc Ho <lho@apm.com>
->
-> -Loc
+> Dan, thoughts?
 >
 
-Thanks Loc,
-
-Suravee
+Hmm, once we add plumbing for bad block clearing / setting we'll have
+the tools to workaround firmware with untrusted ars results.  i.e.
+just manually correct false positive / negative entries.
