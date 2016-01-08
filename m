@@ -1,119 +1,84 @@
-From: Laura Abbott <labbott@redhat.com>
-Subject: Re: [PATCH v2 00/16] intel-lpss: support non-ACPI platforms
-Date: Fri, 8 Jan 2016 09:08:08 -0800
-Message-ID: <568FECF8.8070507@redhat.com>
-References: <1448896304-87928-1-git-send-email-andriy.shevchenko@linux.intel.com>
- <1855560.2DW9QAnCKL@vostro.rjw.lan> <568D3EA5.7040207@redhat.com>
- <6535017.eZvpZdlbGL@vostro.rjw.lan>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH] PCI: acpiphp_ibm: fix null dereferences on null ibm_slot
+Date: Fri, 8 Jan 2016 12:14:42 -0600
+Message-ID: <20160108181442.GE5354@localhost>
+References: <1451694421-5277-1-git-send-email-colin.king@canonical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:51009 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754363AbcAHRIN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 8 Jan 2016 12:08:13 -0500
-In-Reply-To: <6535017.eZvpZdlbGL@vostro.rjw.lan>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1451694421-5277-1-git-send-email-colin.king@canonical.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Colin King <colin.king@canonical.com>
+Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Kevin Fenzi <kevin@scrye.com>, Arnd Bergmann <arnd@arndb.de>, Wolfram Sang <wsa@the-dreams.de>, Hans de Goede <hdegoede@redhat.com>
 
-On 01/07/2016 04:03 PM, Rafael J. Wysocki wrote:
-> On Wednesday, January 06, 2016 08:19:49 AM Laura Abbott wrote:
->> On 01/05/2016 03:59 PM, Rafael J. Wysocki wrote:
->>> On Tuesday, January 05, 2016 09:57:35 AM Laura Abbott wrote:
->>>> On 12/06/2015 05:44 PM, Rafael J. Wysocki wrote:
->>>>> On Monday, November 30, 2015 05:11:28 PM Andy Shevchenko wrote:
->>>>>> This series includes few logical sets that bring a support of non-ACPI
->>>>>> platforms for Intel Skylake.
->>>>>>
->>>>>> First part is a refactoring of built-in device properties support:
->>>>>> - keep single value inside the structure
->>>>>> - provide helper macros to define built-in properties
->>>>>> - fall back to secondary fwnode if primary has no asked property
->>>>>>
->>>>>> Second is a propagating built-in device properties in platform core.
->>>>>>
->>>>>> Third one is modifications to MFD code and intel-lpss.c driver in particular
->>>>>> to define and pass built-in properties to the individual drivers.
->>>>>>
->>>>>> And last part is a fix for I2C bug found on Lenovo Yoga hardware and a first
->>>>>> converted user.
->>>>>>
->>>>>> Built-in device properties is an alternative to platform data. It provides a
->>>>>> unified API that drivers can use to cover all cases at once: DT, ACPI, and
->>>>>> built-in properties.
->>>>>>
->>>>>> With this series applied a platform data can be considered obsolete. Moreover,
->>>>>> built-in device properties allow to adjust the existing configuration, for
->>>>>> example, in cases when ACPI values are wrong on some platforms.
->>>>>>
->>>>>> The series has been tested on available hardware and doesn't break current
->>>>>> behaviour. But we ask people who have the affected hardware to apply the series
->>>>>> on your side and check with Lenovo hardware.
->>>>>>
->>>>>> Changelog v2:
->>>>>> - fix isuues found by kbuild bot (kbuild)
->>>>>> - append a patch to propagate device properties in polatform code (Arnd)
->>>>>> - update few existing and add couple of new patches due to above
->>>>>> - check with kmemleak
->>>>>>
->>>>>> Andy Shevchenko (9):
->>>>>>      device property: always check for fwnode type
->>>>>>      device property: rename helper functions
->>>>>>      device property: refactor built-in properties support
->>>>>>      device property: keep single value inplace
->>>>>>      device property: improve readability of macros
->>>>>>      device property: return -EINVAL when property isn't found in ACPI
->>>>>>      device property: Fallback to secondary fwnode if primary misses the
->>>>>>        property
->>>>>>      mfd: core: propagate device properties to sub devices drivers
->>>>>>      mfd: intel-lpss: Pass HSUART configuration via properties
->>>>>>
->>>>>> Heikki Krogerus (1):
->>>>>>      device property: helper macros for property entry creation
->>>>>>
->>>>>> Mika Westerberg (6):
->>>>>>      device property: Take a copy of the property set
->>>>>>      driver core: platform: Add support for built-in device properties
->>>>>>      driver core: Do not overwrite secondary fwnode with NULL if it is set
->>>>>>      mfd: intel-lpss: Add support for passing device properties
->>>>>>      mfd: intel-lpss: Pass SDA hold time to I2C host controller driver
->>>>>>      i2c: designware: Convert to use unified device property API
->>>>>
->>>>> I'm going to queue up this series for v4.5.
->>>>>
->>>>> If there are any problems with it or objections from anyone, please let me know.
->>>>>
->>>>
->>>>
->>>> Raising an old thread, I pulled this series into Fedora rawhide and
->>>> while it worked for Lenovo Yoga we received a report that it caused
->>>> a regression on the Dell Inspiron 7559 (see
->>>> https://bugzilla.redhat.com/show_bug.cgi?id=1275718#c27) . I haven't
->>>> asked the reporter about bisecting to see which patch broke it.
->>>> Were there any known follow up patches?
->>>
->>> There were a few.
->>>
->>> All of them are in my linux-next branch if you can try this one.
->>>
->>> Alternatively, I can expose a branch with these to you to test.
->>>
->>
->> I picked up all the patches from the device-properties merge but the
->> problem still shows up. Are there others I should pick up? Hardware
->> details about the touchpad are at https://bugzilla.redhat.com/show_bug.cgi?id=1275718#c34
->
-> Well, in that case can you please ask the reporter to bisect?
->
-> Rafael
->
+On Sat, Jan 02, 2016 at 12:27:01AM +0000, Colin King wrote:
+> From: Colin Ian King <colin.king@canonical.com>
+> 
+> ibm_slot_from_id can return null if the des header signature is
+> not aPCI or if the kmalloc for the return acpi descriptore fails,
+> causing potential null pointer dereferences on the return null
+> descriptor.
+> 
+> Handle the null case with appropriate check and error return.
+> 
+> Signed-off-by: Colin Ian King <colin.king@canonical.com>
 
-I'll see if I can help the reporter bisect although it looks like Hans
-has an idea about what might be failing.
+Applied to pci/hotplug for v4.5, thanks, Colin!
 
-Thanks,
-Laura
-
+> ---
+>  drivers/pci/hotplug/acpiphp_ibm.c | 17 ++++++++++++++---
+>  1 file changed, 14 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/pci/hotplug/acpiphp_ibm.c b/drivers/pci/hotplug/acpiphp_ibm.c
+> index 6ca2399..9d16c9d 100644
+> --- a/drivers/pci/hotplug/acpiphp_ibm.c
+> +++ b/drivers/pci/hotplug/acpiphp_ibm.c
+> @@ -154,7 +154,8 @@ static union apci_descriptor *ibm_slot_from_id(int id)
+>  ibm_slot_done:
+>  	if (ret) {
+>  		ret = kmalloc(sizeof(union apci_descriptor), GFP_KERNEL);
+> -		memcpy(ret, des, sizeof(union apci_descriptor));
+> +		if (ret)
+> +			memcpy(ret, des, sizeof(union apci_descriptor));
+>  	}
+>  	kfree(table);
+>  	return ret;
+> @@ -175,8 +176,13 @@ static int ibm_set_attention_status(struct hotplug_slot *slot, u8 status)
+>  	acpi_status stat;
+>  	unsigned long long rc;
+>  	union apci_descriptor *ibm_slot;
+> +	int id = hpslot_to_sun(slot);
+>  
+> -	ibm_slot = ibm_slot_from_id(hpslot_to_sun(slot));
+> +	ibm_slot = ibm_slot_from_id(id);
+> +	if (!ibm_slot) {
+> +		pr_err("APLS null ACPI descriptor for slot %d\n", id);
+> +		return -ENODEV;
+> +	}
+>  
+>  	pr_debug("%s: set slot %d (%d) attention status to %d\n", __func__,
+>  			ibm_slot->slot.slot_num, ibm_slot->slot.slot_id,
+> @@ -215,8 +221,13 @@ static int ibm_set_attention_status(struct hotplug_slot *slot, u8 status)
+>  static int ibm_get_attention_status(struct hotplug_slot *slot, u8 *status)
+>  {
+>  	union apci_descriptor *ibm_slot;
+> +	int id = hpslot_to_sun(slot);
+>  
+> -	ibm_slot = ibm_slot_from_id(hpslot_to_sun(slot));
+> +	ibm_slot = ibm_slot_from_id(id);
+> +	if (!ibm_slot) {
+> +		pr_err("APLS null ACPI descriptor for slot %d\n", id);
+> +		return -ENODEV;
+> +	}
+>  
+>  	if (ibm_slot->slot.attn & 0xa0 || ibm_slot->slot.status[1] & 0x08)
+>  		*status = 1;
+> -- 
+> 2.6.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
