@@ -1,90 +1,109 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v2 2/2] libnvdimm: Add a poison list and export badblocks
-Date: Thu, 7 Jan 2016 15:22:00 -0800
-Message-ID: <CAPcyv4i1dKrhEJkFWmLAmVRBi=tJUOT0WhxjGh-SVnbvFBuxpQ@mail.gmail.com>
-References: <1451010103-11462-1-git-send-email-vishal.l.verma@intel.com>
-	<1451010103-11462-3-git-send-email-vishal.l.verma@intel.com>
-	<568ED633.8020702@hpe.com>
-	<CAPcyv4g-z1Ua_uHHwSTeKfpf5ABHr5V+R3_SmFfPxZix2u8NAQ@mail.gmail.com>
-	<568EF1AA.6070001@hpe.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v2 00/16] intel-lpss: support non-ACPI platforms
+Date: Fri, 08 Jan 2016 01:03:52 +0100
+Message-ID: <6535017.eZvpZdlbGL@vostro.rjw.lan>
+References: <1448896304-87928-1-git-send-email-andriy.shevchenko@linux.intel.com> <1855560.2DW9QAnCKL@vostro.rjw.lan> <568D3EA5.7040207@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-qk0-f179.google.com ([209.85.220.179]:33593 "EHLO
-	mail-qk0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753538AbcAGXWB (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Jan 2016 18:22:01 -0500
-Received: by mail-qk0-f179.google.com with SMTP id p186so114093750qke.0
-        for <linux-acpi@vger.kernel.org>; Thu, 07 Jan 2016 15:22:01 -0800 (PST)
-In-Reply-To: <568EF1AA.6070001@hpe.com>
+Received: from v094114.home.net.pl ([79.96.170.134]:58742 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752209AbcAGXdJ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Jan 2016 18:33:09 -0500
+In-Reply-To: <568D3EA5.7040207@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Linda Knippers <linda.knippers@hpe.com>
-Cc: Vishal Verma <vishal.l.verma@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, linux-fsdevel <linux-fsdevel@vger.kernel.org>, Ross Zwisler <ross.zwisler@linux.intel.com>, Jeff Moyer <jmoyer@redhat.com>
+To: Laura Abbott <labbott@redhat.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Kevin Fenzi <kevin@scrye.com>, Arnd Bergmann <arnd@arndb.de>, Wolfram Sang <wsa@the-dreams.de>, Hans de Goede <hdegoede@redhat.com>
 
-On Thu, Jan 7, 2016 at 3:15 PM, Linda Knippers <linda.knippers@hpe.com> wrote:
-> On 1/7/2016 5:49 PM, Dan Williams wrote:
->> On Thu, Jan 7, 2016 at 1:18 PM, Linda Knippers <linda.knippers@hpe.com> wrote:
->>>
->>> On 12/24/2015 9:21 PM, Vishal Verma wrote:
->>>> During region creation, perform Address Range Scrubs (ARS) for the SPA
->>>> (System Physical Address) ranges to retrieve known poison locations from
->>>> firmware. Add a new data structure 'nd_poison' which is used as a list
->>>> in nvdimm_bus to store these poison locations.
->>>>
->>>> When creating a pmem namespace, if there is any known poison associated
->>>> with its physical address space, convert the poison ranges to bad sectors
->>>> that are exposed using the badblocks interface.
->>>>
->>>> Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
->>>> ---
->>>>  drivers/acpi/nfit.c       | 203 ++++++++++++++++++++++++++++++++++++++++++++++
->>>>  drivers/nvdimm/core.c     | 187 ++++++++++++++++++++++++++++++++++++++++++
->>>>  drivers/nvdimm/nd-core.h  |   3 +
->>>>  drivers/nvdimm/nd.h       |   6 ++
->>>>  drivers/nvdimm/pmem.c     |   6 ++
->>>>  include/linux/libnvdimm.h |   1 +
->>>>  6 files changed, 406 insertions(+)
->>>>
->>>> diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
->>>
->>> Why are the ARS function in acpi/nfit.c rather than in the core?
->>> I realize that the interfaces are/will be defined in the ACPI spec but
->>> it's not really part of the NFIT.
->>>
->>> Why isn't this part of the nvdimm core, where the calls are made?
->>
->> True.  acpi_nfit_find_poison() could easily become
->> nvdimm_bus_find_poison() and move to the core.  However we only need
->> to take that step when / if another nvdimm bus type show up that isn't
->> nfit defined.  For now only nfit-defined nvdimms have a concept of
->> ARS.
->
-> Why not go ahead and move it now?
->
-> I agree that ARS is related to NFIT, but practically everything else
-> in the core is as well.  It doesn't seem to belongs in nfit.c.  I
-> didn't even notice that's where it was since the subject line says
-> "libnvdimm".
+On Wednesday, January 06, 2016 08:19:49 AM Laura Abbott wrote:
+> On 01/05/2016 03:59 PM, Rafael J. Wysocki wrote:
+> > On Tuesday, January 05, 2016 09:57:35 AM Laura Abbott wrote:
+> >> On 12/06/2015 05:44 PM, Rafael J. Wysocki wrote:
+> >>> On Monday, November 30, 2015 05:11:28 PM Andy Shevchenko wrote:
+> >>>> This series includes few logical sets that bring a support of non-ACPI
+> >>>> platforms for Intel Skylake.
+> >>>>
+> >>>> First part is a refactoring of built-in device properties support:
+> >>>> - keep single value inside the structure
+> >>>> - provide helper macros to define built-in properties
+> >>>> - fall back to secondary fwnode if primary has no asked property
+> >>>>
+> >>>> Second is a propagating built-in device properties in platform core.
+> >>>>
+> >>>> Third one is modifications to MFD code and intel-lpss.c driver in particular
+> >>>> to define and pass built-in properties to the individual drivers.
+> >>>>
+> >>>> And last part is a fix for I2C bug found on Lenovo Yoga hardware and a first
+> >>>> converted user.
+> >>>>
+> >>>> Built-in device properties is an alternative to platform data. It provides a
+> >>>> unified API that drivers can use to cover all cases at once: DT, ACPI, and
+> >>>> built-in properties.
+> >>>>
+> >>>> With this series applied a platform data can be considered obsolete. Moreover,
+> >>>> built-in device properties allow to adjust the existing configuration, for
+> >>>> example, in cases when ACPI values are wrong on some platforms.
+> >>>>
+> >>>> The series has been tested on available hardware and doesn't break current
+> >>>> behaviour. But we ask people who have the affected hardware to apply the series
+> >>>> on your side and check with Lenovo hardware.
+> >>>>
+> >>>> Changelog v2:
+> >>>> - fix isuues found by kbuild bot (kbuild)
+> >>>> - append a patch to propagate device properties in polatform code (Arnd)
+> >>>> - update few existing and add couple of new patches due to above
+> >>>> - check with kmemleak
+> >>>>
+> >>>> Andy Shevchenko (9):
+> >>>>     device property: always check for fwnode type
+> >>>>     device property: rename helper functions
+> >>>>     device property: refactor built-in properties support
+> >>>>     device property: keep single value inplace
+> >>>>     device property: improve readability of macros
+> >>>>     device property: return -EINVAL when property isn't found in ACPI
+> >>>>     device property: Fallback to secondary fwnode if primary misses the
+> >>>>       property
+> >>>>     mfd: core: propagate device properties to sub devices drivers
+> >>>>     mfd: intel-lpss: Pass HSUART configuration via properties
+> >>>>
+> >>>> Heikki Krogerus (1):
+> >>>>     device property: helper macros for property entry creation
+> >>>>
+> >>>> Mika Westerberg (6):
+> >>>>     device property: Take a copy of the property set
+> >>>>     driver core: platform: Add support for built-in device properties
+> >>>>     driver core: Do not overwrite secondary fwnode with NULL if it is set
+> >>>>     mfd: intel-lpss: Add support for passing device properties
+> >>>>     mfd: intel-lpss: Pass SDA hold time to I2C host controller driver
+> >>>>     i2c: designware: Convert to use unified device property API
+> >>>
+> >>> I'm going to queue up this series for v4.5.
+> >>>
+> >>> If there are any problems with it or objections from anyone, please let me know.
+> >>>
+> >>
+> >>
+> >> Raising an old thread, I pulled this series into Fedora rawhide and
+> >> while it worked for Lenovo Yoga we received a report that it caused
+> >> a regression on the Dell Inspiron 7559 (see
+> >> https://bugzilla.redhat.com/show_bug.cgi?id=1275718#c27) . I haven't
+> >> asked the reporter about bisecting to see which patch broke it.
+> >> Were there any known follow up patches?
+> >
+> > There were a few.
+> >
+> > All of them are in my linux-next branch if you can try this one.
+> >
+> > Alternatively, I can expose a branch with these to you to test.
+> >
+> 
+> I picked up all the patches from the device-properties merge but the
+> problem still shows up. Are there others I should pick up? Hardware
+> details about the touchpad are at https://bugzilla.redhat.com/show_bug.cgi?id=1275718#c34
 
-Should be straightforward, will do.
+Well, in that case can you please ask the reporter to bisect?
 
->>>> index aa45d48..ad6d8c6 100644
->>>> --- a/drivers/acpi/nfit.c
->>>> +++ b/drivers/acpi/nfit.c
->>>> @@ -15,6 +15,7 @@
-[..]
->>> I think you should get status, start, wait for completion, then process
->>> records, at least that's how I read the example DSM spec and other
->>> specs.  It says "You must first issue a Query ARS Status command...".
->>
->> We do the lead-in ars_status check above...
->
-> Oh right, I missed that.
->
-> The way the locking works, the registration of regions are serialized so we
-> can't never have overlapping calls to this function, right?  A comment
-> about how this is synchronized might be helpful since the lock is many
-> functions away.
+Rafael
 
-Sounds good.
