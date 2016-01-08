@@ -1,43 +1,42 @@
-From: Laison Computech Inc <cglsa@cglsa.com.py>
-Subject: RE: CISCO IP PHONES AND CPU's
-Date: Fri, 8 Jan 2016 15:17:56 -0300 (PYST)
-Message-ID: <210127425.92271.1452277076519.JavaMail.zimbra__25305.8985727423$1452284299$gmane$org@cglsa.com.py>
-Reply-To: " Laison Computech Inc" <sales@laisoncomputech.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] Last-minute ACPI fix for final v4.4
+Date: Fri, 8 Jan 2016 23:38:47 +0100
+Message-ID: <CAJZ5v0h7P+OJZuN8q-ExKsUgMNdvnr9mf8OL8-FD+A1yvFQtcg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.cglsa.com.py ([190.128.239.62]:52371 "EHLO
-	mail.cglsa.com.py" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753723AbcAHUR5 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Jan 2016 15:17:57 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pm-owner@vger.kernel.org>
+Sender: linux-pm-owner@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
+Hi Linus,
+
+Please pull from
+
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ pm+acpi-4.4-final
+
+to receive an ACPI fix for final v4.4 as commit 9db22d928ca9
+
+ ACPI / property: avoid leaking format string into kobject name
+
+on top of commit 168309855a7d1e16db751e9c647119fe2d2dc878
+
+ Linux 4.4-rc8
+
+Just one obvious fix that adds a missing function argument in
+ACPI code introduced recently (Kees Cook).
+
+Thanks!
 
 
-Dear Sir/Madam,
- 
- Clean tested working pulls CPUs and QTYs in stock.
- 
- 280  X  X5650
- 64  X  X5660
- 350  X  E5645
- 70  X  X5680
- 95  X  X5690
- 
- Brand new sealed  IP phones and QTYs in stock.
- 
- 55 x CP-7937G
- 77 x CP-7942G
- 54 x CP-7945G
- 75 x CP-7962G
- 
- Let me know if you're interested. We are very open to offers and willing to work with you to make sure that we have a deal.
- 
- Barbara Johnson
- Laison Computech Inc
- 210 N Scoring Ave,
- Rialto California, 92376
- Tel: +1-657-232-7047
- Fax: +1-347-214-0478
+---------------
+
+Kees Cook (1):
+      ACPI / property: avoid leaking format string into kobject name
+
+---------------
+
+ drivers/acpi/device_sysfs.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
