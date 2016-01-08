@@ -1,42 +1,112 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] Last-minute ACPI fix for final v4.4
-Date: Fri, 8 Jan 2016 23:38:47 +0100
-Message-ID: <CAJZ5v0h7P+OJZuN8q-ExKsUgMNdvnr9mf8OL8-FD+A1yvFQtcg@mail.gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v12 0/4] Allow USB devices to remain runtime-suspended when sleeping
+Date: Sat, 09 Jan 2016 00:33:58 +0100
+Message-ID: <2332373.7EgmNivg4W@vostro.rjw.lan>
+References: <1452181575-9206-1-git-send-email-tomeu.vizoso@collabora.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pm-owner@vger.kernel.org>
-Sender: linux-pm-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:58205 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755807AbcAHXDO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Jan 2016 18:03:14 -0500
+In-Reply-To: <1452181575-9206-1-git-send-email-tomeu.vizoso@collabora.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Cc: linux-pm@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>, martyn.welch@collabora.co.uk, Ulf Hansson <ulf.hansson@linaro.org>, Daniel Kurtz <djkurtz@chromium.org>, David Airlie <airlied@linux.ie>, Tomas Winkler <tomas.winkler@intel.com>, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Russell King <linux@arm.linux.org.uk>, Len Brown <lenb@kernel.org>, Len Brown <len.brown@intel.com>, Kevin Hilman <khilman@kernel.org>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, linux-arm-kernel@lists.infradead.org
 
-Hi Linus,
+On Thursday, January 07, 2016 04:46:11 PM Tomeu Vizoso wrote:
+> Hi,
+> 
+> this is v12 of an attempt to make it easier for devices to remain in
+> runtime PM when the system goes to sleep, mainly to reduce the time
+> spent resuming devices.
+> 
+> For this, we interpret the absence of all PM callback implementations as
+> it being safe to do direct_complete, so their ancestors aren't prevented
+> from remaining runtime-suspended.
+> 
+> Additionally, the prepare() callback of USB devices will return 1 if
+> runtime PM is enabled and the current wakeup settings are correct.
+> 
+> With these changes, a uvcvideo device (for example) stays in runtime
+> suspend when the system goes to sleep and is left in that state when the
+> system resumes, not delaying it unnecessarily.
+> 
+> Thanks,
+> 
+> Tomeu
+> 
+> Changes in v12:
+> - Include linux/pm_domain.h in vga_switcheroo.c for dev_pm_domain_set()
+> 
+> Changes in v11:
+> - Move calls to dev_pm_domain_set() out from &dev->power.lock as that
+>   isn't needed for dev->pm_domain.
+> 
+> Changes in v10:
+> - Remove superfluous call to pm_runtime_enabled() as suggested by Alan
+> 
+> Changes in v9:
+> - Add docs noting the need for the device lock to be held before calling
+>   device_is_bound()
+> - Add docs noting the need for the device lock to be held before calling
+>   dev_pm_domain_set()
+> - Move to CONFIG_PM_SLEEP as suggested by Rafael and Ulf.
+> - Rename from device_check_pm_callbacks to device_pm_check_callbacks to
+>   follow with the naming convention of existing API.
+> - Re-add calling to device_pm_check_callbacks from device registration
+>   and when updating the PM domain of a device.
+> 
+> Changes in v8:
+> - Add device_is_bound()
+> - Add dev_pm_domain_set() and update code to use it
+> - Move no_pm_callbacks field into CONFIG_PM_SLEEP
+> - Call device_check_pm_callbacks only after a device is bound or unbound
+> 
+> Changes in v7:
+> - Reduce indentation by adding a label in device_prepare()
+> 
+> Changes in v6:
+> - Add stub for !CONFIG_PM.
+> - Move implementation of device_check_pm_callbacks to power/main.c as it
+>   doesn't belong to CONFIG_PM_SLEEP.
+> - Take dev->power.lock before modifying flag.
+> 
+> Changes in v5:
+> - Check for all dev_pm_ops instances associated to a device, updating a
+>   no_pm_callbacks flag at the times when that could change.
+> 
+> Tomeu Vizoso (4):
+>   device core: add device_is_bound()
+>   PM / Domains: add setter for dev.pm_domain
+>   PM / sleep: Go direct_complete if driver has no callbacks
+>   USB / PM: Allow USB devices to remain runtime-suspended when sleeping
+> 
+>  arch/arm/mach-omap2/omap_device.c |  7 ++++---
+>  drivers/acpi/acpi_lpss.c          |  5 ++++-
+>  drivers/acpi/device_pm.c          |  5 +++--
+>  drivers/base/dd.c                 | 21 +++++++++++++++++++--
+>  drivers/base/power/clock_ops.c    |  5 +++--
+>  drivers/base/power/common.c       | 24 ++++++++++++++++++++++++
+>  drivers/base/power/domain.c       |  8 ++++++--
+>  drivers/base/power/main.c         | 35 +++++++++++++++++++++++++++++++++++
+>  drivers/base/power/power.h        |  3 +++
+>  drivers/gpu/vga/vga_switcheroo.c  | 11 ++++++-----
+>  drivers/misc/mei/pci-me.c         |  5 +++--
+>  drivers/misc/mei/pci-txe.c        |  5 +++--
+>  drivers/usb/core/port.c           |  6 ++++++
+>  drivers/usb/core/usb.c            |  8 +++++++-
+>  include/linux/device.h            |  2 ++
+>  include/linux/pm.h                |  1 +
+>  include/linux/pm_domain.h         |  3 +++
+>  17 files changed, 132 insertions(+), 22 deletions(-)
 
-Please pull from
-
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- pm+acpi-4.4-final
-
-to receive an ACPI fix for final v4.4 as commit 9db22d928ca9
-
- ACPI / property: avoid leaking format string into kobject name
-
-on top of commit 168309855a7d1e16db751e9c647119fe2d2dc878
-
- Linux 4.4-rc8
-
-Just one obvious fix that adds a missing function argument in
-ACPI code introduced recently (Kees Cook).
-
-Thanks!
+Series applied, thanks!
 
 
----------------
-
-Kees Cook (1):
-      ACPI / property: avoid leaking format string into kobject name
-
----------------
-
- drivers/acpi/device_sysfs.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
