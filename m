@@ -1,109 +1,87 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v2 00/16] intel-lpss: support non-ACPI platforms
-Date: Fri, 08 Jan 2016 01:03:52 +0100
-Message-ID: <6535017.eZvpZdlbGL@vostro.rjw.lan>
-References: <1448896304-87928-1-git-send-email-andriy.shevchenko@linux.intel.com> <1855560.2DW9QAnCKL@vostro.rjw.lan> <568D3EA5.7040207@redhat.com>
+Subject: Re: [PATCH v5 1/6] ACPI / util: Fix acpi_evaluate_dsm() argument type
+Date: Fri, 08 Jan 2016 01:07:04 +0100
+Message-ID: <1577689.MsoC4f0R7Z@vostro.rjw.lan>
+References: <cover.1452121277.git.jerry.hoemann@hpe.com> <37cf7fc6c93496b84fa3984d94d689d8337a176b.1452121277.git.jerry.hoemann@hpe.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:58742 "HELO
+Received: from v094114.home.net.pl ([79.96.170.134]:57550 "HELO
 	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752209AbcAGXdJ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Jan 2016 18:33:09 -0500
-In-Reply-To: <568D3EA5.7040207@redhat.com>
+	with SMTP id S1752593AbcAGXgU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Jan 2016 18:36:20 -0500
+In-Reply-To: <37cf7fc6c93496b84fa3984d94d689d8337a176b.1452121277.git.jerry.hoemann@hpe.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Laura Abbott <labbott@redhat.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Kevin Fenzi <kevin@scrye.com>, Arnd Bergmann <arnd@arndb.de>, Wolfram Sang <wsa@the-dreams.de>, Hans de Goede <hdegoede@redhat.com>
+To: Jerry Hoemann <jerry.hoemann@hpe.com>
+Cc: ross.zwisler@linux.intel.com, lenb@kernel.org, dan.j.williams@intel.com, elliott@hpe.com, jmoyer@redhat.com, krivenok.dmitry@gmail.com, linda.knippers@hpe.com, robert.moore@intel.com, lv.zheng@intel.com, rafael.j.wysocki@intel.com, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wednesday, January 06, 2016 08:19:49 AM Laura Abbott wrote:
-> On 01/05/2016 03:59 PM, Rafael J. Wysocki wrote:
-> > On Tuesday, January 05, 2016 09:57:35 AM Laura Abbott wrote:
-> >> On 12/06/2015 05:44 PM, Rafael J. Wysocki wrote:
-> >>> On Monday, November 30, 2015 05:11:28 PM Andy Shevchenko wrote:
-> >>>> This series includes few logical sets that bring a support of non-ACPI
-> >>>> platforms for Intel Skylake.
-> >>>>
-> >>>> First part is a refactoring of built-in device properties support:
-> >>>> - keep single value inside the structure
-> >>>> - provide helper macros to define built-in properties
-> >>>> - fall back to secondary fwnode if primary has no asked property
-> >>>>
-> >>>> Second is a propagating built-in device properties in platform core.
-> >>>>
-> >>>> Third one is modifications to MFD code and intel-lpss.c driver in particular
-> >>>> to define and pass built-in properties to the individual drivers.
-> >>>>
-> >>>> And last part is a fix for I2C bug found on Lenovo Yoga hardware and a first
-> >>>> converted user.
-> >>>>
-> >>>> Built-in device properties is an alternative to platform data. It provides a
-> >>>> unified API that drivers can use to cover all cases at once: DT, ACPI, and
-> >>>> built-in properties.
-> >>>>
-> >>>> With this series applied a platform data can be considered obsolete. Moreover,
-> >>>> built-in device properties allow to adjust the existing configuration, for
-> >>>> example, in cases when ACPI values are wrong on some platforms.
-> >>>>
-> >>>> The series has been tested on available hardware and doesn't break current
-> >>>> behaviour. But we ask people who have the affected hardware to apply the series
-> >>>> on your side and check with Lenovo hardware.
-> >>>>
-> >>>> Changelog v2:
-> >>>> - fix isuues found by kbuild bot (kbuild)
-> >>>> - append a patch to propagate device properties in polatform code (Arnd)
-> >>>> - update few existing and add couple of new patches due to above
-> >>>> - check with kmemleak
-> >>>>
-> >>>> Andy Shevchenko (9):
-> >>>>     device property: always check for fwnode type
-> >>>>     device property: rename helper functions
-> >>>>     device property: refactor built-in properties support
-> >>>>     device property: keep single value inplace
-> >>>>     device property: improve readability of macros
-> >>>>     device property: return -EINVAL when property isn't found in ACPI
-> >>>>     device property: Fallback to secondary fwnode if primary misses the
-> >>>>       property
-> >>>>     mfd: core: propagate device properties to sub devices drivers
-> >>>>     mfd: intel-lpss: Pass HSUART configuration via properties
-> >>>>
-> >>>> Heikki Krogerus (1):
-> >>>>     device property: helper macros for property entry creation
-> >>>>
-> >>>> Mika Westerberg (6):
-> >>>>     device property: Take a copy of the property set
-> >>>>     driver core: platform: Add support for built-in device properties
-> >>>>     driver core: Do not overwrite secondary fwnode with NULL if it is set
-> >>>>     mfd: intel-lpss: Add support for passing device properties
-> >>>>     mfd: intel-lpss: Pass SDA hold time to I2C host controller driver
-> >>>>     i2c: designware: Convert to use unified device property API
-> >>>
-> >>> I'm going to queue up this series for v4.5.
-> >>>
-> >>> If there are any problems with it or objections from anyone, please let me know.
-> >>>
-> >>
-> >>
-> >> Raising an old thread, I pulled this series into Fedora rawhide and
-> >> while it worked for Lenovo Yoga we received a report that it caused
-> >> a regression on the Dell Inspiron 7559 (see
-> >> https://bugzilla.redhat.com/show_bug.cgi?id=1275718#c27) . I haven't
-> >> asked the reporter about bisecting to see which patch broke it.
-> >> Were there any known follow up patches?
-> >
-> > There were a few.
-> >
-> > All of them are in my linux-next branch if you can try this one.
-> >
-> > Alternatively, I can expose a branch with these to you to test.
-> >
+On Wednesday, January 06, 2016 04:03:38 PM Jerry Hoemann wrote:
+> The ACPI spec speicifies that arguments "Revision ID" and
+> "Function Index" to a _DSM are type "Integer."  Type Integers
+> are 64 bit quantities.
 > 
-> I picked up all the patches from the device-properties merge but the
-> problem still shows up. Are there others I should pick up? Hardware
-> details about the touchpad are at https://bugzilla.redhat.com/show_bug.cgi?id=1275718#c34
+> The function evaluate_dsm specifies these types as simple "int"
+> which are 32 bits.  Correct type passed to acpi_evaluate_dsm
+> and its callers and derived callers to pass correct type.
+> 
+> acpi_check_dsm and acpi_evaluate_dsm_typed had similar issue
+> and were corrected as well.
+> 
+> Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
 
-Well, in that case can you please ask the reporter to bisect?
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-Rafael
+> ---
+>  drivers/acpi/utils.c    | 4 ++--
+>  include/acpi/acpi_bus.h | 6 +++---
+>  2 files changed, 5 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
+> index 475c907..049cba4 100644
+> --- a/drivers/acpi/utils.c
+> +++ b/drivers/acpi/utils.c
+> @@ -628,7 +628,7 @@ acpi_status acpi_evaluate_lck(acpi_handle handle, int lock)
+>   * some old BIOSes do expect a buffer or an integer etc.
+>   */
+>  union acpi_object *
+> -acpi_evaluate_dsm(acpi_handle handle, const u8 *uuid, int rev, int func,
+> +acpi_evaluate_dsm(acpi_handle handle, const u8 *uuid, u64 rev, u64 func,
+>  		  union acpi_object *argv4)
+>  {
+>  	acpi_status ret;
+> @@ -677,7 +677,7 @@ EXPORT_SYMBOL(acpi_evaluate_dsm);
+>   * functions. Currently only support 64 functions at maximum, should be
+>   * enough for now.
+>   */
+> -bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, int rev, u64 funcs)
+> +bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, u64 rev, u64 funcs)
+>  {
+>  	int i;
+>  	u64 mask = 0;
+> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
+> index ad0a5ff..8e6abcf 100644
+> --- a/include/acpi/acpi_bus.h
+> +++ b/include/acpi/acpi_bus.h
+> @@ -61,12 +61,12 @@ bool acpi_ata_match(acpi_handle handle);
+>  bool acpi_bay_match(acpi_handle handle);
+>  bool acpi_dock_match(acpi_handle handle);
+>  
+> -bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, int rev, u64 funcs);
+> +bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, u64 rev, u64 funcs);
+>  union acpi_object *acpi_evaluate_dsm(acpi_handle handle, const u8 *uuid,
+> -			int rev, int func, union acpi_object *argv4);
+> +			u64 rev, u64 func, union acpi_object *argv4);
+>  
+>  static inline union acpi_object *
+> -acpi_evaluate_dsm_typed(acpi_handle handle, const u8 *uuid, int rev, int func,
+> +acpi_evaluate_dsm_typed(acpi_handle handle, const u8 *uuid, u64 rev, u64 func,
+>  			union acpi_object *argv4, acpi_object_type type)
+>  {
+>  	union acpi_object *obj;
+> 
 
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
