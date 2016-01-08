@@ -1,307 +1,119 @@
-From: Vitaly Kuznetsov <vkuznets@redhat.com>
-Subject: Re: [PATCH v3] memory-hotplug: add automatic onlining policy for the newly added memory
-Date: Fri, 08 Jan 2016 17:55:07 +0100
-Message-ID: <87y4c02eqc.fsf@vitty.brq.redhat.com>
-References: <1452187421-15747-1-git-send-email-vkuznets@redhat.com>
-	<20160108140123.GK3485@olila.local.net-space.pl>
+From: Laura Abbott <labbott@redhat.com>
+Subject: Re: [PATCH v2 00/16] intel-lpss: support non-ACPI platforms
+Date: Fri, 8 Jan 2016 09:08:08 -0800
+Message-ID: <568FECF8.8070507@redhat.com>
+References: <1448896304-87928-1-git-send-email-andriy.shevchenko@linux.intel.com>
+ <1855560.2DW9QAnCKL@vostro.rjw.lan> <568D3EA5.7040207@redhat.com>
+ <6535017.eZvpZdlbGL@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:41877 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:51009 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751076AbcAHQzP (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 8 Jan 2016 11:55:15 -0500
-In-Reply-To: <20160108140123.GK3485@olila.local.net-space.pl> (Daniel Kiper's
-	message of "Fri, 8 Jan 2016 15:01:23 +0100")
+	id S1754363AbcAHRIN (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 8 Jan 2016 12:08:13 -0500
+In-Reply-To: <6535017.eZvpZdlbGL@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Daniel Kiper <daniel.kiper@oracle.com>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dan Williams <dan.j.williams@intel.com>, Tang Chen <tangchen@cn.fujitsu.com>, David Vrabel <david.vrabel@citrix.com>, David Rientjes <rientjes@google.com>, Andrew Morton <akpm@linux-foundation.org>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, Xishi Qiu <qiuxishi@huawei.com>, Mel Gorman <mgorman@techsingularity.net>, "K. Y. Srinivasan" <kys@microsoft.com>, Igor Mammedov <imammedo@redhat.com>, Kay Sievers <kay@vrfy.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Kevin Fenzi <kevin@scrye.com>, Arnd Bergmann <arnd@arndb.de>, Wolfram Sang <wsa@the-dreams.de>, Hans de Goede <hdegoede@redhat.com>
 
-Daniel Kiper <daniel.kiper@oracle.com> writes:
-
-> Hey Vitaly,
+On 01/07/2016 04:03 PM, Rafael J. Wysocki wrote:
+> On Wednesday, January 06, 2016 08:19:49 AM Laura Abbott wrote:
+>> On 01/05/2016 03:59 PM, Rafael J. Wysocki wrote:
+>>> On Tuesday, January 05, 2016 09:57:35 AM Laura Abbott wrote:
+>>>> On 12/06/2015 05:44 PM, Rafael J. Wysocki wrote:
+>>>>> On Monday, November 30, 2015 05:11:28 PM Andy Shevchenko wrote:
+>>>>>> This series includes few logical sets that bring a support of non-ACPI
+>>>>>> platforms for Intel Skylake.
+>>>>>>
+>>>>>> First part is a refactoring of built-in device properties support:
+>>>>>> - keep single value inside the structure
+>>>>>> - provide helper macros to define built-in properties
+>>>>>> - fall back to secondary fwnode if primary has no asked property
+>>>>>>
+>>>>>> Second is a propagating built-in device properties in platform core.
+>>>>>>
+>>>>>> Third one is modifications to MFD code and intel-lpss.c driver in particular
+>>>>>> to define and pass built-in properties to the individual drivers.
+>>>>>>
+>>>>>> And last part is a fix for I2C bug found on Lenovo Yoga hardware and a first
+>>>>>> converted user.
+>>>>>>
+>>>>>> Built-in device properties is an alternative to platform data. It provides a
+>>>>>> unified API that drivers can use to cover all cases at once: DT, ACPI, and
+>>>>>> built-in properties.
+>>>>>>
+>>>>>> With this series applied a platform data can be considered obsolete. Moreover,
+>>>>>> built-in device properties allow to adjust the existing configuration, for
+>>>>>> example, in cases when ACPI values are wrong on some platforms.
+>>>>>>
+>>>>>> The series has been tested on available hardware and doesn't break current
+>>>>>> behaviour. But we ask people who have the affected hardware to apply the series
+>>>>>> on your side and check with Lenovo hardware.
+>>>>>>
+>>>>>> Changelog v2:
+>>>>>> - fix isuues found by kbuild bot (kbuild)
+>>>>>> - append a patch to propagate device properties in polatform code (Arnd)
+>>>>>> - update few existing and add couple of new patches due to above
+>>>>>> - check with kmemleak
+>>>>>>
+>>>>>> Andy Shevchenko (9):
+>>>>>>      device property: always check for fwnode type
+>>>>>>      device property: rename helper functions
+>>>>>>      device property: refactor built-in properties support
+>>>>>>      device property: keep single value inplace
+>>>>>>      device property: improve readability of macros
+>>>>>>      device property: return -EINVAL when property isn't found in ACPI
+>>>>>>      device property: Fallback to secondary fwnode if primary misses the
+>>>>>>        property
+>>>>>>      mfd: core: propagate device properties to sub devices drivers
+>>>>>>      mfd: intel-lpss: Pass HSUART configuration via properties
+>>>>>>
+>>>>>> Heikki Krogerus (1):
+>>>>>>      device property: helper macros for property entry creation
+>>>>>>
+>>>>>> Mika Westerberg (6):
+>>>>>>      device property: Take a copy of the property set
+>>>>>>      driver core: platform: Add support for built-in device properties
+>>>>>>      driver core: Do not overwrite secondary fwnode with NULL if it is set
+>>>>>>      mfd: intel-lpss: Add support for passing device properties
+>>>>>>      mfd: intel-lpss: Pass SDA hold time to I2C host controller driver
+>>>>>>      i2c: designware: Convert to use unified device property API
+>>>>>
+>>>>> I'm going to queue up this series for v4.5.
+>>>>>
+>>>>> If there are any problems with it or objections from anyone, please let me know.
+>>>>>
+>>>>
+>>>>
+>>>> Raising an old thread, I pulled this series into Fedora rawhide and
+>>>> while it worked for Lenovo Yoga we received a report that it caused
+>>>> a regression on the Dell Inspiron 7559 (see
+>>>> https://bugzilla.redhat.com/show_bug.cgi?id=1275718#c27) . I haven't
+>>>> asked the reporter about bisecting to see which patch broke it.
+>>>> Were there any known follow up patches?
+>>>
+>>> There were a few.
+>>>
+>>> All of them are in my linux-next branch if you can try this one.
+>>>
+>>> Alternatively, I can expose a branch with these to you to test.
+>>>
+>>
+>> I picked up all the patches from the device-properties merge but the
+>> problem still shows up. Are there others I should pick up? Hardware
+>> details about the touchpad are at https://bugzilla.redhat.com/show_bug.cgi?id=1275718#c34
 >
-> Sorry for late reply but I have been on holiday and I was not able
-> to follow this thread.
+> Well, in that case can you please ask the reporter to bisect?
 >
-> I saw that Andrew put this patch in -mm queue but I have still some
-> concerns. I hope that they could be addressed in one way or another.
-> Please look below for more details.
->
-> On Thu, Jan 07, 2016 at 06:23:41PM +0100, Vitaly Kuznetsov wrote:
->> Currently, all newly added memory blocks remain in 'offline' state unless
->> someone onlines them, some linux distributions carry special udev rules
->> like:
->>
->> SUBSYSTEM=="memory", ACTION=="add", ATTR{state}=="offline", ATTR{state}="online"
->>
->> to make this happen automatically. This is not a great solution for virtual
->> machines where memory hotplug is being used to address high memory pressure
->> situations as such onlining is slow and a userspace process doing this
->> (udev) has a chance of being killed by the OOM killer as it will probably
->> require to allocate some memory.
->>
->> Introduce default policy for the newly added memory blocks in
->> /sys/devices/system/memory/auto_online_blocks file with two possible
->> values: "offline" which preserves the current behavior and "online" which
->> causes all newly added memory blocks to go online as soon as they're added.
->> The default is "offline".
->>
->> Cc: Jonathan Corbet <corbet@lwn.net>
->> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
->> Cc: Daniel Kiper <daniel.kiper@oracle.com>
->> Cc: Dan Williams <dan.j.williams@intel.com>
->> Cc: Tang Chen <tangchen@cn.fujitsu.com>
->> Cc: David Vrabel <david.vrabel@citrix.com>
->> Cc: David Rientjes <rientjes@google.com>
->> Cc: Andrew Morton <akpm@linux-foundation.org>
->> Cc: Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>
->> Cc: Xishi Qiu <qiuxishi@huawei.com>
->> Cc: Mel Gorman <mgorman@techsingularity.net>
->> Cc: "K. Y. Srinivasan" <kys@microsoft.com>
->> Cc: Igor Mammedov <imammedo@redhat.com>
->> Cc: Kay Sievers <kay@vrfy.org>
->> Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
->> Cc: Boris Ostrovsky <boris.ostrovsky@oracle.com>
->> Signed-off-by: Vitaly Kuznetsov <vkuznets@redhat.com>
->> ---
->> - Changes since 'v2':
->>   - Remove config option, revert to 'offline' by default [Andrew Morton,
->>     David Rientjes]
->>   - Rename 'hotplug_autoonline' to 'auto_online_blocks' [David Rientjes]
->>
->> - Changes since 'v1':
->>   Add 'online' parameter to add_memory_resource() as it is being used by
->>   xen ballon driver and it adds "empty" memory pages [David Vrabel].
->>   (I don't completely understand what prevents manual onlining in this
->>    case as we still have all newly added blocks in sysfs ... this is the
->>    discussion point.)
-
-Hi Daniel!
-
->
-> Sometimes Xen guest needs to share some memory with other guests. This
-> memory must live in an address space and must be described by struct page.
-> Original mechanism gets such struct page by ballooning down guest memory a bit.
-> However, if memory hotplug is available then we do not need to steal real
-> memory from guest to share memory. We can get address space and struct page
-> from memory hotplug machinery. However, there is one requirement: every
-> page shared between guests cannot be allocated (onlined) in normal way.
-> All of them must be taken from hypervisor and later described by struct page.
-> Otherwise, if we online whole section/block automatically then we must use
-> ballooning mechanism described earlier.
->
-> David, please correct me if I am wrong.
->
-> I hope that helps.
->
->> - Changes since 'RFC':
->>   It seems nobody is strongly opposed to the idea, thus non-RFC.
->>   Change memhp_autoonline to bool, we support only MMOP_ONLINE_KEEP
->>   and MMOP_OFFLINE for the auto-onlining policy, eliminate 'unknown'
->>   from show_memhp_autoonline(). [Daniel Kiper]
->>   Put everything under CONFIG_MEMORY_HOTPLUG_AUTOONLINE, enable the
->>   feature by default (when the config option is selected) and add
->>   kernel parameter (nomemhp_autoonline) to disable the functionality
->>   upon boot when needed.
->>
->> - RFC:
->>   I was able to find previous attempts to fix the issue, e.g.:
->>   http://marc.info/?l=linux-kernel&m=137425951924598&w=2
->>   http://marc.info/?l=linux-acpi&m=127186488905382
->>   but I'm not completely sure why it didn't work out and the solution
->>   I suggest is not 'smart enough', thus 'RFC'.
->> ---
->>  Documentation/memory-hotplug.txt | 19 +++++++++++++++----
->>  drivers/base/memory.c            | 32 ++++++++++++++++++++++++++++++++
->>  drivers/xen/balloon.c            |  2 +-
->>  include/linux/memory_hotplug.h   |  4 +++-
->>  mm/memory_hotplug.c              | 12 ++++++++++--
->>  5 files changed, 61 insertions(+), 8 deletions(-)
->>
->> diff --git a/Documentation/memory-hotplug.txt b/Documentation/memory-hotplug.txt
->> index ce2cfcf..ceaf40c 100644
->> --- a/Documentation/memory-hotplug.txt
->> +++ b/Documentation/memory-hotplug.txt
->> @@ -254,12 +254,23 @@ If the memory block is online, you'll read "online".
->>  If the memory block is offline, you'll read "offline".
->>
->>
->> -5.2. How to online memory
->> +5.2. Memory onlining
->>  ------------
->> -Even if the memory is hot-added, it is not at ready-to-use state.
->> -For using newly added memory, you have to "online" the memory block.
->> +When the memory is hot-added, the kernel decides whether or not to "online"
->> +it according to the policy which can be read from "auto_online_blocks" file:
->>
->> -For onlining, you have to write "online" to the memory block's state file as:
->> +% cat /sys/devices/system/memory/auto_online_blocks
->> +
->> +The default is "offline" which means the newly added memory is not in a
->> +ready-to-use state and you have to "online" the newly added memory blocks
->> +manually. Automatic onlining can be requested by writing "online" to
->> +"auto_online_blocks" file:
->> +
->> +% echo online > /sys/devices/system/memory/auto_online_blocks
->> +
->> +If the automatic onlining wasn't requested or some memory block was offlined
->> +it is possible to change the individual block's state by writing to the "state"
->> +file:
->>
->>  % echo online > /sys/devices/system/memory/memoryXXX/state
->
-> Please say clearly that offlined blocks are not onlined automatically
-> when /sys/devices/system/memory/auto_online_blocks is set to online.
+> Rafael
 >
 
-You mean the blocks which were manually offlined won't magically come
-back, right? Ok, I'll try.
- 
->> diff --git a/drivers/base/memory.c b/drivers/base/memory.c
->> index 25425d3..44a618d 100644
->> --- a/drivers/base/memory.c
->> +++ b/drivers/base/memory.c
->> @@ -439,6 +439,37 @@ print_block_size(struct device *dev, struct device_attribute *attr,
->>  static DEVICE_ATTR(block_size_bytes, 0444, print_block_size, NULL);
->>
->>  /*
->> + * Memory auto online policy.
->> + */
->> +
->> +static ssize_t
->> +show_auto_online_blocks(struct device *dev, struct device_attribute *attr,
->> +			char *buf)
->> +{
->> +	if (memhp_auto_online)
->> +		return sprintf(buf, "online\n");
->> +	else
->> +		return sprintf(buf, "offline\n");
->> +}
->> +
->> +static ssize_t
->> +store_auto_online_blocks(struct device *dev, struct device_attribute *attr,
->> +			 const char *buf, size_t count)
->> +{
->> +	if (sysfs_streq(buf, "online"))
->> +		memhp_auto_online = true;
->> +	else if (sysfs_streq(buf, "offline"))
->> +		memhp_auto_online = false;
->> +	else
->> +		return -EINVAL;
->> +
->> +	return count;
->> +}
->> +
->> +static DEVICE_ATTR(auto_online_blocks, 0644, show_auto_online_blocks,
->> +		   store_auto_online_blocks);
->> +
->> +/*
->>   * Some architectures will have custom drivers to do this, and
->>   * will not need to do it from userspace.  The fake hot-add code
->>   * as well as ppc64 will do all of their discovery in userspace
->> @@ -737,6 +768,7 @@ static struct attribute *memory_root_attrs[] = {
->>  #endif
->>
->>  	&dev_attr_block_size_bytes.attr,
->> +	&dev_attr_auto_online_blocks.attr,
->>  	NULL
->>  };
->>
->> diff --git a/drivers/xen/balloon.c b/drivers/xen/balloon.c
->> index 12eab50..890c3b5 100644
->> --- a/drivers/xen/balloon.c
->> +++ b/drivers/xen/balloon.c
->> @@ -338,7 +338,7 @@ static enum bp_state reserve_additional_memory(void)
->>  	}
->>  #endif
->>
->> -	rc = add_memory_resource(nid, resource);
->> +	rc = add_memory_resource(nid, resource, false);
->
-> This is partial solution and does not allow us to use new feature in Xen.
-> Could you add separate patch which fixes this issue?
->
+I'll see if I can help the reporter bisect although it looks like Hans
+has an idea about what might be failing.
 
-Sure, I'd be glad to make this work for Xen too.
+Thanks,
+Laura
 
->>  	if (rc) {
->>  		pr_warn("Cannot add additional memory (%i)\n", rc);
->>  		goto err;
->> diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
->> index 2ea574f..4b7949a 100644
->> --- a/include/linux/memory_hotplug.h
->> +++ b/include/linux/memory_hotplug.h
->> @@ -99,6 +99,8 @@ extern void __online_page_free(struct page *page);
->>
->>  extern int try_online_node(int nid);
->>
->> +extern bool memhp_auto_online;
->> +
->>  #ifdef CONFIG_MEMORY_HOTREMOVE
->>  extern bool is_pageblock_removable_nolock(struct page *page);
->>  extern int arch_remove_memory(u64 start, u64 size);
->> @@ -267,7 +269,7 @@ static inline void remove_memory(int nid, u64 start, u64 size) {}
->>  extern int walk_memory_range(unsigned long start_pfn, unsigned long end_pfn,
->>  		void *arg, int (*func)(struct memory_block *, void *));
->>  extern int add_memory(int nid, u64 start, u64 size);
->> -extern int add_memory_resource(int nid, struct resource *resource);
->> +extern int add_memory_resource(int nid, struct resource *resource, bool online);
->>  extern int zone_for_memory(int nid, u64 start, u64 size, int zone_default,
->>  		bool for_device);
->>  extern int arch_add_memory(int nid, u64 start, u64 size, bool for_device);
->> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
->> index a042a9d..0ecf860 100644
->> --- a/mm/memory_hotplug.c
->> +++ b/mm/memory_hotplug.c
->> @@ -76,6 +76,9 @@ static struct {
->>  #define memhp_lock_acquire()      lock_map_acquire(&mem_hotplug.dep_map)
->>  #define memhp_lock_release()      lock_map_release(&mem_hotplug.dep_map)
->>
->> +bool memhp_auto_online;
->> +EXPORT_SYMBOL_GPL(memhp_auto_online);
->> +
->>  void get_online_mems(void)
->>  {
->>  	might_sleep();
->> @@ -1232,7 +1235,7 @@ int zone_for_memory(int nid, u64 start, u64 size, int zone_default,
->>  }
->>
->>  /* we are OK calling __meminit stuff here - we have CONFIG_MEMORY_HOTPLUG */
->> -int __ref add_memory_resource(int nid, struct resource *res)
->> +int __ref add_memory_resource(int nid, struct resource *res, bool online)
->>  {
->>  	u64 start, size;
->>  	pg_data_t *pgdat = NULL;
->> @@ -1292,6 +1295,11 @@ int __ref add_memory_resource(int nid, struct resource *res)
->>  	/* create new memmap entry */
->>  	firmware_map_add_hotplug(start, start + size, "System RAM");
->>
->> +	/* online pages if requested */
->> +	if (online)
->> +		online_pages(start >> PAGE_SHIFT, size >> PAGE_SHIFT,
->> +			     MMOP_ONLINE_KEEP);
->> +
->
-> This way we go in deadlock if auto online feature is enabled in Xen (this was
-> pointed out by David Vrabel).
-
-Yes, but as I said the patch doesn't change anything for Xen guests for
-now, we always call add_memory_resource() with online = false.
-
-> And we want to have it working out of the box.
-> So, I think that we should find proper solution. I suppose that we can schedule
-> a task here which auto online attached blocks. Hmmm... Not nice but should work.
-> Or maybe you have better idea how to fix this issue.
-
-I'd like to avoid additional delays and memory allocations between
-adding new memory and onlining it (and this is the main purpose of the
-patch). Maybe we can have a tristate online parameter ('online_now',
-'online_delay', 'keep_offlined') and handle it
-accordingly. Alternatively I can suggest we have the onlining in Xen
-balloon driver code, memhp_auto_online is exported so we can call
-online_pages() after we release the ballon_mutex.
-
--- 
-  Vitaly
