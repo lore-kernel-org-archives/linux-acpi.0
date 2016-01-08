@@ -1,87 +1,48 @@
 From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v5 1/6] ACPI / util: Fix acpi_evaluate_dsm() argument type
-Date: Fri, 08 Jan 2016 01:07:04 +0100
-Message-ID: <1577689.MsoC4f0R7Z@vostro.rjw.lan>
-References: <cover.1452121277.git.jerry.hoemann@hpe.com> <37cf7fc6c93496b84fa3984d94d689d8337a176b.1452121277.git.jerry.hoemann@hpe.com>
+Subject: Re: [PATCH v11 2/4] PM / Domains: add setter for dev.pm_domain
+Date: Fri, 08 Jan 2016 01:20:08 +0100
+Message-ID: <1638223.v1Ed2MLOOC@vostro.rjw.lan>
+References: <1445956731-6304-1-git-send-email-tomeu.vizoso@collabora.com>
+ <CAGS+omBMJXOgsd2x9agtt7yi-y+EPgHWSTr7B3JqbN9Hg_2W5A@mail.gmail.com>
+ <CAAObsKC1jTzLWmMtwGWVStuMtzZwvMuA_731dsn4YX7aKMtFKQ@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:57550 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752593AbcAGXgU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 7 Jan 2016 18:36:20 -0500
-In-Reply-To: <37cf7fc6c93496b84fa3984d94d689d8337a176b.1452121277.git.jerry.hoemann@hpe.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: base64
+Return-path: <dri-devel-bounces@lists.freedesktop.org>
+In-Reply-To: <CAAObsKC1jTzLWmMtwGWVStuMtzZwvMuA_731dsn4YX7aKMtFKQ@mail.gmail.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
+List-Post: <mailto:dri-devel@lists.freedesktop.org>
+List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
+ <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: dri-devel-bounces@lists.freedesktop.org
+Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
+To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
+Cc: Ulf Hansson <ulf.hansson@linaro.org>, Russell King <linux@arm.linux.org.uk>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kevin Hilman <khilman@kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, dri-devel <dri-devel@lists.freedesktop.org>, Pavel Machek <pavel@ucw.cz>, Tomas Winkler <tomas.winkler@intel.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Jerry Hoemann <jerry.hoemann@hpe.com>
-Cc: ross.zwisler@linux.intel.com, lenb@kernel.org, dan.j.williams@intel.com, elliott@hpe.com, jmoyer@redhat.com, krivenok.dmitry@gmail.com, linda.knippers@hpe.com, robert.moore@intel.com, lv.zheng@intel.com, rafael.j.wysocki@intel.com, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Wednesday, January 06, 2016 04:03:38 PM Jerry Hoemann wrote:
-> The ACPI spec speicifies that arguments "Revision ID" and
-> "Function Index" to a _DSM are type "Integer."  Type Integers
-> are 64 bit quantities.
-> 
-> The function evaluate_dsm specifies these types as simple "int"
-> which are 32 bits.  Correct type passed to acpi_evaluate_dsm
-> and its callers and derived callers to pass correct type.
-> 
-> acpi_check_dsm and acpi_evaluate_dsm_typed had similar issue
-> and were corrected as well.
-> 
-> Signed-off-by: Jerry Hoemann <jerry.hoemann@hpe.com>
-
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-
-> ---
->  drivers/acpi/utils.c    | 4 ++--
->  include/acpi/acpi_bus.h | 6 +++---
->  2 files changed, 5 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/acpi/utils.c b/drivers/acpi/utils.c
-> index 475c907..049cba4 100644
-> --- a/drivers/acpi/utils.c
-> +++ b/drivers/acpi/utils.c
-> @@ -628,7 +628,7 @@ acpi_status acpi_evaluate_lck(acpi_handle handle, int lock)
->   * some old BIOSes do expect a buffer or an integer etc.
->   */
->  union acpi_object *
-> -acpi_evaluate_dsm(acpi_handle handle, const u8 *uuid, int rev, int func,
-> +acpi_evaluate_dsm(acpi_handle handle, const u8 *uuid, u64 rev, u64 func,
->  		  union acpi_object *argv4)
->  {
->  	acpi_status ret;
-> @@ -677,7 +677,7 @@ EXPORT_SYMBOL(acpi_evaluate_dsm);
->   * functions. Currently only support 64 functions at maximum, should be
->   * enough for now.
->   */
-> -bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, int rev, u64 funcs)
-> +bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, u64 rev, u64 funcs)
->  {
->  	int i;
->  	u64 mask = 0;
-> diff --git a/include/acpi/acpi_bus.h b/include/acpi/acpi_bus.h
-> index ad0a5ff..8e6abcf 100644
-> --- a/include/acpi/acpi_bus.h
-> +++ b/include/acpi/acpi_bus.h
-> @@ -61,12 +61,12 @@ bool acpi_ata_match(acpi_handle handle);
->  bool acpi_bay_match(acpi_handle handle);
->  bool acpi_dock_match(acpi_handle handle);
->  
-> -bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, int rev, u64 funcs);
-> +bool acpi_check_dsm(acpi_handle handle, const u8 *uuid, u64 rev, u64 funcs);
->  union acpi_object *acpi_evaluate_dsm(acpi_handle handle, const u8 *uuid,
-> -			int rev, int func, union acpi_object *argv4);
-> +			u64 rev, u64 func, union acpi_object *argv4);
->  
->  static inline union acpi_object *
-> -acpi_evaluate_dsm_typed(acpi_handle handle, const u8 *uuid, int rev, int func,
-> +acpi_evaluate_dsm_typed(acpi_handle handle, const u8 *uuid, u64 rev, u64 func,
->  			union acpi_object *argv4, acpi_object_type type)
->  {
->  	union acpi_object *obj;
-> 
-
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+T24gVGh1cnNkYXksIEphbnVhcnkgMDcsIDIwMTYgMDM6NDc6MDEgUE0gVG9tZXUgVml6b3NvIHdy
+b3RlOgo+IE9uIDEwIE5vdmVtYmVyIDIwMTUgYXQgMTA6MzMsIERhbmllbCBLdXJ0eiA8ZGprdXJ0
+ekBjaHJvbWl1bS5vcmc+IHdyb3RlOgo+IFtzbmlwXQo+ID4KPiA+IFRoZSBwcm9ibGVtIGFwcGVh
+cnMgdG8gYmUgdGhhdDoKPiA+ICAgKiBPbiBib290LCBwbGF0Zm9ybV9kcnZfcHJvYmUoKSBjYWxs
+cyBkZXZfcG1fZG9tYWluX2F0dGFjaCgpIGJlZm9yZQo+ID4gZHJ2LT5wcm9iZSgpOyB0aHVzLCBp
+dCBjYWxscyBkZXZfcG1fZG9tYWluX2F0dGFjaCgpIHdoaWxlIHRoZSBkZXZpY2UKPiA+IGlzIHVu
+Ym91bmQuCj4gPgo+ID4gICogSG93ZXZlciwgZm9yIGEgcGxhdGZvcm1fZGV2aWNlLCB0aGUgcmVi
+b290IHBhdGggY2FsbHMKPiA+IGRldmljZV9zaHV0ZG93bigpLCBidXQgbm90IF9fZGV2aWNlX3Jl
+bGVhc2VfZHJpdmVyKCk6Cj4gPiBkZXZpY2Vfc2h1dGRvd24oKQo+ID4gICBkZXYtPmRyaXZlci0+
+c2h1dGRvd24gPT4gcGxhdGZvcm1fZHJ2X3NodXRkb3duKCkKPiA+ICAgICBkZXZfcG1fZG9tYWlu
+X2RldGFjaCgpCj4gPiAgICAgICAgZGV2LT5wbV9kb21haW4tPmRldGFjaCgpID0+IGdlbnBkX2Rl
+dl9wbV9kZXRhY2goKQo+ID4gICAgICAgICAgcG1fZ2VucGRfcmVtb3ZlX2RldmljZSgpCj4gPiAg
+ICAgICAgICAgICBkZXZfcG1fZG9tYWluX3NldChkZXYsIE5VTEwpOwo+ID4KPiA+IFNvLCBmb3Ig
+YSBwbGF0Zm9ybV9kZXZpY2UgaW4gYSBnZW5wZCBwb3dlciBkb21haW4gd2l0aCAuc2h1dGRvd24K
+PiA+IGluc3RhbGxlZCwgcGxhdGZvcm1fZHJ2X3NodXRkb3duKCkgY2FsbHMgZGV2X3BtX2RvbWFp
+bl9kZXRhY2goKSB3aGlsZQo+ID4gdGhlIGRldmljZSBpcyBzdGlsbCBib3VuZCwgd2hpY2ggdHJp
+Z2dlcnMgdGhlIFdBUk4oKS4KPiAKPiBIaSBSYWZhZWwsIEFsYW4gYW5kIFVsZiwKPiAKPiBkbyB5
+b3UgaGF2ZSBhbnkgc3VnZ2VzdGlvbiBhYm91dCB0aGlzPyBJIGRvbid0IHJlYWxseSB1bmRlcnN0
+YW5kIHdoeQo+IHRoZSBkZXZpY2UgaXMgZGV0YWNoZWQgZnJvbSB0aGUgZG9tYWluIG9uIHNodXRk
+b3duLgoKV2VsbCwgdGhpcyBsb29rcyBsaWtlIGEgYnVnIHRvIG1lLgoKVGhhbmtzLApSYWZhZWwK
+Cl9fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fCmRyaS1kZXZl
+bCBtYWlsaW5nIGxpc3QKZHJpLWRldmVsQGxpc3RzLmZyZWVkZXNrdG9wLm9yZwpodHRwOi8vbGlz
+dHMuZnJlZWRlc2t0b3Aub3JnL21haWxtYW4vbGlzdGluZm8vZHJpLWRldmVsCg==
