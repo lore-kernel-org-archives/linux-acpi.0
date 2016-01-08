@@ -1,84 +1,51 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH] PCI: acpiphp_ibm: fix null dereferences on null ibm_slot
-Date: Fri, 8 Jan 2016 12:14:42 -0600
-Message-ID: <20160108181442.GE5354@localhost>
-References: <1451694421-5277-1-git-send-email-colin.king@canonical.com>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCH 1/5] x86, memhp, numa: Online memory-less nodes at boot
+ time.
+Date: Fri, 8 Jan 2016 13:28:08 -0500
+Message-ID: <20160108182808.GZ1898@mtj.duckdns.org>
+References: <1452140425-16577-1-git-send-email-tangchen@cn.fujitsu.com>
+ <1452140425-16577-2-git-send-email-tangchen@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <owner-linux-mm@kvack.org>
 Content-Disposition: inline
-In-Reply-To: <1451694421-5277-1-git-send-email-colin.king@canonical.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Colin King <colin.king@canonical.com>
-Cc: "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, Len Brown <len.brown@intel.com>, Bjorn Helgaas <bhelgaas@google.com>, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <1452140425-16577-2-git-send-email-tangchen@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: Tang Chen <tangchen@cn.fujitsu.com>
+Cc: cl@linux.com, jiang.liu@linux.intel.com, mika.j.penttila@gmail.com, mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, Jan 02, 2016 at 12:27:01AM +0000, Colin King wrote:
-> From: Colin Ian King <colin.king@canonical.com>
-> 
-> ibm_slot_from_id can return null if the des header signature is
-> not aPCI or if the kmalloc for the return acpi descriptore fails,
-> causing potential null pointer dereferences on the return null
-> descriptor.
-> 
-> Handle the null case with appropriate check and error return.
-> 
-> Signed-off-by: Colin Ian King <colin.king@canonical.com>
+Hello,
 
-Applied to pci/hotplug for v4.5, thanks, Colin!
-
-> ---
->  drivers/pci/hotplug/acpiphp_ibm.c | 17 ++++++++++++++---
->  1 file changed, 14 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/pci/hotplug/acpiphp_ibm.c b/drivers/pci/hotplug/acpiphp_ibm.c
-> index 6ca2399..9d16c9d 100644
-> --- a/drivers/pci/hotplug/acpiphp_ibm.c
-> +++ b/drivers/pci/hotplug/acpiphp_ibm.c
-> @@ -154,7 +154,8 @@ static union apci_descriptor *ibm_slot_from_id(int id)
->  ibm_slot_done:
->  	if (ret) {
->  		ret = kmalloc(sizeof(union apci_descriptor), GFP_KERNEL);
-> -		memcpy(ret, des, sizeof(union apci_descriptor));
-> +		if (ret)
-> +			memcpy(ret, des, sizeof(union apci_descriptor));
->  	}
->  	kfree(table);
->  	return ret;
-> @@ -175,8 +176,13 @@ static int ibm_set_attention_status(struct hotplug_slot *slot, u8 status)
->  	acpi_status stat;
->  	unsigned long long rc;
->  	union apci_descriptor *ibm_slot;
-> +	int id = hpslot_to_sun(slot);
->  
-> -	ibm_slot = ibm_slot_from_id(hpslot_to_sun(slot));
-> +	ibm_slot = ibm_slot_from_id(id);
-> +	if (!ibm_slot) {
-> +		pr_err("APLS null ACPI descriptor for slot %d\n", id);
-> +		return -ENODEV;
-> +	}
->  
->  	pr_debug("%s: set slot %d (%d) attention status to %d\n", __func__,
->  			ibm_slot->slot.slot_num, ibm_slot->slot.slot_id,
-> @@ -215,8 +221,13 @@ static int ibm_set_attention_status(struct hotplug_slot *slot, u8 status)
->  static int ibm_get_attention_status(struct hotplug_slot *slot, u8 *status)
+On Thu, Jan 07, 2016 at 12:20:21PM +0800, Tang Chen wrote:
+> +static void __init init_memory_less_node(int nid)
 >  {
->  	union apci_descriptor *ibm_slot;
-> +	int id = hpslot_to_sun(slot);
+> +	unsigned long zones_size[MAX_NR_ZONES] = {0};
+> +	unsigned long zholes_size[MAX_NR_ZONES] = {0};
+
+It doesn't cause any functional difference but it's a bit weird to use
+{0} because it explicitly says to initialize the first element to 0
+when the whole array needs to be cleared.  Wouldnt { } make more sense?
+
+> diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
+> index e23a9e7..9c4d4d5 100644
+> --- a/include/linux/mmzone.h
+> +++ b/include/linux/mmzone.h
+> @@ -736,6 +736,7 @@ static inline bool is_dev_zone(const struct zone *zone)
 >  
-> -	ibm_slot = ibm_slot_from_id(hpslot_to_sun(slot));
-> +	ibm_slot = ibm_slot_from_id(id);
-> +	if (!ibm_slot) {
-> +		pr_err("APLS null ACPI descriptor for slot %d\n", id);
-> +		return -ENODEV;
-> +	}
->  
->  	if (ibm_slot->slot.attn & 0xa0 || ibm_slot->slot.status[1] & 0x08)
->  		*status = 1;
-> -- 
-> 2.6.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  extern struct mutex zonelists_mutex;
+>  void build_all_zonelists(pg_data_t *pgdat, struct zone *zone);
+> +void build_zonelists(pg_data_t *pgdat);
+
+This isn't used in this patch.  Contamination?
+
+Thanks.
+
+-- 
+tejun
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
