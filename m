@@ -1,112 +1,45 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH v12 0/4] Allow USB devices to remain runtime-suspended when sleeping
-Date: Sat, 09 Jan 2016 00:33:58 +0100
-Message-ID: <2332373.7EgmNivg4W@vostro.rjw.lan>
-References: <1452181575-9206-1-git-send-email-tomeu.vizoso@collabora.com>
+From: Loc Ho <lho@apm.com>
+Subject: Re: [PATCH v3 0/2] acpi: apei: Bug fix to enable APEI support for ARMv8
+Date: Fri, 8 Jan 2016 16:30:48 -0800
+Message-ID: <CAPw-ZT=Kor1E7NpAkoAyJtULiCGuCCsoSES05Dr6-eUUS8dDHg@mail.gmail.com>
+References: <1446857519-5908-1-git-send-email-lho@apm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:58205 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1755807AbcAHXDO (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Jan 2016 18:03:14 -0500
-In-Reply-To: <1452181575-9206-1-git-send-email-tomeu.vizoso@collabora.com>
+Received: from mail-lf0-f42.google.com ([209.85.215.42]:34106 "EHLO
+	mail-lf0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755354AbcAIAay (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 8 Jan 2016 19:30:54 -0500
+Received: by mail-lf0-f42.google.com with SMTP id d17so19626519lfb.1
+        for <linux-acpi@vger.kernel.org>; Fri, 08 Jan 2016 16:30:53 -0800 (PST)
+In-Reply-To: <1446857519-5908-1-git-send-email-lho@apm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Cc: linux-pm@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>, martyn.welch@collabora.co.uk, Ulf Hansson <ulf.hansson@linaro.org>, Daniel Kurtz <djkurtz@chromium.org>, David Airlie <airlied@linux.ie>, Tomas Winkler <tomas.winkler@intel.com>, linux-usb@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org, Russell King <linux@arm.linux.org.uk>, Len Brown <lenb@kernel.org>, Len Brown <len.brown@intel.com>, Kevin Hilman <khilman@kernel.org>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, linux-omap@vger.kernel.org, Pavel Machek <pavel@ucw.cz>, linux-arm-kernel@lists.infradead.org
+To: Doug Thompson <dougthompson@xmission.com>, Borislav Petkov <bp@alien8.de>, Mauro Carvalho Chehab <mchehab@osg.samsung.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Fu Wei <fu.wei@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Cc: linux-edac <linux-edac@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-acpi@vger.kernel.org, Jon Masters <jcm@redhat.com>, "patches@apm.com" <patches@apm.com>, Loc Ho <lho@apm.com>
 
-On Thursday, January 07, 2016 04:46:11 PM Tomeu Vizoso wrote:
-> Hi,
-> 
-> this is v12 of an attempt to make it easier for devices to remain in
-> runtime PM when the system goes to sleep, mainly to reduce the time
-> spent resuming devices.
-> 
-> For this, we interpret the absence of all PM callback implementations as
-> it being safe to do direct_complete, so their ancestors aren't prevented
-> from remaining runtime-suspended.
-> 
-> Additionally, the prepare() callback of USB devices will return 1 if
-> runtime PM is enabled and the current wakeup settings are correct.
-> 
-> With these changes, a uvcvideo device (for example) stays in runtime
-> suspend when the system goes to sleep and is left in that state when the
-> system resumes, not delaying it unnecessarily.
-> 
-> Thanks,
-> 
-> Tomeu
-> 
-> Changes in v12:
-> - Include linux/pm_domain.h in vga_switcheroo.c for dev_pm_domain_set()
-> 
-> Changes in v11:
-> - Move calls to dev_pm_domain_set() out from &dev->power.lock as that
->   isn't needed for dev->pm_domain.
-> 
-> Changes in v10:
-> - Remove superfluous call to pm_runtime_enabled() as suggested by Alan
-> 
-> Changes in v9:
-> - Add docs noting the need for the device lock to be held before calling
->   device_is_bound()
-> - Add docs noting the need for the device lock to be held before calling
->   dev_pm_domain_set()
-> - Move to CONFIG_PM_SLEEP as suggested by Rafael and Ulf.
-> - Rename from device_check_pm_callbacks to device_pm_check_callbacks to
->   follow with the naming convention of existing API.
-> - Re-add calling to device_pm_check_callbacks from device registration
->   and when updating the PM domain of a device.
-> 
-> Changes in v8:
-> - Add device_is_bound()
-> - Add dev_pm_domain_set() and update code to use it
-> - Move no_pm_callbacks field into CONFIG_PM_SLEEP
-> - Call device_check_pm_callbacks only after a device is bound or unbound
-> 
-> Changes in v7:
-> - Reduce indentation by adding a label in device_prepare()
-> 
-> Changes in v6:
-> - Add stub for !CONFIG_PM.
-> - Move implementation of device_check_pm_callbacks to power/main.c as it
->   doesn't belong to CONFIG_PM_SLEEP.
-> - Take dev->power.lock before modifying flag.
-> 
-> Changes in v5:
-> - Check for all dev_pm_ops instances associated to a device, updating a
->   no_pm_callbacks flag at the times when that could change.
-> 
-> Tomeu Vizoso (4):
->   device core: add device_is_bound()
->   PM / Domains: add setter for dev.pm_domain
->   PM / sleep: Go direct_complete if driver has no callbacks
->   USB / PM: Allow USB devices to remain runtime-suspended when sleeping
-> 
->  arch/arm/mach-omap2/omap_device.c |  7 ++++---
->  drivers/acpi/acpi_lpss.c          |  5 ++++-
->  drivers/acpi/device_pm.c          |  5 +++--
->  drivers/base/dd.c                 | 21 +++++++++++++++++++--
->  drivers/base/power/clock_ops.c    |  5 +++--
->  drivers/base/power/common.c       | 24 ++++++++++++++++++++++++
->  drivers/base/power/domain.c       |  8 ++++++--
->  drivers/base/power/main.c         | 35 +++++++++++++++++++++++++++++++++++
->  drivers/base/power/power.h        |  3 +++
->  drivers/gpu/vga/vga_switcheroo.c  | 11 ++++++-----
->  drivers/misc/mei/pci-me.c         |  5 +++--
->  drivers/misc/mei/pci-txe.c        |  5 +++--
->  drivers/usb/core/port.c           |  6 ++++++
->  drivers/usb/core/usb.c            |  8 +++++++-
->  include/linux/device.h            |  2 ++
->  include/linux/pm.h                |  1 +
->  include/linux/pm_domain.h         |  3 +++
->  17 files changed, 132 insertions(+), 22 deletions(-)
+Hi Borislav/Doung/etc,
 
-Series applied, thanks!
+> v3
+> * Change the title of the patch to reflect the patch
+> * Completely dropped the driver. Instead, move completely to the FW by
+>   accessing the GIC directly.
+> * Fix a bug with function acpi_gsi_to_irq
+> * Enable APEI multiple GHES source to share an single external IRQ
+>
+> v2
+> * Make all code more generic naming
+> * Still waiting for comment from Linaro folks on APEI
+>
+> ---
+> Loc Ho (2):
+>   acpi: Fix proper return code for function acpi_gsi_to_irq
+>   acpi: apei: Enable APEI multiple GHES source to share an single
+>     external IRQ
 
+It has been awhile and I thought I check again on this. Any issue with
+these two changes as it is needed for ARMv8 64-bit APEI support.
+Without these two changes, APEI support will NOT work with X-Gene
+platforms.
 
--- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+-Loc
