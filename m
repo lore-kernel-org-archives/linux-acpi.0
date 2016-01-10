@@ -1,65 +1,62 @@
-From: Wolfram Sang <wsa@the-dreams.de>
-Subject: Re: [PATCH v4] i2c: designware: Do not require clock when SSCN and
- FFCN are provided
-Date: Sun, 10 Jan 2016 09:38:12 +0100
-Message-ID: <20160110083812.GE1526@katana>
-References: <1451920655-10798-1-git-send-email-Suravee.Suthikulpanit@amd.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v3 1/2] acpi: Fix proper return code for function
+ acpi_gsi_to_irq
+Date: Sun, 10 Jan 2016 12:07:14 +0100
+Message-ID: <20160110110714.GA22896@pd.tnic>
+References: <1446857519-5908-1-git-send-email-lho@apm.com>
+ <1446857519-5908-2-git-send-email-lho@apm.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="vmttodhTwj0NAgWp"
-Return-path: <linux-i2c-owner@vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.skyhub.de ([78.46.96.112]:43030 "EHLO mail.skyhub.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754885AbcAJLHZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Sun, 10 Jan 2016 06:07:25 -0500
 Content-Disposition: inline
-In-Reply-To: <1451920655-10798-1-git-send-email-Suravee.Suthikulpanit@amd.com>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Cc: mika.westerberg@linux.intel.com, jarkko.nikula@linux.intel.com, andriy.shevchenko@linux.intel.com, lho@apm.com, Ken.Xue@amd.com, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <1446857519-5908-2-git-send-email-lho@apm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Loc Ho <lho@apm.com>
+Cc: dougthompson@xmission.com, mchehab@osg.samsung.com, tomasz.nowicki@linaro.org, fu.wei@linaro.org, rjw@rjwysocki.net, lenb@kernel.org, linux-edac@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, jcm@redhat.com, patches@apm.com, Tuan Phan <tphan@apm.com>
 
+On Fri, Nov 06, 2015 at 05:51:58PM -0700, Loc Ho wrote:
+> The function acpi_gsi_to_irq should returns 0 on success as upper function
+> caller expect an 0 for sucesss.
+> 
+> Signed-off-by: Tuan Phan <tphan@apm.com>
+> Signed-off-by: Loc Ho <lho@apm.com>
+> ---
+>  drivers/acpi/gsi.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/acpi/gsi.c b/drivers/acpi/gsi.c
+> index fa4585a..0ed1003 100644
+> --- a/drivers/acpi/gsi.c
+> +++ b/drivers/acpi/gsi.c
+> @@ -43,7 +43,7 @@ static unsigned int acpi_gsi_get_irq_type(int trigger, int polarity)
+>   *
+>   * irq location updated with irq value [>0 on success, 0 on failure]
+>   *
+> - * Returns: linux IRQ number on success (>0)
+> + * Returns: 0 on success
+>   *          -EINVAL on failure
+>   */
+>  int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
+> @@ -56,7 +56,7 @@ int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
+>  	 * *irq == 0 means no mapping, that should
+>  	 * be reported as a failure
+>  	 */
+> -	return (*irq > 0) ? *irq : -EINVAL;
+> +	return (*irq > 0) ? 0 : -EINVAL;
+>  }
+>  EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
 
---vmttodhTwj0NAgWp
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+That function can be simplified. It should be made to return the irq
+number on success and 0 on failure. No need for that *irq output
+argument.
 
-On Mon, Jan 04, 2016 at 09:17:35AM -0600, Suravee Suthikulpanit wrote:
-> The current driver uses input clock source frequency to calculate
-> values for [SS|FS]_[HC|LC] registers. However, when booting ACPI, we do n=
-ot
-> currently have a good way to provide the frequency information.
-> Instead, we can leverage the SSCN and FFCN ACPI methods, which can be used
-> to directly provide these values. So, the clock information should
-> no longer be required during probing.
->=20
-> However, since clk can be invalid, additional checks must be done where
-> we are making use of it.
->=20
-> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
-> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-> Tested-by: Loc Ho <lho@apm.com>=20
+-- 
+Regards/Gruss,
+    Boris.
 
-Applied to for-next, thanks! Also thanks to all reviewers and testers.
-
-
---vmttodhTwj0NAgWp
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1
-
-iQIcBAEBAgAGBQJWkhh0AAoJEBQN5MwUoCm2jVgP/02CO8hkoOF5ilqqOjAvhfPv
-gajMw2xJlRrYSNcInLlKAZVo9Hdj0tzRlCugg7i7ix29+fvbicdE562AWszmF5e3
-bDfUgKWwXeEFO8hExgMAdGGgZUsJ8eBeFhqVk77bjKo+HmPUQ9z7P1am+tQqRYKm
-4doKuaBGMgdvt1ONV6i4zmbapxKkC+yZYPnhutwaEj0ogQML9FvsMwZukwpbiZjo
-+EQ8uzPFciwySFndN9yaaVydXDrEgMNkYxPwGLTBThC0hDyRmeiAVdvQ77rGQQQ2
-tcmL/GYuOuAqGath/W/oThx5GKjEckPQusCptsYEC8ez4t0r4/gW/tpO6b969FoM
-mPuBiBR3fmqTHYL/avfP6cSqr4pxiQ6mJ8HqIWCzR940NXXrZNIL2QO+rA08twNM
-27dYrb4y+CzJKeqMniZqUiuGmV8RAb2hA/+bLcS5b8/FgIU25ADI6igjiIVN+HPY
-R/j7hi0cvksuZ+AMLYD7Wg1FU+lN06ssae8JVyFZc0LCKh/qEpWDcrU3ENLBp04A
-d04VfaQ5xx69jiaTvUfGEwh/UEoQVf+X5yCAtqybTddPDb3kgXoD2fudZGHEvT2O
-f1KWQAZFU1DJs3/y+U8677dGWXOt5aakB0XriSxWS5icKqLflg71v4QWWJRjcrU5
-2e6PLtoKMgScA+nzdMLg
-=zUi0
------END PGP SIGNATURE-----
-
---vmttodhTwj0NAgWp--
+ECO tip #101: Trim your mails when you reply.
