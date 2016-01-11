@@ -1,78 +1,82 @@
-From: David Vrabel <david.vrabel@citrix.com>
-Subject: Re: [PATCH v3] memory-hotplug: add automatic onlining policy for
- the newly added memory
-Date: Mon, 11 Jan 2016 13:21:53 +0000
-Message-ID: <5693AC71.8080400@citrix.com>
-References: <1452187421-15747-1-git-send-email-vkuznets@redhat.com>
-	<56938B7E.3060902@citrix.com> <871t9ojphn.fsf@vitty.brq.redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <871t9ojphn.fsf@vitty.brq.redhat.com>
-Sender: owner-linux-mm@kvack.org
-To: Vitaly Kuznetsov <vkuznets@redhat.com>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>, Greg
- Kroah-Hartman <gregkh@linuxfoundation.org>, Daniel Kiper <daniel.kiper@oracle.com>, Dan Williams <dan.j.williams@intel.com>, Tang Chen <tangchen@cn.fujitsu.com>, David Rientjes <rientjes@google.com>, Andrew
- Morton <akpm@linux-foundation.org>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, Xishi Qiu <qiuxishi@huawei.com>, Mel Gorman <mgorman@techsingularity.net>, "K. Y. Srinivasan" <kys@microsoft.com>, Igor
- Mammedov <imammedo@redhat.com>, Kay Sievers <kay@vrfy.org>, Konrad
- Rzeszutek Wilk <konrad.wilk@oracle.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>
+From: Aleksey Makarov <aleksey.makarov@linaro.org>
+Subject: [PATCH v5 0/2] ACPI: amba bus probing support
+Date: Mon, 11 Jan 2016 19:26:25 +0600
+Message-ID: <1452518790-27053-1-git-send-email-aleksey.makarov@linaro.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Aleksey Makarov <aleksey.makarov@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Shannon Zhao <shannon.zhao@linaro.org>, Andy Shevchenko <andy.shevchenko@gmail.com>, Vladimir Zapolskiy <vz@mleia.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 11/01/16 11:59, Vitaly Kuznetsov wrote:
-> David Vrabel <david.vrabel@citrix.com> writes:
-> 
->> On 07/01/16 17:23, Vitaly Kuznetsov wrote:
->>>
->>> - Changes since 'v1':
->>>   Add 'online' parameter to add_memory_resource() as it is being used by
->>>   xen ballon driver and it adds "empty" memory pages [David Vrabel].
->>>   (I don't completely understand what prevents manual onlining in this
->>>    case as we still have all newly added blocks in sysfs ... this is the
->>>    discussion point.)
->>
-> 
-> (there is a discussion with Daniel on the same topic in a parallel
-> thread)
-> 
->> I'm not sure what you're not understanding here?
->>
->> Memory added by the Xen balloon driver (whether populated with real
->> memory or not) does need to be onlined by udev or similar.
-> 
-> 
-> Yes, same as all other memory hotplug mechanisms (hyper-v's balloon
-> driver and acpi memory hotplug). My patch adds an option to make this
-> happen automatically. Xen driver is currently excluded because of a
-> deadlock. If this deadlock is the only problem we can easily change
-> taking the lock to checking that the lock was taken (and taking in case
-> it wasn't) or something similar and everything is going to work. From
-> briefly looking at the code it seems to me it's going to work.
+As discussed when Shannon Zhao sent a patch to add platform_device support
+to pl061 driver. Russel and other maintainers prefered that ACPI learned
+how to create AMBA devices rather than converting/adding platform_device
+support to AMBA drivers.
 
-I don't think Linux has recursive mutex that we could use for this.
+http://comments.gmane.org/gmane.linux.ports.arm.kernel/431364
 
-> What I wasn't sure about is 'empty pages' you were mentioning. In case
-> there are some pages we can't online there should be a protection
-> mechanism actively preventing them from going online (similar to
-> hv_online_page() in Hyper-V driver) as this patch does nothing
-> 'special' compared to udev onlining newly added blocks. 
+This patchset
 
-'Empty' (or unpopulated) pages are those without any physical RAM
-backing them.  Backend drivers map foreign (from other guest) pages into
-these unpopulated pages.  i.e., accesses by the kernel to the virtual
-addresses of these pages access memory shared by another guest.
+1) Adds basic AMBA device probing support to ACPI, it uses a whitelist of
+device IDs as the number of AMBA devices is limited. Currently the only id
+present is of the GPIO device that is used in QEMU for arm64.
 
-These empty pages are ones we would prefer to be always automatically
-onlined because they're hotplugged in response to requests from the
-backend drivers.
+2) Adds the plumbing into ACPI probe sequence.
 
-Anyway, this series is fine with this Xen balloon driver limitation --
-it can be addresses at a later date if necessary.
+3) Factors out the code that finds the first physical node of an ACPI device.
 
-David
+v5:
+- Introduce a new function acpi_get_first_physical_node() in a separate patch
+  (Andy Shevchenko)
+- Combine the patch "ACPI: amba bus probing support" with the one line patch
+  "ACPI: scan add in amba probing"
+- Drop patch "serial: amba-pl011: add ACPI support to AMBA probe" until maintainers
+  decide on the further directions (see [1, 2])
+- Don't initialize dev->dev.parent and set the device's name with amba_device_alloc()
+  (Russell King)
+- Fix minor bugs and style issues (Andy Shevchenko)
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+[1] https://lkml.kernel.org/g/20160106100700.GA19062@n2100.arm.linux.org.uk
+[2] https://lkml.kernel.org/g/20160106110350.GB3599@xora-haswell.xora.org.uk
+
+v4:
+https://lkml.kernel.org/g/1450880383-29560-1-git-send-email-aleksey.makarov@linaro.org
+- A memory leak has been fixed (Vladimir Zapolskiy)
+- ACPI_COMPANION() -> has_acpi_companion() (Andy Shevchenko)
+- pr_err() -> dev_err() (Andy Shevchenko)
+- The call to amba_register_dummy_clk() has been moved to to acpi_amba_init()
+  (Vladimir Zapolskiy)
+- Return value has been fixed (Vladimir Zapolskiy)
+
+v3:
+https://lkml.kernel.org/g/1450716100-13688-1-git-send-email-aleksey.makarov@linaro.org
+- Compilation without CONFIG_ARM_AMBA has been fixed
+
+v2:
+https://lkml.kernel.org/g/1450709399-7246-1-git-send-email-aleksey.makarov@linaro.org
+- A new ACPI scan handler for AMBA devices has been implemented
+- The order of `if` branches in amba-pl011.c has been changed
+- A couple of `static`s have been added
+- The compilation of the acpi_amba.c unit has made conditional
+- A comment on SBSA UART has been added
+
+v1:
+https://lkml.kernel.org/g/1443609530-21524-1-git-send-email-graeme.gregory@linaro.org
+
+Aleksey Makarov (1):
+  ACPI: introduce a function to find the first physical device
+
+Graeme Gregory (1):
+  ACPI: amba bus probing support
+
+ drivers/acpi/Makefile        |   1 +
+ drivers/acpi/acpi_amba.c     | 122 +++++++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/acpi_platform.c |  18 +------
+ drivers/acpi/bus.c           |  36 ++++++++-----
+ drivers/acpi/internal.h      |   6 +++
+ drivers/acpi/scan.c          |   1 +
+ 6 files changed, 156 insertions(+), 28 deletions(-)
+ create mode 100644 drivers/acpi/acpi_amba.c
+
+-- 
+2.7.0
