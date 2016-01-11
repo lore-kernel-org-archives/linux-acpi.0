@@ -1,82 +1,206 @@
 From: Aleksey Makarov <aleksey.makarov@linaro.org>
-Subject: [PATCH v5 0/2] ACPI: amba bus probing support
-Date: Mon, 11 Jan 2016 19:26:25 +0600
-Message-ID: <1452518790-27053-1-git-send-email-aleksey.makarov@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Aleksey Makarov <aleksey.makarov@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Shannon Zhao <shannon.zhao@linaro.org>, Andy Shevchenko <andy.shevchenko@gmail.com>, Vladimir Zapolskiy <vz@mleia.com>
+Subject: [PATCH v5 2/2] ACPI: amba bus probing support
+Date: Mon, 11 Jan 2016 19:26:27 +0600
+Message-ID: <1452518790-27053-3-git-send-email-aleksey.makarov@linaro.org>
+References: <1452518790-27053-1-git-send-email-aleksey.makarov@linaro.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lb0-f169.google.com ([209.85.217.169]:32873 "EHLO
+	mail-lb0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760209AbcAKN0t (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Jan 2016 08:26:49 -0500
+Received: by mail-lb0-f169.google.com with SMTP id sv6so246380236lbb.0
+        for <linux-acpi@vger.kernel.org>; Mon, 11 Jan 2016 05:26:48 -0800 (PST)
+In-Reply-To: <1452518790-27053-1-git-send-email-aleksey.makarov@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Aleksey Makarov <aleksey.makarov@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Shannon Zhao <shannon.zhao@linaro.org>, Andy Shevchenko <andy.shevchenko@gmail.com>, Vladimir Zapolskiy <vz@mleia.com>, Len Brown <lenb@kernel.org>
 
-As discussed when Shannon Zhao sent a patch to add platform_device support
-to pl061 driver. Russel and other maintainers prefered that ACPI learned
-how to create AMBA devices rather than converting/adding platform_device
-support to AMBA drivers.
+From: Graeme Gregory <graeme.gregory@linaro.org>
 
-http://comments.gmane.org/gmane.linux.ports.arm.kernel/431364
+On ARM64 some devices use the AMBA device and not the platform bus for
+probing so add support for this. Uses a dummy clock for apb_pclk as ACPI
+does not have a suitable clock representation and to keep the core
+AMBA bus code unchanged between probing methods.
 
-This patchset
-
-1) Adds basic AMBA device probing support to ACPI, it uses a whitelist of
-device IDs as the number of AMBA devices is limited. Currently the only id
-present is of the GPIO device that is used in QEMU for arm64.
-
-2) Adds the plumbing into ACPI probe sequence.
-
-3) Factors out the code that finds the first physical node of an ACPI device.
-
-v5:
-- Introduce a new function acpi_get_first_physical_node() in a separate patch
-  (Andy Shevchenko)
-- Combine the patch "ACPI: amba bus probing support" with the one line patch
-  "ACPI: scan add in amba probing"
-- Drop patch "serial: amba-pl011: add ACPI support to AMBA probe" until maintainers
-  decide on the further directions (see [1, 2])
-- Don't initialize dev->dev.parent and set the device's name with amba_device_alloc()
-  (Russell King)
-- Fix minor bugs and style issues (Andy Shevchenko)
-
-[1] https://lkml.kernel.org/g/20160106100700.GA19062@n2100.arm.linux.org.uk
-[2] https://lkml.kernel.org/g/20160106110350.GB3599@xora-haswell.xora.org.uk
-
-v4:
-https://lkml.kernel.org/g/1450880383-29560-1-git-send-email-aleksey.makarov@linaro.org
-- A memory leak has been fixed (Vladimir Zapolskiy)
-- ACPI_COMPANION() -> has_acpi_companion() (Andy Shevchenko)
-- pr_err() -> dev_err() (Andy Shevchenko)
-- The call to amba_register_dummy_clk() has been moved to to acpi_amba_init()
-  (Vladimir Zapolskiy)
-- Return value has been fixed (Vladimir Zapolskiy)
-
-v3:
-https://lkml.kernel.org/g/1450716100-13688-1-git-send-email-aleksey.makarov@linaro.org
-- Compilation without CONFIG_ARM_AMBA has been fixed
-
-v2:
-https://lkml.kernel.org/g/1450709399-7246-1-git-send-email-aleksey.makarov@linaro.org
-- A new ACPI scan handler for AMBA devices has been implemented
-- The order of `if` branches in amba-pl011.c has been changed
-- A couple of `static`s have been added
-- The compilation of the acpi_amba.c unit has made conditional
-- A comment on SBSA UART has been added
-
-v1:
-https://lkml.kernel.org/g/1443609530-21524-1-git-send-email-graeme.gregory@linaro.org
-
-Aleksey Makarov (1):
-  ACPI: introduce a function to find the first physical device
-
-Graeme Gregory (1):
-  ACPI: amba bus probing support
-
- drivers/acpi/Makefile        |   1 +
- drivers/acpi/acpi_amba.c     | 122 +++++++++++++++++++++++++++++++++++++++++++
- drivers/acpi/acpi_platform.c |  18 +------
- drivers/acpi/bus.c           |  36 ++++++++-----
- drivers/acpi/internal.h      |   6 +++
- drivers/acpi/scan.c          |   1 +
- 6 files changed, 156 insertions(+), 28 deletions(-)
+Signed-off-by: Graeme Gregory <graeme.gregory@linaro.org>
+Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
+---
+ drivers/acpi/Makefile    |   1 +
+ drivers/acpi/acpi_amba.c | 122 +++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/internal.h  |   5 ++
+ drivers/acpi/scan.c      |   1 +
+ 4 files changed, 129 insertions(+)
  create mode 100644 drivers/acpi/acpi_amba.c
 
+diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+index 675eaf3..3cf732f 100644
+--- a/drivers/acpi/Makefile
++++ b/drivers/acpi/Makefile
+@@ -43,6 +43,7 @@ acpi-y				+= pci_root.o pci_link.o pci_irq.o
+ acpi-y				+= acpi_lpss.o acpi_apd.o
+ acpi-y				+= acpi_platform.o
+ acpi-y				+= acpi_pnp.o
++acpi-$(CONFIG_ARM_AMBA)	+= acpi_amba.o
+ acpi-y				+= int340x_thermal.o
+ acpi-y				+= power.o
+ acpi-y				+= event.o
+diff --git a/drivers/acpi/acpi_amba.c b/drivers/acpi/acpi_amba.c
+new file mode 100644
+index 0000000..2a61b54
+--- /dev/null
++++ b/drivers/acpi/acpi_amba.c
+@@ -0,0 +1,122 @@
++
++/*
++ * ACPI support for platform bus type.
++ *
++ * Copyright (C) 2015, Linaro Ltd
++ * Author: Graeme Gregory <graeme.gregory@linaro.org>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/acpi.h>
++#include <linux/amba/bus.h>
++#include <linux/clkdev.h>
++#include <linux/clk-provider.h>
++#include <linux/device.h>
++#include <linux/err.h>
++#include <linux/ioport.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++
++#include "internal.h"
++
++static const struct acpi_device_id amba_id_list[] = {
++	{"ARMH0061", 0}, /* PL061 GPIO Device */
++	{"", 0},
++};
++
++static void amba_register_dummy_clk(void)
++{
++	static struct clk *amba_dummy_clk;
++
++	/* If clock already registered */
++	if (amba_dummy_clk)
++		return;
++
++	amba_dummy_clk = clk_register_fixed_rate(NULL, "apb_pclk", NULL,
++						CLK_IS_ROOT, 0);
++	clk_register_clkdev(amba_dummy_clk, "apb_pclk", NULL);
++}
++
++static int amba_handler_attach(struct acpi_device *adev,
++				const struct acpi_device_id *id)
++{
++	struct amba_device *dev;
++	struct resource_entry *rentry;
++	struct list_head resource_list;
++	bool address_found = false;
++	int irq_no = 0;
++	int ret;
++
++	/* If the ACPI node already has a physical device attached, skip it. */
++	if (adev->physical_node_count)
++		return 0;
++
++	dev = amba_device_alloc(dev_name(&adev->dev), 0, 0);
++	if (!dev) {
++		dev_err(&adev->dev, "%s(): amba_device_alloc() failed\n",
++			__func__);
++		return -ENOMEM;
++	}
++
++	INIT_LIST_HEAD(&resource_list);
++	ret = acpi_dev_get_resources(adev, &resource_list, NULL, NULL);
++	if (ret < 0)
++		goto err_free;
++
++	list_for_each_entry(rentry, &resource_list, node) {
++		switch (resource_type(rentry->res)) {
++		case IORESOURCE_MEM:
++			if (!address_found) {
++				dev->res = *rentry->res;
++				address_found = true;
++			}
++			break;
++		case IORESOURCE_IRQ:
++			if (irq_no < AMBA_NR_IRQS)
++				dev->irq[irq_no++] = rentry->res->start;
++			break;
++		default:
++			dev_warn(&adev->dev, "Invalid resource\n");
++			break;
++		}
++	}
++
++	acpi_dev_free_resource_list(&resource_list);
++
++	/*
++	 * If the ACPI node has a parent and that parent has a physical device
++	 * attached to it, that physical device should be the parent of
++	 * the amba device we are about to create.
++	 */
++	if (adev->parent)
++		dev->dev.parent = acpi_get_first_physical_node(adev->parent);
++
++	ACPI_COMPANION_SET(&dev->dev, adev);
++
++	ret = amba_device_add(dev, &iomem_resource);
++	if (ret) {
++		dev_err(&adev->dev, "%s(): amba_device_add() failed (%d)\n",
++		       __func__, ret);
++		goto err_free;
++	}
++
++	return 1;
++
++err_free:
++	amba_device_put(dev);
++	return ret;
++}
++
++static struct acpi_scan_handler amba_handler = {
++	.ids = amba_id_list,
++	.attach = amba_handler_attach,
++};
++
++void __init acpi_amba_init(void)
++{
++	amba_register_dummy_clk();
++	acpi_scan_add_handler(&amba_handler);
++}
+diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+index ee9312ba..6086f66 100644
+--- a/drivers/acpi/internal.h
++++ b/drivers/acpi/internal.h
+@@ -29,6 +29,11 @@ void acpi_processor_init(void);
+ void acpi_platform_init(void);
+ void acpi_pnp_init(void);
+ void acpi_int340x_thermal_init(void);
++#ifdef CONFIG_ARM_AMBA
++void acpi_amba_init(void);
++#else
++static inline void acpi_amba_init(void) {}
++#endif
+ int acpi_sysfs_init(void);
+ void acpi_container_init(void);
+ void acpi_memory_hotplug_init(void);
+diff --git a/drivers/acpi/scan.c b/drivers/acpi/scan.c
+index 78d5f02..20c8cba 100644
+--- a/drivers/acpi/scan.c
++++ b/drivers/acpi/scan.c
+@@ -1922,6 +1922,7 @@ int __init acpi_scan_init(void)
+ 	acpi_memory_hotplug_init();
+ 	acpi_pnp_init();
+ 	acpi_int340x_thermal_init();
++	acpi_amba_init();
+ 
+ 	acpi_scan_add_handler(&generic_device_handler);
+ 
 -- 
 2.7.0
+
