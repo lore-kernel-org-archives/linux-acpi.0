@@ -1,99 +1,140 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH v5 2/2] ACPI: amba bus probing support
-Date: Mon, 11 Jan 2016 18:26:00 +0200
-Message-ID: <CAHp75VfND6Gq5XW91mbgN+ZQnxh_SCm9LKNz_zNFvaVd1dgvWg@mail.gmail.com>
-References: <1452518790-27053-1-git-send-email-aleksey.makarov@linaro.org>
-	<1452518790-27053-3-git-send-email-aleksey.makarov@linaro.org>
-	<CAHp75Vew8HMMrc2vdKbSVuB2reOCrwZZg3-a4nBUyfiQ=c0Y4A@mail.gmail.com>
-	<20160111152732.GU19062@n2100.arm.linux.org.uk>
+From: Laura Abbott <labbott@redhat.com>
+Subject: Re: [PATCH v2 00/16] intel-lpss: support non-ACPI platforms
+Date: Mon, 11 Jan 2016 08:33:09 -0800
+Message-ID: <5693D945.1050409@redhat.com>
+References: <1448896304-87928-1-git-send-email-andriy.shevchenko@linux.intel.com>
+ <1855560.2DW9QAnCKL@vostro.rjw.lan> <568D3EA5.7040207@redhat.com>
+ <6535017.eZvpZdlbGL@vostro.rjw.lan> <568FECF8.8070507@redhat.com>
+ <56900C67.7050700@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-vk0-f54.google.com ([209.85.213.54]:34597 "EHLO
-	mail-vk0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933793AbcAKQ0E (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Jan 2016 11:26:04 -0500
-In-Reply-To: <20160111152732.GU19062@n2100.arm.linux.org.uk>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-i2c-owner@vger.kernel.org>
+In-Reply-To: <56900C67.7050700@redhat.com>
+Sender: linux-i2c-owner@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Lee Jones <lee.jones@linaro.org>, Mika Westerberg <mika.westerberg@linux.intel.com>, Kevin Fenzi <kevin@scrye.com>, Arnd Bergmann <arnd@arndb.de>, Wolfram Sang <wsa@the-dreams.de>, Benjamin Tissoires <btissoir@redhat.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Cc: Aleksey Makarov <aleksey.makarov@linaro.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, Graeme Gregory <graeme.gregory@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Shannon Zhao <shannon.zhao@linaro.org>, Vladimir Zapolskiy <vz@mleia.com>, Len Brown <lenb@kernel.org>
 
-On Mon, Jan 11, 2016 at 5:27 PM, Russell King - ARM Linux
-<linux@arm.linux.org.uk> wrote:
-> On Mon, Jan 11, 2016 at 05:13:20PM +0200, Andy Shevchenko wrote:
->> On Mon, Jan 11, 2016 at 3:26 PM, Aleksey Makarov
->> <aleksey.makarov@linaro.org> wrote:
->> > From: Graeme Gregory <graeme.gregory@linaro.org>
-
->> > +static int amba_handler_attach(struct acpi_device *adev,
->> > +                               const struct acpi_device_id *id)
->> > +{
->> > +       struct amba_device *dev;
->> > +       struct resource_entry *rentry;
->> > +       struct list_head resource_list;
->> > +       bool address_found = false;
->> > +       int irq_no = 0;
->> > +       int ret;
->> > +
->> > +       /* If the ACPI node already has a physical device attached, skip it. */
->> > +       if (adev->physical_node_count)
->> > +               return 0;
->> > +
->> > +       dev = amba_device_alloc(dev_name(&adev->dev), 0, 0);
->> > +       if (!dev) {
->> > +               dev_err(&adev->dev, "%s(): amba_device_alloc() failed\n",
->> > +                       __func__);
->> > +               return -ENOMEM;
->> > +       }
->> > +
->> > +       INIT_LIST_HEAD(&resource_list);
->> > +       ret = acpi_dev_get_resources(adev, &resource_list, NULL, NULL);
->> > +       if (ret < 0)
->> > +               goto err_free;
->> > +
->> > +       list_for_each_entry(rentry, &resource_list, node) {
->> > +               switch (resource_type(rentry->res)) {
->> > +               case IORESOURCE_MEM:
->> > +                       if (!address_found) {
->> > +                               dev->res = *rentry->res;
->>
->> dev->res is 0 before this one, right? Could you use this fact instead
->> of address_found flag?
+On 01/08/2016 11:22 AM, Hans de Goede wrote:
+> Hi,
 >
-> amba_device_alloc() zero-initialises everything.  However, dev->res is
-> a struct resource, and I'd prefer _this_ method that the OT is using
-> to testing some random part of struct resource.
-
-So, you mean resource->start = 0 is not enough reliable?
-
->> > +               default:
->> > +                       dev_warn(&adev->dev, "Invalid resource\n");
+> On 08-01-16 18:08, Laura Abbott wrote:
+>> On 01/07/2016 04:03 PM, Rafael J. Wysocki wrote:
+>>> On Wednesday, January 06, 2016 08:19:49 AM Laura Abbott wrote:
+>>>> On 01/05/2016 03:59 PM, Rafael J. Wysocki wrote:
+>>>>> On Tuesday, January 05, 2016 09:57:35 AM Laura Abbott wrote:
+>>>>>> On 12/06/2015 05:44 PM, Rafael J. Wysocki wrote:
+>>>>>>> On Monday, November 30, 2015 05:11:28 PM Andy Shevchenko wrote:
+>>>>>>>> This series includes few logical sets that bring a support of non-ACPI
+>>>>>>>> platforms for Intel Skylake.
+>>>>>>>>
+>>>>>>>> First part is a refactoring of built-in device properties support:
+>>>>>>>> - keep single value inside the structure
+>>>>>>>> - provide helper macros to define built-in properties
+>>>>>>>> - fall back to secondary fwnode if primary has no asked property
+>>>>>>>>
+>>>>>>>> Second is a propagating built-in device properties in platform core.
+>>>>>>>>
+>>>>>>>> Third one is modifications to MFD code and intel-lpss.c driver in particular
+>>>>>>>> to define and pass built-in properties to the individual drivers.
+>>>>>>>>
+>>>>>>>> And last part is a fix for I2C bug found on Lenovo Yoga hardware and a first
+>>>>>>>> converted user.
+>>>>>>>>
+>>>>>>>> Built-in device properties is an alternative to platform data. It provides a
+>>>>>>>> unified API that drivers can use to cover all cases at once: DT, ACPI, and
+>>>>>>>> built-in properties.
+>>>>>>>>
+>>>>>>>> With this series applied a platform data can be considered obsolete. Moreover,
+>>>>>>>> built-in device properties allow to adjust the existing configuration, for
+>>>>>>>> example, in cases when ACPI values are wrong on some platforms.
+>>>>>>>>
+>>>>>>>> The series has been tested on available hardware and doesn't break current
+>>>>>>>> behaviour. But we ask people who have the affected hardware to apply the series
+>>>>>>>> on your side and check with Lenovo hardware.
+>>>>>>>>
+>>>>>>>> Changelog v2:
+>>>>>>>> - fix isuues found by kbuild bot (kbuild)
+>>>>>>>> - append a patch to propagate device properties in polatform code (Arnd)
+>>>>>>>> - update few existing and add couple of new patches due to above
+>>>>>>>> - check with kmemleak
+>>>>>>>>
+>>>>>>>> Andy Shevchenko (9):
+>>>>>>>>      device property: always check for fwnode type
+>>>>>>>>      device property: rename helper functions
+>>>>>>>>      device property: refactor built-in properties support
+>>>>>>>>      device property: keep single value inplace
+>>>>>>>>      device property: improve readability of macros
+>>>>>>>>      device property: return -EINVAL when property isn't found in ACPI
+>>>>>>>>      device property: Fallback to secondary fwnode if primary misses the
+>>>>>>>>        property
+>>>>>>>>      mfd: core: propagate device properties to sub devices drivers
+>>>>>>>>      mfd: intel-lpss: Pass HSUART configuration via properties
+>>>>>>>>
+>>>>>>>> Heikki Krogerus (1):
+>>>>>>>>      device property: helper macros for property entry creation
+>>>>>>>>
+>>>>>>>> Mika Westerberg (6):
+>>>>>>>>      device property: Take a copy of the property set
+>>>>>>>>      driver core: platform: Add support for built-in device properties
+>>>>>>>>      driver core: Do not overwrite secondary fwnode with NULL if it is set
+>>>>>>>>      mfd: intel-lpss: Add support for passing device properties
+>>>>>>>>      mfd: intel-lpss: Pass SDA hold time to I2C host controller driver
+>>>>>>>>      i2c: designware: Convert to use unified device property API
+>>>>>>>
+>>>>>>> I'm going to queue up this series for v4.5.
+>>>>>>>
+>>>>>>> If there are any problems with it or objections from anyone, please let me know.
+>>>>>>>
+>>>>>>
+>>>>>>
+>>>>>> Raising an old thread, I pulled this series into Fedora rawhide and
+>>>>>> while it worked for Lenovo Yoga we received a report that it caused
+>>>>>> a regression on the Dell Inspiron 7559 (see
+>>>>>> https://bugzilla.redhat.com/show_bug.cgi?id=1275718#c27) . I haven't
+>>>>>> asked the reporter about bisecting to see which patch broke it.
+>>>>>> Were there any known follow up patches?
+>>>>>
+>>>>> There were a few.
+>>>>>
+>>>>> All of them are in my linux-next branch if you can try this one.
+>>>>>
+>>>>> Alternatively, I can expose a branch with these to you to test.
+>>>>>
+>>>>
+>>>> I picked up all the patches from the device-properties merge but the
+>>>> problem still shows up. Are there others I should pick up? Hardware
+>>>> details about the touchpad are at https://bugzilla.redhat.com/show_bug.cgi?id=1275718#c34
+>>>
+>>> Well, in that case can you please ask the reporter to bisect?
+>>>
+>>> Rafael
+>>>
 >>
->> Why? Isn't possible to have other resources for the devices?
+>> I'll see if I can help the reporter bisect although it looks like Hans
+>> has an idea about what might be failing.
 >
-> AMBA primecell devices have one memory region, and a number of
-> interrupts.  Other resource types don't make sense.
-
-But isn't warning on the other side too noisy?
-
->> > +       ret = amba_device_add(dev, &iomem_resource);
->> > +       if (ret) {
->>
->> ret < 0?
->>
->> What to do if ret > 0? It will be considered as not error. Please,
->> check what function returns and adjust this.
+> Nope, sorry if I left the impression that I have an idea where things are failing.
 >
-> Non-zero is treated as an error by amba_device_add().
+> Benjamin Tissoires latest reply in this thread (or was it in bugzilla ?) however
+> seems to point in the right direction, as with this patch-set the i2c controller
+> on the laptop in question starts working (as intended by this patch-set) and then
+> i2c-hid tries to talk to the touchpad, but fails too. However it gets far enough
+> for the touchpad to drop of the ps/2 bus.
+>
+> So what seems to be happening is that this is a dual protocol / bus (ps2 / i2c)
+> touchpad (not that uncommon actually) and now that we've the i2c bus working due
+> to this patchset, we start talking i2c to the touchpad, kicking it from ps2 mode
+> to i2c mode, but our i2c driver then fails to work properly with the touchpad
+> leaving it non functional.
+>
+> Regards,
+>
+> Hans
 
-> Doing otherwise
-> here puts it at odds to the outcome of that function.  This code is fine.
+Thanks for clarifying. I'm going to see if I can help the reporter bisect.
+It may take a few days.
 
-Yes, and in this case ret > 0 should be converted to an appropriate
-error code, otherwise ACPI core will consider this as a normal
-execution, right?
-
--- 
-With Best Regards,
-Andy Shevchenko
+Thanks,
+Laura
