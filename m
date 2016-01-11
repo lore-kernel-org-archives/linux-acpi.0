@@ -1,156 +1,124 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH v5 1/2] ACPI: introduce a function to find the first
- physical device
-Date: Mon, 11 Jan 2016 16:40:19 +0200
-Message-ID: <CAHp75Vdxu8pwheDyz_EPx=gFaOpANqFkJkkSsSGnb=CtUwqLeA@mail.gmail.com>
-References: <1452518790-27053-1-git-send-email-aleksey.makarov@linaro.org>
-	<1452518790-27053-2-git-send-email-aleksey.makarov@linaro.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v11 2/4] PM / Domains: add setter for dev.pm_domain
+Date: Mon, 11 Jan 2016 15:45:09 +0100
+Message-ID: <2574144.OjYZBRkjZl@vostro.rjw.lan>
+References: <1445956731-6304-1-git-send-email-tomeu.vizoso@collabora.com> <CAAObsKC1jTzLWmMtwGWVStuMtzZwvMuA_731dsn4YX7aKMtFKQ@mail.gmail.com> <CAOMZO5A7p6iZTdnZtnzMPED1e7rPp=1Q9UiZ_598QNTWSL5jMw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yk0-f173.google.com ([209.85.160.173]:33441 "EHLO
-	mail-yk0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758735AbcAKOkU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Jan 2016 09:40:20 -0500
-In-Reply-To: <1452518790-27053-2-git-send-email-aleksey.makarov@linaro.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:57411 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1760325AbcAKOok (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Jan 2016 09:44:40 -0500
+In-Reply-To: <CAOMZO5A7p6iZTdnZtnzMPED1e7rPp=1Q9UiZ_598QNTWSL5jMw@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aleksey Makarov <aleksey.makarov@linaro.org>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, Graeme Gregory <graeme.gregory@linaro.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Shannon Zhao <shannon.zhao@linaro.org>, Vladimir Zapolskiy <vz@mleia.com>, Len Brown <lenb@kernel.org>
+To: Fabio Estevam <festevam@gmail.com>
+Cc: Tomeu Vizoso <tomeu.vizoso@collabora.com>, Daniel Kurtz <djkurtz@chromium.org>, Ulf Hansson <ulf.hansson@linaro.org>, Russell King <linux@arm.linux.org.uk>, Kevin Hilman <khilman@kernel.org>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, dri-devel <dri-devel@lists.freedesktop.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, Pavel Machek <pavel@ucw.cz>, Tomas Winkler <tomas.winkler@intel.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
 
-On Mon, Jan 11, 2016 at 3:26 PM, Aleksey Makarov
-<aleksey.makarov@linaro.org> wrote:
-> Factor out the code that finds the first physical device
-> of a given ACPI device.  It is used in several places.
+On Monday, January 11, 2016 12:35:28 PM Fabio Estevam wrote:
+> On Thu, Jan 7, 2016 at 12:47 PM, Tomeu Vizoso
+> <tomeu.vizoso@collabora.com> wrote:
+> > On 10 November 2015 at 10:33, Daniel Kurtz <djkurtz@chromium.org> wrote:
+> > [snip]
+> >>
+> >> The problem appears to be that:
+> >>   * On boot, platform_drv_probe() calls dev_pm_domain_attach() before
+> >> drv->probe(); thus, it calls dev_pm_domain_attach() while the device
+> >> is unbound.
+> >>
+> >>  * However, for a platform_device, the reboot path calls
+> >> device_shutdown(), but not __device_release_driver():
+> >> device_shutdown()
+> >>   dev->driver->shutdown => platform_drv_shutdown()
+> >>     dev_pm_domain_detach()
+> >>        dev->pm_domain->detach() => genpd_dev_pm_detach()
+> >>          pm_genpd_remove_device()
+> >>             dev_pm_domain_set(dev, NULL);
+> >>
+> >> So, for a platform_device in a genpd power domain with .shutdown
+> >> installed, platform_drv_shutdown() calls dev_pm_domain_detach() while
+> >> the device is still bound, which triggers the WARN().
+> >
+> > Hi Rafael, Alan and Ulf,
+> >
+> > do you have any suggestion about this? I don't really understand why
+> > the device is detached from the domain on shutdown.
+> 
+> I am running linux-next and this commit causes the same problem for me
+> on a mx6 after running a 'reboot' command:
+> 
+> Requesting system reboot
+> [   15.058782] ------------[ cut here ]------------
+> [   15.063459] WARNING: CPU: 3 PID: 1122 at
+> drivers/base/power/common.c:150 dev_pm_domain_set+0x4c/0x58()
+> [   15.072838] PM domains can only be changed for unbound devices
+> [   15.078735] Modules linked in:
+> [   15.081849] CPU: 3 PID: 1122 Comm: init Not tainted
+> 4.4.0-rc8-next-20160111-dirty #207
+> [   15.089826] Hardware name: Freescale i.MX6 Quad/DualLite (Device Tree)
+> [   15.096375] Backtrace:
+> [   15.098941] [<c00136d8>] (dump_backtrace) from [<c0013874>]
+> (show_stack+0x18/0x1c)
+> [   15.106532]  r6:00000096 r5:00000000 r4:00000000 r3:00000000
+> [   15.112390] [<c001385c>] (show_stack) from [<c02de89c>]
+> (dump_stack+0x88/0xa4)
+> [   15.119708] [<c02de814>] (dump_stack) from [<c002bcac>]
+> (warn_slowpath_common+0x80/0xbc)
+> [   15.127860]  r5:c03da810 r4:ee63bd68
+> [   15.131533] [<c002bc2c>] (warn_slowpath_common) from [<c002bd8c>]
+> (warn_slowpath_fmt+0x38/0x40)
+> [   15.140292]  r8:eea01db0 r7:c0b0f87c r6:eea01d80 r5:00000000 r4:ef181410
+> [   15.147165] [<c002bd58>] (warn_slowpath_fmt) from [<c03da810>]
+> (dev_pm_domain_set+0x4c/0x58)
+> [   15.155661]  r3:c0b0f7f0 r2:c09e82dc
+> [   15.159373] [<c03da7c4>] (dev_pm_domain_set) from [<c03e4e5c>]
+> (genpd_free_dev_data+0x20/0x50)
+> [   15.168065]  r5:ef1814a0 r4:ef181410
+> [   15.171737] [<c03e4e3c>] (genpd_free_dev_data) from [<c03e5fe4>]
+> (pm_genpd_remove_device+0xb4/0xe0)
+> [   15.180842]  r6:ef181410 r5:eea01d80 r4:c0b0f7f0 r3:00000000
+> [   15.186644] [<c03e5f30>] (pm_genpd_remove_device) from [<c03e6040>]
+> (genpd_dev_pm_detach+0x30/0xac)
+> [   15.195743]  r8:c0b0f7f0 r7:c1379734 r6:00000001 r5:c0b209c4
+> r4:ef181410 r3:00000000
+> [   15.203694] [<c03e6010>] (genpd_dev_pm_detach) from [<c03da7c0>]
+> (dev_pm_domain_detach+0x28/0x2c)
+> [   15.212621]  r10:ef181444 r8:c0b6f560 r7:c1379734 r6:ef181410
+> r5:ef173c10 r4:ef181410
+> [   15.220683] [<c03da798>] (dev_pm_domain_detach) from [<c03d3ea0>]
+> (platform_drv_shutdown+0x34/0x38)
+> [   15.229817] [<c03d3e6c>] (platform_drv_shutdown) from [<c03d05b0>]
+> (device_shutdown+0x3c/0x194)
 
-My comments below.
+OK, so does the appended patch help?
 
-Otherwise good look to me if Rafael has no objections.
+Rafael
 
-FWIW:
-Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+---
+From: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Subject: [PATCH] platform: Do not detach from PM domains on shutdown
 
-> --- a/drivers/acpi/acpi_platform.c
-> +++ b/drivers/acpi/acpi_platform.c
-> @@ -43,7 +43,6 @@ static const struct acpi_device_id forbidden_id_list[] = {
->  struct platform_device *acpi_create_platform_device(struct acpi_device *adev)
->  {
->         struct platform_device *pdev = NULL;
-> -       struct acpi_device *acpi_parent;
->         struct platform_device_info pdevinfo;
->         struct resource_entry *rentry;
->         struct list_head resource_list;
-> @@ -83,21 +82,8 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev)
->          * platform device we are about to create.
->          */
->         pdevinfo.parent = NULL;
+Shutdown is carried out when the driver is still bound to the
+device, so it is incorrect to detach it from a PM domain (if any)
+at this point.
 
-No need to twice assign that, perhaps you may move to else branch of
-the condition.
+Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+---
+ drivers/base/platform.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-> -       acpi_parent = adev->parent;
-> -       if (acpi_parent) {
-> -               struct acpi_device_physical_node *entry;
-> -               struct list_head *list;
-> -
-> -               mutex_lock(&acpi_parent->physical_node_lock);
-> -               list = &acpi_parent->physical_node_list;
-> -               if (!list_empty(list)) {
-> -                       entry = list_first_entry(list,
-> -                                       struct acpi_device_physical_node,
-> -                                       node);
-> -                       pdevinfo.parent = entry->dev;
-> -               }
-> -               mutex_unlock(&acpi_parent->physical_node_lock);
-> -       }
-> +       if (adev->parent)
-> +               pdevinfo.parent = acpi_get_first_physical_node(adev->parent);
+Index: linux-pm/drivers/base/platform.c
+===================================================================
+--- linux-pm.orig/drivers/base/platform.c
++++ linux-pm/drivers/base/platform.c
+@@ -577,7 +577,6 @@ static void platform_drv_shutdown(struct
+ 
+ 	if (drv->shutdown)
+ 		drv->shutdown(dev);
+-	dev_pm_domain_detach(_dev, true);
+ }
+ 
+ /**
 
-else
-         pdevinfo.parent = NULL;
-
-
->         pdevinfo.name = dev_name(&adev->dev);
->         pdevinfo.id = -1;
->         pdevinfo.res = resources;
-> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-> index a212cef..2048c69 100644
-> --- a/drivers/acpi/bus.c
-> +++ b/drivers/acpi/bus.c
-> @@ -478,24 +478,36 @@ static void acpi_device_remove_notify_handler(struct acpi_device *device)
->                               Device Matching
->     -------------------------------------------------------------------------- */
->
-> -static struct acpi_device *acpi_primary_dev_companion(struct acpi_device *adev,
-> -                                                     const struct device *dev)
-> +/**
-> + * acpi_device_fix_parent - Get first physical node of an ACPI device
-> + * @adev: ACPI device in question
-> + */
-> +struct device *acpi_get_first_physical_node(
-> +       struct acpi_device *adev)
->  {
->         struct mutex *physical_node_lock = &adev->physical_node_lock;
-> +       struct device *ret = NULL;
-
-I would use ret -> node.
-
->
->         mutex_lock(physical_node_lock);
-> -       if (list_empty(&adev->physical_node_list)) {
-> -               adev = NULL;
-> -       } else {
-> -               const struct acpi_device_physical_node *node;
->
-> -               node = list_first_entry(&adev->physical_node_list,
-> -                                       struct acpi_device_physical_node, node);
-> -               if (node->dev != dev)
-> -                       adev = NULL;
-> -       }
-> +       if (!list_empty(&adev->physical_node_list))
-> +               ret = list_first_entry(&adev->physical_node_list,
-> +                               struct acpi_device_physical_node, node)->dev;
-> +
->         mutex_unlock(physical_node_lock);
-> -       return adev;
-> +
-> +       return ret;
-> +}
-> +
-> +static struct acpi_device *acpi_primary_dev_companion(struct acpi_device *adev,
-> +                                                     const struct device *dev)
-> +{
-> +       const struct device *pdev = acpi_get_first_physical_node(adev);
-
-Similar
-pdev -> node.
-
-> +
-> +       if (pdev && pdev == dev)
-> +               return adev;
-> +
-> +       return NULL;
->  }
->
->  /**
-> diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-> index 11d87bf..ee9312ba 100644
-> --- a/drivers/acpi/internal.h
-> +++ b/drivers/acpi/internal.h
-> @@ -98,6 +98,7 @@ bool acpi_device_is_present(struct acpi_device *adev);
->  bool acpi_device_is_battery(struct acpi_device *adev);
->  bool acpi_device_is_first_physical_node(struct acpi_device *adev,
->                                         const struct device *dev);
-> +struct device *acpi_get_first_physical_node(struct acpi_device *adev);
->
->  /* --------------------------------------------------------------------------
->                       Device Matching and Notification
-> --
-> 2.7.0
->
-
-
-
--- 
-With Best Regards,
-Andy Shevchenko
