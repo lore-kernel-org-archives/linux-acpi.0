@@ -1,61 +1,219 @@
-From: "Wang, Annie" <Annie.Wang@amd.com>
-Subject: RE: [PATCH 1/6] 8250/Kconfig: add config option
- CONFIG_SERIAL_8250_AMD
-Date: Mon, 11 Jan 2016 07:26:39 +0000
-Message-ID: <BLUPR12MB043368006316A2FB11A0DE8B81C90@BLUPR12MB0433.namprd12.prod.outlook.com>
-References: <1451885501-2710-1-git-send-email-annie.wang@amd.com>
- <1451885501-2710-2-git-send-email-annie.wang@amd.com>
- <20160104144118.GJ22941@pd.tnic>
- <BLUPR12MB0433ABAC5C5D27D3FD0F4BF381F40@BLUPR12MB0433.namprd12.prod.outlook.com>
- <20160106104602.GA19507@pd.tnic>
+From: Daniel Kiper <daniel.kiper@oracle.com>
+Subject: Re: [PATCH v3] memory-hotplug: add automatic onlining policy for the
+ newly added memory
+Date: Mon, 11 Jan 2016 09:10:13 +0100
+Message-ID: <20160111081013.GM3485@olila.local.net-space.pl>
+References: <1452187421-15747-1-git-send-email-vkuznets@redhat.com>
+ <20160108140123.GK3485@olila.local.net-space.pl>
+ <87y4c02eqc.fsf@vitty.brq.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-by2on0057.outbound.protection.outlook.com ([207.46.100.57]:34667
-	"EHLO na01-by2-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751457AbcAKH0n (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 11 Jan 2016 02:26:43 -0500
-In-Reply-To: <20160106104602.GA19507@pd.tnic>
-Content-Language: en-US
+Received: from userp1040.oracle.com ([156.151.31.81]:42823 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758602AbcAKIK7 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Jan 2016 03:10:59 -0500
+Content-Disposition: inline
+In-Reply-To: <87y4c02eqc.fsf@vitty.brq.redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Russell King <linux@arm.linux.org.uk>, Borislav Petkov <bp@alien8.de>
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, Vinod Koul <vinod.koul@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "dmaengine@vger.kernel.org" <dmaengine@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Huang, Ray" <Ray.Huang@amd.com>, "Wan, Vincent" <Vincent.Wan@amd.com>, "Xue, Ken" <Ken.Xue@amd.com>, Robin Murphy <robin.murphy@arm.com>, Graeme Gregory <gg@slimlogic.co.uk>, "Li, Tony" <Tony.Li@amd.com>, "Yu, Xiangliang" <Xiangliang.Yu@amd.com>
+To: Vitaly Kuznetsov <vkuznets@redhat.com>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dan Williams <dan.j.williams@intel.com>, Tang Chen <tangchen@cn.fujitsu.com>, David Vrabel <david.vrabel@citrix.com>, David Rientjes <rientjes@google.com>, Andrew Morton <akpm@linux-foundation.org>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, Xishi Qiu <qiuxishi@huawei.com>, Mel Gorman <mgorman@techsingularity.net>, "K. Y. Srinivasan" <kys@microsoft.com>, Igor Mammedov <imammedo@redhat.com>, Kay Sievers <kay@vrfy.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>
 
-DQoNCj4tLS0tLU9yaWdpbmFsIE1lc3NhZ2UtLS0tLQ0KPkZyb206IEJvcmlzbGF2IFBldGtvdiBb
-bWFpbHRvOmJwQGFsaWVuOC5kZV0NCj5TZW50OiBXZWRuZXNkYXksIEphbnVhcnkgMDYsIDIwMTYg
-Njo0NiBQTQ0KPlRvOiBXYW5nLCBBbm5pZQ0KPkNjOiBBbmR5IFNoZXZjaGVua287IFZpbm9kIEtv
-dWw7IE1pa2EgV2VzdGVyYmVyZzsgR3JlZyBLcm9haC1IYXJ0bWFuOyBSYWZhZWwNCj5KLiBXeXNv
-Y2tpOyBsaW51eC1hY3BpQHZnZXIua2VybmVsLm9yZzsgbGludXgta2VybmVsQHZnZXIua2VybmVs
-Lm9yZzsgbGludXgtDQo+c2VyaWFsQHZnZXIua2VybmVsLm9yZzsgZG1hZW5naW5lQHZnZXIua2Vy
-bmVsLm9yZzsgSHVhbmcsIFJheTsgV2FuLCBWaW5jZW50Ow0KPlh1ZSwgS2VuOyBSb2JpbiBNdXJw
-aHk7IEdyYWVtZSBHcmVnb3J5OyBMaSwgVG9ueTsgWXUsIFhpYW5nbGlhbmcNCj5TdWJqZWN0OiBS
-ZTogW1BBVENIIDEvNl0gODI1MC9LY29uZmlnOiBhZGQgY29uZmlnIG9wdGlvbg0KPkNPTkZJR19T
-RVJJQUxfODI1MF9BTUQNCj4NCj5PbiBXZWQsIEphbiAwNiwgMjAxNiBhdCAwMjowODoxOEFNICsw
-MDAwLCBXYW5nLCBBbm5pZSB3cm90ZToNCj4+IEhvdyBhYm91dCBJIGFkZCBzZWxlY3QgQVJNX0FN
-QkEgYW5kIFNFUklBTF84MjUwIGluIGFyY2gveDg2L0tjb25maWc/DQo+DQo+WWVhaCwgc2VsZWN0
-IHNvdW5kcyBnb29kIGluIHRoYXQgY2FzZSwgZXhjZXB0IGluIHRoYXQgcGFydGljdWxhciBjYXNl
-IC4uLg0KPg0KPj4NCj4+IGRpZmYgLS1naXQgYS9hcmNoL3g4Ni9LY29uZmlnIGIvYXJjaC94ODYv
-S2NvbmZpZyBpbmRleA0KPj4gZGIzNjIyZi4uMGZlNjY1NyAxMDA2NDQNCj4+IC0tLSBhL2FyY2gv
-eDg2L0tjb25maWcNCj4+ICsrKyBiL2FyY2gveDg2L0tjb25maWcNCj4+IEBAIC01MzcsMTEgKzUz
-NywxNSBAQCBjb25maWcgWDg2X0FNRF9QTEFURk9STV9ERVZJQ0UNCj4+ICAgICAgICAgZGVwZW5k
-cyBvbiBBQ1BJDQo+PiAgICAgICAgIHNlbGVjdCBDT01NT05fQ0xLDQo+PiAgICAgICAgIHNlbGVj
-dCBQSU5DVFJMDQo+PiArICAgICAgIHNlbGVjdCBTRVJJQUxfODI1MA0KPj4gKyAgICAgICBzZWxl
-Y3QgQVJNX0FNQkENCj4NCj4uLi4gdGhhdCdzIGEgWDg2X0FNRF9QTEFURk9STV9ERVZJQ0Ugd2hp
-Y2ggc2VsZWN0cyBBUk0gdGhpbmc/IGkuZS4sDQo+QVJNX0FNQkEuIENhbiB0aGF0IGV2ZW4gd29y
-az8NCj4NCj5bIFJhbnQgb24gdGhlIHNpZGU6IEFuZCB0aGF0IEFSTV9BTUJBIHRoaW5nIGhhcywg
-b2YgY291cnNlLCBubyBlZmZpbmcNCj4gIGhlbHAgdGV4dC4gRGFtbWl0LCBwZW9wbGUgbmVlZCB0
-byBzdGFydCBleHBsYWluaW5nIHRob3NlIGNyeXB0aWMNCj4gIGFiYnJldmlhdGlvbnMuIFNvbWV3
-aGVyZSBpbiB0aGUgY29kZSBJIGZvdW5kICJBZHZhbmNlZCBNaWNyb2NvbnRyb2xsZXINCj4gIEJ1
-cyBBcmNoaXRlY3R1cmUiLiBUaGlzIGlzIGNsZWFybHkgc3Vib3B0aW1hbC4gXQ0KPg0KPlNvIHdo
-eSBkb2VzIHRoZSBYODYgcGxhdGZvcm0gZGV2aWNlIG5lZWQgdG8gc2VsZWN0IHRoZSBBTUJBIGNy
-YXA/DQoNCg0KUnVzc2VsbCwgDQoNClRoZSBBTUJBIGJ1cyBpcyBhbHJlYWR5IGxldmVyYWdlZCAg
-aW4gQU1EIFg4NiBhcmNoIGhhcmR3YXJlIGRlc2lnbiBmb3IgVUFSVA0KY29udHJvbGxlciBhbmQg
-VUFSVCBETUEuIEFuZCBtYXkgd2lsbCBiZSB1c2VkIGluIG90aGVyIGFyY2ggYXMgd2VsbCwgaG93
-ZXZlciwNCml0IGlzIHJhdGhlciBjb25mdXNpbmcgaWYgd2Ugc2VsZWN0IEFSTV9BTUJBIGluIG90
-aGVyIGFyY2gsIHN1Y2ggYXMgWDg2Lg0KDQpIb3cgYWJvdXQgcmVuYW1lICBDT05GSUdfQVJNX0FN
-QkEgdG8gQ09ORklHX0FNQkE/IFNvIGRpZmZlcmVudCBhcmNoDQpjYW4gc2VsZWN0IGl0IHdpdGhv
-dXQgY2F1c2luZyBtaXN1bmRlcnN0YW5kaW5nLiANCg0KVGhhbmsgeW91IHZlcnkgbXVjaC4NClJl
-Z2FyZHMsDQpIb25nY2hlbmcoQW5uaWUpDQo=
+On Fri, Jan 08, 2016 at 05:55:07PM +0100, Vitaly Kuznetsov wrote:
+> Daniel Kiper <daniel.kiper@oracle.com> writes:
+
+[...]
+
+> >> diff --git a/Documentation/memory-hotplug.txt b/Documentation/memory-hotplug.txt
+> >> index ce2cfcf..ceaf40c 100644
+> >> --- a/Documentation/memory-hotplug.txt
+> >> +++ b/Documentation/memory-hotplug.txt
+> >> @@ -254,12 +254,23 @@ If the memory block is online, you'll read "online".
+> >>  If the memory block is offline, you'll read "offline".
+> >>
+> >>
+> >> -5.2. How to online memory
+> >> +5.2. Memory onlining
+> >>  ------------
+> >> -Even if the memory is hot-added, it is not at ready-to-use state.
+> >> -For using newly added memory, you have to "online" the memory block.
+> >> +When the memory is hot-added, the kernel decides whether or not to "online"
+> >> +it according to the policy which can be read from "auto_online_blocks" file:
+> >>
+> >> -For onlining, you have to write "online" to the memory block's state file as:
+> >> +% cat /sys/devices/system/memory/auto_online_blocks
+> >> +
+> >> +The default is "offline" which means the newly added memory is not in a
+> >> +ready-to-use state and you have to "online" the newly added memory blocks
+> >> +manually. Automatic onlining can be requested by writing "online" to
+> >> +"auto_online_blocks" file:
+> >> +
+> >> +% echo online > /sys/devices/system/memory/auto_online_blocks
+> >> +
+> >> +If the automatic onlining wasn't requested or some memory block was offlined
+> >> +it is possible to change the individual block's state by writing to the "state"
+> >> +file:
+> >>
+> >>  % echo online > /sys/devices/system/memory/memoryXXX/state
+> >
+> > Please say clearly that offlined blocks are not onlined automatically
+> > when /sys/devices/system/memory/auto_online_blocks is set to online.
+> >
+>
+> You mean the blocks which were manually offlined won't magically come
+> back, right? Ok, I'll try.
+
+Yep, but AIUI it works in that way for all offlined blocks not only for
+earlier manually offlined ones.
+
+> >> diff --git a/drivers/base/memory.c b/drivers/base/memory.c
+> >> index 25425d3..44a618d 100644
+> >> --- a/drivers/base/memory.c
+> >> +++ b/drivers/base/memory.c
+> >> @@ -439,6 +439,37 @@ print_block_size(struct device *dev, struct device_attribute *attr,
+> >>  static DEVICE_ATTR(block_size_bytes, 0444, print_block_size, NULL);
+> >>
+> >>  /*
+> >> + * Memory auto online policy.
+> >> + */
+> >> +
+> >> +static ssize_t
+> >> +show_auto_online_blocks(struct device *dev, struct device_attribute *attr,
+> >> +			char *buf)
+> >> +{
+> >> +	if (memhp_auto_online)
+> >> +		return sprintf(buf, "online\n");
+> >> +	else
+> >> +		return sprintf(buf, "offline\n");
+> >> +}
+> >> +
+> >> +static ssize_t
+> >> +store_auto_online_blocks(struct device *dev, struct device_attribute *attr,
+> >> +			 const char *buf, size_t count)
+> >> +{
+> >> +	if (sysfs_streq(buf, "online"))
+> >> +		memhp_auto_online = true;
+> >> +	else if (sysfs_streq(buf, "offline"))
+> >> +		memhp_auto_online = false;
+> >> +	else
+> >> +		return -EINVAL;
+> >> +
+> >> +	return count;
+> >> +}
+> >> +
+> >> +static DEVICE_ATTR(auto_online_blocks, 0644, show_auto_online_blocks,
+> >> +		   store_auto_online_blocks);
+> >> +
+> >> +/*
+> >>   * Some architectures will have custom drivers to do this, and
+> >>   * will not need to do it from userspace.  The fake hot-add code
+> >>   * as well as ppc64 will do all of their discovery in userspace
+> >> @@ -737,6 +768,7 @@ static struct attribute *memory_root_attrs[] = {
+> >>  #endif
+> >>
+> >>  	&dev_attr_block_size_bytes.attr,
+> >> +	&dev_attr_auto_online_blocks.attr,
+> >>  	NULL
+> >>  };
+> >>
+> >> diff --git a/drivers/xen/balloon.c b/drivers/xen/balloon.c
+> >> index 12eab50..890c3b5 100644
+> >> --- a/drivers/xen/balloon.c
+> >> +++ b/drivers/xen/balloon.c
+> >> @@ -338,7 +338,7 @@ static enum bp_state reserve_additional_memory(void)
+> >>  	}
+> >>  #endif
+> >>
+> >> -	rc = add_memory_resource(nid, resource);
+> >> +	rc = add_memory_resource(nid, resource, false);
+> >
+> > This is partial solution and does not allow us to use new feature in Xen.
+> > Could you add separate patch which fixes this issue?
+> >
+>
+> Sure, I'd be glad to make this work for Xen too.
+
+Great! Thanks a lot!
+
+> >>  	if (rc) {
+> >>  		pr_warn("Cannot add additional memory (%i)\n", rc);
+> >>  		goto err;
+> >> diff --git a/include/linux/memory_hotplug.h b/include/linux/memory_hotplug.h
+> >> index 2ea574f..4b7949a 100644
+> >> --- a/include/linux/memory_hotplug.h
+> >> +++ b/include/linux/memory_hotplug.h
+> >> @@ -99,6 +99,8 @@ extern void __online_page_free(struct page *page);
+> >>
+> >>  extern int try_online_node(int nid);
+> >>
+> >> +extern bool memhp_auto_online;
+> >> +
+> >>  #ifdef CONFIG_MEMORY_HOTREMOVE
+> >>  extern bool is_pageblock_removable_nolock(struct page *page);
+> >>  extern int arch_remove_memory(u64 start, u64 size);
+> >> @@ -267,7 +269,7 @@ static inline void remove_memory(int nid, u64 start, u64 size) {}
+> >>  extern int walk_memory_range(unsigned long start_pfn, unsigned long end_pfn,
+> >>  		void *arg, int (*func)(struct memory_block *, void *));
+> >>  extern int add_memory(int nid, u64 start, u64 size);
+> >> -extern int add_memory_resource(int nid, struct resource *resource);
+> >> +extern int add_memory_resource(int nid, struct resource *resource, bool online);
+> >>  extern int zone_for_memory(int nid, u64 start, u64 size, int zone_default,
+> >>  		bool for_device);
+> >>  extern int arch_add_memory(int nid, u64 start, u64 size, bool for_device);
+> >> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+> >> index a042a9d..0ecf860 100644
+> >> --- a/mm/memory_hotplug.c
+> >> +++ b/mm/memory_hotplug.c
+> >> @@ -76,6 +76,9 @@ static struct {
+> >>  #define memhp_lock_acquire()      lock_map_acquire(&mem_hotplug.dep_map)
+> >>  #define memhp_lock_release()      lock_map_release(&mem_hotplug.dep_map)
+> >>
+> >> +bool memhp_auto_online;
+> >> +EXPORT_SYMBOL_GPL(memhp_auto_online);
+> >> +
+> >>  void get_online_mems(void)
+> >>  {
+> >>  	might_sleep();
+> >> @@ -1232,7 +1235,7 @@ int zone_for_memory(int nid, u64 start, u64 size, int zone_default,
+> >>  }
+> >>
+> >>  /* we are OK calling __meminit stuff here - we have CONFIG_MEMORY_HOTPLUG */
+> >> -int __ref add_memory_resource(int nid, struct resource *res)
+> >> +int __ref add_memory_resource(int nid, struct resource *res, bool online)
+> >>  {
+> >>  	u64 start, size;
+> >>  	pg_data_t *pgdat = NULL;
+> >> @@ -1292,6 +1295,11 @@ int __ref add_memory_resource(int nid, struct resource *res)
+> >>  	/* create new memmap entry */
+> >>  	firmware_map_add_hotplug(start, start + size, "System RAM");
+> >>
+> >> +	/* online pages if requested */
+> >> +	if (online)
+> >> +		online_pages(start >> PAGE_SHIFT, size >> PAGE_SHIFT,
+> >> +			     MMOP_ONLINE_KEEP);
+> >> +
+> >
+> > This way we go in deadlock if auto online feature is enabled in Xen (this was
+> > pointed out by David Vrabel).
+>
+> Yes, but as I said the patch doesn't change anything for Xen guests for
+> now, we always call add_memory_resource() with online = false.
+>
+> > And we want to have it working out of the box.
+> > So, I think that we should find proper solution. I suppose that we can schedule
+> > a task here which auto online attached blocks. Hmmm... Not nice but should work.
+> > Or maybe you have better idea how to fix this issue.
+>
+> I'd like to avoid additional delays and memory allocations between
+> adding new memory and onlining it (and this is the main purpose of the
+> patch). Maybe we can have a tristate online parameter ('online_now',
+> 'online_delay', 'keep_offlined') and handle it
+> accordingly. Alternatively I can suggest we have the onlining in Xen
+> balloon driver code, memhp_auto_online is exported so we can call
+> online_pages() after we release the ballon_mutex.
+
+This is not nice too. I prefer the same code path for every case.
+Give me some time. I will think how to solve that issue.
+
+Daniel
