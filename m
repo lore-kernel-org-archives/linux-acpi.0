@@ -1,98 +1,156 @@
-From: Fabio Estevam <festevam@gmail.com>
-Subject: Re: [PATCH v11 2/4] PM / Domains: add setter for dev.pm_domain
-Date: Mon, 11 Jan 2016 12:35:28 -0200
-Message-ID: <CAOMZO5A7p6iZTdnZtnzMPED1e7rPp=1Q9UiZ_598QNTWSL5jMw@mail.gmail.com>
-References: <1445956731-6304-1-git-send-email-tomeu.vizoso@collabora.com>
- <1445956731-6304-3-git-send-email-tomeu.vizoso@collabora.com>
- <CAGS+omBMJXOgsd2x9agtt7yi-y+EPgHWSTr7B3JqbN9Hg_2W5A@mail.gmail.com>
- <CAAObsKC1jTzLWmMtwGWVStuMtzZwvMuA_731dsn4YX7aKMtFKQ@mail.gmail.com>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH v5 1/2] ACPI: introduce a function to find the first
+ physical device
+Date: Mon, 11 Jan 2016 16:40:19 +0200
+Message-ID: <CAHp75Vdxu8pwheDyz_EPx=gFaOpANqFkJkkSsSGnb=CtUwqLeA@mail.gmail.com>
+References: <1452518790-27053-1-git-send-email-aleksey.makarov@linaro.org>
+	<1452518790-27053-2-git-send-email-aleksey.makarov@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <dri-devel-bounces@lists.freedesktop.org>
-In-Reply-To: <CAAObsKC1jTzLWmMtwGWVStuMtzZwvMuA_731dsn4YX7aKMtFKQ@mail.gmail.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/dri-devel>
-List-Post: <mailto:dri-devel@lists.freedesktop.org>
-List-Help: <mailto:dri-devel-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/dri-devel>,
- <mailto:dri-devel-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: dri-devel-bounces@lists.freedesktop.org
-Sender: "dri-devel" <dri-devel-bounces@lists.freedesktop.org>
-To: Tomeu Vizoso <tomeu.vizoso@collabora.com>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>, Russell King <linux@arm.linux.org.uk>, Kevin Hilman <khilman@kernel.org>, Tony Lindgren <tony@atomide.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, dri-devel <dri-devel@lists.freedesktop.org>, Pavel Machek <pavel@ucw.cz>, Tomas Winkler <tomas.winkler@intel.com>, "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-yk0-f173.google.com ([209.85.160.173]:33441 "EHLO
+	mail-yk0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758735AbcAKOkU (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 11 Jan 2016 09:40:20 -0500
+In-Reply-To: <1452518790-27053-2-git-send-email-aleksey.makarov@linaro.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Aleksey Makarov <aleksey.makarov@linaro.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, Graeme Gregory <graeme.gregory@linaro.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Shannon Zhao <shannon.zhao@linaro.org>, Vladimir Zapolskiy <vz@mleia.com>, Len Brown <lenb@kernel.org>
 
-T24gVGh1LCBKYW4gNywgMjAxNiBhdCAxMjo0NyBQTSwgVG9tZXUgVml6b3NvCjx0b21ldS52aXpv
-c29AY29sbGFib3JhLmNvbT4gd3JvdGU6Cj4gT24gMTAgTm92ZW1iZXIgMjAxNSBhdCAxMDozMywg
-RGFuaWVsIEt1cnR6IDxkamt1cnR6QGNocm9taXVtLm9yZz4gd3JvdGU6Cj4gW3NuaXBdCj4+Cj4+
-IFRoZSBwcm9ibGVtIGFwcGVhcnMgdG8gYmUgdGhhdDoKPj4gICAqIE9uIGJvb3QsIHBsYXRmb3Jt
-X2Rydl9wcm9iZSgpIGNhbGxzIGRldl9wbV9kb21haW5fYXR0YWNoKCkgYmVmb3JlCj4+IGRydi0+
-cHJvYmUoKTsgdGh1cywgaXQgY2FsbHMgZGV2X3BtX2RvbWFpbl9hdHRhY2goKSB3aGlsZSB0aGUg
-ZGV2aWNlCj4+IGlzIHVuYm91bmQuCj4+Cj4+ICAqIEhvd2V2ZXIsIGZvciBhIHBsYXRmb3JtX2Rl
-dmljZSwgdGhlIHJlYm9vdCBwYXRoIGNhbGxzCj4+IGRldmljZV9zaHV0ZG93bigpLCBidXQgbm90
-IF9fZGV2aWNlX3JlbGVhc2VfZHJpdmVyKCk6Cj4+IGRldmljZV9zaHV0ZG93bigpCj4+ICAgZGV2
-LT5kcml2ZXItPnNodXRkb3duID0+IHBsYXRmb3JtX2Rydl9zaHV0ZG93bigpCj4+ICAgICBkZXZf
-cG1fZG9tYWluX2RldGFjaCgpCj4+ICAgICAgICBkZXYtPnBtX2RvbWFpbi0+ZGV0YWNoKCkgPT4g
-Z2VucGRfZGV2X3BtX2RldGFjaCgpCj4+ICAgICAgICAgIHBtX2dlbnBkX3JlbW92ZV9kZXZpY2Uo
-KQo+PiAgICAgICAgICAgICBkZXZfcG1fZG9tYWluX3NldChkZXYsIE5VTEwpOwo+Pgo+PiBTbywg
-Zm9yIGEgcGxhdGZvcm1fZGV2aWNlIGluIGEgZ2VucGQgcG93ZXIgZG9tYWluIHdpdGggLnNodXRk
-b3duCj4+IGluc3RhbGxlZCwgcGxhdGZvcm1fZHJ2X3NodXRkb3duKCkgY2FsbHMgZGV2X3BtX2Rv
-bWFpbl9kZXRhY2goKSB3aGlsZQo+PiB0aGUgZGV2aWNlIGlzIHN0aWxsIGJvdW5kLCB3aGljaCB0
-cmlnZ2VycyB0aGUgV0FSTigpLgo+Cj4gSGkgUmFmYWVsLCBBbGFuIGFuZCBVbGYsCj4KPiBkbyB5
-b3UgaGF2ZSBhbnkgc3VnZ2VzdGlvbiBhYm91dCB0aGlzPyBJIGRvbid0IHJlYWxseSB1bmRlcnN0
-YW5kIHdoeQo+IHRoZSBkZXZpY2UgaXMgZGV0YWNoZWQgZnJvbSB0aGUgZG9tYWluIG9uIHNodXRk
-b3duLgoKSSBhbSBydW5uaW5nIGxpbnV4LW5leHQgYW5kIHRoaXMgY29tbWl0IGNhdXNlcyB0aGUg
-c2FtZSBwcm9ibGVtIGZvciBtZQpvbiBhIG14NiBhZnRlciBydW5uaW5nIGEgJ3JlYm9vdCcgY29t
-bWFuZDoKClJlcXVlc3Rpbmcgc3lzdGVtIHJlYm9vdApbICAgMTUuMDU4NzgyXSAtLS0tLS0tLS0t
-LS1bIGN1dCBoZXJlIF0tLS0tLS0tLS0tLS0KWyAgIDE1LjA2MzQ1OV0gV0FSTklORzogQ1BVOiAz
-IFBJRDogMTEyMiBhdApkcml2ZXJzL2Jhc2UvcG93ZXIvY29tbW9uLmM6MTUwIGRldl9wbV9kb21h
-aW5fc2V0KzB4NGMvMHg1OCgpClsgICAxNS4wNzI4MzhdIFBNIGRvbWFpbnMgY2FuIG9ubHkgYmUg
-Y2hhbmdlZCBmb3IgdW5ib3VuZCBkZXZpY2VzClsgICAxNS4wNzg3MzVdIE1vZHVsZXMgbGlua2Vk
-IGluOgpbICAgMTUuMDgxODQ5XSBDUFU6IDMgUElEOiAxMTIyIENvbW06IGluaXQgTm90IHRhaW50
-ZWQKNC40LjAtcmM4LW5leHQtMjAxNjAxMTEtZGlydHkgIzIwNwpbICAgMTUuMDg5ODI2XSBIYXJk
-d2FyZSBuYW1lOiBGcmVlc2NhbGUgaS5NWDYgUXVhZC9EdWFsTGl0ZSAoRGV2aWNlIFRyZWUpClsg
-ICAxNS4wOTYzNzVdIEJhY2t0cmFjZToKWyAgIDE1LjA5ODk0MV0gWzxjMDAxMzZkOD5dIChkdW1w
-X2JhY2t0cmFjZSkgZnJvbSBbPGMwMDEzODc0Pl0KKHNob3dfc3RhY2srMHgxOC8weDFjKQpbICAg
-MTUuMTA2NTMyXSAgcjY6MDAwMDAwOTYgcjU6MDAwMDAwMDAgcjQ6MDAwMDAwMDAgcjM6MDAwMDAw
-MDAKWyAgIDE1LjExMjM5MF0gWzxjMDAxMzg1Yz5dIChzaG93X3N0YWNrKSBmcm9tIFs8YzAyZGU4
-OWM+XQooZHVtcF9zdGFjaysweDg4LzB4YTQpClsgICAxNS4xMTk3MDhdIFs8YzAyZGU4MTQ+XSAo
-ZHVtcF9zdGFjaykgZnJvbSBbPGMwMDJiY2FjPl0KKHdhcm5fc2xvd3BhdGhfY29tbW9uKzB4ODAv
-MHhiYykKWyAgIDE1LjEyNzg2MF0gIHI1OmMwM2RhODEwIHI0OmVlNjNiZDY4ClsgICAxNS4xMzE1
-MzNdIFs8YzAwMmJjMmM+XSAod2Fybl9zbG93cGF0aF9jb21tb24pIGZyb20gWzxjMDAyYmQ4Yz5d
-Cih3YXJuX3Nsb3dwYXRoX2ZtdCsweDM4LzB4NDApClsgICAxNS4xNDAyOTJdICByODplZWEwMWRi
-MCByNzpjMGIwZjg3YyByNjplZWEwMWQ4MCByNTowMDAwMDAwMCByNDplZjE4MTQxMApbICAgMTUu
-MTQ3MTY1XSBbPGMwMDJiZDU4Pl0gKHdhcm5fc2xvd3BhdGhfZm10KSBmcm9tIFs8YzAzZGE4MTA+
-XQooZGV2X3BtX2RvbWFpbl9zZXQrMHg0Yy8weDU4KQpbICAgMTUuMTU1NjYxXSAgcjM6YzBiMGY3
-ZjAgcjI6YzA5ZTgyZGMKWyAgIDE1LjE1OTM3M10gWzxjMDNkYTdjND5dIChkZXZfcG1fZG9tYWlu
-X3NldCkgZnJvbSBbPGMwM2U0ZTVjPl0KKGdlbnBkX2ZyZWVfZGV2X2RhdGErMHgyMC8weDUwKQpb
-ICAgMTUuMTY4MDY1XSAgcjU6ZWYxODE0YTAgcjQ6ZWYxODE0MTAKWyAgIDE1LjE3MTczN10gWzxj
-MDNlNGUzYz5dIChnZW5wZF9mcmVlX2Rldl9kYXRhKSBmcm9tIFs8YzAzZTVmZTQ+XQoocG1fZ2Vu
-cGRfcmVtb3ZlX2RldmljZSsweGI0LzB4ZTApClsgICAxNS4xODA4NDJdICByNjplZjE4MTQxMCBy
-NTplZWEwMWQ4MCByNDpjMGIwZjdmMCByMzowMDAwMDAwMApbICAgMTUuMTg2NjQ0XSBbPGMwM2U1
-ZjMwPl0gKHBtX2dlbnBkX3JlbW92ZV9kZXZpY2UpIGZyb20gWzxjMDNlNjA0MD5dCihnZW5wZF9k
-ZXZfcG1fZGV0YWNoKzB4MzAvMHhhYykKWyAgIDE1LjE5NTc0M10gIHI4OmMwYjBmN2YwIHI3OmMx
-Mzc5NzM0IHI2OjAwMDAwMDAxIHI1OmMwYjIwOWM0CnI0OmVmMTgxNDEwIHIzOjAwMDAwMDAwClsg
-ICAxNS4yMDM2OTRdIFs8YzAzZTYwMTA+XSAoZ2VucGRfZGV2X3BtX2RldGFjaCkgZnJvbSBbPGMw
-M2RhN2MwPl0KKGRldl9wbV9kb21haW5fZGV0YWNoKzB4MjgvMHgyYykKWyAgIDE1LjIxMjYyMV0g
-IHIxMDplZjE4MTQ0NCByODpjMGI2ZjU2MCByNzpjMTM3OTczNCByNjplZjE4MTQxMApyNTplZjE3
-M2MxMCByNDplZjE4MTQxMApbICAgMTUuMjIwNjgzXSBbPGMwM2RhNzk4Pl0gKGRldl9wbV9kb21h
-aW5fZGV0YWNoKSBmcm9tIFs8YzAzZDNlYTA+XQoocGxhdGZvcm1fZHJ2X3NodXRkb3duKzB4MzQv
-MHgzOCkKWyAgIDE1LjIyOTgxN10gWzxjMDNkM2U2Yz5dIChwbGF0Zm9ybV9kcnZfc2h1dGRvd24p
-IGZyb20gWzxjMDNkMDViMD5dCihkZXZpY2Vfc2h1dGRvd24rMHgzYy8weDE5NCkKWyAgIDE1LjIz
-ODU3OV0gIHI0OmVmMTgxNDFjIHIzOmMwM2QzZTZjClsgICAxNS4yNDIyNTldIFs8YzAzZDA1NzQ+
-XSAoZGV2aWNlX3NodXRkb3duKSBmcm9tIFs8YzAwNGQ1MWM+XQooa2VybmVsX3Jlc3RhcnRfcHJl
-cGFyZSsweDM0LzB4NDApClsgICAxNS4yNTEwMjFdICByMTA6MDAwMDAwMDAgcjg6YzAwMTAwNDQg
-cjc6MDAwMDAwMDAgcjY6YzBiMTIwY2MKcjU6NDMyMWZlZGMgcjQ6MDAwMDAwMDAKWyAgIDE1LjI1
-OTA2NV0gWzxjMDA0ZDRlOD5dIChrZXJuZWxfcmVzdGFydF9wcmVwYXJlKSBmcm9tIFs8YzAwNGQ3
-MjQ+XQooa2VybmVsX3Jlc3RhcnQrMHgxNC8weDU4KQpbICAgMTUuMjY3NzYwXSBbPGMwMDRkNzEw
-Pl0gKGtlcm5lbF9yZXN0YXJ0KSBmcm9tIFs8YzAwNGQ5NDg+XQooU3lTX3JlYm9vdCsweDE4Yy8w
-eDFlNCkKWyAgIDE1LjI3NTUyNl0gIHI0OjAxMjM0NTY3IHIzOjAxMjM0NTY3ClsgICAxNS4yNzky
-NDJdIFs8YzAwNGQ3YmM+XSAoU3lTX3JlYm9vdCkgZnJvbSBbPGMwMDBmZWEwPl0KKHJldF9mYXN0
-X3N5c2NhbGwrMHgwLzB4MWMpClsgICAxNS4yODY5MjBdICByNzowMDAwMDA1OCByNjowMDAwMDAw
-MCByNTowMDAwMDAwMCByNDowMDAwMDAwMApbICAgMTUuMjkyNzU0XSAtLS1bIGVuZCB0cmFjZSAz
-YjQxOWQzY2JiMzY3YTExIF0tLS0KX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fX18KZHJpLWRldmVsIG1haWxpbmcgbGlzdApkcmktZGV2ZWxAbGlzdHMuZnJlZWRl
-c2t0b3Aub3JnCmh0dHA6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9saXN0aW5mby9k
-cmktZGV2ZWwK
+On Mon, Jan 11, 2016 at 3:26 PM, Aleksey Makarov
+<aleksey.makarov@linaro.org> wrote:
+> Factor out the code that finds the first physical device
+> of a given ACPI device.  It is used in several places.
+
+My comments below.
+
+Otherwise good look to me if Rafael has no objections.
+
+FWIW:
+Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+
+> --- a/drivers/acpi/acpi_platform.c
+> +++ b/drivers/acpi/acpi_platform.c
+> @@ -43,7 +43,6 @@ static const struct acpi_device_id forbidden_id_list[] = {
+>  struct platform_device *acpi_create_platform_device(struct acpi_device *adev)
+>  {
+>         struct platform_device *pdev = NULL;
+> -       struct acpi_device *acpi_parent;
+>         struct platform_device_info pdevinfo;
+>         struct resource_entry *rentry;
+>         struct list_head resource_list;
+> @@ -83,21 +82,8 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev)
+>          * platform device we are about to create.
+>          */
+>         pdevinfo.parent = NULL;
+
+No need to twice assign that, perhaps you may move to else branch of
+the condition.
+
+> -       acpi_parent = adev->parent;
+> -       if (acpi_parent) {
+> -               struct acpi_device_physical_node *entry;
+> -               struct list_head *list;
+> -
+> -               mutex_lock(&acpi_parent->physical_node_lock);
+> -               list = &acpi_parent->physical_node_list;
+> -               if (!list_empty(list)) {
+> -                       entry = list_first_entry(list,
+> -                                       struct acpi_device_physical_node,
+> -                                       node);
+> -                       pdevinfo.parent = entry->dev;
+> -               }
+> -               mutex_unlock(&acpi_parent->physical_node_lock);
+> -       }
+> +       if (adev->parent)
+> +               pdevinfo.parent = acpi_get_first_physical_node(adev->parent);
+
+else
+         pdevinfo.parent = NULL;
+
+
+>         pdevinfo.name = dev_name(&adev->dev);
+>         pdevinfo.id = -1;
+>         pdevinfo.res = resources;
+> diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+> index a212cef..2048c69 100644
+> --- a/drivers/acpi/bus.c
+> +++ b/drivers/acpi/bus.c
+> @@ -478,24 +478,36 @@ static void acpi_device_remove_notify_handler(struct acpi_device *device)
+>                               Device Matching
+>     -------------------------------------------------------------------------- */
+>
+> -static struct acpi_device *acpi_primary_dev_companion(struct acpi_device *adev,
+> -                                                     const struct device *dev)
+> +/**
+> + * acpi_device_fix_parent - Get first physical node of an ACPI device
+> + * @adev: ACPI device in question
+> + */
+> +struct device *acpi_get_first_physical_node(
+> +       struct acpi_device *adev)
+>  {
+>         struct mutex *physical_node_lock = &adev->physical_node_lock;
+> +       struct device *ret = NULL;
+
+I would use ret -> node.
+
+>
+>         mutex_lock(physical_node_lock);
+> -       if (list_empty(&adev->physical_node_list)) {
+> -               adev = NULL;
+> -       } else {
+> -               const struct acpi_device_physical_node *node;
+>
+> -               node = list_first_entry(&adev->physical_node_list,
+> -                                       struct acpi_device_physical_node, node);
+> -               if (node->dev != dev)
+> -                       adev = NULL;
+> -       }
+> +       if (!list_empty(&adev->physical_node_list))
+> +               ret = list_first_entry(&adev->physical_node_list,
+> +                               struct acpi_device_physical_node, node)->dev;
+> +
+>         mutex_unlock(physical_node_lock);
+> -       return adev;
+> +
+> +       return ret;
+> +}
+> +
+> +static struct acpi_device *acpi_primary_dev_companion(struct acpi_device *adev,
+> +                                                     const struct device *dev)
+> +{
+> +       const struct device *pdev = acpi_get_first_physical_node(adev);
+
+Similar
+pdev -> node.
+
+> +
+> +       if (pdev && pdev == dev)
+> +               return adev;
+> +
+> +       return NULL;
+>  }
+>
+>  /**
+> diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
+> index 11d87bf..ee9312ba 100644
+> --- a/drivers/acpi/internal.h
+> +++ b/drivers/acpi/internal.h
+> @@ -98,6 +98,7 @@ bool acpi_device_is_present(struct acpi_device *adev);
+>  bool acpi_device_is_battery(struct acpi_device *adev);
+>  bool acpi_device_is_first_physical_node(struct acpi_device *adev,
+>                                         const struct device *dev);
+> +struct device *acpi_get_first_physical_node(struct acpi_device *adev);
+>
+>  /* --------------------------------------------------------------------------
+>                       Device Matching and Notification
+> --
+> 2.7.0
+>
+
+
+
+-- 
+With Best Regards,
+Andy Shevchenko
