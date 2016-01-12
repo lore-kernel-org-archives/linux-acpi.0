@@ -1,72 +1,34 @@
-From: Dan Williams <dan.j.williams@intel.com>
-Subject: Re: [PATCH v5 0/6] nvdimm: Add an IOCTL pass thru for DSM calls
-Date: Tue, 12 Jan 2016 10:55:16 -0800
-Message-ID: <CAPcyv4ikzVM0uvDBpN=+A3+2v_SSvsD0GqP6PZ1S+8OUUhbK7A@mail.gmail.com>
-References: <cover.1452121277.git.jerry.hoemann@hpe.com>
-	<CAPcyv4h_Oc3VVwtjp=+onSVq-Kuidd1r+9fbR-uo+DF_=e+jhg@mail.gmail.com>
-	<CAPcyv4h+R4Aa7Zu3qWfmWwk6SWt22wuOowJvtpFhVUCdamTWDA@mail.gmail.com>
-	<20160112013259.GC79247@tevye.fc.hp.com>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: [PATCH v3 1/2] acpi: Fix proper return code for function acpi_gsi_to_irq
+Date: Tue, 12 Jan 2016 18:59:36 +0000
+Message-ID: <56954D18.1010306@arm.com>
+References: <1446857519-5908-1-git-send-email-lho@apm.com> <1446857519-5908-2-git-send-email-lho@apm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yk0-f172.google.com ([209.85.160.172]:32798 "EHLO
-	mail-yk0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753081AbcALSzR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Jan 2016 13:55:17 -0500
-Received: by mail-yk0-f172.google.com with SMTP id k129so439436850yke.0
-        for <linux-acpi@vger.kernel.org>; Tue, 12 Jan 2016 10:55:17 -0800 (PST)
-In-Reply-To: <20160112013259.GC79247@tevye.fc.hp.com>
+Received: from foss.arm.com ([217.140.101.70]:36562 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752859AbcALS7l (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 12 Jan 2016 13:59:41 -0500
+In-Reply-To: <1446857519-5908-2-git-send-email-lho@apm.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Jerry Hoemann <Jerry.Hoemann@hpe.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "Elliott, Robert (Persistent Memory)" <elliott@hpe.com>, jmoyer <jmoyer@redhat.com>, Dmitry Krivenok <krivenok.dmitry@gmail.com>, Linda Knippers <linda.knippers@hpe.com>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Rafael J Wysocki <rafael.j.wysocki@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Loc Ho <lho@apm.com>, dougthompson@xmission.com, bp@alien8.de, mchehab@osg.samsung.com, tomasz.nowicki@linaro.org, fu.wei@linaro.org, rjw@rjwysocki.net, lenb@kernel.org
+Cc: jcm@redhat.com, patches@apm.com, linux-acpi@vger.kernel.org, Tuan Phan <tphan@apm.com>, linux-arm-kernel@lists.infradead.org, linux-edac@vger.kernel.org
 
-On Mon, Jan 11, 2016 at 5:32 PM, Jerry Hoemann <jerry.hoemann@hpe.com> wrote:
-> On Sun, Jan 10, 2016 at 04:03:18PM -0800, Dan Williams wrote:
->> On Wed, Jan 6, 2016 at 3:58 PM, Dan Williams <dan.j.williams@intel.com>wrote:
-[..]
->> 2/ Disallow potentially invalid calls to reach firmware.  At a minimum
->> the kernel needs to know the uuid in advance for any dsm it wants to
->> send.  I.e. check the 'dsm_fun_idx' against the dsm_mask.  This is
->> also important for making sure the kernel can manage exclusive access
->> to the configuration data area if present
->> (ND_CMD_{GET|SET}_CONFIG_DATA).
->
->   Technically, the kernel doesn't need to know the uuid in advance
->   as that is part of the bundle passed into the passthru.
+On 07/11/15 00:51, Loc Ho wrote:
+> The function acpi_gsi_to_irq should returns 0 on success as upper function
+> caller expect an 0 for sucesss.
 
-True, but the set of uuids the kernel ever needs to know about is
-likely small, and this policy mandates publication/notification of new
-command sets to the kernel community.  Later on it gives the kernel a
-touch point to implement dsm function number blacklisting which I
-think is a useful security feature.
+I have to ask: why do you feel the need to change an API that behaves
+like the rest of the IRQ allocation functions (at least when it comes to
+its return value)?
 
-I'll leave the UUID parameter in the command in case a device ever
-implements multiple command sets and we need to select between two
-function number spaces.
+0 is defined as an invalid interrupt, and I wish it stayed that way.
 
->
->
->   Are you concerned about firmware mis-behaving when presented
->   with a (UUID, Function_Index) that is not supported?
->   (and really we should add Revision ID to that tuple.)
->
->   In a prior version of the patch not sent upstream, I did "discover" the
->   uuid and set up the dsm_mask.  However, this created a need to modify
->   kernel each time uuid changes.  Also, i don't think this is necessary
->   as FW should be gracefully validating its input arguments.  By
->   not setting up/using dsm_mask in pass thru case, this can be tested.
+Thanks,
 
-ACPICA will throw parse errors on mis-formatted DSMs.  We can't
-prevent all malformed calls, but this is basic input validation that
-the kernel can perform.
-
->   I don't understand the exclusive access concern w/ config data.
->   Could you please elaborate?
-
-See nd_cmd_clear_to_send()... when a dimm is active the kernel
-mandates that updates to the namespace labels go through sysfs.  This
-is a safety measure to prevent userspace from inadvertently clobbering
-in use labels.  Once the dimm goes idle (all 'region' devices related
-to the dimm are disabled) userspace can manually update the
-configuration data area.
+	M.
+-- 
+Jazz is not dead. It just smells funny...
