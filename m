@@ -1,53 +1,64 @@
-From: Christopher Covington <cov@codeaurora.org>
-Subject: Re: [RFC 0/5] console/acpi: add DBG2 and SPCR console configuration
-Date: Tue, 12 Jan 2016 10:14:09 -0500
-Message-ID: <56951841.4010101@codeaurora.org>
-References: <1441716217-23786-1-git-send-email-leif.lindholm@linaro.org>
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: Re: [PATCH V2 11/23] arm64, pci: Remove useless boot time IRQ
+ assignment when booting with DT.
+Date: Tue, 12 Jan 2016 17:13:13 +0100
+Message-ID: <56952619.7010602@semihalf.com>
+References: <1450278993-12664-1-git-send-email-tn@semihalf.com>
+ <1450278993-12664-12-git-send-email-tn@semihalf.com>
+ <20160112135023.GC3601@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252
+Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:51263 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762667AbcALPOM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Jan 2016 10:14:12 -0500
-In-Reply-To: <1441716217-23786-1-git-send-email-leif.lindholm@linaro.org>
+Received: from mail-wm0-f44.google.com ([74.125.82.44]:37208 "EHLO
+	mail-wm0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752830AbcALQPQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Jan 2016 11:15:16 -0500
+Received: by mail-wm0-f44.google.com with SMTP id f206so328574069wmf.0
+        for <linux-acpi@vger.kernel.org>; Tue, 12 Jan 2016 08:15:15 -0800 (PST)
+In-Reply-To: <20160112135023.GC3601@red-moon>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Leif Lindholm <leif.lindholm@linaro.org>, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, graeme.gregory@linaro.org
-Cc: mark.rutland@arm.com, al.stone@linaro.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, torez@redhat.com, lv.zheng@intel.com, Timur Tabi <timur@quicinc.com>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, matt@masarand.com
+Cc: bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, okaya@codeaurora.org, jiang.liu@linux.intel.com, Stefano.Stabellini@eu.citrix.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com
 
-Hi,
+On 12.01.2016 14:50, Lorenzo Pieralisi wrote:
+> On Wed, Dec 16, 2015 at 04:16:21PM +0100, Tomasz Nowicki wrote:
+>> In order to probe PCIe host controller when booting with DT,
+>> ARM64 is using drivers which defer IRQ assignment to device
+>> enable time. It means that boot time DT specific irq map initialization
+>> is always overridden, so lets remove that code.
+>>
+>> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+>> ---
+>>   arch/arm64/kernel/pci.c | 10 ----------
+>>   1 file changed, 10 deletions(-)
+>>
+>> diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
+>> index 023b983..f7948f5 100644
+>> --- a/arch/arm64/kernel/pci.c
+>> +++ b/arch/arm64/kernel/pci.c
+>> @@ -51,16 +51,6 @@ int pcibios_enable_device(struct pci_dev *dev, int mask)
+>>   	return pci_enable_resources(dev, mask);
+>>   }
+>>
+>> -/*
+>> - * Try to assign the IRQ number from DT when adding a new device
+>> - */
+>> -int pcibios_add_device(struct pci_dev *dev)
+>> -{
+>> -	dev->irq = of_irq_parse_and_map_pci(dev, 0, 0);
+>> -
+>> -	return 0;
+>> -}
+>> -
+>
+> Actually, this patch should be part of Matthew's series:
+>
 
-On 09/08/2015 08:43 AM, Leif Lindholm wrote:
-> Support for configuring bootconsole and console via the ACPI tables
-> DBG2 (Debug Port Table 2) [1] and SPCR (Serial Port Console Redirection
-> Table) [2], defined by Microsoft, has been discussed on and off over the
-> years.
-> 
-> [1] https://msdn.microsoft.com/en-us/library/windows/hardware/dn639131(v=vs.85).aspx
-> [2] https://msdn.microsoft.com/en-us/library/windows/hardware/dn639132(v=vs.85).aspx
-> 
-> Licensing concerns have prevented this happening in the past, but as of
-> 10 August 2015, these tables have both been released also under OWF 1.0
-> (http://www.openwebfoundation.org/legal/the-owf-1-0-agreements/owfa-1-0)
-> which is think is noncontroversially GPL-compatible?
-> 
-> This set is a first attempt at implementing this.
-> 
-> Submitting as an RFC since the SPCR handling currently depends on the
-> console driver being initialized after subsystem initcalls. Workaround
-> to enable testing surrounding infrastructure in 5/5, _really_ not
-> intended to be merged.
-> (Suggestions for acceptable ways of working around this appreciated.)
+Agree.
 
-What's required for this to graduate from RFC status? Is anyone working
-on it?
+Matthew can you please add this patch to your series?
 
 Thanks,
-Christopher Covington
-
--- 
-Qualcomm Innovation Center, Inc.
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-a Linux Foundation Collaborative Project
+Tomasz
