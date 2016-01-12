@@ -1,45 +1,38 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [PATCH V2 00/23] MMCONFIG refactoring and support for ARM64 PCI hostbridge init based on ACPI
-Date: Tue, 12 Jan 2016 15:30:25 +0100
-Message-ID: <4945809.OlUZI8D7JL@wuerfel>
-References: <1450278993-12664-1-git-send-email-tn@semihalf.com> <20160111153949.GA2366@red-moon> <5693D0AE.4020306@codeaurora.org>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v3 1/2] acpi: Fix proper return code for function
+ acpi_gsi_to_irq
+Date: Tue, 12 Jan 2016 15:36:53 +0100
+Message-ID: <20160112143653.GB30558@pd.tnic>
+References: <1446857519-5908-1-git-send-email-lho@apm.com>
+ <1446857519-5908-2-git-send-email-lho@apm.com>
+ <20160110110714.GA22896@pd.tnic>
+ <CAGDN=zYa1r23EphdYQTFe2YXRhg_P-RDiaZVms9rdbFA3Y-x3g@mail.gmail.com>
+ <20160111221305.GH4665@pd.tnic>
+ <CAGDN=zZOr6+q8aAdXB3gnSLfCm6gX-6KLaFPr+A4QMf+TPwR-w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <5693D0AE.4020306@codeaurora.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tn@semihalf.com>, bhelgaas@google.com, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, jiang.liu@linux.intel.com, stefano.stabellini@eu.citrix.com, robert.richter@caviumnetworks.com, mw@semihalf.com, liviu.dudau@arm.com, ddaney@caviumnetworks.com, tglx@linutronix.de, wangyijing@huawei.com, suravee.suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.skyhub.de ([78.46.96.112]:54300 "EHLO mail.skyhub.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933622AbcALOhH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 12 Jan 2016 09:37:07 -0500
+Content-Disposition: inline
+In-Reply-To: <CAGDN=zZOr6+q8aAdXB3gnSLfCm6gX-6KLaFPr+A4QMf+TPwR-w@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tuan Phan <tphan@apm.com>
+Cc: Loc Ho <lho@apm.com>, dougthompson@xmission.com, mchehab@osg.samsung.com, tomasz.nowicki@linaro.org, fu.wei@linaro.org, rjw@rjwysocki.net, lenb@kernel.org, linux-edac@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Jon Masters <jcm@redhat.com>, patches@apm.com, Thomas Gleixner <tglx@linutronix.de>
 
-On Monday 11 January 2016 10:56:30 Sinan Kaya wrote:
-> 
-> #_dmesg_|_grep_resource
-> [    2.945762] pci_bus 0000:00: root bus resource [io  0x0000-0xefff window] (bus address [0x1000-0xffff])
-> [    3.652201] pci_bus 0002:00: root bus resource [io  0xf000-0x1dfff window] (bus address [0x1000-0xffff])
-> [    6.546716] pci_bus 0006:00: root bus resource [io  0x1e000-0x2cfff window] (bus address [0x1000-0xffff])
-> / #
+On Mon, Jan 11, 2016 at 02:41:41PM -0800, Tuan Phan wrote:
+> It will be problem because irq number can be 0 on X86?
 
-This is bad. We normally want to stay out of the first 0x1000 bytes of the Linux space,
-to prevent drivers from poking into the ISA registers.
+tglx says not really but historically irq 0 has been the timer irq.
 
-We can have one of the buses be the "primary" bus that has its first 0x1000 bytes of
-I/O space mapped into the respective Linux addresses, but mapping the second 0x1000
-bytes into the reserved space is the worst possible outcome here, as legacy ISA
-drivers will now poke at random other devices that are intentionally moved to
-high addresses to stay of of that range.
- 
-> Since we are talking about what ACPI dictates vs. what kernel does. Here is something that got me 
-> while testing.
-> 
-> Somebody sneaked in a 0x10003 upper limit on PCI addresses for some reason below. There is nothing magic
-> about 0x10003 and I'm wonding why we have this limit.
+How about returning a negative value on error and positive or 0 for an
+IRQ?
 
-I/O ports are at aligned addresses, the highest 4-byte address you can access
-is 0xfffc with the default 0x10000 port limit per bus. This limit is generally
-seen as sufficient because that is what x86 has. Most PCI devices have no I/O ports
-at all, and the ones that have them have only a couple of bytes of address space
-in it.
+-- 
+Regards/Gruss,
+    Boris.
 
-	Arnd
+ECO tip #101: Trim your mails when you reply.
