@@ -1,52 +1,45 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH V2 11/23] arm64, pci: Remove useless boot time IRQ
- assignment when booting with DT.
-Date: Tue, 12 Jan 2016 13:50:23 +0000
-Message-ID: <20160112135023.GC3601@red-moon>
-References: <1450278993-12664-1-git-send-email-tn@semihalf.com>
- <1450278993-12664-12-git-send-email-tn@semihalf.com>
+From: Arnd Bergmann <arnd@arndb.de>
+Subject: Re: [PATCH V2 00/23] MMCONFIG refactoring and support for ARM64 PCI hostbridge init based on ACPI
+Date: Tue, 12 Jan 2016 15:30:25 +0100
+Message-ID: <4945809.OlUZI8D7JL@wuerfel>
+References: <1450278993-12664-1-git-send-email-tn@semihalf.com> <20160111153949.GA2366@red-moon> <5693D0AE.4020306@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1450278993-12664-12-git-send-email-tn@semihalf.com>
+In-Reply-To: <5693D0AE.4020306@codeaurora.org>
 Sender: linux-pci-owner@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>
-Cc: bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, okaya@codeaurora.org, jiang.liu@linux.intel.com, Stefano.Stabellini@eu.citrix.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tn@semihalf.com>, bhelgaas@google.com, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, jiang.liu@linux.intel.com, stefano.stabellini@eu.citrix.com, robert.richter@caviumnetworks.com, mw@semihalf.com, liviu.dudau@arm.com, ddaney@caviumnetworks.com, tglx@linutronix.de, wangyijing@huawei.com, suravee.suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Dec 16, 2015 at 04:16:21PM +0100, Tomasz Nowicki wrote:
-> In order to probe PCIe host controller when booting with DT,
-> ARM64 is using drivers which defer IRQ assignment to device
-> enable time. It means that boot time DT specific irq map initialization
-> is always overridden, so lets remove that code.
+On Monday 11 January 2016 10:56:30 Sinan Kaya wrote:
 > 
-> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-> ---
->  arch/arm64/kernel/pci.c | 10 ----------
->  1 file changed, 10 deletions(-)
+> #_dmesg_|_grep_resource
+> [    2.945762] pci_bus 0000:00: root bus resource [io  0x0000-0xefff window] (bus address [0x1000-0xffff])
+> [    3.652201] pci_bus 0002:00: root bus resource [io  0xf000-0x1dfff window] (bus address [0x1000-0xffff])
+> [    6.546716] pci_bus 0006:00: root bus resource [io  0x1e000-0x2cfff window] (bus address [0x1000-0xffff])
+> / #
+
+This is bad. We normally want to stay out of the first 0x1000 bytes of the Linux space,
+to prevent drivers from poking into the ISA registers.
+
+We can have one of the buses be the "primary" bus that has its first 0x1000 bytes of
+I/O space mapped into the respective Linux addresses, but mapping the second 0x1000
+bytes into the reserved space is the worst possible outcome here, as legacy ISA
+drivers will now poke at random other devices that are intentionally moved to
+high addresses to stay of of that range.
+ 
+> Since we are talking about what ACPI dictates vs. what kernel does. Here is something that got me 
+> while testing.
 > 
-> diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
-> index 023b983..f7948f5 100644
-> --- a/arch/arm64/kernel/pci.c
-> +++ b/arch/arm64/kernel/pci.c
-> @@ -51,16 +51,6 @@ int pcibios_enable_device(struct pci_dev *dev, int mask)
->  	return pci_enable_resources(dev, mask);
->  }
->  
-> -/*
-> - * Try to assign the IRQ number from DT when adding a new device
-> - */
-> -int pcibios_add_device(struct pci_dev *dev)
-> -{
-> -	dev->irq = of_irq_parse_and_map_pci(dev, 0, 0);
-> -
-> -	return 0;
-> -}
-> -
+> Somebody sneaked in a 0x10003 upper limit on PCI addresses for some reason below. There is nothing magic
+> about 0x10003 and I'm wonding why we have this limit.
 
-Actually, this patch should be part of Matthew's series:
+I/O ports are at aligned addresses, the highest 4-byte address you can access
+is 0xfffc with the default 0x10000 port limit per bus. This limit is generally
+seen as sufficient because that is what x86 has. Most PCI devices have no I/O ports
+at all, and the ones that have them have only a couple of bytes of address space
+in it.
 
-http://comments.gmane.org/gmane.linux.kernel.pci/46461
-
-Lorenzo
+	Arnd
