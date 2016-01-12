@@ -1,87 +1,112 @@
-From: Jerry Hoemann <jerry.hoemann@hpe.com>
-Subject: Re: [PATCH v5 0/6] nvdimm: Add an IOCTL pass thru for DSM calls
-Date: Mon, 11 Jan 2016 18:32:59 -0700
-Message-ID: <20160112013259.GC79247@tevye.fc.hp.com>
-References: <cover.1452121277.git.jerry.hoemann@hpe.com>
- <CAPcyv4h_Oc3VVwtjp=+onSVq-Kuidd1r+9fbR-uo+DF_=e+jhg@mail.gmail.com>
- <CAPcyv4h+R4Aa7Zu3qWfmWwk6SWt22wuOowJvtpFhVUCdamTWDA@mail.gmail.com>
-Reply-To: Jerry.Hoemann@hpe.com
+From: Daniel Kiper <daniel.kiper@oracle.com>
+Subject: Re: [PATCH v3] memory-hotplug: add automatic onlining policy for the
+ newly added memory
+Date: Tue, 12 Jan 2016 08:44:51 +0100
+Message-ID: <20160112074451.GR3485@olila.local.net-space.pl>
+References: <1452187421-15747-1-git-send-email-vkuznets@redhat.com>
+ <20160108140123.GK3485@olila.local.net-space.pl>
+ <87y4c02eqc.fsf@vitty.brq.redhat.com>
+ <20160111081013.GM3485@olila.local.net-space.pl>
+ <20160111124233.GN3485@olila.local.net-space.pl>
+ <87twmki2ew.fsf@vitty.brq.redhat.com>
+ <20160111162258.GP3485@olila.local.net-space.pl>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <owner-linux-mm@kvack.org>
 Content-Disposition: inline
-In-Reply-To: <CAPcyv4h+R4Aa7Zu3qWfmWwk6SWt22wuOowJvtpFhVUCdamTWDA@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Dan Williams <dan.j.williams@intel.com>
-Cc: Ross Zwisler <ross.zwisler@linux.intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "Elliott, Robert (Persistent Memory)" <elliott@hpe.com>, jmoyer <jmoyer@redhat.com>, Dmitry Krivenok <krivenok.dmitry@gmail.com>, Linda Knippers <linda.knippers@hpe.com>, Robert Moore <robert.moore@intel.com>, Lv Zheng <lv.zheng@intel.com>, Rafael J Wysocki <rafael.j.wysocki@intel.com>, "linux-nvdimm@lists.01.org" <linux-nvdimm@lists.01.org>, Linux ACPI <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+In-Reply-To: <20160111162258.GP3485@olila.local.net-space.pl>
+Sender: owner-linux-mm@kvack.org
+To: Vitaly Kuznetsov <vkuznets@redhat.com>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dan Williams <dan.j.williams@intel.com>, Tang Chen <tangchen@cn.fujitsu.com>, David Vrabel <david.vrabel@citrix.com>, David Rientjes <rientjes@google.com>, Andrew Morton <akpm@linux-foundation.org>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, Xishi Qiu <qiuxishi@huawei.com>, Mel Gorman <mgorman@techsingularity.net>, "K. Y. Srinivasan" <kys@microsoft.com>, Igor Mammedov <imammedo@redhat.com>, Kay Sievers <kay@vrfy.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Sun, Jan 10, 2016 at 04:03:18PM -0800, Dan Williams wrote:
-> On Wed, Jan 6, 2016 at 3:58 PM, Dan Williams <dan.j.williams@intel.com>wrote:
-> > On Wed, Jan 6, 2016 at 3:03 PM, Jerry Hoemann <jerry.hoemann@hpe.com> wrote:
-> [..]
-> >> Jerry Hoemann (6):
-> >>   ACPI / util: Fix acpi_evaluate_dsm() argument type
-> >>   nvdimm: Clean-up access mode check.
-> >>   nvdimm: Add wrapper for IOCTL pass thru
-> >>   nvdimm: Fix security issue with DSM IOCTL.
-> >>   nvdimm: Increase max envelope size for IOCTL
-> >>   nvdimm: Add IOCTL pass thru functions
+On Mon, Jan 11, 2016 at 05:22:58PM +0100, Daniel Kiper wrote:
+> On Mon, Jan 11, 2016 at 04:03:35PM +0100, Vitaly Kuznetsov wrote:
+> > Daniel Kiper <daniel.kiper@oracle.com> writes:
 > >
-> > These look good to me.
+> > [skip]
 > >
-> > I'll tag "nvdimm: Fix security issue with DSM IOCTL." for -stable.
+> > >> > > And we want to have it working out of the box.
+> > >> > > So, I think that we should find proper solution. I suppose that we can schedule
+> > >> > > a task here which auto online attached blocks. Hmmm... Not nice but should work.
+> > >> > > Or maybe you have better idea how to fix this issue.
+> > >> >
+> > >> > I'd like to avoid additional delays and memory allocations between
+> > >> > adding new memory and onlining it (and this is the main purpose of the
+> > >> > patch). Maybe we can have a tristate online parameter ('online_now',
+> > >> > 'online_delay', 'keep_offlined') and handle it
+> > >> > accordingly. Alternatively I can suggest we have the onlining in Xen
+> > >> > balloon driver code, memhp_auto_online is exported so we can call
+> > >> > online_pages() after we release the ballon_mutex.
+> > >>
+> > >> This is not nice too. I prefer the same code path for every case.
+> > >> Give me some time. I will think how to solve that issue.
+> > >
+> > > It looks that we can safely call mutex_unlock() just before add_memory_resource()
+> > > call and retake lock immediately after add_memory_resource(). add_memory_resource()
+> > > itself does not play with balloon stuff and even if online_pages() does then it
+> > > take balloon_mutex in right place. Additionally, only one balloon task can run,
+> > > so, I think that we are on safe side. Am I right?
 > >
-> > Thanks Jerry!
-> 
-> I went to go write a test / support in ndctl for these and noticed a
-> few things I want to address before merging.
-> 
-> 1/ Advertise 'call_dsm' as a supported command alongside the others.
+> > I think you are as balloon_mutex is internal to xen driver and there is
+> > only one balloon_process() running at the time. I just smoke-tested the
+> > following:
+> >
+> > commit 0fce4746a0090d533e9302cc42b3d3c0645d756d
+> > Author: Vitaly Kuznetsov <vkuznets@redhat.com>
+> > Date:   Mon Jan 11 14:22:11 2016 +0100
+> >
+> >     xen_balloon: make hotplug auto online work
+> >
+> >     Signed-off-by: Vitaly Kuznetsov <vkuznets@redhat.com>
+> >
+> > diff --git a/drivers/xen/balloon.c b/drivers/xen/balloon.c
+> > index 890c3b5..08bbf35 100644
+> > --- a/drivers/xen/balloon.c
+> > +++ b/drivers/xen/balloon.c
+> > @@ -338,7 +338,10 @@ static enum bp_state reserve_additional_memory(void)
+> >  	}
+> >  #endif
+> >
+> > -	rc = add_memory_resource(nid, resource, false);
+> > +	mutex_unlock(&balloon_mutex);
+> > +	rc = add_memory_resource(nid, resource, memhp_auto_online);
+> > +	mutex_lock(&balloon_mutex);
+> > +
+> >  	if (rc) {
+> >  		pr_warn("Cannot add additional memory (%i)\n", rc);
+> >  		goto err;
+> > @@ -565,8 +568,10 @@ static void balloon_process(struct work_struct *work)
+> >  		if (credit > 0) {
+> >  			if (balloon_is_inflated())
+> >  				state = increase_reservation(credit);
+> > -			else
+> > +			else {
+> > +				printk("balloon_process: adding memory (credit: %ld)!\n", credit);
+> >  				state = reserve_additional_memory();
+> > +			}
+> >  		}
+> >
+> >  		if (credit < 0)
+> >
+> > And it seems to work (unrelated rant: 'xl mem-set' after 'xl max-mem'
+>
+> Great! Thanks!
+>
+> Let's go further. Please add bool online argument to reserve_additional_memory() and
+> then call add_memory_resource() with it. Then call reserve_additional_memory() with
+> memhp_auto_online from balloon_process() and with false from add_ballooned_pages(). Voila!
+>
+> Please do not forget to add comment for mutex_unlock() and mutex_lock()
+> around add_memory_resource() (why it is needed and why it works correctly).
 
+I forgot about one thing. Please update help for XEN_BALLOON_MEMORY_HOTPLUG
+config option accordingly.
 
-  In sysfs?  okay that makes sense.
+Daniel
 
-
-> 
-> 2/ Disallow potentially invalid calls to reach firmware.  At a minimum
-> the kernel needs to know the uuid in advance for any dsm it wants to
-> send.  I.e. check the 'dsm_fun_idx' against the dsm_mask.  This is
-> also important for making sure the kernel can manage exclusive access
-> to the configuration data area if present
-> (ND_CMD_{GET|SET}_CONFIG_DATA).
-
-  Technically, the kernel doesn't need to know the uuid in advance
-  as that is part of the bundle passed into the passthru.
-
-  Are you concerned about firmware mis-behaving when presented
-  with a (UUID, Function_Index) that is not supported?
-  (and really we should add Revision ID to that tuple.)
-
-  In a prior version of the patch not sent upstream, I did "discover" the
-  uuid and set up the dsm_mask.  However, this created a need to modify
-  kernel each time uuid changes.  Also, i don't think this is necessary
-  as FW should be gracefully validating its input arguments.  By
-  not setting up/using dsm_mask in pass thru case, this can be tested.
-
-  I don't understand the exclusive access concern w/ config data.
-  Could you please elaborate?
-
-
-> 
-> 3/ This is minor, but it follows from 1/ that there may be some nvdimm
-> bus implementations that do not implement 'call_dsm' support.
-> 'nfit_test' is currently one of those buses and we need to check for
-> that explicitly in nd_ioctl.
-> 
-> I have some patches in progress to address these.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
--- 
-
------------------------------------------------------------------------------
-Jerry Hoemann                  Software Engineer   Hewlett Packard Enterprise
------------------------------------------------------------------------------
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
