@@ -1,112 +1,235 @@
-From: Daniel Kiper <daniel.kiper@oracle.com>
-Subject: Re: [PATCH v3] memory-hotplug: add automatic onlining policy for the
- newly added memory
-Date: Tue, 12 Jan 2016 08:44:51 +0100
-Message-ID: <20160112074451.GR3485@olila.local.net-space.pl>
-References: <1452187421-15747-1-git-send-email-vkuznets@redhat.com>
- <20160108140123.GK3485@olila.local.net-space.pl>
- <87y4c02eqc.fsf@vitty.brq.redhat.com>
- <20160111081013.GM3485@olila.local.net-space.pl>
- <20160111124233.GN3485@olila.local.net-space.pl>
- <87twmki2ew.fsf@vitty.brq.redhat.com>
- <20160111162258.GP3485@olila.local.net-space.pl>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: [PATCH V2 03/10] irqchip,GICv3,ACPI: Add redistributor support
+ via GICC structures.
+Date: Tue, 12 Jan 2016 12:03:30 +0000
+Message-ID: <5694EB92.9030109@arm.com>
+References: <1450353133-15992-1-git-send-email-tn@semihalf.com> <1450353133-15992-4-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <owner-linux-mm@kvack.org>
-Content-Disposition: inline
-In-Reply-To: <20160111162258.GP3485@olila.local.net-space.pl>
-Sender: owner-linux-mm@kvack.org
-To: Vitaly Kuznetsov <vkuznets@redhat.com>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Jonathan Corbet <corbet@lwn.net>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Dan Williams <dan.j.williams@intel.com>, Tang Chen <tangchen@cn.fujitsu.com>, David Vrabel <david.vrabel@citrix.com>, David Rientjes <rientjes@google.com>, Andrew Morton <akpm@linux-foundation.org>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, Xishi Qiu <qiuxishi@huawei.com>, Mel Gorman <mgorman@techsingularity.net>, "K. Y. Srinivasan" <kys@microsoft.com>, Igor Mammedov <imammedo@redhat.com>, Kay Sievers <kay@vrfy.org>, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Boris Ostrovsky <boris.ostrovsky@oracle.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1450353133-15992-4-git-send-email-tn@semihalf.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Tomasz Nowicki <tn@semihalf.com>, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, guohanjun@huawei.com, Suravee.Suthikulpanit@amd.com
+Cc: mw@semihalf.com, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, linux-arm-kernel@lists.infradead.org, ddaney.cavm@gmail.com
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Jan 11, 2016 at 05:22:58PM +0100, Daniel Kiper wrote:
-> On Mon, Jan 11, 2016 at 04:03:35PM +0100, Vitaly Kuznetsov wrote:
-> > Daniel Kiper <daniel.kiper@oracle.com> writes:
-> >
-> > [skip]
-> >
-> > >> > > And we want to have it working out of the box.
-> > >> > > So, I think that we should find proper solution. I suppose that we can schedule
-> > >> > > a task here which auto online attached blocks. Hmmm... Not nice but should work.
-> > >> > > Or maybe you have better idea how to fix this issue.
-> > >> >
-> > >> > I'd like to avoid additional delays and memory allocations between
-> > >> > adding new memory and onlining it (and this is the main purpose of the
-> > >> > patch). Maybe we can have a tristate online parameter ('online_now',
-> > >> > 'online_delay', 'keep_offlined') and handle it
-> > >> > accordingly. Alternatively I can suggest we have the onlining in Xen
-> > >> > balloon driver code, memhp_auto_online is exported so we can call
-> > >> > online_pages() after we release the ballon_mutex.
-> > >>
-> > >> This is not nice too. I prefer the same code path for every case.
-> > >> Give me some time. I will think how to solve that issue.
-> > >
-> > > It looks that we can safely call mutex_unlock() just before add_memory_resource()
-> > > call and retake lock immediately after add_memory_resource(). add_memory_resource()
-> > > itself does not play with balloon stuff and even if online_pages() does then it
-> > > take balloon_mutex in right place. Additionally, only one balloon task can run,
-> > > so, I think that we are on safe side. Am I right?
-> >
-> > I think you are as balloon_mutex is internal to xen driver and there is
-> > only one balloon_process() running at the time. I just smoke-tested the
-> > following:
-> >
-> > commit 0fce4746a0090d533e9302cc42b3d3c0645d756d
-> > Author: Vitaly Kuznetsov <vkuznets@redhat.com>
-> > Date:   Mon Jan 11 14:22:11 2016 +0100
-> >
-> >     xen_balloon: make hotplug auto online work
-> >
-> >     Signed-off-by: Vitaly Kuznetsov <vkuznets@redhat.com>
-> >
-> > diff --git a/drivers/xen/balloon.c b/drivers/xen/balloon.c
-> > index 890c3b5..08bbf35 100644
-> > --- a/drivers/xen/balloon.c
-> > +++ b/drivers/xen/balloon.c
-> > @@ -338,7 +338,10 @@ static enum bp_state reserve_additional_memory(void)
-> >  	}
-> >  #endif
-> >
-> > -	rc = add_memory_resource(nid, resource, false);
-> > +	mutex_unlock(&balloon_mutex);
-> > +	rc = add_memory_resource(nid, resource, memhp_auto_online);
-> > +	mutex_lock(&balloon_mutex);
-> > +
-> >  	if (rc) {
-> >  		pr_warn("Cannot add additional memory (%i)\n", rc);
-> >  		goto err;
-> > @@ -565,8 +568,10 @@ static void balloon_process(struct work_struct *work)
-> >  		if (credit > 0) {
-> >  			if (balloon_is_inflated())
-> >  				state = increase_reservation(credit);
-> > -			else
-> > +			else {
-> > +				printk("balloon_process: adding memory (credit: %ld)!\n", credit);
-> >  				state = reserve_additional_memory();
-> > +			}
-> >  		}
-> >
-> >  		if (credit < 0)
-> >
-> > And it seems to work (unrelated rant: 'xl mem-set' after 'xl max-mem'
->
-> Great! Thanks!
->
-> Let's go further. Please add bool online argument to reserve_additional_memory() and
-> then call add_memory_resource() with it. Then call reserve_additional_memory() with
-> memhp_auto_online from balloon_process() and with false from add_ballooned_pages(). Voila!
->
-> Please do not forget to add comment for mutex_unlock() and mutex_lock()
-> around add_memory_resource() (why it is needed and why it works correctly).
+On 17/12/15 11:52, Tomasz Nowicki wrote:
+> On systems supporting GICv3 and above, in MADT GICC structures, the
+> field of GICR Base Address holds the 64-bit physical address of the
+> associated Redistributor if the GIC Redistributors are not in the
+> always-on power domain, so instead of init GICR regions via GIC
+> redistributor structure(s), init it with GICR base address in GICC
+> structures in that case.
+> 
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+> ---
+>  drivers/irqchip/irq-gic-v3.c | 98 ++++++++++++++++++++++++++++++++++++++++----
+>  1 file changed, 89 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/irqchip/irq-gic-v3.c b/drivers/irqchip/irq-gic-v3.c
+> index c4b929c..0528e82 100644
+> --- a/drivers/irqchip/irq-gic-v3.c
+> +++ b/drivers/irqchip/irq-gic-v3.c
+> @@ -39,6 +39,7 @@
+>  struct redist_region {
+>  	void __iomem		*redist_base;
+>  	phys_addr_t		phys_base;
+> +	bool			single_redist;
+>  };
+>  
+>  struct gic_chip_data {
+> @@ -435,6 +436,9 @@ static int gic_populate_rdist(void)
+>  				return 0;
+>  			}
+>  
+> +			if (gic_data.redist_regions[i].single_redist)
+> +				break;
+> +
+>  			if (gic_data.redist_stride) {
+>  				ptr += gic_data.redist_stride;
+>  			} else {
+> @@ -965,6 +969,7 @@ IRQCHIP_DECLARE(gic_v3, "arm,gic-v3", gic_of_init);
+>  #ifdef CONFIG_ACPI
+>  static struct redist_region *redist_regs __initdata;
+>  static u32 nr_redist_regions __initdata;
+> +static bool single_redist;
+>  
+>  static int __init
+>  gic_acpi_register_redist(phys_addr_t phys_base, u64 size)
+> @@ -979,7 +984,8 @@ gic_acpi_register_redist(phys_addr_t phys_base, u64 size)
+>  	}
+>  
+>  	redist_regs[count].phys_base = phys_base;
+> -	redist_regs[count++].redist_base = redist_base;
+> +	redist_regs[count].redist_base = redist_base;
 
-I forgot about one thing. Please update help for XEN_BALLOON_MEMORY_HOTPLUG
-config option accordingly.
+nit: move the count++ out of the access in the previous patch, this will
+make this series a bit easier to follow.
 
-Daniel
+> +	redist_regs[count++].single_redist = single_redist;
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+What is that single_redist for? Is that because you can't rely on
+GICR_TYPER.Last?
+
+>  	return 0;
+>  }
+>  
+> @@ -993,6 +999,48 @@ gic_acpi_parse_madt_redist(struct acpi_subtable_header *header,
+>  	return gic_acpi_register_redist(redist->base_address, redist->length);
+>  }
+>  
+> +static int __init
+> +gic_acpi_parse_madt_gicc(struct acpi_subtable_header *header,
+> +			 const unsigned long end)
+> +{
+> +	struct acpi_madt_generic_interrupt *gicc;
+> +	void __iomem *redist_base;
+> +	u64 typer;
+> +	u32 size;
+> +
+> +	gicc = (struct acpi_madt_generic_interrupt *)header;
+> +	redist_base = ioremap(gicc->gicr_base_address, SZ_64K * 2);
+> +	if (!redist_base)
+> +		return -ENOMEM;
+> +
+> +	typer = readq_relaxed(redist_base + GICR_TYPER);
+> +	/* don't map reserved page as it's buggy to access it */
+> +	size = (typer & GICR_TYPER_VLPIS) ? SZ_64K * 3 : SZ_64K * 2;
+> +	iounmap(redist_base);
+
+What a mess. If you discover a !VLPIS redistributor, why do you have to
+unmap it to remap it again? Also, please map the whole region for the
+redistributor as we have on the DT side (4 64kB pages for VLPIS capable
+redistributors).
+
+Also, the spec says:
+
+"On systems supporting GICv3 and above, this field holds the 64-bit
+physical address of the associated Redistributor. If all of the GIC
+Redistributors are in the always-on power domain, GICR structures should
+be used to describe the Redistributors instead, and this field must be
+set to 0."
+
+which triggers two questions:
+- Can you access always the GICR_TYPER register without waking the
+redistributor up?
+- How do you cope with situations where some redistributors are in the
+always-on domain, and some are not?
+
+> +	return gic_acpi_register_redist(gicc->gicr_base_address, size);
+> +}
+> +
+> +static int __init gic_acpi_collect_gicr_base(void)
+> +{
+> +	acpi_tbl_entry_handler redist_parser;
+> +	enum acpi_madt_type type;
+> +
+> +	if (single_redist) {
+> +		type = ACPI_MADT_TYPE_GENERIC_INTERRUPT;
+> +		redist_parser = gic_acpi_parse_madt_gicc;
+> +	} else {
+> +		type = ACPI_MADT_TYPE_GENERIC_REDISTRIBUTOR;
+> +		redist_parser = gic_acpi_parse_madt_redist;
+> +	}
+> +
+> +	/* Collect redistributor base addresses in GICR entries */
+> +	if (acpi_table_parse_madt(type, redist_parser, 0) > 0)
+> +		return 0;
+> +
+> +	pr_info("No valid GICR entries exist\n");
+> +	return -ENODEV;
+> +}
+> +
+>  static int __init gic_acpi_match_gicr(struct acpi_subtable_header *header,
+>  				  const unsigned long end)
+>  {
+> @@ -1000,6 +1048,42 @@ static int __init gic_acpi_match_gicr(struct acpi_subtable_header *header,
+>  	return 0;
+>  }
+>  
+> +static int __init gic_acpi_match_gicc(struct acpi_subtable_header *header,
+> +				      const unsigned long end)
+> +{
+> +	struct acpi_madt_generic_interrupt *gicc =
+> +				(struct acpi_madt_generic_interrupt *)header;
+> +
+> +	/*
+> +	 * If GICC is enabled and has valid gicr base address, then it means
+> +	 * GICR base is presented via GICC
+> +	 */
+> +	if ((gicc->flags & ACPI_MADT_ENABLED) && gicc->gicr_base_address)
+> +		return 0;
+> +
+> +	return -ENODEV;
+> +}
+> +
+> +static int __init gic_acpi_count_gicr_regions(void)
+> +{
+> +	int count;
+> +
+> +	/* Count how many redistributor regions we have */
+> +	count = acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_REDISTRIBUTOR,
+> +				      gic_acpi_match_gicr, 0);
+> +	if (count > 0) {
+> +		single_redist = false;
+> +		return count;
+> +	}
+> +
+> +	count = acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_INTERRUPT,
+> +				      gic_acpi_match_gicc, 0);
+> +	if (count > 0)
+> +		single_redist = true;
+> +
+> +	return count;
+> +}
+> +
+
+Here, you seem to consider GICR and GICC tables to be mutually
+exclusive. I don't think the spec says so.
+
+>  static bool __init acpi_validate_gic_table(struct acpi_subtable_header *header,
+>  					   struct acpi_probe_entry *ape)
+>  {
+> @@ -1011,8 +1095,7 @@ static bool __init acpi_validate_gic_table(struct acpi_subtable_header *header,
+>  		return false;
+>  
+>  	/* We need to do that exercise anyway, the sooner the better */
+> -	count = acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_REDISTRIBUTOR,
+> -				      gic_acpi_match_gicr, 0);
+> +	count = gic_acpi_count_gicr_regions();
+>  	if (count <= 0)
+>  		return false;
+>  
+> @@ -1028,7 +1111,7 @@ gic_acpi_init(struct acpi_subtable_header *header, const unsigned long end)
+>  	struct acpi_madt_generic_distributor *dist;
+>  	struct fwnode_handle *domain_handle;
+>  	void __iomem *dist_base;
+> -	int i, err, count;
+> +	int i, err;
+>  
+>  	/* Get distributor base address */
+>  	dist = (struct acpi_madt_generic_distributor *)header;
+> @@ -1051,12 +1134,9 @@ gic_acpi_init(struct acpi_subtable_header *header, const unsigned long end)
+>  		goto out_dist_unmap;
+>  	}
+>  
+> -	count = acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_REDISTRIBUTOR,
+> -				      gic_acpi_parse_madt_redist, 0);
+> -	if (count <= 0) {
+> -		err = -ENODEV;
+> +	err = gic_acpi_collect_gicr_base();
+> +	if (err)
+>  		goto out_redist_unmap;
+> -	}
+>  
+>  	domain_handle = irq_domain_alloc_fwnode(dist_base);
+>  	if (!domain_handle) {
+> 
+
+Thanks,
+
+	M.
+-- 
+Jazz is not dead. It just smells funny...
