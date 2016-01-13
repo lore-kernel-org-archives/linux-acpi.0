@@ -1,8 +1,8 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V3 09/21] pci, acpi,
- ecam: Add flag to indicate whether ECAM region was hot added or not.
-Date: Wed, 13 Jan 2016 14:20:55 +0100
-Message-ID: <1452691267-32240-10-git-send-email-tn@semihalf.com>
+Subject: [PATCH V3 08/21] arm64,
+ acpi: Use empty PCI config space accessors from mcfg.c file.
+Date: Wed, 13 Jan 2016 14:20:54 +0100
+Message-ID: <1452691267-32240-9-git-send-email-tn@semihalf.com>
 References: <1452691267-32240-1-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
@@ -22,54 +22,66 @@ To: bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm
 Cc: jchandra@broadcom.com, jcm@redhat.com, linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, wangyijing@huawei.com, Tomasz Nowicki <tn@semihalf.com>, tglx@linutronix.de, mw@semihalf.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-There are two ways we can get ECAM (aka MCFG) regions using ACPI,
-from MCFG static table and from _CBA method. We cannot remove static
-regions, however regions coming from _CBA should be removed while removing
-bridge device.
-
-In the light of above we need flag to mark hot added ECAM entries
-so that user should use pci_mmconfig_inject while adding regions from
-_CBA method.
+We can now use previously prepared empty ACPI RAW accessors
+and cleanup a bit before adding full support for PCI host bridge driver.
 
 Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
 Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 Tested-by: Jeremy Linton <jeremy.linton@arm.com>
 ---
- drivers/pci/ecam.c   | 2 ++
- include/linux/ecam.h | 1 +
- 2 files changed, 3 insertions(+)
+ arch/arm64/Kconfig      |  6 ++++++
+ arch/arm64/kernel/pci.c | 15 ---------------
+ 2 files changed, 6 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/pci/ecam.c b/drivers/pci/ecam.c
-index 8a5eef7..da35b4c 100644
---- a/drivers/pci/ecam.c
-+++ b/drivers/pci/ecam.c
-@@ -131,6 +131,7 @@ struct pci_mmcfg_region *pci_mmconfig_alloc(int segment, int start,
- 	new->segment = segment;
- 	new->start_bus = start;
- 	new->end_bus = end;
-+	new->hot_added = false;
+diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+index 871f217..d65d315 100644
+--- a/arch/arm64/Kconfig
++++ b/arch/arm64/Kconfig
+@@ -92,6 +92,7 @@ config ARM64
+ 	select SPARSE_IRQ
+ 	select SYSCTL_EXCEPTION_TRACE
+ 	select HAVE_CONTEXT_TRACKING
++	select HAVE_PCI_ECAM
+ 	help
+ 	  ARM 64-bit (AArch64) Linux support.
  
- 	res = &new->res;
- 	res->start = addr + PCI_MMCFG_BUS_OFFSET(start);
-@@ -221,6 +222,7 @@ int pci_mmconfig_inject(struct pci_mmcfg_region *cfg)
- 		err = -ENOMEM;
- 		goto out;
- 	} else {
-+		cfg->hot_added = true;
- 		list_add_sorted(cfg);
- 		pr_info("MMCONFIG at %pR (base %#lx)\n",
- 			&cfg->res, (unsigned long)cfg->address);
-diff --git a/include/linux/ecam.h b/include/linux/ecam.h
-index 813acd1..e0f322e 100644
---- a/include/linux/ecam.h
-+++ b/include/linux/ecam.h
-@@ -17,6 +17,7 @@ struct pci_mmcfg_region {
- 	u8 start_bus;
- 	u8 end_bus;
- 	char name[PCI_MMCFG_RESOURCE_NAME_LEN];
-+	bool hot_added;
- };
+@@ -207,6 +208,11 @@ source "drivers/pci/Kconfig"
+ source "drivers/pci/pcie/Kconfig"
+ source "drivers/pci/hotplug/Kconfig"
  
- struct pci_mmcfg_region *pci_mmconfig_lookup(int segment, int bus);
++config PCI_MMCONFIG
++	def_bool y
++	select PCI_ECAM
++	depends on ACPI
++
+ endmenu
+ 
+ menu "Kernel Features"
+diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
+index b3d098b..023b983 100644
+--- a/arch/arm64/kernel/pci.c
++++ b/arch/arm64/kernel/pci.c
+@@ -61,21 +61,6 @@ int pcibios_add_device(struct pci_dev *dev)
+ 	return 0;
+ }
+ 
+-/*
+- * raw_pci_read/write - Platform-specific PCI config space access.
+- */
+-int raw_pci_read(unsigned int domain, unsigned int bus,
+-		  unsigned int devfn, int reg, int len, u32 *val)
+-{
+-	return -ENXIO;
+-}
+-
+-int raw_pci_write(unsigned int domain, unsigned int bus,
+-		unsigned int devfn, int reg, int len, u32 val)
+-{
+-	return -ENXIO;
+-}
+-
+ #ifdef CONFIG_ACPI
+ /* Root bridge scanning */
+ struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
 -- 
 1.9.1
