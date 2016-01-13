@@ -1,58 +1,105 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH V2 03/10] irqchip,GICv3,ACPI: Add redistributor support
- via GICC structures.
-Date: Wed, 13 Jan 2016 17:15:53 +0800
-Message-ID: <569615C9.9090006@linaro.org>
-References: <1450353133-15992-1-git-send-email-tn@semihalf.com>
- <1450353133-15992-4-git-send-email-tn@semihalf.com>
- <5694EB92.9030109@arm.com> <56952DA1.4030401@semihalf.com>
- <5695ADE5.7010501@linaro.org> <56960C3B.8030105@arm.com>
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: Re: [PATCH V2 11/23] arm64, pci: Remove useless boot time IRQ
+ assignment when booting with DT.
+Date: Wed, 13 Jan 2016 10:43:07 +0100
+Message-ID: <56961C2B.3030600@semihalf.com>
+References: <1450278993-12664-1-git-send-email-tn@semihalf.com>
+ <1450278993-12664-12-git-send-email-tn@semihalf.com>
+ <20160112135023.GC3601@red-moon> <56952619.7010602@semihalf.com>
+ <56953E33.6030003@caviumnetworks.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=windows-1252; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pa0-f51.google.com ([209.85.220.51]:34384 "EHLO
-	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932228AbcAMJQA (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Jan 2016 04:16:00 -0500
-Received: by mail-pa0-f51.google.com with SMTP id uo6so339286663pac.1
-        for <linux-acpi@vger.kernel.org>; Wed, 13 Jan 2016 01:16:00 -0800 (PST)
-In-Reply-To: <56960C3B.8030105@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <56953E33.6030003@caviumnetworks.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: David Daney <ddaney@caviumnetworks.com>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, matt@masarand.com, bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, okaya@codeaurora.org, jiang.liu@linux.intel.com, Stefano.Stabellini@eu.citrix.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com
 List-Id: linux-acpi@vger.kernel.org
-To: Marc Zyngier <marc.zyngier@arm.com>, Tomasz Nowicki <tn@semihalf.com>, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, guohanjun@huawei.com, Suravee.Suthikulpanit@amd.com
-Cc: mw@semihalf.com, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ddaney.cavm@gmail.com
 
-On 2016/1/13 16:35, Marc Zyngier wrote:
-> On 13/01/16 01:52, Hanjun Guo wrote:
->>
->>
->> On 2016/1/13 0:45, Tomasz Nowicki wrote:
->>> On 12.01.2016 13:03, Marc Zyngier wrote:
->>>
->>>   > +    typer = readq_relaxed(redist_base + GICR_TYPER);
->>>   > +    /* don't map reserved page as it's buggy to access it */
->>>   > +    size = (typer & GICR_TYPER_VLPIS) ? SZ_64K * 3 : SZ_64K * 2;
->>>
->>> [...]
->>>
->>>> Also, please map the whole region for the
->>>> redistributor as we have on the DT side (4 64kB pages for VLPIS capable
->>>> redistributors).
->>>
->>> Hanjun, is it something you had problem with?
->>
->> Yes, for D02, it use 3 64kB pages for GICv4, it removed the reserved
->> page. In DT case, it has "stride" binding so it can support no standard
->> cases, seems that we can introduce "stride" for ACPI too.
+On 12.01.2016 18:56, David Daney wrote:
+> On 01/12/2016 08:13 AM, Tomasz Nowicki wrote:
+>> On 12.01.2016 14:50, Lorenzo Pieralisi wrote:
+>>> On Wed, Dec 16, 2015 at 04:16:21PM +0100, Tomasz Nowicki wrote:
+>>>> In order to probe PCIe host controller when booting with DT,
+>>>> ARM64 is using drivers which defer IRQ assignment to device
+>>>> enable time. It means that boot time DT specific irq map initialization
+>>>> is always overridden, so lets remove that code.
+>>>>
+>>>> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+>>>> ---
+>>>>   arch/arm64/kernel/pci.c | 10 ----------
+>>>>   1 file changed, 10 deletions(-)
+>>>>
+>>>> diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
+>>>> index 023b983..f7948f5 100644
+>>>> --- a/arch/arm64/kernel/pci.c
+>>>> +++ b/arch/arm64/kernel/pci.c
+>>>> @@ -51,16 +51,6 @@ int pcibios_enable_device(struct pci_dev *dev, int
+>>>> mask)
+>>>>       return pci_enable_resources(dev, mask);
+>>>>   }
+>>>>
+>>>> -/*
+>>>> - * Try to assign the IRQ number from DT when adding a new device
+>>>> - */
+>>>> -int pcibios_add_device(struct pci_dev *dev)
+>>>> -{
+>>>> -    dev->irq = of_irq_parse_and_map_pci(dev, 0, 0);
+>>>> -
+>>>> -    return 0;
+>>>> -}
+>>>> -
 >
-> I don't think there is any need for that, assuming this system only
-> exposes its redistributors via the ACPI GICC structure. In which case, I
-> don't think it hurts to have overlapping mappings: For redistributors A
-> and B, we never touch A[3] (the reserved page), but we will access B[0].
+> How was this tested?  Or in other words, what PCI devices that use
+> legacy INT{A,B,C,D} interrupts were used in testing this patch?
+>
 
-I think so, thanks for the clarify. I think we need to clarify the spec
-first and interpret it in the right way.
+I used QEMU and e1000 NIC:
 
-Thanks
-Hanjun
+sudo ./qemu/aarch64-softmmu/qemu-system-aarch64 -smp 1 -m 1024 -M virt 
+-cpu cortex-a57 -nographic -device 
+e1000,netdev=net1,mac=52:54:00:12:34:56 -netdev 
+type=tap,ifname=tun1,id=net1,script=no,downscript=no -drive 
+file=qemu/ubuntu.img,id=root,if=none,format=raw -device 
+virtio-blk-device,drive=root -kernel linux-aarch64/arch/arm64/boot/Image 
+-append "console=ttyAMA0 earlycon=pl011,0x9000000 rw root=/dev/vda"
+
+root@ubuntu:~# ifconfig
+eth0      Link encap:Ethernet  HWaddr 52:54:00:12:34:56
+           inet addr:10.0.0.48  Bcast:10.0.255.255  Mask:255.255.0.0
+           UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
+           RX packets:107 errors:0 dropped:0 overruns:0 frame:0
+           TX packets:32 errors:0 dropped:0 overruns:0 carrier:0
+           collisions:0 txqueuelen:1000
+           RX bytes:18087 (18.0 KB)  TX bytes:3818 (3.8 KB)
+
+root@ubuntu:~# cat /proc/interrupts
+            CPU0
+  39:        280       GIC  36 Level     eth0
+
+root@ubuntu:~# lspci -vvv
+00:00.0 Host bridge: Red Hat, Inc. Device 0008
+         Subsystem: Red Hat, Inc Device 1100
+         Control: I/O- Mem- BusMaster- SpecCycle- MemWINV- VGASnoop- 
+ParErr- Stepping- SERR- FastB2B- DisINTx-
+         Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- 
+<TAbort- <MAbort- >SERR- <PERR- INTx-
+
+00:01.0 Ethernet controller: Intel Corporation 82540EM Gigabit Ethernet 
+Controller (rev 03)
+         Subsystem: Red Hat, Inc QEMU Virtual Machine
+         Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- 
+ParErr- Stepping- SERR- FastB2B- DisINTx-
+         Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- 
+<TAbort- <MAbort- >SERR- <PERR- INTx-
+         Latency: 0
+         Interrupt: pin A routed to IRQ 39
+         Region 0: Memory at 10040000 (32-bit, non-prefetchable) [size=128K]
+         Region 1: I/O ports at 1000 [size=64]
+         [virtual] Expansion ROM at 10000000 [disabled] [size=256K]
+         Kernel driver in use: e1000
+
+Any specific concern w.r.t. this patch?
+
+Tomasz
