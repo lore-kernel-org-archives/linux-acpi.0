@@ -1,47 +1,48 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: Re: [PATCH 5/5] x86, acpi, cpu-hotplug: Set persistent cpuid <->
- nodeid mapping when booting.
-Date: Wed, 13 Jan 2016 12:56:38 +0800
-Message-ID: <5695D906.2030405@cn.fujitsu.com>
-References: <1452140425-16577-1-git-send-email-tangchen@cn.fujitsu.com> <1452140425-16577-6-git-send-email-tangchen@cn.fujitsu.com> <20160108191305.GA1898@mtj.duckdns.org>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: [PATCH V2 03/10] irqchip,GICv3,ACPI: Add redistributor support
+ via GICC structures.
+Date: Wed, 13 Jan 2016 08:35:07 +0000
+Message-ID: <56960C3B.8030105@arm.com>
+References: <1450353133-15992-1-git-send-email-tn@semihalf.com> <1450353133-15992-4-git-send-email-tn@semihalf.com> <5694EB92.9030109@arm.com> <56952DA1.4030401@semihalf.com> <5695ADE5.7010501@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain; charset=windows-1252
 Content-Transfer-Encoding: 7bit
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <20160108191305.GA1898@mtj.duckdns.org>
-Sender: owner-linux-mm@kvack.org
-To: Tejun Heo <tj@kernel.org>
-Cc: cl@linux.com, jiang.liu@linux.intel.com, mika.j.penttila@gmail.com, mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Gu Zheng <guz.fnst@cn.fujitsu.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <5695ADE5.7010501@linaro.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Hanjun Guo <hanjun.guo@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, guohanjun@huawei.com, Suravee.Suthikulpanit@amd.com
+Cc: mw@semihalf.com, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ddaney.cavm@gmail.com
 List-Id: linux-acpi@vger.kernel.org
 
-
-On 01/09/2016 03:13 AM, Tejun Heo wrote:
-> Hello, Tang.
->
-> On Thu, Jan 07, 2016 at 12:20:25PM +0800, Tang Chen wrote:
->> From: Gu Zheng <guz.fnst@cn.fujitsu.com>
+On 13/01/16 01:52, Hanjun Guo wrote:
+> 
+> 
+> On 2016/1/13 0:45, Tomasz Nowicki wrote:
+>> On 12.01.2016 13:03, Marc Zyngier wrote:
 >>
->> This patch finishes step 4.
-> This doesn't help people trying to read the patch.  If you wanna say
-> it's one of the steps of something, you also need to say what the
-> steps are.  No need to duplicate the whole thing but a short summary
-> would be helpful.
+>>  > +    typer = readq_relaxed(redist_base + GICR_TYPER);
+>>  > +    /* don't map reserved page as it's buggy to access it */
+>>  > +    size = (typer & GICR_TYPER_VLPIS) ? SZ_64K * 3 : SZ_64K * 2;
+>>
+>> [...]
+>>
+>>> Also, please map the whole region for the
+>>> redistributor as we have on the DT side (4 64kB pages for VLPIS capable
+>>> redistributors).
+>>
+>> Hanjun, is it something you had problem with?
+> 
+> Yes, for D02, it use 3 64kB pages for GICv4, it removed the reserved
+> page. In DT case, it has "stride" binding so it can support no standard
+> cases, seems that we can introduce "stride" for ACPI too.
 
-Sure. Thx.
+I don't think there is any need for that, assuming this system only
+exposes its redistributors via the ACPI GICC structure. In which case, I
+don't think it hurts to have overlapping mappings: For redistributors A
+and B, we never touch A[3] (the reserved page), but we will access B[0].
 
->
->> This patch set the persistent cpuid <-> nodeid mapping for all enabled/disabled
->> processors at boot time via an additional acpi namespace walk for processors.
-> So, the patchset generally looks good to me although I'm not too
-> familiar with acpi.  Rafael, Len, what do you think?
->
-> Thanks.
->
+Thanks,
 
-
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+	M.
+-- 
+Jazz is not dead. It just smells funny...
