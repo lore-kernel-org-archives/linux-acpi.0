@@ -1,74 +1,92 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V3 07/21] pci, acpi,
- mcfg: Provide default RAW ACPI PCI config space accessors.
-Date: Wed, 13 Jan 2016 14:20:53 +0100
-Message-ID: <1452691267-32240-8-git-send-email-tn@semihalf.com>
+Subject: [PATCH V3 17/21] acpi, mcfg: Add default PCI config accessors implementation and initial support for related quirks.
+Date: Wed, 13 Jan 2016 14:21:03 +0100
+Message-ID: <1452691267-32240-18-git-send-email-tn@semihalf.com>
 References: <1452691267-32240-1-git-send-email-tn@semihalf.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
 In-Reply-To: <1452691267-32240-1-git-send-email-tn@semihalf.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-pci-owner@vger.kernel.org
 To: bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, Stefano.Stabellini@eu.citrix.com
-Cc: jchandra@broadcom.com, jcm@redhat.com, linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, wangyijing@huawei.com, Tomasz Nowicki <tn@semihalf.com>, tglx@linutronix.de, mw@semihalf.com, linux-arm-kernel@lists.infradead.org
+Cc: robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com, Tomasz Nowicki <tn@semihalf.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Lets keep RAW ACPI PCI config space accessors empty by default,
-since we are note sure if they are necessary accross all archs.
-Once we sort this out, we can provide generic version or let
-architectures to overwrite, like now x86.
+We use generic accessors from access.c by default. However, we already
+know platforms that need special handling while accessing to PCI config
+space. These platforms will need different accessors set matched against
+platform ID, domain, bus touple. Therefore we are going to add (in future)
+DECLARE_ACPI_MCFG_FIXUP which will register platform specific custom
+accessors. For now we let pci_mcfg_get_ops takes domain and bus arguments
+and left some space for matching algorithm.
 
-Suggested-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Tested-by: Jeremy Linton <jeremy.linton@arm.com>
 ---
- drivers/acpi/mcfg.c | 21 +++++++++++++++++++++
- 1 file changed, 21 insertions(+)
+ drivers/acpi/mcfg.c      | 30 ++++++++++++++++++++++++++++++
+ include/linux/pci-acpi.h |  8 ++++++++
+ 2 files changed, 38 insertions(+)
 
 diff --git a/drivers/acpi/mcfg.c b/drivers/acpi/mcfg.c
-index 745b83e..3e1e7be 100644
+index dca4c4e..dfc2d14 100644
 --- a/drivers/acpi/mcfg.c
 +++ b/drivers/acpi/mcfg.c
-@@ -9,9 +9,30 @@
+@@ -34,6 +34,36 @@ int __weak raw_pci_write(unsigned int domain, unsigned int bus,
+ 	return PCIBIOS_DEVICE_NOT_FOUND;
+ }
  
- #include <linux/acpi.h>
- #include <linux/ecam.h>
-+#include <linux/pci.h>
- 
- #define	PREFIX	"MCFG: "
- 
-+/*
-+ * raw_pci_read/write - raw ACPI PCI config space accessors.
-+ *
-+ * By defauly (__weak) these accessors are empty and should be overwritten
-+ * by architectures which support operations on ACPI PCI_Config regions,
-+ * see osl.c file.
-+ */
-+
-+int __weak raw_pci_read(unsigned int domain, unsigned int bus,
-+			unsigned int devfn, int reg, int len, u32 *val)
++void __iomem *
++pci_mcfg_dev_base(struct pci_bus *bus, unsigned int devfn, int offset)
 +{
-+	return PCIBIOS_DEVICE_NOT_FOUND;
++	struct pci_mmcfg_region *cfg;
++
++	cfg = pci_mmconfig_lookup(pci_domain_nr(bus), bus->number);
++	if (cfg && cfg->virt)
++		return cfg->virt +
++			(PCI_MMCFG_BUS_OFFSET(bus->number) | (devfn << 12)) +
++			offset;
++	return NULL;
 +}
 +
-+int __weak raw_pci_write(unsigned int domain, unsigned int bus,
-+			 unsigned int devfn, int reg, int len, u32 val)
++/* Default generic PCI config accessors */
++static struct pci_ops default_pci_mcfg_ops = {
++	.map_bus = pci_mcfg_dev_base,
++	.read = pci_generic_config_read,
++	.write = pci_generic_config_write,
++};
++
++struct pci_ops *pci_mcfg_get_ops(struct acpi_pci_root *root)
 +{
-+	return PCIBIOS_DEVICE_NOT_FOUND;
++	/*
++	 * TODO: Match against platform specific quirks and return
++	 * corresponding PCI config space accessor set.
++	 */
++
++	return &default_pci_mcfg_ops;
 +}
 +
  int __init acpi_parse_mcfg(struct acpi_table_header *header)
  {
  	struct acpi_table_mcfg *mcfg;
+diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
+index c277415..45807a6 100644
+--- a/include/linux/pci-acpi.h
++++ b/include/linux/pci-acpi.h
+@@ -82,10 +82,18 @@ void acpi_pci_remove_bus(struct pci_bus *bus);
+ #ifdef	CONFIG_PCI_MMCONFIG
+ int pci_mmcfg_setup_map(struct acpi_pci_root_info *ci);
+ void pci_mmcfg_teardown_map(struct acpi_pci_root_info *ci);
++struct pci_ops *pci_mcfg_get_ops(struct acpi_pci_root *root);
++void __iomem *
++pci_mcfg_dev_base(struct pci_bus *bus, unsigned int devfn, int offset);
+ #else
+ static inline int pci_mmcfg_setup_map(struct acpi_pci_root_info *ci)
+ { return 0; }
+ static inline void pci_mmcfg_teardown_map(struct acpi_pci_root_info *ci) { }
++static inline struct pci_ops *pci_mcfg_get_ops(struct acpi_pci_root *root)
++{ return NULL; }
++static inline void __iomem *
++pci_mcfg_dev_base(struct pci_bus *bus, unsigned int devfn, int offset)
++{ return NULL; }
+ #endif
+ 
+ #ifdef	CONFIG_ACPI_PCI_SLOT
 -- 
 1.9.1
