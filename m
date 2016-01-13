@@ -1,64 +1,105 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V3 03/21] pci, acpi, mcfg: Provide generic implementation of MCFG code initialization.
-Date: Wed, 13 Jan 2016 14:20:49 +0100
-Message-ID: <1452691267-32240-4-git-send-email-tn@semihalf.com>
+Subject: [PATCH V3 14/21] x86, ia64: Include acpi_pci_{add|remove}_bus to the default pcibios_{add|remove}_bus implementation.
+Date: Wed, 13 Jan 2016 14:21:00 +0100
+Message-ID: <1452691267-32240-15-git-send-email-tn@semihalf.com>
 References: <1452691267-32240-1-git-send-email-tn@semihalf.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wm0-f50.google.com ([74.125.82.50]:33546 "EHLO
+	mail-wm0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760254AbcAMNVq (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Jan 2016 08:21:46 -0500
+Received: by mail-wm0-f50.google.com with SMTP id f206so295445458wmf.0
+        for <linux-acpi@vger.kernel.org>; Wed, 13 Jan 2016 05:21:46 -0800 (PST)
 In-Reply-To: <1452691267-32240-1-git-send-email-tn@semihalf.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, Stefano.Stabellini@eu.citrix.com
 Cc: robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com, Tomasz Nowicki <tn@semihalf.com>
-List-Id: linux-acpi@vger.kernel.org
 
-First function acpi_mcfg_check_entry() does not apply any quirks by default.
+Arches in subject are the only one who use pcibios_{add|remove}_bus hooks
+and implement it in the same way. Moreover ARM64 is going to do the same.
+So it seams that acpi_pci_{add|remove}_bus is generic enough to be default
+option for pcibios_{add|remove}_bus hooks. Also, it is always safe to run
+acpi_pci_{add|remove}_bus as they have empty stubs for !ACPI case and
+return if ACPI has been switched off in run time.
 
-Last two functions are required by ACPI subsystem to make PCI config
-space accessible. Generic code assume to do nothing for early init call but
-late init call does as follow:
-- parse MCFG table and add regions to ECAM resource list
-- map regions
-- add regions to iomem_resource
+After all we can remove x86 and ia64 pcibios_{add|remove}_bus
+implementation.
 
 Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Tested-by: Jeremy Linton <jeremy.linton@arm.com>
 ---
- drivers/acpi/mcfg.c | 26 ++++++++++++++++++++++++++
- 1 file changed, 26 insertions(+)
+ arch/ia64/pci/pci.c   | 10 ----------
+ arch/x86/pci/common.c | 10 ----------
+ drivers/pci/probe.c   |  3 +++
+ 3 files changed, 3 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/acpi/mcfg.c b/drivers/acpi/mcfg.c
-index 5ecef20..fad9917 100644
---- a/drivers/acpi/mcfg.c
-+++ b/drivers/acpi/mcfg.c
-@@ -57,3 +57,29 @@ int __init acpi_parse_mcfg(struct acpi_table_header *header)
- 
- 	return 0;
+diff --git a/arch/ia64/pci/pci.c b/arch/ia64/pci/pci.c
+index 978d6af..be4c9ef 100644
+--- a/arch/ia64/pci/pci.c
++++ b/arch/ia64/pci/pci.c
+@@ -358,16 +358,6 @@ void pcibios_fixup_bus(struct pci_bus *b)
+ 	platform_pci_fixup_bus(b);
  }
-+
-+int __init __weak acpi_mcfg_check_entry(struct acpi_table_mcfg *mcfg,
-+					struct acpi_mcfg_allocation *cfg)
-+{
-+	return 0;
-+}
-+
-+void __init __weak pci_mmcfg_early_init(void)
-+{
-+
-+}
-+
-+void __init __weak pci_mmcfg_late_init(void)
-+{
-+	struct pci_mmcfg_region *cfg;
-+
-+	acpi_table_parse(ACPI_SIG_MCFG, acpi_parse_mcfg);
-+
-+	if (list_empty(&pci_mmcfg_list))
-+		return;
-+	if (!pci_mmcfg_arch_init())
-+		free_all_mmcfg();
-+
-+	list_for_each_entry(cfg, &pci_mmcfg_list, list)
-+		insert_resource(&iomem_resource, &cfg->res);
-+}
+ 
+-void pcibios_add_bus(struct pci_bus *bus)
+-{
+-	acpi_pci_add_bus(bus);
+-}
+-
+-void pcibios_remove_bus(struct pci_bus *bus)
+-{
+-	acpi_pci_remove_bus(bus);
+-}
+-
+ void pcibios_set_master (struct pci_dev *dev)
+ {
+ 	/* No special bus mastering setup handling */
+diff --git a/arch/x86/pci/common.c b/arch/x86/pci/common.c
+index eccd4d9..ed3236d 100644
+--- a/arch/x86/pci/common.c
++++ b/arch/x86/pci/common.c
+@@ -171,16 +171,6 @@ void pcibios_fixup_bus(struct pci_bus *b)
+ 		pcibios_fixup_device_resources(dev);
+ }
+ 
+-void pcibios_add_bus(struct pci_bus *bus)
+-{
+-	acpi_pci_add_bus(bus);
+-}
+-
+-void pcibios_remove_bus(struct pci_bus *bus)
+-{
+-	acpi_pci_remove_bus(bus);
+-}
+-
+ /*
+  * Only use DMI information to set this if nothing was passed
+  * on the kernel command line (which was parsed earlier).
+diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+index cad836f..2fbf840 100644
+--- a/drivers/pci/probe.c
++++ b/drivers/pci/probe.c
+@@ -12,6 +12,7 @@
+ #include <linux/slab.h>
+ #include <linux/module.h>
+ #include <linux/cpumask.h>
++#include <linux/pci-acpi.h>
+ #include <linux/pci-aspm.h>
+ #include <linux/aer.h>
+ #include <linux/acpi.h>
+@@ -2067,10 +2068,12 @@ int __weak pcibios_root_bridge_prepare(struct pci_host_bridge *bridge)
+ 
+ void __weak pcibios_add_bus(struct pci_bus *bus)
+ {
++	acpi_pci_add_bus(bus);
+ }
+ 
+ void __weak pcibios_remove_bus(struct pci_bus *bus)
+ {
++	acpi_pci_remove_bus(bus);
+ }
+ 
+ struct pci_bus *pci_create_root_bus(struct device *parent, int bus,
 -- 
 1.9.1
+
