@@ -1,80 +1,63 @@
-From: Andy Lutomirski <luto@amacapital.net>
-Subject: Re: ACPICA serialized objects?
-Date: Wed, 13 Jan 2016 14:57:16 -0800
-Message-ID: <CALCETrUBVD-wjj2+-m-+yFk4WQB=hjWHJRWADG46_2L_AkXxVw@mail.gmail.com>
-References: <CALCETrWFSs0Ornr9airzqL=9ph06WDghOUaKmA_8cAorrw1Kpw@mail.gmail.com>
- <CAJZ5v0gxE2kN75K4F9TxNAhz1Xb0zoi1CMn_R36OPeBHuQ9-Qw@mail.gmail.com>
- <CALCETrXnbVCnisYrq_+GrT0PPqi6tG51TBtcx1rnQTdbLetK0A@mail.gmail.com>
- <CAJZ5v0jygkagyqwvEmtXPKXkhEFnspTj9XPgjeRowfsV5_Kjvw@mail.gmail.com>
- <CALCETrVE9De-o29seijHRUwTMYGx4As_zOin=xQkTjbGviCUJA@mail.gmail.com>
- <1AE640813FDE7649BE1B193DEA596E883BAFAE98@SHSMSX101.ccr.corp.intel.com>
- <CALCETrVXE5CiqHbQoO72-xwYSahrSfvJi_khzP8gQRfMwpk+1Q@mail.gmail.com> <94F2FBAB4432B54E8AACC7DFDE6C92E37DA84A4B@ORSMSX112.amr.corp.intel.com>
+From: Robert Richter <rric@kernel.org>
+Subject: Re: [PATCH v2 3/4] arm64, acpi, numa: NUMA support based on SRAT and
+ SLIT
+Date: Thu, 14 Jan 2016 00:04:00 +0100
+Message-ID: <20160113230400.GB31343@rric.localdomain>
+References: <1447784733-10419-1-git-send-email-gkulkarni@caviumnetworks.com>
+ <1447784733-10419-4-git-send-email-gkulkarni@caviumnetworks.com>
+ <56580C4F.4050903@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-oi0-f53.google.com ([209.85.218.53]:35141 "EHLO
-	mail-oi0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750943AbcAMW5h (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Jan 2016 17:57:37 -0500
-Received: by mail-oi0-f53.google.com with SMTP id p187so86172925oia.2
-        for <linux-acpi@vger.kernel.org>; Wed, 13 Jan 2016 14:57:36 -0800 (PST)
-In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37DA84A4B@ORSMSX112.amr.corp.intel.com>
+Received: from mail-wm0-f65.google.com ([74.125.82.65]:32955 "EHLO
+	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751317AbcAMXEF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Jan 2016 18:04:05 -0500
+Received: by mail-wm0-f65.google.com with SMTP id u188so39309072wmu.0
+        for <linux-acpi@vger.kernel.org>; Wed, 13 Jan 2016 15:04:05 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <56580C4F.4050903@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Moore, Robert" <robert.moore@intel.com>
-Cc: "Zheng, Lv" <lv.zheng@intel.com>, Andy Lutomirski <luto@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
+To: Shannon Zhao <zhaoshenglong@huawei.com>
+Cc: Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, Will.Deacon@arm.com, catalin.marinas@arm.com, grant.likely@linaro.org, leif.lindholm@linaro.org, rfranz@cavium.com, ard.biesheuvel@linaro.org, msalter@redhat.com, robh+dt@kernel.org, steve.capper@linaro.org, hanjun.guo@linaro.org, al.stone@linaro.org, arnd@arndb.de, pawel.moll@arm.com, mark.rutland@arm.com, ijc+devicetree@hellion.org.uk, galak@codeaurora.org, rjw@rjwysocki.net, lenb@kernel.org, marc.zyngier@arm.com, lorenzo.pieralisi@arm.com, tn@semihalf.com, rrichter@cavium.com, Prasun.Kapoor@caviumnetworks.com, gpkulkarni@gmail.com
 
-On Wed, Jan 13, 2016 at 2:49 PM, Moore, Robert <robert.moore@intel.com> wrote:
->
->
->> -----Original Message-----
->> From: Andy Lutomirski [mailto:luto@amacapital.net]
->> Sent: Wednesday, January 13, 2016 2:32 PM
->> To: Zheng, Lv
->> Cc: Andy Lutomirski; Rafael J. Wysocki; Linux ACPI; Moore, Robert
->> Subject: Re: ACPICA serialized objects?
->>
->>
->> I finally had some time to play with the ACPI debugger, and it's
->> fantastic.  Thanks!
->>
->> One minor feature request: have you considered adding readline or libedit
->> support?
->
-> We actually have "readline" style support in at least acpiexec (which uses
-> The AML debugger):
->
-> /******************************************************************************
->  *
->  * FUNCTION:    OsEnterLineEditMode, OsExitLineEditMode
->  *
->  * PARAMETERS:  None
->  *
->  * RETURN:      None
->  *
->  * DESCRIPTION: Enter/Exit the raw character input mode for the terminal.
->  *
->  * Interactive line-editing support for the AML debugger. Used with the
->  * common/acgetline module.
->  *
->  * readline() is not used because of non-portability. It is not available
->  * on all systems, and if it is, often the package must be manually installed.
->  *
->  * Therefore, we use the POSIX tcgetattr/tcsetattr and do the minimal line
->  * editing that we need in AcpiOsGetLine.
->  *
->  * If the POSIX tcgetattr/tcsetattr interfaces are unavailable, these
->  * calls will also work:
->  *     For OsEnterLineEditMode: system ("stty cbreak -echo")
->  *     For OsExitLineEditMode:  system ("stty cooked echo")
->  *
->  *****************************************************************************/
->
+On 27.11.15 15:54:55, Shannon Zhao wrote:
+> Hi,
+> 
+> On 2015/11/18 2:25, Ganapatrao Kulkarni wrote:
+> > +/* Callback for Proximity Domain -> ACPI processor UID mapping */
+> > +void __init acpi_numa_gicc_affinity_init(struct acpi_srat_gicc_affinity *pa)
+> > +{
+> > +	int pxm, node;
+> > +	u64 mpidr;
+> > +	static int cpus_in_srat;
+> > +
+> > +	if (srat_disabled())
+> > +		return;
+> > +
+> > +	if (pa->header.length < sizeof(struct acpi_srat_gicc_affinity)) {
+> > +		bad_srat();
+> > +		return;
+> > +	}
+> > +
+> > +	if (!(pa->flags & ACPI_SRAT_GICC_ENABLED))
+> > +		return;
+> > +
+> > +	if (cpus_in_srat >= NR_CPUS) {
+> > +		pr_warn_once("SRAT: cpu_to_node_map[%ld] is too small, may not be able to use all cpus\n",
+> > +			     NR_CPUS);
+> > +		return;
+> > +	}
+> 
+> arch/arm64/kernel/acpi_numa.c: In function 'acpi_numa_gicc_affinity_init':
+> arch/arm64/kernel/acpi_numa.c:137:3: warning: format '%ld' expects
+> argument of type 'long int', but argument 2 has type 'int' [-Wformat=]
+>    pr_warn_once("SRAT: cpu_to_node_map[%ld] is too small, may not be
+> able to use all cpus\n",
 
-acpiexec can't see into NVS though, I assume, which I imagine prevents
-it from being very useful to debug my laptop, which seems to stick all
-kinds of interesting things in NVS.
+Right, should be changed to:
 
-Anyway, could acpidbg do the same thing?
+ pr_warn_once("SRAT: cpu_to_node_map[%d] ...
 
---Andy
+-Robert
