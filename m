@@ -1,92 +1,182 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V3 17/21] acpi, mcfg: Add default PCI config accessors implementation and initial support for related quirks.
-Date: Wed, 13 Jan 2016 14:21:03 +0100
-Message-ID: <1452691267-32240-18-git-send-email-tn@semihalf.com>
+Subject: [PATCH V3 01/21] x86,
+ pci: Reorder logic of pci_mmconfig_insert() function
+Date: Wed, 13 Jan 2016 14:20:47 +0100
+Message-ID: <1452691267-32240-2-git-send-email-tn@semihalf.com>
 References: <1452691267-32240-1-git-send-email-tn@semihalf.com>
-Return-path: <linux-pci-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1452691267-32240-1-git-send-email-tn@semihalf.com>
-Sender: linux-pci-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, Stefano.Stabellini@eu.citrix.com
-Cc: robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com, Tomasz Nowicki <tn@semihalf.com>
+Cc: jchandra@broadcom.com, jcm@redhat.com, linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, Tomasz Nowicki <tomasz.nowicki@linaro.org>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, wangyijing@huawei.com, Tomasz Nowicki <tn@semihalf.com>, tglx@linutronix.de, mw@semihalf.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-We use generic accessors from access.c by default. However, we already
-know platforms that need special handling while accessing to PCI config
-space. These platforms will need different accessors set matched against
-platform ID, domain, bus touple. Therefore we are going to add (in future)
-DECLARE_ACPI_MCFG_FIXUP which will register platform specific custom
-accessors. For now we let pci_mcfg_get_ops takes domain and bus arguments
-and left some space for matching algorithm.
+This patch is the first step for MMCONFIG refactoring process.
 
-Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+Code that uses pci_mmcfg_lock will be moved to common file and become
+accessible for all architectures. pci_mmconfig_insert() cannot be moved
+so easily since it is mixing generic mmconfig code with x86 specific logic
+inside of mutual exclusive block guarded by pci_mmcfg_lock.
+
+To get rid of that constraint, we reorder actions as follow:
+1. sanity check for mmconfig region presence, if we already have such
+region it doesn't make snese to alloc new mmconfig list entry
+2. mmconfig entry allocation, no need to lock
+3. insertion to iomem_resource has its own lock, no need to wrap it into mutex
+4. insertion to mmconfig list can be done as the final step in separate
+function (candidate for further refactoring) and needs another mmconfig
+lookup to avoid race condition.
+
+Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Tested-by: Jeremy Linton <jeremy.linton@arm.com>
 ---
- drivers/acpi/mcfg.c      | 30 ++++++++++++++++++++++++++++++
- include/linux/pci-acpi.h |  8 ++++++++
- 2 files changed, 38 insertions(+)
+ arch/x86/pci/mmconfig-shared.c | 101 +++++++++++++++++++++++------------------
+ 1 file changed, 58 insertions(+), 43 deletions(-)
 
-diff --git a/drivers/acpi/mcfg.c b/drivers/acpi/mcfg.c
-index dca4c4e..dfc2d14 100644
---- a/drivers/acpi/mcfg.c
-+++ b/drivers/acpi/mcfg.c
-@@ -34,6 +34,36 @@ int __weak raw_pci_write(unsigned int domain, unsigned int bus,
- 	return PCIBIOS_DEVICE_NOT_FOUND;
+diff --git a/arch/x86/pci/mmconfig-shared.c b/arch/x86/pci/mmconfig-shared.c
+index dd30b7e..c8bb9b0 100644
+--- a/arch/x86/pci/mmconfig-shared.c
++++ b/arch/x86/pci/mmconfig-shared.c
+@@ -720,6 +720,38 @@ static int __init pci_mmcfg_late_insert_resources(void)
+  */
+ late_initcall(pci_mmcfg_late_insert_resources);
+ 
++static int pci_mmconfig_inject(struct pci_mmcfg_region *cfg)
++{
++	struct pci_mmcfg_region *cfg_conflict;
++	int err = 0;
++
++	mutex_lock(&pci_mmcfg_lock);
++	cfg_conflict = pci_mmconfig_lookup(cfg->segment, cfg->start_bus);
++	if (cfg_conflict) {
++		if (cfg_conflict->end_bus < cfg->end_bus)
++			pr_info(FW_INFO "MMCONFIG for "
++				"domain %04x [bus %02x-%02x] "
++				"only partially covers this bridge\n",
++				cfg_conflict->segment, cfg_conflict->start_bus,
++				cfg_conflict->end_bus);
++		err = -EEXIST;
++		goto out;
++	}
++
++	if (pci_mmcfg_arch_map(cfg)) {
++		pr_warn("fail to map MMCONFIG %pR.\n", &cfg->res);
++		err = -ENOMEM;
++		goto out;
++	} else {
++		list_add_sorted(cfg);
++		pr_info("MMCONFIG at %pR (base %#lx)\n",
++			&cfg->res, (unsigned long)cfg->address);
++	}
++out:
++	mutex_unlock(&pci_mmcfg_lock);
++	return err;
++}
++
+ /* Add MMCFG information for host bridges */
+ int pci_mmconfig_insert(struct device *dev, u16 seg, u8 start, u8 end,
+ 			phys_addr_t addr)
+@@ -734,63 +766,46 @@ int pci_mmconfig_insert(struct device *dev, u16 seg, u8 start, u8 end,
+ 	if (start > end)
+ 		return -EINVAL;
+ 
+-	mutex_lock(&pci_mmcfg_lock);
++	rcu_read_lock();
+ 	cfg = pci_mmconfig_lookup(seg, start);
+-	if (cfg) {
+-		if (cfg->end_bus < end)
+-			dev_info(dev, FW_INFO
+-				 "MMCONFIG for "
+-				 "domain %04x [bus %02x-%02x] "
+-				 "only partially covers this bridge\n",
+-				  cfg->segment, cfg->start_bus, cfg->end_bus);
+-		mutex_unlock(&pci_mmcfg_lock);
++	rcu_read_unlock();
++	if (cfg)
+ 		return -EEXIST;
+-	}
+ 
+-	if (!addr) {
+-		mutex_unlock(&pci_mmcfg_lock);
++	if (!addr)
+ 		return -EINVAL;
+-	}
+ 
+-	rc = -EBUSY;
+ 	cfg = pci_mmconfig_alloc(seg, start, end, addr);
+-	if (cfg == NULL) {
++	if (!cfg) {
+ 		dev_warn(dev, "fail to add MMCONFIG (out of memory)\n");
+-		rc = -ENOMEM;
+-	} else if (!pci_mmcfg_check_reserved(dev, cfg, 0)) {
++		return -ENOMEM;
++	}
++
++	rc = -EBUSY;
++	if (!pci_mmcfg_check_reserved(dev, cfg, 0)) {
+ 		dev_warn(dev, FW_BUG "MMCONFIG %pR isn't reserved\n",
+ 			 &cfg->res);
+-	} else {
+-		/* Insert resource if it's not in boot stage */
+-		if (pci_mmcfg_running_state)
+-			tmp = insert_resource_conflict(&iomem_resource,
+-						       &cfg->res);
+-
+-		if (tmp) {
+-			dev_warn(dev,
+-				 "MMCONFIG %pR conflicts with "
+-				 "%s %pR\n",
+-				 &cfg->res, tmp->name, tmp);
+-		} else if (pci_mmcfg_arch_map(cfg)) {
+-			dev_warn(dev, "fail to map MMCONFIG %pR.\n",
+-				 &cfg->res);
+-		} else {
+-			list_add_sorted(cfg);
+-			dev_info(dev, "MMCONFIG at %pR (base %#lx)\n",
+-				 &cfg->res, (unsigned long)addr);
+-			cfg = NULL;
+-			rc = 0;
+-		}
++		goto error;
+ 	}
+ 
+-	if (cfg) {
+-		if (cfg->res.parent)
+-			release_resource(&cfg->res);
+-		kfree(cfg);
++	/* Insert resource if it's not in boot stage */
++	if (pci_mmcfg_running_state)
++		tmp = insert_resource_conflict(&iomem_resource, &cfg->res);
++
++	if (tmp) {
++		dev_warn(dev, "MMCONFIG %pR conflicts with %s %pR\n",
++			 &cfg->res, tmp->name, tmp);
++		goto error;
+ 	}
+ 
+-	mutex_unlock(&pci_mmcfg_lock);
++	rc = pci_mmconfig_inject(cfg);
++	if (!rc)
++		return 0;
+ 
++error:
++	if (cfg->res.parent)
++		release_resource(&cfg->res);
++	kfree(cfg);
+ 	return rc;
  }
  
-+void __iomem *
-+pci_mcfg_dev_base(struct pci_bus *bus, unsigned int devfn, int offset)
-+{
-+	struct pci_mmcfg_region *cfg;
-+
-+	cfg = pci_mmconfig_lookup(pci_domain_nr(bus), bus->number);
-+	if (cfg && cfg->virt)
-+		return cfg->virt +
-+			(PCI_MMCFG_BUS_OFFSET(bus->number) | (devfn << 12)) +
-+			offset;
-+	return NULL;
-+}
-+
-+/* Default generic PCI config accessors */
-+static struct pci_ops default_pci_mcfg_ops = {
-+	.map_bus = pci_mcfg_dev_base,
-+	.read = pci_generic_config_read,
-+	.write = pci_generic_config_write,
-+};
-+
-+struct pci_ops *pci_mcfg_get_ops(struct acpi_pci_root *root)
-+{
-+	/*
-+	 * TODO: Match against platform specific quirks and return
-+	 * corresponding PCI config space accessor set.
-+	 */
-+
-+	return &default_pci_mcfg_ops;
-+}
-+
- int __init acpi_parse_mcfg(struct acpi_table_header *header)
- {
- 	struct acpi_table_mcfg *mcfg;
-diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
-index c277415..45807a6 100644
---- a/include/linux/pci-acpi.h
-+++ b/include/linux/pci-acpi.h
-@@ -82,10 +82,18 @@ void acpi_pci_remove_bus(struct pci_bus *bus);
- #ifdef	CONFIG_PCI_MMCONFIG
- int pci_mmcfg_setup_map(struct acpi_pci_root_info *ci);
- void pci_mmcfg_teardown_map(struct acpi_pci_root_info *ci);
-+struct pci_ops *pci_mcfg_get_ops(struct acpi_pci_root *root);
-+void __iomem *
-+pci_mcfg_dev_base(struct pci_bus *bus, unsigned int devfn, int offset);
- #else
- static inline int pci_mmcfg_setup_map(struct acpi_pci_root_info *ci)
- { return 0; }
- static inline void pci_mmcfg_teardown_map(struct acpi_pci_root_info *ci) { }
-+static inline struct pci_ops *pci_mcfg_get_ops(struct acpi_pci_root *root)
-+{ return NULL; }
-+static inline void __iomem *
-+pci_mcfg_dev_base(struct pci_bus *bus, unsigned int devfn, int offset)
-+{ return NULL; }
- #endif
- 
- #ifdef	CONFIG_ACPI_PCI_SLOT
 -- 
 1.9.1
