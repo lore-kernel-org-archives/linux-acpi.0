@@ -1,7 +1,7 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V3 11/21] pci, acpi: Move ACPI host bridge device companion assignment to core code.
-Date: Wed, 13 Jan 2016 14:20:57 +0100
-Message-ID: <1452691267-32240-12-git-send-email-tn@semihalf.com>
+Subject: [PATCH V3 21/21] arm64, pci, acpi: Start using ACPI based PCI host bridge driver for ARM64.
+Date: Wed, 13 Jan 2016 14:21:07 +0100
+Message-ID: <1452691267-32240-22-git-send-email-tn@semihalf.com>
 References: <1452691267-32240-1-git-send-email-tn@semihalf.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1452691267-32240-1-git-send-email-tn@semihalf.com>
@@ -10,53 +10,56 @@ To: bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm
 Cc: robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com, Tomasz Nowicki <tn@semihalf.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Currently we have two platforms (x86 & ia64) capable of PCI ACPI host
-bridge initialization. They both use sysdata pill to pass down parent
-device reference and both relay on NULL parent in pci_create_root_bus()
-to validate sysdata content.
+Lets get rid of empty PCI init stub, related ACPI header and
+go with full-blown PCI host bridge driver.
 
-It looks hacky and prevent us from getting some frimware specific
-info for PCI host controller e.g. bus domain number.
-However, it seems we can overcome that blocker by passing down parent
-device via pci_create_root_bus parameter (as the ACPI device type)
-and using ACPI_COMPANION_SET in core code for ACPI boot method.
-ACPI_COMPANION_SET is safe to run for all cases DT, ACPI and DT&ACPI.
-
-Suggested-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+CC: Arnd Bergmann <arnd@arndb.de>
+CC: Catalin Marinas <catalin.marinas@arm.com>
+CC: Liviu Dudau <Liviu.Dudau@arm.com>
+CC: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>
+CC: Will Deacon <will.deacon@arm.com>
 ---
- drivers/acpi/pci_root.c | 5 ++++-
- drivers/pci/probe.c     | 2 ++
- 2 files changed, 6 insertions(+), 1 deletion(-)
+ arch/arm64/Kconfig      |  1 +
+ arch/arm64/kernel/pci.c | 10 ----------
+ 2 files changed, 1 insertion(+), 10 deletions(-)
 
-diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index ae3fe4e..a65c8c2 100644
---- a/drivers/acpi/pci_root.c
-+++ b/drivers/acpi/pci_root.c
-@@ -846,7 +846,10 @@ struct pci_bus *acpi_pci_root_create(struct acpi_pci_root *root,
+diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
+index d65d315..573bebc 100644
+--- a/arch/arm64/Kconfig
++++ b/arch/arm64/Kconfig
+@@ -2,6 +2,7 @@ config ARM64
+ 	def_bool y
+ 	select ACPI_CCA_REQUIRED if ACPI
+ 	select ACPI_GENERIC_GSI if ACPI
++	select ACPI_PCI_HOST_GENERIC if ACPI
+ 	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
+ 	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
+ 	select ARCH_HAS_ELF_RANDOMIZE
+diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
+index 023b983..a0929a6 100644
+--- a/arch/arm64/kernel/pci.c
++++ b/arch/arm64/kernel/pci.c
+@@ -10,7 +10,6 @@
+  *
+  */
  
- 	pci_acpi_root_add_resources(info);
- 	pci_add_resource(&info->resources, &root->secondary);
--	bus = pci_create_root_bus(NULL, busnum, ops->pci_ops,
-+
-+	/* Root bridge device needs to be sure of parent ACPI type */
-+	ACPI_COMPANION_SET(&device->dev, device);
-+	bus = pci_create_root_bus(&device->dev, busnum, ops->pci_ops,
- 				  sysdata, &info->resources);
- 	if (!bus)
- 		goto out_release_info;
-diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
-index 553a029..cad836f 100644
---- a/drivers/pci/probe.c
-+++ b/drivers/pci/probe.c
-@@ -2107,6 +2107,8 @@ struct pci_bus *pci_create_root_bus(struct device *parent, int bus,
- 	bridge->dev.parent = parent;
- 	bridge->dev.release = pci_release_host_bridge_dev;
- 	dev_set_name(&bridge->dev, "pci%04x:%02x", pci_domain_nr(b), bus);
-+	ACPI_COMPANION_SET(&bridge->dev,
-+			   parent ? to_acpi_device_node(parent->fwnode) : NULL);
- 	error = pcibios_root_bridge_prepare(bridge);
- 	if (error) {
- 		kfree(bridge);
+-#include <linux/acpi.h>
+ #include <linux/init.h>
+ #include <linux/io.h>
+ #include <linux/kernel.h>
+@@ -60,12 +59,3 @@ int pcibios_add_device(struct pci_dev *dev)
+ 
+ 	return 0;
+ }
+-
+-#ifdef CONFIG_ACPI
+-/* Root bridge scanning */
+-struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
+-{
+-	/* TODO: Should be revisited when implementing PCI on ACPI */
+-	return NULL;
+-}
+-#endif
 -- 
 1.9.1
