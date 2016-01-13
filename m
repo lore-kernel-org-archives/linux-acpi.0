@@ -1,25 +1,25 @@
 From: =?iso-8859-1?Q?Ren=E9_Rebe?= <rene@exactcode.com>
 Subject: [RFC] halt to s4 for WOL
-Date: Wed, 13 Jan 2016 17:40:53 +0100
-Message-ID: <513D96FD-1D42-4E03-A308-FAB9A8782632@exactcode.com>
+Date: Wed, 13 Jan 2016 18:06:18 +0100
+Message-ID: <F6B43707-732A-4D93-9007-5D05A9C40989@exactcode.com>
 Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
 Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx.exactcode.de ([144.76.154.42]:44834 "EHLO mx.exactcode.de"
+Received: from mx.exactcode.de ([144.76.154.42]:44850 "EHLO mx.exactcode.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753634AbcAMRBT convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Jan 2016 12:01:19 -0500
+	id S1754387AbcAMRGR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Jan 2016 12:06:17 -0500
 Received: from ip5b403229.dynamic.kabel-deutschland.de ([91.64.50.41] helo=exactcode.com)
 	by mx.exactcode.de with esmtp (Exim 4.82)
 	(envelope-from <rene@exactcode.com>)
-	id 1aJOTj-0004hH-8M
-	for linux-acpi@vger.kernel.org; Wed, 13 Jan 2016 16:40:59 +0000
+	id 1aJOsE-0004q5-G9
+	for linux-acpi@vger.kernel.org; Wed, 13 Jan 2016 17:06:18 +0000
 Received: from retina ([192.168.2.174])
 	by exactcode.com with esmtpsa (TLSv1:AES128-SHA:128)
 	(Exim 4.54)
-	id 1aJOTw-0002Eq-K6
-	for linux-acpi@vger.kernel.org; Wed, 13 Jan 2016 16:41:18 +0000
+	id 1aJOsX-0004WD-22
+	for linux-acpi@vger.kernel.org; Wed, 13 Jan 2016 17:06:37 +0000
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-acpi@vger.kernel.org
@@ -45,25 +45,25 @@ too.
 --- linux-4.3/drivers/acpi/sleep.c.orig	2015-12-29 15:27:21.100959963 +0000
 +++ linux-4.3/drivers/acpi/sleep.c	2015-12-29 15:28:36.828960630 +0000
 @@ -811,7 +811,7 @@
- static void acpi_power_off_prepare(void)
- {
- 	/* Prepare to power off the system */
+static void acpi_power_off_prepare(void)
+{
+	/* Prepare to power off the system */
 -	acpi_sleep_prepare(ACPI_STATE_S5);
 +	acpi_sleep_prepare(ACPI_STATE_S4);
- 	acpi_disable_all_gpes();
- 	acpi_os_wait_events_complete();
- }
+	acpi_disable_all_gpes();
+	acpi_os_wait_events_complete();
+}
 @@ -821,7 +821,7 @@
- 	/* acpi_sleep_prepare(ACPI_STATE_S5) should have already been called */
- 	printk(KERN_DEBUG "%s called\n", __func__);
- 	local_irq_disable();
+	/* acpi_sleep_prepare(ACPI_STATE_S5) should have already been called */
+	printk(KERN_DEBUG "%s called\n", __func__);
+	local_irq_disable();
 -	acpi_enter_sleep_state(ACPI_STATE_S5);
 +	acpi_enter_sleep_state(ACPI_STATE_S4);
- }
- 
- int __init acpi_sleep_init(void)
+}
+
+int __init acpi_sleep_init(void)
 
 -- 
- ExactCODE GmbH, Lietzenburger Str. 42, DE-10789 Berlin
- http://exactcode.com | http://exactscan.com | http://ocrkit.com | http://t2-project.org | http://rene.rebe.de
+ExactCODE GmbH, Lietzenburger Str. 42, DE-10789 Berlin
+http://exactcode.com | http://exactscan.com | http://ocrkit.com | http://t2-project.org | http://rene.rebe.de
 
