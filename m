@@ -1,105 +1,93 @@
-From: Tomasz Nowicki <tn@semihalf.com>
-Subject: Re: [PATCH V2 11/23] arm64, pci: Remove useless boot time IRQ
- assignment when booting with DT.
-Date: Wed, 13 Jan 2016 10:43:07 +0100
-Message-ID: <56961C2B.3030600@semihalf.com>
-References: <1450278993-12664-1-git-send-email-tn@semihalf.com>
- <1450278993-12664-12-git-send-email-tn@semihalf.com>
- <20160112135023.GC3601@red-moon> <56952619.7010602@semihalf.com>
- <56953E33.6030003@caviumnetworks.com>
+From: Vitaly Kuznetsov <vkuznets@redhat.com>
+Subject: Re: [PATCH v2 2/2] memory-hotplug: keep the request_resource() error code
+Date: Wed, 13 Jan 2016 11:26:47 +0100
+Message-ID: <87si216ahk.fsf@vitty.brq.redhat.com>
+References: <1451924251-4189-1-git-send-email-vkuznets@redhat.com>
+	<1451924251-4189-3-git-send-email-vkuznets@redhat.com>
+	<alpine.DEB.2.10.1601121520530.28831@chino.kir.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <56953E33.6030003@caviumnetworks.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: David Daney <ddaney@caviumnetworks.com>
-Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, matt@masarand.com, bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, okaya@codeaurora.org, jiang.liu@linux.intel.com, Stefano.Stabellini@eu.citrix.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com
+Content-Type: text/plain
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <alpine.DEB.2.10.1601121520530.28831@chino.kir.corp.google.com>
+	(David Rientjes's message of "Tue, 12 Jan 2016 15:25:05 -0800 (PST)")
+Sender: owner-linux-mm@kvack.org
+To: David Rientjes <rientjes@google.com>, Andrew Morton <akpm@linux-foundation.org>
+Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Tang Chen <tangchen@cn.fujitsu.com>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, Dan Williams <dan.j.williams@intel.com>, David Vrabel <david.vrabel@citrix.com>, Igor Mammedov <imammedo@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 12.01.2016 18:56, David Daney wrote:
-> On 01/12/2016 08:13 AM, Tomasz Nowicki wrote:
->> On 12.01.2016 14:50, Lorenzo Pieralisi wrote:
->>> On Wed, Dec 16, 2015 at 04:16:21PM +0100, Tomasz Nowicki wrote:
->>>> In order to probe PCIe host controller when booting with DT,
->>>> ARM64 is using drivers which defer IRQ assignment to device
->>>> enable time. It means that boot time DT specific irq map initialization
->>>> is always overridden, so lets remove that code.
->>>>
->>>> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
->>>> ---
->>>>   arch/arm64/kernel/pci.c | 10 ----------
->>>>   1 file changed, 10 deletions(-)
->>>>
->>>> diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
->>>> index 023b983..f7948f5 100644
->>>> --- a/arch/arm64/kernel/pci.c
->>>> +++ b/arch/arm64/kernel/pci.c
->>>> @@ -51,16 +51,6 @@ int pcibios_enable_device(struct pci_dev *dev, int
->>>> mask)
->>>>       return pci_enable_resources(dev, mask);
->>>>   }
->>>>
->>>> -/*
->>>> - * Try to assign the IRQ number from DT when adding a new device
->>>> - */
->>>> -int pcibios_add_device(struct pci_dev *dev)
->>>> -{
->>>> -    dev->irq = of_irq_parse_and_map_pci(dev, 0, 0);
->>>> -
->>>> -    return 0;
->>>> -}
->>>> -
+David Rientjes <rientjes@google.com> writes:
+
+> On Mon, 4 Jan 2016, Vitaly Kuznetsov wrote:
 >
-> How was this tested?  Or in other words, what PCI devices that use
-> legacy INT{A,B,C,D} interrupts were used in testing this patch?
+>> diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
+>> index 6b0d3ef..e367e4b 100644
+>> --- a/drivers/acpi/acpi_memhotplug.c
+>> +++ b/drivers/acpi/acpi_memhotplug.c
+>> @@ -232,10 +232,10 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
+>>  
+>>  		/*
+>>  		 * If the memory block has been used by the kernel, add_memory()
+>> -		 * returns -EEXIST. If add_memory() returns the other error, it
+>> +		 * returns -EBUSY. If add_memory() returns the other error, it
+>>  		 * means that this memory block is not used by the kernel.
+>>  		 */
+>> -		if (result && result != -EEXIST)
+>> +		if (result && result != -EBUSY)
+>>  			continue;
+>>  
+>>  		result = acpi_bind_memory_blocks(info, mem_device->device);
+>> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+>> index 92f9595..07eab2c 100644
+>> --- a/mm/memory_hotplug.c
+>> +++ b/mm/memory_hotplug.c
+>> @@ -130,6 +130,7 @@ void mem_hotplug_done(void)
+>>  static struct resource *register_memory_resource(u64 start, u64 size)
+>>  {
+>>  	struct resource *res;
+>> +	int ret;
+>>  	res = kzalloc(sizeof(struct resource), GFP_KERNEL);
+>>  	if (!res)
+>>  		return ERR_PTR(-ENOMEM);
+>> @@ -138,10 +139,11 @@ static struct resource *register_memory_resource(u64 start, u64 size)
+>>  	res->start = start;
+>>  	res->end = start + size - 1;
+>>  	res->flags = IORESOURCE_MEM | IORESOURCE_BUSY;
+>> -	if (request_resource(&iomem_resource, res) < 0) {
+>> +	ret = request_resource(&iomem_resource, res);
+>> +	if (ret < 0) {
+>>  		pr_debug("System RAM resource %pR cannot be added\n", res);
+>>  		kfree(res);
+>> -		return ERR_PTR(-EEXIST);
+>> +		return ERR_PTR(ret);
+>>  	}
+>>  	return res;
+>>  }
 >
+> The result of this change is that add_memory() returns -EBUSY instead of 
+> -EEXIST for overlapping ranges.  This patch breaks hv_mem_hot_add() since 
+> it strictly uses a return value of -EEXIST to indicate a non-transient 
+> failure, so NACK.
 
-I used QEMU and e1000 NIC:
+While this is shameful but fixable ...
 
-sudo ./qemu/aarch64-softmmu/qemu-system-aarch64 -smp 1 -m 1024 -M virt 
--cpu cortex-a57 -nographic -device 
-e1000,netdev=net1,mac=52:54:00:12:34:56 -netdev 
-type=tap,ifname=tun1,id=net1,script=no,downscript=no -drive 
-file=qemu/ubuntu.img,id=root,if=none,format=raw -device 
-virtio-blk-device,drive=root -kernel linux-aarch64/arch/arm64/boot/Image 
--append "console=ttyAMA0 earlycon=pl011,0x9000000 rw root=/dev/vda"
+> It also changes the return value of both the "probe" 
+> and "dlpar" (on ppc) userspace triggers, which I could imagine is tested 
+> from existing userspace scripts.
 
-root@ubuntu:~# ifconfig
-eth0      Link encap:Ethernet  HWaddr 52:54:00:12:34:56
-           inet addr:10.0.0.48  Bcast:10.0.255.255  Mask:255.255.0.0
-           UP BROADCAST RUNNING MULTICAST  MTU:1500  Metric:1
-           RX packets:107 errors:0 dropped:0 overruns:0 frame:0
-           TX packets:32 errors:0 dropped:0 overruns:0 carrier:0
-           collisions:0 txqueuelen:1000
-           RX bytes:18087 (18.0 KB)  TX bytes:3818 (3.8 KB)
+this is probably a show-stopper as we're bound by "we don't break
+userspace" rule (and it's not worth it anyway). Thanks for pointing this
+out!
 
-root@ubuntu:~# cat /proc/interrupts
-            CPU0
-  39:        280       GIC  36 Level     eth0
+Andrew, please drop this patch from your queue permanently. The patch 1
+of the series is worthwhile (and is acked by David).
 
-root@ubuntu:~# lspci -vvv
-00:00.0 Host bridge: Red Hat, Inc. Device 0008
-         Subsystem: Red Hat, Inc Device 1100
-         Control: I/O- Mem- BusMaster- SpecCycle- MemWINV- VGASnoop- 
-ParErr- Stepping- SERR- FastB2B- DisINTx-
-         Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- 
-<TAbort- <MAbort- >SERR- <PERR- INTx-
+Thanks,
 
-00:01.0 Ethernet controller: Intel Corporation 82540EM Gigabit Ethernet 
-Controller (rev 03)
-         Subsystem: Red Hat, Inc QEMU Virtual Machine
-         Control: I/O+ Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop- 
-ParErr- Stepping- SERR- FastB2B- DisINTx-
-         Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort- 
-<TAbort- <MAbort- >SERR- <PERR- INTx-
-         Latency: 0
-         Interrupt: pin A routed to IRQ 39
-         Region 0: Memory at 10040000 (32-bit, non-prefetchable) [size=128K]
-         Region 1: I/O ports at 1000 [size=64]
-         [virtual] Expansion ROM at 10000000 [disabled] [size=256K]
-         Kernel driver in use: e1000
+-- 
+  Vitaly
 
-Any specific concern w.r.t. this patch?
-
-Tomasz
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
