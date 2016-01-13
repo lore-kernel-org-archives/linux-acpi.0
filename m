@@ -1,54 +1,80 @@
-From: "Moore, Robert" <robert.moore@intel.com>
-Subject: RE: ACPICA serialized objects?
-Date: Wed, 13 Jan 2016 22:49:25 +0000
-Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37DA84A4B@ORSMSX112.amr.corp.intel.com>
+From: Andy Lutomirski <luto@amacapital.net>
+Subject: Re: ACPICA serialized objects?
+Date: Wed, 13 Jan 2016 14:57:16 -0800
+Message-ID: <CALCETrUBVD-wjj2+-m-+yFk4WQB=hjWHJRWADG46_2L_AkXxVw@mail.gmail.com>
 References: <CALCETrWFSs0Ornr9airzqL=9ph06WDghOUaKmA_8cAorrw1Kpw@mail.gmail.com>
  <CAJZ5v0gxE2kN75K4F9TxNAhz1Xb0zoi1CMn_R36OPeBHuQ9-Qw@mail.gmail.com>
  <CALCETrXnbVCnisYrq_+GrT0PPqi6tG51TBtcx1rnQTdbLetK0A@mail.gmail.com>
  <CAJZ5v0jygkagyqwvEmtXPKXkhEFnspTj9XPgjeRowfsV5_Kjvw@mail.gmail.com>
  <CALCETrVE9De-o29seijHRUwTMYGx4As_zOin=xQkTjbGviCUJA@mail.gmail.com>
  <1AE640813FDE7649BE1B193DEA596E883BAFAE98@SHSMSX101.ccr.corp.intel.com>
- <CALCETrVXE5CiqHbQoO72-xwYSahrSfvJi_khzP8gQRfMwpk+1Q@mail.gmail.com>
+ <CALCETrVXE5CiqHbQoO72-xwYSahrSfvJi_khzP8gQRfMwpk+1Q@mail.gmail.com> <94F2FBAB4432B54E8AACC7DFDE6C92E37DA84A4B@ORSMSX112.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:46486 "EHLO mga04.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754396AbcAMWt2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 13 Jan 2016 17:49:28 -0500
-In-Reply-To: <CALCETrVXE5CiqHbQoO72-xwYSahrSfvJi_khzP8gQRfMwpk+1Q@mail.gmail.com>
-Content-Language: en-US
+Received: from mail-oi0-f53.google.com ([209.85.218.53]:35141 "EHLO
+	mail-oi0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750943AbcAMW5h (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Jan 2016 17:57:37 -0500
+Received: by mail-oi0-f53.google.com with SMTP id p187so86172925oia.2
+        for <linux-acpi@vger.kernel.org>; Wed, 13 Jan 2016 14:57:36 -0800 (PST)
+In-Reply-To: <94F2FBAB4432B54E8AACC7DFDE6C92E37DA84A4B@ORSMSX112.amr.corp.intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Lutomirski <luto@amacapital.net>, "Zheng, Lv" <lv.zheng@intel.com>
-Cc: Andy Lutomirski <luto@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
+To: "Moore, Robert" <robert.moore@intel.com>
+Cc: "Zheng, Lv" <lv.zheng@intel.com>, Andy Lutomirski <luto@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
 
-DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogQW5keSBMdXRvbWlyc2tp
-IFttYWlsdG86bHV0b0BhbWFjYXBpdGFsLm5ldF0NCj4gU2VudDogV2VkbmVzZGF5LCBKYW51YXJ5
-IDEzLCAyMDE2IDI6MzIgUE0NCj4gVG86IFpoZW5nLCBMdg0KPiBDYzogQW5keSBMdXRvbWlyc2tp
-OyBSYWZhZWwgSi4gV3lzb2NraTsgTGludXggQUNQSTsgTW9vcmUsIFJvYmVydA0KPiBTdWJqZWN0
-OiBSZTogQUNQSUNBIHNlcmlhbGl6ZWQgb2JqZWN0cz8NCj4gDQo+IA0KPiBJIGZpbmFsbHkgaGFk
-IHNvbWUgdGltZSB0byBwbGF5IHdpdGggdGhlIEFDUEkgZGVidWdnZXIsIGFuZCBpdCdzDQo+IGZh
-bnRhc3RpYy4gIFRoYW5rcyENCj4gDQo+IE9uZSBtaW5vciBmZWF0dXJlIHJlcXVlc3Q6IGhhdmUg
-eW91IGNvbnNpZGVyZWQgYWRkaW5nIHJlYWRsaW5lIG9yIGxpYmVkaXQNCj4gc3VwcG9ydD8NCg0K
-V2UgYWN0dWFsbHkgaGF2ZSAicmVhZGxpbmUiIHN0eWxlIHN1cHBvcnQgaW4gYXQgbGVhc3QgYWNw
-aWV4ZWMgKHdoaWNoIHVzZXMNClRoZSBBTUwgZGVidWdnZXIpOg0KDQovKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqDQogKg0KICogRlVOQ1RJT046ICAgIE9zRW50ZXJMaW5lRWRpdE1vZGUsIE9zRXhpdExp
-bmVFZGl0TW9kZQ0KICoNCiAqIFBBUkFNRVRFUlM6ICBOb25lDQogKg0KICogUkVUVVJOOiAgICAg
-IE5vbmUNCiAqDQogKiBERVNDUklQVElPTjogRW50ZXIvRXhpdCB0aGUgcmF3IGNoYXJhY3RlciBp
-bnB1dCBtb2RlIGZvciB0aGUgdGVybWluYWwuDQogKg0KICogSW50ZXJhY3RpdmUgbGluZS1lZGl0
-aW5nIHN1cHBvcnQgZm9yIHRoZSBBTUwgZGVidWdnZXIuIFVzZWQgd2l0aCB0aGUNCiAqIGNvbW1v
-bi9hY2dldGxpbmUgbW9kdWxlLg0KICoNCiAqIHJlYWRsaW5lKCkgaXMgbm90IHVzZWQgYmVjYXVz
-ZSBvZiBub24tcG9ydGFiaWxpdHkuIEl0IGlzIG5vdCBhdmFpbGFibGUNCiAqIG9uIGFsbCBzeXN0
-ZW1zLCBhbmQgaWYgaXQgaXMsIG9mdGVuIHRoZSBwYWNrYWdlIG11c3QgYmUgbWFudWFsbHkgaW5z
-dGFsbGVkLg0KICoNCiAqIFRoZXJlZm9yZSwgd2UgdXNlIHRoZSBQT1NJWCB0Y2dldGF0dHIvdGNz
-ZXRhdHRyIGFuZCBkbyB0aGUgbWluaW1hbCBsaW5lDQogKiBlZGl0aW5nIHRoYXQgd2UgbmVlZCBp
-biBBY3BpT3NHZXRMaW5lLg0KICoNCiAqIElmIHRoZSBQT1NJWCB0Y2dldGF0dHIvdGNzZXRhdHRy
-IGludGVyZmFjZXMgYXJlIHVuYXZhaWxhYmxlLCB0aGVzZQ0KICogY2FsbHMgd2lsbCBhbHNvIHdv
-cms6DQogKiAgICAgRm9yIE9zRW50ZXJMaW5lRWRpdE1vZGU6IHN5c3RlbSAoInN0dHkgY2JyZWFr
-IC1lY2hvIikNCiAqICAgICBGb3IgT3NFeGl0TGluZUVkaXRNb2RlOiAgc3lzdGVtICgic3R0eSBj
-b29rZWQgZWNobyIpDQogKg0KICoqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
-KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqLw0KDQoNCj4gDQo+IC0tQW5k
-eQ0K
+On Wed, Jan 13, 2016 at 2:49 PM, Moore, Robert <robert.moore@intel.com> wrote:
+>
+>
+>> -----Original Message-----
+>> From: Andy Lutomirski [mailto:luto@amacapital.net]
+>> Sent: Wednesday, January 13, 2016 2:32 PM
+>> To: Zheng, Lv
+>> Cc: Andy Lutomirski; Rafael J. Wysocki; Linux ACPI; Moore, Robert
+>> Subject: Re: ACPICA serialized objects?
+>>
+>>
+>> I finally had some time to play with the ACPI debugger, and it's
+>> fantastic.  Thanks!
+>>
+>> One minor feature request: have you considered adding readline or libedit
+>> support?
+>
+> We actually have "readline" style support in at least acpiexec (which uses
+> The AML debugger):
+>
+> /******************************************************************************
+>  *
+>  * FUNCTION:    OsEnterLineEditMode, OsExitLineEditMode
+>  *
+>  * PARAMETERS:  None
+>  *
+>  * RETURN:      None
+>  *
+>  * DESCRIPTION: Enter/Exit the raw character input mode for the terminal.
+>  *
+>  * Interactive line-editing support for the AML debugger. Used with the
+>  * common/acgetline module.
+>  *
+>  * readline() is not used because of non-portability. It is not available
+>  * on all systems, and if it is, often the package must be manually installed.
+>  *
+>  * Therefore, we use the POSIX tcgetattr/tcsetattr and do the minimal line
+>  * editing that we need in AcpiOsGetLine.
+>  *
+>  * If the POSIX tcgetattr/tcsetattr interfaces are unavailable, these
+>  * calls will also work:
+>  *     For OsEnterLineEditMode: system ("stty cbreak -echo")
+>  *     For OsExitLineEditMode:  system ("stty cooked echo")
+>  *
+>  *****************************************************************************/
+>
+
+acpiexec can't see into NVS though, I assume, which I imagine prevents
+it from being very useful to debug my laptop, which seems to stick all
+kinds of interesting things in NVS.
+
+Anyway, could acpidbg do the same thing?
+
+--Andy
