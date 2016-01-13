@@ -1,207 +1,256 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V3 19/21] pci, acpi: Support for ACPI based generic PCI host controller init
-Date: Wed, 13 Jan 2016 14:21:05 +0100
-Message-ID: <1452691267-32240-20-git-send-email-tn@semihalf.com>
+Subject: [PATCH V3 05/21] x86, pci,
+ ecam: mmconfig_64.c becomes default implementation for ECAM driver.
+Date: Wed, 13 Jan 2016 14:20:51 +0100
+Message-ID: <1452691267-32240-6-git-send-email-tn@semihalf.com>
 References: <1452691267-32240-1-git-send-email-tn@semihalf.com>
-Return-path: <linux-pci-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1452691267-32240-1-git-send-email-tn@semihalf.com>
-Sender: linux-pci-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, Stefano.Stabellini@eu.citrix.com
-Cc: robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com, Tomasz Nowicki <tn@semihalf.com>
+Cc: jchandra@broadcom.com, jcm@redhat.com, linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, wangyijing@huawei.com, Tomasz Nowicki <tn@semihalf.com>, tglx@linutronix.de, mw@semihalf.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-Because of two patch series:
-1. Jiang Liu's common interface to support PCI host controller init
-2. MMCONFIG refactoring (part of this patch set)
-now we can think about generic ACPI based PCI host controller init
-implementation out of arch/ directory.
+Hosts with custom ECAM hooks (like 32bit x86) should select
+ARCH_HAS_CUSTOM_PCI_ECAM. Otherwise, host will use generic version
+provided by this patch (like 64bit x86 does).
 
-These calls use information from MCFG table (PCI config space regions)
-and _CRS method (IO/irq resources) to initialize PCI hostbridge.
-
-TBD: We are still not sure whether we should reassign resources
-after PCI bus enumeration or trust firmware to do all that work for
-us properly.
+Note, we leaved x86-specific PCI config accessors in corresponding files.
 
 Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-CC: Arnd Bergmann <arnd@arndb.de>
-CC: Catalin Marinas <catalin.marinas@arm.com>
-CC: Liviu Dudau <Liviu.Dudau@arm.com>
-CC: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>
-CC: Will Deacon <will.deacon@arm.com>
 Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
 Tested-by: Jeremy Linton <jeremy.linton@arm.com>
 ---
- drivers/acpi/Kconfig    |   5 ++
- drivers/acpi/pci_root.c | 131 ++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 136 insertions(+)
+ arch/x86/Kconfig               |  1 +
+ arch/x86/include/asm/pci_x86.h |  4 ---
+ arch/x86/pci/mmconfig_64.c     | 55 ---------------------------------------
+ drivers/acpi/mcfg.c            |  2 --
+ drivers/pci/Kconfig            |  3 +++
+ drivers/pci/ecam.c             | 59 +++++++++++++++++++++++++++++++++++++++++-
+ include/linux/ecam.h           |  6 +++++
+ 7 files changed, 68 insertions(+), 62 deletions(-)
 
-diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-index c3664be..e315061 100644
---- a/drivers/acpi/Kconfig
-+++ b/drivers/acpi/Kconfig
-@@ -335,6 +335,11 @@ config ACPI_PCI_SLOT
- 	  i.e., segment/bus/device/function tuples, with physical slots in
- 	  the system.  If you are unsure, say N.
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index 350bd52..102d7d1 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -30,6 +30,7 @@ config X86
+ 	select ARCH_HAS_PMEM_API		if X86_64
+ 	select ARCH_HAS_MMIO_FLUSH
+ 	select ARCH_HAS_SG_CHAIN
++	select ARCH_HAS_CUSTOM_PCI_ECAM		if X86_32
+ 	select ARCH_HAVE_NMI_SAFE_CMPXCHG
+ 	select ARCH_MIGHT_HAVE_ACPI_PDC		if ACPI
+ 	select ARCH_MIGHT_HAVE_PC_PARPORT
+diff --git a/arch/x86/include/asm/pci_x86.h b/arch/x86/include/asm/pci_x86.h
+index 0482807..be091b4 100644
+--- a/arch/x86/include/asm/pci_x86.h
++++ b/arch/x86/include/asm/pci_x86.h
+@@ -123,10 +123,6 @@ extern int pci_legacy_init(void);
+ extern int pcibios_fixup_irq(struct pci_dev *dev, u8 pin);
  
-+config ACPI_PCI_HOST_GENERIC
-+	bool "Generic ACPI PCI host controller"
-+	help
-+	  Say Y here if you want to support generic ACPI PCI host controller.
-+
- config X86_PM_TIMER
- 	bool "Power Management Timer Support" if EXPERT
- 	depends on X86
-diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-index a65c8c2..d483e2a 100644
---- a/drivers/acpi/pci_root.c
-+++ b/drivers/acpi/pci_root.c
-@@ -24,6 +24,7 @@
- #include <linux/init.h>
- #include <linux/types.h>
- #include <linux/mutex.h>
-+#include <linux/of_address.h>
- #include <linux/pm.h>
- #include <linux/pm_runtime.h>
- #include <linux/pci.h>
-@@ -514,6 +515,136 @@ static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm)
- 	}
+ /* pci-mmconfig.c */
+-extern int __init pci_mmcfg_arch_init(void);
+-extern void __init pci_mmcfg_arch_free(void);
+-extern int pci_mmcfg_arch_map(struct pci_mmcfg_region *cfg);
+-extern void pci_mmcfg_arch_unmap(struct pci_mmcfg_region *cfg);
+ extern int pci_mmconfig_insert(struct device *dev, u16 seg, u8 start, u8 end,
+ 			       phys_addr_t addr);
+ 
+diff --git a/arch/x86/pci/mmconfig_64.c b/arch/x86/pci/mmconfig_64.c
+index d0c48eb..fd356cc 100644
+--- a/arch/x86/pci/mmconfig_64.c
++++ b/arch/x86/pci/mmconfig_64.c
+@@ -90,58 +90,3 @@ int pci_mmcfg_write(unsigned int seg, unsigned int bus,
+ 
+ 	return 0;
  }
+-
+-static void __iomem *mcfg_ioremap(struct pci_mmcfg_region *cfg)
+-{
+-	void __iomem *addr;
+-	u64 start, size;
+-	int num_buses;
+-
+-	start = cfg->address + PCI_MMCFG_BUS_OFFSET(cfg->start_bus);
+-	num_buses = cfg->end_bus - cfg->start_bus + 1;
+-	size = PCI_MMCFG_BUS_OFFSET(num_buses);
+-	addr = ioremap_nocache(start, size);
+-	if (addr)
+-		addr -= PCI_MMCFG_BUS_OFFSET(cfg->start_bus);
+-	return addr;
+-}
+-
+-int __init pci_mmcfg_arch_init(void)
+-{
+-	struct pci_mmcfg_region *cfg;
+-
+-	list_for_each_entry(cfg, &pci_mmcfg_list, list)
+-		if (pci_mmcfg_arch_map(cfg)) {
+-			pci_mmcfg_arch_free();
+-			return 0;
+-		}
+-
+-	return 1;
+-}
+-
+-void __init pci_mmcfg_arch_free(void)
+-{
+-	struct pci_mmcfg_region *cfg;
+-
+-	list_for_each_entry(cfg, &pci_mmcfg_list, list)
+-		pci_mmcfg_arch_unmap(cfg);
+-}
+-
+-int pci_mmcfg_arch_map(struct pci_mmcfg_region *cfg)
+-{
+-	cfg->virt = mcfg_ioremap(cfg);
+-	if (!cfg->virt) {
+-		pr_err(PREFIX "can't map MMCONFIG at %pR\n", &cfg->res);
+-		return -ENOMEM;
+-	}
+-
+-	return 0;
+-}
+-
+-void pci_mmcfg_arch_unmap(struct pci_mmcfg_region *cfg)
+-{
+-	if (cfg && cfg->virt) {
+-		iounmap(cfg->virt + PCI_MMCFG_BUS_OFFSET(cfg->start_bus));
+-		cfg->virt = NULL;
+-	}
+-}
+diff --git a/drivers/acpi/mcfg.c b/drivers/acpi/mcfg.c
+index fad9917..745b83e 100644
+--- a/drivers/acpi/mcfg.c
++++ b/drivers/acpi/mcfg.c
+@@ -10,8 +10,6 @@
+ #include <linux/acpi.h>
+ #include <linux/ecam.h>
  
-+#ifdef CONFIG_ACPI_PCI_HOST_GENERIC
-+static int pcibios_map_irq(struct pci_dev *dev, u8 slot, u8 pin)
-+{
-+	if (pci_dev_msi_enabled(dev))
-+		return 0;
+-#include <asm/pci_x86.h> /* Temp hack before refactoring arch-specific calls */
+-
+ #define	PREFIX	"MCFG: "
+ 
+ int __init acpi_parse_mcfg(struct acpi_table_header *header)
+diff --git a/drivers/pci/Kconfig b/drivers/pci/Kconfig
+index 9950248..b2e27c8 100644
+--- a/drivers/pci/Kconfig
++++ b/drivers/pci/Kconfig
+@@ -33,6 +33,9 @@ config PCI_ECAM
+ config HAVE_PCI_ECAM
+ 	bool
+ 
++config ARCH_HAS_CUSTOM_PCI_ECAM
++	bool
 +
-+	acpi_pci_irq_enable(dev);
-+	return dev->irq;
+ config PCI_DEBUG
+ 	bool "PCI Debugging"
+ 	depends on PCI && DEBUG_KERNEL
+diff --git a/drivers/pci/ecam.c b/drivers/pci/ecam.c
+index d221dba..8a5eef7 100644
+--- a/drivers/pci/ecam.c
++++ b/drivers/pci/ecam.c
+@@ -16,7 +16,6 @@
+ #include <linux/ecam.h>
+ 
+ #include <asm/io.h>
+-#include <asm/pci_x86.h> /* Temp hack before refactoring arch-specific calls */
+ 
+ #define PREFIX "PCI: "
+ 
+@@ -24,6 +23,64 @@ static DEFINE_MUTEX(pci_mmcfg_lock);
+ 
+ LIST_HEAD(pci_mmcfg_list);
+ 
++#ifndef CONFIG_ARCH_HAS_CUSTOM_PCI_ECAM
++
++static void __iomem *mcfg_ioremap(struct pci_mmcfg_region *cfg)
++{
++	void __iomem *addr;
++	u64 start, size;
++	int num_buses;
++
++	start = cfg->address + PCI_MMCFG_BUS_OFFSET(cfg->start_bus);
++	num_buses = cfg->end_bus - cfg->start_bus + 1;
++	size = PCI_MMCFG_BUS_OFFSET(num_buses);
++	addr = ioremap_nocache(start, size);
++	if (addr)
++		addr -= PCI_MMCFG_BUS_OFFSET(cfg->start_bus);
++	return addr;
 +}
 +
-+static void pci_mcfg_release_info(struct acpi_pci_root_info *ci)
++int __init pci_mmcfg_arch_init(void)
 +{
-+	pci_mmcfg_teardown_map(ci);
-+	kfree(ci);
-+}
++	struct pci_mmcfg_region *cfg;
 +
-+static int pci_acpi_root_prepare_resources(struct acpi_pci_root_info *ci)
-+{
-+	struct list_head *list = &ci->resources;
-+	struct acpi_device *device = ci->bridge;
-+	struct resource_entry *entry, *tmp;
-+	unsigned long flags;
-+	int ret;
-+
-+	flags = IORESOURCE_IO | IORESOURCE_MEM;
-+	ret = acpi_dev_get_resources(device, list,
-+				     acpi_dev_filter_resource_type_cb,
-+				     (void *)flags);
-+	if (ret < 0) {
-+		dev_warn(&device->dev,
-+			 "failed to parse _CRS method, error code %d\n", ret);
-+		return ret;
-+	} else if (ret == 0)
-+		dev_dbg(&device->dev,
-+			"no IO and memory resources present in _CRS\n");
-+
-+	resource_list_for_each_entry_safe(entry, tmp, &ci->resources) {
-+		resource_size_t cpu_addr, length;
-+		struct resource *res = entry->res;
-+
-+		if (entry->res->flags & IORESOURCE_DISABLED)
-+			resource_list_destroy_entry(entry);
-+		else
-+			res->name = ci->name;
-+
-+		/* PCI -> CPU space translation */
-+		cpu_addr = res->start + entry->offset;
-+		length = res->end - res->start + 1;
-+
-+		if (res->flags & IORESOURCE_MEM) {
-+			res->start = cpu_addr;
-+			res->end = cpu_addr + length - 1;
-+		} else if (res->flags & IORESOURCE_IO) {
-+			resource_size_t pci_addr = res->start;
-+			unsigned long port;
-+
-+			if (pci_register_io_range(cpu_addr, length)) {
-+				resource_list_destroy_entry(entry);
-+				continue;
-+			}
-+
-+			port = pci_address_to_pio(cpu_addr);
-+			if (port == (unsigned long)-1) {
-+				resource_list_destroy_entry(entry);
-+				continue;
-+			}
-+
-+			res->start = port;
-+			res->end = port + length - 1;
-+			entry->offset = port - pci_addr;
-+
-+			if (pci_remap_iospace(res, cpu_addr) < 0)
-+				resource_list_destroy_entry(entry);
++	list_for_each_entry(cfg, &pci_mmcfg_list, list)
++		if (pci_mmcfg_arch_map(cfg)) {
++			pci_mmcfg_arch_free();
++			return 0;
 +		}
-+	}
-+	return ret;
++
++	return 1;
 +}
 +
-+static struct acpi_pci_root_ops acpi_pci_root_ops = {
-+	.init_info = pci_mmcfg_setup_map,
-+	.release_info = pci_mcfg_release_info,
-+	.prepare_resources = pci_acpi_root_prepare_resources,
-+};
-+
-+/* Root bridge scanning */
-+struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
++void __init pci_mmcfg_arch_free(void)
 +{
-+	int node = acpi_get_node(root->device->handle);
-+	int domain = root->segment;
-+	int busnum = root->secondary.start;
-+	struct acpi_pci_root_info *info;
-+	struct pci_host_bridge *bridge;
-+	struct pci_bus *bus, *child;
++	struct pci_mmcfg_region *cfg;
 +
-+	if (domain && !pci_domains_supported) {
-+		pr_warn("PCI %04x:%02x: multiple domains not supported.\n",
-+			domain, busnum);
-+		return NULL;
-+	}
-+
-+	info = kzalloc_node(sizeof(*info), GFP_KERNEL, node);
-+	if (!info) {
-+		dev_err(&root->device->dev,
-+			"pci_bus %04x:%02x: ignored (out of memory)\n",
-+			domain, busnum);
-+		return NULL;
-+	}
-+
-+	acpi_pci_root_ops.pci_ops = pci_mcfg_get_ops(root);
-+	bus = acpi_pci_root_create(root, &acpi_pci_root_ops, info, root);
-+	if (!bus)
-+		return NULL;
-+
-+	bridge = pci_find_host_bridge(bus);
-+	bridge->map_irq = pcibios_map_irq;
-+
-+	pci_bus_size_bridges(bus);
-+	pci_bus_assign_resources(bus);
-+
-+	/*
-+	 * After the PCI-E bus has been walked and all devices discovered,
-+	 * configure any settings of the fabric that might be necessary.
-+	 */
-+	list_for_each_entry(child, &bus->children, node)
-+		pcie_bus_configure_settings(child);
-+
-+	return bus;
++	list_for_each_entry(cfg, &pci_mmcfg_list, list)
++		pci_mmcfg_arch_unmap(cfg);
 +}
-+#endif /* CONFIG_ARCH_PCI_HOST_GENERIC_ACPI */
 +
- static int acpi_pci_root_add(struct acpi_device *device,
- 			     const struct acpi_device_id *not_used)
++int pci_mmcfg_arch_map(struct pci_mmcfg_region *cfg)
++{
++	cfg->virt = mcfg_ioremap(cfg);
++	if (!cfg->virt) {
++		pr_err(PREFIX "can't map MMCONFIG at %pR\n", &cfg->res);
++		return -ENOMEM;
++	}
++
++	return 0;
++}
++
++void pci_mmcfg_arch_unmap(struct pci_mmcfg_region *cfg)
++{
++	if (cfg && cfg->virt) {
++		iounmap(cfg->virt + PCI_MMCFG_BUS_OFFSET(cfg->start_bus));
++		cfg->virt = NULL;
++	}
++}
++#endif
++
+ static void __init pci_mmconfig_remove(struct pci_mmcfg_region *cfg)
  {
+ 	if (cfg->res.parent)
+diff --git a/include/linux/ecam.h b/include/linux/ecam.h
+index dec3b52..813acd1 100644
+--- a/include/linux/ecam.h
++++ b/include/linux/ecam.h
+@@ -29,6 +29,12 @@ void list_add_sorted(struct pci_mmcfg_region *new);
+ void free_all_mmcfg(void);
+ int pci_mmconfig_delete(u16 seg, u8 start, u8 end);
+ 
++/* Arch specific calls */
++int pci_mmcfg_arch_init(void);
++void pci_mmcfg_arch_free(void);
++int pci_mmcfg_arch_map(struct pci_mmcfg_region *cfg);
++void pci_mmcfg_arch_unmap(struct pci_mmcfg_region *cfg);
++
+ extern struct list_head pci_mmcfg_list;
+ 
+ #define PCI_MMCFG_BUS_OFFSET(bus)      ((bus) << 20)
 -- 
 1.9.1
