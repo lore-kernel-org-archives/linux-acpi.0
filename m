@@ -1,80 +1,100 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V3 06/21] XEN / PCI: Remove the dependence on arch x86 when
- PCI_MMCONFIG=y
-Date: Wed, 13 Jan 2016 14:20:52 +0100
-Message-ID: <1452691267-32240-7-git-send-email-tn@semihalf.com>
+Subject: [PATCH V3 15/21] acpi, mcfg: Implement two calls that might be used to inject/remove MCFG region.
+Date: Wed, 13 Jan 2016 14:21:01 +0100
+Message-ID: <1452691267-32240-16-git-send-email-tn@semihalf.com>
 References: <1452691267-32240-1-git-send-email-tn@semihalf.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1452691267-32240-1-git-send-email-tn@semihalf.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, Stefano.Stabellini@eu.citrix.com
-Cc: jchandra@broadcom.com, jcm@redhat.com, linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, wangyijing@huawei.com, Tomasz Nowicki <tn@semihalf.com>, tglx@linutronix.de, mw@semihalf.com, Boris Ostrovsky <boris.ostrovsky@oracle.com>, linux-arm-kernel@lists.infradead.org
+Cc: robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com, Tomasz Nowicki <tn@semihalf.com>
 List-Id: linux-acpi@vger.kernel.org
 
-In drivers/xen/pci.c, there are arch x86 dependent codes when
-CONFIG_PCI_MMCONFIG is enabled, since CONFIG_PCI_MMCONFIG
-depends on ACPI, so this will prevent XEN PCI running on other
-architectures using ACPI with PCI_MMCONFIG enabled (such as ARM64).
+Lets abstract two calls which allow to inject and remove MCFG regions
+which may come from DSDT table. These calls will be used for x86 and ARM64
+PCI host bridge driver in the later patches.
 
-Fortunatly, it can be sloved in a simple way. In drivers/xen/pci.c,
-the only x86 dependent code is if ((pci_probe & PCI_PROBE_MMCONF) == 0),
-and it's defined in asm/pci_x86.h, the code means that
-if the PCI resource is not probed in PCI_PROBE_MMCONF way, just
-ingnore the xen mcfg init. Actually this is duplicate, because
-if PCI resource is not probed in PCI_PROBE_MMCONF way, the
-pci_mmconfig_list will be empty, and the if (list_empty())
-after it will do the same job.
-
-So just remove the arch related code and the head file, this
-will be no functional change for x86, and also makes xen/pci.c
-usable for other architectures.
-
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-CC: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-CC: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Cc: Stefano Stabellini <Stefano.Stabellini@eu.citrix.com>
-Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-Tested-by: Jeremy Linton <jeremy.linton@arm.com>
-Reviewed-by: Boris Ostrovsky <boris.ostrovsky@oracle.com>
-Acked-by: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
+Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
 ---
- drivers/xen/pci.c | 6 ------
- 1 file changed, 6 deletions(-)
+ drivers/acpi/mcfg.c      | 38 ++++++++++++++++++++++++++++++++++++++
+ include/linux/pci-acpi.h |  9 +++++++++
+ 2 files changed, 47 insertions(+)
 
-diff --git a/drivers/xen/pci.c b/drivers/xen/pci.c
-index 6785ebb..9a8dbe3 100644
---- a/drivers/xen/pci.c
-+++ b/drivers/xen/pci.c
-@@ -28,9 +28,6 @@
- #include <asm/xen/hypervisor.h>
- #include <asm/xen/hypercall.h>
- #include "../pci/pci.h"
--#ifdef CONFIG_PCI_MMCONFIG
--#include <asm/pci_x86.h>
--#endif
+diff --git a/drivers/acpi/mcfg.c b/drivers/acpi/mcfg.c
+index 3e1e7be..dca4c4e 100644
+--- a/drivers/acpi/mcfg.c
++++ b/drivers/acpi/mcfg.c
+@@ -10,6 +10,7 @@
+ #include <linux/acpi.h>
+ #include <linux/ecam.h>
+ #include <linux/pci.h>
++#include <linux/pci-acpi.h>
  
- static bool __read_mostly pci_seg_supported = true;
+ #define	PREFIX	"MCFG: "
  
-@@ -222,9 +219,6 @@ static int __init xen_mcfg_late(void)
- 	if (!xen_initial_domain())
- 		return 0;
+@@ -77,6 +78,43 @@ int __init acpi_parse_mcfg(struct acpi_table_header *header)
+ 	return 0;
+ }
  
--	if ((pci_probe & PCI_PROBE_MMCONF) == 0)
--		return 0;
--
- 	if (list_empty(&pci_mmcfg_list))
- 		return 0;
++int pci_mmcfg_setup_map(struct acpi_pci_root_info *ci)
++{
++	struct pci_mmcfg_region *cfg;
++	struct acpi_pci_root *root;
++	int seg, start, end, err;
++
++	root = ci->root;
++	seg = root->segment;
++	start = root->secondary.start;
++	end = root->secondary.end;
++
++	cfg = pci_mmconfig_lookup(seg, start);
++	if (cfg)
++		return 0;
++
++	cfg = pci_mmconfig_alloc(seg, start, end, root->mcfg_addr);
++	if (!cfg)
++		return -ENOMEM;
++
++	err = pci_mmconfig_inject(cfg);
++	return err;
++}
++
++void pci_mmcfg_teardown_map(struct acpi_pci_root_info *ci)
++{
++	struct acpi_pci_root *root = ci->root;
++	struct pci_mmcfg_region *cfg;
++
++	cfg = pci_mmconfig_lookup(root->segment, root->secondary.start);
++	if (!cfg)
++		return;
++
++	if (cfg->hot_added)
++		pci_mmconfig_delete(root->segment, root->secondary.start,
++				    root->secondary.end);
++}
++
+ int __init __weak acpi_mcfg_check_entry(struct acpi_table_mcfg *mcfg,
+ 					struct acpi_mcfg_allocation *cfg)
+ {
+diff --git a/include/linux/pci-acpi.h b/include/linux/pci-acpi.h
+index 89ab057..c277415 100644
+--- a/include/linux/pci-acpi.h
++++ b/include/linux/pci-acpi.h
+@@ -79,6 +79,15 @@ extern struct pci_bus *acpi_pci_root_create(struct acpi_pci_root *root,
+ void acpi_pci_add_bus(struct pci_bus *bus);
+ void acpi_pci_remove_bus(struct pci_bus *bus);
  
++#ifdef	CONFIG_PCI_MMCONFIG
++int pci_mmcfg_setup_map(struct acpi_pci_root_info *ci);
++void pci_mmcfg_teardown_map(struct acpi_pci_root_info *ci);
++#else
++static inline int pci_mmcfg_setup_map(struct acpi_pci_root_info *ci)
++{ return 0; }
++static inline void pci_mmcfg_teardown_map(struct acpi_pci_root_info *ci) { }
++#endif
++
+ #ifdef	CONFIG_ACPI_PCI_SLOT
+ void acpi_pci_slot_init(void);
+ void acpi_pci_slot_enumerate(struct pci_bus *bus);
 -- 
 1.9.1
