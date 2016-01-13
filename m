@@ -1,45 +1,69 @@
-From: Tomasz Nowicki <tn@semihalf.com>
-Subject: Re: [PATCH V3 00/21] MMCONFIG refactoring and support for ARM64 PCI
- hostbridge init based on ACPI
-Date: Wed, 13 Jan 2016 16:27:43 +0100
-Message-ID: <56966CEF.1010701@semihalf.com>
-References: <1452691267-32240-1-git-send-email-tn@semihalf.com>
- <56966C1C.1050902@codeaurora.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+From: =?iso-8859-1?Q?Ren=E9_Rebe?= <rene@exactcode.com>
+Subject: [RFC] halt to s4 for WOL
+Date: Wed, 13 Jan 2016 17:40:53 +0100
+Message-ID: <513D96FD-1D42-4E03-A308-FAB9A8782632@exactcode.com>
+Mime-Version: 1.0 (Mac OS X Mail 7.3 \(1878.6\))
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f176.google.com ([209.85.217.176]:33804 "EHLO
-	mail-lb0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750776AbcAMP3o (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Jan 2016 10:29:44 -0500
-Received: by mail-lb0-f176.google.com with SMTP id cl12so75200239lbc.1
-        for <linux-acpi@vger.kernel.org>; Wed, 13 Jan 2016 07:29:44 -0800 (PST)
-In-Reply-To: <56966C1C.1050902@codeaurora.org>
+Received: from mx.exactcode.de ([144.76.154.42]:44834 "EHLO mx.exactcode.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753634AbcAMRBT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 13 Jan 2016 12:01:19 -0500
+Received: from ip5b403229.dynamic.kabel-deutschland.de ([91.64.50.41] helo=exactcode.com)
+	by mx.exactcode.de with esmtp (Exim 4.82)
+	(envelope-from <rene@exactcode.com>)
+	id 1aJOTj-0004hH-8M
+	for linux-acpi@vger.kernel.org; Wed, 13 Jan 2016 16:40:59 +0000
+Received: from retina ([192.168.2.174])
+	by exactcode.com with esmtpsa (TLSv1:AES128-SHA:128)
+	(Exim 4.54)
+	id 1aJOTw-0002Eq-K6
+	for linux-acpi@vger.kernel.org; Wed, 13 Jan 2016 16:41:18 +0000
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>, bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, jiang.liu@linux.intel.com, Stefano.Stabellini@eu.citrix.com
-Cc: robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com
+To: linux-acpi@vger.kernel.org
 
-On 13.01.2016 16:24, Sinan Kaya wrote:
-> on an ARM64 server with some nits.
->
-> I started seeing these on an ACPI system. I didn't have these before when I tested Tomasz's
-> branch yesterday. It must have been introduced after a rebase or a recent change.
->
-> _#_dmesg_|_grep_of_irq
-> [    3.130774] pci 0002:00:00.0: of_irq_parse_pci() failed with rc=-22
-> [    4.182526] pci 0002:00:00.0: of_irq_parse_pci() failed with rc=-22
-> [    5.187764] pci 0002:00:00.0: of_irq_parse_pci() failed with rc=-22
-> [    5.868518] pci 0003:00:00.0: of_irq_parse_pci() failed with rc=-22
-> [    5.910629] pci 0003:00:00.0: of_irq_parse_pci() failed with rc=-22
-> [    6.732817] pci 0006:00:00.0: of_irq_parse_pci() failed with rc=-22
-> [    7.777698] pci 0006:00:00.0: of_irq_parse_pci() failed with rc=-22
-> [    8.782882] pci 0006:00:00.0: of_irq_parse_pci() failed with rc=-22
-> / #
+Hi all,
 
-You got this because I had dropped patch from the previous series:
-https://patchwork.ozlabs.org/patch/557504/
-and this is expected.
+for some years our old Mac Pro and newer Mac mini used for unit testing and VMs
+annoyed me in that we could never get Wake-On-Lan working on them at all.
 
-Tomasz
+Some people found some pci config bit poking for some older Mac mini that did not
+work on our newer Mac mini, nor on our older Mac Pro.
+
+	http://blog.dhampir.no/content/wake-on-lan-on-a-n-intel-mac-mini-with-linux
+
+While we where setting up some new things we finally wanted this solved, and I found
+a clever workaround by halting the machine to S4 instead of S5.
+
+While of course this patch can not be applied as it. I just wanted to ask for feedback -
+maybe a kernel or sysfs interface can be added to have a halt=S4 or whatever
+switch as this might be useful to convince other machines to supply power to the NIC,
+too.
+
+--- linux-4.3/drivers/acpi/sleep.c.orig	2015-12-29 15:27:21.100959963 +0000
++++ linux-4.3/drivers/acpi/sleep.c	2015-12-29 15:28:36.828960630 +0000
+@@ -811,7 +811,7 @@
+ static void acpi_power_off_prepare(void)
+ {
+ 	/* Prepare to power off the system */
+-	acpi_sleep_prepare(ACPI_STATE_S5);
++	acpi_sleep_prepare(ACPI_STATE_S4);
+ 	acpi_disable_all_gpes();
+ 	acpi_os_wait_events_complete();
+ }
+@@ -821,7 +821,7 @@
+ 	/* acpi_sleep_prepare(ACPI_STATE_S5) should have already been called */
+ 	printk(KERN_DEBUG "%s called\n", __func__);
+ 	local_irq_disable();
+-	acpi_enter_sleep_state(ACPI_STATE_S5);
++	acpi_enter_sleep_state(ACPI_STATE_S4);
+ }
+ 
+ int __init acpi_sleep_init(void)
+
+-- 
+ ExactCODE GmbH, Lietzenburger Str. 42, DE-10789 Berlin
+ http://exactcode.com | http://exactscan.com | http://ocrkit.com | http://t2-project.org | http://rene.rebe.de
+
