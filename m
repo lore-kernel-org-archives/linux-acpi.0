@@ -1,73 +1,68 @@
-From: David Rientjes <rientjes@google.com>
-Subject: Re: [PATCH v2 2/2] memory-hotplug: keep the request_resource() error
- code
-Date: Tue, 12 Jan 2016 15:25:05 -0800 (PST)
-Message-ID: <alpine.DEB.2.10.1601121520530.28831@chino.kir.corp.google.com>
-References: <1451924251-4189-1-git-send-email-vkuznets@redhat.com> <1451924251-4189-3-git-send-email-vkuznets@redhat.com>
+From: Al Stone <al.stone@linaro.org>
+Subject: Re: [RFC 0/5] console/acpi: add DBG2 and SPCR console configuration
+Date: Tue, 12 Jan 2016 17:07:49 -0700
+Message-ID: <56959555.6090705@linaro.org>
+References: <1441716217-23786-1-git-send-email-leif.lindholm@linaro.org>
+ <56951841.4010101@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1451924251-4189-3-git-send-email-vkuznets@redhat.com>
-Sender: owner-linux-mm@kvack.org
-To: Vitaly Kuznetsov <vkuznets@redhat.com>
-Cc: linux-mm@kvack.org, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Andrew Morton <akpm@linux-foundation.org>, Tang Chen <tangchen@cn.fujitsu.com>, Naoya Horiguchi <n-horiguchi@ah.jp.nec.com>, Dan Williams <dan.j.williams@intel.com>, David Vrabel <david.vrabel@citrix.com>, Igor Mammedov <imammedo@redhat.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-oi0-f50.google.com ([209.85.218.50]:36027 "EHLO
+	mail-oi0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752140AbcAMAHw (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Jan 2016 19:07:52 -0500
+Received: by mail-oi0-f50.google.com with SMTP id o124so74806394oia.3
+        for <linux-acpi@vger.kernel.org>; Tue, 12 Jan 2016 16:07:52 -0800 (PST)
+In-Reply-To: <56951841.4010101@codeaurora.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Christopher Covington <cov@codeaurora.org>, Leif Lindholm <leif.lindholm@linaro.org>, linux-arm-kernel@lists.infradead.org, devicetree@vger.kernel.org, linux-serial@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, graeme.gregory@linaro.org
+Cc: mark.rutland@arm.com, linaro-acpi@lists.linaro.org, jcm@redhat.com, torez@redhat.com, lv.zheng@intel.com, Timur Tabi <timur@quicinc.com>, "linux-arm-msm@vger.kernel.org" <linux-arm-msm@vger.kernel.org>
 
-On Mon, 4 Jan 2016, Vitaly Kuznetsov wrote:
+On 01/12/2016 08:14 AM, Christopher Covington wrote:
+> Hi,
+> 
+> On 09/08/2015 08:43 AM, Leif Lindholm wrote:
+>> Support for configuring bootconsole and console via the ACPI tables
+>> DBG2 (Debug Port Table 2) [1] and SPCR (Serial Port Console Redirection
+>> Table) [2], defined by Microsoft, has been discussed on and off over the
+>> years.
+>>
+>> [1] https://msdn.microsoft.com/en-us/library/windows/hardware/dn639131(v=vs.85).aspx
+>> [2] https://msdn.microsoft.com/en-us/library/windows/hardware/dn639132(v=vs.85).aspx
+>>
+>> Licensing concerns have prevented this happening in the past, but as of
+>> 10 August 2015, these tables have both been released also under OWF 1.0
+>> (http://www.openwebfoundation.org/legal/the-owf-1-0-agreements/owfa-1-0)
+>> which is think is noncontroversially GPL-compatible?
+>>
+>> This set is a first attempt at implementing this.
+>>
+>> Submitting as an RFC since the SPCR handling currently depends on the
+>> console driver being initialized after subsystem initcalls. Workaround
+>> to enable testing surrounding infrastructure in 5/5, _really_ not
+>> intended to be merged.
+>> (Suggestions for acceptable ways of working around this appreciated.)
+> 
+> What's required for this to graduate from RFC status? Is anyone working
+> on it?
+> 
+> Thanks,
+> Christopher Covington
+> 
 
-> diff --git a/drivers/acpi/acpi_memhotplug.c b/drivers/acpi/acpi_memhotplug.c
-> index 6b0d3ef..e367e4b 100644
-> --- a/drivers/acpi/acpi_memhotplug.c
-> +++ b/drivers/acpi/acpi_memhotplug.c
-> @@ -232,10 +232,10 @@ static int acpi_memory_enable_device(struct acpi_memory_device *mem_device)
->  
->  		/*
->  		 * If the memory block has been used by the kernel, add_memory()
-> -		 * returns -EEXIST. If add_memory() returns the other error, it
-> +		 * returns -EBUSY. If add_memory() returns the other error, it
->  		 * means that this memory block is not used by the kernel.
->  		 */
-> -		if (result && result != -EEXIST)
-> +		if (result && result != -EBUSY)
->  			continue;
->  
->  		result = acpi_bind_memory_blocks(info, mem_device->device);
-> diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-> index 92f9595..07eab2c 100644
-> --- a/mm/memory_hotplug.c
-> +++ b/mm/memory_hotplug.c
-> @@ -130,6 +130,7 @@ void mem_hotplug_done(void)
->  static struct resource *register_memory_resource(u64 start, u64 size)
->  {
->  	struct resource *res;
-> +	int ret;
->  	res = kzalloc(sizeof(struct resource), GFP_KERNEL);
->  	if (!res)
->  		return ERR_PTR(-ENOMEM);
-> @@ -138,10 +139,11 @@ static struct resource *register_memory_resource(u64 start, u64 size)
->  	res->start = start;
->  	res->end = start + size - 1;
->  	res->flags = IORESOURCE_MEM | IORESOURCE_BUSY;
-> -	if (request_resource(&iomem_resource, res) < 0) {
-> +	ret = request_resource(&iomem_resource, res);
-> +	if (ret < 0) {
->  		pr_debug("System RAM resource %pR cannot be added\n", res);
->  		kfree(res);
-> -		return ERR_PTR(-EEXIST);
-> +		return ERR_PTR(ret);
->  	}
->  	return res;
->  }
+Well, we have asked Aleksey Makarov <aleksy.makarov@linaro.org> to pick
+this task up from Leif within Linaro.  Perhaps drop him a line and see
+if the two of you can collaborate on this somehow?  I think it just needs
+nudging and a bit of TLC to get it past being an RFC.
 
-The result of this change is that add_memory() returns -EBUSY instead of 
--EEXIST for overlapping ranges.  This patch breaks hv_mem_hot_add() since 
-it strictly uses a return value of -EEXIST to indicate a non-transient 
-failure, so NACK.  It also changes the return value of both the "probe" 
-and "dlpar" (on ppc) userspace triggers, which I could imagine is tested 
-from existing userspace scripts.
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+-- 
+ciao,
+al
+-----------------------------------
+Al Stone
+Software Engineer
+Linaro Enterprise Group
+al.stone@linaro.org
+-----------------------------------
