@@ -1,37 +1,54 @@
-From: Suravee Suthikulanit <suravee.suthikulpanit@amd.com>
-Subject: Re: [PATCH v4] i2c: designware: Do not require clock when SSCN and
- FFCN are provided
-Date: Wed, 13 Jan 2016 16:46:41 -0600
-Message-ID: <5696D3D1.2010509@amd.com>
-References: <1451920655-10798-1-git-send-email-Suravee.Suthikulpanit@amd.com>
- <20160110083812.GE1526@katana>
+From: "Moore, Robert" <robert.moore@intel.com>
+Subject: RE: ACPICA serialized objects?
+Date: Wed, 13 Jan 2016 22:49:25 +0000
+Message-ID: <94F2FBAB4432B54E8AACC7DFDE6C92E37DA84A4B@ORSMSX112.amr.corp.intel.com>
+References: <CALCETrWFSs0Ornr9airzqL=9ph06WDghOUaKmA_8cAorrw1Kpw@mail.gmail.com>
+ <CAJZ5v0gxE2kN75K4F9TxNAhz1Xb0zoi1CMn_R36OPeBHuQ9-Qw@mail.gmail.com>
+ <CALCETrXnbVCnisYrq_+GrT0PPqi6tG51TBtcx1rnQTdbLetK0A@mail.gmail.com>
+ <CAJZ5v0jygkagyqwvEmtXPKXkhEFnspTj9XPgjeRowfsV5_Kjvw@mail.gmail.com>
+ <CALCETrVE9De-o29seijHRUwTMYGx4As_zOin=xQkTjbGviCUJA@mail.gmail.com>
+ <1AE640813FDE7649BE1B193DEA596E883BAFAE98@SHSMSX101.ccr.corp.intel.com>
+ <CALCETrVXE5CiqHbQoO72-xwYSahrSfvJi_khzP8gQRfMwpk+1Q@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-i2c-owner@vger.kernel.org>
-In-Reply-To: <20160110083812.GE1526@katana>
-Sender: linux-i2c-owner@vger.kernel.org
-To: Wolfram Sang <wsa@the-dreams.de>
-Cc: mika.westerberg@linux.intel.com, jarkko.nikula@linux.intel.com, andriy.shevchenko@linux.intel.com, lho@apm.com, Ken.Xue@amd.com, linux-i2c@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Hurwitz, Sherry" <sherry.hurwitz@amd.com>, Tom Lendacky <thomas.lendacky@amd.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga04.intel.com ([192.55.52.120]:46486 "EHLO mga04.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754396AbcAMWt2 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 13 Jan 2016 17:49:28 -0500
+In-Reply-To: <CALCETrVXE5CiqHbQoO72-xwYSahrSfvJi_khzP8gQRfMwpk+1Q@mail.gmail.com>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Andy Lutomirski <luto@amacapital.net>, "Zheng, Lv" <lv.zheng@intel.com>
+Cc: Andy Lutomirski <luto@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>
 
-On 1/10/2016 2:38 AM, Wolfram Sang wrote:
-> On Mon, Jan 04, 2016 at 09:17:35AM -0600, Suravee Suthikulpanit wrote:
->> The current driver uses input clock source frequency to calculate
->> values for [SS|FS]_[HC|LC] registers. However, when booting ACPI, we do not
->> currently have a good way to provide the frequency information.
->> Instead, we can leverage the SSCN and FFCN ACPI methods, which can be used
->> to directly provide these values. So, the clock information should
->> no longer be required during probing.
->>
->> However, since clk can be invalid, additional checks must be done where
->> we are making use of it.
->>
->> Signed-off-by: Mika Westerberg <mika.westerberg@linux.intel.com>
->> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
->> Tested-by: Loc Ho <lho@apm.com>
->
-> Applied to for-next, thanks! Also thanks to all reviewers and testers.
->
-Thank you,
-Suravee
+DQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogQW5keSBMdXRvbWlyc2tp
+IFttYWlsdG86bHV0b0BhbWFjYXBpdGFsLm5ldF0NCj4gU2VudDogV2VkbmVzZGF5LCBKYW51YXJ5
+IDEzLCAyMDE2IDI6MzIgUE0NCj4gVG86IFpoZW5nLCBMdg0KPiBDYzogQW5keSBMdXRvbWlyc2tp
+OyBSYWZhZWwgSi4gV3lzb2NraTsgTGludXggQUNQSTsgTW9vcmUsIFJvYmVydA0KPiBTdWJqZWN0
+OiBSZTogQUNQSUNBIHNlcmlhbGl6ZWQgb2JqZWN0cz8NCj4gDQo+IA0KPiBJIGZpbmFsbHkgaGFk
+IHNvbWUgdGltZSB0byBwbGF5IHdpdGggdGhlIEFDUEkgZGVidWdnZXIsIGFuZCBpdCdzDQo+IGZh
+bnRhc3RpYy4gIFRoYW5rcyENCj4gDQo+IE9uZSBtaW5vciBmZWF0dXJlIHJlcXVlc3Q6IGhhdmUg
+eW91IGNvbnNpZGVyZWQgYWRkaW5nIHJlYWRsaW5lIG9yIGxpYmVkaXQNCj4gc3VwcG9ydD8NCg0K
+V2UgYWN0dWFsbHkgaGF2ZSAicmVhZGxpbmUiIHN0eWxlIHN1cHBvcnQgaW4gYXQgbGVhc3QgYWNw
+aWV4ZWMgKHdoaWNoIHVzZXMNClRoZSBBTUwgZGVidWdnZXIpOg0KDQovKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+KioqKioqDQogKg0KICogRlVOQ1RJT046ICAgIE9zRW50ZXJMaW5lRWRpdE1vZGUsIE9zRXhpdExp
+bmVFZGl0TW9kZQ0KICoNCiAqIFBBUkFNRVRFUlM6ICBOb25lDQogKg0KICogUkVUVVJOOiAgICAg
+IE5vbmUNCiAqDQogKiBERVNDUklQVElPTjogRW50ZXIvRXhpdCB0aGUgcmF3IGNoYXJhY3RlciBp
+bnB1dCBtb2RlIGZvciB0aGUgdGVybWluYWwuDQogKg0KICogSW50ZXJhY3RpdmUgbGluZS1lZGl0
+aW5nIHN1cHBvcnQgZm9yIHRoZSBBTUwgZGVidWdnZXIuIFVzZWQgd2l0aCB0aGUNCiAqIGNvbW1v
+bi9hY2dldGxpbmUgbW9kdWxlLg0KICoNCiAqIHJlYWRsaW5lKCkgaXMgbm90IHVzZWQgYmVjYXVz
+ZSBvZiBub24tcG9ydGFiaWxpdHkuIEl0IGlzIG5vdCBhdmFpbGFibGUNCiAqIG9uIGFsbCBzeXN0
+ZW1zLCBhbmQgaWYgaXQgaXMsIG9mdGVuIHRoZSBwYWNrYWdlIG11c3QgYmUgbWFudWFsbHkgaW5z
+dGFsbGVkLg0KICoNCiAqIFRoZXJlZm9yZSwgd2UgdXNlIHRoZSBQT1NJWCB0Y2dldGF0dHIvdGNz
+ZXRhdHRyIGFuZCBkbyB0aGUgbWluaW1hbCBsaW5lDQogKiBlZGl0aW5nIHRoYXQgd2UgbmVlZCBp
+biBBY3BpT3NHZXRMaW5lLg0KICoNCiAqIElmIHRoZSBQT1NJWCB0Y2dldGF0dHIvdGNzZXRhdHRy
+IGludGVyZmFjZXMgYXJlIHVuYXZhaWxhYmxlLCB0aGVzZQ0KICogY2FsbHMgd2lsbCBhbHNvIHdv
+cms6DQogKiAgICAgRm9yIE9zRW50ZXJMaW5lRWRpdE1vZGU6IHN5c3RlbSAoInN0dHkgY2JyZWFr
+IC1lY2hvIikNCiAqICAgICBGb3IgT3NFeGl0TGluZUVkaXRNb2RlOiAgc3lzdGVtICgic3R0eSBj
+b29rZWQgZWNobyIpDQogKg0KICoqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioq
+KioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqKioqLw0KDQoNCj4gDQo+IC0tQW5k
+eQ0K
