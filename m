@@ -1,41 +1,35 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH V2 03/10] irqchip,GICv3,ACPI: Add redistributor support
- via GICC structures.
-Date: Wed, 13 Jan 2016 09:52:37 +0800
-Message-ID: <5695ADE5.7010501@linaro.org>
-References: <1450353133-15992-1-git-send-email-tn@semihalf.com>
- <1450353133-15992-4-git-send-email-tn@semihalf.com>
- <5694EB92.9030109@arm.com> <56952DA1.4030401@semihalf.com>
+From: "Yankejian (Hackim Yim)" <yankejian@huawei.com>
+Subject: Re: [PATCH] ACPI: Add phylib support code for mdio
+Date: Wed, 13 Jan 2016 11:03:19 +0800
+Message-ID: <5695BE77.3050002@huawei.com>
+References: <1449107683-69717-1-git-send-email-yankejian@huawei.com>
+ <20151203104724.GB11655@xora-haswell.xora.org.uk>
+ <5694EDA2.9080502@huawei.com>
+ <1452602374.2567989.489760178.5DD04117@webmail.messagingengine.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <56952DA1.4030401@semihalf.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>, Marc Zyngier <marc.zyngier@arm.com>, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, guohanjun@huawei.com, Suravee.Suthikulpanit@amd.com
-Cc: mw@semihalf.com, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, ddaney.cavm@gmail.com
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga01-in.huawei.com ([58.251.152.64]:46661 "EHLO
+	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752218AbcAMDFH (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 12 Jan 2016 22:05:07 -0500
+In-Reply-To: <1452602374.2567989.489760178.5DD04117@webmail.messagingengine.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Graeme Gregory <gg@slimlogic.co.uk>
+Cc: rjw@rjwysocki.net, lenb@kernel.org, davem@davemloft.net, liguozhu@huawei.com, yisen.zhuang@huawei.com, huangdaode@hisilicon.com, lipeng321@huawei.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, linuxarm@huawei.com
 
 
-
-On 2016/1/13 0:45, Tomasz Nowicki wrote:
-> On 12.01.2016 13:03, Marc Zyngier wrote:
+On 2016/1/12 20:39, Graeme Gregory wrote:
+> Thanks for the detailed explanation, I see now why you wish to do this
+> dynamically.
 >
->  > +    typer = readq_relaxed(redist_base + GICR_TYPER);
->  > +    /* don't map reserved page as it's buggy to access it */
->  > +    size = (typer & GICR_TYPER_VLPIS) ? SZ_64K * 3 : SZ_64K * 2;
+> Then I guess the job is to make sure that the PHY stuff is well defined
+> in _DSD. I know Redhat submitted a document.
 >
-> [...]
+> Thanks
 >
->> Also, please map the whole region for the
->> redistributor as we have on the DT side (4 64kB pages for VLPIS capable
->> redistributors).
->
-> Hanjun, is it something you had problem with?
+> Graeme
+Thank you.
 
-Yes, for D02, it use 3 64kB pages for GICv4, it removed the reserved
-page. In DT case, it has "stride" binding so it can support no standard
-cases, seems that we can introduce "stride" for ACPI too.
-
-Thanks
-Hanjun
