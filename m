@@ -1,48 +1,69 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH] acpi_video: Add disable_backlight_sysfs_if quirk for the Toshiba Satellite R830
-Date: Thu, 14 Jan 2016 14:24:39 +0100
-Message-ID: <1452777879-31604-1-git-send-email-hdegoede@redhat.com>
+From: Graeme Gregory <gg@slimlogic.co.uk>
+Subject: Re: [PATCH V3 00/21] MMCONFIG refactoring and support for ARM64 PCI
+ hostbridge init based on ACPI
+Date: Thu, 14 Jan 2016 13:44:40 +0000
+Message-ID: <20160114134440.GA8520@xora-haswell.xora.org.uk>
+References: <1452691267-32240-1-git-send-email-tn@semihalf.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:33617 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754138AbcANNYr (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 14 Jan 2016 08:24:47 -0500
+Received: from out3-smtp.messagingengine.com ([66.111.4.27]:33237 "EHLO
+	out3-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754035AbcANNoo (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 14 Jan 2016 08:44:44 -0500
+Received: from compute4.internal (compute4.nyi.internal [10.202.2.44])
+	by mailout.nyi.internal (Postfix) with ESMTP id A44D220ABF
+	for <linux-acpi@vger.kernel.org>; Thu, 14 Jan 2016 08:44:43 -0500 (EST)
+Content-Disposition: inline
+In-Reply-To: <1452691267-32240-1-git-send-email-tn@semihalf.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: To Do <entodoays@gmail.com>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>, stable@vger.kernel.org.#.4.2.x
+To: Tomasz Nowicki <tn@semihalf.com>
+Cc: bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, Stefano.Stabellini@eu.citrix.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com
 
-The Toshiba Satellite R830 needs disable_backlight_sysfs_if=1, just like
-the Toshiba Portege R830. Add a quirk for this.
+On Wed, Jan 13, 2016 at 02:20:46PM +0100, Tomasz Nowicki wrote:
+> From the functionality point of view this series might be split into the
+> following logic parts:
+> 1. Make MMCONFIG code arch-agnostic which allows all architectures to collect
+>    PCI config regions and used when necessary.
+> 2. Move non-arch specific bits to the core code.
+> 3. Use MMCONFIG code and implement generic ACPI based PCI host controller driver.
+> 4. Enable above driver on ARM64
+> 
+> Patches has been built on top of 4.4 and can be found here:
+> git@github.com:semihalf-nowicki-tomasz/linux.git (pci-acpi-v3)
+> 
+> NOTE, this patch set depends on Matthew's patches:
+> http://www.spinics.net/lists/linux-pci/msg45950.html
+> https://github.com/Vality/linux/tree/pci-fixes
+> 
+> This has been tested on Cavium ThunderX server and QEMU.
+> Any help in reviewing and testing is very appreciated.
 
-BugLink: https://bugzilla.kernel.org/show_bug.cgi?id=21012
-Cc: stable@vger.kernel.org # 4.2.x
-Tested-by: To Do <entodoays@gmail.com>
-Signed-off-by: Hans de Goede <hdegoede@redhat.com>
----
- drivers/acpi/acpi_video.c | 9 +++++++++
- 1 file changed, 9 insertions(+)
+I have tested this on my AMD Overdrive so
 
-diff --git a/drivers/acpi/acpi_video.c b/drivers/acpi/acpi_video.c
-index 408b014..a76f8be 100644
---- a/drivers/acpi/acpi_video.c
-+++ b/drivers/acpi/acpi_video.c
-@@ -496,6 +496,15 @@ static struct dmi_system_id video_dmi_table[] = {
- 		DMI_MATCH(DMI_PRODUCT_NAME, "PORTEGE R830"),
- 		},
- 	},
-+	{
-+	 /* https://bugzilla.kernel.org/show_bug.cgi?id=21012 */
-+	 .callback = video_disable_backlight_sysfs_if,
-+	 .ident = "Toshiba Satellite R830",
-+	 .matches = {
-+		DMI_MATCH(DMI_SYS_VENDOR, "TOSHIBA"),
-+		DMI_MATCH(DMI_PRODUCT_NAME, "SATELLITE R830"),
-+		},
-+	},
- 	/*
- 	 * Some machine's _DOD IDs don't have bit 31(Device ID Scheme) set
- 	 * but the IDs actually follow the Device ID Scheme.
--- 
-2.5.0
+Tested-by: Graeme Gregory <graeme.gregory@linaro.org>
+
+But to actually get my r8169 network card working I also need the
+following patch.
+
+diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+index 2fbf840..40e24e2 100644
+--- a/drivers/pci/probe.c
++++ b/drivers/pci/probe.c
+@@ -1717,7 +1717,7 @@ void pci_device_add(struct pci_dev *dev, struct pci_bus *bus)
+        set_dev_node(&dev->dev, pcibus_to_node(bus));
+        dev->dev.dma_mask = &dev->dma_mask;
+        dev->dev.dma_parms = &dev->dma_parms;
+-       dev->dev.coherent_dma_mask = 0xffffffffull;
++       dev->dev.coherent_dma_mask = DMA_BIT_MASK(64);
+        pci_dma_configure(dev);
+
+        pci_set_dma_max_seg_size(dev, 65536);
+
+I suspect we need to set coherent_dma_mask somewhere in the platform but I do
+not know where this should happen. Hopefully an ARM64 expert can help.
+
+Graeme
 
