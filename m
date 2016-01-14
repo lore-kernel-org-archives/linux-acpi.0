@@ -1,42 +1,51 @@
 From: Hans de Goede <hdegoede@redhat.com>
-Subject: [PATCH 3/4] acpi_video: Document acpi_video_handles_brightness_key_presses() a bit
-Date: Thu, 14 Jan 2016 09:41:47 +0100
-Message-ID: <1452760908-15965-3-git-send-email-hdegoede@redhat.com>
+Subject: [PATCH 2/4] acpi_video: Fix using an uninitialized mutex / list_head in acpi_video_handles_brightness_key_presses()
+Date: Thu, 14 Jan 2016 09:41:46 +0100
+Message-ID: <1452760908-15965-2-git-send-email-hdegoede@redhat.com>
 References: <1452760908-15965-1-git-send-email-hdegoede@redhat.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:56649 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751125AbcANImH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 14 Jan 2016 03:42:07 -0500
+Return-path: <platform-driver-x86-owner@vger.kernel.org>
 In-Reply-To: <1452760908-15965-1-git-send-email-hdegoede@redhat.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: platform-driver-x86-owner@vger.kernel.org
 To: Darren Hart <dvhart@infradead.org>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
 Cc: platform-driver-x86@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Adrien Schildknecht <adrien+dev@schischi.me>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, Hans de Goede <hdegoede@redhat.com>
+List-Id: linux-acpi@vger.kernel.org
 
-Document that acpi_video_handles_brightness_key_presses()'s return value
-may change over time and should not be cached.
+If acpi_video_handles_brightness_key_presses() was called before
+acpi_video_register(), it would use the video_list mutex / list_head
+uninitialized.
+
+This patch fixes this by using DEFINE_MUTEX / LIST_HEAD when declaring
+these, instead of initializing them runtime from acpi_video_register().
 
 Signed-off-by: Hans de Goede <hdegoede@redhat.com>
 ---
- include/acpi/video.h | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/acpi/acpi_video.c | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
 
-diff --git a/include/acpi/video.h b/include/acpi/video.h
-index f11d342..5ca2f2c 100644
---- a/include/acpi/video.h
-+++ b/include/acpi/video.h
-@@ -32,6 +32,10 @@ extern int acpi_video_get_edid(struct acpi_device *device, int type,
- 			       int device_id, void **edid);
- extern enum acpi_backlight_type acpi_video_get_backlight_type(void);
- extern void acpi_video_set_dmi_backlight_type(enum acpi_backlight_type type);
-+/*
-+ * Note: The value returned by acpi_video_handles_brightness_key_presses()
-+ * may change over time and should not be cached.
-+ */
- extern bool acpi_video_handles_brightness_key_presses(void);
- #else
- static inline int acpi_video_register(void) { return 0; }
+diff --git a/drivers/acpi/acpi_video.c b/drivers/acpi/acpi_video.c
+index d95aaa5..408b014 100644
+--- a/drivers/acpi/acpi_video.c
++++ b/drivers/acpi/acpi_video.c
+@@ -92,8 +92,8 @@ module_param(only_lcd, bool, 0444);
+ 
+ static int register_count;
+ static DEFINE_MUTEX(register_count_mutex);
+-static struct mutex video_list_lock;
+-static struct list_head video_bus_head;
++static DEFINE_MUTEX(video_list_lock);
++static LIST_HEAD(video_bus_head);
+ static int acpi_video_bus_add(struct acpi_device *device);
+ static int acpi_video_bus_remove(struct acpi_device *device);
+ static void acpi_video_bus_notify(struct acpi_device *device, u32 event);
+@@ -2067,9 +2067,6 @@ int acpi_video_register(void)
+ 		goto leave;
+ 	}
+ 
+-	mutex_init(&video_list_lock);
+-	INIT_LIST_HEAD(&video_bus_head);
+-
+ 	dmi_check_system(video_dmi_table);
+ 
+ 	ret = acpi_bus_register_driver(&acpi_video_bus);
 -- 
 2.5.0
-
