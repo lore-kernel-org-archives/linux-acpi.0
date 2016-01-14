@@ -1,250 +1,105 @@
-From: "Wang, Annie" <Annie.Wang@amd.com>
-Subject: RE: [PATCH 6/6] Serial:8250: New Port Type PORT_AMD_8250
-Date: Thu, 14 Jan 2016 06:23:20 +0000
-Message-ID: <BLUPR12MB043309237B1E48533D4E4B3C81CC0@BLUPR12MB0433.namprd12.prod.outlook.com>
-References: <1451885501-2710-1-git-send-email-annie.wang@amd.com>
- <1451885501-2710-7-git-send-email-annie.wang@amd.com>
- <20160105120137.GA19451@kuha.fi.intel.com>
+From: ankitprasad.r.sharma@intel.com
+Subject: [PATCH 11/11] drm/i915: Disable use of stolen area by
+	User when Intel RST is present
+Date: Thu, 14 Jan 2016 11:46:47 +0530
+Message-ID: <1452752207-30382-12-git-send-email-ankitprasad.r.sharma@intel.com>
+References: <1452752207-30382-1-git-send-email-ankitprasad.r.sharma@intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-bn1bon0059.outbound.protection.outlook.com ([157.56.111.59]:59104
-	"EHLO na01-bn1-obe.outbound.protection.outlook.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750757AbcANGXX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Jan 2016 01:23:23 -0500
-In-Reply-To: <20160105120137.GA19451@kuha.fi.intel.com>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+In-Reply-To: <1452752207-30382-1-git-send-email-ankitprasad.r.sharma@intel.com>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: intel-gfx@lists.freedesktop.org
+Cc: Ankitprasad Sharma <ankitprasad.r.sharma@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, shashidhar.hiremath@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, akash.goel@intel.com, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Heikki Krogerus <heikki.krogerus@linux.intel.com>
-Cc: Andy Shevchenko <andy.shevchenko@gmail.com>, Vinod Koul <vinod.koul@intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-serial@vger.kernel.org" <linux-serial@vger.kernel.org>, "dmaengine@vger.kernel.org" <dmaengine@vger.kernel.org>, Borislav Petkov <bp@alien8.de>, "Huang, Ray" <Ray.Huang@amd.com>, "Wan, Vincent" <Vincent.Wan@amd.com>, "Xue, Ken" <Ken.Xue@amd.com>, Robin Murphy <robin.murphy@arm.com>, Graeme Gregory <gg@slimlogic.co.uk>, "Li, Tony" <Tony.Li@amd.com>, "Yu, Xiangliang" <Xiangliang.Yu@amd.com>
 
-Hi Heikki,
-
->-----Original Message-----
->From: Heikki Krogerus [mailto:heikki.krogerus@linux.intel.com]
->Sent: Tuesday, January 05, 2016 8:02 PM
->To: Wang, Annie
->Cc: Andy Shevchenko; Vinod Koul; Mika Westerberg; Greg Kroah-Hartman; Rafael
->J. Wysocki; linux-acpi@vger.kernel.org; linux-kernel@vger.kernel.org; linux-
->serial@vger.kernel.org; dmaengine@vger.kernel.org; Borislav Petkov; Huang,
->Ray; Wan, Vincent; Xue, Ken; Robin Murphy; Graeme Gregory; Li, Tony; Yu,
->Xiangliang
->Subject: Re: [PATCH 6/6] Serial:8250: New Port Type PORT_AMD_8250
->
->Hi Hongcheng,
->
->My comments below..
->
->On Mon, Jan 04, 2016 at 01:31:41PM +0800, Wang Hongcheng wrote:
->> Set a new port type for AMD Carrizo.  Add has_pl330_dma to 8250_dw's
->> private data and init fcr,ier as well as dma rx size.
->>
->> Signed-off-by: Wang Hongcheng <annie.wang@amd.com>
->> ---
->>  drivers/acpi/acpi_apd.c               | 11 +++++++++++
->>  drivers/tty/serial/8250/8250_dw.c     | 15 +++++++++++++++
->>  drivers/tty/serial/8250/8250_port.c   |  9 +++++++++
->>  include/linux/platform_data/8250-dw.h |  8 ++++++++
->>  include/uapi/linux/serial_core.h      |  3 ++-
->>  include/uapi/linux/serial_reg.h       |  1 +
->>  6 files changed, 46 insertions(+), 1 deletion(-)  create mode 100644
->> include/linux/platform_data/8250-dw.h
->>
->> diff --git a/drivers/acpi/acpi_apd.c b/drivers/acpi/acpi_apd.c index
->> 1f16cca..e8e43fb 100644
->> --- a/drivers/acpi/acpi_apd.c
->> +++ b/drivers/acpi/acpi_apd.c
->> @@ -23,6 +23,7 @@
->>  #include <linux/dmaengine.h>
->>  #include <linux/interrupt.h>
->>  #include <linux/amba/pl330.h>
->> +#include <linux/platform_data/8250-dw.h>
->>
->>  #include "internal.h"
->>
->> @@ -56,6 +57,11 @@ static struct dma_pl330_platdata amd_pl330[] = {
->>  		.num = 0,
->>  	}
->>  };
->> +
->> +static struct plat_dw8250_data amd_dw8250 = {
->> +	.has_pl330_dma = 1,
->> +};
->
->Why do you need this? Can't you identify this platform in 8250_dw.c based on the
->ACPI ID?
->
->>  /**
->>   * struct apd_device_desc - a descriptor for apd device
->>   * @flags: device flags like %ACPI_APD_SYSFS, %ACPI_APD_PM @@ -115,6
->> +121,11 @@ static int acpi_apd_setup_quirks(struct apd_private_data *pdata)
->>  	char amba_devname[100];
->>  	int devnum;
->>
->> +	ret = platform_device_add_data(pdev, &amd_dw8250,
->> +				       sizeof(amd_dw8250));
->> +	if (ret)
->> +		goto resource_alloc_err;
->> +
->>  	resource = kzalloc(sizeof(*resource), GFP_KERNEL);
->>  	if (!resource)
->>  		goto resource_alloc_err;
->
->The above needs to be separated to its own patch in any case.
->
->
->> diff --git a/drivers/tty/serial/8250/8250_dw.c
->> b/drivers/tty/serial/8250/8250_dw.c
->> index a5d319e..e7d9f01 100644
->> --- a/drivers/tty/serial/8250/8250_dw.c
->> +++ b/drivers/tty/serial/8250/8250_dw.c
->> @@ -27,6 +27,7 @@
->>  #include <linux/clk.h>
->>  #include <linux/reset.h>
->>  #include <linux/pm_runtime.h>
->> +#include <linux/platform_data/8250-dw.h>
->>
->>  #include <asm/byteorder.h>
->>
->> @@ -66,6 +67,7 @@ struct dw8250_data {
->>
->>  	unsigned int		skip_autocfg:1;
->>  	unsigned int		uart_16550_compatible:1;
->> +	unsigned int		has_pl330_dma:1;
->
->I don't think there is any use for this flag. You can do all the platform specific
->tricks in a single quirk that you add to dw8250_quirks()..
->
->>  };
->>
->>  #define BYT_PRV_CLK			0x800
->> @@ -303,6 +305,7 @@ static void dw8250_quirks(struct uart_port *p,
->> struct dw8250_data *data)  static void dw8250_setup_port(struct
->> uart_port *p)  {
->>  	struct uart_8250_port *up = up_to_u8250p(p);
->> +	struct dw8250_data *data = p->private_data;
->>  	u32 reg;
->>
->>  	/*
->> @@ -326,6 +329,14 @@ static void dw8250_setup_port(struct uart_port *p)
->>  		p->flags |= UPF_FIXED_TYPE;
->>  		p->fifosize = DW_UART_CPR_FIFO_SIZE(reg);
->>  		up->capabilities = UART_CAP_FIFO;
->> +		if (data->has_pl330_dma) {
->> +			p->type = PORT_AMD_8250;
->> +
->> +			up->ier |= UART_IER_PTIME | UART_IER_THRI |
->> +				UART_IER_RLSI | UART_IER_RDI;
->> +			up->fcr |= UART_FCR_R_TRIG_10 |
->UART_FCR_T_TRIG_11;
->> +			up->tx_loadsz = p->fifosize / 2;
->
->So these need to be set in the quirk. Btw, now up->ier and up->fcr will just be
->forgotten when serial8250_register_8250_port() is called.
->
->The UART_IER_PTIME needs to be set based on THRE_MODE. Add a flag for that
->instead of the "has_pl330_dma", and set it in this function based on the
->THRE_MODE bit in CPR. Then I think the correct place to fix
->up->ier is actually our up->set_termios hook.
->
->> +		}
->>  	}
->>
->>  	if (reg & DW_UART_CPR_AFCE_MODE)
->> @@ -339,6 +350,7 @@ static int dw8250_probe(struct platform_device *pdev)
->>  	int irq = platform_get_irq(pdev, 0);
->>  	struct uart_port *p = &uart.port;
->>  	struct dw8250_data *data;
->> +	struct plat_dw8250_data *pdata = dev_get_platdata(&pdev->dev);
->>  	int err;
->>  	u32 val;
->>
->> @@ -468,6 +480,7 @@ static int dw8250_probe(struct platform_device *pdev)
->>  		p->handle_irq = NULL;
->>  	}
->>
->> +	data->has_pl330_dma = pdata ? pdata->has_pl330_dma : 0;
->>  	if (!data->skip_autocfg)
->>  		dw8250_setup_port(p);
->>
->> @@ -475,6 +488,8 @@ static int dw8250_probe(struct platform_device *pdev)
->>  	if (p->fifosize) {
->>  		data->dma.rxconf.src_maxburst = p->fifosize / 4;
->>  		data->dma.txconf.dst_maxburst = p->fifosize / 4;
->> +		data->dma.rx_size
->> +			= data->has_pl330_dma ? (p->fifosize / 2 + 2) : 0;
->
->This you also need to set in the quirk.
-
-Yes, I wil set that in the quirk.
-
->
->>  		uart.dma = &data->dma;
->>  	}
->>
->> diff --git a/drivers/tty/serial/8250/8250_port.c
->> b/drivers/tty/serial/8250/8250_port.c
->> index 52d82d2..b89a326 100644
->> --- a/drivers/tty/serial/8250/8250_port.c
->> +++ b/drivers/tty/serial/8250/8250_port.c
->> @@ -269,6 +269,15 @@ configured less than Maximum supported fifo bytes */
->>  		.rxtrig_bytes	= {1, 4, 8, 14},
->>  		.flags		= UART_CAP_FIFO,
->>  	},
->> +	[PORT_AMD_8250] = {
->> +		.name		= "AMD_8250",
->> +		.fifo_size	= 256,
->> +		.tx_loadsz	= 128,
->> +		.fcr		= UART_FCR_ENABLE_FIFO |
->UART_FCR_R_TRIG_10 |
->> +				UART_FCR_T_TRIG_11,
->> +		.rxtrig_bytes	= {1, 4, 8},
->> +		.flags		= UART_CAP_FIFO,
->> +	},
->
->There is no use for this new type. In fact, there is no use for any new types. If we
->need to modify fcr for example, we can do that in a custom up->startup or up-
->>set_termios hook.
->
->>  };
->>
->>  /* Uart divisor latch read */
->> diff --git a/include/linux/platform_data/8250-dw.h
->> b/include/linux/platform_data/8250-dw.h
->> new file mode 100644
->> index 0000000..97cdb9d
->> --- /dev/null
->> +++ b/include/linux/platform_data/8250-dw.h
->> @@ -0,0 +1,8 @@
->> +#ifndef _PLATFORM_DATA_8250_DW_H
->> +#define _PLATFORM_DATA_8250_DW_H
->> +
->> +struct plat_dw8250_data {
->> +	unsigned int has_pl330_dma:1;
->> +};
->> +
->> +#endif
->
->Let's not add any new driver specific platform data files unless we absolutely have
->to. In this case there is no need for it. If you really need to deliver this kind of
->detail to the driver, you need to deliver it to the driver with build-in device
->property. So instead of
->platform_device_add_data() you should use device_add_property_set().
->Or actually, in linux-next there is already helper for platform bus called
->platform_device_add_properties().
->
->But I don't think there is any need for this kind of detail. You can just identify your
->platform in 8250_dw.c based on the ACPI ID, no?
-
-Agree.
-
-The uart and uart dma could work well, if I just set dma.rx_size in dw8250_quirks. 
-
-Thank you for your comments.  
-
-Regards,
-Hongcheng(Annie)
-
+RnJvbTogQW5raXRwcmFzYWQgU2hhcm1hIDxhbmtpdHByYXNhZC5yLnNoYXJtYUBpbnRlbC5jb20+
+CgpUaGUgQklPUyBSYXBpZFN0YXJ0VGVjaG5vbG9neSBtYXkgY29ycnVwdCB0aGUgc3RvbGVuIG1l
+bW9yeSBhY3Jvc3MgUzMKc3VzcGVuZCBkdWUgdG8gdW5hbGFybWVkIGhpYmVybmF0aW9uLCBpbiB3
+aGljaCBjYXNlIHdlIHdpbGwgbm90IGJlIGFibGUKdG8gcHJlc2VydmUgdGhlIFVzZXIgZGF0YSBz
+dG9yZWQgaW4gdGhlIHN0b2xlbiByZWdpb24uIEhlbmNlIHRoaXMgcGF0Y2gKdHJpZXMgdG8gaWRl
+bnRpZnkgcHJlc2VuY2Ugb2YgdGhlIFJTVCBkZXZpY2Ugb24gdGhlIEFDUEkgYnVzLCBhbmQKZGlz
+YWJsZXMgdXNlIG9mIHN0b2xlbiBtZW1vcnkgKGZvciBwZXJzaXN0ZW50IGRhdGEpIGlmIGZvdW5k
+LgoKdjI6IFVwZGF0ZWQgY29tbWVudCwgdXBkYXRlZC9jb3JyZWN0ZWQgbmV3IGZ1bmN0aW9ucyBw
+cml2YXRlIHRvIGRyaXZlcgooQ2hyaXMvVHZydGtvKQoKU2lnbmVkLW9mZi1ieTogQW5raXRwcmFz
+YWQgU2hhcm1hIDxhbmtpdHByYXNhZC5yLnNoYXJtYUBpbnRlbC5jb20+CkNjOiAiUmFmYWVsIEou
+IFd5c29ja2kiIDxyandAcmp3eXNvY2tpLm5ldD4KQ2M6IExlbiBCcm93biA8bGVuYkBrZXJuZWwu
+b3JnPgpDYzogbGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmcKQ2M6IGxpbnV4LWtlcm5lbEB2Z2Vy
+Lmtlcm5lbC5vcmcKLS0tCiBkcml2ZXJzL2dwdS9kcm0vaTkxNS9pOTE1X2Rydi5oICAgICAgICB8
+IDExICsrKysrKysrKysrCiBkcml2ZXJzL2dwdS9kcm0vaTkxNS9pOTE1X2dlbS5jICAgICAgICB8
+ICA4ICsrKysrKysrCiBkcml2ZXJzL2dwdS9kcm0vaTkxNS9pOTE1X2dlbV9zdG9sZW4uYyB8IDE0
+ICsrKysrKysrKysrKysrCiBkcml2ZXJzL2dwdS9kcm0vaTkxNS9pbnRlbF9hY3BpLmMgICAgICB8
+IDIwICsrKysrKysrKysrKysrKysrKysrCiA0IGZpbGVzIGNoYW5nZWQsIDUzIGluc2VydGlvbnMo
+KykKCmRpZmYgLS1naXQgYS9kcml2ZXJzL2dwdS9kcm0vaTkxNS9pOTE1X2Rydi5oIGIvZHJpdmVy
+cy9ncHUvZHJtL2k5MTUvaTkxNV9kcnYuaAppbmRleCA4MjliNmYxLi4yMGQ1OGJhIDEwMDY0NAot
+LS0gYS9kcml2ZXJzL2dwdS9kcm0vaTkxNS9pOTE1X2Rydi5oCisrKyBiL2RyaXZlcnMvZ3B1L2Ry
+bS9pOTE1L2k5MTVfZHJ2LmgKQEAgLTEzMDcsNiArMTMwNywxNiBAQCBzdHJ1Y3QgaTkxNV9nZW1f
+bW0gewogCSAqLwogCWJvb2wgYnVzeTsKIAorCS8qKgorCSAqIFN0b2xlbiB3aWxsIGJlIGxvc3Qg
+dXBvbiBoaWJlcm5hdGUgKGFzIHRoZSBtZW1vcnkgaXMgdW5wb3dlcmVkKS4KKwkgKiBBY3Jvc3Mg
+cmVzdW1lLCB3ZSBleHBlY3Qgc3RvbGVuIHRvIGJlIGludGFjdCAtIGhvd2V2ZXIsIGl0IG1heQor
+CSAqIGFsc28gYmUgdXRpbGlsaXNlZCBieSB0aGlyZCBwYXJ0aWVzIChlLmcuIEludGVsIFJhcGlk
+U3RhcnQKKwkgKiBUZWNobm9sb2d5KSBhbmQgaWYgc28gd2UgaGF2ZSB0byBhc3N1bWUgdGhhdCBh
+bnkgZGF0YSBzdG9yZWQgaW4KKwkgKiBzdG9sZW4gYWNyb3NzIHJlc3VtZSBpcyBsb3N0IGFuZCB3
+ZSBzZXQgdGhpcyBmbGFnIHRvIGluZGljYXRlIHRoYXQKKwkgKiB0aGUgc3RvbGVuIG1lbW9yeSBp
+cyB2b2xhdGlsZS4KKwkgKi8KKwlib29sIG5vbnZvbGF0aWxlX3N0b2xlbjsKKwogCS8qIHRoZSBp
+bmRpY2F0b3IgZm9yIGRpc3BhdGNoIHZpZGVvIGNvbW1hbmRzIG9uIHR3byBCU0QgcmluZ3MgKi8K
+IAlpbnQgYnNkX3JpbmdfZGlzcGF0Y2hfaW5kZXg7CiAKQEAgLTM0MTksNiArMzQyOSw3IEBAIGlu
+dGVsX29wcmVnaW9uX25vdGlmeV9hZGFwdGVyKHN0cnVjdCBkcm1fZGV2aWNlICpkZXYsIHBjaV9w
+b3dlcl90IHN0YXRlKQogI2VuZGlmCiAKIC8qIGludGVsX2FjcGkuYyAqLworYm9vbCBpbnRlbF9k
+ZXRlY3RfYWNwaV9yc3Qodm9pZCk7CiAjaWZkZWYgQ09ORklHX0FDUEkKIGV4dGVybiB2b2lkIGlu
+dGVsX3JlZ2lzdGVyX2RzbV9oYW5kbGVyKHZvaWQpOwogZXh0ZXJuIHZvaWQgaW50ZWxfdW5yZWdp
+c3Rlcl9kc21faGFuZGxlcih2b2lkKTsKZGlmZiAtLWdpdCBhL2RyaXZlcnMvZ3B1L2RybS9pOTE1
+L2k5MTVfZ2VtLmMgYi9kcml2ZXJzL2dwdS9kcm0vaTkxNS9pOTE1X2dlbS5jCmluZGV4IDc3YWMx
+MjguLmZkNjVkOTUgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvZ3B1L2RybS9pOTE1L2k5MTVfZ2VtLmMK
+KysrIGIvZHJpdmVycy9ncHUvZHJtL2k5MTUvaTkxNV9nZW0uYwpAQCAtMzk1LDggKzM5NSwxNiBA
+QCBzdGF0aWMgc3RydWN0IGRybV9pOTE1X2dlbV9vYmplY3QgKgogaTkxNV9nZW1fYWxsb2Nfb2Jq
+ZWN0X3N0b2xlbihzdHJ1Y3QgZHJtX2RldmljZSAqZGV2LCBzaXplX3Qgc2l6ZSkKIHsKIAlzdHJ1
+Y3QgZHJtX2k5MTVfZ2VtX29iamVjdCAqb2JqOworCXN0cnVjdCBkcm1faTkxNV9wcml2YXRlICpk
+ZXZfcHJpdiA9IGRldi0+ZGV2X3ByaXZhdGU7CiAJaW50IHJldDsKIAorCWlmICghZGV2X3ByaXYt
+Pm1tLm5vbnZvbGF0aWxlX3N0b2xlbikgeworCQkvKiBTdG9sZW4gbWF5IGJlIG92ZXJ3cml0dGVu
+IGJ5IGV4dGVybmFsIHBhcnRpZXMKKwkJICogc28gdW5zdWl0YWJsZSBmb3IgcGVyc2lzdGVudCB1
+c2VyIGRhdGEuCisJCSAqLworCQlyZXR1cm4gRVJSX1BUUigtRU5PREVWKTsKKwl9CisKIAltdXRl
+eF9sb2NrKCZkZXYtPnN0cnVjdF9tdXRleCk7CiAJb2JqID0gaTkxNV9nZW1fb2JqZWN0X2NyZWF0
+ZV9zdG9sZW4oZGV2LCBzaXplKTsKIAlpZiAoSVNfRVJSKG9iaikpCmRpZmYgLS1naXQgYS9kcml2
+ZXJzL2dwdS9kcm0vaTkxNS9pOTE1X2dlbV9zdG9sZW4uYyBiL2RyaXZlcnMvZ3B1L2RybS9pOTE1
+L2k5MTVfZ2VtX3N0b2xlbi5jCmluZGV4IDMzNWExZWYuLjRmNDQ1MzEgMTAwNjQ0Ci0tLSBhL2Ry
+aXZlcnMvZ3B1L2RybS9pOTE1L2k5MTVfZ2VtX3N0b2xlbi5jCisrKyBiL2RyaXZlcnMvZ3B1L2Ry
+bS9pOTE1L2k5MTVfZ2VtX3N0b2xlbi5jCkBAIC00ODIsNiArNDgyLDIwIEBAIGludCBpOTE1X2dl
+bV9pbml0X3N0b2xlbihzdHJ1Y3QgZHJtX2RldmljZSAqZGV2KQogCSAqLwogCWRybV9tbV9pbml0
+KCZkZXZfcHJpdi0+bW0uc3RvbGVuLCAwLCBkZXZfcHJpdi0+Z3R0LnN0b2xlbl91c2FibGVfc2l6
+ZSk7CiAKKwkvKiBJZiB0aGUgc3RvbGVuIHJlZ2lvbiBjYW4gYmUgbW9kaWZpZWQgYmVoaW5kIG91
+ciBiYWNrcyB1cG9uIHN1c3BlbmQsCisJICogdGhlbiB3ZSBjYW5ub3QgdXNlIGl0IHRvIHN0b3Jl
+IG5vbnZvbGF0aWxlIGNvbnRlbnRzIChpLmUgdXNlciBkYXRhKQorCSAqIGFzIGl0IHdpbGwgYmUg
+Y29ycnVwdGVkIHVwb24gcmVzdW1lLgorCSAqLworCWRldl9wcml2LT5tbS5ub252b2xhdGlsZV9z
+dG9sZW4gPSB0cnVlOworI2lmZGVmIENPTkZJR19TVVNQRU5ECisJaWYgKGludGVsX2RldGVjdF9h
+Y3BpX3JzdCgpKSB7CisJCS8qIEJJT1NlcyB1c2luZyBSYXBpZFN0YXJ0IFRlY2hub2xvZ3kgaGF2
+ZSBiZWVuIHJlcG9ydGVkCisJCSAqIHRvIG92ZXJ3cml0ZSBzdG9sZW4gYWNyb3NzIFMzLCBub3Qg
+anVzdCBTNC4KKwkJICovCisJCWRldl9wcml2LT5tbS5ub252b2xhdGlsZV9zdG9sZW4gPSBmYWxz
+ZTsKKwl9CisjZW5kaWYKKwogCXJldHVybiAwOwogfQogCmRpZmYgLS1naXQgYS9kcml2ZXJzL2dw
+dS9kcm0vaTkxNS9pbnRlbF9hY3BpLmMgYi9kcml2ZXJzL2dwdS9kcm0vaTkxNS9pbnRlbF9hY3Bp
+LmMKaW5kZXggZWI2MzhhMS4uYTgyN2IzMSAxMDA2NDQKLS0tIGEvZHJpdmVycy9ncHUvZHJtL2k5
+MTUvaW50ZWxfYWNwaS5jCisrKyBiL2RyaXZlcnMvZ3B1L2RybS9pOTE1L2ludGVsX2FjcGkuYwpA
+QCAtMjMsNiArMjMsMTEgQEAgc3RhdGljIGNvbnN0IHU4IGludGVsX2RzbV9ndWlkW10gPSB7CiAJ
+MHgwZiwgMHgxMywgMHgxNywgMHhiMCwgMHgxYywgMHgyYwogfTsKIAorc3RhdGljIGNvbnN0IHN0
+cnVjdCBhY3BpX2RldmljZV9pZCBpcnN0X2lkc1tdID0geworCXsiSU5UMzM5MiIsIDB9LAorCXsi
+IiwgMH0KK307CisKIHN0YXRpYyBjaGFyICppbnRlbF9kc21fcG9ydF9uYW1lKHU4IGlkKQogewog
+CXN3aXRjaCAoaWQpIHsKQEAgLTE2MiwzICsxNjcsMTggQEAgdm9pZCBpbnRlbF9yZWdpc3Rlcl9k
+c21faGFuZGxlcih2b2lkKQogdm9pZCBpbnRlbF91bnJlZ2lzdGVyX2RzbV9oYW5kbGVyKHZvaWQp
+CiB7CiB9CisKK3N0YXRpYyBpbnQgaW50ZWxfbWF0Y2hfZGV2aWNlKHN0cnVjdCBkZXZpY2UgKmRl
+diwgdm9pZCogaWRzKQoreworCWlmIChhY3BpX21hdGNoX2RldmljZShpcnN0X2lkcywgZGV2KSkK
+KwkJcmV0dXJuIDE7CisKKwlyZXR1cm4gMDsKK30KK2Jvb2wgaW50ZWxfZGV0ZWN0X2FjcGlfcnN0
+KHZvaWQpCit7CisJaWYgKGJ1c19mb3JfZWFjaF9kZXYoJmFjcGlfYnVzX3R5cGUsIE5VTEwsIE5V
+TEwsIGludGVsX21hdGNoX2RldmljZSkpCisJCXJldHVybiB0cnVlOzsKKworCXJldHVybiBmYWxz
+ZTsKK30KLS0gCjEuOS4xCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fXwpJbnRlbC1nZnggbWFpbGluZyBsaXN0CkludGVsLWdmeEBsaXN0cy5mcmVlZGVza3Rv
+cC5vcmcKaHR0cDovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2ludGVs
+LWdmeAo=
