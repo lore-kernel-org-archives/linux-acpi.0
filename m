@@ -1,48 +1,110 @@
-From: ankitprasad.r.sharma@intel.com
-Subject: [PATCH 10/11] acpi: Export acpi_bus_type
-Date: Thu, 14 Jan 2016 11:46:46 +0530
-Message-ID: <1452752207-30382-11-git-send-email-ankitprasad.r.sharma@intel.com>
-References: <1452752207-30382-1-git-send-email-ankitprasad.r.sharma@intel.com>
+From: Jayachandran C <jchandra@broadcom.com>
+Subject: [PATCH v6 0/5] ACPI based PCI support for arm64
+Date: Thu, 14 Jan 2016 13:02:36 +0530
+Message-ID: <1452756761-29584-1-git-send-email-jchandra@broadcom.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: base64
-Return-path: <intel-gfx-bounces@lists.freedesktop.org>
-In-Reply-To: <1452752207-30382-1-git-send-email-ankitprasad.r.sharma@intel.com>
-List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
-List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
-List-Post: <mailto:intel-gfx@lists.freedesktop.org>
-List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
-List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
- <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
-Errors-To: intel-gfx-bounces@lists.freedesktop.org
-Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
-To: intel-gfx@lists.freedesktop.org
-Cc: Ankitprasad Sharma <ankitprasad.r.sharma@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, shashidhar.hiremath@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, akash.goel@intel.com, Len Brown <lenb@kernel.org>
+Content-Type: text/plain
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-gw1-out.broadcom.com ([216.31.210.62]:21667 "EHLO
+	mail-gw1-out.broadcom.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750805AbcANHIY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Jan 2016 02:08:24 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-pci@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Jayachandran C <jchandra@broadcom.com>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tn@semihalf.com>, xen-devel@lists.xenproject.org
 
-RnJvbTogQW5raXRwcmFzYWQgU2hhcm1hIDxhbmtpdHByYXNhZC5yLnNoYXJtYUBpbnRlbC5jb20+
-CgpTb21lIG1vZHVsZXMsIGxpa2UgaTkxNS5rbywgbmVlZHMgdG8gZGV0ZWN0IHdoZW4gY2VydGFp
-biBBQ1BJIGZlYXR1cmVzCmFyZSBhY3RpdmUgaW5vcmRlciB0byBwcmV2ZW50IGNvcnJ1cHRpb24g
-b24gY29udGVuZGVkIHJlc291cmNlcy4KSW4gcGFydGljdWxhciwgdXNlIG9mIEJJT1MgUmFwaWRT
-dGFydCBUZWNobm9sb2d5IG1heSBjb3JydXB0IHRoZSBjb250ZW50cwpvZiB0aGUgcmVzZXJ2ZWQg
-Z3JhcGhpY3MgbWVtb3J5LCBkdWUgdG8gdW5hbGFybWVkIGhpYmVybmF0aW9uLiBJbiB3aGljaApj
-YXNlIGk5MTUua28gY2Fubm90IGFzc3VtZSB0aGF0IGl0IChyZXNlcnZlZCBnZnggbWVtb3J5KSBy
-ZW1haW5zCnVubW9kaWZpZWQgYW5kIG11c3QgcmVjcmVhdGUgdGVoIGNvbnRlbnRzIGFuZCBpbXBv
-cnRhbnRseSBub3QgdXNlIGl0IHRvCnN0b3JlIHVucmVjb3ZlcmFibGUgdXNlciBkYXRhLgoKU2ln
-bmVkLW9mZi1ieTogQW5raXRwcmFzYWQgU2hhcm1hIDxhbmtpdHByYXNhZC5yLnNoYXJtYUBpbnRl
-bC5jb20+CkNjOiAiUmFmYWVsIEouIFd5c29ja2kiIDxyandAcmp3eXNvY2tpLm5ldD4KQ2M6IExl
-biBCcm93biA8bGVuYkBrZXJuZWwub3JnPgpDYzogbGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmcK
-Q2M6IGxpbnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmcKLS0tCiBkcml2ZXJzL2FjcGkvYnVzLmMg
-fCAxICsKIDEgZmlsZSBjaGFuZ2VkLCAxIGluc2VydGlvbigrKQoKZGlmZiAtLWdpdCBhL2RyaXZl
-cnMvYWNwaS9idXMuYyBiL2RyaXZlcnMvYWNwaS9idXMuYwppbmRleCBhMjEyY2VmLi42OTUwOWM3
-IDEwMDY0NAotLS0gYS9kcml2ZXJzL2FjcGkvYnVzLmMKKysrIGIvZHJpdmVycy9hY3BpL2J1cy5j
-CkBAIC04MTQsNiArODE0LDcgQEAgc3RydWN0IGJ1c190eXBlIGFjcGlfYnVzX3R5cGUgPSB7CiAJ
-LnJlbW92ZQkJPSBhY3BpX2RldmljZV9yZW1vdmUsCiAJLnVldmVudAkJPSBhY3BpX2RldmljZV91
-ZXZlbnQsCiB9OworRVhQT1JUX1NZTUJPTF9HUEwoYWNwaV9idXNfdHlwZSk7CiAKIC8qIC0tLS0t
-LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
-LS0tLS0tLS0tLS0tCiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIEluaXRpYWxpemF0aW9u
-L0NsZWFudXAKLS0gCjEuOS4xCgpfX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19fX19f
-X19fX19fX19fXwpJbnRlbC1nZnggbWFpbGluZyBsaXN0CkludGVsLWdmeEBsaXN0cy5mcmVlZGVz
-a3RvcC5vcmcKaHR0cDovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xpc3RpbmZvL2lu
-dGVsLWdmeAo=
+This patchset provides a generic ACPI based PCI host controller
+implementation and uses it on arm64.
+
+The first patch moves the common code to handle MCFG ACPI table from
+arch/x86 to drivers/acpi/pci_mcfg.c. The last patch in the patchset
+provides the generic implementation of an ACPI based PCI host
+controller with a new file drivers/acpi/pci_host_acpi.c. The other
+patches are to fix up arm64 and ACPI code to work with these two
+patches.
+
+The pci host controller implementation keeps a reference to
+pci_mmcfg_region entry so that config space access is done with a
+simple mapping and generic PCI config read/write. There is also an
+implementation of raw_pci_read/raw_pci_write provided by walking the
+pci_mmcfg_list
+
+The patchset is against 4.4, but it can be applied to pci/next
+with a very minor fixup.  This is tested with arm64 QEMU and OVMF
+and on x86 with qemu.
+
+More testing or comments are welcome. The idea is to provide a
+simpler alternative for ACPI PCI support in arm64, any feedback
+from PCI or ACPI maintainers would be appreciated on this front.
+
+Thanks,
+JC.
+
+v5->v6:
+ - fix arm64 with xen compile issue reported by kbuild bot
+
+v4->v5:
+ - Fix arm build issue reported by the kbuild bot
+ - Use config_enabled instead of ifdef in pci_mcfg.c
+
+v3->v4:
+ - Handle suggestions from Arnd Bergmann <arnd@arndb.de>
+    * move the implementation of host controller to drivers/acpi
+      under config option CONFIG_ACPI_PCI_HOST_GENERIC
+    * remove unnecessary arch hooks (this done as much as possible
+      without affecting the scope of the patch, will need another
+      separate patchset for the rest).
+    * remove pcibios_assign_resources fs_initcall that was added
+ - fixup domain_nr assignment code, and move ACPI companion set
+   to PCI code.
+ - Call map resource correctly in setup code
+ - fix kbuild robot report
+ - More testing
+
+v2->v3:
+ - Move maintenance of the pci_mmcfg_list to drivers/acpi/pci_mcfg.c
+   without changing x86 logic
+ - use the pci_mmcfg_list in ARM64 implementation
+ - provide raw_pci_read/raw_pci_write
+
+v1->v2:
+ - use CONFIG_PCI_MMCONFIG on arm64, provide a weak implementation
+   of pci_mmcfg_late_init for arm64.
+ - The real implementation of pci_mmcfg_late_init is in pci-host-acpi.c
+   and it will save the MCFG table entries to an array. Earlier this
+   was done with an arch_init call
+ - remove unneeded pci_bus_add_devices call and fix MCFG saving code
+ - Added a patch to ACPI pci_root.c to handle arm64 PCI IO resources
+
+Jayachandran C (5):
+  APCI: MCFG: Move mmcfg_list management to drivers/acpi
+  PCI: Handle ACPI companion and domain number
+  ACPI: PCI: Support platforms that need pci_remap_iospace
+  arm64: pci: Add ACPI support
+  PCI: ACPI: Add a generic ACPI based host controller
+
+ arch/arm64/Kconfig             |   3 +
+ arch/arm64/kernel/pci.c        |  34 ++++-
+ arch/x86/include/asm/pci_x86.h |  24 +---
+ arch/x86/pci/mmconfig-shared.c | 269 +++++------------------------------
+ arch/x86/pci/mmconfig_32.c     |   1 +
+ arch/x86/pci/mmconfig_64.c     |   1 +
+ arch/x86/pci/numachip.c        |   1 +
+ drivers/acpi/Kconfig           |   8 ++
+ drivers/acpi/Makefile          |   2 +
+ drivers/acpi/pci_host_acpi.c   | 186 ++++++++++++++++++++++++
+ drivers/acpi/pci_mcfg.c        | 312 +++++++++++++++++++++++++++++++++++++++++
+ drivers/acpi/pci_root.c        |  62 +++++++-
+ drivers/acpi/resource.c        |   2 +
+ drivers/pci/pci.c              |  15 +-
+ drivers/pci/probe.c            |   2 +
+ drivers/xen/pci.c              |   5 +-
+ include/linux/pci-acpi.h       |  59 ++++++++
+ 17 files changed, 717 insertions(+), 269 deletions(-)
+ create mode 100644 drivers/acpi/pci_host_acpi.c
+ create mode 100644 drivers/acpi/pci_mcfg.c
+
+-- 
+1.9.1
+
