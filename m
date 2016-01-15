@@ -1,37 +1,42 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 4/4] ACPICA: Update version to 20160108
-Date: Fri, 15 Jan 2016 08:17:20 +0800
-Message-ID: <2b30f80b3e2bad424b772a3ce59e161dae907fda.1452741212.git.lv.zheng@intel.com>
+Subject: [PATCH 3/4] ACPICA: Silence a -Wbad-function-cast warning when acpi_uintptr_t is 'uintptr_t'.
+Date: Fri, 15 Jan 2016 08:17:11 +0800
+Message-ID: <66c17dfa39ec6efcb0797dba02bef38996f672e9.1452741212.git.lv.zheng@intel.com>
 References: <cover.1452741211.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1452741211.git.lv.zheng@intel.com>
 Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
-Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Bob Moore <robert.moore@intel.com>
+Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Sascha Wildner <saw@online.de>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Bob Moore <robert.moore@intel.com>
+From: Sascha Wildner <saw@online.de>
 
-Version 20160108
-
-Signed-off-by: Bob Moore <robert.moore@intel.com>
+Signed-off-by: Sascha Wildner <saw@online.de>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- include/acpi/acpixf.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/acpica/dbdisply.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index 1cc4085..c96621e 100644
---- a/include/acpi/acpixf.h
-+++ b/include/acpi/acpixf.h
-@@ -46,7 +46,7 @@
+diff --git a/drivers/acpi/acpica/dbdisply.c b/drivers/acpi/acpica/dbdisply.c
+index f10c158..502bb58 100644
+--- a/drivers/acpi/acpica/dbdisply.c
++++ b/drivers/acpi/acpica/dbdisply.c
+@@ -599,12 +599,14 @@ void acpi_db_display_calling_tree(void)
  
- /* Current ACPICA subsystem version in YYYYMMDD format */
+ void acpi_db_display_object_type(char *object_arg)
+ {
++	acpi_size arg;
+ 	acpi_handle handle;
+ 	struct acpi_device_info *info;
+ 	acpi_status status;
+ 	u32 i;
  
--#define ACPI_CA_VERSION                 0x20151218
-+#define ACPI_CA_VERSION                 0x20160108
+-	handle = ACPI_TO_POINTER(strtoul(object_arg, NULL, 16));
++	arg = strtoul(object_arg, NULL, 16);
++	handle = ACPI_TO_POINTER(arg);
  
- #include <acpi/acconfig.h>
- #include <acpi/actypes.h>
+ 	status = acpi_get_object_info(handle, &info);
+ 	if (ACPI_FAILURE(status)) {
 -- 
 1.7.10
