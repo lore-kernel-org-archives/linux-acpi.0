@@ -1,62 +1,39 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH 4/4] Revert "thinkpad_acpi: Use acpi_video_handles_brightness_key_presses()"
-Date: Fri, 15 Jan 2016 01:52:01 +0100
-Message-ID: <5899370.z9zLpjS80K@vostro.rjw.lan>
-References: <1452760908-15965-1-git-send-email-hdegoede@redhat.com> <1452760908-15965-4-git-send-email-hdegoede@redhat.com> <20160114231856.GA20294@malice.jf.intel.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+From: Vishal Verma <vishal.l.verma@intel.com>
+Subject: [PATCH 0/3] misc badblocks/poison list cleanup
+Date: Thu, 14 Jan 2016 18:31:53 -0700
+Message-ID: <1452821516-26788-1-git-send-email-vishal.l.verma@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:59986 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1757169AbcAOAvZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 14 Jan 2016 19:51:25 -0500
-In-Reply-To: <20160114231856.GA20294@malice.jf.intel.com>
+Received: from mga14.intel.com ([192.55.52.115]:21756 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751150AbcAOBcF (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 14 Jan 2016 20:32:05 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Darren Hart <dvhart@infradead.org>
-Cc: Hans de Goede <hdegoede@redhat.com>, Henrique de Moraes Holschuh <ibm-acpi@hmh.eng.br>, platform-driver-x86@vger.kernel.org, ibm-acpi-devel@lists.sourceforge.net, Adrien Schildknecht <adrien+dev@schischi.me>, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: Vishal Verma <vishal.l.verma@intel.com>, linux-acpi@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, Linda Knippers <linda.knippers@hpe.com>
 
-On Thursday, January 14, 2016 03:18:56 PM Darren Hart wrote:
-> On Thu, Jan 14, 2016 at 09:41:48AM +0100, Hans de Goede wrote:
-> > acpi_video_handles_brightness_key_presses()'s may return false if the i915
-> > driver is not loaded yet when thinkpad_acpi loads, and then return true
-> > after the i915 driver has loaded. This means that thinkpad_acpi cannot
-> > use it as is since thinkpad_acpi caches the return value.
-> > 
-> > This reverts commit 7714687a2b2d ("thinkpad_acpi: Use
-> > acpi_video_handles_brightness_key_presses()").
-> > 
-> 
-> Rafael, I presume this would go through your tree?
+Some incremental patches:
 
-Yes, I'll take care of this, thanks!
+Patch 1 re-adds checks for absence of a valid badblocks struct in the
+badblocks API
 
-> No objection from me. Henrique?
-> 
-> Acked-by: Darren Hart <dvhart@linux.intel.com>
-> 
-> > Signed-off-by: Hans de Goede <hdegoede@redhat.com>
-> > ---
-> >  drivers/platform/x86/thinkpad_acpi.c | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
-> > index f453d5d..0bed473 100644
-> > --- a/drivers/platform/x86/thinkpad_acpi.c
-> > +++ b/drivers/platform/x86/thinkpad_acpi.c
-> > @@ -3488,7 +3488,7 @@ static int __init hotkey_init(struct ibm_init_struct *iibm)
-> >  	/* Do not issue duplicate brightness change events to
-> >  	 * userspace. tpacpi_detect_brightness_capabilities() must have
-> >  	 * been called before this point  */
-> > -	if (acpi_video_handles_brightness_key_presses()) {
-> > +	if (acpi_video_get_backlight_type() != acpi_backlight_vendor) {
-> >  		pr_info("This ThinkPad has standard ACPI backlight "
-> >  			"brightness control, supported by the ACPI "
-> >  			"video driver\n");
-> 
-> 
+Patch 2 moves ARS calls from the nfit driver to core
+
+Patch 3 changes the status checking for ARS_START and ARS_STATUS from
+using magic numbers to enums.
+
+Vishal Verma (3):
+  badblocks: add null checks for bb in the badblocks api
+  libnvdimm, nfit: move nvdimm poison search to core
+  libnvdimm: use enums for ARS statuses
+
+ block/badblocks.c         |  21 +++--
+ drivers/acpi/nfit.c       | 198 +---------------------------------------------
+ drivers/nvdimm/core.c     | 197 ++++++++++++++++++++++++++++++++++++++++++++-
+ drivers/nvdimm/nd-core.h  |  13 +++
+ include/linux/libnvdimm.h |   3 +-
+ 5 files changed, 227 insertions(+), 205 deletions(-)
 
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+2.5.0
+
