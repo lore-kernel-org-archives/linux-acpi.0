@@ -1,98 +1,94 @@
 From: Vishal Verma <vishal.l.verma@intel.com>
-Subject: [PATCH 1/3] badblocks: add null checks for bb in the badblocks api
-Date: Thu, 14 Jan 2016 18:31:54 -0700
-Message-ID: <1452821516-26788-2-git-send-email-vishal.l.verma@intel.com>
+Subject: [PATCH 3/3] libnvdimm: use enums for ARS statuses
+Date: Thu, 14 Jan 2016 18:31:56 -0700
+Message-ID: <1452821516-26788-4-git-send-email-vishal.l.verma@intel.com>
 References: <1452821516-26788-1-git-send-email-vishal.l.verma@intel.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:21756 "EHLO mga14.intel.com"
+Received: from mga14.intel.com ([192.55.52.115]:8358 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751289AbcAOBcI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 14 Jan 2016 20:32:08 -0500
+	id S1751320AbcAOBcJ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 14 Jan 2016 20:32:09 -0500
 In-Reply-To: <1452821516-26788-1-git-send-email-vishal.l.verma@intel.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-nvdimm@lists.01.org
 Cc: Vishal Verma <vishal.l.verma@intel.com>, linux-acpi@vger.kernel.org, Dan Williams <dan.j.williams@intel.com>, Linda Knippers <linda.knippers@hpe.com>
 
-The move from gendisk wrappers for badblocks functions to
-directly using them meant we lost some checks for !disk->bb
-Re-add those checks into the badblocks functions so all
-users get the checks.
+Replace the status checking in ARS_START, ARS_STATUS with enums for
+readability.
 
 Signed-off-by: Vishal Verma <vishal.l.verma@intel.com>
 ---
- block/badblocks.c | 21 ++++++++++++++++-----
- 1 file changed, 16 insertions(+), 5 deletions(-)
+ drivers/nvdimm/core.c    | 17 +++++++----------
+ drivers/nvdimm/nd-core.h | 13 +++++++++++++
+ 2 files changed, 20 insertions(+), 10 deletions(-)
 
-diff --git a/block/badblocks.c b/block/badblocks.c
-index 7be53cb..aa5e0a1 100644
---- a/block/badblocks.c
-+++ b/block/badblocks.c
-@@ -68,6 +68,9 @@ int badblocks_check(struct badblocks *bb, sector_t s, int sectors,
- 	sector_t target = s + sectors;
- 	unsigned seq;
+diff --git a/drivers/nvdimm/core.c b/drivers/nvdimm/core.c
+index 69994036..489414f 100644
+--- a/drivers/nvdimm/core.c
++++ b/drivers/nvdimm/core.c
+@@ -542,15 +542,14 @@ static int ars_do_start(struct nvdimm_bus_descriptor *nd_desc,
+ 		if (rc)
+ 			return rc;
+ 		switch (cmd->status) {
+-		case 0:
++		case ND_ARS_START_SUCCESS:
+ 			return 0;
+-		case 1:
++		case ND_ARS_START_UNSUPP:
+ 			/* ARS unsupported, but we should never get here */
+ 			return 0;
+-		case 2:
++		case ND_ARS_START_INVALID_PARAM:
+ 			return -EINVAL;
+-		case 3:
+-			/* ARS is in progress */
++		case ND_ARS_START_IN_PROGRESS:
+ 			msleep(1000);
+ 			break;
+ 		default:
+@@ -572,14 +571,12 @@ static int ars_get_status(struct nvdimm_bus_descriptor *nd_desc,
  
-+	if (!bb)
-+		return 0;
+ 		/* Check extended status (Upper two bytes) */
+ 		switch (cmd->status >> 16) {
+-		case 0:
++		case ND_ARS_STATUS_EXT_SUCCESS:
+ 			return 0;
+-		case 1:
+-			/* ARS is in progress */
++		case ND_ARS_STATUS_EXT_IN_PROGRESS:
+ 			msleep(1000);
+ 			break;
+-		case 2:
+-			/* No ARS performed for the current boot */
++		case ND_ARS_STATUS_EXT_NOT_DONE:
+ 			return 0;
+ 		default:
+ 			return -ENXIO;
+diff --git a/drivers/nvdimm/nd-core.h b/drivers/nvdimm/nd-core.h
+index 1d1500f..c4a2744 100644
+--- a/drivers/nvdimm/nd-core.h
++++ b/drivers/nvdimm/nd-core.h
+@@ -43,6 +43,19 @@ struct nvdimm {
+ 	int id;
+ };
+ 
++enum {
++	ND_ARS_START_SUCCESS = 0,
++	ND_ARS_START_UNSUPP = 1,
++	ND_ARS_START_INVALID_PARAM = 2,
++	ND_ARS_START_IN_PROGRESS = 3,
++};
 +
- 	if (bb->shift > 0) {
- 		/* round the start down, and the end up */
- 		s >>= bb->shift;
-@@ -156,7 +159,7 @@ int badblocks_set(struct badblocks *bb, sector_t s, int sectors,
- 	int rv = 0;
- 	unsigned long flags;
- 
--	if (bb->shift < 0)
-+	if (!bb || bb->shift < 0)
- 		/* badblocks are disabled */
- 		return 0;
- 
-@@ -321,6 +324,9 @@ int badblocks_clear(struct badblocks *bb, sector_t s, int sectors)
- 	sector_t target = s + sectors;
- 	int rv = 0;
- 
-+	if (!bb)
-+		return 0;
++enum {
++	ND_ARS_STATUS_EXT_SUCCESS = 0,
++	ND_ARS_STATUS_EXT_IN_PROGRESS = 1,
++	ND_ARS_STATUS_EXT_NOT_DONE = 2,
++};
 +
- 	if (bb->shift > 0) {
- 		/* When clearing we round the start up and the end down.
- 		 * This should not matter as the shift should align with
-@@ -415,7 +421,7 @@ EXPORT_SYMBOL_GPL(badblocks_clear);
-  */
- void ack_all_badblocks(struct badblocks *bb)
- {
--	if (bb->page == NULL || bb->changed)
-+	if (!bb || bb->page == NULL || bb->changed)
- 		/* no point even trying */
- 		return;
- 	write_seqlock_irq(&bb->lock);
-@@ -451,11 +457,13 @@ ssize_t badblocks_show(struct badblocks *bb, char *page, int unack)
- {
- 	size_t len;
- 	int i;
--	u64 *p = bb->page;
-+	u64 *p;
- 	unsigned seq;
- 
--	if (bb->shift < 0)
--		return 0;
-+	if (!bb || bb->shift < 0)
-+		return sprintf(page, "\n");
-+
-+	p = bb->page;
- 
- retry:
- 	seq = read_seqbegin(&bb->lock);
-@@ -504,6 +512,9 @@ ssize_t badblocks_store(struct badblocks *bb, const char *page, size_t len,
- 	int length;
- 	char newline;
- 
-+	if (!bb)
-+		return -ENXIO;
-+
- 	switch (sscanf(page, "%llu %d%c", &sector, &length, &newline)) {
- 	case 3:
- 		if (newline != '\n')
+ bool is_nvdimm(struct device *dev);
+ bool is_nd_pmem(struct device *dev);
+ bool is_nd_blk(struct device *dev);
 -- 
 2.5.0
 
