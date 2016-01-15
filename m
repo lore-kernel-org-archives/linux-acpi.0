@@ -1,93 +1,74 @@
-From: Shannon Zhao <zhaoshenglong@huawei.com>
-Subject: [PATCH v2 01/16] Xen: ACPI: Hide UART used by Xen
-Date: Fri, 15 Jan 2016 14:55:14 +0800
-Message-ID: <1452840929-19612-2-git-send-email-zhaoshenglong@huawei.com>
-References: <1452840929-19612-1-git-send-email-zhaoshenglong@huawei.com>
+From: Hanjun Guo <hanjun.guo@linaro.org>
+Subject: Re: [PATCH V3 19/21] pci, acpi: Support for ACPI based generic PCI
+ host controller init
+Date: Fri, 15 Jan 2016 17:57:45 +0800
+Message-ID: <5698C299.2080702@linaro.org>
+References: <1452691267-32240-1-git-send-email-tn@semihalf.com>
+ <1452691267-32240-20-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1452840929-19612-1-git-send-email-zhaoshenglong@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, ard.biesheuvel@linaro.org, stefano.stabellini@citrix.com, david.vrabel@citrix.com
-Cc: catalin.marinas@arm.com, will.deacon@arm.com, mark.rutland@arm.com, julien.grall@citrix.com, xen-devel@lists.xen.org, devicetree@vger.kernel.org, linux-efi@vger.kernel.org, linux-kernel@vger.kernel.org, shannon.zhao@linaro.org, peter.huangpeng@huawei.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "open list:ACPI" <linux-acpi@vger.kernel.org>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <1452691267-32240-20-git-send-email-tn@semihalf.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Tomasz Nowicki <tn@semihalf.com>, bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, Stefano.Stabellini@eu.citrix.com
+Cc: robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com
 List-Id: linux-acpi@vger.kernel.org
 
-From: Shannon Zhao <shannon.zhao@linaro.org>
+Hi Tomasz,
 
-ACPI 6.0 introduces a new table STAO to list the devices which are used
-by Xen and can't be used by Dom0. On Xen virtual platforms, the physical
-UART is used by Xen. So here it hides UART from Dom0.
+On 2016/1/13 21:21, Tomasz Nowicki wrote:
+> Because of two patch series:
+> 1. Jiang Liu's common interface to support PCI host controller init
+> 2. MMCONFIG refactoring (part of this patch set)
+> now we can think about generic ACPI based PCI host controller init
+> implementation out of arch/ directory.
+>
+> These calls use information from MCFG table (PCI config space regions)
+> and _CRS method (IO/irq resources) to initialize PCI hostbridge.
+>
+> TBD: We are still not sure whether we should reassign resources
+> after PCI bus enumeration or trust firmware to do all that work for
+> us properly.
+>
+> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+> CC: Arnd Bergmann <arnd@arndb.de>
+> CC: Catalin Marinas <catalin.marinas@arm.com>
+> CC: Liviu Dudau <Liviu.Dudau@arm.com>
+> CC: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>
+> CC: Will Deacon <will.deacon@arm.com>
+> Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+> Tested-by: Jeremy Linton <jeremy.linton@arm.com>
+> ---
+>   drivers/acpi/Kconfig    |   5 ++
+>   drivers/acpi/pci_root.c | 131 ++++++++++++++++++++++++++++++++++++++++++++++++
+>   2 files changed, 136 insertions(+)
+>
+> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> index c3664be..e315061 100644
+> --- a/drivers/acpi/Kconfig
+> +++ b/drivers/acpi/Kconfig
+> @@ -335,6 +335,11 @@ config ACPI_PCI_SLOT
+>   	  i.e., segment/bus/device/function tuples, with physical slots in
+>   	  the system.  If you are unsure, say N.
+>
+> +config ACPI_PCI_HOST_GENERIC
+> +	bool "Generic ACPI PCI host controller"
+> +	help
+> +	  Say Y here if you want to support generic ACPI PCI host controller.
 
-Signed-off-by: Shannon Zhao <shannon.zhao@linaro.org>
----
-CC: "Rafael J. Wysocki" <rjw@rjwysocki.net> (supporter:ACPI)
-CC: Len Brown <lenb@kernel.org> (supporter:ACPI)
-CC: linux-acpi@vger.kernel.org (open list:ACPI)
----
- drivers/acpi/bus.c | 30 ++++++++++++++++++++++++++++++
- 1 file changed, 30 insertions(+)
+Since x86 and IA64 will not use ACPI_PCI_HOST_GENERIC in this
+patch, it should be defined as
 
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index a212cef..d7a559f 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -46,6 +46,7 @@ ACPI_MODULE_NAME("bus");
- struct acpi_device *acpi_root;
- struct proc_dir_entry *acpi_root_dir;
- EXPORT_SYMBOL(acpi_root_dir);
-+static u64 spcr_uart_addr;
- 
- #ifdef CONFIG_X86
- #ifdef CONFIG_ACPI_CUSTOM_DSDT
-@@ -93,6 +94,17 @@ acpi_status acpi_bus_get_status_handle(acpi_handle handle,
- {
- 	acpi_status status;
- 
-+	if (spcr_uart_addr != 0xffffffffffffffff) {
-+		u64 addr;
-+
-+		status = acpi_evaluate_integer(handle, METHOD_NAME__ADR, NULL,
-+					       &addr);
-+		if (ACPI_SUCCESS(status) && (addr == spcr_uart_addr)) {
-+			*sta = 0;
-+			return AE_OK;
-+		}
-+	}
-+
- 	status = acpi_evaluate_integer(handle, "_STA", NULL, sta);
- 	if (ACPI_SUCCESS(status))
- 		return AE_OK;
-@@ -1069,6 +1081,8 @@ EXPORT_SYMBOL_GPL(acpi_kobj);
- static int __init acpi_init(void)
- {
- 	int result;
-+	acpi_status status;
-+	struct acpi_table_stao *stao_ptr;
- 
- 	if (acpi_disabled) {
- 		printk(KERN_INFO PREFIX "Interpreter disabled.\n");
-@@ -1081,6 +1095,22 @@ static int __init acpi_init(void)
- 		acpi_kobj = NULL;
- 	}
- 
-+	/* If there is STAO table, check whether it needs to ignore the UART
-+	 * device in SPCR table.
-+	 */
-+	spcr_uart_addr = 0xffffffffffffffff;
-+	status = acpi_get_table(ACPI_SIG_STAO, 0,
-+				(struct acpi_table_header **)&stao_ptr);
-+	if (ACPI_SUCCESS(status)) {
-+		if (stao_ptr->ignore_uart) {
-+			struct acpi_table_spcr *spcr_ptr;
-+
-+			acpi_get_table(ACPI_SIG_SPCR, 0,
-+				       (struct acpi_table_header **)&spcr_ptr);
-+			spcr_uart_addr = spcr_ptr->serial_port.address;
-+		}
-+	}
-+
- 	init_acpi_device_notify();
- 	result = acpi_bus_init();
- 	if (result) {
--- 
-2.0.4
+config ACPI_PCI_HOST_GENERIC
+	bool
+
+and select for ARCHs, or will default y on x86 and IA64 too.
+
+Compiling the kernel on a IA64 machine, will send out the
+result when it's ready.
+
+Thanks
+Hanjun
