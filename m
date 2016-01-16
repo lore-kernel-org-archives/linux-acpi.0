@@ -1,354 +1,216 @@
 From: =?utf-8?B?TWljaGHFgiBLxJlwaWXFhA==?= <kernel@kempniu.pl>
-Subject: Re: [PATCH 05/14] wmi: Turn WMI into a bus driver
-Date: Sat, 16 Jan 2016 13:56:39 +0100
-Message-ID: <20160116125639.GA7816@eudyptula.hq.kempniu.pl>
+Subject: Re: [PATCH 08/14] wmi: Probe data objects for read and write
+ capabilities
+Date: Sat, 16 Jan 2016 14:11:11 +0100
+Message-ID: <20160116131111.GB7816@eudyptula.hq.kempniu.pl>
 References: <cover.1448931782.git.luto@kernel.org>
- <e51677868b69e4bcf8847b340c92673e7e92b20d.1448931782.git.luto@kernel.org>
+ <6027f0563e82e3ca5265c6b29777636a9b8dc244.1448931782.git.luto@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lb0-f194.google.com ([209.85.217.194]:34778 "EHLO
+	mail-lb0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751633AbcAPNLO (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 16 Jan 2016 08:11:14 -0500
+Received: by mail-lb0-f194.google.com with SMTP id oe3so5794046lbb.1
+        for <linux-acpi@vger.kernel.org>; Sat, 16 Jan 2016 05:11:13 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <e51677868b69e4bcf8847b340c92673e7e92b20d.1448931782.git.luto@kernel.org>
-Sender: platform-driver-x86-owner@vger.kernel.org
+In-Reply-To: <6027f0563e82e3ca5265c6b29777636a9b8dc244.1448931782.git.luto@kernel.org>
+Sender: linux-acpi-owner@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 To: Andy Lutomirski <luto@kernel.org>
 Cc: Darren Hart <dvhart@infradead.org>, Matthew Garrett <mjg59@srcf.ucam.org>, linux-acpi@vger.kernel.org, platform-driver-x86@vger.kernel.org, Mario Limonciello <mario_limonciello@dell.com>, Pali =?utf-8?B?Um9ow6Fy?= <pali.rohar@gmail.com>
-List-Id: linux-acpi@vger.kernel.org
 
-> WMI is logically a bus: the WMI driver binds to an ACPI node (or
-> more than one), and each instance of the WMI driver enumerates its
-> children and hopes that drivers will attach to the children that are
-> useful.
+> My laptop has one RW data object, one RO data object, and one
+> totally inaccessible data object.  Check for the existence of the
+> accessor methods and report in sysfs.
 >=20
-> This patch gives WMI a driver model bus type and the ability to
-> match to drivers.  The bus itself is a device in the new "wmi_bus"
-> class, and all of the individual WMI devices are slotted into the
-> device hierarchy correctly.
+> The docs also permit WQxx getters for single-instance objects to
+> take no parameters.  Probe for that as well to avoid ACPICA warnings
+> about mismatched signatures.
 >=20
 > Signed-off-by: Andy Lutomirski <luto@kernel.org>
 > ---
->  drivers/platform/x86/wmi.c | 198 +++++++++++++++++++++++++++++++++++=
-----------
->  include/linux/wmi.h        |  47 +++++++++++
->  2 files changed, 202 insertions(+), 43 deletions(-)
->  create mode 100644 include/linux/wmi.h
+>  drivers/platform/x86/wmi.c | 94 ++++++++++++++++++++++++++++++++++++=
+++++++++--
+>  include/linux/wmi.h        |  6 +++
+>  2 files changed, 96 insertions(+), 4 deletions(-)
 >=20
 > diff --git a/drivers/platform/x86/wmi.c b/drivers/platform/x86/wmi.c
-> index dcb34a5f5669..2fa9493bd35c 100644
+> index 5571ae7354a1..49be61207c4a 100644
 > --- a/drivers/platform/x86/wmi.c
 > +++ b/drivers/platform/x86/wmi.c
-> @@ -37,14 +37,13 @@
->  #include <linux/acpi.h>
->  #include <linux/slab.h>
->  #include <linux/module.h>
-> +#include <linux/wmi.h>
-> =20
->  ACPI_MODULE_NAME("wmi");
->  MODULE_AUTHOR("Carlos Corbacho");
->  MODULE_DESCRIPTION("ACPI-WMI Mapping Driver");
->  MODULE_LICENSE("GPL");
-> =20
-> -#define ACPI_WMI_CLASS "wmi"
-> -
->  static LIST_HEAD(wmi_block_list);
-> =20
->  struct guid_block {
-> @@ -61,12 +60,12 @@ struct guid_block {
->  };
-> =20
->  struct wmi_block {
-> +	struct wmi_device dev;
->  	struct list_head list;
->  	struct guid_block gblock;
+> @@ -66,6 +66,8 @@ struct wmi_block {
 >  	struct acpi_device *acpi_device;
 >  	wmi_notify_handler handler;
 >  	void *handler_data;
-> -	struct device dev;
+> +
+> +	bool read_takes_no_args;	/* only defined if readable */
 >  };
 > =20
 > =20
-> @@ -101,8 +100,8 @@ static const struct acpi_device_id wmi_device_ids=
-[] =3D {
->  MODULE_DEVICE_TABLE(acpi, wmi_device_ids);
-> =20
->  static struct acpi_driver acpi_wmi_driver =3D {
-> -	.name =3D "wmi",
-> -	.class =3D ACPI_WMI_CLASS,
-> +	.name =3D "acpi-wmi",
-> +	.owner =3D THIS_MODULE,
->  	.ids =3D wmi_device_ids,
->  	.ops =3D {
->  		.add =3D acpi_wmi_add,
-> @@ -623,77 +622,146 @@ bool wmi_has_guid(const char *guid_string)
+> @@ -216,6 +218,25 @@ static bool find_guid(const char *guid_string, s=
+truct wmi_block **out)
+>  	return false;
 >  }
->  EXPORT_SYMBOL_GPL(wmi_has_guid);
 > =20
-> +static struct wmi_block *dev_to_wblock(struct device *dev)
+> +static int get_subobj_info(acpi_handle handle, const char *pathname,
+> +			   struct acpi_device_info *info)
 > +{
-> +	return container_of(dev, struct wmi_block, dev.dev);
+> +	acpi_handle subobj_handle;
+> +	acpi_status status;
+> +
+> +	status =3D acpi_get_handle(handle, (char *)pathname, &subobj_handle=
+);
+> +	if (status =3D=3D AE_NOT_FOUND)
+> +		return -ENOENT;
+> +	else if (ACPI_FAILURE(status))
+> +		return -EIO;
+> +
+> +	status =3D acpi_get_object_info(subobj_handle, &info);
+
+acpi_get_object_info() allocates the returned buffer itself.  The latte=
+r
+should then subsequently be freed by the caller.  One solution is to
+change get_subobj_info() so that it takes a struct acpi_device_info **
+as an argument, which should then be passed to acpi_get_object_info().
+See also below.
+
+> +	if (ACPI_FAILURE(status))
+> +		return -EIO;
+> +
+> +	return 0;
 > +}
 > +
-> +static struct wmi_device *dev_to_wdev(struct device *dev)
-> +{
-> +	return container_of(dev, struct wmi_device, dev);
-> +}
-> +
->  /*
->   * sysfs interface
->   */
->  static ssize_t modalias_show(struct device *dev, struct device_attri=
-bute *attr,
->  			     char *buf)
+>  static acpi_status wmi_method_enable(struct wmi_block *wblock, int e=
+nable)
 >  {
-> -	struct wmi_block *wblock;
-> -
-> -	wblock =3D dev_get_drvdata(dev);
-> -	if (!wblock) {
-> -		strcat(buf, "\n");
-> -		return strlen(buf);
-> -	}
-> +	struct wmi_block *wblock =3D dev_to_wblock(dev);
+>  	struct guid_block *block =3D NULL;
+> @@ -339,6 +360,9 @@ struct acpi_buffer *out)
+>  	wq_params[0].type =3D ACPI_TYPE_INTEGER;
+>  	wq_params[0].integer.value =3D instance;
 > =20
->  	return sprintf(buf, "wmi:%pUL\n", wblock->gblock.guid);
+> +	if (instance =3D=3D 0 && wblock->read_takes_no_args)
+> +		input.count =3D 0;
+> +
+>  	/*
+>  	 * If ACPI_WMI_EXPENSIVE, call the relevant WCxx method first to
+>  	 * enable collection.
+> @@ -706,11 +730,37 @@ static ssize_t object_id_show(struct device *de=
+v, struct device_attribute *attr,
 >  }
->  static DEVICE_ATTR_RO(modalias);
+>  static DEVICE_ATTR_RO(object_id);
 > =20
-> +static ssize_t guid_show(struct device *dev, struct device_attribute=
- *attr,
-> +			 char *buf)
+> -static struct attribute *wmi_data_or_method_attrs[] =3D {
+> +static ssize_t readable_show(struct device *dev, struct device_attri=
+bute *attr,
+> +			     char *buf)
 > +{
-> +	struct wmi_block *wblock =3D dev_to_wblock(dev);
+> +	struct wmi_device *wdev =3D dev_to_wdev(dev);
 > +
-> +	return sprintf(buf, "%pUL\n", wblock->gblock.guid);
+> +	return sprintf(buf, "%d\n", (int)wdev->readable);
 > +}
-> +static DEVICE_ATTR_RO(guid);
+> +static DEVICE_ATTR_RO(readable);
 > +
->  static struct attribute *wmi_attrs[] =3D {
->  	&dev_attr_modalias.attr,
-> +	&dev_attr_guid.attr,
+> +static ssize_t writeable_show(struct device *dev, struct device_attr=
+ibute *attr,
+> +			      char *buf)
+> +{
+> +	struct wmi_device *wdev =3D dev_to_wdev(dev);
+> +
+> +	return sprintf(buf, "%d\n", (int)wdev->writeable);
+> +}
+> +static DEVICE_ATTR_RO(writeable);
+> +
+> +static struct attribute *wmi_data_attrs[] =3D {
+>  	&dev_attr_object_id.attr,
+> +	&dev_attr_readable.attr,
+> +	&dev_attr_writeable.attr,
 >  	NULL,
 >  };
->  ATTRIBUTE_GROUPS(wmi);
+> -ATTRIBUTE_GROUPS(wmi_data_or_method);
+> +ATTRIBUTE_GROUPS(wmi_data);
+> +
+> +static struct attribute *wmi_method_attrs[] =3D {
+> +	&dev_attr_object_id.attr,
+> +	NULL,
+> +};
+> +ATTRIBUTE_GROUPS(wmi_method);
 > =20
 >  static int wmi_dev_uevent(struct device *dev, struct kobj_uevent_env=
  *env)
 >  {
-> -	char guid_string[37];
-> -
-> -	struct wmi_block *wblock;
-> +	struct wmi_block *wblock =3D dev_to_wblock(dev);
+> @@ -809,13 +859,13 @@ static struct device_type wmi_type_event =3D {
 > =20
-> -	if (add_uevent_var(env, "MODALIAS=3D"))
-> +	if (add_uevent_var(env, "MODALIAS=3Dwmi:%pUL", wblock->gblock.guid)=
-)
->  		return -ENOMEM;
-> =20
-> -	wblock =3D dev_get_drvdata(dev);
-> -	if (!wblock)
-> +	if (add_uevent_var(env, "WMI_GUID=3D%pUL", wblock->gblock.guid))
->  		return -ENOMEM;
-> =20
-> -	sprintf(guid_string, "%pUL", wblock->gblock.guid);
-> +	return 0;
-> +}
-> +
-> +static void wmi_dev_release(struct device *dev)
-> +{
-> +	struct wmi_block *wblock =3D dev_to_wblock(dev);
-> +
-> +	kfree(wblock);
-> +}
-> +
-> +static int wmi_dev_match(struct device *dev, struct device_driver *d=
-river)
-> +{
-> +	struct wmi_driver *wmi_driver =3D
-> +		container_of(driver, struct wmi_driver, driver);
-> +	struct wmi_block *wblock =3D dev_to_wblock(dev);
-> +	const struct wmi_device_id *id =3D wmi_driver->id_table;
-> =20
-> -	strcpy(&env->buf[env->buflen - 1], "wmi:");
-> -	memcpy(&env->buf[env->buflen - 1 + 4], guid_string, 36);
-> -	env->buflen +=3D 40;
-> +	while (id->guid_string) {
-> +		u8 tmp[16], driver_guid[16];
-> +
-> +		wmi_parse_guid(id->guid_string, tmp);
-> +		wmi_swap_bytes(tmp, driver_guid);
-> +		if (!memcmp(driver_guid, wblock->gblock.guid, 16))
-> +			return 1;
-> +
-> +		id++;
-> +	}
-> =20
->  	return 0;
->  }
-> =20
-> -static void wmi_dev_free(struct device *dev)
-> +int wmi_dev_probe(struct device *dev)
-
-Can be static.
-
->  {
-> -	struct wmi_block *wmi_block =3D container_of(dev, struct wmi_block,=
- dev);
-> +	struct wmi_block *wblock =3D dev_to_wblock(dev);
-> +	struct wmi_driver *wdriver =3D
-> +		container_of(dev->driver, struct wmi_driver, driver);
-> +	int ret =3D 0;
-> +
-> +	if (ACPI_FAILURE(wmi_method_enable(wblock, 1)))
-> +		dev_warn(dev, "failed to enable device -- probing anyway\n");
-> +
-> +	if (wdriver->probe) {
-> +		ret =3D wdriver->probe(dev_to_wdev(dev));
-> +		if (ret !=3D 0 && ACPI_FAILURE(wmi_method_enable(wblock, 0)))
-> +			dev_warn(dev, "failed to disable device\n");
-> +	}
-> +
-> +	return ret;
-> +}
-> +
-> +int wmi_dev_remove(struct device *dev)
-
-Can be static.
-
-> +{
-> +	struct wmi_block *wblock =3D dev_to_wblock(dev);
-> +	struct wmi_driver *wdriver =3D
-> +		container_of(dev->driver, struct wmi_driver, driver);
-> +	int ret =3D 0;
-> +
-> +	if (wdriver->remove)
-> +		ret =3D wdriver->remove(dev_to_wdev(dev));
-> +
-> +	if (ACPI_FAILURE(wmi_method_enable(wblock, 0)))
-> +		dev_warn(dev, "failed to disable device\n");
-> =20
-> -	kfree(wmi_block);
-> +	return ret;
->  }
-> =20
-> -static struct class wmi_class =3D {
-> +static struct class wmi_bus_class =3D {
-> +	.name =3D "wmi_bus",
-> +};
-> +
-> +static struct bus_type wmi_bus_type =3D {
->  	.name =3D "wmi",
-> -	.dev_release =3D wmi_dev_free,
-> -	.dev_uevent =3D wmi_dev_uevent,
->  	.dev_groups =3D wmi_groups,
-> +	.match =3D wmi_dev_match,
-> +	.uevent =3D wmi_dev_uevent,
-> +	.probe =3D wmi_dev_probe,
-> +	.remove =3D wmi_dev_remove,
+>  static struct device_type wmi_type_method =3D {
+>  	.name =3D "method",
+> -	.groups =3D wmi_data_or_method_groups,
+> +	.groups =3D wmi_method_groups,
+>  	.release =3D wmi_dev_release,
 >  };
 > =20
-> -static int wmi_create_device(const struct guid_block *gblock,
-> +static int wmi_create_device(struct device *wmi_bus_dev,
-> +			     const struct guid_block *gblock,
->  			     struct wmi_block *wblock,
->  			     struct acpi_device *device)
->  {
-> -	wblock->dev.class =3D &wmi_class;
-> +	wblock->dev.dev.bus =3D &wmi_bus_type;
-> +	wblock->dev.dev.parent =3D wmi_bus_dev;
+>  static struct device_type wmi_type_data =3D {
+>  	.name =3D "data",
+> -	.groups =3D wmi_data_or_method_groups,
+> +	.groups =3D wmi_data_groups,
+>  	.release =3D wmi_dev_release,
+>  };
 > =20
-> -	dev_set_name(&wblock->dev, "%pUL", gblock->guid);
-> +	dev_set_name(&wblock->dev.dev, "%pUL", gblock->guid);
-> =20
-> -	dev_set_drvdata(&wblock->dev, wblock);
-> +	wblock->dev.dev.release =3D wmi_dev_release;
-> =20
-> -	return device_register(&wblock->dev);
-> +	return device_register(&wblock->dev.dev);
->  }
-> =20
->  static void wmi_free_devices(struct acpi_device *device)
-> @@ -704,8 +772,8 @@ static void wmi_free_devices(struct acpi_device *=
-device)
->  	list_for_each_entry_safe(wblock, next, &wmi_block_list, list) {
->  		if (wblock->acpi_device =3D=3D device) {
->  			list_del(&wblock->list);
-> -			if (wblock->dev.class)
-> -				device_unregister(&wblock->dev);
-> +			if (wblock->dev.dev.bus)
-> +				device_unregister(&wblock->dev.dev);
->  			else
->  				kfree(wblock);
->  		}
-> @@ -737,7 +805,7 @@ static bool guid_already_parsed(struct acpi_devic=
-e *device,
->  /*
->   * Parse the _WDG method for the GUID data blocks
->   */
-> -static int parse_wdg(struct acpi_device *device)
-> +static int parse_wdg(struct device *wmi_bus_dev, struct acpi_device =
-*device)
->  {
->  	struct acpi_buffer out =3D {ACPI_ALLOCATE_BUFFER, NULL};
->  	union acpi_object *obj;
-> @@ -781,7 +849,8 @@ static int parse_wdg(struct acpi_device *device)
->  		  for device creation.
->  		*/
->  		if (!guid_already_parsed(device, gblock[i].guid)) {
-> -			retval =3D wmi_create_device(&gblock[i], wblock, device);
-> +			retval =3D wmi_create_device(wmi_bus_dev, &gblock[i],
-> +						   wblock, device);
->  			if (retval) {
->  				wmi_free_devices(device);
->  				goto out_free_pointer;
-> @@ -881,12 +950,15 @@ static int acpi_wmi_remove(struct acpi_device *=
-device)
->  	acpi_remove_address_space_handler(device->handle,
->  				ACPI_ADR_SPACE_EC, &acpi_wmi_ec_space_handler);
->  	wmi_free_devices(device);
-> +	device_unregister((struct device *)acpi_driver_data(device));
-> +	device->driver_data =3D NULL;
-> =20
->  	return 0;
->  }
-> =20
->  static int acpi_wmi_add(struct acpi_device *device)
->  {
-> +	struct device *wmi_bus_dev;
->  	acpi_status status;
->  	int error;
-> =20
-> @@ -899,14 +971,26 @@ static int acpi_wmi_add(struct acpi_device *dev=
-ice)
->  		return -ENODEV;
->  	}
-> =20
-> -	error =3D parse_wdg(device);
-> +	wmi_bus_dev =3D device_create(&wmi_bus_class, &device->dev, MKDEV(0=
-, 0),
-> +				    NULL, "wmi_bus-%s", dev_name(&device->dev));
-> +	if (IS_ERR(wmi_bus_dev)) {
-> +		error =3D PTR_ERR(wmi_bus_dev);
-> +		goto err_remove_handler;
-> +	}
-> +	device->driver_data =3D wmi_bus_dev;
-> +
-> +	error =3D parse_wdg(wmi_bus_dev, device);
->  	if (error) {
->  		pr_err("Failed to parse WDG method\n");
-> -		goto err_remove_handler;
-> +		goto err_remove_busdev;
->  	}
-> =20
->  	return 0;
-> =20
-> +err_remove_busdev:
-> +	device_unregister(wmi_bus_dev);
-> +	put_device(wmi_bus_dev);
+> @@ -834,7 +884,43 @@ static int wmi_create_device(struct device *wmi_=
+bus_dev,
+>  	} else if (gblock->flags & ACPI_WMI_METHOD) {
+>  		wblock->dev.dev.type =3D &wmi_type_method;
+>  	} else {
+> +		struct acpi_device_info info;
 
-I believe this put_device() call is excessive.  device_create() calls
-device_initialize() and device_add(); device_unregister() calls
-device_del() and put_device(), so it should already take care of
-removing all references to wmi_bus_dev.  Am I missing something?
+struct acpi_device_info *info;
+
+> +		char method[5];
+> +		int result;
+> +
+>  		wblock->dev.dev.type =3D &wmi_type_data;
+> +
+> +		strcpy(method, "WQ");
+> +		strncat(method, wblock->gblock.object_id, 2);
+> +		result =3D get_subobj_info(device->handle, method, &info);
+> +
+> +		if (result =3D=3D 0) {
+> +			wblock->dev.readable =3D true;
+> +
+> +			/*
+> +			 * The Microsoft documentation specifically states:
+> +			 *
+> +			 *   Data blocks registered with only a single instance
+> +			 *   can ignore the parameter.
+> +			 *
+> +			 * ACPICA will get mad at us if we call the method
+> +			 * with the wrong number of arguments, so check what
+> +			 * our method expects.  (On some Dell laptops, WQxx
+> +			 * may not be a method at all.)
+> +			 */
+> +			if (info.type !=3D ACPI_TYPE_METHOD ||
+> +			    info.param_count =3D=3D 0)
+> +				wblock->read_takes_no_args =3D true;
+
+kfree(info)
+
+> +		}
+> +
+> +		strcpy(method, "WS");
+> +		strncat(method, wblock->gblock.object_id, 2);
+> +		result =3D get_subobj_info(device->handle, method, &info);
+> +
+> +		if (result =3D=3D 0) {
+> +			wblock->dev.writeable =3D true;
+
+kfree(info)
 
 --=20
 Best regards,
 Micha=C5=82 K=C4=99pie=C5=84
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
