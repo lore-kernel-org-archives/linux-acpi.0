@@ -1,93 +1,104 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+From: Lukas Wunner <lukas@wunner.de>
 Subject: Re: [PATCH 10/11] acpi: Export acpi_bus_type
-Date: Mon, 18 Jan 2016 23:46:18 +0100
-Message-ID: <1530202.t7e2q1JhJ2@vostro.rjw.lan>
-References: <1452752207-30382-1-git-send-email-ankitprasad.r.sharma@intel.com> <11845387.lHudWAleac@vostro.rjw.lan> <20160118223907.GA9156@wunner.de>
+Date: Tue, 19 Jan 2016 00:00:47 +0100
+Message-ID: <20160118230047.GA9173@wunner.de>
+References: <1452752207-30382-1-git-send-email-ankitprasad.r.sharma@intel.com>
+ <11845387.lHudWAleac@vostro.rjw.lan>
+ <20160118223907.GA9156@wunner.de>
+ <1530202.t7e2q1JhJ2@vostro.rjw.lan>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:48520 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1756558AbcARWph (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Jan 2016 17:45:37 -0500
-In-Reply-To: <20160118223907.GA9156@wunner.de>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+Content-Disposition: inline
+In-Reply-To: <1530202.t7e2q1JhJ2@vostro.rjw.lan>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Ankitprasad Sharma <ankitprasad.r.sharma@intel.com>, intel-gfx@lists.freedesktop.org, shashidhar.hiremath@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, akash.goel@intel.com, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Lukas Wunner <lukas@wunner.de>
-Cc: Ankitprasad Sharma <ankitprasad.r.sharma@intel.com>, intel-gfx@lists.freedesktop.org, akash.goel@intel.com, shashidhar.hiremath@intel.com, tvrtko.ursulin@linux.intel.com, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-On Monday, January 18, 2016 11:39:07 PM Lukas Wunner wrote:
-> Hi,
-> 
-> On Mon, Jan 18, 2016 at 11:28:27PM +0100, Rafael J. Wysocki wrote:
-> > On Monday, January 18, 2016 03:57:29 PM Rafael J. Wysocki wrote:
-> > > On Monday, January 18, 2016 02:31:00 PM Ankitprasad Sharma wrote:
-> > > > On Fri, 2016-01-15 at 15:51 +0100, Rafael J. Wysocki wrote:
-> > > > > On Thursday, January 14, 2016 11:46:46 AM ankitprasad.r.sharma@intel.com wrote:
-> > > > > > From: Ankitprasad Sharma <ankitprasad.r.sharma@intel.com>
-> > > > > > 
-> > > > > > Some modules, like i915.ko, needs to detect when certain ACPI features
-> > > > > > are active inorder to prevent corruption on contended resources.
-> > > > > > In particular, use of BIOS RapidStart Technology may corrupt the contents
-> > > > > > of the reserved graphics memory, due to unalarmed hibernation. In which
-> > > > > > case i915.ko cannot assume that it (reserved gfx memory) remains
-> > > > > > unmodified and must recreate teh contents and importantly not use it to
-> > > > > > store unrecoverable user data.
-> > > > > > 
-> > > > > > Signed-off-by: Ankitprasad Sharma <ankitprasad.r.sharma@intel.com>
-> > > > > > Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> > > > > > Cc: Len Brown <lenb@kernel.org>
-> > > > > > Cc: linux-acpi@vger.kernel.org
-> > > > > > Cc: linux-kernel@vger.kernel.org
-> > > > > > ---
-> > > > > >  drivers/acpi/bus.c | 1 +
-> > > > > >  1 file changed, 1 insertion(+)
-> > > > > > 
-> > > > > > diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-> > > > > > index a212cef..69509c7 100644
-> > > > > > --- a/drivers/acpi/bus.c
-> > > > > > +++ b/drivers/acpi/bus.c
-> > > > > > @@ -814,6 +814,7 @@ struct bus_type acpi_bus_type = {
-> > > > > >  	.remove		= acpi_device_remove,
-> > > > > >  	.uevent		= acpi_device_uevent,
-> > > > > >  };
-> > > > > > +EXPORT_SYMBOL_GPL(acpi_bus_type);
-> > > > > >  
-> > > > > >  /* --------------------------------------------------------------------------
-> > > > > >                               Initialization/Cleanup
-> > > > > > 
-> > > > > 
-> > > > > No.
-> > > > > 
-> > > > > I see no reason whatsoever for doing this.
-> > > > > 
-> > > > > Thanks,
-> > > > > Rafael
-> > > > Hi Rafael,
-> > > > 
-> > > > Thanks for the response.
-> > > > 
-> > > > Can you please help me with, how to detect the presence of a certain
-> > > > acpi device using its id (for example, INT3392 for Intel RST device)? 
-> > > 
-> > > If you want to check if the device ir present at all, you cen use
-> > > acpi_device_is_present() introduced recently (although that would need
-> > > to be exported if you want to use it from a driver).
-> > 
-> > I meant acpi_dev_present(), sorry about the mistake.
-> > 
-> > I guess we should rename it to acpi_device_found() or something similar
-> > to avoid such confusion in the future.
-> 
-> The name was chosen because the PCI equivalent is called pci_dev_present()
-> and I assumed that name already stuck in developers' heads, so if they're
-> looking for an ACPI presence detection function, that's what they'd look
-> for first.
-
-But "present" in ACPI really means something different.  There may be ACPI
-device objects in the namespace for devices that are not *actually* present.
-
-Thanks,
-Rafael
-
+SGksCgpPbiBNb24sIEphbiAxOCwgMjAxNiBhdCAxMTo0NjoxOFBNICswMTAwLCBSYWZhZWwgSi4g
+V3lzb2NraSB3cm90ZToKPiBPbiBNb25kYXksIEphbnVhcnkgMTgsIDIwMTYgMTE6Mzk6MDcgUE0g
+THVrYXMgV3VubmVyIHdyb3RlOgo+ID4gSGksCj4gPiAKPiA+IE9uIE1vbiwgSmFuIDE4LCAyMDE2
+IGF0IDExOjI4OjI3UE0gKzAxMDAsIFJhZmFlbCBKLiBXeXNvY2tpIHdyb3RlOgo+ID4gPiBPbiBN
+b25kYXksIEphbnVhcnkgMTgsIDIwMTYgMDM6NTc6MjkgUE0gUmFmYWVsIEouIFd5c29ja2kgd3Jv
+dGU6Cj4gPiA+ID4gT24gTW9uZGF5LCBKYW51YXJ5IDE4LCAyMDE2IDAyOjMxOjAwIFBNIEFua2l0
+cHJhc2FkIFNoYXJtYSB3cm90ZToKPiA+ID4gPiA+IE9uIEZyaSwgMjAxNi0wMS0xNSBhdCAxNTo1
+MSArMDEwMCwgUmFmYWVsIEouIFd5c29ja2kgd3JvdGU6Cj4gPiA+ID4gPiA+IE9uIFRodXJzZGF5
+LCBKYW51YXJ5IDE0LCAyMDE2IDExOjQ2OjQ2IEFNIGFua2l0cHJhc2FkLnIuc2hhcm1hQGludGVs
+LmNvbSB3cm90ZToKPiA+ID4gPiA+ID4gPiBGcm9tOiBBbmtpdHByYXNhZCBTaGFybWEgPGFua2l0
+cHJhc2FkLnIuc2hhcm1hQGludGVsLmNvbT4KPiA+ID4gPiA+ID4gPiAKPiA+ID4gPiA+ID4gPiBT
+b21lIG1vZHVsZXMsIGxpa2UgaTkxNS5rbywgbmVlZHMgdG8gZGV0ZWN0IHdoZW4gY2VydGFpbiBB
+Q1BJIGZlYXR1cmVzCj4gPiA+ID4gPiA+ID4gYXJlIGFjdGl2ZSBpbm9yZGVyIHRvIHByZXZlbnQg
+Y29ycnVwdGlvbiBvbiBjb250ZW5kZWQgcmVzb3VyY2VzLgo+ID4gPiA+ID4gPiA+IEluIHBhcnRp
+Y3VsYXIsIHVzZSBvZiBCSU9TIFJhcGlkU3RhcnQgVGVjaG5vbG9neSBtYXkgY29ycnVwdCB0aGUg
+Y29udGVudHMKPiA+ID4gPiA+ID4gPiBvZiB0aGUgcmVzZXJ2ZWQgZ3JhcGhpY3MgbWVtb3J5LCBk
+dWUgdG8gdW5hbGFybWVkIGhpYmVybmF0aW9uLiBJbiB3aGljaAo+ID4gPiA+ID4gPiA+IGNhc2Ug
+aTkxNS5rbyBjYW5ub3QgYXNzdW1lIHRoYXQgaXQgKHJlc2VydmVkIGdmeCBtZW1vcnkpIHJlbWFp
+bnMKPiA+ID4gPiA+ID4gPiB1bm1vZGlmaWVkIGFuZCBtdXN0IHJlY3JlYXRlIHRlaCBjb250ZW50
+cyBhbmQgaW1wb3J0YW50bHkgbm90IHVzZSBpdCB0bwo+ID4gPiA+ID4gPiA+IHN0b3JlIHVucmVj
+b3ZlcmFibGUgdXNlciBkYXRhLgo+ID4gPiA+ID4gPiA+IAo+ID4gPiA+ID4gPiA+IFNpZ25lZC1v
+ZmYtYnk6IEFua2l0cHJhc2FkIFNoYXJtYSA8YW5raXRwcmFzYWQuci5zaGFybWFAaW50ZWwuY29t
+Pgo+ID4gPiA+ID4gPiA+IENjOiAiUmFmYWVsIEouIFd5c29ja2kiIDxyandAcmp3eXNvY2tpLm5l
+dD4KPiA+ID4gPiA+ID4gPiBDYzogTGVuIEJyb3duIDxsZW5iQGtlcm5lbC5vcmc+Cj4gPiA+ID4g
+PiA+ID4gQ2M6IGxpbnV4LWFjcGlAdmdlci5rZXJuZWwub3JnCj4gPiA+ID4gPiA+ID4gQ2M6IGxp
+bnV4LWtlcm5lbEB2Z2VyLmtlcm5lbC5vcmcKPiA+ID4gPiA+ID4gPiAtLS0KPiA+ID4gPiA+ID4g
+PiAgZHJpdmVycy9hY3BpL2J1cy5jIHwgMSArCj4gPiA+ID4gPiA+ID4gIDEgZmlsZSBjaGFuZ2Vk
+LCAxIGluc2VydGlvbigrKQo+ID4gPiA+ID4gPiA+IAo+ID4gPiA+ID4gPiA+IGRpZmYgLS1naXQg
+YS9kcml2ZXJzL2FjcGkvYnVzLmMgYi9kcml2ZXJzL2FjcGkvYnVzLmMKPiA+ID4gPiA+ID4gPiBp
+bmRleCBhMjEyY2VmLi42OTUwOWM3IDEwMDY0NAo+ID4gPiA+ID4gPiA+IC0tLSBhL2RyaXZlcnMv
+YWNwaS9idXMuYwo+ID4gPiA+ID4gPiA+ICsrKyBiL2RyaXZlcnMvYWNwaS9idXMuYwo+ID4gPiA+
+ID4gPiA+IEBAIC04MTQsNiArODE0LDcgQEAgc3RydWN0IGJ1c190eXBlIGFjcGlfYnVzX3R5cGUg
+PSB7Cj4gPiA+ID4gPiA+ID4gIAkucmVtb3ZlCQk9IGFjcGlfZGV2aWNlX3JlbW92ZSwKPiA+ID4g
+PiA+ID4gPiAgCS51ZXZlbnQJCT0gYWNwaV9kZXZpY2VfdWV2ZW50LAo+ID4gPiA+ID4gPiA+ICB9
+Owo+ID4gPiA+ID4gPiA+ICtFWFBPUlRfU1lNQk9MX0dQTChhY3BpX2J1c190eXBlKTsKPiA+ID4g
+PiA+ID4gPiAgCj4gPiA+ID4gPiA+ID4gIC8qIC0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCj4gPiA+ID4gPiA+
+ID4gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgSW5pdGlhbGl6YXRpb24vQ2xlYW51cAo+
+ID4gPiA+ID4gPiA+IAo+ID4gPiA+ID4gPiAKPiA+ID4gPiA+ID4gTm8uCj4gPiA+ID4gPiA+IAo+
+ID4gPiA+ID4gPiBJIHNlZSBubyByZWFzb24gd2hhdHNvZXZlciBmb3IgZG9pbmcgdGhpcy4KPiA+
+ID4gPiA+ID4gCj4gPiA+ID4gPiA+IFRoYW5rcywKPiA+ID4gPiA+ID4gUmFmYWVsCj4gPiA+ID4g
+PiBIaSBSYWZhZWwsCj4gPiA+ID4gPiAKPiA+ID4gPiA+IFRoYW5rcyBmb3IgdGhlIHJlc3BvbnNl
+Lgo+ID4gPiA+ID4gCj4gPiA+ID4gPiBDYW4geW91IHBsZWFzZSBoZWxwIG1lIHdpdGgsIGhvdyB0
+byBkZXRlY3QgdGhlIHByZXNlbmNlIG9mIGEgY2VydGFpbgo+ID4gPiA+ID4gYWNwaSBkZXZpY2Ug
+dXNpbmcgaXRzIGlkIChmb3IgZXhhbXBsZSwgSU5UMzM5MiBmb3IgSW50ZWwgUlNUIGRldmljZSk/
+Cj4gPiA+ID4gCj4gPiA+ID4gSWYgeW91IHdhbnQgdG8gY2hlY2sgaWYgdGhlIGRldmljZSBpciBw
+cmVzZW50IGF0IGFsbCwgeW91IGNlbiB1c2UKPiA+ID4gPiBhY3BpX2RldmljZV9pc19wcmVzZW50
+KCkgaW50cm9kdWNlZCByZWNlbnRseSAoYWx0aG91Z2ggdGhhdCB3b3VsZCBuZWVkCj4gPiA+ID4g
+dG8gYmUgZXhwb3J0ZWQgaWYgeW91IHdhbnQgdG8gdXNlIGl0IGZyb20gYSBkcml2ZXIpLgo+ID4g
+PiAKPiA+ID4gSSBtZWFudCBhY3BpX2Rldl9wcmVzZW50KCksIHNvcnJ5IGFib3V0IHRoZSBtaXN0
+YWtlLgo+ID4gPiAKPiA+ID4gSSBndWVzcyB3ZSBzaG91bGQgcmVuYW1lIGl0IHRvIGFjcGlfZGV2
+aWNlX2ZvdW5kKCkgb3Igc29tZXRoaW5nIHNpbWlsYXIKPiA+ID4gdG8gYXZvaWQgc3VjaCBjb25m
+dXNpb24gaW4gdGhlIGZ1dHVyZS4KPiA+IAo+ID4gVGhlIG5hbWUgd2FzIGNob3NlbiBiZWNhdXNl
+IHRoZSBQQ0kgZXF1aXZhbGVudCBpcyBjYWxsZWQgcGNpX2Rldl9wcmVzZW50KCkKPiA+IGFuZCBJ
+IGFzc3VtZWQgdGhhdCBuYW1lIGFscmVhZHkgc3R1Y2sgaW4gZGV2ZWxvcGVycycgaGVhZHMsIHNv
+IGlmIHRoZXkncmUKPiA+IGxvb2tpbmcgZm9yIGFuIEFDUEkgcHJlc2VuY2UgZGV0ZWN0aW9uIGZ1
+bmN0aW9uLCB0aGF0J3Mgd2hhdCB0aGV5J2QgbG9vawo+ID4gZm9yIGZpcnN0Lgo+IAo+IEJ1dCAi
+cHJlc2VudCIgaW4gQUNQSSByZWFsbHkgbWVhbnMgc29tZXRoaW5nIGRpZmZlcmVudC4gIFRoZXJl
+IG1heSBiZSBBQ1BJCj4gZGV2aWNlIG9iamVjdHMgaW4gdGhlIG5hbWVzcGFjZSBmb3IgZGV2aWNl
+cyB0aGF0IGFyZSBub3QgKmFjdHVhbGx5KiBwcmVzZW50LgoKWW91IG1lYW4gc3ludGhlc2l6ZWQg
+ZGV2aWNlcyBsaWtlIExOWFNZQlVTPwpEb24ndCB0aGluayBhbnlvbmUgaXMgZ29pbmcgdG8gdGVz
+dCBmb3IgdGhlIHByZXNlbmNlIG9mIHRoYXQuCgpJJ3ZlIHBvc3RlZCA1IHBhdGNoZXMgb3ZlciB0
+aGUgbGFzdCBkYXlzIHdoaWNoIHVzZSBhY3BpX2Rldl9wcmVzZW50KCk6CgpodHRwOi8vbGlzdHMu
+ZnJlZWRlc2t0b3Aub3JnL2FyY2hpdmVzL2RyaS1kZXZlbC8yMDE2LUphbnVhcnkvMDk4NDAzLmh0
+bWwKaHR0cDovL21haWxtYW4uYWxzYS1wcm9qZWN0Lm9yZy9waXBlcm1haWwvYWxzYS1kZXZlbC8y
+MDE2LUphbnVhcnkvMTAzMDU2Lmh0bWwKaHR0cDovL21haWxtYW4uYWxzYS1wcm9qZWN0Lm9yZy9w
+aXBlcm1haWwvYWxzYS1kZXZlbC8yMDE2LUphbnVhcnkvMTAzMDU4Lmh0bWwKaHR0cDovL3RocmVh
+ZC5nbWFuZS5vcmcvZ21hbmUubGludXguZHJpdmVycy5wbGF0Zm9ybS54ODYuZGV2ZWwvODQ3NC9m
+b2N1cz04NDc1Cmh0dHA6Ly90aHJlYWQuZ21hbmUub3JnL2dtYW5lLmxpbnV4LmRyaXZlcnMucGxh
+dGZvcm0ueDg2LmRldmVsLzg0NzQvZm9jdXM9ODQ3NgoKV2hlbiBjb25zaWRlcmluZyBhIHJlbmFt
+ZSBvZiB0aGUgZnVuY3Rpb24sIHBsZWFzZSBiZWFyIGluIG1pbmQgdGhhdCBpdAp3aWxsIGNhdXNl
+IGJyZWFrYWdlIGZvciBhbnlvbmUgdGVzdGluZyBvciBtZXJnaW5nIHRoZXNlIHBhdGNoZXMuCihQ
+b3N0cG9uaW5nIGEgcmVuYW1lIHVudGlsIHRoZXNlIHBhdGNoZXMgaGF2ZSBsYW5kZWQgd291bGQg
+YXZvaWQgdGhhdC4pCgpUaGFua3MsCgpMdWthcwpfX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fXwpJbnRlbC1nZnggbWFpbGluZyBsaXN0CkludGVsLWdmeEBsaXN0
+cy5mcmVlZGVza3RvcC5vcmcKaHR0cDovL2xpc3RzLmZyZWVkZXNrdG9wLm9yZy9tYWlsbWFuL2xp
+c3RpbmZvL2ludGVsLWdmeAo=
