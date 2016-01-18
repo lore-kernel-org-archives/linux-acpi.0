@@ -1,45 +1,63 @@
-From: Ganapatrao Kulkarni <gpkulkarni@gmail.com>
-Subject: Re: [PATCH v2 0/4] ACPI based NUMA support for ARM64
-Date: Mon, 18 Jan 2016 12:17:19 +0530
-Message-ID: <CAFpQJXWozH1xQgcW7w+VmzrEGdPfr=u+P3Y6WPH-6X3i=P0q4Q@mail.gmail.com>
-References: <1447784733-10419-1-git-send-email-gkulkarni@caviumnetworks.com>
-	<569B2308.80501@jonmasters.org>
+From: Ankitprasad Sharma <ankitprasad.r.sharma@intel.com>
+Subject: Re: [PATCH 10/11] acpi: Export acpi_bus_type
+Date: Mon, 18 Jan 2016 14:31:00 +0530
+Message-ID: <1453107660.10582.31.camel@ankitprasad-desktop>
+References: <1452752207-30382-1-git-send-email-ankitprasad.r.sharma@intel.com>
+ <1452752207-30382-11-git-send-email-ankitprasad.r.sharma@intel.com>
+ <19135964.pq7BquODL6@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f65.google.com ([74.125.82.65]:36348 "EHLO
-	mail-wm0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750857AbcARGrV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Jan 2016 01:47:21 -0500
-Received: by mail-wm0-f65.google.com with SMTP id l65so14650042wmf.3
-        for <linux-acpi@vger.kernel.org>; Sun, 17 Jan 2016 22:47:20 -0800 (PST)
-In-Reply-To: <569B2308.80501@jonmasters.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
+Return-path: <intel-gfx-bounces@lists.freedesktop.org>
+In-Reply-To: <19135964.pq7BquODL6@vostro.rjw.lan>
+List-Unsubscribe: <http://lists.freedesktop.org/mailman/options/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=unsubscribe>
+List-Archive: <http://lists.freedesktop.org/archives/intel-gfx>
+List-Post: <mailto:intel-gfx@lists.freedesktop.org>
+List-Help: <mailto:intel-gfx-request@lists.freedesktop.org?subject=help>
+List-Subscribe: <http://lists.freedesktop.org/mailman/listinfo/intel-gfx>,
+ <mailto:intel-gfx-request@lists.freedesktop.org?subject=subscribe>
+Errors-To: intel-gfx-bounces@lists.freedesktop.org
+Sender: "Intel-gfx" <intel-gfx-bounces@lists.freedesktop.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: intel-gfx@lists.freedesktop.org, shashidhar.hiremath@intel.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, akash.goel@intel.com, Len Brown <lenb@kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Jon Masters <jonathan@jonmasters.org>
-Cc: Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-acpi@vger.kernel.org, Will Deacon <Will.Deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Grant Likely <grant.likely@linaro.org>, Leif Lindholm <leif.lindholm@linaro.org>, rfranz@cavium.com, Ard Biesheuvel <ard.biesheuvel@linaro.org>, "msalter@redhat.com" <msalter@redhat.com>, Rob Herring <robh+dt@kernel.org>, Steve Capper <steve.capper@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, Al Stone <al.stone@linaro.org>, Arnd Bergmann <arnd@arndb.de>, Pawel Moll <pawel.moll@arm.com>, Mark Rutland <mark.rutland@arm.com>, Ian Campbell <ijc+devicetree@hellion.org.uk>, Kumar Gala <galak@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Marc Zyngier <marc.zyngier@arm.com>
 
-Hi Jon,
-
-On Sun, Jan 17, 2016 at 10:43 AM, Jon Masters <jonathan@jonmasters.org> wrote:
-> On 11/17/15, 1:25 PM, Ganapatrao Kulkarni wrote:
->>
->>   -v2 rebased on arm64-numa v7 patches.
->>   http://www.spinics.net/lists/arm-kernel/msg460813.html
->>
->>   -v1 initial patches from Hanjun Guo
->
->
-> Hi Ganapatrao,
->
-> Can I confirm that you intend to post an updated version of this patch
-> series once the merge window is closed? We have a dependency upon this
-> patch series being upstream and need to do a little planning :)
-We are working on numa-dt-v9 and numa-acpi-v3 patch series.
-we will be submitting once merge window is closed.
-thanks for your email.
->
-> Jon.
->
-thanks
-Ganapat
+T24gRnJpLCAyMDE2LTAxLTE1IGF0IDE1OjUxICswMTAwLCBSYWZhZWwgSi4gV3lzb2NraSB3cm90
+ZToKPiBPbiBUaHVyc2RheSwgSmFudWFyeSAxNCwgMjAxNiAxMTo0Njo0NiBBTSBhbmtpdHByYXNh
+ZC5yLnNoYXJtYUBpbnRlbC5jb20gd3JvdGU6Cj4gPiBGcm9tOiBBbmtpdHByYXNhZCBTaGFybWEg
+PGFua2l0cHJhc2FkLnIuc2hhcm1hQGludGVsLmNvbT4KPiA+IAo+ID4gU29tZSBtb2R1bGVzLCBs
+aWtlIGk5MTUua28sIG5lZWRzIHRvIGRldGVjdCB3aGVuIGNlcnRhaW4gQUNQSSBmZWF0dXJlcwo+
+ID4gYXJlIGFjdGl2ZSBpbm9yZGVyIHRvIHByZXZlbnQgY29ycnVwdGlvbiBvbiBjb250ZW5kZWQg
+cmVzb3VyY2VzLgo+ID4gSW4gcGFydGljdWxhciwgdXNlIG9mIEJJT1MgUmFwaWRTdGFydCBUZWNo
+bm9sb2d5IG1heSBjb3JydXB0IHRoZSBjb250ZW50cwo+ID4gb2YgdGhlIHJlc2VydmVkIGdyYXBo
+aWNzIG1lbW9yeSwgZHVlIHRvIHVuYWxhcm1lZCBoaWJlcm5hdGlvbi4gSW4gd2hpY2gKPiA+IGNh
+c2UgaTkxNS5rbyBjYW5ub3QgYXNzdW1lIHRoYXQgaXQgKHJlc2VydmVkIGdmeCBtZW1vcnkpIHJl
+bWFpbnMKPiA+IHVubW9kaWZpZWQgYW5kIG11c3QgcmVjcmVhdGUgdGVoIGNvbnRlbnRzIGFuZCBp
+bXBvcnRhbnRseSBub3QgdXNlIGl0IHRvCj4gPiBzdG9yZSB1bnJlY292ZXJhYmxlIHVzZXIgZGF0
+YS4KPiA+IAo+ID4gU2lnbmVkLW9mZi1ieTogQW5raXRwcmFzYWQgU2hhcm1hIDxhbmtpdHByYXNh
+ZC5yLnNoYXJtYUBpbnRlbC5jb20+Cj4gPiBDYzogIlJhZmFlbCBKLiBXeXNvY2tpIiA8cmp3QHJq
+d3lzb2NraS5uZXQ+Cj4gPiBDYzogTGVuIEJyb3duIDxsZW5iQGtlcm5lbC5vcmc+Cj4gPiBDYzog
+bGludXgtYWNwaUB2Z2VyLmtlcm5lbC5vcmcKPiA+IENjOiBsaW51eC1rZXJuZWxAdmdlci5rZXJu
+ZWwub3JnCj4gPiAtLS0KPiA+ICBkcml2ZXJzL2FjcGkvYnVzLmMgfCAxICsKPiA+ICAxIGZpbGUg
+Y2hhbmdlZCwgMSBpbnNlcnRpb24oKykKPiA+IAo+ID4gZGlmZiAtLWdpdCBhL2RyaXZlcnMvYWNw
+aS9idXMuYyBiL2RyaXZlcnMvYWNwaS9idXMuYwo+ID4gaW5kZXggYTIxMmNlZi4uNjk1MDljNyAx
+MDA2NDQKPiA+IC0tLSBhL2RyaXZlcnMvYWNwaS9idXMuYwo+ID4gKysrIGIvZHJpdmVycy9hY3Bp
+L2J1cy5jCj4gPiBAQCAtODE0LDYgKzgxNCw3IEBAIHN0cnVjdCBidXNfdHlwZSBhY3BpX2J1c190
+eXBlID0gewo+ID4gIAkucmVtb3ZlCQk9IGFjcGlfZGV2aWNlX3JlbW92ZSwKPiA+ICAJLnVldmVu
+dAkJPSBhY3BpX2RldmljZV91ZXZlbnQsCj4gPiAgfTsKPiA+ICtFWFBPUlRfU1lNQk9MX0dQTChh
+Y3BpX2J1c190eXBlKTsKPiA+ICAKPiA+ICAvKiAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0t
+LS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLQo+ID4gICAgICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgSW5pdGlhbGl6YXRpb24vQ2xlYW51cAo+ID4gCj4gCj4g
+Tm8uCj4gCj4gSSBzZWUgbm8gcmVhc29uIHdoYXRzb2V2ZXIgZm9yIGRvaW5nIHRoaXMuCj4gCj4g
+VGhhbmtzLAo+IFJhZmFlbApIaSBSYWZhZWwsCgpUaGFua3MgZm9yIHRoZSByZXNwb25zZS4KCkNh
+biB5b3UgcGxlYXNlIGhlbHAgbWUgd2l0aCwgaG93IHRvIGRldGVjdCB0aGUgcHJlc2VuY2Ugb2Yg
+YSBjZXJ0YWluCmFjcGkgZGV2aWNlIHVzaW5nIGl0cyBpZCAoZm9yIGV4YW1wbGUsIElOVDMzOTIg
+Zm9yIEludGVsIFJTVCBkZXZpY2UpPyAKCkFzIHlvdSBtaWdodCBoYXZlIHNlZW4gKGluIHRoZSBu
+ZXh0IHBhdGNoIGluIHRoaXMgc2VyaWVzKSwgdGhhdCB3ZSB1c2UKdGhpcyBzeW1ib2wgKGFjcGlf
+YnVzX3R5cGUpIHRvIGl0ZXJhdGUgb3ZlciBhbGwgdGhlIGRldmljZXMgcmVnaXN0ZXJlZApvbiBh
+Y3BpIGJ1cywgdG8gY2hlY2sgaWYgdGhlcmUgaXMgYSBkZXZpY2Ugd2l0aCBpZCBJTlQzMzkyIHBy
+ZXNlbnQgb3IKbm90LgoKVGhhbmtzLApBbmtpdAoKX19fX19fX19fX19fX19fX19fX19fX19fX19f
+X19fX19fX19fX19fX19fX19fX18KSW50ZWwtZ2Z4IG1haWxpbmcgbGlzdApJbnRlbC1nZnhAbGlz
+dHMuZnJlZWRlc2t0b3Aub3JnCmh0dHA6Ly9saXN0cy5mcmVlZGVza3RvcC5vcmcvbWFpbG1hbi9s
+aXN0aW5mby9pbnRlbC1nZngK
