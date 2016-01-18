@@ -1,66 +1,42 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH V3 00/21] MMCONFIG refactoring and support for ARM64 PCI
- hostbridge init based on ACPI
-Date: Mon, 18 Jan 2016 22:37:48 +0800
-Message-ID: <569CF8BC.8060102@linaro.org>
-References: <1452691267-32240-1-git-send-email-tn@semihalf.com>
- <5698D163.6050404@linaro.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH v3 0/5] ACPI / processor_idle: Add ACPI v6.0 LPI support
+Date: Mon, 18 Jan 2016 15:53:17 +0100
+Message-ID: <1719762.JV0SAlYvZa@vostro.rjw.lan>
+References: <1449065446-26115-1-git-send-email-sudeep.holla@arm.com> <569944C4.4010203@codeaurora.org> <569CD771.1060701@arm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <5698D163.6050404@linaro.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>, bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, Stefano.Stabellini@eu.citrix.com
-Cc: robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:41966 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752626AbcAROwg (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Jan 2016 09:52:36 -0500
+In-Reply-To: <569CD771.1060701@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sudeep Holla <sudeep.holla@arm.com>
+Cc: "Prakash, Prashanth" <pprakash@codeaurora.org>, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, x86@kernel.org, Al Stone <al.stone@linaro.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Mahesh Sivasubramanian <msivasub@codeaurora.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, linux-acpi@vger.kernel.org
 
-On 2016/1/15 19:00, Hanjun Guo wrote:
-> On 2016/1/13 21:20, Tomasz Nowicki wrote:
->>  From the functionality point of view this series might be split into the
->> following logic parts:
->> 1. Make MMCONFIG code arch-agnostic which allows all architectures to
->> collect
->>     PCI config regions and used when necessary.
->> 2. Move non-arch specific bits to the core code.
->> 3. Use MMCONFIG code and implement generic ACPI based PCI host
->> controller driver.
->> 4. Enable above driver on ARM64
->>
->> Patches has been built on top of 4.4 and can be found here:
->> git@github.com:semihalf-nowicki-tomasz/linux.git (pci-acpi-v3)
->>
->> NOTE, this patch set depends on Matthew's patches:
->> http://www.spinics.net/lists/linux-pci/msg45950.html
->> https://github.com/Vality/linux/tree/pci-fixes
->>
->> This has been tested on Cavium ThunderX server and QEMU.
->> Any help in reviewing and testing is very appreciated.
->>
->> v2 -> v3
->> - fix legacy IRQ assigning and IO ports registration
->> - remove reference to arch specific companion device for ia64
->> - move ACPI PCI host controller driver to pci_root.c
->> - drop generic domain assignment for x86 and ia64 as I am not
->>    able to run all necessary test variants
->> - drop patch which cleaned legacy IRQ assignment since it belongs to
->>    Mathew's series:
->>    https://patchwork.ozlabs.org/patch/557504/
->> - extend MCFG quirk code
->> - rebased to 4.4
->
-> Tested this patch set (and Matthew's) on a HP RX2660 IA64 machine,
-> with the CONFIG_ACPI_PCI_HOST_GENERIC disabled on IA64 ( it's a minor
-> comment needs to be addressed in my previous email), it can boot
-> the system ok with NIC working properly, with the /pro/ioports [1] and
-> the boot log [2] if anyone needs refer to it.
->
-> For this patch set, on IA64 machine,
->
-> Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
+On Monday, January 18, 2016 12:15:45 PM Sudeep Holla wrote:
+> Hi Prashanth,
+> 
+> On 15/01/16 19:13, Prakash, Prashanth wrote:
+> > Hi Sudeep,
+> >
+> > Any updates on the status of this patch set?
+> >
+> 
+> Thanks for the follow up. Sorry but there are no updates as such.
+> I didn't ping Rafael after last merge window due to Xmas holidays.
+> I will ping or repost after this merge window(ends this Sunday).
+> 
+> Hi Rafael,
+> 
+> Do you prefer a fresh repost or shall I wait for you comments after
+> merge window ?
 
-I tested this patch set on x86 server with CONFIG_ACPI_PCI_HOST_GENERIC
-disabled today, also booted ok with NIC working properly.
+If you don't have any updates to the patches, there's no need to resend them.
 
-Thanks
-Hanjun
+Thanks,
+Rafael
+
