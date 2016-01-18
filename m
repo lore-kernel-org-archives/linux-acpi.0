@@ -1,41 +1,56 @@
-From: Sudeep Holla <sudeep.holla@arm.com>
-Subject: Re: [PATCH v3 0/5] ACPI / processor_idle: Add ACPI v6.0 LPI support
-Date: Mon, 18 Jan 2016 12:15:45 +0000
-Message-ID: <569CD771.1060701@arm.com>
-References: <1449065446-26115-1-git-send-email-sudeep.holla@arm.com>
- <5668B09F.70201@codeaurora.org> <56693C55.8020605@arm.com>
- <569944C4.4010203@codeaurora.org>
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: Re: [PATCH V3 20/21] pci, acpi: Match PCI config space accessors
+ against platfrom specific quirks.
+Date: Mon, 18 Jan 2016 13:41:51 +0100
+Message-ID: <569CDD8F.807@semihalf.com>
+References: <1452691267-32240-1-git-send-email-tn@semihalf.com>
+ <1452691267-32240-21-git-send-email-tn@semihalf.com>
+ <1452785776.28109.22.camel@redhat.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=utf-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:34210 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754660AbcARMPt (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 18 Jan 2016 07:15:49 -0500
-In-Reply-To: <569944C4.4010203@codeaurora.org>
+Received: from mail-lf0-f43.google.com ([209.85.215.43]:34769 "EHLO
+	mail-lf0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754758AbcARMnx (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Jan 2016 07:43:53 -0500
+Received: by mail-lf0-f43.google.com with SMTP id 17so116399834lfz.1
+        for <linux-acpi@vger.kernel.org>; Mon, 18 Jan 2016 04:43:52 -0800 (PST)
+In-Reply-To: <1452785776.28109.22.camel@redhat.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Prakash, Prashanth" <pprakash@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Sudeep Holla <sudeep.holla@arm.com>, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, x86@kernel.org, Al Stone <al.stone@linaro.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Mahesh Sivasubramanian <msivasub@codeaurora.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, linux-acpi@vger.kernel.org
+To: Mark Salter <msalter@redhat.com>, bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, Stefano.Stabellini@eu.citrix.com
+Cc: robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com
 
-Hi Prashanth,
-
-On 15/01/16 19:13, Prakash, Prashanth wrote:
-> Hi Sudeep,
+On 14.01.2016 16:36, Mark Salter wrote:
+>> +extern struct pci_mcfg_fixup __start_acpi_mcfg_fixups[];
+>> >+extern struct pci_mcfg_fixup __end_acpi_mcfg_fixups[];
+>> >+
+>> >+static struct pci_ops *pci_mcfg_check_quirks(struct acpi_pci_root *root)
+>> >+{
+>> >+	struct pci_mcfg_fixup *f;
+>> >+	int bus_num = root->secondary.start;
+>> >+	int domain = root->segment;
+>> >+
+>> >+	/*
+>> >+	 * First match against PCI topology <domain:bus> then use DMI or
+>> >+	 * custom match handler.
+>> >+	 */
+>> >+	for (f = __start_acpi_mcfg_fixups; f < __end_acpi_mcfg_fixups; f++) {
+>> >+		if ((f->domain == domain || f->domain == PCI_MCFG_DOMAIN_ANY) &&
+>> >+		    (f->bus_num == bus_num || f->bus_num == PCI_MCFG_BUS_ANY) &&
+>> >+		    (f->system ? dmi_check_system(f->system) : 0 ||
+>> >+		     f->match ? f->match(f, root) : 0))
+>> >+			return f->ops;
+> I think this would be better as:
 >
-> Any updates on the status of this patch set?
+> 		    (f->system ? dmi_check_system(f->system) : 1 &&
+> 		     f->match ? f->match(f, root) : 1))
+> 			return f->ops;
 >
+> Otherwise, one has to call dmi_check_system() from f->match() if
+> access to root is needed.
 
-Thanks for the follow up. Sorry but there are no updates as such.
-I didn't ping Rafael after last merge window due to Xmas holidays.
-I will ping or repost after this merge window(ends this Sunday).
+Makes a lot of sense to me, I will modify as you suggested.
 
-Hi Rafael,
-
-Do you prefer a fresh repost or shall I wait for you comments after
-merge window ?
-
--- 
-Regards,
-Sudeep
+Tomasz
