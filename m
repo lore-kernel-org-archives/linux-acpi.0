@@ -1,7 +1,7 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V3 03/10] irqchip,GICv3,ACPI: Add redistributor support via GICC structures.
-Date: Tue, 19 Jan 2016 14:11:16 +0100
-Message-ID: <1453209083-3358-4-git-send-email-tn@semihalf.com>
+Subject: [PATCH V3 02/10] irqchip / GICv3: Add ACPI support for GICv3+ initialization
+Date: Tue, 19 Jan 2016 14:11:15 +0100
+Message-ID: <1453209083-3358-3-git-send-email-tn@semihalf.com>
 References: <1453209083-3358-1-git-send-email-tn@semihalf.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1453209083-3358-1-git-send-email-tn@semihalf.com>
@@ -10,217 +10,188 @@ To: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysock
 Cc: mw@semihalf.com, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, linux-arm-kernel@lists.infradead.org, ddaney.cavm@gmail.com, Tomasz Nowicki <tn@semihalf.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Following ACPI spec:
-On systems supporting GICv3 and above, GICR Base Address in MADT GICC
-structure holds the 64-bit physical address of the associated Redistributor.
-If all of the GIC Redistributors are in the always-on power domain,
-GICR structures should be used to describe the Redistributors instead,
-and this field must be set to 0.
+With the refator of gic_of_init(), GICv3/4 can be initialized
+by gic_init_bases() with gic distributor base address and gic
+redistributor region(s).
 
-It means that we have two ways to initialize registirbutors map.
-1. via GICD structure which can accommodate many redistributors as a region
-2. via GICC which is able to describe single redistributor
+So get the redistributor region base addresses from MADT GIC
+redistributor subtable, and the distributor base address from
+GICD subtable to init GICv3 irqchip in ACPI way.
 
-This patch is going to add support for second option.
-Considering redistributors, GICD and GICC subtables have be mutually
-exclusive. While discovering and mapping redistributor, we need to know
-its size in advance. For the GICC case, redistributor can be in
-a power-domain that is off, thus we cannot relay on GICR TYPER register.
-Therefore, we get GIC version from distributor register and map 2xSZ_64K
-for GICv3 and 4xSZ_64K for GICv4.
+Note: GIC redistributor base address may also be provided in
+GICC structures on systems supporting GICv3 and above if the GIC
+Redistributors are not in the always-on power domain, this
+patch didn't implement such feature yet.
+Also, ACPI ITS initialization will be added in the following patches.
 
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- drivers/irqchip/irq-gic-v3.c | 114 ++++++++++++++++++++++++++++++++++++++-----
- 1 file changed, 101 insertions(+), 13 deletions(-)
+ drivers/irqchip/irq-gic-v3.c | 137 +++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 137 insertions(+)
 
 diff --git a/drivers/irqchip/irq-gic-v3.c b/drivers/irqchip/irq-gic-v3.c
-index 2cada42..dd16a60 100644
+index 31205c7..2cada42 100644
 --- a/drivers/irqchip/irq-gic-v3.c
 +++ b/drivers/irqchip/irq-gic-v3.c
-@@ -40,6 +40,7 @@
- struct redist_region {
- 	void __iomem		*redist_base;
- 	phys_addr_t		phys_base;
-+	bool			single_redist;
- };
+@@ -15,10 +15,12 @@
+  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  */
  
- struct gic_chip_data {
-@@ -436,6 +437,9 @@ static int gic_populate_rdist(void)
- 				return 0;
- 			}
- 
-+			if (gic_data.redist_regions[i].single_redist)
-+				break;
-+
- 			if (gic_data.redist_stride) {
- 				ptr += gic_data.redist_stride;
- 			} else {
-@@ -964,8 +968,21 @@ out_unmap_dist:
- IRQCHIP_DECLARE(gic_v3, "arm,gic-v3", gic_of_init);
- 
- #ifdef CONFIG_ACPI
-+static void __iomem *dist_base;
- static struct redist_region *redist_regs __initdata;
- static u32 nr_redist_regions __initdata;
-+static bool single_redist;
-+
-+static void __init
-+gic_acpi_register_redist(phys_addr_t phys_base, void __iomem *redist_base)
-+{
-+	static int count = 0;
-+
-+	redist_regs[count].phys_base = phys_base;
-+	redist_regs[count].redist_base = redist_base;
-+	redist_regs[count].single_redist = single_redist;
-+	count++;
-+}
- 
- static int __init
- gic_acpi_parse_madt_redist(struct acpi_subtable_header *header,
-@@ -974,7 +991,6 @@ gic_acpi_parse_madt_redist(struct acpi_subtable_header *header,
- 	struct acpi_madt_generic_redistributor *redist =
- 			(struct acpi_madt_generic_redistributor *)header;
- 	void __iomem *redist_base;
--	static int count = 0;
- 
- 	redist_base = ioremap(redist->base_address, redist->length);
- 	if (!redist_base) {
-@@ -982,12 +998,49 @@ gic_acpi_parse_madt_redist(struct acpi_subtable_header *header,
- 		return -ENOMEM;
++#include <linux/acpi.h>
+ #include <linux/cpu.h>
+ #include <linux/cpu_pm.h>
+ #include <linux/delay.h>
+ #include <linux/interrupt.h>
++#include <linux/irqdomain.h>
+ #include <linux/of.h>
+ #include <linux/of_address.h>
+ #include <linux/of_irq.h>
+@@ -764,6 +766,15 @@ static int gic_irq_domain_translate(struct irq_domain *d,
+ 		return 0;
  	}
  
--	redist_regs[count].phys_base = redist->base_address;
--	redist_regs[count].redist_base = redist_base;
--	count++;
-+	gic_acpi_register_redist(redist->base_address, redist_base);
- 	return 0;
++	if (is_fwnode_irqchip(fwspec->fwnode)) {
++		if(fwspec->param_count != 2)
++			return -EINVAL;
++
++		*hwirq = fwspec->param[0];
++		*type = fwspec->param[1];
++		return 0;
++	}
++
+ 	return -EINVAL;
  }
  
+@@ -951,3 +962,129 @@ out_unmap_dist:
+ }
+ 
+ IRQCHIP_DECLARE(gic_v3, "arm,gic-v3", gic_of_init);
++
++#ifdef CONFIG_ACPI
++static struct redist_region *redist_regs __initdata;
++static u32 nr_redist_regions __initdata;
++
 +static int __init
-+gic_acpi_parse_madt_gicc(struct acpi_subtable_header *header,
-+			 const unsigned long end)
++gic_acpi_parse_madt_redist(struct acpi_subtable_header *header,
++			   const unsigned long end)
 +{
-+	struct acpi_madt_generic_interrupt *gicc =
-+				(struct acpi_madt_generic_interrupt *)header;
-+	u32 reg = readl_relaxed(dist_base + GICD_PIDR2) & GIC_PIDR2_ARCH_MASK;
-+	u32 size = reg == GIC_PIDR2_ARCH_GICv4 ? SZ_64K * 4 : SZ_64K * 2;
++	struct acpi_madt_generic_redistributor *redist =
++			(struct acpi_madt_generic_redistributor *)header;
 +	void __iomem *redist_base;
++	static int count = 0;
 +
-+	redist_base = ioremap(gicc->gicr_base_address, size);
-+	if (!redist_base)
++	redist_base = ioremap(redist->base_address, redist->length);
++	if (!redist_base) {
++		pr_err("Couldn't map GICR region @%llx\n", redist->base_address);
 +		return -ENOMEM;
++	}
 +
-+	gic_acpi_register_redist(gicc->gicr_base_address, redist_base);
++	redist_regs[count].phys_base = redist->base_address;
++	redist_regs[count].redist_base = redist_base;
++	count++;
 +	return 0;
 +}
 +
-+static int __init gic_acpi_collect_gicr_base(void)
++static int __init gic_acpi_match_gicr(struct acpi_subtable_header *header,
++				  const unsigned long end)
 +{
-+	acpi_tbl_entry_handler redist_parser;
-+	enum acpi_madt_type type;
-+
-+	if (single_redist) {
-+		type = ACPI_MADT_TYPE_GENERIC_INTERRUPT;
-+		redist_parser = gic_acpi_parse_madt_gicc;
-+	} else {
-+		type = ACPI_MADT_TYPE_GENERIC_REDISTRIBUTOR;
-+		redist_parser = gic_acpi_parse_madt_redist;
-+	}
-+
-+	/* Collect redistributor base addresses in GICR entries */
-+	if (acpi_table_parse_madt(type, redist_parser, 0) > 0)
-+		return 0;
-+
-+	pr_info("No valid GICR entries exist\n");
-+	return -ENODEV;
++	/* Subtable presence means that redist exists, that's it */
++	return 0;
 +}
 +
- static int __init gic_acpi_match_gicr(struct acpi_subtable_header *header,
- 				  const unsigned long end)
- {
-@@ -995,6 +1048,46 @@ static int __init gic_acpi_match_gicr(struct acpi_subtable_header *header,
- 	return 0;
- }
- 
-+static int __init gic_acpi_match_gicc(struct acpi_subtable_header *header,
-+				      const unsigned long end)
++static bool __init acpi_validate_gic_table(struct acpi_subtable_header *header,
++					   struct acpi_probe_entry *ape)
 +{
-+	struct acpi_madt_generic_interrupt *gicc =
-+				(struct acpi_madt_generic_interrupt *)header;
-+
-+	/*
-+	 * If GICC is enabled and has valid gicr base address, then it means
-+	 * GICR base is presented via GICC
-+	 */
-+	if ((gicc->flags & ACPI_MADT_ENABLED) && gicc->gicr_base_address)
-+		return 0;
-+
-+	return -ENODEV;
-+}
-+
-+static int __init gic_acpi_count_gicr_regions(void)
-+{
++	struct acpi_madt_generic_distributor *dist;
 +	int count;
 +
-+	/*
-+	 * Count how many redistributor regions we have. It is not allowed
-+	 * to mix redistributor description, GICR and GICC subtables have to be
-+	 * mutually exclusive.
-+	 */
++	dist = (struct acpi_madt_generic_distributor *)header;
++	if (dist->version != ape->driver_data)
++		return false;
++
++	/* We need to do that exercise anyway, the sooner the better */
 +	count = acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_REDISTRIBUTOR,
 +				      gic_acpi_match_gicr, 0);
-+	if (count > 0) {
-+		single_redist = false;
-+		return count;
-+	}
++	if (count <= 0)
++		return false;
 +
-+	count = acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_INTERRUPT,
-+				      gic_acpi_match_gicc, 0);
-+	if (count > 0)
-+		single_redist = true;
-+
-+	return count;
++	nr_redist_regions = count;
++	return true;
 +}
 +
- static bool __init acpi_validate_gic_table(struct acpi_subtable_header *header,
- 					   struct acpi_probe_entry *ape)
- {
-@@ -1006,8 +1099,7 @@ static bool __init acpi_validate_gic_table(struct acpi_subtable_header *header,
- 		return false;
- 
- 	/* We need to do that exercise anyway, the sooner the better */
--	count = acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_REDISTRIBUTOR,
--				      gic_acpi_match_gicr, 0);
-+	count = gic_acpi_count_gicr_regions();
- 	if (count <= 0)
- 		return false;
- 
-@@ -1022,8 +1114,7 @@ gic_acpi_init(struct acpi_subtable_header *header, const unsigned long end)
- {
- 	struct acpi_madt_generic_distributor *dist;
- 	struct fwnode_handle *domain_handle;
--	void __iomem *dist_base;
--	int i, err, count;
-+	int i, err;
- 
- 	/* Get distributor base address */
- 	dist = (struct acpi_madt_generic_distributor *)header;
-@@ -1046,12 +1137,9 @@ gic_acpi_init(struct acpi_subtable_header *header, const unsigned long end)
- 		goto out_dist_unmap;
- 	}
- 
--	count = acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_REDISTRIBUTOR,
--				      gic_acpi_parse_madt_redist, 0);
--	if (count <= 0) {
--		err = -ENODEV;
-+	err = gic_acpi_collect_gicr_base();
++#define ACPI_GICV3_DIST_MEM_SIZE (SZ_64K)
++
++static int __init
++gic_acpi_init(struct acpi_subtable_header *header, const unsigned long end)
++{
++	struct acpi_madt_generic_distributor *dist;
++	struct fwnode_handle *domain_handle;
++	void __iomem *dist_base;
++	int i, err, count;
++
++	/* Get distributor base address */
++	dist = (struct acpi_madt_generic_distributor *)header;
++	dist_base = ioremap(dist->base_address, ACPI_GICV3_DIST_MEM_SIZE);
++	if (!dist_base) {
++		pr_err("Unable to map GICD registers\n");
++		return -ENOMEM;
++	}
++
++	err = gic_validate_dist_version(dist_base);
++	if (err) {
++		pr_err("No distributor detected at @%p, giving up", dist_base);
++		goto out_dist_unmap;
++	}
++
++	redist_regs = kzalloc(sizeof(*redist_regs) * nr_redist_regions,
++			      GFP_KERNEL);
++	if (!redist_regs) {
++		err = -ENOMEM;
++		goto out_dist_unmap;
++	}
++
++	count = acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_REDISTRIBUTOR,
++				      gic_acpi_parse_madt_redist, 0);
++	if (count <= 0) {
++		err = -ENODEV;
++		goto out_redist_unmap;
++	}
++
++	domain_handle = irq_domain_alloc_fwnode(dist_base);
++	if (!domain_handle) {
++		err = -ENOMEM;
++		goto out_redist_unmap;
++	}
++
++	err = gic_init_bases(dist_base, redist_regs, nr_redist_regions, 0,
++			     domain_handle);
 +	if (err)
- 		goto out_redist_unmap;
--	}
- 
- 	domain_handle = irq_domain_alloc_fwnode(dist_base);
- 	if (!domain_handle) {
++		goto out_fwhandle_free;
++
++	acpi_set_irq_model(ACPI_IRQ_MODEL_GIC, domain_handle);
++	return 0;
++
++out_fwhandle_free:
++	irq_domain_free_fwnode(domain_handle);
++out_redist_unmap:
++	for (i = 0; i < nr_redist_regions; i++)
++		if (redist_regs[i].redist_base)
++			iounmap(redist_regs[i].redist_base);
++	kfree(redist_regs);
++out_dist_unmap:
++	iounmap(dist_base);
++	return err;
++}
++IRQCHIP_ACPI_DECLARE(gic_v3, ACPI_MADT_TYPE_GENERIC_DISTRIBUTOR,
++		     acpi_validate_gic_table, ACPI_MADT_GIC_VERSION_V3,
++		     gic_acpi_init);
++IRQCHIP_ACPI_DECLARE(gic_v4, ACPI_MADT_TYPE_GENERIC_DISTRIBUTOR,
++		     acpi_validate_gic_table, ACPI_MADT_GIC_VERSION_V4,
++		     gic_acpi_init);
++IRQCHIP_ACPI_DECLARE(gic_v3_or_v4, ACPI_MADT_TYPE_GENERIC_DISTRIBUTOR,
++		     acpi_validate_gic_table, ACPI_MADT_GIC_VERSION_NONE,
++		     gic_acpi_init);
++#endif
 -- 
 1.9.1
