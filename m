@@ -1,86 +1,99 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: 4.5 regression: ACPI hangs when backlight hotkeys are pressed
-Date: Tue, 19 Jan 2016 01:20:22 +0100
-Message-ID: <13973280.p4fhCg3bGF@vostro.rjw.lan>
-References: <CALCETrXkN1=iT80Rv3J4ywJmkA8pMd7E+u1OytSZPwpPjr6y2A@mail.gmail.com> <1541559.QSyCfx8pKj@vostro.rjw.lan> <CALCETrUYq8ZhNrCkVkxk_P6X2XJHihbpdUzaxmc0ZXs-CST1fA@mail.gmail.com>
+From: Chen Fan <chen.fan.fnst@cn.fujitsu.com>
+Subject: [PATCH] pci: fix unavailable irq number 255 reported by BIOS
+Date: Tue, 19 Jan 2016 09:45:13 +0800
+Message-ID: <1453167913-16248-1-git-send-email-chen.fan.fnst@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from v094114.home.net.pl ([79.96.170.134]:59994 "HELO
-	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754668AbcASATl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Jan 2016 19:19:41 -0500
-In-Reply-To: <CALCETrUYq8ZhNrCkVkxk_P6X2XJHihbpdUzaxmc0ZXs-CST1fA@mail.gmail.com>
+Received: from cn.fujitsu.com ([59.151.112.132]:6117 "EHLO
+	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756972AbcASBuG (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 18 Jan 2016 20:50:06 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Lutomirski <luto@amacapital.net>
-Cc: Andy Lutomirski <luto@kernel.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Adrien Schildknecht <adrien+dev@schischi.me>, Hans de Goede <hdegoede@redhat.com>, "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>
+To: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, rjw@rjwysocki.net, lenb@kernel.org, izumi.taku@jp.fujitsu.com, wency@cn.fujitsu.com, caoj.fnst@cn.fujitsu.com
 
-On Monday, January 18, 2016 04:09:27 PM Andy Lutomirski wrote:
-> On Mon, Jan 18, 2016 at 4:01 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> > On Monday, January 18, 2016 03:57:49 PM Andy Lutomirski wrote:
-> >> On Mon, Jan 18, 2016 at 3:54 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> >> > On Monday, January 18, 2016 03:04:28 PM Andy Lutomirski wrote:
-> >> >> On Mon, Jan 18, 2016 at 2:25 PM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
-> >> >> > On Monday, January 18, 2016 12:52:53 PM Andy Lutomirski wrote:
-> >> >> >> I'm running 4.4 with the pm+acpi-4.5-rc1-1 merged in.  After pressing
-> >> >> >> the backlight hotkeys a couple times, things start to break.  Poking
-> >> >> >> at hung thread stacks, it appears that calls to
-> >> >> >> acpi_video_handles_brightness_key_presses never return.
-> >> >> >>
-> >> >> >> It appears that the culprit is:
-> >> >> >>
-> >> >> >> commit aecbd9b1bff6afbe349921b406b99d285b412820
-> >> >> >> Author: Adrien Schildknecht <adrien+dev@schischi.me>
-> >> >> >> Date:   Mon Jan 4 23:22:28 2016 +0100
-> >> >> >>
-> >> >> >>     ACPI / video: driver must be registered before checking for keypresses
-> >> >> >>
-> >> >> >> Reverting that patch makes my laptop work again.
-> >> >> >>
-> >> >> >> I don't know what that patch is trying to do, but it looks highly
-> >> >> >> questionable to me.  Why should an accessor wait for a potential
-> >> >> >> different driver to register something?  I see no guarantee that it
-> >> >> >> will eve happen.
-> >> >> >>
-> >> >> >> This is a Dell XPS 13 9350.
-> >> >> >
-> >> >> > Should be fixed in my linux-next branch, can you please try that one?
-> >> >> >
-> >> >>
-> >> >> To avoid churning my laptop tree too much, I cherry-picked:
-> >> >>
-> >> >> ACPI / video: Add disable_backlight_sysfs_if quirk for the Toshiba
-> >> >> Satellite R830
-> >> >> ACPI / video: Revert "thinkpad_acpi: Use
-> >> >> acpi_video_handles_brightness_key_presses()"
-> >> >> ACPI / video: Document acpi_video_handles_brightness_key_presses() a bit
-> >> >> ACPI / video: Fix using an uninitialized mutex / list_head in
-> >> >> acpi_video_handles_brightness_key_presses()
-> >> >> ACPI / video: Revert "ACPI / video: driver must be registered before
-> >> >> checking for keypresses"
-> >> >>
-> >> >> The result seems to work.  Are you planning on sending these for 4.5?
-> >> >
-> >> > Yes, I am.
-> >> >
-> >> > Most likely on Wednesday (or Thursday if anything urgent shows up in the meantime).
-> >> >
-> >>
-> >> Sounds good.  I'll keep testing.
-> >>
-> >> Some day my laptop will Just Work on a distro kernel :)
-> >
-> > Well, even then it'll help a lot if you run the mainline on it, so we know that
-> > it doesn't regress.
-> >
-> 
-> So far the only other change I noticed is that I stopped seeing
-> warnings about S1 and S2 being missing.
+In our environment, when enable Secure boot, we found an abnormal
+phenomenon as following call trace shows. after investigation, we
+found the firmware assigned an irq number 255 which means unknown
+or no connection in PCI local spec for i801_smbus, meanwhile the
+ACPI didn't configure the pci irq routing. and the 255 irq number
+was assigned for megasa msix without IRQF_SHARED. then in this case
+during i801_smbus probe, the i801_smbus driver would request irq with
+bad irq number 255. but the 255 irq number was assigned for memgasa
+with MSIX enable. which will cause request_irq fails, and call trace
+shows, actually, we should expose the error early, rather than in request
+irq, here we simply fix the problem by return err when find the irq is
+255.
 
-That's intentional. :-)
+See the call trace:
 
-Thanks,
-Rafael
+ [   32.459195] ipmi device interface
+ [   32.612907] shpchp: Standard Hot Plug PCI Controller Driver version: 0.4
+ [   32.800459] ixgbe: Intel(R) 10 Gigabit PCI Express Network Driver - version 4.0.1-k-rh
+ [   32.818319] ixgbe: Copyright (c) 1999-2014 Intel Corporation.
+ [   32.844009] lpc_ich 0001:80:1f.0: I/O space for ACPI uninitialized
+ [   32.850093] i801_smbus 0000:00:1f.3: enabling device (0140 -> 0143)
+ [   32.851134] i801_smbus 0000:00:1f.3: can't derive routing for PCI INT C
+ [   32.851136] i801_smbus 0000:00:1f.3: PCI INT C: no GSI
+ [   32.851164] genirq: Flags mismatch irq 255. 00000080 (i801_smbus) vs. 00000000 (megasa
+ [   32.851168] CPU: 0 PID: 2487 Comm: kworker/0:1 Not tainted 3.10.0-229.el7.x86_64 #1
+ [   32.851170] Hardware name: FUJITSU PRIMEQUEST 2800E2/D3736, BIOS PRIMEQUEST 2000 Serie5
+ [   32.851178] Workqueue: events work_for_cpu_fn
+ [   32.851208]  ffff88086c330b00 00000000e233a9df ffff88086d57bca0 ffffffff81603f36
+ [   32.851227]  ffff88086d57bcf8 ffffffff8110d23a ffff88686fe02000 0000000000000246
+ [   32.851246]  ffff88086a9a8c00 00000000e233a9df ffffffffa00ad220 0000000000000080
+ [   32.851247] Call Trace:
+ [   32.851261]  [<ffffffff81603f36>] dump_stack+0x19/0x1b
+ [   32.851271]  [<ffffffff8110d23a>] __setup_irq+0x54a/0x570
+ [   32.851282]  [<ffffffffa00ad220>] ? i801_check_pre.isra.5+0xe0/0xe0 [i2c_i801]
+ [   32.851289]  [<ffffffff8110d3bc>] request_threaded_irq+0xcc/0x170
+ [   32.851298]  [<ffffffffa00ae87f>] i801_probe+0x32f/0x508 [i2c_i801]
+ [   32.851308]  [<ffffffff81308385>] local_pci_probe+0x45/0xa0
+ [   32.851315]  [<ffffffff8108bfd4>] work_for_cpu_fn+0x14/0x20
+ [   32.851323]  [<ffffffff8108f0ab>] process_one_work+0x17b/0x470
+ [   32.851330]  [<ffffffff81090003>] worker_thread+0x293/0x400
+ [   32.851338]  [<ffffffff8108fd70>] ? rescuer_thread+0x400/0x400
+ [   32.851346]  [<ffffffff8109726f>] kthread+0xcf/0xe0
+ [   32.851353]  [<ffffffff810971a0>] ? kthread_create_on_node+0x140/0x140
+ [   32.851362]  [<ffffffff81613cfc>] ret_from_fork+0x7c/0xb0
+ [   32.851369]  [<ffffffff810971a0>] ? kthread_create_on_node+0x140/0x140
+ [   32.851373] i801_smbus 0000:00:1f.3: Failed to allocate irq 255: -16
+ [   32.851435] i801_smbus: probe of 0000:00:1f.3 failed with error -16
+ [   33.180145] ixgbe 0000:5a:00.0: Multiq[   33.240538] ixgbe 0000:5a:00.0: (PCI Express:03:e0
+ [   33.280826] ixgbe 0000:5a:00.0: MAC: 3, PHY: 0, PBA No: 000000-000
+
+Signed-off-by: Chen Fan <chen.fan.fnst@cn.fujitsu.com>
+---
+ drivers/acpi/pci_irq.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
+index d30184c..d2f47f8 100644
+--- a/drivers/acpi/pci_irq.c
++++ b/drivers/acpi/pci_irq.c
+@@ -439,9 +439,17 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
+ 		if (acpi_isa_register_gsi(dev))
+ 			dev_warn(&dev->dev, "PCI INT %c: no GSI\n",
+ 				 pin_name(pin));
++		rc = 0;
++		/*
++		 * Excluding the BIOS report the value 255, which meaning
++		 * "unknown" or "no connection" in PCI Local Bus Specification
++		 * Revision 3.0 February 3, 2004, P223.
++		 */
++		if (dev->irq == 0xFF)
++			rc = -EINVAL;
+ 
+ 		kfree(entry);
+-		return 0;
++		return rc;
+ 	}
+ 
+ 	rc = acpi_register_gsi(&dev->dev, gsi, triggering, polarity);
+-- 
+1.9.3
+
+
 
