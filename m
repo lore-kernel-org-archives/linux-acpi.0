@@ -1,79 +1,89 @@
-From: Fu Wei <fu.wei@linaro.org>
-Subject: Re: [PATCH v4] acpi, apei: add Boot Error Record Table (BERT) support
-Date: Tue, 19 Jan 2016 15:12:27 +0800
-Message-ID: <CADyBb7sZU=rbimwo-PHSWj3uyiiGd5n1HOEQgdy7V3XFkcNssg@mail.gmail.com>
-References: <1452260742-13625-1-git-send-email-fu.wei@linaro.org>
-	<20160116191604.GE31869@pd.tnic>
-	<569CFFD0.5050102@codeaurora.org>
-	<20160118160816.GG12644@pd.tnic>
-	<569D232C.2000903@codeaurora.org>
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: Re: [PATCH V3 20/21] pci, acpi: Match PCI config space accessors
+ against platfrom specific quirks.
+Date: Tue, 19 Jan 2016 08:55:21 +0100
+Message-ID: <569DEBE9.5090909@semihalf.com>
+References: <1452691267-32240-1-git-send-email-tn@semihalf.com>
+ <1452691267-32240-21-git-send-email-tn@semihalf.com>
+ <1452785776.28109.22.camel@redhat.com> <569CDD8F.807@semihalf.com>
+ <569D9634.3040304@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-ob0-f180.google.com ([209.85.214.180]:32782 "EHLO
-	mail-ob0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751718AbcASHM2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Jan 2016 02:12:28 -0500
-Received: by mail-ob0-f180.google.com with SMTP id is5so180004910obc.0
-        for <linux-acpi@vger.kernel.org>; Mon, 18 Jan 2016 23:12:28 -0800 (PST)
-In-Reply-To: <569D232C.2000903@codeaurora.org>
+Received: from mail-lb0-f182.google.com ([209.85.217.182]:36398 "EHLO
+	mail-lb0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757443AbcASH5Y (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Jan 2016 02:57:24 -0500
+Received: by mail-lb0-f182.google.com with SMTP id oh2so359442518lbb.3
+        for <linux-acpi@vger.kernel.org>; Mon, 18 Jan 2016 23:57:23 -0800 (PST)
+In-Reply-To: <569D9634.3040304@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Abdulhamid, Harb" <harba@codeaurora.org>
-Cc: Borislav Petkov <bp@alien8.de>, Tony Luck <tony.luck@intel.com>, "Chen, Gong" <gong.chen@intel.com>, Huang Ying <ying.huang@intel.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, tbaicar@codeaurora.org, rruigrok@codeaurora.org, "Abdulhamid, Harb" <harba@qti.qualcomm.com>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Jon Masters <jcm@redhat.com>, Mark Rutland <mark.rutland@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Rafael Wysocki <rjw@rjwysocki.net>, "Chen, Gong" <gong.chen@linux.intel.com>
+To: "liudongdong (C)" <liudongdong3@huawei.com>, Mark Salter <msalter@redhat.com>, bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, Stefano.Stabellini@eu.citrix.com
+Cc: robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com, Zhou Wang <wangzhou1@hisilicon.com>, Gabriele Paoloni <gabriele.paoloni@huawei.com>
 
-Hi Borislav, Harb,
-
-On 19 January 2016 at 01:38, Abdulhamid, Harb <harba@codeaurora.org> wrote:
+On 19.01.2016 02:49, liudongdong (C) wrote:
+> Hi Tomasz, Mark
 >
+> =E5=9C=A8 2016/1/18 20:41, Tomasz Nowicki =E5=86=99=E9=81=93:
+>> On 14.01.2016 16:36, Mark Salter wrote:
+>>>> +extern struct pci_mcfg_fixup __start_acpi_mcfg_fixups[];
+>>>> >+extern struct pci_mcfg_fixup __end_acpi_mcfg_fixups[];
+>>>> >+
+>>>> >+static struct pci_ops *pci_mcfg_check_quirks(struct acpi_pci_roo=
+t
+>>>> *root)
+>>>> >+{
+>>>> >+    struct pci_mcfg_fixup *f;
+>>>> >+    int bus_num =3D root->secondary.start;
+>>>> >+    int domain =3D root->segment;
+>>>> >+
+>>>> >+    /*
+>>>> >+     * First match against PCI topology <domain:bus> then use DM=
+I or
+>>>> >+     * custom match handler.
+>>>> >+     */
+>>>> >+    for (f =3D __start_acpi_mcfg_fixups; f < __end_acpi_mcfg_fix=
+ups;
+>>>> f++) {
+>>>> >+        if ((f->domain =3D=3D domain || f->domain =3D=3D
+>>>> PCI_MCFG_DOMAIN_ANY) &&
+>>>> >+            (f->bus_num =3D=3D bus_num || f->bus_num =3D=3D
+>>>> PCI_MCFG_BUS_ANY) &&
+>>>> >+            (f->system ? dmi_check_system(f->system) : 0 ||
+>>>> >+             f->match ? f->match(f, root) : 0))
+>>>> >+            return f->ops;
+>>> I think this would be better as:
+>>>
+>>>             (f->system ? dmi_check_system(f->system) : 1 &&
+>>>              f->match ? f->match(f, root) : 1))
+>>>             return f->ops;
+>>>
+>>> Otherwise, one has to call dmi_check_system() from f->match() if
+>>> access to root is needed.
+>>
 >
-> On 1/18/2016 11:08 AM, Borislav Petkov wrote:
->> On Mon, Jan 18, 2016 at 10:08:00AM -0500, Abdulhamid, Harb wrote: >> Here
->> is my crack at massaging the language a bit more: "Under >> normal
->> circumstances, when a hardware error occurs, the kernel gets >> notified via
->> an NMI, MCE or some other method. When the error has a >> fatal severity or
->> is unrecoverable, the kernel would normally >> panic. > > So this is still
->> not exact. It all depends on what the hardware > does. Even more
->> importantly, does the hardware even run the error > handler and let it
->> access MCA banks to find about the error or does > it directly warm-reset
->> the system. > > The error can happen, it is critical, *nothing* might be
->> visible in > the MCA registers (this is x86-specific) and the machine would
->> reset. > Only when you warm-reset, you may or may not see anything in there.
->> > > In reading the BERT explanation in the ACPI spec, I have to say, it >
->> sounds pretty ok to me: > > "18.3.1 Boot Error Source > > Under normal
->> circumstances, when a hardware error occurs, the error > handler receives
->> control and processes the error. This gives OSPM a > chance to process the
->> error condition, report it, and optionally > attempt recovery. In some
->> cases, the system is unable to process an > error. For example, system
->> firmware or a management controller may > choose to reset the system or the
->> system might experience an > uncontrolled crash or reset.The boot error
->> source is used to report > unhandled errors that occurred in a previous
->> boot. This mechanism is > described in the BERT table." > > I think we
->> should take that text. :)
-> Agreed. That would be best.
+> Non-DMI, we need not to call dmi_check_system() from f->match(),
+> we can use _HID to decide to hook the pci_ops or not.
 
-Thanks, guys.
-Will use this instead.
+Sorry, but I dont understand your point. Can you elaborate?
+
+With Mark modification, you can use the following cases to identify=20
+platform:
+1. DMI only
+2. f->match() only (_HID can be used there)
+3. DMI and f->match()
+
+DMI used to be very convenient way to recognise platform, sometimes it=20
+is not enough, hence f->match() alternative.
+
+Tomasz
 
 
->
-> Apologies for the format of the last email.
->
-> --
-> Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
-> Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux
-> Foundation Collaborative Project
-
-
-
--- 
-Best regards,
-
-Fu Wei
-Software Engineer
-Red Hat Software (Beijing) Co.,Ltd.Shanghai Branch
-Ph: +86 21 61221326(direct)
-Ph: +86 186 2020 4684 (mobile)
-Room 1512, Regus One Corporate Avenue,Level 15,
-One Corporate Avenue,222 Hubin Road,Huangpu District,
-Shanghai,China 200021
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
