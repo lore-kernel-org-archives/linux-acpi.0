@@ -1,120 +1,247 @@
-From: Fu Wei <fu.wei@linaro.org>
-Subject: Re: [PATCH v5] acpi, apei: add Boot Error Record Table (BERT) support
-Date: Tue, 19 Jan 2016 18:49:55 +0800
-Message-ID: <CADyBb7uF=0WJVaZzfhKNLMw+f+9b2CEWw0MDfkn_s6k7LyhbEw@mail.gmail.com>
-References: <1453196042-12273-1-git-send-email-fu.wei@linaro.org>
-	<20160119101258.GB15503@pd.tnic>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH V3 19/21] pci, acpi: Support for ACPI based generic PCI
+ host controller init
+Date: Tue, 19 Jan 2016 11:58:15 +0000
+Message-ID: <20160119115815.GC5276@red-moon>
+References: <1452691267-32240-1-git-send-email-tn@semihalf.com>
+ <1452691267-32240-20-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <20160119101258.GB15503@pd.tnic>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Borislav Petkov <bp@alien8.de>
-Cc: Tony Luck <tony.luck@intel.com>, "Chen, Gong" <gong.chen@intel.com>, Huang Ying <ying.huang@intel.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, tbaicar@codeaurora.org, rruigrok@codeaurora.org, "Abdulhamid, Harb" <harba@qti.qualcomm.com>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Jon Masters <jcm@redhat.com>, Mark Rutland <mark.rutland@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Rafael Wysocki <rjw@rjwysocki.net>, "Chen, Gong" <gong.chen@linux.intel.com>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:38895 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751901AbcASL4e (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 19 Jan 2016 06:56:34 -0500
+Content-Disposition: inline
+In-Reply-To: <1452691267-32240-20-git-send-email-tn@semihalf.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tomasz Nowicki <tn@semihalf.com>
+Cc: bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, okaya@codeaurora.org, jiang.liu@linux.intel.com, Stefano.Stabellini@eu.citrix.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com
 
-Hi Borislav,
+On Wed, Jan 13, 2016 at 02:21:05PM +0100, Tomasz Nowicki wrote:
+> Because of two patch series:
+> 1. Jiang Liu's common interface to support PCI host controller init
+> 2. MMCONFIG refactoring (part of this patch set)
+> now we can think about generic ACPI based PCI host controller init
+> implementation out of arch/ directory.
+> 
+> These calls use information from MCFG table (PCI config space regions)
+> and _CRS method (IO/irq resources) to initialize PCI hostbridge.
+> 
+> TBD: We are still not sure whether we should reassign resources
+> after PCI bus enumeration or trust firmware to do all that work for
+> us properly.
 
-On 19 January 2016 at 18:12, Borislav Petkov <bp@alien8.de> wrote:
-> On Tue, Jan 19, 2016 at 05:34:02PM +0800, fu.wei@linaro.org wrote:
->> From: Huang Ying <ying.huang@intel.com>
->>
->> ACPI/APEI is designed to verifiy/report H/W errors, like Corrected
->> Error(CE) and Uncorrected Error(UC). It contains four tables: HEST,
->> ERST, EINJ and BERT. The first three tables have been merged for
->> a long time, but because of lacking BIOS support for BERT, the
->> support for BERT is pending until now. Recently on ARM 64 platform
->> it is has been supported. So here we come.
->>
->> Under normal circumstances, when a hardware error occurs, kernel will
->> be notified via NMI, MCE or some other method, then kernel will
->> process the error condition, report it, and recover it if possible.
->> But sometime, the situation is so bad, so that firmware may choose to
->> reset directly without notifying Linux kernel.
->>
->> Linux kernel can use the Boot Error Record Table (BERT) to get the
->> un-notified hardware errors that occurred in a previous boot. In this
->> patch, the error information is reported via printk.
->>
->> For more information about BERT, please refer to ACPI Specification
->> version 6.0, section 18.3.1:
->>   http://www.uefi.org/sites/default/files/resources/ACPI_6.0.pdf
->>
->> The following log is a BERT record after system reboot because of hitting
->> a fatal memory error:
->> BERT: Error records from previous boot:
->> [Hardware Error]: It has been corrected by h/w and requires no further action
->> [Hardware Error]: event severity: corrected
->> [Hardware Error]:  Error 0, type: recoverable
->> [Hardware Error]:   section_type: memory error
->> [Hardware Error]:   error_status: 0x0000000000000400
->> [Hardware Error]:   physical_address: 0xffffffffffffffff
->> [Hardware Error]:   card: 1 module: 2 bank: 3 row: 1 column: 2 bit_position: 5
->> [Hardware Error]:   error_type: 2, single-bit ECC
->>
->> [Tomasz Nowicki: Clear error status at the end of error handling]
->> [Tony: Applied some cleanups suggested by Fu Wei]
->> [Fu Wei: delete EXPORT_SYMBOL_GPL(bert_disable), improve the code]
->>
->> Signed-off-by: Huang Ying <ying.huang@intel.com>
->> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
->> Signed-off-by: Chen, Gong <gong.chen@linux.intel.com>
->> Tested-by: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
->> Signed-off-by: Tony Luck <tony.luck@intel.com>
->> Signed-off-by: Fu Wei <fu.wei@linaro.org>
->> Tested-by: Tyler Baicar <tbaicar@codeaurora.org>
->> ---
->> Changelog:
->> v5: Drop some superfluous comments.
->>     Use the introduce of BERT in ACPI Specification instead of original one
->>     at the head of bert.c.
->>     Fix typo in apei-internal.h
->>     Simplify the introduce of bert_disable.
->>
->> v4: https://lkml.org/lkml/2016/1/8/382
->>     Fix the "#undef" bug
->>     Improve the instruction of "bert_disable",
->>     Delete the useless declaration in include/acpi/apei.h.
->>
->> v3: https://lkml.org/lkml/2016/1/7/214
->>     Merge the two patches
->>     Do some improvements according to Borislav's suggestion.
->>
->> v2: https://lkml.org/lkml/2015/8/18/336
->>     Delete EXPORT_SYMBOL_GPL(bert_disable), because "bert_disable" is only
->>     used in bert.c for now.
->>     Do some code-style cleanups.
->>
->> v1: The first upstream version submitted in linux-acpi mailing list:
->>     http://www.spinics.net/lists/linux-acpi/msg57384.html
->>
->>  Documentation/kernel-parameters.txt |   3 +
->>  drivers/acpi/apei/Makefile          |   2 +-
->>  drivers/acpi/apei/apei-internal.h   |   2 +-
->>  drivers/acpi/apei/bert.c            | 150 ++++++++++++++++++++++++++++++++++++
->>  4 files changed, 155 insertions(+), 2 deletions(-)
->
-> Reviewed-by: Borislav Petkov <bp@suse.de>
+We should claim resources and assign unassigned ones. I put together a
+patch for resource claiming instead of reinventing the wheel, waiting
+for feedback:
 
-Great thanks for your help :-)
+https://patchwork.ozlabs.org/patch/545669/
 
->
-> --
-> Regards/Gruss,
->     Boris.
->
-> ECO tip #101: Trim your mails when you reply.
+If we merge the code with no resources claiming, we may end up in
+situations where claiming can trigger regressions so we won't be able
+to do it anymore.
 
+> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+> CC: Arnd Bergmann <arnd@arndb.de>
+> CC: Catalin Marinas <catalin.marinas@arm.com>
+> CC: Liviu Dudau <Liviu.Dudau@arm.com>
+> CC: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>
+> CC: Will Deacon <will.deacon@arm.com>
+> Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+> Tested-by: Jeremy Linton <jeremy.linton@arm.com>
+> ---
+>  drivers/acpi/Kconfig    |   5 ++
+>  drivers/acpi/pci_root.c | 131 ++++++++++++++++++++++++++++++++++++++++++++++++
+>  2 files changed, 136 insertions(+)
+> 
+> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+> index c3664be..e315061 100644
+> --- a/drivers/acpi/Kconfig
+> +++ b/drivers/acpi/Kconfig
+> @@ -335,6 +335,11 @@ config ACPI_PCI_SLOT
+>  	  i.e., segment/bus/device/function tuples, with physical slots in
+>  	  the system.  If you are unsure, say N.
+>  
+> +config ACPI_PCI_HOST_GENERIC
+> +	bool "Generic ACPI PCI host controller"
+> +	help
+> +	  Say Y here if you want to support generic ACPI PCI host controller.
 
+You should add a proper description here.
 
--- 
-Best regards,
+> +
+>  config X86_PM_TIMER
+>  	bool "Power Management Timer Support" if EXPERT
+>  	depends on X86
+> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+> index a65c8c2..d483e2a 100644
+> --- a/drivers/acpi/pci_root.c
+> +++ b/drivers/acpi/pci_root.c
+> @@ -24,6 +24,7 @@
+>  #include <linux/init.h>
+>  #include <linux/types.h>
+>  #include <linux/mutex.h>
+> +#include <linux/of_address.h>
 
-Fu Wei
-Software Engineer
-Red Hat Software (Beijing) Co.,Ltd.Shanghai Branch
-Ph: +86 21 61221326(direct)
-Ph: +86 186 2020 4684 (mobile)
-Room 1512, Regus One Corporate Avenue,Level 15,
-One Corporate Avenue,222 Hubin Road,Huangpu District,
-Shanghai,China 200021
+We should move the IO space management to PCI core instead of having
+it in OF core, code carrying out PIO mapping does not depend on OF
+as far as I can see.
+
+>  #include <linux/pm.h>
+>  #include <linux/pm_runtime.h>
+>  #include <linux/pci.h>
+> @@ -514,6 +515,136 @@ static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm)
+>  	}
+>  }
+>  
+> +#ifdef CONFIG_ACPI_PCI_HOST_GENERIC
+> +static int pcibios_map_irq(struct pci_dev *dev, u8 slot, u8 pin)
+> +{
+> +	if (pci_dev_msi_enabled(dev))
+> +		return 0;
+> +
+> +	acpi_pci_irq_enable(dev);
+> +	return dev->irq;
+> +}
+> +
+> +static void pci_mcfg_release_info(struct acpi_pci_root_info *ci)
+> +{
+> +	pci_mmcfg_teardown_map(ci);
+> +	kfree(ci);
+> +}
+> +
+> +static int pci_acpi_root_prepare_resources(struct acpi_pci_root_info *ci)
+> +{
+> +	struct list_head *list = &ci->resources;
+> +	struct acpi_device *device = ci->bridge;
+> +	struct resource_entry *entry, *tmp;
+> +	unsigned long flags;
+> +	int ret;
+> +
+> +	flags = IORESOURCE_IO | IORESOURCE_MEM;
+> +	ret = acpi_dev_get_resources(device, list,
+> +				     acpi_dev_filter_resource_type_cb,
+> +				     (void *)flags);
+> +	if (ret < 0) {
+> +		dev_warn(&device->dev,
+> +			 "failed to parse _CRS method, error code %d\n", ret);
+> +		return ret;
+> +	} else if (ret == 0)
+> +		dev_dbg(&device->dev,
+> +			"no IO and memory resources present in _CRS\n");
+		^^^^
+		what's the point in carrying on then ?
+
+> +
+> +	resource_list_for_each_entry_safe(entry, tmp, &ci->resources) {
+> +		resource_size_t cpu_addr, length;
+> +		struct resource *res = entry->res;
+> +
+> +		if (entry->res->flags & IORESOURCE_DISABLED)
+> +			resource_list_destroy_entry(entry);
+> +		else
+> +			res->name = ci->name;
+> +
+> +		/* PCI -> CPU space translation */
+> +		cpu_addr = res->start + entry->offset;
+> +		length = res->end - res->start + 1;
+> +
+> +		if (res->flags & IORESOURCE_MEM) {
+> +			res->start = cpu_addr;
+> +			res->end = cpu_addr + length - 1;
+> +		} else if (res->flags & IORESOURCE_IO) {
+> +			resource_size_t pci_addr = res->start;
+> +			unsigned long port;
+> +
+> +			if (pci_register_io_range(cpu_addr, length)) {
+> +				resource_list_destroy_entry(entry);
+> +				continue;
+> +			}
+> +
+> +			port = pci_address_to_pio(cpu_addr);
+> +			if (port == (unsigned long)-1) {
+> +				resource_list_destroy_entry(entry);
+> +				continue;
+> +			}
+> +
+> +			res->start = port;
+> +			res->end = port + length - 1;
+> +			entry->offset = port - pci_addr;
+> +
+> +			if (pci_remap_iospace(res, cpu_addr) < 0)
+> +				resource_list_destroy_entry(entry);
+> +		}
+> +	}
+> +	return ret;
+> +}
+> +
+> +static struct acpi_pci_root_ops acpi_pci_root_ops = {
+> +	.init_info = pci_mmcfg_setup_map,
+> +	.release_info = pci_mcfg_release_info,
+> +	.prepare_resources = pci_acpi_root_prepare_resources,
+> +};
+> +
+> +/* Root bridge scanning */
+> +struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
+> +{
+> +	int node = acpi_get_node(root->device->handle);
+> +	int domain = root->segment;
+> +	int busnum = root->secondary.start;
+> +	struct acpi_pci_root_info *info;
+> +	struct pci_host_bridge *bridge;
+> +	struct pci_bus *bus, *child;
+> +
+> +	if (domain && !pci_domains_supported) {
+> +		pr_warn("PCI %04x:%02x: multiple domains not supported.\n",
+> +			domain, busnum);
+> +		return NULL;
+> +	}
+> +
+> +	info = kzalloc_node(sizeof(*info), GFP_KERNEL, node);
+> +	if (!info) {
+> +		dev_err(&root->device->dev,
+> +			"pci_bus %04x:%02x: ignored (out of memory)\n",
+> +			domain, busnum);
+> +		return NULL;
+> +	}
+> +
+> +	acpi_pci_root_ops.pci_ops = pci_mcfg_get_ops(root);
+> +	bus = acpi_pci_root_create(root, &acpi_pci_root_ops, info, root);
+> +	if (!bus)
+> +		return NULL;
+		^^^
+		Leaking memory here.
+
+> +
+> +	bridge = pci_find_host_bridge(bus);
+> +	bridge->map_irq = pcibios_map_irq;
+
+It would be nice to use map_irq for that, but Matthew's series seems
+stuck in review mode, either we take that series on and make some
+progress on it or you should add the irq mapping code to arm64 arch
+code, *temporarily* :)
+
+Also, we should claim resources here.
+
+> +
+> +	pci_bus_size_bridges(bus);
+> +	pci_bus_assign_resources(bus);
+> +
+> +	/*
+> +	 * After the PCI-E bus has been walked and all devices discovered,
+> +	 * configure any settings of the fabric that might be necessary.
+> +	 */
+> +	list_for_each_entry(child, &bus->children, node)
+> +		pcie_bus_configure_settings(child);
+> +
+> +	return bus;
+> +}
+> +#endif /* CONFIG_ARCH_PCI_HOST_GENERIC_ACPI */
+             ^^^
+	     does not match the #ifdef
+
+Lorenzo
