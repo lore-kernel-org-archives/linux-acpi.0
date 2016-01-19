@@ -1,115 +1,92 @@
-From: Ankitprasad Sharma <ankitprasad.r.sharma@intel.com>
-Subject: Re: [PATCH 10/11] acpi: Export acpi_bus_type
-Date: Tue, 19 Jan 2016 13:45:25 +0530
-Message-ID: <1453191325.10582.33.camel@ankitprasad-desktop>
-References: <1452752207-30382-1-git-send-email-ankitprasad.r.sharma@intel.com>
-	 <19135964.pq7BquODL6@vostro.rjw.lan>
-	 <1453107660.10582.31.camel@ankitprasad-desktop>
-	 <2702251.zg6zbsLF6s@vostro.rjw.lan> <20160118182601.GA9063@wunner.de>
+From: "liudongdong (C)" <liudongdong3@huawei.com>
+Subject: Re: [PATCH V3 20/21] pci, acpi: Match PCI config space accessors
+ against platfrom specific quirks.
+Date: Tue, 19 Jan 2016 16:52:25 +0800
+Message-ID: <569DF949.5080208@huawei.com>
+References: <1452691267-32240-1-git-send-email-tn@semihalf.com>
+ <1452691267-32240-21-git-send-email-tn@semihalf.com>
+ <1452785776.28109.22.camel@redhat.com> <569CDD8F.807@semihalf.com>
+ <569D9634.3040304@huawei.com> <569DEBE9.5090909@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:35379 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757500AbcASIg6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 19 Jan 2016 03:36:58 -0500
-In-Reply-To: <20160118182601.GA9063@wunner.de>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <569DEBE9.5090909@semihalf.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Tomasz Nowicki <tn@semihalf.com>, Mark Salter <msalter@redhat.com>, bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, Stefano.Stabellini@eu.citrix.com
+Cc: robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com, Zhou Wang <wangzhou1@hisilicon.com>, Gabriele Paoloni <gabriele.paoloni@huawei.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Lukas Wunner <lukas@wunner.de>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: intel-gfx@lists.freedesktop.org, akash.goel@intel.com, shashidhar.hiremath@intel.com, tvrtko.ursulin@linux.intel.com, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-
-On Mon, 2016-01-18 at 19:26 +0100, Lukas Wunner wrote:
-Hi,
-> Hi,
-> 
-> On Mon, Jan 18, 2016 at 03:57:29PM +0100, Rafael J. Wysocki wrote:
-> > On Monday, January 18, 2016 02:31:00 PM Ankitprasad Sharma wrote:
-> > > On Fri, 2016-01-15 at 15:51 +0100, Rafael J. Wysocki wrote:
-> > > > On Thursday, January 14, 2016 11:46:46 AM ankitprasad.r.sharma@intel.com wrote:
-> > > > > From: Ankitprasad Sharma <ankitprasad.r.sharma@intel.com>
-> > > > > 
-> > > > > Some modules, like i915.ko, needs to detect when certain ACPI features
-> > > > > are active inorder to prevent corruption on contended resources.
-> > > > > In particular, use of BIOS RapidStart Technology may corrupt the contents
-> > > > > of the reserved graphics memory, due to unalarmed hibernation. In which
-> > > > > case i915.ko cannot assume that it (reserved gfx memory) remains
-> > > > > unmodified and must recreate teh contents and importantly not use it to
-> > > > > store unrecoverable user data.
-> > > > > 
-> > > > > Signed-off-by: Ankitprasad Sharma <ankitprasad.r.sharma@intel.com>
-> > > > > Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> > > > > Cc: Len Brown <lenb@kernel.org>
-> > > > > Cc: linux-acpi@vger.kernel.org
-> > > > > Cc: linux-kernel@vger.kernel.org
-> > > > > ---
-> > > > >  drivers/acpi/bus.c | 1 +
-> > > > >  1 file changed, 1 insertion(+)
-> > > > > 
-> > > > > diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-> > > > > index a212cef..69509c7 100644
-> > > > > --- a/drivers/acpi/bus.c
-> > > > > +++ b/drivers/acpi/bus.c
-> > > > > @@ -814,6 +814,7 @@ struct bus_type acpi_bus_type = {
-> > > > >  	.remove		= acpi_device_remove,
-> > > > >  	.uevent		= acpi_device_uevent,
-> > > > >  };
-> > > > > +EXPORT_SYMBOL_GPL(acpi_bus_type);
-> > > > >  
-> > > > >  /* --------------------------------------------------------------------------
-> > > > >                               Initialization/Cleanup
-> > > > > 
-> > > > 
-> > > > No.
-> > > > 
-> > > > I see no reason whatsoever for doing this.
-> > > > 
-> > > > Thanks,
-> > > > Rafael
-> > > Hi Rafael,
-> > > 
-> > > Thanks for the response.
-> > > 
-> > > Can you please help me with, how to detect the presence of a certain
-> > > acpi device using its id (for example, INT3392 for Intel RST device)? 
-> > 
-> > If you want to check if the device ir present at all, you cen use
-> > acpi_device_is_present() introduced recently (although that would need
-> > to be exported if you want to use it from a driver).
-> 
-> acpi_dev_present() is exported, so can be used in drivers just fine:
-> https://git.kernel.org/cgit/linux/kernel/git/next/linux-next.git/commit/?id=2d12b6b381ba059d5f92798f5ea739672a2f5fcf
-> 
-> 
-> > > As you might have seen (in the next patch in this series), that we use
-> > > this symbol (acpi_bus_type) to iterate over all the devices registered
-> > > on acpi bus, to check if there is a device with id INT3392 present or
-> > > not.
-> 
-> Ankitprasad, just change your patch [11/11] thusly:
-> 
-> -       if (intel_detect_acpi_rst()) {
-> +       if (acpi_dev_present("INT3392")) {
-> 
-> 
-> Using bus_for_each_dev() was the wrong approach, most drivers call
-> acpi_get_devices() to detect the presence of a particular HID,
-> however that necessitates the definition of a callback in each driver,
-> leading to lots of duplicate code. Hence the introduction of
-> acpi_dev_present() which is also faster because it just iterates over
-> a list instead of walking the namespace.
-> 
-> This new API landed in Linus' tree last Tuesday (PST), so you need
-> to merge Linus' tree back into yours or wait until it gets merged
-> into drm-intel-nightly.
-> 
-> Best regards,
-> 
-> Lukas
-
-Thank you, Lukas/Rafael.
-
--Ankit
 
 
+
+=E5=9C=A8 2016/1/19 15:55, Tomasz Nowicki =E5=86=99=E9=81=93:
+> On 19.01.2016 02:49, liudongdong (C) wrote:
+>> Hi Tomasz, Mark
+>>
+>> =E5=9C=A8 2016/1/18 20:41, Tomasz Nowicki =E5=86=99=E9=81=93:
+>>> On 14.01.2016 16:36, Mark Salter wrote:
+>>>>> +extern struct pci_mcfg_fixup __start_acpi_mcfg_fixups[];
+>>>>> >+extern struct pci_mcfg_fixup __end_acpi_mcfg_fixups[];
+>>>>> >+
+>>>>> >+static struct pci_ops *pci_mcfg_check_quirks(struct acpi_pci_ro=
+ot
+>>>>> *root)
+>>>>> >+{
+>>>>> >+    struct pci_mcfg_fixup *f;
+>>>>> >+    int bus_num =3D root->secondary.start;
+>>>>> >+    int domain =3D root->segment;
+>>>>> >+
+>>>>> >+    /*
+>>>>> >+     * First match against PCI topology <domain:bus> then use D=
+MI or
+>>>>> >+     * custom match handler.
+>>>>> >+     */
+>>>>> >+    for (f =3D __start_acpi_mcfg_fixups; f < __end_acpi_mcfg_fi=
+xups;
+>>>>> f++) {
+>>>>> >+        if ((f->domain =3D=3D domain || f->domain =3D=3D
+>>>>> PCI_MCFG_DOMAIN_ANY) &&
+>>>>> >+            (f->bus_num =3D=3D bus_num || f->bus_num =3D=3D
+>>>>> PCI_MCFG_BUS_ANY) &&
+>>>>> >+            (f->system ? dmi_check_system(f->system) : 0 ||
+>>>>> >+             f->match ? f->match(f, root) : 0))
+>>>>> >+            return f->ops;
+>>>> I think this would be better as:
+>>>>
+>>>>             (f->system ? dmi_check_system(f->system) : 1 &&
+>>>>              f->match ? f->match(f, root) : 1))
+>>>>             return f->ops;
+>>>>
+>>>> Otherwise, one has to call dmi_check_system() from f->match() if
+>>>> access to root is needed.
+>>>
+>>
+>> Non-DMI, we need not to call dmi_check_system() from f->match(),
+>> we can use _HID to decide to hook the pci_ops or not.
+>
+> Sorry, but I dont understand your point. Can you elaborate?
+>
+> With Mark modification, you can use the following cases to identify p=
+latform:
+> 1. DMI only
+> 2. f->match() only (_HID can be used there)
+> 3. DMI and f->match()
+>
+> DMI used to be very convenient way to recognise platform, sometimes i=
+t is not enough, hence f->match() alternative.
+>
+
+Yes, you are right,  I was wrong.
+In my case, I can use the second point.
+2. f->match() only (_HID can be used there)
+
+Thanks
+Dongdong
+
+> Tomasz
+>
+>
+>
+> .
+>
