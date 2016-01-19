@@ -1,108 +1,426 @@
-From: "liudongdong (C)" <liudongdong3@huawei.com>
-Subject: Re: [PATCH V3 20/21] pci, acpi: Match PCI config space accessors
- against platfrom specific quirks.
-Date: Tue, 19 Jan 2016 09:49:40 +0800
-Message-ID: <569D9634.3040304@huawei.com>
-References: <1452691267-32240-1-git-send-email-tn@semihalf.com>
- <1452691267-32240-21-git-send-email-tn@semihalf.com>
- <1452785776.28109.22.camel@redhat.com> <569CDD8F.807@semihalf.com>
+From: Fu Wei <fu.wei@linaro.org>
+Subject: Re: [PATCH v4] acpi, apei: add Boot Error Record Table (BERT) support
+Date: Tue, 19 Jan 2016 15:09:40 +0800
+Message-ID: <CADyBb7ueFUUYz_O8-+-FNybJz_dGvMpBh0FdJ-99jNcHikvRSw@mail.gmail.com>
+References: <1452260742-13625-1-git-send-email-fu.wei@linaro.org>
+	<20160116191604.GE31869@pd.tnic>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <569CDD8F.807@semihalf.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>, Mark Salter <msalter@redhat.com>, bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, Stefano.Stabellini@eu.citrix.com
-Cc: robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com, Zhou Wang <wangzhou1@hisilicon.com>, Gabriele Paoloni <gabriele.paoloni@huawei.com>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-ob0-f179.google.com ([209.85.214.179]:34398 "EHLO
+	mail-ob0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932608AbcASHJm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Jan 2016 02:09:42 -0500
+Received: by mail-ob0-f179.google.com with SMTP id vt7so180065818obb.1
+        for <linux-acpi@vger.kernel.org>; Mon, 18 Jan 2016 23:09:41 -0800 (PST)
+In-Reply-To: <20160116191604.GE31869@pd.tnic>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: Tony Luck <tony.luck@intel.com>, "Chen, Gong" <gong.chen@intel.com>, Huang Ying <ying.huang@intel.com>, Tomasz Nowicki <tomasz.nowicki@linaro.org>, Tomasz Nowicki <tn@semihalf.com>, tbaicar@codeaurora.org, rruigrok@codeaurora.org, "Abdulhamid, Harb" <harba@qti.qualcomm.com>, G Gregory <graeme.gregory@linaro.org>, Al Stone <al.stone@linaro.org>, Hanjun Guo <hanjun.guo@linaro.org>, LKML <linux-kernel@vger.kernel.org>, linux-acpi@vger.kernel.org, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>, Jon Masters <jcm@redhat.com>, Mark Rutland <mark.rutland@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Rafael Wysocki <rjw@rjwysocki.net>, "Chen, Gong" <gong.chen@linux.intel.com>
 
-Hi Tomasz, Mark
+Hi Borislav,
 
-=E5=9C=A8 2016/1/18 20:41, Tomasz Nowicki =E5=86=99=E9=81=93:
-> On 14.01.2016 16:36, Mark Salter wrote:
->>> +extern struct pci_mcfg_fixup __start_acpi_mcfg_fixups[];
->>> >+extern struct pci_mcfg_fixup __end_acpi_mcfg_fixups[];
->>> >+
->>> >+static struct pci_ops *pci_mcfg_check_quirks(struct acpi_pci_root=
- *root)
->>> >+{
->>> >+    struct pci_mcfg_fixup *f;
->>> >+    int bus_num =3D root->secondary.start;
->>> >+    int domain =3D root->segment;
->>> >+
->>> >+    /*
->>> >+     * First match against PCI topology <domain:bus> then use DMI=
- or
->>> >+     * custom match handler.
->>> >+     */
->>> >+    for (f =3D __start_acpi_mcfg_fixups; f < __end_acpi_mcfg_fixu=
-ps; f++) {
->>> >+        if ((f->domain =3D=3D domain || f->domain =3D=3D PCI_MCFG=
-_DOMAIN_ANY) &&
->>> >+            (f->bus_num =3D=3D bus_num || f->bus_num =3D=3D PCI_M=
-CFG_BUS_ANY) &&
->>> >+            (f->system ? dmi_check_system(f->system) : 0 ||
->>> >+             f->match ? f->match(f, root) : 0))
->>> >+            return f->ops;
->> I think this would be better as:
+Great thanks for  your suggestion, feedback inline below:
+
+On 17 January 2016 at 03:16, Borislav Petkov <bp@alien8.de> wrote:
+> On Fri, Jan 08, 2016 at 09:45:42PM +0800, fu.wei@linaro.org wrote:
+>> From: Huang Ying <ying.huang@intel.com>
 >>
->>             (f->system ? dmi_check_system(f->system) : 1 &&
->>              f->match ? f->match(f, root) : 1))
->>             return f->ops;
+>> ACPI/APEI is designed to verifiy/report H/W errors, like Corrected
+>> Error(CE) and Uncorrected Error(UC). It contains four tables: HEST,
+>> ERST, EINJ and BERT. The first three tables have been merged for
+>> a long time, but because of lacking BIOS support for BERT, the
+>> support for BERT is pending until now. Recently on ARM 64 platform
+>> it is has been supported. So here we come.
 >>
->> Otherwise, one has to call dmi_check_system() from f->match() if
->> access to root is needed.
+>> Under normal circumstances, when a hardware error occurs, kernel will
+>> be notified via NMI, MCE or some other method, then kernel will
+>> process the error condition, report it, and recover it if possible.
+>> But sometime, the situation is so bad, so that firmware may choose to
+>> reset directly without notifying Linux kernel.
+>>
+>> Linux kernel can use the Boot Error Record Table (BERT) to get the
+>> un-notified hardware errors that occurred in a previous boot. In this
+>> patch, the error information is reported via printk.
+>>
+>> For more information about BERT, please refer to ACPI Specification
+>> version 6.0, section 18.3.1:
+>>   http://www.uefi.org/sites/default/files/resources/ACPI_6.0.pdf
+>>
+>> The following log is a BERT record after system reboot because of hitting
+>> a fatal memory error:
+>> BERT: Error records from previous boot:
+>> [Hardware Error]: It has been corrected by h/w and requires no further action
+>> [Hardware Error]: event severity: corrected
+>> [Hardware Error]:  Error 0, type: recoverable
+>> [Hardware Error]:   section_type: memory error
+>> [Hardware Error]:   error_status: 0x0000000000000400
+>> [Hardware Error]:   physical_address: 0xffffffffffffffff
+>> [Hardware Error]:   card: 1 module: 2 bank: 3 row: 1 column: 2 bit_position: 5
+>> [Hardware Error]:   error_type: 2, single-bit ECC
+>>
+>> [Tomasz Nowicki: Clear error status at the end of error handling]
+>> [Tony: Applied some cleanups suggested by Fu Wei]
+>> [Fu Wei: delete EXPORT_SYMBOL_GPL(bert_disable), improve the code]
+>>
+>> Signed-off-by: Huang Ying <ying.huang@intel.com>
+>> Signed-off-by: Tomasz Nowicki <tomasz.nowicki@linaro.org>
+>> Signed-off-by: Chen, Gong <gong.chen@linux.intel.com>
+>> Tested-by: Jonathan (Zhixiong) Zhang <zjzhang@codeaurora.org>
+>> Signed-off-by: Tony Luck <tony.luck@intel.com>
+>> Signed-off-by: Fu Wei <fu.wei@linaro.org>
+>> Tested-by: Tyler Baicar <tbaicar@codeaurora.org>
+>> ---
+>> Changelog:
+>> v4: fix the "#undef" bug
+>>     Improve the instruction of "bert_disable",
+>>     delete the useless declaration in include/acpi/apei.h.
+>>
+>> v3: https://lkml.org/lkml/2016/1/7/214
+>>     Merge the two patches
+>>     Do some improvements according to Borislav's suggestion.
+>>
+>> v2: https://lkml.org/lkml/2015/8/18/336
+>>     Delete EXPORT_SYMBOL_GPL(bert_disable), because "bert_disable" is only
+>>     used in bert.c for now.
+>>     Do some code-style cleanups.
+>>
+>> v1: The first upstream version submitted in linux-acpi mailing list:
+>>     http://www.spinics.net/lists/linux-acpi/msg57384.html
+>>
+>>  Documentation/kernel-parameters.txt |   6 ++
+>>  drivers/acpi/apei/Makefile          |   2 +-
+>>  drivers/acpi/apei/bert.c            | 158 ++++++++++++++++++++++++++++++++++++
+>>  include/acpi/apei.h                 |   1 +
+>>
+>>  4 files changed, 166 insertions(+), 1 deletion(-)
+>>  create mode 100644 drivers/acpi/apei/bert.c
+>>
+>> diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
+>> index 742f69d..2c527a9 100644
+>> --- a/Documentation/kernel-parameters.txt
+>> +++ b/Documentation/kernel-parameters.txt
+>> @@ -555,6 +555,12 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
+>>
+>>       bootmem_debug   [KNL] Enable bootmem allocator debug messages.
+>>
+>> +     bert_disable    [ACPI]
+>> +                     Disable Boot Error Record Table (BERT) support.
+>> +                     Use this if to workaround buggy firmware which produces
+>> +                     the malformed BERT table or incorrect error status
+>> +                     block.
+>
+> Simply:
+>                         "Disable BERT OS support on buggy BIOSes"
+
+yes, will do, thanks
+
+>
+>> +
+>>       bttv.card=      [HW,V4L] bttv (bt848 + bt878 based grabber cards)
+>>       bttv.radio=     Most important insmod options are available as
+>>                       kernel args too.
+>> diff --git a/drivers/acpi/apei/Makefile b/drivers/acpi/apei/Makefile
+>> index 5d575a9..e50573d 100644
+>> --- a/drivers/acpi/apei/Makefile
+>> +++ b/drivers/acpi/apei/Makefile
+>> @@ -3,4 +3,4 @@ obj-$(CONFIG_ACPI_APEI_GHES)  += ghes.o
+>>  obj-$(CONFIG_ACPI_APEI_EINJ) += einj.o
+>>  obj-$(CONFIG_ACPI_APEI_ERST_DEBUG) += erst-dbg.o
+>>
+>> -apei-y := apei-base.o hest.o erst.o
+>> +apei-y := apei-base.o hest.o erst.o bert.o
+>> diff --git a/drivers/acpi/apei/bert.c b/drivers/acpi/apei/bert.c
+>> new file mode 100644
+>> index 0000000..ffcbf4b
+>> --- /dev/null
+>> +++ b/drivers/acpi/apei/bert.c
+>> @@ -0,0 +1,158 @@
+>> +/*
+>> + * APEI Boot Error Record Table (BERT) support
+>> + *
+>> + * Copyright 2011 Intel Corp.
+>> + *   Author: Huang Ying <ying.huang@intel.com>
+>> + *
+>> + * Under normal circumstances, when a hardware error occurs, kernel
+>> + * will be notified via NMI, MCE or some other method, then kernel
+>> + * will process the error condition, report it, and recover it if
+>> + * possible. But sometime, the situation is so bad, so that firmware
+>> + * may choose to reset directly without notifying Linux kernel.
+>> + *
+>> + * Linux kernel can use the Boot Error Record Table (BERT) to get the
+>> + * un-notified hardware errors that occurred in a previous boot.
+>
+> Rewrite this:
+>
+> "Under normal circumstances, when a hardware error occurs, the kernel
+> gets notified via an NMI, MCE or some other method. When the error
+> severity is critical such that the kernel cannot allow itself to do any
+> error recovery due to risk of data corruption, the machine resets. Some
+> implementations trigger the reset directly in hardware and do not even
+> return to the OS.
+>
+> The Boot Error Record Table is a means of reporting such critical errors
+> after the machine reset, i.e. upon the next boot."
+>
+>> + *
+>> + * For more information about BERT, please refer to ACPI Specification
+>> + * version 4.0, section 17.3.1
+>> + *
+>> + * This file is licensed under GPLv2.
+>> + *
+>> + */
+>> +
+>> +#include <linux/kernel.h>
+>> +#include <linux/module.h>
+>> +#include <linux/init.h>
+>> +#include <linux/acpi.h>
+>> +#include <linux/io.h>
+>> +
+>> +#include "apei-internal.h"
+>
+> Btw, while you're at it, this header has:
+>
+> /*
+>  * apei-internal.h - ACPI Platform Error Interface internal
+>  * definations.
+>  */
+>
+> please fix "definations" to "definitions" in your next submission.
+
+yes, np.
+
+>
+>> +
+>> +#undef pr_fmt
+>> +#define pr_fmt(fmt) "BERT: " fmt
+>> +
+>> +static int bert_disable;
+>> +
+>> +static void __init bert_print_all(struct acpi_bert_region *region,
+>> +                               unsigned int region_len)
+>> +{
+>> +     /*
+>> +      * We use cper_estatus_* which uses struct acpi_hest_generic_status,
+>> +      * struct acpi_hest_generic_status and acpi_bert_region are the same
+>> +      * (Generic Error Status Block), so we declare the "estatus" here.
+>> +      */
+>
+> No need for that comment.
+>
+>> +     struct acpi_hest_generic_status *estatus =
+>> +             (struct acpi_hest_generic_status *)region;
+>> +     int remain = region_len;
+>> +     u32 estatus_len;
+>> +
+>> +     /* The records have been polled*/
+>
+> No need for that comment.
+>
+>> +     if (!estatus->block_status)
+>> +             return;
+>> +
+>> +     while (remain > sizeof(struct acpi_bert_region)) {
+>> +             /*
+>> +              * Test Generic Error Status Block first,
+>> +              * if the data(Offset, Length) is invalid, we just return,
+>> +              * because we can't trust the length data from this block.
+>> +              */
+>
+> What's with the superfluous comments? Please drop them.
+
+NP, I just thought those can help other developer to understand why I changed
+the code like this.
+will drop them.
+
+>
+>> +             if (cper_estatus_check(estatus)) {
+>> +                     pr_err(FW_BUG "Invalid error record\n");
+>                                                            ^
+>                                                            |
+>                                                            . <--- don't forget
+>                                                                    the fullstop.
+>
+>> +                     return;
+>> +             }
+>> +
+>> +             estatus_len = cper_estatus_len(estatus);
+>> +             if (remain < estatus_len) {
+>> +                     pr_err(FW_BUG "Invalid status block length (%u)\n",
+>
+> Right, I think we should call this error message:
+>
+>                                         "Truncated status block (length: %u).\n"
+
+OK, thanks :-)
+
+>
+>> +                            estatus_len);
+>> +                     return;
+>> +             }
+>> +
+>> +             pr_info_once("Error records from previous boot:\n");
+>> +
+>> +             cper_estatus_print(KERN_INFO HW_ERR, estatus);
+>> +
+>> +             /*
+>> +              * Because the boot error source is "one-time polled" type,
+>> +              * clear Block Status of current Generic Error Status Block,
+>> +              * once it's printed.
+>> +              */
+>
+> Now that's a useful comment. Good. :)
+>
+>> +             estatus->block_status = 0;
+>> +
+>> +             estatus = (void *)estatus + estatus_len;
+>> +             if (!estatus->block_status)
+>> +                     return; /* No more error records */
+>
+> No trailing comments please, put it over the if-line.
+
+NP, sorry for that
+
+>
+>> +
+>> +             remain -= estatus_len;
+>> +     }
+>> +}
+>> +
+>> +static int __init setup_bert_disable(char *str)
+>> +{
+>> +     bert_disable = 1;
+>> +
+>> +     return 0;
+>> +}
+>> +__setup("bert_disable", setup_bert_disable);
+>> +
+>> +static int __init bert_check_table(struct acpi_table_bert *bert_tab)
+>> +{
+>> +     if (bert_tab->header.length < sizeof(struct acpi_table_bert) ||
+>> +         bert_tab->region_length < sizeof(struct acpi_bert_region))
+>> +             return -EINVAL;
+>> +
+>> +     return 0;
+>> +}
+>> +
+>> +static int __init bert_init(void)
+>> +{
+>> +     struct acpi_bert_region *boot_error_region;
+>> +     struct acpi_table_bert *bert_tab;
+>> +     unsigned int region_len;
+>> +     acpi_status status;
+>> +     int rc = 0;
+>> +
+>> +     if (acpi_disabled)
+>> +             return 0;
+>> +
+>> +     if (bert_disable) {
+>> +             pr_info("Boot Error Record Table support is disabled\n");
+>                                                                     ^
+>                                                                     |
+>                                                                     . Fullstop
+>
+> Also, check whether your other printk-statements end with a fullstop,
+> like proper sentences do.
 >
 
-Non-DMI, we need not to call dmi_check_system() from f->match(),
-we can use _HID to decide to hook the pci_ops or not.
+OK , I will check this patch for this , thank you!
 
-Device (PCI1)
-{
-         Name (_HID, "HISI0080") // PCI Express Root Bridge
-         Name (_CID, "PNP0A03") // Compatible PCI Root Bridge
-	...
-}
-
-static const struct acpi_device_id hisi_pcie_ids[] =3D {
-     {"HISI0080", 0},
-     {"", 0},
-};
-
-static int hisi_pcie_match(struct pci_mcfg_fixup *fixup, struct acpi_pc=
-i_root *root)
-{
-     int ret;
-     struct acpi_device *device;
-
-     device =3D root->device;
-     ret =3D acpi_match_device_ids(device, hisi_pcie_ids);
-     if (ret)
-         return 0;
-     ......
-     return 1;
-}
-
-static struct pci_ops hisi_ecam_pci_ops =3D {
-     .map_bus =3D pci_mcfg_dev_base,
-     .read =3D hisi_pci_read,
-     .write =3D hisi_pci_write,
-};
-
-DECLARE_ACPI_MCFG_FIXUP(NULL, hisi_pcie_match, &hisi_ecam_pci_ops,
-     PCI_MCFG_DOMAIN_ANY, PCI_MCFG_BUS_ANY);
-
-Thanks
-Dongdong
-> Makes a lot of sense to me, I will modify as you suggested.
+>> +             return 0;
+>> +     }
+>> +
+>> +     status = acpi_get_table(ACPI_SIG_BERT, 0, (struct acpi_table_header **)&bert_tab);
+>> +     if (status == AE_NOT_FOUND)
+>> +             return 0;
 >
-> Tomasz
+> \n here
+
+yes, thanks :-)
+
+>
+>> +     if (ACPI_FAILURE(status)) {
+>> +             pr_err("get table failed, %s\n", acpi_format_exception(status));
+>> +             return -EINVAL;
+>> +     }
+>> +
+>> +     rc = bert_check_table(bert_tab);
+>> +     if (rc) {
+>> +             pr_err(FW_BUG "table invalid\n");
+>
+> This comes out as:
+>
+>         [    3.199512] BERT: [Firmware Bug]: table invalid
+>
+> That's ugly.
+>
+>         BERT: table invalid.
+>
+> looks better to me.
+>
+> TBH, I'm not sure we want to use that FW_BUG marker in this file at all.
+> I mean, AFAIR, it was added at the time with the hope that people report
+> those errors to BIOS vendors and they fix their crap. But I'm not sure
+> fixing the BERT table would be of any priority for them.
+
+My personal opinion is :
+This driver will be used on various platforms, this marker can tell user there
+is some bug in firmware, maybe user can disable BERT next time to avoid
+this noise before develop have chance to fix it.
+And  BIOS vendors also can get info from that, and fix their crap :-)
+
+If user see this, maybe he should disable BERT on his platform temporary.
+
+Is that a good reason to keep it?
+
+>
+>> +             return rc;
+>> +     }
+>> +
+>> +     region_len = bert_tab->region_length;
+>> +     if (!request_mem_region(bert_tab->address, region_len, "APEI BERT")) {
+>> +             pr_err("Can't request iomem region <%016llx-%016llx>\n",
+>> +                    (unsigned long long)bert_tab->address,
+>> +                    (unsigned long long)bert_tab->address + region_len - 1);
+>> +             return -EIO;
+>> +     }
+>> +
+>> +     boot_error_region = ioremap_cache(bert_tab->address, region_len);
+>> +     if (boot_error_region) {
+>> +             bert_print_all(boot_error_region, region_len);
+>> +             iounmap(boot_error_region);
+>> +     } else {
+>> +             rc = -ENOMEM;
+>> +     }
+>> +
+>> +     release_mem_region(bert_tab->address, region_len);
+>> +
+>> +     return rc;
+>> +}
+>> +
+>> +late_initcall(bert_init);
+>> --
+>> 2.5.0
+>>
+>>
+>
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-pci" =
-in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Regards/Gruss,
+>     Boris.
 >
-> .
->
+> ECO tip #101: Trim your mails when you reply.
+
+
+
+-- 
+Best regards,
+
+Fu Wei
+Software Engineer
+Red Hat Software (Beijing) Co.,Ltd.Shanghai Branch
+Ph: +86 21 61221326(direct)
+Ph: +86 186 2020 4684 (mobile)
+Room 1512, Regus One Corporate Avenue,Level 15,
+One Corporate Avenue,222 Hubin Road,Huangpu District,
+Shanghai,China 200021
