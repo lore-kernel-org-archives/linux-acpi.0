@@ -1,247 +1,183 @@
 From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH V3 19/21] pci, acpi: Support for ACPI based generic PCI
- host controller init
-Date: Tue, 19 Jan 2016 11:58:15 +0000
-Message-ID: <20160119115815.GC5276@red-moon>
+Subject: Re: [PATCH V3 18/21] ACPI, PCI: Refine the way to handle
+ translation_offset for ACPI resources
+Date: Tue, 19 Jan 2016 12:20:26 +0000
+Message-ID: <20160119122026.GA5185@red-moon>
 References: <1452691267-32240-1-git-send-email-tn@semihalf.com>
- <1452691267-32240-20-git-send-email-tn@semihalf.com>
+ <1452691267-32240-19-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:38895 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751901AbcASL4e (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 19 Jan 2016 06:56:34 -0500
+Return-path: <linux-pci-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1452691267-32240-20-git-send-email-tn@semihalf.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+In-Reply-To: <1452691267-32240-19-git-send-email-tn@semihalf.com>
+Sender: linux-pci-owner@vger.kernel.org
 To: Tomasz Nowicki <tn@semihalf.com>
 Cc: bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, okaya@codeaurora.org, jiang.liu@linux.intel.com, Stefano.Stabellini@eu.citrix.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com
+List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jan 13, 2016 at 02:21:05PM +0100, Tomasz Nowicki wrote:
-> Because of two patch series:
-> 1. Jiang Liu's common interface to support PCI host controller init
-> 2. MMCONFIG refactoring (part of this patch set)
-> now we can think about generic ACPI based PCI host controller init
-> implementation out of arch/ directory.
+Gerry,
+
+On Wed, Jan 13, 2016 at 02:21:04PM +0100, Tomasz Nowicki wrote:
+> From: Liu Jiang <jiang.liu@linux.intel.com>
 > 
-> These calls use information from MCFG table (PCI config space regions)
-> and _CRS method (IO/irq resources) to initialize PCI hostbridge.
+> Some architectures, such as IA64 and ARM64, have no instructions to
+> directly access PCI IO ports, so they map PCI IO ports into PCI MMIO
+> address space. Typically PCI host bridges on those architectures take
+> the responsibility to map (translate) PCI IO port transactions into
+> Memory-Mapped IO transactions. ACPI specification provides support
+> of such a usage case by using resource translation_offset.
 > 
-> TBD: We are still not sure whether we should reassign resources
-> after PCI bus enumeration or trust firmware to do all that work for
-> us properly.
+> But current ACPI resource parsing interface isn't neutral enough,
+> it still has some special logic for IA64. So refine the ACPI resource
+> parsing interface and IA64 code to neutrally handle translation_offset
+> by:
+> 1) ACPI resource parsing interface doesn't do any translation, it just
+>    save the translation_offset to be used by arch code.
+> 2) Arch code will do the mapping(translation) based on arch specific
+>    information. Typically it does:
+> 2.a) Translate per PCI domain IO port address space into system global
+>    IO port address space.
+> 2.b) Setup MMIO address mapping for IO ports.
 
-We should claim resources and assign unassigned ones. I put together a
-patch for resource claiming instead of reinventing the wheel, waiting
-for feedback:
+This patch fixes IO space handling on IA64 and should go in as a fix.
 
-https://patchwork.ozlabs.org/patch/545669/
+IA64 PCI IO space is currently broken (Hanjun tested this on an IA64 box).
 
-If we merge the code with no resources claiming, we may end up in
-situations where claiming can trigger regressions so we won't be able
-to do it anymore.
+The first broken commit is:
 
-> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-> CC: Arnd Bergmann <arnd@arndb.de>
-> CC: Catalin Marinas <catalin.marinas@arm.com>
-> CC: Liviu Dudau <Liviu.Dudau@arm.com>
-> CC: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>
-> CC: Will Deacon <will.deacon@arm.com>
-> Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
-> Tested-by: Jeremy Linton <jeremy.linton@arm.com>
-> ---
->  drivers/acpi/Kconfig    |   5 ++
->  drivers/acpi/pci_root.c | 131 ++++++++++++++++++++++++++++++++++++++++++++++++
->  2 files changed, 136 insertions(+)
-> 
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index c3664be..e315061 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -335,6 +335,11 @@ config ACPI_PCI_SLOT
->  	  i.e., segment/bus/device/function tuples, with physical slots in
->  	  the system.  If you are unsure, say N.
->  
-> +config ACPI_PCI_HOST_GENERIC
-> +	bool "Generic ACPI PCI host controller"
-> +	help
-> +	  Say Y here if you want to support generic ACPI PCI host controller.
+3772aea7d6f3 ("ia64/PCI/ACPI: Use common ACPI resource parsing interface for host bridge")
 
-You should add a proper description here.
+because acpi core code checks (in acpi_dev_ioresource_flags()) the
+resource.end>=0x10003, which fails on ia64 - currently resource.end is
+set in acpi_decode_space() to:
 
-> +
->  config X86_PM_TIMER
->  	bool "Power Management Timer Support" if EXPERT
->  	depends on X86
-> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
-> index a65c8c2..d483e2a 100644
-> --- a/drivers/acpi/pci_root.c
-> +++ b/drivers/acpi/pci_root.c
-> @@ -24,6 +24,7 @@
->  #include <linux/init.h>
->  #include <linux/types.h>
->  #include <linux/mutex.h>
-> +#include <linux/of_address.h>
+AddressMaximum + AddressTranslation
 
-We should move the IO space management to PCI core instead of having
-it in OF core, code carrying out PIO mapping does not depend on OF
-as far as I can see.
+where AddressTranslation is the CPU physical address mapping IO space
+on IA64, the >=0x10003 check in acpi_dev_ioresource_flags always
+triggers and the IO resource is then disabled.
 
->  #include <linux/pm.h>
->  #include <linux/pm_runtime.h>
->  #include <linux/pci.h>
-> @@ -514,6 +515,136 @@ static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm)
->  	}
->  }
->  
-> +#ifdef CONFIG_ACPI_PCI_HOST_GENERIC
-> +static int pcibios_map_irq(struct pci_dev *dev, u8 slot, u8 pin)
-> +{
-> +	if (pci_dev_msi_enabled(dev))
-> +		return 0;
-> +
-> +	acpi_pci_irq_enable(dev);
-> +	return dev->irq;
-> +}
-> +
-> +static void pci_mcfg_release_info(struct acpi_pci_root_info *ci)
-> +{
-> +	pci_mmcfg_teardown_map(ci);
-> +	kfree(ci);
-> +}
-> +
-> +static int pci_acpi_root_prepare_resources(struct acpi_pci_root_info *ci)
-> +{
-> +	struct list_head *list = &ci->resources;
-> +	struct acpi_device *device = ci->bridge;
-> +	struct resource_entry *entry, *tmp;
-> +	unsigned long flags;
-> +	int ret;
-> +
-> +	flags = IORESOURCE_IO | IORESOURCE_MEM;
-> +	ret = acpi_dev_get_resources(device, list,
-> +				     acpi_dev_filter_resource_type_cb,
-> +				     (void *)flags);
-> +	if (ret < 0) {
-> +		dev_warn(&device->dev,
-> +			 "failed to parse _CRS method, error code %d\n", ret);
-> +		return ret;
-> +	} else if (ret == 0)
-> +		dev_dbg(&device->dev,
-> +			"no IO and memory resources present in _CRS\n");
-		^^^^
-		what's the point in carrying on then ?
+Do you want me to re-send this patch as a fix, with updated commit log ?
 
-> +
-> +	resource_list_for_each_entry_safe(entry, tmp, &ci->resources) {
-> +		resource_size_t cpu_addr, length;
-> +		struct resource *res = entry->res;
-> +
-> +		if (entry->res->flags & IORESOURCE_DISABLED)
-> +			resource_list_destroy_entry(entry);
-> +		else
-> +			res->name = ci->name;
-> +
-> +		/* PCI -> CPU space translation */
-> +		cpu_addr = res->start + entry->offset;
-> +		length = res->end - res->start + 1;
-> +
-> +		if (res->flags & IORESOURCE_MEM) {
-> +			res->start = cpu_addr;
-> +			res->end = cpu_addr + length - 1;
-> +		} else if (res->flags & IORESOURCE_IO) {
-> +			resource_size_t pci_addr = res->start;
-> +			unsigned long port;
-> +
-> +			if (pci_register_io_range(cpu_addr, length)) {
-> +				resource_list_destroy_entry(entry);
-> +				continue;
-> +			}
-> +
-> +			port = pci_address_to_pio(cpu_addr);
-> +			if (port == (unsigned long)-1) {
-> +				resource_list_destroy_entry(entry);
-> +				continue;
-> +			}
-> +
-> +			res->start = port;
-> +			res->end = port + length - 1;
-> +			entry->offset = port - pci_addr;
-> +
-> +			if (pci_remap_iospace(res, cpu_addr) < 0)
-> +				resource_list_destroy_entry(entry);
-> +		}
-> +	}
-> +	return ret;
-> +}
-> +
-> +static struct acpi_pci_root_ops acpi_pci_root_ops = {
-> +	.init_info = pci_mmcfg_setup_map,
-> +	.release_info = pci_mcfg_release_info,
-> +	.prepare_resources = pci_acpi_root_prepare_resources,
-> +};
-> +
-> +/* Root bridge scanning */
-> +struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
-> +{
-> +	int node = acpi_get_node(root->device->handle);
-> +	int domain = root->segment;
-> +	int busnum = root->secondary.start;
-> +	struct acpi_pci_root_info *info;
-> +	struct pci_host_bridge *bridge;
-> +	struct pci_bus *bus, *child;
-> +
-> +	if (domain && !pci_domains_supported) {
-> +		pr_warn("PCI %04x:%02x: multiple domains not supported.\n",
-> +			domain, busnum);
-> +		return NULL;
-> +	}
-> +
-> +	info = kzalloc_node(sizeof(*info), GFP_KERNEL, node);
-> +	if (!info) {
-> +		dev_err(&root->device->dev,
-> +			"pci_bus %04x:%02x: ignored (out of memory)\n",
-> +			domain, busnum);
-> +		return NULL;
-> +	}
-> +
-> +	acpi_pci_root_ops.pci_ops = pci_mcfg_get_ops(root);
-> +	bus = acpi_pci_root_create(root, &acpi_pci_root_ops, info, root);
-> +	if (!bus)
-> +		return NULL;
-		^^^
-		Leaking memory here.
-
-> +
-> +	bridge = pci_find_host_bridge(bus);
-> +	bridge->map_irq = pcibios_map_irq;
-
-It would be nice to use map_irq for that, but Matthew's series seems
-stuck in review mode, either we take that series on and make some
-progress on it or you should add the irq mapping code to arm64 arch
-code, *temporarily* :)
-
-Also, we should claim resources here.
-
-> +
-> +	pci_bus_size_bridges(bus);
-> +	pci_bus_assign_resources(bus);
-> +
-> +	/*
-> +	 * After the PCI-E bus has been walked and all devices discovered,
-> +	 * configure any settings of the fabric that might be necessary.
-> +	 */
-> +	list_for_each_entry(child, &bus->children, node)
-> +		pcie_bus_configure_settings(child);
-> +
-> +	return bus;
-> +}
-> +#endif /* CONFIG_ARCH_PCI_HOST_GENERIC_ACPI */
-             ^^^
-	     does not match the #ifdef
-
+Thanks,
 Lorenzo
+
+> void handle_io_resource(struct resource_entry *io_entry)
+> {
+> 	struct resource *mmio_res;
+> 
+> 	mmio_res = kzalloc(sizeof(*mmio_res), GFP_KERNEL);
+> 	mmio_res->flags = IORESOURCE_MEM;
+> 	mmio_res->start = io_entry->offset + io_entry->res->start;
+> 	mmio_res->end = io_entry->offset + io_entry->res->end;
+> 	insert_resource(&iomem_resource, mmio_res)
+> 
+> 	base = map_to_system_ioport_address(entry);
+> 	io_entry->offset = base;
+> 	io_entry->res->start += base;
+> 	io_entry->res->end += base;
+> }
+> 
+> Signed-off-by: Jiang Liu <jiang.liu@linux.intel.com>
+> ---
+>  arch/ia64/pci/pci.c     | 26 ++++++++++++++++----------
+>  drivers/acpi/resource.c | 12 +++++-------
+>  2 files changed, 21 insertions(+), 17 deletions(-)
+> 
+> diff --git a/arch/ia64/pci/pci.c b/arch/ia64/pci/pci.c
+> index be4c9ef..c75356b 100644
+> --- a/arch/ia64/pci/pci.c
+> +++ b/arch/ia64/pci/pci.c
+> @@ -154,7 +154,7 @@ static int add_io_space(struct device *dev, struct pci_root_info *info,
+>  	struct resource_entry *iospace;
+>  	struct resource *resource, *res = entry->res;
+>  	char *name;
+> -	unsigned long base, min, max, base_port;
+> +	unsigned long base_mmio, base_port;
+>  	unsigned int sparse = 0, space_nr, len;
+>  
+>  	len = strlen(info->common.name) + 32;
+> @@ -172,12 +172,10 @@ static int add_io_space(struct device *dev, struct pci_root_info *info,
+>  		goto free_resource;
+>  
+>  	name = (char *)(iospace + 1);
+> -	min = res->start - entry->offset;
+> -	max = res->end - entry->offset;
+> -	base = __pa(io_space[space_nr].mmio_base);
+> +	base_mmio = __pa(io_space[space_nr].mmio_base);
+>  	base_port = IO_SPACE_BASE(space_nr);
+>  	snprintf(name, len, "%s I/O Ports %08lx-%08lx", info->common.name,
+> -		 base_port + min, base_port + max);
+> +		 base_port + res->start, base_port + res->end);
+>  
+>  	/*
+>  	 * The SDM guarantees the legacy 0-64K space is sparse, but if the
+> @@ -190,19 +188,27 @@ static int add_io_space(struct device *dev, struct pci_root_info *info,
+>  	resource = iospace->res;
+>  	resource->name  = name;
+>  	resource->flags = IORESOURCE_MEM;
+> -	resource->start = base + (sparse ? IO_SPACE_SPARSE_ENCODING(min) : min);
+> -	resource->end   = base + (sparse ? IO_SPACE_SPARSE_ENCODING(max) : max);
+> +	resource->start = base_mmio;
+> +	resource->end = base_mmio;
+> +	if (sparse) {
+> +		resource->start += IO_SPACE_SPARSE_ENCODING(res->start);
+> +		resource->end += IO_SPACE_SPARSE_ENCODING(res->end);
+> +	} else {
+> +		resource->start += res->start;
+> +		resource->end += res->end;
+> +	}
+>  	if (insert_resource(&iomem_resource, resource)) {
+>  		dev_err(dev,
+>  			"can't allocate host bridge io space resource  %pR\n",
+>  			resource);
+>  		goto free_resource;
+>  	}
+> +	resource_list_add_tail(iospace, &info->io_resources);
+>  
+> +	/* Adjust base of original IO port resource descriptor */
+>  	entry->offset = base_port;
+> -	res->start = min + base_port;
+> -	res->end = max + base_port;
+> -	resource_list_add_tail(iospace, &info->io_resources);
+> +	res->start += base_port;
+> +	res->end += base_port;
+>  
+>  	return 0;
+>  
+> diff --git a/drivers/acpi/resource.c b/drivers/acpi/resource.c
+> index cdc5c25..6578f68 100644
+> --- a/drivers/acpi/resource.c
+> +++ b/drivers/acpi/resource.c
+> @@ -190,8 +190,7 @@ static bool acpi_decode_space(struct resource_win *win,
+>  {
+>  	u8 iodec = attr->granularity == 0xfff ? ACPI_DECODE_10 : ACPI_DECODE_16;
+>  	bool wp = addr->info.mem.write_protect;
+> -	u64 len = attr->address_length;
+> -	u64 start, end, offset = 0;
+> +	u64 len = attr->address_length, offset = 0;
+>  	struct resource *res = &win->res;
+>  
+>  	/*
+> @@ -215,14 +214,13 @@ static bool acpi_decode_space(struct resource_win *win,
+>  	else if (attr->translation_offset)
+>  		pr_debug("ACPI: translation_offset(%lld) is invalid for non-bridge device.\n",
+>  			 attr->translation_offset);
+> -	start = attr->minimum + offset;
+> -	end = attr->maximum + offset;
+>  
+>  	win->offset = offset;
+> -	res->start = start;
+> -	res->end = end;
+> +	res->start = attr->minimum;
+> +	res->end = attr->maximum;
+>  	if (sizeof(resource_size_t) < sizeof(u64) &&
+> -	    (offset != win->offset || start != res->start || end != res->end)) {
+> +	    (offset != win->offset || attr->minimum != res->start ||
+> +	     attr->maximum != res->end)) {
+>  		pr_warn("acpi resource window ([%#llx-%#llx] ignored, not CPU addressable)\n",
+>  			attr->minimum, attr->maximum);
+>  		return false;
+> -- 
+> 1.9.1
+> 
