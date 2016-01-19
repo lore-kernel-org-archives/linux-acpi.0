@@ -1,128 +1,132 @@
-From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V3 08/10] irqchip, gicv3, its: Probe ITS in the ACPI way.
-Date: Tue, 19 Jan 2016 14:11:21 +0100
-Message-ID: <1453209083-3358-9-git-send-email-tn@semihalf.com>
-References: <1453209083-3358-1-git-send-email-tn@semihalf.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] pci: fix unavailable irq number 255 reported by BIOS
+Date: Tue, 19 Jan 2016 14:43:30 +0100
+Message-ID: <6239489.QX2A2kAHWp@vostro.rjw.lan>
+References: <1453167913-16248-1-git-send-email-chen.fan.fnst@cn.fujitsu.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f43.google.com ([74.125.82.43]:32831 "EHLO
-	mail-wm0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754415AbcASNLi (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Jan 2016 08:11:38 -0500
-Received: by mail-wm0-f43.google.com with SMTP id 123so90852557wmz.0
-        for <linux-acpi@vger.kernel.org>; Tue, 19 Jan 2016 05:11:38 -0800 (PST)
-In-Reply-To: <1453209083-3358-1-git-send-email-tn@semihalf.com>
+Received: from v094114.home.net.pl ([79.96.170.134]:55655 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S932510AbcASNmt (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Jan 2016 08:42:49 -0500
+In-Reply-To: <1453167913-16248-1-git-send-email-chen.fan.fnst@cn.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, guohanjun@huawei.com, Suravee.Suthikulpanit@amd.com
-Cc: mw@semihalf.com, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, linux-arm-kernel@lists.infradead.org, ddaney.cavm@gmail.com, Tomasz Nowicki <tn@semihalf.com>
+To: Chen Fan <chen.fan.fnst@cn.fujitsu.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, izumi.taku@jp.fujitsu.com, wency@cn.fujitsu.com, caoj.fnst@cn.fujitsu.com, Bjorn Helgaas <bhelgaas@google.com>, Linux PCI <linux-pci@vger.kernel.org>
 
-Since we prepared ITS for being initialized different that via DT,
-it is now possible to parse MADT and pass mandatory info to
-firmware-agnostic ITS init call.
+On Tuesday, January 19, 2016 09:45:13 AM Chen Fan wrote:
+> In our environment, when enable Secure boot, we found an abnormal
+> phenomenon as following call trace shows. after investigation, we
+> found the firmware assigned an irq number 255 which means unknown
+> or no connection in PCI local spec for i801_smbus, meanwhile the
+> ACPI didn't configure the pci irq routing. and the 255 irq number
+> was assigned for megasa msix without IRQF_SHARED. then in this case
+> during i801_smbus probe, the i801_smbus driver would request irq with
+> bad irq number 255. but the 255 irq number was assigned for memgasa
+> with MSIX enable. which will cause request_irq fails, and call trace
+> shows, actually, we should expose the error early, rather than in request
+> irq, here we simply fix the problem by return err when find the irq is
+> 255.
+> 
+> See the call trace:
+> 
+>  [   32.459195] ipmi device interface
+>  [   32.612907] shpchp: Standard Hot Plug PCI Controller Driver version: 0.4
+>  [   32.800459] ixgbe: Intel(R) 10 Gigabit PCI Express Network Driver - version 4.0.1-k-rh
+>  [   32.818319] ixgbe: Copyright (c) 1999-2014 Intel Corporation.
+>  [   32.844009] lpc_ich 0001:80:1f.0: I/O space for ACPI uninitialized
+>  [   32.850093] i801_smbus 0000:00:1f.3: enabling device (0140 -> 0143)
+>  [   32.851134] i801_smbus 0000:00:1f.3: can't derive routing for PCI INT C
+>  [   32.851136] i801_smbus 0000:00:1f.3: PCI INT C: no GSI
+>  [   32.851164] genirq: Flags mismatch irq 255. 00000080 (i801_smbus) vs. 00000000 (megasa
+>  [   32.851168] CPU: 0 PID: 2487 Comm: kworker/0:1 Not tainted 3.10.0-229.el7.x86_64 #1
+>  [   32.851170] Hardware name: FUJITSU PRIMEQUEST 2800E2/D3736, BIOS PRIMEQUEST 2000 Serie5
+>  [   32.851178] Workqueue: events work_for_cpu_fn
+>  [   32.851208]  ffff88086c330b00 00000000e233a9df ffff88086d57bca0 ffffffff81603f36
+>  [   32.851227]  ffff88086d57bcf8 ffffffff8110d23a ffff88686fe02000 0000000000000246
+>  [   32.851246]  ffff88086a9a8c00 00000000e233a9df ffffffffa00ad220 0000000000000080
+>  [   32.851247] Call Trace:
+>  [   32.851261]  [<ffffffff81603f36>] dump_stack+0x19/0x1b
+>  [   32.851271]  [<ffffffff8110d23a>] __setup_irq+0x54a/0x570
+>  [   32.851282]  [<ffffffffa00ad220>] ? i801_check_pre.isra.5+0xe0/0xe0 [i2c_i801]
+>  [   32.851289]  [<ffffffff8110d3bc>] request_threaded_irq+0xcc/0x170
+>  [   32.851298]  [<ffffffffa00ae87f>] i801_probe+0x32f/0x508 [i2c_i801]
+>  [   32.851308]  [<ffffffff81308385>] local_pci_probe+0x45/0xa0
+>  [   32.851315]  [<ffffffff8108bfd4>] work_for_cpu_fn+0x14/0x20
+>  [   32.851323]  [<ffffffff8108f0ab>] process_one_work+0x17b/0x470
+>  [   32.851330]  [<ffffffff81090003>] worker_thread+0x293/0x400
+>  [   32.851338]  [<ffffffff8108fd70>] ? rescuer_thread+0x400/0x400
+>  [   32.851346]  [<ffffffff8109726f>] kthread+0xcf/0xe0
+>  [   32.851353]  [<ffffffff810971a0>] ? kthread_create_on_node+0x140/0x140
+>  [   32.851362]  [<ffffffff81613cfc>] ret_from_fork+0x7c/0xb0
+>  [   32.851369]  [<ffffffff810971a0>] ? kthread_create_on_node+0x140/0x140
+>  [   32.851373] i801_smbus 0000:00:1f.3: Failed to allocate irq 255: -16
+>  [   32.851435] i801_smbus: probe of 0000:00:1f.3 failed with error -16
+>  [   33.180145] ixgbe 0000:5a:00.0: Multiq[   33.240538] ixgbe 0000:5a:00.0: (PCI Express:03:e0
+>  [   33.280826] ixgbe 0000:5a:00.0: MAC: 3, PHY: 0, PBA No: 000000-000
+> 
+> Signed-off-by: Chen Fan <chen.fan.fnst@cn.fujitsu.com>
+> ---
+>  drivers/acpi/pci_irq.c | 10 +++++++++-
+>  1 file changed, 9 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
+> index d30184c..d2f47f8 100644
+> --- a/drivers/acpi/pci_irq.c
+> +++ b/drivers/acpi/pci_irq.c
+> @@ -439,9 +439,17 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
+>  		if (acpi_isa_register_gsi(dev))
+>  			dev_warn(&dev->dev, "PCI INT %c: no GSI\n",
+>  				 pin_name(pin));
+> +		rc = 0;
+> +		/*
+> +		 * Excluding the BIOS report the value 255, which meaning
+> +		 * "unknown" or "no connection" in PCI Local Bus Specification
+> +		 * Revision 3.0 February 3, 2004, P223.
 
-Note that we are using here IORT lib to keep track of allocated
-domain handler which will be used to build PCI MSI domain on top
-in the later patches.
+You mean the footnote on page 223 talking about the Interrupt Line values, right?
 
-Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> +		 */
+> +		if (dev->irq == 0xFF)
+> +			rc = -EINVAL;
+>  
+>  		kfree(entry);
+> -		return 0;
+> +		return rc;
+>  	}
+>  
+>  	rc = acpi_register_gsi(&dev->dev, gsi, triggering, polarity);
+> 
+
+Well, if you look at acpi_isa_register_gsi(), you'll see that it
+actually does the check you're adding, so maybe the following should
+be done instead?
+
 ---
- drivers/irqchip/irq-gic-v3-its.c | 57 +++++++++++++++++++++++++++++++++++++++-
- 1 file changed, 56 insertions(+), 1 deletion(-)
+ drivers/acpi/pci_irq.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/irqchip/irq-gic-v3-its.c b/drivers/irqchip/irq-gic-v3-its.c
-index fecb7a6..42f378a 100644
---- a/drivers/irqchip/irq-gic-v3-its.c
-+++ b/drivers/irqchip/irq-gic-v3-its.c
-@@ -15,10 +15,13 @@
-  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
-  */
+Index: linux-pm/drivers/acpi/pci_irq.c
+===================================================================
+--- linux-pm.orig/drivers/acpi/pci_irq.c
++++ linux-pm/drivers/acpi/pci_irq.c
+@@ -436,12 +436,13 @@ int acpi_pci_irq_enable(struct pci_dev *
+ 	 * driver reported one, then use it. Exit in any case.
+ 	 */
+ 	if (gsi < 0) {
+-		if (acpi_isa_register_gsi(dev))
++		rc = acpi_isa_register_gsi(dev);
++		if (rc)
+ 			dev_warn(&dev->dev, "PCI INT %c: no GSI\n",
+ 				 pin_name(pin));
  
-+#include <linux/acpi.h>
- #include <linux/bitmap.h>
- #include <linux/cpu.h>
- #include <linux/delay.h>
- #include <linux/interrupt.h>
-+#include <linux/irqdomain.h>
-+#include <linux/iort.h>
- #include <linux/log2.h>
- #include <linux/mm.h>
- #include <linux/msi.h>
-@@ -1272,6 +1275,11 @@ static int its_irq_gic_domain_alloc(struct irq_domain *domain,
- 		fwspec.param[0] = GIC_IRQ_TYPE_LPI;
- 		fwspec.param[1] = hwirq;
- 		fwspec.param[2] = IRQ_TYPE_EDGE_RISING;
-+	} else if (is_fwnode_irqchip(domain->parent->fwnode)) {
-+		fwspec.fwnode = domain->parent->fwnode;
-+		fwspec.param_count = 2;
-+		fwspec.param[0] = hwirq;
-+		fwspec.param[1] = IRQ_TYPE_EDGE_RISING;
- 	} else {
- 		return -EINVAL;
+ 		kfree(entry);
+-		return 0;
++		return rc;
  	}
-@@ -1594,6 +1602,52 @@ int its_cpu_init(void)
- 	return 0;
- }
  
-+#ifdef CONFIG_ACPI
-+
-+#define ACPI_GICV3_ITS_MEM_SIZE (2 * SZ_64K)
-+
-+static struct irq_domain *its_parent __initdata;
-+
-+static int __init
-+gic_acpi_parse_madt_its(struct acpi_subtable_header *header,
-+			const unsigned long end)
-+{
-+	struct acpi_madt_generic_translator *its_entry;
-+	struct fwnode_handle *domain_handle;
-+	int err;
-+
-+	its_entry = (struct acpi_madt_generic_translator *)header;
-+	domain_handle = irq_domain_alloc_fwnode((void *)its_entry->base_address);
-+	if (!domain_handle) {
-+		pr_err("Unable to allocate GICv2m domain token\n");
-+		return -ENOMEM;
-+	}
-+
-+	/* ITS works as msi controller in ACPI case */
-+	err = its_probe_one(its_entry->base_address, ACPI_GICV3_ITS_MEM_SIZE,
-+			    its_parent, true, domain_handle);
-+	if (err) {
-+		irq_domain_free_fwnode(domain_handle);
-+		return err;
-+	}
-+	iort_register_domain_token(its_entry->translation_id, domain_handle);
-+	return 0;
-+}
-+
-+void __init its_acpi_probe(struct irq_domain *parent_domain)
-+{
-+	int count;
-+
-+	its_parent = parent_domain;
-+	count = acpi_table_parse_madt(ACPI_MADT_TYPE_GENERIC_TRANSLATOR,
-+				      gic_acpi_parse_madt_its, 0);
-+	if (count <= 0)
-+		pr_info("No valid GIC ITS entries exist\n");
-+}
-+#else
-+static inline void __init its_acpi_probe(struct irq_domain *parent_domain) { }
-+#endif
-+
- static struct of_device_id its_device_id[] = {
- 	{	.compatible	= "arm,gic-v3-its",	},
- 	{},
-@@ -1610,7 +1664,8 @@ int __init its_init(struct fwnode_handle *handle, struct rdists *rdists,
- 		     np = of_find_matching_node(np, its_device_id)) {
- 			its_of_probe(np, parent_domain);
- 		}
--	}
-+	} else
-+		its_acpi_probe(parent_domain);
- 
- 	if (list_empty(&its_nodes)) {
- 		pr_warn("ITS: No ITS available, not enabling LPIs\n");
--- 
-1.9.1
+ 	rc = acpi_register_gsi(&dev->dev, gsi, triggering, polarity);
 
