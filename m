@@ -1,79 +1,29 @@
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-Subject: Re: [PATCH V3 00/21] MMCONFIG refactoring and support for ARM64 PCI
- hostbridge init based on ACPI
-Date: Tue, 19 Jan 2016 20:40:15 +0000
-Message-ID: <20160119204015.GS19062@n2100.arm.linux.org.uk>
-References: <1452691267-32240-1-git-send-email-tn@semihalf.com>
- <20160114134440.GA8520@xora-haswell.xora.org.uk>
- <1452780100.28109.3.camel@redhat.com>
- <20160114141501.GC8520@xora-haswell.xora.org.uk>
- <1452781481.28109.8.camel@redhat.com>
- <20160115121231.GD8520@xora-haswell.xora.org.uk>
- <20160118140405.GC11384@xora-haswell.xora.org.uk>
- <20160119202513.GC6510@localhost>
+From: <Stuart_Hayes@Dell.com>
+Subject: ACPI IPMI device with _CID getting wrong driver attached
+Date: Tue, 19 Jan 2016 14:46:51 -0600
+Message-ID: <959D45574D89AF41A9DADF6F446A2E9A50AE8A4F6F@AUSX7MCPS310.AMER.DELL.COM>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from pandora.arm.linux.org.uk ([78.32.30.218]:50048 "EHLO
-	pandora.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933070AbcASUkl (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Jan 2016 15:40:41 -0500
-Content-Disposition: inline
-In-Reply-To: <20160119202513.GC6510@localhost>
+Received: from ausxipps301.us.dell.com ([143.166.148.223]:11869 "EHLO
+	ausxipps301.us.dell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757379AbcASUrW convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 19 Jan 2016 15:47:22 -0500
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Bjorn Helgaas <helgaas@kernel.org>
-Cc: Graeme Gregory <gg@slimlogic.co.uk>, linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, will.deacon@arm.com, okaya@codeaurora.org, wangyijing@huawei.com, Lorenzo.Pieralisi@arm.com, Tomasz Nowicki <tn@semihalf.com>, ddaney@caviumnetworks.com, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, catalin.marinas@arm.com, jcm@redhat.com, arnd@arndb.de, Stefano.Stabellini@eu.citrix.com, Liviu.Dudau@arm.com, Mark Salter <msalter@redhat.com>, bhelgaas@google.com, tglx@linutronix.de, mw@semihalf.com, linux-arm-kernel@lists.infradead.org, jchandra@broadcom.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, hanjun.guo@linaro.org, Suravee.Suthikulpanit@amd.com, jiang.liu@linux.intel.com
+To: linux-acpi@vger.kernel.org, openipmi-developer@lists.sourceforge.net
+Cc: cminyard@mvista.com
 
-On Tue, Jan 19, 2016 at 02:25:13PM -0600, Bjorn Helgaas wrote:
-> On Mon, Jan 18, 2016 at 02:04:05PM +0000, Graeme Gregory wrote:
-> > After some private debugging with Mark it turned out that the difference
-> > between our configurations was I did not have.
-> > 
-> > CONFIG_DMA_CMA=y
-> > 
-> > With this enabled then the card works without coherent mask hack.
-> 
-> I didn't follow the whole discussion here, but is this a case where
-> the driver could fail more gracefully than it did?  Can we do anything
-> to make this easier for the next person who trips over the same problem?
+I'm having a problem on a number of systems where the IPMI driver isn't able to find the ACPI IPMI device.
 
-I've not followed the discussion at all, but reading what was in the
-quoted parts of the mail makes me somewhat suspicious.
+This is happening because the ACPI scan is attaching the acpi_pnp handler to the ACPI IPMI device, which is happening because the IPMI device has a _CID of PNP0C01 in addition to an _HID of IPI0001.  This is a problem because acpi_scan_attach_handler() doesn't know about the IPMI drivers (ipmi_si / ipmi_ssif), which don't register as PNP or ACPI drivers, but instead expect the ACPI scan find no applicable driver and thus create a platform device.
 
-The way PCI drivers (or in fact any driver) are supposed to work is:
+This could be fixed pretty easily by modifying acpi_scan_attach_handler() to make it return 0 without attaching a handler to devices that have a _HID of IPI0001 when the kernel has an IPMI driver available (if, say, CONFIG_IPMI_SI, CONFIG_IPMI_SI_MODULE, CONFIG_IPMI_SSIF, or CONFIG_IPMI_SSIF_MODULE are defined)... but would this be accepted?  Or is this something that will require reworking the IPMI drivers?  Or is there another way?
 
-- the bus code sets up a default mask (32-bit DMA in the case of PCI)
-- the driver calls dma_set_mask() or similar function with the mask
-  the _driver_ wants to use.  Arch DMA code decides whether the mask
-  can be supported, and if it can, it re-sets the DMA mask.  If the
-  mask can't be supported, it returns an error.
+I'm willing to work on a patch, but I'm not sure what would be an acceptable way to fix this.
 
-The driver is doing things correctly:
+Thanks,
+Stuart
 
-        if ((sizeof(dma_addr_t) > 4) &&
-            !pci_set_dma_mask(pdev, DMA_BIT_MASK(64)) && use_dac) {
-                tp->cp_cmd |= PCIDAC;
-                dev->features |= NETIF_F_HIGHDMA;
-        } else {
-                rc = pci_set_dma_mask(pdev, DMA_BIT_MASK(32));
-
-which says: if the size of a DMA address supports 64-bit, and we can
-set a 64-bit DMA address mask (iow, the platform allows it), and
-we're permitted to use DAC, use DAC, otherwise try to set a 32-bit
-DMA mask.
-
-It shouldn't matter one bit what the mask is before that point.
-
-However, what the driver fails to do is to deal with the coherent
-mask - it appears to be missing a call to pci_set_consistent_dma_mask().
-That may be where the issue is.
-
-It may be worth doing what I did with the DMA API, and introducing
-pci_set_mask_and_coherent() which sets both masks together - which
-will probably allow some PCI driver code to be simplified.
-
--- 
-RMK's Patch system: http://www.arm.linux.org.uk/developer/patches/
-FTTC broadband for 0.8mile line: currently at 9.6Mbps down 400kbps up
-according to speedtest.net.
