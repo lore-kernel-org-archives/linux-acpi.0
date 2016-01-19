@@ -1,23 +1,24 @@
 From: kbuild test robot <lkp@intel.com>
-Subject: Re: [PATCH V3 08/10] irqchip, gicv3, its: Probe ITS in the ACPI way.
-Date: Wed, 20 Jan 2016 02:04:02 +0800
-Message-ID: <201601200217.VECZlkZ7%fengguang.wu@intel.com>
-References: <1453209083-3358-9-git-send-email-tn@semihalf.com>
+Subject: Re: [PATCH V3 10/10] acpi, gicv3, its: Use MADT ITS subtable to do
+ PCI/MSI domain initialization.
+Date: Wed, 20 Jan 2016 02:26:15 +0800
+Message-ID: <201601200231.5eyNsiQb%fengguang.wu@intel.com>
+References: <1453209083-3358-11-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="Dxnq1zWXvFF0Q93v"
+Content-Type: multipart/mixed; boundary="LQksG6bCIzRHxTLp"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:56528 "EHLO mga02.intel.com"
+Received: from mga14.intel.com ([192.55.52.115]:55470 "EHLO mga14.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932371AbcASSFZ (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 19 Jan 2016 13:05:25 -0500
+	id S932665AbcASS1c (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 19 Jan 2016 13:27:32 -0500
 Content-Disposition: inline
-In-Reply-To: <1453209083-3358-9-git-send-email-tn@semihalf.com>
+In-Reply-To: <1453209083-3358-11-git-send-email-tn@semihalf.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 Cc: kbuild-all@01.org, marc.zyngier@arm.com, tglx@linutronix.de, jason@lakedaemon.net, rjw@rjwysocki.net, lorenzo.pieralisi@arm.com, robert.richter@caviumnetworks.com, shijie.huang@arm.com, guohanjun@huawei.com, Suravee.Suthikulpanit@amd.com, mw@semihalf.com, graeme.gregory@linaro.org, Catalin.Marinas@arm.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, hanjun.guo@linaro.org, linux-arm-kernel@lists.infradead.org, ddaney.cavm@gmail.com, Tomasz Nowicki <tn@semihalf.com>
 
 
---Dxnq1zWXvFF0Q93v
+--LQksG6bCIzRHxTLp
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
 
@@ -37,35 +38,35 @@ reproduce:
 
 All errors (new ones prefixed by >>):
 
-   drivers/irqchip/irq-gic-v3-its.c: In function 'its_irq_gic_domain_alloc':
->> drivers/irqchip/irq-gic-v3-its.c:1278:2: error: implicit declaration of function 'is_fwnode_irqchip' [-Werror=implicit-function-declaration]
-     } else if (is_fwnode_irqchip(domain->parent->fwnode)) {
+   drivers/irqchip/irq-gic-v3-its-pci-msi.c: In function 'its_pci_msi_parse_madt':
+>> drivers/irqchip/irq-gic-v3-its-pci-msi.c:168:2: error: implicit declaration of function 'pci_msi_register_fwnode_provider' [-Werror=implicit-function-declaration]
+     pci_msi_register_fwnode_provider(&iort_find_pci_domain_token);
      ^
    cc1: some warnings being treated as errors
 
-vim +/is_fwnode_irqchip +1278 drivers/irqchip/irq-gic-v3-its.c
+vim +/pci_msi_register_fwnode_provider +168 drivers/irqchip/irq-gic-v3-its-pci-msi.c
 
-  1272		if (irq_domain_get_of_node(domain->parent)) {
-  1273			fwspec.fwnode = domain->parent->fwnode;
-  1274			fwspec.param_count = 3;
-  1275			fwspec.param[0] = GIC_IRQ_TYPE_LPI;
-  1276			fwspec.param[1] = hwirq;
-  1277			fwspec.param[2] = IRQ_TYPE_EDGE_RISING;
-> 1278		} else if (is_fwnode_irqchip(domain->parent->fwnode)) {
-  1279			fwspec.fwnode = domain->parent->fwnode;
-  1280			fwspec.param_count = 2;
-  1281			fwspec.param[0] = hwirq;
+   162			return 0;
+   163		}
+   164	
+   165		if (its_pci_msi_init_one(domain_handle))
+   166			return 0;
+   167	
+ > 168		pci_msi_register_fwnode_provider(&iort_find_pci_domain_token);
+   169		pr_info("PCI/MSI: ITS@0x%lx domain created\n",
+   170			(long)its_entry->base_address);
+   171		return 0;
 
 ---
 0-DAY kernel test infrastructure                Open Source Technology Center
 https://lists.01.org/pipermail/kbuild-all                   Intel Corporation
 
---Dxnq1zWXvFF0Q93v
+--LQksG6bCIzRHxTLp
 Content-Type: application/octet-stream
 Content-Disposition: attachment; filename=".config.gz"
 Content-Transfer-Encoding: base64
 
-H4sICPJ5nlYAAy5jb25maWcAjFxPd9s4kr/3p9BL72H3MB1Ldpz07vMBIiEJI5JgCFCSfeFT
+H4sICE5+nlYAAy5jb25maWcAjFxPd9s4kr/3p9BL72H3MB1Ldpz07vMBIiEJI5JgCFCSfeFT
 HKXj17aUkeWeybffKoAUCyBI9Rymo/oV/hWqClUF0L/+8uuIvZ0OL9vT0+P2+fnn6I/dfnfc
 nnZfR9+ennf/N4rlKJN6xGOhfwPm5Gn/9p/32+PL7c3o5reb367+cXz8NFrujvvd8yg67L89
 /fEGzZ8O+19+/SWS2UzMK1aktzd3P5uftzdTodufrIgWVb64VxWL46LSPp6mZftDaRYtdcEi
@@ -931,4 +932,4 @@ Vxhd0ypiUcW2GR3bZ9BZmfAQGrLyQF/EVnExNC2GhKwbO/LMosgbeWUc0dphOn4/Fog9CAk6
 erevHhP07X06dyAMLJx6MgygzrkHx2Ab3fzd87F9UZPcUypAp7P32cyBp/vvU7bW1egHm3pX
 qaFzaxxvAUW++T96r5QzKtYCAA==
 
---Dxnq1zWXvFF0Q93v--
+--LQksG6bCIzRHxTLp--
