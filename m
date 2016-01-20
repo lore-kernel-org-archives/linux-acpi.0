@@ -1,107 +1,177 @@
-From: Mark Salter <msalter@redhat.com>
-Subject: Re: [PATCH V3 00/21] MMCONFIG refactoring and support for ARM64 PCI
- hostbridge init based on ACPI
-Date: Tue, 19 Jan 2016 18:37:36 -0500
-Message-ID: <1453246656.28109.81.camel@redhat.com>
-References: <1452691267-32240-1-git-send-email-tn@semihalf.com>
-	 <20160114134440.GA8520@xora-haswell.xora.org.uk>
-	 <1452780100.28109.3.camel@redhat.com>
-	 <20160114141501.GC8520@xora-haswell.xora.org.uk>
-	 <1452781481.28109.8.camel@redhat.com>
-	 <20160115121231.GD8520@xora-haswell.xora.org.uk>
-	 <20160118140405.GC11384@xora-haswell.xora.org.uk>
-	 <20160119202513.GC6510@localhost>
-	 <20160119204015.GS19062@n2100.arm.linux.org.uk>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH] pci: fix unavailable irq number 255 reported by BIOS
+Date: Tue, 19 Jan 2016 18:24:31 -0600
+Message-ID: <20160120002431.GA7973@localhost>
+References: <1453167913-16248-1-git-send-email-chen.fan.fnst@cn.fujitsu.com>
+ <6239489.QX2A2kAHWp@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:49760 "EHLO mx1.redhat.com"
+Received: from mail.kernel.org ([198.145.29.136]:44895 "EHLO mail.kernel.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757156AbcASXhn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 19 Jan 2016 18:37:43 -0500
-In-Reply-To: <20160119204015.GS19062@n2100.arm.linux.org.uk>
+	id S932414AbcATAYg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 19 Jan 2016 19:24:36 -0500
+Content-Disposition: inline
+In-Reply-To: <6239489.QX2A2kAHWp@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Russell King - ARM Linux <linux@arm.linux.org.uk>, Bjorn Helgaas <helgaas@kernel.org>
-Cc: Graeme Gregory <gg@slimlogic.co.uk>, linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, will.deacon@arm.com, okaya@codeaurora.org, wangyijing@huawei.com, Lorenzo.Pieralisi@arm.com, Tomasz Nowicki <tn@semihalf.com>, ddaney@caviumnetworks.com, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, catalin.marinas@arm.com, jcm@redhat.com, arnd@arndb.de, Stefano.Stabellini@eu.citrix.com, Liviu.Dudau@arm.com, bhelgaas@google.com, tglx@linutronix.de, mw@semihalf.com, linux-arm-kernel@lists.infradead.org, jchandra@broadcom.com, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, hanjun.guo@linaro.org, Suravee.Suthikulpanit@amd.com, jiang.liu@linux.intel.com
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Chen Fan <chen.fan.fnst@cn.fujitsu.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, izumi.taku@jp.fujitsu.com, wency@cn.fujitsu.com, caoj.fnst@cn.fujitsu.com, Bjorn Helgaas <bhelgaas@google.com>, Linux PCI <linux-pci@vger.kernel.org>, Jiang Liu <jiang.liu@linux.intel.com>
 
-On Tue, 2016-01-19 at 20:40 +0000, Russell King - ARM Linux wrote:
-> On Tue, Jan 19, 2016 at 02:25:13PM -0600, Bjorn Helgaas wrote:
-> > On Mon, Jan 18, 2016 at 02:04:05PM +0000, Graeme Gregory wrote:
-> > > After some private debugging with Mark it turned out that the dif=
-ference
-> > > between our configurations was I did not have.
-> > >=20
-> > > CONFIG_DMA_CMA=3Dy
-> > >=20
-> > > With this enabled then the card works without coherent mask hack.
-> >=20
-> > I didn't follow the whole discussion here, but is this a case where
-> > the driver could fail more gracefully than it did?=C2=A0=C2=A0Can w=
-e do anything
-> > to make this easier for the next person who trips over the same pro=
-blem?
->=20
-> I've not followed the discussion at all, but reading what was in the
-> quoted parts of the mail makes me somewhat suspicious.
->=20
-> The way PCI drivers (or in fact any driver) are supposed to work is:
->=20
-> - the bus code sets up a default mask (32-bit DMA in the case of PCI)
-> - the driver calls dma_set_mask() or similar function with the mask
-> =C2=A0 the _driver_ wants to use.=C2=A0=C2=A0Arch DMA code decides wh=
-ether the mask
-> =C2=A0 can be supported, and if it can, it re-sets the DMA mask.=C2=A0=
-=C2=A0If the
-> =C2=A0 mask can't be supported, it returns an error.
->=20
-> The driver is doing things correctly:
->=20
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0if ((sizeof(dma_addr_=
-t) > 4) &&
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0!pci_set_dma_mask(pdev, DMA_BIT_MASK(64)) && use_dac) {
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0tp->cp_cmd |=3D PCIDAC;
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0dev->features |=3D NETIF_F_HIGHDMA;
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0} else {
-> =C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=
-=A0=C2=A0=C2=A0=C2=A0=C2=A0rc =3D pci_set_dma_mask(pdev, DMA_BIT_MASK(3=
-2));
->=20
-> which says: if the size of a DMA address supports 64-bit, and we can
-> set a 64-bit DMA address mask (iow, the platform allows it), and
-> we're permitted to use DAC, use DAC, otherwise try to set a 32-bit
-> DMA mask.
->=20
-> It shouldn't matter one bit what the mask is before that point.
->=20
-> However, what the driver fails to do is to deal with the coherent
-> mask - it appears to be missing a call to pci_set_consistent_dma_mask=
-().
-> That may be where the issue is.
+[+cc Jiang]
 
-It is.
+Hi Chen,
 
-The driver works with devicetree because of_dma_configure() sets up dma
-and coherent mask for PCI devices based on root bridge info in the DT.
-So the driver gets by without setting coherent mask explicitly. In the
-ACPI case, the coherent mask doesn't get set because there isn't DMA
-info in the ACPI tables (I think IORT table/IOMMU support will add this
-in the future). Using CONFIG_DMA_CMA avoids the issue by allowing CMA
-memory to be used for DMA while avoiding a check against coherent mask.
+On Tue, Jan 19, 2016 at 02:43:30PM +0100, Rafael J. Wysocki wrote:
+> On Tuesday, January 19, 2016 09:45:13 AM Chen Fan wrote:
+> > In our environment, when enable Secure boot, we found an abnormal
 
->=20
-> It may be worth doing what I did with the DMA API, and introducing
-> pci_set_mask_and_coherent() which sets both masks together - which
-> will probably allow some PCI driver code to be simplified.
->=20
+This has more information than necessary.  I don't think Secure Boot is
+really relevant, and nor are the timestamps and stack addresses below.
 
+> > phenomenon as following call trace shows. after investigation, we
+> > found the firmware assigned an irq number 255 which means unknown
+> > or no connection in PCI local spec for i801_smbus, meanwhile the
+> > ACPI didn't configure the pci irq routing. and the 255 irq number
+> > was assigned for megasa msix without IRQF_SHARED. then in this case
+> > during i801_smbus probe, the i801_smbus driver would request irq with
+> > bad irq number 255. but the 255 irq number was assigned for memgasa
+> > with MSIX enable. which will cause request_irq fails, and call trace
+> > shows, actually, we should expose the error early, rather than in request
+> > irq, here we simply fix the problem by return err when find the irq is
+> > 255.
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> > See the call trace:
+> > 
+> >  [   32.459195] ipmi device interface
+> >  [   32.612907] shpchp: Standard Hot Plug PCI Controller Driver version: 0.4
+> >  [   32.800459] ixgbe: Intel(R) 10 Gigabit PCI Express Network Driver - version 4.0.1-k-rh
+> >  [   32.818319] ixgbe: Copyright (c) 1999-2014 Intel Corporation.
+> >  [   32.844009] lpc_ich 0001:80:1f.0: I/O space for ACPI uninitialized
+> >  [   32.850093] i801_smbus 0000:00:1f.3: enabling device (0140 -> 0143)
+> >  [   32.851134] i801_smbus 0000:00:1f.3: can't derive routing for PCI INT C
+> >  [   32.851136] i801_smbus 0000:00:1f.3: PCI INT C: no GSI
+> >  [   32.851164] genirq: Flags mismatch irq 255. 00000080 (i801_smbus) vs. 00000000 (megasa
+> >  [   32.851168] CPU: 0 PID: 2487 Comm: kworker/0:1 Not tainted 3.10.0-229.el7.x86_64 #1
+> >  [   32.851170] Hardware name: FUJITSU PRIMEQUEST 2800E2/D3736, BIOS PRIMEQUEST 2000 Serie5
+> >  [   32.851178] Workqueue: events work_for_cpu_fn
+> >  [   32.851208]  ffff88086c330b00 00000000e233a9df ffff88086d57bca0 ffffffff81603f36
+> >  [   32.851227]  ffff88086d57bcf8 ffffffff8110d23a ffff88686fe02000 0000000000000246
+> >  [   32.851246]  ffff88086a9a8c00 00000000e233a9df ffffffffa00ad220 0000000000000080
+> >  [   32.851247] Call Trace:
+> >  [   32.851261]  [<ffffffff81603f36>] dump_stack+0x19/0x1b
+> >  [   32.851271]  [<ffffffff8110d23a>] __setup_irq+0x54a/0x570
+> >  [   32.851282]  [<ffffffffa00ad220>] ? i801_check_pre.isra.5+0xe0/0xe0 [i2c_i801]
+> >  [   32.851289]  [<ffffffff8110d3bc>] request_threaded_irq+0xcc/0x170
+> >  [   32.851298]  [<ffffffffa00ae87f>] i801_probe+0x32f/0x508 [i2c_i801]
+> >  [   32.851308]  [<ffffffff81308385>] local_pci_probe+0x45/0xa0
+> >  [   32.851315]  [<ffffffff8108bfd4>] work_for_cpu_fn+0x14/0x20
+> >  [   32.851323]  [<ffffffff8108f0ab>] process_one_work+0x17b/0x470
+> >  [   32.851330]  [<ffffffff81090003>] worker_thread+0x293/0x400
+> >  [   32.851338]  [<ffffffff8108fd70>] ? rescuer_thread+0x400/0x400
+> >  [   32.851346]  [<ffffffff8109726f>] kthread+0xcf/0xe0
+> >  [   32.851353]  [<ffffffff810971a0>] ? kthread_create_on_node+0x140/0x140
+> >  [   32.851362]  [<ffffffff81613cfc>] ret_from_fork+0x7c/0xb0
+> >  [   32.851369]  [<ffffffff810971a0>] ? kthread_create_on_node+0x140/0x140
+> >  [   32.851373] i801_smbus 0000:00:1f.3: Failed to allocate irq 255: -16
+> >  [   32.851435] i801_smbus: probe of 0000:00:1f.3 failed with error -16
+
+Since the Interrupt Line register is writable and might contain any
+value, it would be nice if Linux could at least tolerate anything
+firmware might leave there without a backtrace, even if we end up not
+being able to use the device.
+
+Your patch changes the acpi_pci_irq_enable() return value from 0 to
+-EINVAL for this case.  You're running v3.10, and this change probably
+makes pci_enable_device() fail.  I suppose the user-visible effect is
+that with your patch,
+
+  - there's no backtrace,
+  - i801_smbus fails with "Failed to enable SMBus PCI device" instead
+    of with "Failed to allocate irq 255", and
+  - i801_smbus fails even if no other device is using IRQ 255, instead
+    of "succeeding" and using an IRQ 255 that probably doesn't work
+    (this seems like maybe the most important difference)
+
+Jiang has changed this path with 890e4847587f ("PCI: Add
+pcibios_alloc_irq() and pcibios_free_irq()"), so I think on newer
+kernels, we'll never even call the i801_smbus probe function.
+
+What behavior are you looking for from i801_smbus?  Decline to claim
+the device?  Try to use the device without interrupts?  Try to figure
+out an interrupt in some other way?
+
+I'm not 100% sure that 890e4847587f does the right thing by preventing
+a driver from claiming a device where we can't set up an IRQ.  It's
+conceivable that a driver could still operate a device even without an
+IRQ.
+
+> >  [   33.180145] ixgbe 0000:5a:00.0: Multiq[   33.240538] ixgbe 0000:5a:00.0: (PCI Express:03:e0
+> >  [   33.280826] ixgbe 0000:5a:00.0: MAC: 3, PHY: 0, PBA No: 000000-000
+> > 
+> > Signed-off-by: Chen Fan <chen.fan.fnst@cn.fujitsu.com>
+> > ---
+> >  drivers/acpi/pci_irq.c | 10 +++++++++-
+> >  1 file changed, 9 insertions(+), 1 deletion(-)
+> > 
+> > diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
+> > index d30184c..d2f47f8 100644
+> > --- a/drivers/acpi/pci_irq.c
+> > +++ b/drivers/acpi/pci_irq.c
+> > @@ -439,9 +439,17 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
+> >  		if (acpi_isa_register_gsi(dev))
+> >  			dev_warn(&dev->dev, "PCI INT %c: no GSI\n",
+> >  				 pin_name(pin));
+> > +		rc = 0;
+> > +		/*
+> > +		 * Excluding the BIOS report the value 255, which meaning
+> > +		 * "unknown" or "no connection" in PCI Local Bus Specification
+> > +		 * Revision 3.0 February 3, 2004, P223.
+> 
+> You mean the footnote on page 223 talking about the Interrupt Line values, right?
+> 
+> > +		 */
+> > +		if (dev->irq == 0xFF)
+> > +			rc = -EINVAL;
+> >  
+> >  		kfree(entry);
+> > -		return 0;
+> > +		return rc;
+> >  	}
+> >  
+> >  	rc = acpi_register_gsi(&dev->dev, gsi, triggering, polarity);
+> > 
+> 
+> Well, if you look at acpi_isa_register_gsi(), you'll see that it
+> actually does the check you're adding, so maybe the following should
+> be done instead?
+> 
+> ---
+>  drivers/acpi/pci_irq.c |    5 +++--
+>  1 file changed, 3 insertions(+), 2 deletions(-)
+> 
+> Index: linux-pm/drivers/acpi/pci_irq.c
+> ===================================================================
+> --- linux-pm.orig/drivers/acpi/pci_irq.c
+> +++ linux-pm/drivers/acpi/pci_irq.c
+> @@ -436,12 +436,13 @@ int acpi_pci_irq_enable(struct pci_dev *
+>  	 * driver reported one, then use it. Exit in any case.
+>  	 */
+>  	if (gsi < 0) {
+> -		if (acpi_isa_register_gsi(dev))
+> +		rc = acpi_isa_register_gsi(dev);
+> +		if (rc)
+>  			dev_warn(&dev->dev, "PCI INT %c: no GSI\n",
+>  				 pin_name(pin));
+>  
+>  		kfree(entry);
+> -		return 0;
+> +		return rc;
+>  	}
+>  
+>  	rc = acpi_register_gsi(&dev->dev, gsi, triggering, polarity);
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-pci" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
