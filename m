@@ -1,125 +1,59 @@
-From: Aleksey Makarov <aleksey.makarov@linaro.org>
-Subject: [PATCH v6 1/2] ACPI: introduce a function to find the first physical device
-Date: Wed, 20 Jan 2016 20:29:26 +0600
-Message-ID: <1453300171-25473-2-git-send-email-aleksey.makarov@linaro.org>
-References: <1453300171-25473-1-git-send-email-aleksey.makarov@linaro.org>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1453300171-25473-1-git-send-email-aleksey.makarov@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Aleksey Makarov <aleksey.makarov@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Shannon Zhao <shannon.zhao@linaro.org>, Andy Shevchenko <andy.shevchenko@gmail.com>, Vladimir Zapolskiy <vz@mleia.com>, Len Brown <lenb@kernel.org>
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: Re: [PATCH V3 11/21] pci, acpi: Move ACPI host bridge device
+ companion assignment to core code.
+Date: Wed, 20 Jan 2016 15:41:56 +0100
+Message-ID: <569F9CB4.2010905@semihalf.com>
+References: <1452691267-32240-1-git-send-email-tn@semihalf.com>
+ <1452691267-32240-12-git-send-email-tn@semihalf.com>
+ <20160119160224.GD5276@red-moon> <569F6D67.5000000@semihalf.com>
+ <20160120123849.GA13437@red-moon> <569F8E38.5030101@semihalf.com>
+ <20160120142243.GB13437@red-moon>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20160120142243.GB13437@red-moon>
+Sender: linux-pci-owner@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, rjw@rjwysocki.net
+Cc: bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, hanjun.guo@linaro.org, okaya@codeaurora.org, jiang.liu@linux.intel.com, Stefano.Stabellini@eu.citrix.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com
 List-Id: linux-acpi@vger.kernel.org
 
-Factor out the code that finds the first physical device
-of a given ACPI device.  It is used in several places.
+On 20.01.2016 15:22, Lorenzo Pieralisi wrote:
+> On Wed, Jan 20, 2016 at 02:40:08PM +0100, Tomasz Nowicki wrote:
+>
+> [...]
+>
+>>>>>> +	/* Root bridge device needs to be sure of parent ACPI type */
+>>>>>> +	ACPI_COMPANION_SET(&device->dev, device);
+>>>>>
+>>>>> I do not understand why the code above is needed, can you elaborate
+>>>>> please ?
+>>>>>
+>>>>
+>>>> This makes sure that device->dev can be identified as ACPI device,
+>>>> so we can use to_acpi_device_node() and assign companion safely
+>>>> below.
+>>>
+>>> I do not follow. If you refer to the fwnode handle type, that is
+>>> already set by ACPI core code (before acpi_pci_root_add() is called,
+>>> in acpi_init_device_object()).
+>>
+>> acpi_init_device_object() sets ACPI fwnode handle type only for
+>> "device", but not for "device->dev" which is what is passed as an
+>> argument to pci_create_root_bus().
+>>
+>> Without ACPI_COMPANION_SET(&device->dev, device) here, no one can be
+>> sure if we have ACPI device in pci_create_root_bus().
+>
+> Ok, got it. The question is whether this should be done in ACPI
+> core instead (is there a reason why it should *not* be done ?), but I
+> now understand your point.
+>
 
-Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
-Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
----
- drivers/acpi/acpi_platform.c | 19 ++-----------------
- drivers/acpi/bus.c           | 33 ++++++++++++++++++++++-----------
- drivers/acpi/internal.h      |  1 +
- 3 files changed, 25 insertions(+), 28 deletions(-)
+I am not able to answer that question, but I see lots of changes in this 
+area made by Rafael.
 
-diff --git a/drivers/acpi/acpi_platform.c b/drivers/acpi/acpi_platform.c
-index 296b7a1..c3af108 100644
---- a/drivers/acpi/acpi_platform.c
-+++ b/drivers/acpi/acpi_platform.c
-@@ -43,7 +43,6 @@ static const struct acpi_device_id forbidden_id_list[] = {
- struct platform_device *acpi_create_platform_device(struct acpi_device *adev)
- {
- 	struct platform_device *pdev = NULL;
--	struct acpi_device *acpi_parent;
- 	struct platform_device_info pdevinfo;
- 	struct resource_entry *rentry;
- 	struct list_head resource_list;
-@@ -82,22 +81,8 @@ struct platform_device *acpi_create_platform_device(struct acpi_device *adev)
- 	 * attached to it, that physical device should be the parent of the
- 	 * platform device we are about to create.
- 	 */
--	pdevinfo.parent = NULL;
--	acpi_parent = adev->parent;
--	if (acpi_parent) {
--		struct acpi_device_physical_node *entry;
--		struct list_head *list;
--
--		mutex_lock(&acpi_parent->physical_node_lock);
--		list = &acpi_parent->physical_node_list;
--		if (!list_empty(list)) {
--			entry = list_first_entry(list,
--					struct acpi_device_physical_node,
--					node);
--			pdevinfo.parent = entry->dev;
--		}
--		mutex_unlock(&acpi_parent->physical_node_lock);
--	}
-+	pdevinfo.parent = adev->parent ?
-+		acpi_get_first_physical_node(adev->parent) : NULL;
- 	pdevinfo.name = dev_name(&adev->dev);
- 	pdevinfo.id = -1;
- 	pdevinfo.res = resources;
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index a212cef..832b26d 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -478,24 +478,35 @@ static void acpi_device_remove_notify_handler(struct acpi_device *device)
-                              Device Matching
-    -------------------------------------------------------------------------- */
- 
--static struct acpi_device *acpi_primary_dev_companion(struct acpi_device *adev,
--						      const struct device *dev)
-+/**
-+ * acpi_device_fix_parent - Get first physical node of an ACPI device
-+ * @adev: ACPI device in question
-+ */
-+struct device *acpi_get_first_physical_node(struct acpi_device *adev)
- {
- 	struct mutex *physical_node_lock = &adev->physical_node_lock;
-+	struct device *node = NULL;
- 
- 	mutex_lock(physical_node_lock);
--	if (list_empty(&adev->physical_node_list)) {
--		adev = NULL;
--	} else {
--		const struct acpi_device_physical_node *node;
- 
-+	if (!list_empty(&adev->physical_node_list))
- 		node = list_first_entry(&adev->physical_node_list,
--					struct acpi_device_physical_node, node);
--		if (node->dev != dev)
--			adev = NULL;
--	}
-+				struct acpi_device_physical_node, node)->dev;
-+
- 	mutex_unlock(physical_node_lock);
--	return adev;
-+
-+	return node;
-+}
-+
-+static struct acpi_device *acpi_primary_dev_companion(struct acpi_device *adev,
-+						      const struct device *dev)
-+{
-+	const struct device *node = acpi_get_first_physical_node(adev);
-+
-+	if (node && node == dev)
-+		return adev;
-+
-+	return NULL;
- }
- 
- /**
-diff --git a/drivers/acpi/internal.h b/drivers/acpi/internal.h
-index 11d87bf..ee9312ba 100644
---- a/drivers/acpi/internal.h
-+++ b/drivers/acpi/internal.h
-@@ -98,6 +98,7 @@ bool acpi_device_is_present(struct acpi_device *adev);
- bool acpi_device_is_battery(struct acpi_device *adev);
- bool acpi_device_is_first_physical_node(struct acpi_device *adev,
- 					const struct device *dev);
-+struct device *acpi_get_first_physical_node(struct acpi_device *adev);
- 
- /* --------------------------------------------------------------------------
-                      Device Matching and Notification
--- 
-2.7.0
+Rafael, can you please shed some light on this?
+
+Thanks,
+Tomasz
