@@ -1,141 +1,54 @@
-From: Bjorn Helgaas <helgaas@kernel.org>
-Subject: Re: [PATCH] pci: fix unavailable irq number 255 reported by BIOS
-Date: Wed, 20 Jan 2016 11:12:52 -0600
-Message-ID: <20160120171252.GB7973@localhost>
-References: <1453167913-16248-1-git-send-email-chen.fan.fnst@cn.fujitsu.com>
- <6239489.QX2A2kAHWp@vostro.rjw.lan>
- <20160120002431.GA7973@localhost>
- <569F0B44.1010109@cn.fujitsu.com>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH v6 1/2] ACPI: introduce a function to find the first
+ physical device
+Date: Wed, 20 Jan 2016 19:25:19 +0200
+Message-ID: <CAHp75Vdedr9L_VPpbyKbDpqzheaovOh9bni_P5xyWH9djYFjoA@mail.gmail.com>
+References: <1453300171-25473-1-git-send-email-aleksey.makarov@linaro.org>
+	<1453300171-25473-2-git-send-email-aleksey.makarov@linaro.org>
+	<CAHp75VcdtU6izThE+Z2ODnYoXk-uhweXzUtFwSze_jJHw3+38g@mail.gmail.com>
+	<569FBD1A.5050609@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:47319 "EHLO mail.kernel.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934158AbcATRM6 (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 20 Jan 2016 12:12:58 -0500
-Content-Disposition: inline
-In-Reply-To: <569F0B44.1010109@cn.fujitsu.com>
+Received: from mail-yk0-f176.google.com ([209.85.160.176]:36728 "EHLO
+	mail-yk0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934015AbcATRZU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Jan 2016 12:25:20 -0500
+In-Reply-To: <569FBD1A.5050609@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Chen Fan <chen.fan.fnst@cn.fujitsu.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, izumi.taku@jp.fujitsu.com, wency@cn.fujitsu.com, caoj.fnst@cn.fujitsu.com, Bjorn Helgaas <bhelgaas@google.com>, Linux PCI <linux-pci@vger.kernel.org>, Jiang Liu <jiang.liu@linux.intel.com>
+To: Aleksey Makarov <aleksey.makarov@linaro.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, Graeme Gregory <graeme.gregory@linaro.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Shannon Zhao <shannon.zhao@linaro.org>, Vladimir Zapolskiy <vz@mleia.com>, Len Brown <lenb@kernel.org>
 
-On Wed, Jan 20, 2016 at 12:21:24PM +0800, Chen Fan wrote:
-> 
-> On 01/20/2016 08:24 AM, Bjorn Helgaas wrote:
-> >[+cc Jiang]
-> >
-> >Hi Chen,
-> >
-> >On Tue, Jan 19, 2016 at 02:43:30PM +0100, Rafael J. Wysocki wrote:
-> >>On Tuesday, January 19, 2016 09:45:13 AM Chen Fan wrote:
-> >>>In our environment, when enable Secure boot, we found an abnormal
-> >This has more information than necessary.  I don't think Secure Boot is
-> >really relevant, and nor are the timestamps and stack addresses below.
-> I just think enable the Secure Boot, probably the firmware assigned
-> a 0xff interrupt to the device which unauthenticated.
+On Wed, Jan 20, 2016 at 7:00 PM, Aleksey Makarov
+<aleksey.makarov@linaro.org> wrote:
+> On 20.01.2016 21:12, Andy Shevchenko wrote:
+>>
+>> On Wed, Jan 20, 2016 at 4:29 PM, Aleksey Makarov
+>> <aleksey.makarov@linaro.org> wrote:
+>>>
+>>> Factor out the code that finds the first physical device
+>>> of a given ACPI device.  It is used in several places.
+>>>
+>>> Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
 
-The important thing is that you're changing the way we handle
-Interrupt Line being 0xff.  That affects more than just Secure Boot
-users.  It's fine to mention Secure Boot later, as one example of an
-affected scenario.
+=46or all your comments, I have to withdraw my tag. You may return it
+back if Rafael and / or Mika will be okay with these changes.
+Sorry for inconvenience.
 
-I don't know anything about Secure Boot, but setting Interrupt Line to
-0xff would obviously not be a robust way of hiding an unauthenticated
-device.  But it sounds like you're just speculating about that anyway.
+>>> Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
+>>
+>>
+>> Hmm=E2=80=A6 Sorry, didn't notice one style issue and there is one i=
+s matter
+>> of taste below.
 
-> >>>phenomenon as following call trace shows. after investigation, we
-> >>>found the firmware assigned an irq number 255 which means unknown
-> >>>or no connection in PCI local spec for i801_smbus, meanwhile the
-> >>>ACPI didn't configure the pci irq routing. and the 255 irq number
-> >>>was assigned for megasa msix without IRQF_SHARED. then in this case
-> >>>during i801_smbus probe, the i801_smbus driver would request irq with
-> >>>bad irq number 255. but the 255 irq number was assigned for memgasa
-> >>>with MSIX enable. which will cause request_irq fails, and call trace
-> >>>shows, actually, we should expose the error early, rather than in request
-> >>>irq, here we simply fix the problem by return err when find the irq is
-> >>>255.
-> >>>See the call trace:
-> >>>
-> >>>  [   32.459195] ipmi device interface
-> >>>  [   32.612907] shpchp: Standard Hot Plug PCI Controller Driver version: 0.4
-> >>>  [   32.800459] ixgbe: Intel(R) 10 Gigabit PCI Express Network Driver - version 4.0.1-k-rh
-> >>>  [   32.818319] ixgbe: Copyright (c) 1999-2014 Intel Corporation.
-> >>>  [   32.844009] lpc_ich 0001:80:1f.0: I/O space for ACPI uninitialized
-> >>>  [   32.850093] i801_smbus 0000:00:1f.3: enabling device (0140 -> 0143)
-> >>>  [   32.851134] i801_smbus 0000:00:1f.3: can't derive routing for PCI INT C
-> >>>  [   32.851136] i801_smbus 0000:00:1f.3: PCI INT C: no GSI
-> >>>  [   32.851164] genirq: Flags mismatch irq 255. 00000080 (i801_smbus) vs. 00000000 (megasa
-> >>>  [   32.851168] CPU: 0 PID: 2487 Comm: kworker/0:1 Not tainted 3.10.0-229.el7.x86_64 #1
-> >>>  [   32.851170] Hardware name: FUJITSU PRIMEQUEST 2800E2/D3736, BIOS PRIMEQUEST 2000 Serie5
-> >>>  [   32.851178] Workqueue: events work_for_cpu_fn
-> >>>  [   32.851208]  ffff88086c330b00 00000000e233a9df ffff88086d57bca0 ffffffff81603f36
-> >>>  [   32.851227]  ffff88086d57bcf8 ffffffff8110d23a ffff88686fe02000 0000000000000246
-> >>>  [   32.851246]  ffff88086a9a8c00 00000000e233a9df ffffffffa00ad220 0000000000000080
-> >>>  [   32.851247] Call Trace:
-> >>>  [   32.851261]  [<ffffffff81603f36>] dump_stack+0x19/0x1b
-> >>>  [   32.851271]  [<ffffffff8110d23a>] __setup_irq+0x54a/0x570
-> >>>  [   32.851282]  [<ffffffffa00ad220>] ? i801_check_pre.isra.5+0xe0/0xe0 [i2c_i801]
-> >>>  [   32.851289]  [<ffffffff8110d3bc>] request_threaded_irq+0xcc/0x170
-> >>>  [   32.851298]  [<ffffffffa00ae87f>] i801_probe+0x32f/0x508 [i2c_i801]
-> >>>  [   32.851308]  [<ffffffff81308385>] local_pci_probe+0x45/0xa0
-> >>>  [   32.851315]  [<ffffffff8108bfd4>] work_for_cpu_fn+0x14/0x20
-> >>>  [   32.851323]  [<ffffffff8108f0ab>] process_one_work+0x17b/0x470
-> >>>  [   32.851330]  [<ffffffff81090003>] worker_thread+0x293/0x400
-> >>>  [   32.851338]  [<ffffffff8108fd70>] ? rescuer_thread+0x400/0x400
-> >>>  [   32.851346]  [<ffffffff8109726f>] kthread+0xcf/0xe0
-> >>>  [   32.851353]  [<ffffffff810971a0>] ? kthread_create_on_node+0x140/0x140
-> >>>  [   32.851362]  [<ffffffff81613cfc>] ret_from_fork+0x7c/0xb0
-> >>>  [   32.851369]  [<ffffffff810971a0>] ? kthread_create_on_node+0x140/0x140
-> >>>  [   32.851373] i801_smbus 0000:00:1f.3: Failed to allocate irq 255: -16
-> >>>  [   32.851435] i801_smbus: probe of 0000:00:1f.3 failed with error -16
-> >Since the Interrupt Line register is writable and might contain any
-> >value, it would be nice if Linux could at least tolerate anything
-> >firmware might leave there without a backtrace, even if we end up not
-> >being able to use the device.
-> >
-> >Your patch changes the acpi_pci_irq_enable() return value from 0 to
-> >-EINVAL for this case.  You're running v3.10, and this change probably
-> >makes pci_enable_device() fail.  I suppose the user-visible effect is
-> >that with your patch,
-> >
-> >   - there's no backtrace,
-> >   - i801_smbus fails with "Failed to enable SMBus PCI device" instead
-> >     of with "Failed to allocate irq 255", and
-> >   - i801_smbus fails even if no other device is using IRQ 255, instead
-> >     of "succeeding" and using an IRQ 255 that probably doesn't work
-> >     (this seems like maybe the most important difference)
-> >
-> >Jiang has changed this path with 890e4847587f ("PCI: Add
-> >pcibios_alloc_irq() and pcibios_free_irq()"), so I think on newer
-> >kernels, we'll never even call the i801_smbus probe function.
->
-> no, on newer kernels, this phenomenon also probably appearance,
-> with this patch 890e4847587f change, it didn't change the
-> acpi_pci_irq_enable() return value, with the problem it also return 0,
-> and then still call __pci_device_probe() to do i801_smbus probe
-> function in pci_device_probe() function.
-
-I meant that *with your patch*, newer kernels won't call the
-i801_smbus probe function.
-
-> >What behavior are you looking for from i801_smbus?  Decline to claim
-> >the device?  Try to use the device without interrupts?  Try to figure
-> >out an interrupt in some other way?
->
-> I think if BIOS assigned 0xff interrupt line to device, and kernel
-> can't look
-> up a valid interrupt for the device, we should not allow to use the device.
-> >
-> >I'm not 100% sure that 890e4847587f does the right thing by preventing
-> >a driver from claiming a device where we can't set up an IRQ.  It's
-> >conceivable that a driver could still operate a device even without an
-> >IRQ.
->
-> I don't understanding, does without IRQ for device still work?
-
-Polling drivers do not need IRQs.  The PCI core has no idea whether a
-driver is interrupt-driven or polling, so we can't assume that a
-device with no IRQ is useless.
-
-Bjorn
+--=20
+With Best Regards,
+Andy Shevchenko
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
