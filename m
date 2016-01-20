@@ -1,274 +1,110 @@
-From: Tomasz Nowicki <tn@semihalf.com>
-Subject: Re: [PATCH V3 19/21] pci, acpi: Support for ACPI based generic PCI
- host controller init
-Date: Wed, 20 Jan 2016 16:01:25 +0100
-Message-ID: <569FA145.8070201@semihalf.com>
-References: <1452691267-32240-1-git-send-email-tn@semihalf.com>
- <1452691267-32240-20-git-send-email-tn@semihalf.com>
- <20160119115815.GC5276@red-moon>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH v6 1/2] ACPI: introduce a function to find the first
+ physical device
+Date: Wed, 20 Jan 2016 17:12:18 +0200
+Message-ID: <CAHp75VcdtU6izThE+Z2ODnYoXk-uhweXzUtFwSze_jJHw3+38g@mail.gmail.com>
+References: <1453300171-25473-1-git-send-email-aleksey.makarov@linaro.org>
+	<1453300171-25473-2-git-send-email-aleksey.makarov@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f47.google.com ([74.125.82.47]:37785 "EHLO
-	mail-wm0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933815AbcATPDa (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Jan 2016 10:03:30 -0500
-Received: by mail-wm0-f47.google.com with SMTP id n5so33924372wmn.0
-        for <linux-acpi@vger.kernel.org>; Wed, 20 Jan 2016 07:03:29 -0800 (PST)
-In-Reply-To: <20160119115815.GC5276@red-moon>
+Received: from mail-yk0-f175.google.com ([209.85.160.175]:36553 "EHLO
+	mail-yk0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933215AbcATPMT convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Jan 2016 10:12:19 -0500
+In-Reply-To: <1453300171-25473-2-git-send-email-aleksey.makarov@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, okaya@codeaurora.org, jiang.liu@linux.intel.com, Stefano.Stabellini@eu.citrix.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com
+To: Aleksey Makarov <aleksey.makarov@linaro.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, Graeme Gregory <graeme.gregory@linaro.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Shannon Zhao <shannon.zhao@linaro.org>, Vladimir Zapolskiy <vz@mleia.com>, Len Brown <lenb@kernel.org>
 
-On 19.01.2016 12:58, Lorenzo Pieralisi wrote:
-> On Wed, Jan 13, 2016 at 02:21:05PM +0100, Tomasz Nowicki wrote:
->> Because of two patch series:
->> 1. Jiang Liu's common interface to support PCI host controller init
->> 2. MMCONFIG refactoring (part of this patch set)
->> now we can think about generic ACPI based PCI host controller init
->> implementation out of arch/ directory.
->>
->> These calls use information from MCFG table (PCI config space regions)
->> and _CRS method (IO/irq resources) to initialize PCI hostbridge.
->>
->> TBD: We are still not sure whether we should reassign resources
->> after PCI bus enumeration or trust firmware to do all that work for
->> us properly.
+On Wed, Jan 20, 2016 at 4:29 PM, Aleksey Makarov
+<aleksey.makarov@linaro.org> wrote:
+> Factor out the code that finds the first physical device
+> of a given ACPI device.  It is used in several places.
 >
-> We should claim resources and assign unassigned ones. I put together a
-> patch for resource claiming instead of reinventing the wheel, waiting
-> for feedback:
+> Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+> Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
+
+Hmm=E2=80=A6 Sorry, didn't notice one style issue and there is one is m=
+atter
+of taste below.
+
+> --- a/drivers/acpi/acpi_platform.c
+> +++ b/drivers/acpi/acpi_platform.c
+> @@ -43,7 +43,6 @@ static const struct acpi_device_id forbidden_id_lis=
+t[] =3D {
+
+> +       pdevinfo.parent =3D adev->parent ?
+> +               acpi_get_first_physical_node(adev->parent) : NULL;
+
+Matter of taste, but I believe if-else looks better here even when
+consumes +2 LOC.
+Or, does it fit 80? How wide then?
+
+> --- a/drivers/acpi/bus.c
+> +++ b/drivers/acpi/bus.c
+> @@ -478,24 +478,35 @@ static void acpi_device_remove_notify_handler(s=
+truct acpi_device *device)
+>                               Device Matching
+>     -----------------------------------------------------------------=
+--------- */
 >
-> https://patchwork.ozlabs.org/patch/545669/
+> -static struct acpi_device *acpi_primary_dev_companion(struct acpi_de=
+vice *adev,
+> -                                                     const struct de=
+vice *dev)
+> +/**
+> + * acpi_device_fix_parent - Get first physical node of an ACPI devic=
+e
+
+'node' -> 'device node'
+Name of the function is wrong.
+
+> + * @adev: ACPI device in question
+> + */
+> +struct device *acpi_get_first_physical_node(struct acpi_device *adev=
+)
+>  {
+>         struct mutex *physical_node_lock =3D &adev->physical_node_loc=
+k;
+> +       struct device *node =3D NULL;
 >
-> If we merge the code with no resources claiming, we may end up in
-> situations where claiming can trigger regressions so we won't be able
-> to do it anymore.
+>         mutex_lock(physical_node_lock);
+> -       if (list_empty(&adev->physical_node_list)) {
+> -               adev =3D NULL;
+> -       } else {
+> -               const struct acpi_device_physical_node *node;
 >
->> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
->> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
->> Signed-off-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
->> CC: Arnd Bergmann <arnd@arndb.de>
->> CC: Catalin Marinas <catalin.marinas@arm.com>
->> CC: Liviu Dudau <Liviu.Dudau@arm.com>
->> CC: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>
->> CC: Will Deacon <will.deacon@arm.com>
->> Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
->> Tested-by: Jeremy Linton <jeremy.linton@arm.com>
->> ---
->>   drivers/acpi/Kconfig    |   5 ++
->>   drivers/acpi/pci_root.c | 131 ++++++++++++++++++++++++++++++++++++++++++++++++
->>   2 files changed, 136 insertions(+)
->>
->> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
->> index c3664be..e315061 100644
->> --- a/drivers/acpi/Kconfig
->> +++ b/drivers/acpi/Kconfig
->> @@ -335,6 +335,11 @@ config ACPI_PCI_SLOT
->>   	  i.e., segment/bus/device/function tuples, with physical slots in
->>   	  the system.  If you are unsure, say N.
->>
->> +config ACPI_PCI_HOST_GENERIC
->> +	bool "Generic ACPI PCI host controller"
->> +	help
->> +	  Say Y here if you want to support generic ACPI PCI host controller.
->
-> You should add a proper description here.
+> +       if (!list_empty(&adev->physical_node_list))
+>                 node =3D list_first_entry(&adev->physical_node_list,
+> -                                       struct acpi_device_physical_n=
+ode, node);
+> -               if (node->dev !=3D dev)
+> -                       adev =3D NULL;
+> -       }
+> +                               struct acpi_device_physical_node, nod=
+e)->dev;
 
-Will do.
+I didn't notice this '->dev' thingy. I supposed that the function
+returns struct acpi_device_physical_node *, not struct device *.
 
->
->> +
->>   config X86_PM_TIMER
->>   	bool "Power Management Timer Support" if EXPERT
->>   	depends on X86
->> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
->> index a65c8c2..d483e2a 100644
->> --- a/drivers/acpi/pci_root.c
->> +++ b/drivers/acpi/pci_root.c
->> @@ -24,6 +24,7 @@
->>   #include <linux/init.h>
->>   #include <linux/types.h>
->>   #include <linux/mutex.h>
->> +#include <linux/of_address.h>
->
-> We should move the IO space management to PCI core instead of having
-> it in OF core, code carrying out PIO mapping does not depend on OF
-> as far as I can see.
+Currently the name is not aligned with returned value.
 
-Yes, this should be cleaned up, I will add another patch in the next series.
-
->
->>   #include <linux/pm.h>
->>   #include <linux/pm_runtime.h>
->>   #include <linux/pci.h>
->> @@ -514,6 +515,136 @@ static void negotiate_os_control(struct acpi_pci_root *root, int *no_aspm)
->>   	}
->>   }
->>
->> +#ifdef CONFIG_ACPI_PCI_HOST_GENERIC
->> +static int pcibios_map_irq(struct pci_dev *dev, u8 slot, u8 pin)
->> +{
->> +	if (pci_dev_msi_enabled(dev))
->> +		return 0;
->> +
->> +	acpi_pci_irq_enable(dev);
->> +	return dev->irq;
->> +}
->> +
->> +static void pci_mcfg_release_info(struct acpi_pci_root_info *ci)
->> +{
->> +	pci_mmcfg_teardown_map(ci);
->> +	kfree(ci);
->> +}
->> +
->> +static int pci_acpi_root_prepare_resources(struct acpi_pci_root_info *ci)
->> +{
->> +	struct list_head *list = &ci->resources;
->> +	struct acpi_device *device = ci->bridge;
->> +	struct resource_entry *entry, *tmp;
->> +	unsigned long flags;
->> +	int ret;
->> +
->> +	flags = IORESOURCE_IO | IORESOURCE_MEM;
->> +	ret = acpi_dev_get_resources(device, list,
->> +				     acpi_dev_filter_resource_type_cb,
->> +				     (void *)flags);
->> +	if (ret < 0) {
->> +		dev_warn(&device->dev,
->> +			 "failed to parse _CRS method, error code %d\n", ret);
->> +		return ret;
->> +	} else if (ret == 0)
->> +		dev_dbg(&device->dev,
->> +			"no IO and memory resources present in _CRS\n");
-> 		^^^^
-> 		what's the point in carrying on then ?
-
-There is no point, hence resource_list_for_each_entry_safe will not 
-iterate &ci->resources and simply return. If you like I can add here 
-return to make code more readable.
-
->
->> +
->> +	resource_list_for_each_entry_safe(entry, tmp, &ci->resources) {
->> +		resource_size_t cpu_addr, length;
->> +		struct resource *res = entry->res;
->> +
->> +		if (entry->res->flags & IORESOURCE_DISABLED)
->> +			resource_list_destroy_entry(entry);
->> +		else
->> +			res->name = ci->name;
->> +
->> +		/* PCI -> CPU space translation */
->> +		cpu_addr = res->start + entry->offset;
->> +		length = res->end - res->start + 1;
->> +
->> +		if (res->flags & IORESOURCE_MEM) {
->> +			res->start = cpu_addr;
->> +			res->end = cpu_addr + length - 1;
->> +		} else if (res->flags & IORESOURCE_IO) {
->> +			resource_size_t pci_addr = res->start;
->> +			unsigned long port;
->> +
->> +			if (pci_register_io_range(cpu_addr, length)) {
->> +				resource_list_destroy_entry(entry);
->> +				continue;
->> +			}
->> +
->> +			port = pci_address_to_pio(cpu_addr);
->> +			if (port == (unsigned long)-1) {
->> +				resource_list_destroy_entry(entry);
->> +				continue;
->> +			}
->> +
->> +			res->start = port;
->> +			res->end = port + length - 1;
->> +			entry->offset = port - pci_addr;
->> +
->> +			if (pci_remap_iospace(res, cpu_addr) < 0)
->> +				resource_list_destroy_entry(entry);
->> +		}
->> +	}
->> +	return ret;
->> +}
->> +
->> +static struct acpi_pci_root_ops acpi_pci_root_ops = {
->> +	.init_info = pci_mmcfg_setup_map,
->> +	.release_info = pci_mcfg_release_info,
->> +	.prepare_resources = pci_acpi_root_prepare_resources,
->> +};
->> +
->> +/* Root bridge scanning */
->> +struct pci_bus *pci_acpi_scan_root(struct acpi_pci_root *root)
->> +{
->> +	int node = acpi_get_node(root->device->handle);
->> +	int domain = root->segment;
->> +	int busnum = root->secondary.start;
->> +	struct acpi_pci_root_info *info;
->> +	struct pci_host_bridge *bridge;
->> +	struct pci_bus *bus, *child;
->> +
->> +	if (domain && !pci_domains_supported) {
->> +		pr_warn("PCI %04x:%02x: multiple domains not supported.\n",
->> +			domain, busnum);
->> +		return NULL;
->> +	}
->> +
->> +	info = kzalloc_node(sizeof(*info), GFP_KERNEL, node);
->> +	if (!info) {
->> +		dev_err(&root->device->dev,
->> +			"pci_bus %04x:%02x: ignored (out of memory)\n",
->> +			domain, busnum);
->> +		return NULL;
->> +	}
->> +
->> +	acpi_pci_root_ops.pci_ops = pci_mcfg_get_ops(root);
->> +	bus = acpi_pci_root_create(root, &acpi_pci_root_ops, info, root);
->> +	if (!bus)
->> +		return NULL;
-> 		^^^
-> 		Leaking memory here.
-
-No leak here. See acpi_pci_root_create->__acpi_pci_root_release_info
-
->
->> +
->> +	bridge = pci_find_host_bridge(bus);
->> +	bridge->map_irq = pcibios_map_irq;
->
-> It would be nice to use map_irq for that, but Matthew's series seems
-> stuck in review mode, either we take that series on and make some
-> progress on it or you should add the irq mapping code to arm64 arch
-> code, *temporarily* :)
-
-Right, I decided to decouple this and Matthew's series.
-
->
-> Also, we should claim resources here.
-
-Let me investigate it more and get back to you.
-
->
->> +
->> +	pci_bus_size_bridges(bus);
->> +	pci_bus_assign_resources(bus);
->> +
->> +	/*
->> +	 * After the PCI-E bus has been walked and all devices discovered,
->> +	 * configure any settings of the fabric that might be necessary.
->> +	 */
->> +	list_for_each_entry(child, &bus->children, node)
->> +		pcie_bus_configure_settings(child);
->> +
->> +	return bus;
->> +}
->> +#endif /* CONFIG_ARCH_PCI_HOST_GENERIC_ACPI */
->               ^^^
-> 	     does not match the #ifdef
-Fixed.
+> +
+>         mutex_unlock(physical_node_lock);
+> -       return adev;
+> +
+> +       return node;
+> +}
 
 
-Thanks,
-Tomasz
+--=20
+With Best Regards,
+Andy Shevchenko
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
