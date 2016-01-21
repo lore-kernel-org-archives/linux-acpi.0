@@ -1,50 +1,63 @@
-From: Ross Zwisler <ross.zwisler@linux.intel.com>
-Subject: Re: [PATCH] libnvdimm, nfit: Use ACPI_SIG_NFIT instead of hard coded
- string
-Date: Thu, 21 Jan 2016 09:08:41 -0700
-Message-ID: <20160121160841.GA625@linux.intel.com>
-References: <1453379530-21727-1-git-send-email-jlee@suse.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga03.intel.com ([134.134.136.65]:29918 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964802AbcAUQJa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 21 Jan 2016 11:09:30 -0500
-Content-Disposition: inline
-In-Reply-To: <1453379530-21727-1-git-send-email-jlee@suse.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Colin King <colin.king@canonical.com>
+Subject: [PATCH] ACPI / tables: Add acpi_force_32bit_fadt_addr option to force 32 bit FADT addresses
+Date: Thu, 21 Jan 2016 17:05:47 +0000
+Message-ID: <1453395947-1567-1-git-send-email-colin.king@canonical.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Jonathan Corbet <corbet@lwn.net>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, linux-doc@vger.kernel.org, linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Lee, Chun-Yi" <joeyli.kernel@gmail.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, "Lee, Chun-Yi" <jlee@suse.com>, Ross Zwisler <ross.zwisler@linux.intel.com>, Len Brown <lenb@kernel.org>
 
-On Thu, Jan 21, 2016 at 08:32:10PM +0800, Lee, Chun-Yi wrote:
-> It's minor but that's still better to use ACPI_SIG_NFIT instead of hard
-> coded string.
-> 
-> Cc: Ross Zwisler <ross.zwisler@linux.intel.com>
-> Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-> Cc: Len Brown <lenb@kernel.org>
-> Signed-off-by: Lee, Chun-Yi <jlee@suse.com>
+From: Colin Ian King <colin.king@canonical.com>
 
-Acked-by: Ross Zwisler <ross.zwisler@linux.intel.com>
+BugLink: https://bugs.launchpad.net/bugs/1529381
 
->  drivers/acpi/nfit.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-> index aa45d48..9fb1a6a 100644
-> --- a/drivers/acpi/nfit.c
-> +++ b/drivers/acpi/nfit.c
-> @@ -1739,7 +1739,7 @@ static int acpi_nfit_add(struct acpi_device *adev)
->  	acpi_size sz;
->  	int rc;
->  
-> -	status = acpi_get_table_with_size("NFIT", 0, &tbl, &sz);
-> +	status = acpi_get_table_with_size(ACPI_SIG_NFIT, 0, &tbl, &sz);
->  	if (ACPI_FAILURE(status)) {
->  		/* This is ok, we could have an nvdimm hotplugged later */
->  		dev_dbg(dev, "failed to find NFIT at startup\n");
-> -- 
-> 2.1.4
-> 
+Some HP laptops seem to have invalid 64 bit FADT X_PM* addresses
+which are causing various boot issues.  In these cases, it would
+be useful to force ACPI to use the valid legacy 32 bit equivalent
+PM addresses.  Add a acpi_force_32bit_fadt_addr to set the ACPICA
+acpi_gbl_use32_bit_fadt_addresses to TRUE to force this override.
+
+Signed-off-by: Colin Ian King <colin.king@canonical.com>
+---
+ Documentation/kernel-parameters.txt |  6 ++++++
+ drivers/acpi/tables.c               | 10 ++++++++++
+ 2 files changed, 16 insertions(+)
+
+diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
+index 3ea869d..3782024 100644
+--- a/Documentation/kernel-parameters.txt
++++ b/Documentation/kernel-parameters.txt
+@@ -193,6 +193,12 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
+ 			(e.g. thinkpad_acpi, sony_acpi, etc.) instead
+ 			of the ACPI video.ko driver.
+ 
++	acpi_force_32bit_fadt_addr
++			force FADT to use 32 bit addresses rather than the
++			64 bit X_* addresses. Some firmware have broken 64
++			bit addresses for force ACPI ignore these and use
++			the older legacy 32 bit addresses.
++
+ 	acpica_no_return_repair [HW, ACPI]
+ 			Disable AML predefined validation mechanism
+ 			This mechanism can repair the evaluation result to make
+diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
+index 6c0f079..ebdf564 100644
+--- a/drivers/acpi/tables.c
++++ b/drivers/acpi/tables.c
+@@ -484,3 +484,13 @@ static int __init acpi_force_table_verification_setup(char *s)
+ }
+ 
+ early_param("acpi_force_table_verification", acpi_force_table_verification_setup);
++
++static int __init acpi_force_32bit_fadt_addr(char *s)
++{
++	pr_info("Forcing 32 Bit FADT addresses\n");
++	acpi_gbl_use32_bit_fadt_addresses = TRUE;
++
++	return 0;
++}
++
++early_param("acpi_force_32bit_fadt_addr", acpi_force_32bit_fadt_addr);
+-- 
+1.9.1
