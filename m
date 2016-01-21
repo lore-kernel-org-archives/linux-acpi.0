@@ -1,65 +1,33 @@
-From: Darren Hart <dvhart@infradead.org>
-Subject: Re: [PATCH v4] dell-wmi: Support new hotkeys on the XPS 13 9350
- (Skylake)
-Date: Thu, 21 Jan 2016 13:57:42 -0800
-Message-ID: <20160121215742.GH1979@malice.jf.intel.com>
-References: <a343d7d11816d86d04c51505f6e33c5b99086ff6.1453244706.git.luto@kernel.org>
- <20160120194050.GL7192@pali>
- <CALCETrUqH7FLPyHasx020vyjZNtTdVSk+0LJKcGjXyj+iwE8Dw@mail.gmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH] pci: fix unavailable irq number 255 reported by BIOS
+Date: Thu, 21 Jan 2016 23:58:26 +0100
+Message-ID: <CAJZ5v0iq29mq_sFzk=mEbjPGJV9vPL9MCgU4WamrGV_fWcpEMA@mail.gmail.com>
+References: <1453167913-16248-1-git-send-email-chen.fan.fnst@cn.fujitsu.com>
+	<6239489.QX2A2kAHWp@vostro.rjw.lan>
+	<20160120002431.GA7973@localhost>
+	<56A0EE00.80709@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Return-path: <platform-driver-x86-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <CALCETrUqH7FLPyHasx020vyjZNtTdVSk+0LJKcGjXyj+iwE8Dw@mail.gmail.com>
-Sender: platform-driver-x86-owner@vger.kernel.org
-To: Andy Lutomirski <luto@amacapital.net>
-Cc: Pali =?iso-8859-1?Q?Roh=E1r?= <pali.rohar@gmail.com>, Andy Lutomirski <luto@kernel.org>, platform-driver-x86@vger.kernel.org, Mario Limonciello <mario_limonciello@dell.com>, Matthew Garrett <mjg59@srcf.ucam.org>, Linux ACPI <linux-acpi@vger.kernel.org>, Jon Eyolfson <jon@eyl.io>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <56A0EE00.80709@cn.fujitsu.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Cao jin <caoj.fnst@cn.fujitsu.com>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Chen Fan <chen.fan.fnst@cn.fujitsu.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, izumi.taku@jp.fujitsu.com, wency@cn.fujitsu.com, Bjorn Helgaas <bhelgaas@google.com>, Linux PCI <linux-pci@vger.kernel.org>, Jiang Liu <jiang.liu@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On Wed, Jan 20, 2016 at 12:46:23PM -0800, Andy Lutomirski wrote:
-> On Wed, Jan 20, 2016 at 11:40 AM, Pali Roh=E1r <pali.rohar@gmail.com>=
- wrote:
-> > On Tuesday 19 January 2016 15:07:47 Andy Lutomirski wrote:
-> >> The XPS 13 9350 sends WMI keypress events that aren't enumerated i=
-n
-> >> the DMI table.  Add a table listing them.  To avoid breaking thing=
-s
-> >> that worked before, these un-enumerated hotkeys won't be used if t=
-he
-> >> DMI table maps them to something else.
-> >>
-> >> FWIW, it appears that the DMI table may be a legacy thing and we
-> >> might want to rethink how we handle events in general.  As an
-> >> example, a whole lot of things map to KEY_PROG3 via the DMI table.
-> >>
-> >> So far, this doesn't send keypress events for any of the new
-> >> events.  Depnding on whether we figure out exactly what needs to
-> >> happen to get the wireless button working in time for Linux 4.5,
-> >> we might want to temporarily handle it in dell-wmi.
-> >>
-> >> Signed-off-by: Andy Lutomirski <luto@kernel.org>
-> >
-> > Looks good,
-> >
-> > Reviewed-by: Pali Roh=E1r <pali.rohar@gmail.com>
->=20
-> Darren, if/when you apply this, can you fix up the last paragraph of
-> the commit message?
->=20
->     This doesn't send keypress events for any of the new
->     events, as no models appear to require it.
->=20
-> I wrote the old text before intel-hid landed.
+On Thu, Jan 21, 2016 at 3:41 PM, Cao jin <caoj.fnst@cn.fujitsu.com> wrote:
+> Hi,
+>
+>     IMHO, I think maybe modification on i801_smbus driver is easier.
+>
+>     Because when i801_smbus request_irq using pci_dev->irq, this
+> pci_dev->irq seems still holds the value read from register(
+> pci_setup_device->pci_read_irq), if the value is 255, it is invalid in
+> register,
 
-Planning on queueing for 4.6 as soon as this window closes, likely tomo=
-rrow. I
-want this to have some time in -next. Thanks!
+Right.
 
->=20
-> --Andy
->=20
+Which is why the PCI core should not leak it into the driver's ->probe callback.
 
---=20
-Darren Hart
-Intel Open Source Technology Center
+Thanks,
+Rafael
