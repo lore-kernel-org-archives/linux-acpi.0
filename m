@@ -1,53 +1,212 @@
-From: Loc Ho <lho@apm.com>
-Subject: [PATCH v4 1/2] acpi: Fix proper return code for function acpi_gsi_to_irq
-Date: Wed, 20 Jan 2016 17:17:38 -0700
-Message-ID: <1453335459-3617-2-git-send-email-lho@apm.com>
-References: <1453335459-3617-1-git-send-email-lho@apm.com>
+From: "Doran, Mark" <mark.doran@intel.com>
+Subject: GIC version inconsistency in ACPI 5.1a versus 6.0 documents
+Date: Thu, 21 Jan 2016 00:47:50 +0000
+Message-ID: <DFF7383D242A84439AD17BCBA41787FE926FDD47@ORSMSX109.amr.corp.intel.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; protocol="application/x-pkcs7-signature";
+	micalg=SHA1; boundary="----=_NextPart_000_006F_01D153A2.4BB4EA10"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pf0-f174.google.com ([209.85.192.174]:36273 "EHLO
-	mail-pf0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751264AbcAUARu (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Jan 2016 19:17:50 -0500
-Received: by mail-pf0-f174.google.com with SMTP id n128so12942156pfn.3
-        for <linux-acpi@vger.kernel.org>; Wed, 20 Jan 2016 16:17:50 -0800 (PST)
-In-Reply-To: <1453335459-3617-1-git-send-email-lho@apm.com>
+Received: from mga04.intel.com ([192.55.52.120]:20707 "EHLO mga04.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758888AbcAUArw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 20 Jan 2016 19:47:52 -0500
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: bp@alien8.de, dougthompson@xmission.com, mchehab@osg.samsung.com, tomasz.nowicki@linaro.org, fu.wei@linaro.org, rjw@rjwysocki.net, lenb@kernel.org
-Cc: linux-edac@vger.kernel.org, devicetree@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, patches@apm.com, Loc Ho <lho@apm.com>, Tuan Phan <tphan@apm.com>
+To: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+Cc: Hanjun Guo <guohanjun@huawei.com>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "Wei, Dong (Office of the CTO)" <dong.wei@hpe.com>
 
-The function acpi_gsi_to_irq must return 0 on success as the caller
-ghes_probe expects an 0 for success. This change also matches x86
-implementation.
+------=_NextPart_000_006F_01D153A2.4BB4EA10
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 
-Signed-off-by: Tuan Phan <tphan@apm.com>
-Signed-off-by: Loc Ho <lho@apm.com>
----
- drivers/acpi/gsi.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+Hi Everyone:
 
-diff --git a/drivers/acpi/gsi.c b/drivers/acpi/gsi.c
-index ee9e0f2..7b109bd 100644
---- a/drivers/acpi/gsi.c
-+++ b/drivers/acpi/gsi.c
-@@ -24,7 +24,7 @@ static struct fwnode_handle *acpi_gsi_domain_id;
-  *
-  * irq location updated with irq value [>0 on success, 0 on failure]
-  *
-- * Returns: linux IRQ number on success (>0)
-+ * Returns: 0 on success
-  *          -EINVAL on failure
-  */
- int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
-@@ -37,7 +37,7 @@ int acpi_gsi_to_irq(u32 gsi, unsigned int *irq)
- 	 * *irq == 0 means no mapping, that should
- 	 * be reported as a failure
- 	 */
--	return (*irq > 0) ? *irq : -EINVAL;
-+	return (*irq > 0) ? 0 : -EINVAL;
- }
- EXPORT_SYMBOL_GPL(acpi_gsi_to_irq);
+I have been asked to post here on behalf of the UEFI Forum's ACPI Spec Work
+Group (ASWG) to provide some clarification regarding the ACPI Specification
+versions 5.1a and 6.0.  For those who may not know me, I am the Chair of
+this work group.
+
+In particular it turns out that there are different definitions contained in
+the these two versions of the document for the GIC version field contained
+in the GIC Distributor Structure.  This structure is located in Table 5-63
+in both versions of the document.  I am told this inconsistency is causing
+some problems for implementation work.
+
+The inconsistency arises purely from an administrative error on our part as
+keepers of the ACPI Specification.  I want to apologize to anyone who has
+been inconvenienced by this issue.
+
+The sharp-eyed may notice that the dates on the covers of the two versions
+are the same.  The Forum's normal practice when making a new revision is to
+re-publish the prior version with all known errata included so that the
+content that is common between the existing and new documents matches.  This
+accounts for the two documents having the same date; in fact they were
+published on the exact same day at the same time.
+
+In the case of this one particular structure definition, as shown in Table
+5-63, the content was corrected to match what it should say in the 6.0
+version of the document.  Unfortunately we messed up and the same fix was
+not properly retrofitted to the ACPI 5.1 spec to be included with the 5.1a
+(latest errata included version of 5.1 that was released at the same time as
+6.0).
+
+Now this inconsistency has been pointed out, the UEFI Forum will publish a
+revised version 5.1b that will incorporate a fix for this problem.  This
+will however take a little time to organize so it may be some days before
+that updated document appears on the Forum's public web site.
+
+Since it was felt that this issue is causing friction for implementation
+work going on right now, the Work Group asked that I post the above
+explanation and mitigation as well as the following recommendation to help
+move implementation work ahead without delay.
+
+The recommendation from the UEFI Forum in this case then is:
+
+- For implementation purposes, the definition in the ACPI 5.1a for the GIC
+version field that is part of the GIC Distributor Structure (Table 5-63) is
+incorrect and instead implementers should refer to the corresponding
+sections of the ACPI 6.0 Specification (the Table to refer to is numbered
+the same in both documents).  The inconsistency will be corrected shortly
+with the release of a revised ACPI Spec 5.1b update.
+
+For the avoidance of doubt, this means that implementers seeking to conform
+to the ACPI 5.1 specification should implement to the ACPI 5.1a in every
+particular except for the above referenced GIC version field which should
+follow the definition contained in the ACPI 6.0 version of the
+specification.  This advice holds true until a revised ACPI 5.1b is
+published at which time there will be no inconsistency.
+
+My hope is that the above will clarify and help implementation work progress
+without any further delay.  If I can answer extra questions to help in that
+regard, please let me know.
+--
+Cheers,
  
--- 
-1.7.1
+Mark.
+--
+Mark Doran
+President & AWG Chair, UEFI Forum
+Intel Fellow
 
+
+
+------=_NextPart_000_006F_01D153A2.4BB4EA10
+Content-Type: application/pkcs7-signature; name="smime.p7s"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="smime.p7s"
+
+MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIUVDCCBDYw
+ggMeoAMCAQICAQEwDQYJKoZIhvcNAQEFBQAwbzELMAkGA1UEBhMCU0UxFDASBgNVBAoTC0FkZFRy
+dXN0IEFCMSYwJAYDVQQLEx1BZGRUcnVzdCBFeHRlcm5hbCBUVFAgTmV0d29yazEiMCAGA1UEAxMZ
+QWRkVHJ1c3QgRXh0ZXJuYWwgQ0EgUm9vdDAeFw0wMDA1MzAxMDQ4MzhaFw0yMDA1MzAxMDQ4Mzha
+MG8xCzAJBgNVBAYTAlNFMRQwEgYDVQQKEwtBZGRUcnVzdCBBQjEmMCQGA1UECxMdQWRkVHJ1c3Qg
+RXh0ZXJuYWwgVFRQIE5ldHdvcmsxIjAgBgNVBAMTGUFkZFRydXN0IEV4dGVybmFsIENBIFJvb3Qw
+ggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQC39xoz5vIABC054E5b7R+8bA/Ntfojts7e
+mxEzl6QpTH2Tn71KvJPtAxrjj8/lbVBa1pcplFqAsEl62y6V/bjKvzc4LR4+kUGtcFbH8E8/6DKe
+dMrIkFTpxl8PeJ2aQDwOrGGqXhSPnoehalDc15pOrwWzpnGUnHGzUGAKxxOdOAeGAqjpqGkmGJCr
+TLBPI6s6T4TY386f4Wlvu9dC12tE5Met7m1BX3JacQg3s3llpFmglDf3AC8NwpJy2tA4ctsUqEXE
+XSp9t7TWxO6szRNEt8kr3UMAJfphuWlqWCMRt6czj1Z1WfXNKddGtworZbbTQm8Vsrh7++/pXVPV
+NFonAgMBAAGjgdwwgdkwHQYDVR0OBBYEFK29mHo0tCb3+sQmVO8DveAky1QaMAsGA1UdDwQEAwIB
+BjAPBgNVHRMBAf8EBTADAQH/MIGZBgNVHSMEgZEwgY6AFK29mHo0tCb3+sQmVO8DveAky1QaoXOk
+cTBvMQswCQYDVQQGEwJTRTEUMBIGA1UEChMLQWRkVHJ1c3QgQUIxJjAkBgNVBAsTHUFkZFRydXN0
+IEV4dGVybmFsIFRUUCBOZXR3b3JrMSIwIAYDVQQDExlBZGRUcnVzdCBFeHRlcm5hbCBDQSBSb290
+ggEBMA0GCSqGSIb3DQEBBQUAA4IBAQCwm+CFJcLWI+IPlgaSnUGYnNmEeYHZHlsUByM2ZY+w2He7
+rEFsR2CDUbD5Mj3n/PYmE8eAFqW/WvyHz3h5iSGa4kwHCoY1vPLeUcTSlrfcfk7ucP0cOesMAlEU
+LY69FuDB30Z15ySt7PRCtIWTcBBnup0GNUoY0yt6zFFCoXpj0ea7ocUrwja+Ew3mvWN+eXunCQ1A
+q2rdj4rD9vaMGkIFUdRF9Z+nYiFoFSBDPJnnfL0k2KmRF3OIP1YbMTgYtHEPms3IDp6OLhvhjJiD
+yx8x8URMxgRzSXZgD8f4vReAay7pzEwOWpp5DyAKLtWeYyYeVZKU2IIXWnvQvMePToYEMIIE6zCC
+A9OgAwIBAgIQUukCyhHoRJ2UZTgvoxowuzANBgkqhkiG9w0BAQUFADBvMQswCQYDVQQGEwJTRTEU
+MBIGA1UEChMLQWRkVHJ1c3QgQUIxJjAkBgNVBAsTHUFkZFRydXN0IEV4dGVybmFsIFRUUCBOZXR3
+b3JrMSIwIAYDVQQDExlBZGRUcnVzdCBFeHRlcm5hbCBDQSBSb290MB4XDTEzMDMxOTAwMDAwMFoX
+DTIwMDUzMDEwNDgzOFoweTELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAkNBMRQwEgYDVQQHEwtTYW50
+YSBDbGFyYTEaMBgGA1UEChMRSW50ZWwgQ29ycG9yYXRpb24xKzApBgNVBAMTIkludGVsIEV4dGVy
+bmFsIEJhc2ljIElzc3VpbmcgQ0EgNEEwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDg
+sMyAndhJVfoD2wT6OMfdv4XddrzrPcssq7/pa+Mh29RvGejPaqe+X1QpAjewTXNRFDGt+C+0/Rs+
+C3W4PAB8tzofl6qfKL7sWs+xMYJHiDAOarVaRNCA0M1dSBvvV73/qx+r5Z8IOmLxJxqCXIsJGnum
+H9XrRxuK0G+dkV6UoIMGHffZLoobdsB2c0YH++TzpvAOVjqiYOzr9Gx83DNBXCj8zeg+u7HrLrPI
+ihG6V+RUQ1szT/1GvNA6XIrhblWTgQSx9baOUJXhbzdAqpFxwAohTHDar8egdU9tsROusuYTpFFn
+/55aWQZaX6a3HjYc6A6ZfQFF1NGj28fvJ4GjAgMBAAGjggF3MIIBczAfBgNVHSMEGDAWgBStvZh6
+NLQm9/rEJlTvA73gJMtUGjAdBgNVHQ4EFgQUHmkqtNwo/kcYTiELP7ysES/wmPUwDgYDVR0PAQH/
+BAQDAgGGMBIGA1UdEwEB/wQIMAYBAf8CAQAwNgYDVR0lBC8wLQYIKwYBBQUHAwQGCisGAQQBgjcK
+AwQGCisGAQQBgjcKAwwGCSsGAQQBgjcVBTAXBgNVHSAEEDAOMAwGCiqGSIb4TQEFAWkwSQYDVR0f
+BEIwQDA+oDygOoY4aHR0cDovL2NybC50cnVzdC1wcm92aWRlci5jb20vQWRkVHJ1c3RFeHRlcm5h
+bENBUm9vdC5jcmwwOgYIKwYBBQUHAQEELjAsMCoGCCsGAQUFBzABhh5odHRwOi8vb2NzcC50cnVz
+dC1wcm92aWRlci5jb20wNQYDVR0eBC4wLKAqMAuBCWludGVsLmNvbTAboBkGCisGAQQBgjcUAgOg
+CwwJaW50ZWwuY29tMA0GCSqGSIb3DQEBBQUAA4IBAQApws2j/ZKjUmeiLwbtblDoVI+rV+bIpbex
+IN/Vqa/IeSMSB3bmfswpEcYSZHHGjOI8qlyZt9dhT4nSDnrScKjmA8XvxZ3tmbNyYJybVQUV8jF/
+DpADX1tGlMLxswxpJISXzLf0+DBr4cQ2ag9mwzrcN1nrOIOc+pxJtx9izyp3+bl3baulerkgZVS1
+fotftH+FJLD/ex8BOcEuCIm2KVXJjs4YaZgoIBLYjTiK29JLVa15xdO305kPI1uXsu05sGuAwuFm
+Sklb6k5H1/eHlUbZLm4qQDtOH00L0ShJx3BAIAjD5RYptJDQiyPZQUvt8cq+apYpVMv3yxHO8jex
+40LgMIIFbjCCBFagAwIBAgITMwAAZAzeCgXynBT00gAAAABkDDANBgkqhkiG9w0BAQUFADB5MQsw
+CQYDVQQGEwJVUzELMAkGA1UECBMCQ0ExFDASBgNVBAcTC1NhbnRhIENsYXJhMRowGAYDVQQKExFJ
+bnRlbCBDb3Jwb3JhdGlvbjErMCkGA1UEAxMiSW50ZWwgRXh0ZXJuYWwgQmFzaWMgSXNzdWluZyBD
+QSA0QTAeFw0xNDEyMjMyMDQ5NTdaFw0xNzEyMDcyMDQ5NTdaMDsxFDASBgNVBAMTC0RvcmFuLCBN
+YXJrMSMwIQYJKoZIhvcNAQkBFhRtYXJrLmRvcmFuQGludGVsLmNvbTCCASIwDQYJKoZIhvcNAQEB
+BQADggEPADCCAQoCggEBALk5kaqrrQbVorMg/ZHxtix7drBAJHhp5J1gzzh4u9eoBUNkYZGWJFRL
+emU3uQRaUEqtAHgryULENNopPjRMSbbpvKpHA8Ce+fLtb0FXQSatuoDxl+rI0vXtSia+ZsUynvyE
+gGME7TpxHYhphG6Fnd1wDep0zN4S0/ge+U6UqvuMls0DtZ2Yk8YbamOgCm23JTYsxkHwV7cAcNJa
+bPLbskkQQAFVuI5FA3S++8SDAbEiKIbbZa/7jWp7fAPgXcACiTVhkAz02MN+avhbeHKnp+QqgAha
+fboSCoVmjEPRuoaplxT6arQrg6nSlQL9brgflxh7jL+RqJvn1lKzKACIO0kCAwEAAaOCAiswggIn
+MAsGA1UdDwQEAwIHgDA8BgkrBgEEAYI3FQcELzAtBiUrBgEEAYI3FQiGw4x1hJnlUYP9gSiFjp9T
+gpHACWeB3r05lfBDAgFkAgEIMB0GA1UdDgQWBBSTWm4GPqJ8dHSgLJvDy6BT/PKprTAfBgNVHSME
+GDAWgBQeaSq03Cj+RxhOIQs/vKwRL/CY9TBlBgNVHR8EXjBcMFqgWKBWhlRodHRwOi8vd3d3Lmlu
+dGVsLmNvbS9yZXBvc2l0b3J5L0NSTC9JbnRlbCUyMEV4dGVybmFsJTIwQmFzaWMlMjBJc3N1aW5n
+JTIwQ0ElMjA0QS5jcmwwgZ8GCCsGAQUFBwEBBIGSMIGPMGkGCCsGAQUFBzAChl1odHRwOi8vd3d3
+LmludGVsLmNvbS9yZXBvc2l0b3J5L2NlcnRpZmljYXRlcy9JbnRlbCUyMEV4dGVybmFsJTIwQmFz
+aWMlMjBJc3N1aW5nJTIwQ0ElMjA0QS5jcnQwIgYIKwYBBQUHMAGGFmh0dHA6Ly9vY3NwLmludGVs
+LmNvbS8wHwYDVR0lBBgwFgYIKwYBBQUHAwQGCisGAQQBgjcKAwwwKQYJKwYBBAGCNxUKBBwwGjAK
+BggrBgEFBQcDBDAMBgorBgEEAYI3CgMMMEUGA1UdEQQ+MDygJAYKKwYBBAGCNxQCA6AWDBRtYXJr
+LmRvcmFuQGludGVsLmNvbYEUbWFyay5kb3JhbkBpbnRlbC5jb20wDQYJKoZIhvcNAQEFBQADggEB
+AMhXk45O+pbaVedvQL3ixUoTgzwFww70S2p/LnMNTK53UKiI4fBuSd9OAWalL7kZLi9SWUiPNEQk
+dgXs6mlQXbkT5iDmVEdhryKxIacriuhMQ0b2Pn+xp8C0JNX/Xyp30nGh4nIqUPznjW69GhI+qdz5
+w71yH+WmuRlAoo/rsCybxclDh+vgzOfXDcYhZyWOfivUAgFQpua7riDSObGZMjG0sDyx3R2GuOFO
+AeFvsTBl15lUSNY5M0Wsmy/vfLyxYLWaFIiQ+NRi5kapWJQRFZH096XcnX6/M3lBhkaBAhY1Hr/T
+QLS0aw7ZAXH3ha5dvfeTKNZ7lkjpIxPAJe7QowwwggW1MIIEnaADAgECAhMzAABddjfSvQEQaioq
+AAAAAF12MA0GCSqGSIb3DQEBBQUAMHkxCzAJBgNVBAYTAlVTMQswCQYDVQQIEwJDQTEUMBIGA1UE
+BxMLU2FudGEgQ2xhcmExGjAYBgNVBAoTEUludGVsIENvcnBvcmF0aW9uMSswKQYDVQQDEyJJbnRl
+bCBFeHRlcm5hbCBCYXNpYyBJc3N1aW5nIENBIDRBMB4XDTE0MDkyMzIzMjMxNloXDTE3MDkwNzIz
+MjMxNlowOzEUMBIGA1UEAxMLRG9yYW4sIE1hcmsxIzAhBgkqhkiG9w0BCQEWFG1hcmsuZG9yYW5A
+aW50ZWwuY29tMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAisCvGnidBnM8t3KDitJd
+1lghUR3bMva0RWXXNhWlbQPmu5TIKr8lwyGKz55lg8FNvhyDmUttc5F5T+CmSb3AmNcqy7qpMG/z
+e6I49eWP90UzgQ3nmrDh98nQ5HU4i1UtXQe38xX4Jb7mJqluLP5OBGGSUcMSa2ZXd5uFY8mxemdu
+ThKU8X1YmCcSp4uR1hBjw6CE2WsVY4gCbugVYDF/nqSqLAhSKj/bk33L3Ct4PDARsXL6KYdFkCir
+IvI+/ku9vv+svww3XNZHEImqUEKjFJ7Apjh4EP6q3OBw4/e6DEXCXXBA2/sE5xOz8kLrKdRj3p+K
+XX+XmVjW63dX+I8iNQIDAQABo4ICcjCCAm4wCwYDVR0PBAQDAgQwMD0GCSsGAQQBgjcVBwQwMC4G
+JisGAQQBgjcVCIbDjHWEmeVRg/2BKIWOn1OCkcAJZ4S52UGHhP9OAgFkAgENMEQGCSqGSIb3DQEJ
+DwQ3MDUwDgYIKoZIhvcNAwICAgCAMA4GCCqGSIb3DQMEAgIAgDAHBgUrDgMCBzAKBggqhkiG9w0D
+BzAdBgNVHQ4EFgQUgpmWcsOBywXzv4YICKQgd7es9nUwHwYDVR0jBBgwFoAUHmkqtNwo/kcYTiEL
+P7ysES/wmPUwZQYDVR0fBF4wXDBaoFigVoZUaHR0cDovL3d3dy5pbnRlbC5jb20vcmVwb3NpdG9y
+eS9DUkwvSW50ZWwlMjBFeHRlcm5hbCUyMEJhc2ljJTIwSXNzdWluZyUyMENBJTIwNEEuY3JsMIGf
+BggrBgEFBQcBAQSBkjCBjzBpBggrBgEFBQcwAoZdaHR0cDovL3d3dy5pbnRlbC5jb20vcmVwb3Np
+dG9yeS9jZXJ0aWZpY2F0ZXMvSW50ZWwlMjBFeHRlcm5hbCUyMEJhc2ljJTIwSXNzdWluZyUyMENB
+JTIwNEEuY3J0MCIGCCsGAQUFBzABhhZodHRwOi8vb2NzcC5pbnRlbC5jb20vMB8GA1UdJQQYMBYG
+CCsGAQUFBwMEBgorBgEEAYI3CgMEMCkGCSsGAQQBgjcVCgQcMBowCgYIKwYBBQUHAwQwDAYKKwYB
+BAGCNwoDBDBFBgNVHREEPjA8oCQGCisGAQQBgjcUAgOgFgwUbWFyay5kb3JhbkBpbnRlbC5jb22B
+FG1hcmsuZG9yYW5AaW50ZWwuY29tMA0GCSqGSIb3DQEBBQUAA4IBAQBYK+WVhkhzQNMTXBzzrWY6
+GY4kdAgoH8pUpES+Es0CSxyhnKLxMrW8105DlU1LW4QN3YOqs0oUoB36LljOzG4zLpDyExpajafj
+ap/6jeb9AZO1lPhrmS5lqJATXFefuoThWi5em5Fm+KtT9BJaIryjbp44CBTwS66VF+5MEwHMPlb6
+ovtZtSDY9UDtNZdSux1Ya99XQE7JdV6eXes3N+wYhAUv1B1vtj/NsrRZvq/tBO8ptPVlm7z2GjCo
+iPDV/WPbOB+l8R3wSVTdL7O+hBxtxwbj55qlzAXyI2PtoJeWBkNs4XfFUDlgPY5wFElvxsTQmoQ0
+UksbIJ7zllH85gUZMYID+TCCA/UCAQEwgZAweTELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAkNBMRQw
+EgYDVQQHEwtTYW50YSBDbGFyYTEaMBgGA1UEChMRSW50ZWwgQ29ycG9yYXRpb24xKzApBgNVBAMT
+IkludGVsIEV4dGVybmFsIEJhc2ljIElzc3VpbmcgQ0EgNEECEzMAAGQM3goF8pwU9NIAAAAAZAww
+CQYFKw4DAhoFAKCCAj0wGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcN
+MTYwMTIxMDA0NzQ5WjAjBgkqhkiG9w0BCQQxFgQUNOOnJr78ntEc35lmP71yuL6oloQwgZMGCSqG
+SIb3DQEJDzGBhTCBgjALBglghkgBZQMEASowCwYJYIZIAWUDBAEWMAoGCCqGSIb3DQMHMAsGCWCG
+SAFlAwQBAjAOBggqhkiG9w0DAgICAIAwDQYIKoZIhvcNAwICAUAwBwYFKw4DAhowCwYJYIZIAWUD
+BAIDMAsGCWCGSAFlAwQCAjALBglghkgBZQMEAgEwgaEGCSsGAQQBgjcQBDGBkzCBkDB5MQswCQYD
+VQQGEwJVUzELMAkGA1UECBMCQ0ExFDASBgNVBAcTC1NhbnRhIENsYXJhMRowGAYDVQQKExFJbnRl
+bCBDb3Jwb3JhdGlvbjErMCkGA1UEAxMiSW50ZWwgRXh0ZXJuYWwgQmFzaWMgSXNzdWluZyBDQSA0
+QQITMwAAXXY30r0BEGoqKgAAAABddjCBowYLKoZIhvcNAQkQAgsxgZOggZAweTELMAkGA1UEBhMC
+VVMxCzAJBgNVBAgTAkNBMRQwEgYDVQQHEwtTYW50YSBDbGFyYTEaMBgGA1UEChMRSW50ZWwgQ29y
+cG9yYXRpb24xKzApBgNVBAMTIkludGVsIEV4dGVybmFsIEJhc2ljIElzc3VpbmcgQ0EgNEECEzMA
+AF12N9K9ARBqKioAAAAAXXYwDQYJKoZIhvcNAQEBBQAEggEAh19imYwu3doPhjzBB7gmkBmacUYE
+JZMuwaD+ysK4A1QeXtk9Rs+QJVoEqUQcD0Xerk/2ZYL/SDw0sPaELxq2hZw63N0yL5Ztc4C8XSG+
+9AQgtTlfswc6M1zNUgj98LUf59ibbTZQCvXv2lwsVGvdLJUYSdfV3Yn+qk1I+ZHV6iSIIKVydfZm
+ajVSmfSs/2FngxTf8kxh3uT6sWJcXlXze/Ht4i03zz7l5KATftfv0nZzk4pi3fkM8jXrLaxKU8yd
+Af9l2aDWFc1uFNbzYjmTw3lK0X9AabfkLMSouwTuqRxAonZcIHX54F1KQfznQzzTRS3xyQiUvpjo
+3n38XOQybgAAAAAAAA==
+
+------=_NextPart_000_006F_01D153A2.4BB4EA10--
