@@ -1,212 +1,409 @@
-From: "Doran, Mark" <mark.doran@intel.com>
-Subject: GIC version inconsistency in ACPI 5.1a versus 6.0 documents
-Date: Thu, 21 Jan 2016 00:47:50 +0000
-Message-ID: <DFF7383D242A84439AD17BCBA41787FE926FDD47@ORSMSX109.amr.corp.intel.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] Power management and ACPI updates for v4.5-rc1, part 2
+Date: Thu, 21 Jan 2016 02:50:30 +0100
+Message-ID: <CAJZ5v0j=9weKnHLUqyBm9ThRWfnSP1YxLiR3uad55oz9tnebxA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/x-pkcs7-signature";
-	micalg=SHA1; boundary="----=_NextPart_000_006F_01D153A2.4BB4EA10"
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga04.intel.com ([192.55.52.120]:20707 "EHLO mga04.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758888AbcAUArw (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 20 Jan 2016 19:47:52 -0500
-Content-Language: en-US
+Received: from mail-lf0-f50.google.com ([209.85.215.50]:34569 "EHLO
+	mail-lf0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751610AbcAUBud (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 20 Jan 2016 20:50:33 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
-Cc: Hanjun Guo <guohanjun@huawei.com>, Charles Garcia-Tobin <Charles.Garcia-Tobin@arm.com>, "Wei, Dong (Office of the CTO)" <dong.wei@hpe.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-------=_NextPart_000_006F_01D153A2.4BB4EA10
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Hi Linus,
 
-Hi Everyone:
+Please pull from
 
-I have been asked to post here on behalf of the UEFI Forum's ACPI Spec Work
-Group (ASWG) to provide some clarification regarding the ACPI Specification
-versions 5.1a and 6.0.  For those who may not know me, I am the Chair of
-this work group.
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ pm+acpi-4.5-rc1-2
 
-In particular it turns out that there are different definitions contained in
-the these two versions of the document for the GIC version field contained
-in the GIC Distributor Structure.  This structure is located in Table 5-63
-in both versions of the document.  I am told this inconsistency is causing
-some problems for implementation work.
+to receive the second batch of power management and ACPI updates for
+v4.5-rc1 with top-most commit db2b52f75250c88ee3c6ba3d91bef38f3f1a1e8c
 
-The inconsistency arises purely from an administrative error on our part as
-keepers of the ACPI Specification.  I want to apologize to anyone who has
-been inconvenienced by this issue.
+ Merge branch 'pm-tools'
 
-The sharp-eyed may notice that the dates on the covers of the two versions
-are the same.  The Forum's normal practice when making a new revision is to
-re-publish the prior version with all known errata included so that the
-content that is common between the existing and new documents matches.  This
-accounts for the two documents having the same date; in fact they were
-published on the exact same day at the same time.
+on top of commit 67990608c8b95d2b8ccc29932376ae73d5818727
 
-In the case of this one particular structure definition, as shown in Table
-5-63, the content was corrected to match what it should say in the 6.0
-version of the document.  Unfortunately we messed up and the same fix was
-not properly retrofitted to the ACPI 5.1 spec to be included with the 5.1a
-(latest errata included version of 5.1 that was released at the same time as
-6.0).
+ Merge tag 'pm+acpi-4.5-rc1-1' of
+git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm
 
-Now this inconsistency has been pointed out, the UEFI Forum will publish a
-revised version 5.1b that will incorporate a fix for this problem.  This
-will however take a little time to organize so it may be some days before
-that updated document appears on the Forum's public web site.
+This includes fixes on top of the previous batch of PM+ACPI updates
+and some new material as well.
 
-Since it was felt that this issue is causing friction for implementation
-work going on right now, the Work Group asked that I post the above
-explanation and mitigation as well as the following recommendation to help
-move implementation work ahead without delay.
+>From the new material perspective the most significant are the driver
+core changes that should allow USB devices to stay suspended over
+system suspend/resume cycles if they have been runtime-suspended
+already beforehand.  Apart from that, ACPICA is updated to upstream
+revision 20160108 (cosmetic mostly, but including one fixup on top
+of the previous ACPICA update) and there are some devfreq updates
+the didn't make it before (due to timing).
 
-The recommendation from the UEFI Forum in this case then is:
+A few recent regressions are fixed, most importantly in the cpuidle
+menu governor and in the ACPI backlight driver and some x86 platform
+drivers depending on it.
 
-- For implementation purposes, the definition in the ACPI 5.1a for the GIC
-version field that is part of the GIC Distributor Structure (Table 5-63) is
-incorrect and instead implementers should refer to the corresponding
-sections of the ACPI 6.0 Specification (the Table to refer to is numbered
-the same in both documents).  The inconsistency will be corrected shortly
-with the release of a revised ACPI Spec 5.1b update.
+Some more bugs are fixed and cleanups are made on top of that.
 
-For the avoidance of doubt, this means that implementers seeking to conform
-to the ACPI 5.1 specification should implement to the ACPI 5.1a in every
-particular except for the above referenced GIC version field which should
-follow the definition contained in the ACPI 6.0 version of the
-specification.  This advice holds true until a revised ACPI 5.1b is
-published at which time there will be no inconsistency.
+Specifics:
 
-My hope is that the above will clarify and help implementation work progress
-without any further delay.  If I can answer extra questions to help in that
-regard, please let me know.
---
-Cheers,
- 
-Mark.
---
-Mark Doran
-President & AWG Chair, UEFI Forum
-Intel Fellow
+ - Modify the driver core and the USB subsystem to allow USB devices
+   to stay suspended over system suspend/resume cycles if they have
+   been runtime-suspended already beforehand and fix some bugs on
+   top of these changes (Tomeu Vizoso, Rafael Wysocki).
+
+ - Update ACPICA to upstream revision 20160108, including updates
+   of the ACPICA's copyright notices, a code fixup resulting from
+   a regression fix that was necessary in the upstream code only
+   (the regression fixed by it has never been present in Linux)
+   and a compiler warning fix (Bob Moore, Lv Zheng).
+
+ - Fix a recent regression in the cpuidle menu governor that broke
+   it on practically all architectures other than x86 and make a
+   couple of optimizations on top of that fix (Rafael Wysocki).
+
+ - Clean up the selection of cpuidle governors depending on whether
+   or not the kernel is configured for tickless systems (Jean Delvare).
+
+ - Revert a recent commit that introduced a regression in the ACPI
+   backlight driver, address the problem it attempted to fix in a
+   different way and revert one more cosmetic change depending on
+   the problematic commit (Hans de Goede).
+
+ - Add two more ACPI backlight quirks (Hans de Goede).
+
+ - Fix a few minor problems in the core devfreq code, clean it up
+   a bit and update the MAINTAINERS information related to it
+   (Chanwoo Choi, MyungJoo Ham).
+
+ - Improve an error message in the ACPI fan driver (Andy Lutomirski).
+
+ - Fix a recent build regression in the cpupower tool (Shreyas Prabhu).
+
+Thanks!
 
 
+---------------
 
-------=_NextPart_000_006F_01D153A2.4BB4EA10
-Content-Type: application/pkcs7-signature; name="smime.p7s"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="smime.p7s"
+Andy Lutomirski (1):
+      ACPI / fan: Improve acpi_device_update_power error message
 
-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
-emU3uQRaUEqtAHgryULENNopPjRMSbbpvKpHA8Ce+fLtb0FXQSatuoDxl+rI0vXtSia+ZsUynvyE
-gGME7TpxHYhphG6Fnd1wDep0zN4S0/ge+U6UqvuMls0DtZ2Yk8YbamOgCm23JTYsxkHwV7cAcNJa
-bPLbskkQQAFVuI5FA3S++8SDAbEiKIbbZa/7jWp7fAPgXcACiTVhkAz02MN+avhbeHKnp+QqgAha
-fboSCoVmjEPRuoaplxT6arQrg6nSlQL9brgflxh7jL+RqJvn1lKzKACIO0kCAwEAAaOCAiswggIn
-MAsGA1UdDwQEAwIHgDA8BgkrBgEEAYI3FQcELzAtBiUrBgEEAYI3FQiGw4x1hJnlUYP9gSiFjp9T
-gpHACWeB3r05lfBDAgFkAgEIMB0GA1UdDgQWBBSTWm4GPqJ8dHSgLJvDy6BT/PKprTAfBgNVHSME
-GDAWgBQeaSq03Cj+RxhOIQs/vKwRL/CY9TBlBgNVHR8EXjBcMFqgWKBWhlRodHRwOi8vd3d3Lmlu
-dGVsLmNvbS9yZXBvc2l0b3J5L0NSTC9JbnRlbCUyMEV4dGVybmFsJTIwQmFzaWMlMjBJc3N1aW5n
-JTIwQ0ElMjA0QS5jcmwwgZ8GCCsGAQUFBwEBBIGSMIGPMGkGCCsGAQUFBzAChl1odHRwOi8vd3d3
-LmludGVsLmNvbS9yZXBvc2l0b3J5L2NlcnRpZmljYXRlcy9JbnRlbCUyMEV4dGVybmFsJTIwQmFz
-aWMlMjBJc3N1aW5nJTIwQ0ElMjA0QS5jcnQwIgYIKwYBBQUHMAGGFmh0dHA6Ly9vY3NwLmludGVs
-LmNvbS8wHwYDVR0lBBgwFgYIKwYBBQUHAwQGCisGAQQBgjcKAwwwKQYJKwYBBAGCNxUKBBwwGjAK
-BggrBgEFBQcDBDAMBgorBgEEAYI3CgMMMEUGA1UdEQQ+MDygJAYKKwYBBAGCNxQCA6AWDBRtYXJr
-LmRvcmFuQGludGVsLmNvbYEUbWFyay5kb3JhbkBpbnRlbC5jb20wDQYJKoZIhvcNAQEFBQADggEB
-AMhXk45O+pbaVedvQL3ixUoTgzwFww70S2p/LnMNTK53UKiI4fBuSd9OAWalL7kZLi9SWUiPNEQk
-dgXs6mlQXbkT5iDmVEdhryKxIacriuhMQ0b2Pn+xp8C0JNX/Xyp30nGh4nIqUPznjW69GhI+qdz5
-w71yH+WmuRlAoo/rsCybxclDh+vgzOfXDcYhZyWOfivUAgFQpua7riDSObGZMjG0sDyx3R2GuOFO
-AeFvsTBl15lUSNY5M0Wsmy/vfLyxYLWaFIiQ+NRi5kapWJQRFZH096XcnX6/M3lBhkaBAhY1Hr/T
-QLS0aw7ZAXH3ha5dvfeTKNZ7lkjpIxPAJe7QowwwggW1MIIEnaADAgECAhMzAABddjfSvQEQaioq
-AAAAAF12MA0GCSqGSIb3DQEBBQUAMHkxCzAJBgNVBAYTAlVTMQswCQYDVQQIEwJDQTEUMBIGA1UE
-BxMLU2FudGEgQ2xhcmExGjAYBgNVBAoTEUludGVsIENvcnBvcmF0aW9uMSswKQYDVQQDEyJJbnRl
-bCBFeHRlcm5hbCBCYXNpYyBJc3N1aW5nIENBIDRBMB4XDTE0MDkyMzIzMjMxNloXDTE3MDkwNzIz
-MjMxNlowOzEUMBIGA1UEAxMLRG9yYW4sIE1hcmsxIzAhBgkqhkiG9w0BCQEWFG1hcmsuZG9yYW5A
-aW50ZWwuY29tMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAisCvGnidBnM8t3KDitJd
-1lghUR3bMva0RWXXNhWlbQPmu5TIKr8lwyGKz55lg8FNvhyDmUttc5F5T+CmSb3AmNcqy7qpMG/z
-e6I49eWP90UzgQ3nmrDh98nQ5HU4i1UtXQe38xX4Jb7mJqluLP5OBGGSUcMSa2ZXd5uFY8mxemdu
-ThKU8X1YmCcSp4uR1hBjw6CE2WsVY4gCbugVYDF/nqSqLAhSKj/bk33L3Ct4PDARsXL6KYdFkCir
-IvI+/ku9vv+svww3XNZHEImqUEKjFJ7Apjh4EP6q3OBw4/e6DEXCXXBA2/sE5xOz8kLrKdRj3p+K
-XX+XmVjW63dX+I8iNQIDAQABo4ICcjCCAm4wCwYDVR0PBAQDAgQwMD0GCSsGAQQBgjcVBwQwMC4G
-JisGAQQBgjcVCIbDjHWEmeVRg/2BKIWOn1OCkcAJZ4S52UGHhP9OAgFkAgENMEQGCSqGSIb3DQEJ
-DwQ3MDUwDgYIKoZIhvcNAwICAgCAMA4GCCqGSIb3DQMEAgIAgDAHBgUrDgMCBzAKBggqhkiG9w0D
-BzAdBgNVHQ4EFgQUgpmWcsOBywXzv4YICKQgd7es9nUwHwYDVR0jBBgwFoAUHmkqtNwo/kcYTiEL
-P7ysES/wmPUwZQYDVR0fBF4wXDBaoFigVoZUaHR0cDovL3d3dy5pbnRlbC5jb20vcmVwb3NpdG9y
-eS9DUkwvSW50ZWwlMjBFeHRlcm5hbCUyMEJhc2ljJTIwSXNzdWluZyUyMENBJTIwNEEuY3JsMIGf
-BggrBgEFBQcBAQSBkjCBjzBpBggrBgEFBQcwAoZdaHR0cDovL3d3dy5pbnRlbC5jb20vcmVwb3Np
-dG9yeS9jZXJ0aWZpY2F0ZXMvSW50ZWwlMjBFeHRlcm5hbCUyMEJhc2ljJTIwSXNzdWluZyUyMENB
-JTIwNEEuY3J0MCIGCCsGAQUFBzABhhZodHRwOi8vb2NzcC5pbnRlbC5jb20vMB8GA1UdJQQYMBYG
-CCsGAQUFBwMEBgorBgEEAYI3CgMEMCkGCSsGAQQBgjcVCgQcMBowCgYIKwYBBQUHAwQwDAYKKwYB
-BAGCNwoDBDBFBgNVHREEPjA8oCQGCisGAQQBgjcUAgOgFgwUbWFyay5kb3JhbkBpbnRlbC5jb22B
-FG1hcmsuZG9yYW5AaW50ZWwuY29tMA0GCSqGSIb3DQEBBQUAA4IBAQBYK+WVhkhzQNMTXBzzrWY6
-GY4kdAgoH8pUpES+Es0CSxyhnKLxMrW8105DlU1LW4QN3YOqs0oUoB36LljOzG4zLpDyExpajafj
-ap/6jeb9AZO1lPhrmS5lqJATXFefuoThWi5em5Fm+KtT9BJaIryjbp44CBTwS66VF+5MEwHMPlb6
-ovtZtSDY9UDtNZdSux1Ya99XQE7JdV6eXes3N+wYhAUv1B1vtj/NsrRZvq/tBO8ptPVlm7z2GjCo
-iPDV/WPbOB+l8R3wSVTdL7O+hBxtxwbj55qlzAXyI2PtoJeWBkNs4XfFUDlgPY5wFElvxsTQmoQ0
-UksbIJ7zllH85gUZMYID+TCCA/UCAQEwgZAweTELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAkNBMRQw
-EgYDVQQHEwtTYW50YSBDbGFyYTEaMBgGA1UEChMRSW50ZWwgQ29ycG9yYXRpb24xKzApBgNVBAMT
-IkludGVsIEV4dGVybmFsIEJhc2ljIElzc3VpbmcgQ0EgNEECEzMAAGQM3goF8pwU9NIAAAAAZAww
-CQYFKw4DAhoFAKCCAj0wGAYJKoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcN
-MTYwMTIxMDA0NzQ5WjAjBgkqhkiG9w0BCQQxFgQUNOOnJr78ntEc35lmP71yuL6oloQwgZMGCSqG
-SIb3DQEJDzGBhTCBgjALBglghkgBZQMEASowCwYJYIZIAWUDBAEWMAoGCCqGSIb3DQMHMAsGCWCG
-SAFlAwQBAjAOBggqhkiG9w0DAgICAIAwDQYIKoZIhvcNAwICAUAwBwYFKw4DAhowCwYJYIZIAWUD
-BAIDMAsGCWCGSAFlAwQCAjALBglghkgBZQMEAgEwgaEGCSsGAQQBgjcQBDGBkzCBkDB5MQswCQYD
-VQQGEwJVUzELMAkGA1UECBMCQ0ExFDASBgNVBAcTC1NhbnRhIENsYXJhMRowGAYDVQQKExFJbnRl
-bCBDb3Jwb3JhdGlvbjErMCkGA1UEAxMiSW50ZWwgRXh0ZXJuYWwgQmFzaWMgSXNzdWluZyBDQSA0
-QQITMwAAXXY30r0BEGoqKgAAAABddjCBowYLKoZIhvcNAQkQAgsxgZOggZAweTELMAkGA1UEBhMC
-VVMxCzAJBgNVBAgTAkNBMRQwEgYDVQQHEwtTYW50YSBDbGFyYTEaMBgGA1UEChMRSW50ZWwgQ29y
-cG9yYXRpb24xKzApBgNVBAMTIkludGVsIEV4dGVybmFsIEJhc2ljIElzc3VpbmcgQ0EgNEECEzMA
-AF12N9K9ARBqKioAAAAAXXYwDQYJKoZIhvcNAQEBBQAEggEAh19imYwu3doPhjzBB7gmkBmacUYE
-JZMuwaD+ysK4A1QeXtk9Rs+QJVoEqUQcD0Xerk/2ZYL/SDw0sPaELxq2hZw63N0yL5Ztc4C8XSG+
-9AQgtTlfswc6M1zNUgj98LUf59ibbTZQCvXv2lwsVGvdLJUYSdfV3Yn+qk1I+ZHV6iSIIKVydfZm
-ajVSmfSs/2FngxTf8kxh3uT6sWJcXlXze/Ht4i03zz7l5KATftfv0nZzk4pi3fkM8jXrLaxKU8yd
-Af9l2aDWFc1uFNbzYjmTw3lK0X9AabfkLMSouwTuqRxAonZcIHX54F1KQfznQzzTRS3xyQiUvpjo
-3n38XOQybgAAAAAAAA==
+Bob Moore (2):
+      ACPICA: Additional 2016 copyright changes
+      ACPICA: Update version to 20160108
 
-------=_NextPart_000_006F_01D153A2.4BB4EA10--
+Chanwoo Choi (7):
+      PM / devfreq: event: Remove the error log of
+devfreq_event_get_edev_by_phandle()
+      PM / devfreq: event: Fix the error and warning from script/checkpatch.pl
+      PM / devfreq: Add show_one macro to delete the duplicate code
+      PM / devfreq: Set the freq_table of devfreq device
+      PM / devfreq: Modify the indentation of trans_stat sysfs for readability
+      MAINTAINERS: Add missing git repository and directory for devfreq
+      MAINTAINERS: Add devfreq-event entry
+
+Hans de Goede (6):
+      ACPI / video: Add disable_backlight_sysfs_if quirk for the
+Toshiba Portege R700
+      ACPI / video: Revert "ACPI / video: driver must be registered
+before checking for keypresses"
+      ACPI / video: Fix using an uninitialized mutex / list_head in
+acpi_video_handles_brightness_key_presses()
+      ACPI / video: Document acpi_video_handles_brightness_key_presses() a bit
+      ACPI / video: Revert "thinkpad_acpi: Use
+acpi_video_handles_brightness_key_presses()"
+      ACPI / video: Add disable_backlight_sysfs_if quirk for the
+Toshiba Satellite R830
+
+Jean Delvare (3):
+      time: nohz: Expose tick_nohz_enabled
+      cpuidle: Default to ladder governor on ticking systems
+      cpuidle: Don't enable all governors by default
+
+Lv Zheng (2):
+      ACPICA: Reduce regression fix divergence from upstream ACPICA
+      ACPICA: Silence a -Wbad-function-cast warning when
+acpi_uintptr_t is 'uintptr_t'
+
+MyungJoo Ham (1):
+      PM / devfreq: Do not show statistics if it's not ready.
+
+Rafael J. Wysocki (5):
+      platform: Do not detach from PM domains on shutdown
+      driver core: Avoid NULL pointer dereferences in device_is_bound()
+      cpuidle: menu: Fix menu_select() for CPUIDLE_DRIVER_STATE_START == 0
+      sched / idle: Drop default_idle_call() fallback from call_cpuidle()
+      cpuidle: menu: Avoid pointless checks in menu_select()
+
+Shreyas B. Prabhu (1):
+      cpupower: Fix build error in cpufreq-info
+
+Tomeu Vizoso (4):
+      device core: add device_is_bound()
+      PM / Domains: add setter for dev.pm_domain
+      PM / sleep: Go direct_complete if driver has no callbacks
+      USB / PM: Allow USB devices to remain runtime-suspended when sleeping
+
+---------------
+
+ MAINTAINERS                                        | 13 ++++
+ arch/arm/mach-omap2/omap_device.c                  |  7 +-
+ drivers/acpi/acpi_lpss.c                           |  5 +-
+ drivers/acpi/acpi_video.c                          | 52 +++++++++------
+ drivers/acpi/acpica/acapps.h                       |  4 +-
+ drivers/acpi/acpica/accommon.h                     |  2 +-
+ drivers/acpi/acpica/acdebug.h                      |  2 +-
+ drivers/acpi/acpica/acdispat.h                     |  2 +-
+ drivers/acpi/acpica/acevents.h                     |  2 +-
+ drivers/acpi/acpica/acglobal.h                     |  2 +-
+ drivers/acpi/acpica/achware.h                      |  2 +-
+ drivers/acpi/acpica/acinterp.h                     |  2 +-
+ drivers/acpi/acpica/aclocal.h                      |  2 +-
+ drivers/acpi/acpica/acmacros.h                     |  2 +-
+ drivers/acpi/acpica/acnamesp.h                     |  2 +-
+ drivers/acpi/acpica/acobject.h                     |  2 +-
+ drivers/acpi/acpica/acopcode.h                     |  2 +-
+ drivers/acpi/acpica/acparser.h                     |  2 +-
+ drivers/acpi/acpica/acpredef.h                     |  2 +-
+ drivers/acpi/acpica/acresrc.h                      |  2 +-
+ drivers/acpi/acpica/acstruct.h                     |  2 +-
+ drivers/acpi/acpica/actables.h                     |  2 +-
+ drivers/acpi/acpica/acutils.h                      |  2 +-
+ drivers/acpi/acpica/amlcode.h                      |  2 +-
+ drivers/acpi/acpica/amlresrc.h                     |  2 +-
+ drivers/acpi/acpica/dbcmds.c                       |  2 +-
+ drivers/acpi/acpica/dbconvert.c                    |  2 +-
+ drivers/acpi/acpica/dbdisply.c                     |  6 +-
+ drivers/acpi/acpica/dbexec.c                       |  2 +-
+ drivers/acpi/acpica/dbfileio.c                     |  2 +-
+ drivers/acpi/acpica/dbhistry.c                     |  2 +-
+ drivers/acpi/acpica/dbinput.c                      |  2 +-
+ drivers/acpi/acpica/dbmethod.c                     |  2 +-
+ drivers/acpi/acpica/dbnames.c                      |  2 +-
+ drivers/acpi/acpica/dbobject.c                     |  2 +-
+ drivers/acpi/acpica/dbstats.c                      |  2 +-
+ drivers/acpi/acpica/dbtest.c                       |  2 +-
+ drivers/acpi/acpica/dbutils.c                      |  2 +-
+ drivers/acpi/acpica/dbxface.c                      |  2 +-
+ drivers/acpi/acpica/dsargs.c                       |  2 +-
+ drivers/acpi/acpica/dscontrol.c                    |  2 +-
+ drivers/acpi/acpica/dsdebug.c                      |  2 +-
+ drivers/acpi/acpica/dsfield.c                      |  2 +-
+ drivers/acpi/acpica/dsinit.c                       |  2 +-
+ drivers/acpi/acpica/dsmethod.c                     |  2 +-
+ drivers/acpi/acpica/dsmthdat.c                     |  2 +-
+ drivers/acpi/acpica/dsobject.c                     |  2 +-
+ drivers/acpi/acpica/dsopcode.c                     |  2 +-
+ drivers/acpi/acpica/dsutils.c                      |  2 +-
+ drivers/acpi/acpica/dswexec.c                      |  2 +-
+ drivers/acpi/acpica/dswload.c                      |  2 +-
+ drivers/acpi/acpica/dswload2.c                     |  2 +-
+ drivers/acpi/acpica/dswscope.c                     |  2 +-
+ drivers/acpi/acpica/dswstate.c                     |  2 +-
+ drivers/acpi/acpica/evevent.c                      |  2 +-
+ drivers/acpi/acpica/evglock.c                      |  2 +-
+ drivers/acpi/acpica/evgpe.c                        |  2 +-
+ drivers/acpi/acpica/evgpeblk.c                     |  2 +-
+ drivers/acpi/acpica/evgpeinit.c                    |  2 +-
+ drivers/acpi/acpica/evgpeutil.c                    |  2 +-
+ drivers/acpi/acpica/evhandler.c                    |  2 +-
+ drivers/acpi/acpica/evmisc.c                       |  2 +-
+ drivers/acpi/acpica/evregion.c                     |  2 +-
+ drivers/acpi/acpica/evrgnini.c                     |  2 +-
+ drivers/acpi/acpica/evsci.c                        |  2 +-
+ drivers/acpi/acpica/evxface.c                      |  2 +-
+ drivers/acpi/acpica/evxfevnt.c                     |  2 +-
+ drivers/acpi/acpica/evxfgpe.c                      |  2 +-
+ drivers/acpi/acpica/evxfregn.c                     |  2 +-
+ drivers/acpi/acpica/exconfig.c                     |  2 +-
+ drivers/acpi/acpica/exconvrt.c                     |  2 +-
+ drivers/acpi/acpica/excreate.c                     |  2 +-
+ drivers/acpi/acpica/exdebug.c                      |  2 +-
+ drivers/acpi/acpica/exdump.c                       |  2 +-
+ drivers/acpi/acpica/exfield.c                      |  2 +-
+ drivers/acpi/acpica/exfldio.c                      |  2 +-
+ drivers/acpi/acpica/exmisc.c                       |  2 +-
+ drivers/acpi/acpica/exmutex.c                      |  2 +-
+ drivers/acpi/acpica/exnames.c                      |  2 +-
+ drivers/acpi/acpica/exoparg1.c                     |  2 +-
+ drivers/acpi/acpica/exoparg2.c                     |  2 +-
+ drivers/acpi/acpica/exoparg3.c                     |  2 +-
+ drivers/acpi/acpica/exoparg6.c                     |  2 +-
+ drivers/acpi/acpica/exprep.c                       |  2 +-
+ drivers/acpi/acpica/exregion.c                     |  2 +-
+ drivers/acpi/acpica/exresnte.c                     |  2 +-
+ drivers/acpi/acpica/exresolv.c                     |  2 +-
+ drivers/acpi/acpica/exresop.c                      |  2 +-
+ drivers/acpi/acpica/exstore.c                      |  2 +-
+ drivers/acpi/acpica/exstoren.c                     |  2 +-
+ drivers/acpi/acpica/exstorob.c                     |  2 +-
+ drivers/acpi/acpica/exsystem.c                     |  2 +-
+ drivers/acpi/acpica/extrace.c                      |  2 +-
+ drivers/acpi/acpica/exutils.c                      |  2 +-
+ drivers/acpi/acpica/hwacpi.c                       |  2 +-
+ drivers/acpi/acpica/hwesleep.c                     |  2 +-
+ drivers/acpi/acpica/hwgpe.c                        |  2 +-
+ drivers/acpi/acpica/hwpci.c                        |  2 +-
+ drivers/acpi/acpica/hwregs.c                       |  2 +-
+ drivers/acpi/acpica/hwsleep.c                      |  2 +-
+ drivers/acpi/acpica/hwtimer.c                      |  2 +-
+ drivers/acpi/acpica/hwvalid.c                      |  2 +-
+ drivers/acpi/acpica/hwxface.c                      |  2 +-
+ drivers/acpi/acpica/hwxfsleep.c                    |  2 +-
+ drivers/acpi/acpica/nsaccess.c                     |  2 +-
+ drivers/acpi/acpica/nsalloc.c                      |  2 +-
+ drivers/acpi/acpica/nsarguments.c                  |  2 +-
+ drivers/acpi/acpica/nsconvert.c                    |  2 +-
+ drivers/acpi/acpica/nsdump.c                       |  2 +-
+ drivers/acpi/acpica/nsdumpdv.c                     |  2 +-
+ drivers/acpi/acpica/nseval.c                       | 15 +++--
+ drivers/acpi/acpica/nsinit.c                       |  2 +-
+ drivers/acpi/acpica/nsload.c                       |  2 +-
+ drivers/acpi/acpica/nsnames.c                      |  2 +-
+ drivers/acpi/acpica/nsobject.c                     |  2 +-
+ drivers/acpi/acpica/nsparse.c                      |  2 +-
+ drivers/acpi/acpica/nspredef.c                     |  2 +-
+ drivers/acpi/acpica/nsprepkg.c                     |  2 +-
+ drivers/acpi/acpica/nsrepair.c                     |  2 +-
+ drivers/acpi/acpica/nsrepair2.c                    |  2 +-
+ drivers/acpi/acpica/nssearch.c                     |  2 +-
+ drivers/acpi/acpica/nsutils.c                      |  2 +-
+ drivers/acpi/acpica/nswalk.c                       |  2 +-
+ drivers/acpi/acpica/nsxfeval.c                     |  2 +-
+ drivers/acpi/acpica/nsxfname.c                     |  2 +-
+ drivers/acpi/acpica/nsxfobj.c                      |  2 +-
+ drivers/acpi/acpica/psargs.c                       |  2 +-
+ drivers/acpi/acpica/psloop.c                       |  2 +-
+ drivers/acpi/acpica/psobject.c                     |  2 +-
+ drivers/acpi/acpica/psopcode.c                     |  2 +-
+ drivers/acpi/acpica/psopinfo.c                     |  2 +-
+ drivers/acpi/acpica/psparse.c                      |  2 +-
+ drivers/acpi/acpica/psscope.c                      |  2 +-
+ drivers/acpi/acpica/pstree.c                       |  2 +-
+ drivers/acpi/acpica/psutils.c                      |  2 +-
+ drivers/acpi/acpica/pswalk.c                       |  2 +-
+ drivers/acpi/acpica/psxface.c                      |  2 +-
+ drivers/acpi/acpica/rsaddr.c                       |  2 +-
+ drivers/acpi/acpica/rscalc.c                       |  2 +-
+ drivers/acpi/acpica/rscreate.c                     |  2 +-
+ drivers/acpi/acpica/rsdump.c                       |  2 +-
+ drivers/acpi/acpica/rsdumpinfo.c                   |  2 +-
+ drivers/acpi/acpica/rsinfo.c                       |  2 +-
+ drivers/acpi/acpica/rsio.c                         |  2 +-
+ drivers/acpi/acpica/rsirq.c                        |  2 +-
+ drivers/acpi/acpica/rslist.c                       |  2 +-
+ drivers/acpi/acpica/rsmemory.c                     |  2 +-
+ drivers/acpi/acpica/rsmisc.c                       |  2 +-
+ drivers/acpi/acpica/rsserial.c                     |  2 +-
+ drivers/acpi/acpica/rsutils.c                      |  2 +-
+ drivers/acpi/acpica/rsxface.c                      |  2 +-
+ drivers/acpi/acpica/tbdata.c                       |  2 +-
+ drivers/acpi/acpica/tbfadt.c                       |  2 +-
+ drivers/acpi/acpica/tbfind.c                       |  2 +-
+ drivers/acpi/acpica/tbinstal.c                     |  2 +-
+ drivers/acpi/acpica/tbprint.c                      |  2 +-
+ drivers/acpi/acpica/tbutils.c                      |  2 +-
+ drivers/acpi/acpica/tbxface.c                      |  2 +-
+ drivers/acpi/acpica/tbxfload.c                     |  2 +-
+ drivers/acpi/acpica/tbxfroot.c                     |  2 +-
+ drivers/acpi/acpica/utaddress.c                    |  2 +-
+ drivers/acpi/acpica/utalloc.c                      |  2 +-
+ drivers/acpi/acpica/utbuffer.c                     |  2 +-
+ drivers/acpi/acpica/utcache.c                      |  2 +-
+ drivers/acpi/acpica/utcopy.c                       |  2 +-
+ drivers/acpi/acpica/utdebug.c                      |  2 +-
+ drivers/acpi/acpica/utdecode.c                     |  2 +-
+ drivers/acpi/acpica/utdelete.c                     |  2 +-
+ drivers/acpi/acpica/uterror.c                      |  2 +-
+ drivers/acpi/acpica/uteval.c                       |  2 +-
+ drivers/acpi/acpica/utexcep.c                      |  2 +-
+ drivers/acpi/acpica/utglobal.c                     |  2 +-
+ drivers/acpi/acpica/uthex.c                        |  2 +-
+ drivers/acpi/acpica/utids.c                        |  2 +-
+ drivers/acpi/acpica/utinit.c                       |  2 +-
+ drivers/acpi/acpica/utlock.c                       |  2 +-
+ drivers/acpi/acpica/utmath.c                       |  2 +-
+ drivers/acpi/acpica/utmisc.c                       |  2 +-
+ drivers/acpi/acpica/utmutex.c                      |  2 +-
+ drivers/acpi/acpica/utnonansi.c                    |  2 +-
+ drivers/acpi/acpica/utobject.c                     |  2 +-
+ drivers/acpi/acpica/utosi.c                        |  2 +-
+ drivers/acpi/acpica/utownerid.c                    |  2 +-
+ drivers/acpi/acpica/utpredef.c                     |  2 +-
+ drivers/acpi/acpica/utprint.c                      |  2 +-
+ drivers/acpi/acpica/utresrc.c                      |  2 +-
+ drivers/acpi/acpica/utstate.c                      |  2 +-
+ drivers/acpi/acpica/utstring.c                     |  2 +-
+ drivers/acpi/acpica/uttrack.c                      |  2 +-
+ drivers/acpi/acpica/utuuid.c                       |  2 +-
+ drivers/acpi/acpica/utxface.c                      |  2 +-
+ drivers/acpi/acpica/utxferror.c                    |  2 +-
+ drivers/acpi/acpica/utxfinit.c                     |  2 +-
+ drivers/acpi/acpica/utxfmutex.c                    |  2 +-
+ drivers/acpi/device_pm.c                           |  5 +-
+ drivers/acpi/fan.c                                 |  2 +-
+ drivers/base/dd.c                                  | 21 +++++-
+ drivers/base/platform.c                            |  1 -
+ drivers/base/power/clock_ops.c                     |  5 +-
+ drivers/base/power/common.c                        | 24 +++++++
+ drivers/base/power/domain.c                        |  8 ++-
+ drivers/base/power/main.c                          | 35 ++++++++++
+ drivers/base/power/power.h                         |  3 +
+ drivers/cpuidle/Kconfig                            |  2 -
+ drivers/cpuidle/cpuidle.c                          |  6 +-
+ drivers/cpuidle/governors/ladder.c                 |  9 +++
+ drivers/cpuidle/governors/menu.c                   | 23 ++++---
+ drivers/devfreq/devfreq-event.c                    | 16 ++---
+ drivers/devfreq/devfreq.c                          | 78 +++++++++++++++++-----
+ drivers/gpu/vga/vga_switcheroo.c                   | 11 +--
+ drivers/misc/mei/pci-me.c                          |  5 +-
+ drivers/misc/mei/pci-txe.c                         |  5 +-
+ drivers/platform/x86/thinkpad_acpi.c               |  2 +-
+ drivers/usb/core/port.c                            |  6 ++
+ drivers/usb/core/usb.c                             |  8 ++-
+ include/acpi/acbuffer.h                            |  2 +-
+ include/acpi/acconfig.h                            |  2 +-
+ include/acpi/acexcep.h                             |  2 +-
+ include/acpi/acnames.h                             |  2 +-
+ include/acpi/acoutput.h                            |  2 +-
+ include/acpi/acpi.h                                |  2 +-
+ include/acpi/acpiosxf.h                            |  2 +-
+ include/acpi/acpixf.h                              |  4 +-
+ include/acpi/acrestyp.h                            |  2 +-
+ include/acpi/actbl.h                               |  2 +-
+ include/acpi/actbl1.h                              |  2 +-
+ include/acpi/actbl2.h                              |  2 +-
+ include/acpi/actbl3.h                              |  2 +-
+ include/acpi/actypes.h                             |  2 +-
+ include/acpi/acuuid.h                              |  2 +-
+ include/acpi/platform/acenv.h                      |  2 +-
+ include/acpi/platform/acenvex.h                    |  2 +-
+ include/acpi/platform/acgcc.h                      |  2 +-
+ include/acpi/platform/aclinux.h                    |  2 +-
+ include/acpi/platform/aclinuxex.h                  |  2 +-
+ include/acpi/platform/acmsvcex.h                   |  2 +-
+ include/acpi/platform/acwinex.h                    |  2 +-
+ include/acpi/video.h                               |  4 ++
+ include/linux/devfreq.h                            |  2 +-
+ include/linux/device.h                             |  2 +
+ include/linux/pm.h                                 |  1 +
+ include/linux/pm_domain.h                          |  3 +
+ include/linux/tick.h                               |  2 +
+ kernel/sched/idle.c                                |  6 --
+ kernel/time/tick-sched.c                           |  2 +-
+ tools/power/acpi/common/cmfsize.c                  |  2 +-
+ tools/power/acpi/common/getopt.c                   |  2 +-
+ .../acpi/os_specific/service_layers/oslibcfs.c     |  2 +-
+ .../acpi/os_specific/service_layers/oslinuxtbl.c   |  2 +-
+ .../acpi/os_specific/service_layers/osunixdir.c    |  2 +-
+ .../acpi/os_specific/service_layers/osunixmap.c    |  2 +-
+ .../acpi/os_specific/service_layers/osunixxf.c     |  2 +-
+ tools/power/acpi/tools/acpidump/acpidump.h         |  2 +-
+ tools/power/acpi/tools/acpidump/apdump.c           |  2 +-
+ tools/power/acpi/tools/acpidump/apfiles.c          |  2 +-
+ tools/power/acpi/tools/acpidump/apmain.c           |  2 +-
+ tools/power/cpupower/utils/cpufreq-info.c          |  1 +
+ 257 files changed, 516 insertions(+), 326 deletions(-)
