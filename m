@@ -1,63 +1,122 @@
-From: Colin King <colin.king@canonical.com>
-Subject: [PATCH] ACPI / tables: Add acpi_force_32bit_fadt_addr option to force 32 bit FADT addresses
-Date: Thu, 21 Jan 2016 17:05:47 +0000
-Message-ID: <1453395947-1567-1-git-send-email-colin.king@canonical.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Jonathan Corbet <corbet@lwn.net>, "Rafael J . Wysocki" <rafael.j.wysocki@intel.com>, linux-doc@vger.kernel.org, linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH V3 13/21] pci, acpi: Provide generic way to assign bus
+ domain number.
+Date: Thu, 21 Jan 2016 18:22:18 +0000
+Message-ID: <20160121182218.GA21175@red-moon>
+References: <1452691267-32240-1-git-send-email-tn@semihalf.com>
+ <1452691267-32240-14-git-send-email-tn@semihalf.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1452691267-32240-14-git-send-email-tn@semihalf.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Tomasz Nowicki <tn@semihalf.com>
+Cc: bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, okaya@codeaurora.org, jiang.liu@linux.intel.com, Stefano.Stabellini@eu.citrix.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com
 List-Id: linux-acpi@vger.kernel.org
 
-From: Colin Ian King <colin.king@canonical.com>
+Hi Tomasz,
 
-BugLink: https://bugs.launchpad.net/bugs/1529381
+On Wed, Jan 13, 2016 at 02:20:59PM +0100, Tomasz Nowicki wrote:
 
-Some HP laptops seem to have invalid 64 bit FADT X_PM* addresses
-which are causing various boot issues.  In these cases, it would
-be useful to force ACPI to use the valid legacy 32 bit equivalent
-PM addresses.  Add a acpi_force_32bit_fadt_addr to set the ACPICA
-acpi_gbl_use32_bit_fadt_addresses to TRUE to force this override.
+[...]
 
-Signed-off-by: Colin Ian King <colin.king@canonical.com>
----
- Documentation/kernel-parameters.txt |  6 ++++++
- drivers/acpi/tables.c               | 10 ++++++++++
- 2 files changed, 16 insertions(+)
+> @@ -4796,14 +4797,34 @@ void pci_bus_assign_domain_nr(struct pci_bus *bus, struct device *parent)
+>  	 * API and update the use_dt_domains value to keep track of method we
+>  	 * are using to assign domain numbers (use_dt_domains = 0).
+>  	 *
+> +	 * IF ACPI, we expect non-DT method (use_dt_domains == -1)
+> +	 * and call _SEG method for corresponding host bridge device.
+> +	 * If _SEG method does not exist, following ACPI spec (6.5.6)
+> +	 * all PCI buses belong to domain 0.
+> +	 *
+>  	 * All other combinations imply we have a platform that is trying
+> -	 * to mix domain numbers obtained from DT and pci_get_new_domain_nr(),
+> -	 * which is a recipe for domain mishandling and it is prevented by
+> -	 * invalidating the domain value (domain = -1) and printing a
+> -	 * corresponding error.
+> +	 * to mix domain numbers obtained from DT, ACPI and
+> +	 * pci_get_new_domain_nr(), which is a recipe for domain mishandling and
+> +	 * it is prevented by invalidating the domain value (domain = -1) and
+> +	 * printing a corresponding error.
+>  	 */
+> +
+>  	if (domain >= 0 && use_dt_domains) {
+>  		use_dt_domains = 1;
+> +#ifdef CONFIG_ACPI
+> +	} else if (!acpi_disabled && use_dt_domains == -1) {
+> +		struct acpi_device *acpi_dev = to_acpi_device(parent);
+> +		unsigned long long segment = 0;
+> +		acpi_status status;
+> +
+> +		status = acpi_evaluate_integer(acpi_dev->handle,
+> +					       METHOD_NAME__SEG, NULL,
+> +					       &segment);
+> +		if (ACPI_FAILURE(status) && status != AE_NOT_FOUND)
+> +			dev_err(&acpi_dev->dev,  "can't evaluate _SEG\n");
+> +
+> +		domain = segment;
+> +#endif
 
-diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
-index 3ea869d..3782024 100644
---- a/Documentation/kernel-parameters.txt
-+++ b/Documentation/kernel-parameters.txt
-@@ -193,6 +193,12 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
- 			(e.g. thinkpad_acpi, sony_acpi, etc.) instead
- 			of the ACPI video.ko driver.
+I think you can reshuffle a bit the code to make it easier to follow.
+
+How about this ? (on top of mainline, I just compiled it do not
+take it verbatim):
+
+-- >8 --
+diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
+index d1a7105..467a316 100644
+--- a/drivers/pci/pci.c
++++ b/drivers/pci/pci.c
+@@ -7,6 +7,7 @@
+  *	Copyright 1997 -- 2000 Martin Mares <mj@ucw.cz>
+  */
  
-+	acpi_force_32bit_fadt_addr
-+			force FADT to use 32 bit addresses rather than the
-+			64 bit X_* addresses. Some firmware have broken 64
-+			bit addresses for force ACPI ignore these and use
-+			the older legacy 32 bit addresses.
-+
- 	acpica_no_return_repair [HW, ACPI]
- 			Disable AML predefined validation mechanism
- 			This mechanism can repair the evaluation result to make
-diff --git a/drivers/acpi/tables.c b/drivers/acpi/tables.c
-index 6c0f079..ebdf564 100644
---- a/drivers/acpi/tables.c
-+++ b/drivers/acpi/tables.c
-@@ -484,3 +484,13 @@ static int __init acpi_force_table_verification_setup(char *s)
++#include <linux/acpi.h>
+ #include <linux/kernel.h>
+ #include <linux/delay.h>
+ #include <linux/init.h>
+@@ -4769,7 +4770,27 @@ int pci_get_new_domain_nr(void)
  }
  
- early_param("acpi_force_table_verification", acpi_force_table_verification_setup);
-+
-+static int __init acpi_force_32bit_fadt_addr(char *s)
+ #ifdef CONFIG_PCI_DOMAINS_GENERIC
+-void pci_bus_assign_domain_nr(struct pci_bus *bus, struct device *parent)
++/* Feel free to add this to drivers/acpi as a helper */
++#ifdef CONFIG_ACPI
++int pci_bus_acpi_domain_nr(struct device *parent)
 +{
-+	pr_info("Forcing 32 Bit FADT addresses\n");
-+	acpi_gbl_use32_bit_fadt_addresses = TRUE;
++	struct acpi_device *acpi_dev = to_acpi_device(parent);
++	unsigned long long segment = 0;
++	acpi_status status;
 +
-+	return 0;
++	status = acpi_evaluate_integer(acpi_dev->handle,
++				       METHOD_NAME__SEG, NULL,
++				       &segment);
++	if (ACPI_FAILURE(status) && status != AE_NOT_FOUND)
++		dev_err(&acpi_dev->dev,  "can't evaluate _SEG\n");
++
++	return segment;
++}
++#else
++int pci_bus_acpi_domain_nr(struct device *parent) { return -1; }
++#endif
++
++int pci_bus_of_domain_nr(struct device *parent)
+ {
+ 	static int use_dt_domains = -1;
+ 	int domain = of_get_pci_domain_nr(parent->of_node);
+@@ -4811,7 +4832,13 @@ void pci_bus_assign_domain_nr(struct pci_bus *bus, struct device *parent)
+ 		domain = -1;
+ 	}
+ 
+-	bus->domain_nr = domain;
++	return domain;
 +}
 +
-+early_param("acpi_force_32bit_fadt_addr", acpi_force_32bit_fadt_addr);
--- 
-1.9.1
++void pci_bus_assign_domain_nr(struct pci_bus *bus, struct device *parent)
++{
++	bus->domain_nr = acpi_disabled ? pci_bus_of_domain_nr(parent) :
++					 pci_bus_acpi_domain_nr(parent);
+ }
+ #endif
+ #endif
