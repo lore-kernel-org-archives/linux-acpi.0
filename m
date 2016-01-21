@@ -1,179 +1,145 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [PATCH v5 5/5] x86, acpi, cpu-hotplug: Set persistent cpuid <-> nodeid mapping when booting.
-Date: Thu, 21 Jan 2016 14:32:38 +0800
-Message-ID: <1453357958-26941-6-git-send-email-tangchen@cn.fujitsu.com>
-References: <1453357958-26941-1-git-send-email-tangchen@cn.fujitsu.com>
+From: Chen Fan <chen.fan.fnst@cn.fujitsu.com>
+Subject: Re: [PATCH] pci: fix unavailable irq number 255 reported by BIOS
+Date: Thu, 21 Jan 2016 16:02:19 +0800
+Message-ID: <56A0908B.8060904@cn.fujitsu.com>
+References: <1453167913-16248-1-git-send-email-chen.fan.fnst@cn.fujitsu.com> <6239489.QX2A2kAHWp@vostro.rjw.lan> <20160120002431.GA7973@localhost> <569F0B44.1010109@cn.fujitsu.com> <20160120171252.GB7973@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1453357958-26941-1-git-send-email-tangchen@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: cl@linux.com, tj@kernel.org, jiang.liu@linux.intel.com, mika.j.penttila@gmail.com, mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com
-Cc: tangchen@cn.fujitsu.com, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Gu Zheng <guz.fnst@cn.fujitsu.com>
+Content-Type: text/plain; charset="windows-1252"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20160120171252.GB7973@localhost>
+Sender: linux-pci-owner@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, izumi.taku@jp.fujitsu.com, wency@cn.fujitsu.com, caoj.fnst@cn.fujitsu.com, Bjorn Helgaas <bhelgaas@google.com>, Linux PCI <linux-pci@vger.kernel.org>, Jiang Liu <jiang.liu@linux.intel.com>
 List-Id: linux-acpi@vger.kernel.org
 
-From: Gu Zheng <guz.fnst@cn.fujitsu.com>
 
-The whole patch-set aims at making cpuid <-> nodeid mapping persistent. So that,
-when node online/offline happens, cache based on cpuid <-> nodeid mapping such as
-wq_numa_possible_cpumask will not cause any problem.
-It contains 4 steps:
-1. Enable apic registeration flow to handle both enabled and disabled cpus.
-2. Introduce a new array storing all possible cpuid <-> apicid mapping.
-3. Enable _MAT and MADT relative apis to return non-presnet or disabled cpus' apicid.
-4. Establish all possible cpuid <-> nodeid mapping.
+On 01/21/2016 01:12 AM, Bjorn Helgaas wrote:
+> On Wed, Jan 20, 2016 at 12:21:24PM +0800, Chen Fan wrote:
+>> On 01/20/2016 08:24 AM, Bjorn Helgaas wrote:
+>>> [+cc Jiang]
+>>>
+>>> Hi Chen,
+>>>
+>>> On Tue, Jan 19, 2016 at 02:43:30PM +0100, Rafael J. Wysocki wrote:
+>>>> On Tuesday, January 19, 2016 09:45:13 AM Chen Fan wrote:
+>>>>> In our environment, when enable Secure boot, we found an abnormal
+>>> This has more information than necessary.  I don't think Secure Boot is
+>>> really relevant, and nor are the timestamps and stack addresses below.
+>> I just think enable the Secure Boot, probably the firmware assigned
+>> a 0xff interrupt to the device which unauthenticated.
+> The important thing is that you're changing the way we handle
+> Interrupt Line being 0xff.  That affects more than just Secure Boot
+> users.  It's fine to mention Secure Boot later, as one example of an
+> affected scenario.
+>
+> I don't know anything about Secure Boot, but setting Interrupt Line to
+> 0xff would obviously not be a robust way of hiding an unauthenticated
+> device.  But it sounds like you're just speculating about that anyway.
+>
+>>>>> phenomenon as following call trace shows. after investigation, we
+>>>>> found the firmware assigned an irq number 255 which means unknown
+>>>>> or no connection in PCI local spec for i801_smbus, meanwhile the
+>>>>> ACPI didn't configure the pci irq routing. and the 255 irq number
+>>>>> was assigned for megasa msix without IRQF_SHARED. then in this case
+>>>>> during i801_smbus probe, the i801_smbus driver would request irq with
+>>>>> bad irq number 255. but the 255 irq number was assigned for memgasa
+>>>>> with MSIX enable. which will cause request_irq fails, and call trace
+>>>>> shows, actually, we should expose the error early, rather than in request
+>>>>> irq, here we simply fix the problem by return err when find the irq is
+>>>>> 255.
+>>>>> See the call trace:
+>>>>>
+>>>>>   [   32.459195] ipmi device interface
+>>>>>   [   32.612907] shpchp: Standard Hot Plug PCI Controller Driver version: 0.4
+>>>>>   [   32.800459] ixgbe: Intel(R) 10 Gigabit PCI Express Network Driver - version 4.0.1-k-rh
+>>>>>   [   32.818319] ixgbe: Copyright (c) 1999-2014 Intel Corporation.
+>>>>>   [   32.844009] lpc_ich 0001:80:1f.0: I/O space for ACPI uninitialized
+>>>>>   [   32.850093] i801_smbus 0000:00:1f.3: enabling device (0140 -> 0143)
+>>>>>   [   32.851134] i801_smbus 0000:00:1f.3: can't derive routing for PCI INT C
+>>>>>   [   32.851136] i801_smbus 0000:00:1f.3: PCI INT C: no GSI
+>>>>>   [   32.851164] genirq: Flags mismatch irq 255. 00000080 (i801_smbus) vs. 00000000 (megasa
+>>>>>   [   32.851168] CPU: 0 PID: 2487 Comm: kworker/0:1 Not tainted 3.10.0-229.el7.x86_64 #1
+>>>>>   [   32.851170] Hardware name: FUJITSU PRIMEQUEST 2800E2/D3736, BIOS PRIMEQUEST 2000 Serie5
+>>>>>   [   32.851178] Workqueue: events work_for_cpu_fn
+>>>>>   [   32.851208]  ffff88086c330b00 00000000e233a9df ffff88086d57bca0 ffffffff81603f36
+>>>>>   [   32.851227]  ffff88086d57bcf8 ffffffff8110d23a ffff88686fe02000 0000000000000246
+>>>>>   [   32.851246]  ffff88086a9a8c00 00000000e233a9df ffffffffa00ad220 0000000000000080
+>>>>>   [   32.851247] Call Trace:
+>>>>>   [   32.851261]  [<ffffffff81603f36>] dump_stack+0x19/0x1b
+>>>>>   [   32.851271]  [<ffffffff8110d23a>] __setup_irq+0x54a/0x570
+>>>>>   [   32.851282]  [<ffffffffa00ad220>] ? i801_check_pre.isra.5+0xe0/0xe0 [i2c_i801]
+>>>>>   [   32.851289]  [<ffffffff8110d3bc>] request_threaded_irq+0xcc/0x170
+>>>>>   [   32.851298]  [<ffffffffa00ae87f>] i801_probe+0x32f/0x508 [i2c_i801]
+>>>>>   [   32.851308]  [<ffffffff81308385>] local_pci_probe+0x45/0xa0
+>>>>>   [   32.851315]  [<ffffffff8108bfd4>] work_for_cpu_fn+0x14/0x20
+>>>>>   [   32.851323]  [<ffffffff8108f0ab>] process_one_work+0x17b/0x470
+>>>>>   [   32.851330]  [<ffffffff81090003>] worker_thread+0x293/0x400
+>>>>>   [   32.851338]  [<ffffffff8108fd70>] ? rescuer_thread+0x400/0x400
+>>>>>   [   32.851346]  [<ffffffff8109726f>] kthread+0xcf/0xe0
+>>>>>   [   32.851353]  [<ffffffff810971a0>] ? kthread_create_on_node+0x140/0x140
+>>>>>   [   32.851362]  [<ffffffff81613cfc>] ret_from_fork+0x7c/0xb0
+>>>>>   [   32.851369]  [<ffffffff810971a0>] ? kthread_create_on_node+0x140/0x140
+>>>>>   [   32.851373] i801_smbus 0000:00:1f.3: Failed to allocate irq 255: -16
+>>>>>   [   32.851435] i801_smbus: probe of 0000:00:1f.3 failed with error -16
+>>> Since the Interrupt Line register is writable and might contain any
+>>> value, it would be nice if Linux could at least tolerate anything
+>>> firmware might leave there without a backtrace, even if we end up not
+>>> being able to use the device.
+>>>
+>>> Your patch changes the acpi_pci_irq_enable() return value from 0 to
+>>> -EINVAL for this case.  You're running v3.10, and this change probably
+>>> makes pci_enable_device() fail.  I suppose the user-visible effect is
+>>> that with your patch,
+>>>
+>>>    - there's no backtrace,
+>>>    - i801_smbus fails with "Failed to enable SMBus PCI device" instead
+>>>      of with "Failed to allocate irq 255", and
+>>>    - i801_smbus fails even if no other device is using IRQ 255, instead
+>>>      of "succeeding" and using an IRQ 255 that probably doesn't work
+>>>      (this seems like maybe the most important difference)
+>>>
+>>> Jiang has changed this path with 890e4847587f ("PCI: Add
+>>> pcibios_alloc_irq() and pcibios_free_irq()"), so I think on newer
+>>> kernels, we'll never even call the i801_smbus probe function.
+>> no, on newer kernels, this phenomenon also probably appearance,
+>> with this patch 890e4847587f change, it didn't change the
+>> acpi_pci_irq_enable() return value, with the problem it also return 0,
+>> and then still call __pci_device_probe() to do i801_smbus probe
+>> function in pci_device_probe() function.
+> I meant that *with your patch*, newer kernels won't call the
+> i801_smbus probe function.
+>
+>>> What behavior are you looking for from i801_smbus?  Decline to claim
+>>> the device?  Try to use the device without interrupts?  Try to figure
+>>> out an interrupt in some other way?
+>> I think if BIOS assigned 0xff interrupt line to device, and kernel
+>> can't look
+>> up a valid interrupt for the device, we should not allow to use the device.
+>>> I'm not 100% sure that 890e4847587f does the right thing by preventing
+>>> a driver from claiming a device where we can't set up an IRQ.  It's
+>>> conceivable that a driver could still operate a device even without an
+>>> IRQ.
+>> I don't understanding, does without IRQ for device still work?
+> Polling drivers do not need IRQs.  The PCI core has no idea whether a
+> driver is interrupt-driven or polling, so we can't assume that a
+> device with no IRQ is useless.
+Got it, I observed the smbus driver has changed to polling when request_irq
+failed on new kernel.
+can we use a broken_irq flag in pci_dev to mark the device irq if invalid ?
+then if a device broken_irq set, we don't need to call request_irq and
+directly return failure. of course, maybe we need to check this for all 
+devices.
 
-This patch finishes step 4.
+BTW, can we skip the 0xff irq number when allocating irq in x86 arch ?
 
-This patch set the persistent cpuid <-> nodeid mapping for all enabled/disabled
-processors at boot time via an additional acpi namespace walk for processors.
-
-Signed-off-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
-Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
----
- arch/ia64/kernel/acpi.c       |  2 +-
- arch/x86/kernel/acpi/boot.c   |  2 +-
- drivers/acpi/bus.c            |  3 ++
- drivers/acpi/processor_core.c | 65 +++++++++++++++++++++++++++++++++++++++++++
- include/linux/acpi.h          |  2 ++
- 5 files changed, 72 insertions(+), 2 deletions(-)
-
-diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
-index b1698bc..7db5563 100644
---- a/arch/ia64/kernel/acpi.c
-+++ b/arch/ia64/kernel/acpi.c
-@@ -796,7 +796,7 @@ int acpi_isa_irq_to_gsi(unsigned isa_irq, u32 *gsi)
-  *  ACPI based hotplug CPU support
-  */
- #ifdef CONFIG_ACPI_HOTPLUG_CPU
--static int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
-+int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
- {
- #ifdef CONFIG_ACPI_NUMA
- 	/*
-diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-index 0ce06ee..7d45261 100644
---- a/arch/x86/kernel/acpi/boot.c
-+++ b/arch/x86/kernel/acpi/boot.c
-@@ -696,7 +696,7 @@ static void __init acpi_set_irq_model_ioapic(void)
- #ifdef CONFIG_ACPI_HOTPLUG_CPU
- #include <acpi/processor.h>
- 
--static void acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
-+void acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
- {
- #ifdef CONFIG_ACPI_NUMA
- 	int nid;
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index 891c42d..d92f45f 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -1096,6 +1096,9 @@ static int __init acpi_init(void)
- 	acpi_sleep_proc_init();
- 	acpi_wakeup_device_init();
- 	acpi_debugger_init();
-+#ifdef CONFIG_ACPI_HOTPLUG_CPU
-+	acpi_set_processor_mapping();
-+#endif
- 	return 0;
- }
- 
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index 824b98b..45580ff 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -261,6 +261,71 @@ int acpi_get_cpuid(acpi_handle handle, int type, u32 acpi_id)
- }
- EXPORT_SYMBOL_GPL(acpi_get_cpuid);
- 
-+#ifdef CONFIG_ACPI_HOTPLUG_CPU
-+static bool map_processor(acpi_handle handle, int *phys_id, int *cpuid)
-+{
-+	int type;
-+	u32 acpi_id;
-+	acpi_status status;
-+	acpi_object_type acpi_type;
-+	unsigned long long tmp;
-+	union acpi_object object = { 0 };
-+	struct acpi_buffer buffer = { sizeof(union acpi_object), &object };
-+
-+	status = acpi_get_type(handle, &acpi_type);
-+	if (ACPI_FAILURE(status))
-+		return false;
-+
-+	switch (acpi_type) {
-+	case ACPI_TYPE_PROCESSOR:
-+		status = acpi_evaluate_object(handle, NULL, NULL, &buffer);
-+		if (ACPI_FAILURE(status))
-+			return false;
-+		acpi_id = object.processor.proc_id;
-+		break;
-+	case ACPI_TYPE_DEVICE:
-+		status = acpi_evaluate_integer(handle, "_UID", NULL, &tmp);
-+		if (ACPI_FAILURE(status))
-+			return false;
-+		acpi_id = tmp;
-+		break;
-+	default:
-+		return false;
-+	}
-+
-+	type = (acpi_type == ACPI_TYPE_DEVICE) ? 1 : 0;
-+
-+	*phys_id = __acpi_get_phys_id(handle, type, acpi_id, false);
-+	*cpuid = acpi_map_cpuid(*phys_id, acpi_id);
-+	if (*cpuid == -1)
-+		return false;
-+
-+	return true;
-+}
-+
-+static acpi_status __init
-+set_processor_node_mapping(acpi_handle handle, u32 lvl, void *context,
-+			   void **rv)
-+{
-+	u32 apic_id;
-+	int cpu_id;
-+
-+	if (!map_processor(handle, &apic_id, &cpu_id))
-+		return AE_ERROR;
-+
-+	acpi_map_cpu2node(handle, cpu_id, apic_id);
-+	return AE_OK;
-+}
-+
-+void __init acpi_set_processor_mapping(void)
-+{
-+	/* Set persistent cpu <-> node mapping for all processors. */
-+	acpi_walk_namespace(ACPI_TYPE_PROCESSOR, ACPI_ROOT_OBJECT,
-+			    ACPI_UINT32_MAX, set_processor_node_mapping,
-+			    NULL, NULL, NULL);
-+}
-+#endif
-+
- #ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
- static int get_ioapic_id(struct acpi_subtable_header *entry, u32 gsi_base,
- 			 u64 *phys_addr, int *ioapic_id)
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 06ed7e5..080755a 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -265,6 +265,8 @@ static inline bool invalid_phys_cpuid(phys_cpuid_t phys_id)
- /* Arch dependent functions for cpu hotplug support */
- int acpi_map_cpu(acpi_handle handle, phys_cpuid_t physid, int *pcpu);
- int acpi_unmap_cpu(int cpu);
-+void acpi_map_cpu2node(acpi_handle handle, int cpu, int physid);
-+void __init acpi_set_processor_mapping(void);
- #endif /* CONFIG_ACPI_HOTPLUG_CPU */
- 
- #ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
--- 
-1.9.3
+Thanks,
+Chen
 
 
-
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
+>
+> Bjorn
+>
+>
+> .
+>
