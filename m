@@ -1,81 +1,57 @@
-From: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH] acpi: Revert "ACPI / video: Add Dell Inspiron 5737 to the
- blacklist"
-Date: Fri, 22 Jan 2016 14:51:39 +0100
-Message-ID: <56A233EB.6090009@redhat.com>
-References: <1453459265-12564-1-git-send-email-hdegoede@redhat.com>
- <1562452.BybifopDHa@vostro.rjw.lan>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH] pci: fix unavailable irq number 255 reported by BIOS
+Date: Fri, 22 Jan 2016 11:53:32 -0600
+Message-ID: <20160122175332.GA11004@localhost>
+References: <1453167913-16248-1-git-send-email-chen.fan.fnst@cn.fujitsu.com>
+ <6239489.QX2A2kAHWp@vostro.rjw.lan>
+ <20160120002431.GA7973@localhost>
+ <56A0EE00.80709@cn.fujitsu.com>
+ <CAJZ5v0iq29mq_sFzk=mEbjPGJV9vPL9MCgU4WamrGV_fWcpEMA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <1562452.BybifopDHa@vostro.rjw.lan>
-Sender: stable-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: erusan@gmail.com, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, stable@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.29.136]:44825 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754415AbcAVRxg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 22 Jan 2016 12:53:36 -0500
+Content-Disposition: inline
+In-Reply-To: <CAJZ5v0iq29mq_sFzk=mEbjPGJV9vPL9MCgU4WamrGV_fWcpEMA@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Cao jin <caoj.fnst@cn.fujitsu.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Chen Fan <chen.fan.fnst@cn.fujitsu.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, izumi.taku@jp.fujitsu.com, wency@cn.fujitsu.com, Bjorn Helgaas <bhelgaas@google.com>, Linux PCI <linux-pci@vger.kernel.org>, Jiang Liu <jiang.liu@linux.intel.com>
 
-Hi,
+On Thu, Jan 21, 2016 at 11:58:26PM +0100, Rafael J. Wysocki wrote:
+> On Thu, Jan 21, 2016 at 3:41 PM, Cao jin <caoj.fnst@cn.fujitsu.com> wrote:
+> > Hi,
+> >
+> >     IMHO, I think maybe modification on i801_smbus driver is easier.
+> >
+> >     Because when i801_smbus request_irq using pci_dev->irq, this
+> > pci_dev->irq seems still holds the value read from register(
+> > pci_setup_device->pci_read_irq), if the value is 255, it is invalid in
+> > register,
+> 
+> Right.
+> 
+> Which is why the PCI core should not leak it into the driver's ->probe callback.
 
-On 22-01-16 14:44, Rafael J. Wysocki wrote:
-> On Friday, January 22, 2016 11:41:05 AM Hans de Goede wrote:
->> The quirk to get "acpi_backlight=vendor" behavior by default on the
->> Dell Inspiron 5737 was added before we started doing
->> "acpi_backlight=native" by default on Win8 ready machines.
->>
->> Since we now avoid using acpi-video as backlight driver on these machines
->> by default (using the native driver instead) we no longer need this quirk.
->>
->> Moreover the vendor driver does not work after a suspend/resume where
->> as the native driver does.
->>
->> This reverts commit 08a56226d847 ("ACPI / video: Add Dell Inspiron 5737
->> to the blacklist").
->>
->> BugLink: https://bugzilla.kernel.org/show_bug.cgi?id=111061
->> Cc: stable@vger.kernel.org
->
-> OK, but I think we need to limit the range of "stable" kernels this is
-> going to go into.
->
-> What's the least recent "stable" series one you'd like this to be applied to?
+Is there a reserved IRQ value we could use to mean "invalid"?
 
-3.19 and later have this commit:
+I guess we have NR_IRQS as a ceiling, so the range of valid IRQs would be
+[0 .. NR_IRQS - 1].  It looks like irq_desc() and a few drivers already
+rely on NR_IRQS being the bound:
 
-https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/drivers/acpi/video.c?id=fbc9fe1b4f222a7c575e3bd8e9defe59c6190a04
+  lpc32xx_kscan_probe
+  lpc32xx_nand_probe
+  pcmcia_setup_isa_irq
+  lpc32xx_rtc_probe
+  apbuart_verify_port
+  ar933x_uart_verify_port
+  lqasc_verify_port
 
-And thus will use native backlight by default, so anything >= 3.19.
+So I guess we could use ~0 as "invalid IRQ", and maybe the PCI core could
+set dev->irq to ~0 in these cases, and drivers like i801_smbus could check
+for that.  Maybe a wrapper like irq_valid() would be useful.
 
-Regards,
-
-Hans
-
-
->
->> Reported-and-tested-by: erusan@gmail.com
->> Signed-off-by: Hans de Goede <hdegoede@redhat.com>
->> ---
->>   drivers/acpi/video_detect.c | 8 --------
->>   1 file changed, 8 deletions(-)
->>
->> diff --git a/drivers/acpi/video_detect.c b/drivers/acpi/video_detect.c
->> index 90e2d54..1316ddd 100644
->> --- a/drivers/acpi/video_detect.c
->> +++ b/drivers/acpi/video_detect.c
->> @@ -135,14 +135,6 @@ static const struct dmi_system_id video_detect_dmi_table[] = {
->>   		DMI_MATCH(DMI_PRODUCT_NAME, "UL30A"),
->>   		},
->>   	},
->> -	{
->> -	.callback = video_detect_force_vendor,
->> -	.ident = "Dell Inspiron 5737",
->> -	.matches = {
->> -		DMI_MATCH(DMI_SYS_VENDOR, "Dell Inc."),
->> -		DMI_MATCH(DMI_PRODUCT_NAME, "Inspiron 5737"),
->> -		},
->> -	},
->>
->>   	/*
->>   	 * These models have a working acpi_video backlight control, and using
->>
->
+Bjorn
