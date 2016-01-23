@@ -1,51 +1,112 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: [PATCH] acpi: Revert "ACPI / video: Add Dell Inspiron 5737 to the blacklist"
-Date: Sat, 23 Jan 2016 03:09:04 +0100
-Message-ID: <1556296.6qzM0NF6DB@vostro.rjw.lan>
-References: <1453459265-12564-1-git-send-email-hdegoede@redhat.com> <1562452.BybifopDHa@vostro.rjw.lan> <56A233EB.6090009@redhat.com>
+From: Shannon Zhao <zhaoshenglong@huawei.com>
+Subject: [PATCH v3 01/17] Xen: ACPI: Hide UART used by Xen
+Date: Sat, 23 Jan 2016 11:19:28 +0800
+Message-ID: <1453519184-11908-2-git-send-email-zhaoshenglong@huawei.com>
+References: <1453519184-11908-1-git-send-email-zhaoshenglong@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <stable-owner@vger.kernel.org>
-In-Reply-To: <56A233EB.6090009@redhat.com>
-Sender: stable-owner@vger.kernel.org
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: erusan@gmail.com, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, stable@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga02-in.huawei.com ([119.145.14.65]:3407 "EHLO
+	szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755481AbcAWD0X (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Jan 2016 22:26:23 -0500
+In-Reply-To: <1453519184-11908-1-git-send-email-zhaoshenglong@huawei.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, ard.biesheuvel@linaro.org, mark.rutland@arm.com, stefano.stabellini@citrix.com, david.vrabel@citrix.com
+Cc: catalin.marinas@arm.com, will.deacon@arm.com, julien.grall@citrix.com, xen-devel@lists.xen.org, devicetree@vger.kernel.org, linux-efi@vger.kernel.org, linux-kernel@vger.kernel.org, ian.campbell@citrix.com, shannon.zhao@linaro.org, peter.huangpeng@huawei.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "open list:ACPI" <linux-acpi@vger.kernel.org>
 
-On Friday, January 22, 2016 02:51:39 PM Hans de Goede wrote:
-> Hi,
-> 
-> On 22-01-16 14:44, Rafael J. Wysocki wrote:
-> > On Friday, January 22, 2016 11:41:05 AM Hans de Goede wrote:
-> >> The quirk to get "acpi_backlight=vendor" behavior by default on the
-> >> Dell Inspiron 5737 was added before we started doing
-> >> "acpi_backlight=native" by default on Win8 ready machines.
-> >>
-> >> Since we now avoid using acpi-video as backlight driver on these machines
-> >> by default (using the native driver instead) we no longer need this quirk.
-> >>
-> >> Moreover the vendor driver does not work after a suspend/resume where
-> >> as the native driver does.
-> >>
-> >> This reverts commit 08a56226d847 ("ACPI / video: Add Dell Inspiron 5737
-> >> to the blacklist").
-> >>
-> >> BugLink: https://bugzilla.kernel.org/show_bug.cgi?id=111061
-> >> Cc: stable@vger.kernel.org
-> >
-> > OK, but I think we need to limit the range of "stable" kernels this is
-> > going to go into.
-> >
-> > What's the least recent "stable" series one you'd like this to be applied to?
-> 
-> 3.19 and later have this commit:
-> 
-> https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/drivers/acpi/video.c?id=fbc9fe1b4f222a7c575e3bd8e9defe59c6190a04
-> 
-> And thus will use native backlight by default, so anything >= 3.19.
+From: Shannon Zhao <shannon.zhao@linaro.org>
 
-OK, applied.
+ACPI 6.0 introduces a new table STAO to list the devices which are used
+by Xen and can't be used by Dom0. On Xen virtual platforms, the physical
+UART is used by Xen. So here it hides UART from Dom0.
 
-Thanks,
-Rafael
+Signed-off-by: Shannon Zhao <shannon.zhao@linaro.org>
+---
+CC: "Rafael J. Wysocki" <rjw@rjwysocki.net> (supporter:ACPI)
+CC: Len Brown <lenb@kernel.org> (supporter:ACPI)
+CC: linux-acpi@vger.kernel.org (open list:ACPI)
+---
+ drivers/acpi/bus.c | 36 +++++++++++++++++++++++++++++++++++-
+ 1 file changed, 35 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index a212cef..7f85b54 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -46,6 +46,7 @@ ACPI_MODULE_NAME("bus");
+ struct acpi_device *acpi_root;
+ struct proc_dir_entry *acpi_root_dir;
+ EXPORT_SYMBOL(acpi_root_dir);
++static u64 spcr_uart_addr;
+ 
+ #ifdef CONFIG_X86
+ #ifdef CONFIG_ACPI_CUSTOM_DSDT
+@@ -105,6 +106,22 @@ acpi_status acpi_bus_get_status_handle(acpi_handle handle,
+ 	return status;
+ }
+ 
++static bool acpi_check_device_is_ignored(acpi_handle handle)
++{
++	acpi_status status;
++	u64 addr;
++
++	/* Check if it should ignore the UART device */
++	if (spcr_uart_addr != 0) {
++		status = acpi_evaluate_integer(handle, METHOD_NAME__ADR, NULL,
++					       &addr);
++		if (ACPI_SUCCESS(status) && addr == spcr_uart_addr)
++			return true;
++	}
++
++	return false;
++}
++
+ int acpi_bus_get_status(struct acpi_device *device)
+ {
+ 	acpi_status status;
+@@ -114,7 +131,8 @@ int acpi_bus_get_status(struct acpi_device *device)
+ 	if (ACPI_FAILURE(status))
+ 		return -ENODEV;
+ 
+-	acpi_set_device_status(device, sta);
++	if (!acpi_check_device_is_ignored(device->handle))
++		acpi_set_device_status(device, sta);
+ 
+ 	if (device->status.functional && !device->status.present) {
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device [%s] status [%08x]: "
+@@ -1069,6 +1087,8 @@ EXPORT_SYMBOL_GPL(acpi_kobj);
+ static int __init acpi_init(void)
+ {
+ 	int result;
++	acpi_status status;
++	struct acpi_table_stao *stao_ptr;
+ 
+ 	if (acpi_disabled) {
+ 		printk(KERN_INFO PREFIX "Interpreter disabled.\n");
+@@ -1081,6 +1101,20 @@ static int __init acpi_init(void)
+ 		acpi_kobj = NULL;
+ 	}
+ 
++	/* If there is STAO table, check whether it needs to ignore the UART
++	 * device in SPCR table.
++	 */
++	status = acpi_get_table(ACPI_SIG_STAO, 0,
++				(struct acpi_table_header **)&stao_ptr);
++	if (ACPI_SUCCESS(status) && stao_ptr->ignore_uart) {
++		struct acpi_table_spcr *spcr_ptr;
++
++		status = acpi_get_table(ACPI_SIG_SPCR, 0,
++					(struct acpi_table_header **)&spcr_ptr);
++		if (ACPI_SUCCESS(status))
++			spcr_uart_addr = spcr_ptr->serial_port.address;
++	}
++
+ 	init_acpi_device_notify();
+ 	result = acpi_bus_init();
+ 	if (result) {
+-- 
+2.0.4
+
+
