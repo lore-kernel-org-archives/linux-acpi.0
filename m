@@ -1,57 +1,51 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH] pci: fix unavailable irq number 255 reported by BIOS
-Date: Sat, 23 Jan 2016 03:00:48 +0100
-Message-ID: <CAJZ5v0hW1jusNnW8TFTX_fwXzsfBjkFTjHTBQ+iWQyDKe3CETw@mail.gmail.com>
-References: <1453167913-16248-1-git-send-email-chen.fan.fnst@cn.fujitsu.com>
-	<6239489.QX2A2kAHWp@vostro.rjw.lan>
-	<20160120002431.GA7973@localhost>
-	<56A0EE00.80709@cn.fujitsu.com>
-	<CAJZ5v0iq29mq_sFzk=mEbjPGJV9vPL9MCgU4WamrGV_fWcpEMA@mail.gmail.com>
-	<20160122175332.GA11004@localhost>
-	<56A281B6.6070709@gmail.com>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] acpi: Revert "ACPI / video: Add Dell Inspiron 5737 to the blacklist"
+Date: Sat, 23 Jan 2016 03:09:04 +0100
+Message-ID: <1556296.6qzM0NF6DB@vostro.rjw.lan>
+References: <1453459265-12564-1-git-send-email-hdegoede@redhat.com> <1562452.BybifopDHa@vostro.rjw.lan> <56A233EB.6090009@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <56A281B6.6070709@gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: David Daney <ddaney.cavm@gmail.com>
-Cc: Bjorn Helgaas <helgaas@kernel.org>, "Rafael J. Wysocki" <rafael@kernel.org>, Cao jin <caoj.fnst@cn.fujitsu.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Chen Fan <chen.fan.fnst@cn.fujitsu.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Len Brown <lenb@kernel.org>, izumi.taku@jp.fujitsu.com, wency@cn.fujitsu.com, Bjorn Helgaas <bhelgaas@google.com>, Linux PCI <linux-pci@vger.kernel.org>, Jiang Liu <jiang.liu@linux.intel.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <stable-owner@vger.kernel.org>
+In-Reply-To: <56A233EB.6090009@redhat.com>
+Sender: stable-owner@vger.kernel.org
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: erusan@gmail.com, Zhang Rui <rui.zhang@intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, stable@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Jan 22, 2016 at 8:23 PM, David Daney <ddaney.cavm@gmail.com> wrote:
-> On 01/22/2016 09:53 AM, Bjorn Helgaas wrote:
->>
->> On Thu, Jan 21, 2016 at 11:58:26PM +0100, Rafael J. Wysocki wrote:
->>>
->>> On Thu, Jan 21, 2016 at 3:41 PM, Cao jin <caoj.fnst@cn.fujitsu.com>
->>> wrote:
->>>>
->>>> Hi,
->>>>
->>>>      IMHO, I think maybe modification on i801_smbus driver is easier.
->>>>
->>>>      Because when i801_smbus request_irq using pci_dev->irq, this
->>>> pci_dev->irq seems still holds the value read from register(
->>>> pci_setup_device->pci_read_irq), if the value is 255, it is invalid in
->>>> register,
->>>
->>>
->>> Right.
->>>
->>> Which is why the PCI core should not leak it into the driver's ->probe
->>> callback.
->>
->>
->> Is there a reserved IRQ value we could use to mean "invalid"?
->
->
-> In many (most) cases, zero indicates no irq.
+On Friday, January 22, 2016 02:51:39 PM Hans de Goede wrote:
+> Hi,
+> 
+> On 22-01-16 14:44, Rafael J. Wysocki wrote:
+> > On Friday, January 22, 2016 11:41:05 AM Hans de Goede wrote:
+> >> The quirk to get "acpi_backlight=vendor" behavior by default on the
+> >> Dell Inspiron 5737 was added before we started doing
+> >> "acpi_backlight=native" by default on Win8 ready machines.
+> >>
+> >> Since we now avoid using acpi-video as backlight driver on these machines
+> >> by default (using the native driver instead) we no longer need this quirk.
+> >>
+> >> Moreover the vendor driver does not work after a suspend/resume where
+> >> as the native driver does.
+> >>
+> >> This reverts commit 08a56226d847 ("ACPI / video: Add Dell Inspiron 5737
+> >> to the blacklist").
+> >>
+> >> BugLink: https://bugzilla.kernel.org/show_bug.cgi?id=111061
+> >> Cc: stable@vger.kernel.org
+> >
+> > OK, but I think we need to limit the range of "stable" kernels this is
+> > going to go into.
+> >
+> > What's the least recent "stable" series one you'd like this to be applied to?
+> 
+> 3.19 and later have this commit:
+> 
+> https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/commit/drivers/acpi/video.c?id=fbc9fe1b4f222a7c575e3bd8e9defe59c6190a04
+> 
+> And thus will use native backlight by default, so anything >= 3.19.
 
-Zero is a valid timer IRQ on x86, though, so it's better not to give
-any special meaning to it in general.
-
-Using ~0 as suggested by Bjorn should work as it would cause
-request_irq() to return -EINVAL if passed to it AFAICS.
+OK, applied.
 
 Thanks,
 Rafael
