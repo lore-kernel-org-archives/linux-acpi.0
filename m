@@ -1,7 +1,7 @@
 From: Hanjun Guo <guohanjun@huawei.com>
-Subject: [PATCH v3 09/12] x86, acpi, numa: cleanup acpi_numa_processor_affinity_init()
-Date: Sat, 23 Jan 2016 17:39:24 +0800
-Message-ID: <1453541967-3744-10-git-send-email-guohanjun@huawei.com>
+Subject: [PATCH v3 01/12] acpi, numa: Use pr_fmt() instead of printk
+Date: Sat, 23 Jan 2016 17:39:16 +0800
+Message-ID: <1453541967-3744-2-git-send-email-guohanjun@huawei.com>
 References: <1453541967-3744-1-git-send-email-guohanjun@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,88 +14,70 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Hanjun Guo <hanjun.guo@linaro.org>
 
-Cleanup acpi_numa_processor_affinity_init() and prepare
-move it to common palce then it can be reused by other
-arch, this should no functional change.
+Just do some cleanups to replace printk with pr_fmt().
 
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- arch/x86/mm/srat.c | 21 +++++----------------
- 1 file changed, 5 insertions(+), 16 deletions(-)
+ drivers/acpi/numa.c | 17 +++++++----------
+ 1 file changed, 7 insertions(+), 10 deletions(-)
 
-diff --git a/arch/x86/mm/srat.c b/arch/x86/mm/srat.c
-index 92a640a..304cdf2 100644
---- a/arch/x86/mm/srat.c
-+++ b/arch/x86/mm/srat.c
-@@ -26,11 +26,6 @@
+diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
+index 72b6e9e..4e427fc 100644
+--- a/drivers/acpi/numa.c
++++ b/drivers/acpi/numa.c
+@@ -18,6 +18,9 @@
+  * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  *
+  */
++
++#define pr_fmt(fmt) "ACPI: " fmt
++
+ #include <linux/module.h>
+ #include <linux/init.h>
+ #include <linux/kernel.h>
+@@ -28,8 +31,6 @@
+ #include <linux/nodemask.h>
+ #include <linux/topology.h>
  
- int acpi_numa __initdata;
- 
--static __init int setup_node(int pxm)
--{
--	return acpi_map_pxm_to_node(pxm);
--}
+-#define PREFIX "ACPI: "
 -
- static __init void bad_srat(void)
- {
- 	printk(KERN_ERR "SRAT: SRAT not used.\n");
-@@ -64,7 +59,7 @@ acpi_numa_x2apic_affinity_init(struct acpi_srat_x2apic_cpu_affinity *pa)
- 			 pxm, apic_id);
- 		return;
+ #define ACPI_NUMA	0x80000000
+ #define _COMPONENT	ACPI_NUMA
+ ACPI_MODULE_NAME("numa");
+@@ -187,9 +188,8 @@ acpi_table_print_srat_entry(struct acpi_subtable_header *header)
+ #endif				/* ACPI_DEBUG_OUTPUT */
+ 		break;
+ 	default:
+-		printk(KERN_WARNING PREFIX
+-		       "Found unsupported SRAT entry (type = 0x%x)\n",
+-		       header->type);
++		pr_warn("Found unsupported SRAT entry (type = 0x%x)\n",
++			header->type);
+ 		break;
  	}
--	node = setup_node(pxm);
-+	node = acpi_map_pxm_to_node(pxm);
- 	if (node < 0) {
- 		printk(KERN_ERR "SRAT: Too many proximity domains %x\n", pxm);
- 		bad_srat();
-@@ -100,7 +95,7 @@ acpi_numa_processor_affinity_init(struct acpi_srat_cpu_affinity *pa)
- 	pxm = pa->proximity_domain_lo;
- 	if (acpi_srat_revision >= 2)
- 		pxm |= *((unsigned int*)pa->proximity_domain_hi) << 8;
--	node = setup_node(pxm);
-+	node = acpi_map_pxm_to_node(pxm);
- 	if (node < 0) {
- 		printk(KERN_ERR "SRAT: Too many proximity domains %x\n", pxm);
- 		bad_srat();
-@@ -124,12 +119,6 @@ acpi_numa_processor_affinity_init(struct acpi_srat_cpu_affinity *pa)
- 	       pxm, apic_id, node);
+ }
+@@ -222,7 +222,7 @@ static int __init acpi_parse_slit(struct acpi_table_header *table)
+ 	struct acpi_table_slit *slit = (struct acpi_table_slit *)table;
+ 
+ 	if (!slit_valid(slit)) {
+-		printk(KERN_INFO "ACPI: SLIT table looks invalid. Not used.\n");
++		pr_info("SLIT table looks invalid. Not used.\n");
+ 		return -EINVAL;
+ 	}
+ 	acpi_numa_slit_init(slit);
+@@ -233,12 +233,9 @@ static int __init acpi_parse_slit(struct acpi_table_header *table)
+ void __init __weak
+ acpi_numa_x2apic_affinity_init(struct acpi_srat_x2apic_cpu_affinity *pa)
+ {
+-	printk(KERN_WARNING PREFIX
+-	       "Found unsupported x2apic [0x%08x] SRAT entry\n", pa->apic_id);
+-	return;
++	pr_warn("Found unsupported x2apic [0x%08x] SRAT entry\n", pa->apic_id);
  }
  
--#ifdef CONFIG_MEMORY_HOTPLUG
--static inline int save_add_info(void) {return 1;}
--#else
--static inline int save_add_info(void) {return 0;}
--#endif
 -
- /* Callback for parsing of the Proximity Domain <-> Memory Area mappings */
- int __init
- acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
-@@ -145,7 +134,7 @@ acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
- 	if ((ma->flags & ACPI_SRAT_MEM_ENABLED) == 0)
- 		goto out_err;
- 	hotpluggable = ma->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE;
--	if (hotpluggable && !save_add_info())
-+	if (hotpluggable && !IS_ENABLED(CONFIG_MEMORY_HOTPLUG))
- 		goto out_err;
- 
- 	start = ma->base_address;
-@@ -154,7 +143,7 @@ acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
- 	if (acpi_srat_revision <= 1)
- 		pxm &= 0xff;
- 
--	node = setup_node(pxm);
-+	node = acpi_map_pxm_to_node(pxm);
- 	if (node < 0) {
- 		printk(KERN_ERR "SRAT: Too many proximity domains.\n");
- 		goto out_err_bad_srat;
-@@ -180,7 +169,7 @@ acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
- out_err_bad_srat:
- 	bad_srat();
- out_err:
--	return -1;
-+	return -EINVAL;
- }
- 
- int __init x86_acpi_numa_init(void)
+ static int __init
+ acpi_parse_x2apic_affinity(struct acpi_subtable_header *header,
+ 			   const unsigned long end)
 -- 
 1.9.1
