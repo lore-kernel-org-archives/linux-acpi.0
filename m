@@ -1,112 +1,47 @@
-From: Shannon Zhao <zhaoshenglong@huawei.com>
-Subject: [PATCH v3 01/17] Xen: ACPI: Hide UART used by Xen
-Date: Sat, 23 Jan 2016 11:19:28 +0800
-Message-ID: <1453519184-11908-2-git-send-email-zhaoshenglong@huawei.com>
-References: <1453519184-11908-1-git-send-email-zhaoshenglong@huawei.com>
+From: Hanjun Guo <guohanjun@huawei.com>
+Subject: [PATCH v3 03/12] acpi, numa: remove duplicate NULL check
+Date: Sat, 23 Jan 2016 17:39:18 +0800
+Message-ID: <1453541967-3744-4-git-send-email-guohanjun@huawei.com>
+References: <1453541967-3744-1-git-send-email-guohanjun@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga02-in.huawei.com ([119.145.14.65]:3407 "EHLO
-	szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755481AbcAWD0X (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 22 Jan 2016 22:26:23 -0500
-In-Reply-To: <1453519184-11908-1-git-send-email-zhaoshenglong@huawei.com>
+Received: from szxga03-in.huawei.com ([119.145.14.66]:49878 "EHLO
+	szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752486AbcAWJoL (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 23 Jan 2016 04:44:11 -0500
+In-Reply-To: <1453541967-3744-1-git-send-email-guohanjun@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-arm-kernel@lists.infradead.org, ard.biesheuvel@linaro.org, mark.rutland@arm.com, stefano.stabellini@citrix.com, david.vrabel@citrix.com
-Cc: catalin.marinas@arm.com, will.deacon@arm.com, julien.grall@citrix.com, xen-devel@lists.xen.org, devicetree@vger.kernel.org, linux-efi@vger.kernel.org, linux-kernel@vger.kernel.org, ian.campbell@citrix.com, shannon.zhao@linaro.org, peter.huangpeng@huawei.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "open list:ACPI" <linux-acpi@vger.kernel.org>
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>
+Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Shannon Zhao <shannon.zhao@linaro.org>, Steve Capper <steve.capper@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Robert Richter <rrichter@cavium.com>, Hanjun Guo <hanjun.guo@linaro.org>
 
-From: Shannon Zhao <shannon.zhao@linaro.org>
+From: Hanjun Guo <hanjun.guo@linaro.org>
 
-ACPI 6.0 introduces a new table STAO to list the devices which are used
-by Xen and can't be used by Dom0. On Xen virtual platforms, the physical
-UART is used by Xen. So here it hides UART from Dom0.
+The argument "header" for acpi_table_print_srat_entry()
+is always checked before the function is called, it's
+duplicate to check it again, remove it.
 
-Signed-off-by: Shannon Zhao <shannon.zhao@linaro.org>
+Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
-CC: "Rafael J. Wysocki" <rjw@rjwysocki.net> (supporter:ACPI)
-CC: Len Brown <lenb@kernel.org> (supporter:ACPI)
-CC: linux-acpi@vger.kernel.org (open list:ACPI)
----
- drivers/acpi/bus.c | 36 +++++++++++++++++++++++++++++++++++-
- 1 file changed, 35 insertions(+), 1 deletion(-)
+ drivers/acpi/numa.c | 3 ---
+ 1 file changed, 3 deletions(-)
 
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index a212cef..7f85b54 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -46,6 +46,7 @@ ACPI_MODULE_NAME("bus");
- struct acpi_device *acpi_root;
- struct proc_dir_entry *acpi_root_dir;
- EXPORT_SYMBOL(acpi_root_dir);
-+static u64 spcr_uart_addr;
- 
- #ifdef CONFIG_X86
- #ifdef CONFIG_ACPI_CUSTOM_DSDT
-@@ -105,6 +106,22 @@ acpi_status acpi_bus_get_status_handle(acpi_handle handle,
- 	return status;
- }
- 
-+static bool acpi_check_device_is_ignored(acpi_handle handle)
-+{
-+	acpi_status status;
-+	u64 addr;
-+
-+	/* Check if it should ignore the UART device */
-+	if (spcr_uart_addr != 0) {
-+		status = acpi_evaluate_integer(handle, METHOD_NAME__ADR, NULL,
-+					       &addr);
-+		if (ACPI_SUCCESS(status) && addr == spcr_uart_addr)
-+			return true;
-+	}
-+
-+	return false;
-+}
-+
- int acpi_bus_get_status(struct acpi_device *device)
+diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
+index e34b5d0..2de6068 100644
+--- a/drivers/acpi/numa.c
++++ b/drivers/acpi/numa.c
+@@ -125,9 +125,6 @@ EXPORT_SYMBOL(acpi_map_pxm_to_online_node);
+ static void __init
+ acpi_table_print_srat_entry(struct acpi_subtable_header *header)
  {
- 	acpi_status status;
-@@ -114,7 +131,8 @@ int acpi_bus_get_status(struct acpi_device *device)
- 	if (ACPI_FAILURE(status))
- 		return -ENODEV;
- 
--	acpi_set_device_status(device, sta);
-+	if (!acpi_check_device_is_ignored(device->handle))
-+		acpi_set_device_status(device, sta);
- 
- 	if (device->status.functional && !device->status.present) {
- 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device [%s] status [%08x]: "
-@@ -1069,6 +1087,8 @@ EXPORT_SYMBOL_GPL(acpi_kobj);
- static int __init acpi_init(void)
- {
- 	int result;
-+	acpi_status status;
-+	struct acpi_table_stao *stao_ptr;
- 
- 	if (acpi_disabled) {
- 		printk(KERN_INFO PREFIX "Interpreter disabled.\n");
-@@ -1081,6 +1101,20 @@ static int __init acpi_init(void)
- 		acpi_kobj = NULL;
- 	}
- 
-+	/* If there is STAO table, check whether it needs to ignore the UART
-+	 * device in SPCR table.
-+	 */
-+	status = acpi_get_table(ACPI_SIG_STAO, 0,
-+				(struct acpi_table_header **)&stao_ptr);
-+	if (ACPI_SUCCESS(status) && stao_ptr->ignore_uart) {
-+		struct acpi_table_spcr *spcr_ptr;
-+
-+		status = acpi_get_table(ACPI_SIG_SPCR, 0,
-+					(struct acpi_table_header **)&spcr_ptr);
-+		if (ACPI_SUCCESS(status))
-+			spcr_uart_addr = spcr_ptr->serial_port.address;
-+	}
-+
- 	init_acpi_device_notify();
- 	result = acpi_bus_init();
- 	if (result) {
+-	if (!header)
+-		return;
+-
+ 	switch (header->type) {
+ 	case ACPI_SRAT_TYPE_CPU_AFFINITY:
+ 		{
 -- 
-2.0.4
+1.9.1
 
 
