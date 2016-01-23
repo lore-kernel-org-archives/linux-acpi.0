@@ -1,38 +1,36 @@
-From: Robert Richter <robert.richter@caviumnetworks.com>
-Subject: Re: [PATCH v3 04/12] acpi, numa: introduce ACPI_HAS_NUMA_ARCH_FIXUP
-Date: Sat, 23 Jan 2016 11:25:23 +0100
-Message-ID: <20160123102523.GC24726@rric.localdomain>
-References: <1453541967-3744-1-git-send-email-guohanjun@huawei.com>
- <1453541967-3744-5-git-send-email-guohanjun@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+From: Insu Yun <wuninsu@gmail.com>
+Subject: [PATCH] hotplug: unlock in error path in acpiphp_enable_slot
+Date: Sat, 23 Jan 2016 15:44:19 -0500
+Message-ID: <1453581859-19565-1-git-send-email-wuninsu@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1453541967-3744-5-git-send-email-guohanjun@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Hanjun Guo <guohanjun@huawei.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Shannon Zhao <shannon.zhao@linaro.org>, Steve Capper <steve.capper@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>
+To: rjw@rjwysocki.net, lenb@kernel.org, bhelgaas@google.com, linux-acpi@vger.kernel.org, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: taesoo@gatech.edu, yeongjin.jang@gatech.edu, insu@gatech.edu, changwoo@gatech.edu, Insu Yun <wuninsu@gmail.com>
 List-Id: linux-acpi@vger.kernel.org
 
-On 23.01.16 17:39:19, Hanjun Guo wrote:
-> From: Hanjun Guo <hanjun.guo@linaro.org>
-> 
-> acpi_numa_arch_fixup() is only used for IA64, x86 introduce a dummy
-> function for it, when we came to a new architecture (such as ARM64),
-> we need to introduce another dummy one to make the code compile.
-> 
-> That's pretty boring so introduce ACPI_HAS_NUMA_ARCH_FIXUP and
-> select it for IA64, introduce a stub function for acpi_numa_arch_fixup()
-> then it's pretty clean for x86 and ARM64.
-> 
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> ---
->  arch/ia64/Kconfig    | 1 +
+In acpiphp_enable_slot, there is a missing unlock path
+when error occurred. It needs to be unlocked before returning an error.
 
-I see an implementation of acpi_numa_arch_fixup() only for ia64. Why
-not move it to arch/ia64 then and call it from setup_arch() in
-arch/ia64/kernel/setup.c after acpi_numa_init()? It looks like we
-don't need a generic solution for this. This avoids any kconfig
-handling for this at all.
+Signed-off-by: Insu Yun <wuninsu@gmail.com>
+---
+ drivers/pci/hotplug/acpiphp_glue.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
--Robert
+diff --git a/drivers/pci/hotplug/acpiphp_glue.c b/drivers/pci/hotplug/acpiphp_glue.c
+index ff53856..0b3e0bf 100644
+--- a/drivers/pci/hotplug/acpiphp_glue.c
++++ b/drivers/pci/hotplug/acpiphp_glue.c
+@@ -953,8 +953,10 @@ int acpiphp_enable_slot(struct acpiphp_slot *slot)
+ {
+ 	pci_lock_rescan_remove();
+ 
+-	if (slot->flags & SLOT_IS_GOING_AWAY)
++	if (slot->flags & SLOT_IS_GOING_AWAY) {
++		pci_unlock_rescan_remove();
+ 		return -ENODEV;
++	}
+ 
+ 	/* configure all functions */
+ 	if (!(slot->flags & SLOT_ENABLED))
+-- 
+1.9.1
