@@ -1,7 +1,7 @@
 From: Hanjun Guo <guohanjun@huawei.com>
-Subject: [PATCH v3 10/12] acpi, numa: move bad_srat() and srat_disabled() to common place
-Date: Sat, 23 Jan 2016 17:39:25 +0800
-Message-ID: <1453541967-3744-11-git-send-email-guohanjun@huawei.com>
+Subject: [PATCH v3 08/12] arm64, numa: rework numa_add_memblk()
+Date: Sat, 23 Jan 2016 17:39:23 +0800
+Message-ID: <1453541967-3744-9-git-send-email-guohanjun@huawei.com>
 References: <1453541967-3744-1-git-send-email-guohanjun@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,137 +14,89 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Hanjun Guo <hanjun.guo@linaro.org>
 
-bad_srat() and srat_disabled() are shared by arm64 and x86,
-move it to common place to reduce duplication.
+Rework numa_add_memblk() to update the parameter "u64 size"
+to "u64 end", this will make it consistent with x86 and
+can simplify the code later.
+
+Updates for arch/arm64/mm/numa.c should squash to core NUMA
+patches from Ganapat.
 
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- arch/arm64/kernel/acpi_numa.c | 12 ------------
- arch/x86/include/asm/acpi.h   |  1 -
- arch/x86/mm/numa.c            |  2 +-
- arch/x86/mm/srat.c            | 13 -------------
- drivers/acpi/numa.c           |  1 +
- include/acpi/acpi_numa.h      | 12 ++++++++++++
- 6 files changed, 14 insertions(+), 27 deletions(-)
+ arch/arm64/kernel/acpi_numa.c |  2 +-
+ arch/arm64/kernel/of_numa.c   |  2 +-
+ arch/arm64/mm/numa.c          | 12 ++++++------
+ 3 files changed, 8 insertions(+), 8 deletions(-)
 
 diff --git a/arch/arm64/kernel/acpi_numa.c b/arch/arm64/kernel/acpi_numa.c
-index 3bcf058..fb1556f 100644
+index 15fb935..3bcf058 100644
 --- a/arch/arm64/kernel/acpi_numa.c
 +++ b/arch/arm64/kernel/acpi_numa.c
-@@ -28,7 +28,6 @@
- #include <acpi/processor.h>
- #include <asm/numa.h>
+@@ -184,7 +184,7 @@ int __init acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
+ 		node, pxm,
+ 		(unsigned long long) start, (unsigned long long) end - 1);
  
--int acpi_numa __initdata;
- static int cpus_in_srat;
+-	if (numa_add_memblk(node, start, (end - start)) < 0) {
++	if (numa_add_memblk(node, start, end) < 0) {
+ 		bad_srat();
+ 		return -EINVAL;
+ 	}
+diff --git a/arch/arm64/kernel/of_numa.c b/arch/arm64/kernel/of_numa.c
+index 2f9e34b..aa6f3a3 100644
+--- a/arch/arm64/kernel/of_numa.c
++++ b/arch/arm64/kernel/of_numa.c
+@@ -168,7 +168,7 @@ static int __init early_init_parse_memory_node(unsigned long node)
+ 		pr_debug("NUMA-DT:  base = %llx , node = %u\n",
+ 				base, nid);
  
- struct __node_cpu_hwid {
-@@ -39,17 +38,6 @@ struct __node_cpu_hwid {
- static struct __node_cpu_hwid early_node_cpu_hwid[NR_CPUS] = {
- [0 ... NR_CPUS - 1] = {NUMA_NO_NODE, PHYS_CPUID_INVALID} };
+-		if (numa_add_memblk(nid, base, size) < 0)
++		if (numa_add_memblk(nid, base, base + size) < 0)
+ 			return -EINVAL;
+ 	}
  
--static __init void bad_srat(void)
--{
--	pr_err("SRAT not used.\n");
--	acpi_numa = -1;
--}
--
--static __init inline int srat_disabled(void)
--{
--	return acpi_numa < 0;
--}
--
- void __init acpi_numa_set_node_info(unsigned int cpu, u64 hwid)
+diff --git a/arch/arm64/mm/numa.c b/arch/arm64/mm/numa.c
+index e974995..2b04b8a 100644
+--- a/arch/arm64/mm/numa.c
++++ b/arch/arm64/mm/numa.c
+@@ -137,25 +137,25 @@ void numa_store_cpu_info(unsigned int cpu)
+  * numa_add_memblk - Set node id to memblk
+  * @nid: NUMA node ID of the new memblk
+  * @start: Start address of the new memblk
+- * @size:  Size of the new memblk
++ * @end:  End address of the new memblk
+  *
+  * RETURNS:
+  * 0 on success, -errno on failure.
+  */
+-int __init numa_add_memblk(int nid, u64 start, u64 size)
++int __init numa_add_memblk(int nid, u64 start, u64 end)
  {
- 	int nid = 0, i;
-diff --git a/arch/x86/include/asm/acpi.h b/arch/x86/include/asm/acpi.h
-index 94c18eb..65f1e95 100644
---- a/arch/x86/include/asm/acpi.h
-+++ b/arch/x86/include/asm/acpi.h
-@@ -145,7 +145,6 @@ static inline void disable_acpi(void) { }
- #define ARCH_HAS_POWER_INIT	1
+ 	int ret;
  
- #ifdef CONFIG_ACPI_NUMA
--extern int acpi_numa;
- extern int x86_acpi_numa_init(void);
- #endif /* CONFIG_ACPI_NUMA */
+-	ret = memblock_set_node(start, size, &memblock.memory, nid);
++	ret = memblock_set_node(start, (end - start), &memblock.memory, nid);
+ 	if (ret < 0) {
+ 		pr_err("NUMA: memblock [0x%llx - 0x%llx] failed to add on node %d\n",
+-			start, (start + size - 1), nid);
++			start, (end - 1), nid);
+ 		return ret;
+ 	}
  
-diff --git a/arch/x86/mm/numa.c b/arch/x86/mm/numa.c
-index c3b3f65..fd59371 100644
---- a/arch/x86/mm/numa.c
-+++ b/arch/x86/mm/numa.c
-@@ -1,4 +1,5 @@
- /* Common code for 32 and 64-bit NUMA */
-+#include <linux/acpi.h>
- #include <linux/kernel.h>
- #include <linux/mm.h>
- #include <linux/string.h>
-@@ -15,7 +16,6 @@
- #include <asm/e820.h>
- #include <asm/proto.h>
- #include <asm/dma.h>
--#include <asm/acpi.h>
- #include <asm/amd_nb.h>
+ 	node_set(nid, numa_nodes_parsed);
+ 	pr_info("NUMA: Adding memblock [0x%llx - 0x%llx] on node %d\n",
+-			start, (start + size - 1), nid);
++			start, (end - 1), nid);
+ 	return ret;
+ }
+ EXPORT_SYMBOL(numa_add_memblk);
+@@ -366,7 +366,7 @@ static int __init dummy_numa_init(void)
+ 	       0LLU, PFN_PHYS(max_pfn) - 1);
  
- #include "numa_internal.h"
-diff --git a/arch/x86/mm/srat.c b/arch/x86/mm/srat.c
-index 304cdf2..7078b3f 100644
---- a/arch/x86/mm/srat.c
-+++ b/arch/x86/mm/srat.c
-@@ -24,19 +24,6 @@
- #include <asm/apic.h>
- #include <asm/uv/uv.h>
- 
--int acpi_numa __initdata;
--
--static __init void bad_srat(void)
--{
--	printk(KERN_ERR "SRAT: SRAT not used.\n");
--	acpi_numa = -1;
--}
--
--static __init inline int srat_disabled(void)
--{
--	return acpi_numa < 0;
--}
--
- /* Callback for Proximity Domain -> x2APIC mapping */
- void __init
- acpi_numa_x2apic_affinity_init(struct acpi_srat_x2apic_cpu_affinity *pa)
-diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
-index b33915e..05e3795 100644
---- a/drivers/acpi/numa.c
-+++ b/drivers/acpi/numa.c
-@@ -40,6 +40,7 @@ static int node_to_pxm_map[MAX_NUMNODES]
- 			= { [0 ... MAX_NUMNODES - 1] = PXM_INVAL };
- 
- unsigned char acpi_srat_revision __initdata;
-+int acpi_numa __initdata;
- 
- int pxm_to_node(int pxm)
- {
-diff --git a/include/acpi/acpi_numa.h b/include/acpi/acpi_numa.h
-index 94a37cd..28f06a6 100644
---- a/include/acpi/acpi_numa.h
-+++ b/include/acpi/acpi_numa.h
-@@ -15,6 +15,18 @@ extern int pxm_to_node(int);
- extern int node_to_pxm(int);
- extern int acpi_map_pxm_to_node(int);
- extern unsigned char acpi_srat_revision;
-+extern int acpi_numa __initdata;
-+
-+static inline void bad_srat(void)
-+{
-+	pr_err("SRAT: SRAT not used.\n");
-+	acpi_numa = -1;
-+}
-+
-+static  inline int srat_disabled(void)
-+{
-+	return acpi_numa < 0;
-+}
- 
- #endif				/* CONFIG_ACPI_NUMA */
- #endif				/* __ACP_NUMA_H */
+ 	for_each_memblock(memory, mblk) {
+-		ret = numa_add_memblk(0, mblk->base, mblk->size);
++		ret = numa_add_memblk(0, mblk->base, mblk->base + mblk->size);
+ 		if (unlikely(ret < 0))
+ 			return ret;
+ 	}
 -- 
 1.9.1
