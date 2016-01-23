@@ -1,143 +1,101 @@
 From: Hanjun Guo <guohanjun@huawei.com>
-Subject: [PATCH v3 02/12] acpi, numa: Replace ACPI_DEBUG_PRINT() with pr_debug()
-Date: Sat, 23 Jan 2016 17:39:17 +0800
-Message-ID: <1453541967-3744-3-git-send-email-guohanjun@huawei.com>
+Subject: [PATCH v3 09/12] x86, acpi, numa: cleanup acpi_numa_processor_affinity_init()
+Date: Sat, 23 Jan 2016 17:39:24 +0800
+Message-ID: <1453541967-3744-10-git-send-email-guohanjun@huawei.com>
 References: <1453541967-3744-1-git-send-email-guohanjun@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([58.251.152.64]:51769 "EHLO
-	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752647AbcAWJo2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 23 Jan 2016 04:44:28 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1453541967-3744-1-git-send-email-guohanjun@huawei.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>
 Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Shannon Zhao <shannon.zhao@linaro.org>, Steve Capper <steve.capper@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Robert Richter <rrichter@cavium.com>, Hanjun Guo <hanjun.guo@linaro.org>
+List-Id: linux-acpi@vger.kernel.org
 
 From: Hanjun Guo <hanjun.guo@linaro.org>
 
-ACPI_DEBUG_PRINT is a bit fragile in acpi/numa.c, the first thing
-is that component ACPI_NUMA(0x80000000) is not described in the
-Documentation/acpi/debug.txt, and even not defined in the struct
-acpi_dlayer acpi_debug_layers which we can not dynamically enable/disable
-it with /sys/modules/acpi/parameters/debug_layer. another thing
-is that ACPI_DEBUG_OUTPUT is controlled by ACPICA which not coordinate
-well with ACPI drivers.
-
-Replace ACPI_DEBUG_PRINT() with pr_debug() in this patch as pr_debug
-will do the same thing for debug purpose and it can make the code much
-cleaner, also remove the related code which not needed anymore if
-ACPI_DEBUG_PRINT() is gone.
+Cleanup acpi_numa_processor_affinity_init() and prepare
+move it to common palce then it can be reused by other
+arch, this should no functional change.
 
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- drivers/acpi/numa.c | 59 +++++++++++++++++++----------------------------------
- 1 file changed, 21 insertions(+), 38 deletions(-)
+ arch/x86/mm/srat.c | 21 +++++----------------
+ 1 file changed, 5 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
-index 4e427fc..e34b5d0 100644
---- a/drivers/acpi/numa.c
-+++ b/drivers/acpi/numa.c
-@@ -31,10 +31,6 @@
- #include <linux/nodemask.h>
- #include <linux/topology.h>
+diff --git a/arch/x86/mm/srat.c b/arch/x86/mm/srat.c
+index 92a640a..304cdf2 100644
+--- a/arch/x86/mm/srat.c
++++ b/arch/x86/mm/srat.c
+@@ -26,11 +26,6 @@
  
--#define ACPI_NUMA	0x80000000
--#define _COMPONENT	ACPI_NUMA
--ACPI_MODULE_NAME("numa");
+ int acpi_numa __initdata;
+ 
+-static __init int setup_node(int pxm)
+-{
+-	return acpi_map_pxm_to_node(pxm);
+-}
 -
- static nodemask_t nodes_found_map = NODE_MASK_NONE;
- 
- /* maps to convert between proximity domain and logical node ID */
-@@ -129,64 +125,51 @@ EXPORT_SYMBOL(acpi_map_pxm_to_online_node);
- static void __init
- acpi_table_print_srat_entry(struct acpi_subtable_header *header)
+ static __init void bad_srat(void)
  {
--
--	ACPI_FUNCTION_NAME("acpi_table_print_srat_entry");
--
- 	if (!header)
+ 	printk(KERN_ERR "SRAT: SRAT not used.\n");
+@@ -64,7 +59,7 @@ acpi_numa_x2apic_affinity_init(struct acpi_srat_x2apic_cpu_affinity *pa)
+ 			 pxm, apic_id);
  		return;
+ 	}
+-	node = setup_node(pxm);
++	node = acpi_map_pxm_to_node(pxm);
+ 	if (node < 0) {
+ 		printk(KERN_ERR "SRAT: Too many proximity domains %x\n", pxm);
+ 		bad_srat();
+@@ -100,7 +95,7 @@ acpi_numa_processor_affinity_init(struct acpi_srat_cpu_affinity *pa)
+ 	pxm = pa->proximity_domain_lo;
+ 	if (acpi_srat_revision >= 2)
+ 		pxm |= *((unsigned int*)pa->proximity_domain_hi) << 8;
+-	node = setup_node(pxm);
++	node = acpi_map_pxm_to_node(pxm);
+ 	if (node < 0) {
+ 		printk(KERN_ERR "SRAT: Too many proximity domains %x\n", pxm);
+ 		bad_srat();
+@@ -124,12 +119,6 @@ acpi_numa_processor_affinity_init(struct acpi_srat_cpu_affinity *pa)
+ 	       pxm, apic_id, node);
+ }
  
- 	switch (header->type) {
+-#ifdef CONFIG_MEMORY_HOTPLUG
+-static inline int save_add_info(void) {return 1;}
+-#else
+-static inline int save_add_info(void) {return 0;}
+-#endif
 -
- 	case ACPI_SRAT_TYPE_CPU_AFFINITY:
--#ifdef ACPI_DEBUG_OUTPUT
- 		{
- 			struct acpi_srat_cpu_affinity *p =
- 			    (struct acpi_srat_cpu_affinity *)header;
--			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--					  "SRAT Processor (id[0x%02x] eid[0x%02x]) in proximity domain %d %s\n",
--					  p->apic_id, p->local_sapic_eid,
--					  p->proximity_domain_lo,
--					  (p->flags & ACPI_SRAT_CPU_ENABLED)?
--					  "enabled" : "disabled"));
-+			pr_debug("SRAT Processor (id[0x%02x] eid[0x%02x]) in proximity domain %d %s\n",
-+				 p->apic_id, p->local_sapic_eid,
-+				 p->proximity_domain_lo,
-+				 (p->flags & ACPI_SRAT_CPU_ENABLED) ?
-+				 "enabled" : "disabled");
- 		}
--#endif				/* ACPI_DEBUG_OUTPUT */
- 		break;
+ /* Callback for parsing of the Proximity Domain <-> Memory Area mappings */
+ int __init
+ acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
+@@ -145,7 +134,7 @@ acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
+ 	if ((ma->flags & ACPI_SRAT_MEM_ENABLED) == 0)
+ 		goto out_err;
+ 	hotpluggable = ma->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE;
+-	if (hotpluggable && !save_add_info())
++	if (hotpluggable && !IS_ENABLED(CONFIG_MEMORY_HOTPLUG))
+ 		goto out_err;
  
- 	case ACPI_SRAT_TYPE_MEMORY_AFFINITY:
--#ifdef ACPI_DEBUG_OUTPUT
- 		{
- 			struct acpi_srat_mem_affinity *p =
- 			    (struct acpi_srat_mem_affinity *)header;
--			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--					  "SRAT Memory (0x%lx length 0x%lx) in proximity domain %d %s%s%s\n",
--					  (unsigned long)p->base_address,
--					  (unsigned long)p->length,
--					  p->proximity_domain,
--					  (p->flags & ACPI_SRAT_MEM_ENABLED)?
--					  "enabled" : "disabled",
--					  (p->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE)?
--					  " hot-pluggable" : "",
--					  (p->flags & ACPI_SRAT_MEM_NON_VOLATILE)?
--					  " non-volatile" : ""));
-+			pr_debug("SRAT Memory (0x%lx length 0x%lx) in proximity domain %d %s%s%s\n",
-+				 (unsigned long)p->base_address,
-+				 (unsigned long)p->length,
-+				 p->proximity_domain,
-+				 (p->flags & ACPI_SRAT_MEM_ENABLED) ?
-+				 "enabled" : "disabled",
-+				 (p->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE) ?
-+				 " hot-pluggable" : "",
-+				 (p->flags & ACPI_SRAT_MEM_NON_VOLATILE) ?
-+				 " non-volatile" : "");
- 		}
--#endif				/* ACPI_DEBUG_OUTPUT */
- 		break;
+ 	start = ma->base_address;
+@@ -154,7 +143,7 @@ acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
+ 	if (acpi_srat_revision <= 1)
+ 		pxm &= 0xff;
  
- 	case ACPI_SRAT_TYPE_X2APIC_CPU_AFFINITY:
--#ifdef ACPI_DEBUG_OUTPUT
- 		{
- 			struct acpi_srat_x2apic_cpu_affinity *p =
- 			    (struct acpi_srat_x2apic_cpu_affinity *)header;
--			ACPI_DEBUG_PRINT((ACPI_DB_INFO,
--					  "SRAT Processor (x2apicid[0x%08x]) in"
--					  " proximity domain %d %s\n",
--					  p->apic_id,
--					  p->proximity_domain,
--					  (p->flags & ACPI_SRAT_CPU_ENABLED) ?
--					  "enabled" : "disabled"));
-+			pr_debug("SRAT Processor (x2apicid[0x%08x]) in proximity domain %d %s\n",
-+				 p->apic_id,
-+				 p->proximity_domain,
-+				 (p->flags & ACPI_SRAT_CPU_ENABLED) ?
-+				 "enabled" : "disabled");
- 		}
--#endif				/* ACPI_DEBUG_OUTPUT */
- 		break;
-+
- 	default:
- 		pr_warn("Found unsupported SRAT entry (type = 0x%x)\n",
- 			header->type);
+-	node = setup_node(pxm);
++	node = acpi_map_pxm_to_node(pxm);
+ 	if (node < 0) {
+ 		printk(KERN_ERR "SRAT: Too many proximity domains.\n");
+ 		goto out_err_bad_srat;
+@@ -180,7 +169,7 @@ acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
+ out_err_bad_srat:
+ 	bad_srat();
+ out_err:
+-	return -1;
++	return -EINVAL;
+ }
+ 
+ int __init x86_acpi_numa_init(void)
 -- 
 1.9.1
-
-
