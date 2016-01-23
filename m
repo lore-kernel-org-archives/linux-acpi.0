@@ -1,7 +1,7 @@
 From: Hanjun Guo <guohanjun@huawei.com>
-Subject: [PATCH v3 11/12] acpi, numa: remove unneeded acpi_numa=1
-Date: Sat, 23 Jan 2016 17:39:26 +0800
-Message-ID: <1453541967-3744-12-git-send-email-guohanjun@huawei.com>
+Subject: [PATCH v3 07/12] acpi, numa: move acpi_numa_slit_init() to common place
+Date: Sat, 23 Jan 2016 17:39:22 +0800
+Message-ID: <1453541967-3744-8-git-send-email-guohanjun@huawei.com>
 References: <1453541967-3744-1-git-send-email-guohanjun@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,48 +14,138 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: Hanjun Guo <hanjun.guo@linaro.org>
 
-acpi_numa is default to 0, it's set to -1 when disable acpi numa or
-when a bad SRAT is parsed, and it's only consumed in srat_disabled()
-(compare it with 0) to continue parse the SRAT or not, so we don't
-need to set acpi_numa to 1 when we get a valid SRAT entry.
+acpi_numa_slit_init() is used by both x86 and arm64, and
+the code is the same, move it to common place to simplify
+the code, and mark it as __weak because the different
+implimentation for ia64.
 
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- arch/arm64/kernel/acpi_numa.c | 1 -
- arch/x86/mm/srat.c            | 2 --
- 2 files changed, 3 deletions(-)
+ arch/arm64/kernel/acpi_numa.c | 31 -------------------------------
+ arch/x86/mm/srat.c            | 27 ---------------------------
+ drivers/acpi/numa.c           | 30 ++++++++++++++++++++++++++++++
+ 3 files changed, 30 insertions(+), 58 deletions(-)
 
 diff --git a/arch/arm64/kernel/acpi_numa.c b/arch/arm64/kernel/acpi_numa.c
-index fb1556f..03ac1b9 100644
+index f7f7533..15fb935 100644
 --- a/arch/arm64/kernel/acpi_numa.c
 +++ b/arch/arm64/kernel/acpi_numa.c
-@@ -132,7 +132,6 @@ void __init acpi_numa_gicc_affinity_init(struct acpi_srat_gicc_affinity *pa)
- 	early_node_cpu_hwid[cpus_in_srat].node_id = node;
- 	early_node_cpu_hwid[cpus_in_srat].cpu_hwid =  mpidr;
- 	node_set(node, numa_nodes_parsed);
--	acpi_numa = 1;
- 	cpus_in_srat++;
- 	pr_info("SRAT: PXM %d -> MPIDR 0x%Lx -> Node %d cpu %d\n",
- 		pxm, mpidr, node, cpus_in_srat);
+@@ -64,37 +64,6 @@ void __init acpi_numa_set_node_info(unsigned int cpu, u64 hwid)
+ 	cpu_to_node_map[cpu] = nid;
+ }
+ 
+-/*
+- * Callback for SLIT parsing.
+- * It will get the distance information presented by SLIT
+- * and init the distance matrix of numa nodes
+- */
+-void __init acpi_numa_slit_init(struct acpi_table_slit *slit)
+-{
+-	int i, j;
+-
+-	for (i = 0; i < slit->locality_count; i++) {
+-		const int from_node = pxm_to_node(i);
+-
+-		if (from_node == NUMA_NO_NODE)
+-			continue;
+-
+-		for (j = 0; j < slit->locality_count; j++) {
+-			const int to_node = pxm_to_node(j);
+-
+-			if (to_node == NUMA_NO_NODE)
+-				continue;
+-
+-			pr_debug("SLIT: Distance[%d][%d] = %d\n",
+-					from_node, to_node,
+-					slit->entry[
+-					slit->locality_count * i + j]);
+-			numa_set_distance(from_node, to_node,
+-				slit->entry[slit->locality_count * i + j]);
+-		}
+-	}
+-}
+-
+ static int __init get_mpidr_in_madt(int acpi_id, u64 *mpidr)
+ {
+ 	unsigned long madt_end, entry;
 diff --git a/arch/x86/mm/srat.c b/arch/x86/mm/srat.c
-index 7078b3f..af1dc14 100644
+index 9fa1746..92a640a 100644
 --- a/arch/x86/mm/srat.c
 +++ b/arch/x86/mm/srat.c
-@@ -59,7 +59,6 @@ acpi_numa_x2apic_affinity_init(struct acpi_srat_x2apic_cpu_affinity *pa)
- 	}
- 	set_apicid_to_node(apic_id, node);
- 	node_set(node, numa_nodes_parsed);
--	acpi_numa = 1;
- 	printk(KERN_INFO "SRAT: PXM %u -> APIC 0x%04x -> Node %u\n",
- 	       pxm, apic_id, node);
+@@ -42,33 +42,6 @@ static __init inline int srat_disabled(void)
+ 	return acpi_numa < 0;
  }
-@@ -101,7 +100,6 @@ acpi_numa_processor_affinity_init(struct acpi_srat_cpu_affinity *pa)
  
- 	set_apicid_to_node(apic_id, node);
- 	node_set(node, numa_nodes_parsed);
--	acpi_numa = 1;
- 	printk(KERN_INFO "SRAT: PXM %u -> APIC 0x%02x -> Node %u\n",
- 	       pxm, apic_id, node);
+-/*
+- * Callback for SLIT parsing.  pxm_to_node() returns NUMA_NO_NODE for
+- * I/O localities since SRAT does not list them.  I/O localities are
+- * not supported at this point.
+- */
+-void __init acpi_numa_slit_init(struct acpi_table_slit *slit)
+-{
+-	int i, j;
+-
+-	for (i = 0; i < slit->locality_count; i++) {
+-		const int from_node = pxm_to_node(i);
+-
+-		if (from_node == NUMA_NO_NODE)
+-			continue;
+-
+-		for (j = 0; j < slit->locality_count; j++) {
+-			const int to_node = pxm_to_node(j);
+-
+-			if (to_node == NUMA_NO_NODE)
+-				continue;
+-
+-			numa_set_distance(from_node, to_node,
+-				slit->entry[slit->locality_count * i + j]);
+-		}
+-	}
+-}
+-
+ /* Callback for Proximity Domain -> x2APIC mapping */
+ void __init
+ acpi_numa_x2apic_affinity_init(struct acpi_srat_x2apic_cpu_affinity *pa)
+diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
+index 4728525..b33915e 100644
+--- a/drivers/acpi/numa.c
++++ b/drivers/acpi/numa.c
+@@ -209,6 +209,36 @@ static int __init slit_valid(struct acpi_table_slit *slit)
+ 	return 1;
  }
+ 
++/*
++ * Callback for SLIT parsing. It will get the distance information
++ * presented by SLIT and init the distance matrix of numa nodes
++ */
++void __init __weak acpi_numa_slit_init(struct acpi_table_slit *slit)
++{
++	int i, j;
++
++	for (i = 0; i < slit->locality_count; i++) {
++		const int from_node = pxm_to_node(i);
++
++		if (from_node == NUMA_NO_NODE)
++			continue;
++
++		for (j = 0; j < slit->locality_count; j++) {
++			const int to_node = pxm_to_node(j);
++
++			if (to_node == NUMA_NO_NODE)
++				continue;
++
++			numa_set_distance(from_node, to_node,
++				slit->entry[slit->locality_count * i + j]);
++
++			pr_debug("SLIT: Distance[%d][%d] = %d\n",
++				 from_node, to_node,
++				 slit->entry[slit->locality_count * i + j]);
++		}
++	}
++}
++
+ static int __init acpi_parse_slit(struct acpi_table_header *table)
+ {
+ 	struct acpi_table_slit *slit = (struct acpi_table_slit *)table;
 -- 
 1.9.1
