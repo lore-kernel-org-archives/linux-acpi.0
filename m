@@ -1,230 +1,99 @@
 From: Hanjun Guo <guohanjun@huawei.com>
-Subject: [PATCH v3 12/12] acpi, numa: reuse acpi_numa_memory_affinity_init()
-Date: Sat, 23 Jan 2016 17:39:27 +0800
-Message-ID: <1453541967-3744-13-git-send-email-guohanjun@huawei.com>
+Subject: [PATCH v3 04/12] acpi, numa: introduce ACPI_HAS_NUMA_ARCH_FIXUP
+Date: Sat, 23 Jan 2016 17:39:19 +0800
+Message-ID: <1453541967-3744-5-git-send-email-guohanjun@huawei.com>
 References: <1453541967-3744-1-git-send-email-guohanjun@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1453541967-3744-1-git-send-email-guohanjun@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>
-Cc: linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Shannon Zhao <shannon.zhao@linaro.org>, Steve Capper <steve.capper@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Robert Richter <rrichter@cavium.com>, Hanjun Guo <hanjun.guo@linaro.org>
+Cc: Mark Rutland <mark.rutland@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Steve Capper <steve.capper@linaro.org>, linux-kernel@vger.kernel.org, Robert Richter <rrichter@cavium.com>, linux-acpi@vger.kernel.org, Shannon Zhao <shannon.zhao@linaro.org>, Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>, linux-arm-kernel@lists.infradead.org, Hanjun Guo <hanjun.guo@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
 From: Hanjun Guo <hanjun.guo@linaro.org>
 
-After the cleanup for acpi_numa_memory_affinity_init(),
-it can be used for architetures both x86 and arm64, since
-CONFIG_MEMORY_HOTPLUG is not enabled for arm64, so no
-worry about that.
+acpi_numa_arch_fixup() is only used for IA64, x86 introduce a dummy
+function for it, when we came to a new architecture (such as ARM64),
+we need to introduce another dummy one to make the code compile.
+
+That's pretty boring so introduce ACPI_HAS_NUMA_ARCH_FIXUP and
+select it for IA64, introduce a stub function for acpi_numa_arch_fixup()
+then it's pretty clean for x86 and ARM64.
 
 Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
 ---
- arch/arm64/kernel/acpi_numa.c | 42 -------------------------------
- arch/x86/mm/srat.c            | 54 ----------------------------------------
- drivers/acpi/numa.c           | 57 +++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 57 insertions(+), 96 deletions(-)
+ arch/ia64/Kconfig    | 1 +
+ arch/x86/mm/srat.c   | 2 --
+ drivers/acpi/Kconfig | 3 +++
+ include/linux/acpi.h | 5 +++++
+ 4 files changed, 9 insertions(+), 2 deletions(-)
 
-diff --git a/arch/arm64/kernel/acpi_numa.c b/arch/arm64/kernel/acpi_numa.c
-index 03ac1b9..5c01b06 100644
---- a/arch/arm64/kernel/acpi_numa.c
-+++ b/arch/arm64/kernel/acpi_numa.c
-@@ -137,48 +137,6 @@ void __init acpi_numa_gicc_affinity_init(struct acpi_srat_gicc_affinity *pa)
- 		pxm, mpidr, node, cpus_in_srat);
- }
- 
--/* Callback for parsing of the Proximity Domain <-> Memory Area mappings */
--int __init acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
--{
--	u64 start, end;
--	int node, pxm;
--
--	if (srat_disabled())
--		return -EINVAL;
--
--	if (ma->header.length != sizeof(struct acpi_srat_mem_affinity)) {
--		bad_srat();
--		return -EINVAL;
--	}
--
--	/* Ignore disabled entries */
--	if (!(ma->flags & ACPI_SRAT_MEM_ENABLED))
--		return -EINVAL;
--
--	start = ma->base_address;
--	end = start + ma->length;
--	pxm = ma->proximity_domain;
--
--	node = acpi_map_pxm_to_node(pxm);
--
--	if (node == NUMA_NO_NODE || node >= MAX_NUMNODES) {
--		pr_err("SRAT: Too many proximity domains.\n");
--		bad_srat();
--		return -EINVAL;
--	}
--
--	pr_info("SRAT: Node %u PXM %u [mem %#010Lx-%#010Lx]\n",
--		node, pxm,
--		(unsigned long long) start, (unsigned long long) end - 1);
--
--	if (numa_add_memblk(node, start, end) < 0) {
--		bad_srat();
--		return -EINVAL;
--	}
--
--	return 0;
--}
--
- int __init arm64_acpi_numa_init(void)
- {
- 	int ret;
+diff --git a/arch/ia64/Kconfig b/arch/ia64/Kconfig
+index eb0249e..1285cef 100644
+--- a/arch/ia64/Kconfig
++++ b/arch/ia64/Kconfig
+@@ -17,6 +17,7 @@ config IA64
+ 	select ACPI if (!IA64_HP_SIM)
+ 	select ACPI_SYSTEM_POWER_STATES_SUPPORT if ACPI
+ 	select ARCH_MIGHT_HAVE_ACPI_PDC if ACPI
++	select ACPI_HAS_NUMA_ARCH_FIXUP if ACPI
+ 	select HAVE_UNSTABLE_SCHED_CLOCK
+ 	select HAVE_IDE
+ 	select HAVE_OPROFILE
 diff --git a/arch/x86/mm/srat.c b/arch/x86/mm/srat.c
-index af1dc14..cbd792f 100644
+index c2aea63..9fa1746 100644
 --- a/arch/x86/mm/srat.c
 +++ b/arch/x86/mm/srat.c
-@@ -16,7 +16,6 @@
- #include <linux/module.h>
- #include <linux/topology.h>
- #include <linux/bootmem.h>
--#include <linux/memblock.h>
- #include <linux/mm.h>
- #include <asm/proto.h>
- #include <asm/numa.h>
-@@ -104,59 +103,6 @@ acpi_numa_processor_affinity_init(struct acpi_srat_cpu_affinity *pa)
- 	       pxm, apic_id, node);
+@@ -210,8 +210,6 @@ out_err:
+ 	return -1;
  }
  
--/* Callback for parsing of the Proximity Domain <-> Memory Area mappings */
--int __init
--acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
--{
--	u64 start, end;
--	u32 hotpluggable;
--	int node, pxm;
--
--	if (srat_disabled())
--		goto out_err;
--	if (ma->header.length != sizeof(struct acpi_srat_mem_affinity))
--		goto out_err_bad_srat;
--	if ((ma->flags & ACPI_SRAT_MEM_ENABLED) == 0)
--		goto out_err;
--	hotpluggable = ma->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE;
--	if (hotpluggable && !IS_ENABLED(CONFIG_MEMORY_HOTPLUG))
--		goto out_err;
--
--	start = ma->base_address;
--	end = start + ma->length;
--	pxm = ma->proximity_domain;
--	if (acpi_srat_revision <= 1)
--		pxm &= 0xff;
--
--	node = acpi_map_pxm_to_node(pxm);
--	if (node < 0) {
--		printk(KERN_ERR "SRAT: Too many proximity domains.\n");
--		goto out_err_bad_srat;
--	}
--
--	if (numa_add_memblk(node, start, end) < 0)
--		goto out_err_bad_srat;
--
--	node_set(node, numa_nodes_parsed);
--
--	pr_info("SRAT: Node %u PXM %u [mem %#010Lx-%#010Lx]%s%s\n",
--		node, pxm,
--		(unsigned long long) start, (unsigned long long) end - 1,
--		hotpluggable ? " hotplug" : "",
--		ma->flags & ACPI_SRAT_MEM_NON_VOLATILE ? " non-volatile" : "");
--
--	/* Mark hotplug range in memblock. */
--	if (hotpluggable && memblock_mark_hotplug(start, ma->length))
--		pr_warn("SRAT: Failed to mark hotplug range [mem %#010Lx-%#010Lx] in memblock\n",
--			(unsigned long long)start, (unsigned long long)end - 1);
--
--	return 0;
--out_err_bad_srat:
--	bad_srat();
--out_err:
--	return -EINVAL;
--}
+-void __init acpi_numa_arch_fixup(void) {}
 -
  int __init x86_acpi_numa_init(void)
  {
  	int ret;
-diff --git a/drivers/acpi/numa.c b/drivers/acpi/numa.c
-index 05e3795..eb73fda 100644
---- a/drivers/acpi/numa.c
-+++ b/drivers/acpi/numa.c
-@@ -27,6 +27,7 @@
- #include <linux/types.h>
- #include <linux/errno.h>
- #include <linux/acpi.h>
-+#include <linux/memblock.h>
- #include <linux/numa.h>
- #include <linux/nodemask.h>
- #include <linux/topology.h>
-@@ -240,6 +241,62 @@ void __init __weak acpi_numa_slit_init(struct acpi_table_slit *slit)
- 	}
- }
+diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
+index 5eef4cb..d6d5749 100644
+--- a/drivers/acpi/Kconfig
++++ b/drivers/acpi/Kconfig
+@@ -57,6 +57,9 @@ config ACPI_SYSTEM_POWER_STATES_SUPPORT
+ config ACPI_CCA_REQUIRED
+ 	bool
  
-+/*
-+ * Default callback for parsing of the Proximity Domain <-> Memory
-+ * Area mappings
-+ */
-+int __init __weak
-+acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
-+{
-+	u64 start, end;
-+	u32 hotpluggable;
-+	int node, pxm;
++config ACPI_HAS_NUMA_ARCH_FIXUP
++	bool
 +
-+	if (srat_disabled())
-+		goto out_err;
-+	if (ma->header.length != sizeof(struct acpi_srat_mem_affinity))
-+		goto out_err_bad_srat;
-+	if ((ma->flags & ACPI_SRAT_MEM_ENABLED) == 0)
-+		goto out_err;
-+	hotpluggable = ma->flags & ACPI_SRAT_MEM_HOT_PLUGGABLE;
-+	if (hotpluggable && !IS_ENABLED(CONFIG_MEMORY_HOTPLUG))
-+		goto out_err;
+ config ACPI_DEBUGGER
+ 	bool "AML debugger interface (EXPERIMENTAL)"
+ 	select ACPI_DEBUG
+diff --git a/include/linux/acpi.h b/include/linux/acpi.h
+index 1991aea..574d829 100644
+--- a/include/linux/acpi.h
++++ b/include/linux/acpi.h
+@@ -173,7 +173,12 @@ void acpi_numa_slit_init (struct acpi_table_slit *slit);
+ void acpi_numa_processor_affinity_init (struct acpi_srat_cpu_affinity *pa);
+ void acpi_numa_x2apic_affinity_init(struct acpi_srat_x2apic_cpu_affinity *pa);
+ int acpi_numa_memory_affinity_init (struct acpi_srat_mem_affinity *ma);
 +
-+	start = ma->base_address;
-+	end = start + ma->length;
-+	pxm = ma->proximity_domain;
-+	if (acpi_srat_revision <= 1)
-+		pxm &= 0xff;
-+
-+	node = acpi_map_pxm_to_node(pxm);
-+	if (node < 0) {
-+		printk(KERN_ERR "SRAT: Too many proximity domains.\n");
-+		goto out_err_bad_srat;
-+	}
-+
-+	if (numa_add_memblk(node, start, end) < 0)
-+		goto out_err_bad_srat;
-+
-+	node_set(node, numa_nodes_parsed);
-+
-+	pr_info("SRAT: Node %u PXM %u [mem %#010Lx-%#010Lx]%s%s\n",
-+		node, pxm,
-+		(unsigned long long) start, (unsigned long long) end - 1,
-+		hotpluggable ? " hotplug" : "",
-+		ma->flags & ACPI_SRAT_MEM_NON_VOLATILE ? " non-volatile" : "");
-+
-+	/* Mark hotplug range in memblock. */
-+	if (hotpluggable && memblock_mark_hotplug(start, ma->length))
-+		pr_warn("SRAT: Failed to mark hotplug range [mem %#010Lx-%#010Lx] in memblock\n",
-+			(unsigned long long)start, (unsigned long long)end - 1);
-+
-+	return 0;
-+out_err_bad_srat:
-+	bad_srat();
-+out_err:
-+	return -EINVAL;
-+}
-+
- static int __init acpi_parse_slit(struct acpi_table_header *table)
- {
- 	struct acpi_table_slit *slit = (struct acpi_table_slit *)table;
++#ifdef CONFIG_ACPI_HAS_NUMA_ARCH_FIXUP
+ void acpi_numa_arch_fixup(void);
++#else
++static inline void acpi_numa_arch_fixup(void) { }
++#endif
+ 
+ #ifndef PHYS_CPUID_INVALID
+ typedef u32 phys_cpuid_t;
 -- 
 1.9.1
