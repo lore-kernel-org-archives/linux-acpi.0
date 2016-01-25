@@ -1,60 +1,98 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: Re: [PATCH v3 00/17] Enhance iomem search interfaces and support
- EINJ to NVDIMM
-Date: Mon, 25 Jan 2016 20:18:04 +0100
-Message-ID: <20160125191804.GE14030@pd.tnic>
-References: <1452020068-26492-1-git-send-email-toshi.kani@hpe.com>
+From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+Subject: Re: [Linaro-acpi] [PATCH V2 1/4] ACPI / CPPC: Optimize PCC Read Write operations
+Date: Mon, 25 Jan 2016 15:26:44 -0500
+Message-ID: <CAJ5Y-eZ5w7o2GFaqn8M3JciCQi5OPDJ8THfQGN9JijQi0H-qNw@mail.gmail.com>
+References: <1453511240-20792-1-git-send-email-pprakash@codeaurora.org>
+ <1453511240-20792-2-git-send-email-pprakash@codeaurora.org> <CAOZdJXX5moGhs_+EMr00z0k4CW+n3s3s6HfzLZKk8VcVnNCS-w@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Return-path: <linux-ia64-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1452020068-26492-1-git-send-email-toshi.kani@hpe.com>
-Sender: linux-ia64-owner@vger.kernel.org
-To: Toshi Kani <toshi.kani@hpe.com>
-Cc: akpm@linux-foundation.org, torvalds@linux-foundation.org, rafael.j.wysocki@intel.com, dan.j.williams@intel.com, dyoung@redhat.com, x86@kernel.org, linux-ia64@vger.kernel.org, linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org, kexec@lists.infradead.org, xen-devel@lists.xenproject.org, linux-samsung-soc@vger.kernel.org, linux-arch@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lf0-f44.google.com ([209.85.215.44]:35220 "EHLO
+	mail-lf0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756515AbcAYU1G (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Jan 2016 15:27:06 -0500
+Received: by mail-lf0-f44.google.com with SMTP id c192so92245614lfe.2
+        for <linux-acpi@vger.kernel.org>; Mon, 25 Jan 2016 12:27:05 -0800 (PST)
+In-Reply-To: <CAOZdJXX5moGhs_+EMr00z0k4CW+n3s3s6HfzLZKk8VcVnNCS-w@mail.gmail.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Timur Tabi <timur@codeaurora.org>
+Cc: Prashanth Prakash <pprakash@codeaurora.org>, linux acpi <linux-acpi@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>
 
-On Tue, Jan 05, 2016 at 11:54:28AM -0700, Toshi Kani wrote:
-> This patch-set enhances the iomem table and its search interfacs, and
-> then changes EINJ to support NVDIMM.
-> 
->  - Patches 1-2 add a new System RAM type, IORESOURCE_SYSTEM_RAM, and
->    make the iomem search interfaces work with resource flags with
->    modifier bits set.  IORESOURCE_SYSTEM_RAM has IORESOURCE_MEM bit set
->    for backward compatibility.
-> 
->  - Patch 3 adds a new field, I/O resource descriptor, into struct resource.
->    Drivers can assign their unique descritor to a range when they support
->    the iomem search interfaces.
-> 
->  - Patches 4-9 changes initializations of resource entries.  They set
->    the System RAM type to System RAM ranges, set I/O resource descriptors
->    to the regions targeted by the iomem search interfaces, and change
->    to call kzalloc() where kmalloc() is used to allocate struct resource
->    ranges.
-> 
->  - Patches 10-14 extend the iomem interfaces to check System RAM ranges
->    with the System RAM type and the I/O resource descriptor.
-> 
->  - Patch 15-16 remove deprecated walk_iomem_res().
-> 
->  - Patch 17 changes the EINJ driver to allow injecting a memory error
->    to NVDIMM.
+On 25 January 2016 at 12:19, Timur Tabi <timur@codeaurora.org> wrote:
+> On Fri, Jan 22, 2016 at 7:07 PM, Prashanth Prakash
+> <pprakash@codeaurora.org> wrote:
+>>  static void __iomem *pcc_comm_addr;
+>>  static u64 comm_base_addr;
+>>  static int pcc_subspace_idx = -1;
+>> -static u16 pcc_cmd_delay;
+>>  static bool pcc_channel_acquired;
+>> +static ktime_t deadline;
+>>
+>>  /*
+>>   * Arbitrary Retries in case the remote processor is slow to respond
+>> - * to PCC commands.
+>> + * to PCC commands. Keeping it high enough to cover emulators where
+>> + * the processors run painfully slow.
+>>   */
+>>  #define NUM_RETRIES 500
+>>
+>> +static int check_pcc_chan(void)
+>> +{
+>> +       int result = -EIO;
+>> +       struct acpi_pcct_shared_memory *generic_comm_base =
+>> +               (struct acpi_pcct_shared_memory *) pcc_comm_addr;
+>
+> You're typecasting away the __iomem, and you don't need a typecast for
+> void pointers.  This should be:
+>
+> struct acpi_pcct_shared_memory __iomem *generic_comm_base = pcc_comm_addr;
+>
+>> +       ktime_t next_deadline = ktime_add(ktime_get(), deadline);
+>> +       int retries = 0;
+>> +
+>> +       /* Retry in case the remote processor was too slow to catch up. */
+>> +       while (!ktime_after(ktime_get(), next_deadline)) {
+>> +               if (readw_relaxed(&generic_comm_base->status) & PCC_CMD_COMPLETE) {
+>> +                       result = 0;
+>> +                       break;
+>> +               }
+>> +               /*
+>> +                * Reducing the bus traffic in case this loop takes longer than
+>> +                * a few retries.
+>> +                */
+>> +               udelay(3);
+>> +               retries++;
+>
+> You don't actually use 'retries' in this function, so just delete it.
+> Besides, you should be using readl_poll_timeout, instead of this loop.
+> It handles the udelay and the ktime for you.
+>
+>> +       }
+>> +
+>> +       return result;
+>> +}
+>> +
+>>  static int send_pcc_cmd(u16 cmd)
+>>  {
+>> -       int retries, result = -EIO;
+>> -       struct acpi_pcct_hw_reduced *pcct_ss = pcc_channel->con_priv;
+>> +       int ret = -EIO;
+>
+> Please be consistent in your return variable names.  Sometimes you use
+> 'result', sometimes 'ret'.  Pick one (my preference is 'ret') and use
+> it exclusively.
+>
+>>         struct acpi_pcct_shared_memory *generic_comm_base =
+>>                 (struct acpi_pcct_shared_memory *) pcc_comm_addr;
+>
+> You have the same problem with __iomem here.
+>
+> And don't forget to CC: me and Ashwin on all future versions of this patchset.
 
-Ok, all applied ontop of 4.5-rc1.
+Prashanth has been doing the right thing all along. I was CC'd on all
+his patchwork, but you changed it (and removed me) while replying.
+Unless Rafael thinks otherwise, I see no major issues in V2, so there
+is no need for a respin.
 
-You could take a look if everything's still fine and I haven't botched
-anything:
-
-http://git.kernel.org/cgit/linux/kernel/git/bp/bp.git/log/?h=tip-mm
-
-I'll let the build bot chew on it and then test it here and send it out
-again to everyone on CC so that people don't act surprised.
-
-Thanks for this cleanup, code looks much better now!
-
--- 
-Regards/Gruss,
-    Boris.
-
-ECO tip #101: Trim your mails when you reply.
+Ashwin
