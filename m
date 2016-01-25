@@ -1,179 +1,37 @@
 From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: [PATCH v5 RESEND 5/5] x86, acpi, cpu-hotplug: Set persistent cpuid <-> nodeid mapping when booting.
-Date: Mon, 25 Jan 2016 14:08:20 +0800
-Message-ID: <1453702100-2597-6-git-send-email-tangchen@cn.fujitsu.com>
-References: <1453702100-2597-1-git-send-email-tangchen@cn.fujitsu.com>
+Subject: Re: [PATCH v5 0/5] Make cpuid <-> nodeid mapping persistent.
+Date: Mon, 25 Jan 2016 14:11:40 +0800
+Message-ID: <56A5BC9C.9090604@cn.fujitsu.com>
+References: <1453357958-26941-1-git-send-email-tangchen@cn.fujitsu.com> <20160121212651.GI5157@mtj.duckdns.org>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <owner-linux-mm@kvack.org>
-In-Reply-To: <1453702100-2597-1-git-send-email-tangchen@cn.fujitsu.com>
-Sender: owner-linux-mm@kvack.org
-To: cl@linux.com, tj@kernel.org, jiang.liu@linux.intel.com, mika.j.penttila@gmail.com, mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, len.brown@intel.com
-Cc: tangchen@cn.fujitsu.com, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Gu Zheng <guz.fnst@cn.fujitsu.com>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cn.fujitsu.com ([59.151.112.132]:33200 "EHLO
+	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751087AbcAYGLm (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Jan 2016 01:11:42 -0500
+In-Reply-To: <20160121212651.GI5157@mtj.duckdns.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tejun Heo <tj@kernel.org>
+Cc: cl@linux.com, jiang.liu@linux.intel.com, mika.j.penttila@gmail.com, mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
 
-From: Gu Zheng <guz.fnst@cn.fujitsu.com>
+Hi tj,
 
-The whole patch-set aims at making cpuid <-> nodeid mapping persistent. So that,
-when node online/offline happens, cache based on cpuid <-> nodeid mapping such as
-wq_numa_possible_cpumask will not cause any problem.
-It contains 4 steps:
-1. Enable apic registeration flow to handle both enabled and disabled cpus.
-2. Introduce a new array storing all possible cpuid <-> apicid mapping.
-3. Enable _MAT and MADT relative apis to return non-presnet or disabled cpus' apicid.
-4. Establish all possible cpuid <-> nodeid mapping.
+I have resent the patch-set and to Rafael and Len.
 
-This patch finishes step 4.
+Thanks.
 
-This patch set the persistent cpuid <-> nodeid mapping for all enabled/disabled
-processors at boot time via an additional acpi namespace walk for processors.
 
-Signed-off-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
-Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
----
- arch/ia64/kernel/acpi.c       |  2 +-
- arch/x86/kernel/acpi/boot.c   |  2 +-
- drivers/acpi/bus.c            |  3 ++
- drivers/acpi/processor_core.c | 65 +++++++++++++++++++++++++++++++++++++++++++
- include/linux/acpi.h          |  2 ++
- 5 files changed, 72 insertions(+), 2 deletions(-)
-
-diff --git a/arch/ia64/kernel/acpi.c b/arch/ia64/kernel/acpi.c
-index b1698bc..7db5563 100644
---- a/arch/ia64/kernel/acpi.c
-+++ b/arch/ia64/kernel/acpi.c
-@@ -796,7 +796,7 @@ int acpi_isa_irq_to_gsi(unsigned isa_irq, u32 *gsi)
-  *  ACPI based hotplug CPU support
-  */
- #ifdef CONFIG_ACPI_HOTPLUG_CPU
--static int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
-+int acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
- {
- #ifdef CONFIG_ACPI_NUMA
- 	/*
-diff --git a/arch/x86/kernel/acpi/boot.c b/arch/x86/kernel/acpi/boot.c
-index 0ce06ee..7d45261 100644
---- a/arch/x86/kernel/acpi/boot.c
-+++ b/arch/x86/kernel/acpi/boot.c
-@@ -696,7 +696,7 @@ static void __init acpi_set_irq_model_ioapic(void)
- #ifdef CONFIG_ACPI_HOTPLUG_CPU
- #include <acpi/processor.h>
- 
--static void acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
-+void acpi_map_cpu2node(acpi_handle handle, int cpu, int physid)
- {
- #ifdef CONFIG_ACPI_NUMA
- 	int nid;
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index 891c42d..d92f45f 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -1096,6 +1096,9 @@ static int __init acpi_init(void)
- 	acpi_sleep_proc_init();
- 	acpi_wakeup_device_init();
- 	acpi_debugger_init();
-+#ifdef CONFIG_ACPI_HOTPLUG_CPU
-+	acpi_set_processor_mapping();
-+#endif
- 	return 0;
- }
- 
-diff --git a/drivers/acpi/processor_core.c b/drivers/acpi/processor_core.c
-index 824b98b..45580ff 100644
---- a/drivers/acpi/processor_core.c
-+++ b/drivers/acpi/processor_core.c
-@@ -261,6 +261,71 @@ int acpi_get_cpuid(acpi_handle handle, int type, u32 acpi_id)
- }
- EXPORT_SYMBOL_GPL(acpi_get_cpuid);
- 
-+#ifdef CONFIG_ACPI_HOTPLUG_CPU
-+static bool map_processor(acpi_handle handle, int *phys_id, int *cpuid)
-+{
-+	int type;
-+	u32 acpi_id;
-+	acpi_status status;
-+	acpi_object_type acpi_type;
-+	unsigned long long tmp;
-+	union acpi_object object = { 0 };
-+	struct acpi_buffer buffer = { sizeof(union acpi_object), &object };
-+
-+	status = acpi_get_type(handle, &acpi_type);
-+	if (ACPI_FAILURE(status))
-+		return false;
-+
-+	switch (acpi_type) {
-+	case ACPI_TYPE_PROCESSOR:
-+		status = acpi_evaluate_object(handle, NULL, NULL, &buffer);
-+		if (ACPI_FAILURE(status))
-+			return false;
-+		acpi_id = object.processor.proc_id;
-+		break;
-+	case ACPI_TYPE_DEVICE:
-+		status = acpi_evaluate_integer(handle, "_UID", NULL, &tmp);
-+		if (ACPI_FAILURE(status))
-+			return false;
-+		acpi_id = tmp;
-+		break;
-+	default:
-+		return false;
-+	}
-+
-+	type = (acpi_type == ACPI_TYPE_DEVICE) ? 1 : 0;
-+
-+	*phys_id = __acpi_get_phys_id(handle, type, acpi_id, false);
-+	*cpuid = acpi_map_cpuid(*phys_id, acpi_id);
-+	if (*cpuid == -1)
-+		return false;
-+
-+	return true;
-+}
-+
-+static acpi_status __init
-+set_processor_node_mapping(acpi_handle handle, u32 lvl, void *context,
-+			   void **rv)
-+{
-+	u32 apic_id;
-+	int cpu_id;
-+
-+	if (!map_processor(handle, &apic_id, &cpu_id))
-+		return AE_ERROR;
-+
-+	acpi_map_cpu2node(handle, cpu_id, apic_id);
-+	return AE_OK;
-+}
-+
-+void __init acpi_set_processor_mapping(void)
-+{
-+	/* Set persistent cpu <-> node mapping for all processors. */
-+	acpi_walk_namespace(ACPI_TYPE_PROCESSOR, ACPI_ROOT_OBJECT,
-+			    ACPI_UINT32_MAX, set_processor_node_mapping,
-+			    NULL, NULL, NULL);
-+}
-+#endif
-+
- #ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
- static int get_ioapic_id(struct acpi_subtable_header *entry, u32 gsi_base,
- 			 u64 *phys_addr, int *ioapic_id)
-diff --git a/include/linux/acpi.h b/include/linux/acpi.h
-index 06ed7e5..080755a 100644
---- a/include/linux/acpi.h
-+++ b/include/linux/acpi.h
-@@ -265,6 +265,8 @@ static inline bool invalid_phys_cpuid(phys_cpuid_t phys_id)
- /* Arch dependent functions for cpu hotplug support */
- int acpi_map_cpu(acpi_handle handle, phys_cpuid_t physid, int *pcpu);
- int acpi_unmap_cpu(int cpu);
-+void acpi_map_cpu2node(acpi_handle handle, int cpu, int physid);
-+void __init acpi_set_processor_mapping(void);
- #endif /* CONFIG_ACPI_HOTPLUG_CPU */
- 
- #ifdef CONFIG_ACPI_HOTPLUG_IOAPIC
--- 
-1.9.3
+On 01/22/2016 05:26 AM, Tejun Heo wrote:
+> Hello,
+>
+> Most changes being in ACPI, I think it probably would be a good idea
+> to cc Rafael and Len Brown.
+>
+> Thanks.
+>
 
 
 
---
-To unsubscribe, send a message with 'unsubscribe linux-mm' in
-the body to majordomo@kvack.org.  For more info on Linux MM,
-see: http://www.linux-mm.org/ .
-Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
