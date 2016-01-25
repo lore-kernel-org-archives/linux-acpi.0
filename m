@@ -1,347 +1,149 @@
-From: Peter Hurley <peter@hurleysoftware.com>
-Subject: Re: [PATCH 2/3] ACPI: parse SPCR and enable matching console
-Date: Mon, 25 Jan 2016 08:32:07 -0800
-Message-ID: <56A64E07.10106@hurleysoftware.com>
-References: <1453722324-22407-1-git-send-email-aleksey.makarov@linaro.org>
- <1453722324-22407-3-git-send-email-aleksey.makarov@linaro.org>
+From: Mark Salter <msalter@redhat.com>
+Subject: Re: [PATCH V3 18/21] ACPI, PCI: Refine the way to handle
+ translation_offset for ACPI resources
+Date: Mon, 25 Jan 2016 11:57:46 -0500
+Message-ID: <1453741066.28109.117.camel@redhat.com>
+References: <1452691267-32240-1-git-send-email-tn@semihalf.com>
+	 <1452691267-32240-19-git-send-email-tn@semihalf.com>
+	 <20160119122026.GA5185@red-moon> <20160125095252.GB32652@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1453722324-22407-3-git-send-email-aleksey.makarov@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Aleksey Makarov <aleksey.makarov@linaro.org>, linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org, Graeme Gregory <graeme.gregory@linaro.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Len Brown <lenb@kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:35351 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932259AbcAYQ5v (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 25 Jan 2016 11:57:51 -0500
+In-Reply-To: <20160125095252.GB32652@red-moon>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Tomasz Nowicki <tn@semihalf.com>, jiang.liu@linux.intel.com
+Cc: bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, okaya@codeaurora.org, Stefano.Stabellini@eu.citrix.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com
 
-On 01/25/2016 03:45 AM, Aleksey Makarov wrote:
-> 'ARM Server Base Boot Requiremets' [1] mention SPCR
-> (Serial Port Console Redirection Table) [2] as a mandatory ACPI table
-> that specifies the configuration of serial console.
-> 
-> Parse this table and check if any registered console match
-> the description.  If it does, enable that console.
-> 
-> To implement that, introduce a new member
-> int (*acpi_match)(struct console *, struct acpi_table_spcr *)
-> of struct console.  It allows drivers to check if they provide
-> a matching console device.
+On Mon, 2016-01-25 at 09:52 +0000, Lorenzo Pieralisi wrote:
+> On Tue, Jan 19, 2016 at 12:20:26PM +0000, Lorenzo Pieralisi wrote:
+> > Gerry,
+> >=20
+> > On Wed, Jan 13, 2016 at 02:21:04PM +0100, Tomasz Nowicki wrote:
+> > > From: Liu Jiang <jiang.liu@linux.intel.com>
+> > >=20
+> > > Some architectures, such as IA64 and ARM64, have no instructions =
+to
+> > > directly access PCI IO ports, so they map PCI IO ports into PCI M=
+MIO
+> > > address space. Typically PCI host bridges on those architectures =
+take
+> > > the responsibility to map (translate) PCI IO port transactions in=
+to
+> > > Memory-Mapped IO transactions. ACPI specification provides suppor=
+t
+> > > of such a usage case by using resource translation_offset.
+> > >=20
+> > > But current ACPI resource parsing interface isn't neutral enough,
+> > > it still has some special logic for IA64. So refine the ACPI reso=
+urce
+> > > parsing interface and IA64 code to neutrally handle translation_o=
+ffset
+> > > by:
+> > > 1) ACPI resource parsing interface doesn't do any translation, it=
+ just
+> > > =C2=A0=C2=A0=C2=A0save the translation_offset to be used by arch =
+code.
+> > > 2) Arch code will do the mapping(translation) based on arch speci=
+fic
+> > > =C2=A0=C2=A0=C2=A0information. Typically it does:
+> > > 2.a) Translate per PCI domain IO port address space into system g=
+lobal
+> > > =C2=A0=C2=A0=C2=A0IO port address space.
+> > > 2.b) Setup MMIO address mapping for IO ports.
+> >=20
+> > This patch fixes IO space handling on IA64 and should go in as a fi=
+x.
+> >=20
+> > IA64 PCI IO space is currently broken (Hanjun tested this on an IA6=
+4 box).
+> >=20
+> > The first broken commit is:
+> >=20
+> > 3772aea7d6f3 ("ia64/PCI/ACPI: Use common ACPI resource parsing inte=
+rface for host bridge")
+> >=20
+> > because acpi core code checks (in acpi_dev_ioresource_flags()) the
+> > resource.end>=3D0x10003, which fails on ia64 - currently resource.e=
+nd is
+> > set in acpi_decode_space() to:
+> >=20
+> > AddressMaximum + AddressTranslation
+> >=20
+> > where AddressTranslation is the CPU physical address mapping IO spa=
+ce
+> > on IA64, the >=3D0x10003 check in acpi_dev_ioresource_flags always
+> > triggers and the IO resource is then disabled.
+> >=20
+> > Do you want me to re-send this patch as a fix, with updated commit =
+log ?
+>=20
+> Two more points to discuss here. IA64, in its prepare_resources() cal=
+lback
+> calls acpi_pci_probe_root_resources() in turn. That function parses t=
+he
+> _CRS and validate the resources (acpi_pci_root_validate_resources()).
+>=20
+> That does not make sense IMO, because IA64 changes the IO port resour=
+ces
+> after calling acpi_pci_probe_root_resources(), hence the validation
+> carried out in acpi_pci_probe_root_resources(), at least for IO ports
+> seems wrong (what's the point of validating the CRS against
+> ioport_resource if we change the _CRS IO space resources afterwards ?=
+).
+>=20
 
-Many, many platform proms with all sorts of binary table layout are already
-supported by the existing console infrastructure. Why is ACPI different, that
-requires extensive (and messy) changes to console initialization?
+I agree that acpi_pci_root_validate_resources() is doing the wrong thin=
+g
+generally. The current code (without this patch series) is checking CPU
+bus address range for PCI IO window against ioport_resource which is ba=
+sed
+on ioport cookies made up by the kernel. This patch takes out the addit=
+ion
+of the translation offset so the check is now PCI bus io address range
+validated against the cookies in ioport_resource. I think that works by
+chance because all ia64 PCI segments use the same PCI bus io address
+range based at zero. So the PCI bus io addresses will always look valid
+against ia64 IO space zero in the ioport_resource list. The PCI ioports
+actually get installed after ia64 changes the resource to hold the
+cookie. Interestingly, ia64 also installs an iomem resource for the CPU
+bus address of the ioport range window. The generic ACPI PCI host=C2=A0
+code should probably do the same in pci_acpi_root_prepare_resource().
+And at some point, it might make sense to consolidate the ia64 ioport
+cookie handling with that done by the devicetree interfaces used by
+the generic ACPI PCI host code.
 
+> Second point: we are aware that by removing the offset addition in
+> acpi_decode_space(), if for any reason on x86 or IA64 a resource has
+> that offset !=3D0 (speaking in terms of memory resources for instance=
+)
+> we are in trouble. Jiang mentioned that on x86 and IA64 offset is alw=
+ays
+> 0x0 for memory resources, but just want to make sure we are all aware
+> of this potential pitfall.
 
-How is this going to work with earlycon?
+I think that has always been the case. At least for x86 which doesn't
+appear to have ever used the offset in _CRS. In any case, it still
+leaves us with the same problem where acpi_pci_root_validate_resources(=
+)
+is validating PCI bus addresses against something different (cookies/cp=
+u
+iospace for ioport, CPU bus for iomem).
 
+>=20
+> Comments appreciated, it is time to a) fix IA64 and b) get this _CRS
+> parsing consolidation done.
+>=20
+> Thanks,
+> Lorenzo
 
-This commit log is missing the reasoning behind adding locks, refactoring
-into delete_from_console_list(), and retry loops.
-
-
-> [1] http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.den0044a/index.html
-> [2] http://msdn.microsoft.com/en-us/library/windows/hardware/dn639131(v=vs.85).aspx
-> 
-> Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
-> ---
->  arch/arm64/Kconfig      |  1 +
->  drivers/acpi/Kconfig    |  3 ++
->  drivers/acpi/Makefile   |  1 +
->  drivers/acpi/spcr.c     | 85 +++++++++++++++++++++++++++++++++++++++++++++++++
->  include/linux/console.h | 12 +++++++
->  kernel/printk/printk.c  | 82 +++++++++++++++++++++++++++++++++++++----------
->  6 files changed, 167 insertions(+), 17 deletions(-)
->  create mode 100644 drivers/acpi/spcr.c
-> 
-> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-> index 573bebc..bf31e3c 100644
-> --- a/arch/arm64/Kconfig
-> +++ b/arch/arm64/Kconfig
-> @@ -4,6 +4,7 @@ config ARM64
->  	select ACPI_GENERIC_GSI if ACPI
->  	select ACPI_PCI_HOST_GENERIC if ACPI
->  	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
-> +	select ACPI_SPCR_TABLE if ACPI
->  	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
->  	select ARCH_HAS_ELF_RANDOMIZE
->  	select ARCH_HAS_GCOV_PROFILE_ALL
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index e315061..142a338 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -60,6 +60,9 @@ config ACPI_CCA_REQUIRED
->  config IORT_TABLE
->  	bool
->  
-> +config ACPI_SPCR_TABLE
-> +	bool
-> +
->  config ACPI_DEBUGGER
->  	bool "AML debugger interface (EXPERIMENTAL)"
->  	select ACPI_DEBUG
-> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-> index 265eb90..8316859 100644
-> --- a/drivers/acpi/Makefile
-> +++ b/drivers/acpi/Makefile
-> @@ -81,6 +81,7 @@ obj-$(CONFIG_ACPI_CUSTOM_METHOD)+= custom_method.o
->  obj-$(CONFIG_ACPI_BGRT)		+= bgrt.o
->  obj-$(CONFIG_ACPI_CPPC_LIB)	+= cppc_acpi.o
->  obj-$(CONFIG_IORT_TABLE) 	+= iort.o
-> +obj-$(CONFIG_ACPI_SPCR_TABLE)	+= spcr.o
->  
->  # processor has its own "processor." module_param namespace
->  processor-y			:= processor_driver.o
-> diff --git a/drivers/acpi/spcr.c b/drivers/acpi/spcr.c
-> new file mode 100644
-> index 0000000..ccb19a0
-> --- /dev/null
-> +++ b/drivers/acpi/spcr.c
-> @@ -0,0 +1,85 @@
-> +/*
-> + * Copyright (c) 2012, Intel Corporation
-> + * Copyright (c) 2015, Red Hat, Inc.
-> + * Copyright (c) 2015, 2016 Linaro Ltd.
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + *
-> + */
-> +
-> +#define pr_fmt(fmt) "ACPI: SPCR: " fmt
-> +
-> +#include <linux/acpi.h>
-> +#include <linux/console.h>
-> +#include <linux/kernel.h>
-> +
-> +static struct acpi_table_spcr *spcr_table;
-> +
-> +int console_acpi_match(struct console *c, char **options)
-> +{
-> +	int err;
-> +
-> +	if (!c->acpi_match)
-> +		return -ENODEV;
-> +
-> +	if (!spcr_table)
-> +		return -EAGAIN;
-> +
-> +	err = c->acpi_match(c, spcr_table);
-> +	if (err < 0)
-> +		return err;
-> +
-> +	if (options) {
-> +		switch (spcr_table->baud_rate) {
-> +		case 3:
-> +			*options = "9600";
-> +			break;
-> +		case 4:
-> +			*options = "19200";
-> +			break;
-> +		case 6:
-> +			*options = "57600";
-> +			break;
-> +		case 7:
-> +			*options = "115200";
-> +			break;
-> +		default:
-> +			*options = "";
-> +			break;
-> +		}
-> +	}
-> +
-> +	return err;
-> +}
-> +
-> +static int __init spcr_table_detect(void)
-> +{
-> +	struct acpi_table_header *table;
-> +	acpi_status status;
-> +
-> +	if (acpi_disabled)
-> +		return -ENODEV;
-> +
-> +	status = acpi_get_table(ACPI_SIG_SPCR, 0, &table);
-> +	if (ACPI_FAILURE(status)) {
-> +		const char *msg = acpi_format_exception(status);
-> +
-> +		pr_err("Failed to get table, %s\n", msg);
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (table->revision < 2)
-> +		return -EOPNOTSUPP;
-> +
-> +	spcr_table = (struct acpi_table_spcr *)table;
-> +
-> +	pr_info("Console at 0x%016llx\n", spcr_table->serial_port.address);
-> +
-> +	acpi_register_consoles_try_again();
-> +
-> +	return 0;
-> +}
-> +
-> +arch_initcall(spcr_table_detect);
-> diff --git a/include/linux/console.h b/include/linux/console.h
-> index bd19434..94d0bd8 100644
-> --- a/include/linux/console.h
-> +++ b/include/linux/console.h
-> @@ -117,6 +117,7 @@ static inline int con_debug_leave(void)
->  #define CON_BRL		(32) /* Used for a braille device */
->  #define CON_EXTENDED	(64) /* Use the extended output format a la /dev/kmsg */
->  
-> +struct acpi_table_spcr;
->  struct console {
->  	char	name[16];
->  	void	(*write)(struct console *, const char *, unsigned);
-> @@ -125,6 +126,7 @@ struct console {
->  	void	(*unblank)(void);
->  	int	(*setup)(struct console *, char *);
->  	int	(*match)(struct console *, char *name, int idx, char *options);
-> +	int	(*acpi_match)(struct console *, struct acpi_table_spcr *);
->  	short	flags;
->  	short	index;
->  	int	cflag;
-> @@ -132,6 +134,16 @@ struct console {
->  	struct	 console *next;
->  };
->  
-> +#ifdef CONFIG_ACPI
-> +int console_acpi_match(struct console *c, char **options);
-> +#else
-> +static inline int console_acpi_match(struct console *c, char **options)
-> +{
-> +	return -ENODEV;
-> +}
-> +#endif
-> +void acpi_register_consoles_try_again(void);
-> +
->  /*
->   * for_each_console() allows you to iterate on each console
->   */
-> diff --git a/kernel/printk/printk.c b/kernel/printk/printk.c
-> index 37e531f..3cf8cba 100644
-> --- a/kernel/printk/printk.c
-> +++ b/kernel/printk/printk.c
-> @@ -2430,6 +2430,25 @@ static int __init keep_bootcon_setup(char *str)
->  
->  early_param("keep_bootcon", keep_bootcon_setup);
->  
-> +static DEFINE_MUTEX(acpi_consoles_delayed_mutex);
-> +static struct console *acpi_consoles_delayed;
-> +
-> +void acpi_register_consoles_try_again(void)
-> +{
-> +	mutex_lock(&acpi_consoles_delayed_mutex);
-> +	while (acpi_consoles_delayed) {
-> +
-> +		struct console *c = acpi_consoles_delayed;
-> +
-> +		acpi_consoles_delayed = acpi_consoles_delayed->next;
-> +
-> +		mutex_unlock(&acpi_consoles_delayed_mutex);
-> +		register_console(c);
-> +		mutex_lock(&acpi_consoles_delayed_mutex);
-> +	}
-> +	mutex_unlock(&acpi_consoles_delayed_mutex);
-> +}
-
-Why is this necessary? There is no mention of this hack in the
-commit log.
-
-
-> +
->  /*
->   * The console driver calls this routine during kernel initialization
->   * to register the console printing procedure with printk() and to
-> @@ -2538,8 +2557,30 @@ void register_console(struct console *newcon)
->  		break;
->  	}
->  
-> -	if (!(newcon->flags & CON_ENABLED))
-> -		return;
-> +	if (!(newcon->flags & CON_ENABLED)) {
-> +		char *opts;
-> +		int err;
-> +
-> +		if (newcon->index < 0)
-> +			newcon->index = 0;
-> +
-> +		err = console_acpi_match(newcon, &opts);
-> +
-> +		if (err == -EAGAIN) {
-> +			mutex_lock(&acpi_consoles_delayed_mutex);
-> +			newcon->next = acpi_consoles_delayed;
-> +			acpi_consoles_delayed = newcon;
-> +			mutex_unlock(&acpi_consoles_delayed_mutex);
-> +			return;
-> +		} else if (err < 0) {
-> +			return;
-> +		} else {
-> +			if (newcon->setup && newcon->setup(newcon, opts) != 0)
-> +				return;
-> +			newcon->flags |= CON_ENABLED | CON_CONSDEV;
-> +			preferred_console = true;
-> +		}
-> +	}
->  
->  	/*
->  	 * If we have a bootconsole, and are switching to a real console,
-> @@ -2612,34 +2653,41 @@ void register_console(struct console *newcon)
->  }
->  EXPORT_SYMBOL(register_console);
->  
-> +static int delete_from_console_list(struct console **list, struct console *c)
-> +{
-> +	while (*list) {
-> +		struct console *cur = *list;
-> +
-> +		if (cur == c) {
-> +			*list = cur->next;
-> +			return 0;
-> +		}
-> +		list = &cur->next;
-> +	}
-> +	return 1;
-> +}
-> +
->  int unregister_console(struct console *console)
->  {
-> -        struct console *a, *b;
->  	int res;
->  
->  	pr_info("%sconsole [%s%d] disabled\n",
->  		(console->flags & CON_BOOT) ? "boot" : "" ,
->  		console->name, console->index);
->  
-> +	mutex_lock(&acpi_consoles_delayed_mutex);
-> +	res = delete_from_console_list(&acpi_consoles_delayed, console);
-> +	mutex_unlock(&acpi_consoles_delayed_mutex);
-> +	if (res == 0)
-> +		return res;
-> +
->  	res = _braille_unregister_console(console);
->  	if (res)
->  		return res;
->  
-> -	res = 1;
->  	console_lock();
-> -	if (console_drivers == console) {
-> -		console_drivers=console->next;
-> -		res = 0;
-> -	} else if (console_drivers) {
-> -		for (a=console_drivers->next, b=console_drivers ;
-> -		     a; b=a, a=b->next) {
-> -			if (a == console) {
-> -				b->next = a->next;
-> -				res = 0;
-> -				break;
-> -			}
-> -		}
-> -	}
-> +
-> +	res = delete_from_console_list(&console_drivers, console);
->  
->  	if (!res && (console->flags & CON_EXTENDED))
->  		nr_ext_console_drivers--;
-> 
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
