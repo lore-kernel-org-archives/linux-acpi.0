@@ -1,137 +1,47 @@
-From: Chen Fan <chen.fan.fnst@cn.fujitsu.com>
-Subject: [PATCH v2] pci: fix unavailable irq number 255 reported by BIOS
-Date: Mon, 25 Jan 2016 14:59:38 +0800
-Message-ID: <1453705178-27389-1-git-send-email-chen.fan.fnst@cn.fujitsu.com>
+From: Robert Richter <robert.richter@caviumnetworks.com>
+Subject: Re: [PATCH v3 08/12] arm64, numa: rework numa_add_memblk()
+Date: Mon, 25 Jan 2016 10:34:29 +0100
+Message-ID: <20160125093429.GD24726@rric.localdomain>
+References: <1453541967-3744-1-git-send-email-guohanjun@huawei.com>
+ <1453541967-3744-9-git-send-email-guohanjun@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([59.151.112.132]:1815 "EHLO
-	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752026AbcAYHEc (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Jan 2016 02:04:32 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Disposition: inline
+In-Reply-To: <1453541967-3744-9-git-send-email-guohanjun@huawei.com>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Hanjun Guo <guohanjun@huawei.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Steve Capper <steve.capper@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Shannon Zhao <shannon.zhao@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>, linux-arm-kernel@lists.infradead.org, Hanjun Guo <hanjun.guo@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, rjw@rjwysocki.net, lenb@kernel.org, izumi.taku@jp.fujitsu.com, wency@cn.fujitsu.com, caoj.fnst@cn.fujitsu.com, ddaney.cavm@gmail.com, chen.fan.fnst@cn.fujitsu.com, helgaas@kernel.org, okaya@codeaurora.org, bhelgaas@google.com, jiang.liu@linux.intel.com, linux-pci@vger.kernel.org
 
-In our environment, when enable Secure boot, we found an abnormal
-phenomenon as following call trace shows. after investigation, we
-found the firmware assigned an irq number 255 which means unknown
-or no connection in PCI local spec for i801_smbus, meanwhile the
-ACPI didn't configure the pci irq routing. and the 255 irq number
-was assigned for megasa msix without IRQF_SHARED. then in this case
-during i801_smbus probe, the i801_smbus driver would request irq with
-bad irq number 255. but the 255 irq number was assigned for memgasa
-with MSIX enable. which will cause request_irq fails as call trace
-shows, here we use ~0U as invalid IRQ to identify the 0xff IRQ specified
-by BIOS.
+On 23.01.16 17:39:23, Hanjun Guo wrote:
+> Rework numa_add_memblk() to update the parameter "u64 size"
+> to "u64 end", this will make it consistent with x86 and
+> can simplify the code later.
 
-See the call trace:
+> --- a/arch/arm64/kernel/of_numa.c
+> +++ b/arch/arm64/kernel/of_numa.c
+> @@ -168,7 +168,7 @@ static int __init early_init_parse_memory_node(unsigned long node)
+>  		pr_debug("NUMA-DT:  base = %llx , node = %u\n",
+>  				base, nid);
+>  
+> -		if (numa_add_memblk(nid, base, size) < 0)
+> +		if (numa_add_memblk(nid, base, base + size) < 0)
 
- [   32.459195] ipmi device interface
- [   32.612907] shpchp: Standard Hot Plug PCI Controller Driver version: 0.4
- [   32.800459] ixgbe: Intel(R) 10 Gigabit PCI Express Network Driver - version 4.0.1-k-rh
- [   32.818319] ixgbe: Copyright (c) 1999-2014 Intel Corporation.
- [   32.844009] lpc_ich 0001:80:1f.0: I/O space for ACPI uninitialized
- [   32.850093] i801_smbus 0000:00:1f.3: enabling device (0140 -> 0143)
- [   32.851134] i801_smbus 0000:00:1f.3: can't derive routing for PCI INT C
- [   32.851136] i801_smbus 0000:00:1f.3: PCI INT C: no GSI
- [   32.851164] genirq: Flags mismatch irq 255. 00000080 (i801_smbus) vs. 00000000 (megasa
- [   32.851168] CPU: 0 PID: 2487 Comm: kworker/0:1 Not tainted 3.10.0-229.el7.x86_64 #1
- [   32.851170] Hardware name: FUJITSU PRIMEQUEST 2800E2/D3736, BIOS PRIMEQUEST 2000 Serie5
- [   32.851178] Workqueue: events work_for_cpu_fn
- [   32.851208]  ffff88086c330b00 00000000e233a9df ffff88086d57bca0 ffffffff81603f36
- [   32.851227]  ffff88086d57bcf8 ffffffff8110d23a ffff88686fe02000 0000000000000246
- [   32.851246]  ffff88086a9a8c00 00000000e233a9df ffffffffa00ad220 0000000000000080
- [   32.851247] Call Trace:
- [   32.851261]  [<ffffffff81603f36>] dump_stack+0x19/0x1b
- [   32.851271]  [<ffffffff8110d23a>] __setup_irq+0x54a/0x570
- [   32.851282]  [<ffffffffa00ad220>] ? i801_check_pre.isra.5+0xe0/0xe0 [i2c_i801]
- [   32.851289]  [<ffffffff8110d3bc>] request_threaded_irq+0xcc/0x170
- [   32.851298]  [<ffffffffa00ae87f>] i801_probe+0x32f/0x508 [i2c_i801]
- [   32.851308]  [<ffffffff81308385>] local_pci_probe+0x45/0xa0
- [   32.851315]  [<ffffffff8108bfd4>] work_for_cpu_fn+0x14/0x20
- [   32.851323]  [<ffffffff8108f0ab>] process_one_work+0x17b/0x470
- [   32.851330]  [<ffffffff81090003>] worker_thread+0x293/0x400
- [   32.851338]  [<ffffffff8108fd70>] ? rescuer_thread+0x400/0x400
- [   32.851346]  [<ffffffff8109726f>] kthread+0xcf/0xe0
- [   32.851353]  [<ffffffff810971a0>] ? kthread_create_on_node+0x140/0x140
- [   32.851362]  [<ffffffff81613cfc>] ret_from_fork+0x7c/0xb0
- [   32.851369]  [<ffffffff810971a0>] ? kthread_create_on_node+0x140/0x140
- [   32.851373] i801_smbus 0000:00:1f.3: Failed to allocate irq 255: -16
- [   32.851435] i801_smbus: probe of 0000:00:1f.3 failed with error -16
- [   33.180145] ixgbe 0000:5a:00.0: Multiq[   33.240538] ixgbe 0000:5a:00.0: (PCI Express:03:e0
- [   33.280826] ixgbe 0000:5a:00.0: MAC: 3, PHY: 0, PBA No: 000000-000
+The overall function usage looks more like as it should use size
+instead of end. Even in the x86 implementation end is calculated from
+base + size. So better change x86 code to use size instead.
 
-Signed-off-by: Chen Fan <chen.fan.fnst@cn.fujitsu.com>
----
- arch/x86/include/asm/irq_vectors.h |  2 ++
- drivers/acpi/pci_irq.c             | 11 ++++++++++-
- include/linux/interrupt.h          |  9 +++++++++
- 3 files changed, 21 insertions(+), 1 deletion(-)
+Though this might involve to change the interface for
+numa_add_memblk_to() for unifcation too.
 
-diff --git a/arch/x86/include/asm/irq_vectors.h b/arch/x86/include/asm/irq_vectors.h
-index 6ca9fd6..b616d69 100644
---- a/arch/x86/include/asm/irq_vectors.h
-+++ b/arch/x86/include/asm/irq_vectors.h
-@@ -146,4 +146,6 @@
- #define NR_IRQS				NR_IRQS_LEGACY
- #endif
- 
-+#define IRQ_INVALID			(~0U)
-+
- #endif /* _ASM_X86_IRQ_VECTORS_H */
-diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
-index d30184c..819eb23 100644
---- a/drivers/acpi/pci_irq.c
-+++ b/drivers/acpi/pci_irq.c
-@@ -33,6 +33,7 @@
- #include <linux/pci.h>
- #include <linux/acpi.h>
- #include <linux/slab.h>
-+#include <linux/interrupt.h>
- 
- #define PREFIX "ACPI: "
- 
-@@ -436,7 +437,15 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
- 	 * driver reported one, then use it. Exit in any case.
- 	 */
- 	if (gsi < 0) {
--		if (acpi_isa_register_gsi(dev))
-+#ifdef CONFIG_X86
-+		/*
-+		 * The Interrupt Line value of 0xff is defined to mean "unknown"
-+		 * or "no connection" (PCI 3.0, Section 6.2.4, footnote on page
-+		 * 223), using ~0U as invalid IRQ.
-+		 */
-+		dev->irq = (dev->irq == 0xff) ? IRQ_INVALID : dev->irq;
-+#endif
-+		if (!irq_is_valid(dev->irq) || acpi_isa_register_gsi(dev))
- 			dev_warn(&dev->dev, "PCI INT %c: no GSI\n",
- 				 pin_name(pin));
- 
-diff --git a/include/linux/interrupt.h b/include/linux/interrupt.h
-index cb30edb..2f0d46b 100644
---- a/include/linux/interrupt.h
-+++ b/include/linux/interrupt.h
-@@ -198,6 +198,15 @@ extern void enable_percpu_irq(unsigned int irq, unsigned int type);
- extern bool irq_percpu_is_enabled(unsigned int irq);
- extern void irq_wake_thread(unsigned int irq, void *dev_id);
- 
-+static inline bool irq_is_valid(unsigned int irq)
-+{
-+#ifdef CONFIG_X86
-+	if (irq == IRQ_INVALID)
-+		return false;
-+#endif
-+	return true;
-+}
-+
- /* The following three functions are for the core kernel use only. */
- extern void suspend_device_irqs(void);
- extern void resume_device_irqs(void);
--- 
-1.9.3
-
-
-
+-Robert
