@@ -1,89 +1,123 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH V3 18/21] ACPI, PCI: Refine the way to handle
- translation_offset for ACPI resources
-Date: Mon, 25 Jan 2016 09:52:52 +0000
-Message-ID: <20160125095252.GB32652@red-moon>
-References: <1452691267-32240-1-git-send-email-tn@semihalf.com>
- <1452691267-32240-19-git-send-email-tn@semihalf.com>
- <20160119122026.GA5185@red-moon>
+From: Robert Richter <robert.richter@caviumnetworks.com>
+Subject: Re: [PATCH v3 05/12] arm64, acpi, numa: NUMA support based on SRAT
+ and SLIT
+Date: Mon, 25 Jan 2016 11:21:48 +0100
+Message-ID: <20160125102148.GE24726@rric.localdomain>
+References: <1453541967-3744-1-git-send-email-guohanjun@huawei.com>
+ <1453541967-3744-6-git-send-email-guohanjun@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:35400 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755909AbcAYJvI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 25 Jan 2016 04:51:08 -0500
+Received: from mail-bl2on0053.outbound.protection.outlook.com ([65.55.169.53]:35584
+	"EHLO na01-bl2-obe.outbound.protection.outlook.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1755630AbcAYKWH (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 25 Jan 2016 05:22:07 -0500
 Content-Disposition: inline
-In-Reply-To: <20160119122026.GA5185@red-moon>
+In-Reply-To: <1453541967-3744-6-git-send-email-guohanjun@huawei.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>, jiang.liu@linux.intel.com
-Cc: bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, okaya@codeaurora.org, Stefano.Stabellini@eu.citrix.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com
+To: Hanjun Guo <guohanjun@huawei.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Shannon Zhao <shannon.zhao@linaro.org>, Steve Capper <steve.capper@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>
 
-On Tue, Jan 19, 2016 at 12:20:26PM +0000, Lorenzo Pieralisi wrote:
-> Gerry,
-> 
-> On Wed, Jan 13, 2016 at 02:21:04PM +0100, Tomasz Nowicki wrote:
-> > From: Liu Jiang <jiang.liu@linux.intel.com>
-> > 
-> > Some architectures, such as IA64 and ARM64, have no instructions to
-> > directly access PCI IO ports, so they map PCI IO ports into PCI MMIO
-> > address space. Typically PCI host bridges on those architectures take
-> > the responsibility to map (translate) PCI IO port transactions into
-> > Memory-Mapped IO transactions. ACPI specification provides support
-> > of such a usage case by using resource translation_offset.
-> > 
-> > But current ACPI resource parsing interface isn't neutral enough,
-> > it still has some special logic for IA64. So refine the ACPI resource
-> > parsing interface and IA64 code to neutrally handle translation_offset
-> > by:
-> > 1) ACPI resource parsing interface doesn't do any translation, it just
-> >    save the translation_offset to be used by arch code.
-> > 2) Arch code will do the mapping(translation) based on arch specific
-> >    information. Typically it does:
-> > 2.a) Translate per PCI domain IO port address space into system global
-> >    IO port address space.
-> > 2.b) Setup MMIO address mapping for IO ports.
-> 
-> This patch fixes IO space handling on IA64 and should go in as a fix.
-> 
-> IA64 PCI IO space is currently broken (Hanjun tested this on an IA64 box).
-> 
-> The first broken commit is:
-> 
-> 3772aea7d6f3 ("ia64/PCI/ACPI: Use common ACPI resource parsing interface for host bridge")
-> 
-> because acpi core code checks (in acpi_dev_ioresource_flags()) the
-> resource.end>=0x10003, which fails on ia64 - currently resource.end is
-> set in acpi_decode_space() to:
-> 
-> AddressMaximum + AddressTranslation
-> 
-> where AddressTranslation is the CPU physical address mapping IO space
-> on IA64, the >=0x10003 check in acpi_dev_ioresource_flags always
-> triggers and the IO resource is then disabled.
-> 
-> Do you want me to re-send this patch as a fix, with updated commit log ?
+On 23.01.16 17:39:20, Hanjun Guo wrote:
+> diff --git a/arch/arm64/kernel/acpi_numa.c b/arch/arm64/kernel/acpi_numa.c
+> new file mode 100644
+> index 0000000..f7f7533
+> --- /dev/null
+> +++ b/arch/arm64/kernel/acpi_numa.c
 
-Two more points to discuss here. IA64, in its prepare_resources() callback
-calls acpi_pci_probe_root_resources() in turn. That function parses the
-_CRS and validate the resources (acpi_pci_root_validate_resources()).
+> +/* Callback for parsing of the Proximity Domain <-> Memory Area mappings */
+> +int __init acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
+> +{
+> +	u64 start, end;
+> +	int node, pxm;
+> +
+> +	if (srat_disabled())
+> +		return -EINVAL;
+> +
+> +	if (ma->header.length != sizeof(struct acpi_srat_mem_affinity)) {
 
-That does not make sense IMO, because IA64 changes the IO port resources
-after calling acpi_pci_probe_root_resources(), hence the validation
-carried out in acpi_pci_probe_root_resources(), at least for IO ports
-seems wrong (what's the point of validating the CRS against
-ioport_resource if we change the _CRS IO space resources afterwards ?).
+Must be:
 
-Second point: we are aware that by removing the offset addition in
-acpi_decode_space(), if for any reason on x86 or IA64 a resource has
-that offset !=0 (speaking in terms of memory resources for instance)
-we are in trouble. Jiang mentioned that on x86 and IA64 offset is always
-0x0 for memory resources, but just want to make sure we are all aware
-of this potential pitfall.
+	ma->header.length < sizeof(struct acpi_srat_mem_affinity)) {
 
-Comments appreciated, it is time to a) fix IA64 and b) get this _CRS
-parsing consolidation done.
+Allow extensions to struct acpi_srat_mem_affinity in newer versions.
 
-Thanks,
-Lorenzo
+> +		bad_srat();
+> +		return -EINVAL;
+
+We need a pr_err() here to avoid that numa setup fails silently due to
+bad fw. This applies to all error paths.
+
+See my delta patch below. You can merge it with your patch.
+
+-Robert
+
+> +	}
+
+
+>From 78945c73e4ec03756a135a75133ed29694a7a0f2 Mon Sep 17 00:00:00 2001
+From: Robert Richter <rrichter@cavium.com>
+Date: Wed, 11 Nov 2015 09:53:39 +0100
+Subject: [PATCH] arm64, acpi, numa: Add error messages for bad SRAT tables
+
+Signed-off-by: Robert Richter <rrichter@cavium.com>
+---
+ arch/arm64/kernel/acpi_numa.c | 15 +++++++++++++--
+ 1 file changed, 13 insertions(+), 2 deletions(-)
+
+diff --git a/arch/arm64/kernel/acpi_numa.c b/arch/arm64/kernel/acpi_numa.c
+index f7f7533761cd..936ad6c43740 100644
+--- a/arch/arm64/kernel/acpi_numa.c
++++ b/arch/arm64/kernel/acpi_numa.c
+@@ -143,6 +143,8 @@ void __init acpi_numa_gicc_affinity_init(struct acpi_srat_gicc_affinity *pa)
+ 		return;
+ 
+ 	if (pa->header.length < sizeof(struct acpi_srat_gicc_affinity)) {
++		pr_err("SRAT: Invalid SRAT header length: %d\n",
++			pa->header.length);
+ 		bad_srat();
+ 		return;
+ 	}
+@@ -166,7 +168,7 @@ void __init acpi_numa_gicc_affinity_init(struct acpi_srat_gicc_affinity *pa)
+ 	}
+ 
+ 	if (get_mpidr_in_madt(pa->acpi_processor_uid, &mpidr)) {
+-		pr_warn("SRAT: PXM %d with ACPI ID %d has no valid MPIDR in MADT\n",
++		pr_err("SRAT: PXM %d with ACPI ID %d has no valid MPIDR in MADT\n",
+ 			pxm, pa->acpi_processor_uid);
+ 		bad_srat();
+ 		return;
+@@ -190,7 +192,9 @@ int __init acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
+ 	if (srat_disabled())
+ 		return -EINVAL;
+ 
+-	if (ma->header.length != sizeof(struct acpi_srat_mem_affinity)) {
++	if (ma->header.length < sizeof(struct acpi_srat_mem_affinity)) {
++		pr_err("SRAT: Unexpected header length: %d\n",
++			ma->header.length);
+ 		bad_srat();
+ 		return -EINVAL;
+ 	}
+@@ -216,10 +220,17 @@ int __init acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
+ 		(unsigned long long) start, (unsigned long long) end - 1);
+ 
+ 	if (numa_add_memblk(node, start, (end - start)) < 0) {
++		pr_err("SRAT: Failed to add memblk to node %u [mem %#010Lx-%#010Lx]\n",
++			node, (unsigned long long) start,
++			(unsigned long long) end - 1);
+ 		bad_srat();
+ 		return -EINVAL;
+ 	}
+ 
++	pr_info("SRAT: Node %u PXM %u [mem %#010Lx-%#010Lx]\n",
++		node, pxm,
++		(unsigned long long) start, (unsigned long long) end - 1);
++
+ 	return 0;
+ }
+ 
+-- 
+2.7.0.rc3
+
