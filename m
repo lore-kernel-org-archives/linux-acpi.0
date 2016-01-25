@@ -1,203 +1,137 @@
-From: Tang Chen <tangchen@cn.fujitsu.com>
-Subject: Re: [PATCH v5 RESEND 0/5] Make cpuid <-> nodeid mapping persistent
-Date: Mon, 25 Jan 2016 14:12:43 +0800
-Message-ID: <56A5BCDB.4090208@cn.fujitsu.com>
-References: <1453702100-2597-1-git-send-email-tangchen@cn.fujitsu.com>
+From: Chen Fan <chen.fan.fnst@cn.fujitsu.com>
+Subject: [PATCH v2] pci: fix unavailable irq number 255 reported by BIOS
+Date: Mon, 25 Jan 2016 14:59:38 +0800
+Message-ID: <1453705178-27389-1-git-send-email-chen.fan.fnst@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([59.151.112.132]:8609 "EHLO
+Received: from cn.fujitsu.com ([59.151.112.132]:1815 "EHLO
 	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752683AbcAYGMp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Jan 2016 01:12:45 -0500
-In-Reply-To: <1453702100-2597-1-git-send-email-tangchen@cn.fujitsu.com>
+	with ESMTP id S1752026AbcAYHEc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Jan 2016 02:04:32 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: cl@linux.com, tj@kernel.org, jiang.liu@linux.intel.com, mika.j.penttila@gmail.com, mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, len.brown@intel.com
-Cc: tangchen@cn.fujitsu.com, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org
+To: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, rjw@rjwysocki.net, lenb@kernel.org, izumi.taku@jp.fujitsu.com, wency@cn.fujitsu.com, caoj.fnst@cn.fujitsu.com, ddaney.cavm@gmail.com, chen.fan.fnst@cn.fujitsu.com, helgaas@kernel.org, okaya@codeaurora.org, bhelgaas@google.com, jiang.liu@linux.intel.com, linux-pci@vger.kernel.org
 
-Hi Rafael, Len,
+In our environment, when enable Secure boot, we found an abnormal
+phenomenon as following call trace shows. after investigation, we
+found the firmware assigned an irq number 255 which means unknown
+or no connection in PCI local spec for i801_smbus, meanwhile the
+ACPI didn't configure the pci irq routing. and the 255 irq number
+was assigned for megasa msix without IRQF_SHARED. then in this case
+during i801_smbus probe, the i801_smbus driver would request irq with
+bad irq number 255. but the 255 irq number was assigned for memgasa
+with MSIX enable. which will cause request_irq fails as call trace
+shows, here we use ~0U as invalid IRQ to identify the 0xff IRQ specified
+by BIOS.
 
-Would you please help to review the ACPI part of this patch-set ?
+See the call trace:
 
-Thanks.
+ [   32.459195] ipmi device interface
+ [   32.612907] shpchp: Standard Hot Plug PCI Controller Driver version: 0.4
+ [   32.800459] ixgbe: Intel(R) 10 Gigabit PCI Express Network Driver - version 4.0.1-k-rh
+ [   32.818319] ixgbe: Copyright (c) 1999-2014 Intel Corporation.
+ [   32.844009] lpc_ich 0001:80:1f.0: I/O space for ACPI uninitialized
+ [   32.850093] i801_smbus 0000:00:1f.3: enabling device (0140 -> 0143)
+ [   32.851134] i801_smbus 0000:00:1f.3: can't derive routing for PCI INT C
+ [   32.851136] i801_smbus 0000:00:1f.3: PCI INT C: no GSI
+ [   32.851164] genirq: Flags mismatch irq 255. 00000080 (i801_smbus) vs. 00000000 (megasa
+ [   32.851168] CPU: 0 PID: 2487 Comm: kworker/0:1 Not tainted 3.10.0-229.el7.x86_64 #1
+ [   32.851170] Hardware name: FUJITSU PRIMEQUEST 2800E2/D3736, BIOS PRIMEQUEST 2000 Serie5
+ [   32.851178] Workqueue: events work_for_cpu_fn
+ [   32.851208]  ffff88086c330b00 00000000e233a9df ffff88086d57bca0 ffffffff81603f36
+ [   32.851227]  ffff88086d57bcf8 ffffffff8110d23a ffff88686fe02000 0000000000000246
+ [   32.851246]  ffff88086a9a8c00 00000000e233a9df ffffffffa00ad220 0000000000000080
+ [   32.851247] Call Trace:
+ [   32.851261]  [<ffffffff81603f36>] dump_stack+0x19/0x1b
+ [   32.851271]  [<ffffffff8110d23a>] __setup_irq+0x54a/0x570
+ [   32.851282]  [<ffffffffa00ad220>] ? i801_check_pre.isra.5+0xe0/0xe0 [i2c_i801]
+ [   32.851289]  [<ffffffff8110d3bc>] request_threaded_irq+0xcc/0x170
+ [   32.851298]  [<ffffffffa00ae87f>] i801_probe+0x32f/0x508 [i2c_i801]
+ [   32.851308]  [<ffffffff81308385>] local_pci_probe+0x45/0xa0
+ [   32.851315]  [<ffffffff8108bfd4>] work_for_cpu_fn+0x14/0x20
+ [   32.851323]  [<ffffffff8108f0ab>] process_one_work+0x17b/0x470
+ [   32.851330]  [<ffffffff81090003>] worker_thread+0x293/0x400
+ [   32.851338]  [<ffffffff8108fd70>] ? rescuer_thread+0x400/0x400
+ [   32.851346]  [<ffffffff8109726f>] kthread+0xcf/0xe0
+ [   32.851353]  [<ffffffff810971a0>] ? kthread_create_on_node+0x140/0x140
+ [   32.851362]  [<ffffffff81613cfc>] ret_from_fork+0x7c/0xb0
+ [   32.851369]  [<ffffffff810971a0>] ? kthread_create_on_node+0x140/0x140
+ [   32.851373] i801_smbus 0000:00:1f.3: Failed to allocate irq 255: -16
+ [   32.851435] i801_smbus: probe of 0000:00:1f.3 failed with error -16
+ [   33.180145] ixgbe 0000:5a:00.0: Multiq[   33.240538] ixgbe 0000:5a:00.0: (PCI Express:03:e0
+ [   33.280826] ixgbe 0000:5a:00.0: MAC: 3, PHY: 0, PBA No: 000000-000
 
-On 01/25/2016 02:08 PM, Tang Chen wrote:
-> [Problem]
->
-> cpuid <-> nodeid mapping is firstly established at boot time. And workqueue caches
-> the mapping in wq_numa_possible_cpumask in wq_numa_init() at boot time.
->
-> When doing node online/offline, cpuid <-> nodeid mapping is established/destroyed,
-> which means, cpuid <-> nodeid mapping will change if node hotplug happens. But
-> workqueue does not update wq_numa_possible_cpumask.
->
-> So here is the problem:
->
-> Assume we have the following cpuid <-> nodeid in the beginning:
->
->    Node | CPU
-> ------------------------
-> node 0 |  0-14, 60-74
-> node 1 | 15-29, 75-89
-> node 2 | 30-44, 90-104
-> node 3 | 45-59, 105-119
->
-> and we hot-remove node2 and node3, it becomes:
->
->    Node | CPU
-> ------------------------
-> node 0 |  0-14, 60-74
-> node 1 | 15-29, 75-89
->
-> and we hot-add node4 and node5, it becomes:
->
->    Node | CPU
-> ------------------------
-> node 0 |  0-14, 60-74
-> node 1 | 15-29, 75-89
-> node 4 | 30-59
-> node 5 | 90-119
->
-> But in wq_numa_possible_cpumask, cpu30 is still mapped to node2, and the like.
->
-> When a pool workqueue is initialized, if its cpumask belongs to a node, its
-> pool->node will be mapped to that node. And memory used by this workqueue will
-> also be allocated on that node.
->
-> static struct worker_pool *get_unbound_pool(const struct workqueue_attrs *attrs){
-> ...
->          /* if cpumask is contained inside a NUMA node, we belong to that node */
->          if (wq_numa_enabled) {
->                  for_each_node(node) {
->                          if (cpumask_subset(pool->attrs->cpumask,
->                                             wq_numa_possible_cpumask[node])) {
->                                  pool->node = node;
->                                  break;
->                          }
->                  }
->          }
->
-> Since wq_numa_possible_cpumask is not updated, it could be mapped to an offline node,
-> which will lead to memory allocation failure:
->
->   SLUB: Unable to allocate memory on node 2 (gfp=0x80d0)
->    cache: kmalloc-192, object size: 192, buffer size: 192, default order: 1, min order: 0
->    node 0: slabs: 6172, objs: 259224, free: 245741
->    node 1: slabs: 3261, objs: 136962, free: 127656
->
-> It happens here:
->
-> create_worker(struct worker_pool *pool)
->   |--> worker = alloc_worker(pool->node);
->
-> static struct worker *alloc_worker(int node)
-> {
->          struct worker *worker;
->
->          worker = kzalloc_node(sizeof(*worker), GFP_KERNEL, node); --> Here, useing the wrong node.
->
->          ......
->
->          return worker;
-> }
->
->
-> [Solution]
->
-> There are four mappings in the kernel:
-> 1. nodeid (logical node id)   <->   pxm
-> 2. apicid (physical cpu id)   <->   nodeid
-> 3. cpuid (logical cpu id)     <->   apicid
-> 4. cpuid (logical cpu id)     <->   nodeid
->
-> 1. pxm (proximity domain) is provided by ACPI firmware in SRAT, and nodeid <-> pxm
->     mapping is setup at boot time. This mapping is persistent, won't change.
->
-> 2. apicid <-> nodeid mapping is setup using info in 1. The mapping is setup at boot
->     time and CPU hotadd time, and cleared at CPU hotremove time. This mapping is also
->     persistent.
->
-> 3. cpuid <-> apicid mapping is setup at boot time and CPU hotadd time. cpuid is
->     allocated, lower ids first, and released at CPU hotremove time, reused for other
->     hotadded CPUs. So this mapping is not persistent.
->
-> 4. cpuid <-> nodeid mapping is also setup at boot time and CPU hotadd time, and
->     cleared at CPU hotremove time. As a result of 3, this mapping is not persistent.
->
-> To fix this problem, we establish cpuid <-> nodeid mapping for all the possible
-> cpus at boot time, and make it persistent. And according to init_cpu_to_node(),
-> cpuid <-> nodeid mapping is based on apicid <-> nodeid mapping and cpuid <-> apicid
-> mapping. So the key point is obtaining all cpus' apicid.
->
-> apicid can be obtained by _MAT (Multiple APIC Table Entry) method or found in
-> MADT (Multiple APIC Description Table). So we finish the job in the following steps:
->
-> 1. Enable apic registeration flow to handle both enabled and disabled cpus.
->     This is done by introducing an extra parameter to generic_processor_info to let the
->     caller control if disabled cpus are ignored.
->
-> 2. Introduce a new array storing all possible cpuid <-> apicid mapping. And also modify
->     the way cpuid is calculated. Establish all possible cpuid <-> apicid mapping when
->     registering local apic. Store the mapping in this array.
->
-> 3. Enable _MAT and MADT relative apis to return non-presnet or disabled cpus' apicid.
->     This is also done by introducing an extra parameter to these apis to let the caller
->     control if disabled cpus are ignored.
->
-> 4. Establish all possible cpuid <-> nodeid mapping.
->     This is done via an additional acpi namespace walk for processors.
->
->
-> For previous discussion, please refer to:
-> https://lkml.org/lkml/2015/2/27/145
-> https://lkml.org/lkml/2015/3/25/989
-> https://lkml.org/lkml/2015/5/14/244
-> https://lkml.org/lkml/2015/7/7/200
-> https://lkml.org/lkml/2015/9/27/209
->
-> Change log v4 -> v5:
-> 1. Remove useless code in patch 1.
-> 2. Small improvement of commit message.
->
-> Change log v3 -> v4:
-> 1. Fix the kernel panic at boot time. The cause is that I tried to build zonelists
->     before per cpu areas were initialized.
->
-> Change log v2 -> v3:
-> 1. Online memory-less nodes at boot time to map cpus of memory-less nodes.
-> 2. Build zonelists for memory-less nodes so that memory allocator will fall
->     back to proper nodes automatically.
->
-> Change log v1 -> v2:
-> 1. Split code movement and actual changes. Add patch 1.
-> 2. Synchronize best near online node record when node hotplug happens. In patch 2.
-> 3. Fix some comment.
->
-> Gu Zheng (4):
->    x86, acpi, cpu-hotplug: Enable acpi to register all possible cpus at
->      boot time.
->    x86, acpi, cpu-hotplug: Introduce cpuid_to_apicid[] array to store
->      persistent cpuid <-> apicid mapping.
->    x86, acpi, cpu-hotplug: Enable MADT APIs to return disabled apicid.
->    x86, acpi, cpu-hotplug: Set persistent cpuid <-> nodeid mapping when
->      booting.
->
-> Tang Chen (1):
->    x86, memhp, numa: Online memory-less nodes at boot time.
->
->   arch/ia64/kernel/acpi.c       |   2 +-
->   arch/x86/include/asm/mpspec.h |   1 +
->   arch/x86/kernel/acpi/boot.c   |   8 ++-
->   arch/x86/kernel/apic/apic.c   |  85 +++++++++++++++++++++++++----
->   arch/x86/mm/numa.c            |  27 +++++-----
->   drivers/acpi/acpi_processor.c |   5 +-
->   drivers/acpi/bus.c            |   3 ++
->   drivers/acpi/processor_core.c | 122 ++++++++++++++++++++++++++++++++++--------
->   include/linux/acpi.h          |   2 +
->   9 files changed, 204 insertions(+), 51 deletions(-)
->
+Signed-off-by: Chen Fan <chen.fan.fnst@cn.fujitsu.com>
+---
+ arch/x86/include/asm/irq_vectors.h |  2 ++
+ drivers/acpi/pci_irq.c             | 11 ++++++++++-
+ include/linux/interrupt.h          |  9 +++++++++
+ 3 files changed, 21 insertions(+), 1 deletion(-)
+
+diff --git a/arch/x86/include/asm/irq_vectors.h b/arch/x86/include/asm/irq_vectors.h
+index 6ca9fd6..b616d69 100644
+--- a/arch/x86/include/asm/irq_vectors.h
++++ b/arch/x86/include/asm/irq_vectors.h
+@@ -146,4 +146,6 @@
+ #define NR_IRQS				NR_IRQS_LEGACY
+ #endif
+ 
++#define IRQ_INVALID			(~0U)
++
+ #endif /* _ASM_X86_IRQ_VECTORS_H */
+diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
+index d30184c..819eb23 100644
+--- a/drivers/acpi/pci_irq.c
++++ b/drivers/acpi/pci_irq.c
+@@ -33,6 +33,7 @@
+ #include <linux/pci.h>
+ #include <linux/acpi.h>
+ #include <linux/slab.h>
++#include <linux/interrupt.h>
+ 
+ #define PREFIX "ACPI: "
+ 
+@@ -436,7 +437,15 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
+ 	 * driver reported one, then use it. Exit in any case.
+ 	 */
+ 	if (gsi < 0) {
+-		if (acpi_isa_register_gsi(dev))
++#ifdef CONFIG_X86
++		/*
++		 * The Interrupt Line value of 0xff is defined to mean "unknown"
++		 * or "no connection" (PCI 3.0, Section 6.2.4, footnote on page
++		 * 223), using ~0U as invalid IRQ.
++		 */
++		dev->irq = (dev->irq == 0xff) ? IRQ_INVALID : dev->irq;
++#endif
++		if (!irq_is_valid(dev->irq) || acpi_isa_register_gsi(dev))
+ 			dev_warn(&dev->dev, "PCI INT %c: no GSI\n",
+ 				 pin_name(pin));
+ 
+diff --git a/include/linux/interrupt.h b/include/linux/interrupt.h
+index cb30edb..2f0d46b 100644
+--- a/include/linux/interrupt.h
++++ b/include/linux/interrupt.h
+@@ -198,6 +198,15 @@ extern void enable_percpu_irq(unsigned int irq, unsigned int type);
+ extern bool irq_percpu_is_enabled(unsigned int irq);
+ extern void irq_wake_thread(unsigned int irq, void *dev_id);
+ 
++static inline bool irq_is_valid(unsigned int irq)
++{
++#ifdef CONFIG_X86
++	if (irq == IRQ_INVALID)
++		return false;
++#endif
++	return true;
++}
++
+ /* The following three functions are for the core kernel use only. */
+ extern void suspend_device_irqs(void);
+ extern void resume_device_irqs(void);
+-- 
+1.9.3
 
 
 
