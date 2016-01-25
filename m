@@ -1,47 +1,89 @@
-From: Robert Richter <robert.richter@caviumnetworks.com>
-Subject: Re: [PATCH v3 08/12] arm64, numa: rework numa_add_memblk()
-Date: Mon, 25 Jan 2016 10:34:29 +0100
-Message-ID: <20160125093429.GD24726@rric.localdomain>
-References: <1453541967-3744-1-git-send-email-guohanjun@huawei.com>
- <1453541967-3744-9-git-send-email-guohanjun@huawei.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH V3 18/21] ACPI, PCI: Refine the way to handle
+ translation_offset for ACPI resources
+Date: Mon, 25 Jan 2016 09:52:52 +0000
+Message-ID: <20160125095252.GB32652@red-moon>
+References: <1452691267-32240-1-git-send-email-tn@semihalf.com>
+ <1452691267-32240-19-git-send-email-tn@semihalf.com>
+ <20160119122026.GA5185@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:35400 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755909AbcAYJvI (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 25 Jan 2016 04:51:08 -0500
 Content-Disposition: inline
-In-Reply-To: <1453541967-3744-9-git-send-email-guohanjun@huawei.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: Hanjun Guo <guohanjun@huawei.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Steve Capper <steve.capper@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Shannon Zhao <shannon.zhao@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>, linux-arm-kernel@lists.infradead.org, Hanjun Guo <hanjun.guo@linaro.org>
+In-Reply-To: <20160119122026.GA5185@red-moon>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Tomasz Nowicki <tn@semihalf.com>, jiang.liu@linux.intel.com
+Cc: bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, okaya@codeaurora.org, Stefano.Stabellini@eu.citrix.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com
 
-On 23.01.16 17:39:23, Hanjun Guo wrote:
-> Rework numa_add_memblk() to update the parameter "u64 size"
-> to "u64 end", this will make it consistent with x86 and
-> can simplify the code later.
+On Tue, Jan 19, 2016 at 12:20:26PM +0000, Lorenzo Pieralisi wrote:
+> Gerry,
+> 
+> On Wed, Jan 13, 2016 at 02:21:04PM +0100, Tomasz Nowicki wrote:
+> > From: Liu Jiang <jiang.liu@linux.intel.com>
+> > 
+> > Some architectures, such as IA64 and ARM64, have no instructions to
+> > directly access PCI IO ports, so they map PCI IO ports into PCI MMIO
+> > address space. Typically PCI host bridges on those architectures take
+> > the responsibility to map (translate) PCI IO port transactions into
+> > Memory-Mapped IO transactions. ACPI specification provides support
+> > of such a usage case by using resource translation_offset.
+> > 
+> > But current ACPI resource parsing interface isn't neutral enough,
+> > it still has some special logic for IA64. So refine the ACPI resource
+> > parsing interface and IA64 code to neutrally handle translation_offset
+> > by:
+> > 1) ACPI resource parsing interface doesn't do any translation, it just
+> >    save the translation_offset to be used by arch code.
+> > 2) Arch code will do the mapping(translation) based on arch specific
+> >    information. Typically it does:
+> > 2.a) Translate per PCI domain IO port address space into system global
+> >    IO port address space.
+> > 2.b) Setup MMIO address mapping for IO ports.
+> 
+> This patch fixes IO space handling on IA64 and should go in as a fix.
+> 
+> IA64 PCI IO space is currently broken (Hanjun tested this on an IA64 box).
+> 
+> The first broken commit is:
+> 
+> 3772aea7d6f3 ("ia64/PCI/ACPI: Use common ACPI resource parsing interface for host bridge")
+> 
+> because acpi core code checks (in acpi_dev_ioresource_flags()) the
+> resource.end>=0x10003, which fails on ia64 - currently resource.end is
+> set in acpi_decode_space() to:
+> 
+> AddressMaximum + AddressTranslation
+> 
+> where AddressTranslation is the CPU physical address mapping IO space
+> on IA64, the >=0x10003 check in acpi_dev_ioresource_flags always
+> triggers and the IO resource is then disabled.
+> 
+> Do you want me to re-send this patch as a fix, with updated commit log ?
 
-> --- a/arch/arm64/kernel/of_numa.c
-> +++ b/arch/arm64/kernel/of_numa.c
-> @@ -168,7 +168,7 @@ static int __init early_init_parse_memory_node(unsigned long node)
->  		pr_debug("NUMA-DT:  base = %llx , node = %u\n",
->  				base, nid);
->  
-> -		if (numa_add_memblk(nid, base, size) < 0)
-> +		if (numa_add_memblk(nid, base, base + size) < 0)
+Two more points to discuss here. IA64, in its prepare_resources() callback
+calls acpi_pci_probe_root_resources() in turn. That function parses the
+_CRS and validate the resources (acpi_pci_root_validate_resources()).
 
-The overall function usage looks more like as it should use size
-instead of end. Even in the x86 implementation end is calculated from
-base + size. So better change x86 code to use size instead.
+That does not make sense IMO, because IA64 changes the IO port resources
+after calling acpi_pci_probe_root_resources(), hence the validation
+carried out in acpi_pci_probe_root_resources(), at least for IO ports
+seems wrong (what's the point of validating the CRS against
+ioport_resource if we change the _CRS IO space resources afterwards ?).
 
-Though this might involve to change the interface for
-numa_add_memblk_to() for unifcation too.
+Second point: we are aware that by removing the offset addition in
+acpi_decode_space(), if for any reason on x86 or IA64 a resource has
+that offset !=0 (speaking in terms of memory resources for instance)
+we are in trouble. Jiang mentioned that on x86 and IA64 offset is always
+0x0 for memory resources, but just want to make sure we are all aware
+of this potential pitfall.
 
--Robert
+Comments appreciated, it is time to a) fix IA64 and b) get this _CRS
+parsing consolidation done.
+
+Thanks,
+Lorenzo
