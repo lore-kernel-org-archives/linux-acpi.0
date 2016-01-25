@@ -1,42 +1,63 @@
-From: Robert Richter <robert.richter@caviumnetworks.com>
-Subject: Re: [PATCH v3 12/12] acpi, numa: reuse
- acpi_numa_memory_affinity_init()
-Date: Mon, 25 Jan 2016 11:26:43 +0100
-Message-ID: <20160125102643.GF24726@rric.localdomain>
-References: <1453541967-3744-1-git-send-email-guohanjun@huawei.com>
- <1453541967-3744-13-git-send-email-guohanjun@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1453541967-3744-13-git-send-email-guohanjun@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Hanjun Guo <guohanjun@huawei.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Shannon Zhao <shannon.zhao@linaro.org>, Steve Capper <steve.capper@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>
+From: Aleksey Makarov <aleksey.makarov@linaro.org>
+Subject: [PATCH 0/3] ACPI: parse the SPCR table
+Date: Mon, 25 Jan 2016 17:45:20 +0600
+Message-ID: <1453722324-22407-1-git-send-email-aleksey.makarov@linaro.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lf0-f52.google.com ([209.85.215.52]:33936 "EHLO
+	mail-lf0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756591AbcAYLpd (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Jan 2016 06:45:33 -0500
+Received: by mail-lf0-f52.google.com with SMTP id 17so82762881lfz.1
+        for <linux-acpi@vger.kernel.org>; Mon, 25 Jan 2016 03:45:33 -0800 (PST)
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org, Aleksey Makarov <aleksey.makarov@linaro.org>, Graeme Gregory <graeme.gregory@linaro.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>
 
-On 23.01.16 17:39:27, Hanjun Guo wrote:
-> From: Hanjun Guo <hanjun.guo@linaro.org>
-> 
-> After the cleanup for acpi_numa_memory_affinity_init(),
-> it can be used for architetures both x86 and arm64, since
-> CONFIG_MEMORY_HOTPLUG is not enabled for arm64, so no
-> worry about that.
-> 
-> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> ---
->  arch/arm64/kernel/acpi_numa.c | 42 -------------------------------
->  arch/x86/mm/srat.c            | 54 ----------------------------------------
->  drivers/acpi/numa.c           | 57 +++++++++++++++++++++++++++++++++++++++++++
->  3 files changed, 57 insertions(+), 96 deletions(-)
+This patchset is based on the patchset by Leif Lindholm [1]
 
-This one reverts acpi_numa_memory_affinity_init() to the x86 version.
-I rather would prefer the arm64 version for the generic code. We could
-keep the x86 implementation until x86 maintainers agree to remove them
-and use the generic one (implemented in a separate patch).
+'ARM Server Base Boot Requirements' [2] mention SPCR 
+(Serial Port Console Redirection Table) [3] as a mandatory
+ACPI table that specifies the configuration of serial console.
 
-Doing so we can move acpi_numa_memory_affinity_init() from the
-beginning to generic code (used for arm64) and have this last patch to
-remove the x86 version.
+Licensing concerns have prevented implementing it in the past, but as of
+10 August 2015, these tables have both been released also under 
+OWF 1.0 [4].
 
--Robert
+SPCR support is included in QEMU's ARM mach-virt since 2.4 release.
+
+Parse the SPCR table and check if any registered console match
+the description.  If it does, enable that console.
+
+To implement that, introduce a new member
+int (*acpi_match)(struct console *, struct acpi_table_spcr *);
+of struct console.  It allows drivers to check if they provide
+a matching console device.
+
+Also add an implementation of this member function to the pl011 driver
+and fix a minor issue in kernel/printk/printk.c
+
+[1] https://lkml.kernel.org/g/1441716217-23786-1-git-send-email-leif.lindholm@linaro.org
+[2] http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.den0044a/index.html
+[3] https://msdn.microsoft.com/en-us/library/windows/hardware/dn639132(v=vs.85).aspx
+[4] http://www.openwebfoundation.org/legal/the-owf-1-0-agreements/owfa-1-0
+
+Aleksey Makarov (3):
+  printk: make preferred_console local static bool
+  ACPI: parse SPCR and enable matching console
+  serial: pl011: add acpi_match for amba-pl011.c
+
+ arch/arm64/Kconfig              |  1 +
+ drivers/acpi/Kconfig            |  3 ++
+ drivers/acpi/Makefile           |  1 +
+ drivers/acpi/spcr.c             | 85 +++++++++++++++++++++++++++++++++++++
+ drivers/tty/serial/amba-pl011.c | 14 ++++++
+ include/acpi/actbl2.h           |  4 ++
+ include/linux/console.h         | 12 ++++++
+ kernel/printk/printk.c          | 94 +++++++++++++++++++++++++++++++----------
+ 8 files changed, 191 insertions(+), 23 deletions(-)
+ create mode 100644 drivers/acpi/spcr.c
+
+-- 
+2.7.0
+
