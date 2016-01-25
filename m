@@ -1,43 +1,60 @@
-From: Timur Tabi <timur@codeaurora.org>
-Subject: Re: [Linaro-acpi] [PATCH V2 3/4] mailbox: pcc: optimized
- pcc_send_data
-Date: Mon, 25 Jan 2016 12:52:17 -0600
-Message-ID: <56A66EE1.6010605@codeaurora.org>
-References: <1453511240-20792-1-git-send-email-pprakash@codeaurora.org>
- <1453511240-20792-4-git-send-email-pprakash@codeaurora.org>
- <CAOZdJXU8wCJZpo61TcusArxBgXdKQEFbxRmFVZTOy6dxPm=CnA@mail.gmail.com>
- <CAJ5Y-eYtTz05Vk+DOLhKk8gOMo5j7x_DAqZmvQRC4kW40XPsfQ@mail.gmail.com>
+From: Borislav Petkov <bp@alien8.de>
+Subject: Re: [PATCH v3 00/17] Enhance iomem search interfaces and support
+ EINJ to NVDIMM
+Date: Mon, 25 Jan 2016 20:18:04 +0100
+Message-ID: <20160125191804.GE14030@pd.tnic>
+References: <1452020068-26492-1-git-send-email-toshi.kani@hpe.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:48182 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757401AbcAYSwU (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Jan 2016 13:52:20 -0500
-In-Reply-To: <CAJ5Y-eYtTz05Vk+DOLhKk8gOMo5j7x_DAqZmvQRC4kW40XPsfQ@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Return-path: <linux-ia64-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <1452020068-26492-1-git-send-email-toshi.kani@hpe.com>
+Sender: linux-ia64-owner@vger.kernel.org
+To: Toshi Kani <toshi.kani@hpe.com>
+Cc: akpm@linux-foundation.org, torvalds@linux-foundation.org, rafael.j.wysocki@intel.com, dan.j.williams@intel.com, dyoung@redhat.com, x86@kernel.org, linux-ia64@vger.kernel.org, linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org, kexec@lists.infradead.org, xen-devel@lists.xenproject.org, linux-samsung-soc@vger.kernel.org, linux-arch@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Ashwin Chaugule <ashwin.chaugule@linaro.org>
-Cc: Prashanth Prakash <pprakash@codeaurora.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux acpi <linux-acpi@vger.kernel.org>, Linaro ACPI Mailman List <linaro-acpi@lists.linaro.org>
 
-Ashwin Chaugule wrote:
+On Tue, Jan 05, 2016 at 11:54:28AM -0700, Toshi Kani wrote:
+> This patch-set enhances the iomem table and its search interfacs, and
+> then changes EINJ to support NVDIMM.
+> 
+>  - Patches 1-2 add a new System RAM type, IORESOURCE_SYSTEM_RAM, and
+>    make the iomem search interfaces work with resource flags with
+>    modifier bits set.  IORESOURCE_SYSTEM_RAM has IORESOURCE_MEM bit set
+>    for backward compatibility.
+> 
+>  - Patch 3 adds a new field, I/O resource descriptor, into struct resource.
+>    Drivers can assign their unique descritor to a range when they support
+>    the iomem search interfaces.
+> 
+>  - Patches 4-9 changes initializations of resource entries.  They set
+>    the System RAM type to System RAM ranges, set I/O resource descriptors
+>    to the regions targeted by the iomem search interfaces, and change
+>    to call kzalloc() where kmalloc() is used to allocate struct resource
+>    ranges.
+> 
+>  - Patches 10-14 extend the iomem interfaces to check System RAM ranges
+>    with the System RAM type and the I/O resource descriptor.
+> 
+>  - Patch 15-16 remove deprecated walk_iomem_res().
+> 
+>  - Patch 17 changes the EINJ driver to allow injecting a memory error
+>    to NVDIMM.
 
->>> +       pcc_doorbell_vaddr = kcalloc(count, sizeof(void *), GFP_KERNEL);
->>
->> ... this is wrong.  You're using readl() and writel() on this pointer,
->> but it's not an iomem pointer, it's normal kernel memory.  You need to
->> delete your usage of readX, writeX on this pointer.
->>
->
-> The acpi_os_ioremap() below should take care of that.
+Ok, all applied ontop of 4.5-rc1.
 
-...
+You could take a look if everything's still fine and I haven't botched
+anything:
 
->>> +               if (db_reg->space_id == ACPI_ADR_SPACE_SYSTEM_MEMORY)
->>> +                       pcc_doorbell_vaddr[i] = acpi_os_ioremap(db_reg->address,
->>> +                                                       db_reg->bit_width/8);
+http://git.kernel.org/cgit/linux/kernel/git/bp/bp.git/log/?h=tip-mm
 
-Ah, I see.  pcc_doorbell_vaddr[i] still needs to be an __iomem*, and the 
-rest of the code needs to honor that.
+I'll let the build bot chew on it and then test it here and send it out
+again to everyone on CC so that people don't act surprised.
 
+Thanks for this cleanup, code looks much better now!
+
+-- 
+Regards/Gruss,
+    Boris.
+
+ECO tip #101: Trim your mails when you reply.
