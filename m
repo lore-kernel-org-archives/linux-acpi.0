@@ -1,230 +1,48 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: [PATCH] acpi: implement Generic Event Device
-Date: Mon, 25 Jan 2016 16:29:46 -0500
-Message-ID: <1453757387-28154-1-git-send-email-okaya@codeaurora.org>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:55304 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932793AbcAYV34 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Jan 2016 16:29:56 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: Re: [PATCH v3 00/17] Enhance iomem search interfaces and support
+ EINJ to NVDIMM
+Date: Mon, 25 Jan 2016 14:34:21 -0700
+Message-ID: <1453757661.834.99.camel@hpe.com>
+References: <1452020068-26492-1-git-send-email-toshi.kani@hpe.com>
+	 <20160125191804.GE14030@pd.tnic>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <20160125191804.GE14030@pd.tnic>
+Sender: owner-linux-mm@kvack.org
+To: Borislav Petkov <bp@alien8.de>
+Cc: akpm@linux-foundation.org, torvalds@linux-foundation.org, rafael.j.wysocki@intel.com, dan.j.williams@intel.com, dyoung@redhat.com, x86@kernel.org, linux-ia64@vger.kernel.org, linux-parisc@vger.kernel.org, linux-sh@vger.kernel.org, kexec@lists.infradead.org, xen-devel@lists.xenproject.org, linux-samsung-soc@vger.kernel.org, linux-arch@vger.kernel.org, linux-mm@kvack.org, linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com
-Cc: rjw@rjwysocki.net, agross@codeaurora.org, linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org, Sinan Kaya <okaya@codeaurora.org>, linux-kernel@vger.kernel.org
 
-Generic Event Device described in ACPI 6.1 allows platforms to handle
-platform interrupts in ACPI ASL statements. It borrows constructs like
-_EVT from GPIO events. All interrupts are listed in _CRS and the handler
-is written in _EVT method. Here is an example.
+On Mon, 2016-01-25 at 20:18 +0100, Borislav Petkov wrote:
+> On Tue, Jan 05, 2016 at 11:54:28AM -0700, Toshi Kani wrote:
+> > This patch-set enhances the iomem table and its search interfacs, and
+> > then changes EINJ to support NVDIMM.
+> > 
+ :
+> 
+> Ok, all applied ontop of 4.5-rc1.
+> 
+> You could take a look if everything's still fine and I haven't botched
+> anything:
+> 
+> http://git.kernel.org/cgit/linux/kernel/git/bp/bp.git/log/?h=tip-mm
 
-Device (GED0)
-{
+I verified the patches and tested the kernel in the tree.  All look good.
 
-	Name (_HID, "ACPI0013")
-	Name (_UID, 0)
-	Name(_CRS, ResourceTemplate ()
-	{
-		Interrupt(ResourceConsumer, Edge, ActiveHigh, Shared, , , )
-		 {123}
-	})
+> I'll let the build bot chew on it and then test it here and send it out
+> again to everyone on CC so that people don't act surprised.
 
-	Method (_EVT, 1) {
-		if (Lequal(123, Arg0))
-		{
-		}
-	}
-}
+Sounds great.
 
-Wake capability has not been implemented yet.
+> Thanks for this cleanup, code looks much better now!
 
-Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
----
- drivers/acpi/Makefile |   1 +
- drivers/acpi/evged.c  | 162 ++++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 163 insertions(+)
- create mode 100644 drivers/acpi/evged.c
+Thanks!
+-Toshi
 
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index b5e7cd8..4dbb732 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -46,6 +46,7 @@ acpi-y				+= acpi_pnp.o
- acpi-y				+= int340x_thermal.o
- acpi-y				+= power.o
- acpi-y				+= event.o
-+acpi-$(CONFIG_ACPI_REDUCED_HARDWARE_ONLY) += evged.o
- acpi-y				+= sysfs.o
- acpi-y				+= property.o
- acpi-$(CONFIG_X86)		+= acpi_cmos_rtc.o
-diff --git a/drivers/acpi/evged.c b/drivers/acpi/evged.c
-new file mode 100644
-index 0000000..a904676
---- /dev/null
-+++ b/drivers/acpi/evged.c
-@@ -0,0 +1,162 @@
-+/*
-+ * Generic Event Device for ACPI.
-+ *
-+ * Copyright (c) 2016, The Linux Foundation. All rights reserved.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 and
-+ * only version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * Generic Event Device allows platforms to handle
-+ * interrupts in ACPI ASL statements. It follows very similar
-+ * _EVT method approach from GPIO events.
-+ * All interrupts are listed in _CRS and the handler
-+ * is written in _EVT method. Here is an example.
-+ *
-+ * Device (GED0)
-+ * {
-+ *
-+ *     Name (_HID, "ACPI0013")
-+ *     Name (_UID, 0)
-+ *     Method (_CRS, 0x0, Serialized)
-+ *     {
-+ *		Name (RBUF, ResourceTemplate ()
-+ *		{
-+ *		Interrupt(ResourceConsumer, Edge, ActiveHigh, Shared, , , )
-+ *		{123}
-+ *		}
-+ *     })
-+ *
-+ *     Method (_EVT, 1) {
-+ *             if (Lequal(123, Arg0))
-+ *             {
-+ *             }
-+ *     }
-+ * }
-+ *
-+ */
-+
-+#include <linux/err.h>
-+#include <linux/init.h>
-+#include <linux/interrupt.h>
-+#include <linux/list.h>
-+#include <linux/platform_device.h>
-+#include <linux/acpi.h>
-+
-+#define MODULE_NAME	"acpi-ged"
-+
-+struct acpi_ged_event {
-+	struct list_head node;
-+	struct device *dev;
-+	unsigned int gsi;
-+	unsigned int irq;
-+	acpi_handle handle;
-+};
-+
-+static irqreturn_t acpi_ged_irq_handler(int irq, void *data)
-+{
-+	struct acpi_ged_event *event = data;
-+	acpi_status acpi_ret;
-+
-+	acpi_ret = acpi_execute_simple_method(event->handle, NULL, event->gsi);
-+	if (ACPI_FAILURE(acpi_ret))
-+		dev_err_once(event->dev, "IRQ method execution failed\n");
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static acpi_status acpi_ged_request_interrupt(struct acpi_resource *ares,
-+					      void *context)
-+{
-+	struct acpi_ged_event *event;
-+	unsigned int irq;
-+	unsigned int gsi;
-+	unsigned int irqflags = IRQF_ONESHOT;
-+	struct device *dev = context;
-+	acpi_handle handle = ACPI_HANDLE(dev);
-+	acpi_handle evt_handle;
-+	struct resource r;
-+	struct acpi_resource_irq *p = &ares->data.irq;
-+	struct acpi_resource_extended_irq *pext = &ares->data.extended_irq;
-+
-+	if (ares->type == ACPI_RESOURCE_TYPE_END_TAG)
-+		return AE_OK;
-+
-+	if (!acpi_dev_resource_interrupt(ares, 0, &r)) {
-+		dev_err(dev, "unable to parse IRQ resource\n");
-+		return AE_ERROR;
-+	}
-+	if (ares->type == ACPI_RESOURCE_TYPE_IRQ)
-+		gsi = p->interrupts[0];
-+	else
-+		gsi = pext->interrupts[0];
-+
-+	irq = r.start;
-+
-+	if (ACPI_FAILURE(acpi_get_handle(handle, "_EVT", &evt_handle))) {
-+		dev_err(dev, "cannot locate _EVT method\n");
-+		return AE_ERROR;
-+	}
-+
-+	dev_info(dev, "GED listening GSI %u @ IRQ %u\n", gsi, irq);
-+
-+	event = devm_kzalloc(dev, sizeof(*event), GFP_KERNEL);
-+	if (!event)
-+		return AE_ERROR;
-+
-+	event->gsi = gsi;
-+	event->dev = dev;
-+	event->irq = irq;
-+	event->handle = evt_handle;
-+
-+	if (r.flags & IORESOURCE_IRQ_SHAREABLE)
-+		irqflags |= IRQF_SHARED;
-+
-+	if (devm_request_threaded_irq(dev, irq, NULL, acpi_ged_irq_handler,
-+				      irqflags, "ACPI:Ged", event)) {
-+		dev_err(dev, "failed to setup event handler for irq %u\n", irq);
-+		return AE_ERROR;
-+	}
-+
-+	return AE_OK;
-+}
-+
-+static int ged_probe(struct platform_device *pdev)
-+{
-+	acpi_status acpi_ret;
-+
-+	acpi_ret = acpi_walk_resources(ACPI_HANDLE(&pdev->dev), "_CRS",
-+				       acpi_ged_request_interrupt, &pdev->dev);
-+	if (ACPI_FAILURE(acpi_ret)) {
-+		dev_err(&pdev->dev, "unable to parse the _CRS record\n");
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static const struct acpi_device_id ged_acpi_ids[] = {
-+	{"ACPI0013"},
-+	{},
-+};
-+
-+static struct platform_driver ged_driver = {
-+	.probe = ged_probe,
-+	.driver = {
-+		.name = MODULE_NAME,
-+		.owner = THIS_MODULE,
-+		.acpi_match_table = ACPI_PTR(ged_acpi_ids),
-+	},
-+};
-+
-+static int __init ged_init(void)
-+{
-+	return platform_driver_register(&ged_driver);
-+}
-+
-+subsys_initcall(ged_init);
--- 
-Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
-
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
