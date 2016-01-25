@@ -1,71 +1,236 @@
-From: Eric Biggers <ebiggers3@gmail.com>
-Subject: Out-of-bounds array index in acpi_ds_create_operand()
-Date: Sun, 24 Jan 2016 19:33:08 -0600
-Message-ID: <20160125013308.GA1908@zzz>
+From: Tang Chen <tangchen@cn.fujitsu.com>
+Subject: [PATCH v5 RESEND 2/5] x86, acpi, cpu-hotplug: Enable acpi to register all possible cpus at boot time.
+Date: Mon, 25 Jan 2016 14:08:17 +0800
+Message-ID: <1453702100-2597-3-git-send-email-tangchen@cn.fujitsu.com>
+References: <1453702100-2597-1-git-send-email-tangchen@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, devel@acpica.org, lenb@kernel.org, rafael.j.wysocki@intel.com, lv.zheng@intel.com, robert.moore@intel.com
+Content-Type: text/plain
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from cn.fujitsu.com ([59.151.112.132]:6584 "EHLO
+	heian.cn.fujitsu.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751087AbcAYGId (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 25 Jan 2016 01:08:33 -0500
+In-Reply-To: <1453702100-2597-1-git-send-email-tangchen@cn.fujitsu.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: cl@linux.com, tj@kernel.org, jiang.liu@linux.intel.com, mika.j.penttila@gmail.com, mingo@redhat.com, akpm@linux-foundation.org, rjw@rjwysocki.net, hpa@zytor.com, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, len.brown@intel.com
+Cc: tangchen@cn.fujitsu.com, x86@kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-mm@kvack.org, Gu Zheng <guz.fnst@cn.fujitsu.com>
 
-Hi,
+From: Gu Zheng <guz.fnst@cn.fujitsu.com>
 
-When booting Linux 4.5-rc1 with UBSAN enabled, I see the following report of
-undefined behavior:
+[Problem]
 
-[    0.675383] ================================================================================
-[    0.675387] UBSAN: Undefined behaviour in drivers/acpi/acpica/dsutils.c:641:16
-[    0.675390] index -1 is out of range for type 'acpi_operand_object *[9]'
-[    0.675393] CPU: 1 PID: 1 Comm: swapper/0 Not tainted 4.5.0-rc1 #126
-[    0.675394] Hardware name: Dell Inc. Inspiron 15-7568/0M5YMV, BIOS 01.00.00 08/07/2015
-[    0.675395]  ffffffffffffffff 0000000072577c57 ffff88026896b900 ffffffff8159dc2b
-[    0.675398]  ffff88026896b930 0000000072577c57 ffff88026896b928 ffff88026896b918
-[    0.675400]  ffffffff816034ed ffffffff8275e260 ffff88026896b970 ffffffff81603c65
-[    0.675402] Call Trace:
-[    0.675406]  [<ffffffff8159dc2b>] dump_stack+0x57/0x8c
-[    0.675409]  [<ffffffff816034ed>] ubsan_epilogue+0xd/0x40
-[    0.675411]  [<ffffffff81603c65>] __ubsan_handle_out_of_bounds+0x75/0xa0
-[    0.675414]  [<ffffffff816a0cf7>] acpi_ds_create_operand+0x253/0x307
-[    0.675416]  [<ffffffff816a0ee2>] acpi_ds_create_operands+0x137/0x19c
-[    0.675419]  [<ffffffff816c3b74>] ? acpi_ut_update_object_reference+0x13f/0x1d5
-[    0.675420]  [<ffffffff8169d264>] acpi_ds_exec_end_control_op+0x174/0x31b
-[    0.675422]  [<ffffffff816a1787>] acpi_ds_exec_end_op+0x2a3/0x56a
-[    0.675425]  [<ffffffff816baa27>] acpi_ps_parse_loop+0x731/0x797
-[    0.675427]  [<ffffffff816bbae3>] acpi_ps_parse_aml+0xa7/0x2d2
-[    0.675430]  [<ffffffff816bc6b8>] acpi_ps_execute_method+0x1e3/0x21d
-[    0.675431]  [<ffffffff816b4631>] acpi_ns_evaluate+0x228/0x2b8
-[    0.675433]  [<ffffffff816c403e>] acpi_ut_evaluate_object+0x6b/0x1b1
-[    0.675435]  [<ffffffff816c603e>] ? acpi_ut_delete_object_desc+0x58/0x5b
-[    0.675448]  [<ffffffff81691214>] ? param_set_event_clearing+0x95/0x95
-[    0.675450]  [<ffffffff816beaf7>] acpi_rs_get_method_data+0x29/0x5f
-[    0.675452]  [<ffffffff816bf0ac>] acpi_walk_resources+0x79/0xce
-[    0.675454]  [<ffffffff81690d9a>] ec_parse_device+0x64/0xd2
-[    0.675456]  [<ffffffff816b8abf>] acpi_ns_get_device_callback+0x180/0x1a3
-[    0.675459]  [<ffffffff816b82ad>] acpi_ns_walk_namespace+0x11a/0x1d6
-[    0.675461]  [<ffffffff816b893f>] ? acpi_evaluate_object_typed+0xf3/0xf3
-[    0.675464]  [<ffffffff82c53490>] ? acpi_sleep_proc_init+0x28/0x28
-[    0.675466]  [<ffffffff816b8688>] acpi_get_devices+0x65/0x8f
-[    0.675467]  [<ffffffff81690d36>] ? acpi_ec_event_processor+0xbd/0xbd
-[    0.675470]  [<ffffffff82c53fbc>] acpi_ec_ecdt_probe+0x157/0x269
-[    0.675471]  [<ffffffff82c5352a>] acpi_init+0x9a/0x2d0
-[    0.675474]  [<ffffffff815b9ebe>] ? kasprintf+0x4e/0x70
-[    0.675476]  [<ffffffff810003f8>] do_one_initcall+0xc8/0x270
-[    0.675478]  [<ffffffff82c17abe>] ? initcall_blacklist+0x12e/0x12e
-[    0.675481]  [<ffffffff82c1872b>] kernel_init_freeable+0x248/0x2de
-[    0.675483]  [<ffffffff81c4fa40>] ? rest_init+0x80/0x80
-[    0.675485]  [<ffffffff81c4fa49>] kernel_init+0x9/0xe0
-[    0.675487]  [<ffffffff81c5841f>] ret_from_fork+0x3f/0x70
-[    0.675489]  [<ffffffff81c4fa40>] ? rest_init+0x80/0x80
-[    0.675490] ================================================================================
+cpuid <-> nodeid mapping is firstly established at boot time. And workqueue caches
+the mapping in wq_numa_possible_cpumask in wq_numa_init() at boot time.
 
-The offending statement is the following, where num_operands was apparently 0,
-resulting in an index of -1 into the 'operands' array:
+When doing node online/offline, cpuid <-> nodeid mapping is established/destroyed,
+which means, cpuid <-> nodeid mapping will change if node hotplug happens. But
+workqueue does not update wq_numa_possible_cpumask.
 
-	acpi_db_display_argument_object(walk_state->
-					operands[walk_state->
-						 num_operands -
-						 1],
-					walk_state);
+So here is the problem:
+
+Assume we have the following cpuid <-> nodeid in the beginning:
+
+  Node | CPU
+------------------------
+node 0 |  0-14, 60-74
+node 1 | 15-29, 75-89
+node 2 | 30-44, 90-104
+node 3 | 45-59, 105-119
+
+and we hot-remove node2 and node3, it becomes:
+
+  Node | CPU
+------------------------
+node 0 |  0-14, 60-74
+node 1 | 15-29, 75-89
+
+and we hot-add node4 and node5, it becomes:
+
+  Node | CPU
+------------------------
+node 0 |  0-14, 60-74
+node 1 | 15-29, 75-89
+node 4 | 30-59
+node 5 | 90-119
+
+But in wq_numa_possible_cpumask, cpu30 is still mapped to node2, and the like.
+
+When a pool workqueue is initialized, if its cpumask belongs to a node, its
+pool->node will be mapped to that node. And memory used by this workqueue will
+also be allocated on that node.
+
+static struct worker_pool *get_unbound_pool(const struct workqueue_attrs *attrs){
+...
+        /* if cpumask is contained inside a NUMA node, we belong to that node */
+        if (wq_numa_enabled) {
+                for_each_node(node) {
+                        if (cpumask_subset(pool->attrs->cpumask,
+                                           wq_numa_possible_cpumask[node])) {
+                                pool->node = node;
+                                break;
+                        }
+                }
+        }
+
+Since wq_numa_possible_cpumask is not updated, it could be mapped to an offline node,
+which will lead to memory allocation failure:
+
+ SLUB: Unable to allocate memory on node 2 (gfp=0x80d0)
+  cache: kmalloc-192, object size: 192, buffer size: 192, default order: 1, min order: 0
+  node 0: slabs: 6172, objs: 259224, free: 245741
+  node 1: slabs: 3261, objs: 136962, free: 127656
+
+It happens here:
+
+create_worker(struct worker_pool *pool)
+ |--> worker = alloc_worker(pool->node);
+
+static struct worker *alloc_worker(int node)
+{
+        struct worker *worker;
+
+        worker = kzalloc_node(sizeof(*worker), GFP_KERNEL, node); --> Here, useing the wrong node.
+
+        ......
+
+        return worker;
+}
+
+[Solution]
+
+There are four mappings in the kernel:
+1. nodeid (logical node id)   <->   pxm
+2. apicid (physical cpu id)   <->   nodeid
+3. cpuid (logical cpu id)     <->   apicid
+4. cpuid (logical cpu id)     <->   nodeid
+
+1. pxm (proximity domain) is provided by ACPI firmware in SRAT, and nodeid <-> pxm
+   mapping is setup at boot time. This mapping is persistent, won't change.
+
+2. apicid <-> nodeid mapping is setup using info in 1. The mapping is setup at boot
+   time and CPU hotadd time, and cleared at CPU hotremove time. This mapping is also
+   persistent.
+
+3. cpuid <-> apicid mapping is setup at boot time and CPU hotadd time. cpuid is
+   allocated, lower ids first, and released at CPU hotremove time, reused for other
+   hotadded CPUs. So this mapping is not persistent.
+
+4. cpuid <-> nodeid mapping is also setup at boot time and CPU hotadd time, and
+   cleared at CPU hotremove time. As a result of 3, this mapping is not persistent.
+
+To fix this problem, we establish cpuid <-> nodeid mapping for all the possible
+cpus at boot time, and make it persistent. And according to init_cpu_to_node(),
+cpuid <-> nodeid mapping is based on apicid <-> nodeid mapping and cpuid <-> apicid
+mapping. So the key point is obtaining all cpus' apicid.
+
+apicid can be obtained by _MAT (Multiple APIC Table Entry) method or found in
+MADT (Multiple APIC Description Table). So we finish the job in the following steps:
+
+1. Enable apic registeration flow to handle both enabled and disabled cpus.
+   This is done by introducing an extra parameter to generic_processor_info to let the
+   caller control if disabled cpus are ignored.
+
+2. Introduce a new array storing all possible cpuid <-> apicid mapping. And also modify
+   the way cpuid is calculated. Establish all possible cpuid <-> apicid mapping when
+   registering local apic. Store the mapping in this array.
+
+3. Enable _MAT and MADT relative apis to return non-presnet or disabled cpus' apicid.
+   This is also done by introducing an extra parameter to these apis to let the caller
+   control if disabled cpus are ignored.
+
+4. Establish all possible cpuid <-> nodeid mapping.
+   This is done via an additional acpi namespace walk for processors.
+
+This patch finished step 1.
+
+Signed-off-by: Gu Zheng <guz.fnst@cn.fujitsu.com>
+Signed-off-by: Tang Chen <tangchen@cn.fujitsu.com>
+---
+ arch/x86/kernel/apic/apic.c | 26 +++++++++++++++++++-------
+ 1 file changed, 19 insertions(+), 7 deletions(-)
+
+diff --git a/arch/x86/kernel/apic/apic.c b/arch/x86/kernel/apic/apic.c
+index 8a5cdda..1625778 100644
+--- a/arch/x86/kernel/apic/apic.c
++++ b/arch/x86/kernel/apic/apic.c
+@@ -1998,7 +1998,7 @@ void disconnect_bsp_APIC(int virt_wire_setup)
+ 	apic_write(APIC_LVT1, value);
+ }
+ 
+-int generic_processor_info(int apicid, int version)
++static int __generic_processor_info(int apicid, int version, bool enabled)
+ {
+ 	int cpu, max = nr_cpu_ids;
+ 	bool boot_cpu_detected = physid_isset(boot_cpu_physical_apicid,
+@@ -2032,7 +2032,8 @@ int generic_processor_info(int apicid, int version)
+ 			   " Processor %d/0x%x ignored.\n",
+ 			   thiscpu, apicid);
+ 
+-		disabled_cpus++;
++		if (enabled)
++			disabled_cpus++;
+ 		return -ENODEV;
+ 	}
+ 
+@@ -2049,7 +2050,8 @@ int generic_processor_info(int apicid, int version)
+ 			" reached. Keeping one slot for boot cpu."
+ 			"  Processor %d/0x%x ignored.\n", max, thiscpu, apicid);
+ 
+-		disabled_cpus++;
++		if (enabled)
++			disabled_cpus++;
+ 		return -ENODEV;
+ 	}
+ 
+@@ -2060,11 +2062,14 @@ int generic_processor_info(int apicid, int version)
+ 			"ACPI: NR_CPUS/possible_cpus limit of %i reached."
+ 			"  Processor %d/0x%x ignored.\n", max, thiscpu, apicid);
+ 
+-		disabled_cpus++;
++		if (enabled)
++			disabled_cpus++;
+ 		return -EINVAL;
+ 	}
+ 
+-	num_processors++;
++	if (enabled)
++		num_processors++;
++
+ 	if (apicid == boot_cpu_physical_apicid) {
+ 		/*
+ 		 * x86_bios_cpu_apicid is required to have processors listed
+@@ -2092,7 +2097,8 @@ int generic_processor_info(int apicid, int version)
+ 			apic_version[boot_cpu_physical_apicid], cpu, version);
+ 	}
+ 
+-	physid_set(apicid, phys_cpu_present_map);
++	if (enabled)
++		physid_set(apicid, phys_cpu_present_map);
+ 	if (apicid > max_physical_apicid)
+ 		max_physical_apicid = apicid;
+ 
+@@ -2105,11 +2111,17 @@ int generic_processor_info(int apicid, int version)
+ 		apic->x86_32_early_logical_apicid(cpu);
+ #endif
+ 	set_cpu_possible(cpu, true);
+-	set_cpu_present(cpu, true);
++	if (enabled)
++		set_cpu_present(cpu, true);
+ 
+ 	return cpu;
+ }
+ 
++int generic_processor_info(int apicid, int version)
++{
++	return __generic_processor_info(apicid, version, true);
++}
++
+ int hard_smp_processor_id(void)
+ {
+ 	return read_apic_id();
+-- 
+1.9.3
+
+
+
