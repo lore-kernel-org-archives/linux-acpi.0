@@ -1,78 +1,68 @@
-From: Borislav Petkov <bp@alien8.de>
-Subject: [PATCH 17/17] ACPI/EINJ: Allow memory error injection to NVDIMM
-Date: Tue, 26 Jan 2016 21:57:33 +0100
-Message-ID: <1453841853-11383-18-git-send-email-bp@alien8.de>
-References: <1453841853-11383-1-git-send-email-bp@alien8.de>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1453841853-11383-1-git-send-email-bp@alien8.de>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Ingo Molnar <mingo@kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Andrew Morton <akpm@linux-foundation.org>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-arch@vger.kernel.org, linux-mm <linux-mm@kvack.org>, linux-nvdimm@lists.01.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Vishal Verma <vishal.l.verma@intel.com>
+From: Loc Ho <lho@apm.com>
+Subject: Re: [PATCH v3] ARM64: kernel: implement ACPI parking protocol
+Date: Tue, 26 Jan 2016 15:13:30 -0800
+Message-ID: <CAPw-ZTk=BbXAPgWAV=3Np0qvLA+i+U5eh+nxHS=2uMjKohdUfA@mail.gmail.com>
+References: <1453806638-23167-1-git-send-email-lorenzo.pieralisi@arm.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lb0-f177.google.com ([209.85.217.177]:32819 "EHLO
+	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750887AbcAZXNb (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Jan 2016 18:13:31 -0500
+Received: by mail-lb0-f177.google.com with SMTP id x4so101965232lbm.0
+        for <linux-acpi@vger.kernel.org>; Tue, 26 Jan 2016 15:13:30 -0800 (PST)
+In-Reply-To: <1453806638-23167-1-git-send-email-lorenzo.pieralisi@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-acpi@vger.kernel.org, Will Deacon <will.deacon@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Mark Rutland <mark.rutland@arm.com>, Mark Salter <msalter@redhat.com>, Al Stone <ahs3@redhat.com>
 
-From: Toshi Kani <toshi.kani@hpe.com>
+Hi Lorenzo,
 
-In the case of memory error injection, einj_error_inject() checks if
-a target address is System RAM. Change this check to allow injecting
-a memory error into NVDIMM memory by calling region_intersects() with
-IORES_DESC_PERSISTENT_MEMORY. This enables memory error testing on both
-System RAM and NVDIMM.
+On Tue, Jan 26, 2016 at 3:10 AM, Lorenzo Pieralisi
+<lorenzo.pieralisi@arm.com> wrote:
+> The SBBR and ACPI specifications allow ACPI based systems that do not
+> implement PSCI (eg systems with no EL3) to boot through the ACPI parking
+> protocol specification[1].
+>
+> This patch implements the ACPI parking protocol CPU operations, and adds
+> code that eases parsing the parking protocol data structures to the
+> ARM64 SMP initializion carried out at the same time as cpus enumeration.
+>
+> To wake-up the CPUs from the parked state, this patch implements a
+> wakeup IPI for ARM64 (ie arch_send_wakeup_ipi_mask()) that mirrors the
+> ARM one, so that a specific IPI is sent for wake-up purpose in order
+> to distinguish it from other IPI sources.
+>
+> Given the current ACPI MADT parsing API, the patch implements a glue
+> layer that helps passing MADT GICC data structure from SMP initialization
+> code to the parking protocol implementation somewhat overriding the CPU
+> operations interfaces. This to avoid creating a completely trasparent
+> DT/ACPI CPU operations layer that would require creating opaque
+> structure handling for CPUs data (DT represents CPU through DT nodes, ACPI
+> through static MADT table entries), which seems overkill given that ACPI
+> on ARM64 mandates only two booting protocols (PSCI and parking protocol),
+> so there is no need for further protocol additions.
+>
+> Based on the original work by Mark Salter <msalter@redhat.com>
+>
+> [1] https://acpica.org/sites/acpica/files/MP%20Startup%20for%20ARM%20platforms.docx
+>
+> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Cc: Will Deacon <will.deacon@arm.com>
+> Cc: Hanjun Guo <hanjun.guo@linaro.org>
+> Cc: Loc Ho <lho@apm.com>
+> Cc: Sudeep Holla <sudeep.holla@arm.com>
+> Cc: Catalin Marinas <catalin.marinas@arm.com>
+> Cc: Mark Rutland <mark.rutland@arm.com>
+> Cc: Mark Salter <msalter@redhat.com>
+> Cc: Al Stone <ahs3@redhat.com>
 
-In addition, page_is_ram() is replaced with region_intersects() with
-IORESOURCE_SYSTEM_RAM, so that it can verify a target address range with
-the requested size.
+I had tested this with X-Gene Mustang board. It applies cleanly
+against 4.5.0-rc1 and detected all CPU's. For those of you want to try
+this, you need an FW update if you are using APM Tianocore. Otherwise,
+it will stuck in very early booting stage.
 
-Reviewed-by: Dan Williams <dan.j.williams@intel.com>
-Acked-by: Tony Luck <tony.luck@intel.com>
-Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Jarkko Nikula <jarkko.nikula@linux.intel.com>
-Cc: Len Brown <lenb@kernel.org>
-Cc: linux-acpi@vger.kernel.org
-Cc: linux-arch@vger.kernel.org
-Cc: linux-mm <linux-mm@kvack.org>
-Cc: linux-nvdimm@lists.01.org
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Vishal Verma <vishal.l.verma@intel.com>
-Link: http://lkml.kernel.org/r/1452020081-26534-17-git-send-email-toshi.kani@hpe.com
-Signed-off-by: Borislav Petkov <bp@suse.de>
----
- drivers/acpi/apei/einj.c | 15 +++++++++++----
- 1 file changed, 11 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/acpi/apei/einj.c b/drivers/acpi/apei/einj.c
-index 0431883653be..559c1173de1c 100644
---- a/drivers/acpi/apei/einj.c
-+++ b/drivers/acpi/apei/einj.c
-@@ -519,7 +519,7 @@ static int einj_error_inject(u32 type, u32 flags, u64 param1, u64 param2,
- 			     u64 param3, u64 param4)
- {
- 	int rc;
--	unsigned long pfn;
-+	u64 base_addr, size;
- 
- 	/* If user manually set "flags", make sure it is legal */
- 	if (flags && (flags &
-@@ -545,10 +545,17 @@ static int einj_error_inject(u32 type, u32 flags, u64 param1, u64 param2,
- 	/*
- 	 * Disallow crazy address masks that give BIOS leeway to pick
- 	 * injection address almost anywhere. Insist on page or
--	 * better granularity and that target address is normal RAM.
-+	 * better granularity and that target address is normal RAM or
-+	 * NVDIMM.
- 	 */
--	pfn = PFN_DOWN(param1 & param2);
--	if (!page_is_ram(pfn) || ((param2 & PAGE_MASK) != PAGE_MASK))
-+	base_addr = param1 & param2;
-+	size = ~param2 + 1;
-+
-+	if (((param2 & PAGE_MASK) != PAGE_MASK) ||
-+	    ((region_intersects(base_addr, size, IORESOURCE_SYSTEM_RAM, IORES_DESC_NONE)
-+				!= REGION_INTERSECTS) &&
-+	     (region_intersects(base_addr, size, IORESOURCE_MEM, IORES_DESC_PERSISTENT_MEMORY)
-+				!= REGION_INTERSECTS)))
- 		return -EINVAL;
- 
- inject:
--- 
-2.3.5
+Thanks,
+Loc
