@@ -1,48 +1,116 @@
-From: Marc Zyngier <marc.zyngier-5wv7dgnIgG8@public.gmane.org>
-Subject: Re: [PATCH v4 1/2] acpi: Fix proper return code for function
- acpi_gsi_to_irq
-Date: Tue, 26 Jan 2016 08:31:39 +0000
-Message-ID: <56A72EEB.5040205@arm.com>
-References: <1453335459-3617-1-git-send-email-lho@apm.com>
- <1453335459-3617-2-git-send-email-lho@apm.com>
- <CAPw-ZTnm5F3Kt+_J6HoNCYbx8R7JVkME5yA9V-hAwRtr8ge9ZA@mail.gmail.com>
+From: Chen Fan <chen.fan.fnst@cn.fujitsu.com>
+Subject: Re: [PATCH v2] pci: fix unavailable irq number 255 reported by BIOS
+Date: Tue, 26 Jan 2016 17:45:46 +0800
+Message-ID: <56A7404A.8080205@cn.fujitsu.com>
+References: <1453705178-27389-1-git-send-email-chen.fan.fnst@cn.fujitsu.com> <20160125205803.GA10272@localhost> <alpine.DEB.2.11.1601260825510.3886@nanos>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAPw-ZTnm5F3Kt+_J6HoNCYbx8R7JVkME5yA9V-hAwRtr8ge9ZA-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Loc Ho <lho-qTEPVZfXA3Y@public.gmane.org>, Borislav Petkov <bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org>, Doug Thompson <dougthompson-aS9lmoZGLiVWk0Htik3J/w@public.gmane.org>, Mauro Carvalho Chehab <mchehab-JPH+aEBZ4P+UEJcrhfAQsw@public.gmane.org>, Tomasz Nowicki <tomasz.nowicki-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, Fu Wei <fu.wei-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: linux-edac <linux-edac-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "patches-qTEPVZfXA3Y@public.gmane.org" <patches-qTEPVZfXA3Y@public.gmane.org>, Tuan Phan <tphan-qTEPVZfXA3Y@public.gmane.org>
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.11.1601260825510.3886@nanos>
+Sender: linux-pci-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>, Bjorn Helgaas <helgaas@kernel.org>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, rjw@rjwysocki.net, lenb@kernel.org, izumi.taku@jp.fujitsu.com, wency@cn.fujitsu.com, caoj.fnst@cn.fujitsu.com, ddaney.cavm@gmail.com, okaya@codeaurora.org, bhelgaas@google.com, jiang.liu@linux.intel.com, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-Loc,
 
-On 25/01/16 21:23, Loc Ho wrote:
-> Hi,
-> 
-> On Wed, Jan 20, 2016 at 4:17 PM, Loc Ho <lho-qTEPVZfXA3Y@public.gmane.org> wrote:
->>
->> The function acpi_gsi_to_irq must return 0 on success as the caller
->> ghes_probe expects an 0 for success. This change also matches x86
->> implementation.
->>
->> Signed-off-by: Tuan Phan <tphan-qTEPVZfXA3Y@public.gmane.org>
->> Signed-off-by: Loc Ho <lho-qTEPVZfXA3Y@public.gmane.org>
-> 
-> 
-> Any issue with this version? If not, can this be pulled into 4.5?
+On 01/26/2016 04:26 PM, Thomas Gleixner wrote:
+> On Mon, 25 Jan 2016, Bjorn Helgaas wrote:
+>> On Mon, Jan 25, 2016 at 02:59:38PM +0800, Chen Fan wrote:
+>>> i801_smbus 0000:00:1f.3: PCI INT C: no GSI
+>>> i801_smbus 0000:00:1f.3: Failed to allocate irq 255: -16
+>>> i801_smbus: probe of 0000:00:1f.3 failed with error -16
+> The current code does not not fail when the interrupt request fails. It
+> reports it and clears the IRQ feature flag.
+>
+>>> @@ -436,7 +437,15 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
+>>>   	 * driver reported one, then use it. Exit in any case.
+>>>   	 */
+>>>   	if (gsi < 0) {
+>>> -		if (acpi_isa_register_gsi(dev))
+>>> +#ifdef CONFIG_X86
+>>> +		/*
+>>> +		 * The Interrupt Line value of 0xff is defined to mean "unknown"
+>>> +		 * or "no connection" (PCI 3.0, Section 6.2.4, footnote on page
+>>> +		 * 223), using ~0U as invalid IRQ.
+>>> +		 */
+> And why would this be x86 specific? PCI3.0 is architecture independent, right?
+quoting the spec document:
+"For x86 based PCs, the values in this register correspond to IRQ 
+numbers (0-15) of the standard dual
+8259 configuration. The value 255 is defined as meaning "unknown" or "no 
+connection" to the interrupt
+controller. Values between 15 and 254 are reserved."
 
-How is that 4.5 material? Does it fix an observable bug or a regression
-from a previous? If not, then this is probably to be postponed until
-4.6, together with the code that makes use of it.
+>
+>>> +		dev->irq = (dev->irq == 0xff) ? IRQ_INVALID : dev->irq;
+>> It's much simpler and clearer to write:
+>>
+>>    if (dev->irq == 0xff)
+>>      dev->irq = IRQ_INVALID;
+> I do not understand that IRQ_INVALID business at all.
+>
+>>> +#endif
+>>> +		if (!irq_is_valid(dev->irq) || acpi_isa_register_gsi(dev))
+>>>   			dev_warn(&dev->dev, "PCI INT %c: no GSI\n",
+>>>   				 pin_name(pin));
+>>>   
+> The existing code already drops into this place because
+> acpi_isa_register_gsi() fails.
+>
+>>> i801_smbus 0000:00:1f.3: PCI INT C: no GSI
+> What extra value does that !irq_is_valid() provide?
+>
+> And how does setting dev->irq to ~0U prevent that request_irq() is called in
+> the i801 device driver? Not at all, AFAICT. It will just fail with a different
+> error.
+>
+> So the whole 'fix' relies on the fact that irq ~0U does not exist (at least
+> not today) and therefor the false sharing with some other driver using irq 255
+> will not happen.
+>
+> Relying on undocumented behaviour is not a fix, that's voodoo programming.
+>
+> The proper solution here is to flag that this device does not have an
+> interrupt connected and act accordingly in the device driver, i.e. do not call
+> request_irq() in the first place.
+yes, this is what I thought in previous email, I has asked that
+whether we can use a broken_irq flag in pci_dev to mark the device irq 
+if invalid.
+and then if the device broken_irq set, we could directly skip call the 
+request_irq.
+maybe we can set the broken_irq in pci_read_irq if the irq is 0xff.
 
 Thanks,
+Chen
 
-	M.
--- 
-Jazz is not dead. It just smells funny...
---
-To unsubscribe from this list: send the line "unsubscribe devicetree" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>>> +static inline bool irq_is_valid(unsigned int irq)
+>>> +{
+>>> +#ifdef CONFIG_X86
+>>> +	if (irq == IRQ_INVALID)
+>>> +		return false;
+>>> +#endif
+>>> +	return true;
+>>> +}
+>> I don't like the x86 ifdef.  I'd prefer:
+>>
+>>    static inline bool irq_valid(unsigned int irq)
+>>    {
+>>      if (irq < NR_IRQS)
+>>        return true;
+>>      return false;
+>>    }
+>>
+>> This could be used in many of the places that currently use NR_IRQS.
+> No. NR_IRQS cannot be used at all if sparse irqs are enabled. Nothing in any
+> generic code is supposed to rely on NR_IRQS.
+>
+> Thanks,
+>
+> 	tglx
+>
+>
+>
+> .
+>
