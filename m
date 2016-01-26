@@ -1,61 +1,261 @@
-From: Mika Westerberg <mika.westerberg@linux.intel.com>
-Subject: [PATCH 0/4] spi: pxa2xx: Chip select fixes for Intel Baytrail and Braswell
-Date: Tue, 26 Jan 2016 13:18:27 +0200
-Message-ID: <1453807111-103111-1-git-send-email-mika.westerberg@linux.intel.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Mark Brown <broonie@kernel.org>
-Cc: Daniel Mack <daniel@zonque.org>, Haojian Zhuang <haojian.zhuang@gmail.com>, Robert Jarzmik <robert.jarzmik@free.fr>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Mika Westerberg <mika.westerberg@linux.intel.com>, Bastien Nocera <bugzilla@hadess.net>, linux-spi@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [PATCH] acpi: implement Generic Event Device
+Date: Tue, 26 Jan 2016 14:38:25 +0200
+Message-ID: <CAHp75Ve98Z3xOxSQMG5ncpGggj+jmBmnWvw0ROXwK=s6X9N_QQ@mail.gmail.com>
+References: <1453757387-28154-1-git-send-email-okaya@codeaurora.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-yk0-f176.google.com ([209.85.160.176]:34549 "EHLO
+	mail-yk0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933887AbcAZMi0 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Jan 2016 07:38:26 -0500
+In-Reply-To: <1453757387-28154-1-git-send-email-okaya@codeaurora.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Sinan Kaya <okaya@codeaurora.org>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, jcm@redhat.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Gross <agross@codeaurora.org>, linux-arm-msm@vger.kernel.org, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-It turns out that in Windows SPI drivers are responsible for handling ACPI
-DeviceSelection field themselves.  Furthermore there has been separate
-drivers for big core and atom SPI host controllers. For atom (including
-Baytrail and Braswell) the driver starts DeviceSelection from 1 instead of 0
-as expected by the Linux SPI core.
+On Mon, Jan 25, 2016 at 11:29 PM, Sinan Kaya <okaya@codeaurora.org> wrote:
 
-As an example Microsoft Surface 3 has touch screen connected to SPI bus
-described in ACPI DSDT like this:
+Few comments below.
 
-    Scope (_SB.PCI0.SPI1)
-    {
-        Device (NTRG)
-        {
-            Name (_HID, "MSHW0037")  // _HID: Hardware ID
-            ...
-            Name (CRS1, ResourceTemplate ()
-            {
-                SpiSerialBus (0x0001, // SPI DeviceSelection
-                    PolarityLow, FourWireMode, 0x10,
-                    ControllerInitiated, 0x007A1200, ClockPolarityLow,
-                    ClockPhaseFirst, "\\_SB.PCI0.SPI1",
-                    0x00, ResourceConsumer, ,
-                    )
+> Generic Event Device described in ACPI 6.1 allows platforms to handle
+> platform interrupts in ACPI ASL statements. It borrows constructs like
+> _EVT from GPIO events.
 
-This fails to enumerate because ACPI DeviceSelection of 1 is greater than
-number of chip selects the driver supports [1].
+Can it share code with gpiolib-acpi.c ? I see some duplication.
 
-This series adds a new hook to struct spi_master ->fw_translate_cs() that
-allows a driver to translate the chip select number from firmware to the
-numbering scheme expected by the Linux SPI core and implement that for both
-Baytrail and Braswell.
+> All interrupts are listed in _CRS and the handler
+> is written in _EVT method. Here is an example.
 
-In addition to that we add support for the second chip select found on
-Braswell.
 
-[1] https://bugzilla.kernel.org/show_bug.cgi?id=104291
+>
+> Device (GED0)
+> {
+>
+>         Name (_HID, "ACPI0013")
+>         Name (_UID, 0)
+>         Name(_CRS, ResourceTemplate ()
+>         {
+>                 Interrupt(ResourceConsumer, Edge, ActiveHigh, Shared, , , )
+>                  {123}
+>         })
+>
+>         Method (_EVT, 1) {
+>                 if (Lequal(123, Arg0))
+>                 {
+>                 }
+>         }
+> }
+>
+> Wake capability has not been implemented yet.
+>
+> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
+> ---
+>  drivers/acpi/Makefile |   1 +
+>  drivers/acpi/evged.c  | 162 ++++++++++++++++++++++++++++++++++++++++++++++++++
+>  2 files changed, 163 insertions(+)
+>  create mode 100644 drivers/acpi/evged.c
+>
+> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
+> index b5e7cd8..4dbb732 100644
+> --- a/drivers/acpi/Makefile
+> +++ b/drivers/acpi/Makefile
+> @@ -46,6 +46,7 @@ acpi-y                                += acpi_pnp.o
+>  acpi-y                         += int340x_thermal.o
+>  acpi-y                         += power.o
+>  acpi-y                         += event.o
+> +acpi-$(CONFIG_ACPI_REDUCED_HARDWARE_ONLY) += evged.o
+>  acpi-y                         += sysfs.o
+>  acpi-y                         += property.o
+>  acpi-$(CONFIG_X86)             += acpi_cmos_rtc.o
+> diff --git a/drivers/acpi/evged.c b/drivers/acpi/evged.c
+> new file mode 100644
+> index 0000000..a904676
+> --- /dev/null
+> +++ b/drivers/acpi/evged.c
+> @@ -0,0 +1,162 @@
+> +/*
+> + * Generic Event Device for ACPI.
+> + *
+> + * Copyright (c) 2016, The Linux Foundation. All rights reserved.
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 and
+> + * only version 2 as published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + *
+> + * Generic Event Device allows platforms to handle
+> + * interrupts in ACPI ASL statements. It follows very similar
+> + * _EVT method approach from GPIO events.
+> + * All interrupts are listed in _CRS and the handler
+> + * is written in _EVT method. Here is an example.
 
-Mika Westerberg (4):
-  spi: Let drivers translate ACPI DeviceSelection to suitable Linux chip select
-  spi: pxa2xx: Translate ACPI DeviceSelection to Linux chip select on Baytrail
-  spi: pxa2xx: Move chip select control bits into lpss_config structure
-  spi: pxa2xx: Add support for both chip selects on Intel Braswell
+Can it be wider on screen?
 
- drivers/spi/spi-pxa2xx.c   | 106 ++++++++++++++++++++++++++++++++++-----------
- drivers/spi/spi.c          |  19 +++++++-
- include/linux/pxa2xx_ssp.h |   1 +
- include/linux/spi/spi.h    |   5 +++
- 4 files changed, 105 insertions(+), 26 deletions(-)
+> + *
+> + * Device (GED0)
+> + * {
+> + *
+> + *     Name (_HID, "ACPI0013")
+> + *     Name (_UID, 0)
+> + *     Method (_CRS, 0x0, Serialized)
+> + *     {
+> + *             Name (RBUF, ResourceTemplate ()
+> + *             {
+> + *             Interrupt(ResourceConsumer, Edge, ActiveHigh, Shared, , , )
+> + *             {123}
+> + *             }
+> + *     })
+> + *
+> + *     Method (_EVT, 1) {
+> + *             if (Lequal(123, Arg0))
+> + *             {
+> + *             }
+> + *     }
+> + * }
+> + *
+> + */
+> +
+> +#include <linux/err.h>
+> +#include <linux/init.h>
+> +#include <linux/interrupt.h>
+> +#include <linux/list.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/acpi.h>
+> +
+> +#define MODULE_NAME    "acpi-ged"
+> +
+> +struct acpi_ged_event {
+> +       struct list_head node;
+> +       struct device *dev;
+> +       unsigned int gsi;
+> +       unsigned int irq;
+> +       acpi_handle handle;
+> +};
+> +
+> +static irqreturn_t acpi_ged_irq_handler(int irq, void *data)
+> +{
+> +       struct acpi_ged_event *event = data;
+> +       acpi_status acpi_ret;
+> +
+> +       acpi_ret = acpi_execute_simple_method(event->handle, NULL, event->gsi);
+> +       if (ACPI_FAILURE(acpi_ret))
+> +               dev_err_once(event->dev, "IRQ method execution failed\n");
+> +
+> +       return IRQ_HANDLED;
+> +}
+> +
+> +static acpi_status acpi_ged_request_interrupt(struct acpi_resource *ares,
+> +                                             void *context)
+> +{
+> +       struct acpi_ged_event *event;
+> +       unsigned int irq;
+> +       unsigned int gsi;
+> +       unsigned int irqflags = IRQF_ONESHOT;
+> +       struct device *dev = context;
+> +       acpi_handle handle = ACPI_HANDLE(dev);
+> +       acpi_handle evt_handle;
+> +       struct resource r;
+> +       struct acpi_resource_irq *p = &ares->data.irq;
+> +       struct acpi_resource_extended_irq *pext = &ares->data.extended_irq;
+> +
+> +       if (ares->type == ACPI_RESOURCE_TYPE_END_TAG)
+> +               return AE_OK;
+> +
+> +       if (!acpi_dev_resource_interrupt(ares, 0, &r)) {
+> +               dev_err(dev, "unable to parse IRQ resource\n");
+> +               return AE_ERROR;
+> +       }
+> +       if (ares->type == ACPI_RESOURCE_TYPE_IRQ)
+> +               gsi = p->interrupts[0];
+> +       else
+> +               gsi = pext->interrupts[0];
+> +
+> +       irq = r.start;
+> +
+> +       if (ACPI_FAILURE(acpi_get_handle(handle, "_EVT", &evt_handle))) {
+> +               dev_err(dev, "cannot locate _EVT method\n");
+> +               return AE_ERROR;
+> +       }
+> +
+> +       dev_info(dev, "GED listening GSI %u @ IRQ %u\n", gsi, irq);
+
+
+
+> +
+> +       event = devm_kzalloc(dev, sizeof(*event), GFP_KERNEL);
+> +       if (!event)
+> +               return AE_ERROR;
+> +
+> +       event->gsi = gsi;
+> +       event->dev = dev;
+> +       event->irq = irq;
+> +       event->handle = evt_handle;
+> +
+> +       if (r.flags & IORESOURCE_IRQ_SHAREABLE)
+> +               irqflags |= IRQF_SHARED;
+> +
+> +       if (devm_request_threaded_irq(dev, irq, NULL, acpi_ged_irq_handler,
+> +                                     irqflags, "ACPI:Ged", event)) {
+> +               dev_err(dev, "failed to setup event handler for irq %u\n", irq);
+> +               return AE_ERROR;
+> +       }
+
+The above part is clearly belongs to ged_probe().
+
+> +
+> +       return AE_OK;
+> +}
+> +
+> +static int ged_probe(struct platform_device *pdev)
+> +{
+> +       acpi_status acpi_ret;
+> +
+> +       acpi_ret = acpi_walk_resources(ACPI_HANDLE(&pdev->dev), "_CRS",
+> +                                      acpi_ged_request_interrupt, &pdev->dev);
+> +       if (ACPI_FAILURE(acpi_ret)) {
+> +               dev_err(&pdev->dev, "unable to parse the _CRS record\n");
+> +               return -EINVAL;
+> +       }
+> +
+> +       return 0;
+> +}
+> +
+> +static const struct acpi_device_id ged_acpi_ids[] = {
+> +       {"ACPI0013"},
+> +       {},
+> +};
+> +
+> +static struct platform_driver ged_driver = {
+> +       .probe = ged_probe,
+> +       .driver = {
+> +               .name = MODULE_NAME,
+
+> +               .owner = THIS_MODULE,
+
+Do you need this one?
+
+
+> +               .acpi_match_table = ACPI_PTR(ged_acpi_ids),
+> +       },
+> +};
+> +
+> +static int __init ged_init(void)
+> +{
+> +       return platform_driver_register(&ged_driver);
+> +}
+> +
+
+> +subsys_initcall(ged_init);
+
+Any specific reason to have on that level?
 
 -- 
-2.7.0.rc3
+With Best Regards,
+Andy Shevchenko
