@@ -1,202 +1,137 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: [PATCH] acpi: implement Generic Event Device
-Date: Tue, 26 Jan 2016 08:49:11 -0500
-Message-ID: <56A77957.3050500@codeaurora.org>
-References: <1453757387-28154-1-git-send-email-okaya@codeaurora.org>
- <CAHp75Ve98Z3xOxSQMG5ncpGggj+jmBmnWvw0ROXwK=s6X9N_QQ@mail.gmail.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH v2] pci: fix unavailable irq number 255 reported by BIOS
+Date: Tue, 26 Jan 2016 09:22:21 -0600
+Message-ID: <20160126152221.GB9279@localhost>
+References: <1453705178-27389-1-git-send-email-chen.fan.fnst@cn.fujitsu.com>
+ <20160125205803.GA10272@localhost>
+ <alpine.DEB.2.11.1601260825510.3886@nanos>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:40482 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964992AbcAZNtR (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Jan 2016 08:49:17 -0500
-In-Reply-To: <CAHp75Ve98Z3xOxSQMG5ncpGggj+jmBmnWvw0ROXwK=s6X9N_QQ@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.11.1601260825510.3886@nanos>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Chen Fan <chen.fan.fnst@cn.fujitsu.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, rjw@rjwysocki.net, lenb@kernel.org, izumi.taku@jp.fujitsu.com, wency@cn.fujitsu.com, caoj.fnst@cn.fujitsu.com, ddaney.cavm@gmail.com, okaya@codeaurora.org, bhelgaas@google.com, jiang.liu@linux.intel.com, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Andy Shevchenko <andy.shevchenko@gmail.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, Timur Tabi <timur@codeaurora.org>, Christopher Covington <cov@codeaurora.org>, jcm@redhat.com, Andy Gross <agross@codeaurora.org>, linux-arm-msm@vger.kernel.org, linux-arm Mailing List <linux-arm-kernel@lists.infradead.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
 
-On 1/26/2016 7:38 AM, Andy Shevchenko wrote:
-> On Mon, Jan 25, 2016 at 11:29 PM, Sinan Kaya <okaya@codeaurora.org> wrote:
+On Tue, Jan 26, 2016 at 09:26:29AM +0100, Thomas Gleixner wrote:
+> On Mon, 25 Jan 2016, Bjorn Helgaas wrote:
+> > On Mon, Jan 25, 2016 at 02:59:38PM +0800, Chen Fan wrote:
 > 
-> Few comments below.
+> > > i801_smbus 0000:00:1f.3: PCI INT C: no GSI
+> > > i801_smbus 0000:00:1f.3: Failed to allocate irq 255: -16
+> > > i801_smbus: probe of 0000:00:1f.3 failed with error -16
 > 
->> Generic Event Device described in ACPI 6.1 allows platforms to handle
->> platform interrupts in ACPI ASL statements. It borrows constructs like
->> _EVT from GPIO events.
+> The current code does not not fail when the interrupt request fails. It
+> reports it and clears the IRQ feature flag.
 > 
-> Can it share code with gpiolib-acpi.c ? I see some duplication.
+> > > @@ -436,7 +437,15 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
+> > >  	 * driver reported one, then use it. Exit in any case.
+> > >  	 */
+> > >  	if (gsi < 0) {
+> > > -		if (acpi_isa_register_gsi(dev))
+> > > +#ifdef CONFIG_X86
+> > > +		/*
+> > > +		 * The Interrupt Line value of 0xff is defined to mean "unknown"
+> > > +		 * or "no connection" (PCI 3.0, Section 6.2.4, footnote on page
+> > > +		 * 223), using ~0U as invalid IRQ.
+> > > +		 */
+> 
+> And why would this be x86 specific? PCI3.0 is architecture independent, right?
 
-The interrupt registration mechanism could be made common but they have their own
-data structure types. 
+Yes, PCI is mostly arch-independent, but Interrupt Line is
+arch-specific, and the corner case of it being 255 is only mentioned
+in an x86-specific footnote.  We can improve the comment.
 
-Can Rafael think of any higher level API like acpi_dev_resource_interrupt below?
+> > > +		dev->irq = (dev->irq == 0xff) ? IRQ_INVALID : dev->irq;
+> > 
+> > It's much simpler and clearer to write:
+> > 
+> >   if (dev->irq == 0xff)
+> >     dev->irq = IRQ_INVALID;
+> 
+> I do not understand that IRQ_INVALID business at all.
+> 
+> > > +#endif
+> > > +		if (!irq_is_valid(dev->irq) || acpi_isa_register_gsi(dev))
+> > >  			dev_warn(&dev->dev, "PCI INT %c: no GSI\n",
+> > >  				 pin_name(pin));
+> > >  
+> 
+> The existing code already drops into this place because 
+> acpi_isa_register_gsi() fails.
+> 
+> > > i801_smbus 0000:00:1f.3: PCI INT C: no GSI
+> 
+> What extra value does that !irq_is_valid() provide?
+> 
+> And how does setting dev->irq to ~0U prevent that request_irq() is called in
+> the i801 device driver? Not at all, AFAICT. It will just fail with a different
+> error.
+> 
+> So the whole 'fix' relies on the fact that irq ~0U does not exist (at least
+> not today) and therefor the false sharing with some other driver using irq 255
+> will not happen.
+> 
+> Relying on undocumented behaviour is not a fix, that's voodoo programming.
+> 
+> The proper solution here is to flag that this device does not have an
+> interrupt connected and act accordingly in the device driver, i.e. do not call
+> request_irq() in the first place.
 
-> 
->> All interrupts are listed in _CRS and the handler
->> is written in _EVT method. Here is an example.
-> 
-> 
->>
->> Device (GED0)
->> {
->>
->>         Name (_HID, "ACPI0013")
->>         Name (_UID, 0)
->>         Name(_CRS, ResourceTemplate ()
->>         {
->>                 Interrupt(ResourceConsumer, Edge, ActiveHigh, Shared, , , )
->>                  {123}
->>         })
->>
->>         Method (_EVT, 1) {
->>                 if (Lequal(123, Arg0))
->>                 {
->>                 }
->>         }
->> }
->>
->> Wake capability has not been implemented yet.
->>
->> Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
->> ---
->>  drivers/acpi/Makefile |   1 +
->>  drivers/acpi/evged.c  | 162 ++++++++++++++++++++++++++++++++++++++++++++++++++
->>  2 files changed, 163 insertions(+)
->>  create mode 100644 drivers/acpi/evged.c
->>
->> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
->> index b5e7cd8..4dbb732 100644
->> --- a/drivers/acpi/Makefile
->> +++ b/drivers/acpi/Makefile
->> @@ -46,6 +46,7 @@ acpi-y                                += acpi_pnp.o
->>  acpi-y                         += int340x_thermal.o
->>  acpi-y                         += power.o
->>  acpi-y                         += event.o
->> +acpi-$(CONFIG_ACPI_REDUCED_HARDWARE_ONLY) += evged.o
->>  acpi-y                         += sysfs.o
->>  acpi-y                         += property.o
->>  acpi-$(CONFIG_X86)             += acpi_cmos_rtc.o
->> diff --git a/drivers/acpi/evged.c b/drivers/acpi/evged.c
->> new file mode 100644
->> index 0000000..a904676
->> --- /dev/null
->> +++ b/drivers/acpi/evged.c
->> @@ -0,0 +1,162 @@
->> +/*
->> + * Generic Event Device for ACPI.
->> + *
->> + * Copyright (c) 2016, The Linux Foundation. All rights reserved.
->> + *
->> + * This program is free software; you can redistribute it and/or modify
->> + * it under the terms of the GNU General Public License version 2 and
->> + * only version 2 as published by the Free Software Foundation.
->> + *
->> + * This program is distributed in the hope that it will be useful,
->> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
->> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
->> + * GNU General Public License for more details.
->> + *
->> + * Generic Event Device allows platforms to handle
->> + * interrupts in ACPI ASL statements. It follows very similar
->> + * _EVT method approach from GPIO events.
->> + * All interrupts are listed in _CRS and the handler
->> + * is written in _EVT method. Here is an example.
-> 
-> Can it be wider on screen?
-> 
-sure
+This is the crux of the problem.  As far as I know, PCI doesn't have
+a flag to indicate that dev->irq is a wire that's not connected, so
+there's no generic way for a driver to know whether it should call
+request_irq().
 
-> 
->> +
->> +       event = devm_kzalloc(dev, sizeof(*event), GFP_KERNEL);
->> +       if (!event)
->> +               return AE_ERROR;
->> +
->> +       event->gsi = gsi;
->> +       event->dev = dev;
->> +       event->irq = irq;
->> +       event->handle = evt_handle;
->> +
->> +       if (r.flags & IORESOURCE_IRQ_SHAREABLE)
->> +               irqflags |= IRQF_SHARED;
->> +
->> +       if (devm_request_threaded_irq(dev, irq, NULL, acpi_ged_irq_handler,
->> +                                     irqflags, "ACPI:Ged", event)) {
->> +               dev_err(dev, "failed to setup event handler for irq %u\n", irq);
->> +               return AE_ERROR;
->> +       }
-> 
-> The above part is clearly belongs to ged_probe().
-> 
+We could add one, of course, but that only helps in the drivers we
+update.  It'd be nice if we could figure out a way to fix this
+without having to touch all the drivers.
 
-It depends. The implementation needs to find all the interrupt entries in _CRS. That's why, 
-the interrupt registration is done inside the ACPI callback.
+I think any driver that uses line-based interrupts can potentially
+fail if the platform uses Interrupt Line == 255 to indicate that the
+line is not connected.  If another driver happens to be using IRQ 255,
+request_irq() may fail as it does here.  Otherwise, I suspect
+request_irq() will return success, but the driver won't get any
+interrupts.
 
-I originally tried using the platform_get_irq() method rather than walking the ACPI resources. 
-Any resource listed in _CRS is accessible via standard platform API. However, I couldn't obtain 
-the shareability and other edge/level attributes through the standard APIs. Most drivers I have 
-seen hardcode this information when calling devm_request_threaded_irq function.
+> > I don't like the x86 ifdef.  I'd prefer:
+> > 
+> >   static inline bool irq_valid(unsigned int irq)
+> >   {
+> >     if (irq < NR_IRQS)
+> >       return true;
+> >     return false;
+> >   }
+> >
+> > This could be used in many of the places that currently use NR_IRQS.
+> 
+> No. NR_IRQS cannot be used at all if sparse irqs are enabled. 
 
-Here, the type of interrupt is declared in the ACPI and the registration is done based on passed
-attributes.
+Ah, thanks, this is a critical piece I missed.  There *are* a few
+places where we do define or use NR_IRQS when CONFIG_SPARSE_IRQ=y.  Do
+these need updates?
 
->> +
->> +       return AE_OK;
->> +}
->> +
->> +static int ged_probe(struct platform_device *pdev)
->> +{
->> +       acpi_status acpi_ret;
->> +
->> +       acpi_ret = acpi_walk_resources(ACPI_HANDLE(&pdev->dev), "_CRS",
->> +                                      acpi_ged_request_interrupt, &pdev->dev);
->> +       if (ACPI_FAILURE(acpi_ret)) {
->> +               dev_err(&pdev->dev, "unable to parse the _CRS record\n");
->> +               return -EINVAL;
->> +       }
->> +
->> +       return 0;
->> +}
->> +
->> +static const struct acpi_device_id ged_acpi_ids[] = {
->> +       {"ACPI0013"},
->> +       {},
->> +};
->> +
->> +static struct platform_driver ged_driver = {
->> +       .probe = ged_probe,
->> +       .driver = {
->> +               .name = MODULE_NAME,
-> 
->> +               .owner = THIS_MODULE,
-> 
-> Do you need this one?
+  include/asm-generic/irq.h defines NR_IRQS if not defined yet
+  arch/arm/include/asm/irq.h defines NR_IRQS to NR_IRQS_LEGACY
+  arch/arm/kernel/irq.c uses NR_IRQS
+  arch/sh/include/asm/irq.h defines NR_IRQS to 8
+  kernel/irq/internals.h uses NR_IRQS to define IRQ_BITMAP_BITS
 
-I'll get rid of it.
+> Nothing in any
+> generic code is supposed to rely on NR_IRQS.
 
-> 
-> 
->> +               .acpi_match_table = ACPI_PTR(ged_acpi_ids),
->> +       },
->> +};
->> +
->> +static int __init ged_init(void)
->> +{
->> +       return platform_driver_register(&ged_driver);
->> +}
->> +
-> 
->> +subsys_initcall(ged_init);
-> 
-> Any specific reason to have on that level?
-> 
+I guess that means these uses are suspect:
 
-changed to module_platform_driver(ged_driver); 
+  $ git grep -w NR_IRQS | grep -v "^arch" | grep -v "^kernel" | grep -v "^drivers/irqchip" | grep -v "^include"
+  drivers/input/keyboard/lpc32xx-keys.c:	if (irq < 0 || irq >= NR_IRQS) {
+  drivers/mtd/nand/lpc32xx_mlc.c:	if ((host->irq < 0) || (host->irq >= NR_IRQS)) {
+  drivers/net/hamradio/scc.c:static struct irqflags { unsigned char used : 1; } Ivec[NR_IRQS];
+  drivers/pcmcia/pcmcia_resource.c:		if (irq > NR_IRQS)
+  drivers/tty/serial/apbuart.c:	if (ser->irq < 0 || ser->irq >= NR_IRQS)
+  drivers/tty/serial/ar933x_uart.c:	if (ser->irq < 0 || ser->irq >= NR_IRQS)
+  drivers/tty/serial/lantiq.c:	if (ser->irq < 0 || ser->irq >= NR_IRQS)
+  drivers/tty/serial/m32r_sio.c:static struct irq_info irq_lists[NR_IRQS];
 
--- 
-Sinan Kaya
-Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
+Bjorn
