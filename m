@@ -1,49 +1,76 @@
 From: Hanjun Guo <guohanjun@huawei.com>
-Subject: Re: [PATCH v3 08/12] arm64, numa: rework numa_add_memblk()
-Date: Wed, 27 Jan 2016 14:20:11 +0800
-Message-ID: <56A8619B.9010602@huawei.com>
+Subject: Re: [PATCH v3 05/12] arm64, acpi, numa: NUMA support based on SRAT
+ and SLIT
+Date: Wed, 27 Jan 2016 15:12:15 +0800
+Message-ID: <56A86DCF.1020205@huawei.com>
 References: <1453541967-3744-1-git-send-email-guohanjun@huawei.com>
- <1453541967-3744-9-git-send-email-guohanjun@huawei.com>
- <20160125093429.GD24726@rric.localdomain>
+ <1453541967-3744-6-git-send-email-guohanjun@huawei.com>
+ <20160125102148.GE24726@rric.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="windows-1252"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga03-in.huawei.com ([119.145.14.66]:27423 "EHLO
-	szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751867AbcA0GYg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Jan 2016 01:24:36 -0500
-In-Reply-To: <20160125093429.GD24726@rric.localdomain>
+Received: from szxga02-in.huawei.com ([119.145.14.65]:31284 "EHLO
+	szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751386AbcA0HMp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Jan 2016 02:12:45 -0500
+In-Reply-To: <20160125102148.GE24726@rric.localdomain>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: Robert Richter <robert.richter@caviumnetworks.com>
 Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Shannon Zhao <shannon.zhao@linaro.org>, Steve Capper <steve.capper@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>
 
-On 2016/1/25 17:34, Robert Richter wrote:
-> On 23.01.16 17:39:23, Hanjun Guo wrote:
->> Rework numa_add_memblk() to update the parameter "u64 size"
->> to "u64 end", this will make it consistent with x86 and
->> can simplify the code later.
->> --- a/arch/arm64/kernel/of_numa.c
->> +++ b/arch/arm64/kernel/of_numa.c
->> @@ -168,7 +168,7 @@ static int __init early_init_parse_memory_node(unsigned long node)
->>  		pr_debug("NUMA-DT:  base = %llx , node = %u\n",
->>  				base, nid);
->>  
->> -		if (numa_add_memblk(nid, base, size) < 0)
->> +		if (numa_add_memblk(nid, base, base + size) < 0)
-> The overall function usage looks more like as it should use size
-> instead of end. Even in the x86 implementation end is calculated from
-> base + size. So better change x86 code to use size instead.
+On 2016/1/25 18:21, Robert Richter wrote:
+> On 23.01.16 17:39:20, Hanjun Guo wrote:
+>> diff --git a/arch/arm64/kernel/acpi_numa.c b/arch/arm64/kernel/acpi_numa.c
+>> new file mode 100644
+>> index 0000000..f7f7533
+>> --- /dev/null
+>> +++ b/arch/arm64/kernel/acpi_numa.c
+>> +/* Callback for parsing of the Proximity Domain <-> Memory Area mappings */
+>> +int __init acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
+>> +{
+>> +	u64 start, end;
+>> +	int node, pxm;
+>> +
+>> +	if (srat_disabled())
+>> +		return -EINVAL;
+>> +
+>> +	if (ma->header.length != sizeof(struct acpi_srat_mem_affinity)) {
+> Must be:
 >
-> Though this might involve to change the interface for
-> numa_add_memblk_to() for unifcation too.
+> 	ma->header.length < sizeof(struct acpi_srat_mem_affinity)) {
 >
+> Allow extensions to struct acpi_srat_mem_affinity in newer versions.
 
-This should be a minor one, I'm fine with both directions, I will
-stay for a few days to get more review comments, if no objections,
-I will update.
+Hmm, I think we need to remove the check here now.
 
-Thanks
+There are three cases:
+
+ - firmware ACPI version is consistent with the ACPICA one, then
+   ma->header.length == sizeof(struct acpi_srat_mem_affinity )
+
+ - firmware ACPI version is not consistent with the ACPICA one,
+   for example, struct acpi_srat_mem_affinity is extended in
+   new ACI version, but the formware is using the older one,
+  then it's ok to use
+  ma->header.length < sizeof(struct acpi_srat_mem_affinity )
+
+ - but if we use the older kernel + updated new firmware,
+   then
+   ma->header.length > sizeof(struct acpi_srat_mem_affinity )
+  will be the case, right?
+
+>
+>> +		bad_srat();
+>> +		return -EINVAL;
+> We need a pr_err() here to avoid that numa setup fails silently due to
+> bad fw. This applies to all error paths.
+>
+> See my delta patch below. You can merge it with your patch.
+
+Thanks! I wil merge it into next version.
+
 Hanjun
+
 
