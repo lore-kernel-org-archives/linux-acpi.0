@@ -1,71 +1,70 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v3] ARM64: kernel: implement ACPI parking protocol
-Date: Wed, 27 Jan 2016 11:51:26 +0000
-Message-ID: <20160127115126.GB9522@red-moon>
-References: <1453806638-23167-1-git-send-email-lorenzo.pieralisi@arm.com>
- <CAPw-ZTk=BbXAPgWAV=3Np0qvLA+i+U5eh+nxHS=2uMjKohdUfA@mail.gmail.com>
+From: Aleksey Makarov <aleksey.makarov@linaro.org>
+Subject: Re: [PATCH 0/3] ACPI: parse the SPCR table
+Date: Wed, 27 Jan 2016 15:17:52 +0300
+Message-ID: <56A8B570.2060501@linaro.org>
+References: <1453722324-22407-1-git-send-email-aleksey.makarov@linaro.org>
+ <56A6494E.3090303@hurleysoftware.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:51975 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754099AbcA0Ltg (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 27 Jan 2016 06:49:36 -0500
-Content-Disposition: inline
-In-Reply-To: <CAPw-ZTk=BbXAPgWAV=3Np0qvLA+i+U5eh+nxHS=2uMjKohdUfA@mail.gmail.com>
+Received: from mail-lf0-f50.google.com ([209.85.215.50]:35735 "EHLO
+	mail-lf0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751030AbcA0MWV (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Jan 2016 07:22:21 -0500
+Received: by mail-lf0-f50.google.com with SMTP id c192so4796515lfe.2
+        for <linux-acpi@vger.kernel.org>; Wed, 27 Jan 2016 04:22:20 -0800 (PST)
+In-Reply-To: <56A6494E.3090303@hurleysoftware.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Loc Ho <lho@apm.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-acpi@vger.kernel.org, Will Deacon <will.deacon@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Mark Rutland <mark.rutland@arm.com>, Mark Salter <msalter@redhat.com>, Al Stone <ahs3@redhat.com>
+To: Peter Hurley <peter@hurleysoftware.com>, linux-acpi@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org, Graeme Gregory <graeme.gregory@linaro.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>
 
-On Tue, Jan 26, 2016 at 03:13:30PM -0800, Loc Ho wrote:
-> Hi Lorenzo,
-> 
-> On Tue, Jan 26, 2016 at 3:10 AM, Lorenzo Pieralisi
-> <lorenzo.pieralisi@arm.com> wrote:
-> > The SBBR and ACPI specifications allow ACPI based systems that do not
-> > implement PSCI (eg systems with no EL3) to boot through the ACPI parking
-> > protocol specification[1].
-> >
-> > This patch implements the ACPI parking protocol CPU operations, and adds
-> > code that eases parsing the parking protocol data structures to the
-> > ARM64 SMP initializion carried out at the same time as cpus enumeration.
-> >
-> > To wake-up the CPUs from the parked state, this patch implements a
-> > wakeup IPI for ARM64 (ie arch_send_wakeup_ipi_mask()) that mirrors the
-> > ARM one, so that a specific IPI is sent for wake-up purpose in order
-> > to distinguish it from other IPI sources.
-> >
-> > Given the current ACPI MADT parsing API, the patch implements a glue
-> > layer that helps passing MADT GICC data structure from SMP initialization
-> > code to the parking protocol implementation somewhat overriding the CPU
-> > operations interfaces. This to avoid creating a completely trasparent
-> > DT/ACPI CPU operations layer that would require creating opaque
-> > structure handling for CPUs data (DT represents CPU through DT nodes, ACPI
-> > through static MADT table entries), which seems overkill given that ACPI
-> > on ARM64 mandates only two booting protocols (PSCI and parking protocol),
-> > so there is no need for further protocol additions.
-> >
-> > Based on the original work by Mark Salter <msalter@redhat.com>
-> >
-> > [1] https://acpica.org/sites/acpica/files/MP%20Startup%20for%20ARM%20platforms.docx
-> >
-> > Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> > Cc: Will Deacon <will.deacon@arm.com>
-> > Cc: Hanjun Guo <hanjun.guo@linaro.org>
-> > Cc: Loc Ho <lho@apm.com>
-> > Cc: Sudeep Holla <sudeep.holla@arm.com>
-> > Cc: Catalin Marinas <catalin.marinas@arm.com>
-> > Cc: Mark Rutland <mark.rutland@arm.com>
-> > Cc: Mark Salter <msalter@redhat.com>
-> > Cc: Al Stone <ahs3@redhat.com>
-> 
-> I had tested this with X-Gene Mustang board. It applies cleanly
-> against 4.5.0-rc1 and detected all CPU's. For those of you want to try
-> this, you need an FW update if you are using APM Tianocore. Otherwise,
-> it will stuck in very early booting stage.
 
-We can take this as a Tested-by, right ?
 
-Thanks,
-Lorenzo
+On 01/25/2016 07:11 PM, Peter Hurley wrote:
+> On 01/25/2016 03:45 AM, Aleksey Makarov wrote:
+>> This patchset is based on the patchset by Leif Lindholm [1]
+>>
+>> 'ARM Server Base Boot Requirements' [2] mention SPCR=20
+>> (Serial Port Console Redirection Table) [3] as a mandatory
+>> ACPI table that specifies the configuration of serial console.
+>>
+>> Licensing concerns have prevented implementing it in the past, but a=
+s of
+>> 10 August 2015, these tables have both been released also under=20
+>> OWF 1.0 [4].
+>=20
+> This license has a patent retaliation provision, which makes it
+> incompatible with GPLv2.
+>=20
+> *If the license applies to this code*, then this patch set does not
+> meet the criteria for submission.
+
+The license applies not to this code but to the document describing the=
+ tables.
+
+Here is an excerpt from it:
+
+  Patent Notice:
+  Microsoft is making certain patent rights available for implementatio=
+ns of this specification under two options:
+  1)  Microsoft=E2=80=99s Community Promise, available at
+  http://www.microsoft.com/openspecifications/en/us/programs/community-=
+promise/default.aspx; or
+  2)  The Open Web Foundation Final Specification Agreement Version 1.0=
+ ("OWF 1.0")
+  as of October 1, 2012, available at http://www.openwebfoundation.org/=
+legal/the-owf-1-0-agreements/owfa-1-0.=20
+
+I believe that it means that the patch set meets the criteria for submi=
+ssion.  Am I right?
+
+Thank you
+Aleksey Makarov
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
+n
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
