@@ -1,88 +1,74 @@
-From: Hanjun Guo <guohanjun@huawei.com>
-Subject: Re: [PATCH v3 05/12] arm64, acpi, numa: NUMA support based on SRAT
- and SLIT
-Date: Thu, 28 Jan 2016 11:16:34 +0800
-Message-ID: <56A98812.4060506@huawei.com>
-References: <1453541967-3744-1-git-send-email-guohanjun@huawei.com>
- <1453541967-3744-6-git-send-email-guohanjun@huawei.com>
- <20160125102148.GE24726@rric.localdomain> <56A86DCF.1020205@huawei.com>
- <20160127140109.GQ24726@rric.localdomain>
+From: "Laison Computech Inc" <danny@lamicro.com>
+Subject: NEW ARRIVALS, CISCO,CPU's,Memory, LAPTOP AND AVAYA
+Date: Wed, 27 Jan 2016 12:41:51 +0700
+Message-ID: <201601270544.AQX06493@razorgate1.infokom.net>
+Reply-To: <LaisonComputer@computer4u.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
+Content-Type: text/plain;
+	charset="Windows-1251"
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga03-in.huawei.com ([119.145.14.66]:32010 "EHLO
-	szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933401AbcA1DQz (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Jan 2016 22:16:55 -0500
-In-Reply-To: <20160127140109.GQ24726@rric.localdomain>
+Received: from razorgate1.infokom.net ([202.147.192.101]:12251 "EHLO
+	razorgate1.infokom.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161368AbcA1DXp (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Jan 2016 22:23:45 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Robert Richter <robert.richter@caviumnetworks.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Shannon Zhao <shannon.zhao@linaro.org>, Steve Capper <steve.capper@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>
 
-On 2016/1/27 22:01, Robert Richter wrote:
-> On 27.01.16 15:12:15, Hanjun Guo wrote:
->> On 2016/1/25 18:21, Robert Richter wrote:
->>> On 23.01.16 17:39:20, Hanjun Guo wrote:
->>>> diff --git a/arch/arm64/kernel/acpi_numa.c b/arch/arm64/kernel/acpi_numa.c
->>>> new file mode 100644
->>>> index 0000000..f7f7533
->>>> --- /dev/null
->>>> +++ b/arch/arm64/kernel/acpi_numa.c
->>>> +/* Callback for parsing of the Proximity Domain <-> Memory Area mappings */
->>>> +int __init acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
->>>> +{
->>>> +	u64 start, end;
->>>> +	int node, pxm;
->>>> +
->>>> +	if (srat_disabled())
->>>> +		return -EINVAL;
->>>> +
->>>> +	if (ma->header.length != sizeof(struct acpi_srat_mem_affinity)) {
->>> Must be:
->>>
->>> 	ma->header.length < sizeof(struct acpi_srat_mem_affinity)) {
->>>
->>> Allow extensions to struct acpi_srat_mem_affinity in newer versions.
->> Hmm, I think we need to remove the check here now.
-> No, we might have an out-of-bound access then.
->
->> There are three cases:
->>
->>  - firmware ACPI version is consistent with the ACPICA one, then
->>    ma->header.length == sizeof(struct acpi_srat_mem_affinity )
->>
->>  - firmware ACPI version is not consistent with the ACPICA one,
->>    for example, struct acpi_srat_mem_affinity is extended in
->>    new ACI version, but the formware is using the older one,
->>   then it's ok to use
->>   ma->header.length < sizeof(struct acpi_srat_mem_affinity )
-> The check above is ok as we need at least struct
-> acpi_srat_mem_affinity as it is now.
->
-> If we later change the kernel to support multiple versions of struct
-> acpi_srat_mem_affinity, i.e. use data from an extended section, we
-> will need to add code to handle that. This will include support of
-> data with length < acpi_srat_mem_affinity, in this case we may not use
-> extended data.
+Dear Sir/Madam,
 
-I checked the ACPI spec about memory affinity structure, it still have 10 bytes
-reserved for future use, so I think it's safe as you suggested for next few years.
+Clean tested working pulls CPUs and QTYs in stock.
 
->
->>  - but if we use the older kernel + updated new firmware,
->>    then
->>    ma->header.length > sizeof(struct acpi_srat_mem_affinity )
->>   will be the case, right?
-> Right, and this is a valid case not resulting in an error with my
-> suggestion above.
+115  X   X5650
+65  X   E5410
+75  X   X5660
+145  X   E5530
+100  X   E5645
+40  X   X5680
+75  X   X5690
 
-Yes, I just mixed up those two cases.
+Brand new sealed  IP phones and QTYs in stock.
 
-I will sync with Ganapat to prepare a new version and test it on x86 and
-IA64 to make sure this patch set don't break anything.
+55 x CP-7937G
+77 x CP-7942G
+54 x CP-7945G
+75 x CP-7962G
+......
+45 x Avaya 9630
+65 x Avaya 9641
+55 x Avaya 9640
 
-Thanks
-Hanjun
+All NIB.
 
+Here is our current stock list.
+
+ SSD drives and 750 gig 2.5" sata drives
+
+We also have
+250 x i5 dell
+133 x HP
+360 x Lenevo
+all grade A
+
+Here is the qty in stock for laptops
+ 
+150 x E6500 Dell Latitude E6500 Core 2 Duo 2.80GHz T9600 4GB 160GB DVD+/-RW Win 7
+ 60 x E6510 Dell Ltitude E6510. 15.6" Intel Core i5- M520 @ 2.40GHz. 4GB. 320GB DVD+/-RW Win 7
+30 X 8530P HP EliteBook 8530p 15.4" Laptop 2.53GHz Core 2 Duo T9400, 4GB RAM, 160GB HDD, Win
+100 x  8740W  HP EliteBook 8740w 17" 2.4Ghz Core i5 6GB 250GB Win 7 Pr
+45 x 8760W HP EliteBook 8760W 17.3" 2nd Gen Intel Core i7 2.70GHz 8GB 320GB Windows 7 Pro
+50 x DELL 6520Dell latitude e6520 15.6" i5-2520M 2.5Ghz, 8GB Ram, 500GB HD Win 7 @ $115
+120 x DELL 6420 Laptop Dell Latitude E6420 14" Intel Core i5 2.4Ghz 4GB RAM 250GB HDD DVD Win 7
+150 x T410 Lenovo ThinkPad Laptop T410s 14.1" 2.40GHz Core i5 4GB RAM 160GB Win 7
+180 x 8440P HP EliteBook 8440p 14" M520 Core i5 2.4GHz 4GB 250GB Win 7
+
+
+Let me know if you're interested. We are very open to offers and willing to work with you to make sure that we have a deal.
+
+Thank You
+Barbara Johnson
+Laison Computech Inc
+210 N Scoring Ave,
+Rialto California, 92376
+Tel: +1-657-232-7047
+Fax: +1-347-214-047
