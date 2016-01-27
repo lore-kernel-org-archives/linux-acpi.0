@@ -1,36 +1,46 @@
-From: Loc Ho <lho@apm.com>
-Subject: Re: [PATCH v3] ARM64: kernel: implement ACPI parking protocol
-Date: Wed, 27 Jan 2016 09:41:56 -0800
-Message-ID: <CAPw-ZTnj10eP+NDzYxbc4mJG5tG1dC3pr8VOOh5uJckJO8kS7A@mail.gmail.com>
-References: <1453806638-23167-1-git-send-email-lorenzo.pieralisi@arm.com>
-	<CAPw-ZTk=BbXAPgWAV=3Np0qvLA+i+U5eh+nxHS=2uMjKohdUfA@mail.gmail.com>
-	<20160127115126.GB9522@red-moon>
+From: Sudeep Holla <sudeep.holla@arm.com>
+Subject: Re: [PATCH v3 0/5] ACPI / processor_idle: Add ACPI v6.0 LPI support
+Date: Wed, 27 Jan 2016 18:26:12 +0000
+Message-ID: <56A90BC4.9090102@arm.com>
+References: <1449065446-26115-1-git-send-email-sudeep.holla@arm.com>
+ <569944C4.4010203@codeaurora.org> <569CD771.1060701@arm.com>
+ <1719762.JV0SAlYvZa@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f175.google.com ([209.85.217.175]:33253 "EHLO
-	mail-lb0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933653AbcA0Rl6 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Jan 2016 12:41:58 -0500
-Received: by mail-lb0-f175.google.com with SMTP id x4so9789008lbm.0
-        for <linux-acpi@vger.kernel.org>; Wed, 27 Jan 2016 09:41:57 -0800 (PST)
-In-Reply-To: <20160127115126.GB9522@red-moon>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=utf-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1719762.JV0SAlYvZa@vostro.rjw.lan>
+Sender: linux-kernel-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Sudeep Holla <sudeep.holla@arm.com>, "Prakash, Prashanth" <pprakash@codeaurora.org>, linux-kernel@vger.kernel.org, linux-ia64@vger.kernel.org, x86@kernel.org, Al Stone <al.stone@linaro.org>, Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Mahesh Sivasubramanian <msivasub@codeaurora.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-acpi@vger.kernel.org, Will Deacon <will.deacon@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Mark Rutland <mark.rutland@arm.com>, Mark Salter <msalter@redhat.com>, Al Stone <ahs3@redhat.com>
 
-Hi,
+Hi Rafael,
 
-> >
-> > I had tested this with X-Gene Mustang board. It applies cleanly
-> > against 4.5.0-rc1 and detected all CPU's. For those of you want to try
-> > this, you need an FW update if you are using APM Tianocore. Otherwise,
-> > it will stuck in very early booting stage.
+On 18/01/16 14:53, Rafael J. Wysocki wrote:
+> On Monday, January 18, 2016 12:15:45 PM Sudeep Holla wrote:
+>> Hi Prashanth,
+>>
+>> On 15/01/16 19:13, Prakash, Prashanth wrote:
+>>> Hi Sudeep,
+>>>
+>>> Any updates on the status of this patch set?
+>>>
+>>
+>> Thanks for the follow up. Sorry but there are no updates as such.
+>> I didn't ping Rafael after last merge window due to Xmas holidays.
+>> I will ping or repost after this merge window(ends this Sunday).
+>>
+>> Hi Rafael,
+>>
+>> Do you prefer a fresh repost or shall I wait for you comments after
+>> merge window ?
 >
-> We can take this as a Tested-by, right ?
+> If you don't have any updates to the patches, there's no need to resend them.
+>
 
+I don't have any updates and so I will wait for your feedback.
 
-Yes... if you want one.
-
--Loc
+-- 
+Regards,
+Sudeep
