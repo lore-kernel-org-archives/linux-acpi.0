@@ -1,76 +1,32 @@
-From: Hanjun Guo <guohanjun@huawei.com>
-Subject: Re: [PATCH v3 05/12] arm64, acpi, numa: NUMA support based on SRAT
- and SLIT
-Date: Wed, 27 Jan 2016 15:12:15 +0800
-Message-ID: <56A86DCF.1020205@huawei.com>
-References: <1453541967-3744-1-git-send-email-guohanjun@huawei.com>
- <1453541967-3744-6-git-send-email-guohanjun@huawei.com>
- <20160125102148.GE24726@rric.localdomain>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: [PATCH v2] pci: fix unavailable irq number 255 reported by
+ BIOS
+Date: Wed, 27 Jan 2016 09:35:22 +0100 (CET)
+Message-ID: <alpine.DEB.2.11.1601270933560.3886@nanos>
+References: <1453705178-27389-1-git-send-email-chen.fan.fnst@cn.fujitsu.com> <20160125205803.GA10272@localhost> <alpine.DEB.2.11.1601260825510.3886@nanos> <20160126152221.GB9279@localhost> <alpine.DEB.2.11.1601261628450.3886@nanos> <20160127002505.GA3329@localhost>
+ <56A85494.8070606@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="windows-1252"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga02-in.huawei.com ([119.145.14.65]:31284 "EHLO
-	szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751386AbcA0HMp (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Jan 2016 02:12:45 -0500
-In-Reply-To: <20160125102148.GE24726@rric.localdomain>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <56A85494.8070606@cn.fujitsu.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Cao jin <caoj.fnst@cn.fujitsu.com>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, Chen Fan <chen.fan.fnst@cn.fujitsu.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, rjw@rjwysocki.net, lenb@kernel.org, izumi.taku@jp.fujitsu.com, wency@cn.fujitsu.com, ddaney.cavm@gmail.com, okaya@codeaurora.org, bhelgaas@google.com, jiang.liu@linux.intel.com, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Robert Richter <robert.richter@caviumnetworks.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Shannon Zhao <shannon.zhao@linaro.org>, Steve Capper <steve.capper@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>
 
-On 2016/1/25 18:21, Robert Richter wrote:
-> On 23.01.16 17:39:20, Hanjun Guo wrote:
->> diff --git a/arch/arm64/kernel/acpi_numa.c b/arch/arm64/kernel/acpi_numa.c
->> new file mode 100644
->> index 0000000..f7f7533
->> --- /dev/null
->> +++ b/arch/arm64/kernel/acpi_numa.c
->> +/* Callback for parsing of the Proximity Domain <-> Memory Area mappings */
->> +int __init acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
->> +{
->> +	u64 start, end;
->> +	int node, pxm;
->> +
->> +	if (srat_disabled())
->> +		return -EINVAL;
->> +
->> +	if (ma->header.length != sizeof(struct acpi_srat_mem_affinity)) {
-> Must be:
->
-> 	ma->header.length < sizeof(struct acpi_srat_mem_affinity)) {
->
-> Allow extensions to struct acpi_srat_mem_affinity in newer versions.
+On Wed, 27 Jan 2016, Cao jin wrote:
+> How about using IRQ_BITMAP_BITS as that "irq_valid" flag? because it is the
+> ceiling of struct irq_desc irq_desc[], and request_irq() will return -EINVAL
+> in case of the ceiling.
+> 
+> #ifdef CONFIG_SPARSE_IRQ
+> # define IRQ_BITMAP_BITS	(NR_IRQS + 8196)
+> #else
+> # define IRQ_BITMAP_BITS	NR_IRQS
+> #endif
 
-Hmm, I think we need to remove the check here now.
+No. This is a core internal implementation detail.
 
-There are three cases:
+Thanks,
 
- - firmware ACPI version is consistent with the ACPICA one, then
-   ma->header.length == sizeof(struct acpi_srat_mem_affinity )
-
- - firmware ACPI version is not consistent with the ACPICA one,
-   for example, struct acpi_srat_mem_affinity is extended in
-   new ACI version, but the formware is using the older one,
-  then it's ok to use
-  ma->header.length < sizeof(struct acpi_srat_mem_affinity )
-
- - but if we use the older kernel + updated new firmware,
-   then
-   ma->header.length > sizeof(struct acpi_srat_mem_affinity )
-  will be the case, right?
-
->
->> +		bad_srat();
->> +		return -EINVAL;
-> We need a pr_err() here to avoid that numa setup fails silently due to
-> bad fw. This applies to all error paths.
->
-> See my delta patch below. You can merge it with your patch.
-
-Thanks! I wil merge it into next version.
-
-Hanjun
-
-
+	tglx
