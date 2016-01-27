@@ -1,71 +1,36 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH V3 11/21] pci, acpi: Move ACPI host bridge device
- companion assignment to core code.
-Date: Wed, 27 Jan 2016 17:42:22 +0000
-Message-ID: <20160127174222.GA9982@red-moon>
-References: <1452691267-32240-1-git-send-email-tn@semihalf.com>
- <1452691267-32240-12-git-send-email-tn@semihalf.com>
- <20160119160224.GD5276@red-moon>
- <569F6D67.5000000@semihalf.com>
- <20160120123849.GA13437@red-moon>
- <569F8E38.5030101@semihalf.com>
- <20160120142243.GB13437@red-moon>
- <569F9CB4.2010905@semihalf.com>
+From: Loc Ho <lho@apm.com>
+Subject: Re: [PATCH v3] ARM64: kernel: implement ACPI parking protocol
+Date: Wed, 27 Jan 2016 09:41:56 -0800
+Message-ID: <CAPw-ZTnj10eP+NDzYxbc4mJG5tG1dC3pr8VOOh5uJckJO8kS7A@mail.gmail.com>
+References: <1453806638-23167-1-git-send-email-lorenzo.pieralisi@arm.com>
+	<CAPw-ZTk=BbXAPgWAV=3Np0qvLA+i+U5eh+nxHS=2uMjKohdUfA@mail.gmail.com>
+	<20160127115126.GB9522@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <569F9CB4.2010905@semihalf.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Tomasz Nowicki <tn@semihalf.com>
-Cc: rjw@rjwysocki.net, bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, hanjun.guo@linaro.org, okaya@codeaurora.org, jiang.liu@linux.intel.com, Stefano.Stabellini@eu.citrix.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lb0-f175.google.com ([209.85.217.175]:33253 "EHLO
+	mail-lb0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933653AbcA0Rl6 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Jan 2016 12:41:58 -0500
+Received: by mail-lb0-f175.google.com with SMTP id x4so9789008lbm.0
+        for <linux-acpi@vger.kernel.org>; Wed, 27 Jan 2016 09:41:57 -0800 (PST)
+In-Reply-To: <20160127115126.GB9522@red-moon>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-acpi@vger.kernel.org, Will Deacon <will.deacon@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Mark Rutland <mark.rutland@arm.com>, Mark Salter <msalter@redhat.com>, Al Stone <ahs3@redhat.com>
 
-On Wed, Jan 20, 2016 at 03:41:56PM +0100, Tomasz Nowicki wrote:
-> On 20.01.2016 15:22, Lorenzo Pieralisi wrote:
-> >On Wed, Jan 20, 2016 at 02:40:08PM +0100, Tomasz Nowicki wrote:
+Hi,
+
 > >
-> >[...]
-> >
-> >>>>>>+	/* Root bridge device needs to be sure of parent ACPI type */
-> >>>>>>+	ACPI_COMPANION_SET(&device->dev, device);
-> >>>>>
-> >>>>>I do not understand why the code above is needed, can you elaborate
-> >>>>>please ?
-> >>>>>
-> >>>>
-> >>>>This makes sure that device->dev can be identified as ACPI device,
-> >>>>so we can use to_acpi_device_node() and assign companion safely
-> >>>>below.
-> >>>
-> >>>I do not follow. If you refer to the fwnode handle type, that is
-> >>>already set by ACPI core code (before acpi_pci_root_add() is called,
-> >>>in acpi_init_device_object()).
-> >>
-> >>acpi_init_device_object() sets ACPI fwnode handle type only for
-> >>"device", but not for "device->dev" which is what is passed as an
-> >>argument to pci_create_root_bus().
-> >>
-> >>Without ACPI_COMPANION_SET(&device->dev, device) here, no one can be
-> >>sure if we have ACPI device in pci_create_root_bus().
-> >
-> >Ok, got it. The question is whether this should be done in ACPI
-> >core instead (is there a reason why it should *not* be done ?), but I
-> >now understand your point.
-> >
-> 
-> I am not able to answer that question, but I see lots of changes in
-> this area made by Rafael.
+> > I had tested this with X-Gene Mustang board. It applies cleanly
+> > against 4.5.0-rc1 and detected all CPU's. For those of you want to try
+> > this, you need an FW update if you are using APM Tianocore. Otherwise,
+> > it will stuck in very early booting stage.
+>
+> We can take this as a Tested-by, right ?
 
-I had a further look and I am not sure why the fwnode_handle* in the
-dev member of the acpi_device is not made to point at the fwnode member
-of the acpi_device by *default* (acpi_init_device_object() ?), probably
-because it is never used as such but certainly Rafael knows, so I would
-ask him to clarify please it is unclear to me.
 
-I do not see anything wrong in what you are doing in this patch.
+Yes... if you want one.
 
-Rafael, any comments ?
-
-Thanks,
-Lorenzo
+-Loc
