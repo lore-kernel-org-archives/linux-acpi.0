@@ -1,65 +1,58 @@
-From: Chen Fan <chen.fan.fnst@cn.fujitsu.com>
-Subject: [PATCH v3 2/2] i801_smbus: fix unavailable irq number 255 reported by BIOS
-Date: Wed, 27 Jan 2016 14:08:44 +0800
-Message-ID: <736ccbb04de44a75e8d1389bb7b2746c0a9a8937.1453862105.git.chen.fan.fnst@cn.fujitsu.com>
-References: <cover.1453862105.git.chen.fan.fnst@cn.fujitsu.com>
+From: Hanjun Guo <guohanjun@huawei.com>
+Subject: Re: [PATCH v3 12/12] acpi, numa: reuse
+ acpi_numa_memory_affinity_init()
+Date: Wed, 27 Jan 2016 14:15:06 +0800
+Message-ID: <56A8606A.8080407@huawei.com>
+References: <1453541967-3744-1-git-send-email-guohanjun@huawei.com>
+ <1453541967-3744-13-git-send-email-guohanjun@huawei.com>
+ <20160125102643.GF24726@rric.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <cover.1453862105.git.chen.fan.fnst@cn.fujitsu.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, rjw@rjwysocki.net, lenb@kernel.org, izumi.taku@jp.fujitsu.com, wency@cn.fujitsu.com, caoj.fnst@cn.fujitsu.com, ddaney.cavm@gmail.com, chen.fan.fnst@cn.fujitsu.com, helgaas@kernel.org, okaya@codeaurora.org, bhelgaas@google.com, jiang.liu@linux.intel.com, linux-pci@vger.kernel.org, tglx@linutronix.de, linux@roeck-us.net
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga03-in.huawei.com ([119.145.14.66]:22463 "EHLO
+	szxga03-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750870AbcA0GRc (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Jan 2016 01:17:32 -0500
+In-Reply-To: <20160125102643.GF24726@rric.localdomain>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Robert Richter <robert.richter@caviumnetworks.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Shannon Zhao <shannon.zhao@linaro.org>, Steve Capper <steve.capper@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>
 
-In our environment, when enable Secure boot, we found an abnormal
-phenomenon as following call trace shows. after investigation, we
-found the firmware assigned an irq number 255 which means unknown
-or no connection in PCI local spec for i801_smbus, meanwhile the
-ACPI didn't configure the pci irq routing. and the 255 irq number
-was assigned for megasa msix without IRQF_SHARED. then in this case
-during i801_smbus probe, the i801_smbus driver would request irq with
-bad irq number 255. but the 255 irq number was assigned for memgasa
-with MSIX enable. which will cause request_irq fails and result in
-the call trace below, here we add check the irq_invalid flag to identify
-the smbus whether support IRQ-driven.
+Hi Robert,
 
-i801_smbus 0000:00:1f.3: enabling device (0140 -> 0143)
-i801_smbus 0000:00:1f.3: can't derive routing for PCI INT C
-i801_smbus 0000:00:1f.3: PCI INT C: no GSI
-genirq: Flags mismatch irq 255. 00000080 (i801_smbus) vs. 00000000 (megasa)
-CPU: 0 PID: 2487 Comm: kworker/0:1 Not tainted 3.10.0-229.el7.x86_64 #1
-Hardware name: FUJITSU PRIMEQUEST 2800E2/D3736, BIOS PRIMEQUEST 2000 Serie5
+On 2016/1/25 18:26, Robert Richter wrote:
+> On 23.01.16 17:39:27, Hanjun Guo wrote:
+>> From: Hanjun Guo <hanjun.guo@linaro.org>
+>>
+>> After the cleanup for acpi_numa_memory_affinity_init(),
+>> it can be used for architetures both x86 and arm64, since
+>> CONFIG_MEMORY_HOTPLUG is not enabled for arm64, so no
+>> worry about that.
+>>
+>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>> ---
+>>  arch/arm64/kernel/acpi_numa.c | 42 -------------------------------
+>>  arch/x86/mm/srat.c            | 54 ----------------------------------------
+>>  drivers/acpi/numa.c           | 57 +++++++++++++++++++++++++++++++++++++++++++
+>>  3 files changed, 57 insertions(+), 96 deletions(-)
+> This one reverts acpi_numa_memory_affinity_init() to the x86 version.
+> I rather would prefer the arm64 version for the generic code. We could
+> keep the x86 implementation until x86 maintainers agree to remove them
+> and use the generic one (implemented in a separate patch).
+>
+> Doing so we can move acpi_numa_memory_affinity_init() from the
+> beginning to generic code (used for arm64) and have this last patch to
+> remove the x86 version.
 
-Call Trace:
-  dump_stack+0x19/0x1b
-  __setup_irq+0x54a/0x570
-  request_threaded_irq+0xcc/0x170
-  i801_probe+0x32f/0x508 [i2c_i801]
-  local_pci_probe+0x45/0xa0
-i801_smbus 0000:00:1f.3: Failed to allocate irq 255: -16
-i801_smbus: probe of 0000:00:1f.3 failed with error -16
+I think the x86 version is the generic one, all the flags (ACPI_SRAT_MEM_HOT_PLUGGABLE and
+etc) are defined in the ACPI spec, x86 just use all the flags because it support such features.
+For ARM64, firmware should be careful and represent the true platform configuration to
+OS, such as on ARM64, we can't set hotpluggable flag as the ARM64 arch don't support
+memory hot-plug yet (also the firmware don't support it too), if firmware do things right,
+it will be not worries for the kernel.
 
-Signed-off-by: Chen Fan <chen.fan.fnst@cn.fujitsu.com>
----
- drivers/i2c/busses/i2c-i801.c | 5 +++++
- 1 file changed, 5 insertions(+)
+Thanks
+Hanjun
 
-diff --git a/drivers/i2c/busses/i2c-i801.c b/drivers/i2c/busses/i2c-i801.c
-index f62d697..22f9aea 100644
---- a/drivers/i2c/busses/i2c-i801.c
-+++ b/drivers/i2c/busses/i2c-i801.c
-@@ -1380,6 +1380,11 @@ static int i801_probe(struct pci_dev *dev, const struct pci_device_id *id)
- 		}
- 	}
- 
-+	if ((priv->features & FEATURE_IRQ) && dev->irq_invalid) {
-+		dev_warn(&dev->dev, "Interrupt line is invalid!\n");
-+		priv->features &= ~FEATURE_IRQ;
-+	}
-+
- 	if (priv->features & FEATURE_IRQ) {
- 		init_waitqueue_head(&priv->waitq);
- 
--- 
-1.9.3
