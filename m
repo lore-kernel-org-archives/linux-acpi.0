@@ -1,62 +1,71 @@
-From: Robert Richter <robert.richter@caviumnetworks.com>
-Subject: Re: [PATCH v3 12/12] acpi, numa: reuse
- acpi_numa_memory_affinity_init()
-Date: Wed, 27 Jan 2016 15:18:47 +0100
-Message-ID: <20160127141847.GR24726@rric.localdomain>
-References: <1453541967-3744-1-git-send-email-guohanjun@huawei.com>
- <1453541967-3744-13-git-send-email-guohanjun@huawei.com>
- <20160125102643.GF24726@rric.localdomain>
- <56A8606A.8080407@huawei.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH V3 11/21] pci, acpi: Move ACPI host bridge device
+ companion assignment to core code.
+Date: Wed, 27 Jan 2016 17:42:22 +0000
+Message-ID: <20160127174222.GA9982@red-moon>
+References: <1452691267-32240-1-git-send-email-tn@semihalf.com>
+ <1452691267-32240-12-git-send-email-tn@semihalf.com>
+ <20160119160224.GD5276@red-moon>
+ <569F6D67.5000000@semihalf.com>
+ <20160120123849.GA13437@red-moon>
+ <569F8E38.5030101@semihalf.com>
+ <20160120142243.GB13437@red-moon>
+ <569F9CB4.2010905@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-pci-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <56A8606A.8080407@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Hanjun Guo <guohanjun@huawei.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Shannon Zhao <shannon.zhao@linaro.org>, Steve Capper <steve.capper@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>
+In-Reply-To: <569F9CB4.2010905@semihalf.com>
+Sender: linux-pci-owner@vger.kernel.org
+To: Tomasz Nowicki <tn@semihalf.com>
+Cc: rjw@rjwysocki.net, bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, hanjun.guo@linaro.org, okaya@codeaurora.org, jiang.liu@linux.intel.com, Stefano.Stabellini@eu.citrix.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, tglx@linutronix.de, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com
 List-Id: linux-acpi@vger.kernel.org
 
-On 27.01.16 14:15:06, Hanjun Guo wrote:
-> Hi Robert,
-> 
-> On 2016/1/25 18:26, Robert Richter wrote:
-> > On 23.01.16 17:39:27, Hanjun Guo wrote:
-> >> From: Hanjun Guo <hanjun.guo@linaro.org>
-> >>
-> >> After the cleanup for acpi_numa_memory_affinity_init(),
-> >> it can be used for architetures both x86 and arm64, since
-> >> CONFIG_MEMORY_HOTPLUG is not enabled for arm64, so no
-> >> worry about that.
-> >>
-> >> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
-> >> ---
-> >>  arch/arm64/kernel/acpi_numa.c | 42 -------------------------------
-> >>  arch/x86/mm/srat.c            | 54 ----------------------------------------
-> >>  drivers/acpi/numa.c           | 57 +++++++++++++++++++++++++++++++++++++++++++
-> >>  3 files changed, 57 insertions(+), 96 deletions(-)
-> > This one reverts acpi_numa_memory_affinity_init() to the x86 version.
-> > I rather would prefer the arm64 version for the generic code. We could
-> > keep the x86 implementation until x86 maintainers agree to remove them
-> > and use the generic one (implemented in a separate patch).
+On Wed, Jan 20, 2016 at 03:41:56PM +0100, Tomasz Nowicki wrote:
+> On 20.01.2016 15:22, Lorenzo Pieralisi wrote:
+> >On Wed, Jan 20, 2016 at 02:40:08PM +0100, Tomasz Nowicki wrote:
 > >
-> > Doing so we can move acpi_numa_memory_affinity_init() from the
-> > beginning to generic code (used for arm64) and have this last patch to
-> > remove the x86 version.
+> >[...]
+> >
+> >>>>>>+	/* Root bridge device needs to be sure of parent ACPI type */
+> >>>>>>+	ACPI_COMPANION_SET(&device->dev, device);
+> >>>>>
+> >>>>>I do not understand why the code above is needed, can you elaborate
+> >>>>>please ?
+> >>>>>
+> >>>>
+> >>>>This makes sure that device->dev can be identified as ACPI device,
+> >>>>so we can use to_acpi_device_node() and assign companion safely
+> >>>>below.
+> >>>
+> >>>I do not follow. If you refer to the fwnode handle type, that is
+> >>>already set by ACPI core code (before acpi_pci_root_add() is called,
+> >>>in acpi_init_device_object()).
+> >>
+> >>acpi_init_device_object() sets ACPI fwnode handle type only for
+> >>"device", but not for "device->dev" which is what is passed as an
+> >>argument to pci_create_root_bus().
+> >>
+> >>Without ACPI_COMPANION_SET(&device->dev, device) here, no one can be
+> >>sure if we have ACPI device in pci_create_root_bus().
+> >
+> >Ok, got it. The question is whether this should be done in ACPI
+> >core instead (is there a reason why it should *not* be done ?), but I
+> >now understand your point.
+> >
 > 
-> I think the x86 version is the generic one, all the flags (ACPI_SRAT_MEM_HOT_PLUGGABLE and
-> etc) are defined in the ACPI spec, x86 just use all the flags because it support such features.
-> For ARM64, firmware should be careful and represent the true platform configuration to
-> OS, such as on ARM64, we can't set hotpluggable flag as the ARM64 arch don't support
-> memory hot-plug yet (also the firmware don't support it too), if firmware do things right,
-> it will be not worries for the kernel.
+> I am not able to answer that question, but I see lots of changes in
+> this area made by Rafael.
 
-But you are removing all arm64 from your first patches. Why do you
-introduce acpi_numa_memory_affinity_init() in the beginning to remove
-it in the end again? I esp. like the arm64 version because of its
-direct returns. So I still would like to see generic code for arm64
-from the beginning. Maybe have a copy of x86 initially and make
-modifications for arm64 to it, or move missing code (hotplug, etc.)
-from x86 to generic and remove x86 arch code with the last patch.
+I had a further look and I am not sure why the fwnode_handle* in the
+dev member of the acpi_device is not made to point at the fwnode member
+of the acpi_device by *default* (acpi_init_device_object() ?), probably
+because it is never used as such but certainly Rafael knows, so I would
+ask him to clarify please it is unclear to me.
 
--Robert
+I do not see anything wrong in what you are doing in this patch.
+
+Rafael, any comments ?
+
+Thanks,
+Lorenzo
