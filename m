@@ -1,68 +1,76 @@
-From: Loc Ho <lho@apm.com>
-Subject: Re: [PATCH v3] ARM64: kernel: implement ACPI parking protocol
-Date: Tue, 26 Jan 2016 15:13:30 -0800
-Message-ID: <CAPw-ZTk=BbXAPgWAV=3Np0qvLA+i+U5eh+nxHS=2uMjKohdUfA@mail.gmail.com>
-References: <1453806638-23167-1-git-send-email-lorenzo.pieralisi@arm.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH v2] pci: fix unavailable irq number 255 reported by BIOS
+Date: Tue, 26 Jan 2016 18:25:05 -0600
+Message-ID: <20160127002505.GA3329@localhost>
+References: <1453705178-27389-1-git-send-email-chen.fan.fnst@cn.fujitsu.com>
+ <20160125205803.GA10272@localhost>
+ <alpine.DEB.2.11.1601260825510.3886@nanos>
+ <20160126152221.GB9279@localhost>
+ <alpine.DEB.2.11.1601261628450.3886@nanos>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lb0-f177.google.com ([209.85.217.177]:32819 "EHLO
-	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750887AbcAZXNb (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 26 Jan 2016 18:13:31 -0500
-Received: by mail-lb0-f177.google.com with SMTP id x4so101965232lbm.0
-        for <linux-acpi@vger.kernel.org>; Tue, 26 Jan 2016 15:13:30 -0800 (PST)
-In-Reply-To: <1453806638-23167-1-git-send-email-lorenzo.pieralisi@arm.com>
+Received: from mail.kernel.org ([198.145.29.136]:60748 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751208AbcA0AZL (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 26 Jan 2016 19:25:11 -0500
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.11.1601261628450.3886@nanos>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, linux-acpi@vger.kernel.org, Will Deacon <will.deacon@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, Mark Rutland <mark.rutland@arm.com>, Mark Salter <msalter@redhat.com>, Al Stone <ahs3@redhat.com>
+To: Thomas Gleixner <tglx@linutronix.de>
+Cc: Chen Fan <chen.fan.fnst@cn.fujitsu.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, rjw@rjwysocki.net, lenb@kernel.org, izumi.taku@jp.fujitsu.com, wency@cn.fujitsu.com, caoj.fnst@cn.fujitsu.com, ddaney.cavm@gmail.com, okaya@codeaurora.org, bhelgaas@google.com, jiang.liu@linux.intel.com, linux-pci@vger.kernel.org
 
-Hi Lorenzo,
+On Tue, Jan 26, 2016 at 04:48:25PM +0100, Thomas Gleixner wrote:
+> On Tue, 26 Jan 2016, Bjorn Helgaas wrote:
+> > On Tue, Jan 26, 2016 at 09:26:29AM +0100, Thomas Gleixner wrote:
+> > > The proper solution here is to flag that this device does not have an
+> > > interrupt connected and act accordingly in the device driver, i.e. do not call
+> > > request_irq() in the first place.
+> > 
+> > This is the crux of the problem.  As far as I know, PCI doesn't have
+> > a flag to indicate that dev->irq is a wire that's not connected, so
+> > there's no generic way for a driver to know whether it should call
+> > request_irq().
+> 
+> Ok.
+>  
+> > We could add one, of course, but that only helps in the drivers we
+> > update.  It'd be nice if we could figure out a way to fix this
+> > without having to touch all the drivers.
+> 
+> Hmm.
+>  
+> > I think any driver that uses line-based interrupts can potentially
+> > fail if the platform uses Interrupt Line == 255 to indicate that the
+> > line is not connected.  If another driver happens to be using IRQ 255,
+> > request_irq() may fail as it does here.  Otherwise, I suspect
+> > request_irq() will return success, but the driver won't get any
+> > interrupts.
+> 
+> Right. So we could certainly do something like this INVALID_IRQ thingy, but
+> that looks a bit weird. What would request_irq() return?
+> 
+> If it returns success, then drivers might make the wrong decision. If it
+> returns an error code, then the i801 one works, but we might have to fix
+> others anyway.
 
-On Tue, Jan 26, 2016 at 3:10 AM, Lorenzo Pieralisi
-<lorenzo.pieralisi@arm.com> wrote:
-> The SBBR and ACPI specifications allow ACPI based systems that do not
-> implement PSCI (eg systems with no EL3) to boot through the ACPI parking
-> protocol specification[1].
->
-> This patch implements the ACPI parking protocol CPU operations, and adds
-> code that eases parsing the parking protocol data structures to the
-> ARM64 SMP initializion carried out at the same time as cpus enumeration.
->
-> To wake-up the CPUs from the parked state, this patch implements a
-> wakeup IPI for ARM64 (ie arch_send_wakeup_ipi_mask()) that mirrors the
-> ARM one, so that a specific IPI is sent for wake-up purpose in order
-> to distinguish it from other IPI sources.
->
-> Given the current ACPI MADT parsing API, the patch implements a glue
-> layer that helps passing MADT GICC data structure from SMP initialization
-> code to the parking protocol implementation somewhat overriding the CPU
-> operations interfaces. This to avoid creating a completely trasparent
-> DT/ACPI CPU operations layer that would require creating opaque
-> structure handling for CPUs data (DT represents CPU through DT nodes, ACPI
-> through static MADT table entries), which seems overkill given that ACPI
-> on ARM64 mandates only two booting protocols (PSCI and parking protocol),
-> so there is no need for further protocol additions.
->
-> Based on the original work by Mark Salter <msalter@redhat.com>
->
-> [1] https://acpica.org/sites/acpica/files/MP%20Startup%20for%20ARM%20platforms.docx
->
-> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Cc: Will Deacon <will.deacon@arm.com>
-> Cc: Hanjun Guo <hanjun.guo@linaro.org>
-> Cc: Loc Ho <lho@apm.com>
-> Cc: Sudeep Holla <sudeep.holla@arm.com>
-> Cc: Catalin Marinas <catalin.marinas@arm.com>
-> Cc: Mark Rutland <mark.rutland@arm.com>
-> Cc: Mark Salter <msalter@redhat.com>
-> Cc: Al Stone <ahs3@redhat.com>
+I was thinking request_irq() could return -EINVAL if the caller passed
+INVALID_IRQ.  That should tell drivers that this interrupt won't work.
 
-I had tested this with X-Gene Mustang board. It applies cleanly
-against 4.5.0-rc1 and detected all CPU's. For those of you want to try
-this, you need an FW update if you are using APM Tianocore. Otherwise,
-it will stuck in very early booting stage.
+We'd be making request_irq() return -EINVAL in some cases where it
+currently returns success.  But even though it returns success today,
+I don't think the driver is getting interrupts, because the wire isn't
+connected.
 
-Thanks,
-Loc
+> I think it's better to have a software flag in pci_dev to indicate that there
+> is no irq line and fix up the (probably few) affected drivers so they avoid
+> calling request_irq() and take the right action.
+
+We could add an "irq_valid" flag in struct pci_dev and make a new
+rule that drivers should check dev->irq_valid before using dev->irq.
+But realistically, i801 is the only place that will check irq_valid
+because that's the only driver where we know about a problem, so that
+seems like sort of a point solution.
+
+Bjorn
