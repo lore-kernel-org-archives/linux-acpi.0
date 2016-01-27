@@ -1,7 +1,7 @@
 From: Chen Fan <chen.fan.fnst@cn.fujitsu.com>
-Subject: [PATCH v3 1/2] pci: add an irq_invalid flag to specify the IRQ is not connected
-Date: Wed, 27 Jan 2016 14:08:43 +0800
-Message-ID: <f83cc56ce64ab6d18e28ed5a7faa18fb81a7880d.1453862105.git.chen.fan.fnst@cn.fujitsu.com>
+Subject: [PATCH v3 2/2] i801_smbus: fix unavailable irq number 255 reported by BIOS
+Date: Wed, 27 Jan 2016 14:08:44 +0800
+Message-ID: <736ccbb04de44a75e8d1389bb7b2746c0a9a8937.1453862105.git.chen.fan.fnst@cn.fujitsu.com>
 References: <cover.1453862105.git.chen.fan.fnst@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -12,54 +12,54 @@ To: linux-acpi@vger.kernel.org
 Cc: linux-kernel@vger.kernel.org, rjw@rjwysocki.net, lenb@kernel.org, izumi.taku@jp.fujitsu.com, wency@cn.fujitsu.com, caoj.fnst@cn.fujitsu.com, ddaney.cavm@gmail.com, chen.fan.fnst@cn.fujitsu.com, helgaas@kernel.org, okaya@codeaurora.org, bhelgaas@google.com, jiang.liu@linux.intel.com, linux-pci@vger.kernel.org, tglx@linutronix.de, linux@roeck-us.net
 List-Id: linux-acpi@vger.kernel.org
 
-Quoting the PCI3.0 SPEC on page 223:
-"For x86 based PCs, the values in this register correspond
-to IRQ numbers (0-15) of the standard dual 8259 configuration.
-The value 255 is defined as meaning "unknown" or "no connection"
-to the interrupt controller. Values between 15 and 254 are reserved."
+In our environment, when enable Secure boot, we found an abnormal
+phenomenon as following call trace shows. after investigation, we
+found the firmware assigned an irq number 255 which means unknown
+or no connection in PCI local spec for i801_smbus, meanwhile the
+ACPI didn't configure the pci irq routing. and the 255 irq number
+was assigned for megasa msix without IRQF_SHARED. then in this case
+during i801_smbus probe, the i801_smbus driver would request irq with
+bad irq number 255. but the 255 irq number was assigned for memgasa
+with MSIX enable. which will cause request_irq fails and result in
+the call trace below, here we add check the irq_invalid flag to identify
+the smbus whether support IRQ-driven.
 
-So we add an irq_invalid flag to tell driver that the device wire
-is not connected. then the driver could know whether it should call
-request_irq().
+i801_smbus 0000:00:1f.3: enabling device (0140 -> 0143)
+i801_smbus 0000:00:1f.3: can't derive routing for PCI INT C
+i801_smbus 0000:00:1f.3: PCI INT C: no GSI
+genirq: Flags mismatch irq 255. 00000080 (i801_smbus) vs. 00000000 (megasa)
+CPU: 0 PID: 2487 Comm: kworker/0:1 Not tainted 3.10.0-229.el7.x86_64 #1
+Hardware name: FUJITSU PRIMEQUEST 2800E2/D3736, BIOS PRIMEQUEST 2000 Serie5
+
+Call Trace:
+  dump_stack+0x19/0x1b
+  __setup_irq+0x54a/0x570
+  request_threaded_irq+0xcc/0x170
+  i801_probe+0x32f/0x508 [i2c_i801]
+  local_pci_probe+0x45/0xa0
+i801_smbus 0000:00:1f.3: Failed to allocate irq 255: -16
+i801_smbus: probe of 0000:00:1f.3 failed with error -16
 
 Signed-off-by: Chen Fan <chen.fan.fnst@cn.fujitsu.com>
 ---
- drivers/acpi/pci_irq.c | 10 ++++++++++
- include/linux/pci.h    |  1 +
- 2 files changed, 11 insertions(+)
+ drivers/i2c/busses/i2c-i801.c | 5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
-index d30184c..bb78376 100644
---- a/drivers/acpi/pci_irq.c
-+++ b/drivers/acpi/pci_irq.c
-@@ -436,6 +436,16 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
- 	 * driver reported one, then use it. Exit in any case.
- 	 */
- 	if (gsi < 0) {
-+#ifdef CONFIG_X86
-+		/*
-+		 * For X86 architecture, The Interrupt Line value of 0xff is
-+		 * defined to mean "unknown" or "no connection" (PCI 3.0,
-+		 * Section 6.2.4, footnote on page 223). we flag the IRQ
-+		 * as INVALID.
-+		 */
-+		if (dev->irq == 0xff)
-+			dev->irq_invalid = 1;
-+#endif
- 		if (acpi_isa_register_gsi(dev))
- 			dev_warn(&dev->dev, "PCI INT %c: no GSI\n",
- 				 pin_name(pin));
-diff --git a/include/linux/pci.h b/include/linux/pci.h
-index d86378c..06f137e 100644
---- a/include/linux/pci.h
-+++ b/include/linux/pci.h
-@@ -359,6 +359,7 @@ struct pci_dev {
- 	unsigned int	io_window_1k:1;	/* Intel P2P bridge 1K I/O windows */
- 	unsigned int	irq_managed:1;
- 	unsigned int	has_secondary_link:1;
-+	unsigned int	irq_invalid:1;
- 	pci_dev_flags_t dev_flags;
- 	atomic_t	enable_cnt;	/* pci_enable_device has been called */
+diff --git a/drivers/i2c/busses/i2c-i801.c b/drivers/i2c/busses/i2c-i801.c
+index f62d697..22f9aea 100644
+--- a/drivers/i2c/busses/i2c-i801.c
++++ b/drivers/i2c/busses/i2c-i801.c
+@@ -1380,6 +1380,11 @@ static int i801_probe(struct pci_dev *dev, const struct pci_device_id *id)
+ 		}
+ 	}
+ 
++	if ((priv->features & FEATURE_IRQ) && dev->irq_invalid) {
++		dev_warn(&dev->dev, "Interrupt line is invalid!\n");
++		priv->features &= ~FEATURE_IRQ;
++	}
++
+ 	if (priv->features & FEATURE_IRQ) {
+ 		init_waitqueue_head(&priv->waitq);
  
 -- 
 1.9.3
