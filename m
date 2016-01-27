@@ -1,68 +1,71 @@
-From: Aleksey Makarov <aleksey.makarov@linaro.org>
+From: One Thousand Gnomes <gnomes@lxorguk.ukuu.org.uk>
 Subject: Re: [PATCH 0/3] ACPI: parse the SPCR table
-Date: Wed, 27 Jan 2016 15:17:52 +0300
-Message-ID: <56A8B570.2060501@linaro.org>
+Date: Wed, 27 Jan 2016 13:45:59 +0000
+Message-ID: <20160127134559.1065a45f@lxorguk.ukuu.org.uk>
 References: <1453722324-22407-1-git-send-email-aleksey.makarov@linaro.org>
- <56A6494E.3090303@hurleysoftware.com>
+	<56A6494E.3090303@hurleysoftware.com>
+	<56A8B570.2060501@linaro.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f50.google.com ([209.85.215.50]:35735 "EHLO
-	mail-lf0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751030AbcA0MWV (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Jan 2016 07:22:21 -0500
-Received: by mail-lf0-f50.google.com with SMTP id c192so4796515lfe.2
-        for <linux-acpi@vger.kernel.org>; Wed, 27 Jan 2016 04:22:20 -0800 (PST)
-In-Reply-To: <56A6494E.3090303@hurleysoftware.com>
+Received: from lxorguk.ukuu.org.uk ([81.2.110.251]:52180 "EHLO
+	lxorguk.ukuu.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932383AbcA0Nqw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Jan 2016 08:46:52 -0500
+In-Reply-To: <56A8B570.2060501@linaro.org>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Peter Hurley <peter@hurleysoftware.com>, linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org, Graeme Gregory <graeme.gregory@linaro.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>
+To: Aleksey Makarov <aleksey.makarov@linaro.org>
+Cc: Peter Hurley <peter@hurleysoftware.com>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org, Graeme Gregory <graeme.gregory@linaro.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>
 
+On Wed, 27 Jan 2016 15:17:52 +0300
+Aleksey Makarov <aleksey.makarov@linaro.org> wrote:
 
-
-On 01/25/2016 07:11 PM, Peter Hurley wrote:
-> On 01/25/2016 03:45 AM, Aleksey Makarov wrote:
->> This patchset is based on the patchset by Leif Lindholm [1]
->>
->> 'ARM Server Base Boot Requirements' [2] mention SPCR=20
->> (Serial Port Console Redirection Table) [3] as a mandatory
->> ACPI table that specifies the configuration of serial console.
->>
->> Licensing concerns have prevented implementing it in the past, but a=
-s of
->> 10 August 2015, these tables have both been released also under=20
->> OWF 1.0 [4].
+> On 01/25/2016 07:11 PM, Peter Hurley wrote:
+> > On 01/25/2016 03:45 AM, Aleksey Makarov wrote: =20
+> >> This patchset is based on the patchset by Leif Lindholm [1]
+> >>
+> >> 'ARM Server Base Boot Requirements' [2] mention SPCR=20
+> >> (Serial Port Console Redirection Table) [3] as a mandatory
+> >> ACPI table that specifies the configuration of serial console.
+> >>
+> >> Licensing concerns have prevented implementing it in the past, but=
+ as of
+> >> 10 August 2015, these tables have both been released also under=20
+> >> OWF 1.0 [4]. =20
+> >=20
+> > This license has a patent retaliation provision, which makes it
+> > incompatible with GPLv2.
+> >=20
+> > *If the license applies to this code*, then this patch set does not
+> > meet the criteria for submission. =20
 >=20
-> This license has a patent retaliation provision, which makes it
-> incompatible with GPLv2.
+> The license applies not to this code but to the document describing t=
+he tables.
 >=20
-> *If the license applies to this code*, then this patch set does not
-> meet the criteria for submission.
+> Here is an excerpt from it:
+>=20
+>   Patent Notice:
+>   Microsoft is making certain patent rights available for implementat=
+ions of this specification under two options:
+>   1)  Microsoft=E2=80=99s Community Promise, available at
+>   http://www.microsoft.com/openspecifications/en/us/programs/communit=
+y-promise/default.aspx; or
+>   2)  The Open Web Foundation Final Specification Agreement Version 1=
+=2E0 ("OWF 1.0")
+>   as of October 1, 2012, available at http://www.openwebfoundation.or=
+g/legal/the-owf-1-0-agreements/owfa-1-0.=20
+>=20
+> I believe that it means that the patch set meets the criteria for sub=
+mission.  Am I right?
 
-The license applies not to this code but to the document describing the=
- tables.
+This is not a forum for legal advice. I would suggest that Linaro
+discusses it privately with the Linux Foundation and Linus and does so
+under attorney-client privilege. The Linux Foundation does have some
+reasons to exist.
 
-Here is an excerpt from it:
-
-  Patent Notice:
-  Microsoft is making certain patent rights available for implementatio=
-ns of this specification under two options:
-  1)  Microsoft=E2=80=99s Community Promise, available at
-  http://www.microsoft.com/openspecifications/en/us/programs/community-=
-promise/default.aspx; or
-  2)  The Open Web Foundation Final Specification Agreement Version 1.0=
- ("OWF 1.0")
-  as of October 1, 2012, available at http://www.openwebfoundation.org/=
-legal/the-owf-1-0-agreements/owfa-1-0.=20
-
-I believe that it means that the patch set meets the criteria for submi=
-ssion.  Am I right?
-
-Thank you
-Aleksey Makarov
-
+Alan
 --
 To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
 n
