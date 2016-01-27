@@ -1,100 +1,62 @@
 From: Robert Richter <robert.richter@caviumnetworks.com>
-Subject: Re: [PATCH v3 05/12] arm64, acpi, numa: NUMA support based on SRAT
- and SLIT
-Date: Wed, 27 Jan 2016 15:01:09 +0100
-Message-ID: <20160127140109.GQ24726@rric.localdomain>
+Subject: Re: [PATCH v3 12/12] acpi, numa: reuse
+ acpi_numa_memory_affinity_init()
+Date: Wed, 27 Jan 2016 15:18:47 +0100
+Message-ID: <20160127141847.GR24726@rric.localdomain>
 References: <1453541967-3744-1-git-send-email-guohanjun@huawei.com>
- <1453541967-3744-6-git-send-email-guohanjun@huawei.com>
- <20160125102148.GE24726@rric.localdomain>
- <56A86DCF.1020205@huawei.com>
+ <1453541967-3744-13-git-send-email-guohanjun@huawei.com>
+ <20160125102643.GF24726@rric.localdomain>
+ <56A8606A.8080407@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+Return-path: <linux-kernel-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <56A86DCF.1020205@huawei.com>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+In-Reply-To: <56A8606A.8080407@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: Hanjun Guo <guohanjun@huawei.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Steve Capper <steve.capper@linaro.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, Shannon Zhao <shannon.zhao@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>, linux-arm-kernel@lists.infradead.org, Hanjun Guo <hanjun.guo@linaro.org>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Shannon Zhao <shannon.zhao@linaro.org>, Steve Capper <steve.capper@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On 27.01.16 15:12:15, Hanjun Guo wrote:
-> On 2016/1/25 18:21, Robert Richter wrote:
-> > On 23.01.16 17:39:20, Hanjun Guo wrote:
-> >> diff --git a/arch/arm64/kernel/acpi_numa.c b/arch/arm64/kernel/acpi_numa.c
-> >> new file mode 100644
-> >> index 0000000..f7f7533
-> >> --- /dev/null
-> >> +++ b/arch/arm64/kernel/acpi_numa.c
-> >> +/* Callback for parsing of the Proximity Domain <-> Memory Area mappings */
-> >> +int __init acpi_numa_memory_affinity_init(struct acpi_srat_mem_affinity *ma)
-> >> +{
-> >> +	u64 start, end;
-> >> +	int node, pxm;
-> >> +
-> >> +	if (srat_disabled())
-> >> +		return -EINVAL;
-> >> +
-> >> +	if (ma->header.length != sizeof(struct acpi_srat_mem_affinity)) {
-> > Must be:
+On 27.01.16 14:15:06, Hanjun Guo wrote:
+> Hi Robert,
+> 
+> On 2016/1/25 18:26, Robert Richter wrote:
+> > On 23.01.16 17:39:27, Hanjun Guo wrote:
+> >> From: Hanjun Guo <hanjun.guo@linaro.org>
+> >>
+> >> After the cleanup for acpi_numa_memory_affinity_init(),
+> >> it can be used for architetures both x86 and arm64, since
+> >> CONFIG_MEMORY_HOTPLUG is not enabled for arm64, so no
+> >> worry about that.
+> >>
+> >> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+> >> ---
+> >>  arch/arm64/kernel/acpi_numa.c | 42 -------------------------------
+> >>  arch/x86/mm/srat.c            | 54 ----------------------------------------
+> >>  drivers/acpi/numa.c           | 57 +++++++++++++++++++++++++++++++++++++++++++
+> >>  3 files changed, 57 insertions(+), 96 deletions(-)
+> > This one reverts acpi_numa_memory_affinity_init() to the x86 version.
+> > I rather would prefer the arm64 version for the generic code. We could
+> > keep the x86 implementation until x86 maintainers agree to remove them
+> > and use the generic one (implemented in a separate patch).
 > >
-> > 	ma->header.length < sizeof(struct acpi_srat_mem_affinity)) {
-> >
-> > Allow extensions to struct acpi_srat_mem_affinity in newer versions.
+> > Doing so we can move acpi_numa_memory_affinity_init() from the
+> > beginning to generic code (used for arm64) and have this last patch to
+> > remove the x86 version.
 > 
-> Hmm, I think we need to remove the check here now.
+> I think the x86 version is the generic one, all the flags (ACPI_SRAT_MEM_HOT_PLUGGABLE and
+> etc) are defined in the ACPI spec, x86 just use all the flags because it support such features.
+> For ARM64, firmware should be careful and represent the true platform configuration to
+> OS, such as on ARM64, we can't set hotpluggable flag as the ARM64 arch don't support
+> memory hot-plug yet (also the firmware don't support it too), if firmware do things right,
+> it will be not worries for the kernel.
 
-No, we might have an out-of-bound access then.
-
-> 
-> There are three cases:
-> 
->  - firmware ACPI version is consistent with the ACPICA one, then
->    ma->header.length == sizeof(struct acpi_srat_mem_affinity )
-> 
->  - firmware ACPI version is not consistent with the ACPICA one,
->    for example, struct acpi_srat_mem_affinity is extended in
->    new ACI version, but the formware is using the older one,
->   then it's ok to use
->   ma->header.length < sizeof(struct acpi_srat_mem_affinity )
-
-The check above is ok as we need at least struct
-acpi_srat_mem_affinity as it is now.
-
-If we later change the kernel to support multiple versions of struct
-acpi_srat_mem_affinity, i.e. use data from an extended section, we
-will need to add code to handle that. This will include support of
-data with length < acpi_srat_mem_affinity, in this case we may not use
-extended data.
-
-> 
->  - but if we use the older kernel + updated new firmware,
->    then
->    ma->header.length > sizeof(struct acpi_srat_mem_affinity )
->   will be the case, right?
-
-Right, and this is a valid case not resulting in an error with my
-suggestion above.
-
-> 
-> >
-> >> +		bad_srat();
-> >> +		return -EINVAL;
-> > We need a pr_err() here to avoid that numa setup fails silently due to
-> > bad fw. This applies to all error paths.
-> >
-> > See my delta patch below. You can merge it with your patch.
-> 
-> Thanks! I wil merge it into next version.
-
-Thanks,
+But you are removing all arm64 from your first patches. Why do you
+introduce acpi_numa_memory_affinity_init() in the beginning to remove
+it in the end again? I esp. like the arm64 version because of its
+direct returns. So I still would like to see generic code for arm64
+from the beginning. Maybe have a copy of x86 initially and make
+modifications for arm64 to it, or move missing code (hotplug, etc.)
+from x86 to generic and remove x86 arch code with the last patch.
 
 -Robert
