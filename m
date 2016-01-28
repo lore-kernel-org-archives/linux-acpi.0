@@ -1,133 +1,145 @@
-From: Peter Hurley <peter@hurleysoftware.com>
-Subject: Re: [PATCH 2/3] ACPI: parse SPCR and enable matching console
-Date: Wed, 27 Jan 2016 16:45:22 -0800
-Message-ID: <56A964A2.9040802@hurleysoftware.com>
-References: <1453722324-22407-1-git-send-email-aleksey.makarov@linaro.org>
- <1453722324-22407-3-git-send-email-aleksey.makarov@linaro.org>
- <56A64E07.10106@hurleysoftware.com> <56A8CCCE.2080509@linaro.org>
+From: Chen Fan <chen.fan.fnst@cn.fujitsu.com>
+Subject: Re: [PATCH v2] pci: fix unavailable irq number 255 reported by BIOS
+Date: Thu, 28 Jan 2016 09:00:14 +0800
+Message-ID: <56A9681E.7090603@cn.fujitsu.com>
+References: <1453705178-27389-1-git-send-email-chen.fan.fnst@cn.fujitsu.com> <20160125205803.GA10272@localhost> <alpine.DEB.2.11.1601260825510.3886@nanos> <20160126152221.GB9279@localhost> <alpine.DEB.2.11.1601261628450.3886@nanos> <20160127002505.GA3329@localhost> <alpine.DEB.2.11.1601270941190.3886@nanos> <20160127223237.GA6190@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset="windows-1252"; format=flowed
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pf0-f173.google.com ([209.85.192.173]:35675 "EHLO
-	mail-pf0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965544AbcA1ApZ (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Jan 2016 19:45:25 -0500
-Received: by mail-pf0-f173.google.com with SMTP id 65so13506398pfd.2
-        for <linux-acpi@vger.kernel.org>; Wed, 27 Jan 2016 16:45:25 -0800 (PST)
-In-Reply-To: <56A8CCCE.2080509@linaro.org>
-Sender: linux-acpi-owner@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160127223237.GA6190@localhost>
+Sender: linux-kernel-owner@vger.kernel.org
+To: Bjorn Helgaas <helgaas@kernel.org>, Thomas Gleixner <tglx@linutronix.de>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, rjw@rjwysocki.net, lenb@kernel.org, izumi.taku@jp.fujitsu.com, wency@cn.fujitsu.com, caoj.fnst@cn.fujitsu.com, ddaney.cavm@gmail.com, okaya@codeaurora.org, bhelgaas@google.com, jiang.liu@linux.intel.com, linux-pci@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aleksey Makarov <aleksey.makarov@linaro.org>, linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org, Graeme Gregory <graeme.gregory@linaro.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Len Brown <lenb@kernel.org>
 
-On 01/27/2016 05:57 AM, Aleksey Makarov wrote:
-> 
-> 
-> On 01/25/2016 07:32 PM, Peter Hurley wrote:
->> On 01/25/2016 03:45 AM, Aleksey Makarov wrote:
->>> 'ARM Server Base Boot Requiremets' [1] mention SPCR (Serial Port
->>> Console Redirection Table) [2] as a mandatory ACPI table that
->>> specifies the configuration of serial console.
+
+On 01/28/2016 06:32 AM, Bjorn Helgaas wrote:
+> On Wed, Jan 27, 2016 at 10:13:36AM +0100, Thomas Gleixner wrote:
+>> On Tue, 26 Jan 2016, Bjorn Helgaas wrote:
+>>> On Tue, Jan 26, 2016 at 04:48:25PM +0100, Thomas Gleixner wrote:
+>>>> Right. So we could certainly do something like this INVALID_IRQ thingy, but
+>>>> that looks a bit weird. What would request_irq() return?
+>>>>
+>>>> If it returns success, then drivers might make the wrong decision. If it
+>>>> returns an error code, then the i801 one works, but we might have to fix
+>>>> others anyway.
+>>> I was thinking request_irq() could return -EINVAL if the caller passed
+>>> INVALID_IRQ.  That should tell drivers that this interrupt won't work.
 >>>
->>> Parse this table and check if any registered console match the
->>> description.  If it does, enable that console.
->>>
->>> To implement that, introduce a new member int (*acpi_match)(struct
->>> console *, struct acpi_table_spcr *) of struct console.  It allows
->>> drivers to check if they provide a matching console device.
+>>> We'd be making request_irq() return -EINVAL in some cases where it
+>>> currently returns success.  But even though it returns success today,
+>>> I don't think the driver is getting interrupts, because the wire isn't
+>>> connected.
+>> Correct. What I meant is that the i801 driver can handle the -EINVAL return
+>> from request_irq() today, but other drivers don't. I agree that we need to fix
+>> them anyway and a failure to request the interrupt is better than a silent 'no
+>> interrupts delivered' issue.
+>>   
+>> Though instead of returning -EINVAL I prefer an explicit error code for this
+>> case. That way a driver can distinguish between the 'not connected' case and
+>> other failure modes. Something like the patch below should work.
+> This patch looks great to me, thanks for all your help!
+>
+> Chen, do you want to put all this together as formal patches with
+> changelogs and post to the mailing lists?
+With pleasure. I will test it on my environment first and send it out.
+thank all of you for this problem.
+
+Chen
+
+>
+> Bjorn
+>
+>> 8<------------------
+>> --- a/drivers/acpi/pci_irq.c
+>> +++ b/drivers/acpi/pci_irq.c
+>> @@ -387,6 +387,22 @@ static inline int acpi_isa_register_gsi(
+>>   }
+>>   #endif
+>>   
+>> +static inline bool acpi_pci_irq_valid(struc pci_dev *dev)
+>> +{
+>> +#ifdef CONFIG_X86
+>> +	/*
+>> +	 * On x86 irq line 0xff means "unknown" or "no connection" (PCI 3.0,
+>> +	 * Section 6.2.4, footnote on page 223).
+>> +	 */
+>> +	if (dev->irq == 0xff) {
+>> +		dev->irq = IRQ_NOTCONNECTED;
+>> +		dev_warn(&dev->dev, "PCI INT not connected\n");
+>> +		return false;
+>> +	}
+>> +#endif
+>> +	return true;
+>> +}
+>> +
+>>   int acpi_pci_irq_enable(struct pci_dev *dev)
+>>   {
+>>   	struct acpi_prt_entry *entry;
+>> @@ -409,6 +425,9 @@ int acpi_pci_irq_enable(struct pci_dev *
+>>   	if (pci_has_managed_irq(dev))
+>>   		return 0;
+>>   
+>> +	if (!acpi_pci_irq_valid(dev))
+>> +		return 0;
+>> +
+>>   	entry = acpi_pci_irq_lookup(dev, pin);
+>>   	if (!entry) {
+>>   		/*
+>> --- a/include/linux/interrupt.h
+>> +++ b/include/linux/interrupt.h
+>> @@ -125,6 +125,16 @@ struct irqaction {
+>>   
+>>   extern irqreturn_t no_action(int cpl, void *dev_id);
+>>   
+>> +/*
+>> + * If a (PCI) device interrupt is not connected we set dev->irq to
+>> + * IRQ_NOTCONNECTED. This causes request_irq() to fail with -ENOTCONN, so we
+>> + * can distingiush that case from other error returns.
+>> + *
+>> + * 0x80000000 is guaranteed to be outside the available range of interrupts
+>> + * and easy to distinguish from other possible incorrect values.
+>> + */
+>> +#define IRQ_NOTCONNECTED	(1U << 31)
+>> +
+>>   extern int __must_check
+>>   request_threaded_irq(unsigned int irq, irq_handler_t handler,
+>>   		     irq_handler_t thread_fn,
+>> --- a/kernel/irq/manage.c
+>> +++ b/kernel/irq/manage.c
+>> @@ -1609,6 +1609,9 @@ int request_threaded_irq(unsigned int ir
+>>   	struct irq_desc *desc;
+>>   	int retval;
+>>   
+>> +	if (irq == IRQ_NOTCONNECTED)
+>> +		return -ENOTCONN;
+>> +
+>>   	/*
+>>   	 * Sanity-check: shared interrupts must pass in a real dev-ID,
+>>   	 * otherwise we'll have trouble later trying to figure out
+>> @@ -1699,9 +1702,13 @@ EXPORT_SYMBOL(request_threaded_irq);
+>>   int request_any_context_irq(unsigned int irq, irq_handler_t handler,
+>>   			    unsigned long flags, const char *name, void *dev_id)
+>>   {
+>> -	struct irq_desc *desc = irq_to_desc(irq);
+>> +	struct irq_desc *desc;
+>>   	int ret;
+>>   
+>> +	if (irq == IRQ_NOTCONNECTED)
+>> +		return -ENOTCONN;
+>> +
+>> +	desc = irq_to_desc(irq);
+>>   	if (!desc)
+>>   		return -EINVAL;
+>>   
 >>
->> Many, many platform proms with all sorts of binary table layout are
->> already supported by the existing console infrastructure. Why is ACPI
->> different, that requires extensive (and messy) changes to console
->> initialization?
-> 
-> Without this patch, when linux calls register_console(), that function
-> checks if any console has been enabled so far. 1) If not, it enables the
-> console being registered. 2) If there exists any enabled console, it
-> looks at the console_cmdline array. That array holds a list of
-> consoles that user wishes to enable. There are two ways to append
-> an item to that list: first is to pass "console=..." option in command
-> line and second is to call add_preferred_console(char *name, int idx,
-> char *options). As it is clear from the signature, the function
-> requires the name of the driver (like "ttyS") and the line id. On the
-> other hand, the SPCR ACPI table describes console by specifying the
-> address of it's registers or PCI Device ID / PCI Vendor ID or PCI Bus
-> Number / PCI Device Number. So to use this function we would need to
-> have a method to translate this info to the name of terminal and line
-> index. I could not figure out any way to do that.
-
-I'm not sure how this answers my question.
-
-Which existing drivers/arch setup have you studied to conclude that
-the existing console mechanisms don't work? Have you actually looked
-at the in-tree callers of add_preferred_console()?
-
-
-> In the initial version of the patch after getting the reference to the
-> SPCR ACPI table the full tree of ACPI devices was searched to find any
-> device with the same address.  When uart_add_one_port() was called
-> to register a new serial port, the ACPI companion of this port was
-> compared to the found device. If it was the same device, the code
-> called add_preferred_console() (the terminal name and line index are
-> known in uart_add_one_port()).
-
-Yeah, I wasn't a fan of that.
-
-But I think it was a bad choice to pick SPCR as table format, in the
-first place. At least DBG2 has the actual ACPI device identifier :/
-
-
-> This original approach had two problems: 
-> 
->     1) It works with the SPCR tables that describe consoles only by
-> the address of the registers. I do not think that consoles that are
-> described by PCI info will appear in the near future, but decided to
-> implement this in a generic way. I would like to discuss if this
-> decision was good.
-> 
->     2) Wrong order of initialization.  Many console drivers have already
-> been registered by the time uart_add_one_port() adds an item to the
-> console_cmdline array.  There is a similar problem with my
-> implementation,  but having a dedicated acpi_match() callback I
-> believe made it simpler to circumwent.
-
-I don't see how the "wrong order of initialization" and the need for
-acpi_match() correlate. What do you mean by "wrong order"? What is the
-"right order"?
-
-
-> That's why I believe we need to add a new funcion pointer to struct
-> console. On the other hand, I do not understand which existing
-> structure you are referring.
-> 
->> How is this going to work with earlycon?
-> 
-> If an earlycon that matches SPCR is being registered, the code will enable it.
-
-I think you should review how and when an earlycon is specified, initialized
-and registered before you conclude that this will magically work.
-
-
-> While it is harmless. Even so I will check for earlycon in the next version
-> of the patch set, thank you.
-> 
->> This commit log is missing the reasoning behind adding locks,
->> refactoring into delete_from_console_list(), and retry loops.
-> 
-> I will add this to the next verion of the series.
-> 
-> Thank you
-> Aleksey Makarov
-> 
-> 
->>> [1]
->>> http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.den0044a/index.html
->>>
->>> [2] http://msdn.microsoft.com/en-us/library/windows/hardware/dn639131(v=vs.85).aspx
->>>
->>> Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
-> 
-> [ .. ]
-> 
-
+>>
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> .
+>
