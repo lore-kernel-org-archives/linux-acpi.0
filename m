@@ -1,278 +1,230 @@
-From: Peter Hurley <peter@hurleysoftware.com>
-Subject: Re: [PATCH 2/3] ACPI: parse SPCR and enable matching console
-Date: Thu, 28 Jan 2016 11:40:51 -0800
-Message-ID: <56AA6EC3.2040804@hurleysoftware.com>
-References: <1453722324-22407-1-git-send-email-aleksey.makarov@linaro.org>
- <1453722324-22407-3-git-send-email-aleksey.makarov@linaro.org>
- <56A64E07.10106@hurleysoftware.com> <56A8CCCE.2080509@linaro.org>
- <56A964A2.9040802@hurleysoftware.com> <56AA165F.4010200@linaro.org>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [PATCH v4 1/1] pci: fix unavailable irq number 255 reported by
+ BIOS
+Date: Thu, 28 Jan 2016 14:57:36 -0600
+Message-ID: <20160128205736.GA12965@localhost>
+References: <1453944946-18852-1-git-send-email-chen.fan.fnst@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pf0-f171.google.com ([209.85.192.171]:34445 "EHLO
-	mail-pf0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932198AbcA1Tky (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 28 Jan 2016 14:40:54 -0500
-Received: by mail-pf0-f171.google.com with SMTP id o185so23731711pfb.1
-        for <linux-acpi@vger.kernel.org>; Thu, 28 Jan 2016 11:40:54 -0800 (PST)
-In-Reply-To: <56AA165F.4010200@linaro.org>
+Received: from mail.kernel.org ([198.145.29.136]:36829 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755030AbcA1U5l (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Thu, 28 Jan 2016 15:57:41 -0500
+Content-Disposition: inline
+In-Reply-To: <1453944946-18852-1-git-send-email-chen.fan.fnst@cn.fujitsu.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aleksey Makarov <aleksey.makarov@linaro.org>, linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-serial@vger.kernel.org, Graeme Gregory <graeme.gregory@linaro.org>, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, Leif Lindholm <leif.lindholm@linaro.org>, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, Len Brown <lenb@kernel.org>
+To: Chen Fan <chen.fan.fnst@cn.fujitsu.com>
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, rjw@rjwysocki.net, lenb@kernel.org, izumi.taku@jp.fujitsu.com, wency@cn.fujitsu.com, caoj.fnst@cn.fujitsu.com, ddaney.cavm@gmail.com, okaya@codeaurora.org, bhelgaas@google.com, jiang.liu@linux.intel.com, linux-pci@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>
 
-On 01/28/2016 05:23 AM, Aleksey Makarov wrote:
+Hi Chen,
+
+Thanks a lot for persevering and working this all out!
+
+On Thu, Jan 28, 2016 at 09:35:46AM +0800, Chen Fan wrote:
+> In our X86 environment, when enable Secure boot, we found an abnormal
+> phenomenon as following call trace shows. after investigation, we
+> found the firmware assigned an irq number 255 which means unknown
+> or no connection in PCI local spec for i801_smbus, meanwhile the
+> ACPI didn't configure the pci irq routing. and the 255 irq number
+> was assigned for megasa msix without IRQF_SHARED. then in this case
+> during i801_smbus probe, the i801_smbus driver would request irq with
+> bad irq number 255. but the 255 irq number was assigned for memgasa
+> with MSIX enable. which will cause request_irq fails and result in
+> the call trace below, here we introduce an IRQ_NOTCONNECTED to identify
+> the device interrupt is not connected.
+> 
+> i801_smbus 0000:00:1f.3: enabling device (0140 -> 0143)
+> i801_smbus 0000:00:1f.3: can't derive routing for PCI INT C
+> i801_smbus 0000:00:1f.3: PCI INT C: no GSI
+> genirq: Flags mismatch irq 255. 00000080 (i801_smbus) vs. 00000000 (megasa)
+> CPU: 0 PID: 2487 Comm: kworker/0:1 Not tainted 3.10.0-229.el7.x86_64 #1
+> Hardware name: FUJITSU PRIMEQUEST 2800E2/D3736, BIOS PRIMEQUEST 2000 Serie5
+> 
+> Call Trace:
+>   dump_stack+0x19/0x1b
+>   __setup_irq+0x54a/0x570
+>   request_threaded_irq+0xcc/0x170
+>   i801_probe+0x32f/0x508 [i2c_i801]
+>   local_pci_probe+0x45/0xa0
+> i801_smbus 0000:00:1f.3: Failed to allocate irq 255: -16
+> i801_smbus: probe of 0000:00:1f.3 failed with error -16
+> 
+> Signed-off-by: Chen Fan <chen.fan.fnst@cn.fujitsu.com>
+> Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+> Cc: Bjorn Helgaas <helgaas@kernel.org>
+
+Acked-by: Bjorn Helgaas <bhelgaas@google.com>
+
+Rafael, I assume you'll take this if you think it's ready.
+
+This is a subtle problem and, if I understand correctly, can manifest
+intermittently depending on the machine configuration.  For example,
+if you got rid of the "megasa" driver, I suspect i801_smbus would not
+complain, but it wouldn't work.
+
+I think we might want to consider doing something for non-x86 arches
+as well, but we can do that later.  I propose a changelog like the
+following.  Please correct anything I got wrong.  I suspect we will be
+revisiting this issue eventually, so I'd like to have a good
+description.
+
+
+x86/PCI: Recognize that Interrupt Line 255 means "not connected"
+
+Per the x86-specific footnote to PCI spec r3.0, sec 6.2.4, the value 255 in
+the Interrupt Line register means "unknown" or "no connection."
+Previously, when we couldn't derive an IRQ from the _PRT, we fell back to
+using the value from Interrupt Line as an IRQ.  It's questionable whether
+we should do that at all, but the spec clearly suggests we shouldn't do it
+for the value 255 on x86.
+
+Calling request_irq() with IRQ 255 may succeed, but the driver won't
+receive any interrupts.  Or, if IRQ 255 is shared with another device, it
+may succeed, and the driver's ISR will be called at random times when the
+*other* device interrupts.  Or it may fail if another device is using IRQ
+255 with incompatible flags.  What we *want* is for request_irq() to fail
+predictably so the driver can fall back to polling.
+
+On x86, assume 255 in the Interrupt Line means the INTx line is not
+connected.  In that case, set dev->irq to IRQ_NOTCONNECTED so request_irq()
+will fail gracefully with -ENOTCONN.
+
+We found this problem on a system where Secure Boot firmware assigned
+Interrupt Line 255 to an i801_smbus device and another device was already
+using MSI-X IRQ 255.  This was in v3.10, where i801_probe() fails if
+request_irq() fails:
+
+  i801_smbus 0000:00:1f.3: enabling device (0140 -> 0143)
+  i801_smbus 0000:00:1f.3: can't derive routing for PCI INT C
+  i801_smbus 0000:00:1f.3: PCI INT C: no GSI
+  genirq: Flags mismatch irq 255. 00000080 (i801_smbus) vs. 00000000 (megasa)
+  CPU: 0 PID: 2487 Comm: kworker/0:1 Not tainted 3.10.0-229.el7.x86_64 #1
+  Hardware name: FUJITSU PRIMEQUEST 2800E2/D3736, BIOS PRIMEQUEST 2000 Serie5
+  Call Trace:
+    dump_stack+0x19/0x1b
+    __setup_irq+0x54a/0x570
+    request_threaded_irq+0xcc/0x170
+    i801_probe+0x32f/0x508 [i2c_i801]
+    local_pci_probe+0x45/0xa0
+  i801_smbus 0000:00:1f.3: Failed to allocate irq 255: -16
+  i801_smbus: probe of 0000:00:1f.3 failed with error -16
+
+After aeb8a3d16ae0 ("i2c: i801: Check if interrupts are disabled"),
+i801_probe() will fall back to polling if request_irq() fails.  But we
+still need this patch because request_irq() may succeed or fail depending
+on other devices in the system.  If request_irq() fails, i801_smbus will
+work by falling back to polling, but if it succeeds, i801_smbus won't work
+because it expects interrupts that it may not receive.
+
+> ---
+>  drivers/acpi/pci_irq.c    | 20 ++++++++++++++++++++
+>  include/linux/interrupt.h | 10 ++++++++++
+>  kernel/irq/manage.c       |  9 ++++++++-
+>  3 files changed, 38 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
+> index d30184c..dda6d25 100644
+> --- a/drivers/acpi/pci_irq.c
+> +++ b/drivers/acpi/pci_irq.c
+> @@ -33,6 +33,7 @@
+>  #include <linux/pci.h>
+>  #include <linux/acpi.h>
+>  #include <linux/slab.h>
+> +#include <linux/interrupt.h>
+>  
+>  #define PREFIX "ACPI: "
+>  
+> @@ -387,6 +388,22 @@ static inline int acpi_isa_register_gsi(struct pci_dev *dev)
+>  }
+>  #endif
+>  
+> +static inline bool acpi_pci_irq_valid(struct pci_dev *dev)
+> +{
+> +#ifdef CONFIG_X86
+> +	/*
+> +	 * On x86 irq line 0xff means "unknown" or "no connection" (PCI 3.0,
+> +	 * Section 6.2.4, footnote on page 223).
+> +	 */
+> +	if (dev->irq == 0xff) {
+> +		dev->irq = IRQ_NOTCONNECTED;
+> +		dev_warn(&dev->dev, "PCI INT not connected\n");
+> +		return false;
+> +	}
+> +#endif
+> +	return true;
+> +}
+> +
+>  int acpi_pci_irq_enable(struct pci_dev *dev)
+>  {
+>  	struct acpi_prt_entry *entry;
+> @@ -409,6 +426,9 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
+>  	if (pci_has_managed_irq(dev))
+>  		return 0;
+>  
+> +	if (!acpi_pci_irq_valid(dev))
+> +		return 0;
+> +
+>  	entry = acpi_pci_irq_lookup(dev, pin);
+>  	if (!entry) {
+>  		/*
+> diff --git a/include/linux/interrupt.h b/include/linux/interrupt.h
+> index cb30edb..12f7da4 100644
+> --- a/include/linux/interrupt.h
+> +++ b/include/linux/interrupt.h
+> @@ -125,6 +125,16 @@ struct irqaction {
+>  
+>  extern irqreturn_t no_action(int cpl, void *dev_id);
+>  
+> +/*
+> + * If a (PCI) device interrupt is not connected we set dev->irq to
+> + * IRQ_NOTCONNECTED. This causes request_irq() to fail with -ENOTCONN, so we
+> + * can distingiush that case from other error returns.
+> + *
+> + * 0x80000000 is guaranteed to be outside the available range of interrupts
+> + * and easy to distinguish from other possible incorrect values.
+> + */
+> +#define IRQ_NOTCONNECTED	(1U << 31)
+> +
+>  extern int __must_check
+>  request_threaded_irq(unsigned int irq, irq_handler_t handler,
+>  		     irq_handler_t thread_fn,
+> diff --git a/kernel/irq/manage.c b/kernel/irq/manage.c
+> index 8411872..e79e60f 100644
+> --- a/kernel/irq/manage.c
+> +++ b/kernel/irq/manage.c
+> @@ -1609,6 +1609,9 @@ int request_threaded_irq(unsigned int irq, irq_handler_t handler,
+>  	struct irq_desc *desc;
+>  	int retval;
+>  
+> +	if (irq == IRQ_NOTCONNECTED)
+> +		return -ENOTCONN;
+> +
+>  	/*
+>  	 * Sanity-check: shared interrupts must pass in a real dev-ID,
+>  	 * otherwise we'll have trouble later trying to figure out
+> @@ -1699,9 +1702,13 @@ EXPORT_SYMBOL(request_threaded_irq);
+>  int request_any_context_irq(unsigned int irq, irq_handler_t handler,
+>  			    unsigned long flags, const char *name, void *dev_id)
+>  {
+> -	struct irq_desc *desc = irq_to_desc(irq);
+> +	struct irq_desc *desc;
+>  	int ret;
+>  
+> +	if (irq == IRQ_NOTCONNECTED)
+> +		return -ENOTCONN;
+> +
+> +	desc = irq_to_desc(irq);
+>  	if (!desc)
+>  		return -EINVAL;
+>  
+> -- 
+> 1.9.3
 > 
 > 
-> On 01/28/2016 03:45 AM, Peter Hurley wrote:
->> On 01/27/2016 05:57 AM, Aleksey Makarov wrote:
->>>
->>>
->>> On 01/25/2016 07:32 PM, Peter Hurley wrote:
->>>> On 01/25/2016 03:45 AM, Aleksey Makarov wrote:
->>>>> 'ARM Server Base Boot Requiremets' [1] mention SPCR (Serial Port
->>>>> Console Redirection Table) [2] as a mandatory ACPI table that
->>>>> specifies the configuration of serial console.
->>>>>
->>>>> Parse this table and check if any registered console match the
->>>>> description.  If it does, enable that console.
->>>>>
->>>>> To implement that, introduce a new member int (*acpi_match)(struct
->>>>> console *, struct acpi_table_spcr *) of struct console.  It allows
->>>>> drivers to check if they provide a matching console device.
->>>>
->>>> Many, many platform proms with all sorts of binary table layout are
->>>> already supported by the existing console infrastructure. Why is ACPI
->>>> different, that requires extensive (and messy) changes to console
->>>> initialization?
->>>
->>> Without this patch, when linux calls register_console(), that function
->>> checks if any console has been enabled so far. 1) If not, it enables the
->>> console being registered. 2) If there exists any enabled console, it
->>> looks at the console_cmdline array. That array holds a list of
->>> consoles that user wishes to enable. There are two ways to append
->>> an item to that list: first is to pass "console=..." option in command
->>> line and second is to call add_preferred_console(char *name, int idx,
->>> char *options). As it is clear from the signature, the function
->>> requires the name of the driver (like "ttyS") and the line id. On the
->>> other hand, the SPCR ACPI table describes console by specifying the
->>> address of it's registers or PCI Device ID / PCI Vendor ID or PCI Bus
->>> Number / PCI Device Number. So to use this function we would need to
->>> have a method to translate this info to the name of terminal and line
->>> index. I could not figure out any way to do that.
->>
->> I'm not sure how this answers my question.
 > 
-> It does not.  For the actual answer please scroll down.
-
-Where?
-All I see is random descriptions of _what_ this patchset does, not _why_.
-
-For example, below you say the first implementation had the wrong order
-of initialization. I ask what the "wrong order" is, what the "right order"
-should be and how adding "match_acpi()" fixes it.
-
-Your reply:
-> There is a race between initialization/registration of consoles and 
-> parsing SPCR table.  By the time the console is registered we should 
-> have SPCR table parsed and add_preferred_console() called.
-
-1. There's no race because early kernel init is single-threaded.
-2. If by "race", you mean static-but-wrong order-of-execution, then I'm
-   left to assume you mean that the "right order" is
-     a. parse the SPCR table
-     b. add_preferred_console
-     c. register_console
-
-I agree that this is the correct order-of-initialization.
-However, this is not what this patch does.
-
-You continue:
-> In the original submission add_preferred_console() was called from
-> uart registration code, that requires to parse ACPI table very early
-> (and nobody can say how early, because uarts can be registered very
-> early.  pl011 is initialized with arch_initcall() for example).
-
-You fail to describe why this is wrong.
-
-You continue:
-> I decided to fix this with retrying registration of consoles after
-> ACPI is parsed.
-
-Fix what? That your patchset doesn't mandate fixed order-of-initialization
-between parsing ACPI for console information and initializing the uart
-driver (or any console driver)?
-
-Why not? What is *better* about randomizing the order-of-initialization?
-
-
-*The reason I brought up earlycon* is because you won't be able to do
-this same crazy deferred initialization with earlycon, so you'll be forced
-to parse ACPI early, thus rendering the whole retry-console-initialization
-pointless.
-
-
-
->> Which existing drivers/arch setup have you studied to conclude that
->> the existing console mechanisms don't work? 
-> 
-> I studied how add_preferred_console() is used in drivers/of/base.c,
-> grepped the tree for it and studied each instance.
-> Almost everything I see is dumb calls to this 
-> function with hardcoded tty name and line index.  I don't see 
-> how this can help.
-
-But did you notice that _none_ of them needed retry loops?
-   
-
->> Have you actually looked
->> at the in-tree callers of add_preferred_console()?
-> 
-> Yes I have. It looks like you are implying that there is some drivers/arch
-> setup that would help to implement this correctly. Could you please
-> give me a reference to it?
-
-What does this do?
-
-	add_preferred_console("uart", 0, "io,0x3f8,115200n8");
-
-
->>> In the initial version of the patch after getting the reference to the
->>> SPCR ACPI table the full tree of ACPI devices was searched to find any
->>> device with the same address.  When uart_add_one_port() was called
->>> to register a new serial port, the ACPI companion of this port was
->>> compared to the found device. If it was the same device, the code
->>> called add_preferred_console() (the terminal name and line index are
->>> known in uart_add_one_port()).
->>
->> Yeah, I wasn't a fan of that.
->>
->> But I think it was a bad choice to pick SPCR as table format, in the
->> first place. At least DBG2 has the actual ACPI device identifier :/
-> 
-> I am working on parsing DBG2 to implement earlycon based on 
-> info from it.  As I understand,
-> - SPCR specifies which existing console should be enabled (= made preferred).
-> - DBG2 specifies how kernel can add a new earlycon to the system.
-> These are two differend subsystems and both make sense.
-
-This seems an arbitrary distinction.
-Many setups just start an earlycon as an option of the normal console.
-This is what devicetree does for "stdout-path".
-
-
-> Also I don't understand how having (optional) ACPI device identifier
-> in DBG2 table can help to implement earlycon introduction.
-
-I didn't say it would. But it would help for _console_ because the
-device association is clear (as opposed to searching by register address).
-Earlycon doesn't need or use devices (in the device model sense).
-
-
->>> This original approach had two problems: 
->>>
->>>     1) It works with the SPCR tables that describe consoles only by
->>> the address of the registers. I do not think that consoles that are
->>> described by PCI info will appear in the near future, but decided to
->>> implement this in a generic way. I would like to discuss if this
->>> decision was good.
->>>
->>>     2) Wrong order of initialization.  Many console drivers have already
->>> been registered by the time uart_add_one_port() adds an item to the
->>> console_cmdline array.  There is a similar problem with my
->>> implementation,  but having a dedicated acpi_match() callback I
->>> believe made it simpler to circumwent.
->>
->> I don't see how the "wrong order of initialization" and the need for
->> acpi_match() correlate. What do you mean by "wrong order"? What is the
->> "right order"?
-> 
-> There is a race between initialization/registration of consoles and 
-> parsing SPCR table.  By the time the console is registered we should 
-> have SPCR table parsed and add_preferred_console() called.
-> 
-> In the original submission add_preferred_console() was called from
-> uart registration code, that requires to parse ACPI table very early
-> (and nobody can say how early, because uarts can be registered very
-> early.  pl011 is initialized with arch_initcall() for example).
-> 
-> I decided to fix this with retrying registration of consoles after
-> ACPI is parsed.  I do not like it either, but it is the simplest 
-> solution I could suggest.  But it's quite difficult do implement 
-> such deferring code in the uart registration and, more important,
-> it is wrong as there may be non-uart consoles.
-> 
-> So acpi_match() is a part of registration retrying mechanism and
-> the right place for it is at console registration.
-
-Once you get DBG2 parsed so that you can start an earlycon from
-that information, all this "retry" mechanism won't be necessary
-because you'll be parsing ACPI early enough to start earlycon
-which will be early enough to be before any console registrations too.
-You can parse SPCR at the same time.
-
-The way I see it you're taking the existing ACPI code as a given,
-and trying to make the rest of the kernel workaround that.
-But your approach really needs to be the other way around.
-
-devicetree had to deal with many of these same issues, which is why
-there is special-case devicetree code for parsing the flat devicetree
-for earlycon startup and other stuff.
-
-And devicetree manages to parse the "stdout-path" before device
-initialization as well, which means there's no race wrt console
-initialization.
-
-Unfortunately, the easiest way is not always the best way.
-
-
->>> That's why I believe we need to add a new funcion pointer to struct
->>> console. On the other hand, I do not understand which existing
->>> structure you are referring.
->>>
->>>> How is this going to work with earlycon?
->>>
->>> If an earlycon that matches SPCR is being registered, the code will enable it.
->>
->> I think you should review how and when an earlycon is specified, initialized
->> and registered before you conclude that this will magically work.
-> 
-> I reviewed that again and the only issue that I can imagine is that
-> ACPI can not make earlycon preferred.  Is it that you are afraid of?
-> I believe it should not.  What problems do you see?
-
-I was asking how this would _start_ an earlycon but I see now from
-your answers elsewhere that you don't intend to start an earlycon
-from the information in SPCR, ever.
-
-I disagree on this distinction. If anything DBG2 should _also_ start a console.
-And both should be capable of (optionally) starting an earlycon.
-
-Regards,
-Peter Hurley
-
-
->>> While it is harmless. Even so I will check for earlycon in the next version
->>> of the patch set, thank you.
->>>
->>>> This commit log is missing the reasoning behind adding locks,
->>>> refactoring into delete_from_console_list(), and retry loops.
->>>
->>> I will add this to the next verion of the series.
->>>
->>> Thank you
->>> Aleksey Makarov
->>>
->>>
->>>>> [1]
->>>>> http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.den0044a/index.html
->>>>>
->>>>> [2] http://msdn.microsoft.com/en-us/library/windows/hardware/dn639131(v=vs.85).aspx
->>>>>
->>>>> Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
->>>
->>> [ .. ]
->>>
->>
-
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-acpi" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
