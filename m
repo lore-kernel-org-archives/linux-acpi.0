@@ -1,146 +1,75 @@
-From: Chen Fan <chen.fan.fnst@cn.fujitsu.com>
-Subject: [PATCH v4 1/1] pci: fix unavailable irq number 255 reported by BIOS
-Date: Thu, 28 Jan 2016 09:35:46 +0800
-Message-ID: <1453944946-18852-1-git-send-email-chen.fan.fnst@cn.fujitsu.com>
+From: Hanjun Guo <guohanjun@huawei.com>
+Subject: Re: [PATCH v3 12/12] acpi, numa: reuse
+ acpi_numa_memory_affinity_init()
+Date: Thu, 28 Jan 2016 10:48:37 +0800
+Message-ID: <56A98185.4080202@huawei.com>
+References: <1453541967-3744-1-git-send-email-guohanjun@huawei.com>
+ <1453541967-3744-13-git-send-email-guohanjun@huawei.com>
+ <20160125102643.GF24726@rric.localdomain> <56A8606A.8080407@huawei.com>
+ <20160127141847.GR24726@rric.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-pci-owner@vger.kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: linux-acpi@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, rjw@rjwysocki.net, lenb@kernel.org, izumi.taku@jp.fujitsu.com, wency@cn.fujitsu.com, caoj.fnst@cn.fujitsu.com, ddaney.cavm@gmail.com, chen.fan.fnst@cn.fujitsu.com, helgaas@kernel.org, okaya@codeaurora.org, bhelgaas@google.com, jiang.liu@linux.intel.com, linux-pci@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>
+Content-Type: text/plain; charset="windows-1252"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga01-in.huawei.com ([58.251.152.64]:58790 "EHLO
+	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965155AbcA1CtA (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 27 Jan 2016 21:49:00 -0500
+In-Reply-To: <20160127141847.GR24726@rric.localdomain>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Robert Richter <robert.richter@caviumnetworks.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Shannon Zhao <shannon.zhao@linaro.org>, Steve Capper <steve.capper@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>
 
-In our X86 environment, when enable Secure boot, we found an abnormal
-phenomenon as following call trace shows. after investigation, we
-found the firmware assigned an irq number 255 which means unknown
-or no connection in PCI local spec for i801_smbus, meanwhile the
-ACPI didn't configure the pci irq routing. and the 255 irq number
-was assigned for megasa msix without IRQF_SHARED. then in this case
-during i801_smbus probe, the i801_smbus driver would request irq with
-bad irq number 255. but the 255 irq number was assigned for memgasa
-with MSIX enable. which will cause request_irq fails and result in
-the call trace below, here we introduce an IRQ_NOTCONNECTED to identify
-the device interrupt is not connected.
+On 2016/1/27 22:18, Robert Richter wrote:
+> On 27.01.16 14:15:06, Hanjun Guo wrote:
+>> Hi Robert,
+>>
+>> On 2016/1/25 18:26, Robert Richter wrote:
+>>> On 23.01.16 17:39:27, Hanjun Guo wrote:
+>>>> From: Hanjun Guo <hanjun.guo@linaro.org>
+>>>>
+>>>> After the cleanup for acpi_numa_memory_affinity_init(),
+>>>> it can be used for architetures both x86 and arm64, since
+>>>> CONFIG_MEMORY_HOTPLUG is not enabled for arm64, so no
+>>>> worry about that.
+>>>>
+>>>> Signed-off-by: Hanjun Guo <hanjun.guo@linaro.org>
+>>>> ---
+>>>>  arch/arm64/kernel/acpi_numa.c | 42 -------------------------------
+>>>>  arch/x86/mm/srat.c            | 54 ----------------------------------------
+>>>>  drivers/acpi/numa.c           | 57 +++++++++++++++++++++++++++++++++++++++++++
+>>>>  3 files changed, 57 insertions(+), 96 deletions(-)
+>>> This one reverts acpi_numa_memory_affinity_init() to the x86 version.
+>>> I rather would prefer the arm64 version for the generic code. We could
+>>> keep the x86 implementation until x86 maintainers agree to remove them
+>>> and use the generic one (implemented in a separate patch).
+>>>
+>>> Doing so we can move acpi_numa_memory_affinity_init() from the
+>>> beginning to generic code (used for arm64) and have this last patch to
+>>> remove the x86 version.
+>> I think the x86 version is the generic one, all the flags (ACPI_SRAT_MEM_HOT_PLUGGABLE and
+>> etc) are defined in the ACPI spec, x86 just use all the flags because it support such features.
+>> For ARM64, firmware should be careful and represent the true platform configuration to
+>> OS, such as on ARM64, we can't set hotpluggable flag as the ARM64 arch don't support
+>> memory hot-plug yet (also the firmware don't support it too), if firmware do things right,
+>> it will be not worries for the kernel.
+> But you are removing all arm64 from your first patches. Why do you
+> introduce acpi_numa_memory_affinity_init() in the beginning to remove
+> it in the end again? I esp. like the arm64 version because of its
+> direct returns. So I still would like to see generic code for arm64
+> from the beginning. Maybe have a copy of x86 initially and make
+> modifications for arm64 to it, or move missing code (hotplug, etc.)
+> from x86 to generic and remove x86 arch code with the last patch.
 
-i801_smbus 0000:00:1f.3: enabling device (0140 -> 0143)
-i801_smbus 0000:00:1f.3: can't derive routing for PCI INT C
-i801_smbus 0000:00:1f.3: PCI INT C: no GSI
-genirq: Flags mismatch irq 255. 00000080 (i801_smbus) vs. 00000000 (megasa)
-CPU: 0 PID: 2487 Comm: kworker/0:1 Not tainted 3.10.0-229.el7.x86_64 #1
-Hardware name: FUJITSU PRIMEQUEST 2800E2/D3736, BIOS PRIMEQUEST 2000 Serie5
+OK, so that's the logic and ordering of formatting the patch set, it's easy
+to fix :)
 
-Call Trace:
-  dump_stack+0x19/0x1b
-  __setup_irq+0x54a/0x570
-  request_threaded_irq+0xcc/0x170
-  i801_probe+0x32f/0x508 [i2c_i801]
-  local_pci_probe+0x45/0xa0
-i801_smbus 0000:00:1f.3: Failed to allocate irq 255: -16
-i801_smbus: probe of 0000:00:1f.3 failed with error -16
+I will introduce the generic code for acpi_numa_memory_affinity_init()
+in drivers/acpi/numa.c and mark it as __weak from the beginning, and
+move missing code from x86 to generic, then remove x86 one as you
+suggested, is that OK?
 
-Signed-off-by: Chen Fan <chen.fan.fnst@cn.fujitsu.com>
-Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
-Cc: Bjorn Helgaas <helgaas@kernel.org>
----
- drivers/acpi/pci_irq.c    | 20 ++++++++++++++++++++
- include/linux/interrupt.h | 10 ++++++++++
- kernel/irq/manage.c       |  9 ++++++++-
- 3 files changed, 38 insertions(+), 1 deletion(-)
+Thanks
+Hanjun
 
-diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
-index d30184c..dda6d25 100644
---- a/drivers/acpi/pci_irq.c
-+++ b/drivers/acpi/pci_irq.c
-@@ -33,6 +33,7 @@
- #include <linux/pci.h>
- #include <linux/acpi.h>
- #include <linux/slab.h>
-+#include <linux/interrupt.h>
- 
- #define PREFIX "ACPI: "
- 
-@@ -387,6 +388,22 @@ static inline int acpi_isa_register_gsi(struct pci_dev *dev)
- }
- #endif
- 
-+static inline bool acpi_pci_irq_valid(struct pci_dev *dev)
-+{
-+#ifdef CONFIG_X86
-+	/*
-+	 * On x86 irq line 0xff means "unknown" or "no connection" (PCI 3.0,
-+	 * Section 6.2.4, footnote on page 223).
-+	 */
-+	if (dev->irq == 0xff) {
-+		dev->irq = IRQ_NOTCONNECTED;
-+		dev_warn(&dev->dev, "PCI INT not connected\n");
-+		return false;
-+	}
-+#endif
-+	return true;
-+}
-+
- int acpi_pci_irq_enable(struct pci_dev *dev)
- {
- 	struct acpi_prt_entry *entry;
-@@ -409,6 +426,9 @@ int acpi_pci_irq_enable(struct pci_dev *dev)
- 	if (pci_has_managed_irq(dev))
- 		return 0;
- 
-+	if (!acpi_pci_irq_valid(dev))
-+		return 0;
-+
- 	entry = acpi_pci_irq_lookup(dev, pin);
- 	if (!entry) {
- 		/*
-diff --git a/include/linux/interrupt.h b/include/linux/interrupt.h
-index cb30edb..12f7da4 100644
---- a/include/linux/interrupt.h
-+++ b/include/linux/interrupt.h
-@@ -125,6 +125,16 @@ struct irqaction {
- 
- extern irqreturn_t no_action(int cpl, void *dev_id);
- 
-+/*
-+ * If a (PCI) device interrupt is not connected we set dev->irq to
-+ * IRQ_NOTCONNECTED. This causes request_irq() to fail with -ENOTCONN, so we
-+ * can distingiush that case from other error returns.
-+ *
-+ * 0x80000000 is guaranteed to be outside the available range of interrupts
-+ * and easy to distinguish from other possible incorrect values.
-+ */
-+#define IRQ_NOTCONNECTED	(1U << 31)
-+
- extern int __must_check
- request_threaded_irq(unsigned int irq, irq_handler_t handler,
- 		     irq_handler_t thread_fn,
-diff --git a/kernel/irq/manage.c b/kernel/irq/manage.c
-index 8411872..e79e60f 100644
---- a/kernel/irq/manage.c
-+++ b/kernel/irq/manage.c
-@@ -1609,6 +1609,9 @@ int request_threaded_irq(unsigned int irq, irq_handler_t handler,
- 	struct irq_desc *desc;
- 	int retval;
- 
-+	if (irq == IRQ_NOTCONNECTED)
-+		return -ENOTCONN;
-+
- 	/*
- 	 * Sanity-check: shared interrupts must pass in a real dev-ID,
- 	 * otherwise we'll have trouble later trying to figure out
-@@ -1699,9 +1702,13 @@ EXPORT_SYMBOL(request_threaded_irq);
- int request_any_context_irq(unsigned int irq, irq_handler_t handler,
- 			    unsigned long flags, const char *name, void *dev_id)
- {
--	struct irq_desc *desc = irq_to_desc(irq);
-+	struct irq_desc *desc;
- 	int ret;
- 
-+	if (irq == IRQ_NOTCONNECTED)
-+		return -ENOTCONN;
-+
-+	desc = irq_to_desc(irq);
- 	if (!desc)
- 		return -EINVAL;
- 
--- 
-1.9.3
