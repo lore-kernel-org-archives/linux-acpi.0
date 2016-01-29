@@ -1,120 +1,77 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: [GIT PULL] Power management and ACPI fixes for v4.5-rc2
-Date: Fri, 29 Jan 2016 22:51:15 +0100
-Message-ID: <CAJZ5v0g0qXYh6ENymGgUv2CkJKPTJ=sJAoFiaaRQ+P6nnXLfgg@mail.gmail.com>
+From: Bjorn Helgaas <helgaas@kernel.org>
+Subject: Re: [RESEND PATCH v4] x86/PCI: Recognize that Interrupt Line 255
+ means "not connected"
+Date: Fri, 29 Jan 2016 16:08:12 -0600
+Message-ID: <20160129220812.GF12965@localhost>
+References: <1454038814-3486-1-git-send-email-chen.fan.fnst@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-pci-owner@vger.kernel.org>
-Sender: linux-pci-owner@vger.kernel.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux PCI <linux-pci@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail.kernel.org ([198.145.29.136]:37211 "EHLO mail.kernel.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751284AbcA2WIV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Fri, 29 Jan 2016 17:08:21 -0500
+Content-Disposition: inline
+In-Reply-To: <1454038814-3486-1-git-send-email-chen.fan.fnst@cn.fujitsu.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Chen Fan <chen.fan.fnst@cn.fujitsu.com>
+Cc: rjw@rjwysocki.net, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, lenb@kernel.org, izumi.taku@jp.fujitsu.com, wency@cn.fujitsu.com, caoj.fnst@cn.fujitsu.com, ddaney.cavm@gmail.com, okaya@codeaurora.org, bhelgaas@google.com, jiang.liu@linux.intel.com, linux-pci@vger.kernel.org, tglx@linutronix.de, linux@roeck-us.net
 
-Hi Linus,
+On Fri, Jan 29, 2016 at 11:40:14AM +0800, Chen Fan wrote:
+> Per the x86-specific footnote to PCI spec r3.0, sec 6.2.4, the value 255 in
+> the Interrupt Line register means "unknown" or "no connection."
+> Previously, when we couldn't derive an IRQ from the _PRT, we fell back to
+> using the value from Interrupt Line as an IRQ.  It's questionable whether
+> we should do that at all, but the spec clearly suggests we shouldn't do it
+> for the value 255 on x86.
+> 
+> Calling request_irq() with IRQ 255 may succeed, but the driver won't
+> receive any interrupts.  Or, if IRQ 255 is shared with another device, it
+> may succeed, and the driver's ISR will be called at random times when the
+> *other* device interrupts.  Or it may fail if another device is using IRQ
+> 255 with incompatible flags.  What we *want* is for request_irq() to fail
+> predictably so the driver can fall back to polling.
+> 
+> On x86, assume 255 in the Interrupt Line means the INTx line is not
+> connected.  In that case, set dev->irq to IRQ_NOTCONNECTED so request_irq()
+> will fail gracefully with -ENOTCONN.
+> 
+> We found this problem on a system where Secure Boot firmware assigned
+> Interrupt Line 255 to an i801_smbus device and another device was already
+> using MSI-X IRQ 255.  This was in v3.10, where i801_probe() fails if
+> request_irq() fails:
+> 
+>   i801_smbus 0000:00:1f.3: enabling device (0140 -> 0143)
+>   i801_smbus 0000:00:1f.3: can't derive routing for PCI INT C
+>   i801_smbus 0000:00:1f.3: PCI INT C: no GSI
+>   genirq: Flags mismatch irq 255. 00000080 (i801_smbus) vs. 00000000 (megasa)
+>   CPU: 0 PID: 2487 Comm: kworker/0:1 Not tainted 3.10.0-229.el7.x86_64 #1
+>   Hardware name: FUJITSU PRIMEQUEST 2800E2/D3736, BIOS PRIMEQUEST 2000 Serie5
+>   Call Trace:
+>     dump_stack+0x19/0x1b
+>     __setup_irq+0x54a/0x570
+>     request_threaded_irq+0xcc/0x170
+>     i801_probe+0x32f/0x508 [i2c_i801]
+>     local_pci_probe+0x45/0xa0
+>   i801_smbus 0000:00:1f.3: Failed to allocate irq 255: -16
+>   i801_smbus: probe of 0000:00:1f.3 failed with error -16
+> 
+> After aeb8a3d16ae0 ("i2c: i801: Check if interrupts are disabled"),
+> i801_probe() will fall back to polling if request_irq() fails.  But we
+> still need this patch because request_irq() may succeed or fail depending
+> on other devices in the system.  If request_irq() fails, i801_smbus will
+> work by falling back to polling, but if it succeeds, i801_smbus won't work
+> because it expects interrupts that it may not receive.
+> 
+> Signed-off-by: Chen Fan <chen.fan.fnst@cn.fujitsu.com>
+> Acked-by: Thomas Gleixner <tglx@linutronix.de>
+> Acked-by: Bjorn Helgaas <bhelgaas@google.com>
 
-Please pull from
+Hi Chen,
 
- git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
- pm+acpi-4.5-rc2
+You already have my ack, but I'm just curious if you can tell whether
+i801_smbus works if IRQ 255 isn't in use, e.g., if you can remove the
+megasa driver or tell it not to use MSI?
 
-to receive the second batch of power management and ACPI updates for
-v4.5-rc2 with top-most commit ad1ac94767aa9d74c6533e33e768a14d2715162f
-
- Merge branches 'pm-cpuidle', 'pm-cpufreq', 'pm-domains' and 'pm-sleep'
-
-on top of commit 92e963f50fc74041b5e9e744c330dca48e04f08d
-
- Linux 4.5-rc1
-
-These are: cpuidle fixes (including one fix for a recent regression),
-cpufreq fixes (including fixes for two issues introduced during the
-4.2 cycle), generic power domains framework fixes (two locking
-fixes and one cleanup), one locking fix in the ACPI-based PCI
-hotplug framework (ACPIPHP), removal of one ACPI backlight
-blacklist entry that isn't necessary any more and a PM Kconfig
-cleanup.
-
-Specifics:
-
- - Fix a recent cpuidle core regression that broke suspend-to-idle
-   on all systems where cpuidle drivers don't provide ->enter_freeze
-   callbacks for any states (Sudeep Holla).
-
- - Drop an unnecessary symbol definition from the cpuidle core code
-   handling coupled CPU cores (Anders Roxell).
-
- - Fix a race condition related to governor initialization and removal
-   in the cpufreq core (Viresh Kumar).
-
- - Clean up the cpufreq core to use list_is_last() for checking if
-   the given policy object is the last element of a list instead of
-   open coding that in a clumsy way (Gautham R Shenoy).
-
- - Fix compiler warnings in the pxa2xx and cpufreq-dt cpufreq drivers
-   (Arnd Bergmann).
-
- - Fix two locking issues and clean up a comment in the generic power
-   domains framework (Ulf Hansson, Marek Szyprowski, Moritz Fischer).
-
- - Fix the error code path of one function in the ACPI-based PCI
-   hotplug framework (ACPIPHP) that forgets to release a lock
-   acquired previously (Insu Yun).
-
- - Drop the ACPI backlight blacklist entry for Dell Inspiron 5737
-   that is not necessary any more (Hans de Goede).
-
- - Clean up the top-level PM Kconfig to stop requiring APM emulation
-   to depend on PM which in fact isn't necessary (Arnd Bergmann).
-
-Thanks!
-
-
----------------
-
-Anders Roxell (1):
-      cpuidle: coupled: remove unused define cpuidle_coupled_lock
-
-Arnd Bergmann (3):
-      PM: APM_EMULATION does not depend on PM
-      cpufreq: pxa2xx: fix pxa_cpufreq_change_voltage prototype
-      cpufreq: cpufreq-dt: avoid uninitialized variable warnings:
-
-Gautham R Shenoy (1):
-      cpufreq: Use list_is_last() to check last entry of the policy list
-
-Hans de Goede (1):
-      ACPI: Revert "ACPI / video: Add Dell Inspiron 5737 to the blacklist"
-
-Insu Yun (1):
-      ACPI / PCI / hotplug: unlock in error path in acpiphp_enable_slot()
-
-Marek Szyprowski (1):
-      PM / domains: fix lockdep issue for all subdomains
-
-Moritz Fischer (1):
-      PM / Domains: Fix typo in comment
-
-Sudeep Holla (1):
-      cpuidle: fix fallback mechanism for suspend to idle in absence
-of enter_freeze
-
-Ulf Hansson (1):
-      PM / Domains: Fix potential deadlock while adding/removing subdomains
-
-Viresh Kumar (1):
-      cpufreq: Fix NULL reference crash while accessing policy->governor_data
-
----------------
-
- drivers/acpi/video_detect.c        |  8 --------
- drivers/base/power/domain.c        | 37 ++++++++++++++++++++-----------------
- drivers/cpufreq/cpufreq-dt.c       | 15 +++++++--------
- drivers/cpufreq/cpufreq.c          |  6 +++---
- drivers/cpufreq/cpufreq_governor.c | 11 ++++++++---
- drivers/cpufreq/pxa2xx-cpufreq.c   |  2 +-
- drivers/cpuidle/coupled.c          |  1 -
- drivers/cpuidle/cpuidle.c          |  2 +-
- drivers/pci/hotplug/acpiphp_glue.c |  4 +++-
- kernel/power/Kconfig               |  2 +-
- kernel/sched/idle.c                |  2 +-
- 11 files changed, 45 insertions(+), 45 deletions(-)
+Bjorn
