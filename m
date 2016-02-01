@@ -1,90 +1,76 @@
-From: Jassi Brar <jassisinghbrar@gmail.com>
-Subject: Re: [PATCH] mailbox: pcc: fix channel calculation in get_pcc_channel()
-Date: Mon, 1 Feb 2016 21:13:47 +0530
-Message-ID: <CABb+yY35x8UNxojMJzh-1X6UODfvABP30oVrKyzr375vZgGi_w@mail.gmail.com>
-References: <CAJ5Y-eYdPM+hSZdH_Sz10K6iHb0cCB1E4Wh_A_sJn_yyLgLjZQ@mail.gmail.com>
-	<1454339945-30565-1-git-send-email-alexey.klimov@arm.com>
+From: Robert Richter <robert.richter@caviumnetworks.com>
+Subject: Re: [PATCH v3 05/12] arm64, acpi, numa: NUMA support based on SRAT
+ and SLIT
+Date: Mon, 1 Feb 2016 19:09:44 +0100
+Message-ID: <20160201180944.GV24726@rric.localdomain>
+References: <1453541967-3744-1-git-send-email-guohanjun@huawei.com>
+ <1453541967-3744-6-git-send-email-guohanjun@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1454339945-30565-1-git-send-email-alexey.klimov@arm.com>
+Content-Disposition: inline
+In-Reply-To: <1453541967-3744-6-git-send-email-guohanjun@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Alexey Klimov <alexey.klimov@arm.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Jaswinder Singh <jaswinder.singh@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+To: Hanjun Guo <guohanjun@huawei.com>
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Shannon Zhao <shannon.zhao@linaro.org>, Steve Capper <steve.capper@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Feb 1, 2016 at 8:49 PM, Alexey Klimov <alexey.klimov@arm.com> wrote:
-> (adding Rafael and linux-acpi)
->
-> On Fri, Jan 15, 2016 at 6:22 PM, Ashwin Chaugule <ashwin.chaugule@linaro.org> wrote:
->> + Jassi (Linaro addr)
->>
->> On 15 January 2016 at 13:20, Ashwin Chaugule <ashwin.chaugule@linaro.org> wrote:
->>> Jassi,
->>>
->>> On 10 December 2015 at 13:19, Ashwin Chaugule
->>> <ashwin.chaugule@linaro.org> wrote:
->>>> On 10 December 2015 at 12:28, Alexey Klimov <alexey.klimov@arm.com> wrote:
->>>>> This patch fixes the calculation of pcc_chan for non-zero id.
->>>>> After the compiler ignores the (unsigned long) cast the
->>>>> pcc_mbox_channels pointer is type-cast and then the type-cast
->>>>> offset is added which results in address outside of the range
->>>>> leading to the kernel crashing.
->>>>>
->>>>> We might add braces and make it:
->>>>>
->>>>> pcc_chan = (struct mbox_chan *)
->>>>>                 ((unsigned long) pcc_mbox_channels +
->>>>>                 (id * sizeof(*pcc_chan)));
->>>>>
->>>>> but let's go with array approach here and use id as index.
->>>>>
->>>>> Tested on Juno board.
->>>>>
->>>>> Acked-by: Sudeep Holla <sudeep.holla@arm.com>
->>>>> Signed-off-by: Alexey Klimov <alexey.klimov@arm.com>
->>>>> ---
->>>>>  drivers/mailbox/pcc.c | 8 +-------
->>>>>  1 file changed, 1 insertion(+), 7 deletions(-)
->>>>>
->>>>> diff --git a/drivers/mailbox/pcc.c b/drivers/mailbox/pcc.c
->>>>> index 45d85ae..8f779a1 100644
->>>>> --- a/drivers/mailbox/pcc.c
->>>>> +++ b/drivers/mailbox/pcc.c
->>>>> @@ -81,16 +81,10 @@ static struct mbox_controller pcc_mbox_ctrl = {};
->>>>>   */
->>>>>  static struct mbox_chan *get_pcc_channel(int id)
->>>>>  {
->>>>> -       struct mbox_chan *pcc_chan;
->>>>> -
->>>>>         if (id < 0 || id > pcc_mbox_ctrl.num_chans)
->>>>>                 return ERR_PTR(-ENOENT);
->>>>>
->>>>> -       pcc_chan = (struct mbox_chan *)
->>>>> -               (unsigned long) pcc_mbox_channels +
->>>>> -               (id * sizeof(*pcc_chan));
->>>>> -
->>>>> -       return pcc_chan;
->>>>> +       return &pcc_mbox_channels[id];
->>>>>  }
->>>>>
->>>>
->>>>
->>>> Strange that we didn't catch this even with a non-zero id. But the
->>>> change makes sense so..
->>>>
->>>> Acked-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
->>>
->>> Can you please include this patch in your pull request to Linus?
->
-> Hi Rafael,
->
-> any chance you can take this fix via your tree?
-> I can resend patch if you want.
-> Looks like Jassi doesn't have time or doesn't care.
->
-Ouch... sorry. Ashwin's reminder came after I had sent the pull
-request. And then it just got overlooked. If Rafael doesn't pick it as
-my punishment, I'll tomorow :)
+On 23.01.16 17:39:20, Hanjun Guo wrote:
 
-Cheers!
+> @@ -385,10 +386,8 @@ void __init arm64_numa_init(void)
+>  {
+>  	int ret = -ENODEV;
+>  
+> -#ifdef CONFIG_OF_NUMA
+>  	if (!numa_off)
+> -		ret = numa_init(arm64_of_numa_init);
+> -#endif
+> +		ret = numa_init(acpi_disabled ? arm64_of_numa_init : arm64_acpi_numa_init);
+>  
+>  	if (ret)
+>  		numa_init(dummy_numa_init);
+
+Ok, this style is mostly flavor, some people want #ifdefs (my
+preference), some not. In any case it must build with or without the
+config option set. But first some words why I like #ifdefs:
+
+ * Code is easier to understand as you don't need to look at any other
+   location whether it is enabled or not.
+
+ * You can't break the build if the options are not set. Thus, you
+   also don't need to check if the function is implemented for the
+   unset case (valid for the coder and also the reviewer). This makes
+   things a lot easier.
+
+ * Total number of lines of code that needs to be implement is
+   smaller.
+
+However, if we don't ifdef the code, we need empty functions stubs in
+the header file for them.
+
+Also, the conditional assignment does not reduce the complexity of the
+paths. It just concentrates everything in a single line.
+
+How about the following (similar to x86)?
+
+----
+	if (!numa_off) {
+#ifdef CONFIG_ACPI_NUMA
+		if (!numa_init(acpi_numa_init))
+			return 0;
+#endif
+#ifdef CONFIG_OF_NUMA
+		if (!numa_init(of_numa_init))
+			return 0;
+#endif
+	}
+
+	return numa_init(dummy_numa_init);
+----
+
+Pretty straight and nice.
+
+Note: The !acpi_disabled check needs to be moved to the beginning of
+acpi_numa_init(). Variable ret can be removed.
+
+-Robert
