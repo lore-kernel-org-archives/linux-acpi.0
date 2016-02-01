@@ -1,357 +1,56 @@
-From: Graeme Gregory <gg@slimlogic.co.uk>
-Subject: Re: [PATCH 2/3] ACPI: parse SPCR and enable matching console
-Date: Mon, 1 Feb 2016 09:01:26 +0000
-Message-ID: <20160201090126.GA18693@xora-haswell.xora.org.uk>
-References: <1453722324-22407-1-git-send-email-aleksey.makarov@linaro.org>
- <1453722324-22407-3-git-send-email-aleksey.makarov@linaro.org>
+From: "Chen, Yu C" <yu.c.chen@intel.com>
+Subject: RE: [PATCH][v2] ACPI: Do not report _OSI("Darwin") when
+ acpi_osi=!Darwin provided
+Date: Mon, 1 Feb 2016 09:13:25 +0000
+Message-ID: <36DF59CE26D8EE47B0655C516E9CE640286C0A85@shsmsx102.ccr.corp.intel.com>
+References: <1454293612-13161-1-git-send-email-yu.c.chen@intel.com>
+ <CAHp75VdaNFVA10X_N-URqmKAv3upOF2zT083T0tiN1=DnLqNbA@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: base64
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from out1-smtp.messagingengine.com ([66.111.4.25]:34136 "EHLO
-	out1-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752756AbcBAJB3 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Feb 2016 04:01:29 -0500
-Received: from compute6.internal (compute6.nyi.internal [10.202.2.46])
-	by mailout.nyi.internal (Postfix) with ESMTP id 059352EB93
-	for <linux-acpi@vger.kernel.org>; Mon,  1 Feb 2016 04:01:29 -0500 (EST)
-Content-Disposition: inline
-In-Reply-To: <1453722324-22407-3-git-send-email-aleksey.makarov@linaro.org>
+Received: from mga09.intel.com ([134.134.136.24]:30070 "EHLO mga09.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751377AbcBAJNa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 1 Feb 2016 04:13:30 -0500
+In-Reply-To: <CAHp75VdaNFVA10X_N-URqmKAv3upOF2zT083T0tiN1=DnLqNbA@mail.gmail.com>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Aleksey Makarov <aleksey.makarov@linaro.org>
-Cc: linux-acpi@vger.kernel.org, Russell King <linux@arm.linux.org.uk>, Graeme Gregory <graeme.gregory@linaro.org>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, "Rafael J . Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Leif Lindholm <leif.lindholm@linaro.org>, linux-serial@vger.kernel.org, Catalin Marinas <catalin.marinas@arm.com>, Will Deacon <will.deacon@arm.com>, linux-arm-kernel@lists.infradead.org, Len Brown <lenb@kernel.org>
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "matthew.garrett@nebula.com" <matthew.garrett@nebula.com>, "Zhang, Rui" <rui.zhang@intel.com>
 
-On Mon, Jan 25, 2016 at 05:45:22PM +0600, Aleksey Makarov wrote:
-> 'ARM Server Base Boot Requiremets' [1] mention SPCR
-> (Serial Port Console Redirection Table) [2] as a mandatory ACPI table
-> that specifies the configuration of serial console.
-> 
-> Parse this table and check if any registered console match
-> the description.  If it does, enable that console.
-> 
-> To implement that, introduce a new member
-> int (*acpi_match)(struct console *, struct acpi_table_spcr *)
-> of struct console.  It allows drivers to check if they provide
-> a matching console device.
-> 
-
-Fails to compile on x86
-
-kernel/built-in.o: In function `register_console':
-(.text+0x48cba): undefined reference to `console_acpi_match'
-Makefile:929: recipe for target 'vmlinux' failed
-make: *** [vmlinux] Error 1
-
-Because CONFIG_ACPI_SPCR_TABLE is never set.
-
-Graeme
-
-
-> [1] http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.den0044a/index.html
-> [2] http://msdn.microsoft.com/en-us/library/windows/hardware/dn639131(v=vs.85).aspx
-> 
-> Signed-off-by: Aleksey Makarov <aleksey.makarov@linaro.org>
-> ---
->  arch/arm64/Kconfig      |  1 +
->  drivers/acpi/Kconfig    |  3 ++
->  drivers/acpi/Makefile   |  1 +
->  drivers/acpi/spcr.c     | 85 +++++++++++++++++++++++++++++++++++++++++++++++++
->  include/linux/console.h | 12 +++++++
->  kernel/printk/printk.c  | 82 +++++++++++++++++++++++++++++++++++++----------
->  6 files changed, 167 insertions(+), 17 deletions(-)
->  create mode 100644 drivers/acpi/spcr.c
-> 
-> diff --git a/arch/arm64/Kconfig b/arch/arm64/Kconfig
-> index 573bebc..bf31e3c 100644
-> --- a/arch/arm64/Kconfig
-> +++ b/arch/arm64/Kconfig
-> @@ -4,6 +4,7 @@ config ARM64
->  	select ACPI_GENERIC_GSI if ACPI
->  	select ACPI_PCI_HOST_GENERIC if ACPI
->  	select ACPI_REDUCED_HARDWARE_ONLY if ACPI
-> +	select ACPI_SPCR_TABLE if ACPI
->  	select ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE
->  	select ARCH_HAS_ELF_RANDOMIZE
->  	select ARCH_HAS_GCOV_PROFILE_ALL
-> diff --git a/drivers/acpi/Kconfig b/drivers/acpi/Kconfig
-> index e315061..142a338 100644
-> --- a/drivers/acpi/Kconfig
-> +++ b/drivers/acpi/Kconfig
-> @@ -60,6 +60,9 @@ config ACPI_CCA_REQUIRED
->  config IORT_TABLE
->  	bool
->  
-> +config ACPI_SPCR_TABLE
-> +	bool
-> +
->  config ACPI_DEBUGGER
->  	bool "AML debugger interface (EXPERIMENTAL)"
->  	select ACPI_DEBUG
-> diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-> index 265eb90..8316859 100644
-> --- a/drivers/acpi/Makefile
-> +++ b/drivers/acpi/Makefile
-> @@ -81,6 +81,7 @@ obj-$(CONFIG_ACPI_CUSTOM_METHOD)+= custom_method.o
->  obj-$(CONFIG_ACPI_BGRT)		+= bgrt.o
->  obj-$(CONFIG_ACPI_CPPC_LIB)	+= cppc_acpi.o
->  obj-$(CONFIG_IORT_TABLE) 	+= iort.o
-> +obj-$(CONFIG_ACPI_SPCR_TABLE)	+= spcr.o
->  
->  # processor has its own "processor." module_param namespace
->  processor-y			:= processor_driver.o
-> diff --git a/drivers/acpi/spcr.c b/drivers/acpi/spcr.c
-> new file mode 100644
-> index 0000000..ccb19a0
-> --- /dev/null
-> +++ b/drivers/acpi/spcr.c
-> @@ -0,0 +1,85 @@
-> +/*
-> + * Copyright (c) 2012, Intel Corporation
-> + * Copyright (c) 2015, Red Hat, Inc.
-> + * Copyright (c) 2015, 2016 Linaro Ltd.
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 as
-> + * published by the Free Software Foundation.
-> + *
-> + */
-> +
-> +#define pr_fmt(fmt) "ACPI: SPCR: " fmt
-> +
-> +#include <linux/acpi.h>
-> +#include <linux/console.h>
-> +#include <linux/kernel.h>
-> +
-> +static struct acpi_table_spcr *spcr_table;
-> +
-> +int console_acpi_match(struct console *c, char **options)
-> +{
-> +	int err;
-> +
-> +	if (!c->acpi_match)
-> +		return -ENODEV;
-> +
-> +	if (!spcr_table)
-> +		return -EAGAIN;
-> +
-> +	err = c->acpi_match(c, spcr_table);
-> +	if (err < 0)
-> +		return err;
-> +
-> +	if (options) {
-> +		switch (spcr_table->baud_rate) {
-> +		case 3:
-> +			*options = "9600";
-> +			break;
-> +		case 4:
-> +			*options = "19200";
-> +			break;
-> +		case 6:
-> +			*options = "57600";
-> +			break;
-> +		case 7:
-> +			*options = "115200";
-> +			break;
-> +		default:
-> +			*options = "";
-> +			break;
-> +		}
-> +	}
-> +
-> +	return err;
-> +}
-> +
-> +static int __init spcr_table_detect(void)
-> +{
-> +	struct acpi_table_header *table;
-> +	acpi_status status;
-> +
-> +	if (acpi_disabled)
-> +		return -ENODEV;
-> +
-> +	status = acpi_get_table(ACPI_SIG_SPCR, 0, &table);
-> +	if (ACPI_FAILURE(status)) {
-> +		const char *msg = acpi_format_exception(status);
-> +
-> +		pr_err("Failed to get table, %s\n", msg);
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (table->revision < 2)
-> +		return -EOPNOTSUPP;
-> +
-> +	spcr_table = (struct acpi_table_spcr *)table;
-> +
-> +	pr_info("Console at 0x%016llx\n", spcr_table->serial_port.address);
-> +
-> +	acpi_register_consoles_try_again();
-> +
-> +	return 0;
-> +}
-> +
-> +arch_initcall(spcr_table_detect);
-> diff --git a/include/linux/console.h b/include/linux/console.h
-> index bd19434..94d0bd8 100644
-> --- a/include/linux/console.h
-> +++ b/include/linux/console.h
-> @@ -117,6 +117,7 @@ static inline int con_debug_leave(void)
->  #define CON_BRL		(32) /* Used for a braille device */
->  #define CON_EXTENDED	(64) /* Use the extended output format a la /dev/kmsg */
->  
-> +struct acpi_table_spcr;
->  struct console {
->  	char	name[16];
->  	void	(*write)(struct console *, const char *, unsigned);
-> @@ -125,6 +126,7 @@ struct console {
->  	void	(*unblank)(void);
->  	int	(*setup)(struct console *, char *);
->  	int	(*match)(struct console *, char *name, int idx, char *options);
-> +	int	(*acpi_match)(struct console *, struct acpi_table_spcr *);
->  	short	flags;
->  	short	index;
->  	int	cflag;
-> @@ -132,6 +134,16 @@ struct console {
->  	struct	 console *next;
->  };
->  
-> +#ifdef CONFIG_ACPI
-> +int console_acpi_match(struct console *c, char **options);
-> +#else
-> +static inline int console_acpi_match(struct console *c, char **options)
-> +{
-> +	return -ENODEV;
-> +}
-> +#endif
-> +void acpi_register_consoles_try_again(void);
-> +
->  /*
->   * for_each_console() allows you to iterate on each console
->   */
-> diff --git a/kernel/printk/printk.c b/kernel/printk/printk.c
-> index 37e531f..3cf8cba 100644
-> --- a/kernel/printk/printk.c
-> +++ b/kernel/printk/printk.c
-> @@ -2430,6 +2430,25 @@ static int __init keep_bootcon_setup(char *str)
->  
->  early_param("keep_bootcon", keep_bootcon_setup);
->  
-> +static DEFINE_MUTEX(acpi_consoles_delayed_mutex);
-> +static struct console *acpi_consoles_delayed;
-> +
-> +void acpi_register_consoles_try_again(void)
-> +{
-> +	mutex_lock(&acpi_consoles_delayed_mutex);
-> +	while (acpi_consoles_delayed) {
-> +
-> +		struct console *c = acpi_consoles_delayed;
-> +
-> +		acpi_consoles_delayed = acpi_consoles_delayed->next;
-> +
-> +		mutex_unlock(&acpi_consoles_delayed_mutex);
-> +		register_console(c);
-> +		mutex_lock(&acpi_consoles_delayed_mutex);
-> +	}
-> +	mutex_unlock(&acpi_consoles_delayed_mutex);
-> +}
-> +
->  /*
->   * The console driver calls this routine during kernel initialization
->   * to register the console printing procedure with printk() and to
-> @@ -2538,8 +2557,30 @@ void register_console(struct console *newcon)
->  		break;
->  	}
->  
-> -	if (!(newcon->flags & CON_ENABLED))
-> -		return;
-> +	if (!(newcon->flags & CON_ENABLED)) {
-> +		char *opts;
-> +		int err;
-> +
-> +		if (newcon->index < 0)
-> +			newcon->index = 0;
-> +
-> +		err = console_acpi_match(newcon, &opts);
-> +
-> +		if (err == -EAGAIN) {
-> +			mutex_lock(&acpi_consoles_delayed_mutex);
-> +			newcon->next = acpi_consoles_delayed;
-> +			acpi_consoles_delayed = newcon;
-> +			mutex_unlock(&acpi_consoles_delayed_mutex);
-> +			return;
-> +		} else if (err < 0) {
-> +			return;
-> +		} else {
-> +			if (newcon->setup && newcon->setup(newcon, opts) != 0)
-> +				return;
-> +			newcon->flags |= CON_ENABLED | CON_CONSDEV;
-> +			preferred_console = true;
-> +		}
-> +	}
->  
->  	/*
->  	 * If we have a bootconsole, and are switching to a real console,
-> @@ -2612,34 +2653,41 @@ void register_console(struct console *newcon)
->  }
->  EXPORT_SYMBOL(register_console);
->  
-> +static int delete_from_console_list(struct console **list, struct console *c)
-> +{
-> +	while (*list) {
-> +		struct console *cur = *list;
-> +
-> +		if (cur == c) {
-> +			*list = cur->next;
-> +			return 0;
-> +		}
-> +		list = &cur->next;
-> +	}
-> +	return 1;
-> +}
-> +
->  int unregister_console(struct console *console)
->  {
-> -        struct console *a, *b;
->  	int res;
->  
->  	pr_info("%sconsole [%s%d] disabled\n",
->  		(console->flags & CON_BOOT) ? "boot" : "" ,
->  		console->name, console->index);
->  
-> +	mutex_lock(&acpi_consoles_delayed_mutex);
-> +	res = delete_from_console_list(&acpi_consoles_delayed, console);
-> +	mutex_unlock(&acpi_consoles_delayed_mutex);
-> +	if (res == 0)
-> +		return res;
-> +
->  	res = _braille_unregister_console(console);
->  	if (res)
->  		return res;
->  
-> -	res = 1;
->  	console_lock();
-> -	if (console_drivers == console) {
-> -		console_drivers=console->next;
-> -		res = 0;
-> -	} else if (console_drivers) {
-> -		for (a=console_drivers->next, b=console_drivers ;
-> -		     a; b=a, a=b->next) {
-> -			if (a == console) {
-> -				b->next = a->next;
-> -				res = 0;
-> -				break;
-> -			}
-> -		}
-> -	}
-> +
-> +	res = delete_from_console_list(&console_drivers, console);
->  
->  	if (!res && (console->flags & CON_EXTENDED))
->  		nr_ext_console_drivers--;
-> -- 
-> 2.7.0
-> 
-> 
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+VGhhbmtzIEFuZHksDQoNCj4gLS0tLS1PcmlnaW5hbCBNZXNzYWdlLS0tLS0NCj4gRnJvbTogQW5k
+eSBTaGV2Y2hlbmtvIFttYWlsdG86YW5keS5zaGV2Y2hlbmtvQGdtYWlsLmNvbV0NCj4gU2VudDog
+TW9uZGF5LCBGZWJydWFyeSAwMSwgMjAxNiA0OjU0IFBNDQo+IFRvOiBDaGVuLCBZdSBDDQo+IENj
+OiBsaW51eC1hY3BpQHZnZXIua2VybmVsLm9yZzsgbGludXgta2VybmVsQHZnZXIua2VybmVsLm9y
+ZzsgUmFmYWVsIEouDQo+IFd5c29ja2k7IExlbiBCcm93bjsgbWF0dGhldy5nYXJyZXR0QG5lYnVs
+YS5jb207IFpoYW5nLCBSdWkNCj4gU3ViamVjdDogUmU6IFtQQVRDSF1bdjJdIEFDUEk6IERvIG5v
+dCByZXBvcnQgX09TSSgiRGFyd2luIikgd2hlbg0KPiBhY3BpX29zaT0hRGFyd2luIHByb3ZpZGVk
+DQo+IA0KPiBPbiBNb24sIEZlYiAxLCAyMDE2IGF0IDQ6MjYgQU0sIENoZW4gWXUgPHl1LmMuY2hl
+bkBpbnRlbC5jb20+IHdyb3RlOg0KPiA+IENvbW1pdCA3YmM1YTJiYWQwYjggKCJBQ1BJOiBTdXBw
+b3J0IF9PU0koIkRhcndpbiIpIGNvcnJlY3RseSIpIGFsd2F5cw0KPiA+IHJlcG9ydHMgcG9zaXRp
+dmUgdmFsdWUgd2hlbiBBcHBsZSBoYXJkd2FyZSBxdWVyaWVzIF9PU0koIkRhcndpbiIpLg0KPiA+
+IEJ1dCBzb21ldGltZXMgdGhlIHVzZXJzIG1pZ2h0IHdhbnQgdG8gdGVsbCB0aGUgaGFyZHdhcmUg
+dGhleSBkb24ndA0KPiA+IG5lZWQgdGhlIERhcndpbiBmZWF0dXJlLCBmb3IgZXhhbXBsZSwgdXNl
+cnMgbWF5IGxldmVyYWdlIHRoZSBoYXJkd2FyZQ0KPiA+IHRvIHBvd2VyIG9mZiB0aGUgVGh1bmRl
+cmJvbHQsIGJ5IGFwcGVuZGluZyBhY3BpX29zaT0hRGFyd2luIGluIGNvbW1hbmQNCj4gPiBsaW5l
+LCB0aHVzIEFwcGxlIGhhcmR3YXJlIHJlZ2FyZHMgaXQgYXMgYW4gaW5jb21wYXRpYmxlIE9TIFgg
+c3lzdGVtLA0KPiA+IGhlbmNlIHR1cm5zIG9mZiB0aGUgVGh1bmRlcmJvbHQuDQo+IA0KPiANCj4g
+PiArc3RhdGljIGJvb2wgYWNwaV9vc2lfc2V0dXBfZGlzYWJsZWQoY2hhciAqc3RyKSB7DQo+ID4g
+KyAgICAgICBpbnQgaTsNCj4gPiArICAgICAgIHN0cnVjdCBvc2lfc2V0dXBfZW50cnkgKm9zaTsN
+Cj4gPiArDQo+ID4gKyAgICAgICBpZiAoIXN0cikNCj4gPiArICAgICAgICAgICAgICAgcmV0dXJu
+IGZhbHNlOw0KPiA+ICsNCj4gPiArICAgICAgIGZvciAoaSA9IDA7IGkgPCBPU0lfU1RSSU5HX0VO
+VFJJRVNfTUFYOyBpKyspIHsNCj4gPiArICAgICAgICAgICAgICAgb3NpID0gJm9zaV9zZXR1cF9l
+bnRyaWVzW2ldOw0KPiA+ICsgICAgICAgICAgICAgICBpZiAoIXN0cmNtcChvc2ktPnN0cmluZywg
+c3RyKSkgew0KPiANCj4gU2VlbXMgbGlrZSB3ZSBoYXZlIG9uZSBtb3JlIHVzZXIgZm9yDQo+IGh0
+dHA6Ly93d3cuc3Bpbmljcy5uZXQvbGlzdHMva2VybmVsL21zZzIxNTc1MzUuaHRtbA0KW1l1XSBU
+aGlzIGlzIG5pY2UsIEkgY2FuIGNvbnZlcnQgdGhpcyBwYXRjaCB0byB1c2UgbWF0Y2hfc3RyaW5n
+LCBhbmQNCm1heSBJIGFkZCBteSBwYXRjaCBpbnRvIHlvdXIgcGF0Y2hzZXQ/IEkgc2F3IHRoZXJl
+IGFyZSBzb21lIG1vZGlmaWNhdGlvbnMNCm9uIGRyaXZlcnMgaW4geW91ciBwYXRjaHNldCBhYm92
+ZS4gDQo+IA0KPiA+ICsgICAgICAgICAgICAgICAgICAgICAgIGlmICghb3NpLT5lbmFibGUpDQo+
+ID4gKyAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICByZXR1cm4gdHJ1ZTsNCj4gPiArICAg
+ICAgICAgICAgICAgICAgICAgICBlbHNlDQo+ID4gKyAgICAgICAgICAgICAgICAgICAgICAgICAg
+ICAgICByZXR1cm4gZmFsc2U7DQo+IA0KPiByZXR1cm4gIW9zaS0+ZW5hYmxlOw0KW1l1XSBPSy4N
+Cj4gDQo+ID4gKyAgICAgICAgICAgICAgIH0NCj4gPiArICAgICAgIH0NCj4gPiArDQo+ID4gKyAg
+ICAgICByZXR1cm4gZmFsc2U7DQo+ID4gK30NCj4gDQoNCg==
