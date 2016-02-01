@@ -1,76 +1,41 @@
-From: Robert Richter <robert.richter@caviumnetworks.com>
-Subject: Re: [PATCH v3 05/12] arm64, acpi, numa: NUMA support based on SRAT
- and SLIT
-Date: Mon, 1 Feb 2016 19:09:44 +0100
-Message-ID: <20160201180944.GV24726@rric.localdomain>
-References: <1453541967-3744-1-git-send-email-guohanjun@huawei.com>
- <1453541967-3744-6-git-send-email-guohanjun@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1453541967-3744-6-git-send-email-guohanjun@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Hanjun Guo <guohanjun@huawei.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Shannon Zhao <shannon.zhao@linaro.org>, Steve Capper <steve.capper@linaro.org>, Mark Rutland <mark.rutland@arm.com>, Hanjun Guo <hanjun.guo@linaro.org>
+From: Joshua Hunt <johunt@akamai.com>
+Subject: [PATCH 1/2] ACPI, APEI: Fix leaked resources
+Date: Mon,  1 Feb 2016 13:47:47 -0500
+Message-ID: <1454352468-14371-2-git-send-email-johunt@akamai.com>
+References: <1454352468-14371-1-git-send-email-johunt@akamai.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from prod-mail-xrelay07.akamai.com ([23.79.238.175]:9866 "EHLO
+	prod-mail-xrelay07.akamai.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752909AbcBASzC (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 1 Feb 2016 13:55:02 -0500
+In-Reply-To: <1454352468-14371-1-git-send-email-johunt@akamai.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Huang Ying <ying.huang@intel.com>, linux-acpi@vger.kernel.org
+Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Joshua Hunt <johunt@akamai.com>
 
-On 23.01.16 17:39:20, Hanjun Guo wrote:
+We leak the NVS and arch resources (if used), in apei_resources_request.
+They are allocated to make sure we exclude them from the APEI resources,
+but they are never freed at the end of the function. Free them now.
 
-> @@ -385,10 +386,8 @@ void __init arm64_numa_init(void)
->  {
->  	int ret = -ENODEV;
->  
-> -#ifdef CONFIG_OF_NUMA
->  	if (!numa_off)
-> -		ret = numa_init(arm64_of_numa_init);
-> -#endif
-> +		ret = numa_init(acpi_disabled ? arm64_of_numa_init : arm64_acpi_numa_init);
->  
->  	if (ret)
->  		numa_init(dummy_numa_init);
+Signed-off-by: Josh Hunt <johunt@akamai.com>
 
-Ok, this style is mostly flavor, some people want #ifdefs (my
-preference), some not. In any case it must build with or without the
-config option set. But first some words why I like #ifdefs:
+diff --git a/drivers/acpi/apei/apei-base.c b/drivers/acpi/apei/apei-base.c
+index a2c8d7a..1ac449b 100644
+--- a/drivers/acpi/apei/apei-base.c
++++ b/drivers/acpi/apei/apei-base.c
+@@ -536,6 +536,11 @@ int apei_resources_request(struct apei_resources *resources,
+ 		goto err_unmap_ioport;
+ 	}
+ 
++	/* Cleanup unmerged resources */
++	if (arch_apei_filter_addr)
++		apei_resources_fini(&arch_res);
++	apei_resources_fini(&nvs_resources);
++
+ 	return 0;
+ err_unmap_ioport:
+ 	list_for_each_entry(res, &resources->ioport, list) {
+-- 
+1.7.9.5
 
- * Code is easier to understand as you don't need to look at any other
-   location whether it is enabled or not.
-
- * You can't break the build if the options are not set. Thus, you
-   also don't need to check if the function is implemented for the
-   unset case (valid for the coder and also the reviewer). This makes
-   things a lot easier.
-
- * Total number of lines of code that needs to be implement is
-   smaller.
-
-However, if we don't ifdef the code, we need empty functions stubs in
-the header file for them.
-
-Also, the conditional assignment does not reduce the complexity of the
-paths. It just concentrates everything in a single line.
-
-How about the following (similar to x86)?
-
-----
-	if (!numa_off) {
-#ifdef CONFIG_ACPI_NUMA
-		if (!numa_init(acpi_numa_init))
-			return 0;
-#endif
-#ifdef CONFIG_OF_NUMA
-		if (!numa_init(of_numa_init))
-			return 0;
-#endif
-	}
-
-	return numa_init(dummy_numa_init);
-----
-
-Pretty straight and nice.
-
-Note: The !acpi_disabled check needs to be moved to the beginning of
-acpi_numa_init(). Variable ret can be removed.
-
--Robert
