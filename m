@@ -1,124 +1,166 @@
-From: Joshua Hunt <johunt@akamai.com>
-Subject: [PATCH 0/2] ACPI, APEI: Memory leaks
-Date: Mon,  1 Feb 2016 13:47:46 -0500
-Message-ID: <1454352468-14371-1-git-send-email-johunt@akamai.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Huang Ying <ying.huang@intel.com>, linux-acpi@vger.kernel.org
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-kernel@vger.kernel.org, Joshua Hunt <johunt@akamai.com>
+From: Alexey Klimov <alexey.klimov@arm.com>
+Subject: Re: [PATCH V2 1/4] ACPI / CPPC: Optimize PCC Read Write operations
+Date: Mon,  1 Feb 2016 19:38:13 +0000
+Message-ID: <1454355493-3242-1-git-send-email-alexey.klimov@arm.com>
+References: <1453511240-20792-2-git-send-email-pprakash@codeaurora.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:51163 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752858AbcBATiV (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 1 Feb 2016 14:38:21 -0500
+In-Reply-To: <1453511240-20792-2-git-send-email-pprakash@codeaurora.org>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: ashwin.chaugule@linaro.org, pprakash@codeaurora.org
+Cc: rjw@rjwysocki.net, linux-acpi@vger.kernel.org, linaro-acpi@lists.linaro.org
 
-While investigating a possible memory leak using kmemleak I came across the
-following five leaks coming from APEI and ERST:
+Hi Prashanth and Ashwin,
 
-unreferenced object 0xffff880402b6ee80 (size 32):
-  comm "swapper/0", pid 1, jiffies 4294669373 (age 318.183s)
-  hex dump (first 32 bytes):
-    58 fe ab fa 03 88 ff ff 58 fe ab fa 03 88 ff ff  X.......X.......
-    18 50 ea dc 00 00 00 00 3f 50 ea dc 00 00 00 00  .P......?P......
-  backtrace:
-    [<ffffffff82195c33>] create_object+0x103/0x2c0
-    [<ffffffff826868b2>] kmemleak_alloc+0x82/0xc0
-    [<ffffffff8218248b>] kmem_cache_alloc_trace+0x17b/0x210
-    [<ffffffff8241a6fa>] apei_res_add+0x19a/0x200
-    [<ffffffff8241a7e2>] collect_res_callback+0x82/0xa0
-    [<ffffffff8241a225>] apei_exec_for_each_entry+0x85/0xb0
-    [<ffffffff8241a26a>] apei_exec_collect_resources+0x1a/0x20
-    [<ffffffff82afe532>] erst_init+0x3d6/0x3e5
-    [<ffffffff820004bd>] do_one_initcall+0x19d/0x1d0
-    [<ffffffff82ac1152>] kernel_init_freeable+0x13d/0x1d6
-    [<ffffffff82684a8e>] kernel_init+0xe/0xf0
-    [<ffffffff826909d2>] ret_from_fork+0x42/0x70
-    [<ffffffffffffffff>] 0xffffffffffffffff
-unreferenced object 0xffff880402b6ee40 (size 32):
-  comm "swapper/0", pid 1, jiffies 4294670231 (age 317.326s)
-  hex dump (first 32 bytes):
-    68 fe ab fa 03 88 ff ff 68 fe ab fa 03 88 ff ff  h.......h.......
-    b2 00 00 00 00 00 00 00 b3 00 00 00 00 00 00 00  ................
-  backtrace:
-    [<ffffffff82195c33>] create_object+0x103/0x2c0
-    [<ffffffff826868b2>] kmemleak_alloc+0x82/0xc0
-    [<ffffffff8218248b>] kmem_cache_alloc_trace+0x17b/0x210
-    [<ffffffff8241a6fa>] apei_res_add+0x19a/0x200
-    [<ffffffff8241a7fc>] collect_res_callback+0x9c/0xa0
-    [<ffffffff8241a225>] apei_exec_for_each_entry+0x85/0xb0
-    [<ffffffff8241a26a>] apei_exec_collect_resources+0x1a/0x20
-    [<ffffffff82afe532>] erst_init+0x3d6/0x3e5
-    [<ffffffff820004bd>] do_one_initcall+0x19d/0x1d0
-    [<ffffffff82ac1152>] kernel_init_freeable+0x13d/0x1d6
-    [<ffffffff82684a8e>] kernel_init+0xe/0xf0
-    [<ffffffff826909d2>] ret_from_fork+0x42/0x70
-    [<ffffffffffffffff>] 0xffffffffffffffff
-unreferenced object 0xffff880402b6ee20 (size 32):
-  comm "swapper/0", pid 1, jiffies 4294672240 (age 315.317s)
-  hex dump (first 32 bytes):
-    88 fd ab fa 03 88 ff ff 00 ee b6 02 04 88 ff ff  ................
-    00 d0 15 cd 00 00 00 00 00 40 16 cd 00 00 00 00  .........@......
-  backtrace:
-    [<ffffffff82195c33>] create_object+0x103/0x2c0
-    [<ffffffff826868b2>] kmemleak_alloc+0x82/0xc0
-    [<ffffffff8218248b>] kmem_cache_alloc_trace+0x17b/0x210
-    [<ffffffff8241a6fa>] apei_res_add+0x19a/0x200
-    [<ffffffff8241a81a>] apei_get_res_callback+0x1a/0x20
-    [<ffffffff823d0f8b>] acpi_nvs_for_each_region+0x2b/0x50
-    [<ffffffff8241ae95>] apei_resources_request+0x95/0x380
-    [<ffffffff82afe23e>] erst_init+0xe2/0x3e5
-    [<ffffffff820004bd>] do_one_initcall+0x19d/0x1d0
-    [<ffffffff82ac1152>] kernel_init_freeable+0x13d/0x1d6
-    [<ffffffff82684a8e>] kernel_init+0xe/0xf0
-    [<ffffffff826909d2>] ret_from_fork+0x42/0x70
-    [<ffffffffffffffff>] 0xffffffffffffffff
-unreferenced object 0xffff880402b6ee00 (size 32):
-  comm "swapper/0", pid 1, jiffies 4294672400 (age 315.157s)
-  hex dump (first 32 bytes):
-    20 ee b6 02 04 88 ff ff 88 fd ab fa 03 88 ff ff   ...............
-    00 80 f3 dc 00 00 00 00 00 60 a9 dd 00 00 00 00  .........`......
-  backtrace:
-    [<ffffffff82195c33>] create_object+0x103/0x2c0
-    [<ffffffff826868b2>] kmemleak_alloc+0x82/0xc0
-    [<ffffffff8218248b>] kmem_cache_alloc_trace+0x17b/0x210
-    [<ffffffff8241a6fa>] apei_res_add+0x19a/0x200
-    [<ffffffff8241a81a>] apei_get_res_callback+0x1a/0x20
-    [<ffffffff823d0f8b>] acpi_nvs_for_each_region+0x2b/0x50
-    [<ffffffff8241ae95>] apei_resources_request+0x95/0x380
-    [<ffffffff82afe23e>] erst_init+0xe2/0x3e5
-    [<ffffffff820004bd>] do_one_initcall+0x19d/0x1d0
-    [<ffffffff82ac1152>] kernel_init_freeable+0x13d/0x1d6
-    [<ffffffff82684a8e>] kernel_init+0xe/0xf0
-    [<ffffffff826909d2>] ret_from_fork+0x42/0x70
-    [<ffffffffffffffff>] 0xffffffffffffffff
-unreferenced object 0xffff880402b6ede0 (size 32):
-  comm "swapper/0", pid 1, jiffies 4294672863 (age 314.698s)
-  hex dump (first 32 bytes):
-    a8 fd ab fa 03 88 ff ff a8 fd ab fa 03 88 ff ff  ................
-    00 00 00 f8 00 00 00 00 00 00 00 fc 00 00 00 00  ................
-  backtrace:
-    [<ffffffff82195c33>] create_object+0x103/0x2c0
-    [<ffffffff826868b2>] kmemleak_alloc+0x82/0xc0
-    [<ffffffff8218248b>] kmem_cache_alloc_trace+0x17b/0x210
-    [<ffffffff8241a6fa>] apei_res_add+0x19a/0x200
-    [<ffffffff8241a81a>] apei_get_res_callback+0x1a/0x20
-    [<ffffffff82582d61>] pci_mmcfg_for_each_region+0x51/0x60
-    [<ffffffff8241b14a>] apei_resources_request+0x34a/0x380
-    [<ffffffff82afe23e>] erst_init+0xe2/0x3e5
-    [<ffffffff820004bd>] do_one_initcall+0x19d/0x1d0
-    [<ffffffff82ac1152>] kernel_init_freeable+0x13d/0x1d6
-    [<ffffffff82684a8e>] kernel_init+0xe/0xf0
-    [<ffffffff826909d2>] ret_from_fork+0x42/0x70
-    [<ffffffffffffffff>] 0xffffffffffffffff
+On Sat, Jan 23, 2016 at 1:07 AM, Prashanth Prakash <pprakash@codeaurora.org> wrote:
+> From: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+>
+> Previously the send_pcc_cmd() code checked if the
+> PCC operation had completed before returning from
+> the function. This check was performed regardless
+> of the PCC op type (i.e. Read/Write). Knowing
+> the type of cmd can be used to optimize the check
+> and avoid needless waiting. e.g. with Write ops,
+> the actual Writing is done before calling send_pcc_cmd().
+> And the subsequent Writes will check if the channel is
+> free at the entry of send_pcc_cmd() anyway.
+>
+> However, for Read cmds, we need to wait for the cmd
+> completion bit to be flipped, since the actual Read
+> ops follow after returning from the send_pcc_cmd(). So,
+> only do the looping check at the end for Read ops.
+>
+> Also, instead of using udelay() calls, use ktime as a
+> means to check for deadlines. The current deadline
 
-The issue has been reported a handful of times upstream. Here is one of the previous
-reports: https://lkml.org/lkml/2013/8/11/149
+udelay() is still there. Well, proposed approach in this patch is better than
+current code but I will be much more happy to see approach without delay()s under
+spin_lock if such approach exists.
 
-This series resolves the reported leaks and kmemleak is clean with these patches applied.
 
-Joshua Hunt (2):
-  ACPI, APEI: Fix leaked resources
-  ACPI, APEI, ERST: Fixed leaked resources in erst_init
+> in which the Remote should flip the cmd completion bit
+> is defined as N * Nominal latency. Where N is arbitrary
+> and large enough to work on slow emulators and Nominal
+> latency comes from the ACPI table (PCCT). This helps
+> in working around the CONFIG_HZ effects on udelay()
+> and also avoids needing different ACPI tables for Silicon
+> and Emulation platforms.
 
- drivers/acpi/apei/apei-base.c |    5 +++++
- drivers/acpi/apei/erst.c      |    2 ++
- 2 files changed, 7 insertions(+)
+What's the logic behind choosing N? Is it defined as 500 currently?
+Can it be some kind of configurable module or boot parameter?
+What if nominal latency given by firmware will be 100 mS?
 
--- 
-1.7.9.5
+Frankly speaking, I personally expect that slow emulator is going to fail
+timing-sensitive activities and that's fine.
+Your requirement to use same tables for emulator and hardware is understandable
+too.
+
+
+> Signed-off-by: Ashwin Chaugule <ashwin.chaugule@linaro.org>
+> Signed-off-by: Prashanth Prakash <pprakash@codeaurora.org>
+> ---
+>  drivers/acpi/cppc_acpi.c | 102 ++++++++++++++++++++++++++++++++++-------------
+>  1 file changed, 74 insertions(+), 28 deletions(-)
+>
+> diff --git a/drivers/acpi/cppc_acpi.c b/drivers/acpi/cppc_acpi.c
+> index 6730f96..36c3e4d 100644
+> --- a/drivers/acpi/cppc_acpi.c
+> +++ b/drivers/acpi/cppc_acpi.c
+> @@ -39,6 +39,7 @@
+>
+>  #include <linux/cpufreq.h>
+>  #include <linux/delay.h>
+> +#include <linux/ktime.h>
+>
+>  #include <acpi/cppc_acpi.h>
+>  /*
+> @@ -63,25 +64,56 @@ static struct mbox_chan *pcc_channel;
+>  static void __iomem *pcc_comm_addr;
+>  static u64 comm_base_addr;
+>  static int pcc_subspace_idx = -1;
+> -static u16 pcc_cmd_delay;
+>  static bool pcc_channel_acquired;
+> +static ktime_t deadline;
+>
+>  /*
+>   * Arbitrary Retries in case the remote processor is slow to respond
+> - * to PCC commands.
+> + * to PCC commands. Keeping it high enough to cover emulators where
+> + * the processors run painfully slow.
+>   */
+>  #define NUM_RETRIES 500
+>
+> +static int check_pcc_chan(void)
+> +{
+> +       int result = -EIO;
+> +       struct acpi_pcct_shared_memory *generic_comm_base =
+> +               (struct acpi_pcct_shared_memory *) pcc_comm_addr;
+> +       ktime_t next_deadline = ktime_add(ktime_get(), deadline);
+> +       int retries = 0;
+> +
+> +       /* Retry in case the remote processor was too slow to catch up. */
+> +       while (!ktime_after(ktime_get(), next_deadline)) {
+> +               if (readw_relaxed(&generic_comm_base->status) & PCC_CMD_COMPLETE) {
+> +                       result = 0;
+> +                       break;
+> +               }
+> +               /*
+> +                * Reducing the bus traffic in case this loop takes longer than
+> +                * a few retries.
+> +                */
+> +               udelay(3);
+> +               retries++;
+
+Looks like retries variable is not used properly. You just increment it and that's all.
+Could you please check its usage or remove it?
+
+
+> +       }
+> +
+> +       return result;
+> +}
+> +
+>  static int send_pcc_cmd(u16 cmd)
+>  {
+> -       int retries, result = -EIO;
+> -       struct acpi_pcct_hw_reduced *pcct_ss = pcc_channel->con_priv;
+> +       int ret = -EIO;
+>         struct acpi_pcct_shared_memory *generic_comm_base =
+>                 (struct acpi_pcct_shared_memory *) pcc_comm_addr;
+> -       u32 cmd_latency = pcct_ss->latency;
+>
+> -       /* Min time OS should wait before sending next command. */
+> -       udelay(pcc_cmd_delay);
+> +       /*
+> +        * For CMD_WRITE we know for a fact the caller should have checked
+> +        * the channel before writing to PCC space
+> +        */
+> +       if (cmd == CMD_READ) {
+> +               ret = check_pcc_chan();
+> +               if (ret)
+> +                       return ret;
+> +       }
+
+For my eyes first pcc command to be called during booting is send_pcc_cmd(CMD_READ)
+from cppc_get_perf_caps(). That means we go to the loop inside check_pcc_chan() and
+to break that loop and successfully continue software expects bit PCC_CMD_COMPLETE to be
+set.
+I checked ACPI specs and didn't find any words about reset value of status register here.
+If it's there could you please point me to it and place comment here? Or you shouldn't rely
+on reset value of status reg (let's imagine that we rebooted kernel without informing firmware).
+I actually hit this bug when I started to test your patches.
+
+
+[snip]
+
+
+Anyway, I tested your patches and ready to give reviewed-and-tested-by after resolving current issues
+(and after re-testing). So, could you please keep me in c/c in next version?
+
+Thanks,
+Alexey.
+
