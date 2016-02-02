@@ -1,87 +1,134 @@
-From: Hanjun Guo <hanjun.guo@linaro.org>
-Subject: Re: [PATCH v3 05/12] arm64, acpi, numa: NUMA support based on SRAT
- and SLIT
-Date: Tue, 2 Feb 2016 19:30:12 +0800
-Message-ID: <56B09344.4000100@linaro.org>
-References: <1453541967-3744-1-git-send-email-guohanjun@huawei.com>
- <1453541967-3744-6-git-send-email-guohanjun@huawei.com>
- <20160201180944.GV24726@rric.localdomain>
+From: Sinan Kaya <okaya@codeaurora.org>
+Subject: platform: Do not detach from PM domains on shutdown
+Date: Tue, 2 Feb 2016 09:38:52 -0500
+Message-ID: <56B0BF7C.6080607@codeaurora.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-pf0-f181.google.com ([209.85.192.181]:34955 "EHLO
-	mail-pf0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754280AbcBBLaW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Feb 2016 06:30:22 -0500
-Received: by mail-pf0-f181.google.com with SMTP id 65so102224316pfd.2
-        for <linux-acpi@vger.kernel.org>; Tue, 02 Feb 2016 03:30:21 -0800 (PST)
-In-Reply-To: <20160201180944.GV24726@rric.localdomain>
+Received: from smtp.codeaurora.org ([198.145.29.96]:53180 "EHLO
+	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754328AbcBBOi4 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Feb 2016 09:38:56 -0500
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Robert Richter <robert.richter@caviumnetworks.com>, Hanjun Guo <guohanjun@huawei.com>
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>, Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>, Shannon Zhao <shannon.zhao@linaro.org>, Steve Capper <steve.capper@linaro.org>, Mark Rutland <mark.rutland@arm.com>
+To: ulf.hansson@linaro.org, fabio.estevam@nxp.com, rafael.j.wysocki@intel.com
+Cc: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
 
-On 2016/2/2 2:09, Robert Richter wrote:
-> On 23.01.16 17:39:20, Hanjun Guo wrote:
->
->> @@ -385,10 +386,8 @@ void __init arm64_numa_init(void)
->>   {
->>   	int ret = -ENODEV;
->>
->> -#ifdef CONFIG_OF_NUMA
->>   	if (!numa_off)
->> -		ret = numa_init(arm64_of_numa_init);
->> -#endif
->> +		ret = numa_init(acpi_disabled ? arm64_of_numa_init : arm64_acpi_numa_init);
->>
->>   	if (ret)
->>   		numa_init(dummy_numa_init);
->
-> Ok, this style is mostly flavor, some people want #ifdefs (my
-> preference), some not. In any case it must build with or without the
-> config option set. But first some words why I like #ifdefs:
->
->   * Code is easier to understand as you don't need to look at any other
->     location whether it is enabled or not.
->
->   * You can't break the build if the options are not set. Thus, you
->     also don't need to check if the function is implemented for the
->     unset case (valid for the coder and also the reviewer). This makes
->     things a lot easier.
->
->   * Total number of lines of code that needs to be implement is
->     smaller.
->
-> However, if we don't ifdef the code, we need empty functions stubs in
-> the header file for them.
->
-> Also, the conditional assignment does not reduce the complexity of the
-> paths. It just concentrates everything in a single line.
->
-> How about the following (similar to x86)?
->
-> ----
-> 	if (!numa_off) {
-> #ifdef CONFIG_ACPI_NUMA
-> 		if (!numa_init(acpi_numa_init))
-> 			return 0;
-> #endif
-> #ifdef CONFIG_OF_NUMA
-> 		if (!numa_init(of_numa_init))
-> 			return 0;
-> #endif
-> 	}
->
-> 	return numa_init(dummy_numa_init);
-> ----
->
-> Pretty straight and nice.
->
-> Note: The !acpi_disabled check needs to be moved to the beginning of
-> acpi_numa_init(). Variable ret can be removed.
+Hi Rafael,Ulf;
 
-Lorenzo suggested to remove it, Lorenzo, what's your opinion here?
+Following up to these patches on linux 4.5-rc1, 
 
-Thanks
-Hanjun
+commit 2d30bb0b3889adf09b342722b2ce596c0763bc93
+Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Date:   Tue Jan 12 00:12:19 2016 +0100
+
+    platform: Do not detach from PM domains on shutdown
+
+    Shutdown is carried out when the driver is still bound to the
+    device, so it is incorrect to detach it from a PM domain (if any)
+    at this point.
+
+    Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+    Reported-and-tested-by: Fabio Estevam <fabio.estevam@nxp.com>
+    Acked-by: Ulf Hansson <ulf.hansson@linaro.org>
+
+
+
+>From Tomeu Vizoso <> 
+Subject [PATCH v11 2/4] PM / Domains: add setter for dev.pm_domain 
+Date Tue, 27 Oct 2015 15:38:49 +0100 
+
+I'm seeing a problem with HIDMA driver during
+unbind. I recognize that you fixed the issue for shutdown but the issue seems to be still there for
+the remove case.
+
+I'm wondering if you need to remove this too.
+
+static int platform_drv_remove(struct device *_dev)
+{
+struct platform_driver *drv = to_platform_driver(_dev->driver);
+struct platform_device *dev = to_platform_device(_dev);
+int ret = 0;
+
+if (drv->remove)
+ret = drv->remove(dev);
+dev_pm_domain_detach(_dev, true); <-----
+
+return ret;
+}
+
+The HIDMA driver can be found here. 
+https://lkml.org/lkml/2016/1/29/685
+
+
+/ # echo vfio-platform | tee -a /sys/bus/platform/devices/QCOM8061:00/driver_override
+vfio-platform
+/ # echo QCOM8061:00 | tee -a  /sys/bus/platform/devices/QCOM8061:00/driver/unbind
+QCOM8061:00
+
+hidma_QCOM8061:00:_HI-DMA_engine_removed
+hidma QCOM8061:00: after pm_runtime_put_sync_suspend
+PM domains can only be changed for unbound devices
+------------[ cut here ]------------
+WARNING: at drivers/base/power/common.c:150
+Modules linked in:
+
+CPU: 0 PID: 1392 Comm: tee Not tainted 4.5.0-rc1+ #46
+Hardware name: Hawker RUMI4 (DT)
+task: ffffffcbc5398c00 ti: ffffffcbc533c000 task.ti: ffffffcbc533c000
+PC is at dev_pm_domain_set+0x54/0x60
+LR is at dev_pm_domain_set+0x54/0x60
+pc : [<ffffffc000466fe8>] lr : [<ffffffc000466fe8>] pstate: 80000145
+sp : ffffffcbc533fc30
+x29: ffffffcbc533fc30 x28: ffffffcbc533c000
+x27: ffffffc0007fb000 x26: 0000000000000040
+x25: ffffffcbc533fec8 x24: 0000000000000000
+x23: 000000000000000c x22: ffffffffffffffed
+x21: 0000000000000001 x20: ffffffcbc927e800
+x19: ffffffcbc9187810 x18: 0000007fb7fce7d8
+x17: 0000007fb7f45220 x16: ffffffc0001b21fc
+x15: 003a20d71e000000 x14: 0000000000000000
+x13: 00000003e8000000 x12: 0000000000000018
+x11: 00000000000ee17e x10: 0000000000000840
+x9 : ffffffcbc533c000 x8 : ffffffcbc53994a0
+x7 : 0000000001eab436 x6 : 0000000000000000
+x5 : 0000000000000000 x4 : ffffffcbc53994a8
+x3 : ffffffcbc52063cc x2 : ffffffcbc9b14828
+x1 : 0000000000000000 x0 : 0000000000000032
+
+---[ end trace fbb22db05098c674 ]---
+Call trace:
+Exception stack(0xffffffcbc533fa70 to 0xffffffcbc533fb90)
+fa60: ffffffcbc9187810 ffffffcbc927e800
+fa80: ffffffcbc533fc30 ffffffc000466fe8 ffffffcbc533faa0 ffffffc0000f36f8
+faa0: ffffffcbc533fb50 ffffffc0000f3a60 ffffffc0000f3a28 ffffffcbc927e800
+fac0: 0000000000000001 ffffffffffffffed 000000000000000c 0000000000000000
+fae0: ffffffcbc533fec8 0000000000000040 ffffffc0007fb000 ffffffcbc533c000
+fb00: ffffffc000d79fc8 0030303a31363038 0000000000000032 0000000000000000
+fb20: ffffffcbc9b14828 ffffffcbc52063cc ffffffcbc53994a8 0000000000000000
+fb40: 0000000000000000 0000000001eab436 ffffffcbc53994a0 ffffffcbc533c000
+fb60: 0000000000000840 00000000000ee17e 0000000000000018 00000003e8000000
+fb80: 0000000000000000 003a20d71e000000
+[<ffffffc000466fe8>] dev_pm_domain_set+0x54/0x60
+[<ffffffc0003a84c8>] acpi_dev_pm_detach+0x64/0xb4
+[<ffffffc000466e3c>] dev_pm_domain_detach+0x20/0x28
+[<ffffffc000460100>] platform_drv_remove+0x34/0x64
+[<ffffffc00045e814>] __device_release_driver+0x7c/0xfc
+[<ffffffc00045e8b8>] device_release_driver+0x24/0x38
+[<ffffffc00045ce14>] unbind_store+0xb8/0xd0
+[<ffffffc00045c468>] drv_attr_store+0x20/0x30
+[<ffffffc00021eb74>] sysfs_kf_write+0x44/0x4c
+[<ffffffc00021dfd4>] kernfs_fop_write+0xb8/0x17c
+[<ffffffc0001b0700>] __vfs_write+0x2c/0xe0
+[<ffffffc0001b1568>] vfs_write+0x90/0x190
+[<ffffffc0001b22e0>] SyS_write+0x44/0xa0
+[<ffffffc000085d30>] el0_svc_naked+0x24/0x28
+
+
+
+
+-- 
+Sinan Kaya
+Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
