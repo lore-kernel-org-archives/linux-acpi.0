@@ -1,82 +1,54 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH v3] ARM64: kernel: implement ACPI parking protocol
-Date: Tue, 2 Feb 2016 18:26:58 +0000
-Message-ID: <20160202182657.GC15706@e104818-lin.cambridge.arm.com>
-References: <1453806638-23167-1-git-send-email-lorenzo.pieralisi@arm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:57777 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756784AbcBBS1C (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 2 Feb 2016 13:27:02 -0500
-Content-Disposition: inline
-In-Reply-To: <1453806638-23167-1-git-send-email-lorenzo.pieralisi@arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+From: Toshi Kani <toshi.kani@hpe.com>
+Subject: [PATCH 3/3] ACPI: Change NFIT driver to set PMEM type to iomem entry
+Date: Tue,  2 Feb 2016 11:55:11 -0700
+Message-ID: <1454439311-23690-4-git-send-email-toshi.kani@hpe.com>
+References: <1454439311-23690-1-git-send-email-toshi.kani@hpe.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1454439311-23690-1-git-send-email-toshi.kani@hpe.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: mingo@kernel.org, bp@suse.de, dan.j.williams@intel.com, rjw@rjwysocki.net, akpm@linux-foundation.org
+Cc: linux-nvdimm@lists.01.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Toshi Kani <toshi.kani@hpe.com>
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: linux-arm-kernel@lists.infradead.org, Mark Rutland <mark.rutland@arm.com>, Mark Salter <msalter@redhat.com>, Will Deacon <will.deacon@arm.com>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, Al Stone <ahs3@redhat.com>, Loc Ho <lho@apm.com>
 
-On Tue, Jan 26, 2016 at 11:10:38AM +0000, Lorenzo Pieralisi wrote:
-> The SBBR and ACPI specifications allow ACPI based systems that do not
-> implement PSCI (eg systems with no EL3) to boot through the ACPI parking
-> protocol specification[1].
-> 
-> This patch implements the ACPI parking protocol CPU operations, and adds
-> code that eases parsing the parking protocol data structures to the
-> ARM64 SMP initializion carried out at the same time as cpus enumeration.
-> 
-> To wake-up the CPUs from the parked state, this patch implements a
-> wakeup IPI for ARM64 (ie arch_send_wakeup_ipi_mask()) that mirrors the
-> ARM one, so that a specific IPI is sent for wake-up purpose in order
-> to distinguish it from other IPI sources.
-> 
-> Given the current ACPI MADT parsing API, the patch implements a glue
-> layer that helps passing MADT GICC data structure from SMP initialization
-> code to the parking protocol implementation somewhat overriding the CPU
-> operations interfaces. This to avoid creating a completely trasparent
-> DT/ACPI CPU operations layer that would require creating opaque
-> structure handling for CPUs data (DT represents CPU through DT nodes, ACPI
-> through static MADT table entries), which seems overkill given that ACPI
-> on ARM64 mandates only two booting protocols (PSCI and parking protocol),
-> so there is no need for further protocol additions.
-> 
-> Based on the original work by Mark Salter <msalter@redhat.com>
-> 
-> [1] https://acpica.org/sites/acpica/files/MP%20Startup%20for%20ARM%20platforms.docx
-> 
-> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> Cc: Will Deacon <will.deacon@arm.com>
-> Cc: Hanjun Guo <hanjun.guo@linaro.org>
-> Cc: Loc Ho <lho@apm.com>
-> Cc: Sudeep Holla <sudeep.holla@arm.com>
-> Cc: Catalin Marinas <catalin.marinas@arm.com>
-> Cc: Mark Rutland <mark.rutland@arm.com>
-> Cc: Mark Salter <msalter@redhat.com>
-> Cc: Al Stone <ahs3@redhat.com>
+Change acpi_nfit_register_region() to call iomem_set_desc() with
+IORES_DESC_PERSISTENT_MEMORY for NFIT_SPA_PM ranges found in ACPI
+NFIT table.
 
-Applied, with a minor addition just to warn people from not using it in
-other configurations (#ifdef still needed otherwise the
-acpi_parking_protocol_valid symbol is not available; but I prefer uglier
-code than people starting to use this IPI in their firmware):
+When FW sets E820_PMEM in e820 and EFI_PERSISTENT_MEMORY in EFI,
+this code simply sets PMEM type again to "Persistent Memory" entries
+in the iomem table.  When FW sets reserved type for persistent
+memory ranges, it sets PMEM type to "reserved" entries covering
+PMEM ranges.
 
---- a/arch/arm64/kernel/smp.c
-+++ b/arch/arm64/kernel/smp.c
-@@ -767,6 +767,12 @@ void handle_IPI(int ipinr, struct pt_regs *regs)
-                break;
- #endif
-+
-+#ifdef CONFIG_ARM64_ACPI_PARKING_PROTOCOL
-        case IPI_WAKEUP:
-+               WARN_ONCE(!acpi_parking_protocol_valid(cpu),
-+                         "CPU%u: Wake-up IPI outside the ACPI parking protocol\n",
-+                         cpu);
-                break;
-+#endif
+This allows the EINJ driver, which calls region_intersects() with
+IORES_DESC_PERSISTENT_MEMORY to check persistent memory ranges,
+to work continuously even if FW sets reserved type to persistent
+memory in e820 and EFI.
+
+Signed-off-by: Toshi Kani <toshi.kani@hpe.com>
+Cc: Rafael J. Wysocki <rjw@rjwysocki.net>
+Cc: Dan Williams <dan.j.williams@intel.com>
+Cc: Ingo Molnar <mingo@kernel.org>
+Cc: Borislav Petkov <bp@suse.de>
+Cc: Andrew Morton <akpm@linux-foundation.org>
+---
+ drivers/acpi/nfit.c |    6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+index ad6d8c6..add04f0 100644
+--- a/drivers/acpi/nfit.c
++++ b/drivers/acpi/nfit.c
+@@ -1781,6 +1781,12 @@ static int acpi_nfit_register_region(struct acpi_nfit_desc *acpi_desc,
  
-        default:
-
-Thanks.
-
--- 
-Catalin
+ 	nvdimm_bus = acpi_desc->nvdimm_bus;
+ 	if (nfit_spa_type(spa) == NFIT_SPA_PM) {
++		rc = iomem_set_desc(spa->address, spa->length,
++					IORES_DESC_PERSISTENT_MEMORY);
++		if (rc)
++			dev_dbg(acpi_desc->dev,
++				"error setting iomem desc: %d\n", rc);
++
+ 		rc = acpi_nfit_find_poison(acpi_desc, ndr_desc);
+ 		if (rc) {
+ 			dev_err(acpi_desc->dev,
