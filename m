@@ -1,55 +1,82 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v3 05/12] arm64, acpi, numa: NUMA support based on SRAT
- and SLIT
-Date: Tue, 2 Feb 2016 17:00:43 +0000
-Message-ID: <20160202170043.GA30358@red-moon>
-References: <1453541967-3744-1-git-send-email-guohanjun@huawei.com>
- <1453541967-3744-6-git-send-email-guohanjun@huawei.com>
- <20160201180944.GV24726@rric.localdomain>
- <56B09344.4000100@linaro.org>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH v3] ARM64: kernel: implement ACPI parking protocol
+Date: Tue, 2 Feb 2016 18:26:58 +0000
+Message-ID: <20160202182657.GC15706@e104818-lin.cambridge.arm.com>
+References: <1453806638-23167-1-git-send-email-lorenzo.pieralisi@arm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from foss.arm.com ([217.140.101.70]:57777 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756784AbcBBS1C (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 2 Feb 2016 13:27:02 -0500
 Content-Disposition: inline
-In-Reply-To: <56B09344.4000100@linaro.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Hanjun Guo <hanjun.guo@linaro.org>
-Cc: Robert Richter <robert.richter@caviumnetworks.com>, Hanjun Guo <guohanjun@huawei.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Will Deacon <will.deacon@arm.com>, Catalin Marinas <catalin.marinas@arm.com>, linux-acpi@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org, Ganapatrao Kulkarni <gkulkarni@caviumnetworks.com>, Shannon Zhao <shannon.zhao@linaro.org>, Steve Capper <steve.capper@linaro.org>, Mark Rutland <mark.rutland@arm.com>
+In-Reply-To: <1453806638-23167-1-git-send-email-lorenzo.pieralisi@arm.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: linux-arm-kernel@lists.infradead.org, Mark Rutland <mark.rutland@arm.com>, Mark Salter <msalter@redhat.com>, Will Deacon <will.deacon@arm.com>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, Al Stone <ahs3@redhat.com>, Loc Ho <lho@apm.com>
 
-On Tue, Feb 02, 2016 at 07:30:12PM +0800, Hanjun Guo wrote:
-
-[...]
-
-> >How about the following (similar to x86)?
-> >
-> >----
-> >	if (!numa_off) {
-> >#ifdef CONFIG_ACPI_NUMA
-> >		if (!numa_init(acpi_numa_init))
-> >			return 0;
-> >#endif
-> >#ifdef CONFIG_OF_NUMA
-> >		if (!numa_init(of_numa_init))
-> >			return 0;
-> >#endif
-> >	}
-> >
-> >	return numa_init(dummy_numa_init);
-> >----
-> >
-> >Pretty straight and nice.
-> >
-> >Note: The !acpi_disabled check needs to be moved to the beginning of
-> >acpi_numa_init(). Variable ret can be removed.
+On Tue, Jan 26, 2016 at 11:10:38AM +0000, Lorenzo Pieralisi wrote:
+> The SBBR and ACPI specifications allow ACPI based systems that do not
+> implement PSCI (eg systems with no EL3) to boot through the ACPI parking
+> protocol specification[1].
 > 
-> Lorenzo suggested to remove it, Lorenzo, what's your opinion here?
+> This patch implements the ACPI parking protocol CPU operations, and adds
+> code that eases parsing the parking protocol data structures to the
+> ARM64 SMP initializion carried out at the same time as cpus enumeration.
+> 
+> To wake-up the CPUs from the parked state, this patch implements a
+> wakeup IPI for ARM64 (ie arch_send_wakeup_ipi_mask()) that mirrors the
+> ARM one, so that a specific IPI is sent for wake-up purpose in order
+> to distinguish it from other IPI sources.
+> 
+> Given the current ACPI MADT parsing API, the patch implements a glue
+> layer that helps passing MADT GICC data structure from SMP initialization
+> code to the parking protocol implementation somewhat overriding the CPU
+> operations interfaces. This to avoid creating a completely trasparent
+> DT/ACPI CPU operations layer that would require creating opaque
+> structure handling for CPUs data (DT represents CPU through DT nodes, ACPI
+> through static MADT table entries), which seems overkill given that ACPI
+> on ARM64 mandates only two booting protocols (PSCI and parking protocol),
+> so there is no need for further protocol additions.
+> 
+> Based on the original work by Mark Salter <msalter@redhat.com>
+> 
+> [1] https://acpica.org/sites/acpica/files/MP%20Startup%20for%20ARM%20platforms.docx
+> 
+> Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Cc: Will Deacon <will.deacon@arm.com>
+> Cc: Hanjun Guo <hanjun.guo@linaro.org>
+> Cc: Loc Ho <lho@apm.com>
+> Cc: Sudeep Holla <sudeep.holla@arm.com>
+> Cc: Catalin Marinas <catalin.marinas@arm.com>
+> Cc: Mark Rutland <mark.rutland@arm.com>
+> Cc: Mark Salter <msalter@redhat.com>
+> Cc: Al Stone <ahs3@redhat.com>
 
-I do not think it is a big deal. OF is not a fall-back for ACPI,
-which is what the code above may make us think, either you parse
-ACPI or you parse DT.
+Applied, with a minor addition just to warn people from not using it in
+other configurations (#ifdef still needed otherwise the
+acpi_parking_protocol_valid symbol is not available; but I prefer uglier
+code than people starting to use this IPI in their firmware):
 
-I will have a look at the complete code to check if we can rewrite
-it differently but I would not be too worried about it.
+--- a/arch/arm64/kernel/smp.c
++++ b/arch/arm64/kernel/smp.c
+@@ -767,6 +767,12 @@ void handle_IPI(int ipinr, struct pt_regs *regs)
+                break;
+ #endif
++
++#ifdef CONFIG_ARM64_ACPI_PARKING_PROTOCOL
+        case IPI_WAKEUP:
++               WARN_ONCE(!acpi_parking_protocol_valid(cpu),
++                         "CPU%u: Wake-up IPI outside the ACPI parking protocol\n",
++                         cpu);
+                break;
++#endif
+ 
+        default:
 
-Lorenzo
+Thanks.
+
+-- 
+Catalin
