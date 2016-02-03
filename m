@@ -1,99 +1,156 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: Re: platform: Do not detach from PM domains on shutdown
-Date: Wed, 3 Feb 2016 13:05:56 -0500
-Message-ID: <56B24184.10006@codeaurora.org>
-References: <56B0BF7C.6080607@codeaurora.org>
- <CAJZ5v0jkYhdNqY7xoGzwAsk0o-YO0PX6REp0OGc9NgBxgCLDDA@mail.gmail.com>
+From: Dmitry Sutyagin <f3flight@gmail.com>
+Subject: Re: Powerbutton not detected/handled on Dell Venue 11 Pro (7140)
+Date: Thu, 4 Feb 2016 00:26:14 +0300
+Message-ID: <CALfH6qdURFQ=v4SRg4sTA0w_UwZv_2jwQr7aG66_W0oJZgwqLg@mail.gmail.com>
+References: <CALfH6qdnJ4jpsUE7iMgd6xvcSMjbStdEoHNz39Yb+aBJoVRPhg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary=001a114fbf1c8776ff052ae444ef
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:37862 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933630AbcBCSF7 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Feb 2016 13:05:59 -0500
-In-Reply-To: <CAJZ5v0jkYhdNqY7xoGzwAsk0o-YO0PX6REp0OGc9NgBxgCLDDA@mail.gmail.com>
+Received: from mail-yk0-f175.google.com ([209.85.160.175]:33025 "EHLO
+	mail-yk0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755540AbcBCV0O (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Feb 2016 16:26:14 -0500
+Received: by mail-yk0-f175.google.com with SMTP id z13so31021881ykd.0
+        for <linux-acpi@vger.kernel.org>; Wed, 03 Feb 2016 13:26:14 -0800 (PST)
+In-Reply-To: <CALfH6qdnJ4jpsUE7iMgd6xvcSMjbStdEoHNz39Yb+aBJoVRPhg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "Rafael J. Wysocki" <rafael@kernel.org>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>, fabio.estevam@nxp.com, Rafael Wysocki <rafael.j.wysocki@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: linux-acpi@vger.kernel.org
 
-Hi Rafael,
+--001a114fbf1c8776ff052ae444ef
+Content-Type: text/plain; charset=UTF-8
 
-On 2/2/2016 7:53 PM, Rafael J. Wysocki wrote:
-> Hi,
-> 
-> On Tue, Feb 2, 2016 at 3:38 PM, Sinan Kaya <okaya@codeaurora.org> wrote:
->> Hi Rafael,Ulf;
->>
->> Following up to these patches on linux 4.5-rc1,
->>
->> commit 2d30bb0b3889adf09b342722b2ce596c0763bc93
->> Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->> Date:   Tue Jan 12 00:12:19 2016 +0100
->>
->>     platform: Do not detach from PM domains on shutdown
->>
->>     Shutdown is carried out when the driver is still bound to the
->>     device, so it is incorrect to detach it from a PM domain (if any)
->>     at this point.
->>
->>     Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->>     Reported-and-tested-by: Fabio Estevam <fabio.estevam@nxp.com>
->>     Acked-by: Ulf Hansson <ulf.hansson@linaro.org>
->>
->>
->>
->> From Tomeu Vizoso <>
->> Subject [PATCH v11 2/4] PM / Domains: add setter for dev.pm_domain
->> Date Tue, 27 Oct 2015 15:38:49 +0100
->>
->> I'm seeing a problem with HIDMA driver during
->> unbind. I recognize that you fixed the issue for shutdown but the issue seems to be still there for
->> the remove case.
->>
->> I'm wondering if you need to remove this too.
-> 
-> This patch may help here: https://patchwork.kernel.org/patch/8170821/
-> 
-> Can you try it please?
-> 
-> Thanks,
-> Rafael
-> 
+Today I have modified the patch slightly to apply to 4.4.1 kernel and
+built a kernel with it applied - power button now works for me. The
+patch is attached. I can probably make a similar one for master branch
+and for earlier releases too, let me know what I should do. Thanks!
 
-Your patch worked. You can add this if you have not merged already.
+2016-02-03 19:04 GMT+03:00 Dmitry Sutyagin <f3flight@gmail.com>:
+> Dear all,
+>
+> I am writing to ask for the attached patch to be reviewed and merged
+> into linux kernel (preferably starting from 3.18 but at least for 4.4
+> and up).
+> The patch was created by Jan-Michael Brummer, I took it from here -
+> https://bugzilla.kernel.org/show_bug.cgi?id=102281
+>
+> Please let me know if I can help in any way.
 
-Tested-by: okaya@codeaurora.org
+--001a114fbf1c8776ff052ae444ef
+Content-Type: text/x-patch; charset=US-ASCII;
+	name="dell_venue_11_pro_7140_power_button_for_linux_4.4.1.patch"
+Content-Disposition: attachment;
+	filename="dell_venue_11_pro_7140_power_button_for_linux_4.4.1.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_ik7cfgfa1
 
-enablement: booted suscessfully
-Starting logging: OK
-Starting mdev...
-Starting irqbalance: OK
-Initializing random number generator... [    9.806670] random: dd urandom read with
-done.
-Starting system message bus: done
-Starting network...
-Starting dropbear sshd: OK
-Starting telnetd: OK
-Starting libvirtd: OK
-
-/_#_echo_vfio-platform |tee -a /sys/bus/platform/devices/QCOM8061:00/driver_override
-vfio-platform
-/ # echo QCOM8061:00 | tee -a  /sys/bus/platform/devices/QCOM8061:00/driver/unbind
-QCOM8061:00
-[  148.846481] hidma QCOM8061:00: HI-DMA engine removed
-
-
-/# echo QCOM8061:00 |tee -a /sys/bus/platform/drivers_probe
-QCOM8061:00
-
-/#
-/#
-
-
-
--- 
-Sinan Kaya
-Qualcomm Technologies, Inc. on behalf of Qualcomm Innovation Center, Inc.
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum, a Linux Foundation Collaborative Project
+ZGlmZiAtLWdpdCBhL2RyaXZlcnMvcGxhdGZvcm0veDg2L0tjb25maWcgYi9kcml2ZXJzL3BsYXRm
+b3JtL3g4Ni9LY29uZmlnCmluZGV4IDEwODllYWEuLmM1MTlkMmUgMTAwNjQ0Ci0tLSBhL2RyaXZl
+cnMvcGxhdGZvcm0veDg2L0tjb25maWcKKysrIGIvZHJpdmVycy9wbGF0Zm9ybS94ODYvS2NvbmZp
+ZwpAQCAtOTQ0LDQgKzk0NCwxMCBAQCBjb25maWcgU1VSRkFDRV9QUk8zX0JVVFRPTgogCWRlcGVu
+ZHMgb24gQUNQSSAmJiBJTlBVVAogCS0tLWhlbHAtLS0KIAkgIFRoaXMgZHJpdmVyIGhhbmRsZXMg
+dGhlIHBvd2VyL2hvbWUvdm9sdW1lIGJ1dHRvbnMgb24gdGhlIE1pY3Jvc29mdCBTdXJmYWNlIFBy
+byAzIHRhYmxldC4KKworY29uZmlnIERWMTFQX1BPV0VSX0JVVFRPTgorCXRyaXN0YXRlICJEZWxs
+IFZlbnVlIDExIFBybyBQb3dlciBCdXR0b24gRHJpdmVyIgorCWRlcGVuZHMgb24gQUNQSQorCS0t
+LWhlbHAtLS0KKwkgIFRoaXMgZHJpdmVyIHByb3ZpZGVzIHBvd2VyIGJ1dHRvbiBzdXBwb3J0IGZv
+ciB0aGUgRGVsbCBWZW51ZSAxMSBQcm8gdGFibGV0LgogZW5kaWYgIyBYODZfUExBVEZPUk1fREVW
+SUNFUwpkaWZmIC0tZ2l0IGEvZHJpdmVycy9wbGF0Zm9ybS94ODYvTWFrZWZpbGUgYi9kcml2ZXJz
+L3BsYXRmb3JtL3g4Ni9NYWtlZmlsZQppbmRleCAzY2E3OGEzLi4zMzhiMGZjIDEwMDY0NAotLS0g
+YS9kcml2ZXJzL3BsYXRmb3JtL3g4Ni9NYWtlZmlsZQorKysgYi9kcml2ZXJzL3BsYXRmb3JtL3g4
+Ni9NYWtlZmlsZQpAQCAtNjIsMyArNjIsNCBAQCBvYmotJChDT05GSUdfUFZQQU5JQykgICAgICAg
+ICAgICs9IHB2cGFuaWMubwogb2JqLSQoQ09ORklHX0FMSUVOV0FSRV9XTUkpCSs9IGFsaWVud2Fy
+ZS13bWkubwogb2JqLSQoQ09ORklHX0lOVEVMX1BNQ19JUEMpCSs9IGludGVsX3BtY19pcGMubwog
+b2JqLSQoQ09ORklHX1NVUkZBQ0VfUFJPM19CVVRUT04pCSs9IHN1cmZhY2Vwcm8zX2J1dHRvbi5v
+CitvYmotJChDT05GSUdfRFYxMVBfUE9XRVJfQlVUVE9OKQkrPSBkdjExcF9wb3dlcl9idXR0b24u
+bwpkaWZmIC0tZ2l0IGEvZHJpdmVycy9wbGF0Zm9ybS94ODYvZHYxMXBfcG93ZXJfYnV0dG9uLmMg
+Yi9kcml2ZXJzL3BsYXRmb3JtL3g4Ni9kdjExcF9wb3dlcl9idXR0b24uYwpuZXcgZmlsZSBtb2Rl
+IDEwMDY0NAppbmRleCAwMDAwMDAwLi4wMzI1MGFlCi0tLSAvZGV2L251bGwKKysrIGIvZHJpdmVy
+cy9wbGF0Zm9ybS94ODYvZHYxMXBfcG93ZXJfYnV0dG9uLmMKQEAgLTAsMCArMSwxOTYgQEAKKy8q
+CisgKiBQb3dlciBidXR0b24gc3VwcG9ydCBmb3IgRGVsbCBWZW51ZSAxMSBQcm8KKyAqCisgKiAo
+QykgQ29weXJpZ2h0IDIwMTUgSmFuLU1pY2hhZWwgQnJ1bW1lcgorICoKKyAqIFRoaXMgcHJvZ3Jh
+bSBpcyBmcmVlIHNvZnR3YXJlOyB5b3UgY2FuIHJlZGlzdHJpYnV0ZSBpdCBhbmQvb3IKKyAqIG1v
+ZGlmeSBpdCB1bmRlciB0aGUgdGVybXMgb2YgdGhlIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNl
+CisgKiBhcyBwdWJsaXNoZWQgYnkgdGhlIEZyZWUgU29mdHdhcmUgRm91bmRhdGlvbjsgdmVyc2lv
+biAyCisgKiBvZiB0aGUgTGljZW5zZS4KKyAqLworCisjaW5jbHVkZSA8bGludXgva2VybmVsLmg+
+CisjaW5jbHVkZSA8bGludXgvbW9kdWxlLmg+CisjaW5jbHVkZSA8bGludXgvaW5pdC5oPgorI2lu
+Y2x1ZGUgPGxpbnV4L3R5cGVzLmg+CisjaW5jbHVkZSA8bGludXgvaW5wdXQuaD4KKyNpbmNsdWRl
+IDxsaW51eC9hY3BpLmg+CisjaW5jbHVkZSA8YWNwaS9idXR0b24uaD4KKworI2RlZmluZSBEVjEx
+UF9CVVRUT05fSElECQkiSU5UMzNENiIKKyNkZWZpbmUgRFYxMVBfQlVUVE9OX0NMQVNTCQkiYnV0
+dG9uIgorI2RlZmluZSBEVjExUF9CVVRUT05fU1VCX0NMQVNTCQkiZWMiCisjZGVmaW5lIERWMTFQ
+X0JVVFRPTl9ERVZJQ0VfTkFNRQkiRUMiCisKKyNkZWZpbmUgRFYxMVBfQlVUVE9OX05PVElGWV9Q
+UkVTU19QT1dFUgkJMHhjMAorI2RlZmluZSBEVjExUF9CVVRUT05fTk9USUZZX1JFTEVBU0VfUE9X
+RVIJMHhjMQorCitBQ1BJX01PRFVMRV9OQU1FKCJkdjExcCBwb3dlciBidXR0b24iKTsKKworI2Rl
+ZmluZSBfQ09NUE9ORU5UICAgICAgICAgICAgICBBQ1BJX0JVVFRPTl9DT01QT05FTlQKKworTU9E
+VUxFX0FVVEhPUigiSmFuLU1pY2hhZWwgQnJ1bW1lciIpOworTU9EVUxFX0RFU0NSSVBUSU9OKCJE
+ZWxsIFZlbnVlIDExIFBybyBQb3dlciBCdXR0b24gRHJpdmVyIik7CitNT0RVTEVfTElDRU5TRSgi
+R1BMIik7CisKKy8qCisgKiBQb3dlciBidXR0b24gYXJlIGhhbmRsZWQgYnkgRUMKKyAqLworc3Rh
+dGljIGNvbnN0IHN0cnVjdCBhY3BpX2RldmljZV9pZCBkdjExcF9wb3dlcl9idXR0b25fZGV2aWNl
+X2lkc1tdID0geworCXtEVjExUF9CVVRUT05fSElELCAgICAwfSwKKwl7IiIsIDB9LAorfTsKK01P
+RFVMRV9ERVZJQ0VfVEFCTEUoYWNwaSwgZHYxMXBfcG93ZXJfYnV0dG9uX2RldmljZV9pZHMpOwor
+CitzdGF0aWMgaW50IGR2MTFwX3Bvd2VyX2J1dHRvbl9hZGQoc3RydWN0IGFjcGlfZGV2aWNlICpk
+ZXZpY2UpOworc3RhdGljIGludCBkdjExcF9wb3dlcl9idXR0b25fcmVtb3ZlKHN0cnVjdCBhY3Bp
+X2RldmljZSAqZGV2aWNlKTsKK3N0YXRpYyB2b2lkIGR2MTFwX3Bvd2VyX2J1dHRvbl9ub3RpZnko
+c3RydWN0IGFjcGlfZGV2aWNlICpkZXZpY2UsIHUzMiBldmVudCk7CisKKyNpZmRlZiBDT05GSUdf
+UE1fU0xFRVAKK3N0YXRpYyBpbnQgZHYxMXBfcG93ZXJfYnV0dG9uX3N1c3BlbmQoc3RydWN0IGRl
+dmljZSAqZGV2KTsKK3N0YXRpYyBpbnQgZHYxMXBfcG93ZXJfYnV0dG9uX3Jlc3VtZShzdHJ1Y3Qg
+ZGV2aWNlICpkZXYpOworI2Vsc2UKKyNkZWZpbmUgZHYxMXBfcG93ZXJfYnV0dG9uX3N1c3BlbmQg
+TlVMTAorI2RlZmluZSBkdjExcF9wb3dlcl9idXR0b25fcmVzdW1lIE5VTEwKKyNlbmRpZgorCitz
+dGF0aWMgU0lNUExFX0RFVl9QTV9PUFMoZHYxMXBfcG93ZXJfYnV0dG9uX3BtLAorCQlkdjExcF9w
+b3dlcl9idXR0b25fc3VzcGVuZCwgZHYxMXBfcG93ZXJfYnV0dG9uX3Jlc3VtZSk7CisKK3N0YXRp
+YyBzdHJ1Y3QgYWNwaV9kcml2ZXIgZHYxMXBfcG93ZXJfYnV0dG9uX2RyaXZlciA9IHsKKwkubmFt
+ZSA9ICJkZWxsIHZlbnVlIDExIHBybyBidXR0b24iLAorCS5jbGFzcyA9IERWMTFQX0JVVFRPTl9D
+TEFTUywKKwkuaWRzID0gZHYxMXBfcG93ZXJfYnV0dG9uX2RldmljZV9pZHMsCisJLm9wcyA9IHsK
+KwkJLmFkZCA9IGR2MTFwX3Bvd2VyX2J1dHRvbl9hZGQsCisJCS5yZW1vdmUgPSBkdjExcF9wb3dl
+cl9idXR0b25fcmVtb3ZlLAorCQkubm90aWZ5ID0gZHYxMXBfcG93ZXJfYnV0dG9uX25vdGlmeSwK
+Kwl9LAorCS5kcnYucG0gPSAmZHYxMXBfcG93ZXJfYnV0dG9uX3BtLAorfTsKKworc3RydWN0IGR2
+MTFwX3Bvd2VyX2J1dHRvbiB7CisJdW5zaWduZWQgaW50IHR5cGU7CisJc3RydWN0IGlucHV0X2Rl
+diAqaW5wdXQ7CisJY2hhciBwaHlzWzMyXTsJCQkvKiBmb3IgaW5wdXQgZGV2aWNlICovCisJdW5z
+aWduZWQgbG9uZyBwdXNoZWQ7CisJYm9vbCBzdXNwZW5kZWQ7Cit9OworCitzdGF0aWMgdm9pZCBk
+djExcF9wb3dlcl9idXR0b25fbm90aWZ5KHN0cnVjdCBhY3BpX2RldmljZSAqZGV2aWNlLCB1MzIg
+ZXZlbnQpCit7CisJc3RydWN0IGR2MTFwX3Bvd2VyX2J1dHRvbiAqYnV0dG9uID0gYWNwaV9kcml2
+ZXJfZGF0YShkZXZpY2UpOworCXN0cnVjdCBpbnB1dF9kZXYgKmlucHV0OworCWludCBrZXlfY29k
+ZSA9IEtFWV9SRVNFUlZFRCwgcHJlc3NlZCA9IDA7CisKKwlzd2l0Y2ggKGV2ZW50KSB7CisJY2Fz
+ZSBEVjExUF9CVVRUT05fTk9USUZZX1BSRVNTX1BPV0VSOgorCQlwcmVzc2VkID0gMTsKKwljYXNl
+IERWMTFQX0JVVFRPTl9OT1RJRllfUkVMRUFTRV9QT1dFUjoKKwkJa2V5X2NvZGUgPSBLRVlfUE9X
+RVI7CisJCWJyZWFrOworCisJZGVmYXVsdDoKKwkJQUNQSV9ERUJVR19QUklOVCgoQUNQSV9EQl9J
+TkZPLAorCQkJCSAgIlVuc3VwcG9ydGVkIGV2ZW50IFsweCV4XVxuIiwgZXZlbnQpKTsKKwkJYnJl
+YWs7CisJfQorCisJaW5wdXQgPSBidXR0b24tPmlucHV0OworCisJaWYgKEtFWV9SRVNFUlZFRCA9
+PSBrZXlfY29kZSkKKwkJcmV0dXJuOworCisJaWYgKHByZXNzZWQpCisJCXBtX3dha2V1cF9ldmVu
+dCgmZGV2aWNlLT5kZXYsIDApOworCisJaWYgKGJ1dHRvbi0+c3VzcGVuZGVkKQorCQlyZXR1cm47
+CisKKwlpbnB1dF9yZXBvcnRfa2V5KGlucHV0LCBrZXlfY29kZSwgcHJlc3NlZCk7CisJaW5wdXRf
+c3luYyhpbnB1dCk7CisKK30KKworI2lmZGVmIENPTkZJR19QTV9TTEVFUAorc3RhdGljIGludCBk
+djExcF9wb3dlcl9idXR0b25fc3VzcGVuZChzdHJ1Y3QgZGV2aWNlICpkZXYpCit7CisJc3RydWN0
+IGFjcGlfZGV2aWNlICpkZXZpY2UgPSB0b19hY3BpX2RldmljZShkZXYpOworCXN0cnVjdCBkdjEx
+cF9wb3dlcl9idXR0b24gKmJ1dHRvbiA9IGFjcGlfZHJpdmVyX2RhdGEoZGV2aWNlKTsKKworCWJ1
+dHRvbi0+c3VzcGVuZGVkID0gdHJ1ZTsKKwlyZXR1cm4gMDsKK30KKworc3RhdGljIGludCBkdjEx
+cF9wb3dlcl9idXR0b25fcmVzdW1lKHN0cnVjdCBkZXZpY2UgKmRldikKK3sKKwlzdHJ1Y3QgYWNw
+aV9kZXZpY2UgKmRldmljZSA9IHRvX2FjcGlfZGV2aWNlKGRldik7CisJc3RydWN0IGR2MTFwX3Bv
+d2VyX2J1dHRvbiAqYnV0dG9uID0gYWNwaV9kcml2ZXJfZGF0YShkZXZpY2UpOworCisJYnV0dG9u
+LT5zdXNwZW5kZWQgPSBmYWxzZTsKKwlyZXR1cm4gMDsKK30KKyNlbmRpZgorCitzdGF0aWMgaW50
+IGR2MTFwX3Bvd2VyX2J1dHRvbl9hZGQoc3RydWN0IGFjcGlfZGV2aWNlICpkZXZpY2UpCit7CisJ
+c3RydWN0IGR2MTFwX3Bvd2VyX2J1dHRvbiAqYnV0dG9uOworCXN0cnVjdCBpbnB1dF9kZXYgKmlu
+cHV0OworCWNvbnN0IGNoYXIgKmhpZCA9IGFjcGlfZGV2aWNlX2hpZChkZXZpY2UpOworCWNoYXIg
+Km5hbWUsICpjbGFzczsKKwlpbnQgZXJyb3I7CisKKwlidXR0b24gPSBremFsbG9jKHNpemVvZihz
+dHJ1Y3QgZHYxMXBfcG93ZXJfYnV0dG9uKSwgR0ZQX0tFUk5FTCk7CisJaWYgKCFidXR0b24pCisJ
+CXJldHVybiAtRU5PTUVNOworCisJZGV2aWNlLT5kcml2ZXJfZGF0YSA9IGJ1dHRvbjsKKworCWJ1
+dHRvbi0+aW5wdXQgPSBpbnB1dCA9IGlucHV0X2FsbG9jYXRlX2RldmljZSgpOworCWlmICghaW5w
+dXQpIHsKKwkJZXJyb3IgPSAtRU5PTUVNOworCQlnb3RvIGVycl9mcmVlX3Bvd2VyX2J1dHRvbjsK
+Kwl9CisKKwluYW1lID0gYWNwaV9kZXZpY2VfbmFtZShkZXZpY2UpOworCWNsYXNzID0gYWNwaV9k
+ZXZpY2VfY2xhc3MoZGV2aWNlKTsKKworCXN0cmNweShuYW1lLCBEVjExUF9CVVRUT05fREVWSUNF
+X05BTUUpOworCXNwcmludGYoY2xhc3MsICIlcy8lcyIsCisJCURWMTFQX0JVVFRPTl9DTEFTUywg
+RFYxMVBfQlVUVE9OX1NVQl9DTEFTUyk7CisKKwlzbnByaW50ZihidXR0b24tPnBoeXMsIHNpemVv
+ZihidXR0b24tPnBoeXMpLCAiJXMvYnV0dG9uL2lucHV0MCIsIGhpZCk7CisKKwlpbnB1dC0+bmFt
+ZSA9IG5hbWU7CisJaW5wdXQtPnBoeXMgPSBidXR0b24tPnBoeXM7CisJaW5wdXQtPmlkLmJ1c3R5
+cGUgPSBCVVNfSE9TVDsKKwlpbnB1dC0+ZGV2LnBhcmVudCA9ICZkZXZpY2UtPmRldjsKKworCWlu
+cHV0X3NldF9jYXBhYmlsaXR5KGlucHV0LCBFVl9LRVksIEtFWV9QT1dFUik7CisKKworCWVycm9y
+ID0gaW5wdXRfcmVnaXN0ZXJfZGV2aWNlKGlucHV0KTsKKwlpZiAoZXJyb3IpCisJCWdvdG8gZXJy
+X2ZyZWVfaW5wdXQ7CisKKwlBQ1BJX0RFQlVHX1BSSU5UKChBQ1BJX0RCX0lORk8sCisJCQkiJXMg
+WyVzXVxuIiwgbmFtZSwgYWNwaV9kZXZpY2VfYmlkKGRldmljZSkpKTsKKwlyZXR1cm4gMDsKKwor
+IGVycl9mcmVlX2lucHV0OgorCWlucHV0X2ZyZWVfZGV2aWNlKGlucHV0KTsKKyBlcnJfZnJlZV9w
+b3dlcl9idXR0b246CisJa2ZyZWUoYnV0dG9uKTsKKwlyZXR1cm4gZXJyb3I7Cit9CisKK3N0YXRp
+YyBpbnQgZHYxMXBfcG93ZXJfYnV0dG9uX3JlbW92ZShzdHJ1Y3QgYWNwaV9kZXZpY2UgKmRldmlj
+ZSkKK3sKKwlzdHJ1Y3QgZHYxMXBfcG93ZXJfYnV0dG9uICpidXR0b24gPSBhY3BpX2RyaXZlcl9k
+YXRhKGRldmljZSk7CisKKwlpbnB1dF91bnJlZ2lzdGVyX2RldmljZShidXR0b24tPmlucHV0KTsK
+KwlrZnJlZShidXR0b24pOworCXJldHVybiAwOworfQorCittb2R1bGVfYWNwaV9kcml2ZXIoZHYx
+MXBfcG93ZXJfYnV0dG9uX2RyaXZlcik7Cg==
+--001a114fbf1c8776ff052ae444ef--
