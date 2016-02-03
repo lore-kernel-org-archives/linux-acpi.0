@@ -1,59 +1,55 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: platform: Do not detach from PM domains on shutdown
-Date: Wed, 3 Feb 2016 01:53:17 +0100
-Message-ID: <CAJZ5v0jkYhdNqY7xoGzwAsk0o-YO0PX6REp0OGc9NgBxgCLDDA@mail.gmail.com>
-References: <56B0BF7C.6080607@codeaurora.org>
+From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Subject: Re: [PATCH] mailbox: pcc: fix channel calculation in get_pcc_channel()
+Date: Wed, 03 Feb 2016 02:22:41 +0100
+Message-ID: <2389061.LRLPThh2pc@vostro.rjw.lan>
+References: <CAJ5Y-eYdPM+hSZdH_Sz10K6iHb0cCB1E4Wh_A_sJn_yyLgLjZQ@mail.gmail.com> <CAJZ5v0h1yVsSYVz==VD3a2w8N-1yePn0XvN54c6BTwxMk7w1uw@mail.gmail.com> <CABb+yY0GkUpSo+T4_8m=PKVf0JSBFZdFvgZdRy_i_vEmPRnuGg@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-lf0-f49.google.com ([209.85.215.49]:35201 "EHLO
-	mail-lf0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754358AbcBCAxS (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Feb 2016 19:53:18 -0500
-Received: by mail-lf0-f49.google.com with SMTP id l143so3536106lfe.2
-        for <linux-acpi@vger.kernel.org>; Tue, 02 Feb 2016 16:53:17 -0800 (PST)
-In-Reply-To: <56B0BF7C.6080607@codeaurora.org>
+Received: from v094114.home.net.pl ([79.96.170.134]:42275 "HELO
+	v094114.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755128AbcBCBVj (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Tue, 2 Feb 2016 20:21:39 -0500
+In-Reply-To: <CABb+yY0GkUpSo+T4_8m=PKVf0JSBFZdFvgZdRy_i_vEmPRnuGg@mail.gmail.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Sinan Kaya <okaya@codeaurora.org>
-Cc: Ulf Hansson <ulf.hansson@linaro.org>, fabio.estevam@nxp.com, Rafael Wysocki <rafael.j.wysocki@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Jassi Brar <jassisinghbrar@gmail.com>
+Cc: "Rafael J. Wysocki" <rafael@kernel.org>, Alexey Klimov <alexey.klimov@arm.com>, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Ashwin Chaugule <ashwin.chaugule@linaro.org>, Jaswinder Singh <jaswinder.singh@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-Hi,
+On Tuesday, February 02, 2016 04:42:52 PM Jassi Brar wrote:
+> On Tue, Feb 2, 2016 at 2:21 AM, Rafael J. Wysocki <rafael@kernel.org> wrote:
+> > On Mon, Feb 1, 2016 at 4:43 PM, Jassi Brar <jassisinghbrar@gmail.com> wrote:
+> >> On Mon, Feb 1, 2016 at 8:49 PM, Alexey Klimov <alexey.klimov@arm.com> wrote:
+> >>> (adding Rafael and linux-acpi)
+> >>>
+> >>> On Fri, Jan 15, 2016 at 6:22 PM, Ashwin Chaugule <ashwin.chaugule@linaro.org> wrote:
+> >>>> + Jassi (Linaro addr)
+> >>>>
+> >>>> On 15 January 2016 at 13:20, Ashwin Chaugule <ashwin.chaugule@linaro.org> wrote:
+> >
+> > [cut]
+> >
+> >>>>> Can you please include this patch in your pull request to Linus?
+> >>>
+> >>> Hi Rafael,
+> >>>
+> >>> any chance you can take this fix via your tree?
+> >>> I can resend patch if you want.
+> >>> Looks like Jassi doesn't have time or doesn't care.
+> >>>
+> >> Ouch... sorry. Ashwin's reminder came after I had sent the pull
+> >> request. And then it just got overlooked. If Rafael doesn't pick it as
+> >> my punishment, I'll tomorow :)
+> >
+> > I can apply it, but can anyone please point me to the original patch?
+> >
+> > Or, maybe better, resend it with a CC to linux-acpi and all of the
+> > tags collected so far?
+> >
+> or even simpler ... I queued it already
+> https://git.linaro.org/landing-teams/working/fujitsu/integration.git/log/refs/heads/mailbox-devel
+>  ?
 
-On Tue, Feb 2, 2016 at 3:38 PM, Sinan Kaya <okaya@codeaurora.org> wrote:
-> Hi Rafael,Ulf;
->
-> Following up to these patches on linux 4.5-rc1,
->
-> commit 2d30bb0b3889adf09b342722b2ce596c0763bc93
-> Author: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
-> Date:   Tue Jan 12 00:12:19 2016 +0100
->
->     platform: Do not detach from PM domains on shutdown
->
->     Shutdown is carried out when the driver is still bound to the
->     device, so it is incorrect to detach it from a PM domain (if any)
->     at this point.
->
->     Signed-off-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
->     Reported-and-tested-by: Fabio Estevam <fabio.estevam@nxp.com>
->     Acked-by: Ulf Hansson <ulf.hansson@linaro.org>
->
->
->
-> From Tomeu Vizoso <>
-> Subject [PATCH v11 2/4] PM / Domains: add setter for dev.pm_domain
-> Date Tue, 27 Oct 2015 15:38:49 +0100
->
-> I'm seeing a problem with HIDMA driver during
-> unbind. I recognize that you fixed the issue for shutdown but the issue seems to be still there for
-> the remove case.
->
-> I'm wondering if you need to remove this too.
+That works for me too. :-)
 
-This patch may help here: https://patchwork.kernel.org/patch/8170821/
-
-Can you try it please?
-
-Thanks,
-Rafael
