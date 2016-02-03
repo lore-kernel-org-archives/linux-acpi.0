@@ -1,79 +1,38 @@
-From: Catalin Marinas <catalin.marinas@arm.com>
-Subject: Re: [PATCH v3] ARM64: kernel: implement ACPI parking protocol
-Date: Wed, 3 Feb 2016 16:18:36 +0000
-Message-ID: <20160203161834.GB26487@MBP.local>
-References: <1453806638-23167-1-git-send-email-lorenzo.pieralisi@arm.com>
- <20160202182657.GC15706@e104818-lin.cambridge.arm.com>
- <20160203112112.GA18387@red-moon>
+From: Tejun Heo <tj@kernel.org>
+Subject: Re: [PATCH v5 RESEND 0/5] Make cpuid <-> nodeid mapping persistent
+Date: Wed, 3 Feb 2016 11:42:49 -0500
+Message-ID: <20160203164249.GG14091@mtj.duckdns.org>
+References: <1453702100-2597-1-git-send-email-tangchen@cn.fujitsu.com>
+ <56A5BCDB.4090208@cn.fujitsu.com>
+ <56B1C504.4060905@cn.fujitsu.com>
+ <CAJZ5v0go7tZiDkh2novJKiDmYv_ge7Y-rQLC5ohRC=qSDJ+5-Q@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:35292 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932397AbcBCQSn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 3 Feb 2016 11:18:43 -0500
+Return-path: <owner-linux-mm@kvack.org>
 Content-Disposition: inline
-In-Reply-To: <20160203112112.GA18387@red-moon>
-Sender: linux-acpi-owner@vger.kernel.org
+In-Reply-To: <CAJZ5v0go7tZiDkh2novJKiDmYv_ge7Y-rQLC5ohRC=qSDJ+5-Q@mail.gmail.com>
+Sender: owner-linux-mm@kvack.org
+To: "Rafael J. Wysocki" <rafael@kernel.org>
+Cc: Zhu Guihua <zhugh.fnst@cn.fujitsu.com>, chen.tang@easystack.cn, cl@linux.com, Jiang Liu <jiang.liu@linux.intel.com>, mika.j.penttila@gmail.com, Ingo Molnar <mingo@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "H. Peter Anvin" <hpa@zytor.com>, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, Len Brown <len.brown@intel.com>, x86@kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Memory Management List <linux-mm@kvack.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Cc: Mark Rutland <mark.rutland@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Will Deacon <will.deacon@arm.com>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Mark Salter <msalter@redhat.com>, Al Stone <ahs3@redhat.com>, linux-arm-kernel@lists.infradead.org, Loc Ho <lho@apm.com>
 
-On Wed, Feb 03, 2016 at 11:21:12AM +0000, Lorenzo Pieralisi wrote:
-> On Tue, Feb 02, 2016 at 06:26:58PM +0000, Catalin Marinas wrote:
-> > On Tue, Jan 26, 2016 at 11:10:38AM +0000, Lorenzo Pieralisi wrote:
-> > > The SBBR and ACPI specifications allow ACPI based systems that do not
-> > > implement PSCI (eg systems with no EL3) to boot through the ACPI parking
-> > > protocol specification[1].
-> > > 
-> > > This patch implements the ACPI parking protocol CPU operations, and adds
-> > > code that eases parsing the parking protocol data structures to the
-> > > ARM64 SMP initializion carried out at the same time as cpus enumeration.
-> > > 
-> > > To wake-up the CPUs from the parked state, this patch implements a
-> > > wakeup IPI for ARM64 (ie arch_send_wakeup_ipi_mask()) that mirrors the
-> > > ARM one, so that a specific IPI is sent for wake-up purpose in order
-> > > to distinguish it from other IPI sources.
-> > > 
-> > > Given the current ACPI MADT parsing API, the patch implements a glue
-> > > layer that helps passing MADT GICC data structure from SMP initialization
-> > > code to the parking protocol implementation somewhat overriding the CPU
-> > > operations interfaces. This to avoid creating a completely trasparent
-> > > DT/ACPI CPU operations layer that would require creating opaque
-> > > structure handling for CPUs data (DT represents CPU through DT nodes, ACPI
-> > > through static MADT table entries), which seems overkill given that ACPI
-> > > on ARM64 mandates only two booting protocols (PSCI and parking protocol),
-> > > so there is no need for further protocol additions.
-> > > 
-> > > Based on the original work by Mark Salter <msalter@redhat.com>
-> > > 
-> > > [1] https://acpica.org/sites/acpica/files/MP%20Startup%20for%20ARM%20platforms.docx
-> > > 
-> > > Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> > > Cc: Will Deacon <will.deacon@arm.com>
-> > > Cc: Hanjun Guo <hanjun.guo@linaro.org>
-> > > Cc: Loc Ho <lho@apm.com>
-> > > Cc: Sudeep Holla <sudeep.holla@arm.com>
-> > > Cc: Catalin Marinas <catalin.marinas@arm.com>
-> > > Cc: Mark Rutland <mark.rutland@arm.com>
-> > > Cc: Mark Salter <msalter@redhat.com>
-> > > Cc: Al Stone <ahs3@redhat.com>
-> > 
-> > Applied, with a minor addition just to warn people from not using it in
-> > other configurations (#ifdef still needed otherwise the
-> > acpi_parking_protocol_valid symbol is not available; but I prefer uglier
-> > code than people starting to use this IPI in their firmware):
-> 
-> It makes sense, we could include asm/acpi.h in smp.c (which is not
-> included by linux/acpi.h if !CONFIG_ACPI) to pull in the symbol and
-> remove the ifdef if you think it is cleaner.
+Hello,
 
-I don't think it's worth.
+This also made workqueue blow up when delayed modding races cpu
+offlining.
 
-BTW, the acpi_parking_protocol_valid() definition has an __init
-annotation while the declaration does not. I removed the __init
-altogether since I get a section mismatch warning when being called from
-handle_IPI.
+ http://lkml.kernel.org/g/1454424264.11183.46.camel@gmail.com
+
+I'll work around it from the queueing path but it'd be great if the
+mapping can be made stable sooner than later.
+
+Thanks.
 
 -- 
-Catalin
+tejun
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
