@@ -1,157 +1,79 @@
-From: Dmitry Sutyagin <f3flight@gmail.com>
-Subject: Powerbutton not detected/handled on Dell Venue 11 Pro (7140)
-Date: Wed, 3 Feb 2016 19:04:23 +0300
-Message-ID: <CALfH6qdnJ4jpsUE7iMgd6xvcSMjbStdEoHNz39Yb+aBJoVRPhg@mail.gmail.com>
+From: Catalin Marinas <catalin.marinas@arm.com>
+Subject: Re: [PATCH v3] ARM64: kernel: implement ACPI parking protocol
+Date: Wed, 3 Feb 2016 16:18:36 +0000
+Message-ID: <20160203161834.GB26487@MBP.local>
+References: <1453806638-23167-1-git-send-email-lorenzo.pieralisi@arm.com>
+ <20160202182657.GC15706@e104818-lin.cambridge.arm.com>
+ <20160203112112.GA18387@red-moon>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=001a11473bca876c13052adfc5f4
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yk0-f173.google.com ([209.85.160.173]:35209 "EHLO
-	mail-yk0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753279AbcBCQEY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Feb 2016 11:04:24 -0500
-Received: by mail-yk0-f173.google.com with SMTP id r207so22445544ykd.2
-        for <linux-acpi@vger.kernel.org>; Wed, 03 Feb 2016 08:04:24 -0800 (PST)
+Received: from foss.arm.com ([217.140.101.70]:35292 "EHLO foss.arm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932397AbcBCQSn (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Wed, 3 Feb 2016 11:18:43 -0500
+Content-Disposition: inline
+In-Reply-To: <20160203112112.GA18387@red-moon>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Mark Rutland <mark.rutland@arm.com>, Sudeep Holla <sudeep.holla@arm.com>, Will Deacon <will.deacon@arm.com>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Mark Salter <msalter@redhat.com>, Al Stone <ahs3@redhat.com>, linux-arm-kernel@lists.infradead.org, Loc Ho <lho@apm.com>
 
---001a11473bca876c13052adfc5f4
-Content-Type: text/plain; charset=UTF-8
+On Wed, Feb 03, 2016 at 11:21:12AM +0000, Lorenzo Pieralisi wrote:
+> On Tue, Feb 02, 2016 at 06:26:58PM +0000, Catalin Marinas wrote:
+> > On Tue, Jan 26, 2016 at 11:10:38AM +0000, Lorenzo Pieralisi wrote:
+> > > The SBBR and ACPI specifications allow ACPI based systems that do not
+> > > implement PSCI (eg systems with no EL3) to boot through the ACPI parking
+> > > protocol specification[1].
+> > > 
+> > > This patch implements the ACPI parking protocol CPU operations, and adds
+> > > code that eases parsing the parking protocol data structures to the
+> > > ARM64 SMP initializion carried out at the same time as cpus enumeration.
+> > > 
+> > > To wake-up the CPUs from the parked state, this patch implements a
+> > > wakeup IPI for ARM64 (ie arch_send_wakeup_ipi_mask()) that mirrors the
+> > > ARM one, so that a specific IPI is sent for wake-up purpose in order
+> > > to distinguish it from other IPI sources.
+> > > 
+> > > Given the current ACPI MADT parsing API, the patch implements a glue
+> > > layer that helps passing MADT GICC data structure from SMP initialization
+> > > code to the parking protocol implementation somewhat overriding the CPU
+> > > operations interfaces. This to avoid creating a completely trasparent
+> > > DT/ACPI CPU operations layer that would require creating opaque
+> > > structure handling for CPUs data (DT represents CPU through DT nodes, ACPI
+> > > through static MADT table entries), which seems overkill given that ACPI
+> > > on ARM64 mandates only two booting protocols (PSCI and parking protocol),
+> > > so there is no need for further protocol additions.
+> > > 
+> > > Based on the original work by Mark Salter <msalter@redhat.com>
+> > > 
+> > > [1] https://acpica.org/sites/acpica/files/MP%20Startup%20for%20ARM%20platforms.docx
+> > > 
+> > > Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> > > Cc: Will Deacon <will.deacon@arm.com>
+> > > Cc: Hanjun Guo <hanjun.guo@linaro.org>
+> > > Cc: Loc Ho <lho@apm.com>
+> > > Cc: Sudeep Holla <sudeep.holla@arm.com>
+> > > Cc: Catalin Marinas <catalin.marinas@arm.com>
+> > > Cc: Mark Rutland <mark.rutland@arm.com>
+> > > Cc: Mark Salter <msalter@redhat.com>
+> > > Cc: Al Stone <ahs3@redhat.com>
+> > 
+> > Applied, with a minor addition just to warn people from not using it in
+> > other configurations (#ifdef still needed otherwise the
+> > acpi_parking_protocol_valid symbol is not available; but I prefer uglier
+> > code than people starting to use this IPI in their firmware):
+> 
+> It makes sense, we could include asm/acpi.h in smp.c (which is not
+> included by linux/acpi.h if !CONFIG_ACPI) to pull in the symbol and
+> remove the ifdef if you think it is cleaner.
 
-Dear all,
+I don't think it's worth.
 
-I am writing to ask for the attached patch to be reviewed and merged
-into linux kernel (preferably starting from 3.18 but at least for 4.4
-and up).
-The patch was created by Jan-Michael Brummer, I took it from here -
-https://bugzilla.kernel.org/show_bug.cgi?id=102281
+BTW, the acpi_parking_protocol_valid() definition has an __init
+annotation while the declaration does not. I removed the __init
+altogether since I get a section mismatch warning when being called from
+handle_IPI.
 
-Please let me know if I can help in any way.
-
---001a11473bca876c13052adfc5f4
-Content-Type: text/x-patch; charset=US-ASCII;
-	name="0001-dell-venue-11-pro-add-support-for-power-button-handl.patch"
-Content-Disposition: attachment;
-	filename="0001-dell-venue-11-pro-add-support-for-power-button-handl.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_ik70xqp60
-
-RnJvbSBlNmMzMWY3YmNjNTRmZWEzMTdiZWJjMzQ5NDVlOGNjZDAzYjFmYmU1IE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBKYW4tTWljaGFlbCBCcnVtbWVyIDxqYW4uYnJ1bW1lckB0YWJv
-cy5vcmc+CkRhdGU6IFdlZCwgNSBBdWcgMjAxNSAwMjowNzoxMSArMDIwMApTdWJqZWN0OiBbUEFU
-Q0hdIGRlbGwgdmVudWUgMTEgcHJvOiBhZGQgc3VwcG9ydCBmb3IgcG93ZXIgYnV0dG9uIGhhbmRs
-aW5nCgotLS0KIGRyaXZlcnMvcGxhdGZvcm0veDg2L0tjb25maWcgICAgICAgICAgICAgIHwgICA2
-ICsKIGRyaXZlcnMvcGxhdGZvcm0veDg2L01ha2VmaWxlICAgICAgICAgICAgIHwgICAxICsKIGRy
-aXZlcnMvcGxhdGZvcm0veDg2L2R2MTFwX3Bvd2VyX2J1dHRvbi5jIHwgMTk2ICsrKysrKysrKysr
-KysrKysrKysrKysrKysrKysrKwogMyBmaWxlcyBjaGFuZ2VkLCAyMDMgaW5zZXJ0aW9ucygrKQog
-Y3JlYXRlIG1vZGUgMTAwNjQ0IGRyaXZlcnMvcGxhdGZvcm0veDg2L2R2MTFwX3Bvd2VyX2J1dHRv
-bi5jCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9wbGF0Zm9ybS94ODYvS2NvbmZpZyBiL2RyaXZlcnMv
-cGxhdGZvcm0veDg2L0tjb25maWcKaW5kZXggNmRjMTNlNC4uMDQxYTMwMiAxMDA2NDQKLS0tIGEv
-ZHJpdmVycy9wbGF0Zm9ybS94ODYvS2NvbmZpZworKysgYi9kcml2ZXJzL3BsYXRmb3JtL3g4Ni9L
-Y29uZmlnCkBAIC05MTksNCArOTE5LDEwIEBAIGNvbmZpZyBJTlRFTF9QTUNfSVBDCiAJVGhlIFBN
-QyBpcyBhbiBBUkMgcHJvY2Vzc29yIHdoaWNoIGRlZmluZXMgSVBDIGNvbW1hbmRzIGZvciBjb21t
-dW5pY2F0aW9uCiAJd2l0aCBvdGhlciBlbnRpdGllcyBpbiB0aGUgQ1BVLgogCitjb25maWcgRFYx
-MVBfUE9XRVJfQlVUVE9OCisJdHJpc3RhdGUgIkRlbGwgVmVudWUgMTEgUHJvIFBvd2VyIEJ1dHRv
-biBEcml2ZXIiCisJZGVwZW5kcyBvbiBBQ1BJCisJLS0taGVscC0tLQorCSAgVGhpcyBkcml2ZXIg
-cHJvdmlkZXMgcG93ZXIgYnV0dG9uIHN1cHBvcnQgZm9yIHRoZSBEZWxsIFZlbnVlIDExIFBybyB0
-YWJsZXQuCisKIGVuZGlmICMgWDg2X1BMQVRGT1JNX0RFVklDRVMKZGlmZiAtLWdpdCBhL2RyaXZl
-cnMvcGxhdGZvcm0veDg2L01ha2VmaWxlIGIvZHJpdmVycy9wbGF0Zm9ybS94ODYvTWFrZWZpbGUK
-aW5kZXggZGRhOTVhOS4uYTY5ZTUxMSAxMDA2NDQKLS0tIGEvZHJpdmVycy9wbGF0Zm9ybS94ODYv
-TWFrZWZpbGUKKysrIGIvZHJpdmVycy9wbGF0Zm9ybS94ODYvTWFrZWZpbGUKQEAgLTYwLDMgKzYw
-LDQgQEAgb2JqLSQoQ09ORklHX0lOVEVMX1NNQVJUQ09OTkVDVCkJKz0gaW50ZWwtc21hcnRjb25u
-ZWN0Lm8KIG9iai0kKENPTkZJR19QVlBBTklDKSAgICAgICAgICAgKz0gcHZwYW5pYy5vCiBvYmot
-JChDT05GSUdfQUxJRU5XQVJFX1dNSSkJKz0gYWxpZW53YXJlLXdtaS5vCiBvYmotJChDT05GSUdf
-SU5URUxfUE1DX0lQQykJKz0gaW50ZWxfcG1jX2lwYy5vCitvYmotJChDT05GSUdfRFYxMVBfUE9X
-RVJfQlVUVE9OKSs9IGR2MTFwX3Bvd2VyX2J1dHRvbi5vCmRpZmYgLS1naXQgYS9kcml2ZXJzL3Bs
-YXRmb3JtL3g4Ni9kdjExcF9wb3dlcl9idXR0b24uYyBiL2RyaXZlcnMvcGxhdGZvcm0veDg2L2R2
-MTFwX3Bvd2VyX2J1dHRvbi5jCm5ldyBmaWxlIG1vZGUgMTAwNjQ0CmluZGV4IDAwMDAwMDAuLjAz
-MjUwYWUKLS0tIC9kZXYvbnVsbAorKysgYi9kcml2ZXJzL3BsYXRmb3JtL3g4Ni9kdjExcF9wb3dl
-cl9idXR0b24uYwpAQCAtMCwwICsxLDE5NiBAQAorLyoKKyAqIFBvd2VyIGJ1dHRvbiBzdXBwb3J0
-IGZvciBEZWxsIFZlbnVlIDExIFBybworICoKKyAqIChDKSBDb3B5cmlnaHQgMjAxNSBKYW4tTWlj
-aGFlbCBCcnVtbWVyCisgKgorICogVGhpcyBwcm9ncmFtIGlzIGZyZWUgc29mdHdhcmU7IHlvdSBj
-YW4gcmVkaXN0cmlidXRlIGl0IGFuZC9vcgorICogbW9kaWZ5IGl0IHVuZGVyIHRoZSB0ZXJtcyBv
-ZiB0aGUgR05VIEdlbmVyYWwgUHVibGljIExpY2Vuc2UKKyAqIGFzIHB1Ymxpc2hlZCBieSB0aGUg
-RnJlZSBTb2Z0d2FyZSBGb3VuZGF0aW9uOyB2ZXJzaW9uIDIKKyAqIG9mIHRoZSBMaWNlbnNlLgor
-ICovCisKKyNpbmNsdWRlIDxsaW51eC9rZXJuZWwuaD4KKyNpbmNsdWRlIDxsaW51eC9tb2R1bGUu
-aD4KKyNpbmNsdWRlIDxsaW51eC9pbml0Lmg+CisjaW5jbHVkZSA8bGludXgvdHlwZXMuaD4KKyNp
-bmNsdWRlIDxsaW51eC9pbnB1dC5oPgorI2luY2x1ZGUgPGxpbnV4L2FjcGkuaD4KKyNpbmNsdWRl
-IDxhY3BpL2J1dHRvbi5oPgorCisjZGVmaW5lIERWMTFQX0JVVFRPTl9ISUQJCSJJTlQzM0Q2Igor
-I2RlZmluZSBEVjExUF9CVVRUT05fQ0xBU1MJCSJidXR0b24iCisjZGVmaW5lIERWMTFQX0JVVFRP
-Tl9TVUJfQ0xBU1MJCSJlYyIKKyNkZWZpbmUgRFYxMVBfQlVUVE9OX0RFVklDRV9OQU1FCSJFQyIK
-KworI2RlZmluZSBEVjExUF9CVVRUT05fTk9USUZZX1BSRVNTX1BPV0VSCQkweGMwCisjZGVmaW5l
-IERWMTFQX0JVVFRPTl9OT1RJRllfUkVMRUFTRV9QT1dFUgkweGMxCisKK0FDUElfTU9EVUxFX05B
-TUUoImR2MTFwIHBvd2VyIGJ1dHRvbiIpOworCisjZGVmaW5lIF9DT01QT05FTlQgICAgICAgICAg
-ICAgIEFDUElfQlVUVE9OX0NPTVBPTkVOVAorCitNT0RVTEVfQVVUSE9SKCJKYW4tTWljaGFlbCBC
-cnVtbWVyIik7CitNT0RVTEVfREVTQ1JJUFRJT04oIkRlbGwgVmVudWUgMTEgUHJvIFBvd2VyIEJ1
-dHRvbiBEcml2ZXIiKTsKK01PRFVMRV9MSUNFTlNFKCJHUEwiKTsKKworLyoKKyAqIFBvd2VyIGJ1
-dHRvbiBhcmUgaGFuZGxlZCBieSBFQworICovCitzdGF0aWMgY29uc3Qgc3RydWN0IGFjcGlfZGV2
-aWNlX2lkIGR2MTFwX3Bvd2VyX2J1dHRvbl9kZXZpY2VfaWRzW10gPSB7CisJe0RWMTFQX0JVVFRP
-Tl9ISUQsICAgIDB9LAorCXsiIiwgMH0sCit9OworTU9EVUxFX0RFVklDRV9UQUJMRShhY3BpLCBk
-djExcF9wb3dlcl9idXR0b25fZGV2aWNlX2lkcyk7CisKK3N0YXRpYyBpbnQgZHYxMXBfcG93ZXJf
-YnV0dG9uX2FkZChzdHJ1Y3QgYWNwaV9kZXZpY2UgKmRldmljZSk7CitzdGF0aWMgaW50IGR2MTFw
-X3Bvd2VyX2J1dHRvbl9yZW1vdmUoc3RydWN0IGFjcGlfZGV2aWNlICpkZXZpY2UpOworc3RhdGlj
-IHZvaWQgZHYxMXBfcG93ZXJfYnV0dG9uX25vdGlmeShzdHJ1Y3QgYWNwaV9kZXZpY2UgKmRldmlj
-ZSwgdTMyIGV2ZW50KTsKKworI2lmZGVmIENPTkZJR19QTV9TTEVFUAorc3RhdGljIGludCBkdjEx
-cF9wb3dlcl9idXR0b25fc3VzcGVuZChzdHJ1Y3QgZGV2aWNlICpkZXYpOworc3RhdGljIGludCBk
-djExcF9wb3dlcl9idXR0b25fcmVzdW1lKHN0cnVjdCBkZXZpY2UgKmRldik7CisjZWxzZQorI2Rl
-ZmluZSBkdjExcF9wb3dlcl9idXR0b25fc3VzcGVuZCBOVUxMCisjZGVmaW5lIGR2MTFwX3Bvd2Vy
-X2J1dHRvbl9yZXN1bWUgTlVMTAorI2VuZGlmCisKK3N0YXRpYyBTSU1QTEVfREVWX1BNX09QUyhk
-djExcF9wb3dlcl9idXR0b25fcG0sCisJCWR2MTFwX3Bvd2VyX2J1dHRvbl9zdXNwZW5kLCBkdjEx
-cF9wb3dlcl9idXR0b25fcmVzdW1lKTsKKworc3RhdGljIHN0cnVjdCBhY3BpX2RyaXZlciBkdjEx
-cF9wb3dlcl9idXR0b25fZHJpdmVyID0geworCS5uYW1lID0gImRlbGwgdmVudWUgMTEgcHJvIGJ1
-dHRvbiIsCisJLmNsYXNzID0gRFYxMVBfQlVUVE9OX0NMQVNTLAorCS5pZHMgPSBkdjExcF9wb3dl
-cl9idXR0b25fZGV2aWNlX2lkcywKKwkub3BzID0geworCQkuYWRkID0gZHYxMXBfcG93ZXJfYnV0
-dG9uX2FkZCwKKwkJLnJlbW92ZSA9IGR2MTFwX3Bvd2VyX2J1dHRvbl9yZW1vdmUsCisJCS5ub3Rp
-ZnkgPSBkdjExcF9wb3dlcl9idXR0b25fbm90aWZ5LAorCX0sCisJLmRydi5wbSA9ICZkdjExcF9w
-b3dlcl9idXR0b25fcG0sCit9OworCitzdHJ1Y3QgZHYxMXBfcG93ZXJfYnV0dG9uIHsKKwl1bnNp
-Z25lZCBpbnQgdHlwZTsKKwlzdHJ1Y3QgaW5wdXRfZGV2ICppbnB1dDsKKwljaGFyIHBoeXNbMzJd
-OwkJCS8qIGZvciBpbnB1dCBkZXZpY2UgKi8KKwl1bnNpZ25lZCBsb25nIHB1c2hlZDsKKwlib29s
-IHN1c3BlbmRlZDsKK307CisKK3N0YXRpYyB2b2lkIGR2MTFwX3Bvd2VyX2J1dHRvbl9ub3RpZnko
-c3RydWN0IGFjcGlfZGV2aWNlICpkZXZpY2UsIHUzMiBldmVudCkKK3sKKwlzdHJ1Y3QgZHYxMXBf
-cG93ZXJfYnV0dG9uICpidXR0b24gPSBhY3BpX2RyaXZlcl9kYXRhKGRldmljZSk7CisJc3RydWN0
-IGlucHV0X2RldiAqaW5wdXQ7CisJaW50IGtleV9jb2RlID0gS0VZX1JFU0VSVkVELCBwcmVzc2Vk
-ID0gMDsKKworCXN3aXRjaCAoZXZlbnQpIHsKKwljYXNlIERWMTFQX0JVVFRPTl9OT1RJRllfUFJF
-U1NfUE9XRVI6CisJCXByZXNzZWQgPSAxOworCWNhc2UgRFYxMVBfQlVUVE9OX05PVElGWV9SRUxF
-QVNFX1BPV0VSOgorCQlrZXlfY29kZSA9IEtFWV9QT1dFUjsKKwkJYnJlYWs7CisKKwlkZWZhdWx0
-OgorCQlBQ1BJX0RFQlVHX1BSSU5UKChBQ1BJX0RCX0lORk8sCisJCQkJICAiVW5zdXBwb3J0ZWQg
-ZXZlbnQgWzB4JXhdXG4iLCBldmVudCkpOworCQlicmVhazsKKwl9CisKKwlpbnB1dCA9IGJ1dHRv
-bi0+aW5wdXQ7CisKKwlpZiAoS0VZX1JFU0VSVkVEID09IGtleV9jb2RlKQorCQlyZXR1cm47CisK
-KwlpZiAocHJlc3NlZCkKKwkJcG1fd2FrZXVwX2V2ZW50KCZkZXZpY2UtPmRldiwgMCk7CisKKwlp
-ZiAoYnV0dG9uLT5zdXNwZW5kZWQpCisJCXJldHVybjsKKworCWlucHV0X3JlcG9ydF9rZXkoaW5w
-dXQsIGtleV9jb2RlLCBwcmVzc2VkKTsKKwlpbnB1dF9zeW5jKGlucHV0KTsKKworfQorCisjaWZk
-ZWYgQ09ORklHX1BNX1NMRUVQCitzdGF0aWMgaW50IGR2MTFwX3Bvd2VyX2J1dHRvbl9zdXNwZW5k
-KHN0cnVjdCBkZXZpY2UgKmRldikKK3sKKwlzdHJ1Y3QgYWNwaV9kZXZpY2UgKmRldmljZSA9IHRv
-X2FjcGlfZGV2aWNlKGRldik7CisJc3RydWN0IGR2MTFwX3Bvd2VyX2J1dHRvbiAqYnV0dG9uID0g
-YWNwaV9kcml2ZXJfZGF0YShkZXZpY2UpOworCisJYnV0dG9uLT5zdXNwZW5kZWQgPSB0cnVlOwor
-CXJldHVybiAwOworfQorCitzdGF0aWMgaW50IGR2MTFwX3Bvd2VyX2J1dHRvbl9yZXN1bWUoc3Ry
-dWN0IGRldmljZSAqZGV2KQoreworCXN0cnVjdCBhY3BpX2RldmljZSAqZGV2aWNlID0gdG9fYWNw
-aV9kZXZpY2UoZGV2KTsKKwlzdHJ1Y3QgZHYxMXBfcG93ZXJfYnV0dG9uICpidXR0b24gPSBhY3Bp
-X2RyaXZlcl9kYXRhKGRldmljZSk7CisKKwlidXR0b24tPnN1c3BlbmRlZCA9IGZhbHNlOworCXJl
-dHVybiAwOworfQorI2VuZGlmCisKK3N0YXRpYyBpbnQgZHYxMXBfcG93ZXJfYnV0dG9uX2FkZChz
-dHJ1Y3QgYWNwaV9kZXZpY2UgKmRldmljZSkKK3sKKwlzdHJ1Y3QgZHYxMXBfcG93ZXJfYnV0dG9u
-ICpidXR0b247CisJc3RydWN0IGlucHV0X2RldiAqaW5wdXQ7CisJY29uc3QgY2hhciAqaGlkID0g
-YWNwaV9kZXZpY2VfaGlkKGRldmljZSk7CisJY2hhciAqbmFtZSwgKmNsYXNzOworCWludCBlcnJv
-cjsKKworCWJ1dHRvbiA9IGt6YWxsb2Moc2l6ZW9mKHN0cnVjdCBkdjExcF9wb3dlcl9idXR0b24p
-LCBHRlBfS0VSTkVMKTsKKwlpZiAoIWJ1dHRvbikKKwkJcmV0dXJuIC1FTk9NRU07CisKKwlkZXZp
-Y2UtPmRyaXZlcl9kYXRhID0gYnV0dG9uOworCisJYnV0dG9uLT5pbnB1dCA9IGlucHV0ID0gaW5w
-dXRfYWxsb2NhdGVfZGV2aWNlKCk7CisJaWYgKCFpbnB1dCkgeworCQllcnJvciA9IC1FTk9NRU07
-CisJCWdvdG8gZXJyX2ZyZWVfcG93ZXJfYnV0dG9uOworCX0KKworCW5hbWUgPSBhY3BpX2Rldmlj
-ZV9uYW1lKGRldmljZSk7CisJY2xhc3MgPSBhY3BpX2RldmljZV9jbGFzcyhkZXZpY2UpOworCisJ
-c3RyY3B5KG5hbWUsIERWMTFQX0JVVFRPTl9ERVZJQ0VfTkFNRSk7CisJc3ByaW50ZihjbGFzcywg
-IiVzLyVzIiwKKwkJRFYxMVBfQlVUVE9OX0NMQVNTLCBEVjExUF9CVVRUT05fU1VCX0NMQVNTKTsK
-KworCXNucHJpbnRmKGJ1dHRvbi0+cGh5cywgc2l6ZW9mKGJ1dHRvbi0+cGh5cyksICIlcy9idXR0
-b24vaW5wdXQwIiwgaGlkKTsKKworCWlucHV0LT5uYW1lID0gbmFtZTsKKwlpbnB1dC0+cGh5cyA9
-IGJ1dHRvbi0+cGh5czsKKwlpbnB1dC0+aWQuYnVzdHlwZSA9IEJVU19IT1NUOworCWlucHV0LT5k
-ZXYucGFyZW50ID0gJmRldmljZS0+ZGV2OworCisJaW5wdXRfc2V0X2NhcGFiaWxpdHkoaW5wdXQs
-IEVWX0tFWSwgS0VZX1BPV0VSKTsKKworCisJZXJyb3IgPSBpbnB1dF9yZWdpc3Rlcl9kZXZpY2Uo
-aW5wdXQpOworCWlmIChlcnJvcikKKwkJZ290byBlcnJfZnJlZV9pbnB1dDsKKworCUFDUElfREVC
-VUdfUFJJTlQoKEFDUElfREJfSU5GTywKKwkJCSIlcyBbJXNdXG4iLCBuYW1lLCBhY3BpX2Rldmlj
-ZV9iaWQoZGV2aWNlKSkpOworCXJldHVybiAwOworCisgZXJyX2ZyZWVfaW5wdXQ6CisJaW5wdXRf
-ZnJlZV9kZXZpY2UoaW5wdXQpOworIGVycl9mcmVlX3Bvd2VyX2J1dHRvbjoKKwlrZnJlZShidXR0
-b24pOworCXJldHVybiBlcnJvcjsKK30KKworc3RhdGljIGludCBkdjExcF9wb3dlcl9idXR0b25f
-cmVtb3ZlKHN0cnVjdCBhY3BpX2RldmljZSAqZGV2aWNlKQoreworCXN0cnVjdCBkdjExcF9wb3dl
-cl9idXR0b24gKmJ1dHRvbiA9IGFjcGlfZHJpdmVyX2RhdGEoZGV2aWNlKTsKKworCWlucHV0X3Vu
-cmVnaXN0ZXJfZGV2aWNlKGJ1dHRvbi0+aW5wdXQpOworCWtmcmVlKGJ1dHRvbik7CisJcmV0dXJu
-IDA7Cit9CisKK21vZHVsZV9hY3BpX2RyaXZlcihkdjExcF9wb3dlcl9idXR0b25fZHJpdmVyKTsK
-LS0gCjIuNS4wCgo=
---001a11473bca876c13052adfc5f4--
+-- 
+Catalin
