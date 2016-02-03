@@ -1,93 +1,39 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v3] ARM64: kernel: implement ACPI parking protocol
-Date: Wed, 3 Feb 2016 11:21:12 +0000
-Message-ID: <20160203112112.GA18387@red-moon>
-References: <1453806638-23167-1-git-send-email-lorenzo.pieralisi@arm.com>
- <20160202182657.GC15706@e104818-lin.cambridge.arm.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: Re: [PATCH v5 RESEND 0/5] Make cpuid <-> nodeid mapping persistent
+Date: Wed, 3 Feb 2016 13:02:38 +0100
+Message-ID: <CAJZ5v0go7tZiDkh2novJKiDmYv_ge7Y-rQLC5ohRC=qSDJ+5-Q@mail.gmail.com>
+References: <1453702100-2597-1-git-send-email-tangchen@cn.fujitsu.com>
+	<56A5BCDB.4090208@cn.fujitsu.com>
+	<56B1C504.4060905@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from foss.arm.com ([217.140.101.70]:33470 "EHLO foss.arm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751572AbcBCLTU (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Wed, 3 Feb 2016 06:19:20 -0500
-Content-Disposition: inline
-In-Reply-To: <20160202182657.GC15706@e104818-lin.cambridge.arm.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Return-path: <owner-linux-mm@kvack.org>
+In-Reply-To: <56B1C504.4060905@cn.fujitsu.com>
+Sender: owner-linux-mm@kvack.org
+To: Zhu Guihua <zhugh.fnst@cn.fujitsu.com>
+Cc: chen.tang@easystack.cn, cl@linux.com, Tejun Heo <tj@kernel.org>, Jiang Liu <jiang.liu@linux.intel.com>, mika.j.penttila@gmail.com, Ingo Molnar <mingo@redhat.com>, Andrew Morton <akpm@linux-foundation.org>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, "H. Peter Anvin" <hpa@zytor.com>, yasu.isimatu@gmail.com, isimatu.yasuaki@jp.fujitsu.com, kamezawa.hiroyu@jp.fujitsu.com, izumi.taku@jp.fujitsu.com, gongzhaogang@inspur.com, Len Brown <len.brown@intel.com>, x86@kernel.org, ACPI Devel Maling List <linux-acpi@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>, Linux Memory Management List <linux-mm@kvack.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Catalin Marinas <catalin.marinas@arm.com>
-Cc: linux-arm-kernel@lists.infradead.org, Mark Rutland <mark.rutland@arm.com>, Mark Salter <msalter@redhat.com>, Will Deacon <will.deacon@arm.com>, linux-acpi@vger.kernel.org, Hanjun Guo <hanjun.guo@linaro.org>, Sudeep Holla <sudeep.holla@arm.com>, Al Stone <ahs3@redhat.com>, Loc Ho <lho@apm.com>
 
-On Tue, Feb 02, 2016 at 06:26:58PM +0000, Catalin Marinas wrote:
-> On Tue, Jan 26, 2016 at 11:10:38AM +0000, Lorenzo Pieralisi wrote:
-> > The SBBR and ACPI specifications allow ACPI based systems that do not
-> > implement PSCI (eg systems with no EL3) to boot through the ACPI parking
-> > protocol specification[1].
-> > 
-> > This patch implements the ACPI parking protocol CPU operations, and adds
-> > code that eases parsing the parking protocol data structures to the
-> > ARM64 SMP initializion carried out at the same time as cpus enumeration.
-> > 
-> > To wake-up the CPUs from the parked state, this patch implements a
-> > wakeup IPI for ARM64 (ie arch_send_wakeup_ipi_mask()) that mirrors the
-> > ARM one, so that a specific IPI is sent for wake-up purpose in order
-> > to distinguish it from other IPI sources.
-> > 
-> > Given the current ACPI MADT parsing API, the patch implements a glue
-> > layer that helps passing MADT GICC data structure from SMP initialization
-> > code to the parking protocol implementation somewhat overriding the CPU
-> > operations interfaces. This to avoid creating a completely trasparent
-> > DT/ACPI CPU operations layer that would require creating opaque
-> > structure handling for CPUs data (DT represents CPU through DT nodes, ACPI
-> > through static MADT table entries), which seems overkill given that ACPI
-> > on ARM64 mandates only two booting protocols (PSCI and parking protocol),
-> > so there is no need for further protocol additions.
-> > 
-> > Based on the original work by Mark Salter <msalter@redhat.com>
-> > 
-> > [1] https://acpica.org/sites/acpica/files/MP%20Startup%20for%20ARM%20platforms.docx
-> > 
-> > Signed-off-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-> > Cc: Will Deacon <will.deacon@arm.com>
-> > Cc: Hanjun Guo <hanjun.guo@linaro.org>
-> > Cc: Loc Ho <lho@apm.com>
-> > Cc: Sudeep Holla <sudeep.holla@arm.com>
-> > Cc: Catalin Marinas <catalin.marinas@arm.com>
-> > Cc: Mark Rutland <mark.rutland@arm.com>
-> > Cc: Mark Salter <msalter@redhat.com>
-> > Cc: Al Stone <ahs3@redhat.com>
-> 
-> Applied, with a minor addition just to warn people from not using it in
-> other configurations (#ifdef still needed otherwise the
-> acpi_parking_protocol_valid symbol is not available; but I prefer uglier
-> code than people starting to use this IPI in their firmware):
+Hi,
 
-It makes sense, we could include asm/acpi.h in smp.c (which is not
-included by linux/acpi.h if !CONFIG_ACPI) to pull in the symbol and
-remove the ifdef if you think it is cleaner.
+On Wed, Feb 3, 2016 at 10:14 AM, Zhu Guihua <zhugh.fnst@cn.fujitsu.com> wrote:
+>
+> On 01/25/2016 02:12 PM, Tang Chen wrote:
+>>
+>> Hi Rafael, Len,
+>>
+>> Would you please help to review the ACPI part of this patch-set ?
+>
+>
+> Can anyone help to review this?
 
-Thanks !
-Lorenzo
+I'm planning to look into this more thoroughly in the next few days.
 
-> 
-> --- a/arch/arm64/kernel/smp.c
-> +++ b/arch/arm64/kernel/smp.c
-> @@ -767,6 +767,12 @@ void handle_IPI(int ipinr, struct pt_regs *regs)
->                 break;
->  #endif
-> +
-> +#ifdef CONFIG_ARM64_ACPI_PARKING_PROTOCOL
->         case IPI_WAKEUP:
-> +               WARN_ONCE(!acpi_parking_protocol_valid(cpu),
-> +                         "CPU%u: Wake-up IPI outside the ACPI parking protocol\n",
-> +                         cpu);
->                 break;
-> +#endif
->  
->         default:
-> 
-> Thanks.
-> 
-> -- 
-> Catalin
-> 
+Thanks,
+Rafael
+
+--
+To unsubscribe, send a message with 'unsubscribe linux-mm' in
+the body to majordomo@kvack.org.  For more info on Linux MM,
+see: http://www.linux-mm.org/ .
+Don't email: <a href=mailto:"dont@kvack.org"> email@kvack.org </a>
