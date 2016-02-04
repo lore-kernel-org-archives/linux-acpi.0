@@ -1,104 +1,126 @@
-From: Dave Young <dyoung@redhat.com>
-Subject: Re: [PATCH] x86/efi: skip bgrt init for kexec reboot
-Date: Thu, 4 Feb 2016 19:09:03 +0800
-Message-ID: <20160204110903.GA2977@dhcp-128-65.nay.redhat.com>
-References: <20160127112044.GA2961@dhcp-128-65.nay.redhat.com>
- <20160203214200.GA15110@dhcp-128-65.nay.redhat.com>
- <20160203225333.GA31246@codeblueprint.co.uk>
- <20160204100329.GA2586@codeblueprint.co.uk>
+From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+Subject: [RFC PATCH 3/4] PCI: hisi: Make the HiSilicon PCIe host controller ECAM compliant
+Date: Thu, 4 Feb 2016 19:37:39 +0800
+Message-ID: <1454585860-60709-4-git-send-email-gabriele.paoloni@huawei.com>
+References: <1454585860-60709-1-git-send-email-gabriele.paoloni@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Return-path: <linux-kernel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20160204100329.GA2586@codeblueprint.co.uk>
+In-Reply-To: <1454585860-60709-1-git-send-email-gabriele.paoloni@huawei.com>
 Sender: linux-kernel-owner@vger.kernel.org
-To: Matt Fleming <matt@codeblueprint.co.uk>
-Cc: linux-efi@vger.kernel.org, kexec@lists.infradead.org, linux-kernel@vger.kernel.org, Borislav Petkov <bp@alien8.de>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Josh Triplett <josh@joshtriplett.org>, Matthew Garrett <mjg59@srcf.ucam.org>
+To: guohanjun@huawei.com, wangzhou1@hisilicon.com, liudongdong3@huawei.com, linuxarm@huawei.com, qiujiang@huawei.com, bhelgaas@google.com, arnd@arndb.de, Lorenzo.Pieralisi@arm.com, tn@semihalf.com
+Cc: gabriele.paoloni@huawei.com, zhangjukuo@huawei.com, xuwei5@hisilicon.com, liguozhu@hisilicon.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, jcm@redhat.com
 List-Id: linux-acpi@vger.kernel.org
 
-Hi, Matt
+From: gabriele paoloni <gabriele.paoloni@huawei.com>
 
-Thanks for the feedback.
+This patch modifies the current Hip05/Hip06 PCIe host controller
+driver to make it ECAM compliant. This is needed in preparation
+for the ACPI based driver to allow both DT and ACPI drivers to
+use the same BIOS (that configure the Designware iATUs).
 
-On 02/04/16 at 10:03am, Matt Fleming wrote:
-> On Wed, 03 Feb, at 10:53:33PM, Matt Fleming wrote:
-> > On Thu, 04 Feb, at 05:42:00AM, Dave Young wrote:
-> > > 
-> > > On 01/27/16 at 07:20pm, Dave Young wrote:
-> > > > For kexec reboot the bgrt image address could contains random data because
-> > > > we have freed boot service areas in 1st kernel boot phase. One possible
-> > > > result is kmalloc fail in efi_bgrt_init due to large random image size.
-> > > > 
-> > > > So change efi_late_init to avoid efi_bgrt_init in case kexec boot.
-> > > > 
-> > > > Signed-off-by: Dave Young <dyoung@redhat.com>
-> > > > ---
-> > > >  arch/x86/platform/efi/efi.c |    3 ++-
-> > > >  1 file changed, 2 insertions(+), 1 deletion(-)
-> > > > 
-> > > > --- linux-x86.orig/arch/x86/platform/efi/efi.c
-> > > > +++ linux-x86/arch/x86/platform/efi/efi.c
-> > > > @@ -531,7 +531,8 @@ void __init efi_init(void)
-> > > >  
-> > > >  void __init efi_late_init(void)
-> > > >  {
-> > > > -	efi_bgrt_init();
-> > > > +	if (!efi_setup)
-> > > > +		efi_bgrt_init();
-> > > >  }
-> > > >  
-> > > >  void __init efi_set_executable(efi_memory_desc_t *md, bool executable)
-> > > 
-> > > Matt, opinions about this patch?
-> > 
-> > Yeah, I'm not happy seeing efi_setup escaping into even more places,
-> > nor am I happy to see more code paths introduced where kexec boot is
-> > special-cased.
-> > 
-> > I'll reply with more details tomorrow.
-> 
-> OK, let me expand upon that rather terse feedback. 
-> 
-> This patch highlights a general problem I see in the EFI code which is
-> that we're continuously increasing the number of execution paths
-> through the boot code. This makes it increasingly difficult to modify
-> the code without introducing bugs and regressions.
-> 
-> I was bitten by this recently with the EFI separate page table rework,
-> which led to commit 753b11ef8e92 ("x86/efi: Setup separate EFI page
-> tables in kexec paths"), i.e I forgot to update the special kexec
-> virtual mapping function.
-> 
-> We should be reducing the use of 'efi_setup', not adding more uses.
+Signed-off-by: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+Signed-off-by: Dongdong Liu <liudongdong3@huawei.com>
+---
+ .../devicetree/bindings/pci/hisilicon-pcie.txt     |  4 ++--
+ drivers/pci/host/pcie-hisi-common.c                | 15 +++++++++++++++
+ drivers/pci/host/pcie-hisi.c                       | 22 ++++++++++++++++++++++
+ 3 files changed, 39 insertions(+), 2 deletions(-)
 
-I agree with you the less special case the better.
-
-> 
-> As an aside, I've always had a problem with using 'efi_setup' to
-> indicate when we've been booted via kexec. If a developer with no
-> prior knowledge reads those if conditions they are going to have zero
-> clue what the code means. 
-
-Consider the original code path, maybe change it to efi_kexec_setup will
-be better to remind people? Or something else like a wraper function with
-similar name..
-
-> 
-> Now, specifically for the issue you've raised, would it not make more
-> sense for kexec to build its own ACPI tables and omit those entries
-> that are not valid, e.g. BGRT? I can imagine that the BGRT driver
-> won't be the only driver with this problem. Let's re-use the existing
-> error paths that handle missing/invalid tables.
-> 
-> Fundamentally I don't think there should be a discernible difference
-> between "Booted via kexec" and "That ACPI table does not exist".
-
-For building ACPI tables we need do it in kernel instead of kexec-tools
-because of kexec_file_load for secure boot case so we still need a conditional
-code path for kexec..
-
-Also I'm not sure how to rebuild ACPI tables, it is easy or hard. Let me
-checking the detail and think more about it.
-
-Thanks a lot
-Dave
+diff --git a/Documentation/devicetree/bindings/pci/hisilicon-pcie.txt b/Documentation/devicetree/bindings/pci/hisilicon-pcie.txt
+index b721bea..5c1bad0 100644
+--- a/Documentation/devicetree/bindings/pci/hisilicon-pcie.txt
++++ b/Documentation/devicetree/bindings/pci/hisilicon-pcie.txt
+@@ -23,8 +23,8 @@ Optional properties:
+ Hip05 Example (note that Hip06 is the same except compatible):
+ 	pcie@0xb0080000 {
+ 		compatible = "hisilicon,hip05-pcie", "snps,dw-pcie";
+-		reg = <0 0xb0080000 0 0x10000>, <0x220 0x00000000 0 0x2000>;
+-		reg-names = "rc_dbi", "config";
++		reg = <0 0xb0080000 0 0x10000>, <0x220 0x00100000 0 0x0f00000>;
++		reg-names = "rc_dbi", "ecam-cfg";
+ 		bus-range = <0  15>;
+ 		msi-parent = <&its_pcie>;
+ 		#address-cells = <3>;
+diff --git a/drivers/pci/host/pcie-hisi-common.c b/drivers/pci/host/pcie-hisi-common.c
+index ff93293..cbfb6c4 100644
+--- a/drivers/pci/host/pcie-hisi-common.c
++++ b/drivers/pci/host/pcie-hisi-common.c
+@@ -23,6 +23,19 @@
+ #include "pcie-hisi.h"
+ 
+ /* HipXX PCIe host only supports 32-bit config access */
++static int hisi_rd_other_conf(struct pcie_port *pp, struct pci_bus *bus,
++		unsigned int devfn, int where, int size, u32 *value)
++{
++	return pci_generic_config_read(bus, devfn, where, size, value);
++}
++
++static int hisi_wr_other_conf(struct pcie_port *pp, struct pci_bus *bus,
++		unsigned int devfn, int where, int size, u32 value)
++{
++	return pci_generic_config_write(bus, devfn, where, size, value);
++}
++
++/* HipXX PCIe host only supports 32-bit config access */
+ static int hisi_pcie_cfg_read(struct pcie_port *pp, int where, int size,
+ 			      u32 *val)
+ {
+@@ -82,6 +95,8 @@ static int hisi_pcie_link_up(struct pcie_port *pp)
+ }
+ 
+ struct pcie_host_ops hisi_pcie_host_ops = {
++	.rd_other_conf = hisi_rd_other_conf,
++	.wr_other_conf = hisi_wr_other_conf,
+ 	.rd_own_conf = hisi_pcie_cfg_read,
+ 	.wr_own_conf = hisi_pcie_cfg_write,
+ 	.link_up = hisi_pcie_link_up,
+diff --git a/drivers/pci/host/pcie-hisi.c b/drivers/pci/host/pcie-hisi.c
+index 552ebfc..1e45869 100644
+--- a/drivers/pci/host/pcie-hisi.c
++++ b/drivers/pci/host/pcie-hisi.c
+@@ -29,6 +29,18 @@
+ #define PCIE_HIP06_CTRL_OFF					0x1000
+ #define PCIE_SYS_STATE4						0x31c
+ 
++static void __iomem *hisi_pci_map_cfg_bus_cam(struct pci_bus *bus,
++					     unsigned int devfn,
++					     int where)
++{
++	void __iomem *addr;
++	struct pcie_port *pp = bus->sysdata;
++
++	addr = pp->va_cfg1_base + where;
++
++	return addr;
++}
++
+ static int hisi_add_pcie_port(struct pcie_port *pp,
+ 				     struct platform_device *pdev)
+ {
+@@ -48,6 +60,8 @@ static int hisi_add_pcie_port(struct pcie_port *pp,
+ 
+ 	pp->ops = &hisi_pcie_host_ops;
+ 
++	dw_pcie_ops.map_bus = hisi_pci_map_cfg_bus_cam;
++
+ 	ret = dw_pcie_host_init(pp);
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "failed to initialize host\n");
+@@ -93,6 +107,14 @@ static int hisi_pcie_probe(struct platform_device *pdev)
+ 
+ 	hisi_pcie->pp.dbi_base = hisi_pcie->reg_base;
+ 
++	reg = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ecam-cfg");
++	hisi_pcie->pp.va_cfg0_base = devm_ioremap_resource(&pdev->dev, reg);
++	if (IS_ERR(hisi_pcie->pp.va_cfg0_base)) {
++		dev_err(pp->dev, "cannot get ecam-cfg\n");
++		return PTR_ERR(hisi_pcie->pp.va_cfg0_base);
++	}
++	hisi_pcie->pp.va_cfg1_base = hisi_pcie->pp.va_cfg0_base;
++
+ 	ret = hisi_add_pcie_port(pp, pdev);
+ 	if (ret)
+ 		return ret;
+-- 
+1.9.1
