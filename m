@@ -1,7 +1,7 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V4 16/23] x86, acpi, pci: Use equivalent function from mcfg.c driver.
-Date: Thu,  4 Feb 2016 18:28:54 +0100
-Message-ID: <1454606941-9523-17-git-send-email-tn@semihalf.com>
+Subject: [PATCH V4 11/23] pci, acpi: Move ACPI host bridge device companion assignment to core code.
+Date: Thu,  4 Feb 2016 18:28:49 +0100
+Message-ID: <1454606941-9523-12-git-send-email-tn@semihalf.com>
 References: <1454606941-9523-1-git-send-email-tn@semihalf.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1454606941-9523-1-git-send-email-tn@semihalf.com>
@@ -10,9 +10,19 @@ To: bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm
 Cc: robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com, Tomasz Nowicki <tn@semihalf.com>
 List-Id: linux-acpi@vger.kernel.org
 
-Since mcfg.c driver provides the same function lets use it and remove
-code duplication.
+Currently we have two platforms (x86 & ia64) capable of PCI ACPI host
+bridge initialization. They both use sysdata to pass down parent
+device reference and both rely on NULL parent in pci_create_root_bus()
+to validate sysdata content.
 
+It looks hacky and prevents us from getting some firmware specific
+info for PCI host controller e.g. PCI bus domain number.
+However, we overcome that blocker by passing down parent
+device via pci_create_root_bus parameter (as the ACPI device type)
+and using ACPI_COMPANION_SET in core code for ACPI boot method.
+ACPI_COMPANION_SET is safe to run for all cases DT, ACPI and DT&ACPI.
+
+Suggested-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
 Tested-by: Duc Dang <dhdang@apm.com>
 Tested-by: Dongdong Liu <liudongdong3@huawei.com>
@@ -20,51 +30,38 @@ Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
 Tested-by: Graeme Gregory <graeme.gregory@linaro.org>
 Tested-by: Sinan Kaya <okaya@codeaurora.org>
 ---
- arch/x86/pci/acpi.c | 20 +-------------------
- 1 file changed, 1 insertion(+), 19 deletions(-)
+ drivers/acpi/pci_root.c | 5 ++++-
+ drivers/pci/probe.c     | 2 ++
+ 2 files changed, 6 insertions(+), 1 deletion(-)
 
-diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
-index d5086d1..b4e72b5 100644
---- a/arch/x86/pci/acpi.c
-+++ b/arch/x86/pci/acpi.c
-@@ -201,29 +201,11 @@ static int setup_mcfg_map(struct acpi_pci_root_info *ci)
+diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+index ae3fe4e..a65c8c2 100644
+--- a/drivers/acpi/pci_root.c
++++ b/drivers/acpi/pci_root.c
+@@ -846,7 +846,10 @@ struct pci_bus *acpi_pci_root_create(struct acpi_pci_root *root,
  
- 	return 0;
- }
--
--static void teardown_mcfg_map(struct acpi_pci_root_info *ci)
--{
--	struct acpi_pci_root *root = ci->root;
--	struct pci_mmcfg_region *cfg;
--
--	cfg = pci_mmconfig_lookup(root->segment, root->secondary.start);
--	if (!cfg)
--		return;
--
--	if (cfg->hot_added)
--		pci_mmconfig_delete(root->segment, root->secondary.start,
--				    root->secondary.end);
--}
- #else
- static int setup_mcfg_map(struct acpi_pci_root_info *ci)
- {
- 	return 0;
- }
--
--static void teardown_mcfg_map(struct acpi_pci_root_info *ci)
--{
--}
- #endif
- 
- static int pci_acpi_root_get_node(struct acpi_pci_root *root)
-@@ -251,7 +233,7 @@ static int pci_acpi_root_init_info(struct acpi_pci_root_info *ci)
- 
- static void pci_acpi_root_release_info(struct acpi_pci_root_info *ci)
- {
--	teardown_mcfg_map(ci);
-+	pci_mmcfg_teardown_map(ci);
- 	kfree(container_of(ci, struct pci_root_info, common));
- }
- 
+ 	pci_acpi_root_add_resources(info);
+ 	pci_add_resource(&info->resources, &root->secondary);
+-	bus = pci_create_root_bus(NULL, busnum, ops->pci_ops,
++
++	/* Root bridge device needs to be sure of parent ACPI type */
++	ACPI_COMPANION_SET(&device->dev, device);
++	bus = pci_create_root_bus(&device->dev, busnum, ops->pci_ops,
+ 				  sysdata, &info->resources);
+ 	if (!bus)
+ 		goto out_release_info;
+diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+index 6d7ab9b..81dd3a2 100644
+--- a/drivers/pci/probe.c
++++ b/drivers/pci/probe.c
+@@ -2100,6 +2100,8 @@ struct pci_bus *pci_create_root_bus(struct device *parent, int bus,
+ 	bridge->dev.parent = parent;
+ 	bridge->dev.release = pci_release_host_bridge_dev;
+ 	dev_set_name(&bridge->dev, "pci%04x:%02x", pci_domain_nr(b), bus);
++	ACPI_COMPANION_SET(&bridge->dev,
++			   parent ? to_acpi_device_node(parent->fwnode) : NULL);
+ 	error = pcibios_root_bridge_prepare(bridge);
+ 	if (error) {
+ 		kfree(bridge);
 -- 
 1.9.1
