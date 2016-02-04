@@ -1,64 +1,81 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V4 22/23] arm64, pci, acpi: Assign legacy IRQs once device is enable.
-Date: Thu,  4 Feb 2016 18:29:00 +0100
-Message-ID: <1454606941-9523-23-git-send-email-tn@semihalf.com>
+Subject: [PATCH V4 03/23] pci, acpi,
+ mcfg: Provide generic implementation of MCFG code initialization.
+Date: Thu,  4 Feb 2016 18:28:41 +0100
+Message-ID: <1454606941-9523-4-git-send-email-tn@semihalf.com>
 References: <1454606941-9523-1-git-send-email-tn@semihalf.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1454606941-9523-1-git-send-email-tn@semihalf.com>
-Sender: linux-kernel-owner@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, Stefano.Stabellini@eu.citrix.com
-Cc: robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com, Tomasz Nowicki <tn@semihalf.com>
+Cc: jchandra@broadcom.com, jcm@redhat.com, linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, wangyijing@huawei.com, Tomasz Nowicki <tn@semihalf.com>, mw@semihalf.com, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
 
-This is the last step before enabling generic ACPI PCI host controller
-for ARM64. We need to take care of legacy IRQ mapping for non-MSI(X)
-PCI devices. pcibios_enable_device() boot order is not sensitive to
-ACPI device enumeration, so it is the best place to assign device's IRQs.
+First function acpi_mcfg_check_entry() does not apply any quirks by default.
 
-NOTE: *This is going to be temporary solution*. There is ongoing work
-which aims for cleaning legacy IRQ allocation, see [1].
-We can consider this patch as the necessary evil which will be removed
-once [1] series hits mailnline in the near future.
-
-1. http://comments.gmane.org/gmane.linux.kernel.pci/46461
+Last two functions are required by ACPI subsystem to make PCI config
+space accessible. Generic code assume to do nothing for early init call but
+late init call does as follow:
+- parse MCFG table and add regions to ECAM resource list
+- map regions
+- add regions to iomem_resource
 
 Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Tested-by: Jeremy Linton <jeremy.linton@arm.com>
+Tested-by: Duc Dang <dhdang@apm.com>
+Tested-by: Dongdong Liu <liudongdong3@huawei.com>
+Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
+Tested-by: Graeme Gregory <graeme.gregory@linaro.org>
+Tested-by: Sinan Kaya <okaya@codeaurora.org>
 ---
- arch/arm64/kernel/pci.c | 14 ++++++++++++--
- 1 file changed, 12 insertions(+), 2 deletions(-)
+ drivers/acpi/mcfg.c | 26 ++++++++++++++++++++++++++
+ 1 file changed, 26 insertions(+)
 
-diff --git a/arch/arm64/kernel/pci.c b/arch/arm64/kernel/pci.c
-index 023b983..d1a701f 100644
---- a/arch/arm64/kernel/pci.c
-+++ b/arch/arm64/kernel/pci.c
-@@ -39,16 +39,26 @@ resource_size_t pcibios_align_resource(void *data, const struct resource *res,
+diff --git a/drivers/acpi/mcfg.c b/drivers/acpi/mcfg.c
+index 5ecef20..fad9917 100644
+--- a/drivers/acpi/mcfg.c
++++ b/drivers/acpi/mcfg.c
+@@ -57,3 +57,29 @@ int __init acpi_parse_mcfg(struct acpi_table_header *header)
+ 
+ 	return 0;
  }
- 
- /**
-- * pcibios_enable_device - Enable I/O and memory.
-+ * pcibios_enable_device - Enable I/O, memory and legacy IRQs for ACPI.
-  * @dev: PCI device to be enabled
-  * @mask: bitmask of BARs to enable
-  */
- int pcibios_enable_device(struct pci_dev *dev, int mask)
- {
-+	int ret;
 +
- 	if (pci_has_flag(PCI_PROBE_ONLY))
- 		return 0;
- 
--	return pci_enable_resources(dev, mask);
-+	ret = pci_enable_resources(dev, mask);
-+	if (ret < 0)
-+		return ret;
-+
-+#ifdef CONFIG_ACPI
-+	if (!pci_dev_msi_enabled(dev))
-+		return acpi_pci_irq_enable(dev);
-+#endif
++int __init __weak acpi_mcfg_check_entry(struct acpi_table_mcfg *mcfg,
++					struct acpi_mcfg_allocation *cfg)
++{
 +	return 0;
- }
- 
- /*
++}
++
++void __init __weak pci_mmcfg_early_init(void)
++{
++
++}
++
++void __init __weak pci_mmcfg_late_init(void)
++{
++	struct pci_mmcfg_region *cfg;
++
++	acpi_table_parse(ACPI_SIG_MCFG, acpi_parse_mcfg);
++
++	if (list_empty(&pci_mmcfg_list))
++		return;
++	if (!pci_mmcfg_arch_init())
++		free_all_mmcfg();
++
++	list_for_each_entry(cfg, &pci_mmcfg_list, list)
++		insert_resource(&iomem_resource, &cfg->res);
++}
 -- 
 1.9.1
