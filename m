@@ -1,76 +1,148 @@
-From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Subject: RE: [RFC PATCH 0/4] Add ACPI support for HiSilicon PCIe Host
- Controllers
-Date: Thu, 4 Feb 2016 17:06:40 +0000
-Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E1EC9F055@lhreml503-mbs>
-References: <1454585860-60709-1-git-send-email-gabriele.paoloni@huawei.com>
- <76564455.dlc1WHiVY2@wuerfel>
- <EE11001F9E5DDD47B7634E2F8A612F2E1EC9EF4B@lhreml503-mbs>
- <1930535.mkCdtpUWq7@wuerfel>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+From: Tomasz Nowicki <tn@semihalf.com>
+Subject: [PATCH V4 00/23] MMCONFIG refactoring and support for ARM64 PCI hostbridge init based on ACPI
+Date: Thu,  4 Feb 2016 18:28:38 +0100
+Message-ID: <1454606941-9523-1-git-send-email-tn@semihalf.com>
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from lhrrgout.huawei.com ([194.213.3.17]:9440 "EHLO
-	lhrrgout.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752683AbcBDRGz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Feb 2016 12:06:55 -0500
-In-Reply-To: <1930535.mkCdtpUWq7@wuerfel>
-Content-Language: en-US
+Received: from mail-wm0-f52.google.com ([74.125.82.52]:35628 "EHLO
+	mail-wm0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934559AbcBDR2w (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Feb 2016 12:28:52 -0500
+Received: by mail-wm0-f52.google.com with SMTP id r129so222637538wmr.0
+        for <linux-acpi@vger.kernel.org>; Thu, 04 Feb 2016 09:28:52 -0800 (PST)
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, "Wangzhou (B)" <wangzhou1@hisilicon.com>, "liudongdong (C)" <liudongdong3@huawei.com>, Linuxarm <linuxarm@huawei.com>, qiujiang <qiujiang@huawei.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "Lorenzo.Pieralisi@arm.com" <Lorenzo.Pieralisi@arm.com>, "tn@semihalf.com" <tn@semihalf.com>, zhangjukuo <zhangjukuo@huawei.com>, "xuwei (O)" <xuwei5@hisilicon.com>, "Liguozhu (Kenneth)" <liguozhu@hisilicon.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "jcm@redhat.com" <jcm@redhat.com>
+To: bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, Stefano.Stabellini@eu.citrix.com
+Cc: robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com, Tomasz Nowicki <tn@semihalf.com>
 
-> -----Original Message-----
-> From: Arnd Bergmann [mailto:arnd@arndb.de]
-> Sent: 04 February 2016 17:02
-> To: Gabriele Paoloni
-> Cc: Guohanjun (Hanjun Guo); Wangzhou (B); liudongdong (C); Linuxarm;
-> qiujiang; bhelgaas@google.com; Lorenzo.Pieralisi@arm.com;
-> tn@semihalf.com; zhangjukuo; xuwei (O); Liguozhu (Kenneth); linux-
-> pci@vger.kernel.org; linux-arm-kernel@lists.infradead.org; linux-
-> acpi@vger.kernel.org; linux-kernel@vger.kernel.org; jcm@redhat.com
-> Subject: Re: [RFC PATCH 0/4] Add ACPI support for HiSilicon PCIe Host
-> Controllers
-> 
-> On Thursday 04 February 2016 16:44:12 Gabriele Paoloni wrote:
-> > Effectively the ACPI version of the HiSilicon driver does not rely on
-> > Designware as much as the DT version (that calls
-> dw_pcie_host_init());
-> > however in order to do what you suggest I'd need to copy and paste
-> and
-> > modify dw_pcie_rd_conf and dw_pcie_wr_conf.
-> > Also I'd need to declare duplicate version of the functions in
-> > pcie-hisi-common.c (if I do not want to split the object across
-> > different paths "drivers/pci/host" and "drivers/acpi/")
-> >
-> > Now I can do it but I thought it was more correct to pass
-> &dw_pcie_ops
-> > as input pointer in DECLARE_ACPI_MCFG_FIXUP(); this is also because
-> maybe in
-> > future other Designware based controllers may need to support ACPI
-> and it
-> > would be easier for them to reuse their DT based driver functions
-> >
-> > Honestly I am a bit confused...
-> >
-> 
-> I don't think you can use the dw_pcie_ops as-is anyway, as they in
-> turn rely on the device driver structure, and you also don't need
-> those as they seem to be written for the generic case of a 32-bit
-> architecture that does not have enough space to map the entire
-> config space into MMIO. Just set up all those mapping registers from
-> the firmware and pass the config space base address as you'd normally
-> do on ACPI.
+>From the functionality point of view this series might be split into the
+following logic parts:
+1. Make MMCONFIG code arch-agnostic which allows all architectures to collect
+   PCI config regions and used when necessary.
+2. Move non-arch specific bits to the core code.
+3. Use MMCONFIG code and implement generic ACPI based PCI host controller driver.
+4. Enable above driver on ARM64
 
-Ok thanks, I'll wait a bit to see if there is any comment on this
-from other people, if not I'll rework the ACPI driver as you suggest
-and remove any dependency on Designware.
+Patches has been built on top of 4.5-rc1 and can be found here:
+git@github.com:semihalf-nowicki-tomasz/linux.git (pci-acpi-v4)
 
-Cheers
+NOTE, this patch set depends on Lorenzo's fixes:
+https://patchwork.ozlabs.org/patch/576450/
+which can be found in pci-acpi-v4 branch.
 
-Gab
+This has been tested on Cavium ThunderX server, JunoR2, HP RX2660 IA64, x86,
+Hip05, X-Gene and QEMU-aarch64. Any help in reviewing and testing is very appreciated.
 
-> 
-> 	Arnd
+v3 -> v4
+- dropped Jiang's fix http://lkml.iu.edu/hypermail/linux/kernel/1601.1/04318.html
+- added Lorenzo's fix patch 19/24
+- ACPI PCI bus domain number assigning cleanup
+- changed resource management, we now claim and reassign resources
+- improvements for applying quirks
+- dropped Matthew's http://www.spinics.net/lists/linux-pci/msg45950.html dependency
+- rebased to 4.5-rc1
+
+v2 -> v3
+- fix legacy IRQ assigning and IO ports registration
+- remove reference to arch specific companion device for ia64
+- move ACPI PCI host controller driver to pci_root.c
+- drop generic domain assignment for x86 and ia64 as I am not
+  able to run all necessary test variants
+- drop patch which cleaned legacy IRQ assignment since it belongs to
+  Mathew's series:
+  https://patchwork.ozlabs.org/patch/557504/
+- extend MCFG quirk code
+- rebased to 4.4
+
+v1 -> v2
+- moved non-arch specific piece of code to dirver/acpi/ directory
+- fixed IO resource handling
+- introduced PCI config accessors quirks matching
+- moved ACPI_COMPANION_SET to generic code
+
+v1 - https://lkml.org/lkml/2015/10/27/504
+v2 - https://lkml.org/lkml/2015/12/16/246
+v3 - http://lkml.iu.edu/hypermail/linux/kernel/1601.1/04308.html
+
+Lorenzo Pieralisi (1):
+  drivers: pci: add generic code to claim bus resources
+
+Tomasz Nowicki (22):
+  x86, pci: Reorder logic of pci_mmconfig_insert() function
+  x86, pci, acpi: Move arch-agnostic MMCONFIG (aka ECAM) and ACPI code
+    out of arch/x86/ directory
+  pci, acpi, mcfg: Provide generic implementation of MCFG code
+    initialization.
+  x86, pci: mmconfig_{32,64}.c code refactoring - remove code
+    duplication.
+  x86, pci, ecam: mmconfig_64.c becomes default implementation for ECAM
+    driver.
+  XEN / PCI: Remove the dependence on arch x86 when PCI_MMCONFIG=y
+  pci, acpi, mcfg: Provide default RAW ACPI PCI config space accessors.
+  arm64, acpi: Use MCFG and empty PCI config space accessors from mcfg.c
+    file.
+  pci, acpi, ecam: Add flag to indicate whether ECAM region was hot
+    added or not.
+  x86, pci: Cleanup platform specific MCFG data by using ECAM hot_added
+    flag.
+  pci, acpi: Move ACPI host bridge device companion assignment to core
+    code.
+  x86, ia64, pci: Remove ACPI companion device from platform specific
+    data.
+  pci, acpi: Provide generic way to assign bus domain number.
+  x86, ia64: Include acpi_pci_{add|remove}_bus to the default
+    pcibios_{add|remove}_bus implementation.
+  acpi, mcfg: Implement two calls that might be used to inject/remove
+    MCFG region.
+  x86, acpi, pci: Use equivalent function from mcfg.c driver.
+  acpi, mcfg: Add default PCI config accessors implementation and
+    initial support for related quirks.
+  pci, of: Move the PCI I/O space management to PCI core code.
+  pci, acpi: Support for ACPI based generic PCI host controller init
+  pci, acpi: Match PCI config space accessors against platfrom specific
+    quirks.
+  arm64, pci, acpi: Assign legacy IRQs once device is enable.
+  arm64, pci, acpi: Start using ACPI based PCI host bridge driver for
+    ARM64.
+
+ arch/arm64/Kconfig                 |   8 ++
+ arch/arm64/kernel/pci.c            |  37 ++----
+ arch/ia64/hp/common/sba_iommu.c    |   2 +-
+ arch/ia64/include/asm/pci.h        |   1 -
+ arch/ia64/pci/pci.c                |  26 ----
+ arch/ia64/sn/kernel/io_acpi_init.c |   4 +-
+ arch/x86/Kconfig                   |   4 +
+ arch/x86/include/asm/pci.h         |   3 -
+ arch/x86/include/asm/pci_x86.h     |  28 +----
+ arch/x86/pci/acpi.c                |  56 ++-------
+ arch/x86/pci/common.c              |  10 --
+ arch/x86/pci/mmconfig-shared.c     | 250 ++++++-------------------------------
+ arch/x86/pci/mmconfig_32.c         |  11 +-
+ arch/x86/pci/mmconfig_64.c         |  67 +---------
+ arch/x86/pci/numachip.c            |   1 +
+ drivers/acpi/Kconfig               |   7 ++
+ drivers/acpi/Makefile              |   1 +
+ drivers/acpi/mcfg.c                | 201 +++++++++++++++++++++++++++++
+ drivers/acpi/pci_root.c            | 134 +++++++++++++++++++-
+ drivers/of/address.c               | 116 +----------------
+ drivers/pci/Kconfig                |  10 ++
+ drivers/pci/Makefile               |   5 +
+ drivers/pci/ecam.c                 | 234 ++++++++++++++++++++++++++++++++++
+ drivers/pci/pci.c                  | 126 ++++++++++++++++++-
+ drivers/pci/probe.c                |   5 +
+ drivers/pci/setup-bus.c            |  63 ++++++++++
+ drivers/xen/pci.c                  |   7 +-
+ include/acpi/acpi_bus.h            |   1 +
+ include/asm-generic/vmlinux.lds.h  |   7 ++
+ include/linux/acpi.h               |   2 +
+ include/linux/ecam.h               |  62 +++++++++
+ include/linux/of_address.h         |   9 --
+ include/linux/pci-acpi.h           |  19 +++
+ include/linux/pci.h                |   6 +
+ 34 files changed, 962 insertions(+), 561 deletions(-)
+ create mode 100644 drivers/acpi/mcfg.c
+ create mode 100644 drivers/pci/ecam.c
+ create mode 100644 include/linux/ecam.h
+
+-- 
+1.9.1
+
