@@ -1,51 +1,59 @@
-From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Subject: [RFC PATCH 0/4] Add ACPI support for HiSilicon PCIe Host Controllers
-Date: Thu, 4 Feb 2016 19:37:36 +0800
-Message-ID: <1454585860-60709-1-git-send-email-gabriele.paoloni@huawei.com>
+From: Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>
+Subject: Re: [PATCH] x86/efi: skip bgrt init for kexec reboot
+Date: Thu, 4 Feb 2016 11:56:56 +0000
+Message-ID: <20160204115656.GB2586@codeblueprint.co.uk>
+References: <20160127112044.GA2961@dhcp-128-65.nay.redhat.com>
+ <20160203214200.GA15110@dhcp-128-65.nay.redhat.com>
+ <20160203225333.GA31246@codeblueprint.co.uk>
+ <20160204100329.GA2586@codeblueprint.co.uk>
+ <20160204110903.GA2977@dhcp-128-65.nay.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: guohanjun@huawei.com, wangzhou1@hisilicon.com, liudongdong3@huawei.com, linuxarm@huawei.com, qiujiang@huawei.com, bhelgaas@google.com, arnd@arndb.de, Lorenzo.Pieralisi@arm.com, tn@semihalf.com
-Cc: gabriele.paoloni@huawei.com, zhangjukuo@huawei.com, xuwei5@hisilicon.com, liguozhu@hisilicon.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, jcm@redhat.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160204110903.GA2977-0VdLhd/A9Pl+NNSt+8eSiB/sF2h8X+2i0E9HWUfgJXw@public.gmane.org>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/kexec>,
+ <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/kexec/>
+List-Post: <mailto:kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+List-Help: <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/kexec>,
+ <mailto:kexec-request-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org?subject=subscribe>
+Sender: "kexec" <kexec-bounces-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>
+Errors-To: kexec-bounces+glkk-kexec=m.gmane.org-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org
+To: Dave Young <dyoung-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Josh Triplett <josh-iaAMLnmF4UmaiuxdJuQwMA@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Borislav Petkov <bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-From: gabriele paoloni <gabriele.paoloni@huawei.com>
+On Thu, 04 Feb, at 07:09:03PM, Dave Young wrote:
+> 
+> Consider the original code path, maybe change it to efi_kexec_setup will
+> be better to remind people? Or something else like a wraper function with
+> similar name..
+ 
+Possibly. I had considered adding a new efi_enabled() bit for
+KEXEC_BOOT, but I'm worried that'll just encourage more uses.
 
-This patchset adds ACPI support for the HiSilicon Hip05/Hip06 SoC PCIe controllers
-The four patches respectively:
-        - rework PCie Designware to be used for ACPI PCI Host controllers
-        - re-architect the current HiSilicon driver to make it scalable to the
-          new ACPI quirks
-	- rework the current HiSilicon driver to make it ECAM compliant
-        - adds the HiSilicon ACPI specific quirks.
+The best approach is going to be to see whether we can reduce the uses
+of efi_setup and the associated special code. Once we've completed
+that exercise, we can think about the best name for this variable.
 
-   This patchset  is based on 
-   https://github.com/semihalf-nowicki-tomasz/linux.git
-   branch pci-acpi-v3 + Hip06 support applied on top:
-   https://patchwork.ozlabs.org/patch/549198/
+> For building ACPI tables we need do it in kernel instead of kexec-tools
+> because of kexec_file_load for secure boot case so we still need a conditional
+> code path for kexec..
 
-gabriele paoloni (4):
-  PCI: Designware: Add support for ACPI based controllers
-  PCI: hisi: re-architect Hip05/Hip06 controllers driver to preapare for
-    ACPI
-  PCI: hisi: Make the HiSilicon PCIe host controller ECAM compliant
-  PCI/ACPI: hisi: Add ACPI support for HiSilicon SoCs Host Controllers
+Note that it may not be necessary to build any ACPI tables at all,
+provided that things like acpi_get_table() fail gracefully for kexec.
+I'm assuming that's the problem that you discovered when writing this
+patch.
 
- .../devicetree/bindings/pci/hisilicon-pcie.txt     |   4 +-
- MAINTAINERS                                        |   3 +
- drivers/pci/host/Kconfig                           |   9 ++
- drivers/pci/host/Makefile                          |   3 +-
- drivers/pci/host/pcie-designware.c                 |  39 +++++-
- drivers/pci/host/pcie-designware.h                 |   1 +
- drivers/pci/host/pcie-hisi-acpi.c                  | 147 ++++++++++++++++++++
- drivers/pci/host/pcie-hisi-common.c                | 103 ++++++++++++++
- drivers/pci/host/pcie-hisi.c                       | 149 ++++++---------------
- drivers/pci/host/pcie-hisi.h                       |  50 +++++++
- 10 files changed, 390 insertions(+), 118 deletions(-)
- create mode 100644 drivers/pci/host/pcie-hisi-acpi.c
- create mode 100644 drivers/pci/host/pcie-hisi-common.c
- create mode 100644 drivers/pci/host/pcie-hisi.h
+And yes, I don't expect you can build the ACPI table from userspace,
+but it should at least be possible to do it in setup_boot_parameters()
+or so when you setup the EFI table pointers (efi.config_tables), etc.
+I think that would be a natural home for this feature.
 
--- 
-1.9.1
+> Also I'm not sure how to rebuild ACPI tables, it is easy or hard. Let me
+> checking the detail and think more about it.
+
+Thanks.
