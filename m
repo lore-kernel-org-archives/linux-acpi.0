@@ -1,156 +1,80 @@
-From: Dmitry Sutyagin <f3flight@gmail.com>
-Subject: Re: Powerbutton not detected/handled on Dell Venue 11 Pro (7140)
-Date: Thu, 4 Feb 2016 00:26:14 +0300
-Message-ID: <CALfH6qdURFQ=v4SRg4sTA0w_UwZv_2jwQr7aG66_W0oJZgwqLg@mail.gmail.com>
-References: <CALfH6qdnJ4jpsUE7iMgd6xvcSMjbStdEoHNz39Yb+aBJoVRPhg@mail.gmail.com>
+From: Matt Fleming <matt-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>
+Subject: Re: [PATCH] x86/efi: skip bgrt init for kexec reboot
+Date: Thu, 4 Feb 2016 10:03:29 +0000
+Message-ID: <20160204100329.GA2586@codeblueprint.co.uk>
+References: <20160127112044.GA2961@dhcp-128-65.nay.redhat.com>
+ <20160203214200.GA15110@dhcp-128-65.nay.redhat.com>
+ <20160203225333.GA31246@codeblueprint.co.uk>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary=001a114fbf1c8776ff052ae444ef
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yk0-f175.google.com ([209.85.160.175]:33025 "EHLO
-	mail-yk0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755540AbcBCV0O (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Wed, 3 Feb 2016 16:26:14 -0500
-Received: by mail-yk0-f175.google.com with SMTP id z13so31021881ykd.0
-        for <linux-acpi@vger.kernel.org>; Wed, 03 Feb 2016 13:26:14 -0800 (PST)
-In-Reply-To: <CALfH6qdnJ4jpsUE7iMgd6xvcSMjbStdEoHNz39Yb+aBJoVRPhg@mail.gmail.com>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <20160203225333.GA31246-mF/unelCI9GS6iBeEJttW/XRex20P6io@public.gmane.org>
+Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Dave Young <dyoung-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Cc: linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, kexec-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Borislav Petkov <bp-Gina5bIWoIWzQB+pC5nmwQ@public.gmane.org>, linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Josh Triplett <josh-iaAMLnmF4UmaiuxdJuQwMA@public.gmane.org>, Matthew Garrett <mjg59-1xO5oi07KQx4cg9Nei1l7Q@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
-To: linux-acpi@vger.kernel.org
 
---001a114fbf1c8776ff052ae444ef
-Content-Type: text/plain; charset=UTF-8
+On Wed, 03 Feb, at 10:53:33PM, Matt Fleming wrote:
+> On Thu, 04 Feb, at 05:42:00AM, Dave Young wrote:
+> > 
+> > On 01/27/16 at 07:20pm, Dave Young wrote:
+> > > For kexec reboot the bgrt image address could contains random data because
+> > > we have freed boot service areas in 1st kernel boot phase. One possible
+> > > result is kmalloc fail in efi_bgrt_init due to large random image size.
+> > > 
+> > > So change efi_late_init to avoid efi_bgrt_init in case kexec boot.
+> > > 
+> > > Signed-off-by: Dave Young <dyoung-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+> > > ---
+> > >  arch/x86/platform/efi/efi.c |    3 ++-
+> > >  1 file changed, 2 insertions(+), 1 deletion(-)
+> > > 
+> > > --- linux-x86.orig/arch/x86/platform/efi/efi.c
+> > > +++ linux-x86/arch/x86/platform/efi/efi.c
+> > > @@ -531,7 +531,8 @@ void __init efi_init(void)
+> > >  
+> > >  void __init efi_late_init(void)
+> > >  {
+> > > -	efi_bgrt_init();
+> > > +	if (!efi_setup)
+> > > +		efi_bgrt_init();
+> > >  }
+> > >  
+> > >  void __init efi_set_executable(efi_memory_desc_t *md, bool executable)
+> > 
+> > Matt, opinions about this patch?
+> 
+> Yeah, I'm not happy seeing efi_setup escaping into even more places,
+> nor am I happy to see more code paths introduced where kexec boot is
+> special-cased.
+> 
+> I'll reply with more details tomorrow.
 
-Today I have modified the patch slightly to apply to 4.4.1 kernel and
-built a kernel with it applied - power button now works for me. The
-patch is attached. I can probably make a similar one for master branch
-and for earlier releases too, let me know what I should do. Thanks!
+OK, let me expand upon that rather terse feedback. 
 
-2016-02-03 19:04 GMT+03:00 Dmitry Sutyagin <f3flight@gmail.com>:
-> Dear all,
->
-> I am writing to ask for the attached patch to be reviewed and merged
-> into linux kernel (preferably starting from 3.18 but at least for 4.4
-> and up).
-> The patch was created by Jan-Michael Brummer, I took it from here -
-> https://bugzilla.kernel.org/show_bug.cgi?id=102281
->
-> Please let me know if I can help in any way.
+This patch highlights a general problem I see in the EFI code which is
+that we're continuously increasing the number of execution paths
+through the boot code. This makes it increasingly difficult to modify
+the code without introducing bugs and regressions.
 
---001a114fbf1c8776ff052ae444ef
-Content-Type: text/x-patch; charset=US-ASCII;
-	name="dell_venue_11_pro_7140_power_button_for_linux_4.4.1.patch"
-Content-Disposition: attachment;
-	filename="dell_venue_11_pro_7140_power_button_for_linux_4.4.1.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_ik7cfgfa1
+I was bitten by this recently with the EFI separate page table rework,
+which led to commit 753b11ef8e92 ("x86/efi: Setup separate EFI page
+tables in kexec paths"), i.e I forgot to update the special kexec
+virtual mapping function.
 
-ZGlmZiAtLWdpdCBhL2RyaXZlcnMvcGxhdGZvcm0veDg2L0tjb25maWcgYi9kcml2ZXJzL3BsYXRm
-b3JtL3g4Ni9LY29uZmlnCmluZGV4IDEwODllYWEuLmM1MTlkMmUgMTAwNjQ0Ci0tLSBhL2RyaXZl
-cnMvcGxhdGZvcm0veDg2L0tjb25maWcKKysrIGIvZHJpdmVycy9wbGF0Zm9ybS94ODYvS2NvbmZp
-ZwpAQCAtOTQ0LDQgKzk0NCwxMCBAQCBjb25maWcgU1VSRkFDRV9QUk8zX0JVVFRPTgogCWRlcGVu
-ZHMgb24gQUNQSSAmJiBJTlBVVAogCS0tLWhlbHAtLS0KIAkgIFRoaXMgZHJpdmVyIGhhbmRsZXMg
-dGhlIHBvd2VyL2hvbWUvdm9sdW1lIGJ1dHRvbnMgb24gdGhlIE1pY3Jvc29mdCBTdXJmYWNlIFBy
-byAzIHRhYmxldC4KKworY29uZmlnIERWMTFQX1BPV0VSX0JVVFRPTgorCXRyaXN0YXRlICJEZWxs
-IFZlbnVlIDExIFBybyBQb3dlciBCdXR0b24gRHJpdmVyIgorCWRlcGVuZHMgb24gQUNQSQorCS0t
-LWhlbHAtLS0KKwkgIFRoaXMgZHJpdmVyIHByb3ZpZGVzIHBvd2VyIGJ1dHRvbiBzdXBwb3J0IGZv
-ciB0aGUgRGVsbCBWZW51ZSAxMSBQcm8gdGFibGV0LgogZW5kaWYgIyBYODZfUExBVEZPUk1fREVW
-SUNFUwpkaWZmIC0tZ2l0IGEvZHJpdmVycy9wbGF0Zm9ybS94ODYvTWFrZWZpbGUgYi9kcml2ZXJz
-L3BsYXRmb3JtL3g4Ni9NYWtlZmlsZQppbmRleCAzY2E3OGEzLi4zMzhiMGZjIDEwMDY0NAotLS0g
-YS9kcml2ZXJzL3BsYXRmb3JtL3g4Ni9NYWtlZmlsZQorKysgYi9kcml2ZXJzL3BsYXRmb3JtL3g4
-Ni9NYWtlZmlsZQpAQCAtNjIsMyArNjIsNCBAQCBvYmotJChDT05GSUdfUFZQQU5JQykgICAgICAg
-ICAgICs9IHB2cGFuaWMubwogb2JqLSQoQ09ORklHX0FMSUVOV0FSRV9XTUkpCSs9IGFsaWVud2Fy
-ZS13bWkubwogb2JqLSQoQ09ORklHX0lOVEVMX1BNQ19JUEMpCSs9IGludGVsX3BtY19pcGMubwog
-b2JqLSQoQ09ORklHX1NVUkZBQ0VfUFJPM19CVVRUT04pCSs9IHN1cmZhY2Vwcm8zX2J1dHRvbi5v
-CitvYmotJChDT05GSUdfRFYxMVBfUE9XRVJfQlVUVE9OKQkrPSBkdjExcF9wb3dlcl9idXR0b24u
-bwpkaWZmIC0tZ2l0IGEvZHJpdmVycy9wbGF0Zm9ybS94ODYvZHYxMXBfcG93ZXJfYnV0dG9uLmMg
-Yi9kcml2ZXJzL3BsYXRmb3JtL3g4Ni9kdjExcF9wb3dlcl9idXR0b24uYwpuZXcgZmlsZSBtb2Rl
-IDEwMDY0NAppbmRleCAwMDAwMDAwLi4wMzI1MGFlCi0tLSAvZGV2L251bGwKKysrIGIvZHJpdmVy
-cy9wbGF0Zm9ybS94ODYvZHYxMXBfcG93ZXJfYnV0dG9uLmMKQEAgLTAsMCArMSwxOTYgQEAKKy8q
-CisgKiBQb3dlciBidXR0b24gc3VwcG9ydCBmb3IgRGVsbCBWZW51ZSAxMSBQcm8KKyAqCisgKiAo
-QykgQ29weXJpZ2h0IDIwMTUgSmFuLU1pY2hhZWwgQnJ1bW1lcgorICoKKyAqIFRoaXMgcHJvZ3Jh
-bSBpcyBmcmVlIHNvZnR3YXJlOyB5b3UgY2FuIHJlZGlzdHJpYnV0ZSBpdCBhbmQvb3IKKyAqIG1v
-ZGlmeSBpdCB1bmRlciB0aGUgdGVybXMgb2YgdGhlIEdOVSBHZW5lcmFsIFB1YmxpYyBMaWNlbnNl
-CisgKiBhcyBwdWJsaXNoZWQgYnkgdGhlIEZyZWUgU29mdHdhcmUgRm91bmRhdGlvbjsgdmVyc2lv
-biAyCisgKiBvZiB0aGUgTGljZW5zZS4KKyAqLworCisjaW5jbHVkZSA8bGludXgva2VybmVsLmg+
-CisjaW5jbHVkZSA8bGludXgvbW9kdWxlLmg+CisjaW5jbHVkZSA8bGludXgvaW5pdC5oPgorI2lu
-Y2x1ZGUgPGxpbnV4L3R5cGVzLmg+CisjaW5jbHVkZSA8bGludXgvaW5wdXQuaD4KKyNpbmNsdWRl
-IDxsaW51eC9hY3BpLmg+CisjaW5jbHVkZSA8YWNwaS9idXR0b24uaD4KKworI2RlZmluZSBEVjEx
-UF9CVVRUT05fSElECQkiSU5UMzNENiIKKyNkZWZpbmUgRFYxMVBfQlVUVE9OX0NMQVNTCQkiYnV0
-dG9uIgorI2RlZmluZSBEVjExUF9CVVRUT05fU1VCX0NMQVNTCQkiZWMiCisjZGVmaW5lIERWMTFQ
-X0JVVFRPTl9ERVZJQ0VfTkFNRQkiRUMiCisKKyNkZWZpbmUgRFYxMVBfQlVUVE9OX05PVElGWV9Q
-UkVTU19QT1dFUgkJMHhjMAorI2RlZmluZSBEVjExUF9CVVRUT05fTk9USUZZX1JFTEVBU0VfUE9X
-RVIJMHhjMQorCitBQ1BJX01PRFVMRV9OQU1FKCJkdjExcCBwb3dlciBidXR0b24iKTsKKworI2Rl
-ZmluZSBfQ09NUE9ORU5UICAgICAgICAgICAgICBBQ1BJX0JVVFRPTl9DT01QT05FTlQKKworTU9E
-VUxFX0FVVEhPUigiSmFuLU1pY2hhZWwgQnJ1bW1lciIpOworTU9EVUxFX0RFU0NSSVBUSU9OKCJE
-ZWxsIFZlbnVlIDExIFBybyBQb3dlciBCdXR0b24gRHJpdmVyIik7CitNT0RVTEVfTElDRU5TRSgi
-R1BMIik7CisKKy8qCisgKiBQb3dlciBidXR0b24gYXJlIGhhbmRsZWQgYnkgRUMKKyAqLworc3Rh
-dGljIGNvbnN0IHN0cnVjdCBhY3BpX2RldmljZV9pZCBkdjExcF9wb3dlcl9idXR0b25fZGV2aWNl
-X2lkc1tdID0geworCXtEVjExUF9CVVRUT05fSElELCAgICAwfSwKKwl7IiIsIDB9LAorfTsKK01P
-RFVMRV9ERVZJQ0VfVEFCTEUoYWNwaSwgZHYxMXBfcG93ZXJfYnV0dG9uX2RldmljZV9pZHMpOwor
-CitzdGF0aWMgaW50IGR2MTFwX3Bvd2VyX2J1dHRvbl9hZGQoc3RydWN0IGFjcGlfZGV2aWNlICpk
-ZXZpY2UpOworc3RhdGljIGludCBkdjExcF9wb3dlcl9idXR0b25fcmVtb3ZlKHN0cnVjdCBhY3Bp
-X2RldmljZSAqZGV2aWNlKTsKK3N0YXRpYyB2b2lkIGR2MTFwX3Bvd2VyX2J1dHRvbl9ub3RpZnko
-c3RydWN0IGFjcGlfZGV2aWNlICpkZXZpY2UsIHUzMiBldmVudCk7CisKKyNpZmRlZiBDT05GSUdf
-UE1fU0xFRVAKK3N0YXRpYyBpbnQgZHYxMXBfcG93ZXJfYnV0dG9uX3N1c3BlbmQoc3RydWN0IGRl
-dmljZSAqZGV2KTsKK3N0YXRpYyBpbnQgZHYxMXBfcG93ZXJfYnV0dG9uX3Jlc3VtZShzdHJ1Y3Qg
-ZGV2aWNlICpkZXYpOworI2Vsc2UKKyNkZWZpbmUgZHYxMXBfcG93ZXJfYnV0dG9uX3N1c3BlbmQg
-TlVMTAorI2RlZmluZSBkdjExcF9wb3dlcl9idXR0b25fcmVzdW1lIE5VTEwKKyNlbmRpZgorCitz
-dGF0aWMgU0lNUExFX0RFVl9QTV9PUFMoZHYxMXBfcG93ZXJfYnV0dG9uX3BtLAorCQlkdjExcF9w
-b3dlcl9idXR0b25fc3VzcGVuZCwgZHYxMXBfcG93ZXJfYnV0dG9uX3Jlc3VtZSk7CisKK3N0YXRp
-YyBzdHJ1Y3QgYWNwaV9kcml2ZXIgZHYxMXBfcG93ZXJfYnV0dG9uX2RyaXZlciA9IHsKKwkubmFt
-ZSA9ICJkZWxsIHZlbnVlIDExIHBybyBidXR0b24iLAorCS5jbGFzcyA9IERWMTFQX0JVVFRPTl9D
-TEFTUywKKwkuaWRzID0gZHYxMXBfcG93ZXJfYnV0dG9uX2RldmljZV9pZHMsCisJLm9wcyA9IHsK
-KwkJLmFkZCA9IGR2MTFwX3Bvd2VyX2J1dHRvbl9hZGQsCisJCS5yZW1vdmUgPSBkdjExcF9wb3dl
-cl9idXR0b25fcmVtb3ZlLAorCQkubm90aWZ5ID0gZHYxMXBfcG93ZXJfYnV0dG9uX25vdGlmeSwK
-Kwl9LAorCS5kcnYucG0gPSAmZHYxMXBfcG93ZXJfYnV0dG9uX3BtLAorfTsKKworc3RydWN0IGR2
-MTFwX3Bvd2VyX2J1dHRvbiB7CisJdW5zaWduZWQgaW50IHR5cGU7CisJc3RydWN0IGlucHV0X2Rl
-diAqaW5wdXQ7CisJY2hhciBwaHlzWzMyXTsJCQkvKiBmb3IgaW5wdXQgZGV2aWNlICovCisJdW5z
-aWduZWQgbG9uZyBwdXNoZWQ7CisJYm9vbCBzdXNwZW5kZWQ7Cit9OworCitzdGF0aWMgdm9pZCBk
-djExcF9wb3dlcl9idXR0b25fbm90aWZ5KHN0cnVjdCBhY3BpX2RldmljZSAqZGV2aWNlLCB1MzIg
-ZXZlbnQpCit7CisJc3RydWN0IGR2MTFwX3Bvd2VyX2J1dHRvbiAqYnV0dG9uID0gYWNwaV9kcml2
-ZXJfZGF0YShkZXZpY2UpOworCXN0cnVjdCBpbnB1dF9kZXYgKmlucHV0OworCWludCBrZXlfY29k
-ZSA9IEtFWV9SRVNFUlZFRCwgcHJlc3NlZCA9IDA7CisKKwlzd2l0Y2ggKGV2ZW50KSB7CisJY2Fz
-ZSBEVjExUF9CVVRUT05fTk9USUZZX1BSRVNTX1BPV0VSOgorCQlwcmVzc2VkID0gMTsKKwljYXNl
-IERWMTFQX0JVVFRPTl9OT1RJRllfUkVMRUFTRV9QT1dFUjoKKwkJa2V5X2NvZGUgPSBLRVlfUE9X
-RVI7CisJCWJyZWFrOworCisJZGVmYXVsdDoKKwkJQUNQSV9ERUJVR19QUklOVCgoQUNQSV9EQl9J
-TkZPLAorCQkJCSAgIlVuc3VwcG9ydGVkIGV2ZW50IFsweCV4XVxuIiwgZXZlbnQpKTsKKwkJYnJl
-YWs7CisJfQorCisJaW5wdXQgPSBidXR0b24tPmlucHV0OworCisJaWYgKEtFWV9SRVNFUlZFRCA9
-PSBrZXlfY29kZSkKKwkJcmV0dXJuOworCisJaWYgKHByZXNzZWQpCisJCXBtX3dha2V1cF9ldmVu
-dCgmZGV2aWNlLT5kZXYsIDApOworCisJaWYgKGJ1dHRvbi0+c3VzcGVuZGVkKQorCQlyZXR1cm47
-CisKKwlpbnB1dF9yZXBvcnRfa2V5KGlucHV0LCBrZXlfY29kZSwgcHJlc3NlZCk7CisJaW5wdXRf
-c3luYyhpbnB1dCk7CisKK30KKworI2lmZGVmIENPTkZJR19QTV9TTEVFUAorc3RhdGljIGludCBk
-djExcF9wb3dlcl9idXR0b25fc3VzcGVuZChzdHJ1Y3QgZGV2aWNlICpkZXYpCit7CisJc3RydWN0
-IGFjcGlfZGV2aWNlICpkZXZpY2UgPSB0b19hY3BpX2RldmljZShkZXYpOworCXN0cnVjdCBkdjEx
-cF9wb3dlcl9idXR0b24gKmJ1dHRvbiA9IGFjcGlfZHJpdmVyX2RhdGEoZGV2aWNlKTsKKworCWJ1
-dHRvbi0+c3VzcGVuZGVkID0gdHJ1ZTsKKwlyZXR1cm4gMDsKK30KKworc3RhdGljIGludCBkdjEx
-cF9wb3dlcl9idXR0b25fcmVzdW1lKHN0cnVjdCBkZXZpY2UgKmRldikKK3sKKwlzdHJ1Y3QgYWNw
-aV9kZXZpY2UgKmRldmljZSA9IHRvX2FjcGlfZGV2aWNlKGRldik7CisJc3RydWN0IGR2MTFwX3Bv
-d2VyX2J1dHRvbiAqYnV0dG9uID0gYWNwaV9kcml2ZXJfZGF0YShkZXZpY2UpOworCisJYnV0dG9u
-LT5zdXNwZW5kZWQgPSBmYWxzZTsKKwlyZXR1cm4gMDsKK30KKyNlbmRpZgorCitzdGF0aWMgaW50
-IGR2MTFwX3Bvd2VyX2J1dHRvbl9hZGQoc3RydWN0IGFjcGlfZGV2aWNlICpkZXZpY2UpCit7CisJ
-c3RydWN0IGR2MTFwX3Bvd2VyX2J1dHRvbiAqYnV0dG9uOworCXN0cnVjdCBpbnB1dF9kZXYgKmlu
-cHV0OworCWNvbnN0IGNoYXIgKmhpZCA9IGFjcGlfZGV2aWNlX2hpZChkZXZpY2UpOworCWNoYXIg
-Km5hbWUsICpjbGFzczsKKwlpbnQgZXJyb3I7CisKKwlidXR0b24gPSBremFsbG9jKHNpemVvZihz
-dHJ1Y3QgZHYxMXBfcG93ZXJfYnV0dG9uKSwgR0ZQX0tFUk5FTCk7CisJaWYgKCFidXR0b24pCisJ
-CXJldHVybiAtRU5PTUVNOworCisJZGV2aWNlLT5kcml2ZXJfZGF0YSA9IGJ1dHRvbjsKKworCWJ1
-dHRvbi0+aW5wdXQgPSBpbnB1dCA9IGlucHV0X2FsbG9jYXRlX2RldmljZSgpOworCWlmICghaW5w
-dXQpIHsKKwkJZXJyb3IgPSAtRU5PTUVNOworCQlnb3RvIGVycl9mcmVlX3Bvd2VyX2J1dHRvbjsK
-Kwl9CisKKwluYW1lID0gYWNwaV9kZXZpY2VfbmFtZShkZXZpY2UpOworCWNsYXNzID0gYWNwaV9k
-ZXZpY2VfY2xhc3MoZGV2aWNlKTsKKworCXN0cmNweShuYW1lLCBEVjExUF9CVVRUT05fREVWSUNF
-X05BTUUpOworCXNwcmludGYoY2xhc3MsICIlcy8lcyIsCisJCURWMTFQX0JVVFRPTl9DTEFTUywg
-RFYxMVBfQlVUVE9OX1NVQl9DTEFTUyk7CisKKwlzbnByaW50ZihidXR0b24tPnBoeXMsIHNpemVv
-ZihidXR0b24tPnBoeXMpLCAiJXMvYnV0dG9uL2lucHV0MCIsIGhpZCk7CisKKwlpbnB1dC0+bmFt
-ZSA9IG5hbWU7CisJaW5wdXQtPnBoeXMgPSBidXR0b24tPnBoeXM7CisJaW5wdXQtPmlkLmJ1c3R5
-cGUgPSBCVVNfSE9TVDsKKwlpbnB1dC0+ZGV2LnBhcmVudCA9ICZkZXZpY2UtPmRldjsKKworCWlu
-cHV0X3NldF9jYXBhYmlsaXR5KGlucHV0LCBFVl9LRVksIEtFWV9QT1dFUik7CisKKworCWVycm9y
-ID0gaW5wdXRfcmVnaXN0ZXJfZGV2aWNlKGlucHV0KTsKKwlpZiAoZXJyb3IpCisJCWdvdG8gZXJy
-X2ZyZWVfaW5wdXQ7CisKKwlBQ1BJX0RFQlVHX1BSSU5UKChBQ1BJX0RCX0lORk8sCisJCQkiJXMg
-WyVzXVxuIiwgbmFtZSwgYWNwaV9kZXZpY2VfYmlkKGRldmljZSkpKTsKKwlyZXR1cm4gMDsKKwor
-IGVycl9mcmVlX2lucHV0OgorCWlucHV0X2ZyZWVfZGV2aWNlKGlucHV0KTsKKyBlcnJfZnJlZV9w
-b3dlcl9idXR0b246CisJa2ZyZWUoYnV0dG9uKTsKKwlyZXR1cm4gZXJyb3I7Cit9CisKK3N0YXRp
-YyBpbnQgZHYxMXBfcG93ZXJfYnV0dG9uX3JlbW92ZShzdHJ1Y3QgYWNwaV9kZXZpY2UgKmRldmlj
-ZSkKK3sKKwlzdHJ1Y3QgZHYxMXBfcG93ZXJfYnV0dG9uICpidXR0b24gPSBhY3BpX2RyaXZlcl9k
-YXRhKGRldmljZSk7CisKKwlpbnB1dF91bnJlZ2lzdGVyX2RldmljZShidXR0b24tPmlucHV0KTsK
-KwlrZnJlZShidXR0b24pOworCXJldHVybiAwOworfQorCittb2R1bGVfYWNwaV9kcml2ZXIoZHYx
-MXBfcG93ZXJfYnV0dG9uX2RyaXZlcik7Cg==
---001a114fbf1c8776ff052ae444ef--
+We should be reducing the use of 'efi_setup', not adding more uses.
+
+As an aside, I've always had a problem with using 'efi_setup' to
+indicate when we've been booted via kexec. If a developer with no
+prior knowledge reads those if conditions they are going to have zero
+clue what the code means. 
+
+Now, specifically for the issue you've raised, would it not make more
+sense for kexec to build its own ACPI tables and omit those entries
+that are not valid, e.g. BGRT? I can imagine that the BGRT driver
+won't be the only driver with this problem. Let's re-use the existing
+error paths that handle missing/invalid tables.
+
+Fundamentally I don't think there should be a discernible difference
+between "Booted via kexec" and "That ACPI table does not exist".
