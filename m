@@ -1,349 +1,118 @@
 From: Tomasz Nowicki <tn@semihalf.com>
-Subject: [PATCH V4 18/23] pci, of: Move the PCI I/O space management to PCI core code.
-Date: Thu,  4 Feb 2016 18:28:56 +0100
-Message-ID: <1454606941-9523-19-git-send-email-tn@semihalf.com>
+Subject: [PATCH V4 10/23] x86,
+ pci: Cleanup platform specific MCFG data by using ECAM hot_added flag.
+Date: Thu,  4 Feb 2016 18:28:48 +0100
+Message-ID: <1454606941-9523-11-git-send-email-tn@semihalf.com>
 References: <1454606941-9523-1-git-send-email-tn@semihalf.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f45.google.com ([74.125.82.45]:38490 "EHLO
-	mail-wm0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966577AbcBDR3f (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Thu, 4 Feb 2016 12:29:35 -0500
-Received: by mail-wm0-f45.google.com with SMTP id p63so127767668wmp.1
-        for <linux-acpi@vger.kernel.org>; Thu, 04 Feb 2016 09:29:35 -0800 (PST)
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
 In-Reply-To: <1454606941-9523-1-git-send-email-tn@semihalf.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
 To: bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, Lorenzo.Pieralisi@arm.com, okaya@codeaurora.org, jiang.liu@linux.intel.com, Stefano.Stabellini@eu.citrix.com
-Cc: robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com, Tomasz Nowicki <tn@semihalf.com>
+Cc: jchandra@broadcom.com, jcm@redhat.com, linaro-acpi@lists.linaro.org, linux-pci@vger.kernel.org, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org, robert.richter@caviumnetworks.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, wangyijing@huawei.com, Tomasz Nowicki <tn@semihalf.com>, mw@semihalf.com, linux-arm-kernel@lists.infradead.org
+List-Id: linux-acpi@vger.kernel.org
 
-No functional changes in this patch.
+Because of two facts:
+1. MCFG region has hot_added flag
+2. struct acpi_pci_root has topology info (domain, bus number)
+we can get rid of arch specific mcfg data from x86 struct pci_root_info.
 
-PCI I/O space mapping code does not depend on OF, therefore it can be
-moved to PCI core code. This way we will be able to use it
-e.g. in ACPI PCI code.
-
-Suggested-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
-CC: Arnd Bergmann <arnd@arndb.de>
-CC: Liviu Dudau <Liviu.Dudau@arm.com>
-CC: Lorenzo Pieralisi <Lorenzo.Pieralisi@arm.com>
+Tested-by: Suravee Suthikulpanit <Suravee.Suthikulpanit@amd.com>
+Tested-by: Duc Dang <dhdang@apm.com>
+Tested-by: Dongdong Liu <liudongdong3@huawei.com>
+Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
+Tested-by: Graeme Gregory <graeme.gregory@linaro.org>
+Tested-by: Sinan Kaya <okaya@codeaurora.org>
 ---
- drivers/of/address.c       | 116 +--------------------------------------------
- drivers/pci/pci.c          | 115 ++++++++++++++++++++++++++++++++++++++++++++
- include/linux/of_address.h |   9 ----
- include/linux/pci.h        |   5 ++
- 4 files changed, 121 insertions(+), 124 deletions(-)
+ arch/x86/pci/acpi.c | 36 ++++++++++++++----------------------
+ 1 file changed, 14 insertions(+), 22 deletions(-)
 
-diff --git a/drivers/of/address.c b/drivers/of/address.c
-index 91a469d..0a553c0 100644
---- a/drivers/of/address.c
-+++ b/drivers/of/address.c
-@@ -4,6 +4,7 @@
- #include <linux/ioport.h>
- #include <linux/module.h>
- #include <linux/of_address.h>
-+#include <linux/pci.h>
- #include <linux/pci_regs.h>
- #include <linux/sizes.h>
- #include <linux/slab.h>
-@@ -673,121 +674,6 @@ const __be32 *of_get_address(struct device_node *dev, int index, u64 *size,
- }
- EXPORT_SYMBOL(of_get_address);
- 
--#ifdef PCI_IOBASE
--struct io_range {
--	struct list_head list;
--	phys_addr_t start;
--	resource_size_t size;
--};
--
--static LIST_HEAD(io_range_list);
--static DEFINE_SPINLOCK(io_range_lock);
+diff --git a/arch/x86/pci/acpi.c b/arch/x86/pci/acpi.c
+index a997d7c..8e89921 100644
+--- a/arch/x86/pci/acpi.c
++++ b/arch/x86/pci/acpi.c
+@@ -12,11 +12,6 @@
+ struct pci_root_info {
+ 	struct acpi_pci_root_info common;
+ 	struct pci_sysdata sd;
+-#ifdef	CONFIG_PCI_MMCONFIG
+-	bool mcfg_added;
+-	u8 start_bus;
+-	u8 end_bus;
 -#endif
--
--/*
-- * Record the PCI IO range (expressed as CPU physical address + size).
-- * Return a negative value if an error has occured, zero otherwise
-- */
--int __weak pci_register_io_range(phys_addr_t addr, resource_size_t size)
--{
--	int err = 0;
--
--#ifdef PCI_IOBASE
--	struct io_range *range;
--	resource_size_t allocated_size = 0;
--
--	/* check if the range hasn't been previously recorded */
--	spin_lock(&io_range_lock);
--	list_for_each_entry(range, &io_range_list, list) {
--		if (addr >= range->start && addr + size <= range->start + size) {
--			/* range already registered, bail out */
--			goto end_register;
--		}
--		allocated_size += range->size;
--	}
--
--	/* range not registed yet, check for available space */
--	if (allocated_size + size - 1 > IO_SPACE_LIMIT) {
--		/* if it's too big check if 64K space can be reserved */
--		if (allocated_size + SZ_64K - 1 > IO_SPACE_LIMIT) {
--			err = -E2BIG;
--			goto end_register;
--		}
--
--		size = SZ_64K;
--		pr_warn("Requested IO range too big, new size set to 64K\n");
--	}
--
--	/* add the range to the list */
--	range = kzalloc(sizeof(*range), GFP_ATOMIC);
--	if (!range) {
--		err = -ENOMEM;
--		goto end_register;
--	}
--
--	range->start = addr;
--	range->size = size;
--
--	list_add_tail(&range->list, &io_range_list);
--
--end_register:
--	spin_unlock(&io_range_lock);
--#endif
--
--	return err;
--}
--
--phys_addr_t pci_pio_to_address(unsigned long pio)
--{
--	phys_addr_t address = (phys_addr_t)OF_BAD_ADDR;
--
--#ifdef PCI_IOBASE
--	struct io_range *range;
--	resource_size_t allocated_size = 0;
--
--	if (pio > IO_SPACE_LIMIT)
--		return address;
--
--	spin_lock(&io_range_lock);
--	list_for_each_entry(range, &io_range_list, list) {
--		if (pio >= allocated_size && pio < allocated_size + range->size) {
--			address = range->start + pio - allocated_size;
--			break;
--		}
--		allocated_size += range->size;
--	}
--	spin_unlock(&io_range_lock);
--#endif
--
--	return address;
--}
--
--unsigned long __weak pci_address_to_pio(phys_addr_t address)
--{
--#ifdef PCI_IOBASE
--	struct io_range *res;
--	resource_size_t offset = 0;
--	unsigned long addr = -1;
--
--	spin_lock(&io_range_lock);
--	list_for_each_entry(res, &io_range_list, list) {
--		if (address >= res->start && address < res->start + res->size) {
--			addr = address - res->start + offset;
--			break;
--		}
--		offset += res->size;
--	}
--	spin_unlock(&io_range_lock);
--
--	return addr;
--#else
--	if (address > IO_SPACE_LIMIT)
--		return (unsigned long)-1;
--
--	return (unsigned long) address;
--#endif
--}
--
- static int __of_address_to_resource(struct device_node *dev,
- 		const __be32 *addrp, u64 size, unsigned int flags,
- 		const char *name, struct resource *r)
-diff --git a/drivers/pci/pci.c b/drivers/pci/pci.c
-index d6c768e..3a516c0 100644
---- a/drivers/pci/pci.c
-+++ b/drivers/pci/pci.c
-@@ -3023,6 +3023,121 @@ int pci_request_regions_exclusive(struct pci_dev *pdev, const char *res_name)
- }
- EXPORT_SYMBOL(pci_request_regions_exclusive);
+ };
  
-+#ifdef PCI_IOBASE
-+struct io_range {
-+	struct list_head list;
-+	phys_addr_t start;
-+	resource_size_t size;
-+};
-+
-+static LIST_HEAD(io_range_list);
-+static DEFINE_SPINLOCK(io_range_lock);
-+#endif
-+
-+/*
-+ * Record the PCI IO range (expressed as CPU physical address + size).
-+ * Return a negative value if an error has occured, zero otherwise
-+ */
-+int __weak pci_register_io_range(phys_addr_t addr, resource_size_t size)
-+{
-+	int err = 0;
-+
-+#ifdef PCI_IOBASE
-+	struct io_range *range;
-+	resource_size_t allocated_size = 0;
-+
-+	/* check if the range hasn't been previously recorded */
-+	spin_lock(&io_range_lock);
-+	list_for_each_entry(range, &io_range_list, list) {
-+		if (addr >= range->start && addr + size <= range->start + size) {
-+			/* range already registered, bail out */
-+			goto end_register;
-+		}
-+		allocated_size += range->size;
-+	}
-+
-+	/* range not registed yet, check for available space */
-+	if (allocated_size + size - 1 > IO_SPACE_LIMIT) {
-+		/* if it's too big check if 64K space can be reserved */
-+		if (allocated_size + SZ_64K - 1 > IO_SPACE_LIMIT) {
-+			err = -E2BIG;
-+			goto end_register;
-+		}
-+
-+		size = SZ_64K;
-+		pr_warn("Requested IO range too big, new size set to 64K\n");
-+	}
-+
-+	/* add the range to the list */
-+	range = kzalloc(sizeof(*range), GFP_ATOMIC);
-+	if (!range) {
-+		err = -ENOMEM;
-+		goto end_register;
-+	}
-+
-+	range->start = addr;
-+	range->size = size;
-+
-+	list_add_tail(&range->list, &io_range_list);
-+
-+end_register:
-+	spin_unlock(&io_range_lock);
-+#endif
-+
-+	return err;
-+}
-+
-+phys_addr_t pci_pio_to_address(unsigned long pio)
-+{
-+	phys_addr_t address = (phys_addr_t)OF_BAD_ADDR;
-+
-+#ifdef PCI_IOBASE
-+	struct io_range *range;
-+	resource_size_t allocated_size = 0;
-+
-+	if (pio > IO_SPACE_LIMIT)
-+		return address;
-+
-+	spin_lock(&io_range_lock);
-+	list_for_each_entry(range, &io_range_list, list) {
-+		if (pio >= allocated_size && pio < allocated_size + range->size) {
-+			address = range->start + pio - allocated_size;
-+			break;
-+		}
-+		allocated_size += range->size;
-+	}
-+	spin_unlock(&io_range_lock);
-+#endif
-+
-+	return address;
-+}
-+
-+unsigned long __weak pci_address_to_pio(phys_addr_t address)
-+{
-+#ifdef PCI_IOBASE
-+	struct io_range *res;
-+	resource_size_t offset = 0;
-+	unsigned long addr = -1;
-+
-+	spin_lock(&io_range_lock);
-+	list_for_each_entry(res, &io_range_list, list) {
-+		if (address >= res->start && address < res->start + res->size) {
-+			addr = address - res->start + offset;
-+			break;
-+		}
-+		offset += res->size;
-+	}
-+	spin_unlock(&io_range_lock);
-+
-+	return addr;
-+#else
-+	if (address > IO_SPACE_LIMIT)
-+		return (unsigned long)-1;
-+
-+	return (unsigned long) address;
-+#endif
-+}
-+
- /**
-  *	pci_remap_iospace - Remap the memory mapped I/O space
-  *	@res: Resource describing the I/O space
-diff --git a/include/linux/of_address.h b/include/linux/of_address.h
-index 01c0a55..3786473 100644
---- a/include/linux/of_address.h
-+++ b/include/linux/of_address.h
-@@ -47,10 +47,6 @@ void __iomem *of_io_request_and_map(struct device_node *device,
- extern const __be32 *of_get_address(struct device_node *dev, int index,
- 			   u64 *size, unsigned int *flags);
+ static bool pci_use_crs = true;
+@@ -180,16 +175,13 @@ static int check_segment(u16 seg, struct device *dev, char *estr)
  
--extern int pci_register_io_range(phys_addr_t addr, resource_size_t size);
--extern unsigned long pci_address_to_pio(phys_addr_t addr);
--extern phys_addr_t pci_pio_to_address(unsigned long pio);
--
- extern int of_pci_range_parser_init(struct of_pci_range_parser *parser,
- 			struct device_node *node);
- extern struct of_pci_range *of_pci_range_parser_one(
-@@ -86,11 +82,6 @@ static inline const __be32 *of_get_address(struct device_node *dev, int index,
- 	return NULL;
- }
- 
--static inline phys_addr_t pci_pio_to_address(unsigned long pio)
--{
--	return 0;
--}
--
- static inline int of_pci_range_parser_init(struct of_pci_range_parser *parser,
- 			struct device_node *node)
+ static int setup_mcfg_map(struct acpi_pci_root_info *ci)
  {
-diff --git a/include/linux/pci.h b/include/linux/pci.h
-index 27df4a6..dac677c 100644
---- a/include/linux/pci.h
-+++ b/include/linux/pci.h
-@@ -1168,6 +1168,9 @@ int __must_check pci_bus_alloc_resource(struct pci_bus *bus,
- 			void *alignf_data);
+-	int result, seg;
+-	struct pci_root_info *info;
++	int result, seg, start, end;
+ 	struct acpi_pci_root *root = ci->root;
+ 	struct device *dev = &ci->bridge->dev;
  
+-	info = container_of(ci, struct pci_root_info, common);
+-	info->start_bus = (u8)root->secondary.start;
+-	info->end_bus = (u8)root->secondary.end;
+-	info->mcfg_added = false;
+-	seg = info->sd.domain;
++	seg = root->segment;
++	start = root->secondary.start;
++	end = root->secondary.end;
  
-+int pci_register_io_range(phys_addr_t addr, resource_size_t size);
-+unsigned long pci_address_to_pio(phys_addr_t addr);
-+phys_addr_t pci_pio_to_address(unsigned long pio);
- int pci_remap_iospace(const struct resource *res, phys_addr_t phys_addr);
+ 	/* return success if MMCFG is not in use */
+ 	if (raw_pci_ext_ops && raw_pci_ext_ops != &pci_mmcfg)
+@@ -198,13 +190,11 @@ static int setup_mcfg_map(struct acpi_pci_root_info *ci)
+ 	if (!(pci_probe & PCI_PROBE_MMCONF))
+ 		return check_segment(seg, dev, "MMCONFIG is disabled,");
  
- static inline pci_bus_addr_t pci_bus_address(struct pci_dev *pdev, int bar)
-@@ -1488,6 +1491,8 @@ static inline int pci_request_regions(struct pci_dev *dev, const char *res_name)
- { return -EIO; }
- static inline void pci_release_regions(struct pci_dev *dev) { }
+-	result = pci_mmconfig_insert(dev, seg, info->start_bus, info->end_bus,
+-				     root->mcfg_addr);
++	result = pci_mmconfig_insert(dev, seg, start, end, root->mcfg_addr);
+ 	if (result == 0) {
+ 		/* enable MMCFG if it hasn't been enabled yet */
+ 		if (raw_pci_ext_ops == NULL)
+ 			raw_pci_ext_ops = &pci_mmcfg;
+-		info->mcfg_added = true;
+ 	} else if (result != -EEXIST)
+ 		return check_segment(seg, dev,
+ 			 "fail to add MMCONFIG information,");
+@@ -214,14 +204,16 @@ static int setup_mcfg_map(struct acpi_pci_root_info *ci)
  
-+static inline unsigned long pci_address_to_pio(phys_addr_t addr) { return -1; }
+ static void teardown_mcfg_map(struct acpi_pci_root_info *ci)
+ {
+-	struct pci_root_info *info;
++	struct acpi_pci_root *root = ci->root;
++	struct pci_mmcfg_region *cfg;
+ 
+-	info = container_of(ci, struct pci_root_info, common);
+-	if (info->mcfg_added) {
+-		pci_mmconfig_delete(info->sd.domain,
+-				    info->start_bus, info->end_bus);
+-		info->mcfg_added = false;
+-	}
++	cfg = pci_mmconfig_lookup(root->segment, root->secondary.start);
++	if (!cfg)
++		return;
 +
- static inline void pci_block_cfg_access(struct pci_dev *dev) { }
- static inline int pci_block_cfg_access_in_atomic(struct pci_dev *dev)
- { return 0; }
++	if (cfg->hot_added)
++		pci_mmconfig_delete(root->segment, root->secondary.start,
++				    root->secondary.end);
+ }
+ #else
+ static int setup_mcfg_map(struct acpi_pci_root_info *ci)
 -- 
 1.9.1
-
