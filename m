@@ -1,7 +1,7 @@
 From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Subject: [RFC PATCH 3/4] PCI: hisi: Make the HiSilicon PCIe host controller ECAM compliant
-Date: Thu, 4 Feb 2016 19:37:39 +0800
-Message-ID: <1454585860-60709-4-git-send-email-gabriele.paoloni@huawei.com>
+Subject: [RFC PATCH 1/4] PCI: Designware: Add support for ACPI based controllers
+Date: Thu, 4 Feb 2016 19:37:37 +0800
+Message-ID: <1454585860-60709-2-git-send-email-gabriele.paoloni@huawei.com>
 References: <1454585860-60709-1-git-send-email-gabriele.paoloni@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
@@ -14,113 +14,119 @@ List-Id: linux-acpi@vger.kernel.org
 
 From: gabriele paoloni <gabriele.paoloni@huawei.com>
 
-This patch modifies the current Hip05/Hip06 PCIe host controller
-driver to make it ECAM compliant. This is needed in preparation
-for the ACPI based driver to allow both DT and ACPI drivers to
-use the same BIOS (that configure the Designware iATUs).
+This patch reworks the current Designware framework to
+enable ACPI based controllers.
 
 Signed-off-by: Gabriele Paoloni <gabriele.paoloni@huawei.com>
 Signed-off-by: Dongdong Liu <liudongdong3@huawei.com>
 ---
- .../devicetree/bindings/pci/hisilicon-pcie.txt     |  4 ++--
- drivers/pci/host/pcie-hisi-common.c                | 15 +++++++++++++++
- drivers/pci/host/pcie-hisi.c                       | 22 ++++++++++++++++++++++
- 3 files changed, 39 insertions(+), 2 deletions(-)
+ drivers/pci/host/pcie-designware.c | 39 +++++++++++++++++++++++++++++++++-----
+ drivers/pci/host/pcie-designware.h |  1 +
+ 2 files changed, 35 insertions(+), 5 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/pci/hisilicon-pcie.txt b/Documentation/devicetree/bindings/pci/hisilicon-pcie.txt
-index b721bea..5c1bad0 100644
---- a/Documentation/devicetree/bindings/pci/hisilicon-pcie.txt
-+++ b/Documentation/devicetree/bindings/pci/hisilicon-pcie.txt
-@@ -23,8 +23,8 @@ Optional properties:
- Hip05 Example (note that Hip06 is the same except compatible):
- 	pcie@0xb0080000 {
- 		compatible = "hisilicon,hip05-pcie", "snps,dw-pcie";
--		reg = <0 0xb0080000 0 0x10000>, <0x220 0x00000000 0 0x2000>;
--		reg-names = "rc_dbi", "config";
-+		reg = <0 0xb0080000 0 0x10000>, <0x220 0x00100000 0 0x0f00000>;
-+		reg-names = "rc_dbi", "ecam-cfg";
- 		bus-range = <0  15>;
- 		msi-parent = <&its_pcie>;
- 		#address-cells = <3>;
-diff --git a/drivers/pci/host/pcie-hisi-common.c b/drivers/pci/host/pcie-hisi-common.c
-index ff93293..cbfb6c4 100644
---- a/drivers/pci/host/pcie-hisi-common.c
-+++ b/drivers/pci/host/pcie-hisi-common.c
-@@ -23,6 +23,19 @@
- #include "pcie-hisi.h"
+diff --git a/drivers/pci/host/pcie-designware.c b/drivers/pci/host/pcie-designware.c
+index 02a7452..4ced20d 100644
+--- a/drivers/pci/host/pcie-designware.c
++++ b/drivers/pci/host/pcie-designware.c
+@@ -11,6 +11,7 @@
+  * published by the Free Software Foundation.
+  */
  
- /* HipXX PCIe host only supports 32-bit config access */
-+static int hisi_rd_other_conf(struct pcie_port *pp, struct pci_bus *bus,
-+		unsigned int devfn, int where, int size, u32 *value)
-+{
-+	return pci_generic_config_read(bus, devfn, where, size, value);
-+}
-+
-+static int hisi_wr_other_conf(struct pcie_port *pp, struct pci_bus *bus,
-+		unsigned int devfn, int where, int size, u32 value)
-+{
-+	return pci_generic_config_write(bus, devfn, where, size, value);
-+}
-+
-+/* HipXX PCIe host only supports 32-bit config access */
- static int hisi_pcie_cfg_read(struct pcie_port *pp, int where, int size,
- 			      u32 *val)
++#include <linux/acpi.h>
+ #include <linux/irq.h>
+ #include <linux/irqdomain.h>
+ #include <linux/kernel.h>
+@@ -19,6 +20,7 @@
+ #include <linux/of_address.h>
+ #include <linux/of_pci.h>
+ #include <linux/pci.h>
++#include <linux/pci-acpi.h>
+ #include <linux/pci_regs.h>
+ #include <linux/platform_device.h>
+ #include <linux/types.h>
+@@ -46,7 +48,6 @@
+ #define PCIE_MSI_INTR0_ENABLE		0x828
+ #define PCIE_MSI_INTR0_MASK		0x82C
+ #define PCIE_MSI_INTR0_STATUS		0x830
+-
+ #define PCIE_ATU_VIEWPORT		0x900
+ #define PCIE_ATU_REGION_INBOUND		(0x1 << 31)
+ #define PCIE_ATU_REGION_OUTBOUND	(0x0 << 31)
+@@ -69,7 +70,7 @@
+ #define PCIE_ATU_FUNC(x)		(((x) & 0x7) << 16)
+ #define PCIE_ATU_UPPER_TARGET		0x91C
+ 
+-static struct pci_ops dw_pcie_ops;
++struct pci_ops dw_pcie_ops;
+ 
+ int dw_pcie_cfg_read(void __iomem *addr, int size, u32 *val)
  {
-@@ -82,6 +95,8 @@ static int hisi_pcie_link_up(struct pcie_port *pp)
+@@ -657,8 +658,22 @@ static int dw_pcie_valid_config(struct pcie_port *pp,
+ static int dw_pcie_rd_conf(struct pci_bus *bus, u32 devfn, int where,
+ 			int size, u32 *val)
+ {
+-	struct pcie_port *pp = bus->sysdata;
+ 	int ret;
++	struct pcie_port *pp;
++	struct pci_bus *bridge_bus;
++
++	for (bridge_bus = bus; bridge_bus->parent;
++			bridge_bus = bridge_bus->parent)
++		;
++
++	if (has_acpi_companion(bridge_bus->bridge)) {
++#ifdef CONFIG_ACPI_PCI_HOST_GENERIC
++		struct acpi_pci_root *root = bus->sysdata;
++
++		pp = root->sysdata;
++#endif /* CONFIG_ACPI_PCI_HOST_GENERIC */
++	} else
++		pp = bus->sysdata;
+ 
+ 	if (dw_pcie_valid_config(pp, bus, PCI_SLOT(devfn)) == 0) {
+ 		*val = 0xffffffff;
+@@ -681,8 +696,22 @@ static int dw_pcie_rd_conf(struct pci_bus *bus, u32 devfn, int where,
+ static int dw_pcie_wr_conf(struct pci_bus *bus, u32 devfn,
+ 			int where, int size, u32 val)
+ {
+-	struct pcie_port *pp = bus->sysdata;
+ 	int ret;
++	struct pcie_port *pp;
++	struct pci_bus *bridge_bus;
++
++	for (bridge_bus = bus; bridge_bus->parent;
++			bridge_bus = bridge_bus->parent)
++		;
++
++	if (has_acpi_companion(bridge_bus->bridge)) {
++#ifdef CONFIG_ACPI_PCI_HOST_GENERIC
++		struct acpi_pci_root *root = bus->sysdata;
++
++		pp = root->sysdata;
++#endif /* CONFIG_ACPI_PCI_HOST_GENERIC */
++	} else
++		pp = bus->sysdata;
+ 
+ 	if (dw_pcie_valid_config(pp, bus, PCI_SLOT(devfn)) == 0)
+ 		return PCIBIOS_DEVICE_NOT_FOUND;
+@@ -700,7 +729,7 @@ static int dw_pcie_wr_conf(struct pci_bus *bus, u32 devfn,
+ 	return ret;
  }
  
- struct pcie_host_ops hisi_pcie_host_ops = {
-+	.rd_other_conf = hisi_rd_other_conf,
-+	.wr_other_conf = hisi_wr_other_conf,
- 	.rd_own_conf = hisi_pcie_cfg_read,
- 	.wr_own_conf = hisi_pcie_cfg_write,
- 	.link_up = hisi_pcie_link_up,
-diff --git a/drivers/pci/host/pcie-hisi.c b/drivers/pci/host/pcie-hisi.c
-index 552ebfc..1e45869 100644
---- a/drivers/pci/host/pcie-hisi.c
-+++ b/drivers/pci/host/pcie-hisi.c
-@@ -29,6 +29,18 @@
- #define PCIE_HIP06_CTRL_OFF					0x1000
- #define PCIE_SYS_STATE4						0x31c
+-static struct pci_ops dw_pcie_ops = {
++struct pci_ops dw_pcie_ops = {
+ 	.read = dw_pcie_rd_conf,
+ 	.write = dw_pcie_wr_conf,
+ };
+diff --git a/drivers/pci/host/pcie-designware.h b/drivers/pci/host/pcie-designware.h
+index 2356d29..fd27fa4 100644
+--- a/drivers/pci/host/pcie-designware.h
++++ b/drivers/pci/host/pcie-designware.h
+@@ -80,4 +80,5 @@ int dw_pcie_link_up(struct pcie_port *pp);
+ void dw_pcie_setup_rc(struct pcie_port *pp);
+ int dw_pcie_host_init(struct pcie_port *pp);
  
-+static void __iomem *hisi_pci_map_cfg_bus_cam(struct pci_bus *bus,
-+					     unsigned int devfn,
-+					     int where)
-+{
-+	void __iomem *addr;
-+	struct pcie_port *pp = bus->sysdata;
-+
-+	addr = pp->va_cfg1_base + where;
-+
-+	return addr;
-+}
-+
- static int hisi_add_pcie_port(struct pcie_port *pp,
- 				     struct platform_device *pdev)
- {
-@@ -48,6 +60,8 @@ static int hisi_add_pcie_port(struct pcie_port *pp,
- 
- 	pp->ops = &hisi_pcie_host_ops;
- 
-+	dw_pcie_ops.map_bus = hisi_pci_map_cfg_bus_cam;
-+
- 	ret = dw_pcie_host_init(pp);
- 	if (ret) {
- 		dev_err(&pdev->dev, "failed to initialize host\n");
-@@ -93,6 +107,14 @@ static int hisi_pcie_probe(struct platform_device *pdev)
- 
- 	hisi_pcie->pp.dbi_base = hisi_pcie->reg_base;
- 
-+	reg = platform_get_resource_byname(pdev, IORESOURCE_MEM, "ecam-cfg");
-+	hisi_pcie->pp.va_cfg0_base = devm_ioremap_resource(&pdev->dev, reg);
-+	if (IS_ERR(hisi_pcie->pp.va_cfg0_base)) {
-+		dev_err(pp->dev, "cannot get ecam-cfg\n");
-+		return PTR_ERR(hisi_pcie->pp.va_cfg0_base);
-+	}
-+	hisi_pcie->pp.va_cfg1_base = hisi_pcie->pp.va_cfg0_base;
-+
- 	ret = hisi_add_pcie_port(pp, pdev);
- 	if (ret)
- 		return ret;
++extern struct pci_ops dw_pcie_ops;
+ #endif /* _PCIE_DESIGNWARE_H */
 -- 
 1.9.1
