@@ -1,55 +1,85 @@
-From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
-Subject: Re: [PATCH v7 5/5] PCI: ACPI: Add a generic ACPI based host
- controller
-Date: Fri, 5 Feb 2016 09:47:40 +0000
-Message-ID: <20160205094740.GA31547@red-moon>
-References: <1454058340-7904-1-git-send-email-jchandra@broadcom.com>
- <1454058340-7904-6-git-send-email-jchandra@broadcom.com>
- <20160205001907.GJ7031@localhost>
- <CAKc_7PXYtFt1MQE-UGO0O5vvQ+xFKa2b5=F8wXB=EN-JUJVzZw@mail.gmail.com>
+From: Mark Brown <broonie@kernel.org>
+Subject: Re: [RFC PATCH] SPI/ACPI: DesignWare: Add ACPI support for
+ Designware SPI driver
+Date: Fri, 5 Feb 2016 11:09:00 +0000
+Message-ID: <20160205110900.GA12311@sirena.org.uk>
+References: <1454656280-130658-1-git-send-email-qiujiang@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-pci-owner@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="XsQoSWH+UP9D9v3l"
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mezzanine.sirena.org.uk ([106.187.55.193]:36158 "EHLO
+	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750729AbcBELJY (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 5 Feb 2016 06:09:24 -0500
 Content-Disposition: inline
-In-Reply-To: <CAKc_7PXYtFt1MQE-UGO0O5vvQ+xFKa2b5=F8wXB=EN-JUJVzZw@mail.gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Jayachandran Chandrashekaran Nair <jayachandran.chandrashekaran@broadcom.com>
-Cc: Bjorn Helgaas <helgaas@kernel.org>, Jayachandran C <jchandra@broadcom.com>, linux-pci@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Tomasz Nowicki <tn@semihalf.com>, xen-devel@lists.xenproject.org
+In-Reply-To: <1454656280-130658-1-git-send-email-qiujiang@huawei.com>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: qiujiang <qiujiang@huawei.com>
+Cc: linux-spi@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, haifeng.wei@huawei.com, charles.chenxin@huawei.com, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>
 
-On Fri, Feb 05, 2016 at 02:05:37PM +0530, Jayachandran Chandrashekaran Nair wrote:
 
-[...]
+--XsQoSWH+UP9D9v3l
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-> pci_host_acpi.c is a generic implementation of these using a sysdata
-> pointing to acpi_pci_root_info, and using a pointer to the pci_mmcfg_region
-> to access ECAM area, Maybe I can rename this file to
-> pci_acpi_host_generic.c to reflect this better.
+On Fri, Feb 05, 2016 at 03:11:20PM +0800, qiujiang wrote:
 
-Maybe you should stop sending this series and work with Tomasz to
-get this done, you are confusing everyone and I am really really
-annoyed about this.
+> This patch added ACPI support for DesignWare SPI mmio driver. It
+> was based the corresponding DT driver and compatible for this two
+> way. This patch has been tested on Hisilicon D02 board. It relies
+> on the GPIO patchset.
 
-Do you realize there is no point in having two patch series doing
-the same thing and wasting everyone's review time ?
+Intel are heavy users of this driver on their systems which also use
+ACPI.  Have you discussed this binding with them?  I've copied Andy and
+Jarkko who've worked on the driver recently.
 
-Do you realize he started this work long before you and went through
-several rounds of review already (I told you before but in case you
-forgot) ?
+Please use subject lines matching the style for the subsystem.  This
+makes it easier for people to identify relevant patches.
 
-Tomasz posted a version yesterday, integrating comments following months
-of review and testing and I think it is ready to get upstream:
+> +	char propname[32];
 
-https://lkml.org/lkml/2016/2/4/646
+That's a magic number, where did it come from and why is it a magic
+nummber?
 
-Did you even consider reviewing his code or helping him instead of
-churning out more patches doing the *SAME* thing ?
+> +	if (ACPI_COMPANION(&pdev->dev)) {
+> +		for (i = 0; i < dws->num_cs; i++) {
+> +			snprintf(propname, sizeof(propname), "cs%d", i);
+> +			gpiod = devm_gpiod_get(&pdev->dev,
+> +				propname, GPIOD_ASIS);
+> +			if (IS_ERR(gpiod)) {
+> +				dev_err(&pdev->dev, "Get gpio desc failed!\n");
+> +				return PTR_ERR(gpiod);
+> +			}
+> +		}
+> +	}
 
-Do you want all of us to go through your code and re-fix what has
-already been fixed in Tomasz's series with the end result of missing
-yet another merge window ?
+I'm not seeing anywhere where we store the GPIO in this loop.  It is
+therefore unclear to me how the chip select is going to work?
 
-This is really annoying, stop it please, really.
+> +static const struct acpi_device_id dw_spi_mmio_acpi_match[] = {
+> +		{"HISI0171", 0},
+> +		{ }
+> +};
+> +MODULE_DEVICE_TABLE(acpi, dw_spi_mmio_acpi_match);
 
-Thank you,
-Lorenzo
+I really do wish ACPI had some more sensible system for allocating
+device IDs so the tables were a little more legible. :(
+
+--XsQoSWH+UP9D9v3l
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJWtIKFAAoJECTWi3JdVIfQYZAH/RyCpp8PpxOlLXbbQlhRxvhZ
+w9Fzv2PtxBzLgkbM54/t0qqCUhe2iEdKKrqK6J5uNujhAOTmHlY25ZshArCMsXB1
+vAFF2Vh0e2RurXg1v69jRZA0dshoE7rzJDE+/g20wvx4EEg4jLP7pv6QwN68xFP4
+I44MHTc8UIwckSQCdVegV8fscqKXQly8g4ZctiCtXjYg67alNlbbVG5dHEGASbbE
+1wnKqIK4KeSA69vBtYwCIi2JQb6Ksp09G5ERU+8UD3AFOiDIe/gsLSMoKrWRlE2E
+Ey5a1ekVRQyQSLvhQzkBddWi6CbKv7zyy5VjZj81sJMDdakttUIY+xaujgI3iaM=
+=wY7W
+-----END PGP SIGNATURE-----
+
+--XsQoSWH+UP9D9v3l--
