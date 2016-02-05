@@ -1,85 +1,58 @@
-From: Mark Brown <broonie@kernel.org>
-Subject: Re: [RFC PATCH] SPI/ACPI: DesignWare: Add ACPI support for
- Designware SPI driver
-Date: Fri, 5 Feb 2016 11:09:00 +0000
-Message-ID: <20160205110900.GA12311@sirena.org.uk>
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+Subject: Re: [RFC PATCH] SPI/ACPI: DesignWare: Add ACPI support for Designware
+ SPI driver
+Date: Fri, 5 Feb 2016 17:55:42 +0200
+Message-ID: <CAHp75VeSkUvHSd_JC-qPzwDjBWM8oxJP8jt3UD91uq1=fvEEqw@mail.gmail.com>
 References: <1454656280-130658-1-git-send-email-qiujiang@huawei.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha256;
-	protocol="application/pgp-signature"; boundary="XsQoSWH+UP9D9v3l"
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mezzanine.sirena.org.uk ([106.187.55.193]:36158 "EHLO
-	mezzanine.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750729AbcBELJY (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 5 Feb 2016 06:09:24 -0500
-Content-Disposition: inline
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <1454656280-130658-1-git-send-email-qiujiang@huawei.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: qiujiang <qiujiang@huawei.com>
-Cc: linux-spi@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, haifeng.wei@huawei.com, charles.chenxin@huawei.com, Andy Shevchenko <andriy.shevchenko@linux.intel.com>, Jarkko Nikula <jarkko.nikula@linux.intel.com>
+Cc: Mark Brown <broonie@kernel.org>, linux-spi <linux-spi@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linuxarm@huawei.com, haifeng.wei@huawei.com, charles.chenxin@huawei.com
+List-Id: linux-acpi@vger.kernel.org
 
-
---XsQoSWH+UP9D9v3l
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-
-On Fri, Feb 05, 2016 at 03:11:20PM +0800, qiujiang wrote:
-
+On Fri, Feb 5, 2016 at 9:11 AM, qiujiang <qiujiang@huawei.com> wrote:
 > This patch added ACPI support for DesignWare SPI mmio driver. It
 > was based the corresponding DT driver and compatible for this two
 > way. This patch has been tested on Hisilicon D02 board. It relies
 > on the GPIO patchset.
 
-Intel are heavy users of this driver on their systems which also use
-ACPI.  Have you discussed this binding with them?  I've copied Andy and
-Jarkko who've worked on the driver recently.
+My comments below.
 
-Please use subject lines matching the style for the subsystem.  This
-makes it easier for people to identify relevant patches.
+> @@ -84,8 +87,6 @@ static int dw_spi_mmio_probe(struct platform_device *pdev)
+>         dws->num_cs = num_cs;
+>
+>         if (pdev->dev.of_node) {
+> -               int i;
+> -
+>                 for (i = 0; i < dws->num_cs; i++) {
+>                         int cs_gpio = of_get_named_gpio(pdev->dev.of_node,
+>                                         "cs-gpios", i);
 
-> +	char propname[32];
+It seems the driver was never validated with more than one chip select.
+Perhaps someone has to switch to use of_spi_register_master() here.
 
-That's a magic number, where did it come from and why is it a magic
-nummber?
+> @@ -104,6 +105,18 @@ static int dw_spi_mmio_probe(struct platform_device *pdev)
+>                 }
+>         }
+>
+> +       if (ACPI_COMPANION(&pdev->dev)) {
+> +               for (i = 0; i < dws->num_cs; i++) {
+> +                       snprintf(propname, sizeof(propname), "cs%d", i);
+> +                       gpiod = devm_gpiod_get(&pdev->dev,
+> +                               propname, GPIOD_ASIS);
+> +                       if (IS_ERR(gpiod)) {
+> +                               dev_err(&pdev->dev, "Get gpio desc failed!\n");
+> +                               return PTR_ERR(gpiod);
+> +                       }
+> +               }
+> +       }
 
-> +	if (ACPI_COMPANION(&pdev->dev)) {
-> +		for (i = 0; i < dws->num_cs; i++) {
-> +			snprintf(propname, sizeof(propname), "cs%d", i);
-> +			gpiod = devm_gpiod_get(&pdev->dev,
-> +				propname, GPIOD_ASIS);
-> +			if (IS_ERR(gpiod)) {
-> +				dev_err(&pdev->dev, "Get gpio desc failed!\n");
-> +				return PTR_ERR(gpiod);
-> +			}
-> +		}
-> +	}
+Like Mark noticed there is also same issue. Do you indeed check the
+configuration with different chip select signals?
 
-I'm not seeing anywhere where we store the GPIO in this loop.  It is
-therefore unclear to me how the chip select is going to work?
-
-> +static const struct acpi_device_id dw_spi_mmio_acpi_match[] = {
-> +		{"HISI0171", 0},
-> +		{ }
-> +};
-> +MODULE_DEVICE_TABLE(acpi, dw_spi_mmio_acpi_match);
-
-I really do wish ACPI had some more sensible system for allocating
-device IDs so the tables were a little more legible. :(
-
---XsQoSWH+UP9D9v3l
-Content-Type: application/pgp-signature; name="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2
-
-iQEcBAEBCAAGBQJWtIKFAAoJECTWi3JdVIfQYZAH/RyCpp8PpxOlLXbbQlhRxvhZ
-w9Fzv2PtxBzLgkbM54/t0qqCUhe2iEdKKrqK6J5uNujhAOTmHlY25ZshArCMsXB1
-vAFF2Vh0e2RurXg1v69jRZA0dshoE7rzJDE+/g20wvx4EEg4jLP7pv6QwN68xFP4
-I44MHTc8UIwckSQCdVegV8fscqKXQly8g4ZctiCtXjYg67alNlbbVG5dHEGASbbE
-1wnKqIK4KeSA69vBtYwCIi2JQb6Ksp09G5ERU+8UD3AFOiDIe/gsLSMoKrWRlE2E
-Ey5a1ekVRQyQSLvhQzkBddWi6CbKv7zyy5VjZj81sJMDdakttUIY+xaujgI3iaM=
-=wY7W
------END PGP SIGNATURE-----
-
---XsQoSWH+UP9D9v3l--
+-- 
+With Best Regards,
+Andy Shevchenko
