@@ -1,58 +1,63 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [RFC PATCH] SPI/ACPI: DesignWare: Add ACPI support for Designware
- SPI driver
-Date: Fri, 5 Feb 2016 17:55:42 +0200
-Message-ID: <CAHp75VeSkUvHSd_JC-qPzwDjBWM8oxJP8jt3UD91uq1=fvEEqw@mail.gmail.com>
-References: <1454656280-130658-1-git-send-email-qiujiang@huawei.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1454656280-130658-1-git-send-email-qiujiang@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: qiujiang <qiujiang@huawei.com>
-Cc: Mark Brown <broonie@kernel.org>, linux-spi <linux-spi@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, linuxarm@huawei.com, haifeng.wei@huawei.com, charles.chenxin@huawei.com
+From: Christopher Covington <cov@codeaurora.org>
+Subject: [PATCH v2] acpi: pci: QDF2432 32 bit config space accessors
+Date: Fri,  5 Feb 2016 11:00:53 -0500
+Message-ID: <1454688053-2280-1-git-send-email-cov@codeaurora.org>
+References: <1453233259-29562-1-git-send-email-cov@codeaurora.org>
+Return-path: <linux-arm-msm-owner@vger.kernel.org>
+In-Reply-To: <1453233259-29562-1-git-send-email-cov@codeaurora.org>
+Sender: linux-arm-msm-owner@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Tomasz Nowicki <tn@semihalf.com>, linux-arm-msm@vger.kernel.org, Timur Tabi <timur@codeaurora.org>, Jon Masters <jcm@redhat.com>, Mark Langsdorf <mlangsdo@redhat.com>, Christopher Covington <cov@codeaurora.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Fri, Feb 5, 2016 at 9:11 AM, qiujiang <qiujiang@huawei.com> wrote:
-> This patch added ACPI support for DesignWare SPI mmio driver. It
-> was based the corresponding DT driver and compatible for this two
-> way. This patch has been tested on Hisilicon D02 board. It relies
-> on the GPIO patchset.
+Qualcomm Technologies QDF2432 SoCs require 32 bit accessors to be used
+for the PCI configuration space. Register the appropriate quirk.
 
-My comments below.
+Signed-off-by: Christopher Covington <cov@codeaurora.org>
+---
+Dependent on Tomasz Nowicki's ACPI support for PCI:
+http://lists.infradead.org/pipermail/linux-arm-kernel/2016-February/thread.html#405148
 
-> @@ -84,8 +87,6 @@ static int dw_spi_mmio_probe(struct platform_device *pdev)
->         dws->num_cs = num_cs;
->
->         if (pdev->dev.of_node) {
-> -               int i;
-> -
->                 for (i = 0; i < dws->num_cs; i++) {
->                         int cs_gpio = of_get_named_gpio(pdev->dev.of_node,
->                                         "cs-gpios", i);
+v1 -> v2: Rebase and use full product name
 
-It seems the driver was never validated with more than one chip select.
-Perhaps someone has to switch to use of_spi_register_master() here.
+ drivers/acpi/mcfg.c | 23 +++++++++++++++++++++++
+ 1 file changed, 23 insertions(+)
 
-> @@ -104,6 +105,18 @@ static int dw_spi_mmio_probe(struct platform_device *pdev)
->                 }
->         }
->
-> +       if (ACPI_COMPANION(&pdev->dev)) {
-> +               for (i = 0; i < dws->num_cs; i++) {
-> +                       snprintf(propname, sizeof(propname), "cs%d", i);
-> +                       gpiod = devm_gpiod_get(&pdev->dev,
-> +                               propname, GPIOD_ASIS);
-> +                       if (IS_ERR(gpiod)) {
-> +                               dev_err(&pdev->dev, "Get gpio desc failed!\n");
-> +                               return PTR_ERR(gpiod);
-> +                       }
-> +               }
-> +       }
-
-Like Mark noticed there is also same issue. Do you indeed check the
-configuration with different chip select signals?
-
+diff --git a/drivers/acpi/mcfg.c b/drivers/acpi/mcfg.c
+index 4663f70..18e792b 100644
+--- a/drivers/acpi/mcfg.c
++++ b/drivers/acpi/mcfg.c
+@@ -78,6 +78,29 @@ static struct pci_ops default_pci_mcfg_ops = {
+ 	.write = pci_generic_config_write,
+ };
+ 
++static const struct dmi_system_id qcom_qdf2432[] = {
++	{
++		.ident = "Qualcomm Technologies QDF2432",
++		.matches = {
++			DMI_MATCH(DMI_SYS_VENDOR, "Qualcomm"),
++			DMI_MATCH(DMI_PRODUCT_NAME, "QDF2432"),
++		},
++	},
++	{ }
++};
++
++static struct pci_ops qcom_qdf2432_pci_mcfg_ops = {
++	.map_bus = pci_mcfg_dev_base,
++	.read = pci_generic_config_read32,
++	.write = pci_generic_config_write32,
++};
++
++DECLARE_ACPI_MCFG_FIXUP(qcom_qdf2432,
++			NULL,
++			&qcom_qdf2432_pci_mcfg_ops,
++			PCI_MCFG_DOMAIN_ANY,
++			PCI_MCFG_BUS_ANY);
++
+ struct pci_ops *pci_mcfg_get_ops(struct acpi_pci_root *root)
+ {
+ 	struct pci_ops *pci_mcfg_ops_quirk;
 -- 
-With Best Regards,
-Andy Shevchenko
+Qualcomm Innovation Center, Inc.
+Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
+a Linux Foundation Collaborative Project
