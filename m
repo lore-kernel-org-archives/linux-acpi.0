@@ -1,221 +1,100 @@
 From: qiujiang <qiujiang@huawei.com>
-Subject: [RFC PATCH] GPIO/ACPI: DesignWare: Add GPIO-signaled ACPI events support for power button
-Date: Fri, 5 Feb 2016 14:25:42 +0800
-Message-ID: <1454653542-122055-1-git-send-email-qiujiang@huawei.com>
+Subject: [RFC PATCH] SPI/ACPI: DesignWare: Add ACPI support for Designware SPI driver
+Date: Fri, 5 Feb 2016 15:11:20 +0800
+Message-ID: <1454656280-130658-1-git-send-email-qiujiang@huawei.com>
 Mime-Version: 1.0
 Content-Type: text/plain
-Return-path: <linux-gpio-owner@vger.kernel.org>
-Sender: linux-gpio-owner@vger.kernel.org
-To: linus.walleij@linaro.org, gnurou@gmail.com
-Cc: linux-gpio@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, haifeng.wei@huawei.com, charles.chenxin@huawei.com, qiujiang <qiujiang@huawei.com>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from szxga02-in.huawei.com ([119.145.14.65]:44251 "EHLO
+	szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750817AbcBEHF2 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 5 Feb 2016 02:05:28 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: broonie@kernel.org
+Cc: linux-spi@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, haifeng.wei@huawei.com, charles.chenxin@huawei.com, qiujiang <qiujiang@huawei.com>
 
-This patch modifies the DesignWare GPIO controller driver to
-support the GPIO-signaled ACPI Events. This is used for power
-button function on ARM server.
-
-To make it work, the _AEI and _EVT object must be defined in
-the corresponding GPIO driver's dsdt table in UEFI. At the same
-time, ACPI daemon component is also necessary.
+This patch added ACPI support for DesignWare SPI mmio driver. It
+was based the corresponding DT driver and compatible for this two
+way. This patch has been tested on Hisilicon D02 board. It relies
+on the GPIO patchset.
 
 Signed-off-by: qiujiang <qiujiang@huawei.com>
 ---
- drivers/gpio/gpio-dwapb.c                | 75 ++++++++++++++++++++------------
- include/linux/platform_data/gpio-dwapb.h |  2 +-
- 2 files changed, 49 insertions(+), 28 deletions(-)
+ drivers/spi/spi-dw-mmio.c | 26 +++++++++++++++++++++++---
+ 1 file changed, 23 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/gpio/gpio-dwapb.c b/drivers/gpio/gpio-dwapb.c
-index fcd5b0a..bfed2e9 100644
---- a/drivers/gpio/gpio-dwapb.c
-+++ b/drivers/gpio/gpio-dwapb.c
-@@ -23,6 +23,11 @@
- #include <linux/spinlock.h>
- #include <linux/platform_data/gpio-dwapb.h>
- #include <linux/slab.h>
+diff --git a/drivers/spi/spi-dw-mmio.c b/drivers/spi/spi-dw-mmio.c
+index a6d7029..de542f0 100644
+--- a/drivers/spi/spi-dw-mmio.c
++++ b/drivers/spi/spi-dw-mmio.c
+@@ -8,6 +8,7 @@
+  * version 2, as published by the Free Software Foundation.
+  */
+ 
 +#include <linux/acpi.h>
-+#include <linux/gpio.h>
-+
-+#include "gpiolib.h"
-+
+ #include <linux/clk.h>
+ #include <linux/err.h>
+ #include <linux/interrupt.h>
+@@ -36,7 +37,9 @@ static int dw_spi_mmio_probe(struct platform_device *pdev)
+ 	struct dw_spi *dws;
+ 	struct resource *mem;
+ 	int ret;
+-	int num_cs;
++	int num_cs, i;
++	struct gpio_desc *gpiod;
++	char propname[32];
  
- #define GPIO_SWPORTA_DR		0x00
- #define GPIO_SWPORTA_DDR	0x04
-@@ -296,14 +301,14 @@ static void dwapb_configure_irqs(struct dwapb_gpio *gpio,
- 				 struct dwapb_port_property *pp)
- {
- 	struct gpio_chip *gc = &port->bgc.gc;
--	struct device_node *node = pp->node;
-+	struct fwnode_handle  *fwnode = pp->fwnode;
- 	struct irq_chip_generic	*irq_gc = NULL;
- 	unsigned int hwirq, ngpio = gc->ngpio;
- 	struct irq_chip_type *ct;
- 	int err, i;
+ 	dwsmmio = devm_kzalloc(&pdev->dev, sizeof(struct dw_spi_mmio),
+ 			GFP_KERNEL);
+@@ -84,8 +87,6 @@ static int dw_spi_mmio_probe(struct platform_device *pdev)
+ 	dws->num_cs = num_cs;
  
--	gpio->domain = irq_domain_add_linear(node, ngpio,
--					     &irq_generic_chip_ops, gpio);
-+	gpio->domain = irq_domain_create_linear(fwnode,
-+				ngpio, &irq_generic_chip_ops, gpio);
- 	if (!gpio->domain)
- 		return;
- 
-@@ -421,7 +426,7 @@ static int dwapb_gpio_add_port(struct dwapb_gpio *gpio,
- 	}
- 
- #ifdef CONFIG_OF_GPIO
--	port->bgc.gc.of_node = pp->node;
-+	port->bgc.gc.of_node = to_of_node(pp->fwnode);
- #endif
- 	port->bgc.gc.ngpio = pp->ngpio;
- 	port->bgc.gc.base = pp->gpio_base;
-@@ -440,6 +445,10 @@ static int dwapb_gpio_add_port(struct dwapb_gpio *gpio,
- 	else
- 		port->is_registered = true;
- 
-+	/* Add GPIO-signaled ACPI event support */
-+	if (pp->irq)
-+		acpi_gpiochip_request_interrupts(&(port->bgc.gc));
-+
- 	return err;
- }
- 
-@@ -453,19 +462,15 @@ static void dwapb_gpio_unregister(struct dwapb_gpio *gpio)
- }
- 
- static struct dwapb_platform_data *
--dwapb_gpio_get_pdata_of(struct device *dev)
-+dwapb_gpio_get_pdata(struct device *dev)
- {
--	struct device_node *node, *port_np;
-+	struct fwnode_handle *fwnode;
- 	struct dwapb_platform_data *pdata;
- 	struct dwapb_port_property *pp;
- 	int nports;
- 	int i;
- 
--	node = dev->of_node;
--	if (!IS_ENABLED(CONFIG_OF_GPIO) || !node)
--		return ERR_PTR(-ENODEV);
+ 	if (pdev->dev.of_node) {
+-		int i;
 -
--	nports = of_get_child_count(node);
-+	nports = device_get_child_node_count(dev);
- 	if (nports == 0)
- 		return ERR_PTR(-ENODEV);
- 
-@@ -480,21 +485,19 @@ dwapb_gpio_get_pdata_of(struct device *dev)
- 	pdata->nports = nports;
- 
- 	i = 0;
--	for_each_child_of_node(node, port_np) {
--		pp = &pdata->properties[i++];
--		pp->node = port_np;
-+	device_for_each_child_node(dev, fwnode) {
-+		pp = &pdata->properties[i];
-+		pp->fwnode = fwnode;
- 
--		if (of_property_read_u32(port_np, "reg", &pp->idx) ||
-+		if (fwnode_property_read_u32(fwnode, "reg", &pp->idx) ||
- 		    pp->idx >= DWAPB_MAX_PORTS) {
--			dev_err(dev, "missing/invalid port index for %s\n",
--				port_np->full_name);
-+			dev_err(dev, "missing/invalid port index\n");
- 			return ERR_PTR(-EINVAL);
+ 		for (i = 0; i < dws->num_cs; i++) {
+ 			int cs_gpio = of_get_named_gpio(pdev->dev.of_node,
+ 					"cs-gpios", i);
+@@ -104,6 +105,18 @@ static int dw_spi_mmio_probe(struct platform_device *pdev)
  		}
- 
--		if (of_property_read_u32(port_np, "snps,nr-gpios",
-+		if (fwnode_property_read_u32(fwnode, "snps,nr-gpios",
- 					 &pp->ngpio)) {
--			dev_info(dev, "failed to get number of gpios for %s\n",
--				 port_np->full_name);
-+			dev_info(dev, "failed to get number of gpios\n");
- 			pp->ngpio = 32;
- 		}
- 
-@@ -502,18 +505,27 @@ dwapb_gpio_get_pdata_of(struct device *dev)
- 		 * Only port A can provide interrupts in all configurations of
- 		 * the IP.
- 		 */
--		if (pp->idx == 0 &&
--		    of_property_read_bool(port_np, "interrupt-controller")) {
--			pp->irq = irq_of_parse_and_map(port_np, 0);
-+		 if (dev->of_node && pp->idx == 0 &&
-+			 of_property_read_bool(to_of_node(fwnode),
-+			 "interrupt-controller")) {
-+			pp->irq = irq_of_parse_and_map(to_of_node(fwnode), 0);
- 			if (!pp->irq) {
--				dev_warn(dev, "no irq for bank %s\n",
--					 port_np->full_name);
-+			dev_warn(dev, "no irq for bank %s\n",
-+				  to_of_node(fwnode)->full_name);
- 			}
- 		}
- 
-+		if (ACPI_COMPANION(dev) && pp->idx == 0)
-+			pp->irq = platform_get_irq(to_platform_device(dev), 0);
-+
- 		pp->irq_shared	= false;
- 		pp->gpio_base	= -1;
--		pp->name	= port_np->full_name;
-+
-+		if (dev->of_node)
-+			pp->name = to_of_node(fwnode)->full_name;
-+
-+		if (ACPI_COMPANION(dev))
-+			pp->name = acpi_dev_name(to_acpi_device_node(fwnode));
  	}
  
- 	return pdata;
-@@ -529,7 +541,7 @@ static int dwapb_gpio_probe(struct platform_device *pdev)
- 	struct dwapb_platform_data *pdata = dev_get_platdata(dev);
- 
- 	if (!pdata) {
--		pdata = dwapb_gpio_get_pdata_of(dev);
-+		pdata = dwapb_gpio_get_pdata(dev);
- 		if (IS_ERR(pdata))
- 			return PTR_ERR(pdata);
- 	}
-@@ -559,6 +571,7 @@ static int dwapb_gpio_probe(struct platform_device *pdev)
- 		if (err)
- 			goto out_unregister;
- 	}
++	if (ACPI_COMPANION(&pdev->dev)) {
++		for (i = 0; i < dws->num_cs; i++) {
++			snprintf(propname, sizeof(propname), "cs%d", i);
++			gpiod = devm_gpiod_get(&pdev->dev,
++				propname, GPIOD_ASIS);
++			if (IS_ERR(gpiod)) {
++				dev_err(&pdev->dev, "Get gpio desc failed!\n");
++				return PTR_ERR(gpiod);
++			}
++		}
++	}
 +
- 	platform_set_drvdata(pdev, gpio);
- 
- 	return 0;
-@@ -586,6 +599,13 @@ static const struct of_device_id dwapb_of_match[] = {
+ 	ret = dw_spi_add_host(&pdev->dev, dws);
+ 	if (ret)
+ 		goto out;
+@@ -132,12 +145,19 @@ static const struct of_device_id dw_spi_mmio_of_match[] = {
  };
- MODULE_DEVICE_TABLE(of, dwapb_of_match);
+ MODULE_DEVICE_TABLE(of, dw_spi_mmio_of_match);
  
-+static const struct acpi_device_id dwapb_acpi_match[] = {
-+		{"HISI0181", 0},
++static const struct acpi_device_id dw_spi_mmio_acpi_match[] = {
++		{"HISI0171", 0},
 +		{ }
 +};
-+MODULE_DEVICE_TABLE(acpi, dwapb_acpi_match);
++MODULE_DEVICE_TABLE(acpi, dw_spi_mmio_acpi_match);
 +
-+
- #ifdef CONFIG_PM_SLEEP
- static int dwapb_gpio_suspend(struct device *dev)
- {
-@@ -680,6 +700,7 @@ static struct platform_driver dwapb_gpio_driver = {
- 		.name	= "gpio-dwapb",
- 		.pm	= &dwapb_gpio_pm_ops,
- 		.of_match_table = of_match_ptr(dwapb_of_match),
-+		.acpi_match_table = ACPI_PTR(dwapb_acpi_match),
+ static struct platform_driver dw_spi_mmio_driver = {
+ 	.probe		= dw_spi_mmio_probe,
+ 	.remove		= dw_spi_mmio_remove,
+ 	.driver		= {
+ 		.name	= DRIVER_NAME,
+ 		.of_match_table = dw_spi_mmio_of_match,
++		.acpi_match_table = ACPI_PTR(dw_spi_mmio_acpi_match),
  	},
- 	.probe		= dwapb_gpio_probe,
- 	.remove		= dwapb_gpio_remove,
-diff --git a/include/linux/platform_data/gpio-dwapb.h b/include/linux/platform_data/gpio-dwapb.h
-index 28702c8..c5bd1f2 100644
---- a/include/linux/platform_data/gpio-dwapb.h
-+++ b/include/linux/platform_data/gpio-dwapb.h
-@@ -15,7 +15,7 @@
- #define GPIO_DW_APB_H
- 
- struct dwapb_port_property {
--	struct device_node *node;
-+	struct fwnode_handle *fwnode;
- 	const char	*name;
- 	unsigned int	idx;
- 	unsigned int	ngpio;
+ };
+ module_platform_driver(dw_spi_mmio_driver);
 -- 
 1.9.1
 
