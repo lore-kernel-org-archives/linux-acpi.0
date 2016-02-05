@@ -1,100 +1,89 @@
-From: qiujiang <qiujiang@huawei.com>
-Subject: [RFC PATCH] SPI/ACPI: DesignWare: Add ACPI support for Designware SPI driver
-Date: Fri, 5 Feb 2016 15:11:20 +0800
-Message-ID: <1454656280-130658-1-git-send-email-qiujiang@huawei.com>
+From: Jayachandran Chandrashekaran Nair
+ <jayachandran.chandrashekaran@broadcom.com>
+Subject: Re: [PATCH v7 5/5] PCI: ACPI: Add a generic ACPI based host controller
+Date: Fri, 5 Feb 2016 14:05:37 +0530
+Message-ID: <CAKc_7PXYtFt1MQE-UGO0O5vvQ+xFKa2b5=F8wXB=EN-JUJVzZw@mail.gmail.com>
+References: <1454058340-7904-1-git-send-email-jchandra@broadcom.com>
+ <1454058340-7904-6-git-send-email-jchandra@broadcom.com>
+ <20160205001907.GJ7031@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from szxga02-in.huawei.com ([119.145.14.65]:44251 "EHLO
-	szxga02-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750817AbcBEHF2 (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Fri, 5 Feb 2016 02:05:28 -0500
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
+In-Reply-To: <20160205001907.GJ7031@localhost>
+List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
+List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
+List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
+List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
+List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
+ <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
+Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
+Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
+To: Bjorn Helgaas <helgaas@kernel.org>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Jayachandran C <jchandra@broadcom.com>, Arnd Bergmann <arnd@arndb.de>, linux-pci@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-acpi@vger.kernel.org, Tomasz Nowicki <tn@semihalf.com>, Bjorn Helgaas <bhelgaas@google.com>, xen-devel@lists.xenproject.org, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: broonie@kernel.org
-Cc: linux-spi@vger.kernel.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linuxarm@huawei.com, haifeng.wei@huawei.com, charles.chenxin@huawei.com, qiujiang <qiujiang@huawei.com>
 
-This patch added ACPI support for DesignWare SPI mmio driver. It
-was based the corresponding DT driver and compatible for this two
-way. This patch has been tested on Hisilicon D02 board. It relies
-on the GPIO patchset.
+Hi Bjorn,
 
-Signed-off-by: qiujiang <qiujiang@huawei.com>
----
- drivers/spi/spi-dw-mmio.c | 26 +++++++++++++++++++++++---
- 1 file changed, 23 insertions(+), 3 deletions(-)
+On Fri, Feb 5, 2016 at 5:49 AM, Bjorn Helgaas <helgaas@kernel.org> wrote:
+> Hi Jayachandran,
+>
+> On Fri, Jan 29, 2016 at 02:35:40PM +0530, Jayachandran C wrote:
+>> Add a simple ACPI based PCI host controller under config option
+>> ACPI_PCI_HOST_GENERIC. This is done by providing an implementation
+>> of pci_acpi_scan_root().
+>>
+>> The pci_mmcfg_list handling is done by the ACPI code, so we keep a
+>> reference to the pci_mmcfg_region in sysdata. The ECAM region will
+>> be already mapped, so map_bus can be implemented by using the
+>> virt pointer for the pci_mmcfg_region. pci_generic_config_read
+>> and pci_generic_config_write are used for config space read/write.
+>>
+>> Also, we provide implementations of raw_pci_read and raw_pci_write
+>> hat are needed by ACPI based on the pci_mmcfg_list.
+>>
+>> pci_acpi_set_companion() and acpi_pci_get_segment() are defined
+>> using sysdata of generic ACPI host controller so that PCI domain
+>> and ACPI companion are set in PCI code rather than platform code.
+>>
+>> This code is currently enabled only for ARM64.
+>>
+>> Signed-off-by: Jayachandran C <jchandra@broadcom.com>
+>> ---
+>>  drivers/acpi/Kconfig         |   8 ++
+>>  drivers/acpi/Makefile        |   1 +
+>>  drivers/acpi/pci_host_acpi.c | 186 +++++++++++++++++++++++++++++++++++++++++++
+>>  include/linux/pci-acpi.h     |  17 ++++
+>>  4 files changed, 212 insertions(+)
+>>  create mode 100644 drivers/acpi/pci_host_acpi.c
+>
+> I'm speaking a little bit out of turn here, because this is ACPI code,
+> but I'm confused about pci_host_acpi.c.  We already have pci_root.c,
+> which is *supposed* to be arch-independent.  I know pci_root.c is
+> crufty and could be improved, but it does work today on x86 and ia64,
+> and it handles some generic things that pci_host_acpi.c does not,
+> e.g., _OSC, NUMA, host bridge hotplug, etc.
+>
+> I'd really like to see pci_root.c improved so it could work on x86,
+> ia64, and arm64.  I'm sure that was probably the first thing you
+> tried, so likely there are issues there.  Are they insurmountable?
 
-diff --git a/drivers/spi/spi-dw-mmio.c b/drivers/spi/spi-dw-mmio.c
-index a6d7029..de542f0 100644
---- a/drivers/spi/spi-dw-mmio.c
-+++ b/drivers/spi/spi-dw-mmio.c
-@@ -8,6 +8,7 @@
-  * version 2, as published by the Free Software Foundation.
-  */
- 
-+#include <linux/acpi.h>
- #include <linux/clk.h>
- #include <linux/err.h>
- #include <linux/interrupt.h>
-@@ -36,7 +37,9 @@ static int dw_spi_mmio_probe(struct platform_device *pdev)
- 	struct dw_spi *dws;
- 	struct resource *mem;
- 	int ret;
--	int num_cs;
-+	int num_cs, i;
-+	struct gpio_desc *gpiod;
-+	char propname[32];
- 
- 	dwsmmio = devm_kzalloc(&pdev->dev, sizeof(struct dw_spi_mmio),
- 			GFP_KERNEL);
-@@ -84,8 +87,6 @@ static int dw_spi_mmio_probe(struct platform_device *pdev)
- 	dws->num_cs = num_cs;
- 
- 	if (pdev->dev.of_node) {
--		int i;
--
- 		for (i = 0; i < dws->num_cs; i++) {
- 			int cs_gpio = of_get_named_gpio(pdev->dev.of_node,
- 					"cs-gpios", i);
-@@ -104,6 +105,18 @@ static int dw_spi_mmio_probe(struct platform_device *pdev)
- 		}
- 	}
- 
-+	if (ACPI_COMPANION(&pdev->dev)) {
-+		for (i = 0; i < dws->num_cs; i++) {
-+			snprintf(propname, sizeof(propname), "cs%d", i);
-+			gpiod = devm_gpiod_get(&pdev->dev,
-+				propname, GPIOD_ASIS);
-+			if (IS_ERR(gpiod)) {
-+				dev_err(&pdev->dev, "Get gpio desc failed!\n");
-+				return PTR_ERR(gpiod);
-+			}
-+		}
-+	}
-+
- 	ret = dw_spi_add_host(&pdev->dev, dws);
- 	if (ret)
- 		goto out;
-@@ -132,12 +145,19 @@ static const struct of_device_id dw_spi_mmio_of_match[] = {
- };
- MODULE_DEVICE_TABLE(of, dw_spi_mmio_of_match);
- 
-+static const struct acpi_device_id dw_spi_mmio_acpi_match[] = {
-+		{"HISI0171", 0},
-+		{ }
-+};
-+MODULE_DEVICE_TABLE(acpi, dw_spi_mmio_acpi_match);
-+
- static struct platform_driver dw_spi_mmio_driver = {
- 	.probe		= dw_spi_mmio_probe,
- 	.remove		= dw_spi_mmio_remove,
- 	.driver		= {
- 		.name	= DRIVER_NAME,
- 		.of_match_table = dw_spi_mmio_of_match,
-+		.acpi_match_table = ACPI_PTR(dw_spi_mmio_acpi_match),
- 	},
- };
- module_platform_driver(dw_spi_mmio_driver);
--- 
-1.9.1
+pci_root.c leaves the implementation of pci_acpi_scan_root() to the
+architecture. Implementing pci_acpi_scan_root needs a
+pci_acpi_root_ops instance and a pci_ops instance and related functions.
+The architecture is also expected to implement raw_pci_read and
+raw_pci_write.
 
+pci_host_acpi.c is a generic implementation of these using a sysdata
+pointing to acpi_pci_root_info, and using a pointer to the pci_mmcfg_region
+to access ECAM area, Maybe I can rename this file to
+pci_acpi_host_generic.c to reflect this better.
+
+arm64 is the only user of this generic implementation now. The config
+option CONFIG_ACPI_PCI_HOST_GENERIC has to be set on the
+architecture that chooses to use this generic code instead of its own
+implementation.
+
+JC.
+{Sorry if the formatting is wrong, using webmail due to internal IT changes]
