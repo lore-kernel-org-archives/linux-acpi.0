@@ -1,64 +1,109 @@
-From: Dave Young <dyoung@redhat.com>
-Subject: Re: [PATCH] x86/efi: skip bgrt init for kexec reboot
-Date: Fri, 5 Feb 2016 08:41:15 +0800
-Message-ID: <20160205004115.GA3651@dhcp-128-65.nay.redhat.com>
-References: <20160127112044.GA2961@dhcp-128-65.nay.redhat.com>
- <20160203214200.GA15110@dhcp-128-65.nay.redhat.com>
- <20160203225333.GA31246@codeblueprint.co.uk>
- <20160204100329.GA2586@codeblueprint.co.uk>
- <20160204110903.GA2977@dhcp-128-65.nay.redhat.com>
- <20160204115656.GB2586@codeblueprint.co.uk>
+From: Shannon Zhao <zhaoshenglong@huawei.com>
+Subject: [PATCH v4 01/17] Xen: ACPI: Hide UART used by Xen
+Date: Fri, 5 Feb 2016 11:05:36 +0800
+Message-ID: <1454641552-12576-2-git-send-email-zhaoshenglong@huawei.com>
+References: <1454641552-12576-1-git-send-email-zhaoshenglong@huawei.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:33436 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750850AbcBEAlk (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Thu, 4 Feb 2016 19:41:40 -0500
-Content-Disposition: inline
-In-Reply-To: <20160204115656.GB2586@codeblueprint.co.uk>
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Type: text/plain
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <1454641552-12576-1-git-send-email-zhaoshenglong@huawei.com>
+Sender: linux-kernel-owner@vger.kernel.org
+To: linux-arm-kernel@lists.infradead.org, ard.biesheuvel@linaro.org, stefano.stabellini@citrix.com, david.vrabel@citrix.com
+Cc: catalin.marinas@arm.com, will.deacon@arm.com, mark.rutland@arm.com, julien.grall@citrix.com, xen-devel@lists.xen.org, devicetree@vger.kernel.org, linux-efi@vger.kernel.org, linux-kernel@vger.kernel.org, ian.campbell@citrix.com, shannon.zhao@linaro.org, peter.huangpeng@huawei.com, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, "open list:ACPI" <linux-acpi@vger.kernel.org>
 List-Id: linux-acpi@vger.kernel.org
-To: Matt Fleming <matt@codeblueprint.co.uk>
-Cc: linux-efi@vger.kernel.org, kexec@lists.infradead.org, linux-kernel@vger.kernel.org, Borislav Petkov <bp@alien8.de>, linux-acpi@vger.kernel.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Josh Triplett <josh@joshtriplett.org>, Matthew Garrett <mjg59@srcf.ucam.org>
 
-On 02/04/16 at 11:56am, Matt Fleming wrote:
-> On Thu, 04 Feb, at 07:09:03PM, Dave Young wrote:
-> > 
-> > Consider the original code path, maybe change it to efi_kexec_setup will
-> > be better to remind people? Or something else like a wraper function with
-> > similar name..
->  
-> Possibly. I had considered adding a new efi_enabled() bit for
-> KEXEC_BOOT, but I'm worried that'll just encourage more uses.
-> 
-> The best approach is going to be to see whether we can reduce the uses
-> of efi_setup and the associated special code. Once we've completed
-> that exercise, we can think about the best name for this variable.
+From: Shannon Zhao <shannon.zhao@linaro.org>
 
-Ok, thanks.
+ACPI 6.0 introduces a new table STAO to list the devices which are used
+by Xen and can't be used by Dom0. On Xen virtual platforms, the physical
+UART is used by Xen. So here it hides UART from Dom0.
 
-> 
-> > For building ACPI tables we need do it in kernel instead of kexec-tools
-> > because of kexec_file_load for secure boot case so we still need a conditional
-> > code path for kexec..
-> 
-> Note that it may not be necessary to build any ACPI tables at all,
-> provided that things like acpi_get_table() fail gracefully for kexec.
-> I'm assuming that's the problem that you discovered when writing this
-> patch.
-> 
-> And yes, I don't expect you can build the ACPI table from userspace,
-> but it should at least be possible to do it in setup_boot_parameters()
-> or so when you setup the EFI table pointers (efi.config_tables), etc.
-> I think that would be a natural home for this feature.
+Signed-off-by: Shannon Zhao <shannon.zhao@linaro.org>
+Reviewed-by: Stefano Stabellini <stefano.stabellini@eu.citrix.com>
+---
+CC: "Rafael J. Wysocki" <rjw@rjwysocki.net> (supporter:ACPI)
+CC: Len Brown <lenb@kernel.org> (supporter:ACPI)
+CC: linux-acpi@vger.kernel.org (open list:ACPI)
+---
+ drivers/acpi/bus.c | 38 +++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 37 insertions(+), 1 deletion(-)
 
-Thing is we support both kexec_load and kexec_file_load, if we do something
-in kernel loader we will need do same in userspace kexec-tools as well.
-
-Another way is we probably can retain the boot service areas for kexec
-boot, but yes it is another special handling for kexec :(. Is this way
-better to you?
-
-Thanks
-Dave
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 891c42d..5b5433d 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -46,6 +46,7 @@ ACPI_MODULE_NAME("bus");
+ struct acpi_device *acpi_root;
+ struct proc_dir_entry *acpi_root_dir;
+ EXPORT_SYMBOL(acpi_root_dir);
++static u64 spcr_uart_addr;
+ 
+ #ifdef CONFIG_X86
+ #ifdef CONFIG_ACPI_CUSTOM_DSDT
+@@ -105,6 +106,22 @@ acpi_status acpi_bus_get_status_handle(acpi_handle handle,
+ 	return status;
+ }
+ 
++static bool acpi_check_device_is_ignored(acpi_handle handle)
++{
++	acpi_status status;
++	u64 addr;
++
++	/* Check if it should ignore the UART device */
++	if (spcr_uart_addr != 0) {
++		status = acpi_evaluate_integer(handle, METHOD_NAME__ADR, NULL,
++					       &addr);
++		if (ACPI_SUCCESS(status) && addr == spcr_uart_addr)
++			return true;
++	}
++
++	return false;
++}
++
+ int acpi_bus_get_status(struct acpi_device *device)
+ {
+ 	acpi_status status;
+@@ -114,7 +131,8 @@ int acpi_bus_get_status(struct acpi_device *device)
+ 	if (ACPI_FAILURE(status))
+ 		return -ENODEV;
+ 
+-	acpi_set_device_status(device, sta);
++	if (!acpi_check_device_is_ignored(device->handle))
++		acpi_set_device_status(device, sta);
+ 
+ 	if (device->status.functional && !device->status.present) {
+ 		ACPI_DEBUG_PRINT((ACPI_DB_INFO, "Device [%s] status [%08x]: "
+@@ -1070,6 +1088,8 @@ EXPORT_SYMBOL_GPL(acpi_kobj);
+ static int __init acpi_init(void)
+ {
+ 	int result;
++	acpi_status status;
++	struct acpi_table_stao *stao_ptr;
+ 
+ 	if (acpi_disabled) {
+ 		printk(KERN_INFO PREFIX "Interpreter disabled.\n");
+@@ -1082,6 +1102,22 @@ static int __init acpi_init(void)
+ 		acpi_kobj = NULL;
+ 	}
+ 
++	/* If there is STAO table, check whether it needs to ignore the UART
++	 * device in SPCR table.
++	 */
++	status = acpi_get_table(ACPI_SIG_STAO, 0,
++				(struct acpi_table_header **)&stao_ptr);
++	if (ACPI_SUCCESS(status) && stao_ptr->ignore_uart) {
++		struct acpi_table_spcr *spcr_ptr;
++
++		status = acpi_get_table(ACPI_SIG_SPCR, 0,
++					(struct acpi_table_header **)&spcr_ptr);
++		if (ACPI_SUCCESS(status))
++			spcr_uart_addr = spcr_ptr->serial_port.address;
++		else
++			printk(KERN_WARNING "STAO table present, but SPCR is missing.\n");
++	}
++
+ 	init_acpi_device_notify();
+ 	result = acpi_bus_init();
+ 	if (result) {
+-- 
+2.0.4
