@@ -1,44 +1,84 @@
-From: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Subject: Re: Problems since commit Recognize that Interrupt Line 255 means "not connected"
-Date: Sat, 06 Feb 2016 00:37:45 +0100
-Message-ID: <1676062.Zh6hUgWIix@vostro.rjw.lan>
-References: <56B52990.3030103@gmail.com>
+From: "Rafael J. Wysocki" <rafael@kernel.org>
+Subject: [GIT PULL] Power management and ACPI fixes for v4.5-rc3
+Date: Sat, 6 Feb 2016 00:52:14 +0100
+Message-ID: <CAJZ5v0iSgy+t+QoNvK3vtnAWJpd2Sjtvv+fcs2N3G8vEJ1z3rw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7Bit
-Return-path: <linux-pci-owner@vger.kernel.org>
-In-Reply-To: <56B52990.3030103@gmail.com>
-Sender: linux-pci-owner@vger.kernel.org
-To: Heiner Kallweit <hkallweit1@gmail.com>
-Cc: Chen Fan <chen.fan.fnst@cn.fujitsu.com>, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Linux PCI <linux-pci@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-lb0-f177.google.com ([209.85.217.177]:32945 "EHLO
+	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750699AbcBEXwQ (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Fri, 5 Feb 2016 18:52:16 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: ACPI Devel Maling List <linux-acpi@vger.kernel.org>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
 
-On Saturday, February 06, 2016 12:00:32 AM Heiner Kallweit wrote:
-> Since commit a44c386a361e "x86/PCI/ACPI: Recognize that Interrupt Line 255
-> means "not connected"" I get several "PCI INT not connected" warnings on
-> a Zotac CI321 and EHCI failes to load:
+Hi Linus,
 
-That doesn't follow clearly from your report, but I'm assuming that it works
-correctly without that commit, right?
+Please pull from
 
-> ehci-pci 0000:00:1d.0: PCI INT not connected
-> ehci-pci 0000:00:1d.0: EHCI Host Controller
-> ehci-pci 0000:00:1d.0: new USB bus registered, assigned bus number 3
-> ehci-pci 0000:00:1d.0: debug port 2
-> ehci-pci 0000:00:1d.0: cache line size of 64 is not supported
-> ehci-pci 0000:00:1d.0: request interrupt -2147483648 failed
-> ehci-pci 0000:00:1d.0: USB bus 3 deregistered
-> ehci-pci 0000:00:1d.0: init 0000:00:1d.0 fail, -107
-> ehci-pci: probe of 0000:00:1d.0 failed with error -107
-> 
-> XHCI brings the "PCI INT not connected" warning too but loads properly
-> (most likely because it uses a MSI interrupt).
-> 
-> Not sure whether this commit is to blame or a broken BIOS.
-> Just let me know in case you need additional information.
+ git://git.kernel.org/pub/scm/linux/kernel/git/rafael/linux-pm.git \
+ pm+acpi-4.5-rc3
 
-Well, even if the BIOS is "broken" and the kernel without the above commit
-is able to work with it, we cannot break that.
+to receive power management and ACPI fixes for v4.5-rc3 with top-most
+commit 79e2f8dd522873614eb31001745af487451a10de
 
-Thanks,
-Rafael
+ Merge branches 'pm-core' and 'pm-domains'
+
+on top of commit 36f90b0a2ddd60823fe193a85e60ff1906c2a9b3
+
+ Linux 4.5-rc2
+
+These are: a fix for a recently introduced false-positive
+warnings about PM domain pointers being changed inappropriately
+(harmless but annoying), an MCH size workaround quirk for one
+more platform, a compiler warning fix (generic power domains
+framework), an ACPI LPSS (Intel SoCs) driver fixup and a cleanup
+of the ACPI CPPC core code.
+
+Specifics:
+
+ - PM core fix to avoid false-positive warnings generated when
+   the pm_domain field is cleared for a device that appears to
+   be bound to a driver (Rafael Wysocki).
+
+ - New MCH size workaround quirk for Intel Haswell-ULT (Josh Boyer).
+
+ - Fix for an "unused function" compiler warning in the generic
+   power domains framework (Ulf Hansson).
+
+ - Fixup for the ACPI driver for Intel SoCs (acpi-lpss) to set
+   the PM domain pointer of a device properly in one place that
+   was overlooked by a recent PM core update (Andy Shevchenko).
+
+ - Removal of a redundant function declaration in the ACPI CPPC
+   core code (Timur Tabi).
+
+Thanks!
+
+---------------
+
+Andy Shevchenko (1):
+      ACPI / LPSS: set PM domain via helper setter
+
+Josh Boyer (1):
+      PNP: Add Haswell-ULT to Intel MCH size workaround
+
+Rafael J. Wysocki (1):
+      PM: Avoid false-positive warnings in dev_pm_domain_set()
+
+Timur Tabi (1):
+      ACPI / CPPC: remove redundant mbox_send_message() declaration
+
+Ulf Hansson (1):
+      PM / Domains: Silence compiler warning for an unused function
+
+---------------
+
+ drivers/acpi/acpi_lpss.c    |  2 +-
+ drivers/base/power/common.c |  2 +-
+ drivers/base/power/domain.c | 27 +++++++--------------------
+ drivers/pnp/quirks.c        |  1 +
+ include/acpi/cppc_acpi.h    |  1 -
+ 5 files changed, 10 insertions(+), 23 deletions(-)
