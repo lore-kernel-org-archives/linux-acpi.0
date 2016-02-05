@@ -1,63 +1,51 @@
-From: Christopher Covington <cov@codeaurora.org>
-Subject: [PATCH v2] acpi: pci: QDF2432 32 bit config space accessors
-Date: Fri,  5 Feb 2016 11:00:53 -0500
-Message-ID: <1454688053-2280-1-git-send-email-cov@codeaurora.org>
-References: <1453233259-29562-1-git-send-email-cov@codeaurora.org>
-Return-path: <linux-arm-msm-owner@vger.kernel.org>
-In-Reply-To: <1453233259-29562-1-git-send-email-cov@codeaurora.org>
-Sender: linux-arm-msm-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Tomasz Nowicki <tn@semihalf.com>, linux-arm-msm@vger.kernel.org, Timur Tabi <timur@codeaurora.org>, Jon Masters <jcm@redhat.com>, Mark Langsdorf <mlangsdo@redhat.com>, Christopher Covington <cov@codeaurora.org>
+From: Mark Brown <broonie-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [RFC PATCH] SPI/ACPI: DesignWare: Add ACPI support for
+ Designware SPI driver
+Date: Fri, 5 Feb 2016 16:11:13 +0000
+Message-ID: <20160205161113.GY4455@sirena.org.uk>
+References: <1454656280-130658-1-git-send-email-qiujiang@huawei.com>
+ <CAHp75VeSkUvHSd_JC-qPzwDjBWM8oxJP8jt3UD91uq1=fvEEqw@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="Z1EIi0fvCUyWUKja"
+Return-path: <linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Disposition: inline
+In-Reply-To: <CAHp75VeSkUvHSd_JC-qPzwDjBWM8oxJP8jt3UD91uq1=fvEEqw-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
+Sender: linux-spi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Andy Shevchenko <andy.shevchenko-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Cc: qiujiang <qiujiang-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, linux-spi <linux-spi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, "linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linuxarm-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, haifeng.wei-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, charles.chenxin-hv44wF8Li93QT0dZR+AlfA@public.gmane.org
 List-Id: linux-acpi@vger.kernel.org
 
-Qualcomm Technologies QDF2432 SoCs require 32 bit accessors to be used
-for the PCI configuration space. Register the appropriate quirk.
 
-Signed-off-by: Christopher Covington <cov@codeaurora.org>
----
-Dependent on Tomasz Nowicki's ACPI support for PCI:
-http://lists.infradead.org/pipermail/linux-arm-kernel/2016-February/thread.html#405148
+--Z1EIi0fvCUyWUKja
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-v1 -> v2: Rebase and use full product name
+On Fri, Feb 05, 2016 at 05:55:42PM +0200, Andy Shevchenko wrote:
 
- drivers/acpi/mcfg.c | 23 +++++++++++++++++++++++
- 1 file changed, 23 insertions(+)
+> Like Mark noticed there is also same issue. Do you indeed check the
+> configuration with different chip select signals?
 
-diff --git a/drivers/acpi/mcfg.c b/drivers/acpi/mcfg.c
-index 4663f70..18e792b 100644
---- a/drivers/acpi/mcfg.c
-+++ b/drivers/acpi/mcfg.c
-@@ -78,6 +78,29 @@ static struct pci_ops default_pci_mcfg_ops = {
- 	.write = pci_generic_config_write,
- };
- 
-+static const struct dmi_system_id qcom_qdf2432[] = {
-+	{
-+		.ident = "Qualcomm Technologies QDF2432",
-+		.matches = {
-+			DMI_MATCH(DMI_SYS_VENDOR, "Qualcomm"),
-+			DMI_MATCH(DMI_PRODUCT_NAME, "QDF2432"),
-+		},
-+	},
-+	{ }
-+};
-+
-+static struct pci_ops qcom_qdf2432_pci_mcfg_ops = {
-+	.map_bus = pci_mcfg_dev_base,
-+	.read = pci_generic_config_read32,
-+	.write = pci_generic_config_write32,
-+};
-+
-+DECLARE_ACPI_MCFG_FIXUP(qcom_qdf2432,
-+			NULL,
-+			&qcom_qdf2432_pci_mcfg_ops,
-+			PCI_MCFG_DOMAIN_ANY,
-+			PCI_MCFG_BUS_ANY);
-+
- struct pci_ops *pci_mcfg_get_ops(struct acpi_pci_root *root)
- {
- 	struct pci_ops *pci_mcfg_ops_quirk;
--- 
-Qualcomm Innovation Center, Inc.
-Qualcomm Innovation Center, Inc. is a member of Code Aurora Forum,
-a Linux Foundation Collaborative Project
+It's not clear to me that *any* chip select signals work, we get a GPIO
+descriptor back but I didn't see any code that ever used the value.
+
+--Z1EIi0fvCUyWUKja
+Content-Type: application/pgp-signature; name="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2
+
+iQEcBAEBCAAGBQJWtMmgAAoJECTWi3JdVIfQfLEH/j1ZbidUWinUSaeWo5mGcn1Q
+e2QCjzuuFZQ7hijP2cFQnac+59ycPC/lgZ91VZo668y3Gt4DK89YtBSzscyRQ4ry
+BPjuysM0FP9QZZdQTrjjCcoi/zlsWGTKlDN9qcr4E5AyQ2uPVtcF7C9th7Yi8Ao2
+ubxI9osyMckKIoKN5ofaZ7qoGkrlGjD2xiAqAARm4YudTyWr3gqzcuqdEaR+aSFr
+kEZ+9K+DGQGqC2cEsuMQ+7G3C8oRvO/9slg7PDhwznqGxDHq84iehd88PPTPWNc2
+NZbKyqetkXyn9upNKE/UB44IlR7WMjMc+xzDcj+NmOcCkJd+QPA/1NiSJXDKGWw=
+=LX+c
+-----END PGP SIGNATURE-----
+
+--Z1EIi0fvCUyWUKja--
+--
+To unsubscribe from this list: send the line "unsubscribe linux-spi" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
