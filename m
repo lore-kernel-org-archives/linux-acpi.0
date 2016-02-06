@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 10/14] ACPI 2.0 / ECDT: Enable correct ECDT initialization order
-Date: Sat,  6 Feb 2016 11:53:58 +0800
-Message-ID: <2dfd3ba26230a3e9e084e8e2503736c12640b3f1.1454730660.git.lv.zheng@intel.com>
+Subject: [PATCH 11/14] ACPI 2.0 / AML: Improve module level execution by moving the If/Else/While execution to per-table basis
+Date: Sat,  6 Feb 2016 11:54:05 +0800
+Message-ID: <c1c82566e237cc53347e3ba4f8d7f2f80dce4aa2.1454730660.git.lv.zheng@intel.com>
 References: <cover.1454730659.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1454730659.git.lv.zheng@intel.com>
@@ -10,85 +10,30 @@ To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@r
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-With wrong ECDT fixes reversed, it is able to put ECDT probing before
-acpi_enable_subsystem().
+This experiment moves module level If/Else/While executions to per-table
+basis.
 
-But the ultimate purpose of ECDT re-enabling is to put the ECDT probing
-before the namespace initialization (acpi_load_tables()). This patch
-achieves this with protections so that we can enable it later when all
-necessary corrections are upstreamed.
+If regressions are found against the enabling of this improvement, this
+patch is the only one should get bisected. Please report the regressions
+to the kernel bugzilla for further root causing.
 
-Signed-off-by: Lv Zheng  <lv.zheng@intel.com>
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/bus.c |   39 +++++++++++++++++++++++++--------------
- 1 file changed, 25 insertions(+), 14 deletions(-)
+ include/acpi/acpixf.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
-index 891c42d..8752860 100644
---- a/drivers/acpi/bus.c
-+++ b/drivers/acpi/bus.c
-@@ -911,11 +911,13 @@ void __init acpi_early_init(void)
- 		goto error0;
- 	}
+diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
+index c96621e..a98455c 100644
+--- a/include/acpi/acpixf.h
++++ b/include/acpi/acpixf.h
+@@ -192,7 +192,7 @@ ACPI_INIT_GLOBAL(u8, acpi_gbl_do_not_use_xsdt, FALSE);
+ /*
+  * Optionally support group module level code.
+  */
+-ACPI_INIT_GLOBAL(u8, acpi_gbl_group_module_level_code, TRUE);
++ACPI_INIT_GLOBAL(u8, acpi_gbl_group_module_level_code, FALSE);
  
--	status = acpi_load_tables();
--	if (ACPI_FAILURE(status)) {
--		printk(KERN_ERR PREFIX
--		       "Unable to load the System Description Tables\n");
--		goto error0;
-+	if (acpi_gbl_group_module_level_code) {
-+		status = acpi_load_tables();
-+		if (ACPI_FAILURE(status)) {
-+			printk(KERN_ERR PREFIX
-+			       "Unable to load the System Description Tables\n");
-+			goto error0;
-+		}
- 	}
- 
- #ifdef CONFIG_X86
-@@ -981,17 +983,10 @@ static int __init acpi_bus_init(void)
- 
- 	acpi_os_initialize1();
- 
--	status = acpi_enable_subsystem(ACPI_NO_ACPI_ENABLE);
--	if (ACPI_FAILURE(status)) {
--		printk(KERN_ERR PREFIX
--		       "Unable to start the ACPI Interpreter\n");
--		goto error1;
--	}
--
- 	/*
- 	 * ACPI 2.0 requires the EC driver to be loaded and work before
--	 * the EC device is found in the namespace (i.e. before acpi_initialize_objects()
--	 * is called).
-+	 * the EC device is found in the namespace (i.e. before
-+	 * acpi_load_tables() is called).
- 	 *
- 	 * This is accomplished by looking for the ECDT table, and getting
- 	 * the EC parameters out of that.
-@@ -999,6 +994,22 @@ static int __init acpi_bus_init(void)
- 	status = acpi_ec_ecdt_probe();
- 	/* Ignore result. Not having an ECDT is not fatal. */
- 
-+	if (!acpi_gbl_group_module_level_code) {
-+		status = acpi_load_tables();
-+		if (ACPI_FAILURE(status)) {
-+			printk(KERN_ERR PREFIX
-+			       "Unable to load the System Description Tables\n");
-+			goto error1;
-+		}
-+	}
-+
-+	status = acpi_enable_subsystem(ACPI_NO_ACPI_ENABLE);
-+	if (ACPI_FAILURE(status)) {
-+		printk(KERN_ERR PREFIX
-+		       "Unable to start the ACPI Interpreter\n");
-+		goto error1;
-+	}
-+
- 	status = acpi_initialize_objects(ACPI_FULL_INITIALIZATION);
- 	if (ACPI_FAILURE(status)) {
- 		printk(KERN_ERR PREFIX "Unable to initialize ACPI objects\n");
+ /*
+  * Optionally use 32-bit FADT addresses if and when there is a conflict
 -- 
 1.7.10
