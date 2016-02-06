@@ -1,187 +1,164 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 01/14] ACPI / OSL: Cleanup initrd table override code
-Date: Sat,  6 Feb 2016 11:52:35 +0800
-Message-ID: <a6aefa520c42da1c4735561a39057f585b471527.1454730659.git.lv.zheng@intel.com>
+Subject: [PATCH 07/14] ACPICA: Events: Fix an issue that _REG association can happen before namespace is initialized
+Date: Sat,  6 Feb 2016 11:53:14 +0800
+Message-ID: <c217f843a5c0e8d328bffa6d4f913fb8a64a0a5f.1454730660.git.lv.zheng@intel.com>
 References: <cover.1454730659.git.lv.zheng@intel.com>
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga14.intel.com ([192.55.52.115]:15577 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751421AbcBFDwl (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Fri, 5 Feb 2016 22:52:41 -0500
+Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1454730659.git.lv.zheng@intel.com>
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <len.brown@intel.com>
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-This patch cleans up initrd table override code, merging redundant logics
-and re-ordering code blocks. No functional changes.
+Current code flow cannot ensure _REG association can happen after the
+namespace is initialized, so we move _REG association to where _REG was
+about to run to fix this issue.
+
+This issue is detected when acpi_ev_initialize_region() is invoked during
+the table loading. And this is one of the most important the root cause why
+ACPICA table loading is split into 2 load passes. Lv Zheng.
 
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- drivers/acpi/osl.c |  114 ++++++++++++++++++++++++----------------------------
- 1 file changed, 52 insertions(+), 62 deletions(-)
+ drivers/acpi/acpica/acevents.h |    2 --
+ drivers/acpi/acpica/evregion.c |   71 ++++++++++++++--------------------------
+ drivers/acpi/acpica/evrgnini.c |    1 -
+ 3 files changed, 24 insertions(+), 50 deletions(-)
 
-diff --git a/drivers/acpi/osl.c b/drivers/acpi/osl.c
-index 67da6fb..abfc06b 100644
---- a/drivers/acpi/osl.c
-+++ b/drivers/acpi/osl.c
-@@ -602,6 +602,14 @@ acpi_os_predefined_override(const struct acpi_predefined_names *init_val,
- 	return AE_OK;
- }
+diff --git a/drivers/acpi/acpica/acevents.h b/drivers/acpi/acpica/acevents.h
+index 010cf81..17f2217 100644
+--- a/drivers/acpi/acpica/acevents.h
++++ b/drivers/acpi/acpica/acevents.h
+@@ -198,8 +198,6 @@ void
+ acpi_ev_detach_region(union acpi_operand_object *region_obj,
+ 		      u8 acpi_ns_is_locked);
  
-+static void acpi_table_taint(struct acpi_table_header *table)
-+{
-+	pr_warn(PREFIX
-+		"Override [%4.4s-%8.8s], this is unsafe: tainting kernel\n",
-+		table->signature, table->oem_table_id);
-+	add_taint(TAINT_OVERRIDDEN_ACPI_TABLE, LOCKDEP_NOW_UNRELIABLE);
-+}
-+
- #ifdef CONFIG_ACPI_INITRD_TABLE_OVERRIDE
- #include <linux/earlycpio.h>
- #include <linux/memblock.h>
-@@ -746,96 +754,78 @@ void __init acpi_initrd_override(void *data, size_t size)
- 		}
- 	}
- }
--#endif /* CONFIG_ACPI_INITRD_TABLE_OVERRIDE */
+-void acpi_ev_associate_reg_method(union acpi_operand_object *region_obj);
 -
--static void acpi_table_taint(struct acpi_table_header *table)
--{
--	pr_warn(PREFIX
--		"Override [%4.4s-%8.8s], this is unsafe: tainting kernel\n",
--		table->signature, table->oem_table_id);
--	add_taint(TAINT_OVERRIDDEN_ACPI_TABLE, LOCKDEP_NOW_UNRELIABLE);
+ void
+ acpi_ev_execute_reg_methods(struct acpi_namespace_node *node,
+ 			    acpi_adr_space_type space_id, u32 function);
+diff --git a/drivers/acpi/acpica/evregion.c b/drivers/acpi/acpica/evregion.c
+index 63924d1..72f553c 100644
+--- a/drivers/acpi/acpica/evregion.c
++++ b/drivers/acpi/acpica/evregion.c
+@@ -526,81 +526,58 @@ acpi_ev_attach_region(union acpi_operand_object *handler_obj,
+ 
+ /*******************************************************************************
+  *
+- * FUNCTION:    acpi_ev_associate_reg_method
++ * FUNCTION:    acpi_ev_execute_reg_method
+  *
+  * PARAMETERS:  region_obj          - Region object
++ *              function            - Passed to _REG: On (1) or Off (0)
+  *
+  * RETURN:      Status
+  *
+- * DESCRIPTION: Find and associate _REG method to a region
++ * DESCRIPTION: Execute _REG method for a region
+  *
+  ******************************************************************************/
+ 
+-void acpi_ev_associate_reg_method(union acpi_operand_object *region_obj)
++acpi_status
++acpi_ev_execute_reg_method(union acpi_operand_object *region_obj, u32 function)
+ {
++	struct acpi_evaluate_info *info;
++	union acpi_operand_object *args[3];
++	union acpi_operand_object *region_obj2;
+ 	acpi_name *reg_name_ptr = (acpi_name *) METHOD_NAME__REG;
+ 	struct acpi_namespace_node *method_node;
+ 	struct acpi_namespace_node *node;
+-	union acpi_operand_object *region_obj2;
+ 	acpi_status status;
+ 
+-	ACPI_FUNCTION_TRACE(ev_associate_reg_method);
++	ACPI_FUNCTION_TRACE(ev_execute_reg_method);
++
++	if (!acpi_gbl_namespace_initialized ||
++	    region_obj->region.handler == NULL) {
++		return_ACPI_STATUS(AE_OK);
++	}
+ 
+ 	region_obj2 = acpi_ns_get_secondary_object(region_obj);
+ 	if (!region_obj2) {
+-		return_VOID;
++		return_ACPI_STATUS(AE_NOT_EXIST);
+ 	}
+ 
++	/*
++	 * Find any "_REG" method associated with this region definition.
++	 * The method should always be updated as this function may be
++	 * invoked after a namespace change.
++	 */
+ 	node = region_obj->region.node->parent;
+-
+-	/* Find any "_REG" method associated with this region definition */
+-
+ 	status =
+ 	    acpi_ns_search_one_scope(*reg_name_ptr, node, ACPI_TYPE_METHOD,
+ 				     &method_node);
+ 	if (ACPI_SUCCESS(status)) {
+ 		/*
+-		 * The _REG method is optional and there can be only one per region
+-		 * definition. This will be executed when the handler is attached
+-		 * or removed
++		 * The _REG method is optional and there can be only one per
++		 * region definition. This will be executed when the handler is
++		 * attached or removed.
+ 		 */
+ 		region_obj2->extra.method_REG = method_node;
+ 	}
+-
+-	return_VOID;
 -}
 -
+-/*******************************************************************************
+- *
+- * FUNCTION:    acpi_ev_execute_reg_method
+- *
+- * PARAMETERS:  region_obj          - Region object
+- *              function            - Passed to _REG: On (1) or Off (0)
+- *
+- * RETURN:      Status
+- *
+- * DESCRIPTION: Execute _REG method for a region
+- *
+- ******************************************************************************/
 -
 -acpi_status
--acpi_os_table_override(struct acpi_table_header * existing_table,
--		       struct acpi_table_header ** new_table)
+-acpi_ev_execute_reg_method(union acpi_operand_object *region_obj, u32 function)
 -{
--	if (!existing_table || !new_table)
--		return AE_BAD_PARAMETER;
+-	struct acpi_evaluate_info *info;
+-	union acpi_operand_object *args[3];
+-	union acpi_operand_object *region_obj2;
+-	acpi_status status;
 -
--	*new_table = NULL;
+-	ACPI_FUNCTION_TRACE(ev_execute_reg_method);
 -
--#ifdef CONFIG_ACPI_CUSTOM_DSDT
--	if (strncmp(existing_table->signature, "DSDT", 4) == 0)
--		*new_table = (struct acpi_table_header *)AmlCode;
--#endif
--	if (*new_table != NULL)
--		acpi_table_taint(existing_table);
--	return AE_OK;
--}
- 
- acpi_status
- acpi_os_physical_table_override(struct acpi_table_header *existing_table,
--				acpi_physical_address *address,
--				u32 *table_length)
-+				acpi_physical_address *address, u32 *length)
- {
--#ifndef CONFIG_ACPI_INITRD_TABLE_OVERRIDE
--	*table_length = 0;
--	*address = 0;
--	return AE_OK;
--#else
- 	int table_offset = 0;
- 	struct acpi_table_header *table;
-+	u32 table_length;
- 
--	*table_length = 0;
-+	*length = 0;
- 	*address = 0;
+-	region_obj2 = acpi_ns_get_secondary_object(region_obj);
+-	if (!region_obj2) {
+-		return_ACPI_STATUS(AE_NOT_EXIST);
+-	}
 -
- 	if (!acpi_tables_addr)
- 		return AE_OK;
+-	if (region_obj2->extra.method_REG == NULL ||
+-	    region_obj->region.handler == NULL ||
+-	    !acpi_gbl_namespace_initialized) {
++	if (region_obj2->extra.method_REG == NULL) {
+ 		return_ACPI_STATUS(AE_OK);
+ 	}
  
--	do {
--		if (table_offset + ACPI_HEADER_SIZE > all_tables_size) {
--			WARN_ON(1);
--			return AE_OK;
--		}
--
-+	while (table_offset + ACPI_HEADER_SIZE <= all_tables_size) {
- 		table = acpi_os_map_memory(acpi_tables_addr + table_offset,
- 					   ACPI_HEADER_SIZE);
--
- 		if (table_offset + table->length > all_tables_size) {
- 			acpi_os_unmap_memory(table, ACPI_HEADER_SIZE);
- 			WARN_ON(1);
- 			return AE_OK;
- 		}
+diff --git a/drivers/acpi/acpica/evrgnini.c b/drivers/acpi/acpica/evrgnini.c
+index fda869c..6972ab4 100644
+--- a/drivers/acpi/acpica/evrgnini.c
++++ b/drivers/acpi/acpica/evrgnini.c
+@@ -518,7 +518,6 @@ acpi_ev_initialize_region(union acpi_operand_object *region_obj,
+ 		return_ACPI_STATUS(AE_OK);
+ 	}
  
--		table_offset += table->length;
-+		table_length = table->length;
+-	acpi_ev_associate_reg_method(region_obj);
+ 	region_obj->common.flags |= AOPOBJ_OBJECT_INITIALIZED;
  
--		if (memcmp(existing_table->signature, table->signature, 4)) {
--			acpi_os_unmap_memory(table,
--				     ACPI_HEADER_SIZE);
--			continue;
--		}
--
--		/* Only override tables with matching oem id */
--		if (memcmp(table->oem_table_id, existing_table->oem_table_id,
-+		/* Only override tables matched */
-+		if (memcmp(existing_table->signature, table->signature, 4) ||
-+		    memcmp(table->oem_table_id, existing_table->oem_table_id,
- 			   ACPI_OEM_TABLE_ID_SIZE)) {
--			acpi_os_unmap_memory(table,
--				     ACPI_HEADER_SIZE);
--			continue;
-+			acpi_os_unmap_memory(table, ACPI_HEADER_SIZE);
-+			goto next_table;
- 		}
- 
--		table_offset -= table->length;
--		*table_length = table->length;
--		acpi_os_unmap_memory(table, ACPI_HEADER_SIZE);
-+		*length = table_length;
- 		*address = acpi_tables_addr + table_offset;
-+		acpi_table_taint(existing_table);
-+		acpi_os_unmap_memory(table, ACPI_HEADER_SIZE);
- 		break;
--	} while (table_offset + ACPI_HEADER_SIZE < all_tables_size);
- 
--	if (*address != 0)
--		acpi_table_taint(existing_table);
-+next_table:
-+		table_offset += table_length;
-+	}
- 	return AE_OK;
-+}
-+#else
-+acpi_status
-+acpi_os_physical_table_override(struct acpi_table_header *existing_table,
-+				acpi_physical_address *address,
-+				u32 *table_length)
-+{
-+	*table_length = 0;
-+	*address = 0;
-+	return AE_OK;
-+}
-+#endif /* CONFIG_ACPI_INITRD_TABLE_OVERRIDE */
-+
-+acpi_status
-+acpi_os_table_override(struct acpi_table_header * existing_table,
-+		       struct acpi_table_header ** new_table)
-+{
-+	if (!existing_table || !new_table)
-+		return AE_BAD_PARAMETER;
-+
-+	*new_table = NULL;
-+
-+#ifdef CONFIG_ACPI_CUSTOM_DSDT
-+	if (strncmp(existing_table->signature, "DSDT", 4) == 0)
-+		*new_table = (struct acpi_table_header *)AmlCode;
- #endif
-+	if (*new_table != NULL)
-+		acpi_table_taint(existing_table);
-+	return AE_OK;
- }
- 
- static irqreturn_t acpi_irq(int irq, void *dev_id)
+ 	node = region_obj->region.node->parent;
 -- 
 1.7.10
-
