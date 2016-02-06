@@ -1,61 +1,75 @@
-From: Heiner Kallweit <hkallweit1@gmail.com>
-Subject: Re: Problems since commit Recognize that Interrupt Line 255 means
- "not connected"
-Date: Sat, 6 Feb 2016 09:09:47 +0100
-Message-ID: <56B5AA4B.5040705@gmail.com>
-References: <56B52990.3030103@gmail.com> <1676062.Zh6hUgWIix@vostro.rjw.lan>
+From: Jayachandran Chandrashekaran Nair
+	<jayachandran.chandrashekaran@broadcom.com>
+Subject: Re: [PATCH v7 5/5] PCI: ACPI: Add a generic ACPI based host controller
+Date: Sat, 6 Feb 2016 15:28:26 +0530
+Message-ID: <CAKc_7PV69xZ-+yeq+fVAMykuQ53HsjpACz9yH9LpJE-=X5xggA@mail.gmail.com>
+References: <1454058340-7904-1-git-send-email-jchandra@broadcom.com>
+ <CAKc_7PXYtFt1MQE-UGO0O5vvQ+xFKa2b5=F8wXB=EN-JUJVzZw@mail.gmail.com>
+ <20160205094740.GA31547@red-moon> <3576289.1ltj0IceQ5@vostro.rjw.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-wm0-f46.google.com ([74.125.82.46]:33035 "EHLO
-	mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751458AbcBFIKF (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Sat, 6 Feb 2016 03:10:05 -0500
-In-Reply-To: <1676062.Zh6hUgWIix@vostro.rjw.lan>
+Received: from mail-yw0-f175.google.com ([209.85.161.175]:36509 "EHLO
+	mail-yw0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750815AbcBFJ7G (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 6 Feb 2016 04:59:06 -0500
+Received: by mail-yw0-f175.google.com with SMTP id q190so71180086ywd.3
+        for <linux-acpi@vger.kernel.org>; Sat, 06 Feb 2016 01:59:05 -0800 (PST)
+In-Reply-To: <3576289.1ltj0IceQ5@vostro.rjw.lan>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
-Cc: Chen Fan <chen.fan.fnst@cn.fujitsu.com>, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Linux PCI <linux-pci@vger.kernel.org>
+Cc: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>, Bjorn Helgaas <helgaas@kernel.org>, Jayachandran C <jchandra@broadcom.com>, linux-pci@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, Tomasz Nowicki <tn@semihalf.com>, xen-devel@lists.xenproject.org
 
-Am 06.02.2016 um 00:37 schrieb Rafael J. Wysocki:
-> On Saturday, February 06, 2016 12:00:32 AM Heiner Kallweit wrote:
->> Since commit a44c386a361e "x86/PCI/ACPI: Recognize that Interrupt Line 255
->> means "not connected"" I get several "PCI INT not connected" warnings on
->> a Zotac CI321 and EHCI failes to load:
-> 
-> That doesn't follow clearly from your report, but I'm assuming that it works
-> correctly without that commit, right?
-> 
-Right, w/o this commit it looks like this:
+Hi Rafael,
 
-dmesg
-ehci-pci 0000:00:1d.0: irq 23, io mem 0xf7d1b000
-
-/proc/interrupts
-IO-APIC  23-fasteoi   ehci_hcd:usb3
-
->> ehci-pci 0000:00:1d.0: PCI INT not connected
->> ehci-pci 0000:00:1d.0: EHCI Host Controller
->> ehci-pci 0000:00:1d.0: new USB bus registered, assigned bus number 3
->> ehci-pci 0000:00:1d.0: debug port 2
->> ehci-pci 0000:00:1d.0: cache line size of 64 is not supported
->> ehci-pci 0000:00:1d.0: request interrupt -2147483648 failed
->> ehci-pci 0000:00:1d.0: USB bus 3 deregistered
->> ehci-pci 0000:00:1d.0: init 0000:00:1d.0 fail, -107
->> ehci-pci: probe of 0000:00:1d.0 failed with error -107
+On Sat, Feb 6, 2016 at 4:56 AM, Rafael J. Wysocki <rjw@rjwysocki.net> wrote:
+> On Friday, February 05, 2016 09:47:40 AM Lorenzo Pieralisi wrote:
+>> On Fri, Feb 05, 2016 at 02:05:37PM +0530, Jayachandran Chandrashekaran Nair wrote:
 >>
->> XHCI brings the "PCI INT not connected" warning too but loads properly
->> (most likely because it uses a MSI interrupt).
+>> [...]
 >>
->> Not sure whether this commit is to blame or a broken BIOS.
->> Just let me know in case you need additional information.
-> 
-> Well, even if the BIOS is "broken" and the kernel without the above commit
-> is able to work with it, we cannot break that.
-> 
-> Thanks,
-> Rafael
-> 
-> 
+>> > pci_host_acpi.c is a generic implementation of these using a sysdata
+>> > pointing to acpi_pci_root_info, and using a pointer to the pci_mmcfg_region
+>> > to access ECAM area, Maybe I can rename this file to
+>> > pci_acpi_host_generic.c to reflect this better.
+>>
+>> Maybe you should stop sending this series and work with Tomasz to
+>> get this done, you are confusing everyone and I am really really
+>> annoyed about this.
+>>
+>> Do you realize there is no point in having two patch series doing
+>> the same thing and wasting everyone's review time ?
+>>
+>> Do you realize he started this work long before you and went through
+>> several rounds of review already (I told you before but in case you
+>> forgot) ?
+>>
+>> Tomasz posted a version yesterday, integrating comments following months
+>> of review and testing and I think it is ready to get upstream:
+>>
+>> https://lkml.org/lkml/2016/2/4/646
+>>
+>> Did you even consider reviewing his code or helping him instead of
+>> churning out more patches doing the *SAME* thing ?
+>>
+>> Do you want all of us to go through your code and re-fix what has
+>> already been fixed in Tomasz's series with the end result of missing
+>> yet another merge window ?
+>>
+>> This is really annoying, stop it please, really.
+>
+> OK, so to be crystal clear here.
+>
+> I'm going to ignore the series the $subject patch belongs to going forward.
 
+It looks like you can already reviewed Tomasz's patchset and as Lorenzo
+says thinks that it can be merged.
+
+When I first posted the patchset the state of arm64 ACPI/PCI was not that
+clear - and I thought an alternative will help. Ideally I would expect
+maintainers to look at technical merit, but in this case any working solution
+merged will be great news.
+
+Thanks,
+JC.
