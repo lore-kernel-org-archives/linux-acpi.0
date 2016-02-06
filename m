@@ -1,7 +1,7 @@
 From: Lv Zheng <lv.zheng@intel.com>
-Subject: [PATCH 11/14] ACPI 2.0 / AML: Improve module level execution by moving the If/Else/While execution to per-table basis
-Date: Sat,  6 Feb 2016 11:54:05 +0800
-Message-ID: <c1c82566e237cc53347e3ba4f8d7f2f80dce4aa2.1454730660.git.lv.zheng@intel.com>
+Subject: [PATCH 13/14] ACPI 2.0 / AML: Enable correct ACPI subsystem initialization order for new table loading mode
+Date: Sat,  6 Feb 2016 11:54:24 +0800
+Message-ID: <d444919a0a5e8555d5128936bd5f2814952354de.1454730660.git.lv.zheng@intel.com>
 References: <cover.1454730659.git.lv.zheng@intel.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
 In-Reply-To: <cover.1454730659.git.lv.zheng@intel.com>
@@ -10,30 +10,41 @@ To: "Rafael J. Wysocki" <rafael.j.wysocki@intel.com>, "Rafael J. Wysocki" <rjw@r
 Cc: Lv Zheng <lv.zheng@intel.com>, Lv Zheng <zetalog@gmail.com>, linux-kernel@vger.kernel.org, linux-acpi@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 
-This experiment moves module level If/Else/While executions to per-table
-basis.
-
-If regressions are found against the enabling of this improvement, this
-patch is the only one should get bisected. Please report the regressions
-to the kernel bugzilla for further root causing.
+This patch enables the following initialization order for the new table
+loading mode (which is enabled by setting
+acpi_gbl_parse_table_as_term_list to TRUE):
+  1. Install default region handlers (SystemMemory, SystemIo, PciConfig,
+     EmbeddedControl via ECDT) without evaluating _REG;
+  2. Load the table and execute the module level AML opcodes instantly.
 
 Signed-off-by: Lv Zheng <lv.zheng@intel.com>
 ---
- include/acpi/acpixf.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/acpi/bus.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/include/acpi/acpixf.h b/include/acpi/acpixf.h
-index c96621e..a98455c 100644
---- a/include/acpi/acpixf.h
-+++ b/include/acpi/acpixf.h
-@@ -192,7 +192,7 @@ ACPI_INIT_GLOBAL(u8, acpi_gbl_do_not_use_xsdt, FALSE);
- /*
-  * Optionally support group module level code.
-  */
--ACPI_INIT_GLOBAL(u8, acpi_gbl_group_module_level_code, TRUE);
-+ACPI_INIT_GLOBAL(u8, acpi_gbl_group_module_level_code, FALSE);
+diff --git a/drivers/acpi/bus.c b/drivers/acpi/bus.c
+index 8752860..0d6bb22 100644
+--- a/drivers/acpi/bus.c
++++ b/drivers/acpi/bus.c
+@@ -911,7 +911,8 @@ void __init acpi_early_init(void)
+ 		goto error0;
+ 	}
  
- /*
-  * Optionally use 32-bit FADT addresses if and when there is a conflict
+-	if (acpi_gbl_group_module_level_code) {
++	if (!acpi_gbl_parse_table_as_term_list &&
++	    acpi_gbl_group_module_level_code) {
+ 		status = acpi_load_tables();
+ 		if (ACPI_FAILURE(status)) {
+ 			printk(KERN_ERR PREFIX
+@@ -994,7 +995,8 @@ static int __init acpi_bus_init(void)
+ 	status = acpi_ec_ecdt_probe();
+ 	/* Ignore result. Not having an ECDT is not fatal. */
+ 
+-	if (!acpi_gbl_group_module_level_code) {
++	if (acpi_gbl_parse_table_as_term_list ||
++	    !acpi_gbl_group_module_level_code) {
+ 		status = acpi_load_tables();
+ 		if (ACPI_FAILURE(status)) {
+ 			printk(KERN_ERR PREFIX
 -- 
 1.7.10
