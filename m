@@ -1,42 +1,61 @@
-From: green@linuxhacker.ru
-Subject: [PATCH] acpi/ec: Deny write access unless requested by module param
-Date: Sat,  6 Feb 2016 02:08:08 -0500
-Message-ID: <1454742488-2231898-1-git-send-email-green@linuxhacker.ru>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-Sender: linux-kernel-owner@vger.kernel.org
-To: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Len Brown <lenb@kernel.org>, Thomas Renninger <trenn@suse.de>
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, Oleg Drokin <green@linuxhacker.ru>
+From: Heiner Kallweit <hkallweit1@gmail.com>
+Subject: Re: Problems since commit Recognize that Interrupt Line 255 means
+ "not connected"
+Date: Sat, 6 Feb 2016 09:09:47 +0100
+Message-ID: <56B5AA4B.5040705@gmail.com>
+References: <56B52990.3030103@gmail.com> <1676062.Zh6hUgWIix@vostro.rjw.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mail-wm0-f46.google.com ([74.125.82.46]:33035 "EHLO
+	mail-wm0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751458AbcBFIKF (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sat, 6 Feb 2016 03:10:05 -0500
+In-Reply-To: <1676062.Zh6hUgWIix@vostro.rjw.lan>
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: "Rafael J. Wysocki" <rjw@rjwysocki.net>
+Cc: Chen Fan <chen.fan.fnst@cn.fujitsu.com>, linux-acpi@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, Linux PCI <linux-pci@vger.kernel.org>
 
-From: Oleg Drokin <green@linuxhacker.ru>
+Am 06.02.2016 um 00:37 schrieb Rafael J. Wysocki:
+> On Saturday, February 06, 2016 12:00:32 AM Heiner Kallweit wrote:
+>> Since commit a44c386a361e "x86/PCI/ACPI: Recognize that Interrupt Line 255
+>> means "not connected"" I get several "PCI INT not connected" warnings on
+>> a Zotac CI321 and EHCI failes to load:
+> 
+> That doesn't follow clearly from your report, but I'm assuming that it works
+> correctly without that commit, right?
+> 
+Right, w/o this commit it looks like this:
 
-In debugfs it's not enough to just set file mode to read-only to
-deny write access to a file, instead just don't provide
-the write method unless write access is really requested.
+dmesg
+ehci-pci 0000:00:1d.0: irq 23, io mem 0xf7d1b000
 
-Signed-off-by: Oleg Drokin <green@linuxhacker.ru>
----
-I assume allowing run-time changes via /sys/module is preferrable,
-opposed to forced module unload and reload to change this option,
-but I can submit another patch to only depend on the module parameter
-too, please let me know.
+/proc/interrupts
+IO-APIC  23-fasteoi   ehci_hcd:usb3
 
- drivers/acpi/ec_sys.c | 3 +++
- 1 file changed, 3 insertions(+)
+>> ehci-pci 0000:00:1d.0: PCI INT not connected
+>> ehci-pci 0000:00:1d.0: EHCI Host Controller
+>> ehci-pci 0000:00:1d.0: new USB bus registered, assigned bus number 3
+>> ehci-pci 0000:00:1d.0: debug port 2
+>> ehci-pci 0000:00:1d.0: cache line size of 64 is not supported
+>> ehci-pci 0000:00:1d.0: request interrupt -2147483648 failed
+>> ehci-pci 0000:00:1d.0: USB bus 3 deregistered
+>> ehci-pci 0000:00:1d.0: init 0000:00:1d.0 fail, -107
+>> ehci-pci: probe of 0000:00:1d.0 failed with error -107
+>>
+>> XHCI brings the "PCI INT not connected" warning too but loads properly
+>> (most likely because it uses a MSI interrupt).
+>>
+>> Not sure whether this commit is to blame or a broken BIOS.
+>> Just let me know in case you need additional information.
+> 
+> Well, even if the BIOS is "broken" and the kernel without the above commit
+> is able to work with it, we cannot break that.
+> 
+> Thanks,
+> Rafael
+> 
+> 
 
-diff --git a/drivers/acpi/ec_sys.c b/drivers/acpi/ec_sys.c
-index bea8e42..6c7dd7a 100644
---- a/drivers/acpi/ec_sys.c
-+++ b/drivers/acpi/ec_sys.c
-@@ -73,6 +73,9 @@ static ssize_t acpi_ec_write_io(struct file *f, const char __user *buf,
- 	loff_t init_off = *off;
- 	int err = 0;
- 
-+	if (!write_support)
-+		return -EINVAL;
-+
- 	if (*off >= EC_SPACE_SIZE)
- 		return 0;
- 	if (*off + count >= EC_SPACE_SIZE) {
--- 
-2.1.0
