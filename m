@@ -1,229 +1,26 @@
-From: Sinan Kaya <okaya@codeaurora.org>
-Subject: [PATCH V2] acpi: implement Generic Event Device
-Date: Sun,  7 Feb 2016 10:00:31 -0500
-Message-ID: <1454857231-21388-1-git-send-email-okaya@codeaurora.org>
+From: Ms Ayala <ana.mascarenhas@mj.gov.br>
+Subject: Very Urgent,response needed.
+Date: Mon, 8 Feb 2016 00:28:16 +0300
+Message-ID: <2d543a95-5b2c-4703-b56e-eeb89c41c2e8__1651.48113524101$1454903472$gmane$org@TIMON.mj.gov.br>
+Reply-To: msayalabrnaca101@163.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Return-path: <linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org>
-List-Unsubscribe: <http://lists.infradead.org/mailman/options/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=unsubscribe>
-List-Archive: <http://lists.infradead.org/pipermail/linux-arm-kernel/>
-List-Post: <mailto:linux-arm-kernel@lists.infradead.org>
-List-Help: <mailto:linux-arm-kernel-request@lists.infradead.org?subject=help>
-List-Subscribe: <http://lists.infradead.org/mailman/listinfo/linux-arm-kernel>,
- <mailto:linux-arm-kernel-request@lists.infradead.org?subject=subscribe>
-Sender: "linux-arm-kernel" <linux-arm-kernel-bounces@lists.infradead.org>
-Errors-To: linux-arm-kernel-bounces+linux-arm-kernel=m.gmane.org@lists.infradead.org
-To: linux-acpi@vger.kernel.org, timur@codeaurora.org, cov@codeaurora.org, jcm@redhat.com
-Cc: linux-arm-msm@vger.kernel.org, rjw@rjwysocki.net, linux-kernel@vger.kernel.org, Sinan Kaya <okaya@codeaurora.org>, agross@codeaurora.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from piaget.mj.gov.br ([200.198.212.76]:43257 "EHLO piaget.mj.gov.br"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753011AbcBHDuy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Sun, 7 Feb 2016 22:50:54 -0500
+Content-Description: Mail message body
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Recipients <ana.mascarenhas@mj.gov.br>
 
-Generic Event Device described in ACPI 6.1 allows platforms to handle
-platform interrupts in ACPI ASL statements. It borrows constructs like
-_EVT from GPIO events. All interrupts are listed in _CRS and the handler
-is written in _EVT method. Here is an example.
+Hi,
 
-Device (GED0)
-{
+I am Ms. Ayala; I am getting in touch with you regarding an extremely
+important and urgent matter.If you would oblige me the opportunity,I shall
+provide you with details upon your response.Please respond to: msayalabrnaca101@163.com
 
-	Name (_HID, "ACPI0013")
-	Name (_UID, 0)
-	Name(_CRS, ResourceTemplate ()
-	{
-		Interrupt(ResourceConsumer, Edge, ActiveHigh, Shared, , , )
-		 {123}
-	})
-
-	Method (_EVT, 1) {
-		if (Lequal(123, Arg0))
-		{
-		}
-	}
-}
-
-Wake capability has not been implemented yet.
-
-Signed-off-by: Sinan Kaya <okaya@codeaurora.org>
----
- drivers/acpi/Makefile |   1 +
- drivers/acpi/evged.c  | 156 ++++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 157 insertions(+)
- create mode 100644 drivers/acpi/evged.c
-
-diff --git a/drivers/acpi/Makefile b/drivers/acpi/Makefile
-index e660805..9579d95 100644
---- a/drivers/acpi/Makefile
-+++ b/drivers/acpi/Makefile
-@@ -46,6 +46,7 @@ acpi-y				+= acpi_pnp.o
- acpi-y				+= int340x_thermal.o
- acpi-y				+= power.o
- acpi-y				+= event.o
-+acpi-$(CONFIG_ACPI_REDUCED_HARDWARE_ONLY) += evged.o
- acpi-y				+= sysfs.o
- acpi-y				+= property.o
- acpi-$(CONFIG_X86)		+= acpi_cmos_rtc.o
-diff --git a/drivers/acpi/evged.c b/drivers/acpi/evged.c
-new file mode 100644
-index 0000000..9c0a868
---- /dev/null
-+++ b/drivers/acpi/evged.c
-@@ -0,0 +1,156 @@
-+/*
-+ * Generic Event Device for ACPI.
-+ *
-+ * Copyright (c) 2016, The Linux Foundation. All rights reserved.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 and
-+ * only version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * Generic Event Device allows platforms to handle interrupts in ACPI
-+ * ASL statements. It follows very similar to  _EVT method approach
-+ * from GPIO events. All interrupts are listed in _CRS and the handler
-+ * is written in _EVT method. Here is an example.
-+ *
-+ * Device (GED0)
-+ * {
-+ *
-+ *     Name (_HID, "ACPI0013")
-+ *     Name (_UID, 0)
-+ *     Method (_CRS, 0x0, Serialized)
-+ *     {
-+ *		Name (RBUF, ResourceTemplate ()
-+ *		{
-+ *		Interrupt(ResourceConsumer, Edge, ActiveHigh, Shared, , , )
-+ *		{123}
-+ *		}
-+ *     })
-+ *
-+ *     Method (_EVT, 1) {
-+ *             if (Lequal(123, Arg0))
-+ *             {
-+ *             }
-+ *     }
-+ * }
-+ *
-+ */
-+
-+#include <linux/err.h>
-+#include <linux/init.h>
-+#include <linux/interrupt.h>
-+#include <linux/list.h>
-+#include <linux/platform_device.h>
-+#include <linux/acpi.h>
-+
-+#define MODULE_NAME	"acpi-ged"
-+
-+struct acpi_ged_event {
-+	struct list_head node;
-+	struct device *dev;
-+	unsigned int gsi;
-+	unsigned int irq;
-+	acpi_handle handle;
-+};
-+
-+static irqreturn_t acpi_ged_irq_handler(int irq, void *data)
-+{
-+	struct acpi_ged_event *event = data;
-+	acpi_status acpi_ret;
-+
-+	acpi_ret = acpi_execute_simple_method(event->handle, NULL, event->gsi);
-+	if (ACPI_FAILURE(acpi_ret))
-+		dev_err_once(event->dev, "IRQ method execution failed\n");
-+
-+	return IRQ_HANDLED;
-+}
-+
-+static acpi_status acpi_ged_request_interrupt(struct acpi_resource *ares,
-+					      void *context)
-+{
-+	struct acpi_ged_event *event;
-+	unsigned int irq;
-+	unsigned int gsi;
-+	unsigned int irqflags = IRQF_ONESHOT;
-+	struct device *dev = context;
-+	acpi_handle handle = ACPI_HANDLE(dev);
-+	acpi_handle evt_handle;
-+	struct resource r;
-+	struct acpi_resource_irq *p = &ares->data.irq;
-+	struct acpi_resource_extended_irq *pext = &ares->data.extended_irq;
-+
-+	if (ares->type == ACPI_RESOURCE_TYPE_END_TAG)
-+		return AE_OK;
-+
-+	if (!acpi_dev_resource_interrupt(ares, 0, &r)) {
-+		dev_err(dev, "unable to parse IRQ resource\n");
-+		return AE_ERROR;
-+	}
-+	if (ares->type == ACPI_RESOURCE_TYPE_IRQ)
-+		gsi = p->interrupts[0];
-+	else
-+		gsi = pext->interrupts[0];
-+
-+	irq = r.start;
-+
-+	if (ACPI_FAILURE(acpi_get_handle(handle, "_EVT", &evt_handle))) {
-+		dev_err(dev, "cannot locate _EVT method\n");
-+		return AE_ERROR;
-+	}
-+
-+	dev_info(dev, "GED listening GSI %u @ IRQ %u\n", gsi, irq);
-+
-+	event = devm_kzalloc(dev, sizeof(*event), GFP_KERNEL);
-+	if (!event)
-+		return AE_ERROR;
-+
-+	event->gsi = gsi;
-+	event->dev = dev;
-+	event->irq = irq;
-+	event->handle = evt_handle;
-+
-+	if (r.flags & IORESOURCE_IRQ_SHAREABLE)
-+		irqflags |= IRQF_SHARED;
-+
-+	if (devm_request_threaded_irq(dev, irq, NULL, acpi_ged_irq_handler,
-+				      irqflags, "ACPI:Ged", event)) {
-+		dev_err(dev, "failed to setup event handler for irq %u\n", irq);
-+		return AE_ERROR;
-+	}
-+
-+	return AE_OK;
-+}
-+
-+static int ged_probe(struct platform_device *pdev)
-+{
-+	acpi_status acpi_ret;
-+
-+	acpi_ret = acpi_walk_resources(ACPI_HANDLE(&pdev->dev), "_CRS",
-+				       acpi_ged_request_interrupt, &pdev->dev);
-+	if (ACPI_FAILURE(acpi_ret)) {
-+		dev_err(&pdev->dev, "unable to parse the _CRS record\n");
-+		return -EINVAL;
-+	}
-+
-+	return 0;
-+}
-+
-+static const struct acpi_device_id ged_acpi_ids[] = {
-+	{"ACPI0013"},
-+	{},
-+};
-+
-+static struct platform_driver ged_driver = {
-+	.probe = ged_probe,
-+	.driver = {
-+		.name = MODULE_NAME,
-+		.acpi_match_table = ACPI_PTR(ged_acpi_ids),
-+	},
-+};
-+
-+module_platform_driver(ged_driver);
-+MODULE_LICENSE("GPL v2");
--- 
-1.8.2.1
+Faithfully,
+Ms. Ayala Bracha
