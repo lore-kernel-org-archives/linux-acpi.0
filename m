@@ -1,54 +1,99 @@
-From: Timur Tabi <timur@codeaurora.org>
-Subject: platform_get_irq_byname() supported on ACPI?
-Date: Mon, 8 Feb 2016 10:48:33 -0600
-Message-ID: <56B8C6E1.1040804@codeaurora.org>
+From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+Subject: RE: [RFC PATCH v2 1/3] PCI: hisi: re-architect Hip05/Hip06
+ controllers driver to preapare for ACPI
+Date: Mon, 8 Feb 2016 16:51:19 +0000
+Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E1ECAD249@lhreml503-mbs>
+References: <1454935264-6076-1-git-send-email-gabriele.paoloni@huawei.com>
+ <2409806.1aGBrN4l0X@wuerfel>
+ <EE11001F9E5DDD47B7634E2F8A612F2E1ECACFDD@lhreml503-mbs>
+ <3113837.YSNyDAf4HQ@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from smtp.codeaurora.org ([198.145.29.96]:48165 "EHLO
-	smtp.codeaurora.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755698AbcBHQsg (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Feb 2016 11:48:36 -0500
-Received: from [10.222.143.167] (rrcs-67-52-129-61.west.biz.rr.com [67.52.129.61])
-	(using TLSv1.2 with cipher ECDHE-RSA-AES128-GCM-SHA256 (128/128 bits))
-	(No client certificate requested)
-	(Authenticated sender: timur@smtp.codeaurora.org)
-	by smtp.codeaurora.org (Postfix) with ESMTPSA id CE8626023A
-	for <linux-acpi@vger.kernel.org>; Mon,  8 Feb 2016 16:48:34 +0000 (UTC)
+Received: from lhrrgout.huawei.com ([194.213.3.17]:7055 "EHLO
+	lhrrgout.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752000AbcBHQva convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Feb 2016 11:51:30 -0500
+In-Reply-To: <3113837.YSNyDAf4HQ@wuerfel>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, "Wangzhou (B)" <wangzhou1@hisilicon.com>, "liudongdong (C)" <liudongdong3@huawei.com>, Linuxarm <linuxarm@huawei.com>, qiujiang <qiujiang@huawei.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "Lorenzo.Pieralisi@arm.com" <Lorenzo.Pieralisi@arm.com>, "tn@semihalf.com" <tn@semihalf.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "xuwei (O)" <xuwei5@hisilicon.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "jcm@redhat.com" <jcm@redhat.com>, zhangjukuo <zhangjukuo@huawei.com>, "Liguozhu (Kenneth)" <liguozhu@hisilicon.com>
 
-Is there support for the platform_get_irq_byname() function on ACPI systems?
+> -----Original Message-----
+> From: Arnd Bergmann [mailto:arnd@arndb.de]
+> Sent: 08 February 2016 16:33
+> To: Gabriele Paoloni
+> Cc: linux-arm-kernel@lists.infradead.org; Guohanjun (Hanjun Guo);
+> Wangzhou (B); liudongdong (C); Linuxarm; qiujiang; bhelgaas@google.com;
+> Lorenzo.Pieralisi@arm.com; tn@semihalf.com; linux-pci@vger.kernel.org;
+> linux-kernel@vger.kernel.org; xuwei (O); linux-acpi@vger.kernel.org;
+> jcm@redhat.com; zhangjukuo; Liguozhu (Kenneth)
+> Subject: Re: [RFC PATCH v2 1/3] PCI: hisi: re-architect Hip05/Hip06
+> controllers driver to preapare for ACPI
+> 
+> On Monday 08 February 2016 16:06:54 Gabriele Paoloni wrote:
+> > >
+> > > On Monday 08 February 2016 12:41:02 Gabriele Paoloni wrote:
+> > > > +
+> > > > +/* HipXX PCIe host only supports 32-bit config access */
+> > > > +int hisi_pcie_common_cfg_read(void __iomem *reg_base, int where,
+> int
+> > > size,
+> > > > +                         u32 *val)
+> > > > +{
+> > > > +   u32 reg;
+> > > > +   u32 reg_val;
+> > > > +   void *walker = &reg_val;
+> > > > +
+> > > > +   walker += (where & 0x3);
+> > > > +   reg = where & ~0x3;
+> > > > +   reg_val = readl(reg_base + reg);
+> > > > +
+> > > > +   if (size == 1)
+> > > > +           *val = *(u8 __force *) walker;
+> > > > +   else if (size == 2)
+> > > > +           *val = *(u16 __force *) walker;
+> > > > +   else if (size == 4)
+> > > > +           *val = reg_val;
+> > > > +   else
+> > > > +           return PCIBIOS_BAD_REGISTER_NUMBER;
+> > > > +
+> > > > +   return PCIBIOS_SUCCESSFUL;
+> > > > +}
+> > >
+> > > Isn't this the same hack that Qualcomm are using?
+> >
+> > As far as I can see Qualcomm defines its own config access
+> > mechanism only for RC config read and also it seems they're
+> > having problems with reporting the device class...
+> >
+> > https://github.com/torvalds/linux/blob/master/drivers/pci/host/pcie-
+> qcom.c#L474
+> >
+> > Our problem is that our HW can only perform 32b rd/wr accesses
+> > So we can't use readw/readb/writew/writeb...
+> >
+> >
+> 
+> Sorry, my mistake, I meant Cavium not Qualcomm.
+> See https://lkml.org/lkml/2016/2/5/689 for the patches.
 
-I'm working on adding ACPI support for a driver that currently only 
-supports device tree.  This driver has code like this:
+Well, looking at it Cavium seems quite different, 
 
-	ret = platform_get_irq_byname(pdev, "core0_irq");
+On read they need to trigger the retrieval of the
+config space info writing to the lower 32b of a 64b register,
+then they need to read data back on the upper 64b of the
+same register and adjust the content to remove the garbage...
 
-This function works fine on device tree, but it fails on our ACPI system 
-because our ACPI nodes don't appear to have any way to attach a name to 
-an IRQ resource:
+We just use 32b accesses and adjust grab the appropriate
+bytes depending on the read/write sizes...
 
-Method (_CRS, 0x0, Serialized) {
-	Name (RBUF, ResourceTemplate() {
-		[snip]
-		Interrupt (ResourceConsumer, Level, ActiveHigh,
-			Exclusive, , , )
-			{0x120, 0x121, 0x122, 0x123}
-	})
-	Return (RBUF)
-}
+Thanks 
 
-I would hate to have to do something like this:
+Gab
 
-ret = platform_get_irq_byname(pdev, "core0_irq");
-if (ret)
-	/* ACPI doesn't support named resources */
-	ret = platform_get_irq(pdev, 0);
-
--- 
-Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora 
-Forum, a Linux Foundation Collaborative Project.
+> 
+> 	Arnd
