@@ -1,38 +1,187 @@
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH 0/3] ACPI 6.1 NFIT Compatibility
-Date: Mon, 08 Feb 2016 10:30:53 -0800
-Message-ID: <20160208183052.27820.68922.stgit@dwillia2-desk3.amr.corp.intel.com>
+Subject: [PATCH 1/3] nfit: fix multi-interface dimm handling,
+ acpi6.1 compatibility
+Date: Mon, 08 Feb 2016 10:30:58 -0800
+Message-ID: <20160208183058.27820.87950.stgit@dwillia2-desk3.amr.corp.intel.com>
+References: <20160208183052.27820.68922.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mga11.intel.com ([192.55.52.93]:23496 "EHLO mga11.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752360AbcBHSbR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Mon, 8 Feb 2016 13:31:17 -0500
-Sender: linux-acpi-owner@vger.kernel.org
-List-Id: linux-acpi@vger.kernel.org
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <20160208183052.27820.68922.stgit@dwillia2-desk3.amr.corp.intel.com>
+Sender: linux-kernel-owner@vger.kernel.org
 To: linux-nvdimm@lists.01.org
 Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org
+List-Id: linux-acpi@vger.kernel.org
 
-The latest NFIT specification clarifies that a memory device will have a
-control region table per function interface.  Without the fix in [PATCH
-1/3] Linux will miscount the number of DIMMs and fail to load the
-driver.  The fix is tagged for -stable on the expectation that ACPI 6.1
-compatible systems will overlap current -stable development branches.
+ACPI 6.1 clarified that multi-interface dimms require multiple control
+region entries (DCRs) per dimm.  Previously we were assuming that a
+control region is only present when block-data-windows are present.
+This implementation was done with an eye to be compatibility with the
+looser ACPI 6.0 interpretation of this table.
 
-The latter two patches in the series are verification tests that can be
-integrated for 4.6.
+1/ When coalescing the memory device (MEMDEV) tables for a single dimm,
+coalesce on device_handle rather than control region index.
 
+2/ Whenever we disocver a control region with non-zero block windows
+re-scan for block-data-window (BDW) entries.
+
+We may need to revisit this if a DIMM ever implements a format interface
+outside of blk or pmem, but that is not on the foreseeable horizon.
+
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
+ drivers/acpi/nfit.c |   71 +++++++++++++++++++++++++--------------------------
+ 1 file changed, 35 insertions(+), 36 deletions(-)
 
-Dan Williams (3):
-      nfit: fix multi-interface dimm handling, acpi6.1 compatibility
-      nfit, tools/testing/nvdimm: add format interface code definitions
-      nfit, tools/testing/nvdimm: test multiple control regions per-dimm
-
-
- drivers/acpi/nfit.c              |   71 +++++++++++-----------
- drivers/acpi/nfit.h              |    6 ++
- tools/testing/nvdimm/test/nfit.c |  125 ++++++++++++++++++++++++++++++--------
- 3 files changed, 141 insertions(+), 61 deletions(-)
+diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
+index ad6d8c6b777e..424b362e8fdc 100644
+--- a/drivers/acpi/nfit.c
++++ b/drivers/acpi/nfit.c
+@@ -469,37 +469,16 @@ static void nfit_mem_find_spa_bdw(struct acpi_nfit_desc *acpi_desc,
+ 	nfit_mem->bdw = NULL;
+ }
+ 
+-static int nfit_mem_add(struct acpi_nfit_desc *acpi_desc,
++static void nfit_mem_init_bdw(struct acpi_nfit_desc *acpi_desc,
+ 		struct nfit_mem *nfit_mem, struct acpi_nfit_system_address *spa)
+ {
+ 	u16 dcr = __to_nfit_memdev(nfit_mem)->region_index;
+ 	struct nfit_memdev *nfit_memdev;
+ 	struct nfit_flush *nfit_flush;
+-	struct nfit_dcr *nfit_dcr;
+ 	struct nfit_bdw *nfit_bdw;
+ 	struct nfit_idt *nfit_idt;
+ 	u16 idt_idx, range_index;
+ 
+-	list_for_each_entry(nfit_dcr, &acpi_desc->dcrs, list) {
+-		if (nfit_dcr->dcr->region_index != dcr)
+-			continue;
+-		nfit_mem->dcr = nfit_dcr->dcr;
+-		break;
+-	}
+-
+-	if (!nfit_mem->dcr) {
+-		dev_dbg(acpi_desc->dev, "SPA %d missing:%s%s\n",
+-				spa->range_index, __to_nfit_memdev(nfit_mem)
+-				? "" : " MEMDEV", nfit_mem->dcr ? "" : " DCR");
+-		return -ENODEV;
+-	}
+-
+-	/*
+-	 * We've found enough to create an nvdimm, optionally
+-	 * find an associated BDW
+-	 */
+-	list_add(&nfit_mem->list, &acpi_desc->dimms);
+-
+ 	list_for_each_entry(nfit_bdw, &acpi_desc->bdws, list) {
+ 		if (nfit_bdw->bdw->region_index != dcr)
+ 			continue;
+@@ -508,12 +487,12 @@ static int nfit_mem_add(struct acpi_nfit_desc *acpi_desc,
+ 	}
+ 
+ 	if (!nfit_mem->bdw)
+-		return 0;
++		return;
+ 
+ 	nfit_mem_find_spa_bdw(acpi_desc, nfit_mem);
+ 
+ 	if (!nfit_mem->spa_bdw)
+-		return 0;
++		return;
+ 
+ 	range_index = nfit_mem->spa_bdw->range_index;
+ 	list_for_each_entry(nfit_memdev, &acpi_desc->memdevs, list) {
+@@ -538,8 +517,6 @@ static int nfit_mem_add(struct acpi_nfit_desc *acpi_desc,
+ 		}
+ 		break;
+ 	}
+-
+-	return 0;
+ }
+ 
+ static int nfit_mem_dcr_init(struct acpi_nfit_desc *acpi_desc,
+@@ -548,7 +525,6 @@ static int nfit_mem_dcr_init(struct acpi_nfit_desc *acpi_desc,
+ 	struct nfit_mem *nfit_mem, *found;
+ 	struct nfit_memdev *nfit_memdev;
+ 	int type = nfit_spa_type(spa);
+-	u16 dcr;
+ 
+ 	switch (type) {
+ 	case NFIT_SPA_DCR:
+@@ -559,14 +535,18 @@ static int nfit_mem_dcr_init(struct acpi_nfit_desc *acpi_desc,
+ 	}
+ 
+ 	list_for_each_entry(nfit_memdev, &acpi_desc->memdevs, list) {
+-		int rc;
++		struct nfit_dcr *nfit_dcr;
++		u32 device_handle;
++		u16 dcr;
+ 
+ 		if (nfit_memdev->memdev->range_index != spa->range_index)
+ 			continue;
+ 		found = NULL;
+ 		dcr = nfit_memdev->memdev->region_index;
++		device_handle = nfit_memdev->memdev->device_handle;
+ 		list_for_each_entry(nfit_mem, &acpi_desc->dimms, list)
+-			if (__to_nfit_memdev(nfit_mem)->region_index == dcr) {
++			if (__to_nfit_memdev(nfit_mem)->device_handle
++					== device_handle) {
+ 				found = nfit_mem;
+ 				break;
+ 			}
+@@ -579,6 +559,31 @@ static int nfit_mem_dcr_init(struct acpi_nfit_desc *acpi_desc,
+ 			if (!nfit_mem)
+ 				return -ENOMEM;
+ 			INIT_LIST_HEAD(&nfit_mem->list);
++			list_add(&nfit_mem->list, &acpi_desc->dimms);
++		}
++
++		list_for_each_entry(nfit_dcr, &acpi_desc->dcrs, list) {
++			if (nfit_dcr->dcr->region_index != dcr)
++				continue;
++			/*
++			 * Record the control region for the dimm.  For
++			 * the ACPI 6.1 case, where there are separate
++			 * control regions for the pmem vs blk
++			 * interfaces, be sure to record the extended
++			 * blk details.
++			 */
++			if (!nfit_mem->dcr)
++				nfit_mem->dcr = nfit_dcr->dcr;
++			else if (nfit_mem->dcr->windows == 0
++					&& nfit_dcr->dcr->windows)
++				nfit_mem->dcr = nfit_dcr->dcr;
++			break;
++		}
++
++		if (dcr && !nfit_mem->dcr) {
++			dev_err(acpi_desc->dev, "SPA %d missing DCR %d\n",
++					spa->range_index, dcr);
++			return -ENODEV;
+ 		}
+ 
+ 		if (type == NFIT_SPA_DCR) {
+@@ -595,6 +600,7 @@ static int nfit_mem_dcr_init(struct acpi_nfit_desc *acpi_desc,
+ 				nfit_mem->idt_dcr = nfit_idt->idt;
+ 				break;
+ 			}
++			nfit_mem_init_bdw(acpi_desc, nfit_mem, spa);
+ 		} else {
+ 			/*
+ 			 * A single dimm may belong to multiple SPA-PM
+@@ -603,13 +609,6 @@ static int nfit_mem_dcr_init(struct acpi_nfit_desc *acpi_desc,
+ 			 */
+ 			nfit_mem->memdev_pmem = nfit_memdev->memdev;
+ 		}
+-
+-		if (found)
+-			continue;
+-
+-		rc = nfit_mem_add(acpi_desc, nfit_mem, spa);
+-		if (rc)
+-			return rc;
+ 	}
+ 
+ 	return 0;
