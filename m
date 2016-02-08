@@ -1,48 +1,35 @@
 From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [RFC PATCH v2 1/3] PCI: hisi: re-architect Hip05/Hip06 controllers driver to preapare for ACPI
-Date: Mon, 08 Feb 2016 14:50:15 +0100
-Message-ID: <2409806.1aGBrN4l0X@wuerfel>
-References: <1454935264-6076-1-git-send-email-gabriele.paoloni@huawei.com> <1454935264-6076-2-git-send-email-gabriele.paoloni@huawei.com>
+Subject: Re: [RFC PATCH 0/4] Add ACPI support for HiSilicon PCIe Host Controllers
+Date: Mon, 08 Feb 2016 14:55:11 +0100
+Message-ID: <7297343.ktGck3KQJN@wuerfel>
+References: <1454585860-60709-1-git-send-email-gabriele.paoloni@huawei.com> <1930535.mkCdtpUWq7@wuerfel> <EE11001F9E5DDD47B7634E2F8A612F2E1ECAC944@lhreml503-mbs>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7Bit
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mout.kundenserver.de ([217.72.192.75]:52047 "EHLO
+Received: from mout.kundenserver.de ([212.227.126.130]:55316 "EHLO
 	mout.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751738AbcBHNvM (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Feb 2016 08:51:12 -0500
-In-Reply-To: <1454935264-6076-2-git-send-email-gabriele.paoloni@huawei.com>
+	with ESMTP id S1752360AbcBHNz5 (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Feb 2016 08:55:57 -0500
+In-Reply-To: <EE11001F9E5DDD47B7634E2F8A612F2E1ECAC944@lhreml503-mbs>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
 To: linux-arm-kernel@lists.infradead.org
-Cc: Gabriele Paoloni <gabriele.paoloni@huawei.com>, guohanjun@huawei.com, wangzhou1@hisilicon.com, liudongdong3@huawei.com, linuxarm@huawei.com, qiujiang@huawei.com, bhelgaas@google.com, Lorenzo.Pieralisi@arm.com, tn@semihalf.com, linux-pci@vger.kernel.org, linux-kernel@vger.kernel.org, xuwei5@hisilicon.com, linux-acpi@vger.kernel.org, jcm@redhat.com, zhangjukuo@huawei.com, liguozhu@hisilicon.com
+Cc: Gabriele Paoloni <gabriele.paoloni@huawei.com>, "Lorenzo.Pieralisi@arm.com" <Lorenzo.Pieralisi@arm.com>, "jcm@redhat.com" <jcm@redhat.com>, "tn@semihalf.com" <tn@semihalf.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, Linuxarm <linuxarm@huawei.com>, "xuwei (O)" <xuwei5@hisilicon.com>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "Wangzhou (B)" <wangzhou1@hisilicon.com>, "liudongdong (C)" <liudongdong3@huawei.com>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, "bhelgaas@google.com" <bhelgaas@google.com>, zhangjukuo <zhangjukuo@huawei.com>, "Liguozhu (Kenneth)" <liguozhu@hisilicon.com>, qiujiang <qiujiang@huawei.com>
 
-On Monday 08 February 2016 12:41:02 Gabriele Paoloni wrote:
-> +
-> +/* HipXX PCIe host only supports 32-bit config access */
-> +int hisi_pcie_common_cfg_read(void __iomem *reg_base, int where, int size,
-> +			      u32 *val)
-> +{
-> +	u32 reg;
-> +	u32 reg_val;
-> +	void *walker = &reg_val;
-> +
-> +	walker += (where & 0x3);
-> +	reg = where & ~0x3;
-> +	reg_val = readl(reg_base + reg);
-> +
-> +	if (size == 1)
-> +		*val = *(u8 __force *) walker;
-> +	else if (size == 2)
-> +		*val = *(u16 __force *) walker;
-> +	else if (size == 4)
-> +		*val = reg_val;
-> +	else
-> +		return PCIBIOS_BAD_REGISTER_NUMBER;
-> +
-> +	return PCIBIOS_SUCCESSFUL;
-> +}
+On Monday 08 February 2016 13:17:58 Gabriele Paoloni wrote:
+> 
+> Now I have removed the dependency from designware but I still think
+> the best location for the code is in "drivers/pci/host/":
+> the ACPI quirks share the config read/write functions with the DT
+> driver, moreover for other hosts in future I think it makes sense
+> to stay in "drivers/pci/host/" as they could even share more init
+> code with their respective DT versions...
 
-Isn't this the same hack that Qualcomm are using?
+I haven't really followed what is going on with ACPI. Do you expect
+to see future machines come out that are not just implementing SBSA
+but that still need to run ACPI? I thought this was just a hack
+for some early machines that only run with ACPI but are not actually
+compliant.
 
 	Arnd
