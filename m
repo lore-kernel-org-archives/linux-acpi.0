@@ -1,33 +1,74 @@
-From: Stefano Stabellini <stefano.stabellini-mvvWK6WmYclDPfheJLI6IQ@public.gmane.org>
-Subject: Re: [PATCH v4 01/17] Xen: ACPI: Hide UART used by Xen
-Date: Mon, 8 Feb 2016 10:57:01 +0000
-Message-ID: <alpine.DEB.2.02.1602081054350.27008@kaball.uk.xensource.com>
-References: <1454641552-12576-1-git-send-email-zhaoshenglong@huawei.com>
- <1454641552-12576-2-git-send-email-zhaoshenglong@huawei.com>
- <CAJZ5v0id-035AtyQ_SccPuCxD7+pa6GCgj3WBAojM+rFqssGQQ@mail.gmail.com>
+From: Jayachandran Chandrashekaran Nair
+	<jayachandran.chandrashekaran@broadcom.com>
+Subject: Re: [PATCH v7 5/5] PCI: ACPI: Add a generic ACPI based host controller
+Date: Mon, 8 Feb 2016 16:57:46 +0530
+Message-ID: <CAKc_7PVNm7z8nv_+Tr9FYhrVAA+-vh4CDMB83WAyT8tdi+CHzA@mail.gmail.com>
+References: <1454058340-7904-1-git-send-email-jchandra@broadcom.com>
+ <1454058340-7904-6-git-send-email-jchandra@broadcom.com> <20160205001907.GJ7031@localhost>
+ <CAKc_7PXYtFt1MQE-UGO0O5vvQ+xFKa2b5=F8wXB=EN-JUJVzZw@mail.gmail.com> <20160205094740.GA31547@red-moon>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="US-ASCII"
-Return-path: <linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-In-Reply-To: <CAJZ5v0id-035AtyQ_SccPuCxD7+pa6GCgj3WBAojM+rFqssGQQ-JsoAwUIsXosN+BqQ9rBEUg@public.gmane.org>
-Sender: linux-efi-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
-Cc: Shannon Zhao <zhaoshenglong-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, ard.biesheuvel-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, stefano.stabellini-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org, david.vrabel-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org, Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, julien.grall-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org, xen-devel-GuqFBffKawuEi8DpZVb4nw@public.gmane.org, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ian.campbell-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org, Shannon Zhao <shannon.zhao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, peter.huangpeng-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "open list:ACPI" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Content-Type: text/plain; charset=UTF-8
+Return-path: <linux-pci-owner@vger.kernel.org>
+In-Reply-To: <20160205094740.GA31547@red-moon>
+Sender: linux-pci-owner@vger.kernel.org
+To: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Cc: Bjorn Helgaas <helgaas@kernel.org>, Jayachandran C <jchandra@broadcom.com>, linux-pci@vger.kernel.org, Bjorn Helgaas <bhelgaas@google.com>, linux-acpi@vger.kernel.org, Arnd Bergmann <arnd@arndb.de>, linux-arm-kernel@lists.infradead.org, "Rafael J. Wysocki" <rjw@rjwysocki.net>, Tomasz Nowicki <tn@semihalf.com>, xen-devel@lists.xenproject.org
 List-Id: linux-acpi@vger.kernel.org
 
-On Sat, 6 Feb 2016, Rafael J. Wysocki wrote:
-> On Fri, Feb 5, 2016 at 4:05 AM, Shannon Zhao <zhaoshenglong-hv44wF8Li93QT0dZR+AlfA@public.gmane.org> wrote:
-> > From: Shannon Zhao <shannon.zhao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> >
-> > ACPI 6.0 introduces a new table STAO to list the devices which are used
-> > by Xen and can't be used by Dom0. On Xen virtual platforms, the physical
-> > UART is used by Xen. So here it hides UART from Dom0.
-> >
-> > Signed-off-by: Shannon Zhao <shannon.zhao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
-> > Reviewed-by: Stefano Stabellini <stefano.stabellini-mvvWK6WmYclDPfheJLI6IQ@public.gmane.org>
-> 
-> Well, this doesn't look right to me.
-> 
-> We need to find a nicer way to achieve what you want.
+Lorenzo,
 
-I take that you are talking about how to honor the STAO table in Linux.
-Do you have any concrete suggestions?
+On Fri, Feb 5, 2016 at 3:17 PM, Lorenzo Pieralisi
+<lorenzo.pieralisi@arm.com> wrote:
+> On Fri, Feb 05, 2016 at 02:05:37PM +0530, Jayachandran Chandrashekaran Nair wrote:
+>
+> [...]
+>
+>> pci_host_acpi.c is a generic implementation of these using a sysdata
+>> pointing to acpi_pci_root_info, and using a pointer to the pci_mmcfg_region
+>> to access ECAM area, Maybe I can rename this file to
+>> pci_acpi_host_generic.c to reflect this better.
+>
+> Maybe you should stop sending this series and work with Tomasz to
+> get this done, you are confusing everyone and I am really really
+> annoyed about this.
+>
+> Do you realize there is no point in having two patch series doing
+> the same thing and wasting everyone's review time ?
+>
+> Do you realize he started this work long before you and went through
+> several rounds of review already (I told you before but in case you
+> forgot) ?
+>
+> Tomasz posted a version yesterday, integrating comments following months
+> of review and testing and I think it is ready to get upstream:
+>
+> https://lkml.org/lkml/2016/2/4/646
+>
+> Did you even consider reviewing his code or helping him instead of
+> churning out more patches doing the *SAME* thing ?
+
+This is getting ridiculous, I had replied to your earlier mails on why
+my patchset is NOT doing the exact same thing. I had also explained
+why helping was not feasible.
+
+The basic point again: I am trying to give a much simpler patchset
+to solve the same problem, I take it that you haven't reviewed my
+patchset before writing this mail. I would have appreciated
+a technical discussion rather than this pointless flamefest.
+
+If you have reviewed it, you can see that there are just 5 patches
+instead of 23, and that overall it is a much simpler approach.
+
+> Do you want all of us to go through your code and re-fix what has
+> already been fixed in Tomasz's series with the end result of missing
+> yet another merge window ?
+
+Again, as I said, the whole point of my patchset is that is much  easier
+to go thru and validate and merge or drop as needed.
+
+Anyway, if you are on target to hit this merge window, I really hope
+that happens and there will no need for me to spend further time on
+this.
+
+Regards,
+JC.
