@@ -1,294 +1,83 @@
 From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Subject: [RFC PATCH v2 3/3] PCI/ACPI: hisi: Add ACPI support for HiSilicon SoCs Host Controllers
-Date: Mon, 8 Feb 2016 12:41:04 +0000
-Message-ID: <1454935264-6076-4-git-send-email-gabriele.paoloni@huawei.com>
-References: <1454935264-6076-1-git-send-email-gabriele.paoloni@huawei.com>
+Subject: RE: [RFC PATCH 0/4] Add ACPI support for HiSilicon PCIe Host
+ Controllers
+Date: Mon, 8 Feb 2016 13:17:58 +0000
+Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E1ECAC944@lhreml503-mbs>
+References: <1454585860-60709-1-git-send-email-gabriele.paoloni@huawei.com>
+ <76564455.dlc1WHiVY2@wuerfel>
+ <EE11001F9E5DDD47B7634E2F8A612F2E1EC9EF4B@lhreml503-mbs>
+ <1930535.mkCdtpUWq7@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1454935264-6076-1-git-send-email-gabriele.paoloni@huawei.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: guohanjun@huawei.com, wangzhou1@hisilicon.com, liudongdong3@huawei.com, linuxarm@huawei.com, qiujiang@huawei.com, bhelgaas@google.com, arnd@arndb.de, Lorenzo.Pieralisi@arm.com, tn@semihalf.com
-Cc: gabriele.paoloni@huawei.com, zhangjukuo@huawei.com, xuwei5@hisilicon.com, liguozhu@hisilicon.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, jcm@redhat.com
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from lhrrgout.huawei.com ([194.213.3.17]:19619 "EHLO
+	lhrrgout.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751099AbcBHNSS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Feb 2016 08:18:18 -0500
+In-Reply-To: <1930535.mkCdtpUWq7@wuerfel>
+Content-Language: en-US
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, "Wangzhou (B)" <wangzhou1@hisilicon.com>, "liudongdong (C)" <liudongdong3@huawei.com>, Linuxarm <linuxarm@huawei.com>, qiujiang <qiujiang@huawei.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "Lorenzo.Pieralisi@arm.com" <Lorenzo.Pieralisi@arm.com>, "tn@semihalf.com" <tn@semihalf.com>, zhangjukuo <zhangjukuo@huawei.com>, "xuwei (O)" <xuwei5@hisilicon.com>, "Liguozhu (Kenneth)" <liguozhu@hisilicon.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "jcm@redhat.com" <jcm@redhat.com>
 
-From: gabriele paoloni <gabriele.paoloni@huawei.com>
+> -----Original Message-----
+> From: Arnd Bergmann [mailto:arnd@arndb.de]
+> Sent: 04 February 2016 17:02
+> To: Gabriele Paoloni
+> Cc: Guohanjun (Hanjun Guo); Wangzhou (B); liudongdong (C); Linuxarm;
+> qiujiang; bhelgaas@google.com; Lorenzo.Pieralisi@arm.com;
+> tn@semihalf.com; zhangjukuo; xuwei (O); Liguozhu (Kenneth); linux-
+> pci@vger.kernel.org; linux-arm-kernel@lists.infradead.org; linux-
+> acpi@vger.kernel.org; linux-kernel@vger.kernel.org; jcm@redhat.com
+> Subject: Re: [RFC PATCH 0/4] Add ACPI support for HiSilicon PCIe Host
+> Controllers
+> 
+> On Thursday 04 February 2016 16:44:12 Gabriele Paoloni wrote:
+> > Effectively the ACPI version of the HiSilicon driver does not rely on
+> > Designware as much as the DT version (that calls
+> dw_pcie_host_init());
+> > however in order to do what you suggest I'd need to copy and paste
+> and
+> > modify dw_pcie_rd_conf and dw_pcie_wr_conf.
+> > Also I'd need to declare duplicate version of the functions in
+> > pcie-hisi-common.c (if I do not want to split the object across
+> > different paths "drivers/pci/host" and "drivers/acpi/")
+> >
+> > Now I can do it but I thought it was more correct to pass
+> &dw_pcie_ops
+> > as input pointer in DECLARE_ACPI_MCFG_FIXUP(); this is also because
+> maybe in
+> > future other Designware based controllers may need to support ACPI
+> and it
+> > would be easier for them to reuse their DT based driver functions
+> >
+> > Honestly I am a bit confused...
+> >
+> 
+> I don't think you can use the dw_pcie_ops as-is anyway, as they in
+> turn rely on the device driver structure, and you also don't need
+> those as they seem to be written for the generic case of a 32-bit
+> architecture that does not have enough space to map the entire
+> config space into MMIO. Just set up all those mapping registers from
+> the firmware and pass the config space base address as you'd normally
+> do on ACPI.
 
-This patch adds specific quirks for PCI config space accessors,
-it uses _HID to decide whether to hook pci_ops or not.
+Hi Arnd
 
-Signed-off-by: Dongdong Liu <liudongdong3@huawei.com>
-Signed-off-by: Gabriele Paoloni <gabriele.paoloni@huawei.com>
----
- MAINTAINERS                       |   1 +
- drivers/pci/host/Kconfig          |   8 ++
- drivers/pci/host/Makefile         |   1 +
- drivers/pci/host/pcie-hisi-acpi.c | 188 ++++++++++++++++++++++++++++++++++++++
- drivers/pci/host/pcie-hisi.c      |   2 -
- drivers/pci/host/pcie-hisi.h      |   2 +
- 6 files changed, 200 insertions(+), 2 deletions(-)
- create mode 100644 drivers/pci/host/pcie-hisi-acpi.c
+I have now sent out patchset v2.
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index d69f436..f184c3e 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -8412,6 +8412,7 @@ F:	Documentation/devicetree/bindings/pci/hisilicon-pcie.txt
- F:	drivers/pci/host/pcie-hisi.h
- F:	drivers/pci/host/pcie-hisi.c
- F:	drivers/pci/host/pcie-hisi-common.c
-+F:	drivers/pci/host/pcie-hisi-acpi.c
- 
- PCIE DRIVER FOR QUALCOMM MSM
- M:     Stanimir Varbanov <svarbanov@mm-sol.com>
-diff --git a/drivers/pci/host/Kconfig b/drivers/pci/host/Kconfig
-index 75a6054..65b1add 100644
---- a/drivers/pci/host/Kconfig
-+++ b/drivers/pci/host/Kconfig
-@@ -181,6 +181,14 @@ config PCI_HISI
- 	  Say Y here if you want PCIe controller support on HiSilicon
- 	  Hip05 and Hip06 SoCs
- 
-+config PCI_HISI_ACPI
-+	depends on ACPI
-+	bool "HiSilicon Hip05 and Hip06 SoCs ACPI PCIe controllers"
-+	select ACPI_PCI_HOST_GENERIC
-+	help
-+	  Say Y here if you want ACPI PCIe controller support on HiSilicon
-+	  Hip05 and Hip06 SoCs
-+
- config PCIE_QCOM
- 	bool "Qualcomm PCIe controller"
- 	depends on ARCH_QCOM && OF
-diff --git a/drivers/pci/host/Makefile b/drivers/pci/host/Makefile
-index 8c93c0f..57e4379 100644
---- a/drivers/pci/host/Makefile
-+++ b/drivers/pci/host/Makefile
-@@ -21,4 +21,5 @@ obj-$(CONFIG_PCIE_IPROC_BCMA) += pcie-iproc-bcma.o
- obj-$(CONFIG_PCIE_ALTERA) += pcie-altera.o
- obj-$(CONFIG_PCIE_ALTERA_MSI) += pcie-altera-msi.o
- obj-$(CONFIG_PCI_HISI) += pcie-hisi.o pcie-hisi-common.o
-+obj-$(CONFIG_PCI_HISI_ACPI) += pcie-hisi-acpi.o pcie-hisi-common.o
- obj-$(CONFIG_PCIE_QCOM) += pcie-qcom.o
-diff --git a/drivers/pci/host/pcie-hisi-acpi.c b/drivers/pci/host/pcie-hisi-acpi.c
-new file mode 100644
-index 0000000..3605260
---- /dev/null
-+++ b/drivers/pci/host/pcie-hisi-acpi.c
-@@ -0,0 +1,188 @@
-+/*
-+ * PCIe host controller driver for HiSilicon HipXX SoCs
-+ *
-+ * Copyright (C) 2016 HiSilicon Co., Ltd. http://www.hisilicon.com
-+ *
-+ * Author: Dongdong Liu <liudongdong3@huawei.com>
-+ *         Gabriele Paoloni <gabriele.paoloni@huawei.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+#include <linux/interrupt.h>
-+#include <linux/acpi.h>
-+#include <linux/ecam.h>
-+#include <linux/pci.h>
-+#include <linux/pci-acpi.h>
-+#include "pcie-hisi.h"
-+
-+#define GET_PCIE_LINK_STATUS  0x0
-+
-+/* uuid 6d30f553-836c-408e-b6ad-45bccc957949 */
-+const u8 hisi_pcie_acpi_dsm_uuid[] = {
-+	0x53, 0xf5, 0x30, 0x6d, 0x6c, 0x83, 0x8e, 0x40,
-+	0xb6, 0xad, 0x45, 0xbc, 0xcc, 0x95, 0x79, 0x49
-+};
-+
-+static const struct acpi_device_id hisi_pcie_ids[] = {
-+	{"HISI0080", 0},
-+	{"", 0},
-+};
-+
-+static int hisi_pcie_get_addr(struct acpi_pci_root *root, const char *name,
-+				void __iomem **addr)
-+{
-+	struct acpi_device *device;
-+	u64 base;
-+	u64 size;
-+	u32 buf[4];
-+	int ret;
-+
-+	device =  root->device;
-+	ret = fwnode_property_read_u32_array(&device->fwnode, name,
-+					buf, ARRAY_SIZE(buf));
-+	if (ret) {
-+		dev_err(&device->dev, "can't get %s\n", name);
-+		return ret;
-+	}
-+
-+	base = ((u64)buf[0] << 32) | buf[1];
-+	size =  ((u64)buf[2] << 32) | buf[3];
-+	*addr = devm_ioremap(&device->dev, base, size);
-+	if (!(*addr)) {
-+		dev_err(&device->dev, "error with ioremap\n");
-+		return -ENOMEM;
-+	}
-+
-+	return 0;
-+}
-+
-+
-+static int hisi_pcie_link_up_acpi(struct acpi_pci_root *root)
-+{
-+	u32 val;
-+	struct acpi_device *device;
-+	union acpi_object *obj;
-+
-+	device = root->device;
-+	obj = acpi_evaluate_dsm(device->handle,
-+		hisi_pcie_acpi_dsm_uuid, 0,
-+		GET_PCIE_LINK_STATUS, NULL);
-+
-+	if (!obj  ||  obj->type != ACPI_TYPE_INTEGER)  {
-+		dev_err(&device->dev, "can't get link status from _DSM\n");
-+		return 0;
-+	}
-+	val = obj->integer.value;
-+
-+	return ((val & PCIE_LTSSM_STATE_MASK) == PCIE_LTSSM_LINKUP_STATE);
-+
-+}
-+
-+/*
-+ * Retrieve rc_dbi base and size from _DSD
-+ * Name (_DSD, Package () {
-+ *	ToUUID("daffd814-6eba-4d8c-8a91-bc9bbf4aa301"),
-+ *	Package () {
-+ *	Package () {"rc-dbi", Package () { 0x0, 0xb0080000, 0x0, 0x10000 }},
-+ *	}
-+ *	})
-+ */
-+static int hisi_pcie_init(struct acpi_pci_root *root)
-+{
-+	int ret;
-+	struct acpi_device *device;
-+	void __iomem *reg_base;
-+
-+	device =  root->device;
-+	ret = hisi_pcie_get_addr(root, "rc-dbi", &reg_base);
-+	if (ret) {
-+		dev_err(&device->dev, "can't get rc-dbi\n");
-+		return ret;
-+	}
-+
-+	root->sysdata = reg_base;
-+	return 0;
-+}
-+
-+static int hisi_pcie_match(struct pci_mcfg_fixup *fixup,
-+			struct acpi_pci_root *root)
-+{
-+	int ret;
-+	struct acpi_device *device;
-+
-+	device = root->device;
-+	ret = acpi_match_device_ids(device, hisi_pcie_ids);
-+	if (ret)
-+		return 0;
-+
-+	ret = hisi_pcie_init(root);
-+	if (ret)
-+		dev_warn(&device->dev, "hisi pcie init fail\n");
-+
-+	return 1;
-+}
-+
-+static int hisi_pcie_acpi_valid_config(struct acpi_pci_root *root,
-+				struct pci_bus *bus, int dev)
-+{
-+	/* If there is no link, then there is no device */
-+	if (bus->number != root->secondary.start) {
-+		if (!hisi_pcie_link_up_acpi(root))
-+			return 0;
-+	}
-+
-+	/* access only one slot on each root port */
-+	if (bus->number == root->secondary.start && dev > 0)
-+		return 0;
-+
-+	/*
-+	 * do not read more than one device on the bus directly attached
-+	 * to RC's (Virtual Bridge's) DS side.
-+	 */
-+	if (bus->primary == root->secondary.start && dev > 0)
-+		return 0;
-+
-+	return 1;
-+}
-+
-+static int hisi_pcie_acpi_rd_conf(struct pci_bus *bus, u32 devfn, int where,
-+		int size, u32 *val)
-+{
-+	struct acpi_pci_root *root = bus->sysdata;
-+	void __iomem *reg_base = root->sysdata;
-+
-+	if (hisi_pcie_acpi_valid_config(root, bus, PCI_SLOT(devfn)) == 0)
-+		return PCIBIOS_DEVICE_NOT_FOUND;
-+
-+	if (bus->number == root->secondary.start)
-+		return hisi_pcie_common_cfg_read(reg_base, where, size, val);
-+
-+	return pci_generic_config_read(bus, devfn, where, size, val);
-+}
-+
-+static int hisi_pcie_acpi_wr_conf(struct pci_bus *bus, u32 devfn,
-+		int where, int size, u32 val)
-+{
-+	struct acpi_pci_root *root = bus->sysdata;
-+	void __iomem *reg_base = root->sysdata;
-+
-+	if (hisi_pcie_acpi_valid_config(root, bus, PCI_SLOT(devfn)) == 0)
-+		return PCIBIOS_DEVICE_NOT_FOUND;
-+
-+	if (bus->number == root->secondary.start)
-+		return hisi_pcie_common_cfg_write(reg_base, where, size, val);
-+
-+	return pci_generic_config_write(bus, devfn, where, size, val);
-+}
-+
-+struct pci_ops hisi_pcie_acpi_ops = {
-+	.map_bus = pci_mcfg_dev_base,
-+	.read = hisi_pcie_acpi_rd_conf,
-+	.write = hisi_pcie_acpi_wr_conf,
-+};
-+
-+
-+DECLARE_ACPI_MCFG_FIXUP(NULL, hisi_pcie_match, &hisi_pcie_acpi_ops,
-+	PCI_MCFG_DOMAIN_ANY, PCI_MCFG_BUS_ANY);
-diff --git a/drivers/pci/host/pcie-hisi.c b/drivers/pci/host/pcie-hisi.c
-index eb3201a..ed0b0b2 100644
---- a/drivers/pci/host/pcie-hisi.c
-+++ b/drivers/pci/host/pcie-hisi.c
-@@ -23,8 +23,6 @@
- #include "pcie-designware.h"
- #include "pcie-hisi.h"
- 
--#define PCIE_LTSSM_LINKUP_STATE				0x11
--#define PCIE_LTSSM_STATE_MASK				0x3F
- #define PCIE_SUBCTRL_SYS_STATE4_REG			0x6818
- #define PCIE_SYS_STATE4						0x31c
- #define PCIE_HIP06_CTRL_OFF					0x1000
-diff --git a/drivers/pci/host/pcie-hisi.h b/drivers/pci/host/pcie-hisi.h
-index 29e0790..45cf0fd 100644
---- a/drivers/pci/host/pcie-hisi.h
-+++ b/drivers/pci/host/pcie-hisi.h
-@@ -14,6 +14,8 @@
- #ifndef PCIE_HISI_H_
- #define PCIE_HISI_H_
- 
-+#define PCIE_LTSSM_LINKUP_STATE				0x11
-+#define PCIE_LTSSM_STATE_MASK				0x3F
- 
- int hisi_pcie_common_cfg_read(void __iomem *reg_base, int where, int size,
- 			      u32 *val);
--- 
-1.9.1
+Now I have removed the dependency from designware but I still think
+the best location for the code is in "drivers/pci/host/":
+the ACPI quirks share the config read/write functions with the DT
+driver, moreover for other hosts in future I think it makes sense
+to stay in "drivers/pci/host/" as they could even share more init
+code with their respective DT versions...
+
+Cheers
+
+Gab
+
+> 
+> 	Arnd
