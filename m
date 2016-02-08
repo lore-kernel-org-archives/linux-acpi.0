@@ -1,187 +1,305 @@
 From: Dan Williams <dan.j.williams@intel.com>
-Subject: [PATCH 1/3] nfit: fix multi-interface dimm handling,
- acpi6.1 compatibility
-Date: Mon, 08 Feb 2016 10:30:58 -0800
-Message-ID: <20160208183058.27820.87950.stgit@dwillia2-desk3.amr.corp.intel.com>
+Subject: [PATCH 3/3] nfit,
+ tools/testing/nvdimm: test multiple control regions per-dimm
+Date: Mon, 08 Feb 2016 10:31:09 -0800
+Message-ID: <20160208183109.27820.41485.stgit@dwillia2-desk3.amr.corp.intel.com>
 References: <20160208183052.27820.68922.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:26736 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754560AbcBHSbd (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 8 Feb 2016 13:31:33 -0500
 In-Reply-To: <20160208183052.27820.68922.stgit@dwillia2-desk3.amr.corp.intel.com>
-Sender: linux-kernel-owner@vger.kernel.org
-To: linux-nvdimm@lists.01.org
-Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org
 
-ACPI 6.1 clarified that multi-interface dimms require multiple control
-region entries (DCRs) per dimm.  Previously we were assuming that a
-control region is only present when block-data-windows are present.
-This implementation was done with an eye to be compatibility with the
-looser ACPI 6.0 interpretation of this table.
+ACPI 6.1 clarifies that "The system shall include an NVDIMM Control
+Region Structure for every Function Interface in the NVDIMM."
+Implement this clarification in nfit_test.
 
-1/ When coalescing the memory device (MEMDEV) tables for a single dimm,
-coalesce on device_handle rather than control region index.
-
-2/ Whenever we disocver a control region with non-zero block windows
-re-scan for block-data-window (BDW) entries.
-
-We may need to revisit this if a DIMM ever implements a format interface
-outside of blk or pmem, but that is not on the foreseeable horizon.
-
-Cc: <stable@vger.kernel.org>
 Signed-off-by: Dan Williams <dan.j.williams@intel.com>
 ---
- drivers/acpi/nfit.c |   71 +++++++++++++++++++++++++--------------------------
- 1 file changed, 35 insertions(+), 36 deletions(-)
+ tools/testing/nvdimm/test/nfit.c |  118 ++++++++++++++++++++++++++++++--------
+ 1 file changed, 94 insertions(+), 24 deletions(-)
 
-diff --git a/drivers/acpi/nfit.c b/drivers/acpi/nfit.c
-index ad6d8c6b777e..424b362e8fdc 100644
---- a/drivers/acpi/nfit.c
-+++ b/drivers/acpi/nfit.c
-@@ -469,37 +469,16 @@ static void nfit_mem_find_spa_bdw(struct acpi_nfit_desc *acpi_desc,
- 	nfit_mem->bdw = NULL;
- }
- 
--static int nfit_mem_add(struct acpi_nfit_desc *acpi_desc,
-+static void nfit_mem_init_bdw(struct acpi_nfit_desc *acpi_desc,
- 		struct nfit_mem *nfit_mem, struct acpi_nfit_system_address *spa)
+diff --git a/tools/testing/nvdimm/test/nfit.c b/tools/testing/nvdimm/test/nfit.c
+index f9d37143e264..f4f15c544d66 100644
+--- a/tools/testing/nvdimm/test/nfit.c
++++ b/tools/testing/nvdimm/test/nfit.c
+@@ -425,6 +425,8 @@ static int nfit_test0_alloc(struct nfit_test *t)
+ 	size_t nfit_size = sizeof(struct acpi_nfit_system_address) * NUM_SPA
+ 			+ sizeof(struct acpi_nfit_memory_map) * NUM_MEM
+ 			+ sizeof(struct acpi_nfit_control_region) * NUM_DCR
++			+ offsetof(struct acpi_nfit_control_region,
++					window_size) * NUM_DCR
+ 			+ sizeof(struct acpi_nfit_data_region) * NUM_BDW
+ 			+ sizeof(struct acpi_nfit_flush_address) * NUM_DCR;
+ 	int i;
+@@ -474,7 +476,7 @@ static int nfit_test1_alloc(struct nfit_test *t)
  {
- 	u16 dcr = __to_nfit_memdev(nfit_mem)->region_index;
- 	struct nfit_memdev *nfit_memdev;
- 	struct nfit_flush *nfit_flush;
--	struct nfit_dcr *nfit_dcr;
- 	struct nfit_bdw *nfit_bdw;
- 	struct nfit_idt *nfit_idt;
- 	u16 idt_idx, range_index;
+ 	size_t nfit_size = sizeof(struct acpi_nfit_system_address)
+ 		+ sizeof(struct acpi_nfit_memory_map)
+-		+ sizeof(struct acpi_nfit_control_region);
++		+ offsetof(struct acpi_nfit_control_region, window_size);
  
--	list_for_each_entry(nfit_dcr, &acpi_desc->dcrs, list) {
--		if (nfit_dcr->dcr->region_index != dcr)
--			continue;
--		nfit_mem->dcr = nfit_dcr->dcr;
--		break;
--	}
--
--	if (!nfit_mem->dcr) {
--		dev_dbg(acpi_desc->dev, "SPA %d missing:%s%s\n",
--				spa->range_index, __to_nfit_memdev(nfit_mem)
--				? "" : " MEMDEV", nfit_mem->dcr ? "" : " DCR");
--		return -ENODEV;
--	}
--
--	/*
--	 * We've found enough to create an nvdimm, optionally
--	 * find an associated BDW
--	 */
--	list_add(&nfit_mem->list, &acpi_desc->dimms);
--
- 	list_for_each_entry(nfit_bdw, &acpi_desc->bdws, list) {
- 		if (nfit_bdw->bdw->region_index != dcr)
- 			continue;
-@@ -508,12 +487,12 @@ static int nfit_mem_add(struct acpi_nfit_desc *acpi_desc,
- 	}
+ 	t->nfit_buf = test_alloc(t, nfit_size, &t->nfit_dma);
+ 	if (!t->nfit_buf)
+@@ -607,7 +609,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	memdev->physical_id = 0;
+ 	memdev->region_id = 0;
+ 	memdev->range_index = 0+1;
+-	memdev->region_index = 0+1;
++	memdev->region_index = 4+1;
+ 	memdev->region_size = SPA0_SIZE/2;
+ 	memdev->region_offset = t->spa_set_dma[0];
+ 	memdev->address = 0;
+@@ -622,7 +624,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	memdev->physical_id = 1;
+ 	memdev->region_id = 0;
+ 	memdev->range_index = 0+1;
+-	memdev->region_index = 1+1;
++	memdev->region_index = 5+1;
+ 	memdev->region_size = SPA0_SIZE/2;
+ 	memdev->region_offset = t->spa_set_dma[0] + SPA0_SIZE/2;
+ 	memdev->address = 0;
+@@ -637,7 +639,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	memdev->physical_id = 0;
+ 	memdev->region_id = 1;
+ 	memdev->range_index = 1+1;
+-	memdev->region_index = 0+1;
++	memdev->region_index = 4+1;
+ 	memdev->region_size = SPA1_SIZE/4;
+ 	memdev->region_offset = t->spa_set_dma[1];
+ 	memdev->address = SPA0_SIZE/2;
+@@ -652,7 +654,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	memdev->physical_id = 1;
+ 	memdev->region_id = 1;
+ 	memdev->range_index = 1+1;
+-	memdev->region_index = 1+1;
++	memdev->region_index = 5+1;
+ 	memdev->region_size = SPA1_SIZE/4;
+ 	memdev->region_offset = t->spa_set_dma[1] + SPA1_SIZE/4;
+ 	memdev->address = SPA0_SIZE/2;
+@@ -667,7 +669,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	memdev->physical_id = 2;
+ 	memdev->region_id = 0;
+ 	memdev->range_index = 1+1;
+-	memdev->region_index = 2+1;
++	memdev->region_index = 6+1;
+ 	memdev->region_size = SPA1_SIZE/4;
+ 	memdev->region_offset = t->spa_set_dma[1] + 2*SPA1_SIZE/4;
+ 	memdev->address = SPA0_SIZE/2;
+@@ -682,7 +684,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	memdev->physical_id = 3;
+ 	memdev->region_id = 0;
+ 	memdev->range_index = 1+1;
+-	memdev->region_index = 3+1;
++	memdev->region_index = 7+1;
+ 	memdev->region_size = SPA1_SIZE/4;
+ 	memdev->region_offset = t->spa_set_dma[1] + 3*SPA1_SIZE/4;
+ 	memdev->address = SPA0_SIZE/2;
+@@ -810,7 +812,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	memdev->interleave_ways = 1;
  
- 	if (!nfit_mem->bdw)
--		return 0;
-+		return;
+ 	offset = offset + sizeof(struct acpi_nfit_memory_map) * 14;
+-	/* dcr-descriptor0 */
++	/* dcr-descriptor0: blk */
+ 	dcr = nfit_buf + offset;
+ 	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
+ 	dcr->header.length = sizeof(struct acpi_nfit_control_region);
+@@ -827,7 +829,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	dcr->status_offset = 8;
+ 	dcr->status_size = 4;
  
- 	nfit_mem_find_spa_bdw(acpi_desc, nfit_mem);
+-	/* dcr-descriptor1 */
++	/* dcr-descriptor1: blk */
+ 	dcr = nfit_buf + offset + sizeof(struct acpi_nfit_control_region);
+ 	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
+ 	dcr->header.length = sizeof(struct acpi_nfit_control_region);
+@@ -844,7 +846,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	dcr->status_offset = 8;
+ 	dcr->status_size = 4;
  
- 	if (!nfit_mem->spa_bdw)
--		return 0;
-+		return;
+-	/* dcr-descriptor2 */
++	/* dcr-descriptor2: blk */
+ 	dcr = nfit_buf + offset + sizeof(struct acpi_nfit_control_region) * 2;
+ 	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
+ 	dcr->header.length = sizeof(struct acpi_nfit_control_region);
+@@ -861,7 +863,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	dcr->status_offset = 8;
+ 	dcr->status_size = 4;
  
- 	range_index = nfit_mem->spa_bdw->range_index;
- 	list_for_each_entry(nfit_memdev, &acpi_desc->memdevs, list) {
-@@ -538,8 +517,6 @@ static int nfit_mem_add(struct acpi_nfit_desc *acpi_desc,
- 		}
- 		break;
- 	}
--
--	return 0;
- }
+-	/* dcr-descriptor3 */
++	/* dcr-descriptor3: blk */
+ 	dcr = nfit_buf + offset + sizeof(struct acpi_nfit_control_region) * 3;
+ 	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
+ 	dcr->header.length = sizeof(struct acpi_nfit_control_region);
+@@ -879,6 +881,63 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 	dcr->status_size = 4;
  
- static int nfit_mem_dcr_init(struct acpi_nfit_desc *acpi_desc,
-@@ -548,7 +525,6 @@ static int nfit_mem_dcr_init(struct acpi_nfit_desc *acpi_desc,
- 	struct nfit_mem *nfit_mem, *found;
- 	struct nfit_memdev *nfit_memdev;
- 	int type = nfit_spa_type(spa);
--	u16 dcr;
- 
- 	switch (type) {
- 	case NFIT_SPA_DCR:
-@@ -559,14 +535,18 @@ static int nfit_mem_dcr_init(struct acpi_nfit_desc *acpi_desc,
- 	}
- 
- 	list_for_each_entry(nfit_memdev, &acpi_desc->memdevs, list) {
--		int rc;
-+		struct nfit_dcr *nfit_dcr;
-+		u32 device_handle;
-+		u16 dcr;
- 
- 		if (nfit_memdev->memdev->range_index != spa->range_index)
- 			continue;
- 		found = NULL;
- 		dcr = nfit_memdev->memdev->region_index;
-+		device_handle = nfit_memdev->memdev->device_handle;
- 		list_for_each_entry(nfit_mem, &acpi_desc->dimms, list)
--			if (__to_nfit_memdev(nfit_mem)->region_index == dcr) {
-+			if (__to_nfit_memdev(nfit_mem)->device_handle
-+					== device_handle) {
- 				found = nfit_mem;
- 				break;
- 			}
-@@ -579,6 +559,31 @@ static int nfit_mem_dcr_init(struct acpi_nfit_desc *acpi_desc,
- 			if (!nfit_mem)
- 				return -ENOMEM;
- 			INIT_LIST_HEAD(&nfit_mem->list);
-+			list_add(&nfit_mem->list, &acpi_desc->dimms);
-+		}
+ 	offset = offset + sizeof(struct acpi_nfit_control_region) * 4;
++	/* dcr-descriptor0: pmem */
++	dcr = nfit_buf + offset;
++	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
++	dcr->header.length = offsetof(struct acpi_nfit_control_region,
++			window_size);
++	dcr->region_index = 4+1;
++	dcr->vendor_id = 0xabcd;
++	dcr->device_id = 0;
++	dcr->revision_id = 1;
++	dcr->serial_number = ~handle[0];
++	dcr->code = NFIT_FIC_BYTEN;
++	dcr->windows = 0;
 +
-+		list_for_each_entry(nfit_dcr, &acpi_desc->dcrs, list) {
-+			if (nfit_dcr->dcr->region_index != dcr)
-+				continue;
-+			/*
-+			 * Record the control region for the dimm.  For
-+			 * the ACPI 6.1 case, where there are separate
-+			 * control regions for the pmem vs blk
-+			 * interfaces, be sure to record the extended
-+			 * blk details.
-+			 */
-+			if (!nfit_mem->dcr)
-+				nfit_mem->dcr = nfit_dcr->dcr;
-+			else if (nfit_mem->dcr->windows == 0
-+					&& nfit_dcr->dcr->windows)
-+				nfit_mem->dcr = nfit_dcr->dcr;
-+			break;
-+		}
++	/* dcr-descriptor1: pmem */
++	dcr = nfit_buf + offset + offsetof(struct acpi_nfit_control_region,
++			window_size);
++	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
++	dcr->header.length = offsetof(struct acpi_nfit_control_region,
++			window_size);
++	dcr->region_index = 5+1;
++	dcr->vendor_id = 0xabcd;
++	dcr->device_id = 0;
++	dcr->revision_id = 1;
++	dcr->serial_number = ~handle[1];
++	dcr->code = NFIT_FIC_BYTEN;
++	dcr->windows = 0;
 +
-+		if (dcr && !nfit_mem->dcr) {
-+			dev_err(acpi_desc->dev, "SPA %d missing DCR %d\n",
-+					spa->range_index, dcr);
-+			return -ENODEV;
- 		}
++	/* dcr-descriptor2: pmem */
++	dcr = nfit_buf + offset + offsetof(struct acpi_nfit_control_region,
++			window_size) * 2;
++	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
++	dcr->header.length = offsetof(struct acpi_nfit_control_region,
++			window_size);
++	dcr->region_index = 6+1;
++	dcr->vendor_id = 0xabcd;
++	dcr->device_id = 0;
++	dcr->revision_id = 1;
++	dcr->serial_number = ~handle[2];
++	dcr->code = NFIT_FIC_BYTEN;
++	dcr->windows = 0;
++
++	/* dcr-descriptor3: pmem */
++	dcr = nfit_buf + offset + offsetof(struct acpi_nfit_control_region,
++			window_size) * 3;
++	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
++	dcr->header.length = offsetof(struct acpi_nfit_control_region,
++			window_size);
++	dcr->region_index = 7+1;
++	dcr->vendor_id = 0xabcd;
++	dcr->device_id = 0;
++	dcr->revision_id = 1;
++	dcr->serial_number = ~handle[3];
++	dcr->code = NFIT_FIC_BYTEN;
++	dcr->windows = 0;
++
++	offset = offset + offsetof(struct acpi_nfit_control_region,
++			window_size) * 4;
+ 	/* bdw0 (spa/dcr0, dimm0) */
+ 	bdw = nfit_buf + offset;
+ 	bdw->header.type = ACPI_NFIT_TYPE_DATA_REGION;
+@@ -958,11 +1017,11 @@ static void nfit_test0_setup(struct nfit_test *t)
  
- 		if (type == NFIT_SPA_DCR) {
-@@ -595,6 +600,7 @@ static int nfit_mem_dcr_init(struct acpi_nfit_desc *acpi_desc,
- 				nfit_mem->idt_dcr = nfit_idt->idt;
- 				break;
- 			}
-+			nfit_mem_init_bdw(acpi_desc, nfit_mem, spa);
- 		} else {
- 			/*
- 			 * A single dimm may belong to multiple SPA-PM
-@@ -603,13 +609,6 @@ static int nfit_mem_dcr_init(struct acpi_nfit_desc *acpi_desc,
- 			 */
- 			nfit_mem->memdev_pmem = nfit_memdev->memdev;
- 		}
--
--		if (found)
--			continue;
--
--		rc = nfit_mem_add(acpi_desc, nfit_mem, spa);
--		if (rc)
--			return rc;
- 	}
+ 	if (t->setup_hotplug) {
+ 		offset = offset + sizeof(struct acpi_nfit_flush_address) * 4;
+-		/* dcr-descriptor4 */
++		/* dcr-descriptor4: blk */
+ 		dcr = nfit_buf + offset;
+ 		dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
+ 		dcr->header.length = sizeof(struct acpi_nfit_control_region);
+-		dcr->region_index = 4+1;
++		dcr->region_index = 8+1;
+ 		dcr->vendor_id = 0xabcd;
+ 		dcr->device_id = 0;
+ 		dcr->revision_id = 1;
+@@ -976,11 +1035,26 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 		dcr->status_size = 4;
  
- 	return 0;
+ 		offset = offset + sizeof(struct acpi_nfit_control_region);
++		/* dcr-descriptor4: pmem */
++		dcr = nfit_buf + offset;
++		dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
++		dcr->header.length = offsetof(struct acpi_nfit_control_region,
++				window_size);
++		dcr->region_index = 9+1;
++		dcr->vendor_id = 0xabcd;
++		dcr->device_id = 0;
++		dcr->revision_id = 1;
++		dcr->serial_number = ~handle[4];
++		dcr->code = NFIT_FIC_BYTEN;
++		dcr->windows = 0;
++
++		offset = offset + offsetof(struct acpi_nfit_control_region,
++				window_size);
+ 		/* bdw4 (spa/dcr4, dimm4) */
+ 		bdw = nfit_buf + offset;
+ 		bdw->header.type = ACPI_NFIT_TYPE_DATA_REGION;
+ 		bdw->header.length = sizeof(struct acpi_nfit_data_region);
+-		bdw->region_index = 4+1;
++		bdw->region_index = 8+1;
+ 		bdw->windows = 1;
+ 		bdw->offset = 0;
+ 		bdw->size = BDW_SIZE;
+@@ -1028,7 +1102,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 		memdev->physical_id = 4;
+ 		memdev->region_id = 0;
+ 		memdev->range_index = 10+1;
+-		memdev->region_index = 4+1;
++		memdev->region_index = 8+1;
+ 		memdev->region_size = 0;
+ 		memdev->region_offset = 0;
+ 		memdev->address = 0;
+@@ -1044,14 +1118,14 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 		memdev->physical_id = 4;
+ 		memdev->region_id = 0;
+ 		memdev->range_index = 11+1;
+-		memdev->region_index = 4+1;
++		memdev->region_index = 9+1;
+ 		memdev->region_size = SPA0_SIZE;
+ 		memdev->region_offset = t->spa_set_dma[2];
+ 		memdev->address = 0;
+ 		memdev->interleave_index = 0;
+ 		memdev->interleave_ways = 1;
+ 
+-		/* mem-region16 (spa/dcr4, dimm4) */
++		/* mem-region16 (spa/bdw4, dimm4) */
+ 		memdev = nfit_buf + offset +
+ 				sizeof(struct acpi_nfit_memory_map) * 2;
+ 		memdev->header.type = ACPI_NFIT_TYPE_MEMORY_MAP;
+@@ -1060,7 +1134,7 @@ static void nfit_test0_setup(struct nfit_test *t)
+ 		memdev->physical_id = 4;
+ 		memdev->region_id = 0;
+ 		memdev->range_index = 12+1;
+-		memdev->region_index = 4+1;
++		memdev->region_index = 8+1;
+ 		memdev->region_size = 0;
+ 		memdev->region_offset = 0;
+ 		memdev->address = 0;
+@@ -1131,7 +1205,8 @@ static void nfit_test1_setup(struct nfit_test *t)
+ 	/* dcr-descriptor0 */
+ 	dcr = nfit_buf + offset;
+ 	dcr->header.type = ACPI_NFIT_TYPE_CONTROL_REGION;
+-	dcr->header.length = sizeof(struct acpi_nfit_control_region);
++	dcr->header.length = offsetof(struct acpi_nfit_control_region,
++			window_size);
+ 	dcr->region_index = 0+1;
+ 	dcr->vendor_id = 0xabcd;
+ 	dcr->device_id = 0;
+@@ -1139,11 +1214,6 @@ static void nfit_test1_setup(struct nfit_test *t)
+ 	dcr->serial_number = ~0;
+ 	dcr->code = NFIT_FIC_BYTE;
+ 	dcr->windows = 0;
+-	dcr->window_size = 0;
+-	dcr->command_offset = 0;
+-	dcr->command_size = 0;
+-	dcr->status_offset = 0;
+-	dcr->status_size = 0;
+ 
+ 	acpi_desc = &t->acpi_desc;
+ 	set_bit(ND_CMD_ARS_CAP, &acpi_desc->bus_dsm_force_en);
+
