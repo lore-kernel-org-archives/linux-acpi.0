@@ -1,99 +1,38 @@
-From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Subject: RE: [RFC PATCH v2 2/3] PCI: hisi: Make the HiSilicon PCIe host
- controller ECAM compliant
-Date: Mon, 8 Feb 2016 17:21:27 +0000
-Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E1ECAD436@lhreml503-mbs>
-References: <1454935264-6076-1-git-send-email-gabriele.paoloni@huawei.com>
- <3532826.pJr5R5Xa4c@wuerfel>
- <EE11001F9E5DDD47B7634E2F8A612F2E1ECACF44@lhreml503-mbs>
- <2599997.xBRrI3qHak@wuerfel>
+From: Dan Williams <dan.j.williams@intel.com>
+Subject: [PATCH 0/3] ACPI 6.1 NFIT Compatibility
+Date: Mon, 08 Feb 2016 10:30:53 -0800
+Message-ID: <20160208183052.27820.68922.stgit@dwillia2-desk3.amr.corp.intel.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <2599997.xBRrI3qHak@wuerfel>
-Content-Language: en-US
-Sender: linux-kernel-owner@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, "Wangzhou (B)" <wangzhou1@hisilicon.com>, "liudongdong (C)" <liudongdong3@huawei.com>, Linuxarm <linuxarm@huawei.com>, qiujiang <qiujiang@huawei.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "Lorenzo.Pieralisi@arm.com" <Lorenzo.Pieralisi@arm.com>, "tn@semihalf.com" <tn@semihalf.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "xuwei (O)" <xuwei5@hisilicon.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "jcm@redhat.com" <jcm@redhat.com>, zhangjukuo <zhangjukuo@huawei.com>, "Liguozhu (Kenneth)" <liguozhu@hisilicon.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Return-path: <linux-acpi-owner@vger.kernel.org>
+Received: from mga11.intel.com ([192.55.52.93]:23496 "EHLO mga11.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752360AbcBHSbR (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Mon, 8 Feb 2016 13:31:17 -0500
+Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
+To: linux-nvdimm@lists.01.org
+Cc: linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, stable@vger.kernel.org
 
-Hi Arnd
+The latest NFIT specification clarifies that a memory device will have a
+control region table per function interface.  Without the fix in [PATCH
+1/3] Linux will miscount the number of DIMMs and fail to load the
+driver.  The fix is tagged for -stable on the expectation that ACPI 6.1
+compatible systems will overlap current -stable development branches.
 
-> -----Original Message-----
-> From: Arnd Bergmann [mailto:arnd@arndb.de]
-> Sent: 08 February 2016 16:30
-> To: Gabriele Paoloni
-> Cc: linux-arm-kernel@lists.infradead.org; Guohanjun (Hanjun Guo);
-> Wangzhou (B); liudongdong (C); Linuxarm; qiujiang; bhelgaas@google.com;
-> Lorenzo.Pieralisi@arm.com; tn@semihalf.com; linux-pci@vger.kernel.org;
-> linux-kernel@vger.kernel.org; xuwei (O); linux-acpi@vger.kernel.org;
-> jcm@redhat.com; zhangjukuo; Liguozhu (Kenneth)
-> Subject: Re: [RFC PATCH v2 2/3] PCI: hisi: Make the HiSilicon PCIe host
-> controller ECAM compliant
-> 
-> On Monday 08 February 2016 15:55:35 Gabriele Paoloni wrote:
-> > > Doesn't this break backwards compatibility?
-> >
-> > Well Hip05/Hip06 SoCs are used into evaluation boards
-> > For the Estuary project.
-> >
-> > https://github.com/hisilicon/estuary
-> >
-> > As this new driver gets upstream we'll merge this new driver into
-> estuary
-> > and release a new version of the firmware to support it.
-> 
-> So what happens to folks running the old firmware then?
+The latter two patches in the series are verification tests that can be
+integrated for 4.6.
 
-So far we haven't released the PCIe nodes dtsi upstream and we think
-we can handle the firmware upgrade for our current users either
-by pointing them to the updated Estuary branch or by internal 
-channels  
+---
 
-> 
-> > > I think you need to use a new compatible string in the firmware
-> > > if you change the register layout, and then change the driver
-> > > to support both the old and the new layout.
-> >
-> > You are right, for some reason in this patchset I missed the
-> Documentation
-> > update that I posted in the previous one, i.e.:
-> >
-> > --- a/Documentation/devicetree/bindings/pci/hisilicon-pcie.txt
-> > +++ b/Documentation/devicetree/bindings/pci/hisilicon-pcie.txt
-> > @@ -23,8 +23,8 @@ Optional properties:
-> >  Hip05 Example (note that Hip06 is the same except compatible):
-> >         pcie@0xb0080000 {
-> >                 compatible = "hisilicon,hip05-pcie", "snps,dw-pcie";
-> > -               reg = <0 0xb0080000 0 0x10000>, <0x220 0x00000000 0
-> 0x2000>;
-> > -               reg-names = "rc_dbi", "config";
-> > +               reg = <0 0xb0080000 0 0x10000>, <0x220 0x00100000 0
-> 0x0f00000>;
-> > +               reg-names = "rc_dbi", "ecam-cfg";
-> >
-> 
-> That is not the compatible string, it's an undocumented register set.
+Dan Williams (3):
+      nfit: fix multi-interface dimm handling, acpi6.1 compatibility
+      nfit, tools/testing/nvdimm: add format interface code definitions
+      nfit, tools/testing/nvdimm: test multiple control regions per-dimm
 
-Sorry, I misunderstood here, got it now :)
 
-> You can either define the a new compatible string that gives the
-> "config"
-> registers a new meaning, or you change the binding to allow two either
-> a "config" or an "ecam-cfg" register set, and let the driver handle
-> both.
-
-As per reply above I think that it would be quite easy for us to
-let out current users update the BIOS so I don't think there is any
-value in maintaining two version of the drivers one of which will
-not be used.
-
-What do you think?
-
-Thanks
-
-Gab
-
-> 
-> 	Arnd
+ drivers/acpi/nfit.c              |   71 +++++++++++-----------
+ drivers/acpi/nfit.h              |    6 ++
+ tools/testing/nvdimm/test/nfit.c |  125 ++++++++++++++++++++++++++++++--------
+ 3 files changed, 141 insertions(+), 61 deletions(-)
