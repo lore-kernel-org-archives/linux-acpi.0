@@ -1,57 +1,60 @@
-From: "Rafael J. Wysocki" <rafael@kernel.org>
-Subject: Re: [PATCH v12 2/4] PM / Domains: add setter for dev.pm_domain
-Date: Mon, 8 Feb 2016 22:50:39 +0100
-Message-ID: <CAJZ5v0jUipo06fpSQsKi+5Po_32ntgc3Ns29=17SgQr2PSj+kA@mail.gmail.com>
-References: <1452181575-9206-1-git-send-email-tomeu.vizoso@collabora.com>
-	<CAHp75VdWPUZ8F5rsGn3M1e5Pgpcg1CErBej9PE_3+ZPke5CDFA@mail.gmail.com>
-	<CAHp75Vf9TS-AxJALQjiwNjMCT8ct5SBanYzrEsV9aj=DsUw-OA@mail.gmail.com>
-	<1783906.XctYjeUNLr@vostro.rjw.lan>
-	<44858.1454967873@turing-police.cc.vt.edu>
+From: "Rafael J. Wysocki" <rjw-LthD3rsA81gm4RdzfppkhA@public.gmane.org>
+Subject: Re: [PATCH v4 01/17] Xen: ACPI: Hide UART used by Xen
+Date: Mon, 08 Feb 2016 23:25:37 +0100
+Message-ID: <2213954.ztOe55fprN@vostro.rjw.lan>
+References: <1454641552-12576-1-git-send-email-zhaoshenglong@huawei.com> <CAJZ5v0id-035AtyQ_SccPuCxD7+pa6GCgj3WBAojM+rFqssGQQ@mail.gmail.com> <alpine.DEB.2.02.1602081054350.27008@kaball.uk.xensource.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <44858.1454967873@turing-police.cc.vt.edu>
-Sender: linux-kernel-owner@vger.kernel.org
-To: Valdis.Kletnieks@vt.edu
-Cc: "Rafael J. Wysocki" <rjw@rjwysocki.net>, Andy Shevchenko <andy.shevchenko@gmail.com>, Tomeu Vizoso <tomeu.vizoso@collabora.com>, "linux-pm@vger.kernel.org" <linux-pm@vger.kernel.org>, Alan Stern <stern@rowland.harvard.edu>, martyn.welch@collabora.co.uk, Ulf Hansson <ulf.hansson@linaro.org>, Daniel Kurtz <djkurtz@chromium.org>, David Airlie <airlied@linux.ie>, Tomas Winkler <tomas.winkler@intel.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, dri-devel@lists.freedesktop.org, Russell King <linux@arm.linux.org.uk>, Greg Kroah-Hartman <gregkh@linuxfoundation.org>, Kevin Hilman <khilman@kernel.org>, Tony Lindgren <tony@atomide.com>, Len Brown <lenb@kernel.org>, Linux OMAP Mailing List <linux-omap@vger.kernel.org>, Pavel Machek <pavel@ucw.cz>, linux-arm Mailing List <linux-arm-kernel@lists.infr>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7Bit
+Return-path: <devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <alpine.DEB.2.02.1602081054350.27008-7Z66fg9igcxYtxbxJUhB2Dgeux46jI+i@public.gmane.org>
+Sender: devicetree-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: Stefano Stabellini <stefano.stabellini-mvvWK6WmYclDPfheJLI6IQ@public.gmane.org>
+Cc: "Rafael J. Wysocki" <rafael-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, Shannon Zhao <zhaoshenglong-hv44wF8Li93QT0dZR+AlfA@public.gmane.org>, "linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org" <linux-arm-kernel-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org>, ard.biesheuvel-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org, stefano.stabellini-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org, david.vrabel-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org, Catalin Marinas <catalin.marinas-5wv7dgnIgG8@public.gmane.org>, Will Deacon <will.deacon-5wv7dgnIgG8@public.gmane.org>, Mark Rutland <mark.rutland-5wv7dgnIgG8@public.gmane.org>, julien.grall-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org, xen-devel-GuqFBffKawuEi8DpZVb4nw@public.gmane.org, "devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org" <devicetree-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, linux-efi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>, ian.campbell-Sxgqhf6Nn4DQT0dZR+AlfA@public.gmane.org, Shannon Zhao <shannon.zhao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>, peter.huangpeng-hv44wF8Li93QT0dZR+AlfA@public.gmane.org, Len Brown <lenb-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, "open list:ACPI" <linux-acpi-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
 List-Id: linux-acpi@vger.kernel.org
 
-On Mon, Feb 8, 2016 at 10:44 PM,  <Valdis.Kletnieks@vt.edu> wrote:
-> On Fri, 29 Jan 2016 22:35:18 +0100, "Rafael J. Wysocki" said:
->> > One more test unveils this one
->> >
->> > # modprobe -r sdhci-acpi
->> > [ 1289.909441] ------------[ cut here ]------------
->> > [ 1289.918205] WARNING: CPU: 1 PID: 4374 at
->> > /home/andy/prj/linux-otc/drivers/base/power/common.c:150
->> > dev_pm_domain_set+0x51/0x60()
->> > [ 1289.934681] PM domains can only be changed for unbound devices
->> > [ 1289.944843] Modules linked in: sdhci_acpi(-) sdhci mmc_core
->> > led_class [last unloaded: dw_dmac_core]
->> > [ 1289.958802] CPU: 1 PID: 4374 Comm: modprobe Not tainted 4.5.0-rc1+ #3
->> > [ 1289.969736]  ffffffff81c38330 ffff88007bb53d18 ffffffff8133162f
->> > ffff88007bb53d60
->> > [ 1289.981844]  ffff88007bb53d50 ffffffff8105cd12 ffff88017a007410
->> > 0000000000000000
->> > [ 1289.993996]  0000000000000001 0000000000000080 0000000000000000
->> > ffff88007bb53db0
->> > [ 1290.006123] Call Trace:
->> > [ 1290.012600]  [<ffffffff8133162f>] dump_stack+0x44/0x55
->> > [ 1290.022052]  [<ffffffff8105cd12>] warn_slowpath_common+0x82/0xc0
->> > [ 1290.032462]  [<ffffffff8105cd9c>] warn_slowpath_fmt+0x4c/0x50
->> > [ 1290.042589]  [<ffffffff814867c1>] dev_pm_domain_set+0x51/0x60
->
-> My Dell Latitude laptopi on next-20160201 is throwing a similar error
-> at shutdown, except the traceback continues:
->
-> mei_me_remove+0xbd/0xc0
-> pci_device_shutdown+0x32/0x50
-> device_shutdown+0xe2/0x210
->
-> (sorry, that's all I have, transcribing from one frame of video shot while
-> the system was shutting down....)
+On Monday, February 08, 2016 10:57:01 AM Stefano Stabellini wrote:
+> On Sat, 6 Feb 2016, Rafael J. Wysocki wrote:
+> > On Fri, Feb 5, 2016 at 4:05 AM, Shannon Zhao <zhaoshenglong-hv44wF8Li93QT0dZR+AlfA@public.gmane.org> wrote:
+> > > From: Shannon Zhao <shannon.zhao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> > >
+> > > ACPI 6.0 introduces a new table STAO to list the devices which are used
+> > > by Xen and can't be used by Dom0. On Xen virtual platforms, the physical
+> > > UART is used by Xen. So here it hides UART from Dom0.
+> > >
+> > > Signed-off-by: Shannon Zhao <shannon.zhao-QSEj5FYQhm4dnm+yROfE0A@public.gmane.org>
+> > > Reviewed-by: Stefano Stabellini <stefano.stabellini-mvvWK6WmYclDPfheJLI6IQ@public.gmane.org>
+> > 
+> > Well, this doesn't look right to me.
+> > 
+> > We need to find a nicer way to achieve what you want.
+> 
+> I take that you are talking about how to honor the STAO table in Linux.
+> Do you have any concrete suggestions?
 
-This should be fixed in 4.5-rc3, so please retest.
+I do.
+
+The last hunk of the patch is likely what it needs to be, although I'm
+not sure if the place it is added to is the right one.  That's a minor thing,
+though.
+
+The other part is problematic.  Not that as it doesn't work, but because of
+how it works.  With these changes the device will be visible to the OS (in
+fact to user space even), but will never be "present".  I'm not sure if
+that's what you want?
+
+It might be better to add a check to acpi_bus_type_and_status() that will
+evaluate the "should ignore?" thing and return -ENODEV if this is true.  This
+way the device won't be visible at all.
 
 Thanks,
 Rafael
+
+
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
+--
+To unsubscribe from this list: send the line "unsubscribe devicetree" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
