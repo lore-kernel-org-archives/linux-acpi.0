@@ -1,92 +1,85 @@
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-Subject: Re: [PATCH v2 0/4] spi: pxa2xx: Chip select fixes for Intel Baytrail
- and Braswell
-Date: Mon, 8 Feb 2016 17:31:22 +0200
-Message-ID: <CAHp75VcRVrqNr5LVWVc9MgMWHjDq_3nXgHBTwj3U4HzQJG+qCA@mail.gmail.com>
-References: <1454944471-50119-1-git-send-email-mika.westerberg@linux.intel.com>
+From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+Subject: RE: [RFC PATCH v2 2/3] PCI: hisi: Make the HiSilicon PCIe host
+ controller ECAM compliant
+Date: Mon, 8 Feb 2016 15:55:35 +0000
+Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E1ECACF44@lhreml503-mbs>
+References: <1454935264-6076-1-git-send-email-gabriele.paoloni@huawei.com>
+ <1454935264-6076-3-git-send-email-gabriele.paoloni@huawei.com>
+ <3532826.pJr5R5Xa4c@wuerfel>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail-yw0-f173.google.com ([209.85.161.173]:34725 "EHLO
-	mail-yw0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753483AbcBHPbW (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Feb 2016 10:31:22 -0500
-In-Reply-To: <1454944471-50119-1-git-send-email-mika.westerberg@linux.intel.com>
+Received: from lhrrgout.huawei.com ([194.213.3.17]:58494 "EHLO
+	lhrrgout.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754669AbcBHPzv convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Feb 2016 10:55:51 -0500
+In-Reply-To: <3532826.pJr5R5Xa4c@wuerfel>
+Content-Language: en-US
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: Mika Westerberg <mika.westerberg@linux.intel.com>
-Cc: Mark Brown <broonie@kernel.org>, Daniel Mack <daniel@zonque.org>, Haojian Zhuang <haojian.zhuang@gmail.com>, Robert Jarzmik <robert.jarzmik@free.fr>, Jarkko Nikula <jarkko.nikula@linux.intel.com>, Bastien Nocera <bugzilla@hadess.net>, linux-spi <linux-spi@vger.kernel.org>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+To: Arnd Bergmann <arnd@arndb.de>, "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>
+Cc: "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, "Wangzhou (B)" <wangzhou1@hisilicon.com>, "liudongdong (C)" <liudongdong3@huawei.com>, Linuxarm <linuxarm@huawei.com>, qiujiang <qiujiang@huawei.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "Lorenzo.Pieralisi@arm.com" <Lorenzo.Pieralisi@arm.com>, "tn@semihalf.com" <tn@semihalf.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "xuwei (O)" <xuwei5@hisilicon.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "jcm@redhat.com" <jcm@redhat.com>, zhangjukuo <zhangjukuo@huawei.com>, "Liguozhu (Kenneth)" <liguozhu@hisilicon.com>
 
-On Mon, Feb 8, 2016 at 5:14 PM, Mika Westerberg
-<mika.westerberg@linux.intel.com> wrote:
-> It turns out that in Windows SPI drivers are responsible for handling ACPI
-> DeviceSelection field themselves.  Furthermore there has been separate
-> drivers for big core and atom SPI host controllers. For atom (including
-> Baytrail and Braswell) the driver starts DeviceSelection from 1 instead of 0
-> as expected by the Linux SPI core.
->
-> As an example Microsoft Surface 3 has touch screen connected to SPI bus
-> described in ACPI DSDT like this:
->
->     Scope (_SB.PCI0.SPI1)
->     {
->         Device (NTRG)
->         {
->             Name (_HID, "MSHW0037")  // _HID: Hardware ID
->             ...
->             Name (CRS1, ResourceTemplate ()
->             {
->                 SpiSerialBus (0x0001, // SPI DeviceSelection
->                     PolarityLow, FourWireMode, 0x10,
->                     ControllerInitiated, 0x007A1200, ClockPolarityLow,
->                     ClockPhaseFirst, "\\_SB.PCI0.SPI1",
->                     0x00, ResourceConsumer, ,
->                     )
->
-> This fails to enumerate because ACPI DeviceSelection of 1 is greater than
-> number of chip selects the driver supports [1].
->
-> This series adds a new hook to struct spi_master ->fw_translate_cs() that
-> allows a driver to translate the chip select number from firmware to the
-> numbering scheme expected by the Linux SPI core and implement that for both
-> Baytrail and Braswell.
->
-> In addition to that we add support for the second chip select found on
-> Braswell.
->
+> -----Original Message-----
+> From: Arnd Bergmann [mailto:arnd@arndb.de]
+> Sent: 08 February 2016 13:48
+> To: linux-arm-kernel@lists.infradead.org
+> Cc: Gabriele Paoloni; Guohanjun (Hanjun Guo); Wangzhou (B); liudongdong
+> (C); Linuxarm; qiujiang; bhelgaas@google.com;
+> Lorenzo.Pieralisi@arm.com; tn@semihalf.com; linux-pci@vger.kernel.org;
+> linux-kernel@vger.kernel.org; xuwei (O); linux-acpi@vger.kernel.org;
+> jcm@redhat.com; zhangjukuo; Liguozhu (Kenneth)
+> Subject: Re: [RFC PATCH v2 2/3] PCI: hisi: Make the HiSilicon PCIe host
+> controller ECAM compliant
+> 
+> On Monday 08 February 2016 12:41:03 Gabriele Paoloni wrote:
+> > From: gabriele paoloni <gabriele.paoloni@huawei.com>
+> >
+> > This patch modifies the current Hip05/Hip06 PCIe host controller
+> > driver to make it ECAM compliant. This is needed in preparation
+> > for the ACPI based driver to allow both DT and ACPI drivers to
+> > use the same BIOS (that configure the Designware iATUs).
+> >
+> > Signed-off-by: Gabriele Paoloni <gabriele.paoloni@huawei.com>
+> > Signed-off-by: Dongdong Liu <liudongdong3@huawei.com>
+> >
+> 
+> Doesn't this break backwards compatibility?
 
-Reviewed-by: Andy Shevchenko <andy.shevchenko@gmail.com>
+Well Hip05/Hip06 SoCs are used into evaluation boards
+For the Estuary project.
 
-> This is a second revision of the series. Changes to the v1:
->
->  - Added Jarkko's Reviewed-by
->  - Use runtime ACPI check in pxa2xx_spi_fw_translate_cs() to prevent build
->    breakage found by kbuild test robot.
->
-> [1] https://bugzilla.kernel.org/show_bug.cgi?id=104291
->
-> Mika Westerberg (4):
->   spi: Let drivers translate ACPI DeviceSelection to suitable Linux chip select
->   spi: pxa2xx: Translate ACPI DeviceSelection to Linux chip select on Baytrail
->   spi: pxa2xx: Move chip select control bits into lpss_config structure
->   spi: pxa2xx: Add support for both chip selects on Intel Braswell
->
->  drivers/spi/spi-pxa2xx.c   | 108 ++++++++++++++++++++++++++++++++++-----------
->  drivers/spi/spi.c          |  19 +++++++-
->  include/linux/pxa2xx_ssp.h |   1 +
->  include/linux/spi/spi.h    |   5 +++
->  4 files changed, 107 insertions(+), 26 deletions(-)
->
-> --
-> 2.7.0
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-spi" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+https://github.com/hisilicon/estuary
+
+As this new driver gets upstream we'll merge this new driver into estuary
+and release a new version of the firmware to support it.
+
+> 
+> I think you need to use a new compatible string in the firmware
+> if you change the register layout, and then change the driver
+> to support both the old and the new layout.
+
+You are right, for some reason in this patchset I missed the Documentation
+update that I posted in the previous one, i.e.:
+
+--- a/Documentation/devicetree/bindings/pci/hisilicon-pcie.txt
++++ b/Documentation/devicetree/bindings/pci/hisilicon-pcie.txt
+@@ -23,8 +23,8 @@ Optional properties:
+ Hip05 Example (note that Hip06 is the same except compatible):
+ 	pcie@0xb0080000 {
+ 		compatible = "hisilicon,hip05-pcie", "snps,dw-pcie";
+-		reg = <0 0xb0080000 0 0x10000>, <0x220 0x00000000 0 0x2000>;
+-		reg-names = "rc_dbi", "config";
++		reg = <0 0xb0080000 0 0x10000>, <0x220 0x00100000 0 0x0f00000>;
++		reg-names = "rc_dbi", "ecam-cfg";
+
+I will fix this in v3
+
+Thanks
+
+Gab 
 
 
-
--- 
-With Best Regards,
-Andy Shevchenko
+> 
+> 	Arnd
