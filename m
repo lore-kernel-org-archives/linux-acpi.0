@@ -1,99 +1,79 @@
-From: Gabriele Paoloni <gabriele.paoloni@huawei.com>
-Subject: RE: [RFC PATCH v2 1/3] PCI: hisi: re-architect Hip05/Hip06
- controllers driver to preapare for ACPI
-Date: Mon, 8 Feb 2016 16:51:19 +0000
-Message-ID: <EE11001F9E5DDD47B7634E2F8A612F2E1ECAD249@lhreml503-mbs>
-References: <1454935264-6076-1-git-send-email-gabriele.paoloni@huawei.com>
- <2409806.1aGBrN4l0X@wuerfel>
- <EE11001F9E5DDD47B7634E2F8A612F2E1ECACFDD@lhreml503-mbs>
- <3113837.YSNyDAf4HQ@wuerfel>
+From: Marc Zyngier <marc.zyngier@arm.com>
+Subject: Re: [PATCH v3 6/6] kvm: arm64: Add ACPI support for virt arch timer
+Date: Mon, 8 Feb 2016 17:10:00 +0000
+Message-ID: <56B8CBE8.7020305@arm.com>
+References: <1454358418-5157-1-git-send-email-fu.wei@linaro.org>
+ <1454358418-5157-7-git-send-email-fu.wei@linaro.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from lhrrgout.huawei.com ([194.213.3.17]:7055 "EHLO
-	lhrrgout.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752000AbcBHQva convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-acpi@vger.kernel.org>); Mon, 8 Feb 2016 11:51:30 -0500
-In-Reply-To: <3113837.YSNyDAf4HQ@wuerfel>
-Content-Language: en-US
-Sender: linux-acpi-owner@vger.kernel.org
+Content-Transfer-Encoding: 7bit
+Return-path: <kvmarm-bounces@lists.cs.columbia.edu>
+In-Reply-To: <1454358418-5157-7-git-send-email-fu.wei@linaro.org>
+List-Unsubscribe: <https://lists.cs.columbia.edu/mailman/options/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=unsubscribe>
+List-Archive: <https://lists.cs.columbia.edu/pipermail/kvmarm>
+List-Post: <mailto:kvmarm@lists.cs.columbia.edu>
+List-Help: <mailto:kvmarm-request@lists.cs.columbia.edu?subject=help>
+List-Subscribe: <https://lists.cs.columbia.edu/mailman/listinfo/kvmarm>,
+ <mailto:kvmarm-request@lists.cs.columbia.edu?subject=subscribe>
+Errors-To: kvmarm-bounces@lists.cs.columbia.edu
+Sender: kvmarm-bounces@lists.cs.columbia.edu
+To: fu.wei@linaro.org, rjw@rjwysocki.net, lenb@kernel.org, daniel.lezcano@linaro.org, tglx@linutronix.de, christoffer.dall@linaro.org, gleb@kernel.org, pbonzini@redhat.com, hanjun.guo@linaro.org, wei@redhat.com, a.spyridakis@virtualopensystems.com
+Cc: leo.duran@amd.com, al.stone@linaro.org, kvm@vger.kernel.org, linaro-acpi@lists.linaro.org, jcm@redhat.com, richardcochran@gmail.com, will.deacon@arm.com, linux-kernel@vger.kernel.org, davem@davemloft.net, linux-acpi@vger.kernel.org, wim@iguana.be, arnd@arndb.de, jeffrey.t.kirsher@intel.com, catalin.marinas@arm.com, graeme.gregory@linaro.org, robherring2@gmail.com, kvmarm@lists.cs.columbia.edu, linux-arm-kernel@lists.infradead.org
 List-Id: linux-acpi@vger.kernel.org
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: "linux-arm-kernel@lists.infradead.org" <linux-arm-kernel@lists.infradead.org>, "Guohanjun (Hanjun Guo)" <guohanjun@huawei.com>, "Wangzhou (B)" <wangzhou1@hisilicon.com>, "liudongdong (C)" <liudongdong3@huawei.com>, Linuxarm <linuxarm@huawei.com>, qiujiang <qiujiang@huawei.com>, "bhelgaas@google.com" <bhelgaas@google.com>, "Lorenzo.Pieralisi@arm.com" <Lorenzo.Pieralisi@arm.com>, "tn@semihalf.com" <tn@semihalf.com>, "linux-pci@vger.kernel.org" <linux-pci@vger.kernel.org>, "linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>, "xuwei (O)" <xuwei5@hisilicon.com>, "linux-acpi@vger.kernel.org" <linux-acpi@vger.kernel.org>, "jcm@redhat.com" <jcm@redhat.com>, zhangjukuo <zhangjukuo@huawei.com>, "Liguozhu (Kenneth)" <liguozhu@hisilicon.com>
 
-> -----Original Message-----
-> From: Arnd Bergmann [mailto:arnd@arndb.de]
-> Sent: 08 February 2016 16:33
-> To: Gabriele Paoloni
-> Cc: linux-arm-kernel@lists.infradead.org; Guohanjun (Hanjun Guo);
-> Wangzhou (B); liudongdong (C); Linuxarm; qiujiang; bhelgaas@google.com;
-> Lorenzo.Pieralisi@arm.com; tn@semihalf.com; linux-pci@vger.kernel.org;
-> linux-kernel@vger.kernel.org; xuwei (O); linux-acpi@vger.kernel.org;
-> jcm@redhat.com; zhangjukuo; Liguozhu (Kenneth)
-> Subject: Re: [RFC PATCH v2 1/3] PCI: hisi: re-architect Hip05/Hip06
-> controllers driver to preapare for ACPI
+On 01/02/16 20:26, fu.wei@linaro.org wrote:
+> From: Fu Wei <fu.wei@linaro.org>
 > 
-> On Monday 08 February 2016 16:06:54 Gabriele Paoloni wrote:
-> > >
-> > > On Monday 08 February 2016 12:41:02 Gabriele Paoloni wrote:
-> > > > +
-> > > > +/* HipXX PCIe host only supports 32-bit config access */
-> > > > +int hisi_pcie_common_cfg_read(void __iomem *reg_base, int where,
-> int
-> > > size,
-> > > > +                         u32 *val)
-> > > > +{
-> > > > +   u32 reg;
-> > > > +   u32 reg_val;
-> > > > +   void *walker = &reg_val;
-> > > > +
-> > > > +   walker += (where & 0x3);
-> > > > +   reg = where & ~0x3;
-> > > > +   reg_val = readl(reg_base + reg);
-> > > > +
-> > > > +   if (size == 1)
-> > > > +           *val = *(u8 __force *) walker;
-> > > > +   else if (size == 2)
-> > > > +           *val = *(u16 __force *) walker;
-> > > > +   else if (size == 4)
-> > > > +           *val = reg_val;
-> > > > +   else
-> > > > +           return PCIBIOS_BAD_REGISTER_NUMBER;
-> > > > +
-> > > > +   return PCIBIOS_SUCCESSFUL;
-> > > > +}
-> > >
-> > > Isn't this the same hack that Qualcomm are using?
-> >
-> > As far as I can see Qualcomm defines its own config access
-> > mechanism only for RC config read and also it seems they're
-> > having problems with reporting the device class...
-> >
-> > https://github.com/torvalds/linux/blob/master/drivers/pci/host/pcie-
-> qcom.c#L474
-> >
-> > Our problem is that our HW can only perform 32b rd/wr accesses
-> > So we can't use readw/readb/writew/writeb...
-> >
-> >
+> This patch adds ACPI/GTDT support for virt arch timer
+> using the API in GTDT driver.
 > 
-> Sorry, my mistake, I meant Cavium not Qualcomm.
-> See https://lkml.org/lkml/2016/2/5/689 for the patches.
-
-Well, looking at it Cavium seems quite different, 
-
-On read they need to trigger the retrieval of the
-config space info writing to the lower 32b of a 64b register,
-then they need to read data back on the upper 64b of the
-same register and adjust the content to remove the garbage...
-
-We just use 32b accesses and adjust grab the appropriate
-bytes depending on the read/write sizes...
-
-Thanks 
-
-Gab
-
+> Signed-off-by: Fu Wei <fu.wei@linaro.org>
+> ---
+>  virt/kvm/arm/arch_timer.c | 8 ++++++++
+>  1 file changed, 8 insertions(+)
 > 
-> 	Arnd
+> diff --git a/virt/kvm/arm/arch_timer.c b/virt/kvm/arm/arch_timer.c
+> index 0a279d3..4077347 100644
+> --- a/virt/kvm/arm/arch_timer.c
+> +++ b/virt/kvm/arm/arch_timer.c
+> @@ -385,6 +385,9 @@ static int kvm_timer_get_ppi(unsigned int *ppi)
+>  {
+>  	struct device_node *np;
+>  	int ret = -EINVAL;
+> +#ifdef CONFIG_ACPI_GTDT
+> +	struct arch_timer_data data;
+> +#endif
+>  
+>  	np = of_find_matching_node(NULL, arch_timer_of_match);
+>  	if (!np) {
+> @@ -397,6 +400,11 @@ static int kvm_timer_get_ppi(unsigned int *ppi)
+>  	of_node_put(np);
+>  
+>  skip_of:
+> +#ifdef CONFIG_ACPI_GTDT
+> +	if (!*ppi && !gtdt_arch_timer_data_init(NULL, &data))
+> +		*ppi = data.virt_ppi;
+> +#endif
+> +
+>  	if (*ppi)
+>  		return 0;
+>  
+> 
+
+As I already pointed out in another thread hacking some KVM ACPI stuff,
+this is the wrong approach.
+
+We should have a *common* accessor in the timer code that exports the
+relevant information, whatever the firmware "du jour" is.
+
+See Julien's series, which seems to address the issue in a much more
+convincing way:
+
+https://lists.cs.columbia.edu/pipermail/kvmarm/2016-February/018531.html
+
+Thanks,
+
+	M.
+-- 
+Jazz is not dead. It just smells funny...
