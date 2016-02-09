@@ -1,194 +1,93 @@
-From: Bjorn Helgaas <bhelgaas@google.com>
-Subject: [PATCH] Revert 991de2e59090 ("PCI,
- x86: Implement pcibios_alloc_irq() and pcibios_free_irq()")
-Date: Tue, 09 Feb 2016 11:58:09 -0600
-Message-ID: <20160209175809.23549.41255.stgit@bhelgaas-glaptop2.roam.corp.google.com>
-References: <20160209175155.23549.35323.stgit@bhelgaas-glaptop2.roam.corp.google.com>
+From: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+Subject: Re: [PATCH V4 11/23] pci, acpi: Move ACPI host bridge device
+ companion assignment to core code.
+Date: Tue, 9 Feb 2016 18:02:27 +0000
+Message-ID: <20160209180227.GC22868@red-moon>
+References: <1454606941-9523-1-git-send-email-tn@semihalf.com>
+ <1454606941-9523-12-git-send-email-tn@semihalf.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Return-path: <linux-acpi-owner@vger.kernel.org>
-Received: from mail.kernel.org ([198.145.29.136]:51735 "EHLO mail.kernel.org"
+Received: from foss.arm.com ([217.140.101.70]:42325 "EHLO foss.arm.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932140AbcBIR6N (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
-	Tue, 9 Feb 2016 12:58:13 -0500
-In-Reply-To: <20160209175155.23549.35323.stgit@bhelgaas-glaptop2.roam.corp.google.com>
+	id S1752854AbcBISAa (ORCPT <rfc822;linux-acpi@vger.kernel.org>);
+	Tue, 9 Feb 2016 13:00:30 -0500
+Content-Disposition: inline
+In-Reply-To: <1454606941-9523-12-git-send-email-tn@semihalf.com>
 Sender: linux-acpi-owner@vger.kernel.org
 List-Id: linux-acpi@vger.kernel.org
-To: linux-pci@vger.kernel.org
-Cc: =?utf-8?b?0J7Qu9C10LM=?= =?utf-8?b?0JzQvtGA0L7Qtw==?= <oleg.moroz@mcc.vniiem.ru>, "Rafael J. Wysocki" <rjw@rjwysocki.net>, linux-kernel@vger.kernel.org, Sunjin Yang <fan4326@gmail.com>, linux-acpi@vger.kernel.org, Thomas Gleixner <tglx@linutronix.de>, Yinghai Lu <yinghai@kernel.org>, Jiang Liu <jiang.liu@linux.intel.com>
+To: Tomasz Nowicki <tn@semihalf.com>
+Cc: bhelgaas@google.com, arnd@arndb.de, will.deacon@arm.com, catalin.marinas@arm.com, rjw@rjwysocki.net, hanjun.guo@linaro.org, okaya@codeaurora.org, jiang.liu@linux.intel.com, Stefano.Stabellini@eu.citrix.com, robert.richter@caviumnetworks.com, mw@semihalf.com, Liviu.Dudau@arm.com, ddaney@caviumnetworks.com, wangyijing@huawei.com, Suravee.Suthikulpanit@amd.com, msalter@redhat.com, linux-pci@vger.kernel.org, linux-arm-kernel@lists.infradead.org, linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org, linaro-acpi@lists.linaro.org, jchandra@broadcom.com, jcm@redhat.com
 
-991de2e59090 appeared in v4.3.  =D0=9E=D0=BB=D0=B5=D0=B3 reported that =
-the Elcus-1553 TA1-PCI
-driver worked in v4.2 but not v4.3 and bisected it to 991de2e59090.  Su=
-njin
-reported that the RocketRAID 272x driver worked in v4.2 but not v4.3.  =
-In
-both cases, booting with "pci=3Droutirq" is a workaround.
+On Thu, Feb 04, 2016 at 06:28:49PM +0100, Tomasz Nowicki wrote:
+> Currently we have two platforms (x86 & ia64) capable of PCI ACPI host
+> bridge initialization. They both use sysdata to pass down parent
+> device reference and both rely on NULL parent in pci_create_root_bus()
+> to validate sysdata content.
+> 
+> It looks hacky and prevents us from getting some firmware specific
+> info for PCI host controller e.g. PCI bus domain number.
+> However, we overcome that blocker by passing down parent
+> device via pci_create_root_bus parameter (as the ACPI device type)
+> and using ACPI_COMPANION_SET in core code for ACPI boot method.
+> ACPI_COMPANION_SET is safe to run for all cases DT, ACPI and DT&ACPI.
+> 
+> Suggested-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
+> Signed-off-by: Tomasz Nowicki <tn@semihalf.com>
+> Tested-by: Duc Dang <dhdang@apm.com>
+> Tested-by: Dongdong Liu <liudongdong3@huawei.com>
+> Tested-by: Hanjun Guo <hanjun.guo@linaro.org>
+> Tested-by: Graeme Gregory <graeme.gregory@linaro.org>
+> Tested-by: Sinan Kaya <okaya@codeaurora.org>
+> ---
+>  drivers/acpi/pci_root.c | 5 ++++-
+>  drivers/pci/probe.c     | 2 ++
+>  2 files changed, 6 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/acpi/pci_root.c b/drivers/acpi/pci_root.c
+> index ae3fe4e..a65c8c2 100644
+> --- a/drivers/acpi/pci_root.c
+> +++ b/drivers/acpi/pci_root.c
+> @@ -846,7 +846,10 @@ struct pci_bus *acpi_pci_root_create(struct acpi_pci_root *root,
+>  
+>  	pci_acpi_root_add_resources(info);
+>  	pci_add_resource(&info->resources, &root->secondary);
+> -	bus = pci_create_root_bus(NULL, busnum, ops->pci_ops,
+> +
+> +	/* Root bridge device needs to be sure of parent ACPI type */
 
-I think the problem is that after 991de2e59090, we no longer call
-pcibios_enable_irq() for upstream bridges.  Prior to 991de2e59090, when=
- a
-driver called pci_enable_device(), we recursively called
-pcibios_enable_irq() for upstream bridges via pci_enable_bridge().
+You can improve the comment.
 
-After 991de2e59090, we call pcibios_enable_irq() from pci_device_probe(=
-)
-instead of the pci_enable_device() path, which does *not* call
-pcibios_enable_irq() for upstream bridges.
+"pci_create_root_bus() needs to detect the parent device type,
+so initialize its companion data accordingly".
 
-The purpose of 991de2e59090 was to help support IOAPIC hotplug, so
-reverting it likely breaks that.
+> +	ACPI_COMPANION_SET(&device->dev, device);
+> +	bus = pci_create_root_bus(&device->dev, busnum, ops->pci_ops,
+>  				  sysdata, &info->resources);
+>  	if (!bus)
+>  		goto out_release_info;
+> diff --git a/drivers/pci/probe.c b/drivers/pci/probe.c
+> index 6d7ab9b..81dd3a2 100644
+> --- a/drivers/pci/probe.c
+> +++ b/drivers/pci/probe.c
+> @@ -2100,6 +2100,8 @@ struct pci_bus *pci_create_root_bus(struct device *parent, int bus,
+>  	bridge->dev.parent = parent;
+>  	bridge->dev.release = pci_release_host_bridge_dev;
+>  	dev_set_name(&bridge->dev, "pci%04x:%02x", pci_domain_nr(b), bus);
+> +	ACPI_COMPANION_SET(&bridge->dev,
+> +			   parent ? to_acpi_device_node(parent->fwnode) : NULL);
+if (parent)
+	ACPI_COMPANION_SET(&bridge->dev, ACPI_COMPANION(parent));
 
-Note: this also reverts 8affb487d4a4 ("x86/PCI: Don't alloc pcibios-irq
-when MSI is enabled").
+?
 
-Link: https://bugzilla.kernel.org/show_bug.cgi?id=3D111211
-=46ixes: 991de2e59090 ("PCI, x86: Implement pcibios_alloc_irq() and pci=
-bios_free_irq()")
-Reported-by: =D0=9E=D0=BB=D0=B5=D0=B3 =D0=9C=D0=BE=D1=80=D0=BE=D0=B7 <o=
-leg.moroz@mcc.vniiem.ru>
-Reported-by: Sunjin Yang <fan4326@gmail.com>
-Not-yet-signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
----
- arch/x86/include/asm/pci_x86.h |    2 ++
- arch/x86/pci/common.c          |   27 +++++++++++----------------
- arch/x86/pci/intel_mid_pci.c   |    7 ++-----
- arch/x86/pci/irq.c             |   15 ++++++++++++++-
- drivers/acpi/pci_irq.c         |    8 ++++++++
- 5 files changed, 37 insertions(+), 22 deletions(-)
+It seems fine to me, hopefully Rafael can have a look to countercheck.
 
-diff --git a/arch/x86/include/asm/pci_x86.h b/arch/x86/include/asm/pci_=
-x86.h
-index 46873fb..d08eacd2 100644
---- a/arch/x86/include/asm/pci_x86.h
-+++ b/arch/x86/include/asm/pci_x86.h
-@@ -93,6 +93,8 @@ extern raw_spinlock_t pci_config_lock;
- extern int (*pcibios_enable_irq)(struct pci_dev *dev);
- extern void (*pcibios_disable_irq)(struct pci_dev *dev);
-=20
-+extern bool mp_should_keep_irq(struct device *dev);
-+
- struct pci_raw_ops {
- 	int (*read)(unsigned int domain, unsigned int bus, unsigned int devfn=
-,
- 						int reg, int len, u32 *val);
-diff --git a/arch/x86/pci/common.c b/arch/x86/pci/common.c
-index 2879efc..9df5ab9 100644
---- a/arch/x86/pci/common.c
-+++ b/arch/x86/pci/common.c
-@@ -711,28 +711,23 @@ int pcibios_add_device(struct pci_dev *dev)
- 	return 0;
- }
-=20
--int pcibios_alloc_irq(struct pci_dev *dev)
-+int pcibios_enable_device(struct pci_dev *dev, int mask)
- {
--	/*
--	 * If the PCI device was already claimed by core code and has
--	 * MSI enabled, probing of the pcibios IRQ will overwrite
--	 * dev->irq.  So bail out if MSI is already enabled.
--	 */
--	if (pci_dev_msi_enabled(dev))
--		return -EBUSY;
-+	int err;
-=20
--	return pcibios_enable_irq(dev);
--}
-+	if ((err =3D pci_enable_resources(dev, mask)) < 0)
-+		return err;
-=20
--void pcibios_free_irq(struct pci_dev *dev)
--{
--	if (pcibios_disable_irq)
--		pcibios_disable_irq(dev);
-+	if (!pci_dev_msi_enabled(dev))
-+		return pcibios_enable_irq(dev);
-+
-+	return 0;
- }
-=20
--int pcibios_enable_device(struct pci_dev *dev, int mask)
-+void pcibios_disable_device (struct pci_dev *dev)
- {
--	return pci_enable_resources(dev, mask);
-+	if (!pci_dev_msi_enabled(dev) && pcibios_disable_irq)
-+		pcibios_disable_irq(dev);
- }
-=20
- int pci_ext_cfg_avail(void)
-diff --git a/arch/x86/pci/intel_mid_pci.c b/arch/x86/pci/intel_mid_pci.=
-c
-index 0d24e7c..354180e 100644
---- a/arch/x86/pci/intel_mid_pci.c
-+++ b/arch/x86/pci/intel_mid_pci.c
-@@ -256,13 +256,10 @@ static int intel_mid_pci_irq_enable(struct pci_de=
-v *dev)
-=20
- static void intel_mid_pci_irq_disable(struct pci_dev *dev)
- {
--	if (pci_has_managed_irq(dev)) {
-+	if (!mp_should_keep_irq(&dev->dev) && dev->irq_managed &&
-+	    dev->irq > 0) {
- 		mp_unmap_irq(dev->irq);
- 		dev->irq_managed =3D 0;
--		/*
--		 * Don't reset dev->irq here, otherwise
--		 * intel_mid_pci_irq_enable() will fail on next call.
--		 */
- 	}
- }
-=20
-diff --git a/arch/x86/pci/irq.c b/arch/x86/pci/irq.c
-index 32e7034..6c96cd3 100644
---- a/arch/x86/pci/irq.c
-+++ b/arch/x86/pci/irq.c
-@@ -1256,9 +1256,22 @@ static int pirq_enable_irq(struct pci_dev *dev)
- 	return 0;
- }
-=20
-+bool mp_should_keep_irq(struct device *dev)
-+{
-+	if (dev->power.is_prepared)
-+		return true;
-+#ifdef CONFIG_PM
-+	if (dev->power.runtime_status =3D=3D RPM_SUSPENDING)
-+		return true;
-+#endif
-+
-+	return false;
-+}
-+
- static void pirq_disable_irq(struct pci_dev *dev)
- {
--	if (io_apic_assign_pci_irqs && pci_has_managed_irq(dev)) {
-+	if (io_apic_assign_pci_irqs && !mp_should_keep_irq(&dev->dev) &&
-+	    dev->irq_managed && dev->irq) {
- 		mp_unmap_irq(dev->irq);
- 		pci_reset_managed_irq(dev);
- 	}
-diff --git a/drivers/acpi/pci_irq.c b/drivers/acpi/pci_irq.c
-index d30184c..20bce3a 100644
---- a/drivers/acpi/pci_irq.c
-+++ b/drivers/acpi/pci_irq.c
-@@ -477,6 +477,14 @@ void acpi_pci_irq_disable(struct pci_dev *dev)
- 	if (!pin || !pci_has_managed_irq(dev))
- 		return;
-=20
-+	/* Keep IOAPIC pin configuration when suspending */
-+	if (dev->dev.power.is_prepared)
-+		return;
-+#ifdef CONFIG_PM
-+	if (dev->dev.power.runtime_status =3D=3D RPM_SUSPENDING)
-+		return;
-+#endif
-+
- 	entry =3D acpi_pci_irq_lookup(dev, pin);
- 	if (!entry)
- 		return;
+Reviewed-by: Lorenzo Pieralisi <lorenzo.pieralisi@arm.com>
 
---
-To unsubscribe from this list: send the line "unsubscribe linux-acpi" i=
-n
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>  	error = pcibios_root_bridge_prepare(bridge);
+>  	if (error) {
+>  		kfree(bridge);
+> -- 
+> 1.9.1
+> 
